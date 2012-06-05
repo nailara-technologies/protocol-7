@@ -1,0 +1,39 @@
+# >:]
+
+# name       = agent.init_code
+
+use IPC::Open2;
+
+# &{$code{'agent.check.core'}};
+
+&{ $code{'base.list.init'} }(
+    {
+        'name'         => 'agents',
+        'key_ref'      => \$data{'agent'}{'id'},
+        'max_elements' => $data{'limit'}{'max'}{'agents'}
+    }
+);
+
+$data{'list'}{'agents'} = {
+    'var'   => $data{'agent'},
+    'key'   => 'id',
+    'mask'  => 'key:id name status',
+    'descr' => 'running agents'
+};
+
+$data{'system'}{'status'}  = 'booting';
+$data{'network'}{'status'} = 'offline';
+
+my $agent_list = $data{'agent'}{'agents'};
+&{ $code{'base.log'} }(1,': parsing agent config..');
+if ( $agent_list ne '' ) {
+    my $agent_count = 0;
+    foreach my $agent_name ( split( /\s+|\t+/, $agent_list ) ) {
+        &{ $code{'agent.add_agent'} }($agent_name);
+        $agent_count++;
+    }
+    &{ $code{'base.log'} }(1,": : found $agent_count agents");
+}
+else { &{ $code{'base.log'} }(1,': : no agents to run'); }
+
+return 0;

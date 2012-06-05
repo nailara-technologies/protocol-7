@@ -1,0 +1,11 @@
+# >:]
+
+# name       = base.handler.output
+# descr      = call ouput handler
+
+$_[0]->w->data;
+
+foreach my $watcher (Event->all_idle())
+{
+    print $watcher->desc."\n";
+}

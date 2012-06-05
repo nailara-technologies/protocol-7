@@ -1,0 +1,52 @@
+# >:]
+
+# name       = base.list
+
+my ( $var, $key, @_keys ) = (@_);
+my $out_data = "";
+my %ALIAS    = {};
+my %LENGTH   = {};
+my $spacing  = 4;
+foreach my $genit ( 0 .. 1 ) {
+    foreach my $_key (@_keys) {
+        if ( $_key =~ s/^([^\:]+)\:// ) { $ALIAS{$_key} = $1; }
+        if ($genit) {
+            my $len = "A" . int( $LENGTH{$_key} + $spacing );
+            $out_data .= pack( $len, "[" . $_key . "]" );
+        }
+        else { $LENGTH{$_key} = length($_key) + 2; }
+    }
+    if ($genit) { $out_data .= "\n" }
+    foreach my $new_key ( keys( %{ ${$var}{$key} } ) ) {
+        foreach my $__key (@_keys) {
+            my $len = "A" . int( $LENGTH{$__key} + $spacing );
+            if ( $genit and defined $ALIAS{$__key} ) {
+                $out_data .= pack( $len, $new_key );
+            }
+            foreach my $_new_key ( keys( %{ ${$var}{$key}{$new_key} } ) ) {
+		my $_val;
+                if ( not defined $ALIAS{$__key} and $_new_key eq $__key ) {
+                    $_val = ${$var}{$key}{$new_key}{$_new_key};
+                    if ($genit) { $out_data .= pack( $len, $_val ) }
+                    else {
+                        if ( length($_val) > $LENGTH{$__key} ) {
+                            $LENGTH{$__key} = length($_val);
+                        }
+                    }
+                }
+                elsif ( defined $ALIAS{$__key} ) {
+                    if ( length($_val) > $LENGTH{$__key} ) {
+                        $LENGTH{$__key} = length($_val);
+                    }
+                    if ( length( $ALIAS{$__key} ) + 2 > $LENGTH{$__key} ) {
+                        $LENGTH{$__key} = length( $ALIAS{$__key} ) + 2;
+                    }
+                }
+            }
+        }
+        if ($genit) { $out_data .= "\n" }
+    }
+}
+$out_data =~ s/\n\s+\n+/\n/g;
+$out_data =~ s/\s+\n/\n/g;
+return $out_data;

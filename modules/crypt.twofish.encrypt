@@ -1,0 +1,21 @@
+# >:]
+
+# name       = crypt.twofish.encrypt
+
+print STDERR " <encrypt> $_[2]\n";
+
+if ( !$_[2] ) {
+    &{ $code{'net.nack'} } ( 'no data supplied', $_[1] );
+    return -1;
+}
+if ( length( $_[2] ) != 16 ) {
+    &{ $code{'net.nack'} } ( 'input must be 16 bytes', $_[1] );
+    return -1;
+}
+if ( defined $data{'twofish'}{ $_[0] }{'key'} ) {
+    my $cipher = Crypt::Twofish->new( $data{'twofish'}{ $_[0] }{'key'} );
+    my $output = $cipher->encrypt( $_[2] );
+    &{ $code{'net.ack'} } ( unpack( "H*", $output ), $_[1] );
+    return 0;
+}
+else { &{ $code{'net.nack'} } ( 'you haven\'t set a key', $_[1] ); return -1 }

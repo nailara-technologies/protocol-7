@@ -1,0 +1,20 @@
+# >:]
+
+# name       = base.process_init_code
+
+&{ $code{'base.log'} } ( 1, ': processing code..');
+
+my $ok          = 1;
+
+foreach my $code_line (@_) {
+    $code_line =~ s/&cmd\.([^\(]+)/&{$code{'base.check_alias'}}($1)/eg;
+    if ( $code_line ne '' ) { eval($code_line) }
+    if ($@) {
+        $@ =~ s/ at .+\n//;
+        &{ $code{'base.log'} }
+          (0,"error while executing '$code_line' [$@]");
+        $ok = 0;
+    }
+}
+
+return $ok;

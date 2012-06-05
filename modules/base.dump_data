@@ -1,0 +1,34 @@
+my $arg_3 = $_[3];
+
+if ( defined $_[3] and defined $_[0] ) {
+    $_[5] = $_[2];
+    $_[6] = $_[3];
+    $arg_3 = 'data';
+}
+if ( not defined $_[3] ) { $arg_3 = 'data' }
+if ( not defined $_[5] ) { $_[5] = '' }
+if ( not defined $_[6] ) { $_[6] = '' }
+my $out = '';
+foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
+    my $_val = ${$arg_3}{$_key};
+    $_val =~ s/\n/\\n/g;
+    if ( $_[4] ne '' ) { $_key = "$_[4].$_key" }
+    my $__key = $_key;
+    if ( $_[5] ne '' ) { $__key =~ s/$_[5]/$_[6]/ge }
+    if ( ref($_val) ne 'HASH' ) {
+
+        if ( $_[2] eq ''
+            or $_key =~ /^\^/ and $_key =~ /^\Q^$_[2]/
+            or $_key =~ /\$$/ and $_key =~ /\Q$_[2]\$$/
+            or $_key =~ /$_[2]/ )
+        {
+            $out .= "$__key = $_val\n";
+        }
+    }
+    else {
+        $out .= &{ $code{'base.dump_data'} }
+          ( undef, undef, $_[2], $_val, $_key, $_[5], $_[6] );
+    }
+}
+if ( not defined $_[0] and not defined $_[1] ) { return $out; }
+else { &{ $code{'net.raw_out'} } ( $out, $_[1] ); }

@@ -1,0 +1,32 @@
+# >:]
+
+# name       = base.cmd.chroot
+# args       = $call { args }
+# return     = $reply { mode data }
+# descr      = change root directory
+
+my $new_root_dir;
+
+$new_root_dir = $$call{'args'};
+
+if ( -d $new_root_dir ) {
+    if ( -r $new_root_dir ) {
+        if ( chroot("/$new_root_dir") ) {
+            $reply =
+              { 'mode' => 'nack', 'data' => "chrooted to '$new_root_dir'" };
+        }
+        else { $reply = { 'mode' => 'nack', 'data' => lc($!) } }
+    }
+    else { $reply = { 'mode' => 'nack', 'data' => 'directory not readable' } }
+}
+else { $reply = { 'mode' => 'nack', 'data' => 'no such directory' } }
+
+if ( ${$reply}{'mode'} eq 'nack' ) {
+    &{ $code{'base.log'} }
+      ( 0, "chroot to '$new_root_dir': " . ${$reply}{'data'} );
+}
+else {
+    &{ $code{'base.log'} } ( 1,  ${$reply}{'data'} );
+}
+
+

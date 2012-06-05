@@ -1,0 +1,29 @@
+
+	.:[ nailara auth test client ]:.
+
+# modules.load            =       auth conf file log net tcp crypt
+
+modules.load = auth conf log net io.ip tcp proto.nailara session crypt filter file
+
+
+[load_config_file:defaults]
+# system.internal_verbosity	=	3
+# system.verbosity		=	3
+
+net.daemon_name			=	client
+
+[load_modules:<modules.load>]
+[init_modules]
+
+# my.sock = [tcp.client:<net.local.addr>,<net.local.port>]
+
+my.sock = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+
+[auth.rsa.client:<my.sock>]
+
+#[net.client_loop:<my.sock>]
+
+# start event loop
+[base.event.loop]
+
+

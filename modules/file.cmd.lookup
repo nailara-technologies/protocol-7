@@ -1,0 +1,36 @@
+# >:]
+
+# name    = file.cmd_lookup
+# descr   = retrieve meta header for a given file id
+
+my $id      = $$call{'session_id'};
+my $file_id = $$call{'args'};
+
+&{ $code{'base.log'} }( 2, "[$id] global file id lookup: '$$call{'args'}'" );
+if ( defined $data{'file'}{'id'}{$file_id}
+    and $data{'file'}{'id'}{$file_id} > 0 )
+{
+    &{ $code{'base.log'} }( 2,
+        "[$id] match. internal id = " . $data{'file'}{'id'}{$file_id} );
+
+    $reply = {
+        'mode' => 'raw',
+        'data' => &{ $code{'base.dump_data'} }(
+            undef, undef,
+            'file.index.' . $data{'file'}{'id'}{$file_id} . '.data.'
+        )
+    };
+
+    $$reply{'data'} =~ s/^file\.index.\d+\.data\.//gm;
+
+    #&{ $code{'base.dump_data'} }(
+    #    $id, $_[1],
+    #    'file.index.' . $data{'file'}{'id'}{ $$call{'args'} } . '.data.', ''
+    #
+    #);
+} else {
+    &{ $code{'base.log'} }( 2, "[$id] requested file not found" );
+    $$reply{'mode'} = 'nack';
+    $$reply{'data'} = 'file not found';
+}
+

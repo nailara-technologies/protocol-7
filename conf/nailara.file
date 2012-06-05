@@ -1,0 +1,41 @@
+
+	.:[ nailara file ]:.
+
+
+[load_config_file:defaults]
+
+net.daemon_name		= file
+auth.core.pass		= l0g
+
+limit.max.sessions      = 23
+access.cmd.usr.*        = help ping text *
+
+
+file.dir		= /data/files/
+file.exclude_files	= ^\.|~$|^DEADJOE$
+file.buffer.size	= 42523
+
+modules.load = auth conf log net io.ip tcp proto.nailara session crypt.random file
+
+
+[load_modules:<modules.load>]
+[init_modules]
+
+#	[chroot:<file.dir>]
+
+my.core.name = core
+
+access.cmd.usr.core      =   ..*.** ** *
+
+[set_privs:nailara]
+
+[file.index.scan]
+
+# core.handle = [auth.agent.client:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>]
+core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
+
+[base.session.init:<core.handle>,'nailara','client','core']
+
+# [base.daemonize]
+
+[base.event.loop]

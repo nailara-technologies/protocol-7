@@ -1,0 +1,7 @@
+# >:]
+
+# name       = file.ls_dir
+
+my $listDIR;
+if ( opendir( $listDIR, $_[0] ) ) { return readdir($listDIR) }
+else { &{ $code{'base.log'} } ( 0, "can not open directory '$_[0]'") }

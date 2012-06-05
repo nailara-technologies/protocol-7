@@ -1,0 +1,12 @@
+# >:]
+
+# name   = filter.cmd_add_filter
+# descr  = add a filter to a chain
+
+
+if ( my $chain_id = &{ $code{'filter.add_filter'} }
+    ( split ( / /, $$call{'args'} ) ) )
+{
+    $reply = { 'mode' => 'ack', 'data' => "filter added: id=$chain_id" };
+}
+else { $$reply{'data'} = 'failed to add filter' }

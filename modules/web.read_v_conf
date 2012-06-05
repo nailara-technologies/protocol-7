@@ -1,0 +1,12 @@
+if ( &{ $code{'file.status'} } ( $_[0] ) and $data{'file'}{'stat'}{'size'} > 0 )
+{
+    if ( $_[0] =~ /\/([^\/]+)$/ ) {
+        my $vhost = $1;
+        if ( $data{'system'}{'verbosity'} > 0 ) {
+            &{ $code{'base.log'} }
+              ( 1, 'reading vhost config for \'' . $vhost . '\'' );
+        }
+        &{ $code{'base.extract_values'} }
+          ( "{'web'}{'vhost'}{'$vhost'}", &{ $code{'base.get_file'} } ( $_[0] ) );
+    }
+}

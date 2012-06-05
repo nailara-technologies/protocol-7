@@ -1,0 +1,11 @@
+# >:]
+
+# name    = base.cmd.whoami
+# descr   = return current user name and session id
+
+return {
+    'mode' => 'ack',
+    'data' => $data{'session'}{ ${ $_[0] }{'session_id'} }{'user'} . ' '
+    . ${ $_[0] }{'session_id'}
+  }
+

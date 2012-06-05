@@ -1,0 +1,48 @@
+# >:]
+
+# name       = auth.agent.client
+
+
+my ( $filehandle, $agent, $keyid ) = (@_);
+
+if ( %key and defined $key{'agent'}{'session_key'}
+    and $key{'agent'}{'session_key'} ne '' )
+{
+    my $smiley;
+    if ( sysread( $filehandle, $smiley, 4 ) ) {
+        if ( $smiley =~ />:\]\n/ ) { &{ $code{'base.log'} } ( 1, "[·] smiley ok :)") }
+        else {
+            &{ $code{'base.log'} } ( 0, "[#] some strange backendserver found!");
+            exit(1);
+        }
+    }
+
+    &{ $code{'net.out'} } ( $filehandle, "select agent\n" );
+
+    my $answer = readline($filehandle);
+
+    &{ $code{'net.out'} }
+      ( $filehandle, $agent . ' ' . $key{'agent'}{'session_key'} . "\n" );
+    delete $key{'agent'}{'session_key'};
+
+    if ( read( $filehandle, $answer, 8 ) ) {
+
+        if ( $answer =~ /YEAH/ ) {
+            &{ $code{'base.log'} } ( 1, "[*] successfully authenticated :)");
+            return $filehandle;
+        }
+        elsif ( $answer =~ /GRRR/ ) {
+            &{ $code{'base.log'} } ( 0, "[#] access denied :(");
+            return undef;
+        }
+        else {
+            &{ $code{'base.log'} } ( 0, "[#] protocol error :(");
+            return undef;
+        }
+    }
+}
+else {
+    &{ $code{'base.log'} }
+      (0,"auth.agent.client: session_key not defined. authentication failed.");
+    return undef;
+}

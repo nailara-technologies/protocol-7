@@ -1,0 +1,37 @@
+# >:]
+
+# name       = base.set_privs
+
+    if ( $_[0] eq '' ) {
+        &{ $code{'base.log'} }( 0,
+            'can not change priviledges [no username supplied]' );
+        return -1;
+    } else {
+
+        my ( $name, $foo, $uid, $gid ) = getpwnam( $_[0] );
+
+        if (   $) == "$gid $gid"
+            && $( == $gid
+            && $> == $uid
+            && $< == $uid )
+        {
+            &{ $code{'base.log'} }( 1,
+                "already am '$_[0]' [ set_privs : nothing to do ]" );
+        } elsif ($<) {
+            &{ $code{'base.log'} }( 0,
+                "can not change priviledges to '$_[0]' [i am not root]" );
+            return -1;
+        } else {
+            if ( $name ne $_[0] ) {
+                &{ $code{'base.log'} }( 0,
+                    "can not change priviledges to '$_[0]' [no such user]" );
+                return -1;
+            } else {
+                $) = "$gid $gid";
+                $( = $gid;
+                $> = $uid;
+                $< = $uid;
+                &{ $code{'base.log'} }( 1, "changed priviledges to '$_[0]'" );
+            }
+        }
+    }

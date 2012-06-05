@@ -1,0 +1,61 @@
+# >:]
+
+# name       = base.session.init_state
+
+if ( not defined $data{'session'}{ $_[0] } ) {
+    &{ $code{'base.log'} } ( 0, "init_state: no such session '$_[0]'");
+    return 1;
+}
+if (
+    not defined $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}
+    { $_[1] } )
+{
+    &{ $code{'base.log'} } ( 0, "init_state: no such state '$_[1]'");
+    return 1;
+}
+
+my $mode = $data{'handle'}{ $data{'session'}{ $_[0] }{'handle'} }{'mode'};
+
+$data{'session'}{ $_[0] }{'input'}{'handler'} =
+  $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}{ $_[1] }{$mode}
+  {'handler'};
+
+foreach my $mode ( keys( %{ $data{'session'}{ $_[0] }{'state'}{ $_[1] } } ) ) {
+
+    print "setting up mode '$mode' id '$_[0]' state '$_[1]'\n";
+
+    if (
+        not defined &{ $code{ $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}
+        {'handler'} } } )
+    {
+        &{ $code{'base.log'} }
+          ( 0,"[$_[0]] init_state: handler not defined (mode: '$mode' name: '"
+          . $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}{'handler'}
+          . "')" );
+        return 1;
+    }
+
+    print
+      "FOO: $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}{'handler'}\n";
+
+    &{ $code{'base.event.add_io'} } (
+      {
+          'fd'      => $data{'session'}{ $_[0] }{'handle'},
+          'handler' =>
+          $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{ $_[1] }{$mode}
+          {'handler'},
+          'data' => {
+              'session_id' => $_[0],
+              'state'      => $_[1],
+              'mode'       => $mode,
+              'timeout'    => 0,
+              'repeat'     => 1
+          },
+          'desc' => "[$_[0]] "
+          . $data{'session'}{ $_[0] }{'link'} . " "
+          . $mode
+      }
+    );
+}
+
+return 0;

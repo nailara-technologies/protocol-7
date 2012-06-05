@@ -1,0 +1,39 @@
+# >:]
+
+# name    = base.cmd.slay
+# descr   = shutdown all sessions with matching user name [optional kill message]
+# comment = apparently leaves some kind of zombie data while it shouldn't - check that! => list sessions 
+
+if($$call{'args'} =~ /^(\w+)\s?(.*)$/)
+{
+    my $usr    = $1;
+    my $msg    = $2 || 'your session has been killed!';
+    my $killed = 0;
+
+    if($usr=~/\s/){ ($usr,$msg)=split(/\s/,$usr,2) }
+    
+    if ( defined( $data{'user'}{$usr} ) ) {
+
+#	&{$code{'base.log'}(0,"slaying user '$usr'..")};
+
+	foreach my $sid (%{$data{'session'}})
+	{
+		if($data{'session'}{$sid}{'user'} eq $usr)
+		{
+			$data{'session'}{$sid}{'buffer'}{'output'} .= "BYE $msg\n";
+			$data{'session'}{$sid}{'shutdown'} = 1;
+			&{$code{'base.log'}(0,"slayed session '$sid'")};
+			$killed++;
+		}
+	}
+
+	my $s=''; if ($killed>1){ $s='s' }
+
+	return { 'mode' => 'ack', 'data' => "killed $killed session$s" };
+    }
+    else {
+	return { 'mode' => 'nack', 'data' => "user '$usr' not online" };
+    }
+}
+else { $$reply{'data'} = 'invalid username' }
+

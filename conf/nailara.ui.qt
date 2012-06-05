@@ -1,0 +1,19 @@
+
+[load_config_file:defaults]
+
+[load_config_file:desktop]
+
+
+modules.load    =   auth conf log net tcp io.ip filter crypt session proto.nailara qt
+net.daemon_name     =   test
+auth.core.pass      =   test
+access.cmd.usr.*        =   *
+
+[load_modules:<modules.load>]
+[init_modules]
+[set_privs:<x11.user>]
+
+core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
+[base.session.init:<core.handle>,'nailara','client','core']
+[base.event.loop]
+

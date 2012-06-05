@@ -1,0 +1,18 @@
+# >:]
+
+# name       = base.event.init_code
+
+use Event;
+require Event::io;
+
+$Event::DebugLevel = 0;
+$Event::DIED       = \&Event::verbose_exception_handler;
+
+# setup io handler
+
+$data{'watcher_list'}{'paused'} = \();
+
+$data{'watcher'}{'io'}{'transfer'} =
+  Event->idle( cb => $code{'base.event.idle_restart'}, repeat => 1 );
+
+return 0;

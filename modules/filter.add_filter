@@ -1,0 +1,22 @@
+# >:]
+
+# name       = filter.add_filter
+
+my @params  = @_;
+my $filter  = shift (@params);
+my $handler = shift (@params);
+my $options = join ( ",", @params );
+if ( $filter eq '' or $handler eq '' ) {
+    &{ $code{'base.log'} } ( 0, "add_filter: invalid parameter count");
+    return undef;
+}
+if ( !defined &{$code{$handler}} ) {
+    &{ $code{'base.log'} } ( 0, "handler '$handler' not defined");
+    return undef;
+}
+my $max_filters = $data{'net.max_filters'} || 256;
+my $id = &{ $code{'base.gen_id'} } ( "data{'filter'}", $max_filters );
+$data{'filter'}{$id}{'name'}    = $filter;
+$data{'filter'}{$id}{'handler'} = $handler;
+$data{'filter'}{$id}{'options'} = $options || undef;
+return $id;

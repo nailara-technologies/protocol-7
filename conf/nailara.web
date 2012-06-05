@@ -1,0 +1,51 @@
+
+[load_config_file:'network']
+[load_config_file:'auth.pwd.web']
+
+net.daemon_name         =   web
+modules.load            =   auth log net conf session io.unix.socket tcp file web
+web.site_dir            =   /data/web/
+web.local.addr          =   127.0.0.1
+web.local.port          =   2380
+web.to_frontend         =   site skin
+web.api_definition      =   html_template.conf
+web.plugin.menu.dir     =   data/web/plugins/
+web.menu.default_plugin =   tree
+web.default_language    =   de
+access.usr.web			=	client_conf request content
+access.usr.core			=	*
+access.usr.*			=	close
+
+                                
+my.ip.connect		=	tcp.connect_handler
+my.unix.connect		=	unix.connect_handler
+my.auth_handler		=	net.auth_handler
+
+
+web.unix.socket         =       /tmp/.nailara.web.socket
+                   
+[load_modules:<modules.load>]
+[load_modules:'plugin.web']
+
+[set_privs:'nailara_web']
+
+[init_modules]
+
+[web.load_api]
+
+
+my.core.auth_handler = net.authme
+my.core.name = core
+
+core.handle = [auth.agent.client:[tcp.client:<net.local.addr>,<net.local.port>],<net.daemon_name>]
+
+[net.cmd_add_client:<my.core.name>,<core.handle>]
+
+io.grp.unix.connect = unix.connect_handler
+io.grp.unix.auth = net.auth_handler
+
+
+my.unix.handle = [io.unix.socket.in.open:<web.unix.socket>]
+[session.init:<my.unix.handle>,'unix']
+
+[base.event.loop]

@@ -1,0 +1,34 @@
+# >:]
+
+# name  = base.list.init
+# args  = { key_ref max_elements }
+
+if ( ref( $_[0] ) ne 'HASH' ) {
+    &{ $code{'base.log'} } ( 0, 'base.list.init: submitted argument is no hash');
+    return 1;
+}
+
+if ( not defined ${ $_[0] }{'max_elements'} or ${ $_[0] }{'max_elements'} < 1 )
+{
+    &{ $code{'base.log'} }
+      (0,'base.list.init: max_elements not set or equals to zero');
+    return 3;
+}
+
+if ( not defined ${ $_[0] }{'key_ref'}
+    or ref( ${ ${ $_[0] }{'key_ref'} } ) ne 'HASH' )
+{
+    &{ $code{'base.log'} }
+      (0,'base.list.init: key_ref is no hash or scalar reference');
+    return 2;
+}
+
+$data{'base'}{'element'}{ ${ $_[0] }{'key_ref'} } = {
+
+    'name'      => ${ $_[0] }{'name'} || 'unnamed',
+    'max_count' => ${ $_[0] }{'max_elements'},
+    'count'     => scalar keys( %{ ${ ${ $_[0] }{'key_ref'} } } )
+
+};
+
+return 0;

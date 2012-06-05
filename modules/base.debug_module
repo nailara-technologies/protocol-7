@@ -1,0 +1,13 @@
+# >:]
+
+# name       = base.cmd_debug_module
+
+if ( $_[2] =~ /\w+/ ) {
+    &{ $code{'net.raw_out'} } ( &{$code{'base.debug_module'}}( $_[2] ), $_[1] );
+    return 1;
+}
+else {
+    &{$code{'base.log'}}(1,"debug_module: invalid parameter [$_[2]]");
+    &{ $code{'net.nack'} } ("invalid module name");
+    return 0;
+}

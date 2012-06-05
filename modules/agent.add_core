@@ -1,0 +1,23 @@
+# >:]
+
+# name       = agent.add_core
+
+my ( $core_name, $addr_type, $addr, $port ) = ( $_[2], $_[3], $_[4], $_[5] );
+if ( $core_name !~ /^\w+$/ ) {
+    &{ $code{'net.nack'} } ( "invalid core name '$core_name'", $_[1] );
+    &{ $code{'base.log'} }
+      (0,"[$_[0]] add_core: invalid core name '$core_name'");
+    return 0;
+}
+if ( $addr_type !~ /^\w+$/ ) {
+    &{ $code{'net.nack'} } ( "invalid address type '$addr_type'", $_[1] );
+    &{ $code{'base.log'} } ( 0, "[$_[0]] invalid address type '$addr_type'");
+    return 0;
+}
+my $id = &{ $code{'base.gen_id'} }
+  ( 'data{core}', $data{'max'}{'cores'} );
+$data{'core'}{$id}{'name'}      = $core_name;
+$data{'core'}{$id}{'status'}    = 'disconnected';
+$data{'core'}{$id}{'addr_type'} = $addr_type;
+&{ $code{'base.log'} } ( 1, "[$_[0]] adding core '$core_name'");
+&{ $code{'net.ack'} } ( "core '$core_name' added", $_[1] );

@@ -1,0 +1,73 @@
+# >:]
+
+# name       = base.init_code
+# descr      = initialize the base module
+
+use POSIX;
+use Time::HiRes;
+
+
+# init some vars
+
+$data{'system'}{'os'}{'name'} = $^O;
+$data{'system'}{'process'} = {
+    'start' => time(),
+    'pid'   => $$,
+    'pname' => $0,
+    'uid'   => $<,
+    'euid'  => $>,
+    'gid'   => $(,
+    'egid'  => $)
+};
+
+$data{'list'}{'users'} = {
+    'var'   => 'data',
+    'key'   => 'user',
+    'mask'  => 'key:user',
+    'descr' => 'connected users'
+};
+
+$data{'list'}{'sessions'} = {
+    'var'   => 'data',
+    'key'   => 'session',
+    'mask'  => 'key:id mode proto user',
+    'descr' => 'registered sessions'
+};
+
+$data{'list'}{'buffers'} = {
+    'var'   => 'data',
+    'key'   => 'buffer',
+    'mask'  => 'key:name size',
+    'descr' => 'available buffers'
+};
+
+
+
+# initialize signal handlers
+
+&{ $code{'base.event.add_signal'} }
+  ( { 'signal' => 'INT', 'handler' => 'base.sig_int' } );
+&{ $code{'base.event.add_signal'} }
+  ( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
+&{ $code{'base.event.add_signal'} }
+  ( { 'signal' => 'HUP', 'handler' => 'base.sig_hup' } );
+&{ $code{'base.event.add_signal'} }
+  ( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
+
+undef %SIG;
+
+# initialize session list
+
+if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
+
+&{ $code{'base.list.init'} } (
+  {
+      'name'         => 'sessions',
+      'key_ref'      => \$data{'session'},
+      'max_elements' => $data{'limit'}{'max'}{'sessions'}
+  }
+);
+
+&{ $code{'base.parser.access_conf'} };
+
+return 0;

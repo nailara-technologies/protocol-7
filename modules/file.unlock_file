@@ -1,0 +1,14 @@
+# >:]
+
+# name       = file.unlock_file
+
+my $fd = $_[0];
+if ( ref($fd) eq 'GLOB' and fileno($fd) ) {
+    if ( flock( $fd, LOCK_UN ) ) {
+        &{ $code{'base.log'} } ( 2, "file unlocked ($fd)");
+        return 1;
+    }
+    else { &{ $code{'base.log'} } ( 0, "unlock_file: unlock failed [$!]"); }
+}
+else { &{ $code{'base.log'} } ( 0, "unlock_file: invalid file handle ($fd)") }
+return 0;

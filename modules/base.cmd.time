@@ -1,0 +1,33 @@
+# >:]
+
+# name       = base.cmd.time
+# descr      = return unix time of this host
+
+if ( $$call{'args'} eq 'clock' ) {
+    my ( $sec, $min, $hour ) = localtime();
+    return {
+        'mode' => 'ack',
+        'data' => sprintf( "%02d", $hour ) . ':'
+        . sprintf( "%02d", $min ) . ':'
+        . sprintf( "%02d", $sec )
+    };
+}
+elsif ( $$call{'args'} eq 'date' ) {
+    my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) =
+      localtime(time);
+
+    $year = sprintf( "%02d", $year + 1900 );
+    $mon  = sprintf( "%02d", $mon + 1 );
+    $mday  = sprintf( "%02d", $mday );
+
+    return {
+        'mode' => 'ack',
+        'data' => "$year-$mon-$mday"
+    };
+}
+else {
+    return {
+        'mode' => 'ack',
+        'data' => time
+    };
+}

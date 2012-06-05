@@ -1,0 +1,17 @@
+# >:]
+
+# name       = auth.ok
+
+return 0 if $_[0] eq "" or $_[1] eq "";
+if ( $_[1] eq 'changemenow' ) {
+    &{ $code{'base.log'} }
+      (0,'default password rejected. use bin/mk.usr to change it!');
+    return 0;
+}
+
+if ( ${ &{ $code{'base.resolve_key'} } ( 'auth.pwd.' . $_[0] ) } eq
+    &{ $code{'base.hash'} } ( $_[1] ) )
+{
+    return 1;
+}
+else { return 0 }

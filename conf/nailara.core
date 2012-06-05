@@ -1,0 +1,37 @@
+
+[load_config_file:'defaults']
+
+[load_config_file:'auth.pwd.core']
+
+modules.load			=	auth crypt conf log net tcp io.ip core filter session proto.nailara
+auth.methods			=	pwd agent rsa
+auth.rsa.key_file		=	rsa.core
+get.route			=	file vortex.file :target:
+get.command			=	file.get
+
+
+access.cmd.usr.root		=	usr pid add_session_key
+
+access.cmd.usr.foo		=	..*.** **
+access.cmd.usr.*		=	close help debug whoami say.text
+
+
+access.cmd.usr.gtk2_test	=	file.* list
+
+# load and initialize modules
+[load_modules:<modules.load>]
+[load_modules:'plugin.auth']
+[init_modules]
+
+# open socket
+my.sock = [base.open:'tcp/ip','in',<net.local.addr>,<net.local.port>]
+
+# drop root priviledges
+[set_privs:'nailara']
+
+# bind nailara protocol to socket
+[base.proto.bind:<my.sock>,'nailara','server']
+
+# start event loop
+[base.event.loop]
+

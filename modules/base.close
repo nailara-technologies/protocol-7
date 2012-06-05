@@ -1,0 +1,26 @@
+# >:]
+
+# name       = base.close
+
+
+my $fd = $_[0];
+
+my $type = $data{'handle'}{$fd}{'link'};
+my $mode      = $data{'handle'}{$fd}{'mode'};
+my @params;
+
+if ( not defined $data{'io'}{'type'}{$type} ) {
+    &{ $code{'base.log'} } ( 0, "base.close: io type '$type' not defined");
+    return undef;
+}
+elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
+    &{ $code{'base.log'} } ( 0, "base.close: unknown io mode '$mode' for type '$type'");
+    return undef;
+}
+elsif( not defined &{$code{$data{'io'}{'type'}{$type}{'handler'}{$mode}{'close'}}} )
+{
+    &{ $code{'base.log'} } ( 0, "base.close: '$type'-handler for mode '$mode' not defined");
+    return undef;
+}
+
+return &{$code{$data{'io'}{'type'}{$type}{'handler'}{$mode}{'close'}}}(@params);

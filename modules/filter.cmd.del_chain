@@ -1,0 +1,10 @@
+# >:]
+
+# name   = filter.cmd_del_chain
+# descr  = delete a filter chain
+
+if ( &{ $code{'filter.del_chain'} } ( $$call{'args'} ) )
+{
+    $reply = { 'mode' => 'ack', 'data' => 'chain deleted' };
+}
+else { $$reply{'data'} = 'no such chain' }

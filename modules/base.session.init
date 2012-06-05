@@ -1,0 +1,98 @@
+
+# >:]
+
+# name       = base.session.init
+
+my ( $fd, $proto, $mode, $name ) = (@_);
+
+$proto = 'nailara'   if $proto eq '';
+$mode  = 'client' if $mode eq '';
+
+if ( not defined $data{'proto'}{$proto} ) {
+    &{ $code{'base.log'} } ( 0, "base.session.init: unknown protocol");
+    return -1;
+}
+
+my $id = &{ $code{'base.list.element.add'} } (
+  {
+      'key_ref' => \$data{'session'},
+      'val_ref' => \{
+          'start_time' => time(),
+          'proto'      => $proto,
+          'handle'     => $fd,
+          'mode'       => $mode,
+          'state'      => 0,
+          'shutdown'   => 0,
+          'user'       => $name || '-',
+          'size'       => {
+              'buffer' => {
+                  'input'  => $data{'size'}{'buffer'}{'input'},
+                  'output' => $data{'size'}{'buffer'}{'output'},
+              }
+          }
+      }
+  }
+);
+
+if ( $name ne '' ) { $data{'user'}{$name}{'session'}{$id}{'mode'} = 'client'; }
+
+$data{'session'}{$id}{'watcher'}{'shutdown_trigger'} =
+  &{ $code{'base.event.add_var'} } (
+  {
+      'var'     => \$data{'session'}{$id}{'shutdown'},
+      'poll'    => 'w',
+      'handler' => 'base.session.check.close',
+      'repeat'  => 0,
+      'data'    => $id,
+      'desc'    => "[$id] shutdown trigger"
+  }
+);
+
+$data{'session'}{$id}{'watcher'}{'input_buffer'} =
+  &{ $code{'base.event.add_var'} } (
+  {
+      'var'     => \$data{'session'}{$id}{'buffer'}{'input'},
+      'handler' => 'base.handler.input',
+      'poll'    => 'w',
+      'repeat'  => 1,
+      'data'    => $id,
+      'desc'    => "[$id] input buffer"
+  }
+);
+
+$data{'session'}{$id}{'watcher'}{'output_buffer'} =
+  &{ $code{'base.event.add_var'} } (
+  {
+      'var'     => \$data{'session'}{$id}{'buffer'}{'output'},
+      'handler' => 'base.handler.write',
+      'poll'    => 'w',
+      'data'    => $id,
+      'prio'    => -1,
+      'repeat'  => 0,
+      'desc'    => "[$id] output buffer"
+  }
+);
+
+if ( $mode eq 'server' ) {
+    &{ $code{'base.event.add_io'} } ( {
+
+          'fd'      => $fd,
+          'handler' => 'base.handler.connect',
+          'data'    => $id
+      }
+    );
+
+}
+else {
+    $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
+        'fd'     => $fd,
+        'cb'     => $code{'base.handler.read'},
+        'data'   => $id,
+        'repeat' => 0,
+        'desc'   => "[$id] input handler"
+    );
+}
+
+&{ $code{'base.session.init_state'} } ( $id, 0 );
+
+return $id;
