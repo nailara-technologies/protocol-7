@@ -1,0 +1,27 @@
+
+[load_config_file:'defaults']
+
+agent.agents		=	file xmesg
+
+agent.check.init_pause		=	0
+agent.check.interval		=	2
+agent.check.timeout			=	5
+agent.check.connect_pause	=	2
+max.agents					=	64
+max.cores					=	42
+net.daemon_name				=	root
+auth.core.pass				=	sp4wn3r
+modules.load				=	auth conf log net io.ip tcp proto.nailara session crypt.random agent
+
+access.cmd.usr.core			=	help run check_agents add_agent list_agents list_buffers dump_buffer dump ping reload list set set_pid
+
+[load_modules:<modules.load>]
+[init_modules]
+
+# [agent.run:core]
+
+ core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
+ [base.session.init:<core.handle>,'nailara','client','core']
+
+ [base.event.loop]
+ 

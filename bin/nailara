@@ -1,0 +1,321 @@
+#!/usr/bin/perl
+
+use v5.8.2;
+
+# use strict;
+
+&{ $code{'base.init_exec'} };
+
+&{ $code{'base.load_code'} }('base');
+
+my $agentname;
+
+if ( $0 =~ /^.*nailara\./ ) {
+    $agentname = lc($0);
+    $agentname =~ s/^.*nailara\.|\.$//g;
+} elsif ( $ARGV[0] =~ /^([^\-]+)/ ) {
+    $agentname = $1;
+}
+
+if ( $agentname ne '' ) {
+    &{ $code{'base.init'} }(
+        $data{'system'}{'node'}{'name'} . "." . $agentname );
+} else {
+    if ( not defined $data{'system'}{'agent'}{'name'} ) {
+        $data{'system'}{'agent'}{'name'} = '<stdin>';
+    }
+    $0 = "nailara.$data{'system'}{'agent'}{'name'}";
+    $/ = "\n";
+
+    my @agent_config = <STDIN>;
+
+    if ( $data{'system'}{'daemon_mode'} ) { &{ $code{'base.daemonize'} }() }
+
+    &{ $code{'base.process_init_code'} }(
+        &{ $code{'base.parser.config'} }( '', @agent_config ) );
+}
+
+&{ $code{'log.ok'} }("done.");
+close;
+exit;
+
+# :: initialization / basic subroutines ::
+
+sub BEGIN {
+
+    our %code;
+    our %data;
+    our %key;
+    our %ANSI;
+
+    $code{'base.init_exec'} = sub {
+
+        use Sys::Hostname;
+        use File::Spec;
+
+        $data{'system'}{'start'}{'exec_name'} = File::Spec->rel2abs($0);
+
+        if ( -l $data{'system'}{'start'}{'exec_name'} ) {
+            my $new_path = readlink( $data{'system'}{'start'}{'exec_name'} );
+            if ( $new_path =~ /\// ) {
+                $data{'system'}{'start'}{'exec_name'} = $new_path;
+            }
+        }
+
+        $data{'system'}{'root_path'} = $data{'system'}{'start'}{'exec_name'};
+        $data{'system'}{'root_path'} =~ s/\/[^\/]+\/[^\/]+$//;
+        $data{'system'}{'code_path'} = "$data{'system'}{'root_path'}/modules";
+        $data{'system'}{'conf_path'} = $data{'system'}{'root_path'} . '/conf';
+
+        if ( $0 =~ /^.*nailara\./ ) {
+            $data{'system'}{'agent'}{'name'} = lc($0);
+            $data{'system'}{'agent'}{'name'} =~ s/^.*nailara\.|\.$//g;
+        } elsif ( $ARGV[0] =~ /^([^\-]+)/ ) {
+            $data{'system'}{'agent'}{'name'} = $1;
+        }
+
+        if ( $data{'system'}{'agent'}{'name'} eq '' ) {
+            $data{'system'}{'agent'}{'name'} = '<init>';
+        }
+
+       #	( $data{'system'}{'node'}{'name'}, $data{'system'}{'agent'}{'name'} ) =
+       #          split ( /\./, $_[0] );
+
+        $data{'system'}{'verbosity'}           = 0;
+        $data{'system'}{'ansi_color'}          = 1;
+        $data{'system'}{'start'}{'showbanner'} = 1;
+
+        foreach my $arg (@ARGV) {
+            if ( $arg =~ /^-(v+)$/ ) {
+                $data{'system'}{'verbosity'} = length($1);
+            }
+            if ( $arg eq '-d' )  { $data{'system'}{'daemon_mode'} = 1 }
+            if ( $arg eq '-na' ) { $data{'system'}{'ansi_color'}  = 0 }
+            if ( $arg eq '-nb' ) {
+                $data{'system'}{'start'}{'showbanner'} = 0;
+            }
+            if ( $arg =~ /^-N(.+)$/ ) {
+                $data{'system'}{'agent'}{'name'} = $1;
+            }
+        }
+
+        $data{'system'}{'node'}{'name'} = hostname || 'nailara';
+        $data{'system'}{'node'}{'name'} =~ s/\..+$//;
+
+        if ( $data{'system'}{'ansi_color'} ) {
+            %ANSI = (
+                'bold'      => "\c[[1m",
+                'underline' => "\c[[4m",
+                'reverse'   => "\c[[7m",
+                'normal'    => "\c[[m",
+                'cls'       => "\c[[H\c[[2J"
+            );
+        } else {
+            %ANSI = (
+                'bold'      => "<< ",
+                'underline' => "<< ",
+                'reverse'   => "<< ",
+                'normal'    => " >>",
+                'cls'       => "\c[[H\c[[2J"
+            );
+        }
+
+        if (   $data{'system'}{'verbosity'}
+            && $data{'system'}{'start'}{'showbanner'} )
+        {
+            print "..\n";
+            &{ $code{'base.banner'} }("/usr/local/nailara/etc/.banner");
+        }
+    };
+
+    $code{'base.banner'} = sub {
+
+        local $/ = undef;
+        open( my $banner_handle, $data{'system'}{'root_path'} . '/etc/.banner' )
+          or return;
+        my $banner = <$banner_handle>;
+        close($banner_handle);
+        $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
+        print " : $ANSI{bold}$banner$ANSI{normal}\n :\n";
+
+    };
+
+    $code{'base.load_code'} = sub {
+
+        my ( $codedir, $file, $code_name );
+
+        if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
+            &{ $code{'log.failed'} }(
+                ": can not open module directory '$data{'system'}{'code_path'}' [$!]"
+            );
+            exit(2);
+        }
+        my @code_files = readdir($codedir);
+        closedir($codedir);
+
+        $| = 1;
+
+        my @compile_them = ();
+
+        foreach my $_code_name (@_) {
+            my $code_name = $_code_name;
+
+            # if ( $code_name ne '' ) { $code_name =~ s/\.[^\.]+$//; }
+
+            &{ $code{'log.ok'} }( "loading module '" . $code_name . "'" );
+
+            my $code_count = 0;
+
+            foreach my $file_name (@code_files) {
+                if (    -f $data{'system'}{'code_path'} . '/' . $file_name
+                    and $file_name =~ /^$code_name/
+                    and $file_name !~ /^\.|~$/ )
+                {
+                    $code_count++;
+                    $/ = undef;
+                    open( $file, '<',
+                        $data{'system'}{'code_path'} . '/' . $file_name )
+                      or die $!;
+
+                    $data{'code'}{$file_name}{'source'} = <$file>;
+                    close($file);
+                    $/ = "\n";
+                    push( @compile_them, $file_name );
+                }
+            }
+        }
+
+        my $mod_count = scalar @compile_them;
+        &{ $code{'log.ok'} }(": compiling ...");
+
+        my ( $ok_count, $err_count ) = ( 0, 0 );
+
+        foreach my $sub_name ( sort(@compile_them) ) {
+
+            #            local $SIG{__WARN__} = $code{'log.failed'};
+            local $SIG{__WARN__} = 'IGNORE';
+
+            #            local $SIG{__DIE__}  = $code{'log.failed'};
+            local $SIG{__DIE__} = 'IGNORE';
+
+            my $sub_code = undef;
+
+            my $code_header = '';
+            my $code_footer = '';
+
+            if ( $sub_name =~ /\.cmd\.(.+)$/ ) {
+
+                $data{'base'}{'cmd'}{$1} = $sub_name;
+
+                $code_header =
+                    'my $call={}; my $reply={ \'mode\' => \'nack\', \'data\''
+                  . ' => \'internal command error\'}; '
+                  . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
+                  . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
+                $code_footer = ' ; return $reply';
+
+                $data{'code'}{$sub_name}{'source'} =
+                    $code_header
+                  . $data{'code'}{$sub_name}{'source'}
+                  . $code_footer;
+            }
+
+            if ( $data{'system'}{'verbosity'} > 2 ) {
+                $sub_code = 'sub {'
+                  . "\&{\$code{'base.debug_sub'}}('$sub_name',\@_); "
+                  . $data{'code'}{$sub_name}{'source'} . ' }';
+            } else {
+                $sub_code = 'sub {' . $data{'code'}{$sub_name}{'source'} . '}';
+            }
+
+            if ( $code{$sub_name} = eval($sub_code)
+                and ref( $code{$sub_name} ) eq 'CODE' )
+            {
+                delete $data{'code'}{$sub_name}{'source'};
+                $data{'code'}{$sub_name}{'status'} = 'ok';
+
+                #                &{ $code{'log.ok'} } ("ok: $sub_name");
+                $ok_count++;
+
+                if ( $sub_name =~ /\.cmd\.(.+)$/ ) {
+                    my $cmd = $1;
+                    if ( $data{'code'}{$sub_name}{'status'} eq 'ok' ) {
+
+                        if ( $sub_code =~ /\#\s*descr\s*=\s*(.+)/ ) {
+                            $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'} = $1;
+                        } else {
+                            $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'} = 'n/a';
+                        }
+
+                    } else {
+                        &{ $code{'log.failed'} }(": : command '$1' broken!");
+                        $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'} =
+                          '! command broken !';
+                    }
+                }
+            } else {
+
+                $code{$sub_name} = sub {
+                    {
+                        &{ $code{'log.failed'} }(
+                            "broken subroutine '$sub_name' called.")
+                    }
+                };
+                delete $data{'code'}{$sub_name}{'source'};
+                my $err_str = $@;
+                $err_str =~ s/\n.*$//;
+                $err_str =~ s{at (\(eval \d+\)) (line \d+)}
+		    {in module source $sub_name at $2 $1}g;
+                &{ $code{'log.failed'} }(
+                    "error in routine '$sub_name' [$err_str]");
+                $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
+                $err_count++;
+            }
+        }
+
+        if ($err_count) {
+            &{ $code{'log.failed'} }(
+                ": $ok_count routines ok, $err_count broken..");
+        } else {
+            &{ $code{'log.ok'} }(": $ok_count routines, all ok.");
+        }
+
+        #       $SIG{__WARN__} = \$code{'log.failed'};
+    };
+
+    $code{'base.debug_sub'} = sub {
+
+        if ( $data{'system'}{'verbosity'} < 2 ) { return }
+
+        my @params     = @_;
+        my $sub_name   = shift(@params);
+        my $param_list = join( ' , ', @params );
+
+        $param_list =~ s/\n/\\n/g;
+        $param_list =~ s/\e/\\e/g;
+        $param_list =~ s/\0/\\0/g;
+
+        print ' . '
+          . $data{'system'}{'agent'}{'name'}
+          . " : $sub_name ( "
+          . $param_list . " )\n";
+    };
+    $code{'log.ok'} = sub {
+        if ( $data{'system'}{'verbosity'} ) {
+            print ' :'
+              . $data{'system'}{'node'}{'name'} . '.'
+              . $data{'system'}{'agent'}{'name'} . ' '
+              . $_[0] . "\n";
+        }
+    };
+    $code{'log.failed'} = sub {
+        print ' :'
+          . $data{'system'}{'node'}{'name'} . '.'
+          . $data{'system'}{'agent'}{'name'} . ' '
+          . $ANSI{'bold'}
+          . $_[0]
+          . $ANSI{'normal'} . "\n";
+    };
+
+    $code{'dev.null'} = sub { }
+}

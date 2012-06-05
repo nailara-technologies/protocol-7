@@ -1,0 +1,28 @@
+# >:]
+
+# name       = net.authme
+
+my $answer;
+my $smiley;
+my $backend_socket = $_[0], $smiley = "", $answer = "";
+if ( sysread( $backend_socket, $smiley, 4 ) ) {
+    if ( $smiley =~ />:\]\n/ ) { &{ $code{'base.log'} } ( 1, '[*] smiley ok :)') }
+    else {
+        &{ $code{'base.log'} } ( 0, '[#] no valid smiley found! :(');
+        return undef;
+    }
+    &{$code{'net.out'}}( $backend_socket, "auth $_[1] $_[2]\n" );
+#    select undef, undef, undef, 0.4;
+    if ( sysread( $backend_socket, $answer, 9 ) ) {
+        if ( $answer =~ /YEAH/ ) {
+            &{ $code{'base.log'} } ( 1, '[*] successfully authenticated :)');
+    #        $data{'session'}{$id}{'registered'} = "yes";
+            return $backend_socket;
+        }
+        elsif ( $answer =~ /GRRR/ ) {
+            &{ $code{'base.log'} } ( 0, '[#] access denied :(');
+            return undef;
+        }
+        else { &{ $code{'base.log'} } ( 0, '[#] protocol error :('); return undef }
+    }
+}

@@ -1,0 +1,46 @@
+# >:]
+
+# name       = base.handler.read
+
+my $id = $_[0]->w->data;
+
+if ( not defined $data{'session'}{$id} ) {
+    $_[0]->w->cancel;
+    &{ $code{'base.log'} }(
+        0,
+        "[$id] handler of already closed session called.."
+            . "forcefully cancelled!"
+    );
+    return undef;
+}
+
+my $session = $data{'session'}{$id};
+my $len     = length( $$session{'buffer'}{'input'} );
+
+if ( fileno $$session{'handle'} ) {
+    if (!sysread(
+            $data{'session'}{$id}{'handle'},
+            $data{'session'}{$id}{'buffer'}{'input'},
+            $data{'size'}{'buffer'}{'input'} || $len,
+            $len
+        )
+        )
+    {
+        $$session{'shutdown'} = 1;
+    }
+}
+else {
+    $$session{'shutdown'} = 1;
+}
+
+$len = length( $$session{'buffer'}{'input'} );
+
+if ( $len > $$session{'size'}{'buffer'}{'input'} ) {
+    &{ $code{'base.log'} }( 0, "[$id] input buffer size exceeded." );
+    $$session{'shutdown'} = 1;
+
+    #    $_[0]->w->stop;
+}
+elsif ($len) {
+    $_[0]->w->start;
+}

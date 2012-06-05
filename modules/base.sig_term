@@ -1,0 +1,13 @@
+# >:]
+
+# name       = base.sig_term
+
+$0 = "$0 :. shutdown in progress... please wait!";
+&{ $code{'base.log'} } ( 0, 'SIGTERM received. shutting down...');
+# &{ $code{'net.send_all'} } ("close SIGTERM");
+# $SIG{'ALRM'} = sub { &{ $code{'base.log'} } ( 1, 'done.'); exit(0); };
+# alarm( $data{'sigterm'}{'timeout'} || 1 );
+
+exit;
+
+return 0;

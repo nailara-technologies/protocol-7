@@ -1,0 +1,13 @@
+# >:]
+
+# name       = base.load_modules
+# descr      = load a given set of modules
+# comment    = todo: clean reload
+
+my @mods_to_load = split(/ /,$_[0]);
+
+if(not scalar @mods_to_load){ &{$code{'base.log'}}(1,'base.load_modules: no modules specified'); return 1 }
+&{$code{'base.load_code'}}(@mods_to_load);
+
+return 0;
+

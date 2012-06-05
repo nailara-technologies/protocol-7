@@ -1,0 +1,44 @@
+# >:]
+
+# name       = base.session.check.close
+
+my $id = $_[0]->w->data;
+
+$_[0]->w->stop;
+
+&{ $code{'base.log'} } ( 1, "[$id] closing session.");
+
+# call rip handler
+
+if ( defined $data{'session'}{$id}{'rip_handler'}
+    and defined &{ $data{'session'}{$id}{'rip_handler'} } )
+{
+    &{ $data{'session'}{$id}{'rip_handler'} } ( $_[0] );
+}
+
+# stop input bufffer
+
+$data{'session'}{$id}{'watcher'}{'input_buffer'}->stop;
+
+# flush output buffer
+
+# while(length $data{'session'}{$id}{'buffer'}{'output'})
+# { $data{'session'}{$id}{'watcher'}{'output_buffer'}->now }
+
+# cancel watchers
+
+foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
+
+     $data{'session'}{$id}{'watcher'}{$watcher}->cancel;
+    delete $data{'session'}{$id}{'watcher'}{$watcher};
+}
+
+# cleanup user2session reference
+
+if ( defined $data{'user'}{ $data{'session'}{$id}{'user'} }{'session'}{$id} ) {
+    delete $data{'user'}{ $data{'session'}{$id}{'user'} }{'session'}{$id};
+}
+
+close( $data{'session'}{$id}{'handle'} );
+delete $data{'session'}{$id};
+

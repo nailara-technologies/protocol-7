@@ -1,0 +1,28 @@
+my $subdir = $_[0];
+$subdir =~ s/\.+/./g;
+my $dir = $CONF{content_dir}, @out = @menu = ();
+$subdir =~ s/\./\//g;
+my $sname = $subdir;
+$sname =~ s/.+\/+//g;
+if ( $subdir ne "" ) { $dir .= $subdir }
+&{$code{'base.log'}}(1,$dir);
+$dir =~ s/^\s+|\/$//;
+opendir( DIR, $dir )
+  or &{ $code{'base.log'} } ( 0, "can not open directory \'$dir\'");
+my @dir_content = readdir(DIR);
+closedir(DIR);
+&{$code{'base.log'}}(1,"PASS dirs");
+
+foreach $dir_data (@dir_content) {
+    if ( !defined($sname) ) { $sname = "" }
+    if ( $dir_data !~ /^\.|^\Q$sname$|\~$/ ) {
+        my $l = length($dir_data);
+        if ( length($l) == 1 ) { $l = "0" . "$l" }
+        push ( @menu, "$l" . ":" . "$dir_data" );
+    }
+}
+foreach $menu_line ( sort(@menu) ) {
+    $menu_line =~ s/^[\d]+\://;
+    push ( @out, $menu_line );
+}
+return @out;

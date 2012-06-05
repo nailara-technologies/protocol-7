@@ -1,0 +1,14 @@
+# >:]
+
+# name       = filter.del_filter
+
+if ( $_[0] !~ /^\d+$/ ) {
+    &{ $code{'base.log'} } ( 0, "del_filter: invalid parameter");
+    return 0;
+}
+if ( !defined $data{'filter'}{ $_[0] } ) {
+    &{ $code{'base.log'} } ( 0, "no such filter ($_[0])");
+    return 0;
+}
+delete $data{'filter'}{ $_[0] };
+return 1;

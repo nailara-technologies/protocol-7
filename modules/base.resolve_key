@@ -1,0 +1,15 @@
+# >:]
+
+# name       = base.resolve_key
+
+my $hash_ref = $_[1] || *data{HASH};
+
+foreach my $sub_key ( split( /\./, $_[0] ) ) {
+    if ( not defined ${$hash_ref}{$sub_key} ) { return undef }
+    if ( ref( ${$hash_ref}{$sub_key} ) eq 'HASH' ) {
+        $hash_ref = \%{ $$hash_ref{$sub_key} };
+    }
+    else { return \${$hash_ref}{$sub_key} }
+}
+
+return undef;

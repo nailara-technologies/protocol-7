@@ -1,0 +1,24 @@
+  # >:]
+
+# name       = crypt.rsa.encrypt
+
+my $plaintext = $_[0];
+my $key_id    = $_[1];
+my $ciphertext;
+
+if ( length($plaintext) > $data{'crypt'}{'key'}{"$key_id"}{'block_size'} ) {
+    &{ $code{'base.log'} }
+      (1,"crypt.rsa.encrypt: plaintext longer than blocksize! (key_id:$key_id)");
+    return undef;
+}
+else {
+    if ( $ciphertext =
+        eval('$data{\'crypt\'}{\'key\'}{$key_id}{\'rsa_obj\'}->encrypt($plaintext)') )
+    {
+        return $ciphertext;
+    }
+    else { &{ $code{'base.log'} } ( 0, "[rsa] encryption error"); }
+}
+
+return undef;
+

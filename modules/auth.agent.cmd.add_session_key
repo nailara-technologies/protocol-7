@@ -1,0 +1,31 @@
+# >:]
+
+# name    = auth.agent.add_session_key
+# descr   = set up session key for agent authentication
+
+my $id = $$call{'session_id'};
+my ( $agent, $key ) = split( / /, $$call{'args'} );
+
+if ( $agent ne '' and $key ne '' ) {
+    if ( $data{'auth'}{'pwd'}{$agent} eq ':agent:' ) {
+        $key{'auth'}{'agent'}{$agent} = &{ $code{'base.hash'} }($key);
+	
+        $reply = { 'mode' => 'ack', 'data' => 'key added' };
+        &{ $code{
+	    'base.log'} }( 1, "[$id] received session key for '$agent'");
+    }
+    else {
+	$reply = {
+                'mode' => 'nack',
+	    'data' => "user '$agent' not accepted for core authentication"
+	};
+	&{ $code{'base.log'} }
+	( 0, "[$id] add_session_key: user '$agent' not accepted for core authentication"
+	);
+    }
+}
+else {
+        $reply = { 'mode' => 'nack', 'data' => 'not enough arguments' };
+    &{ $code{'base.log'
+              } }(    0, "[$id] add_session_key: not enough arguments");
+}

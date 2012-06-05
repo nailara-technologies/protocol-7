@@ -1,0 +1,22 @@
+# >:]
+
+# name       = ssl.client
+
+my $sock;
+if ( $sock = new IO::Socket::SSL(
+        PeerAddr => "$_[0]",
+        PeerPort => "$_[1]",
+        Proto    => 'tcp',
+        Timeout  => 5
+    ) )
+{
+    &{ $code{'base.log'} } ( 1, "connection [$_[0]:$_[1]] established.");
+    $data{'handle'}{$sock}{'link'} = 'tcp/ip';
+    $data{'handle'}{$sock}{'encryption'}   = 'ssl';
+    return $sock;
+}
+else {
+    &{ $code{'base.log'} }
+      (0,"ssl connect failure: can not connect to $_[0] at port $_[1] ($!)");
+    return 0;
+}

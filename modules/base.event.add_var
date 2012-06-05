@@ -1,0 +1,18 @@
+# >:]
+
+# name       = base.event.add_var
+
+return Event->var(
+    'var' => ${ $_[0] }{'var'} || $_[0],
+    'cb' => $code{ ${ $_[0] }{'handler'} } || $_[1],
+    'poll'      => ${ $_[0] }{'poll'}      || 'w',
+    'timeout'   => ${ $_[0] }{'timeout'}   || 0,
+    'reentrant' => ${ $_[0] }{'reentrant'} || 0,
+    'repeat'    => ${ $_[0] }{'repeat'}    || 0,
+    'prio'      => ${ $_[0] }{'prio'}      || 0,
+    'async'     => ${ $_[0] }{'async'}     || 1,
+    'hard'      => ${ $_[0] }{'hard'}      || 0,
+    'data'      => ${ $_[0] }{'data'},
+    'desc'      => ${ $_[0] }{'desc'}      || "${ $_[0] }{'var'}"
+);
+

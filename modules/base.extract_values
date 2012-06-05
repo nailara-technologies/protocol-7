@@ -1,0 +1,34 @@
+# >:]
+
+# name       = base.extract_values
+
+my $entries  = 0;
+my $conf_key = shift(@_);
+if ( $conf_key and $conf_key !~ /\{|\}/ ) {
+    $conf_key =~ s/\'//g;
+    $conf_key =~ s/\./\'\}\{\'/g;
+    $conf_key = "{'$conf_key'}";
+}
+foreach my $conf_line (@_) {
+    $conf_line =~ s/[\t]+|#.*|[\s|\t]*\.\:.*|[\s|\t]+$|\r|\n//g;
+    $conf_line =~ s/(^[^\=]+\=)[\s|\t]+/$1/;
+    ( my $_name, my $_value ) = split( /=/, $conf_line );
+    if ( defined $_value ) {
+        $_name  =~ s/\s+|\t+//g;
+        $_name  =~ s/\./\'\}\{\'/g;
+        $_value =~ s/\'//g;
+        my $conf_hash = "\$data" . $conf_key . "{\'$_name\'}";
+        my $cmd = "$conf_hash=\'$_value\'";
+        if ( defined $data{'system'}{'verbosity'}
+            and $data{'system'}{'verbosity'} > 2 )
+        {
+            &{ $code{'base.log'} }(1,$cmd);
+        }
+        eval("$cmd");
+        if ($@) {
+            &{ $code{'base.log'} }( 1,"DANGER: CONFIG PARSER ERROR: ($cmd) $!");
+        }
+        else { $entries++ }
+    }
+}
+return $entries;

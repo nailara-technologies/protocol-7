@@ -1,0 +1,49 @@
+# >:]
+
+# name       = agent.add_agent
+
+my $agentname = $_[0];
+my $agent_id  = &{ $code{'base.gen_id'} }
+  ( "data{'agent'}{'id'}", $data{'max'}{'agents'} );
+if ($agent_id) {
+    $data{'agent'}{'id'}{$agent_id}{'name'}       = $agentname;
+    $data{'agent'}{'id'}{$agent_id}{'start_time'} = time();
+    $data{'agent'}{'id'}{$agent_id}{'status'}     = 'offline';
+
+    $data{'session'}{$id}{'watcher'}{'output_buffer'} =
+        &{ $code{'base.event.add_var'} } (
+	      {
+		        'var'     => \$data{'session'}{$id}{'buffer'}{'output'},
+		          'handler' => 'base.handler.write',
+		          'poll'    => 'w',
+		          'data'    => $id,
+		          'prio'    => -1,
+		          'repeat'  => 0,
+		          'desc'    => "[$id] output buffer"
+		      }
+	    );
+    
+    $data{'agent'}{'id'}{$agent_id}{'watcher'}{'status'} =
+      &{ $code{'base.event.add_var'} } (
+	  {
+	      'var'     => \$data{'agent'}{'id'}{$agent_id}{'status'},
+		'handler' => 'agent.status.changed',
+		'poll'    => 'w',
+		'data'    => $agent_id,
+		'prio'    => -1,
+		'repeat'  => 1,
+		'desc'    => "[$id] agent status watcher [$agent_id]"
+	  }
+      );
+    
+    
+    
+    
+    
+    &{ $code{'base.log'} } ( 2, "added new agent id: $agent_id name: $agentname");
+    return $agent_id;
+}
+else {
+    &{ $code{'base.log'} } ( 0, "add_agent: could not get new agent-id");
+    return undef;
+}

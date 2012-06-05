@@ -1,0 +1,62 @@
+# >:]
+
+# name       = base.handler.write
+# descr      = writes buffer content to client handle
+
+my $id;
+if ( $_[0] =~ /^\d+/ ) { $id = $_[0] }
+else { $id = $_[0]->w->data }
+
+my $len     = length( $data{'session'}{$id}{'buffer'}{'output'} );
+my $written = 0;
+
+if ( fileno $data{'session'}{$id}{'handle'} ) {
+    if ( $len > 0 ) {
+        $written = syswrite(
+            $data{'session'}{$id}{'handle'},
+            $data{'session'}{$id}{'buffer'}{'output'},
+            $data{'size'}{'buffer'}{'output'} || $len
+        );
+
+        if ( not defined $written ) {
+            $data{'session'}{$id}{'shutdown'} = 1;
+        }
+        else {
+
+            #            $_[0]->w->stop;
+            $data{'session'}{$id}{'buffer'}{'output'} = substr(
+                $data{'session'}{$id}{'buffer'}{'output'}, $written,
+                ( $len - $written )
+            );
+
+            #            $_[0]->w->start;
+        }
+    }
+}
+else {
+
+    $_[0]->w->cancel;
+    $data{'session'}{$id}{'shutdown'} = 1;
+}
+
+# select undef, undef, undef, 0.02;
+
+my $len = length( $data{'session'}{$id}{'buffer'}{'output'} );
+
+if ($len) {
+
+    push ( @{ $$data{'watcher_list'}{'paused'} }, \$_[0] );
+
+    if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
+        $data{'watcher'}{'io'}{'transfer'}->start;
+    }
+}
+else
+{
+#    if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
+	$data{'session'}{$id}{'watcher'}{'output_buffer'}->start;
+#    }
+}
+
+
+return 0;

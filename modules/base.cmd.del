@@ -1,0 +1,49 @@
+# >:]
+
+# name     = base.cmd_del
+# args     = { args }
+# descr    = delete a variable
+
+# return { 'mode' => 'nack', 'data' => 'broken'};
+
+my $key   = $$call{'args'};
+
+if ( $key =~ /\.([^\.]+)$/ ) {
+
+    my $hash_ref = &{ $code{'base.resolve_hash'} } ($key);
+
+#    print "DEL: href: ".join("\n",keys($$hash_ref))."\n";
+    
+    if ( defined ${$hash_ref}{$1} ) {
+        delete ${$hash_ref}{$1};
+        $$reply{'mode'} = 'ack';
+    }
+    else {
+        $$reply{'mode'} = 'nack';
+    }
+}
+else {
+    if ( defined $data{$key} ) {
+        delete $data{$key};
+        $$reply{'mode'} = 'ack';
+    }
+    else {
+        $$reply{'mode'} = 'nack';
+    }
+}
+
+if ( $$reply{'mode'} eq 'ack' ) {
+    &{ $code{'base.log'} } ( 1,  '['
+      . ${ $_[0] }{'session_id'}
+      . '] deleted data key \'' . $key . '\'' );
+    $$reply{'data'} = 'deleted';
+}
+else {
+    &{ $code{'base.log'} } ( 0,  '['
+      . ${ $_[0] }{'session_id'}
+      . '] del: no such key \'' . $key . '\'' );
+    $$reply{'data'} = 'no such key';
+}
+
+
+
