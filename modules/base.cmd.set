@@ -1,0 +1,30 @@
+# >:]
+
+# name   =  base.cmd.set
+# descr  = set a variable
+
+my ( $key, $val ) = split ( / /, $$call{'args'}, 2 );
+my $key_ref = &{ $code{'base.resolve_key'} } ($key);
+if ( $key_ref ne '' and $$key_ref = $val ) {
+    &{ $code{'base.log'} } ( 1, "set: changed $key = $val");
+    $reply = { 'mode' => 'ack', 'data' => "changed" };
+}
+else {
+	my $lastref=\%data;
+	foreach my $sub_key ( split( /\./, $key ) )
+	{
+		print "sub_key: $sub_key\n";
+		${$lastref}{$sub_key}='plik';
+		if ( not defined ${$lastref}{$sub_key} ) { ${$lastref}{$sub_key}=''; }
+		$lastref = \${$lastref}{$sub_key};
+	}
+	if(${$lastref}=$val)
+	{
+		&{ $code{'base.log'} } ( 1, "set: initialized $key = $val");
+		$reply = { 'mode' => 'ack', 'data' => "initialized" };
+	}
+	else
+	{
+	    $reply = { 'mode' => 'nack', 'data' => 'failed' };
+	}
+}

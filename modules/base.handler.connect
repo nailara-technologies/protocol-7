@@ -1,0 +1,36 @@
+# >:]
+
+# name       = base.handler.connect
+
+my $id      = $_[0]->w->data;
+my $fd      = $data{'session'}{$id}{'handle'};
+my $type    = $data{'handle'}{$fd}{'link'};
+my $proto   = $data{'session'}{$id}{'proto'};
+my $state   = $data{'session'}{$id}{'state'};
+my $mode    = $data{'handle'}{$fd}{'mode'};
+my $handler = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
+my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'};
+
+# print
+# "ID: $id HANDLE: $fd PROTO: $proto STATE: $state MODE: $mode TYPE: $type HANDLER: $handler\n";
+
+if ( not defined $data{'handle'}{$fd}{'proto'} ) {
+    &{ $code{'base.log'} }( 1,
+        'base.handler.connect: no protocol defined for submitted handle' );
+    return undef;
+}
+else {
+    &{ $code{'base.log'} }( 1,
+        'base.handler.connect: calling connect handler' );
+    my $new_fd = &{ $code{$handler} }( $_[0] );
+    my $id     = &{ $code{'base.session.init'} }($new_fd);
+
+    # send server banner
+
+    if ( $banner ne '' and $mode eq 'in' ) {
+        &{ $code{'net.out'} }( $new_fd, $banner );
+    }
+
+    &{ $code{'base.log'} }( 1, "[$id] starting new session" );
+
+}

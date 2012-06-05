@@ -1,0 +1,57 @@
+# >:]
+
+# name       = file.get
+
+my $file_name;
+my $file_id = $_[0];
+if ( defined $data{'file'}{'id'}{$file_id}
+    and $data{'file'}{'id'}{$file_id} > 0 )
+{
+    my $internal_id = $data{'file'}{'id'}{$file_id};
+    $file_name = $data{'file'}{'index'}{$internal_id}{'system'}{'filename'};
+    if ( -f $file_name ) {
+
+        &{ $code{'base.log'} }( 2, "[$_[0]] retrieving file '$file_id'" );
+        if ( &{ $code{'file.status'} }($file_name) ) {
+            if ( open( my $file_handle, "<$file_name" ) ) {
+
+                my $file_cid = &{ $code{'net.init_transfer'} }(
+                    $file_handle, $_[0], $_[1], $data{'file'}{'stat'}{'size'}
+                );
+                $data{'session'}{$file_cid}{'default_readmode'} = 'raw';
+                return 1;
+            }
+            else {
+                &{ $code{'base.log'} }( 0,
+                    "get: can't open file '$file_name' [$@]" );
+
+                $$reply{'data'} = 'can not open file';
+            }
+            return 1;
+        }
+        else {
+            $$reply{'data'} = 'can not find file';
+            &{ $code{'base.log'} }( 0, "can't stat file [$file_name]" );
+        }
+    }
+
+    else {
+        $$reply{'data'} = 'no such file';
+        &{ $code{'base.log'} }( 0, "can not open file \'$file_name\' [$!]" );
+    }
+}
+elsif ( $file =~ /^<.*>$/ ) {
+    &{ $code{'base.log'} }( 0, "[$_[0]] get: invalid hash supplied" );
+    $$reply{'data'} = 'invalid hash';
+}
+else {
+    if ( !-f $file_name ) {
+        $$reply{'data'} = 'hash not found';
+        &{ $code{'base.log'} }( 0, "get: file '$_[0]' not found" );
+        return { 'mode' => 'nack', 'data' => 'file not found' };
+    }
+
+    #    hash_scan( $file_id );
+    $$reply{'mode'} = 'ack';
+    $$reply{'data'} = "<" . $data{'file'}{$file_id}{'sha1'} . ">";
+}

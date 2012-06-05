@@ -1,0 +1,59 @@
+# >:]
+
+# name   = base.route.add
+
+if ( ref( $_[0] ) ne 'HASH' ) {
+    &{ $code{'base.log'} } ( 0, 'add_route: argument is no hash reference');
+    return undef;
+}
+
+my $id            = ${ $_[0] }{'source'}{'sid'};
+my $cmd_id        = ${ $_[0] }{'source'}{'cmd_id'};
+my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
+my $reply_params  = ${ $_[0] }{'reply'}{'params'};
+my $target_sid    = ${ $_[0] }{'target'}{'sid'};
+
+my $target_cmd_id = &{ $code{'base.gen_id'} } (
+  \$data{'session'}{$target_sid}{'route'},
+  $data{'session'}{$target_sid}{'limit'}{'routes'}
+);
+
+my $route_id = &{ $code{'base.list.element.add'} } (
+  {
+      'key_ref' => \$data{'route'},
+      'val_ref' => \{
+
+          'source' => {
+              'sid'    => $id,
+              'cmd_id' => $cmd_id
+          },
+          'target' => {
+              'sid'    => $target_sid,
+              'cmd_id' => $target_cmd_id
+          },
+          'reply' => {
+              'handler' => $reply_handler,
+              'params'  => $reply_params
+          },
+          'start_time' => time(),
+#          'proto'      => $proto,
+#          'handle'     => $fd,
+ #         'mode'       => $mode,
+          'state'      => 0,
+          'shutdown'   => 0,
+          'user'       => '-',
+          'size'       => {
+              'buffer' => {
+                  'input'  => $data{'size'}{'buffer'}{'input'},
+                  'output' => $data{'size'}{'buffer'}{'output'}
+              }
+          }
+      }
+  }
+);
+
+$data{'session'}{$id}{'route'}{$cmd_id}                  =
+  $data{'session'}{$target_sid}{'route'}{$target_cmd_id} = $route_id;
+
+return $data{'route'}{$route_id};
+

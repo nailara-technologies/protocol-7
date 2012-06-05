@@ -1,0 +1,69 @@
+# >:]
+
+# name       = base.handler.input
+# descr      = call input handler
+
+# print "CALLED INPUT HANDLER\n";
+
+my $id = $_[0]->w->data;
+
+if ( not defined $data{'session'}{$id} ) {
+    $_[0]->w->cancel;
+    &{ $code{'base.log'} }(
+        0,
+        "[$id] handler of already closed session called.."
+            . " forcefully cancelled!"
+    );
+    return undef;
+}
+
+my $fd = $data{'session'}{$id}{'input'}{'handle'}
+    || $data{'session'}{$id}{'handle'};
+my $type    = $data{'handle'}{$fd}{'link'};
+my $proto   = $data{'session'}{$id}{'proto'};
+my $state   = $data{'session'}{$id}{'state'};
+my $mode    = $data{'handle'}{$fd}{'mode'};
+my $handler = $data{'session'}{$id}{'input'}{'handler'};
+
+if ( defined &{ $code{$handler} } ) {
+    my $ret_code = &{ $code{$handler} }( $_[0] );
+
+    if ( $ret_code == 2 ) {
+        $data{'session'}{$id}{'shutdown'} = 1;
+    }
+}
+elsif ( defined $data{'session'}{$id} ) {
+
+    #    $_[0]->w->stop;
+    $data{'session'}{$id}{'buffer'}{'input'} = '';
+
+    #    $_[0]->w->start;
+
+    &{ $code{'base.log'} }( 0,
+        "[$id] undefined input handler '$handler'. dropped buffer!" );
+
+    if ( $data{'session'}{$id}{'mode'} eq 'client' ) {
+        $data{'session'}{$id}{'shutdown'} = 1;
+    }
+}
+else { print "PLIK\n" }
+
+my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+
+if ( $len < $data{'size'}{'buffer'}{'input'}
+    and !$data{'session'}{$id}{'shutdown'} )
+{
+    push( @{ $$data{'watcher_list'}{'paused'} }, \$_[0] );
+    if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
+        $data{'watcher'}{'io'}{'transfer'}->start;
+    }
+}
+
+if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
+    $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
+}
+
+# if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
+#    $data{'session'}{$id}{'watcher'}{'output_buffer'}->now;
+# }
+

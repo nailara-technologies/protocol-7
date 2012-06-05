@@ -1,0 +1,36 @@
+
+[load_config_file:'defaults']
+
+[load_config_file:'auth.pwd.core']
+
+modules.load		=	auth conf log net tcp io.ip core filter session proto.nailara file.dir_tree file.status web
+auth.methods		=	pwd agent rsa
+auth.rsa.key.file	=	rsa.core.pem
+get.route		=	file vortex.file :target:
+get.command		=	file.get
+
+
+access.cmd.usr.root	=	usr pid add_session_key
+
+access.cmd.usr.photon	=	..*.** **
+access.cmd.usr.web	=	webconf request content close
+
+web.site_dir		=	/data/web/sites/
+
+web.to_backend		=	REMOTE_ADDR HTTP_HOST DOCUMENT_ROOT SCRIPT_URL REQUEST_URI REQUEST_METHOD QUERY_STRING HTTP_REFERER HTTP_USER_AGENT
+web.to_frontend		=	site skin status-code content-type content-length filename
+
+
+[load_modules:<modules.load>]
+[load_modules:'plugin.auth']
+
+[load_modules:'plugin.web']
+
+[init_modules]
+
+
+[set_privs:'nailara']
+my.sock = [base.open:'tcp/ip','in',<net.local.web.addr>,<net.local.web.port>]
+[base.proto.bind:<my.sock>,'nailara','server']
+[base.event.loop]
+

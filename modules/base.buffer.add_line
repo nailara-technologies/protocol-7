@@ -1,0 +1,52 @@
+# >:]
+
+# name       = base.buffer.add_line
+
+my $name        = $_[0];
+my $log_message = $_[1];
+my $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'} || 100000;
+if ( $_[1] == -1 ) { $log_message = $_[2] }
+$log_message =~ s/^\s+|\s+$//;
+$log_message =~ s/\n/\\n/g;
+$log_message =~ s/\r/\\r/g;
+$log_message =~ s/\0/\\0/g;
+my $message_len = length($log_message);
+
+if ( $name eq '' ) {
+    &{ $code{'base.log'} }( 1, 'add_ram_log: no buffer name supplied' );
+    return -1;
+}
+elsif ( $name !~ /^\w+$/ or length($name) > 23 ) {
+    &{ $code{'base.log'} }( 1, 'add_ram_log: invalid buffer name suppied' );
+    return -1;
+}
+if ( $message_len > $buffer_size ) {
+    &{ $code{'base.log'} }(
+        1,
+        "WARNING: log message longer than log-buffer-size"
+          . " (buffer: $buffer_size bytes message: $message_len bytes)"
+    );
+    return 0;
+}
+while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
+    my $deleted_bytes = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) );
+    $data{'buffer'}{$name}{'overrun'}{'count'}++;
+    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes;
+    $data{'buffer'}{$name}{'size'} -= $deleted_bytes;
+}
+
+push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
+$data{'buffer'}{$name}{'size'} += $message_len;
+
+if ( defined $data{'system'}{'log'}{'buffer'}{$name}{'command'}
+    and $data{'system'}{'log'}{'buffer'}{$name}{'command'} ne '' )
+{
+    &{ $code{'base.proto.nailara.command.send.local'} }(
+        {
+            'command' => $data{'system'}{'log'}{'buffer'}{$name}{'command'}
+              . ' '
+              . $log_message,
+            'reply' => { 'handler' => 'dev.null', }
+        }
+    );
+}

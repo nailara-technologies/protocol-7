@@ -1,0 +1,20 @@
+# >:]
+
+# name       = auth.auth_select
+
+my $ok = 0;
+foreach my $_method ( split ( /\n/, &{$code{'auth.auth_list'}} ) ) {
+    if ( $_method eq $_[1] ) { $ok = 1 }
+}
+if ($ok) { 
+    $data{'session'}{ $_[0] }{'auth'}{'method'} = $_[1];
+    &{ $code{'net.out'} } ( $data{'session'}{ $_[0] }{'handle'},
+	"ACK continue\n" );
+    &{ $code{'base.log'} } ( 1, "[$_[0]] selected auth method '$_[1]'");
+    return 1; }
+else {
+    &{ $code{'net.out'} } ( $data{'session'}{ $_[0] }{'handle'},
+	"NACK no such auth method, see 'AUTH list'\n" );
+    &{ $code{'base.log'} } ( 0, "[$_[0]] unknown auth method requested");
+    return 0;
+}

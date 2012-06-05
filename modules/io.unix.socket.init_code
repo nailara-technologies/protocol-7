@@ -1,0 +1,27 @@
+# >:]
+
+# name       = io.unix.socket.init_code
+
+
+use IO::Socket::UNIX;
+
+$data{'io'}{'type'}{'unix'} = {
+
+    'ref' => 'IO::Socket::UNIX',
+
+    'handler' => {
+
+        'out' => {
+            'open'  => 'io.unix.socket.out.open',
+            'close' => 'io.unix.socket.out.close'
+        },
+
+        'in' => {
+            'open'    => 'io.unix.socket.in.open',
+            'close'   => 'io.unix.socket.in.close',
+            'connect' => 'io.unix.socket.in.connect'
+        }
+    }
+};
+
+return 0;

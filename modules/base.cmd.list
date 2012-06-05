@@ -1,0 +1,37 @@
+# >:]
+
+# name    = base.cmd.list
+# descr   = show available lists and their content
+
+my $list_name = $$call{'args'};
+
+if ( $list_name =~ /^\w+$/ and defined $data{'list'}{$list_name} ) {
+    my $list = $data{'list'}{$list_name};
+    return {
+        'mode' => 'raw',
+        'data' => &{ $code{'base.parser.list'} } (
+        $$list{'var'}, $$list{'key'},
+        split ( /\s+/, $data{'list'}{$list_name}{'mask'} ) )
+    };
+}
+elsif ( $list_name ne '' ) {
+    $$reply{'data'} = 'no such list';
+}
+else {
+    my $maxlen = 0;
+    my $count  = 0;
+    foreach my $list_name ( keys( %{ $data{'list'} } ) ) {
+        if ( length($list_name) > $maxlen ) { $maxlen = length($list_name) }
+        $count++;
+    }
+    $maxlen += 3;
+
+    $$reply{'mode'} = 'raw';
+    $$reply{'data'} = pack( 'A' . $maxlen, '[name]' ) . "[descr]\n";
+    foreach my $list_name ( keys( %{ $data{'list'} } ) ) {
+        $$reply{'data'} .=
+          pack( 'A' . $maxlen, $list_name )
+          . $data{'list'}{$list_name}{'descr'} . "\n";
+    }
+}
+

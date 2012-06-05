@@ -1,0 +1,24 @@
+# >:]
+
+# name = base.route.init_code
+
+if ( not defined $data{'limit'}{'max'}{'routes'}
+    or $data{'limit'}{'max'}{'routes'} < 1 )
+{
+    &{ $code{'base.log'} } ( 0, 'limit.max.routes is not defined or zero!');
+    return 1;
+}
+
+if ( not defined $data{'route'} ) {
+    $data{'route'} = {};
+}
+
+&{ $code{'base.list.init'} } (
+  {
+      'name'         => 'routes',
+      'key_ref'      => \$data{'route'},
+      'max_elements' => $data{'limit'}{'max'}{'routes'},
+
+} );
+
+return 0;
