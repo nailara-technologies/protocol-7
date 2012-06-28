@@ -152,20 +152,16 @@ sub BEGIN {
         }
         my @code_files = readdir($codedir);
         closedir($codedir);
-
         $| = 1;
 
         my @compile_them = ();
-
         foreach my $_code_name (@_) {
             my $code_name = $_code_name;
 
             # if ( $code_name ne '' ) { $code_name =~ s/\.[^\.]+$//; }
 
             &{ $code{'log.ok'} }( "loading module '" . $code_name . "'" );
-
             my $code_count = 0;
-
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
                     and $file_name =~ /^$code_name/
@@ -183,11 +179,16 @@ sub BEGIN {
                     push( @compile_them, $file_name );
                 }
             }
+            if ( !$code_count ) {
+                &{ $code{'log.failed'} }(
+                  ": failed to load module '$code_name' \t[ not found ]"
+                );
+            }
         }
-
         my $mod_count = scalar @compile_them;
-        &{ $code{'log.ok'} }(": compiling ...");
+        next if !$mod_count;
 
+        &{ $code{'log.ok'} }(": compiling ...");
         my ( $ok_count, $err_count ) = ( 0, 0 );
 
         foreach my $sub_name ( sort(@compile_them) ) {
