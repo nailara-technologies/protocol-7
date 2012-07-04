@@ -15,7 +15,11 @@ if ( $0 =~ /^.*nailara\./ ) {
     $agentname =~ s/^.*nailara\.|\.$//g;
 } elsif ( $ARGV[0] =~ /^([^\-]+)/ ) {
     $agentname = $1;
+    shift(@ARGV);
 }
+
+$data{'system'}{'args'} = \@ARGV;
+$data{'system'}{'args_str'} = join(' ', @ARGV);
 
 if ( $agentname ne '' ) {
     &{ $code{'base.init'} }(
