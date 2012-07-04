@@ -19,7 +19,7 @@ if ( $0 =~ /^.*nailara\./ ) {
 }
 
 $data{'system'}{'args'} = \@ARGV;
-$data{'system'}{'args_str'} = join(' ', @ARGV);
+( $data{'system'}{'args_str'} = join(' ', @ARGV) ) =~ s/\s*-v{1,3}\s*//;
 
 if ( $agentname ne '' ) {
     &{ $code{'base.init'} }(
