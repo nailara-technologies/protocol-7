@@ -1,0 +1,14 @@
+# >:]
+
+# name = base.swap_subs
+
+my $source_sub_prefix = shift;
+my $target_sub_prefix = shift;
+
+foreach my $sub_name (keys %code ) {
+  ( my $new_sub = $sub_name ) =~ s/^($source_sub_prefix)\./$target_sub_prefix./;
+  if ($new_sub ne $sub_name) {
+    $code{$new_sub} = $code{$sub_name};
+    undef $code{$sub_name};
+  }
+}
