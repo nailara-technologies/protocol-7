@@ -177,6 +177,10 @@ sub BEGIN {
                       or die $!;
 
                     $data{'code'}{$file_name}{'source'} = <$file>;
+                    # [sub_name:foo, bar] -> &{$code{'sub_name'}}(foo, bar)
+                    $data{'code'}{$file_name}{'source'} =~
+                      s|\[\s*(\w+\.[\w\.]+)(\s*:\s*([^\s*\]]*)\])?|
+                      &{\$code{'$1'}}($3)|x;
                     close($file);
                     $/ = "\n";
                     push( @compile_them, $file_name );
