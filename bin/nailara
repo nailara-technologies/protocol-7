@@ -181,6 +181,9 @@ sub BEGIN {
                     $data{'code'}{$file_name}{'source'} =~
                       s|\[\s*(\w+\.[\w\.]+)(\s*:\s*([^\s*\]]*)\])?|
                       &{\$code{'$1'}}($3)|x;
+                    # warning: this parser breaks on [ or ]'s in params and
+                    #          is only temporary until the new nailara
+                    #          binary is working and merged into the tree
                     close($file);
                     $/ = "\n";
                     push( @compile_them, $file_name );
