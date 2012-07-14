@@ -1,0 +1,23 @@
+# >:]
+
+# name = base.on_load_perlmod
+
+my $perl_module = shift;
+my $code_name = shift;
+my @params = @_;
+
+if ( $perl_module !~ /^(\w+|\:\:)+$/ ) {
+  [base.log:2,"invalid module name '$perl_module'"];
+  return;
+}
+
+if( eval "use $perl_module" or $@ or length($!) ){
+  if( $data{'system'}{'verbosity'} >= 1 ) {
+    [base.log:0,"on_load: failed to load perl module '$perl_module' \[$!\]"];
+  } else {
+    [base.log:2,"on_load: failed to load perl module '$perl_module' \[$!\]"];
+  }
+  return;
+}
+
+return &{$code{$code_name}}(@params);
