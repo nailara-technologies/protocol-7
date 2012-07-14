@@ -30,7 +30,7 @@ if ( my $config_array = &{ $code{'agent.get_agent_conf'} }($agent_name) ) {
 
     #    if ( -S $data{'core'}{'handle'} ) {
     my $session_key =
-      &{ $code{'base.hash'} }(
+      &{ $code{'digest.sha1'} }(
         &{ $code{'crypt.random.bytes'} }($session_key_length) );
 
     print "SPAWNING AGENT ID: $agent_id\n";

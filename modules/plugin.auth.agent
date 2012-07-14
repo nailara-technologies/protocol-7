@@ -8,7 +8,7 @@ my $buffer = \$data{'session'}{$id}{'buffer'}{'input'};
 my $handle = \$data{'session'}{$id}{'handle'};
 
 if ( $$buffer =~ s/^(\w+)\s(\w+)\n// ) {
-    my ( $usr, $key ) = ( $1, &{ $code{'base.hash'} }($2) );
+    my ( $usr, $key ) = ( $1, &{ $code{'digest.sha1'} }($2) );
     my $kick_user = 1;
 
     if ( defined $key{'auth'}{'agent'}{$usr} ) {
