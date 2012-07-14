@@ -1,27 +1,14 @@
+# >:]
+
+# name  = nailara.root
+# descr = root agent config
 
 [load_config_file:'defaults']
 
-agent.agents		=	file xmesg
+spawner.cfg_file = root.spawn_config.*
 
-agent.check.init_pause		=	0
-agent.check.interval		=	2
-agent.check.timeout			=	5
-agent.check.connect_pause	=	2
-max.agents			=	64
-max.cores			=	42
-net.daemon_name			=	root
-auth.core.pass			=	sp4wn3r
-modules.load			=	auth net io.ip crypt.random agent
+[load_section_config:<spawner.cfg_file>]
 
-access.cmd.usr.core		=	help run check_agents add_agent list_agents list_buffers dump_buffer dump ping reload list set set_pid
+[load_modules:'root']
 
-[load_modules:<modules.load>]
-[init_modules]
-
-# [agent.run:core]
-
- core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
- [base.session.init:<core.handle>,'nailara','client','core']
-
- [base.event.loop]
- 
+[root.main_loop]
