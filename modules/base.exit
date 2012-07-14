@@ -1,0 +1,11 @@
+# >:]
+
+# name = base.exit
+
+my $exit_code = 0;
+$exit_code    = shift if $_[0] =~ /^\d+$/;
+my $exit_msg  = shift || "exit($exit_code) called.";
+my $log_level = shift || 1;
+
+[base.log:$log_level,"exit($exit_code) $exit_msg"];
+exit($exit_code);
