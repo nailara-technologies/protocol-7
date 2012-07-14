@@ -10,7 +10,7 @@ if ( $_[1] eq 'changemenow' ) {
 }
 
 if ( ${ &{ $code{'base.resolve_key'} } ( 'auth.pwd.' . $_[0] ) } eq
-    &{ $code{'base.hash'} } ( $_[1] ) )
+    &{ $code{'digest.sha1'} } ( $_[1] ) )
 {
     return 1;
 }
