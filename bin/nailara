@@ -165,6 +165,7 @@ sub BEGIN {
 
             &{ $code{'log.ok'} }( "loading module '" . $code_name . "'" );
             my $code_count = 0;
+            my $last_code_count = 0;
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
                     and $file_name =~ /^$code_name/
@@ -202,7 +203,11 @@ sub BEGIN {
                 &{ $code{'log.failed'} }(
                   ": failed to load module '$code_name' \t[ not found ]"
                 );
+            } elsif ( $code_count > $last_code_count ) {
+              $data{'system'}{'subs_loaded'}{$code_name} =
+                $code_count - $last_code_count;
             }
+            $last_code_count = $code_count;
         }
         my $mod_count = scalar @compile_them;
         next if !$mod_count;
