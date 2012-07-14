@@ -1,0 +1,30 @@
+# >:]
+
+# name  = root.spawn_config.local
+# descr = defines agent startup for 'local' setup
+
+.: globals :.
+
+  agents.max_procs  = unlimited
+  agents.start_mode = exec	# [fork|exec]
+  agents.autospawn  = 1
+
+.: agents :.
+
+  - core
+
+      : init :
+
+        core_key = [root.gen_key:42]
+
+      : remote :
+
+        root_key = <core_key>
+
+      : local :
+
+        local_addr = <net.local.addr>
+        local_port = <net.local.port>
+        [root.connect_core:<local_addr>,<local_port>,<root.core_key>]
+
+  - xmesg
