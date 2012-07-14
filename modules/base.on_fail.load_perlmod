@@ -11,6 +11,6 @@ if ( $perl_module !~ /^(\w+|\:\:)+$/ ) {
   return;
 }
 
-if( !eval "use $perl_module" and !$@ and !length($!) ){
+if( eval "use $perl_module" or $@ or length($!) ){
   return &{$code{$code_name}}(@params);
-}
+} else { [base.log:1,"loading '$perl_module' succeeded.."] }
