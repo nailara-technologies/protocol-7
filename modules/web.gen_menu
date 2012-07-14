@@ -11,7 +11,7 @@ close(LOG);
 
     return &{ $code{ $menu_plugin } }
       ( $data{'client'}{ $_[0] }{'web'}{'request'}{'path'},
-      &{ $code{'file.dir_tree'} } ( $data{'client'}{ $_[0] }{'site'}{'dir'} ) );
+      @{ &{$code{'file.tree'}} ( $data{'client'}{ $_[0] }{'site'}{'dir'} ) } );
 }
 else {
 close(LOG);

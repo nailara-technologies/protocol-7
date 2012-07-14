@@ -13,7 +13,7 @@ if ( %{ $data{'file'}{'index'} } ) {
 }
 if ( -d $data{'file'}{'dir'} ) {
     foreach
-        my $filename ( &{ $code{'file.dir_tree'} }( $data{'file'}{'dir'} ) )
+        my $filename ( @{ &{$code{'file.tree'}}( $data{'file'}{'dir'} ) } )
     {
         next
             if -d $data{'file'}{'dir'}
