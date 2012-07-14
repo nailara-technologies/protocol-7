@@ -10,7 +10,8 @@
 
         my ( $name, $foo, $uid, $gid ) = getpwnam( $_[0] );
 
-        if (   $) == "$gid $gid"
+        if ( defined $name and
+            $) == "$gid $gid"
             && $( == $gid
             && $> == $uid
             && $< == $uid )
@@ -31,7 +32,8 @@
                 $( = $gid;
                 $> = $uid;
                 $< = $uid;
-                &{ $code{'base.log'} }( 1, "changed priviledges to '$_[0]'" );
+                &{ $code{'base.log'} }( 1,
+                    "changed priviledges to user '$_[0]'" );
             }
         }
     }
