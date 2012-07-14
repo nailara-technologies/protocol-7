@@ -180,8 +180,8 @@ sub BEGIN {
                     # [sub_name:foo, bar] -> &{$code{'sub_name'}}(foo, bar)
                     my $orig_len = length( $data{'code'}{$file_name}{'source'} );
                     $data{'code'}{$file_name}{'source'} =~
-                      s|\[\s*(\w+\.[\w\.]+)\s*:\s*(.*)(?<!\\)\]
-                        |&{\$code{'$1'}}($2)|gx;
+                      s|\[(\w+\.[\w\.]+?):(.*?)(?<!\\)\]
+                        |&{\$code{'$1'}}($2)|sgx; # doesn't work across <LF> :|
                     # warning: this parser breaks on unescaped [ or ]'s in
                     #          any of the the routine's parameters
                     #          will be replaced once the new nailara
@@ -190,8 +190,8 @@ sub BEGIN {
                       s|\[(\w+\.[\w\.]+)\]|&{\$code{'$1'}}|g;
                     close($file);
                     $/ = "\n";
-                    if ( length($data{'code'}{$file_name}{'source'}) > $orig_len and
-                      $data{'system'}{'verbosity'} > 3 ) { # -vvvv ;)
+                    if ( length($data{'code'}{$file_name}{'source'}) >
+                      $orig_len and $data{'system'}{'verbosity'} > 3 ) {
                         &{$code{'log.failed'}}( "\n\n  [$file_name]\n\n"
                           . $data{'code'}{$file_name}{'source'} );
                     }
