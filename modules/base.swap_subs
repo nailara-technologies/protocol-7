@@ -5,6 +5,8 @@
 my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
 
+[base.log:1,"swapping : $source_sub_prefix >> $target_sub_prefix"];
+
 foreach my $sub_name (keys %code ) {
   ( my $new_sub = $sub_name ) =~ s/^($source_sub_prefix)\./$target_sub_prefix./;
   if ($new_sub ne $sub_name) {
