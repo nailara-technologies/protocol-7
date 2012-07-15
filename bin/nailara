@@ -181,7 +181,7 @@ sub BEGIN {
                     # [sub_name:foo, bar] -> &{$code{'sub_name'}}(foo, bar)
                     my $orig_len = length( $data{'code'}{$file_name}{'source'} );
                     $data{'code'}{$file_name}{'source'} =~
-                      s|\[(\w+\.[\w\.]+?):(.*?)(?<!\\)\]
+                      s|(?<!\\)\[(\w+\.[\w\.]+?):(.*?)(?<!\\)\]
                         |&{\$code{'$1'}}($2)|sgx; # doesn't work across <LF> :|
                     # warning: this parser breaks on unescaped [ or ]'s in
                     #          any of the the routine's parameters
@@ -189,6 +189,11 @@ sub BEGIN {
                     #          binary is working and merged into the tree
                     $data{'code'}{$file_name}{'source'} =~
                       s|\[(\w+\.[\w\.]+)\]|&{\$code{'$1'}}|g;
+                    # <foo.bar> -> $data{'foo'}{'bar'}
+                    # (requires at least 1 . in the data key to match)
+                    $data{'code'}{$file_name}{'source'} =~
+                      s|(?<!\\)\<(\w+\.[\w\.]+)(?<!\\)\>|
+                        my $k="\$data{'$1'}";$k=~s/\./\'}{\'/g;$k|gex;
                     close($file);
                     $/ = "\n";
                     if ( length($data{'code'}{$file_name}{'source'}) >
