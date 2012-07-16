@@ -182,7 +182,7 @@ sub BEGIN {
                     my $orig_len = length( $data{'code'}{$file_name}{'source'} );
                     $data{'code'}{$file_name}{'source'} =~
                       s|(?<!\\)\[(\w+\.[\w\.]+?):(.*?)(?<!\\)\]
-                        |&{\$code{'$1'}}($2)|sgx; # doesn't work across <LF> :|
+                        |&{\$code{'$1'}}($2)|sgx;
                     # warning: this parser breaks on unescaped [ or ]'s in
                     #          any of the the routine's parameters
                     #          will be replaced once the new nailara
