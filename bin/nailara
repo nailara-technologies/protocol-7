@@ -251,11 +251,14 @@ sub BEGIN {
             }
 
             if ( $data{'system'}{'verbosity'} > 2 ) {
-                $sub_code = 'sub {'
+                my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
+                $sub_code = 'sub {' . $line_comment
                   . "\&{\$code{'base.debug_sub'}}('$sub_name',\@_); "
                   . $data{'code'}{$sub_name}{'source'} . ' }';
             } else {
-                $sub_code = 'sub {' . $data{'code'}{$sub_name}{'source'} . '}';
+                my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
+                $sub_code = 'sub {' . $line_comment
+                  . $data{'code'}{$sub_name}{'source'} . '}';
             }
 
             if ( $code{$sub_name} = eval($sub_code)
