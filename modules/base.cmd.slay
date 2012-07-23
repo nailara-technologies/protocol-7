@@ -2,7 +2,7 @@
 
 # name    = base.cmd.slay
 # descr   = shutdown all sessions with matching user name [optional kill message]
-# comment = apparently leaves some kind of zombie data while it shouldn't - check that! => list sessions 
+# comment = apparently leaves some kind of zombie data while it shouldn't - check that! => list sessions
 
 if($$call{'args'} =~ /^(\w+)\s?(.*)$/)
 {
@@ -11,7 +11,7 @@ if($$call{'args'} =~ /^(\w+)\s?(.*)$/)
     my $killed = 0;
 
     if($usr=~/\s/){ ($usr,$msg)=split(/\s/,$usr,2) }
-    
+
     if ( defined( $data{'user'}{$usr} ) ) {
 
 #	&{$code{'base.log'}(0,"slaying user '$usr'..")};

@@ -15,9 +15,9 @@ if ( -S $fd ) {
     $data{'handle'}{$new_sock}{'encryption'}   = 'none';
     $data{'handle'}{$new_sock}{'peerhost'} = $new_sock->peerhost();
     $data{'handle'}{$new_sock}{'peerport'} = $new_sock->peerport();
-    
+
     &{ $code{'base.log'} } ( 1, 'incoming tcp connection ['.$data{'handle'}{$new_sock}{'peerhost'}.':'.$data{'handle'}{$new_sock}{'peerport'}.']');
-    
+
     return $new_sock;
 }
 else {
