@@ -11,7 +11,7 @@ foreach my $key (keys %{$$call{'param'}})
 {
 	my $val;
         $val = pack( "h*", $$call{'param'}{$key} );
-        $val =~ s/\n/\\n/g;        
+        $val =~ s/\n/\\n/g;
         $val =~ s/\r/\\r/g;
         $val =~ s/\0/\\0/g;
 
@@ -22,7 +22,7 @@ my %request = %{$data{'session'}{$sid}{'web'}{'request'}};
 my $reply   = %{$data{'session'}{$sid}{'web'}{'reply'}};
 
 # check HTTP_HOST for matchng vhost vhosts
- 
+
 my $status;
 
 if(defined $data{'web'}{'vhost'}{$request{'HTTP_HOST'}})

@@ -12,7 +12,7 @@ foreach my $agent_id ( keys( %{ $data{'agent'} } ) ) {
     &{ $code{'base.log'} } ( 2, "checking agent id $agent_id name: $agent_name");
 
     print ":::CHK:::PASS::1\n";
-    
+
     &{ $code{'base.proto.nailara.command.send.local'} } (
       {
           'command' => "core.online $agent_name",
@@ -25,7 +25,7 @@ foreach my $agent_id ( keys( %{ $data{'agent'} } ) ) {
     );
 
     print "::CHK::PASS::2\n";
-    
+
     #  &{ $code{'net.cmd'} } (
     #    {
     #        'handle'         => $data{'core'}{'handle'},

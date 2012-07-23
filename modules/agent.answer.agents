@@ -29,9 +29,9 @@ if ( $cmd =~ /^NACK/ ) {
 	print "PASS 1\n";
 	
         if ( !$failed ) {
-            
+
 	    print "::: TRUE\n";
-	    
+	
 	    return \{
                 'mode' => 'ack',
                 'data' => 'all agents spawned sucessfully'
@@ -39,9 +39,9 @@ if ( $cmd =~ /^NACK/ ) {
         }
         else {
             my $txt = $failed . ' agents reported errors';
-	    
+	
 	    print "FALSE\n";
-	    
+	
             return \{ 'mode' => 'nack', 'data' => $txt };
         }
     }

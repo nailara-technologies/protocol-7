@@ -14,7 +14,7 @@ if ( $$agent{'status'} eq 'spawn' ) {
 elsif ( $$agent{'status'} eq 'shutdown' ) {
     &{ $code{'base.log'} }( 1,
         'sending kill signal to agent \'' . $$agent{'name'} .'\' (pid:'.$$agent{'pid'}. ')' );
-    
+
     if(kill( 9, $$agent{'pid'} ))
     {
 	print "SUCCESS\n";

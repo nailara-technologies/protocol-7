@@ -13,7 +13,7 @@ if ( $key =~ /\.([^\.]+)$/ ) {
     my $hash_ref = &{ $code{'base.resolve_hash'} } ($key);
 
 #    print "DEL: href: ".join("\n",keys($$hash_ref))."\n";
-    
+
     if ( defined ${$hash_ref}{$1} ) {
         delete ${$hash_ref}{$1};
         $$reply{'mode'} = 'ack';
