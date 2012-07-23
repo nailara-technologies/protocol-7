@@ -16,7 +16,7 @@ if ( $_[0] =~ /^\d+$/ ) {
 else {
     $agent_name = $_[0];
     $agent_id = &{ $code{'agent.add_agent'} }($agent_name);
-    
+
 }
 
 my $verbose_switch = undef;
@@ -137,7 +137,7 @@ if ( my $config_array = &{ $code{'agent.get_agent_conf'} }($agent_name) ) {
     &{ $code{'base.proto.nailara.command.send.local'} }(
 	{
 	    'command' => $agent_name.".pid",
-	      
+	
 	    'reply' => {
 		'handler' => 'agent.set.pid',
 		'params'  =>
@@ -145,8 +145,8 @@ if ( my $config_array = &{ $code{'agent.get_agent_conf'} }($agent_name) ) {
 	    }
 	}
     );
-    
-    
+
+
 
 }
 else {

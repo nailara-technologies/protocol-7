@@ -6,7 +6,7 @@
 $data{'session'}{ $$call{'session_id'} }{'shutdown'} = 1;
 
 if($$call{'args'} ne '')
-{ 
+{
 	my $reason=substr($$call{'args'},0,23);
 	if(length($$call{'args'})>23){ $reason.='..' }
 	&{$code{'base.log'}}(1,"[".$$call{'session_id'}."] session shutdown ($reason)");

@@ -6,7 +6,7 @@ my $ok = 0;
 foreach my $_method ( split ( /\n/, &{$code{'auth.auth_list'}} ) ) {
     if ( $_method eq $_[1] ) { $ok = 1 }
 }
-if ($ok) { 
+if ($ok) {
     $data{'session'}{ $_[0] }{'auth'}{'method'} = $_[1];
     &{ $code{'net.out'} } ( $data{'session'}{ $_[0] }{'handle'},
 	"ACK continue\n" );

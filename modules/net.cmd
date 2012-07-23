@@ -3,7 +3,7 @@
 # name       = net.cmd
 
 
-my ( $filehandle, $command, $handler, $param_hash ) = 
+my ( $filehandle, $command, $handler, $param_hash ) =
   (
       ${$_[0]}{'handle'},
       ${$_[0]}{'command'},
