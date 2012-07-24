@@ -24,7 +24,6 @@ $_[0]->w->stop;
 
 $$input =~ s/^[\s|\t|\n]+//o;
 
-my $cmd = '';
 my @args;
 my $command_mode = 0;
 my $call_args    = {};

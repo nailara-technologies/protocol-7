@@ -11,7 +11,7 @@ if ( $_[0] eq '' ) {
     my ( $name, $foo, $uid, $gid ) = getpwnam( $_[0] );
 
     if ( defined $name and
-        $) == "$gid $gid"
+        $) eq "$gid $gid"
         && $( == $gid
         && $> == $uid
         && $< == $uid )

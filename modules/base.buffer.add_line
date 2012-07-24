@@ -5,7 +5,7 @@
 my $name        = $_[0];
 my $log_message = $_[1];
 my $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'} || 100000;
-if ( $_[1] == -1 ) { $log_message = $_[2] }
+$log_message = $_[2] if defined $_[2] and $_[1] == -1;
 $log_message =~ s/^\s+|\s+$//;
 $log_message =~ s/\n/\\n/g;
 $log_message =~ s/\r/\\r/g;
@@ -28,6 +28,8 @@ if ( $message_len > $buffer_size ) {
     );
     return 0;
 }
+$data{'buffer'}{$name}{'size'} = 0
+    if not defined $data{'buffer'}{$name}{'size'};
 while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     my $deleted_bytes = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) );
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
