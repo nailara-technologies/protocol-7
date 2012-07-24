@@ -90,10 +90,9 @@ foreach my $key_type ( 'private', 'public' ) {
 	$key->{'block_size'} = $rsa->size();
 	$key->{'type'}       = 'rsa';
 	$key->{'encoding'}   = 'X509';
-	$key->{'public'}{'fingerprint'} =
-	  sha1_hex( $key{'rsa'}{$key_id}{'public'} );
-	&{ $code{'base.log'} }( 1,
-	    ": validated as " . $key->{'public'}{'fingerprint'} );
+	$key->{'fingerprint'}{'public'} = sha1_hex( $key->{'public'} );
+	&{ $code{'base.log'} }( 1, ": validated as "
+            . $key->{'fingerprint'}{'public'} );
 	$key_loaded = 1;
     }
 }
