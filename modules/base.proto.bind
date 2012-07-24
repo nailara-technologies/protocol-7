@@ -1,8 +1,8 @@
 # >:]
 
-# name       = base.proto.bind
-# args       = filehandle, protocol
-# descr      = bind a specific protocol to a filehandle
+# name  = base.proto.bind
+# args  = filehandle, protocol [, mode]
+# descr = bind a specific protocol to a socket / filehandle
 
 $data{'handle'}{ $_[0] }{'proto'} = $_[1];
 
@@ -16,4 +16,3 @@ if ( !fileno( $_[0] ) ) {
         "bound protocol '$_[1]' to handle '$_[0]' (mode: $mode)" );
     my $id = &{ $code{'base.session.init'} }( $_[0], $_[1], $mode );
 }
-
