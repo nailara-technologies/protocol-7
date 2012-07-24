@@ -4,6 +4,13 @@ use v5.8.2;
 
 # use strict;
 
+# globals
+our %code;
+our %data;
+our %key;
+our %ANSI;
+
+prepare_subs();
 &{ $code{'base.init_exec'} };
 
 &{ $code{'base.load_code'} }('base');
@@ -44,17 +51,14 @@ exit;
 
 # :: initialization / basic subroutines ::
 
-sub BEGIN {
-
-    our %code;
-    our %data;
-    our %key;
-    our %ANSI;
+sub prepare_subs {
 
     $code{'base.init_exec'} = sub {
 
         use Sys::Hostname;
         use File::Spec;
+
+        $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
         $data{'system'}{'start'}{'exec_name'} = File::Spec->rel2abs($0);
 
@@ -222,10 +226,7 @@ sub BEGIN {
 
         foreach my $sub_name ( sort(@compile_them) ) {
 
-            #            local $SIG{__WARN__} = $code{'log.failed'};
             local $SIG{__WARN__} = 'IGNORE';
-
-            #            local $SIG{__DIE__}  = $code{'log.failed'};
             local $SIG{__DIE__} = 'IGNORE';
 
             my $sub_code = undef;
@@ -266,8 +267,6 @@ sub BEGIN {
             {
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'} = 'ok';
-
-                #                &{ $code{'log.ok'} } ("ok: $sub_name");
                 $ok_count++;
 
                 if ( $sub_name =~ /\.cmd\.(.+)$/ ) {
@@ -296,9 +295,8 @@ sub BEGIN {
                 };
                 delete $data{'code'}{$sub_name}{'source'};
                 my $err_str = $@;
-                $err_str =~ s/\n.*$//;
-                $err_str =~ s{at (\(eval \d+\)) (line \d+)}
-		    {in module source $sub_name at $2 $1}g;
+                $err_str =~ s/\n.*$/ /sg;
+                $err_str =~ s/\s+$//mg;
                 &{ $code{'log.failed'} }(
                     "error in routine '$sub_name' [$err_str]");
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
@@ -312,8 +310,6 @@ sub BEGIN {
         } else {
             &{ $code{'log.ok'} }(": $ok_count routines, all ok.");
         }
-
-        #       $SIG{__WARN__} = \$code{'log.failed'};
     };
 
     $code{'base.debug_sub'} = sub {
@@ -351,5 +347,13 @@ sub BEGIN {
           . $ANSI{'normal'} . "\n";
     };
 
-    $code{'dev.null'} = sub { }
+    $code{'dev.null'} = sub { };
+
+    $code{'base.sig_warn'} = sub {
+      if (@_) {
+        chomp( my @err = @_ );
+        &{$code{'base.log'}}(0, join(' ', '[WARN]', @err));
+      }
+      return 1;
+    };
 }
