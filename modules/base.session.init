@@ -1,11 +1,20 @@
 # >:]
 
-# name       = base.session.init
+# name  = base.session.init
+# descr = creates / initializes a new session
 
 my ( $fd, $proto, $mode, $name ) = (@_);
 
-$proto = 'nailara'   if $proto eq '';
+$proto = 'nailara' if $proto eq '';
 $mode  = 'client' if $mode eq '';
+
+if ( defined $name and $name !~ /^\w+$/ ) {
+    &{ $code{'base.log'} } ( 0,
+      "base.session.init: value '$name' for parameter name is invalid");
+    return -1;
+}
+
+$name = '-' if not defined $name;
 
 if ( not defined $data{'proto'}{$proto} ) {
     &{ $code{'base.log'} } ( 0, "base.session.init: unknown protocol");
@@ -22,7 +31,7 @@ my $id = &{ $code{'base.list.element.add'} } (
           'mode'       => $mode,
           'state'      => 0,
           'shutdown'   => 0,
-          'user'       => $name || '-',
+          'user'       => $name,
           'size'       => {
               'buffer' => {
                   'input'  => $data{'size'}{'buffer'}{'input'},
@@ -33,7 +42,7 @@ my $id = &{ $code{'base.list.element.add'} } (
   }
 );
 
-if ( $name ne '' ) { $data{'user'}{$name}{'session'}{$id}{'mode'} = 'client'; }
+if ( $name ne '-' ) { $data{'user'}{$name}{'session'}{$id}{'mode'} = 'client' }
 
 $data{'session'}{$id}{'watcher'}{'shutdown_trigger'} =
   &{ $code{'base.event.add_var'} } (

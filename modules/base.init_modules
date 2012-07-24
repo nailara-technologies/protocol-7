@@ -3,7 +3,7 @@
 # name       = base.init_modules
 
 my $error_status = 1;
-foreach my $sub_name ( keys(%code) ) {
+foreach my $sub_name ( sort {length($a) <=> length($b)} sort( keys(%code) ) ) {
     if ( $sub_name =~ /^(.+)\.init_code/
 	and defined $data{'code'}{$sub_name}
         and $data{'code'}{$sub_name}{'status'} eq 'ok' )
