@@ -31,7 +31,8 @@ else {
 
 my $log_stamp = time() . " " . $log_level . " " . $log_msg;
 
-if ( $log_level <= $data{'system'}{'internal_verbosity'} ) {
+if ( defined  $data{'system'}{'internal_verbosity'} and
+  defined $log_level <= $data{'system'}{'internal_verbosity'} ) {
     &{ $code{'base.buffer.add_line'} }( $log_buffer, $log_stamp );
 }
 

@@ -39,13 +39,11 @@ else {
     $data{'session'}{$id}{'shutdown'} = 1;
 }
 
-# select undef, undef, undef, 0.02;
-
-my $len = length( $data{'session'}{$id}{'buffer'}{'output'} );
+$len = length( $data{'session'}{$id}{'buffer'}{'output'} );
 
 if ($len) {
 
-    push ( @{ $$data{'watcher_list'}{'paused'} }, \$_[0] );
+    push ( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
 
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
