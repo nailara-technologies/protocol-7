@@ -1,13 +1,14 @@
 # >:]
 
-# name       = base.session.init_state
+# name   = base.session.init_state
+# params = session_id, state
 
-if ( not defined $data{'session'}{ $_[0] } ) {
-    &{ $code{'base.log'} } ( 0, "init_state: no such session '$_[0]'");
+if (not defined $data{'session'}{$_[0]}) {
+    &{$code{'base.log'}} (0, "init_state: no such session '$_[0]'");
     return 1;
 }
-if (
-    not defined $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}
+
+if (not defined $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}
     { $_[1] } )
 {
     &{ $code{'base.log'} } ( 0, "init_state: no such state '$_[1]'");
@@ -24,12 +25,11 @@ foreach my $mode ( keys( %{ $data{'session'}{ $_[0] }{'state'}{ $_[1] } } ) ) {
 
     print "setting up mode '$mode' id '$_[0]' state '$_[1]'\n";
 
-    if (
-        not defined &{ $code{ $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}
-        {'handler'} } } )
+    if ( not defined $code{ $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}
+        {'handler'} } )
     {
-        &{ $code{'base.log'} }
-          ( 0,"[$_[0]] init_state: handler not defined (mode: '$mode' name: '"
+        &{ $code{'base.log'} } (
+          0, "[$_[0]] init_state: handler not defined (mode: '$mode' name: '"
           . $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}{'handler'}
           . "')" );
         return 1;
