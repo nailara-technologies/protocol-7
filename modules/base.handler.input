@@ -26,7 +26,7 @@ my $handler = $data{'session'}{$id}{'input'}{'handler'};
 if ( defined &{ $code{$handler} } ) {
     my $ret_code = &{ $code{$handler} }( $_[0] );
 
-    if ( $ret_code == 2 ) {
+    if ( $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
 }
