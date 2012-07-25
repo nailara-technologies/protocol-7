@@ -3,8 +3,6 @@
 # name       = base.handler.input
 # descr      = call input handler
 
-# print "CALLED INPUT HANDLER\n";
-
 my $id = $_[0]->w->data;
 
 if ( not defined $data{'session'}{$id} ) {
@@ -53,7 +51,7 @@ my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
 if ( $len < $data{'size'}{'buffer'}{'input'}
     and !$data{'session'}{$id}{'shutdown'} )
 {
-    push( @{ $$data{'watcher_list'}{'paused'} }, \$_[0] );
+    push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
     }
