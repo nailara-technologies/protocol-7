@@ -16,12 +16,11 @@ if (not defined $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}
 }
 
 my $mode = $data{'handle'}{ $data{'session'}{ $_[0] }{'handle'} }{'mode'};
-
+my $proto = $data{'session'}{ $_[0] }{'proto'};
 $data{'session'}{ $_[0] }{'input'}{'handler'} =
-  $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}{ $_[1] }{$mode}
-  {'handler'};
+  $data{'proto'}{$proto}{'state'}{"$_[1]"}{$mode}{'handler'};
 
-foreach my $mode ( keys( %{ $data{'session'}{ $_[0] }{'state'}{ $_[1] } } ) ) {
+foreach my $mode ( keys( %{ $data{'proto'}{$_[0]}{'state'}{$_[1]} } ) ) {
 
     print "setting up mode '$mode' id '$_[0]' state '$_[1]'\n";
 
