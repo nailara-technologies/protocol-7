@@ -3,10 +3,6 @@
 # name   = base.event.idle_restart
 # descr  = restart watcher if idle
 
-
-## DEBUG
-##  print "IDLE RESTART CALLED\n";
-
 if (    defined $data{'watcher_list'}{'paused'}
     and ref( $data{'watcher_list'}{'paused'} ) eq 'ARRAY'
     and scalar @{ $data{'watcher_list'}{'paused'} } )
@@ -16,17 +12,14 @@ if (    defined $data{'watcher_list'}{'paused'}
         my $id   = $$w->w->data;
         my $desc = $$w->w->desc;
 
-        if ( defined $data{'session'}{$id} ) {
+        next if not defined $data{'session'}{$id};
 
-            #            print "restarting watcher: $id - $desc\n";
-            ${$w}->w->now;
-        }
+        ${$w}->w->start;
     }
-
-    $data{'watcher_list'}{'paused'} = \();
+    $data{'watcher_list'}{'paused'} = [];
     $_[0]->w->stop;
 }
 else {
-    $data{'watcher_list'}{'paused'} = \();
+    $data{'watcher_list'}{'paused'} = [];
     $_[0]->w->stop;
 }

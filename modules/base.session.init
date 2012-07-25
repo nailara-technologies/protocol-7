@@ -48,6 +48,10 @@ if ( $name ne '-' ) {
 
 $data{'handle'}{$fd}{'cid'} = $id if $mode eq 'client';
 
+$data{'watcher_list'}{'paused'} = [] if
+  not defined $data{'watcher_list'}{'paused'} or
+  ref($data{'watcher_list'}{'paused'}) ne 'ARRAY';
+
 $data{'session'}{$id}{'watcher'}{'shutdown_trigger'} =
   &{ $code{'base.event.add_var'} } (
   {
