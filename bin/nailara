@@ -162,7 +162,8 @@ sub prepare_subs {
         $| = 1;
 
         my @compile_them = ();
-        foreach my $_code_name (@_) {
+        my @remaining = @_;
+        while ( my $_code_name = shift @remaining ) {
             my $code_name = $_code_name;
 
             # if ( $code_name ne '' ) { $code_name =~ s/\.[^\.]+$//; }
@@ -219,6 +220,7 @@ sub prepare_subs {
             $last_code_count = $code_count;
         }
         my $mod_count = scalar @compile_them;
+        return if !$mod_count and !@remaining;
         next if !$mod_count;
 
         &{ $code{'log.ok'} }(": compiling ...");
