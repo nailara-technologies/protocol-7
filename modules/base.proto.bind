@@ -4,8 +4,11 @@
 # args  = filehandle, protocol [, mode]
 # descr = bind a specific protocol to a socket / filehandle
 
+if ( not defined $_[0] ) {
+    [base.log: 0, "failed to bind protocol \[undefined filehandle\]"];
+    return undef;
+}
 $data{'handle'}{ $_[0] }{'proto'} = $_[1];
-
 my $mode = $_[2] || 'server';
 
 if ( !fileno( $_[0] ) ) {
