@@ -10,7 +10,7 @@ $Event::DIED       = \&Event::verbose_exception_handler;
 
 # setup io handler
 
-$data{'watcher_list'}{'paused'} = \();
+$data{'watcher_list'}{'paused'} = [];
 
 $data{'watcher'}{'io'}{'transfer'} =
   Event->idle( cb => $code{'base.event.idle_restart'}, repeat => 1 );
