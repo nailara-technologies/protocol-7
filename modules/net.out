@@ -1,8 +1,8 @@
 # >:]
 
-# name       = net.out
-
-# print ">>\n";
+# name  = net.out
+# descr = write data to client
+# args  = filehandle, data (string)
 
 if ( fileno $_[0] ) {
     if ( defined $data{'handle'}{ $_[0] }
@@ -28,8 +28,6 @@ if ( fileno $_[0] ) {
         }
     }
     else { syswrite( $_[0], $_[1] ) }
-
-    #   print "<<\n";
 
     if ( $data{'handle'}{ $_[0] }{'cid'} ) {
         $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }{'bytes'}{'in'} +=

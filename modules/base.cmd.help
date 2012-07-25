@@ -12,7 +12,7 @@ my $usr = $data{'session'}{$id}{'user'};
 my $command  = $$call{'data'};
 my $max_len  = 0;
 my @commands = ();
-if ( $command eq '' ) {
+if ( not defined $command or $command eq '' ) {
 
     # get a list of all commands the user who sent the request has access to
 
