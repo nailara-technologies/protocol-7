@@ -19,7 +19,7 @@ if ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {
 
     $_[0]->w->start;
 
-    if ( $$session{'counter'}{'auth'}{'error'}{'select'} > 2 ) {
+    if ( ( $$session{'counter'}{'auth'}{'error'}{'select'} || 0 ) > 2 ) {
         $$output .= ">:[\n";
         $$session{'shutdown'} = 1;
     }

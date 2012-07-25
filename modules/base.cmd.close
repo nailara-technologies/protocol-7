@@ -5,7 +5,7 @@
 
 $data{'session'}{ $$call{'session_id'} }{'shutdown'} = 1;
 
-if($$call{'args'} ne '')
+if(defined $$call{'args'} and $$call{'args'} ne '')
 {
 	my $reason=substr($$call{'args'},0,23);
 	if(length($$call{'args'})>23){ $reason.='..' }
