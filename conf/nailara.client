@@ -3,7 +3,7 @@
 
 modules.load  =  auth net io.ip crypt filter file
 
-[load_config_file:defaults]
+[load_config_file:'defaults']
 # system.internal_verbosity	=	3
 # system.verbosity		=	3
 
@@ -15,7 +15,7 @@ net.daemon_name			=	client
 # my.sock = [tcp.client:<net.local.addr>,<net.local.port>]
 
 my.sock = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
-
+[base.session.init:<my.sock>,'nailara','client','core']
 [auth.rsa.client:<my.sock>]
 
 #[net.client_loop:<my.sock>]

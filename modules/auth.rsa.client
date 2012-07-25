@@ -6,11 +6,12 @@ my $new_cipher = 'twofish';
 my ( $backend_socket, $smiley, $answer ) = ( $_[0], '', '' );
 my $id = $data{'handle'}{ $_[0] }{'cid'};
 
+&{$code{'base.log'}}(0, "no client id 'cid' for $_[0], no initialized session?") if
+    not defined $id or !$id;
+
 my $key_id = 0;    ###
 
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
-
-&{ $code{'base.log'} }( 1, "cid: $id" );
 
 if ( sysread( $backend_socket, $smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
@@ -41,11 +42,10 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
 
                         my $rsa_pub;
 
-                        if (
-			    eval '$rsa_pub = Crypt::OpenSSL::RSA->new_public_key($answer)'
-                          ) {
-                            &{ $code{'base.log'} }( 1, '[+] pub key is valid.' );
+                        if ( eval '$rsa_pub = '
+                            . 'Crypt::OpenSSL::RSA->new_public_key($answer)' ) {
 
+                            &{ $code{'base.log'} }( 1, '[+] pub key is valid.' );
                             $rsa_pub->use_pkcs1_oaep_padding();
                             $rsa_pub->use_sha512_hash();
                             my $sk_size = 256;
@@ -55,7 +55,7 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
                             my $session_key =
                               &{ $code{'crypt.random.bytes'} }( int( $sk_size / 8 ) );
 
-                            $answer = undef;
+                            $answer = '';
 
                             my $ciphered = $rsa_pub->encrypt($session_key);
                             my $hex_key = unpack( "H*", $ciphered );
