@@ -25,7 +25,7 @@ if ( $0 =~ /^.*nailara\./ ) {
     shift(@ARGV);
 }
 
-( $data{'system'}{'args'} = join(' ', @ARGV) ) =~ s/\s*-[v]+\s*//;
+( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s/\s*-[v]+\s*//;
 
 if ( $agentname ne '' ) {
     &{ $code{'base.init'} }(
@@ -162,14 +162,14 @@ sub prepare_subs {
         $| = 1;
 
         my @compile_them = ();
-        my @remaining = @_;
+        my @remaining    = @_;
         while ( my $_code_name = shift @remaining ) {
             my $code_name = $_code_name;
 
             # if ( $code_name ne '' ) { $code_name =~ s/\.[^\.]+$//; }
 
             &{ $code{'log.ok'} }( "loading module '" . $code_name . "'" );
-            my $code_count = 0;
+            my $code_count      = 0;
             my $last_code_count = 0;
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
@@ -183,17 +183,22 @@ sub prepare_subs {
                       or die $!;
 
                     $data{'code'}{$file_name}{'source'} = <$file>;
+
                     # [sub_name:foo, bar] -> &{$code{'sub_name'}}(foo, bar)
-                    my $orig_len = length( $data{'code'}{$file_name}{'source'} );
+                    my $orig_len =
+                      length( $data{'code'}{$file_name}{'source'} );
                     $data{'code'}{$file_name}{'source'} =~
                       s|(?<!\\)\[(\w+\.[\w\.]+?):(.*?)(?<!\\)\]
                         |&{\$code{'$1'}}($2)|sgx;
+
                     # warning: this parser breaks on unescaped [ or ]'s in
                     #          any of the the routine's parameters
                     #          will be replaced once the new nailara
                     #          binary is working and merged into the tree
+
                     $data{'code'}{$file_name}{'source'} =~
                       s|\[(\w+\.[\w\.]+)\]|&{\$code{'$1'}}|g;
+
                     # <foo.bar> -> $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'} =~
@@ -211,11 +216,10 @@ sub prepare_subs {
             }
             if ( !$code_count ) {
                 &{ $code{'log.failed'} }(
-                  ": failed to load module '$code_name' \t[ not found ]"
-                );
+                    ": failed to load module '$code_name' \t[ not found ]" );
             } elsif ( $code_count > $last_code_count ) {
-              $data{'system'}{'subs_loaded'}{$code_name} =
-                $code_count - $last_code_count;
+                $data{'system'}{'subs_loaded'}{$code_name} =
+                  $code_count - $last_code_count;
             }
             $last_code_count = $code_count;
         }
@@ -229,7 +233,7 @@ sub prepare_subs {
         foreach my $sub_name ( sort(@compile_them) ) {
 
             local $SIG{__WARN__} = 'IGNORE';
-            local $SIG{__DIE__} = 'IGNORE';
+            local $SIG{__DIE__}  = 'IGNORE';
 
             my $sub_code = undef;
 
@@ -255,12 +259,14 @@ sub prepare_subs {
 
             if ( $data{'system'}{'verbosity'} > 2 ) {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code = 'sub {' . $line_comment
+                $sub_code = 'sub {'
+                  . $line_comment
                   . "\&{\$code{'base.debug_sub'}}('$sub_name',\@_); "
                   . $data{'code'}{$sub_name}{'source'} . ' }';
             } else {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code = 'sub {' . $line_comment
+                $sub_code = 'sub {'
+                  . $line_comment
                   . $data{'code'}{$sub_name}{'source'} . '}';
             }
 
@@ -318,9 +324,10 @@ sub prepare_subs {
 
         if ( $data{'system'}{'verbosity'} < 2 ) { return }
 
-        push( my @params, shift(@_), map { defined $_ ?
-          ( $_ =~ /^\S+$/ ? $_ : "'$_'" ) : '' } @_);
-        my $sub_name   = shift(@params);
+        push( my @params,
+            shift(@_),
+            map { defined $_ ? ( $_ =~ /^\S+$/ ? $_ : "'$_'" ) : '' } @_ );
+        my $sub_name = shift(@params);
         my $param_list = join( ', ', @params );
 
         $param_list =~ s/\n/\\n/g;
@@ -352,10 +359,10 @@ sub prepare_subs {
     $code{'dev.null'} = sub { };
 
     $code{'base.sig_warn'} = sub {
-      if (@_) {
-        chomp( my @err = @_ );
-        &{$code{'base.log'}}(0, join(' ', '[WARN]', @err));
-      }
-      return 1;
+        if (@_) {
+            chomp( my @err = @_ );
+            &{ $code{'base.log'} }( 0, join( ' ', '[WARN]', @err ) );
+        }
+        return 1;
     };
 }
