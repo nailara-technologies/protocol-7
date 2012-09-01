@@ -323,14 +323,12 @@ sub prepare_subs {
     };
 
     $code{'base.debug_sub'} = sub {
-
-        if ( $data{'system'}{'verbosity'} < 2 ) { return }
-
-        push( my @params,
-            shift(@_),
-            map { defined $_ ? ( $_ =~ /^\S+$/ ? $_ : "'$_'" ) : '' } @_ );
-        my $sub_name = shift(@params);
-        my $param_list = join( ', ', @params );
+        return if $data{'system'}{'verbosity'} < 2;
+        my $sub_name = shift(@_);
+        my $quoted_chars = qr/[\ |;|:|,|\.]/;
+        # XXX: todo: escape ' chars!
+        my $param_list = join( ', ',
+          map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' } @_ );
 
         $param_list =~ s/\n/\\n/g;
         $param_list =~ s/\e/\\e/g;
