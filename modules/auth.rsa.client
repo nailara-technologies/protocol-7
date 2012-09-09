@@ -2,12 +2,21 @@
 
 # name       = auth.rsa.client
 
+if (not defined $_[0]) {
+    &{$code{'base.log'}}(0, "auth.rsa.client: "
+        . "supplied filehandle is undefined, won't work on that!");
+    return undef;
+}
+
 my $new_cipher = 'twofish';
 my ( $backend_socket, $smiley, $answer ) = ( $_[0], '', '' );
 my $id = $data{'handle'}{ $_[0] }{'cid'};
 
-&{$code{'base.log'}}(0, "no client id 'cid' for $_[0], no initialized session?") if
-    not defined $id or !$id;
+if (not defined $id or !$id) {
+    &{$code{'base.log'}}(0, "auth.rsa.client: "
+        . "no client id 'cid' for '$_[0]', no initialized session?");
+    return undef;
+}
 
 my $key_id = 0;    ###
 
