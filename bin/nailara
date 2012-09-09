@@ -341,20 +341,24 @@ sub prepare_subs {
           . $param_list . " )\n";
     };
     $code{'log.ok'} = sub {
-        if ( $data{'system'}{'verbosity'} ) {
-            print ' :'
-              . $data{'system'}{'node'}{'name'} . '.'
-              . $data{'system'}{'agent'}{'name'} . ' '
-              . $_[0] . "\n";
-        }
-    };
-    $code{'log.failed'} = sub {
+      if(defined $code{'base.log'}) {
+          &{$code{'base.log'}}(1, $_[0]);
+      } elsif ( $data{'system'}{'verbosity'} ) {
         print ' :'
           . $data{'system'}{'node'}{'name'} . '.'
           . $data{'system'}{'agent'}{'name'} . ' '
-          . $ANSI{'bold'}
-          . $_[0]
-          . $ANSI{'normal'} . "\n";
+          . $_[0] . "\n";
+      }
+    };
+    $code{'log.failed'} = sub {
+        if(defined $code{'base.log'}){ &{$code{'base.log'}}(0, $_[0]) } else {
+          print ' :'
+            . $data{'system'}{'node'}{'name'} . '.'
+            . $data{'system'}{'agent'}{'name'} . ' '
+            . $ANSI{'bold'}
+            . $_[0]
+            . $ANSI{'normal'} . "\n";
+        }
     };
 
     $code{'dev.null'} = sub { };
