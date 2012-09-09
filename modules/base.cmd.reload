@@ -8,41 +8,46 @@ my $arg = $$call{'args'};
 $$reply{'data'} = '';
 
 my ($ok, $output) = (0,'');
+my $known = 0;
 if ( $arg eq 'config' or $arg eq 'all' ) {
+    $known = 1;
     &{ $code{'base.log'} } ( 1, "[$id] reloading config!");
     if ( &{ $code{'base.reload_config'} } () ) {
         $$reply{'data'} .= "reload config\t:  OK\n";
-    }
-    else { $$reply{'data'} .= "reload config\t:  FAIL\n" }
+    } else { $$reply{'data'} .= "reload config\t:  FAIL\n" }
     $ok = 1;
 }
 if ( $arg eq 'plugins' or $arg eq 'all' ) {
+    $known = 1;
     &{ $code{'base.log'} } ( 1, "[$id] reloading plugins!");
     if ( &{ $code{'base.reload_plugins'} } () ) {
         $$reply{'data'} .= "reload plugins\t:  OK\n";
         $ok = 1;
-    }
-    else { $$reply{'data'} .= "reload plugins\t:  FAIL\n" }
+    } else { $$reply{'data'} .= "reload plugins\t:  FAIL\n" }
 }
 if ( $arg eq 'source' or $arg eq 'all' ) {
+    $known = 1;
     &{ $code{'base.log'} } ( 1,  "[" . $id . "] reloading source code!" );
-    if ( !&{ $code{'base.load_modules'} } ( 'base '. $data{'modules'}{'load'} ) ) {
+    my $failed = &{$code{'base.load_modules'}}("base $data{modules}{load}");
+    if ( defined $failed and !$failed ) {
         $$reply{'data'} .= "reload source\t:  OK\n";
         $ok = 1;
-    }
-    else { $$reply{'data'} .= "reload source\t:  FAIL\n" }
+    } else { $$reply{'data'} .= "reload source\t:  FAIL\n" }
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
+    $known = 1;
     &{ $code{'base.log'} } ( 1,  "[" . $id . "] reinitializing modules!" );
     if ( &{ $code{'base.init_modules'} } ($id) ) {
         $$reply{'data'} .= "reinit modules\t:  OK\n";
         $ok = 1;
-    }
-    else { $$reply{'data'} .= "reinit modules\t:  FAIL\n" }
+    } else { $$reply{'data'} .= "reinit modules\t:  FAIL\n" }
 }
-if ( !$ok ) {
-    &{ $code{'base.log'} }
-      ( 0, "[" . $id . "] invalid reload parameter '" . $arg . "' specified" );
-    return { 'mode' => 'nack', 'data' => 'unkown reload keyword!' };
+if (!$known) {
+  &{ $code{'base.log'} }
+    ( 0, "[" . $id . "] invalid reload keyword '" . $arg . "' called!" );
+  return { 'mode' => 'nack', 'data' => 'unkown reload keyword!' };
 }
-else { $$reply{'mode'} = 'raw' }
+if( !$ok ) {
+  &{ $code{'base.log'} }(0, "[" . $id . "] reloading $arg failed!");
+}
+$$reply{'mode'} = 'raw'
