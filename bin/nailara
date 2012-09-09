@@ -157,7 +157,7 @@ sub prepare_subs {
             &{ $code{'log.failed'} }(
                 ": can not open module directory '$data{'system'}{'code_path'}' [$!]"
             );
-            exit(2);
+            return undef;
         }
         my @code_files = readdir($codedir);
         closedir($codedir);
@@ -320,6 +320,7 @@ sub prepare_subs {
         } else {
             &{ $code{'log.ok'} }(": $ok_count routines, all ok.");
         }
+        return ($ok_count, $err_count);
     };
 
     $code{'base.debug_sub'} = sub {
