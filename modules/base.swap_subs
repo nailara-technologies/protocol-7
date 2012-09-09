@@ -6,6 +6,7 @@ my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
 my $overwrite_policy = shift || 'overwrite'; # [overwrite|if_missing]
 
+my $moved = 0;
 my $logged_yet = 0;
 foreach my $sub_name (keys %code ) {
   (my $new_sub = $sub_name) =~ s/^($source_sub_prefix)\./$target_sub_prefix./;
@@ -18,5 +19,14 @@ foreach my $sub_name (keys %code ) {
     }
     $code{$new_sub} = $code{$sub_name};
     undef $code{$sub_name};
+    $moved++;
   }
+}
+if (!$moved) {
+  [base.log:0,
+    "swap_subs: nothing to do ($source_sub_prefix >> $target_sub_prefix)"];
+} else {
+  my $s = $moved == 1 ? '' : 's';
+  [base.log:2,
+    " ! \[$source_sub_prefix>$target_sub_prefix\] $moved subroutine$s moved!"];
 }
