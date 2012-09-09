@@ -8,6 +8,13 @@ my ( $fd, $proto, $mode, $name ) = (@_);
 $proto ||= 'nailara';
 $mode  ||= 'client';
 
+if ( not defined $fd ) {
+    &{ $code{'base.log'} } ( 0,
+      "base.session.init: supplied filehandle is undefined,"
+      . " can't create session for that!");
+    return -1;
+}
+
 if ( defined $name and $name !~ /^\w+$/ ) {
     &{ $code{'base.log'} } ( 0,
       "base.session.init: value '$name' for parameter name is invalid");
