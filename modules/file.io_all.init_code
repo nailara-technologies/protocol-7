@@ -1,8 +1,12 @@
 # >:]
 
-# name = file.io_all.init_code
+# name  = file.io_all.init_code
+# descr = moves file.io_all.* routines to file.* namespace
 
 use IO::All;
 
-[base.swap_subs:'file.io_all','file'];
+if (exists $code{'file.io_all.init_code'}) {
+  [base.swap_subs:'file.io_all','file'];
+}
 
+return 0;
