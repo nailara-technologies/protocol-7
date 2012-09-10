@@ -4,11 +4,15 @@
 
 (my $path, my $result_aref) = (@_);
 my $old_path;
-my $recursion = 0;
+my $recursive = 0;
+my $recursion_entered = 0;
 if ( not defined $result_aref ) {
   $result_aref = [];
+} elsif ( $result_aref eq 'recursive' ) {
+  $result_aref = [];
+  $recursive = 1;
 } else {
-  $recursion = 1;
+  $recursion_entered = 1;
 }
 
 if (-d $path) {
@@ -23,8 +27,8 @@ if (-d $path) {
   foreach my $entry ( sort( readdir($dir_fh) ) ) {
     next if $entry =~ /^\.{1,2}$/;
     push (@{$result_aref}, abs_path($entry)) if -f $entry;
-    [file.all_files:"$path/$entry",$result_aref] if -d $entry;
+    [file.all_files:"$path/$entry",$result_aref] if -d $entry and $recursive;
   }
 }
 chdir($old_path) or [log.failed:"file.all_files: chdir($old_path): $!"];
-return $result_aref if !$recursion;
+return $result_aref if !$recursion_entered;
