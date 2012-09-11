@@ -20,6 +20,9 @@ foreach my $sub_name (keys %code ) {
     $code{$new_sub} = $code{$sub_name};
     delete $code{$sub_name};
     $moved++;
+    if ( exists $data{'code'}{$sub_name} ) {
+      $data{'code'}{$sub_name}{'moved_to'} = $new_sub;
+    }
   }
 }
 if (!$moved) {
