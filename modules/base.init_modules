@@ -6,7 +6,8 @@ my $error_status = 1;
 foreach my $sub_name ( sort {length($a) <=> length($b)} sort( keys(%code) ) ) {
     if ( $sub_name =~ /^(.+)\.init_code/
 	and defined $data{'code'}{$sub_name}
-        and $data{'code'}{$sub_name}{'status'} eq 'ok' )
+        and $data{'code'}{$sub_name}{'status'} eq 'ok'
+        and exists $code{$sub_name} )
     {
         my $module_name = $1;
         &{ $code{'base.log'} } ( 1, "initializing $module_name code..");
