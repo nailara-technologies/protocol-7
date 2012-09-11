@@ -66,6 +66,10 @@ if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
   }
 );
 
+if ( exists $code{'base.file.init_code'} ) {
+  [base.file.init_code];
+}
+
 &{ $code{'base.parser.access_conf'} };
 
 return 0;
