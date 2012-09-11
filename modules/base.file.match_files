@@ -4,7 +4,7 @@
 
 my $result_aref;
 $result_aref = shift(@_) if ref($_[0]) eq 'ARRAY'; # (append mode)
-(my $search_path, my @wildcard_filenames) = (@_);
+my ( $search_path, @wildcard_filenames ) = @_;
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
 if (not defined $search_path or !length($search_path)) {
