@@ -2,7 +2,7 @@
 
 # name       = ssl.cmd_add_ssl
 
-local ( $id, $com_id, $name, $host, $port ) = (@_);
+local ( $id, $com_id, $name, $host, $port ) = @_;
 foreach my $_key ( 'name', 'host', 'port' ) {
     if ( !defined $$_key ) {
         &{ $code{'net.nack'} } ("no $_key supplied");

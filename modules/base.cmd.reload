@@ -7,9 +7,9 @@ my $id  = $$call{'session_id'};
 my $arg = $$call{'args'};
 $$reply{'data'} = '';
 
-my ($ok, $output) = (0,'');
+my ( $ok, $output ) = ( 0, '' );
 my $known = 0;
-my @keywords = ('config', 'source', 'plugins', 'init', 'all');
+my @keywords = ( 'config', 'source', 'plugins', 'init', 'all' );
 if (not defined $arg){
   &{ $code{'base.log'} }
     ( 0, "[" . $id . "] no reload keyword specified." );
