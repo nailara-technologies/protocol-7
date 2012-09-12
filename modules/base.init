@@ -1,18 +1,15 @@
 # >:]
 
-# name       = base.init
+# name  = base.init
+# descr = initialize (execute) agent
 
 $0 = $_[0];
 
-if($_[0]=~/([^\.]+)\.([\w|\.]+)$/)
-{
-    ( $data{'system'}{'node'}{'name'}, $data{'system'}{'agent'}{'name'} ) = ($1,$2);
+if( $_[0]=~/([^\.]+)\.([\w|\.]+)$/ ) {
+  ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );
 }
 
-if ( $data{'system'}{'daemon_mode'} ) { &{ $code{'base.daemonize'} } }
+[base.daemonize] if <system.daemon_mode>;
 
-&{ $code{'base.load_config_file'} }
-  ( 'nailara.' . $data{'system'}{'agent'}{'name'} )
-  or &{ $code{'base.log'}(0, "startup of "
-    . $data{'system'}{'agent'}{'name'}
-    . " agent failed!" ) };
+[base.load_config_file:"nailara.<system.agent.name>"] or
+  [log.failed:"startup of agent '<system.agent.name>' has failed!"];
