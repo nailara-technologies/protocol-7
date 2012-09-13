@@ -366,7 +366,7 @@ sub prepare_subs {
     $code{'base.sig_warn'} = sub {
         if (@_) {
             chomp( my @err = @_ );
-            &{ $code{'base.log'} }( 0, join( ' ', '[WARN]', @err ) );
+            &{ $code{'log.failed'} }( join( ' ', '[WARN]', @err ) );
         }
         return 1;
     };

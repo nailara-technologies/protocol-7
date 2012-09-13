@@ -2,15 +2,14 @@
 
 # name       = base.load_config_file
 
-&{ $code{'base.log'} }( 1, 'loading config \'' . $_[0] . "'" );
+&{$code{'base.log'}}( 1, "loading config '$_[0]'" );
 return &{ $code{'base.process_init_code'} }(
     &{ $code{'base.parser.config'} }(
         '', &{ $code{'base.get_file'} }(
             join( '/', $data{'system'}{'conf_path'}, $_[0] ),
             sub {
                 $_[0] =~ s/^.+\///g;
-                &{ $code{'base.log'} }( 0,
-                    "failed to load $_[0] config [\"$!\"]" );
+                &{$code{'log.failed'}}("failed to load '$_[0]' config [$!]");
             }
         )
     )
