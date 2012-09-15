@@ -95,7 +95,9 @@ sub prepare_subs {
         $data{'system'}{'ansi_color'}          = 1;
         $data{'system'}{'start'}{'showbanner'} = 1;
 
+        my $stdin_mode = 1;
         foreach my $arg (@ARGV) {
+            $stdin_mode = 0 if $arg =~/^[^\-]/;
             if ( $arg =~ /^-(v+)$/ ) {
                 $data{'system'}{'verbosity'} = length($1);
             }
@@ -106,6 +108,8 @@ sub prepare_subs {
             }
             if ( $arg =~ /^-N(.+)$/ ) {
                 $data{'system'}{'agent'}{'name'} = $1;
+            } elsif ( $stdin_mode ) {
+                $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
         }
 
