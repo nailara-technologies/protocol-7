@@ -20,12 +20,19 @@ if ( !open($file_fh,'<'.$filename) ) {
   return undef;
 }
 my $ref_type = ref($target_ref);
-if ( $ref_type eq 'SCALAR' ) { $/ = undef }
-elsif ( $ref_type eq 'ARRAY' ) { $/ = "\n" }
-else {
+if ( $ref_type eq 'SCALAR' ) {
+  $/ = undef;
+
+  $$target_ref = <$file_fh>;
+
+} elsif ( $ref_type eq 'ARRAY' ) {
+  $/ = "\n";
+
+  @$target_ref = <$file_fh>;
+
+} else {
   [log.failed:"file.slurp: unsupported reference type '$ref_type'!"];
   return undef;
 }
 
-$$target_ref = <$file_fh>;
 return $target_ref;
