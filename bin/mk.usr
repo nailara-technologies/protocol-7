@@ -10,7 +10,7 @@ $DATA{'conf'}{'root'} = $FindBin::Bin;
 $DATA{'conf'}{'root'} =~ s/\/bin$//;
 $DATA{'conf'}{'file'} = $DATA{'conf'}{'root'}.'/conf/auth.pwd.'.$pwname;
 
-print "\n ::[ damn.core user generator ]\n ::\n";
+print "\n ::[ nailara.core user generator ]\n ::\n";
 
 print " :: enter username :. ";
 chop( $user = <STDIN> );
@@ -22,7 +22,7 @@ while ( $pass ne $re_pass or $pass eq "" ) {
 }
 
 if ( $pass eq "da39a3ee5e6b4b0d3255bfef95601890afd80709" ) {
-    die " ::\n ::. ... aborted. empty pass ...\n\n";
+    die " ::\n ::. ... aborted. (empty password)\n\n";
 }
 
 $new_file=0;
@@ -31,7 +31,7 @@ if(!-f $DATA{'conf'}{'file'})
 {
     $new_file=1;
     open(NEW,">$DATA{'conf'}{'file'}") or die " ::\n :::[ can not create user config file ]\n\n";
-    print NEW "\n  .: damnet user config :.\n\n"; close(NEW);
+    print NEW "\n  .: nailara user config :.\n\n"; close(NEW);
 }
 
 $user_exists=0;
