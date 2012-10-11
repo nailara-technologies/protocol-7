@@ -1,45 +1,52 @@
 # >:]
 
-# name       = base.list
+# name = base.list
+# todo : needs cleanup ([approach] too dirty!)
 
 my ( $var, $key, @_keys ) = @_;
 my $out_data = "";
-my %ALIAS    = {};
-my %LENGTH   = {};
+my %alias;
+my %str_len;
 my $spacing  = 4;
 foreach my $genit ( 0 .. 1 ) {
     foreach my $_key (@_keys) {
-        if ( $_key =~ s/^([^\:]+)\:// ) { $ALIAS{$_key} = $1; }
+        if ( $_key =~ s/^([^\:]+)\:// ) { $alias{$_key} = $1; }
         if ($genit) {
-            my $len = "A" . int( $LENGTH{$_key} + $spacing );
+            my $len = "A" . int( $str_len{$_key} + $spacing );
             $out_data .= pack( $len, "[" . $_key . "]" );
         }
-        else { $LENGTH{$_key} = length($_key) + 2; }
+        else { $str_len{$_key} = length($_key) + 2; }
     }
     if ($genit) { $out_data .= "\n" }
+
+    my $loop_count = 0;
+    no strict 'refs'; # /o\
     foreach my $new_key ( keys( %{ ${$var}{$key} } ) ) {
+        if(++$loop_count == 1) {
+            use strict 'refs'; # \o/
+        }
         foreach my $__key (@_keys) {
-            my $len = "A" . int( $LENGTH{$__key} + $spacing );
-            if ( $genit and defined $ALIAS{$__key} ) {
+            my $len = "A" . int( $str_len{$__key} + $spacing );
+            if ( $genit and defined $alias{$__key} ) {
                 $out_data .= pack( $len, $new_key );
             }
             foreach my $_new_key ( keys( %{ ${$var}{$key}{$new_key} } ) ) {
-		my $_val;
-                if ( not defined $ALIAS{$__key} and $_new_key eq $__key ) {
+                my $_val;
+                if ( not defined $alias{$__key} and $_new_key eq $__key ) {
                     $_val = ${$var}{$key}{$new_key}{$_new_key};
                     if ($genit) { $out_data .= pack( $len, $_val ) }
                     else {
-                        if ( length($_val) > $LENGTH{$__key} ) {
-                            $LENGTH{$__key} = length($_val);
+                        if ( length($_val) > $str_len{$__key} ) {
+                            $str_len{$__key} = length($_val);
                         }
                     }
                 }
-                elsif ( defined $ALIAS{$__key} ) {
-                    if ( length($_val) > $LENGTH{$__key} ) {
-                        $LENGTH{$__key} = length($_val);
+                elsif ( defined $alias{$__key} ) {
+                    if ( (length($_val)||0) > $str_len{$__key} ) {
+                        $str_len{$__key} = length($_val);
                     }
-                    if ( length( $ALIAS{$__key} ) + 2 > $LENGTH{$__key} ) {
-                        $LENGTH{$__key} = length( $ALIAS{$__key} ) + 2;
+                    if ( length( $alias{$__key} ) + 2 > $str_len{$__key} ) {
+                        $str_len{$__key} = length( $alias{$__key} ) + 2;
                     }
                 }
             }
