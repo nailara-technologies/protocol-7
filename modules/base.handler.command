@@ -391,6 +391,8 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                 if ( $command_mode == 1 )    # single line command mode
                 {
                     my $args = '';
+                    local $$call_args{'args'} = ''
+                        if not defined $$call_args{'args'};
 
                     if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
 
