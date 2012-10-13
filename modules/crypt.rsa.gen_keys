@@ -12,6 +12,7 @@ my $key_id =
 $data{'auth'}{'rsa'}{'key'}{'current'}{'id'} = $key_id;
 
 my $rsa = Crypt::OpenSSL::RSA->generate_key($key_size);
+[base.log:1, ": new key pair generated (id=$key_id)"];
 
 if ( defined $rsa ) {
     $rsa->use_pkcs1_oaep_padding();
@@ -22,7 +23,7 @@ if ( defined $rsa ) {
     };
     my $key = $data{'crypt'}{'rsa'}{'key'}{$key_id};
 
-    &{ $code{'base.log'} }( 1, "checking new keys.." );
+    &{ $code{'base.log'} }( 1, ": checking keys.." );
 
     if ( $rsa->check_key() ) {
         $key->{'obj'}        = $rsa;
@@ -30,17 +31,13 @@ if ( defined $rsa ) {
         $key->{'block_size'} = $rsa->size();
         $key->{'type'}       = 'rsa';
         $key->{'encoding'}   = 'X509';
-        $key->{'public'}{'fingerprint'} =
-          sha1_hex( $key{'rsa'}{$key_id}{'public'} );
-        &{ $code{'base.log'} }( 1,
-            ": validated as " . $key->{'public'}{'fingerprint'} );
+        $key->{'fingerprint'}{'public'} = sha1_hex( $key->{'public'} );
+        [base.log:1,": pubkey sha1 : ".$key->{'fingerprint'}{'public'}];
+
         return $key_id;
 
-    } else {
-        &{ $code{'base.log'} }( 0, ': error: generated key is invalid!' );
-    }
-} else {
-    &{ $code{'base.log'} }( 0, ": auth.rsa: failed to initialize rsa object [$!]" );
-}
+    } else { [base.log:0, ': error: generated key is invalid!' ]; }
+
+} else { [base.log:0,": auth.rsa: failed to initialize rsa object \[$!\]"]; }
 
 return undef;
