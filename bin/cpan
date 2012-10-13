@@ -324,17 +324,30 @@ sub return_dependencies {
     print " : checking dependencies ..\n";
     open( my $make_file_handle, " < $make_file " )
       or die " :: [error] can not open makefile '$make_file'. [$!]\n :\n\n";
-    my $found_section = 0;
+    my $found_section_prereq = 0;
+    my $found_section_requires = 0;
     while (<$make_file_handle>) {
         s/\#.+$//g;
         next if /^\s*$/;
-        if (s/^\s+\'?PREREQ_PM\'?\s+=>\s+\{//) { $found_section = 1 }
-        if ($found_section) {
+        if (s/^\s+\'?PREREQ_PM\'?\s+=>\s+\{//) { $found_section_prereq = 1 }
+        if (/^requires\s/) { $found_section_requires = 1 }
+        if ($found_section_prereq) {
             s/\s+//g;
             s/\,?\n$//g;
-            if (/^\}$/) { $found_section = 0; last }
+            if (/^\}$/) { $found_section_prereq = 0; last }
             else {
                 if (/^\'?([^\']+)\'?=>\'?([\d|\.]+)\'?\,?$/) {
+                    push ( @dependencies, $1 );
+                }
+            }
+        }
+        if ($found_section_requires) {
+            s/\s+//g;
+            s/\;?\n$//g;
+            unless(/^requires/) { $found_section_requires = 0; last }
+            else {
+                s/^requires//g;
+                if (/^\'?([^\']+)\'?=>/) {
                     push ( @dependencies, $1 );
                 }
             }
@@ -363,6 +376,7 @@ sub open_cpan_file {
     if ( my $sock = IO::Socket::INET->new(
             PeerAddr => $CPAN_server,
             PeerPort => $CPAN_http_port,
+            Proto => 'tcp',
             Blocking => 1
         ) )
     {
@@ -372,7 +386,8 @@ sub open_cpan_file {
             die " :: [error] HTTP timeout( file: '$url' )\n";
         };
         alarm($CPAN_http_timeout);
-        print $sock "GET $url HTTP/1.0\r\n\r\n";
+        print $sock "GET $file HTTP/1.1\r\n";
+        print $sock "Host: $CPAN_server\r\n\r\n";
         my $done = 0;
         my $size = undef;
         while ( !$done ) {
