@@ -164,17 +164,29 @@ sub install {
                     print " : extracting files ..\n";
                     chdir( $CPAN_tmp_dir . '/modules/' );
 
-                    if ( !system( 'tar', 'zxf', $tgz_file ) ) {
+                    my $list_file = $CPAN_tmp_dir . '/current_extracted.list';
+                    if ( !system( 'tar', 'zxvf', $tgz_file,
+                      "--index-file=$list_file" ) )
+                    {
+                        if (open(my $list_fh, $list_file)) {
+                          (my $stripped_mod_dir=$ext_mod_dir) =~ s/^(.+\/)//g;
+                          my $mod_dir_parent = $1 || '';
+                          (my $first_entry = <$list_fh>) =~ s/\/\n$//;
+                          if ( length($first_entry)
+                            and $first_entry ne $ext_mod_dir
+                            and -d "./$first_entry" )
+                          {
+                            $ext_mod_dir = $mod_dir_parent . $first_entry;
+                          }
+                          close($list_fh);
+                        }
+                        unlink($list_file) if -f $list_file;
                         if ( -d $ext_mod_dir ) {
-
-#                            print " : deleting archive\n";
                             unlink($tgz_file);
-
                             foreach
                               my $dep_mod ( return_dependencies($ext_mod_dir) )
                             {
                                 if ( eval("require $dep_mod") ) {
-
                                     print " :: ok :. '$dep_mod'\n";
                                 }
                                 else {
