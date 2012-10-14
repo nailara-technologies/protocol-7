@@ -141,7 +141,7 @@ sub install {
                 if ( length($mod_version) > $mod_version_len ) {
                     $mod_version_len = length($mod_version);
                 }
-                my $mod_handle, $buffer;
+                my $txt_handle, $buffer;
                 my ( $MOD_handle, $MOD_size ) = open_cpan_file($mod_uri);
                 if ($MOD_size) {
                     my $tgz_file    = "$CPAN_tmp_dir/modules/$mod_file_name";
@@ -296,33 +296,33 @@ sub show_readme {
                 if ( length($mod_version) > $mod_version_len ) {
                     $mod_version_len = length($mod_version);
                 }
-                my $mod_handle, $buffer;
-                my ( $MOD_handle, $MOD_size ) = open_cpan_file($mod_uri);
-                if ($MOD_size) {
+                my $buffer;
+                my ( $txt_handle ) = open_cpan_file($mod_uri);
+                if (fileno($txt_handle)) {
 
-                    print
-" : downloading readme file for '$mod_name' [ version $mod_version ] ( $MOD_size bytes ) ...\n";
+                    print " : downloading readme file for '$mod_name' "
+                      . "[ version $mod_version ] ...\n";
 
                     if ( open( PAGER, "| $pager_cmd" ) ) {
-                        while ( sysread( $MOD_handle, $buffer, $MOD_size ) ) {
+                        while ( fileno $txt_handle
+                          and sysread( $txt_handle, $buffer, 4096 ) ) {
                             print PAGER $buffer;
                         }
                         close(PAGER);
                         print "\n";
-                    }
-                    else {
-                        while ( sysread( $MOD_handle, $buffer, $MOD_size ) ) {
+                    } else {
+                        while ( sysread( $txt_handle, $buffer, 4096 ) ) {
                             print $buffer;
                         }
                     }
-                    close($MOD_handle);
+                    close($txt_handle);
                 }
             }
         }
     }
     if ( not $found ) {
-        print
-" :: module not found. try 'search <keyword>' to determine the correct module name.\n";
+        print " :: module not found. try 'search <keyword>'"
+          . " to determine the correct module name.\n";
     }
     print " :\n";
     close(MOD_list);
@@ -402,20 +402,20 @@ sub open_cpan_file {
         print $sock "Host: $CPAN_server\r\n\r\n";
         my $done = 0;
         my $size = undef;
+        my $header_read = 0;
         while ( !$done ) {
             my $buffer = undef;
             while ( $buffer !~ /^[^\n|^\r]*\r?\n$/ ) {
                 sysread( $sock, $buffer, 1, length($buffer) );
             }
+            $header_read = 1 if $buffer eq "\r\n";
             $buffer =~ s/\r?\n$//;
             if ( !$ok and $buffer eq 'HTTP/1.1 200 OK' ) {
                 $ok     = 1;
                 $buffer = undef;
                 print $buffer;
             }
-            elsif ( $ok and $buffer eq '' and $size ) {
-
-#                print " :: 200 OK, going to fetch $size bytes ... \n ";
+            elsif ( $ok and $buffer eq '' and $header_read ) {
                 alarm(0);
                 binmode($sock);
                 my $old_fh = select($sock);
@@ -428,16 +428,14 @@ sub open_cpan_file {
                 $buffer = undef;
             }
             else {
-                die
-" :: [error] can not download file http://$CPAN_server$file'\n\n";
+                die " :: [error] cannot download "
+                  . "file http://$CPAN_server$file'\n\n";
                 return undef;
             }
         }
-    }
-
-    else {
-        die
-" :: can not connect to CPAN server at '$CPAN_server:$CPAN_http_port' [$!]\n";
+    } else {
+        die " :: cannot connect to CPAN server "
+        . "at '$CPAN_server:$CPAN_http_port' [$!]\n";
     }
 
 }
