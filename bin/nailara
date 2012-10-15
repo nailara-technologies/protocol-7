@@ -371,6 +371,10 @@ sub prepare_subs {
     $code{'base.sig_warn'} = sub {
         if (@_) {
             chomp( my @err = @_ );
+            if ($err[0] =~ /^Deep recursion /) {
+              &{ $code{'log.failed'} }( join( ' ', '[FATAL]', @err ) );
+              exit(1);
+            }
             &{ $code{'log.failed'} }( join( ' ', '[WARN]', @err ) );
         }
         return 1;
