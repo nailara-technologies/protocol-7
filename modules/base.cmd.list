@@ -5,7 +5,8 @@
 
 my $list_name = $$call{'args'};
 
-if ( $list_name =~ /^\w+$/ and defined $data{'list'}{$list_name} ) {
+if ( defined $list_name
+    and $list_name =~ /^\w+$/ and defined $data{'list'}{$list_name} ) {
     my $list = $data{'list'}{$list_name};
     return {
         'mode' => 'raw',
@@ -14,7 +15,7 @@ if ( $list_name =~ /^\w+$/ and defined $data{'list'}{$list_name} ) {
         split ( /\s+/, $data{'list'}{$list_name}{'mask'} ) )
     };
 }
-elsif ( $list_name ne '' ) {
+elsif ( defined $list_name and $list_name ne '' ) {
     $$reply{'data'} = 'no such list';
 }
 else {
@@ -34,4 +35,3 @@ else {
           . $data{'list'}{$list_name}{'descr'} . "\n";
     }
 }
-
