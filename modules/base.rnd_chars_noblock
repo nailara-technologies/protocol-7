@@ -1,0 +1,24 @@
+# >:]
+
+# name    = base.rnd_chars_noblock
+# descr   = returns some printable random characters (non-blocking)
+# args    = <requested_ammount_of_bytes>
+# returns = <printable_random_characters>
+# comment = be careful when generating keys, entropy quality is not guaranteed!
+
+my $ammount = shift;
+my $rnd_bytes = '';
+die "ammount of random bytes not specified" if not defined $ammount;
+die "expected positive integer as argument (instead of '$ammount')"
+  if $ammount !~ /^\d+$/ or $ammount < 1;
+
+while ( $ammount > length($rnd_bytes) ) {
+  if ( exists $code{'crypt.random.bytes'}
+    and Crypt::OpenSSL::Random::random_status() ) {
+    $rnd_bytes .= [crypt.random.bytes:1];
+  } else {
+    $rnd_bytes .= chr(int(33+rand(93)));
+  }
+  $rnd_bytes =~ s/[^\w!\.,-~_\+\*§%&\/\|\?\(\){}:;]+//g;
+}
+return $rnd_bytes;
