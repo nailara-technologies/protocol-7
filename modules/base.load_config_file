@@ -3,7 +3,7 @@
 # name       = base.load_config_file
 
 &{$code{'base.log'}}( 1, "loading config '$_[0]'" );
-return &{ $code{'base.process_init_code'} }(
+return &{ $code{'base.execute_agent_code'} }(
     &{ $code{'base.parser.config'} }(
         '', &{ $code{'base.get_file'} }(
             join( '/', $data{'system'}{'conf_path'}, $_[0] ),
