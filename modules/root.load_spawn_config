@@ -11,4 +11,23 @@ my $spawn_config_pattern = join(' ',
   map { $base_file_name . $_ } split(/\s+/, $config_to_load) );
 
 [base.log:1,": loading spawn config '$config_to_load'.."];
-return [base.load_section_code:$spawn_config_pattern];
+my $spawn_config_data = [base.load_section_code:$spawn_config_pattern];
+
+my $globals_code = shift(@{$spawn_config_data})->{'globals'};
+my @exec_globals = [base.parser.config:@{$globals_code}];
+[base.execute_agent_code:@exec_globals];
+
+my $agents_init_code = shift(@{$spawn_config_data})->{'agents'};
+
+<agents.startup.spawn_order> = [];
+<agents.startup.init_code> = {};
+
+foreach my $agent_element (@{$agents_init_code}) {
+  my ($agent_name, $agent_init_code) = each %{$agent_element};
+  push(@{<agents.startup.spawn_order>}, $agent_name);
+
+  foreach my $init_section (@{$agent_init_code}) {
+    my ($init_keyword, $init_code) = each %{$init_section};
+    <agents.startup.init_code>->{$agent_name}->{$init_keyword} = $init_code;
+  }
+}
