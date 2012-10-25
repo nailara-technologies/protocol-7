@@ -5,26 +5,29 @@
 
 .: globals :.
 
-  agents.max_procs  = unlimited
-  agents.start_mode = exec	# [fork|exec]
-  agents.autospawn  = 1
+  spawn.max_procs  = unlimited
+  spawn.start_mode = exec	# [fork|exec]
+  spawn.autospawn  = 1
 
 .: agents :.
 
   - core
 
       : init :
-
-        core_key = [root.gen_key:42]
+        keys.core = [base.rnd_chars_noblock:64]
 
       : remote :
-
-        root_key = <core_key>
+        auth.pwd.root = <<keys.core>>
 
       : local :
-
-        local_addr = <net.local.addr>
-        local_port = <net.local.port>
+        local_addr = <<net.local.addr>>
+        local_port = <<net.local.port>>
         [root.connect_core:<local_addr>,<local_port>,<root.core_key>]
 
   - xmesg
+
+      : init :
+        spawn_mode = ondemand
+
+      : remote :
+        auto_shutdown_timeout = 5
