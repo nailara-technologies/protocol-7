@@ -5,11 +5,11 @@
 
 [load_config_file:'defaults']
 
-spawner.cfg_file = root.spawn_config.*
+load.spawn_config = 'local'
 
-[load_section_config:<spawner.cfg_file>]
+[init_modules:'base']
 
-modules.load = root file.io_all event.anyevent
+modules.load = root jobqueue digest file.io_all crypt.random event.anyevent
 [load_modules:<modules.load>]
 [init_modules]
 
