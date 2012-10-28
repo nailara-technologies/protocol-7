@@ -1,5 +1,21 @@
 # >:]
 
-# name       = base.reload_config
+# name  = base.reload_config
+# descr = reload configuration files
 
-return &{$code{'base.load_values'}}( '', 'nailara.' . $data{'system'}{'agent'}{'name'} );
+my $success = 1;
+if ( exists <system.config.reload_order> ) {
+  my @reload_order = @{<system.config.reload_order>};
+  <system.config.reload_order> = [];
+  foreach my $config_name (@reload_order) {
+    my $already_loaded = 0;
+    map { $already_loaded = 1 if "$_" eq $config_name }
+      @{<system.config.reload_order>};
+    next if $already_loaded; # ( nested load_config_file )
+    $success = 0 if ![base.load_config_file:$config_name];
+  }
+}
+$success = 0 if !&{$code{'base.load_values'}}( '',
+  'nailara.' . $data{'system'}{'agent'}{'name'} );
+
+return $success;

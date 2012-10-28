@@ -3,6 +3,14 @@
 # name       = base.load_config_file
 
 &{$code{'base.log'}}( 1, "loading config '$_[0]'" );
+
+# store additional config filenames for later reload [rewrite when problematic]
+<system.config.reload_order> = [] if not exists <system.config.reload_order>;
+my $already_pushed = 0;
+map { $already_pushed = 1 if $_ eq $_[0] } @{<system.config.reload_order>};
+push(@{<system.config.reload_order>}, $_[0])
+    if $_[0] ne 'nailara.'.<system.agent.name> and !$already_pushed;
+
 return &{ $code{'base.execute_agent_code'} }(
     &{ $code{'base.parser.config'} }(
         '', &{ $code{'base.get_file'} }(
