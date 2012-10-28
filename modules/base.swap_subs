@@ -1,17 +1,36 @@
 # >:]
 
-# name = base.swap_subs
+# name  = base.swap_subs
+# descr = moves subroutines from one module namespace into another
 
 my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
-my $overwrite_policy = shift || 'overwrite'; # [overwrite|if_missing]
+my $overwrite_policy = shift || 'wipe'; # [wipe|overwrite|if_missing]
+
+my @sub_names = keys %code;
+my $subs_matching = 0;
+map { $subs_matching++ if $_ =~ /^$source_sub_prefix\./ } @sub_names;
+if ( !$subs_matching ) {
+  [base.log:2,"swap_subs skipped (no $source_sub_prefix subs present)"];
+  return 0;
+}
+
+if ( $overwrite_policy eq 'wipe' ) {
+  map { delete $code{$_} if $_ =~ /^$target_sub_prefix\./ } @sub_names;
+  my $wipe_count = @sub_names - keys %code;
+  [base.log:2,"wiped $wipe_count subs from '$target_sub_prefix' namespace"]
+    if $wipe_count;
+}
 
 my $moved = 0;
 my $logged_yet = 0;
-foreach my $sub_name (keys %code ) {
+foreach my $sub_name ( keys %code ) {
   (my $new_sub = $sub_name) =~ s/^($source_sub_prefix)\./$target_sub_prefix./;
   if ($new_sub ne $sub_name) {
-    next if $overwrite_policy eq 'if_missing' and exists $code{$new_sub};
+    if ($overwrite_policy eq 'if_missing' and exists $code{$new_sub}) {
+      delete $code{$sub_name};
+      next;
+    }
     if (!$logged_yet) {
       [base.log:1,
         "\[!\] moving subs: $source_sub_prefix >> $target_sub_prefix"];
@@ -25,9 +44,24 @@ foreach my $sub_name (keys %code ) {
     }
   }
 }
+
+my $sub_list_ref = [base.resolve_key:'base.init_modules.sub_list'];
+if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
+  my $del_index = 0;
+  foreach my $sub_name ( @{$$sub_list_ref} ) {
+    next if not defined $sub_name;
+    if ( $sub_name =~ /^$target_sub_prefix./ ) {
+      delete $$sub_list_ref->[$del_index];
+    } else {
+      $sub_name =~ s/^$source_sub_prefix\./$target_sub_prefix./;
+    }
+    $del_index++;
+  }
+}
+
 if (!$moved) {
-  [base.log:0,
-    "swap_subs: nothing to do ($source_sub_prefix >> $target_sub_prefix)"];
+  [base.log:2,
+    "swap_subs: nothing done ($source_sub_prefix >> $target_sub_prefix)"];
 } else {
   my $s = $moved == 1 ? '' : 's';
   [base.log:2,
