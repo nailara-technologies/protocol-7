@@ -37,7 +37,7 @@ foreach my $mode ( keys( %{ $data{'proto'}{$_[0]}{'state'}{$_[1]} } ) ) {
     print
       "FOO: $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}{'handler'}\n";
 
-    $code{'base.event.add_io'}->(
+    $code{'event.add_io'}->(
       {
           'fd'      => $data{'session'}{ $_[0] }{'handle'},
           'handler' =>
