@@ -1,30 +1,43 @@
 # >:]
 
-# name   =  base.cmd.set
-# descr  = set a variable
+# name  = base.cmd.set
+# descr = assign a value to a $data key
+# todo  = improve/extend error handling
 
-my ( $key, $val ) = split ( / /, $$call{'args'}, 2 );
-my $key_ref = &{ $code{'base.resolve_key'} } ($key);
-if ( $key_ref ne '' and $$key_ref = $val ) {
-    &{ $code{'base.log'} } ( 1, "set: changed $key = $val");
-    $reply = { 'mode' => 'ack', 'data' => "changed" };
+my ( $key, $val ) = split ( / /, $$call{'args'}||'', 2 );
+return { 'mode' => 'nack', 'data' => 'no key specified' }
+  if not defined $key or !length($key);
+return {'mode' => 'nack', 'data' => 'invalid key'}
+  if $key =~ /^\.|\.$/ or $key !~ /^[\w\d\_\-\.]+$/;
+return { 'mode' => 'nack', 'data' => 'no value supplied' }
+  if not defined $val;
+
+my $key_init = 0;
+my $key_ref = [base.resolve_key:$key];
+
+if ( not defined $key_ref or ref($key_ref) ne 'SCALAR' ) {
+  (my $parsed_key=$key)=~s|\.|'}{'|g;
+  my $eval_code = "\$data{'$parsed_key'}=''";
+  eval $eval_code;
+  $key_init = 1;
+  $key_ref = [base.resolve_key:$key];
 }
-else {
-	my $lastref=\%data;
-	foreach my $sub_key ( split( /\./, $key ) )
-	{
-		print "sub_key: $sub_key\n";
-		${$lastref}{$sub_key}='plik';
-		if ( not defined ${$lastref}{$sub_key} ) { ${$lastref}{$sub_key}=''; }
-		$lastref = \${$lastref}{$sub_key};
-	}
-	if(${$lastref}=$val)
-	{
-		&{ $code{'base.log'} } ( 1, "set: initialized $key = $val");
+
+if ( defined $key_ref and $key_ref ne '' and !$@ ) {
+	if($key_init) {
+    $$key_ref = $val;
+		&{ $code{'base.log'} } ( 1, "set: initialized [ $key = '$val' ]");
 		$reply = { 'mode' => 'ack', 'data' => "initialized" };
-	}
-	else
-	{
-	    $reply = { 'mode' => 'nack', 'data' => 'failed' };
-	}
+	} elsif ( $$key_ref eq $val ) {
+    &{ $code{'base.log'} } ( 1,
+      "set: no change, values identical [$key='$val']");
+    $reply = { 'mode' => 'nack', 'data' => "no change, values identical" };
+  } else {
+    $$key_ref = $val;
+    &{ $code{'base.log'} } ( 1, "set: value changed [ $key = '$val' ]");
+    $reply = { 'mode' => 'ack', 'data' => "changed" };
+  }
+} else {
+    &{$code{'base.log'}}(0, "set: failed to assign value [ $key = '$val' ]");
+    $reply = { 'mode' => 'nack', 'data' => "failed to assign value" };
 }
