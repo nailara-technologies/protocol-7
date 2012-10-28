@@ -7,10 +7,10 @@ my $content_file =
   . $data{'client'}{ $_[0] }{'web'}{'request'}{'path'};
 if ( -d $content_file ) { $content_file .= '/index' }
 if ( $data{'system'}{'verbosity'} > 1 ) {
-    &{ $code{'base.log'} } ( 1,  'content file: ' . $content_file );
+    $code{'base.log'}->( 1,  'content file: ' . $content_file );
 }
 if ( -f $content_file ) {
-    return &{$code{'web.plugin_format'}}( $_[0], &{ $code{'base.get_file'} } ($content_file) );
+    return $code{'web.plugin_format'}->( $_[0], $code{'base.get_file'}->($content_file) );
 }
 else
 {

@@ -9,7 +9,7 @@ while ( $r_line =~ /\[([\w|\d|\#|\%]+)\:([^\]]+)\]/si ) {
     my $key = $1;
     @value = split ( /,/, $2 );
     if ( $key eq 'plugin' ) {
-        $value[0] = &{$code{'web.call_plugin'}}( $client_id, $2 );
+        $value[0] = $code{'web.call_plugin'}->( $client_id, $2 );
         $start = $end = '';
     }
     else { $start = $replace{$key}{start}, $end = $replace{$key}{end}; }

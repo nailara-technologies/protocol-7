@@ -10,7 +10,7 @@ if ( defined $list_name
     my $list = $data{'list'}{$list_name};
     return {
         'mode' => 'raw',
-        'data' => &{ $code{'base.parser.list'} } (
+        'data' => $code{'base.parser.list'}->(
         $$list{'var'}, $$list{'key'},
         split ( /\s+/, $data{'list'}{$list_name}{'mask'} ) )
     };

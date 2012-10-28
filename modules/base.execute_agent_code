@@ -3,11 +3,11 @@
 # name  = base.execute_agent_code
 # descr = executes nailara agent code
 
-&{$code{'base.log'}} ( 2, ': executing agent code..' );
+$code{'base.log'}->( 2, ': executing agent code..' );
 
 my $ok = 1;
 foreach my $code_line (@_) {
-    $code_line =~ s/&cmd\.([^\(]+)/&{$code{'base.check_alias'}}($1)/eg;
+    $code_line =~ s/&cmd\.([^\(]+)/$code{'base.check_alias'}->($1)/eg;
     if ( $code_line ne '' ) { eval($code_line) }
     if ($@) {
         if ( $@ =~ /^Can't use string \(""\) as a subroutine ref/ ) {
@@ -15,14 +15,14 @@ foreach my $code_line (@_) {
           while ( $code_line_copy =~ s/(\$code{'([^\']*)'})// ) {
             my ( $sub_call, $sub_name ) = ( $1, $2 || '' );
             next if length($sub_name) and exists $code{$sub_name};
-            &{ $code{'base.log'}}( 0,
+            $code{'base.log'}->( 0,
               "unknown subroutine '$sub_name' called! [ $sub_call ]" );
             $ok = 0 if $ok;
           }
         }
         if( $ok ) {
           $@ =~ s/ at .+\n//;
-          &{$code{'base.log'}}( 0, "error while executing '$code_line' [$@]" );
+          $code{'base.log'}->( 0, "error while executing '$code_line' [$@]" );
         }
         $ok = 0 if $ok;
     }

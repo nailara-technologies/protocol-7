@@ -8,7 +8,7 @@ my $buffer = \$data{'session'}{$id}{'buffer'}{'input'};
 my $handle = \$data{'session'}{$id}{'handle'};
 
 if ( $$buffer =~ s/^(\w+)\s(\w+)\n// ) {
-    my ( $usr, $key ) = ( $1, &{ $code{'digest.sha1'} }($2) );
+    my ( $usr, $key ) = ( $1, $code{'digest.sha1'}->($2) );
     my $kick_user = 1;
 
     if ( defined $key{'auth'}{'agent'}{$usr} ) {
@@ -22,12 +22,12 @@ if ( $$buffer =~ s/^(\w+)\s(\w+)\n// ) {
             $data{'session'}{$id}{'handler'}       =
               $data{'session'}{$id}{'default_handler'};
             $data{'session'}{$id}{'user'} = $usr;
-            &{ $code{'net.out'} }( $data{'session'}{$id}{'handle'},
+            $code{'net.out'}->( $data{'session'}{$id}{'handle'},
                 "YEAH >:P\n" );
 
-            #            &{ $code{'net.update.client_conf'} } ($id);
+            #            $code{'net.update.client_conf'}->($id);
 
-            &{ $code{'base.log'} }(1,
+            $code{'base.log'}->(1,
                 "[$id] agent auth: access approved to '$1' :)");
             $kick_user = 0;
 
@@ -35,15 +35,15 @@ if ( $$buffer =~ s/^(\w+)\s(\w+)\n// ) {
         }
 
         if ($kick_user) {
-            &{ $code{'base.log'} }( 1,
+            $code{'base.log'}->( 1,
                 "[$id] agent authentication: access denied to '$1' :(");
-            &{ $code{'net.out'} }( $$handle, ">:[\n" );
+            $code{'net.out'}->( $$handle, ">:[\n" );
             return 1;
         }
     }
     else {
-        &{ $code{'base.log'} }( 1,"[$id] agent authentication: protocol error");
-        &{ $code{'net.out'} }( $$handle, ">:[\n" );
+        $code{'base.log'}->( 1,"[$id] agent authentication: protocol error");
+        $code{'net.out'}->( $$handle, ">:[\n" );
         return 1;
     }
 }

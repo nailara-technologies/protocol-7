@@ -62,7 +62,7 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
                     # protocol error
 
                     else {
-                        &{ $code{'base.log'} }( 1,
+                        $code{'base.log'}->( 1,
                             "[$id] invalid command parameter format" );
                         $$output .=
                           $_cmd_id . "NACK invalid command parameter format\n";
@@ -170,7 +170,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
                     }
                     else {
-                        &{ $code{'base.log'} }(
+                        $code{'base.log'}->(
                             1,
                             "[$id] called undefined reply handler ("
                               . $$route{'reply'}{'handler'} . ")"
@@ -236,7 +236,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         $valid_answer = 1;
                     }
                     else {
-                        &{ $code{'base.log'} }(
+                        $code{'base.log'}->(
                             1,
                             "[$id] (RAW) invalid body length ("
                               . $$call_args{'args'} . " : "
@@ -246,7 +246,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                 }
             }
             else {
-                &{ $code{'base.log'} }( 1,
+                $code{'base.log'}->( 1,
                     "[$id] called unimplemented answer type ($cmd)" );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
                 return 1;
@@ -254,7 +254,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
         }
     }
     else {
-        &{ $code{'base.log'} }( 1,
+        $code{'base.log'}->( 1,
             "[$id] reply to unknown route id, ignored." );
         return 1;
     }
@@ -302,12 +302,12 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                 return 0;
             }
             else {
-                &{ $code{'base.log'} }( 1,
+                $code{'base.log'}->( 1,
                     "[$id] command '$cmd' is configured but not defined!" );
             }
         }
         else {
-            &{ $code{'base.log'} }( 1, "[$id] unknown command '$cmd'" );
+            $code{'base.log'}->( 1, "[$id] unknown command '$cmd'" );
         }
 
         $$output .= $_cmd_id . "NACK unknown command\n";
@@ -321,11 +321,11 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
         #        not working yet..
 
-        &{ $code{'base.log'} }( 1, "outgoing: nexthop: '$1' command: '$2'" );
+        $code{'base.log'}->( 1, "outgoing: nexthop: '$1' command: '$2'" );
         if ( defined $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
         {
 
-#            &{ $code{'net.send_command'} } ( $id, $command_id, $cmd, @params );
+#            $code{'net.send_command'}->( $id, $command_id, $cmd, @params );
         }
         return -1;
     }
@@ -370,7 +370,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
                 # setup route
 
-                my $route = &{ $code{'base.route.add'} }(
+                my $route = $code{'base.route.add'}->(
                     {
                         'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
                         'target' => { 'sid' => $target_sid }
@@ -379,7 +379,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
                 my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-                &{ $code{'base.log'} }(
+                $code{'base.log'}->(
                     2,
                     "[$id] "
                       . $data{'session'}{$id}{'user'}
@@ -426,7 +426,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                 }
                 else    # should never get here..
                 {
-                    &{ $code{'base.log'} }( 1, 'unknown command mode' );
+                    $code{'base.log'}->( 1, 'unknown command mode' );
                     return 1;
                 }
             }
@@ -437,7 +437,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
             $$output .= $_cmd_id . "NACK unknown command\n";
 
-            &{ $code{'base.log'} }( 1,
+            $code{'base.log'}->( 1,
                 "[$id] command '$2' rejected. no '$1' client present!" );
 
             return 1;
@@ -449,13 +449,13 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
     $$output .= $_cmd_id . "NACK unknown command\n";
 
-    &{ $code{'base.log'} }( 1,
+    $code{'base.log'}->( 1,
         "[$id] unknown command. ( usr '$usr', cmd '$cmd' )" );
 }
 else    # access denied
 {
     $$output .= $_cmd_id . "NACK unknown command\n";
-    &{ $code{'base.log'} }( 1,
+    $code{'base.log'}->( 1,
         "[$id] access denied. ( usr '$usr', cmd '$cmd' )" );
 }
 

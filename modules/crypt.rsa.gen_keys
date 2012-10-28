@@ -5,10 +5,10 @@
 my $key_size = $data{'crypt'}{'rsa'}{'default_keysize'};
 my $max_keys = 23542;
 
-&{ $code{'base.log'} }( 1, "generating rsa keys ($key_size bit)..." );
+$code{'base.log'}->( 1, "generating rsa keys ($key_size bit)..." );
 
 my $key_id =
-  &{ $code{'base.gen_id'} }( "data{'crypt'}{'rsa'}{'key'}", $max_keys );
+  $code{'base.gen_id'}->( "data{'crypt'}{'rsa'}{'key'}", $max_keys );
 $data{'auth'}{'rsa'}{'key'}{'current'}{'id'} = $key_id;
 
 my $rsa = Crypt::OpenSSL::RSA->generate_key($key_size);
@@ -23,7 +23,7 @@ if ( defined $rsa ) {
     };
     my $key = $data{'crypt'}{'rsa'}{'key'}{$key_id};
 
-    &{ $code{'base.log'} }( 1, ": checking keys.." );
+    $code{'base.log'}->( 1, ": checking keys.." );
 
     if ( $rsa->check_key() ) {
         $key->{'obj'}        = $rsa;

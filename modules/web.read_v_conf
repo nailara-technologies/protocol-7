@@ -2,7 +2,7 @@
 
 # name = web.read_v_conf
 
-if ( &{ $code{'file.status'} } ( $_[0] ) and $data{'file'}{'stat'}{'size'} > 0 )
+if ( $code{'file.status'}->( $_[0] ) and $data{'file'}{'stat'}{'size'} > 0 )
 {
     if ( $_[0] =~ /\/([^\/]+)$/ ) {
         my $vhost = $1;
@@ -11,6 +11,6 @@ if ( &{ $code{'file.status'} } ( $_[0] ) and $data{'file'}{'stat'}{'size'} > 0 )
               ( 1, 'reading vhost config for \'' . $vhost . '\'' );
         }
         &{ $code{'base.extract_values'} }
-          ( "{'web'}{'vhost'}{'$vhost'}", &{ $code{'base.get_file'} } ( $_[0] ) );
+          ( "{'web'}{'vhost'}{'$vhost'}", $code{'base.get_file'}->( $_[0] ) );
     }
 }

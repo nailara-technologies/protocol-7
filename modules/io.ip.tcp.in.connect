@@ -16,11 +16,14 @@ if ( -S $fd ) {
     $data{'handle'}{$new_sock}{'peerhost'} = $new_sock->peerhost();
     $data{'handle'}{$new_sock}{'peerport'} = $new_sock->peerport();
 
-    &{ $code{'base.log'} } ( 1, 'incoming tcp connection ['.$data{'handle'}{$new_sock}{'peerhost'}.':'.$data{'handle'}{$new_sock}{'peerport'}.']');
+    $code{'base.log'}->( 1, 'incoming tcp connection ['
+      . $data{'handle'}{$new_sock}{'peerhost'}
+      . ':'.$data{'handle'}{$new_sock}{'peerport'}
+      . ']');
 
     return $new_sock;
 }
 else {
-    &{ $code{'base.log'} } ( 0, "tcp.connect_handler: no socket supplied");
+    $code{'base.log'}->( 0, "tcp.connect_handler: no socket supplied");
     return 0;
 }

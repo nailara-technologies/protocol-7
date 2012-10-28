@@ -6,7 +6,7 @@
 # $_[1] : error coderef
 
 if ( !open( my $file_fh, "<$_[0]" ) ) {
-    &{ $code{'base.log'} }( 1, "can not open file \'$_[0]\' for reading [$!]" );
+    $code{'base.log'}->( 1, "can not open file \'$_[0]\' for reading [$!]" );
     return &{ $_[1] } if defined $_[1] and ref($_[1]) eq 'CODE';
     return ''
 } else {

@@ -27,19 +27,19 @@ if ( not defined $key_ref or ref($key_ref) ne 'SCALAR' ) {
 if ( defined $key_ref and $key_ref ne '' and !$@ ) {
 	if($key_init) {
     $$key_ref = $val;
-		&{ $code{'base.log'} } ( 1, "[$cid] set: initialized [ $key = '$val' ]");
+		$code{'base.log'}->( 1, "[$cid] set: initialized [ $key = '$val' ]");
 		$reply = { 'mode' => 'ack', 'data' => "initialized" };
 	} elsif ( $$key_ref eq $val ) {
-    &{ $code{'base.log'} } ( 1,
+    $code{'base.log'}->( 1,
       "[$cid] set: no change, values identical [$key='$val']");
     $reply = { 'mode' => 'nack', 'data' => "no change, values identical" };
   } else {
     $$key_ref = $val;
-    &{ $code{'base.log'} } ( 1, "[$cid] set: value changed [ $key = '$val' ]");
+    $code{'base.log'}->( 1, "[$cid] set: value changed [ $key = '$val' ]");
     $reply = { 'mode' => 'ack', 'data' => "changed" };
   }
 } else {
-    &{$code{'base.log'}}( 0,
+    $code{'base.log'}->( 0,
       "[$cid] set: failed to assign value [ $key = '$val' ]");
     $reply = { 'mode' => 'nack', 'data' => "failed to assign value" };
 }

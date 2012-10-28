@@ -6,9 +6,9 @@ my $entries = 0, $api_file =
   $data{'system'}{'conf_path'} . "/" . $data{'web'}{'api_definition'};
 if ( -f $api_file ) {
     if ( $data{'system'}{'verbosity'} > 1 ) {
-        &{ $code{'base.log'} } ( 1, 'loading api file');
+        $code{'base.log'}->( 1, 'loading api file');
     }
-    foreach $a_line ( &{ $code{'base.get_file'} } ($api_file) ) {
+    foreach $a_line ( $code{'base.get_file'}->($api_file) ) {
         my $start = $end = $key = $value = "";
         $a_line =~ s/\t+|\n//g;
         $a_line =~ s/\s*-\s*/-/g;
@@ -27,10 +27,10 @@ if ( -f $api_file ) {
             $entries++;
         }
     }
-    &{ $code{'base.log'} } ( 1, "api definition loaded ($entries entries).");
+    $code{'base.log'}->( 1, "api definition loaded ($entries entries).");
     return 1;
 }
 else {
-    &{ $code{'base.log'} } ( 0, "could not find api definition (\'$api_file\')");
+    $code{'base.log'}->( 0, "could not find api definition (\'$api_file\')");
     return 0;
 }

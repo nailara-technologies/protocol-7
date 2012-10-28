@@ -5,7 +5,7 @@
 my $filename = $_[0];
 
 if ( !-f $filename ) {
-    &{ $code{'base.log'} }( 0, "stat($filename): $!" );
+    $code{'base.log'}->( 0, "stat($filename): $!" );
     return 0;
 }
 
