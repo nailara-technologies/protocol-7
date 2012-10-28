@@ -15,6 +15,11 @@ if (    defined $data{'watcher_list'}{'paused'}
         next if not defined $data{'session'}{$id};
 
         ${$w}->w->start;
+
+        # hotfix (will be done right with the new event module)
+        if($desc =~ /^\[(\d+)\] output buffer$/) {
+            ${$w}->w->now if length($data{'session'}{$1}{'buffer'}{'output'});
+        }
     }
     $data{'watcher_list'}{'paused'} = [];
     $_[0]->w->stop;
