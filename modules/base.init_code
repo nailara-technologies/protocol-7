@@ -43,13 +43,13 @@ $data{'list'}{'buffers'} = {
 # initialize signal handlers
 undef %SIG;
 
-&{ $code{'base.event.add_signal'} }
+&{ $code{'event.add_signal'} }
   ( { 'signal' => 'INT', 'handler' => 'base.sig_int' } );
-&{ $code{'base.event.add_signal'} }
+&{ $code{'event.add_signal'} }
   ( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
-&{ $code{'base.event.add_signal'} }
+&{ $code{'event.add_signal'} }
   ( { 'signal' => 'HUP', 'handler' => 'base.sig_hup' } );
-&{ $code{'base.event.add_signal'} }
+&{ $code{'event.add_signal'} }
   ( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
 
 $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
