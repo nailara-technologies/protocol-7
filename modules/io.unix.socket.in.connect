@@ -14,7 +14,7 @@ if ( -S $fd ) {
     syswrite( $new_sock, ">:]\n" );
     $data{'handle'}{$new_sock}{'link'} = 'unix';
 
-    &{ $code{'base.event.add_io'} }
+    &{ $code{'event.add_io'} }
       ( $fd, $data{'handle'}{$fd}{'auth_handler'}, $fd, 'r', 0, 0 );
 
     return $new_sock;

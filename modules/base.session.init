@@ -60,7 +60,7 @@ $data{'watcher_list'}{'paused'} = [] if
   ref($data{'watcher_list'}{'paused'}) ne 'ARRAY';
 
 $data{'session'}{$id}{'watcher'}{'shutdown_trigger'} =
-  $code{'base.event.add_var'}->(
+  $code{'event.add_var'}->(
   {
       'var'     => \$data{'session'}{$id}{'shutdown'},
       'poll'    => 'w',
@@ -72,7 +72,7 @@ $data{'session'}{$id}{'watcher'}{'shutdown_trigger'} =
 );
 
 $data{'session'}{$id}{'watcher'}{'input_buffer'} =
-  $code{'base.event.add_var'}->(
+  $code{'event.add_var'}->(
   {
       'var'     => \$data{'session'}{$id}{'buffer'}{'input'},
       'handler' => 'base.handler.input',
@@ -84,7 +84,7 @@ $data{'session'}{$id}{'watcher'}{'input_buffer'} =
 );
 
 $data{'session'}{$id}{'watcher'}{'output_buffer'} =
-  $code{'base.event.add_var'}->(
+  $code{'event.add_var'}->(
   {
       'var'     => \$data{'session'}{$id}{'buffer'}{'output'},
       'handler' => 'base.handler.write',
@@ -97,7 +97,7 @@ $data{'session'}{$id}{'watcher'}{'output_buffer'} =
 );
 
 if ( $mode eq 'server' ) {
-    $code{'base.event.add_io'}->( {
+    $code{'event.add_io'}->( {
 
           'fd'      => $fd,
           'handler' => 'base.handler.connect',
