@@ -1,24 +1,29 @@
 # >:]
 
-# name       = base.init_modules
+# name  = base.init_modules
+# descr = executes 'pre_init', 'init_code' and 'post_init' routines
 
-my $error_status = 1;
-foreach my $sub_name ( sort {length($a) <=> length($b)} sort( keys(%code) ) ) {
-    if ( $sub_name =~ /^(.+)\.init_code/
-	and defined $data{'code'}{$sub_name}
-        and $data{'code'}{$sub_name}{'status'} eq 'ok'
-        and exists $code{$sub_name} )
-    {
-        my $module_name = $1;
-        $code{'base.log'}->( 1, "initializing $module_name code..");
-        if ( !&{ $code{$sub_name} } ) {
-                    # $code{'base.log'}->(2,'$module_name initialized.');
+my $success = 1;
+foreach my $init_mode ('pre_init', 'init_code', 'post_init') {
+  foreach my $sub_name ( sort {length($a) <=> length($b)} sort(keys(%code)) ) {
+    if ( $sub_name =~ /^(.+)\.$init_mode$/ ) {
+      my $module_name = $1;
+      (my $init_txt = $init_mode) =~ s/_/-/g;
+      $init_txt =~ s/-code//;
+      [base.log:1,"running '$module_name' $init_txt code.."];
+      if( exists $code{$sub_name} ) {
+        my $return_code = &{$code{$sub_name}};
+        if ( not defined $return_code or $return_code ne '0' ) {
+          $success = 0;
+          [base.log:0,": failed to initialize module '$module_name'"
+            ." ( $init_mode != 0 )"];
         }
-        else {
-            $error_status = 0;
-            &{ $code{'base.log'} }
-              (0,": failed to initialize the $module_name code");
-        }
+      } else {
+        $success = 0;
+        [base.log:0,": initialization of '$module_name' failed"
+          ." ( $sub_name vanished or broken )"];
+      }
     }
+  }
 }
-return $error_status;
+return $success;
