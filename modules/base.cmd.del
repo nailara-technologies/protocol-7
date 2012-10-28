@@ -1,49 +1,34 @@
 # >:]
 
 # name     = base.cmd_del
-# args     = { args }
-# descr    = delete a variable
+# descr    = delete a %data key
 
-# return { 'mode' => 'nack', 'data' => 'broken'};
+my $del_key = $$call{'args'};
+my $cid = $$call{'session_id'};
 
-my $key   = $$call{'args'};
+return { 'mode' => 'nack', 'data' => 'no key specified' }
+  if not defined $del_key or !length($del_key);
+return {'mode' => 'nack', 'data' => 'invalid key'}
+  if $del_key =~ /^\.|\.$/ or $del_key !~ /^[\w\d\_\-\.]+$/;
 
-if ( $key =~ /\.([^\.]+)$/ ) {
-
-    my $hash_ref = &{ $code{'base.resolve_hash'} } ($key);
-
-#    print "DEL: href: ".join("\n",keys($$hash_ref))."\n";
-
-    if ( defined ${$hash_ref}{$1} ) {
-        delete ${$hash_ref}{$1};
-        $$reply{'mode'} = 'ack';
-    }
-    else {
-        $$reply{'mode'} = 'nack';
-    }
+my $del_key_ref = [base.resolve_key:$del_key];
+if (not defined $del_key_ref) {
+  [base.log:0,"\[$cid\] del: no such key '$del_key'"];
+  return { 'mode' => 'nack', 'data' => 'no such key' }
 }
-else {
-    if ( defined $data{$key} ) {
-        delete $data{$key};
-        $$reply{'mode'} = 'ack';
-    }
-    else {
-        $$reply{'mode'} = 'nack';
-    }
+my $deleted = 0;
+$deleted = 1 if $del_key !~ /\./ and delete $data{$del_key};
+if (!$deleted) {
+  my $parent_key = $del_key;
+  if ( $parent_key =~ s/\.([^\.]+)$// ) {
+    my $parent_ref = [base.resolve_key:$parent_key];
+    $deleted = 1 if defined $parent_ref and delete $$parent_ref->{$1};
+  }
 }
-
-if ( $$reply{'mode'} eq 'ack' ) {
-    &{ $code{'base.log'} } ( 1,  '['
-      . ${ $_[0] }{'session_id'}
-      . '] deleted data key \'' . $key . '\'' );
-    $$reply{'data'} = 'deleted';
+if ($deleted) {
+  [base.log:1,"\[$cid\] del: key '$del_key' deleted"];
+  return { 'mode' => 'ack', 'data' => 'deleted' }
+} else {
+  [base.log:0,"\[$cid\] del: failed to delete key '$del_key'"];
+  return { 'mode' => 'nack', 'data' => 'failed' }
 }
-else {
-    &{ $code{'base.log'} } ( 0,  '['
-      . ${ $_[0] }{'session_id'}
-      . '] del: no such key \'' . $key . '\'' );
-    $$reply{'data'} = 'no such key';
-}
-
-
-
