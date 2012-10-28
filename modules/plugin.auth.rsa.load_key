@@ -26,6 +26,20 @@ if ( !-f "$key_path$key_file.$key_extensions->{public}" ) {
 	": found rsa key '$key_file.pub' [key_id:$key_id]" );
 }
 
+if ( exists <auth.rsa.key.current.id> ) {
+    # overwrites old key data in memory and deletes it (on reload)
+    my $current_id = <auth.rsa.key.current.id>;
+    if (exists $data{'crypt'}{'rsa'}{'key'}{$current_id}) {
+        my $key_ref = $data{'crypt'}{'rsa'}{'key'}{$current_id};
+        foreach my $hash_key (keys(%{$key_ref})){
+            my $val_len = length($key_ref->{$hash_key}) || 0;
+            $key_ref->{$hash_key} = '-' x int($val_len + rand(222));
+        }
+        delete $data{'crypt'}{'rsa'}{'key'}{$current_id};
+        [base.log:1,": deleted old key (id:$current_id)"];
+    }
+}
+
 $data{'auth'}{'rsa'}{'key'}{'current'}{'id'} = $key_id;
 
 my $key = $data{'crypt'}{'rsa'}{'key'}{$key_id};
