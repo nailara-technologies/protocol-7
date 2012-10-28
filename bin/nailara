@@ -234,7 +234,7 @@ sub prepare_subs {
         return if !$mod_count and !@remaining;
         next if !$mod_count;
 
-        &{ $code{'log.ok'} }(": compiling ...");
+        &{ $code{'log.debug'} }(": compiling ...");
         my ( $ok_count, $err_count ) = ( 0, 0 );
 
         foreach my $sub_name ( sort(@compile_them) ) {
@@ -323,7 +323,7 @@ sub prepare_subs {
             &{ $code{'log.failed'} }(
                 ": $ok_count routines ok, $err_count broken..");
         } else {
-            &{ $code{'log.ok'} }(": $ok_count routines, all ok.");
+            &{ $code{'log.debug'} }(": $ok_count routines, all ok.");
         }
         return ($ok_count, $err_count);
     };
@@ -364,6 +364,16 @@ sub prepare_subs {
             . $_[0]
             . $ANSI{'normal'} . "\n";
         }
+    };
+    $code{'log.debug'} = sub {
+      if(defined $code{'base.log'}) {
+          &{$code{'base.log'}}(2, $_[0]);
+      } elsif ( $data{'system'}{'verbosity'} > 1 ) {
+        print ' :'
+          . $data{'system'}{'node'}{'name'} . '.'
+          . $data{'system'}{'agent'}{'name'} . ' '
+          . $_[0] . "\n";
+      }
     };
 
     $code{'dev.null'} = sub { };
