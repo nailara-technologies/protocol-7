@@ -10,7 +10,7 @@ print "sock: $fd\n";
 if ( -S $fd ) {
     my $new_sock;
     accept( $new_sock, $fd )
-      or &{ $code{'base.log'} } ( 0, "io.unix.socket.in.connect: can not accept [$!]");
+      or $code{'base.log'}->( 0, "io.unix.socket.in.connect: can not accept [$!]");
     syswrite( $new_sock, ">:]\n" );
     $data{'handle'}{$new_sock}{'link'} = 'unix';
 
@@ -20,6 +20,6 @@ if ( -S $fd ) {
     return $new_sock;
 }
 else {
-    &{ $code{'base.log'} } ( 0, "io.unix.socket.in.connect: no valid socket supplied");
+    $code{'base.log'}->( 0, "io.unix.socket.in.connect: no valid socket supplied");
     return undef;
 }

@@ -3,7 +3,7 @@
 # name       = file.regex_search
 
 if ( not defined $_[2] ) {
-    &{ $code{'net.nack'} } ( 'no keyword specified', $_[1] );
+    $code{'net.nack'}->( 'no keyword specified', $_[1] );
     return -1;
 }
 my ( $keyword, $query ) = ( $_[2], $_[3] );

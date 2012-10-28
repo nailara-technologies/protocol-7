@@ -9,13 +9,13 @@ $subdir =~ s/\./\//g;
 my $sname = $subdir;
 $sname =~ s/.+\/+//g;
 if ( $subdir ne "" ) { $dir .= $subdir }
-&{$code{'base.log'}}(1,$dir);
+$code{'base.log'}->(1,$dir);
 $dir =~ s/^\s+|\/$//;
 opendir( DIR, $dir )
-  or &{ $code{'base.log'} } ( 0, "can not open directory \'$dir\'");
+  or $code{'base.log'}->( 0, "can not open directory \'$dir\'");
 my @dir_content = readdir(DIR);
 closedir(DIR);
-&{$code{'base.log'}}(1,"PASS dirs");
+$code{'base.log'}->(1,"PASS dirs");
 
 foreach $dir_data (@dir_content) {
     if ( !defined($sname) ) { $sname = "" }

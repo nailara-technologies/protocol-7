@@ -5,7 +5,7 @@
 if ( defined $data{'agent'}{ $_[0] }{'code'}
     and defined( &{ $data{'agent'}{ $_[0] }{'code'} } ) )
 {
-    &{$code{'base.log'}}(1,"executing $_[0]-agent code..");
+    $code{'base.log'}->(1,"executing $_[0]-agent code..");
     &{ $data{'agent'}{ $_[0] }{'code'} };
 }
-else { &{$code{'base.log'}}(1,"FATAL: $_[0]-agent code not defined!") }
+else { $code{'base.log'}->(1,"FATAL: $_[0]-agent code not defined!") }

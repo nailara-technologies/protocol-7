@@ -6,16 +6,16 @@
 my ( $type, $mode, @params ) = @_;
 
 if ( not defined $data{'io'}{'type'}{$type} ) {
-    &{ $code{'base.log'} } ( 0, "base.open: io type '$type' not defined");
+    $code{'base.log'}->( 0, "base.open: io type '$type' not defined");
     return undef;
 }
 elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
-    &{ $code{'base.log'} } ( 0, "base.open: unknown io mode '$mode' for type '$type'");
+    $code{'base.log'}->( 0, "base.open: unknown io mode '$mode' for type '$type'");
     return undef;
 }
 elsif( not defined &{$code{$data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'}}} )
 {
-    &{ $code{'base.log'} } ( 0, "base.open: '$type'-handler for mode '$mode' not defined");
+    $code{'base.log'}->( 0, "base.open: '$type'-handler for mode '$mode' not defined");
     return undef;
 }
 

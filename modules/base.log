@@ -36,7 +36,7 @@ my $log_stamp = time() . " " . $log_level . " " . $log_msg;
 
 if ( defined  $data{'system'}{'internal_verbosity'} and
   defined $log_level <= $data{'system'}{'internal_verbosity'} ) {
-    &{ $code{'base.buffer.add_line'} }( $log_buffer, $log_stamp );
+    $code{'base.buffer.add_line'}->( $log_buffer, $log_stamp );
 }
 
 if ( $log_level <= $data{'system'}{'verbosity'} ) {
@@ -46,7 +46,7 @@ if ( $log_level <= $data{'system'}{'verbosity'} ) {
 
 #    $log_msg =~ s/\[[^\]]+\]//;
 
-#    &{ $code{'base.proto.nailara.command.send.local'} }(
+#    $code{'base.proto.nailara.command.send.local'}->(
 #        {
 #            'command' => "say.text $log_msg",
 #            'reply' => { 'handler' => 'dev.null' }

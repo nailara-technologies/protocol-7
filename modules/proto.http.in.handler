@@ -7,7 +7,7 @@ if ( not defined $data{'session'}{$id}{'httpd'}{'command_string'} ) {
     $http_string =~ s/\r//g;
     $http_string =~ s/\0/\\0/g;
     $http_string =~ s/\e/\\e/g;
-    &{ $code{'base.log'} } ( 2, "get string: '$http_string'");
+    $code{'base.log'}->( 2, "get string: '$http_string'");
     $data{'session'}{$id}{'httpd'}{'command_string'} = $http_string;
     if ( $http_string =~ /^(\w+)/ ) {
         my $cmd = lc($1);
@@ -16,10 +16,10 @@ if ( not defined $data{'session'}{$id}{'httpd'}{'command_string'} ) {
             $data{'session'}{$id}{'http'}{'command'}{'name'}   = $cmd;
             $data{'session'}{$id}{'user'}          = 'web_client';
             $data{'session'}{$id}{'authenticated'} = 'yes';
-            &{ $code{'base.log'} } ( 2, "command: '$cmd'");
+            $code{'base.log'}->( 2, "command: '$cmd'");
         }
         else {
-            &{ $code{'base.log'} } ( 2, "[$id] invalid http command: '$cmd'");
+            $code{'base.log'}->( 2, "[$id] invalid http command: '$cmd'");
         }
     }
 }
@@ -30,10 +30,10 @@ else {
         $keyword =~ s/-/_/g;
         $value   =~ s/\r//g;
         $data{'session'}{$id}{'http'}{'request'}{$keyword} = $value;
-        &{ $code{'base.log'} } ( 2, "[$id] $keyword = '$value'");
+        $code{'base.log'}->( 2, "[$id] $keyword = '$value'");
     }
     elsif ( $http_string =~ /^\r?$/ ) {
-        &{ $code{'base.log'} } ( 1, "request complete");
+        $code{'base.log'}->( 1, "request complete");
         my $content = "";
         if (
             defined( $data{'http'}{'handler'}
@@ -48,15 +48,15 @@ else {
                   { $data{'session'}{$id}{'http'}{'command'}{'name'} } } } ($id);
             }
             else {
-                &{ $code{'base.log'} } ( 0, "[$id] http handler not defined");
+                $code{'base.log'}->( 0, "[$id] http handler not defined");
             }
         }
         $l = length($content);
-        &{ $code{'net.out'} } ( $data{'session'}{ $_[0] }{'handle'},
+        $code{'net.out'}->( $data{'session'}{ $_[0] }{'handle'},
 "HTTP/1.1 200 OK\r\nServer: foobar\nConnection: close\nContent-Length: $l\n"
           . "Content-Type: text/plain\n\n" );
-        &{ $code{'net.out'} } ( $data{'session'}{ $_[0] }{'handle'}, $content );
+        $code{'net.out'}->( $data{'session'}{ $_[0] }{'handle'}, $content );
         $data{'session'}{$id}{'die'} = 'yes';
     }
-    else { &{ $code{'base.log'} } ( 0, "[http] protocol error '$http_string'") }
+    else { $code{'base.log'}->( 0, "[http] protocol error '$http_string'") }
 }

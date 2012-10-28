@@ -10,9 +10,9 @@ foreach my $sub_name ( sort {length($a) <=> length($b)} sort( keys(%code) ) ) {
         and exists $code{$sub_name} )
     {
         my $module_name = $1;
-        &{ $code{'base.log'} } ( 1, "initializing $module_name code..");
+        $code{'base.log'}->( 1, "initializing $module_name code..");
         if ( !&{ $code{$sub_name} } ) {
-            	    # &{$code{'base.log'}}(2,'$module_name initialized.');
+                    # $code{'base.log'}->(2,'$module_name initialized.');
         }
         else {
             $error_status = 0;

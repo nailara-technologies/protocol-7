@@ -7,7 +7,7 @@ my $read_dir='/tmp';
 my $path='/files';
 my $output='';
 
-opendir(FOO,$read_dir) or &{$code{'base.log'}}(1,'can not open directory.');
+opendir(FOO,$read_dir) or $code{'base.log'}->(1,'can not open directory.');
 my @dirlist=readdir(FOO);
 close(FOO);
 shift(@dirlist); shift(@dirlist);
@@ -16,14 +16,14 @@ my %DIRLIST_SHA1;
 
 if(-f "$read_dir/.sha1")
 {
-	open(SHA,"<$read_dir/.sha1") or &{$code{'base.log'}}(1,"can not read sha1 file [$!]");
+	open(SHA,"<$read_dir/.sha1") or $code{'base.log'}->(1,"can not read sha1 file [$!]");
 	foreach my $sha1_sum (<SHA>)
 	{
 		if($sha1_sum=~/^([^\s]+)\s\s([^\s]+)$/)
 		{ $DIRLIST_SHA1{$2}=$1 }
 	}
 }
-else{ &{$code{'base.log'}}(1,"no sha1 file found") }
+else{ $code{'base.log'}->(1,"no sha1 file found") }
 
 $output.="<table border=0 cellpadding=0 cellspacing=0>\n<tr><td nowrap colspan=2>.: filename :.</td><td nowrap colspan=2>.: size :.</td><td nowrap colspan=2>.: cdate :.</td><td nowrap>.: sha1-sum :.</td></tr>\n";
 foreach my $filename (sort(@dirlist))

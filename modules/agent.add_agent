@@ -11,7 +11,7 @@ if ($agent_id) {
     $data{'agent'}{'id'}{$agent_id}{'status'}     = 'offline';
 
     $data{'session'}{$id}{'watcher'}{'output_buffer'} =
-        &{ $code{'base.event.add_var'} } (
+        $code{'base.event.add_var'}->(
 	      {
 		        'var'     => \$data{'session'}{$id}{'buffer'}{'output'},
 		          'handler' => 'base.handler.write',
@@ -24,7 +24,7 @@ if ($agent_id) {
 	    );
 
     $data{'agent'}{'id'}{$agent_id}{'watcher'}{'status'} =
-      &{ $code{'base.event.add_var'} } (
+      $code{'base.event.add_var'}->(
 	  {
 	      'var'     => \$data{'agent'}{'id'}{$agent_id}{'status'},
 		'handler' => 'agent.status.changed',
@@ -40,10 +40,10 @@ if ($agent_id) {
 
 
 
-    &{ $code{'base.log'} } ( 2, "added new agent id: $agent_id name: $agentname");
+    $code{'base.log'}->( 2, "added new agent id: $agent_id name: $agentname");
     return $agent_id;
 }
 else {
-    &{ $code{'base.log'} } ( 0, "add_agent: could not get new agent-id");
+    $code{'base.log'}->( 0, "add_agent: could not get new agent-id");
     return undef;
 }

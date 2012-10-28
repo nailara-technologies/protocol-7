@@ -8,6 +8,6 @@ my $peer = shift;
 use Data::Dumper qw(Dumper);
 print STDERR "[pass 2] ".Dumper($_[0])."\n";
 
-&{$code{'net.out'}}($peer, "ping\n");
+$code{'net.out'}->($peer, "ping\n");
 
 print STDERR "\n [ connection closed  ]\n\n";
