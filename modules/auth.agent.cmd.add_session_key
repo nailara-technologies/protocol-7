@@ -8,7 +8,7 @@ my ( $agent, $key ) = split( / /, $$call{'args'} );
 
 if ( $agent ne '' and $key ne '' ) {
     if ( $data{'auth'}{'pwd'}{$agent} eq ':agent:' ) {
-        $key{'auth'}{'agent'}{$agent} = &{ $code{'digest.sha1'} }($key);
+        $key{'auth'}{'agent'}{$agent} = $code{'digest.sha1'}->($key);
 	
         $reply = { 'mode' => 'ack', 'data' => 'key added' };
         &{ $code{

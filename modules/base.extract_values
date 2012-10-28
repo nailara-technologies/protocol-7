@@ -22,11 +22,11 @@ foreach my $conf_line (@_) {
         if ( defined $data{'system'}{'verbosity'}
             and $data{'system'}{'verbosity'} > 2 )
         {
-            &{ $code{'base.log'} }(1,$cmd);
+            $code{'base.log'}->(1,$cmd);
         }
         eval("$cmd");
         if ($@) {
-            &{ $code{'base.log'} }( 1,"DANGER: CONFIG PARSER ERROR: ($cmd) $!");
+            $code{'base.log'}->( 1,"DANGER: CONFIG PARSER ERROR: ($cmd) $!");
         }
         else { $entries++ }
     }

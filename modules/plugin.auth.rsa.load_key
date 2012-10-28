@@ -9,20 +9,20 @@ my $key_path = $data{'system'}{'conf_path'} . '/keys/';
 
 my $key_extensions = { 'private' => 'priv', 'public' => 'pub' };
 
-&{ $code{'base.log'} }( 0, "key directory '$key_path' does not exist!" )
+$code{'base.log'}->( 0, "key directory '$key_path' does not exist!" )
     if !-d $key_path;
 
 # XXX: introduce ~/.nailara/keys/ (l8er)
 
 if ( !-f "$key_path$key_file.$key_extensions->{public}" ) {
-    &{ $code{'base.log'} }( 0,
+    $code{'base.log'}->( 0,
 	"RSA key '$key_file.$key_extensions->{public}'"
 	." not found, creating new key pair..." );
-    $key_id = &{ $code{'crypt.rsa.gen_keys'} }();
+    $key_id = $code{'crypt.rsa.gen_keys'}->();
 } else {
-    $key_id = &{ $code{'base.gen_id'} }(
+    $key_id = $code{'base.gen_id'}->(
 	"data{'crypt'}{'rsa'}{'key'}", $max_keys );
-    &{ $code{'base.log'} }( 2,
+    $code{'base.log'}->( 2,
 	": found rsa key '$key_file.pub' [key_id:$key_id]" );
 }
 
@@ -69,13 +69,13 @@ foreach my $key_type ( 'private', 'public' ) {
 	    $overwrite_key = 1;
 	}
 	# write key file to disk
-	&{ $code{'base.put_file'} }( $file_name,
+	$code{'base.put_file'}->( $file_name,
 	    \$data{'crypt'}{'rsa'}{'key'}{$key_id}{$key_type} );
     } else {
-	&{ $code{'base.log'} }(1, ": loading $key_file $key_type key..");
+	$code{'base.log'}->(1, ": loading $key_file $key_type key..");
 
 	$data{'crypt'}{'rsa'}{'key'}{$key_id}{$key_type} =
-	  join( '', &{ $code{'base.get_file'} }($file_name) );
+	  join( '', $code{'base.get_file'}->($file_name) );
 
 	if ($key_type eq 'public') {
 	    $rsa = Crypt::OpenSSL::RSA->new_public_key(
@@ -105,7 +105,7 @@ foreach my $key_type ( 'private', 'public' ) {
 	$key->{'type'}       = 'rsa';
 	$key->{'encoding'}   = 'X509';
 	$key->{'fingerprint'}{'public'} = sha1_hex( $key->{'public'} );
-	&{ $code{'base.log'} }( 2, ": : valid : "
+	$code{'base.log'}->( 2, ": : valid : "
             . $key->{'fingerprint'}{'public'} );
 	$key_loaded = 1;
     }
@@ -117,7 +117,7 @@ foreach my $key_type ( 'private', 'public' ) {
 
 #	if ( $rsa->check_key() ) {
 #	    } else {
-#		&{ $code{'base.log'} }( 0, ': error: loaded key is invalid!' );
+#		$code{'base.log'}->( 0, ': error: loaded key is invalid!' );
 #	    }
 #	}
 

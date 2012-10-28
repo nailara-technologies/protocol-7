@@ -10,7 +10,7 @@ if ( $sock = new IO::Socket::SSL(
         Timeout  => 5
     ) )
 {
-    &{ $code{'base.log'} } ( 1, "connection [$_[0]:$_[1]] established.");
+    $code{'base.log'}->( 1, "connection [$_[0]:$_[1]] established.");
     $data{'handle'}{$sock}{'link'} = 'tcp/ip';
     $data{'handle'}{$sock}{'encryption'}   = 'ssl';
     return $sock;

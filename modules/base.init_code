@@ -58,7 +58,7 @@ $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
 if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
-&{ $code{'base.list.init'} } (
+$code{'base.list.init'}->(
   {
       'name'         => 'sessions',
       'key_ref'      => \$data{'session'},

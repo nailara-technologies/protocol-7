@@ -19,7 +19,7 @@ if ( $cmd =~ /^NACK/ ) {
         my $ok     = 0;
         my $failed = 0;
 
-        if ( &{ $code{'agent.run'} }($agent_name) ) {
+        if ( $code{'agent.run'}->($agent_name) ) {
             $ok++;
         }
         else {
@@ -54,6 +54,6 @@ elsif ( $cmd =~ /^ACK$/ ) {
     #    $data{'agent'}{$agent_id}{'id'}     = $id;
 }
 elsif ( $answer eq '' ) {
-    &{ $code{'base.log'} }( 0, 'no answer from core' );
+    $code{'base.log'}->( 0, 'no answer from core' );
 }
-else { &{ $code{'base.log'} }( 0, "unknown answer: '$answer'" ); }
+else { $code{'base.log'}->( 0, "unknown answer: '$answer'" ); }

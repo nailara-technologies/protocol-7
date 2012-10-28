@@ -6,7 +6,7 @@
 
 print "ARGS:".$_[0]."\n";
 
-&{ $code{'base.log'} } ( 1, "[$_[0]] > request transfered.");
+$code{'base.log'}->( 1, "[$_[0]] > request transfered.");
 delete $data{'web'}{'request'};
 my $ok = 0;
 
@@ -19,12 +19,12 @@ foreach my $data_line ( split ( /\n/, $_[1] ) ) {
         $_val =~ s/\r/\\r/g;
         $_val =~ s/\0/\\0/g;
 
-        &{ $code{'base.internal_log'} } ( 'web', 1, "$_key = $_val" );
+        $code{'base.internal_log'}->( 'web', 1, "$_key = $_val" );
         $ok = 1;
         if ( defined $data{'system'}{'verbosity'}
             and $data{'system'}{'verbosity'} > 1 )
         {
-            &{ $code{'base.log'} } ( 1, "> $_key = $_val");
+            $code{'base.log'}->( 1, "> $_key = $_val");
         }
 
         if ( $_key eq 'post' ) {
@@ -56,7 +56,7 @@ my $new_lang =
   { lc( $data{'client'}{ $_[0] }{'web'}{'request'}{'http_host'} ) }{'language'};
 if ( $new_lang ne '' ) { $data{'client'}{ $_[0] }{'language'} = $new_lang; }
 
-if ($ok) { &{ $code{'base.internal_log'} } ( 'web', -1, ":" ); undef $ok }
+if ($ok) { $code{'base.internal_log'}->( 'web', -1, ":" ); undef $ok }
 $data{'client'}{ $_[0] }{'reply'}{'site'} =
   $data{'site'}{ lc( $data{'client'}{ $_[0] }{'web'}{'request'}{'http_host'} ) }
   || 'default';
@@ -90,7 +90,7 @@ $data{'web'}{'menu'}{'plugin'} =
   { $data{'client'}{ $_[0] }{'web'}{'request'}{'http_host'} }{'menu'}{'plugin'}
   || $data{'web'}{'menu'}{'default_plugin'};
 
-if ( &{ $code{'web.check_files'} } ( $_[0] ) ) {
+if ( $code{'web.check_files'}->( $_[0] ) ) {
     $data{'client'}{ $_[0] }{'reply'}{'skin'} = '';
 }
 

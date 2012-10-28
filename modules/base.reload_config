@@ -17,7 +17,7 @@ if ( exists <system.config.reload_order> ) {
     $success = 0 if ![base.load_config_file:$config_name];
   }
 }
-$success = 0 if !&{$code{'base.load_values'}}( '',
+$success = 0 if !$code{'base.load_values'}->( '',
   'nailara.' . $data{'system'}{'agent'}{'name'} );
 
 return $success;

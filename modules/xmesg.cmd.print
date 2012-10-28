@@ -9,7 +9,7 @@ my $txt = $$call{'args'};
 my $id  = $$call{'session_id'};
 
 if ( $txt ne '' ) {
-    &{ $code{'base.log'} } ( 1, "[$id] sending xmessage");
+    $code{'base.log'}->( 1, "[$id] sending xmessage");
     if ( !system( 'xmessage', $txt ) ) {
         return { 'mode' => 'ack', 'data' => 'message read' };
     }

@@ -6,7 +6,7 @@ use IPC::Open2;
 
 # &{$code{'agent.check.core'}};
 
-&{ $code{'base.list.init'} }(
+$code{'base.list.init'}->(
     {
         'name'         => 'agents',
         'key_ref'      => \$data{'agent'}{'id'},
@@ -25,15 +25,15 @@ $data{'system'}{'status'}  = 'booting';
 $data{'network'}{'status'} = 'offline';
 
 my $agent_list = $data{'agent'}{'agents'};
-&{ $code{'base.log'} }(1,': parsing agent config..');
+$code{'base.log'}->(1,': parsing agent config..');
 if ( $agent_list ne '' ) {
     my $agent_count = 0;
     foreach my $agent_name ( split( /\s+|\t+/, $agent_list ) ) {
-        &{ $code{'agent.add_agent'} }($agent_name);
+        $code{'agent.add_agent'}->($agent_name);
         $agent_count++;
     }
-    &{ $code{'base.log'} }(1,": : found $agent_count agents");
+    $code{'base.log'}->(1,": : found $agent_count agents");
 }
-else { &{ $code{'base.log'} }(1,': : no agents to run'); }
+else { $code{'base.log'}->(1,': : no agents to run'); }
 
 return 0;

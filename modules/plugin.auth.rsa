@@ -15,27 +15,27 @@ my $maxlen = 1024;
 
 if ( $$buffer =~ s/^get key\n// ) {
 
-    &{ $code{'base.log'} }( 2,
+    $code{'base.log'}->( 2,
         "[$id] auth.rsa: client requested public key.." );
 
     if ( defined $key->{'public'} and $key->{'public'} ne '' ) {
-        &{ $code{'net.out'} }(
+        $code{'net.out'}->(
             $$handle,
             "RAW " . length( $key->{'public'} ) . "\n" . $key->{'public'}
         );
         return 1;
     } else {
-        &{ $code{'base.log'} }( 1, "[$id] auth.rsa: no pubkey loaded." );
-        &{ $code{'net.out'} }( $$handle, "NACK no pubkey found :(\n" );
+        $code{'base.log'}->( 1, "[$id] auth.rsa: no pubkey loaded." );
+        $code{'net.out'}->( $$handle, "NACK no pubkey found :(\n" );
     }
 } elsif ( $$buffer =~ s/^set secret ([^\]]+)\n// ) {
     my $secret = $1;
 
-    &{ $code{'base.log'} }( 2, "[$id] auth.rsa: received new session key.." );
+    $code{'base.log'}->( 2, "[$id] auth.rsa: received new session key.." );
 
     if ( length($secret) < 1024 ) {
 
-        #        &{ $code{'base.log'} } ( 1, "setting secret to '$secret'");
+        #        $code{'base.log'}->( 1, "setting secret to '$secret'");
 	# $$session{'auth'}{'session_key'} = pack("H*",$secret);
 
 
@@ -54,17 +54,17 @@ if ( $$buffer =~ s/^get key\n// ) {
 $$session{'auth'}{'session_key'} = $rsa->decrypt(pack("H*",$secret))
     )
         {
-            &{ $code{'net.out'} }( $$handle, "ACK session key set.\n" );
-            &{ $code{'base.log'} }( 2,
+            $code{'net.out'}->( $$handle, "ACK session key set.\n" );
+            $code{'base.log'}->( 2,
                 "[$id] auth.rsa: session key accepted!" );
         } else {
-            &{ $code{'net.out'} }( $$handle, "NACK decryption failed\n" );
-            &{ $code{'base.log'} }( 1,
+            $code{'net.out'}->( $$handle, "NACK decryption failed\n" );
+            $code{'base.log'}->( 1,
                 "[$id] decryption of session secret failed!" );
         }
     } else {
-        &{ $code{'net.out'} }( $$handle, "NACK ciphered data too long!\n" );
-        &{ $code{'base.log'} }( 1, "[$id] auth.rsa: session key too long!" );
+        $code{'net.out'}->( $$handle, "NACK ciphered data too long!\n" );
+        $code{'base.log'}->( 1, "[$id] auth.rsa: session key too long!" );
         return -1;
     }
 } elsif ( $$buffer =~ s/^set cipher ([^\n]+)\n// ) {
@@ -72,7 +72,7 @@ $$session{'auth'}{'session_key'} = $rsa->decrypt(pack("H*",$secret))
 
     if ( $requested_cipher eq 'twofish' ) {
 
-        &{ $code{'net.out'} }( $$handle, "ACK initializing twofish chain!\n" );
+        $code{'net.out'}->( $$handle, "ACK initializing twofish chain!\n" );
 
         $data{'handle'}{$$handle}{'encryption'} = 'twofish';
         $data{'handle'}{$$handle}{'session_key'} =
@@ -80,22 +80,22 @@ $$session{'auth'}{'session_key'} = $rsa->decrypt(pack("H*",$secret))
 
         delete $$session{'auth'}{'session_key'};
 
-        &{ $code{'base.log'} }( 1, "[$id] initializing twofish chain!" );
+        $code{'base.log'}->( 1, "[$id] initializing twofish chain!" );
 
     } else {
-        &{ $code{'net.out'} }( $$handle, "NACK unknown cipher requested!\n" );
-        &{ $code{'base.log'} }( 1, "[$id] unknown cipher requested!" );
+        $code{'net.out'}->( $$handle, "NACK unknown cipher requested!\n" );
+        $code{'base.log'}->( 1, "[$id] unknown cipher requested!" );
     }
 
 } elsif ( $$buffer =~ /\n/ ) {
-    &{ $code{'net.out'} }( $$handle, "NACK protocol error\n" );
-    &{ $code{'base.log'} }( 1, "[$id] auth.rsa: protocol error!" );
+    $code{'net.out'}->( $$handle, "NACK protocol error\n" );
+    $code{'base.log'}->( 1, "[$id] auth.rsa: protocol error!" );
     return 2;
 }
 
 if ( length($$buffer) > $maxlen ) {
-    &{ $code{'base.log'} }( 1, "[$id] maxlen reached" );
-    &{ $code{'net.out'} }( $$handle, "BLOAT ERROR >:[\a" );
+    $code{'base.log'}->( 1, "[$id] maxlen reached" );
+    $code{'net.out'}->( $$handle, "BLOAT ERROR >:[\a" );
     $$session{'shutdown'} = 1;
     return -1;
 }

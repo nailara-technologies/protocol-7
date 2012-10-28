@@ -3,7 +3,7 @@
 # name       = auth.rsa.client
 
 if (not defined $_[0]) {
-    &{$code{'base.log'}}(0, "auth.rsa.client: "
+    $code{'base.log'}->(0, "auth.rsa.client: "
         . "supplied filehandle is undefined, won't work on that!");
     return undef;
 }
@@ -13,7 +13,7 @@ my ( $backend_socket, $smiley, $answer ) = ( $_[0], '', '' );
 my $id = $data{'handle'}{ $_[0] }{'cid'};
 
 if (not defined $id or !$id) {
-    &{$code{'base.log'}}(0, "auth.rsa.client: "
+    $code{'base.log'}->(0, "auth.rsa.client: "
         . "no client id 'cid' for '$_[0]', no initialized session?");
     return undef;
 }
@@ -24,18 +24,18 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 if ( sysread( $backend_socket, $smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
-        &{ $code{'base.log'} }( 1, '[*] smiley ok :)' );
+        $code{'base.log'}->( 1, '[*] smiley ok :)' );
     } else {
-        &{ $code{'base.log'} }( 1, '[#] no valid smiley found! :(' );
+        $code{'base.log'}->( 1, '[#] no valid smiley found! :(' );
         return undef;
     }
-    &{ $code{'base.log'} }( 1, '[#] selecting rsa authentication' );
-    &{ $code{'net.out'} }( $backend_socket, "select rsa\n" );
+    $code{'base.log'}->( 1, '[#] selecting rsa authentication' );
+    $code{'net.out'}->( $backend_socket, "select rsa\n" );
     if ( sysread( $backend_socket, $answer, 42 ) ) {
 
         if ( $answer =~ /^ACK continue\n$/ ) {
-            &{ $code{'base.log'} }( 1, '[+] requesting rsa public key..' );
-            &{ $code{'net.out'} }( $backend_socket, "get key\n" );
+            $code{'base.log'}->( 1, '[+] requesting rsa public key..' );
+            $code{'net.out'}->( $backend_socket, "get key\n" );
 
             $answer = '';
 
@@ -47,38 +47,38 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
                     $key_data_length = $1;
 
                     if ( length($answer) == $key_data_length ) {
-                        &{ $code{'base.log'} }( 1, '[+] pub key received.' );
+                        $code{'base.log'}->( 1, '[+] pub key received.' );
 
                         my $rsa_pub;
 
                         if ( eval '$rsa_pub = '
                             . 'Crypt::OpenSSL::RSA->new_public_key($answer)' ) {
 
-                            &{ $code{'base.log'} }( 1, '[+] pub key is valid.' );
+                            $code{'base.log'}->( 1, '[+] pub key is valid.' );
                             $rsa_pub->use_pkcs1_oaep_padding();
                             $rsa_pub->use_sha512_hash();
                             my $sk_size = 256;
 
-                            &{ $code{'base.log'} }( 1,
+                            $code{'base.log'}->( 1,
                                 "[+] generating $sk_size bit session key..");
                             my $session_key =
-                              &{ $code{'crypt.random.bytes'} }( int( $sk_size / 8 ) );
+                              $code{'crypt.random.bytes'}->( int( $sk_size / 8 ) );
 
                             $answer = '';
 
                             my $ciphered = $rsa_pub->encrypt($session_key);
                             my $hex_key = unpack( "H*", $ciphered );
-                            &{ $code{'base.log'} }( 1, "[+] transferring key to peer..");
-                            &{ $code{'net.out'} }( $backend_socket, "set secret $hex_key\n" );
+                            $code{'base.log'}->( 1, "[+] transferring key to peer..");
+                            $code{'net.out'}->( $backend_socket, "set secret $hex_key\n" );
 
                             if ( sysread( $backend_socket, $answer, 4096, length($answer) ) ) {
 
                                 if ( $answer =~ s/^ACK session key set.\n$// ) {
-                                    &{ $code{'base.log'} }(
+                                    $code{'base.log'}->(
                                         0, '[+] session key has been accepted.'
                                     );
 
-                                    &{ $code{'net.out'} }(
+                                    $code{'net.out'}->(
                                         $backend_socket, "set cipher $new_cipher\n"
                                     );
 
@@ -86,7 +86,7 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
 					    4096, length($answer) ) ) {
 
                                         if ( $answer =~ /^ACK ([^\n]+)$/ ) {
-                                            &{ $code{'base.log'} }(
+                                            $code{'base.log'}->(
                                                 0, "[+] initializing $new_cipher chain.."
                                             );
 
@@ -96,13 +96,13 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
                                               {'session_key'} = $session_key;
 
                                             my $enc_filter =
-                                              &{ $code{'filter.add_filter'} }(
+                                              $code{'filter.add_filter'}->(
                                                 "${new_cipher}_enc",
                                                 "crypt.$new_cipher.encrypt",
                                                 $key_id
                                               );
                                             my $dec_filter =
-                                              &{ $code{'filter.add_filter'} }(
+                                              $code{'filter.add_filter'}->(
                                                 "${new_cipher}_dec",
                                                 "crypt.$new_cipher.decrypt",
                                                 $key_id
@@ -118,40 +118,40 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
                                                 'twofish_enc', $enc_filter );
 
                                         } elsif ( $answer =~ /^NACK (.+)\n$/ ) {
-                                            &{ $code{'base.log'} }( 1,
+                                            $code{'base.log'}->( 1,
                                                 "[#] cipher not accepted by remote host. [$1]"
                                             );
                                         }
 
                                     } elsif ( $answer =~ /^NACK (.+)\n$/ ) {
-                                        &{ $code{'base.log'} }(
+                                        $code{'base.log'}->(
                                             1, '[#] session key has been rejected. [$1]'
                                         );
                                     }
                                 } elsif ( $answer =~ s/^NACK ([\w\s\.\,\-]+)\n$// ) {
-                                    &{ $code{'base.log'} }(
+                                    $code{'base.log'}->(
                                         0, "[#] failed to agree on session key [ '$1' ] !"
                                     );
                                 }
                                 else {
-                                    &{ $code{'base.log'} }(0,'[#] protocol error :(');
+                                    $code{'base.log'}->(0,'[#] protocol error :(');
                                 }
                             }
                         } else {
-                            &{ $code{'base.log'} }( 0, "[#] received rsa key is invalid!" );
+                            $code{'base.log'}->( 0, "[#] received rsa key is invalid!" );
                         }
 
                     } else {
-                        &{ $code{'base.log'} }( 1, '[#] pub key size mismatch' );
+                        $code{'base.log'}->( 1, '[#] pub key size mismatch' );
                     }
                 }
                 return $backend_socket;
             }
         } elsif ( $answer =~ /^NACK ([^\n]+)$/ ) {
-            &{ $code{'base.log'} }( 1, '[#] auth method rejected :( [$1]' );
+            $code{'base.log'}->( 1, '[#] auth method rejected :( [$1]' );
             return undef;
         } else {
-            &{ $code{'base.log'} }( 0, '[#] protocol error :(' );
+            $code{'base.log'}->( 0, '[#] protocol error :(' );
             return 0;
         }
     }

@@ -3,16 +3,16 @@
 # name  = base.sig_int
 # descr = SIGINT interrupt handler
 
-&{ $code{'base.log'} } ( 0, 'SIGINT received. shutting down..');
+$code{'base.log'}->( 0, 'SIGINT received. shutting down..');
 $SIG{'INT'} = 'exit';
 
 if ( exists $code{'net.send_all'} ) {
     eval ("# line " . __LINE__ . " \"base.sig_int\"\n"
-        .'&{ $code{\'net.send_all\'} } ("close SIGINT manual shutdown\n");');
+        .'$code{\'net.send_all\'}->("close SIGINT manual shutdown\n");');
 }
 
 if ( $data{'system'}{'verbosity'} >= 2 ) {
-    print "DEBUG MODE: agent state:\n" . &{$code{'base.dump_data'}}();
+    print "DEBUG MODE: agent state:\n" . $code{'base.dump_data'}->();
 }
-&{ $code{'base.log'} } ( 1, 'done.');
+$code{'base.log'}->( 1, 'done.');
 exit(0);
