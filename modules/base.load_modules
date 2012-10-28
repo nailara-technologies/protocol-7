@@ -7,12 +7,12 @@
 my @mods_to_load = split(/ /,$_[0]);
 
 if(not scalar @mods_to_load){
-  &{$code{'base.log'}}(0,'base.load_modules: no modules specified');
+  $code{'base.log'}->(0,'base.load_modules: no modules specified');
   return 1;
 }
-my ( $subs_ok, $subs_failed ) = &{$code{'base.load_code'}}(@mods_to_load);
+my ( $subs_ok, $subs_failed ) = $code{'base.load_code'}->(@mods_to_load);
 if (not defined $subs_ok or !$subs_ok) {
-  &{$code{'base.log'}}(1,'base.load_modules: no modules were loaded!');
+  $code{'base.log'}->(1,'base.load_modules: no modules were loaded!');
   return undef
 }
 return $subs_failed;

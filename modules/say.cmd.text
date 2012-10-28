@@ -8,7 +8,7 @@ my $txt = $$call{'args'};
 my $id  = $$call{'session_id'};
 
 if ( $txt ne '' ) {
-    &{ $code{'base.log'} } ( 2, "[$id] speaking text ('$txt')");
+    $code{'base.log'}->( 2, "[$id] speaking text ('$txt')");
 
      if(open(SAY, "|flite"))
     {

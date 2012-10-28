@@ -13,15 +13,15 @@ $log_message =~ s/\0/\\0/g;
 my $message_len = length($log_message);
 
 if ( $name eq '' ) {
-    &{ $code{'base.log'} }( 1, 'add_ram_log: no buffer name supplied' );
+    $code{'base.log'}->( 1, 'add_ram_log: no buffer name supplied' );
     return -1;
 }
 elsif ( $name !~ /^\w+$/ or length($name) > 23 ) {
-    &{ $code{'base.log'} }( 1, 'add_ram_log: invalid buffer name suppied' );
+    $code{'base.log'}->( 1, 'add_ram_log: invalid buffer name suppied' );
     return -1;
 }
 if ( $message_len > $buffer_size ) {
-    &{ $code{'base.log'} }(
+    $code{'base.log'}->(
         1,
         "WARNING: log message longer than log-buffer-size"
           . " (buffer: $buffer_size bytes message: $message_len bytes)"
@@ -43,7 +43,7 @@ $data{'buffer'}{$name}{'size'} += $message_len;
 if ( defined $data{'system'}{'log'}{'buffer'}{$name}{'command'}
     and $data{'system'}{'log'}{'buffer'}{$name}{'command'} ne '' )
 {
-    &{ $code{'base.proto.nailara.command.send.local'} }(
+    $code{'base.proto.nailara.command.send.local'}->(
         {
             'command' => $data{'system'}{'log'}{'buffer'}{$name}{'command'}
               . ' '

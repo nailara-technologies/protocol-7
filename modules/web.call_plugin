@@ -4,7 +4,7 @@
 
 my ( $plugin, @params ) = split /,/, $_[1];
 if ( !defined &{$code{'plugin.web.content.' . $plugin }} ) {
-    &{ $code{'base.log'} } ( 0, "unknown plugin ($plugin) requested");
-    return &{$code{'web.format'}}('[ERROR:unknown plugin requested]');
+    $code{'base.log'}->( 0, "unknown plugin ($plugin) requested");
+    return $code{'web.format'}->('[ERROR:unknown plugin requested]');
 }
-return &{ $code{'plugin.web.content.' . $plugin } } ( @params );
+return $code{'plugin.web.content.' . $plugin }->( @params );

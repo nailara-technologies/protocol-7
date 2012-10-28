@@ -12,7 +12,7 @@ my ( $filehandle, $command, $handler, $param_hash ) =
   );
 
 if ( not defined ${$_[0]}{'answer_handler'} ) {
-    &{ $code{'base.log'} } ( 0, "net.cmd: no answer-handler specified");
+    $code{'base.log'}->( 0, "net.cmd: no answer-handler specified");
 }
 
 if( not defined ${$_[0]}{'target_cid'})

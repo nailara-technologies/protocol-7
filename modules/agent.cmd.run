@@ -6,7 +6,7 @@
 my $agent_name = $$call{'args'};
 my $pid;
 
-if ( $pid = &{ $code{'agent.run'} } ($agent_name) ) {
+if ( $pid = $code{'agent.run'}->($agent_name) ) {
     $$reply{'mode'} = 'ack';
     $$reply{'data'} = "spawned";
 }

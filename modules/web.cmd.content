@@ -2,15 +2,15 @@
 
 # name = web.cmd.constant
 
-if    ( $_[2] eq 'file' ) { &{$code{'web.send_file'}}( $_[0] ) }
+if    ( $_[2] eq 'file' ) { $code{'web.send_file'}->( $_[0] ) }
 elsif ( $_[2]=~/^menu:(.+)$|^menu$/ ) {
-    &{ $code{'net.raw_out'} } ( join ( "\n", &{$code{'web.gen_menu'}}( $_[0],$1 ) ) );
+    $code{'net.raw_out'}->( join ( "\n", $code{'web.gen_menu'}->( $_[0],$1 ) ) );
 }
 elsif ( $_[2] =~ /^content\:?(.*)$/ ) {
-    &{ $code{'net.raw_out'} } ( &{$code{'web.gen_content'}}( $_[0], $1 ) );
+    $code{'net.raw_out'}->( $code{'web.gen_content'}->( $_[0], $1 ) );
 }
 elsif ( $_[2] =~ /^plugin\:?(.*)$/ ) {
-        &{ $code{'net.raw_out'} } ( &{$code{'web.direct_plugin'}}( $_[0], $1 ) );
+        $code{'net.raw_out'}->( $code{'web.direct_plugin'}->( $_[0], $1 ) );
 }
-else{ &{ $code{'net.raw_out'} } ( '<p><h3>/* unkown content request */</h3></p>' ) }
+else{ $code{'net.raw_out'}->( '<p><h3>/* unkown content request */</h3></p>' ) }
 

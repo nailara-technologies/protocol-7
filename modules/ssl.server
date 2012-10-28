@@ -4,7 +4,7 @@
 
 my $key_file = $data{'system'}{'root_path'} . '/conf/ssl.pem';
 if ( !-f $key_file ) {
-    &{ $code{'base.log'} } ( 0, "cert file '$key_file' not found");
+    $code{'base.log'}->( 0, "cert file '$key_file' not found");
 }
 my $lsock = new IO::Socket::SSL(
     LocalAddr     => $_[0],
@@ -26,7 +26,7 @@ if ( not defined $lsock ) {
 }
 else {
     $lsock->listen()
-      or &{ $code{'base.log'} } ( 0, "ssl.server: listen: $!");
-    &{ $code{'base.log'} } ( 1, "ssl server [$_[0]:$_[1]] launched.");
+      or $code{'base.log'}->( 0, "ssl.server: listen: $!");
+    $code{'base.log'}->( 1, "ssl server [$_[0]:$_[1]] launched.");
     return $lsock;
 }

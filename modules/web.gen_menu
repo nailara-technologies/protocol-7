@@ -11,11 +11,11 @@ close(LOG);
 
     return &{ $code{ $menu_plugin } }
       ( $data{'client'}{ $_[0] }{'web'}{'request'}{'path'},
-      @{ &{$code{'file.tree'}} ( $data{'client'}{ $_[0] }{'site'}{'dir'} ) } );
+      @{ $code{'file.tree'}->( $data{'client'}{ $_[0] }{'site'}{'dir'} ) } );
 }
 else {
 close(LOG);
 
-    &{ $code{'base.log'} } ( 0,  "FATAL: plugin '$menu_plugin' not loaded properly!" );
+    $code{'base.log'}->( 0,  "FATAL: plugin '$menu_plugin' not loaded properly!" );
  return "<b>/* error - menu plugin not loaded */</b>";
 }

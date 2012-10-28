@@ -21,7 +21,7 @@ if (-d $path) {
   chdir($path) or [log.failed:"file.all_files: chdir($path): $!"];
   $path =~ s/\/+$//;
   if (!opendir ($dir_fh, $path)) {
-    &{$code{'base.log'}}(0,"can not open directory '$path' [$!]");
+    $code{'base.log'}->(0,"can not open directory '$path' [$!]");
     return undef;
   }
   foreach my $entry ( sort( readdir($dir_fh) ) ) {
