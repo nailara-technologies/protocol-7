@@ -6,14 +6,17 @@
 .: globals :.
 
   spawn.max_procs  = unlimited
-  spawn.start_mode = exec	# [fork|exec]
+  spawn.start_mode = exec	# [pipe|fork|exec]
   spawn.autospawn  = 1
+
+  agents.enabled = spawntest
 
 .: agents :.
 
   - core
 
       : init :
+        start_mode = pipe
         keys.core = [base.rnd_chars_noblock:64]
 
       : remote :
@@ -31,3 +34,10 @@
 
       : remote :
         auto_shutdown_timeout = 5
+
+  - spawntest
+
+      : init :
+
+       respawn_mode = on_exit
+       respawn_timeout = 5
