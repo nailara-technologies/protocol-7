@@ -1,0 +1,25 @@
+# >:]
+
+# name  = jobqueue.next_job
+# descr = returns next job from queue and marks it as running
+# todo  = implement tuneable scheduling (parameters)
+
+my $job_list = <jobqueue.joblist>;
+return undef if ! $job_list->{'count'}->{'queued'};
+my $job_queue = $job_list->{'queued'};
+my $jobs_running = $job_list->{'running'};
+my $prio_queue = $job_queue->{'by_priority'};
+
+my $next_job_id;
+my $matched_prio;
+foreach my $prio ( sort { $a <=> $b } keys %$prio_queue ) {
+  next if !@{$prio_queue->{$prio}};
+  $next_job_id = shift(@{$prio_queue->{$prio}});
+  $matched_prio = $prio;
+  last if defined $next_job_id;
+}
+
+[jobqueue.move_job:$next_job_id,'running'];
+
+my $job_data = $job_list->{'by_id'}->{$next_job_id};
+return ( $next_job_id, $job_data );
