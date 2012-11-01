@@ -3,9 +3,9 @@
 # name  = base.pre_init
 # descr = installs 'base.time' and 'base.sleep' subroutines
 
-my $th_ref = (eval 'use Time::HiRes qw(time sleep); return [ '
+my $th_ref = (eval 'use Time::HiRes; return [ '
   .'sub{ my $f = $_[0]; $f = 6 if not defined $f or $f =~ /\D/;'
-  .' sprintf( "%.${f}f", time ) }, \&sleep ]');
+  .' sprintf( "%.${f}f", Time::HiRes::time ) }, \&Time::HiRes::sleep ]');
 
 $th_ref = [ sub{time()}, sub{ $code{'base.log'}->( 0,
   "WARNING: Time::HiRes not present, sleep($_[0]) will be 0s!") if $_[0] < 1;
