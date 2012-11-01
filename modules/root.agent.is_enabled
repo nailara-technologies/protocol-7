@@ -1,0 +1,29 @@
+# >:]
+
+# name  = root.agent.is_enabled
+# descr = returns true if agent is enabled / not disabled in the configuration
+
+my $agent_name = shift;
+die "root.agent.is_enabled: no agent name specified"
+  if not defined $agent_name;
+# checking config syntax
+foreach my $check_key ( 'enabled', 'disabled' ) {
+  if ( exists $data{'agents'}->{$check_key}
+    and defined $data{'agents'}->{$check_key}
+    and $data{'agents'}->{$check_key} !~ /^([a-z\.-_]+\s*)+$/i ) {
+      $code{'base.log'}->(0, "spawn config syntax error: agents.$check_key = '"
+      . $data{'agents'}->{$check_key} . "' <- expecting valid agent names");
+    die "critical configuration error";
+  }
+}
+# all agents considered enabled in absence of explicit statements!
+return 1 if not defined <agents.enabled> and not defined <agents.disabled>;
+
+# agents.diabled takes precedence before agents.enabled!
+map { return 0 if $_ eq $agent_name } split( /\s+/, <agents.disabled> )
+  if defined <agents.disabled>;
+
+return 1 if not defined <agents.enabled>;
+# if agents.enabled is present, all agents not listed there count as disabled!
+map { return 1 if $_ eq $agent_name } split( /\s+/, <agents.enabled> );
+return 0;
