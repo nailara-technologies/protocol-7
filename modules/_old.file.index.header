@@ -37,7 +37,7 @@ if ( -f $filename ) {
     my $format_error = 0;
     $count_files++;
     $data{'file'}{'index'}{$file_id}{'system'}{'filename'}     = $filename;
-    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = time();
+    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = [base.time:5];
     while ( $new_line = <$file_fh> ) {
         $lines++;
         $header_data .= $new_line;

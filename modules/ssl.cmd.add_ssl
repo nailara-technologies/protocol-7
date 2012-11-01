@@ -20,7 +20,7 @@ if ( -S $sock ) {
     $data{'link'}{$name}{'port'}       = $port;
     $data{'link'}{$name}{'transport'}  = 'tcp/ip';
     $data{'link'}{$name}{'encryption'}     = 'ssl';
-    $data{'link'}{$name}{'start_time'} = time();
+    $data{'link'}{$name}{'start_time'} = [base.time:5];
     $code{'net.ack'}->( "link '$name' established", $com_id );
 }
 else { $code{'net.nack'}->( "connection failed", $com_id ); }

@@ -28,7 +28,6 @@ if ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {
             $$session{'counter'}{'auth'}{'error'}{'select'}++;
         }
     }
-
 }
 
 # list auth methods (flood protected)
@@ -81,7 +80,7 @@ elsif ( defined &{ $code{ 'plugin.auth.' . $auth_method } } ) {
         $$session{'mode'}          = 'client';
         $$session{'link'}          = $data{'handle'}{ $_[0] }{'link'};
         $$session{'encryption'}    = $data{'handle'}{ $_[0] }{'encryption'};
-        $$session{'session_start'} = time();
+        $$session{'auth_time'}     = [base.time:5];
 
         $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = 'client';
 
@@ -100,4 +99,3 @@ else {
     $code{'base.log'}->( 0, "auth plugin '$auth_method' not loaded");
     return 2;
 }
-
