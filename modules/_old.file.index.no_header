@@ -35,7 +35,7 @@ if ( -f $filename ) {
     open( my $file_fh, '<', $filename )
         or $code{'base.log'}->( 0, "index.no_header: '$filename' :. $!" );
     $data{'file'}{'index'}{$file_id}{'system'}{'filename'}     = $filename;
-    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = time();
+    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = [base.time:5];
 }
 else {
     $code{'base.log'}->( 0,
