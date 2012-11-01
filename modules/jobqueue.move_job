@@ -27,6 +27,5 @@ map {splice(@$by_ts,$del_index,1) if $_==$job_id; $del_index++} @$by_ts;
 
 $job_list->{'count'}->{$source_queue}--;
 $job_list->{'count'}->{$target_queue}++;
-$jobs->{$job_id}->{'tstamp'}{$target_queue} = htime();
+$jobs->{$job_id}->{'tstamp'}{$target_queue} = [base.time:4];
 $jobs->{$job_id}->{'status'} = $target_queue;
-
