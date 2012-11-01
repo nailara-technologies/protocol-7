@@ -32,7 +32,7 @@ else {
       . " $ANSI{bold}$log_msg$ANSI{normal}\n";
 }
 
-my $log_stamp = time() . " " . $log_level . " " . $log_msg;
+my $log_stamp = join(' ', [base.time:5], $log_level, $log_msg);
 
 if ( defined  $data{'system'}{'internal_verbosity'} and
   defined $log_level <= $data{'system'}{'internal_verbosity'} ) {
