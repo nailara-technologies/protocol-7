@@ -1,14 +1,20 @@
 # >:]
 
-# name = root.init_code
+# name  = root.init_code
+# descr = initializes root module
 
 [root.load_spawn_config:<load.spawn_config>];
 
 use Data::Dumper qw(Dumper);
-print Dumper(<agents.startup>);
+$Data::Dumper::Sortkeys = 1;
 
-#foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
-#  [jobqueue.add_job:'root.spawn_agent',$agent_name];
-#}
+print Dumper($data{'agents'}) if <system.verbosity> > 1;
+
+foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
+  [jobqueue.add_job:'root.spawn_agent',$agent_name]
+    if [root.agent.is_enabled:$agent_name];
+}
+
+print Dumper($data{'jobqueue'}) if <system.verbosity> > 2;
 
 return 0;
