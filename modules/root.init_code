@@ -11,7 +11,7 @@ $Data::Dumper::Sortkeys = 1;
 print Dumper($data{'agents'}) if <system.verbosity> > 1;
 
 foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
-  [jobqueue.add_job:'root.spawn_agent',$agent_name]
+  [jobqueue.add_job:'root.agent.spawn',$agent_name]
     if [root.agent.is_enabled:$agent_name];
 }
 
