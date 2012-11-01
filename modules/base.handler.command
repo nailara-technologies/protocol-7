@@ -36,7 +36,7 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
         # read argument header
 
-        my $cmd_id  = $1;
+        $cmd_id  = $1 if length($1);
         my $_cmd_id = '';
         if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
@@ -44,7 +44,7 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
         while ( $$input =~ s/^(.*)\n// ) {
 
-            my $arg = $1;
+            my $arg = $1 || '';
 
             if ( $arg ne '.' ) {
 
