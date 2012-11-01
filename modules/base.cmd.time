@@ -1,9 +1,10 @@
 # >:]
 
-# name       = base.cmd.time
-# descr      = return unix time of this host
+# name  = base.cmd.time
+# descr = return unix time of this host
+# todo  = return warning when $float specified but Time::HiRes not present
 
-if ( $$call{'args'} eq 'clock' ) {
+if ( defined $$call{'args'} and $$call{'args'} eq 'clock' ) {
     my ( $sec, $min, $hour ) = localtime();
     return {
         'mode' => 'ack',
@@ -12,7 +13,7 @@ if ( $$call{'args'} eq 'clock' ) {
         . sprintf( "%02d", $sec )
     };
 }
-elsif ( $$call{'args'} eq 'date' ) {
+elsif ( defined $$call{'args'} and $$call{'args'} eq 'date' ) {
     my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) =
       localtime(time);
 
@@ -26,8 +27,17 @@ elsif ( $$call{'args'} eq 'date' ) {
     };
 }
 else {
+    my $float = 0;
+    my $limit = 22;
+    # XXX: consider additional access control to floating seconds
+    $float = $$call{'args'} if defined $$call{'args'}
+      and $$call{'args'} =~ /^\d{1,2}$/;
+    return {
+        'mode' => 'nack',
+        'data' => "the current limit is $limit."
+    } if $float > $limit;
     return {
         'mode' => 'ack',
-        'data' => time
+        'data' => [base.time:$float]
     };
 }
