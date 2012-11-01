@@ -1,0 +1,14 @@
+# >:]
+
+# name  = jobqueue.count
+# descr = returns number of jobs for specified queue
+
+my $job_queue = shift;
+my $job_list = <jobqueue.joblist>;
+
+die "jobqueue.count: no job queue specified"
+  if not defined $job_queue or !length($job_queue);
+die "jobqueue.count: speficied queue '$job_queue' does not exist"
+  if not exists $job_list->{$job_queue};
+
+return scalar @{$job_list->{$job_queue}->{'by_timestamp'}};
