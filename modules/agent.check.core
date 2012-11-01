@@ -19,10 +19,10 @@ while ( !$id_count ) {
 
     $code{'base.log'}->( 1, 'no core present');
     if ( !$agent_time ) {
-        $agent_time = time();
+        $agent_time = [base.time:3];
         $code{'agent.run'}->('core');
     }
-    elsif ( time() - $agent_time > $data{'agent'}{'core'}{'agent_timeout'} ) {
+    elsif ( [base,time:3] - $agent_time > $data{'agent'}{'core'}{'agent_timeout'} ) {
         $code{'base.log'}->( 0, 'can not spawn core: timed out.');
     }
     else {
