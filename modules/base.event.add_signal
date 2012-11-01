@@ -1,11 +1,19 @@
 # >:]
 
-# name       = base.event.add_signal
+# name  = base.event.add_signal
+# descr = assigns new signal handler and cancels old one if it existed
 
+my $signal = $_[0]->{'signal'};
+my $handler = $_[0]->{'handler'};
 
-return Event->signal(
-    'signal' => ${ $_[0] }{'signal'},
-    'cb'     => $code{ ${ $_[0] }{'handler'} },
-    'desc'   => "signal handler [".${ $_[0] }{'signal'}."]"
+<watcher.signal> = {} if not exists <watcher.signal>;
+
+$data{'watcher'}{'signal'}->{$signal}->cancel
+    if exists $data{'watcher'}{'signal'}->{$signal};
+
+$data{'watcher'}{'signal'}->{$signal} = Event->signal(
+    'signal' => $signal,
+    'cb'     => $code{$handler},
+    'desc'   => "signal handler [$signal]"
 );
-
+return $data{'watcher'}{'signal'}->{$signal};
