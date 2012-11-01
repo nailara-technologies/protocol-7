@@ -1,0 +1,13 @@
+# >:]
+
+# name  = jobqueue.pre_init
+# descr = initializes jobqueue data structure if not present
+
+my $t = \&{ eval 'use Time::HiRes qw(time); return \&time' || sub{time} };
+*htime = \&{$t};
+
+<jobqueue.priorities> = [jobqueue.priorities_table];
+<jobqueue.joblist> = [jobqueue.joblist_template] if
+  not exists <jobqueue.joblist>;
+
+0;
