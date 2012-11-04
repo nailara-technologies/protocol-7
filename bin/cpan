@@ -6,7 +6,8 @@ my $CPAN_http_port         = 80;
 my $CPAN_file_list         = '/modules/02packages.details.txt.gz';
 my $CPAN_module_dir        = '/authors/id/';
 my $CPAN_http_timeout      = 10;
-my $CPAN_tmp_dir           = '/tmp/.cpan';
+my $CPAN_tmp_dir           = $ENV{'HOME'} || '/tmp';
+$CPAN_tmp_dir .= '/.n.cpan';
 my $CPAN_local_modlist_tgz = $CPAN_tmp_dir . '/all_modules.tgz';
 my $CPAN_local_modlist     = $CPAN_tmp_dir . '/all_modules.txt';
 
