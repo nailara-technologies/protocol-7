@@ -84,6 +84,8 @@ sub prepare_subs {
             }
         }
 
+        $data{'system'}{'perl_version'} = $]; # < v5.6
+        $data{'system'}{'perl_version'} = sprintf("%vd", $^V) if defined $^V;
         $data{'system'}{'root_path'} = $data{'system'}{'start'}{'exec_name'};
         $data{'system'}{'root_path'} =~ s/\/[^\/]+\/[^\/]+$//;
         $data{'system'}{'code_path'} = "$data{'system'}{'root_path'}/modules";
