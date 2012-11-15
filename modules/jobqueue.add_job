@@ -17,6 +17,7 @@ elsif (exists $code{$_[0]}) {
 } else {  die "add_job: callback '$_[0]' does not exist" }
 
 my $job_id = [base.gen_id:<jobqueue.joblist.by_id>,$max_jobs];
+my $target_queue = $job_params->{'target_queue'} || 'queued';
 
 # XXX: tune defaults later
 my $job_data = {
@@ -25,6 +26,7 @@ my $job_data = {
   'status' => 'queued',
   'tstamp' => {
     'queued' => [base.time:4],
+    'dependencies' => undef,
     'running' => undef,
     'paused' => undef,
     'completed' => undef
@@ -37,10 +39,12 @@ my $job_data = {
   'callback_params' => $job_params->{'callback_params'}
 };
 
+# foreach my $
+
 $data{'jobqueue'}{'joblist'}{'by_id'}{$job_id} = $job_data;
 
 my $joblist = <jobqueue.joblist>;
-push (@{$joblist->{'queued'}{'by_priority'}{$job_data->{'priority'}}},$job_id);
-push (@{$joblist->{'queued'}{'by_timestamp'}}, $job_id);
+push (@{$joblist->{$target_queue}{'by_priority'}{$job_data->{'priority'}}},$job_id);
+push (@{$joblist->{$target_queue}{'by_timestamp'}}, $job_id);
 
-$joblist->{'count'}->{'queued'}++;
+$joblist->{'count'}->{$target_queue}++;
