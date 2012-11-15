@@ -32,10 +32,9 @@ if ( defined &{ $code{$handler} } ) {
 }
 elsif ( defined $data{'session'}{$id} ) {
 
-    #    $_[0]->w->stop;
+    $_[0]->w->stop;
     $data{'session'}{$id}{'buffer'}{'input'} = '';
-
-    #    $_[0]->w->start;
+    $_[0]->w->start;
 
     $code{'base.log'}->( 0,
         "[$id] undefined input handler '$handler'. dropped buffer!" );
