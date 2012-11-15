@@ -10,7 +10,6 @@ my $conf_path = <system.conf_path>;
 my $code_data = [];
 $code_data = shift(@ARGV) if ref($ARGV[0]) eq 'ARRAY';
 my @code_files = @_; # all files' data will be appended to the $code_data.
-
 foreach my $filename ([file.match_files:$conf_path,@code_files]) {
   my @cfg_lines;
   [file.slurp:$filename,\@cfg_lines];
@@ -27,7 +26,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
     $line =~ s/(\#.*|\s*)*\n$//g;
     $line =~ s/^\s+//;
     next if $line eq '';
-    if ($line =~ /^\.:\s*([\w\_\.]+)\s*:\.$/) {
+    if ($line =~ /^\.:\s*([^:]*\S)\s*:\.$/) {
       $section = $1;
       ($sub_section,$sub_section_ref,$sub_sub_section)=(undef,undef,undef);
       if(![base.code_section_exists:$section,$code_data]){
@@ -37,7 +36,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
         $data_ref = [base.code_section_ref:$code_data,$section];
       }
       $section_ref = $data_ref;
-    } elsif ( $line =~ /^-\s*([\w\_\.]+)$/ ) {
+    } elsif ( $line =~ /^-\s*([^\n]+)$/ ) {
       $sub_section = $1;
       $sub_sub_section = undef;
       die "no parent section defined for sub-section '$sub_section' "
@@ -50,7 +49,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
         $data_ref = [base.code_section_ref:$code_data,$section,$sub_section];
       }
       $sub_section_ref = $data_ref;
-    } elsif ( $line =~ /^:\s*([\w\_\.]+)\s*:$/ ) {
+    } elsif ( $line =~ /^:\s*([^:]*\S)\s*:$/ ) {
       $sub_sub_section = $1;
       die "parent section missing for sub-sub-section"
         ." '$sub_sub_section' (file '$filename' line $line_num)"
