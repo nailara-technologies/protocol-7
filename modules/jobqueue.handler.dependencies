@@ -1,0 +1,18 @@
+# >:]
+
+# name = jobqueue.handler.dependencies
+
+my ( $job_id, $dependency_job_ids ) = @{$_[0]->w->data};
+
+die "no job id specified" if not defined $job_id;
+die "no dependency job id[s] specified" if not defined $dependency_job_ids;
+
+<jobqueue.dependencies.job_id> = {}
+  if not exists <jobqueue.dependencies.job_id>;
+my $status = <jobqueue.dependencies.job_id>;
+
+return undef if not exists $status->{$job_id};
+
+# [base.log: 0, "job_id: '$job_id', dependencies: $dependency_job_ids"];
+
+# XXX

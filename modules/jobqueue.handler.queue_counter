@@ -1,0 +1,30 @@
+# >:]
+
+# name = jobqueue.handler.queue_counter
+
+my ( $queue_name, $counter_ref ) = @{$_[0]->w->data};
+<jobqueue.counter.last> = {} if not exists <jobqueue.counter.last>;
+<jobqueue.counter.last>->{$queue_name} = 0
+  if not exists <jobqueue.counter.last>->{$queue_name};
+
+return if $$counter_ref == 0;
+
+[base.log: 0, "queue_name: '$queue_name', count: $$counter_ref last: "
+  . <jobqueue.counter.last>->{$queue_name} ];
+
+if ( $queue_name eq 'queued' ) {
+  my ($job_id, $job_data) = [jobqueue.next_job];
+  return if not defined $job_id;
+  if (exists <jobqueue.dependencies>
+    and exists <jobqueue.dependencies>->{$job_id}
+    and defined <jobqueue.dependencies>->{$job_id}
+    and length(<jobqueue.dependencies>->{$job_id})) {
+    [jobqueue.register_dependency:$job_id,<jobqueue.dependencies>->{$job_id}];
+    [jobqueue.move_job:$job_id,'dependencies'];
+    [base.log:1,"moved job '$job_id' into dependency queue"];
+  } else {
+    [jobqueue.exec_job:$job_id];
+  }
+}
+
+<jobqueue.counter.last>->{$queue_name} = $$counter_ref;

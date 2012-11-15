@@ -1,0 +1,35 @@
+# >:]
+
+# name  = jobqueue.event.register_dependency
+# descr = installs event watcher for (current) job dependencies
+
+my ($job_id, $dependency_job_ids) = (shift, join(' ', @_));
+die "no job id specified" if not defined $job_id;
+die "no dependency job id[s] specified" if not defined $dependency_job_ids;
+
+<watcher.dependencies> = {} if not exists <watcher.dependencies>;
+my $watchers = <watcher.dependencies>;
+
+<jobqueue.dependencies.job_id> = {}
+  if not exists <jobqueue.dependencies.job_id>;
+my $status = <jobqueue.dependencies.job_id>;
+
+$dependency_job_ids =~ s/^\s+|\s+$//g;
+$status->{$job_id} = join(' ', split(/\s+/, $dependency_job_ids));
+
+if (exists $watchers->{$job_id}) {
+  $watchers->{$job_id}->cancel;
+}
+
+$watchers->{$job_id} =
+  $code{'event.add_var'}->(
+  {
+      'var'     => \$status->{$job_id},
+        'handler' => 'jobqueue.handler.dependencies',
+        'poll'    => 'w',
+        'data'    => [ $job_id, $dependency_job_ids ],
+        'prio'    => 0,
+        'repeat'  => 0,
+        'desc'    => "job '$job_id' dependencies"
+  } );
+$watchers->{$job_id}->now;
