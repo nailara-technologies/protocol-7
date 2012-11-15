@@ -10,11 +10,6 @@ $Data::Dumper::Sortkeys = 1;
 
 print Dumper($data{'agents'}) if <system.verbosity> > 1;
 
-foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
-  [jobqueue.add_job:'root.agent.spawn',$agent_name]
-    if [root.agent.is_enabled:$agent_name];
-}
-
-print Dumper($data{'jobqueue'}) if <system.verbosity> > 2;
+[root.load_agent_patterns];
 
 return 0;
