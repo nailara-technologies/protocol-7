@@ -3,4 +3,40 @@
 # name = root.agent.spawn
 # descr = spawn nailara agent and add it to process maintenance table
 
-[base.log:0,"root.agent.spawn called!"];
+my $agent_name = shift;
+die "no agent name supplied" if not defined $agent_name;
+[base.log:1,"spawning '$agent_name' agent ..."];
+chomp(my $nailara_bin = qx(which nailara));
+$nailara_bin = '/usr/bin/nailara' if not defined $nailara_bin;
+my @exec_args = (); # XXX: -d
+push(@exec_args, '-' . 'v' x <system.verbosity>) if <system.verbosity>;
+
+<root.agent.process> = {} if not exists <root.agent.process>;
+
+my ($pid, $r_fh, $w_fh, $e_fh);
+eval {
+  $pid = open3($r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args);
+};
+# system('nailara', $agent_name, @exec_args);
+
+if ( not defined $pid ) {
+  my $err_msg = $@ || <$e_fh>;
+  [base.log:0, "failed to spawn agent '$agent_name' \[$err_msg\]"];
+  return undef;
+}
+
+[event.add_io:{
+  'fd' => $w_fh,
+  'handler' => 'root.handler.agent_output',
+  'data' => $agent_name
+}];
+
+[base.log:1,"agent '$agent_name' spawned! \[pid:$pid\]"];
+
+<root.agent.process>->{$agent_name} = {
+  'pid' => $pid,
+  'r_fh' => $r_fh,
+  'w_fh' => $w_fh
+};
+
+# print "success: ".Dumper(<root.agent.process>);

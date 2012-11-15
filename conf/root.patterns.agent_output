@@ -1,0 +1,13 @@
+# >:]
+
+# name  = root.patterns.agent_output
+# descr = agent startup messages and corresponding state
+
+.: output patterns :.
+
+  - core:/tcp server \[[^\]]+\] launched\.$/
+    root.agent.<agent_name>.status = 'online'
+    [log.ok:"agent '<agent_name>' is online."]
+
+  - core:/failed to bind protocol 'nailara'/
+    root.agent.<agent_name>.status = 'failed'
