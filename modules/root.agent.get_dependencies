@@ -1,0 +1,13 @@
+# name   = root.agent.get_dependencies
+# descr  = return agent dependencies of requested agent
+# args   = <agent_name>
+# return = <list_of_agents>
+
+my $agent_name = shift;
+
+<agents.dependencies> = {} if not exists <agents.dependencies>
+  and ref(<agents.dependencies>) ne 'HASH';
+
+return undef if not exists <agents.dependencies>->{$agent_name};
+
+return <agents.dependencies>->{$agent_name};

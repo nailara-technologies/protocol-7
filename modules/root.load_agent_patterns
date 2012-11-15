@@ -1,0 +1,37 @@
+# >:]
+
+# name = root.load_agent_patterns
+
+my $pattern_file = shift || '';
+my $base_file_name = 'root.patterns.agent_output';
+my %pattern_handlers;
+my $pattern_file_txt = $pattern_file;
+<root.agent.pattern> = {} if not exists <root.agent.patterns>;
+$pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
+my $log_msg = ": loading agent output patterns$pattern_file_txt..";
+[base.log:1,$log_msg];
+(my $pattern_filename = join('.', $base_file_name, $pattern_file))=~s/\.$//;
+my $agent_pattern_data = [base.load_section_code:
+  $pattern_filename]->[0]->{'output patterns'};
+die "failed to load pattern data" if not defined $agent_pattern_data
+  or ref ($agent_pattern_data) ne 'ARRAY';
+
+foreach my $p_ref (@$agent_pattern_data) {
+  foreach my $pattern (keys %$p_ref) {
+    my $p_key = $pattern;
+    if ( $pattern =~ s/^([\w\d\_\-\,\s]+):\/([^\n]+)\/(i?)/$2/ ) {
+      my ($agent_string, $pattern_string, $i) = ($1, $2, $3||'');
+      $agent_string =~ s/\s//g;
+      foreach my $agent_name (split(/\,/,$agent_string)) {
+        my @pattern_code = @{$p_ref->{$p_key}};
+        map { $_ =~ s/<agent_name>/$agent_name/g } @pattern_code;
+        my $pattern_re = length($i) ? qr/$pattern_string/i :
+          qr/$pattern_string/;
+        <root.agent.pattern>->{$agent_name}->{$pattern_re} =
+          eval 'sub {'.
+          join(';',[base.parser.config:join(";\n",@pattern_code)])
+          .'}';
+      }
+    }
+  }
+}

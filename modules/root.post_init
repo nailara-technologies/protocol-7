@@ -1,0 +1,24 @@
+# >:]
+
+# name  = root.post_init
+# descr = starts configured agents
+
+foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
+  my $target_queue = 'queued';
+  my $dependencies = [root.agent.get_dependencies:$agent_name];
+  $target_queue = 'dependencies' if defined $dependencies;
+  [jobqueue.add_job:{
+    'job_callback' => 'root.agent.spawn',
+    'callback_params' => $agent_name,
+    'target_queue' => $target_queue,
+    'dependencies' => $dependencies
+  } ]
+    if [root.agent.is_enabled:$agent_name];
+}
+
+use Data::Dumper qw(Dumper);
+$Data::Dumper::Sortkeys = 1;
+
+print Dumper($data{'jobqueue'}) if <system.verbosity> > 2;
+
+0;
