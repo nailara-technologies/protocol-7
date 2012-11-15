@@ -1,0 +1,17 @@
+# >:]
+
+# name  = root.handler.agent_output
+# descr = reads agent console output and triggers commands on matching patterns
+
+my $event = shift->w;
+my $read_fh = $event->fd;
+my $agent_name = $event->data;
+<root.agent.pattern> = {} if not exists <root.agent.pattern>;
+
+while(sysread($event->fd, my $buffer, 4096)) {
+  foreach my $pattern (keys <root.agent.pattern>->{$agent_name}) {
+    my $c_ref = <root.agent.pattern>->{$agent_name}->{$pattern};
+    die "'$c_ref' is not a code ref" if ref($c_ref) ne 'CODE';
+    $c_ref->() if $buffer =~ $pattern;
+  }
+}
