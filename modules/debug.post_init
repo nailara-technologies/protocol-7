@@ -1,12 +1,8 @@
 # >:]
 
 # name  = debug.post_init
-# debug = dumps %data to stdout
+# descr = dumps %data to stdout on -vvvvv
 
-return 0 if <system.verbosity> < 5;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-print Data::Dumper::Dumper(\%data);
+print Dumper(\%data) if <system.verbosity> >= 5;
 
 0;
