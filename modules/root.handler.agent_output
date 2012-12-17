@@ -11,6 +11,7 @@ my $agent_name = $event->data;
 while(sysread($event->fd, my $buffer, 4096)) {
   foreach my $pattern (keys <root.agent.pattern>->{$agent_name}) {
     my $c_ref = <root.agent.pattern>->{$agent_name}->{$pattern};
+    die "no code ref defined for pattern '$pattern'" if not defined $c_ref;
     die "'$c_ref' is not a code ref" if ref($c_ref) ne 'CODE';
     $c_ref->() if $buffer =~ $pattern;
   }
