@@ -30,6 +30,11 @@ if ( not defined $pid ) {
   'handler' => 'root.handler.agent_output',
   'data' => $agent_name
 }];
+[event.add_io:{
+  'fd' => $e_fh,
+  'handler' => 'root.handler.agent_output',
+  'data' => $agent_name
+}] if defined $e_fh;
 
 [base.log:1,"agent '$agent_name' spawned! \[pid:$pid\]"];
 
@@ -39,4 +44,4 @@ if ( not defined $pid ) {
   'w_fh' => $w_fh
 };
 
-# print "success: ".Dumper(<root.agent.process>);
+[root.agent.change_status:$agent_name,'starting'];
