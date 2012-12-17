@@ -6,17 +6,18 @@
 die "no parameter supplied" if !@_ or not defined $_[0];
 
 my $max_jobs = <jobqueue.max_jobs> || 42523;
+my $job_id = [base.gen_id:<jobqueue.joblist.by_id>,$max_jobs];
 my $job_params = {};
 if (ref($_[0]) eq 'HASH') { $job_params = shift }
 elsif (exists $code{$_[0]}) {
   $job_params = {
     'name' => $_[0],
+    'job_id' => $job_id,
     'job_callback' => shift,
     'callback_params' => @_
   };
 } else {  die "add_job: callback '$_[0]' does not exist" }
 
-my $job_id = [base.gen_id:<jobqueue.joblist.by_id>,$max_jobs];
 my $target_queue = $job_params->{'target_queue'} || 'queued';
 
 # XXX: tune defaults later
@@ -48,3 +49,5 @@ push (@{$joblist->{$target_queue}{'by_priority'}{$job_data->{'priority'}}},$job_
 push (@{$joblist->{$target_queue}{'by_timestamp'}}, $job_id);
 
 $joblist->{'count'}->{$target_queue}++;
+
+return $job_id;
