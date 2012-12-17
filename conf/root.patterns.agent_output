@@ -6,8 +6,8 @@
 .: output patterns :.
 
   - core:/tcp server \[[^\]]+\] launched\.$/
-    root.agent.<agent_name>.status = 'online'
+    [root.agent.change_status:'<agent_name>','online'];
     [log.ok:"agent '<agent_name>' is online."]
 
   - core:/failed to bind protocol 'nailara'/
-    root.agent.<agent_name>.status = 'failed'
+    [root.agent.change_status:'<agent_name>','failed'];
