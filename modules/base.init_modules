@@ -8,7 +8,7 @@ my $success = 1;
 foreach my $init_mode ('pre_init', 'init_code', 'post_init') {
   @{<base.init_modules.sub_list>} = sort
     {length($a) <=> length($b)} sort(keys(%code));
-  while ( my $sub_name = shift @{<base.init_modules.sub_list>} ) {
+  foreach my $sub_name ( @{<base.init_modules.sub_list>} ) {
     next if not defined $sub_name;
     if ( $sub_name =~ /^(.+)\.$init_mode$/ ) {
       my $module_name = $1;
