@@ -40,7 +40,7 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
                 $cmd =~ s/\*/[^\\.]+/g;
                 $cmd =~ s/\%/*/g;
                 $cmd = '^' . $cmd . '$';
-		
+
                 no warnings;
                 if ( eval("qr/$cmd/") ) { $regex_mask .= $cmd . '|' }
                 else {
@@ -58,7 +58,7 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
         chop $regex_mask;
 
 #	print "REGEX: $regex_mask\n";
-	
+
         no warnings;
         if ( not $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr} =
             eval("qr/$regex_mask/") )
