@@ -8,16 +8,15 @@ my @params = @_;
 
 if ( $perl_module !~ /^(\w+|\:\:)+$/ ) {
   [base.log:0,"invalid module name '$perl_module'"];
-  return;
+  return 3;
 }
 
 if( eval "use $perl_module" or $@ or length($!) ){
   if( $data{'system'}{'verbosity'} >= 1 ) {
     [base.log:0,"on_load: failed to load perl module '$perl_module' \[$!\]"];
-  } else {
+   } else {
     [base.log:2,"on_load: failed to load perl module '$perl_module' \[$!\]"];
   }
-  return;
+  return 0;
 }
-
-return $code{$code_name}->(@params);
+else { return $code{$code_name}->(@params) }
