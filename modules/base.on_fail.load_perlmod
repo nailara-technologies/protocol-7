@@ -8,9 +8,9 @@ my @params = @_;
 
 if ( $perl_module !~ /^(\w+|\:\:)+$/ ) {
   [base.log:0,"invalid module name '$perl_module'"];
-  return;
+  return 3;
 }
 
 if( eval "use $perl_module" or $@ or length($!) ){
   return $code{$code_name}->(@params);
-} else { [base.log:1,"loading '$perl_module' succeeded.."] }
+} else { [base.log:2,"loading '$perl_module' succeeded.."]; return 0 }
