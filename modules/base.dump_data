@@ -15,7 +15,8 @@ if ( not defined $_[6] ) { $_[6] = '' }
 my $out = '';
 
 foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
-    my $_val = ${$arg_3}{$_key} || '';
+    my $_val = ${$arg_3}{$_key};
+    $_val = '' if not defined $_val;
     $_val =~ s/\\/\\\\/g;
     $_val =~ s/\n/\\n/g;
     if ( defined $_[4] and $_[4] ne '' ) { $_key = "$_[4].$_key" }
