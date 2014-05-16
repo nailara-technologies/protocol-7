@@ -1,22 +1,27 @@
 #!/usr/bin/perl
 
+use utf8;
+use strict;
+use warnings;
 use IO::Socket;
 use IO::Socket::INET;
 use Term::ReadLine;
 use Term::ReadPassword;
 
-$core_addr = $ARGV[0] || '127.0.0.1';
-$core_port = $ARGV[1] || 242;
+binmode STDOUT, ":utf8";
 
-$color  = "\e[37m\e[40m";
-$prompt = $color.':. ';
+my $core_addr = $ARGV[0] || '127.0.0.1';
+my $core_port = $ARGV[1] || 242;
+
+my $color  = "\e[37m\e[40m";
+my $prompt = $color . ':. ';
 
 $| = 0;
 
 # clear();
 
-$shell_sock =
-  shell_auth( shell_connect( $core_addr, $core_port ), login_prompt() );
+my $shell_sock
+    = shell_auth( shell_connect( $core_addr, $core_port ), login_prompt() );
 
 if ( -S $shell_sock ) {
     clear();
@@ -26,7 +31,7 @@ if ( -S $shell_sock ) {
 else { die "failed\n" }
 
 sub login_prompt {
-    my $user, $pass;
+    my ($user, $pass);
     print "\n :: user :. ";
     chop( $user = <STDIN> );
     $pass = read_password(" :: pass :. ");
@@ -39,14 +44,14 @@ sub shell_connect {
         PeerAddr => "$_[0]",
         PeerPort => "$_[1]",
         Proto    => 'tcp'
-    );
-    if ( <$sock> !~ />:\]/ ) { die "failed to connect\n" }
+    ) or  die " [!] failed to connect [$!]\n";
+    die " [!] connection failed [protocol error]\n" if <$sock> !~ />:\]/;
     return $sock;
 }
 
 sub shell_auth {
     syswrite( $_[0], "auth $_[1] $_[2]\n" );
-    sysread( $_[0], $answer, 8 );
+    sysread( $_[0], my $answer, 8 );
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
         return $_[0];
@@ -64,9 +69,9 @@ sub shell_loop {
 
     my $term = new Term::ReadLine 'damn.shell';
 
-    while ( defined( $line = $term->readline($prompt) ) and -S $sock ) {
+    while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
 
-	print $color;
+        print $color;
 
         if ( $line ne '' ) {
             if ( $line =~ /^\.cd ([^\s]+)/ ) {
@@ -84,7 +89,7 @@ sub shell_loop {
                     exit;
                 }
                 select( undef, undef, undef, 0.2 );
-                if ( $line eq '[bye]' ) { exit }
+                if ( $line eq '[bye]' ) {exit}
             }
         }
     }
@@ -92,7 +97,7 @@ sub shell_loop {
 
 sub stdout_fork {
     close(STDIN);
-    while ( $out = <$shell_sock> ) {
+    while ( my $out = <$shell_sock> ) {
         $out =~ s/\n$//;
         print "$out\n";
     }
