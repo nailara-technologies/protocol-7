@@ -7,8 +7,9 @@ $data{'session'}{ $$call{'session_id'} }{'shutdown'} = 1;
 
 if(defined $$call{'args'} and $$call{'args'} ne '')
 {
-	my $reason=substr($$call{'args'},0,23);
-	if(length($$call{'args'})>23){ $reason.='..' }
+	my $reason_length = 42;
+	my $reason=substr($$call{'args'},0,$reason_length);
+	if(length($$call{'args'})>$reason_length){ $reason.='..' }
 	$code{'base.log'}->(1,"[".$$call{'session_id'}."] session shutdown ($reason)");
 }
 
