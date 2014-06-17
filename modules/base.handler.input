@@ -37,7 +37,7 @@ elsif ( defined $data{'session'}{$id} ) {
     $_[0]->w->start;
 
     $code{'base.log'}->( 0,
-        "[$id] undefined input handler '$handler'. dropped buffer!" );
+	"[$id] undefined input handler '$handler'. dropped buffer!" );
 
     if ( $data{'session'}{$id}{'mode'} eq 'client' ) {
         $data{'session'}{$id}{'shutdown'} = 1;
@@ -57,6 +57,12 @@ if ( $len < $data{'size'}{'buffer'}{'input'}
 }
 
 if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
+    $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
+}
+
+if ( length( $data{'session'}{$id}{'buffer'}{'input'} )
+    and $data{'session'}{$id}{'buffer'}{'input'} =~ /\n/ )
+{
     $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
 }
 
