@@ -12,7 +12,7 @@ if (    defined $data{'watcher_list'}{'paused'}
         my $id   = $$w->w->data;
         my $desc = $$w->w->desc;
 
-        next if not defined $data{'session'}{$id};
+        next if not defined $id or not defined $data{'session'}{$id};
 
         ${$w}->w->start;
 
