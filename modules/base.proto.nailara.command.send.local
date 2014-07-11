@@ -12,11 +12,13 @@ my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
 
- print "SEND LOCAL\ncmd: $cmd\ncall_args: $call_args\nreply_handler: $reply_handler\nreply_params: $reply_params\n";
+# print "SEND LOCAL\ncmd: $cmd\ncall_args: $call_args\nreply_handler: $reply_handler\nreply_params: $reply_params\n";
 
-if ( $cmd =~ s/^(\w+)\.([^\.]+)$/$2/go ) {
+if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
 
     my $target_name = $1;
+
+    #XXX: needs error handling on unknown target!
 
     # send to all clients with that username (group mode)
 
@@ -45,9 +47,8 @@ if ( $cmd =~ s/^(\w+)\.([^\.]+)$/$2/go ) {
 
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-            $code{'base.log'}->( 2,  "[$id] "
-              . $data{'session'}{$id}{'user'}
-              . " -> $target_name > $cmd" );
+            my $u_name = $data{'session'}{$id}{'user'} || '-';
+            $code{'base.log'}->( 2,  "[$id] $u_name -> $target_name > $cmd" );
 
             $target_cmd_id =~ s/^(\d+)$/($1)/;
 
