@@ -3,8 +3,9 @@
 
 [load_config_file:'auth.pwd.core']
 
-modules.load			=	auth digest crypt net io.ip filter
-auth.methods			=	pwd agent rsa
+# modules.load			=	auth digest crypt net io.ip filter
+modules.load			=	auth digest net io.ip filter
+auth.methods			=	pwd # agent rsa
 auth.rsa.key_file		=	rsa.core
 get.route			=	file vortex.file :target:
 get.command			=	file.get
@@ -20,7 +21,7 @@ access.cmd.usr.gtk2_test	=	file.* list
 
 # load and initialize modules
 [load_modules:<modules.load>]
-[load_modules:'plugin.auth']
+[load_modules:'plugin.auth.pwd'] # plaintext only for now
 [init_modules]
 
 # open socket
