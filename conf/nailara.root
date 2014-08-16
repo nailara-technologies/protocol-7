@@ -5,6 +5,18 @@
 
 [load_config_file:'defaults']
 
+###################[ DEBUGGING ONLY ]###[ REMOVE LATER ]########################
+[load_config_file:'auth.pwd.core']
+modules.load                   =       auth digest net io.ip
+auth.methods                   =       pwd
+access.cmd.usr.photon          =       *
+[load_modules:<modules.load>]
+[init_modules]
+[load_modules:'plugin.auth.pwd']
+dbg.sock = [base.open:'tcp/ip','in','127.0.0.1','2323']
+[base.proto.bind:<dbg.sock>,'nailara','server']
+################################################################################
+
 load.spawn_config = 'local'
 
 modules.load = root jobqueue file.io_all crypt.random debug
