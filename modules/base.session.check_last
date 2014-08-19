@@ -9,7 +9,7 @@ my $session_count = 0;
 $session_count = scalar keys %{ $data{'session'} }
     if exists $data{'session'};
 
-$code{'base.log'}->( 2, "$session_count sessions left." );
+$code{'base.log'}->( 2, "$session_count sessions remaining" );
 
 if ( ( $session_count + $exit_count ) == 0
     and not exists $data{'session'}{'_no_exit_'} )
