@@ -12,12 +12,14 @@ if ( not defined $fd ) {
     $code{'base.log'}->( 0,
       "base.session.init: supplied filehandle is undefined,"
       . " can't create session for that!");
+    $code{'base.session.check_last'}->();
     return -1;
 }
 
 if ( defined $name and $name !~ /^\w+$/ ) {
     $code{'base.log'}->( 0,
       "base.session.init: value '$name' for parameter name is invalid");
+    $code{'base.session.check_last'}->();
     return -1;
 }
 
@@ -25,6 +27,7 @@ $name ||= '-';
 
 if ( not defined $data{'proto'}{$proto} ) {
     $code{'base.log'}->(0, "base.session.init: unknown protocol '$proto'");
+    $code{'base.session.check_last'}->();
     return -1;
 }
 

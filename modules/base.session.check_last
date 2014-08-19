@@ -1,0 +1,20 @@
+# >:]
+
+# name  = base.session.check_last
+# descr = exit agent in no more sessions
+
+my $exit_count = shift || 0;
+my $session_count = 0;
+
+$session_count = scalar keys %{ $data{'session'} }
+    if exists $data{'session'};
+
+$code{'base.log'}->( 2, "$session_count sessions left." );
+
+if ( ( $session_count + $exit_count ) == 0
+    and not exists $data{'session'}{'_no_exit_'} )
+{
+    $code{'log.failed'}->("no active sessions - ".
+    <system.agent.name> . "-agent exiting.");
+    exit(-1);
+}
