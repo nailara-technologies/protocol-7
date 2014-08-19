@@ -7,6 +7,7 @@
 if ( not defined $_[0] ) {
     my $proto = $_[1];
     [base.log:0,"failed to bind protocol '$proto' \[undefined filehandle\]"];
+    $code{'base.session.check_last'}->();
     return undef;
 }
 $data{'handle'}{ $_[0] }{'proto'} = $_[1];
@@ -15,6 +16,7 @@ my $mode = $_[2] || 'server';
 if ( !fileno( $_[0] ) ) {
     $code{'base.log'}->( 0,
         "failed to bind protocol '$_[1]' to invalid filehandle" );
+    $code{'base.session.check_last'}->();
 } else {
     $code{'base.log'}->( 2,
         "bound protocol '$_[1]' to handle '$_[0]' (mode: $mode)" );
