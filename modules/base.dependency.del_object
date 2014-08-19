@@ -1,0 +1,17 @@
+# >:]
+
+# name  = base.dependency.add_object
+# descr = add new dependency object
+
+my $dep_obj = shift;
+#my $object_id = shift || ;
+
+#die 'dependency.add_object: expected a numerical id!'
+#  if $object_id !~ /^\d+$/;
+
+my $object_id = [base.gen_id:$data{dependencies}{objects}];
+
+$data{'dependency'}{'objects'}{$object_id} = $dep_obj;
+
+print ":: added dep_obj : $object_id ::\n";
+

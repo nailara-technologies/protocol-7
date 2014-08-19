@@ -3,22 +3,63 @@
 # name  = root.post_init
 # descr = starts configured agents
 
+<root.dependencies> = {} if not exists <root.dependencies>;
+
 foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
   my $target_queue = 'queued';
   my $dependencies = [root.agent.get_dependencies:$agent_name];
   $target_queue = 'dependencies' if defined $dependencies;
-  [jobqueue.add_job:{
+  my $job_id = [jobqueue.add_job:{
     'job_callback' => 'root.agent.spawn',
     'callback_params' => $agent_name,
     'target_queue' => $target_queue,
     'dependencies' => $dependencies
   } ]
     if [root.agent.is_enabled:$agent_name];
+    <root.dependencies>->{$agent_name}->{$job_id} = $dependencies if defined $dependencies;
 }
+
+foreach my $agent (keys(<root.dependencies>)) {
+  print "agent : $agent\n";
+
+##
+  # XXX: becomes root.add_agent later..
+
+  my $new_agent = {
+    'name' => $agent,
+
+  };
+
+  [dependency.add_object:$new_agent];
+
+##
+
+  my @depending_on;
+  my $joblist = <jobqueue.joblist.by_id>;
+
+  foreach my $job_id ( keys(<root.dependencies>{$agent}) ) {
+    my $dep_agent = <root.dependencies>{$agent}->{$job_id};
+
+  map { my $job = $joblist->{$_};
+    push(@depending_on, $_) if defined $dep_agent
+    and $job->{'name'} eq 'root.agent.spawn'
+    and $job->{'callback_params'} eq $dep_agent } keys($joblist);
+    [jobqueue.event.register_dependency:$job_id, @depending_on] if @depending_on;
+
+    print ": : job : [$agent] $job_id -- $dep_agent [".join(",",@depending_on)."]\n";
+  }
+}
+
 
 use Data::Dumper qw(Dumper);
 $Data::Dumper::Sortkeys = 1;
 
 print Dumper($data{'jobqueue'}) if <system.verbosity> > 2;
+
+print " << old dependencies >> ".Dumper( <root.dependencies> );
+
+print " << new dependencies >> ".Dumper( $data{'dependencies'} );
+
+
 
 0;

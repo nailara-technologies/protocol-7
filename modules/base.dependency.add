@@ -1,0 +1,16 @@
+# >:]
+
+# name  = base.dependency.add
+# descr = add new dependency
+
+my $what = shift;
+my $depends_on = shift;
+die 'dependency.add: $what is expected to be a hash reference!' # not anymore
+  if ref($what) ne 'HASH';
+die 'dependency.add: $depends_on expected to be a hash reference!'
+  if ref($depends_on) ne 'HASH';
+
+my $dependency_id = [base.gen_id:$data{dependencies}];
+
+print ":: dependency_id : $dependency_id ::\n";
+
