@@ -1,0 +1,49 @@
+# >:]
+
+# name = root.handler.agent_status
+
+my ( $agent_name, $status ) = @_;
+die "no agent name specified" if not defined $agent_name;
+die "no status submitted" if not defined $status;
+
+my $status_ref = <root.agent.status>;
+$status_ref->{$agent_name} = $status;
+
+  # XXX really? - see below..
+
+my $dependent_jobs = <root.dependencies>->{$agent_name};
+#my $dependent_jobs = <agents.dependencies>->{$agent_name};
+
+if ( $status eq 'online' ) {
+print "PASS online\n".Dumper($dependent_jobs);
+  foreach my $job_id (keys %$dependent_jobs) {
+print "     > job_id: $job_id - $dependent_jobs\n";
+    [jobqueue.event.remove_dependency:$job_id,$dependent_jobs];
+  }
+}
+
+# XXX: new
+foreach my $dependent_agent_name (keys <root.dependencies>) {
+
+  print "[D] agent_name : $agent_name\n";
+
+  foreach my $dependent_agent_id (keys %{<root.dependencies>->{$dependent_agent_name}}){ # XXX: job_id???
+    my $dependency_agents = <root.dependencies>->{$dependent_agent_name}->{$dependent_agent_id};
+    print "[D] > $dependency_agents\n"; # XXX: implement plural[?] || rename
+    if ($dependency_agents eq $agent_name) {
+      print "[D] MATCH! ($dependent_agent_id)\n";
+#    [jobqueue.event.remove_dependency:$dependent_agent_id,$dependent_jobs];
+    }
+  }
+
+}
+
+
+
+
+
+# return undef if not exists $status->{$agent_name};
+
+[base.log: 0, "agent_status: '$agent_name', status: '$status'"];
+
+# XXX
