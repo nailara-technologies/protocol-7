@@ -17,6 +17,7 @@ my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'};
 if ( not defined $data{'handle'}{$fd}{'proto'} ) {
     $code{'base.log'}->( 1,
         'base.handler.connect: no protocol defined for submitted handle' );
+    $code{'base.session.check_last'}->();
     return undef;
 }
 else {
