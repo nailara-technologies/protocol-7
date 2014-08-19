@@ -4,35 +4,43 @@
 # descr   = shutdown all sessions with matching user name [optional kill message]
 # comment = apparently leaves some kind of zombie data while it shouldn't - check that! => list sessions
 
-if($$call{'args'} =~ /^(\w+)\s?(.*)$/)
-{
-    my $usr    = $1;
-    my $msg    = $2 || 'your session has been killed!';
-    my $killed = 0;
+#use Data::Dumper qw(Dumper);
+#die "call_args: " . Dumper($call);
 
-    if($usr=~/\s/){ ($usr,$msg)=split(/\s/,$usr,2) }
+if ( $$call{'args'} =~ /^(\w+)\s?(.*)$/ ) {
+    my $usr          = $1;
+    my $slay_message = $2 || 'your session has been killed!';
+    my $killed       = 0;
+    my $killed_own   = 0;
+
+    if ( $usr =~ /\s/ ) { ( $usr, $slay_message ) = split( /\s/, $usr, 2 ) }
 
     if ( defined( $data{'user'}{$usr} ) ) {
 
-#	&{$code{'base.log'}(0,"slaying user '$usr'..")};
+        $code{'base.log'}->( 2, "slaying of user '$usr' requested!" );
 
-	foreach my $sid (%{$data{'session'}})
-	{
-		if($data{'session'}{$sid}{'user'} eq $usr)
-		{
-			$data{'session'}{$sid}{'buffer'}{'output'} .= "BYE $msg\n";
-			$data{'session'}{$sid}{'shutdown'} = 1;
-			&{$code{'base.log'}(0,"slayed session '$sid'")};
-			$killed++;
-		}
-	}
+        foreach my $sid ( keys %{ $data{'session'} } ) {
+            if ( $data{'session'}{$sid}{'user'} eq $usr ) {
+                my $msg = $slay_message;
+                if ( $call->{'session_id'} eq $sid ) {
+                    $killed_own = 1;
+                    $msg        = 'you just killed your own session!';
+                }
+                $data{'session'}{$sid}{'buffer'}{'output'} .= "BYE $msg\n";
+                $data{'session'}{$sid}{'shutdown'} = 1;
+                $code{'base.log'}->( 0, "slayed session '$sid'" );
+                $killed++;
+            }
+        }
 
-	my $s=''; if ($killed>1){ $s='s' }
-
-	return { 'mode' => 'ack', 'data' => "killed $killed session$s" };
+        my $s = '';
+        if ( $killed > 1 ) { $s = 's' }
+        my $ack_msg = "killed $killed session$s";
+        $ack_msg .= ' (yours included.)' if $killed_own;
+        return { 'mode' => 'ack', 'data' => $ack_msg };
     }
     else {
-	return { 'mode' => 'nack', 'data' => "user '$usr' not online" };
+        return { 'mode' => 'nack', 'data' => "user '$usr' not online" };
     }
 }
 else { $$reply{'data'} = 'invalid username' }
