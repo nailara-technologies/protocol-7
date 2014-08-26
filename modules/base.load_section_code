@@ -31,7 +31,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
       ($sub_section,$sub_section_ref,$sub_sub_section)=(undef,undef,undef);
       if(![base.code_section_exists:$section,$code_data]){
         $data_ref = [];
-        push( $code_data, { $section => $data_ref } );
+        push( @$code_data, { $section => $data_ref } );
       } else {
         $data_ref = [base.code_section_ref:$code_data,$section];
       }
@@ -43,7 +43,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
         ."(file '$filename' line $line_num)" if not defined $section;
       if(![base.code_section_exists:$sub_section,$data_ref]){
         my $new_data_ref = [];
-        push( $section_ref, { $sub_section => $new_data_ref } );
+        push( @$section_ref, { $sub_section => $new_data_ref } );
         $data_ref = $new_data_ref;
       } else {
         $data_ref = [base.code_section_ref:$code_data,$section,$sub_section];
@@ -59,14 +59,14 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
         if not defined $sub_section;
       if(![base.code_section_exists:$sub_sub_section,$data_ref]){
         my $new_data_ref = [];
-        push($sub_section_ref ,{ $sub_sub_section => $new_data_ref });
+        push(@$sub_section_ref ,{ $sub_sub_section => $new_data_ref });
         $data_ref = $new_data_ref;
       } else {
         $data_ref = [base.code_section_ref:$code_data,
           $section, $sub_section, $sub_sub_section];
       }
     } else {
-      push( $data_ref, $line );
+      push( @$data_ref, $line );
     }
   }
 }
