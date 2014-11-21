@@ -3,9 +3,20 @@
 # name  = base.resolve_key
 # descr = resolve hash key and return reference to value or undef if not found
 
-my $hash_ref = $_[1] || *data{HASH};
-
-my @key_tree = split(/\./, $_[0]);
+my $key_str = shift;
+my $hash_ref = shift || *data{HASH};
+# allowing keys containing '.'s by single quoting them
+if ($key_str=~/\~/) {
+   $code{'base.log'}->(0, "base.resolve_key: invalid key string ($key_str)");
+   return undef;
+}
+$key_str =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|~|g;$k/ge;
+if ($key_str=~/\'/) {
+   $code{'base.log'}->(0, "base.resolve_key: invalid key string ($key_str)");
+   return undef;
+}
+my @key_tree = split(/\./, $key_str);
+map { $_ =~ s/\~/./g } @key_tree;
 while ( my $sub_key = shift @key_tree ) {
     if ( not defined ${$hash_ref}{$sub_key} ) { return undef }
     if ( @key_tree and ref(${$hash_ref}{$sub_key}) eq 'HASH' ) {
