@@ -124,6 +124,15 @@ $$call_args{'session_id'} = $id;
 if ( defined $data{'alias'}{$cmd} and $data{'alias'}{$cmd} ne '' ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
     $cmd = $data{'alias'}{$cmd};
+    my $args_map = {
+	'SOURCE_AGENT' => <system.node.name>.'.'.$data{'session'}{$id}{'user'}
+    };
+    foreach my $map_key (keys %{$args_map}){
+        $cmd =~ s/$map_key/$args_map->{$map_key}/;
+    }
+    if($cmd =~ s/^(\S+)\s+(.+)$/$1/) {
+        $$call_args{'args'} = $2 . ' ' . $$call_args{'args'};
+    }
 }
 
 my $_cmd_id = '';
@@ -333,7 +342,6 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
     # absolute address notation
 
     elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/o ) {
-
         my $network_name = $1;
         my $node_name    = $1;
 
@@ -341,9 +349,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
     }
     elsif ( $cmd =~ s/^(\w+)\.([^\.]+)$/$2/go ) {
-
         my $target_name = $1;
-
         my @sids;
 
         if ( $target_name =~ /^(\d+)$/ ) {
