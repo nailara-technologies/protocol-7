@@ -5,7 +5,7 @@
 
 my $data_key = shift;
 my $max_key_len = 255;
-
+$data_key =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|_|g;$k/ge; # allows 'foo.bar' keys
 my $ok = 1;
 my $err_msg;
 my $len_was;
