@@ -5,7 +5,7 @@
 
 my $data_key = shift;
 my $max_key_len = 255;
-$data_key =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|_|g;$k/ge; # allows 'foo.bar' keys
+$data_key =~ s/\'(([^\']|\.)+)\'/my$k=$1;$k=~s|\.|_|g;$k/ge; # foo.'bar.baz'...
 my $ok = 1;
 my $err_msg;
 my $len_was;
@@ -17,6 +17,5 @@ if ( not defined $data_key or $data_key eq '' ) {
 } elsif ( $data_key !~ /^[A-Za-z0-9-_\.]+$/ ) {
   ($ok, $err_msg) = ( 0, 'invalid character(s) in key name' );
 }
-
 return 1 if $ok;
 return (0, $err_msg);

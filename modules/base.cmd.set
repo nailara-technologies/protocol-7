@@ -7,8 +7,10 @@
 my ( $key, $val ) = split ( / /, $$call{'args'}||'', 2 );
 return { 'mode' => 'nack', 'data' => 'no key specified' }
   if not defined $key or !length($key);
+my @validation_result = ([base.validate.data_key_syntax:$key]);
 return {'mode' => 'nack', 'data' => 'invalid key'}
-  if $key =~ /^\.|\.$/ or $key !~ /^[\w\d\_\-\.]+$/;
+  if not $validation_result[0];
+
 return { 'mode' => 'nack', 'data' => 'no value supplied' }
   if not defined $val;
 
@@ -17,7 +19,10 @@ my $cid = $$call{'session_id'};
 my $key_ref = [base.resolve_key:$key];
 
 if ( not defined $key_ref or ref($key_ref) ne 'SCALAR' ) {
-  (my $parsed_key=$key)=~s|\.|'}{'|g;
+  my $parsed_key=$key;
+  $parsed_key =~ s/\'(([^\']|\.)+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge; # 'foo.bar'..
+  $parsed_key=~s|\.|'}{'|g;
+  $parsed_key =~ s/\0/\./g;
   my $eval_code = "\$data{'$parsed_key'}=''";
   eval $eval_code;
   $key_init = 1;

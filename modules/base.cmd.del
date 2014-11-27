@@ -13,7 +13,7 @@ return {'mode' => 'nack', 'data' => 'invalid key'}
   or $del_key !~ /^[\w\d\_\-\.\']+$/
   or $del_key =~ /\~/;
 my $_del_key = $del_key;
-$_del_key =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
+$_del_key =~ s/\'(([^\']|\.)+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
 return {'mode' => 'nack', 'data' => 'invalid key'} if $_del_key =~ /\'/;
 
 my $del_key_ref = [base.resolve_key:$del_key];
@@ -24,15 +24,15 @@ if (not defined $del_key_ref) {
 
 my $deleted = 0;
 my @del_key_chain = split /\./, $_del_key;
+map { $_=~ s/\0/./g } @del_key_chain;
+
 while (my $sub_key = pop(@del_key_chain)) {
     $_del_key =~ s/\.$sub_key$//;
-    ( my $__del_key = $_del_key ) =~ s/\0/./g;
-    $sub_key =~ s/\~/./g;
     if(!@del_key_chain) {
         last if $deleted and ref($data{$sub_key}) eq 'HASH' and keys(%{$data{$sub_key}});
         $deleted++ if delete $data{$sub_key};
     } else {
-        my $parent_ref = [base.resolve_key:$__del_key];
+        my $parent_ref = [base.resolve_key:$_del_key];
         $deleted++ if delete $$parent_ref->{$sub_key};
     }
 }
