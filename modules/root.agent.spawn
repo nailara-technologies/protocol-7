@@ -26,22 +26,22 @@ if ( not defined $pid ) {
 }
 
 [event.add_io:{
-  'fd' => $w_fh,
-  'handler' => 'root.handler.agent_output',
-  'data' => $agent_name
+    'fd' => $w_fh,
+    'handler' => 'root.handler.agent_output',
+    'data' => $agent_name
 }];
 [event.add_io:{
-  'fd' => $e_fh,
-  'handler' => 'root.handler.agent_output',
-  'data' => $agent_name
+    'fd' => $e_fh,
+    'handler' => 'root.handler.agent_output',
+    'data' => $agent_name
 }] if defined $e_fh;
 
 [base.log:1,"agent '$agent_name' spawned! \[pid:$pid\]"];
 
 <root.agent.process>->{$agent_name} = {
-  'pid' => $pid,
-  'r_fh' => $r_fh,
-  'w_fh' => $w_fh
+    'pid' => $pid,
+    'r_fh' => $r_fh,
+    'w_fh' => $w_fh
 };
 
 [root.agent.change_status:$agent_name,'starting'];

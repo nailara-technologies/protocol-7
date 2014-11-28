@@ -11,19 +11,19 @@ $status_ref->{$agent_name} = $status;
 
   # XXX really? - see below..
 
-my $dependent_jobs = <root.dependencies>->{$agent_name};
-#my $dependent_jobs = <agents.dependencies>->{$agent_name};
+#my $dependent_jobs = <root.dependencies>->{$agent_name};
+my $dependent_jobs = <agents.dependencies>->{$agent_name};
 
 if ( $status eq 'online' ) {
 print "PASS online\n".Dumper($dependent_jobs);
-  foreach my $job_id (keys %$dependent_jobs) {
+  foreach my $job_id (keys %{<root.dependencies>->{$agent_name}}) {
 print "     > job_id: $job_id - $dependent_jobs\n";
     [jobqueue.event.remove_dependency:$job_id,$dependent_jobs];
   }
 }
 
 # XXX: new
-foreach my $dependent_agent_name (keys <root.dependencies>) {
+foreach my $dependent_agent_name (keys %{<root.dependencies>}) {
 
   print "[D] agent_name : $agent_name\n";
 
