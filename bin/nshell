@@ -10,8 +10,21 @@ use Term::ReadPassword;
 
 binmode STDOUT, ":utf8";
 
-my $core_addr = $ARGV[0] || '127.0.0.1';
-my $core_port = $ARGV[1] || 242;
+my @args;
+my $remember = 0;
+my $arg_index= 0;
+foreach my $param (@ARGV) {
+    if ( $param =~ /^(-r|--remember)$/ ) {
+        $remember = 1;
+    } else {
+        push(@args,$param);
+    }
+}
+
+my $core_user;
+my $core_pass;
+my $core_addr = shift(@args) || '127.0.0.1';
+my $core_port = shift(@args) || 242;
 
 my $color  = "\e[37m\e[40m";
 my $prompt = $color . ':. ';
@@ -38,11 +51,17 @@ while ($connect) {
 }
 
 sub login_prompt {
+    if ($remember
+        and defined $core_user
+        and defined $core_pass) {
+        return ($core_user, $core_pass);
+    }
     my ( $user, $pass );
     print "\n :: user :. ";
     chop( $user = <STDIN> );
     $pass = read_password(" :: pass :. ");
     print "\n";
+    ($core_user, $core_pass) = ($user, $pass) if $remember;
     return ( $user, $pass );
 }
 
