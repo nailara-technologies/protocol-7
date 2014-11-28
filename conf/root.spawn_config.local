@@ -9,11 +9,9 @@
   spawn.start_mode = exec	# [pipe|fork|exec]
   spawn.autospawn  = 1
 
-  agents.enabled = core xmesg
+  agents.enabled = core
 
-  agents.dependencies.xmesg = core	# will be moved to agent section
-  agents.dependencies.spawntest = core
-
+  agents.dependencies.notify = core	# will be moved to agent section
 
 .: agents :.
 
@@ -31,17 +29,10 @@
         local_port = <<net.local.port>>
         [root.connect_core:<local_addr>,<local_port>,<root.core_key>]
 
-  - xmesg
+  - notify
 
       : init :
         spawn_mode = ondemand
 
       : remote :
         auto_shutdown_timeout = 5
-
-  - spawntest
-
-      : init :
-
-       respawn_mode = on_exit
-       respawn_timeout = 5
