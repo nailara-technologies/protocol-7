@@ -8,12 +8,18 @@ my $read_fh    = $event->fd;
 my $agent_name = $event->data;
 <root.agent.pattern> = {} if not exists <root.agent.pattern>;
 
-# while(sysread($event->fd, my $buffer, 4096)) { # XXX: prevents event management!!
-sysread( $event->fd, my $buffer, <root.bufsize.agent_output> || 42500 );
+sysread( $read_fh, my $buffer, <root.bufsize.agent_output> || 42500 );
+
+if (!length($buffer)) {
+    $event->cancel;
+    [root.agent.change_status:$agent_name,'offline'];
+    return;
+}
+
 syswrite( STDOUT, $buffer, length($buffer) ) if <system.verbosity>;
 
 if ( exists <root.agent.pattern>->{$agent_name} ) {
-    foreach my $pattern ( keys <root.agent.pattern>->{$agent_name} ) {
+    foreach my $pattern ( keys %{<root.agent.pattern>->{$agent_name}} ) {
         my $c_ref = <root.agent.pattern>->{$agent_name}->{$pattern};
         die "no code ref defined for pattern '$pattern'"
             if not defined $c_ref;
