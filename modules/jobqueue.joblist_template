@@ -3,13 +3,18 @@
 # name  = jobqueue.joblist_template
 # descr = returns job list template for initialization
 
-@{<joblist.queue_types>} = qw(queued dependencies running paused
-  aborted failed completed);
+@{<joblist.queue_types>} = qw(
+    queued
+    dependencies
+    running
+    paused
+    aborted
+    failed
+    completed
+);
 
 return {
-  'by_id' => {},
-  (map { $_ => [jobqueue.queue_template] } @{<joblist.queue_types>}),
-  'count' => {
-    (map { $_ => 0 } @{<joblist.queue_types>})
-  }
+    'by_id' => {},
+    ( map { $_ => [jobqueue.queue_template] } @{<joblist.queue_types>} ),
+    'count' => { ( map { $_ => 0 } @{<joblist.queue_types>} ) }
 };
