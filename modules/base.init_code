@@ -43,13 +43,13 @@ $data{'list'}{'buffers'} = {
 undef %SIG;
 
 &{ $code{'event.add_signal'} }
-  ( { 'signal' => 'INT', 'handler' => 'base.sig_int' } );
+    ( { 'signal' => 'INT', 'handler' => 'base.sig_int' } );
 &{ $code{'event.add_signal'} }
-  ( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
+    ( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
 &{ $code{'event.add_signal'} }
-  ( { 'signal' => 'HUP', 'handler' => 'base.sig_hup' } );
+    ( { 'signal' => 'HUP', 'handler' => 'base.sig_hup' } );
 &{ $code{'event.add_signal'} }
-  ( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
+    ( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
 
 $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
@@ -58,11 +58,10 @@ $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
 $code{'base.list.init'}->(
-  {
-      'name'         => 'sessions',
-      'key_ref'      => \$data{'session'},
-      'max_elements' => $data{'limit'}{'max'}{'sessions'}
-  }
+    {   'name'         => 'sessions',
+        'key_ref'      => \$data{'session'},
+        'max_elements' => $data{'limit'}{'max'}{'sessions'}
+    }
 );
 
 &{ $code{'base.parser.access_conf'} };
