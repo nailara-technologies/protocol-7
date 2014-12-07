@@ -4,8 +4,7 @@
 # descr = returns a job queue template
 
 return {
-  'by_priority' => {
-    map { $_ => [] } sort keys %{[jobqueue.priorities_table]}
-  },
-  'by_timestamp' => []
+    'by_priority' =>
+        { map { $_ => [] } sort keys %{ [jobqueue.priorities_table] } },
+    'by_timestamp' => []
 };

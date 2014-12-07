@@ -6,20 +6,23 @@
 # note = currently only supports single line replies (ACK/NACK)
 
 my $key_to_retrieve = shift;
-die "expected a key as argument" if not defined $key_to_retrieve
-  or $key_to_retrieve eq '';
+die "expected a key as argument"
+    if not defined $key_to_retrieve
+    or $key_to_retrieve eq '';
 
 my $core_fh = <core.handle>;
 
-[net.out:$core_fh,"get $key_to_retrieve\n"];
-chomp(my $get_reply = <$core_fh>);
+[net.out: $core_fh, "get $key_to_retrieve\n"];
+chomp( my $get_reply = <$core_fh> );
 
 if ( $get_reply =~ s/^ACK // ) {
-  return $get_reply;
+    return $get_reply;
 } elsif ( $get_reply =~ s/^NACK // ) {
-  [base.log:0,"net.get: failed to get key '$key_to_retrieve' \[$get_reply\]"];
-  return undef;
+    [base.log: 0,
+        "net.get: failed to get key '$key_to_retrieve' \[$get_reply\]"
+    ];
+    return undef;
 } else {
-  [base.log:0,"net.get: protocol error \[reply:'$get_reply'\]"];
-  return undef;
+    [base.log: 0, "net.get: protocol error \[reply:'$get_reply'\]" ];
+    return undef;
 }
