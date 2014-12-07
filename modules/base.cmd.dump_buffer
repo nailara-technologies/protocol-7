@@ -1,15 +1,15 @@
 # >:]
 
-# name   = net.cmd.dump_buffer
+# name   = base.cmd.dump_buffer
 # descr  = dump buffer content
 
-my $arg = $_[0];
-my $id = $$arg{'session_id'};
+my $arg    = $_[0];
+my $id     = $$arg{'session_id'};
 my $buffer = $$arg{'args'};
 
-if(defined $data{'buffer'}{$buffer}) {
+if ( defined $data{'buffer'}{$buffer} ) {
     $$reply{'mode'} = 'raw';
-    $$reply{'data'} = join ("\n", @{ $data{'buffer'}{$buffer}{'data'} })."\n";
+    $$reply{'data'} = join( "\n", @{$data{'buffer'}{$buffer}{'data'}} ) . "\n";
 } else {
     $$reply{'mode'} = 'nack';
     $$reply{'data'} = 'no such buffer';
