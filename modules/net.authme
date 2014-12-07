@@ -5,6 +5,7 @@
 my $answer;
 my $smiley;
 my $backend_socket = $_[0], $smiley = "", $answer = "";
+die "net.authme: no password supplied" if not defined $_[2];
 if ( sysread( $backend_socket, $smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) { $code{'base.log'}->( 1, '[*] smiley ok :)') }
     else {
