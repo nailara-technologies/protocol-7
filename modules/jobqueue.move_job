@@ -4,13 +4,13 @@
 # descr = moves a job from one queue to another
 
 my ( $job_id, $target_queue ) = @_;
-my $jobs = <jobqueue.joblist.by_id>;
+my $jobs     = <jobqueue.joblist.by_id>;
 my $job_list = <jobqueue.joblist>;
 
-die "no job id specified!" if not defined $job_id;
+die "no job id specified!"       if not defined $job_id;
 die "no target queue specified!" if not defined $target_queue;
 die "a queue named '$target_queue' does not exist"
-  if not exists $job_list->{$target_queue};
+    if not exists $job_list->{$target_queue};
 my $prio = $jobs->{$job_id}->{'priority'};
 die "a job with id '$job_id' does not exist" if not defined $prio;
 
@@ -19,11 +19,11 @@ my $source_queue = $jobs->{$job_id}->{'status'};
 my $sq = $job_list->{$source_queue};
 my $tq = $job_list->{$target_queue};
 
-push( @{$tq->{'by_priority'}->{$prio}}, $job_id);
-push( @{$tq->{'by_timestamp'}}, $job_id);
-my $del_index=0;
-my $by_ts = $sq->{'by_timestamp'};
-map {splice(@$by_ts,$del_index,1) if $_==$job_id; $del_index++} @$by_ts;
+push( @{ $tq->{'by_priority'}->{$prio} }, $job_id );
+push( @{ $tq->{'by_timestamp'} },         $job_id );
+my $del_index = 0;
+my $by_ts     = $sq->{'by_timestamp'};
+map { splice( @$by_ts, $del_index, 1 ) if $_ == $job_id; $del_index++ } @$by_ts;
 
 $job_list->{'count'}->{$source_queue}--;
 $job_list->{'count'}->{$target_queue}++;
