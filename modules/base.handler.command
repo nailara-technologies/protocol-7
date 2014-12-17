@@ -22,7 +22,8 @@ $_[0]->w->stop;
 
 # cleanup command line
 
-$$input =~ s/^[\s|\t|\n]+//o;
+$$input =~ s/^\s+//;
+$$input =~ s/^([^\n]+?)[\ \t]+\n/$1\n/;
 
 my @args;
 my $command_mode = 0;
