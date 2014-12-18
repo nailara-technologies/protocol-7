@@ -1,0 +1,43 @@
+# >:]
+
+# name     = base.parser.help_list
+# args     = <cmd_aref>, [section_name]
+# return   = plain(formatted client list)
+# descr    = format command list with descriptions (help text)
+
+my $cmd_aref  = shift;
+my $section   = shift || 'cmd';    # [cmd|cli]
+my $reply_str = '';
+my $max_len   = 0;
+my @commands;
+
+map {
+    if ( not exists $data{'base'}{$section}{$_} ) {
+        my $cli = " $section";
+        $cli = '' if $section eq 'cmd';
+        $code{'base.log'}->(
+            0, "base.parser.help_list:" . $cli . " command '$_' does not exist!"
+        );
+    } else {
+        $max_len = length($_) if length($_) > $max_len;
+        push( @commands, $_ );
+    }
+} @$cmd_aref;
+$max_len += 2;
+
+foreach my $cmd (@commands) {
+    my $cmd_descr = '';
+    my $call_cmd  = $data{'base'}{$section}{$cmd};
+    if ( defined &{ $code{$call_cmd} } ) {
+        if ( defined $data{'base'}{'help'}{$section}{$cmd} ) {
+            $cmd_descr = $data{'base'}{'help'}{$section}{$cmd}{'descr'};
+        }
+        if ( $cmd_descr eq '' ) { $cmd_descr = 'n/a' }
+    } else {
+        $cmd_descr = "WARNING: this command is broken!!";
+    }
+    my $dots = $max_len - length($cmd);
+    $reply_str .= "$cmd " . '_' x $dots . " $cmd_descr\n";
+}
+
+return $reply_str;
