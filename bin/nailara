@@ -175,7 +175,8 @@ sub prepare_subs {
 
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
             $code{'log.failed'}->(
-                ": can not open module directory '$data{'system'}{'code_path'}' [$!]"
+                ": can not open module directory"
+                . " '$data{'system'}{'code_path'}' [$!]"
             );
             return undef;
         }
@@ -299,19 +300,21 @@ sub prepare_subs {
                 $data{'code'}{$sub_name}{'status'} = 'ok';
                 $ok_count++;
 
-                if ( $sub_name =~ /\.cmd\.(.+)$/ ) {
-                    my $cmd = $1;
+                if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) {
+                    my $section = $1;
+                    my $command = $2;
                     if ( $data{'code'}{$sub_name}{'status'} eq 'ok' ) {
-
                         if ( $sub_code =~ /\#\s*descr\s*=\s*(.+)/ ) {
-                            $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'} = $1;
+                            $data{'base'}{'help'}
+                                {$section}{$command}{'descr'} = $1;
                         } else {
-                            $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'} = 'n/a';
+                            $data{'base'}{'help'}
+                                {$section}{$command}{'descr'} = 'n/a';
                         }
 
                     } else {
                         $code{'log.failed'}->(": : command '$1' broken!");
-                        $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'} =
+                        $data{'base'}{'help'}{$section}{$command}{'descr'} =
                           '! command broken !';
                     }
                 }
