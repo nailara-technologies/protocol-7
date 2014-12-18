@@ -263,9 +263,9 @@ sub prepare_subs {
             my $code_header = '';
             my $code_footer = '';
 
-            if ( $sub_name =~ /\.cmd\.(.+)$/ ) {
+            if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) {
 
-                $data{'base'}{'cmd'}{$1} = $sub_name;
+                $data{'base'}{$1}{$2} = $sub_name;
 
                 $code_header =
                     'my $call={}; my $reply={ \'mode\' => \'nack\', \'data\''
