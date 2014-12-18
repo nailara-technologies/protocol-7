@@ -54,6 +54,9 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                     if ( !$count ) { $_val = '[]' }
                     else { my @val_str = '['; $_val = "[ $elements_str ]" }
                 }
+            } else {
+                $_val =~ s/"/\\"/g;
+                $_val = "\"$_val\"" if $_val =~ /\[\]/;
             }
             $out .= "$__key = $_val\n";
         }
