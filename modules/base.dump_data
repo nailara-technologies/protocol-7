@@ -33,6 +33,12 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
             or $_key =~ /\$$/ and $_key =~ /\Q$_[2]\$$/
             or $_key =~ /$_[2]/ ) {
             if ( ref($_val) eq 'ARRAY' ) {
+
+                if ( tied @$_val ) {
+                    $out .= "$_key = TIED_ARRAY( " . tied(@$_val) . " )\n";
+                    next;
+                }
+
                 my @array = @{$_val};
                 my $count = scalar @array;
                 if ( $count > 42 ) {
@@ -48,19 +54,36 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                             3 + $e_len - $max_len, '...'
                         ) if $e_len > $max_len;
                     }
-                    my $elements_str = join( ' ',
-                        map { my $e = $_; $e = "\"$e\"" if $e =~ / '"/; $e }
-                            @array );
+                    my $elements_str = join(
+                        ' ',
+                        map {
+                            my $e = $_;
+                            $e = "\"$e\"" if $e =~ / '"/ or $e =~ /TIED_/;
+                            $e
+                        } @array
+                    );
                     if ( !$count ) { $_val = '[]' }
                     else { my @val_str = '['; $_val = "[ $elements_str ]" }
                 }
             } else {
+
+                if ( tied $_val ) {
+                    $out .= "$_key = TIED_SCALAR( " . tied($_val) . " )\n";
+                    next;
+                }
                 $_val =~ s/"/\\"/g;
-                $_val = "\"$_val\"" if $_val =~ /\[\]/;
+                $_val = "\"$_val\"" if $_val =~ /\[\]/ or $_val =~ /TIED_/;
             }
+
             $out .= "$__key = $_val\n";
         }
     } else {
+
+        if ( tied %$_val ) {
+            $out .= "$_key = TIED_HASH( " . tied(%$_val) . " )\n";
+            next;
+        }
+
         $out .= $code{'base.dump_data'}
             ->( undef, undef, $_[2], $_val, $_key, $_[5], $_[6] );
     }
