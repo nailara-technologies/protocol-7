@@ -1,56 +1,32 @@
 # >:]
 
-# name     = base.cmd.help
-# args     = none
-# return   = raw(formatted client list)
-# descr    = print available commands and descriptions
+# name  = base.cmd.help
+# descr = print available commands and descriptions
 
-my $id = $$call{'session_id'};
-
+my $id  = $$call{'session_id'};
 my $usr = $data{'session'}{$id}{'user'};
 
-my $command  = $$call{'data'};
+my $command  = $$call{'args'};
 my $max_len  = 0;
 my @commands = ();
-if ( not defined $command or $command eq '' ) {
 
-    # get a list of all commands the user who sent the request has access to
+return { 'mode' => 'nack', 'data' => "not implemented yet... :/" }
+    if defined $command;
 
-    foreach my $cmd ( sort( keys( %{ $data{'base'}{'cmd'} } ) ) ) {
+# get a list of all commands the user who sent the request has access to
 
-        if ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
-            and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
-            or defined $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'}
-            and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'} )
-        {
-            if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
-            push( @commands, $cmd );
-        }
+foreach my $cmd ( sort( keys( %{ $data{'base'}{'cmd'} } ) ) ) {
+
+    if ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
+        and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
+        or defined $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'}
+        and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'} ) {
+        if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
+        push( @commands, $cmd );
     }
-    my $spaces = $max_len + 3;
-    $$reply{'data'} =
-      '',    # = pack( "A$spaces", ':COMMAND:' ) . ' :DESCRIPTION:' . "\n";
-      $max_len += 2;
-
-    # format reply
-
-    foreach my $cmd (@commands) {
-        my $cmd_descr;
-        my $call_cmd = $data{'base'}{'cmd'}{$cmd};
-        if ( defined &{ $code{$call_cmd} } ) {
-            if ( defined $data{'base'}{'help'}{'cmd'}{$cmd} ) {
-                $cmd_descr = $data{'base'}{'help'}{'cmd'}{$cmd}{'descr'};
-            }
-            if ( $cmd_descr eq '' ) { $cmd_descr = 'n/a' }
-        } else {
-            $cmd_descr = "WARNING: this command is broken!!";
-        }
-        my $dots = $max_len - length($cmd);
-        $$reply{'data'} .= "$cmd " . '_' x $dots . " $cmd_descr\n";
-    }
-
-    $$reply{'mode'} = 'raw';
-} else {
-    $code{'net.nack'}->( "not implemented yet.. :/", $_[1] );
 }
 
+# format and return the command list
+
+$$reply{'mode'} = 'raw';
+$$reply{'data'} = $code{'base.parser.help_list'}->( \@commands );
