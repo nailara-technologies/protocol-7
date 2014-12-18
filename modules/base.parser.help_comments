@@ -1,31 +1,33 @@
 # >:]
 
-# name       = base.parser.help_comments
+# name  = base.parser.help_comments
+# descr = extract 'descr' comment text (help description strings)
 
-my $filename = $_[0];
+my $filename = shift;
+my $section = shift || 'cmd';    # [cmd|cli|...]
+
 if ( open( my $FILE, '<', $filename ) ) {
     my $help_counter;
     my $package_name;
     my $parser_state = 0;
     my $descr;
     foreach my $mod_line (<$FILE>) {
-        $mod_line =~ s/^[\s|\t]+$|[\s|\t]+$//g;
+        $mod_line =~ s/^[\ \t]+$|[\ \t]+$//g;
         if ( $mod_line =~ /^package ([\w|\:]+)/ ) {
             $parser_state = 1;
             $package_name = $1;
         }
-        if ( $parser_state and $mod_line =~ /^#[\s|\t]*\[(.+)\]$/ ) {
+        if ( $parser_state and $mod_line =~ /^#[\ \t]*\[(.+)\]$/ ) {
             $descr = $1;
-            $descr =~ s/^[\s|\t]+|[\s|\t]+$//g;
+            $descr =~ s/^[\ \t]+|[\ \t]+$//g;
             if ( $descr ne '' ) { $parser_state = 2 }
         }
         if ( $parser_state == 2 and $mod_line ne '' ) {
             if ( $mod_line =~ /sub\s+(\w+)/ ) {
                 my $cmd_name = $package_name . "::" . $1;
-                $data{'help'}{'cmd'}{$cmd_name}{'descr'} = $descr;
+                $data{'help'}{$section}{$cmd_name}{'descr'} = $descr;
                 $help_counter++;
-            }
-            elsif ( $mod_line ne '' and $mod_line !~ /^\#/ ) {
+            } elsif ( $mod_line ne '' and $mod_line !~ /^\#/ ) {
                 $parser_state = 1;
                 undef $descr;
             }
@@ -33,5 +35,7 @@ if ( open( my $FILE, '<', $filename ) ) {
     }
     close($FILE);
     return $help_counter;
+} else {
+    $code{'base.log'}->( 1, "can not open module '$filename' [$!]" );
+    return -1;
 }
-else { $code{'base.log'}->(1,"can not open module '$filename' [$!]"); return -1; }
