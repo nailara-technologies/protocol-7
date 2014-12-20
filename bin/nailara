@@ -186,11 +186,7 @@ sub prepare_subs {
 
         my @compile_them = ();
         my @remaining    = @_;
-        while ( my $_code_name = shift @remaining ) {
-            my $code_name = $_code_name;
-
-            # if ( $code_name ne '' ) { $code_name =~ s/\.[^\.]+$//; }
-
+        while ( my $code_name = shift @remaining ) {
             $code{'log.ok'}->( "loading module '" . $code_name . "'" );
             my $code_count      = 0;
             my $last_code_count = 0;
