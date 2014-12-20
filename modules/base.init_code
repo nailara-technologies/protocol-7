@@ -18,25 +18,26 @@ $data{'system'}{'process'} = {
     'egid'  => $)
 };
 
-$data{'list'}{'users'} = {
-    'var'   => 'data',
-    'key'   => 'user',
-    'mask'  => 'key:user',
-    'descr' => 'connected users'
-};
-
-$data{'list'}{'sessions'} = {
-    'var'   => 'data',
-    'key'   => 'session',
-    'mask'  => 'key:id mode proto user',
-    'descr' => 'registered sessions'
-};
-
-$data{'list'}{'buffers'} = {
-    'var'   => 'data',
-    'key'   => 'buffer',
-    'mask'  => 'key:name size',
-    'descr' => 'available buffers'
+# init / reset lists
+$data{'list'} = {
+    'users' => {
+        'var'   => 'data',
+        'key'   => 'user',
+        'mask'  => 'key:user',
+        'descr' => 'connected users'
+    },
+    'sessions' => {
+        'var'   => 'data',
+        'key'   => 'session',
+        'mask'  => 'key:id mode proto user',
+        'descr' => 'registered sessions'
+    },
+    'buffers' => {
+        'var'   => 'data',
+        'key'   => 'buffer',
+        'mask'  => 'key:name size',
+        'descr' => 'available buffers'
+    }
 };
 
 # initialize signal handlers
