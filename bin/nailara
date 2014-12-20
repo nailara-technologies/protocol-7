@@ -196,7 +196,7 @@ sub prepare_subs {
             my $last_code_count = 0;
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
-                    and $file_name =~ /^$code_name/
+                    and $file_name =~ /^$code_name\.|^$code_name$/
                     and $file_name !~ /^\.|~$/ )
                 {
                     $code_count++;
