@@ -33,13 +33,13 @@ map {
 $max_len += 2;
 
 foreach my $cmd (@commands) {
-    my $cmd_descr = '';
-    my $call_cmd  = $data{'base'}{$section}{$cmd};
+    my $cmd_descr;
+    my $call_cmd = $data{'base'}{$section}{$cmd};
     if ( defined &{ $code{$call_cmd} } ) {
         if ( defined $data{'base'}{'help'}{$section}{$cmd} ) {
             $cmd_descr = $data{'base'}{'help'}{$section}{$cmd}{'descr'};
         }
-        if ( $cmd_descr eq '' ) { $cmd_descr = 'n/a' }
+        $cmd_descr = 'n/a' if not defined $cmd_descr or $cmd_descr eq '';
     } else {
         $cmd_descr = "WARNING: this command is broken!!";
     }
