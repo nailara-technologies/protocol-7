@@ -1,43 +1,55 @@
 # >:]
 
 # name  = base.cmd.time
-# descr = return unix time of this host
-# todo  = return warning when $float specified but Time::HiRes not present
+# param = [clock|date|%d]
+# descr = returns time, date or unix time (%d = float precision)
+# todo  = return warning when $float specified but Time::HiRes not present(?)
 
-if ( defined $$call{'args'} and $$call{'args'} eq 'clock' ) {
+my $param = $$call{'args'};
+if ( defined $param and $param eq 'clock' ) {
     my ( $sec, $min, $hour ) = localtime();
     return {
         'mode' => 'ack',
         'data' => sprintf( "%02d", $hour ) . ':'
-        . sprintf( "%02d", $min ) . ':'
-        . sprintf( "%02d", $sec )
+            . sprintf( "%02d", $min ) . ':'
+            . sprintf( "%02d", $sec )
     };
-}
-elsif ( defined $$call{'args'} and $$call{'args'} eq 'date' ) {
-    my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) =
-      localtime(time);
+} elsif ( defined $param and $param eq 'date' ) {
+    my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday )
+        = localtime(time);
 
     $year = sprintf( "%02d", $year + 1900 );
     $mon  = sprintf( "%02d", $mon + 1 );
-    $mday  = sprintf( "%02d", $mday );
+    $mday = sprintf( "%02d", $mday );
 
     return {
         'mode' => 'ack',
         'data' => "$year-$mon-$mday"
     };
-}
-else {
+} elsif ( defined $param and $param =~ /^\d+$|^$/ ) {
     my $float = 0;
     my $limit = 22;
-    # XXX: consider additional access control to floating seconds
-    $float = $$call{'args'} if defined $$call{'args'}
-      and $$call{'args'} =~ /^\d{1,2}$/;
+
+    # XXX: consider additional access control to floating seconds?
+    $float = $param if defined $param and $param =~ /^\d+$/;
     return {
         'mode' => 'nack',
-        'data' => "the current limit is $limit."
-    } if $float > $limit;
+        'data' => "current float precision limit is $limit"
+        }
+        if $float > $limit;
     return {
         'mode' => 'ack',
-        'data' => [base.time:$float]
+        'data' => $code{'base.time'}->($float)
+    };
+} elsif ( defined $param and $param eq '%d' ) {
+    return {
+        'mode' => 'nack',
+        'data' => "'%d' is expected to be a decimal value"
+            . " describing floating point precision!"
+    };
+} else {
+    return {
+        'mode' => 'nack',
+        'data' => "invalid parameter '$param'.. [clock|date|%d]"
     };
 }
