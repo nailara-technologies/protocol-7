@@ -2,18 +2,39 @@
 
 # name  = base.cmd.online
 # param = <user>
-# descr = check if a user is online
+# descr = check if a user / agent is online
 
-if($$call{'args'} =~ /^\w+$/)
-{
+if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
+    $$reply{'data'} = 'no username specified';
+} elsif ( $$call{'args'} =~ /^\w+$/ ) {
     my $usr = $$call{'args'};
 
-    if ( defined( $data{'user'}{$usr} ) ) {
-	return { 'mode' => 'ack', 'data' => 'present' };
+    return { 'mode' => 'nack', 'data' => 'no such user found' }
+        if not exists $data{'user'}{$usr};
+
+    my $utime = $data{'user'}{$usr}{'last_seen'}
+        || $data{'user'}{$usr}{'connected_since'};
+    my $mode = 'timestamp';
+    $mode = 'clock'
+        if $code{'base.parser.timestamp'}->( 'date', $utime ) eq
+        $code{'base.parser.timestamp'}->('date');
+
+    if ( not exists $data{'user'}{$usr}{'last_seen'}
+        and exists $data{'user'}{$usr}{'session'} ) {
+        return {
+            'mode' => 'ack',
+            'data' => 'present since '
+                . $code{'base.parser.timestamp'}->( $mode, $utime )
+        };
+    } else {
+        return {
+            'mode' => 'nack',
+            'data' => 'last seen '
+                . $code{'base.parser.timestamp'}->( $mode, $utime )
+        };
     }
-    else {
-	return { 'mode' => 'nack', 'data' => 'not found' };
-    }
+
+} else {
+    $$reply{'data'} = 'invalid username';
 }
-else { $$reply{'data'} = 'invalid username' }
 
