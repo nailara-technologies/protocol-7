@@ -6,14 +6,13 @@ my $id = $_[0]->w->data;
 
 $_[0]->w->stop;
 
-$code{'base.log'}->( 1, "[$id] closing session.");
+$code{'base.log'}->( 1, "[$id] closing session." );
 
 # call rip handler
 
-if ( defined $data{'session'}{$id}{'rip_handler'}
-    and defined &{ $data{'session'}{$id}{'rip_handler'} } )
-{
-    &{ $data{'session'}{$id}{'rip_handler'} } ( $_[0] );
+if (    defined $data{'session'}{$id}{'rip_handler'}
+    and defined &{ $data{'session'}{$id}{'rip_handler'} } ) {
+    &{ $data{'session'}{$id}{'rip_handler'} }( $_[0] );
 }
 
 # stop input bufffer
@@ -29,14 +28,21 @@ $data{'session'}{$id}{'watcher'}{'input_buffer'}->stop;
 
 foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
 
-     $data{'session'}{$id}{'watcher'}{$watcher}->cancel;
+    $data{'session'}{$id}{'watcher'}{$watcher}->cancel;
     delete $data{'session'}{$id}{'watcher'}{$watcher};
 }
 
 # cleanup user2session reference
+my $user = $data{'session'}{$id}{'user'};
+if ( defined $data{'user'}{$user}{'session'}{$id} ) {
+    delete $data{'user'}{$user}{'session'}{$id};
+}
 
-if ( defined $data{'user'}{ $data{'session'}{$id}{'user'} }{'session'}{$id} ) {
-    delete $data{'user'}{ $data{'session'}{$id}{'user'} }{'session'}{$id};
+# record the timestamp in case it was the last session
+if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
+    delete $data{'user'}{$user}{'connected_since'};
+    $data{'user'}{$user}{'last_seen'} = time();
+    delete $data{'user'}{$user}{'session'};
 }
 
 close( $data{'session'}{$id}{'handle'} );
