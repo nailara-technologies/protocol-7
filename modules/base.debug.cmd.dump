@@ -1,7 +1,19 @@
 # >:]
 
-# name   = base.debug.cmd.dump_state
-# descr  = dump internal program state
+# name  = base.debug.cmd.dump_state
+# param = [key_pattern]
+# descr = dumps internal program state (debugging)
 
-$reply = { 'mode' => 'raw', 'data' => $code{'base.dump_data'}->( undef,undef,$$call{'args'} ) };
+if ( not eval {qr/$$call{'args'}/} ) {
+    ( my $regex_err = lc($@) ) =~ s/ in regex.+\n$//;
+    return {
+        'mode' => 'nack',
+        'data' => "$regex_err in regex (invalid pattern)"
+    };
+}
+
+$reply = {
+    'mode' => 'raw',
+    'data' => $code{'base.dump_data'}->( undef, undef, $$call{'args'} )
+};
 
