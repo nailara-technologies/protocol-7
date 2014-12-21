@@ -255,13 +255,29 @@ sub prepare_subs {
             local $SIG{__DIE__}  = 'IGNORE';
 
             my $sub_code = undef;
-
             my $code_header = '';
             my $code_footer = '';
+            my $sub_conflict = 0;
 
             if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) {
+                if ( exists $data{'base'}{$1}{$2} ) {
+                    my $old_sub = $data{'base'}{$1}{$2};
+                    if ( not exists $data{'base'}{'overwritten'}{$1}{$2} ) {
+                        $code{'log.ok'}->("[!] $sub_name >> $old_sub");
+                        $data{'base'}{'overwritten'}{$1}{$2} = {
+                            'old' => $old_sub,
+                            'new' => $sub_name
+                        };
+                    } else {
+                        push( @{$data{'base'}{'overwritten'}
+                            {$1}{$2}{'conflicts'}}, $sub_name
+                        );
+                        $code{'log.failed'}->( "[!] conflict: $sub_name" );
+                        $sub_conflict = 1;
+                    }
+                }
 
-                $data{'base'}{$1}{$2} = $sub_name;
+                $data{'base'}{$1}{$2} = $sub_name if !$sub_conflict;
 
                 $code_header =
                     'my $call={}; my $reply={ \'mode\' => \'nack\', \'data\''
