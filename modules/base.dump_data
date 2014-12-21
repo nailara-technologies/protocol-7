@@ -57,9 +57,9 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                     my $elements_str = join(
                         ' ',
                         map {
-                            my $e = $_;
-                            $e = "\"$e\"" if $e =~ / '"/ or $e =~ /TIED_/;
-                            $e
+                            $_ = "\"$_\""
+                                if $_ =~ /[ '"\{\}]|TIED_/;
+                            $_
                         } @array
                     );
                     if ( !$count ) { $_val = '[]' }
@@ -72,7 +72,7 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                     next;
                 }
                 $_val =~ s/"/\\"/g;
-                $_val = "\"$_val\"" if $_val =~ /\[\]/ or $_val =~ /TIED_/;
+                $_val = "\"$_val\"" if $_val =~ /[ '"\{\}]|TIED_/;
             }
 
             $out .= "$__key = $_val\n";
@@ -81,6 +81,10 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
 
         if ( tied %$_val ) {
             $out .= "$_key = TIED_HASH( " . tied(%$_val) . " )\n";
+            next;
+        } elsif ( !keys(%$_val) and not defined $_[2]
+            or !keys(%$_val) and $_key =~ /$_[2]/ ) {
+            $out .= "$__key = { }\n";
             next;
         }
 
