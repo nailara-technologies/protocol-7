@@ -84,6 +84,10 @@ elsif ( defined &{ $code{ 'plugin.auth.' . $auth_method } } ) {
 
         $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = 'client';
 
+        $data{'user'}{$auth_name}{'connected_since'} = time()
+            if delete $data{'user'}{$auth_name}{'last_seen'}
+            or keys( %{ $data{'user'}{$auth_name}{'session'} } ) == 1;
+
         $code{'base.session.init_state'}->( $id, 1 );
 
         return 0;
