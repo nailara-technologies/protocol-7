@@ -3,28 +3,23 @@
 # name  = base.cmd.time
 # param = [clock|date|%d]
 # descr = returns time, date or unix time (%d = float precision)
-# todo  = return warning when $float specified but Time::HiRes not present(?)
 
 my $param = $$call{'args'};
-if ( defined $param and $param eq 'clock' ) {
-    my ( $sec, $min, $hour ) = localtime();
+
+if ( not defined $param ) {
     return {
         'mode' => 'ack',
-        'data' => sprintf( "%02d", $hour ) . ':'
-            . sprintf( "%02d", $min ) . ':'
-            . sprintf( "%02d", $sec )
+        'data' => time()
+    };
+} elsif ( defined $param and $param eq 'clock' ) {
+    return {
+        'mode' => 'ack',
+        'data' => $code{'base.parser.timestamp'}->('clock')
     };
 } elsif ( defined $param and $param eq 'date' ) {
-    my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday )
-        = localtime(time);
-
-    $year = sprintf( "%02d", $year + 1900 );
-    $mon  = sprintf( "%02d", $mon + 1 );
-    $mday = sprintf( "%02d", $mday );
-
     return {
         'mode' => 'ack',
-        'data' => "$year-$mon-$mday"
+        'data' => $code{'base.parser.timestamp'}->('date')
     };
 } elsif ( defined $param and $param =~ /^\d+$|^$/ ) {
     my $float = 0;
