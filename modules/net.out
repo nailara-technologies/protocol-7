@@ -23,8 +23,7 @@ if ( fileno $_[0] ) {
               (0,"[$_[0]] output chain handler is not valid! ..deleted.");
             $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }
               {'output'}{'handler'} = undef;
-    #        $data{'session'}{$id}{'die_msg'} = "BYE filter chain error";
-    #        $data{'session'}{$id}{'die'}     = 'yes';
+#            $code{'base.session.shutdown'}->( $id, 'filter chain error' );
             return 1;
         }
     }
