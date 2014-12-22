@@ -23,8 +23,7 @@ if ( $$call{'args'} =~ /^(\w+)\s?(.*)$/ ) {
                     $killed_own = 1;
                     $msg        = "you've terminated your own session!";
                 }
-                $data{'session'}{$sid}{'buffer'}{'output'} .= "SHUTDOWN $msg\n";
-                $data{'session'}{$sid}{'shutdown'} = 1;
+                $code{'base.session.shutdown'}->( $sid, $msg );
                 $code{'base.log'}->( 0, "slayed session $sid ($usr)" );
                 $killed++;
             }
