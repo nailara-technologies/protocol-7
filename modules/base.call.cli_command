@@ -1,0 +1,15 @@
+# >:]
+
+# name  = base.call.cli_command
+# descr = executes specified cli command or base.cli.help if no params given
+
+my $params = shift || 'help';
+
+my ( $cli_cmd, $cli_params ) = split( / +/, $params, 2 );
+
+if ( not exists $data{'base'}{'cli'}{$cli_cmd} ) {
+    print "\n  [!] command '$cli_cmd' does not exist! ( 'help' for list )\n\n";
+    return;
+}
+
+$code{ $data{'base'}{'cli'}{$cli_cmd} }->($cli_params);
