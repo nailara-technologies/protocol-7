@@ -9,22 +9,25 @@ my ( $h_name, $h_key, $sub_key, $display_keys )
 my %alias;
 my %str_len;
 my $spacing  = 4;
-my $out_data = "";
+my $out_data = "\n";
 my @shown_entries;
 
 foreach my $genit ( 0 .. 1 ) {
 
     # .: header :.
+    my $sub_line;
     foreach my $_key ( @{$display_keys} ) {
         if ( $_key =~ s/^([^\:]+)\:// ) { $alias{$_key} = $1; }
         if ($genit) {
-            my $len = "A" . int( $str_len{$_key} + $spacing );
-            $out_data .= pack( $len, "[" . $_key . "]" );
+            my $len = int( $str_len{$_key} + $spacing );
+            ( my $_key_str = $_key ) =~ s/_/ /g;
+            $out_data .= pack( "A$len", " : " . $_key_str . " :." );
+            $sub_line .= '-' x $len;
         } else {
-            $str_len{$_key} = length($_key) + 2;
+            $str_len{$_key} = length($_key) + 4;
         }
     }
-    $out_data .= "\n" if $genit;
+    $out_data .= "\n$sub_line\n" if $genit;
 
     # .: data :.
     my $loop_count = 0;
@@ -41,7 +44,7 @@ foreach my $genit ( 0 .. 1 ) {
         foreach my $__key ( @{$display_keys} ) {
             my $len = "A" . int( $str_len{$__key} + $spacing );
             if ( $genit and defined $alias{$__key} ) {
-                $out_data .= pack( $len, $new_key );
+                $out_data .= '  ' . pack( $len, $new_key );
 
             }
             foreach my $_new_key ( keys( %{ ${$h_name}{$h_key}{$new_key} } ) ) {
@@ -66,4 +69,5 @@ foreach my $genit ( 0 .. 1 ) {
     }
 }
 $out_data =~ s#\n\s+\n+|\s+\n#\n#g;
+$out_data .= "\n";
 return $out_data;
