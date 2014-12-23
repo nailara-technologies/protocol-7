@@ -311,7 +311,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                       $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
                 }
                 elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
-                    $code{'base.session.shutdown'}->( $id );
+                    $code{'base.session.shutdown'}->( $id, $$reply{'data'} );
                 }
                 return 0;
             }
