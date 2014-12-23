@@ -9,7 +9,7 @@ use POSIX;
 
 $data{'system'}{'os'}{'name'} = $^O;
 $data{'system'}{'process'} = {
-    'start' => [base.time:5],
+    'start' => $code{'base.time'}->(5),
     'pid'   => $$,
     'pname' => $0,
     'uid'   => $<,
@@ -21,10 +21,11 @@ $data{'system'}{'process'} = {
 # init / reset lists
 $data{'list'} = {
     'users' => {
-        'var'   => 'data',
-        'key'   => 'user',
-        'mask'  => 'key:user',
-        'descr' => 'connected users'
+        'var'     => 'data',
+        'key'     => 'user',
+        'sub_key' => 'session',
+        'mask'    => 'key:user',
+        'descr'   => 'connected users'
     },
     'sessions' => {
         'var'   => 'data',
