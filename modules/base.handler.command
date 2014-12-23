@@ -269,6 +269,9 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
         return 1;
     }
 
+} elsif ( $cmd eq uc($cmd) ) {
+    $code{'base.log'}->( 1, "[$id] invalid reply type '$cmd'!" );
+    $$output .= $_cmd_id . "NACK invalid reply type! (protocol error)\n";
 }
 elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
     and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
@@ -302,13 +305,14 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                       . uc( $$reply{'mode'} ) . ' '
                       . $$reply{'data'} . "\n";
                 }
-                elsif ( $$reply{'mode'} =~ /RAW/i ) {
+                elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
                     my $len = length( $$reply{'data'} );
                     $$output .=
                       $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
-
                 }
-
+                elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
+                    $code{'base.session.shutdown'}->( $id );
+                }
                 return 0;
             }
             else {
