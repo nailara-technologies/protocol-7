@@ -6,20 +6,23 @@
 
 my $list_name = $$call{'args'};
 
-if ( defined $list_name
-    and $list_name =~ /^\w+$/ and defined $data{'list'}{$list_name} ) {
+if (    defined $list_name
+    and $list_name =~ /^\w+$/
+    and defined $data{'list'}{$list_name} ) {
     my $list = $data{'list'}{$list_name};
     return {
         'mode' => 'raw',
         'data' => $code{'base.parser.list'}->(
-        $$list{'var'}, $$list{'key'},
-        split ( /\s+/, $data{'list'}{$list_name}{'mask'} ) )
+            {   'var'     => $$list{'var'},
+                'key'     => $$list{'key'},
+                'sub_key' => $$list{'sub_key'},
+                'mask' => [ split( /\s+/, $data{'list'}{$list_name}{'mask'} ) ]
+            }
+        )
     };
-}
-elsif ( defined $list_name and $list_name ne '' ) {
+} elsif ( defined $list_name and $list_name ne '' ) {
     $$reply{'data'} = 'no such list';
-}
-else {
+} else {
     my $maxlen = 0;
     my $count  = 0;
     foreach my $list_name ( keys( %{ $data{'list'} } ) ) {
@@ -31,8 +34,7 @@ else {
     $$reply{'mode'} = 'raw';
     $$reply{'data'} = pack( 'A' . $maxlen, '[name]' ) . "[descr]\n";
     foreach my $list_name ( keys( %{ $data{'list'} } ) ) {
-        $$reply{'data'} .=
-          pack( 'A' . $maxlen, $list_name )
-          . $data{'list'}{$list_name}{'descr'} . "\n";
+        $$reply{'data'} .= pack( 'A' . $maxlen, $list_name )
+            . $data{'list'}{$list_name}{'descr'} . "\n";
     }
 }
