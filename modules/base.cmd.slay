@@ -13,28 +13,32 @@ if ( $$call{'args'} =~ /^(\w+)\s?(.*)$/ ) {
     if ( $usr =~ /\s/ ) { ( $usr, $slay_message ) = split( /\s/, $usr, 2 ) }
 
     if ( exists $data{'user'}{$usr}{'session'} ) {
-
+        my $msg_string = $slay_message;
         $code{'base.log'}->( 2, "slaying of user '$usr' requested!" );
-
         foreach my $sid ( keys %{ $data{'session'} } ) {
             if ( $data{'session'}{$sid}{'user'} eq $usr ) {
-                my $msg = $slay_message;
                 if ( $call->{'session_id'} eq $sid ) {
                     $killed_own = 1;
-                    $msg        = "you've terminated your own session!";
+                    $msg_string = "you've terminated your own session!"
+                        if keys( %{ $data{'user'}{$usr}{'session'} } ) == 1;
+                } else {
+                    $code{'base.session.shutdown'}->( $sid, $msg_string );
                 }
-                $code{'base.session.shutdown'}->( $sid, $msg );
-                $code{'base.log'}->( 0, "slayed session $sid ($usr)" );
+                $code{'base.log'}->( 0, "slaying session $sid ($usr)" );
                 $killed++;
             }
         }
         my $s = $killed > 1 ? 's' : '';
-        my $ack_msg = "terminated $killed session$s";
-        $code{'base.log'}->( 0, $ack_msg ) if $killed;
+        my $reply_string = "terminated $killed session$s";
+        $code{'base.log'}->( 0, $reply_string ) if $killed;
         my $yours_str = 'yours included';
         $yours_str = 'yours' if $killed == 1;
-        $ack_msg .= " ($yours_str)" if $killed_own;
-        return { 'mode' => 'ack', 'data' => $ack_msg };
+        $reply_string .= " ($yours_str)" if $killed_own;
+        $reply_string = $msg_string if $killed_own and $killed == 1;
+        return {
+            'mode' => $killed_own ? 'shutdown' : 'ack',
+            'data' => $reply_string
+        };
     } else {
         return { 'mode' => 'nack', 'data' => "found no such user ($usr)" };
     }
