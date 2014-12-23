@@ -3,5 +3,9 @@
 # name   = base.clear
 # descr  = clear screen (ansi)
 
-$reply = { 'mode' => 'raw', 'data' => $ANSI{'cls'} . "(=\n\n" };
-
+my @smileys    = qw| (= /o\ >:] \o/ [:< (. >:P' oO ^^ '\o o/ /o/ |;
+my $chosen_one = int( rand(@smileys) );
+$reply = {
+    'mode' => 'raw',
+    'data' => $ANSI{'cls'} . $smileys[$chosen_one] . "\n\n"
+};
