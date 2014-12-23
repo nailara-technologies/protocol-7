@@ -37,8 +37,8 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
         # read argument header
 
-        $cmd_id  = $1 if length($1);
         my $_cmd_id = '';
+        $cmd_id = $1 if length($1);
         if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
         my $header = 1;
@@ -63,21 +63,24 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
                     # protocol error
 
                     else {
-                        $code{'base.log'}->( 1,
-                            "[$id] invalid command parameter format" );
-                        $$output .=
-                          $_cmd_id . "NACK invalid command parameter format\n";
+                        $code{'base.log'}
+                            ->( 1, "[$id] invalid command parameter format" );
+                        $$output .= $_cmd_id
+                            . "NACK invalid command parameter format\n";
 
                         $_[0]->w->start;
 
                         return 0;
                     }
+                } elsif ( $header == 1 ) {
+                    $header = 0;
+                } else {
+                    $$call_args{'data'} .= $arg . "\n";
                 }
-                elsif ( $header == 1 ) { $header = 0 }
-                else { $$call_args{'data'} .= $arg . "\n" }
 
+            } else {
+                last;
             }
-            else { last }
         }
         $command_mode = 2;
     }
@@ -122,16 +125,23 @@ $$call_args{'session_id'} = $id;
 
 # alias check and replacement
 
-if ( defined $data{'alias'}{$cmd} and $data{'alias'}{$cmd} ne '' ) {
+my $alias_to;
+
+# global alias
+$alias_to = $data{'alias'}{$cmd} if exists $data{'alias'}{$cmd};
+
+# per user alias
+$alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
+    if exists $data{'user'}{$usr}{'alias'}{$cmd};
+
+if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
-    $cmd = $data{'alias'}{$cmd};
-    my $args_map = {
-	'SOURCE_AGENT' => <system.node.name>.'.'.$data{'session'}{$id}{'user'}
-    };
-    foreach my $map_key (keys %{$args_map}){
+    ( $cmd = $alias_to ) =~ s/^.*\.//;
+    my $args_map = { 'SOURCE_AGENT' => <system.node.name> . '.' . $usr };
+    foreach my $map_key ( keys %{$args_map} ) {
         $cmd =~ s/$map_key/$args_map->{$map_key}/;
     }
-    if($cmd =~ s/^(\S+)\s+(.+)$/$1/) {
+    if ( $cmd =~ s/^(\S+)\s+(.+)$/$1/ ) {
         $$call_args{'args'} = $2 . ' ' . $$call_args{'args'};
     }
 }
@@ -161,8 +171,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                 # check if reply handler is set
 
                 if ( defined $$route{'reply'}{'handler'}
-                    and $$route{'reply'}{'handler'} ne '' )
-                {
+                    and $$route{'reply'}{'handler'} ne '' ) {
                     if (    defined $code{ $$route{'reply'}{'handler'} }
                         and defined &{ $code{ $$route{'reply'}{'handler'} } } )
                     {
@@ -170,30 +179,27 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         # call reply handler
 
                         &{ $code{ $$route{'reply'}{'handler'} } }(
-                            {
-                                'sid'       => $id,
+                            {   'sid'       => $id,
                                 'cmd'       => $cmd,
                                 'call_args' => $call_args,
                                 'params'    => $$route{'reply'}{'params'}
                             }
                         );
 
-                    }
-                    else {
+                    } else {
                         $code{'base.log'}->(
                             1,
                             "[$id] called undefined reply handler ("
-                              . $$route{'reply'}{'handler'} . ")"
+                                . $$route{'reply'}{'handler'} . ")"
                         );
                     }
-                }
-                else {
+                } else {
 
                     # route reply
 
                     $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
-                      {'output'} .=
-                      $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
+                        {'output'}
+                        .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
                 }
 
@@ -201,12 +207,11 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
                 if ( $cmd ne 'WAIT' ) {
                     delete $data{'session'}{ $$route{'source'}{'sid'} }{'route'}
-                      { $$route{'source'}{'cmd_id'} };
+                        { $$route{'source'}{'cmd_id'} };
                     delete $data{'route'}
-                      { $data{'session'}{$id}{'route'}{$cmd_id} };
+                        { $data{'session'}{$id}{'route'}{$cmd_id} };
                     delete $data{'session'}{$id}{'route'}{$cmd_id};
-                }
-                else {
+                } else {
 
                     # insert WAIT limit here
 
@@ -214,8 +219,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                 }
 
                 $valid_answer = 1;
-            }
-            elsif ( $cmd =~ /^RAW$/ ) {
+            } elsif ( $cmd =~ /^RAW$/ ) {
                 if ( $$call_args{'args'} =~ /^\d+$/ ) {
                     my $msg_len = $$call_args{'args'};
 
@@ -230,67 +234,61 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         # send raw command to target
 
                         $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
-                          {'output'} .=
-                            $s_cmd_id . $cmd . ' '
-                          . $$call_args{'args'} . "\n"
-                          . $data;
+                            {'output'}
+                            .= $s_cmd_id
+                            . $cmd . ' '
+                            . $$call_args{'args'} . "\n"
+                            . $data;
 
                         # delete route
 
                         delete $data{'session'}{ $$route{'source'}{'sid'} }
-                          {'route'}{ $$route{'source'}{'cmd_id'} };
+                            {'route'}{ $$route{'source'}{'cmd_id'} };
                         delete $data{'route'}
-                          { $data{'session'}{$id}{'route'}{$cmd_id} };
+                            { $data{'session'}{$id}{'route'}{$cmd_id} };
                         delete $data{'session'}{$id}{'route'}{$cmd_id};
 
                         $valid_answer = 1;
-                    }
-                    else {
+                    } else {
                         $code{'base.log'}->(
                             1,
                             "[$id] (RAW) invalid body length ("
-                              . $$call_args{'args'} . " : "
-                              . length($$input) . ")"
+                                . $$call_args{'args'} . " : "
+                                . length($$input) . ")"
                         );
                     }
                 }
-            }
-            else {
-                $code{'base.log'}->( 1,
-                    "[$id] called unimplemented answer type ($cmd)" );
+            } else {
+                $code{'base.log'}
+                    ->( 1, "[$id] called unimplemented answer type ($cmd)" );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
                 return 1;
             }
         }
-    }
-    else {
-        $code{'base.log'}->( 1,
-            "[$id] reply to unknown route id, ignored." );
+    } else {
+        $code{'base.log'}->( 1, "[$id] reply to unknown route id, ignored." );
         return 1;
     }
 
 } elsif ( $cmd eq uc($cmd) ) {
     $code{'base.log'}->( 1, "[$id] invalid reply type '$cmd'!" );
     $$output .= $_cmd_id . "NACK invalid reply type! (protocol error)\n";
-}
-elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
+} elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
     and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
     or defined $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'}
-    and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'} )
-{
+    and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'} ) {
 
     # local command
 
     if ( $cmd =~ /^[^\.]+$/o ) {
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
-                and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } )
-            {
+                and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
                 # call command handler
 
-                my $reply =
-                  &{ $code{ $data{'base'}{'cmd'}{$cmd} } }($call_args);
+                my $reply
+                    = &{ $code{ $data{'base'}{'cmd'}{$cmd} } }($call_args);
 
                 # check answer mode
 
@@ -298,29 +296,26 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                     $reply          = {};
                     $$reply{'mode'} = 'nack';
                     $$reply{'data'} = 'system error';
-                }
-                elsif ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
+                } elsif ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
                     $$reply{'data'} =~ s/\n/\\n/go;
-                    $$output .= $_cmd_id
-                      . uc( $$reply{'mode'} ) . ' '
-                      . $$reply{'data'} . "\n";
-                }
-                elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
+                    $$output
+                        .= $_cmd_id
+                        . uc( $$reply{'mode'} ) . ' '
+                        . $$reply{'data'} . "\n";
+                } elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
                     my $len = length( $$reply{'data'} );
-                    $$output .=
-                      $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
-                }
-                elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
+                    $$output
+                        .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
+                } elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
                     $code{'base.session.shutdown'}->( $id, $$reply{'data'} );
                 }
                 return 0;
+            } else {
+                $code{'base.log'}->(
+                    1, "[$id] command '$cmd' is configured but not defined!"
+                );
             }
-            else {
-                $code{'base.log'}->( 1,
-                    "[$id] command '$cmd' is configured but not defined!" );
-            }
-        }
-        else {
+        } else {
             $code{'base.log'}->( 1, "[$id] unknown command '$cmd'" );
         }
 
@@ -339,7 +334,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
         if ( defined $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
         {
 
-#            $code{'net.send_command'}->( $id, $command_id, $cmd, @params );
+    #            $code{'net.send_command'}->( $id, $command_id, $cmd, @params );
         }
         return -1;
     }
@@ -352,8 +347,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
         # ^ uhm, this will take a while (route discovery feature..)
 
-    }
-    elsif ( $cmd =~ s/^(\w+)\.([^\.]+)$/$2/go ) {
+    } elsif ( $cmd =~ s/^(\w+)\.([^\.]+)$/$2/go ) {
         my $target_name = $1;
         my @sids;
 
@@ -361,15 +355,12 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
             if (    defined $data{'session'}{$1}
                 and $data{'session'}{$1}{'mode'} eq 'client'
-                and $target_name = $data{'session'}{$1}{'user'} )
-            {
+                and $target_name = $data{'session'}{$1}{'user'} ) {
                 push( @sids, $1 );
             }
-        }
-        elsif ( defined $data{'user'}{$target_name} ) {
+        } elsif ( defined $data{'user'}{$target_name} ) {
             foreach my $target_sid (
-                keys( %{ $data{'user'}{$target_name}{'session'} } ) )
-            {
+                keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 push( @sids, $target_sid );
             }
         }
@@ -382,8 +373,7 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                 # setup route
 
                 my $route = $code{'base.route.add'}->(
-                    {
-                        'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
+                    {   'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
                         'target' => { 'sid' => $target_sid }
                     }
                 );
@@ -393,8 +383,8 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
                 $code{'base.log'}->(
                     2,
                     "[$id] "
-                      . $data{'session'}{$id}{'user'}
-                      . " -> $target_name > $cmd [ mode $command_mode ]"
+                        . $data{'session'}{$id}{'user'}
+                        . " -> $target_name > $cmd [ mode $command_mode ]"
                 );
 
                 $target_cmd_id =~ s/^(\d+)$/($1)/;
@@ -407,35 +397,34 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
                     if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
 
-                    $data{'session'}{$target_sid}{'buffer'}{'output'} .=
-                      $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
+                    $data{'session'}{$target_sid}{'buffer'}{'output'}
+                        .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
 
                     # TODO: setup timeout handler
 
-                }
-                elsif ( $command_mode == 2 )    # multi line command mode
+                } elsif ( $command_mode == 2 )    # multi line command mode
                 {
                     my $header = '';
 
                     if ( defined $$call_args{'param'}
                         and ref( $$call_args{'param'} ) eq
-                        'HASH' )                # prepare parameter header
+                        'HASH' )                  # prepare parameter header
                     {
                         my ( $key, $val );
 
-                        while ( ( $key, $val ) =
-                            each( %{ $$call_args{'param'} } ) )
-                        {
+                        while ( ( $key, $val )
+                            = each( %{ $$call_args{'param'} } ) ) {
                             $header .= $key . '=' . $val . "\n";
                         }
                     }
 
-                    $data{'session'}{$target_sid}{'buffer'}{'output'} .=
-                        $target_cmd_id . $cmd . "+\n" . $header . "\n"
-                      . $$call_args{'data'} . ".\n";
+                    $data{'session'}{$target_sid}{'buffer'}{'output'}
+                        .= $target_cmd_id
+                        . $cmd . "+\n"
+                        . $header . "\n"
+                        . $$call_args{'data'} . ".\n";
 
-                }
-                else    # should never get here..
+                } else    # should never get here..
                 {
                     $code{'base.log'}->( 1, 'unknown command mode' );
                     return 1;
@@ -443,13 +432,12 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
             }
 
             return 0;
-        }
-        else {
+        } else {
 
             $$output .= $_cmd_id . "NACK unknown command\n";
 
-            $code{'base.log'}->( 1,
-                "[$id] command '$2' rejected. no '$1' client present!" );
+            $code{'base.log'}
+                ->( 1, "[$id] command '$2' rejected. no '$1' client present!" );
 
             return 1;
         }
@@ -460,14 +448,12 @@ elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
 
     $$output .= $_cmd_id . "NACK unknown command\n";
 
-    $code{'base.log'}->( 1,
-        "[$id] unknown command. ( usr '$usr', cmd '$cmd' )" );
-}
-else    # access denied
+    $code{'base.log'}
+        ->( 1, "[$id] unknown command. ( usr '$usr', cmd '$cmd' )" );
+} else    # access denied
 {
     $$output .= $_cmd_id . "NACK unknown command\n";
-    $code{'base.log'}->( 1,
-        "[$id] access denied. ( usr '$usr', cmd '$cmd' )" );
+    $code{'base.log'}->( 1, "[$id] access denied. ( usr '$usr', cmd '$cmd' )" );
 }
 
 return 0;
