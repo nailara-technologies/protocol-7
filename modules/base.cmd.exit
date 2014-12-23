@@ -1,0 +1,20 @@
+# >:]
+
+# name  = base.cmd.exit
+# param = [reason]
+# descr = shut down current client session and disconnect
+
+$data{'session'}{ $$call{'session_id'} }{'shutdown'} = 1;
+
+my $reason_str     = $$call{'args'} || 'exit';
+my $reason_max_len = 42;
+my $replace_str    = '..';
+substr(
+    $reason_str,
+    $reason_max_len - length($replace_str),
+    length($reason_str) - ( $reason_max_len - length($replace_str) ), '..'
+) if length($reason_str) > $reason_max_len;
+$code{'base.log'}
+    ->( 1, "[" . $$call{'session_id'} . "] shutdown requested ($reason_str)" );
+
+$reply = { 'mode' => 'shutdown', 'data' => 'session terminated' }
