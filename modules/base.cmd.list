@@ -20,21 +20,19 @@ if (    defined $list_name
             }
         )
     };
-} elsif ( defined $list_name and $list_name ne '' ) {
-    $$reply{'data'} = 'no such list';
+} elsif ( not defined $list_name ) {
+    return {
+        'mode' => 'raw',
+        'data' => $code{'base.parser.list'}->(
+            {   'var'  => 'data',
+                'key'  => 'list',
+                'mask' => [qw| key:name descr |]
+            }
+        )
+    };
+} elsif ( defined $list_name and $list_name =~ /\W/ ) {
+    $$reply{'data'} = "invalid characters in list name";
 } else {
-    my $maxlen = 0;
-    my $count  = 0;
-    foreach my $list_name ( keys( %{ $data{'list'} } ) ) {
-        if ( length($list_name) > $maxlen ) { $maxlen = length($list_name) }
-        $count++;
-    }
-    $maxlen += 3;
-
-    $$reply{'mode'} = 'raw';
-    $$reply{'data'} = pack( 'A' . $maxlen, '[name]' ) . "[descr]\n";
-    foreach my $list_name ( keys( %{ $data{'list'} } ) ) {
-        $$reply{'data'} .= pack( 'A' . $maxlen, $list_name )
-            . $data{'list'}{$list_name}{'descr'} . "\n";
-    }
+    substr( $list_name, 33, length($list_name) - 30, '...' );
+    $$reply{'data'} = sprintf("no such list ($list_name)");
 }
