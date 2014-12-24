@@ -37,7 +37,7 @@ if ( my $config_array = $code{'agent.get_agent_conf'}->($agent_name) ) {
 
     $code{'base.proto.nailara.command.send.local'}->(
         {
-            'command' => "core.add_session_key $agent_name $session_key",
+            'command' => "core.session_key $agent_name $session_key",
 
             'reply' => {
                 'handler' => 'agent.answer.agents',
