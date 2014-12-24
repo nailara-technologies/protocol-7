@@ -33,6 +33,5 @@ if (    defined $list_name
 } elsif ( defined $list_name and $list_name =~ /\W/ ) {
     $$reply{'data'} = "invalid characters in list name";
 } else {
-    substr( $list_name, 33, length($list_name) - 30, '...' );
-    $$reply{'data'} = sprintf("no such list ($list_name)");
+    $$reply{'data'} = sprintf("no such list (see 'list')");
 }
