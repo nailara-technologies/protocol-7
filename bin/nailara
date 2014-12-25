@@ -416,6 +416,7 @@ sub prepare_subs {
         if (@_) {
             chomp( my @err = @_ );
             if ($err[0] =~ /^Deep recursion /) {
+                no warnings 'recursion'; # no followups!
                 my $msg = join( ' ', '((FATAL))', @err );
                 undef $code{'base.log'} if $err[0] =~ /$0|nailara/;
                 $code{'log.failed'}->($msg);
