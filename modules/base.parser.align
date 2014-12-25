@@ -1,0 +1,22 @@
+# >:]
+
+# name = base.parser.align
+
+my ( $mode, $string, $field_len ) = ( shift || '', shift || '', shift );
+
+if ( $mode !~ /^left|center|right$/ ) {
+    $code{'base.log'}
+        ->( 0, "base.parser.align: invalid alignment mode '$mode' requested" );
+    $mode = 'left';
+}
+$string =~ s#^ +| +$##g;
+$field_len = length($string) if not defined $field_len or $field_len <= 0;
+if ( $mode eq 'left' ) {
+    return pack( "A$field_len", $string );
+} elsif ( $mode eq 'right' ) {
+    return sprintf( "%${field_len}s", $string );
+} elsif ( $mode eq 'center' ) {
+    my $spaces = $field_len - length($string);
+    my $s_left = int( $spaces / 2 );
+    return pack( "A$field_len", join( '', ' ' x $s_left, $string ) );
+}

@@ -24,20 +24,26 @@ $data{'list'} = {
         'var'     => 'data',
         'key'     => 'user',
         'sub_key' => 'session',
-        'mask'    => 'key:user connected_since',
-        'filters' => { 'connected_since' => 'base.parser.timestamp' },
-        'descr'   => 'connected users'
+        'mask'    => '<key>:user connected_since session:sessions',
+        'align'   => { 'session' => 'center' },
+        'filters' => {
+            'session'         => 'base.parser.key_count',
+            'connected_since' => 'base.parser.timestamp'
+        },
+        'descr' => 'connected users'
     },
     'sessions' => {
         'var'   => 'data',
         'key'   => 'session',
-        'mask'  => 'key:id mode proto user',
+        'mask'  => '<key>:id mode proto user',
+        'align' => { 'user' => 'center' },
         'descr' => 'registered sessions'
     },
     'buffers' => {
         'var'   => 'data',
         'key'   => 'buffer',
-        'mask'  => 'key:name size',
+        'mask'  => '<key>:name size:stored_bytes',
+        'align' => { 'size' => 'center' },
         'descr' => 'available buffers'
     }
 };
