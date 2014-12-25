@@ -59,6 +59,8 @@ sub prepare_subs {
     my $th_ref = (eval 'use Time::HiRes; return [ '
       .'sub{ my $f = $_[0]; $f = 6 if not defined $f or $f =~ /\D/;'
       .' sprintf( "%.${f}f", Time::HiRes::time ) }, \&Time::HiRes::sleep ]');
+      $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1
+        if defined $th_ref and ref($th_ref) eq 'ARRAY';
     $th_ref = [ sub{time()}, sub{ $code{'base.log'}->( 0,
       "WARNING: Time::HiRes not present, sleep($_[0]) will be 0s!") if $_[0]<1;
       sleep($_[0]) } ] if not defined $th_ref or ref($th_ref) ne 'ARRAY';
@@ -221,7 +223,7 @@ sub prepare_subs {
                     # <foo.bar> -> $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'} =~
-                      s|(?<!\\)\<(\w+\.[\w\.]+)(?<!\\)\>|
+                      s|(?<!\\)\<(\w+\.[\w:\.]+)(?<!\\)\>|
                         my $k="\$data{'$1'}";$k=~s/\./\'}{\'/g;$k|gex;
                     close($file);
                     $/ = "\n";
