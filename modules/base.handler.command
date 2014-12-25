@@ -5,6 +5,7 @@
 # comment = currently nailara protocol specific -> move to proto.nailara
 #           and replace with a generic version ..
 #           needs rewrite
+# TODO = reduce memory usage during compilation! ( ~ 3MB just for this sub !! )
 
 my $id = $_[0]->w->data;
 
