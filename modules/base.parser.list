@@ -3,12 +3,12 @@
 # name  = base.parser.list
 # descr = returns a parsed list table according to supplied specification mask
 
-our ( $h_name, $h_key, $sub_key, $display_keys, $filters )
-    = map { $_[0]->{$_} } qw| var key sub_key mask filters |;
+our ( $h_name, $h_key, $sub_key, $display_keys, $align, $filters )
+    = map { $_[0]->{$_} } qw| var key sub_key mask align filters |;
 
 my %max_len;
 my $spacing  = 4;
-my $out_data = "\n";
+my $table_string = "\n";
 no strict 'refs';
 my $data_ref = ${$h_name}{$h_key};
 use strict 'refs';
@@ -18,18 +18,21 @@ my $table_width = 0;
 foreach my $key_name ( @{$display_keys} ) {
     my $index        = 0;
     my $key_name_str = $key_name;
-    if ( $key_name_str =~ s/^([^\:]+)\:// ) { $index = 1 }
+    if ( $key_name_str =~ s/^<key>:// ) { $index = 1 }
+    else { $key_name_str =~ s/^[^:]+:([^:]+)$/$1/ }
     $max_len{$key_name} = length($key_name_str) + $spacing + 3;
     foreach my $key_val ( keys(%$data_ref) ) {
         next
             if defined $sub_key
             and not exists $data_ref->{$key_val}->{$sub_key};   # only requested
         my $value_str = $key_val;
-        $value_str = $data_ref->{$key_val}->{$key_name} || '' if !$index;
+        if ( !$index ) {
+            $value_str = $data_ref->{$key_val}->{$key_name} || '';
+        }
         my $f_val = $code{'base.call_filter'}
             ->( $filters, $key_name_str, $value_str );
-        $max_len{$key_name} = length($f_val) + $spacing
-            if length($f_val) > $max_len{$key_name} - $spacing;
+        $max_len{$key_name} = length($f_val) + 3
+            if length($f_val) > $max_len{$key_name} - 3;
     }
     $table_width += $max_len{$key_name};
 }
@@ -37,13 +40,16 @@ foreach my $key_name ( @{$display_keys} ) {
 # .: header :.
 foreach my $key_name ( @{$display_keys} ) {
     my $key_name_str = $key_name;
-    $key_name_str =~ s/^([^\:]+)\://;
+    $key_name_str =~ s/^<key>\://;
+    $key_name_str =~ s/^[^:]+:([^:]+)$/$1/;
     $key_name_str =~ s/_/ /g;
     my $len = length($key_name_str) + $spacing;
-    $out_data .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
+    $table_string .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
 }
+my $last_d_key = $$display_keys[ scalar @{$display_keys} - 1 ];
+$max_len{$last_d_key} -= 2;
 my $sub_line .= '-' x $table_width;
-$out_data .= "\n$sub_line\n";
+$table_string .= "\n$sub_line\n";
 
 # .: data :.
 foreach
@@ -53,18 +59,25 @@ foreach
         and not exists $data_ref->{$key_val}->{$sub_key};  # show only requested
     foreach my $key_name ( @{$display_keys} ) {
         my $key_name_str = $key_name;
-        if ( $key_name_str =~ s/^([^\:]+)\:// ) {
-            $out_data .= '  '
-                . pack( "A$max_len{$key_name}",
-                $code{'base.call_filter'}->( $filters, $key_name_str, $key_val )
-                );
+        if ( $key_name_str =~ s/^<key>\:// ) {
+            $key_val = $code{'base.call_filter'}
+                ->( $filters, $key_name_str, $key_val );
+            $table_string .= '  '
+                . $code{'base.parser.align'}->(
+                $align->{$key_name_str} || 'left',
+                $key_val, $max_len{$key_name} - 1
+                ) . ' ';
         } else {
+            my $len = $max_len{$key_name};
+            $key_name =~ s|:.+$||;
             my $value = $data_ref->{$key_val}->{$key_name} || '';
-            $out_data .= pack( "A$max_len{$key_name}",
-                $code{'base.call_filter'}->( $filters, $key_name, $value ) );
+            $value = $code{'base.call_filter'}->( $filters, $key_name, $value );
+            $table_string
+                .= $code{'base.parser.align'}
+                ->( $align->{$key_name} || 'left', $value, $len - 1 ) . ' ';
         }
     }
-    $out_data .= "\n";
+    $table_string .= "\n";
 }
-$out_data .= "\n";
-return $out_data;
+$table_string .= "\n";
+return $table_string;
