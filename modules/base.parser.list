@@ -3,71 +3,68 @@
 # name  = base.parser.list
 # descr = returns a parsed list table according to supplied specification mask
 
-my ( $h_name, $h_key, $sub_key, $display_keys )
-    = map { $_[0]->{$_} } ( 'var', 'key', 'sub_key', 'mask' );
+our ( $h_name, $h_key, $sub_key, $display_keys, $filters )
+    = map { $_[0]->{$_} } qw| var key sub_key mask filters |;
 
-my %alias;
-my %str_len;
+my %max_len;
 my $spacing  = 4;
 my $out_data = "\n";
-my @shown_entries;
+no strict 'refs';
+my $data_ref = ${$h_name}{$h_key};
+use strict 'refs';
 
-foreach my $genit ( 0 .. 1 ) {
-
-    # .: header :.
-    my $sub_line;
-    foreach my $_key ( @{$display_keys} ) {
-        if ( $_key =~ s/^([^\:]+)\:// ) { $alias{$_key} = $1; }
-        if ($genit) {
-            my $len = int( $str_len{$_key} + $spacing );
-            ( my $_key_str = $_key ) =~ s/_/ /g;
-            $out_data .= pack( "A$len", " : " . $_key_str . " :." );
-            $sub_line .= '-' x $len;
-        } else {
-            $str_len{$_key} = length($_key) + 4;
-        }
-    }
-    $out_data .= "\n$sub_line\n" if $genit;
-
-    # .: data :.
-    my $loop_count = 0;
-    no strict 'refs';    # /o\
-    foreach my $new_key ( keys( %{ ${$h_name}{$h_key} } ) ) {
-
+# .: preparation :.
+my $table_width = 0;
+foreach my $key_name ( @{$display_keys} ) {
+    my $index        = 0;
+    my $key_name_str = $key_name;
+    if ( $key_name_str =~ s/^([^\:]+)\:// ) { $index = 1 }
+    $max_len{$key_name} = length($key_name_str) + $spacing + 3;
+    foreach my $key_val ( keys(%$data_ref) ) {
         next
             if defined $sub_key
-            and not exists ${$h_name}{$h_key}{$new_key}->{$sub_key};
-
-        if ( ++$loop_count == 1 ) {
-            use strict 'refs';    # \o/
-        }
-        foreach my $__key ( @{$display_keys} ) {
-            my $len = "A" . int( $str_len{$__key} + $spacing );
-            if ( $genit and defined $alias{$__key} ) {
-                $out_data .= '  ' . pack( $len, $new_key );
-
-            }
-            foreach my $_new_key ( keys( %{ ${$h_name}{$h_key}{$new_key} } ) ) {
-                my $_val;
-                if ( not defined $alias{$__key} and $_new_key eq $__key ) {
-                    $_val = ${$h_name}{$h_key}{$new_key}{$_new_key};
-                    if ($genit) { $out_data .= pack( $len, $_val ) }
-                    elsif ( length($_val) > $str_len{$__key} ) {
-                        $str_len{$__key} = length($_val);
-                    }
-                } elsif ( defined $alias{$__key} ) {
-                    if ( ( length($_val) || 0 ) > $str_len{$__key} ) {
-                        $str_len{$__key} = length($_val);
-                    }
-                    if ( length( $alias{$__key} ) + 2 > $str_len{$__key} ) {
-                        $str_len{$__key} = length( $alias{$__key} ) + 2;
-                    }
-                }
-            }
-        }
-        if ($genit) { $out_data .= "\n" }
+            and not exists $data_ref->{$key_val}->{$sub_key};   # only requested
+        my $value_str = $key_val;
+        $value_str = $data_ref->{$key_val}->{$key_name} || '' if !$index;
+        my $f_val = $code{'base.call_filter'}
+            ->( $filters, $key_name_str, $value_str );
+        $max_len{$key_name} = length($f_val) + $spacing
+            if length($f_val) > $max_len{$key_name} - $spacing;
     }
+    $table_width += $max_len{$key_name};
 }
-$out_data =~ s#\n\s+\n+|\s+\n#\n#g;
+
+# .: header :.
+foreach my $key_name ( @{$display_keys} ) {
+    my $key_name_str = $key_name;
+    $key_name_str =~ s/^([^\:]+)\://;
+    $key_name_str =~ s/_/ /g;
+    my $len = length($key_name_str) + $spacing;
+    $out_data .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
+}
+my $sub_line .= '-' x $table_width;
+$out_data .= "\n$sub_line\n";
+
+# .: data :.
+foreach
+    my $key_val ( sort { length $a <=> length $b } sort keys( %{$data_ref} ) ) {
+    next
+        if defined $sub_key
+        and not exists $data_ref->{$key_val}->{$sub_key};  # show only requested
+    foreach my $key_name ( @{$display_keys} ) {
+        my $key_name_str = $key_name;
+        if ( $key_name_str =~ s/^([^\:]+)\:// ) {
+            $out_data .= '  '
+                . pack( "A$max_len{$key_name}",
+                $code{'base.call_filter'}->( $filters, $key_name_str, $key_val )
+                );
+        } else {
+            my $value = $data_ref->{$key_val}->{$key_name} || '';
+            $out_data .= pack( "A$max_len{$key_name}",
+                $code{'base.call_filter'}->( $filters, $key_name, $value ) );
+        }
+    }
+    $out_data .= "\n";
+}
 $out_data .= "\n";
 return $out_data;
