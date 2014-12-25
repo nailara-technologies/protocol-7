@@ -20,7 +20,7 @@ $log_msg =~ s/\e/\\e/g;
 
 # prevent deep recursions in error log system:
 my $fatal_exit = 0;
-my $fatal_exit = 1
+$fatal_exit = 1
     if $log_msg =~ /Deep recursion / and $log_msg =~ /log|buffer/;
 
 $log_msg = "call to unknown subroutine while executing '$1'!"
