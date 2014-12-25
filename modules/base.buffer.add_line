@@ -4,7 +4,7 @@
 
 my $name        = $_[0];
 my $log_message = $_[1];
-my $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'} || 100000;
+my $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'};
 $log_message = $_[2] if defined $_[2] and $_[1] == -1;
 $log_message =~ s/^\s+|\s+$//;
 $log_message =~ s/\n/\\n/g;
@@ -15,16 +15,38 @@ my $message_len = length($log_message);
 if ( $name eq '' ) {
     $code{'base.log'}->( 1, 'add_ram_log: no buffer name supplied' );
     return -1;
-}
-elsif ( $name !~ /^\w+$/ or length($name) > 23 ) {
+} elsif ( $name !~ /^\w+$/ or length($name) > 23 ) {
     $code{'base.log'}->( 1, 'add_ram_log: invalid buffer name suppied' );
     return -1;
+}
+if ( not defined $buffer_size or !$buffer_size ) {
+    my $default_found = exists <default.size>
+        and exists <default.size.log_buffers> ? 1 : 0;
+    my $default_size = 128000;    # internal default!
+    $default_size = <default.size.log_buffers> if $default_found;
+    my $size_str = $default_size;
+    if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
+    $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'}
+        = $default_size;
+    if ( !$default_found ) {
+        $code{'base.log'}->(
+            1,
+            "[!] no [default] log buffer size found,"
+                . " using $size_str for '$name'"
+        );
+    } else {
+        $code{'base.log'}->(
+            2,
+            "[!] no '$name'-buffer size set,"
+                . " using default setting ($size_str)!"
+        );
+    }
 }
 if ( $message_len > $buffer_size ) {
     $code{'base.log'}->(
         1,
         "WARNING: log message longer than log-buffer-size"
-          . " (buffer: $buffer_size bytes message: $message_len bytes)"
+            . " (buffer: $buffer_size bytes message: $message_len bytes)"
     );
     return 0;
 }
@@ -41,13 +63,11 @@ push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
 $data{'buffer'}{$name}{'size'} += $message_len;
 
 if ( defined $data{'system'}{'log'}{'buffer'}{$name}{'command'}
-    and $data{'system'}{'log'}{'buffer'}{$name}{'command'} ne '' )
-{
+    and $data{'system'}{'log'}{'buffer'}{$name}{'command'} ne '' ) {
     $code{'base.proto.nailara.command.send.local'}->(
-        {
-            'command' => $data{'system'}{'log'}{'buffer'}{$name}{'command'}
-              . ' '
-              . $log_message,
+        {   'command' => $data{'system'}{'log'}{'buffer'}{$name}{'command'}
+                . ' '
+                . $log_message,
             'reply' => { 'handler' => 'dev.null', }
         }
     );
