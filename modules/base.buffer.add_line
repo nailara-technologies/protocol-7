@@ -1,9 +1,11 @@
 # >:]
 
-# name       = base.buffer.add_line
+# name  = base.buffer.add_line
+# descr = write log messages to buffer and screen
 
 my $name        = $_[0];
 my $log_message = $_[1];
+my $min_bufsize = 10000;
 my $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'};
 $log_message = $_[2] if defined $_[2] and $_[1] == -1;
 $log_message =~ s/^\s+|\s+$//;
@@ -19,16 +21,27 @@ if ( $name eq '' ) {
     $code{'base.log'}->( 1, 'add_ram_log: invalid buffer name suppied' );
     return -1;
 }
-if ( not defined $buffer_size or !$buffer_size ) {
+if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
+    my $default_size = 128000; # internal default
     my $default_found = exists <default.size>
         and exists <default.size.log_buffers> ? 1 : 0;
-    my $default_size = 128000;    # internal default!
     $default_size = <default.size.log_buffers> if $default_found;
+    my $min_size_failure = 0;
+    if ( defined $buffer_size and $buffer_size < $min_bufsize ) {
+        $default_size     = $min_bufsize;
+        $min_size_failure = 1;
+    }
     my $size_str = $default_size;
     if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
     $buffer_size = $data{'system'}{'log'}{'buffer'}{$name}{'size'}
         = $default_size;
-    if ( !$default_found ) {
+    if ($min_size_failure) {
+        $code{'base.log'}->(
+            0,
+            "[!] log buffer size too small,"
+                . " using $size_str for '$name' buffer!"
+        );
+    } elsif ( !$default_found ) {
         $code{'base.log'}->(
             1,
             "[!] no [default] log buffer size found,"
@@ -38,7 +51,7 @@ if ( not defined $buffer_size or !$buffer_size ) {
         $code{'base.log'}->(
             2,
             "[!] no '$name'-buffer size set,"
-                . " using default setting ($size_str)!"
+                . " using default setting ($size_str)"
         );
     }
 }
