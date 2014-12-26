@@ -9,9 +9,9 @@ return {
     'mode' => 'nack',
     'data' => 'not available'
     }
-    if not exists <system.process.start>;
+    if not exists <system.process_start.time>;
 
-( my $startup_time = <system.process.start> ) =~ s/\.\d+$//;
+( my $startup_time = <system.process_start.time> ) =~ s/\.\d+$//;
 $startup_time = $code{'base.parser.timestamp'}->($startup_time)
     if not defined $mode or $mode ne 'unix';
 

@@ -8,15 +8,16 @@ use POSIX;
 # init some vars
 
 $data{'system'}{'os'}{'name'} = $^O;
-$data{'system'}{'process'} = {
-    'start' => $code{'base.time'}->(5),
+$data{'system'}{'process_start'} = {
+    'time'  => $code{'base.time'}->(5),
     'pid'   => $$,
     'pname' => $0,
     'uid'   => $<,
     'euid'  => $>,
     'gid'   => $(,
     'egid'  => $)
-};
+    }
+    if not exists $data{'system'}{'process_start'};
 
 # init / reset lists
 $data{'list'} = {
@@ -35,9 +36,10 @@ $data{'list'} = {
     'sessions' => {
         'var'   => 'data',
         'key'   => 'session',
-        'mask'  => '<key>:id mode proto user',
-        'align' => { 'user' => 'center' },
-        'descr' => 'registered sessions'
+        'mask'  => '<key>:id mode proto user start_time:duration',
+        'align' => { 'user' => 'center-1', 'start_time' => 'center' },
+        'filters' => { 'start_time' => 'base.parser.duration' },
+        'descr'   => 'registered sessions'
     },
     'buffers' => {
         'var'   => 'data',
