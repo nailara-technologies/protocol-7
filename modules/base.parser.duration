@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.parser.duration
+# descr = returns duration since given unix time in days hours mins and seconds
+
+my @result;
+my $start_time = shift;
+
+return 'n/a' if not defined $start_time or $start_time !~ /^\d+(\.\d+)?$/;
+( my $delta_t = time() - $start_time ) =~ s/\.\d+$//;
+
+my ( $sec, $min, $hour, $mday ) = localtime($delta_t);
+$mday--;
+$hour--;
+$sec = sprintf( "%02d", $sec ) if $hour or $min;
+push( @result, "${mday}d" ) if $mday;
+push( @result, "${hour}h" ) if $hour;
+push( @result, "${min}m" )  if $min;
+push( @result, "${sec}s" )  if $sec and !$hour and !$mday;
+
+return join( ' ', @result );
