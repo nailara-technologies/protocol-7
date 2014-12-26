@@ -4,19 +4,23 @@
 
 my ( $mode, $string, $field_len ) = ( shift || '', shift || '', shift );
 
-if ( $mode !~ /^left|center|right$/ ) {
+if ( $mode !~ /^left|center([-\+]\d)?|right$/ ) {
     $code{'base.log'}
         ->( 0, "base.parser.align: invalid alignment mode '$mode' requested" );
     $mode = 'left';
 }
+my $offset = $1;
 $string =~ s#^ +| +$##g;
 $field_len = length($string) if not defined $field_len or $field_len <= 0;
 if ( $mode eq 'left' ) {
     return pack( "A$field_len", $string );
 } elsif ( $mode eq 'right' ) {
     return sprintf( "%${field_len}s", $string );
-} elsif ( $mode eq 'center' ) {
+} elsif ( $mode =~ /^center/ ) {
     my $spaces = $field_len - length($string);
     my $s_left = int( $spaces / 2 );
+    $s_left += $offset if defined $offset;
+    $s_left = 0       if $s_left < 0;
+    $s_left = $spaces if $s_left > $spaces;
     return pack( "A$field_len", join( '', ' ' x $s_left, $string ) );
 }
