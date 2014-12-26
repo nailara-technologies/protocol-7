@@ -17,6 +17,9 @@ my $cmd_id = 0;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
+# regex cache
+my $re = $data{'regex'}{'base'};
+
 # stop handler to modify buffer without calling the handler
 
 $_[0]->w->stop;
@@ -30,11 +33,21 @@ my @args;
 my $command_mode = 0;
 my $call_args    = {};
 
+# check cmd_id regex (for numbers or valid length)
+if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
+    and $$input !~ m|^\(($re->{cmd_id})\)| ) {
+    my $cmd_id = $1 || '';
+    $$input =~ s|^\([^\)]*\)[^\n]+\n||;
+    $code{'base.log'}->( 1, "[$id] invalid command id ('$cmd_id')" );
+    $$output .= "NACK invalid command id syntax or length\n";
+    return 1;
+}
+
 # check for multiple line commands
 
-if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
+if ( $$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
     $cmd = $1;
-    if ( $$input =~ s/^(\(\d+\)|)[\w\.]+\+\n//o ) {
+    if ( $$input =~ s/^(\($re->{cmd_id}\)|)[\w\.]+\+\n//o ) {
 
         # read argument header
 
@@ -89,14 +102,14 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
 # incomplete multiple line command
 
-elsif ( $$input =~ /^((\(\d+\)|)\ *[\w\.]+)\+\n/o ) {
+elsif ( $$input =~ /^((\($re->{cmd_id}\)|)\ *[\w\.]+)\+\n/o ) {
     $_[0]->w->start;
     return 1;
 }
 
 # single command line
 
-elsif ( $$input =~ s/^((\(\d+\)|)\ *[\w\.]+)(\ +(.+)|)\n//o ) {
+elsif ( $$input =~ s/^((\($re->{cmd_id}\)|)\ *[\w\.]+)(\ +(.+)|)\n//o ) {
 
     $_[0]->w->start;
 
@@ -119,7 +132,7 @@ $_[0]->w->start;
 
 # extract command id
 
-if ( $cmd =~ s/^\((\d+)\)\ *//o ) { $cmd_id = $1 }
+if ( $cmd =~ s/^\(($re->{cmd_id})\)\ *//o ) { $cmd_id = $1 }
 
 $$call_args{'command_id'} = $cmd_id;
 $$call_args{'session_id'} = $id;
@@ -281,7 +294,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
     # local command
 
-    if ( $cmd =~ /^[^\.]+$/o ) {
+    if ( $cmd =~ /^$re->{cmd}$/ ) {
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
@@ -342,22 +355,23 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
     # absolute address notation
 
-    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/o ) {
+    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/o ) { # XXX: regex invalid! (only host)
         my $network_name = $1;
         my $node_name    = $1;
 
         # ^ uhm, this will take a while (route discovery feature..)
 
-    } elsif ( $cmd =~ s/^(\w+)\.([^\.]+)$/$2/go ) {
+    } elsif ( $cmd =~ s/^($re->{sid}|$re->{usr})\.($re->{cmd})$/$2/go ) {
         my $target_name = $1;
+        my $command_str = $2;
         my @sids;
 
-        if ( $target_name =~ /^(\d+)$/ ) {
+        if ( $target_name =~ /^$re->{sid}$/ ) {
 
-            if (    defined $data{'session'}{$1}
-                and $data{'session'}{$1}{'mode'} eq 'client'
-                and $target_name = $data{'session'}{$1}{'user'} ) {
-                push( @sids, $1 );
+            if (    defined $data{'session'}{$target_name}
+                and $data{'session'}{$target_name}{'mode'} eq 'client'
+                and $target_name = $data{'session'}{$target_name}{'user'} ) {
+                push( @sids, $target_name );
             }
         } elsif ( defined $data{'user'}{$target_name} ) {
             foreach my $target_sid (
@@ -388,7 +402,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         . " -> $target_name > $cmd [ mode $command_mode ]"
                 );
 
-                $target_cmd_id =~ s/^(\d+)$/($1)/;
+                $target_cmd_id =~ s/^($re->{cmd_id})$/($1)/;
 
                 if ( $command_mode == 1 )    # single line command mode
                 {
@@ -437,8 +451,11 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
             $$output .= $_cmd_id . "NACK unknown command\n";
 
-            $code{'base.log'}
-                ->( 1, "[$id] command '$2' rejected. no '$1' client present!" );
+            $code{'base.log'}->(
+                1,
+                "[$id] command '$command_str' rejected"
+                    . " (client '$target_name' not found)!"
+            );
 
             return 1;
         }
