@@ -1,0 +1,13 @@
+# >:]
+
+# name = base.parser.size_str
+
+return 'n/a' if not defined $_[0] or $_[0] !~ /^\d+$/;
+
+my $size_str = shift;
+
+$size_str =~ s|0{9}$|G|;
+$size_str =~ s|0{6}$|M| if $size_str =~ /^\d+$/;
+$size_str =~ s|0{3}$|K| if $size_str =~ /^\d+$/;
+
+return $size_str;
