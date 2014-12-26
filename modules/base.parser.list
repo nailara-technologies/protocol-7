@@ -7,7 +7,7 @@ our ( $h_name, $h_key, $sub_key, $display_keys, $align, $filters )
     = map { $_[0]->{$_} } qw| var key sub_key mask align filters |;
 
 my %max_len;
-my $spacing  = 4;
+my $spacing      = 4;
 my $table_string = "\n";
 no strict 'refs';
 my $data_ref = ${$h_name}{$h_key};
@@ -18,8 +18,14 @@ my $table_width = 0;
 foreach my $key_name ( @{$display_keys} ) {
     my $index        = 0;
     my $key_name_str = $key_name;
-    if ( $key_name_str =~ s/^<key>:// ) { $index = 1 }
-    else { $key_name_str =~ s/^[^:]+:([^:]+)$/$1/ }
+    my $key_orig_str = $key_name;
+    if ( $key_name_str =~ s/^<key>:// ) {
+        $index        = 1;
+        $key_orig_str = $key_name_str;
+    } else {
+        $key_name_str =~ s/^([^:]+):([^:]+)$/$2/;
+        $key_orig_str = $1 if defined $1;
+    }
     $max_len{$key_name} = length($key_name_str) + $spacing + 3;
     foreach my $key_val ( keys(%$data_ref) ) {
         next
@@ -27,10 +33,10 @@ foreach my $key_name ( @{$display_keys} ) {
             and not exists $data_ref->{$key_val}->{$sub_key};   # only requested
         my $value_str = $key_val;
         if ( !$index ) {
-            $value_str = $data_ref->{$key_val}->{$key_name} || '';
+            $value_str = $data_ref->{$key_val}->{$key_orig_str} || '';
         }
         my $f_val = $code{'base.call_filter'}
-            ->( $filters, $key_name_str, $value_str );
+            ->( $filters, $key_orig_str, $value_str );
         $max_len{$key_name} = length($f_val) + 3
             if length($f_val) > $max_len{$key_name} - 3;
     }
@@ -44,11 +50,12 @@ foreach my $key_name ( @{$display_keys} ) {
     $key_name_str =~ s/^[^:]+:([^:]+)$/$1/;
     $key_name_str =~ s/_/ /g;
     my $len = length($key_name_str) + $spacing;
-    $table_string .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
+    $table_string
+        .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
 }
 my $last_d_key = $$display_keys[ scalar @{$display_keys} - 1 ];
 $max_len{$last_d_key} -= 2;
-my $sub_line .= '-' x $table_width;
+my $sub_line  .= '-' x $table_width;
 $table_string .= "\n$sub_line\n";
 
 # .: data :.
@@ -69,12 +76,13 @@ foreach
                 ) . ' ';
         } else {
             my $len = $max_len{$key_name};
-            $key_name =~ s|:.+$||;
-            my $value = $data_ref->{$key_val}->{$key_name} || '';
-            $value = $code{'base.call_filter'}->( $filters, $key_name, $value );
+            $key_name_str =~ s|:.+$||;
+            my $value = $data_ref->{$key_val}->{$key_name_str} || '';
+            $value = $code{'base.call_filter'}
+                ->( $filters, $key_name_str, $value );
             $table_string
                 .= $code{'base.parser.align'}
-                ->( $align->{$key_name} || 'left', $value, $len - 1 ) . ' ';
+                ->( $align->{$key_name_str} || 'left', $value, $len - 1 ) . ' ';
         }
     }
     $table_string .= "\n";
