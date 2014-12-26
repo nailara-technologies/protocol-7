@@ -2,9 +2,9 @@
 
 # name       = base.read_proc_times
 
-( $data{'system'}{'times'}{'proc_user'},
-  $data{'system'}{'times'}{'proc_system'},
-  $data{'system'}{'times'}{'child_user'},
-  $data{'system'}{'times'}{'child_system'} )
-  = times();
-$data{'system'}{'times'}{'last_read'} = [base.time:5];
+(   $data{'system'}{'times'}{'proc_user'},
+    $data{'system'}{'times'}{'proc_system'},
+    $data{'system'}{'times'}{'child_user'},
+    $data{'system'}{'times'}{'child_system'}
+) = times();
+$data{'system'}{'times'}{'last_read'} = $code{'base.time'}->(2);
