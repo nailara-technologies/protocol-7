@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.cmd.startup_time
+# param = [unix]
+# descr = returns agent startup date / [or unix] time
+
+my $mode = $$call{'args'};
+return {
+    'mode' => 'nack',
+    'data' => 'not available'
+    }
+    if not exists <system.process.start>;
+
+( my $startup_time = <system.process.start> ) =~ s/\.\d+$//;
+$startup_time = $code{'base.parser.timestamp'}->($startup_time)
+    if not defined $mode or $mode ne 'unix';
+
+return {
+    'mode' => 'ack',
+    'data' => $startup_time
+    }
