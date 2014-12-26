@@ -54,7 +54,7 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
                 if ( $header and $arg ne '' ) {
 
-                    if ( $arg =~ /^([\w|\.]+)[\s|\t]*[=:][\s|\t]*(.*)$/o ) {
+                    if ( $arg =~ /^([\w\.]+)[\ \t]*[=:][\ \t]*(.*)$/o ) {
                         my ( $key, $val ) = ( $1, $2 );
 
                         $$call_args{'param'}{$key} = $val;
@@ -89,14 +89,14 @@ if ( $$input =~ m/^((\(\d+\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
 # incomplete multiple line command
 
-elsif ( $$input =~ /^((\(\d+\)|)\s*[\w\.]+)\+\n/o ) {
+elsif ( $$input =~ /^((\(\d+\)|)\ *[\w\.]+)\+\n/o ) {
     $_[0]->w->start;
     return 1;
 }
 
 # single command line
 
-elsif ( $$input =~ s/^((\(\d+\)|)\s*[\w\.]+)(\s+(.+)|)\n//o ) {
+elsif ( $$input =~ s/^((\(\d+\)|)\ *[\w\.]+)(\ +(.+)|)\n//o ) {
 
     $_[0]->w->start;
 
@@ -119,7 +119,7 @@ $_[0]->w->start;
 
 # extract command id
 
-if ( $cmd =~ s/^\((\d+)\)\s*//o ) { $cmd_id = $1 }
+if ( $cmd =~ s/^\((\d+)\)\ *//o ) { $cmd_id = $1 }
 
 $$call_args{'command_id'} = $cmd_id;
 $$call_args{'session_id'} = $id;
@@ -142,7 +142,7 @@ if ( defined $alias_to and length($alias_to) ) {
     foreach my $map_key ( keys %{$args_map} ) {
         $cmd =~ s/$map_key/$args_map->{$map_key}/;
     }
-    if ( $cmd =~ s/^(\S+)\s+(.+)$/$1/ ) {
+    if ( $cmd =~ s/^(\S+)\ +(.+)$/$1/ ) {
         $$call_args{'args'} = $2 . ' ' . $$call_args{'args'};
     }
 }
