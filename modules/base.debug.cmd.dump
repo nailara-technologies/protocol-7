@@ -4,7 +4,8 @@
 # param = [key_pattern]
 # descr = dumps internal program state (debugging)
 
-if ( not eval {qr/$$call{'args'}/} ) {
+my $keyword = $$call{'args'} || '';
+if ( not eval {qr/$keyword/} ) {
     ( my $regex_err = lc($@) ) =~ s/ in regex.+\n$//;
     return {
         'mode' => 'nack',
