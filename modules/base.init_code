@@ -27,7 +27,7 @@ $data{'list'} = {
         'mask'    => '<key>:user connected_since session:sessions',
         'align'   => { 'session' => 'center' },
         'filters' => {
-            'session'         => 'base.parser.key_count',
+            'session'         => 'base.parser.element_count',
             'connected_since' => 'base.parser.timestamp'
         },
         'descr' => 'connected users'
@@ -42,8 +42,16 @@ $data{'list'} = {
     'buffers' => {
         'var'   => 'data',
         'key'   => 'buffer',
-        'mask'  => '<key>:name size:stored_bytes',
-        'align' => { 'size' => 'center' },
+        'mask'  => '<key>:name data:lines size:stored_bytes max_size',
+        'align' => {
+            'data'     => 'center-1',
+            'size'     => 'center-1',
+            'max_size' => 'center'
+        },
+        'filters' => {
+            'data'     => 'base.parser.element_count',
+            'max_size' => 'base.parser.size_str'
+        },
         'descr' => 'available buffers'
     }
 };

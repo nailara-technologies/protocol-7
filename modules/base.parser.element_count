@@ -1,0 +1,7 @@
+# >:]
+
+# name = base.parser.element_count
+
+return 'n/a'                  if ref( $_[0] ) !~ /^ARRAY|HASH$/;
+return scalar @{ $_[0] }      if ref( $_[0] ) eq 'ARRAY';
+return scalar keys %{ $_[0] } if ref( $_[0] ) eq 'HASH';
