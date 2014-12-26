@@ -18,8 +18,11 @@ $data{'system'}{'process_start'} = {
     }
     if not exists $data{'system'}{'process_start'};
 
-$data{'system'}{'host'}
-    = { 'os' => { 'name' => $^O }, 'timezone' => $code{'base.timezone'}->() };
+$data{'system'}{'host'} = {
+    'os'       => { 'name' => $^O },
+    'hostname' => hostname,
+    'timezone' => $code{'base.timezone'}->()
+};
 
 # flush / init regex cache
 $data{'regex'} = { 'base' => $code{'base.regex'}->() };
