@@ -19,6 +19,9 @@ $data{'system'}{'process_start'} = {
     }
     if not exists $data{'system'}{'process_start'};
 
+# flush / init regex cache
+$data{'regex'} = { 'base' => $code{'base.regex'}->() };
+
 # init / reset lists
 $data{'list'} = {
     'users' => {
