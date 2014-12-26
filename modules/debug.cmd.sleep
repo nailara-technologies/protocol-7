@@ -4,8 +4,9 @@
 # param = <seconds>
 # descr = sleeps <n> seconds (for debugging purposes)
 
-my $seconds = $$call{'args'};
-my $hi_res = exists <system.perl_module.installed.Time::HiRes> ? 1 : 0;
+my $seconds    = $$call{'args'};
+my $session_id = $$call{'session_id'};
+my $hi_res     = exists <system.perl_module.installed.Time::HiRes> ? 1 : 0;
 if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     $$reply{'data'} = 'required <seconds> parameter';
 } else {
@@ -21,14 +22,21 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
         $fp--;    # '.'
         $fp = 2 if $fp < 2;
     }
+    my $s = !$fp && $seconds == 1 ? '' : 's';
+    $code{'base.log'}->(
+        0,
+        sprintf( "[$session_id] (!) /o\\ .. sleeping %.${fp}f second$s ...",
+            $seconds )
+    );
     my $start_time = $code{'base.time'}->();
     $code{'base.sleep'}->($seconds);
     my $slept_time = $code{'base.time'}->() - $start_time;
     if ( $slept_time < $seconds ) {
+        undef $s;
         if ( $fp or $seconds > 1 ) {
             while ( $slept_time < $seconds ) {
                 my $time_left = $seconds - $slept_time;
-                my $s = !$fp && $time_left == 1 ? '' : 's';
+                $s = !$fp && $time_left == 1 ? '' : 's';
                 $code{'base.log'}->(
                     0,
                     'base.cmd.sleep: woke up '
@@ -42,6 +50,7 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     }
     my $slept_str = sprintf( "%.${fp}f", $slept_time );
     $woke = ' (woke up early!)' if $slept_time < $seconds;    # !hires?
-    my $s = !$fp && $slept_str == 1 ? '' : 's';
+    $code{'base.log'}->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
+    $s = !$fp && $slept_str == 1 ? '' : 's';
     $reply = { 'mode' => 'ack', 'data' => "slept $slept_str second$s" . $woke };
 }
