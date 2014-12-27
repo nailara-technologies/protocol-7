@@ -50,10 +50,10 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
   my $del_index = 0;
   foreach my $sub_name ( @{$$sub_list_ref} ) {
     next if not defined $sub_name;
-    if ( $sub_name =~ /^$target_sub_prefix./ ) {
+    if ( $sub_name =~ /^$target_sub_prefix(\.|$)/ ) {
       delete $$sub_list_ref->[$del_index];
     } else {
-      $sub_name =~ s/^$source_sub_prefix\./$target_sub_prefix./;
+      $sub_name =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/;
     }
     $del_index++;
   }
@@ -63,6 +63,8 @@ if (!$moved) {
   [base.log:2,
     "swap_subs: nothing done ($source_sub_prefix >> $target_sub_prefix)"];
 } else {
+    <base.modules.internal_name>->{$target_sub_prefix} = $source_sub_prefix;
+    <base.modules.moved_to>->{$source_sub_prefix} = $target_sub_prefix;
   my $s = $moved == 1 ? '' : 's';
   [base.log:2,
     " ! \[$source_sub_prefix>$target_sub_prefix\] $moved subroutine$s moved!"];

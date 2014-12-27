@@ -192,6 +192,12 @@ sub prepare_subs {
             $code{'log.ok'}->( "loading module '" . $code_name . "'" );
             my $code_count      = 0;
             my $last_code_count = 0;
+            if ( exists $data{'base'}{'modules'}{'internal_name'} ) {
+                my $internal_name =
+                    delete $data{'base'}{'modules'}{'internal_name'};
+                delete $data{'base'}{'modules'}{'moved_to'}{$internal_name}
+                    if exists $data{'base'}{'modules'}{'moved_to'};
+            }
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
                     and $file_name =~ /^$code_name\.|^$code_name$/
