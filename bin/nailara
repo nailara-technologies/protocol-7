@@ -218,7 +218,7 @@ sub prepare_subs {
                     #          binary is working and merged into the tree
 
                     $data{'code'}{$file_name}{'source'} =~
-                      s|\[(\w+\.[\w\.]+)\]|&{\$code{'$1'}}|g;
+                      s|\[(\w+\.[\w\.]+)\]|&{\$code{'$1'}}()|g;
 
                     # <foo.bar> -> $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
