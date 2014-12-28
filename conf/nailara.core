@@ -3,8 +3,8 @@
 
 [load_config_file:'auth.pwd.core']
 
-modules.load			=	auth digest net io.ip debug
-auth.methods			=	pwd # agent rsa
+modules.load			=	auth digest net io.ip plugin.auth debug
+auth.methods			=	pwd agent #rsa
 auth.rsa.key_file		=	rsa.core
 get.route			=	file vortex.file :target:
 get.command			=	file.get
@@ -16,7 +16,7 @@ access.cmd.usr.root     =       ping exit pid add_session_key
 
 # load and initialize modules
 [load_modules:<modules.load>]
-[load_modules:'plugin.auth.pwd'] # plaintext only for now
+#[load_modules:'plugin.auth'] # XXX: doesn't reload right now... fix!
 [init_modules]
 
 # open socket
