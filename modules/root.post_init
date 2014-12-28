@@ -3,6 +3,9 @@
 # name  = root.post_init
 # descr = starts configured agents
 
+my $module_reinitialization = shift;
+return 0 if $module_reinitialization;
+
 <root.dependencies> = {} if not exists <root.dependencies>;
 
 foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
