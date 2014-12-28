@@ -20,6 +20,9 @@ foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
 	'dependencies'    => $dependencies
     }] if [root.agent.is_enabled:$agent_name];
 
+    # XXX: doesn't support concurrent agent of the same name yet.. change later!
+    <root.agent.job_id>->{$agent_name} = $job_id;
+
     <root.dependencies>->{$agent_name}->{$job_id} = $dependencies
         if defined $dependencies;
 }
