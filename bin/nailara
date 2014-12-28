@@ -373,9 +373,11 @@ sub prepare_subs {
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'} < 2;
         my $sub_name = shift(@_);
-        my $quoted_chars = qr/[\ ;:,\.']|^$/o;
+        my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
         my @_p = @_;
         map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
+        $_p[1] = '*' x 5 if $sub_name eq 'auth.ok';
+        $_p[0] = '*' x 5 if $sub_name eq 'digest.sha1';
         my $param_list = join( ', ',
           map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' } @_p );
 
