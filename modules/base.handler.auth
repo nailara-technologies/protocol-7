@@ -66,7 +66,7 @@ elsif ( $$input =~ s/^(auth\.)?close\n// ) {
 
 # call auth plugin
 
-elsif ( defined &{ $code{ 'plugin.auth.' . $auth_method } } ) {
+elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
     $_[0]->w->start;
 
