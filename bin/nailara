@@ -385,7 +385,8 @@ sub prepare_subs {
         print ' . '
           . $data{'system'}{'agent'}{'name'}
           . " : $sub_name ( "
-          . $param_list . " )\n";
+          . $param_list . " )\n" if $sub_name ne 'base.log'
+            and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'system' );
     };
     $code{'log.ok'} = sub {
       if(defined $code{'base.log'}) {
