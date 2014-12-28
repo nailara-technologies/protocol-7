@@ -3,13 +3,13 @@
 # name   = base.handler.auth
 # return = 0 (authentication successful), 1 (keep state), 2 (authentication failed)
 
-my $id = $_[0]->w->data;
+my $id      = $_[0]->w->data;
 my $session = $data{'session'}{$id};
-my $input = \$$session{'buffer'}{'input'};
-my $output = \$$session{'buffer'}{'output'};
+my $input   = \$$session{'buffer'}{'input'};
+my $output  = \$$session{'buffer'}{'output'};
 my ( $auth_method, $auth_code, $auth_name );
 ($auth_method) = $$session{'auth'}{'method'}
-  || split ( /\s+/, $data{'auth'}{'methods'} );
+    || split( /\s+/, $data{'auth'}{'methods'} );
 
 $_[0]->w->stop;    # stop handler to modify buffer
 
@@ -22,8 +22,7 @@ if ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {
     if ( ( $$session{'counter'}{'auth'}{'error'}{'select'} || 0 ) > 2 ) {
         $$output .= ">:[\n";
         $$session{'shutdown'} = 1;
-    }
-    else {
+    } else {
         if ( !$code{'auth.auth_select'}->( $id, $2 ) ) {
             $$session{'counter'}{'auth'}{'error'}{'select'}++;
         }
@@ -37,17 +36,15 @@ elsif ( $$input =~ s/^(auth\.)?list\n// ) {
     $_[0]->w->start;
 
     if ( ( $$session{'counter'}{'auth'}{'list'} || 0 ) > 1 ) {
-        $code{'base.log'}->( 0, "[$id] 3rd auth list requested >:[");
+        $code{'base.log'}->( 0, "[$id] 3rd auth list requested >:[" );
         $$output .= ">:[\n";
         $$session{'shutdown'} = 1;
-    }
-    elsif ( ( $$session{'counter'}{'auth'}{'list'} || 0 ) > 0 ) {
-        $code{'base.log'}->( 0, "[$id] repeated auth list requested..");
+    } elsif ( ( $$session{'counter'}{'auth'}{'list'} || 0 ) > 0 ) {
+        $code{'base.log'}->( 0, "[$id] repeated auth list requested.." );
         $$output .= "NACK once should be enough >;]\n";
         $$session{'counter'}{'auth'}{'list'}++;
-    }
-    else {
-        $code{'base.log'}->( 1, "[$id] auth method list requested");
+    } else {
+        $code{'base.log'}->( 1, "[$id] auth method list requested" );
 
         my $auth_list = &{ $code{'auth.auth_list'} };
         $auth_list = 'RAW ' . length($auth_list) . "\n" . $auth_list;
@@ -60,7 +57,7 @@ elsif ( $$input =~ s/^(auth\.)?list\n// ) {
 
 elsif ( $$input =~ s/^(auth\.)?close\n// ) {
     $$output .= "ACK connection closed\n";
-    $code{'base.log'}->( 1, "[$id] connection shutdown requested");
+    $code{'base.log'}->( 1, "[$id] connection shutdown requested" );
     return 2;
 }
 
@@ -70,8 +67,8 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
     $_[0]->w->start;
 
-    ( $auth_code, $auth_name ) =
-      ( $code{ 'plugin.auth.' . $auth_method }->( $_[0] ) );
+    ( $auth_code, $auth_name )
+        = ( $code{ 'plugin.auth.' . $auth_method }->( $_[0] ) );
 
     if ( $auth_code == 0 and $auth_name =~ /^\w+$/ ) {
 
@@ -80,7 +77,7 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         $$session{'mode'}          = 'client';
         $$session{'link'}          = $data{'handle'}{ $_[0] }{'link'};
         $$session{'encryption'}    = $data{'handle'}{ $_[0] }{'encryption'};
-        $$session{'auth_time'}     = [base.time:5];
+        $$session{'auth_time'}     = $code{'base.time'}->(5);
 
         $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = 'client';
 
@@ -91,15 +88,12 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         $code{'base.session.init_state'}->( $id, 1 );
 
         return 0;
-    }
-    elsif ( $auth_code == 1 ) {
+    } elsif ( $auth_code == 1 ) {
         return 1;
-    }
-    else {
+    } else {
         return 2;
     }
-}
-else {
-    $code{'base.log'}->( 0, "auth plugin '$auth_method' not loaded");
+} else {
+    $code{'base.log'}->( 0, "auth plugin '$auth_method' not loaded" );
     return 2;
 }
