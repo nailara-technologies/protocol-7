@@ -373,14 +373,15 @@ sub prepare_subs {
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'} < 2;
         my $sub_name = shift(@_);
-        my $quoted_chars = qr/[\ |;|:|,|\.]/;
-        # XXX: todo: escape ' chars!
+        my $quoted_chars = qr/[\ ;:,\.']/o;
+        my @_p = @_;
+        map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
         my $param_list = join( ', ',
-          map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' } @_ );
+          map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' } @_p );
 
-        $param_list =~ s/\n/\\n/g;
-        $param_list =~ s/\e/\\e/g;
-        $param_list =~ s/\0/\\0/g;
+        $param_list =~ s|\n|\\n|g;
+        $param_list =~ s|\e|\\e|g;
+        $param_list =~ s|\0|\\0|g;
 
         print ' . '
           . $data{'system'}{'agent'}{'name'}
