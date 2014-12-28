@@ -10,49 +10,48 @@ if ( $data{'agent'}{'core'}{'agent_timeout'} == 0 ) {
     $data{'agent'}{'core'}{'agent_timeout'} = 23;
 }
 
-$data{'agent'}{'check'}{'connect_pause'} = 1; ###
+$data{'agent'}{'check'}{'connect_pause'} = 1;    ###
 
-my @cdids = keys( %{$data{'user'}{'core'}{'session'}} );
+my @cdids    = keys( %{ $data{'user'}{'core'}{'session'} } );
 my $id_count = scalar @ids;
 
 while ( !$id_count ) {
 
-    $code{'base.log'}->( 1, 'no core present');
+    $code{'base.log'}->( 1, 'no core present' );
     if ( !$agent_time ) {
-        $agent_time = [base.time:3];
+        $agent_time = $code{'base.time'}->(3);
         $code{'agent.run'}->('core');
-    }
-    elsif ( [base,time:3] - $agent_time > $data{'agent'}{'core'}{'agent_timeout'} ) {
-        $code{'base.log'}->( 0, 'can not spawn core: timed out.');
-    }
-    else {
+    } elsif ( $code{'base.time'}->(3) - $agent_time
+        > $data{'agent'}{'core'}{'agent_timeout'} ) {
+        $code{'base.log'}->( 0, 'can not spawn core: timed out.' );
+    } else {
         select undef, undef, undef, $data{'agent'}{'check'}{'connect_pause'};
         if ( $core_handle = &{ $code{'tcp.client'} }
-            ( $data{'net'}{'local'}{'addr'}, $data{'net'}{'local'}{'port'} ) )
-        {
+            ( $data{'net'}{'local'}{'addr'}, $data{'net'}{'local'}{'port'} ) ) {
             if ( $data{'system'}{'agent'}{'name'} eq '' ) {
-                $code{'base.log'}->( 0, 'agent_name not set!');
+                $code{'base.log'}->( 0, 'agent_name not set!' );
             }
             if ( $data{'auth'}{'core'}{'pass'} eq '' ) {
-                $code{'base.log'}->( 0, 'auth.core.pass not set!');
+                $code{'base.log'}->( 0, 'auth.core.pass not set!' );
             }
 
-            if ( $code{'net.authme'}->(
-                $core_handle,
-                $data{'system'}{'agent'}{'name'},
-                $data{'auth'}{'core'}{'pass'} ) )
-            {
+            if ($code{'net.authme'}->(
+                    $core_handle,
+                    $data{'system'}{'agent'}{'name'},
+                    $data{'auth'}{'core'}{'pass'}
+                )
+                ) {
                 $data{'core'}{'handle'} = $core_handle;
                 if ( not defined $sel_base ) {
                     use IO::Select;
                     $sel_base = new IO::Select();
                 }
 
-#                my $id = &{ $code{'net.cmd_add_client'} }
-#                  ( 'core', $core_handle );
+                #                my $id = &{ $code{'net.cmd_add_client'} }
+                #                  ( 'core', $core_handle );
 
-		@ids = keys( %{$data{'user'}{'core'}{'session'}} );
-		$id_count = scalar @ids;
+                @ids      = keys( %{ $data{'user'}{'core'}{'session'} } );
+                $id_count = scalar @ids;
 
                 # return $core_handle;
             }
