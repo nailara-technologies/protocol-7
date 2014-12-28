@@ -5,12 +5,13 @@
 
 my $id = $_[0]->w->data;
 
-if ( not defined $data{'session'}{$id} ) {
+if ( not defined $id or not exists $data{'session'}{$id} ) {
+    my $id = '!' if not defined $id;
     $_[0]->w->cancel;
+    # call cleanup... (proto..)
     $code{'base.log'}->(
         0,
-        "[$id] handler of already closed session called.."
-            . " forcefully cancelled!"
+        "[$id] session of input handler was already closed - watcher cancelled!"
     );
     return undef;
 }
