@@ -5,10 +5,10 @@
 
 my $agent_name = shift;
 
-<agents.dependencies> = {}
-    if not exists <agents.dependencies>
-    and ref(<agents.dependencies>) ne 'HASH';
+<root.agents.dependencies> = {}
+    if not exists <root.agents.dependencies>
+    and ref(<root.agents.dependencies>) ne 'HASH';
 
-return undef if not exists <agents.dependencies>->{$agent_name};
+return undef if not exists <root.agents.dependencies>->{$agent_name};
 
-return <agents.dependencies>->{$agent_name};
+return <root.agents.dependencies>->{$agent_name};
