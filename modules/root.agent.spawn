@@ -4,6 +4,8 @@
 # descr = spawn nailara agent and add it to process maintenance table
 
 my $agent_name = shift;
+my ($pid, $r_fh, $w_fh, $e_fh);
+
 die "no agent name supplied" if not defined $agent_name;
 [base.log:1,"spawning '$agent_name' agent ..."];
 chomp(my $nailara_bin = qx(which nailara));
@@ -11,9 +13,7 @@ $nailara_bin = '/usr/bin/nailara' if not defined $nailara_bin;
 my @exec_args = (); # XXX: -d
 push(@exec_args, '-' . 'v' x <system.verbosity>) if <system.verbosity>;
 
-<root.agent.process> = {} if not exists <root.agent.process>;
 
-my ($pid, $r_fh, $w_fh, $e_fh);
 eval {
   $pid = open3($r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args);
 };
