@@ -147,16 +147,17 @@ $alias_to = $data{'alias'}{$cmd} if exists $data{'alias'}{$cmd};
 # per user alias
 $alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
     if exists $data{'user'}{$usr}{'alias'}{$cmd};
-
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
-    ( $cmd = $alias_to ) =~ s/^.*\.//;
-    my $args_map = { 'SOURCE_AGENT' => <system.node.name> . '.' . $usr };
-    foreach my $map_key ( keys %{$args_map} ) {
-        $cmd =~ s/$map_key/$args_map->{$map_key}/;
-    }
-    if ( $cmd =~ s/^(\S+)\ +(.+)$/$1/ ) {
-        $$call_args{'args'} = $2 . ' ' . $$call_args{'args'};
+    $cmd = $alias_to;
+    my $args_map = {
+        'SOURCE_AGENT' => <system.node.name> . '.' . $usr
+    };
+    map { $cmd =~ s/$_/$args_map->{$_}/g } keys %{$args_map};
+
+    if ( $cmd =~ s/^([^ ]+)\ +([^\n]+)$/$1/ ) {
+        $$call_args{'args'} = join(' ', $2, $$call_args{'args'})
+            if defined $$call_args{'args'};
     }
 }
 
