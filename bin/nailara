@@ -373,7 +373,7 @@ sub prepare_subs {
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'} < 2;
         my $sub_name = shift(@_);
-        my $quoted_chars = qr/[\ ;:,\.']/o;
+        my $quoted_chars = qr/[\ ;:,\.']|^$/o;
         my @_p = @_;
         map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
         my $param_list = join( ', ',
