@@ -5,12 +5,12 @@
 
 .: output patterns :.
 
-  - core:/tcp server \[[^\]]+\] launched\.$/
+  - core:/^ :[^ ]+\.core tcp server \[[^\]]+\] launched\.$/
     [root.agent.change_status:'<agent_name>','online'];
 
-  - core:/failed to bind protocol 'nailara'/
+  - core:/^ :[^ ]+\.core \e[^\ ]+failed to /
     [root.agent.change_status:'<agent_name>','failed'];
 
 
-#  - notify:/successfully authenticated \:\)$/
-#    [root.agent.change_status:'<agent_name>','online'];
+  - notify:/^ :[^ ]+\.notify \[\*\] successfully authenticated \:\)$/
+    [root.agent.change_status:'<agent_name>','online'];
