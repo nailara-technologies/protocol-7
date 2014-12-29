@@ -6,7 +6,7 @@
 my $event      = shift->w;
 my $read_fh    = $event->fd;
 my $agent_name = $event->data;
-<root.agent.pattern> = {} if not exists <root.agent.pattern>;
+<root.agent.pattern> //= {};
 
 sysread( $read_fh, my $buffer, <root.bufsize.agent_output> || 42500 );
 
