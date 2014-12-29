@@ -3,33 +3,40 @@
 # name  = root.handler.agent_output
 # descr = reads agent console output and triggers commands on matching patterns
 
+# todo  = XXX: fix buffer and newline handling !!!
+
 my $event      = shift->w;
 my $read_fh    = $event->fd;
 my $agent_name = $event->data;
-<root.agent.pattern> //= {};
+<root.patterns.agent_output> //= {};
 
-sysread( $read_fh, my $buffer, <root.bufsize.agent_output> || 42500 );
+my $max_buffer_size = 42500;
+$max_buffer_size = <root.bufsize.agent_output>
+    if exists <root.bufsize>
+    and exists <root.bufsize.agent_output>
+    and <root.bufsize.agent_output> >= 1024;
 
-if (!length($buffer)) {
+sysread( $read_fh, my $buffer, $max_buffer_size );
+
+if ( !length($buffer) ) {
     $event->cancel;
-    [root.agent.change_status:$agent_name,'offline'];
+    $code{'root.agent.change_status'}->( $agent_name, 'offline' );
     return;
 }
 
-syswrite( STDOUT, $buffer, length($buffer) ) if <system.verbosity>;
+print $buffer if <system.verbosity>;
 
-if ( exists <root.agent.pattern>->{$agent_name} ) {
-    foreach my $pattern ( keys %{<root.agent.pattern>->{$agent_name}} ) {
-        my $c_ref = <root.agent.pattern>->{$agent_name}->{$pattern};
+if ( exists <root.patterns.agent_output>->{$agent_name} ) {
+    foreach
+        my $pattern ( keys %{ <root.patterns.agent_output>->{$agent_name} } ) {
+        my $c_ref = <root.patterns.agent_output>->{$agent_name}->{$pattern};
         die "no code ref defined for pattern '$pattern'"
             if not defined $c_ref;
         die "'$c_ref' is not a code ref" if ref($c_ref) ne 'CODE';
         $c_ref->() if $buffer =~ $pattern;
     }
-}
-else {
+} else {
     warn "no output patterns defined for agent '$agent_name'"
-        if not
-        exists $data{'root'}{'status'}{'warning'}{"pattern_$agent_name"};
+        if not exists $data{'root'}{'status'}{'warning'}{"pattern_$agent_name"};
     $data{'root'}{'status'}{'warning'}{"pattern_$agent_name"} = 1;
 }
