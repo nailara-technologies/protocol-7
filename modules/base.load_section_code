@@ -23,10 +23,10 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
   my ($section, $sub_section, $sub_sub_section, $data_ref);
   foreach my $line (@cfg_lines) {
     $line_num++;
-    $line =~ s/(\#.*|\s*)*\n$//g;
-    $line =~ s/^\s+//;
+    $line =~ s/(\#.*|[\ \t]*)*\n$//g;
+    $line =~ s/^[\ \t]+//;
     next if $line eq '';
-    if ($line =~ /^\.:\s*([^:]*\S)\s*:\.$/) {
+    if ($line =~ /^\.:\ *([^:]*\S)\ *:\.$/) {
       $section = $1;
       ($sub_section,$sub_section_ref,$sub_sub_section)=(undef,undef,undef);
       if(![base.code_section_exists:$section,$code_data]){
@@ -36,7 +36,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
         $data_ref = [base.code_section_ref:$code_data,$section];
       }
       $section_ref = $data_ref;
-    } elsif ( $line =~ /^-\s*([^\n]+)$/ ) {
+    } elsif ( $line =~ /^-\ *([^\n]+)$/ ) {
       $sub_section = $1;
       $sub_sub_section = undef;
       die "no parent section defined for sub-section '$sub_section' "
@@ -49,7 +49,7 @@ foreach my $filename ([file.match_files:$conf_path,@code_files]) {
         $data_ref = [base.code_section_ref:$code_data,$section,$sub_section];
       }
       $sub_section_ref = $data_ref;
-    } elsif ( $line =~ /^:\s*([^:]*\S)\s*:$/ ) {
+    } elsif ( $line =~ /^:\ *([^:]*\S)\ *:$/ ) {
       $sub_sub_section = $1;
       die "parent section missing for sub-sub-section"
         ." '$sub_sub_section' (file '$filename' line $line_num)"
