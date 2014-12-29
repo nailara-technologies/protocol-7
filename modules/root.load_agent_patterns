@@ -6,7 +6,7 @@ my $pattern_file = shift || '';
 my $base_file_name = 'root.patterns.agent_output';
 my %pattern_handlers;
 my $pattern_file_txt = $pattern_file;
-<root.agent.pattern> = {} if not exists <root.agent.patterns>;
+<root.agent.pattern> //= {};
 $pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
 my $log_msg = ": loading agent output patterns$pattern_file_txt..";
 [base.log:1,$log_msg];
