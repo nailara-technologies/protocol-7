@@ -7,8 +7,8 @@ my ( $job_id, $agent_name, $dependency_job_ids ) = @{$_[0]->w->data};
 die "no job id specified" if not defined $job_id;
 die "no dependency job id[s] specified" if not defined $dependency_job_ids;
 
-<jobqueue.dependencies.job_id> = {}
-  if not exists <jobqueue.dependencies.job_id>; # XXX
+<jobqueue.depending.job_id> = {}
+  if not exists <jobqueue.depending.job_id>; # XXX
 my $status = <root.agent.status>;
 
 [base.log: 2, " | jobqueue.handler.dependencies | status: $status->{$agent_name}"];

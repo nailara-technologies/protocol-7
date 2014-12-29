@@ -11,7 +11,7 @@ return 0 if $module_reinitialization;
 foreach my $agent_name ( @{<root.spawn_config.agents.startup.spawn_order>} ) {
     my $target_queue = 'queued';
     my $dependencies = [root.agent.get_dependencies:$agent_name];
-    $target_queue = 'dependencies' if defined $dependencies;
+    $target_queue = 'depending' if defined $dependencies;
 
     my $job_id = [jobqueue.add_job:{
 	'job_callback'    => 'root.agent.spawn',
