@@ -375,9 +375,15 @@ sub prepare_subs {
         my $sub_name = shift(@_);
         my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
         my @_p = @_;
-        map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
+
+        # hiding plain text passwords in debug output (not including conf files)
+        $_p[2] = '*' x 5 if $sub_name eq 'net.authme';
         $_p[1] = '*' x 5 if $sub_name eq 'auth.ok';
         $_p[0] = '*' x 5 if $sub_name eq 'digest.sha1';
+        $_p[1] =~ s/^(auth [^\ ]+) [^\ ]+\n$/$1 *****\n/o
+            if $sub_name eq 'net.out';
+
+        map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
         my $param_list = join( ', ',
           map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' } @_p );
 
@@ -390,7 +396,7 @@ sub prepare_subs {
           . " : $sub_name ( "
           . $param_list . " )\n" if $sub_name ne 'base.log'
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'system' )
-            and $sub_name ne 'base.dump_data';
+            and $sub_name ne 'base.dump_data'; # skipping too much output...
     };
     $code{'log.ok'} = sub {
       if(defined $code{'base.log'}) {
