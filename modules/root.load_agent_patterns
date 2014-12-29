@@ -23,14 +23,13 @@ foreach my $p_ref (@$agent_pattern_data) {
       my ($agent_string, $pattern_string, $i) = ($1, $2, $3||'');
       $agent_string =~ s/\s//g;
       foreach my $agent_name (split(/\,/,$agent_string)) {
-        my @pattern_code = @{$p_ref->{$p_key}};
-        map { $_ =~ s/<agent_name>/$agent_name/g } @pattern_code;
+        my $pattern_code_aref = $p_ref->{$p_key};
+        map { $_ =~ s/<agent_name>/$agent_name/g; "$_;\n" }
+            @{$pattern_code_aref};
         my $pattern_re = length($i) ? qr/$pattern_string/i :
           qr/$pattern_string/;
         <root.agent.pattern>->{$agent_name}->{$pattern_re} =
-          eval 'sub {'.
-          join(';',[base.parser.config:join(";\n",@pattern_code)])
-          .'}';
+          eval 'sub {'.join(';',[base.parser.config:$pattern_code_aref]).'}';
       }
     }
   }

@@ -13,11 +13,12 @@ push(@{<system.config.reload_order>}, $_[0])
 
 return $code{'base.execute_agent_code'}->(
     $code{'base.parser.config'}->(
-        '', $code{'base.get_file'}->(
+        $code{'base.get_file.aref'}->(
             join( '/', $data{'system'}{'conf_path'}, $_[0] ),
             sub {
                 $_[0] =~ s/^.+\///g;
                 $code{'log.failed'}->("failed to load '$_[0]' config [$!]");
+                return undef;
             }
         )
     )
