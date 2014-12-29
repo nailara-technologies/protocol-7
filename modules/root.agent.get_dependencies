@@ -5,10 +5,6 @@
 
 my $agent_name = shift;
 
-<root.agents.dependencies> = {}
-    if not exists <root.agents.dependencies>
-    and ref(<root.agents.dependencies>) ne 'HASH';
+<root.spawn_config.globals.agents.dependencies> //= {};
 
-return undef if not exists <root.agents.dependencies>->{$agent_name};
-
-return <root.agents.dependencies>->{$agent_name};
+return <root.spawn_config.globals.agents.dependencies>->{$agent_name} || undef;
