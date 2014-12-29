@@ -3,9 +3,8 @@
 # name = jobqueue.handler.queue_counter
 
 my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
-<jobqueue.counter.last> = {} if not exists <jobqueue.counter.last>;
-<jobqueue.counter.last>->{$queue_name} = 0
-    if not exists <jobqueue.counter.last>->{$queue_name};
+<jobqueue.counter.last> //= {};
+<jobqueue.counter.last>->{$queue_name} //= 0;
 
 return if $$counter_ref == 0;
 
@@ -13,7 +12,9 @@ return if $$counter_ref == 0;
         . <jobqueue.counter.last>->{$queue_name} ];
 
 if ( $queue_name eq 'queued' ) {
-    my ( $job_id, $job_data ) = [jobqueue.get_next_job:'queued'];
+    my ( $job_id, $job_data ) = [jobqueue.get_next_job:$queue_name];
+print Dumper(<jobqueue.dependencies>);
+#exit;
     return if not defined $job_id;
     if (    exists <jobqueue.dependencies>
         and exists <jobqueue.dependencies>->{$job_id}
@@ -29,10 +30,11 @@ if ( $queue_name eq 'queued' ) {
         [jobqueue.exec_job:$job_id];
         $code{'jobqueue.move_job'}->( $job_id, 'running' );
     }
-} elsif ($queue_name eq 'failed') {
+}
+elsif ($queue_name eq 'failed') {
     (my $job_id, my $job_data) = $code{'jobqueue.get_next_job'}->($queue_name);
-    my $return_code = $code{'jobqueue.exec_job'}->($job_id);
-    $code{'jobqueue.move_job'}->( $job_id, 'running' );
+#    my $return_code = $code{'jobqueue.exec_job'}->($job_id);
+    $code{'jobqueue.move_job'}->( $job_id, 'queued' );
 }
 
 <jobqueue.counter.last>->{$queue_name} = $$counter_ref;
