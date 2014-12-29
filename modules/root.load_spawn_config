@@ -13,8 +13,8 @@ my $spawn_config_pattern = join(' ',
 [base.log:1,": loading spawn config '$config_to_load'.."];
 my $spawn_config_data = [base.load_section_code:$spawn_config_pattern];
 
-my $globals_code = shift(@{$spawn_config_data})->{'globals'};
-my @exec_globals = [base.parser.config:@{$globals_code}];
+my $globals_aref = shift(@{$spawn_config_data})->{'globals'};
+my @exec_globals = [base.parser.config:$globals_aref];
 [base.execute_agent_code:@exec_globals];
 
 my $agents_init_code = shift(@{$spawn_config_data})->{'agents'};

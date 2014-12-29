@@ -1,7 +1,7 @@
 # >:]
 
-# name  = base.get_file
-# descr = return file content as array
+# name  = base.get_file.aref
+# descr = return array reference to file content
 
 # $_[0] : file name
 # $_[1] : error coderef
@@ -9,7 +9,7 @@
 if ( !open( my $file_fh, "<$_[0]" ) ) {
     $code{'base.log'}->( 1, "can not open file \'$_[0]\' for reading [$!]" );
     return &{ $_[1] } if defined $_[1] and ref($_[1]) eq 'CODE';
-    return ''
+    return undef
 } else {
-    return <$file_fh>;
+    return [<$file_fh>];
 }
