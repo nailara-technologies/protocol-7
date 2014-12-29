@@ -6,9 +6,9 @@
 my $module_reinitialization = shift;
 return 0 if $module_reinitialization;
 
-<root.dependencies> = {} if not exists <root.dependencies>;
+<root.dependencies> //= {};
 
-foreach my $agent_name ( @{<agents.startup.spawn_order>} ) {
+foreach my $agent_name ( @{<root.spawn_config.agents.startup.spawn_order>} ) {
     my $target_queue = 'queued';
     my $dependencies = [root.agent.get_dependencies:$agent_name];
     $target_queue = 'dependencies' if defined $dependencies;

@@ -9,10 +9,8 @@ die "no status submitted"     if not defined $status;
 my $status_ref = <root.agent.status>;
 $status_ref->{$agent_name} = $status;
 
-# XXX really? - see below..
-
-#my $dependent_jobs = <root.dependencies>->{$agent_name};
-my $dependent_jobs = <root.agents.dependencies>->{$agent_name};
+my $dependent_jobs =
+    <root.spawn_config.globals.agents.dependencies>->{$agent_name};
 
 if ( $status eq 'online' ) {
     print "PASS online\n" . Dumper($dependent_jobs);
@@ -39,7 +37,8 @@ foreach my $dependent_agent_name ( keys %{<root.dependencies>} ) {
         if ( $dependency_agents eq $agent_name ) {
             print "[D] MATCH! ($dependent_agent_id)\n";
 
-    #    [jobqueue.event.remove_dependency:$dependent_agent_id,$dependent_jobs];
+# XXX
+#        [jobqueue.event.remove_dependency:$dependent_agent_id,$dependent_jobs];
         }
     }
 
