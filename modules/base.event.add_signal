@@ -6,7 +6,7 @@
 my $signal = $_[0]->{'signal'};
 my $handler = $_[0]->{'handler'};
 
-<watcher.signal> = {} if not exists <watcher.signal>;
+<watcher.signal> //= {};
 
 $data{'watcher'}{'signal'}->{$signal}->cancel
     if exists $data{'watcher'}{'signal'}->{$signal};
