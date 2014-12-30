@@ -6,41 +6,67 @@
 my $module_reinitialization = shift;
 return 0 if $module_reinitialization;
 
+my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
+
+$code{'root.set_up_agent_dependencies'}->(@agents);
+
+# testing to inititalize an instance
+
+my $agent_id;
+my $agent_name = 'ping';
+foreach my $id ( keys %{<root.agent.setup>} ) {
+    if ( <root.agent.setup>->{$id}->{'name'} eq $agent_name ) {
+        $agent_id = $id;
+    }
+}
+
+print "\n ( setting up agent $agent_id ($agent_name) instance )\n\n";
+
+$code{'root.agent.instance.add'}->($agent_id);
+
+
+# new syntax..
+#<[root.agent.instance.add]>->($agent_id);
+#<[agent.instance]>->('foo');
+#<:agent.instance:>->('foo');
+
+# XXX: test resolving agent dependencies ...
+
+# XXX: register online agents ...
+
+# XXX: enable dependency resolving callbacks ...
+
+# XXX: resolve fulfilled dependencies ... .. .
+
+return 0;
+
+# xXX[ old section below ]XXx
+
 <root.dependencies> //= {};
 
 foreach my $agent_name ( @{<root.spawn_config.agents.startup.spawn_order>} ) {
     my $target_queue = 'queued';
-    my $dependencies = [root.agent.get_dependencies:$agent_name];
+    my $dependencies = $code{'root.agent.get_dependencies'}->($agent_name);
     $target_queue = 'depending' if defined $dependencies;
 
-    my $job_id = [jobqueue.add_job:{
-	'job_callback'    => 'root.agent.spawn',
-	'callback_params' => $agent_name,
-	'target_queue'    => $target_queue,
-	'dependencies'    => $dependencies
-    }] if [root.agent.is_enabled:$agent_name];
+    my $job_id = $code{'jobqueue.add_job'}->(
+        {   'job_callback'    => 'root.agent.spawn',
+            'callback_params' => $agent_name,
+            'target_queue'    => $target_queue,
+            'dependencies'    => $dependencies
+        }
+    ) if $code{'root.agent.is_enabled'}->($agent_name);
 
     # XXX: doesn't support concurrent agent of the same name yet.. change later!
     <root.agent.job_id>->{$agent_name} = $job_id;
 
     <root.dependencies>->{$agent_name}->{$job_id} = $dependencies
         if defined $dependencies;
+
 }
 
 foreach my $agent ( keys( %{<root.dependencies>} ) ) {
     print "agent : $agent\n";
-
-##
-    # XXX: becomes root.add_agent later..
-
-    my $new_agent = {
-        'name' => $agent,
-
-    };
-
-    [dependency.add_object:$new_agent];
-
-##
 
     my @depending_on;
     my $joblist = <jobqueue.joblist.by_id>;
@@ -55,8 +81,9 @@ foreach my $agent ( keys( %{<root.dependencies>} ) ) {
                 and $job->{'name'} eq 'root.agent.spawn'
                 and $job->{'callback_params'} eq $dep_agent
         } keys( %{$joblist} );
-        [jobqueue.event.register_dependency:$job_id, @depending_on]
-	    if @depending_on;
+
+        $code{'jobqueue.event.register_dependency'}->( $job_id, @depending_on )
+            if @depending_on;
 
         print ": : job : [$agent] $job_id -- $dep_agent ["
             . join( ",", @depending_on ) . "]\n";
@@ -71,5 +98,7 @@ print Dumper( $data{'jobqueue'} ) if <system.verbosity> > 2;
 print " << old dependencies >> " . Dumper(<root.dependencies>);
 
 print " << new dependencies >> " . Dumper( $data{'dependencies'} );
+
+delete $data{'code'};    # XXX: remove later!
 
 0;
