@@ -16,11 +16,9 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
         return undef;
     }
     $code{'net.out'}->( $backend_socket, "auth $_[1] $_[2]\n" );
-#    select undef, undef, undef, 0.4;
     if ( sysread( $backend_socket, $answer, 9 ) ) {
         if ( $answer =~ /YEAH/ ) {
             $code{'base.log'}->( 1, '[*] successfully authenticated :)');
-    #        $data{'session'}{$id}{'registered'} = "yes";
             return $backend_socket;
         }
         elsif ( $answer =~ /GRRR/ ) {
