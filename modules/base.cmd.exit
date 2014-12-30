@@ -4,7 +4,15 @@
 # param = [reason]
 # descr = shut down current client session and disconnect
 
-$data{'session'}{ $$call{'session_id'} }{'shutdown'} = 1;
+my $id = $$call{'session_id'};
+
+return {
+    'mode' => 'nack',
+    'data' => 'command not accepted for this session mode',
+    }
+    if not exists $data{'session'}{$id}{'authenticated'};
+
+$data{'session'}{$id}{'shutdown'} = 1;
 
 my $reason_str     = $$call{'args'} || 'exit';
 my $reason_max_len = 42;
@@ -14,8 +22,7 @@ substr(
     $reason_max_len - length($replace_str),
     length($reason_str) - ( $reason_max_len - length($replace_str) ), '..'
 ) if length($reason_str) > $reason_max_len;
-$code{'base.log'}->(
-    1, "[" . $$call{'session_id'} . "] session shutdown requested ($reason_str)"
-);
+
+$code{'base.log'}->( 1, "[$id] session shutdown requested ($reason_str)" );
 
 $reply = { 'mode' => 'shutdown', 'data' => 'session terminated' }
