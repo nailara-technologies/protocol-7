@@ -9,9 +9,10 @@
   spawn.start_mode = exec	# [pipe|fork|exec]
   spawn.autospawn  = 1
 
-  agents.enabled = core notify
+  agents.enabled = core notify ping
 
   agents.dependencies.notify = core	# will be moved to agent section
+  agents.dependencies.ping = core notify
 
 .: agents :.
 
@@ -36,3 +37,8 @@
 
       : remote :
         auto_shutdown_timeout = 5
+
+  - ping
+
+      : init :
+        spawn_mode = persistent
