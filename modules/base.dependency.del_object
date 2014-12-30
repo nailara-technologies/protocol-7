@@ -1,17 +1,11 @@
 # >:]
 
-# name  = base.dependency.add_object
-# descr = add new dependency object
+# name  = base.dependency.del_object
+# descr = delete a dependency object
+# todo  = XXX: needs error handling when object present in dependency chain !!
 
-my $dep_obj = shift;
-#my $object_id = shift || ;
+my $dep_obj_id = shift || '';
+die "dependency.add_object: dependency object '$dep_obj_id' does not exist!"
+    if not exists <dependency.objects>->{$dep_obj_id};
 
-#die 'dependency.add_object: expected a numerical id!'
-#  if $object_id !~ /^\d+$/;
-
-my $object_id = [base.gen_id:$data{dependencies}{objects}];
-
-$data{'dependency'}{'objects'}{$object_id} = $dep_obj;
-
-print ":: added dep_obj : $object_id ::\n";
-
+delete <dependency.objects>->{$dep_obj_id};

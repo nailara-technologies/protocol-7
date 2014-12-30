@@ -1,16 +1,16 @@
 # >:]
 
 # name  = base.dependency.add
-# descr = add new dependency
+# descr = add new object id to the dependency chain
+# todo  = XXX: filter out duplicates...
 
-my $what = shift;
-my $depends_on = shift;
-die 'dependency.add: $what is expected to be a hash reference!' # not anymore
-  if ref($what) ne 'HASH';
-die 'dependency.add: $depends_on expected to be a hash reference!'
-  if ref($depends_on) ne 'HASH';
+my $object_id  = shift || '';
+my $depends_on = shift || '';
 
-my $dependency_id = [base.gen_id:$data{dependencies}];
+die "base.dependency.add: expecting two valid dependency-object ids"
+    if not exists <dependency.objects>->{$object_id}
+    or not exists <dependency.objects>->{$depends_on};
 
-print ":: dependency_id : $dependency_id ::\n";
+<dependency.chain>->{$object_id} //= [];
 
+push( @{ <dependency.chain>->{$object_id} }, $depends_on );
