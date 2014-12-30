@@ -3,14 +3,9 @@
 # name  = base.dependency.init_code
 # descr = initialize dependency module
 
-$data{'dependencies'} //= {};
-
-$data{'dependency'} = {
-  'forward' => {}, # this depends on..
-  'reverse' => {}, # depending on this..
-  'objects' => {}  # indexed by id, referenced to above
-} if not exists $data{'dependency'};
-
-# <forward|reverse>.<type>.<source_id>.<target_id>
+$data{'dependency'} //= {
+    'objects' => {},    # indexed by object_id
+    'chain'   => {},    # dependency chain (of objects) indexed by dependency_id
+};
 
 0;
