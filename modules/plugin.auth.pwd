@@ -18,6 +18,7 @@ if ( $$input =~ s/^auth (\w+) (\w+)\s*\n// ) {
     }
     else {
         $$output .= "GRRR >:[\n";
+        $code{'base.log'}->( 0, "[$id] [auth pwd] access denied to user '$1'");
         return 2;
     }
 }
