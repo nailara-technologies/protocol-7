@@ -7,7 +7,7 @@ my $agent_name = shift;
 my ($pid, $r_fh, $w_fh, $e_fh);
 
 die "no agent name supplied" if not defined $agent_name;
-[base.log:1,"spawning '$agent_name' agent ..."];
+$code{'base.log'}->(1,"spawning '$agent_name' agent ...");
 chomp(my $nailara_bin = qx(which nailara));
 $nailara_bin = '/usr/bin/nailara' if not defined $nailara_bin;
 my @exec_args = ( ); # XXX: agent mode...
@@ -21,22 +21,22 @@ eval {
 
 if ( not defined $pid ) {
   my $err_msg = $@ || <$e_fh>;
-  [base.log:0, "failed to spawn agent '$agent_name' \[$err_msg\]"];
+  $code{'base.log'}->(0, "failed to spawn agent '$agent_name' [$err_msg]");
   return undef;
 }
 
-[event.add_io:{
+$code{'event.add_io'}->({
     'fd' => $w_fh,
     'handler' => 'root.handler.agent_output',
     'data' => $agent_name
-}];
-[event.add_io:{
+});
+$code{'event.add_io'}->({
     'fd' => $e_fh,
     'handler' => 'root.handler.agent_output',
     'data' => $agent_name
-}] if defined $e_fh;
+}) if defined $e_fh;
 
-[base.log:1,"agent '$agent_name' spawned! \[pid:$pid\]"];
+$code{'base.log'}->(1,"agent '$agent_name' spawned! [pid:$pid]");
 
 <root.agent.process>->{$agent_name} = {
     'pid' => $pid,
@@ -44,4 +44,4 @@ if ( not defined $pid ) {
     'w_fh' => $w_fh
 };
 
-[root.agent.change_status:$agent_name,'starting'];
+$code{'root.agent.change_status'}->($agent_name,'starting');
