@@ -15,10 +15,10 @@ $log_message =~ s/\0/\\0/g;
 my $message_len = length($log_message);
 
 if ( $name eq '' ) {
-    $code{'base.log'}->( 1, 'add_ram_log: no buffer name supplied' );
+    <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
     return -1;
 } elsif ( $name !~ /^\w+$/ or length($name) > 23 ) {
-    $code{'base.log'}->( 1, 'add_ram_log: invalid buffer name suppied' );
+    <[base.log]>->( 1, 'add_ram_log: invalid buffer name suppied' );
     return -1;
 }
 if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
@@ -36,19 +36,19 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
     $buffer_size = $data{'buffer'}{$name}{'max_size'}
         = $default_size;
     if ($min_size_failure) {
-        $code{'base.log'}->(
+        <[base.log]>->(
             0,
             "[!] log buffer size too small,"
                 . " using $size_str for '$name' buffer!"
         );
     } elsif ( !$default_found ) {
-        $code{'base.log'}->(
+        <[base.log]>->(
             1,
             "[!] no [default] log buffer size found,"
                 . " using $size_str for '$name'"
         );
     } else {
-        $code{'base.log'}->(
+        <[base.log]>->(
             2,
             "[!] no '$name'-buffer size set,"
                 . " using default setting ($size_str)"
@@ -56,7 +56,7 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
     }
 }
 if ( $message_len > $buffer_size ) {
-    $code{'base.log'}->(
+    <[base.log]>->(
         1,
         "WARNING: log message longer than log-buffer-size"
             . " (buffer: $buffer_size bytes message: $message_len bytes)"
@@ -77,7 +77,7 @@ $data{'buffer'}{$name}{'size'} += $message_len;
 
 if ( defined $data{'system'}{'log'}{'buffer'}{$name}{'command'}
     and $data{'system'}{'log'}{'buffer'}{$name}{'command'} ne '' ) {
-    $code{'base.proto.nailara.command.send.local'}->(
+    <[base.proto.nailara.command.send.local]>->(
         {   'command' => $data{'system'}{'log'}{'buffer'}{$name}{'command'}
                 . ' '
                 . $log_message,

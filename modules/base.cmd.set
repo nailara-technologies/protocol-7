@@ -8,7 +8,7 @@
 my ( $key, $val ) = split( / /, $$call{'args'} || '', 2 );
 return { 'mode' => 'nack', 'data' => 'no key specified' }
     if not defined $key or !length($key);
-my @validation_result = ( $code{'base.validate.data_key_syntax'}->($key) );
+my @validation_result = ( <[base.validate.data_key_syntax]>->($key) );
 return { 'mode' => 'nack', 'data' => 'invalid key' }
     if not $validation_result[0];
 
@@ -16,7 +16,7 @@ return { 'mode' => 'nack', 'data' => 'no value supplied' } if not defined $val;
 
 my $key_init = 0;
 my $cid      = $$call{'session_id'};
-my $key_ref  = $code{'base.resolve_key'}->($key);
+my $key_ref  = <[base.resolve_key]>->($key);
 
 if ( not defined $key_ref or ref($key_ref) ne 'SCALAR' ) {
     my $parsed_key = $key;
@@ -26,25 +26,25 @@ if ( not defined $key_ref or ref($key_ref) ne 'SCALAR' ) {
     my $eval_code = "\$data{'$parsed_key'}=''";
     eval $eval_code;
     $key_init = 1;
-    $key_ref = $code{'base.resolve_key'}->($key);
+    $key_ref = <[base.resolve_key]>->($key);
 }
 
 if ( defined $key_ref and $key_ref ne '' and !$@ ) {
     if ($key_init) {
         $$key_ref = $val;
-        $code{'base.log'}->( 1, "[$cid] set: initialized [ $key = '$val' ]" );
+        <[base.log]>->( 1, "[$cid] set: initialized [ $key = '$val' ]" );
         $reply = { 'mode' => 'ack', 'data' => "initialized" };
     } elsif ( $$key_ref eq $val ) {
-        $code{'base.log'}->(
+        <[base.log]>->(
 	    1, "[$cid] set: no change, values identical [$key='$val']" );
         $reply = { 'mode' => 'nack', 'data' => "no change, values identical" };
     } else {
         $$key_ref = $val;
-        $code{'base.log'}->( 1, "[$cid] set: value changed [ $key = '$val' ]" );
+        <[base.log]>->( 1, "[$cid] set: value changed [ $key = '$val' ]" );
         $reply = { 'mode' => 'ack', 'data' => "changed" };
     }
 } else {
-    $code{'base.log'}->(
+    <[base.log]>->(
 	0, "[$cid] set: failed to assign value [ $key = '$val' ]"
     );
     $reply = { 'mode' => 'nack', 'data' => "failed to assign value" };

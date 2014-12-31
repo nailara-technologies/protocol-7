@@ -11,16 +11,15 @@ my $lsock = new IO::Socket::INET(
     TimeOut   => 1,
     Blocking  => 0
   )
-  or $code{'base.log'}->( 0, "failed to allocate $_[0]:$_[1] [$!]");
+  or <[base.log]>->( 0, "failed to allocate $_[0]:$_[1] [$!]");
 if ( not defined $lsock ) { return undef }
 else {
     $lsock->listen()
-      or $code{'base.log'}->( 0, "tcp.server: listen: $!");
-    $code{'base.log'}->( 1, "tcp server [$_[0]:$_[1]] launched.");
+      or <[base.log]>->( 0, "tcp.server: listen: $!");
+    <[base.log]>->( 1, "tcp server [$_[0]:$_[1]] launched.");
 
     if ( defined $data{'handle'}{$lsock} ) {
-        &{ $code{'base.log'} }
-          ( 0,"io.ip.tcp.in.open: handle '$lsock' was not cleaned up. cleaning now.."
+        <[base.log]>->( 0,"io.ip.tcp.in.open: handle '$lsock' was not cleaned up. cleaning now.."
         );
         delete $data{'handle'}{$lsock};
     }

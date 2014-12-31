@@ -6,14 +6,14 @@
 my $help_param = shift;
 
 if ( defined $help_param ) {
-    print $code{'base.parser.txt_box'}->( 'not implemented yet!', $help_param );
+    print <[base.parser.txt_box]>->( 'not implemented yet!', $help_param );
     return;
 }
 
 my @commands = sort keys %{ $data{'base'}{'cli'} };
 
-print $code{'base.parser.txt_box'}->(
-    $code{'base.parser.help_list'}->( \@commands, 'cli' ),
+print <[base.parser.txt_box]>->(
+    <[base.parser.help_list]>->( \@commands, 'cli' ),
     "'" . <system.agent.name> . '\'-agent commands'
 );
 

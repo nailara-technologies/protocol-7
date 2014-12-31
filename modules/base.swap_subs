@@ -11,14 +11,14 @@ my @sub_names = keys %code;
 my $subs_matching = 0;
 map { $subs_matching++ if $_ =~ /^$source_sub_prefix\./ } @sub_names;
 if ( !$subs_matching ) {
-  $code{'base.log'}->(2,"swap_subs skipped (no $source_sub_prefix subs present)");
+  <[base.log]>->(2,"swap_subs skipped (no $source_sub_prefix subs present)");
   return 0;
 }
 
 if ( $overwrite_policy eq 'wipe' ) {
   map { delete $code{$_} if $_ =~ /^$target_sub_prefix\./ } @sub_names;
   my $wipe_count = @sub_names - keys %code;
-  $code{'base.log'}->(2,"wiped $wipe_count subs from '$target_sub_prefix' namespace")
+  <[base.log]>->(2,"wiped $wipe_count subs from '$target_sub_prefix' namespace")
     if $wipe_count;
 }
 
@@ -32,7 +32,7 @@ foreach my $sub_name ( keys %code ) {
       next;
     }
     if (!$logged_yet) {
-      $code{'base.log'}->(1,
+      <[base.log]>->(1,
         "[!] moving subs: $source_sub_prefix >> $target_sub_prefix");
       ++$logged_yet;
     }
@@ -45,7 +45,7 @@ foreach my $sub_name ( keys %code ) {
   }
 }
 
-my $sub_list_ref = $code{'base.resolve_key'}->('base.init_modules.sub_list');
+my $sub_list_ref = <[base.resolve_key]>->('base.init_modules.sub_list');
 if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
   my $del_index = 0;
   foreach my $sub_name ( @{$$sub_list_ref} ) {
@@ -60,12 +60,12 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
 }
 
 if (!$moved) {
-  $code{'base.log'}->(2,
+  <[base.log]>->(2,
     "swap_subs: nothing done ($source_sub_prefix >> $target_sub_prefix)");
 } else {
     <base.modules.internal_name>->{$target_sub_prefix} = $source_sub_prefix;
     <base.modules.moved_to>->{$source_sub_prefix} = $target_sub_prefix;
   my $s = $moved == 1 ? '' : 's';
-  $code{'base.log'}->(2,
+  <[base.log]>->(2,
     " ! [$source_sub_prefix>$target_sub_prefix] $moved subroutine$s moved!");
 }

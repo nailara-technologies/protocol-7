@@ -10,13 +10,12 @@ if ( $sock = new IO::Socket::SSL(
         Timeout  => 5
     ) )
 {
-    $code{'base.log'}->( 1, "connection [$_[0]:$_[1]] established.");
+    <[base.log]>->( 1, "connection [$_[0]:$_[1]] established.");
     $data{'handle'}{$sock}{'link'} = 'tcp/ip';
     $data{'handle'}{$sock}{'encryption'}   = 'ssl';
     return $sock;
 }
 else {
-    &{ $code{'base.log'} }
-      (0,"ssl connect failure: can not connect to $_[0] at port $_[1] ($!)");
+    <[base.log]>->(0,"ssl connect failure: can not connect to $_[0] at port $_[1] ($!)");
     return 0;
 }

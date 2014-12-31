@@ -16,11 +16,11 @@ my $dependency_string = join(' ',
   split(/\s+/, $new_dependency_job_ids));
 
 #XXX:
-$code{'base.log'}->(0,"adding dependency $job_id: $dependency_string");
+<[base.log]>->(0,"adding dependency $job_id: $dependency_string");
 
 
 if (not exists $watchers->{$job_id}) {
-  $code{'jobqueue.event.register_dependency'}->($job_id, $dependency_string);
+  <[jobqueue.event.register_dependency]>->($job_id, $dependency_string);
 } elsif( $status->{$job_id} ne $dependency_string ) {
   $status->{$job_id} = $dependency_string;
 }

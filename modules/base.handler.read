@@ -6,7 +6,7 @@ my $id = $_[0]->w->data;
 
 if ( not defined $data{'session'}{$id} ) {
     $_[0]->w->cancel;
-    $code{'base.log'}->(
+    <[base.log]>->(
         0,
         "[$id] handler of already closed session called.."
             . "forcefully cancelled!"
@@ -36,7 +36,7 @@ else {
 $len = length( $$session{'buffer'}{'input'} );
 
 if ( $len > $$session{'size'}{'buffer'}{'input'} ) {
-    $code{'base.log'}->( 0, "[$id] input buffer size exceeded." );
+    <[base.log]>->( 0, "[$id] input buffer size exceeded." );
     $$session{'shutdown'} = 1;
 
     #    $_[0]->w->stop;

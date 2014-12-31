@@ -16,7 +16,7 @@ map {
     if ( not exists $data{'base'}{$section}{$_} ) {
         my $cli = " $section";
         $cli = '' if $section eq 'cmd';
-        $code{'base.log'}->(
+        <[base.log]>->(
             0, "base.parser.help_list:" . $cli . " command '$_' does not exist!"
         );
     } else {

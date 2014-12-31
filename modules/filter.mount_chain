@@ -5,27 +5,27 @@
 my ( $id, $direction, $chain ) = @_;
 
 if ( $chain !~ /^\d+$/ ) {
-    $code{'base.log'}->( 0, 'chain id must be a decimal value');
+    <[base.log]>->( 0, 'chain id must be a decimal value');
     return 1;
 }
 
 my $chain_handler = 'filter.chain.' . $chain;
 
 if ( not defined &{ $code{$chain_handler} } ) {
-    $code{'base.log'}->( 0, 'no such chain handler');
+    <[base.log]>->( 0, 'no such chain handler');
     return 1;
 }
 
 if ( $direction eq 'in' or $direction eq 'out' ) {
     $data{'session'}{$id}{ $direction . 'put' }{'handler'} =
       $chain_handler;
-    $code{'base.log'}->( 1,  'mounted '
+    <[base.log]>->( 1,  'mounted '
       . $direction
       . 'put chain ' . $chain
       . ' on client ' . $id );
     return 0;
 }
 else {
-    $code{'base.log'}->( 0, 'no such chain handler');
+    <[base.log]>->( 0, 'no such chain handler');
     return 1;
 }

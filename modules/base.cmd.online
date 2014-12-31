@@ -16,21 +16,21 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
         || $data{'user'}{$usr}{'connected_since'};
     my $mode = 'timestamp';
     $mode = 'clock'
-        if $code{'base.parser.timestamp'}->( 'date', $utime ) eq
-        $code{'base.parser.timestamp'}->('date');
+        if <[base.parser.timestamp]>->( 'date', $utime ) eq
+        <[base.parser.timestamp]>->('date');
 
     if ( not exists $data{'user'}{$usr}{'last_seen'}
         and exists $data{'user'}{$usr}{'session'} ) {
         return {
             'mode' => 'ack',
             'data' => 'present since '
-                . $code{'base.parser.timestamp'}->( $mode, $utime )
+                . <[base.parser.timestamp]>->( $mode, $utime )
         };
     } else {
         return {
             'mode' => 'nack',
             'data' => 'last seen '
-                . $code{'base.parser.timestamp'}->( $mode, $utime )
+                . <[base.parser.timestamp]>->( $mode, $utime )
         };
     }
 

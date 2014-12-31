@@ -3,7 +3,7 @@
 # name       = base.set_privs
 
 if ( $_[0] eq '' ) {
-    $code{'base.log'}->( 0,
+    <[base.log]>->( 0,
         'can not change priviledges [no username supplied]' );
     return -1;
 } else {
@@ -16,15 +16,15 @@ if ( $_[0] eq '' ) {
     if ( defined $name and exists $_gid{$gid} and exists $egid{$gid} and
         $> == $uid and $< == $uid )
     {
-        $code{'base.log'}->( 1,
+        <[base.log]>->( 1,
             "set_privs: already am '$_[0]', doing nothing." );
     } elsif ($<) {
-        $code{'base.log'}->( 0,
+        <[base.log]>->( 0,
             "can not change privs to user '$_[0]' [i am not root]" );
         return -1;
     } else {
         if ( not defined $name or $name ne $_[0] ) {
-            $code{'base.log'}->( 0,
+            <[base.log]>->( 0,
                 "can not change priviledges to '$_[0]' [no such user]" );
             return -1;
         } else {
@@ -32,7 +32,7 @@ if ( $_[0] eq '' ) {
             $( = $gid;
             $> = $uid;
             $< = $uid;
-            $code{'base.log'}->( 1,
+            <[base.log]>->( 1,
                 "changed priviledges to user '$_[0]'" );
         }
     }

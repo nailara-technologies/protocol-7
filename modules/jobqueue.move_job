@@ -30,5 +30,5 @@ foreach my $s_queue ( $sq->{'by_priority'}->{$prio}, $sq->{'by_timestamp'} ) {
 
 $job_list->{'count'}->{$source_queue}--;
 $job_list->{'count'}->{$target_queue}++;
-$jobs->{$job_id}->{'tstamp'}{$target_queue} = $code{'base.time'}->(4);
+$jobs->{$job_id}->{'tstamp'}{$target_queue} = <[base.time]>->(4);
 $jobs->{$job_id}->{'status'} = $target_queue;

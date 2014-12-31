@@ -12,7 +12,7 @@ if (    defined $list_name
     my $list = $data{'list'}{$list_name};
     return {
         'mode' => 'raw',
-        'data' => $code{'base.parser.list'}->(
+        'data' => <[base.parser.list]>->(
             {   'var'     => $$list{'var'},
                 'key'     => $$list{'key'},
                 'sub_key' => $$list{'sub_key'},
@@ -25,7 +25,7 @@ if (    defined $list_name
 } elsif ( not defined $list_name ) {
     return {
         'mode' => 'raw',
-        'data' => $code{'base.parser.list'}->(
+        'data' => <[base.parser.list]>->(
             {   'var'  => 'data',
                 'key'  => 'list',
                 'mask' => [qw| <key>:name descr |]

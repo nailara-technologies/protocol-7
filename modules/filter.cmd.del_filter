@@ -3,7 +3,7 @@
 # name  = filter.cmd.del_filter
 # descr = delete a filter
 
-if ( $code{'filter.del_filter'}->( $$call{'args'} ) ) {
+if ( <[filter.del_filter]>->( $$call{'args'} ) ) {
     $reply = { 'mode' => 'ack', 'data' => 'filter deleted' };
 }
 else { $$reply{'data'} = 'no such filter' }

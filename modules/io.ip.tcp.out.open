@@ -11,14 +11,13 @@ if ( $sock = new IO::Socket::INET(
         Blocking => 1
     ) )
 {
-    $code{'base.log'}->( 1, "tcp connection to $_[0]:$_[1] established.");
+    <[base.log]>->( 1, "tcp connection to $_[0]:$_[1] established.");
     $data{'handle'}{$sock}{'link'}       = 'tcp/ip';
     $data{'handle'}{$sock}{'mode'}       = 'out';
     $data{'handle'}{$sock}{'encryption'} = 'none';
     return $sock;
 }
 else {
-    &{ $code{'base.log'} }
-      (0,"tcp connect failure: can not connect to $_[0] at port $_[1] ($!)");
+    <[base.log]>->(0,"tcp connect failure: can not connect to $_[0] at port $_[1] ($!)");
     return undef;
 }
