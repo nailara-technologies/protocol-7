@@ -5,14 +5,14 @@
 my $socket_file = $_[0];
 my $return_socket;
 socket( $return_socket, PF_UNIX, SOCK_STREAM, 0 )
-  or $code{'base.log'}->( 0, "io.unix.socket.out.open: [socket] $!");
+  or <[base.log]>->( 0, "io.unix.socket.out.open: [socket] $!");
 connect( $return_socket, sockaddr_un($socket_file) )
-  or $code{'base.log'}->( 0, "io.unix.socket.out.open: [connect] $!");
+  or <[base.log]>->( 0, "io.unix.socket.out.open: [connect] $!");
 if ( -S $return_socket ) {
-    $code{'base.log'}->( 1, "connection [unix:$socket_file] established.");
+    <[base.log]>->( 1, "connection [unix:$socket_file] established.");
     return $return_socket;
 }
 else {
-    $code{'base.log'}->( 0, "can not connect to [unix:$socket_file]: $!");
+    <[base.log]>->( 0, "can not connect to [unix:$socket_file]: $!");
     return 0;
 }

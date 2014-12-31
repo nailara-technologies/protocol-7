@@ -6,8 +6,7 @@ if ( -S $_[0] ) {
     if ( not $new_sock = $_[0]->accept() ) {
         my $ssl_err = &IO::Socket::SSL::errstr();
         $ssl_err =~ s/\n.+//mg;
-        &{ $code{'base.log'} }
-          (0,"ssl.connect_handler: can not accept [$ssl_err]");
+        <[base.log]>->(0,"ssl.connect_handler: can not accept [$ssl_err]");
     }
     else {
         syswrite( $new_sock, ">:]\n" );
@@ -17,6 +16,6 @@ if ( -S $_[0] ) {
     }
 }
 else {
-    $code{'base.log'}->( 0, "ssl.connect_handler: no socket supplied");
+    <[base.log]>->( 0, "ssl.connect_handler: no socket supplied");
     return 0;
 }

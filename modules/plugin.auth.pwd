@@ -11,20 +11,20 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 if ( $$input =~ s/^auth (\w+) (\w+)\s*\n// ) {
 
-    if ( $code{'auth.ok'}->( $1, $2 ) ) {
+    if ( <[auth.ok]>->( $1, $2 ) ) {
         $$output .= "YEAH >:P\n";
-        $code{'base.log'}->( 1, "[$id] authentication successful (user: '$1')");
+        <[base.log]>->( 1, "[$id] authentication successful (user: '$1')");
         return ( 0, $1 );
     }
     else {
         $$output .= "GRRR >:[\n";
-        $code{'base.log'}->( 0, "[$id] [auth pwd] access denied to user '$1'");
+        <[base.log]>->( 0, "[$id] [auth pwd] access denied to user '$1'");
         return 2;
     }
 }
 elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    $code{'base.log'}->( 0, "[$id] WARNING: authentication protocol error!");
+    <[base.log]>->( 0, "[$id] WARNING: authentication protocol error!");
 }
 else { return 1 }
 

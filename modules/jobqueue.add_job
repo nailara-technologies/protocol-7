@@ -6,7 +6,7 @@
 die "no parameter supplied" if !@_ or not defined $_[0];
 
 my $max_jobs = <jobqueue.max_jobs> || 42523;
-my $job_id = $code{'base.gen_id'}->( <jobqueue.joblist.by_id>, $max_jobs );
+my $job_id = <[base.gen_id]>->( <jobqueue.joblist.by_id>, $max_jobs );
 my $job_params = {};
 if ( ref( $_[0] ) eq 'HASH' ) { $job_params = shift }
 elsif ( exists $code{ $_[0] } ) {
@@ -28,7 +28,7 @@ my $job_data = {
     'priority' => $job_params->{'priority'} || 0,
     'status'   => 'queued',
     'tstamp'   => {
-        'queued'       => $code{'base.time'}->(4),
+        'queued'       => <[base.time]>->(4),
         'dependencies' => undef,
         'running'      => undef,
         'paused'       => undef,

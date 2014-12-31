@@ -10,13 +10,13 @@ die "load_spawn_config: no spawn config specified!"
 my $spawn_config_pattern = join(' ',
   map { $base_file_name . $_ } split(/\s+/, $config_to_load) );
 
-$code{'base.log'}->(1,": loading spawn config '$config_to_load'..");
-my $spawn_config_data = $code{'base.load_section_code'}->($spawn_config_pattern);
+<[base.log]>->(1,": loading spawn config '$config_to_load'..");
+my $spawn_config_data = <[base.load_section_code]>->($spawn_config_pattern);
 
 my $globals_aref = shift(@{$spawn_config_data})->{'globals'};
-my @exec_globals = $code{'base.parser.config'}->($globals_aref,
+my @exec_globals = <[base.parser.config]>->($globals_aref,
     '$data{\'root\'}{\'spawn_config\'}{\'globals\'}');
-$code{'base.execute_agent_code'}->(@exec_globals);
+<[base.execute_agent_code]>->(@exec_globals);
 
 my $agents_init_code = shift(@{$spawn_config_data})->{'agents'};
 
@@ -26,19 +26,19 @@ my $agents_init_code = shift(@{$spawn_config_data})->{'agents'};
 foreach my $agent_element (@{$agents_init_code}) {
 
   if ( ref($agent_element) ne 'HASH' ) {
-    $code{'base.log'}->(0,": : spawn cfg '$config_to_load' :"
+    <[base.log]>->(0,": : spawn cfg '$config_to_load' :"
       ." syntax error: '$agent_element' ( expected \" - <agent_name>\" )");
     next;
   }
 
   my ($agent_name, $agent_init_code) = each %{$agent_element};
   push( @{<root.spawn_config.agents.startup.spawn_order>}, $agent_name )
-    if $code{'root.agent.is_enabled'}->($agent_name);
+    if <[root.agent.is_enabled]>->($agent_name);
 
   foreach my $init_section (@{$agent_init_code}) {
 
     if ( ref($init_section) ne 'HASH' ) {
-      $code{'base.log'}->(0,": : spawn cfg '$config_to_load' :"
+      <[base.log]>->(0,": : spawn cfg '$config_to_load' :"
         ." syntax error: '$init_section' ( config section expected )");
       next;
     }

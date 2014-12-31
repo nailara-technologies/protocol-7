@@ -22,7 +22,7 @@ foreach my $queue_name (keys %{<jobqueue.joblist>}) {
   }
 
   $watchers->{$queue_name} =
-    $code{'event.add_var'}->(
+    <[event.add_var]>->(
     {
         'var'     => \$counters->{$queue_name},
           'handler' => 'jobqueue.handler.queue_counter',

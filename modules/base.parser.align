@@ -5,8 +5,7 @@
 my ( $mode, $string, $field_len ) = ( shift || '', shift || '', shift );
 
 if ( $mode !~ /^(left|center|right)([-\+]\d+)?$/ ) {
-    $code{'base.log'}
-        ->( 0, "base.parser.align: invalid alignment mode '$mode' requested" );
+    <[base.log]>->( 0, "base.parser.align: invalid alignment mode '$mode' requested" );
     $mode = 'left';
 }
 my $offset = $2;

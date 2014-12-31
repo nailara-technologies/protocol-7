@@ -8,7 +8,7 @@ foreach my $plug_name ( %{ $data{'plugin'}{'state'} } ) {
     if ( %{ $data{'plugin'}{'state'}{$plug_name} }
         and $data{'plugin'}{'state'}{$plug_name}{'loaded'} == 1 )
     {
-        if ( $code{'base.load_code'}->( 'plugin', $data{'plugin'}{'dir'}, $plug_name ) ) {
+        if ( <[base.load_code]>->( 'plugin', $data{'plugin'}{'dir'}, $plug_name ) ) {
             $plugin_counter++;
         }
         else { $ok = 0 }

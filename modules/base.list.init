@@ -6,14 +6,13 @@
 my $max_elements_default = 23542;
 
 if ( ref( $_[0] ) ne 'HASH' ) {
-    $code{'base.log'}->( 0, 'base.list.init: submitted argument is no hash');
+    <[base.log]>->( 0, 'base.list.init: submitted argument is no hash');
     return 1;
 }
 
 if ( not defined ${ $_[0] }{'max_elements'} or ${ $_[0] }{'max_elements'} < 1 )
 {
-    &{ $code{'base.log'} }
-      (1,'base.list.init: max_elements not set or zero, using '
+    <[base.log]>->(1,'base.list.init: max_elements not set or zero, using '
       . $max_elements_default . ' as default');
     ${$_[0]}{'max_elements'} = $max_elements_default;
     return 3;
@@ -22,8 +21,7 @@ if ( not defined ${ $_[0] }{'max_elements'} or ${ $_[0] }{'max_elements'} < 1 )
 if ( not defined ${ $_[0] }{'key_ref'}
     or ref( ${ ${ $_[0] }{'key_ref'} } ) ne 'HASH' )
 {
-    &{ $code{'base.log'} }
-      (0,'base.list.init: key_ref is neither a hash nor a scalar reference');
+    <[base.log]>->(0,'base.list.init: key_ref is neither a hash nor a scalar reference');
     return 2;
 }
 

@@ -6,7 +6,7 @@ my $id = $_[0]->w->data;
 
 $_[0]->w->stop;
 
-$code{'base.log'}->( 2, "[$id] session shutdown ..." );
+<[base.log]>->( 2, "[$id] session shutdown ..." );
 
 # call rip handler
 
@@ -48,6 +48,6 @@ if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
 close( $data{'session'}{$id}{'handle'} );
 delete $data{'session'}{$id};
 
-$code{'base.log'}->( 1, "[$id] session closed" );
+<[base.log]>->( 1, "[$id] session closed" );
 
-$code{'base.session.check_last'}->();
+<[base.session.check_last]>;

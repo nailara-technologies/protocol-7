@@ -7,7 +7,7 @@ my $id;
 if   ( $_[0] =~ /^\d+/ ) { $id = $_[0] }
 else                     { $id = $_[0]->w->data }
 
-$code{'base.session.check_last'}->() if not exists $data{'session'}{$id};
+<[base.session.check_last]> if not exists $data{'session'}{$id};
 
 my $len     = length( $data{'session'}{$id}{'buffer'}{'output'} );
 my $written = 0;
@@ -39,7 +39,7 @@ if ( exists $data{'session'}{$id}
 else {
 
     $_[0]->w->cancel;
-    $code{'base.session.check_last'}->();
+    <[base.session.check_last]>;
     $data{'session'}{$id}{'shutdown'} = 1;
 }
 

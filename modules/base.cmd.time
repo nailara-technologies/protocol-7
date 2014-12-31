@@ -14,12 +14,12 @@ if ( not defined $param ) {
 } elsif ( defined $param and $param eq 'clock' ) {
     return {
         'mode' => 'ack',
-        'data' => $code{'base.parser.timestamp'}->('clock')
+        'data' => <[base.parser.timestamp]>->('clock')
     };
 } elsif ( defined $param and $param eq 'date' ) {
     return {
         'mode' => 'ack',
-        'data' => $code{'base.parser.timestamp'}->('date')
+        'data' => <[base.parser.timestamp]>->('date')
     };
 } elsif ( defined $param and $param =~ /^\d+$|^$/ ) {
     my $float = 0;
@@ -34,7 +34,7 @@ if ( not defined $param ) {
         if $float > $limit;
     return {
         'mode' => 'ack',
-        'data' => $code{'base.time'}->($float)
+        'data' => <[base.time]>->($float)
     };
 } elsif ( defined $param and $param eq '%d' ) {
     return {

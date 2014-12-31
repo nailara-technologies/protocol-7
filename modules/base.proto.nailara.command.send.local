@@ -30,7 +30,7 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
 
             # setup route
 
-            my $route = $code{'base.route.add'}->(
+            my $route = <[base.route.add]>->(
               {
                   'source' => {
                       'sid'    => $id,
@@ -48,7 +48,7 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
             my $u_name = $data{'session'}{$id}{'user'} || '-';
-            $code{'base.log'}->( 2,  "[$id] $u_name -> $target_name > $cmd" );
+            <[base.log]>->( 2,  "[$id] $u_name -> $target_name > $cmd" );
 
             $target_cmd_id =~ s/^(\d+)$/($1)/;
 
@@ -87,7 +87,7 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
 #            }
 #            else    # should never get here..
 #            {
-#                $code{'base.log'}->( 0, 'unknown command mode');
+#                <[base.log]>->( 0, 'unknown command mode');
 #                return 1;
 #            }
         }

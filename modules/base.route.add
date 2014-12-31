@@ -3,7 +3,7 @@
 # name   = base.route.add
 
 if ( ref( $_[0] ) ne 'HASH' ) {
-    $code{'base.log'}->( 0, 'add_route: argument is no hash reference');
+    <[base.log]>->( 0, 'add_route: argument is no hash reference');
     return undef;
 }
 
@@ -13,12 +13,12 @@ my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 my $target_sid    = ${ $_[0] }{'target'}{'sid'};
 
-my $target_cmd_id = $code{'base.gen_id'}->(
+my $target_cmd_id = <[base.gen_id]>->(
   \$data{'session'}{$target_sid}{'route'},
   $data{'session'}{$target_sid}{'limit'}{'routes'}
 );
 
-my $route_id = $code{'base.list.element.add'}->(
+my $route_id = <[base.list.element.add]>->(
   {
       'key_ref' => \$data{'route'},
       'val_ref' => \{
@@ -35,7 +35,7 @@ my $route_id = $code{'base.list.element.add'}->(
               'handler' => $reply_handler,
               'params'  => $reply_params
           },
-          'start_time' => $code{'base.time'}->(5),
+          'start_time' => <[base.time]>->(5),
 #          'proto'      => $proto,
 #          'handle'     => $fd,
  #         'mode'       => $mode,
