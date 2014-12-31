@@ -14,7 +14,7 @@ foreach my $check_key ( 'enabled', 'disabled' ) {
     if (    exists $config_href->{$check_key}
         and defined $config_href->{$check_key}
         and $config_href->{$check_key} !~ /^([a-z\.-_]+\s*)+$/i ) {
-        $code{'base.log'}->(
+        <[base.log]>->(
             0,
             "spawn config syntax error: agents.$check_key = '"
                 . $config_href->{$check_key}

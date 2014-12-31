@@ -5,12 +5,12 @@
 my ( $cmd, $parameter ) = split ( /:/, $_[0] );
 my $param_id = 0;
 my @params = split ( /,/, $parameter );
-$code{'base.log'}->(1,"command: $cmd");
+<[base.log]>->(1,"command: $cmd");
 my $func = $data{func}{$cmd};
 
-foreach my $par (@params) { $code{'base.log'}->(1,"param[$param_id] = $par"); $param_id++; }
+foreach my $par (@params) { <[base.log]>->(1,"param[$param_id] = $par"); $param_id++; }
 if ( defined &$func ) { &$func(@params) }
 else {
-    $code{'base.log'}->(1,"dangerous command error: '$func' does not exist!");
-    $code{'net.nack'}->('unknown command!');
+    <[base.log]>->(1,"dangerous command error: '$func' does not exist!");
+    <[net.nack]>->('unknown command!');
 }

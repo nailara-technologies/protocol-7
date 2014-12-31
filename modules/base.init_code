@@ -8,7 +8,7 @@ use POSIX;
 # init some vars
 
 $data{'system'}{'process_start'} = {
-    'time'  => $code{'base.time'}->(5),
+    'time'  => <[base.time]>->(5),
     'pid'   => $$,
     'pname' => $0,
     'uid'   => $<,
@@ -21,13 +21,13 @@ $data{'system'}{'process_start'} = {
 $data{'system'}{'host'} = {
     'os'       => { 'name' => $^O },
     'hostname' => hostname,
-    'timezone' => $code{'base.timezone'}->()
+    'timezone' => <[base.timezone]>
 };
 
 # XXX: todo: + uname -r, uname -m (?)
 
 # flush / init regex cache
-$data{'regex'} = { 'base' => $code{'base.regex'}->() };
+$data{'regex'} = { 'base' => <[base.regex]> };
 
 # init / reset lists
 $data{'list'} = {
@@ -71,18 +71,12 @@ $data{'list'} = {
 # initialize signal handlers
 undef %SIG;
 
-&{ $code{'event.add_signal'} }
-    ( { 'signal' => 'INT', 'handler' => 'base.sig_int' } );
-&{ $code{'event.add_signal'} }
-    ( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
-&{ $code{'event.add_signal'} }
-    ( { 'signal' => 'HUP', 'handler' => 'base.sig_hup' } );
-&{ $code{'event.add_signal'} }
-    ( { 'signal' => 'USR1', 'handler' => 'base.sig_usr1' } );
-&{ $code{'event.add_signal'} }
-    ( { 'signal' => 'USR2', 'handler' => 'base.sig_usr2' } );
-&{ $code{'event.add_signal'} }
-    ( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
+<[event.add_signal]>->( { 'signal' => 'INT', 'handler' => 'base.sig_int' } );
+<[event.add_signal]>->( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
+<[event.add_signal]>->( { 'signal' => 'HUP', 'handler' => 'base.sig_hup' } );
+<[event.add_signal]>->( { 'signal' => 'USR1', 'handler' => 'base.sig_usr1' } );
+<[event.add_signal]>->( { 'signal' => 'USR2', 'handler' => 'base.sig_usr2' } );
+<[event.add_signal]>->( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
 
 $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
@@ -90,14 +84,14 @@ $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
 if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
-$code{'base.list.init'}->(
+<[base.list.init]>->(
     {   'name'         => 'sessions',
         'key_ref'      => \$data{'session'},
         'max_elements' => $data{'limit'}{'max'}{'sessions'}
     }
 );
 
-&{ $code{'base.parser.access_conf'} };
+<[base.parser.access_conf]>;
 
 # command aliases with source agent name prefixes
 if ( defined <setup.aliases.source_agent> ) {

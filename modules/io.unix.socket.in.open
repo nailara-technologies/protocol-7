@@ -17,8 +17,7 @@ listen($unix_sock,SOMAXCONN)                    || die "io.unix.socket.in.open: 
 
 chmod(0777,$socket_file) or die "io.unix.socket.in.open: chmod: $!";
 
-&{ $code{'base.log'} }
-(1,"server [unix:$socket_file] launched.");
+<[base.log]>->(1,"server [unix:$socket_file] launched.");
 return $unix_sock;
 
 

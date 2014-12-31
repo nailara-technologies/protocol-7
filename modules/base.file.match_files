@@ -9,15 +9,15 @@ my ( $search_path, @wildcard_filenames ) = @_;
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
 if (not defined $search_path or !length($search_path)) {
-  $code{'base.log'}->(0,"file.match_files: missing expected path argument!");
+  <[base.log]>->(0,"file.match_files: missing expected path argument!");
   return undef;
 }
 $search_path = abs_path($search_path);
 if( !-d $search_path ) {
-  $code{'base.log'}->(0,"file.match_files: no such directory '$search_path'!");
+  <[base.log]>->(0,"file.match_files: no such directory '$search_path'!");
   return undef;
 } elsif (!@wildcard_filenames) {
-  $code{'base.log'}->(0,"file.match_files: no filenames/patterns provided!");
+  <[base.log]>->(0,"file.match_files: no filenames/patterns provided!");
   return undef;
 }
 
@@ -30,7 +30,7 @@ my @file_table = map {
   qr/\/$key$/ } @wildcard_filenames;
 
 foreach my $file ( grep {!/\/\.|~$/}
-  @{ $code{'file.all_files'}->($search_path) } ) {
+  @{ <[file.all_files]>->($search_path) } ) {
   foreach my $pattern ( @file_table ) {
     if ( $file =~ $pattern ) {
       push(@{$results}, $file);

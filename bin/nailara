@@ -211,26 +211,24 @@ sub prepare_subs {
 
                     $data{'code'}{$file_name}{'source'} = <$file>;
 
-                    # [sub_name:foo, bar] -> $code{'sub_name'}->(foo, bar)
+                    # <[sub_name]>->(  -->  $code{'sub_name'}->(
                     my $orig_len =
                       length( $data{'code'}{$file_name}{'source'} );
                     $data{'code'}{$file_name}{'source'} =~
-                      s|(?<!\\)\[(\w+\.[\w\.]+?):(.*?)(?<!\\)\]
-                        |\$code{'$1'}->($2)|sgx;
+                      s|(?<!\\)<\[(\w+\.[\w\.]+?)\]>\s*->\(|\$code{'$1'}->(|sgo;
 
-                    # warning: this parser breaks on unescaped [ or ]'s in
-                    #          any of the the routine's parameters
-                    #          will be replaced once the new nailara
-                    #          binary is working and merged into the tree
+                    # warn: this parser currently doesn't respect quoted strings
+                    #       escape like \<[sub.name]> <-- this to avoid a match!
 
+                    # <[sub_name]>  -->  $code{'sub_name'}->()
                     $data{'code'}{$file_name}{'source'} =~
-                      s|\[(\w+\.[\w\.]+)\]|&{\$code{'$1'}}()|g;
+                      s|(?<!\\)<\[(\w+\.[\w\.]+)\]>|\$code{'$1'}->()|go;
 
-                    # <foo.bar> -> $data{'foo'}{'bar'}
+                    # <foo.bar>  -->  $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'} =~
                       s|(?<!\\)\<(\w+\.[\w:\.]+)(?<!\\)\>|
-                        my $k="\$data{'$1'}";$k=~s/\./\'}{\'/g;$k|gex;
+                        my $k="\$data{'$1'}";$k=~s/\./\'}{\'/g;$k|gexo;
                     close($file);
                     $/ = "\n";
                     if ( length($data{'code'}{$file_name}{'source'}) >

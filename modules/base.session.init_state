@@ -4,14 +4,14 @@
 # params = session_id, state
 
 if (not defined $data{'session'}{$_[0]}) {
-    $code{'base.log'}->(0, "init_state: no such session '$_[0]'");
+    <[base.log]>->(0, "init_state: no such session '$_[0]'");
     return 1;
 }
 
 if (not defined $data{'proto'}{ $data{'session'}{ $_[0] }{'proto'} }{'state'}
     { $_[1] } )
 {
-    $code{'base.log'}->( 0, "init_state: no such state '$_[1]'");
+    <[base.log]>->( 0, "init_state: no such state '$_[1]'");
     return 1;
 }
 
@@ -27,7 +27,7 @@ foreach my $mode ( keys( %{ $data{'proto'}{$_[0]}{'state'}{$_[1]} } ) ) {
     if ( not defined $code{ $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}
         {'handler'} } )
     {
-        $code{'base.log'}->(
+        <[base.log]>->(
           0, "[$_[0]] init_state: handler not defined (mode: '$mode' name: '"
           . $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}{'handler'}
           . "')" );
@@ -37,7 +37,7 @@ foreach my $mode ( keys( %{ $data{'proto'}{$_[0]}{'state'}{$_[1]} } ) ) {
     print
       "FOO: $data{'session'}{ $_[0] }{'state'}{ $_[1] }{$mode}{'handler'}\n";
 
-    $code{'event.add_io'}->(
+    <[event.add_io]>->(
       {
           'fd'      => $data{'session'}{ $_[0] }{'handle'},
           'handler' =>

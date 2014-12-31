@@ -14,7 +14,7 @@ if ( $$call{'args'} =~ /^(\w+)\s?(.*)$/ ) {
 
     if ( exists $data{'user'}{$usr}{'session'} ) {
         my $msg_string = $slay_message;
-        $code{'base.log'}->( 2, "slaying of user '$usr' requested!" );
+        <[base.log]>->( 2, "slaying of user '$usr' requested!" );
         foreach my $sid ( keys %{ $data{'session'} } ) {
             if ( $data{'session'}{$sid}{'user'} eq $usr ) {
                 if ( $call->{'session_id'} eq $sid ) {
@@ -22,15 +22,15 @@ if ( $$call{'args'} =~ /^(\w+)\s?(.*)$/ ) {
                     $msg_string = "you've terminated your own session!"
                         if keys( %{ $data{'user'}{$usr}{'session'} } ) == 1;
                 } else {
-                    $code{'base.session.shutdown'}->( $sid, $msg_string );
+                    <[base.session.shutdown]>->( $sid, $msg_string );
                 }
-                $code{'base.log'}->( 0, "slaying session $sid ($usr)" );
+                <[base.log]>->( 0, "slaying session $sid ($usr)" );
                 $killed++;
             }
         }
         my $s = $killed > 1 ? 's' : '';
         my $reply_string = "terminated $killed session$s";
-        $code{'base.log'}->( 0, $reply_string ) if $killed;
+        <[base.log]>->( 0, $reply_string ) if $killed;
         my $yours_str = 'yours included';
         $yours_str = 'yours' if $killed == 1;
         $reply_string .= " ($yours_str)" if $killed_own;

@@ -38,7 +38,7 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $$input !~ m|^\(($re->{cmd_id})\)| ) {
     my $cmd_id = $1 || '';
     $$input =~ s|^\([^\)]*\)[^\n]+\n||;
-    $code{'base.log'}->( 1, "[$id] invalid command id ('$cmd_id')" );
+    <[base.log]>->( 1, "[$id] invalid command id ('$cmd_id')" );
     $$output .= "NACK invalid command id syntax or length\n";
     return 1;
 }
@@ -77,8 +77,7 @@ if ( $$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
                     # protocol error
 
                     else {
-                        $code{'base.log'}
-                            ->( 1, "[$id] invalid command parameter format" );
+                        <[base.log]>->( 1, "[$id] invalid command parameter format" );
                         $$output .= $_cmd_id
                             . "NACK invalid command parameter format\n";
 
@@ -202,7 +201,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         );
 
                     } else {
-                        $code{'base.log'}->(
+                        <[base.log]>->(
                             1,
                             "[$id] called undefined reply handler ("
                                 . $$route{'reply'}{'handler'} . ")"
@@ -265,7 +264,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
                         $valid_answer = 1;
                     } else {
-                        $code{'base.log'}->(
+                        <[base.log]>->(
                             1,
                             "[$id] (RAW) invalid body length ("
                                 . $$call_args{'args'} . " : "
@@ -274,19 +273,18 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                     }
                 }
             } else {
-                $code{'base.log'}
-                    ->( 1, "[$id] called unimplemented answer type ($cmd)" );
+                <[base.log]>->( 1, "[$id] called unimplemented answer type ($cmd)" );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
                 return 1;
             }
         }
     } else {
-        $code{'base.log'}->( 1, "[$id] reply to unknown route id, ignored." );
+        <[base.log]>->( 1, "[$id] reply to unknown route id, ignored." );
         return 1;
     }
 
 } elsif ( $cmd eq uc($cmd) ) {
-    $code{'base.log'}->( 1, "[$id] invalid reply type '$cmd'!" );
+    <[base.log]>->( 1, "[$id] invalid reply type '$cmd'!" );
     $$output .= $_cmd_id . "NACK invalid reply type! (protocol error)\n";
 } elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
     and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
@@ -322,16 +320,16 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                     $$output
                         .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
                 } elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
-                    $code{'base.session.shutdown'}->( $id, $$reply{'data'} );
+                    <[base.session.shutdown]>->( $id, $$reply{'data'} );
                 }
                 return 0;
             } else {
-                $code{'base.log'}->(
+                <[base.log]>->(
                     1, "[$id] command '$cmd' is configured but not defined!"
                 );
             }
         } else {
-            $code{'base.log'}->( 1, "[$id] unknown command '$cmd'" );
+            <[base.log]>->( 1, "[$id] unknown command '$cmd'" );
         }
 
         $$output .= $_cmd_id . "NACK unknown command\n";
@@ -345,11 +343,11 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
         #        not working yet..
 
-        $code{'base.log'}->( 1, "outgoing: nexthop: '$1' command: '$2'" );
+        <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
         if ( defined $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
         {
 
-    #            $code{'net.send_command'}->( $id, $command_id, $cmd, @params );
+    #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
         return -1;
     }
@@ -388,7 +386,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
                 # setup route
 
-                my $route = $code{'base.route.add'}->(
+                my $route = <[base.route.add]>->(
                     {   'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
                         'target' => { 'sid' => $target_sid }
                     }
@@ -396,7 +394,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
                 my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-                $code{'base.log'}->(
+                <[base.log]>->(
                     2,
                     "[$id] "
                         . $data{'session'}{$id}{'user'}
@@ -442,7 +440,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
                 } else    # should never get here..
                 {
-                    $code{'base.log'}->( 1, 'unknown command mode' );
+                    <[base.log]>->( 1, 'unknown command mode' );
                     return 1;
                 }
             }
@@ -452,7 +450,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
             $$output .= $_cmd_id . "NACK unknown command\n";
 
-            $code{'base.log'}->(
+            <[base.log]>->(
                 1,
                 "[$id] command '$command_str' rejected"
                     . " (client '$target_name' not found)!"
@@ -467,12 +465,11 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
     $$output .= $_cmd_id . "NACK unknown command\n";
 
-    $code{'base.log'}
-        ->( 1, "[$id] unknown command. ( usr '$usr', cmd '$cmd' )" );
+    <[base.log]>->( 1, "[$id] unknown command. ( usr '$usr', cmd '$cmd' )" );
 } else    # access denied
 {
     $$output .= $_cmd_id . "NACK unknown command\n";
-    $code{'base.log'}->( 1, "[$id] access denied. ( usr '$usr', cmd '$cmd' )" );
+    <[base.log]>->( 1, "[$id] access denied. ( usr '$usr', cmd '$cmd' )" );
 }
 
 return 0;

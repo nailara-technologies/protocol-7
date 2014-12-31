@@ -3,10 +3,10 @@
 # name       = base.put_file
 
 my $file_name = shift;
-$code{'base.log'}->( 2, "file \'$file_name\' already exists, overwriting.." )
+<[base.log]>->( 2, "file \'$file_name\' already exists, overwriting.." )
   if -f $file_name;
 if ( !open( my $file_fh, ">$file_name" ) ) {
-    $code{'base.log'}->( 0, 'failed to open file '
+    <[base.log]>->( 0, 'failed to open file '
 	. "'$file_name' for writing [$!]" );
     return undef;
 } else {
@@ -23,6 +23,6 @@ if ( !open( my $file_fh, ">$file_name" ) ) {
             $bytes_written += length($content);
         }
     }
-    $code{'base.log'}->( 2, "wrote $bytes_written bytes to \'$file_name\'" );
+    <[base.log]>->( 2, "wrote $bytes_written bytes to \'$file_name\'" );
     return $bytes_written;
 }

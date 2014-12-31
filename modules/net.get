@@ -12,17 +12,17 @@ die "expected a key as argument"
 
 my $core_fh = <core.handle>;
 
-$code{'net.out'}->($core_fh, "get $key_to_retrieve\n");
+<[net.out]>->($core_fh, "get $key_to_retrieve\n");
 chomp( my $get_reply = <$core_fh> );
 
 if ( $get_reply =~ s/^ACK // ) {
     return $get_reply;
 } elsif ( $get_reply =~ s/^NACK // ) {
-    $code{'base.log'}->(0,
+    <[base.log]>->(0,
         "net.get: failed to get key '$key_to_retrieve' [$get_reply]"
     );
     return undef;
 } else {
-    $code{'base.log'}->(0, "net.get: protocol error [reply:'$get_reply']" );
+    <[base.log]>->(0, "net.get: protocol error [reply:'$get_reply']" );
     return undef;
 }

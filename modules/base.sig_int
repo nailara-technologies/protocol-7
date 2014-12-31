@@ -3,7 +3,7 @@
 # name  = base.sig_int
 # descr = SIGINT interrupt handler
 
-$code{'base.log'}->( 0, 'SIGINT received. shutting down..');
+<[base.log]>->( 0, 'SIGINT received. shutting down..');
 $SIG{'INT'} = 'exit';
 
 if ( exists $code{'net.send_all'} ) {
@@ -12,7 +12,7 @@ if ( exists $code{'net.send_all'} ) {
 }
 
 if ( $data{'system'}{'verbosity'} >= 2 ) {
-    print "DEBUG MODE: agent state:\n" . $code{'base.dump_data'}->();
+    print "DEBUG MODE: agent state:\n" . <[base.dump_data]>;
 }
-$code{'base.log'}->( 1, 'done.');
+<[base.log]>->( 1, 'done.' );
 exit(0);

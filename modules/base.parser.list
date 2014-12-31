@@ -35,8 +35,7 @@ foreach my $key_name ( @{$display_keys} ) {
         if ( !$index ) {
             $value_str = $data_ref->{$key_val}->{$key_orig_str} || '';
         }
-        my $f_val = $code{'base.call_filter'}
-            ->( $filters, $key_orig_str, $value_str );
+        my $f_val = <[base.call_filter]>->( $filters, $key_orig_str, $value_str );
         $max_len{$key_name} = length($f_val) + 3
             if length($f_val) > $max_len{$key_name} - 3;
     }
@@ -67,10 +66,9 @@ foreach
     foreach my $key_name ( @{$display_keys} ) {
         my $key_name_str = $key_name;
         if ( $key_name_str =~ s/^<key>\:// ) {
-            $key_val = $code{'base.call_filter'}
-                ->( $filters, $key_name_str, $key_val );
+            $key_val = <[base.call_filter]>->( $filters, $key_name_str, $key_val );
             $table_string .= '  '
-                . $code{'base.parser.align'}->(
+                . <[base.parser.align]>->(
                 $align->{$key_name_str} || 'left',
                 $key_val, $max_len{$key_name} - 1
                 ) . ' ';
@@ -78,11 +76,9 @@ foreach
             my $len = $max_len{$key_name};
             $key_name_str =~ s|:.+$||;
             my $value = $data_ref->{$key_val}->{$key_name_str} || '';
-            $value = $code{'base.call_filter'}
-                ->( $filters, $key_name_str, $value );
+            $value = <[base.call_filter]>->( $filters, $key_name_str, $value );
             $table_string
-                .= $code{'base.parser.align'}
-                ->( $align->{$key_name_str} || 'left', $value, $len - 1 ) . ' ';
+                .= <[base.parser.align]>->( $align->{$key_name_str} || 'left', $value, $len - 1 ) . ' ';
         }
     }
     $table_string .= "\n";
