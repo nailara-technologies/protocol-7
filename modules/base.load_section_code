@@ -10,11 +10,11 @@ my $conf_path = <system.conf_path>;
 my $code_data = [];
 $code_data = shift(@ARGV) if ref($ARGV[0]) eq 'ARRAY';
 my @code_files = @_; # all files' data will be appended to the $code_data.
-foreach my $filename ($code{'file.match_files'}->($conf_path,@code_files)) {
+foreach my $filename (<[file.match_files]>->($conf_path,@code_files)) {
   my @cfg_lines;
-  $code{'file.slurp'}->($filename,\@cfg_lines);
+  <[file.slurp]>->($filename,\@cfg_lines);
   if ( !@cfg_lines ) {
-    $code{'log.failed'}->("failed to load config file '$filename'");
+    <[log.failed]>->("failed to load config file '$filename'");
     return undef;
   }
   my $line_num = 0;
@@ -29,11 +29,11 @@ foreach my $filename ($code{'file.match_files'}->($conf_path,@code_files)) {
     if ($line =~ /^\.:\ *([^:]*\S)\ *:\.$/) {
       $section = $1;
       ($sub_section,$sub_section_ref,$sub_sub_section)=(undef,undef,undef);
-      if(!$code{'base.code_section_exists'}->($section,$code_data)){
+      if(!<[base.code_section_exists]>->($section,$code_data)){
         $data_ref = [];
         push( @$code_data, { $section => $data_ref } );
       } else {
-        $data_ref = $code{'base.code_section_ref'}->($code_data,$section);
+        $data_ref = <[base.code_section_ref]>->($code_data,$section);
       }
       $section_ref = $data_ref;
     } elsif ( $line =~ /^-\ *([^\n]+)$/ ) {
@@ -41,12 +41,12 @@ foreach my $filename ($code{'file.match_files'}->($conf_path,@code_files)) {
       $sub_sub_section = undef;
       die "no parent section defined for sub-section '$sub_section' "
         ."(file '$filename' line $line_num)" if not defined $section;
-      if(!$code{'base.code_section_exists'}->($sub_section,$data_ref)){
+      if(!<[base.code_section_exists]>->($sub_section,$data_ref)){
         my $new_data_ref = [];
         push( @$section_ref, { $sub_section => $new_data_ref } );
         $data_ref = $new_data_ref;
       } else {
-        $data_ref = $code{'base.code_section_ref'}->($code_data,$section,$sub_section);
+        $data_ref = <[base.code_section_ref]>->($code_data,$section,$sub_section);
       }
       $sub_section_ref = $data_ref;
     } elsif ( $line =~ /^:\ *([^:]*\S)\ *:$/ ) {
@@ -57,12 +57,12 @@ foreach my $filename ($code{'file.match_files'}->($conf_path,@code_files)) {
       die "no parent sub-section defined for sub-sub-section"
         ." '$sub_sub_section' (file '$filename' line $line_num)"
         if not defined $sub_section;
-      if(!$code{'base.code_section_exists'}->($sub_sub_section,$data_ref)){
+      if(!<[base.code_section_exists]>->($sub_sub_section,$data_ref)){
         my $new_data_ref = [];
         push(@$sub_section_ref ,{ $sub_sub_section => $new_data_ref });
         $data_ref = $new_data_ref;
       } else {
-        $data_ref = $code{'base.code_section_ref'}->($code_data,
+        $data_ref = <[base.code_section_ref]>->($code_data,
           $section, $sub_section, $sub_sub_section);
       }
     } else {

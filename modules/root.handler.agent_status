@@ -16,11 +16,11 @@ if ( $status eq 'online' ) {
     print "PASS online\n" . Dumper($dependent_jobs);
     foreach my $job_id ( keys %{ <root.dependencies>->{$agent_name} } ) {
         print "     > job_id: $job_id - $dependent_jobs\n";
-        $code{'jobqueue.event.remove_dependency'}->( $job_id, $dependent_jobs );
+        <[jobqueue.event.remove_dependency]>->( $job_id, $dependent_jobs );
     }
 } elsif ( $status eq 'offline' ) {
         my $job_id = <root.agent.job_id>->{$agent_name};
-        $code{'jobqueue.move_job'}->( $job_id, 'failed' );
+        <[jobqueue.move_job]>->( $job_id, 'failed' );
 }
 
 # XXX: new
@@ -38,7 +38,7 @@ foreach my $dependent_agent_name ( keys %{<root.dependencies>} ) {
             print "[D] MATCH! ($dependent_agent_id)\n";
 
 # XXX
-#        $code{'jobqueue.event.remove_dependency'}->($dependent_agent_id,$dependent_jobs);
+#        <[jobqueue.event.remove_dependency]>->($dependent_agent_id,$dependent_jobs);
         }
     }
 
@@ -46,6 +46,6 @@ foreach my $dependent_agent_name ( keys %{<root.dependencies>} ) {
 
 # return undef if not exists $status->{$agent_name};
 
-$code{'base.log'}->( 0, "agent_status: '$agent_name', status: '$status'" );
+<[base.log]>->( 0, "agent_status: '$agent_name', status: '$status'" );
 
 # XXX

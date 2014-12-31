@@ -10,21 +10,21 @@ my $backend_socket = $_[0], $smiley = "", $answer = "";
 die "net.authme: no password supplied" if not defined $_[2];
 if ( sysread( $backend_socket, $smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
-	$code{'base.log'}->( 1, '[*] protocol banner detected..')
+	<[base.log]>->( 1, '[*] protocol banner detected..')
     } else {
-        $code{'base.log'}->( 0, '[#] no valid smiley found! :(');
+        <[base.log]>->( 0, '[#] no valid smiley found! :(');
         return undef;
     }
-    $code{'net.out'}->( $backend_socket, "auth $_[1] $_[2]\n" );
+    <[net.out]>->( $backend_socket, "auth $_[1] $_[2]\n" );
     if ( sysread( $backend_socket, $answer, 9 ) ) {
         if ( $answer =~ /YEAH/ ) {
-            $code{'base.log'}->( 1, '[*] successfully authenticated :)');
+            <[base.log]>->( 1, '[*] successfully authenticated :)');
             return $backend_socket;
         }
         elsif ( $answer =~ /GRRR/ ) {
-            $code{'base.log'}->( 0, '[#] access denied :(');
+            <[base.log]>->( 0, '[#] access denied :(');
             return undef;
         }
-        else { $code{'base.log'}->( 0, '[#] protocol error :('); return undef }
+        else { <[base.log]>->( 0, '[#] protocol error :('); return undef }
     }
 }

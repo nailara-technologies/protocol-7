@@ -10,14 +10,14 @@ my $config_data = {};
 $config_data = shift(@ARGV) if ref($ARGV[0]) eq 'HASH';
 my @cfg_files = @_;
 
-foreach my $file_path ($code{'file.match_files'}->($conf_path,@cfg_files)) {
+foreach my $file_path (<[file.match_files]>->($conf_path,@cfg_files)) {
   (my $file_name = $file_path) =~ s/^.*\///g;
-  $code{'log.ok'}->("loading section config '$file_name'");
+  <[log.ok]>->("loading section config '$file_name'");
 
   my @cfg_lines;
-  $code{'file.slurp'}->($file_path,\@cfg_lines);
+  <[file.slurp]>->($file_path,\@cfg_lines);
   if ( !@cfg_lines ) {
-    $code{'log.failed'}->("failed to load config file '$file_name'");
+    <[log.failed]>->("failed to load config file '$file_name'");
     return undef;
   }
 
@@ -47,11 +47,11 @@ foreach my $file_path ($code{'file.match_files'}->($conf_path,@cfg_files)) {
         } elsif ( defined $section ) {
           $config_data->{$section}{$1} = $2;
         } else {
-          $code{'log.failed'}->("$file_name: "
+          <[log.failed]>->("$file_name: "
             ."no section defined for '$line' (line $line_num)");
         }
       } else {
-        $code{'log.failed'}->("syntax error in '$file_name' "
+        <[log.failed]>->("syntax error in '$file_name' "
           ."at line $line_num ( \"$line\" )");
       }
     }

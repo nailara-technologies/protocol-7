@@ -4,12 +4,12 @@
 
 return 0 if $_[0] eq "" or $_[1] eq "";
 if ( $_[1] eq 'changemenow' ) {
-    $code{'base.log'}->(0,
+    <[base.log]>->(0,
       'default password rejected. use bin/mk.usr to change it!');
     return 0;
 }
 
-my $key_ref = $code{'base.resolve_key'}->( 'auth.pwd.' . $_[0] );
+my $key_ref = <[base.resolve_key]>->( 'auth.pwd.' . $_[0] );
 if ( ref($key_ref) eq 'SCALAR' and ${$key_ref} eq
-    $code{'digest.sha1'}->( $_[1] ) ) { return 1 }
+    <[digest.sha1]>->( $_[1] ) ) { return 1 }
 else { return 0 }

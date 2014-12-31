@@ -5,9 +5,8 @@
 
 my ( $chain_name, @chain_list ) = @_;
 my $warps = scalar(@chain_list);
-$code{'base.log'}->( 1, "compiling chain '$chain_name'");
-my $id = &{ $code{'base.gen_id'} }
-  ( "data", $data{'system'}{'max'}{'chains'} || 512 );
+<[base.log]>->( 1, "compiling chain '$chain_name'");
+my $id = <[base.gen_id]>->( "data", $data{'system'}{'max'}{'chains'} || 512 );
 my $chain_code = "sub {return ";
 $data{$id}{'name'} = $chain_name;
 $data{$id} = join ( ".", @chain_list );
@@ -15,8 +14,8 @@ my $brackets = '}';
 
 foreach my $filter_id ( reverse(@chain_list) ) {
     if ( $filter_id !~ /^\d+$/ ) {
-        $code{'base.log'}->( 0, "invalid filter '$filter_id' specified");
-        $code{'filter.del_chain'}->($id);
+        <[base.log]>->( 0, "invalid filter '$filter_id' specified");
+        <[filter.del_chain]>->($id);
         return undef;
     }
     if ( defined &{ $code{$data{'filter'}{$filter_id}{'handler'}} } ) {
@@ -28,19 +27,18 @@ foreach my $filter_id ( reverse(@chain_list) ) {
         $brackets = $options . ")" . $brackets;
     }
     else {
-        &{ $code{'base.log'} }
-          (0,"error in filter $filter_id: handler not defined");
-        $code{'filter.del_chain'}->($id);
+        <[base.log]>->(0,"error in filter $filter_id: handler not defined");
+        <[filter.del_chain]>->($id);
         return undef;
     }
 }
 $chain_code .= "\$_[0]" . $brackets;
-$code{'base.log'}->( 2, "chain[$id]code: '$chain_code'");
+<[base.log]>->( 2, "chain[$id]code: '$chain_code'");
 undef $!;
 $code{'filter.chain.'.$id}=eval($chain_code);
 if ( !$@ ) { $data{'code'}{'filter'}{$id}{'status'}='ok'; return $id }
 else {
-    $code{'base.log'}->( 0, "broken chain code [$id:$@]");
-    $code{'filter.del_chain'}->($id);
+    <[base.log]>->( 0, "broken chain code [$id:$@]");
+    <[filter.del_chain]>->($id);
     return undef;
 }

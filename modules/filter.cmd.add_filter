@@ -4,8 +4,7 @@
 # descr = add a filter to a chain
 
 
-if ( my $chain_id = &{ $code{'filter.add_filter'} }
-    ( split ( / /, $$call{'args'} ) ) )
+if ( my $chain_id = <[filter.add_filter]>->( split ( / /, $$call{'args'} ) ) )
 {
     $reply = { 'mode' => 'ack', 'data' => "filter added: id=$chain_id" };
 }

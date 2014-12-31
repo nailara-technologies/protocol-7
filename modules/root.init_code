@@ -3,13 +3,13 @@
 # name  = root.init_code
 # descr = initializes root module
 
-$code{'root.load_spawn_config'}->(<load.spawn_config>);
+<[root.load_spawn_config]>->(<load.spawn_config>);
 
 use Data::Dumper qw(Dumper);
 $Data::Dumper::Sortkeys = 1;
 
 print Dumper(<root.spawn_config.globals>) if <system.verbosity> > 1;
 
-[root.load_agent_patterns];
+<[root.load_agent_patterns]>;
 
 return 0;

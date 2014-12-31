@@ -28,7 +28,7 @@ foreach my $d_job_id (@dependency_jobs) {
     }
 
     $status->{$agent} = 'undefined' if not exists $status->{$agent};
-    $watchers->{$job_id} = $code{'event.add_var'}->(
+    $watchers->{$job_id} = <[event.add_var]>->(
         {   'var'     => \$status->{$agent},
             'handler' => 'jobqueue.handler.dependencies',
             'poll'    => 'w',

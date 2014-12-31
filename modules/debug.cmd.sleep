@@ -23,34 +23,34 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
         $fp = 2 if $fp < 2;
     }
     my $s = !$fp && $seconds == 1 ? '' : 's';
-    $code{'base.log'}->(
+    <[base.log]>->(
         0,
         sprintf( "[$session_id] (!) /o\\ .. sleeping %.${fp}f second$s ...",
             $seconds )
     );
-    my $start_time = $code{'base.time'}->();
-    $code{'base.sleep'}->($seconds);
-    my $slept_time = $code{'base.time'}->() - $start_time;
+    my $start_time = <[base.time]>;
+    <[base.sleep]>->($seconds);
+    my $slept_time = <[base.time]> - $start_time;
     if ( $slept_time < $seconds ) {
         undef $s;
         if ( $fp or $seconds > 1 ) {
             while ( $slept_time < $seconds ) {
                 my $time_left = $seconds - $slept_time;
                 $s = !$fp && $time_left == 1 ? '' : 's';
-                $code{'base.log'}->(
+                <[base.log]>->(
                     0,
                     'base.cmd.sleep: woke up '
                         . sprintf( "%.${fp}f", $time_left )
                         . " second$s early, re-sleeping.."
                 );
-                $code{'base.sleep'}->($time_left);
-                $slept_time = $code{'base.time'}->() - $start_time;
+                <[base.sleep]>->($time_left);
+                $slept_time = <[base.time]> - $start_time;
             }
         }
     }
     my $slept_str = sprintf( "%.${fp}f", $slept_time );
     $woke = ' (woke up early!)' if $slept_time < $seconds;    # !hires?
-    $code{'base.log'}->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
+    <[base.log]>->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
     $s = !$fp && $slept_str == 1 ? '' : 's';
     $reply = { 'mode' => 'ack', 'data' => "slept $slept_str second$s" . $woke };
 }

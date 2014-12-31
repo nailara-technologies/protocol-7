@@ -45,11 +45,11 @@ if ($fatal_exit) {
     exit 2;
 }
 
-my $log_stamp = join( ' ', $code{'base.time'}->(5), $log_level, $log_msg );
+my $log_stamp = join( ' ', <[base.time]>->(5), $log_level, $log_msg );
 
 if (    defined $data{'system'}{'internal_verbosity'}
     and defined $log_level <= $data{'system'}{'internal_verbosity'} ) {
-    $code{'base.buffer.add_line'}->( $log_buffer, $log_stamp );
+    <[base.buffer.add_line]>->( $log_buffer, $log_stamp );
 }
 
 if ( $log_level <= $data{'system'}{'verbosity'} ) {
@@ -59,7 +59,7 @@ if ( $log_level <= $data{'system'}{'verbosity'} ) {
 
     #    $log_msg =~ s/\[[^\]]+\]//;
 
-    #    $code{'base.proto.nailara.command.send.local'}->(
+    #    <[base.proto.nailara.command.send.local]>->(
     #        {
     #            'command' => "say.text $log_msg",
     #            'reply' => { 'handler' => 'dev.null' }

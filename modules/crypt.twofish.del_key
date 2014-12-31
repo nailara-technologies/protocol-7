@@ -5,6 +5,6 @@
 if ( defined $data{'twofish'}{ $_[0] }{'key'} ) {
     $data{'twofish'}{ $_[0] }{'pass'} = ">:]" x 11;
     delete $data{'twofish'}{ $_[0] };
-    $code{'net.ack'}->( 'key deleted', $_[1] );
+    <[net.ack]>->( 'key deleted', $_[1] );
 }
-else { $code{'net.nack'}->( 'you haven\'t set a key', $_[1] ) }
+else { <[net.nack]>->( 'you haven\'t set a key', $_[1] ) }
