@@ -29,7 +29,7 @@ if ($!) {
       # extract description..
       $c_list_ref->{$cipher_module}->{'descr_txt'} = $descr_txt;
       # module loaded?
-      if ([base.perlmod.is_loaded:$cipher_module]) {
+      if ($code{'base.perlmod.is_loaded'}->($cipher_module)) {
         $c_list_ref->{$cipher_module}->{'is_loaded'} = 1;
       } else {
         $c_list_ref->{$cipher_module}->{'is_loaded'} = 0;

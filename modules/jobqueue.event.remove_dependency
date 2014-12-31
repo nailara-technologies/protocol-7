@@ -21,7 +21,7 @@ print Dumper($status);
 die "for job '$job_id' no dependencies are registered"
     if not exists $status->{$job_id};
 
-[base.log:0,"removing dependency for job '$job_id'"];
+$code{'base.log'}->(0,"removing dependency for job '$job_id'");
 
 $dependency_job_ids =~ s/^\s+|\s+$//g;
 my %remove_dependencies = map { $_ => 1 } split( /\s+/, $dependency_job_ids );
@@ -30,9 +30,9 @@ my $deleted = 0;
 my %new_dependencies = map {
     my $dependency = $_;
     if ( $dependency !~ /^\d+$/ ) {
-        [base.log: 0,
-            "invalid dependency for job '$job_id' \[$dependency\]"
-        ];
+        $code{'base.log'}->(0,
+            "invalid dependency for job '$job_id' [$dependency]"
+        );
         next;
     }
     elsif ( exists $remove_dependencies{$dependency} ) {
@@ -46,10 +46,10 @@ my %new_dependencies = map {
 my $dependency_string = join( ' ', keys(%new_dependencies) );
 
 if ( !$deleted ) {
-    [base.log: 0,
+    $code{'base.log'}->(0,
         "remove_dependency: job '$job_id' had no"
             . " dependencies matching '$dependency_job_ids'"
-    ];
+    );
     return;
 }
 
