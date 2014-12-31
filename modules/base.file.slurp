@@ -11,12 +11,12 @@ if ( not defined $target_ref ) {
   $target_ref = \$buffer;
 }
 if ( !-f $filename ){
-  [base.log:0,"file.slurp: file '$filename' not found."];
+  $code{'base.log'}->(0,"file.slurp: file '$filename' not found.");
   return undef;
 }
 my $file_fh;
 if ( !open($file_fh,'<'.$filename) ) {
-  [base.log:0,"file.slurp: failed to open '$filename' \[$!\]"];
+  $code{'base.log'}->(0,"file.slurp: failed to open '$filename' [$!]");
   return undef;
 }
 my $ref_type = ref($target_ref);
@@ -31,7 +31,7 @@ if ( $ref_type eq 'SCALAR' ) {
   @$target_ref = <$file_fh>;
 
 } else {
-  [log.failed:"file.slurp: unsupported reference type '$ref_type'!"];
+  $code{'log.failed'}->("file.slurp: unsupported reference type '$ref_type'!");
   return undef;
 }
 

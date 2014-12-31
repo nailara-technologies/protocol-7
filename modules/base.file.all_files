@@ -18,7 +18,7 @@ if ( not defined $result_aref ) {
 if (-d $path) {
   my $dir_fh;
   $old_path = getcwd();
-  chdir($path) or [log.failed:"file.all_files: chdir($path): $!"];
+  chdir($path) or $code{'log.failed'}->("file.all_files: chdir($path): $!");
   $path =~ s/\/+$//;
   if (!opendir ($dir_fh, $path)) {
     $code{'base.log'}->(0,"can not open directory '$path' [$!]");
@@ -27,8 +27,8 @@ if (-d $path) {
   foreach my $entry ( sort( readdir($dir_fh) ) ) {
     next if $entry =~ /^\.{1,2}$/;
     push (@{$result_aref}, abs_path($entry)) if -f $entry;
-    [file.all_files:"$path/$entry",$result_aref] if -d $entry and $recursive;
+    $code{'file.all_files'}->("$path/$entry",$result_aref) if -d $entry and $recursive;
   }
 }
-chdir($old_path) or [log.failed:"file.all_files: chdir($old_path): $!"];
+chdir($old_path) or $code{'log.failed'}->("file.all_files: chdir($old_path): $!");
 return $result_aref if !$recursion_entered;
