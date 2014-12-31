@@ -11,5 +11,5 @@ if( $_[0]=~/([^\.]+)\.([\w|\.]+)$/ ) {
 
 [base.daemonize] if <system.daemon_mode>;
 
-[base.load_config_file:"nailara.<system.agent.name>"] or
-  [log.failed:"startup of agent '<system.agent.name>' has failed!"];
+$code{'base.load_config_file'}->("nailara.<system.agent.name>") or
+  $code{'log.failed'}->("startup of agent '<system.agent.name>' has failed!");

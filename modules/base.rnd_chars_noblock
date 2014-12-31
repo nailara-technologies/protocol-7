@@ -15,7 +15,7 @@ die "expected positive integer as argument (instead of '$ammount')"
 while ( $ammount > length($rnd_bytes) ) {
   if ( exists $code{'crypt.random.bytes'}
     and Crypt::OpenSSL::Random::random_status() ) {
-    $rnd_bytes .= [crypt.random.bytes:1];
+    $rnd_bytes .= $code{'crypt.random.bytes'}->(1);
   } else {
     $rnd_bytes .= chr(int(33+rand(93)));
   }

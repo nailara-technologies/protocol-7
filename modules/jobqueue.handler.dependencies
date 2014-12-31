@@ -11,7 +11,7 @@ die "no dependency job id[s] specified" if not defined $dependency_job_ids;
   if not exists <jobqueue.depending.job_id>; # XXX
 my $status = <root.agent.status>;
 
-[base.log: 2, " | jobqueue.handler.dependencies | status: $status->{$agent_name}"];
+$code{'base.log'}->(2, " | jobqueue.handler.dependencies | status: $status->{$agent_name}");
 
 if ( not exists $status->{$agent_name} ) {
   return undef;
@@ -19,7 +19,7 @@ if ( not exists $status->{$agent_name} ) {
   return undef;
 }
 
-[base.log: 2, " | jobqueue.handler.dependencies | job_id: '$job_id', agent_name: $agent_name, dependencies: $dependency_job_ids"];
+$code{'base.log'}->(2, " | jobqueue.handler.dependencies | job_id: '$job_id', agent_name: $agent_name, dependencies: $dependency_job_ids");
 
-[jobqueue.exec_job:$job_id];
+$code{'jobqueue.exec_job'}->($job_id);
 

@@ -5,9 +5,9 @@
 
 my $job_id = shift;
 
-[base.log:2,"executing job $job_id .."];
+$code{'base.log'}->(2,"executing job $job_id ..");
 
-my $job_data = [jobqueue.get_job_data:$job_id];
+my $job_data = $code{'jobqueue.get_job_data'}->($job_id);
 die "can not execute job '$job_id' (no such job)"
   if not defined $job_data;
 die "can not execute job '$job_id' (no callback defined)"
