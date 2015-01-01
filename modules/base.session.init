@@ -106,7 +106,7 @@ if ( $mode eq 'server' ) {
 } else {
     $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
         'fd'     => $fd,
-        'cb'     => <[base.handler.read]>,
+        'cb'     => $code{'base.handler.read'},
         'data'   => $id,
         'repeat' => 0,
         'desc'   => "[$id] input handler"
