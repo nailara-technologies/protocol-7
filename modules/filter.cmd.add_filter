@@ -3,9 +3,8 @@
 # name  = filter.cmd.add_filter
 # descr = add a filter to a chain
 
-
-if ( my $chain_id = <[filter.add_filter]>->( split ( / /, $$call{'args'} ) ) )
-{
+if ( my $chain_id = <[filter.add_filter]>->( split( / /, $$call{'args'} ) ) ) {
     $reply = { 'mode' => 'ack', 'data' => "filter added: id=$chain_id" };
+} else {
+    $$reply{'data'} = 'failed to add filter';
 }
-else { $$reply{'data'} = 'failed to add filter' }

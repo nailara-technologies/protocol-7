@@ -10,15 +10,18 @@ print "sock: $fd\n";
 if ( -S $fd ) {
     my $new_sock;
     accept( $new_sock, $fd )
-      or <[base.log]>->( 0, "io.unix.socket.in.connect: can not accept [$!]");
+        or
+        <[base.log]>->( 0, "io.unix.socket.in.connect: can not accept [$!]" );
     syswrite( $new_sock, ">:]\n" );
     $data{'handle'}{$new_sock}{'link'} = 'unix';
 
-    <[event.add_io]>->( $fd, $data{'handle'}{$fd}{'auth_handler'}, $fd, 'r', 0, 0 );
+    <[event.add_io]>->(
+        $fd, $data{'handle'}{$fd}{'auth_handler'},
+        $fd, 'r', 0, 0
+    );
 
     return $new_sock;
-}
-else {
-    <[base.log]>->( 0, "io.unix.socket.in.connect: no valid socket supplied");
+} else {
+    <[base.log]>->( 0, "io.unix.socket.in.connect: no valid socket supplied" );
     return undef;
 }

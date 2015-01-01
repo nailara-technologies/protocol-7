@@ -7,8 +7,7 @@
 
 if ( not %{ $_[0] } ) {
     print "\ndebug: first argument is no hash reference!\n\n";
-}
-else {
+} else {
     print "\ndebug:\n";
     foreach my $key ( keys( %{ $_[0] } ) ) {
 
@@ -16,11 +15,10 @@ else {
             foreach my $subkey ( keys( %{ $_[0]{$key} } ) ) {
                 print "\t$key.$subkey = '" . ${ $_[0]{$key} }{$subkey} . "'\n";
             }
-        }
-        else {
+        } else {
             my $val = ${ $_[0] }{$key};
             $val =~ s/\n/\\n/g;
-	    $val =~ s/\'/\\\'/g;
+            $val =~ s/\'/\\\'/g;
             print "\t$key = '$val'\n";
         }
     }

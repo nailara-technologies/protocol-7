@@ -7,20 +7,18 @@ if ( -S $data{'link'}{$name}{'handle'} ) {
     if ( $mode eq 'bytes' ) {
         local $data;
         if ( sysread( $data{'link'}{$name}{'handle'}, $data, $count ) ) {
-            <[base.log]>->( 0,  "length: " . length($data) );
+            <[base.log]>->( 0, "length: " . length($data) );
             <[net.raw_out]>->( $data, $com_id );
-            <[base.log]>->( 1, "ok - wrote");
+            <[base.log]>->( 1, "ok - wrote" );
             $data{'link'}{$name}{'handle'}->flush();
-            <[base.log]>->( 1, "ok - flushed");
-        }
-        else {
+            <[base.log]>->( 1, "ok - flushed" );
+        } else {
             <[net.nack]>->( "link terminated", $_[1] );
-            <[base.log]>->( 0, "link '$name' terminated");
+            <[base.log]>->( 0, "link '$name' terminated" );
             $data{'link'}{$name}{'status'} = 'closed';
         }
     }
-}
-else {
+} else {
     <[net.nack]>->( "not a valid link", $_[1] );
-    <[base.log]>->( 0, "[$id] read_data: not a valid link '$name'");
+    <[base.log]>->( 0, "[$id] read_data: not a valid link '$name'" );
 }

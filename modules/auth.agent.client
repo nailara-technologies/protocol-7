@@ -2,17 +2,16 @@
 
 # name       = auth.agent.client
 
-
 my ( $filehandle, $agent, $keyid ) = @_;
 
-if ( %key and defined $key{'agent'}{'session_key'}
-    and $key{'agent'}{'session_key'} ne '' )
-{
+if (    %key
+    and defined $key{'agent'}{'session_key'}
+    and $key{'agent'}{'session_key'} ne '' ) {
     my $smiley;
     if ( sysread( $filehandle, $smiley, 4 ) ) {
-        if ( $smiley =~ />:\]\n/ ) { <[base.log]>->( 1, "[·] smiley ok :)") }
+        if ( $smiley =~ />:\]\n/ ) { <[base.log]>->( 1, "[·] smiley ok :)" ) }
         else {
-            <[base.log]>->( 0, "[#] some strange backendserver found!");
+            <[base.log]>->( 0, "[#] some strange backendserver found!" );
             exit(1);
         }
     }
@@ -21,26 +20,27 @@ if ( %key and defined $key{'agent'}{'session_key'}
 
     my $answer = readline($filehandle);
 
-    <[net.out]>->( $filehandle, $agent . ' ' . $key{'agent'}{'session_key'} . "\n" );
+    <[net.out]>->(
+        $filehandle, $agent . ' ' . $key{'agent'}{'session_key'} . "\n"
+    );
     delete $key{'agent'}{'session_key'};
 
     if ( read( $filehandle, $answer, 8 ) ) {
 
         if ( $answer =~ /YEAH/ ) {
-            <[base.log]>->( 1, "[*] successfully authenticated :)");
+            <[base.log]>->( 1, "[*] successfully authenticated :)" );
             return $filehandle;
-        }
-        elsif ( $answer =~ /GRRR/ ) {
-            <[base.log]>->( 0, "[#] access denied :(");
+        } elsif ( $answer =~ /GRRR/ ) {
+            <[base.log]>->( 0, "[#] access denied :(" );
             return undef;
-        }
-        else {
-            <[base.log]>->( 0, "[#] protocol error :(");
+        } else {
+            <[base.log]>->( 0, "[#] protocol error :(" );
             return undef;
         }
     }
-}
-else {
-    <[base.log]>->(0,"auth.agent.client: session_key not defined. authentication failed.");
+} else {
+    <[base.log]>->(
+        0, "auth.agent.client: session_key not defined. authentication failed."
+    );
     return undef;
 }

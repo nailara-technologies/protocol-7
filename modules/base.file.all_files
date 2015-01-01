@@ -4,31 +4,32 @@
 
 my ( $path, $result_aref ) = @_;
 my $old_path;
-my $recursive = 0;
+my $recursive         = 0;
 my $recursion_entered = 0;
 if ( not defined $result_aref ) {
-  $result_aref = [];
+    $result_aref = [];
 } elsif ( $result_aref eq 'recursive' ) {
-  $result_aref = [];
-  $recursive = 1;
+    $result_aref = [];
+    $recursive   = 1;
 } else {
-  $recursion_entered = 1;
+    $recursion_entered = 1;
 }
 
-if (-d $path) {
-  my $dir_fh;
-  $old_path = getcwd();
-  chdir($path) or <[log.failed]>->("file.all_files: chdir($path): $!");
-  $path =~ s/\/+$//;
-  if (!opendir ($dir_fh, $path)) {
-    <[base.log]>->(0,"can not open directory '$path' [$!]");
-    return undef;
-  }
-  foreach my $entry ( sort( readdir($dir_fh) ) ) {
-    next if $entry =~ /^\.{1,2}$/;
-    push (@{$result_aref}, abs_path($entry)) if -f $entry;
-    <[file.all_files]>->("$path/$entry",$result_aref) if -d $entry and $recursive;
-  }
+if ( -d $path ) {
+    my $dir_fh;
+    $old_path = getcwd();
+    chdir($path) or <[log.failed]>->("file.all_files: chdir($path): $!");
+    $path =~ s/\/+$//;
+    if ( !opendir( $dir_fh, $path ) ) {
+        <[base.log]>->( 0, "can not open directory '$path' [$!]" );
+        return undef;
+    }
+    foreach my $entry ( sort( readdir($dir_fh) ) ) {
+        next if $entry =~ /^\.{1,2}$/;
+        push( @{$result_aref}, abs_path($entry) ) if -f $entry;
+        <[file.all_files]>->( "$path/$entry", $result_aref )
+            if -d $entry and $recursive;
+    }
 }
 chdir($old_path) or <[log.failed]>->("file.all_files: chdir($old_path): $!");
 return $result_aref if !$recursion_entered;

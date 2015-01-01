@@ -3,21 +3,21 @@
 # name       = io.unix.socket.in.open
 
 my $socket_file = $_[0];
-my $unix_sock=undef;
+my $unix_sock   = undef;
 
 unlink $socket_file;
 
 my $uaddr = sockaddr_un($socket_file);
 my $proto = getprotobyname('tcp');
 
-socket($unix_sock,PF_UNIX,SOCK_STREAM,0)        || die "io.unix.socket.in.open: socket: $!";
+socket( $unix_sock, PF_UNIX, SOCK_STREAM, 0 )
+    || die "io.unix.socket.in.open: socket: $!";
 unlink($socket_file);
-bind  ($unix_sock, $uaddr)                      || die "io.unix.socket.in.open: bind: $!";
-listen($unix_sock,SOMAXCONN)                    || die "io.unix.socket.in.open: listen: $!";
+bind( $unix_sock, $uaddr ) || die "io.unix.socket.in.open: bind: $!";
+listen( $unix_sock, SOMAXCONN ) || die "io.unix.socket.in.open: listen: $!";
 
-chmod(0777,$socket_file) or die "io.unix.socket.in.open: chmod: $!";
+chmod( 0777, $socket_file ) or die "io.unix.socket.in.open: chmod: $!";
 
-<[base.log]>->(1,"server [unix:$socket_file] launched.");
+<[base.log]>->( 1, "server [unix:$socket_file] launched." );
 return $unix_sock;
-
 

@@ -5,14 +5,14 @@
 
 my $job_id = shift;
 
-<[base.log]>->(2,"executing job $job_id ..");
+<[base.log]>->( 2, "executing job $job_id .." );
 
 my $job_data = <[jobqueue.get_job_data]>->($job_id);
 die "can not execute job '$job_id' (no such job)"
-  if not defined $job_data;
+    if not defined $job_data;
 die "can not execute job '$job_id' (no callback defined)"
-  if not exists $job_data->{'job_callback'};
-die "job callback '".$job_data->{'job_callback'}."' does not exist"
-  if not exists $code{$job_data->{'job_callback'}};
+    if not exists $job_data->{'job_callback'};
+die "job callback '" . $job_data->{'job_callback'} . "' does not exist"
+    if not exists $code{ $job_data->{'job_callback'} };
 
-return $code{$job_data->{'job_callback'}}->($job_data->{'callback_params'});
+return $code{ $job_data->{'job_callback'} }->( $job_data->{'callback_params'} );

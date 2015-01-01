@@ -4,44 +4,46 @@
 # descr = spawn nailara agent and add it to process maintenance table
 
 my $agent_name = shift;
-my ($pid, $r_fh, $w_fh, $e_fh);
+my ( $pid, $r_fh, $w_fh, $e_fh );
 
 die "no agent name supplied" if not defined $agent_name;
-<[base.log]>->(1,"spawning '$agent_name' agent ...");
-chomp(my $nailara_bin = qx(which nailara));
+<[base.log]>->( 1, "spawning '$agent_name' agent ..." );
+chomp( my $nailara_bin = qx(which nailara) );
 $nailara_bin = '/usr/bin/nailara' if not defined $nailara_bin;
-my @exec_args = ( ); # XXX: agent mode...
-push(@exec_args, '-' . 'v' x <system.verbosity>) if <system.verbosity>;
-
+my @exec_args = ();    # XXX: agent mode...
+push( @exec_args, '-' . 'v' x <system.verbosity> ) if <system.verbosity>;
 
 eval {
-  $pid = open3($r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args);
+    $pid = open3( $r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args );
 };
+
 # system('nailara', $agent_name, @exec_args);
 
 if ( not defined $pid ) {
-  my $err_msg = $@ || <$e_fh>;
-  <[base.log]>->(0, "failed to spawn agent '$agent_name' [$err_msg]");
-  return undef;
+    my $err_msg = $@ || <$e_fh>;
+    <[base.log]>->( 0, "failed to spawn agent '$agent_name' [$err_msg]" );
+    return undef;
 }
 
-<[event.add_io]>->({
-    'fd' => $w_fh,
-    'handler' => 'root.handler.agent_output',
-    'data' => $agent_name
-});
-<[event.add_io]>->({
-    'fd' => $e_fh,
-    'handler' => 'root.handler.agent_output',
-    'data' => $agent_name
-}) if defined $e_fh;
+<[event.add_io]>->(
+    {   'fd'      => $w_fh,
+        'handler' => 'root.handler.agent_output',
+        'data'    => $agent_name
+    }
+);
+<[event.add_io]>->(
+    {   'fd'      => $e_fh,
+        'handler' => 'root.handler.agent_output',
+        'data'    => $agent_name
+    }
+) if defined $e_fh;
 
-<[base.log]>->(1,"agent '$agent_name' spawned! [pid:$pid]");
+<[base.log]>->( 1, "agent '$agent_name' spawned! [pid:$pid]" );
 
 <root.agent.process>->{$agent_name} = {
-    'pid' => $pid,
+    'pid'  => $pid,
     'r_fh' => $r_fh,
     'w_fh' => $w_fh
 };
 
-<[root.agent.change_status]>->($agent_name,'starting');
+<[root.agent.change_status]>->( $agent_name, 'starting' );

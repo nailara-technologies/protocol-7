@@ -5,10 +5,12 @@
 my $max_routes_default = 42523;
 
 if ( not defined $data{'limit'}{'max'}{'routes'}
-    or $data{'limit'}{'max'}{'routes'} < 1 )
-{
-    <[base.log]>->( 1, 'limit.max.routes not defined or zero,'
-      ." using $max_routes_default as default..");
+    or $data{'limit'}{'max'}{'routes'} < 1 ) {
+    <[base.log]>->(
+        1,
+        'limit.max.routes not defined or zero,'
+            . " using $max_routes_default as default.."
+    );
     return 0;
 }
 
@@ -17,11 +19,11 @@ if ( not defined $data{'route'} ) {
 }
 
 <[base.list.init]>->(
-  {
-      'name'         => 'routes',
-      'key_ref'      => \$data{'route'},
-      'max_elements' => $data{'limit'}{'max'}{'routes'},
+    {   'name'         => 'routes',
+        'key_ref'      => \$data{'route'},
+        'max_elements' => $data{'limit'}{'max'}{'routes'},
 
-} );
+    }
+);
 
 return 0;

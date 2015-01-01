@@ -13,8 +13,7 @@ my $len     = length( $data{'session'}{$id}{'buffer'}{'output'} );
 my $written = 0;
 
 if ( exists $data{'session'}{$id}
-    and fileno $data{'session'}{$id}{'handle'} )
-{
+    and fileno $data{'session'}{$id}{'handle'} ) {
     if ( $len > 0 ) {
         $written = syswrite(
             $data{'session'}{$id}{'handle'},
@@ -24,8 +23,7 @@ if ( exists $data{'session'}{$id}
 
         if ( not defined $written ) {
             $data{'session'}{$id}{'shutdown'} = 1;
-        }
-        else {
+        } else {
 
             #            $_[0]->w->stop;
             $data{'session'}{$id}{'buffer'}{'output'}
@@ -35,8 +33,7 @@ if ( exists $data{'session'}{$id}
             #            $_[0]->w->start;
         }
     }
-}
-else {
+} else {
 
     $_[0]->w->cancel;
     <[base.session.check_last]>;
@@ -52,9 +49,9 @@ if ($len) {
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
     }
-}
-else {
-  #    if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
+} else {
+
+    #    if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
     $data{'session'}{$id}{'watcher'}{'output_buffer'}->start;
 
     #    }
