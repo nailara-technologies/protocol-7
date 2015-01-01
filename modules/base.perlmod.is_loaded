@@ -6,11 +6,11 @@
 my $module_name = shift;
 
 die "no module name supplied"
-  if not defined $module_name or !length($module_name);
+    if not defined $module_name or !length($module_name);
 die "invalid module name '$module_name'"
-  if $module_name !~ /^\w+(::\w+)*$/;
+    if $module_name !~ /^\w+(::\w+)*$/;
 
-my $module_file = join('.',join('/',split(/::/,$module_name)),'pm');
+my $module_file = join( '.', join( '/', split( /::/, $module_name ) ), 'pm' );
 
-if (exists $INC{$module_file}) { return 1 }
-else { return 0 }
+if   ( exists $INC{$module_file} ) { return 1 }
+else                               { return 0 }

@@ -5,18 +5,24 @@
 # return     = $reply { mode data }
 # descr      = displays an notification message using notify-osd
 
-my $txt = $$call{'args'};
-my $id  = $$call{'session_id'};
+my $txt   = $$call{'args'};
+my $id    = $$call{'session_id'};
 my $title = 'nailara message';
 
 $title = $1 if $txt =~ s/^(\S+)\s+//;
 
 if ( defined $txt and $txt ne '' ) {
-    <[base.log]>->( 1, "[$id] sending notification");
-    if ( !system( <system.path.notify_send>,
-	'-i', <system.path.nailara_icon>, " < $title >", "\n$txt\n" ) ) {
+    <[base.log]>->( 1, "[$id] sending notification" );
+    if (!system(
+            <system.path.notify_send>,  '-i',
+            <system.path.nailara_icon>, " < $title >",
+            "\n$txt\n"
+        )
+        ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
+    } else {
+        return { 'mode' => 'nack', 'data' => 'failed: ' . $! };
     }
-    else { return { 'mode' => 'nack', 'data' => 'failed: ' . $! } }
+} else {
+    return { 'mode' => 'nack', 'data' => 'no message text submitted' };
 }
-else { return { 'mode' => 'nack', 'data' => 'no message text submitted' } }

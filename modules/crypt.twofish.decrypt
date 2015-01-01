@@ -15,5 +15,7 @@ if ( defined $data{'twofish'}{ $_[0] }{'key'} ) {
     my $output = $cipher->decrypt( pack( "H*", $_[2] ) );
     <[net.ack]>->( $output, $_[1] );
     return 0;
+} else {
+    <[net.nack]>->( 'you haven\'t set a key', $_[1] );
+    return -1;
 }
-else { <[net.nack]>->( 'you haven\'t set a key', $_[1] ); return -1 }

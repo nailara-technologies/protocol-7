@@ -77,7 +77,9 @@ if ( $$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
                     # protocol error
 
                     else {
-                        <[base.log]>->( 1, "[$id] invalid command parameter format" );
+                        <[base.log]>->(
+                            1, "[$id] invalid command parameter format"
+                        );
                         $$output .= $_cmd_id
                             . "NACK invalid command parameter format\n";
 
@@ -149,13 +151,11 @@ $alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
     $cmd = $alias_to;
-    my $args_map = {
-        'SOURCE_AGENT' => <system.node.name> . '.' . $usr
-    };
+    my $args_map = { 'SOURCE_AGENT' => <system.node.name> . '.' . $usr };
     map { $cmd =~ s/$_/$args_map->{$_}/g } keys %{$args_map};
 
     if ( $cmd =~ s/^([^ ]+)\ +([^\n]+)$/$1/ ) {
-        $$call_args{'args'} = join(' ', $2, $$call_args{'args'})
+        $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} )
             if defined $$call_args{'args'};
     }
 }
@@ -273,7 +273,9 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                     }
                 }
             } else {
-                <[base.log]>->( 1, "[$id] called unimplemented answer type ($cmd)" );
+                <[base.log]>->(
+                    1, "[$id] called unimplemented answer type ($cmd)"
+                );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
                 return 1;
             }
@@ -347,7 +349,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
         if ( defined $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
         {
 
-    #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
+         #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
         return -1;
     }

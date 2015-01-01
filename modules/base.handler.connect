@@ -15,14 +15,13 @@ my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'};
 # "ID: $id HANDLE: $fd PROTO: $proto STATE: $state MODE: $mode TYPE: $type HANDLER: $handler\n";
 
 if ( not defined $data{'handle'}{$fd}{'proto'} ) {
-    <[base.log]>->( 1,
-        'base.handler.connect: no protocol defined for submitted handle' );
+    <[base.log]>->(
+        1, 'base.handler.connect: no protocol defined for submitted handle'
+    );
     <[base.session.check_last]>;
     return undef;
-}
-else {
-    <[base.log]>->( 1,
-        'base.handler.connect: calling connect handler' );
+} else {
+    <[base.log]>->( 1, 'base.handler.connect: calling connect handler' );
     my $new_fd = $code{$handler}->( $_[0] );
     my $id     = <[base.session.init]>->($new_fd);
 

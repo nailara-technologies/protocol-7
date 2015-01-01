@@ -6,7 +6,9 @@
 
 if ( not defined $_[0] ) {
     my $proto = $_[1];
-    <[base.log]>->(0,"failed to bind protocol '$proto' [undefined filehandle]");
+    <[base.log]>->(
+        0, "failed to bind protocol '$proto' [undefined filehandle]"
+    );
     <[base.session.check_last]>;
     return undef;
 }
@@ -14,11 +16,12 @@ $data{'handle'}{ $_[0] }{'proto'} = $_[1];
 my $mode = $_[2] || 'server';
 
 if ( !fileno( $_[0] ) ) {
-    <[base.log]>->( 0,
-        "failed to bind protocol '$_[1]' to invalid filehandle" );
+    <[base.log]>
+        ->( 0, "failed to bind protocol '$_[1]' to invalid filehandle" );
     <[base.session.check_last]>;
 } else {
-    <[base.log]>->( 2,
-        "bound protocol '$_[1]' to handle '$_[0]' (mode: $mode)" );
+    <[base.log]>->(
+        2, "bound protocol '$_[1]' to handle '$_[0]' (mode: $mode)"
+    );
     my $id = <[base.session.init]>->( $_[0], $_[1], $mode );
 }

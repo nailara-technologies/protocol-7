@@ -4,15 +4,16 @@
 # descr = load Crypt::Twofish2 or Crypt::Twofish if not available
 
 my $twofish_variant;
-my $status = <[base.on_fail.load_perlmod]>->('Crypt::Twofish2',
-  'crypt.twofish.init_alternative');
+my $status = <[base.on_fail.load_perlmod]>->(
+    'Crypt::Twofish2', 'crypt.twofish.init_alternative'
+);
 
-if ($status == 0) {
-  $twofish_variant = 'Twofish2';
-} elsif($status == 1) {
-  $twofish_variant = 'Twofish'
+if ( $status == 0 ) {
+    $twofish_variant = 'Twofish2';
+} elsif ( $status == 1 ) {
+    $twofish_variant = 'Twofish';
 } else {
-  die "[!] failed to load Crypt::Twofish[2] module";
+    die "[!] failed to load Crypt::Twofish[2] module";
 }
 
 $data{'crypt'}{'ciphers'}{'twofish'}{'variant'} = $twofish_variant;

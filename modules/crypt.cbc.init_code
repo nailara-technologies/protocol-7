@@ -6,23 +6,24 @@
 use Crypt::CBC;
 
 my $template;
+
 # known Crypt::CBC ciphers:
 my @cipher_list = qw(
-  Crypt::Twofish2
-  Crypt::Twofish
-  Crypt::Eksblowfish::Family
-  Crypt::Blowfish
-  Crypt::Rijndael
-  Crypt::AES
+    Crypt::Twofish2
+    Crypt::Twofish
+    Crypt::Eksblowfish::Family
+    Crypt::Blowfish
+    Crypt::Rijndael
+    Crypt::AES
 );
 
 foreach my $cipher (@cipher_list) {
-  $data{'crypt'}{'cbc'}{'cipher_list'}{$cipher} = {
-    'installed' => undef, # (unknown)
-  # 'is_loaded' => [0|1],
-  # 'descr_txt' => <apropos descr text>
-  }
+    $data{'crypt'}{'cbc'}{'cipher_list'}{$cipher} = {
+        'installed' => undef,    # (unknown)
+                                 # 'is_loaded' => [0|1],
+                                 # 'descr_txt' => <apropos descr text>
+    };
 }
-<[crypt.cbc.check_installed]>->(\@cipher_list);
+<[crypt.cbc.check_installed]>->( \@cipher_list );
 
 0;

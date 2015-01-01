@@ -3,14 +3,15 @@
 # name       = base.add_sub
 
 my @sub_data     = @_;
-my $plugin_group = shift (@sub_data);
-my $sub_name     = shift (@sub_data);
+my $plugin_group = shift(@sub_data);
+my $sub_name     = shift(@sub_data);
 if ( defined &{ $data{$plugin_group}{$sub_name}{'code'} } ) {
     undef &{ $data{$plugin_group}{$sub_name}{'code'} };
 }
 eval "\$data{\'"
-  . $plugin_group . "\'}{\'"
-  . $sub_name
-  . "\'}{\'code\'}=sub{\n"
-  . join ( "\n", @sub_data ) . "}";
+    . $plugin_group
+    . "\'}{\'"
+    . $sub_name
+    . "\'}{\'code\'}=sub{\n"
+    . join( "\n", @sub_data ) . "}";
 return $@;

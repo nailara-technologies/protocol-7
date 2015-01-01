@@ -4,7 +4,7 @@
 # args  = { key_ref id }
 
 if ( ref( $_[0] ) ne 'HASH' ) {
-    <[base.log]>->(0,'base.list.element.del: submitted argument is no hash');
+    <[base.log]>->( 0, 'base.list.element.del: submitted argument is no hash' );
     return 2;
 }
 
@@ -12,24 +12,23 @@ my $key_ref = ${ $_[0] }{'key_ref'};
 my $id      = ${ $_[0] }{'id'};
 
 if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
-    <[base.log]>->(0,'base.list.element.del: key_ref is no reference to a hash reference');
+    <[base.log]>->(
+        0, 'base.list.element.del: key_ref is no reference to a hash reference'
+    );
     return 3;
-}
-elsif ( $id < 1 ) {
-    <[base.log]>->( 0, 'base.list.element.del: invalid id');
+} elsif ( $id < 1 ) {
+    <[base.log]>->( 0, 'base.list.element.del: invalid id' );
     return 4;
-}
-elsif ( not defined ${$$key_ref}{$id} ) {
-    <[base.log]>->( 0, "base.list.element.del: no such element ($id)");
+} elsif ( not defined ${$$key_ref}{$id} ) {
+    <[base.log]>->( 0, "base.list.element.del: no such element ($id)" );
     return 1;
 }
 
 if ( delete ${$$key_ref}{$id} ) {
     $data{'base'}{'element'}{$key_ref}{'count'}--;
     return 0;
-}
-else {
-    <[base.log]>->( 0, 'base.list.element.add: failed [$!]');
+} else {
+    <[base.log]>->( 0, 'base.list.element.add: failed [$!]' );
     return 5;
 }
 

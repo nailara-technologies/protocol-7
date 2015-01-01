@@ -19,7 +19,7 @@ return { 'mode' => 'nack', 'data' => 'invalid key' } if $_del_key =~ /\'/;
 
 my $del_key_ref = <[base.resolve_key]>->($del_key);
 if ( not defined $del_key_ref ) {
-    <[base.log]>->(0, "[$cid] del: no such key ($del_key)");
+    <[base.log]>->( 0, "[$cid] del: no such key ($del_key)" );
     return { 'mode' => 'nack', 'data' => 'no such key' };
 }
 
@@ -30,21 +30,21 @@ map { $_ =~ s/\0/./g } @del_key_chain;
 while ( my $sub_key = pop(@del_key_chain) ) {
     $_del_key =~ s/\.$sub_key$//;
     if ( !@del_key_chain ) {
-        last if $deleted
+        last
+            if $deleted
             and ref( $data{$sub_key} ) eq 'HASH'
             and keys( %{ $data{$sub_key} } );
         $deleted++ if delete $data{$sub_key};
-    }
-    else {
+    } else {
         my $parent_ref = <[base.resolve_key]>->($_del_key);
         $deleted++ if delete $$parent_ref->{$sub_key};
     }
 }
 
 if ($deleted) {
-    <[base.log]>->(1, "[$cid] del: key ($del_key) deleted");
+    <[base.log]>->( 1, "[$cid] del: key ($del_key) deleted" );
     return { 'mode' => 'ack', 'data' => 'deleted' };
 } else {
-    <[base.log]>->(0, "[$cid] del: failed to delete key ($del_key)");
+    <[base.log]>->( 0, "[$cid] del: failed to delete key ($del_key)" );
     return { 'mode' => 'nack', 'data' => 'failed' };
 }

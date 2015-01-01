@@ -64,8 +64,7 @@ $data{'watcher_list'}{'paused'} = []
     if not defined $data{'watcher_list'}{'paused'}
     or ref( $data{'watcher_list'}{'paused'} ) ne 'ARRAY';
 
-$data{'session'}{$id}{'watcher'}{'shutdown_trigger'}
-    = <[event.add_var]>->(
+$data{'session'}{$id}{'watcher'}{'shutdown_trigger'} = <[event.add_var]>->(
     {   'var'     => \$data{'session'}{$id}{'shutdown'},
         'poll'    => 'w',
         'handler' => 'base.session.check.close',
@@ -73,7 +72,7 @@ $data{'session'}{$id}{'watcher'}{'shutdown_trigger'}
         'data'    => $id,
         'desc'    => "[$id] shutdown trigger"
     }
-    );
+);
 
 $data{'session'}{$id}{'watcher'}{'input_buffer'} = <[event.add_var]>->(
     {   'var'     => \$data{'session'}{$id}{'buffer'}{'input'},
