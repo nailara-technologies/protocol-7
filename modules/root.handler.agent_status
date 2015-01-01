@@ -9,8 +9,8 @@ die "no status submitted"     if not defined $status;
 my $status_ref = <root.agent.status>;
 $status_ref->{$agent_name} = $status;
 
-my $dependent_jobs =
-    <root.spawn_config.globals.agents.dependencies>->{$agent_name};
+my $dependent_jobs
+    = <root.spawn_config.globals.agents.dependencies>->{$agent_name};
 
 if ( $status eq 'online' ) {
     print "PASS online\n" . Dumper($dependent_jobs);
@@ -19,8 +19,8 @@ if ( $status eq 'online' ) {
         <[jobqueue.event.remove_dependency]>->( $job_id, $dependent_jobs );
     }
 } elsif ( $status eq 'offline' ) {
-        my $job_id = <root.agent.job_id>->{$agent_name};
-        <[jobqueue.move_job]>->( $job_id, 'failed' );
+    my $job_id = <root.agent.job_id>->{$agent_name};
+    <[jobqueue.move_job]>->( $job_id, 'failed' );
 }
 
 # XXX: new

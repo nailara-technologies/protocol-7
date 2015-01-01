@@ -5,8 +5,7 @@
 
 if (    defined $data{'watcher_list'}{'paused'}
     and ref( $data{'watcher_list'}{'paused'} ) eq 'ARRAY'
-    and scalar @{ $data{'watcher_list'}{'paused'} } )
-{
+    and scalar @{ $data{'watcher_list'}{'paused'} } ) {
     foreach my $w ( @{ $data{'watcher_list'}{'paused'} } ) {
 
         my $id   = $$w->w->data;
@@ -17,14 +16,13 @@ if (    defined $data{'watcher_list'}{'paused'}
         ${$w}->w->start;
 
         # hotfix (will be done right with the new event module)
-        if($desc =~ /^\[(\d+)\] output buffer$/) {
-            ${$w}->w->now if length($data{'session'}{$1}{'buffer'}{'output'});
+        if ( $desc =~ /^\[(\d+)\] output buffer$/ ) {
+            ${$w}->w->now if length( $data{'session'}{$1}{'buffer'}{'output'} );
         }
     }
     $data{'watcher_list'}{'paused'} = [];
     $_[0]->w->stop;
-}
-else {
+} else {
     $data{'watcher_list'}{'paused'} = [];
     $_[0]->w->stop;
 }

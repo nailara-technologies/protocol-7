@@ -3,8 +3,8 @@
 # name  = filter.cmd.del_chain
 # descr = delete a filter chain
 
-if ( <[filter.del_chain]>->( $$call{'args'} ) )
-{
+if ( <[filter.del_chain]>->( $$call{'args'} ) ) {
     $reply = { 'mode' => 'ack', 'data' => 'chain deleted' };
+} else {
+    $$reply{'data'} = 'no such chain';
 }
-else { $$reply{'data'} = 'no such chain' }

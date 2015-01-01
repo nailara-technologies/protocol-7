@@ -2,27 +2,27 @@
 
 # name       = io.ip.tcp.in.connect
 
-
-my $id=$_[0]->w->data;
-my $fd=$data{'session'}{$id}{'handle'};
+my $id = $_[0]->w->data;
+my $fd = $data{'session'}{$id}{'handle'};
 
 if ( -S $fd ) {
     my $new_sock = $fd->accept()
-      or <[base.log]>->(0,"tcp.connect_handler: can not accept [$!]");
-    $data{'handle'}{$new_sock}{'link'} = 'tcp/ip';
-    $data{'handle'}{$new_sock}{'mode'} = 'in';
-    $data{'handle'}{$new_sock}{'encryption'}   = 'none';
-    $data{'handle'}{$new_sock}{'peerhost'} = $new_sock->peerhost();
-    $data{'handle'}{$new_sock}{'peerport'} = $new_sock->peerport();
+        or <[base.log]>->( 0, "tcp.connect_handler: can not accept [$!]" );
+    $data{'handle'}{$new_sock}{'link'}       = 'tcp/ip';
+    $data{'handle'}{$new_sock}{'mode'}       = 'in';
+    $data{'handle'}{$new_sock}{'encryption'} = 'none';
+    $data{'handle'}{$new_sock}{'peerhost'}   = $new_sock->peerhost();
+    $data{'handle'}{$new_sock}{'peerport'}   = $new_sock->peerport();
 
-    <[base.log]>->( 1, 'incoming tcp connection ['
-      . $data{'handle'}{$new_sock}{'peerhost'}
-      . ':'.$data{'handle'}{$new_sock}{'peerport'}
-      . ']');
+    <[base.log]>->(
+        1,
+        'incoming tcp connection ['
+            . $data{'handle'}{$new_sock}{'peerhost'} . ':'
+            . $data{'handle'}{$new_sock}{'peerport'} . ']'
+    );
 
     return $new_sock;
-}
-else {
-    <[base.log]>->( 0, "tcp.connect_handler: no socket supplied");
+} else {
+    <[base.log]>->( 0, "tcp.connect_handler: no socket supplied" );
     return 0;
 }

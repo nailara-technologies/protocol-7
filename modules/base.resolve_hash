@@ -3,7 +3,7 @@
 # name       = base.resolve_hash
 
 my $key_ref = *data{HASH};
-foreach my $sub_key ( split ( /\./, $_[0] ) ) {
+foreach my $sub_key ( split( /\./, $_[0] ) ) {
     $key_ref = \%{ $$key_ref{$sub_key} };
 }
 return $key_ref;
