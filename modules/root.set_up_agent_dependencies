@@ -38,8 +38,8 @@ foreach my $id ( keys( %{<root.agent.setup>} ) ) {
     next if not defined $dependencies;
 
     my $source_object;
-    foreach my $object_id ( keys( %{<dependency.objects>} ) ) {
-        my $element = <dependency.objects>->{$object_id};
+    foreach my $object_id ( keys( %{<dependency.object>} ) ) {
+        my $element = <dependency.object>->{$object_id};
         if ( $element->{'agent_id'} == $id ) {
             $source_object = $object_id;
             last;
@@ -60,8 +60,8 @@ foreach my $id ( keys( %{<root.agent.setup>} ) ) {
 
         # getting the object id for this agent id
         my $object_id;
-        foreach my $id ( keys( %{<dependency.objects>} ) ) {
-            my $element = <dependency.objects>->{$id};
+        foreach my $id ( keys( %{<dependency.object>} ) ) {
+            my $element = <dependency.object>->{$id};
             if ( $element->{'agent_id'} == $first_id ) {
                 $object_id = $id;
                 last;
