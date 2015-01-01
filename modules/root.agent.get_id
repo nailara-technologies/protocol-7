@@ -1,0 +1,15 @@
+# >:]
+
+# name  = root.agent.get_id
+# descr = return agent id for given name from setup
+# note  = doesn't deal with multiple agent setups for same name yet!
+
+my $agent_name = shift;
+die 'root.agent.get_id: agent name required'
+    if not defined $agent_name or !length($agent_name);
+
+foreach my $id ( keys %{<root.agent.setup>} ) {
+    return $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
+}
+
+return undef;    # not found
