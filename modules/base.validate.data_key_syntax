@@ -3,19 +3,21 @@
 # name  = base.validate.data_key_syntax
 # descr = validates data key parameters and provides error messages
 
-my $data_key = shift;
+my $data_key    = shift;
 my $max_key_len = 255;
-$data_key =~ s/\'(([^\']|\.)+)\'/my$k=$1;$k=~s|\.|_|g;$k/ge; # foo.'bar.baz'...
+$data_key =~ s/\'(([^\']|\.)+)\'/my$k=$1;$k=~s|\.|_|g;$k/ge;  # foo.'bar.baz'...
 my $ok = 1;
 my $err_msg;
 my $len_was;
 if ( not defined $data_key or $data_key eq '' ) {
-  ($ok, $err_msg) = ( 0, 'no data key name supplied' );
-} elsif ( $len_was =length($data_key) and $len_was > $max_key_len ) {
-  ($ok, $err_msg) = ( 0,
-    "supplied data key too long ( max. $max_key_len bytes but was $len_was )");
+    ( $ok, $err_msg ) = ( 0, 'no data key name supplied' );
+} elsif ( $len_was = length($data_key) and $len_was > $max_key_len ) {
+    ( $ok, $err_msg ) = (
+        0,
+        "supplied data key too long ( max. $max_key_len bytes but was $len_was )"
+    );
 } elsif ( $data_key !~ /^[A-Za-z0-9-_\.]+$/ ) {
-  ($ok, $err_msg) = ( 0, 'invalid character(s) in key name' );
+    ( $ok, $err_msg ) = ( 0, 'invalid character(s) in key name' );
 }
 return 1 if $ok;
-return (0, $err_msg);
+return ( 0, $err_msg );

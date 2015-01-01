@@ -12,9 +12,8 @@ $session_count = scalar keys %{ $data{'session'} }
 <[base.log]>->( 2, "$session_count sessions remaining" );
 
 if ( ( $session_count + $exit_count ) == 0
-    and not exists $data{'session'}{'_no_exit_'} )
-{
-    <[log.failed]>->("no active sessions - ".
-    <system.agent.name> . "-agent exiting.");
+    and not exists $data{'session'}{'_no_exit_'} ) {
+    <[log.failed]>
+        ->( "no active sessions - " . <system.agent.name> . "-agent exiting." );
     exit(-1);
 }

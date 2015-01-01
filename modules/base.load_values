@@ -2,6 +2,7 @@
 
 # name       = base.load_values
 
-<[base.log]>->(1, 'loading ' . $_[1] . ' config..' );
-return <[base.extract_values]>->( $_[0],
-    <[base.get_file]>->( $data{'system'}{'conf_path'} . '/' . $_[1] ) );
+<[base.log]>->( 1, 'loading ' . $_[1] . ' config..' );
+return <[base.extract_values]>->(
+    $_[0], <[base.get_file]>->( $data{'system'}{'conf_path'} . '/' . $_[1] )
+);

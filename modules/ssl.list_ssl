@@ -2,17 +2,18 @@
 
 # name       = ssl.list_ssl
 
-local $output =
-  pack( "A15", ":status:" )
-  . pack( "A17", ":ip:" )
-  . pack( "A8",  ":port:" )
-  . pack( "A15", ":encryption:" )
-  . ":name:\n";
+local $output
+    = pack( "A15", ":status:" )
+    . pack( "A17", ":ip:" )
+    . pack( "A8",  ":port:" )
+    . pack( "A15", ":encryption:" )
+    . ":name:\n";
 foreach my $name ( keys( %{ $data{'link'} } ) ) {
-    $output .=
-      pack( "A15", $data{'link'}{$name}{'status'} )
-      . pack( "A17", $data{'link'}{$name}{'ip'} )
-      . pack( "A8",  $data{'link'}{$name}{'port'} )
-      . pack( "A15", $data{'link'}{$name}{'encryption'} ) . $name . "\n";
+    $output
+        .= pack( "A15", $data{'link'}{$name}{'status'} )
+        . pack( "A17", $data{'link'}{$name}{'ip'} )
+        . pack( "A8",  $data{'link'}{$name}{'port'} )
+        . pack( "A15", $data{'link'}{$name}{'encryption'} )
+        . $name . "\n";
 }
 <[net.raw_out]>->( $output, $_[1] );

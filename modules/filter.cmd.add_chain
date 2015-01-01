@@ -3,9 +3,9 @@
 # name  = filter.cmd.add_chain
 # descr = compile a filter chain
 
-if ( my $filter_id =
-    <[filter.compile_chain]>->( split( / /, $$call{'args'} ) ) )
-{
+if ( my $filter_id
+    = <[filter.compile_chain]>->( split( / /, $$call{'args'} ) ) ) {
     return { 'mode' => 'ack', 'data' => "chain compiled: id=$filter_id" };
+} else {
+    return { 'mode' => 'nack', 'data' => 'failed to add filter' };
 }
-else { return { 'mode' => 'nack', 'data' => 'failed to add filter' } }

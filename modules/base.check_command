@@ -2,15 +2,18 @@
 
 # name       = base.check_command
 
-my ( $cmd, $parameter ) = split ( /:/, $_[0] );
+my ( $cmd, $parameter ) = split( /:/, $_[0] );
 my $param_id = 0;
-my @params = split ( /,/, $parameter );
-<[base.log]>->(1,"command: $cmd");
+my @params = split( /,/, $parameter );
+<[base.log]>->( 1, "command: $cmd" );
 my $func = $data{func}{$cmd};
 
-foreach my $par (@params) { <[base.log]>->(1,"param[$param_id] = $par"); $param_id++; }
+foreach my $par (@params) {
+    <[base.log]>->( 1, "param[$param_id] = $par" );
+    $param_id++;
+}
 if ( defined &$func ) { &$func(@params) }
 else {
-    <[base.log]>->(1,"dangerous command error: '$func' does not exist!");
+    <[base.log]>->( 1, "dangerous command error: '$func' does not exist!" );
     <[net.nack]>->('unknown command!');
 }

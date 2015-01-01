@@ -6,9 +6,9 @@
 
 # init
 
-my $max_ids = $_[1] || 230000;
-my $retries = 0;
-my $new_id  = 0;
+my $max_ids     = $_[1] || 230000;
+my $retries     = 0;
+my $new_id      = 0;
 my $max_retries = 23;
 
 if ( ref( $_[0] ) ne 'HASH' ) { $$_[0] = {} }
@@ -18,10 +18,11 @@ if ( ref( $_[0] ) ne 'HASH' ) { $$_[0] = {} }
 while ( !$new_id or defined $$_[0]{$new_id} ) {
     $new_id = 1 + int( rand() * $max_ids * 100 );
     if ( $retries > $max_retries ) {
-        <[base.log]>->( 0, "gen_id: [$_[0]] LIMIT maxtries reached!");
+        <[base.log]>->( 0, "gen_id: [$_[0]] LIMIT maxtries reached!" );
         return undef;
+    } else {
+        $retries++;
     }
-    else { $retries++ }
 }
 
 # if ok

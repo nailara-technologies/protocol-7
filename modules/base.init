@@ -5,11 +5,11 @@
 
 $0 = $_[0];
 
-if( $_[0]=~/([^\.]+)\.([\w|\.]+)$/ ) {
-  ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );
+if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
+    ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );
 }
 
 <[base.daemonize]> if <system.daemon_mode>;
 
-<[base.load_config_file]>->("nailara.<system.agent.name>") or
-  <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
+<[base.load_config_file]>->("nailara.<system.agent.name>")
+    or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");

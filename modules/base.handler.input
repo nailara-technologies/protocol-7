@@ -8,6 +8,7 @@ my $id = $_[0]->w->data;
 if ( not defined $id or not exists $data{'session'}{$id} ) {
     my $id = '!' if not defined $id;
     $_[0]->w->cancel;
+
     # call cleanup... (proto..)
     <[base.log]>->(
         0,
@@ -30,27 +31,27 @@ if ( defined &{ $code{$handler} } ) {
     if ( $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
-}
-elsif ( defined $data{'session'}{$id} ) {
+} elsif ( defined $data{'session'}{$id} ) {
 
     $_[0]->w->stop;
     $data{'session'}{$id}{'buffer'}{'input'} = '';
     $_[0]->w->start;
 
-    <[base.log]>->( 0,
-	"[$id] undefined input handler '$handler'. dropped buffer!" );
+    <[base.log]>->(
+        0, "[$id] undefined input handler '$handler'. dropped buffer!"
+    );
 
     if ( $data{'session'}{$id}{'mode'} eq 'client' ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
+} else {
+    print "PLIK\n";
 }
-else { print "PLIK\n" }
 
 my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
 
 if ( $len < $data{'size'}{'buffer'}{'input'}
-    and !$data{'session'}{$id}{'shutdown'} )
-{
+    and !$data{'session'}{$id}{'shutdown'} ) {
     push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
@@ -62,8 +63,7 @@ if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
 }
 
 if ( length( $data{'session'}{$id}{'buffer'}{'input'} )
-    and $data{'session'}{$id}{'buffer'}{'input'} =~ /\n/ )
-{
+    and $data{'session'}{$id}{'buffer'}{'input'} =~ /\n/ ) {
     $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
 }
 

@@ -88,7 +88,9 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
             next;
         }
 
-        $out .= <[base.dump_data]>->( undef, undef, $_[2], $_val, $_key, $_[5], $_[6] );
+        $out .= <[base.dump_data]>->(
+            undef, undef, $_[2], $_val, $_key, $_[5], $_[6]
+        );
     }
 }
 if ( not defined $_[0] and not defined $_[1] ) { return $out }

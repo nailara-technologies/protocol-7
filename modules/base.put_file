@@ -4,18 +4,23 @@
 
 my $file_name = shift;
 <[base.log]>->( 2, "file \'$file_name\' already exists, overwriting.." )
-  if -f $file_name;
+    if -f $file_name;
 if ( !open( my $file_fh, ">$file_name" ) ) {
-    <[base.log]>->( 0, 'failed to open file '
-	. "'$file_name' for writing [$!]" );
+    <[base.log]>->(
+        0, 'failed to open file ' . "'$file_name' for writing [$!]"
+    );
     return undef;
 } else {
     my $bytes_written = 0;
     foreach my $content (@_) {
         if ( ref($content) eq 'SCALAR' ) {
             my $bytes_to_write = length($$content);
-            while ( $bytes_written < $bytes_to_write and my $bytes += syswrite(
-	    $file_fh, $$content, $bytes_to_write, $bytes_written ) ) {
+            while (
+                $bytes_written < $bytes_to_write
+                and my $bytes += syswrite(
+                    $file_fh, $$content, $bytes_to_write, $bytes_written
+                )
+                ) {
                 $bytes_written += $bytes;
             }
         } else {

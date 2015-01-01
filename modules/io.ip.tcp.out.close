@@ -6,8 +6,7 @@ if ( -S $_[0] ) {
     shutdown( 2, $_[0] );
     close( $_[0] );
     return 0;
-}
-else {
-    <[base.log]>->( 0, 'io.ip.tcp.out.close: parameter is not a socket');
+} else {
+    <[base.log]>->( 0, 'io.ip.tcp.out.close: parameter is not a socket' );
     return 1;
 }

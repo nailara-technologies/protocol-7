@@ -12,22 +12,24 @@ die "expected an ARRAY reference!" if ref($code_data_aref) ne 'ARRAY';
 
 my $expected_section = shift(@section_name_chain);
 
-foreach my $data_href (@{$code_data_aref}) {
-  next if ref($data_href) ne 'HASH';
+foreach my $data_href ( @{$code_data_aref} ) {
+    next if ref($data_href) ne 'HASH';
 
-  my ($section_name) = keys(%{$data_href}); # only one expected (to maintain order)
-  if ($section_name eq $expected_section) {
+    my ($section_name)
+        = keys( %{$data_href} );    # only one expected (to maintain order)
+    if ( $section_name eq $expected_section ) {
 
-  my $section_aref = $data_href->{$section_name};
-  die "section name '$section_name' did not point to ARRAY reference!"
-    if ref($section_aref) ne 'ARRAY';
+        my $section_aref = $data_href->{$section_name};
+        die "section name '$section_name' did not point to ARRAY reference!"
+            if ref($section_aref) ne 'ARRAY';
 
-    if( !@section_name_chain ) {
-      return $section_aref; # (end of recursion)
+        if ( !@section_name_chain ) {
+            return $section_aref;    # (end of recursion)
+        } else {
+            return <[base.code_section_exists]>->(
+                $section_aref, @section_name_chain
+            );
+        }
     }
-    else {
-      return <[base.code_section_exists]>->($section_aref,@section_name_chain);
-    }
-  }
 }
-return undef; # section not found
+return undef;                        # section not found

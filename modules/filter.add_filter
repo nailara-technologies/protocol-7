@@ -3,15 +3,15 @@
 # name       = filter.add_filter
 
 my @params  = @_;
-my $filter  = shift (@params);
-my $handler = shift (@params);
-my $options = join ( ",", @params );
+my $filter  = shift(@params);
+my $handler = shift(@params);
+my $options = join( ",", @params );
 if ( $filter eq '' or $handler eq '' ) {
-    <[base.log]>->( 0, "add_filter: invalid parameter count");
+    <[base.log]>->( 0, "add_filter: invalid parameter count" );
     return undef;
 }
-if ( !defined &{$code{$handler}} ) {
-    <[base.log]>->( 0, "handler '$handler' not defined");
+if ( !defined &{ $code{$handler} } ) {
+    <[base.log]>->( 0, "handler '$handler' not defined" );
     return undef;
 }
 my $max_filters = $data{'net.max_filters'} || 256;

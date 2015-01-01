@@ -2,21 +2,23 @@
 
 # name       = base.open
 
-
 my ( $type, $mode, @params ) = @_;
 
 if ( not defined $data{'io'}{'type'}{$type} ) {
-    <[base.log]>->( 0, "base.open: io type '$type' not defined");
+    <[base.log]>->( 0, "base.open: io type '$type' not defined" );
     return undef;
-}
-elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
-    <[base.log]>->( 0, "base.open: unknown io mode '$mode' for type '$type'");
+} elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
+    <[base.log]>->( 0, "base.open: unknown io mode '$mode' for type '$type'" );
     return undef;
-}
-elsif( not defined &{$code{$data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'}}} )
+} elsif (
+    not
+    defined &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } } )
 {
-    <[base.log]>->( 0, "base.open: '$type'-handler for mode '$mode' not defined");
+    <[base.log]>->(
+        0, "base.open: '$type'-handler for mode '$mode' not defined"
+    );
     return undef;
 }
 
-return &{$code{$data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'}}}(@params);
+return &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } }
+    (@params);

@@ -8,8 +8,8 @@
 <system.config.reload_order> = [] if not exists <system.config.reload_order>;
 my $already_pushed = 0;
 map { $already_pushed = 1 if $_ eq $_[0] } @{<system.config.reload_order>};
-push(@{<system.config.reload_order>}, $_[0])
-    if $_[0] ne 'nailara.'.<system.agent.name> and !$already_pushed;
+push( @{<system.config.reload_order>}, $_[0] )
+    if $_[0] ne 'nailara.' . <system.agent.name> and !$already_pushed;
 
 return <[base.execute_agent_code]>->(
     <[base.parser.config]>->(
