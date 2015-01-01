@@ -8,8 +8,8 @@ my $object_id  = shift || '';
 my $depends_on = shift || '';
 
 die "base.dependency.add: expecting two valid dependency-object ids"
-    if not exists <dependency.objects>->{$object_id}
-    or not exists <dependency.objects>->{$depends_on};
+    if not exists <dependency.object>->{$object_id}
+    or not exists <dependency.object>->{$depends_on};
 
 <dependency.chain>->{$object_id} //= [];
 
