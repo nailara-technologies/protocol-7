@@ -9,8 +9,11 @@ die "agent id '$agent_id' does not exist!"
 
 my $instance_id = <[base.gen_id]>->(<root.agent.instance>);
 
-<root.agent.instance>->{$instance_id}
-    = { 'agent_id' => $agent_id, 'status' => 'offline' };
+<root.agent.instance>->{$instance_id} = {
+    'agent_id' => $agent_id,
+    'created'  => <[base.time]>->(5),
+    'status'   => 'offline'
+};
 
 # XXX: setup defaults (and maybe watcher?)
 
