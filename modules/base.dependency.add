@@ -2,7 +2,6 @@
 
 # name  = base.dependency.add
 # descr = add new object id to the dependency chain
-# todo  = XXX: filter out duplicates...
 
 my $object_id  = shift || '';
 my $depends_on = shift || '';
@@ -12,5 +11,9 @@ die "base.dependency.add: expecting two valid dependency-object ids"
     or not exists <dependency.object>->{$depends_on};
 
 <dependency.chain>->{$object_id} //= [];
+my $chain_aref = <dependency.chain>->{$object_id};
 
-push( @{ <dependency.chain>->{$object_id} }, $depends_on );
+# filtering out duplicates
+map { return if $_ == $depends_on } @{$chain_aref};
+
+push( @{$chain_aref}, $depends_on );
