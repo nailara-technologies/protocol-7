@@ -4,8 +4,11 @@
 # descr = initialize dependency module
 
 $data{'dependency'} //= {
-    'object' => {},    # indexed by object_id
-    'chain'  => {},    # dependency chain (of object) indexed by dependency_id
+    'setup' => {
+        'type' => {},    # definitions and callbacks for 'object types'
+    },
+    'object' => {},      # indexed by object_id
+    'chain'  => {},      # dependency chain (of object) indexed by dependency_id
 };
 
 0;
