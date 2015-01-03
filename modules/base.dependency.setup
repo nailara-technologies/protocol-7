@@ -1,0 +1,19 @@
+# >:]
+
+# name  = base.dependency.setup
+# descr = setup dependency resolution callbacks for given object type
+
+my $object_type = shift || '';
+my $type_setup  = shift || {};
+
+if ( exists <dependency.setup.type>->{$object_type} ) {
+    <[base.log]>->(
+        1,
+        "base.dependency.setup: object type '$object_type' setup "
+            . "already exists! redefining..."
+    );
+} else {
+    <[base.log]>->( 1, "setting up object type '$object_type' ..." );
+}
+
+<dependency.setup.type>->{$object_type} = $type_setup;

@@ -10,25 +10,31 @@ my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
 
 <[root.set_up_agent_dependencies]>->(@agents);
 
-# testing to inititalize an instance
+# XXX: test resolving agent dependencies ...
 
 my $agent_name = 'ping';
-my $agent_id   = <[root.agent.get_id]>->($agent_name);
+my $agent_id = <[root.agent.get_id]>->($agent_name);
+my $obj_id   = <[root.agent.get_object_id]>->($agent_id);
+print "agent '$agent_name' dependency status : "
+    . <[dependency.ok]>->($obj_id) . "\n";
 
-print "\n ( setting up agent $agent_id ($agent_name) instance(s) )\n\n";
+my $test_agent  = <[root.agent.get_id]>->('core');
+my $test_ins_id = <[root.agent.instance.add]>->($test_agent);
+<root.agent.instance>->{$test_ins_id}->{'status'} = 'online';
 
-<[root.agent.instance.add]>->($agent_id);
-<[root.agent.instance.add]>->($agent_id);
+print "agent '$agent_name' dependency status : "
+    . <[dependency.ok]>->($obj_id) . "\n";
 
-print Dumper( <[root.agent.instance.get_ids]>->($agent_id) );
+$test_agent  = <[root.agent.get_id]>->('notify');
+$test_ins_id = <[root.agent.instance.add]>->($test_agent);
+<root.agent.instance>->{$test_ins_id}->{'status'} = 'online';
 
-# XXX: test resolving agent dependencies ...
+print "agent '$agent_name' dependency status : "
+    . <[dependency.ok]>->($obj_id) . "\n";
 
 # XXX: register online agents ...
 
-# XXX: enable dependency resolving callbacks ...
-
-# XXX: resolve fulfilled dependencies ... .. .
+# XXX: get missing objects..
 
 return 0;
 
