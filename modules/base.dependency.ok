@@ -1,0 +1,35 @@
+# >:]
+
+# name  = base.dependency.ok
+# descr = return 1 if dependency for given object id is fulfilled, 0 if not
+
+my $object_id = shift || '';
+
+if ( not exists <dependency.object>->{$object_id} ) {
+    <[base.log]>->(
+        0, "base.dependency.ok: object id '$object_id' does not exist!"
+    );
+    return undef;
+}
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( not exists <dependency.setup.type>->{$object_type} ) {
+    <[base.log]>->(
+        0,
+        "base.dependency.ok: dependency setup for object type"
+            . " '$object_type' does not exist!"
+    );
+    return undef;
+}
+my $callback = <dependency.setup.type>->{$object_type}->{'callback'};
+if ( ref($callback) ne 'CODE' ) {
+    <[base.log]>->(
+        0, "base.dependency.ok: no valid callback found in object type setup!"
+    );
+    return undef;
+}
+
+return 1 if not exists <dependency.chain>->{$object_id};
+foreach my $chain_obj_id ( @{ <dependency.chain>->{$object_id} } ) {
+    return 0 if !$callback->($chain_obj_id);
+}
+return 1;
