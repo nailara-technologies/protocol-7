@@ -18,12 +18,16 @@ my $obj_id   = <[root.agent.get_object_id]>->($agent_id);
 print "agent '$agent_name' dependency status : "
     . <[dependency.ok]>->($obj_id) . "\n";
 
+print "missing objects: ".join(',',<[dependency.get_missing]>->($obj_id))."\n";
+
 my $test_agent  = <[root.agent.get_id]>->('core');
 my $test_ins_id = <[root.agent.instance.add]>->($test_agent);
 <root.agent.instance>->{$test_ins_id}->{'status'} = 'online';
 
 print "agent '$agent_name' dependency status : "
     . <[dependency.ok]>->($obj_id) . "\n";
+
+print "missing objects: ".join(',',<[dependency.get_missing]>->($obj_id))."\n";
 
 $test_agent  = <[root.agent.get_id]>->('notify');
 $test_ins_id = <[root.agent.instance.add]>->($test_agent);
@@ -32,9 +36,9 @@ $test_ins_id = <[root.agent.instance.add]>->($test_agent);
 print "agent '$agent_name' dependency status : "
     . <[dependency.ok]>->($obj_id) . "\n";
 
-# XXX: register online agents ...
+print "missing objects: ".join(',',<[dependency.get_missing]>->($obj_id))."\n";
 
-# XXX: get missing objects..
+# XXX: register online agents ...
 
 return 0;
 
