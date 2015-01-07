@@ -37,7 +37,7 @@ foreach my $agent_name (@agents) {
     <[base.log]>->( 2, ": setting up agent '$agent_name'" );
 
     # install agent setup data
-    my $agent_id = <[root.agent.setup.add]>->( { 'name' => $agent_name } );
+    my $agent_id = <[agent.setup.add]>->( { 'name' => $agent_name } );
 
     # create dependency objects for the agents
     <[dependency.add_object]>->(
@@ -52,7 +52,7 @@ foreach my $agent_name (@agents) {
 
 foreach my $id ( keys( %{<root.agent.setup>} ) ) {
     my $agent_name   = <root.agent.setup>->{$id}->{'name'};
-    my $dependencies = <[root.agent.get_dependencies]>->($agent_name);
+    my $dependencies = <[agent.get_dependencies]>->($agent_name);
     next if not defined $dependencies;
 
     my $source_object;
