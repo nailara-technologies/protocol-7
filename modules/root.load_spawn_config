@@ -38,7 +38,7 @@ foreach my $agent_element ( @{$agents_init_code} ) {
 
     my ( $agent_name, $agent_init_code ) = each %{$agent_element};
     push( @{<root.spawn_config.agents.startup.spawn_order>}, $agent_name )
-        if <[root.agent.is_enabled]>->($agent_name);
+        if <[agent.is_enabled]>->($agent_name);
 
     foreach my $init_section ( @{$agent_init_code} ) {
 
