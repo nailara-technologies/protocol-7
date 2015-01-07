@@ -1,11 +1,13 @@
 # >:]
 
-# name       = auth.agent.client.init_code
+# name  = auth.agent.client.init_code
 
-if ( defined $data{'agent'}{'init'}{'session_key'}
-    and $data{'agent'}{'init'}{'session_key'} ne '' ) {
-    $key{'agent'}{'session_key'} = $data{'agent'}{'init'}{'session_key'};
-    undef $data{'agent'}{'init'}{'session_key'};
+if (    exists $data{'agent'}
+    and exists <agent.init>
+    and defined <agent.init.session_key>
+    and <agent.init.session_key> ne '' ) {
+    $key{'agent'}{'session_key'} = <agent.init.session_key>;
+    undef <agent.init.session_key>;
 }
 
 return 0;
