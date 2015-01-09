@@ -6,18 +6,19 @@
 my $agent_name = shift;
 my ( $pid, $r_fh, $w_fh, $e_fh );
 
+my $agent_id    = <[agent.get_id]>->($agent_name);
+my $instance_id = <[agent.instance.add]>->($agent_id);
+
 die "no agent name supplied" if not defined $agent_name;
 <[base.log]>->( 1, "spawning '$agent_name' agent ..." );
 chomp( my $nailara_bin = qx(which nailara) );
-$nailara_bin = '/usr/bin/nailara' if not defined $nailara_bin;
-my @exec_args = ();    # XXX: agent mode...
+$nailara_bin //= '/usr/bin/nailara';    # XXX: <system.start.exec_name> ?
+my @exec_args = ();                     # XXX: agent mode...
 push( @exec_args, '-' . 'v' x <system.verbosity> ) if <system.verbosity>;
 
 eval {
     $pid = open3( $r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args );
 };
-
-# system('nailara', $agent_name, @exec_args);
 
 if ( not defined $pid ) {
     my $err_msg = $@ || <$e_fh>;
@@ -28,22 +29,22 @@ if ( not defined $pid ) {
 <[event.add_io]>->(
     {   'fd'      => $w_fh,
         'handler' => 'root.handler.agent_output',
-        'data'    => $agent_name
+        'data'    => $instance_id
     }
 );
 <[event.add_io]>->(
     {   'fd'      => $e_fh,
         'handler' => 'root.handler.agent_output',
-        'data'    => $agent_name
+        'data'    => $instance_id
     }
 ) if defined $e_fh;
 
 <[base.log]>->( 1, "agent '$agent_name' spawned! [pid:$pid]" );
 
-<root.agent.process>->{$agent_name} = {
-    'pid'  => $pid,
+<root.agent.instance>->{$instance_id}->{'process'} = {
+    'id'   => $pid,
     'r_fh' => $r_fh,
     'w_fh' => $w_fh
 };
 
-<[agent.change_status]>->( $agent_name, 'starting' );
+<[agent.change_status]>->( $instance_id, 'starting' );
