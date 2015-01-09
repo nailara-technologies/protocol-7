@@ -10,41 +10,6 @@ my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
 
 <[root.set_up_agent_dependencies]>->(@agents);
 
-# XXX: test resolving agent dependencies ...
-
-my $agent_name = 'ping';
-my $agent_id   = <[agent.get_id]>->($agent_name);
-my $obj_id     = <[agent.get_object_id]>->($agent_id);
-print "agent '$agent_name' dependency status : "
-    . <[dependency.ok]>->($obj_id) . "\n";
-
-print "missing objects: "
-    . join( ',', <[dependency.get_missing]>->($obj_id) ) . "\n";
-
-my $test_agent  = <[agent.get_id]>->('core');
-my $test_ins_id = <[agent.instance.add]>->($test_agent);
-<root.agent.instance>->{$test_ins_id}->{'status'} = 'online';
-
-print "agent '$agent_name' dependency status : "
-    . <[dependency.ok]>->($obj_id) . "\n";
-
-print "missing objects: "
-    . join( ',', <[dependency.get_missing]>->($obj_id) ) . "\n";
-
-$test_agent  = <[agent.get_id]>->('notify');
-$test_ins_id = <[agent.instance.add]>->($test_agent);
-<root.agent.instance>->{$test_ins_id}->{'status'} = 'online';
-
-print "agent '$agent_name' dependency status : "
-    . <[dependency.ok]>->($obj_id) . "\n";
-
-print "missing objects: "
-    . join( ',', <[dependency.get_missing]>->($obj_id) ) . "\n";
-
-# XXX: register online agents ...
-
-return 0;
-
 # xXX[ old section below ]XXx
 
 <root.dependencies> //= {};
@@ -55,7 +20,7 @@ foreach my $agent_name ( @{<root.spawn_config.agents.startup.spawn_order>} ) {
     $target_queue = 'depending' if defined $dependencies;
 
     my $job_id = <[jobqueue.add_job]>->(
-        {   'job_callback'    => 'root.agent.spawn',
+        {   'job_callback'    => 'agent.spawn',
             'callback_params' => $agent_name,
             'target_queue'    => $target_queue,
             'dependencies'    => $dependencies
