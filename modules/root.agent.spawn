@@ -3,17 +3,24 @@
 # name = root.agent.spawn
 # descr = spawn nailara agent and add it to process maintenance table
 
-my $agent_name = shift;
+my $job_id     = $_[0]->{'job_id'};
+my $agent_name = $_[0]->{'params'};
 my ( $pid, $r_fh, $w_fh, $e_fh );
 
-my $agent_id    = <[agent.get_id]>->($agent_name);
-my $instance_id = <[agent.instance.add]>->($agent_id);
+my $agent_id = <[agent.get_id]>->($agent_name);
+
+# reuse instance id or create new one if none exists
+my $instance_id = <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'};
+$instance_id //= <[agent.instance.add]>->($agent_id);
+<jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
+
+<root.agent.instance>->{$instance_id}->{'job_id'} = $job_id;
 
 die "no agent name supplied" if not defined $agent_name;
 <[base.log]>->( 1, "spawning '$agent_name' agent ..." );
-chomp( my $nailara_bin = qx(which nailara) );
-$nailara_bin //= '/usr/bin/nailara';    # XXX: <system.start.exec_name> ?
-my @exec_args = ();                     # XXX: agent mode...
+
+my $nailara_bin = <system.start.exec_name>;
+my @exec_args   = ();                         # XXX: agent mode...
 push( @exec_args, '-' . 'v' x <system.verbosity> ) if <system.verbosity>;
 
 eval {
