@@ -22,7 +22,7 @@ sysread( $read_fh, my $buffer, $max_buffer_size );
 
 if ( !length($buffer) ) {
     $event->cancel;
-    <[agent.change_status]>->( $instance_id, 'offline' );
+    <[agent.change_status]>->( $instance_id, 'failed' );
     return;
 }
 

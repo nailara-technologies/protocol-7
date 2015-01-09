@@ -26,8 +26,9 @@ my $target_queue = $job_params->{'target_queue'} || 'queued';
 my $job_data = {
     'name'     => $job_params->{'name'}     || $job_params->{'job_callback'},
     'priority' => $job_params->{'priority'} || 0,
-    'status'   => 'queued',
-    'tstamp'   => {
+    'object_id' => $job_params->{'object_id'},
+    'status'    => $target_queue,
+    'tstamp'    => {
         'queued'       => <[base.time]>->(4),
         'dependencies' => undef,
         'running'      => undef,
@@ -41,8 +42,6 @@ my $job_data = {
     'job_callback'    => $job_params->{'job_callback'},
     'callback_params' => $job_params->{'callback_params'}
 };
-
-# foreach my $
 
 $data{'jobqueue'}{'joblist'}{'by_id'}{$job_id} = $job_data;
 

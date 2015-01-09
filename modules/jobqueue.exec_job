@@ -15,4 +15,5 @@ die "can not execute job '$job_id' (no callback defined)"
 die "job callback '" . $job_data->{'job_callback'} . "' does not exist"
     if not exists $code{ $job_data->{'job_callback'} };
 
-return $code{ $job_data->{'job_callback'} }->( $job_data->{'callback_params'} );
+return $code{ $job_data->{'job_callback'} }
+    ->( { 'job_id' => $job_id, 'params' => $job_data->{'callback_params'} } );

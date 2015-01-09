@@ -9,55 +9,20 @@ die "no such agent instance ($instance_id)"
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
 
-# XXX: rewrite to use the new agent instance records!
-
-my $agent_id   = <root.agent.instance>->{$instance_id}->{'agent_id'};
+my $instance   = <root.agent.instance>->{$instance_id};
+my $agent_id   = $instance->{'agent_id'};
 my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
+my $job_id     = $instance->{'job_id'};
 
-<root.agent.instance>->{$instance_id}->{'status'} = $status;
+$instance->{'status'} = $status;
 
-###
+<[base.log]>->( 1, "agent_status: '$agent_name', status: '$status'" );
 
-my $status_ref = <root.agent.status>;
-$status_ref->{$agent_name} = $status;
+# move job if required ... XXX: refine!
+my $target_queue;
+$target_queue = 'running' if $status eq 'online';
+$target_queue = 'failed' if $status eq 'failed' or $status eq 'offline';
+<[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
+    if defined $target_queue;
 
-my $dependent_jobs
-    = <root.spawn_config.globals.agents.dependencies>->{$agent_name};
-
-if ( $status eq 'online' ) {
-    print "PASS online\n" . Dumper($dependent_jobs);
-    foreach my $job_id ( keys %{ <root.dependencies>->{$agent_name} } ) {
-        print "     > job_id: $job_id - $dependent_jobs\n";
-        <[jobqueue.event.remove_dependency]>->( $job_id, $dependent_jobs );
-    }
-} elsif ( $status eq 'offline' ) {
-    my $job_id = <root.agent.job_id>->{$agent_name};
-    <[jobqueue.move_job]>->( $job_id, 'failed' );
-}
-
-# XXX: new
-foreach my $dependent_agent_name ( keys %{<root.dependencies>} ) {
-
-    print "[D] agent_name : $agent_name\n";
-
-    foreach my $dependent_agent_id (
-        keys %{ <root.dependencies>->{$dependent_agent_name} } )
-    {    # XXX: job_id???
-        my $dependency_agents = <root.dependencies>
-            ->{$dependent_agent_name}->{$dependent_agent_id};
-        print "[D] > $dependency_agents\n"; # XXX: implement plural[?] || rename
-        if ( $dependency_agents eq $agent_name ) {
-            print "[D] MATCH! ($dependent_agent_id)\n";
-
-# XXX
-#        <[jobqueue.event.remove_dependency]>->($dependent_agent_id,$dependent_jobs);
-        }
-    }
-
-}
-
-# return undef if not exists $status->{$agent_name};
-
-<[base.log]>->( 0, "agent_status: '$agent_name', status: '$status'" );
-
-# XXX
+<[jobqueue.check_dependencies]>;
