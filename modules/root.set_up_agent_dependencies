@@ -30,11 +30,9 @@ if ( !@agents ) {
     }
 );
 
-<[base.log]>->( 1, 'setting up agent dependency chains..' );
-
 foreach my $agent_name (@agents) {
 
-    <[base.log]>->( 2, ": setting up agent '$agent_name'" );
+    <[base.log]>->( 2, ": dependency object : agent '$agent_name'" );
 
     # install agent setup data
     my $agent_id = <[agent.setup.add]>->( { 'name' => $agent_name } );
@@ -48,45 +46,28 @@ foreach my $agent_name (@agents) {
     );
 }
 
-# set up agent dependencies
+<[base.log]>->( 1, 'setting up agent dependency chains ...' );
 
-foreach my $id ( keys( %{<root.agent.setup>} ) ) {
-    my $agent_name   = <root.agent.setup>->{$id}->{'name'};
+foreach my $s_id (
+    sort {
+        <root.agent.setup>->{$a}->{'name'} cmp
+            <root.agent.setup>->{$b}->{'name'}
+    } keys( %{<root.agent.setup>} )
+    ) {
+    my $agent_name   = <root.agent.setup>->{$s_id}->{'name'};
     my $dependencies = <[agent.get_dependencies]>->($agent_name);
     next if not defined $dependencies;
 
-    my $source_object;
-    foreach my $object_id ( keys( %{<dependency.object>} ) ) {
-        my $element = <dependency.object>->{$object_id};
-        if ( $element->{'agent_id'} == $id ) {
-            $source_object = $object_id;
-            last;
-        }
-    }
+    <[base.log]>->( 2, ": agent '$agent_name' dependencies [ $dependencies ]" );
+
+    my $source_object = <[agent.get_object_id]>->($s_id);
 
     foreach my $dep_agent_name ( split / +/, $dependencies ) {
 
         # choosing first agent with such a name (for now) multiple comes later..
-        my $first_id;
-        foreach my $agent_id ( keys %{<root.agent.setup>} ) {
-            if ( <root.agent.setup>->{$agent_id}->{'name'} eq $dep_agent_name )
-            {
-                $first_id = $agent_id;
-                last;
-            }
-        }
+        my $first_id  = <[agent.get_id]>->($dep_agent_name);
+        my $object_id = <[agent.get_object_id]>->($first_id);
 
-        # getting the object id for this agent id
-        my $object_id;
-        foreach my $id ( keys( %{<dependency.object>} ) ) {
-            my $element = <dependency.object>->{$id};
-            if ( $element->{'agent_id'} == $first_id ) {
-                $object_id = $id;
-                last;
-            }
-        }
-
-        # add the object id to the dependency chain
         <[dependency.add]>->( $source_object, $object_id );
     }
 }
