@@ -5,9 +5,11 @@
 
 # todo  = XXX: fix buffer and newline handling !!!
 
-my $event      = shift->w;
-my $read_fh    = $event->fd;
-my $agent_name = $event->data;
+my $event       = shift->w;
+my $read_fh     = $event->fd;
+my $instance_id = $event->data;
+my $agent_id    = <root.agent.instance>->{$instance_id}->{'agent_id'};
+my $agent_name  = <root.agent.setup>->{$agent_id}->{'name'};
 <root.patterns.agent_output> //= {};
 
 my $max_buffer_size = 42500;
@@ -20,7 +22,7 @@ sysread( $read_fh, my $buffer, $max_buffer_size );
 
 if ( !length($buffer) ) {
     $event->cancel;
-    <[agent.change_status]>->( $agent_name, 'offline' );
+    <[agent.change_status]>->( $instance_id, 'offline' );
     return;
 }
 
@@ -33,10 +35,10 @@ if ( exists <root.patterns.agent_output>->{$agent_name} ) {
         die "no code ref defined for pattern '$pattern'"
             if not defined $c_ref;
         die "'$c_ref' is not a code ref" if ref($c_ref) ne 'CODE';
-        $c_ref->() if $buffer =~ $pattern;
+        $c_ref->($instance_id) if $buffer =~ $pattern;
     }
 } else {
     warn "no output patterns defined for agent '$agent_name'"
-        if not exists $data{'root'}{'status'}{'warning'}{"pattern_$agent_name"};
-    $data{'root'}{'status'}{'warning'}{"pattern_$agent_name"} = 1;
+        if not exists <root.status.warning>->{"pattern_$agent_name"};
+    <root.status.warning>->{"pattern_$agent_name"} = 1;
 }

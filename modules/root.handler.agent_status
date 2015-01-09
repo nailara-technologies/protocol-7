@@ -2,9 +2,21 @@
 
 # name = root.handler.agent_status
 
-my ( $agent_name, $status ) = @_;
-die "no agent name specified" if not defined $agent_name;
-die "no status submitted"     if not defined $status;
+my ( $instance_id, $status ) = @_;
+die "no instance id specified" if not defined $instance_id;
+die "no status submitted"      if not defined $status;
+die "no such agent instance ($instance_id)"
+    if not exists <root.agent.instance>
+    or not exists <root.agent.instance>->{$instance_id};
+
+# XXX: rewrite to use the new agent instance records!
+
+my $agent_id   = <root.agent.instance>->{$instance_id}->{'agent_id'};
+my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
+
+<root.agent.instance>->{$instance_id}->{'status'} = $status;
+
+###
 
 my $status_ref = <root.agent.status>;
 $status_ref->{$agent_name} = $status;
