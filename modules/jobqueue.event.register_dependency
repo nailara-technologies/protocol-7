@@ -20,7 +20,7 @@ $status->{$job_id} = join( ' ', @dependency_jobs );
 foreach my $d_job_id (@dependency_jobs) {
 
     my $job = <jobqueue.joblist.by_id>->{$d_job_id};
-    next if $job->{'name'} ne 'root.agent.spawn';
+    next if $job->{'name'} ne 'agent.spawn';
     my $agent = $job->{'callback_params'};
 
     if ( exists $watchers->{$job_id} ) {
