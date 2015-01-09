@@ -20,8 +20,17 @@ if ( defined $txt and $txt ne '' ) {
         )
         ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
+    } elsif ( $? == -1 ) {
+        return { 'mode' => 'nack', 'data' => 'failed to execute: ' . $! };
     } else {
-        return { 'mode' => 'nack', 'data' => 'failed: ' . $! };
+        return {
+            'mode' => 'nack',
+            'data' => sprintf(
+                "notify-send exited with code %d%s",
+                ( $? >> 8 ),
+                defined $! && length($!) ? " [$!]" : ''
+            )
+        };
     }
 } else {
     return { 'mode' => 'nack', 'data' => 'no message text submitted' };
