@@ -9,26 +9,19 @@ my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
 return if $$counter_ref == 0;
 
 <[base.log]>->(
-    0,
+    1,
     "queue_name: '$queue_name', count: $$counter_ref last: "
         . <jobqueue.counter.last>->{$queue_name}
 );
 
 if ( $queue_name eq 'queued' ) {
     my ( $job_id, $job_data ) = <[jobqueue.get_next_job]>->($queue_name);
-    print "[jobqueue.depending] > " . Dumper(<jobqueue.depending>);
-
-    #exit;
     return if not defined $job_id;
-    if (    exists <jobqueue.depending>
-        and exists <jobqueue.depending>->{$job_id}
-        and defined <jobqueue.depending>->{$job_id}
-        and length( <jobqueue.depending>->{$job_id} ) ) {
-        <[jobqueue.register_dependency]>->(
-            $job_id, <jobqueue.depending>->{$job_id}
-        );
+    my $object_id = $job_data->{'object_id'};
+
+    if ( !<[dependency.ok]>->($object_id) ) {
         <[jobqueue.move_job]>->( $job_id, 'depending' );
-        <[base.log]>->( 1, "moved job '$job_id' into dependency queue" );
+        <[base.log]>->( 1, "moved job '$job_id' into 'depending' queue" );
     } else {
         <[jobqueue.exec_job]>->($job_id);
         <[jobqueue.move_job]>->( $job_id, 'running' );
@@ -41,3 +34,5 @@ if ( $queue_name eq 'queued' ) {
 }
 
 <jobqueue.counter.last>->{$queue_name} = $$counter_ref;
+
+<[jobqueue.check_dependencies]>;
