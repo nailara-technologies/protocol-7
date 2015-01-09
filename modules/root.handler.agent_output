@@ -22,6 +22,21 @@ sysread( $read_fh, my $buffer, $max_buffer_size );
 
 if ( !length($buffer) ) {
     $event->cancel;
+    my $process = <root.agent.instance>->{$instance_id}->{'process'};
+    close($read_fh);
+
+    # collect process exit status
+    waitpid( $process->{'id'}, WNOHANG );
+    my $exit_status = $? >> 8;
+    delete <root.agent.instance>->{$instance_id}->{'process'};
+    undef $process;
+
+    <[base.log]>->(
+        1,
+        "[instance $instance_id] agent '$agent_name' exited"
+            . " (status $exit_status)"
+    );
+
     <[agent.change_status]>->( $instance_id, 'failed' );
     return;
 }
