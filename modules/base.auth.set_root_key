@@ -1,0 +1,17 @@
+# >:]
+
+# name  = base.auth.set_root_key
+# descr = set up session auth key for 'root' agent
+# todo  = XXX: switch agent authentication hashes to sha512!
+
+my $key_str = shift;
+die "no key string supplied!" if not defined $key_str or !length($key_str);
+
+# provide sha1 function in case the Digest module hasn't been loaded yet
+if ( not exists $code{'digest.sha1'} ) {
+    eval 'use Digest::SHA qw(sha1_hex); $code{\'digest.sha1\'} = \&sha1_hex';
+    die "failed to load Digest::SHA module! ($!)" if $@;
+}
+
+<[base.log]>->( 1, "setting up session key for 'root' agent.." );
+$key{'auth'}{'agent'}{'root'} = <[digest.sha1]>->($key_str);
