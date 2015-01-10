@@ -11,5 +11,8 @@ if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
 
 <[base.daemonize]> if <system.daemon_mode>;
 
+<[base.execute_agent_code]>->( <[base.parser.config]>->(<startup.init_code>) )
+    if <system.startup_initcode> and @{<startup.init_code>};
+
 <[base.load_config_file]>->("nailara.<system.agent.name>")
     or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
