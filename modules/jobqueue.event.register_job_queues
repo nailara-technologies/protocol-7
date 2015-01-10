@@ -11,9 +11,6 @@ my $counters = $data{'jobqueue'}{'joblist'}{'count'};
 foreach my $queue_name ( keys %{<jobqueue.joblist>} ) {
     next if $queue_name eq 'by_id' or $queue_name eq 'count';
 
-    #use Data::Dumper qw(Dumper);
-    #print Dumper($data{'jobqueue'});
-
     die "no counter for queue '$queue_name' found"
         if not exists $counters->{$queue_name};
 
