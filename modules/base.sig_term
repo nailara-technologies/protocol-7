@@ -2,13 +2,12 @@
 
 # name       = base.sig_term
 
-$0 = "$0 :. shutdown in progress... please wait!";
+( my $pname = $0 ) =~ s/ +$//;
+$0 = "$pname :. shutdown in progress... please wait! ";
 <[base.log]>->( 0, 'SIGTERM received. shutting down...' );
 
 # <[net.send_all]>->("close SIGTERM"); # see base.sig_int
 # $SIG{'ALRM'} = sub { <[base.log]>->( 1, 'done.'); exit(0); };
 # alarm( $data{'sigterm'}{'timeout'} || 1 );
 
-exit;
-
-return 0;
+exit(0);
