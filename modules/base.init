@@ -3,7 +3,7 @@
 # name  = base.init
 # descr = initialize (execute) agent
 
-$0 = $_[0];
+$0 = "$_[0] ";   # <- the space is due to whowatch cutting off the last byte! ;/
 
 if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
     ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );
