@@ -11,8 +11,8 @@ opendir( my $parse_dir, '.' ) or die $!;
 
 while ( readdir($parse_dir) ) {
     next if $_ =~ /^\./;
-
-    open( my $fh, "<$path/$_" ) or die $!;
+    my $fname = $_;
+    open( my $fh, "<$path/$fname" ) or die $!;
     my $content = <$fh>;
     close($fh);
 
@@ -28,6 +28,13 @@ while ( readdir($parse_dir) ) {
 #    $matched=1 if $content =~ s|\$code{'([a-zA-Z0-9_\.]+)'}\s*|<[$1]>|sg;
 #    $content =~ s|(<\[[a-zA-Z0-9_\.]+\]>)\s*->\s*\(\s*\)|$1|sg if $matched;
 #    $content =~ s|\&{ *(<\[[a-zA-Z0-9_\.]+\]>) *}|$1|sg if $matched;
+
+    # fix 'name' comments ...
+    if ( $content =~ m|^# >:\]\n+# +name += +(\S+)\n|s and $1 ne $fname ) {
+        print " : $1 --> $fname\n";
+        $matched = 1
+            if $content =~ s|^(# >:\]\n+# +name += +)\S+\n|$1$fname\n|s;
+    }
 
     print "\n  .:[ $_ ]:.\n\n" . "$content" if $matched;
 
