@@ -38,7 +38,7 @@ while ( readdir($parse_dir) ) {
 
     print "\n  .:[ $_ ]:.\n\n" . "$content" if $matched;
 
-    $matched = 0;    # writing disabled
+    $matched = 0 if !@ARGV or $ARGV[0] ne '-w';    # writing disabled by default
     if ($matched) {
         open( my $fh2, ">$path/$_" ) or die $!;
         print {$fh2} $content;
