@@ -25,7 +25,10 @@ foreach my $conf_line (@_) {
         }
         eval("$cmd");
         if ($@) {
-            <[base.log]>->( 1, "DANGER: CONFIG PARSER ERROR: ($cmd) $!" );
+            <[base.log]>->(
+                0, "WARNING: ERROR DURING CONFIG PARSING: ($cmd) $!"
+            );
+            undef $@;
         } else {
             $entries++;
         }
