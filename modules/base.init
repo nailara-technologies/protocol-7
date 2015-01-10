@@ -11,8 +11,12 @@ if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
 
 <[base.daemonize]> if <system.daemon_mode>;
 
-<[base.execute_agent_code]>->( <[base.parser.config]>->(<startup.init_code>) )
-    if <system.startup_initcode> and @{<startup.init_code>};
+if ( <system.startup_initcode> and @{<startup.init_code>} ) {
+    <[base.execute_agent_code]>
+        ->( <[base.parser.config]>->(<startup.init_code>) );
+    delete <startup.init_code>;    # clean up! (could contain auth key strings)
+    delete $data{'startup'} if !keys( %{ $data{'startup'} } );
+}
 
 if ($@) {
     <[base.log]>->( 0, "WARNING: startup init code contained errors!" );
