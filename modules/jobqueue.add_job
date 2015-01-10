@@ -35,12 +35,14 @@ my $job_data = {
         'paused'       => undef,
         'completed'    => undef
     },
-    'repeat' => $job_params->{'repeat'} || 'on_failure',
-    'max_repeat'      => undef,
-    'repeat_delay'    => $job_params->{'repeat_delay'} || 5,
-    'repeat_count'    => 0,
     'job_callback'    => $job_params->{'job_callback'},
-    'callback_params' => $job_params->{'callback_params'}
+    'callback_params' => $job_params->{'callback_params'},
+
+    # XXX: following features still need implementation...
+    'repeat_count' => 0,
+    'max_repeat'   => undef,
+    'repeat'       => $job_params->{'repeat'} || 'on_failure',
+    'repeat_delay' => $job_params->{'repeat_delay'} || 5,
 };
 
 $data{'jobqueue'}{'joblist'}{'by_id'}{$job_id} = $job_data;
