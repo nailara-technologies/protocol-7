@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+$0 = 'nshell ';
+
 use utf8;
 use strict;
 use warnings;
@@ -7,17 +9,23 @@ use IO::Socket;
 use IO::Socket::INET;
 use Term::ReadLine;
 use Term::ReadPassword;
+use POSIX ":sys_wait_h";
 
 binmode STDOUT, ":utf8";
 
+$SIG{'CHLD'} = sub {
+    waitpid( -1, WNOHANG );
+    $0 .= "[disconnected] ";
+};
+
 my @args;
-my $remember = 0;
-my $arg_index= 0;
+my $remember  = 0;
+my $arg_index = 0;
 foreach my $param (@ARGV) {
     if ( $param =~ /^(-r|--remember)$/ ) {
         $remember = 1;
     } else {
-        push(@args,$param);
+        push( @args, $param );
     }
 }
 
@@ -39,29 +47,30 @@ my $shell_sock;
 while ($connect) {
 
     $shell_sock
-        = shell_auth( shell_connect( $core_addr, $core_port ),
-        login_prompt() );
+        = shell_auth( shell_connect( $core_addr, $core_port ), login_prompt() );
 
     if ( -S $shell_sock ) {
         clear();
+        $0 = "nshell ( $core_addr : $core_port ) ";
         shell_loop( $shell_sock, $prompt );
 
+    } else {
+        die "failed\n";
     }
-    else { die "failed\n" }
 }
 
 sub login_prompt {
-    if ($remember
+    if (    $remember
         and defined $core_user
-        and defined $core_pass) {
-        return ($core_user, $core_pass);
+        and defined $core_pass ) {
+        return ( $core_user, $core_pass );
     }
     my ( $user, $pass );
     print "\n :: user :. ";
     chop( $user = <STDIN> );
     $pass = read_password(" :: pass :. ");
     print "\n";
-    ($core_user, $core_pass) = ($user, $pass) if $remember;
+    ( $core_user, $core_pass ) = ( $user, $pass ) if $remember;
     return ( $user, $pass );
 }
 
@@ -81,8 +90,10 @@ sub shell_auth {
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
         return $_[0];
+    } else {
+        die " :: authentication failed ::\n\n";
+        return 0;
     }
-    else { die " :: authentication failed ::\n\n"; return 0 }
 }
 
 sub clear { print "\e[37m\e[40m\e[H\e[2J" }
@@ -101,13 +112,11 @@ sub shell_loop {
         if ( $line ne '' ) {
             if ( $line =~ /^\.cd ([^\s]+)/ ) {
                 if ( !chdir($1) ) { print "cd: " . $! . "\n" }
-            }
-            elsif ( $line !~ /^\.\./ and $line =~ /^\.(.+)$/ ) {
+            } elsif ( $line !~ /^\.\./ and $line =~ /^\.(.+)$/ ) {
                 if ( my $err = system($1) ) {
                     print "error code: " . $err . "\n";
                 }
-            }
-            else {
+            } else {
 
                 if ( !syswrite( $sock, "$line\n" ) ) {
                     select( undef, undef, undef, 0.1 );
@@ -116,15 +125,13 @@ sub shell_loop {
                 select( undef, undef, undef, 0.2 );
                 if ( $line eq '[quit]' or $line =~ "ACK session closed\n" ) {
                     exit;
-                }
-                elsif ( !-S $sock or !$sock->connected ) {
+                } elsif ( !-S $sock or !$sock->connected ) {
                     print "\e[2H\e[2J :: reconnecting...\n";
                     last;
                 }
 
             }
-        }
-        elsif ( !-S $sock or !syswrite( $sock, "\n" ) or !$sock->connected ) {
+        } elsif ( !-S $sock or !syswrite( $sock, "\n" ) or !$sock->connected ) {
             print "\e[2H\e[2J :: reconnecting...\n";
             last;
         }
@@ -133,6 +140,7 @@ sub shell_loop {
 
 sub stdout_fork {
     close(STDIN);
+    $0 = "nshell ( stdout ) ";
     while ( my $out = <$shell_sock> ) {
         $out =~ s/\n$//;
         print "$out\n";
