@@ -21,10 +21,10 @@ die "failed to load pattern data"
 foreach my $p_ref (@$agent_pattern_data) {
     foreach my $pattern ( keys %$p_ref ) {
         my $p_key = $pattern;
-        if ( $pattern =~ s/^([\w\d\_\-\,\ \t]+):\/([^\n]+)\/(i?)/$2/ ) {
+        if ( $pattern =~ s/^([\w\d_\-, \t]+):\/([^\n]+)\/(i?)/$2/ ) {
             my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 || '' );
-            $agent_string =~ s/[\ \t]+//g;
-            foreach my $agent_name ( split( /\,/, $agent_string ) ) {
+            $agent_string =~ s/[ \t]+//g;
+            foreach my $agent_name ( split( /,/, $agent_string ) ) {
                 my $pattern_code_aref = $p_ref->{$p_key};
                 map { $_ =~ s/<agent_name>/$agent_name/g; "$_;\n" }
                     @{$pattern_code_aref};
