@@ -19,7 +19,7 @@ if (   not %key
     return 2;
 }
 
-if ( $$input =~ s/^(\w+)\ (\w+)\n// ) {
+if ( $$input =~ s/^(\w+) (\w+)\n// ) {
     my ( $usr, $key_hash ) = ( $1, <[digest.sha1]>->($2) );
     my $kick_user = 1;
     if ( exists $key{'auth'}{'agent'}->{$usr} ) {

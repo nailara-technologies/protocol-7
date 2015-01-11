@@ -46,7 +46,7 @@ foreach my $key_name ( @{$display_keys} ) {
 # .: header :.
 foreach my $key_name ( @{$display_keys} ) {
     my $key_name_str = $key_name;
-    $key_name_str =~ s/^<key>\://;
+    $key_name_str =~ s/^<key>://;
     $key_name_str =~ s/^[^:]+:([^:]+)$/$1/;
     $key_name_str =~ s/_/ /g;
     my $len = length($key_name_str) + $spacing;
@@ -66,7 +66,7 @@ foreach
         and not exists $data_ref->{$key_val}->{$sub_key};  # show only requested
     foreach my $key_name ( @{$display_keys} ) {
         my $key_name_str = $key_name;
-        if ( $key_name_str =~ s/^<key>\:// ) {
+        if ( $key_name_str =~ s/^<key>:// ) {
             $key_val
                 = <[base.call_filter]>->( $filters, $key_name_str, $key_val );
             $table_string .= '  '
