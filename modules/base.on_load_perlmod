@@ -6,7 +6,7 @@ my $perl_module = shift;
 my $code_name   = shift;
 my @params      = @_;
 
-if ( $perl_module !~ /^(\w+|\:\:)+$/ ) {
+if ( $perl_module !~ /^(\w+|::)+$/ ) {
     <[base.log]>->( 0, "invalid module name '$perl_module'" );
     return 3;
 }
