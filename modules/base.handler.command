@@ -27,7 +27,7 @@ $_[0]->w->stop;
 # cleanup command line
 
 $$input =~ s/^\s+//;
-$$input =~ s/^([^\n]+?)[\ \t]+\n/$1\n/;
+$$input =~ s/^([^\n]+?)[ \t]+\n/$1\n/;
 
 my @args;
 my $command_mode = 0;
@@ -67,7 +67,7 @@ if ( $$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
                 if ( $header and $arg ne '' ) {
 
-                    if ( $arg =~ /^([\w\.]+)[\ \t]*[=:][\ \t]*(.*)$/o ) {
+                    if ( $arg =~ /^([\w\.]+)[ \t]*[=:][ \t]*(.*)$/o ) {
                         my ( $key, $val ) = ( $1, $2 );
 
                         $$call_args{'param'}{$key} = $val;
@@ -103,14 +103,14 @@ if ( $$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
 
 # incomplete multiple line command
 
-elsif ( $$input =~ /^((\($re->{cmd_id}\)|)\ *[\w\.]+)\+\n/o ) {
+elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *[\w\.]+)\+\n/o ) {
     $_[0]->w->start;
     return 1;
 }
 
 # single command line
 
-elsif ( $$input =~ s/^((\($re->{cmd_id}\)|)\ *[\w\.]+)(\ +(.+)|)\n//o ) {
+elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\.]+)( +(.+)|)\n//o ) {
 
     $_[0]->w->start;
 
@@ -133,7 +133,7 @@ $_[0]->w->start;
 
 # extract command id
 
-if ( $cmd =~ s/^\(($re->{cmd_id})\)\ *//o ) { $cmd_id = $1 }
+if ( $cmd =~ s/^\(($re->{cmd_id})\) *//o ) { $cmd_id = $1 }
 
 $$call_args{'command_id'} = $cmd_id;
 $$call_args{'session_id'} = $id;
@@ -154,7 +154,7 @@ if ( defined $alias_to and length($alias_to) ) {
     my $args_map = { 'SOURCE_AGENT' => <system.node.name> . '.' . $usr };
     map { $cmd =~ s/$_/$args_map->{$_}/g } keys %{$args_map};
 
-    if ( $cmd =~ s/^([^ ]+)\ +([^\n]+)$/$1/ ) {
+    if ( $cmd =~ s/^([^ ]+) +([^\n]+)$/$1/ ) {
         $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} )
             if defined $$call_args{'args'};
     }

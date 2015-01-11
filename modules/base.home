@@ -7,7 +7,7 @@ my $real_gid = $<;
 my $pwd_file = <[file.slurp]>->('/etc/passwd');
 
 if ( length($pwd_file) ) {
-    if ( $pwd_file =~ /^([^\:]+:){2}$real_uid:$real_gid:[^\:]+:([^\:]+)/m ) {
+    if ( $pwd_file =~ /^([^:]+:){2}$real_uid:$real_gid:[^:]+:([^:]+)/m ) {
         my $home_dir = $2;
         return $home_dir;
     } else {
