@@ -9,7 +9,7 @@ my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
 return if $$counter_ref == 0;
 
 <[base.log]>->(
-    1,
+    2,
     "queue_name: '$queue_name', count: $$counter_ref last: "
         . <jobqueue.counter.last>->{$queue_name}
 );
