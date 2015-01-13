@@ -39,7 +39,7 @@ $sic_mode = 1 && push( @exec_args, '-sic' )
 my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, " spawning '$agent_name' agent ... " );
+<[base.log]>->( 1, "spawning '$agent_name'-agent initiated ..." );
 
 eval {
     $pid = open3( $r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args );
@@ -70,6 +70,7 @@ if ( not defined $pid ) {
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
+    <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent..." );
     foreach my $code_line ( @{ $init_code->{'agent-init'} } ) {
 
         # <{foo.bar}> (agent instance namespace) variable fetching syntax
@@ -90,4 +91,4 @@ if ($sic_mode) {
 }
 close($r_fh);    # no more use for agent stdin handle (for now)
 
-<[base.log]>->( 1, " agent '$agent_name' spawned ! [ pid : $pid ] " );
+<[base.log]>->( 1, "agent '$agent_name' spawned ! [ pid : $pid ] " );

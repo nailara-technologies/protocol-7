@@ -16,9 +16,8 @@ my $job_id     = $instance->{'job_id'};
 
 $instance->{'status'} = $status;
 
-<[base.log]>->( 1, "agent_status: '$agent_name', status: '$status'" );
+<[base.log]>->( 1, "agent '$agent_name' changed status to '$status'" );
 
-# move job if required ... XXX: refine!
 my $target_queue;
 $target_queue = 'running' if $status eq 'online';
 $target_queue = 'failed' if $status eq 'failed' or $status eq 'offline';
