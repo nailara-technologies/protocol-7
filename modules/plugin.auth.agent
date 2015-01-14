@@ -15,7 +15,7 @@ if (   not %key
     <[base.log]>->(
         0, "[$id] no agent authentication keys set up - access denied"
     );
-    $$output .= ">:[\n";    # XXX: move down?
+    $$output .= "FAIL >:|\n";    # XXX: move down?
     return 2;
 }
 
@@ -40,7 +40,7 @@ if ( $$input =~ s/^(\w+) (\w+)\n// ) {
             <[base.log]>->(
                 1, "[$id] agent auth: access denied to agent '$1' :("
             );
-            $$output .= ">:[\n";
+            $$output .= "FAIL >:|\n";
             return 2;
         }
     } else {
