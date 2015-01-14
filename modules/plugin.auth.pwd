@@ -16,7 +16,7 @@ if ( $$input =~ s/^auth (\w+) (\w+)\s*\n// ) {
         <[base.log]>->( 1, "[$id] authentication successful (user: '$1')" );
         return ( 0, $1 );
     } else {
-        $$output .= "GRRR >:[\n";
+        $$output .= "FAIL >:|\n";
         <[base.log]>->( 0, "[$id] [auth pwd] access denied to user '$1'" );
         return 2;
     }
