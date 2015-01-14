@@ -6,14 +6,17 @@
 my $exit_count = shift || 0;
 my $session_count = 0;
 
-$session_count = scalar keys %{ $data{'session'} }
-    if exists $data{'session'};
-
+$session_count = scalar keys %{ $data{'session'} } if exists $data{'session'};
 <[base.log]>->( 2, "$session_count sessions remaining" );
 
-if ( ( $session_count + $exit_count ) == 0
-    and not exists $data{'session'}{'_no_exit_'} ) {
-    <[log.failed]>
-        ->( "no active sessions - " . <system.agent.name> . "-agent exiting." );
-    exit(-1);
+if ( ( $session_count + $exit_count ) == 0 ) {
+
+    if (    exists $data{'callback'}
+        and exists <callback.session>
+        and exists <callback.session.close_last> ) {
+        <[base.log]>->( 2, "executing session.close_last callback..." );
+        $code{<callback.session.close_last.name>}
+            ->( @{<callback.session.close_last.params>} );
+    }
+
 }
