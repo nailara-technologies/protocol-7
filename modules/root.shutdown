@@ -16,6 +16,7 @@ foreach my $id ( %{<root.agent.instance>} ) {
     if ( defined $pid and $pid =~ /^\d+$/ ) {
         <[base.log]>->( 1, ": terminating process id=$pid [instance=$id]" );
         kill( 15, $pid );
+        # XXX: 9 after timeout...
     }
 }
 
