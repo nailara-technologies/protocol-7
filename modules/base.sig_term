@@ -10,4 +10,7 @@ $0 = "$pname :. shutdown in progress... please wait! ";
 # $SIG{'ALRM'} = sub { <[base.log]>->( 1, 'done.'); exit(0); };
 # alarm( $data{'sigterm'}{'timeout'} || 1 );
 
+<[root.shutdown]> if <system.agent.name> eq 'root';
+
+<[base.log]>->( 1, ': done.' );
 exit(0);
