@@ -28,11 +28,11 @@ if (sysread(
     my $exit_status = $? >> 8;
     delete $agent_instance->{'process'};
     undef $process;
-
+    my $log_level = $exit_status == 0 ? 1 : 0;
     <[base.log]>->(
-        1,
-        "[instance $instance_id] agent '$agent_name' exited"
-            . " (status $exit_status)"
+        $log_level,
+        "instance $instance_id : agent '$agent_name'"
+            . " process exit ($exit_status)"
     );
 
     <[agent.change_status]>->( $instance_id, 'failed' );
