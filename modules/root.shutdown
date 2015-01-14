@@ -1,0 +1,23 @@
+# >:]
+
+# name  = root.shutdown
+# descr = shut down root agent with optional failure message
+
+my $reason = shift || '';
+
+my $reason_txt = length($reason) ? " ( $reason )" : '';
+my $exit_code  = length($reason) ? 255            : 0;
+my $log_level  = length($reason) ? 0              : 1;
+
+<[base.log]>->( $log_level, "root agent shutdown" . $reason_txt );
+
+foreach my $id ( %{<root.agent.instance>} ) {
+    my $pid = <root.agent.instance>->{$id}->{'process'}->{'id'};
+    if ( defined $pid and $pid =~ /^\d+$/ ) {
+        <[base.log]>->( 1, ": terminating process id=$pid [instance=$id]" );
+        kill( 15, $pid );
+    }
+}
+
+<[base.log]>->( 1, ": done." );
+exit($exit_code);
