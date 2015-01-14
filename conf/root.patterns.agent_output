@@ -8,10 +8,6 @@
   - core:/^ :[^ ]+\.core tcp server \[[^\]]+\] launched\.$/
     [agent.change_status:<instance_id>,'online'];
 
-  - core:/^ :[^ ]+\.core \e[^\ ]+failed to /
-    [agent.change_status:<instance_id>,'failed'];
-
-
   - notify:/^ :[^ ]+\.notify \[\*\] successfully authenticated \:\)$/
     [agent.change_status:<instance_id>,'online'];
 
