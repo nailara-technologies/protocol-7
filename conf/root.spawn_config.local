@@ -16,13 +16,16 @@
 
       : root-init :
         start_mode = exec-sic
-        core_key = [base.rnd_chars_noblock_hex:64]
+        core.key = [base.rnd_chars_noblock_hex:64]
 
       : agent-init :
-        [base.auth.set_root_key:"<{core_key}>"]
+        [base.auth.set_root_key:'<{core.key}>']
 
       : root-post-init :
-        [root.connect_core:<net.local.addr>,<net.local.port>,"<{core_key}>"]
+        status.post-init = [root.callback.connect_to_core:<core.key>]
+
+      : startup-failure :
+        [root.shutdown:'core-agent startup failure']
 
   - notify
   - ping

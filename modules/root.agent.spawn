@@ -17,18 +17,26 @@ my $agent_id  = <[agent.get_id]>->($agent_name);
 my $instance_id = <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'};
 $instance_id //= <[agent.instance.add]>->($agent_id);
 <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
-
 <root.agent.instance>->{$instance_id}->{'job_id'} = $job_id;
 
-# install root-init code results to agent instance namespace
+<[agent.change_status]>->( $instance_id, 'starting' );
+
+# execute root-init code
 my $init_result_data = {};
 my $namespace_str
     = "\$data{'root'}{'agent'}{'instance'}{$instance_id}{'init_data'}";
 if ( exists $init_code->{'root-init'} ) {
     <[base.log]>->( 2, "executing '$agent_name'-agent spawn init-code.." );
-    <[base.execute_agent_code]>->(
+    my $success = <[base.execute_agent_code]>->(
         <[base.parser.config]>->( $init_code->{'root-init'}, $namespace_str ) );
     $init_result_data = <root.agent.instance>->{$instance_id}->{'init_data'};
+    if ( !$success ) {
+        <[base.log]>->(
+            0, "errors in agent '$agent_name' init-code, aborting start-up!"
+        );
+        <[agent.change_status]>->( $instance_id, 'failed' );
+        return undef;
+    }
 }
 
 $sic_mode = 1 && push( @exec_args, '-sic' )
@@ -65,8 +73,6 @@ if ( not defined $pid ) {
 ) if defined $e_fh;
 
 <root.agent.instance>->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
-
-<[agent.change_status]>->( $instance_id, 'starting' );
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {

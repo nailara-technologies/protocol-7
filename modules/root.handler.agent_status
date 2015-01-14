@@ -10,13 +10,44 @@ die "no such agent instance ($instance_id)"
     or not exists <root.agent.instance>->{$instance_id};
 
 my $instance   = <root.agent.instance>->{$instance_id};
+my $old_status = $instance->{'status'} || $status;
 my $agent_id   = $instance->{'agent_id'};
 my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
 my $job_id     = $instance->{'job_id'};
 
-$instance->{'status'} = $status;
+# 'root-post-init' code
+my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
+if ( $status eq 'online' and exists $init_code->{'root-post-init'} ) {
+    <[base.log]>->( 2, "'$agent_name'-agent post-init-code.." );
+    <[base.execute_agent_code]>->(
+        <[base.parser.config]>->(
+            $init_code->{'root-post-init'},
+            "\$data{'root'}{'agent'}{'instance'}{$instance_id}{'init_data'}"
+        )
+    );
+}
+if ( $status eq 'online' and exists $instance->{'init_data'} ) {
+    my $init_status = $instance->{'init_data'}->{'status'} || {};
+    if ( not exists $init_status->{'post-init'}
+        or !$init_status->{'post-init'} ) {
+        <[base.log]>->(
+            0, "instance $instance_id : failure in post-init code!"
+        );
+        $status = 'failed';
+    }
+    <[base.log]>->( 2, "cleaning up instance $instance_id init_data" );
+    delete $instance->{'init_data'};
+}
 
+$instance->{'status'} = $status;
 <[base.log]>->( 1, "agent '$agent_name' changed status to '$status'" );
+
+if (    $old_status eq 'starting'
+    and $status eq 'failed'
+    and exists $init_code->{'startup-failure'} ) {
+    <[base.execute_agent_code]>
+        ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
+}
 
 my $target_queue;
 $target_queue = 'running' if $status eq 'online';
