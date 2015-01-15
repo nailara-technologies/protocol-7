@@ -1,13 +1,29 @@
 # >:]
 
 # name  = root.callback.connect_to_core
-# descr = stub sub for initiation core connection ...
-# todo  = implement connection ...
+# descr = create root agent client session to local core
 
-my $core_key = shift;
+my $instance_id = shift;
+my $core_addr   = <net.local.addr>;
+my $core_port   = <net.local.port>;
+my $init_data   = <root.agent.instance>->{$instance_id}->{'init_data'};
+my $core_key    = $init_data->{'core'}->{'key'};
 
-<[base.log]>->( 2, "connect_to_core: '$core_key'" );
+<[base.log]>->( 1, "connecting to local core ($core_addr:$core_port) ..." );
 
-return 1; # testing..
+my $c_fh = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
+$c_fh = <[auth.agent.client]>->( $c_fh, 'root', $core_key );
 
-return 0; # failed
+return 0 if not defined $c_fh;    # failed
+
+my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
+<[base.log]>
+    ->( 1, "authentication to core successful ( session $session_id )" );
+<root.agent.instance>->{$instance_id}->{'session_id'} = $session_id;
+
+<callback.session.close_last> = {
+    'name'   => 'agent.change_status',
+    'params' => [ $instance_id, 'failed' ]
+};
+
+return 1;                         # success
