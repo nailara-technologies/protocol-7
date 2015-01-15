@@ -10,6 +10,7 @@ if (    defined $list_name
     and $list_name =~ /^\w+$/
     and defined $data{'list'}{$list_name} ) {
     my $list = $data{'list'}{$list_name};
+    $data{'list'}{$list_name}{'mask'} //= "<key>:$$list{'key'}";
     return {
         'mode' => 'raw',
         'data' => <[base.parser.list]>->(
