@@ -15,4 +15,18 @@ print Dumper(<root.spawn_config.globals>) if <system.verbosity> > 1;
 
 <[root.load_agent_patterns]>;
 
+<list.agents> = {
+    'var'   => 'data',
+    'key'   => 'root.agent.instance',
+    'descr' => 'agent instances',
+    'mask'  => 'agent_id agent_name:name <key>:instance job_id status',
+    'align' => {
+        'agent_id'   => 'left+3',
+        'agent_name' => 'center',
+        'instance'   => 'right-4',
+        'job_id'     => 'right-4',
+        'status'     => 'center-1'
+    }
+};
+
 return 0;
