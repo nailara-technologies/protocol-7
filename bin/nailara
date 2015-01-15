@@ -71,9 +71,8 @@ sub prepare_subs {
       .' sprintf( "%.${f}f", Time::HiRes::time ) }, \&Time::HiRes::sleep ]');
       $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1
         if defined $th_ref and ref($th_ref) eq 'ARRAY';
-    $th_ref = [ sub{time()}, sub{ $code{'base.log'}->( 0,
-      "WARNING: Time::HiRes not present, sleep($_[0]) will be 0s!") if $_[0]<1;
-      sleep($_[0]) } ] if not defined $th_ref or ref($th_ref) ne 'ARRAY';
+    $th_ref = [ sub{ time() }, sub{ select( undef, undef, undef, $_[0] ) } ]
+        if not defined $th_ref or ref($th_ref) ne 'ARRAY';
     $code{'base.time'} = \&{$th_ref->[0]};
     $code{'base.sleep'} = \&{$th_ref->[1]};
     undef $th_ref;
