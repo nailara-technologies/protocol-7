@@ -4,20 +4,55 @@
 # descr = shut down root agent with optional failure message
 
 my $reason = shift || '';
+my $exit_code = length($reason) ? 1 : $?;
+my $log_level = length($reason) ? 0 : 1;
+my $child_count   = keys %{<root.child>};
+my $kill_timeout  = <system.kill_timeout> || 3;    # floating seconds
+my $abort_timeout = 1;
 
+while ( ( waitpid( -1, WNOHANG ) ) > 0 ) {
+    $child_count--;
+}
+
+my $ren = $child_count == 1 ? ' process' : 'ren';
+$reason = "$child_count child$ren" if !length($reason) and $child_count;
 my $reason_txt = length($reason) ? " ( $reason )" : '';
-my $exit_code  = length($reason) ? 255            : 0;
-my $log_level  = length($reason) ? 0              : 1;
 
 <[base.log]>->( $log_level, "root agent shutdown" . $reason_txt );
 
-foreach my $id ( %{<root.agent.instance>} ) {
-    my $pid = <root.agent.instance>->{$id}->{'process'}->{'id'};
-    if ( defined $pid and $pid =~ /^\d+$/ ) {
-        <[base.log]>->( 1, ": terminating process id=$pid [instance=$id]" );
-        kill( 15, $pid );
-        # XXX: 9 after timeout...
+<[base.log]>->( 1, ": terminating child$ren :." )
+    if $child_count and <system.verbosity> == 1;
+
+my $t_res = 3;
+foreach my $pid ( sort keys %{<root.child>} ) {
+    my $i_id = <root.child>->{$pid}->{'instance_id'};
+    my $instance_str = $i_id ? " ( instance $i_id )" : '';
+    if ( kill( 15, $pid ) ) {
+        <[base.log]>->( 2, ": terminating process $pid" . $instance_str );
+        <root.child>->{$pid}->{'term_sent'} = <[base.time]>->($t_res);
+    } else {
+        delete <root.child>->{$pid};
     }
+}
+
+while ( keys %{<root.child>} ) {
+    foreach my $pid ( sort keys %{<root.child>} ) {
+        my $delta_t
+            = <[base.time]>->($t_res) - <root.child>->{$pid}->{'term_sent'};
+        if ( $delta_t >= ( $kill_timeout + $abort_timeout ) ) {
+            <[base.log]>->( 0, "ABORT TIMEOUT during process shutdown!" );
+            exit(1);
+        } elsif ( $delta_t >= $kill_timeout
+            and not exists <root.child>->{$pid}->{'kill_sent'} ) {
+            <[base.log]>->( 1, ": terminating process $pid ( SIGKILL )" );
+            kill( 9, $pid );
+            <root.child>->{$pid}->{'kill_sent'} = 1;
+        }
+    }
+    while ( ( my $w_pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+        delete <root.child>->{$w_pid};
+    }
+    <[base.sleep]>->(0.042);
 }
 
 <[base.log]>->( 1, ": done." );

@@ -3,11 +3,10 @@
 # name = root.agent.spawn
 # descr = spawn nailara agent and add it to process maintenance table
 
-my $job_id     = $_[0]->{'job_id'};
-my $agent_name = $_[0]->{'params'};
-my $sic_mode   = 0;
-my @exec_args  = ();
-my ( $pid, $r_fh, $w_fh, $e_fh );
+my $job_id      = $_[0]->{'job_id'};
+my $agent_name  = $_[0]->{'params'};
+my $sic_mode    = 0;
+my @exec_args   = ();
 my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
 die "no agent name supplied" if not defined $agent_name;
 my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
@@ -26,10 +25,13 @@ my $init_result_data = {};
 my $namespace_str
     = "\$data{'root'}{'agent'}{'instance'}{$instance_id}{'init_data'}";
 if ( exists $init_code->{'root-init'} ) {
-    <[base.log]>->( 2, "executing '$agent_name'-agent spawn init-code.." );
+    <[base.log]>->(
+        2, "executing spawn init-code for instance $instance_id ($agent_name)"
+    );
     my $success = <[base.execute_agent_code]>->(
         <[base.parser.config]>->( $init_code->{'root-init'}, $namespace_str ) );
     $init_result_data = <root.agent.instance>->{$instance_id}->{'init_data'};
+
     if ( !$success ) {
         <[base.log]>->(
             0, "errors in agent '$agent_name' init-code, aborting start-up!"
@@ -48,38 +50,40 @@ my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
 <[base.log]>->( 1, "spawning '$agent_name'-agent initiated ..." );
-
+my ( $pid, $out_fh, $in_fh );
 eval {
-    $pid = open3( $r_fh, $w_fh, $e_fh, $nailara_bin, $agent_name, @exec_args );
-};
+    $pid = open2( $out_fh, $in_fh, $nailara_bin, $agent_name, @exec_args ); };
 
-if ( not defined $pid ) {
-    my $err_msg = $@ || <$e_fh>;
-    <[base.log]>->( 0, " failed to spawn agent '$agent_name' [$err_msg] " );
+if ( not defined $pid or $@ ) {
+    ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason = ( defined $! and length($!) ) ? " ('$!')" : '';
+    <[base.log]>->(
+        0,
+        join( '',
+            "failed to spawn agent '$agent_name'",
+            $err_reason, " [ $err_msg ]" )
+    );
+    <[agent.change_status]>->( $instance_id, 'failed' );
     return undef;
 }
 
 <[event.add_io]>->(
-    {   'fd'      => $w_fh,
+    {   'fd'      => $out_fh,
         'handler' => 'root.handler.agent_output',
         'data'    => $instance_id
     }
 );
-<[event.add_io]>->(
-    {   'fd'      => $e_fh,
-        'handler' => 'root.handler.agent_output',
-        'data'    => $instance_id
-    }
-) if defined $e_fh;
+
+<[root.child.add]>->( $pid, { 'instance_id' => $instance_id } );
 
 <root.agent.instance>->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
     <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent..." );
-    foreach my $code_line ( @{ $init_code->{'agent-init'} } ) {
-
-        # <{foo.bar}> (agent instance namespace) variable fetching syntax
+    foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
+        my $code_line = $_line;    # keeping original intact!
+             # <{foo.bar}> (agent instance namespace) variable fetching syntax
         while ( $code_line =~ /<{([^\}]+)}>/ ) {
             ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
             my $var_value;
@@ -92,9 +96,9 @@ if ($sic_mode) {
                 $code_line =~ s|<{([^\}]+)}>|$var_value|;
             }
         }
-        print {$r_fh} "$code_line\n";
+        print {$in_fh} "$code_line\n";
     }
 }
-close($r_fh);    # no more use for agent stdin handle (for now)
+close($in_fh);    # no more use for agent stdin handle (for now)
 
 <[base.log]>->( 1, "agent '$agent_name' spawned ! [ pid : $pid ] " );

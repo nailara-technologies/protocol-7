@@ -15,16 +15,25 @@ my $agent_id   = $instance->{'agent_id'};
 my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
 my $job_id     = $instance->{'job_id'};
 
+#return if $old_status eq 'offline' and $status eq 'failed';    # race condition
+# <[jobqueue.check_dependencies]> if $status eq 'online';
+
+# prevent undesired core shutdown (session.check.last)
+if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
+    <[base.log]>->( 0, "removing session.close_last callback.." );
+    delete <callback.session.close_last>;
+}
+
 # 'root-post-init' code
 my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
 if ( $status eq 'online' and exists $init_code->{'root-post-init'} ) {
     <[base.log]>->( 2, "'$agent_name'-agent post-init-code.." );
-    <[base.execute_agent_code]>->(
-        <[base.parser.config]>->(
-            $init_code->{'root-post-init'},
-            "\$data{'root'}{'agent'}{'instance'}{$instance_id}{'init_data'}"
-        )
+    my @post_init_code = <[base.parser.config]>->(
+        $init_code->{'root-post-init'},
+        "\$data{'root'}{'agent'}{'instance'}{$instance_id}{'init_data'}"
     );
+    map { $_ =~ s/<instance_id>/$instance_id/g } @post_init_code;
+    <[base.execute_agent_code]>->(@post_init_code);
 }
 if ( $status eq 'online' and exists $instance->{'init_data'} ) {
     my $init_status = $instance->{'init_data'}->{'status'} || {};
@@ -42,6 +51,13 @@ if ( $status eq 'online' and exists $instance->{'init_data'} ) {
 $instance->{'status'} = $status;
 <[base.log]>->( 1, "agent '$agent_name' changed status to '$status'" );
 
+# quickly shutdown leftover processes
+if ( $status eq 'failed' and exists $instance->{'process'} ) {
+    my $pid = $instance->{'process'}->{'id'};
+    <[base.log]>->( 1, "instance $instance_id : killing process $pid" );
+    kill( 9, $pid );    # 15 + timeout
+}
+
 if (    $old_status eq 'starting'
     and $status eq 'failed'
     and exists $init_code->{'startup-failure'} ) {
@@ -51,7 +67,8 @@ if (    $old_status eq 'starting'
 
 my $target_queue;
 $target_queue = 'running' if $status eq 'online';
-$target_queue = 'failed' if $status eq 'failed' or $status eq 'offline';
+$target_queue = 'failed'  if $status eq 'failed';
+$target_queue = 'queued'  if $status eq 'offline';
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue;
 
