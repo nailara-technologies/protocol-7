@@ -7,11 +7,23 @@ our ( $h_name, $h_key, $sub_key, $display_keys, $align, $filters )
     = map { $_[0]->{$_} } qw| var key sub_key mask align filters |;
 
 my %max_len;
+my $data_ref;
 my $spacing      = 4;
 my $table_string = "\n";
-no strict 'refs';
-my $data_ref = ${$h_name}{$h_key};
-use strict 'refs';
+die "invalid variable name '$h_name'" if $h_name !~ /^[a-z][\w_]*$/i;
+if ( $h_key !~ /\./ ) {
+    no strict 'refs';
+    $data_ref = ${$h_name}{$h_key};
+    use strict 'refs';
+} elsif ( $h_key =~ /^\w[\w\.]+\w$/ ) {
+    $h_key =~ s|\.|'}{'|go;
+    no strict 'refs';
+    eval "\$data_ref = \${'$h_name'}{'$h_key'}";
+    use strict 'refs';
+    die $@ if $@;
+} else {
+    die "invalid list key syntax in '$h_key'";
+}
 
 # .: preparation :.
 my $table_width = 0;
