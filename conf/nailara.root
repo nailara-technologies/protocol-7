@@ -5,11 +5,13 @@
 
 [load_config_file:'defaults']
 
+modules.load = root jobqueue net io.ip auth.agent crypt.random debug
+
 load.spawn_config = 'local'
 
 access.cmd.usr.core = *
 
-[load_modules:'root jobqueue net io.ip auth.agent crypt.random debug']
+[load_modules:<modules.load>]
 [init_modules]
 
 [root.call_cmd:<system.args>]
