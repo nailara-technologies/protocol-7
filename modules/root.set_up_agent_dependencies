@@ -12,18 +12,10 @@ if ( !@agents ) {
     return;
 }
 
-# callbacks for depenency validation
+# callbacks for dependency validation
 <[dependency.install_callbacks]>;
 
-<[base.log]>->( 2, ": dependency object : session 'core'" );
-
-# create dependency objects for root to core session
-<[dependency.add_object]>->(
-    {   'type' => 'root.session',
-        'name' => 'core',
-    }
-);
-
+# set up dependency objects ...
 foreach my $agent_name (@agents) {
 
     <[base.log]>->( 2, ": dependency object : agent '$agent_name'" );
