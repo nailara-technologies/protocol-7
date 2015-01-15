@@ -23,19 +23,14 @@ if (sysread(
     my $process = $agent_instance->{'process'};
     close($read_fh);
 
-    # collect process exit status
-    waitpid( $process->{'id'}, 0 );
-    my $exit_status = $? >> 8;
-    delete $agent_instance->{'process'};
-    undef $process;
-    my $log_level = $exit_status == 0 ? 1 : 0;
-    <[base.log]>->(
-        $log_level,
-        "instance $instance_id : agent '$agent_name'"
-            . " process exit ($exit_status)"
-    );
+    my $pid = $process->{'id'};
+    <[base.log]>->( 1, "( pid $pid ) output filehandle closed !" );
 
-    <[agent.change_status]>->( $instance_id, 'failed' );
+#    <[agent.change_status]>->( $instance_id, 'offline' )
+#        if $agent_instance->{'status'} eq 'failed';
+    <[agent.change_status]>->( $instance_id, 'failed' )
+        if $agent_instance->{'status'} eq 'online';
+
     undef $agent_instance->{'output_buffer'};
     return;
 }
