@@ -3,7 +3,7 @@
 # name = base.exit
 
 my $exit_code = 0;
-$exit_code = shift if $_[0] =~ /^\d+$/;
+$exit_code = shift if @_ and $_[0] =~ /^\d+$/;
 my $exit_msg  = shift;
 my $log_level = shift;
 $exit_msg  //= "exit($exit_code) called.";

@@ -26,11 +26,6 @@ if ( $queue_name eq 'queued' ) {
         <[jobqueue.exec_job]>->($job_id);
         <[jobqueue.move_job]>->( $job_id, 'running' );
     }
-} elsif ( $queue_name eq 'failed' ) {
-    ( my $job_id, my $job_data ) = <[jobqueue.get_next_job]>->($queue_name);
-
-    #    my $return_code = <[jobqueue.exec_job]>->($job_id);
-    <[jobqueue.move_job]>->( $job_id, 'queued' );
 }
 
 <jobqueue.counter.last>->{$queue_name} = $$counter_ref;

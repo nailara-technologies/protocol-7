@@ -10,6 +10,9 @@ $Data::Dumper::Sortkeys = 1;
 
 print Dumper(<root.spawn_config.globals>) if <system.verbosity> > 1;
 
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'root.handler.sig_chld' } );
+
 <[root.load_agent_patterns]>;
 
 return 0;
