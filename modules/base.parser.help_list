@@ -35,7 +35,7 @@ $max_len += 2;
 foreach my $cmd (@commands) {
     my $cmd_descr;
     my $call_cmd = $data{'base'}{$section}{$cmd};
-    if ( defined &{ $code{$call_cmd} } ) {
+    if ( exists $code{$call_cmd} and defined &{ $code{$call_cmd} } ) {
         if ( defined $data{'base'}{'help'}{$section}{$cmd} ) {
             $cmd_descr = $data{'base'}{'help'}{$section}{$cmd}{'descr'};
         }
