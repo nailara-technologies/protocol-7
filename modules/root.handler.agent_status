@@ -74,4 +74,15 @@ $target_queue = 'queued'  if $status eq 'offline';
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue;
 
+if ( $status ne 'starting' and $status ne 'online' ) {
+    foreach my $dep_id (
+        <[dependency.get_reverse]>->( <[agent.get_object_id]>->($agent_id) ) ) {
+        map { <[agent.instance.restart]>->($_) } @{
+            <[agent.instance.get_ids]>->(
+                <dependency.object>->{$dep_id}->{'agent_id'}
+            )
+        };
+    }
+}
+
 <[jobqueue.check_dependencies]>;
