@@ -20,10 +20,21 @@ map {
         if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
 } keys %{<root.agent.instance>};
 
-my $i_str = @instance_ids > 1 ? " instances" : '';
+my $i_str = @instance_ids > 1 ? ' instances!' : ' agent!';
 my $msg_str = "restarting $agent_name$i_str";
 <[base.log]>->( 1, "$msg_str ..." );
 
 map { <[agent.instance.restart]>->($_) } @instance_ids;
+
+if (!<[dependency.ok]>->(
+        <[agent.get_object_id]>->( <[agent.get_id]>->($agent_name) )
+    )
+    ) {
+    my $s = @instance_ids > 1 ? 's' : '';
+    return {
+        'mode' => 'nack',
+        'data' => "failed to restart agent$s [ dependencies not satisfied ]"
+    };
+}
 
 return { 'mode' => 'ack', 'data' => $msg_str };
