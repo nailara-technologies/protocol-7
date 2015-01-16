@@ -15,5 +15,10 @@ $error_msg = "instance $instance_id does not exist"
 return { 'mode' => 'nack', 'data' => $error_msg } if defined $error_msg;
 
 <[agent.instance.restart]>->($instance_id);
+return {
+    'mode' => 'nack',
+    'data' => "failed to restart instance [ dependencies not satisfied ]"
+    }
+    if !<[dependency.ok]>->($instance_id);
 
-return { 'mode' => 'ack', 'data' => "restarting instance $instance_id" };
+return { 'mode' => 'ack', 'data' => "restarting instance $instance_id!" };
