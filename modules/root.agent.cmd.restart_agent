@@ -1,0 +1,29 @@
+# >:]
+
+# name  = root.agent.cmd.restart_agent
+# param = <name>
+# descr = restart agent (instances)
+
+my $agent_name = $$call{'args'} || '';
+my $error_msg;
+return { 'mode' => 'nack', 'data' => 'no agent name specified' }
+    if !length($agent_name);
+
+my $agent_id = <[agent.get_id]>->($agent_name);
+
+return { 'mode' => 'nack', 'data' => "unknown agent '$agent_name'" }
+    if not defined $agent_id;
+
+my @instance_ids;
+map {
+    push( @instance_ids, $_ )
+        if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
+} keys %{<root.agent.instance>};
+
+my $i_str = @instance_ids > 1 ? " instances" : '';
+my $msg_str = "restarting $agent_name$i_str";
+<[base.log]>->( 1, "$msg_str ..." );
+
+map { <[agent.instance.restart]>->($_) } @instance_ids;
+
+return { 'mode' => 'ack', 'data' => $msg_str };
