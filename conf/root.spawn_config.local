@@ -7,9 +7,6 @@
 
   agents.enabled = core notify ping
 
-  agents.dependencies.notify = core                 # XXX: move to agent section
-  agents.dependencies.ping   = core notify
-
 .: agents :.
 
   - core
@@ -29,6 +26,9 @@
 
   - notify
 
+      dependencies = core
+
   - ping
 
+      dependencies = core notify
       spawn.instances = 2
