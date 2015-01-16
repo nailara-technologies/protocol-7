@@ -11,19 +11,21 @@ my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
 <[root.set_up_agent_dependencies]>->(@agents);
 
 foreach my $agent_name (@agents) {
+    my $agent_config   = <root.spawn_config.agents.config>->{$agent_name};
+    my $agent_id       = <[agent.get_id]>->($agent_name);
+    my $obj_id         = <[agent.get_object_id]>->($agent_id);
+    my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+    my $instance_count = $agent_config->{'spawn'}->{'instances'} || 1;
 
-    my $agent_id     = <[agent.get_id]>->($agent_name);
-    my $obj_id       = <[agent.get_object_id]>->($agent_id);
-    my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
-
-    my $job_id = <[jobqueue.add_job]>->(
-        {   'object_id'       => $obj_id,
-            'job_callback'    => 'agent.spawn',
-            'callback_params' => $agent_name,
-            'target_queue'    => $target_queue
-        }
-    ) if <[agent.is_enabled]>->($agent_name);
-
+    while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
+        my $job_id = <[jobqueue.add_job]>->(
+            {   'object_id'       => $obj_id,
+                'job_callback'    => 'agent.spawn',
+                'callback_params' => $agent_name,
+                'target_queue'    => $target_queue
+            }
+        );
+    }
 }
 
 use Data::Dumper qw(Dumper);
