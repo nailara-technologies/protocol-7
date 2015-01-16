@@ -64,6 +64,14 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
     }
 }
 
+map { <base.cmd>->{$_} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+    keys %{<base.cmd>}
+    if exists <base.cmd>;
+
+map { <base.cli>->{$_} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+    keys %{<base.cli>}
+    if exists <base.cli>;
+
 if ( !$moved ) {
     <[base.log]>->(
         2, "swap_subs: nothing done ($source_sub_prefix >> $target_sub_prefix)"
