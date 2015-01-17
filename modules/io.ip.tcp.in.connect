@@ -8,11 +8,13 @@ my $fd = $data{'session'}{$id}{'handle'};
 if ( -S $fd ) {
     my $new_sock = $fd->accept()
         or <[base.log]>->( 0, "tcp.connect_handler: can not accept [$!]" );
+    my ( $peer_host, $peer_port )
+        = ( $new_sock->peerhost(), $new_sock->peerport() );
     $data{'handle'}{$new_sock}{'link'}       = 'tcp/ip';
     $data{'handle'}{$new_sock}{'mode'}       = 'in';
     $data{'handle'}{$new_sock}{'encryption'} = 'none';
-    $data{'handle'}{$new_sock}{'peerhost'}   = $new_sock->peerhost();
-    $data{'handle'}{$new_sock}{'peerport'}   = $new_sock->peerport();
+    $data{'handle'}{$new_sock}{'peerhost'}   = $peer_host;
+    $data{'handle'}{$new_sock}{'peerport'}   = $peer_port;
 
     <[base.log]>->(
         1,
