@@ -7,10 +7,12 @@ return Event->io(
     'fd'      => ${ $_[0] }{'fd'}               || $_[0],
     'cb'      => $code{ ${ $_[0] }{'handler'} } || $_[1],
     'poll'    => ${ $_[0] }{'poll'}             || 'r',
-    'timeout' => ${ $_[0] }{'timeout'}          || 0,
     'repeat'  => ${ $_[0] }{'repeat'}           || 1,
     'async'   => ${ $_[0] }{'async'}            || 0,
     'desc'    => ${ $_[0] }{'desc'}             || ${ $_[0] }{'handler'},
     'prio'    => ${ $_[0] }{'desc'}             || 3,
-    'data'    => ${ $_[0] }{'data'}
+    'timeout' => ${ $_[0] }{'timeout'}          || 0,
+    'hard'    => ${ $_[0] }{'hard'}             || 0,
+    'timeout_cb' => ${ $_[0] }{'timeout_cb'},
+    'data'       => ${ $_[0] }{'data'}
 );
