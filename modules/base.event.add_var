@@ -1,6 +1,7 @@
 # >:]
 
-# name       = base.event.add_var
+# name  = base.event.add_var
+# descr = install variable (access) watcher
 
 return Event->var(
     'var'       => ${ $_[0] }{'var'}              || $_[0],
@@ -12,7 +13,6 @@ return Event->var(
     'prio'      => ${ $_[0] }{'prio'}             || 2,
     'async'     => ${ $_[0] }{'async'}            || 0,
     'hard'      => ${ $_[0] }{'hard'}             || 0,
-    'data'      => ${ $_[0] }{'data'},
-    'desc'      => ${ $_[0] }{'desc'}             || "${ $_[0] }{'var'}"
+    'desc'      => ${ $_[0] }{'desc'}             || "${ $_[0] }{'var'}",
+    'data'      => ${ $_[0] }{'data'}
 );
-
