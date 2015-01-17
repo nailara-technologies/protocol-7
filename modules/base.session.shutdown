@@ -18,6 +18,8 @@ if ( not defined $sid or $sid !~ /^\d+$/ ) {
         $shutdown_msg = $data{'user'}{$user}{'shutdown_msg'};
         $shutdown_msg =~ s/__MSG__/$msg/;
     }
+    my $lmsg = $msg eq 'session closed' ? '' : " ( $msg )";
+    <[base.log]>->( 1, "[$sid] session shutdown$lmsg" );
     $data{'session'}{$sid}{'buffer'}{'output'} .= "$shutdown_msg\n";
     $data{'session'}{$sid}{'shutdown'} = 1;
 }
