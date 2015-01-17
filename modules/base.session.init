@@ -103,12 +103,23 @@ if ( $mode eq 'server' ) {
         }
     );
 } else {
+    my @timeout = ( $proto ne 'nailara' or $name ne '-' ) ? () : (
+
+        # set up authentication (input) timeout for nailara protocol sessions
+        'timeout' => <net.authentication.timeout> || 13,
+        'timeout_cb' => sub {
+            <[base.log]>->( 1, "[$id] authentication timeout!" );
+            $data{'session'}{$id}{'buffer'}{'output'} .= ">:|\n";
+            $data{'session'}{$id}{'shutdown'} = 1;
+        }
+    );
     $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
         'fd'     => $fd,
         'cb'     => $code{'base.handler.read'},
         'data'   => $id,
         'repeat' => 0,
-        'desc'   => "[$id] input handler"
+        'desc'   => "[$id] input handler",
+        @timeout    # disabled later in 'base.handler.auth'
     );
 }
 

@@ -34,6 +34,9 @@ if ( defined $key_str
         } elsif ( $answer =~ /FAIL/ ) {
             <[base.log]>->( 0, "[#] access denied :(" );
             return undef;
+        } elsif ( $answer =~ />:\|/ ) {
+            <[base.log]>->( 0, "[#] authentication timeout :|" );
+            return undef;
         } else {
             <[base.log]>->( 0, "[#] protocol error :(" );
             return undef;
