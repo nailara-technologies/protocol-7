@@ -22,9 +22,15 @@ if ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {
     if ( ( $$session{'counter'}{'auth'}{'error'}{'select'} || 0 ) > 2 ) {
         $$output .= ">:[\n";
         $$session{'shutdown'} = 1;
+    } elsif ( ( $$session{'counter'}{'auth'}{'select'} || 0 ) > 1 ) {
+        <[base.log]>->( 0, "[$id] 3rd auth select request >:[" );
+        $$output .= ">:[\n";
+        $$session{'shutdown'} = 1;
     } else {
         if ( !<[auth.auth_select]>->( $id, $2 ) ) {
             $$session{'counter'}{'auth'}{'error'}{'select'}++;
+        } else {
+            $$session{'counter'}{'auth'}{'select'}++;
         }
     }
 }
