@@ -53,9 +53,6 @@ while ($connect) {
         clear();
         $0 = "nshell ( $core_addr : $core_port ) ";
         shell_loop( $shell_sock, $prompt );
-
-    } else {
-        die "failed\n";
     }
 }
 
@@ -90,9 +87,13 @@ sub shell_auth {
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
         return $_[0];
-    } else {
+    } elsif ( $answer =~ /FAIL >:\|/ ) {
         die " :: authentication failed ::\n\n";
+    } elsif ( $answer =~ />:\|/ ) {
+        print " :: authentication timeout ::\n";
         return 0;
+    } else {
+        die " :: protocol error ::\n\n";
     }
 }
 
