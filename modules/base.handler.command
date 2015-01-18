@@ -172,7 +172,6 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
     if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
         my $route = $data{'route'}{ $data{'session'}{$id}{'route'}{$cmd_id} };
-
         if ( $$route{'target'}{'sid'} == $id ) {
 
             my $s_cmd_id = '';
@@ -362,7 +361,10 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
         # ^ uhm, this will take a while (route discovery feature..)
 
-    } elsif ( $cmd =~ s/^($re->{sid}|$re->{usr})\.($re->{cmd})$/$2/go ) {
+    } elsif ( $cmd =~ s/^($re->{sid}|$re->{usr})\.
+                        ((($re->{sid}|$re->{usr})\.)*
+                        $re->{cmd})
+                        $/$2/gxo ) {
         my $target_name = $1;
         my $command_str = $2;
         my @sids;
