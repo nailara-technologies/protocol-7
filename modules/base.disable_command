@@ -1,0 +1,12 @@
+# >:]
+
+# name  = base.disable_command
+# descr = permanently disable / remove a specific command
+
+my @cmds = @_;
+die "expected list of commands to disable!" if !@cmds;
+$data{'disabled_commands'} //= [];
+
+push( @{ $data{'disabled_commands'} }, @cmds );
+
+map { delete $data{'base'}{'cmd'}{$_}; delete $data{'base'}{'help'}{$_} } @cmds;
