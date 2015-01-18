@@ -361,119 +361,133 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
         # ^ uhm, this will take a while (route discovery feature..)
 
-    } elsif ( $cmd =~ s/^($re->{sid}|$re->{usr})\.
-                        ((($re->{sid}|$re->{usr})\.)*
-                        $re->{cmd})
-                        $/$2/gxo ) {
-        my $target_name = $1;
-        my $command_str = $2;
-        my @sids;
+    } elsif (
+        $cmd =~ s/^($re->{sid}|$re->{usr})\.
+                    ((($re->{sid}|$re->{usr})\.)*
+                    $re->{cmd})$/$2/gxo
+        ) {
+        my $target_name = $1;                  # usr|sid
+        my $command_str = $2;                  # [ deeper targets + ] command
+        my @send_sids;
 
         if ( $target_name =~ /^$re->{sid}$/ ) {
             my $target_sid = $target_name;
-            if (    exists $data{'session'}{$target_sid}
-                and $data{'session'}{$target_sid}{'mode'} eq 'client'
-                and $target_name = $data{'session'}{$target_sid}{'user'} ) {
-                push( @sids, $target_sid );
+            if ( exists $data{'session'}{$target_sid}
+                and $data{'session'}{$target_sid}{'mode'} eq 'client' ) {
+                @send_sids = ($target_sid);
             }
         } elsif ( exists $data{'user'}{$target_name} ) {
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
-                push( @sids, $target_sid );
+                next if $data{'session'}{$target_sid}{'mode'} ne 'client';
+                push( @send_sids, $target_sid );
             }
         }
 
-        # send to all clients with that username (group mode)
-
-        if ( scalar @sids ) {
-            foreach my $target_sid (@sids) {
-
-                # setup route
-
-                my $route = <[base.route.add]>->(
-                    {   'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
-                        'target' => { 'sid' => $target_sid }
-                    }
-                );
-
-                my $target_cmd_id = $$route{'target'}{'cmd_id'};
-
-                <[base.log]>->(
-                    2,
-                    "[$id] "
-                        . $data{'session'}{$id}{'user'}
-                        . " -> $target_name > $cmd [ mode $command_mode ]"
-                );
-
-                $target_cmd_id =~ s/^($re->{cmd_id})$/($1)/;
-
-                if ( $command_mode == 1 )    # single line command mode
-                {
-                    my $args = '';
-                    local $$call_args{'args'} = ''
-                        if not defined $$call_args{'args'};
-
-                    if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
-
-                    $data{'session'}{$target_sid}{'buffer'}{'output'}
-                        .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
-
-                    # TODO: setup timeout handler
-
-                } elsif ( $command_mode == 2 )    # multi line command mode
-                {
-                    my $header = '';
-
-                    if ( defined $$call_args{'param'}
-                        and ref( $$call_args{'param'} ) eq
-                        'HASH' )                  # prepare parameter header
-                    {
-                        my ( $key, $val );
-
-                        while ( ( $key, $val )
-                            = each( %{ $$call_args{'param'} } ) ) {
-                            $header .= $key . '=' . $val . "\n";
-                        }
-                    }
-
-                    $data{'session'}{$target_sid}{'buffer'}{'output'}
-                        .= $target_cmd_id
-                        . $cmd . "+\n"
-                        . $header . "\n"
-                        . $$call_args{'data'} . ".\n";
-
-                } else    # should never get here..
-                {
-                    <[base.log]>->( 1, 'unknown command mode' );
-                    return 1;
-                }
-            }
-
-            return 0;
-        } else {
-
+        if ( !@send_sids ) {
             $$output .= $_cmd_id . "NACK unknown command\n";
-
             <[base.log]>->(
                 1,
-                "[$id] command '$command_str' rejected"
-                    . " (client '$target_name' not found)!"
+                "[$id] command '$command_str' rejected!"
+                    . " (client '$target_name' not found)"
             );
-
             return 1;
         }
 
+        # send to all clients with that username (group mode)
+        my $targets_denied = 0;
+        foreach my $target_sid (@send_sids) {
+
+            my $target_session = $data{'session'}{$target_sid};
+            if ( $target_session->{'user'} eq '-'
+                or exists $target_session->{'authenticated'}
+                and $target_session->{'authenticated'} ne 'yes' ) {
+                $targets_denied++;
+                next;    # skip unauthorized connections
+            }
+
+            # setup route
+
+            my $route = <[base.route.add]>->(
+                {   'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
+                    'target' => { 'sid' => $target_sid }
+                }
+            );
+
+            my $target_cmd_id = $$route{'target'}{'cmd_id'};
+
+            <[base.log]>->(
+                2,
+                "[$id] "
+                    . $data{'session'}{$id}{'user'}
+                    . " -> $target_name > $cmd [ mode $command_mode ]"
+            );
+
+            $target_cmd_id =~ s/^($re->{cmd_id})$/($1)/;
+
+            if ( $command_mode == 1 )    # single line command mode
+            {
+                my $args = '';
+                local $$call_args{'args'} = ''
+                    if not defined $$call_args{'args'};
+
+                if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
+
+                $data{'session'}{$target_sid}{'buffer'}{'output'}
+                    .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
+
+                # TODO: setup timeout handler
+
+            } elsif ( $command_mode == 2 )    # multi line command mode
+            {
+                my $header = '';
+
+                if ( defined $$call_args{'param'}
+                    and ref( $$call_args{'param'} ) eq
+                    'HASH' )                  # prepare parameter header
+                {
+                    my ( $key, $val );
+
+                    while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
+                    {
+                        $header .= $key . '=' . $val . "\n";
+                    }
+                }
+
+                $data{'session'}{$target_sid}{'buffer'}{'output'}
+                    .= $target_cmd_id
+                    . $cmd . "+\n"
+                    . $header . "\n"
+                    . $$call_args{'data'} . ".\n";
+
+            } else    # should never get here..
+            {
+                <[base.log]>->( 1, 'unknown command mode' );
+                return 1;
+            }
+        }
+
+        if ( $targets_denied == @send_sids ) {    # nothing send
+            $$output .= $_cmd_id . "NACK unknown command\n";
+            <[base.log]>->(
+                1,
+                "[$id] access denied! ( usr:'$usr' cmd:'$target_name.$cmd' )"
+            );
+            return 1;
+        }
+
+        # at least one target was valid
+        return 0;
     }
 
     # unknown command
-
     $$output .= $_cmd_id . "NACK unknown command\n";
-
-    <[base.log]>->( 1, "[$id] unknown command. ( usr '$usr', cmd '$cmd' )" );
+    <[base.log]>->( 1, "[$id] unknown command. ( usr:'$usr' cmd:'$cmd' )" );
 } else    # access denied
 {
     $$output .= $_cmd_id . "NACK unknown command\n";
-    <[base.log]>->( 1, "[$id] access denied. ( usr '$usr', cmd '$cmd' )" );
+    <[base.log]>->( 1, "[$id] access denied! ( usr:'$usr' cmd:'$cmd' )" );
+    return 1;
 }
 
 return 0;
