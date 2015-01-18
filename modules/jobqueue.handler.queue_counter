@@ -13,7 +13,7 @@ my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
         ' ' x int( 7 - length($queue_name) ),
         <jobqueue.counter.last>->{$queue_name}
     )
-);
+) if $$counter_ref != <jobqueue.counter.last>->{$queue_name};
 
 <jobqueue.counter.last>->{$queue_name} = $$counter_ref;
 

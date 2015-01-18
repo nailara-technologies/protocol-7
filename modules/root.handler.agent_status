@@ -15,9 +15,6 @@ my $agent_id   = $instance->{'agent_id'};
 my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
 my $job_id     = $instance->{'job_id'};
 
-#return if $old_status eq 'offline' and $status eq 'failed';    # race condition
-# <[jobqueue.check_dependencies]> if $status eq 'online';
-
 # prevent undesired core shutdown (session.check.last)
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
     <[base.log]>->( 0, "removing session.close_last callback.." );
@@ -56,17 +53,23 @@ if (    $status ne 'starting'
     and $status ne 'online'
     and exists $instance->{'process'} ) {
     my $pid = $instance->{'process'}->{'id'};
-    <[base.log]>->( 1, "instance $instance_id : killing process $pid" );
-    kill( 9, $pid );    # 15 + timeout
+    <[base.log]>->( 1, "instance $instance_id : killed process $pid !" )
+        if kill( 9, $pid );    # 15 + timeout
 }
 
+# instance startup failure hooks
 if (    $old_status eq 'starting'
-    and $status eq 'failed'
-    and exists $init_code->{'startup-failure'} ) {
-    <[base.execute_agent_code]>
-        ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
+    and $status eq 'failed' ) {
+    if ( exists $init_code->{'startup-failure'} ) {
+        <[base.execute_agent_code]>
+            ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
+    } else {  # <- prevents a failure race condition (getting stuck in 'failed')
+        <[agent.change_status]>->( $instance_id, 'offline' );
+        return;
+    }
 }
 
+# select correct target job queue
 my $target_queue;
 $target_queue = 'running' if $status eq 'online';
 $target_queue = 'failed'  if $status eq 'failed';
@@ -74,7 +77,9 @@ $target_queue = 'queued'  if $status eq 'offline';
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue;
 
+# shutdown instances with unresolved dependencies
 if ( $status ne 'starting' and $status ne 'online' ) {
+    delete $instance->{'core_sid'};
     foreach my $dep_id (
         <[dependency.get_reverse]>->( <[agent.get_object_id]>->($agent_id) ) ) {
         map { <[agent.instance.restart]>->($_) } @{
@@ -83,6 +88,20 @@ if ( $status ne 'starting' and $status ne 'online' ) {
             )
         };
     }
+}
+
+# install timer to check instance status
+if ( $old_status ne 'online' and $status eq 'online' ) {
+    <[base.log]>->(
+        1, "setting up instance timeout handler for '$agent_name' agent"
+    );
+    $instance->{'status_timer'} = <[event.add_timer]>->(
+        {   'after'    => 0,
+            'interval' => 5 + sprintf( "%.3f", rand(1) ),
+            'handler'  => 'root.handler.status_timer',
+            'data'     => $instance_id
+        }
+    );
 }
 
 <[jobqueue.check_dependencies]>;

@@ -30,19 +30,30 @@ if (sysread(
     return;
 }
 
-while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*\n)||s ) {
+my @matched_names;
+my $patterns_output = <root.patterns.agent_output>;
+foreach my $a_name ( keys %{$patterns_output} ) {
+    push( @matched_names, $a_name )
+        if $a_name eq $agent_name    # agent name matches
+        or $a_name =~ /^\!(.+)$/ and $1 ne $agent_name; # inverse match (!agent)
+}
+
+while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    print $output_line if <system.verbosity>;
-    if ( exists <root.patterns.agent_output>->{$agent_name} ) {
-        foreach my $pattern (
-            keys %{ <root.patterns.agent_output>->{$agent_name} } ) {
-            if ( my @matches = $output_line =~ $pattern ) {
-                <root.patterns.agent_output>
-                    ->{$agent_name}->{$pattern}->( $instance_id, @matches );
+    print $output_line. "\n" if <system.verbosity>;
+    if (@matched_names) {    # matching pattern name exists
+        $output_line =~ s/^ :[^\.]+\.$agent_name //;
+        foreach my $pattern_name (@matched_names) {
+            foreach my $pattern (
+                keys %{ <root.patterns.agent_output>->{$pattern_name} } ) {
+                if ( my @matches = $output_line =~ $pattern ) {
+                    <root.patterns.agent_output>->{$pattern_name}->{$pattern}
+                        ->( $instance_id, $agent_name, @matches );
+                }
             }
         }
     } else {
-        warn "no output patterns defined for agent '$agent_name'"
+        warn "no defined output patterns matching agent '$agent_name'"
             if not exists <root.status.warning>->{"pattern_$agent_name"};
         <root.status.warning>->{"pattern_$agent_name"} = 1;
     }
