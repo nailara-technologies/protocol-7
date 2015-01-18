@@ -22,18 +22,20 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
     # send to all clients with that session id (or username [group mode])
     my @send_sids;
     my $target_sid = $target_name =~ /^\d+$/ ? $target_name : undef;
-    if (defined $target_sid    # sid mode
-        and exists $data{'session'}{$target_sid}
-        and $data{'session'}{$target_sid}{'mode'} eq 'client'
-        and exists $data{'session'}{$target_sid}{'user'}
-        and defined $data{'session'}{$target_sid}{'user'}
-        ) {
+    if ( defined $target_sid
+        and exists $data{'session'}{$target_sid} ) {    # sid mode
         @send_sids = ($target_sid);
     } elsif ( exists $data{'user'}{$target_name} ) {    # group mode
         @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
     }
 
     foreach my $target_sid (@send_sids) {
+        my $session = $data{'session'}{$target_sid};
+        next    # skip unauthorized connections / modes
+            if $session->{'mode'} ne 'client'
+            or $session->{'user'} eq '-'
+            or exists $session->{'authenticated'}
+            and $session->{'authenticated'} ne 'yes';
 
         # setup route
 
