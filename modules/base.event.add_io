@@ -3,16 +3,17 @@
 # name  = base.event.add_io
 # descr = install I/O watcher on a filehandle
 
+die 'base.event.add_io: expected a hash reference!' if ref( $_[0] ) ne 'HASH';
 return Event->io(
-    'fd'      => ${ $_[0] }{'fd'}               || $_[0],
-    'cb'      => $code{ ${ $_[0] }{'handler'} } || $_[1],
-    'poll'    => ${ $_[0] }{'poll'}             || 'r',
-    'repeat'  => ${ $_[0] }{'repeat'}           || 1,
-    'async'   => ${ $_[0] }{'async'}            || 0,
-    'desc'    => ${ $_[0] }{'desc'}             || ${ $_[0] }{'handler'},
-    'prio'    => ${ $_[0] }{'desc'}             || 3,
-    'timeout' => ${ $_[0] }{'timeout'}          || 0,
-    'hard'    => ${ $_[0] }{'hard'}             || 0,
+    'poll'    => ${ $_[0] }{'poll'}    || 'r',
+    'repeat'  => ${ $_[0] }{'repeat'}  || 1,
+    'async'   => ${ $_[0] }{'async'}   || 0,
+    'desc'    => ${ $_[0] }{'desc'}    || ${ $_[0] }{'handler'},
+    'prio'    => ${ $_[0] }{'desc'}    || 3,
+    'timeout' => ${ $_[0] }{'timeout'} || 0,
+    'hard'    => ${ $_[0] }{'hard'}    || 0,
     'timeout_cb' => ${ $_[0] }{'timeout_cb'},
+    'cb'         => $code{ ${ $_[0] }{'handler'} },
+    'fd'         => ${ $_[0] }{'fd'},
     'data'       => ${ $_[0] }{'data'}
 );
