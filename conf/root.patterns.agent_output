@@ -5,11 +5,17 @@
 
 .: output patterns :.
 
-  - core:/^ :[^ ]+\.core tcp server \[[^\]]+\] launched\.$/
+  - core:/^tcp server \[[^\]]+\] launched\.$/
     [agent.change_status:<instance_id>,'online'];
 
-  - notify:/^ :[^ ]+\.notify \[\*\] successfully authenticated \:\)$/
-    [agent.change_status:<instance_id>,'online'];
+  - core:/^\[(\d+)\] authentication successful \(user: '(\w+)'\)$/
+    [root.handler.core_session_auth:<instance_id>,<match_1>,<match_2>]
 
-  - ping:/^ :[^ ]+\.ping \[\*\] successfully authenticated \:\)$/
-    [agent.change_status:<instance_id>,'online'];
+  - core:/^\[(\d+)\] session closed$/
+    [root.handler.core_session_close:<instance_id>,<match_1>]
+
+  - !core:/^core session id (\d+) received!$/
+    [agent.set_core_sid:<instance_id>,<match_1>];
+
+  - !core:/^instance verification string : '([a-f\d]+)'$/
+    [root.handler.instance_verification_string:<instance_id>,<match_1>];

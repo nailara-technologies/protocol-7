@@ -7,7 +7,7 @@ modules.load    = auth net io.ip
 net.daemon_name = ping
 auth.core.pass  = WakEveph2
 
-access.cmd.usr.* = help ping pid startup_time
+access.cmd.usr.core = help ping pid startup_time verify_instance
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -16,5 +16,6 @@ access.cmd.usr.* = help ping pid startup_time
 
 core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
 [base.session.init:<core.handle>,'nailara','client','core']
+[base.get_session_id]
 
 [event.loop]

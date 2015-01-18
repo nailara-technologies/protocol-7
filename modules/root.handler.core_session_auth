@@ -1,0 +1,9 @@
+# >:]
+
+# name = root.handler.core_session_auth
+
+my ( $core_instance, $auth_session, $auth_user ) = @_;
+
+my $instance = <root.agent.instance>->{$core_instance};
+
+$instance->{'core_session'}->{$auth_session}->{'user'} = $auth_user;
