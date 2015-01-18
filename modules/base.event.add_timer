@@ -1,0 +1,19 @@
+# >:]
+
+# name  = base.event.add_timer
+# descr = install a timer watcher
+
+die 'base.event.add_timer: expected hash reference!' if ref( $_[0] ) ne 'HASH';
+return Event->timer(
+    'reentrant' => ${ $_[0] }{'reentrant'} || 1,
+    'repeat'    => ${ $_[0] }{'repeat'}    || 1,
+    'prio'      => ${ $_[0] }{'prio'}      || 1,
+    'async'     => ${ $_[0] }{'async'}     || 0,
+    'desc'      => ${ $_[0] }{'desc'}      || ${ $_[0] }{'handler'},
+    'cb'        => $code{ ${ $_[0] }{'handler'} },
+    'time'      => ${ $_[0] }{'time'},
+    'after'     => ${ $_[0] }{'after'},
+    'interval'  => ${ $_[0] }{'interval'},
+    'hard'      => ${ $_[0] }{'hard'},
+    'data'      => ${ $_[0] }{'data'}
+);
