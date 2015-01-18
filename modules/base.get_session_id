@@ -1,0 +1,27 @@
+# >:]
+
+# name = base.get_session_id
+
+my ($local_session_id) = keys( %{<user.core.session>} );
+if ( exists $data{'session'}{$local_session_id}{'core_sid'} ) {
+    <[base.log]>->( 0, "already have a core sid, refused to request another!" );
+    return undef;
+}
+my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+<[net.out]>->( $core_fh, "whoami\n" );
+
+my $reply_string = <$core_fh>;
+
+if ( $reply_string =~ /^ACK (\w+) (\d+)\n$/ ) {
+    my ( $agent_name, $core_session_id ) = ( $1, $2 );
+    if ( $agent_name ne <system.agent.name> ) {
+        <[base.log]>->( 0, "received agent name does not match internal one!" );
+        return undef;
+    }
+    $data{'session'}{$local_session_id}{'core_sid'} = $core_session_id;
+    <[base.log]>->( 1, "core session id $core_session_id received!" );
+    return $core_session_id;
+} else {
+    <[base.log]>->( 0, "protocol error (unexpected reply to whoami command!)" );
+    return undef;
+}

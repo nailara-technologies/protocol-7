@@ -21,24 +21,25 @@ die "failed to load pattern data"
 foreach my $p_ref (@$agent_pattern_data) {
     foreach my $pattern ( keys %$p_ref ) {
         my $p_key = $pattern;
-        if ( $pattern =~ s/^([\w\d_\-, \t]+):\/([^\n]+)\/(i?)/$2/ ) {
+        if ( $pattern =~ s/^([!\w\d_\-, \t]+):\/([^\/]+)\/(i?)/$2/g ) {
             my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 || '' );
             $agent_string =~ s/[ \t]+//g;
-            foreach my $agent_name ( split( /,/, $agent_string ) ) {
+            foreach my $agent_match ( split( /,/, $agent_string ) ) {
                 my $pattern_code_aref = $p_ref->{$p_key};
-                map { $_ =~ s/<agent_name>/$agent_name/g; "$_;\n" }
-                    @{$pattern_code_aref};
                 my $pattern_re
                     = length($i)
                     ? qr/$pattern_string/i
                     : qr/$pattern_string/;
                 my $sub_code
-                    = 'sub { my $instance_id = shift; my @matches = @_; '
+                    = 'sub { my $instance_id = shift;'
+                    . ' my $agent_name = shift;'
+                    . ' my @matches = @_; '
                     . join( '; ', <[base.parser.config]>->($pattern_code_aref) )
                     . ' }';
                 $sub_code =~ s/<instance_id>/\$instance_id/g;
+                $sub_code =~ s/<agent_name>/\$agent_name/g;
                 $sub_code =~ s/<match_([1-9])>/\$matches[1-$1]/g;
-                <root.patterns.agent_output>->{$agent_name}->{$pattern_re}
+                <root.patterns.agent_output>->{$agent_string}->{$pattern_re}
                     = eval $sub_code;
             }
         }
