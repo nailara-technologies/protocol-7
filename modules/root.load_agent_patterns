@@ -33,10 +33,11 @@ foreach my $p_ref (@$agent_pattern_data) {
                     ? qr/$pattern_string/i
                     : qr/$pattern_string/;
                 my $sub_code
-                    = 'sub { my $instance_id = shift; '
+                    = 'sub { my $instance_id = shift; my @matches = @_; '
                     . join( '; ', <[base.parser.config]>->($pattern_code_aref) )
                     . ' }';
                 $sub_code =~ s/<instance_id>/\$instance_id/g;
+                $sub_code =~ s/<match_([1-9])>/\$matches[1-$1]/g;
                 <root.patterns.agent_output>->{$agent_name}->{$pattern_re}
                     = eval $sub_code;
             }
