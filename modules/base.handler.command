@@ -297,7 +297,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
     if ( $cmd =~ /^$re->{cmd}$/ ) {
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
-            if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
+            if ( exists $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
                 # call command handler
@@ -346,7 +346,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
         #        not working yet..
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
-        if ( defined $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
+        if ( exists $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
         {
 
          #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
@@ -368,13 +368,13 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
         my @sids;
 
         if ( $target_name =~ /^$re->{sid}$/ ) {
-
-            if (    defined $data{'session'}{$target_name}
-                and $data{'session'}{$target_name}{'mode'} eq 'client'
-                and $target_name = $data{'session'}{$target_name}{'user'} ) {
-                push( @sids, $target_name );
+            my $target_sid = $target_name;
+            if (    exists $data{'session'}{$target_sid}
+                and $data{'session'}{$target_sid}{'mode'} eq 'client'
+                and $target_name = $data{'session'}{$target_sid}{'user'} ) {
+                push( @sids, $target_sid );
             }
-        } elsif ( defined $data{'user'}{$target_name} ) {
+        } elsif ( exists $data{'user'}{$target_name} ) {
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 push( @sids, $target_sid );
