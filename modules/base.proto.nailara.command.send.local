@@ -20,63 +20,64 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
     #XXX: needs error handling on unknown target!
 
     # send to all clients with that session id (or username [group mode])
-
+    my @send_sids;
     my $target_sid = $target_name =~ /^\d+$/ ? $target_name : undef;
-    if (    defined $target_sid
+    if (defined $target_sid    # sid mode
         and exists $data{'session'}{$target_sid}
         and $data{'session'}{$target_sid}{'mode'} eq 'client'
         and exists $data{'session'}{$target_sid}{'user'}
-        and defined $data{'session'}{$target_sid}{'user'} ) {
-        $target_name = $data{'session'}{$target_sid}{'user'};
+        and defined $data{'session'}{$target_sid}{'user'}
+        ) {
+        @send_sids = ($target_sid);
+    } elsif ( exists $data{'user'}{$target_name} ) {    # group mode
+        @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
     }
-    if ( exists $data{'user'}{$target_name} ) {
 
-        foreach my $target_sid (
-            keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
+    foreach my $target_sid (@send_sids) {
 
-            # setup route
+        # setup route
 
-            my $route = <[base.route.add]>->(
-                {   'source' => {
-                        'sid'    => $id,
-                        'cmd_id' => $cmd_id
-                    },
-                    'reply' => {
-                        'handler' => $reply_handler,
-                        'params'  => $reply_params
-                    },
-                    'target' => { 'sid' => $target_sid }
-                }
-            );
+        my $route = <[base.route.add]>->(
+            {   'source' => {
+                    'sid'    => $id,
+                    'cmd_id' => $cmd_id
+                },
+                'reply' => {
+                    'handler' => $reply_handler,
+                    'params'  => $reply_params
+                },
+                'target' => { 'sid' => $target_sid }
+            }
+        );
 
-            my $target_cmd_id = $$route{'target'}{'cmd_id'};
+        my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-            my $u_name = $data{'session'}{$id}{'user'} || '-';
-            <[base.log]>->( 2, "[$id] $u_name -> $target_name > $cmd" );
+        my $u_name = $data{'session'}{$id}{'user'} || '-';
+        <[base.log]>->( 2, "[$id] $u_name -> $target_name > $cmd" );
 
-            $target_cmd_id =~ s/^(\d+)$/($1)/;
+        $target_cmd_id =~ s/^(\d+)$/($1)/;
 
-            #            if ( $command_mode == 1 )    # single line command mode
-            #            {
-            my $args = '';
+        #            if ( $command_mode == 1 )    # single line command mode
+        #            {
+        my $args = '';
 
-            if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
+        if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
 
-            $data{'session'}{$target_sid}{'buffer'}{'output'}
-                .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
+        $data{'session'}{$target_sid}{'buffer'}{'output'}
+            .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
 
-            # TODO: setup timeout handler
+        # TODO: setup timeout handler
 
-          #            }
-          #            elsif ( $command_mode == 2 )    # multi line command mode
-          #            {
-          #                my $header = '';
+        #            }
+        #            elsif ( $command_mode == 2 )    # multi line command mode
+        #            {
+        #                my $header = '';
 
-            #                if ( defined $$call_args{'param'}
-            #                    and ref( $$call_args{'param'} ) eq
-            #                    'HASH' )    # prepare parameter header
-            #                {
-            #                    my ( $key, $val );
+        #                if ( defined $$call_args{'param'}
+        #                    and ref( $$call_args{'param'} ) eq
+        #                    'HASH' )    # prepare parameter header
+        #                {
+        #                    my ( $key, $val );
 
 #                    while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
 #                    {
@@ -84,18 +85,16 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
 #                    }
 #                }
 
-           #                $data{'session'}{$target_sid}{'buffer'}{'output'} .=
-           #                  $target_cmd_id . $cmd . "+\n" . $header . "\n"
-           #                  . $$call_args{'data'} . ".\n";
+        #                $data{'session'}{$target_sid}{'buffer'}{'output'} .=
+        #                  $target_cmd_id . $cmd . "+\n" . $header . "\n"
+        #                  . $$call_args{'data'} . ".\n";
 
-            #            }
-            #            else    # should never get here..
-            #            {
-            #                <[base.log]>->( 0, 'unknown command mode');
-            #                return 1;
-            #            }
-        }
-
-        return 0;
+        #            }
+        #            else    # should never get here..
+        #            {
+        #                <[base.log]>->( 0, 'unknown command mode');
+        #                return 1;
+        #            }
     }
+    return 0;
 }
