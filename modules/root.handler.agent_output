@@ -22,15 +22,10 @@ if (sysread(
     $event->cancel;
     my $process = $agent_instance->{'process'};
     close($read_fh);
-
     my $pid = $process->{'id'};
     <[base.log]>->( 1, "( pid $pid ) output filehandle closed !" );
-
-#    <[agent.change_status]>->( $instance_id, 'offline' )
-#        if $agent_instance->{'status'} eq 'failed';
     <[agent.change_status]>->( $instance_id, 'failed' )
         if $agent_instance->{'status'} eq 'online';
-
     undef $agent_instance->{'output_buffer'};
     return;
 }
@@ -41,9 +36,10 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*\n)||s ) {
     if ( exists <root.patterns.agent_output>->{$agent_name} ) {
         foreach my $pattern (
             keys %{ <root.patterns.agent_output>->{$agent_name} } ) {
-            <root.patterns.agent_output>
-                ->{$agent_name}->{$pattern}->($instance_id) # (pattern callback)
-                if $output_line =~ $pattern;
+            if ( my @matches = $output_line =~ $pattern ) {
+                <root.patterns.agent_output>
+                    ->{$agent_name}->{$pattern}->( $instance_id, @matches );
+            }
         }
     } else {
         warn "no output patterns defined for agent '$agent_name'"
