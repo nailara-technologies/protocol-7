@@ -19,9 +19,17 @@ if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
 
     #XXX: needs error handling on unknown target!
 
-    # send to all clients with that username (group mode)
+    # send to all clients with that session id (or username [group mode])
 
-    if ( defined $data{'user'}{$target_name} ) {
+    my $target_sid = $target_name =~ /^\d+$/ ? $target_name : undef;
+    if (    defined $target_sid
+        and exists $data{'session'}{$target_sid}
+        and $data{'session'}{$target_sid}{'mode'} eq 'client'
+        and exists $data{'session'}{$target_sid}{'user'}
+        and defined $data{'session'}{$target_sid}{'user'} ) {
+        $target_name = $data{'session'}{$target_sid}{'user'};
+    }
+    if ( exists $data{'user'}{$target_name} ) {
 
         foreach my $target_sid (
             keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
