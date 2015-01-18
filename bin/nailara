@@ -265,6 +265,11 @@ sub prepare_subs {
         $code{'log.debug'}->(": compiling ...");
         my ( $ok_count, $err_count ) = ( 0, 0 );
 
+        my %disabled_commands;
+        map { $disabled_commands{$_} = 1 } @{ $data{'disabled_commands'} }
+            if exists $data{'disabled_commands'}
+            and ref( $data{'disabled_commands'} ) eq 'ARRAY';
+
         foreach my $sub_name ( sort(@compile_them) ) {
 
             local $SIG{__WARN__} = 'IGNORE';
@@ -276,6 +281,7 @@ sub prepare_subs {
             my $sub_conflict = 0;
 
             if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) {
+                next if $1 eq 'cmd' and exists $disabled_commands{$2}; # skip!
                 if ( exists $data{'base'}{$1}{$2} ) {
                     my $old_sub = $data{'base'}{$1}{$2};
                     if ( not exists $data{'base'}{'overwritten'}{$1}{$2} ) {
