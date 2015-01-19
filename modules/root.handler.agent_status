@@ -92,8 +92,9 @@ if ( $status ne 'starting' and $status ne 'online' ) {
     }
 }
 
-# install timer to check instance status
 if ( $old_status ne 'online' and $status eq 'online' ) {
+
+    # install timer to check instance status ...
     <[base.log]>->(
         1, "setting up instance timeout handler for '$agent_name' agent"
     );
@@ -104,6 +105,17 @@ if ( $old_status ne 'online' and $status eq 'online' ) {
             'data'     => $instance_id
         }
     );
+
+    # start next delayed agent of the same name ...
+    foreach my $id ( @{ <[agent.instance.get_ids]>->($agent_id) } ) {
+        next
+            if $id == $instance_id
+            or <root.agent.instance>->{$id}->{'status'} ne 'delayed';
+        my $j_id = <root.agent.instance>->{$id}->{'job_id'};
+        <[base.log]>->( 1, "starting delayed '$agent_name' agent instance .." );
+        <[jobqueue.exec_job]>->($j_id);
+        last;
+    }
 }
 
 <[jobqueue.check_dependencies]>;

@@ -18,6 +18,21 @@ $instance_id //= <[agent.instance.add]>->($agent_id);
 <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
 <root.agent.instance>->{$instance_id}->{'job_id'} = $job_id;
 
+# check status of other agents with same name ...
+my %starting;
+map {
+    $starting{$_} = 1
+        if $_ != $instance_id
+        and <root.agent.instance>->{$_}->{'status'} eq 'starting'
+} @{ <[agent.instance.get_ids]>->($agent_id) };
+
+# delay agent startup until previous one is online ...
+if ( keys %starting and not exists $starting{$instance_id} ) {
+    <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..." );
+    <[agent.change_status]>->( $instance_id, 'delayed' );
+    return;
+}
+
 <[agent.change_status]>->( $instance_id, 'starting' );
 
 # execute root-init code
