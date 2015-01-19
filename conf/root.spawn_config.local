@@ -28,6 +28,14 @@
 
       dependencies = core
 
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'notify',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - ping
 
       dependencies = core notify

@@ -1,0 +1,11 @@
+# >:]
+
+# name  = base.auth.set_agent_key
+# descr = set up session auth key for agent client
+# todo  = XXX: switch agent authentication hashes to sha512!
+
+my $key_str = shift;
+die "no key string supplied!" if not defined $key_str or !length($key_str);
+
+<[base.log]>->( 1, "setting up agent session key.." );
+$key{'agent'}{'session_key'} = $key_str;

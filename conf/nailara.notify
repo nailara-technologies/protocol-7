@@ -3,8 +3,6 @@
 [load_config_file:'desktop']
 
 modules.load    = auth net io.ip notify
-net.daemon_name = notify
-auth.core.pass  = WakEveph2
 
 access.cmd.usr.core = help message ping pid startup_time dump dump_buffer reload verify_instance
 
@@ -12,8 +10,8 @@ access.cmd.usr.core = help message ping pid startup_time dump dump_buffer reload
 [init_modules]
 
 [set_privs:<x11.user>]
-
-core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 [base.get_session_id]
 
