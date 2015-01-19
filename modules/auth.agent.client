@@ -1,6 +1,7 @@
 # >:]
 
 # name  = auth.agent.client
+# descr = authenticate to core in agent mode
 
 my ( $filehandle, $agent, $key_str ) = @_;
 
@@ -20,28 +21,30 @@ if ( defined $key_str
     }
 
     <[net.out]>->( $filehandle, "select agent\n" );
-
-    my $answer = readline($filehandle);
+    if ( readline($filehandle) !~ /^ACK continue$/ ) {
+        <[base.log]>->( 0, "[#] protocol error :(" );
+        return undef;
+    }
 
     <[net.out]>->( $filehandle, "$agent $key_str\n" );
     delete $key{'agent'}{'session_key'} if exists $key{'agent'}{'session_key'};
 
-    if ( read( $filehandle, $answer, 8 ) ) {
+    my $answer = readline($filehandle);
 
-        if ( $answer =~ /YEAH/ ) {
-            <[base.log]>->( 1, "[*] successfully authenticated :)" );
-            return $filehandle;
-        } elsif ( $answer =~ /FAIL/ ) {
-            <[base.log]>->( 0, "[#] access denied :(" );
-            return undef;
-        } elsif ( $answer =~ />:\|/ ) {
-            <[base.log]>->( 0, "[#] authentication timeout :|" );
-            return undef;
-        } else {
-            <[base.log]>->( 0, "[#] protocol error :(" );
-            return undef;
-        }
+    if ( $answer =~ /^YEAH / ) {
+        <[base.log]>->( 1, "[*] successfully authenticated :)" );
+        return $filehandle;
+    } elsif ( $answer =~ /^FAIL / ) {
+        <[base.log]>->( 0, "[#] access denied :(" );
+        return undef;
+    } elsif ( $answer =~ /^>:\|$/ ) {
+        <[base.log]>->( 0, "[#] authentication timeout :|" );
+        return undef;
+    } else {
+        <[base.log]>->( 0, "[#] protocol error :(" );
+        return undef;
     }
+
 } else {
     <[base.log]>->(
         0, "auth.agent.client: session_key not defined. authentication failed."
