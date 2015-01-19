@@ -32,7 +32,9 @@ if ( $status eq 'online' and exists $init_code->{'root-post-init'} ) {
     map { $_ =~ s/<instance_id>/$instance_id/g } @post_init_code;
     <[base.execute_agent_code]>->(@post_init_code);
 }
-if ( $status eq 'online' and exists $instance->{'init_data'} ) {
+if (    $status eq 'online'
+    and exists $init_code->{'root-post-init'}
+    and exists $instance->{'init_data'} ) {
     my $init_status = $instance->{'init_data'}->{'status'} || {};
     if ( not exists $init_status->{'post-init'}
         or !$init_status->{'post-init'} ) {
