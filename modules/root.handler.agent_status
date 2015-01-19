@@ -12,6 +12,7 @@ die "no such agent instance ($instance_id)"
 my $instance   = <root.agent.instance>->{$instance_id};
 my $old_status = $instance->{'status'} || $status;
 my $agent_id   = $instance->{'agent_id'};
+my $object_id  = <[agent.get_object_id]>->($agent_id);
 my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
 my $job_id     = $instance->{'job_id'};
 
@@ -79,11 +80,14 @@ $target_queue = 'queued'  if $status eq 'offline';
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue;
 
-# shutdown instances with unresolved dependencies
-if ( $status ne 'starting' and $status ne 'online' ) {
+if (    $status ne 'online'
+    and $status ne 'starting'
+    and $old_status eq 'online' ) {
     delete $instance->{'core_sid'};
-    foreach my $dep_id (
-        <[dependency.get_reverse]>->( <[agent.get_object_id]>->($agent_id) ) ) {
+
+    # shutdown instances with unresolved dependencies
+    foreach my $dep_id ( <[dependency.get_reverse]>->($object_id) ) {
+        next if <[dependency.ok]>->($dep_id);
         map { <[agent.instance.restart]>->($_) } @{
             <[agent.instance.get_ids]>->(
                 <dependency.object>->{$dep_id}->{'agent_id'}
