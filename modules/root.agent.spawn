@@ -10,29 +10,26 @@ my @exec_args   = ();
 my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
 die "no agent name supplied" if not defined $agent_name;
 my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
+my $instances = <root.agent.instance>;
 my $agent_id  = <[agent.get_id]>->($agent_name);
 
 # reuse instance id or create new one if none exists
 my $instance_id = <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'};
 $instance_id //= <[agent.instance.add]>->($agent_id);
 <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
-<root.agent.instance>->{$instance_id}->{'job_id'} = $job_id;
+$instances->{$instance_id}->{'job_id'} = $job_id;
 
-# check status of other agents with same name ...
-my %starting;
-map {
-    $starting{$_} = 1
-        if $_ != $instance_id
-        and <root.agent.instance>->{$_}->{'status'} eq 'starting'
-} @{ <[agent.instance.get_ids]>->($agent_id) };
+my $starting = 0;    # check status of agents with same name ...
+map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
+    @{ <[agent.instance.get_ids]>->($agent_id) };
 
-# delay agent startup until previous one is online ...
-if ( keys %starting and not exists $starting{$instance_id} ) {
+if ($starting) {     # delay agent startup until previous one is online ...
     <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..." );
     <[agent.change_status]>->( $instance_id, 'delayed' );
     return;
 }
 
+# initialize agent instance startup ...
 <[agent.change_status]>->( $instance_id, 'starting' );
 
 # execute root-init code
@@ -47,7 +44,7 @@ if ( exists $init_code->{'root-init'} ) {
         = <[base.parser.config]>->( $init_code->{'root-init'}, $namespace_str );
     map { $_ =~ s/<instance_id>/$instance_id/g } @root_init_code;
     my $success = <[base.execute_agent_code]>->(@root_init_code);
-    $init_result_data = <root.agent.instance>->{$instance_id}->{'init_data'};
+    $init_result_data = $instances->{$instance_id}->{'init_data'};
 
     if ( !$success ) {
         <[base.log]>->(
@@ -93,7 +90,7 @@ if ( not defined $pid or $@ ) {
 
 <[root.child.add]>->( $pid, { 'instance_id' => $instance_id } );
 
-<root.agent.instance>->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
+$instances->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
