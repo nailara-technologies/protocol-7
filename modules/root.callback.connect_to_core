@@ -19,7 +19,7 @@ return 0 if not defined $c_fh;    # failed
 my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
 <[base.log]>
     ->( 1, "authentication to core successful ( session $session_id )" );
-<root.agent.instance>->{$instance_id}->{'session_id'} = $session_id;
+<root.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
 
 <callback.session.close_last> = {
     'name'   => 'agent.change_status',
