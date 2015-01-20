@@ -100,11 +100,11 @@ if ( $old_status ne 'online' and $status eq 'online' ) {
 
     # install timer to check instance status ...
     <[base.log]>->(
-        1, "setting up instance timeout handler for '$agent_name' agent"
+        2, "setting up response timer for instance $instance_id [$agent_name].."
     );
     $instance->{'status_timer'} = <[event.add_timer]>->(
-        {   'after'    => 0,
-            'interval' => 5 + sprintf( "%.3f", rand(1) ),
+        {   'after' => 0,    # XXX: make configurable!
+            'interval' => 5 + sprintf( "%.3f", rand(2) ),
             'handler'  => 'root.handler.status_timer',
             'data'     => $instance_id
         }

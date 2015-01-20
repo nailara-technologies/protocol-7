@@ -1,0 +1,13 @@
+# >:]
+
+# name = root.handler.status_response_timeout
+
+my $instance_id   = shift->w->data;
+my $agent_name    = <root.agent.instance>->{$instance_id}->{'agent_name'};
+my $is_core_agent = <root.agent.instance>->{$instance_id}->{'is_core'};
+
+<[base.log]>->(
+    0, "instance $instance_id [$agent_name] response.. ( TIMEOUT )"
+);
+delete <callback.session.close_last> if $is_core_agent;    # allow safe restart
+<[agent.change_status]>->( $instance_id, 'failed' );
