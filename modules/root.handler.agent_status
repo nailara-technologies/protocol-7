@@ -110,6 +110,9 @@ if ( $old_status ne 'online' and $status eq 'online' ) {
         }
     );
 
+    # clean up temporary agent instance startup data
+    delete $instance->{'init_data'};
+
     # start next delayed agent of the same name ...
     foreach my $id ( @{ <[agent.instance.get_ids]>->($agent_id) } ) {
         next
