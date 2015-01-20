@@ -8,8 +8,8 @@
   - core:/^tcp server \[[^\]]+\] launched\.$/
     [agent.change_status:<instance_id>,'online'];
 
-  - core:/^\[(\d+)\] authentication successful \(user: '(\w+)'\)$/
-    [root.handler.core_session_auth:<instance_id>,<match_1>,<match_2>]
+  - core:/^\[(\d+)\] authentication successful \((user|agent): '(\w+)'\)$/
+    [root.handler.core_session_auth:<instance_id>,<match_1>,<match_2>,<match_3>]
 
   - core:/^\[(\d+)\] session closed$/
     [root.handler.core_session_close:<instance_id>,<match_1>]
