@@ -2,9 +2,32 @@
 
 # name = root.handler.status_timer
 
-my $instance_id   = $_[0]->w->data;
-my $instance_data = <root.agent.instance>->{$instance_id};
-my $agent_name    = $instance_data->{'agent_name'};
+my $instance_id = $_[0]->w->data;
+my $instance    = <root.agent.instance>->{$instance_id};
+my $agent_name  = $instance->{'agent_name'};
+my $root_sid    = $instance->{'root_sid'};
+my $core_sid    = $instance->{'core_sid'};
 
-print "\n [ status timer test : instance $instance_id ( $agent_name ) ]\n\n"
-    if <system.verbosity> >= 2
+if ( not defined $core_sid ) {
+    $instance->{'no_core_sid_events'}++;    # core agent
+}
+if ( not defined $root_sid ) {
+    $instance->{'no_root_sid_events'}++;    # XXX: fail!
+}
+
+# print Dumper($instance);
+
+my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "$command_route.ping",
+        'call_args' => { 'session_id' => $root_sid, 'args' => '' },
+        'reply'     => {
+
+            # XXX: implement response + timeout handling!
+            'handler' => 'dev.null',
+            'params'  => {}
+        }
+    }
+);
+
