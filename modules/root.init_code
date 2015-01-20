@@ -31,4 +31,20 @@ delete <list.users>;
     }
 };
 
+<list.dependencies> = {
+    'var'   => 'data',
+    'key'   => 'dependency.object',
+    'descr' => 'agent dependency status',
+    'mask'  => 'agent_name <key>:depends_on <key>:status',
+    'align' => {
+        'agent_name' => 'center+1',
+        'depends_on' => 'center-2',
+        'status'     => 'center-3'
+    },
+    'filters' => {
+        'depends_on' => 'root.parser.dependency_chain',
+        'status'     => 'root.parser.dependency_status'
+    }
+};
+
 return 0;
