@@ -2,20 +2,20 @@
 
 # name = root.handler.status_timer
 
-my $instance_id = $_[0]->w->data;
+my $instance_id = shift->w->data;
 my $instance    = <root.agent.instance>->{$instance_id};
 my $agent_name  = $instance->{'agent_name'};
 my $root_sid    = $instance->{'root_sid'};
 my $core_sid    = $instance->{'core_sid'};
 
-if ( not defined $core_sid ) {
-    $instance->{'no_core_sid_events'}++;    # core agent
-}
-if ( not defined $root_sid ) {
-    $instance->{'no_root_sid_events'}++;    # XXX: fail!
-}
+$instance->{'status_timer'}->stop;    # reused later..
 
-# print Dumper($instance);
+$instance->{'timeout_timer'} = <[event.add_timer]>->(
+    {   'after' => 13,                # XXX: make configurable!
+        'handler' => 'root.handler.status_response_timeout',
+        'data'    => $instance_id
+    }
+);
 
 my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
 
@@ -23,11 +23,8 @@ my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
     {   'command'   => "$command_route.ping",
         'call_args' => { 'session_id' => $root_sid, 'args' => '' },
         'reply'     => {
-
-            # XXX: implement response + timeout handling!
-            'handler' => 'dev.null',
-            'params'  => {}
+            'handler' => 'root.handler.status_timer_response',
+            'params'  => { 'instance_id' => $instance_id }
         }
     }
 );
-
