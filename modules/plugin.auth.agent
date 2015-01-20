@@ -30,21 +30,18 @@ if ( $$input =~ s/^(\w+) (\w+)\n// ) {
 
             #            <[net.update.client_conf]>->($id);
 
-            <[base.log]>->(
-                1, "[$id] access approved to agent '$1' :)"
-            );
+            <[base.log]>
+                ->( 1, "[$id] authentication successful (agent: '$1')" );
             return ( 0, $usr );
         }
 
         if ($kick_user) {
-            <[base.log]>->(
-                1, "[$id] access denied to agent '$1' :("
-            );
+            <[base.log]>->( 0, "[$id] [auth pwd] access denied to agent '$1'" );
             $$output .= "FAIL >:|\n";
             return 2;
         }
     } else {
-        <[base.log]>->( 1, "[$id] agent authentication protocol error" );
+        <[base.log]>->( 0, "[$id] (agent) authentication protocol error!" );
         $$output .= ">:[\n";
         return 1;
     }
