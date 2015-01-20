@@ -20,10 +20,11 @@ my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
 <[base.log]>
     ->( 1, "authentication to core successful ( session $session_id )" );
 <root.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
+<root.agent.instance>->{$instance_id}->{'is_core'}  = 1;
 
 <callback.session.close_last> = {
     'name'   => 'agent.change_status',
     'params' => [ $instance_id, 'failed' ]
 };
 
-return 1;                         # success
+return 1;    # success
