@@ -12,10 +12,17 @@ return 'n/a' if not defined $start_time or $start_time !~ /^\d+(\.\d+)?$/;
 my ( $sec, $min, $hour, $mday ) = localtime($delta_t);
 $mday--;
 $hour--;
-$sec = sprintf( "%02d", $sec ) if $hour or $min;
-push( @result, "${mday}d" ) if $mday;
-push( @result, "${hour}h" ) if $hour;
-push( @result, "${min}m" )  if $min;
-push( @result, "${sec}s" )  if $sec and !$hour and !$mday;
+my $s = $mday > 1 ? 's' : '';
+@result = ( sprintf( "%d day$s %d:%02dh", $mday, $hour, $min, $sec ) )
+    if $mday;
+@result = ( sprintf( "%02d:%02d:%02d", $hour, $min, $sec ) )
+    if !$mday
+    and $hour
+    and !$mday;
+push( @result, sprintf( "%d:%02d", $min, $sec ) )
+    if !$mday
+    and !$hour
+    and $min;
+push( @result, "$sec s" ) if !$mday and !$min and !$hour;
 
 return join( ' ', @result );
