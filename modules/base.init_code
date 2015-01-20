@@ -46,8 +46,8 @@ $data{'list'} = {
     'sessions' => {
         'var'   => 'data',
         'key'   => 'session',
-        'mask'  => '<key>:id mode proto user start_time:duration',
-        'align' => { 'user' => 'center-1', 'start_time' => 'center' },
+        'mask'  => '<key>:id mode proto user start_time:since',
+        'align' => { 'user' => 'center-2', 'start_time' => 'right-3' },
         'filters' => { 'start_time' => 'base.parser.duration' },
         'descr'   => 'registered sessions'
     },
@@ -77,6 +77,7 @@ undef %SIG;
 <[event.add_signal]>->( { 'signal' => 'USR1', 'handler' => 'base.sig_usr1' } );
 <[event.add_signal]>->( { 'signal' => 'USR2', 'handler' => 'base.sig_usr2' } );
 <[event.add_signal]>->( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
+
 #<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'base.sig_chld' } );
 
 $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
