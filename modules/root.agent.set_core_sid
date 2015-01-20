@@ -17,26 +17,27 @@ if ( exists $instance_data->{'core_sid'} ) {
 $instance_data->{'core_sid'} = $core_sid;
 
 # acquire local core sid (in case more than one exists)
-my $root_core_sid;
+my $root_sid;
 my @agent_ids = @{ <[agent.instance.get_ids]>->( <[agent.get_id]>->('core') ) };
 foreach my $core_instance_id (@agent_ids) {
+    my $_instance = <root.agent.instance>->{$core_instance_id};
     if ( @agent_ids == 1
-        or exists <root.agent.instance>
-        ->{$core_instance_id}->{'core_session'}->{$core_sid} ) {
-        $root_core_sid
-            = <root.agent.instance>->{$core_instance_id}->{'session_id'};
+        or exists $_instance->{'core_session'}->{$core_sid} ) {
+        $root_sid = $_instance->{'root_sid'};
         last;
     }
 }
+
+$instance_data->{'root_sid'} = $root_sid;
 
 # send instance verification request
 my $verification_str = <[base.rnd_chars_noblock_hex]>->(8);
 $instance_data->{'instance_verification'} = $verification_str;
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command' => "$root_core_sid.$core_sid.verify_instance",
+    {   'command' => "$root_sid.$core_sid.verify_instance",
         'call_args' =>
-            { 'session_id' => $root_core_sid, 'args' => $verification_str },
+            { 'session_id' => $root_sid, 'args' => $verification_str },
         'reply' => {
             'handler' => 'dev.null',
             'params'  => {}
