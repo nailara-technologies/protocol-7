@@ -6,14 +6,8 @@ my ( $instance_id, $agent_name, $agent_key ) = @_;
 
 my $instance_data = <root.agent.instance>->{$instance_id};
 
-my $root_sid;
-foreach my $core_instance_id (
-    @{ <[agent.instance.get_ids]>->( <[agent.get_id]>->('core') ) } ) {
-
-    # take first one ( for now! )
-    $root_sid = <root.agent.instance>->{$core_instance_id}->{'root_sid'};
-    last;
-}
+# take first one ( for now! )
+my ($root_sid) = keys %{ $data{'session'} };
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "$root_sid.session_key",
