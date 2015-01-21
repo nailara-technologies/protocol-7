@@ -16,17 +16,8 @@ if ( exists $instance_data->{'core_sid'} ) {
 <[base.log]>->( 2, "instance $instance_id : core sid = $core_sid" );
 $instance_data->{'core_sid'} = $core_sid;
 
-# acquire local core sid (in case more than one exists)
-my $root_sid;
-my @agent_ids = @{ <[agent.instance.get_ids]>->( <[agent.get_id]>->('core') ) };
-foreach my $core_instance_id (@agent_ids) {
-    my $_instance = <root.agent.instance>->{$core_instance_id};
-    if ( @agent_ids == 1
-        or exists $_instance->{'core_session'}->{$core_sid} ) {
-        $root_sid = $_instance->{'root_sid'};
-        last;
-    }
-}
+# acquire local core sid (get first sid for now)
+my ($root_sid) = keys %{ $data{'session'} };
 
 $instance_data->{'root_sid'} = $root_sid;
 
