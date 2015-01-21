@@ -13,13 +13,20 @@ my ( $auth_method, $auth_code, $auth_name );
 
 $_[0]->w->stop;    # stop handler to modify buffer
 
-# select authentication method
-
-if ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {
+if ( $$input =~ s/^(auth\.)?close\n// ) {
+    $$output .= "ACK connection closed\n";
+    <[base.log]>->( 1, "[$id] connection shutdown requested" );
+    return 2;
+} elsif ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {    # select auth method
 
     $_[0]->w->start;
 
-    if ( ( $$session{'counter'}{'auth'}{'error'}{'select'} || 0 ) > 2 ) {
+    if ( not exists $code{'auth.auth_select'} ) {
+        <[base.log]>->( 0, "[$id] auth module not loaded, 'select' rejected!" );
+        $$output .= ">:[\n";
+        $$session{'shutdown'} = 1;
+
+    } elsif ( ( $$session{'counter'}{'auth'}{'error'}{'select'} || 0 ) > 2 ) {
         $$output .= ">:[\n";
         $$session{'shutdown'} = 1;
     } elsif ( ( $$session{'counter'}{'auth'}{'select'} || 0 ) > 1 ) {
@@ -33,15 +40,16 @@ if ( $$input =~ s/^(auth\.)?select (\w+)\n// ) {
             $$session{'counter'}{'auth'}{'select'}++;
         }
     }
-}
-
-# list auth methods (flood protected)
-
-elsif ( $$input =~ s/^(auth\.)?list\n// ) {
+} elsif ( $$input =~ s/^(auth\.)?list\n// ) {    # list auth methods
 
     $_[0]->w->start;
 
-    if ( ( $$session{'counter'}{'auth'}{'list'} || 0 ) > 1 ) {
+    if ( not exists $code{'auth.auth_list'} ) {
+        <[base.log]>->( 0, "[$id] auth module not loaded, 'list' rejected!" );
+        $$output .= ">:[\n";
+        $$session{'shutdown'} = 1;
+
+    } elsif ( ( $$session{'counter'}{'auth'}{'list'} || 0 ) > 1 ) {
         <[base.log]>->( 0, "[$id] 3rd auth list requested >:[" );
         $$output .= ">:[\n";
         $$session{'shutdown'} = 1;
@@ -57,14 +65,6 @@ elsif ( $$input =~ s/^(auth\.)?list\n// ) {
         $$session{'counter'}{'auth'}{'list'}++;
         $$output .= $auth_list;
     }
-}
-
-# close connection (abort auth sequence)
-
-elsif ( $$input =~ s/^(auth\.)?close\n// ) {
-    $$output .= "ACK connection closed\n";
-    <[base.log]>->( 1, "[$id] connection shutdown requested" );
-    return 2;
 }
 
 # call auth plugin
