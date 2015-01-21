@@ -42,7 +42,10 @@ if ( exists $init_code->{'root-init'} ) {
     );
     my @root_init_code
         = <[base.parser.config]>->( $init_code->{'root-init'}, $namespace_str );
-    map { $_ =~ s/<instance_id>/$instance_id/g } @root_init_code;
+    map {
+        $_ =~ s/<instance_id>/$instance_id/g;
+        $_ =~ s/<agent_name>/$agent_name/g
+    } @root_init_code;
     my $success = <[base.execute_agent_code]>->(@root_init_code);
     $init_result_data = $instances->{$instance_id}->{'init_data'};
 
