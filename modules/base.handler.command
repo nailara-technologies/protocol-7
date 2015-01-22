@@ -454,11 +454,17 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                     }
                 }
 
-                $data{'session'}{$target_sid}{'buffer'}{'output'}
-                    .= $target_cmd_id
-                    . $cmd . "+\n"
-                    . $header . "\n"
-                    . $$call_args{'data'} . ".\n";
+                if ( exists $$call_args{'data'}
+                    and defined $$call_args{'data'} ) {
+                    $data{'session'}{$target_sid}{'buffer'}{'output'}
+                        .= $target_cmd_id
+                        . $cmd . "+\n"
+                        . $header . "\n"
+                        . $$call_args{'data'} . ".\n";
+                } else {    # no request body present
+                    $data{'session'}{$target_sid}{'buffer'}{'output'}
+                        .= $target_cmd_id . $cmd . "+\n" . $header . ".\n";
+                }
 
             } else    # should never get here..
             {
