@@ -17,7 +17,8 @@ if ( $data{'system'}{'verbosity'} >= 2 ) {
     print "DEBUG MODE: agent state:\n" . <[base.dump_data]>;
 }
 
-<[root.shutdown]> if <system.agent.name> eq 'root';
+<[root.shutdown]>
+    if exists <system.agent.type> and <system.agent.type> eq 'root';
 
 <[base.log]>->( 1, ': done.' );
 exit(130);
