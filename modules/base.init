@@ -9,9 +9,6 @@ if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
     ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );
 }
 
-# 'verify_instance' command not required in core type agents (for now!) ...
-<[base.disable_command]>->('verify_instance') if <system.agent.name> =~ /core$/;
-
 <[base.daemonize]> if <system.daemon_mode>;
 
 my $success = 1;
@@ -28,3 +25,7 @@ if ( !$success or $@ ) {
 }
 <[base.load_config_file]>->("nailara.<system.agent.name>")
     or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
+
+# 'verify_instance' command not required in core type agents (for now!) ...
+<[base.disable_command]>->('verify_instance')
+    if exists <system.agent.type> and <system.agent.type> eq 'core';
