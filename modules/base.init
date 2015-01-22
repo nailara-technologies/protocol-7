@@ -24,5 +24,6 @@ if ( !$success or $@ ) {
     undef $@;
 }
 
-<[base.load_config_file]>->("nailara.<system.agent.name>") # <-- does not return
+# note: 'load_config_file' will not return for agents invoking the event loop!
+<[base.load_config_file]>->("nailara.<system.agent.name>")
     or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
