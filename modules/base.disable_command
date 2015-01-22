@@ -7,6 +7,9 @@ my @cmds = @_;
 die "expected list of commands to disable!" if !@cmds;
 $data{'disabled_commands'} //= [];
 
+my $s = @cmds > 1 ? 's:' : '';
+<[base.log]>->( 2, "disabling command$s " . join( ', ', @cmds ) . ' ..' );
+
 push( @{ $data{'disabled_commands'} }, @cmds );
 
 map { delete $data{'base'}{'cmd'}{$_}; delete $data{'base'}{'help'}{$_} } @cmds;
