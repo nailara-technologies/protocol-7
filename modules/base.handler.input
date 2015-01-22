@@ -25,6 +25,8 @@ my $state   = $data{'session'}{$id}{'state'};
 my $mode    = $data{'handle'}{$fd}{'mode'};
 my $handler = $data{'session'}{$id}{'input'}{'handler'};
 
+my $start_len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+
 if ( defined &{ $code{$handler} } ) {
     my $ret_code = $code{$handler}->( $_[0] );
 
@@ -62,7 +64,8 @@ if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
     $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
 }
 
-if ( length( $data{'session'}{$id}{'buffer'}{'input'} )
+if (    $len
+    and $len != $start_len
     and $data{'session'}{$id}{'buffer'}{'input'} =~ /\n/ ) {
     $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
 }
