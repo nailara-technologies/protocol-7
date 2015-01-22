@@ -68,6 +68,10 @@ $data{'list'} = {
     }
 };
 
+# 'verify_instance' command not required in core type agents (for now)
+<[base.disable_command]>->('verify_instance')
+    if exists <system.agent.type> and <system.agent.type> eq 'core';
+
 # initialize signal handlers
 undef %SIG;
 

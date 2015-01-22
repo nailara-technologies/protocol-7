@@ -23,9 +23,6 @@ if ( !$success or $@ ) {
     <[base.log]>->( 0, "WARNING: startup init code contained errors!" );
     undef $@;
 }
-<[base.load_config_file]>->("nailara.<system.agent.name>")
-    or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
 
-# 'verify_instance' command not required in core type agents (for now!) ...
-<[base.disable_command]>->('verify_instance')
-    if exists <system.agent.type> and <system.agent.type> eq 'core';
+<[base.load_config_file]>->("nailara.<system.agent.name>") # <-- does not return
+    or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
