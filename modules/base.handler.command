@@ -172,7 +172,8 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
     if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
         my $route = $data{'route'}{ $data{'session'}{$id}{'route'}{$cmd_id} };
-        if ( $$route{'target'}{'sid'} == $id ) {
+        if ( exists $$route{'target'}{'sid'}
+            and $$route{'target'}{'sid'} == $id ) {
 
             my $s_cmd_id = '';
             if ( $$route{'source'}{'cmd_id'} > 0 ) {

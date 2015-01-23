@@ -11,9 +11,10 @@ $_[0]->w->stop;
 # cancel outstanding commands / routes
 
 foreach my $s_cid ( keys %{ $data{'session'}{$id}{'route'} } ) {
-    my $route_id  = $data{'session'}{$id}{'route'}{$s_cid};
-    my $s_sid     = $data{'route'}{$route_id}{'source'}{'sid'};
-    my $s_cid     = $data{'route'}{$route_id}{'source'}{'cmd_id'};
+    my $route_id = $data{'session'}{$id}{'route'}{$s_cid};
+    my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
+    next if not defined $s_sid;
+    my $s_cid = $data{'route'}{$route_id}{'source'}{'cmd_id'};
     my $reply_str = $s_cid ? "($s_cid)" : '';
     $reply_str .= "NACK command route collapsed\n";
     $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str
