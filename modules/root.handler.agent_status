@@ -70,6 +70,7 @@ if (    $old_status eq 'starting'
         <[base.execute_agent_code]>
             ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
     } else {  # <- prevents a failure race condition (getting stuck in 'failed')
+        delete $instance->{'core_sid'};
         <[agent.change_status]>->( $instance_id, 'offline' );
         return;
     }
