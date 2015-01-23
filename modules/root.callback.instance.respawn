@@ -6,4 +6,5 @@ my $instance_id = shift->w->data;
 my $instance    = <root.agent.instance>->{$instance_id};
 $instance->{'respawn_timer'}->cancel;
 delete $instance->{'respawn_timer'};
+delete $instance->{'core_sid'};
 <[jobqueue.move_job]>->( $instance->{'job_id'}, 'queued' );
