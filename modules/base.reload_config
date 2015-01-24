@@ -4,6 +4,25 @@
 # descr = reload configuration files
 
 my $success = 1;
+if ( exists <config.reload.cleanup_keys>
+    and defined <config.reload.cleanup_keys> ) {
+    foreach my $key ( split / +/, <config.reload.cleanup_keys> ) {
+        if ( $key =~ /^[^\.][\w\.]*$/ ) {
+            ( my $_key = $key ) =~ s|\.|'}{'|g;
+            my $count = eval "delete \$data{'$_key'}";
+            if ($@) {
+                <[base.log]>->(
+                    0, "cleanup_keys: error during cleanup of '$key' [$@]"
+                );
+            } elsif ($count) {
+                <[base.log]>->( 2, ": cleaned up config key '$key'" );
+            }
+        } else {
+            <[base.log]>->( 0, "cleanup_keys: invalid key syntax '$key'" );
+        }
+    }
+    delete <config.reload.cleanup_keys>;
+}
 if ( exists <system.config.reload_order> ) {
     my @reload_order = @{<system.config.reload_order>};
     <system.config.reload_order> = [];
