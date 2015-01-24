@@ -12,7 +12,7 @@ my $core_fh = $data{'session'}{$local_session_id}{'handle'};
 
 my $reply_string = <$core_fh>;
 
-if ( $reply_string =~ /^ACK (\w+) (\d+)\n$/ ) {
+if ( $reply_string =~ /^ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
     my ( $agent_name, $core_session_id ) = ( $1, $2 );
     if ( $agent_name ne <system.agent.name> ) {
         <[base.log]>->( 0, "received agent name does not match internal one!" );
