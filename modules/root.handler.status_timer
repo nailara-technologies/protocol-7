@@ -2,16 +2,24 @@
 
 # name = root.handler.status_timer
 
-my $instance_id = shift->w->data;
-my $instance    = <root.agent.instance>->{$instance_id};
-my $agent_name  = $instance->{'agent_name'};
-my $root_sid    = $instance->{'root_sid'};
-my $core_sid    = $instance->{'core_sid'};
+my $instance_id  = shift->w->data;
+my $globals      = <root.spawn_config.globals> || {};
+my $instance     = <root.agent.instance>->{$instance_id};
+my $agent_name   = $instance->{'agent_name'};
+my $root_sid     = $instance->{'root_sid'};
+my $core_sid     = $instance->{'core_sid'};
+my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
+my $timeout_secs
+    = $agent_config->{'ping'}->{'timeout'}
+    || $globals->{'ping'}->{'timeout'}
+    || 13;    # <-- internal timeout default
+delete $agent_config->{'ping'} if !keys %{ $agent_config->{'ping'} };
+delete $globals->{'ping'}      if !keys %{ $globals->{'ping'} };
 
 $instance->{'status_timer'}->stop;    # reused later..
 
 $instance->{'timeout_timer'} = <[event.add_timer]>->(
-    {   'after' => 13,                # XXX: make configurable!
+    {   'after'   => $timeout_secs,
         'handler' => 'root.handler.status_response_timeout',
         'data'    => $instance_id
     }
