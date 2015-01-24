@@ -100,7 +100,9 @@ if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 <[base.parser.access_conf]>;
 
 # command aliases with source agent name prefixes
-if ( exists <setup.aliases> and defined <setup.aliases.source_agent> ) {
+if (    exists $data{'setup'}
+    and exists <setup.aliases>
+    and defined <setup.aliases.source_agent> ) {
     my @alias_command_list = split /\s+/, <setup.aliases.source_agent>;
     foreach my $alias_cmd (@alias_command_list) {
         $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_AGENT";

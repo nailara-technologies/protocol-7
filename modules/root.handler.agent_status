@@ -9,17 +9,34 @@ die "no such agent instance ($instance_id)"
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
 
-my $globals    = <root.spawn_config.globals> || {};
-my $instance   = <root.agent.instance>->{$instance_id};
-my $old_status = $instance->{'status'} || $status;
-my $agent_id   = $instance->{'agent_id'};
-my $object_id  = <[agent.get_object_id]>->($agent_id);
-my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
-my $job_id     = $instance->{'job_id'};
-$instance->{'respawn_delay'} //= $globals->{'respawn'}{'min_delay'} || 0.1;
-my $max_respawn_delay  = $globals->{'respawn'}{'max_delay'}    || 300;   # 5 min
-my $status_timer_delay = $globals->{'status_timer'}->{'delay'} || 0;
-my $status_timer_interval = $globals->{'status_timer'}->{'interval'} || 5;
+my $globals      = <root.spawn_config.globals> || {};
+my $instance     = <root.agent.instance>->{$instance_id};
+my $old_status   = $instance->{'status'} || $status;
+my $agent_id     = $instance->{'agent_id'};
+my $object_id    = <[agent.get_object_id]>->($agent_id);
+my $agent_name   = <root.agent.setup>->{$agent_id}->{'name'};
+my $job_id       = $instance->{'job_id'};
+my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
+$instance->{'respawn_delay'}
+    //= $agent_config->{'respawn'}->{'min_delay'}
+    || $globals->{'respawn'}->{'min_delay'}
+    || 0.1;    # <-- minimum respawn delay default (in seconds)
+my $max_respawn_delay
+    = $agent_config->{'respawn'}->{'max_delay'}
+    || $globals->{'respawn'}->{'max_delay'}
+    || 300;    # <-- 5 minutes (internal default)
+my $status_timer_delay
+    = $agent_config->{'ping'}->{'after'}
+    || $globals->{'ping'}->{'after'}
+    || 2;      # <-- (initial) ping delay default
+my $status_timer_interval
+    = $agent_config->{'ping'}->{'interval'}
+    || $globals->{'ping'}->{'interval'}
+    || 5;      # <-- ping interval default
+delete $agent_config->{'respawn'} if !keys %{ $agent_config->{'respawn'} };
+delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
+delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
+delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
 
 # prevent undesired core shutdown (session.check.last)
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
@@ -62,7 +79,7 @@ if (    $status ne 'starting'
     and exists $instance->{'process'} ) {
     my $pid = $instance->{'process'}->{'id'};
     <[base.log]>->( 1, "instance $instance_id : killed process $pid !" )
-        if kill( 9, $pid );    # 15 + timeout
+        if kill( 9, $pid );    # XXX: 15 + timeout
 }
 
 # instance startup failure hooks
