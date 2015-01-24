@@ -9,14 +9,17 @@ die "no such agent instance ($instance_id)"
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
 
+my $globals    = <root.spawn_config.globals> || {};
 my $instance   = <root.agent.instance>->{$instance_id};
 my $old_status = $instance->{'status'} || $status;
 my $agent_id   = $instance->{'agent_id'};
 my $object_id  = <[agent.get_object_id]>->($agent_id);
 my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
 my $job_id     = $instance->{'job_id'};
-$instance->{'respawn_delay'} //= 0.1;
-my $max_respawn_delay = 300;    # 5 min
+$instance->{'respawn_delay'} //= $globals->{'respawn'}{'min_delay'} || 0.1;
+my $max_respawn_delay  = $globals->{'respawn'}{'max_delay'}    || 300;   # 5 min
+my $status_timer_delay = $globals->{'status_timer'}->{'delay'} || 0;
+my $status_timer_interval = $globals->{'status_timer'}->{'interval'} || 5;
 
 # prevent undesired core shutdown (session.check.last)
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
@@ -137,8 +140,8 @@ if ( $old_status ne 'online' and $status eq 'online' ) {
 
     # set up new status timer..
     $instance->{'status_timer'} = <[event.add_timer]>->(
-        {   'after' => 0,    # XXX: make configurable!
-            'interval' => 5 + sprintf( "%.3f", rand(2) ),
+        {   'after'    => $status_timer_delay,
+            'interval' => $status_timer_interval + sprintf( "%.3f", rand(2) ),
             'handler'  => 'root.handler.status_timer',
             'data'     => $instance_id
         }
