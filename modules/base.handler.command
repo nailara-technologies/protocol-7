@@ -151,11 +151,13 @@ $$call_args{'session_id'} = $id;
 my $alias_to;
 
 # global alias
-$alias_to = $data{'alias'}{$cmd} if exists $data{'alias'}{$cmd};
+$alias_to = $data{'alias'}{$cmd}
+    if exists $data{'alias'} and exists $data{'alias'}{$cmd};
 
 # per user alias
 $alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
-    if exists $data{'user'}{$usr}{'alias'}{$cmd};
+    if exists $data{'user'}{$usr}{'alias'}
+    and exists $data{'user'}{$usr}{'alias'}{$cmd};
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
     $cmd = $alias_to;
