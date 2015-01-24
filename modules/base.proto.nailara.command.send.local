@@ -11,9 +11,10 @@ my $cmd_id = ${$call_args}{'session_id'};
 my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
-# print "SEND LOCAL\ncmd: $cmd\ncall_args: $call_args\nreply_handler: $reply_handler\nreply_params: $reply_params\n";
+# print "SEND LOCAL\ncmd: $cmd\ncall_args: $call_args\n"
+#  ."reply_handler: $reply_handler\nreply_params: $reply_params\n";
 
-if ( $cmd =~ s/^([^\.]+)\.([\w\.]+)$/$2/go ) {
+if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
 
     my $target_name = $1;
 
