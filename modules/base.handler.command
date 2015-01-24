@@ -108,6 +108,14 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *[\w\.]+)\+\n/o ) {
     return 1;
 }
 
+# incomplete RAW reply   XXX: switch to stream type transfer!!!
+
+elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *RAW +(\d+)\n)/o
+    and length($$input) < ( $3 + length($1) ) ) {
+    $_[0]->w->start;
+    return 1;
+}
+
 # single command line
 
 elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\.]+)( +(.+)|)\n//o ) {
@@ -263,12 +271,11 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         delete $data{'session'}{$id}{'route'}{$cmd_id};
 
                         $valid_answer = 1;
-                    } else {
+                    } else {    # should never reach this point
                         <[base.log]>->(
                             1,
-                            "[$id] (RAW) invalid body length ("
-                                . $$call_args{'args'} . " : "
-                                . length($$input) . ")"
+                            "[$id] (RAW) buffer is missing data ( $msg_len <= "
+                                . $$call_args{'args'} . ")"
                         );
                     }
                 }
