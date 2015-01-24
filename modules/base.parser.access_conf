@@ -13,7 +13,7 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
     my $regex_mask = '';
     my $pos        = 0;
 
-    if ( $usr !~ /^\w+$|^\*$/ ) {
+    if ( $usr !~ /^\w[\w\d\-_]*$|^\*$/ ) {
         <[base.log]>->(
             0,
             'invalid character in user name \''
@@ -23,12 +23,11 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
         $error = 1;
     } else {
         foreach
-            my $cmd ( split( /[\s\t]+/, $data{'access'}{'cmd'}{'usr'}{$usr} ) )
+            my $cmd ( split( /[\ \t]+/, $data{'access'}{'cmd'}{'usr'}{$usr} ) )
         {
 
             # compile command regex mask
-
-            if ( $cmd =~ /[^\w\.\^\*]/ ) {
+            if ( $cmd =~ /[^\w\-_\.\^\*]/ ) {
                 <[base.log]>->(
                     0,
                     'invalid character in command regex mask (user \''

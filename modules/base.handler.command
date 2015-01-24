@@ -45,9 +45,10 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
 
 # check for multiple line commands
 
-if ( $$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\.]+)\+\n(.*\n)*\.\n/o ) {
+if ( $$input
+    =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\d\-\_\.]+)\+\n(.*\n)*\.\n/o ) {
     $cmd = $1;
-    if ( $$input =~ s/^(\($re->{cmd_id}\)|)[\w\.]+\+\n//o ) {
+    if ( $$input =~ s/^(\($re->{cmd_id}\)|)[\w\d\-\_\.]+\+\n//o ) {
 
         # read argument header
 
@@ -118,7 +119,7 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *RAW +(\d+)\n)/o
 
 # single command line
 
-elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\.]+)( +(.+)|)\n//o ) {
+elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\d\-\_\.]+)( +(.+)|)\n//o ) {
 
     $_[0]->w->start;
 
