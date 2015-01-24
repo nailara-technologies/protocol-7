@@ -16,6 +16,7 @@ foreach my $agent_name (@agents) {
     my $obj_id         = <[agent.get_object_id]>->($agent_id);
     my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
     my $instance_count = $agent_config->{'spawn'}->{'instances'} || 1;
+    delete $agent_config->{'spawn'} if !keys %{ $agent_config->{'spawn'} };
 
     while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
         my $job_id = <[jobqueue.add_job]>->(
