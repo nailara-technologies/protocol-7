@@ -22,7 +22,7 @@ my $agentname;
 if ( $0 =~ /^.*nailara\./ ) {
     $agentname = lc($0);
     $agentname =~ s/^.*nailara\.|[\. ]$//g;
-} elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-]+)/ ) {
+} elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-].*)/ ) {
     $agentname = $1;
     shift(@ARGV);
 }
@@ -105,7 +105,7 @@ sub prepare_subs {
         if ( $0 =~ /^.*nailara\./ ) {
             $data{'system'}{'agent'}{'name'} = lc($0);
             $data{'system'}{'agent'}{'name'} =~ s/^.*nailara\.|[\. ]$//g;
-        } elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-]+)/ ) {
+        } elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-].*)/ ) {
             $data{'system'}{'agent'}{'name'} = $1;
         }
 
