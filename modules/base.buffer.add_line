@@ -17,7 +17,7 @@ my $message_len = length($log_message);
 if ( $name eq '' ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
     return -1;
-} elsif ( $name !~ /^\w+$/ or length($name) > 23 ) {
+} elsif ( $name !~ /^[\w\-]+$/ or length($name) > 23 ) {
     <[base.log]>->( 1, 'add_ram_log: invalid buffer name suppied' );
     return -1;
 }
