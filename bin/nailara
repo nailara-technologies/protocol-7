@@ -237,7 +237,7 @@ sub prepare_subs {
                     # <foo.bar>  -->  $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'} =~
-                      s|(?<!\\)<(\w+\.[\w:\.]+)(?<!\\)>|
+                      s|(?<!\\)<([\w\-]+\.[\w\-\.]+)(?<!\\)>|
                         my $k="\$data{'$1'}";$k=~s/\./'}{'/g;$k|gexo;
                     close($file);
                     $/ = "\n";
