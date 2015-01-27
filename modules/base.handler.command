@@ -175,8 +175,16 @@ my $_cmd_id = '';
 if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
 # check reply types
-
 my $valid_answer = 0;
+
+my ( $_m1, $_m2 );
+my $cmd_usr_str = $cmd; # used for access checking (relevant with <sid>.<cmd>'s)
+$cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
+    if $cmd =~ /^($re->{sid})(\..+)$/
+    and $_m1 = $1
+    and $_m2 = $2
+    and exists $data{'session'}{$_m1}
+    and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
 if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
@@ -299,9 +307,9 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'!" );
     $$output .= $_cmd_id . "NACK invalid reply type! (protocol error)\n";
 } elsif ( exists <access.cmd.regex.usr>->{$usr}
-    and $cmd =~ <access.cmd.regex.usr>->{$usr}
+    and $cmd_usr_str =~ <access.cmd.regex.usr>->{$usr}
     or exists <access.cmd.regex.usr>->{'*'}
-    and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
+    and $cmd_usr_str =~ <access.cmd.regex.usr>->{'*'} ) {
 
     # local command
 
