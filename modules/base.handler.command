@@ -298,10 +298,10 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'!" );
     $$output .= $_cmd_id . "NACK invalid reply type! (protocol error)\n";
-} elsif ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
-    and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
-    or defined $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'}
-    and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'} ) {
+} elsif ( exists <access.cmd.regex.usr>->{$usr}
+    and $cmd =~ <access.cmd.regex.usr>->{$usr}
+    or exists <access.cmd.regex.usr>->{'*'}
+    and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
 
     # local command
 
