@@ -4,14 +4,11 @@
 # descr = generate a log entry
 # args  = log_level log_msg [log_buffer]
 
-my $call = \$_[0];
-
 my ( $log_level, $log_msg, $log_buffer ) = ( $_[0], $_[1], $_[2] );
 
-$log_level = 0 if not defined $log_level or $log_level !~ /^\d+$/;
-$log_msg = 'LOG MESSAGE UNDEFINED'
-    if not defined $log_msg or !length($log_msg);
-if ( not defined $log_buffer or $log_buffer eq '' ) { $log_buffer = 'system' }
+$log_level  = 0        if not defined $log_level  or $log_level !~ /^\d+$/;
+$log_buffer = 'system' if not defined $log_buffer or $log_buffer eq '';
+$log_msg = 'LOG MESSAGE UNDEFINED' if not defined $log_msg or !length($log_msg);
 
 $log_msg =~ s/\r/\\r/g;
 $log_msg =~ s/\n/\\n/g;
@@ -19,17 +16,16 @@ $log_msg =~ s/\0/\\0/g;
 $log_msg =~ s/\e/\\e/g;
 
 # prevent deep recursions in error log system:
-my $fatal_exit = 0;
-$fatal_exit = 1
-    if $log_msg =~ /Deep recursion / and $log_msg =~ /log|buffer/;
+my $fatal_exit
+    = ( $log_msg =~ /Deep recursion / and $log_msg =~ /log|buffer/ ) ? 1 : 0;
 
 $log_msg = "call to unknown subroutine while executing '$1'!"
     if $log_msg
     =~ /\$code{'([^\']*)'}.+Can't use string \(""\) as a subroutine/;
 
-my $log_txt;
 my $agent_prefix = join( '.', ' :' . <system.node.name>, <system.agent.name> );
 
+my $log_txt;
 if ( $log_level > 0 ) {
     $log_txt = "$agent_prefix $log_msg\n";
 } else {
@@ -55,4 +51,3 @@ if ( exists <system.internal_verbosity>
 if ( exists <system.verbosity> and $log_level <= <system.verbosity> ) {
     print $log_txt;
 }
-
