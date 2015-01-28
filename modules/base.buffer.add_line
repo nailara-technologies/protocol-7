@@ -75,13 +75,12 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
 push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
 $data{'buffer'}{$name}{'size'} += $message_len;
 
-if ( defined $data{'system'}{'log'}{'buffer'}{$name}{'command'}
-    and $data{'system'}{'log'}{'buffer'}{$name}{'command'} ne '' ) {
+if ( exists $data{'buffer'}{$name}{'log_cmd'}
+    and $data{'buffer'}{$name}{'log_cmd'} ne '' ) {
     <[base.proto.nailara.command.send.local]>->(
-        {   'command' => $data{'system'}{'log'}{'buffer'}{$name}{'command'}
-                . ' '
-                . $log_message,
-            'reply' => { 'handler' => 'dev.null', }
+        {   'command' => 'core.' . $data{'buffer'}{$name}{'log_cmd'},
+            'args'    => $log_message,
+            'reply'   => { 'handler' => 'dev.null' }
         }
     );
 }
