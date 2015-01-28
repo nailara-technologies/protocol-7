@@ -435,12 +435,19 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-            <[base.log]>->(
-                2,
-                "[$id] "
-                    . $data{'session'}{$id}{'user'}
-                    . " -> $target_name > $cmd [ mode $command_mode ]"
-            );
+            if ( <system.verbosity> >= 2 or <system.internal_verbosity> >= 2 ) {
+                <[base.log]>->(
+                    2,
+                    "[$id] $data{'session'}{$id}{'user'}"
+                        . " -> $target_name > $cmd [ mode $command_mode ]"
+                );
+            }
+            if (   <system.verbosity> >= 3 and defined $$call_args{'args'}
+                or <system.internal_verbosity> >= 3
+                and defined $$call_args{'args'} ) {
+                ( my $args_str = $$call_args{'args'} ) =~ s|"|\"|g;
+                <[base.log]>->( 3, "[$id] : args ( \"$args_str\" )" );
+            }
 
             $target_cmd_id =~ s/^($re->{cmd_id})$/($1)/;
 
