@@ -1,0 +1,27 @@
+# >:]
+
+# name  = base.file.make_path
+# descr = recursively create a directory path
+
+my ( $path, $mode ) = @_;
+$mode //= 0700;    # <- strict default
+$mode = oct($mode) if $mode =~ /^0/;
+die "expected absolute path (to create)"
+    if not defined $path or $path !~ m,^/[^/]+,;
+$path =~ s,/[^/]+/../,,g;
+$path =~ tr|/||s;
+$path =~ s,/$,,;
+die "invalid path '$path'" if $path !~ m,^/[^/]+,;
+
+if ( -d $path ) {
+    <[base.log]>->( 2, "make_path: directory '$path' already exists.." );
+    return;
+} else {
+    <[base.log]>->( 1, "creating directory path '$path'..." );
+}
+my $current_path = '';
+foreach my $_dir ( split /\//, $path ) {
+    $current_path .= '/' . $_dir;
+    next if -d $current_path;
+    mkdir( $current_path, $mode ) or die "mkdir '$current_path' failed [$!]";
+}
