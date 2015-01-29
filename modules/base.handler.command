@@ -162,7 +162,10 @@ $alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
     $cmd = $alias_to;
-    my $args_map = { 'SOURCE_AGENT' => <system.node.name> . '.' . $usr };
+    my $args_map = {
+        'SOURCE_AGENT' => <system.node.name> . '.' . $usr,
+        'SOURCE_SID'   => $id
+    };
     map { $cmd =~ s/$_/$args_map->{$_}/g } keys %{$args_map};
 
     if ( $cmd =~ s/^([^ ]+) +([^\n]+)$/$1/ ) {
