@@ -357,7 +357,6 @@ sub prepare_subs {
                     }
                 }
             } else {
-
                 $code{$sub_name} = sub {
                     {
                         $code{'log.failed'}->(
@@ -366,10 +365,10 @@ sub prepare_subs {
                 };
                 delete $data{'code'}{$sub_name}{'source'};
                 my $err_str = $@;
-                $err_str =~ s/\n.*$/ /sg;
-                $err_str =~ s/\s+$//mg;
-                $code{'log.failed'}->(
-                    "error in routine '$sub_name' [$err_str]");
+                $code{'log.failed'}->( '>', ".:[ $sub_name ]:.", ':',
+                    ( map { ": [!] $_" } split ( /\n+/, $err_str ) ), '-' );
+                $err_str =~ s/\n/ /sg;
+                $err_str =~ tr/ //s;
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
                 $err_count++;
             }
@@ -413,33 +412,31 @@ sub prepare_subs {
             and $sub_name ne 'base.dump_data'; # skipping too much output...
     };
     $code{'log.ok'} = sub {
-      if(defined $code{'base.log'}) {
-          $code{'base.log'}->(1, $_[0]);
+      if( defined $code{'base.log'} ) {
+          map{ $code{'base.log'}->( 1, $_ ) } @_;
       } elsif ( $data{'system'}{'verbosity'} ) {
-        print ' :'
+        map { print ' :'
           . $data{'system'}{'node'}{'name'} . '.'
-          . $data{'system'}{'agent'}{'name'} . ' '
-          . $_[0] . "\n";
+          . $data{'system'}{'agent'}{'name'} . ' ' . $_ . "\n" } @_;
       }
     };
     $code{'log.failed'} = sub {
-        if(defined $code{'base.log'}){ $code{'base.log'}->(0, $_[0]) } else {
-          print ' :'
+        if( defined $code{'base.log'} ) {
+            map { $code{'base.log'}->( 0, $_ ) } @_;
+        } else {
+          map { print ' :'
             . $data{'system'}{'node'}{'name'} . '.'
             . $data{'system'}{'agent'}{'name'} . ' '
-            . $ANSI{'bold'}
-            . $_[0]
-            . $ANSI{'normal'} . "\n";
+            . $ANSI{'bold'} . $_ . $ANSI{'normal'} . "\n" } @_;
         }
     };
     $code{'log.debug'} = sub {
       if(defined $code{'base.log'}) {
-          $code{'base.log'}->(2, $_[0]);
+          map { $code{'base.log'}->( 2, $_ ) } @_;
       } elsif ( $data{'system'}{'verbosity'} > 1 ) {
-        print ' :'
+        map { print ' :'
           . $data{'system'}{'node'}{'name'} . '.'
-          . $data{'system'}{'agent'}{'name'} . ' '
-          . $_[0] . "\n";
+          . $data{'system'}{'agent'}{'name'} . ' ' . $_ . "\n" } @_;
       }
     };
 
