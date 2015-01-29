@@ -107,12 +107,15 @@ if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
 # command aliases with source agent name prefixes
 if (    exists $data{'setup'}
-    and exists <setup.aliases>
-    and defined <setup.aliases.source_agent> ) {
-    my @alias_command_list = split /\s+/, <setup.aliases.source_agent>;
-    foreach my $alias_cmd (@alias_command_list) {
-        $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_AGENT";
+    and exists <setup.aliases> ) {
+    if ( defined <setup.aliases.source_agent> ) {
+        foreach my $alias_cmd ( split /\s+/, <setup.aliases.source_agent> ) {
+            $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_AGENT";
+        }
     }
+    map { $data{'alias'}{$_} = "$_ SOURCE_AGENT SOURCE_SID" }
+        split( /\s+/, <setup.aliases.source_agent_sid> )
+        if defined <setup.aliases.source_agent_sid>;
 }
 
 return 0;
