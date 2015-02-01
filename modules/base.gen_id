@@ -11,7 +11,14 @@ my $retries     = 0;
 my $new_id      = 0;
 my $max_retries = 23;
 
-if ( ref( $_[0] ) ne 'HASH' ) { $$_[0] = {} }
+if ( ref( $_[0] ) ne 'HASH' ) {
+    eval '$$_[0] = {}';
+    if ($@) {
+        my ( $package, $filename, $line, $subroutine ) = caller;
+        die "base.gen_id: invalid argument \$_[0] ( $_[0] )"
+            . " [ called by : $filename, line $line ]\n";
+    }
+}
 
 # gen id
 
