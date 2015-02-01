@@ -452,6 +452,8 @@ sub prepare_subs {
                 $code{'log.failed'}->($msg);
                 exit(2);
             }
+            my ($package, $filename, $line, $subroutine) = caller;
+            push ( @err, "[ called by : $filename, line $line ]");
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
         return 1;
