@@ -13,6 +13,11 @@ my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 my $target_sid    = ${ $_[0] }{'target'}{'sid'};
 
+return 0
+    if not exists $data{'session'}{$target_sid}
+    or not exists $data{'session'}{$id};
+$data{'session'}{$target_sid}{'route'} //= {};
+
 my $target_cmd_id = <[base.gen_id]>->(
     \$data{'session'}{$target_sid}{'route'},
     $data{'session'}{$target_sid}{'limit'}{'routes'}
