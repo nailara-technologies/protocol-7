@@ -4,8 +4,24 @@
 
 my $cmd       = ${ $_[0] }{'command'};
 my $call_args = ${ $_[0] }{'call_args'};
-$$call_args{'args'}       //= '';
-$$call_args{'session_id'} //= 0;
+$$call_args{'args'} //= '';
+
+return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
+
+if ( not defined $$call_args{'session_id'} and $cmd =~ /^([^\.]+)\./ ) {
+    my $target_usr = $1;
+    if ( keys( %{ $data{'user'}{$target_usr}{'session'} } ) == 1 ) {
+        ( $$call_args{'session_id'} )
+            = keys %{ $data{'user'}{$target_usr}{'session'} };
+    } else {
+        foreach my $_sid ( keys %{ $data{'user'}{$target_usr}{'session'} } ) {
+            $$call_args{'session_id'} = $_sid
+                if $data{'session'}{$_sid}{'user'} eq $target_usr;
+        }
+    }
+}
+return 0 if not defined $$call_args{'session_id'};
+
 my $id     = ${$call_args}{'session_id'};
 my $cmd_id = ${$call_args}{'session_id'};
 
@@ -29,9 +45,12 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
     }
     my $count = 0;
     foreach my $target_sid (@send_sids) {
-        my $session = $data{'session'}{$target_sid};
+        my $session;
+        $session = $data{'session'}{$target_sid}
+            if exists $data{'session'}{$target_sid};
         next    # skip unauthorized connections / modes
-            if $session->{'mode'} ne 'client'
+            if not defined $session
+            or $session->{'mode'} ne 'client'
             or $session->{'user'} eq '-'
             or exists $session->{'authenticated'}
             and $session->{'authenticated'} ne 'yes';
