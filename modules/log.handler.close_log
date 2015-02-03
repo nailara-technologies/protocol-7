@@ -1,0 +1,14 @@
+# >:]
+
+# name = log.handler.close_log
+
+my $log_name  = shift->w->data;
+my $file_data = <log.files>->{$log_name};
+$file_data->{'timer'}->cancel;
+$file_data->{'timer'} = undef;
+
+<[base.log]>->( 2, "closing log '$log_name'" );
+
+flock( $file_data->{'fh'}, 8 ) or die $!;    # LOCK_UN
+$file_data->{'locked'} = 0;
+close( $file_data->{'fh'} ) or die $!;

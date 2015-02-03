@@ -2,4 +2,18 @@
 
 # name = log.init_code
 
+<log.nailara_log.dir_mask> //= 0750;
+<log.nailara_log.user>     //= 'nailara';
+<log.nailara_log.path>     //= '/var/log/nailara';
+
+my ( $login, $pass, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
+    or die "user '<log.nailara_log.user>' not in passwd file";
+<log.nailara_log.path> =~ s|/+$||;
+
+<[file.make_path]>->( <log.nailara_log.path>, <log.nailara_log.dir_mask> );
+chown( $uid, $gid, <log.nailara_log.path> )
+    or die "chown(<log.nailara_log.path>): $!";
+
+<log.files> //= {};
+
 return 0;
