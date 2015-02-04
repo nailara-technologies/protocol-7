@@ -1,0 +1,13 @@
+# >:]
+
+# name = base.log.handler.send_timer
+
+my $name     = shift->w->data;
+my $log_data = <log.file>->{$name};
+
+if ( exists $log_data->{'retry_timer'} ) {
+    $log_data->{'retry_timer'}->cancel;
+    delete $log_data->{'retry_timer'};
+}
+
+<[base.log.send_buffer_line]>->($name);
