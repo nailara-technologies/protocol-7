@@ -4,35 +4,22 @@
 # args   = hashref(id_var), int(max_ids)
 # return = int(id)
 
-# init
+die "expected hash reference" if ref( $_[0] ) ne 'HASH';
 
 my $max_ids     = $_[1] || 230000;
 my $retries     = 0;
 my $new_id      = 0;
 my $max_retries = 23;
 
-if ( ref( $_[0] ) ne 'HASH' ) {
-    eval '$$_[0] = {}';
-    if ($@) {
-        my ( $package, $filename, $line, $subroutine ) = caller;
-        die "base.gen_id: invalid argument \$_[0] ( $_[0] ) [$@]"
-            . " ( called by : $filename, line $line )\n";
-    }
-}
-
-# gen id
-
-while ( !$new_id or defined $$_[0]{$new_id} ) {
+while ( !$new_id or exists $_[0]->{$new_id} ) {
     $new_id = 1 + int( rand() * $max_ids * 100 );
+
     if ( $retries > $max_retries ) {
-        <[base.log]>->( 0, "gen_id: [$_[0]] LIMIT maxtries reached!" );
+        <[base.log]>->( 0, "gen_id: max_retries reached!" );
         return undef;
     } else {
         $retries++;
     }
 }
 
-# if ok
-
 return $new_id;
-
