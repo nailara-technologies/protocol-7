@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.log.send_buffer_line
+
+my $name         = shift;
+my $buffer_index = shift;
+
+<log.file>->{$name} //= {
+    'complete'        => 1,
+    'start_index'     => $buffer_index,
+    'next_index'      => 0,
+    'resend_delay'    => 0.1,
+    'resend_slowdown' => 1.8,
+};
+
+my $log_data = <log.file>->{$name};
+
+return if not exists <base.log.allow_buffer_send>;    # too early..
+
+# find path to log agent ...
+my $route_prefix = 'core.';
+my @send_line;
+if ( <system.agent.type> eq 'core' ) {
+    push( @send_line, "<system.node.name>.<system.agent.name>", 0 );
+    $route_prefix = '';
+}
+push( @send_line, $name );
+push( @send_line, $data{'buffer'}{$name}{'data'}[ $log_data->{'next_index'} ] );
+
+$log_data->{'complete'} = 0;
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
+        'call_args' => { 'args' => join( ' ', @send_line ) },
+        'reply'     => {
+            'handler' => 'base.log.handler.log_reply',
+            'params'  => { 'name' => $name }
+        }
+    }
+    )
+    or <[base.log.handler.log_reply]>
+    ->( { 'cmd' => 'NACK', 'params' => { 'name' => $name } } );
