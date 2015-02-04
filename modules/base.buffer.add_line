@@ -70,6 +70,13 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
     $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes;
     $data{'buffer'}{$name}{'size'} -= $deleted_bytes;
+    if (    exists <log.file>->{$name}
+        and exists <log.file>->{$name}->{'start_index'} ) {
+        <log.file>->{$name}->{'start_index'}--
+            if <log.file>->{$name}->{'start_index'} > 0;
+        <log.file>->{$name}->{'next_index'}--
+            if <log.file>->{$name}->{'next_index'} > 0;
+    }
 }
 
 push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
@@ -77,10 +84,10 @@ $data{'buffer'}{$name}{'size'} += $message_len;
 
 if ( exists $data{'buffer'}{$name}{'log_cmd'}
     and $data{'buffer'}{$name}{'log_cmd'} ne '' ) {
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.' . $data{'buffer'}{$name}{'log_cmd'},
-            'call_args' => { 'args' => "$name $log_message" },
-            'reply'     => { 'handler' => 'dev.null' }
-        }
-    );
+    my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
+    <[base.log.send_buffer_line]>->( $name, $buffer_index )
+        if not exists $data{'log'}
+        or not exists <log.file>
+        or not exists <log.file>->{$name}
+        or <log.file>->{$name}->{'complete'} == 1;
 }

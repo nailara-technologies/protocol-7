@@ -1,4 +1,6 @@
 
+buffer.system.log_cmd = log.msg
+
 [load_config_file:'defaults']
 
 [load_config_file:'auth.pwd.core']
@@ -10,9 +12,10 @@ auth.rsa.key_file               =       rsa.core
 get.route                       =       file vortex.file :target:
 get.command                     =       file.get
 setup.aliases.source_agent      =       notify.message
+setup.aliases.source_agent_sid  =       log.msg
 
 # access control
-access.cmd.usr.*     =  clear help exit whoami time timezone startup_time ping
+access.cmd.usr.*     =  clear help exit whoami time timezone startup_time ping log.msg
 access.cmd.usr.root  =  ping session_key *.verify_instance *.ping
 
 access.cmd.usr.photon        =  ..*.** **  # development mode (will be removed)

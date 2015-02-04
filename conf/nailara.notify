@@ -1,11 +1,14 @@
 
+  .:[ notify agent ]:.
+
+buffer.system.log_cmd = log.msg
+
 [load_config_file:'defaults']
 [load_config_file:'desktop']
 
-modules.load    = auth net io.ip notify
+access.cmd.usr.core = help message ping reload verify_instance
 
-access.cmd.usr.core = help message ping pid startup_time dump dump_buffer reload verify_instance
-
+modules.load = auth net io.ip notify
 [load_modules:<modules.load>]
 [init_modules]
 
