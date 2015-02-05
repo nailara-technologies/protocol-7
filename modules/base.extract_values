@@ -10,8 +10,17 @@ if ( $conf_key and $conf_key !~ /[{}]/ ) {
     $conf_key = "{'$conf_key'}";
 }
 <base.parser.config.errors> //= 0;
+my $last_line = '';
 foreach my $conf_line (@_) {
     $conf_line =~ s/#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
+    if ( $conf_line =~ s|\\ *$|| ) {
+        $last_line .= $conf_line;
+        next;
+    } elsif ( length($last_line) ) {
+        $conf_line =~ s|^[ \t]+||;
+        $conf_line = "$last_line$conf_line";
+        $last_line = '';
+    }
     $conf_line =~ s/(^[^=]+=)[ \t]+/$1/;
     ( my $_name, my $_value ) = split( /=/, $conf_line );
     if ( defined $_value ) {
