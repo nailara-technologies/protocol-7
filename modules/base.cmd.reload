@@ -45,7 +45,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     <[base.log]>->( 1, "[" . $id . "] reloading source code!" );
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
     my $failed = <[base.load_modules]>->("base $data{modules}{load}");
-    if ( defined $failed and !$failed ) {
+    if ( !$failed and !<base.modules.load_errors> ) {
         $$reply{'data'} .= "reload source\t:  ok\n";
         $ok = 1;
     } else {
