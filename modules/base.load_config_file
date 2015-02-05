@@ -11,7 +11,7 @@ map { $already_pushed = 1 if $_ eq $_[0] } @{<system.config.reload_order>};
 push( @{<system.config.reload_order>}, $_[0] )
     if $_[0] ne 'nailara.' . <system.agent.name> and !$already_pushed;
 
-return <[base.execute_agent_code]>->(
+my $status = <[base.execute_agent_code]>->(
     <[base.parser.config]>->(
         <[base.get_file.aref]>->(
             join( '/', $data{'system'}{'conf_path'}, $_[0] ),
@@ -23,3 +23,6 @@ return <[base.execute_agent_code]>->(
         )
     )
 );
+
+return 1 if <base.parser.config.errors>;
+return $status;

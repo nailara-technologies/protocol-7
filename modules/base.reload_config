@@ -4,6 +4,7 @@
 # descr = reload configuration files
 
 my $success = 1;
+<base.parser.config.errors> = 0;
 if ( exists <config.reload.cleanup_keys>
     and defined <config.reload.cleanup_keys> ) {
     foreach my $key ( split / +/, <config.reload.cleanup_keys> ) {
@@ -38,6 +39,7 @@ if ( exists <system.config.reload_order> ) {
 }
 $success = 0
     if !
-    <[base.load_values]>->( '', 'nailara.' . $data{'system'}{'agent'}{'name'} );
+    <[base.load_values]>->( '', 'nailara.' . $data{'system'}{'agent'}{'name'} )
+    or <base.parser.config.errors>;
 
 return $success;

@@ -9,6 +9,7 @@ if ( $conf_key and $conf_key !~ /[{}]/ ) {
     $conf_key =~ s/\./'}{'/g;
     $conf_key = "{'$conf_key'}";
 }
+<base.parser.config.errors> //= 0;
 foreach my $conf_line (@_) {
     $conf_line =~ s/#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
     $conf_line =~ s/(^[^=]+=)[ \t]+/$1/;
@@ -25,6 +26,7 @@ foreach my $conf_line (@_) {
         }
         eval("$cmd");
         if ($@) {
+            <base.parser.config.errors>++;
             <[base.log]>->(
                 0, "WARNING: ERROR DURING CONFIG PARSING: ($cmd) $!"
             );
