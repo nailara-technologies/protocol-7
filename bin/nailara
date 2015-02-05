@@ -184,8 +184,10 @@ sub prepare_subs {
     $code{'base.load_code'} = sub {
 
         my ( $codedir, $file, $code_name );
+        $data{'base'}{'modules'}{'load_errors'} = 0;
 
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
+            $data{'base'}{'modules'}{'load_errors'}++;
             $code{'log.failed'}->(
                 ": can not open module directory"
                 . " '$data{'system'}{'code_path'}' [$!]"
@@ -252,6 +254,7 @@ sub prepare_subs {
             if ( !$code_count ) {
                 $code{'log.failed'}->(
                     ": failed to load module '$code_name' \t[ not found ]" );
+                $data{'base'}{'modules'}{'load_errors'}++;
             } elsif ( $code_count > $last_code_count ) {
                 $data{'system'}{'subs_loaded'}{$code_name} =
                   $code_count - $last_code_count;
@@ -294,6 +297,7 @@ sub prepare_subs {
                         push( @{$data{'base'}{'overwritten'}
                             {$1}{$2}{'conflicts'}}, $sub_name
                         );
+                        $data{'base'}{'modules'}{'load_errors'}++;
                         $code{'log.failed'}->( "[!] conflict: $sub_name" );
                         $sub_conflict = 1;
                     }
@@ -351,6 +355,7 @@ sub prepare_subs {
                         }
 
                     } else {
+                        $data{'base'}{'modules'}{'load_errors'}++;
                         $code{'log.failed'}->(": : command '$1' broken!");
                         $data{'base'}{'help'}{$section}{$command}{'descr'} =
                           '! command broken !';
@@ -364,6 +369,7 @@ sub prepare_subs {
                     }
                 };
                 delete $data{'code'}{$sub_name}{'source'};
+                $data{'base'}{'modules'}{'load_errors'}++;
                 my $err_str = $@;
                 $code{'log.failed'}->( '>', ".:[ $sub_name ]:.", ':',
                     ( map { ": [!] $_" } split ( /\n+/, $err_str ) ), '-' );
