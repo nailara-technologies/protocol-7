@@ -12,12 +12,19 @@ my $restart_mode;
 my @instance_ids;
 foreach my $param_str ( split / +/, $params ) {
     if ( $param_str =~ /^\d+$/ ) {    # instance id
-        return { 'mode' => 'nack', 'data' => "unknown instance '$param_str'" }
+        return {
+            'mode' => 'nack',
+            'data' => "unknown agent instance '$param_str' (see 'list agents')"
+            }
             if not exists <root.agent.instance>->{$param_str};
         push( @instance_ids, $param_str );
     } else {                          # agent name ( XXX: validate syntax! )
         my $agent_id = <[agent.get_id]>->($param_str);
-        return { 'mode' => 'nack', 'data' => "unknown agent '$param_str'" }
+        return {
+            'mode' => 'nack',
+            'data' => "no agent '$param_str' found in setup!"
+                . " (see 'list agents')"
+            }
             if not defined $agent_id;
         map {
             push( @instance_ids, $_ )
