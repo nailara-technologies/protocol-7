@@ -84,6 +84,7 @@ sub prepare_subs {
         use Sys::Hostname;
         use File::Spec;
 
+        $SIG{PIPE} = 'IGNORE';
         $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
         $data{'system'}{'start'}{'exec_name'} = File::Spec->rel2abs($0);
