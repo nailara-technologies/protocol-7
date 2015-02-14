@@ -11,4 +11,5 @@ foreach my $id ( keys %{<root.agent.setup>} ) {
     return $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
 }
 
-die "agent '$agent_name' not found in setup";
+<[base.log]>->( 2, "root.agent.get_id: no agent '$agent_name' found in setup" );
+return undef;    # no such agent
