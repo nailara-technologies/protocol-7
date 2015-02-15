@@ -33,28 +33,28 @@ if ( defined $agentname and $agentname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
         $data{'startup'}{'init_code'} = [];
         $code{'log.ok'}->('< accepting stdin init-code >');
-        while ( <STDIN> ) {
-            push ( @{$data{'startup'}{'init_code'}}, $_ );
+        while (<STDIN>) {
+            push( @{ $data{'startup'}{'init_code'} }, $_ );
         }
-        my $lines = @{$data{'startup'}{'init_code'}};
+        my $lines = @{ $data{'startup'}{'init_code'} };
         my $s = $lines != 1 ? 's' : '';
         $code{'log.ok'}->("< / read $lines line$s of init-code >");
     }
-    $code{'base.init'}->(
-        $data{'system'}{'node'}{'name'} . "." . $agentname );
+    $code{'base.init'}->( $data{'system'}{'node'}{'name'} . '.' . $agentname );
 } else {
     if ( !@ARGV or not defined $data{'system'}{'agent'}{'name'} ) {
         $data{'system'}{'agent'}{'name'} = '<stdin>';
     }
-    $0 = "nailara.$data{'system'}{'agent'}{'name'} "; # <- whowatch ;/
+    $0 = "nailara.$data{'system'}{'agent'}{'name'} ";    # <- whowatch ;/
     $/ = "\n";
 
     my @agent_config = <STDIN>;
 
     if ( $data{'system'}{'daemon_mode'} ) { $code{'base.daemonize'}->() }
 
-    $code{'base.process_init_code'}->(
-        $code{'base.parser.config'}->( '', @agent_config ) ) if @agent_config;
+    $code{'base.process_init_code'}
+        ->( $code{'base.parser.config'}->( '', @agent_config ) )
+        if @agent_config;
 }
 
 $code{'log.ok'}->("done.");
@@ -66,15 +66,19 @@ exit;
 sub prepare_subs {
 
     # install Time::HiRes versions of base.time and base.sleep (if available)
-    my $th_ref = (eval 'use Time::HiRes; return [ '
-      .'sub{ my $f = $_[0]; $f = 6 if not defined $f or $f =~ /\D/;'
-      .' sprintf( "%.${f}f", Time::HiRes::time ) }, \&Time::HiRes::sleep ]');
-      $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1
+    my $th_ref
+        = (
+              eval 'use Time::HiRes; return [ '
+            . 'sub{ my $f = $_[0]; $f = 6 if not defined $f or $f =~ /\D/;'
+            . ' sprintf( "%.${f}f", Time::HiRes::time ) }, \&Time::HiRes::sleep'
+            . ' ]' );
+    $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1
         if defined $th_ref and ref($th_ref) eq 'ARRAY';
-    $th_ref = [ sub{ time() }, sub{ select( undef, undef, undef, $_[0] ) } ]
-        if not defined $th_ref or ref($th_ref) ne 'ARRAY';
-    $code{'base.time'} = \&{$th_ref->[0]};
-    $code{'base.sleep'} = \&{$th_ref->[1]};
+    $th_ref = [ sub { time() }, sub { select( undef, undef, undef, $_[0] ) } ]
+        if not defined $th_ref
+        or ref($th_ref) ne 'ARRAY';
+    $code{'base.time'}  = \&{ $th_ref->[0] };
+    $code{'base.sleep'} = \&{ $th_ref->[1] };
     undef $th_ref;
 
     # basic subroutine definitions
@@ -96,9 +100,9 @@ sub prepare_subs {
             }
         }
 
-        $data{'system'}{'perl_version'} = $]; # < v5.6
-        $data{'system'}{'perl_version'} = sprintf("%vd", $^V) if defined $^V;
-        $data{'system'}{'root_path'} = $data{'system'}{'start'}{'exec_name'};
+        $data{'system'}{'perl_version'} = $];    # < v5.6
+        $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
+        $data{'system'}{'root_path'}    = $data{'system'}{'start'}{'exec_name'};
         $data{'system'}{'root_path'} =~ s/\/[^\/]+\/[^\/]+$//;
         $data{'system'}{'code_path'} = "$data{'system'}{'root_path'}/modules";
         $data{'system'}{'conf_path'} = $data{'system'}{'root_path'} . '/conf';
@@ -111,12 +115,12 @@ sub prepare_subs {
         }
 
         if ( not defined $data{'system'}{'agent'}{'name'}
-          or $data{'system'}{'agent'}{'name'} eq '' ) {
+            or $data{'system'}{'agent'}{'name'} eq '' ) {
             $data{'system'}{'agent'}{'name'} = '<init>';
         }
 
-       #	( $data{'system'}{'node'}{'name'},
-       #          $data{'system'}{'agent'}{'name'} ) = split ( /\./, $_[0] );
+        #	( $data{'system'}{'node'}{'name'},
+        #          $data{'system'}{'agent'}{'name'} ) = split ( /\./, $_[0] );
 
         $data{'system'}{'verbosity'}           = 0;
         $data{'system'}{'ansi_color'}          = 1;
@@ -124,19 +128,19 @@ sub prepare_subs {
 
         my $stdin_mode = 1;
         foreach my $arg (@ARGV) {
-            $stdin_mode = 0 if $arg =~/^[^\-]/;
+            $stdin_mode = 0 if $arg =~ /^[^\-]/;
             if ( $arg =~ /^-(v+)$/ ) {
                 $data{'system'}{'verbosity'} = length($1);
             }
-            if ( $arg eq '-d' ) { $data{'system'}{'daemon_mode'} = 1 }
-            if ( $arg eq '-na' ) { $data{'system'}{'ansi_color'} = 0 }
+            if ( $arg eq '-d' )   { $data{'system'}{'daemon_mode'}      = 1 }
+            if ( $arg eq '-na' )  { $data{'system'}{'ansi_color'}       = 0 }
             if ( $arg eq '-sic' ) { $data{'system'}{'startup_initcode'} = 1 }
             if ( $arg eq '-nb' ) {
                 $data{'system'}{'start'}{'showbanner'} = 0;
             }
             if ( $arg =~ /^-N(.+)$/ ) {
                 $data{'system'}{'agent'}{'name'} = $1;
-            } elsif ( $stdin_mode ) {
+            } elsif ($stdin_mode) {
                 $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
         }
@@ -163,8 +167,7 @@ sub prepare_subs {
         }
 
         if (   $data{'system'}{'verbosity'}
-            && $data{'system'}{'start'}{'showbanner'} )
-        {
+            && $data{'system'}{'start'}{'showbanner'} ) {
             print "..\n";
             $code{'base.banner'}->("/usr/local/nailara/etc/.banner");
         }
@@ -174,7 +177,7 @@ sub prepare_subs {
 
         local $/ = undef;
         open( my $banner_handle, $data{'system'}{'root_path'} . '/etc/.banner' )
-          or return;
+            or return;
         my $banner = <$banner_handle>;
         close($banner_handle);
         $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
@@ -189,10 +192,8 @@ sub prepare_subs {
 
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
-            $code{'log.failed'}->(
-                ": can not open module directory"
-                . " '$data{'system'}{'code_path'}' [$!]"
-            );
+            $code{'log.failed'}->( ": can not open module directory"
+                    . " '$data{'system'}{'code_path'}' [$!]" );
             return undef;
         }
         my @code_files = readdir($codedir);
@@ -206,59 +207,59 @@ sub prepare_subs {
             my $code_count      = 0;
             my $last_code_count = 0;
             if ( exists $data{'base'}{'modules'}{'internal_name'} ) {
-                my $internal_name =
-                    delete $data{'base'}{'modules'}{'internal_name'};
+                my $internal_name
+                    = delete $data{'base'}{'modules'}{'internal_name'};
                 delete $data{'base'}{'modules'}{'moved_to'}{$internal_name}
                     if exists $data{'base'}{'modules'}{'moved_to'};
             }
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
                     and $file_name =~ /^$code_name\.|^$code_name$/
-                    and $file_name !~ /^\.|~$|\.orig$/ )
-                {
+                    and $file_name !~ /^\.|~$|\.orig$/ ) {
                     $code_count++;
                     $/ = undef;
                     open( $file, '<',
                         $data{'system'}{'code_path'} . '/' . $file_name )
-                      or die $!;
+                        or die $!;
 
                     $data{'code'}{$file_name}{'source'} = <$file>;
 
                     # <[sub_name]>->(  -->  $code{'sub_name'}->(
-                    my $orig_len =
-                      length( $data{'code'}{$file_name}{'source'} );
-                    $data{'code'}{$file_name}{'source'} =~
-                      s|(?<!\\)<\[(\w+\.[\w\.]+?)\]>\s*->\(|\$code{'$1'}->(|sgo;
+                    my $orig_len
+                        = length( $data{'code'}{$file_name}{'source'} );
+                    $data{'code'}{$file_name}{'source'}
+                        =~ s|(?<!\\)<\[(\w+\.[\w\.]+?)\]>\s*->\(
+                            |\$code{'$1'}->(|sgxo;
 
                     # warn: this parser currently doesn't respect quoted strings
                     #       escape like \<[sub.name]> <-- this to avoid a match!
 
                     # <[sub_name]>  -->  $code{'sub_name'}->()
-                    $data{'code'}{$file_name}{'source'} =~
-                      s|(?<!\\)<\[(\w+\.[\w\.]+)\]>|\$code{'$1'}->()|go;
+                    $data{'code'}{$file_name}{'source'}
+                        =~ s|(?<!\\)<\[(\w+\.[\w\.]+)\]>|\$code{'$1'}->()|go;
 
                     # <foo.bar>  -->  $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
-                    $data{'code'}{$file_name}{'source'} =~
-                      s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)(?<!\\)>|
-                        my $k="\$data{'$1'}";$k=~s/\./'}{'/g;$k|gexo;
+                    $data{'code'}{$file_name}{'source'}
+                        =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)(?<!\\)>
+                            |my $k="\$data{'$1'}";$k=~s/\./'}{'/g;$k|gexo;
                     close($file);
                     $/ = "\n";
-                    if ( length($data{'code'}{$file_name}{'source'}) >
-                      $orig_len and $data{'system'}{'verbosity'} > 3 ) {
+                    if (length( $data{'code'}{$file_name}{'source'} )
+                        > $orig_len and $data{'system'}{'verbosity'} > 3 ) {
                         $code{'log.failed'}->( "\n\n .: $file_name :.\n\n"
-                          . $data{'code'}{$file_name}{'source'} );
+                                . $data{'code'}{$file_name}{'source'} );
                     }
                     push( @compile_them, $file_name );
                 }
             }
             if ( !$code_count ) {
-                $code{'log.failed'}->(
-                    ": failed to load module '$code_name' \t[ not found ]" );
+                $code{'log.failed'}
+                    ->(": failed to load module '$code_name' \t[ not found ]");
                 $data{'base'}{'modules'}{'load_errors'}++;
             } elsif ( $code_count > $last_code_count ) {
-                $data{'system'}{'subs_loaded'}{$code_name} =
-                  $code_count - $last_code_count;
+                $data{'system'}{'subs_loaded'}{$code_name}
+                    = $code_count - $last_code_count;
             }
             $last_code_count = $code_count;
         }
@@ -279,13 +280,13 @@ sub prepare_subs {
             local $SIG{__WARN__} = 'IGNORE';
             local $SIG{__DIE__}  = 'IGNORE';
 
-            my $sub_code = undef;
-            my $code_header = '';
-            my $code_footer = '';
+            my $sub_code     = undef;
+            my $code_header  = '';
+            my $code_footer  = '';
             my $sub_conflict = 0;
 
             if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) {
-                next if $1 eq 'cmd' and exists $disabled_commands{$2}; # skip!
+                next if $1 eq 'cmd' and exists $disabled_commands{$2};   # skip!
                 if ( exists $data{'base'}{$1}{$2} ) {
                     my $old_sub = $data{'base'}{$1}{$2};
                     if ( not exists $data{'base'}{'overwritten'}{$1}{$2} ) {
@@ -295,46 +296,50 @@ sub prepare_subs {
                             'new' => $sub_name
                         };
                     } else {
-                        push( @{$data{'base'}{'overwritten'}
-                            {$1}{$2}{'conflicts'}}, $sub_name
+                        push(
+                            @{  $data{'base'}{'overwritten'}
+                                    {$1}{$2}{'conflicts'}
+                            },
+                            $sub_name
                         );
                         $data{'base'}{'modules'}{'load_errors'}++;
-                        $code{'log.failed'}->( "[!] conflict: $sub_name" );
+                        $code{'log.failed'}->("[!] conflict: $sub_name");
                         $sub_conflict = 1;
                     }
                 }
 
                 $data{'base'}{$1}{$2} = $sub_name if !$sub_conflict;
 
-                $code_header =
-                    'my $call={}; my $reply={ \'mode\' => \'nack\', \'data\''
-                  . ' => \'internal command error\'}; '
-                  . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
-                  . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
+                $code_header
+                    = 'my $call={}; my $reply={ \'mode\' => \'nack\', \'data\''
+                    . ' => \'internal command error\'}; '
+                    . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
+                    . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
                 $code_footer = ' ; return $reply';
 
-                $data{'code'}{$sub_name}{'source'} =
-                    $code_header
-                  . $data{'code'}{$sub_name}{'source'}
-                  . $code_footer;
+                $data{'code'}{$sub_name}{'source'}
+                    = $code_header
+                    . $data{'code'}{$sub_name}{'source'}
+                    . $code_footer;
             }
 
             if ( $data{'system'}{'verbosity'} > 2 ) {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code = 'sub {'
-                  . $line_comment
-                  . "\&{\$code{'base.debug_sub'}}('$sub_name',\@_); "
-                  . $data{'code'}{$sub_name}{'source'} . ' }';
+                $sub_code
+                    = 'sub {'
+                    . $line_comment
+                    . "\&{\$code{'base.debug_sub'}}('$sub_name',\@_); "
+                    . $data{'code'}{$sub_name}{'source'} . ' }';
             } else {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code = 'sub {'
-                  . $line_comment
-                  . $data{'code'}{$sub_name}{'source'} . '}';
+                $sub_code
+                    = 'sub {'
+                    . $line_comment
+                    . $data{'code'}{$sub_name}{'source'} . '}';
             }
 
             if ( $code{$sub_name} = eval($sub_code)
-                and ref( $code{$sub_name} ) eq 'CODE' )
-            {
+                and ref( $code{$sub_name} ) eq 'CODE' ) {
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'} = 'ok';
                 $ok_count++;
@@ -344,36 +349,38 @@ sub prepare_subs {
                     my $command = $2;
                     if ( $data{'code'}{$sub_name}{'status'} eq 'ok' ) {
                         if ( $sub_code =~ /\#\s*param\s*=\s*(.+)/ ) {
-                            $data{'base'}{'help'}
-                                {$section}{$command}{'param'} = $1;
+                            $data{'base'}{'help'}{$section}{$command}{'param'}
+                                = $1;
                         }
                         if ( $sub_code =~ /\#\s*descr\s*=\s*(.+)/ ) {
-                            $data{'base'}{'help'}
-                                {$section}{$command}{'descr'} = $1;
+                            $data{'base'}{'help'}{$section}{$command}{'descr'}
+                                = $1;
                         } else {
-                            $data{'base'}{'help'}
-                                {$section}{$command}{'descr'} = 'n/a';
+                            $data{'base'}{'help'}{$section}{$command}{'descr'}
+                                = 'n/a';
                         }
 
                     } else {
                         $data{'base'}{'modules'}{'load_errors'}++;
                         $code{'log.failed'}->(": : command '$1' broken!");
-                        $data{'base'}{'help'}{$section}{$command}{'descr'} =
-                          '! command broken !';
+                        $data{'base'}{'help'}{$section}{$command}{'descr'}
+                            = '! command broken !';
                     }
                 }
             } else {
                 $code{$sub_name} = sub {
                     {
-                        $code{'log.failed'}->(
-                            "broken subroutine '$sub_name' called.")
+                        $code{'log.failed'}
+                            ->("broken subroutine '$sub_name' called.")
                     }
                 };
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'base'}{'modules'}{'load_errors'}++;
                 my $err_str = $@;
-                $code{'log.failed'}->( '>', ".:[ $sub_name ]:.", ':',
-                    ( map { ": [!] $_" } split ( /\n+/, $err_str ) ), '-' );
+                $code{'log.failed'}->(
+                    '>', ".:[ $sub_name ]:.",
+                    ':', ( map {": [!] $_"} split( /\n+/, $err_str ) ), '-'
+                );
                 $err_str =~ s/\n/ /sg;
                 $err_str =~ tr/ //s;
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
@@ -382,19 +389,19 @@ sub prepare_subs {
         }
 
         if ($err_count) {
-            $code{'log.failed'}->(
-                ": $ok_count routines ok, $err_count broken..");
+            $code{'log.failed'}
+                ->(": $ok_count routines ok, $err_count broken..");
         } else {
             $code{'log.debug'}->(": $ok_count routines, all ok.");
         }
-        return ($ok_count, $err_count);
+        return ( $ok_count, $err_count );
     };
 
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'} < 2;
-        my $sub_name = shift(@_);
+        my $sub_name     = shift(@_);
         my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
-        my @_p = @_;
+        my @_p           = @_;
 
         # hiding plain text passwords in debug output (not including conf files)
         $_p[2] = '*' x 5 if $sub_name eq 'net.authme';
@@ -405,46 +412,58 @@ sub prepare_subs {
 
         map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
         my $param_list = join( ', ',
-          map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' } @_p );
+            map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' }
+                @_p );
 
         $param_list =~ s|\n|\\n|g;
         $param_list =~ s|\e|\\e|g;
         $param_list =~ s|\0|\\0|g;
 
         print ' . '
-          . $data{'system'}{'agent'}{'name'}
-          . " : $sub_name ( "
-          . $param_list . " )\n" if $sub_name ne 'base.log'
+            . $data{'system'}{'agent'}{'name'}
+            . " : $sub_name ( "
+            . $param_list . " )\n"
+            if $sub_name ne 'base.log'
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'system' )
-            and $sub_name ne 'base.dump_data'; # skipping too much output...
+            and $sub_name ne 'base.dump_data';    # skipping too much output...
     };
     $code{'log.ok'} = sub {
-      if( defined $code{'base.log'} ) {
-          map{ $code{'base.log'}->( 1, $_ ) } @_;
-      } elsif ( $data{'system'}{'verbosity'} ) {
-        map { print ' :'
-          . $data{'system'}{'node'}{'name'} . '.'
-          . $data{'system'}{'agent'}{'name'} . ' ' . $_ . "\n" } @_;
-      }
+        if ( defined $code{'base.log'} ) {
+            map { $code{'base.log'}->( 1, $_ ) } @_;
+        } elsif ( $data{'system'}{'verbosity'} ) {
+            map {
+                      print ' :'
+                    . $data{'system'}{'node'}{'name'} . '.'
+                    . $data{'system'}{'agent'}{'name'} . ' '
+                    . $_ . "\n"
+            } @_;
+        }
     };
     $code{'log.failed'} = sub {
-        if( defined $code{'base.log'} ) {
+        if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
-          map { print ' :'
-            . $data{'system'}{'node'}{'name'} . '.'
-            . $data{'system'}{'agent'}{'name'} . ' '
-            . $ANSI{'bold'} . $_ . $ANSI{'normal'} . "\n" } @_;
+            map {
+                      print ' :'
+                    . $data{'system'}{'node'}{'name'} . '.'
+                    . $data{'system'}{'agent'}{'name'} . ' '
+                    . $ANSI{'bold'}
+                    . $_
+                    . $ANSI{'normal'} . "\n"
+            } @_;
         }
     };
     $code{'log.debug'} = sub {
-      if(defined $code{'base.log'}) {
-          map { $code{'base.log'}->( 2, $_ ) } @_;
-      } elsif ( $data{'system'}{'verbosity'} > 1 ) {
-        map { print ' :'
-          . $data{'system'}{'node'}{'name'} . '.'
-          . $data{'system'}{'agent'}{'name'} . ' ' . $_ . "\n" } @_;
-      }
+        if ( defined $code{'base.log'} ) {
+            map { $code{'base.log'}->( 2, $_ ) } @_;
+        } elsif ( $data{'system'}{'verbosity'} > 1 ) {
+            map {
+                      print ' :'
+                    . $data{'system'}{'node'}{'name'} . '.'
+                    . $data{'system'}{'agent'}{'name'} . ' '
+                    . $_ . "\n"
+            } @_;
+        }
     };
 
     $code{'dev.null'} = sub { };
@@ -452,15 +471,15 @@ sub prepare_subs {
     $code{'base.sig_warn'} = sub {
         if (@_) {
             chomp( my @err = @_ );
-            if ($err[0] =~ /^Deep recursion /) {
-                no warnings 'recursion'; # no followups!
+            if ( $err[0] =~ /^Deep recursion / ) {
+                no warnings 'recursion';    # no followups!
                 my $msg = join( ' ', '((FATAL))', @err );
                 undef $code{'base.log'} if $err[0] =~ /$0|nailara/;
                 $code{'log.failed'}->($msg);
                 exit(2);
             }
-            my ($package, $filename, $line, $subroutine) = caller;
-            push ( @err, "[ called by : $filename, line $line ]");
+            my ( $package, $filename, $line, $subroutine ) = caller;
+            push( @err, "[ called by : $filename, line $line ]" );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
         return 1;
