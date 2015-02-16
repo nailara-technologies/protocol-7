@@ -377,6 +377,7 @@ sub prepare_subs {
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'base'}{'modules'}{'load_errors'}++;
                 my $err_str = $@;
+                $err_str =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg;
                 $code{'log.failed'}->(
                     '>', ".:[ $sub_name ]:.",
                     ':', ( map {": [!] $_"} split( /\n+/, $err_str ) ), '-'
