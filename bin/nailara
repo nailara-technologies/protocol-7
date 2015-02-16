@@ -480,6 +480,7 @@ sub prepare_subs {
                 exit(2);
             }
             my ( $package, $filename, $line, $subroutine ) = caller;
+            map { $_ =~ s| at $filename line $line\.$|| } @err;
             push( @err, "[ called by : $filename, line $line ]" );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
