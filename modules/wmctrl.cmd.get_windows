@@ -1,0 +1,35 @@
+# >:]
+
+# name  = wmctrl.cmd.get_windows
+# param = [title_str]
+# descr = return list of active windows
+
+my $title_pattern = $$call{'args'};
+$title_pattern //= '.*';
+
+my @window_list;
+foreach my $line ( split( /\n/, <[wmctrl.exec]>->('-l') ) ) {
+    my ( $id, $workspace, $host, $title ) = split( / +/, $line, 4 );
+    push(
+        @window_list,
+        {   id        => $id,
+            workspace => $workspace,
+            host      => $host,
+            title     => $title,
+        }
+    ) if $title =~ /$title_pattern/;
+}
+
+return {
+    'mode' => 'raw',
+    'data' => join(
+        "\n",
+        (   map {
+                join( ' ',
+                    $_->{'id'},   $_->{'workspace'},
+                    $_->{'host'}, $_->{'title'} )
+            } @window_list
+        ),
+        ''
+    )
+};
