@@ -3,6 +3,6 @@
 # name = wmctrl.modify_state
 
 my ( $window, $mod, @params ) = @_;
-die("invalid modifier '$mod'")  if ( $mod !~ /^(add|remove)$/i );
-die("invalid number of params") if ( scalar(@params) > 2 );
-<[wmctrl.exec]>-( '-r', $window, '-b', join( ',', $mod, @params ) );
+die("invalid modifier '$mod'") if ( $mod !~ /^(add|remove)$/i );
+die("invalid number of parameters") if ( scalar(@params) > 2 );
+<[wmctrl.exec]>->( '-r', $window, '-b', join( ',', $mod, @params ) );
