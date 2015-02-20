@@ -12,7 +12,7 @@ if ( $conf_key and $conf_key !~ /[{}]/ ) {
 <base.parser.config.errors> //= 0;
 my $last_line = '';
 foreach my $conf_line (@_) {
-    $conf_line =~ s/#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
+    $conf_line =~ s/[ \t]*#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
     if ( $conf_line =~ s|\\ *$|| ) {
         $last_line .= $conf_line;
         next;
