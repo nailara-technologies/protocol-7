@@ -7,12 +7,22 @@ if ( exists $data{'session'}{$local_session_id}{'core_sid'} ) {
     <[base.log]>->( 0, "already have a core sid, refused to request another!" );
     return undef;
 }
+my $cmd_id  = 1 + int( rand(222222) );
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
-<[net.out]>->( $core_fh, "whoami\n" );
+<[net.out]>->( $core_fh, "($cmd_id)whoami\n" );
 
-my $reply_string = <$core_fh>;
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    if ( !$matched_reply ) {
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" );
+    }
+}
 
-if ( $reply_string =~ /^ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
+if ( $reply_string =~ /^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
     my ( $agent_name, $core_session_id ) = ( $1, $2 );
     if ( $agent_name ne <system.agent.name> ) {
         <[base.log]>->( 0, "received agent name does not match internal one!" );
@@ -22,6 +32,10 @@ if ( $reply_string =~ /^ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
     <[base.log]>->( 1, "core session id $core_session_id received!" );
     return $core_session_id;
 } else {
-    <[base.log]>->( 0, "protocol error (unexpected reply to whoami command!)" );
+    <[base.log]>->(
+        0,
+        "protocol error (unexpected reply to whoami command!)"
+            . " [$reply_string]"
+    );
     return undef;
 }
