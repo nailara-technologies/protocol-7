@@ -11,12 +11,13 @@ xserver.display.xorg   = :0
 xserver.display.xephyr = :1
 
 xserver.params.xorg    = -keeptty
-xserver.params.xephyr  = -host-cursor -screen 400x300
+xserver.params.xephyr  = -screen 400x300
 
 xserver.connect_timeout = 7.7 # seconds
 
 access.cmd.usr.core = help message ping reload verify_instance \
-                      get_mode get_display get_params get_screen_size
+                      get_mode get_display get_params get_screen_size \
+                      get_windows set_geometry
 
 modules.load = auth net io.ip xserver
 [load_modules:<modules.load>]
