@@ -2,7 +2,7 @@
 [load_config_file:'defaults']
 [load_config_file:'desktop']
 
-modules.load	= auth net io.ip filter crypt xmesg
+modules.load	= auth net io.ip xmesg
 net.daemon_name	= xmesg
 auth.core.pass	= tTr4
 
@@ -13,7 +13,9 @@ access.cmd.usr.* = help print ping pid dump reload
 
 [set_privs:<x11.user>]
 
-core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
+core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,\
+                <net.local.port>],<net.daemon_name>,<auth.core.pass>]
 [base.session.init:<core.handle>,'nailara','client','core']
+[base.x11.get_display]
 
 [event.loop]
