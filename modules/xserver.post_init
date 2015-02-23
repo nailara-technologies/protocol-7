@@ -86,7 +86,10 @@ my $host_mode_warned = 0;
 host_retry:
 while ( !$ok and $attempts-- ) {
     eval '$data{xserver}{x11} = X11::Protocol->new(\''
-        . <xserver.display>->{$mode} . '\')';
+        . <xserver.display>->{$mode}
+        . '\'); $ENV{DISPLAY}="'
+        . <xserver.display>->{$mode}
+        . '"; $data{xserver}{x11_tops} = X11::Tops->new($data{xserver}{x11})';
     $ok = 1 if !$@;
     <[base.sleep]>->($retry_delay) if !$ok;
 }
