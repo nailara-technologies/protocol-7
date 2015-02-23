@@ -10,6 +10,7 @@ my $id  = $$call{'session_id'};
 
 if ( $txt ne '' ) {
     <[base.log]>->( 1, "[$id] sending xmessage" );
+    $ENV{'DISPLAY'} = <x11.display> if defined <x11.display>;
     if ( !system( 'xmessage', $txt ) ) {
         return { 'mode' => 'ack', 'data' => 'message read' };
     } else {
