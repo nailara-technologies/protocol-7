@@ -1,0 +1,126 @@
+# >:]
+
+# name = xserver.post_init
+
+<xserver.initialized> //= 0;
+
+if ( <xserver.mode> !~ /^(host|xorg|xephyr)$/ ) {
+    <[base.log]>->(
+        0, "invalid xserver mode '" . <xserver.mode> . "' in agent config!"
+    );
+    CORE::exit(2);
+}
+
+<xserver.display.host> //= defined $ENV{'DISPLAY'} ? $ENV{'DISPLAY'} : ':0'
+    if <xserver.mode> eq 'host';
+
+<[base.log]>->(
+    0,
+    "warning: xserver mode changed to '"
+        . <xserver.mode>
+        . "', restart required!"
+) if defined <xserver.old_mode> and <xserver.mode> ne <xserver.old_mode>;
+
+return 0 if <xserver.initialized>;
+
+<xserver.connect_timeout> //= 7.7;
+<xserver.old_mode> = <xserver.mode>;
+my $mode = <xserver.mode>;
+my $bin_name;
+my $server_bin;
+my $server_pid;
+my $server_params;
+
+if ( $mode ne 'host' ) {
+    if ( not defined $mode or !length($mode) ) {
+        die "xserver.mode not defined (expected 'xorg' or 'xephyr')";
+    } elsif ( $mode eq 'xorg' or $mode eq 'xephyr' ) {
+        $bin_name = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
+        chomp( $server_bin = qx(which $bin_name) );
+        die "xserver binary '$bin_name' not found. (not installed?)"
+            if not defined $server_bin or !-x $server_bin;
+
+        $server_params
+            = join( ' ', <xserver.display>->{$mode},
+            <xserver.params>->{$mode} );
+    } else {
+        die "invalid mode '$mode' (xserver.mode)";
+    }
+
+    my $cmd_line = "$server_bin $server_params 2>&1 |";
+
+    <[base.log]>->( 1, "starting $bin_name-Server..." );
+
+    $server_pid = open( my $out_fh, $cmd_line );
+
+    if ( not defined $server_pid or $@ ) {
+        my $err_reason = ( defined $! and length($!) ) ? ": \"$!\"" : '!';
+        <[base.log]>->( 0, ": failed to spawn $bin_name-server" . $err_reason );
+        CORE::exit(2);
+    } else {
+        <[base.log]>->(
+            1, ": $bin_name-Server process started (pid=$server_pid)"
+        );
+    }
+
+    <[event.add_io]>->(
+        {   'fd'      => $out_fh,
+            'handler' => 'xserver.handler.server_output',
+            'data'    => { 'bin' => $bin_name, 'pid' => $server_pid }
+        }
+    );
+} else {
+    $bin_name = '(host) x11';
+    <xserver.connect_timeout> = 15 if <xserver.connect_timeout> < 15;
+    <[base.log]>->( 1, "running in host mode ( using existing X11-server )" );
+}
+
+<[base.log]>->(
+    1, ": attempting X connection to display " . <xserver.display>->{$mode}
+);
+my $ok               = 0;
+my $attempts         = int( <xserver.connect_timeout> * 10 );
+my $retry_delay      = 0.1;
+my $max_retry_delay  = 2;
+my $host_mode_warned = 0;
+
+host_retry:
+while ( !$ok and $attempts-- ) {
+    eval 'my $x11 = X11::Protocol->new(\'' . <xserver.display>->{$mode} . '\')';
+    $ok = 1 if !$@;
+    <[base.sleep]>->($retry_delay) if !$ok;
+}
+if ( !$ok and <xserver.mode> eq 'host' ) {
+    if ( !$host_mode_warned ) {
+        <[base.log]>->(
+            0,
+            ": : connection to display "
+                . <xserver.display>->{$mode}
+                . " failed, retrying indefinetly.."
+        );
+        $host_mode_warned = 1;
+    }
+    $retry_delay *= 2 if $retry_delay < $max_retry_delay;
+    $retry_delay = $max_retry_delay if $retry_delay > $max_retry_delay;
+    goto host_retry;    # wait for X-server indefinetly (in host mode)
+}
+
+if ($ok) {
+    <[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
+    <[base.log]>->( 1, ": deactivating screen blanking ..." );
+    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
+    die "failed to execute xset: $!" if $@;
+    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
+    die "failed to execute xset: $!" if $@;
+    <xserver.initialized> = 1;
+    return 0;           # all ok
+} else {
+    ( my $err_msg = $@ ) =~ s| at .+\n?$||;
+    <[base.log]>->( 0, ": failed to connect to $bin_name-server.. [$err_msg]" );
+    if ( $mode ne 'host' ) {
+        <[base.log]>->( 0, ": : terminating pid $server_pid.." );
+        kill( 9, $server_pid );
+    }
+    <[base.log]>->( 1, "done." );
+    CORE::exit(3);
+}

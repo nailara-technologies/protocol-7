@@ -1,0 +1,13 @@
+# >:]
+
+# name  = xserver.cmd.get_params
+# descr = return the X-server's startup parameters
+
+if ( <xserver.mode> eq 'host' ) {
+    return {
+        'mode' => 'nack',
+        'data' => "xserver parameters not available in 'host' mode"
+    };
+} else {
+    return { 'mode' => 'ack', 'data' => <xserver.params>->{<xserver.mode>} };
+}
