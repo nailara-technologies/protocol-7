@@ -1,0 +1,32 @@
+# >:]
+
+# name  = xserver.cmd.set_geometry
+# param = <id> <geometry>
+# descr = apply new geometry string to specified window
+
+my ( $id, $geometry ) = split( / +/, $$call{'args'}, 2 );
+
+return { 'mode' => 'nack', 'data' => 'required window <id> and <geometry>' }
+    if not defined $id or not defined $geometry;
+return { 'mode' => 'nack', 'data' => 'invalid <id> syntax' }
+    if $id !~ /^\d+$/;
+return { 'mode' => 'nack', 'data' => 'invalid <geometry> syntax' }
+    if $geometry !~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
+
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+
+$window->move($geometry);
+$xtops->update;
+
+return { 'mode' => 'ack', 'data' => 'window updated' };
