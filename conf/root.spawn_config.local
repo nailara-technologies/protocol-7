@@ -5,7 +5,7 @@
 
 .: globals :.
 
-  agents.enabled = core log xserver
+  agents.enabled = core log xserver fvwm
 
 .: agents :.
 
@@ -39,6 +39,18 @@
   - xserver
 
       dependencies = core
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
+  - fvwm
+
+      dependencies = core xserver
 
       : root-init :
         start_mode = exec-sic

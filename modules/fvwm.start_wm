@@ -1,0 +1,13 @@
+# >:]
+
+# name = fvwm.start_wm
+# note = primitive implementation, improve error handing before production usage
+
+
+my $display  = <x11.display>;
+my $cfg_name = <fvwm.config_name>;
+<[base.log]>->( 1, "starting fvwm with $cfg_name-config..." );
+my $cfg_path = <system.conf_path> . '/fvwm.' . $cfg_name . '.cfg';
+die "fvwm config file '$cfg_path' not found!" if !-f $cfg_path;
+
+open( <fvwm.out_fh>, "fvwm -d $display -f $cfg_path 2>&1 |" ) or die $!;
