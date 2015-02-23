@@ -75,9 +75,8 @@ if ( $mode ne 'host' ) {
     <[base.log]>->( 1, "running in host mode ( using existing X11-server )" );
 }
 
-<[base.log]>->(
-    1, ": attempting X connection to display " . <xserver.display>->{$mode}
-);
+<[base.log]>->( 1, ": connecting to X display " . <xserver.display>->{$mode} );
+
 my $ok               = 0;
 my $attempts         = int( <xserver.connect_timeout> * 10 );
 my $retry_delay      = 0.1;
@@ -86,7 +85,8 @@ my $host_mode_warned = 0;
 
 host_retry:
 while ( !$ok and $attempts-- ) {
-    eval 'my $x11 = X11::Protocol->new(\'' . <xserver.display>->{$mode} . '\')';
+    eval '$data{xserver}{x11} = X11::Protocol->new(\''
+        . <xserver.display>->{$mode} . '\')';
     $ok = 1 if !$@;
     <[base.sleep]>->($retry_delay) if !$ok;
 }
