@@ -1,0 +1,31 @@
+
+  .:[ xserver agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+xserver.mode = host    # [host|xorg|xephyr]
+
+xserver.display.xorg   = :0
+xserver.display.xephyr = :1
+
+xserver.params.xorg    = -keeptty
+xserver.params.xephyr  = -host-cursor -screen 400x300
+
+xserver.connect_timeout = 7.7 # seconds
+
+access.cmd.usr.core = help message ping reload verify_instance \
+                      get_mode get_display get_params
+
+modules.load = auth net io.ip xserver
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:'nailara']
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+[base.get_session_id]
+
+[event.loop]
