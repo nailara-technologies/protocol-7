@@ -1,0 +1,14 @@
+# >:]
+
+# name = matchbox.start_wm
+# note = primitive implementation, improve error handing before production usage
+
+my $display = <x11.display>;
+
+<[base.log]>->( 1, "starting matchbox window manager..." );
+
+open( <matchbox.out_fh>,
+          "matchbox-window-manager "
+        . <matchbox.startup_params>
+        . " -display $display 2>&1 |" )
+    or die $!;
