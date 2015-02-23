@@ -1,0 +1,12 @@
+# >:]
+
+# name = unclutter.startup
+# note = primitive implementation, improve error handing before production usage
+
+my $display   = <x11.display>;
+my $idle_time = <unclutter.idle_time>;
+<[base.log]>->( 1, "starting unclutter on display $display .." );
+
+open( <unclutter.out_fh>,
+    "unclutter -display $display -root -noevents -idle $idle_time 2>&1 |" )
+    or die $!;
