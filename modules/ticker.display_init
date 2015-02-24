@@ -1,0 +1,60 @@
+# >:]
+
+# name = ticker.display_init
+
+<[base.log]>->( 1, "initializing ticker display..." );
+
+$ENV{'DISPLAY'} = <x11.display>;
+$ENV{'SDL_AUDIODRIVER'} = 'disk';    # <- disables ALSA permission warnings :)
+
+use SDL ':all';
+use SDLx::App;
+use SDLx::Text;
+use SDL::Mouse;
+use SDL::Event;
+use SDL::Video;
+use SDL::VideoInfo;
+use SDL::Surface;
+use SDL::Color;
+use SDL::Rect;
+
+# init SDL
+<ticker.sdl> = SDL::init(SDL_INIT_VIDEO);
+SDL::Mouse::show_cursor(SDL_DISABLE);
+
+# determine screen size
+my $video_info = SDL::Video::get_video_info();
+my @modes    = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
+my $max_mode = shift(@modes);
+
+# store size parameters
+( <x11.width>, <x11.height> ) = ( $max_mode->w, $max_mode->h );
+
+# initialize application window
+<sdl.app> = SDLx::App->new(
+    eoq    => 1,
+    width  => <x11.width>,
+    height => <ticker.window.height>
+);
+
+# draw background ...
+<sdl.app>->draw_rect( [ 0, 0, <sdl.app>->w, <sdl.app>->h ], 0xffffffff );
+
+#  redraw...
+#<sdl.app>->update;
+
+# font init ...
+#my $text = SDLx::Text->new(
+#    font   => <ticker.font.path>,
+#    color  => [ 0, 0, 0, 0 ],
+#    shadow => 1,
+#    size   => <ticker.font.size>,
+#    x      => 10,
+#    y      => 4
+#);
+
+# XXX: testing ...
+#$text->write_to( <sdl.app>, '< ticker text >' );
+
+#  redraw...
+#<sdl.app>->update;
