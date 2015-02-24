@@ -1,0 +1,36 @@
+
+  .:[ ticker agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[set_privs:'nailara']
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping reload verify_instance * # <- XXX!
+
+# arch linux
+ticker.font.path = '/usr/share/fonts/TTF/DroidSans-Bold.ttf'
+
+# debian
+#ticker.font.path = '/usr/share/fonts/truetype/droid/DroidSans-Bold.ttf'
+
+ticker.font.size = 44
+ticker.window.height = 64
+
+modules.load = auth net io.ip ticker debug
+[load_modules:<modules.load>]
+[init_modules]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+[base.x11.get_display]
+[ticker.display_init]
+[base.x11.get_window_id:'ticker']  #  <- refine pattern!
+[base.x11.set_gravity:'bottom']
+[ticker.window.draw]
+
+[base.get_session_id]
+[event.loop]
