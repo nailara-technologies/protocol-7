@@ -1,0 +1,48 @@
+# >:]
+
+# name  = xserver.cmd.set_gravity
+# param = <id> <direction>
+# descr = move window to the specified screen border
+
+my ( $id, $gravity ) = split( / +/, $$call{'args'}, 2 );
+
+return { 'mode' => 'nack', 'data' => 'required window <id> and <gravity>' }
+    if not defined $id or not defined $gravity;
+return { 'mode' => 'nack', 'data' => 'invalid <id> syntax' }
+    if $id !~ /^\d+$/;
+return {
+    'mode' => 'nack',
+    'data' => "invalid gravity keyword, valid are: left, right, top and bottom"
+    }
+    if $gravity !~ /^(left|right|top|bottom)$/;
+
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+
+my ( $w, $h, $x, $y ) = $window->geometry;
+my ( $nx, $ny ) = ( "+$x", "+$y" );
+
+if ( $gravity eq 'top' ) {
+    $ny = '+0';
+} elsif ( $gravity eq 'bottom' ) {
+    $ny = '-0';
+} elsif ( $gravity eq 'left' ) {
+    $nx = '+0';
+} elsif ( $gravity eq 'right' ) {
+    $nx = '-0';
+}
+
+$window->move("${w}x${h}$nx$ny");
+$xtops->update;
+
+return { 'mode' => 'ack', 'data' => "gravity set to '$gravity'" };
