@@ -1,0 +1,51 @@
+# >:]
+
+# name = base.x11.get_window_id
+
+my $name = shift;
+die "expected window name parameter" if not defined $name or !length($name);
+my ($local_session_id) = keys( %{<user.core.session>} );
+
+<[base.log]>->( 1, "requesting window id for '$name'.." );
+
+my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
+
+my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)xserver.get_windows $name\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
+    if ( !$matched_reply ) {
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" );
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
+    my $buffer_string = '';
+    my $bytes_to_go   = $1;
+    while ($bytes_to_go) {
+        my $read_bytes = read( $core_fh, $buffer_string, $bytes_to_go,
+            length($buffer_string) );
+        die "core filehandle had unexpected exception!"
+            if not defined $read_bytes;
+        $bytes_to_go -= $read_bytes if $read_bytes;
+        sleep 0.1 if $bytes_to_go and !$read_bytes;
+    }
+    my $lines = $buffer_string =~ /\n/;
+    warn "[!] found more than one matching window, please fix the name pattern!"
+        if $lines > 1;
+    <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
+    <[base.log]>->( 1, "received X window id '" . <x11.id> . "'.." );
+    return <x11.id>;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol error (unexpected reply from xserver agent)"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
