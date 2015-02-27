@@ -22,6 +22,8 @@ use warnings;
 use SDL;
 use SDL::TTF;
 use SDL::Rect;
+use SDL::Event;
+use SDL::Events;
 use SDL::Video;
 use SDL::Color;
 use SDL::Surface;
@@ -79,6 +81,9 @@ my $font_path;
 $font_path = '/usr/share/fonts/truetype/droid';           # debian
 $font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
 
+# skip frames in event polling
+my $event_skip_frames = 5;
+
 ## initialization ##
 
 # determine font path (droid fonts need to be installed)
@@ -106,6 +111,9 @@ if ( $ticker_position eq 'center' ) {
     my $y_pos = $ticker_position eq 'top' ? 0 : $max_mode->h - $screen_height;
     SDL::putenv("SDL_VIDEO_WINDOW_POS=0,$y_pos");
 }
+
+# prepare event handling
+my $event = SDL::Event->new();
 
 # initialize SDL window
 my $display = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
@@ -202,8 +210,9 @@ while ( $scroll_text =~ s/^((\S{1,23}\s*){1,5})// and my $string = $1 ) {
 
 ### ticker scroll animation ###
 
+my $frame       = 0;
 my $flip_failed = 0;
-while (1) {    # main loop (does not exit, terminate with pkill -9 ticker.pl!)
+while (1) {    # main loop ( exits on QUIT, mouse and key events)
     my @content_copy = @content;    # create a working copy
 
     # initialize offsets / positions
@@ -215,6 +224,7 @@ while (1) {    # main loop (does not exit, terminate with pkill -9 ticker.pl!)
         # copy visible elements to screen
         my $last_offset;
         for my $index ( 0 .. scalar @content_copy - 1 ) {
+            $frame++;
             my $element = $content_copy[$index];
             next if not defined $element->{'width'};
 
@@ -265,6 +275,19 @@ while (1) {    # main loop (does not exit, terminate with pkill -9 ticker.pl!)
         # if hardware blitting failed, try the software method
         SDL::Video::update_rect( $display, 0, 0, $screen_width, $screen_height )
             if $flip_failed;
+
+        # check events to see if we need to exit
+        if ( $frame >= $event_skip_frames ) {
+            SDL::Events::pump_events();
+            if ( SDL::Events::poll_event($event) ) {
+                if (   $event->type == SDL_MOUSEBUTTONDOWN
+                    or $event->type == SDL_KEYDOWN
+                    or $event->type == SDL_QUIT ) {
+                    exit;
+                }
+            }
+            $frame = 0;
+        }
 
         # pause to slow down
         SDL::delay($delay) if $delay;
