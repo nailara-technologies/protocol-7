@@ -1,0 +1,89 @@
+# >:]
+
+# name  = ticker.animation.loop_once
+# descr = draw one complete pass of the ticker animation and return
+
+@{<ticker.content.work>} = @{<ticker.content.data>} # create a working data copy
+    if !@{<ticker.content.work>};
+
+# initialize offsets / positions
+map {
+    $_->{'text_offset'}   = 0;
+    $_->{'screen_offset'} = <sdl.display_width>;
+} @{<ticker.content.work>};
+
+while ( @{<ticker.content.work>} ) {
+
+    # copy visible elements to screen
+    my $last_offset;
+    for my $index ( 0 .. scalar @{<ticker.content.work>} - 1 ) {
+        <ticker.current_frame>++;
+        my $element = <ticker.content.work>->[$index];
+        next if not defined $element->{'width'};
+
+        # calculate text slice width and position
+        $element->{'text_offset'} += <ticker.animation.steps>
+            if $element->{'screen_offset'} < 0;
+        $element->{'screen_offset'} -= <ticker.animation.steps>
+            if !$element->{'text_offset'};
+
+        # copy current text slice to screen
+        SDL::Video::blit_surface(
+            $element->{'surface'},
+            SDL::Rect->new(
+                $element->{'text_offset'},
+                0, <sdl.display_width> - $element->{'screen_offset'},
+                $element->{'height'}
+            ),
+            <sdl.display>,
+            SDL::Rect->new(
+                $element->{'screen_offset'},
+                <ticker.border_height> + <ticker.border_offset>,
+                <sdl.display_width> - $element->{'screen_offset'},
+                $element->{'height'}
+            )
+        );
+
+        last    # skip elements beyond the right screen border
+            if $element->{'screen_offset'}
+            + ( $element->{'width'} - $element->{'text_offset'} )
+            >= <sdl.display_width>;
+
+    }
+
+    # remove no longer visible elements
+    shift @{<ticker.content.work>}
+        if <ticker.content.work>->[0]->{'text_offset'}
+        >= <ticker.content.work>->[0]->{'width'};
+
+    # update screen ( try hardware blitting first )
+    if ( !<sdl.flip_failed> ) {
+        unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+            my $err_str = SDL::get_error() || $!;
+            my $err_str_brackets = length($err_str) ? " [ $err_str ]" : '';
+            warn "failed to swap buffers! (switching to software mode)"
+                . $err_str_brackets . "\n";
+            <sdl.flip_failed> = 1;
+        }
+    }
+
+    # if hardware blitting failed, try the software method
+    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+        <sdl.display_height> )
+        if <sdl.flip_failed>;
+
+    # check events to see if we need to exit
+    if ( <ticker.current_frame> >= <sdl.event_skip_frames> ) {
+        SDL::Events::pump_events();
+        if ( SDL::Events::poll_event(<sdl.event>) ) {
+            if ( <sdl.event>->type == <sdl.event_QUIT> ) {
+                exit;
+            }
+        }
+        <ticker.current_frame> = 0;
+    }
+
+    # pause to slow down
+    SDL::delay(<ticker.redraw_delay>) if <ticker.redraw_delay>;
+
+}
