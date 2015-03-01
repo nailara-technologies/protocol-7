@@ -25,7 +25,8 @@ return 0 if <xserver.initialized>;
 
 <xserver.connect_timeout> //= 7.7;
 <xserver.old_mode> = <xserver.mode>;
-my $mode = <xserver.mode>;
+my $mode   = <xserver.mode>;
+my $bg_col = <xserver.bg_color>;
 my $bin_name;
 my $server_bin;
 my $server_pid;
@@ -115,8 +116,6 @@ if ($ok) {
     die "failed to execute xset: $!" if $@;
     qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
     die "failed to execute xset: $!" if $@;
-    <xserver.initialized> = 1;
-    return 0;           # all ok
 } else {
     ( my $err_msg = $@ ) =~ s| at .+\n?$||;
     <[base.log]>->( 0, ": failed to connect to $bin_name-server.. [$err_msg]" );
@@ -127,3 +126,16 @@ if ($ok) {
     <[base.log]>->( 1, "done." );
     CORE::exit(3);
 }
+
+if ( defined $bg_col ) {
+    $bg_col = "#$bg_col" if $bg_col =~ /^[A-F]{6}$/;
+    <[base.log]>->( 1, "setting background color '$bg_col'.." );
+    X11::Protocol::XSetRoot->set_background(
+        X       => <xserver.x11>,
+        color   => $bg_col,
+        display => <xserver.display>->{$mode}
+    );
+}
+
+<xserver.initialized> = 1;
+return 0;    # all ok
