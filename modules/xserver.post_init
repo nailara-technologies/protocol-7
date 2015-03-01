@@ -111,11 +111,14 @@ if ( !$ok and <xserver.mode> eq 'host' ) {
 
 if ($ok) {
     <[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
-    <[base.log]>->( 1, ": deactivating screen blanking ..." );
-    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
-    die "failed to execute xset: $!" if $@;
-    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
-    die "failed to execute xset: $!" if $@;
+    if ( exists <xserver.disable_blanking>
+        and <xserver.disable_blanking> eq 'yes' ) {
+        <[base.log]>->( 1, ": deactivating screen blanking ..." );
+        qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
+        die "failed to execute xset: $!" if $@;
+        qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
+        die "failed to execute xset: $!" if $@;
+    }
 } else {
     ( my $err_msg = $@ ) =~ s| at .+\n?$||;
     <[base.log]>->( 0, ": failed to connect to $bin_name-server.. [$err_msg]" );
