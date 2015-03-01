@@ -7,20 +7,85 @@
 $ENV{'DISPLAY'} = <x11.display>;
 $ENV{'SDL_AUDIODRIVER'} = 'disk';    # <- disables ALSA permission warnings :)
 
-use SDL ':all';
-use SDLx::App;
-use SDLx::Text;
-use SDL::Mouse;
-use SDL::Event;
-use SDL::Video;
-use SDL::VideoInfo;
-use SDL::Surface;
-use SDL::Color;
+use SDL;
+use SDL::TTF;
 use SDL::Rect;
+use SDL::Event;
+use SDL::Events;
+use SDL::Video;
+use SDL::Color;
+use SDL::Mouse;
+use SDL::Surface;
+use SDL::VideoInfo;
+<sdl.event_QUIT> = SDL_QUIT;
+
+## configuration ##
+
+# applying setup defaults
+<ticker.display.position> //= 'bottom';      # [top|center|bottom]
+<ticker.font.name>        //= 'DroidSans';
+<ticker.font.size>        //= 84;
+<ticker.redraw_delay>     //= 5;
+<ticker.font.bold>        //= 0;
+<ticker.shadow.enabled>   //= 1;
+<ticker.shadow.offset>    //= 2;
+<ticker.border_offset>    //= 0;
+
+<ticker.animation.steps> = 1;
+<sdl.event_skip_frames>  = 5;
+
+# prepare colors to use for the ticker
+my $fg_col = SDL::Color->new( 0x00, 0x00, 0x00 );    # foreground
+my $bg_col = SDL::Color->new( 0xFF, 0xFF, 0xFF );    # background
+my $sh_col = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
+
+# the test text ...
+my $test_text = << '__EOT__'
+        The's'at katra k'tei i'k'therie -
+        In' k'tmneri a'nailara laikani'he.
+        The's'at katra - a'ri'nailara.
+    ^
+        Our Katra is a clear surface -
+        It reflects the universe in harmony.
+        Our Katra - the universe are one.
+__EOT__
+    ;
+
+# set up list of known fonts
+my @font_names = qw(
+    DroidSans
+    DroidSans-Bold
+    DroidSansMono
+    DroidSerif-Bold
+    DroidSerif-Regular
+);
 
 # init SDL
 <ticker.sdl> = SDL::init(SDL_INIT_VIDEO);
 SDL::Mouse::show_cursor(SDL_DISABLE);
+SDL::TTF::init();
+
+# adjust / add paths as needed.. (and install droid fonts or configure another)
+my $font_path;
+$font_path = '/usr/share/fonts/truetype/droid';           # debian
+$font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
+
+# check font name
+my $font_matched = 0;
+map { $font_matched = 1 if $_ eq <ticker.font.name> } @font_names;
+die "unknown font name '" . <ticker.font.name> . "' configured"
+    if !$font_matched;
+
+# determine font path (droid fonts need to be installed)
+die "font path not found" if !-d $font_path;
+$font_path .= '/' . <ticker.font.name> . '.ttf';
+
+# load the configured font
+my $font_obj = SDL::TTF::open_font( $font_path, <ticker.font.size> );
+die "Failed to open font " . SDL::get_error if !$font_obj;
+my $font_height    = SDL::TTF::font_height($font_obj);
+my $font_line_skip = SDL::TTF::font_line_skip($font_obj);
+<ticker.border_height> //= int( abs( SDL::TTF::font_descent($font_obj) ) / 2 );
 
 # determine screen size
 my $video_info = SDL::Video::get_video_info();
@@ -30,31 +95,131 @@ my $max_mode = shift(@modes);
 # store size parameters
 ( <x11.width>, <x11.height> ) = ( $max_mode->w, $max_mode->h );
 
-# initialize application window
-<sdl.app> = SDLx::App->new(
-    eoq    => 1,
-    width  => <x11.width>,
-    height => <ticker.window.height>
-);
+# calculate display size
+( <sdl.display_width>, <sdl.display_height> )
+    = ( $max_mode->w, $font_line_skip + ( <ticker.border_height> * 2 ) );
 
-# draw background ...
-<sdl.app>->draw_rect( [ 0, 0, <sdl.app>->w, <sdl.app>->h ], 0xffffffff );
+# set up position on the screen
+if ( <ticker.display.position> eq 'center' ) {
+    SDL::putenv("SDL_VIDEO_CENTERED=center");
+} else {
+    my $y_pos
+        = <ticker.display.position> eq 'top'
+        ? 0
+        : $max_mode->h - <sdl.display_height>;
+    SDL::putenv("SDL_VIDEO_WINDOW_POS=0,$y_pos");
+}
 
-#  redraw...
-#<sdl.app>->update;
+# prepare event handling
+<sdl.event> = SDL::Event->new();
 
-# font init ...
-#my $text = SDLx::Text->new(
-#    font   => <ticker.font.path>,
-#    color  => [ 0, 0, 0, 0 ],
-#    shadow => 1,
-#    size   => <ticker.font.size>,
-#    x      => 10,
-#    y      => 4
-#);
+# initialize SDL window
+<sdl.display>
+    = SDL::Video::set_video_mode( <sdl.display_width>, <sdl.display_height>, 32,
+    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC );
 
-# XXX: testing ...
-#$text->write_to( <sdl.app>, '< ticker text >' );
+my $m_bg_col    # prepare a mapped color for screen background
+    = SDL::Video::map_RGB( <sdl.display>->format(),
+    $bg_col->r, $bg_col->g, $bg_col->b );
 
-#  redraw...
-#<sdl.app>->update;
+# clear screen area
+SDL::Video::fill_rect( <sdl.display>,
+    SDL::Rect->new( 0, 0, <sdl.display_width>, <sdl.display_height> ),
+    $m_bg_col );
+unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+        <sdl.display_height> );
+}
+
+# cleanup whitespaces..
+my $scroll_text = $test_text;
+$scroll_text =~ s|\n| |g;
+$scroll_text =~ s| +| |g;
+$scroll_text =~ s/^\s+|\s+$//g;
+$scroll_text =~ s/\s*\^\s*/^/g;
+
+## preparing the text snipplet images in memory beforehand ##
+
+my @content;
+while ( $scroll_text =~ s/^((\S{1,23}\s*){1,5})// and my $string = $1 ) {
+
+    # $string will contain pieces of 1-5 words ( $string max. length: 92 bytes )
+
+    my ( $width, $height );
+
+    # use '^' chars to allow text to scroll out of screen before continueing ...
+    if ( $string =~ s|^(.+)(\^.*)|$1| ) {
+        $scroll_text = "$2$scroll_text";
+    } elsif ( $string =~ s|^\^|| ) {
+        $scroll_text = "$string$scroll_text";
+        ( $width, $height ) = ( <sdl.display_width>, $font_height );
+        $string = '';
+    }
+
+    # calculate text snipplet size
+    ( $width, $height ) = @{ SDL::TTF::size_text( $font_obj, $string ) }
+        if length($string);
+
+    # adjust surface size for shadow dimensions
+    if (<ticker.shadow.enabled>) {
+        $width  += <ticker.shadow.offset>;
+        $height += <ticker.shadow.offset>;
+    }
+
+    my $surface    # initialize text snipplet surface
+        = SDL::Surface->new( SDL_HWSURFACE, $width, $height, 32, 0, 0, 0, 0 );
+
+    # fill snipplet surface with background color
+    SDL::Video::fill_rect( $surface,
+        SDL::Rect->new( 0, 0, $width, $height ), $m_bg_col );
+
+    if ( length($string) ) {
+        if (<ticker.shadow.enabled>) {
+
+            # render text shadow (if configured)
+            my $text_shadow_surface
+                = SDL::TTF::render_utf8_blended( $font_obj, $string, $sh_col );
+
+            # copy shadow to text snipplet surface
+            SDL::Video::blit_surface(
+                $text_shadow_surface,
+                SDL::Rect->new( 0, 0, $width, $height ),
+                $surface,
+                SDL::Rect->new(
+                    <ticker.shadow.offset>, <ticker.shadow.offset>,
+                    $width,                 $height
+                ),
+            );
+        }
+
+        # render foreground text
+        my $text_surface
+            = SDL::TTF::render_utf8_blended( $font_obj, $string, $fg_col );
+
+        # copy foreground text to text snipplet surface
+        SDL::Video::blit_surface(
+            $text_surface, SDL::Rect->new( 0, 0, $width, $height ),
+            $surface,      SDL::Rect->new( 0, 0, $width, $height ),
+        );
+    }
+
+    # store text snipplet data
+    my $element = {
+        'surface' => $surface,
+        'height'  => $height,
+        'width'   => $width,
+        'text'    => $string,
+    };
+    push( @{<ticker.content.data>}, $element );
+}
+
+### ticker scroll animation ###
+
+<sdl.flip_failed> //= 0;
+<ticker.current_frame> = 0;
+<ticker.content.work>  = [];
+
+<[base.log]>->( 1, "starting ticker animation loop.." );
+
+# set up the animation loop (returns after one omplete pass to process events)
+Event->idle( cb => $code{'ticker.animation.loop_once'}, repeat => 1 );
