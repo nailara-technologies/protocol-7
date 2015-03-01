@@ -7,16 +7,13 @@ buffer.system.log_cmd = log.msg
 
 [load_config_file:'defaults']
 
-access.cmd.usr.core = help ping reload verify_instance * # <- XXX!
+access.cmd.usr.core = help ping reload verify_instance
 
-# arch linux
-ticker.font.path = '/usr/share/fonts/TTF/DroidSans-Bold.ttf'
+#                     known fonts:        DroidSans DroidSans-Bold DroidSansMono
+#                                         DroidSerif-Bold DroidSerif-Regular
+ticker.font.name = DroidSerif-Bold
+ticker.font.size = 84
 
-# debian
-#ticker.font.path = '/usr/share/fonts/truetype/droid/DroidSans-Bold.ttf'
-
-ticker.font.size = 44
-ticker.window.height = 64
 
 modules.load = auth net io.ip ticker debug
 [load_modules:<modules.load>]
@@ -27,10 +24,6 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 [base.x11.get_display]
-[ticker.display_init]
-[base.x11.get_window_id:'ticker']  #  <- refine pattern!
-[base.x11.set_gravity:'bottom']
-[ticker.window.draw]
+[ticker.fork_init]
 
-[base.get_session_id]
 [event.loop]

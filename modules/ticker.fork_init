@@ -1,0 +1,14 @@
+# >:]
+
+# name = ticker.fork_init
+
+<[base.log]>->( 1, "forking off ticker animation loop.." );
+
+if ( !fork ) {
+    delete $data{'buffer'};
+    <log.file.system.retry_timer>->cancel;
+    $data{'session'}{<user.core.session>}{'shutdown'} = 1;
+    <[ticker.display_init]>;
+} else {
+    <[base.get_session_id]>;
+}
