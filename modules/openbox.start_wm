@@ -1,0 +1,16 @@
+# >:]
+
+# name = openbox.start_wm
+# note = primitive implementation, improve error handing before production usage
+
+my $display  = <x11.display>;
+my $cfg_name = <openbox.config_name>;
+
+<[base.log]>->( 1, "starting openbox with $cfg_name-config..." );
+my $cfg_path = <system.conf_path> . '/openbox.' . $cfg_name . '.xml';
+die "fvwm config file '$cfg_path' not found!" if !-f $cfg_path;
+
+open( <openbox.out_fh>,
+          "DISPLAY=$display openbox "
+        . "--sm-disable --config-file $cfg_path 2>&1 |" )
+    or die $!;
