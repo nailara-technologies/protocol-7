@@ -5,7 +5,7 @@
 
 .: globals :.
 
-  agents.enabled = core log xserver unclutter openbox ticker
+  agents.enabled = core log xserver unclutter openbox composite ticker
 
 .: agents :.
 
@@ -49,6 +49,18 @@
         [base.auth.set_agent_key:'<{core.key}>']
 
   - unclutter
+
+      dependencies = core xserver
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
+ - composite
 
       dependencies = core xserver
 
@@ -110,7 +122,7 @@
 
   - ticker
 
-      dependencies = core xserver openbox
+      dependencies = core xserver openbox composite
 
       : root-init :
         start_mode = exec-sic
