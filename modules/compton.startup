@@ -1,0 +1,13 @@
+# >:]
+
+# name = compton.startup
+# note = primitive implementation, improve error handing before production usage
+
+my $display   = <x11.display>;
+my $idle_time = <unclutter.idle_time>;
+<[base.log]>->( 1, "starting compton on display $display .." );
+
+open( <compton.out_fh>,
+          "compton -d $display --shadow --shadow-offset-x=0 --no-dock-shadow "
+        . "--shadow-red 1 --shadow-green 1 --shadow-blue 1 2>&1 |" )
+    or die $!;
