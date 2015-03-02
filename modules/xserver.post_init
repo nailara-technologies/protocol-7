@@ -131,11 +131,12 @@ if ($ok) {
 }
 
 if ( defined $bg_col ) {
-    $bg_col = "#$bg_col" if $bg_col =~ /^[A-F]{6}$/;
+    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
     <[base.log]>->( 1, "setting background color '$bg_col'.." );
     X11::Protocol::XSetRoot->set_background(
         X       => <xserver.x11>,
         color   => $bg_col,
+#        pixmap  => <xserver.x11>->white_pixel, XXX: fix
         display => <xserver.display>->{$mode}
     );
 }
