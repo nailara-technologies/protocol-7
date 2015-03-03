@@ -3,14 +3,23 @@
 use strict;
 use warnings;
 
+use Glib;
 use Gtk2 -init;
 use Gtk2::WebKit;
+use Time::HiRes qw(sleep);
 use Glib qw/TRUE FALSE/;
 use Time::HiRes qw(sleep);
 use Data::Dumper qw(Dumper);
 
-my $fade = 1;
-$fade = 0 if @ARGV and $ARGV[0] eq '-nofade';
+my $do_fade      = 1;
+my $do_scroll    = 1;
+my $scroll_delay = 42;
+
+$do_fade = 0 if @ARGV and $ARGV[0] eq '-nofade';
+
+# init
+
+my $scroll_pos = 0;
 
 my $window = Gtk2::Window->new('toplevel');
 
@@ -18,7 +27,6 @@ $window->set_decorated(0);
 $window->set_border_width(0);
 
 $window->set_accept_focus(0);
-$window->set_has_frame(0);
 
 #$window->set_opacity(0.5);
 #$window->set_resizable(0);
@@ -54,12 +62,10 @@ __
 
 my $view = Gtk2::WebKit::WebView->new();
 
-$view->can_focus(0);
-
 #my $frame = $view->get_main_frame();
 #$frame->signal_connect( "scrollbars-policy-changed", sub { return TRUE } );
 
-my $scroll = Gtk2::ScrolledWindow->new();
+my $scr_win = Gtk2::ScrolledWindow->new();
 
 my @event_list = qw(
     button-press-event
@@ -83,18 +89,19 @@ $settings->set_property( 'enable-java-applet',                   FALSE );
 $settings->set_property( 'enable-fullscreen',                    FALSE );
 $settings->set_property( 'enable-page-cache',                    TRUE );
 $settings->set_property( 'enable-private-browsing',              TRUE );
-
+$settings->set_property( 'enable-smooth-scrolling',              TRUE );
 $view->set_settings($settings);
 
-#$scroll->set_default_size( 300, 200 );
-#$scroll->set_policy( 'GTK_POLICY_ALWAYS', 'GTK_POLICY_ALWAYS' );
-$scroll->add($view);
-$window->add($scroll);
+#$scr_win->set_default_size( 300, 200 );
+#$scr_win->set_policy( 'GTK_POLICY_ALWAYS', 'GTK_POLICY_ALWAYS' );
+$scr_win->add($view);
+$window->add($scr_win);
 
-#$scroll->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
+#$scr_win->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
 
 #$view->load_uri('http://nailara.de/');
 $view->load_uri('https://www.ccc.de/');
+
 #$view->load_uri('http://www.twc.de/');
 #$view->load_uri('https://www.startpage.com/');
 
@@ -114,7 +121,7 @@ $view->set_editable(0);
 
 my ( $size_x, $size_y ) = ( 1000, 584 );
 
-if ($fade) {
+if ($do_fade) {
     $window->set_opacity(0);
     $window->set_size_request( $size_x, $size_y );
     $window->set_resizable(0);
@@ -124,14 +131,14 @@ if ($fade) {
 
 my $reload     = 0;
 my $first_load = 1;
-my $faded_out  = $fade;
+my $faded_out  = $do_fade;
 
 $view->signal_connect(
     'notify::load-status' => sub {
         my $status = $view->get_load_status;
-        print "<$status>\n";
+        print "<load-status> $status\n";
         return unless $view->get_uri and $status eq 'finished';
-        if ( !$reload and $fade ) {
+        if ( !$reload and $do_fade ) {
             fade_in();
             $reload = 0;
         } elsif ($first_load) {
@@ -140,18 +147,10 @@ $view->signal_connect(
             $first_load = 0;
         }
 
+        scroll_start() if $do_scroll;
+
     }
 );
-
-my $scroll_pos = 0;
-
-Glib::Timeout->add( 33, \&scroll_handler,, 0 );
-
-#Glib::Idle->add( \&scroll_handler );
-
-#my $vbar = $scroll->get_vscrollbar();
-#$scroll->signal_connect(
-#    'ScrolledWindow::signal_edge_reached' => sub { print "EDGE REACHED\n" } );
 
 $window->set_default_size( 2, 2 );
 $window->show_all();
@@ -187,7 +186,7 @@ Glib::IO->add_watch(
             print "resizing to ${w}x${h} ..\n";
             $window->set_size_request( $w, $h );
         } elsif ( $cmd eq 'quit' ) {
-            if ($fade) {
+            if ($do_fade) {
                 fade_out('quit');
             } else {
                 Gtk2->main_quit();
@@ -196,7 +195,7 @@ Glib::IO->add_watch(
             print "loading url : '$cmd'\n";
             if ( defined($cmd) ) {
                 $reload = 0;
-                if ($fade) {
+                if ($do_fade) {
                     fade_out("load $cmd");
                 } else {
                     $view->load_uri($cmd);
@@ -208,10 +207,37 @@ Glib::IO->add_watch(
     $view
 );
 
+$| = 1;
+
 Gtk2->main;
 
+sub scroll_start {
+    $scroll_pos = 0;
+    Glib::Timeout->add( $scroll_delay, \&scroll_handler,, 0 );
+}
+
+sub scroll_handler {
+    my $vadj       = $scr_win->get_vadjustment();
+    my $scroll_max = $vadj->upper - $vadj->page_size;
+
+    if ( $scroll_pos < $scroll_max ) {
+        $scroll_pos++;
+
+        # testing..
+        fade_out() if $scroll_max - $scroll_pos == 23;
+
+        $vadj->set_value($scroll_pos);
+        $scr_win->set_vadjustment($vadj);
+        print " : pos : $scroll_pos / $scroll_max\r";
+        return 1;
+    } else {
+        print "\n[scroll_complete]\n";
+        return 0;
+    }
+}
+
 sub fade_in {
-    return if !$fade;
+    return if !$do_fade;
     my $opacity = 0;
     $opacity = 1 if !$faded_out;
     my $callback = sub {
@@ -226,7 +252,7 @@ sub fade_in {
 }
 
 sub fade_out {
-    return if !$fade;
+    return if !$do_fade;
     my $fade_cmd = shift || '';
     my $opacity = 1;
     $opacity = 0 if $faded_out;
