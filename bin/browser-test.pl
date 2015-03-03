@@ -95,9 +95,7 @@ $window->add($scroll);
 
 #$view->load_uri('http://nailara.de/');
 $view->load_uri('https://www.ccc.de/');
-
-#$view->load_uri('https://chaosradio.ccc.de/');
-
+#$view->load_uri('http://www.twc.de/');
 #$view->load_uri('https://www.startpage.com/');
 
 $view->set_editable(0);
@@ -145,6 +143,16 @@ $view->signal_connect(
     }
 );
 
+my $scroll_pos = 0;
+
+Glib::Timeout->add( 33, \&scroll_handler,, 0 );
+
+#Glib::Idle->add( \&scroll_handler );
+
+#my $vbar = $scroll->get_vscrollbar();
+#$scroll->signal_connect(
+#    'ScrolledWindow::signal_edge_reached' => sub { print "EDGE REACHED\n" } );
+
 $window->set_default_size( 2, 2 );
 $window->show_all();
 $window->set_default_size( 0, 0 );
@@ -170,6 +178,10 @@ Glib::IO->add_watch(
             my ( $x, $y ) = ( $1, $2 );
             print "moving to ${x}, ${y} ..\n";
             $window->move( $x, $y );
+        } elsif ( $cmd =~ /scale (\d+(\.\d+)?)/ ) {
+            my $factor = $1;
+            print "scale factor ${factor} ..\n";
+            $view->set_zoom_level($factor);
         } elsif ( $cmd =~ /resize (\d+) (\d+)/ ) {
             my ( $w, $h ) = ( $1, $2 );
             print "resizing to ${w}x${h} ..\n";
