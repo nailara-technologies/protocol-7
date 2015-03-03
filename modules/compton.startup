@@ -7,8 +7,14 @@ my $display   = <x11.display>;
 my $idle_time = <unclutter.idle_time>;
 <[base.log]>->( 1, "starting compton on display $display .." );
 
-open( <compton.out_fh>,
-          "compton -d $display --shadow --no-dock-shadow ".
-          "-t -18 -l -15 -r 10 -o 1 -c -C "
-        . "--shadow-red 1 --shadow-green 1 --shadow-blue 1 2>&1 |" )
-    or die $!;
+if (!open(
+        <compton.out_fh>,
+        "compton -d $display --shadow --no-dock-shadow "
+            . "-t -18 -l -15 -r 10 -o 1 -c -C "
+            . "--shadow-red 1 --shadow-green 1 --shadow-blue 1 2>&1 |"
+    )
+    ) {
+    <[base.log]>->(0, "[!] failed to start compton [$!]");
+    <[base.log]>->(1, " : aborting agent startup ..");
+    exit(1);
+}
