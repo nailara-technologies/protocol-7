@@ -4,7 +4,10 @@
 apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libio-all-perl libcrypt-cbc-perl libcrypt-openssl-random-perl\
   libcrypt-openssl-rsa-perl libproc-processtable-perl perl-tk\
-  libsdl-perl libtext-lorem-perl
+  libsdl-perl libtext-lorem-perl libevent-perl\
+  libcrypt-openssl-random-perl libproc-processtable-perl\
+  libglib-perl libgtk2-perl libterm-readpassword-perl\
+  libterm-readline-perl-perl libwebkitgtk-dev # <- Gtk2::WebKit
 
-# installs Crypt::Twofish2 (for which no package exists)
-cpanm install Crypt::Twofish2 X11::Tops
+# installs the rest from cpan
+cpanm install Crypt::Twofish2 X11::Tops Gtk2::WebKit
