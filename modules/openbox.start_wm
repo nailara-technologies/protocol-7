@@ -8,9 +8,18 @@ my $cfg_name = <openbox.config_name>;
 
 <[base.log]>->( 1, "starting openbox with $cfg_name-config..." );
 my $cfg_path = <system.conf_path> . '/openbox.' . $cfg_name . '.xml';
-die "fvwm config file '$cfg_path' not found!" if !-f $cfg_path;
-
-open( <openbox.out_fh>,
-          "DISPLAY=$display openbox "
-        . "--sm-disable --config-file $cfg_path 2>&1 |" )
-    or die $!;
+if ( !-f $cfg_path ) {
+    <[base.log]>->( 0, "openbox config file '$cfg_path' not found!" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+}
+$ENV{'DISPLAY'} = $display;
+if (!open(
+        <openbox.out_fh>,
+        "/usr/bin/openbox --sm-disable --config-file $cfg_path 2>&1 |"
+    )
+    ) {
+    <[base.log]>->( 0, "[!] failed to start openbox [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+}
