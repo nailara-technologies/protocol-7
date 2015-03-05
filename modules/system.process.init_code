@@ -1,0 +1,29 @@
+# >:]
+
+# name = system.process.init_code
+
+use Proc::ProcessTable;
+
+<process.table.top>   //= {};
+<process.count>       //= 0;
+<process.top_min.mem> //= 1;
+<process.top_min.cpu> //= 1;
+<system.process.pt>   //= new Proc::ProcessTable( 'cache_ttys' => 1 );
+
+<list.top> = {
+    'var'  => 'data',
+    'key'  => 'process.table.top',
+    'mask' => '<key>:pid state start:running_since'
+        . ' pctmem:%_MEM pctcpu:%_CPU fname:process',
+    'align' => {
+        'pid'    => 'center-1',
+        'state'  => 'center-2',
+        'start'  => 'right-2',
+        'pctmem' => 'right-5',
+        'pctcpu' => 'right-5',
+    },
+    'filters' => { 'start' => 'base.parser.duration' },
+    'descr'   => 'top process table'
+};
+
+0;

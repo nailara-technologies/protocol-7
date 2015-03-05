@@ -1,0 +1,24 @@
+# >:]
+
+# name = system.process.handler.collect_table
+
+<process.table.top> = {};
+<process.count>     = 0;
+<process.poll.last> = <[base.time]>->(2);
+
+foreach my $p ( @{ <system.process.pt>->table } ) {
+    <process.count>++;
+    ( my $cpu = $p->pctcpu ) =~ s/^ +//;
+    ( my $mem = $p->pctmem ) =~ s/^ +//;
+    $cpu = '----' if $cpu =~ /inf/;
+    $mem = '----' if $mem =~ /inf/;
+    <process.table.top>->{ $p->pid } = {
+        'fname'  => $p->fname,
+        'state'  => $p->state,
+        'start'  => $p->start,
+        'pctcpu' => $cpu,
+        'pctmem' => $mem,
+        }
+        if $p->pctcpu >= <process.top_min.cpu>
+        or $p->pctmem >= <process.top_min.mem>;
+}
