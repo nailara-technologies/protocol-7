@@ -10,4 +10,4 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libterm-readline-perl-perl libwebkitgtk-dev # <- Gtk2::WebKit
 
 # installs the rest from cpan
-cpanm install Crypt::Twofish2 X11::Tops Gtk2::WebKit
+cpanm Crypt::Twofish2 X11::Tops Gtk2::WebKit
