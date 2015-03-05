@@ -67,7 +67,7 @@ SDL::TTF::init();
 
 # adjust / add paths as needed.. (and install droid fonts or configure another)
 my $font_path;
-$font_path = '/usr/share/fonts/truetype/droid';           # debian
+$font_path = '/usr/share/fonts/truetype/droid';           # debian / ubuntu
 $font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
 
 # check font name
@@ -75,6 +75,8 @@ my $font_matched = 0;
 map { $font_matched = 1 if $_ eq <ticker.font.name> } @font_names;
 die "unknown font name '" . <ticker.font.name> . "' configured"
     if !$font_matched;
+
+<[base.log]>->( 1, "loading '" . <ticker.font.name> . "' font.." );
 
 # determine font path (droid fonts need to be installed)
 die "font path not found" if !-d $font_path;
@@ -114,6 +116,12 @@ if ( <ticker.display.position> eq 'center' ) {
 <sdl.event> = SDL::Event->new();
 
 # initialize SDL window
+<[base.log]>->(
+    1,
+    "initializing SDL display ( "
+        . <sdl.display_width> . " x "
+        . <sdl.display_height> . " )"
+);
 <sdl.display>
     = SDL::Video::set_video_mode( <sdl.display_width>, <sdl.display_height>, 32,
     SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC );
