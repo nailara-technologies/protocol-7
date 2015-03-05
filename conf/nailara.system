@@ -1,0 +1,26 @@
+
+  .:[ system monitor agent ]:.
+
+[set_privs:'nailara']
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping reload verify_instance list get_top_list \
+                      dump get set # debug commands
+
+process.top_min.mem = 1 # %
+process.top_min.cpu = 1 # %
+
+
+modules.load = auth net io.ip system debug
+[load_modules:<modules.load>]
+[init_modules]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+[base.get_session_id]
+
+[event.loop]
