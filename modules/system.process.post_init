@@ -1,0 +1,16 @@
+# >:]
+
+# name = system.process.post_init
+
+<process.poll.interval> //= 5;
+
+<system.process.status_timer>->cancel if exists <process.status_timer>;
+<system.process.status_timer> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => <process.poll.interval>,
+        'handler'  => 'system.process.handler.collect_table',
+        'repeat'   => 1
+    }
+);
+
+0;
