@@ -5,6 +5,7 @@
 <[base.log]>->( 1, "forking off ticker animation loop.." );
 
 if ( !fork ) {
+    $0 = 'ticker (SDL child)';
     delete $data{'buffer'};
     <log.file.system.retry_timer>->cancel;
     $data{'session'}{<user.core.session>}{'shutdown'} = 1;
