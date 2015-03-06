@@ -5,15 +5,34 @@
 <process.table.top> = {};
 <process.count>     = 0;
 <process.poll.last> = <[base.time]>->(2);
+<system.memory_alert.warned> //= 0;
 
 my $mem_used_percent = <[system.memory.used_percent]>;
+
+my $mem_limit_reached = 0;
+if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
+    $mem_limit_reached = 1;
+    my $reached = $mem_used_percent == <mem.max_used> ? 'reached' : 'exceeded';
+    my $warn_str
+        = "<!> WARNING <!> used memory $reached " . <mem.max_used> . "% limit!";
+    $warn_str .= " ( now $mem_used_percent% )" if $reached eq 'exceeded';
+    <[base.log]>->( 0, $warn_str ) if !<system.memory_alert.warned>;
+    <system.memory_alert.warned> = 1;
+} elsif (<system.memory_alert.warned>) {
+    <[base.log]>->(
+        1,
+        " : memory usage dropped below "
+            . <mem.max_used>
+            . "% limit ( now $mem_used_percent% )"
+    );
+    <system.memory_alert.warned> = 0;
+}
 
 foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
     ( my $cpu = $p->pctcpu ) =~ s/^ +//;
     ( my $mem = $p->pctmem ) =~ s/^ +//;
-    $cpu = '----' if $cpu =~ /inf/;
-    $mem = '----' if $mem =~ /inf/;
+    next if $cpu eq 'inf' or $mem eq 'inf';
     <process.table.top>->{ $p->pid } = {
         'fname'  => $p->fname,
         'state'  => $p->state,
@@ -23,4 +42,23 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
         }
         if $p->pctcpu >= <process.top_min.cpu>
         or $p->pctmem >= <process.top_min.mem>;
+}
+
+if ( $mem_limit_reached and <mem.kill_pig> ) {
+    foreach my $pid (
+        sort {
+            <process.table.top>->{$b}->{'pctmem'} <=>
+                <process.table.top>->{$a}->{'pctmem'}
+        } keys( %{<process.table.top>} )
+        ) {
+        my $process = <process.table.top>->{$pid};
+        <[base.log]>->(
+            0,
+            " :. killing memory pig ( PID $pid '"
+                . $process->{'fname'} . "' ) ["
+                . $process->{'pctmem'} . "%]"
+        );
+        <process.kill_child.w_fh>->print("$pid\n");
+        last;
+    }
 }
