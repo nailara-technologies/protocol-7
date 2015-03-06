@@ -6,6 +6,8 @@
 <process.count>     = 0;
 <process.poll.last> = <[base.time]>->(2);
 
+my $mem_used_percent = <[system.memory.used_percent]>;
+
 foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
     ( my $cpu = $p->pctcpu ) =~ s/^ +//;
