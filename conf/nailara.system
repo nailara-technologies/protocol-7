@@ -1,7 +1,6 @@
 
   .:[ system monitor agent ]:.
 
-[set_privs:'nailara']
 
 buffer.system.log_cmd = log.msg
 
@@ -14,10 +13,14 @@ access.cmd.usr.core = help ping reload verify_instance \
 process.top_min.mem = 1 # %
 process.top_min.cpu = 1 # %
 
+mem.max_used = 95 # %
+mem.kill_pig = 1 # whether to kill process w. most used memory on max_used limit
 
 modules.load = auth net io.ip system debug
 [load_modules:<modules.load>]
 [init_modules]
+
+[set_privs:'nailara']
 
 core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
 core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
