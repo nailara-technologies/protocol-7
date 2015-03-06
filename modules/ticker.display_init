@@ -126,6 +126,10 @@ if ( <ticker.display.position> eq 'center' ) {
     = SDL::Video::set_video_mode( <sdl.display_width>, <sdl.display_height>, 32,
     SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC );
 
+# set window title
+SDL::Video::wm_set_caption( <system.agent.name>,
+    <system.agent.name> . ' (minimized)' );
+
 my $m_bg_col    # prepare a mapped color for screen background
     = SDL::Video::map_RGB( <sdl.display>->format(),
     $bg_col->r, $bg_col->g, $bg_col->b );
