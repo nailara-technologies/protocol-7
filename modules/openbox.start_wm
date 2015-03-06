@@ -14,12 +14,20 @@ if ( !-f $cfg_path ) {
     exit(1);
 }
 $ENV{'DISPLAY'} = $display;
-if (!open(
-        <openbox.out_fh>,
-        "/usr/bin/openbox --sm-disable --config-file $cfg_path 2>&1 |"
-    )
-    ) {
+<child.openbox.pid> = open( my $out_fh,
+    "/usr/bin/openbox --sm-disable --config-file $cfg_path 2>&1 |" );
+if ( !<child.openbox.pid> ) {
     <[base.log]>->( 0, "[!] failed to start openbox [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 }
+<[base.log]>->(
+    1,
+    ": openbox started [pid=<child.openbox.pid>], registering output handler.."
+);
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => { 'bin' => 'openbox', 'pid' => <child.openbox.pid> }
+    }
+);
