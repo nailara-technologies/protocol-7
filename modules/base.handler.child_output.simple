@@ -1,0 +1,33 @@
+# >:]
+
+# name  = base.handler.child_output.simple
+# descr = reads output from child process, terminates agent if it dies
+
+<root.patterns.agent_output> //= {};
+
+my $event   = shift->w;
+my $read_fh = $event->fd;
+my $child   = $event->data;
+my $bin     = $child->{'bin'};
+my $pid     = $child->{'pid'};
+
+<child.output_buffer> //= '';
+
+if (sysread(
+        $read_fh, <child.output_buffer>,
+        4096,     length(<child.output_buffer>)
+    ) == 0    # ( filehandle has an exception )
+    ) {
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "$bin-child [PID:$pid] output filehandle closed." );
+    kill( 9, $pid );    # to make sure
+    <[base.log]>->( 0, "$bin-child died unexpectedly!" );
+    <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
+    CORE::exit(2);
+}
+
+while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    <[base.log]>->( 2, "< $bin > " . $output_line );
+}
