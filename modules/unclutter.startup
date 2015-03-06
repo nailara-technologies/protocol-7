@@ -7,6 +7,22 @@ my $display   = <x11.display>;
 my $idle_time = <unclutter.idle_time>;
 <[base.log]>->( 1, "starting unclutter on display $display .." );
 
-open( <unclutter.out_fh>,
-    "unclutter -display $display -root -noevents -idle $idle_time 2>&1 |" )
-    or die $!;
+<child.unclutter.pid> = open(
+    my $out_fh,
+    "/usr/bin/unclutter -display $display "
+        . "-root -noevents -idle $idle_time 2>&1 |"
+);
+if ( !<child.unclutter.pid> ) {
+    <[base.log]>->( 0, "[!] failed to start unclutter [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+}
+<[base.log]>->(
+    1, ": started [pid=<child.unclutter.pid>], registering output handler.."
+);
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => { 'bin' => 'unclutter', 'pid' => <child.unclutter.pid> }
+    }
+);
