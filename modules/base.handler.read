@@ -1,10 +1,11 @@
 # >:]
 
-# name       = base.handler.read
+# name  = base.handler.read
+# descr = session input handler
 
 my $id = $_[0]->w->data;
 
-if ( not defined $data{'session'}{$id} ) {
+if ( not defined $id or not defined $data{'session'}{$id} ) {
     $_[0]->w->cancel;
     <[base.log]>->(
         0,
