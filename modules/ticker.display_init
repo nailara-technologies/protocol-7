@@ -84,14 +84,16 @@ $font_path .= '/' . <ticker.font.name> . '.ttf';
 
 # load the configured font
 my $font_obj = SDL::TTF::open_font( $font_path, <ticker.font.size> );
-die "Failed to open font " . SDL::get_error if !$font_obj;
+die "failed to open font " . SDL::get_error . "]" if !$font_obj;
 my $font_height    = SDL::TTF::font_height($font_obj);
 my $font_line_skip = SDL::TTF::font_line_skip($font_obj);
 <ticker.border_height> //= int( abs( SDL::TTF::font_descent($font_obj) ) / 2 );
 
 # determine screen size
 my $video_info = SDL::Video::get_video_info();
-my @modes    = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
+die "failed to get video info [" . SDL::get_error . "]"
+    if not defined $video_info;
+my @modes = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
 my $max_mode = shift(@modes);
 
 # store size parameters
