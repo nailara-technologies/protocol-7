@@ -1,0 +1,15 @@
+# >:]
+
+# name  = base.renice
+# descr = change priority of current process
+
+my $prio = shift;
+die "base.renice: invalid priority '$prio' given!" if $prio !~ /^\-?\d{1,2}$/;
+
+<[base.log]>->( 1, "[PID $$] changing process priority ($prio)" );
+
+undef $!;
+my $ret = setpriority( 0, 0, $prio );
+<[base.log]>->( 0, "setpriority failed! ($!)" ) if defined $!;
+
+return $ret;
