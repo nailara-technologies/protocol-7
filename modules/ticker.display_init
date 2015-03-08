@@ -11,13 +11,11 @@ use SDL;
 use SDL::TTF;
 use SDL::Rect;
 use SDL::Event;
-use SDL::Events;
 use SDL::Video;
 use SDL::Color;
 use SDL::Mouse;
 use SDL::Surface;
 use SDL::VideoInfo;
-<sdl.event_QUIT> = SDL_QUIT;
 
 ## configuration ##
 
@@ -30,9 +28,7 @@ use SDL::VideoInfo;
 <ticker.shadow.enabled>   //= 1;
 <ticker.shadow.offset>    //= 2;
 <ticker.border_offset>    //= 0;
-
-<ticker.animation.steps> = 1;
-<sdl.event_skip_frames>  = 5;
+<ticker.animation.steps>  //= 1;
 
 # prepare colors to use for the ticker
 my $fg_col = SDL::Color->new( 0x00, 0x00, 0x00 );    # foreground
@@ -113,9 +109,6 @@ if ( <ticker.display.position> eq 'center' ) {
         : $max_mode->h - <sdl.display_height>;
     SDL::putenv("SDL_VIDEO_WINDOW_POS=0,$y_pos");
 }
-
-# prepare event handling
-<sdl.event> = SDL::Event->new();
 
 # initialize SDL window
 <[base.log]>->(
@@ -228,10 +221,6 @@ while ( $scroll_text =~ s/^((\S{1,23}\s*){1,5})// and my $string = $1 ) {
 }
 
 ### ticker scroll animation ###
-
-<sdl.flip_failed> //= 0;
-<ticker.current_frame> = 0;
-<ticker.content.work>  = [];
 
 <[base.log]>->( 1, "starting ticker animation loop.." );
 

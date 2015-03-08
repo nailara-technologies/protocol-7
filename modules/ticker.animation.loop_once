@@ -3,6 +3,9 @@
 # name  = ticker.animation.loop_once
 # descr = draw one complete pass of the ticker animation and return
 
+<sdl.flip_failed> //= 0;
+<ticker.content.work>  = [];
+
 @{<ticker.content.work>} = @{<ticker.content.data>} # create a working data copy
     if !@{<ticker.content.work>};
 
@@ -17,7 +20,6 @@ while ( @{<ticker.content.work>} ) {
     # copy visible elements to screen
     my $last_offset;
     for my $index ( 0 .. scalar @{<ticker.content.work>} - 1 ) {
-        <ticker.current_frame>++;
         my $element = <ticker.content.work>->[$index];
         next if not defined $element->{'width'};
 
@@ -71,17 +73,6 @@ while ( @{<ticker.content.work>} ) {
     SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
         <sdl.display_height> )
         if <sdl.flip_failed>;
-
-    # check events to see if we need to exit
-    if ( <ticker.current_frame> >= <sdl.event_skip_frames> ) {
-        SDL::Events::pump_events();
-        if ( SDL::Events::poll_event(<sdl.event>) ) {
-            if ( <sdl.event>->type == <sdl.event_QUIT> ) {
-                exit;
-            }
-        }
-        <ticker.current_frame> = 0;
-    }
 
     # pause to slow down
     SDL::delay(<ticker.redraw_delay>) if <ticker.redraw_delay>;
