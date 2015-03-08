@@ -40,7 +40,7 @@ if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
     warn "[!] found more than one matching window, please fix the name pattern!"
         if $lines > 1;
     <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
-    <[base.log]>->( 1, "received X window id '" . <x11.id> . "'.." );
+    <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
     return <x11.id>;
 } else {
     <[base.log]>->(

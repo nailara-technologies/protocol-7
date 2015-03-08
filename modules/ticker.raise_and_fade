@@ -1,0 +1,34 @@
+# >:]
+
+# name = ticker.raise_and_fade
+
+my $window_id = <ticker.window_id>;
+
+if ( not defined $window_id ) {
+    my $retries = 0;
+    while ( not defined $window_id and $retries++ < 10 ) {
+        $window_id = <[base.x11.get_window_id]>->('ticker');
+        <[base.sleep]>->(0.1) if not defined $window_id;
+    }
+    die "failed to get window id for ticker display" if not defined $window_id;
+    <ticker.window_id> = $window_id;
+}
+
+<[base.x11.set_window_opacity]>->( $window_id, 0 );
+
+unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+        <sdl.display_height> );
+}
+
+<[base.x11.raise_window]>->($window_id);
+<ticker.window.raised> = 1;
+
+unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+        <sdl.display_height> );
+}
+
+for my $opacity ( 1 .. 100 ) {
+    <[base.x11.set_window_opacity]>->( $window_id, $opacity );
+}
