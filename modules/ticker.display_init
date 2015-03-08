@@ -31,9 +31,9 @@ use SDL::VideoInfo;
 <ticker.animation.steps>  //= 1;
 
 # prepare colors to use for the ticker
-my $fg_col = SDL::Color->new( 0x00, 0x00, 0x00 );    # foreground
-my $bg_col = SDL::Color->new( 0xFF, 0xFF, 0xFF );    # background
-my $sh_col = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
+<ticker.col.fg> = SDL::Color->new( 0x00, 0x00, 0x00 );    # foreground
+<ticker.col.sh> = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
+my $bg_col = SDL::Color->new( 0xFF, 0xFF, 0xFF );         # background
 
 # the test text ...
 my $test_text = << '__EOT__'
@@ -79,11 +79,12 @@ die "font path not found" if !-d $font_path;
 $font_path .= '/' . <ticker.font.name> . '.ttf';
 
 # load the configured font
-my $font_obj = SDL::TTF::open_font( $font_path, <ticker.font.size> );
-die "failed to open font " . SDL::get_error . "]" if !$font_obj;
-my $font_height    = SDL::TTF::font_height($font_obj);
-my $font_line_skip = SDL::TTF::font_line_skip($font_obj);
-<ticker.border_height> //= int( abs( SDL::TTF::font_descent($font_obj) ) / 2 );
+<ticker.font.object> = SDL::TTF::open_font( $font_path, <ticker.font.size> );
+die "failed to open font " . SDL::get_error . "]" if !<ticker.font.object>;
+<ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
+my $font_line_skip = SDL::TTF::font_line_skip(<ticker.font.object>);
+<ticker.border_height>
+    //= int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
 
 # determine screen size
 my $video_info = SDL::Video::get_video_info();
@@ -117,108 +118,33 @@ if ( <ticker.display.position> eq 'center' ) {
         . <sdl.display_width> . " x "
         . <sdl.display_height> . " )"
 );
-<sdl.display>
-    = SDL::Video::set_video_mode( <sdl.display_width>, <sdl.display_height>, 32,
-    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC );
+<sdl.display> = SDL::Video::set_video_mode(
+    <sdl.display_width>,
+    <sdl.display_height>,
+    32,
+    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC
+        | SDL_ASYNCBLIT
+);
 
 # set window title
 SDL::Video::wm_set_caption( <system.agent.name>,
     <system.agent.name> . ' (minimized)' );
 
-my $m_bg_col    # prepare a mapped color for screen background
+<ticker.col.m_bg>    # prepare a mapped color for screen background
     = SDL::Video::map_RGB( <sdl.display>->format(),
     $bg_col->r, $bg_col->g, $bg_col->b );
 
 # clear screen area
 SDL::Video::fill_rect( <sdl.display>,
     SDL::Rect->new( 0, 0, <sdl.display_width>, <sdl.display_height> ),
-    $m_bg_col );
+    <ticker.col.m_bg> );
 unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
     SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
         <sdl.display_height> );
 }
 
-# cleanup whitespaces..
-my $scroll_text = $test_text;
-$scroll_text =~ s|\n| |g;
-$scroll_text =~ s| +| |g;
-$scroll_text =~ s/^\s+|\s+$//g;
-$scroll_text =~ s/\s*\^\s*/^/g;
-
-## preparing the text snipplet images in memory beforehand ##
-
-my @content;
-while ( $scroll_text =~ s/^((\S{1,23}\s*){1,5})// and my $string = $1 ) {
-
-    # $string will contain pieces of 1-5 words ( $string max. length: 92 bytes )
-
-    my ( $width, $height );
-
-    # use '^' chars to allow text to scroll out of screen before continueing ...
-    if ( $string =~ s|^(.+)(\^.*)|$1| ) {
-        $scroll_text = "$2$scroll_text";
-    } elsif ( $string =~ s|^\^|| ) {
-        $scroll_text = "$string$scroll_text";
-        ( $width, $height ) = ( <sdl.display_width>, $font_height );
-        $string = '';
-    }
-
-    # calculate text snipplet size
-    ( $width, $height ) = @{ SDL::TTF::size_text( $font_obj, $string ) }
-        if length($string);
-
-    # adjust surface size for shadow dimensions
-    if (<ticker.shadow.enabled>) {
-        $width  += <ticker.shadow.offset>;
-        $height += <ticker.shadow.offset>;
-    }
-
-    my $surface    # initialize text snipplet surface
-        = SDL::Surface->new( SDL_HWSURFACE, $width, $height, 32, 0, 0, 0, 0 );
-
-    # fill snipplet surface with background color
-    SDL::Video::fill_rect( $surface,
-        SDL::Rect->new( 0, 0, $width, $height ), $m_bg_col );
-
-    if ( length($string) ) {
-        if (<ticker.shadow.enabled>) {
-
-            # render text shadow (if configured)
-            my $text_shadow_surface
-                = SDL::TTF::render_utf8_blended( $font_obj, $string, $sh_col );
-
-            # copy shadow to text snipplet surface
-            SDL::Video::blit_surface(
-                $text_shadow_surface,
-                SDL::Rect->new( 0, 0, $width, $height ),
-                $surface,
-                SDL::Rect->new(
-                    <ticker.shadow.offset>, <ticker.shadow.offset>,
-                    $width,                 $height
-                ),
-            );
-        }
-
-        # render foreground text
-        my $text_surface
-            = SDL::TTF::render_utf8_blended( $font_obj, $string, $fg_col );
-
-        # copy foreground text to text snipplet surface
-        SDL::Video::blit_surface(
-            $text_surface, SDL::Rect->new( 0, 0, $width, $height ),
-            $surface,      SDL::Rect->new( 0, 0, $width, $height ),
-        );
-    }
-
-    # store text snipplet data
-    my $element = {
-        'surface' => $surface,
-        'height'  => $height,
-        'width'   => $width,
-        'text'    => $string,
-    };
-    push( @{<ticker.content.data>}, $element );
-}
+### prepare text snipplet images ###
+<[ticker.render_text]>->($test_text);
 
 ### ticker scroll animation ###
 
