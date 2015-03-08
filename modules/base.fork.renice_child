@@ -1,0 +1,27 @@
+# >:]
+
+# name = base.fork.renice_child
+
+<[base.log]>->( 1, "spawning renice child..." );
+
+<system.path.perl_bin> //= '/usr/bin/perl';
+
+eval 'use IPC::Open2';
+die $@ if $@;
+
+my $child_code
+    = '$0 = "renice child"; '
+    . 'setpriority( 0, $1, $2 ) if <STDIN> =~ /^(\d+) (\-?\d+)$/';
+
+$SIG{'CHLD'} = 'IGNORE';
+
+<process.renice_child.pid>
+    = open2( <process.renice_child.r_fh>, <process.renice_child.w_fh>,
+    <system.path.perl_bin>, '-e', $child_code )
+    || die "failed to spawn perl renice child process [$!]";
+
+<[base.log]>->(
+    1, ": child process started [pid=" . <process.renice_child.pid> . "]"
+);
+
+return <process.renice_child.w_fh>;
