@@ -16,19 +16,17 @@ if ( not defined $window_id ) {
 
 <[base.x11.set_window_opacity]>->( $window_id, 0 );
 
-unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
-    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
-        <sdl.display_height> );
-}
-
 <[base.x11.raise_window]>->($window_id);
 <ticker.window.raised> = 1;
 
-unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
-    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
-        <sdl.display_height> );
+for my $count ( 1 .. 4 ) {    # making sure white background is already drawn
+    unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+        SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+            <sdl.display_height> );
+    }
+    <[base.x11.set_window_opacity]>->( $window_id, $count );
 }
 
-for my $opacity ( 1 .. 100 ) {
+for my $opacity ( 5 .. 100 ) {
     <[base.x11.set_window_opacity]>->( $window_id, $opacity );
 }
