@@ -126,6 +126,10 @@ if ( <ticker.display.position> eq 'center' ) {
         | SDL_ASYNCBLIT
 );
 
+# hide ticker window (until we have rendered text)
+SDL::Video::wm_iconify_window();
+<ticker.window.raised> = 0;
+
 # set window title
 SDL::Video::wm_set_caption( <system.agent.name>,
     <system.agent.name> . ' (minimized)' );
