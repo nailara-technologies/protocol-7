@@ -72,6 +72,15 @@ foreach my $s_id (
             }
         } else {
 
+            if ( !<[agent.is_enabled]>->($dep_agent_name) ) {
+                <[base.log]>->(
+                    0,
+                    "<!> agent '$dep_agent_name' listed as dependency"
+                        . " but is not enabled!"
+                );
+                <[root.shutdown]>;
+            }
+
             # choosing first agent with such a name (for now)
             my $first_id = <[agent.get_id]>->($dep_agent_name);
             $object_id = <[agent.get_object_id]>->($first_id);
