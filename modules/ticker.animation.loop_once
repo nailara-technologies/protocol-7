@@ -4,7 +4,7 @@
 # descr = draw one complete pass of the ticker animation and return
 
 <sdl.flip_failed> //= 0;
-<ticker.content.work>  = [];
+<ticker.content.work> = [];
 
 @{<ticker.content.work>} = @{<ticker.content.data>} # create a working data copy
     if !@{<ticker.content.work>};
@@ -58,6 +58,9 @@ while ( @{<ticker.content.work>} ) {
         if <ticker.content.work>->[0]->{'text_offset'}
         >= <ticker.content.work>->[0]->{'width'};
 
+    # pause to slow down
+    SDL::delay(<ticker.redraw_delay>) if <ticker.redraw_delay>;
+
     # update screen ( try hardware blitting first )
     if ( !<sdl.flip_failed> ) {
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
@@ -69,12 +72,8 @@ while ( @{<ticker.content.work>} ) {
         }
     }
 
-    # if hardware blitting failed, try the software method
+    # in case hardware blitting failed, use the software method
     SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
         <sdl.display_height> )
         if <sdl.flip_failed>;
-
-    # pause to slow down
-    SDL::delay(<ticker.redraw_delay>) if <ticker.redraw_delay>;
-
 }
