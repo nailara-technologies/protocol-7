@@ -4,12 +4,18 @@
 
 <[base.log]>->( 1, "forking off ticker animation loop.." );
 
-if ( !fork ) {
-    $0 = 'ticker (SDL child)';
+if ( not <ticker.child.pid> = fork ) {
+    $0 = 'ticker child';
     delete $data{'buffer'};
     <log.file.system.retry_timer>->cancel;
     $data{'session'}{<user.core.session>}{'shutdown'} = 1;
     <[ticker.display_init]>;
 } else {
+    my $child_pid = <ticker.child.pid>;
+    my $prio      = -20;
+    <[base.log]>->(
+        1, "setting priority of ticker child (PID $child_pid) to $prio"
+    );
+    print {<ticker.child.renice_fh>} "$child_pid $prio\n";
     <[base.get_session_id]>;
 }
