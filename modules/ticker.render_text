@@ -1,0 +1,98 @@
+# >:]
+
+# name  = ticker.render_text
+# descr = prepare images of ticker text snipplets in memory
+
+my $scroll_text = shift;
+
+<ticker.content.data> = [];
+
+# cleanup whitespaces..
+$scroll_text =~ s|\n| |g;
+$scroll_text =~ s| +| |g;
+$scroll_text =~ s/^\s+|\s+$//g;
+$scroll_text =~ s/\s*\^\s*/^/g;
+
+## preparing the text snipplet images in memory beforehand ##
+
+my %cached;
+my @content;
+my $chars = ',\.\-:\[\]\?\!\"\<\>\(\)';
+while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})//
+    and my $string = $1 ) {
+    my ( $width, $height );
+
+    # use '^' chars to allow text to scroll out of screen before continueing ...
+    if ( $string eq '^' ) {
+        ( $width, $height ) = ( <sdl.display_width>, <ticker.font.height> );
+        $string = '';
+    }
+
+    # calculate text snipplet size
+    ( $width, $height )
+        = @{ SDL::TTF::size_text( <ticker.font.object>, $string ) }
+        if length($string);
+
+    # adjust surface size for shadow dimensions
+    if (<ticker.shadow.enabled>) {
+        $width  += <ticker.shadow.offset>;
+        $height += <ticker.shadow.offset>;
+    }
+
+    my $surface;
+    if ( exists $cached{$string} ) {
+        $surface = $cached{$string};    # use stored surface if rendered already
+    } else {
+
+        # initialize text snipplet surface
+        $surface = SDL::Surface->new( SDL_ASYNCBLIT | SDL_HWSURFACE,
+            $width, $height, 32, 0, 0, 0, 0 );
+
+        # fill snipplet surface with background color
+        SDL::Video::fill_rect( $surface,
+            SDL::Rect->new( 0, 0, $width, $height ),
+            <ticker.col.m_bg> );
+
+        if ( length($string) ) {
+            if (<ticker.shadow.enabled>) {
+
+                # render text shadow (if configured)
+                my $text_shadow_surface
+                    = SDL::TTF::render_utf8_blended( <ticker.font.object>,
+                    $string, <ticker.col.sh> );
+
+                # copy shadow to text snipplet surface
+                SDL::Video::blit_surface(
+                    $text_shadow_surface,
+                    SDL::Rect->new( 0, 0, $width, $height ),
+                    $surface,
+                    SDL::Rect->new(
+                        <ticker.shadow.offset>, <ticker.shadow.offset>,
+                        $width,                 $height
+                    ),
+                );
+            }
+
+            # render foreground text
+            my $text_surface
+                = SDL::TTF::render_utf8_blended( <ticker.font.object>, $string,
+                <ticker.col.fg> );
+
+            # copy foreground text to text snipplet surface
+            SDL::Video::blit_surface(
+                $text_surface, SDL::Rect->new( 0, 0, $width, $height ),
+                $surface,      SDL::Rect->new( 0, 0, $width, $height ),
+            );
+        }
+        $cached{$string} = $surface;
+    }
+
+    # store text snipplet data
+    my $element = {
+        'surface' => $surface,
+        'height'  => $height,
+        'width'   => $width,
+        'text'    => $string,
+    };
+    push( @{<ticker.content.data>}, $element );
+}
