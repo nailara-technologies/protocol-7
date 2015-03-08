@@ -10,6 +10,6 @@ die "base.renice: invalid priority '$prio' given!" if $prio !~ /^\-?\d{1,2}$/;
 
 undef $!;
 my $ret = setpriority( 0, 0, $prio );
-<[base.log]>->( 0, "setpriority failed! ($!)" ) if defined $!;
+<[base.log]>->( 0, "setpriority failed! ($!)" ) if defined $! and length($!);
 
 return $ret;
