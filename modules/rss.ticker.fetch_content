@@ -13,44 +13,27 @@ my $response = <rss.browser>->get($rss_url);
 if ( $response->code == 200 ) {
 
     <[base.log]>->( 2, ": got fresh RSS content..." );
-
-    open( my $rss_w_fh, '>' . <rss.ticker.content_path> )
-        or die "can't write to RSS content file [$!]";
-    binmode( $rss_w_fh, ':utf8' );
-    print {$rss_w_fh} $response->decoded_content;
-    close($rss_w_fh);
-    <[base.log]>->(
-        2, ": : wrote raw content '" . <rss.ticker.content_path> . "'"
-    );
-    open( my $rss_r_fh, '<' . <rss.ticker.content_path> )
-        or die "can't read from RSS content file [$!]";
-    my $feed = <rss.parser>->parse_file($rss_r_fh);
+    my $feed
+        = <rss.parser>
+        ->parse_string( encode( 'utf-8', $response->decoded_content ) );
+    die <rss.parser>->errstr if not defined $feed;
 
     my @txt_data;
     foreach my $item ( $feed->query('//item') ) {
         my $node = $item->query('title');
-        #        ( my $line = $node->text_content )
-        #            =~ s/([^[:ascii:]]+)/uuencode($1)/ge;
         my $line = $node->text_content;
         push( @txt_data, $line );
     }
+
     open( my $txt_fh, '>' . <rss.ticker.txt_data_path> )
         or die "can't write to TXT data file [$!]";
-#    binmode( $txt_fh, ':utf8' );
     print {$txt_fh} join( ' .:. ', @txt_data );
-    close($rss_r_fh);
     close($txt_fh);
 
     <[base.log]>->(
         2, ": : wrote txt data to '" . <rss.ticker.txt_data_path> . "'"
     );
 
-    unlink(<rss.ticker.content_path>);
-    <[base.log]>->(
-        2, ": : deleted temporary '" . <rss.ticker.content_path> . "'"
-    );
-
-    my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => 'core.' . <rss.ticker.update_command>,
             'call_args' => { 'args' => <rss.ticker.txt_data_path> },
