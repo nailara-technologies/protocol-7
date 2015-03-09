@@ -1,6 +1,6 @@
 # >:]
 
-# name = ticker.display_init
+# name = ticker.sdl.display_init
 
 <[base.log]>->( 1, "initializing ticker display..." );
 
@@ -35,18 +35,6 @@ use SDL::VideoInfo;
 <ticker.col.sh> = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
 my $bg_col = SDL::Color->new( 0xFF, 0xFF, 0xFF );         # background
 
-# the test text ...
-my $test_text = << '__EOT__'
-        The's'at katra k'tei i'k'therie -
-        In' k'tmneri a'nailara laikani'he.
-        The's'at katra - a'ri'nailara.
-    ^
-        Our Katra is a clear surface -
-        It reflects the universe in harmony.
-        Our Katra - the universe are one.
-__EOT__
-    ;
-
 # set up list of known fonts
 my @font_names = qw(
     DroidSans
@@ -77,6 +65,8 @@ die "unknown font name '" . <ticker.font.name> . "' configured"
 # determine font path (droid fonts need to be installed)
 die "font path not found" if !-d $font_path;
 $font_path .= '/' . <ticker.font.name> . '.ttf';
+
+<ticker.font.path> = $font_path;
 
 # load the configured font
 <ticker.font.object> = SDL::TTF::open_font( $font_path, <ticker.font.size> );
@@ -147,12 +137,3 @@ unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
         <sdl.display_height> );
 }
 
-### prepare text snipplet images ###
-<[ticker.render_text]>->($test_text);
-
-### ticker scroll animation ###
-
-<[base.log]>->( 1, "starting ticker animation loop.." );
-
-# set up the animation loop (returns after one omplete pass to process events)
-Event->idle( cb => $code{'ticker.animation.loop_once'}, repeat => 1 );

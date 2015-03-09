@@ -1,6 +1,6 @@
 # >:]
 
-# name  = ticker.render_text
+# name  = ticker.sdl.render_text
 # descr = prepare images of ticker text snipplets in memory
 
 my $scroll_text = shift;
@@ -17,7 +17,7 @@ $scroll_text =~ s/\s*\^\s*/^/g;
 
 my %cached;
 my @content;
-my $chars = ',\.\-:\[\]\?\!\"\<\>\(\)';
+my $chars = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
 while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})//
     and my $string = $1 ) {
     my ( $width, $height );
@@ -28,10 +28,16 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})//
         $string = '';
     }
 
+    #    print "string : '$string'\n";
+
     # calculate text snipplet size
-    ( $width, $height )
-        = @{ SDL::TTF::size_text( <ticker.font.object>, $string ) }
-        if length($string);
+    if ( length($string) ) {
+        my $aref = SDL::TTF::size_utf8( <ticker.font.object>, $string );
+        die "failed to calculate text snipplet size [" . SDL::get_error . "]"
+            if not defined $aref
+            or ref($aref) ne 'ARRAY';
+        ( $width, $height ) = @{$aref};
+    }
 
     # adjust surface size for shadow dimensions
     if (<ticker.shadow.enabled>) {
@@ -42,6 +48,8 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})//
     my $surface;
     if ( exists $cached{$string} ) {
         $surface = $cached{$string};    # use stored surface if rendered already
+
+        #print "CACHED!\n";
     } else {
 
         # initialize text snipplet surface
