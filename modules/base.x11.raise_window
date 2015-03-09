@@ -3,15 +3,19 @@
 # name = base.x11.raise_window
 
 my $id = shift;
+
+my $user     = shift || 'core';
+my $cmd_path = shift || '';
+$cmd_path .= '.' if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
-my ($local_session_id) = keys( %{<user.core.session>} );
+my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 1, "raising window '$id'.." );
 
 my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
 
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)xserver.raise_window $id\n" );
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.raise_window $id\n" );
 
 my $reply_string;
 my $matched_reply = 0;

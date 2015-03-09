@@ -1,0 +1,30 @@
+
+  .:[ rss ticker agent ]:.
+
+[set_privs:'nailara']
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help message ping reload verify_instance
+
+rss.data.tmp_path         = /tmp/
+rss.ticker.content_path   = /tmp/ticker-current.rss
+rss.ticker.txt_data_path  = /tmp/ticker-current.txt
+rss.ticker.update_command = ticker.read_file
+
+rss.ticker.content_url     = http://feeds.feedburner.com/TheHackersNews/
+#rss.ticker.content_url     = http://www.spiegel.de/schlagzeilen/tops/index.rss
+rss.ticker.update_interval = 120 # seconds
+
+modules.load = auth net io.ip rss.ticker
+[load_modules:<modules.load>]
+[init_modules]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+[base.get_session_id]
+
+[event.loop]

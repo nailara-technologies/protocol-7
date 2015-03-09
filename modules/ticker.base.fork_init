@@ -1,0 +1,65 @@
+# >:]
+
+# name = ticker.base.fork_init
+
+<[base.log]>->( 1, "forking off ticker animation loop.." );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+
+$data{'handle'}{$parent_pipe}{'mode'} = 'out';
+$data{'handle'}{$child_pipe}{'mode'}  = 'out';
+
+#<system.internal_verbosity> = 3;
+#<system.verbosity>          = 3;
+
+<ticker.child.pid> = fork;
+if ( !<ticker.child.pid> ) {
+    close($child_pipe);
+    $0 = 'ticker child';
+    <ticker.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+    close(<ticker.child.renice_fh>);
+    delete <ticker.child.renice_fh>;
+
+    ( my $session_id ) = keys( %{<user.core.session>} );
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    my $id
+        = <[base.session.init]>
+        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('ticker.sdl');
+    <[base.init_modules]>;
+
+    #    delete $data{'buffer'};
+
+    <[ticker.sdl.display_init]>;
+
+    <ticker.window_id>
+        = <[base.x11.get_window_id]>->( 'ticker', 'parent', 'core' );
+
+    <[ticker.sdl.raise_and_fade]>;
+
+} else {
+
+    close($parent_pipe);
+    <ticker.pipe.child> = $child_pipe;
+    delete <ticker.window_id>;
+    my $child_pid = <ticker.child.pid>;
+    my $prio      = -20;
+    <[base.log]>->(
+        1, "setting priority of ticker child (PID $child_pid) to $prio"
+    );
+    print {<ticker.child.renice_fh>} "$child_pid $prio\n";
+    delete <ticker.child.renice_fh>;
+
+    my $id
+        = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.get_session_id]>;
+}

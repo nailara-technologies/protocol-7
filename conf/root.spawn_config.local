@@ -5,7 +5,8 @@
 
 .: globals :.
 
-  agents.enabled = core log system xserver unclutter composite openbox ticker
+  agents.enabled = core log system xserver unclutter composite openbox ticker \
+                                                                   rss-ticker
 
 .: agents :.
 
@@ -135,6 +136,19 @@
   - ticker
 
       dependencies = core xserver openbox
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
+  - rss-ticker
+
+      dependencies = core ticker
+      ping.timeout = 42
 
       : root-init :
         start_mode = exec-sic

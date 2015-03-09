@@ -1,0 +1,25 @@
+# >:]
+
+# name = rss.ticker.init_code
+
+<rss.data.tmp_path> //= '/tmp';
+$ENV{'TIMINGBOTPATH'} = <rss.data.tmp_path>;
+die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
+    if !-d <rss.data.tmp_path>;
+
+use utf8;
+#use Text::Unidecode;
+#use Convert::UU qw(uudecode uuencode);
+use XML::RSS::TimingBot;
+use XML::RSS::Parser;
+
+( my $db_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
+if ( -d $db_dir ) {
+    <[base.log]>->( 1, ": removing rss database directory '$db_dir'" );
+    qx(rm -rf -- $db_dir);
+}
+
+<rss.browser> = XML::RSS::TimingBot->new;
+<rss.parser>  = XML::RSS::Parser->new;
+
+0;
