@@ -7,7 +7,11 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libsdl-perl libtext-lorem-perl libevent-perl\
   libcrypt-openssl-random-perl libproc-processtable-perl\
   libglib-perl libgtk2-perl libterm-readpassword-perl\
-  libterm-readline-perl-perl libwebkitgtk-dev # <- Gtk2::WebKit
+  libterm-readline-perl-perl\
+  libwebkitgtk-dev # <- Gtk2::WebKit
+  #libtext-unidecode-perl
+  #libconvert-uu-perl
 
 # installs the rest from cpan
-cpanm Crypt::Twofish2 X11::Tops Gtk2::WebKit
+cpanm Crypt::Twofish2 X11::Tops Gtk2::WebKit XML::RSS::TimingBot\
+      XML::RSS::Parser

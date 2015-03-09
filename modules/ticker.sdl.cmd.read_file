@@ -1,0 +1,29 @@
+# >:]
+
+# name  = ticker.sdl.cmd.read_file
+# param = <path>
+# descr = request ticker text update from specified file
+
+my $txt_file = $$call{'args'};
+
+if ( !-f $txt_file ) {
+    <[base.log]>->( 0, "read_file: file '$txt_file' not found!" );
+    return { 'mode' => 'nack', 'data' => 'file not found!' };
+}
+<[base.log]>->( 2, "initializing ticker with content from '$txt_file'" );
+
+my $txt_string = ${ <[file.slurp]>->($txt_file) };
+
+<[ticker.sdl.render_text]>->($txt_string);
+
+if ( not exists <ticker.idle_event.animation_loop> ) {
+    <[base.log]>->( 1, "starting ticker animation loop.." );
+
+  # set up the animation loop (returns after one omplete pass to process events)
+    <ticker.idle_event.animation_loop> = Event->idle(
+        cb     => $code{'ticker.sdl.animation.loop_once'},
+        repeat => 1
+    );
+}
+
+return { 'mode' => 'ack', 'data' => 'ticker text updated' }

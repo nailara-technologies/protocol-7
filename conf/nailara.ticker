@@ -9,7 +9,10 @@ ticker.child.renice_fh = [base.fork.renice_child]
 
 [load_config_file:'defaults']
 
-access.cmd.usr.core = help ping reload verify_instance
+access.cmd.usr.core = help ping reload verify_instance read_file
+
+access.cmd.usr.parent = read_file
+access.cmd.usr.child  = core.xserver.get_windows core.xserver.raise_window
 
 #                     known fonts:        DroidSans DroidSans-Bold DroidSansMono
 #                                         DroidSerif-Bold DroidSerif-Regular
@@ -17,7 +20,7 @@ ticker.font.name = DroidSerif-Bold
 ticker.font.size = 84
 
 
-modules.load = auth net io.ip ticker debug
+modules.load = auth net io.ip io.unix ticker.base
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -26,6 +29,6 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 [base.x11.get_display]
-[ticker.fork_init]
+[ticker.base.fork_init]
 
 [event.loop]

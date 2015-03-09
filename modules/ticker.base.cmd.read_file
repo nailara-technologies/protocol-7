@@ -1,0 +1,32 @@
+# >:]
+
+# name  = ticker.base.cmd.read_file
+# param = <path>
+# descr = update ticker child from file
+
+my $file_path = $$call{'args'};
+<ticker.request_pending.read_file> //= 0;
+
+if ( not defined $file_path or !length($file_path) ) {
+    return { 'mode' => 'nack', 'data' => 'expected valid file path!' };
+} elsif ( !-f $file_path ) {
+    <[base.log]>->( 0, "read_file: file '$file_path' not found!" );
+    return { 'mode' => 'nack', 'data' => 'file not found!' };
+}
+
+if ( !<ticker.request_pending.read_file> ) {
+    my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'child.read_file',
+            'call_args' => { 'args' => $file_path },
+            'reply'     => {
+                'handler' => 'ticker.base.handler.cmd_read_file',
+                'params'  => {}
+            }
+        }
+    );
+    <ticker.request_pending.read_file> = 1;
+    return { 'mode' => 'ack', 'data' => 'ticker update queued!' };
+} else {
+    return { 'mode' => 'nack', 'data' => 'request already pending..' };
+}
