@@ -2,22 +2,30 @@
 
 # name = base.x11.get_window_id
 
-my $name = shift;
+my $name     = shift;
+my $user     = shift || 'core';
+my $cmd_path = shift || '';
+$cmd_path .= '.' if length($cmd_path);
+
 die "expected window name parameter" if not defined $name or !length($name);
-my ($local_session_id) = keys( %{<user.core.session>} );
+my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 1, "requesting window id for '$name'.." );
 
 my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
 
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)xserver.get_windows $name\n" );
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.get_windows $name\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
-    die "core handle had an exception!" if not defined $reply_string;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+#    print "reply_string : '$reply_string'\n";
+
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
     if ( !$matched_reply ) {
         my $reply_cmd_id = $reply_string =~ /^\((\d+)\)/ ? "($1)" : '';

@@ -1,0 +1,10 @@
+# >:]
+
+# name  = ticker.base.handler.cmd_read_file
+# descr = handle read_file responses from ticker child
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'ACK' ) {    # success
+    <ticker.request_pending.read_file> = 0;
+}

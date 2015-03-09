@@ -1,0 +1,14 @@
+# >:]
+
+# name = rss.ticker.post_init
+
+<[event.add_timer]>->(
+    {   'after'    => 0.1,
+        'repeat'   => 1,
+        'interval' => <rss.ticker.update_interval> || 120,
+        'handler'  => 'rss.ticker.fetch_content',
+        'data'     => <rss.ticker.update_command>
+    }
+);
+
+0;
