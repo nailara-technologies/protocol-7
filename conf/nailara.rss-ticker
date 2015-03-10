@@ -10,14 +10,19 @@ buffer.system.log_cmd = log.msg
 access.cmd.usr.core = help message ping reload verify_instance
 
 rss.data.tmp_path         = /tmp/
-rss.ticker.txt_data_path  = /tmp/ticker-current.txt
 rss.ticker.update_command = ticker.read_file
 
-rss.ticker.content_url     = http://feeds.feedburner.com/TheHackersNews/
+# multiple feeds example
+rss.ticker.content_url.0   = http://feeds.feedburner.com/TheHackersNews/
+rss.ticker.content_url.1   = https://isc.sans.edu/newssummaryrss.xml
+rss.ticker.join_type       = mixed # [mixed|seperate]
+
+# single feed example
 #rss.ticker.content_url    = http://www.spiegel.de/schlagzeilen/tops/index.rss
+
 rss.ticker.update_interval = 120 # seconds
 
-modules.load = auth net io.ip rss.ticker
+modules.load = auth net io.ip digest rss.ticker
 [load_modules:<modules.load>]
 [init_modules]
 
