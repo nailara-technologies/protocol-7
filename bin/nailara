@@ -81,6 +81,19 @@ sub prepare_subs {
     $code{'base.sleep'} = \&{ $th_ref->[1] };
     undef $th_ref;
 
+    # override fork() to make rand() fork safe
+    $code{'base.fork'} = sub {
+        my $pid = CORE::fork;
+        if ( !$pid ) {
+            ( my $seed = $$ + $code{'base.time'}->(20) ) =~ s/\.//;
+            srand($seed);
+        }
+        return $pid;
+    };
+    no warnings 'once';
+    *CORE::GLOBAL::fork = $code{'base.fork'};
+    use warnings 'once';
+
     # basic subroutine definitions
 
     $code{'base.init_exec'} = sub {
