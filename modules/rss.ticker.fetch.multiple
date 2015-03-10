@@ -73,8 +73,8 @@ map {
     close($r_fh);
 } keys( %{$rss_url_ref} );
 
-open( my $txt_fh, '>' . $output_file )
-    or die "can't write to ticker data file '$output_file' [$!]";
+open( my $txt_fh, '>' . $output_file . '.NEW' )
+    or die "can't write to ticker data file '$output_file.NEW' [$!]";
 my @output_data;
 if ( $join_type eq 'mixed' ) {
     while ( keys(%txt_data) ) {
@@ -100,6 +100,8 @@ if ( $join_type eq 'mixed' ) {
     unlink($output_file);
     return -1;
 }
-
 close($txt_fh);
+move( $output_file . '.NEW', $output_file )
+    or die "can't move '$output_file.NEW' to '$output_file' [$!]";
+<[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
 return 1;
