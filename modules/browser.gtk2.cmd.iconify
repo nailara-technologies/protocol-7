@@ -1,0 +1,13 @@
+# >:]
+
+# name  = browser.gtk2.cmd.iconify
+# descr = iconify browser window
+
+my $window = <browser.gtk2.obj.window>;
+
+$window->iconify;
+
+<browser.loop_timer>->cancel;
+Event->unloop_all();
+
+return { 'mode' => 'ack', 'data' => 'window iconified' }

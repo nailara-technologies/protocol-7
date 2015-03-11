@@ -1,0 +1,23 @@
+# >:]
+
+# name  = browser.parent.cmd.load_url
+# param = <url>
+# descr = load specified URL in browser
+
+<browser.load_url.requested> //= 0;
+<browser.load_url.status>    //= 0;
+my $reply_id = $$call{'reply_id'};
+my $url      = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'expected URL parameter' }
+    if not defined $url
+    or !length($url);
+
+return { 'mode' => 'nack', 'data' => 'loading in progress..' }
+    if <browser.load_url.requested> > 0;
+
+<browser.load_url.reply_id>  = $reply_id;
+<browser.load_url.requested> = 1;
+<[browser.parent.load_url]>->($url);
+
+return { mode => 'later' };

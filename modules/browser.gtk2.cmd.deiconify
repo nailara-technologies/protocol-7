@@ -1,0 +1,13 @@
+# >:]
+
+# name  = browser.gtk2.cmd.deiconify
+# descr = iconify browser window
+
+my $window = <browser.gtk2.obj.window>;
+
+$window->deiconify;
+
+<browser.loop_timer>->cancel;
+Event->unloop_all();
+
+return { 'mode' => 'ack', 'data' => 'window deiconified' }

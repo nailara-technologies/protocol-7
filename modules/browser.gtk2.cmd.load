@@ -1,0 +1,45 @@
+# >:]
+
+# name  = browser.gtk2.cmd.load
+# param = [url]
+# descr = load given url
+# todo  = deal with new requests while previous one is loading (abort|deny)
+
+my $url      = $$call{'args'};
+my $reply_id = $$call{'reply_id'};
+my $view     = <browser.gtk2.obj.view>;
+
+return { 'mode' => 'nack', 'data' => "expected url parameter" }
+    if not defined $url
+    or !length($url);
+
+<browser.loop_timer>->cancel;
+Event->unloop_all();
+
+$url = "http://$url" if $url !~ /:/;
+<browser.error_page> //= 'about:blank';
+
+my $signal_id;
+$signal_id = $view->signal_connect(
+    'notify::load-status' => sub {
+        my $status = $view->get_load_status;
+
+        if ( $status eq 'finished' ) {
+            $view->signal_handler_disconnect($signal_id);
+            <[base.callback.cmd_reply]>->(
+                $reply_id, { 'mode' => 'ack', 'data' => 'finished loading' }
+            );
+        } elsif ( $status eq 'failed' ) {
+            $view->signal_handler_disconnect($signal_id);
+            <[base.callback.cmd_reply]>->(
+                $reply_id, { 'mode' => 'nack', 'data' => 'failed to load' }
+            );
+            Glib::Idle->add( sub { $view->open(<browser.error_page>); return 0 }
+            );
+        }
+    }
+);
+
+$view->load_uri($url);
+
+return { 'mode' => 'later' };
