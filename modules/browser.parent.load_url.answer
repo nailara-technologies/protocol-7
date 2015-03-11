@@ -1,0 +1,25 @@
+# >:]
+
+# name = browser.parent.load_url.answer
+
+my $params   = shift;
+my $status   = $params->{'params'}->{'status'};
+my $reply_id = <browser.load_url.reply_id>;
+
+if ( $params->{'cmd'} eq 'ACK' ) {
+    <browser.load_url.status> = ++$status;
+    <[browser.parent.load_url.status]>->($status);
+} else {
+    my $answer_str = $params->{'call_args'}->{'args'};
+    <[base.log]>->(
+        0, "load_url.answer: child command failed with '$answer_str'"
+    );
+    <browser.load_url.requested> = 0;
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nack',
+            'data' => "load_url failed [$answer_str]"
+        }
+    );
+    delete <browser.load_url.reply_id>;
+}

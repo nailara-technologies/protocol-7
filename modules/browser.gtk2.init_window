@@ -1,0 +1,96 @@
+# >:]
+
+# name = browser.gtk2.init_window
+
+my ( $instance_id, $geometry ) = @_;
+
+my ( $size_x, $size_y, $pos_x, $pos_y ) = (
+    <browser.default_size.x>,     <browser.default_size.y>,
+    <browser.default_position.x>, <browser.default_position.y>
+);
+( $size_x, $size_y, $pos_x, $pos_y ) = ( $1, $2, $4, $5 )
+    if defined $geometry
+    and $geometry =~ /^(\d+)x(\d+)(([\-\+]\d+)([\-\+]\d+))?$/;
+
+my $browser_root = '/tmp/.browser';
+mkdir($browser_root) if !-d $browser_root;
+chdir($browser_root);
+$ENV{'HOME'} = $browser_root;
+
+Gtk2->init;
+
+<browser.hide_scrollbars> //= 1;
+my $hide_scrollbars = <browser.hide_scrollbars>;
+
+my $title_str = 'browser';
+$title_str .= "-$instance_id" if defined $instance_id;
+
+my $window = Gtk2::Window->new('toplevel');
+<browser.gtk2.obj.window> = $window;
+
+$window->set_decorated(0);
+$window->set_border_width(0);
+$window->set_accept_focus(0);
+$window->set_resizable(0);
+$window->stick;
+
+$window->set_title($title_str);
+
+$window->signal_connect( destroy => sub { Gtk2->main_quit() } );
+
+<[browser.gtk2.hide_scrollbars]> if $hide_scrollbars;
+
+my $view = Gtk2::WebKit::WebView->new();
+<browser.gtk2.obj.view> = $view;
+$view->set_zoom_level(<browser.zoom_level>);
+my $scr_win = Gtk2::ScrolledWindow->new();
+<browser.gtk2.obj.scr_win> = $scr_win;
+
+$window->move( $pos_x, $pos_y ) if defined $pos_x and defined $pos_y;
+$scr_win->set_size_request( $size_x, $size_y )
+    if defined $size_x and defined $size_y;
+
+my @event_list = qw(
+    button-press-event
+    button-release-event
+    motion-notify-event
+);
+
+foreach my $sname (@event_list) {
+    $view->signal_connect( $sname, sub { return TRUE } );
+}
+
+<[browser.gtk2.set_properties]>->($view);
+
+#$scr_win->set_policy( 'GTK_POLICY_ALWAYS', 'GTK_POLICY_ALWAYS' );
+$scr_win->add($view);
+$window->add($scr_win);
+
+#$scr_win->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
+
+Event->unloop_all();
+
+<browser.event.loop_timeout> //= 0.042;
+
+my $debug = 0;
+
+Glib::Idle->add(
+    sub {
+        <browser.loop_timer> = Event->timer(
+            desc   => "Event::loop timeout",
+            after  => <browser.event.loop_timeout>,
+            cb     => sub { Event->unloop() },
+            prio   => -1,
+            repeat => 0
+        );
+        print "loop [" . ( ++<debug.loop_count> ) . "]  > enter\n" if $debug;
+        Event::loop();
+        print "loop [" . <debug.loop_count> . "] <  exit\n" if $debug;
+        return 1;
+    }
+);
+
+####################
+$window->show_all();
+
+Gtk2->main;

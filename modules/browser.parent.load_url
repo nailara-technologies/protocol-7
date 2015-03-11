@@ -1,0 +1,11 @@
+# >:]
+
+# name = browser.parent.load_url
+
+my $url = shift;
+$url = "http://$url" if $url !~ m|^\w+:|;
+
+<browser.fg_window> //= 1;
+<browser.bg_window> //= 2;
+
+<[browser.parent.load_url.status]>->( 1, $url );
