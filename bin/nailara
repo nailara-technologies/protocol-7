@@ -182,17 +182,17 @@ sub prepare_subs {
         if (   $data{'system'}{'verbosity'}
             && $data{'system'}{'start'}{'showbanner'} ) {
             print "..\n";
-            $code{'base.banner'}->("/usr/local/nailara/etc/.banner");
+            &{ $code{'base.banner'} };
         }
     };
 
     $code{'base.banner'} = sub {
 
         local $/ = undef;
-        open( my $banner_handle, $data{'system'}{'root_path'} . '/etc/.banner' )
+        open( my $banner_fh, $data{'system'}{'conf_path'} . '/.banner' )
             or return;
-        my $banner = <$banner_handle>;
-        close($banner_handle);
+        my $banner = <$banner_fh>;
+        close($banner_fh);
         $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
         print " : $ANSI{bold}$banner$ANSI{normal}\n :\n";
 
