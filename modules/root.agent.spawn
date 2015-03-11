@@ -6,7 +6,7 @@
 my $job_id      = $_[0]->{'job_id'};
 my $agent_name  = $_[0]->{'params'};
 my $sic_mode    = 0;
-my @exec_args   = ();
+my @exec_args   = qw( -nb );
 my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
 die "no agent name supplied" if not defined $agent_name;
 my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
