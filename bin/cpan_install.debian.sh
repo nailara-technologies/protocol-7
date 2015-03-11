@@ -7,7 +7,8 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libsdl-perl libtext-lorem-perl libevent-perl\
   libcrypt-openssl-random-perl libproc-processtable-perl\
   libglib-perl libgtk2-perl libterm-readpassword-perl\
-  libterm-readline-perl-perl\
+  libterm-readline-perl-perl libx11-protocol-perl\
+  libx11-protocol-other-perl\
   libwebkitgtk-dev # <- Gtk2::WebKit
   #libtext-unidecode-perl
   #libconvert-uu-perl
