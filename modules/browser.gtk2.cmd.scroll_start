@@ -1,0 +1,56 @@
+# >:]
+
+# name  = browser.gtk2.cmd.scroll_start
+# descr = automatically scroll down web page
+
+my $reply_id = $$call{'reply_id'};
+
+<browser.loop_timer>->cancel;
+Event->unloop_all();
+
+#<window.scroll_pos> = <browser.gtk2.obj.window>->get_opacity;
+<window.scrolling> //= 0;
+
+return { 'mode' => 'nack', 'data' => 'already scrolling' }
+    if <window.scrolling>;
+
+my $vadj = <browser.gtk2.obj.scr_win>->get_vadjustment();
+<window.scroll.pos>     = $vadj->get_value();
+<window.scroll.max>     = $vadj->upper - $vadj->page_size;
+<browser.gtk2.obj.vadj> = $vadj;
+<window.scroll.delay> //= 42;
+
+return { 'mode' => 'ack', 'data' => 'already at end of page' }
+    if <window.scroll.pos> >= <window.scroll.max>;
+
+Glib::Timeout->add(
+    <window.scroll.delay>,
+    sub {
+        my $vadj       = <browser.gtk2.obj.vadj>;
+        my $scroll_max = $vadj->upper - $vadj->page_size;
+        my $scroll_pos = $vadj->get_value();
+        <window.scroll.pos> = $scroll_pos;
+
+        if ( $scroll_pos < $scroll_max ) {
+            $scroll_pos++;
+
+            #            fade_out() if $scroll_max - $scroll_pos == 23;
+
+            $vadj->set_value($scroll_pos);
+            <browser.gtk2.obj.scr_win>->set_vadjustment($vadj);
+            return 1;
+        } else {
+            <window.scrolling> = 0;
+            <[base.callback.cmd_reply]>->(
+                $reply_id, { 'mode' => 'ack', 'data' => 'end of page reached' }
+            );
+            return 0;
+        }
+
+    },
+    ,
+    0
+);
+
+<window.scrolling> = 1;
+return { 'mode' => 'later' };
