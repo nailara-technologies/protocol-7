@@ -2,6 +2,7 @@
 
 # name  = system.memory.used_percent
 # descr = return ammount of used memory in percent
+# note  = XXX: not portable enough -> fix!
 
 my $proc_mem_path = '/proc/meminfo';
 my $free_bin_path = '/usr/bin/free';
@@ -17,7 +18,7 @@ if (<system.proc_mem_exists>) {
         || die("failed to open '$proc_mem_path'");
     while (<$mem_fh>) {
         $mem_total = $1 if /^MemTotal:\s+(\d+) kB$/;
-        $mem_avail = $1 if /^MemAvailable:\s+(\d+) kB$/;
+        $mem_avail = $1 if /^MemAvailable:\s+(\d+) kB$/; # not in ubuntu!
         last if defined $mem_total and defined $mem_avail;
     }
 } else {
@@ -26,7 +27,7 @@ if (<system.proc_mem_exists>) {
     open( $mem_fh, "$free_bin_path |" )
         || die "failed to execute '$free_bin_path' [$!]";
     while (<$mem_fh>) {
-        ( $mem_total, $mem_avail ) = ( $1, $6 )
+        ( $mem_total, $mem_avail ) = ( $1, $6 ) # not in debian / ubuntu!
             if /^Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/;
         last if defined $mem_total and defined $mem_avail;
     }
