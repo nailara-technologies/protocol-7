@@ -232,7 +232,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                 } else {
 
                     # route reply
-
+                    $$call_args{'args'} //= '[no reply data]';
                     $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
                         {'output'}
                         .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
@@ -326,13 +326,31 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                 my $reply
                     = &{ $code{ $data{'base'}{'cmd'}{$cmd} } }($call_args);
 
-                # check answer mode
+                # reply error check
 
                 if ( ref($reply) ne 'HASH' ) {
                     $reply          = {};
                     $$reply{'mode'} = 'nack';
-                    $$reply{'data'} = 'system error';
-                } elsif ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
+                    $$reply{'data'} = 'internal error (details in log!)';
+                    <[base.log]>->(
+                        0,
+                        'base.handler.command: $reply is not a hash reference!'
+                    );
+                } elsif ( not defined $$reply{'data'}
+                    or !length( $$reply{'data'} ) ) {
+                    $$reply{'mode'} = 'nack';
+                    $$reply{'data'} = 'internal error (details in log!)';
+                    <[base.log]>->(
+                        0,
+                        'base.handler.command: '
+                            . $$reply{'mode'}
+                            . '-reply without content (data)!'
+                    );
+                }
+
+                # check answer mode
+
+                if ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
                     $$reply{'data'} =~ s/\n/\\n/go;
                     $$output
                         .= $_cmd_id
@@ -367,8 +385,8 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
         #        not working yet..
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
-        if ( exists $data{'user'}{$1} and $data{'user'}{$1}{'mode'} eq 'link' )
-        {
+        if ( exists $data{'user'}{$1}
+            and $data{'user'}{$1}{'mode'} eq 'link' ) {
 
          #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
@@ -438,7 +456,8 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
 
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-            if ( <system.verbosity> >= 2 or <system.internal_verbosity> >= 2 ) {
+            if (   <system.verbosity> >= 2
+                or <system.internal_verbosity> >= 2 ) {
                 <[base.log]>->(
                     2,
                     "[$id] $data{'session'}{$id}{'user'}"
