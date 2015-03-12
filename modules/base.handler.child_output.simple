@@ -29,5 +29,5 @@ if (sysread(
 
 while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    <[base.log]>->( 2, "< $bin > " . $output_line );
+    <[base.log]>->( 0, "< $bin > " . $output_line );
 }
