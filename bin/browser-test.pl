@@ -11,6 +11,7 @@ use Glib qw/TRUE FALSE/;
 use Time::HiRes qw(sleep);
 use Data::Dumper qw(Dumper);
 
+my $url = shift || 'https://www.ccc.de/';
 my $do_fade      = 1;
 my $do_scroll    = 1;
 my $scroll_delay = 42;
@@ -100,7 +101,7 @@ $window->add($scr_win);
 #$scr_win->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
 
 #$view->load_uri('http://nailara.de/');
-$view->load_uri('https://www.ccc.de/');
+$view->load_uri($url);
 
 #$view->load_uri('http://www.twc.de/');
 #$view->load_uri('https://www.startpage.com/');
@@ -119,7 +120,8 @@ $view->set_editable(0);
 #};
 #alarm(4);
 
-my ( $size_x, $size_y ) = ( 1000, 584 );
+#my ( $size_x, $size_y ) = ( 1000, 584 );
+my ( $size_x, $size_y ) = ( 1000, 700 );
 
 if ($do_fade) {
     $window->set_opacity(0);
