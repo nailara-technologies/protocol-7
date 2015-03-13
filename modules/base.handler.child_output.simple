@@ -5,11 +5,12 @@
 
 <root.patterns.agent_output> //= {};
 
-my $event   = shift->w;
-my $read_fh = $event->fd;
-my $child   = $event->data;
-my $bin     = $child->{'bin'};
-my $pid     = $child->{'pid'};
+my $event     = shift->w;
+my $read_fh   = $event->fd;
+my $child     = $event->data;
+my $bin       = $child->{'bin'};
+my $pid       = $child->{'pid'};
+my $whitelist = $child->{'log_whitelist'} || [];
 
 <child.output_buffer> //= '';
 
@@ -29,5 +30,12 @@ if (sysread(
 
 while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    <[base.log]>->( 0, "< $bin > " . $output_line );
+    my $log_level   = 0;
+    for my $pattern ( @{$whitelist} ) {
+        if ( $output_line =~ /$pattern/ ) {
+            $log_level = 2;
+            last;
+        }
+    }
+    <[base.log]>->( $log_level, "< $bin > " . $output_line );
 }
