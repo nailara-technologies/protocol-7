@@ -1,6 +1,7 @@
 
   .:[ system monitor agent ]:.
 
+[set_privs:'nailara']
 
 buffer.system.log_cmd = log.msg
 
@@ -18,8 +19,6 @@ mem.kill_pig = 1 # whether to kill process w. most used memory on max_used limit
 modules.load = auth net io.ip system
 [load_modules:<modules.load>]
 [init_modules]
-
-[set_privs:'nailara']
 
 core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
 core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
