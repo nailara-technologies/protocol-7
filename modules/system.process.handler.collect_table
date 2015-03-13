@@ -7,7 +7,27 @@
 <process.poll.last> = <[base.time]>->(2);
 <system.memory_alert.warned> //= 0;
 
-my $mem_used_percent = <[system.memory.used_percent]>;
+my $mem_used_percent = 0;
+foreach my $p ( @{ <system.process.pt>->table } ) {
+    <process.count>++;
+    ( my $cpu = $p->pctcpu ) =~ s/^ +//;
+    ( my $mem = $p->pctmem ) =~ s/^ +//;
+    next if $cpu eq 'inf' or $mem eq 'inf';
+
+    $mem_used_percent += $mem;
+
+    <process.table.top>->{ $p->pid } = {
+        'fname'  => $p->fname,
+        'state'  => $p->state,
+        'start'  => $p->start,
+        'pctcpu' => $cpu,
+        'pctmem' => $mem,
+        }
+        if $p->pctcpu >= <process.top_min.cpu>
+        or $p->pctmem >= <process.top_min.mem>;
+}
+
+<system.mem.used_percent> = $mem_used_percent;
 
 my $mem_limit_reached = 0;
 if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
@@ -26,22 +46,6 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
             . "% limit ( now $mem_used_percent% )"
     );
     <system.memory_alert.warned> = 0;
-}
-
-foreach my $p ( @{ <system.process.pt>->table } ) {
-    <process.count>++;
-    ( my $cpu = $p->pctcpu ) =~ s/^ +//;
-    ( my $mem = $p->pctmem ) =~ s/^ +//;
-    next if $cpu eq 'inf' or $mem eq 'inf';
-    <process.table.top>->{ $p->pid } = {
-        'fname'  => $p->fname,
-        'state'  => $p->state,
-        'start'  => $p->start,
-        'pctcpu' => $cpu,
-        'pctmem' => $mem,
-        }
-        if $p->pctcpu >= <process.top_min.cpu>
-        or $p->pctmem >= <process.top_min.mem>;
 }
 
 if ( $mem_limit_reached and <mem.kill_pig> ) {
