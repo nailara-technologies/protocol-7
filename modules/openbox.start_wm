@@ -27,6 +27,10 @@ if ( !<child.openbox.pid> ) {
 <[event.add_io]>->(
     {   'fd'      => $out_fh,
         'handler' => 'base.handler.child_output.simple',
-        'data'    => { 'bin' => 'openbox', 'pid' => <child.openbox.pid> }
+        'data'    => {
+            'bin'           => 'openbox',
+            'pid'           => <child.openbox.pid>,
+            'log_whitelist' => ['Xinerama']
+        }
     }
 );
