@@ -5,6 +5,10 @@
 my $window_id = <ticker.window_id>;
 die "got no window id for ticker display" if not defined $window_id;
 
+<ticker.opacity> //= 100;
+<ticker.opacity> = 6   if <ticker.opacity> < 6;
+<ticker.opacity> = 100 if <ticker.opacity> > 100;
+
 <[base.x11.set_window_opacity]>->( $window_id, 0 );
 
 <[base.x11.raise_window]>->( $window_id, 'parent', 'core' );
@@ -18,6 +22,6 @@ for my $count ( 1 .. 4 ) {    # making sure white background is already drawn
     <[base.x11.set_window_opacity]>->( $window_id, $count );
 }
 
-for my $opacity ( 5 .. 100 ) {
+for my $opacity ( 5 .. <ticker.opacity> ) {
     <[base.x11.set_window_opacity]>->( $window_id, $opacity );
 }
