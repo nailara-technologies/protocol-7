@@ -98,8 +98,9 @@ my $font_line_skip = SDL::TTF::font_line_skip($font_obj);
 my $border_height  = int( abs( SDL::TTF::font_descent($font_obj) ) / 2 );
 
 # determine screen size
-my $video_info = SDL::Video::get_video_info();
-my @modes    = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
+my $video_info = SDL::Video::get_video_info()
+    or die "Failed to get video info: " . SDL::get_error;
+my @modes = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
 my $max_mode = shift(@modes);
 my ( $screen_width, $screen_height )
     = ( $max_mode->w, $font_line_skip + ( $border_height * 2 ) );
@@ -116,8 +117,10 @@ if ( $ticker_position eq 'center' ) {
 my $event = SDL::Event->new();
 
 # initialize SDL window
-my $display = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
-    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC );
+my $display
+    = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
+    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC )
+    or die SDL::get_error();
 
 my $m_bg_col    # prepare a mapped color for screen background
     = SDL::Video::map_RGB( $display->format(), $bg_col->r, $bg_col->g,
