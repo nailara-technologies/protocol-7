@@ -12,13 +12,19 @@ my $output_file = <rss.ticker.txt_data_path>;
 my $join_type = <rss.ticker.join_type>;
 $join_type //= 'mixed';
 my $seperator = '.:.';
+<rss.ticker.cache_timeout> //= 3;    # 3 hours default timeout for cached feeds
 
 my @urls;
 map { push( @urls, $rss_url_ref->{$_} ) } keys( %{$rss_url_ref} );
-die "no urls set up (referenced hash is empty)" if !@urls;
-
+if ( !@urls ) {
+    <[base.log]>->(
+        0, "<!> WARNING: no RSS-urls set up (referenced hash is empty)"
+    );
+    return;
+}
 <[base.log]>->( 2, "checking RSS feeds for new data..." );
 
+my %failed;
 my $got_updates = 0;
 
 foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
@@ -46,9 +52,12 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $url_data_file .= "$data_dir/$url_hash.txt";
         open( my $txt_fh, '>' . $url_data_file )
             or die "can't write to feed data file [$!]";
-        print {$txt_fh} join( "\n", @txt_data ) . "\n";
+        {
+            no warnings 'utf8';
+            print {$txt_fh} join( "\n", @txt_data ) . "\n";
+        }
         close($txt_fh);
-        $got_updates = 1;
+        $got_updates++;
         <[base.log]>->( 2, ": : wrote txt data to '$url_data_file'" );
         <rss.browser>->commit;
 
@@ -56,22 +65,57 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         <[base.log]>->( 2, ": no new content since last request" );
     } else {
         <[base.log]>->(
-            0, "failed to access RSS url '$rss_url' (",
-            $response->status_line, ")"
+            0,
+            "failed to access RSS url '$rss_url' ("
+                . $response->status_line . ")"
         );
+        $failed{$rss_url} = 1;
     }
 }
-return 0 if !$got_updates;
+return 0 if !$got_updates and !keys(%failed);
 my %txt_data;
-map {
-    my $rss_url  = $rss_url_ref->{$_};
+my $feed_data_count = 0;
+foreach my $index ( keys( %{$rss_url_ref} ) ) {
+    my $rss_url  = $rss_url_ref->{$index};
     my $url_hash = <[digest.sha1]>->($rss_url);
     my $url_data_file .= "$data_dir/$url_hash.txt";
+
+    if ( !-f $url_data_file ) {
+        <[base.log]>->(
+            0, "no cached version of feed #$index present.. skipping.."
+        );
+        next;
+    }
+
+    if ( $failed{$rss_url} ) {
+        my ($dev,  $ino,   $mode,  $nlink, $uid,     $gid, $rdev,
+            $size, $atime, $mtime, $ctime, $blksize, $blocks
+        ) = stat($url_data_file);
+        my $file_age = sprintf( "%.2f", ( time() - $ctime ) / 3600 );
+
+        if ( $file_age >= <rss.ticker.cache_timeout> ) {
+            <[base.log]>->(
+                0,
+                "cached version of feed #$index has timed out ($file_age hours)"
+            );
+            unlink($url_data_file);
+            next;
+        } else {
+            <[base.log]>->(
+                1, "using cached version of feed #$index ($file_age hours old)"
+            );
+        }
+    }
+
     open( my $r_fh, '<' . $url_data_file )
         or die "can't open feed data file '$url_data_file'! [$!]";
-    @{ $txt_data{$_} } = <$r_fh>;
+    @{ $txt_data{$index} } = <$r_fh>;
     close($r_fh);
-} keys( %{$rss_url_ref} );
+    $feed_data_count++;
+}
+
+<[base.log]>->( 0, "<!> WARNING: no feed data available, ticker file empty!" )
+    if !$feed_data_count;
 
 open( my $txt_fh, '>' . $output_file . '.NEW' )
     or die "can't write to ticker data file '$output_file.NEW' [$!]";
