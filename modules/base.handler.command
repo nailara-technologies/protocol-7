@@ -321,10 +321,35 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
             if ( exists $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
+                # prepare reply id (used in mode 'later')
+
+                <base.cmd_reply> //= {};
+                my $reply_id = <[base.gen_id]>->(<base.cmd_reply>);
+                <base.cmd_reply>->{$reply_id} = {
+                    'cmd'        => $cmd,
+                    'cmd_id'     => $cmd_id,
+                    'output_fh'  => $output,
+                    'session_id' => $id
+                };
+                $call_args->{'reply_id'} = $reply_id;
+
                 # call command handler
 
                 my $reply
                     = &{ $code{ $data{'base'}{'cmd'}{$cmd} } }($call_args);
+
+                # replying later...
+
+                if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'later' ) {
+
+                    <[base.log]>->(
+                        2, "setting up async reply for reply-id $reply_id"
+                    );
+
+                    # XXX: set up reply timeout?
+                    return 0;
+                }
+                delete <base.cmd_reply>->{$reply_id};
 
                 # reply error check
 
