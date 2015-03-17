@@ -1,0 +1,62 @@
+# >:]
+
+# name  = base.callback.cmd_reply
+# descr = callback to reply later (asynchronously) to local commands
+
+my ( $reply_id, $reply ) = @_;
+
+die "expected numerical reply_id"
+    if @_ != 2
+    or not defined $reply_id
+    or $reply_id !~ /^\d+$/;
+
+warn "expected reply data hash reference"
+    if not defined $reply
+    or ref($reply) ne 'HASH';
+
+die "no command meta data set up for id '$reply_id'"
+    if not exists <base.cmd_reply>->{$reply_id};
+
+my $meta_data  = <base.cmd_reply>->{$reply_id};
+my $cmd_id     = $meta_data->{'cmd_id'};
+my $output     = $meta_data->{'output_fh'};
+my $session_id = $meta_data->{'session_id'};
+
+my $_cmd_id = '';
+if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
+
+# reply data error check
+
+if ( not defined $reply or ref($reply) ne 'HASH' ) {
+    $reply          = {};
+    $$reply{'mode'} = 'nack';
+    $$reply{'data'} = 'internal error (details in log!)';
+    <[base.log]>
+        ->( 0, 'base.handler.command: $reply is not a hash reference!' );
+} elsif ( not defined $$reply{'data'}
+    or !length( $$reply{'data'} ) ) {
+    $$reply{'mode'} = 'nack';
+    $$reply{'data'} = 'internal error (details in log!)';
+    <[base.log]>->(
+        0,
+        'base.handler.command: '
+            . $$reply{'mode'}
+            . '-reply without content (data)!'
+    );
+}
+
+# check answer mode
+
+if ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
+    $$reply{'data'} =~ s/\n/\\n/go;
+    $$output .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
+} elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
+    my $len = length( $$reply{'data'} );
+    $$output .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
+} elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
+    <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
+}
+
+# clean up
+
+delete <base.cmd_reply>->{$reply_id};
