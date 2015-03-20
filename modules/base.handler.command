@@ -189,7 +189,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
-if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
+if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
     if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
@@ -302,7 +302,7 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
             }
         }
     } else {
-        <[base.log]>->( 1, "[$id] reply to unknown route id, ignored." );
+        <[base.log]>->( 1, "[$id] $cmd-reply to unknown route id, ignored." );
         return 1;
     }
 
@@ -361,8 +361,11 @@ if ( $cmd =~ /^N?ACK$|^WAIT$|^RAW$|^GET$|^STRM$/ ) {
                         0,
                         'base.handler.command: $reply is not a hash reference!'
                     );
-                } elsif ( not defined $$reply{'data'}
-                    or !length( $$reply{'data'} ) ) {
+                } elsif (
+                    $$reply{'mode'} ne 'raw'
+                    and ( not defined $$reply{'data'}
+                        or !length( $$reply{'data'} ) )
+                    ) {
                     $$reply{'mode'} = 'nack';
                     $$reply{'data'} = 'internal error (details in log!)';
                     <[base.log]>->(
