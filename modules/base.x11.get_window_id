@@ -10,9 +10,9 @@ $cmd_path .= '.' if length($cmd_path);
 die "expected window name parameter" if not defined $name or !length($name);
 my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 1, "requesting window id for '$name'.." );
+<[base.log]>->( 2, "requesting window id for '$name'.." );
 
-my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
 <[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.get_windows $name\n" );
@@ -24,7 +24,7 @@ while ( !$matched_reply ) {
     die "core handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-#    print "reply_string : '$reply_string'\n";
+    #    print "reply_string : '$reply_string'\n";
 
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
     if ( !$matched_reply ) {
@@ -36,6 +36,10 @@ while ( !$matched_reply ) {
 if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
     my $buffer_string = '';
     my $bytes_to_go   = $1;
+    if ( !$bytes_to_go ) {
+        <[base.log]>->( 2, ": no window id found for \"$name\" [!]" );
+        return undef;
+    }
     while ($bytes_to_go) {
         my $read_bytes = read( $core_fh, $buffer_string, $bytes_to_go,
             length($buffer_string) );
@@ -48,7 +52,7 @@ if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
     warn "[!] found more than one matching window, please fix the name pattern!"
         if $lines > 1;
     <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
-    <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
+    <[base.log]>->( 2, ": received X window id '" . <x11.id> . "'.." );
     return <x11.id>;
 } else {
     <[base.log]>->(
