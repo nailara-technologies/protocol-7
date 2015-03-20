@@ -24,8 +24,9 @@ while ( !$matched_reply ) {
     die "core handle had an exception!" if not defined $reply_string;
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(N?ACK) /;
     if ( !$matched_reply ) {
-        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)/ ? "($1)" : '';
-        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" );
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
+            if uc($2) ne $2;
     }
 }
 
