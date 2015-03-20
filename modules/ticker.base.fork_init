@@ -32,7 +32,7 @@ if ( !<ticker.child.pid> ) {
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.load_modules]>->('ticker.sdl');
-    <[base.init_modules]>;
+    <[base.init_modules]>->('ticker.sdl');
 
     #    delete $data{'buffer'};
 
@@ -47,7 +47,6 @@ if ( !<ticker.child.pid> ) {
 
     close($parent_pipe);
     <ticker.pipe.child> = $child_pipe;
-    delete <ticker.window_id>;
     my $child_pid = <ticker.child.pid>;
     my $prio      = -20;
     <[base.log]>->(
