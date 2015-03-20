@@ -5,7 +5,6 @@
 # descr = return list of active windows
 
 my $title_pattern = $$call{'args'};
-$title_pattern //= '.*';
 
 my $xtops = <xserver.x11_tops>;
 $xtops->update;
@@ -14,8 +13,9 @@ my $reply_str;
 my @window_list;
 for my $win ( @{ $xtops->sorted } ) {
     $reply_str .= join( ' ', $win->id, $win->title ) . "\n"
-        if $win->instance =~ m/$title_pattern/i
-        or $win->title =~ m/$title_pattern/i;
+        if not defined $title_pattern
+        or index( $win->instance, $title_pattern ) != -1
+        or index( $win->title,    $title_pattern ) != -1;
 }
 $reply_str //= '';
 return {
