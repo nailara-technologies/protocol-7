@@ -24,6 +24,8 @@ if ( $new_status == 1 ) {
     <browser.slideshow.url_index> = 0
         if <browser.slideshow.url_index> >= $url_count;
     my $next_url = $url_ref->[<browser.slideshow.url_index>];
+    <browser.slideshow.current_url_index> = <browser.slideshow.url_index>;
+    <browser.slideshow.current_url>       = $next_url;
 
     <browser.slideshow.url_index>++;
     <[base.proto.nailara.command.send.local]>->(

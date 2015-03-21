@@ -2,24 +2,19 @@
 
 # name = browser.parent.handler.url_slideshow.answer
 
-my $params   = shift;
-my $status   = $params->{'params'}->{'status'};
-my $reply_id = <browser.url_slideshow.reply_id>;
+my $params = shift;
+my $status = $params->{'params'}->{'status'};
 
-if ( $params->{'cmd'} eq 'ACK' ) {
-    <browser.url_slideshow.status> = ++$status;
-    <[browser.parent.handler.url_slideshow.status]>->($status);
-} else {
+if ( $params->{'cmd'} eq 'NACK' ) {
     my $answer_str = $params->{'call_args'}->{'args'};
-    <[base.log]>->(
-        0, "url_slideshow.answer: child command failed with '$answer_str'"
-    );
-    <browser.url_slideshow.requested> = 0;
-    <[base.callback.cmd_reply]>->(
-        $reply_id,
-        {   'mode' => 'nack',
-            'data' => "url_slideshow failed [$answer_str]"
-        }
-    );
-    delete <browser.url_slideshow.reply_id>;
+    my $msg_str
+        = "url_slideshow.answer[at step $status]:"
+        . " child command failed with '$answer_str'";
+    $msg_str = sprintf( "[!] slide show failed to load URL #%s ..",
+        <browser.slideshow.current_url_index> + 1 )
+        if $answer_str eq 'failed to load';
+    <[base.log]>->( 0, $msg_str );
 }
+
+<browser.url_slideshow.status> = ++$status;
+<[browser.parent.handler.url_slideshow.status]>->($status);
