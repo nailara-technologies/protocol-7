@@ -19,6 +19,7 @@ my $vadj = <browser.gtk2.obj.scr_win>->get_vadjustment();
 <window.scroll.max>     = $vadj->upper - $vadj->page_size;
 <browser.gtk2.obj.vadj> = $vadj;
 <window.scroll.delay> //= 42;
+<window.scroll.stop> = 0;
 
 return { 'mode' => 'ack', 'data' => 'already at end of page' }
     if <window.scroll.pos> >= <window.scroll.max>;
@@ -31,11 +32,22 @@ Glib::Timeout->add(
         my $scroll_pos = $vadj->get_value();
         <window.scroll.pos> = $scroll_pos;
 
-        if ( $scroll_pos < $scroll_max ) {
+        if (<window.scroll.stop>) {
+            <window.scrolling> = 0;
+            my $pos_percent = ( $scroll_pos * 100 ) / $scroll_max;
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                { 'mode' => 'ack', 'data' => "stopped at $pos_percent%" }
+            );
+            delete <window.scroll.stop>;
+            <[base.callback.cmd_reply]>->(
+                <window.scroll.stop_reply_id>,
+                { 'mode' => 'ack', 'data' => "scrolling stopped" }
+            ) if exists <window.scroll.stop_reply_id>;
+            delete <window.scroll.stop_reply_id>;
+            return 0;
+        } elsif ( $scroll_pos < $scroll_max ) {
             $scroll_pos++;
-
-            #            fade_out() if $scroll_max - $scroll_pos == 23;
-
             $vadj->set_value($scroll_pos);
             <browser.gtk2.obj.scr_win>->set_vadjustment($vadj);
             return 1;
@@ -46,7 +58,6 @@ Glib::Timeout->add(
             );
             return 0;
         }
-
     },
     ,
     0
