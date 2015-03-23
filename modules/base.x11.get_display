@@ -6,7 +6,7 @@ my ($local_session_id) = keys( %{<user.core.session>} );
 
 <[base.log]>->( 2, "requesting display name from xserver agent.." );
 
-my $cmd_id = 1 + int( rand(222222) );
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
 <[net.out]>->( $core_fh, "($cmd_id)xserver.get_display\n" );
