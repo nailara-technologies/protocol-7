@@ -1,0 +1,109 @@
+# >:]
+
+# name = browser.parent.handler.url_slideshow.status
+
+my $new_status = shift;
+
+$new_status = $new_status->w->data if ref($new_status) ne '';
+
+die "expected numerical status parameter"
+    if not defined $new_status or $new_status !~ /^\d$/;
+
+<browser.use_transparency>    //= 1;
+<browser.slideshow.url_index> //= 0;
+
+my $url_ref   = <browser.url.list>;
+my $url_count = scalar @{$url_ref};
+
+my $fg_window = <browser.fg_window>;
+my $bg_window = <browser.bg_window>;
+
+$new_status = 3 if !<browser.use_transparency> and $new_status == 2;
+
+if ( $new_status == 1 ) {
+    <browser.slideshow.url_index> = 0
+        if <browser.slideshow.url_index> >= $url_count;
+    my $next_url = $url_ref->[<browser.slideshow.url_index>];
+    <browser.slideshow.current_url_index> = <browser.slideshow.url_index>;
+    <browser.slideshow.current_url>       = $next_url;
+
+    <browser.slideshow.url_index>++;
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$bg_window.load",
+            'call_args' => { 'args' => $next_url },
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 2 ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$fg_window.fade_out",
+            'call_args' => {},
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 3 ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.lower_window",
+            'call_args' => { 'args' => <browser.window.id>->{$fg_window} },
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+    <browser.fg_window> = $bg_window;
+    <browser.bg_window> = $fg_window;
+} elsif ( $new_status == 4 ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$bg_window.opacity",
+            'call_args' => { 'args' => 1 },
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 5 ) {
+    <browser.slideshow.url_index> = 0
+        if <browser.slideshow.url_index> >= $url_count;
+    my $next_url = $url_ref->[<browser.slideshow.url_index>];
+
+    <browser.slideshow.url_index>++;
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$bg_window.load",
+            'call_args' => { 'args' => $next_url },
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 6 ) {
+    <browser.url_slideshow.scroll_start_time> = time();
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$fg_window.scroll_start",
+            'call_args' => {},
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 7 ) {
+    my $delay = <browser.slideshow.min_delay>
+        - ( time() - <browser.url_slideshow.scroll_start_time> );
+    <browser.url_slideshow.timer>->cancel if exists <process.status_timer>;
+    <browser.url_slideshow.timer> = <[event.add_timer]>->(
+        {   'after'   => $delay,
+            'handler' => 'browser.parent.handler.url_slideshow.status',
+            'data'    => 2
+        }
+    );
+
+}

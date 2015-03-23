@@ -1,0 +1,20 @@
+# >:]
+
+# name = browser.gtk2.set_properties
+
+my $view = shift;
+
+my $settings = $view->get_settings;
+
+#$settings->set_property( 'auto-load-images', FALSE );
+#$settings->set_property( 'enable-scripts',   FALSE );
+
+$settings->set_property( 'enable-offline-web-application-cache', FALSE );
+$settings->set_property( 'enable-default-context-menu',          FALSE );
+$settings->set_property( 'enable-html5-local-storage',           FALSE );
+$settings->set_property( 'enable-java-applet',                   FALSE );
+$settings->set_property( 'enable-fullscreen',                    FALSE );
+$settings->set_property( 'enable-page-cache',                    TRUE );
+$settings->set_property( 'enable-private-browsing',              TRUE );
+$settings->set_property( 'enable-smooth-scrolling',              TRUE );
+$view->set_settings($settings);

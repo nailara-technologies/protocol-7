@@ -1,0 +1,24 @@
+# >:]
+
+# name = browser.gtk2.hide_scrollbars
+
+Gtk2::Rc->parse_string(<<__);
+style "hide-scrollbar-style"
+{
+  GtkScrollbar::slider_width = 0
+  GtkScrollbar::min-slider-length = 0
+  GtkScrollbar::activate_slider = 0
+  GtkScrollbar::trough_border = 0
+  GtkScrollbar::has-forward-stepper = 0
+  GtkScrollbar::has-backward-stepper = 0
+  GtkScrollbar::stepper_size = 0
+  GtkScrollbar::stepper_spacing = 0
+  GtkScrollbar::trough-side-details = 0
+  GtkScrollbar::default_border = { 0, 0, 0, 0 }
+  GtkScrollbar::default_outside_border = { 0, 0, 0, 0 }
+  GtkScrolledWindow::scrollbar-spacing = 0
+  GtkScrolledWindow::scrollbar-within-bevel = False
+}
+widget_class "*Scrollbar" style "hide-scrollbar-style"
+widget_class "*ScrolledWindow" style "hide-scrollbar-style"
+__

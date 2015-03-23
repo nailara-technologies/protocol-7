@@ -37,9 +37,9 @@ if ( exists <system.config.reload_order> ) {
         $success = 0 if !<[base.load_config_file]>->($config_name);
     }
 }
+( my $config_name = <system.agent.name> ) =~ s|\[.*$||g;
 $success = 0
-    if !
-    <[base.load_values]>->( '', 'nailara.' . $data{'system'}{'agent'}{'name'} )
+    if !<[base.load_values]>->( '', "nailara.$config_name" )
     or <base.parser.config.errors>;
 
 return $success;
