@@ -2,4 +2,15 @@
 
 # name = layout.init_code
 
+<layout.config_name> //= 'default';
+my $config_filename  = 'config.layout.' . <layout.config_name>;
+my $config_file_path = <system.conf_path> . '/' . $config_filename;
+
+die "layout config file '$config_filename' not found!"
+    if !-f $config_file_path;
+
+<[base.log]>->( 1, ": loading layout config '$config_filename'" );
+
+<layout.config> = <[base.load_section_config]>->($config_filename);
+
 0;
