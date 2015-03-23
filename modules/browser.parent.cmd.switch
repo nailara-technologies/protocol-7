@@ -1,0 +1,20 @@
+# >:]
+
+# name  = browser.parent.cmd.switch
+# descr = swap open browser windows
+
+my $reply_id = $$call{'reply_id'};
+
+return { 'mode' => 'nack', 'data' => 'there is only one open window' }
+    if <browser.window_count> == 1;
+
+<browser.switch.status> //= 0;
+
+return { 'mode' => 'nack', 'data' => 'switch in progress' }
+    if <browser.switch.status> > 0;
+
+<browser.switch.reply_id> = $reply_id;
+
+<[browser.parent.windows.switch]>;
+
+return { mode => 'later' };
