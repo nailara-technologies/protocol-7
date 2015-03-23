@@ -3,14 +3,36 @@
 # name = layout.init_code
 
 <layout.config_name> //= 'default';
-my $config_filename  = 'config.layout.' . <layout.config_name>;
+my $config_name      = <layout.config_name>;
+my $config_filename  = "config.layout.$config_name";
 my $config_file_path = <system.conf_path> . '/' . $config_filename;
 
 die "layout config file '$config_filename' not found!"
     if !-f $config_file_path;
 
-<[base.log]>->( 1, ": loading layout config '$config_filename'" );
+<[base.log]>->( 1, ": loading layout configuration '$config_name'" );
 
 <layout.config> = <[base.load_section_config]>->($config_filename);
+
+<[base.log]>->( 0, "no default profile configured!" )
+    if not exists <layout.default_profile>
+    or not defined <layout.default_profile>
+    or !length(<layout.default_profile>);
+
+my $profile_name = <layout.default_profile>;
+my $log_level    = 1;
+my $default_str  = ' default ';
+if ( not exists <layout.config.profiles>->{$profile_name} ) {
+    <[base.log]>->(
+        0,
+        "default profile '$profile_name' "
+            . "does not exist in layout config '$config_name'!"
+    );
+    ($profile_name) = sort keys %{<layout.config.profiles>};
+    $default_str = ' _fallback_ ';
+    $log_level   = 0;
+}
+<layout.current_profile> = $profile_name;
+<[base.log]>->( $log_level, "selected${default_str}profile '$profile_name'" );
 
 0;
