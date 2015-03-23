@@ -1,0 +1,56 @@
+# >:]
+
+# name  = browser.parent.cmd.load_url_file
+# param = <path>
+# descr = load url list from file
+
+my $file_path = $$call{'args'};
+
+<browser.url.list> //= [];
+
+return { 'mode' => 'nack', 'data' => 'expected url list file' }
+    if not defined $file_path or !length($file_path);
+return { 'mode' => 'nack', 'data' => 'file not found!' }
+    if not -f $file_path;
+
+my $file_fh;
+if ( !open( $file_fh, '<', $file_path ) ) {
+    <[base.log]>->( 0, "failed to open file '$file_path' [$!]" );
+    return {
+        'mode' => 'nack',
+        'data' => "failed to open file '$file_path' [$!]"
+    };
+}
+
+( my $file_name = $file_path ) =~ s|.*/||g;
+<[base.log]>->( 1, "loading urls from '$file_name'" );
+
+$/ = undef;
+my $file_content = <$file_fh>;
+$file_content =~ s|^\s+||g;
+$file_content =~ s|^#[^\n]*\n|\n|g;
+$file_content =~ s|\s+#[^\n]*\n|\n|g;
+$file_content =~ s|\n\n|\n|g;
+$file_content =~ s|^\n||mg;
+my @url_list = split( / *\n */, $file_content );
+
+if ( !@url_list ) {
+    <[base.log]>->( 0, "url list '$file_path' was empty!" );
+    return {
+        'mode' => 'nack',
+        'data' => "url list was empty!"
+    };
+}
+
+my $entry_count = scalar @url_list;
+@{<browser.url.list>} = @url_list;
+
+foreach my $url (@url_list) {
+    my $url_txt = substr( $url, 0, 52 );
+    $url_txt .= '...' if length($url_txt) < length($url);
+    <[base.log]>->( 2, ": - $url_txt" );
+}
+
+<[base.log]>->( 1, ": $entry_count urls loaded" );
+
+return { 'mode' => 'ack', 'data' => "$entry_count urls loaded" }
