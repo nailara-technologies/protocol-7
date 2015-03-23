@@ -1,0 +1,26 @@
+# >:]
+
+# name  = layout.cmd.switch_profile
+# param = <name>
+# descr = switch to specified layout profile (unfinished)
+# todo  = actually process the profile switch ['base_layout' etc..]
+
+my $profile_name = $$call{'args'};
+
+return {
+    'mode' => 'nack',
+    'data' => "expected valid layout profile name"
+    }
+    if not defined $profile_name or !length($profile_name);
+return {
+    'mode' => 'nack',
+    'data' => "layout profile '$profile_name' does not exist!"
+    }
+    if not exists <layout.config.profiles>->{$profile_name};
+
+<layout.current_profile> = $profile_name;
+
+return {
+    'mode' => 'ack',
+    'data' => "selected profile '$profile_name'"
+};
