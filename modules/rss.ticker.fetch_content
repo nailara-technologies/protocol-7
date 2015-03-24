@@ -9,12 +9,19 @@ if ( not defined $rss_url or !length($rss_url) ) {
         0, "<!> WARNING: no RSS-urls set up (referenced hash empty!)"
     );
 } else {
-
     my $got_updates = 0;
-    if ( ref($rss_url) eq 'HASH' ) {
-        $got_updates = <[rss.ticker.fetch.multiple]>->($rss_url);
-    } else {
-        $got_updates = <[rss.ticker.fetch.single]>->($rss_url);
+    eval {
+        if ( ref($rss_url) eq 'HASH' ) {
+            $got_updates = <[rss.ticker.fetch.multiple]>->($rss_url);
+        } else {
+            $got_updates = <[rss.ticker.fetch.single]>->($rss_url);
+        }
+    };
+    if ($@) {
+        <[base.log]>->( 0, "fetch_content: $@" );
+        <[base.log]>
+            ->( 0, "shutting down " . <system.agent.name> . " agent.." );
+        CORE::exit(1);    # XXX: reconsider shutdown?
     }
 
     <[base.proto.nailara.command.send.local]>->(
