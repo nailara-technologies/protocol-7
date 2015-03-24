@@ -120,7 +120,8 @@ if ($ok) {
     <[xserver.xrandr.rotate]>->(<xserver.orientation>);
 
     if ( exists <xserver.disable_blanking>
-        and <xserver.disable_blanking> eq 'yes' ) {
+        and <xserver.disable_blanking> eq 'yes'
+        or <xserver.disable_blanking> eq '1' ) {
         <[base.log]>->( 1, ": deactivating screen blanking ..." );
         qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
         die "failed to execute xset: $!" if $@;

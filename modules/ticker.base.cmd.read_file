@@ -15,7 +15,7 @@ if ( not defined $file_path or !length($file_path) ) {
 }
 
 if ( !<ticker.request_pending.read_file> ) {
-    my $cmd_id = 1 + int( rand(222222) );    # XXX: use gen_id!
+    my $cmd_id = <[base.gen_id]>->( $data{'route'} );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => 'child.read_file',
             'call_args' => { 'args' => $file_path },
