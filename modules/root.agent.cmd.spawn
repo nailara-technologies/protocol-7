@@ -10,10 +10,18 @@ my $agent_name = $$call{'args'};
 return { 'mode' => 'nack', 'data' => 'agent name expected' }
     if not defined $agent_name or !length($agent_name);
 
-return { 'mode' => 'nack', 'data' => 'agent is explicitly disabled in config!' }
-    if <[agent.is_disabled]>->($agent_name);
-
 my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
+return {
+    'mode' => 'nack',
+    'data' => "spawn config contains no agent named '$agent_name'!"
+    }
+    if not defined $agent_config;
+
+return {
+    'mode' => 'nack',
+    'data' => 'agent is explicitly disabled in config!'
+    }
+    if <[agent.is_disabled]>->($agent_name);
 
 my $agent_id;
 foreach my $id ( keys %{<root.agent.setup>} ) {
