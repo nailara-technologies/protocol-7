@@ -1,14 +1,29 @@
 # >:]
 
 # name  = root.agent.cmd.spawn
-# param = <name>
-# descr = spawn specified agent
+# param = <agent_id|name>
+# descr = spawn a new agent instance
 # todo  = needs error handling!
 
-my $agent_name = $$call{'args'};
+my $agent_id;
+my $agent_name;
 
-return { 'mode' => 'nack', 'data' => 'agent name expected' }
-    if not defined $agent_name or !length($agent_name);
+return { 'mode' => 'nack', 'data' => 'agent name or id expected' }
+    if not defined $$call{'args'}
+    or !length( $$call{'args'} );
+
+if ( $$call{'args'} =~ /^\d+$/ ) {
+    $agent_id   = $$call{'args'};
+    $agent_name = <root.agent.setup>->{$agent_id}->{'name'}
+        if exists <root.agent.setup>->{$agent_id};
+    return {
+        'mode' => 'nack',
+        'data' => "found no agent with id $agent_id"
+        }
+        if not defined $agent_name;
+} else {
+    $agent_name = $$call{'args'};
+}
 
 my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
 return {
@@ -23,12 +38,13 @@ return {
     }
     if <[agent.is_disabled]>->($agent_name);
 
-my $agent_id;
-foreach my $id ( keys %{<root.agent.setup>} ) {
-    $agent_id = $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
+if ( not defined $agent_id ) {
+    foreach my $id ( keys %{<root.agent.setup>} ) {
+        $agent_id = $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
+    }
+    $agent_id = <[agent.setup.add]>->( { 'name' => $agent_name } )
+        if not defined $agent_id;
 }
-$agent_id = <[agent.setup.add]>->( { 'name' => $agent_name } )
-    if not defined $agent_id;
 
 my $obj_id = <[agent.get_object_id]>->($agent_id);
 $obj_id = <[dependency.add_object]>->(
@@ -39,8 +55,6 @@ $obj_id = <[dependency.add_object]>->(
 ) if not defined $obj_id;
 
 my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
-my $instance_count = $agent_config->{'spawn'}->{'instances'} || 1;
-delete $agent_config->{'spawn'} if !keys %{ $agent_config->{'spawn'} };
 
 my $job_id = <[jobqueue.add_job]>->(
     {   'object_id'       => $obj_id,
