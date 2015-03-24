@@ -2,15 +2,15 @@
 
 # name = browser.gtk2.handler.auto_scroll
 
-my $reply_id   = <window.scroll.reply_id>;
-my $vadj       = <browser.gtk2.obj.vadj>;
-my $scroll_max = $vadj->upper - $vadj->page_size;
-my $scroll_pos = $vadj->get_value();
-<window.scroll.pos> = $scroll_pos;
+my $reply_id = <window.scroll.reply_id>;
+my $vadj     = <browser.gtk2.obj.vadj>;
+<window.scroll.max> //= $vadj->upper - $vadj->page_size;
+<window.scroll.pos> //= $vadj->get_value();
 
 if (<window.scroll.stop>) {
     <window.scrolling> = 0;
-    my $pos_percent = int( ( $scroll_pos * 100 ) / $scroll_max );
+    my $pos_percent
+        = int( ( <window.scroll.pos> * 100 ) / <window.scroll.max> );
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => 'ack', 'data' => "stopped at $pos_percent%" }
     );
@@ -21,9 +21,9 @@ if (<window.scroll.stop>) {
     ) if exists <window.scroll.stop_reply_id>;
     delete <window.scroll.stop_reply_id>;
     return 0;
-} elsif ( $scroll_pos < $scroll_max ) {
-    $scroll_pos++;
-    $vadj->set_value($scroll_pos);
+} elsif ( <window.scroll.pos> < <window.scroll.max> ) {
+    <window.scroll.pos>++;
+    $vadj->set_value(<window.scroll.pos>);
     <browser.gtk2.obj.scr_win>->set_vadjustment($vadj);
     return 1;
 } else {
