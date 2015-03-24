@@ -14,9 +14,14 @@ return {
     if not defined $profile_name or !length($profile_name);
 return {
     'mode' => 'nack',
-    'data' => "layout profile '$profile_name' does not exist!"
+    'data' => "profile \"$profile_name\" not found!"
     }
     if not exists <layout.config.profiles>->{$profile_name};
+return {
+    'mode' => 'nack',
+    'data' => "profile '$profile_name' is already active."
+    }
+    if $profile_name eq <layout.current_profile>;
 
 <layout.current_profile> = $profile_name;
 
