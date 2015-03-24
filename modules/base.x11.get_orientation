@@ -1,22 +1,15 @@
 # >:]
 
-# name = base.x11.set_gravity
+# name = base.x11.get_orientation
 
-my $gravity = shift;
-$gravity //= '';
-die "invalid gravity keyword '$gravity' [left|right|top|bottom]"
-    if $gravity !~ /^(top|bottom|left|right)$/;
 my ($local_session_id) = keys( %{<user.core.session>} );
 
-<[base.log]>->(
-    1, "setting gravity for window id " . <x11.id> . " to '$gravity'.."
-);
+<[base.log]>->( 2, "requesting screen orientation from xserver agent.." );
 
-my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
-<[net.out]>->(
-    $core_fh, "($cmd_id)xserver.set_gravity " . <x11.id> . " bottom\n"
-);
+<[net.out]>->( $core_fh, "($cmd_id)xserver.get_orientation\n" );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -31,14 +24,14 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
-    <x11.display> = $1;
-    <[base.log]>->( 2, ": ok, gravity applied." );
-    return 1;
+    <x11.screen.orientation> = $1;
+    <[base.log]>->( 1, "received X screen orientation [$1]" );
+    return <x11.orientation>;
 } else {
     <[base.log]>->(
         0,
         "protocol error (unexpected reply from xserver agent)"
             . " ['$reply_string']"
     );
-    return 0;
+    return undef;
 }
