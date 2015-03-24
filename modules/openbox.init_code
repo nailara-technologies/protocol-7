@@ -1,7 +1,12 @@
 # >:]
 
 # name = openbox.init_code
+# todo = clean up tmp dir on openbox exit
 
 $ENV{'HOME'} = '/tmp';
+my $home_path = $ENV{'HOME'} . '/.openbox-' . $$;
+mkdir($home_path) or die "can't create directory '$home_path' [$!]";
+chmod( 0700, $home_path ) or die "chmod(0700,'$home_path'): $!";
+$ENV{'HOME'} = $home_path;
 
 0;
