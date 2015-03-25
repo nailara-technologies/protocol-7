@@ -1,6 +1,6 @@
 # >:]
 
-# name  = root.agent.cmd.spawn
+# name  = root.agent.cmd.start
 # param = <agent_id|name>
 # descr = spawn a new agent instance
 
@@ -47,7 +47,7 @@ foreach
     my $dep_name ( split( / +/, <[agent.get_dependencies]>->($agent_name) ) ) {
     if ( !<[agent.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
-        my $reply = <[agent.cmd.spawn]>
+        my $reply = <[agent.cmd.start]>
             ->( { 'args' => $dep_name, 'recursion' => $recursion + 1 } );
     }
 }
