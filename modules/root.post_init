@@ -6,9 +6,13 @@
 my $module_reinitialization = shift;
 return 0 if $module_reinitialization;
 
+my @all_agents = keys %{<root.spawn_config.agents.config>};
+
 my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
 
-<[root.set_up_agent_dependencies]>->(@agents);
+#print Dumper(<root.spawn_config.agents.config>).join(', ',@all_agents)."\n";
+
+<[root.set_up_agent_dependencies]>->(@all_agents);
 
 foreach my $agent_name (@agents) {
     my $agent_config   = <root.spawn_config.agents.config>->{$agent_name};
