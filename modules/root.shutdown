@@ -27,12 +27,14 @@ my $t_res = 3;
 foreach my $pid ( sort keys %{<root.child>} ) {
     my $i_id = <root.child>->{$pid}->{'instance_id'};
     my $instance_str = $i_id ? " ( instance $i_id )" : '';
-    my @children;
-    my $proc_table = new Proc::ProcessTable;
-    foreach my $proc ( @{ $proc_table->table } ) {
-        push( @children, $proc->{'pid'} )
-            if $proc->{'ppid'} == $pid;
-    }
+
+    my %child;    # XXX: create and use 'update_children' callback!
+    map { $child{$_} = 1 } (
+        keys( %{ <root.agent.instance>->{$i_id}->{'process'}->{'child'} } ),
+        @{ <[root.process.get_children]>->($pid) }
+    );
+    my @children = keys %child;
+
     if ( kill( 15, $pid ) ) {
         <[base.log]>->( 2, ": terminating process $pid" . $instance_str );
         <root.child>->{$pid}->{'term_sent'} = <[base.time]>->($t_res);
