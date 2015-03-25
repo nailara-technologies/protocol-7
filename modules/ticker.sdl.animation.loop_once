@@ -5,7 +5,8 @@
 
 <[ticker.sdl.raise_and_fade]> if !<ticker.window.raised>;
 
-<sdl.flip_failed> //= 0;
+<sdl.flip_failed>  //= 0;
+<redraw.last_time> //= <[base.time]>->(4);
 <ticker.content.work> = [];
 
 @{<ticker.content.work>} = @{<ticker.content.data>} # create a working data copy
@@ -61,7 +62,9 @@ while ( @{<ticker.content.work>} ) {
         >= <ticker.content.work>->[0]->{'width'};
 
     # pause to slow down
-    SDL::delay(<ticker.redraw_delay>) if <ticker.redraw_delay>;
+    my $delta_t = ( <[base.time]>->(4) - <redraw.last_time> ) * 1000;
+    my $wait_time = sprintf( "%.4f", <ticker.redraw_delay> - $delta_t );
+    SDL::delay($wait_time) if $wait_time > 0;
 
     # update screen ( try hardware blitting first )
     if ( !<sdl.flip_failed> ) {
@@ -78,4 +81,6 @@ while ( @{<ticker.content.work>} ) {
     SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
         <sdl.display_height> )
         if <sdl.flip_failed>;
+
+    <redraw.last_time> = <[base.time]>->(4);
 }
