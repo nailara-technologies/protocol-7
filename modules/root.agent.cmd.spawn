@@ -3,10 +3,13 @@
 # name  = root.agent.cmd.spawn
 # param = <agent_id|name>
 # descr = spawn a new agent instance
-# todo  = needs error handling!
 
 my $agent_id;
 my $agent_name;
+my $recursion
+    = (     ref( $_[0] ) eq 'HASH'
+        and exists $_[0]->{'recursion'}
+        and defined $_[0]->{'recursion'} ) ? $_[0]->{'recursion'} : 0;
 
 return { 'mode' => 'nack', 'data' => 'agent name or id expected' }
     if not defined $$call{'args'}
@@ -38,6 +41,20 @@ return {
     }
     if <[agent.is_disabled]>->($agent_name);
 
+<[base.log]>->( 1, "spawning agent '$agent_name'..." ) if !$recursion;
+
+foreach
+    my $dep_name ( split( / +/, <[agent.get_dependencies]>->($agent_name) ) ) {
+    if ( !<[agent.is_enabled]>->($dep_name) ) {
+        <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
+        my $reply = <[agent.cmd.spawn]>
+            ->( { 'args' => $dep_name, 'recursion' => $recursion + 1 } );
+    }
+}
+
+<root.spawn_config.globals.agents.enabled> .= ' ' . $agent_name
+    if !<[agent.is_enabled]>->($agent_name);
+
 if ( not defined $agent_id ) {
     foreach my $id ( keys %{<root.agent.setup>} ) {
         $agent_id = $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
@@ -47,12 +64,6 @@ if ( not defined $agent_id ) {
 }
 
 my $obj_id = <[agent.get_object_id]>->($agent_id);
-$obj_id = <[dependency.add_object]>->(
-    {   'type'       => 'agent',
-        'agent_id'   => $agent_id,
-        'agent_name' => $agent_name,
-    }
-) if not defined $obj_id;
 
 my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
 
@@ -64,4 +75,7 @@ my $job_id = <[jobqueue.add_job]>->(
     }
 );
 
-return { 'mode' => 'ack', 'data' => "agent_id: $agent_id job_id: $job_id" }
+return {
+    'mode' => 'ack',
+    'data' => "queued as job id $job_id"
+    }
