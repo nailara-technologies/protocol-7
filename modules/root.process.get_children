@@ -1,0 +1,16 @@
+# >:]
+
+# name = root.process.get_children
+
+my $pid = shift;
+die "expected parent process id" if not defined $pid or $pid !~ /^\d+$/;
+
+my $proc_table = new Proc::ProcessTable;
+
+my @children;
+foreach my $proc ( @{ $proc_table->table } ) {
+    push( @children, $proc->{'pid'} )
+        if $proc->{'ppid'} == $pid;
+}
+
+return \@children;
