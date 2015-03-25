@@ -6,7 +6,7 @@
 <[ticker.sdl.raise_and_fade]> if !<ticker.window.raised>;
 
 <sdl.flip_failed>  //= 0;
-<redraw.last_time> //= <[base.time]>->(4);
+<redraw.last_time> //= <[base.time]>->(7);
 <ticker.content.work> = [];
 
 @{<ticker.content.work>} = @{<ticker.content.data>} # create a working data copy
@@ -62,7 +62,7 @@ while ( @{<ticker.content.work>} ) {
         >= <ticker.content.work>->[0]->{'width'};
 
     # pause to slow down
-    my $delta_t = ( <[base.time]>->(4) - <redraw.last_time> ) * 1000;
+    my $delta_t = ( <[base.time]>->(7) - <redraw.last_time> ) * 1000;
     my $wait_time = sprintf( "%.4f", <ticker.redraw_delay> - $delta_t );
     SDL::delay($wait_time) if $wait_time > 0;
 
@@ -82,5 +82,5 @@ while ( @{<ticker.content.work>} ) {
         <sdl.display_height> )
         if <sdl.flip_failed>;
 
-    <redraw.last_time> = <[base.time]>->(4);
+    <redraw.last_time> = <[base.time]>->(7);
 }
