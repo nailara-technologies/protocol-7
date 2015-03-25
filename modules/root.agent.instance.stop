@@ -1,0 +1,44 @@
+# >:]
+
+# name = root.agent.instance.stop
+
+my $instance_id = shift;
+my $instance    = <root.agent.instance>->{$instance_id};
+
+die "instance.stop: instance id $instance_id does not exist!"
+    if not defined $instance;
+
+my $agent_name = $instance->{'agent_name'};
+my $job_id     = $instance->{'job_id'};
+
+<[base.log]>->( 1, "shutting down instance $instance_id ($agent_name)..." );
+
+<agent.instance.shutdown>->{$instance_id} = <[base.time]>->(5);
+
+$instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
+$instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
+delete <callback.session.close_last> if $instance->{'is_core'};
+
+my %child;    # XXX: create and use 'update_children' callback!
+map { $child{$_} = 1 } (
+    keys( %{ $instance->{'process'}->{'child'} } ),
+    @{ <[root.process.get_children]>->( $instance->{'process'}->{'id'} ) }
+);
+my @children = keys %child;
+
+<[base.log]>->(
+    1, ": terminating instance pid " . $instance->{'process'}->{'id'}
+);
+delete <root.child>->{ $instance->{'process'}->{'id'} };
+kill( 9, $instance->{'process'}->{'id'} );    # XXX: 15 + timeout
+my $ren = scalar @children == 1 ? '' : 'ren :';
+<[base.log]>->(
+    1, ": terminating instance child$ren " . join( ', ', @children )
+) if @children;
+
+map { delete <root.child>->{$_} if exists <root.child>->{$_} } @children;
+kill( 9, @children );
+
+<[jobqueue.remove_job]>->($job_id);
+
+# undef $agent_instance->{'output_buffer'}; # -> done in output_handler
