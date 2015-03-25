@@ -1,0 +1,60 @@
+# >:]
+
+# name  = root.agent.cmd.stop
+# param = <agent_name|instance>
+# descr = shutdown agent instance(s)
+
+my $params = $$call{'args'} || '';
+return { 'mode' => 'nack', 'data' => 'expected agent name or instance id' }
+    if !length($params);
+
+my $restart_mode;
+my @instance_ids;
+foreach my $param_str ( split / +/, $params ) {
+    if ( $param_str =~ /^\d+$/ ) {    # instance id
+        return {
+            'mode' => 'nack',
+            'data' => "unknown agent instance '$param_str' (see 'list agents')"
+            }
+            if not exists <root.agent.instance>->{$param_str};
+        push( @instance_ids, $param_str );
+    } else {                          # agent name ( XXX: validate syntax! )
+        my $agent_id = <[agent.get_id]>->($param_str);
+        return {
+            'mode' => 'nack',
+            'data' => "no agent '$param_str' found in setup!"
+                . " (see 'list agents')"
+            }
+            if not defined $agent_id;
+        map {
+            push( @instance_ids, $_ )
+                if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
+        } keys %{<root.agent.instance>};
+    }
+}
+
+map {
+    my $agent_id   = <root.agent.instance>->{$_}->{'agent_id'};
+    my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
+    if ( !<[dependency.ok]>->( <[agent.get_object_id]>->($agent_id) ) ) {
+        return {
+            'mode' => 'nack',
+            'data' => "dependencies of agent '$agent_name' are not satisfied!"
+        };
+    }
+} @instance_ids;
+
+map { <[agent.instance.stop]>->($_) } @instance_ids;
+
+my $count   = scalar @instance_ids;
+my $s       = $count > 1 ? 's' : '';
+my $msg_str = "shutdown of $count agent instance$s initiated!";
+
+if ($count) {
+    return { 'mode' => 'ack', 'data' => $msg_str };
+} else {
+    return {
+        'mode' => 'nack',
+        'data' => 'there is no agent matching agent running'
+    };
+}
