@@ -38,8 +38,21 @@ if ( !<ticker.child.pid> ) {
 
     <[ticker.sdl.display_init]>;
 
-    <ticker.window_id>
-        = <[base.x11.get_window_id]>->( 'ticker', 'parent', 'core' );
+    my $max_attempts     = 10;
+    my $request_attempts = 0;
+    while ( not exists <ticker.window_id> or not defined <ticker.window_id> ) {
+        $request_attempts++;
+        <ticker.window_id>
+            = <[base.x11.get_window_id]>->( 'ticker', 'parent', 'core' );
+        <[base.sleep]>->(0.2) if not defined <ticker.window_id>;
+        if ( $request_attempts >= $max_attempts
+            and not defined <ticker.window_id> ) {
+            <[base.log]>->(
+                0, "failed to get window_id from xserver agent, aborting!"
+            );
+            CORE::exit(2);    # XXX: deal with parent? (test SIGCHLD handler!)
+        }
+    }
 
     <[ticker.sdl.raise_and_fade]>;
 
