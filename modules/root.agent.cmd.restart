@@ -50,4 +50,11 @@ my $count   = scalar @instance_ids;
 my $s       = $count > 1 ? 's' : '';
 my $msg_str = "restarting of $count agent instance$s initiated!";
 
-return { 'mode' => 'ack', 'data' => $msg_str };
+if ($count) {
+    return { 'mode' => 'ack', 'data' => $msg_str };
+} else {
+    return {
+        'mode' => 'nack',
+        'data' => 'there is no agent matching agent running'
+    };
+}
