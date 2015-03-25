@@ -22,7 +22,7 @@ my $log_file = "$node_agent.$buffer_name";
 my $log_msg  = "$instance_id $log_line\n";
 
 $log_msg =~ s/\ ?(\d{10})(\.\d+)?\ /my$fp=$2||'';
-            (my$ts=<[base.parser.timestamp]>->('timestamp',$1))=~s| |.|;
+            (my$ts=<[base.parser.timestamp]>->('timestamp',$1))=~s' '|';
             " $ts$fp "/xe
     if $tstamp_mode eq 'localtime';
 
