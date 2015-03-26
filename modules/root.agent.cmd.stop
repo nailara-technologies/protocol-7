@@ -67,7 +67,7 @@ foreach my $name ( keys %shutdown_names ) {
         next if not exists <root.agent.dependency>;
         foreach my $dep_name ( keys %{<root.agent.dependency>} ) {
             delete <root.agent.dependency>->{$dep_name}->{$name};
-            if ( !keys { %{ <root.agent.dependency>->{$dep_name} } } ) {
+            if ( !keys %{ <root.agent.dependency>->{$dep_name} } ) {
                 delete <root.agent.dependency>->{$dep_name};
                 <[agent.cmd.stop]>->( { 'args' => $dep_name } );
             }
