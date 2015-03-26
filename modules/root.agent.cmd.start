@@ -47,9 +47,12 @@ foreach
     my $dep_name ( split( / +/, <[agent.get_dependencies]>->($agent_name) ) ) {
     if ( !<[agent.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
+
         my $reply = <[agent.cmd.start]>
             ->( { 'args' => $dep_name, 'recursion' => $recursion + 1 } );
     }
+    <root.agent.dependency>->{$dep_name}->{$agent_name} = 1
+        if not exists <root.agent.autostart>->{$dep_name};
 }
 
 <root.spawn_config.globals.agents.enabled> .= ' ' . $agent_name
