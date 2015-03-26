@@ -8,7 +8,6 @@ my $params = $$call{'args'} || '';
 return { 'mode' => 'nack', 'data' => 'expected agent name or instance id' }
     if !length($params);
 
-my $restart_mode;
 my @instance_ids;
 foreach my $param_str ( split / +/, $params ) {
     if ( $param_str =~ /^\d+$/ ) {    # instance id
@@ -33,22 +32,40 @@ foreach my $param_str ( split / +/, $params ) {
     }
 }
 
-map {
-    my $agent_id   = <root.agent.instance>->{$_}->{'agent_id'};
-    my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
-    if ( !<[dependency.ok]>->( <[agent.get_object_id]>->($agent_id) ) ) {
-        return {
-            'mode' => 'nack',
-            'data' => "dependencies of agent '$agent_name' are not satisfied!"
-        };
-    }
-} @instance_ids;
-
 map { <[agent.instance.stop]>->($_) } @instance_ids;
 
 my $count   = scalar @instance_ids;
 my $s       = $count > 1 ? 's' : '';
 my $msg_str = "shutdown of $count agent instance$s initiated!";
+
+my %agent_names;
+map {
+    my $agent_name
+        = <root.agent.setup>
+        ->{ <root.agent.instance>->{$_}->{'agent_id'} }->{'name'};
+    $agent_names{$agent_name}++;
+} keys %{<root.agent.instance>};
+my %shutdown_names;
+map {
+    my $agent_name
+        = <root.agent.setup>
+        ->{ <root.agent.instance>->{$_}->{'agent_id'} }->{'name'};
+    $shutdown_names{$agent_name}++;
+} @instance_ids;
+foreach my $name ( keys %shutdown_names ) {
+    my $instances_remaining = $agent_names{$name} - $shutdown_names{$name};
+    if ( !$instances_remaining ) {
+        my %agent_list;
+        map { $agent_list{$_} = 1 } split / +/,
+            <root.spawn_config.globals.agents.enabled>;
+        delete $agent_list{$name};
+        <root.spawn_config.globals.agents.enabled>
+            = join( ' ', keys %agent_list );
+        <[base.log]>->(
+            1, "disabled agent '$name' (no more instances present)"
+        );
+    }
+}
 
 if ($count) {
     return { 'mode' => 'ack', 'data' => $msg_str };
