@@ -7,9 +7,11 @@ my $jobs     = <jobqueue.joblist.by_id>;
 my $job_list = <jobqueue.joblist>;
 my $prio     = $jobs->{$job_id}->{'priority'};
 die "expected numerical job id" if not defined $job_id or $job_id !~ /^\d+$/;
-die "a job with id $job_id does not exist"
-    if not exists $jobs->{$job_id} or not defined $prio;
 
+if ( not exists $jobs->{$job_id} or not defined $prio ) {
+    <[base.log]>->( 2, "remove_job: a job with id $job_id does not exist" );
+    return undef;
+}
 <[base.log]>->( 2, "removing job $job_id" );
 
 my $queue_name = $jobs->{$job_id}->{'status'};
