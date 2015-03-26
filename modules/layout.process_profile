@@ -2,3 +2,18 @@
 
 # name = layout.process_profile
 
+my $profile_name = shift;
+die "expected valid profile name"
+    if not defined $profile_name or !length($profile_name);
+die "layout profile $profile_name not found"
+    if not exists <layout.config.profiles>->{$profile_name};
+
+<[base.log]>->( 1, "processing layout profile '$profile_name'.." );
+
+my $profile_data = <layout.config.profiles>->{$profile_name};
+
+foreach my $agent_name ( keys %{$profile_data} ) {
+    <layout.coordinates>->{$agent_name}
+        = <[layout.calculate_coordinates]>->($profile_data);
+    <[layout.agent_required]>->($agent_name);
+}
