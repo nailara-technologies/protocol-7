@@ -169,8 +169,11 @@ if ( defined $alias_to and length($alias_to) ) {
     map { $cmd =~ s/$_/$args_map->{$_}/g } keys %{$args_map};
 
     if ( $cmd =~ s/^([^ ]+) +([^\n]+)$/$1/ ) {
-        $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} )
-            if defined $$call_args{'args'};
+        if ( defined $$call_args{'args'} ) {
+            $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} );
+        } else {
+            $$call_args{'args'} = $2;
+        }
     }
 }
 
@@ -507,10 +510,8 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                 local $$call_args{'args'} = ''
                     if not defined $$call_args{'args'};
 
-                if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
-
                 $data{'session'}{$target_sid}{'buffer'}{'output'}
-                    .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
+                    .= $target_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
                 # TODO: setup timeout handler
 
