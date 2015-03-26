@@ -10,7 +10,7 @@ buffer.system.log_cmd = log.msg
 access.cmd.usr.core = help ping reload verify_instance * # <- XXX
 
 layout.config_name = default
-layout.default_profile = first
+layout.default_profile = second
 
 modules.load = auth net io.ip layout debug
 [load_modules:<modules.load>]
@@ -23,5 +23,7 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.x11.get_screen_size]
 [base.x11.get_orientation]
 [base.get_session_id]
+
+[layout.process_profile:<layout.current_profile>]
 
 [event.loop]
