@@ -5,26 +5,31 @@
 my $descr  = shift;
 my $screen = <x11.screen>;
 
-my ( $width, $height ) = ( $screen->{'width'}, $screen->{'height'} );
-my ( $left, $top, $right, $bottom )
-    = ( 0, 0, $screen->{'width'}, $screen->{'height'} );
+my ( $screen_width, $screen_height )
+    = ( $screen->{'width'}, $screen->{'height'} );
+
+( $screen_width, $screen_height ) = ( $screen->{'height'}, $screen->{'width'} )
+    if $screen->{'orientation'} eq 'portrait';
+
+my ( $width, $height ) = ( $screen_width, $screen_height );
+my ( $left, $top, $right, $bottom ) = ( 0, 0, $screen_width, $screen_height );
 
 if ( exists $descr->{'left'} ) {
     $left = $descr->{'left'};
-    $left = int( ( $screen->{'width'} / 100 ) * $1 ) if $left =~ /^(\d+)\%$/;
+    $left = int( ( $screen_width / 100 ) * $1 ) if $left =~ /^(\d+)\%$/;
 }
 if ( exists $descr->{'top'} ) {
     $top = $descr->{'top'};
-    $top = int( ( $screen->{'height'} / 100 ) * $1 ) if $top =~ /^(\d+)\%$/;
+    $top = int( ( $screen_height / 100 ) * $1 ) if $top =~ /^(\d+)\%$/;
 }
 if ( exists $descr->{'width'} ) {
     $width = $descr->{'width'};
-    $width = int( ( $screen->{'width'} / 100 ) * $1 ) if $width =~ /^(\d+)\%$/;
+    $width = int( ( $screen_width / 100 ) * $1 ) if $width =~ /^(\d+)\%$/;
     $right = $left + $width;
 }
 if ( exists $descr->{'height'} ) {
     my $height = $descr->{'height'};
-    $height = int( ( $screen->{'height'} / 100 ) * $1 )
+    $height = int( ( $screen_height / 100 ) * $1 )
         if $height =~ /^(\d+)\%$/;
     $bottom = $top + $height;
 }
