@@ -8,6 +8,15 @@ die "expected valid agent name"
 
 <[base.log]>->( 1, "requesting agent '$agent_name'.." );
 
+<[base.proto.nailara.command.send.local]>->( # XXX: implement 'required' command
+    {   'command'   => 'core.root.stop',
+        'call_args' => { 'args' => $agent_name },
+        'reply'     => {
+            'handler' => 'dev.null',
+            'params'  => {}
+        }
+    }
+);
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.root.start',
         'call_args' => { 'args' => $agent_name },
