@@ -14,6 +14,6 @@ my $profile_data = <layout.config.profiles>->{$profile_name};
 
 foreach my $agent_name ( keys %{$profile_data} ) {
     <layout.coordinates>->{$agent_name}
-        = <[layout.calculate_coordinates]>->($profile_data);
+        = <[layout.calculate_coordinates]>->( $profile_data->{$agent_name} );
     <[layout.agent_required]>->($agent_name);
 }
