@@ -6,6 +6,7 @@
 
 my $agent_id;
 my $agent_name;
+my $agent_subname;
 my $recursion
     = (     ref( $_[0] ) eq 'HASH'
         and exists $_[0]->{'recursion'}
@@ -26,6 +27,7 @@ if ( $$call{'args'} =~ /^\d+$/ ) {
         if not defined $agent_name;
 } else {
     $agent_name = $$call{'args'};
+    $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 }
 
 my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
@@ -70,10 +72,12 @@ my $obj_id = <[agent.get_object_id]>->($agent_id);
 
 my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
 
+my $sn_str = defined $agent_subname ? "[$agent_subname]" : '';
+
 my $job_id = <[jobqueue.add_job]>->(
     {   'object_id'       => $obj_id,
         'job_callback'    => 'agent.spawn',
-        'callback_params' => $agent_name,
+        'callback_params' => $agent_name . $sn_str,
         'target_queue'    => $target_queue
     }
 );
