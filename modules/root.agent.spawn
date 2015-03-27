@@ -3,10 +3,12 @@
 # name = root.agent.spawn
 # descr = spawn nailara agent and add it to process maintenance table
 
-my $job_id      = $_[0]->{'job_id'};
-my $agent_name  = $_[0]->{'params'};
-my $sic_mode    = 0;
-my @exec_args   = qw( -nb );
+my $job_id     = $_[0]->{'job_id'};
+my $agent_name = $_[0]->{'params'};
+my $sic_mode   = 0;
+my @exec_args  = qw( -nb );
+my $agent_subname;
+$agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
 die "no agent name supplied" if not defined $agent_name;
 my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
@@ -66,10 +68,14 @@ $sic_mode = 1 && push( @exec_args, '-sic' )
 my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, "spawning '$agent_name'-agent initiated ..." );
+my $agent_sn_str
+    = defined $agent_subname ? "$agent_name\[$agent_subname]" : $agent_name;
+<[base.log]>->( 1, "spawning '$agent_sn_str'-agent initiated ..." );
+
 my ( $pid, $out_fh, $in_fh );
 eval {
-    $pid = open2( $out_fh, $in_fh, $nailara_bin, $agent_name, @exec_args ); };
+    $pid = open2( $out_fh, $in_fh, $nailara_bin, $agent_sn_str, @exec_args );
+};
 
 if ( not defined $pid or $@ ) {
     ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
@@ -118,4 +124,4 @@ if ($sic_mode) {
 }
 close($in_fh);    # no more use for agent stdin handle (for now)
 
-<[base.log]>->( 1, "agent '$agent_name' spawned ! [ pid : $pid ] " );
+<[base.log]>->( 1, "agent '$agent_sn_str' spawned ! [ pid : $pid ] " );

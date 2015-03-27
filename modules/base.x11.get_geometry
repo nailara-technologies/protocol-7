@@ -5,15 +5,22 @@
 my $user     = shift || 'core';
 my $cmd_path = shift || '';
 $cmd_path .= '.' if length($cmd_path);
+my $agent_subname = <system.agent.subname>;
 
 my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 2, "requesting window geometry.." );
-
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
+my $sn_str
+    = defined $agent_subname
+    ? ' ' . <system.agent.name> . "[$agent_subname]"
+    : '';
+
+my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
+<[base.log]>->( 1, "requesting window geometry$sn_log_str.." );
+
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}layout.get_geometry\n" );
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}layout.get_geometry$sn_str\n" );
 
 my $reply_string;
 my $matched_reply = 0;
