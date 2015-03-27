@@ -14,7 +14,8 @@ auth.methods                    =       pwd agent #rsa
 auth.rsa.key_file               =       rsa.core
 get.route                       =       file vortex.file :target:
 get.command                     =       file.get
-setup.aliases.source_agent      =       notify.message layout.get_coordinates
+setup.aliases.source_agent      =       notify.message layout.get_coordinates \
+                                                       layout.get_geometry
 setup.aliases.source_agent_sid  =       log.msg
 
 # access control
@@ -22,7 +23,8 @@ access.cmd.usr.*     =  clear help exit whoami time \
                         timezone startup_time ping log.msg \
                         xserver.get_display xserver.get_screen_size \
                         xserver.get_geometry xserver.get_stack_order \
-                        xserver.get_orientation
+                        xserver.get_orientation layout.get_coordinates \
+                        layout.get_geometry
 
 access.cmd.usr.root  =  ping session_key *.verify_instance *.ping
 
