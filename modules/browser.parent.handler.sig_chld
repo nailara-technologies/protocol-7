@@ -1,0 +1,48 @@
+# >:]
+
+# name  = browser.parent.handler.sig_chld
+
+<[base.log]>->( 2, 'SIGCHLD received.. collecting children...' );
+my %died_pid;
+local ( $!, $? );
+while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+
+    # determine exit status
+    my $e_val = $? >> 8;
+    my $e_sig = $? & 127;
+    $e_sig = $e_sig ? ", signal $e_sig" : '';
+    my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
+    my $log_level = 1;
+    $log_level = 0 if $e_val;
+    $log_level = 0 if $? & 128;
+    <[base.log]>->(
+        $log_level,
+        "child pid=$pid terminated ( exit code $e_val$e_sig )$e_dmp"
+    );
+    $died_pid{$pid} = 1;
+}
+
+foreach my $window_id ( sort keys %{<ticker.child.pid>} ) {
+    my $pid = <ticker.child.pid>->{$window_id};
+    if ( exists $died_pid{$pid} ) {
+        my $url       = <browser.window>->{$window_id}->{'url'}       || '';
+        my $url_index = <browser.window>->{$window_id}->{'url_index'} || '?';
+        my $url_txt = substr( $url, 0, 52 );
+        $url_txt .= '...' if length($url_txt) < length($url);
+        <[base.log]>->(
+            0, "window #$window_id just died! [ URL #$url_index | $url_txt ]"
+        );
+        delete <ticker.child.pid>->{$window_id};
+    }
+}
+
+<[base.log]>->( 0, ": shutting down browser agent ..." );
+
+foreach my $window_id ( sort keys %{<ticker.child.pid>} ) {
+    my $pid = <ticker.child.pid>->{$window_id};
+    <[base.log]>->( 1, ": : terminating window child #$window_id [PID=$pid]" );
+    kill( 9, $pid );
+}
+
+<[base.log]>->( 1, ": done." );
+CORE::exit(0);
