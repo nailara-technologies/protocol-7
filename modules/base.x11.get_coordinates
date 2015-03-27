@@ -1,0 +1,55 @@
+# >:]
+
+# name = base.x11.get_coordinates
+
+my $user     = shift || 'core';
+my $cmd_path = shift || '';
+$cmd_path .= '.' if length($cmd_path);
+my $agent_subname = <system.agent.subname>;
+
+my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $sn_str
+    = defined $agent_subname
+    ? ' ' . <system.agent.name> . "[$agent_subname]"
+    : '';
+
+my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
+<[base.log]>->( 1, "requesting window coordinates$sn_log_str.." );
+
+my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+<[net.out]>
+    ->( $core_fh, "($cmd_id)${cmd_path}layout.get_coordinates$sn_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    if ( !$matched_reply ) {
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
+            if uc($2) ne $2;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+) (\d+) (\d+)\n$/ ) {
+    <x11.coordinates.left>   = $1;
+    <x11.coordinates.top>    = $2;
+    <x11.coordinates.right>  = $3;
+    <x11.coordinates.bottom> = $4;
+    <[base.log]>->( 1, "received window coordinates.. [$1,$2,$3,$4]" );
+    return [ $1, $2, $3, $4 ];
+} else {
+    <[base.log]>->(
+        0,
+        "protocol error (unexpected reply from layout agent)"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
