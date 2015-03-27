@@ -33,9 +33,13 @@ for my $index ( 1 .. $instance_count ) {
         $am_parent = 0;
         delete <browser.pipe.child> if exists <browser.pipe.child>;
         <browser.pipe.parent>->{$index} = $parent_pipe;
-        <system.agent.name> =~ s/\s*$/[window-$index]/;
+        my $sn_str
+            = defined <system.agent.subname>
+            ? <system.agent.subname> . '-'
+            : '';
+        <system.agent.name> =~ s/\s*$/[${sn_str}window-$index]/;
         close($child_pipe);
-        my $process_name = 'browser-window';
+        my $process_name = "browser-${sn_str}window";
         $process_name .= '-' . $index if $instance_count > 1;
         $0 = $process_name;
         <log.file.system.retry_timer>->cancel
@@ -79,10 +83,15 @@ if ($am_parent) {
         );
         $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
+        my $sn_str
+            = defined <system.agent.subname>
+            ? '-' . <system.agent.subname>
+            : '';
+
         while ( not defined <browser.window.id>->{$index} ) { # XXX: max_retries
             <[base.sleep]>->(0.1);
             <browser.window.id>->{$index}
-                = <[base.x11.get_window_id]>->("browser-$index");
+                = <[base.x11.get_window_id]>->("browser${sn_str}-$index");
         }
 
         <[base.proto.nailara.command.send.local]>->(
