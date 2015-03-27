@@ -124,7 +124,10 @@ sub prepare_subs {
             $data{'system'}{'agent'}{'name'} = lc($0);
             $data{'system'}{'agent'}{'name'} =~ s/^.*nailara\.|[\. ]$//g;
         } elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-].*)/ ) {
-            $data{'system'}{'agent'}{'name'} = $1;
+            my $agent_name = $1;
+            $data{'system'}{'agent'}{'subname'} = $1
+                if $agent_name =~ s|\[([^\]]+)\]$||;
+            $data{'system'}{'agent'}{'name'} = $agent_name;
         }
 
         if ( not defined $data{'system'}{'agent'}{'name'}
