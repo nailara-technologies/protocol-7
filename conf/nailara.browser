@@ -17,10 +17,6 @@ browser.slideshow.url_file = '<system.conf_path>/browser.slideshow_urls.txt'
 browser.slideshow.autostart = 1
 browser.slideshow.min_delay = 5
 
-#browser.geometry = 600x400+0+0
-#browser.geometry = 800x600
-browser.geometry = 400x300+100+50
-
 browser.zoom_level = 1.2
 
 modules.load = auth net io.ip io.unix browser.base debug
@@ -32,6 +28,7 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 [base.x11.get_display]
+browser.geometry = [base.x11.get_geometry]
 [browser.base.fork_instances:2]
 
 [event.loop]
