@@ -10,9 +10,33 @@ die "layout profile $profile_name not found"
 
 <[base.log]>->( 1, "processing layout profile '$profile_name'.." );
 
-my $profile_data = <layout.config.profiles>->{$profile_name};
+my @remove_agents;
+my $previous_data;
+my $previous_profile = <layout.previous_profile>;
+my $profile_data     = <layout.config.profiles>->{$profile_name};
+if ( defined $previous_profile ) {
+    if ( $previous_profile eq $profile_name ) {
+        <[base.log]>->(
+            0,
+            "current and previous profile are identical, aborting processing.."
+        );
+        return 0;
+    }
+    $previous_data = <layout.config.profiles>->{$previous_profile};
+    map { push( @remove_agents, $_ ) if not exists $profile_data->{$_} }
+        keys( %{$previous_data} );
+}
+
+map { <[layout.remove_agent]>->( $previous_profile, $_ ) } @remove_agents;
 
 foreach my $agent_name ( keys %{$profile_data} ) {
+    next
+        if defined $previous_profile
+        and exists $previous_data->{$agent_name}
+        and
+        cmpStr( $previous_data->{$agent_name}, $profile_data->{$agent_name} )
+        == 0;    # agent setup identical (not touching running agent)
+
     <layout.coordinates>->{$agent_name}
         = <[layout.calculate_coordinates]>->( $profile_data->{$agent_name} );
     <[layout.agent_required]>->($agent_name);
