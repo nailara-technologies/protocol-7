@@ -3,7 +3,15 @@
 # name = root.agent.instance.stop
 
 my $instance_id = shift;
-my $instance    = <root.agent.instance>->{$instance_id};
+
+if ( exists <agent.instance.shutdown>->{$instance_id} ) {
+    <[base.log]>->(
+        1, "instance $instance_id already shutting down, skipping stop command!"
+    );
+    return;
+}
+
+my $instance = <root.agent.instance>->{$instance_id};
 
 die "instance.stop: instance id $instance_id does not exist!"
     if not defined $instance;

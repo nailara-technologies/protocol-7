@@ -5,6 +5,13 @@
 my ( $instance_id, $status ) = @_;
 die "no instance id specified" if not defined $instance_id;
 die "no status submitted"      if not defined $status;
+if ( $status eq 'shutdown'
+    and not exists <root.agent.instance>->{$instance_id} ) {
+    <[base.log]>->(
+        1, "instance $instance_id already gone, skipping status change!"
+    );
+    return;
+}
 die "no such agent instance ($instance_id)"
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
@@ -151,6 +158,14 @@ if (    $status ne 'online'
             )
         };
     }
+}
+
+if ( $status eq 'shutdown' or exists <agent.instance.shutdown>->{$instance_id} )
+{
+    $status = 'shutdown' if $status ne 'shutdown';
+    delete <root.agent.instance>->{$instance_id};
+    delete <agent.instance.shutdown>->{$instance_id};
+    <[base.log]>->( 1, "instance $instance_id has been shut down." );
 }
 
 if ( $old_status ne 'online' and $status eq 'online' ) {
