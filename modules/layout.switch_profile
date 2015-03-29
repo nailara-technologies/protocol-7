@@ -1,0 +1,23 @@
+# >:]
+
+# name  = layout.switch_profile
+
+my $profile_name = shift;
+die "profile name expected"
+    if not defined $profile_name or !length($profile_name);
+die "layout profile '$profile_name' does not exist"
+    if not exists <layout.config.profiles>->{$profile_name};
+if ( $profile_name eq <layout.current_profile> ) {
+    <[base.log]>->(
+        0, "profile $profile_name is already active, skipping switch!"
+    );
+    return 0;
+}
+
+<layout.previous_profile> = <layout.current_profile>;
+<layout.current_profile>  = $profile_name;
+
+<[layout.process_profile]>->($profile_name);
+
+<[base.log]>->( 1, "switched to layout profile '$profile_name'" );
+return 1;
