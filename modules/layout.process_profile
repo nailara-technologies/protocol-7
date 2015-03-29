@@ -8,6 +8,8 @@ die "expected valid profile name"
 die "layout profile $profile_name not found"
     if not exists <layout.config.profiles>->{$profile_name};
 
+<layout.agents_cleaned_up> //= 0;
+
 <[base.log]>->( 1, "processing layout profile '$profile_name'.." );
 
 my @remove_agents;
@@ -25,6 +27,12 @@ if ( defined $previous_profile ) {
     $previous_data = <layout.config.profiles>->{$previous_profile};
     map { push( @remove_agents, $_ ) if not exists $profile_data->{$_} }
         keys( %{$previous_data} );
+} elsif ( !<layout.agents_cleaned_up> ) {
+    foreach my $profile ( keys %{<layout.config.profiles>} ) {
+        map { <[layout.remove_agent]>->( $profile, $_ ); }
+            keys %{ <layout.config.profiles>->{$profile} };
+    }
+    <layout.agents_cleaned_up> = 1;
 }
 
 map { <[layout.remove_agent]>->( $previous_profile, $_ ) } @remove_agents;
