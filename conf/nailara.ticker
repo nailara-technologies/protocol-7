@@ -19,7 +19,7 @@ access.cmd.usr.child  = core.xserver.get_windows core.xserver.raise_window
 ticker.font.name = DroidSerif-Bold
 ticker.font.size = 84
 
-ticker.opacity = 42
+#ticker.opacity = 42
 
 modules.load = auth net io.ip ticker.base
 [load_modules:<modules.load>]
@@ -30,6 +30,7 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 [base.x11.get_display]
+[base.x11.get_coordinates]
 [ticker.base.fork_init]
 
 [event.loop]

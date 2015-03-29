@@ -68,37 +68,75 @@ $font_path .= '/' . <ticker.font.name> . '.ttf';
 
 <ticker.font.path> = $font_path;
 
-# load the configured font
-<ticker.font.object> = SDL::TTF::open_font( $font_path, <ticker.font.size> );
-die "failed to open font " . SDL::get_error . "]" if !<ticker.font.object>;
-<ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
-my $font_line_skip = SDL::TTF::font_line_skip(<ticker.font.object>);
-<ticker.border_height>
-    //= int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
+if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
+    my $coord = <x11.coordinates>;
+    ( <sdl.display_width>, <sdl.display_height> ) = (
+        $coord->{'right'} - $coord->{'left'},
+        $coord->{'bottom'} - $coord->{'top'}
+    );
+    SDL::putenv("SDL_VIDEO_WINDOW_POS=$coord->{left},$coord->{top}");
 
-# determine screen size
-my $video_info = SDL::Video::get_video_info();
-die "failed to get video info [" . SDL::get_error . "]"
-    if not defined $video_info;
-my @modes = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
-my $max_mode = shift(@modes);
+    # calculate dynamic font size
 
-# store size parameters
-( <x11.width>, <x11.height> ) = ( $max_mode->w, $max_mode->h );
+    my $last            = 0;
+    my $font_size       = 0;
+    my $font_and_border = 0;
+    my $display_height  = $coord->{'bottom'} - $coord->{'top'};
 
-# calculate display size
-( <sdl.display_width>, <sdl.display_height> )
-    = ( $max_mode->w, $font_line_skip + ( <ticker.border_height> * 2 ) );
+    while ( !$last and $font_and_border < $display_height ) {
+        $font_size++;
+    recalc:
+        <ticker.font.object> = SDL::TTF::open_font( $font_path, $font_size );
+        die "failed to open font " . SDL::get_error . "]"
+            if !<ticker.font.object>;
+        <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
+        <ticker.border_height>
+            = int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
+        $font_and_border
+            = <ticker.font.height> + ( 2 * <ticker.border_height> );
+        if ( $font_and_border > $display_height ) {
+            $font_size--;
+            $last = 1;
+            goto recalc;
+        }
+    }
+} else {    # old mode
 
-# set up position on the screen
-if ( <ticker.display.position> eq 'center' ) {
-    SDL::putenv("SDL_VIDEO_CENTERED=center");
-} else {
-    my $y_pos
-        = <ticker.display.position> eq 'top'
-        ? 0
-        : $max_mode->h - <sdl.display_height>;
-    SDL::putenv("SDL_VIDEO_WINDOW_POS=0,$y_pos");
+    # load the configured font
+    <ticker.font.object>
+        = SDL::TTF::open_font( $font_path, <ticker.font.size> );
+    die "failed to open font " . SDL::get_error . "]" if !<ticker.font.object>;
+    <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
+    my $font_line_skip = SDL::TTF::font_line_skip(<ticker.font.object>);
+    <ticker.border_height>
+        //= int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
+
+    # determine screen size
+    my $video_info = SDL::Video::get_video_info();
+    die "failed to get video info [" . SDL::get_error . "]"
+        if not defined $video_info;
+    my @modes
+        = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
+    my $max_mode = shift(@modes);
+
+    # store size parameters
+    ( <x11.width>, <x11.height> ) = ( $max_mode->w, $max_mode->h );
+
+    # calculate display size
+    ( <sdl.display_width>, <sdl.display_height> )
+        = ( $max_mode->w, $font_line_skip + ( <ticker.border_height> * 2 ) );
+
+    # set up position on the screen
+    if ( <ticker.display.position> eq 'center' ) {
+        SDL::putenv("SDL_VIDEO_CENTERED=center");
+    } else {
+        my $y_pos
+            = <ticker.display.position> eq 'top'
+            ? 0
+            : $max_mode->h - <sdl.display_height>;
+        SDL::putenv("SDL_VIDEO_WINDOW_POS=0,$y_pos");
+    }
+
 }
 
 # initialize SDL window
