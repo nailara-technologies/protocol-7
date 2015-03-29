@@ -33,11 +33,5 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
         } else {
             <[agent.change_status]>->( $instance_id, 'offline' );
         }
-
-        if ( exists <agent.instance.shutdown>->{$instance_id} ) {
-            delete <root.agent.instance>->{$instance_id};
-            delete <agent.instance.shutdown>->{$instance_id};
-            <[base.log]>->( 1, "instance $instance_id has been shut down." );
-        }
     }
 }
