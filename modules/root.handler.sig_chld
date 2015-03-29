@@ -28,11 +28,16 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
 
         my $old_status = $instance_data->{'status'};
         <[base.log]>->( 2, ": was '$old_status' ..." );
-       if ( $old_status eq 'starting' ) {
+        if ( $old_status eq 'starting' ) {
             <[agent.change_status]>->( $instance_id, 'failed' );
         } else {
             <[agent.change_status]>->( $instance_id, 'offline' );
         }
 
+        if ( exists <agent.instance.shutdown>->{$instance_id} ) {
+            delete <root.agent.instance>->{$instance_id};
+            delete <agent.instance.shutdown>->{$instance_id};
+            <[base.log]>->( 1, "instance $instance_id has been shut down." );
+        }
     }
 }
