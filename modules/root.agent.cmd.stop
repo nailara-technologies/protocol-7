@@ -76,6 +76,8 @@ foreach my $name ( keys %shutdown_names ) {
     }
 }
 
+map { <[agent.change_status]>->( $_, 'shutdown' ) } @instance_ids;
+
 if ($count) {
     return { 'mode' => 'ack', 'data' => $msg_str };
 } else {

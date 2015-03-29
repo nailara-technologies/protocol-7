@@ -11,9 +11,15 @@ die "no job id specified!"       if not defined $job_id;
 die "no target queue specified!" if not defined $target_queue;
 die "a queue named '$target_queue' does not exist"
     if not exists $job_list->{$target_queue};
-my $prio = $jobs->{$job_id}->{'priority'};
-die "a job with id '$job_id' does not exist" if not defined $prio;
 
+if ( not exists $jobs->{$job_id} ) {
+    <[base.log]>->(
+        1, "jobqueue.move_job: a job with id '$job_id' does not exist!"
+    );
+    return;
+}
+
+my $prio = $jobs->{$job_id}->{'priority'};
 my $source_queue = $jobs->{$job_id}->{'status'};
 
 return if $source_queue eq $target_queue;    # XXX: warn?
