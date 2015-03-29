@@ -2,8 +2,14 @@
 
 # name = root.handler.status_timer_response
 
-my $response      = shift;
-my $instance_id   = $response->{'params'}->{'instance_id'};
+my $response    = shift;
+my $instance_id = $response->{'params'}->{'instance_id'};
+if ( not exists <root.agent.instance>->{$instance_id} ) {
+    <[base.log]>->(
+        1, "instance $instance_id is gone, skipping response timer!"
+    );
+    return;
+}
 my $instance      = <root.agent.instance>->{$instance_id};
 my $is_core_agent = $instance->{'is_core'};
 my $agent_name    = $instance->{'agent_name'};
