@@ -3,7 +3,15 @@
 # name = root.callback.instance.respawn
 
 my $instance_id = shift->w->data;
-my $instance    = <root.agent.instance>->{$instance_id};
+
+if ( not exists <root.agent.instance>->{$instance_id} ) {
+    <[base.log]>->(
+        1, "instance $instance_id no longer exists, aborting respawn callback!"
+    );
+    return;
+}
+
+my $instance = <root.agent.instance>->{$instance_id};
 $instance->{'respawn_timer'}->cancel;
 delete $instance->{'respawn_timer'};
 delete $instance->{'core_sid'};
