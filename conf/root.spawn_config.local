@@ -5,7 +5,7 @@
 
 .: globals :.
 
-  agents.enabled = core log system xserver unclutter composite openbox layout
+  agents.enabled = core log system xserver unclutter openbox composite layout
 
 .: agents :.
 
@@ -72,9 +72,9 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
- - composite
+  - openbox
 
-      dependencies = core xserver
+      dependencies = core xserver unclutter
 
       : root-init :
         start_mode = exec-sic
@@ -84,9 +84,9 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
-  - openbox
+ - composite
 
-      dependencies = core xserver unclutter
+      dependencies = core xserver
 
       : root-init :
         start_mode = exec-sic
