@@ -149,7 +149,7 @@ if ( defined $bg_image ) {
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
-    @hsetroot_params = ( '-cover', $bg_image );
+    @hsetroot_params = ( '-center', $bg_image ); # <- no -cover on arch linux ;|
 } elsif ( $bg_col =~ /^\#?[A-F]{6}$/ ) {
     $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
     if ( !-x $hsetroot_bin ) {
