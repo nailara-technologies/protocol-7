@@ -2,6 +2,8 @@
 
 # name = compton.init_code
 
+use IPC::Open2;
+
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
 
