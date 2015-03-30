@@ -8,9 +8,9 @@ die "expected valid profile name"
 die "layout profile $profile_name not found"
     if not exists <layout.config.profiles>->{$profile_name};
 
-<layout.agents_cleaned_up> //= 0;
-
 <[base.log]>->( 1, "processing layout profile '$profile_name'.." );
+
+<layout.startup> //= 1;
 
 my @remove_agents;
 my $previous_data;
@@ -27,19 +27,45 @@ if ( defined $previous_profile ) {
     $previous_data = <layout.config.profiles>->{$previous_profile};
     map { push( @remove_agents, $_ ) if not exists $profile_data->{$_} }
         keys( %{$previous_data} );
-} elsif ( !<layout.agents_cleaned_up> ) {
-    foreach my $profile ( keys %{<layout.config.profiles>} ) {
-        map { <[layout.remove_agent]>->( $profile, $_ ); }
-            keys %{ <layout.config.profiles>->{$profile} };
-    }
-    <layout.agents_cleaned_up> = 1;
 }
 
-map { <[layout.remove_agent]>->( $previous_profile, $_ ) } @remove_agents;
+if (<layout.startup>) {
+    my $kill_count = 0;
+    foreach my $profile ( keys %{<layout.config.profiles>} ) {
+        my $_profile_data = <layout.config.profiles>->{$profile};
+        map {
+            my $stop_agents
+                = exists $_profile_data->{$_}->{'stop_agents'}
+                ? join( ' ', $_profile_data->{$_}->{'stop_agents'}, $_ )
+                : $_;
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => 'core.root.stop',
+                    'call_args' => { 'args' => $stop_agents },
+                    'reply'     => {
+                        'handler' => 'dev.null',
+                        'params'  => {}
+                    }
+                }
+            );
+            $kill_count++;
+        } keys %{ <layout.config.profiles>->{$profile} };
+    }
+    <[base.sleep]>->(0.42) if $kill_count; # XXX: fix!
+} else {
+    map {
+        <[layout.handler.agent_transition]>->(
+            {   'action'       => 'stop',
+                'profile_name' => $previous_profile,
+                'agent_name'   => $_
+            }
+        );
+    } @remove_agents;
+}
 
 foreach my $agent_name ( keys %{$profile_data} ) {
     next
-        if defined $previous_profile
+        if !<layout.startup>
+        and defined $previous_profile
         and exists $previous_data->{$agent_name}
         and
         cmpStr( $previous_data->{$agent_name}, $profile_data->{$agent_name} )
@@ -47,5 +73,13 @@ foreach my $agent_name ( keys %{$profile_data} ) {
 
     <layout.coordinates>->{$agent_name}
         = <[layout.calculate_coordinates]>->( $profile_data->{$agent_name} );
-    <[layout.agent_required]>->($agent_name);
+
+    <[layout.handler.agent_transition]>->(
+        {   'action'       => 'start',
+            'profile_name' => $profile_name,
+            'agent_name'   => $agent_name
+        }
+    );
 }
+
+<layout.startup> = 0;

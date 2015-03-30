@@ -1,0 +1,195 @@
+# >:]
+
+# name = layout.handler.agent_transition
+
+my $params = shift;
+die "expected hash reference" if ref($params) ne 'HASH';
+foreach my $key ( 'profile_name', 'agent_name' ) {
+    die "'$key' parameter required!"
+        if not exists $params->{$key}
+        or not defined $params->{$key}
+        or !length( $params->{$key} );
+}
+
+$params->{'status'} //= 'ping';
+
+my $profile_data = <layout.config.profiles>
+    ->{ $params->{'profile_name'} }->{ $params->{'agent_name'} };
+my $stop_agents = $profile_data->{'stop_agents'};
+$stop_agents = $params->{'agent_name'} if not defined $stop_agents;
+my $start_agents = $profile_data->{'start_agents'};
+$start_agents = $params->{'agent_name'} if not defined $start_agents;
+
+$params->{'fade'} = 1
+    if exists $profile_data->{'fade'}
+    and $profile_data->{'fade'} eq '1';
+
+if ( $params->{'status'} eq 'ping' ) {
+    if ( not exists $params->{'ping'} ) {
+        $params->{'callback'} = 'layout.handler.agent_transition';
+        my $agent_name = $params->{'agent_name'};
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.$agent_name.ping",
+                'call_args' => {},                        # subname
+                'reply'     => {
+                    'handler' => 'layout.handler.ping_reply',
+                    'params'  => $params
+                }
+            }
+        );
+        return;
+    } else {
+
+        if ( $params->{'ping'} == 1 ) {
+            $params->{'remove'} = 1;
+            $params->{'status'} = 'instance_ids';
+        } else {
+            $params->{'remove'}       = 0;
+            $params->{'status'}       = 'start';
+            $params->{'instance_ids'} = $params->{'agent_name'};
+        }
+    }
+}
+
+if ( $params->{'status'} eq 'instance_ids' ) {
+    $params->{'callback'} = 'layout.handler.agent_transition';
+    $params->{'status'}   = 'opacity';
+    $params->{'status'}   = 'remove' if !$params->{'fade'};
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.get_instance_ids",
+            'call_args' => { 'args' => $stop_agents },     # subname
+            'reply'     => {
+                'handler' => 'layout.handler.get_instance_ids_reply',
+                'params'  => $params
+            }
+        }
+    );
+    return;
+}
+
+if ( $params->{'status'} eq 'opacity' ) {
+    $params->{'opacity'} = 1
+        if not exists $profile_data->{'get_opacity'}
+        or $profile_data->{'get_opacity'} ne '1';
+    if ( not exists $params->{'opacity'} ) {
+        $params->{'callback'} = 'layout.handler.agent_transition';
+        $params->{'status'}   = 'window_ids';
+
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command' => "core.$params->{'agent_name'}.get_opacity",
+                'call_args' => {},    # subname
+                'reply'     => {
+                    'handler' => 'layout.handler.get_opacity_reply',
+                    'params'  => $params
+                }
+            }
+        );
+        return;
+    } else {
+        $params->{'status'} = 'prepare_cmd';
+    }
+}
+
+if ( $params->{'status'} eq 'prepare_cmd' ) {
+    $params->{'status'} = 'window_ids';
+
+    if ( exists $profile_data->{'prepare_cmd'} ) {
+        $params->{'callback'} = 'layout.handler.agent_transition';
+        my $prepare_cmd = $profile_data->{'prepare_cmd'};
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.$prepare_cmd",    # subname?
+                'call_args' => {},
+                'reply'     => {
+
+                    'handler' => 'layout.handler.ping_reply',
+                    'params'  => $params
+                }
+            }
+        );
+        return;
+    }
+}
+
+if ( $params->{'status'} eq 'window_ids' ) {
+    $params->{'callback'} = 'layout.handler.agent_transition';
+    $params->{'status'}   = 'fade' if $params->{'fade'};
+    $params->{'status'}   = 'start'
+        if exists $params->{'action'}
+        and $params->{'action'} eq 'start';
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.get_window_ids",
+            'call_args' => { 'args' => $params->{'agent_name'} },    # subname
+            'reply'     => {
+                'handler' => 'layout.handler.get_window_id_reply',
+                'params'  => $params
+            }
+        }
+    );
+    return;
+}
+
+if ( $params->{'status'} eq 'start' ) {
+    $params->{'callback'} = 'layout.handler.agent_transition';
+    $params->{'status'}   = 'done';
+    $params->{'status'}   = 'remove' if $params->{'remove'};
+    $params->{'status'}   = 'fade' if $params->{'remove'} and $params->{'fade'};
+
+    my @agents = split( / +/, $start_agents );
+    while ( my $start_name = shift @agents ) {
+        my $handler = @agents ? 'dev.null' : 'layout.handler.ping_reply';
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.root.start',
+                'call_args' => { 'args' => $start_name },
+                'reply'     => {
+                    'handler' => $handler,
+                    'params'  => $params
+                }
+            }
+        );
+    }
+    return;
+}
+
+if ( $params->{'status'} eq 'fade' ) {
+    $params->{'callback'} = 'layout.handler.agent_transition';
+    $params->{'status'}   = 'remove';
+    <[event.add_timer]>->(
+        {   'after'    => 0,
+            'interval' => 0.0042,
+            'repeat'   => 1,
+            'handler'  => 'layout.handler.fade_out',
+            'data'     => $params
+        }
+    );
+    return;
+}
+
+if ( $params->{'status'} eq 'remove' ) {
+    <[base.log]>->(
+        1, "removing agents from '$params->{'agent_name'}' profile.."
+    );
+    $params->{'status'}   = 'done';
+    $params->{'callback'} = 'layout.handler.agent_transition';
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.root.stop',
+            'call_args' => { 'args' => $params->{'instance_ids'} },
+            'reply'     => {
+                'handler' => 'layout.handler.ping_reply',
+                'params'  => $params
+            }
+        }
+    );
+    return;
+}
+
+if ( $params->{'status'} eq 'done' ) {
+    <[event.add_timer]>->(
+        {   'after'   => 5,
+            'repeat'  => 0,
+            'handler' => 'layout.handler.transition_complete'
+        }
+    );
+}

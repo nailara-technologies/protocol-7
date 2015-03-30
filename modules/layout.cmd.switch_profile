@@ -7,6 +7,8 @@
 
 my $profile_name = $$call{'args'};
 
+<layout.transition_queue> //= [];
+
 return {
     'mode' => 'nack',
     'data' => "expected valid layout profile name"
@@ -17,15 +19,26 @@ return {
     'data' => "profile \"$profile_name\" not found!"
     }
     if not exists <layout.config.profiles>->{$profile_name};
+
+if ( <layout.transition_in_progress> ) {
+    push( @{<layout.transition_queue>}, $profile_name );
+    return {
+        'mode' => 'ack',
+        'data' => "transition queued..."
+    };
+}
+
 return {
     'mode' => 'nack',
     'data' => "profile '$profile_name' is already active."
     }
     if $profile_name eq <layout.current_profile>;
 
+<layout.transition_in_progress> = 1;
+
 <[layout.switch_profile]>->($profile_name);
 
 return {
     'mode' => 'ack',
-    'data' => "switched to profile '$profile_name'"
+    'data' => "switching to profile '$profile_name'"
 };

@@ -95,12 +95,26 @@ if ($am_parent) {
                 ->( "browser${sn_str}-$index-" . <ticker.child.pid>->{$index} );
         }
 
+#        <[base.proto.nailara.command.send.local]>->(
+#            {   'command'   => "browser.window-$index.fade_in",
+#                'call_args' => { },
+#                'reply'     => { 'handler' => 'dev.null' }
+#            }
+#        );
+
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => "core.xserver.lower_window",
                 'call_args' => { 'args' => <browser.window.id>->{$index} },
                 'reply'     => { 'handler' => 'dev.null' }
             }
         );
+
+#        <[base.proto.nailara.command.send.local]>->(
+#            {   'command'   => "core.xserver.lower_window",
+#                'call_args' => { 'args' => <browser.window.id>->{$index} },
+#                'reply'     => { 'handler' => 'dev.null' }
+#            }
+#        );
 
     }
     <[base.get_session_id]>;

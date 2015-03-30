@@ -1,0 +1,15 @@
+# >:]
+
+# name = layout.handler.ping_reply
+
+my $reply    = shift;
+my $params   = $reply->{'params'};
+my $callback = delete $params->{'callback'};
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    $params->{'ping'} = 1;
+} else {
+    $params->{'ping'} = 0;
+}
+
+$code{$callback}->($params);
