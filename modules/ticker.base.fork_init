@@ -14,7 +14,7 @@ $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 #<system.verbosity>          = 3;
 
 <ticker.child.pid> = fork;
-if ( !<ticker.child.pid> ) {
+if ( !<ticker.child.pid> ) {    # child
     close($child_pipe);
     $0 = 'ticker child';
     <ticker.pipe.parent> = $parent_pipe;
@@ -56,7 +56,7 @@ if ( !<ticker.child.pid> ) {
 
     <[ticker.sdl.raise_and_fade]>;
 
-} else {
+} else {    # parent
 
     close($parent_pipe);
     <ticker.pipe.child> = $child_pipe;
@@ -72,6 +72,8 @@ if ( !<ticker.child.pid> ) {
         = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
 
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('ticker.parent');
 
     <[base.get_session_id]>;
 }
