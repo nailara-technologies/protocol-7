@@ -1,6 +1,6 @@
 # >:]
 
-# name  = ticker.base.cmd.read_file
+# name  = ticker.parent.cmd.read_file
 # param = <path>
 # descr = update ticker child from file
 
@@ -20,7 +20,7 @@ if ( !<ticker.request_pending.read_file> ) {
         {   'command'   => 'child.read_file',
             'call_args' => { 'args' => $file_path },
             'reply'     => {
-                'handler' => 'ticker.base.handler.cmd_read_file',
+                'handler' => 'ticker.parent.handler.cmd_read_file',
                 'params'  => {}
             }
         }
