@@ -42,8 +42,10 @@ if ( !<ticker.child.pid> ) {    # child
     my $request_attempts = 0;
     while ( not exists <ticker.window_id> or not defined <ticker.window_id> ) {
         $request_attempts++;
-        <ticker.window_id>
-            = <[base.x11.get_window_id]>->( 'ticker', 'parent', 'core' );
+        <ticker.window_id> = <[base.x11.get_window_id]>->(
+            <system.agent.name> . '-' . $$,
+            'parent', 'core'
+        );
         <[base.sleep]>->(0.2) if not defined <ticker.window_id>;
         if ( $request_attempts >= $max_attempts
             and not defined <ticker.window_id> ) {
