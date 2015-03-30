@@ -1,0 +1,33 @@
+# >:]
+
+# name  = root.agent.cmd.get_instance_ids
+# param = <agent_name[s]>
+# descr = return instance ids for matching agent names
+
+my $params = $$call{'args'} || '';
+return { 'mode' => 'nack', 'data' => 'expected agent name[s]' }
+    if !length($params);
+
+my @instance_ids;
+foreach my $param_str ( split / +/, $params ) {
+    my $agent_id = <[agent.get_id]>->($param_str);
+    return {
+        'mode' => 'nack',
+        'data' => "no agent '$param_str' found in setup!"
+            . " (see 'list agents')"
+        }
+        if not defined $agent_id;
+    map {
+        push( @instance_ids, $_ )
+            if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
+    } keys %{<root.agent.instance>};
+}
+
+if (@instance_ids) {
+    return { 'mode' => 'ack', 'data' => join( ' ', @instance_ids ) };
+} else {
+    return {
+        'mode' => 'nack',
+        'data' => 'no matches found!'
+    };
+}
