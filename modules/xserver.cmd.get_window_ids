@@ -1,0 +1,28 @@
+# >:]
+
+# name  = xserver.cmd.get_window_ids
+# param = <title_str>
+# descr = return window ids of matching window titles
+
+my $title_pattern = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'expected title [sub]string argument' }
+    if not defined $title_pattern or !length($title_pattern);
+
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+my @window_ids;
+for my $win ( @{ $xtops->sorted } ) {
+    push( @window_ids, $win->id )
+        if index( $win->instance, $title_pattern ) != -1
+        or index( $win->title,    $title_pattern ) != -1;
+}
+
+return { 'mode' => 'nack', 'data' => 'no matching window captions!' }
+    if !@window_ids;
+
+return {
+    'mode' => 'ack',
+    'data' => join( ' ', @window_ids )
+};
