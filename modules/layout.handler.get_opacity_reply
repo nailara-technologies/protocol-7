@@ -1,0 +1,16 @@
+# >:]
+
+# name = layout.handler.get_opacity_reply
+
+my $reply    = shift;
+my $params   = $reply->{'params'};
+my $callback = delete $params->{'callback'};
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->( 0, "failed to get opacity (NACK reply)!" );
+    $params->{'opacity'} = 1;
+} else {
+    $params->{'opacity'} = $reply->{'call_args'}->{'args'};
+}
+
+$code{$callback}->($params);
