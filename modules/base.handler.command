@@ -458,7 +458,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
         if ( !@send_sids ) {
             $$output .= $_cmd_id . "NACK unknown command\n";
             <[base.log]>->(
-                1,
+                2,
                 "[$id] command '$command_str' rejected!"
                     . " (client '$target_name' not found)"
             );
