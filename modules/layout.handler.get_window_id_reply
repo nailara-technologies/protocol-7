@@ -1,0 +1,18 @@
+# >:]
+
+# name = layout.handler.get_window_id_reply
+
+my $reply    = shift;
+my $params   = $reply->{'params'};
+my $callback = delete $params->{'callback'};
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->( 0, "failed to obtain any window ids (NACK reply)!" );
+    $params->{'status'} = 'window_ids';
+} else {
+    my $xserver_reply = $reply->{'call_args'}->{'args'};
+    my @window_ids = split( / +/, $xserver_reply );
+    $params->{'window_ids'} = \@window_ids;
+}
+
+$code{$callback}->($params);
