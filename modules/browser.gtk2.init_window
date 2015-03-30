@@ -24,7 +24,7 @@ my $hide_scrollbars = <browser.hide_scrollbars>;
 
 my $sn_str = defined <system.agent.subname> ? '-' . <system.agent.subname> : '';
 my $title_str = 'browser' . $sn_str;
-$title_str .= "-$instance_id" if defined $instance_id;
+$title_str .= "-$instance_id-$$" if defined $instance_id;
 
 my $window = Gtk2::Window->new('toplevel');
 <browser.gtk2.obj.window> = $window;
