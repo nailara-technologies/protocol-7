@@ -1,0 +1,12 @@
+# >:]
+
+# name = layout.handler.transition_complete
+
+<layout.transition_queue> //= [];
+
+<layout.transition_in_progress> = 0;
+
+if ( @{<layout.transition_queue>} ) {
+    <[layout.cmd.switch_profile]>
+        ->( { 'args' => shift @{<layout.transition_queue>} } );
+}
