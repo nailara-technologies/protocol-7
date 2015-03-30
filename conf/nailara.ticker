@@ -9,7 +9,8 @@ ticker.child.renice_fh = [base.fork.renice_child]
 
 [load_config_file:'defaults']
 
-access.cmd.usr.core = help ping reload verify_instance read_file pause resume
+access.cmd.usr.core = help ping reload verify_instance read_file pause resume \
+                      get_opacity
 
 access.cmd.usr.parent = read_file
 access.cmd.usr.child  = core.xserver.get_windows core.xserver.raise_window
@@ -18,7 +19,7 @@ access.cmd.usr.child  = core.xserver.get_windows core.xserver.raise_window
 #                                         DroidSerif-Bold DroidSerif-Regular
 ticker.font.name = DroidSerif-Bold
 
-#ticker.opacity = 42
+#ticker.opacity = 42 # [0-100]
 
 modules.load = auth net io.ip ticker.base
 [load_modules:<modules.load>]
