@@ -35,13 +35,25 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $feed
             = <rss.parser>
             ->parse_string( encode( 'utf-8', $response->decoded_content ) );
-        die <rss.parser>->errstr if not defined $feed;
-
+        if ( not defined $feed ) {
+            ( my $err_str = <rss.parser>->errstr ) =~ s|\n| |g;
+            $err_str =~ s| +$||;
+            <[base.log]>->( 0, "[!] error on URL $rss_index [ $err_str ]" );
+            next;
+        }
         my @txt_data;
-        foreach my $item ( $feed->query('//item') ) {
-            my $node = $item->query('title');
-            my $line = $node->text_content;
-            push( @txt_data, $line );
+        eval {
+            foreach my $item ( $feed->query('//item') ) {
+                my $node = $item->query('title');
+                my $line = $node->text_content;
+                push( @txt_data, $line );
+            }
+        };
+        if ($@) {
+            <[base.log]>->(
+                0, "error while parsing rss URL $rss_index content [$@]"
+            );
+            next;
         }
         my $url_hash = <[digest.sha1]>->($rss_url);
         if ( !-d $data_dir ) {
