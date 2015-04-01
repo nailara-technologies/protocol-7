@@ -31,17 +31,15 @@ while ( !$id_count ) {
                 $data{'net'}{'local'}{'port'}
             )
             ) {
-            if ( $data{'system'}{'agent'}{'name'} eq '' ) {
+            if ( <system.agent.name> eq '' ) {
                 <[base.log]>->( 0, 'agent_name not set!' );
             }
-            if ( $data{'auth'}{'core'}{'pass'} eq '' ) {
+            if ( <auth.core.pass> eq '' ) {
                 <[base.log]>->( 0, 'auth.core.pass not set!' );
             }
 
             if (<[net.authme]>->(
-                    $core_handle,
-                    $data{'system'}{'agent'}{'name'},
-                    $data{'auth'}{'core'}{'pass'}
+                    $core_handle, <system.agent.name>, <auth.core.pass>
                 )
                 ) {
                 <core.handle> = $core_handle;
