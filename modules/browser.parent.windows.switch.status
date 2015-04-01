@@ -11,9 +11,19 @@ die "expected numerical status parameter"
 my $fg_window = <browser.fg_window>;
 my $bg_window = <browser.bg_window>;
 
-$new_status = 2 if !<browser.use_transparency> and $new_status == 1;
+$new_status = 3 if !<browser.use_transparency> and $new_status == 1;
 
 if ( $new_status == 1 ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$bg_window.opacity",
+            'call_args' => { 'args' => 1 },
+            'reply'     => {
+                'handler' => 'browser.parent.windows.switch.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 2 ) {
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "window-$fg_window.fade_out",
             'call_args' => {},
@@ -23,7 +33,7 @@ if ( $new_status == 1 ) {
             }
         }
     );
-} elsif ( $new_status == 2 ) {
+} elsif ( $new_status == 3 ) {
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.xserver.lower_window",
             'call_args' => { 'args' => <browser.window.id>->{$fg_window} },
@@ -35,7 +45,7 @@ if ( $new_status == 1 ) {
     );
     <browser.fg_window> = $bg_window;
     <browser.bg_window> = $fg_window;
-} elsif ( $new_status == 3 ) {
+} elsif ( $new_status == 4 ) {
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "window-$bg_window.opacity",
             'call_args' => { 'args' => 1 },
@@ -45,7 +55,7 @@ if ( $new_status == 1 ) {
             }
         }
     );
-} elsif ( $new_status == 4 ) {
+} elsif ( $new_status == 5 ) {
 
     <[base.callback.cmd_reply]>->(
         <browser.switch.reply_id>,
