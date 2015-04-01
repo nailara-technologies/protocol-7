@@ -1,6 +1,6 @@
 # >:]
 
-# name       = file.index.header
+# name       = _old.file.index.header
 
 my $path = $data{'file'}{'dir'};
 
@@ -9,7 +9,7 @@ my $filename = $_[0];
 my $count_files = 0;
 
 ###
-my $file_id = $code{'base.gen_id'}->(
+my $file_id = <[base.gen_id]>->(
     "$data{'file'}{'index'}", $data{'file'}{'storage'}{'maxfiles'} || 23542
 );
 
@@ -17,7 +17,7 @@ my $file_id = $code{'base.gen_id'}->(
 
 if ( not defined $data{'file'}{'index'} ) { $data{'file'}{'index'} = '' }
 
-$file_id = $code{'base.list.element.add'}->( {
+$file_id = <[base.list.element.add]>->( {
       'key_ref' => \$data{'file'}{'index'}
 #  ,    'val_ref' => \{
 
@@ -31,13 +31,13 @@ $filename =~ s{//}{/}g;
 
 if ( -f $filename ) {
     open( my $file_fh, '<', $filename )
-        or $code{'base.log'}->( 0, "index.header: '$filename' :. $!" );
+        or <[base.log]>->( 0, "index.header: '$filename' :. $!" );
     my $header_state = 0;
     my $lines        = 0;
     my $format_error = 0;
     $count_files++;
     $data{'file'}{'index'}{$file_id}{'system'}{'filename'}     = $filename;
-    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = [base.time:5];
+    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = <[base.time]>->(5);
     while ( $new_line = <$file_fh> ) {
         $lines++;
         $header_data .= $new_line;
@@ -65,7 +65,7 @@ if ( -f $filename ) {
     }
 }
 else {
-    $code{'base.log'}->( 0,
+    <[base.log]>->( 0,
         "index.header: file '$filename' does not exist" );
     return 0;
 }
@@ -75,7 +75,7 @@ if ($format_error) {
         undef %{ $data{'file'}{'index'}{$file_id} };
         delete $data{'file'}{'index'}{$file_id};
     }
-    $code{'base.log'}->(
+    <[base.log]>->(
         0,
         "index.header: invalid file format in "
             . "'$filename' err_code: $format_error"
@@ -86,7 +86,7 @@ else {
     my $md5 = Digest::MD5->new();
     my $rc = open( my $file_fh, '<' . $filename );
     if ( !$rc ) {
-        $code{'base.log'}->( 0,
+        <[base.log]>->( 0,
             "index.header: file '$filename' does not exist" );
         return 0;
     }
