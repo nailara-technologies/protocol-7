@@ -10,17 +10,18 @@ if ( $$agent{'status'} eq 'spawn' ) {
     print "RUNNING AGENT: " . $$agent{'name'} . "\n";
 
     $$agent{'pid'} = <[agent.run]>->($agent_id);
-}
-elsif ( $$agent{'status'} eq 'shutdown' ) {
-    <[base.log]>->( 1,
-        'sending kill signal to agent \'' . $$agent{'name'} .'\' (pid:'.$$agent{'pid'}. ')' );
+} elsif ( $$agent{'status'} eq 'shutdown' ) {
+    <[base.log]>->(
+        1,
+        'sending kill signal to agent \''
+            . $$agent{'name'}
+            . '\' (pid:'
+            . $$agent{'pid'} . ')'
+    );
 
-    if(kill( 9, $$agent{'pid'} ))
-    {
-	print "SUCCESS\n";
-    }
-    else
-    {
-	print "FAILED\n";
+    if ( kill( 9, $$agent{'pid'} ) ) {
+        print "SUCCESS\n";
+    } else {
+        print "FAILED\n";
     }
 }

@@ -2,10 +2,7 @@
 
 # name       = chat.tk.open_window
 
-
-my $mw = MainWindow->new(
-    -title => '>: ] c h a t',
-);
+my $mw = MainWindow->new( -title => '>: ] c h a t', );
 
 $mw->setPalette(
     background       => '#333333333333',
@@ -47,8 +44,7 @@ $tree = $f->Tree(
 
 );
 
-foreach my $entry (
-    qw(
+foreach my $entry ( qw(
     irc
     irc.ircnet
     irc.ircnet.!eof
@@ -64,8 +60,7 @@ foreach my $entry (
     nailara.c3h.public
     nailara.c3h.intern
     )
-  )
-{
+    ) {
     my $entry_txt = $entry;
     $entry_txt =~ s/^(.*)\.//;
     my $parent_entry = $1;
@@ -108,9 +103,9 @@ my $say = $mw->Text(
     -yscrollcommand     => sub { print $_[0] . "\n" }
 );
 
-$tree->pack( -side => 'left',   -anchor => 'n' );
-$say->pack( -side  => 'bottom', -anchor => 'se' );
-$text->pack( -side => 'right',  -anchor => 'n' );
+$tree->pack( -side => 'left', -anchor => 'n' );
+$say->pack( -side => 'bottom', -anchor => 'se' );
+$text->pack( -side => 'right', -anchor => 'n' );
 
 # $label->pack;
 

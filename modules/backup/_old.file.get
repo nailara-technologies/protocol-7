@@ -5,8 +5,7 @@
 my $file_name;
 my $file_id = $_[0];
 if ( defined $data{'file'}{'id'}{$file_id}
-    and $data{'file'}{'id'}{$file_id} > 0 )
-{
+    and $data{'file'}{'id'}{$file_id} > 0 ) {
     my $internal_id = $data{'file'}{'id'}{$file_id};
     $file_name = $data{'file'}{'index'}{$internal_id}{'system'}{'filename'};
     if ( -f $file_name ) {
@@ -20,16 +19,13 @@ if ( defined $data{'file'}{'id'}{$file_id}
                 );
                 $data{'session'}{$file_cid}{'default_readmode'} = 'raw';
                 return 1;
-            }
-            else {
-                <[base.log]>->( 0,
-                    "get: can't open file '$file_name' [$@]" );
+            } else {
+                <[base.log]>->( 0, "get: can't open file '$file_name' [$@]" );
 
                 $$reply{'data'} = 'can not open file';
             }
             return 1;
-        }
-        else {
+        } else {
             $$reply{'data'} = 'can not find file';
             <[base.log]>->( 0, "can't stat file [$file_name]" );
         }
@@ -39,12 +35,10 @@ if ( defined $data{'file'}{'id'}{$file_id}
         $$reply{'data'} = 'no such file';
         <[base.log]>->( 0, "can not open file \'$file_name\' [$!]" );
     }
-}
-elsif ( $file =~ /^<.*>$/ ) {
+} elsif ( $file =~ /^<.*>$/ ) {
     <[base.log]>->( 0, "[$_[0]] get: invalid hash supplied" );
     $$reply{'data'} = 'invalid hash';
-}
-else {
+} else {
     if ( !-f $file_name ) {
         $$reply{'data'} = 'hash not found';
         <[base.log]>->( 0, "get: file '$_[0]' not found" );

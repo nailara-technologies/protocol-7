@@ -9,14 +9,13 @@ my $handle  = \$data{'session'}{$id}{'handle'};
 my $session = $data{'session'}{$id};
 
 my $key_id = $data{'auth'}{'rsa'}{'key'}{'current'}{'id'};
-my $key = $data{'crypt'}{'rsa'}{'key'}{$key_id};
-my $rsa = $key->{'obj'};
+my $key    = $data{'crypt'}{'rsa'}{'key'}{$key_id};
+my $rsa    = $key->{'obj'};
 my $maxlen = 1024;
 
 if ( $$buffer =~ s/^get key\n// ) {
 
-    <[base.log]>->( 2,
-        "[$id] auth.rsa: client requested public key.." );
+    <[base.log]>->( 2, "[$id] auth.rsa: client requested public key.." );
 
     if ( defined $key->{'public'} and $key->{'public'} ne '' ) {
         <[net.out]>->(
@@ -36,31 +35,26 @@ if ( $$buffer =~ s/^get key\n// ) {
     if ( length($secret) < 1024 ) {
 
         #        <[base.log]>->( 1, "setting secret to '$secret'");
-	# $$session{'auth'}{'session_key'} = pack("H*",$secret);
+        # $$session{'auth'}{'session_key'} = pack("H*",$secret);
 
+        # die " private : " . $rsa->get_private_key_string();
 
-
-# die " private : " . $rsa->get_private_key_string();
-
-# if( $rsa->check_key() ) { die "((( is valid )))" }
-
+        # if( $rsa->check_key() ) { die "((( is valid )))" }
 
         if (
-     #       $$session{'auth'}{'session_key'} = eval(
-      #          '$data{\'crypt\'}{\'key\'}{$key_id}{\'rsa_obj\'}->decrypt(pack("H*",$secret));'
-    #        )
+#       $$session{'auth'}{'session_key'} = eval(
+#          '$data{\'crypt\'}{\'key\'}{$key_id}{\'rsa_obj\'}->decrypt(pack("H*",$secret));'
+#        )
 
-#$$session{'auth'}{'session_key'} = $rsa->decrypt($plaintext)
-$$session{'auth'}{'session_key'} = $rsa->decrypt(pack("H*",$secret))
-    )
-        {
+            #$$session{'auth'}{'session_key'} = $rsa->decrypt($plaintext)
+            $$session{'auth'}{'session_key'}
+            = $rsa->decrypt( pack( "H*", $secret ) )
+            ) {
             <[net.out]>->( $$handle, "ACK session key set.\n" );
-            <[base.log]>->( 2,
-                "[$id] auth.rsa: session key accepted!" );
+            <[base.log]>->( 2, "[$id] auth.rsa: session key accepted!" );
         } else {
             <[net.out]>->( $$handle, "NACK decryption failed\n" );
-            <[base.log]>->( 1,
-                "[$id] decryption of session secret failed!" );
+            <[base.log]>->( 1, "[$id] decryption of session secret failed!" );
         }
     } else {
         <[net.out]>->( $$handle, "NACK ciphered data too long!\n" );
@@ -75,8 +69,8 @@ $$session{'auth'}{'session_key'} = $rsa->decrypt(pack("H*",$secret))
         <[net.out]>->( $$handle, "ACK initializing twofish chain!\n" );
 
         $data{'handle'}{$$handle}{'encryption'} = 'twofish';
-        $data{'handle'}{$$handle}{'session_key'} =
-          $$session{'auth'}{'session_key'};
+        $data{'handle'}{$$handle}{'session_key'}
+            = $$session{'auth'}{'session_key'};
 
         delete $$session{'auth'}{'session_key'};
 

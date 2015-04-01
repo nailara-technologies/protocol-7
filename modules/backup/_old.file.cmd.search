@@ -7,8 +7,7 @@ print "params:\n";
 
 if ( $$call{'args'} ne '' ) {
 
-}
-else {
+} else {
     foreach my $param ( keys( %{ $$call{'param'} } ) ) {
         my $index++;
 
@@ -18,7 +17,7 @@ else {
 
 my %key = \$$call{'args'};
 
-my ( $keyword, $query ) = split ( /\s+/, $$call{'args'}, 2 );
+my ( $keyword, $query ) = split( /\s+/, $$call{'args'}, 2 );
 
 my @results;
 my $count = 0;
@@ -28,37 +27,35 @@ $$reply{'data'} = '';
 foreach my $file_id ( keys( %{ $data{'file'}{'id'} } ) ) {
     my $index = $data{'file'}{'id'}{$file_id};
     foreach
-      my $_key ( keys( %{ $data{'file'}{'index'}{$index}{'data'}{'meta'} } ) )
+        my $_key ( keys( %{ $data{'file'}{'index'}{$index}{'data'}{'meta'} } ) )
     {
         if ( defined $$call{'args'} and $$call{'args'} ne '' ) {
 
-            if ( $data{'file'}{'index'}{$index}{'data'}{'meta'}{$_key} =~
-                /\Q$$call{'args'}/i )
-            {
+            if ( $data{'file'}{'index'}{$index}{'data'}{'meta'}{$_key}
+                =~ /\Q$$call{'args'}/i ) {
                 $count++;
 
                 $$reply{'mode'} = 'raw';
-                $$reply{'data'} .= "$file_id $_key = "
-                  . $data{'file'}{'index'}{$index}{'data'}{'meta'}{$_key}
-                  . "\n";
+                $$reply{'data'}
+                    .= "$file_id $_key = "
+                    . $data{'file'}{'index'}{$index}{'data'}{'meta'}{$_key}
+                    . "\n";
             }
 
-        }
-        else {
+        } else {
             foreach my $key ( keys( %{ $$call{'param'} } ) ) {
                 my $query = $$call{'param'}{$key};
                 if ( $_key =~ /\Q$key/i ) {
 
-                    if (
-                        $data{'file'}{'index'}{$index}{'data'}{'meta'}{$_key} =~
-                        /\Q$query/i )
-                    {
+                    if ($data{'file'}{'index'}{$index}{'data'}{'meta'}{$_key}
+                        =~ /\Q$query/i ) {
                         $count++;
 
                         $$reply{'mode'} = 'raw';
-                        $$reply{'data'} .= "$file_id $_key = "
-                          . $data{'file'}{'index'}{$index}{'data'}{'meta'}
-                          {$_key} . "\n";
+                        $$reply{'data'}
+                            .= "$file_id $_key = "
+                            . $data{'file'}{'index'}{$index}{'data'}{'meta'}
+                            {$_key} . "\n";
                     }
                 }
             }
