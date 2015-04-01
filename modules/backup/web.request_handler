@@ -21,8 +21,8 @@ foreach my $data_line ( split( /\n/, $_[1] ) ) {
 
         <[base.internal_log]>->( 'web', 1, "$_key = $_val" );
         $ok = 1;
-        if ( defined $data{'system'}{'verbosity'}
-            and $data{'system'}{'verbosity'} > 1 ) {
+        if ( defined <system.verbosity>
+            and <system.verbosity> > 1 ) {
             <[base.log]>->( 1, "> $_key = $_val" );
         }
 
