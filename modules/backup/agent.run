@@ -15,7 +15,7 @@ if ( $_[0] =~ /^\d+$/ ) {
 }
 else {
     $agent_name = $_[0];
-    $agent_id = $code{'agent.add_agent'}->($agent_name);
+    $agent_id = <[agent.add_agent]>->($agent_name);
 
 }
 
@@ -26,16 +26,16 @@ my $session_key_length = $data{'auth'}{'agent'}{'session_key_length'} || 255;
 
 $SIG{CHLD} = IGNORE;
 
-if ( my $config_array = $code{'agent.get_agent_conf'}->($agent_name) ) {
+if ( my $config_array = <[agent.get_agent_conf]>->($agent_name) ) {
 
     #    if ( -S $data{'core'}{'handle'} ) {
     my $session_key =
-      $code{'digest.sha1'}->(
-        $code{'crypt.random.bytes'}->($session_key_length) );
+      <[digest.sha1]>->(
+        <[crypt.random.bytes]>->($session_key_length) );
 
     print "SPAWNING AGENT ID: $agent_id\n";
 
-    $code{'base.proto.nailara.command.send.local'}->(
+    <[base.proto.nailara.command.send.local]>->(
         {
             'command' => "core.session_key $agent_name $session_key",
 
@@ -52,7 +52,7 @@ if ( my $config_array = $code{'agent.get_agent_conf'}->($agent_name) ) {
 
     #    }
 
-#   if (fork) { $code{'base.log'}->( 1, "launched $agent_name agent"); return 1; }
+#   if (fork) { <[base.log]>->( 1, "launched $agent_name agent"); return 1; }
 #   else {
 
     #       close(STDIN);
@@ -120,21 +120,21 @@ if ( my $config_array = $code{'agent.get_agent_conf'}->($agent_name) ) {
     #                "| $bin_name $verbose_switch -nb -d -N$agent_name"
     #            ) )
     #        {
-    #            $code{'base.log'}->( 1, "launched $agent_name agent");
+    #            <[base.log]>->( 1, "launched $agent_name agent");
     #            print $agent_handle @{$config_array};
 
     #            close($agent_handle);
 
   #        }
   #        else {
-  #            $code{'base.log'}->( 0, "agenter: can not launch agent: $!");
+  #            <[base.log]>->( 0, "agenter: can not launch agent: $!");
   #        }
   #        $0 = 'zombie';
   #        exit();
   # }
 
 
-    $code{'base.proto.nailara.command.send.local'}->(
+    <[base.proto.nailara.command.send.local]>->(
 	{
 	    'command' => $agent_name.".pid",
 
@@ -150,7 +150,7 @@ if ( my $config_array = $code{'agent.get_agent_conf'}->($agent_name) ) {
 
 }
 else {
-    $code{'base.log'}->( 0, 'no such agent found' );
+    <[base.log]>->( 0, 'no such agent found' );
 }
 
 return $pid;

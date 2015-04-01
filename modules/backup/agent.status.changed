@@ -9,10 +9,10 @@ my $agent = $data{'agent'}{'id'}{$agent_id};
 if ( $$agent{'status'} eq 'spawn' ) {
     print "RUNNING AGENT: " . $$agent{'name'} . "\n";
 
-    $$agent{'pid'} = $code{'agent.run'}->($agent_id);
+    $$agent{'pid'} = <[agent.run]>->($agent_id);
 }
 elsif ( $$agent{'status'} eq 'shutdown' ) {
-    $code{'base.log'}->( 1,
+    <[base.log]>->( 1,
         'sending kill signal to agent \'' . $$agent{'name'} .'\' (pid:'.$$agent{'pid'}. ')' );
 
     if(kill( 9, $$agent{'pid'} ))

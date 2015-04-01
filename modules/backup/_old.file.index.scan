@@ -1,6 +1,6 @@
 # >:]
 
-# name       = file.index.scan
+# name       = _old.file.index.scan
 
 my $count_files = 0;
 if ( %{ $data{'file'}{'id'} } ) {
@@ -13,26 +13,26 @@ if ( %{ $data{'file'}{'index'} } ) {
 }
 if ( -d $data{'file'}{'dir'} ) {
     foreach
-        my $filename ( @{ $code{'file.tree'}->( $data{'file'}{'dir'} ) } )
+        my $filename ( @{ <[file.tree]>->( $data{'file'}{'dir'} ) } )
     {
         next
             if -d $data{'file'}{'dir'}
                 . $filename;    # XXX: add dir header later
-        $code{'base.log'}->( 2, "scanning file: $filename" );
+        <[base.log]>->( 2, "scanning file: $filename" );
 
         if ( $filename =~ /\/?([0-9a-f]+)-([0-9a-z]+)$/ ) {
             ( my $nf_header_hash, my $nf_payload_hash ) = ( $1, $2 );
 
             print "[HEADER] $nf_header_hash\n[PAYLOAD] $nf_payload_hash\n";
 
-            if ( $code{'file.index.header'}->($filename) ) {
+            if ( <[file.index.header]>->($filename) ) {
                 $count_files++;
             }
 
         }
         else {
 
-            if ( $code{'file.index.no_header'}->($filename) ) {
+            if ( <[file.index.no_header]>->($filename) ) {
                 $count_files++;
             }
 
@@ -41,7 +41,7 @@ if ( -d $data{'file'}{'dir'} ) {
     return $count_files;
 }
 else {
-    $code{'base.log'}->( 0,
+    <[base.log]>->( 0,
         "invalid file storage path '" . $data{'file'}{'dir'} . "'" );
     return 0;
 }
