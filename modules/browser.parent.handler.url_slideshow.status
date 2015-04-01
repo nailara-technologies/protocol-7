@@ -107,11 +107,14 @@ if ( $new_status == 1 ) {
     my $delay = <browser.slideshow.min_delay>
         - ( time() - <browser.url_slideshow.scroll_start_time> );
     <browser.url_slideshow.timer>->cancel if exists <process.status_timer>;
-    <browser.url_slideshow.timer> = <[event.add_timer]>->(
-        {   'after'   => $delay,
-            'handler' => 'browser.parent.handler.url_slideshow.status',
-            'data'    => 2
-        }
-    );
-
+    if (<browser.slideshow.running>) {
+        <browser.url_slideshow.timer> = <[event.add_timer]>->(
+            {   'after'   => $delay,
+                'handler' => 'browser.parent.handler.url_slideshow.status',
+                'data'    => 2
+            }
+        );
+    } else {
+        <[base.log]>->( 1, 'slideshow stopped.' );
+    }
 }
