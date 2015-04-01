@@ -1,13 +1,13 @@
 # >:]
 
-# name    = web.session.start
+# name    = web.session.check
 # args    = int(client id),int(session id)
 # return  = 0 (session ok), 1 (no such session), 2 (timeout), 3 (remote ip changed)
 # comment = timeout handling insuficcient
 
 my ( $id, $sid ) = ( $_[0], $_[1] );
 
-my $check_time = [base.time:5];
+my $check_time = <[base.time]>->(5);
 my $req        = $data{'client'}{$id}{'web'}{'request'};
 
 if ( defined $data{'web'}{'session'}{$sid} ) {

@@ -21,11 +21,10 @@ if ( -d $new_root_dir ) {
 else { $reply = { 'mode' => 'nack', 'data' => 'no such directory' } }
 
 if ( ${$reply}{'mode'} eq 'nack' ) {
-    &{ $code{'base.log'} }
-      ( 0, "chroot to '$new_root_dir': " . ${$reply}{'data'} );
+    <[base.log]>->( 0, "chroot to '$new_root_dir': " . ${$reply}{'data'} );
 }
 else {
-    $code{'base.log'}->( 1,  ${$reply}{'data'} );
+    <[base.log]>->( 1,  ${$reply}{'data'} );
 }
 
 

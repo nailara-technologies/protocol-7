@@ -11,14 +11,14 @@ if ( $conf_name eq "me" ) {
     foreach my $ckey ( split ( / /, $data{'web'}{'to_frontend'} ) ) {
         $conf .= $ckey . "=" . $data{'session'}{$sid}{'web'}{'reply'}{$ckey} . "\n";
     }
-    $code{'base.log'}->( 1, "[$sid] < transfering client config");
+    <[base.log]>->( 1, "[$sid] < transfering client config");
     return{ 'mode' => 'raw', 'data' => $conf }
 }
 elsif ( $conf_name eq "request" ) {
-    $code{'base.log'}->( 1, "[$sid] < transfering request config");
+    <[base.log]>->( 1, "[$sid] < transfering request config");
     return {'mode' => 'raw', 'data' => $data{'web'}{'to_backend'} . "\n" };
 }
 else {
-    $code{'base.log'}->( 0, "WARNING: client requested an invalid config '$conf_name'");
+    <[base.log]>->( 0, "WARNING: client requested an invalid config '$conf_name'");
     return {'mode' => 'nack', 'data' => "not a valid config"};
 }
