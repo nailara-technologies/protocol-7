@@ -4,9 +4,9 @@
 
 my $file_name;
 my $file_id = $_[0];
-if ( defined $data{'file'}{'id'}{$file_id}
-    and $data{'file'}{'id'}{$file_id} > 0 ) {
-    my $internal_id = $data{'file'}{'id'}{$file_id};
+if ( defined <file.id>->{$file_id}
+    and <file.id>->{$file_id} > 0 ) {
+    my $internal_id = <file.id>->{$file_id};
     $file_name = $data{'file'}{'index'}{$internal_id}{'system'}{'filename'};
     if ( -f $file_name ) {
 

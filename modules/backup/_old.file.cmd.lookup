@@ -7,17 +7,14 @@ my $id      = $$call{'session_id'};
 my $file_id = $$call{'args'};
 
 <[base.log]>->( 2, "[$id] global file id lookup: '$$call{'args'}'" );
-if ( defined $data{'file'}{'id'}{$file_id}
-    and $data{'file'}{'id'}{$file_id} > 0 ) {
-    <[base.log]>->(
-        2, "[$id] match. internal id = " . $data{'file'}{'id'}{$file_id}
-    );
+if ( defined <file.id>->{$file_id}
+    and <file.id>->{$file_id} > 0 ) {
+    <[base.log]>->( 2, "[$id] match. internal id = " . <file.id>->{$file_id} );
 
     $reply = {
         'mode' => 'raw',
         'data' => <[base.dump_data]>->(
-            undef, undef,
-            'file.index.' . $data{'file'}{'id'}{$file_id} . '.data.'
+            undef, undef, 'file.index.' . <file.id>->{$file_id} . '.data.'
         )
     };
 
@@ -25,7 +22,7 @@ if ( defined $data{'file'}{'id'}{$file_id}
 
     #<[base.dump_data]>->(
     #    $id, $_[1],
-    #    'file.index.' . $data{'file'}{'id'}{ $$call{'args'} } . '.data.', ''
+    #    'file.index.' . <file.id>->{ $$call{'args'} } . '.data.', ''
     #
     #);
 } else {
