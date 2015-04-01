@@ -27,7 +27,7 @@ $SIG{CHLD} = IGNORE;
 
 if ( my $config_array = <[agent.get_agent_conf]>->($agent_name) ) {
 
-    #    if ( -S $data{'core'}{'handle'} ) {
+    #    if ( -S <core.handle> ) {
     my $session_key
         = <[digest.sha1]>->( <[crypt.random.bytes]>->($session_key_length) );
 
