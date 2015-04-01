@@ -8,10 +8,10 @@ my $file_id = $$call{'args'};
 
 <[base.log]>->( 2, "[$id] global file id lookup: '$$call{'args'}'" );
 if ( defined $data{'file'}{'id'}{$file_id}
-    and $data{'file'}{'id'}{$file_id} > 0 )
-{
-    <[base.log]>->( 2,
-        "[$id] match. internal id = " . $data{'file'}{'id'}{$file_id} );
+    and $data{'file'}{'id'}{$file_id} > 0 ) {
+    <[base.log]>->(
+        2, "[$id] match. internal id = " . $data{'file'}{'id'}{$file_id}
+    );
 
     $reply = {
         'mode' => 'raw',

@@ -5,10 +5,12 @@
 my $fd = $_[0];
 if ( ref($fd) eq 'GLOB' and fileno($fd) ) {
     if ( flock( $fd, LOCK_EX ) ) {
-        <[base.log]>->( 2, "file locked ($fd)");
+        <[base.log]>->( 2, "file locked ($fd)" );
         return 1;
+    } else {
+        <[base.log]>->( 0, "lock_file: lock failed [$!]" );
     }
-    else { <[base.log]>->( 0, "lock_file: lock failed [$!]"); }
+} else {
+    <[base.log]>->( 0, "lock_file: invalid file handle ($fd)" );
 }
-else { <[base.log]>->( 0, "lock_file: invalid file handle ($fd)") }
 return 0;

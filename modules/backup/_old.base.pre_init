@@ -2,7 +2,7 @@
 
 # name       = _old.base.pre_init
 
-return 0; # XXX: check if parts still required and fix if so..
+return 0;    # XXX: check if parts still required and fix if so..
 
 use File::Spec;
 $data{'system'}{'root_path'} = File::Spec->rel2abs($0);
@@ -12,7 +12,8 @@ if ( -l $data{'system'}{'root_path'} ) {
 }
 $data{'system'}{'bin_name'} = $data{'system'}{'root_path'};
 if ( not $data{'system'}{'root_path'} =~ s/\/bin\/[^\/]+$// ) {
-    die "FATAL: something is wrong with the module path '".$data{'system'}{'root_path'}."'\a\n";
+    die "FATAL: something is wrong with the module path '"
+        . $data{'system'}{'root_path'} . "'\a\n";
 }
 $data{'system'}{'dir'}{'modules'} = $data{'system'}{'root_path'} . '/modules';
 $data{'modules'}{'initialized'} = 0;
@@ -21,5 +22,6 @@ $data{'net'}{'agent'}{'name'} = 'nailara';
 $data{'system'}{'conf_path'} .= $data{'system'}{'root_path'} . '/conf';
 if ( -d $data{'system'}{'root_path'} ) {
     chdir( $data{'system'}{'root_path'} );
+} else {
+    die "could not change to the nailara root dir! ($!)\a\n";
 }
-else { die "could not change to the nailara root dir! ($!)\a\n" }
