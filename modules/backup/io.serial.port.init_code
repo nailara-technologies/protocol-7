@@ -2,13 +2,13 @@
 
 # name       = io.serial.port.init_code
 
-
 my $class_name = undef;
 
 if ( $data{'system'}{'os'}{'name'} =~ /win/i ) {
     $class_name = 'Win32::SerialPort';
+} else {
+    $class_name = 'Device::SerialPort';
 }
-else { $class_name = 'Device::SerialPort' }
 
 use $class_name qw( :PARAM :STAT 0.07 );
 

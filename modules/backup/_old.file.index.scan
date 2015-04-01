@@ -12,12 +12,9 @@ if ( %{ $data{'file'}{'index'} } ) {
     delete $data{'file'}{'index'};
 }
 if ( -d $data{'file'}{'dir'} ) {
-    foreach
-        my $filename ( @{ <[file.tree]>->( $data{'file'}{'dir'} ) } )
-    {
+    foreach my $filename ( @{ <[file.tree]>->( $data{'file'}{'dir'} ) } ) {
         next
-            if -d $data{'file'}{'dir'}
-                . $filename;    # XXX: add dir header later
+            if -d $data{'file'}{'dir'} . $filename;  # XXX: add dir header later
         <[base.log]>->( 2, "scanning file: $filename" );
 
         if ( $filename =~ /\/?([0-9a-f]+)-([0-9a-z]+)$/ ) {
@@ -29,8 +26,7 @@ if ( -d $data{'file'}{'dir'} ) {
                 $count_files++;
             }
 
-        }
-        else {
+        } else {
 
             if ( <[file.index.no_header]>->($filename) ) {
                 $count_files++;
@@ -39,9 +35,9 @@ if ( -d $data{'file'}{'dir'} ) {
         }
     }
     return $count_files;
-}
-else {
-    <[base.log]>->( 0,
-        "invalid file storage path '" . $data{'file'}{'dir'} . "'" );
+} else {
+    <[base.log]>->(
+        0, "invalid file storage path '" . $data{'file'}{'dir'} . "'"
+    );
     return 0;
 }

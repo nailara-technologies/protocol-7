@@ -2,9 +2,12 @@
 
 # name       = auth.rsa.client
 
-if (not defined $_[0]) {
-    <[base.log]>->(0, "auth.rsa.client: "
-        . "supplied filehandle is undefined, won't work on that!");
+if ( not defined $_[0] ) {
+    <[base.log]>->(
+        0,
+        "auth.rsa.client: "
+            . "supplied filehandle is undefined, won't work on that!"
+    );
     return undef;
 }
 
@@ -12,9 +15,12 @@ my $new_cipher = 'twofish';
 my ( $backend_socket, $smiley, $answer ) = ( $_[0], '', '' );
 my $id = $data{'handle'}{ $_[0] }{'cid'};
 
-if (not defined $id or !$id) {
-    <[base.log]>->(0, "auth.rsa.client: "
-        . "no client id 'cid' for '$_[0]', no initialized session?");
+if ( not defined $id or !$id ) {
+    <[base.log]>->(
+        0,
+        "auth.rsa.client: "
+            . "no client id 'cid' for '$_[0]', no initialized session?"
+    );
     return undef;
 }
 
@@ -51,7 +57,7 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
 
                         my $rsa_pub;
 
-                        if ( eval '$rsa_pub = '
+                        if (eval '$rsa_pub = '
                             . 'Crypt::OpenSSL::RSA->new_public_key($answer)' ) {
 
                             <[base.log]>->( 1, '[+] pub key is valid.' );
@@ -59,19 +65,28 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
                             $rsa_pub->use_sha512_hash();
                             my $sk_size = 256;
 
-                            <[base.log]>->( 1,
-                                "[+] generating $sk_size bit session key..");
-                            my $session_key =
-                              <[crypt.random.bytes]>->( int( $sk_size / 8 ) );
+                            <[base.log]>->(
+                                1, "[+] generating $sk_size bit session key.."
+                            );
+                            my $session_key = <[crypt.random.bytes]>
+                                ->( int( $sk_size / 8 ) );
 
                             $answer = '';
 
                             my $ciphered = $rsa_pub->encrypt($session_key);
                             my $hex_key = unpack( "H*", $ciphered );
-                            <[base.log]>->( 1, "[+] transferring key to peer..");
-                            <[net.out]>->( $backend_socket, "set secret $hex_key\n" );
+                            <[base.log]>->(
+                                1, "[+] transferring key to peer.."
+                            );
+                            <[net.out]>->(
+                                $backend_socket, "set secret $hex_key\n"
+                            );
 
-                            if ( sysread( $backend_socket, $answer, 4096, length($answer) ) ) {
+                            if (sysread(
+                                    $backend_socket, $answer,
+                                    4096,            length($answer)
+                                )
+                                ) {
 
                                 if ( $answer =~ s/^ACK session key set.\n$// ) {
                                     <[base.log]>->(
@@ -79,66 +94,77 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
                                     );
 
                                     <[net.out]>->(
-                                        $backend_socket, "set cipher $new_cipher\n"
+                                        $backend_socket,
+                                        "set cipher $new_cipher\n"
                                     );
 
-                                    if ( sysread( $backend_socket, $answer,
-					    4096, length($answer) ) ) {
+                                    if (sysread(
+                                            $backend_socket, $answer,
+                                            4096,            length($answer)
+                                        )
+                                        ) {
 
                                         if ( $answer =~ /^ACK ([^\n]+)$/ ) {
                                             <[base.log]>->(
-                                                0, "[+] initializing $new_cipher chain.."
+                                                0,
+                                                "[+] initializing $new_cipher chain.."
                                             );
 
                                             $data{'handle'}{ $_[0] }
-                                              {'encryption'} = $new_cipher;
+                                                {'encryption'} = $new_cipher;
                                             $data{'handle'}{ $_[0] }
-                                              {'session_key'} = $session_key;
+                                                {'session_key'} = $session_key;
 
-                                            my $enc_filter =
-                                              <[filter.add_filter]>->(
+                                            my $enc_filter
+                                                = <[filter.add_filter]>->(
                                                 "${new_cipher}_enc",
                                                 "crypt.$new_cipher.encrypt",
                                                 $key_id
-                                              );
-                                            my $dec_filter =
-                                              <[filter.add_filter]>->(
+                                                );
+                                            my $dec_filter
+                                                = <[filter.add_filter]>->(
                                                 "${new_cipher}_dec",
                                                 "crypt.$new_cipher.decrypt",
                                                 $key_id
-                                              );
+                                                );
 
-                                            my $chain_in =
-                                              &{ $code{
-                                                    'filter.compile_chain'} }(
-                                                'twofish_dec', $dec_filter );
-                                            my $chain_out =
-                                              &{ $code{
-                                                    'filter.compile_chain'} }(
-                                                'twofish_enc', $enc_filter );
+                                            my $chain_in
+                                                = &{ $code{
+                                                    'filter.compile_chain'} }
+                                                ( 'twofish_dec', $dec_filter );
+                                            my $chain_out
+                                                = &{ $code{
+                                                    'filter.compile_chain'} }
+                                                ( 'twofish_enc', $enc_filter );
 
                                         } elsif ( $answer =~ /^NACK (.+)\n$/ ) {
-                                            <[base.log]>->( 1,
+                                            <[base.log]>->(
+                                                1,
                                                 "[#] cipher not accepted by remote host. [$1]"
                                             );
                                         }
 
                                     } elsif ( $answer =~ /^NACK (.+)\n$/ ) {
                                         <[base.log]>->(
-                                            1, '[#] session key has been rejected. [$1]'
+                                            1,
+                                            '[#] session key has been rejected. [$1]'
                                         );
                                     }
-                                } elsif ( $answer =~ s/^NACK ([\w\s\.\,\-]+)\n$// ) {
+                                } elsif (
+                                    $answer =~ s/^NACK ([\w\s\.\,\-]+)\n$// ) {
                                     <[base.log]>->(
-                                        0, "[#] failed to agree on session key [ '$1' ] !"
+                                        0,
+                                        "[#] failed to agree on session key [ '$1' ] !"
                                     );
-                                }
-                                else {
-                                    <[base.log]>->(0,'[#] protocol error :(');
+                                } else {
+                                    <[base.log]>
+                                        ->( 0, '[#] protocol error :(' );
                                 }
                             }
                         } else {
-                            <[base.log]>->( 0, "[#] received rsa key is invalid!" );
+                            <[base.log]>->(
+                                0, "[#] received rsa key is invalid!"
+                            );
                         }
 
                     } else {
