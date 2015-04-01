@@ -5,7 +5,7 @@
 my $entries = 0, $api_file
     = $data{'system'}{'conf_path'} . "/" . $data{'web'}{'api_definition'};
 if ( -f $api_file ) {
-    if ( $data{'system'}{'verbosity'} > 1 ) {
+    if ( <system.verbosity> > 1 ) {
         <[base.log]>->( 1, 'loading api file' );
     }
     foreach $a_line ( <[base.get_file]>->($api_file) ) {
@@ -18,7 +18,7 @@ if ( -f $api_file ) {
             if ( $a_line =~ /([^\-]+)\-([^\,]+)\,([^\,]+)$/ ) {
                 ( $start, $end ) = ( $2, $3 );
             }
-            if ( $data{'system'}{'verbosity'} > 2 ) {
+            if ( <system.verbosity> > 2 ) {
                 <[base.log]>->(
                     2, "API: key: $key :: start: $start :: end: $end"
                 );

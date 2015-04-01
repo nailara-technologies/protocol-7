@@ -55,7 +55,7 @@ if ( my $config_array = <[agent.get_agent_conf]>->($agent_name) ) {
     #       close(STDIN);
     #       open( STDIN, '</dev/null' );
 
-    #      if ( !$data{'system'}{'verbosity'} ) {
+    #      if ( !<system.verbosity> ) {
 
     #         close(STDOUT);
     #         close(STDERR);
@@ -65,7 +65,7 @@ if ( my $config_array = <[agent.get_agent_conf]>->($agent_name) ) {
     #     }
     #     else {
     #
-    $verbose_switch = '-' . 'v' x $data{'system'}{'verbosity'};
+    $verbose_switch = '-' . 'v' x <system.verbosity>;
 
     #       }
 
