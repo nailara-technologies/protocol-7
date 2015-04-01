@@ -1,0 +1,20 @@
+# >:]
+
+# name  = browser.parent.cmd.hide_bg_window
+# descr = stop slideshow and iconify background window
+
+my $bg_window = <browser.bg_window>;
+
+<browser.slideshow.running> = 0;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "window-$bg_window.iconify",
+        'call_args' => {},
+        'reply'     => {
+            'handler' => 'dev.null',
+            'params'  => {}
+        }
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'iconifying background window' }
