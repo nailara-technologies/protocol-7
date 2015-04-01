@@ -26,8 +26,8 @@ foreach $site ( readdir(SITEDIR) ) {
                     foreach $vhost ( readdir(VHOSTS) ) {
                         if ( $vhost !~ /^\./ ) {
                             <[web.read_v_conf]>->("$vhosts_dir/$vhost");
-                            if ( defined $data{'system'}{'verbosity'}
-                                and $data{'system'}{'verbosity'} > 1 ) {
+                            if ( defined <system.verbosity>
+                                and <system.verbosity> > 1 ) {
                                 <[base.log]>->( 1, "vhost: $vhost" );
                             }
                             push( @{ $data{vhost}{$site} }, $vhost );
@@ -38,7 +38,7 @@ foreach $site ( readdir(SITEDIR) ) {
                     if ( $vhosts == 0 ) {
                         <[base.log]>->( 0, "site $site has no vhost >:[" );
                     }
-                    if ( $data{'system'}{'verbosity'} > 1 ) {
+                    if ( <system.verbosity> > 1 ) {
                         <[base.log]>->( 1, "found $vhosts vhost(s)." );
                     }
 
