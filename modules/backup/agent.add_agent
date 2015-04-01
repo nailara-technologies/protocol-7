@@ -3,15 +3,14 @@
 # name       = agent.add_agent
 
 my $agentname = $_[0];
-my $agent_id  = &{ $code{'base.gen_id'} }
-  ( "data{'agent'}{'id'}", $data{'max'}{'agents'} );
+my $agent_id  = <[base.gen_id]>->( "data{'agent'}{'id'}", $data{'max'}{'agents'} );
 if ($agent_id) {
     $data{'agent'}{'id'}{$agent_id}{'name'}       = $agentname;
-    $data{'agent'}{'id'}{$agent_id}{'start_time'} = [base.time:5];
+    $data{'agent'}{'id'}{$agent_id}{'start_time'} = <[base.time]>->(5);
     $data{'agent'}{'id'}{$agent_id}{'status'}     = 'offline';
 
     $data{'session'}{$id}{'watcher'}{'output_buffer'} =
-        $code{'event.add_var'}->(
+        <[event.add_var]>->(
 	      {
 		        'var'     => \$data{'session'}{$id}{'buffer'}{'output'},
 		          'handler' => 'base.handler.write',
@@ -24,7 +23,7 @@ if ($agent_id) {
 	    );
 
     $data{'agent'}{'id'}{$agent_id}{'watcher'}{'status'} =
-      $code{'event.add_var'}->(
+      <[event.add_var]>->(
 	  {
 	      'var'     => \$data{'agent'}{'id'}{$agent_id}{'status'},
 		'handler' => 'agent.status.changed',
@@ -40,10 +39,10 @@ if ($agent_id) {
 
 
 
-    $code{'base.log'}->( 2, "added new agent id: $agent_id name: $agentname");
+    <[base.log]>->( 2, "added new agent id: $agent_id name: $agentname");
     return $agent_id;
 }
 else {
-    $code{'base.log'}->( 0, "add_agent: could not get new agent-id");
+    <[base.log]>->( 0, "add_agent: could not get new agent-id");
     return undef;
 }

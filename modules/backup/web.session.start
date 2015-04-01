@@ -5,7 +5,7 @@
 # return = int(session id) (success), undef (failed)
 
 my $id         = $_[0];
-my $start_time = [base.time:5];
+my $start_time = <[base.time]>->(5);
 my $req        = $data{'client'}{$id}{'web'}{'request'};
 
 if ( defined $$req{'post'}{'user'}
@@ -16,8 +16,7 @@ if ( defined $$req{'post'}{'user'}
     $$req{'post'}{'user'} =~ s/\W//g;
     $$req{'post'}{'pass'} = sha1_hex( $$req{'post'}{'pass'} );
 
-    if ( !&{ $code{'web.session.check_auth'} }
-        ( $$req{'post'}{'user'}, $$req{'post'}{'pass'} ) )
+    if ( !<[web.session.check_auth]>->( $$req{'post'}{'user'}, $$req{'post'}{'pass'} ) )
     {
 
         my $sid =

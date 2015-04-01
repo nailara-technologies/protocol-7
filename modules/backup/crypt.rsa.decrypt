@@ -7,7 +7,7 @@ my $key_id     = $_[1];
 my $plaintext;
 
 if ( length($ciphertext) > $data{'crypt'}{'key'}{"$key_id"}{'block_size'} ) {
-    $code{'base.log'}->(
+    <[base.log]>->(
         0,
         "crypt.rsa.encrypt: ciphertext longer than blocksize! (key_id:$key_id)"
     );
@@ -23,7 +23,7 @@ else {
     {
         return $plaintext;
     }
-    else { $code{'base.log'}->( 1, "[rsa] decryption error" ); }
+    else { <[base.log]>->( 1, "[rsa] decryption error" ); }
 }
 
 return undef;

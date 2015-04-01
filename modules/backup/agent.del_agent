@@ -6,5 +6,5 @@ my $agent_id = $_[2];
 if ( defined $data{'agent'}{$agent_id} ) {
     my $agentname = $data{'agent'}{$agent_id}{'name'};
     delete $data{'agent'}{$agent_id};
-    $code{'net.ack'}->( "agent $agentname|$agent_id deleted", $_[1] );
+    <[net.ack]>->( "agent $agentname|$agent_id deleted", $_[1] );
 }
