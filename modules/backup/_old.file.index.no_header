@@ -34,12 +34,11 @@ $filename =~ s{//}{/}g;
 if ( -f $filename ) {
     open( my $file_fh, '<', $filename )
         or <[base.log]>->( 0, "index.no_header: '$filename' :. $!" );
-    $data{'file'}{'index'}{$file_id}{'system'}{'filename'}     = $filename;
-    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = <[base.time]>->(5);
-}
-else {
-    <[base.log]>->( 0,
-        "index.no_header: file '$filename' does not exist" );
+    $data{'file'}{'index'}{$file_id}{'system'}{'filename'} = $filename;
+    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'}
+        = <[base.time]>->(5);
+} else {
+    <[base.log]>->( 0, "index.no_header: file '$filename' does not exist" );
     return 0;
 }
 
@@ -54,13 +53,11 @@ if ($format_error) {
             . "'$filename' err_code: $format_error"
     );
     return -1;
-}
-else {
+} else {
     my $md5 = Digest::MD5->new();
     my $rc = open( my $file_fh, '<' . $filename );
     if ( !$rc ) {
-        <[base.log]>->( 0,
-            "index.header: file '$filename' does not exist" );
+        <[base.log]>->( 0, "index.header: file '$filename' does not exist" );
         return 0;
     }
     $md5->addfile($file_fh);

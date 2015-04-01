@@ -9,8 +9,7 @@ my $pid;
 if ( $pid = <[agent.run]>->($agent_name) ) {
     $$reply{'mode'} = 'ack';
     $$reply{'data'} = "spawned";
-}
-else {
+} else {
     $$reply{'mode'} = 'nack';
     $$reply{'data'} = "failed";
 }

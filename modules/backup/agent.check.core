@@ -26,7 +26,11 @@ while ( !$id_count ) {
         <[base.log]>->( 0, 'can not spawn core: timed out.' );
     } else {
         select undef, undef, undef, $data{'agent'}{'check'}{'connect_pause'};
-        if ( $core_handle = <[tcp.client]>->( $data{'net'}{'local'}{'addr'}, $data{'net'}{'local'}{'port'} ) ) {
+        if ($core_handle = <[tcp.client]>->(
+                $data{'net'}{'local'}{'addr'},
+                $data{'net'}{'local'}{'port'}
+            )
+            ) {
             if ( $data{'system'}{'agent'}{'name'} eq '' ) {
                 <[base.log]>->( 0, 'agent_name not set!' );
             }

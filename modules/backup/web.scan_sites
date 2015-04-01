@@ -8,29 +8,26 @@ if ( !-d $sitedir ) {
     return;
 }
 opendir( SITEDIR, $sitedir )
-  or <[base.log]>->( 0, "can not open sitedir '$sitedir' ($!)" );
+    or <[base.log]>->( 0, "can not open sitedir '$sitedir' ($!)" );
 foreach $site ( readdir(SITEDIR) ) {
     if ( $site !~ /^\./ and $site ne 'default' ) {
         <[base.log]>->( 1, "scanning $site website.." );
         my $scandir = $sitedir . '/' . $site;
         if ( -d $scandir ) {
             opendir( SCAN, $scandir )
-              or
-              <[base.log]>->( 1, "can not open dir '$scandir' ($!)" );
+                or <[base.log]>->( 1, "can not open dir '$scandir' ($!)" );
 
             if ( -d $scandir . '/conf' ) {
                 if ( -d $scandir . '/conf/vhosts/' ) {
                     my $vhosts_dir = $scandir . '/conf/vhosts/';
 
                     opendir( VHOSTS, $vhosts_dir )
-                      or <[base.log]>->( 0,
-                        "can't open 'vhosts' dir ($!)" );
+                        or <[base.log]>->( 0, "can't open 'vhosts' dir ($!)" );
                     foreach $vhost ( readdir(VHOSTS) ) {
                         if ( $vhost !~ /^\./ ) {
                             <[web.read_v_conf]>->("$vhosts_dir/$vhost");
                             if ( defined $data{'system'}{'verbosity'}
-                                and $data{'system'}{'verbosity'} > 1 )
-                            {
+                                and $data{'system'}{'verbosity'} > 1 ) {
                                 <[base.log]>->( 1, "vhost: $vhost" );
                             }
                             push( @{ $data{vhost}{$site} }, $vhost );
@@ -39,22 +36,22 @@ foreach $site ( readdir(SITEDIR) ) {
                     }
                     my $vhosts = scalar( @{ $data{vhost}{$site} } );
                     if ( $vhosts == 0 ) {
-                        <[base.log]>->( 0,
-                            "site $site has no vhost >:[" );
+                        <[base.log]>->( 0, "site $site has no vhost >:[" );
                     }
                     if ( $data{'system'}{'verbosity'} > 1 ) {
                         <[base.log]>->( 1, "found $vhosts vhost(s)." );
                     }
 
+                } else {
+                    &{ <[base.log]> ( 1, "no 'vhosts' directory found." ) };
                 }
-                else {
-                    &{ <[base.log]>( 1, "no 'vhosts' directory found." ) };
-                }
+            } else {
+                &{ <[base.log]> ( 1, "no 'conf' directory found." ) };
             }
-            else { &{ <[base.log]>( 1, "no 'conf' directory found." ) } }
 
+        } else {
+            <[base.log]>->( 0, "can not find sitedir ($site)" );
         }
-        else { <[base.log]>->( 0, "can not find sitedir ($site)" ) }
 
     }
 }

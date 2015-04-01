@@ -3,22 +3,20 @@
 # name = web.check_files
 
 if ( -d $data{'client'}{ $_[0] }{'file'}{'dir'} ) {
-    my $file =
-      $data{'client'}{ $_[0] }{'file'}{'dir'}
-      . $data{'client'}{ $_[0] }{'web'}{'request'}{'path'};
+    my $file = $data{'client'}{ $_[0] }{'file'}{'dir'}
+        . $data{'client'}{ $_[0] }{'web'}{'request'}{'path'};
     $file =~ s/\/\//\//g;
     if ( $data{'system'}{'verbosity'} > 1 ) {
-        <[base.log]>->( 1, "[$_[0]] web.check_files: $file");
+        <[base.log]>->( 1, "[$_[0]] web.check_files: $file" );
     }
     if ( -f $file ) {
         if ( $data{'system'}{'verbosity'} > 1 ) {
-            <[base.log]>->( 1, "[$_[0]] web.check_files: found!");
+            <[base.log]>->( 1, "[$_[0]] web.check_files: found!" );
         }
         return 1;
-    }
-    else {
+    } else {
         if ( $data{'system'}{'verbosity'} > 1 ) {
-            <[base.log]>->( 1, "[$_[0]] web.check_files: not found...");
+            <[base.log]>->( 1, "[$_[0]] web.check_files: not found..." );
         }
         return 0;
     }

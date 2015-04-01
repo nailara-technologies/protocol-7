@@ -17,13 +17,15 @@ my $file_id = <[base.gen_id]>->(
 
 if ( not defined $data{'file'}{'index'} ) { $data{'file'}{'index'} = '' }
 
-$file_id = <[base.list.element.add]>->( {
-      'key_ref' => \$data{'file'}{'index'}
-#  ,    'val_ref' => \{
+$file_id = <[base.list.element.add]>->(
+    {   'key_ref' => \$data{'file'}{'index'}
+
+            #  ,    'val_ref' => \{
 
 ###
-# }
-} );
+            # }
+    }
+);
 
 my $header_data = '';
 $filename = "$path/$filename";
@@ -36,37 +38,40 @@ if ( -f $filename ) {
     my $lines        = 0;
     my $format_error = 0;
     $count_files++;
-    $data{'file'}{'index'}{$file_id}{'system'}{'filename'}     = $filename;
-    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'} = <[base.time]>->(5);
+    $data{'file'}{'index'}{$file_id}{'system'}{'filename'} = $filename;
+    $data{'file'}{'index'}{$file_id}{'system'}{'last_scanned'}
+        = <[base.time]>->(5);
     while ( $new_line = <$file_fh> ) {
         $lines++;
         $header_data .= $new_line;
         if (   $header_state == 0 and $new_line eq ">:]\n"
             or $header_state == 1 and $new_line eq "\n"
-            or $header_state == 2 and $new_line eq ":\n" )
-        {
+            or $header_state == 2 and $new_line eq ":\n" ) {
             $header_state++;
-        }
-        elsif ( $header_state <= 2 ) { $format_error = 2; close($file_fh) }
-        elsif ( $header_state <= 4 ) {
+        } elsif ( $header_state <= 2 ) {
+            $format_error = 2;
+            close($file_fh);
+        } elsif ( $header_state <= 4 ) {
             if ( $new_line =~ /^([^\s]+)[\s|\t]?=[\s|\t]?(.+)\n$/ ) {
                 if ( $header_state == 4 ) { $header_state = 3 }
                 my ( $_key, $_val ) = ( $1, $2 );
                 $data{'file'}{'index'}{$file_id}{'data'}{'meta'}{$_key}
                     = $_val;
-            }
-            elsif ( $new_line eq ":\n" ) { $header_state++ }
-            elsif ( $header_state == 4 ) {
+            } elsif ( $new_line eq ":\n" ) {
+                $header_state++;
+            } elsif ( $header_state == 4 ) {
                 if ( $new_line eq "\n" ) { close($file_fh) }
+            } else {
+                $format_error = 3;
+                close($file_fh);
             }
-            else { $format_error = 3; close($file_fh) }
+        } else {
+            $format_error = 1;
+            close($file_fh);
         }
-        else { $format_error = 1; close($file_fh) }
     }
-}
-else {
-    <[base.log]>->( 0,
-        "index.header: file '$filename' does not exist" );
+} else {
+    <[base.log]>->( 0, "index.header: file '$filename' does not exist" );
     return 0;
 }
 
@@ -81,19 +86,17 @@ if ($format_error) {
             . "'$filename' err_code: $format_error"
     );
     return -1;
-}
-else {
+} else {
     my $md5 = Digest::MD5->new();
     my $rc = open( my $file_fh, '<' . $filename );
     if ( !$rc ) {
-        <[base.log]>->( 0,
-            "index.header: file '$filename' does not exist" );
+        <[base.log]>->( 0, "index.header: file '$filename' does not exist" );
         return 0;
     }
     $md5->addfile($file_fh);
-    my $hash_str_header = sha1_hex($header_data);
-    my $hash_str_payload  = $md5->hexdigest;
-    my $internal_id   = "$hash_str_payload-$hash_str_header";
+    my $hash_str_header  = sha1_hex($header_data);
+    my $hash_str_payload = $md5->hexdigest;
+    my $internal_id      = "$hash_str_payload-$hash_str_header";
     close($file_fh);
 
     $data{'file'}{'index'}{$file_id}{'data'}{'header'}{'hash'}{'sha1'}
