@@ -1,3 +1,11 @@
 # >:]
 
-# name = browser.parent.cmd.slideshow_stop
+# name  = browser.parent.cmd.slideshow_stop
+# descr = stop the URL slideshow
+
+return { 'mode' => 'nack', 'data' => 'slideshow is already disabled' }
+    if <browser.slideshow.running> == 0;
+
+<browser.slideshow.running> = 0;
+
+return { 'mode' => 'ack', 'data' => 'stopping slideshow' }
