@@ -30,11 +30,12 @@ if ( !open( $file_fh, '<', $file_path ) ) {
 
 $/ = undef;
 my $file_content = <$file_fh>;
-$file_content =~ s|^\s+||g;
-$file_content =~ s|^#[^\n]*\n|\n|g;
-$file_content =~ s|\s+#[^\n]*\n|\n|g;
-$file_content =~ s|\n\n|\n|g;
-$file_content =~ s|^\n||mg;
+$file_content .= "\n";
+$file_content =~ s/^\s+|\s+$//g;
+$file_content =~ s|^ *#[^\n]*$||mg;
+$file_content =~ s| +#[^\n]*$||mg;
+$file_content =~ s|\n\n|\n|sg;
+$file_content =~ s/^\n|\n$//mg;
 my @url_list = split( / *\n */, $file_content );
 
 if ( !@url_list ) {
