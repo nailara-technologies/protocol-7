@@ -1,0 +1,64 @@
+# >:]
+
+# name = mpv.open_player
+
+my $mpv_params = <mpv.params>;
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+my $socket_path = "/tmp/.mpv.socket.$$";
+$mpv_params .= " --input-unix-socket $socket_path";
+
+<mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
+    ( 'mpv', split( / +/, $mpv_params ) ) );
+
+if ( !<mpv.pid> ) {
+    <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    CORE::exit(1);
+}
+<[base.log]>->( 1, " : mpv process spawned [PID=<mpv.pid>]" );
+
+close( delete(<mpv.fh.stdin>) );
+
+my $max_retries = 100;
+while ( $max_retries-- ) {
+    last if -e $socket_path;
+    <[base.sleep]>->(0.1);
+}
+
+if ( not -e $socket_path ) {
+    <[base.log]>->(
+        0, "[!] mpv socket creation failed ['$socket_path' does not exist]"
+    );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
+        if kill( 9, <mpv.pid> );
+    CORE::exit(1);
+} else {
+    <[base.log]>->( 1, "opening unix domain socket '$socket_path'.." );
+}
+
+<mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
+
+if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
+    <[base.log]>->( 0, "[!] mpv socket creation failed [opened handle valid]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
+        if kill( 9, <mpv.pid> );
+    CORE::exit(1);
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <mpv.fh.stdout>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => { 'bin' => 'mpv', 'pid' => <mpv.pid> }
+    }
+);
+
+<[event.add_io]>->(
+    {   'fd'      => <mpv.socket>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => { 'bin' => 'MPV', 'pid' => <mpv.pid> }
+    }
+);

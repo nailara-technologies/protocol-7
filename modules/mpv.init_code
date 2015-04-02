@@ -1,0 +1,10 @@
+# >:]
+
+# name = mpv.init_code
+
+use IPC::Open3;
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+0;

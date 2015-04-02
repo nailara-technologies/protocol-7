@@ -1,0 +1,31 @@
+
+  .:[ mpv video player agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[set_privs:'nailara']
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping reload verify_instance list * *.*
+
+access.cmd.usr.parent = *
+
+modules.load = auth net io.ip io.unix mpv debug
+[load_modules:<modules.load>]
+[init_modules]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+[base.x11.get_display]
+mpv.geometry = [base.x11.get_geometry]
+
+mpv.params = --idle --force-window --keep-open=always --loop=inf \
+              --geometry=<mpv.geometry> --no-osc --osd-level=0 -quiet
+
+[mpv.open_player]
+[base.get_session_id]
+
+[event.loop]
