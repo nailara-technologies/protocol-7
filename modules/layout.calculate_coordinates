@@ -33,7 +33,7 @@ my ( $screen_width, $screen_height )
     if $screen->{'orientation'} eq 'portrait';
 
 $screen_width  -= $screen_frame{'left'} + $screen_frame{'right'};
-$screen_height -= $screen_frame{'top'} + $screen_frame{'top'};
+$screen_height -= $screen_frame{'top'} + $screen_frame{'bottom'};
 
 my ( $width, $height ) = ( $screen_width, $screen_height );
 my ( $left, $top, $right, $bottom ) = ( 0, 0, $screen_width, $screen_height );
@@ -59,8 +59,8 @@ if ( exists $descr->{'height'} ) {
 }
 
 return {
-    'left'   => ( $left + $screen_frame{'left'} ),
+    'left'   => $left + $screen_frame{'left'},
     'top'    => $top + $screen_frame{'top'},
-    'right'  => $right + $screen_frame{'right'},
-    'bottom' => $bottom + $screen_frame{'bottom'}
+    'right'  => $right + $screen_frame{'left'},
+    'bottom' => $bottom + $screen_frame{'top'}
 };
