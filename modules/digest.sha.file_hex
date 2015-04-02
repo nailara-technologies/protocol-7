@@ -1,0 +1,13 @@
+# >:]
+
+# name = digest.sha.file_hex
+
+my $sha1     = Digest::SHA->new(1);
+my $filename = shift;
+
+die "expected valid filename" if not defined $filename or !length($filename);
+die "file '$filename' does not exist!" if not -f $filename;
+
+$sha1->addfile($filename) or die "sha1->addfile: $!";
+
+return $sha1->hexdigest;
