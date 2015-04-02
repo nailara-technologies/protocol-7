@@ -5,7 +5,7 @@ $/ = undef;
 
 ( my $path = qx(pwd) ) =~ s/\n$//;
 die "\n  [!] not in the module directory, aborted [!]\n\n"
-    if $path !~ m|/nailara/modules/backup$|;
+    if $path !~ m|/nailara/modules$|;
 
 opendir( my $parse_dir, '.' ) or die $!;
 
