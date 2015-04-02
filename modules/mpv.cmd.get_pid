@@ -1,0 +1,10 @@
+# >:]
+
+# name = mpv.cmd.get_pid
+
+return { 'mode' => 'nack', 'data' => 'pid not set' }
+    if not exists <mpv.pid>
+    or not defined <mpv.pid>
+    or !length(<mpv.pid>);
+
+return { 'mode' => 'ack', 'data' => <mpv.pid> }

@@ -2,4 +2,4 @@
 
 apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter\
                 fonts-droid compton openbox hsetroot xserver-xorg\
-                xserver-xephyr xvfb
+                xserver-xephyr xvfb mpv
