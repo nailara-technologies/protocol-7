@@ -22,6 +22,9 @@ if ( !open( $file_fh, '<', $file_path ) ) {
     };
 }
 
+<browser.url_list.filename> = $file_path;
+<browser.url_list.sha1_hex> = <[digest.sha.file_hex]>->($file_path);
+
 ( my $file_name = $file_path ) =~ s|.*/||g;
 <[base.log]>->( 1, "loading urls from '$file_name'" );
 
