@@ -70,9 +70,9 @@ for my $index ( 1 .. $instance_count ) {
 }
 
 if ($am_parent) {
-
-    <[base.load_modules]>->('browser.parent');
-    <[base.init_modules]>->('browser.parent');
+    my $load_modules = 'digest.sha browser.parent';
+    <[base.load_modules]>->($load_modules);
+    <[base.init_modules]>->( split / /, $load_modules );
 
     for my $index ( 1 .. $instance_count ) {
         my $child_pipe = <browser.pipe.child>->{$index};
@@ -95,12 +95,12 @@ if ($am_parent) {
                 ->( "browser${sn_str}-$index-" . <ticker.child.pid>->{$index} );
         }
 
-#        <[base.proto.nailara.command.send.local]>->(
-#            {   'command'   => "browser.window-$index.fade_in",
-#                'call_args' => { },
-#                'reply'     => { 'handler' => 'dev.null' }
-#            }
-#        );
+        #        <[base.proto.nailara.command.send.local]>->(
+        #            {   'command'   => "browser.window-$index.fade_in",
+        #                'call_args' => { },
+        #                'reply'     => { 'handler' => 'dev.null' }
+        #            }
+        #        );
 
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => "core.xserver.lower_window",
@@ -109,12 +109,12 @@ if ($am_parent) {
             }
         );
 
-#        <[base.proto.nailara.command.send.local]>->(
-#            {   'command'   => "core.xserver.lower_window",
-#                'call_args' => { 'args' => <browser.window.id>->{$index} },
-#                'reply'     => { 'handler' => 'dev.null' }
-#            }
-#        );
+    #        <[base.proto.nailara.command.send.local]>->(
+    #            {   'command'   => "core.xserver.lower_window",
+    #                'call_args' => { 'args' => <browser.window.id>->{$index} },
+    #                'reply'     => { 'handler' => 'dev.null' }
+    #            }
+    #        );
 
     }
     <[base.get_session_id]>;
