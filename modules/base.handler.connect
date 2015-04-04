@@ -12,7 +12,8 @@ my $handler = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
 my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'};
 
 # print
-# "ID: $id HANDLE: $fd PROTO: $proto STATE: $state MODE: $mode TYPE: $type HANDLER: $handler\n";
+# "ID: $id HANDLE: $fd PROTO: $proto STATE: $state"
+# ." MODE: $mode TYPE: $type HANDLER: $handler\n";
 
 if ( not defined $data{'handle'}{$fd}{'proto'} ) {
     <[base.log]>->(
@@ -31,6 +32,6 @@ if ( not defined $data{'handle'}{$fd}{'proto'} ) {
         <[net.out]>->( $new_fd, $banner );
     }
 
-    <[base.log]>->( 1, "[$id] starting new session" );
+    <[base.log]>->( 1, "[$id] $proto protocol connection established." );
 
 }
