@@ -1,0 +1,48 @@
+# >:]
+
+# name = httpd.request_handler
+# note : return 2 to close connection!
+
+my $id      = $_[0]->w->data;
+my $session = $data{'session'}{$id};
+
+$session->{'http'} //= { 'request' => { 'headers' => {} } };
+my $http = $session->{'http'}->{'request'};
+
+return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
+
+$session->{'http'}->{'request'}->{'raw'} = $1;
+
+my $req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'raw'} );
+
+$req->decode;
+
+$http->{'method'} = $req->method;
+$http->{'host'}   = lc( $req->header('host') ) if defined $req->header('host');
+$http->{'uri'}    = $req->uri->as_string;
+
+map { $http->{'headers'}->{$_} = $req->header($_) } $req->header_field_names;
+
+print Dumper( $session->{'http'} );
+
+if ( exists <http.handler>->{ lc( $http->{'method'} ) } ) {
+    my $handler_name = <http.handler>->{ lc( $http->{'method'} ) };
+    if ( exists $code{$handler_name} ) {
+        $code{$handler_name}->($id);
+    } else {
+        <[base.log]>->(
+            0,
+            "[$id] http [$http->{method}] handler defined,"
+                . " but callback missing!"
+        );
+        return 2;    # XXX: error page
+    }
+
+} else {
+    <[base.log]>->( 0, "[$id] http handler not defined [$http->{method}]" );
+    return 2;        # XXX: error page
+}
+
+return 2;
+
+#  <[net.out]>->( $data{'session'}{ $_[0] }{'handle'}, $content );
