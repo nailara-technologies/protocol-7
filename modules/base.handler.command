@@ -82,11 +82,9 @@ if ( $$input
                             1, "[$id] invalid command parameter format"
                         );
                         $$output .= $_cmd_id
-                            . "NACK invalid command parameter format\n";
-
+                            . "NACK invalid command parameter format\n"; # FIX!
                         $_[0]->w->start;
-
-                        return 0;
+                        return 1;
                     }
                 } elsif ( $header == 1 ) {
                     $header = 0;
@@ -105,6 +103,7 @@ if ( $$input
 # incomplete multiple line command
 
 elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *[\w\.]+)\+\n/o ) {
+
     $_[0]->w->start;
     return 1;
 }
@@ -113,6 +112,7 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *[\w\.]+)\+\n/o ) {
 
 elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *RAW +(\d+)\n)/o
     and length($$input) < ( $3 + length($1) ) ) {
+
     $_[0]->w->start;
     return 1;
 }
@@ -128,9 +128,19 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\d\-\_\.]+)( +(.+)|)\n//o ) {
     $command_mode = 1;
 }
 
+# protocol error
+
+elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
+    my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
+    <[base.log]>->( 1, "[$id] protocol error ['$cmd_string\']" );
+    $$output .= $_cmd_id . "NACK protocol error\n";
+    $_[0]->w->start;
+    return 0;
+}
+
 # empty command line
 
-elsif ( $$input =~ s/^[^\n]+\n//o ) { $_[0]->w->start; return 0 }
+elsif ( $$input =~ s/^$//o ) { $_[0]->w->start; return 0 }
 
 # incomplete command line
 
@@ -320,6 +330,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
     # local command
 
     if ( $cmd =~ /^$re->{cmd}$/ ) {
+
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
             if ( exists $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
@@ -416,6 +427,10 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
         #        not working yet..
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
+
+        $$output .= "NACK not implemented yet..\n";
+        return 1;
+
         if ( exists $data{'user'}{$1}
             and $data{'user'}{$1}{'mode'} eq 'link' ) {
 
@@ -561,6 +576,10 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
         # at least one target was valid
         return 0;
+    } else {    # invalid command syntax
+        $$output .= $_cmd_id . "NACK protocol error\n";
+        <[base.log]>->( 1, "[$id] protocol error ['$cmd']" );
+        return 1;
     }
 
     # unknown command
