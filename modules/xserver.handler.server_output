@@ -36,6 +36,7 @@ while ( <xserver.output_buffer> =~ s|^([^\n]*)\n||s ) {
     <xserver.first_error> = $1
         if $output_line =~ /\(EE\) +(.+)$/
         and not defined <xserver.first_error>;
+    $output_line =~ s/\r//sg;
     <[base.log]>->( 2, "< $bin > " . $output_line );
 
     # XXX: kill server here?
