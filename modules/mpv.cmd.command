@@ -1,7 +1,7 @@
 # >:]
 
 # name  = mpv.cmd.command
-# param = <test_string>
+# param = <mpv_command>
 # descr = sends test commands through mpv control pipe
 
 my $mpv_socket = <mpv.socket>;
