@@ -26,23 +26,24 @@ while ( $max_retries-- ) {
     last if -e $socket_path;
     <[base.sleep]>->(0.1);
 }
-
+my $abort_startup = 0;
 if ( not -e $socket_path ) {
     <[base.log]>->(
         0, "[!] mpv socket creation failed ['$socket_path' does not exist]"
     );
-    <[base.log]>->( 1, " : aborting agent startup .." );
-    <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
-        if kill( 9, <mpv.pid> );
-    CORE::exit(1);
+    $abort_startup = 1;
 } else {
     <[base.log]>->( 1, "opening unix domain socket '$socket_path'.." );
+    <mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
 }
 
-<mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
-
-if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
+if (   !$abort_startup and not defined <mpv.socket>
+    or !$abort_startup and !-S <mpv.socket> ) {
     <[base.log]>->( 0, "[!] mpv socket creation failed [opened handle valid]" );
+    $abort_startup = 1;
+}
+
+if ($abort_startup) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
         if kill( 9, <mpv.pid> );
