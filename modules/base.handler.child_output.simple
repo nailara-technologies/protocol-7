@@ -31,6 +31,7 @@ if (sysread(
 while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
     $output_line =~ s/\r//sg;
+    next if !length($output_line);
     my $log_level = 0;
     for my $pattern ( @{$whitelist} ) {
         if ( $output_line =~ /$pattern/ ) {
