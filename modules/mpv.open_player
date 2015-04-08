@@ -53,13 +53,17 @@ if ($abort_startup) {
 <[event.add_io]>->(
     {   'fd'      => <mpv.fh.stdout>,
         'handler' => 'base.handler.child_output.simple',
-        'data'    => { 'bin' => 'mpv', 'pid' => <mpv.pid> }
+        'data'    => {
+            'bin'           => 'mpv',
+            'pid'           => <mpv.pid>,
+            'log_whitelist' => [ 'Creating non-video VO', '\[ipc' ]
+        }
     }
 );
 
 <[event.add_io]>->(
     {   'fd'      => <mpv.socket>,
-        'handler' => 'base.handler.child_output.simple',
-        'data'    => { 'bin' => 'MPV', 'pid' => <mpv.pid> }
+        'handler' => 'mpv.handler.pipe_output',
+        'data'    => { 'pid' => <mpv.pid> }
     }
 );
