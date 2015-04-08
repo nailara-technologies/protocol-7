@@ -9,8 +9,6 @@ buffer.system.log_cmd = log.msg
 
 access.cmd.usr.core = help ping reload verify_instance list * *.*
 
-access.cmd.usr.parent = *
-
 modules.load = auth net io.ip io.unix mpv debug
 [load_modules:<modules.load>]
 [init_modules]
@@ -22,8 +20,11 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.x11.get_display]
 mpv.geometry = [base.x11.get_geometry]
 
+mpv.vo_backend = x11 # [x11|vdpau|vaapi|...]
+
 mpv.params = --idle --force-window --keep-open=always --loop=inf \
-              --geometry=<mpv.geometry> --no-osc --osd-level=0 -quiet
+              --geometry=<mpv.geometry> --no-osc --osd-level=0 -quiet \
+              -vo <mpv.vo_backend>
 
 [mpv.open_player]
 [base.get_session_id]
