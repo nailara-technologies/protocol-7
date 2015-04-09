@@ -32,9 +32,8 @@ if ( <layout.opacity>->{$window_ids} > 0 ) {
             )
     } @{$window_ids};
 } else {
-    print "\nfade out complete!\n\n";
+    <[base.log]>->( 2, "fade out complete!" );
     $event->cancel;
     my $callback = delete $params->{'callback'};
     $code{$callback}->($params);
-
 }
