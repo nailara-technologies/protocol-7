@@ -1,0 +1,11 @@
+# >:]
+
+# name  = mpv.cmd.show_playlist
+# descr = display current playlist
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+syswrite( <mpv.socket>,
+    'print_text "<playlist>\n${playlist}</playlist>"' . "\n" );
+
+return { 'mode' => 'later' };
