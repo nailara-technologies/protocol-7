@@ -2,12 +2,13 @@
 
 # name = mpv.open_player
 
-my $mpv_params = <mpv.params>;
-
+my $abort_startup = 0;
+my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
-
 my $socket_path = "/tmp/.mpv.socket.$$";
 $mpv_params .= " --input-unix-socket $socket_path";
+
+<[base.log]>->( 1, 'starting mpv player..' );
 
 <mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
     ( 'mpv', split( / +/, $mpv_params ) ) );
@@ -17,7 +18,7 @@ if ( !<mpv.pid> ) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     CORE::exit(1);
 }
-<[base.log]>->( 1, " : mpv process spawned [PID=<mpv.pid>]" );
+<[base.log]>->( 1, ": mpv process spawned [PID=<mpv.pid>]" );
 
 close( delete(<mpv.fh.stdin>) );
 
@@ -26,7 +27,6 @@ while ( $max_retries-- ) {
     last if -e $socket_path;
     <[base.sleep]>->(0.1);
 }
-my $abort_startup = 0;
 if ( not -e $socket_path ) {
     <[base.log]>->(
         0, "[!] mpv socket creation failed ['$socket_path' does not exist]"
@@ -35,6 +35,8 @@ if ( not -e $socket_path ) {
 } else {
     <[base.log]>->( 1, "opening unix domain socket '$socket_path'.." );
     <mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
+    <[base.log]>->( 1, "unlinking socket $socket_path.." );
+    unlink($socket_path) or warn("unlink($socket_path): $!");
 }
 
 if (   !$abort_startup and not defined <mpv.socket>
@@ -52,11 +54,16 @@ if ($abort_startup) {
 
 <[event.add_io]>->(
     {   'fd'      => <mpv.fh.stdout>,
-        'handler' => 'base.handler.child_output.simple',
+        'handler' => 'mpv.handler.stdout',
         'data'    => {
-            'bin'           => 'mpv',
             'pid'           => <mpv.pid>,
-            'log_whitelist' => [ 'Creating non-video VO', '\[ipc' ]
+            'log_whitelist' => [
+                'Creating non-video VO',
+                '\[ipc',
+                '.{5}Video ',
+                '.{5}Audio ',
+                'Waiting for XShm'
+            ]
         }
     }
 );
