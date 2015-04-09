@@ -24,6 +24,18 @@ if ( !<child.openbox.pid> ) {
     1,
     ": openbox started [pid=<child.openbox.pid>], registering output handler.."
 );
+my $max_wait = 70;    # wait no longer than 7 seconds..
+<[base.log]>->( 1, "waiting for openbox log file creation.." );
+while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }
+if ( -f <openbox.log_file> ) {<[openbox.cleanup_tmp_dir]>}
+else {
+    <[base.log]>->(
+        0,
+        "openbox log file '"
+            . <openbox.log_file>
+            . "' did not appear in time, skipping tmp dir cleanup!"
+    );
+}
 <[event.add_io]>->(
     {   'fd'      => $out_fh,
         'handler' => 'base.handler.child_output.simple',
