@@ -1,12 +1,18 @@
 # >:]
 
 # name = openbox.init_code
-# todo = clean up tmp dir on openbox exit
+
+use File::Path qw(make_path remove_tree);
 
 $ENV{'HOME'} = '/tmp';
+chdir( $ENV{'HOME'} );
 my $home_path = $ENV{'HOME'} . '/.openbox-' . $$;
-mkdir($home_path) or die "can't create directory '$home_path' [$!]";
-chmod( 0700, $home_path ) or die "chmod(0700,'$home_path'): $!";
 $ENV{'HOME'} = $home_path;
+my $log_dir = "$home_path/.cache/openbox";
+make_path($log_dir)
+    or die "can't create directory '$home_path' [$!]";
+
+<openbox.home_path> = $home_path;
+<openbox.log_file>  = "$log_dir/openbox.log";
 
 0;
