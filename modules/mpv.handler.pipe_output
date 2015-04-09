@@ -8,9 +8,9 @@ my $read_fh = $event->fd;
 my $process = $event->data;
 my $pid     = $process->{'pid'};
 
-<mpv.pipe_buffer> //= '';
+<mpv.pipe.buffer> //= '';
 
-if (sysread( $read_fh, <mpv.pipe_buffer>, 4096, length(<mpv.pipe_buffer>) )
+if (sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
     == 0 ) {
     $event->cancel;
     close($read_fh);
@@ -21,8 +21,8 @@ if (sysread( $read_fh, <mpv.pipe_buffer>, 4096, length(<mpv.pipe_buffer>) )
     CORE::exit(2);
 }
 
-while ( <mpv.pipe_buffer> =~ s|^([^\n]*)\n||s ) {
+while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    $output_line =~ s/\r//sg;
+    $output_line =~ s/[\r\n]+//sg;
     <[base.log]>->( 1, "< mpv > " . $output_line );
 }
