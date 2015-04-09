@@ -34,7 +34,7 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
     <[base.log]>
         ->( 0, 'base.handler.command: $reply is not a hash reference!' );
 } elsif ( not defined $$reply{'data'}
-    or !length( $$reply{'data'} ) ) {
+    or $$reply{'mode'} ne 'raw' and !length( $$reply{'data'} ) ) {
     $$reply{'mode'} = 'nack';
     $$reply{'data'} = 'internal error (details in log!)';
     <[base.log]>->(
