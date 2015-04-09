@@ -4,6 +4,8 @@
 
 use IPC::Open3;
 
+<mpv.reply_ids> //= [];
+
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
 
