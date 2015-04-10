@@ -1,0 +1,10 @@
+# >:]
+
+# name  = mpv.cmd.pause
+# descr = pause playback
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+syswrite( <mpv.socket>, "set pause yes\n" );
+
+return { 'mode' => 'later' };
