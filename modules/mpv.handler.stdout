@@ -20,7 +20,7 @@ if (sysread( $read_fh, <mpv.output.buffer>, 4096, length(<mpv.output.buffer>) )
     close($read_fh);
     <[base.log]>->( 1, "mpv-process [PID:$pid] output filehandle closed." );
     kill( 9, $pid );    # making sure it's really gone
-    <[base.log]>->( 0, "mpv-process died unexpectedly!" );
+    <[base.log]>->( 0, "mpv-process died unexpectedly!" ) if !<agent.shutdown>;
     <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
     CORE::exit(2);
 }
