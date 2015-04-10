@@ -48,23 +48,22 @@ while ( <mpv.output.buffer> =~ s|^([^\n]*)\n||s ) {
                     'data' => $reply_data
                 }
             );
-            last;
         } else {
             push( @{<mpv.output.reply_data>}, $output_line );
         }
+        next;
     } elsif ( $output_line eq '<playlist>' ) {
         <mpv.output.parse_mode> = 'playlist';
+        next;
     }
 
     # log remaining output
-    if ( <mpv.output.parse_mode> eq '' ) {
-        my $log_level = 0;
-        for my $pattern ( @{$whitelist} ) {
-            if ( $output_line =~ /$pattern/ ) {
-                $log_level = 2;
-                last;
-            }
+    my $log_level = 0;
+    for my $pattern ( @{$whitelist} ) {
+        if ( $output_line =~ /$pattern/ ) {
+            $log_level = 2;
+            last;
         }
-        <[base.log]>->( $log_level, "< mpv > " . $output_line );
     }
+    <[base.log]>->( $log_level, "< mpv > " . $output_line );
 }
