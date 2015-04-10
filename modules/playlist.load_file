@@ -1,0 +1,33 @@
+# >:]
+
+# name = playlist.load_file
+
+my $file_path = shift;
+die "expected playlist file path"
+    if not defined $file_path or !length($file_path);
+( my $file_name = $file_path ) =~ s|^.*\/||;
+
+if ( !-f $file_path ) {
+    <[base.log]>->( 0, "playlist file '$file_path' not found!" );
+    return 0;
+}
+
+<[base.log]>->( 1, "loading playlist file '$file_name'" );
+
+my @file_names;
+<[file.slurp]>->( $file_path, \@file_names );
+
+<playlist.files>      = \@file_names;
+<playlist.file_types> = {};
+
+if ( !@file_names ) {
+    <[base.log]>->( 0, "no files in playlist!" );
+    return 0;
+}
+
+foreach my $file (@file_names) {
+    <playlist.file_types>->{$file} = 'unknown';
+    <playlist.file_types>->{$file} = mimetype($file) if -f $file;
+}
+
+return 1;
