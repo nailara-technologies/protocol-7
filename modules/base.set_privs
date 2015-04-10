@@ -1,22 +1,23 @@
 # >:]
 
-# name       = base.set_privs
+# name = base.set_privs
+# todo = cleanup!!
 
 if ( $_[0] eq '' ) {
     <[base.log]>->( 0, 'can not change priviledges [no username supplied]' );
     return -1;
 } else {
 
-    my ( $name, $foo, $uid, $gid ) = getpwnam( $_[0] );
+    my ( $name, $pwd, $uid, $gid ) = getpwnam( $_[0] );
 
     my %_gid = map { $_ => 1 } split( / /, $( );
     my %egid = map { $_ => 1 } split( / /, $) );
 
     if (    defined $name
         and exists $_gid{$gid}
-        and exists $egid{$gid}
-        and $> == $uid
-        and $< == $uid ) {
+        and exists $egid{$gid}    # XXX: fix (secondary groups)!
+        and $> == $uid and $< == $uid
+        ) {
         <[base.log]>->( 1, "set_privs: already am '$_[0]', doing nothing." );
     } elsif ($<) {
         <[base.log]>->(
@@ -30,10 +31,17 @@ if ( $_[0] eq '' ) {
             );
             return -1;
         } else {
-            $) = "$gid $gid";
+            my @rgids;
+            while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
+                push( @rgids, $_gid )
+                    if ( grep( $_ eq $_[0], split( /\s+/, $_members ) ) );
+            }
+
+            $) = join( ' ', $gid, @rgids );
             $( = $gid;
             $> = $uid;
             $< = $uid;
+
             <[base.log]>->( 1, "changed priviledges to user '$_[0]'" );
         }
     }
