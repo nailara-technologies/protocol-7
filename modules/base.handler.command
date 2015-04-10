@@ -82,7 +82,7 @@ if ( $$input
                             1, "[$id] invalid command parameter format"
                         );
                         $$output .= $_cmd_id
-                            . "NACK invalid command parameter format\n"; # FIX!
+                            . "NACK invalid command parameter format\n";  # FIX!
                         $_[0]->w->start;
                         return 1;
                     }
@@ -237,7 +237,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
                     } else {
                         <[base.log]>->(
-                            1,
+                            0,
                             "[$id] called undefined reply handler ("
                                 . $$route{'reply'}{'handler'} . ")"
                         );
@@ -280,14 +280,44 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                         my $rest = length($$input) - $msg_len;
                         $$input = substr( $$input, $msg_len, $rest );
 
-                        # send raw command to target
+                        # check if reply handler is set
 
-                        $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
-                            {'output'}
-                            .= $s_cmd_id
-                            . $cmd . ' '
-                            . $$call_args{'args'} . "\n"
-                            . $data;
+                        if ( defined $$route{'reply'}{'handler'}
+                            and $$route{'reply'}{'handler'} ne '' ) {
+                            if (    defined $code{ $$route{'reply'}{'handler'} }
+                                and
+                                defined &{ $code{ $$route{'reply'}{'handler'} }
+                                } ) {
+
+                                # call reply handler
+
+                                &{ $code{ $$route{'reply'}{'handler'} } }(
+                                    {   'sid'       => $id,
+                                        'cmd'       => $cmd,
+                                        'call_args' => $call_args,
+                                        'params' => $$route{'reply'}{'params'},
+                                        'data'   => $data
+                                    }
+                                );
+
+                            } else {
+                                <[base.log]>->(
+                                    0,
+                                    "[$id] called undefined reply handler ("
+                                        . $$route{'reply'}{'handler'} . ")"
+                                );
+                            }
+                        } else {
+
+                            # send raw command to target
+
+                            $data{'session'}{ $$route{'source'}{'sid'} }
+                                {'buffer'}{'output'}
+                                .= $s_cmd_id
+                                . $cmd . ' '
+                                . $$call_args{'args'} . "\n"
+                                . $data;
+                        }
 
                         # delete route
 
