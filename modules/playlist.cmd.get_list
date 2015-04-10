@@ -1,10 +1,19 @@
 # >:]
 
 # name  = playlist.cmd.get_list
+# param = [file_type]
 # descr = return current playlist files
 
 my $reply_string = '';
-$reply_string = join( "\n", @{<playlist.file_list>} ) . "\n"
-    if @{<playlist.file_list>};
+my $file_type    = $$call{'args'} || '';
+my $type_list    = <playlist.file_types>;
 
+if ( @{<playlist.file_list>} ) {
+    map {
+        $reply_string .= "$_\n"
+            if !length($file_type)
+            or index( $type_list->{$_}, $file_type )
+            != -1
+    } @{<playlist.file_list>};
+}
 return { 'mode' => 'raw', 'data' => $reply_string }
