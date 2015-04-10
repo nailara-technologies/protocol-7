@@ -1,0 +1,14 @@
+# >:]
+
+# name  = mpv.cmd.playlist_add
+# param = <file|url>
+# descr = add a file to current playlist
+
+my $file = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'expected file or url' }
+    if not defined $file or !length($file);
+
+syswrite( <mpv.socket>, "loadfile \"$file\" append-play\n" );
+
+return { 'mode' => 'ack', 'data' => 'added to playlist' };
