@@ -5,7 +5,8 @@
 
 .: globals :.
 
-  agents.enabled = core log system xserver unclutter openbox compton layout
+  agents.enabled = core log system xserver unclutter openbox compton \
+                   layout playlist
 
 .: agents :.
 
@@ -169,9 +170,21 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+  - playlist
+
+      dependencies = core
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - mpv
 
-      dependencies = core xserver openbox
+      dependencies = core playlist xserver openbox
 
       : root-init :
         start_mode = exec-sic
