@@ -15,6 +15,10 @@ while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
     my $log_level = 1;
     $log_level = 0 if $e_val;
     $log_level = 0 if $? & 128;
+    $log_level = 2
+        if <agent.shutdown>
+        and !length($e_dmp)
+        and $e_sig ne 'signal 11';
     <[base.log]>->(
         $log_level,
         ": child pid=$pid terminated ( exit code $e_val$e_sig )$e_dmp"
