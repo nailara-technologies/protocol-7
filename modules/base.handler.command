@@ -276,7 +276,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
                         # cut out body data
 
-                        my $data = substr( $$input, 0, $msg_len );
+                        my $raw_data = substr( $$input, 0, $msg_len );
                         my $rest = length($$input) - $msg_len;
                         $$input = substr( $$input, $msg_len, $rest );
 
@@ -296,7 +296,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                                         'cmd'       => $cmd,
                                         'call_args' => $call_args,
                                         'params' => $$route{'reply'}{'params'},
-                                        'data'   => $data
+                                        'data'   => $raw_data
                                     }
                                 );
 
@@ -316,7 +316,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                                 .= $s_cmd_id
                                 . $cmd . ' '
                                 . $$call_args{'args'} . "\n"
-                                . $data;
+                                . $raw_data;
                         }
 
                         # delete route
