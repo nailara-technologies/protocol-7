@@ -24,5 +24,25 @@ if (sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
 while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
     $output_line =~ s/[\r\n]+//sg;
+
+    # 'cycle_pause' / 'pause' command
+    if ( $output_line eq '{"event":"pause"}' ) {
+        my $reply_id = shift @{<mpv.reply_ids>};
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'ack', 'data' => 'playback paused' }
+        );
+        next;
+    }
+
+    # 'cycle_pause' / 'resume' command
+    if ( $output_line eq '{"event":"unpause"}' ) {
+        my $reply_id = shift @{<mpv.reply_ids>};
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'ack', 'data' => 'playback resumed' }
+        );
+        next;
+    }
+
+    # log remaining output
     <[base.log]>->( 1, "< mpv > " . $output_line );
 }
