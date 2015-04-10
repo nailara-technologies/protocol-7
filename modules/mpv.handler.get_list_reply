@@ -1,0 +1,23 @@
+# >:]
+
+# name = mpv.handler.get_list_reply
+# todo = implement continuous playback in case current file is in playlist!
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->( 0, "failed to fetch playlist!" );
+    return;
+}
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 0, "received empty playlist!" );
+    syswrite( <mpv.socket>, "stop\n" );
+    return;
+}
+
+my @files = split( "\n", $reply->{'data'} );
+
+syswrite( <mpv.socket>, "stop\n" );
+
+map { syswrite( <mpv.socket>, "loadfile \"$_\" append-play\n" ) } @files;
