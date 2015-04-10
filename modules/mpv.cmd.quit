@@ -1,0 +1,12 @@
+# >:]
+
+# name  = mpv.cmd.quit
+# descr = shutdown mpv agent
+
+<agent.shutdown> = 1;
+
+<[base.log]>->( 1, "quit command received.." );
+
+syswrite( <mpv.socket>, "quit\n" );
+
+return { 'mode' => 'ack', 'data' => 'shutting down mpv agent' };
