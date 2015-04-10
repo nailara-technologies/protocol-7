@@ -1,0 +1,10 @@
+# >:]
+
+# name  = playlist.cmd.get_list
+# descr = return current playlist files
+
+my $reply_string = '';
+$reply_string = join( "\n", @{<playlist.file_list>} ) . "\n"
+    if @{<playlist.file_list>};
+
+return { 'mode' => 'raw', 'data' => $reply_string }
