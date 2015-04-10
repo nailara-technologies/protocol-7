@@ -12,6 +12,9 @@ return { 'mode' => 'nack', 'data' => 'socket is not valid' } if !-S $mpv_socket;
 return { 'mode' => 'nack', 'data' => 'expected test command string' }
     if not defined $cmd_str or !length($cmd_str);
 
+return { 'mode' => 'nack', 'data' => 'requested command is blacklisted!' }
+    if $cmd_str =~ /run|hook/;
+
 syswrite( $mpv_socket, "$cmd_str\n" );
 
 return { 'mode' => 'ack', 'data' => 'command sent.' };
