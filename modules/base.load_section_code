@@ -23,7 +23,7 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
     my ( $section, $sub_section, $sub_sub_section, $data_ref );
     foreach my $line (@cfg_lines) {
         $line_num++;
-        $line =~ s/(#.*|[ \t]*)*\n$//g;
+        $line =~ s/(#.*|[ \t]*)+$//g;
         $line =~ s/^[ \t]+//;
         next if $line eq '';
         if ( $line =~ /^\.: *([^:]*\S) *:\.$/ ) {
@@ -37,7 +37,7 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
                 $data_ref = <[base.code_section_ref]>->( $code_data, $section );
             }
             $section_ref = $data_ref;
-        } elsif ( $line =~ /^- *([^\n]+)$/ ) {
+        } elsif ( $line =~ /^- *(.+)$/ ) {
             $sub_section     = $1;
             $sub_sub_section = undef;
             die "no parent section defined for sub-section '$sub_section' "

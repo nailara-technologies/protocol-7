@@ -25,7 +25,7 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
     my ( $section, $sub_section, $sub_sub_section );
     foreach my $line (@cfg_lines) {
         $line_num++;
-        $line =~ s/(#.*|\s*)*\n$//g;
+        $line =~ s/(#.*|\s*)+$//g;
         $line =~ s/^\s+//;
         next if $line eq '';
         if ( $line =~ /^\.:\s*([\w_\.]+)\s*:\.$/ ) {
