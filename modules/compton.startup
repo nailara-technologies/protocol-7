@@ -12,8 +12,10 @@ my $display = <x11.display>;
     split(
         / +/,
         "compton -d $display --shadow --no-dock-shadow "
+            . "--vsync drm --paint-on-overlay --dbe "
             . "-t -18 -l -15 -r 10 -o 1 -c -C "
             . '--shadow-exclude name~="browser" '    # no shadow on browser win
+
 #            . '--shadow-exclude !name~="ticker" '    # ticker agent shadow only
             . "--shadow-red 1 --shadow-green 1 --shadow-blue 1"
     )
@@ -25,3 +27,13 @@ if ( !<compton.pid> ) {
 } else {
     <[base.log]>->( 1, " : compton process spawned [PID=<compton.pid>]" );
 }
+
+<[event.add_io]>->(
+    {   'fd'      => <compton.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin' => 'compton',
+            'pid' => <compton.pid>,
+        }
+    }
+);
