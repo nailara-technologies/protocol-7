@@ -12,12 +12,12 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty playlist!" );
-    syswrite( <mpv.socket>, "stop\n" );
+    <[mpv.send_command]>->('stop');
     return;
 }
 
 my @files = split( "\n", $reply->{'data'} );
 
-syswrite( <mpv.socket>, "stop\n" );
+<[mpv.send_command]>->('stop');
 
-map { syswrite( <mpv.socket>, "loadfile \"$_\" append-play\n" ) } @files;
+map { <[mpv.send_command]>->( 'loadfile', $_, 'append-play' ) } @files;

@@ -3,6 +3,9 @@
 # name  = mpv.cmd.stop
 # descr = stop playback
 
-syswrite( <mpv.socket>, "stop\n" );
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'playback stopped';
 
-return { 'mode' => 'ack', 'data' => 'playback stopped' };
+<[mpv.send_command]>->('stop');
+
+return { 'mode' => 'later' };

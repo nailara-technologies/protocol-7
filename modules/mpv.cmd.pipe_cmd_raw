@@ -1,0 +1,21 @@
+# >:]
+
+# name  = mpv.cmd.pipe_cmd_raw
+# param = <string>
+# descr = sends raw strings through mpv control pipe
+
+my $mpv_socket = <mpv.socket>;
+my $cmd_str    = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'expected mpv command string' }
+    if not defined $cmd_str or !length($cmd_str);
+
+return {
+    'mode' => 'nack',
+    'data' => 'string contains blacklisted byte sequence!'
+    }
+    if $cmd_str =~ /run|hook/;
+
+syswrite( $mpv_socket, "$cmd_str\n" );
+
+return { 'mode' => 'ack', 'data' => 'string sent.' };
