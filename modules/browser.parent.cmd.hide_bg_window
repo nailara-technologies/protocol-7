@@ -8,15 +8,17 @@ my $bg_window = <browser.bg_window>;
 
 <browser.slideshow.running> = 0;
 
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "window-$fg_window.abort_fade",
-        'call_args' => {},
-        'reply'     => {
-            'handler' => 'dev.null',
-            'params'  => {}
+foreach my $index ( 1 .. 2 ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "window-$index.abort_fade",
+            'call_args' => {},
+            'reply'     => {
+                'handler' => 'dev.null',
+                'params'  => {}
+            }
         }
-    }
-);
+    );
+}
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "window-$bg_window.iconify",
