@@ -4,14 +4,20 @@
 # descr = return agent id for given name from setup
 # note  = doesn't deal with multiple agent setups for same name yet!
 
-my $subname;
+my $agent_subname;
 my $agent_name = shift;
 
-$subname = $1 if $agent_name =~ s|\[([^\]]+])$||;
+$agent_subname = $1 if $agent_name =~ s|\[([^\]]+)]$||;
 
 die 'expected agent name' if not defined $agent_name or !length($agent_name);
 
 foreach my $id ( keys %{<root.agent.setup>} ) {
+    next
+        if defined $agent_subname
+        and not exists <root.agent.setup>->{$id}->{'subname'}
+        or defined $agent_subname
+        and exists <root.agent.setup>->{$id}->{'subname'}
+        and <root.agent.setup>->{$id}->{'subname'} ne $agent_subname;
     return $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
 }
 
