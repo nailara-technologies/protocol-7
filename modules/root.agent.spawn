@@ -100,6 +100,8 @@ if ( not defined $pid or $@ ) {
 <[root.child.add]>->( $pid, { 'instance_id' => $instance_id } );
 
 $instances->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
+$instances->{$instance_id}->{'subname'} = $agent_subname
+    if defined $agent_subname;
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
