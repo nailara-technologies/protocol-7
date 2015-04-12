@@ -40,20 +40,23 @@ my ( $left, $top, $right, $bottom ) = ( 0, 0, $screen_width, $screen_height );
 
 if ( exists $descr->{'left'} ) {
     $left = $descr->{'left'};
-    $left = int( ( $screen_width / 100 ) * $1 ) if $left =~ /^(\d+)\%$/;
+    $left = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
+        if $left =~ /^(\d+)\%$/;
 }
 if ( exists $descr->{'top'} ) {
     $top = $descr->{'top'};
-    $top = int( ( $screen_height / 100 ) * $1 ) if $top =~ /^(\d+)\%$/;
+    $top = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
+        if $top =~ /^(\d+)\%$/;
 }
 if ( exists $descr->{'width'} ) {
     $width = $descr->{'width'};
-    $width = int( ( $screen_width / 100 ) * $1 ) if $width =~ /^(\d+)\%$/;
+    $width = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
+        if $width =~ /^(\d+)\%$/;
     $right = $left + $width;
 }
 if ( exists $descr->{'height'} ) {
     my $height = $descr->{'height'};
-    $height = int( ( $screen_height / 100 ) * $1 )
+    $height = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
         if $height =~ /^(\d+)\%$/;
     $bottom = $top + $height;
 }
