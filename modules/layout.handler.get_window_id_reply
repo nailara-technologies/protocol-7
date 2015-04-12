@@ -7,8 +7,13 @@ my $params   = $reply->{'params'};
 my $callback = delete $params->{'callback'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    <[base.log]>->( 0, "failed to obtain any window ids (NACK reply)!" );
-    $params->{'status'} = 'window_ids';
+    if ( $params->{'window_id_retries'}-- ) {
+        <[base.log]>->( 0, "failed to obtain any window ids, retying..." );
+        $params->{'status'} = 'window_ids';
+    } else {
+        <[base.log]>->( 0, "failed to obtain any window ids, aborting!" );
+        $params->{'fade'} = 0;
+    }
 } else {
     my $xserver_reply = $reply->{'call_args'}->{'args'};
     my @window_ids = split( / +/, $xserver_reply );
