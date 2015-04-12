@@ -14,11 +14,9 @@
 
 .: profiles :.
 
-  - empty
-
   - video
 
-    : mpv :
+    : mpv[single] :
 
       playlist = mpv-test
       fade   = 1
@@ -27,9 +25,69 @@
       width  = 80%
       height = 80%
 
+    : ticker :
+
+        fade   = 1
+        get_opacity = 1
+        stop_agents  = rss-ticker ticker
+        start_agents = rss-ticker
+
+        left   = 0
+        top    = 92%
+        width  = 100%
+        height = 8%
+
+  - all
+
+      : browser[allleft] :
+
+        fade   = 1
+        prepare_cmd = browser.hide_bg_window
+        left   = 0
+        top    = 0
+        width  = 28%
+        height = 92%
+
+      : mpv[alltopnoshadow] :
+
+        fade   = 1
+        left   = 28%
+        top    = 0
+        width  = 44%
+        height = 46.5%
+
+      : mpv[allbottomnoshadow] :
+
+        fade   = 1
+        left   = 28%
+        top    = 46%
+        width  = 44%
+        height = 46%
+
+      : browser[allright] :
+
+        fade   = 1
+        prepare_cmd = browser.hide_bg_window
+        left   = 72%
+        top    = 0
+        width  = 28%
+        height = 92%
+
+    : ticker :
+
+        fade   = 1
+        get_opacity = 1
+        stop_agents  = rss-ticker ticker
+        start_agents = rss-ticker
+
+        left   = 0
+        top    = 92%
+        width  = 100%
+        height = 8%
+
   - first
 
-      : browser :
+      : browser[firsttop] :
 
         fade   = 1
         prepare_cmd = browser.hide_bg_window
@@ -52,7 +110,7 @@
 
   - second
 
-      : mpv :
+      : mpv[secondtop] :
 
         fade   = 1
         left   = 0
@@ -74,13 +132,22 @@
 
   - browser
 
-      : browser :
+      : browser[left] :
 
         fade   = 1
         prepare_cmd = browser.hide_bg_window
         left   = 0%
         top    = 0%
-        width  = 100%
+        width  = 50%
+        height = 100%
+
+      : browser[right] :
+
+        fade   = 1
+        prepare_cmd = browser.hide_bg_window
+        left   = 50%
+        top    = 0%
+        width  = 50%
         height = 100%
 
   - fourth
