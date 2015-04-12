@@ -18,17 +18,28 @@ foreach my $param_str ( split / +/, $params ) {
             if not exists <root.agent.instance>->{$param_str};
         push( @instance_ids, $param_str );
     } else {                          # agent name ( XXX: validate syntax! )
-        my $agent_id = <[agent.get_id]>->($param_str);
+        my $agent_name = $param_str;
+        my $agent_subname;
+        $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+        my $agent_id = <[agent.get_id]>->($agent_name);
         return {
             'mode' => 'nack',
-            'data' => "no agent '$param_str' found in setup!"
+            'data' => "no agent '$agent_name' found in setup!"
                 . " (see 'list agents')"
             }
             if not defined $agent_id;
-        map {
-            push( @instance_ids, $_ )
-                if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
-        } keys %{<root.agent.instance>};
+        foreach my $iid ( keys %{<root.agent.instance>} ) {
+            next
+                if defined $agent_subname
+                and not exists <root.agent.instance>->{$iid}->{'subname'}
+                or defined $agent_subname
+                and exists <root.agent.instance>->{$iid}->{'subname'}
+                and <root.agent.instance>->{$iid}->{'subname'} ne
+                $agent_subname;
+
+            push( @instance_ids, $iid )
+                if <root.agent.instance>->{$iid}->{'agent_id'} == $agent_id;
+        }
     }
 }
 
@@ -72,7 +83,8 @@ foreach my $name ( keys %shutdown_names ) {
                 <[agent.cmd.stop]>->( { 'args' => $dep_name } );
             }
         }
-        delete <root.agent.dependency> if !keys( %{<root.agent.dependency>} );
+        delete <root.agent.dependency>
+            if !keys( %{<root.agent.dependency>} );
     }
 }
 
