@@ -20,7 +20,12 @@ return { 'mode' => 'nack', 'data' => 'already fading out' }
 
 Glib::Idle->add(
     sub {
-        if ( <window.opacity> <= 0 ) {
+        if ( !<window.fading_out> ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id, { 'mode' => 'ack', 'data' => 'fade out aborted' }
+            );
+            return 0;
+        } elsif ( <window.opacity> <= 0 ) {
             <window.opacity> = 0 if <window.opacity> < 1;
             <browser.gtk2.obj.window>->set_opacity(<window.opacity>);
             <window.fading_out> = 0;
