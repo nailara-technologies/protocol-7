@@ -13,6 +13,4 @@ my $params   = $reply->{'params'};
 my $callback = delete $params->{'callback'};
 $params->{'instance_ids'} = $reply->{'call_args'}->{'args'};
 
-print "\n[root_reply] '" . $params->{'instance_ids'} . "'\n";
-
 $code{$callback}->($params);
