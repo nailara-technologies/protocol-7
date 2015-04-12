@@ -4,7 +4,8 @@
 # descr = pause or resume playback
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'done';    # XXX: reply event state!
 
-syswrite( <mpv.socket>, "cycle pause\n" );
+<[mpv.send_command]>->( 'cycle', 'pause' );
 
 return { 'mode' => 'later' };

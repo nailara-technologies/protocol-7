@@ -1,12 +1,15 @@
 # >:]
 
 # name  = mpv.cmd.quit
-# descr = shutdown mpv agent
+# descr = initiate mpv agent shutdown
 
 <agent.shutdown> = 1;
 
 <[base.log]>->( 1, "quit command received.." );
 
-syswrite( <mpv.socket>, "quit\n" );
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'shutting down mpv agent';
 
-return { 'mode' => 'ack', 'data' => 'shutting down mpv agent' };
+<[mpv.send_command]>->('quit');
+
+return { 'mode' => 'later' };

@@ -4,7 +4,8 @@
 # descr = pause playback
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'playback paused';
 
-syswrite( <mpv.socket>, "set pause yes\n" );
+<[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
 
 return { 'mode' => 'later' };

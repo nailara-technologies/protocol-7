@@ -24,27 +24,32 @@ if (sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
 }
 
 while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
+    my $reply_id;
     my $output_line = $1;
-    $output_line =~ s/[\r\n]+//sg;
+    my $decoded     = decode_json($output_line);
 
-    # 'cycle_pause' / 'pause' command
-    if ( @{<mpv.reply_ids>} and $output_line eq '{"event":"pause"}' ) {
-        my $reply_id = shift @{<mpv.reply_ids>};
+    if (    exists $decoded->{'error'}
+        and $decoded->{'error'} ne 'success'
+        and $reply_id = shift @{<mpv.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
-            $reply_id, { 'mode' => 'ack', 'data' => 'playback paused' }
+            $reply_id,
+            {   'mode' => 'nack',
+                'data' => 'mpv process replied "' . $decoded->{'error'} . '"!'
+            }
         );
         next;
-    }
-
-    # 'cycle_pause' / 'resume' command
-    if ( @{<mpv.reply_ids>} and $output_line eq '{"event":"unpause"}' ) {
-        my $reply_id = shift @{<mpv.reply_ids>};
+    } elsif ( exists $decoded->{'error'}
+        and $decoded->{'error'} eq 'success'
+        and exists <mpv.success_reply_str>
+        and $reply_id = shift @{<mpv.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
-            $reply_id, { 'mode' => 'ack', 'data' => 'playback resumed' }
+            $reply_id, { 'mode' => 'ack', 'data' => <mpv.success_reply_str> }
         );
+        delete <mpv.success_reply_str>;
         next;
     }
 
     # log remaining output
+    $output_line =~ s/[\r\n]+//sg;
     <[base.log]>->( 1, "< mpv > " . $output_line );
 }

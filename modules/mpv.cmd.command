@@ -1,20 +1,21 @@
 # >:]
 
 # name  = mpv.cmd.command
-# param = <mpv_command>
+# param = <mpv_cmd>
 # descr = sends test commands through mpv control pipe
 
 my $mpv_socket = <mpv.socket>;
 my $cmd_str    = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'socket is not valid' } if !-S $mpv_socket;
-
-return { 'mode' => 'nack', 'data' => 'expected test command string' }
+return { 'mode' => 'nack', 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
 
-return { 'mode' => 'nack', 'data' => 'requested command is blacklisted!' }
+return { 'mode' => 'nack', 'data' => 'requested command matches blacklist!' }
     if $cmd_str =~ /run|hook/;
 
-syswrite( $mpv_socket, "$cmd_str\n" );
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = "mpv reported success :)";
 
-return { 'mode' => 'ack', 'data' => 'command sent.' };
+<[mpv.send_command]>->( split / +/, $cmd_str );
+
+return { 'mode' => 'later' };
