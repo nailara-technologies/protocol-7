@@ -64,8 +64,6 @@ if ( not defined $agent_id ) {
     foreach my $id ( keys %{<root.agent.setup>} ) {
         $agent_id = $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
     }
-    $agent_id = <[agent.setup.add]>->( { 'name' => $agent_name } )
-        if not defined $agent_id;
 }
 
 my $obj_id = <[agent.get_object_id]>->($agent_id);
