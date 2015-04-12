@@ -22,7 +22,8 @@ Gtk2->init;
 <browser.hide_scrollbars> //= 1;
 my $hide_scrollbars = <browser.hide_scrollbars>;
 
-my $sn_str = defined <system.agent.subname> ? '-' . <system.agent.subname> : '';
+my $sn_str
+    = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
 my $title_str = 'browser' . $sn_str;
 $title_str .= "-$instance_id-$$" if defined $instance_id;
 
@@ -94,6 +95,5 @@ Glib::Idle->add(
 ####################
 $window->set_opacity(0);
 $window->show_all();
-#$window->set_opacity(0);
 
 Gtk2->main;
