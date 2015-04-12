@@ -8,10 +8,15 @@ $ENV{'DISPLAY'} = <x11.display>;
 my $socket_path = "/tmp/.mpv.socket.$$";
 $mpv_params .= " --input-unix-socket $socket_path";
 
+my $mpv_title_param .= '--title="' . <system.agent.name>;
+$mpv_title_param .= '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname> and length(<system.agent.subname>);
+$mpv_title_param .= ' ( ${media_title} )"';
+
 <[base.log]>->( 1, 'starting mpv player..' );
 
 <mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
-    ( 'mpv', split( / +/, $mpv_params ) ) );
+    ( 'mpv', split( / +/, $mpv_params ), $mpv_title_param ) );
 
 if ( !<mpv.pid> ) {
     <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
