@@ -2,18 +2,23 @@
 
 # name  = mpv.cmd.zoom
 # param = <zoom_level>
-# descr = set video zoom level [default=0]
+# descr = set video zoom level [-1..20]
 
 my $zoom_level = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'invalid zoom value!' }
+return { 'mode' => 'nack', 'data' => 'invalid zoom value! [-1..20]' }
     if $zoom_level !~ /^\-?\d+(\.\d+)?$/
     or $zoom_level < -1
     or $zoom_level > 20;
 
-syswrite( <mpv.socket>, "set video-zoom $zoom_level\n" );
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
-return { 'mode' => 'ack', 'data' => 'zoom reset to original video size' }
-    if $zoom_level == 0;
+if ( $zoom_level == 0 ) {
+    <mpv.success_reply_str> = 'zoom reset to original video size';
+} else {
+    <mpv.success_reply_str> = "applied zoom level $zoom_level";
+}
 
-return { 'mode' => 'ack', 'data' => "applied zoom level $zoom_level" };
+<[mpv.send_command]>->( 'set_property_string', 'video-zoom', "$zoom_level" );
+
+return { 'mode' => 'later' };

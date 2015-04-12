@@ -3,8 +3,9 @@
 # name  = mpv.cmd.playlist_clear
 # descr = clear playlist (except current file)
 
-my $file = $$call{'args'};
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'playlist cleared';
 
-syswrite( <mpv.socket>, "playlist_clear\n" );
+<[mpv.send_command]>->('playlist_clear');
 
-return { 'mode' => 'ack', 'data' => 'playlist cleared' };
+return { 'mode' => 'later' };
