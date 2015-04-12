@@ -2,15 +2,17 @@
 
 # name = layout.handler.get_instance_ids_reply
 
-my $reply = shift;
+my $reply    = shift;
+my $params   = $reply->{'params'};
+my $callback = delete $params->{'callback'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
     <[base.log]>->( 0, "failed to obtain instance ids.." );
-    return;
+    $params->{'remove'}       = 0;
+    $params->{'status'}       = 'start';
+    $params->{'instance_ids'} = $params->{'agent_name'};
+} else {
+    $params->{'instance_ids'} = $reply->{'call_args'}->{'args'};
 }
-
-my $params   = $reply->{'params'};
-my $callback = delete $params->{'callback'};
-$params->{'instance_ids'} = $reply->{'call_args'}->{'args'};
 
 $code{$callback}->($params);
