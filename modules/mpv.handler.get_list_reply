@@ -16,8 +16,10 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     return;
 }
 
-my @files = split( "\n", $reply->{'data'} );
+@{<mpv.playlist.update_files>} = split( "\n", $reply->{'data'} );
 
-<[mpv.send_command]>->('stop');
+<mpv.command.handler>  = 'mpv.handler.path_reply';
+<mpv.command.callback> = 'mpv.callback.playlist_update';
 
-map { <[mpv.send_command]>->( 'loadfile', $_, 'append-play' ) } @files;
+delete <mpv.current.path>;
+<[mpv.send_command]>->( 'get_property_string', 'path' );

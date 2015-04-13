@@ -1,0 +1,16 @@
+# >:]
+
+my %file_hash;
+my $status = shift;
+my $path   = <mpv.current.path>;
+my @files  = @{ delete <mpv.playlist.update_files> };
+map { $file_hash{$_} = 1 } @files;
+
+if ( $status ne 'success' ) {
+    <[base.log]>->( 0, "failed to retrieve current path!" );
+} else {
+    <[mpv.send_command]>->('stop') if not exists $file_hash{$path};
+}
+
+map { <[mpv.send_command]>->( 'loadfile', $_, 'append-play' ) if $_ ne $path }
+    @files;
