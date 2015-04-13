@@ -17,8 +17,8 @@ core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
 core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
-playlist.file_name = <system.conf_path>/playlist.default # test playlist
-[playlist.load_file:<playlist.file_name>]
+playlist.file_name = playlist.default # test playlist
+[playlist.load_file:<system.conf_path>/<playlist.file_name>]
 
 [base.get_session_id]
 
