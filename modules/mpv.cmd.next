@@ -1,0 +1,12 @@
+# >:]
+
+# name  = mpv.cmd.next
+# descr = select next file from playlist
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+<mpv.success_reply_str> = 'playlist next';
+
+<[mpv.send_command]>->('playlist_next');
+
+return { 'mode' => 'later' };
