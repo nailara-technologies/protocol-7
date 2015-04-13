@@ -1,0 +1,24 @@
+# >:]
+
+# name  = mpv.cmd.align-x
+# param = <x-offset>
+# descr = horizontal video position [-1..1]
+
+my $offset = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'invalid alignment value! [-1..1]' }
+    if $offset !~ /^\-?\d+(\.\d+)?$/
+    or $offset < -1
+    or $offset > 1;
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+if ( $offset == 0 ) {
+    <mpv.success_reply_str> = 'horizontal alignment reset';
+} else {
+    <mpv.success_reply_str> = "video-align-x = $offset";
+}
+
+<[mpv.send_command]>->( 'set_property_string', 'video-align-x', "$offset" );
+
+return { 'mode' => 'later' };
