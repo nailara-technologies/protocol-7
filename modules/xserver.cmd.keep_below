@@ -1,0 +1,33 @@
+# >:]
+
+# name  = xserver.cmd.keep_below
+# param = <id>
+# descr = keep window on bottom
+
+my $X         = <xserver.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'window <id> required' }
+    if not defined $window_id;
+return { 'mode' => 'nack', 'data' => 'invalid window <id> syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+
+for ( 1 .. 2 ) {    # <- workaround (ignored state change requests)
+    X11::Protocol::WM::change_net_wm_state( $X, $window_id, "remove", "ABOVE" );
+    X11::Protocol::WM::change_net_wm_state( $X, $window_id, "add",    "BELOW" );
+}
+
+return { 'mode' => 'ack', 'data' => "set window state 'below'" };
