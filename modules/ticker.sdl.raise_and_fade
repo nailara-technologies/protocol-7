@@ -12,6 +12,7 @@ die "got no window id for ticker display" if not defined $window_id;
 <[base.x11.set_window_opacity]>->( $window_id, 0 );
 
 <[base.x11.raise_window]>->( $window_id, 'parent', 'core' );
+<[base.x11.keep_above]>->($window_id);
 <ticker.window.raised> = 1;
 
 for my $count ( 1 .. 4 ) {    # making sure white background is already drawn
