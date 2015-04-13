@@ -6,7 +6,11 @@ my $name     = shift;
 my $user     = shift || 'core';
 my $cmd_path = shift || '';
 $cmd_path .= '.' if length($cmd_path);
-
+if ( not defined $name ) {
+    $name = <system.agent.name>;
+    $name .= '[' . <system.agent.subname> . ']'
+        if defined <system.agent.subname>;
+}
 die "expected window name parameter" if not defined $name or !length($name);
 my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 
