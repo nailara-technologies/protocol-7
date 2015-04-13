@@ -1,0 +1,12 @@
+# >:]
+
+# name  = mpv.cmd.prev
+# descr = select previous file from playlist
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+<mpv.success_reply_str> = 'playlist prev';
+
+<[mpv.send_command]>->('playlist_prev');
+
+return { 'mode' => 'later' };
