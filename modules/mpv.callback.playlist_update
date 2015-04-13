@@ -2,7 +2,7 @@
 
 my %file_hash;
 my $status = shift;
-my $path   = <mpv.current.path>;
+my $path   = <mpv.current.path> || '';
 my @files  = @{ delete <mpv.playlist.update_files> };
 map { $file_hash{$_} = 1 } @files;
 
