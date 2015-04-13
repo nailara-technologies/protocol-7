@@ -1,0 +1,9 @@
+# >:]
+
+# name = mpv.handler.path_reply
+
+my $path = shift;
+
+<[mpv.send_command]>->('playlist_clear');
+
+<mpv.current.path> = $path if defined $path and length($path);
