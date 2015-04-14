@@ -68,6 +68,7 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     }
 
     # log remaining output
+    my $log_level = exists $decoded->{'error'} ? 0 : 2;
     $output_line =~ s/[\r\n]+//sg;
-    <[base.log]>->( 1, "< mpv > " . $output_line );
+    <[base.log]>->( $log_level, "< mpv > " . $output_line );
 }
