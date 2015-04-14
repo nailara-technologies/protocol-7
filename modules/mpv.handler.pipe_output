@@ -29,25 +29,23 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     my $decoded     = decode_json($output_line);
 
     if (    exists $decoded->{'error'}
-        and defined <mpv.command.handler>
-        and exists $code{<mpv.command.handler>}
-        or exists $decoded->{'error'}
-        and defined <mpv.command.callback>
-        and exists $code{<mpv.command.callback>} ) {
+        and exists <mpv.command.reply>
+        and ref(<mpv.command.reply>) eq 'ARRAY'
+        and @{<mpv.command.reply>} ) {
 
-        $code{<mpv.command.handler>}->( $decoded->{'data'} )
+        my $reply_setup = shift @{<mpv.command.reply>};
+
+        my $command_handler  = $reply_setup->{'handler'}  || '';
+        my $command_callback = $reply_setup->{'callback'} || '';
+
+        $code{$command_handler}->( $decoded->{'data'} )
             if $decoded->{'error'} eq 'success'
-            and defined <mpv.command.handler>
-            and exists $code{<mpv.command.handler>};
+            and exists $code{$command_handler};
 
-        delete <mpv.command.handler>;
+        $code{$command_callback}->( $decoded->{'error'} )
+            if exists $code{$command_callback};
 
-        $code{<mpv.command.callback>}->( $decoded->{'error'} )
-            if defined <mpv.command.callback>
-            and exists $code{<mpv.command.callback>};
-
-        delete <mpv.command.callback>;
-
+        next;
     } elsif ( exists $decoded->{'error'}
         and $decoded->{'error'} ne 'success'
         and $reply_id = shift @{<mpv.reply_ids>} ) {
