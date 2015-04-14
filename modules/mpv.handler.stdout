@@ -26,39 +26,10 @@ if (sysread( $read_fh, <mpv.output.buffer>, 4096, length(<mpv.output.buffer>) )
 }
 
 while ( <mpv.output.buffer> =~ s|^([^\n]*)\n||s ) {
+    my $log_level   = 0;
     my $output_line = $1;
     $output_line =~ s/\r//sg;
     next if !length($output_line);
-
-    # 'show_playlist' command
-    if ( <mpv.output.parse_mode> eq 'playlist' ) {
-        if ( $output_line eq '</playlist>' ) {
-            <mpv.output.parse_mode> = '';
-            my $reply_id = shift @{<mpv.reply_ids>};
-            my @reply_lines;
-            my $reply_data = '';
-            while ( my $line = shift @{<mpv.output.reply_data>} ) {
-                if ( $line =~ /^> (.+) <$/ ) { push( @reply_lines, ":. $1" ) }
-                else { push( @reply_lines, ":  $line" ) }
-            }
-            $reply_data = join( "\n", @reply_lines ) . "\n" if @reply_lines;
-            <[base.callback.cmd_reply]>->(
-                $reply_id,
-                {   'mode' => 'raw',
-                    'data' => $reply_data
-                }
-            );
-        } else {
-            push( @{<mpv.output.reply_data>}, $output_line );
-        }
-        next;
-    } elsif ( $output_line eq '<playlist>' ) {
-        <mpv.output.parse_mode> = 'playlist';
-        next;
-    }
-
-    # log remaining output
-    my $log_level = 0;
     for my $pattern ( @{$whitelist} ) {
         if ( $output_line =~ /$pattern/ ) {
             $log_level = 2;
