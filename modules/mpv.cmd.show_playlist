@@ -5,7 +5,7 @@
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
-syswrite( <mpv.socket>,
-    'print_text "<playlist>\n${playlist}</playlist>"' . "\n" );
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.playlist' } );
+<[mpv.send_command]>->( 'get_property_string', 'playlist' );
 
 return { 'mode' => 'later' };
