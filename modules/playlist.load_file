@@ -14,8 +14,18 @@ if ( !-f $file_path ) {
 
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
+my @lines;
 my @file_names;
-<[file.slurp]>->( $file_path, \@file_names );
+<[file.slurp]>->( $file_path, \@lines );
+
+map {
+    $_ =~ s/^\s+|\s+$//g;
+    $_ =~ s|^ *#[^\n]*$||mg;
+    $_ =~ s| +#[^\n]*$||mg;
+    $_ =~ s|\n\n|\n|sg;
+    $_ =~ s/^\n|\n$//mg;
+    push( @file_names, $_ ) if length($_);
+} @lines;
 
 <playlist.file_list>  = \@file_names;
 <playlist.file_types> = {};
