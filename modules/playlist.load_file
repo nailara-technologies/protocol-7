@@ -37,7 +37,17 @@ if ( !@file_names ) {
 
 foreach my $file (@file_names) {
     <playlist.file_types>->{$file} = 'unknown';
-    <playlist.file_types>->{$file} = mimetype($file) if -f $file;
+    if ( -f $file ) {
+        my $type = mimetype($file);
+        $type =~ s|^video/.*$|video|;
+        $type =~ s|^audio/.*$|audio|;
+        $type =~ s|^.*application.*/||;
+        <playlist.file_types>->{$file} = $type;
+    } elsif ( $file =~ m|^https?://| ) {
+
+        # XXX: check XML [rss] vs. HTML
+        <playlist.file_types>->{$file} = 'html';
+    }
 }
 
 return scalar @file_names;
