@@ -13,7 +13,7 @@ my $config_href = <root.spawn_config.globals.agents>;
 foreach my $check_key ( 'enabled', 'disabled' ) {
     if (    exists $config_href->{$check_key}
         and defined $config_href->{$check_key}
-        and $config_href->{$check_key} !~ /^([a-z][a-z\.\-_]*\ *)+$/i ) {
+        and $config_href->{$check_key} !~ /^([a-z][a-z\.\-_\d]*\ *)+$/i ) {
         <[base.log]>->(
             0,
             "spawn config syntax error: agents.$check_key = '"
