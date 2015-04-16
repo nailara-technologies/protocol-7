@@ -14,7 +14,7 @@ return 0
     or not defined $config_href->{'disabled'};
 
 # checking config syntax
-if ( $config_href->{'disabled'} !~ /^([a-z][a-z\.\-_]*\ *)+$/i ) {
+if ( $config_href->{'disabled'} !~ /^([a-z][a-z\.\-_\d]*\ *)+$/i ) {
     <[base.log]>->(
         0,
         "spawn config syntax error: agents.disabled = '"
