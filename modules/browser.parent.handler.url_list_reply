@@ -1,0 +1,35 @@
+# >:]
+
+# name = browser.parent.handler.url_list_reply
+# todo = implement continuous playback in case current file is in playlist!
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->( 0, "failed to fetch url list!" );
+    return;
+}
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 0, "received empty url list!" );
+    <[mpv.send_command]>->('stop');
+    return;
+}
+
+my @url_list = split( "\n", $reply->{'data'} );
+
+my $entry_count = scalar @url_list;
+@{<browser.url.list>} = @url_list;
+
+foreach my $url (@url_list) {
+    my $url_txt = substr( $url, 0, 52 );
+    $url_txt .= '...' if length($url_txt) < length($url);
+    <[base.log]>->( 1, ": - $url_txt" );
+}
+
+<[base.log]>->( 1, ": $entry_count urls received" );
+
+if ( <browser.slideshow.autostart> and !<browser.slideshow.running> ) {
+    <[base.log]>->( 1, ": starting slideshow.." );
+    <[browser.parent.cmd.slideshow_start]>;
+}
