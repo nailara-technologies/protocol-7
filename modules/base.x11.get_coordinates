@@ -5,7 +5,8 @@
 my $user     = shift || 'core';
 my $cmd_path = shift || '';
 $cmd_path .= '.' if length($cmd_path);
-my $agent_subname = <system.agent.subname>;
+my $agent_name    = shift || <system.agent.name>;
+my $agent_subname = shift || <system.agent.subname>;
 
 my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 
@@ -13,7 +14,7 @@ my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $sn_str
     = defined $agent_subname
-    ? ' ' . <system.agent.name> . "[$agent_subname]"
+    ? ' ' . $agent_name . "[$agent_subname]"
     : '';
 
 my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
