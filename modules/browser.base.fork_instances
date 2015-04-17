@@ -28,8 +28,8 @@ for my $index ( 1 .. $instance_count ) {
         AF_UNIX, SOCK_STREAM, PF_UNSPEC
     ) || die "can't create socketpair! [$!]";
 
-    <ticker.child.pid>->{$index} = fork;
-    if ( !<ticker.child.pid>->{$index} ) {    # child
+    <browser.child.pid>->{$index} = fork;
+    if ( !<browser.child.pid>->{$index} ) {    # child
         $am_parent = 0;
         delete <browser.pipe.child> if exists <browser.pipe.child>;
         <browser.pipe.parent>->{$index} = $parent_pipe;
@@ -91,8 +91,8 @@ if ($am_parent) {
         while ( not defined <browser.window.id>->{$index} ) { # XXX: max_retries
             <[base.sleep]>->(0.1);
             <browser.window.id>->{$index}
-                = <[base.x11.get_window_id]>
-                ->( "browser${sn_str}-$index-" . <ticker.child.pid>->{$index} );
+                = <[base.x11.get_window_id]>->(
+                "browser${sn_str}-$index-" . <browser.child.pid>->{$index} );
         }
 
         #        <[base.proto.nailara.command.send.local]>->(
@@ -119,7 +119,7 @@ if ($am_parent) {
     }
     <[base.get_session_id]>;
 
-    if ( <browser.slideshow.autostart> ) {
+    if (<browser.slideshow.autostart>) {
         <[base.log]>->( 1, 'url slideshow autostart is enabled!' );
         <[browser.parent.cmd.fetch_url_list]>;
     }
