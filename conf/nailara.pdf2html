@@ -1,0 +1,27 @@
+
+  .:[ pdf2html agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[set_privs:'nailara']
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping reload verify_instance * # <- XXX
+
+modules.load = auth net io.ip pdf.png pdf.html debug
+[load_modules:<modules.load>]
+[init_modules]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+[base.x11.get_display]
+
+[pdf.html.fetch_coords]
+
+[base.get_session_id]
+
+# XXX ...
+
+[event.loop]
