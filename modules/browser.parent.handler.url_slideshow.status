@@ -74,13 +74,7 @@ if ( $new_status == 1 ) {
     <browser.bg_window> = $fg_window;
 } elsif ( $new_status == 5 ) {
 
-    my $url_file = <browser.url_list.filename>;
-    if ( <browser.url_list.sha1_hex> ne <[digest.sha.file_hex]>->($url_file) ) {
-        <[base.log]>->( 1, "url list file changed, reloading..." );
-        <[browser.parent.cmd.load_url_file]>->( { 'args' => $url_file } );
-        $url_ref   = <browser.url.list>;
-        $url_count = scalar @{$url_ref};
-    }
+    $url_count = scalar @{$url_ref};
 
     <browser.slideshow.url_index> = 0
         if <browser.slideshow.url_index> >= $url_count;
