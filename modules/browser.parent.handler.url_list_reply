@@ -19,15 +19,23 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 my @url_list = split( "\n", $reply->{'data'} );
 
 my $entry_count = scalar @url_list;
-@{<browser.url.list>} = @url_list;
 
 foreach my $url (@url_list) {
     my $url_txt = substr( $url, 0, 52 );
     $url_txt .= '...' if length($url_txt) < length($url);
     <[base.log]>->( 1, ": - $url_txt" );
 }
+<[base.log]>->( 1, ": $entry_count entries received" );
 
-<[base.log]>->( 1, ": $entry_count urls received" );
+@{<browser.url.list_reply>} = @url_list;
+
+foreach my $entry (@url_list) {
+    if ( $entry !~ /\.pdf$/i ) {
+        push( @{<browser.url.list>}, $entry );
+    } else {
+        <[base.log]>->( 0, "PDF : $entry" );
+    }
+}
 
 if ( <browser.slideshow.autostart> and !<browser.slideshow.running> ) {
     <[base.log]>->( 1, ": starting slideshow.." );
