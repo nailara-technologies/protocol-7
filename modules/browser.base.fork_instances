@@ -119,12 +119,9 @@ if ($am_parent) {
     }
     <[base.get_session_id]>;
 
-    if ( <browser.slideshow.autostart>
-        and defined <browser.slideshow.url_file> ) {
+    if ( <browser.slideshow.autostart> ) {
         <[base.log]>->( 1, 'url slideshow autostart is enabled!' );
-        <[browser.parent.cmd.load_url_file]>
-            ->( { 'args' => <browser.slideshow.url_file> } );
-        <[browser.parent.cmd.slideshow_start]>;
+        <[browser.parent.cmd.fetch_url_list]>;
     }
 
 }

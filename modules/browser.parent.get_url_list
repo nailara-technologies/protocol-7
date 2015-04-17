@@ -1,0 +1,17 @@
+# >:]
+
+# name = browser.parent.get_url_list
+
+my @file_types = shift;
+
+my @args = @file_types ? ( 'args' => join( ' ', @file_types ) ) : ();
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.playlist.get_list',
+        'call_args' => {@args},
+        'reply'     => {
+            'handler' => 'browser.parent.handler.url_list_reply',
+            'params'  => {}
+        }
+    }
+);
