@@ -1,0 +1,16 @@
+# >:]
+
+# name = pdf.html.base.get_html_path
+
+my $pdf_path     = shift;
+my $target_width = shift;
+my $cache_dir    = <pdf.html.cache_dir>;
+
+die "cache directory '$cache_dir' does not exist!"           if !-d $cache_dir;
+die "html_path_name: pdf file '$pdf_path' does not exist!\n" if !-f $pdf_path;
+
+my $sha_hash = <[digest.sha.file_hex]>->($pdf_path);
+
+( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;
+
+return $html_path;

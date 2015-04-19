@@ -1,0 +1,23 @@
+# >:]
+
+# name = pdf.html.base.init_code
+
+use Poppler;
+use File::Copy;
+use File::Path qw(make_path remove_tree);
+
+<pdf.html.converting> //= {};
+<pdf.html.cache_dir>  //= '/var/pdf2html';
+my $cache_dir = <pdf.html.cache_dir>;
+
+if ( !-d $cache_dir ) {
+    <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    make_path( $cache_dir, { mode => 0750 } ) or die "make_path: $!";
+    chown( $uid, $gid, $cache_dir ) or die "chown: $!";
+}
+
+chdir($cache_dir) or die "chdir($cache_dir): $!";
+
+0;

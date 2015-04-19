@@ -1,0 +1,56 @@
+# >:]
+
+# name = pdf.html.base.fork_conv_child
+
+use Socket;
+
+( my $session_id ) = keys( %{<user.core.session>} );
+
+<pdf.html.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, "forking pdf conversion child.." );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+
+<pdf.html.child.pid> = fork;
+if ( !<pdf.html.child.pid> ) {    ## child ##
+    close($child_pipe);
+    delete <pdf.html.pipe.child> if exists <pdf.html.pipe.child>;
+    <pdf.html.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.agent.subname>;
+    my $sn_str = defined $subname ? $subname . '-' : '';
+
+    <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
+    $0 = "pdf.png-${sn_str}child";
+
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    my $id = <[base.session.init]>
+        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('pdf.html.child');
+    <[base.init_modules]>->('pdf.html.child');
+
+} else {    ## parent ##
+    close($parent_pipe);
+    delete <pdf.html.pipe.parent> if exists <pdf.html.pipe.parent>;
+    <pdf.html.pipe.child> = $child_pipe;
+
+    <[base.load_modules]>->('pdf.html.parent');
+    <[base.init_modules]>->('pdf.html.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    my $id
+        = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.get_session_id]>;
+
+}
