@@ -53,7 +53,9 @@ foreach my $entry (@url_list) {
     $index++;
 }
 
-if ( <browser.slideshow.autostart> and !<browser.slideshow.running> ) {
+if (    @{<browser.url.list>}
+    and <browser.slideshow.autostart>
+    and !<browser.slideshow.running> ) {
     <[base.log]>->( 1, ": starting slideshow.." );
     <[browser.parent.cmd.slideshow_start]>;
 }
