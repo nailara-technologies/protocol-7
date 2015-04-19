@@ -1,0 +1,15 @@
+# >:]
+
+# name = pdf.html.base.get_page_size
+
+my $pdf_file = shift;
+
+die "pdf file '$pdf_file' does not exist" if !-f $pdf_file;
+
+my $pdf        = Poppler::Document->new_from_file("file://$pdf_file");
+my $page       = $pdf->get_page(0);
+my $dimensions = $page->get_size();
+my $width      = $dimensions->get_width;
+my $height     = $dimensions->get_height;
+
+return ( $width, $height );

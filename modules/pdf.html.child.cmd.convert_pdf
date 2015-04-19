@@ -1,0 +1,72 @@
+# >:]
+
+# name  = pdf.html.child.cmd.convert_pdf
+# param = <pdf_path> [width]
+# descr = returns file:// url to html version of pdf
+
+my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nack', 'data' => 'expected path to pdf file!' }
+    if not defined $pdf_path or !length($pdf_path);
+return { 'mode' => 'nack', 'data' => 'pdf file does not exist!' }
+    if !-f $pdf_path;
+return { 'mode' => 'nack', 'data' => 'target width parameter not numerical!' }
+    if defined $target_width and $target_width !~ /^\d+$/;
+
+my ( $page_width, $page_height ) = <[pdf.html.base.get_page_size]>->($pdf_path);
+
+if ( not defined $target_width ) {
+    <[base.log]>->( 2, "no target width supplied, using document width!" );
+    $target_width = $page_width;
+}
+
+my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
+my $stub_file = "$html_path/pdf.html";
+
+return { 'mode' => 'nack', 'data' => 'expected html dir does not exist!' }
+    if !-d $html_path;
+return { 'mode' => 'nack', 'data' => 'pdf.html stub file does not exist!' }
+    if !-f $stub_file;
+
+( my $html_dir_name = $html_path ) =~ s|^.*/||g;
+
+if ( exists <pdf.html.conversions>->{$html_dir_name} ) {
+    push(
+        @{ <pdf.html.conversions>->{$html_dir_name}->{'reply_ids'} },
+        $$call{'reply_id'}
+    );
+    return { 'mode' => 'later' };
+}
+
+my $page_count = <[pdf.html.base.get_page_count]>->($pdf_path);
+
+<[base.log]>->( 1, "converting '$pdf_path' [$page_count pages] .." );
+
+my $target_height = $page_height;
+$target_height
+    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width )
+    if $target_width != $page_width;
+
+my $skip_hash
+    = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height );
+
+my $conversion_setup = {
+    'reply_ids'    => [ $$call{'reply_id'} ],
+    'width'        => $target_width,
+    'height'       => $target_height,
+    'pdf_file'     => $pdf_path,
+    'pages'        => $page_count,
+    'html_path'    => $html_path,
+    'skip_hash'    => $skip_hash,
+    'current_page' => 0,
+    'image_names'  => [],
+};
+
+<pdf.html.conversions>->{$html_dir_name} = $conversion_setup;
+
+<pdf.html.event.idle> = Event->idle(
+    cb     => $code{'pdf.html.child.handler.conversion'},
+    repeat => 1
+) if not exists <pdf.html.event.idle>;
+
+return { 'mode' => 'later' };

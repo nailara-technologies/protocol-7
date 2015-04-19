@@ -8,6 +8,7 @@
 my $url      = $$call{'args'};
 my $reply_id = $$call{'reply_id'};
 my $view     = <browser.gtk2.obj.view>;
+my $frame    = <browser.gtk2.obj.frame>;
 
 return { 'mode' => 'nack', 'data' => "expected url parameter" }
     if not defined $url
@@ -20,17 +21,20 @@ $url = "http://$url" if $url !~ /:/;
 <browser.error_page> //= 'about:blank';
 
 my $signal_id;
-$signal_id = $view->signal_connect(
+$signal_id = $frame->signal_connect(
     'notify::load-status' => sub {
-        my $status = $view->get_load_status;
+        my $status = $frame->get_load_status;
 
         if ( $status eq 'finished' ) {
-            $view->signal_handler_disconnect($signal_id);
+            $frame->signal_handler_disconnect($signal_id);
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'ack', 'data' => 'finished loading' }
             );
         } elsif ( $status eq 'failed' ) {
-            $view->signal_handler_disconnect($signal_id);
+            $frame->signal_handler_disconnect($signal_id);
+
+            <[base.log]>->(0,"failed to load url $url");
+
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'nack', 'data' => 'failed to load' }
             );
@@ -40,6 +44,6 @@ $signal_id = $view->signal_connect(
     }
 );
 
-$view->load_uri($url);
+$frame->load_uri($url);
 
 return { 'mode' => 'later' };
