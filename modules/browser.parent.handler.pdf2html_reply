@@ -1,0 +1,21 @@
+# >:]
+
+# name = browser.parent.handler.pdf2html_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->(
+        0, "failed to fetch pdf url [" . $reply->{'call_args'}->{'args'} . "]"
+    );
+    return;
+}
+
+my $url   = $reply->{'call_args'}->{'args'};
+my $index = $reply->{'params'}->{'index'};
+
+<browser.url.list_reply>->[$index] = $url;
+@{<browser.url.list>} = ();
+
+map { push( @{<browser.url.list>}, $_ ) if $_ !~ /\.pdf$/i }
+    @{<browser.url.list_reply>};

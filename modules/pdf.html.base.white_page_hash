@@ -1,0 +1,19 @@
+# >:]
+
+# name = pdf.html.base.white_page_hash
+
+my ( $width, $height ) = @_;
+my $cache_dir = <pdf.html.cache_dir>;
+
+die "expected valid page width"
+    if not defined $width or $width !~ /^\d+$/;
+die "expected valid page height"
+    if not defined $height or $height !~ /^\d+$/;
+
+my $image = Graphics::Magick->new();
+
+$image->Set( size => "${width}x${height}" );
+$image->ReadImage('xc:white');
+
+$image->Signature();
+return $image->Get('signature');

@@ -3,6 +3,7 @@
 # name = browser.parent.handler.url_list_reply
 # todo = implement continuous playback in case current file is in playlist!
 
+my $width;
 my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
@@ -29,12 +30,27 @@ foreach my $url (@url_list) {
 
 @{<browser.url.list_reply>} = @url_list;
 
+my $index = 0;
 foreach my $entry (@url_list) {
     if ( $entry !~ /\.pdf$/i ) {
         push( @{<browser.url.list>}, $entry );
     } else {
-        <[base.log]>->( 0, "PDF : $entry" );
+        if ( not defined $width ) {
+            $width = $1 if <x11.geometry> =~ /^(\d+)x/;
+            die "failed to obtain browser window width" if not defined $width;
+        }
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.pdf2html.get_url",
+                'call_args' => { 'args' => "$entry $width" },
+                'reply'     => {
+                    'handler' => 'browser.parent.handler.pdf2html_reply',
+                    'params'  => { 'index' => $index }
+                }
+            }
+        );
+
     }
+    $index++;
 }
 
 if ( <browser.slideshow.autostart> and !<browser.slideshow.running> ) {
