@@ -19,3 +19,10 @@ my $index = $reply->{'params'}->{'index'};
 
 map { push( @{<browser.url.list>}, $_ ) if $_ !~ /\.pdf$/i }
     @{<browser.url.list_reply>};
+
+if (    @{<browser.url.list>}
+    and <browser.slideshow.autostart>
+    and !<browser.slideshow.running> ) {
+    <[base.log]>->( 1, ": starting slideshow.." );
+    <[browser.parent.cmd.slideshow_start]>;
+}
