@@ -17,7 +17,7 @@ return { 'mode' => 'nack', 'data' => "expected url parameter" }
 <browser.loop_timer>->cancel;
 Event->unloop_all();
 
-$url = "http://$url" if $url !~ /:/;
+$url = "http://$url" if $url !~ /^\w+:/;
 <browser.error_page> //= 'about:blank';
 
 my $signal_id;
@@ -33,7 +33,7 @@ $signal_id = $frame->signal_connect(
         } elsif ( $status eq 'failed' ) {
             $frame->signal_handler_disconnect($signal_id);
 
-            <[base.log]>->(0,"failed to load url $url");
+            <[base.log]>->( 0, "failed to load url $url" );
 
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'nack', 'data' => 'failed to load' }
@@ -43,6 +43,8 @@ $signal_id = $frame->signal_connect(
         }
     }
 );
+
+<[base.log]>->( 2, "loading url '$url'.." );
 
 $frame->load_uri($url);
 
