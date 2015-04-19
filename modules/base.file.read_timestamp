@@ -1,0 +1,16 @@
+# >:]
+
+# name = base.file.read_timestamp
+
+my $timestamp_file = shift;
+
+open( my $ts_fh, "<$timestamp_file" ) or die "$timestamp_file: $!";
+chomp( my $timestamp = <$ts_fh> );
+close($ts_fh);
+
+if ( not defined $timestamp or $timestamp !~ /^\d+$/ ) {
+    <[base.log]>->( 0, "timestamp file '$timestamp_file' is corrupted!" );
+    return undef;
+}
+
+return $timestamp;
