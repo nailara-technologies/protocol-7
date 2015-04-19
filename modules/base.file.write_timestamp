@@ -1,0 +1,9 @@
+# >:]
+
+# name = base.file.write_timestamp
+
+my $timestamp_file = shift;
+
+open( my $ts_fh, ">$timestamp_file" ) or die "$timestamp_file: $!";
+print {$ts_fh} time() . "\n";
+close($ts_fh);

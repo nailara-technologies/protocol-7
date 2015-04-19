@@ -1,0 +1,80 @@
+# >:]
+
+# name = pdf.html.child.handler.conversion
+
+my @dir_names = sort keys %{<pdf.html.conversions>};
+
+if ( !@dir_names ) {
+    <pdf.html.event.idle>->cancel;
+    delete <pdf.html.event.idle>;
+    return;
+}
+
+my $current_key = $dir_names[ rand @dir_names ];
+my $conversion  = <pdf.html.conversions>->{$current_key};
+
+my $white = Graphics::Magick->new();
+$white->Set(
+    size => join( 'x', $conversion->{'width'}, $conversion->{'height'} ) );
+$white->ReadImage('xc:white');
+
+my $image = Graphics::Magick->new( density => '600' );
+
+my $index = $conversion->{'current_page'}++;
+
+$image->Read( $conversion->{'pdf_file'} . "\[$index\]" );
+
+$image->Resize(
+    width  => $conversion->{'width'},
+    height => $conversion->{'height'},
+    blur   => 0.57,
+    filter => 'Cubic'
+);
+
+my $img_index = sprintf(
+    "%0" . length( $conversion->{'pages'} ) . "d",
+    $conversion->{'current_page'}
+);
+my $image_name  = "page.$img_index.png";
+my $output_file = $conversion->{'html_path'} . '/' . $image_name;
+
+$image->Signature();
+
+if ( $image->Get('signature') ne $conversion->{'skip_hash'} ) {
+    <[base.log]>->( 2, "writing image file '$image_name'" );
+    $image->Write("png24:$output_file");
+    push( @{ $conversion->{'image_names'} }, $image_name );
+} else {
+    <[base.log]>->( 2, "skipped image file '$image_name' (white page)" );
+}
+
+my $percent = sprintf( "%.1f",
+    ( 100 / $conversion->{'pages'} ) * $conversion->{'current_page'} );
+<[pdf.html.base.write_stub_page]>->( $conversion->{'html_path'}, $percent );
+
+if ( $conversion->{'current_page'} == $conversion->{'pages'} ) {
+    my $html_file = $conversion->{'html_path'} . '/pdf.html';
+
+    <[pdf.html.base.write_pdf_html]>->(
+        $conversion->{'html_path'},
+        $conversion->{'image_names'}
+    );
+
+    my $touch_file = $conversion->{'html_path'} . '/.complete';
+    open( my $touch_fh, ">$touch_file" ) or die "$touch_file: $!";
+    close($touch_fh);
+
+    <[base.log]>->(
+        1, "conversion of '" . $conversion->{'pdf_file'} . "' completed"
+    );
+
+    foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'ack',
+                'data' => "conversion complete"
+            }
+        );
+        delete <pdf.html.conversions>->{$current_key};
+    }
+}
