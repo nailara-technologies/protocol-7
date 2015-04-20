@@ -2,9 +2,15 @@
 
 # name = browser.parent.get_url_list
 
+my $sub_name;
 my @file_types = @_;
 
-my @args = @file_types ? ( 'args' => join( ' ', @file_types ) ) : ();
+$sub_name = '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname>
+    and defined <system.agent.subname>
+    and length(<system.agent.subname>);
+
+my @args = @file_types ? ( 'args' => join( ' ', @file_types, $sub_name ) ) : ();
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.playlist.get_list',
