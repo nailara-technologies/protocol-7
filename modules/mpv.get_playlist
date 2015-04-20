@@ -2,9 +2,16 @@
 
 # name = mpv.get_playlist
 
+my $sub_name;
 my $file_type = shift;
 
-my @args = defined $file_type ? ( 'args' => $file_type ) : ();
+$sub_name = '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname>
+    and defined <system.agent.subname>
+    and length(<system.agent.subname>);
+
+my @args = defined $file_type ? ( 'args' => join( ' ', $file_type, $sub_name ) ) : ();
+#my @args = defined $file_type ? ( 'args' => $file_type ) : ();
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.playlist.get_list',
