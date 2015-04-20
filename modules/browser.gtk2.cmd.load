@@ -17,6 +17,7 @@ return { 'mode' => 'nack', 'data' => "expected url parameter" }
 <browser.loop_timer>->cancel;
 Event->unloop_all();
 
+$url = "file://$url" if $url =~ m|^/|;
 $url = "http://$url" if $url !~ /^\w+:/;
 <browser.error_page> //= 'about:blank';
 
