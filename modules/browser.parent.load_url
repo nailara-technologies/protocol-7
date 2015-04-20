@@ -3,6 +3,7 @@
 # name = browser.parent.load_url
 
 my $url = shift;
+$url = "file://$url" if $url =~ m|^/|;
 $url = "http://$url" if $url !~ m|^\w+:|;
 
 <browser.fg_window> //= 1;
