@@ -96,7 +96,7 @@ if ( $new_status == 1 ) {
         }
     );
 } elsif ( $new_status == 6 ) {
-    <browser.url_slideshow.scroll_start_time> = time();
+    <browser.url_slideshow.scroll_start_time> //= time();
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "window-$fg_window.scroll_start",
             'call_args' => {},
@@ -108,13 +108,15 @@ if ( $new_status == 1 ) {
     );
 } elsif ( $new_status == 7 ) {
     <browser.url_slideshow.timer>->cancel if exists <process.status_timer>;
+    my $time_left = <browser.slideshow.min_delay>
+        - ( time() - <browser.url_slideshow.scroll_start_time> );
+    my $next_status = $time_left > 0 ? 6 : 2;
+    delete <browser.url_slideshow.scroll_start_time> if $next_status == 2;
     if (<browser.slideshow.running>) {
-        my $delay = <browser.slideshow.min_delay>
-            - ( time() - <browser.url_slideshow.scroll_start_time> );
         <browser.url_slideshow.timer> = <[event.add_timer]>->(
-            {   'after'   => $delay,
+            {   'after'   => 0.2,
                 'handler' => 'browser.parent.handler.url_slideshow.status',
-                'data'    => 2
+                'data'    => $next_status
             }
         );
     } else {
