@@ -4,7 +4,9 @@
 # descr = re-fetch list of slideshow urls from playlist agent
 # todo  = implement error handling...
 
-<[browser.parent.get_url_list]>->('html','pdf');
+my @content_types = split( / +/, <browser.playlist.content_types> );
+
+<[browser.parent.get_url_list]>->(@content_types);
 
 # XXX: reply later!
 
