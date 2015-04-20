@@ -6,21 +6,25 @@
 
 my $subname;
 my %file_types;
-my $reply_string = '';
+my $reply_string   = '';
+my $type_list      = <playlist.file_types>;
 my $file_types_str = $$call{'args'} || '';
-$subname = $1 if $file_types_str =~ s| +\[[\w\d\-_]+\]$||;  # XXX: not used yet!
-my $type_list = <playlist.file_types>;
+$subname = $1 if $file_types_str =~ s| +\[([^\]]+)\]$||;
 
 map { $file_types{$_} = 1 } split / +/, $file_types_str;
 
-if ( @{<playlist.file_list>} ) {
-    map {
-        foreach my $type ( keys %file_types ) {
-            $reply_string .= "$_\n"
-                if !length($type)
-                or index( $type_list->{$_}, $type ) != -1;
-        }
-    } @{<playlist.file_list>};
+foreach my $file ( @{<playlist.file_list>} ) {
+    next
+        if defined $subname
+        and exists <playlist.agent_subnames>->{$file}
+        and $subname ne <playlist.agent_subnames>->{$file};
+
+    foreach my $type ( keys %file_types ) {
+        $reply_string .= "$file\n"
+            if !length($type)
+            or index( $type_list->{$file}, $type ) != -1;
+    }
+    $reply_string .= "$file\n" if !keys(%file_types);
 }
 
 return { 'mode' => 'raw', 'data' => $reply_string }
