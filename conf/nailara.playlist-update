@@ -5,10 +5,12 @@
 
 [load_config_file:'defaults']
 
-modules.load    = auth net io.ip playlist-update
-
 net.daemon_name = playlist-update
 auth.core.pass  = weQuekdam6
+
+playlist-update.hash_file = /tmp/.layout.sha1
+
+modules.load    = auth net io.ip digest.sha playlist-update
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -17,4 +19,9 @@ core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,\
                 <net.local.port>],<net.daemon_name>,<auth.core.pass>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
-[playlist-update.check_playlist]
+
+[playlist-update.send_update_command]
+
+[playlist-update.get_layout_config_name]
+
+[event.loop]
