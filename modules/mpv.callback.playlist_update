@@ -1,9 +1,11 @@
 # >:]
 
+my @files;
 my %file_hash;
 my $status = shift;
-my $path   = <mpv.current.path> || '';
-my @files  = @{ delete <mpv.playlist.update_files> };
+my $path = <mpv.current.path> || '';
+@files = @{ delete <mpv.playlist.update_files> }
+    if exists <mpv.playlist.update_files>;
 map { $file_hash{$_} = 1 } @files;
 
 if ( $status ne 'success' ) {
