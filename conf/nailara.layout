@@ -14,6 +14,8 @@ layout.default_profile = browser
 
 layout.hash_file = /tmp/.layout.sha1
 
+layout.startup.stop_agents = mpv browser rss-ticker ticker
+
 modules.load = auth net io.ip digest.sha layout debug
 [load_modules:<modules.load>]
 [init_modules]
@@ -25,6 +27,8 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.x11.get_screen_size]
 [base.x11.get_orientation]
 [base.get_session_id]
+
+[layout.stop_display_agents]
 
 [layout.process_profile:<layout.current_profile>]
 
