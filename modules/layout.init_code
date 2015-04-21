@@ -5,6 +5,7 @@
 use FreezeThaw qw(cmpStr);
 
 <layout.config_name>            //= 'default';
+<layout.hash_file>              //= '/tmp/.layout.sha1';
 <layout.transition_in_progress> //= 0;
 my $config_name      = <layout.config_name>;
 my $config_filename  = "config.layout.$config_name";
@@ -15,6 +16,9 @@ die "layout config file '$config_filename' not found!"
 
 <[base.log]>->( 1, ": loading layout configuration '$config_name'" );
 
+<[file.put]>->(
+    <layout.hash_file>, <[digest.sha.file_hex]>->($config_file_path) . "\n"
+);
 <layout.config> = <[base.load_section_config]>->($config_filename);
 
 <[base.log]>->( 0, "no default profile configured!" )
