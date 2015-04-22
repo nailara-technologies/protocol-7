@@ -1,0 +1,12 @@
+# >:]
+
+# name = xserver.get_video_driver
+
+my $driver_name  = 'unknown';
+my $lscpi_output = qx(lspci -k);
+
+$driver_name = $1
+    if $lscpi_output
+    =~ m|VGA compatible controller:.+?Kernel driver in use: ([^\n]+)|s;
+
+return $driver_name;
