@@ -6,7 +6,8 @@
 my $display = <x11.display>;
 <[base.log]>->( 1, "starting compton on display $display .." );
 
-my $vsync_options = '--vsync drm --paint-on-overlay --dbe';
+# old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
+my $vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe';
 $vsync_options = '--paint-on-overlay --dbe' if <x11.driver> eq 'nvidia';
 
 <compton.pid> = open2(
