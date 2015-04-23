@@ -69,6 +69,16 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
             print {$txt_fh} join( "\n", @txt_data ) . "\n";
         }
         close($txt_fh);
+
+        ### QUICKFIX ENCODING ! ###
+
+        if ( qx(file $url_data_file) =~ /8859/ ) {
+            my $new_txt = qx(iconv -f iso8859-1 -t utf-8 $url_data_file);
+            <[file.put]>->( $url_data_file, $new_txt );
+        }
+
+        ###########################
+
         $got_updates++;
         <[base.log]>->( 2, ": : wrote txt data to '$url_data_file'" );
         <rss.browser>->commit;
