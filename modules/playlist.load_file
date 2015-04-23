@@ -43,8 +43,7 @@ foreach my $file (@file_names) {
     $agent_subname = $1 if $file =~ s|^([^\:]): +||;
     <playlist.agent_subnames>->{$file} = $agent_subname
         if defined $agent_subname;
-    <playlist.file_types>->{$file} = 'unknown';
-    my $type;
+    my $type = 'unknown';
     if ( -f $file ) {
         $type = mimetype($file);
     } elsif ( $file =~ m|^https?://| ) {
@@ -59,6 +58,8 @@ foreach my $file (@file_names) {
         } else {
             $type = 'html';
         }
+    } else {
+        <[base.log]>->( 0, "local content file '$file' not found!" );
     }
 
     $type =~ s|^video/.*$|video|;
