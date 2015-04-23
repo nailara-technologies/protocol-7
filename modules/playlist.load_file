@@ -2,7 +2,10 @@
 
 # name = playlist.load_file
 
-my $file_path = shift;
+my $file_path    = shift;
+my $check_logged = 0;
+my $check_types  = <playlist.http.check_content_types>;
+
 die "expected playlist file path"
     if not defined $file_path or !length($file_path);
 ( my $file_name = $file_path ) =~ s|^.*\/||;
@@ -41,17 +44,33 @@ foreach my $file (@file_names) {
     <playlist.agent_subnames>->{$file} = $agent_subname
         if defined $agent_subname;
     <playlist.file_types>->{$file} = 'unknown';
+    my $type;
     if ( -f $file ) {
-        my $type = mimetype($file);
-        $type =~ s|^video/.*$|video|;
-        $type =~ s|^audio/.*$|audio|;
-        $type =~ s|^.*application.*/||;
-        <playlist.file_types>->{$file} = $type;
+        $type = mimetype($file);
     } elsif ( $file =~ m|^https?://| ) {
+        if ($check_types) {
+            if ( !$check_logged ) {
+                <[base.log]>->( 1, ': checking http content types ...' );
+                $check_logged = 1;
+            }
+            $type = <[playlist.http.get_mime_type]>->($file);
 
-        # XXX: check XML [rss] vs. HTML
-        <playlist.file_types>->{$file} = 'html';
+            # todo: retry on failures (no network)
+        } else {
+            $type = 'html';
+        }
     }
+
+    $type =~ s|^video/.*$|video|;
+    $type =~ s|^audio/.*$|audio|;
+    $type =~ s|^image/.*$|image|;
+    $type =~ s|^.*application.*/||;
+    $type =~ s|^text/||;
+    $type =~ s|;.*$||g;
+    $type =~ s| +|_|g;
+
+    <playlist.file_types>->{$file} = $type;
+
 }
 
 return scalar @file_names;
