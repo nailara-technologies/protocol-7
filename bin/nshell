@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+BEGIN{ $ENV{'PERL_RL'} = 'Perl' };
+
 $0 = 'nshell ';
 
 use utf8;
@@ -7,8 +9,8 @@ use strict;
 use warnings;
 use IO::Socket;
 use IO::Socket::INET;
-use Term::ReadLine;
 use Term::ReadPassword;
+use Term::ReadLine::Perl;
 use POSIX ":sys_wait_h";
 
 binmode STDOUT, ":utf8";
@@ -42,6 +44,8 @@ my $connect = 1;
 $| = 0;
 
 # clear();
+
+my $term = new Term::ReadLine 'nailara.shell';
 
 my $shell_sock;
 while ($connect) {
@@ -104,8 +108,6 @@ sub shell_loop {
     my $prompt = $_[1];
 
     if ( !fork() ) { stdout_fork(); exit }
-
-    my $term = new Term::ReadLine 'nailara.shell';
 
     while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
         print $color;
