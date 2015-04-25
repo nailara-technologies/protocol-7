@@ -22,7 +22,6 @@ if ( not defined $$call_args{'session_id'} and $cmd =~ /^([^\.]+)\./ ) {
 }
 return 0 if not defined $$call_args{'session_id'};
 
-my $id     = ${$call_args}{'session_id'};
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
@@ -58,11 +57,8 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
         # setup route
 
         my $route = <[base.route.add]>->(
-            {   'source' => {
-                    'sid'    => $id,
-                    'cmd_id' => $cmd_id
-                },
-                'reply' => {
+            {   'source' => { 'sid' => $target_sid, 'cmd_id' => $cmd_id },
+                'reply'  => {
                     'handler' => $reply_handler,
                     'params'  => $reply_params
                 },
@@ -72,8 +68,10 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
 
         my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-        my $u_name = $data{'session'}{$id}{'user'} || '-';
-        <[base.log]>->( 2, "[$id] $u_name -> $target_name > $cmd" );
+        my $src_name = <system.agent.name>;
+        $src_name .= '[' . <system.agent.subname> . ']'
+            if exists <system.agent.subname>;
+        <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" );
 
         $target_cmd_id =~ s/^(\d+)$/($1)/;
 
