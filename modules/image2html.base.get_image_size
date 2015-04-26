@@ -1,0 +1,16 @@
+# >:]
+
+# name = image2html.base.get_image_size
+
+my $image_file = shift;
+
+die "image file '$image_file' does not exist" if !-f $image_file;
+
+my $image = new Graphics::Magick;
+
+$image->Read($image_file) or die "$image_file: $!";
+
+my $width  = $image->Get('width');
+my $height = $image->Get('height');
+
+return ( $width, $height );
