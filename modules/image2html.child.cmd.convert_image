@@ -1,0 +1,70 @@
+# >:]
+
+# name  = image2html.child.cmd.convert_image
+# param = <location> [width] [height]
+# descr = returns file:// url and starts conversion
+
+my ( $image_path, $target_width, $target_height )
+    = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
+    if not defined $image_path or !length($image_path);
+return { 'mode' => 'nack', 'data' => 'image file does not exist!' }
+    if !-f $image_path;
+return { 'mode' => 'nack', 'data' => 'target width parameter not numerical!' }
+    if defined $target_width and $target_width !~ /^\d+$/;
+return { 'mode' => 'nack', 'data' => 'target height parameter not numerical!' }
+    if defined $target_height and $target_height !~ /^\d+$/;
+
+my ( $image_width, $image_height )
+    = <[image2html.base.get_image_size]>->($image_path);
+
+my $ratio = $image_width / $image_height;
+my $orientation = $ratio < 1 ? 'portrait' : 'landscape';
+
+if ( not defined $target_width ) {
+    <[base.log]>->( 2, "no target width supplied, using image width!" );
+    $target_width = $image_width;
+}
+
+my $html_path = <[image2html.base.get_html_path]>->(
+    $image_path, $target_width, $target_height
+);
+my $stub_file = "$html_path/image.html";
+
+return { 'mode' => 'nack', 'data' => 'expected html dir does not exist!' }
+    if !-d $html_path;
+return { 'mode' => 'nack', 'data' => 'image2html stub file does not exist!' }
+    if !-f $stub_file;
+
+( my $html_dir_name = $html_path ) =~ s|^.*/||g;
+
+if ( exists <image2html.conversions>->{$html_dir_name} ) {
+    push(
+        @{ <image2html.conversions>->{$html_dir_name}->{'reply_ids'} },
+        $$call{'reply_id'}
+    );
+    return { 'mode' => 'later' };
+}
+
+<[base.log]>->( 1, "converting '$image_path' .." );
+
+my $conversion_setup = {
+    'reply_ids'   => [ $$call{'reply_id'} ],
+    'ratio'       => $ratio,
+    'orientation' => $orientation,
+    'width'       => $target_width,
+    'height'      => $target_height,
+    'image_file'  => $image_path,
+    'html_path'   => $html_path,
+    'image_name'  => 'image.png',
+};
+
+<image2html.conversions>->{$html_dir_name} = $conversion_setup;
+
+<image2html.event.idle> = Event->idle(
+    cb     => $code{'image2html.child.handler.conversion'},
+    repeat => 1
+) if not exists <image2html.event.idle>;
+
+return { 'mode' => 'later' };
