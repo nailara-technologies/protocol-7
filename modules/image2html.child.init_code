@@ -1,0 +1,15 @@
+# >:]
+
+# name = image2html.child.init_code
+
+<image2html.conversions> //= {};
+
+<image2html.cache_timer>->cancel if exists <image2html.cache_timer>;
+<image2html.cache_timer> = <[event.add_timer]>->(
+    {   'after'    => 120 + int( rand(42) ),
+        'interval' => 3600 * 24 + ( int( rand(300) ) - 150 ),
+        'handler'  => 'image2html.child.check_cache_timeout'
+    }
+);
+
+0;

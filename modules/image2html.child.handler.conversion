@@ -1,0 +1,103 @@
+# >:]
+
+# name = image2html.child.handler.conversion
+
+<image2html.conversion.blur>   //= '0.9891028367558475';
+<image2html.conversion.filter> //= 'Lanczos';
+
+<image2html.scale.landscape.fit_height> //= 1;
+<image2html.scale.portrait.fit_width>   //= 1;
+
+my $fit_height = <image2html.scale.landscape.fit_height>;
+my $fit_width  = <image2html.scale.portrait.fit_width>;
+
+my @dir_names = sort keys %{<image2html.conversions>};
+
+if ( !@dir_names ) {
+    <image2html.event.idle>->cancel;
+    delete <image2html.event.idle>;
+    return;
+}
+
+my $current_key = $dir_names[ rand @dir_names ];
+my $conversion  = <image2html.conversions>->{$current_key};
+
+my $image = Graphics::Magick->new();
+
+$image->Read( $conversion->{'image_file'} );
+
+my $image_ratio   = $conversion->{'ratio'};
+my $orientation   = $conversion->{'orientation'};
+my $image_width   = $image->Get('width');
+my $image_height  = $image->Get('height');
+my $target_width  = $conversion->{'width'};
+my $target_height = $conversion->{'height'};
+
+my $scale_width;
+my $scale_height;
+my $crop_width = 0;
+if (   $orientation eq 'landscape' and $fit_height
+    or $orientation eq 'portrait' and !$fit_width ) {
+    $scale_height = $target_height;
+    $scale_width
+        = sprintf( "%.0f", ( $image_width / $image_height ) * $target_height );
+}
+$crop_width = 1 if $orientation eq 'landscape' and $fit_height;
+
+$scale_width = $target_width if not defined $scale_width;
+$scale_height
+    = sprintf( "%.0f", ( $image_height / $image_width ) * $target_width )
+    if not defined $scale_height;
+
+<[base.log]>->( 2, "scaling image to ${scale_width}x$scale_height.." );
+$image->Resize(
+    width  => $scale_width,
+    height => $scale_height,
+    blur   => <image2html.conversion.blur>,
+    filter => <image2html.conversion.filter>
+);
+
+if ($crop_width) {
+    <[base.log]>->( 2, "cropping image to ${target_width}x$target_height.." );
+    my ( $x, $y )
+        = ( sprintf( "%.0f", ( $scale_width - $target_width ) / 2 ), 0 );
+    $image->Crop(
+        'width'  => $target_width,
+        'height' => $target_height,
+        'x'      => $x,
+        'y'      => $y
+    );
+}
+
+my $image_name  = $conversion->{'image_name'};
+my $output_file = $conversion->{'html_path'} . '/' . $image_name;
+
+<[base.log]>->( 2, "writing image file '$image_name'" );
+$image->Write("png24:$output_file");
+
+my $html_file = $conversion->{'html_path'} . '/image2html';
+
+<[image2html.base.write_image_html]>->(
+    $conversion->{'html_path'}, $image_name
+);
+
+my $loading_png = $conversion->{'html_path'} . '/loading.png';
+unlink($loading_png) or warn "unlink($loading_png): $!";
+
+my $touch_file = $conversion->{'html_path'} . '/.complete';
+open( my $touch_fh, ">$touch_file" ) or die "$touch_file: $!";
+close($touch_fh);
+
+<[base.log]>->(
+    1, "conversion of '" . $conversion->{'image_file'} . "' completed"
+);
+
+foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'ack',
+            'data' => "conversion complete"
+        }
+    );
+    delete <image2html.conversions>->{$current_key};
+}

@@ -1,0 +1,27 @@
+# >:]
+
+# name = image2html.parent.handler.convert_image_reply
+# todo = deal with missing html path (notify browser vs. error page)
+
+my $reply = shift;
+
+my $image_path = $reply->{'params'}->{'image_path'};
+my $html_path  = $reply->{'params'}->{'html_path'};
+( my $html_dir = $html_path ) =~ s|^.*/||;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "conversion of '$image_path' failed [$reason]" );
+    my $errors;
+    remove_tree( $html_path, { error => \$errors } );
+    for my $err (@$errors) {
+        my ( $file, $message ) = %$err;
+        if ( $file eq '' ) {
+            <[base.log]>->( 0, "remove_tree($html_path): $message" );
+        } else {
+            <[base.log]>->( 0, "remove_tree: $message [$file]" );
+        }
+    }
+}
+
+delete <image2html.converting>->{$html_dir};

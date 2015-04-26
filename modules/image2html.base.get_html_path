@@ -1,0 +1,20 @@
+# >:]
+
+# name = image2html.base.get_html_path
+
+my $image_path    = shift;
+my $target_width  = shift;
+my $target_height = shift;
+my $cache_dir     = <image2html.cache_dir>;
+
+die "cache directory '$cache_dir' does not exist!" if !-d $cache_dir;
+die "html_path_name: image file '$image_path' does not exist!\n"
+    if !-f $image_path;
+
+my $sha_hash = <[digest.sha.file_hex]>->($image_path);
+
+( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;
+
+$html_path .= "_$target_height" if defined $target_height;
+
+return $html_path;
