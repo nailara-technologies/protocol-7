@@ -1,0 +1,23 @@
+# >:]
+
+# name = image2html.base.init_code
+
+use File::Copy;
+use File::Path qw(make_path remove_tree);
+use Graphics::Magick;
+
+<image2html.converting> //= {};
+<image2html.cache_dir>  //= '/var/image2html';
+my $cache_dir   = <image2html.cache_dir>;
+
+if ( !-d $cache_dir ) {
+    <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    make_path( $cache_dir, { mode => 0750 } ) or die "make_path: $!";
+    chown( $uid, $gid, $cache_dir ) or die "chown: $!";
+}
+
+chdir($cache_dir) or die "chdir($cache_dir): $!";
+
+0;

@@ -123,7 +123,7 @@
 
   - browser
 
-      dependencies = core xserver openbox pdf2html
+      dependencies = core xserver openbox pdf2html image2html
 
       : root-init :
         start_mode = exec-sic
@@ -183,6 +183,18 @@
         [base.auth.set_agent_key:'<{core.key}>']
 
   - pdf2html
+
+      dependencies = core playlist
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
+  - image2html
 
       dependencies = core playlist
 

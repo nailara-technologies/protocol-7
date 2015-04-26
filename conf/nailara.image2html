@@ -1,0 +1,35 @@
+
+  .:[ image2html agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+system.privs.user = nailara
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping verify_instance list dump_buffer get_url \
+                      child.help child.convert_image
+
+access.cmd.usr.parent = help dump_buffer convert_image
+
+image2html.cache_dir = /var/cache/image2html
+image2html.cache_timeout = 30 # days
+
+image2html.scale.landscape.fit_height = 1  # crops images to fill screen
+image2html.scale.portrait.fit_width   = 1  # vertical scrolling (portrait image)
+
+image2html.stub_string = 'converting image...'
+
+modules.load = auth net io.ip digest.sha image2html.base
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+[image2html.base.fork_conv_child]
+
+[event.loop]
