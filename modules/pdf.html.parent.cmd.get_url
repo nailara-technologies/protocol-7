@@ -17,7 +17,7 @@ return { 'mode' => 'nack', 'data' => 'target width parameter not numerical!' }
 
 if ( not defined $target_width ) {
     <[base.log]>->( 2, "no target width supplied, using document width!" );
-    $target_width = <[pdf.html.base.get_page_width]>->($pdf_path);
+    ($target_width) = <[pdf.html.base.get_page_size]>->($pdf_path);
 }
 
 my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
