@@ -26,4 +26,4 @@ open( my $html_fh, ">$temp_file" ) or die "$temp_file: $!";
 print {$html_fh} $$html_ref;
 close($html_fh);
 
-move( $temp_file, $target_file ) or die "$temp_file -> $target_file: $!";
+rename( $temp_file, $target_file ) or die "$temp_file -> $target_file: $!";
