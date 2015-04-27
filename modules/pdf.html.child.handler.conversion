@@ -13,34 +13,77 @@ if ( !@dir_names ) {
 my $current_key = $dir_names[ rand @dir_names ];
 my $conversion  = <pdf.html.conversions>->{$current_key};
 
+my $pdf_location = $conversion->{'pdf_file'};
+
+if ( $pdf_location =~ m|^https?://| ) {
+    <[base.log]>->( 2, "downloading '$pdf_location'..." );
+    $pdf_location = <[pdf.html.base.download_file]>->($pdf_location);
+    if ( not defined $pdf_location ) {
+        foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => 'nack',
+                    'data' => "download of '$pdf_location' failed!"
+                }
+            );
+            delete <pdf.html.conversions>->{$current_key};
+        }
+    } else {
+        $conversion->{'pdf_file'} = $pdf_location;
+    }
+
+    # XXX: cleanup / error page
+}
+
+if ( not exists $conversion->{'pages'} ) {
+    my $pdf_location = $conversion->{'pdf_file'};
+    my $page_count   = <[pdf.html.base.get_page_count]>->($pdf_location);
+    <[base.log]>->( 2, "converting '$pdf_location' [$page_count pages] .." );
+    $conversion->{'pages'} = $page_count;
+}
+
+my $page_count = $conversion->{'pages'};
+
+my ( $page_width, $page_height )
+    = <[pdf.html.base.get_page_size]>->($pdf_location)
+    if not exists $conversion->{'height'};
+
+my $target_width = $conversion->{'width'};
+my $target_height
+    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width )
+    if $target_width != $page_width;
+
+$conversion->{'skip_hash'}
+    = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height )
+    if not exists $conversion->{'skip_hash'};
+
+my $skip_hash = $conversion->{'skip_hash'};
+
 my $white = Graphics::Magick->new();
-$white->Set(
-    size => join( 'x', $conversion->{'width'}, $conversion->{'height'} ) );
+$white->Set( size => join( 'x', $target_width, $target_height ) );
 $white->ReadImage('xc:white');
 
 my $image = Graphics::Magick->new( density => '600' );
 
 my $index = $conversion->{'current_page'}++;
 
-$image->Read( $conversion->{'pdf_file'} . "\[$index\]" );
+$image->Read("$pdf_location\[$index\]");
 
 $image->Resize(
-    width  => $conversion->{'width'},
-    height => $conversion->{'height'},
+    width  => $target_width,
+    height => $target_height,
     blur   => 0.57,
     filter => 'Cubic'
 );
 
-my $img_index = sprintf(
-    "%0" . length( $conversion->{'pages'} ) . "d",
-    $conversion->{'current_page'}
-);
+my $img_index = sprintf( "%0" . length($page_count) . "d",
+    $conversion->{'current_page'} );
 my $image_name  = "page.$img_index.png";
 my $output_file = $conversion->{'html_path'} . '/' . $image_name;
 
 $image->Signature();
 
-if ( $image->Get('signature') ne $conversion->{'skip_hash'} ) {
+if ( $image->Get('signature') ne $skip_hash ) {
     <[base.log]>->( 2, "writing image file '$image_name'" );
     $image->Write("png24:$output_file");
     push( @{ $conversion->{'image_names'} }, $image_name );
@@ -48,11 +91,11 @@ if ( $image->Get('signature') ne $conversion->{'skip_hash'} ) {
     <[base.log]>->( 2, "skipped image file '$image_name' (white page)" );
 }
 
-my $percent = sprintf( "%.1f",
-    ( 100 / $conversion->{'pages'} ) * $conversion->{'current_page'} );
+my $percent
+    = sprintf( "%.1f", ( 100 / $page_count ) * $conversion->{'current_page'} );
 <[pdf.html.base.write_stub_page]>->( $conversion->{'html_path'}, $percent );
 
-if ( $conversion->{'current_page'} == $conversion->{'pages'} ) {
+if ( $conversion->{'current_page'} == $page_count ) {
     my $html_file = $conversion->{'html_path'} . '/pdf.html';
 
     <[pdf.html.base.write_pdf_html]>->(
@@ -65,7 +108,7 @@ if ( $conversion->{'current_page'} == $conversion->{'pages'} ) {
     close($touch_fh);
 
     <[base.log]>->(
-        1, "conversion of '" . $conversion->{'pdf_file'} . "' completed"
+        2, "conversion of '" . $conversion->{'pdf_file'} . "' completed"
     );
 
     foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
