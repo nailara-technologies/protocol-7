@@ -4,23 +4,28 @@
 # param = <pdf_path> [width]
 # descr = returns file:// url to html version of pdf
 
-my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
+my ( $pdf_location, $target_width ) = split( / +/, $$call{'args'} );
 
 return { 'mode' => 'nack', 'data' => 'expected path to pdf file!' }
-    if not defined $pdf_path or !length($pdf_path);
-
+    if not defined $pdf_location or !length($pdf_location);
 return { 'mode' => 'nack', 'data' => 'file does not exist!' }
-    if !-f $pdf_path;
-
-return { 'mode' => 'nack', 'data' => 'target width parameter not numerical!' }
-    if defined $target_width and $target_width !~ /^\d+$/;
-
+    if $pdf_location !~ m|^https?://| and !-f $pdf_location;
+return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
+    if defined $target_width and $target_width !~ /^\d+$/
+    or defined $target_width and !$target_width;
 if ( not defined $target_width ) {
     <[base.log]>->( 2, "no target width supplied, using document width!" );
-    ($target_width) = <[pdf.html.base.get_page_size]>->($pdf_path);
+    if ( $pdf_location =~ m|^https?://| ) {
+        <[base.log]>->( 2, "downloading '$pdf_location' first..." );
+        $pdf_location = <[pdf.html.base.download_file]>->($pdf_location);
+        return { 'mode' => 'nack', 'data' => 'download failed!' }
+            if not defined $pdf_location;
+    }
+    ($target_width) = <[pdf.html.base.get_page_size]>->($pdf_location);
 }
 
-my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
+my $html_path
+    = <[pdf.html.base.get_html_path]>->( $pdf_location, $target_width );
 ( my $html_dir = $html_path ) =~ s|^.*/||;
 
 if (    -d $html_path
@@ -50,11 +55,11 @@ if ( !-d $html_path ) {
 
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "child.convert_pdf",
-            'call_args' => { 'args' => "$pdf_path $target_width" },
+            'call_args' => { 'args' => "$pdf_location $target_width" },
             'reply'     => {
                 'handler' => 'pdf.html.parent.handler.convert_pdf_reply',
                 'params' =>
-                    { 'pdf_path' => $pdf_path, 'html_path' => $html_path }
+                    { 'pdf_path' => $pdf_location, 'html_path' => $html_path }
             }
         }
     );
