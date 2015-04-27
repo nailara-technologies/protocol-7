@@ -1,10 +1,10 @@
 # >:]
 
-# name = image2html.base.download_file
+# name = pdf.html.base.download_file
 # todo = use .last_modified to skip redundant downloads
 
 my $file_url  = shift;
-my $cache_dir = <image2html.cache_dir>;
+my $cache_dir = <pdf.html.cache_dir>;
 
 die "expected URL parameter"  if not defined $file_url;
 die "invalid URL '$file_url'" if $file_url !~ m|^https?://.+|;
@@ -43,13 +43,13 @@ if ( !-d $target_dir ) {
 my $head_res       = $ua->head($file_url);
 my $content_type   = $head_res->{'_headers'}->{'content-type'};
 my $content_length = $head_res->{'_headers'}->{'content-length'}; # XXX: use ...
-if ( $content_type =~ m|^image/(\w{3,4})$| ) {
-    <[base.log]>->( 2, "found $1-image ($content_length bytes)" );
+if ( $content_type =~ m|/pdf$| ) {
+    <[base.log]>->( 2, "found pdf file ($content_length bytes)" );
 } else {
-    die "didn't receive expected (image) content type for $file_url";
+    die "didn't receive expected (pdf) content type for $file_url";
 }
 
-( my $target_path = "$target_dir/image.download" ) =~ s|//|/|g;
+( my $target_path = "$target_dir/pdf.download" ) =~ s|//|/|g;
 
 my $response = $ua->get( $file_url, ':content_file' => $target_path );
 

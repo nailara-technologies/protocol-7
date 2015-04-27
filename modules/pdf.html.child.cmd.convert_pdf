@@ -6,17 +6,19 @@
 
 my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'expected path to pdf file!' }
+return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
     if not defined $pdf_path or !length($pdf_path);
-return { 'mode' => 'nack', 'data' => 'pdf file does not exist!' }
-    if !-f $pdf_path;
-return { 'mode' => 'nack', 'data' => 'target width parameter not numerical!' }
-    if defined $target_width and $target_width !~ /^\d+$/;
+return { 'mode' => 'nack', 'data' => 'image file does not exist!' }
+    if $pdf_path !~ m|^https?://| and !-f $pdf_path;
+return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
+    if defined $target_width and $target_width !~ /^\d+$/
+    or defined $target_width and !$target_width;
 
-my ( $page_width, $page_height ) = <[pdf.html.base.get_page_size]>->($pdf_path);
-
+my $target_height;
 if ( not defined $target_width ) {
     <[base.log]>->( 2, "no target width supplied, using document width!" );
+    my ( $page_width, $page_height )
+        = <[pdf.html.base.get_page_size]>->($pdf_path);
     $target_width = $page_width;
 }
 
@@ -38,26 +40,11 @@ if ( exists <pdf.html.conversions>->{$html_dir_name} ) {
     return { 'mode' => 'later' };
 }
 
-my $page_count = <[pdf.html.base.get_page_count]>->($pdf_path);
-
-<[base.log]>->( 1, "converting '$pdf_path' [$page_count pages] .." );
-
-my $target_height = $page_height;
-$target_height
-    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width )
-    if $target_width != $page_width;
-
-my $skip_hash
-    = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height );
-
 my $conversion_setup = {
     'reply_ids'    => [ $$call{'reply_id'} ],
     'width'        => $target_width,
-    'height'       => $target_height,
     'pdf_file'     => $pdf_path,
-    'pages'        => $page_count,
     'html_path'    => $html_path,
-    'skip_hash'    => $skip_hash,
     'current_page' => 0,
     'image_names'  => [],
 };
