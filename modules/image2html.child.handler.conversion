@@ -57,10 +57,11 @@ $target_height
 my $target_ratio = $target_width / $target_height;
 my $orientation = $image_ratio < 1 ? 'portrait' : 'landscape';
 
+my $prevent_crop = 0;
 my $scale_width;
 my $scale_height;
 if (   $orientation eq 'landscape' and $crop_to_fit
-    or $orientation eq 'portrait' and !$fit_width ) {
+    or $orientation eq 'portrait' and $fit_width ) {
     if ( $image_ratio > $target_ratio ) {
         $scale_height = $target_height;
         $scale_width
@@ -71,6 +72,7 @@ if (   $orientation eq 'landscape' and $crop_to_fit
         $scale_height
             = sprintf( "%.0f",
             ( $image_height / $image_width ) * $target_width );
+        $prevent_crop = 1 if $orientation eq 'portrait' and $fit_width;
     }
 }
 
@@ -94,7 +96,7 @@ if ( $scale_width > $target_width or $scale_height > $target_height ) {
         sprintf( "%.0f", ( $scale_width - $target_width ) / 2 ),
         sprintf( "%.0f", ( $scale_height - $target_height ) / 2 )
     );
-    $crop_image = 1;
+    $crop_image = 1 if !$prevent_crop;
 }
 if ($crop_image) {
     <[base.log]>->( 2, "cropping image to ${target_width}x$target_height.." );
