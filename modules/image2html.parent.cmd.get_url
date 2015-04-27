@@ -58,10 +58,10 @@ if ( !-d $html_path ) {
     <[base.log]>->( 2, "creating html dir '$html_dir'.." );
     make_path($html_path) or die "make_path($html_path): $!";
 
-    <[base.log]>->( 2, "copying 'loading.png' to cache dir.." );
-    my $loading_png = <system.root_path> . '/data/gfx/icons/loading.png';
-    die "can't find image '$loading_png'" if !-f $loading_png;
-    copy( $loading_png, "$html_path/loading.png" ) or die "copy: $!";
+    <[base.log]>->( 2, "copying 'loading' icon to cache dir.." );
+    my $loading_icon = <system.root_path> . '/data/gfx/icons/loading.gif';
+    die "can't find image '$loading_icon'" if !-f $loading_icon;
+    copy( $loading_icon, "$html_path/loading.gif" ) or die "copy: $!";
 
     <[image2html.base.write_stub_page]>->($html_path);
 
