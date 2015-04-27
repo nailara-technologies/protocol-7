@@ -10,20 +10,18 @@ my ( $image_path, $target_width, $target_height )
 return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
     if not defined $image_path or !length($image_path);
 return { 'mode' => 'nack', 'data' => 'image file does not exist!' }
-    if !-f $image_path;
-return { 'mode' => 'nack', 'data' => 'target width parameter not numerical!' }
-    if defined $target_width and $target_width !~ /^\d+$/;
-return { 'mode' => 'nack', 'data' => 'target height parameter not numerical!' }
-    if defined $target_height and $target_height !~ /^\d+$/;
-
-my ( $image_width, $image_height )
-    = <[image2html.base.get_image_size]>->($image_path);
-
-my $ratio = $image_width / $image_height;
-my $orientation = $ratio < 1 ? 'portrait' : 'landscape';
+    if $image_path !~ m|^https?://| and !-f $image_path;
+return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
+    if defined $target_width and $target_width !~ /^\d+$/
+    or defined $target_width and !$target_width;
+return { 'mode' => 'nack', 'data' => 'invalid target height parameter!' }
+    if defined $target_height and $target_height !~ /^\d+$/
+    or defined $target_height and !$target_height;
 
 if ( not defined $target_width ) {
     <[base.log]>->( 2, "no target width supplied, using image width!" );
+    my ( $image_width, $image_height )
+        = <[image2html.base.get_image_size]>->($image_path);
     $target_width = $image_width;
 }
 
@@ -47,17 +45,15 @@ if ( exists <image2html.conversions>->{$html_dir_name} ) {
     return { 'mode' => 'later' };
 }
 
-<[base.log]>->( 1, "converting '$image_path' .." );
+<[base.log]>->( 2, "converting '$image_path' .." );
 
 my $conversion_setup = {
-    'reply_ids'   => [ $$call{'reply_id'} ],
-    'ratio'       => $ratio,
-    'orientation' => $orientation,
-    'width'       => $target_width,
-    'height'      => $target_height,
-    'image_file'  => $image_path,
-    'html_path'   => $html_path,
-    'image_name'  => 'image.png',
+    'reply_ids'  => [ $$call{'reply_id'} ],
+    'width'      => $target_width,
+    'height'     => $target_height,
+    'image_file' => $image_path,
+    'html_path'  => $html_path,
+    'image_name' => 'image.png',
 };
 
 <image2html.conversions>->{$html_dir_name} = $conversion_setup;
