@@ -5,8 +5,9 @@
 <image2html.conversion.blur>   //= '0.9891028367558475';
 <image2html.conversion.filter> //= 'Lanczos';
 
-<image2html.scale.landscape.crop_to_fit> //= 1;
-<image2html.scale.portrait.fit_width>    //= 1;
+<image2html.exif.auto_compensate_rotation> //= 1;
+<image2html.scale.landscape.crop_to_fit>   //= 1;
+<image2html.scale.portrait.fit_width>      //= 1;
 
 my $crop_to_fit = <image2html.scale.landscape.crop_to_fit>;
 my $fit_width   = <image2html.scale.portrait.fit_width>;
@@ -46,6 +47,50 @@ my $image = Graphics::Magick->new();
 
 $image->Read($image_location);
 
+if (<image2html.exif.auto_compensate_rotation>) {
+
+    my $source_format = $image->Get('format');
+
+    if ( $source_format =~ /^Joint Photographic Experts Group/ ) {    # JPEG
+        my $exif = Image::EXIF->new;
+        $exif->file_name($image_location);
+        my $image_info = $exif->get_image_info();
+        if (    defined $image_info
+            and ref($image_info) eq 'HASH'
+            and exists $image_info->{'Image Orientation'} ) {
+            my $orientation = lc( $image_info->{'Image Orientation'} );
+            <[base.log]>->(
+                2, "compensating for EXIF orientation '$orientation'"
+            ) if $orientation !~ /top.+left/;
+
+            if ( $orientation =~ /top.+left/ ) {    # default - do nothing
+
+            } elsif ( $orientation =~ /top.+right/ ) {    # flip horizontal
+                $image->Flop();
+            } elsif ( $orientation =~ /bottom.+right/ ) {    # rotate 180
+                $image->Rotate( 'degrees' => 180 );
+            } elsif ( $orientation =~ /bottom.+left/ ) {     # flip vertical
+                $image->Flip();
+            } elsif ( $orientation =~ /left.+top/ ) {        # transpose
+                $image->Rotate( 'degrees' => 90 );
+                $image->Flop();
+            } elsif ( $orientation =~ /right.+top/ ) {       # rotate 90
+                $image->Rotate( 'degrees' => 90 );
+            } elsif ( $orientation =~ /right.+bottom/ ) {    # transverse
+                $image->Rotate( 'degrees' => 270 );
+                $image->Flip();
+            } elsif ( $orientation =~ /left.+bottom/ ) {     # rotate 270
+                $image->Rotate( 'degrees' => -270 );
+            } else {
+                <[base.log]>->(
+                    0, "unknown EXIF image orientation '$orientation'"
+                );
+            }
+        }
+    }
+
+}
+
 my $image_width   = $image->Get('width');
 my $image_height  = $image->Get('height');
 my $target_width  = $conversion->{'width'};
@@ -64,13 +109,11 @@ if (   $orientation eq 'landscape' and $crop_to_fit
     or $orientation eq 'portrait' and $fit_width ) {
     if ( $image_ratio > $target_ratio ) {
         $scale_height = $target_height;
-        $scale_width
-            = sprintf( "%.0f",
+        $scale_width  = sprintf( "%.0f",
             ( $image_width / $image_height ) * $target_height );
     } elsif ( $image_ratio < $target_ratio ) {
-        $scale_width = $target_width;
-        $scale_height
-            = sprintf( "%.0f",
+        $scale_width  = $target_width;
+        $scale_height = sprintf( "%.0f",
             ( $image_height / $image_width ) * $target_width );
         $prevent_crop = 1 if $orientation eq 'portrait' and $fit_width;
     }
