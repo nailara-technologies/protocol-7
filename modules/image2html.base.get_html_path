@@ -9,9 +9,12 @@ my $cache_dir     = <image2html.cache_dir>;
 
 die "cache directory '$cache_dir' does not exist!" if !-d $cache_dir;
 die "html_path_name: image file '$image_path' does not exist!\n"
-    if !-f $image_path;
+    if $image_path !~ m|^https?://| and !-f $image_path;
 
-my $sha_hash = <[digest.sha.file_hex]>->($image_path);
+my $sha_hash
+    = $image_path =~ m|^https?://|
+    ? <[digest.sha1]>->($image_path)
+    : <[digest.sha.file_hex]>->($image_path);
 
 ( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;
 
