@@ -21,12 +21,12 @@ if ( !open( $file_fh, '<' . $filename ) ) {
 }
 my $ref_type = ref($target_ref);
 if ( $ref_type eq 'SCALAR' ) {
-    $/ = undef;
+    local $/ = undef;
 
     $$target_ref = <$file_fh>;
 
 } elsif ( $ref_type eq 'ARRAY' ) {
-    $/ = "\n";
+    local $/ = "\n";
 
     chomp( @$target_ref = <$file_fh> );
 
