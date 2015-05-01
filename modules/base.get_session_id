@@ -9,12 +9,20 @@ if ( exists $data{'session'}{$local_session_id}{'core_sid'} ) {
 }
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+
+<[base.log]>->( 2, "retrieving session id..." );
 <[net.out]>->( $core_fh, "($cmd_id)whoami\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
+    if ( not defined $reply_string ) {
+        <[base.log]>->(
+            0, "base.get_session_id: socket exception, shutting down.."
+        );
+        CORE::exit(1);
+    }
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
     if ( !$matched_reply ) {
         my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
