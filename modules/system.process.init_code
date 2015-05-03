@@ -5,6 +5,9 @@
 use IPC::Open2;
 use Proc::ProcessTable;
 
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
 <process.table.top>   //= {};
 <process.count>       //= 0;
 <process.top_min.mem> //= 1;
