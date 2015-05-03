@@ -7,9 +7,12 @@ use File::Path qw(make_path remove_tree);
 use LWP::UserAgent;
 use Graphics::Magick;
 
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
 <image2html.converting> //= {};
 <image2html.cache_dir>  //= '/var/image2html';
-my $cache_dir   = <image2html.cache_dir>;
+my $cache_dir = <image2html.cache_dir>;
 
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
