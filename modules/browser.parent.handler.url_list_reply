@@ -37,6 +37,13 @@ foreach my $url (@url_list) {
 @{<browser.url.list_reply>} = @url_list;
 
 my $index = 0;
+
+### quickfix ( cleanup old url entries ) ###
+
+@{<browser.url.list>} = ();
+
+############################################
+
 foreach my $entry (@url_list) {
     if ( $type_list{$entry} eq 'pdf' ) {
         <[base.proto.nailara.command.send.local]>->(
