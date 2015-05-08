@@ -13,6 +13,9 @@ use File::Path qw(make_path remove_tree);
 <weather.cache_dir> //= '/var/cache/weather';
 my $cache_dir = <weather.cache_dir>;
 
+<weather.forecast.count.hours> //= 6;
+<weather.forecast.count.days>  //= 4;
+
 my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
     or die "user '" . <system.privs.user> . "' not in passwd file";
 
