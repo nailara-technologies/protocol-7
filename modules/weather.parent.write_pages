@@ -1,0 +1,91 @@
+# >:]
+
+# name = weather.parent.write_pages
+# todo = internationalization...
+
+my $station_id = shift;
+die "expected station_id parameter" if not defined $station_id;
+my $cache_dir     = <weather.cache_dir> . '/html';
+my $hash_str      = <[digest.sha1]>->($station_id);
+my $html_dir      = "$cache_dir/$hash_str";
+my @page_list     = <[weather.parent.page_list]>;
+my $template_dir  = <system.root_path> . '/data/html/templates/weather';
+my $body_template = "$template_dir/body.html";
+
+die "target directory '$html_dir' does not exist"   if !-d $html_dir;
+die "html template '$body_template' does not exist" if !-f $body_template;
+
+my $html_body_ref = <[file.slurp]>->($body_template);
+die "failed to load html template '$body_template'"
+    if not defined $html_body_ref;
+
+my $data_ref    = <weather.data>->{$station_id};
+my $current_ref = $data_ref->{'current'};
+
+my $temp = sprintf( "%.1f", $current_ref->{'temp'} );
+
+my %sun;
+foreach my $mode ( 'rise', 'set' ) {
+    $sun{$mode} = strftime "%H:%M Uhr",
+        localtime $data_ref->{'daytime'}->{"sun$mode"};
+}
+
+# weather id codes
+my $icon_path = <weather.icons>
+    ->{ $current_ref->{'code'} . '.' . $data_ref->{'daytime'}->{'now'} };
+
+# openmap icons
+$icon_path = <weather.icons>->{ $current_ref->{'icon'} }
+    if not defined $icon_path;
+
+$icon_path =~ s|^.*/|./images/|;
+
+my %snipplet_names;
+opendir( my $dir_fh, $template_dir ) or die "opendir($template_dir): $!";
+map { $snipplet_names{$1} = 1 if $_ =~ /^content\.(.+)\.part$/ }
+    readdir($dir_fh);
+closedir($dir_fh);
+
+foreach my $page_name (@page_list) {
+    my $content_str = '';
+    next if $page_name !~ /^\w+\.(.+)$/;
+    foreach my $sname ( split( /\./, $1 ) ) {
+        if ( not exists $snipplet_names{$sname} ) {
+            <[base.log]>->(
+                1, "write_pages: snipplet '$sname' does not exist!"
+            );
+            next;
+        }
+        my $snipplet_ref
+            = <[file.slurp]>->("$template_dir/content.$sname.part");
+        $content_str .= $$snipplet_ref;
+    }
+    my $html_str = $$html_body_ref;
+    $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
+
+    $html_str =~ s|\[CITY\]|$data_ref->{city}|g;
+
+    if ( $page_name =~ /^current\.(.+)$/ ) {
+        $html_str =~ s|\[TEMP\]|$temp|g;
+        $html_str =~ s|\[DESCR\]|$current_ref->{descr}|g;
+        $html_str =~ s|\[CLOUDS\]|$current_ref->{clouds}|g;
+        $html_str =~ s|\[HUMIDITY\]|$current_ref->{humidity}|g;
+        $html_str =~ s|\[PRESSURE\]|$current_ref->{pressure}|g;
+        $html_str =~ s|\[WIND_DESCR\]|$current_ref->{wind}->{descr}|g;
+        $html_str =~ s|\[WIND_KMH\]|$current_ref->{wind}->{speed_kmh}|g;
+        $html_str =~ s|\[SUNRISE\]|$sun{rise}|g;
+        $html_str =~ s|\[SUNSET\]|$sun{set}|g;
+        $html_str =~ s|\[ICON\]|$icon_path|g;
+    }
+
+    my $file_path = "$html_dir/$page_name.html";
+    my $temp_file = $file_path . '.NEW';
+
+    <[base.log]>->( 1, ": $page_name.html" );
+
+    open( my $html_fh, ">$temp_file" ) or die "$temp_file: $!";
+    print {$html_fh} $html_str;
+    close($html_fh);
+
+    rename( $temp_file, $file_path ) or die "$temp_file -> $file_path: $!";
+}

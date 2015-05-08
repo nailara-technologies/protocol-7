@@ -30,8 +30,9 @@ map {
     push( @file_names, $_ ) if length($_);
 } @lines;
 
-<playlist.file_list>  = \@file_names;
-<playlist.file_types> = {};
+<playlist.file_list>    = \@file_names;
+<playlist.file_types>   = {};
+<playlist.items_queued> = 0;
 
 if ( !@file_names ) {
     <[base.log]>->( 0, "no files in playlist!" );
@@ -44,9 +45,34 @@ foreach my $file (@file_names) {
     <playlist.agent_subnames>->{$file} = $agent_subname
         if defined $agent_subname;
     my $type = 'unknown';
-    if ( -f $file ) {
+
+    ### XXX: weather agent test hack ###
+
+    if ( $file =~ /^\[weather:(.+)\]$/ ) {
+
+        if ( not exists <playlist.agent_online> or !<playlist.agent_online> ) {
+            <playlist.items_queued>++;
+            $type = ':queued:';
+        } else {
+            my $city_str = $1;
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.weather.get_urls",
+                    'call_args' => { 'args' => $city_str },
+                    'reply'     => {
+                        'handler' => 'playlist.handler.weather_urls_reply',
+                        'params'  => { 'city' => $city_str }
+                    }
+                }
+            );
+            $type = ':waiting:';
+        }
+    }
+
+    ####################################
+
+    if ( $type eq 'unknown' and -f $file ) {
         $type = mimetype($file);
-    } elsif ( $file =~ m|^https?://| ) {
+    } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
         if ($check_types) {
             if ( !$check_logged ) {
                 <[base.log]>->( 1, ': checking http content types ...' );
@@ -58,7 +84,9 @@ foreach my $file (@file_names) {
         } else {
             $type = 'html';
         }
-    } else {
+    } elsif ( $file =~ m|^udp://| ) { # XXX: temporary hack for mcast live video
+        $type = 'video';
+    } elsif ( $type eq 'unknown' ) {
         <[base.log]>->( 0, "local content file '$file' not found!" );
     }
 

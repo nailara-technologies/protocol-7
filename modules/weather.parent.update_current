@@ -1,0 +1,29 @@
+# >:]
+
+# name = weather.parent.update_current
+
+my $station_id = shift;
+die "expected station_id parameter"
+    if not defined $station_id or !length($station_id);
+
+if (   not exists <weather.data>->{$station_id}
+    or not exists <weather.data>->{$station_id}->{'current'} ) {
+
+    my $current_data = <[weather.parent.cache.read_current]>->($station_id);
+
+    if ( defined $current_data ) {
+        <[base.log]>->( 1, "found cached weather data.." );
+        <[weather.parent.extract_current]>->( $station_id, $current_data );
+    }
+}
+
+<[base.log]>->( 1, "<$station_id> updating current weather data.." );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "child.get_current",
+        'call_args' => { 'args' => $station_id },
+        'reply'     => {
+            'handler' => 'weather.parent.handler.update_current_reply',
+            'params'  => { 'station_id' => $station_id }
+        }
+    }
+);

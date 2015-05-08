@@ -1,0 +1,37 @@
+# >:]
+
+# name = weather.child.cmd.get_station_id
+
+my $station_id;
+my $city_name = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'expected city name parameter' }
+    if not defined $city_name or !length($city_name);
+
+my $json_response = <[weather.child.query_api]>->("find?q=$city_name");
+
+return { 'mode' => 'nack', 'data' => 'weather API query failed' }
+    if not defined $json_response;
+
+return { 'mode' => 'nack', 'data' => 'city not found!' }
+    if !$json_response->{'count'};
+
+my $country = $1 if $city_name =~ s|\,(\w+)$||;
+
+my $match = 0;
+foreach my $city_data ( @{ $json_response->{'list'} } ) {
+    if ( $city_data->{'name'} =~ /^$city_name/i ) {
+        $station_id = $city_data->{'id'};
+        <[base.log]>
+            ->( 1, "found requested city ( station_id = $station_id )" );
+
+        <weather.cache_data>->{$station_id}
+            = { 'timestamp' => time(), 'data' => $city_data };
+
+        $match = 1;
+        last;
+    }
+}
+
+return { 'mode' => 'ack', 'data' => $station_id }
+

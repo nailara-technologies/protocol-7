@@ -1,0 +1,42 @@
+# >:]
+
+# name = weather.base.wind.descr_txt
+# todo = internationalization...
+
+my $beaufort = shift;
+die "expected beaufort parameter" if not defined $beaufort;
+
+warn "wind desciptions are not internationalized yet"
+    if lc(<weather.cfg.language>) ne 'de';
+
+my $descr_txt;
+
+if ( $beaufort < 1 ) {
+    $descr_txt = 'still';
+} elsif ( $beaufort == 1 ) {
+    $descr_txt = 'leiser Zug';
+} elsif ( $beaufort == 2 ) {
+    $descr_txt = 'leichte Brise';
+} elsif ( $beaufort == 3 ) {
+    $descr_txt = 'schwache Brise';
+} elsif ( $beaufort == 4 ) {
+    $descr_txt = 'mäßige Brise';
+} elsif ( $beaufort == 5 ) {
+    $descr_txt = 'frische Brise';
+} elsif ( $beaufort == 6 ) {
+    $descr_txt = 'starker Wind';
+} elsif ( $beaufort == 7 ) {
+    $descr_txt = 'steifer Wind';
+} elsif ( $beaufort == 8 ) {
+    $descr_txt = 'stürmischer Wind';
+} elsif ( $beaufort == 9 ) {
+    $descr_txt = 'Sturm';
+} elsif ( $beaufort == 10 ) {
+    $descr_txt = 'schwerer Sturm';
+} elsif ( $beaufort == 11 ) {
+    $descr_txt = 'orkanartiger Sturm';
+} elsif ( $beaufort > 11 ) {
+    $descr_txt = 'Orkan';
+}
+
+return $descr_txt;

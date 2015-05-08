@@ -1,0 +1,49 @@
+
+  .:[ weather agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+system.privs.user = nailara
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping verify_instance list dump_buffer get_urls \
+                      station_id dump child.*
+
+                      # reload command currently disabled (drops parent cmds)
+
+access.cmd.usr.parent = help reload dump_buffer update_current update_forecast \
+                        * # <- XXX
+
+weather.api.key = '' # get your API key at http://openweathermap.org/register
+
+#weather.cfg.city = Freiburg # <City>[,Country]
+weather.cfg.units = metric
+weather.cfg.language = de
+
+weather.tile.count = 3 # [1|2|3]
+
+## tile setup html snipplets are ./data/html/templates/weather/content.*.part ##
+
+weather.tile.setup.1 = current.city current.clouds current.wind
+weather.tile.setup.2 = current.city.clouds current.city.wind
+weather.tile.setup.3 = current.city.clouds.wind
+
+weather.cache_dir = /var/cache/weather
+weather.cache_timeout = 3 # hours
+weather.update_interval.current  = 10 # mins
+weather.update_interval.forecast = 42 # mins
+
+modules.load = auth net io.ip digest.sha digest.sha1 weather.base debug
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+[weather.base.fork_weather_child]
+
+[event.loop]

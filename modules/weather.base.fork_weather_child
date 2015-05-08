@@ -1,0 +1,64 @@
+# >:]
+
+# name = weather.base.fork_weather_child
+
+use Socket;
+
+( my $session_id ) = keys( %{<user.core.session>} );
+
+<weather.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, "forking weather child.." );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+
+<weather.child.pid> = fork;
+if ( !<weather.child.pid> ) {    ## child ##
+    close($child_pipe);
+    delete <weather.pipe.child> if exists <weather.pipe.child>;
+    <weather.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.agent.subname>;
+    my $sn_str = defined $subname ? $subname . '-' : '';
+
+    <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
+    $0 = "weather-${sn_str}child ";
+
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    my $id = <[base.session.init]>
+        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('weather.child');
+    <[base.init_modules]>->('weather.child');
+
+} else {    ## parent ##
+    close($parent_pipe);
+    delete <weather.pipe.parent> if exists <weather.pipe.parent>;
+    <weather.pipe.child> = $child_pipe;
+
+    <[base.load_modules]>->('weather.parent');
+    <[base.init_modules]>->('weather.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    my $id
+        = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    if ( defined <weather.cfg.city> and length(<weather.cfg.city>) ) {
+        <[weather.parent.set_city]>->(<weather.cfg.city>);
+    } else {
+        <[base.log]>->( 0, "no city configured at startup!" );
+        if ( !<weather.agent.initialized> ) {
+            <[base.get_session_id]>;    # change agent status to 'online'
+            <weather.agent.initialized> = 1;
+        }
+    }
+
+}
