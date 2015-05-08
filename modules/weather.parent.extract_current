@@ -4,8 +4,8 @@
 
 my ( $station_id, $weather_data ) = @_;
 
-die "expected station_id parameter"
-    if not defined $station_id or !length($station_id);
+die "expected (valid) station id parameter"
+    if not defined $station_id or $station_id !~ /^\d+$/;
 die "expected 'current' weather data"
     if not defined $weather_data
     or ref($weather_data) ne 'HASH';
@@ -32,7 +32,7 @@ die "expected 'current' weather data"
 my $km_h = $weather_data->{'wind'}->{'speed'} * 3600 / 1000;
 $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
 
-my $beaufort = <[weather.base.wind.calculate_beaufort]>
+my $beaufort = <[weather.parent.wind.calculate_beaufort]>
     ->( $weather_data->{'wind'}->{'speed'} );
 
 <weather.data>->{$station_id}->{'current'} = {
@@ -46,7 +46,7 @@ my $beaufort = <[weather.base.wind.calculate_beaufort]>
         'speed'     => $weather_data->{'wind'}->{'speed'},
         'speed_kmh' => $km_h,
         'beaufort'  => $beaufort,
-        'descr'     => <[weather.base.wind.descr_txt]>->($beaufort)
+        'descr'     => <[weather.parent.wind.descr_txt]>->($beaufort)
     },
     'temp'     => $weather_data->{'main'}->{'temp'},
     'pressure' => $weather_data->{'main'}->{'pressure'},

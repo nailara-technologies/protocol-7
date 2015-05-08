@@ -32,7 +32,8 @@ while ( not defined $response or !$response->is_success and --$retries ) {
     $status_code = $response->{'_rc'};
 
     if ( !$response->is_success and $retries ) {
-        <[base.log]>->( 0, "query failed, retrying.." );
+        my $status_str = defined $status_code ? " ($status_code)" : '';
+        <[base.log]>->( 0, "query failed" . $status_str . ", retrying.." );
         <[base.sleep]>->( $retry_delay *= 2 );
     }
 }
@@ -40,7 +41,7 @@ while ( not defined $response or !$response->is_success and --$retries ) {
 if ( not defined $response or !$response->is_success ) {
     $max_retries++;
     <[base.log]>->( 0, "query failed $max_retries times [$query_url]" );
-    return undef;
+    return ( $status_code, undef );
 }
 
 #print Dumper($response);
@@ -49,14 +50,24 @@ my $content = $response->{'_content'};    # XXX: check...
 
 $content =~ s|failed to set keepalive: unread data in buffer\n$||s;
 
-my $json_decoded = <weather.child.json>->decode($content);
+my $json_decoded;
+eval { $json_decoded = <weather.child.json>->decode($content) };
 
-if ( not exists $json_decoded->{'cod'} or $json_decoded->{'cod'} ne '200' ) {
-    <[base.log]>->( 0, "query didn't return json code 200 [$query_url]" );
-    return undef;
+if (   $@
+    or not exists $json_decoded->{'cod'}
+    or $json_decoded->{'cod'} ne '200' ) {
+    my $reason_str = '';
+    if (    exists $json_decoded->{'cod'}
+        and exists $json_decoded->{'message'} ) {
+        $reason_str = " ($json_decoded->{'cod'} $json_decoded->{'message'})";
+    } elsif ( exists $json_decoded->{'cod'} ) {
+        $reason_str = " ($json_decoded->{'cod'})";
+    }
+    <[base.log]>->( 0, "query failed$reason_str [$query_url]" );
+    return ( $json_decoded->{'cod'}, undef );
 }
 
 <[base.log]>->( 1, "query successful" );
 
-return $json_decoded;
+return ( 200, $json_decoded );
 

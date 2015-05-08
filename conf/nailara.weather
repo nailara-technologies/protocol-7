@@ -21,18 +21,48 @@ weather.api.key = '' # get your API key at http://openweathermap.org/register
 weather.cfg.units = metric
 weather.cfg.language = de
 
-weather.tile.count = 3 # [1|2|3]
+weather.tile.count = 2 # [1|2|3]
 
 ## tile setup html snipplets are ./data/html/templates/weather/content.*.part ##
 
-weather.tile.setup.1 = current.city current.clouds current.wind
-weather.tile.setup.2 = current.city.clouds current.city.wind
-weather.tile.setup.3 = current.city.clouds.wind
+weather.tile.setup.1 = current.city current.conditions current.today \
+                       forecast_hours.hours_1 \
+                       forecast_hours.hours_2 \
+                       forecast_hours.hours_3 \
+                       forecast_hours.hours_4 \
+                       forecast_hours.hours_5 \
+                       forecast_hours.hours_6 \
+                       forecast_days.day_1 \
+                       forecast_days.day_2 \
+                       forecast_days.day_3 \
+                       forecast_days.day_4
+
+weather.tile.setup.2 = current.city.conditions current.city.today \
+                       forecast_hours.city.hours_1 \
+                       forecast_hours.city.hours_2 \
+                       forecast_hours.city.hours_3 \
+                       forecast_hours.city.hours_4 \
+                       forecast_hours.city.hours_5 \
+                       forecast_hours.city.hours_6 \
+                       forecast_days.city.day_1 \
+                       forecast_days.city.day_2 \
+                       forecast_days.city.day_3 \
+                       forecast_days.city.day_4
+
+weather.tile.setup.3 = current.city.conditions.today \
+                       forecast_hours.city.hours_1.hours_2 \
+                       forecast_hours.city.hours_2.hours_3 \
+                       forecast_hours.city.hours_3.hours_4 \
+                       forecast_hours.city.hours_4.hours_5 \
+                       forecast_hours.city.hours_5.hours_6 \
+                       forecast_days.city.day_1.day_2 \
+                       forecast_days.city.day_3.day_4
+
 
 weather.cache_dir = /var/cache/weather
 weather.cache_timeout = 3 # hours
-weather.update_interval.current  = 10 # mins
-weather.update_interval.forecast = 42 # mins
+weather.update_interval.current  = 13 # mins [ + random(interval) ]
+weather.update_interval.forecast = 33 # mins [ + random(interval) ]
 
 modules.load = auth net io.ip digest.sha digest.sha1 weather.base debug
 [load_modules:<modules.load>]

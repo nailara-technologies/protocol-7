@@ -1,0 +1,16 @@
+# >:]
+
+# name  = weather.base.tomorrow_unix
+# descr = returns unixtime of next midnight
+
+my $unix = time();
+my $yday = [ localtime($unix) ]->[7];
+
+my $incr = 1;
+while ( [ localtime($unix) ]->[7] == $yday ) {
+    $incr = 10  if $incr == 1   and $unix =~ /0$/;
+    $incr = 100 if $incr != 100 and $unix =~ /00$/;
+    $unix += $incr;
+}
+
+return $unix;
