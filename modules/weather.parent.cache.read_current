@@ -6,13 +6,14 @@ my $station_id = shift;
 my $cache_dir  = <weather.cache_dir> . '/data';
 my $max_age    = <weather.cache_timeout> * 3600;
 
-die "expected station_id parameter"
-    if not defined $station_id or !length($station_id);
+die "expected (valid) station_id parameter"
+    if not defined $station_id
+    or !length($station_id)
+    or $station_id !~ /^([\w\d]+)$/;
 
 <[base.log]>->( 2, "checking 'current' cache for '$station_id'.." );
 
-my $station_id_hash = <[digest.sha1]>->($station_id);
-my $file_path       = "$cache_dir/$station_id_hash";
+my $file_path = "$cache_dir/$station_id.current";
 
 if ( !-f $file_path ) {
     <[base.log]>->( 2, "no cached station id found for '$station_id'" );
