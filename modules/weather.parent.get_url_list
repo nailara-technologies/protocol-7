@@ -3,7 +3,7 @@
 # name = weather.parent.get_url_list
 
 my $station_id = shift;
-die "expected valid station id parameter"
+die "expected (valid) station id parameter"
     if not defined $station_id or $station_id !~ /^\d+$/;
 
 my $cache_dir = <weather.cache_dir>;
@@ -13,7 +13,7 @@ $cache_dir .= '/html';
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
 my $hash_str = <[digest.sha1]>->($station_id);
-my $html_dir = "$cache_dir/$hash_str";
+my $html_dir = "$cache_dir/$station_id";
 
 <[weather.parent.populate_html_dir]>->($station_id) if !-d $html_dir;
 

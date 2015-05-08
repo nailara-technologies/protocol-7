@@ -1,0 +1,13 @@
+# >:]
+
+# name = weather.parent.handler.update_timer
+
+my $params     = shift->w->data;
+my $station_id = $params->{'station_id'};
+my $query_type = $params->{'type'};
+
+if ( $query_type eq 'current' ) {
+    <[weather.parent.update_current]>->($station_id);
+} else {
+    <[weather.parent.update_forecast]>->($station_id);
+}
