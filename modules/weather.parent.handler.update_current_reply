@@ -1,0 +1,67 @@
+# >:]
+
+# name = weather.parent.handler.update_current_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->(
+        0,
+        "failed to retrieve current weather data ["
+            . $reply->{'call_args'}->{'args'} . "]"
+    );
+    return undef;    # XXX: set up retry
+}
+
+my $station_id = $reply->{'params'}->{'station_id'};
+
+#my $city         = $reply->{'params'}->{'city'};
+my $data_str = $reply->{'data'};
+$data_str =~ s|\n$||;
+
+#print Dumper($reply);
+
+my ($current_data) = thaw($data_str);
+
+#print Dumper($current_data);
+
+<weather.timer.current>->cancel if exists <weather.timer.current>;
+
+# XXX: skip failed replies...
+if (    defined $current_data
+    and exists $current_data->{'cod'}
+    and $current_data->{'cod'} eq '200' ) {
+    <[weather.parent.cache.write_current]>->( $station_id, $data_str );
+    <[weather.parent.extract_current]>->( $station_id, $current_data );
+
+    <weather.timer.current> = <[event.add_timer]>->(
+        {   'after'   => <weather.update_interval.current> * 60,       # minutes
+            'handler' => 'weather.parent.handler.update_current_timer',
+            'data'    => $station_id
+        }
+    );
+
+} else {
+    <[base.log]>->( 0, "failed to obtain current weather data.." );
+    if ( exists <weather.data>->{$station_id}->{'current'} ) {
+        my $data_age
+            = time - <weather.data>->{$station_id}->{'current'}->{'data_time'};
+        my $age_str
+            = $data_age > 3600
+            ? sprintf( "%0.1f hours",   $data_age / 3600 )
+            : sprintf( "%0.1f minutes", $data_age / 60 );
+        $age_str =~ s|\.0 | |;
+        $age_str =~ s| (1 \w+)s | $1 |;
+        <[base.log]>->( 0, "keeping cached data ( $age_str old )" );
+    } else {
+
+        <weather.timer.current> = <[event.add_timer]>->(
+            {   'after' => 15,    # retry after 15 seconds (XXX: make smarter!)
+                'handler' => 'weather.parent.handler.update_current_timer',
+                'data'    => $station_id
+            }
+        );
+
+        # XXX: set up retry attempt...
+    }
+}

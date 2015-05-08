@@ -1,0 +1,20 @@
+# >:]
+
+# name = weather.parent.cache.write_current
+
+my ( $station_id, $weather_data ) = @_;
+my $cache_dir = <weather.cache_dir> . '/data';
+
+die "expected station_id parameter"
+    if not defined $station_id or !length($station_id);
+die "expected weather data string"
+    if not defined $weather_data or !length($weather_data);
+die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
+
+<[base.log]>->(
+    1, "<$station_id> writing current weather data to disk cache.."
+);
+
+my $station_id_hash = <[digest.sha1]>->($station_id);
+
+<[file.put]>->( "$cache_dir/$station_id_hash", time . "\n$weather_data\n" );
