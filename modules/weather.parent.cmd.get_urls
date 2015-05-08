@@ -1,0 +1,40 @@
+# >:]
+
+# name  = weather.parent.cmd.get_urls
+# param = [city|station_id]
+# descr = returns file:// urls to current weather pages
+
+my $city = $$call{'args'};
+if (    defined $city
+    and defined <weather.cfg.city>
+    and $city ne <weather.cfg.city> ) {
+    delete <weather.cfg.city>;
+    delete <weather.station_id>;
+    delete <weather.cfg.station_id>;
+    remove_tree(<weather.cache_dir>) if -d <weather.cache_dir>;
+}
+$city //= <weather.cfg.city>;
+
+my $station_id = $1 if $city =~ /^(\d+)$/;    # XXX!
+$station_id //= <weather.station_id> || <weather.cfg.station_id>;
+
+return {
+    'mode' => 'nack',
+    'data' => 'no city or station id configured or provided'
+    }
+    if not defined $station_id and not defined $city
+    or not defined $station_id and !length($city);
+
+my $city_str = defined $station_id ? "station id $station_id" : "'$city'";
+<[base.log]>->( 1, "weather urls for $city_str requested" );
+
+if ( defined $station_id ) {
+    my $url_list_str;
+    map { $url_list_str .= "$_\n" }
+        <[weather.parent.get_url_list]>->($station_id);
+    return { 'mode' => 'raw', 'data' => $url_list_str };
+} else {
+    push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
+    <[weather.parent.set_city]>->($city);
+    return { 'mode' => 'later' };
+}

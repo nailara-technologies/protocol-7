@@ -1,0 +1,56 @@
+# >:]
+
+# name = playlist.handler.weather_urls_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->(
+        0, "failed to fetch url [" . $reply->{'call_args'}->{'args'} . "]"
+    );
+    return;
+}
+
+my $city = $reply->{'params'}->{'city'};
+$reply->{'data'} =~ s|\n$||;
+my @weather_urls = split( /\n/, $reply->{'data'} );
+map { $_ =~ s|^file://|| } @weather_urls;
+
+my $changes = 0;
+my @new_list;
+
+foreach my $list_item ( @{<playlist.file_list>} ) {
+    my $type = <playlist.file_types>->{$list_item};
+    next if not defined $type;
+    if ( $type eq ':waiting:' and $list_item =~ /^\[weather:$city\]$/ ) {
+        <[base.log]>->( 1, "received weather urls for '$city'.." );
+        delete <playlist.file_types>->{$list_item};
+        push( @new_list, @weather_urls );
+        $changes++;
+    } else {
+        push( @new_list, $list_item );
+    }
+}
+
+if ($changes) {
+    map { <playlist.file_types>->{$_} = 'html' } @weather_urls;
+    <playlist.file_list> = \@new_list;
+    <[base.log]>->( 1, "weather urls added to playlist, updating..." );
+
+    # XXX: extract to seperate subroutine:
+    my $update_cmd = <update.notify_command> || 'playlist_update';
+    my $count = 0;
+    map {
+        # XXX: check agent name syntax!
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.$_.$update_cmd",
+                'call_args' => {},
+                'reply' => { 'handler' => 'dev.null' }    # XXX: check response!
+            }
+        );
+        $count++;
+    } split( / +/, <update.notify_agents> );
+    my $s = $count == 1 ? '' : 's';
+    my $notify_str = $count ? ", $count agent$s notified" : '';
+    <[base.log]>->( 1, $notify_str );
+}
