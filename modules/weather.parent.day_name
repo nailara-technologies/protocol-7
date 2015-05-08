@@ -1,0 +1,14 @@
+# >:]
+
+# name = weather.parent.day_name
+# descr = returns name of day for given or current unix time
+# todo: internationalization...
+
+my $unix = shift;
+$unix //= time();
+
+my @day_names = qw( So Mo Di Mi Do Fr Sa );
+
+my $wday = [ localtime($unix) ]->[6];
+
+return $day_names[$wday];

@@ -5,22 +5,25 @@
 my $station_id = shift;
 die "expected station_id parameter"
     if not defined $station_id or !length($station_id);
+<weather.cache_timeout> //= 3;    # hours
 
 if (   not exists <weather.data>->{$station_id}
-    or not exists <weather.data>->{$station_id}->{'current'} ) {
+    or not exists <weather.data>->{$station_id}->{'current'}
+    or not exists <weather.data>->{$station_id}->{'current'}->{'dt'}
+    or time - <weather.data>->{$station_id}->{'current'}->{'dt'} >= 30 ) {
 
-    my $current_data = <[weather.parent.cache.read_current]>->($station_id);
-
+    my $current_data
+        = <[weather.parent.cache.read_cache_data]>->( 'current', $station_id );
     if ( defined $current_data ) {
-        <[base.log]>->( 1, "found cached weather data.." );
+        <[base.log]>->( 1, "processing cached (current) weather data.." );
         <[weather.parent.extract_current]>->( $station_id, $current_data );
     }
 }
 
 <[base.log]>->( 1, "<$station_id> updating current weather data.." );
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "child.get_current",
-        'call_args' => { 'args' => $station_id },
+    {   'command'   => "child.request_data",
+        'call_args' => { 'args' => "$station_id current" },
         'reply'     => {
             'handler' => 'weather.parent.handler.update_current_reply',
             'params'  => { 'station_id' => $station_id }

@@ -1,0 +1,14 @@
+# >:]
+
+# name = weather.parent.cache.read_forecast
+
+my $station_id = shift;
+my $cache_dir  = <weather.cache_dir> . '/data';
+my $max_age    = <weather.cache_timeout> * 3600;
+
+die "expected station_id parameter"
+    if not defined $station_id or !length($station_id);
+
+<[base.log]>->( 2, "checking 'forecast' cache for '$station_id'.." );
+
+<[base.log]>->(1,"cache.read_forecast: not implemented yet!");

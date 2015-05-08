@@ -3,24 +3,22 @@
 # name = weather.parent.populate_html_dir
 
 my $station_id = shift;
-die "expected station_id parameter"
-    if not defined $station_id or !length($station_id);
+die "expected (valid) station id parameter"
+    if not defined $station_id or $station_id !~ /^\d+$/;
 my $cache_dir = <weather.cache_dir>;
 die "cache_dir not set" if not defined $cache_dir;
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 $cache_dir .= '/html';
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
-my $hash_str = <[digest.sha1]>->($station_id);
-my $html_dir = "$cache_dir/$hash_str";
-my $data_dir = <system.root_path> . '/data';
-my $icon_dir = "$data_dir/gfx/icons";
+my $html_dir     = "$cache_dir/$station_id";
+my $data_dir     = <system.root_path> . '/data';
+my $icon_dir     = "$data_dir/gfx/icons";
+my $gradient_dir = "$data_dir/gfx/gradients";
 
 <[base.log]>->( 1, "checking cache directory for station id '$station_id'.." );
 
 if ( !-d $html_dir ) {
-    my $short_str = $hash_str;
-    $short_str =~ s|^(.{8}).+(.{8})$|$1..$2|;
-    <[base.log]>->( 1, ": creating html dir '$short_str'" );
+    <[base.log]>->( 1, ": creating html dir '$html_dir'" );
     make_path($html_dir) or die "make_path($html_dir): $!";
 }
 my $image_dir = "$html_dir/images";
@@ -32,6 +30,7 @@ if ( !-d $image_dir ) {
 my $icon_setup = <[weather.parent.icon_setup]>->('vclouds'); # XXX: to config...
 my %icon_list  = reverse %{$icon_setup};
 my @icon_paths = keys %icon_list;
+push( @icon_paths, "$gradient_dir/gray-tq.png" );
 
 <weather.icons> = $icon_setup;
 
@@ -44,7 +43,7 @@ foreach my $icon_file (@icon_paths) {
         or die "copy('$icon_file','$target_path'): $!";
     $copied++;
 }
-<[base.log]>->( 1, ": copied $copied icons to ./images/" ) if $copied;
+<[base.log]>->( 1, ": copied $copied files to ./images/" ) if $copied;
 
 foreach my $name (<[weather.parent.page_list]>) {
     my $html_file_path = "$html_dir/$name.html";
