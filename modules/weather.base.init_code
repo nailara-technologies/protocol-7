@@ -1,0 +1,35 @@
+# >:]
+
+# name = weather.base.init_code
+
+use FreezeThaw qw(freeze thaw cmpStr);
+use File::Path qw(make_path remove_tree);
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+<weather.cfg.units> //= 'metric';
+
+<weather.cache_dir> //= '/var/cache/weather';
+my $cache_dir = <weather.cache_dir>;
+
+my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+    or die "user '" . <system.privs.user> . "' not in passwd file";
+
+if ( !-d $cache_dir ) {
+    <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
+    make_path( $cache_dir, { mode => 0755 } ) or die "make_path: $!";
+    chown( $uid, $gid, $cache_dir ) or die "chown: $!";
+}
+
+foreach my $subdir ( 'station_ids', 'html', 'data' ) {
+    my $subdir_path = "$cache_dir/$subdir";
+    next if -d $subdir_path;
+    my $mode = $subdir eq 'html' ? 0755 : 0750;
+    make_path( $subdir_path, { mode => $mode } ) or die "make_path: $!";
+    chown( $uid, $gid, $subdir_path ) or die "chown: $!";
+}
+
+chdir($cache_dir) or die "chdir($cache_dir): $!";
+
+0;

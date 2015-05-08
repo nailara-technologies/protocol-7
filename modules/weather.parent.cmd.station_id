@@ -1,0 +1,9 @@
+# >:]
+
+# name  = weather.parent.cmd.station_id
+# descr = return current station id
+
+return { 'mode' => 'nack', 'data' => 'station id not defined' }
+    if not defined <weather.station_id>;
+
+return { 'mode' => 'ack', 'data' => <weather.station_id> }
