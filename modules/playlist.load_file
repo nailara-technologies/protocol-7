@@ -41,13 +41,12 @@ if ( !@file_names ) {
 
 foreach my $file (@file_names) {
     my $agent_subname;
-    $agent_subname = $1 if $file =~ s|^([^\:]): +||;
+    $agent_subname = $1 if $file =~ s|^([^\:]+): +||;
     <playlist.agent_subnames>->{$file} = $agent_subname
         if defined $agent_subname;
     my $type = 'unknown';
 
     ### XXX: weather agent test hack ###
-
     if ( $file =~ /^\[weather:(.+)\]$/ ) {
 
         if ( not exists <playlist.agent_online> or !<playlist.agent_online> ) {
@@ -60,7 +59,10 @@ foreach my $file (@file_names) {
                     'call_args' => { 'args' => $city_str },
                     'reply'     => {
                         'handler' => 'playlist.handler.weather_urls_reply',
-                        'params'  => { 'city' => $city_str }
+                        'params'  => {
+                            'city'    => $city_str,
+                            'subname' => $agent_subname
+                        }
                     }
                 }
             );
