@@ -11,7 +11,8 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     return;
 }
 
-my $city = $reply->{'params'}->{'city'};
+my $city    = $reply->{'params'}->{'city'};
+my $subname = $reply->{'params'}->{'subname'};
 $reply->{'data'} =~ s|\n$||;
 my @weather_urls = split( /\n/, $reply->{'data'} );
 map { $_ =~ s|^file://|| } @weather_urls;
@@ -25,6 +26,7 @@ foreach my $list_item ( @{<playlist.file_list>} ) {
     if ( $type eq ':waiting:' and $list_item =~ /^\[weather:$city\]$/ ) {
         <[base.log]>->( 1, "received weather urls for '$city'.." );
         delete <playlist.file_types>->{$list_item};
+        delete <playlist.agent_subnames>->{$list_item};
         push( @new_list, @weather_urls );
         $changes++;
     } else {
@@ -33,7 +35,10 @@ foreach my $list_item ( @{<playlist.file_list>} ) {
 }
 
 if ($changes) {
-    map { <playlist.file_types>->{$_} = 'html' } @weather_urls;
+    map {
+        <playlist.file_types>->{$_} = 'html';
+        <playlist.agent_subnames>->{$_} = $subname if defined $subname;
+    } @weather_urls;
     <playlist.file_list> = \@new_list;
     <[base.log]>->( 1, "weather urls added to playlist, updating..." );
 
