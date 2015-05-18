@@ -1,0 +1,55 @@
+# >:]
+
+# name = mpv.handler.event.property-change.video-aspect
+
+my $params = shift;
+
+my $window_id = <x11.id>;
+my $aspect    = $params->{'data'};
+if ( exists <mpv.autoresize> and !<mpv.autoresize> ) {
+    <[base.log]>->( 2, ": auto resize is disabled, nothing to do.." );
+    return;
+}
+if ( not defined $aspect ) {
+    <[base.log]>->( 2, ": aspect property undefined(!), nothing to do.." );
+    return;
+}
+<mpv.current_aspect> = 0;    # window aspect
+if ( <mpv.current_aspect> == $aspect ) {
+    <[base.log]>->( 1, ": video aspect ratio is unchanged" );
+}
+<mpv.current_aspect> = $aspect;
+my $orientation = $aspect >= 1 ? 'landscape' : 'portrait';
+<mpv.orientation> = $orientation;
+
+my $box_width  = <x11.coordinates.right> - <x11.coordinates.left>;
+my $box_height = <x11.coordinates.bottom> - <x11.coordinates.top>;
+
+my $new_x;
+my $new_y;
+my $pos_x = <x11.coordinates.left>;
+my $pos_y = <x11.coordinates.top>;
+
+if ( $orientation eq 'landscape' ) {
+    $new_x = $box_width;
+    $new_y = sprintf( "%.0f", $box_width / $aspect );
+    $pos_y += sprintf( "%.0f", ( $box_height - $new_y ) / 2 );
+} else {
+    $new_y = $box_height;
+    $new_x = sprintf( "%.0f", $box_height * $aspect );
+    $pos_x += sprintf( "%.0f", ( $box_width - $new_x ) / 2 );
+}
+
+my $new_geometry = "${new_x}x${new_y}+$pos_x+$pos_y";
+
+<[base.log]>->( 2, ": resizing window : $new_x x $new_y ($new_geometry)" );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.xserver.set_geometry',
+        'call_args' => { 'args' => "$window_id $new_geometry" },
+        'reply'     => {
+            'handler' => 'dev.null',    # XXX: catch errors
+            'params'  => {}
+        }
+    }
+);

@@ -1,0 +1,10 @@
+# >:]
+
+# name = mpv.handler.event.property-change
+
+my $params = shift;
+
+return if not exists $params->{'event'} or not exists $params->{'name'};
+
+my $handler_name = "mpv.handler.event.property-change.$params->{name}";
+$code{$handler_name}->($params) if exists $code{$handler_name};

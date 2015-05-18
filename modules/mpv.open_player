@@ -7,11 +7,24 @@ my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
 my $socket_path = "/tmp/.mpv.socket.$$";
 $mpv_params .= " --input-unix-socket $socket_path";
+if ( exists <x11.coordinates> and exists <mpv.autoresize> and <mpv.autoresize> )
+{
+    my ( $width, $height ) = (
+        <x11.coordinates>->{'right'} - <x11.coordinates>->{'left'},
+        <x11.coordinates>->{'bottom'} - <x11.coordinates>->{'top'}
+    );
+    <[base.log]>->( 1, "auto resize is enabled (${width}x${height})" );
+    $mpv_params .= " --autofit=${width}x${height} --no-keepaspect";
+}
+
+$mpv_params .= " --input-unix-socket $socket_path";
 
 my $mpv_title_param .= '--title="' . <system.agent.name>;
 $mpv_title_param .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
 $mpv_title_param .= ' ( ${media_title} )"';
+
+<[base.log]>->( 2, "current mpv parameters: $mpv_params" );
 
 <[base.log]>->( 1, 'starting mpv player..' );
 
@@ -31,6 +44,8 @@ my $max_retries = 100;
 while ( $max_retries-- ) {
     last if -e $socket_path;
     <[base.sleep]>->(0.1);
+    <[base.log]>->( 2, ": waiting for $socket_path .." )
+        if !-e $socket_path;
 }
 if ( not -e $socket_path ) {
     <[base.log]>->(
