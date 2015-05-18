@@ -2,4 +2,9 @@
 
 # name = mpv.send_command
 
+if ( !<[mpv.json.command]>->(@_) ) {
+    <[base.log]>->( 0, "no command defined" );
+    return;
+}
+
 syswrite( <mpv.socket>, <[mpv.json.command]>->(@_) );

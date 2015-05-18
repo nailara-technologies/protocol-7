@@ -28,11 +28,16 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
     my $decoded     = decode_json($output_line);
 
+    if (    defined $decoded
+        and ref($decoded) eq 'HASH'
+        and exists $decoded->{'event'} ) {
+        <[mpv.handler.event]>->($decoded);
+    }
+
     if (    exists $decoded->{'error'}
         and exists <mpv.command.reply>
         and ref(<mpv.command.reply>) eq 'ARRAY'
         and @{<mpv.command.reply>} ) {
-
         my $reply_setup = shift @{<mpv.command.reply>};
 
         my $command_handler  = $reply_setup->{'handler'}  || '';
