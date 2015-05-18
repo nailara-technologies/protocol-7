@@ -67,26 +67,32 @@ foreach my $page_name (@page_list) {
     my $html_str = $$html_body_ref;
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
 
+    my $icon_day   = <weather.icons>->{'not_available'};
+    my $icon_night = <weather.icons>->{'not_available'};
+
+    my %temps = map { $_ => 'n/a' } ( 'morn', 'day', 'eve', 'night' );
+
     if (    exists $snipplet_names{'today'}
         and defined $today_ref
         and ref($today_ref) eq 'HASH'
         and exists $today_ref->{'temp'} ) {
-        my %temps = map { $_ => sprintf( "%.1f", $today_ref->{'temp'}->{$_} ) }
+        %temps = map { $_ => sprintf( "%.1f", $today_ref->{'temp'}->{$_} ) }
             ( 'morn', 'day', 'eve', 'night' );
 
         my $icon_num = $1 if $current_ref->{'icon'} =~ /^(\d+)/;
-        my $icon_day = <weather.icons>->{"${icon_num}d"};
-        $icon_day =~ s|^.*/|./images/|;
-        my $icon_night = <weather.icons>->{"${icon_num}n"};
-        $icon_night =~ s|^.*/|./images/|;
-
-        $html_str =~ s|\[TEMP_MORN\]|$temps{morn}|g;
-        $html_str =~ s|\[TEMP_DAY\]|$temps{day}|g;
-        $html_str =~ s|\[TEMP_EVE\]|$temps{eve}|g;
-        $html_str =~ s|\[TEMP_NIGHT\]|$temps{night}|g;
-        $html_str =~ s|\[ICON_DAY\]|$icon_day|g;
-        $html_str =~ s|\[ICON_NIGHT\]|$icon_night|g;
+        $icon_day   = <weather.icons>->{"${icon_num}d"};
+        $icon_night = <weather.icons>->{"${icon_num}n"};
     }
+    $icon_day =~ s|^.*/|./images/|;
+    $icon_night =~ s|^.*/|./images/|;
+
+    $html_str =~ s|\[TEMP_MORN\]|$temps{morn}|g;
+    $html_str =~ s|\[TEMP_DAY\]|$temps{day}|g;
+    $html_str =~ s|\[TEMP_EVE\]|$temps{eve}|g;
+    $html_str =~ s|\[TEMP_NIGHT\]|$temps{night}|g;
+    $html_str =~ s|\[ICON_DAY\]|$icon_day|g;
+    $html_str =~ s|\[ICON_NIGHT\]|$icon_night|g;
+
     $html_str =~ s|\[CITY\]|$data_ref->{city}|g;
     $html_str =~ s|\[TEMP\]|$current_temp|g;
     $html_str =~ s|\[DESCR\]|$current_ref->{descr}|g;
