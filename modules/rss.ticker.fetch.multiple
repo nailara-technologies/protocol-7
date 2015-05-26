@@ -114,7 +114,6 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
             $size, $atime, $mtime, $ctime, $blksize, $blocks
         ) = stat($url_data_file);
         my $file_age = sprintf( "%.2f", ( time() - $ctime ) / 3600 );
-
         if ( $file_age >= <rss.ticker.cache_timeout> ) {
             <[base.log]>->(
                 0,

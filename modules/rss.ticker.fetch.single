@@ -55,9 +55,13 @@ if ( $response->code == 200 ) {
     return 0;
 } else {
     <[base.log]>->(
-        0, "failed to access RSS url '$rss_url' (",
-        $response->status_line, ")"
+        0,
+        "failed to access RSS url '$rss_url' (" . $response->status_line . ")"
     );
+    if ( !-f $output_file ) {
+        <[base.log]>->( 0, "no cached data found for failed RSS feed!" );
+        return -2;
+    }
     my ($dev,  $ino,   $mode,  $nlink, $uid,     $gid, $rdev,
         $size, $atime, $mtime, $ctime, $blksize, $blocks
     ) = stat($output_file);
