@@ -30,9 +30,13 @@ map {
     push( @file_names, $_ ) if length($_);
 } @lines;
 
-<playlist.file_list>    = \@file_names;
-<playlist.file_types>   = {};
-<playlist.items_queued> = 0;
+<playlist.file_list>      = \@file_names;
+<playlist.file_types>     = {};
+<playlist.items_queued>   = 0;
+<playlist.network_errors> = 0;
+<playlist.had_network_errors> //= 0;
+<playlist.retry_delay>        //= 0.1;
+<playlist.retry_max_delay>    //= 5;
 
 if ( !@file_names ) {
     <[base.log]>->( 0, "no files in playlist!" );
@@ -82,7 +86,33 @@ foreach my $file (@file_names) {
             }
             $type = <[playlist.http.get_mime_type]>->($file);
 
-            # todo: retry on failures (no network)
+            if ( $type eq 'network_error' ) {
+
+                <playlist.network_errors>++;
+                <playlist.had_network_errors> = 1;
+
+                <[base.log]>->(
+                    0,
+                    ': network error, retrying in '
+                        . <playlist.retry_delay>
+                        . ' seconds..'
+                );
+
+                <playlist.timer.type_retry>->cancel
+                    if exists <playlist.timer.type_retry>;
+
+                <playlist.timer.type_retry> = <[event.add_timer]>->(
+                    {   'after'   => <playlist.retry_delay>,
+                        'handler' => 'playlist.cmd.update',
+                        'repeat'  => 0
+                    }
+                );
+                <playlist.retry_delay> *= 2;
+                <playlist.retry_delay> = <playlist.retry_max_delay>
+                    if <playlist.retry_delay> > <playlist.retry_max_delay>;
+            } elsif ( $type eq 'unknown' ) {
+                <[base.log]>->( 0, ": <!> unknown file type for '$file'" );
+            }
         } else {
             $type = 'html';
         }
@@ -101,7 +131,11 @@ foreach my $file (@file_names) {
     $type =~ s| +|_|g;
 
     <playlist.file_types>->{$file} = $type;
-
 }
 
+if ( <playlist.had_network_errors> and !<playlist.network_errors> ) {
+    <playlist.had_network_errors> = 0;
+    delete <playlist.retry_delay>;
+    <[base.log]>->( 1, ": all network errors resolved! :)" );
+}
 return scalar @file_names;
