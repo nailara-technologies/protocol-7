@@ -57,7 +57,9 @@ if (    exists $json_data->{'list'}
 
     if ( $type eq 'days' ) {
 
-        while ( $json_data->{'list'}->[0]->{'dt'} < $next_midnight ) {
+        while ( defined $json_data->{'list'}->[0]->{'dt'}
+            and defined $next_midnight
+            and $json_data->{'list'}->[0]->{'dt'} < $next_midnight ) {
             if ( not exists $json_data->{'today'} ) {
                 $json_data->{'today'} = shift( @{ $json_data->{'list'} } );
             } else {
