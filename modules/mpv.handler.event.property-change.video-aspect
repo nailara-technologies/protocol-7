@@ -14,6 +14,14 @@ if ( not defined $aspect ) {
     <[base.log]>->( 2, ": aspect property undefined(!), nothing to do.." );
     return;
 }
+
+if ( not defined $window_id ) {
+    <[base.log]>->( 0, "window id is undefined! aborting resizing attempt.." );
+
+    # XXX: retry to obtain id or disable --no-keepaspect option!
+    return;
+}
+
 <mpv.current_aspect> = 0;    # window aspect
 if ( <mpv.current_aspect> == $aspect ) {
     <[base.log]>->( 1, ": video aspect ratio is unchanged" );
