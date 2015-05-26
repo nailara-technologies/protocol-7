@@ -34,10 +34,25 @@ if ( $orientation eq 'landscape' ) {
     $new_x = $box_width;
     $new_y = sprintf( "%.0f", $box_width / $aspect );
     $pos_y += sprintf( "%.0f", ( $box_height - $new_y ) / 2 );
+
+    if ( $new_y > $box_height ) {
+        $new_y = $box_height;
+        $new_x = sprintf( "%.0f", $box_height * $aspect );
+        $pos_x += sprintf( "%.0f", ( $box_width - $new_x ) / 2 );
+        $pos_y = <x11.coordinates.top>;
+    }
+
 } else {
     $new_y = $box_height;
     $new_x = sprintf( "%.0f", $box_height * $aspect );
     $pos_x += sprintf( "%.0f", ( $box_width - $new_x ) / 2 );
+
+    if ( $new_x > $box_width ) {
+        $new_x = $box_width;
+        $new_y = sprintf( "%.0f", $box_width / $aspect );
+        $pos_y += sprintf( "%.0f", ( $box_height - $new_y ) / 2 );
+        $pos_x = <x11.coordinates.left>;
+    }
 }
 
 my $new_geometry = "${new_x}x${new_y}+$pos_x+$pos_y";
