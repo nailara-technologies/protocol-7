@@ -461,7 +461,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
         $$output .= "NACK not implemented yet..\n";
         return 1;
 
-        if ( exists $data{'user'}{$1}
+        if ( exists $data{'user'}{$1}{'session'}
             and $data{'user'}{$1}{'mode'} eq 'link' ) {
 
          #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
@@ -492,11 +492,59 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                 and $data{'session'}{$target_sid}{'mode'} eq 'client' ) {
                 @send_sids = ($target_sid);
             }
-        } elsif ( exists $data{'user'}{$target_name} ) {
+        } elsif ( exists $data{'user'}{$target_name}{'session'} ) {
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 next if $data{'session'}{$target_sid}{'mode'} ne 'client';
                 push( @send_sids, $target_sid );
+            }
+        } elsif ( my $v_id
+            = <[base.agents.ondemand_registered]>->($target_name) ) {
+            my $target_user    = 'root';
+            my $target_command = <agents.virtual>->{$v_id}->{'target_command'};
+            if ( defined $target_command
+                and $target_command =~ /^([^\.]+)\.[^\.]+$/ ) {
+                $target_user = $1;
+            } elsif ( defined $target_command ) {
+                undef $target_user;
+            }
+
+            # XXX: deal with multi line commands... (command_mode 2)
+
+            <[base.log]>->( 1, "ondemand agent '$target_name' requested ..." );
+
+            if ( not defined $target_user
+                or exists $data{'user'}{$target_user}{'session'} ) {
+                $target_command //= 'root.start';
+
+                # ...
+
+                push(
+                    @{ <agents.virtual>->{$v_id}->{'queue'} },
+                    {   'source_id' => $id,
+                        'cmd_id'    => $_cmd_id,
+                        'cmd_str'   => $command_str,
+                        'cmd_args'  => $$call_args{'args'}
+                    }
+                );
+
+                if ( not exists <agents.virtual>->{$v_id}->{'starting'} ) {
+                    <agents.virtual>->{$v_id}->{'starting'} = 1;
+                    <[base.proto.nailara.command.send.local]>->(
+                        {   'command'   => $target_command,
+                            'call_args' => {
+                                'args' => <agents.virtual>->{$v_id}->{'name'}
+                            },
+                            'reply' => {
+                                'handler' => 'base.handler.ondemand_startup',
+                                'params'  => { 'v_id' => $v_id }
+                            }
+                        }
+                    );
+                }
+                return 0;
+            } else {
+                <[base.log]>->( 1, ": target user '$target_user' not found!" );
             }
         }
 
