@@ -123,6 +123,26 @@ $target_queue = 'queued'  if $status eq 'offline';
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue and $target_queue ne 'queued';
 
+# reply to startup notification requests
+if ( exists <root.agent.notify_online>->{$agent_name}
+    and $status =~ /^(online|offline|failed)$/ ) {
+    while ( my $reply_id
+        = shift @{ <root.agent.notify_online>->{$agent_name} } ) {
+        my $startup_reply_mode = $status eq 'online' ? 'ack' : 'nack';
+        my $startup_reply_msg
+            = $status eq 'online'
+            ? "agent '$agent_name' now online"
+            : "agent '$agent_name' startup failed";
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => $startup_reply_mode,
+                'data' => $startup_reply_msg
+            }
+        );
+    }
+    delete <root.agent.notify_online>->{$agent_name};
+}
+
 # delayed respawning on startup failure (slowing down with failures..)
 if ( defined $target_queue and $target_queue eq 'queued' ) {
     $instance->{'respawn_timer'}->cancel if exists $instance->{'respawn_timer'};

@@ -73,10 +73,30 @@ $data{'list'} = {
 # 'verify_instance' command not required in core type agents (for now)
 if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
     <[base.disable_command]>->('verify_instance');
+    <agents.virtual> //= {};
+    my $key_ref = \$data{'agents'}{'virtual'};
+    $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4096;  # XXX: -> config!
+    <list.virtual> = {
+        'var'   => 'data',
+        'key'   => 'agents.virtual',
+        'mask'  => 'name type <key>:id status session',
+        'align' => {
+            'name'     => 'left+2',
+            'type'     => 'center',
+            'status'   => 'center-1',
+            'session' => 'center-1'
+        },
+        'filters' => {
+            'status'   => 'base.parser.ondemand_status',
+            'session' => 'base.parser.ondemand_session'
+        },
+        'descr' => 'virtual agent list'
+    };
 } else {    # remove some commands for non-core type agents
     map { <[base.disable_command]>->($_) } (
         'online', 'session_key', 'whoami', 'slay',
-        'exit',   'clear',       'time',   'timezone'
+        'exit',   'clear',       'time',   'timezone',
+        'ondemand_agent'
     );
 }
 

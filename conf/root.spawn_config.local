@@ -6,7 +6,7 @@
 .: globals :.
 
   agents.enabled = core log system xserver unclutter openbox compton \
-                   layout playlist weather
+                   layout playlist
 
 .: agents :.
 
@@ -21,6 +21,7 @@
 
       : root-post-init :
         status.post-init = [root.callback.connect_to_core:<instance_id>]
+        [root.callback.register_ondemand]
 
       : startup-failure :
         [root.shutdown:'core-agent startup failure']
@@ -172,7 +173,7 @@
 
   - playlist
 
-      dependencies = core weather
+      dependencies = core
 
       : root-init :
         start_mode = exec-sic
@@ -185,6 +186,7 @@
   - weather
 
       dependencies = core
+      spawn.on-demand = 1
 
       : root-init :
         start_mode = exec-sic

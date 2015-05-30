@@ -1,0 +1,15 @@
+# >:]
+
+# name = base.parser.ondemand_status
+
+my $agent_name = shift;
+
+return 'online'
+    if exists $data{'user'}{$agent_name}{'session'}
+    and keys( %{ $data{'user'}{$agent_name}{'session'} } );
+
+my $v_id = <[base.agents.ondemand_registered]>->($agent_name);
+
+return 'starting' if exists <agents.virtual>->{$v_id}->{'starting'};
+
+return 'registered';

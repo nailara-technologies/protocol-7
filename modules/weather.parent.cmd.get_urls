@@ -15,7 +15,7 @@ if (    defined $city
 }
 $city //= <weather.cfg.city>;
 
-my $station_id = $1 if $city =~ /^(\d+)$/;    # XXX!
+my $station_id = $1 if defined $city and $city =~ /^(\d+)$/;    # XXX!
 $station_id //= <weather.station_id> || <weather.cfg.station_id>;
 
 return {
