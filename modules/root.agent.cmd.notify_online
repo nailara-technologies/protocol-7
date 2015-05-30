@@ -1,0 +1,29 @@
+# >:]
+
+# name  = root.agent.cmd.notify_online
+# param = <agent_name>
+# descr = reply when agent startup complete or failed
+
+<root.agent.notify_online> //= {};
+
+my $agent_name = $$call{'args'};
+my $reply_id   = $$call{'reply_id'};
+
+return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
+    if not defined $agent_name or !length($agent_name);
+return { 'mode' => 'nack', 'data' => "no such agent in setup [$agent_name]" }
+    if not defined <[agent.get_id]>->($agent_name);
+
+foreach my $id ( keys %{<root.agent.instance>} ) {
+    return { 'mode' => 'ack', 'data' => "agent '$agent_name' already online!" }
+        if <root.agent.instance>->{$id}->{'agent_name'} eq $agent_name
+        and <root.agent.instance>->{$id}->{'status'} eq 'online';
+}
+
+<[base.log]>->(
+    2, "startup notification request fot agent '$agent_name' received"
+);
+
+push( @{ <root.agent.notify_online>->{$agent_name} }, $reply_id );
+
+return { 'mode' => 'later' }

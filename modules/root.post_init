@@ -14,6 +14,14 @@ my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
 
 <[root.set_up_agent_dependencies]>->(@all_agents);
 
+<root.ondemand_agents> = [];
+
+foreach my $agent_name (@all_agents) {
+    my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
+    my $start_ondemand = $agent_config->{'spawn'}->{'on-demand'} || 0;
+    push( @{<root.ondemand_agents>}, $agent_name ) if $start_ondemand;
+}
+
 foreach my $agent_name (@agents) {
     my $agent_config   = <root.spawn_config.agents.config>->{$agent_name};
     my $agent_id       = <[agent.get_id]>->($agent_name);
