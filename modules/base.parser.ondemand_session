@@ -1,0 +1,12 @@
+# >:]
+
+# name = base.parser.ondemand_session
+
+my @sids;
+my $agent_name = shift;
+@sids = keys( %{ $data{'user'}{$agent_name}{'session'} } )
+    if exists $data{'user'}{$agent_name}{'session'};
+
+return '' if !@sids;
+
+return join( ', ', @sids )

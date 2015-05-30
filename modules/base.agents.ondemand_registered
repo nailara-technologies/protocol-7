@@ -1,0 +1,14 @@
+# >:]
+
+# name = base.agents.ondemand_registered
+
+my $agent_name = shift;
+
+map {
+    return $_
+        if <agents.virtual>->{$_}->{'name'} eq $agent_name
+        and <agents.virtual>->{$_}->{'type'} eq 'ondemand'
+    }
+    keys %{<agents.virtual>};
+
+return 0;
