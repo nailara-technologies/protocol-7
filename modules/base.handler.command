@@ -24,6 +24,12 @@ my $re = $data{'regex'}{'base'};
 
 $_[0]->w->stop;
 
+# cancel ondemand timeout (reinstalled in idle watcher)
+if ( exists <base.timer.ondemand_timeout> ) {
+    <base.timer.ondemand_timeout>->cancel;
+    delete <base.timer.ondemand_timeout>;
+}
+
 # cleanup command line
 
 $$input =~ s/^\s+//;
@@ -169,6 +175,8 @@ $alias_to = $data{'alias'}{$cmd}
 $alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
     if exists $data{'user'}{$usr}{'alias'}
     and exists $data{'user'}{$usr}{'alias'}{$cmd};
+my $cmd_orig  = $cmd;
+my $args_orig = $$call_args{'args'};
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
     $cmd = $alias_to;
@@ -524,7 +532,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                     {   'source_id' => $id,
                         'cmd_id'    => $_cmd_id,
                         'cmd_str'   => $command_str,
-                        'cmd_args'  => $$call_args{'args'}
+                        'cmd_args'  => $args_orig
                     }
                 );
 
