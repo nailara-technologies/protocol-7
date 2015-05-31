@@ -5,9 +5,9 @@
 my $reply = shift;
 
 my $v_id = $reply->{'params'}->{'v_id'};
-delete <agents.virtual>->{$v_id}->{'starting'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
+    delete <agents.virtual>->{$v_id}->{'starting'};
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "ondemand agent startup failed ($reason)" );
     while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
@@ -17,7 +17,6 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         $data{'session'}{$sid}{'buffer'}{'output'}
             .= $cmd_id . "NACK unknown command\n";
     }
-
 } else {
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => 'root.notify_online',
