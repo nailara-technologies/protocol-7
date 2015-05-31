@@ -7,9 +7,6 @@ use File::Copy;
 use LWP::UserAgent;
 use File::Path qw(make_path remove_tree);
 
-<[event.add_signal]>
-    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
-
 <pdf.html.converting> //= {};
 <pdf.html.cache_dir>  //= '/var/cache/pdf2html';
 my $cache_dir = <pdf.html.cache_dir>;
