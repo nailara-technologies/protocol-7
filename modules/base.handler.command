@@ -519,8 +519,6 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
             # XXX: deal with multi line commands... (command_mode 2)
 
-            <[base.log]>->( 1, "ondemand agent '$target_name' requested ..." );
-
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
                 $target_command //= 'root.start';
@@ -538,6 +536,9 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
                 if ( not exists <agents.virtual>->{$v_id}->{'starting'} ) {
                     <agents.virtual>->{$v_id}->{'starting'} = 1;
+                    <[base.log]>->(
+                        1, "ondemand agent '$target_name' requested ..."
+                    );
                     <[base.proto.nailara.command.send.local]>->(
                         {   'command'   => $target_command,
                             'call_args' => {
