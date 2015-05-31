@@ -35,5 +35,7 @@ if (    $$ == <system.process_start.pid>
             'handler' => 'base.handler.ondemand_timeout',
             'data'    => {}
         }
-    );
+        )
+        if not exists $data{'route'}
+        or !keys %{ $data{'route'} };
 }
