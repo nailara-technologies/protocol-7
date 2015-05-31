@@ -113,6 +113,9 @@
   - notify
 
       dependencies = core
+      spawn.on-demand  = 1
+      ping.disabled    = 1
+      respawn.disabled = 1
 
       : root-init :
         start_mode = exec-sic
@@ -121,6 +124,7 @@
 
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
+        [base.agents.set_ondemand_timeout:13]
 
   - browser
 

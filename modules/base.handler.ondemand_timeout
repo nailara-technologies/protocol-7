@@ -1,0 +1,11 @@
+# >:]
+
+# name = base.handler.ondemand_timeout
+
+my $timeout = <system.ondemand_timeout>;
+
+<[base.log]>->(
+    1, "on-demand agent timeout after $timeout seconds.. shutting down.."
+);
+
+CORE::exit(0);

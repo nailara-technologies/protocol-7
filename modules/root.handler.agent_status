@@ -114,6 +114,14 @@ if (    $old_status eq 'starting'
     }
 }
 
+if (    $status eq 'offline'
+    and exists $agent_config->{'respawn'}->{'disabled'}
+    and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
+    <[base.log]>->( 1, "auto-respawn for instance $instance_id is disabled.." );
+    <[agent.cmd.stop]>->( { 'args' => $instance_id } );
+    return;
+}
+
 # select correct target job queue
 my $target_queue;
 $target_queue = 'running' if $status eq 'online';
@@ -188,27 +196,40 @@ if ( $status eq 'shutdown' or exists <agent.instance.shutdown>->{$instance_id} )
 if ( $old_status ne 'online' and $status eq 'online' ) {
     delete $instance->{'respawn_delay'};    # reset
 
-    # installing a timer to check instance status
-    <[base.log]>->(
-        2, "setting up response timer for instance $instance_id [$agent_name].."
-    );
+    if ( not exists $agent_config->{'ping'}->{'disabled'}
+        or !$agent_config->{'ping'}->{'disabled'} ) {
 
-    # cancel old timers first...
-    $instance->{'status_timer'}->cancel
-        if exists $instance->{'status_timer'}
-        and $instance->{'status_timer'}->is_active;
-    $instance->{'timeout_timer'}->cancel
-        if exists $instance->{'timeout_timer'}
-        and $instance->{'timeout_timer'}->is_active;
+        # installing a timer to check instance status
+        <[base.log]>->(
+            2,
+            "setting up response timer for instance"
+                . " $instance_id [$agent_name].."
+        );
 
-    # set up new status timer..
-    $instance->{'status_timer'} = <[event.add_timer]>->(
-        {   'after'    => $status_timer_delay,
-            'interval' => $status_timer_interval + sprintf( "%.3f", rand(2) ),
-            'handler'  => 'root.handler.status_timer',
-            'data'     => $instance_id
-        }
-    );
+        # cancel old timers first...
+        $instance->{'status_timer'}->cancel
+            if exists $instance->{'status_timer'}
+            and $instance->{'status_timer'}->is_active;
+        $instance->{'timeout_timer'}->cancel
+            if exists $instance->{'timeout_timer'}
+            and $instance->{'timeout_timer'}->is_active;
+
+        # set up new status timer..
+        $instance->{'status_timer'} = <[event.add_timer]>->(
+            {   'after'    => $status_timer_delay,
+                'interval' => $status_timer_interval
+                    + sprintf( "%.3f", rand(2) ),
+                'handler' => 'root.handler.status_timer',
+                'data'    => $instance_id
+            }
+        );
+    } else {
+        <[base.log]>->(
+            2,
+            "ping response check disabled for instance"
+                . " $instance_id [$agent_name].."
+        );
+    }
 
     # clean up temporary agent instance startup data
     delete $instance->{'init_data'};
