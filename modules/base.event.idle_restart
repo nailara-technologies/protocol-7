@@ -26,3 +26,13 @@ if (    defined $data{'watcher_list'}{'paused'}
     $data{'watcher_list'}{'paused'} = [];
     $_[0]->w->stop;
 }
+
+if ( exists <system.ondemand_timeout>
+    and not exists <base.timer.ondemand_timeout> ) {
+    <base.timer.ondemand_timeout> = <[event.add_timer]>->(
+        {   'after'   => <system.ondemand_timeout>,
+            'handler' => 'base.handler.ondemand_timeout',
+            'data'    => {}
+        }
+    );
+}
