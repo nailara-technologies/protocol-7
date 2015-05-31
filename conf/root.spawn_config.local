@@ -128,7 +128,7 @@
 
   - browser
 
-      dependencies = core xserver openbox pdf2html
+      dependencies = core xserver openbox
 
       : root-init :
         start_mode = exec-sic
@@ -203,6 +203,9 @@
   - pdf2html
 
       dependencies = core playlist
+      spawn.on-demand  = 1
+      ping.disabled    = 1
+      respawn.disabled = 1
 
       : root-init :
         start_mode = exec-sic
@@ -211,6 +214,7 @@
 
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
+        [base.agents.set_ondemand_timeout:30]
 
   - image2html
 
