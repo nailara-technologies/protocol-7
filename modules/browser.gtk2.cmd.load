@@ -25,21 +25,31 @@ my $signal_id;
 $signal_id = $frame->signal_connect(
     'notify::load-status' => sub {
         my $status = $frame->get_load_status;
+        my $title  = $frame->get_title;
+        $title //= '';
 
-        if ( $status eq 'finished' ) {
+        if ( $status eq 'finished' and $title ne '404 Not Found' ) {
             $frame->signal_handler_disconnect($signal_id);
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'ack', 'data' => 'finished loading' }
             );
-        } elsif ( $status eq 'failed' ) {
+        } elsif ( $status eq 'failed'
+            or $status eq 'finished' and $title eq '404 Not Found' ) {
             $frame->signal_handler_disconnect($signal_id);
-
-            <[base.log]>->( 0, "failed to load url $url" );
+            my $reason_txt = $title eq '404 Not Found' ? " [$title]" : '';
+            <[base.log]>->( 0, "failed to load url $url" . $reason_txt );
 
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'nack', 'data' => 'failed to load' }
             );
-            Glib::Idle->add( sub { $view->open(<browser.error_page>); return 0 }
+            my $fail_page_ref = <[file.slurp]>->(<browser.error_page>);
+            $$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.failed_to_load>|sg;
+            Glib::Idle->add(
+                sub {
+                    $view->load_string( $$fail_page_ref, 'text/html', 'UTF-8',
+                        'FAIL' );
+                    return 0;
+                }
             );
         }
     }

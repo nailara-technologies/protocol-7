@@ -1,0 +1,34 @@
+# >:]
+
+# name = base.locales.load_file
+
+my $file_path = shift;
+die "locale file '$file_path' not found!" if !-f $file_path;
+( my $filename = $file_path ) =~ s|^.*/||;
+my $locale_data = {};
+
+<[base.log]>->( 1, ": loading locale file '$filename'.." );
+
+my @lines;
+
+<[file.slurp]>->( $file_path, \@lines );
+
+my $entries = 0;
+
+map {
+    $_ =~ s/^\s+|\s+$//g;
+    $_ =~ s|^ *#[^\n]*$||mg;
+    $_ =~ s| +#[^\n]*$||mg;
+    $_ =~ s|\n\n|\n|sg;
+    $_ =~ s/^\n|\n$//mg;
+    if ( length($_) and $_ =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
+        $locale_data->{$1} = $2;
+        $entries++;
+    } elsif ( length($_) ) {
+        warn("syntax error in locale file '$filename' [$_]");
+    }
+} @lines;
+my $s = $entries == 1 ? 'y' : 'ies';
+<[base.log]>->( 1, ": : $entries entr$s found" );
+
+return $locale_data;
