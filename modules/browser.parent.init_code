@@ -10,4 +10,7 @@
 <[event.add_signal]>->(
     { 'signal' => 'CHLD', 'handler' => 'browser.parent.handler.sig_chld' } );
 
+warn( "error page template '" . <browser.error_page> . "' not found!" )
+    if !-f <browser.error_page>;
+
 0;

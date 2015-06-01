@@ -65,7 +65,20 @@ foreach my $page_name (@page_list) {
         $content_str .= $$snipplet_ref;
     }
     my $html_str = $$html_body_ref;
+
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
+
+    $html_str =~ s|\[TXT:current\]|<locales.string.tmpl.current>|g;
+    $html_str =~ s|\[TXT:cloudiness\]|<locales.string.tmpl.cloudiness>|g;
+    $html_str =~ s|\[TXT:humidity\]|<locales.string.tmpl.humidity>|g;
+    $html_str =~ s|\[TXT:pressure\]|<locales.string.tmpl.pressure>|g;
+    $html_str =~ s|\[TXT:wind\]|<locales.string.tmpl.wind>|g;
+    $html_str =~ s|\[TXT:temperatures\]|<locales.string.tmpl.temperatures>|g;
+    $html_str =~ s|\[TXT:today\]|<locales.string.tmpl.today>|g;
+    $html_str =~ s|\[TXT:morning\]|<locales.string.tmpl.morning>|g;
+    $html_str =~ s|\[TXT:day\]|<locales.string.tmpl.day>|g;
+    $html_str =~ s|\[TXT:evening\]|<locales.string.tmpl.evening>|g;
+    $html_str =~ s|\[TXT:night\]|<locales.string.tmpl.night>|g;
 
     my $icon_day   = <weather.icons>->{'not_available'};
     my $icon_night = <weather.icons>->{'not_available'};
@@ -161,7 +174,11 @@ foreach my $page_name (@page_list) {
         $content_str .= $$snipplet_ref;
     }
     my $html_str = $$html_body_ref;
+
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
+
+    $html_str =~ s|\[TXT:humidity\]|<locales.string.tmpl.humidity>|g;
+    $html_str =~ s|\[TXT:wind\]|<locales.string.tmpl.wind>|g;
 
     # ( 'current' [ 'city' tile ] )
     $html_str =~ s|\[CITY\]|$data_ref->{city}|g;
@@ -227,7 +244,11 @@ foreach my $page_name (@page_list) {
         $content_str .= $$snipplet_ref;
     }
     my $html_str = $$html_body_ref;
+
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
+
+    $html_str =~ s|\[TXT:cloudiness\]|<locales.string.tmpl.cloudiness>|g;
+    $html_str =~ s|\[TXT:wind\]|<locales.string.tmpl.wind>|g;
 
     # ( 'current' [ 'city' tile ] )
     $html_str =~ s|\[CITY\]|$data_ref->{city}|g;
