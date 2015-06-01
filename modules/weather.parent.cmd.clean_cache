@@ -4,8 +4,9 @@
 # param = [html|data|stations]
 # descr = erase weather data disk cache (crude, restart!)
 
-my $param = $$call{'args'} || '';
+my $param     = $$call{'args'} || '';
 my $cache_dir = <weather.cache_dir>;
+my $city_file = "$cache_dir/city.current";
 
 return { 'mode' => 'nack', 'data' => "cache dir '$cache_dir' not found!" }
     if !-d $cache_dir;
@@ -27,6 +28,8 @@ $which_str = " station-id" if $param eq 'stations';
 <[base.log]>->( 1, "cleaning up weather$which_str cache... (requested)" );
 
 map { remove_tree( "$cache_dir/$_", { 'keep_root' => 1 } ) } @subdirs;
+
+# unlink($city_file) if -f $city_file; # XXX: would likely break restart!
 
 # XXX: update weather data and files... ; clean up weather data in ram...
 
