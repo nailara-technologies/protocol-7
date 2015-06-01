@@ -2,12 +2,18 @@
 
 # name = weather.parent.set_city
 
-my $city = shift;
+my $city      = shift;
+my $cache_dir = <weather.cache_dir>;
 die "expected city parameter" if not defined $city or !length($city);
+die "cache dir '$cache_dir' not found" if !-d $cache_dir;
+my $city_file = "$cache_dir/city.current";
 
 <[weather.parent.get_station_id]>->($city);
 
 <weather.cfg.city> = $city;
+
+<[base.log]>->( 1, "writing current city setup to disk cache.." );
+<[file.put]>->( $city_file, time() . " $city\n" );
 
 if ( defined <weather.station_id> ) {    # cached id found
     <[weather.parent.populate_html_dir]>->(<weather.station_id>);

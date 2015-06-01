@@ -4,7 +4,9 @@
 # param = [city|station_id]
 # descr = returns file:// urls to current weather pages
 
-my $city = $$call{'args'};
+my $city      = $$call{'args'};
+my $cache_dir = <weather.cache_dir>;
+my $city_file = "$cache_dir/city.current";
 if (    defined $city
     and defined <weather.cfg.city>
     and $city ne <weather.cfg.city> ) {
@@ -32,6 +34,10 @@ if ( defined $station_id ) {
     my $url_list_str;
     map { $url_list_str .= "$_\n" }
         <[weather.parent.get_url_list]>->($station_id);
+    if ( !-f $city_file ) {
+        <[base.log]>->( 1, "storing current city setup to disk cache.." );
+        <[file.put]>->( $city_file, time() . " $city\n" );
+    }
     return { 'mode' => 'raw', 'data' => $url_list_str };
 } else {
     push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
