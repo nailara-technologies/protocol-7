@@ -51,6 +51,25 @@ if ( !<weather.child.pid> ) {    ## child ##
         = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
+    my $cache_dir = <weather.cache_dir>;
+    my $city_file = "$cache_dir/city.current";
+    if ( -f $city_file ) {
+        <[base.log]>->(
+            1, "found previously saved city setup in disk cache..."
+        );
+        my $city_sref = <[file.slurp]>->($city_file);
+        my ( $timestamp, $loaded_city ) = ( $1, $2 )
+            if $$city_sref =~ m|^(\d+)\s+(.+)$|;
+        if ( defined $loaded_city ) {
+            <[base.log]>->( 1, "restoring city '$loaded_city' from cache.." );
+            <weather.cfg.city> = $loaded_city;
+        } else {
+            <[base.log]>
+                ->( 0, "syntax error in city cache file, removing it!" );
+            unlink($city_file) or warn "unlink failed: $!";
+        }
+    }
+
     if ( defined <weather.cfg.city> and length(<weather.cfg.city>) ) {
         <[weather.parent.set_city]>->(<weather.cfg.city>);
     } else {
