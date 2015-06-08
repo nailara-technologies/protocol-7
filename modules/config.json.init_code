@@ -16,14 +16,27 @@ use Hash::Flatten qw(flatten);
 <json.parser>->utf8(1);
 
 <config.json.export_allowed> //= 1;
-<config.json.export_dir> //= <system.conf_path> . '/export';
+<config.json.export_dir> //= <system.local_config_dir> . '/export';
 
 <config.json.import_allowed> //= 1;
-<config.json.import_dir> //= <system.conf_path> . '/import';
+<config.json.import_dir> //= <system.local_config_dir> . '/import';
 
-mkdir <config.json.export_dir>
-    if <config.json.export_allowed> and !-d <config.json.export_dir>;
-mkdir <config.json.import_dir>
-    if <config.json.import_allowed> and !-d <config.json.import_dir>;
+my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+    or die "user '" . <system.privs.user> . "' not in passwd file";
+
+foreach my $mode ( 'export', 'import' ) {
+    my $dir_path = <config.json>->{"${mode}_dir"};
+    if ( <config.json>->{"${mode}_allowed"}
+        and !-d $dir_path ) {
+        mkdir $dir_path
+            or warn "failed to create directory '$dir_path' [$!]";
+        chown( $uid, $gid, $dir_path )
+            or warn "failed to change ownership of directory '"
+            . $dir_path
+            . "' [$!]";
+        chmod( 0750, $dir_path )
+            or warn "chmod failed ('$dir_path') [$!]";
+    }
+}
 
 0;
