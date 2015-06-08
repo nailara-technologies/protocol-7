@@ -1,0 +1,25 @@
+# >:]
+
+# name = config.handler.agent_reply
+
+my $reply      = shift;
+my $reply_id   = $reply->{'params'}->{'reply_id'};
+my $agent_name = $reply->{'params'}->{'agent_name'};
+
+my $mode      = 'nack';
+my $reply_str = $reply->{'call_args'}->{'args'};
+
+if (    $reply->{'cmd'} eq 'NACK'
+    and $reply->{'call_args'}->{'args'} eq 'unknown command' ) {
+    $reply_str
+        = $agent_name eq 'core'
+        ? "'core' agent refused reply!"
+        : "agent '$agent_name' not online or refusing reply";
+} elsif ( $reply->{'cmd'} eq 'RAW' ) {
+    $mode      = 'raw';
+    $reply_str = $reply->{'data'};
+}
+
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => $mode, 'data' => $reply_str }
+);
