@@ -1,0 +1,18 @@
+# >:]
+
+# name = layout.config.export_rules
+
+return {
+    'keys' => {
+        'config'          => { 'export' => ['layout.default_profile'] },
+        'layout'          => { 'export' => ['layout.config.profiles'], },
+        'layout_stripped' => {
+            'export'  => ['layout.config.profiles'],
+            'exclude' => [
+                '*.start_agents', '*.stop_agents',
+                '*.fade',         '*.prepare_cmd',
+                '*.get_opacity'
+            ]
+        }
+    }
+};
