@@ -29,7 +29,7 @@ delete <list.users>;
     'descr' => 'agent instances',
     'mask'  => '<key>:instance job_id agent_name:name agent_id status',
     'align' => {
-        'agent_id'   => 'right-4',
+        'agent_id'   => 'right-5',
         'agent_name' => 'left+1',
         'instance'   => 'left+1',
         'job_id'     => 'right-4',
@@ -54,15 +54,15 @@ delete <list.users>;
     'var'   => 'data',
     'key'   => 'dependency.object',
     'descr' => 'agent dependency status',
-    'mask'  => 'agent_name <key>:depends_on <key>:status',
+    'mask'  => 'agent_name <key>:depends_on_agents <key>:status',
     'align' => {
-        'agent_name' => 'center+1',
-        'depends_on' => 'center-2',
-        'status'     => 'center-3'
+        'agent_name'        => 'center',
+        'depends_on_agents' => 'center-5',
+        'status'            => 'center-3'
     },
     'filters' => {
-        'depends_on' => 'root.parser.dependency_chain',
-        'status'     => 'root.parser.dependency_status'
+        'depends_on_agents' => 'root.parser.dependency_chain',
+        'status'            => 'root.parser.dependency_status'
     }
 };
 
