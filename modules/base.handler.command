@@ -60,7 +60,7 @@ if ( $$input
 
         my $_cmd_id = '';
         $cmd_id = $1 if length($1);
-        if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
+        $cmd_id = '' if $cmd_id =~ /^\(0+\)$/;
 
         my $header = 1;
 
