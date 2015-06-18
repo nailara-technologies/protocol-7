@@ -1,0 +1,9 @@
+# >:]
+
+# name  = base.cmd.get_subname
+# descr = return the subname of this agent instance
+
+return { 'mode' => 'nack', 'data' => 'subname undefined' }
+    if not exists <system.agent.subname> or !length(<system.agent.subname>);
+
+return { 'mode' => 'ack', 'data' => <system.agent.subname> }
