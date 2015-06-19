@@ -1,0 +1,23 @@
+# >:]
+
+# name = udev.open_adm
+
+<udev.adm.params> //= 'monitor -u -p';
+
+<udev.adm.pid>
+    = open( <udev.adm.fh.stdout>, '-|:raw',
+    <udev.path.unbuffer>, <udev.path.udevadm>,
+    split( / +/, <udev.adm.params> ) );
+
+if ( !<udev.adm.pid> ) {
+    <[base.log]>->( 0, "[!] failed to start udevadm [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    CORE::exit(1);
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <udev.adm.fh.stdout>,
+        'handler' => 'udev.handler.adm_stdout',
+        'data'    => { 'pid' => <udev.adm.pid>, }
+    }
+);
