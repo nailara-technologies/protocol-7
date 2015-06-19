@@ -1,0 +1,30 @@
+
+ .:[ udev event monitor agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[set_privs:'nailara']
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = *
+
+modules.load = auth net io.ip udev config.json
+[load_modules:<modules.load>]
+[init_modules]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+udev.adm_params = monitor -u -p
+
+# [udev.load_rules:'example'] # ( see ./conf/config.udev_rules.example file )
+
+[config.json.import_file:'udev.rules.json']
+
+[udev.open_adm]
+
+[base.get_session_id]
+
+[event.loop]
