@@ -1,0 +1,29 @@
+# >:]
+
+# name = config.json.init_code
+
+use JSON::PP;
+use Clone 'clone';
+use Hash::Merge::Simple;
+use Hash::Flatten qw(flatten);
+
+<json.parser> = JSON::PP->new();
+<json.parser>->convert_blessed(1);
+<json.parser>->allow_nonref(1);
+<json.parser>->canonical(1);
+<json.parser>->relaxed(1);
+<json.parser>->pretty(1);
+<json.parser>->utf8(1);
+
+<config.json.export_allowed> //= 1;
+<config.json.export_dir> //= <system.conf_path> . '/export';
+
+<config.json.import_allowed> //= 1;
+<config.json.import_dir> //= <system.conf_path> . '/import';
+
+mkdir <config.json.export_dir>
+    if <config.json.export_allowed> and !-d <config.json.export_dir>;
+mkdir <config.json.import_dir>
+    if <config.json.import_allowed> and !-d <config.json.import_dir>;
+
+0;
