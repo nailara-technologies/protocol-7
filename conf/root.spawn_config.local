@@ -38,6 +38,22 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+  - fs
+
+      dependencies = core
+      spawn.on-demand  = 1
+      ping.disabled    = 1
+      respawn.disabled = 1
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+        [base.agents.set_ondemand_timeout:42]
+
   - log
 
       dependencies = core
