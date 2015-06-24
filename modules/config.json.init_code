@@ -28,9 +28,9 @@ my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
 
 foreach my $mode ( 'export', 'import' ) {
     my $dir_path = <config.json>->{"${mode}_dir"};
-    <[base.log]>->( 1, "creating config $mode directory '$dir_path'.." );
     if ( <config.json>->{"${mode}_allowed"}
         and !-d $dir_path ) {
+        <[base.log]>->( 1, "creating config $mode directory '$dir_path'.." );
         mkdir $dir_path
             or warn "failed to create directory '$dir_path' [$!]";
         chown( $uid, $gid, $dir_path )
