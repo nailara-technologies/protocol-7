@@ -2,15 +2,13 @@
 
 # name = config.init_code
 
-<system.local_config_dir> //= '/etc/nailara';
-
-my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-    or die "user '" . <system.privs.user> . "' not in passwd file";
+<system.local_config_dir> //= '/etc/nailara';    # set up in ./conf/defaults
 
 my $dir_path = <system.local_config_dir>;
-
 if ( !-d $dir_path ) {
-    <[base.log]>->( 1, "creating local config directory '$dir_path'.." );
+    <[base.log]>->( 1, "creating local nailara config dir '$dir_path'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
     mkdir $dir_path
         or warn "failed to create local config directory '$dir_path' [$!]";
     chown( $uid, $gid, $dir_path )
