@@ -1,0 +1,26 @@
+# >:]
+
+# name  = fs.get_filesystems
+# descr = return hash with mounted and unmounted devices / filesystems
+
+my $fs_data = {};
+
+my $fs = Sys::Filesystem->new();
+
+# mounted
+foreach my $f ( $fs->filesystems( mounted => 1 ) ) {
+    $fs_data->{'mounted'}->{$f} = {
+        'device' => $fs->device($f),
+        'type'   => $fs->type($f)
+    };
+}
+
+# unmounted
+foreach my $f ( $fs->filesystems( unmounted => 1 ) ) {
+    $fs_data->{'unmounted'}->{$f} = {
+        'device' => $fs->device($f),
+        'type'   => $fs->type($f)
+    };
+}
+
+return $fs_data;
