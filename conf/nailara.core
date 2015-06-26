@@ -29,7 +29,7 @@ access.cmd.usr.*     =  clear help exit whoami time localtime \
 access.cmd.usr.root  =  ping session_key *.verify_instance \
                         *.ping ondemand_agent
 
-access.cmd.usr.config = *.get_config_names *.get_config
+access.cmd.usr.config = get_config *.get_config_names *.get_config
 
 access.cmd.usr.compton = xserver.get_driver
 
@@ -55,6 +55,13 @@ access.cmd.usr.playlist-update = playlist.reload_file playlist.update \
                                  layout.config_name root.restart
 
 access.cmd.usr.photon        =  ..*.** **  # development mode (will be removed)
+
+modules.pre_load = core.config config.json
+[load_modules:<modules.pre_load>]
+[init_modules]
+
+# load additional (.json) configuration files from /etc/nailara/import/
+[config.json.import_file:'core.auth_pwd.json','auth_pwd']
 
 # load and initialize modules
 [load_modules:<modules.load>]
