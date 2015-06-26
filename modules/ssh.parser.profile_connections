@@ -1,0 +1,10 @@
+# >:]
+
+# name  = ssh.parser.profile_connections
+
+my $profile_name = shift;
+my @connections  = keys %{ <ssh.cfg.profiles>->{$profile_name} };
+
+return '--' if !@connections;
+
+return join( ' ', @connections );

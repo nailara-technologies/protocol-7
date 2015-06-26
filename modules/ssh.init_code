@@ -1,0 +1,56 @@
+# >:]
+
+# name = ssh.init_code
+
+use IO::Socket::INET;
+use Net::SSH2;
+
+<ssh.status> //= { 'profiles' => {}, 'connections' => {} };
+<ssh.profiles>        //= {};
+<ssh.connections>     //= {};
+<ssh.default_profile> //= 'default';
+
+<ssh.cfg> = <[ssh.load_config]>->(<ssh.config_name>)
+    if exists <ssh.config_name> and length(<ssh.config_name>);
+
+<ssh.cfg.globals>->{'connections.autostart'} //= 0;
+<ssh.cfg.globals>->{'connections.reconnect'} //= 1;
+<ssh.cfg.globals>->{'connections.timeout'}   //= 10;
+
+# XXX: table alignment currently broken
+
+<list.profiles> = {
+    'var'   => 'data',
+    'key'   => 'ssh.cfg.profiles',
+    'descr' => 'ssh connection profiles',
+    'mask'  => '<key>:profile <key>:status <key>:connections',
+    'align' => {
+        'profile'     => 'center-2',
+        'status'      => 'left',
+        'connections' => 'center-5',
+    },
+    'filters' => {
+        'status'      => 'ssh.parser.profile_status',
+        'connections' => 'ssh.parser.profile_connections',
+    }
+};
+
+<list.connections> = {
+    'var'     => 'data',
+    'key'     => 'ssh.connections',
+    'descr'   => 'active ssh connections',
+    'mask'    => '<key>:id <key>:status <key>:target_host',
+    'filters' => {
+        'status'      => 'ssh.parser.connection_status',
+        'target_host' => 'ssh.parser.connection_target',
+    }
+};
+
+if (    exists <ssh.cfg.globals>->{'connections.autostart'}
+    and <ssh.cfg.globals>->{'connections.autostart'}
+    and exists <ssh.cfg.profiles>->{<ssh.default_profile>} ) {
+    <[base.log]>->( 1, 'autostart is enabled..' );
+    <[ssh.enable_profile]>->(<ssh.default_profile>);
+}
+
+0;

@@ -1,0 +1,19 @@
+# >:]
+
+# name = ssh.disable_profile
+
+my $profile_name = shift || '';
+
+return <[base.log]>->( 0, "there is no active profile named '$profile_name'" )
+    if not exists <ssh.profiles>->{$profile_name};
+
+<[base.log]>->( 1, "deactivating ssh profile '$profile_name'" );
+
+<ssh.status.profiles>->{$profile_name} = 'disabled';
+
+foreach my $link ( keys %{ <ssh.profiles>->{$profile_name} } ) {
+    map { <[ssh.connection.stop]>->($_) }
+        @{ <ssh.profiles>->{$profile_name}->{$link} };
+}
+
+delete <ssh.profiles>->{$profile_name};
