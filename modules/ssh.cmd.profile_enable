@@ -1,0 +1,25 @@
+# >:]
+
+# name  = ssh.cmd.profile_enable
+# descr = enable ssh connection profile
+
+my $profile_name = $$call{'args'};
+
+return {
+    'mode' => 'nack',
+    'data' => "there is no ssh profile '$profile_name' defined"
+    }
+    if not exists <ssh.cfg.profiles>->{$profile_name};
+
+return {
+    'mode' => 'nack',
+    'data' => "ssh profile '$profile_name' is already enabled"
+    }
+    if <ssh.status.profiles>->{$profile_name} eq 'enabled';
+
+<[ssh.enable_profile]>->($profile_name);
+
+return {
+    'mode' => 'ack',
+    'data' => "ssh profile '$profile_name' enabled"
+};
