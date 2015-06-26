@@ -22,7 +22,7 @@ if (    $reply->{'cmd'} eq 'NACK'
         : "agent '$agent_name' not online or refusing reply";
 } elsif ( $reply->{'cmd'} eq 'RAW' ) {
     $mode      = 'ack';
-    $reply_str = 'config written to export directory';
+    $reply_str = "config written to export directory ('$export_file')";
     undef $@;
     eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
     if ( defined $@ and $@ ) {
