@@ -5,10 +5,22 @@
 my $abort_startup = 0;
 my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
+
+$mpv_params .= ' --geometry=' . <mpv.geometry> if defined <mpv.geometry>;
+
+$mpv_params .= ' -fs'
+    if not defined <mpv.geometry>
+    and exists <mpv.auto_fs>
+    and <mpv.auto_fs>;
+
+$mpv_params .= ' -vo ' . <mpv.vo_backend> if defined <mpv.vo_backend>;
+
 my $socket_path = "/tmp/.mpv.socket.$$";
 $mpv_params .= " --input-unix-socket $socket_path";
-if ( exists <x11.coordinates> and exists <mpv.autoresize> and <mpv.autoresize> )
-{
+if (    defined <mpv.geometry>
+    and exists <x11.coordinates>
+    and exists <mpv.autoresize>
+    and <mpv.autoresize> ) {
     my ( $width, $height ) = (
         <x11.coordinates>->{'right'} - <x11.coordinates>->{'left'},
         <x11.coordinates>->{'bottom'} - <x11.coordinates>->{'top'}
@@ -27,6 +39,8 @@ $mpv_title_param .= ' ( ${media_title} )"';
 <[base.log]>->( 2, "current mpv parameters: $mpv_params" );
 
 <[base.log]>->( 1, 'starting mpv player..' );
+
+<mpv.started_with_params> = $mpv_params . ' ' . $mpv_title_param;
 
 <mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
     ( 'mpv', split( / +/, $mpv_params ), $mpv_title_param ) );
