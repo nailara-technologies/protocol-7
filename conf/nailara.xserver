@@ -43,7 +43,13 @@ access.cmd.usr.core = help message ping reload verify_instance \
                       * # XXX
 
 
-modules.load = auth net io.ip xserver config.json debug
+modules.preload = xserver.config config.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[config.json.import_file:'xserver.config.json']
+
+modules.load = auth net io.ip xserver
 [load_modules:<modules.load>]
 [init_modules]
 
