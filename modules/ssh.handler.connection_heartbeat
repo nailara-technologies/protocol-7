@@ -1,0 +1,35 @@
+# >:]
+
+# name = ssh.handler.connection_heartbeat
+
+my $con_id       = shift->w->data;
+my $connection   = $data{'ssh'}{'connections'}->{$con_id};
+my $link_name    = $connection->{'name'};
+my $nailara_fh   = $connection->{'local_fh'};
+my $ping_timeout = <ssh.cfg.globals>->{'connections.timeout'};
+<ssh.ping_request> //= {};
+<ssh.ping_request>->{$con_id} //= {};
+
+<[base.log]>->( 2, "checking status of connection connection $con_id..." );
+
+my $interval_id = <[base.gen_id]>->(<ssh.ping_request>);
+
+$connection->{'timer'}->{$interval_id} = <[event.add_timer]>->(
+    {   'after'   => $ping_timeout,
+        'handler' => 'ssh.handler.ping_timeout',
+        'data'    => { 'con_id' => $con_id, 'int_id' => $interval_id }
+    }
+);
+
+<ssh.ping_request>->{$con_id}->{$interval_id}
+    = { 'time_sent' => <[base.time]>->(5), };
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.$link_name.ping",
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => 'ssh.handler.ping_response',
+            'params'  => { 'con_id' => $con_id, 'int_id' => $interval_id }
+        }
+    }
+);
