@@ -11,6 +11,7 @@ return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
 my ( $agent_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
 return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
     if not defined $agent_name;
+$config_type //= 'config';    # default
 
 return { 'mode' => 'nack', 'data' => 'invalid agent name syntax!' }
     if $agent_name !~ <regex.base.usr>;
