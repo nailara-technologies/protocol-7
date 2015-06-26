@@ -13,7 +13,7 @@ playlist.http.check_content_types = 1
 
 update.notify_agents = mpv browser
 
-modules.load = auth net io.ip playlist debug
+modules.load = auth net io.ip config.json playlist
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -22,6 +22,9 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 playlist.file_name = config.playlist.default # test playlist
+
+[config.json.import_file:'playlist.config.json']
+
 [playlist.load_file:<system.conf_path>.'/'.<playlist.file_name>]
 
 [base.get_session_id]
