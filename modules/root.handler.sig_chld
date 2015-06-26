@@ -26,7 +26,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
 
         delete <root.child>->{$pid};
 
-        my $old_status = $instance_data->{'status'};
+        my $old_status = $instance_data->{'status'} || 'undefined';
         <[base.log]>->( 2, ": was '$old_status' ..." );
         if ( $old_status eq 'starting' ) {
             <[agent.change_status]>->( $instance_id, 'failed' );
