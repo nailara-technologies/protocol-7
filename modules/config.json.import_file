@@ -2,9 +2,9 @@
 
 # name = config.json.import_file
 
-my $filename      = shift;
+my $filename    = shift;
+my $config_type = shift;    # <- optional (autodetect from filename if omitted)
 my $import_dir    = <config.json.import_dir>;
-my $config_type   = shift || 'config';
 my $agent_name    = <system.agent.name>;
 my $rules_subname = "$agent_name.config.import_rules";
 
@@ -19,6 +19,12 @@ die "config filename parameter expected"
     if not defined $filename or !length($filename);
 die "invalid config filename (only relative paths allowed)"
     if $filename =~ m,^/|\.\.,;
+
+$config_type = $1
+    if not defined $config_type and $filename =~ /^[^\.]+\.([^\.]+)\.json$/;
+warn "[!] failed to detect config type from filename, will try type 'config'\n"
+    if not defined $config_type;
+$config_type //= 'config';
 
 die "no import rules defined for config type '$config_type'"
     if not exists $import_rules->{'keys'}->{$config_type};
@@ -49,7 +55,8 @@ foreach my $key_name ( keys %key_count ) {
 
 my $import_path = "$import_dir/$filename";
 
-return <[base.log]>->( 1, "no json config ($filename) present in import dir" )
+return
+    <[base.log]>->( 1, "no json config [$filename] present, skipping import.." )
     if !-f $import_path;
 
 <[base.log]>->( 0, "importing json config file '$filename'.." );
