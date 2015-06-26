@@ -1,0 +1,9 @@
+# >:]
+
+# name = ssh.parser.connection_target
+
+my $id = shift;
+
+my $connection = <ssh.connections>->{$id};
+
+return join( ':', $connection->{'target_host'}, $connection->{'target_port'} );

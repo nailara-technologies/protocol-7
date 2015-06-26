@@ -1,0 +1,9 @@
+# >:]
+
+# name = ssh.handler.connection_retry
+
+my $con_id = shift->w->data;
+
+<[base.log]>->( 1, "retrying to start connection $con_id..." );
+
+<[ssh.connection.start]>->($con_id);

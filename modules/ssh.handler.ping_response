@@ -1,0 +1,37 @@
+# >:]
+
+# name = ssh.handler.ping_response
+
+my $response   = shift;
+my $con_id     = $response->{'params'}->{'con_id'};
+my $int_id     = $response->{'params'}->{'int_id'};
+my $connection = <ssh.connections>->{$con_id};
+my $link_name  = $connection->{'name'};
+
+delete $connection->{'timer'}->{$int_id};
+
+my $request = <ssh.ping_request>->{$con_id}->{$int_id};
+
+my $status = $response->{'cmd'};
+
+if ( $status ne 'ACK' ) {
+
+    return
+           if not exists <ssh.ping_request>
+        or not exists <ssh.ping_request>->{$con_id}
+        or not exists <ssh.ping_request>->{$con_id}->{$int_id};
+
+    my $msg = $response->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "ping response for link '$link_name' failed! [$msg]" );
+    <[ssh.connection.stop]>->($con_id);
+} else {
+    delete <ssh.ping_request>->{$con_id}->{$int_id};
+    delete <ssh.ping_request>->{$con_id}
+        if !keys %{ <ssh.ping_request>->{$con_id} };
+    delete <ssh.ping_request> if !keys %{<ssh.ping_request>};
+
+    my $delta_t = <[base.time]>->(5) - $request->{'time_sent'};
+    my $latency = sprintf( "%.2f", $delta_t * 1000 );
+
+    #   print "[$link_name] link latency : ${latency}ms\n";
+}
