@@ -9,7 +9,15 @@ use Proc::ProcessTable;
 
 <root.agent.notify_online> //= {};
 
-<[root.load_spawn_config]>->(<load.spawn_config>);
+<root.cfg_data.spawn_config> //= [];
+
+<[root.load_spawn_config]>->(<load.spawn_config>)
+    if defined <load.spawn_config>;
+
+<[config.json.import_file]>->('root.spawn_config.json');
+
+map { <[root.init_spawn_config]>->($_) }
+    @{ clone(<root.cfg_data.spawn_config>) };
 
 use Data::Dumper qw(Dumper);
 $Data::Dumper::Sortkeys = 1;
@@ -20,6 +28,7 @@ print Dumper(<root.spawn_config.globals>) if <system.verbosity> > 1;
     ->( { 'signal' => 'CHLD', 'handler' => 'root.handler.sig_chld' } );
 
 <[root.load_agent_patterns]>;
+<[root.init_agent_patterns]>;
 
 delete <list.users>;
 

@@ -9,39 +9,21 @@ my $pattern_file_txt = $pattern_file;
 <root.patterns.agent_output> //= {};
 $pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
 my $log_msg = ": loading agent output patterns$pattern_file_txt..";
-<[base.log]>->( 1, $log_msg );
 ( my $pattern_filename = join( '.', $base_file_name, $pattern_file ) )
     =~ s/\.$//;
+
+if ( !-f <system.conf_path> . '/' . $pattern_filename ) {
+    <[base.log]>->(
+        1, "agent pattern file '$pattern_filename' not found, skipped loading.."
+    );
+    return;
+} else {
+    <[base.log]>->( 1, $log_msg );
+}
 my $agent_pattern_data
     = <[base.load_section_code]>->($pattern_filename)->[0]->{'output patterns'};
 die "failed to load pattern data"
     if not defined $agent_pattern_data
     or ref($agent_pattern_data) ne 'ARRAY';
 
-foreach my $p_ref (@$agent_pattern_data) {
-    foreach my $pattern ( keys %$p_ref ) {
-        my $p_key = $pattern;
-        if ( $pattern =~ s/^([!\w\d_\-, \t]+):\/([^\/]+)\/(i?)/$2/g ) {
-            my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 || '' );
-            $agent_string =~ s/[ \t]+//g;
-            foreach my $agent_match ( split( /,/, $agent_string ) ) {
-                my $pattern_code_aref = $p_ref->{$p_key};
-                my $pattern_re
-                    = length($i)
-                    ? qr/$pattern_string/i
-                    : qr/$pattern_string/;
-                my $sub_code
-                    = 'sub { my $instance_id = shift;'
-                    . ' my $agent_name = shift;'
-                    . ' my @matches = @_; '
-                    . join( '; ', <[base.parser.config]>->($pattern_code_aref) )
-                    . ' }';
-                $sub_code =~ s/<instance_id>/\$instance_id/g;
-                $sub_code =~ s/<agent_name>/\$agent_name/g;
-                $sub_code =~ s/<match_([1-9])>/\$matches[$1-1]/g;
-                <root.patterns.agent_output>->{$agent_string}->{$pattern_re}
-                    = eval $sub_code;
-            }
-        }
-    }
-}
+<root.pattern_config> = $agent_pattern_data;
