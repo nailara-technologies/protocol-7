@@ -7,7 +7,8 @@ buffer.system.log_cmd = log.msg
 
 [load_config_file:'defaults']
 
-access.cmd.usr.core = help message ping reload verify_instance
+access.cmd.usr.core = help message ping reload verify_instance \
+                      get_config_names get_config
 
 rss.data.tmp_path         = /tmp/
 rss.ticker.update_command = ticker.read_file
@@ -20,7 +21,7 @@ rss.ticker.update_interval = 120 # seconds
 rss.ticker.cache_timeout   = 3   # hours
 rss.ticker.request_timeout = 5   # seconds
 
-modules.load = auth net io.ip digest rss.ticker
+modules.load = auth net io.ip digest rss.ticker config.json
 [load_modules:<modules.load>]
 [init_modules]
 
