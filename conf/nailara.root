@@ -7,11 +7,14 @@ buffer.system.log_cmd = log.msg
 
 [load_config_file:'defaults']
 
-modules.load = root jobqueue net io.ip auth.agent crypt.random config.json debug
+modules.load = root jobqueue net io.ip auth.agent config.json crypt.random debug
 
-load.spawn_config = 'local'
+load.spawn_config = 'example' # ( see ./conf/root.spawn_config.example )
 
 access.cmd.usr.core = *
+
+[load_modules:'config.json root.config']
+[init_modules]
 
 [load_modules:<modules.load>]
 [init_modules]
