@@ -21,7 +21,7 @@ my $fatal_exit
 
 $log_msg = "call to unknown subroutine while executing '$1'!"
     if $log_msg
-    =~ /\$code{'([^\']*)'}.+Can't use string \(""\) as a subroutine/;
+    =~ /\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine/;
 
 my $agent_prefix = join( '.', ' :' . <system.node.name>, <system.agent.name> );
 

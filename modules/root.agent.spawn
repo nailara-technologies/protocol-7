@@ -109,7 +109,7 @@ if ($sic_mode) {
     foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
         my $code_line = $_line;    # keeping original intact!
              # <{foo.bar}> (agent instance namespace) variable fetching syntax
-        while ( $code_line =~ /<{([^\}]+)}>/ ) {
+        while ( $code_line =~ /<\{([^\}]+)\}>/ ) {
             ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
             my $var_value;
             eval "\$var_value = $namespace_str$var_str";
@@ -118,7 +118,7 @@ if ($sic_mode) {
                 <[base.log]>->( 0, "[!] error in agent init-code: $@" );
                 last;
             } else {
-                $code_line =~ s|<{([^\}]+)}>|$var_value|;
+                $code_line =~ s|<\{([^\}]+)\}>|$var_value|;
             }
         }
         print {$in_fh} "$code_line\n";
