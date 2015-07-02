@@ -244,7 +244,7 @@ sub prepare_subs {
                     my $orig_len
                         = length( $data{'code'}{$file_name}{'source'} );
                     $data{'code'}{$file_name}{'source'}
-                        =~ s|(?<!\\)<\[(\w+\.[\w\.]+?)\]>\s*->\(
+                        =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
                             |\$code{'$1'}->(|sgxo;
 
                     # warn: this parser currently doesn't respect quoted strings
@@ -252,7 +252,8 @@ sub prepare_subs {
 
                     # <[sub_name]>  -->  $code{'sub_name'}->()
                     $data{'code'}{$file_name}{'source'}
-                        =~ s|(?<!\\)<\[(\w+\.[\w\.]+)\]>|\$code{'$1'}->()|go;
+                        =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+)\]>
+                            |\$code{'$1'}->()|gxo;
 
                     # <foo.bar>  -->  $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
