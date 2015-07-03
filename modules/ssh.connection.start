@@ -95,15 +95,31 @@ if ( $host_key ne $configured_hostkey ) {
     <[base.log]>->( 1, ": : hostkey accepted [$hk_str]" );
 }
 
-<[base.log]>->( 2, ": : ssh connection established.." );
+my $ssh_user = $link_setup->{'ssh.user'};
 
-my $ssh_user    = $link_setup->{'ssh.user'};
+my %auth_methods = map { $_ => 1 } $ssh->auth_list($ssh_user);
+<[base.log]>->( 2, ": : password authentication is enabled..(!)" )
+    if exists $auth_methods{'password'};
+if ( not exists $auth_methods{'publickey'} ) {
+    <[base.log]>->(
+        0,
+        ": : <!> no public key authentication for user '$ssh_user' available!"
+    );
+    $ssh->disconnect;
+    $sock->shutdown('NOW');
+    goto failed;
+} else {
+    <[base.log]>->( 2, ": : public key authentication is available.." );
+}
+
 my $ssh_keyfile = $link_setup->{'ssh.keyfile'};
 my $ssh_privkey = $ssh_keyfile;
 my $ssh_pubkey  = "$ssh_keyfile.pub";
 
 if ( !$ssh->auth_publickey( $ssh_user, $ssh_pubkey, $ssh_privkey ) ) {
-    <[base.log]>->( 0, ": : ssh authentication failed [$!]" );
+    <[base.log]>->(
+        0, ": : ssh authentication failed [the public key has been rejected]"
+    );
     $ssh->disconnect;
     $sock->shutdown('NOW');
     goto failed;
