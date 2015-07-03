@@ -19,7 +19,7 @@ my $buffer = '';
 my $bytes = sysread( $read_fh, $buffer, 4096, length($buffer) );
 
 if ( not defined $bytes or !$bytes ) {
-    <[ssh.connection_stop]>->($con_id);
+    <[ssh.connection.stop]>->($con_id);
 } else {
     my $bytes = $channel->write($buffer);
     if ( not defined $bytes ) {

@@ -16,10 +16,18 @@ my $link_name    = $connection->{'name'};
 foreach my $type ( keys %{ $connection->{'io'} } ) {
     $connection->{'io'}->{$type}->cancel;
 }
+if ( defined $connection->{'local_fh'}
+    and $connection->{'local_fh'}->connected ) {
+    print { $connection->{'local_fh'} } "exit\n";
+    $connection->{'local_fh'}->shutdown('NOW');
+}
+$connection->{'nch'}->close      if defined $connection->{'nch'};
+$connection->{'obj'}->disconnect if defined $connection->{'obj'};
 
-$connection->{'nch'}->close            if defined $connection->{'nch'};
-$connection->{'obj'}->disconnect       if defined $connection->{'obj'};
-$connection->{'sock'}->shutdown('NOW') if defined $connection->{'sock'};
+if ( defined $connection->{'sock'} and $connection->{'sock'}->connected ) {
+    print { $connection->{'sock'} } "exit\n";
+    $connection->{'sock'}->shutdown('NOW');
+}
 
 if (    <ssh.cfg.globals>->{'connections.reconnect'}
     and <ssh.status.profiles>->{$profile_name} eq 'enabled' ) {
