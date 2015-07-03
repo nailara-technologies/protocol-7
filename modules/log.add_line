@@ -25,10 +25,10 @@ my $file_create_mode = 0640;
 # check log directory
 if ( !-d $log_path ) {
     <[base.log]>->( 0, "log directory '$log_path' disappeared, recreating..." );
-    my ( $ok, $err_msg )
+    my ( $ok, $err_msg )    # XXX: use File::Path::make_path() ?
         = <[file.make_path]>->( $log_path, <log.nailara_log.dir_mask> );
     return ( 0, $err_msg ) if !$ok;
-    my ( $login, $pass, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
+    my ( undef, undef, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
         or return ( 0, "user '<log.nailara_log.user>' not in passwd file" );
     <log.nailara_log.path> =~ s|/+$||;
     chown( $uid, $gid, <log.nailara_log.path> )
