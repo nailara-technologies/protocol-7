@@ -4,9 +4,11 @@
 # descr   = close all sessions of specified user
 # param   = <user> [message]
 
-if ( $$call{'args'} =~ /^(\w+)\s?(.*)$/ ) {
+my $re = <regex.base>;
+
+if ( $$call{'args'} =~ /^($re->{usr})( +(.+))?$/ ) {
     my $usr          = $1;
-    my $slay_message = $2 || 'session terminated!';
+    my $slay_message = $3 || 'session terminated!';
     my $killed       = 0;
     my $killed_own   = 0;
 
