@@ -2,6 +2,8 @@
 
 # name = config.init_code
 
+use File::Path qw(make_path);
+
 <system.local_config_dir> //= '/etc/nailara';    # set up in ./conf/defaults
 
 my $dir_path = <system.local_config_dir>;
@@ -9,14 +11,8 @@ if ( !-d $dir_path ) {
     <[base.log]>->( 1, "creating local nailara config dir '$dir_path'.." );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
         or die "user '" . <system.privs.user> . "' not in passwd file";
-    mkdir $dir_path
+    make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "failed to create local config directory '$dir_path' [$!]";
-    chown( $uid, $gid, $dir_path )
-        or warn "failed to change ownership of directory '"
-        . $dir_path
-        . "' [$!]";
-    chmod( 0750, $dir_path )
-        or warn "chmod failed ('$dir_path') [$!]";
 }
 
 0;
