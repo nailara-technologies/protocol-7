@@ -29,6 +29,21 @@ if ( defined $connection->{'sock'} and $connection->{'sock'}->connected ) {
     $connection->{'sock'}->shutdown('NOW');
 }
 
+map {
+    $connection->{'timer'}->{$_}->cancel;
+    delete $connection->{'timer'}->{$_};
+    }
+    keys %{ $connection->{'timer'} }
+    if exists $connection->{'timer'};
+
+if ( exists <ssh.ping_request>->{$con_id} ) {
+    map { delete <ssh.ping_request>->{$con_id}->{$_} }
+        keys %{ <ssh.ping_request>->{$con_id} };
+    delete <ssh.ping_request>->{$con_id}
+        if !keys %{ <ssh.ping_request>->{$con_id} };
+    delete <ssh.ping_request> if !keys %{<ssh.ping_request>};
+}
+
 if (    <ssh.cfg.globals>->{'connections.reconnect'}
     and <ssh.status.profiles>->{$profile_name} eq 'enabled' ) {
 
@@ -40,21 +55,6 @@ if (    <ssh.cfg.globals>->{'connections.reconnect'}
     <[base.log]>->(
         1, ": : reconnection attempt in $connection->{retry_delay} seconds ..."
     );
-
-    map {
-        $connection->{'timer'}->{$_}->cancel;
-        delete $connection->{'timer'}->{$_};
-        }
-        keys %{ $connection->{'timer'} }
-        if exists $connection->{'timer'};
-
-    if ( exists <ssh.ping_request>->{$con_id} ) {
-        map { delete <ssh.ping_request>->{$con_id}->{$_} }
-            keys %{ <ssh.ping_request>->{$con_id} };
-        delete <ssh.ping_request>->{$con_id}
-            if !keys %{ <ssh.ping_request>->{$con_id} };
-        delete <ssh.ping_request> if !keys %{<ssh.ping_request>};
-    }
 
     $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
         {   'after'   => $connection->{'retry_delay'},
