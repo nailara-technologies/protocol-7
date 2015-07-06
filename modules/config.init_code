@@ -5,14 +5,23 @@
 use File::Path qw(make_path);
 
 <system.local_config_dir> //= '/etc/nailara';    # set up in ./conf/defaults
+<config.profile_dir> //= <system.conf_path> . '/profiles';
+
+my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+    or die "user '" . <system.privs.user> . "' not in passwd file";
 
 my $dir_path = <system.local_config_dir>;
 if ( !-d $dir_path ) {
     <[base.log]>->( 1, "creating local nailara config dir '$dir_path'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "failed to create local config directory '$dir_path' [$!]";
+}
+
+$dir_path = <config.profile_dir>;
+if ( !-d $dir_path ) {
+    <[base.log]>->( 1, "creating profile directory dir '$dir_path'.." );
+    make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+        or warn "failed to create profile directory '$dir_path' [$!]";
 }
 
 0;
