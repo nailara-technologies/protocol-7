@@ -6,14 +6,14 @@ use IO::Socket::INET;
 use Net::SSH2;
 
 <ssh.status> //= { 'profiles' => {}, 'connections' => {} };
-<ssh.profiles>        //= {};
-<ssh.connections>     //= {};
-<ssh.default_profile> //= 'default';
+<ssh.profiles>           //= {};
+<ssh.connections>        //= {};
+<ssh.autostart_profiles> //= '';
 
 <ssh.cfg> = <[ssh.load_config]>->(<ssh.config_name>)
     if exists <ssh.config_name> and length(<ssh.config_name>);
 
-<ssh.cfg.globals>->{'connections.autostart'} //= 0;
+<ssh.cfg.globals>->{'connections.autostart'} //= 1;
 <ssh.cfg.globals>->{'connections.reconnect'} //= 1;
 <ssh.cfg.globals>->{'connections.timeout'}   //= 10;
 
@@ -48,9 +48,10 @@ use Net::SSH2;
 
 if (    exists <ssh.cfg.globals>->{'connections.autostart'}
     and <ssh.cfg.globals>->{'connections.autostart'}
-    and exists <ssh.cfg.profiles>->{<ssh.default_profile>} ) {
+    and exists <ssh.autostart_profiles> ) {
     <[base.log]>->( 1, 'autostart is enabled..' );
-    <[ssh.enable_profile]>->(<ssh.default_profile>);
+    map { <[ssh.enable_profile]>->($_) }
+        split( / +/, <ssh.autostart_profiles> );
 }
 
 0;

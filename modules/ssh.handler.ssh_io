@@ -44,14 +44,24 @@ if ( !$connection->{'authorized'} ) {
         );
 
         # XXX: check status...
-        $connection->{'local_fh'} = <[net.authme]>->(
-            <[base.open]>->(
-                'tcp/ip', 'out', <net.local.addr>, <net.local.port>
-            ),
+        my $local_sock = <[base.open]>->(
+            'tcp/ip', 'out', <net.local.addr>, <net.local.port>
+        );
+        if ( not defined $local_sock or !$local_sock->connected ) {
+            <[base.log]>->( 0, ": : tcp connection to local core failed!" );
+            return <[ssh.connection.stop]>->($con_id);
+        }
+        $local_sock = <[net.authme]>->(
+            $local_sock,
             $profile_data->{$link_name}->{'nailara.local.user'},
             $profile_data->{$link_name}->{'nailara.local.pass'}
         );
-
+        if ( not defined $local_sock or !$local_sock->connected ) {
+            <[base.log]>->( 0, ": : local nailara authentication failed!" );
+            return <[ssh.connection.stop]>->($con_id);
+        }
+        $connection->{'local_fh'} = $local_sock;
+        <[base.log]>->( 1, ": : local nailara authentication successful" );
         $connection->{'io'}->{'nailara'} = <[event.add_io]>->(
             {   'fd'      => $connection->{'local_fh'},
                 'handler' => 'ssh.handler.nailara_io',
