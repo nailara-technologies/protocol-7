@@ -43,12 +43,10 @@ foreach my $file_name (@import_files) {
 }
 
 if ( -f $profile_file ) {
-    <[base.log]>->( 1, "overwriting existing profile file $profile_json" );
+    <[base.log]>->( 0, "overwriting existing profile file '$profile_json'" );
 } else {
-    <[base.log]>->( 1, "creating profile file $profile_json..." );
+    <[base.log]>->( 1, "creating new config profile file ['$profile_json']" );
 }
-
-print "profile_file: $profile_file\n";
 
 my $out_fh;
 if ( !open( $out_fh, ">$profile_file" ) ) {
