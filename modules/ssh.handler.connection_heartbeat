@@ -4,7 +4,7 @@
 
 my $con_id       = shift->w->data;
 my $connection   = $data{'ssh'}{'connections'}->{$con_id};
-my $link_name    = $connection->{'name'};
+my $local_user   = $connection->{'local_user'};
 my $nailara_fh   = $connection->{'local_fh'};
 my $ping_timeout = <ssh.cfg.globals>->{'connections.timeout'};
 <ssh.ping_request> //= {};
@@ -25,7 +25,7 @@ $connection->{'timer'}->{$interval_id} = <[event.add_timer]>->(
     = { 'time_sent' => <[base.time]>->(5), };
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.$link_name.ping",
+    {   'command'   => "core.$local_user.ping",
         'call_args' => { 'args' => '' },
         'reply'     => {
             'handler' => 'ssh.handler.ping_response',
