@@ -12,5 +12,5 @@ cp -v $NAILARA_ROOT/lib/systemd/system/nailara-root.service /lib/systemd/system/
 
 apt-get -y install libevent-perl libcrypt-openssl-random-perl \
   libproc-processtable-perl libterm-readpassword-perl \
-  libterm-readline-perl-perl libdigest-sha-perl \
+  libterm-readline-perl-perl libdigest-sha-perl libclone-perl \
   libhash-flatten-perl libhash-merge-simple-perl libjson-pp-perl
