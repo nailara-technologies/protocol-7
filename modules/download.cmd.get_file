@@ -1,0 +1,29 @@
+# >:]
+
+# name  = download.cmd.get_file
+# param = <url>
+# descr = download file from specified url
+
+my $url = $$call{'args'} || '';
+
+return { 'mode' => 'nack', 'data' => 'expected url parameter' }
+    if !length($url);
+
+my $download_dir  = <download.cfg.download_path>;
+my $temp_filename = sha1_hex($url) . '.part';
+my $file_path     = "$download_dir/$temp_filename";
+
+my $response = <download.obj.ua>->get( $url, ':content_file' => $file_path );
+
+return {
+    'mode' => 'nack',
+    'data' => 'download failed [' . $response->status_line . ']'
+    }
+    if !$response->is_success;
+
+( my $filename = $response->filename ) =~ s|^.*/||g;
+my $target_path = "$download_dir/$filename";
+
+rename( $file_path, $target_path ) or die "rename failed: $!";
+
+return { 'mode' => 'ack', 'data' => $target_path };
