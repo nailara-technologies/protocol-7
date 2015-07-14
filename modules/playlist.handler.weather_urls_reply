@@ -37,7 +37,7 @@ foreach my $list_item ( @{<playlist.file_list>} ) {
 if ($changes) {
     map {
         <playlist.file_types>->{$_} = 'html';
-        <playlist.agent_subnames>->{$_} = $subname if defined $subname;
+        <playlist.agent_subnames>->{$_}->{$subname} = 1 if defined $subname;
     } @weather_urls;
     <playlist.file_list> = \@new_list;
     <[base.log]>->( 1, "weather urls added to playlist, updating..." );
