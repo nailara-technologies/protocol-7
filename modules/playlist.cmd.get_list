@@ -17,7 +17,7 @@ foreach my $file ( @{<playlist.file_list>} ) {
     next
         if defined $subname
         and exists <playlist.agent_subnames>->{$file}
-        and $subname ne <playlist.agent_subnames>->{$file};
+        and not exists <playlist.agent_subnames>->{$file}->{$subname};
 
     foreach my $type ( keys %file_types ) {
         $reply_string .= "$file\n"
