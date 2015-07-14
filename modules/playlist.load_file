@@ -8,7 +8,7 @@ my $check_types  = <playlist.http.check_content_types>;
 
 die "expected playlist file path"
     if not defined $file_path or !length($file_path);
-( my $file_name = $file_path ) =~ s|^.*\/||;
+( my $file_name = $file_path ) =~ s|^.*/||;
 
 if ( !-f $file_path ) {
     <[base.log]>->( 0, "playlist file '$file_path' not found!" );
@@ -45,10 +45,11 @@ if ( !@file_names ) {
 
 foreach my $file (@file_names) {
     my $agent_subname;
+    my $type = 'unknown';
     $agent_subname = $1 if $file =~ s|^([^\:]+): +||;
+    $type          = $1 if $file =~ s| \(([^\)]+)\)$||;
     <playlist.agent_subnames>->{$file} = $agent_subname
         if defined $agent_subname;
-    my $type = 'unknown';
 
     ### XXX: weather agent test hack ###
     if ( $file =~ /^\[weather:(.+)\]$/ ) {
