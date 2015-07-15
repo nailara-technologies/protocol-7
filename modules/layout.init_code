@@ -15,9 +15,15 @@ use FreezeThaw qw(cmpStr);
 <layout.config_name>            //= 'default';
 <layout.hash_file>              //= '/tmp/.layout.sha1';
 <layout.transition_in_progress> //= 0;
-my $config_name      = <layout.config_name>;
-my $config_filename  = "config.layout.$config_name";
-my $config_file_path = <system.conf_path> . '/' . $config_filename;
+
+goto skip_load if defined <layout.config.profiles>;
+
+my $config_name     = <layout.config_name>;
+my $config_filename = "config.layout.$config_name";
+my $config_file_path;
+$config_file_path = <layout.import_path> if defined <layout.import_path>;
+$config_file_path //= <system.conf_path>;
+$config_file_path .= "/$config_filename";
 
 die "layout config file '$config_filename' not found!"
     if !-f $config_file_path;
@@ -47,7 +53,13 @@ if ( not exists <layout.config.profiles>->{$profile_name} ) {
     $default_str = ' _fallback_ ';
     $log_level   = 0;
 }
+
+skip_load:
+
+$default_str  //= ' default ';
+$profile_name //= <layout.default_profile>;
 <layout.current_profile> = $profile_name;
+
 <[base.log]>->( $log_level, "selected${default_str}profile '$profile_name'" );
 
 0;
