@@ -12,7 +12,13 @@ if ( $status ne 'success' ) {
     <[base.log]>->( 0, "failed to retrieve current path!" );
 } else {
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
-    <[mpv.send_command]>->('stop') if not exists $file_hash{$path};
+    if ( not exists $file_hash{$path} ) {
+        if (@files) {
+            <[mpv.send_command]>->('playlist_next');
+        } else {
+            <[mpv.send_command]>->('stop');
+        }
+    }
 }
 
 map {
