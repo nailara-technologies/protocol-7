@@ -13,13 +13,20 @@ access.cmd.usr.core = help message ping reload verify_instance \
 rss.data.tmp_path         = /tmp/
 rss.ticker.update_command = ticker.read_file
 
-[load_config_file:'config.rss-ticker.default'] # <- .import!
+# [load_config_file:'config.rss-ticker.default'] # <- .import!
 
 rss.ticker.join_type      = mixed # [mixed|seperate]
 
 rss.ticker.update_interval = 120 # seconds
 rss.ticker.cache_timeout   = 3   # hours
 rss.ticker.request_timeout = 5   # seconds
+
+modules.preload = rss-ticker.config config.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[config.json.import_file:'rss-ticker.config.json']
+[config.json.import_file:'rss-ticker.content.json']
 
 modules.load = auth net io.ip digest rss.ticker config.json
 [load_modules:<modules.load>]
