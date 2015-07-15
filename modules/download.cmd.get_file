@@ -15,11 +15,14 @@ my $file_path     = "$download_dir/$temp_filename";
 
 my $response = <download.obj.ua>->get( $url, ':content_file' => $file_path );
 
-return {
-    'mode' => 'nack',
-    'data' => 'download failed [' . $response->status_line . ']'
-    }
-    if !$response->is_success;
+if ( !$response->is_success ) {
+    my $err_msg = 'download failed [' . $response->status_line . ']';
+    <[base.log]>->( 0, $err_msg );
+    return {
+        'mode' => 'nack',
+        'data' => $err_msg
+    };
+}
 
 ( my $filename = $response->filename ) =~ s|^.*/||g;
 my $target_path = "$download_dir/$filename";
