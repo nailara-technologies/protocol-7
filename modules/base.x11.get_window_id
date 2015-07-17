@@ -19,6 +19,10 @@ my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+
+my $retry_count = 5;
+retry:
+
 <[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.get_windows $name\n" );
 
 my $reply_string;
@@ -40,7 +44,19 @@ if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
     my $buffer_string = '';
     my $bytes_to_go   = $1;
     if ( !$bytes_to_go ) {
-        <[base.log]>->( 2, ": no window id found for \"$name\" [!]" );
+
+        # XXX: workaround! fix later!
+        if ( <system.agent.name> eq 'mpv' ) {
+            if ($retry_count) {
+                $retry_count--;
+                <[base.log]>->( 0, ": no window id received, retrying.." );
+                <[base.sleep]>->(0.2);
+                goto retry;
+            }
+        }
+
+        <[base.log]>->( 0, ": no window id found for \"$name\" [!]" );
+
         return undef;
     }
     while ($bytes_to_go) {
@@ -55,7 +71,7 @@ if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
     warn "[!] found more than one matching window, please fix the name pattern!"
         if $lines > 1;
     <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
-    <[base.log]>->( 2, ": received X window id '" . <x11.id> . "'.." );
+    <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
     return <x11.id>;
 } else {
     <[base.log]>->(
