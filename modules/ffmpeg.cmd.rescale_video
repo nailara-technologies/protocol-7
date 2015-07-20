@@ -29,14 +29,21 @@ $new_size =~ s|x|:|;
 if ( !-d $output_path ) {
     make_path($output_path) or die "make_path($output_path): $!";
 }
-my $extension = '';
-$extension = ".$1" if $video_path =~ /\.([^\.]+)$/;
 
-my $output_file = "$output_path/$box_size$extension";
+my $output_file = "$output_path/$box_size.mp4";
 
 my @ffmpeg_params = (
-    <ffmpeg.path.ffmpeg_bin>, '-loglevel', 'quiet', '-y', '-i',
-    $video_path, '-strict', '-2', '-vf', "scale=$new_size", $output_file
+    <ffmpeg.path.ffmpeg_bin>, '-i',
+    $video_path,              '-loglevel',
+    'quiet',                  '-y',
+    '-strict',                '-2',
+    '-c:v',                   'libx264',
+    '-preset',                'medium',
+    '-x265-params',           'crf=' . <ffmpeg.quality>,
+    '-c:a',                   'aac',
+    '-b:a',                   <ffmpeg.bitrate>,
+    '-vf',                    "scale=$new_size",
+    $output_file
 );
 
 if ( !-f $output_file ) { system(@ffmpeg_params) }
