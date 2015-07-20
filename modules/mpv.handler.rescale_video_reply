@@ -1,0 +1,19 @@
+# >:]
+
+# name = mpv.handler.rescale_video_reply
+
+my $reply = shift;
+
+return <[base.log]>->(
+    0, 'video rescaling failed (unexpected reply from ffmpeg agent)'
+) if $reply->{'cmd'} ne 'ACK';
+
+my $new_path = $reply->{'call_args'}->{'args'};
+my $old_path = $reply->{'params'}->{'orig_path'};
+( my $video_name = $old_path ) =~ s|^.*/||;
+
+<[base.log]>->( 1, "[rescaled] replacing playlist entry for '$video_name'" );
+
+<[mpv.send_command]>->('stop');
+<[mpv.send_command]>->('playlist_clear');
+<[mpv.get_playlist]>->('video');

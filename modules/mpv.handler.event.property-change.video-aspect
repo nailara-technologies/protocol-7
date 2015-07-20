@@ -67,6 +67,11 @@ my $new_geometry = "${new_x}x${new_y}+$pos_x+$pos_y";
 
 <[base.log]>->( 2, ": resizing window : $new_x x $new_y ($new_geometry)" );
 
+<mpv.current.window_width>  = $new_x;
+<mpv.current.window_height> = $new_y;
+<mpv.current.box_width>     = $box_width;
+<mpv.current.box_height>    = $box_height;
+
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.xserver.set_geometry',
         'call_args' => { 'args' => "$window_id $new_geometry" },

@@ -1,0 +1,13 @@
+# >:]
+
+# name = mpv.handler.event.property-change.path
+
+my $params = shift;
+
+my $path = $params->{'data'};
+
+return delete <mpv.current> if not defined $path;
+
+<[base.log]>->( 2, "currently playling: '$path'" );
+
+<mpv.current.path> = $path;
