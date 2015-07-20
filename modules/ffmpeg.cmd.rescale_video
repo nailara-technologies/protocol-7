@@ -1,0 +1,47 @@
+# >:]
+
+# name  = ffmpeg.cmd.rescale_video
+# param = <path> <new_size> [box_size]
+# descr = rescale video dimensions
+
+my $params = shift->{'args'};
+my ( $video_path, $new_size, $box_size ) = split( / +/, $params );
+
+return { 'mode' => 'nack', 'data' => 'expected path to video file' }
+    if not defined $video_path;
+return { 'mode' => 'nack', 'data' => 'expected new video size' }
+    if not defined $new_size;
+return { 'mode' => 'nack', 'data' => 'syntax error in video size parameter' }
+    if $new_size !~ /^\d+x\d+$/;
+return { 'mode' => 'nack', 'data' => 'syntax error in box size parameter' }
+    if defined $box_size and $box_size !~ /^\d+x\d+$/;
+return { 'mode' => 'nack', 'data' => 'video file not found!' }
+    if !-f $video_path;
+
+$box_size //= $new_size;
+( my $video_name = $video_path ) =~ s|^.*/||;
+
+<[base.log]>->( 1, "rescaling video '$video_name' ($new_size) [$box_size].." );
+
+$new_size =~ s|x|:|;
+
+( my $output_path = $video_path ) =~ s|/([^/]+)$|/rescaled/$1|;
+if ( !-d $output_path ) {
+    make_path($output_path) or die "make_path($output_path): $!";
+}
+my $extension = '';
+$extension = ".$1" if $video_path =~ /\.([^\.]+)$/;
+
+my $output_file = "$output_path/$box_size$extension";
+
+my @ffmpeg_params = (
+    <ffmpeg.path.ffmpeg_bin>, '-loglevel',
+    'quiet',                  '-i',
+    $video_path,              '-strict',
+    '-2',                     '-vf',
+    "scale=$new_size",        $output_file
+);
+
+if ( !-f $output_file ) { system(@ffmpeg_params) }
+
+return { 'mode' => 'ack', 'data' => $output_file }
