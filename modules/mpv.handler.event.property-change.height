@@ -16,10 +16,12 @@ if ( <mpv.autorescale> and defined $video_width and defined $video_height ) {
     my $box_width     = <mpv.current.box_width>;
     my $box_height    = <mpv.current.box_height>;
 
-    if ( ( $video_width != $window_width or $video_height != $window_height )
+    if (    ( $video_width != $window_width or $video_height != $window_height )
+        and defined <mpv.current.path>
         and not exists <mpv.file_map.rescaled>->{<mpv.current.path>}
-        or !-f <mpv.file_map.rescaled>->{<mpv.current.path>}
-        or !-f <mpv.current.path> ) {
+        or defined <mpv.current.path>
+        and !-f <mpv.file_map.rescaled>->{<mpv.current.path>}
+        or defined <mpv.current.path> and !-f <mpv.current.path> ) {
 
         <[base.log]>->(
             1,
