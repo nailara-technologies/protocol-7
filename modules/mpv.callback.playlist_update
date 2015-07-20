@@ -13,11 +13,7 @@ if ( $status ne 'success' ) {
 } else {
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
     if ( not exists $file_hash{$path} ) {
-        if (@files) {
-            <[mpv.send_command]>->('playlist_next');
-        } else {
-            <[mpv.send_command]>->('stop');
-        }
+        <[mpv.send_command]>->('playlist_next');
     }
 }
 
