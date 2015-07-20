@@ -35,11 +35,8 @@ $extension = ".$1" if $video_path =~ /\.([^\.]+)$/;
 my $output_file = "$output_path/$box_size$extension";
 
 my @ffmpeg_params = (
-    <ffmpeg.path.ffmpeg_bin>, '-loglevel',
-    'quiet',                  '-i',
-    $video_path,              '-strict',
-    '-2',                     '-vf',
-    "scale=$new_size",        $output_file
+    <ffmpeg.path.ffmpeg_bin>, '-loglevel', 'quiet', '-y', '-i',
+    $video_path, '-strict', '-2', '-vf', "scale=$new_size", $output_file
 );
 
 if ( !-f $output_file ) { system(@ffmpeg_params) }
