@@ -28,6 +28,8 @@ mpv.coordinates = [base.x11.get_coordinates]
 mpv.auto_fs    = 1   # start in fullscreen mode in case no geometry was received
 mpv.autoresize = 1
 
+mpv.autorescale = 0  # rescale video automatically in the background (ffmpeg)
+
 mpv.vo_backend = x11 # [x11|vdpau|vaapi|...]
 
 mpv.params = --idle --force-window --keep-open=always --loop=inf \
@@ -40,6 +42,9 @@ mpv.params = --idle --force-window --keep-open=always --loop=inf \
 [mpv.open_player]
 [base.x11.keep_below:[base.x11.get_window_id]]
 [mpv.send_command:"observe_property",1,"video-aspect"]
+[mpv.send_command:"observe_property",1,"path"]
+[mpv.send_command:"observe_property",1,"width"]
+[mpv.send_command:"observe_property",1,"height"]
 [base.get_session_id]
 
 [mpv.get_playlist:'video']
