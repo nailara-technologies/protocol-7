@@ -1,0 +1,45 @@
+# >:]
+
+# name = mpv.handler.event.property-change.height
+
+my $params = shift;
+
+<mpv.current.video_height> = $params->{'data'};
+
+my $video_width  = <mpv.current.video_width>;
+my $video_height = <mpv.current.video_height>;
+
+if ( <mpv.autorescale> and defined $video_width and defined $video_height ) {
+
+    my $window_width  = <mpv.current.window_width>;
+    my $window_height = <mpv.current.window_height>;
+    my $box_width     = <mpv.current.box_width>;
+    my $box_height    = <mpv.current.box_height>;
+
+    if ( ( $video_width != $window_width or $video_height != $window_height )
+        and not exists <mpv.file_map.rescaled>->{<mpv.current.path>}
+        or !-f <mpv.file_map.rescaled>->{<mpv.current.path>}
+        or !-f <mpv.current.path> ) {
+
+        <[base.log]>->(
+            1,
+            "autorescaling video ( ${video_width}x$video_height"
+                . " => ${window_width}x$window_height )"
+        );
+
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.ffmpeg.rescale_video',
+                'call_args' => {
+                    'args' => join( ' ',
+                        <mpv.current.path>,
+                        "${window_width}x$window_height",
+                        "${box_width}x$box_height" )
+                },
+                'reply' => {
+                    'handler' => 'mpv.handler.rescale_video_reply',
+                    'params'  => { 'orig_path' => <mpv.current.path> }
+                }
+            }
+        );
+    }
+}
