@@ -18,6 +18,13 @@ return { 'mode' => 'nack', 'data' => 'syntax error in box size parameter' }
 return { 'mode' => 'nack', 'data' => 'video file not found!' }
     if !-f $video_path;
 
+my ( $w, $h ) = ( $1, $2 ) if $new_size =~ /^(\d+)x(\d+)$/;
+return {
+    'mode' => 'nack',
+    'data' => 'libx264 codec expects even size parameters'
+    }
+    if $w % 2 or $h % 2;
+
 $box_size //= $new_size;
 ( my $video_name = $video_path ) =~ s|^.*/||;
 
@@ -41,7 +48,7 @@ my $output_file = "$output_path/$box_size.mp4";
 my @ffmpeg_params = (
     <ffmpeg.path.ffmpeg_bin>, '-i',
     $video_path,              '-loglevel',
-    'quiet',                  '-y',
+    'error',                  '-y',
     '-strict',                '-2',
     '-c:v',                   'libx264',
     '-preset',                'medium',
@@ -55,7 +62,11 @@ my @ffmpeg_params = (
 if ( !-f $output_file ) {
     if ( system(@ffmpeg_params) != 0 or $? == -1 or $? & 127 ) {
         unlink($partial_output_file) if -f $partial_output_file;
-        <[base.log]>->( 0, "ffmpeg failed to execute: $!" );
+        <[base.log]>->(
+            0,
+            "ffmpeg failed to execute: $! ("
+                . join( ' ', @ffmpeg_params ) . ")"
+        );
         return {
             'mode' => 'nack',
             'data' => "ffmpeg failed to execute [$!]"
