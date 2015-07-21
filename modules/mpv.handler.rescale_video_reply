@@ -5,7 +5,9 @@
 my $reply = shift;
 
 return <[base.log]>->(
-    0, 'video rescaling failed (unexpected reply from ffmpeg agent)'
+    0,
+    'video rescaling failed [ ffmpeg agent: '
+        . $reply->{'call_args'}->{'args'} . ' ]'
 ) if $reply->{'cmd'} ne 'ACK';
 
 my $new_path = $reply->{'call_args'}->{'args'};
