@@ -30,6 +30,12 @@ if ( !-d $output_path ) {
     make_path($output_path) or die "make_path($output_path): $!";
 }
 
+my $partial_output_file = "$output_path/$box_size...converting...mp4";
+if ( -f $partial_output_file ) {
+    <[base.log]>->( 0, ": found partial output file, cleaning up..." );
+    unlink($partial_output_file) or warn "unlink($partial_output_file): $!";
+}
+unlink($partial_output_file);
 my $output_file = "$output_path/$box_size.mp4";
 
 my @ffmpeg_params = (
@@ -43,13 +49,20 @@ my @ffmpeg_params = (
     '-c:a',                   'aac',
     '-b:a',                   <ffmpeg.bitrate>,
     '-vf',                    "scale=$new_size",
-    $output_file
+    $partial_output_file
 );
 
 if ( !-f $output_file ) {
     if ( system(@ffmpeg_params) != 0 or $? == -1 or $? & 127 ) {
+        unlink($partial_output_file) if -f $partial_output_file;
         <[base.log]>->( 0, "ffmpeg failed to execute: $!" );
-        return { 'mode' => 'nack', 'data' => "ffmpeg failed to execute [$!]" };
+        return {
+            'mode' => 'nack',
+            'data' => "ffmpeg failed to execute [$!]"
+        };
+    } else {
+        rename( $partial_output_file, $output_file )
+            or warn "rename failed: $!";
     }
 }
 
