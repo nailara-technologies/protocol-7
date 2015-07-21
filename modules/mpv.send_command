@@ -2,9 +2,8 @@
 
 # name = mpv.send_command
 
-if ( !<[mpv.json.command]>->(@_) ) {
-    <[base.log]>->( 0, "no command defined" );
-    return;
-}
+my $json_string = <[mpv.json.command]>->(@_);
 
-syswrite( <mpv.socket>, <[mpv.json.command]>->(@_) );
+return <[base.log]>->( 0, "no command defined" ) if !$json_string;
+
+syswrite( <mpv.socket>, $json_string );
