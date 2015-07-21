@@ -23,6 +23,10 @@ if ( <mpv.autorescale> and defined $video_width and defined $video_height ) {
         and !-f <mpv.file_map.rescaled>->{<mpv.current.path>}
         or defined <mpv.current.path> and !-f <mpv.current.path> ) {
 
+        # libx264 expects even size parameters
+        $window_width++  if $window_width % 2;
+        $window_height++ if $window_height % 2;
+
         <[base.log]>->(
             1,
             "autorescaling video ( ${video_width}x$video_height"

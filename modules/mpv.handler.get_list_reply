@@ -14,6 +14,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty playlist!" );
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
     <[mpv.send_command]>->('stop');
     return;
 }
@@ -28,8 +29,7 @@ if (<mpv.autorescale>) {
     foreach my $playlist_path ( @{<mpv.playlist.update_files>} ) {
         my $extension = '';
         ( my $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
-        $extension = ".$1" if $playlist_path =~ /\.([^\.]+)$/;
-        my $rescaled_path = "$output_path/$box_size$extension";
+        my $rescaled_path = "$output_path/$box_size.mp4";
         next if !-f $rescaled_path;
         <mpv.file_map.rescaled>->{$playlist_path} = $rescaled_path;
         <mpv.file_map.rescaled>->{$rescaled_path} = $playlist_path;
@@ -38,7 +38,6 @@ if (<mpv.autorescale>) {
 
 }
 
-push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->('playlist_clear');
 
 push(
@@ -47,6 +46,4 @@ push(
         'callback' => 'mpv.callback.playlist_update'
     }
 );
-
-delete <mpv.current.path>;
 <[mpv.send_command]>->( 'get_property_string', 'path' );
