@@ -46,6 +46,11 @@ my @ffmpeg_params = (
     $output_file
 );
 
-if ( !-f $output_file ) { system(@ffmpeg_params) }
+if ( !-f $output_file ) {
+    if ( system(@ffmpeg_params) != 0 or $? == -1 or $? & 127 ) {
+        <[base.log]>->( 0, "ffmpeg failed to execute: $!" );
+        return { 'mode' => 'nack', 'data' => "ffmpeg failed to execute [$!]" };
+    }
+}
 
 return { 'mode' => 'ack', 'data' => $output_file }
