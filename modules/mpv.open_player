@@ -36,14 +36,15 @@ $mpv_title_param .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
 $mpv_title_param .= ' ( ${media_title} )"';
 
-<[base.log]>->( 2, "current mpv parameters: $mpv_params" );
+<[base.log]>
+    ->( 2, "current mpv parameters: " . <mpv.bin_path> . " $mpv_params" );
 
 <[base.log]>->( 1, 'starting mpv player..' );
 
 <mpv.started_with_params> = $mpv_params . ' ' . $mpv_title_param;
 
 <mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
-    ( 'mpv', split( / +/, $mpv_params ), $mpv_title_param ) );
+    ( <mpv.bin_path>, split( / +/, $mpv_params ), $mpv_title_param ) );
 
 if ( !<mpv.pid> ) {
     <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
