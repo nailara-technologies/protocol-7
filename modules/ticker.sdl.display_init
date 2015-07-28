@@ -87,7 +87,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
         $font_size++;
     recalc:
         <ticker.font.object> = SDL::TTF::open_font( $font_path, $font_size );
-        die "failed to open font " . SDL::get_error . "]"
+        die "failed to open font [" . SDL::get_error . "]"
             if !<ticker.font.object>;
         <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
         <ticker.border_height>
