@@ -24,7 +24,7 @@ die "expected http[s] url!"
 my $method   = 'HEAD';
 my $response = $http->head($url);
 
-if ( $response->status_line =~ /^(400|500)/ ) {
+if ( $response->status_line =~ /^(4\d{2}|5\d{2})/ ) {
     <[base.log]>->( 2, "HEAD failed for '$url', trying GET request.." );
     $http->max_size(0);
     $method   = 'GET';
