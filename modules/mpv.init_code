@@ -5,6 +5,11 @@
 use JSON;
 use IPC::Open3;
 
+chomp( <mpv.bin_path> = qx(which mpv) );
+
+die "[!] mpv binary not found, aborting startup..."
+    if not defined <mpv.bin_path> or !length(<mpv.bin_path>);
+
 <mpv.reply_ids>         //= [];
 <mpv.file_map.rescaled> //= {};
 
