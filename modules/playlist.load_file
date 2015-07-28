@@ -47,8 +47,9 @@ if ( !@file_names ) {
 foreach my $file (@file_names) {
     my $agent_subname;
     my $type = 'unknown';
-    $agent_subname = $1 if $file =~ s|^([^\:]+): +||;
-    $type          = $1 if $file =~ s| \(([^\)]+)\)$||;
+    $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
+    $type          = $1        if $file =~ s| \(([^\)]+)\)$||;
+    $type          = 'unknown' if $type eq 'url';
     <playlist.agent_subnames>->{$file}->{$agent_subname} = 1
         if defined $agent_subname;
 
