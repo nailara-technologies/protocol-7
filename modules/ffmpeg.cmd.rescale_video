@@ -50,11 +50,10 @@ my @ffmpeg_params = (
     $video_path,              '-loglevel',
     'error',                  '-y',
     '-strict',                '-2',
-    '-c:v',                   'libx264',
     '-preset',                'medium',
-    '-x265-params',           'crf=' . <ffmpeg.quality>,
-    '-c:a',                   'aac',
-    '-b:a',                   <ffmpeg.bitrate>,
+    '-c:a',                   'copy',
+    '-c:v',                   'libx264',
+    '-x264-params',           'crf=' . <ffmpeg.quality>,
     '-vf',                    "scale=$new_size",
     $partial_output_file
 );
