@@ -1,0 +1,34 @@
+# >:]
+
+# name  = mediainfo.cmd.get_info
+# param = <file> [info_keys]
+# descr = return information about audio or video files
+
+return { 'mode' => 'nack', 'data' => 'expected path to media file' }
+    if !length( $$call{'args'} );
+
+my ( $file_path, @info_keys ) = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nack', 'data' => 'file not found' }
+    if !-f $file_path;
+
+my $file_info = new Mediainfo( 'filename' => $file_path );
+
+@info_keys = sort( keys %{$file_info} ) if !@info_keys;
+
+my $info_reply;
+my $key_max_len = 0;
+map { $key_max_len = length($_) if length($_) > $key_max_len } @info_keys;
+
+foreach my $i_key (@info_keys) {
+    return {
+        'mode' => 'nack',
+        'data' => "didn't find media info key '$i_key'"
+        }
+        if not exists $file_info->{$i_key};
+
+    $info_reply
+        .= sprintf( "%-${key_max_len}s : %s\n", $i_key, $file_info->{$i_key} );
+}
+
+return { 'mode' => 'raw', 'data' => $info_reply };
