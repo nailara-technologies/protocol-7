@@ -16,4 +16,4 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
 
 # installs the rest from cpan (note: Gtk2::WebKit needs running X-server)
 cpanm Crypt::Twofish2 X11::Tops Gtk2::WebKit XML::RSS::TimingBot\
-      XML::RSS::Parser File::MimeInfo::Magic Poppler Astro::MoonPhase
+      XML::RSS::Parser File::MimeInfo::Magic Mediainfo Poppler Astro::MoonPhase
