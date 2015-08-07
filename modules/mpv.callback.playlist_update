@@ -1,9 +1,14 @@
 # >:]
 
+# name = mpv.callback.playlist_update
+
 my @files;
 my %file_hash;
 my $status = shift;
 my $path = <mpv.current.path> || '';
+
+<[base.log]>->( 1, "received playlist_update command" );
+
 @files = @{ delete <mpv.playlist.update_files> }
     if exists <mpv.playlist.update_files>;
 map { $file_hash{$_} = 1 } @files;
