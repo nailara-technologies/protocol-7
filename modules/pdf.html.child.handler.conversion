@@ -55,7 +55,9 @@ my $target_height
 
 $conversion->{'skip_hash'}
     = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height )
-    if not exists $conversion->{'skip_hash'};
+    if not exists $conversion->{'skip_hash'}
+    and defined $target_width
+    and defined $target_height;
 
 my $skip_hash = $conversion->{'skip_hash'};
 
