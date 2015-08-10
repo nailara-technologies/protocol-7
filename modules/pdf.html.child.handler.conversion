@@ -32,7 +32,7 @@ if ( $pdf_location =~ m|^https?://| ) {
         $conversion->{'pdf_file'} = $pdf_location;
     }
 
-    # XXX: cleanup / error page
+    # XXX: cleanup
 }
 
 if ( not exists $conversion->{'pages'} ) {
@@ -42,6 +42,7 @@ if ( not exists $conversion->{'pages'} ) {
     $conversion->{'pages'} = $page_count;
 }
 
+my $err_status;
 my $page_count = $conversion->{'pages'};
 
 my ( $page_width, $page_height )
@@ -49,15 +50,19 @@ my ( $page_width, $page_height )
     if not exists $conversion->{'height'};
 
 my $target_width = $conversion->{'width'};
+
+$err_status = 'target_width not defined' if not defined $target_width;
+$err_status = 'page_width not defined'   if not defined $page_width;
+$err_status = 'page_height not defined'  if not defined $page_height;
+
+goto fail if defined $err_status;
+
 my $target_height
-    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width )
-    if $target_width != $page_width;
+    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width );
 
 $conversion->{'skip_hash'}
     = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height )
-    if not exists $conversion->{'skip_hash'}
-    and defined $target_width
-    and defined $target_height;
+    if not exists $conversion->{'skip_hash'};
 
 my $skip_hash = $conversion->{'skip_hash'};
 
@@ -69,25 +74,29 @@ my $image = Graphics::Magick->new( density => '600' );
 
 my $index = $conversion->{'current_page'}++;
 
-$image->Read("$pdf_location\[$index\]");
+$err_status = $image->Read("$pdf_location\[$index\]");
+goto fail if "$err_status";
 
-$image->Resize(
+$err_status = $image->Resize(
     width  => $target_width,
     height => $target_height,
     blur   => 0.57,
     filter => 'Cubic'
 );
+goto fail if "$err_status";
 
 my $img_index = sprintf( "%0" . length($page_count) . "d",
     $conversion->{'current_page'} );
 my $image_name  = "page.$img_index.png";
 my $output_file = $conversion->{'html_path'} . '/' . $image_name;
 
-$image->Signature();
+$err_status = $image->Signature();
+goto fail if "$err_status";
 
 if ( $image->Get('signature') ne $skip_hash ) {
     <[base.log]>->( 2, "writing image file '$image_name'" );
-    $image->Write("png24:$output_file");
+    $err_status = $image->Write("png24:$output_file");
+    goto fail if "$err_status";
     push( @{ $conversion->{'image_names'} }, $image_name );
 } else {
     <[base.log]>->( 2, "skipped image file '$image_name' (white page)" );
@@ -123,3 +132,23 @@ if ( $conversion->{'current_page'} == $page_count ) {
         delete <pdf.html.conversions>->{$current_key};
     }
 }
+
+return;
+
+fail:
+
+$index++;
+my $err_msg = "error during conversion of PDF page #$index [$err_status`]";
+<[base.log]>->( 0, $err_msg );
+foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nack',
+            'data' => $err_msg
+        }
+    );
+    delete <pdf.html.conversions>->{$current_key};
+}
+
+<[pdf.html.base.write_error_page]>->( $conversion->{'html_path'} );
+return;
