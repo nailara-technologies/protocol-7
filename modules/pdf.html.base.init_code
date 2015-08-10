@@ -9,6 +9,10 @@ use File::Path qw(make_path remove_tree);
 
 <pdf.html.converting> //= {};
 <pdf.html.cache_dir>  //= '/var/cache/pdf2html';
+
+<pdf.html.fail_template>
+    = <system.root_path> . '/data/html/failed_to_load.html';
+
 my $cache_dir = <pdf.html.cache_dir>;
 
 if ( !-d $cache_dir ) {

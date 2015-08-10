@@ -5,15 +5,26 @@
 my ( $width, $height ) = @_;
 my $cache_dir = <pdf.html.cache_dir>;
 
-die "expected valid page width"
-    if not defined $width or $width !~ /^\d+$/;
-die "expected valid page height"
-    if not defined $height or $height !~ /^\d+$/;
+my $fail = 0;
+if ( not defined $width or $width !~ /^\d+$/ ) {
+    warn "expected valid page width";
+    $fail = 1;
+}
+if ( not defined $height or $height !~ /^\d+$/ ) {
+    warn "expected valid page height";
+    $fail = 1;
+}
+return '' if $fail;
 
 my $image = Graphics::Magick->new();
 
 $image->Set( size => "${width}x${height}" );
-$image->ReadImage('xc:white');
+my $err_status = $image->ReadImage('xc:white');
+
+if ("$err_status") {
+    <[base.log]>->( 0, "failed to create white image! [$err_status]" );
+    return '';
+}
 
 $image->Signature();
 return $image->Get('signature');

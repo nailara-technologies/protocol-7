@@ -4,7 +4,10 @@
 
 my $pdf_file = shift;
 
-die "pdf file '$pdf_file' does not exist" if !-f $pdf_file;
+if ( !-f $pdf_file ) {
+    <[base.log]>->( 0, "pdf file '$pdf_file' does not exist" );
+    return undef;
+}
 
 my $pdf        = Poppler::Document->new_from_file("file://$pdf_file");
 my $page       = $pdf->get_page(0);
