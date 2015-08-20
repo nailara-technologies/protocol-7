@@ -26,10 +26,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 my $playlist_sha1
     = <[digest.sha1]>->( join( ' ', @{<mpv.playlist.update_files>} ) );
 
-return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
-    if $playlist_sha1 eq <mpv.playlist_sha1>;
-
-<mpv.playlist_sha1> = $playlist_sha1;
+my $playlist_changed = 0;
 
 if (<mpv.autorescale>) {
     my $window_width  = <x11.coordinates.right> - <x11.coordinates.left>;
@@ -44,9 +41,13 @@ if (<mpv.autorescale>) {
         <mpv.file_map.rescaled>->{$playlist_path} = $rescaled_path;
         <mpv.file_map.rescaled>->{$rescaled_path} = $playlist_path;
         $playlist_path = $rescaled_path;
+        $playlist_changed = 1;
     }
-
 }
+
+return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
+    if $playlist_sha1 eq <mpv.playlist_sha1> and !$playlist_changed;
+<mpv.playlist_sha1> = $playlist_sha1;
 
 <[mpv.send_command]>->('playlist_clear');
 
