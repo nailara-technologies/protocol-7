@@ -25,8 +25,9 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 mpv.geometry = [base.x11.get_geometry]
 mpv.coordinates = [base.x11.get_coordinates]
 
+mpv.fade_in    = 1   # fade in mpv player at startup using compositing (xprop)
 mpv.auto_fs    = 1   # start in fullscreen mode in case no geometry was received
-mpv.autoresize = 1
+mpv.autoresize = 1   # autoresize player window to get rid of black borders
 
 mpv.autorescale = 0  # rescale video automatically in the background (ffmpeg)
 
@@ -40,7 +41,7 @@ mpv.params = --idle --force-window --keep-open=always --loop=inf \
 [config.json.import_file:'mpv.config.json'] # .. from /etc/nailara/import/ ..
 
 [mpv.open_player]
-[base.x11.keep_below:[base.x11.get_window_id]]
+[base.x11.keep_below:<x11.id>]
 [mpv.send_command:"observe_property",1,"video-aspect"]
 [mpv.send_command:"observe_property",1,"path"]
 [mpv.send_command:"observe_property",1,"width"]
