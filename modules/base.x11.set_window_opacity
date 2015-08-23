@@ -2,15 +2,22 @@
 
 # name = base.x11.set_window_opacity
 
-my $id = shift;
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+my $id      = shift;
 my $opacity = shift;
+die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
 die "expected numerical opacity from 0 to 100"
     if not defined $opacity
     or $opacity !~ /^\d+$/
     or $opacity > 100;
 
-$opacity = ( $opacity * 0xffffffff / 100 );
-return
-    system( 'xprop', '-id', $id, '-f', '_NET_WM_WINDOW_OPACITY',
+<[base.log]>->( 2, "setting window '$id' opacity to $opacity% .." );
+
+$opacity = ( $opacity * 0xffffffff / 100 ) if $opacity;
+
+my $err_code
+    = system( 'xprop', '-id', $id, '-f', '_NET_WM_WINDOW_OPACITY',
     '32c', '-set', '_NET_WM_WINDOW_OPACITY', $opacity );
+
+warn "failed to set window opacity (xprop: $!)" if $err_code;
+
+return $err_code;
