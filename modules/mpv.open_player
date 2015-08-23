@@ -6,7 +6,15 @@ my $abort_startup = 0;
 my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
 
+my $target_geometry;
+if (<mpv.fade_in>) {
+    $target_geometry = <mpv.geometry>;
+    <mpv.geometry> = '1x1--0--0';
+}
+
 $mpv_params .= ' --geometry=' . <mpv.geometry> if defined <mpv.geometry>;
+
+<mpv.geometry> = $target_geometry if defined $target_geometry;
 
 $mpv_params .= ' -fs'
     if not defined <mpv.geometry>
@@ -36,8 +44,9 @@ $mpv_title_param .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
 $mpv_title_param .= ' ( ${media_title} )"';
 
-<[base.log]>
-    ->( 2, "current mpv parameters: " . <mpv.bin_path> . " $mpv_params" );
+<[base.log]>->(
+    2, "current mpv parameters: " . <mpv.bin_path> . " $mpv_params"
+);
 
 <[base.log]>->( 1, 'starting mpv player..' );
 
@@ -51,6 +60,7 @@ if ( !<mpv.pid> ) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     CORE::exit(1);
 }
+
 <[base.log]>->( 1, ": mpv process spawned [PID=<mpv.pid>]" );
 
 close( delete(<mpv.fh.stdin>) );
@@ -85,6 +95,33 @@ if ($abort_startup) {
     <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
         if kill( 9, <mpv.pid> );
     CORE::exit(1);
+}
+
+<[base.x11.get_window_id]>;
+
+if (<mpv.fade_in>) {
+    <[base.x11.set_window_opacity]>->( <x11.id>, 0 );
+    waitpid( <mpv.pid>, WNOHANG );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command' => 'core.xserver.set_geometry',
+            'call_args' =>
+                { 'args' => join( ' ', <x11.id>, $target_geometry ) },
+            'reply' => {
+                'handler' => 'dev.null',
+                'params'  => {}
+            }
+        }
+    ) if !<mpv.autoresize>;
+    <mpv.opacity> = 0;
+    Event->idle(
+        cb => sub {
+            <mpv.opacity>++;
+            return 0 if <mpv.opacity> > 100;
+            <[base.x11.set_window_opacity]>->( <x11.id>, <mpv.opacity> );
+            return 1;
+        },
+        repeat => 1
+    );
 }
 
 <[event.add_io]>->(
