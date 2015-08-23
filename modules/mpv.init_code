@@ -2,18 +2,17 @@
 
 # name = mpv.init_code
 
-use JSON;
+use JSON::PP;
 use IPC::Open3;
 
-chomp( <mpv.bin_path> = qx(which mpv) );
+<mpv.bin_path> //= '/usr/bin/mpv';
+chomp( <mpv.bin_path> = qx(which mpv) ) if !-f <mpv.bin_path>;
 
 die "[!] mpv binary not found, aborting startup..."
     if not defined <mpv.bin_path> or !length(<mpv.bin_path>);
 
+<mpv.fade_in>           //= 0;
 <mpv.reply_ids>         //= [];
 <mpv.file_map.rescaled> //= {};
-
-<[event.add_signal]>
-    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
 
 0;
