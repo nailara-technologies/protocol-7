@@ -4,6 +4,8 @@
 
 use File::Path qw(make_path);
 
+<ffmpeg.threads> //= 1;
+
 chomp( <ffmpeg.path.ffmpeg_bin> = qx(which ffmpeg) );
 
 if ( !length(<ffmpeg.path.ffmpeg_bin>) ) {
