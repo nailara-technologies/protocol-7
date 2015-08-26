@@ -16,29 +16,34 @@ if ( <mpv.autorescale> and defined $video_width and defined $video_height ) {
     my $box_width     = <mpv.current.box_width>;
     my $box_height    = <mpv.current.box_height>;
 
-    if (    ( $video_width != $window_width or $video_height != $window_height )
-        and defined <mpv.current.path>
+    if ( defined <mpv.current.path>
         and not exists <mpv.file_map.rescaled>->{<mpv.current.path>}
         or defined <mpv.current.path>
         and !-f <mpv.file_map.rescaled>->{<mpv.current.path>}
         or defined <mpv.current.path> and !-f <mpv.current.path> ) {
 
-        # libx264 expects even size parameters
-        $window_width++  if $window_width % 2;
-        $window_height++ if $window_height % 2;
+        my $target_width
+            = $window_width > $video_width ? $video_width : $window_width;
+        $target_width = <mpv.rescale_max_width>
+            if defined <mpv.rescale_max_width>
+            and $target_width > <mpv.rescale_max_width>;
+
+        while ( ( $video_height / $video_width * $target_width ) % 2
+            or $target_width % 16 ) {
+            $target_width--;
+        }
 
         <[base.log]>->(
             1,
             "autorescaling video ( ${video_width}x$video_height"
-                . " => ${window_width}x$window_height )"
+                . " => target_width: $target_width )"
         );
 
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => 'core.ffmpeg.rescale_video',
                 'call_args' => {
                     'args' => join( ' ',
-                        <mpv.current.path>,
-                        "${window_width}x$window_height",
+                        <mpv.current.path>, "$target_width",
                         "${box_width}x$box_height" )
                 },
                 'reply' => {
