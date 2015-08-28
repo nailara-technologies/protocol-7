@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-BEGIN{ $ENV{'PERL_RL'} = 'Perl' };
+BEGIN { $ENV{'PERL_RL'} = 'Perl' }
 
 $0 = 'nshell ';
 
@@ -40,12 +40,17 @@ my $color  = "\e[37m\e[40m";
 my $prompt = $color . ':. ';
 
 my $connect = 1;
+my $WARNED  = 0;
 
 $| = 0;
 
 # clear();
 
 my $term = new Term::ReadLine 'nailara.shell';
+
+no warnings 'once';
+$readline::rl_completion_function = "main::rl_filename_list_lcl";
+use warnings 'once';
 
 my $shell_sock;
 while ($connect) {
@@ -110,6 +115,7 @@ sub shell_loop {
     if ( !fork() ) { stdout_fork(); exit }
 
     while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
+        $WARNED = 0;
         print $color;
 
         if ( $line ne '' ) {
@@ -149,4 +155,31 @@ sub stdout_fork {
         print "$out\n";
     }
     print ":\n:..[ connection terminated ]\n\n";
+}
+
+sub rl_filename_list_lcl {
+    my ( $text, $line, $pos ) = @_;
+
+    if ( !$pos or $line !~ /^\./ ) {
+        no warnings 'once';
+        $readline::rl_completer_terminator_character = '';
+        use warnings 'once';
+        if ( !$WARNED and $line !~ /^\./ ) {
+            print "\n[!] local shell commands need '.' prefix!\n";
+            $WARNED = 1;
+        }
+        return '';
+    }
+
+    my @files = (<$text*>);
+    foreach (@files) {
+        if ( -d $_ ) {
+            next if $pos == 0 and !-x $_;
+            $_ .= '/';
+        }
+    }
+    no warnings 'once';
+    $readline::rl_completer_terminator_character = '';
+    use warnings 'once';
+    return @files;
 }
