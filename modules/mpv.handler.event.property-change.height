@@ -9,18 +9,21 @@ my $params = shift;
 my $video_width  = <mpv.current.video_width>;
 my $video_height = <mpv.current.video_height>;
 
-if ( <mpv.autorescale> and defined $video_width and defined $video_height ) {
-
+if (    <mpv.autorescale>
+    and defined $video_width
+    and defined $video_height
+    and defined <mpv.current.path> ) {
+    my $target_path;
     my $window_width  = <mpv.current.window_width>;
     my $window_height = <mpv.current.window_height>;
     my $box_width     = <mpv.current.box_width>;
     my $box_height    = <mpv.current.box_height>;
+    my $box_size      = "${box_width}x$box_height";
+    $target_path = <mpv.file_map.rescaled.target>->{<mpv.current.path>}
+        if defined <mpv.file_map.rescaled.target>->{<mpv.current.path>};
 
-    if ( defined <mpv.current.path>
-        and not exists <mpv.file_map.rescaled>->{<mpv.current.path>}
-        or defined <mpv.current.path>
-        and !-f <mpv.file_map.rescaled>->{<mpv.current.path>}
-        or defined <mpv.current.path> and !-f <mpv.current.path> ) {
+    if ( defined $target_path and !-f $target_path
+        or !-f <mpv.current.path> ) {
 
         my $target_width
             = $window_width > $video_width ? $video_width : $window_width;

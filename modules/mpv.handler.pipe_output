@@ -26,7 +26,7 @@ if (sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
 while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     my $reply_id;
     my $output_line = $1;
-    my $decoded     = decode_json($output_line);
+    my $decoded     = <mpv.json.parser>->decode($output_line);
 
     if (    defined $decoded
         and ref($decoded) eq 'HASH'
