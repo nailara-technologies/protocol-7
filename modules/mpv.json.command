@@ -2,4 +2,4 @@
 
 # name = mpv.json.command
 
-return encode_json( { 'command', [ @_ ] } ) . "\n"
+return <mpv.json.parser>->encode( { 'command', [@_] } ) . "\n"
