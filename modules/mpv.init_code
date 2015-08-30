@@ -5,6 +5,8 @@
 use JSON::PP;
 use IPC::Open3;
 
+<mpv.json.parser> = JSON::PP->new->pretty(0);
+
 <mpv.bin_path> //= '/usr/bin/mpv';
 chomp( <mpv.bin_path> = qx(which mpv) ) if !-f <mpv.bin_path>;
 

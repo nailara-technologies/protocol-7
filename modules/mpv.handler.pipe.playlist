@@ -3,15 +3,20 @@
 # name = mpv.handler.pipe.playlist
 
 my $playlist_str  = '';
-my $playlist_json = shift;
+my $playlist_json = shift || '';
 my $reply_id      = shift @{<mpv.reply_ids>};
 
-my $playlist_data = decode_json($playlist_json);
-
-map {
-    $playlist_str .= exists $_->{'playing'} ? ':. ' : ':  ';
-    $playlist_str .= $_->{'filename'} . "\n"
-} @{$playlist_data};
+if ( length($playlist_json) ) {
+    my $playlist_data = <mpv.json.parser>->decode($playlist_json);
+    map {
+        $playlist_str .= exists $_->{'playing'} ? ':. ' : ':  ';
+        $playlist_str .= $_->{'filename'} . "\n"
+    } @{$playlist_data};
+} else {
+    <[base.log]>->(
+        0, "playlist decoding handler called with empty string (invalid json)"
+    );
+}
 
 <[base.callback.cmd_reply]>->(
     $reply_id,

@@ -12,35 +12,34 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     return;
 }
 
-<mpv.file_map.rescaled> = {};
-
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty playlist!" );
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <mpv.file_map.rescaled> = {};
     <[mpv.send_command]>->('stop');
     return;
 }
 
-@{<mpv.playlist.update_files>} = split( "\n", $reply->{'data'} );
+my @update_files = split( "\n", $reply->{'data'} );
 
-my $playlist_sha1
-    = <[digest.sha1]>->( join( ' ', @{<mpv.playlist.update_files>} ) );
+my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @update_files ) );
 
 my $playlist_changed = 0;
 
 if (<mpv.autorescale>) {
+    <mpv.file_map.rescaled> = {};
     my $window_width  = <x11.coordinates.right> - <x11.coordinates.left>;
     my $window_height = <x11.coordinates.bottom> - <x11.coordinates.top>;
     my $box_size      = join( 'x', $window_width, $window_height );
 
-    foreach my $playlist_path ( @{<mpv.playlist.update_files>} ) {
+    foreach my $playlist_path (@update_files) {
         my $extension = '';
         ( my $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
         my $rescaled_path = "$output_path/$box_size.mp4";
         next if !-f $rescaled_path;
-        <mpv.file_map.rescaled>->{$playlist_path} = $rescaled_path;
-        <mpv.file_map.rescaled>->{$rescaled_path} = $playlist_path;
-        $playlist_path = $rescaled_path;
+        <mpv.file_map.rescaled.target>->{$playlist_path} = $rescaled_path;
+        <mpv.file_map.rescaled.source>->{$rescaled_path} = $playlist_path;
+        $playlist_path    = $rescaled_path;
         $playlist_changed = 1;
     }
 }
@@ -49,12 +48,34 @@ return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
     if $playlist_sha1 eq <mpv.playlist_sha1> and !$playlist_changed;
 <mpv.playlist_sha1> = $playlist_sha1;
 
+push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->('playlist_clear');
 
-push(
-    @{<mpv.command.reply>},
-    {   'handler'  => 'mpv.handler.path_reply',
-        'callback' => 'mpv.callback.playlist_update'
+my $current_path = <mpv.current.path> || '';
+
+my $skip_index;
+my $index   = 0;
+my $skipped = 0;
+my @append_files;
+map {
+    if ( $_ ne $current_path or $skipped ) { push( @append_files, $_ ) }
+    else { $skipped = 1; $skip_index = $index }
+    $index++;
+} @update_files;
+
+if ( defined $skip_index and $skip_index ) {
+    for ( 0 .. $skip_index ) {
+        my $reorder_file = pop(@append_files);
+        unshift( @append_files, $reorder_file );
     }
-);
-<[mpv.send_command]>->( 'get_property_string', 'path' );
+}
+
+if ( !$skipped ) {    # current file not in playlist, skip it..
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <[mpv.send_command]>->('stop');
+}
+
+map {
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <[mpv.send_command]>->( 'loadfile', $_, 'append-play' );
+} @append_files;
