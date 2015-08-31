@@ -117,6 +117,18 @@ my $ssh_keyfile = $link_setup->{'ssh.keyfile'};
 my $ssh_privkey = $ssh_keyfile;
 my $ssh_pubkey  = "$ssh_keyfile.pub";
 
+foreach my $key_type ( 'private', 'public' ) {
+    my $key_file = $key_type eq 'private' ? $ssh_privkey : $ssh_pubkey;
+    if ( !open( my $dummy, '<' . $key_file ) ) {
+        <[base.log]>->(
+            0, ": : SSH AUTH FAILURE [ failed to open $key_type key: $! ]"
+        );
+        $ssh->disconnect;
+        $sock->shutdown('NOW');
+        goto failed;
+    }
+}
+
 if ( !$ssh->auth_publickey( $ssh_user, $ssh_pubkey, $ssh_privkey ) ) {
     my ( $err_code, $err_name, $err_str ) = $ssh->error;
     <[base.log]>->( 0, ": : SSH AUTH FAILURE [ $err_str! ]" );
