@@ -6,6 +6,12 @@ use X11::Protocol;
 use X11::Protocol::WM;
 use X11::Tops;
 
+if ( <xserver.mode> eq 'auto-xephyr' ) {
+    system("ps h -C Xorg 1>/dev/null 2>/dev/null");
+    <xserver.mode> = $? == 256 ? 'xorg' : 'xephyr';
+    <[base.log]>->( 1, "[auto] switched to '<xserver.mode>'-mode.." );
+}
+
 <xserver.video_driver> //= <[xserver.get_video_driver]>;
 
 0;
