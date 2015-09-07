@@ -18,6 +18,7 @@ my $err_code
     = system( 'xprop', '-id', $id, '-f', '_NET_WM_WINDOW_OPACITY',
     '32c', '-set', '_NET_WM_WINDOW_OPACITY', $opacity );
 
-warn "failed to set window opacity (xprop: $!)" if $err_code;
+warn "[!] failed to set window opacity (xprop: $!)"
+    if $err_code and <system.verbosity> > 1;
 
 return $err_code;
