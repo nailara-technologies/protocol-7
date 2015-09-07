@@ -178,6 +178,8 @@ delete $connection->{'retry_delay'}
 
 <ssh.status.connections>->{$con_id} = 'online';
 
+$connection->{'io'}->{'ssh'}->now; # quickfix!
+
 my $ping_delay = 5;    # XXX: -> config...
 $connection->{'timer'}->{'ping'} = <[event.add_timer]>->(
     {   'after'    => 1,
