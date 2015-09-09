@@ -1,0 +1,13 @@
+# >:]
+
+# name = ticker.base.colour.hex_split
+
+my $hex_string = shift;
+my @hex_values;
+
+$hex_string =~ s|^#||;
+
+@hex_values = ( hex($1), hex($2), hex($3) )
+    if $hex_string =~ /^([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i;
+
+return @hex_values;
