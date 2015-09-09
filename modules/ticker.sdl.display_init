@@ -20,20 +20,31 @@ use SDL::VideoInfo;
 ## configuration ##
 
 # applying setup defaults
-<ticker.display.position> //= 'bottom';      # [top|center|bottom]
-<ticker.font.name>        //= 'DroidSans';
-<ticker.font.size>        //= 84;
-<ticker.redraw_delay>     //= 13;
-<ticker.font.bold>        //= 0;
-<ticker.shadow.enabled>   //= 1;
-<ticker.shadow.offset>    //= 2;
-<ticker.border_offset>    //= 0;
-<ticker.animation.steps>  //= 1;
+<ticker.display.position>  //= 'bottom';      # [top|center|bottom]
+<ticker.font.name>         //= 'DroidSans';
+<ticker.font.size>         //= 84;
+<ticker.font.size_percent> //= 100;
+<ticker.redraw_delay>      //= 13;
+<ticker.font.bold>         //= 0;
+<ticker.shadow.enabled>    //= 1;
+<ticker.shadow.offset>     //= 2;
+<ticker.border_offset>     //= 0;
+<ticker.animation.steps>   //= 1;
+<ticker.colour.foreground> //= '#000000';
+<ticker.colour.background> //= '#FFFFFF';
 
 # prepare colors to use for the ticker
-<ticker.col.fg> = SDL::Color->new( 0x00, 0x00, 0x00 );    # foreground
-<ticker.col.sh> = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
-my $bg_col = SDL::Color->new( 0xFF, 0xFF, 0xFF );         # background
+<ticker.col.fg> = SDL::Color->new(
+    <[ticker.base.colour.hex_split]>->(<ticker.colour.foreground>) );
+
+<ticker.col.sh> = <[ticker.base.colour.hex_split]>->(
+    <[ticker.base.colour.shadow_hex]>->(
+        <ticker.colour.foreground>, <ticker.colour.background>
+    )
+);
+
+my $bg_col = SDL::Color->new(
+    <[ticker.base.colour.hex_split]>->(<ticker.colour.background>) );
 
 # set up list of known fonts
 my @font_names = qw(
@@ -100,6 +111,28 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
             goto recalc;
         }
     }
+
+    # apply user defined font scale
+    <ticker.font.size_percent> =~ s|%$||;
+    my $scale_factor = <ticker.font.size_percent> * 0.01;
+    if ( $scale_factor < 1 and $scale_factor > 0 ) {
+
+        $font_size *= $scale_factor;
+
+        <ticker.font.object>
+            = SDL::TTF::open_font( $font_path, int($font_size) );
+
+        <ticker.border_offset> += sprintf(
+            "%.0d",
+            (   <ticker.font.height>
+                    - SDL::TTF::font_height(<ticker.font.object>)
+            ) / 2
+        );
+
+    } elsif ( $scale_factor != 1 ) {
+        warn "[!] font scale factor $scale_factor is out of range, ignoring..";
+    }
+
 } else {    # old mode
 
     # load the configured font
