@@ -1,6 +1,6 @@
 # >:]
 
-# name       = io.unix.socket.in.connect
+# name  = io.unix.socket.in.connect
 
 my ($event) = @_;
 my $fd = $event->w->data;
@@ -9,18 +9,24 @@ print "sock: $fd\n";
 
 if ( -S $fd ) {
     my $new_sock;
-    accept( $new_sock, $fd )
-        or
+    if ( accept( $new_sock, $fd ) ) {
+        my ( $pid, $uid, $gid ) = $new_sock->sockopt(SO_PEERCRED);
+
+        # XXX: implement (optional) [pid based] access control ...
+
+        syswrite( $new_sock, ">:]\n" );    # XXX: -> connect handler!!
+        $data{'handle'}{$new_sock}{'link'} = 'unix';
+
+        <[event.add_io]>->(
+            $fd, $data{'handle'}{$fd}{'auth_handler'},
+            $fd, 'r', 0, 0
+        );
+
+        return $new_sock;
+    } else {
         <[base.log]>->( 0, "io.unix.socket.in.connect: can not accept [$!]" );
-    syswrite( $new_sock, ">:]\n" );
-    $data{'handle'}{$new_sock}{'link'} = 'unix';
-
-    <[event.add_io]>->(
-        $fd, $data{'handle'}{$fd}{'auth_handler'},
-        $fd, 'r', 0, 0
-    );
-
-    return $new_sock;
+        return undef;
+    }
 } else {
     <[base.log]>->( 0, "io.unix.socket.in.connect: no valid socket supplied" );
     return undef;
