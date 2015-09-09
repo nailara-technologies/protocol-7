@@ -11,7 +11,7 @@ my $output_file = <rss.ticker.txt_data_path>;
 ( my $data_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
 my $join_type = <rss.ticker.join_type>;
 $join_type //= 'mixed';
-my $seperator = '.:.';
+my $seperator = <rss.ticker.item_seperator>;
 <rss.ticker.cache_timeout> //= 3;    # 3 hours default timeout for cached feeds
 
 my @urls;
