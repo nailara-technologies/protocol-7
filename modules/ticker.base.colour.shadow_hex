@@ -1,0 +1,27 @@
+# >:]
+
+# name = ticker.base.colour.shadow_hex
+
+my $fg_hex_str = shift;
+my $bg_hex_str = shift;
+my @shadow_hex;
+my @fg_hex;
+my @bg_hex;
+
+$fg_hex_str =~ s|^#||;
+$bg_hex_str =~ s|^#||;
+
+@fg_hex = ( hex($1), hex($2), hex($3) )
+    if $fg_hex_str =~ /^([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i;
+@bg_hex = ( hex($1), hex($2), hex($3) )
+    if $bg_hex_str =~ /^([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i;
+
+my $div_val = 1.06;
+
+my $red_val   = int( ( $fg_hex[0] + $bg_hex[0] ) / $div_val );
+my $green_val = int( ( $fg_hex[1] + $bg_hex[1] ) / $div_val );
+my $blue_val  = int( ( $fg_hex[2] + $bg_hex[2] ) / $div_val );
+
+@shadow_hex = ( $red_val, $green_val, $blue_val );
+
+return @shadow_hex;
