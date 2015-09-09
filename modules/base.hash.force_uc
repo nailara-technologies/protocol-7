@@ -1,0 +1,12 @@
+# >:]
+
+# name = base.hash.force_uc
+
+my $hash_ref = shift;
+
+foreach my $key ( keys %{$hash_ref} ) {
+    $hash_ref->{ uc($key) } = $hash_ref->{$key};
+    <[base.hash.force_uc]>->( $hash_ref->{ uc($key) } )
+        if ref $hash_ref->{$key} eq 'HASH';
+    delete( $hash_ref->{$key} ) unless $key eq uc($key);
+}
