@@ -8,7 +8,7 @@ $mode //= 0700;    # <- strict default
 $mode = oct($mode) if $mode =~ /^0/;
 die "expected absolute path (to create)"
     if not defined $path or $path !~ m,^/[^/]+,;
-$path =~ s,/[^/]+/../,,g;
+$path =~ s,/[^/]+/\.\./,,g;
 $path =~ tr|/||s;
 $path =~ s,/$,,;
 die "invalid path '$path'" if $path !~ m,^/[^/]+,;
