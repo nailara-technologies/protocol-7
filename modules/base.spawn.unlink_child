@@ -1,0 +1,20 @@
+# >:]
+
+# name = base.spawn.unlink_child
+
+<system.path.perl_bin> //= '/usr/bin/perl';
+
+if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
+    <[base.log]>->( 1, "spawning unlink child .." );
+    my $child_code
+        = 'map {$SIG{$_}="IGNORE"} ("INT","TERM","QUIT");'
+        . ' $0 = "unlink child ";'
+        . ' foreach $f (<STDIN>){ chomp($f); unlink($f) }';
+    <process.unlink_child.pid>
+        = open2( my $dummy, <process.unlink_child.w_fh>,
+        <system.path.perl_bin>, '-e', $child_code )
+        || die "failed to spawn perl kill child process [$!]";
+    <[base.log]>->(
+        1, ": spawned unlink child [pid=" . <process.unlink_child.pid> . "]"
+    );
+}

@@ -9,7 +9,8 @@ buffer.system.log_cmd = log.msg
 [load_config_file:'auth.pwd.core']
 
 system.agent.type               =       core
-modules.load                    =       auth digest net io.ip plugin.auth debug
+modules.load                    =       auth digest net io.ip io.unix \
+                                        plugin.auth debug
 auth.methods                    =       pwd agent #rsa
 auth.rsa.key_file               =       rsa.core
 get.route                       =       file vortex.file :target:
@@ -73,14 +74,19 @@ modules.pre_load = core.config config.json
 #[load_modules:'plugin.auth'] # XXX: doesn't reload right now... fix!
 [init_modules]
 
-# open socket
-my.sock = [base.open:'tcp/ip','in',<net.local.addr>,<net.local.port>]
+# open unix domain socket
+[file.make_path:'/tmp/.n/sock',0777]
+unix.path = [digest.md5.hex:"<net.local.addr>:<net.local.port>"]
+unix.sock = [base.open:'unix','in',"/tmp/.n/sock/<unix.path>"]
+
+# open tcp/ip socket
+tcp_ip.sock = [base.open:'tcp/ip','in',<net.local.addr>,<net.local.port>]
 
 # drop root priviledges
 [set_privs:'nailara']
 
 # bind nailara protocol to socket
-[base.proto.bind:<my.sock>,'nailara','server']
+[base.proto.bind:<tcp_ip.sock>,'nailara','server']
 
 # start event loop
 [event.loop]

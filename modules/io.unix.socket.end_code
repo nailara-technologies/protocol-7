@@ -1,0 +1,11 @@
+# >:]
+
+# name = io.unix.socket.end_code
+
+if ( exists <process.unlink_child.w_fh> ) {
+    map { <process.unlink_child.w_fh>->print("$_\n") } @{<unix.socket_paths>}
+        if exists <unix.socket_paths>;
+    <process.unlink_child.w_fh>->close;
+} else {
+    map { unlink($_) } @{<unix.socket_paths>} if exists <unix.socket_paths>;
+}
