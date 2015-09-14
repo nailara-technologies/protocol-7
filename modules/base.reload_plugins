@@ -4,6 +4,11 @@
 
 my $plugin_counter = 0;
 my $ok             = 1;
+
+map { delete $data{'callbacks'}{'end_code'}->{$_} if $_ =~ /^plugin\./ }
+    @{ $data{'callbacks'}{'end_code'} }
+    if exists $data{'callbacks'}{'end_code'};
+
 foreach my $plug_name ( %{ $data{'plugin'}{'state'} } ) {
     if ( %{ $data{'plugin'}{'state'}{$plug_name} }
         and $data{'plugin'}{'state'}{$plug_name}{'loaded'} == 1 ) {
