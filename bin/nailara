@@ -204,6 +204,7 @@ sub prepare_subs {
     $code{'base.load_code'} = sub {
 
         my ( $codedir, $file, $code_name );
+        $data{'callbacks'}{'end_code'} //= [];
         $data{'base'}{'modules'}{'load_errors'} = 0;
 
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
@@ -383,6 +384,8 @@ sub prepare_subs {
                         $data{'base'}{'help'}{$section}{$command}{'descr'}
                             = '! command broken !';
                     }
+                } elsif ( $sub_name =~ /\.end_code$/ ) {
+                    push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
                 }
             } else {
                 $code{$sub_name} = sub {
@@ -405,6 +408,10 @@ sub prepare_subs {
                 $err_count++;
             }
         }
+        delete $data{'callbacks'}{'end_code'}
+            if !@{ $data{'callbacks'}{'end_code'} };
+        map { $data{'code'}{$_}{'status'} = 'removed' if not exists $code{$_} }
+            keys %{ $data{'code'} };
 
         if ($err_count) {
             $code{'log.failed'}
@@ -503,4 +510,26 @@ sub prepare_subs {
         }
         return 1;
     };
+
+    $code{'base.handler.end_code'} = sub {
+        return if not exists $data{'callbacks'}{'end_code'};
+        foreach
+            my $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } ) {
+            if ( exists $code{$callback_name} ) {
+                $code{'base.log'}
+                    ->( 2, "calling end_code callback '$callback_name' ..." );
+                $code{$callback_name}->();
+            } else {
+                $code{'base.log'}->(
+                    0,
+                    "[!] referenced end_code callback " ..
+                        "'$callback_name' does not exist!"
+                );
+            }
+        }
+    };
+}
+
+END {
+    $code{'base.handler.end_code'}->();
 }
