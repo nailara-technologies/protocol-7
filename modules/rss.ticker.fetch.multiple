@@ -31,29 +31,33 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$rss_index};
     my $response = <rss.browser>->get($rss_url);
     if ( $response->code == 200 ) {
-        <[base.log]>->( 2, ": got fresh RSS content..." );
-        my $feed
-            = <rss.parser>
-            ->parse_string( encode( 'utf-8', $response->decoded_content ) );
-        if ( not defined $feed ) {
-            ( my $err_str = <rss.parser>->errstr ) =~ s|\n| |g;
-            $err_str =~ s| +$||;
-            <[base.log]>->( 0, "[!] error on URL $rss_index [ $err_str ]" );
-            next;
-        }
+        my $feed;
         my @txt_data;
-        eval {
-            foreach my $item ( $feed->query('//item') ) {
-                my $node = $item->query('title');
-                my $line = $node->text_content;
-                push( @txt_data, $line );
-            }
-        };
-        if ($@) {
+        <[base.log]>->( 2, ": got fresh RSS content..." );
+        my $response_string = encode( 'utf-8', $response->decoded_content );
+
+        eval { $feed = <rss.parser>->parse_string($response_string); };
+        if ( not defined $feed or !length($feed) or $@ ) {
+            ( my $err_str = <rss.parser>->errstr || $@ ) =~ s|\n| |g;
+            $err_str =~ s| +$||;
             <[base.log]>->(
-                0, "error while parsing rss URL $rss_index content [$@]"
+                0, "[!] parser error on URL $rss_index [ $err_str ]"
             );
-            next;
+            @txt_data = ("[!] error at parsing RSS URL #$rss_index [!]");
+        } else {
+            eval {
+                foreach my $item ( $feed->query('//item') ) {
+                    my $node = $item->query('title');
+                    my $line = $node->text_content;
+                    push( @txt_data, $line );
+                }
+            };
+            if ($@) {
+                <[base.log]>->(
+                    0, "error while parsing rss URL $rss_index content [$@]"
+                );
+                @txt_data = ("[!] error at parsing RSS URL #$rss_index [!]");
+            }
         }
         my $url_hash = <[digest.sha1]>->($rss_url);
         if ( !-d $data_dir ) {
