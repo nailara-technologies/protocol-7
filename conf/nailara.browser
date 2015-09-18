@@ -22,7 +22,10 @@ browser.slideshow.min_delay = 5
 
 window.scroll.delay = 42
 
-browser.zoom_level = 1
+browser.zoom_level = 1  # default (text) zoom factor
+
+browser.auto_zoom = 1   # recalculate zoom factor based on current screen size
+browser.min_zoom = 0.5  # lower zoom factor limit for automatic recalculation
 
 modules.load = auth net io.ip io.unix browser.base debug
 [load_modules:<modules.load>]
@@ -33,6 +36,7 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 [base.x11.get_display]
+[browser.base.calc_zoom_level]
 browser.geometry = [base.x11.get_geometry]
 [browser.base.fork_instances:2]
 
