@@ -18,8 +18,9 @@ $scroll_text =~ s/\s*\^\s*/^/g;
 my %cached;
 my @content;
 my $chars = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
-while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})//
-    and my $string = $1 ) {
+
+while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
+    my $string = $1;
     my ( $width, $height );
 
     # use '^' chars to allow text to scroll out of screen before continueing ...
@@ -27,8 +28,6 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})//
         ( $width, $height ) = ( <sdl.display_width>, <ticker.font.height> );
         $string = '';
     }
-
-    #    print "string : '$string'\n";
 
     # calculate text snipplet size
     if ( length($string) ) {
