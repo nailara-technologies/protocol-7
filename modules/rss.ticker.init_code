@@ -29,4 +29,17 @@ if ( -d $db_dir ) {
 <rss.browser>->agent(<rss.ticker.user_agent>);
 <rss.browser>->timeout(<rss.ticker.request_timeout>);
 
+my @rss_urls;
+<rss.ticker.url_hash> //= <[digest.sha1]>->('');
+if ( defined <rss.ticker.content_url> ) {
+    if ( ref(<rss.ticker.content_url>) ne 'HASH' ) {
+        @rss_urls = (<rss.ticker.content_url>);
+    } else {
+        @rss_urls = map { <rss.ticker.content_url>->{$_} }
+            keys %{<rss.ticker.content_url>};
+    }
+    <rss.ticker.url_hash>
+        = <[digest.sha1]>->( join( '', map {"$_\n"} @rss_urls ) );
+}
+
 0;
