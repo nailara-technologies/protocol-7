@@ -3,13 +3,18 @@
 # name       = io.unix.socket.out.open
 
 my $socket_file = $_[0];
-my $return_socket;
-socket( $return_socket, PF_UNIX, SOCK_STREAM, 0 )
-    or <[base.log]>->( 0, "io.unix.socket.out.open: [socket] $!" );
-connect( $return_socket, sockaddr_un($socket_file) )
-    or <[base.log]>->( 0, "io.unix.socket.out.open: [connect] $!" );
-if ( -S $return_socket ) {
+
+my $return_socket = IO::Socket::UNIX->new(
+    Type => SOCK_STREAM(),
+    Peer => $socket_file,
+) or <[base.log]>->( 0, "io.unix.socket.out.open: $!" );
+
+if ( -S $return_socket and $return_socket->connected ) {
     <[base.log]>->( 1, "connection [unix:$socket_file] established." );
+
+    $data{'handle'}{$return_socket}{'link'} = 'unix';
+    $data{'handle'}{$return_socket}{'mode'} = 'out';
+
     return $return_socket;
 } else {
     <[base.log]>->( 0, "can not connect to [unix:$socket_file]: $!" );
