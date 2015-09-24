@@ -20,7 +20,8 @@ else {
     if ( defined $data{'handle'}{$lsock} ) {
         <[base.log]>->(
             0,
-            "io.ip.tcp.in.open: handle '$lsock' was not cleaned up. cleaning now.."
+            "io.ip.tcp.in.open: handle '$lsock' "
+                . "was not cleaned up. cleaning now.."
         );
         delete $data{'handle'}{$lsock};
     }

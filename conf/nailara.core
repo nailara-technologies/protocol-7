@@ -86,7 +86,8 @@ tcp_ip.sock = [base.open:'tcp/ip','in',<net.local.addr>,<net.local.port>]
 [set_privs:'nailara']
 
 # bind nailara protocol to socket
-[base.proto.bind:<tcp_ip.sock>,'nailara','server']
+[base.proto.bind:<tcp_ip.sock>,'nailara']
+[base.proto.bind:<unix.sock>,'nailara']
 
 # start event loop
 [event.loop]

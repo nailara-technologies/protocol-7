@@ -1,0 +1,11 @@
+# >:]
+
+# name  = io.unix.socket.out.close
+
+if ( -S $_[0] ) {
+    close( $_[0] );
+    return 0;
+} else {
+    <[base.log]>->( 0, 'io.unix.socket.out.close: parameter is not a socket' );
+    return 1;
+}
