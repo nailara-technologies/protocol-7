@@ -2,18 +2,15 @@
 
 # name       = base.handler.connect
 
-my $id      = $_[0]->w->data;
-my $fd      = $data{'session'}{$id}{'handle'};
-my $type    = $data{'handle'}{$fd}{'link'};
-my $proto   = $data{'session'}{$id}{'proto'};
-my $state   = $data{'session'}{$id}{'state'};
-my $mode    = $data{'handle'}{$fd}{'mode'};
+my $id    = $_[0]->w->data;
+my $fd    = $data{'session'}{$id}{'handle'};
+my $type  = $data{'handle'}{$fd}{'link'};
+my $proto = $data{'session'}{$id}{'proto'};
+my $state = $data{'session'}{$id}{'state'};
+my $mode  = $data{'handle'}{$fd}{'mode'};
+
 my $handler = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
 my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'};
-
-# print
-# "ID: $id HANDLE: $fd PROTO: $proto STATE: $state"
-# ." MODE: $mode TYPE: $type HANDLER: $handler\n";
 
 if ( not defined $data{'handle'}{$fd}{'proto'} ) {
     <[base.log]>->(
@@ -27,11 +24,8 @@ if ( not defined $data{'handle'}{$fd}{'proto'} ) {
     my $id = <[base.session.init]>->( $new_fd, $proto, $mode );
 
     # send server banner
-
     if ( $banner ne '' and $mode eq 'in' ) {
         <[net.out]>->( $new_fd, $banner );
     }
-
     <[base.log]>->( 1, "[$id] $proto protocol connection established." );
-
 }

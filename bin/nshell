@@ -9,10 +9,13 @@ use strict;
 use warnings;
 use IO::Socket;
 use IO::Socket::INET;
+use IO::Socket::UNIX;
 use Term::ReadPassword;
 use Term::ReadLine::Perl;
 use POSIX ":sys_wait_h";
+use Digest::MD5 qw(md5_hex);
 
+$SIG{'PIPE'} = 'IGNORE';
 binmode STDOUT, ":utf8";
 
 $SIG{'CHLD'} = sub {
@@ -33,8 +36,10 @@ foreach my $param (@ARGV) {
 
 my $core_user;
 my $core_pass;
+my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
 my $core_port = shift(@args) || 242;
+my $usock_dir = '/tmp/.n/sock';
 
 my $color  = "\e[37m\e[40m";
 my $prompt = $color . ':. ';
@@ -81,11 +86,24 @@ sub login_prompt {
 }
 
 sub shell_connect {
-    my $sock = new IO::Socket::INET(
-        PeerAddr => "$_[0]",
-        PeerPort => "$_[1]",
-        Proto    => 'tcp'
-    ) or die "\n [!] failed to connect to $_[0]:$_[1] [$!]\n\n";
+    my $sock;
+    if ( !$sckargcnt ) {
+        my $sock_path = $usock_dir . '/' . md5_hex("$core_addr:$core_port");
+        if ( -e $sock_path ) {
+            $sock = IO::Socket::UNIX->new(
+                Type => SOCK_STREAM(),
+                Peer => $sock_path,
+            ) or warn "\n [!] failed to connect to unix:$sock_path [$!]\n";
+        }
+    }
+    if ( not defined $sock ) {
+        $sock = new IO::Socket::INET(
+            PeerAddr => $core_addr,
+            PeerPort => $core_port,
+            Proto    => 'tcp'
+            )
+            or die "\n [!] failed to connect to $core_addr:$core_port [$!]\n\n";
+    }
     die " [!] connection failed [protocol error]\n" if <$sock> !~ />:\]/;
     return $sock;
 }

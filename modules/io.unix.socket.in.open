@@ -17,13 +17,29 @@ unlink $socket_path if -e $socket_path;
 my $uaddr = sockaddr_un($socket_path);
 my $proto = getprotobyname('tcp');
 
-socket( my $unix_sock, PF_UNIX, SOCK_STREAM, 0 )
-    || die "io.unix.socket.in.open: socket: $!";
 unlink($socket_path);
-bind( $unix_sock, $uaddr ) || die "io.unix.socket.in.open: bind: $!";
-listen( $unix_sock, SOMAXCONN ) || die "io.unix.socket.in.open: listen: $!";
+
+my $unix_sock = IO::Socket::UNIX->new(
+    Type   => SOCK_STREAM(),
+    Local  => $socket_path,
+    Listen => 1,
+) || die "io.unix.socket.in.open: socket: $!";
+
 push( @{<unix.socket_paths>}, $socket_path );
 chmod( $socket_umask, $socket_path ) or die "io.unix.socket.in.open: chmod: $!";
 
 <[base.log]>->( 1, "server [unix:$socket_path] launched." );
+
+if ( defined $data{'handle'}{$unix_sock} ) {
+    <[base.log]>->(
+        0,
+        "io.ip.tcp.in.open: handle '$unix_sock' "
+            . "was not cleaned up. cleaning now.."
+    );
+    delete $data{'handle'}{$unix_sock};
+}
+
+$data{'handle'}{$unix_sock}{'mode'} = 'in';
+$data{'handle'}{$unix_sock}{'link'} = 'unix';
+
 return $unix_sock;
