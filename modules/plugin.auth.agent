@@ -4,6 +4,7 @@
 # descr = perform 'agent' authentication initiated / enabled by root agent
 
 my $id     = $_[0]->w->data;
+my $re     = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
@@ -19,7 +20,7 @@ if (   not %key
     return 2;
 }
 
-if ( $$input =~ s/^(\w[\w\-_\d]*) (\S+)\n// ) {
+if ( $$input =~ s/^($re->{usr}) (\S+)\n// ) {
     my ( $usr, $key_hash ) = ( $1, <[digest.sha1]>->($2) );
     my $kick_user = 1;
     if ( exists $key{'auth'}{'agent'}->{$usr} ) {
