@@ -32,7 +32,10 @@ if ( fileno $$session{'handle'} ) {
     $$session{'shutdown'} = 1;
 }
 
-$len = length( $$session{'buffer'}{'input'} );
+my $new_len = length( $$session{'buffer'}{'input'} );
+$data{'handle'}{ $data{'session'}{$id}{'handle'} }{'bytes'}{'in'}
+    += ( $new_len - $len );
+$len = $new_len;
 
 if ( $len > $$session{'size'}{'buffer'}{'input'} ) {
     <[base.log]>->( 0, "[$id] input buffer size exceeded." );
