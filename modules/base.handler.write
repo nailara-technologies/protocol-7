@@ -26,6 +26,10 @@ if ( exists $data{'session'}{$id}
         } else {
 
             #            $_[0]->w->stop;
+
+            $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'bytes'}{'out'}
+                += $written;
+
             $data{'session'}{$id}{'buffer'}{'output'}
                 = substr( $data{'session'}{$id}{'buffer'}{'output'},
                 $written, ( $len - $written ) );
