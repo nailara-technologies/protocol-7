@@ -5,11 +5,12 @@
 # return     = str(user name) (success), undef (failed)
 
 my $id = $_[0]->w->data;
+my $re = <regex.base>;
 
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-if ( $$input =~ s/^auth (\w[\w\-_\d]*) (\S+)\n// ) {
+if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
 
     if ( <[auth.ok]>->( $1, $2 ) ) {
         $$output .= "YEAH >:P\n";
