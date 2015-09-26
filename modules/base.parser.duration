@@ -42,6 +42,6 @@ if ( $min and !$sec ) {
     push( @result, sprintf( "%d'%02d\"", $min, $sec ) );
 }
 
-push( @result, "${sec}s" ) if $sec and !$min;
+push( @result, "${sec}s" ) if $sec and !$min or !@result;
 
 return join( ' ', @result );

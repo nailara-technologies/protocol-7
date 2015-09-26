@@ -48,8 +48,12 @@ $data{'list'} = {
     'sessions' => {
         'var'   => 'data',
         'key'   => 'session',
-        'mask'  => '<key>:id proto mode user start_time:since',
-        'align' => { 'user' => 'center-2', 'start_time' => 'right' },
+        'mask'  => '<key>:id proto link mode user start_time:since',
+        'align' => {
+            'user'       => 'center-2',
+            'link'       => 'center-2',
+            'start_time' => 'right'
+        },
         'filters' => { 'start_time' => 'base.parser.duration' },
         'descr'   => 'registered sessions'
     },
@@ -81,13 +85,13 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
         'key'   => 'agents.virtual',
         'mask'  => 'name type <key>:id status session',
         'align' => {
-            'name'     => 'left+2',
-            'type'     => 'center',
-            'status'   => 'center-1',
+            'name'    => 'left+2',
+            'type'    => 'center',
+            'status'  => 'center-1',
             'session' => 'center-1'
         },
         'filters' => {
-            'status'   => 'base.parser.ondemand_status',
+            'status'  => 'base.parser.ondemand_status',
             'session' => 'base.parser.ondemand_session'
         },
         'descr' => 'virtual agent list'
