@@ -1,6 +1,20 @@
 # >:]
 
-# name       = auth.auth_list
+# name  = auth.auth_list
 
-return join( "\n", split( /\s+/, $data{'auth'}{'methods'} ), '' );
+my @available;
+my $id = shift;
+my @methods = split( /\s+/, $data{'auth'}{'methods'} );
 
+foreach my $current (@methods) {
+
+    next
+        if $current eq 'unix'  # exclude 'unix' if not a unix domain socket link
+        and ( not defined $id
+        or $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'} ne
+        'unix' );
+
+    push( @available, $current );
+}
+
+return join( "\n", @available, '' );

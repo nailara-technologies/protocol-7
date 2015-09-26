@@ -2,11 +2,10 @@
 
 BEGIN { $ENV{'PERL_RL'} = 'Perl' }
 
-$0 = 'nshell ';
-
 use utf8;
 use strict;
 use warnings;
+use File::Spec;
 use IO::Socket;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
@@ -14,6 +13,10 @@ use Term::ReadPassword;
 use Term::ReadLine::Perl;
 use POSIX ":sys_wait_h";
 use Digest::MD5 qw(md5_hex);
+
+my $bin_path = File::Spec->rel2abs($0);
+
+$0 = 'nshell ';
 
 $SIG{'PIPE'} = 'IGNORE';
 binmode STDOUT, ":utf8";
@@ -36,6 +39,7 @@ foreach my $param (@ARGV) {
 
 my $core_user;
 my $core_pass;
+my $link_type = 'tcp/ip';
 my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
 my $core_port = shift(@args) || 242;
@@ -60,9 +64,13 @@ use warnings 'once';
 my $shell_sock;
 while ($connect) {
 
-    $shell_sock
-        = shell_auth( shell_connect( $core_addr, $core_port ), login_prompt() );
-
+    $shell_sock = shell_connect( $core_addr, $core_port );
+    if ( $link_type eq 'unix' and $bin_path =~ /\.([^\/\.]+)$/ ) {
+        my $core_user = $1;
+        $shell_sock = unix_auth( $shell_sock, $core_user );
+    } else {
+        $shell_sock = shell_auth( $shell_sock, login_prompt() );
+    }
     if ( -S $shell_sock ) {
         clear();
         $0 = "nshell ( $core_addr : $core_port ) ";
@@ -103,17 +111,43 @@ sub shell_connect {
             Proto    => 'tcp'
             )
             or die "\n [!] failed to connect to $core_addr:$core_port [$!]\n\n";
+    } else {
+        $link_type = 'unix';
     }
     die " [!] connection failed [protocol error]\n" if <$sock> !~ />:\]/;
     return $sock;
 }
 
 sub shell_auth {
-    syswrite( $_[0], "auth $_[1] $_[2]\n" );
-    sysread( $_[0], my $answer, 8 );
+    my ( $fh, $usr, $pwd ) = @_;
+    syswrite( $fh, "auth $usr $pwd\n" );
+    my $answer = <$fh>;
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
-        return $_[0];
+        return $fh;
+    } elsif ( $answer =~ /FAIL >:\|/ ) {
+        die " :: authentication failed ::\n\n";
+    } elsif ( $answer =~ />:\|/ ) {
+        print " :: authentication timeout ::\n";
+        return 0;
+    } else {
+        die " :: protocol error ::\n\n";
+    }
+}
+
+sub unix_auth {
+    my ( $fh, $usr ) = @_;
+    syswrite( $fh, "select unix\n" );
+    my $answer = <$fh>;
+    if ( $answer !~ /^ACK continue/ ) {
+        die " :: unix auth not available ::\n\n";
+    }
+    syswrite( $fh, "auth $usr\n" );
+    $answer = <$fh>;
+    print "\n";
+    if ( $answer =~ /YEAH/ ) {
+        print " :: authentication successful ::\n";
+        return $fh;
     } elsif ( $answer =~ /FAIL >:\|/ ) {
         die " :: authentication failed ::\n\n";
     } elsif ( $answer =~ />:\|/ ) {

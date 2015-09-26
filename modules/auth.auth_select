@@ -1,21 +1,24 @@
 # >:]
 
-# name       = auth.auth_select
+# name  = auth.auth_select
 
-my $ok = 0;
-foreach my $_method ( split( /\n/, <[auth.auth_list]> ) ) {
-    if ( $_method eq $_[1] ) { $ok = 1 }
+my $id     = shift;
+my $method = shift;
+my $ok     = 0;
+
+foreach my $available ( split( /\n/, <[auth.auth_list]>->($id) ) ) {
+    if ( $available eq $method ) { $ok = 1 }
 }
 if ($ok) {
-    $data{'session'}{ $_[0] }{'auth'}{'method'} = $_[1];
-    <[net.out]>->( $data{'session'}{ $_[0] }{'handle'}, "ACK continue\n" );
-    <[base.log]>->( 1, "[$_[0]] selected auth method '$_[1]'" );
+    $data{'session'}{$id}{'auth'}{'method'} = $method;
+    <[net.out]>->( $data{'session'}{$id}{'handle'}, "ACK continue\n" );
+    <[base.log]>->( 1, "[$id] selected auth method '$method'" );
     return 1;
 } else {
     <[net.out]>->(
-        $data{'session'}{ $_[0] }{'handle'},
-        "NACK no such auth method, see 'AUTH list'\n"
+        $data{'session'}{$id}{'handle'},
+        "NACK no such auth method available, see 'AUTH list'\n"
     );
-    <[base.log]>->( 0, "[$_[0]] unknown auth method requested" );
+    <[base.log]>->( 0, "[$id] unknown auth method requested" );
     return 0;
 }
