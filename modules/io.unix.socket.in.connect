@@ -8,16 +8,14 @@ my $fd = $data{'session'}{$id}{'handle'};
 if ( -S $fd ) {
     my $new_sock;
     if ( $new_sock = $fd->accept() ) {
+        $data{'handle'}{$new_sock}{'link'} = 'unix';
+        $data{'handle'}{$new_sock}{'mode'} = 'in';
+
         my ( $pid, $uid, $gid )
             = unpack( 'i*', $new_sock->sockopt(SO_PEERCRED) );
 
-        #        print "pid: $pid, uid: $uid, gid: $gid\n";
-        #        exit;
-
-        # XXX: implement (optional) [pid based] access control ...
-
-        $data{'handle'}{$new_sock}{'link'} = 'unix';
-        $data{'handle'}{$new_sock}{'mode'} = 'in';
+        $data{'handle'}{$new_sock}{'unix'}
+            = { 'pid' => $pid, 'uid' => $uid, 'gid' => $gid };
 
         return $new_sock;
     } else {
