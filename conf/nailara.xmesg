@@ -2,20 +2,20 @@
 [load_config_file:'defaults']
 [load_config_file:'desktop']
 
-modules.load	= auth net io.ip xmesg
-net.daemon_name	= xmesg
-auth.core.pass	= tTr4
+modules.load     = auth net digest io.unix xmesg
 
-access.cmd.usr.* = help print ping pid dump reload
+access.cmd.usr.* = help print ping reload
 
 [load_modules:<modules.load>]
 [init_modules]
 
 [set_privs:<x11.user>]
 
-core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,\
-                <net.local.port>],<net.daemon_name>,<auth.core.pass>]
+unix.path = [digest.md5.hex:"<net.local.addr>:<net.local.port>"]
+unix.sock = [base.open:'unix','out',"/tmp/.n/sock/<unix.path>"]
+core.handle = [net.unix.authme:<unix.sock>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
+
 [base.x11.get_display]
 
 [event.loop]
