@@ -10,10 +10,10 @@ if ( -S $fd ) {
     if ( $new_sock = $fd->accept() ) {
         $data{'handle'}{$new_sock}{'link'} = 'unix';
         $data{'handle'}{$new_sock}{'mode'} = 'in';
-
+        no strict;
         my ( $pid, $uid, $gid )
             = unpack( 'i*', $new_sock->sockopt(SO_PEERCRED) );
-
+        use strict;
         $data{'handle'}{$new_sock}{'unix'}
             = { 'pid' => $pid, 'uid' => $uid, 'gid' => $gid };
 
