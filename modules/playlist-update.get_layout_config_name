@@ -2,7 +2,10 @@
 
 # name = playlist-update.get_layout_config_name
 
-my $file_hash = ${ <[file.slurp]>->(<playlist-update.hash_file>) };
+my $file_hash;
+$file_hash = ${ <[file.slurp]>->(<playlist-update.hash_file>) }
+    if -f <playlist-update.hash_file>;
+$file_hash //= '';
 $file_hash =~ s|\n$||;
 
 <[base.log]>->( 1, "requesting config name from layout agent.." );
