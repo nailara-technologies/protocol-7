@@ -21,3 +21,8 @@ if (    ( $session_count + $exit_count ) == 0
     $code{<callback.session.close_last.name>}
         ->( @{<callback.session.close_last.params>} );
 }
+
+<[root.shutdown]>
+    if !$session_count
+    and <system.agent.name> eq 'root'
+    and <[agent.cmd.get_instance_ids]>->('core')->{'mode'} eq 'nack';
