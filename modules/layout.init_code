@@ -35,6 +35,8 @@ die "layout config file '$config_filename' not found!"
 );
 <layout.config> = <[base.load_section_config]>->($config_filename);
 
+skip_load:    # <- jumping here if layout has already been imported as json!
+
 <[base.log]>->( 0, "no default profile configured!" )
     if not exists <layout.default_profile>
     or not defined <layout.default_profile>
@@ -44,17 +46,16 @@ my $profile_name = <layout.default_profile>;
 my $log_level    = 1;
 my $default_str  = ' default ';
 if ( not exists <layout.config.profiles>->{$profile_name} ) {
+    my $cfg_name_str = defined $config_name ? " '$config_name'" : '';
     <[base.log]>->(
         0,
         "default profile '$profile_name' "
-            . "does not exist in layout config '$config_name'!"
+            . "does not exist in layout config$cfg_name_str!"
     );
     ($profile_name) = sort keys %{<layout.config.profiles>};
     $default_str = ' _fallback_ ';
     $log_level   = 0;
 }
-
-skip_load:
 
 $default_str  //= ' default ';
 $profile_name //= <layout.default_profile>;
