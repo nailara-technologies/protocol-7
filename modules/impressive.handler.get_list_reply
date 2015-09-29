@@ -1,0 +1,51 @@
+# >:]
+
+# name = impressive.handler.get_list_reply
+
+my $reply = shift;
+
+<impressive.playlist_sha1> //= '';
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <[base.log]>->( 0, ": failed to fetch playlist!" );
+    return;
+}
+
+my @file_list = split( "\n", $reply->{'data'} );
+my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 0, "received empty playlist!" );
+
+    # XXX: create image for empty playlist instead of shutown!
+    if ( defined <impressive.pid> ) {
+        <[base.log]>->(
+            1, ": killing impressive process [PID=<impressive.pid>]"
+        );
+        <impressive.watcher.output>->cancel;
+        kill( 15, <impressive.pid> );
+        undef <impressive.pid>;
+        return;
+    }
+}
+
+my $playlist_changed = 0;
+
+return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
+    if defined <impressive.pid>
+    and $playlist_sha1 eq <impressive.playlist_sha1>
+    and !$playlist_changed;
+<impressive.playlist_sha1> = $playlist_sha1;
+
+<impressive.current_playlist> = \@file_list;
+
+<[base.log]>->( 1, ": playlist changed.." );
+
+if ( defined <impressive.pid> ) {
+    <[base.log]>->( 1, ": killing impressive process [PID=<impressive.pid>]" );
+    <impressive.watcher.output>->cancel;
+    kill( 15, <impressive.pid> );
+    undef <impressive.pid>;
+}
+
+<[impressive.open_window]>;
