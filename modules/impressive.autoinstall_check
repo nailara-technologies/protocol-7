@@ -1,0 +1,25 @@
+# >:]
+
+# name = impressive.autoinstall_check
+
+my $touch_file = '/tmp/.installing_impressive';
+
+if ( !-f <impressive.path.impressive_src> ) {
+    if (    defined <impressive.cfg.autoinstall_impressive_py>
+        and <impressive.cfg.autoinstall_impressive_py>
+        and !-f $touch_file ) {
+        my $installer_bin
+            = <system.root_path> . '/bin/impressive/download_impressive.pl';
+        qx(touch $touch_file);
+        <[base.log]>->(
+            0, "expected impressive installation not found, installing now ..."
+        );
+        system($installer_bin);
+        unlink($touch_file);
+    } else {
+        <[base.log]>->(
+            0, "expected impressive installation not found, aborting startup!"
+        );
+        exit(1);
+    }
+}
