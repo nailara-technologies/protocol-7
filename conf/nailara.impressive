@@ -1,0 +1,42 @@
+
+  .:[ impressive agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+system.privs.user = nailara
+
+impressive.cfg.language = en # [en|de]
+
+[load_config_file:'defaults']
+
+impressive.playlist.content_types = pdf image
+
+access.cmd.usr.core = help ping reload verify_instance playlist_update dump
+
+impressive.path.impressive_src = /usr/local/impressive/bin/impressive
+impressive.path.impressive_tmp = /tmp/.impressive
+
+impressive.cfg.autoinstall_impressive_py = 1 # -> /usr/local/impressive/bin/...
+
+impressive.cfg.transition_delay    = 7
+impressive.cfg.background_colour   = 'FFFFFF'
+impressive.cfg.black_on_fullscreen = 1
+
+modules.load = auth net digest io.ip impressive
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
+core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+[base.x11.get_display]
+[base.x11.get_geometry]
+
+[base.get_session_id]
+
+[impressive.startup]
+
+[event.loop]
