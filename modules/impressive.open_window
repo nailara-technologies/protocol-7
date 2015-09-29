@@ -1,0 +1,64 @@
+# >:]
+
+# name = impressive.open_window
+
+my $bg_colour   = <impressive.cfg.background_colour>;
+my $trans_delay = <impressive.cfg.transition_delay>;
+my $temp_dir    = <impressive.path.impressive_tmp>;
+my $tmp_bin     = "$temp_dir/impressive.$$";
+
+$bg_colour = '#000000'
+    if <impressive.cfg.black_on_fullscreen> and not defined <x11.geometry>;
+
+my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
+push( @exec_params,
+    "-a$trans_delay",
+    '-w', '--noclicks', '--nologo', @{<impressive.current_playlist>} );
+
+<[impressive.parse_bin]>
+    ->( { 'bg_col' => <impressive.cfg.background_colour> } );
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+<impressive.pid> = open3( <impressive.in_fh>, <impressive.out_fh>,
+    <impressive.err_fh>, $tmp_bin, @exec_params );
+
+if (<impressive.pid>) {    # waiting for python interpreter to read $tmp_bin ..
+    my $bits = '';
+    vec( $bits, fileno(<impressive.out_fh>), 1 ) = 1;
+    select( $bits, undef, undef, undef );
+}
+unlink($tmp_bin) or warn "failed to delete '$tmp_bin' [$!]";
+
+if ( opendir( my $tdir_fh, $temp_dir ) ) {
+    my @t_files = grep { !/^\./ } ( readdir($tdir_fh) );
+    if ( !@t_files ) {
+        <[base.log]>->( 1, "removing temp dir '$temp_dir'.." );
+        rmdir($temp_dir) or warn "failed to remove directory '$temp_dir': $!";
+    }
+} else {
+    warn "failed to open directory '$temp_dir': $!";
+}
+
+if ( !<impressive.pid> ) {
+    <[base.log]>->( 0, "[!] failed to start impressive [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+} else {
+    <[base.log]>->( 1, ": impressive process spawned [PID=<impressive.pid>]" );
+}
+
+<impressive.watcher.output> = <[event.add_io]>->(
+    {   'fd'      => <impressive.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin'           => 'impressive',
+            'pid'           => <impressive.pid>,
+            'log_whitelist' => [
+                qr/^Welcome to Impressive/,
+                qr/^Background rendering finished/,
+                qr/^OpenGL renderer:/
+            ]
+        }
+    }
+);
