@@ -8,7 +8,8 @@ if ( $_[0] eq '' ) {
     return -1;
 } else {
 
-    my ( $name, $pwd, $uid, $gid ) = getpwnam( $_[0] );
+    my ( $name, $pwd, $uid, $gid, $quota, $comment, $gcos, $home_dir, $shell )
+        = getpwnam( $_[0] );
 
     my %_gid = map { $_ => 1 } split( / /, $( );
     my %egid = map { $_ => 1 } split( / /, $) );
@@ -41,6 +42,8 @@ if ( $_[0] eq '' ) {
             $( = $gid;
             $> = $uid;
             $< = $uid;
+
+            $ENV{'HOME'} = $home_dir;
 
             <[base.log]>->( 1, "changed priviledges to user '$_[0]'" );
         }
