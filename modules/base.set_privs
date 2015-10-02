@@ -43,6 +43,22 @@ if ( $_[0] eq '' ) {
             $> = $uid;
             $< = $uid;
 
+            if ( !-d $home_dir ) {
+                <[base.log]>
+                    ->( 1, "home directory '$home_dir' does not exist" );
+                $home_dir = '/tmp/.home_' . $name;
+                if ( -d $home_dir ) {
+                    <[base.log]>->(
+                        1, ": using temporary home dir '$home_dir'.."
+                    );
+                } else {
+                    <[base.log]>->(
+                        1, ": creating temporary home dir '$home_dir' .."
+                    );
+                    mkdir( $home_dir, 0700 );
+                }
+            }
+
             $ENV{'HOME'} = $home_dir;
 
             <[base.log]>->( 1, "changed priviledges to user '$_[0]'" );
