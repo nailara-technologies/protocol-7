@@ -59,7 +59,9 @@ if ( $_[0] eq '' ) {
                 }
             }
 
-            $ENV{'HOME'} = $home_dir;
+            $ENV{'USER'}            = $name;
+            $ENV{'HOME'}            = $home_dir;
+            $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
 
             <[base.log]>->( 1, "changed priviledges to user '$_[0]'" );
         }
