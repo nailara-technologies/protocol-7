@@ -1,0 +1,11 @@
+# >:]
+
+# name  = debug.cmd.dump_env
+# descr = dump agent's %ENV content
+
+return {
+    'mode' => 'raw',
+    'data' => join( '',
+        map { my $val = $ENV{$_}; $val =~ s|\n|\\n|g; "$_ = $val\n" }
+            keys %ENV )
+};
