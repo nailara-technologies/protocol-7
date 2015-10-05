@@ -5,6 +5,7 @@
 cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Term::ReadPassword Term::ReadKey Term::ReadLine::Perl \
       Crypt::OpenSSL::Random Proc::ProcessTable \
+      LWPx::ParanoidAgent \
       Sys::Filesystem \
       Crypt::CBC \
       JSON JSON::PP \
