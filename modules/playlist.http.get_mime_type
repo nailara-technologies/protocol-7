@@ -6,13 +6,14 @@
 my $url = shift;
 my $content_type;
 
-<playlist.http.request_timeout> //= 5;
+<playlist.http.request_timeout> //= 3;
 
-my $http = LWP::UserAgent->new;
-$http->protocols_allowed( [ 'http', 'https' ] );
-$http->agent("Mozilla/5.0");
+my $uagent = LWPx::ParanoidAgent->new;
 
-$http->timeout(<playlist.http.request_timeout>);
+$uagent->protocols_allowed( [ 'http', 'https' ] );
+$uagent->timeout(<playlist.http.request_timeout>);
+$uagent->agent("Mozilla/5.0");
+$uagent->cookie_jar( {} );
 
 die "expected http[s] url!"
     if not defined $url
@@ -22,13 +23,13 @@ die "expected http[s] url!"
 <[base.log]>->( 2, "checking content type for '$url'" );
 
 my $method   = 'HEAD';
-my $response = $http->head($url);
+my $response = $uagent->head($url);
 
 if ( $response->status_line =~ /^(4\d{2}|5\d{2})/ ) {
     <[base.log]>->( 2, "HEAD failed for '$url', trying GET request.." );
-    $http->max_size(0);
+    $uagent->max_size(0);
     $method   = 'GET';
-    $response = $http->get($url);
+    $response = $uagent->get($url);
 }
 
 if ( $response->is_success ) {

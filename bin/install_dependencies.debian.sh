@@ -5,4 +5,5 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter\
             xserver-xephyr xvfb mpv ffmpeg expect mediainfo\
             python-imaging python-pygame mupdf-tools pdftk \
             gnome-colors-common oxygen-icon-theme \
-            dbus-x11 libnotify-bin notify-osd
+            dbus-x11 libnotify-bin notify-osd \
+            liblwpx-paranoidagent-perl
