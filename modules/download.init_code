@@ -2,14 +2,14 @@
 
 # name = download.init_code
 
-use LWP::UserAgent;
+use LWPx::ParanoidAgent;
 use File::Path qw(make_path);
 
 my $download_path = <download.cfg.download_path>;
 
 <download.cfg.http.request_timeout> //= 10;
 <download.cfg.http.user_agent>      //= '';
-<download.obj.ua> = LWP::UserAgent->new();
+<download.obj.ua> = LWPx::ParanoidAgent->new();
 
 <download.obj.ua>->agent(<download.cfg.http.user_agent>);
 <download.obj.ua>->protocols_allowed( [ 'ftp', 'http', 'https' ] );
