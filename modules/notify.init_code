@@ -5,11 +5,14 @@
 
 my $bin_name  = 'notify-send';
 my $icon_path = <system.root_path> . '/data/gfx/nailara_logo.png';
-( my $bin_path = qx(which $bin_name) ) =~ s/\n$//;
+chomp( my $bin_path = qx(which $bin_name) );
 die "$bin_name binary not found (please install 'notify-osd')"
     if !length($bin_path);
 
-<system.path.notify_send>  = $bin_path;
-<system.path.nailara_icon> = $icon_path;
+undef $ENV{'XAUTHORITY'};
+undef $ENV{'LOGNAME'};
+
+<notify.path.notify_send>  = $bin_path;
+<notify.path.nailara_icon> = $icon_path;
 
 0;
