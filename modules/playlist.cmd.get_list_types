@@ -13,11 +13,13 @@ $subname = $1 if $file_types_str =~ s| +\[([^\]]+)\]$||;
 
 map { $file_types{$_} = 1 } split / +/, $file_types_str;
 
+my $index = -1;
 foreach my $file ( @{<playlist.file_list>} ) {
+    $index++;
     next
         if defined $subname
-        and exists <playlist.agent_subnames>->{$file}
-        and not exists <playlist.agent_subnames>->{$file}->{$subname};
+        and exists <playlist.agent_subnames>->{$index}
+        and not exists <playlist.agent_subnames>->{$index}->{$subname};
 
     my $type_str = $type_list->{$file};
     foreach my $req_type ( keys %file_types ) {
