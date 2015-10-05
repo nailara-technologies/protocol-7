@@ -10,7 +10,7 @@ die "expected URL parameter"  if not defined $file_url;
 die "invalid URL '$file_url'" if $file_url !~ m|^https?://.+|;
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
-my $ua = LWP::UserAgent->new;
+my $ua = LWPx::ParanoidAgent->new;
 $ua->timeout(10);    # XXX: make configurable!
 
 my $url_hash = <[digest.sha1]>->($file_url);
