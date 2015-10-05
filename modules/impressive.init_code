@@ -12,6 +12,7 @@ use File::Path qw(make_path);
 
 <impressive.playlist.content_types>  //= 'image';
 <impressive.path.impressive_src>     //= '/usr/local/impressive/bin/impressive';
+<impressive.path.impressive_tmp>     //= '/tmp/.impressive';
 <impressive.cfg.background_colour>   //= '#FFFFFF';
 <impressive.cfg.black_on_fullscreen> //= 1;
 <impressive.cfg.transition_delay>    //= 7;
@@ -20,18 +21,9 @@ use File::Path qw(make_path);
 <impressive.cfg.system_gfx_dir> //= <system.root_path> . '/data/gfx/impressive';
 
 <[impressive.autoinstall_check]>;
+<[impressive.check_tmp_dir]>;
 
 <impressive.current_playlist> //= [];
-
-my $temp_dir = <impressive.path.impressive_tmp> //= '/tmp/.impressive';
-
-if ( !-d $temp_dir ) {
-    <[base.log]>->( 1, "creating tmp directory '$temp_dir'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
-    make_path( $temp_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $!";
-}
 
 <impressive.gfx.read_error>
     = <impressive.cfg.system_gfx_dir> . '/'
