@@ -1,0 +1,31 @@
+# >:]
+
+# name = notify-osd.startup
+# note = primitive implementation, improve error handing before production usage
+
+<[base.log]>->( 1, "starting notify-osd on display " . <x11.display> . " .." );
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+<notify-osd.pid> = open3(
+    <notify-osd.in_fh>, <notify-osd.out_fh>,
+    my $err_fh,         <notify-osd.path.exec_bin>
+);
+if ( !<notify-osd.pid> ) {
+    <[base.log]>->( 0, "[!] failed to start notify-osd [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+} else {
+    <[base.log]>->( 1, " : notify-osd process spawned [PID=<notify-osd.pid>]" );
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <notify-osd.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin'           => 'notify-osd',
+            'pid'           => <notify-osd.pid>,
+            'log_whitelist' => [ 'screensaver', 'notification-/' ]
+        }
+    }
+);
