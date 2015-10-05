@@ -10,6 +10,8 @@ my $txt   = $$call{'args'};
 my $id    = $$call{'session_id'};
 my $title = 'nailara message';
 
+$ENV{'DISPLAY'} = <x11.display>;
+
 $title = $1 if $txt =~ s/^(\S+)\s+//;
 
 map { $_ =~ s|\\0||go } ( $title, $txt );  # prevents message from being cut off
@@ -18,8 +20,8 @@ if ( defined $txt and $txt ne '' ) {
     my $msg_str = <system.verbosity> >= 3 ? " ['$txt']" : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     if (!system(
-            <system.path.notify_send>,  '-i',
-            <system.path.nailara_icon>, " < $title >",
+            <notify.path.notify_send>,  '-i',
+            <notify.path.nailara_icon>, " < $title >",
             "\n$txt\n"
         )
         ) {
