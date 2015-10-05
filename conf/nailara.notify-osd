@@ -1,25 +1,28 @@
 
-  .:[ notify agent ]:.
+  .:[ notify-osd (server) agent ]:.
 
 buffer.system.log_cmd = log.msg
 
 [load_config_file:'defaults']
 [load_config_file:'desktop']
 
-access.cmd.usr.core = help message ping reload verify_instance
+access.cmd.usr.core = help ping reload verify_instance
 
-modules.load = auth net io.ip notify
+modules.load = auth net io.ip notify-osd
 [load_modules:<modules.load>]
 [init_modules]
 
-#[set_privs:<x11.user>] # XXX: implement auto X-user discovery
+#[set_privs:<x11.user>] # XXX: implement X-user auto-discovery
 
 [set_privs:'nailara']
 
 core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
 core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
+
 [base.x11.get_display]
+[notify-osd.startup]
+
 [base.get_session_id]
 
 [event.loop]
