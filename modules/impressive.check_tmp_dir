@@ -1,0 +1,13 @@
+# >:]
+
+# name = impressive.check_tmp_dir
+
+my $temp_dir = <impressive.path.impressive_tmp>;
+
+if ( !-d $temp_dir ) {
+    <[base.log]>->( 1, "creating tmp directory '$temp_dir'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    make_path( $temp_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
+        or die "make_path: $!";
+}
