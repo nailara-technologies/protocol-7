@@ -1,0 +1,20 @@
+
+.: notify-info agent :.
+
+[set_privs:'nailara']
+
+[load_config_file:'defaults']
+
+modules.load = auth net digest io.unix notify-info debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+unix.path = [digest.md5.hex:"<net.local.addr>:<net.local.port>"]
+unix.sock = [base.open:'unix','out',"/tmp/.n/sock/<unix.path>"]
+core.handle = [net.unix.authme:<unix.sock>,<system.agent.name>]
+[base.session.init:<core.handle>,'nailara','client','core']
+
+[notify-info.send_message]
+
+[event.loop]
