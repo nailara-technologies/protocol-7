@@ -1,0 +1,54 @@
+# >:]
+
+# name  = notify.cmd.warn
+# param = '<title>' '<message>'
+# descr = custom notification message with warning icon
+
+my $txt_param = $$call{'args'};
+my $id        = $$call{'session_id'};
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+my @matches;
+my ( $title, $body );
+
+$txt_param =~ s|\\0||go;
+$txt_param =~ s,^\s*|\s*$,,g;
+
+if ( $txt_param =~ /('[^']+\'[^']*){2}/ ) {
+    while ( $txt_param =~ s|^\s*'([^']+)'\s*|| ) {
+        push( @matches, $1 );
+    }
+}
+
+if ( !length($txt_param) and @matches ) {
+    ( $title, $body ) = @matches;
+} else {
+    $title = $txt_param;
+}
+
+if ( defined $title or @matches ) {
+    my $msg_str = <system.verbosity> >= 3 ? " ['$$call{args}']" : ' ...';
+    <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
+    my @msg = $title;
+    push( @msg, $body ) if defined $body;
+    if (!system(
+            <notify.path.notify_send>, '-i', <notify.path.warn_icon>, @msg
+        )
+        ) {
+        return { 'mode' => 'ack', 'data' => 'warn message sent' };
+    } elsif ( $? == -1 ) {
+        return { 'mode' => 'nack', 'data' => 'failed to execute: ' . $! };
+    } else {
+        return {
+            'mode' => 'nack',
+            'data' => sprintf(
+                "notify-send exited with code %d%s",
+                ( $? >> 8 ),
+                defined $! && length($!) ? " [$!]" : ''
+            )
+        };
+    }
+} else {
+    return { 'mode' => 'nack', 'data' => 'no message text submitted' };
+}
