@@ -1,0 +1,17 @@
+# >:]
+
+# name = notify-warn.send_message
+
+<[base.log]>->( 1, "sending 'warn' command to notify agent.." );
+
+my $msg_str = @ARGV == 2 ? join( ' ', map {"'$_'"} @ARGV ) : <system.args>;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.notify.warn",
+        'call_args' => { 'args' => $msg_str },
+        'reply'     => {
+            'handler' => 'base.exit',
+            'params'  => {}
+        }
+    }
+);

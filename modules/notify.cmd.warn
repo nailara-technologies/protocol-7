@@ -15,12 +15,11 @@ my ( $title, $body );
 $txt_param =~ s|\\0||go;
 $txt_param =~ s,^\s*|\s*$,,g;
 
-if ( $txt_param =~ /('[^']+\'[^']*){2}/ ) {
+if ( $txt_param =~ /('[^']+\'[^']*){1,2}/ ) {
     while ( $txt_param =~ s|^\s*'([^']+)'\s*|| ) {
         push( @matches, $1 );
     }
 }
-
 if ( !length($txt_param) and @matches ) {
     ( $title, $body ) = @matches;
 } else {
