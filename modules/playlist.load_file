@@ -44,13 +44,14 @@ if ( !@file_names ) {
     return 0;
 }
 
+my $file_index = 0;
 foreach my $file (@file_names) {
     my $agent_subname;
     my $type = 'unknown';
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
     $type          = 'unknown' if $type eq 'url';
-    <playlist.agent_subnames>->{$file}->{$agent_subname} = 1
+    <playlist.agent_subnames>->{$file_index}->{$agent_subname} = 1
         if defined $agent_subname;
 
     ### XXX: weather agent test hack ###
@@ -134,6 +135,7 @@ foreach my $file (@file_names) {
     $type =~ s| +|_|g;
 
     <playlist.file_types>->{$file} = $type;
+    $file_index++;
 }
 
 if ( <playlist.had_network_errors> and !<playlist.network_errors> ) {
