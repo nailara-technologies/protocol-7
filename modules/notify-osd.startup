@@ -23,9 +23,10 @@ if ( !<notify-osd.pid> ) {
     {   'fd'      => <notify-osd.out_fh>,
         'handler' => 'base.handler.child_output.simple',
         'data'    => {
-            'bin'           => 'notify-osd',
-            'pid'           => <notify-osd.pid>,
-            'log_whitelist' => [ 'screensaver', 'notification-/' ]
+            'bin' => 'notify-osd',
+            'pid' => <notify-osd.pid>,
+            'log_whitelist' =>
+                [ 'screensaver', 'notification-/', '_OB_WM_ACTION_UNDECORATE' ]
         }
     }
 );
