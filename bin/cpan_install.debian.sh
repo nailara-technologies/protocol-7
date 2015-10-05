@@ -4,7 +4,7 @@
 apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libio-all-perl libcrypt-cbc-perl libcrypt-openssl-random-perl\
   libcrypt-openssl-rsa-perl libproc-processtable-perl perl-tk\
-  libsdl-perl libtext-lorem-perl libevent-perl\
+  libsdl-perl libtext-lorem-perl libevent-perl liblwpx-paranoidagent-perl\
   libcrypt-openssl-random-perl libproc-processtable-perl\
   libglib-perl libgtk2-perl libterm-readpassword-perl\
   libterm-readline-perl-perl libx11-protocol-perl libhash-flatten-perl\
