@@ -107,12 +107,13 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
 # initialize signal handlers
 undef %SIG;
 
-<[event.add_signal]>->( { 'signal' => 'INT',  'handler' => 'base.sig_int' } );
-<[event.add_signal]>->( { 'signal' => 'TERM', 'handler' => 'base.sig_term' } );
-<[event.add_signal]>->( { 'signal' => 'HUP',  'handler' => 'base.sig_hup' } );
-<[event.add_signal]>->( { 'signal' => 'USR1', 'handler' => 'base.sig_usr1' } );
-<[event.add_signal]>->( { 'signal' => 'USR2', 'handler' => 'base.sig_usr2' } );
-<[event.add_signal]>->( { 'signal' => 'ABRT', 'handler' => 'base.sig_abrt' } );
+map {
+    <base.watcher.signal>->{$_}->cancel
+        if defined <base.watcher.signal>->{$_};
+    <base.watcher.signal>->{$_}
+        = <[event.add_signal]>
+        ->( { 'signal' => uc($_), 'handler' => 'base.sig_' . $_ } );
+} ( 'int', 'term', 'hup', 'usr1', 'usr2', 'abrt' );
 
 #<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'base.sig_chld' } );
 
