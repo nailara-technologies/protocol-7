@@ -6,6 +6,18 @@ my $abort_startup = 0;
 my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
 
+if ( not defined <mpv.geometry> ) {
+    <[base.log]>->( 0, "<!> no geometry received..." );
+    if (<mpv.autoresize>) {
+        <[base.log]>->( 0, " : disabled 'autoresize' function.." );
+        <mpv.autoresize> = 0;
+    }
+    if ( <mpv.fade_in> and <mpv.auto_fs> ) {
+        <[base.log]>->( 0, " : disabled 'fade_in' ('auto_fs' is on).." );
+        <mpv.fade_in> = 0;
+    }
+}
+
 my $target_geometry;
 if (<mpv.fade_in>) {
     $target_geometry = <mpv.geometry>;
