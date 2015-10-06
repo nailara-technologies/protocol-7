@@ -21,9 +21,9 @@ $0 = 'nshell ';
 $SIG{'PIPE'} = 'IGNORE';
 binmode STDOUT, ":utf8";
 
+my $stdout_pid;
 $SIG{'CHLD'} = sub {
-    waitpid( -1, WNOHANG );
-    $0 .= "[disconnected] ";
+    $0 .= "[disconnected] " if waitpid( -1, WNOHANG ) == $stdout_pid;
 };
 
 my @args;
@@ -165,7 +165,7 @@ sub shell_loop {
     my $sock   = $_[0];
     my $prompt = $_[1];
 
-    if ( !fork() ) { stdout_fork(); exit }
+    if ( not $stdout_pid = fork() ) { stdout_fork(); exit }
 
     while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
         $WARNED = 0;
