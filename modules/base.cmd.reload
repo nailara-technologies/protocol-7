@@ -56,7 +56,7 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
 if ( $arg eq 'init' or $arg eq 'all' ) {
     $known = 1;
     <[base.log]>->( 1, "[" . $id . "] reinitializing modules!" );
-    if ( <[base.init_modules]>->($id) ) {
+    if ( <[base.init_modules]>->() ) {
         $$reply{'data'} .= "reinit modules\t:  ok\n";
         $ok = 1;
     } else {
