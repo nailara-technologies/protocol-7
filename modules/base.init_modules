@@ -40,6 +40,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
             $init_txt =~ s/-code//;
             <[base.log]>->( 1, "running '$module_name' $init_txt code.." );
             my $reinit = 0;
+
             if (not exists
                 <base.modules.initialized>->{$real_m_name}->{$init_mode} ) {
                 <base.modules.initialized>->{$real_m_name}->{$init_mode} = 0;
