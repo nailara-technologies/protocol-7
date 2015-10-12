@@ -59,8 +59,10 @@ if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
     delete $data{'user'}{$user}{'session'};
 }
 
+my $dfh = $data{'session'}{$id}{'handle'};
 close( $data{'session'}{$id}{'handle'} );
 delete $data{'session'}{$id};
+delete $data{'handle'}{$dfh};
 
 <[base.log]>->( 1, "[$id] connection closed." );
 
