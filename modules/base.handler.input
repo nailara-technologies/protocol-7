@@ -27,7 +27,7 @@ my $handler = $data{'session'}{$id}{'input'}{'handler'};
 
 my $start_len = length( $data{'session'}{$id}{'buffer'}{'input'} );
 
-if ( defined &{ $code{$handler} } ) {
+if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     my $ret_code = $code{$handler}->( $_[0] );
 
     if ( $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
@@ -43,7 +43,8 @@ if ( defined &{ $code{$handler} } ) {
         0, "[$id] undefined input handler '$handler'. dropped buffer!"
     );
 
-    if ( $data{'session'}{$id}{'mode'} eq 'client' ) {
+    if (   $data{'session'}{$id}{'mode'} eq 'client'
+        or $data{'session'}{$id}{'mode'} eq 'in' ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
 } else {
