@@ -7,6 +7,16 @@ use Gtk2;
 use Gtk2::WebKit;
 use Glib qw/TRUE FALSE/;
 
-<browser.zoom_level> //= 1;
+<browser.zoom_level>  //= 1;
+<browser.zoom_factor> //= 1;    # adjusts configured or calculated zoom level
+
+if (defined <system.agent.subname>    # configurable per layout tile name
+    and defined <browser.cfg.subname>->{<system.agent.subname>}
+    ) {
+    <browser.zoom_factor>
+        = <browser.cfg.subname>->{<system.agent.subname>}->{'zoom_factor'}
+        if defined
+        <browser.cfg.subname>->{<system.agent.subname>}->{'zoom_factor'};
+}
 
 0;
