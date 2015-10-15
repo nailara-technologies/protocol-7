@@ -44,10 +44,10 @@ $window->signal_connect( destroy => sub { Gtk2->main_quit() } );
 
 my $view = Gtk2::WebKit::WebView->new();
 
-<browser.gtk2.obj.view> = $view;
+<browser.gtk2.obj.view>  = $view;
 <browser.gtk2.obj.frame> = $view->get_main_frame();
 
-$view->set_zoom_level(<browser.zoom_level>);
+$view->set_zoom_level( <browser.zoom_level> * <browser.zoom_factor> );
 my $scr_win = Gtk2::ScrolledWindow->new();
 <browser.gtk2.obj.scr_win> = $scr_win;
 

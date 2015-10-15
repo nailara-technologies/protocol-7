@@ -27,6 +27,11 @@ browser.zoom_level = 1  # default (text) zoom factor
 browser.auto_zoom = 1   # recalculate zoom factor based on current screen size
 browser.min_zoom = 0.5  # lower zoom factor limit for automatic recalculation
 
+[load_modules:'config.json browser.config']
+[init_modules]
+
+[config.json.import_file:'browser.config.json']
+
 modules.load = auth net io.ip io.unix browser.base debug
 [load_modules:<modules.load>]
 [init_modules]
