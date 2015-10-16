@@ -1,0 +1,72 @@
+# >:]
+
+# name = httpd.download_init
+
+my $id;
+my $params;
+my $file_path;
+if ( ref( $_[0] ) eq 'HASH' ) {
+    $params    = shift;
+    $id        = $params->{'sid'};
+    $file_path = $params->{'path'};
+} else {
+    $id        = shift;
+    $file_path = shift;
+}
+
+my $session   = $data{'session'}{$id};
+my $client_fh = $data{'session'}{$id}{'handle'};
+
+my $stat
+    = ( defined $params and defined $params->{'stat'} and ref($params) )
+    ? $params->{'stat'}
+    : [ stat($file_path) ];
+
+my $content_size = $stat->[7];
+my $content_date = time2str( $stat->[9] );
+my $server_date  = time2str(time);
+
+my $content_type;
+if ( $file_path =~ /\.htm(l)?$/ ) {
+    $content_type = 'text/html';
+} else {
+    $content_type = mimetype($file_path);
+}
+
+my $content_fh;
+if ( not open( $content_fh, '<', $file_path ) ) {
+    warn "<!> $file_path: $!";    # XXX: error handling...
+    return 2;
+}
+
+<[base.log]>->(
+    1, "[$id] initializing transfer of $content_size bytes [$content_type]"
+);
+
+$session->{'download'} = {
+    'content_fh'  => $content_fh,
+    'bytes_to_go' => $content_size,
+};
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => $content_type,
+        'Last-Modified'  => $content_date,
+        'Content-Length' => $content_size,
+        'Connection'     => $session->{'http'}->{'close'}
+        ? 'close'
+        : 'keep-alive'
+    }
+);
+
+$session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
+    {   'fd'      => $client_fh,
+        'handler' => 'httpd.handler.download_transfer',
+        'poll'    => 'w',
+        'prio'    => 4,
+        'timeout' => 30,
+        'data'    => { 'id' => $id }
+    }
+);
+
+return 0;

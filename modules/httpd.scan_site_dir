@@ -1,0 +1,45 @@
+# >:]
+
+# name = httpd.scan_site_dir
+
+my $site_dir = <httpd.site_dir>;
+
+my $dir_fh;
+if ( !opendir( $dir_fh, $site_dir ) ) {
+    die "[!] failed to open site dir '$site_dir' [$!]\n";
+}
+
+<[base.log]>->( 1, "scanning httpd site dir '$site_dir'.." );
+
+<httpd.cfg.hostnames> = {};
+my @vhosts;
+foreach my $dir_name ( readdir($dir_fh) ) {
+    ( my $dir_path = "$site_dir/$dir_name" ) =~ s|//|/|g;
+    next if $dir_name =~ /^\./ or !-d $dir_path;
+    if ( -l $dir_path ) {
+        push( @vhosts, $dir_name );
+    } else {
+        <[base.log]>->( 1, ":   host : $dir_name" );
+        <httpd.cfg.hostnames>->{$dir_name} = $dir_path;
+    }
+}
+my $vh_max_len = 0;
+map { $vh_max_len = length($_) if length($_) > $vh_max_len } @vhosts;
+foreach my $link_name (@vhosts) {
+    ( my $link_target = readlink("$site_dir/$link_name") ) =~ s|//|/|g;
+    if ( exists <httpd.cfg.hostnames>->{$link_target} ) {
+        <[base.log]>->(
+            1,
+            sprintf( ": v_host : %-${vh_max_len}s -> $link_target",
+                "$link_name" )
+        );
+        <httpd.cfg.hostnames>->{$link_name}
+            = <httpd.cfg.hostnames>->{$link_target};
+    } else {
+        <[base.log]>->(
+            0, "<!> link '$link_name' target '$link_target' does not exist!"
+        );
+    }
+}
+
+0;
