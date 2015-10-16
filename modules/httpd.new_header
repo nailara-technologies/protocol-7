@@ -1,0 +1,19 @@
+# >:]
+
+# name = httpd.new_header
+
+my $code   = shift;
+my $params = shift || {};
+$code = 500
+    if not defined $code
+    or not exists <proto.http.status_codes>->{$code};
+my $status_str  = <proto.http.status_codes>->{$code};
+my $server_date = time2str(time);
+
+$params->{'Date'} = $server_date;
+
+return join( "\n",
+    "HTTP/1.1 $code $status_str",
+    map      {"$_: $params->{$_}"}
+        sort { length($a) <=> length($b) } sort keys %{$params} )
+    . "\n\n";

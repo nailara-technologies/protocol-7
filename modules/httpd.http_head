@@ -1,6 +1,6 @@
 # >:]
 
-# name = httpd.http_get
+# name = httpd.http_head
 
 my $id        = shift;
 my $session   = $data{'session'}{$id};
@@ -10,9 +10,9 @@ my $http_uri  = $session->{'http'}{'request'}{'uri'};
 my $file_path;
 if ( defined $http_host ) { }
 else {
-    <[base.log]>->( 0, "[$id] GET request without host parameter!" );
+    <[base.log]>->( 0, "[$id] HEAD request without host parameter!" );
 }
-<[base.log]>->( 2, "[$id] GET request handler called ..." );
+<[base.log]>->( 2, "[$id] HEAD request handler called ..." );
 
 # ...
 
@@ -27,16 +27,28 @@ if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
     if ( -f $file_path ) {
         my @stat         = stat($file_path);
         my $content_size = $stat[7];
+        my $content_date = time2str( $stat[9] );
+        my $server_date  = time2str(time);
 
-        if ( $content_size <= 16 * 1024 ) {
-            return
-                <[httpd.serve_file]>
-                ->( { 'sid' => $id, 'path' => $file_path, 'stat' => \@stat } );
+        my $content_type;
+        if ( $file_path =~ /\.htm(l)?$/ ) {
+            $content_type = 'text/html';
         } else {
-            return
-                <[httpd.download_init]>
-                ->( { 'sid' => $id, 'path' => $file_path, 'stat' => \@stat } );
+            $content_type = mimetype($file_path);
         }
+
+        $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+            200,
+            {   'Content-Type'   => $content_type,
+                'Last-Modified'  => $content_date,
+                'Content-Length' => $content_size,
+                'Connection'     => $session->{'http'}->{'close'}
+                ? 'close'
+                : 'keep-alive'
+            }
+        );
+
+        return $session->{'http'}->{'close'} ? 2 : 0;
     }
 }
 

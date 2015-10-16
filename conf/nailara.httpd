@@ -1,40 +1,41 @@
 
+ .:[ httpd agent ]:.
+
+buffer.system.log_cmd = log.msg
+
 [load_config_file:'defaults']
 
-modules.load        = auth net io.ip httpd debug
+modules.load        =  auth net io.ip httpd #debug
 
-net.daemon_name     =   httpd
+net.http.addr       =  127.0.0.1
+net.http.port       =  80
 
-net.http.addr       =   127.0.0.1
-net.http.port       =   8080
+http.handler.get    =  httpd.http_get
+http.handler.head   =  httpd.http_head
 
+access.cmd.usr.core =  *
 
-http.handler.get    =   httpd.http_get
-http.handler.put    =   httpd.http_put
+my.request_handler  =  httpd.request_handler
+my.connect_handler  =  httpd.connect_handler
 
+httpd.system.user   =  httpd
+httpd.system.group  =  www
 
-my.request_handler  =   httpd.request_handler
-my.connect_handler  =   httpd.connect_handler
+httpd.site_dir = /var/www/
 
-
-max.connections     =   1024
+max.connections     =  1024
 
 [load_modules:<modules.load>]
 
 [init_modules]
 
-[set_privs:'www']
-
 core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
 core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
-
 httpd.sock = [base.open:'tcp/ip','in',<net.http.addr>,<net.http.port>]
 [base.proto.bind:<httpd.sock>,'http','server']
 
-#web.handle = [tcp.server:<net.http.addr>,<net.http.port>]
-#[net.cmd_add_handle:<web.handle>,<my.request_handler>,<my.connect_handler>]
+[set_privs:<httpd.system.user>]
 
 [event.loop]
-

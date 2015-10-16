@@ -1,0 +1,49 @@
+# >:]
+
+# name = httpd.serve_file
+
+my $id;
+my $params;
+my $file_path;
+if ( ref( $_[0] ) eq 'HASH' ) {
+    $params    = shift;
+    $id        = $params->{'sid'};
+    $file_path = $params->{'path'};
+} else {
+    $id        = shift;
+    $file_path = shift;
+}
+my $session = $data{'session'}{$id};
+my $stat
+    = ( defined $params and defined $params->{'stat'} and ref($params) )
+    ? $params->{'stat'}
+    : [ stat($file_path) ];
+
+my $content_size = $stat->[7];
+my $content_date = time2str( $stat->[9] );
+my $server_date  = time2str(time);
+
+my $content_type = 'text/plain';
+
+if ( $file_path =~ /\.htm(l)?$/i ) {
+    $content_type = 'text/html';
+} else {
+    $content_type = mimetype($file_path);
+}
+
+open( my $content_fh, '<', $file_path )
+    or warn "<!> $file_path: $!";    # XXX: error handling...
+local $/ = undef;
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => $content_type,
+        'Last-Modified'  => $content_date,
+        'Content-Length' => $content_size,
+        'Connection'     => $session->{'http'}->{'close'}
+        ? 'close'
+        : 'keep-alive'
+    }
+) . <$content_fh>;
+close($content_fh);
+
+return $session->{'http'}->{'close'} ? 2 : 0;

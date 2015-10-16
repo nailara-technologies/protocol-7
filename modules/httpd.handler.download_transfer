@@ -1,0 +1,27 @@
+# >:]
+
+# name = httpd.handler.download_transfer
+
+my $id      = $_[0]->w->data->{'id'};
+my $session = $data{'session'}{$id};
+my $file_fh = $session->{'download'}->{'content_fh'};
+
+$session->{'buffer'}->{'output'} //= '';    # XXX: track down undef...
+
+my $bytes_read = sysread(
+    $file_fh, $session->{'buffer'}->{'output'},
+    8192,     length( $session->{'buffer'}->{'output'} )
+);
+
+$session->{'download'}->{'bytes_to_go'} -= $bytes_read;
+
+if ( $session->{'download'}->{'bytes_to_go'} <= 0 ) {
+    <[base.log]>->( 1, "[$id] download complete." );
+    $session->{'watcher'}->{'download_handler'}->cancel;
+    close($file_fh);
+    delete $session->{'download'};
+    delete $session->{'watcher'}->{'download_handler'};
+    return $session->{'http'}->{'close'} ? 2 : 0;
+}
+
+return 0;
