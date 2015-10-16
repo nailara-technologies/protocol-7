@@ -2,6 +2,39 @@
 
 # name = httpd.init_code
 
+use HTTP::Date;
 use HTTP::Request;
+use File::MimeInfo::Magic;
+
+<proto.http.state> = {
+    '0' => {
+        'in'  => { 'handler' => 'httpd.request_handler' },
+        'out' => { 'handler' => 'base.handler.write' },
+    },
+};
+
+<proto.http.connect.banner> = '';
+
+<proto.http.status_codes>
+    = { '200' => 'OK', '404' => 'Not Found', '500' => 'Internal Server Error' };
+
+# check user / group existance
+<[base.log]>->( 2, "checking if httpd user / group exists.." );
+my $httpd_user  = <httpd.system.user>  //= 'httpd';
+my $httpd_group = <httpd.system.group> //= 'www';
+my $httpd_uid   = getpwnam($httpd_user);
+if ( not defined $httpd_uid ) {
+    <[base.log]>->( 0, "httpd user '$httpd_user' does not exist, creating..." );
+    system( 'useradd', '-r', $httpd_user ) == 0
+        or die "failed to create httpd user '$httpd_user': $?";
+    $httpd_uid = getpwnam($httpd_user);
+    die "failed to create httpd user '$httpd_user'" if not defined $httpd_uid;
+    <[base.log]>->( 0, ": httpd user '$httpd_user' created [UID=$httpd_uid]" );
+
+} else {
+    <[base.log]>->( 2, ": http user '$httpd_user' : UID $httpd_uid" );
+}
+
+<[httpd.scan_site_dir]>;
 
 0;

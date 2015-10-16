@@ -7,7 +7,7 @@ my $id      = $_[0]->w->data;
 my $session = $data{'session'}{$id};
 
 $session->{'http'} //= { 'request' => { 'headers' => {} } };
-my $http = $session->{'http'}->{'request'};
+my $request = $session->{'http'}->{'request'};
 
 return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
 
@@ -17,32 +17,34 @@ my $req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'raw'} );
 
 $req->decode;
 
-$http->{'method'} = $req->method;
-$http->{'host'}   = lc( $req->header('host') ) if defined $req->header('host');
-$http->{'uri'}    = $req->uri->as_string;
+$request->{'method'} = $req->method;
+$request->{'host'} = lc( $req->header('host') ) if defined $req->header('host');
+$request->{'uri'}  = $req->uri->as_string;
+$session->{'http'}->{'close'} = 1;
 
-map { $http->{'headers'}->{$_} = $req->header($_) } $req->header_field_names;
+map { $request->{'headers'}->{ lc($_) } = $req->header($_) }
+    $req->header_field_names;
 
-print Dumper( $session->{'http'} );
+$session->{'http'}->{'close'} = 0
+    if defined $request->{'headers'}->{'connection'}
+    and lc( $request->{'headers'}->{'connection'} ) eq 'keep-alive';
 
-if ( exists <http.handler>->{ lc( $http->{'method'} ) } ) {
-    my $handler_name = <http.handler>->{ lc( $http->{'method'} ) };
+if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
+    my $handler_name = <http.handler>->{ lc( $request->{'method'} ) };
     if ( exists $code{$handler_name} ) {
-        $code{$handler_name}->($id);
+        return $code{$handler_name}->($id);
     } else {
         <[base.log]>->(
             0,
-            "[$id] http [$http->{method}] handler defined,"
+            "[$id] http [$request->{method}] handler defined,"
                 . " but callback missing!"
         );
         return 2;    # XXX: error page
     }
 
 } else {
-    <[base.log]>->( 0, "[$id] http handler not defined [$http->{method}]" );
+    <[base.log]>->( 0, "[$id] http handler not defined [$request->{method}]" );
     return 2;        # XXX: error page
 }
 
 return 2;
-
-#  <[net.out]>->( $data{'session'}{ $_[0] }{'handle'}, $content );
