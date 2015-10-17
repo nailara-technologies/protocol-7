@@ -7,6 +7,17 @@
 my $answer;
 my $smiley;
 my ( $backend_socket, $user ) = @_;
+
+if (   not defined $backend_socket
+    or !-S $backend_socket
+    or !$backend_socket->connected ) {
+    <[base.log]>->(
+        0,
+        "[!] net.unix.authme: can not authenticate (no valid socket supplied)"
+    );
+    return undef;
+}
+
 if ( sysread( $backend_socket, $smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
         <[base.log]>->( 1, '[*] protocol banner detected..' );

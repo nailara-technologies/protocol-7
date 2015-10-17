@@ -4,12 +4,20 @@
 
 my $socket_file = $_[0];
 
+if ( !-S $socket_file ) {
+    <[base.log]>
+        ->( 0, "[!] unix domain socket '$socket_file' does not exist!" );
+    return undef;
+}
+
 my $return_socket = IO::Socket::UNIX->new(
     Type => SOCK_STREAM(),
     Peer => $socket_file,
-) or <[base.log]>->( 0, "io.unix.socket.out.open: $!" );
+) or <[base.log]>->( 0, "io.unix.socket.out.open: $!! ('$socket_file')" );
 
-if ( -S $return_socket and $return_socket->connected ) {
+if (    defined $return_socket
+    and -S $return_socket
+    and $return_socket->connected ) {
     <[base.log]>->( 1, "connection [unix:$socket_file] established." );
 
     $data{'handle'}{$return_socket}{'link'} = 'unix';
@@ -17,6 +25,6 @@ if ( -S $return_socket and $return_socket->connected ) {
 
     return $return_socket;
 } else {
-    <[base.log]>->( 0, "can not connect to [unix:$socket_file]: $!" );
+    <[base.log]>->( 0, "[!] can not connect to [unix:$socket_file]: $!" );
     return 0;
 }
