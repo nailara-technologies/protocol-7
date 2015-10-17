@@ -81,7 +81,7 @@ modules.pre_load = core.config config.json
 
 # open unix domain socket
 [file.make_path:'/tmp/.n/sock',0777]
-unix.path = [digest.md5.hex:"<net.local.addr>:<net.local.port>"]
+unix.path = [digest.md5.b64u:"<net.local.addr>:<net.local.port>"]
 unix.sock = [base.open:'unix','in',"/tmp/.n/sock/<unix.path>"]
 
 # open tcp/ip socket

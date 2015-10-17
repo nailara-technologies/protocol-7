@@ -11,7 +11,7 @@ access.cmd.usr.* = help print ping reload
 
 [set_privs:<x11.user>]
 
-unix.path = [digest.md5.hex:"<net.local.addr>:<net.local.port>"]
+unix.path = [digest.md5.b64u:"<net.local.addr>:<net.local.port>"]
 unix.sock = [base.open:'unix','out',"/tmp/.n/sock/<unix.path>"]
 core.handle = [net.unix.authme:<unix.sock>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
