@@ -12,7 +12,8 @@ use IO::Socket::UNIX;
 use Term::ReadPassword;
 use Term::ReadLine::Perl;
 use POSIX ":sys_wait_h";
-use Digest::MD5 qw(md5_hex);
+use Digest::MD5 qw(md5);
+use MIME::Base64 qw(encode_base64url);
 
 my $bin_path = File::Spec->rel2abs($0);
 
@@ -97,7 +98,8 @@ sub login_prompt {
 sub shell_connect {
     my $sock;
     if ( !$sckargcnt ) {
-        my $sock_path = $usock_dir . '/' . md5_hex("$core_addr:$core_port");
+        my $sock_path
+            = "$usock_dir/" . encode_base64url( md5("$core_addr:$core_port") );
         if ( -e $sock_path ) {
             $sock = IO::Socket::UNIX->new(
                 Type => SOCK_STREAM(),
