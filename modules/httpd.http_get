@@ -40,29 +40,13 @@ if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
         }
     }
 } else {
-    my $html_400 = "<html>\n  <h1>400 Bad Request.</h1>\n</html>\n";
-    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
-        400,
-        {   'Content-Type'   => 'text/html',
-            'Content-Length' => length($html_400),
-            'Connection'     => $session->{'http'}->{'close'}
-            ? 'close'
-            : 'keep-alive'
-        }
-    ) . $html_400;
-    return $session->{'http'}->{'close'} ? 2 : 0;
+    return <[httpd.return_raw_html]>->(
+        $id, 400, "<html>\n  <h1>400 Bad Request.</h1>\n</html>\n"
+    );
 }
 
 if ( not defined $file_path or !-f $file_path ) {
-    my $html_404 = "<html>\n  <h1>404 Not Found.</h1>\n</html>\n";
-    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
-        404,
-        {   'Content-Type'   => 'text/html',
-            'Content-Length' => length($html_404),
-            'Connection'     => $session->{'http'}->{'close'}
-            ? 'close'
-            : 'keep-alive'
-        }
-    ) . $html_404;
-    return $session->{'http'}->{'close'} ? 2 : 0;
+    return <[httpd.return_raw_html]>->(
+        $id, 404, "<html>\n  <h1>404 Not Found.</h1>\n</html>\n"
+    );
 }

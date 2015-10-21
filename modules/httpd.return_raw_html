@@ -1,0 +1,20 @@
+# >:]
+
+# name = httpd.return_raw_html
+
+die "insufficient arguments! expected <id>,<code>,<html>" if @_ != 3;
+
+my ( $id, $code, $html_str ) = @_;
+my $session   = $data{'session'}{$id};
+my $http_host = <[httpd.determine_host]>->($id);
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    $code,
+    {   'Content-Type'   => 'text/html',
+        'Content-Length' => length($html_str),
+        'Connection'     => $session->{'http'}->{'close'}
+        ? 'close'
+        : 'keep-alive'
+    }
+) . $html_str;
+return $session->{'http'}->{'close'} ? 2 : 0;
