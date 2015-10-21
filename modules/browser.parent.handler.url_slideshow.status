@@ -6,6 +6,8 @@ my $new_status = shift;
 
 $new_status = $new_status->w->data if ref($new_status) ne '';
 
+<[base.log]>->( 2, "slideshow status = $new_status" );
+
 die "expected numerical status parameter"
     if not defined $new_status or $new_status !~ /^\d$/;
 
