@@ -4,19 +4,20 @@
 
 my $id        = shift;
 my $session   = $data{'session'}{$id};
-my $http_host = $session->{'http'}{'request'}{'host'};
+my $http_host = <[httpd.determine_host]>->($id);
 my $http_uri  = $session->{'http'}{'request'}{'uri'};
 
 my $file_path;
-if ( defined $http_host ) { }
-else {
-    <[base.log]>->( 0, "[$id] HEAD request without host parameter!" );
-}
-<[base.log]>->( 2, "[$id] HEAD request handler called ..." );
 
 # ...
 
 if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
+    <[base.log]>->(
+        1,
+        sprintf( "(i) matched Host '%s' -> '$http_host'",
+            $session->{'http'}{'request'}{'host'} )
+    ) if $http_host ne $session->{'http'}{'request'}{'host'};
+
     my $base_dir = <httpd.cfg.hostnames>->{$http_host};
     $file_path = "$base_dir$http_uri";
     if ( !-f $file_path and $file_path =~ /\/$/ ) {
@@ -50,6 +51,18 @@ if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
 
         return $session->{'http'}->{'close'} ? 2 : 0;
     }
+} else {
+    my $html_400 = "<html>\n  <h1>400 Bad Request.</h1>\n</html>\n";
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'text/html',
+            'Content-Length' => length($html_400),
+            'Connection'     => $session->{'http'}->{'close'}
+            ? 'close'
+            : 'keep-alive'
+        }
+    ) . $html_400;
+    return $session->{'http'}->{'close'} ? 2 : 0;
 }
 
 if ( not defined $file_path or !-f $file_path ) {
