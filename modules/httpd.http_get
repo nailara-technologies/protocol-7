@@ -14,7 +14,7 @@ my $file_path;
 if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
     <[base.log]>->(
         1,
-        sprintf( "(i) matched Host '%s' -> '$http_host'",
+        sprintf( "[$id] matched Host '%s' -> '$http_host'",
             $session->{'http'}{'request'}{'host'} )
     ) if $http_host ne $session->{'http'}{'request'}{'host'};
 
