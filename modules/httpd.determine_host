@@ -1,0 +1,47 @@
+# >:]
+
+# name = httpd.determine_host
+
+my $id        = shift;
+my $session   = $data{'session'}{$id};
+my $http_host = $session->{'http'}{'request'}{'host'};
+my $http_uri  = $session->{'http'}{'request'}{'uri'};
+
+if ( defined $http_host ) {
+
+    return $http_host if exists <httpd.cfg.hostnames>->{$http_host};
+
+    foreach my $cfg_host ( keys %{<httpd.cfg.hostnames>} ) {
+        next if $cfg_host !~ /\*/;
+        return $cfg_host
+            if $cfg_host =~ /^\*(\..+)$/ and $http_host =~ /^[^\.]+$1$/;
+        return $cfg_host
+            if $cfg_host =~ /^(.+\.)\*$/ and $http_host =~ /^$1[^\.]+$/;
+        return $cfg_host
+            if $cfg_host =~ /^\*\*(\..+)$/ and $http_host =~ /$1$/;
+        return $cfg_host
+            if $cfg_host =~ /^(.+\.)\*\*$/ and $http_host =~ /^$1/;
+        return $cfg_host
+            if $cfg_host =~ /^\*(\..+\.)\*$/
+            and $http_host =~ /^[^\.]+$1[^\.]+$/;
+        return $cfg_host
+            if $cfg_host =~ /^\*\*(\..+\.)\*\*$/
+            and $http_host =~ /$1/;
+    }
+
+    if ( exists <httpd.cfg.hostnames>->{'default'} ) {
+        <[base.log]>->(
+            1, "[$id] Host '$http_host' does not exist, selecting 'default'"
+        );
+        return 'default';
+    } else {
+        <[base.log]>->(
+            0, "[$id] Host '$http_host' does not match any configured pattern!"
+        );
+        return undef;
+    }
+
+} else {
+    <[base.log]>->( 0, "[$id] HEAD request without host parameter!" );
+    return undef;
+}
