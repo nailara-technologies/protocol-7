@@ -22,9 +22,8 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 
 my @update_files = split( "\n", $reply->{'data'} );
 
-my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @update_files ) );
-
 my $playlist_changed = 0;
+my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @update_files ) );
 
 if (<mpv.autorescale>) {
     <mpv.file_map.rescaled> = {};
@@ -53,24 +52,18 @@ push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 
 my $current_path = <mpv.current.path> || '';
 
-my $skip_index;
-my $index   = 0;
-my $skipped = 0;
-my @append_files;
-map {
-    if ( $_ ne $current_path or $skipped ) { push( @append_files, $_ ) }
-    else { $skipped = 1; $skip_index = $index }
-    $index++;
-} @update_files;
-
-if ( defined $skip_index and $skip_index ) {
-    for ( 0 .. $skip_index ) {
-        my $reorder_file = pop(@append_files);
-        unshift( @append_files, $reorder_file );
+my @append_files = @update_files;
+my $keep_file    = 0;
+foreach my $check_path (@update_files) {
+    if ( $check_path eq $current_path ) {
+        shift @append_files;
+        $keep_file = 1;
+        last;
     }
+    push( @append_files, shift @append_files );
 }
 
-if ( !$skipped ) {    # current file not in playlist, skip it..
+if ( !$keep_file ) {
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
     <[mpv.send_command]>->('stop');
 }
