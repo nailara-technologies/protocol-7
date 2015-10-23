@@ -68,8 +68,16 @@ $font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
 # check font name
 my $font_matched = 0;
 map { $font_matched = 1 if $_ eq <ticker.font.name> } @font_names;
-die "unknown font name '" . <ticker.font.name> . "' configured"
-    if !$font_matched;
+if ( !$font_matched ) {
+    my $fallback_font = $font_names[0];
+    <[base.log]>->(
+        0,
+        "(((!))) unknown font name '"
+            . <ticker.font.name>
+            . "' configured! [falling back to '$fallback_font'] (((!)))"
+    );
+    <ticker.font.name> = $fallback_font;
+}
 
 <[base.log]>->( 1, "loading '" . <ticker.font.name> . "' font.." );
 
@@ -98,8 +106,8 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
         $font_size++;
     recalc:
         <ticker.font.object> = SDL::TTF::open_font( $font_path, $font_size );
-        die "failed to open font [" . SDL::get_error . "]"
-            if !<ticker.font.object>;
+        die "failed to open font (size=$font_size) [" . SDL::get_error . "]"
+            if not defined <ticker.font.object> or !<ticker.font.object>;
         <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
         <ticker.border_height>
             = int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
@@ -121,6 +129,8 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
         <ticker.font.object>
             = SDL::TTF::open_font( $font_path, int($font_size) );
+        die "failed to open font (size=$font_size) [" . SDL::get_error . "]"
+            if not defined <ticker.font.object> or !<ticker.font.object>;
 
         <ticker.border_offset> += sprintf(
             "%.0d",
@@ -138,7 +148,10 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     # load the configured font
     <ticker.font.object>
         = SDL::TTF::open_font( $font_path, <ticker.font.size> );
-    die "failed to open font " . SDL::get_error . "]" if !<ticker.font.object>;
+    die "failed to open font (size="
+        . <ticker.font.size> . ") ["
+        . SDL::get_error . "]"
+        if not defined <ticker.font.object> or !<ticker.font.object>;
     <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
     my $font_line_skip = SDL::TTF::font_line_skip(<ticker.font.object>);
     <ticker.border_height>
