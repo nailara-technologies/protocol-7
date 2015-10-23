@@ -8,7 +8,9 @@ my $reply_id = $$call{'reply_id'};
 <browser.loop_timer>->cancel;
 Event->unloop_all();
 
-<window.scrolling> //= 0;
+<browser.adjust_scroll_delay> //= 0;
+<browser.scroll_delay_limit>  //= 32;
+<window.scrolling>            //= 0;
 
 return { 'mode' => 'nack', 'data' => 'already scrolling' }
     if <window.scrolling>;
@@ -21,12 +23,20 @@ my $vadj = <browser.gtk2.obj.scr_win>->get_vadjustment();
 <window.scroll.delay> //= 42;
 <window.scroll.stop> = 0;
 
+my $scroll_delay = <window.scroll.delay>;
+
+if ( <browser.auto_zoom> and <browser.adjust_scroll_delay> ) {
+    $scroll_delay = sprintf( "%.0f", $scroll_delay / <browser.zoom_level> );
+    $scroll_delay = <browser.scroll_delay_limit>
+        if $scroll_delay < <browser.scroll_delay_limit>;
+
+}
+
 return { 'mode' => 'ack', 'data' => 'already at end of page' }
     if <window.scroll.pos> >= <window.scroll.max>;
 
-Glib::Timeout->add( <window.scroll.delay>,
-    $code{'browser.gtk2.handler.auto_scroll'},
-    undef, -1 );
+Glib::Timeout->add( $scroll_delay, $code{'browser.gtk2.handler.auto_scroll'},
+    undef, -10 );
 
 <window.scrolling> = 1;
 return { 'mode' => 'later' };
