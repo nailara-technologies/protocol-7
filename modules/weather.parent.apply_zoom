@@ -1,0 +1,16 @@
+# >:]
+
+# name = weather.parent.apply_zoom
+
+my $html_ref = shift;
+<weather.zoom_level> //= 1;
+<weather.zoom_text>  //= 0;
+my $zoom_level = <weather.zoom_level>;
+
+return if not defined $zoom_level or $zoom_level == 1;
+
+$$html_ref =~ s|(font-size:\s*\d+)px|$1PX|g if !<weather.zoom_text>;
+
+$$html_ref =~ s|(\d+)px|sprintf("%.0fpx",$1*$zoom_level)|ge;
+
+$$html_ref =~ s|(\d+)PX|$1px|g;
