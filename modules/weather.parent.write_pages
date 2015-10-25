@@ -118,6 +118,8 @@ foreach my $page_name (@page_list) {
     $html_str =~ s|\[SUNSET\]|$sun{set}|g;
     $html_str =~ s|\[ICON\]|$icon_path|g;
 
+    <[weather.parent.apply_zoom]>->( \$html_str );
+
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
 
@@ -188,6 +190,8 @@ foreach my $page_name (@page_list) {
 
     # ...
 
+    <[weather.parent.apply_zoom]>->( \$html_str );
+
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
 
@@ -257,6 +261,8 @@ foreach my $page_name (@page_list) {
     $html_str =~ s|\[DESCR\]|$current_ref->{descr}|g;
 
     # ...
+
+    <[weather.parent.apply_zoom]>->( \$html_str );
 
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
