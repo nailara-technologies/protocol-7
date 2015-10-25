@@ -6,7 +6,8 @@ buffer.system.log_cmd = log.msg
 [load_config_file:'defaults']
 
 access.cmd.usr.core = help ping verify_instance list dump_buffer get_urls \
-                      station_id city clean_cache clear_city dump child.*
+                      station_id city clean_cache clear_city dump child.* \
+                      reload
 
                       # reload command currently disabled (drops parent cmds)
 
@@ -20,6 +21,10 @@ weather.cfg.units = metric
 weather.cfg.language = <system.language>
 
 weather.tile.count = 3 # [1|2|3]
+
+weather.zoom_level = 1  # default zoom level
+weather.auto_zoom  = 1  # auto zoom adjustment (same as in in browser agent)
+weather.zoom_text  = 0  # disabled to work with browser agent auto zoom function
 
 ## tile setup html snipplets are ./data/html/templates/weather/content.*.part ##
 
@@ -71,6 +76,8 @@ modules.load = auth net io.ip digest.sha digest.sha1 weather.base debug
 core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
 core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
+
+[weather.base.calc_zoom_level]
 
 [weather.base.fork_weather_child]
 
