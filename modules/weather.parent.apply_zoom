@@ -14,3 +14,10 @@ $$html_ref =~ s|(font-size:\s*\d+)px|$1PX|g if !<weather.zoom_text>;
 $$html_ref =~ s|(\d+)px|sprintf("%.0fpx",$1*$zoom_level)|ge;
 
 $$html_ref =~ s|(\d+)PX|$1px|g;
+
+if ( !<weather.zoom_text> and <weather.auto_zoom> and <weather.base_zoom> != 1 )
+{
+    my $zoom_adjust = <weather.base_zoom>;
+    $$html_ref
+        =~ s|(font-size:\s*)(\d+)px|sprintf("$1%.0fpx",$2*$zoom_adjust)|ge;
+}
