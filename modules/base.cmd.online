@@ -12,7 +12,9 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     my $usr = $$call{'args'};
 
     return { 'mode' => 'nack', 'data' => 'no such user found' }
-        if not exists $data{'user'}{$usr};
+        if not exists $data{'user'}{$usr}
+        or (not exists $data{'user'}{$usr}{'last_seen'}
+        and not exists $data{'user'}{$usr}{'session'} );
 
     my $utime = $data{'user'}{$usr}{'last_seen'}
         || $data{'user'}{$usr}{'connected_since'};
