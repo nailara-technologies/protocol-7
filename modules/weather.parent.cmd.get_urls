@@ -4,18 +4,31 @@
 # param = [city|station_id]
 # descr = returns file:// urls to current weather pages
 
+my $zoom;
 my $city      = $$call{'args'};
 my $cache_dir = <weather.cache_dir>;
 my $city_file = "$cache_dir/city.current";
-if (    defined $city
-    and defined <weather.cfg.city>
-    and $city ne <weather.cfg.city> ) {
-    delete <weather.cfg.city>;
-    delete <weather.station_id>;
-    delete <weather.cfg.station_id>;
-    remove_tree(<weather.cache_dir>) if -d <weather.cache_dir>;
-}
+my $zoom_file = "$cache_dir/weather.zoom";
+
+#if (    defined $city
+#    and defined <weather.cfg.city>
+#    and $city ne <weather.cfg.city> ) {
+#    delete <weather.cfg.city>;
+#    delete <weather.station_id>;
+#    delete <weather.cfg.station_id>;
+#    remove_tree($cache_dir) if -d $cache_dir;
+#}
 $city //= <weather.cfg.city>;
+
+my $custom_zoom = 0;
+$zoom = $1 if defined $city and $city =~ s/\s*:\s*zoom\s*=\s*([\d\.]+)$//;
+if ( not defined $zoom or $zoom == 1 ) {
+    unlink($zoom_file) if -f $zoom_file;
+} else {
+    <[file.put]>->( $zoom_file, "$zoom\n" );
+    <[weather.base.calc_zoom_level]>;
+    $custom_zoom = 1;
+}
 
 my $station_id = $1 if defined $city and $city =~ /^(\d+)$/;    # XXX!
 $station_id //= <weather.station_id> || <weather.cfg.station_id>;
@@ -38,6 +51,7 @@ if ( defined $station_id ) {
         <[base.log]>->( 1, "storing current city setup to disk cache.." );
         <[file.put]>->( $city_file, time() . " $city\n" );
     }
+    <[weather.parent.write_pages]>->($station_id) if $custom_zoom;
     return { 'mode' => 'raw', 'data' => $url_list_str };
 } else {
     push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
