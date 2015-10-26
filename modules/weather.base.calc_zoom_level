@@ -5,6 +5,15 @@
 my ($local_session_id) = keys( %{<user.core.session>} );
 <weather.zoom_level> //= 1;
 
+my $cache_dir = <weather.cache_dir>;
+my $zoom_file = "$cache_dir/weather.zoom";
+if ( -f $zoom_file ) {
+    <[file.slurp]>->( $zoom_file, \$data{'weather'}{'zoom_level'} );
+    chomp(<weather.zoom_level>);
+}
+
+<weather.base_zoom> = <weather.zoom_level>;
+
 if ( not defined <weather.auto_zoom> or !<weather.auto_zoom> ) {
     <[base.log]>->(
         1,
@@ -43,6 +52,8 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
         : <x11.screen_height>;
     <weather.zoom_level> = sprintf( "%.3f",
         ( <weather.zoom_level> / $base_width ) * $calc_width );
+    <weather.screen_zoom_factor>
+        = sprintf( "%.3f", ( 1 / $base_width ) * $calc_width );
     my $m_str = '';
     if ( defined <weather.min_zoom> ) {
         <weather.zoom_level> = <weather.min_zoom>
