@@ -1,29 +1,51 @@
 # >:]
 
 # name  = root.agent.cmd.notify_online
-# param = <agent_name>
+# param = <agent|instance>
 # descr = reply when agent startup complete or failed
 
 <root.agent.notify_online> //= {};
 
-my $agent_name = $$call{'args'};
-my $reply_id   = $$call{'reply_id'};
+my $query_param = $$call{'args'};
+my $reply_id    = $$call{'reply_id'};
 
 return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
-    if not defined $agent_name or !length($agent_name);
-return { 'mode' => 'nack', 'data' => "no such agent in setup [$agent_name]" }
-    if not defined <[agent.get_id]>->($agent_name);
+    if not defined $query_param or !length($query_param);
+
+if (    not defined <[agent.get_id]>->($query_param)
+    and not defined <root.agent.instance>->{$query_param} ) {
+    my $rep_msg
+        = $query_param =~ /^\d+$/
+        ? "no such agent instance ($query_param)"
+        : "no such agent in setup [$query_param]";
+    return {
+        'mode' => 'nack',
+        'data' => $rep_msg
+    };
+}
 
 foreach my $id ( keys %{<root.agent.instance>} ) {
-    return { 'mode' => 'ack', 'data' => "agent '$agent_name' already online!" }
-        if <root.agent.instance>->{$id}->{'agent_name'} eq $agent_name
+    return {
+        'mode' => 'ack',
+        'data' => "agent '$query_param' already online!"
+        }
+        if <root.agent.instance>->{$id}->{'agent_name'} eq $query_param
+        and <root.agent.instance>->{$id}->{'status'} eq 'online';
+}
+
+if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+    return {
+        'mode' => 'ack',
+        'data' => "agent instance '$id' already online!"
+        }
+        if defined <root.agent.instance>->{$id}
         and <root.agent.instance>->{$id}->{'status'} eq 'online';
 }
 
 <[base.log]>->(
-    2, "startup notification request fot agent '$agent_name' received"
+    2, "startup notification request fot agent '$query_param' received"
 );
 
-push( @{ <root.agent.notify_online>->{$agent_name} }, $reply_id );
+push( @{ <root.agent.notify_online>->{$query_param} }, $reply_id );
 
 return { 'mode' => 'later' }
