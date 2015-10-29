@@ -5,56 +5,21 @@
 # descr = returns file:// urls to current weather pages
 
 my $zoom;
-my $city      = $$call{'args'};
-my $cache_dir = <weather.cache_dir>;
-my $city_file = "$cache_dir/city.current";
-my $zoom_file = "$cache_dir/weather.zoom";
+my $tile_name;
+my $city = $$call{'args'};
+$tile_name = $1 if $city =~ s| \[([^\]]+)\]||;
 
-#if (    defined $city
-#    and defined <weather.cfg.city>
-#    and $city ne <weather.cfg.city> ) {
-#    delete <weather.cfg.city>;
-#    delete <weather.station_id>;
-#    delete <weather.cfg.station_id>;
-#    remove_tree($cache_dir) if -d $cache_dir;
-#}
-$city //= <weather.cfg.city>;
+push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
 
-my $custom_zoom = 0;
-$zoom = $1 if defined $city and $city =~ s/\s*:\s*zoom\s*=\s*([\d\.]+)$//;
-if ( not defined $zoom or $zoom == 1 ) {
-    unlink($zoom_file) if -f $zoom_file;
-} else {
-    <[file.put]>->( $zoom_file, "$zoom\n" );
-    <[weather.base.calc_zoom_level]>;
-    $custom_zoom = 1;
-}
-
-my $station_id = $1 if defined $city and $city =~ /^(\d+)$/;    # XXX!
-$station_id //= <weather.station_id> || <weather.cfg.station_id>;
-
-return {
-    'mode' => 'nack',
-    'data' => 'no city or station id configured or provided'
+# XXX: fix for undefined tile names!
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.layout.get_coordinates',
+        'call_args' => { 'args' => "browser[$tile_name]" },
+        'reply'     => {
+            'handler' => 'weather.parent.handler.coordinates_reply',
+            'params'  => { 'city' => $city, 'tile_name' => $tile_name }
+        }
     }
-    if not defined $station_id and not defined $city
-    or not defined $station_id and !length($city);
+);
 
-my $city_str = defined $station_id ? "station id $station_id" : "'$city'";
-<[base.log]>->( 1, "weather urls for $city_str requested" );
-
-if ( defined $station_id ) {
-    my $url_list_str;
-    map { $url_list_str .= "$_\n" }
-        <[weather.parent.get_url_list]>->($station_id);
-    if ( !-f $city_file ) {
-        <[base.log]>->( 1, "storing current city setup to disk cache.." );
-        <[file.put]>->( $city_file, time() . " $city\n" );
-    }
-    <[weather.parent.write_pages]>->($station_id) if $custom_zoom;
-    return { 'mode' => 'raw', 'data' => $url_list_str };
-} else {
-    push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
-    <[weather.parent.set_city]>->($city);
-    return { 'mode' => 'later' };
-}
+return { 'mode' => 'later' };
