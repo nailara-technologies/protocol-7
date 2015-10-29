@@ -5,16 +5,21 @@
 my ($local_session_id) = keys( %{<user.core.session>} );
 <weather.zoom_level> //= 1;
 
-my $cache_dir = <weather.cache_dir>;
-my $zoom_file = "$cache_dir/weather.zoom";
+my $cache_dir      = <weather.cache_dir>;
+my $zoom_file      = "$cache_dir/weather.zoom";
+my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
 if ( -f $zoom_file ) {
     <[file.slurp]>->( $zoom_file, \$data{'weather'}{'zoom_level'} );
     chomp(<weather.zoom_level>);
 }
+if ( -f $tile_zoom_file ) {
+    <[file.slurp]>->( $tile_zoom_file, \$data{'weather'}{'tile_zoom'} );
+    chomp(<weather.tile_zoom>);
+}
 
 <weather.base_zoom> = <weather.zoom_level>;
 
-if ( not defined <weather.auto_zoom> or !<weather.auto_zoom> ) {
+if ( not defined <weather.browser_zoom> or !<weather.browser_zoom> ) {
     <[base.log]>->(
         1,
         sprintf( "auto zoom is disabled.. using default value [%.2f]",
@@ -45,6 +50,13 @@ while ( !$matched_reply ) {
 if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     <x11.screen_width>  = $1;
     <x11.screen_height> = $2;
+    <[base.log]>->(
+        1,
+        sprintf(
+            ": received xserver screen size (%sx%s)",
+            <x11.screen_width>, <x11.screen_height>
+        )
+    );
     my $base_width = 1920;
     my $calc_width
         = <x11.screen_width> > <x11.screen_height>
@@ -55,6 +67,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     <weather.screen_zoom_factor>
         = sprintf( "%.3f", ( 1 / $base_width ) * $calc_width );
     my $m_str = '';
+
     if ( defined <weather.min_zoom> ) {
         <weather.zoom_level> = <weather.min_zoom>
             if <weather.zoom_level> < <weather.min_zoom>;
