@@ -50,7 +50,7 @@ if (<layout.startup>) {
             $kill_count++;
         } keys %{ <layout.config.profiles>->{$profile} };
     }
-    <[base.sleep]>->(0.42) if $kill_count; # XXX: fix!
+    <[base.sleep]>->(0.42) if $kill_count;    # XXX: fix!
 } else {
     map {
         <[layout.handler.agent_transition]>->(
@@ -83,3 +83,9 @@ foreach my $agent_name ( keys %{$profile_data} ) {
 }
 
 <layout.startup> = 0;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => 'core.playlist.update',
+        'reply'   => { 'handler' => 'dev.null' }
+    }
+);
