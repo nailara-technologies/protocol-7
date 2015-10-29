@@ -61,14 +61,16 @@ foreach my $file (@file_names) {
             <playlist.items_queued>++;
             $type = ':queued:';
         } else {
-            my $city_str = $1;
+            ( my $city_str = $1 ) =~ s|\[.*$||g;
+            my $city = $city_str;
+            $city_str .= " [$agent_subname]" if defined $agent_subname;
             <[base.proto.nailara.command.send.local]>->(
                 {   'command'   => "core.weather.get_urls",
                     'call_args' => { 'args' => $city_str },
                     'reply'     => {
                         'handler' => 'playlist.handler.weather_urls_reply',
                         'params'  => {
-                            'city'    => $city_str,
+                            'city'    => $city,
                             'subname' => $agent_subname
                         }
                     }
