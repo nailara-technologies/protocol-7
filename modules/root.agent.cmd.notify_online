@@ -12,6 +12,22 @@ my $reply_id    = $$call{'reply_id'};
 return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
     if not defined $query_param or !length($query_param);
 
+if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
+    my $instance_id;
+    map {
+        $instance_id = $_
+            if <root.agent.instance>->{$_}->{'job_id'} == $job_id
+    } keys %{<root.agent.instance>};
+    if ( defined $instance_id ) {
+        $query_param = $instance_id;
+    } else {
+        return {
+            'mode' => 'nack',
+            'data' => "unknown job id '$job_id'"
+        };
+    }
+}
+
 if (    not defined <[agent.get_id]>->($query_param)
     and not defined <root.agent.instance>->{$query_param} ) {
     my $rep_msg
