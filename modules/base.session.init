@@ -115,13 +115,23 @@ if ( $mode eq 'server' ) {
             $data{'session'}{$id}{'shutdown'} = 1;
         }
     );
+
+    # http[d] timeout
+    @timeout = (
+        'timeout' => <httpd.timeout> || 13,
+        'timeout_cb' => sub {
+            <[base.log]>->( 1, "[$id] http timeout!" );
+            $data{'session'}{$id}{'shutdown'} = 1;
+        }
+    ) if $proto eq 'http' and $name eq '-';
+
     $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
         'fd'     => $fd,
         'cb'     => $code{'base.handler.read'},
         'data'   => $id,
         'repeat' => 0,
         'desc'   => "[$id] input handler",
-        @timeout    # disabled later in 'base.handler.auth'
+        @timeout    # disabled eventually in 'base.handler.auth'
     );
 }
 
