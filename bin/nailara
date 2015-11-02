@@ -308,7 +308,11 @@ sub prepare_subs {
                 if ( exists $data{'base'}{$1}{$2} ) {
                     my $old_sub = $data{'base'}{$1}{$2};
                     if ( not exists $data{'base'}{'overwritten'}{$1}{$2} ) {
-                        $code{'log.ok'}->("[!] $sub_name >> $old_sub");
+                        if ( $sub_name ne $old_sub ) {
+                            $code{'log.ok'}->("[!] $sub_name >> $old_sub");
+                        } else {
+                            $code{'log.ok'}->("[!] overwriting $sub_name");
+                        }
                         $data{'base'}{'overwritten'}{$1}{$2} = {
                             'old' => $old_sub,
                             'new' => $sub_name
