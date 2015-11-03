@@ -15,6 +15,7 @@ my $cache_dir      = <weather.cache_dir>;
 my $city_file      = "$cache_dir/city.current";
 my $zoom_file      = "$cache_dir/weather.zoom";
 my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
+<[weather.base.check_dirs]>;
 
 if ( $reply->{'cmd'} eq 'ACK' ) {
     my ( $x1, $y1, $x2, $y2 ) = split( / /, $reply->{'call_args'}->{'args'} );
@@ -40,20 +41,22 @@ if ( $reply->{'cmd'} eq 'ACK' ) {
 
     <weather.tile_zoom> = $tile_zoom;
 }
-
+my $city_changed = 0;
 if (    defined $city
     and defined <weather.cfg.city>
     and $city ne <weather.cfg.city> ) {
-    <weather.cfg.city> = $city;
+    $city_changed = 1;
+    delete <weather.cfg.city>;
     delete <weather.station_id>;
     delete <weather.cfg.station_id>;
     if ( -d $cache_dir ) {
-
-        #        remove_tree( $cache_dir, { 'keep_root' => 1 } );
-        #        <[weather.parent.populate_html_dir]>;
+        chdir('/tmp/');
+        remove_tree( $cache_dir, { 'keep_root' => 1 } );
+        <[weather.base.check_dirs]>;
     }
 }
 $city //= <weather.cfg.city>;
+<weather.cfg.city> = $city;
 
 my $custom_zoom = 0;
 $zoom = $1 if defined $city and $city =~ s/\s*:\s*zoom\s*=\s*([\d\.]+)$//;
@@ -67,6 +70,8 @@ if ( not defined $zoom or $zoom == 1 ) {
 
 my $station_id = $1 if defined $city and $city =~ /^(\d+)$/;    # XXX!
 $station_id //= <weather.station_id> || <weather.cfg.station_id>;
+
+$station_id = undef if $city_changed;
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
