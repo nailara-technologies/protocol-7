@@ -77,7 +77,10 @@ if ( !<mpv.pid> ) {
 
 close( delete(<mpv.fh.stdin>) );
 
-my $max_retries = 100;
+<x11.window_timeout> = 7;
+<[base.x11.wait_for_window]>;
+
+my $max_retries = 42;
 while ( $max_retries-- ) {
     last if -e $socket_path;
     <[base.sleep]>->(0.1);
@@ -108,8 +111,6 @@ if ($abort_startup) {
         if kill( 9, <mpv.pid> );
     CORE::exit(1);
 }
-
-<[base.x11.get_window_id]>;
 
 if (<mpv.fade_in>) {
     <[base.x11.set_window_opacity]>->( <x11.id>, 0 );
