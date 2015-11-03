@@ -12,6 +12,14 @@ return { 'mode' => 'nack', 'data' => 'expected numerical timeout argument' }
 return { 'mode' => 'nack', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+for my $window ( values $xtops->byid ) {
+    return { 'mode' => 'ack', 'data' => $window->id }
+        if $window->title =~ $title_pattern;
+}
+
 my $poll_delay = 0.13;
 
 my $req_id = <[base.gen_id]>->(<xserver.waiting>);
