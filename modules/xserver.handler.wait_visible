@@ -9,7 +9,7 @@ $xtops->update;
 my $wait_req = <xserver.waiting>->{$id};
 
 my $window_id;
-for my $window ( values $xtops->byid ) {
+for my $window ( values %{ $xtops->byid } ) {
     if ( $window->title =~ $wait_req->{'pattern'} ) {
         $window_id = $window->id;
         last;
