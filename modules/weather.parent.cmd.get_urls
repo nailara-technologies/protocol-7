@@ -11,10 +11,11 @@ $tile_name = $1 if $city =~ s| \[([^\]]+)\]||;
 
 push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
 
-# XXX: fix for undefined tile names!
+my $window_name = defined $tile_name ? "browser[$tile_name]" : 'browser';
+
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.layout.get_coordinates',
-        'call_args' => { 'args' => "browser[$tile_name]" },
+        'call_args' => { 'args' => $window_name },
         'reply'     => {
             'handler' => 'weather.parent.handler.coordinates_reply',
             'params'  => { 'city' => $city, 'tile_name' => $tile_name }
