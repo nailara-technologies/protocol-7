@@ -82,17 +82,20 @@ if ($am_parent) {
             $child_pipe, 'nailara', 'client', "window-$index"
         );
         $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
-
         my $sn_str
             = defined <system.agent.subname>
             ? '[' . <system.agent.subname> . ']'
             : '';
+        $sn_str =~ s|([\(\)\[\]\{\}\\])|\\$1|g if length($sn_str);
 
-        while ( not defined <browser.window.id>->{$index} ) { # XXX: max_retries
-            <[base.sleep]>->(0.1);
-            <browser.window.id>->{$index}
-                = <[base.x11.get_window_id]>->(
-                "browser${sn_str}-$index-" . <browser.child.pid>->{$index} );
+        <browser.window.id>->{$index}
+            = <[base.x11.wait_for_window]>
+            ->( "browser${sn_str}-$index-" . <browser.child.pid>->{$index} );
+        if ( not defined <browser.window.id>->{$index} ) {
+            <[base.log]>->(
+                0, "agent startup failure (browser window did not open)"
+            );
+            exit(0);
         }
 
         #        <[base.proto.nailara.command.send.local]>->(
