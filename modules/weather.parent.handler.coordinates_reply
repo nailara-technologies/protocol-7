@@ -44,7 +44,7 @@ if ( $reply->{'cmd'} eq 'ACK' ) {
 if (    defined $city
     and defined <weather.cfg.city>
     and $city ne <weather.cfg.city> ) {
-    delete <weather.cfg.city>;
+    <weather.cfg.city> = $city;
     delete <weather.station_id>;
     delete <weather.cfg.station_id>;
     if ( -d $cache_dir ) {
