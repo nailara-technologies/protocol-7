@@ -11,6 +11,7 @@ if ( not defined $name ) {
     $name = <system.agent.name>;
     $name .= '[' . <system.agent.subname> . ']'
         if defined <system.agent.subname>;
+    $name =~ s|([\(\)\[\]\{\}\\])|\\$1|g;
 }
 die "expected window name parameter" if not defined $name or !length($name);
 my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
