@@ -15,7 +15,7 @@ return { 'mode' => 'nack', 'data' => 'expected title [sub]string argument' }
 my $xtops = <xserver.x11_tops>;
 $xtops->update;
 
-for my $window ( values $xtops->byid ) {
+for my $window ( values %{ $xtops->byid } ) {
     return { 'mode' => 'ack', 'data' => $window->id }
         if $window->title =~ $title_pattern;
 }
