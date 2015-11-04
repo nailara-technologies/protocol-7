@@ -34,7 +34,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $feed;
         my @txt_data;
         <[base.log]>->( 2, ": got fresh RSS content..." );
-        my $response_string = encode( 'utf-8', $response->decoded_content );
+        my $response_string = $response->decoded_content;
 
         eval { $feed = <rss.parser>->parse_string($response_string); };
         if ( not defined $feed or !length($feed) or $@ ) {
@@ -69,17 +69,16 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         open( my $txt_fh, '>' . $url_data_file )
             or die "can't write to feed data file [$!]";
         {
-            no warnings 'utf8';
             print {$txt_fh} join( "\n", @txt_data ) . "\n";
         }
         close($txt_fh);
 
         ### QUICKFIX ENCODING ! ###
 
-        if ( qx(file $url_data_file) =~ /8859/ ) {
-            my $new_txt = qx(iconv -f iso8859-1 -t utf-8 $url_data_file);
-            <[file.put]>->( $url_data_file, $new_txt );
-        }
+      #        if ( qx(file $url_data_file) =~ /8859/ ) {
+      #            my $new_txt = qx(iconv -f iso8859-1 -t utf-8 $url_data_file);
+      #            <[file.put]>->( $url_data_file, $new_txt );
+      #        }
 
         ###########################
 
@@ -142,7 +141,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 <[base.log]>->( 0, "<!> WARNING: no feed data available, ticker file empty!" )
     if !$feed_data_count;
 
-open( my $txt_fh, '>' . $output_file . '.NEW' )
+open( my $txt_fh, '>:utf8', $output_file . '.NEW' )
     or die "can't write to ticker data file '$output_file.NEW' [$!]";
 my @output_data;
 if ( $join_type eq 'mixed' ) {
