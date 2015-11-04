@@ -21,7 +21,11 @@ my $response = <rss.browser>->get($rss_url);
 if ( $response->code == 200 ) {
 
     <[base.log]>->( 2, ": got fresh RSS content..." );
-    my $feed = <rss.parser>->parse_string( $response->decoded_content );
+
+    my $response_string = $response->decoded_content;
+    utf8::downgrade($response_string);
+
+    my $feed = <rss.parser>->parse_string($response_string);
     die <rss.parser>->errstr if not defined $feed;
 
     my @txt_data;
@@ -37,7 +41,7 @@ if ( $response->code == 200 ) {
         chmod( 0700, $data_dir );
     }
 
-    open( my $txt_fh, '>:utf8', $output_file . '.NEW' )
+    open( my $txt_fh, '>', $output_file . '.NEW' )
         or die "can't write to TXT data file [$!]";
     {
         print {$txt_fh} join( " $seperator ", @txt_data );
