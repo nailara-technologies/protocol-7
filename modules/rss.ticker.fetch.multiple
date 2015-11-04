@@ -35,6 +35,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my @txt_data;
         <[base.log]>->( 2, ": got fresh RSS content..." );
         my $response_string = $response->decoded_content;
+        utf8::downgrade($response_string);
 
         eval { $feed = <rss.parser>->parse_string($response_string); };
         if ( not defined $feed or !length($feed) or $@ ) {
@@ -141,7 +142,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 <[base.log]>->( 0, "<!> WARNING: no feed data available, ticker file empty!" )
     if !$feed_data_count;
 
-open( my $txt_fh, '>:utf8', $output_file . '.NEW' )
+open( my $txt_fh, '>', $output_file . '.NEW' )
     or die "can't write to ticker data file '$output_file.NEW' [$!]";
 my @output_data;
 if ( $join_type eq 'mixed' ) {
