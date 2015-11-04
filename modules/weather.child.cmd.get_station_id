@@ -20,7 +20,8 @@ my $country = $1 if $city_name =~ s|\,(\w+)$||;
 
 my $match = 0;
 foreach my $city_data ( @{ $json_response->{'list'} } ) {
-    if ( $city_data->{'name'} =~ /^$city_name/i ) {
+    if ( scalar( @{ $json_response->{'list'} } ) == 1
+        or $city_data->{'name'} =~ /^$city_name/i ) {
         $station_id = $city_data->{'id'};
         <[base.log]>
             ->( 1, "found requested city ( station_id = $station_id )" );
