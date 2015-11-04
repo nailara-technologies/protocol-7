@@ -15,8 +15,6 @@ die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
 use XML::RSS::TimingBot;
 use XML::RSS::Parser;
 use File::Copy;
-use Encode;
-use feature 'unicode_strings';
 
 ( my $db_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
 if ( -d $db_dir ) {

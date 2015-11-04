@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -C31
 
 use v5.8.2;
 use strict;
@@ -102,6 +102,7 @@ sub prepare_subs {
         use File::Spec;
 
         $SIG{PIPE} = 'IGNORE';
+
         $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
 
         $data{'system'}{'start'}{'exec_name'} = File::Spec->rel2abs($0);

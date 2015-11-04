@@ -2,13 +2,13 @@
 
 # name = config.json.init_code
 
-use JSON::PP;
+use JSON::XS;
 use Clone 'clone';
 use File::Path qw(make_path);
 use Hash::Flatten qw(flatten);
 use Hash::Merge::Simple qw(merge);
 
-<json.parser> = JSON::PP->new();
+<json.parser> = JSON::XS->new();
 <json.parser>->convert_blessed(1);
 <json.parser>->allow_nonref(1);
 <json.parser>->canonical(1);
