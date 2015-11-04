@@ -1,8 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -C31
 
 BEGIN { $ENV{'PERL_RL'} = 'Perl' }
 
-use utf8;
 use strict;
 use warnings;
 use File::Spec;
@@ -20,7 +19,6 @@ my $bin_path = File::Spec->rel2abs($0);
 $0 = 'nshell ';
 
 $SIG{'PIPE'} = 'IGNORE';
-binmode STDOUT, ":utf8";
 
 my $stdout_pid;
 $SIG{'CHLD'} = sub {
@@ -73,6 +71,7 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
+        binmode $shell_sock, ":utf8";
         clear();
         print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
         $0 = "nshell ( $core_addr : $core_port ) ";
