@@ -2,13 +2,13 @@
 
 # name = weather.child.init_code
 
-use JSON;
+use Encode;
+use JSON::XS;
 use LWPx::ParanoidAgent;
-use feature 'unicode_strings';
 
 <weather.api.base_url> = 'http://api.openweathermap.org/data/2.5/';
 
-<weather.child.json> = JSON->new();
+<weather.child.json> = JSON::XS->new->utf8();
 
 <weather.cache_data> //= {};
 
