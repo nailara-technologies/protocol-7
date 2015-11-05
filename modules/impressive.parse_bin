@@ -26,7 +26,7 @@ my $tmp_bin  = "$temp_dir/impressive.$$";
 <[file.slurp]>->( $impr_src, \$file_content );
 
 my $error_img;
-<[file.slurp]>->( <impressive.gfx.read_error>, \$error_img );
+<[file.slurp]>->( <impressive.gfx.read_error>, \$error_img, ':raw' );
 $error_img = encode_base64($error_img);
 
 $file_content =~ s|\\\n\s*||sg;
