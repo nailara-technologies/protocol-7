@@ -1,12 +1,17 @@
 # >:]
 
 # name  = base.file.slurp (file.slurp)
-# args  = <filename>, <target_reference> (SCALAR|ARRAY) [optional]
+# args  = <filename>[, <target_reference> (SCALAR|ARRAY)][, <encoding>]
 # descr = loads a file into memory and return a reference to it
 
 my $filename   = abs_path(shift);
-my $target_ref = shift;             # optional scalar or array reference
-my @encoding   = ( shift || '' );
+my $target_ref = shift;              # optional scalar or array reference
+my @encoding   = ( shift || '' );    # optional encoding type ( i.e. ':raw' )
+if ( defined $target_ref and !length( ref($target_ref) ) ) {
+    @encoding = ($target_ref);
+    undef $target_ref;
+}
+
 if ( not defined $target_ref ) {
     my $buffer = '';
     $target_ref = \$buffer;
