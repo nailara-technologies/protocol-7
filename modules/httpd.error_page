@@ -1,0 +1,18 @@
+# >:]
+
+# name = httpd.error_page
+
+die "insufficient arguments! expected <session_id>,<error_code>" if @_ != 2;
+
+my ( $id, $error_code ) = @_;
+
+if ( not exists <proto.http.status_codes>->{$error_code} ) {
+    <[base.log]>->( 0, "[$id] error code $error_code not defined!" );
+    $error_code = 500;
+}
+
+my $error_message = <proto.http.status_codes>->{$error_code};
+
+return <[httpd.return_raw_html]>->(
+    $id, $error_code, "<html>\n  <h1>$error_message.</h1>\n</html>\n"
+);
