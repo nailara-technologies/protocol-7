@@ -31,7 +31,7 @@ if ( $file_path =~ /\.htm(l)?$/i ) {
     $content_type = mimetype($file_path);
 }
 
-open( my $content_fh, '<', $file_path )
+open( my $content_fh, '< :raw', $file_path )
     or warn "<!> $file_path: $!";    # XXX: error handling...
 local $/ = undef;
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
