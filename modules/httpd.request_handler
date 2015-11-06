@@ -1,5 +1,4 @@
 # >:]
-
 # name = httpd.request_handler
 # note : return 2 to close connection!
 
@@ -61,7 +60,9 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
 
 } else {
     <[base.log]>->( 0, "[$id] http handler not defined [$request->{method}]" );
-    return 2;        # XXX: error page
+    return <[httpd.return_raw_html]>->(
+        $id, 405, "<html>\n  <h1>Method Not Allowed</h1>\n</html>\n"
+    );
 }
 
 return 2;
