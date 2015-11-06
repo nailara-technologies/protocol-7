@@ -52,13 +52,8 @@ if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
         return $session->{'http'}->{'close'} ? 2 : 0;
     }
 } else {
-    return <[httpd.return_raw_html]>->(
-        $id, 400, "<html>\n  <h1>400 Bad Request.</h1>\n</html>\n"
-    );
+    return <[httpd.error_page]>->( $id, 400 );
 }
 
-if ( not defined $file_path or !-f $file_path ) {
-    return <[httpd.return_raw_html]>->(
-        $id, 404, "<html>\n  <h1>404 Not Found.</h1>\n</html>\n"
-    );
-}
+return <[httpd.error_page]>->( $id, 404 )
+    if not defined $file_path or !-f $file_path;

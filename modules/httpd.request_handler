@@ -7,19 +7,15 @@ my $session     = $data{'session'}{$id};
 my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length> || 1024 * 8 );
 my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 12 );
 
-if ( $session->{'buffer'}{'input'} =~ /^[^\n]{$max_uri_len}/ ) {
+if ( $session->{'buffer'}{'input'} =~ /^[^\r\n]{$max_uri_len}/ ) {
     <[base.log]>->( 0, "[$id] maximum URI length ($max_uri_len) exceeded!" );
-    $session->{'buffer'}->{'output'} .= <[httpd.return_raw_html]>->(
-        $id, 414, "<html>\n  <h1>Request-URI Too Long</h1>\n</html>\n"
-    );
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 414 );
     return 2;
-} elsif ( $session->{'buffer'}{'input'} =~ /^[.]{$max_uri_len}\n\n/ ) {
+} elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
     <[base.log]>
         ->( 0, "[$id] maximum Request length ($max_req_len) exceeded!" );
-    $session->{'buffer'}->{'output'} .= <[httpd.return_raw_html]>->(
-        $id, 413, "<html>\n  <h1>Request Entity Too Large</h1>\n</html>\n"
-    );
-    return 2;
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 413 );
+    return 2;    # XXX: fix false positives..
 }
 
 $session->{'http'} //= { 'request' => { 'headers' => {} } };
@@ -55,14 +51,14 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
             "[$id] http [$request->{method}] handler defined,"
                 . " but callback missing!"
         );
-        return 2;    # XXX: error page
+        $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 500 );
+        return 2;
     }
 
 } else {
     <[base.log]>->( 0, "[$id] http handler not defined [$request->{method}]" );
-    return <[httpd.return_raw_html]>->(
-        $id, 405, "<html>\n  <h1>Method Not Allowed</h1>\n</html>\n"
-    );
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 405 );
+    return 2;
 }
 
 return 2;
