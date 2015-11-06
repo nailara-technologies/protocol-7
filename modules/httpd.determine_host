@@ -2,10 +2,12 @@
 
 # name = httpd.determine_host
 
-my $id        = shift;
-my $session   = $data{'session'}{$id};
-my $http_host = $session->{'http'}{'request'}{'host'};
-my $http_uri  = $session->{'http'}{'request'}{'uri'};
+my $id      = shift;
+my $session = $data{'session'}{$id};
+return undef if not exists $session->{'http'}{'request'};
+my $http_host   = $session->{'http'}{'request'}{'host'};
+my $http_uri    = $session->{'http'}{'request'}{'uri'};
+my $http_method = $session->{'http'}{'request'}{'method'};
 
 if ( defined $http_host ) {
 
@@ -14,19 +16,19 @@ if ( defined $http_host ) {
     foreach my $cfg_host ( keys %{<httpd.cfg.hostnames>} ) {
         next if $cfg_host !~ /\*/;
         return $cfg_host
-            if $cfg_host =~ /^\*(\..+)$/ and $http_host =~ /^[^\.]+$1$/;
+            if $cfg_host =~ /^\*(\..+)$/ and $http_host =~ /^[^\.]+\Q$1\E$/;
         return $cfg_host
-            if $cfg_host =~ /^(.+\.)\*$/ and $http_host =~ /^$1[^\.]+$/;
+            if $cfg_host =~ /^(.+\.)\*$/ and $http_host =~ /^\Q$1\E[^\.]+$/;
         return $cfg_host
-            if $cfg_host =~ /^\*\*(\..+)$/ and $http_host =~ /$1$/;
+            if $cfg_host =~ /^\*\*(\..+)$/ and $http_host =~ /\Q$1\E$/;
         return $cfg_host
-            if $cfg_host =~ /^(.+\.)\*\*$/ and $http_host =~ /^$1/;
+            if $cfg_host =~ /^(.+\.)\*\*$/ and $http_host =~ /^\Q$1\E/;
         return $cfg_host
             if $cfg_host =~ /^\*(\..+\.)\*$/
-            and $http_host =~ /^[^\.]+$1[^\.]+$/;
+            and $http_host =~ /^[^\.]+\Q$1\E[^\.]+$/;
         return $cfg_host
             if $cfg_host =~ /^\*\*(\..+\.)\*\*$/
-            and $http_host =~ /$1/;
+            and $http_host =~ /\Q$1\E/;
     }
 
     if ( exists <httpd.cfg.hostnames>->{'default'} ) {
@@ -42,6 +44,6 @@ if ( defined $http_host ) {
     }
 
 } else {
-    <[base.log]>->( 0, "[$id] HEAD request without host parameter!" );
+    <[base.log]>->( 0, "[$id] $http_method request without host parameter!" );
     return undef;
 }
