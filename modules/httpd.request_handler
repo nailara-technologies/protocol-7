@@ -10,12 +10,12 @@ my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 12 );
 if ( $session->{'buffer'}{'input'} =~ /^[^\r\n]{$max_uri_len}/ ) {
     <[base.log]>->( 0, "[$id] maximum URI length ($max_uri_len) exceeded!" );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 414 );
-    return 2;
+    return 2;    # Request-URI Too Long
 } elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
-    <[base.log]>
+    <[base.log]>    # Request Entity Too Large
         ->( 0, "[$id] maximum Request length ($max_req_len) exceeded!" );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 413 );
-    return 2;    # XXX: fix false positives..
+    return 2;       # XXX: fix false positives!
 }
 
 $session->{'http'} //= { 'request' => { 'headers' => {} } };
@@ -32,7 +32,8 @@ $req->decode;
 $request->{'method'} = $req->method;
 $request->{'host'} = lc( $req->header('host') ) if defined $req->header('host');
 $request->{'uri'}  = $req->uri->as_string;
-$session->{'http'}->{'close'} = 1;
+$session->{'http'}->{'close'}      = 1;
+$session->{'response'}->{'params'} = {};
 
 map { $request->{'headers'}->{ lc($_) } = $req->header($_) }
     $req->header_field_names;
@@ -52,13 +53,13 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
                 . " but callback missing!"
         );
         $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 500 );
-        return 2;
+        return 2;    # Internal Server Error
     }
 
 } else {
     <[base.log]>->( 0, "[$id] http handler not defined [$request->{method}]" );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 405 );
-    return 2;
+    return 2;        # Method Not Allowed
 }
 
 return 2;
