@@ -15,7 +15,9 @@ if ( ref( $_[0] ) eq 'HASH' ) {
 }
 
 my $session   = $data{'session'}{$id};
-my $client_fh = $data{'session'}{$id}{'handle'};
+my $response  = $session->{'response'};
+my $request   = $session->{'http'}->{'request'};
+my $client_fh = $session->{'handle'};
 
 my $stat
     = ( defined $params and defined $params->{'stat'} and ref($params) )
@@ -39,6 +41,26 @@ if ( not open( $content_fh, '< :raw', $file_path ) ) {
     return 2;
 }
 
+my $status_code = 200;
+if ( exists $request->{'range'} ) {
+    my @ranges = @{ $request->{'range'} };
+    $status_code = 206;
+    if ( @ranges == 1 ) {
+        my $start = $ranges[0]->{'start'};
+        my $end   = $ranges[0]->{'end'};
+        sysseek( $content_fh, $start, 0 ) if $start;
+        $response->{'params'}->{'Content-Range'}
+            = "bytes $start-$end/$content_size";
+        $content_size = 1 + $end - $start;
+    } else {
+        <[base.log]>->(    # XXX: implement multipart byte ranges...
+            0, "[$id] multiple range segments requested ( Not Implemented! )"
+        );
+        close($content_fh);
+        return <[httpd.error_page]>->( $id, 501 );
+    }
+}
+
 <[base.log]>->(
     1, "[$id] initializing transfer of $content_size bytes [$content_type]"
 );
@@ -49,13 +71,16 @@ $session->{'download'} = {
 };
 
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
-    200,
+    $status_code,
     {   'Content-Type'   => $content_type,
         'Last-Modified'  => $content_date,
         'Content-Length' => $content_size,
         'Connection'     => $session->{'http'}->{'close'}
         ? 'close'
-        : 'keep-alive'
+        : 'keep-alive',
+        'Accept-Ranges' => 'bytes',
+        map { $_ => $response->{'params'}->{$_} }
+            keys %{ $response->{'params'} }
     }
 );
 

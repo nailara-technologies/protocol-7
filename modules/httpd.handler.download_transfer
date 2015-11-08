@@ -8,9 +8,14 @@ my $file_fh = $session->{'download'}->{'content_fh'};
 
 $session->{'buffer'}->{'output'} //= '';    # XXX: track down undef...
 
+my $bytes_to_go
+    = $session->{'download'}->{'bytes_to_go'} < <httpd.download.file_read_size>
+    ? $session->{'download'}->{'bytes_to_go'}
+    : <httpd.download.file_read_size>;
+
 my $bytes_read = sysread(
-    $file_fh, $session->{'buffer'}->{'output'},
-    8192,     length( $session->{'buffer'}->{'output'} )
+    $file_fh,     $session->{'buffer'}->{'output'},
+    $bytes_to_go, length( $session->{'buffer'}->{'output'} )
 );
 
 $session->{'download'}->{'bytes_to_go'} -= $bytes_read;
@@ -21,7 +26,10 @@ if ( $session->{'download'}->{'bytes_to_go'} <= 0 ) {
     close($file_fh);
     delete $session->{'download'};
     delete $session->{'watcher'}->{'download_handler'};
-    return $session->{'http'}->{'close'} ? 2 : 0;
-}
 
-return 0;
+    $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
+
+    return 0;
+} else {
+    return 1;
+}

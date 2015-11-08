@@ -38,22 +38,23 @@ if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
             $content_type = mimetype($file_path);
         }
 
-        $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(    # OK
             200,
             {   'Content-Type'   => $content_type,
                 'Last-Modified'  => $content_date,
                 'Content-Length' => $content_size,
                 'Connection'     => $session->{'http'}->{'close'}
                 ? 'close'
-                : 'keep-alive'
+                : 'keep-alive',
+                'Accept-Ranges' => 'bytes'
             }
         );
 
         return $session->{'http'}->{'close'} ? 2 : 0;
     }
 } else {
-    return <[httpd.error_page]>->( $id, 400 );
+    return <[httpd.error_page]>->( $id, 400 );    # Bad Request
 }
 
-return <[httpd.error_page]>->( $id, 404 )
+return <[httpd.error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
