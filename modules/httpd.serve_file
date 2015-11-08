@@ -41,7 +41,8 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         'Content-Length' => $content_size,
         'Connection'     => $session->{'http'}->{'close'}
         ? 'close'
-        : 'keep-alive'
+        : 'keep-alive',
+        'Accept-Ranges' => 'bytes'
     }
 ) . <$content_fh>;
 close($content_fh);
