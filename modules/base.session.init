@@ -139,6 +139,7 @@ if ( $mode eq 'server' ) {
     $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
         'fd'     => $fd,
         'cb'     => $code{'base.handler.read'},
+        'prio'   => 1,
         'data'   => $id,
         'repeat' => 0,
         'desc'   => "[$id] input handler",
