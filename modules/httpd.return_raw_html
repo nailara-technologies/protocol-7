@@ -5,13 +5,17 @@
 die "insufficient arguments! expected <id>,<code>,<html>" if @_ != 3;
 
 my ( $id, $code, $html_str ) = @_;
-my $session      = $data{'session'}{$id};
-my $http_host    = $session->{'http'}{'request'}{'host'};
-my $matched_host = $session->{'http'}{'request'}{'matched_host'};
+my $session         = $data{'session'}{$id};
+my $http_host       = $session->{'http'}{'request'}{'host'};
+my $matched_host    = $session->{'http'}{'request'}{'matched_host'};
+my $response_params = $session->{'response'}->{'params'};
 my @additional_params
     = (     defined $http_host
         and defined $matched_host
         and $matched_host ne 'default' ) ? ( 'Host' => $http_host ) : ();
+push( @additional_params,
+    map { $_ => $response_params->{$_} } keys %{$response_params} )
+    if keys %{$response_params};
 
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
     $code,
