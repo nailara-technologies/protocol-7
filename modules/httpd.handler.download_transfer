@@ -27,7 +27,11 @@ if ( $session->{'download'}->{'bytes_to_go'} <= 0 ) {
     delete $session->{'download'};
     delete $session->{'watcher'}->{'download_handler'};
 
-    $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
+    if ( $session->{'http'}->{'close'} ) {
+        $session->{'flush_shutdown'} = 1;
+    } else {
+        $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
+    }
 
     return 0;
 } else {
