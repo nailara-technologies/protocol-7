@@ -65,6 +65,12 @@ if ( exists $request->{'range'} ) {
     1, "[$id] initializing transfer of $content_size bytes [$content_type]"
 );
 
+if ( $session->{'http'}->{'close'} ) {
+    $session->{'watcher'}->{'input_handler'}->cancel;
+} else {
+    $session->{'watcher'}->{'input_handler'}->timeout(undef);
+}
+
 $session->{'download'} = {
     'content_fh'  => $content_fh,
     'bytes_to_go' => $content_size,
@@ -85,12 +91,16 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
 );
 
 $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
-    {   'fd'      => $client_fh,
-        'handler' => 'httpd.handler.download_transfer',
-        'poll'    => 'w',
-        'prio'    => 4,
-        'timeout' => 30,
-        'data'    => { 'id' => $id }
+    {   'fd'         => $client_fh,
+        'handler'    => 'httpd.handler.download_transfer',
+        'poll'       => 'w',
+        'prio'       => 4,
+        'timeout'    => <httpd.timeout> * 3,
+        'timeout_cb' => sub {
+            <[base.log]>->( 1, "[$id] file download timed out!" );
+            $data{'session'}{$id}{'shutdown'} = 1;
+        },
+        'data' => { 'id' => $id }
     }
 );
 
