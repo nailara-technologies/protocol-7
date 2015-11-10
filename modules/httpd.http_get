@@ -2,13 +2,32 @@
 
 # name = httpd.http_get
 
-my $id        = shift;
-my $session   = $data{'session'}{$id};
-my $http_host = <[httpd.determine_host]>->($id);
-my $request   = $session->{'http'}->{'request'};
-my $response  = $session->{'response'};
-my $headers   = $request->{'headers'};
-my $http_uri  = $request->{'uri'};
+my $id          = shift;
+my $session     = $data{'session'}{$id};
+my $http_host   = <[httpd.determine_host]>->($id);
+my $request     = $session->{'http'}->{'request'};
+my $response    = $session->{'response'};
+my $headers     = $request->{'headers'};
+my $req_host    = $request->{'host'};
+my $http_uri    = $request->{'uri'};
+my $link_target = <httpd.cfg.hostnames>->{$http_host}
+    if exists <httpd.cfg.hostnames>->{$http_host};
+
+if ( $http_host ne $req_host and $link_target =~ /^\d{3}$/ ) {   # special codes
+    $session->{'watcher'}->{'input_handler'}->cancel;
+    if ( $link_target ne '000' ) {
+        <[base.log]>->(
+            1, "[$id] status '$link_target' for requested host '$req_host'"
+        );
+        $session->{'buffer'}->{'output'}
+            .= <[httpd.error_page]>->( $id, $link_target );
+        $session->{'flush_close'} = 1;
+    } else {
+        <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
+        $session->{'close'} = 1;
+    }
+    return 2;
+}
 
 $session->{'http'}{'request'}{'matched_host'} = $http_host;
 
@@ -34,7 +53,7 @@ my $file_path;
 
 # ...
 
-if ( defined $http_host and exists <httpd.cfg.hostnames>->{$http_host} ) {
+if ( defined $http_host and defined $link_target ) {
     <[base.log]>->(
         1,
         sprintf( "[$id] matched Host '%s' -> '$http_host'",
