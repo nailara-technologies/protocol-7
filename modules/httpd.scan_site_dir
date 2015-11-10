@@ -19,6 +19,7 @@ foreach
     next
         if $dir_name =~ /^\./
         or (-l $dir_path
+        and !-d $dir_path
         and !-d readlink($dir_path)
         and readlink($dir_path) !~ /^\d{3}$/ );    # <- custom status codes..
     if ( -l $dir_path ) {
