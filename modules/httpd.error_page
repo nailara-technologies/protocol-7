@@ -11,8 +11,11 @@ if ( not exists <proto.http.status_codes>->{$error_code} ) {
     $error_code = 500;
 }
 
-my $error_message = <proto.http.status_codes>->{$error_code};
-
 return <[httpd.return_raw_html]>->(
-    $id, $error_code, "<html>\n  <h1>$error_message.</h1>\n</html>\n"
+    $id,
+    $error_code,
+    sprintf(
+        "<html>\n  <h1>%d %s.</h1>\n</html>\n",
+        $error_code, <proto.http.status_codes>->{$error_code}
+    )
 );
