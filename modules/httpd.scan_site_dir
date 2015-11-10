@@ -13,7 +13,8 @@ if ( !opendir( $dir_fh, $site_dir ) ) {
 
 <httpd.cfg.hostnames> = {};
 my @vhosts;
-foreach my $dir_name ( readdir($dir_fh) ) {
+foreach
+    my $dir_name ( sort { length($a) <=> length($b) } sort readdir($dir_fh) ) {
     ( my $dir_path = "$site_dir/$dir_name" ) =~ s|//|/|g;
     next
         if $dir_name =~ /^\./
