@@ -12,6 +12,8 @@
 
   - core
 
+      max_concurrency = 1
+
       : root-init :
         start_mode = exec-sic
         core.key = [base.rnd_chars_noblock_hex:64]
@@ -29,6 +31,7 @@
   - config
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -41,6 +44,7 @@
   - log
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -53,6 +57,7 @@
   - system
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -81,6 +86,7 @@
   - ssh
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -93,6 +99,7 @@
   - udev
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -105,6 +112,7 @@
   - xserver
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -117,6 +125,7 @@
   - unclutter
 
       dependencies = core xserver
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -129,6 +138,7 @@
   - openbox
 
       dependencies = core xserver unclutter
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -141,6 +151,7 @@
  - compton
 
       dependencies = core xserver
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -153,6 +164,7 @@
   - layout
 
       dependencies = core xserver openbox
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -165,6 +177,7 @@
   - notify-osd
 
       dependencies = core xserver openbox compton
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic
@@ -222,6 +235,7 @@
 
       : root-init :
         start_mode = exec-sic
+        max_concurrency = 1
         core.key = [base.rnd_chars_noblock_hex:64]
         [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
 
@@ -234,6 +248,7 @@
 
       : root-init :
         start_mode = exec-sic
+        max_concurrency = 1
         core.key = [base.rnd_chars_noblock_hex:64]
         [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
 
@@ -260,6 +275,7 @@
   - playlist
 
       dependencies = core
+      max_concurrency = 1
 
       : root-init :
         start_mode = exec-sic

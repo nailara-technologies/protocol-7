@@ -1,0 +1,15 @@
+# >:]
+
+# name = root.instance_count
+
+my $agent_name = shift;
+
+return scalar keys %{<root.agent.instance>} if not defined $agent_name;
+
+my $instance_count = 0;
+map {
+    $instance_count++
+        if <root.agent.instance>->{$_}->{'agent_name'} eq $agent_name
+} keys %{<root.agent.instance>};
+
+return $instance_count;
