@@ -20,6 +20,21 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 # regex cache
 my $re = $data{'regex'}{'base'};
 
+if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped RAW replies..
+    if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
+        <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore]bytes.." );
+        if ( length($$input) >= $ignore_bytes ) {
+            substr( $$input, 0, $ignore_bytes, '' );
+            delete $data{'session'}{'ignore_bytes'};
+        } else {
+            $data{'session'}{'ignore_bytes'} -= length($$input);
+            truncate( $$input, 0 );
+        }
+    } else {
+        delete $data{'session'}{'ignore_bytes'};
+    }
+}
+
 # stop handler to modify buffer without calling the handler
 
 $_[0]->w->stop;
@@ -284,9 +299,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
 
                         # cut out body data
 
-                        my $raw_data = substr( $$input, 0, $msg_len );
-                        my $rest = length($$input) - $msg_len;
-                        $$input = substr( $$input, $msg_len, $rest );
+                        my $raw_data = substr( $$input, 0, $msg_len, '' );
 
                         # check if reply handler is set
 
@@ -354,6 +367,24 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
         }
     } else {
         <[base.log]>->( 1, "[$id] $cmd-reply to unknown route id, ignored." );
+        if (    $cmd eq 'RAW'
+            and $call_args->{'args'} =~ /^\d+$/
+            and my $ignore_bytes = $call_args->{'args'} ) {
+            if ( length($$input) >= $ignore_bytes ) {
+                substr( $$input, 0, $ignore_bytes, '' );
+                <[base.log]>->(
+                    1,
+                    "[$id] : dropped next $ignore_bytes bytes too.. (RAW body)"
+                );
+            } else {
+                <[base.log]>->(
+                    1,
+                    "[$id] : ignoring next $ignore_bytes bytes as well.. (RAW)"
+                );
+                $data{'session'}{'ignore_bytes'} -= length($$input);
+                truncate( $$input, 0 );
+            }
+        }
         return 1;
     }
 
