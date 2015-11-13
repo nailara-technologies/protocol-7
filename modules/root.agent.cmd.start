@@ -43,6 +43,14 @@ return {
     }
     if <[agent.is_disabled]>->($agent_name);
 
+return {
+    'mode' => 'nack',
+    'data' => "reached configured maximum concurrency for agent '$agent_name'"
+    }
+    if exists $agent_config->{'max_concurrency'}
+    and <[root.instance_count]>->($agent_name)
+    >= $agent_config->{'max_concurrency'};
+
 <[base.log]>->( 1, "spawning agent '$agent_name'..." ) if !$recursion;
 
 foreach
