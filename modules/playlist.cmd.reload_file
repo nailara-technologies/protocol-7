@@ -5,6 +5,8 @@
 
 my $playlist_file = <playlist.file_name>;
 
+<[playlist.check_changes]>->($playlist_file);
+
 my $count = <[playlist.load_file]>->($playlist_file);
 
 return { 'mode' => 'nack', 'data' => 'playlist file not found!' }
