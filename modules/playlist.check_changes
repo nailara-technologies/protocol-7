@@ -1,0 +1,12 @@
+# >:]
+
+# name = playlist.check_changes
+
+my $file_name = shift;
+
+my $playlist_sha1 = <[digest.sha.file_hex]>->($file_name);
+
+<playlist.content_changed>++
+    if defined <playlist.sha1> and $playlist_sha1 ne <playlist.sha1>;
+
+<playlist.sha1> = $playlist_sha1;
