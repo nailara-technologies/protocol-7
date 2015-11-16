@@ -12,11 +12,17 @@ die "$bin_name binary not found (please install 'notify-osd')"
 undef $ENV{'XAUTHORITY'};
 undef $ENV{'LOGNAME'};
 
-<notify.path.notify_send>  = $bin_path;
-<notify.path.nailara_icon> = $icon_path;
-<notify.path.info_icon>
-    = '/usr/share/icons/oxygen/64x64/status/dialog-information.png';
-<notify.path.warn_icon>
-    = '/usr/share/icons/gnome-colors-common/scalable/status/dialog-warning.svg';
+<notify.path> = {
+    'notify_send'  => $bin_path,
+    'nailara_icon' => $icon_path,
+
+    'info_icon' => '/usr/share/icons/oxygen/64x64/'
+        . 'status/dialog-information.png',
+
+    'warn_icon' => '/usr/share/icons/gnome-colors-common/'
+        . 'scalable/status/dialog-warning.svg',
+
+    'reload_icon' => '/usr/share/icons/gnome/256x256/actions/reload.png'
+};
 
 0;
