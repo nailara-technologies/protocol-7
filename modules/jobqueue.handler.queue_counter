@@ -24,6 +24,7 @@ if ( <system.verbosity> > 1 or <system.internal_verbosity> > 1 ) {
 return if $$counter_ref == 0;
 if ( $queue_name eq 'queued' ) {
     my ( $job_id, $job_data ) = <[jobqueue.get_next_job]>->($queue_name);
+    return if not defined $job_id;
     my $object_id = $job_data->{'object_id'};
     if ( !<[dependency.ok]>->($object_id) ) {
         <[jobqueue.move_job]>->( $job_id, 'depending' );

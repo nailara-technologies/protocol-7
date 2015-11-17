@@ -16,8 +16,10 @@ my $prio_queue = $job_queue->{'by_priority'};
 my $next_job_id;
 foreach my $prio ( sort { $a <=> $b } keys %$prio_queue ) {
     next if !@{ $prio_queue->{$prio} };
-    ( $next_job_id ) = @{ $prio_queue->{$prio} };
+    ($next_job_id) = @{ $prio_queue->{$prio} };
     last if defined $next_job_id;
 }
+
+return undef if not defined $next_job_id;
 
 return ( $next_job_id, $job_list->{'by_id'}->{$next_job_id} );
