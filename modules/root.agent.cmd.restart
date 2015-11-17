@@ -34,14 +34,19 @@ foreach my $param_str ( split / +/, $params ) {
 }
 
 map {
-    my $agent_id   = <root.agent.instance>->{$_}->{'agent_id'};
-    my $agent_name = <root.agent.setup>->{$agent_id}->{'name'};
-    if ( !<[dependency.ok]>->( <[agent.get_object_id]>->($agent_id) ) ) {
-        return {
-            'mode' => 'nack',
-            'data' => "dependencies of agent '$agent_name' are not satisfied!"
-        };
+    my $agent_id           = <root.agent.instance>->{$_}->{'agent_id'};
+    my $agent_name         = <root.agent.setup>->{$agent_id}->{'name'};
+    my $agent_dependencies = <[agent.get_dependencies]>->($agent_name);
+    goto skip_dependencies if not defined $agent_dependencies;
+    foreach my $dep_name ( split( / +/, $agent_dependencies ) ) {
+        if ( !<[agent.is_enabled]>->($dep_name) ) {
+            <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
+            <[agent.cmd.start]>->( { 'args' => $dep_name } );
+        }
+        <root.agent.dependency>->{$dep_name}->{$agent_name} = 1
+            if not exists <root.agent.autostart>->{$dep_name};
     }
+skip_dependencies:
 } @instance_ids;
 
 map { <[agent.instance.restart]>->($_) } @instance_ids;
