@@ -31,7 +31,7 @@ if (<playlist.content_changed>) {
                 { 'args' => "'" . <locales.string.playlist_updated> . "'" },
             'reply' => { 'handler' => 'dev.null', }
         }
-    );
+    ) if <playlist.cfg.change_notifications>;
     <playlist.content_changed> = 0;
 }
 
