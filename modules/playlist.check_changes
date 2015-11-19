@@ -3,6 +3,7 @@
 # name = playlist.check_changes
 
 my $file_name = shift;
+return if !-f $file_name;
 
 my $playlist_sha1 = <[digest.sha.file_hex]>->($file_name);
 
