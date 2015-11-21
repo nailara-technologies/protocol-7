@@ -97,7 +97,7 @@ if ( $new_status == 1 ) {
             }
         }
     );
-} elsif ( $new_status == 6 ) {
+} elsif ( $new_status == 6 and !<browser.slideshow.no_scroll> ) {
     <browser.url_slideshow.scroll_start_time> //= time();
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "window-$fg_window.scroll_start",
@@ -108,20 +108,27 @@ if ( $new_status == 1 ) {
             }
         }
     );
-} elsif ( $new_status == 7 ) {
+} elsif ( $new_status == 7
+    or $new_status == 6 and <browser.slideshow.no_scroll> ) {
     <browser.url_slideshow.timer>->cancel if exists <process.status_timer>;
-    my $time_left = <browser.slideshow.min_delay>
-        - ( time() - <browser.url_slideshow.scroll_start_time> );
-    my $next_status = $time_left > 0 ? 6 : 2;
-    delete <browser.url_slideshow.scroll_start_time> if $next_status == 2;
-    if (<browser.slideshow.running>) {
-        <browser.url_slideshow.timer> = <[event.add_timer]>->(
-            {   'after'   => 0.42,
-                'handler' => 'browser.parent.handler.url_slideshow.status',
-                'data'    => $next_status
-            }
-        );
+    if (<browser.slideshow.no_switch>) {
+        <browser.slideshow.running> = 0;
+        delete <browser.url_slideshow.scroll_start_time>;
+        <[base.log]>->( 1, ": slideshow stopped. [ 'no_switch' is enabled ]" );
     } else {
-        <[base.log]>->( 1, 'slideshow stopped.' );
+        my $time_left = <browser.slideshow.min_delay>
+            - ( time() - <browser.url_slideshow.scroll_start_time> );
+        my $next_status = $time_left > 0 ? 6 : 2;
+        delete <browser.url_slideshow.scroll_start_time> if $next_status == 2;
+        if (<browser.slideshow.running>) {
+            <browser.url_slideshow.timer> = <[event.add_timer]>->(
+                {   'after'   => 0.42,
+                    'handler' => 'browser.parent.handler.url_slideshow.status',
+                    'data'    => $next_status
+                }
+            );
+        } else {
+            <[base.log]>->( 1, 'slideshow stopped.' );
+        }
     }
 }
