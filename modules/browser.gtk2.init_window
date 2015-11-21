@@ -17,7 +17,26 @@ mkdir($browser_root) if !-d $browser_root;
 chdir($browser_root);
 $ENV{'HOME'} = $browser_root;
 
-<browser.hide_scrollbars> //= 1;
+%{<browser.blocked_event_types>} = map { $_ => 1 } qw(
+    key-press
+    key-release
+    button-press
+    2button-press
+    3button-press
+    motion-notify
+    button-release
+    script-alert
+    script-prompt
+    script-confirm
+    run-file-chooser
+);
+
+delete @{<browser.blocked_event_types>}{qw(key-press key-release)}
+    if <browser.cfg.allow_text_edit>;
+
+delete @{<browser.blocked_event_types>}{qw(button-press button-release)}
+    if <browser.cfg.links_clickable>;
+
 my $hide_scrollbars = <browser.hide_scrollbars>;
 
 my $sn_str
@@ -32,7 +51,7 @@ my $window = Gtk2::Window->new('toplevel');
 
 $window->set_decorated(0);
 $window->set_border_width(0);
-$window->set_accept_focus(0);
+$window->set_accept_focus( <browser.cfg.allow_text_edit> ? 1 : 0 );
 $window->set_resizable(0);
 $window->stick;
 
@@ -55,15 +74,10 @@ $window->move( $pos_x, $pos_y ) if defined $pos_x and defined $pos_y;
 $scr_win->set_size_request( $size_x, $size_y )
     if defined $size_x and defined $size_y;
 
-my @event_list = qw(
-    button-press-event
-    button-release-event
-    motion-notify-event
-);
-
-foreach my $sname (@event_list) {
-    $view->signal_connect( $sname, sub { return TRUE } );
-}
+$view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
+$view->set_editable(0);
+$view->can_go_back_or_forward(0);
+$view->set_maintains_back_forward_list(0);
 
 <[browser.gtk2.set_properties]>->($view);
 
@@ -71,7 +85,31 @@ foreach my $sname (@event_list) {
 $scr_win->add($view);
 $window->add($scr_win);
 
+#my @p = $window->signal_list_names();
+#map { printf " :]>  %-17s -- %s\n", $_->{'name'}, $_->{'descr'} } @p;
+
+$view->set_property( 'editable', FALSE );
+
 #$scr_win->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
+
+$view->signal_connect( # filtering all events according to blocklist setup above
+    'event',
+    sub {
+        my $v    = shift;
+        my $evt  = shift;
+        my $type = $evt->type();
+
+        return TRUE if exists <browser.blocked_event_types>->{$type};    # block
+
+        if ( index( $type, 'key' ) == 0 )
+        {    # block key presses outside input fields
+            return TRUE if !$v->can_paste_clipboard();
+            $v->delete_selection() if $v->can_copy_clipboard();
+        }
+
+        return FALSE;    # allow the rest
+    }
+);
 
 Event->unloop_all();
 

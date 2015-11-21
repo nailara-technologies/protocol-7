@@ -21,6 +21,14 @@ $url = "file://$url" if $url =~ m|^/|;
 $url = "http://$url" if $url !~ /^\w+:/;
 <browser.error_page> //= 'about:blank';
 
+if ( not <browser.zoom_text_only> ) {
+    if ( $url =~ m{^file:///var/cache/weather/html/} ) {
+        $view->set_full_content_zoom(0);  # XXX: fixes weather autozoom mismatch
+    } else {
+        $view->set_full_content_zoom(1);
+    }
+}
+
 my $signal_id;
 $signal_id = $frame->signal_connect(
     'notify::load-status' => sub {
