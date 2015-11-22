@@ -19,7 +19,7 @@ if ( !-d $dir_path ) {
 
 $dir_path = <config.profile_dir>;
 if ( !-d $dir_path ) {
-    <[base.log]>->( 1, "creating profile directory dir '$dir_path'.." );
+    <[base.log]>->( 1, "creating profile directory dir '$dir_path'" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "failed to create profile directory '$dir_path' [$!]";
 }
