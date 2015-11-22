@@ -9,7 +9,7 @@ if ( not defined $id or not defined $data{'session'}{$id} ) {
     $_[0]->w->cancel;
     $id //= '---';
     <[base.log]>->(
-        0,
+        1,
         "[$id] handler of already closed session called.."
             . "forcefully cancelled!"
     );
@@ -39,10 +39,11 @@ $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'bytes'}{'in'}
 $len = $new_len;
 
 if ( $len > $$session{'size'}{'buffer'}{'input'} ) {
-    <[base.log]>->( 0, "[$id] input buffer size exceeded." );
-    $$session{'shutdown'} = 1;
-
-    #    $_[0]->w->stop;
+    my $max_len = $$session{'size'}{'buffer'}{'input'};
+    my $err_msg = 'input buffer size exceeded';
+    $$session{'buffer'}{'input'} = '';
+    <[base.log]>->( 0, "[$id] $err_msg. ( $len > $max_len )" );
+    <[base.session.shutdown]>->( $id, "$err_msg! [ max $max_len bytes ]" );
 } elsif ($len) {
     $_[0]->w->start;
 }
