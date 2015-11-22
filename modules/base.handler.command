@@ -225,7 +225,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
-if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
+if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
 
     if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
@@ -238,7 +238,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM)$/ ) {
                 $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
             }
 
-            if ( $cmd =~ /^(N?ACK)$|^WAIT$/ ) {
+            if ( $cmd =~ /^(N?ACK)$|^WAIT$|^SHUTDOWN$/ ) {
 
                 # check if reply handler is set
 
