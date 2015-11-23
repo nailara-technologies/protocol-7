@@ -39,7 +39,7 @@ if ( exists <system.config.reload_order> ) {
 }
 ( my $config_name = <system.agent.name> ) =~ s|\[.*$||g;
 $success = 0
-    if !<[base.load_values]>->( '', "nailara.$config_name" )
+    if !<[base.reload_values]>->( '', "nailara.$config_name" )
     or <base.parser.config.errors>;
 
 return $success;
