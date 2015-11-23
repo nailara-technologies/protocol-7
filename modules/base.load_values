@@ -1,8 +1,10 @@
 # >:]
 
-# name       = base.load_values
+# name = base.load_values
+# todo = check for obsolescence / redundancy
 
-<[base.log]>->( 1, 'loading ' . $_[1] . ' config..' );
+<[base.log]>->( 1, "loading '" . $_[1] . "' config.." );
 return <[base.extract_values]>->(
-    $_[0], <[base.get_file]>->( $data{'system'}{'conf_path'} . '/' . $_[1] )
+    $_[0],
+    [ ( <[base.get_file]>->( $data{'system'}{'conf_path'} . '/' . $_[1] ) ) ]
 );
