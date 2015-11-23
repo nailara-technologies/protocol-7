@@ -1,9 +1,11 @@
 # >:]
 
-# name       = base.extract_values
+# name = base.extract_values
 
-my $entries  = 0;
-my $conf_key = shift(@_);
+my $entries        = 0;
+my $conf_key       = shift;
+my $file_ref       = shift || [];
+my $resolve_values = ( @_ and $_[0] eq 'resolved' ) ? 1 : 0;
 if ( $conf_key and $conf_key !~ /[{}]/ ) {
     $conf_key =~ s/'//g;
     $conf_key =~ s/\./'}{'/g;
@@ -11,7 +13,7 @@ if ( $conf_key and $conf_key !~ /[{}]/ ) {
 }
 <base.parser.config.errors> //= 0;
 my $last_line = '';
-foreach my $conf_line (@_) {
+foreach my $conf_line ( @{$file_ref} ) {
     $conf_line =~ s/[ \t]*#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
     if ( $conf_line =~ s|\\ *$|| ) {
         $last_line .= $conf_line;
@@ -22,13 +24,22 @@ foreach my $conf_line (@_) {
         $last_line = '';
     }
     $conf_line =~ s/(^[^=]+=)[ \t]+/$1/;
-    ( my $_name, my $_value ) = split( /=/, $conf_line );
-    if ( defined $_value ) {
-        $_name =~ s/[ \t]+//g;
-        $_name =~ s/\./'}{'/g;
-        $_value =~ s/'//g;
-        my $conf_hash = "\$data" . $conf_key . "{'$_name'}";
-        my $cmd       = "$conf_hash='$_value'";
+    ( my $name, my $value ) = split( /=/, $conf_line );
+    if ( defined $value ) {
+        $name =~ s/[ \t]+//g;
+        $name =~ s/\./'}{'/g;
+        $value =~ s/'//g;
+        if ($resolve_values) {
+            while ( $value =~ m{<([^>]+)>} ) {
+                my $key      = $1;
+                my $resolved = <[base.resolve_key]>->($key);
+                $resolved = ref($resolved) eq 'SCALAR' ? $$resolved : '';
+                $resolved //= '';
+                $value =~ s|<$key>|$resolved|g;
+            }
+        }
+        my $conf_hash = "\$data" . $conf_key . "{'$name'}";
+        my $cmd       = "$conf_hash='$value'";
         if ( defined $data{'system'}{'verbosity'}
             and $data{'system'}{'verbosity'} > 2 ) {
             <[base.log]>->( 1, $cmd );
