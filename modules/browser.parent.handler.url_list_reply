@@ -6,12 +6,23 @@
 my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    <[base.log]>->( 0, "failed to fetch url list!" );
+    my $msg = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "failed to fetch url list! [$msg]" );
     return;
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty url list!" );
+
+    # XXX: parse/insert 'empty playlist'-page ..
+    foreach my $window_index ( 1 .. 2 ) {
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "window-$window_index.load",
+                'call_args' => { 'args' => 'about:blank' },
+                'reply'     => { 'handler' => 'dev.null' }
+            }
+        );
+    }
     return;
 }
 

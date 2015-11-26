@@ -2,11 +2,11 @@
 
 # name = browser.parent.handler.url_slideshow.answer
 
-my $params = shift;
-my $status = $params->{'params'}->{'status'};
+my $params     = shift;
+my $status     = $params->{'params'}->{'status'};
+my $answer_str = $params->{'call_args'}->{'args'};
 
 if ( $params->{'cmd'} eq 'NACK' ) {
-    my $answer_str = $params->{'call_args'}->{'args'};
     my $msg_str
         = "url_slideshow.answer[at step $status]:"
         . " child command failed with '$answer_str'";

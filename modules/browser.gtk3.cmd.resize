@@ -1,6 +1,6 @@
 # >:]
 
-# name  = browser.gtk2.cmd.resize
+# name  = browser.gtk3.cmd.resize
 # param = <x> <y>
 # descr = resize browser window
 # todo  = limit window size to screen size
@@ -9,7 +9,7 @@ return { 'mode' => 'nack', 'data' => 'expected x and y size in pixels!' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^\d+ +\d+$/;
 my ( $x, $y ) = split( / +/, $$call{'args'} );
-my $window = <browser.gtk2.obj.window>;
+my $window = <browser.gtk3.obj.window>;
 
 $window->set_size_request( $x, $y );
 
