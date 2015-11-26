@@ -1,6 +1,6 @@
 # >:]
 
-# name  = browser.gtk2.cmd.scroll_start
+# name  = browser.gtk3.cmd.scroll_start
 # descr = automatically scroll down web page
 
 my $reply_id = $$call{'reply_id'};
@@ -15,15 +15,17 @@ Event->unloop_all();
 return { 'mode' => 'nack', 'data' => 'already scrolling' }
     if <window.scrolling>;
 
-my $vadj = <browser.gtk2.obj.scr_win>->get_vadjustment();
-<window.scroll.pos>      = $vadj->get_value();
-<window.scroll.max>      = $vadj->upper - $vadj->page_size;
-<browser.gtk2.obj.vadj>  = $vadj;
+my $vadj = <browser.gtk3.obj.scr_win>->get_vadjustment();
+<window.scroll.pos>      = 0;
+<window.scroll.max>      = $vadj->get_upper() - $vadj->get_page_size();
+
+<browser.gtk3.obj.vadj>  = $vadj;
 <window.scroll.reply_id> = $reply_id;
-<window.scroll.delay> //= 42;
+<window.cfg.scroll_delay> //= 42;
+<window.cfg.scroll_steps> //= 1;
 <window.scroll.stop> = 0;
 
-my $scroll_delay = <window.scroll.delay>;
+my $scroll_delay = <window.cfg.scroll_delay>;
 
 if ( <browser.auto_zoom> and <browser.adjust_scroll_delay> ) {
     $scroll_delay = sprintf( "%.0f", $scroll_delay / <browser.zoom_level> );
@@ -35,7 +37,7 @@ if ( <browser.auto_zoom> and <browser.adjust_scroll_delay> ) {
 return { 'mode' => 'ack', 'data' => 'already at end of page' }
     if <window.scroll.pos> >= <window.scroll.max>;
 
-Glib::Timeout->add( $scroll_delay, $code{'browser.gtk2.handler.auto_scroll'},
+Glib::Timeout->add( $scroll_delay, $code{'browser.gtk3.handler.auto_scroll'},
     undef, -10 );
 
 <window.scrolling> = 1;

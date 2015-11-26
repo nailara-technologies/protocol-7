@@ -7,12 +7,12 @@ my $load_url   = shift;
 die "expected numerical status parameter"
     if not defined $new_status or $new_status !~ /^\d$/;
 
-<browser.use_transparency> //= 1;
+<browser.cfg.use_transparency> //= 1;
 
 my $fg_window = <browser.fg_window>;
 my $bg_window = <browser.bg_window>;
 
-$new_status = 3 if !<browser.use_transparency> and $new_status == 2;
+$new_status = 3 if !<browser.cfg.use_transparency> and $new_status == 2;
 
 if ( $new_status == 1 ) {
     <[base.proto.nailara.command.send.local]>->(
@@ -56,7 +56,7 @@ if ( $new_status == 1 ) {
             }
         }
     );
-} elsif ( $new_status == 5 ) {
+} elsif ( $new_status == 4 ) {
     <browser.load_url.requested> = 0;
     <browser.load_url.status>    = 0;
     <[base.callback.cmd_reply]>->(

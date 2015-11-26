@@ -1,10 +1,10 @@
 # >:]
 
-# name = browser.gtk2.handler.auto_scroll
+# name = browser.gtk3.handler.auto_scroll
 
 my $reply_id = <window.scroll.reply_id>;
-my $vadj     = <browser.gtk2.obj.vadj>;
-<window.scroll.max> //= $vadj->upper - $vadj->page_size;
+my $vadj     = <browser.gtk3.obj.vadj>;
+<window.scroll.max> //= $vadj->get_upper() - $vadj->get_page_size();
 <window.scroll.pos> //= $vadj->get_value();
 
 if (<window.scroll.stop>) {
@@ -22,11 +22,12 @@ if (<window.scroll.stop>) {
     delete <window.scroll.stop_reply_id>;
     return 0;
 } elsif ( <window.scroll.pos> < <window.scroll.max> ) {
-    <window.scroll.pos>++;
+    <window.scroll.pos> += <window.cfg.scroll_steps>;
     $vadj->set_value(<window.scroll.pos>);
-    <browser.gtk2.obj.scr_win>->set_vadjustment($vadj);
+    <browser.gtk3.obj.scr_win>->set_vadjustment($vadj);
     return 1;
 } else {
+    delete <window.scroll>;
     <window.scrolling> = 0;
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => 'ack', 'data' => 'end of page reached' }

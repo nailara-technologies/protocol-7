@@ -22,7 +22,18 @@ my $bg_window = <browser.bg_window>;
 
 $new_status = 4 if !<browser.use_transparency> and $new_status == 2;
 
-if ( $new_status == 1 ) {
+if ( $new_status == 0 ) {
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.lower_window",
+            'call_args' => { 'args' => <browser.window.id>->{$fg_window} },
+            'reply'     => {
+                'handler' => 'browser.parent.handler.url_slideshow.answer',
+                'params'  => { 'status' => $new_status }
+            }
+        }
+    );
+} elsif ( $new_status == 1 ) {
     <browser.slideshow.url_index> = 0
         if <browser.slideshow.url_index> >= $url_count;
     my $next_url = $url_ref->[<browser.slideshow.url_index>];
@@ -44,8 +55,8 @@ if ( $new_status == 1 ) {
     );
 } elsif ( $new_status == 2 ) {
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "window-$bg_window.fade_in",
-            'call_args' => {},
+        {   'command'   => "window-$bg_window.opacity",
+            'call_args' => { 'args' => 1 },
             'reply'     => {
                 'handler' => 'browser.parent.handler.url_slideshow.answer',
                 'params'  => { 'status' => $new_status }
@@ -118,7 +129,7 @@ if ( $new_status == 1 ) {
     } else {
         my $time_left = <browser.slideshow.min_delay>
             - ( time() - <browser.url_slideshow.scroll_start_time> );
-        my $next_status = $time_left > 0 ? 6 : 2;
+        my $next_status = $time_left > 0 ? 6 : 2; # XXX: ask window if scrneeded
         delete <browser.url_slideshow.scroll_start_time> if $next_status == 2;
         if (<browser.slideshow.running>) {
             <browser.url_slideshow.timer> = <[event.add_timer]>->(
