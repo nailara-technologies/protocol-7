@@ -1,14 +1,36 @@
 # >:]
 
-# name  = browser.gtk2.cmd.load
+# name  = browser.gtk3.cmd.load
 # param = [url]
 # descr = load given url
 # todo  = deal with new requests while previous one is loading (abort|deny)
 
 my $url      = $$call{'args'};
 my $reply_id = $$call{'reply_id'};
-my $view     = <browser.gtk2.obj.view>;
-my $frame    = <browser.gtk2.obj.frame>;
+
+my $window = <browser.gtk3.obj.window>;
+
+if ( defined <browser.gtk3.obj.view> ) {
+    <browser.gtk3.obj.view>->unrealize();
+    <browser.gtk3.obj.view>->destroy();
+    delete <browser.gtk3.obj.view>;
+}
+if ( defined <browser.gtk3.obj.scr_win> ) {
+    <browser.gtk3.obj.scr_win>->unrealize();
+    <browser.gtk3.obj.scr_win>->destroy();
+    delete <browser.gtk3.obj.scr_win>;
+}
+
+$window->show_all();
+
+<[browser.gtk3.init_view]>;
+
+my $view  = <browser.gtk3.obj.view>;
+my $frame = <browser.gtk3.obj.frame>;
+
+$view->size_allocate( { 'width' => 1, 'height' => 1 } );
+
+$window->show_all();
 
 return { 'mode' => 'nack', 'data' => "expected url parameter" }
     if not defined $url
@@ -21,29 +43,33 @@ $url = "file://$url" if $url =~ m|^/|;
 $url = "http://$url" if $url !~ /^\w+:/;
 <browser.error_page> //= 'about:blank';
 
-if ( not <browser.zoom_text_only> ) {
-    if ( $url =~ m{^file:///var/cache/weather/html/} ) {
-        $view->set_full_content_zoom(0);  # XXX: fixes weather autozoom mismatch
+if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
+{
+    my $skip_pattern = qr{^file://<browser.skip_content_zoom_path>};
+    if ( $url =~ $skip_pattern ) {
+        $view->set_full_content_zoom(0);
     } else {
         $view->set_full_content_zoom(1);
     }
 }
 
+$view->load_uri('about:blank');
+
 my $signal_id;
-$signal_id = $frame->signal_connect(
+$signal_id = $view->signal_connect(
     'notify::load-status' => sub {
-        my $status = $frame->get_load_status;
-        my $title  = $frame->get_title;
+        my $status = $view->get_load_status;
+        my $title  = $view->get_title;
         $title //= '';
 
         if ( $status eq 'finished' and $title ne '404 Not Found' ) {
-            $frame->signal_handler_disconnect($signal_id);
+            $view->signal_handler_disconnect($signal_id);
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'ack', 'data' => 'finished loading' }
             );
         } elsif ( $status eq 'failed'
             or $status eq 'finished' and $title eq '404 Not Found' ) {
-            $frame->signal_handler_disconnect($signal_id);
+            $view->signal_handler_disconnect($signal_id);
             my $reason_txt = $title eq '404 Not Found' ? " [$title]" : '';
             <[base.log]>->( 0, "failed to load url $url" . $reason_txt );
 
@@ -64,7 +90,8 @@ $signal_id = $frame->signal_connect(
 );
 
 <[base.log]>->( 2, "loading url '$url'.." );
+$view->load_uri($url);
 
-$frame->load_uri($url);
+#$view->size_allocate( { 'width' => 1, 'height' => 1 } );    # reset page size
 
 return { 'mode' => 'later' };

@@ -1,6 +1,6 @@
 # >:]
 
-# name  = browser.gtk2.cmd.move
+# name  = browser.gtk3.cmd.move
 # param = <x> <y>
 # descr = move browser window to specified coordinates
 
@@ -8,7 +8,7 @@ return { 'mode' => 'nack', 'data' => 'expected numerical coordinates!' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^\d+ +\d+$/;
 my ( $x, $y ) = split( / +/, $$call{'args'} );
-my $window = <browser.gtk2.obj.window>;
+my $window = <browser.gtk3.obj.window>;
 
 $window->move( $x, $y );
 
