@@ -2,6 +2,7 @@
 
 # name  = browser.parent.cmd.start_slideshow
 # descr = start URL slideshow
+# todo  = check 'size-allocate' signal for start trigger improvements
 
 <browser.url.list> //= [];
 
@@ -16,8 +17,8 @@ return { 'mode' => 'nack', 'data' => 'slideshow already running' }
 return { 'mode' => 'nack', 'data' => 'url list is emtpy' }
     if !$url_count;
 
-<browser.fg_window> //= 1;
-<browser.bg_window> //= 2;
+<browser.fg_window> //= 2;
+<browser.bg_window> //= 1;
 
 <browser.slideshow.running> = 1;
 

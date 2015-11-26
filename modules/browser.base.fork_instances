@@ -56,10 +56,10 @@ for my $index ( 1 .. $instance_count ) {
 
         $ENV{'DISPLAY'} = <x11.display>;
 
-        <[base.load_modules]>->('browser.gtk2');
-        <[base.init_modules]>->('browser.gtk2');
+        <[base.load_modules]>->('browser.gtk3');
+        <[base.init_modules]>->('browser.gtk3');
 
-        <[browser.gtk2.init_window]>->( $index, <browser.geometry> );
+        <[browser.gtk3.init_window]>->( $index, <browser.geometry> );
 
         last;
     } else {    # parent
@@ -98,28 +98,21 @@ if ($am_parent) {
             exit(2);
         }
 
-        #        <[base.proto.nailara.command.send.local]>->(
-        #            {   'command'   => "browser.window-$index.fade_in",
-        #                'call_args' => { },
-        #                'reply'     => { 'handler' => 'dev.null' }
-        #            }
-        #        );
-
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.xserver.lower_window",
-                'call_args' => { 'args' => <browser.window.id>->{$index} },
-                'reply'     => { 'handler' => 'dev.null' }
-            }
-        );
-
-    #        <[base.proto.nailara.command.send.local]>->(
-    #            {   'command'   => "core.xserver.lower_window",
-    #                'call_args' => { 'args' => <browser.window.id>->{$index} },
-    #                'reply'     => { 'handler' => 'dev.null' }
-    #            }
-    #        );
-
     }
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.lower_window",
+            'call_args' => { 'args' => <browser.window.id>->{1} },
+            'reply'     => { 'handler' => 'dev.null' }
+        }
+    );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.raise_window",
+            'call_args' => { 'args' => <browser.window.id>->{2} },
+            'reply'     => { 'handler' => 'dev.null' }
+        }
+    );
+
     <[base.get_session_id]>;
 
     if (<browser.slideshow.autostart>) {

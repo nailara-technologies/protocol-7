@@ -1,6 +1,6 @@
 # >:]
 
-# name = browser.gtk2.init_window
+# name = browser.gtk3.init_window
 
 my ( $instance_id, $geometry ) = @_;
 
@@ -11,6 +11,8 @@ my ( $size_x, $size_y, $pos_x, $pos_y ) = (
 ( $size_x, $size_y, $pos_x, $pos_y ) = ( $1, $2, $4, $5 )
     if defined $geometry
     and $geometry =~ /^(\d+)x(\d+)(([\-\+]\d+)([\-\+]\d+))?$/;
+
+<browser.window_size> = { 'x' => $size_x, 'y' => $size_y };
 
 my $browser_root = '/tmp/.browser';
 mkdir($browser_root) if !-d $browser_root;
@@ -37,17 +39,23 @@ delete @{<browser.blocked_event_types>}{qw(key-press key-release)}
 delete @{<browser.blocked_event_types>}{qw(button-press button-release)}
     if <browser.cfg.links_clickable>;
 
-my $hide_scrollbars = <browser.hide_scrollbars>;
-
 my $sn_str
     = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
 my $title_str = 'browser' . $sn_str;
 $title_str .= "-$instance_id-$$" if defined $instance_id;
 
-Gtk2->init;
+Gtk3->init;
 
-my $window = Gtk2::Window->new('toplevel');
-<browser.gtk2.obj.window> = $window;
+my $window = Gtk3::Window->new('toplevel');
+<browser.gtk3.obj.window> = $window;
+
+<browser.state.first_load> //= 1;
+
+if ( $window->is_composited() ) {
+    <[base.log]>->( 1, "transparency available (composited)" );
+} else {
+    <[base.log]>->( 1, "transparency is not available!" );
+}
 
 $window->set_decorated(0);
 $window->set_border_width(0);
@@ -57,59 +65,13 @@ $window->stick;
 
 $window->set_title($title_str);
 
-$window->signal_connect( destroy => sub { Gtk2->main_quit() } );
-
-<[browser.gtk2.hide_scrollbars]> if $hide_scrollbars;
-
-my $view = Gtk2::WebKit::WebView->new();
-
-<browser.gtk2.obj.view>  = $view;
-<browser.gtk2.obj.frame> = $view->get_main_frame();
-
-$view->set_zoom_level( <browser.zoom_level> * <browser.zoom_factor> );
-my $scr_win = Gtk2::ScrolledWindow->new();
-<browser.gtk2.obj.scr_win> = $scr_win;
-
 $window->move( $pos_x, $pos_y ) if defined $pos_x and defined $pos_y;
-$scr_win->set_size_request( $size_x, $size_y )
-    if defined $size_x and defined $size_y;
+$window->set_default_size( $size_x, $size_y );
 
-$view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
-$view->set_editable(0);
-$view->can_go_back_or_forward(0);
-$view->set_maintains_back_forward_list(0);
-
-<[browser.gtk2.set_properties]>->($view);
-
-#$scr_win->set_policy( 'GTK_POLICY_ALWAYS', 'GTK_POLICY_ALWAYS' );
-$scr_win->add($view);
-$window->add($scr_win);
+$window->signal_connect( destroy => sub { Gtk3->main_quit() } );
 
 #my @p = $window->signal_list_names();
 #map { printf " :]>  %-17s -- %s\n", $_->{'name'}, $_->{'descr'} } @p;
-
-$view->set_property( 'editable', FALSE );
-
-#$scr_win->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
-
-$view->signal_connect( # filtering all events according to blocklist setup above
-    'event',
-    sub {
-        my $v    = shift;
-        my $evt  = shift;
-        my $type = $evt->type();
-
-        return TRUE if exists <browser.blocked_event_types>->{$type};    # block
-
-        if ( index( $type, 'key' ) == 0 )
-        {    # block key presses outside input fields
-            return TRUE if !$v->can_paste_clipboard();
-            $v->delete_selection() if $v->can_copy_clipboard();
-        }
-
-        return FALSE;    # allow the rest
-    }
-);
 
 Event->unloop_all();
 
@@ -133,8 +95,8 @@ Glib::Idle->add(
     }
 );
 
-####################
-$window->set_opacity(0);
+<[browser.gtk3.init_view]>;
+
 $window->show_all();
 
-Gtk2->main;
+Gtk3->main;
