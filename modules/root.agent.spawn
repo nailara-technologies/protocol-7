@@ -73,9 +73,26 @@ my $agent_sn_str
 <[base.log]>->( 1, "spawning '$agent_sn_str'-agent initiated ..." );
 
 my ( $pid, $out_fh, $in_fh );
-eval {
-    $pid = open2( $out_fh, $in_fh, $nailara_bin, $agent_sn_str, @exec_args );
-};
+
+my @cmd_line_mods
+    = defined $init_result_data->{'command_line_modules'}
+    ? map {"-M$_"} split( / +/, $init_result_data->{'command_line_modules'} )
+    : ();
+
+if (@cmd_line_mods) {
+    my $_C = <system.perl_unicode>;
+    push( @cmd_line_mods, "-C$_C" ) if defined $_C;
+    eval {
+        $pid
+            = open2( $out_fh, $in_fh, 'perl', @cmd_line_mods, $nailara_bin,
+            $agent_sn_str, @exec_args );
+    };
+} else {
+    eval {
+        $pid
+            = open2( $out_fh, $in_fh, $nailara_bin, $agent_sn_str, @exec_args );
+    };
+}
 
 if ( not defined $pid or $@ ) {
     ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
