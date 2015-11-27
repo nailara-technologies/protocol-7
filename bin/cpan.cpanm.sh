@@ -17,7 +17,8 @@ cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       SDL \
       Crypt::Twofish2 \
       HTTP::Request \
-      Gtk2::WebKit \
+      Gtk3::WebKit \
+      HTTP::Soup \
       Mediainfo
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
