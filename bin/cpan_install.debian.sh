@@ -21,4 +21,4 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
 # installs the rest from cpan (note: Gtk3::WebKit needs X-server or Xvfb)
 cpanm Crypt::Twofish2 X11::Tops X11::Protocol::WM Gtk3::WebKit \
       XML::RSS::TimingBot XML::RSS::Parser File::MimeInfo::Magic \
-      Mediainfo Poppler
+      HTTP::Soup Mediainfo Poppler
