@@ -7,6 +7,17 @@ use Gtk3;
 use Gtk3::WebKit;
 use warnings;
 
+Gtk3::WebKit::set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
+
+if (<browser.init_proxy>) {
+    require HTTP::Soup;
+    my $proxy_addr = <browser.cfg.proxy_addr>;
+    my $proxy_port = <browser.cfg.proxy_port>;
+    my $session    = Gtk3::WebKit::get_default_session();
+    my $proxy_uri  = HTTP::Soup::URI->new("http://$proxy_addr:$proxy_port");
+    $session->set( 'proxy-uri' => $proxy_uri );
+}
+
 <browser.zoom_level>     //= 1;
 <browser.zoom_factor>    //= 1;    # adjusts configured or calculated zoom level
 <browser.zoom_text_only> //= 0;
