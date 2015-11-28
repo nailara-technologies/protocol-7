@@ -2,15 +2,13 @@
 
 # name = browser.gtk3.init_code
 
-no warnings 'all';
 use Gtk3;
 use Gtk3::WebKit;
-use warnings;
+use HTTP::Soup;
 
 Gtk3::WebKit::set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
 
 if (<browser.init_proxy>) {
-    require HTTP::Soup;
     my $proxy_addr = <browser.cfg.proxy_addr>;
     my $proxy_port = <browser.cfg.proxy_port>;
     my $session    = Gtk3::WebKit::get_default_session();

@@ -57,31 +57,66 @@ $view->load_uri('about:blank');
 
 my $signal_id;
 $signal_id = $view->signal_connect(
-    'notify::load-status' => sub {
-        my $status = $view->get_load_status;
-        my $title  = $view->get_title;
-        $title //= '';
 
-        if ( $status eq 'finished' and $title ne '404 Not Found' ) {
+    'notify::load-status' => sub {
+
+        my $view        = shift;
+        my $frame       = $view->get_main_frame;
+        my $n_res       = $frame->get_network_response;
+        my $message     = $n_res->get_message;
+        my $load_status = $view->get_load_status;
+        my $title       = $view->get_title // '';
+        my $status_code
+            = defined $message ? $message->get('status-code') : undef;
+
+        return if $load_status ne 'finished' and $load_status ne 'failed';
+
+        if (    $load_status eq 'finished'
+            and defined $status_code
+            and $status_code == 200 ) {
             $view->signal_handler_disconnect($signal_id);
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'ack', 'data' => 'finished loading' }
             );
-        } elsif ( $status eq 'failed'
-            or $status eq 'finished' and $title eq '404 Not Found' ) {
+        } else {
             $view->signal_handler_disconnect($signal_id);
-            my $reason_txt = $title eq '404 Not Found' ? " [$title]" : '';
-            <[base.log]>->( 0, "failed to load url $url" . $reason_txt );
+            my $st_txt = defined $status_code ? " ($status_code)" : '';
+            my $reason_txt = $st_txt;
+
+            $reason_txt .= " [$title]" if $title eq '404 Not Found';
+            $reason_txt = " [$1]"
+                if $title =~ /^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$/i;
+
+            if (    not defined $status_code
+                and !length($reason_txt)
+                and !length($title) ) {
+                my $check_sock = IO::Socket::INET->new(
+                    PeerAddr => <browser.proxy.addr>,
+                    PeerPort => <browser.proxy.port>,
+                    Proto    => 'tcp',
+                    Timeout  => 0.2
+                );
+                if (   not defined $check_sock
+                    or !-S $check_sock
+                    or !$check_sock->connected() ) {
+                    $reason_txt = ' [proxy unreachable!]';
+                } else {
+                    $check_sock->close();
+                }
+            }
+
+            <[base.log]>->( 0, " failed to load url $url" . $reason_txt );
 
             <[base.callback.cmd_reply]>->(
-                $reply_id, { 'mode' => 'nack', 'data' => 'failed to load' }
+                $reply_id,
+                { 'mode' => 'nack', 'data' => "failed to load" . $reason_txt }
             );
             my $fail_page_ref = <[file.slurp]>->(<browser.error_page>);
             $$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.failed_to_load>|sg;
             Glib::Idle->add(
                 sub {
-                    $view->load_string( $$fail_page_ref, 'text/html', 'UTF-8',
-                        'FAIL' );
+                    $view->load_string( $$fail_page_ref, 'text/html',
+                        'UTF-8', 'FAIL' );
                     return 0;
                 }
             );
@@ -89,9 +124,7 @@ $signal_id = $view->signal_connect(
     }
 );
 
-<[base.log]>->( 2, "loading url '$url'.." );
+<[base.log]>->( 2, " loading url '$url' ..." );
 $view->load_uri($url);
-
-#$view->size_allocate( { 'width' => 1, 'height' => 1 } );    # reset page size
 
 return { 'mode' => 'later' };
