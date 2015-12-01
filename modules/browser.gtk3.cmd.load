@@ -28,8 +28,6 @@ $window->show_all();
 my $view  = <browser.gtk3.obj.view>;
 my $frame = <browser.gtk3.obj.frame>;
 
-$window->show_all();
-
 return { 'mode' => 'nack', 'data' => "expected url parameter" }
     if not defined $url
     or !length($url);
@@ -74,7 +72,7 @@ $signal_id = $view->signal_connect(
 
         if (    $load_status eq 'finished'
             and defined $status_code
-            and $status_code == 200 ) {
+            and $status_code =~ /^(20)?0$/ ) {
             $view->signal_handler_disconnect($signal_id);
             <[base.callback.cmd_reply]>->(
                 $reply_id, { 'mode' => 'ack', 'data' => 'finished loading' }
