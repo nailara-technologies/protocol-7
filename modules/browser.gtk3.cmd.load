@@ -28,8 +28,6 @@ $window->show_all();
 my $view  = <browser.gtk3.obj.view>;
 my $frame = <browser.gtk3.obj.frame>;
 
-$view->size_allocate( { 'width' => 1, 'height' => 1 } );
-
 $window->show_all();
 
 return { 'mode' => 'nack', 'data' => "expected url parameter" }
@@ -70,6 +68,9 @@ $signal_id = $view->signal_connect(
             = defined $message ? $message->get('status-code') : undef;
 
         return if $load_status ne 'finished' and $load_status ne 'failed';
+
+        Glib::Source->remove(<browser.load_timeout_id>)
+            if defined <browser.load_timeout_id>;
 
         if (    $load_status eq 'finished'
             and defined $status_code
@@ -122,6 +123,16 @@ $signal_id = $view->signal_connect(
             );
         }
     }
+);
+
+<browser.load_timeout_id> = Glib::Timeout->add_seconds(
+    <browser.cfg.load_timeout>,
+    sub {
+        $view->stop_loading();
+        return 0;
+    },
+    undef,
+    -10
 );
 
 <[base.log]>->( 2, " loading url '$url' ..." );

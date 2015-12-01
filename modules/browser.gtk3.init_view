@@ -26,18 +26,8 @@ if (<browser.cfg.allow_scrollbars>) {
     $scr_win->set_policy( 'GTK_POLICY_EXTERNAL', 'GTK_POLICY_EXTERNAL' );
 }
 
-$scr_win->set_shadow_type('GTK_SHADOW_NONE');
-
 $scr_win->set_size_request( $win_size->{'x'}, $win_size->{'y'} )
     if defined $win_size->{'x'} and defined $win_size->{'y'};
-
-#$scr_win->set_policy( 'GTK_POLICY_NEVER', 'GTK_POLICY_NEVER' );
-#$scr_win->set_property('vscrollbar-policy','GTK_POLICY_NEVER');
-
-#my @p = $window->signal_list_names();
-#map { printf " :]>  %-17s -- %s\n", $_->{'name'}, $_->{'descr'} } @p;
-
-#$scr_win->set_policy( 'GTK_POLICY_NEVER' , 'GTK_POLICY_NEVER' );
 
 my $view = Gtk3::WebKit::WebView->new();
 
@@ -52,23 +42,22 @@ $view->set_maintains_back_forward_list(0);
 <[browser.gtk3.set_properties]>->($view);
 $view->set_property( 'editable', 0 );
 
-$scr_win->add_with_viewport($view);
-
-my $view_port = $scr_win->get_child();
-$view_port->set_shadow_type('GTK_SHADOW_NONE');
-$view_port->set_hscroll_policy('GTK_SCROLL_NATURAL');
-$view_port->set_vscroll_policy('GTK_SCROLL_NATURAL');
+my $view_port = Gtk3::Viewport->new();
+$view_port->add($view);
+$scr_win->add($view_port);
 
 $window->add($scr_win);
 
-$view->signal_connect(
+$window->signal_connect(
     'size-allocate' => sub {
-        my $v  = shift;
-        my $nh = $v->size_request()->height;
+        my $self     = shift;
+        my $view     = <browser.gtk3.obj.view>;
+        my $win_size = <browser.window_size>;
+        my $sr       = $view->size_request();
+        my ( $nw, $nh ) = ( $sr->width, $sr->height );
         <browser.window.needs_scrolling>
             = $nh > <browser.window_size.y> ? 1 : 0;
-
-        # print "\n allocated height : $nh\n\n";
+        $view->size_allocate( { 'width' => $nw, 'height' => $nh } );
     }
 );
 
