@@ -1,0 +1,28 @@
+# >:]
+
+# name = browser.swap_views
+
+my $scrolled_window = <browser.gtk_obj.scrolled_window>;
+
+my $fg_index = <browser.overlay.index>->{'fg'};
+my $bg_index = <browser.overlay.index>->{'bg'};
+
+if ( !<browser.cfg.use_transparency> ) {
+    <browser.gtk_obj.overlay>
+        ->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+    <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+    <[browser.callback.load_finished]>;
+    return;
+}
+
+<browser.fg_opacity> = <browser.gtk_obj.view>->{$bg_index}->get_opacity;
+if ( <browser.fg_opacity> == 1 ) {
+    <browser.gtk_obj.scrolled_window>->{$bg_index}->set_opacity(0);
+    <browser.fg_opacity> = 0;
+}
+<browser.gtk_obj.overlay>->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+<browser.gtk_obj.scrolled_window>->{$fg_index}->set_opacity(1);
+<browser.time.fade_view>   = <[base.time]>->(3);
+<browser.status.fade_view> = 1;
+
+<browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
