@@ -11,27 +11,33 @@ buffer.system.log_cmd = log.msg
 
 browser.playlist.content_types = html pdf image
 
-access.cmd.usr.core = help ping reload verify_instance open_url list * *.*
+browser.cfg.proxy_addr = 127.0.0.1
+browser.cfg.proxy_port = 8123
+browser.cfg.use_proxy = auto # <yes|no|auto>
 
-access.cmd.usr.parent = *
+browser.slideshow.autostart  = 1
+browser.slideshow.min_delay  = 5 # min duration before page change
+browser.slideshow.swap_delay = 2 # min delay before page change after scrollen
+browser.slideshow.err_delay  = 2 # error page duration
 
-browser.slideshow.no_scroll = 0  # <0|1>
-browser.slideshow.no_switch = 0  # <0|1>
+browser.slideshow.no_scroll = 0   # <0|1>
+browser.slideshow.no_switch = 0   # <0|1>
+browser.cfg.user_can_scroll = 0   # <0|1>
 browser.cfg.links_clickable = 0   # <0|1>
 browser.cfg.allow_text_edit = 0   # <0|1>
-browser.cfg.allow_scrollbars = 0  # <0|1>
-browser.cfg.use_transparency = 1  # <1|0>
-browser.cfg.overlay_scrolling = 1  # <0|1>
-browser.cfg.show_loading_page = 1  # <1|0>
+#browser.cfg.allow_scrollbars = 0  # <0|1> # XXX: not implemented yet!
+browser.cfg.use_transparency = 1    # <1|0>
+browser.cfg.overlay_scrolling = 1   # <0|1>
+browser.cfg.show_progress_bar = 1   # <1|0>
+browser.cfg.javascript_enabled = 1  # <1|0>
+browser.cfg.plugins_enabled    = 0  # <0|1>
 
-browser.cfg.load_timeout = 13 # seconds
+browser.cfg.change_cursor = circle # custom mouse cursor for current X-server
+                                   # ( comment out to disable custom cursor )
 
-browser.error_page = '<system.root_path>/data/html/failed_to_load.html'
-browser.loading_page = '<system.root_path>/data/html/loading_animation.html'
-browser.slideshow.autostart = 1
-browser.slideshow.min_delay = 5
+browser.cfg.load_timeout = 17 # seconds
 
-window.cfg.scroll_delay = 42
+window.cfg.scroll_delay = 13
 window.cfg.scroll_steps = 1
 
 browser.zoom_level = 1.0    # default zoom factor  [ 1.0 == 100% ]
@@ -42,16 +48,19 @@ browser.min_zoom  = 0.7 # lower zoom factor limit for automatic recalculation
 browser.adjust_scroll_delay = 1 # if true will adjust scroll delay with autozoom
 browser.skip_content_zoom_path = /var/cache/ # no full_content_zoom if matching
 
-browser.cfg.proxy_addr = 127.0.0.1
-browser.cfg.proxy_port = 8123
-browser.cfg.use_proxy = auto # <yes|no|auto>
+access.cmd.usr.core = help ping reload verify_instance * *.*
+
+browser.templates_path = '<system.root_path>/data/html/templates/browser'
+browser.loading_page   = '<browser.templates_path>/loading.html'
+browser.error_page     = '<system.root_path>/data/html/failed_to_load.html'
 
 [load_modules:'config.json browser.config']
 [init_modules]
 
 [config.json.import_file:'browser.config.json']
 
-modules.load = auth net io.ip io.unix browser.base debug
+modules.load = auth net io.ip io.unix browser # debug
+
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -60,8 +69,10 @@ core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
 [base.session.init:<core.handle>,'nailara','client','core']
 
 [base.x11.get_display]
-[browser.base.calc_zoom_level]
 browser.geometry = [base.x11.get_geometry]
-[browser.base.fork_instances:2]
+
+[browser.calc_zoom_level]
+
+[browser.open_window]
 
 [event.loop]

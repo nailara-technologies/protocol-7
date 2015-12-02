@@ -1,0 +1,24 @@
+# >:]
+
+# name = browser.handler.glib_idle
+
+my $debug = 0;
+
+my $loop_timeout = <browser.event.loop_timeout>;
+
+if (<browser.status.fade_view>) {
+    <[browser.handler.fade_in_view]>;
+    $loop_timeout = 0.023;
+}
+
+<browser.loop_timer> = Event->timer(
+    desc   => "Event::loop timeout",
+    after  => $loop_timeout,
+    cb     => sub { Event->unloop() },
+    prio   => -1,
+    repeat => 0
+);
+print "loop [" . ( ++<debug.loop_count> ) . "]  > enter\n" if $debug;
+Event::loop();
+print "loop [" . <debug.loop_count> . "] <  exit\n" if $debug;
+return 1;

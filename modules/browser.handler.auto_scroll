@@ -1,0 +1,47 @@
+# >:]
+
+# name = browser.handler.auto_scroll
+
+my $reply_id = <window.scroll.reply_id>;
+
+my $fg_index = <browser.overlay.index.fg>;
+my $view     = <browser.gtk_obj.view>->{$fg_index};
+my $vadj     = $view->get_vadjustment();
+
+<window.scroll.max> = $vadj->get_upper() - $vadj->get_page_size();
+<window.scroll.pos> = $vadj->get_value();
+
+if (<window.scroll.stop>) {
+    <window.scrolling> = 0;
+    my $pos_percent
+        = int( ( <window.scroll.pos> * 100 ) / <window.scroll.max> );
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'ack', 'data' => "stopped at $pos_percent%" }
+    ) if defined $reply_id;
+    delete <window.scroll.stop>;
+    <[base.callback.cmd_reply]>->(
+        <window.scroll.stop_reply_id>,
+        { 'mode' => 'ack', 'data' => "scrolling stopped" }
+    ) if exists <window.scroll.stop_reply_id>;
+    delete <window.scroll.stop_reply_id>;
+    return 0;
+} elsif ( <window.scroll.pos> < <window.scroll.max> ) {
+    <window.scroll.pos> += <window.cfg.scroll_steps>;
+    $vadj->set_value(<window.scroll.pos>);
+    $view->set_vadjustment($vadj);
+    return 1;
+} else {
+    delete <window.scroll>;
+    <window.scrolling>             = 0;
+    <browser.time.scroll_complete> = <[base.time]>->(3);
+    <[base.callback.cmd_reply]>->(    # XXX: .cmd. only!
+        $reply_id, { 'mode' => 'ack', 'data' => 'end of page reached' }
+    ) if defined $reply_id;
+
+    if (<browser.slideshow.running>) {
+        <browser.slideshow.status> = 'scroll_finished';
+        <[browser.handler.slideshow]>;
+    }
+
+    return 0;
+}

@@ -1,0 +1,76 @@
+# >:]
+
+# name = browser.init_code
+
+use Gtk3;
+use Gtk3::WebKit;
+use HTTP::Soup;
+
+$ENV{'GTK_OVERLAY_SCROLLING'}
+    = ( <browser.cfg.allow_scrollbars> && <browser.cfg.overlay_scrolling> )
+    ? 1
+    : 0;
+
+package Browser::ScrolledWindow;
+
+use Glib::Object::Subclass 'Gtk3::ScrolledWindow',;
+
+sub INIT_INSTANCE {
+    my $self = shift;
+    $self->set_policy( 'never', 'never' );
+}
+
+package Browser::WebView;
+
+use Glib::Object::Subclass 'Gtk3::WebKit::WebView',
+    properties => [
+    Glib::ParamSpec->boolean(
+        'self-scrolling', 'foo', 'foo', 0, [qw/readable writable/]
+    ),
+    ];
+
+sub INIT_INSTANCE {
+    my $self = shift;
+    $self->set_property( 'self-scrolling', 0 );
+}
+
+package main;
+
+my $browser_root = '/tmp/.browser';    # XXX: random tmp dir
+mkdir($browser_root) if !-d $browser_root;
+chdir($browser_root);
+$ENV{'HOME'} = $browser_root;
+
+my $sn_str
+    = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
+
+<browser.window.title_str> = 'browser' . $sn_str;
+<browser.window.title_str> .= "-$$" if !length($sn_str);
+
+<browser.status.fade_view> //= 0;
+<browser.fg_opacity>       //= 1;
+
+<browser.zoom_level>     //= 1;
+<browser.zoom_factor>    //= 1;    # adjusts configured or calculated zoom level
+<browser.zoom_text_only> //= 0;
+
+<browser.slideshow.no_scroll>    //= 0;
+<browser.slideshow.no_switch>    //= 0;
+<browser.cfg.user_can_scroll>    //= 0;
+<browser.cfg.links_clickable>    //= 0;
+<browser.cfg.allow_text_edit>    //= 0;
+<browser.cfg.allow_scrollbars>   //= 0;
+<browser.cfg.overlay_scrolling>  //= 1;
+<browser.cfg.show_progress_bar>  //= 1;
+<browser.cfg.javascript_enabled> //= 1;
+<browser.cfg.plugins_enabled>    //= 0;
+<browser.cfg.load_timeout>       //= 13;
+<browser.cfg.use_transparency>   //= 1;
+<browser.slideshow.swap_delay>   //= 2;
+<browser.slideshow.err_delay>    //= 2;
+
+map { <browser.page>->{$_}->{'scrollable'} //= 0 } ( 1, 2 );
+
+<browser.html_ref.loading_page> = <[file.slurp]>->(<browser.loading_page>);
+
+0;

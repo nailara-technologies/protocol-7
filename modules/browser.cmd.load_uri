@@ -1,0 +1,17 @@
+# >:]
+
+# name  = browser.cmd.load_uri
+# descr = load specified URI in browser
+
+my $uri      = $$call{'args'};
+my $reply_id = $$call{'reply_id'};
+my $bg_index = <browser.overlay.index.bg>;
+my $view     = <browser.gtk_obj.view>->{$bg_index};
+
+return { 'mode' => 'nack', 'data' => 'page loading in progress' }
+    if exists <browser.signal_id.load_status> or <browser.status.fade_view>;
+
+<[browser.load_uri]>->($uri);
+
+push( @{<browser.fade.reply_ids>}, $reply_id );
+return { 'mode' => 'later' }

@@ -1,0 +1,13 @@
+# >:]
+
+# name  = browser.cmd.switch
+# descr = swap foreground and background browser views
+
+<browser.fade.reply_ids> //= [];
+push( @{<browser.fade.reply_ids>}, $$call{'reply_id'} );
+<browser.fade.reply_msg>  = 'switch completed';
+<browser.fade.reply_mode> = 'ack';
+
+<[browser.swap_views]>;
+
+return { 'mode' => 'later' }
