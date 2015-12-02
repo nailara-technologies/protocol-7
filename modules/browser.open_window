@@ -1,0 +1,81 @@
+# >:]
+
+# name = browser.open_window
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+my ( $size_x, $size_y, $pos_x, $pos_y )
+    = ( $1, $2, sprintf( "%.0f", $4 ), sprintf( "%.0f", $5 ) )
+    if defined <browser.geometry>
+    and <browser.geometry> =~ /^(\d+)x(\d+)(([\-\+]\d+)([\-\+]\d+))?$/;
+
+<browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
+<browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
+
+Gtk3->init;
+
+my $window = Gtk3::Window->new('toplevel');
+<browser.gtk_obj.window> = $window;
+if ( defined <browser.cfg.change_cursor> ) {
+    my $cursor = Gtk3::Gdk::Cursor->new(<browser.cfg.change_cursor>);
+    $window->get_root_window->set_cursor($cursor);
+}
+$window->signal_connect( destroy => sub { Gtk3->main_quit() } );
+$window->set_title(<browser.window.title_str>);
+$window->move( $pos_x, $pos_y );
+$window->set_default_size( $size_x, $size_y );
+
+my $overlay = Gtk3::Overlay->new();
+<browser.gtk_obj.overlay> = $overlay;
+
+<browser.gtk_obj.css_prov> = Gtk3::CssProvider->new();
+<browser.gtk_obj.css_prov>->load_from_data(<<'EOT');
+.undershoot.top, .undershoot.right, .undershoot.bottom, .undershoot.left {
+    background-image: none;
+}
+EOT
+
+map { <[browser.init_view]>->($_) } ( 1, 2 );
+<browser.gtk_obj.overlay>
+    ->reorder_overlay( <browser.gtk_obj.scrolled_window>->{2}, 0 );
+
+<browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
+
+Event->unloop_all();
+
+<browser.event.loop_timeout> //= 0.042;
+
+Glib::Idle->add( $code{'browser.handler.glib_idle'} );
+
+$window->signal_connect(
+    'size_allocate',
+    sub {
+        my $self = shift;
+        my ( $w, $h ) = $self->get_size();
+
+        <browser.window.size> = { 'x' => $w, 'y' => $h };
+
+        my $zoom_level
+            = sprintf( "%.3f", <browser.zoom_level> * <browser.zoom_factor> );
+
+        foreach my $id ( 1 .. 2 ) {
+            my $scrw = <browser.gtk_obj.scrolled_window>->{$id};
+            my $view = <browser.gtk_obj.view>->{$id};
+
+            $scrw->size_allocate( { 'width' => $w, 'height' => $h } );
+            $view->size_allocate( { 'width' => $w, 'height' => $h } );
+
+            $view->set_zoom_level($zoom_level);
+        }
+
+        return 0;
+    }
+);
+
+$window->add($overlay);
+
+$window->show_all();
+
+<[base.get_session_id]>;
+
+Gtk3->main;

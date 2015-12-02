@@ -1,0 +1,129 @@
+# >:]
+
+# name = browser.init_view
+
+my $id = shift;
+
+my $filter_events = 1;
+
+%{<browser.blocked_event_types>} = map { $_ => 1 } qw(
+    scroll
+    key-press
+    key-release
+    button-press
+    2button-press
+    3button-press
+    motion-notify
+    button-release
+    script-alert
+    script-prompt
+    script-confirm
+    run-file-chooser
+);
+
+delete @{<browser.blocked_event_types>}{'scroll'}
+    if <browser.cfg.user_can_scroll>;
+
+delete @{<browser.blocked_event_types>}{qw(key-press key-release)}
+    if <browser.cfg.allow_text_edit>;
+
+delete @{<browser.blocked_event_types>}{qw(button-press button-release)}
+    if <browser.cfg.links_clickable>;
+
+my $overlay = <browser.gtk_obj.overlay>;
+
+my $scrolled_window = Browser::ScrolledWindow->new;
+
+#my $scrolled_window = Gtk3::ScrolledWindow->new;
+#$scrolled_window->set_policy( 'always', 'always' );
+
+my $style_context = $scrolled_window->get_style_context();
+$style_context->add_provider( <browser.gtk_obj.css_prov>, -1 );
+
+my $view = Browser::WebView->new();
+
+<browser.view_index>->{$view} = $id;
+
+$view->signal_connect( # filtering all events according to blocklist setup above
+    'event',
+    sub {
+        my $v    = shift;
+        my $evt  = shift;
+        my $type = $evt->type();
+        return 1 if exists <browser.blocked_event_types>->{$type};    # block
+             # print "\n [ event : $type ]\n\n";
+        if ( index( $type, 'key' ) == 0 )
+        {    # block key presses outside input fields
+            return 1 if !$v->can_paste_clipboard();
+            $v->delete_selection() if $v->can_copy_clipboard();
+        }
+        return 0;    # allow the rest
+    }
+) if $filter_events;
+
+$view->signal_connect(
+    'console-message' => sub {
+        my $view     = shift;
+        my $message  = shift;
+        my $view_uri = $view->get_uri;
+        <[base.log]>->( 2, "CONSOLE_MESSAGE('$view_uri'): '$message'" );
+        return 1;
+    }
+);
+
+$view->signal_connect(
+    'size_allocate',
+    sub {
+        my $view          = shift;
+        my $view_index    = <browser.view_index>->{$view};
+        my $scrw          = <browser.gtk_obj.scrolled_window>->{$view_index};
+        my $hadj          = $scrw->get_hadjustment();
+        my $vadj          = $scrw->get_vadjustment();
+        my $page_width    = $hadj->get_upper();
+        my $page_height   = $vadj->get_upper();
+        my $window_height = <browser.window.size.y>;
+        my $is_scrollable = $page_height > $window_height ? 1 : 0;
+        <browser.window>->{$view_index}->{'scrollable'} = $is_scrollable;
+        return 0;
+    }
+);
+
+<browser.signal_id.load_progress>
+    = $view->signal_connect( 'load-progress-changed',
+    $code{'browser.handler.progress_changed'} )
+    if <browser.cfg.show_progress_bar> and $id == 2;
+
+$scrolled_window->set_policy( 'never', 'never' );
+
+my $user_scrolling = <browser.cfg.user_can_scroll>;
+$scrolled_window->set_kinetic_scrolling($user_scrolling);
+
+$view->set_zoom_level( <browser.zoom_level> * <browser.zoom_factor> );
+$view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
+
+$view->set_editable(0);
+$view->can_go_back_or_forward(0);
+$view->set_maintains_back_forward_list(0);
+
+<[browser.set_properties]>->($view);
+
+$view->set_property( 'editable', 0 );
+
+# my $viewport = Gtk3::Viewport->new();
+# $viewport->set_hexpand(1);
+# $viewport->set_vexpand(1);
+
+$scrolled_window->set_hexpand(1);
+$scrolled_window->set_vexpand(1);
+
+$scrolled_window->set_size_request( -1, -1 );
+
+# $viewport->add($view);
+# $scrolled_window->add($viewport);
+$scrolled_window->add($view);
+
+$overlay->add_overlay($scrolled_window);
+
+# <browser.gtk_obj.viewport>->{$id}        = $viewport;
+<browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
+<browser.gtk_obj.view>->{$id}            = $view;

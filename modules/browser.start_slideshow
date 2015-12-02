@@ -1,0 +1,20 @@
+# >:]
+
+# name  = browser.start_slideshow
+
+<browser.url.list> //= [];
+
+<browser.slideshow.min_delay> //= 5;
+
+my $url_ref   = <browser.url.list>;
+my $url_count = scalar @{$url_ref};
+
+<[base.log]>->( 0, 'start_slideshow: slideshow is already running!' )
+    if <browser.slideshow.running>;
+
+<[base.log]>->( 0, 'start_slideshow: url list is emtpy, slideshow aborted!' )
+    if !$url_count;
+
+<browser.slideshow.running> = 1;
+<[browser.handler.slideshow]>;
+
