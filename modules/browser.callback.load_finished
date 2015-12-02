@@ -1,0 +1,17 @@
+# >:]
+
+# name = browser.callback.load_finished
+
+my $fg_index = <browser.overlay.index.fg>;
+
+if (    <browser.slideshow.running>
+    and !<browser.cfg.no_scroll>
+    and <browser.window>->{$fg_index}->{'scrollable'}
+    and !<window.scrolling> ) {
+    <[browser.scroll_start]>->('fg');
+} else {
+    if (<browser.slideshow.running>) {
+        <browser.slideshow.status> = 'load_finished';
+        <[browser.handler.slideshow]>;
+    }
+}
