@@ -41,11 +41,37 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     <x11.geometry> = $1;
     <[base.log]>->( 1, "received window geometry.. [$1]" );
     return <x11.geometry>;
+}
+
+# else [no layout agent present or no geometry for current agent configured]
+<[base.log]>->( 0, "unexpected reply from layout agent ['$reply_string']" );
+
+# use full X server geometry as window geometry...
+$cmd_id = <[base.gen_id]>->( $data{'route'} );
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.get_screen_size\n" );
+
+$matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    if ( !$matched_reply ) {
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
+            if uc($2) ne $2;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+    ( my $size_str = $1 ) =~ s| |x|;
+    <x11.geometry> = "$size_str+0+0";
+    <[base.log]>->( 1, "using xserver screen size as geometry [$size_str]" );
+    return <x11.geometry>;
 } else {
-    <[base.log]>->(
-        0,
-        "protocol error (unexpected reply from layout agent)"
-            . " ['$reply_string']"
-    );
+    <[base.log]>
+        ->( 0, "unexpected reply from xserver agent ['$reply_string']" );
+    <[base.log]>->( 0, "[!] failed to obtain a suitable window geometry" );
     return undef;
 }
