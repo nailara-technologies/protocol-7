@@ -22,8 +22,7 @@ if ( $response->code == 200 ) {
 
     <[base.log]>->( 2, ": got fresh RSS content..." );
 
-    my $response_string = $response->decoded_content;
-    utf8::downgrade($response_string);
+    my $response_string = $response->content();
 
     my $feed = <rss.parser>->parse_string($response_string);
     die <rss.parser>->errstr if not defined $feed;
