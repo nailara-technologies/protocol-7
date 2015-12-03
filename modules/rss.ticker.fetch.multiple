@@ -34,10 +34,11 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $feed;
         my @txt_data;
         <[base.log]>->( 2, ": got fresh RSS content..." );
-        my $response_string = $response->decoded_content;
-        utf8::downgrade($response_string);
+
+        my $response_string = $response->content();
 
         eval { $feed = <rss.parser>->parse_string($response_string); };
+
         if ( not defined $feed or !length($feed) or $@ ) {
             ( my $err_str = <rss.parser>->errstr || $@ ) =~ s|\n| |g;
             $err_str =~ s| +$||;
