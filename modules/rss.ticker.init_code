@@ -13,8 +13,8 @@ die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
     if !-d <rss.data.tmp_path>;
 
 use XML::RSS::TimingBot;
-use XML::RSS::Parser;
 use File::Copy;
+use XML::Feed;
 
 ( my $db_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
 if ( -d $db_dir ) {
@@ -23,7 +23,6 @@ if ( -d $db_dir ) {
 }
 
 <rss.browser> = XML::RSS::TimingBot->new;
-<rss.parser>  = XML::RSS::Parser->new;
 <rss.browser>->agent(<rss.ticker.user_agent>);
 <rss.browser>->timeout(<rss.ticker.request_timeout>);
 
