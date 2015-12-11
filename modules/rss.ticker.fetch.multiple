@@ -31,35 +31,28 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$rss_index};
     my $response = <rss.browser>->get($rss_url);
     if ( $response->code == 200 ) {
-        my $feed;
-        my @txt_data;
+
         <[base.log]>->( 2, ": got fresh RSS content..." );
 
-        my $response_string = $response->content();
+        my $response_content
+            = $response->decoded_content( 'charset' => 'none' );
 
-        eval { $feed = <rss.parser>->parse_string($response_string); };
+        my $err_str;
+        my @txt_data;
+        my $feed = XML::Feed->parse( \$response_content )
+            or $err_str = XML::Feed->errstr;
 
-        if ( not defined $feed or !length($feed) or $@ ) {
-            ( my $err_str = <rss.parser>->errstr || $@ ) =~ s|\n| |g;
-            $err_str =~ s| +$||;
+        if ( defined $err_str ) {
             <[base.log]>->(
-                0, "[!] parser error on URL $rss_index [ $err_str ]"
+                0, "[!] feed parser error on URL $rss_index [ $err_str ]"
             );
-            @txt_data = ("[!] error at parsing RSS URL #$rss_index [!]");
+            @txt_data = ("[!] failed to parse feed #$rss_index [!]");
         } else {
             eval {
-                foreach my $item ( $feed->query('//item') ) {
-                    my $node = $item->query('title');
-                    my $line = $node->text_content;
-                    push( @txt_data, $line );
+                foreach my $entry ( $feed->entries ) {
+                    push( @txt_data, $entry->title );
                 }
             };
-            if ($@) {
-                <[base.log]>->(
-                    0, "error while parsing rss URL $rss_index content [$@]"
-                );
-                @txt_data = ("[!] error at parsing RSS URL #$rss_index [!]");
-            }
         }
         my $url_hash = <[digest.sha1]>->($rss_url);
         if ( !-d $data_dir ) {
@@ -74,15 +67,6 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
             print {$txt_fh} join( "\n", @txt_data ) . "\n";
         }
         close($txt_fh);
-
-        ### QUICKFIX ENCODING ! ###
-
-      #        if ( qx(file $url_data_file) =~ /8859/ ) {
-      #            my $new_txt = qx(iconv -f iso8859-1 -t utf-8 $url_data_file);
-      #            <[file.put]>->( $url_data_file, $new_txt );
-      #        }
-
-        ###########################
 
         $got_updates++;
         <[base.log]>->( 2, ": : wrote txt data to '$url_data_file'" );

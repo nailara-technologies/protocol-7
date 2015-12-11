@@ -13,7 +13,7 @@ cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
       X11::Protocol X11::Protocol::WM X11::Tops \
       FreezeThaw \
-      XML::RSS::TimingBot XML::RSS::Parser \
+      XML::RSS::TimingBot \
       SDL \
       Crypt::Twofish2 \
       HTTP::Request \
