@@ -22,16 +22,22 @@ if ( $response->code == 200 ) {
 
     <[base.log]>->( 2, ": got fresh RSS content..." );
 
-    my $response_string = $response->content();
+    my $response_content = $response->decoded_content( 'charset' => 'none' );
 
-    my $feed = <rss.parser>->parse_string($response_string);
-    die <rss.parser>->errstr if not defined $feed;
-
+    my $err_str;
     my @txt_data;
-    foreach my $item ( $feed->query('//item') ) {
-        my $node = $item->query('title');
-        my $line = $node->text_content;
-        push( @txt_data, $line );
+    my $feed = XML::Feed->parse( \$response_content )
+        or $err_str = XML::Feed->errstr;
+
+    if ( defined $err_str ) {
+        <[base.log]>->( 0, "[!] feed parser error [ $err_str ]" );
+        @txt_data = ("[!] rss feed parsing error [!]");
+    } else {
+        eval {
+            foreach my $entry ( $feed->entries ) {
+                push( @txt_data, $entry->title );
+            }
+        };
     }
 
     if ( !-d $data_dir ) {
