@@ -10,13 +10,14 @@ use Archive::Tar;
 use LWP::UserAgent;
 use File::Path qw(make_path);
 
-my $impressive_version = '0.11.0b';
+my $impressive_version = '0.11.1';
 
 print "\n :\n : installing impressive version $impressive_version ..\n";
 
 my @download_urls = (
     'http://sourceforge.net/projects/impressive/files/'
-        . "Impressive/0.11.0/Impressive-$impressive_version.tar.gz/download",
+        . "Impressive/$impressive_version/"
+        . "Impressive-$impressive_version.tar.gz/download",
     "http://mirror.nailara.net/impressive/Impressive-$impressive_version.tar.gz"
 );
 
@@ -25,10 +26,10 @@ my $paths = {
     'install_dir' => '/usr/local/impressive'
 };
 
-my $file_sizes = { 'archive' => 195138, 'impressive.py' => 244069 }; # v_0.11.0b
+my $file_sizes = { 'archive' => 195743, 'impressive.py' => 244877 };  # v_0.11.1
 my $sha1_checksums = {
-    'archive'       => 'dfc677b716c6d225a9aafcacb5c4a0c1ac8cce67',
-    'impressive.py' => '2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1'
+    'archive'       => '0f47caec3abd0398814550cabfb78ecca8b5eb85',
+    'impressive.py' => 'b35f9bdc5c702cb8865bfc618fc0fd497566af88'
 };
 
 my $target_path = $paths->{'install_dir'} . '/bin/impressive';
