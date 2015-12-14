@@ -30,6 +30,16 @@ my $error_img;
 $error_img = encode_base64($error_img);
 
 $file_content =~ s|\\\n\s*||sg;
+
+if ([ stat($impr_src) ]->[7] == 244069  # check for problematic impressive vers.
+    and qx(sha1sum $impr_src) =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/
+    ) {                                 # v_0.11.0b
+    <[base.log]>->(
+        0, "<!> please update impressive version! [donwload_impressive.pl]"
+    );
+    $file_content =~ s|tostring\(|tobytes\(|mg;  # workaround (impressive crash)
+}
+
 $file_content =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg;
 $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s;
 
