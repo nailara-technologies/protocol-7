@@ -14,6 +14,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty url list!" );
     @{<browser.url.list>} = ();
+    <browser.slideshow.running> = 0;
 
     # XXX: parse/insert 'empty playlist'-page?
     <[browser.clear_views]>;
@@ -62,6 +63,7 @@ foreach my $entry (@url_list) {
         );
         <browser.url.list_reply>->[$index]
             = '!' . <browser.url.list_reply>->[$index];
+
     } elsif ( $type_list{$entry} eq 'image' ) {
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => "core.image2html.get_url",
@@ -74,13 +76,12 @@ foreach my $entry (@url_list) {
         );
         <browser.url.list_reply>->[$index]
             = '!' . <browser.url.list_reply>->[$index];
+
     } else {
         push( @{<browser.url.list>}, $entry );
     }
     $index++;
 }
-
-delete <browser.url.list_reply>;
 
 if (    @{<browser.url.list>}
     and <browser.slideshow.autostart>
