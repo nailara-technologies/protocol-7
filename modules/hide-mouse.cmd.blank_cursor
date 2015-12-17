@@ -5,12 +5,14 @@
 
 $ENV{'DISPLAY'} = <x11.display>;
 
-Gtk3->init;
+system( 'xdotool', 'mousemove', '0', '0' ) if <hide-mouse.cfg.mouse_move>;
 
-Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
+Gtk3->init;
 
 my $cursor = Gtk3::Gdk::Cursor->new('blank-cursor');
 my $screen = Gtk3::Gdk::Screen::get_default();
+
+Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
 
 <[base.log]>->( 1, 'blanking mouse cursor..' );
 
