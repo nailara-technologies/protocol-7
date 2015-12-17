@@ -6,7 +6,7 @@
 .: globals :.
 
   agents.enabled = core config log # system ssh udev
-                 # xserver unclutter openbox compton layout playlist
+                 # xserver openbox compton layout playlist
 
 .: agents :.
 
@@ -122,6 +122,23 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+  - hide-mouse
+
+      dependencies = xserver
+      spawn.on-demand  = 1
+      ping.disabled    = 1
+      respawn.disabled = 1
+
+      : root-init :
+        start_mode = exec-sic
+        command_line_modules = Gtk3
+        core.key = [base.rnd_chars_noblock_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+        [base.agents.set_ondemand_timeout:1]
+
   - unclutter
 
       dependencies = core xserver
@@ -137,7 +154,7 @@
 
   - openbox
 
-      dependencies = core xserver unclutter
+      dependencies = core xserver
       max_concurrency = 1
 
       : root-init :
