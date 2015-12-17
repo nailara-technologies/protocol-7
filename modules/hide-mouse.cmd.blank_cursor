@@ -1,0 +1,21 @@
+# >:]
+
+# name  = hide-mouse.cmd.blank_cursor
+# descr = make X11 mouse cursor invisible
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+Gtk3->init;
+
+Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
+
+my $cursor = Gtk3::Gdk::Cursor->new('blank-cursor');
+my $screen = Gtk3::Gdk::Screen::get_default();
+
+<[base.log]>->( 1, 'blanking mouse cursor..' );
+
+$screen->get_root_window->set_cursor($cursor);
+
+Gtk3->main;
+
+return { 'mode' => 'ack', 'data' => 'cursor has been hidden' }
