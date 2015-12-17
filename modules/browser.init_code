@@ -6,11 +6,6 @@ use Gtk3;
 use Gtk3::WebKit;
 use HTTP::Soup;
 
-$ENV{'GTK_OVERLAY_SCROLLING'}
-    = ( <browser.cfg.allow_scrollbars> && <browser.cfg.overlay_scrolling> )
-    ? 1
-    : 0;
-
 package Browser::ScrolledWindow;
 
 use Glib::Object::Subclass 'Gtk3::ScrolledWindow',;
@@ -61,6 +56,7 @@ my $sn_str
 <browser.cfg.allow_text_edit>    //= 0;
 <browser.cfg.allow_scrollbars>   //= 0;
 <browser.cfg.overlay_scrolling>  //= 1;
+<browser.cfg.force_overlay>      //= 0;
 <browser.cfg.show_progress_bar>  //= 1;
 <browser.cfg.javascript_enabled> //= 1;
 <browser.cfg.plugins_enabled>    //= 0;
@@ -70,6 +66,14 @@ my $sn_str
 <browser.slideshow.err_delay>    //= 2;
 
 map { <browser.page>->{$_}->{'scrollable'} //= 0 } ( 1, 2 );
+
+$ENV{'GTK_OVERLAY_SCROLLING'}
+    = (
+           <browser.cfg.force_overlay>
+        or <browser.cfg.allow_scrollbars> && <browser.cfg.overlay_scrolling>
+    )
+    ? 1
+    : 0;
 
 <browser.html_ref.loading_page> = <[file.slurp]>->(<browser.loading_page>);
 
