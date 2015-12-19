@@ -41,11 +41,15 @@ if ( <browser.slideshow.status> eq 'load' ) {
     $delay -= <browser.slideshow.swap_delay>
         if <browser.slideshow.status> eq 'scroll_finished';
     $delay = 0 if $delay < 0;
-    <browser.slideshow.status> = 'load';
-
-    <browser.timer.slideshow> = <[event.add_timer]>->(
-        {   'after'   => $delay,
-            'handler' => 'browser.handler.slideshow'
-        }
-    );
+    if ( !<browser.slideshow.no_switch> ) {
+        <browser.slideshow.status> = 'load';
+        <browser.timer.slideshow>  = <[event.add_timer]>->(
+            {   'after'   => $delay,
+                'handler' => 'browser.handler.slideshow'
+            }
+        );
+    } else {
+        <browser.slideshow.running> = 0;
+        <[base.log]>->( 1, "slideshow stopped [no_switch is enabled]" );
+    }
 }
