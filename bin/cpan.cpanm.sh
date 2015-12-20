@@ -4,7 +4,7 @@
 
 cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Term::ReadPassword Term::ReadKey Term::ReadLine::Perl \
-      Crypt::OpenSSL::Random Proc::ProcessTable \
+      Proc::ProcessTable \
       LWPx::ParanoidAgent \
       Sys::Filesystem \
       Crypt::CBC \
@@ -15,6 +15,7 @@ cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       FreezeThaw \
       XML::RSS::TimingBot \
       SDL \
+      Crypt::PRNG::Fortuna \
       Crypt::Twofish2 \
       HTTP::Request \
       Gtk3::WebKit \
