@@ -22,7 +22,7 @@ my ($root_sid) = keys %{ $data{'session'} };
 $instance_data->{'root_sid'} = $root_sid;
 
 # send instance verification request
-my $verification_str = <[base.rnd_chars_noblock_hex]>->(8);
+my $verification_str = <[base.rnd_chars_hex]>->(8);
 $instance_data->{'instance_verification'} = $verification_str;
 
 <[base.proto.nailara.command.send.local]>->(
