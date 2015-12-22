@@ -33,7 +33,7 @@ mpv.autorescale = 0  # rescale video automatically in the background (ffmpeg)
 
 mpv.rescale_max_width = 800 # limit ffmpeg reencoding video size
 
-mpv.vo_backend = sdl # [vdpau|vaapi|sdl...] ( see mpv -vo help )
+mpv.vo_backend = x11 # [vdpau|vaapi|sdl...] ( see mpv -vo help )
 
 mpv.fade_start_geom = 1x1--0--0
 #mpv.fade_start_geom = 31x31--0--0 # use this if above geometry fails at startup
@@ -46,7 +46,7 @@ mpv.params = --idle --force-window --keep-open=always --loop=inf \
 [config.json.import_file:'mpv.config.json'] # .. from /etc/nailara/import/ ..
 
 [mpv.open_player]
-[base.x11.keep_below:<x11.id>]
+# [base.x11.keep_below:<x11.id>]
 [mpv.send_command:"observe_property",1,"video-aspect"]
 [mpv.send_command:"observe_property",1,"path"]
 [mpv.send_command:"observe_property",1,"width"]
