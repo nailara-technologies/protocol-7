@@ -12,13 +12,38 @@ die "expected numerical opacity from 0 to 100"
 
 <[base.log]>->( 2, "setting window '$id' opacity to $opacity% .." );
 
-$opacity = ( $opacity * 0xffffffff / 100 ) if $opacity;
+my ($sid) = keys( %{ $data{'user'}{'core'}{'session'} } );
 
-my $err_code
-    = system( 'xprop', '-id', $id, '-f', '_NET_WM_WINDOW_OPACITY',
-    '32c', '-set', '_NET_WM_WINDOW_OPACITY', $opacity );
+if ( defined $data{'session'}->{$sid}->{'core_sid'} ) {    # status 'online'
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.xserver.set_opacity',
+            'call_args' => { 'args' => "$id $opacity" },
+            'reply'     => { 'handler' => 'dev.null' }
+        }
+    );
+    return 1;
+}
 
-warn "[!] failed to set window opacity (xprop: $!)"
-    if $err_code and <system.verbosity> > 1;
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)xserver.set_opacity $id $opacity\n" );
 
-return $err_code;
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!" if not defined $reply_string;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(N?ACK) /;
+    if ( !$matched_reply ) {
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
+            if uc($2) ne $2;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)NACK (.+)$/ ) {
+    <[base.log]>->( 0, "set_opacity command failed with '$1'.." );
+    return 0;
+} else {
+    return 1;
+}
