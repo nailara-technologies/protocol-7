@@ -48,6 +48,6 @@ foreach my $icon_file (@icon_paths) {
 foreach my $name (<[weather.parent.page_list]>) {
     my $html_file_path = "$html_dir/$name.html";
     next if -f $html_file_path;
-    <[base.log]>->( 1, ": writing '$name.html'.." );
+    <[base.log]>->( 1, ": creating '$name.html'.." );
     <[weather.parent.write_updating_page]>->($html_file_path);
 }
