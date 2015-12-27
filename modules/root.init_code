@@ -11,6 +11,12 @@ use Proc::ProcessTable;
 
 <root.cfg_data.spawn_config> //= [];
 
+map { <[base.disable_command]>->($_) } qw(
+    verify_instance
+    switch_user
+    get_subname
+);
+
 <[root.load_spawn_config]>->(<load.spawn_config>)
     if defined <load.spawn_config>;
 
