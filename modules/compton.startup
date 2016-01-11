@@ -10,9 +10,10 @@ my $display = <x11.display>;
 my $vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe';
 $vsync_options = '--paint-on-overlay --dbe' if <x11.driver> eq 'nvidia';
 
-<compton.pid> = open2(
-    <compton.out_fh>,
+<compton.pid> = open3(
     <compton.in_fh>,
+    <compton.out_fh>,
+    my $err_fh_dummy,
     split(
         / +/,
         join( ' ',
@@ -36,7 +37,7 @@ if ( !<compton.pid> ) {
         'handler' => 'base.handler.child_output.simple',
         'data'    => {
             'bin' => 'compton',
-            'pid' => <compton.pid>,
+            'pid' => <compton.pid>
         }
     }
 );
