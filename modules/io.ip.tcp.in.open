@@ -15,7 +15,7 @@ if ( not defined $lsock ) { return undef }
 else {
     $lsock->listen()
         or <[base.log]>->( 0, "tcp.server: listen: $!" );
-    <[base.log]>->( 1, "tcp server [$_[0]:$_[1]] launched." );
+    <[base.log]>->( 1, "TCP server launched [$_[0]:$_[1]]" );
 
     if ( defined $data{'handle'}{$lsock} ) {
         <[base.log]>->(
