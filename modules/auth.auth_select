@@ -19,6 +19,9 @@ if ($ok) {
         $data{'session'}{$id}{'handle'},
         "NACK no such auth method available, see 'AUTH list'\n"
     );
-    <[base.log]>->( 0, "[$id] unknown auth method requested" );
+    my $m_len = 23;
+    substr( $method, $m_len - 3, length($method) - $m_len + 3, '...' )
+        if length($method) > $m_len;
+    <[base.log]>->( 0, "[$id] unsupported auth method requested [$method]" );
     return 0;
 }
