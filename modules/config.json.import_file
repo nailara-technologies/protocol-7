@@ -56,10 +56,10 @@ foreach my $key_name ( keys %key_count ) {
 my $import_path = "$import_dir/$filename";
 
 return
-    <[base.log]>->( 2, "no json config [$filename] present, skipping import.." )
+    <[base.log]>->( 2, "json config [$filename] not found, skipping import.." )
     if !-f $import_path;
 
-<[base.log]>->( 1, "importing json config file '$filename'.." );
+<[base.log]>->( 1, "importing json cfg '$filename'.." );
 
 my $json_data;
 <[file.slurp]>->( $import_path, \$json_data );
