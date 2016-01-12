@@ -13,6 +13,8 @@ $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 #<system.internal_verbosity> = 3;
 #<system.verbosity>          = 3;
 
+<ticker.use_transparency> //= 1;
+
 <ticker.child.pid> = fork;
 if ( !<ticker.child.pid> ) {    # child
     close($child_pipe);
@@ -34,8 +36,6 @@ if ( !<ticker.child.pid> ) {    # child
     <[base.load_modules]>->('ticker.sdl');
     <[base.init_modules]>->('ticker.sdl');
 
-    #    delete $data{'buffer'};
-
     <[ticker.sdl.display_init]>;
 
     <ticker.window_id> = <[base.x11.wait_for_window]>->(
@@ -49,7 +49,17 @@ if ( !<ticker.child.pid> ) {    # child
         exit(2);    # XXX: deal with parent? (test SIGCHLD handler!)
     }
 
-    <[ticker.sdl.raise_and_fade]>;
+    if ( !<ticker.use_transparency> ) {
+        <[base.x11.raise_window]>->( <ticker.window_id>, 'parent', 'core' );
+        <[base.x11.keep_above]>->(<ticker.window_id>);
+        <ticker.window.raised> = 1;
+        unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+            SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+                <sdl.display_height> );
+        }
+    } else {
+        <[ticker.sdl.raise_and_fade]>;
+    }
 
 } else {    # parent
 
