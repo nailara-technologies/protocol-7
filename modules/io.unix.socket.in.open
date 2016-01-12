@@ -28,7 +28,7 @@ my $unix_sock = IO::Socket::UNIX->new(
 push( @{<unix.socket_paths>}, $socket_path );
 chmod( $socket_umask, $socket_path ) or die "io.unix.socket.in.open: chmod: $!";
 
-<[base.log]>->( 1, "server [unix:$socket_path] launched." );
+<[base.log]>->( 1, "UNX server launched [unix:$socket_path]" );
 
 if ( defined $data{'handle'}{$unix_sock} ) {
     <[base.log]>->(

@@ -1,6 +1,6 @@
 # >:]
 
-# name       = io.unix.socket.out.open
+# name = io.unix.socket.out.open
 
 my $socket_file = $_[0];
 
@@ -18,13 +18,13 @@ my $return_socket = IO::Socket::UNIX->new(
 if (    defined $return_socket
     and -S $return_socket
     and $return_socket->connected ) {
-    <[base.log]>->( 1, "connection [unix:$socket_file] established." );
+    <[base.log]>->( 1, "connected to unix socket [$socket_file]" );
 
     $data{'handle'}{$return_socket}{'link'} = 'unix';
     $data{'handle'}{$return_socket}{'mode'} = 'out';
 
     return $return_socket;
 } else {
-    <[base.log]>->( 0, "[!] can not connect to [unix:$socket_file]: $!" );
+    <[base.log]>->( 0, "[!] can't connect to unix socket [$socket_file]: $!" );
     return 0;
 }
