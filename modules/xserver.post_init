@@ -119,9 +119,10 @@ if ($ok) {
 
     <[xserver.xrandr.rotate]>->(<xserver.orientation>);
 
-    if ( exists <xserver.disable_blanking>
-        and <xserver.disable_blanking> eq 'yes'
-        or <xserver.disable_blanking> eq '1' ) {
+    if (defined <xserver.disable_blanking>
+        and (  <xserver.disable_blanking> eq 'yes'
+            or <xserver.disable_blanking> eq '1' )
+        ) {
         <[base.log]>->( 1, ": deactivating screen blanking ..." );
         qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
         die "failed to execute xset: $!" if $@;
@@ -139,8 +140,13 @@ if ($ok) {
     CORE::exit(3);
 }
 
+<xserver.keep_background> //= 0;
+if (<xserver.keep_background>) {    # <- don't touch background image and color
+    <xserver.initialized> = 1;
+    return 0;
+}
+
 my @hsetroot_params;
-$bg_col //= '#ffffff';
 my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
 if ( defined $bg_image ) {
     if ( !-x $hsetroot_bin ) {
@@ -150,7 +156,7 @@ if ( defined $bg_image ) {
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
     @hsetroot_params = ( '-center', $bg_image ); # <- no -cover on arch linux ;|
-} elsif ( $bg_col =~ /^\#?[A-F]{6}$/ ) {
+} elsif ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
     $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
     if ( !-x $hsetroot_bin ) {
         <[base.log]>->( 0, "cant't set bg color: '$hsetroot_bin' not found!" );
