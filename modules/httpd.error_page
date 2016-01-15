@@ -15,7 +15,7 @@ return <[httpd.return_raw_html]>->(
     $id,
     $error_code,
     sprintf(
-        "<html>\n  <h1>%d %s.</h1>\n</html>\n",
+        "<html>\n  <body>\n    <h1>%d %s.</h1>\n  </body>\n</html>\n",
         $error_code, <proto.http.status_codes>->{$error_code}
     )
 );
