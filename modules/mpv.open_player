@@ -35,8 +35,6 @@ $mpv_params .= ' -fs'
 
 $mpv_params .= ' -vo ' . <mpv.vo_backend> if defined <mpv.vo_backend>;
 
-my $socket_path = "/tmp/.mpv.socket.$$";
-$mpv_params .= " --input-unix-socket $socket_path";
 if (    defined <mpv.geometry>
     and exists <x11.coordinates>
     and exists <mpv.autoresize>
@@ -49,6 +47,7 @@ if (    defined <mpv.geometry>
     $mpv_params .= " --autofit=${width}x${height} --no-keepaspect";
 }
 
+my $socket_path = "/tmp/.mpv.socket.$$";
 $mpv_params .= " --input-unix-socket $socket_path";
 
 my $mpv_title_param .= '--title="' . <system.agent.name>;
