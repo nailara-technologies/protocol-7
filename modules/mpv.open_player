@@ -76,8 +76,13 @@ if ( !<mpv.pid> ) {
 
 close( delete(<mpv.fh.stdin>) );
 
-<x11.window_timeout> = 7;
-<[base.x11.wait_for_window]>;
+<x11.window_timeout> //= 7;
+
+if ( not defined <[base.x11.wait_for_window]> ) {
+    <[base.log]>->( 0, "[!] mpv window creation timed out!" );
+    $abort_startup = 1;
+    goto abort;
+}
 
 my $max_retries = 42;
 while ( $max_retries-- ) {
@@ -103,6 +108,8 @@ if (   !$abort_startup and not defined <mpv.socket>
     <[base.log]>->( 0, "[!] mpv socket creation failed [opened handle valid]" );
     $abort_startup = 1;
 }
+
+abort:
 
 if ($abort_startup) {
     <[base.log]>->( 1, " : aborting agent startup .." );
@@ -158,3 +165,5 @@ if (<mpv.fade_in>) {
         'data'    => { 'pid' => <mpv.pid> }
     }
 );
+
+<[base.log]>->( 1, "player startup successful.." );
