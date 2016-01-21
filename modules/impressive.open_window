@@ -40,12 +40,13 @@ if ( opendir( my $tdir_fh, $temp_dir ) ) {
     warn "failed to open directory '$temp_dir': $!";
 }
 
-if ( !<impressive.pid> ) {
+if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     <[base.log]>->( 0, "[!] failed to start impressive [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {
     <[base.log]>->( 1, ": impressive process spawned [PID=<impressive.pid>]" );
+    <[base.x11.assign_window]>->(<x11.id>);
 }
 
 <impressive.watcher.output> = <[event.add_io]>->(

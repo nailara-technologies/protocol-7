@@ -43,6 +43,8 @@ if ([ stat($impr_src) ]->[7] == 244069  # check for problematic impressive vers.
     $file_content =~ s|tostring\(|tobytes\(|mg;  # workaround (impressive crash)
 }
 
+my $title_str = <system.agent.name> . '[' . <system.agent.subname> . ']';
+$file_content =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m;
 $file_content =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg;
 $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s;
 

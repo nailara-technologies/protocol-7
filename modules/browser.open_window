@@ -76,6 +76,11 @@ $window->add($overlay);
 
 $window->show_all();
 
-<[base.get_session_id]>;
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'prio'    => -1,
+        'handler' => 'browser.wait_for_window'
+    }
+);
 
 Gtk3->main;
