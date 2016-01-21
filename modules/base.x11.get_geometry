@@ -17,7 +17,7 @@ my $sn_str
     : '';
 
 my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
-<[base.log]>->( 1, "requesting window geometry$sn_log_str.." );
+<[base.log]>->( 1, "requesting geometry$sn_log_str" );
 
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
 <[net.out]>->( $core_fh, "($cmd_id)${cmd_path}layout.get_geometry$sn_str\n" );
