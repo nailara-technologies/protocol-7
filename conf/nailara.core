@@ -16,7 +16,8 @@ auth.rsa.key_file               =       rsa.core
 get.route                       =       file vortex.file :target:
 get.command                     =       file.get
 setup.aliases.source_agent      =       notify.message layout.get_coordinates \
-                                        layout.get_geometry root.shutdown
+                                        layout.get_geometry root.shutdown \
+                                        layout.assign_window
 setup.aliases.source_agent_sid  =       log.msg
 
 # access control
@@ -25,7 +26,7 @@ access.cmd.usr.*     =  clear help exit whoami time localtime \
                         xserver.get_display xserver.get_screen_size \
                         xserver.get_geometry xserver.get_stack_order \
                         xserver.get_orientation layout.get_coordinates \
-                        layout.get_geometry
+                        layout.get_geometry layout.assign_window
 
 access.cmd.usr.udev  =  notify.message   #   <- ( used in example rules config )
 
@@ -42,7 +43,7 @@ access.cmd.usr.compton = xserver.get_driver
 
 access.cmd.usr.ticker = xserver.wait_visible xserver.set_gravity \
                         xserver.raise_window xserver.keep_above \
-                        xserver.set_opacity
+                        xserver.set_opacity xserver.wait_visible
 
 access.cmd.usr.rss-ticker = ticker.read_file playlist.get_list
 
@@ -53,13 +54,14 @@ access.cmd.usr.browser = xserver.wait_visible xserver.lower_window \
 access.cmd.usr.layout = root.start root.stop root.restart ticker.get_opacity \
                         xserver.get_window_ids root.get_instance_ids *.ping \
                         browser.hide_bg_window playlist.update \
-                        xserver.set_opacity
+                        xserver.set_opacity xserver.get_stack_order \
+                        xserver.lower_window
 
 access.cmd.usr.mpv = playlist.get_list xserver.wait_visible xserver.keep_below \
                      xserver.set_geometry ffmpeg.rescale_video \
                      xserver.set_opacity
 
-access.cmd.usr.impressive = playlist.get_list
+access.cmd.usr.impressive = playlist.get_list xserver.wait_visible
 
 access.cmd.usr.playlist = *.playlist_update weather.get_urls notify.msg_reload
 
