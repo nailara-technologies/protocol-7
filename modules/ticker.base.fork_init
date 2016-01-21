@@ -13,7 +13,8 @@ $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 #<system.internal_verbosity> = 3;
 #<system.verbosity>          = 3;
 
-<ticker.use_transparency> //= 1;
+<ticker.use_transparency>  //= 1;
+<ticker.cfg.assign_window> //= 0;
 
 <ticker.child.pid> = fork;
 if ( !<ticker.child.pid> ) {    # child
@@ -38,15 +39,16 @@ if ( !<ticker.child.pid> ) {    # child
 
     <[ticker.sdl.display_init]>;
 
-    <ticker.window_id> = <[base.x11.wait_for_window]>->(
-        <system.agent.name> . '-' . $$,
-        'parent', 'core'
-    );
+    my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
+    <ticker.window_id>
+        = <[base.x11.wait_for_window]>->( $title_pattern, 'parent', 'core' );
     if ( not defined <ticker.window_id> ) {
         <[base.log]>->(
             0, "agent startup failure (ticker window did not open)"
         );
         exit(2);    # XXX: deal with parent? (test SIGCHLD handler!)
+    } elsif (<ticker.cfg.assign_window>) {
+        <[base.x11.assign_window]>->( <ticker.window_id>, 'parent' );
     }
 
     if ( !<ticker.use_transparency> ) {
@@ -60,7 +62,6 @@ if ( !<ticker.child.pid> ) {    # child
     } else {
         <[ticker.sdl.raise_and_fade]>;
     }
-
 } else {    # parent
 
     close($parent_pipe);

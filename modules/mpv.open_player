@@ -82,6 +82,8 @@ if ( not defined <[base.x11.wait_for_window]> ) {
     <[base.log]>->( 0, "[!] mpv window creation timed out!" );
     $abort_startup = 1;
     goto abort;
+} else {
+    <[base.x11.assign_window]>->(<x11.id>);
 }
 
 my $max_retries = 42;

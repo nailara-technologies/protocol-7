@@ -1,0 +1,70 @@
+# >:]
+
+# name  = layout.cmd.assign_window
+# param = <id> [tilename]
+# descr = report x11 window id for current agent
+
+my ( $source_name, $window_id, $tile_name ) = split( / +/, $$call{'args'}, 3 );
+$source_name =~ s|^.+\.||g;
+my $err_msg;
+
+$err_msg = 'core config error (source name parameter missing)'
+    if not defined $source_name;
+$err_msg = 'expected numerical window_id parameter'
+    if not defined $window_id or $window_id !~ /^\d+$/;
+if ( defined $err_msg ) {
+    my $source_str = defined $source_name ? "[$source_name]" : '';
+    <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
+    return {
+        'mode' => 'nack',
+        'data' => $err_msg
+    };
+}
+
+my $agent_name
+    = defined $tile_name ? "$source_name\[$tile_name]" : $source_name;
+
+if ( not defined $tile_name ) {
+    my $agent_count = 0;
+    map {
+        if ( $_ =~ /^$source_name\[/ ) {
+            $agent_count++;
+            $agent_name = $_;
+        }
+        }
+        keys %{<layout.window_ids>};
+    if ( $agent_count > 1 ) {
+        <[base.log]>->(
+            0, "assign_window: multiple '$source_name' agents! [no tile name]"
+        );
+        return {
+            'mode' => 'nack',
+            'data' =>
+                'multiple agents with that name (and no tile name provided)'
+        };
+    }
+}
+
+if (exists <layout.window_ids>->{$agent_name}
+
+    #    and not defined <layout.window_ids>->{$agent_name}
+    ) {
+    <layout.window_ids>->{$agent_name} = $window_id;    # XXX: check if exists!
+
+    <[base.log]>->( 1, "assigned window id $window_id to '$agent_name'" );
+
+    <[layout.sort_layers]>;
+
+    return {
+        'mode' => 'ack',
+        'data' => 'assigned'
+        }
+
+} else {
+
+    # XXX: refine message (reason)
+    return {
+        'mode' => 'nack',
+        'data' => 'failed to assign!'
+    };
+}

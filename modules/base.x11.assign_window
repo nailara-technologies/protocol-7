@@ -1,0 +1,20 @@
+# >:]
+
+# name = base.x11.assign_window
+
+my $window_id = shift // <x11.id>;
+my $route     = shift;
+my $tile_name = <system.agent.subname>;
+my $tile_str  = defined $tile_name ? " for '$tile_name'" : '';
+my $log_msg   = "reporting window id $window_id$tile_str..";
+my @args      = $window_id;
+push( @args, $tile_name ) if defined $tile_name;
+$route .= '.' if defined $route;
+$route //= '';
+<[base.log]>->( 1, $log_msg );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $route . "core.layout.assign_window",
+        'call_args' => { 'args' => join( ' ', @args ) },
+        'reply' => { 'handler' => 'dev.null' }
+    }
+);
