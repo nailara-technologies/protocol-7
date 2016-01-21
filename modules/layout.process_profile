@@ -62,6 +62,10 @@ if (<layout.startup>) {
     } @remove_agents;
 }
 
+<layout.coordinates> = {};
+<layout.window_ids>  = {};
+<layout.layers>      = {};
+
 foreach my $agent_name ( keys %{$profile_data} ) {
     next
         if !<layout.startup>
@@ -73,6 +77,12 @@ foreach my $agent_name ( keys %{$profile_data} ) {
 
     <layout.coordinates>->{$agent_name}
         = <[layout.calculate_coordinates]>->( $profile_data->{$agent_name} );
+
+    <layout.layers>->{$agent_name} = $profile_data->{$agent_name}->{'layer'}
+        if defined $profile_data->{$agent_name}->{'layer'}
+        and $profile_data->{$agent_name}->{'layer'} =~ /^\-?\d+$/;
+    <layout.layers>->{$agent_name} //= 0;
+    <layout.window_ids>->{$agent_name} = undef;
 
     <[layout.handler.agent_transition]>->(
         {   'action'       => 'start',

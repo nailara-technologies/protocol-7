@@ -1,0 +1,10 @@
+# >:]
+
+# name = browser.wait_for_window
+
+unless (<[base.x11.wait_for_window]>) {
+    <[base.log]>->( 0, "[!] window failed to open, aborting agent startup.." );
+    exit(2);
+}
+<[base.x11.assign_window]>;
+<[base.get_session_id]>;
