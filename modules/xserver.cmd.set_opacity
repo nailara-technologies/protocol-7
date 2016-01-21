@@ -34,12 +34,17 @@ return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
 
 <[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
 
-$X->ChangeProperty( $window_id, <xserver.atom.opacity>,
-    <xserver.const.cardinal>, 32, 'Replace',
-    pack( 'I*', sprintf( "%.0f", 0xffffffff * $opacity / 100 ) ) );
+eval {
+    $X->ChangeProperty( $window_id, <xserver.atom.opacity>,
+        <xserver.const.cardinal>, 32, 'Replace',
+        pack( 'I*', sprintf( "%.0f", 0xffffffff * $opacity / 100 ) ) );
 
-$X->GetProperty( $window_id, <xserver.atom.opacity>,
-    X11::AtomConstants::CARDINAL(),
-    0, 1, 0 );
+    $X->GetProperty( $window_id, <xserver.atom.opacity>,
+        X11::AtomConstants::CARDINAL(),
+        0, 1, 0 );
+};
+<[base.log]>->(
+    0, "error during set_opacity($opacity) for window $window_id [closed?]"
+) if $@;
 
 return { 'mode' => 'ack', 'data' => "set opacity to $opacity%" };
