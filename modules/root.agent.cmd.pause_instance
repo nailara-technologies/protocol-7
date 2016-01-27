@@ -1,0 +1,37 @@
+# >:]
+
+# name  = root.agent.cmd.pause_instance
+# param = <id>
+# descr = send STOP signal to instance processes
+
+my $instance_id = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'instance id must be numeric!' }
+    if $instance_id !~ /^\d+$/;
+return { 'mode' => 'nack', 'data' => "instance not found!" }
+    if not exists <root.agent.instance>->{$instance_id};
+
+my $instance = <root.agent.instance>->{$instance_id};
+
+$instance->{'status_timer'}->stop
+    if exists $instance->{'status_timer'}
+    and $instance->{'status_timer'}->is_active;
+
+$instance->{'timeout_timer'}->cancel
+    if exists $instance->{'timeout_timer'}
+    and $instance->{'timeout_timer'}->is_active;
+
+my @pids = (
+    <root.agent.instance>->{$instance_id}->{'process'}{'id'},
+    sort { $a <=> $b }
+        keys %{ <root.agent.instance>->{$instance_id}->{'process'}{'child'} }
+);
+my $count = kill 'STOP', @pids;
+
+my $es = $count > 1 ? 'es' : '';
+<[base.log]>->( 1, "paused instance $instance_id ($count process$es)" );
+return {
+    'mode' => 'ack',
+    'data' => "$count process$es paused (SIGSTOP)"
+};
+
