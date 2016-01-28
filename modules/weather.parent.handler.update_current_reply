@@ -52,7 +52,9 @@ if (    defined $current_data
     <[base.log]>
         ->( 0, "failed to obtain current weather data.." . $status_str );
     if (    exists <weather.data>->{$station_id}
-        and exists <weather.data>->{$station_id}->{'current'} ) {
+        and exists <weather.data>->{$station_id}->{'current'}
+        and defined <weather.data>->{$station_id}->{'current'}->{'data_time'} )
+    {
         my $data_age
             = time - <weather.data>->{$station_id}->{'current'}->{'data_time'};
         my $age_str
