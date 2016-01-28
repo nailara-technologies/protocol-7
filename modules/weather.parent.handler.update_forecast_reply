@@ -55,7 +55,9 @@ if (    defined $forecast_data
         0, "failed to obtain forecast weather data.." . $status_str
     );
     if (    exists <weather.data>->{$station_id}
-        and exists <weather.data>->{$station_id}->{'forecast'} ) {
+        and exists <weather.data>->{$station_id}->{'forecast'}
+        and defined <weather.data>->{$station_id}->{'forecast'}->{'data_time'} )
+    {
         my $data_age
             = time - <weather.data>->{$station_id}->{'forecast'}->{'data_time'};
         my $age_str
