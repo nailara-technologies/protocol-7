@@ -13,9 +13,7 @@ access.cmd.usr.core = verify_instance \
 [load_modules:<modules.load>]
 [init_modules]
 
-core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
-core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
-[base.session.init:<core.handle>,'nailara','client','core']
+[net.connect_to_core:'tcp/ip']
 [base.get_session_id]
 
 [event.loop]
