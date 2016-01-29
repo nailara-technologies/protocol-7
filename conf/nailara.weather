@@ -78,9 +78,7 @@ modules.load = auth net io.ip digest.sha digest.sha1 weather.base
 
 [set_privs:<system.privs.user>]
 
-core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
-core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
-[base.session.init:<core.handle>,'nailara','client','core']
+[net.connect_to_core:'tcp/ip']
 
 [weather.base.calc_zoom_level]
 

@@ -13,9 +13,7 @@ modules.load = auth net io.ip udev config.json
 [load_modules:<modules.load>]
 [init_modules]
 
-core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
-core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
-[base.session.init:<core.handle>,'nailara','client','core']
+[net.connect_to_core:'tcp/ip']
 
 udev.adm_params = monitor -u -p
 
