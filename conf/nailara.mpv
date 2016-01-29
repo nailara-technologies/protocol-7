@@ -17,9 +17,7 @@ modules.load = auth net io.ip io.unix config.json digest mpv
 [load_modules:<modules.load>]
 [init_modules]
 
-core.handle = [base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>]
-core.handle = [auth.agent.client:<core.handle>,<system.agent.name>]
-[base.session.init:<core.handle>,'nailara','client','core']
+[net.connect_to_core:'tcp/ip']
 
 [base.x11.get_display]
 mpv.geometry = [base.x11.get_geometry]
@@ -29,7 +27,7 @@ mpv.fade_in    = 1   # fade in mpv player at startup using compositing (xprop)
 mpv.auto_fs    = 1   # start in fullscreen mode in case no geometry was received
 mpv.autoresize = 1   # autoresize player window to get rid of black borders
 
-mpv.autorescale = 0  # rescale video automatically in the background (ffmpeg)
+mpv.autorescale = 1  # rescale video automatically in the background (ffmpeg)
 
 mpv.rescale_max_width = 800 # limit ffmpeg reencoding video size
 

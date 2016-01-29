@@ -1,0 +1,74 @@
+# >:]
+
+# name = net.connect_to_core
+
+my @connection_types = @_;
+my $successful       = 0;
+
+my $core_sock;
+my $core_addr = <net.local.addr>;
+my $core_port = <net.local.port>;
+my $unix_path = defined <unix.path> ? <unix.path> : undef;
+
+foreach my $c_type (@connection_types) {
+    <[base.log]>->( 1, "attempting core connection [$c_type].." );
+    if ( $c_type eq 'unix' ) {
+        if ( not defined $unix_path ) {
+            if ( not defined $core_addr and defined $core_port ) {
+                <[base.log]>->(
+                    0,
+                    'connect_to_core(unix): neither unix.path nor '
+                        . 'net.local.{addr,port} are defined, aborting..'
+                );
+                exit(2);
+            } else {
+                <unix.path> = $unix_path
+                    = '/tmp/.n/s/'
+                    . <[digest.md5.b64u]>
+                    ->( join( ':', <net.local.addr>, <net.local.port> ) );
+            }
+        }
+        if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
+            <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.." );
+            next;
+        }
+        $core_sock = <[base.open]>->( 'unix', 'out', <unix.path> );
+        if (    defined $core_sock
+            and -S $core_sock
+            and $core_sock->connected ) {
+            $core_sock
+                = <[net.unix.authme]>->( $core_sock, <system.agent.name> );
+        } else {
+            $core_sock = undef;
+        }
+    } elsif ( $c_type eq 'tcp/ip' ) {
+        $core_sock = <[base.open]>->(
+            'tcp/ip', 'out', <net.local.addr>, <net.local.port>
+        );
+        if (    defined $core_sock
+            and -S $core_sock
+            and $core_sock->connected ) {
+            $core_sock
+                = <[auth.agent.client]>->( $core_sock, <system.agent.name> );
+        } else {
+            $core_sock = undef;
+        }
+    } elsif ( $c_type eq 'pipe' ) {
+        die "((( connection type 'pipe' hasn't been implemented yet )))";
+    } else {
+        die "[!] unknown connection type '$c_type' requested...";
+    }
+
+    if ( defined $core_sock ) {
+        <[base.session.init]>->( $core_sock, 'nailara', 'client', 'core' );
+        return $core_sock;
+    }
+
+}
+
+if ( not defined $core_sock ) {
+    <[base.log]>->(
+        0, "[!] failed to connect to local core, aborting agent startup!"
+    );
+    exit(1);
+}
