@@ -11,6 +11,7 @@ my $download_path = <download.cfg.download_path>;
 <download.cfg.http.user_agent>      //= '';
 <download.obj.ua> = LWPx::ParanoidAgent->new();
 
+<download.obj.ua>->whitelisted_hosts( sub { return 1 } );
 <download.obj.ua>->agent(<download.cfg.http.user_agent>);
 <download.obj.ua>->protocols_allowed( [ 'ftp', 'http', 'https' ] );
 <download.obj.ua>->timeout(<playlist.http.request_timeout>);

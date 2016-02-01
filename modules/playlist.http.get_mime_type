@@ -10,6 +10,7 @@ my $content_type;
 
 my $uagent = LWPx::ParanoidAgent->new;
 
+$uagent->whitelisted_hosts( sub { return 1 } );
 $uagent->protocols_allowed( [ 'http', 'https' ] );
 $uagent->timeout(<playlist.http.request_timeout>);
 $uagent->agent("Mozilla/5.0");
