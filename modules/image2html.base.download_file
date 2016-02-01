@@ -11,6 +11,7 @@ die "invalid URL '$file_url'" if $file_url !~ m|^https?://.+|;
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
 my $ua = LWPx::ParanoidAgent->new;
+$ua->whitelisted_hosts( sub { return 1 } );
 $ua->timeout(10);    # XXX: make configurable!
 
 my $url_hash = <[digest.sha1]>->($file_url);
