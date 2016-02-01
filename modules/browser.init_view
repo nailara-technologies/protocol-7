@@ -6,6 +6,12 @@ my $id = shift;
 
 my $filter_events = 1;
 
+%{<browser.blocked_signal_types>} = map { $_ => 1 } qw(
+    script-alert
+    script-prompt
+    script-confirm
+);
+
 %{<browser.blocked_event_types>} = map { $_ => 1 } qw(
     scroll
     key-press
@@ -15,9 +21,6 @@ my $filter_events = 1;
     3button-press
     motion-notify
     button-release
-    script-alert
-    script-prompt
-    script-confirm
     run-file-chooser
 );
 
@@ -44,12 +47,17 @@ my $view = Browser::WebView->new();
 
 <browser.view_index>->{$view} = $id;
 
+map {    # filtering blocked signal types
+    $view->signal_connect( $_, sub { return 1 } )
+} keys %{<browser.blocked_signal_types>};
+
 $view->signal_connect( # filtering all events according to blocklist setup above
     'event',
     sub {
         my $v    = shift;
         my $evt  = shift;
         my $type = $evt->type();
+
         return 1 if exists <browser.blocked_event_types>->{$type};    # block
              # print "\n [ event : $type ]\n\n";
         if ( index( $type, 'key' ) == 0 )
