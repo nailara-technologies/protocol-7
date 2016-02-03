@@ -44,7 +44,11 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
 }
 
 # else [no layout agent present or no geometry for current agent configured]
-<[base.log]>->( 0, "unexpected reply from layout agent ['$reply_string']" );
+my $err_msg = "unexpected reply from layout agent ['$reply_string']";
+
+$err_msg = 'no geometry defined' if $reply_string =~ /NACK no geometry/;
+
+<[base.log]>->( 0, $err_msg );
 
 # use full X server geometry as window geometry...
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
@@ -68,6 +72,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     ( my $size_str = $1 ) =~ s| |x|;
     <x11.geometry> = "$size_str+0+0";
     <[base.log]>->( 1, "using xserver screen size as geometry [$size_str]" );
+    <x11.geometry_was_undefined> = 1;
     return <x11.geometry>;
 } else {
     <[base.log]>
