@@ -21,11 +21,9 @@ $instance->{'timeout_timer'}->cancel
     if exists $instance->{'timeout_timer'}
     and $instance->{'timeout_timer'}->is_active;
 
-my @pids = (
-    <root.agent.instance>->{$instance_id}->{'process'}{'id'},
-    sort { $a <=> $b }
-        keys %{ <root.agent.instance>->{$instance_id}->{'process'}{'child'} }
-);
+my $parent_pid = <root.agent.instance>->{$instance_id}->{'process'}{'id'};
+my @pids = ( $parent_pid, @{ <[root.process.get_children]>->($parent_pid) } );
+
 my $count = kill 'STOP', @pids;
 
 my $es = $count > 1 ? 'es' : '';
