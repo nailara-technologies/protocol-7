@@ -1,0 +1,30 @@
+# >:]
+
+# name = loadsplash.open_window
+
+$ENV{'DISPLAY'} = <x11.display>;
+my $coords = <x11.coordinates>;
+my $width  = $coords->{'right'} - $coords->{'left'};
+my $height = $coords->{'bottom'} - $coords->{'top'};
+
+Gtk2->init;
+
+my $window = Gtk2::Window->new('popup');
+
+$window->signal_connect( 'delete_event', sub {Gtk2::main_quit} );
+
+my $pbuf  = Gtk2::Gdk::PixbufAnimation->new_from_file(<loadsplash.icon_file>);
+my $image = Gtk2::Image->new_from_animation($pbuf);
+
+$window->add($image);
+
+$window->resize( $width, $height );
+
+my $white = Gtk2::Gdk::Color->new( 0xFFFF, 0xFFFF, 0xFFFF );
+$window->modify_bg( 'normal', $white );
+
+$window->show_all;
+
+$window->move( $coords->{'left'}, $coords->{'top'} );
+
+Gtk2->main;
