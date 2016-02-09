@@ -2,10 +2,10 @@
 
 # name = base.x11.get_coordinates
 
-my $user     = shift || 'core';
-my $cmd_path = shift || '';
+my $user     = shift // 'core';
+my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
-my $agent_name    = shift || <system.agent.name>;
+my $agent_name    = shift // <system.agent.name>;
 my $agent_subname = shift || <system.agent.subname>;
 
 my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
