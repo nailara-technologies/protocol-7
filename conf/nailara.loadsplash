@@ -1,0 +1,24 @@
+
+  .:[ simple 'loading' splashscreen agent ]:.
+
+system.privs.user = nailara
+
+[set_privs:<system.privs.user>]
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping verify_instance
+
+modules.load = auth net io.ip loadsplash
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+[base.x11.get_coordinates:'core','','','']  # requests coords for tile name only
+[base.get_session_id]
+
+[loadsplash.open_window]

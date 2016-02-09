@@ -1,20 +1,18 @@
 #!/bin/sh
 
-# you might need --force in some cases :/
-
-cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
+xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Term::ReadPassword Term::ReadKey Term::ReadLine::Perl \
       Proc::ProcessTable \
       LWPx::ParanoidAgent \
       Sys::Filesystem \
-      Crypt::CBC \
+      Crypt::CBC CryptX \
       JSON JSON::PP \
       Net::SSH2 \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
       X11::Protocol X11::Protocol::WM X11::Tops \
       FreezeThaw \
       XML::RSS::TimingBot \
-      SDL \
+      SDL Gtk2 Glib::Event \
       Crypt::PRNG::Fortuna \
       Crypt::Twofish2 \
       HTTP::Request \
