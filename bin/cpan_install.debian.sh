@@ -12,11 +12,11 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libfreezethaw-perl libnet-ssh2-perl libxml-feed-perl\
   libgirepository1.0-dev pkg-config libgtk-3-dev \
   libglib2.0-dev libglib2.0-0 gir1.2-webkit-3.0 \
-  libgtk3-perl
+  libgtk3-perl libgtk2-perl
   #libtext-unidecode-perl
   #libconvert-uu-perl
 
 # installs the rest from cpan (note: Gtk3::WebKit needs X-server or Xvfb)
-cpanm Crypt::Twofish2 X11::Tops X11::Protocol::WM Gtk3::WebKit \
+cpanm Crypt::Twofish2 X11::Tops X11::Protocol::WM Gtk3::WebKit Glib::Event \
       Crypt::PRNG::Fortuna XML::RSS::TimingBot File::MimeInfo::Magic \
       HTTP::Soup Mediainfo Poppler
