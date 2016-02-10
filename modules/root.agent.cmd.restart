@@ -19,6 +19,8 @@ foreach my $param_str ( split / +/, $params ) {
             if not exists <root.agent.instance>->{$param_str};
         push( @instance_ids, $param_str );
     } else {                          # agent name ( XXX: validate syntax! )
+        my $agent_subname;
+        $agent_subname = $1 if $param_str =~ s|\[([^\]]+)\]$||;
         my $agent_id = <[agent.get_id]>->($param_str);
         return {
             'mode' => 'nack',
@@ -29,6 +31,8 @@ foreach my $param_str ( split / +/, $params ) {
         map {
             push( @instance_ids, $_ )
                 if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
+                and ( not defined $agent_subname
+                or $agent_subname eq <root.agent.instance>->{$_}->{'subname'} )
         } keys %{<root.agent.instance>};
     }
 }
@@ -60,6 +64,6 @@ if ($count) {
 } else {
     return {
         'mode' => 'nack',
-        'data' => 'there is no agent matching agent running'
+        'data' => 'there is no matching agent running'
     };
 }
