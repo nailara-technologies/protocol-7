@@ -25,6 +25,8 @@ for my $w ( @{ $xtops->sorted } ) {
 
 return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
 
+<[base.log]>->( 2, "unhiding window $window_id" );
+
 X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove', 'HIDDEN' );
 X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove', 'HIDDEN' );
 
