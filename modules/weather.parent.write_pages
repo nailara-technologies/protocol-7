@@ -151,6 +151,12 @@ foreach my $page_name (@page_list) {
                 <[base.log]>->(
                     0, "'hours' forecast data with index $index does not exist!"
                 );
+                $snipplet_ref
+                    = <[file.slurp]>
+                    ->("$current_template_dir/content.fail.part");
+                my $fail_icon = <weather.icons>->{'not_available'};
+                $$snipplet_ref =~ s|\[ICON\]|$fail_icon|g;
+                $content_str .= $$snipplet_ref;
                 next;
             }
             my $ts          = $timestamps[$index];
@@ -223,6 +229,12 @@ foreach my $page_name (@page_list) {
                 <[base.log]>->(
                     0, "'days' forecast data with index $index does not exist!"
                 );
+                $snipplet_ref
+                    = <[file.slurp]>
+                    ->("$current_template_dir/content.fail.part");
+                my $fail_icon = <weather.icons>->{'not_available'};
+                $$snipplet_ref =~ s|\[ICON\]|$fail_icon|g;
+                $content_str .= $$snipplet_ref;
                 next;
             }
             my $ts           = $timestamps[$index];
