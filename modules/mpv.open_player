@@ -17,6 +17,10 @@ if ( not defined <mpv.geometry> or exists <x11.geometry_was_undefined> ) {
         <mpv.fade_in> = 0;
     }
 }
+if ( <system.agent.mode> eq 'media-child' and <mpv.fade_in> ) {
+    <[base.log]>->( 1, " : disabled 'fade_in' (media-child).." );
+    <mpv.fade_in> = 0;
+}
 
 my $target_geometry;
 if (<mpv.fade_in>) {
@@ -60,10 +64,10 @@ if (    defined <mpv.geometry>
 my $socket_path = "/tmp/.mpv.socket.$$";
 $mpv_params .= " --input-unix-socket $socket_path";
 
-my $mpv_title_param .= '--title="' . <system.agent.name>;
-$mpv_title_param .= '[' . <system.agent.subname> . ']'
+my $mpv_title_str = <mpv.agent_title>;
+$mpv_title_str .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
-$mpv_title_param .= ' ( ${media_title} )"';
+$mpv_title_str .= ' ( ${?media-title:${media-title}}${!media-title:no file} )';
 
 <[base.log]>->(
     2, "current mpv parameters: " . <mpv.bin_path> . " $mpv_params"
@@ -71,10 +75,10 @@ $mpv_title_param .= ' ( ${media_title} )"';
 
 <[base.log]>->( 1, 'starting mpv player..' );
 
-<mpv.started_with_params> = $mpv_params . ' ' . $mpv_title_param;
+<mpv.started_with_params> = $mpv_params . ' --title="' . $mpv_title_str . '"';
 
 <mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
-    ( <mpv.bin_path>, split( / +/, $mpv_params ), $mpv_title_param ) );
+    ( <mpv.bin_path>, split( / +/, $mpv_params ), '--title', $mpv_title_str ) );
 
 if ( !<mpv.pid> ) {
     <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
@@ -88,12 +92,23 @@ close( delete(<mpv.fh.stdin>) );
 
 <x11.window_timeout> //= 7;
 
-if ( not defined <[base.x11.wait_for_window]> ) {
+my $wait_title_str = <mpv.agent_title>;
+$wait_title_str .= '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname> and length(<system.agent.subname>);
+$wait_title_str =~ s|([\[\]\.])|\\$1|g;
+if ( not defined <[base.x11.wait_for_window]>->($wait_title_str) ) {
     <[base.log]>->( 0, "[!] mpv window creation timed out!" );
     $abort_startup = 1;
     goto abort;
 } else {
     <[base.x11.assign_window]>->(<x11.id>);
+    if ( <system.agent.mode> eq 'media-child' ) {
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.xserver.hide_window",
+                'call_args' => { 'args' => <x11.id> }
+            }
+        );
+    }
 }
 
 my $max_retries = 42;
@@ -133,13 +148,8 @@ if ($abort_startup) {
 if (<mpv.fade_in>) {
     <[base.x11.set_window_opacity]>->( <x11.id>, 0 );
     <[base.proto.nailara.command.send.local]>->(
-        {   'command' => 'core.xserver.set_geometry',
-            'call_args' =>
-                { 'args' => join( ' ', <x11.id>, $target_geometry ) },
-            'reply' => {
-                'handler' => 'dev.null',
-                'params'  => {}
-            }
+        {   'command'   => 'core.xserver.set_geometry',
+            'call_args' => { 'args' => join( ' ', <x11.id>, $target_geometry ) }
         }
     );
     <mpv.opacity> = 0;

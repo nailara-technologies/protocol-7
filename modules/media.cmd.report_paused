@@ -1,0 +1,35 @@
+# >:]
+
+# name  = media.cmd.report_paused
+# descr = notify parent of paused client
+
+my $session_id   = $call->{'session_id'};
+my $agent_name   = $data{'session'}{$session_id}{'user'};
+my $position     = <media.sequence.position>;
+my $switch_agent = <media.sequence.switch_order>->[$position];
+<media.child>->{$agent_name}->{'paused'} //= 0;
+
+if ( <media.child>->{$agent_name}->{'paused'} ) {
+    <[base.log]>
+        ->( 0, "'$agent_name' already paused, ignoring pause-report.." );
+    return;
+}
+
+<[base.log]>->( 2, "pause reported from '$agent_name'-child" );
+
+<media.child>->{$agent_name}->{'paused'} = 1;
+
+if ( <media.child>->{$agent_name}->{'status'} eq 'starting' ) {
+    <media.child>->{$agent_name}->{'status'} = 'ready';
+}
+
+my $all_ready = 1;
+map { $all_ready = 0 if <media.child>->{$_}->{'status'} ne 'ready' }
+    keys %{<media.child>};
+
+<[media.switch_child]>->($switch_agent) if $all_ready;
+
+return {
+    'mode' => 'ack',
+    'data' => 'acknowledged'
+    }

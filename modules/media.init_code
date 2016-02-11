@@ -1,0 +1,28 @@
+# >:]
+
+# name = media.init_code
+
+use IPC::Open2;
+
+$SIG{'CHLD'} = sub {
+    <[base.log]>->(
+        0, "[!] media-child agent crashed unexpectedly! shutting down..."
+    );
+    exit(2);
+};
+
+my @dis_cmds = @{ $data{'disabled_commands'} };
+$data{'disabled_commands'} = [];
+map { push( @{ $data{'disabled_commands'} }, $_ ) if $_ ne 'whoami' } @dis_cmds;
+$data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
+
+<media.cmdline_mods> = { 'browser' => 'Gtk3 Gtk3::WebKit' };
+
+<core.reroute.command>->{'layout.get_geometry'}          = 'get_geometry';
+<core.reroute.command>->{'layout.get_coordinates'}       = 'get_coordinates';
+<core.reroute.command>->{'layout.assign_window'}         = 'set_window_id';
+<core.reroute.command>->{'core.playlist.get_list'}       = 'get_list';
+<core.reroute.command>->{'core.playlist.get_list_types'} = 'get_list_types';
+<core.reroute.command>->{'core.report_paused'}           = 'report_paused';
+
+0;

@@ -1,0 +1,15 @@
+# >:]
+
+# name = mpv.handler.event.pause
+
+my $params = shift;
+
+if (<system.agent.mode> eq 'media-child'
+    and (  not defined <mpv.current.path>
+        or <mpv.current.path> eq '[PAUSE]'
+        or <mpv.current.load_iteration> == 0 )
+    ) {
+    # report back to media agent..
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.report_paused" } );
+}

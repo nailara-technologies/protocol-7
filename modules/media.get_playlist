@@ -1,0 +1,30 @@
+# >:]
+
+# name = media.get_playlist
+
+my $sub_name;
+my @file_types = @_;
+
+<[base.log]>->( 1, "requesting file list from playlist agent .." );
+
+$sub_name = '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname>
+    and defined <system.agent.subname>
+    and length(<system.agent.subname>);
+
+my @args;
+if (@file_types) {
+    my $args_str = join( ' ', @file_types );
+    $args_str .= ' ' . $sub_name if defined $sub_name;
+    my @args = ( 'args' => $args_str );
+}
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.playlist.get_list_types',
+        'call_args' => {@args},
+        'reply'     => {
+            'handler' => 'media.handler.get_list_reply',
+            'params'  => {}
+        }
+    }
+);

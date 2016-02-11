@@ -1,0 +1,38 @@
+# >:]
+
+# name = media.startup
+
+my @content_types = keys %{<media.content.agent_map>};
+$ENV{'DISPLAY'} = <x11.display>;
+
+<[base.log]>->( 1, "starting loadsplash agent.." );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "core.root.stop",
+        'call_args' =>
+            { 'args' => 'loadsplash[' . <system.agent.subname> . ']' }
+    }
+);
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "core.root.start",
+        'call_args' =>
+            { 'args' => 'loadsplash[' . <system.agent.subname> . ']' }
+    }
+);
+<media.loadsplash_running> = 1;
+
+<[base.log]>->( 1, "starting display [sub]agents..." );
+
+my %display_agents;
+map { $display_agents{$_} = 1 } values %{<media.content.agent_map>};
+foreach my $agent_name ( keys(%display_agents) ) {
+    <auth.pwd>->{$agent_name} //= ':unix:' . <system.privs.user>;
+    <media.child>->{$agent_name}->{'status'} = 'starting';
+    if ( !<[media.start_agent]>->($agent_name) ) {
+        <[base.log]>->( 0, "XXX failed to start '$agent_name'" );
+    }
+}
+
+<[base.get_session_id]>;
+
+<[media.get_playlist]>->(@content_types);

@@ -2,9 +2,16 @@
 
 # name = browser.wait_for_window
 
-unless (<[base.x11.wait_for_window]>) {
+( my $wait_title_str = <browser.window.title_str> ) =~ s|([\[\]\.])|\\$1|g;
+unless ( <[base.x11.wait_for_window]>->( '^' . $wait_title_str ) ) {
     <[base.log]>->( 0, "[!] window failed to open, aborting agent startup.." );
     exit(2);
 }
 <[base.x11.assign_window]>;
 <[base.get_session_id]>;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.xserver.hide_window",
+        'call_args' => { 'args' => <x11.id> }
+    }
+) if <system.agent.mode> eq 'media-child';
