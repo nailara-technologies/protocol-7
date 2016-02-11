@@ -232,6 +232,18 @@
         [base.auth.set_agent_key:'<{core.key}>']
         [base.agents.set_ondemand_timeout:33]
 
+  - media
+
+      dependencies = core xserver openbox
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - browser
 
       dependencies = core xserver openbox

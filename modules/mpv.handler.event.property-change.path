@@ -11,3 +11,10 @@ return delete <mpv.current> if not defined $path;
 <[base.log]>->( 2, "currently playing: '$path'" );
 
 <mpv.current.path> = $path;
+
+if ( <system.agent.mode> eq 'media-child' and $path eq '[PAUSE]' ) {
+    <[base.log]>->( 2, '[PAUSE] keyword encountered, halting playback..' );
+    push( @{<mpv.reply_ids>}, 'none' );
+    <mpv.success_reply_str> = '[PAUSE]d';
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+}

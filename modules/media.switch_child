@@ -1,0 +1,49 @@
+# >:]
+
+# name = media.switch_child
+
+my $agent_name = shift;
+
+<media.sequence.startup> //= 1;
+<media.sequence.position>++;
+<media.sequence.position> = 0
+    if <media.sequence.position> >= scalar @{<media.sequence.switch_order>};
+
+my $window_id = <media.child>->{$agent_name}->{'window_id'};
+
+<[base.log]>->( 2, "switching to '$agent_name'-child.." );
+
+<[base.log]>->( 2, ": unhiding '$agent_name' ($window_id)" );
+<media.sequence.startup> = 0;
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.xserver.unhide_window",
+        'call_args' => { 'args' => $window_id }
+    }
+);
+
+if (<media.loadsplash_running>) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command' => "core.root.stop",
+            'call_args' =>
+                { 'args' => 'loadsplash[' . <system.agent.subname> . ']' }
+        }
+    );
+    <media.loadsplash_running> = 0;
+}
+<media.child>->{$agent_name}->{'visible'} = 1;
+
+foreach my $hide_agent ( keys %{<media.child>} ) {
+    next if $hide_agent eq $agent_name;
+    my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
+    <[base.log]>->( 2, ": hiding '$hide_agent' ($hide_wid)" );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.hide_window",
+            'call_args' => { 'args' => $hide_wid }
+        }
+    );
+    <media.child>->{$hide_agent}->{'visible'} = 0;
+}
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => "$agent_name.resume" } );
+<media.child>->{$agent_name}->{'paused'} = 0;

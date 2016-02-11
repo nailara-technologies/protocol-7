@@ -36,10 +36,14 @@ mkdir($browser_root) if !-d $browser_root;
 chdir($browser_root);
 $ENV{'HOME'} = $browser_root;
 
+<system.agent.mode> //= 'stand-alone';
+
 my $sn_str
     = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
 
-<browser.window.title_str> = 'browser' . $sn_str;
+<browser.window.title_str>
+    = <system.agent.mode> eq 'media-child' ? 'media.browser' : 'browser';
+<browser.window.title_str> .= $sn_str;
 <browser.window.title_str> .= "-$$" if !length($sn_str);
 
 <browser.status.fade_view> //= 0;
@@ -64,6 +68,8 @@ my $sn_str
 <browser.cfg.use_transparency>   //= 1;
 <browser.slideshow.swap_delay>   //= 2;
 <browser.slideshow.err_delay>    //= 2;
+<browser.slideshow.iteration>    //= 0;
+<browser.slideshow.paused>       //= 0;
 
 map { <browser.page>->{$_}->{'scrollable'} //= 0 } ( 1, 2 );
 
