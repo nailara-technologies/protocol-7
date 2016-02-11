@@ -1,0 +1,30 @@
+# >:]
+
+# name  = media.handler.agent_output
+
+my $event      = shift->w;
+my $read_fh    = $event->fd;
+my $agent_name = $event->data;
+my $self_name  = <system.agent.name>;
+
+<media.agent.output_buffer>->{$agent_name} //= '';
+
+<media.agent.output_buffer>->{$agent_name} //= '';
+
+if (sysread(
+        $read_fh, <media.agent.output_buffer>->{$agent_name},
+        4096,     length( <media.agent.output_buffer>->{$agent_name} )
+    ) == 0    # ( filehandle has an exception )
+    ) {
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "( $agent_name ) output fh closed!" );
+    undef <media.agent.output_buffer>->{$agent_name};
+    return;
+}
+
+while ( <media.agent.output_buffer>->{$agent_name} =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    $output_line =~ s/^(.+?)(\.$agent_name )/$1.$self_name$2/;
+    print $output_line . "\n";
+}

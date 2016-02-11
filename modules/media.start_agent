@@ -1,0 +1,71 @@
+# >:]
+
+# name = media.start_agent
+
+my $agent_name    = shift;
+my $agent_subname = <system.agent.subname>;
+my $nailara_bin   = <system.start.exec_name>;
+my $perl_bin_path = <system.path.perl_bin> // 'perl';
+
+my @exec_args = ( '-nb', '-sic' );
+
+my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
+push( @exec_args, '-' . 'v' x $agent_verbosity );
+
+my $agent_sn_str
+    = defined $agent_subname ? "$agent_name\[$agent_subname]" : $agent_name;
+<[base.log]>->( 1, "spawning '$agent_sn_str'-agent initiated ..." );
+
+my ( $pid, $out_fh, $in_fh );
+
+my @cmd_line_mods
+    = exists <media.cmdline_mods>->{$agent_name}
+    ? map {"-M$_"} split( / +/, <media.cmdline_mods>->{$agent_name} )
+    : ();
+
+<[base.log]>->(
+    2,
+    sprintf(
+        "EXEC '%s'",
+        join(
+            ' ',
+            (   $perl_bin_path, '-C31',        @cmd_line_mods,
+                $nailara_bin,   $agent_sn_str, @exec_args
+            )
+        )
+    )
+);
+
+my $_C = <system.perl_unicode>;
+push( @cmd_line_mods, "-C$_C" ) if defined $_C;
+
+eval {
+    $pid
+        = open2( $out_fh, $in_fh, $perl_bin_path, @cmd_line_mods,
+        $nailara_bin, $agent_sn_str, @exec_args );
+};
+
+if ( not defined $pid or $@ ) {
+    ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason = ( defined $! and length($!) ) ? " ('$!')" : '';
+    <[base.log]>->(
+        0,
+        join( '',
+            "failed to spawn agent '$agent_name'",
+            $err_reason, " [ $err_msg ]" )
+    );
+    return 0;
+}
+
+print {$in_fh} "system.agent.mode=media-child\n";
+print {$in_fh} "unix.path=/tmp/.n/s/" . <unix.agent.path> . "\n";
+close($in_fh);
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'media.handler.agent_output',
+        'data'    => $agent_name
+    }
+);
+
+return 1;
