@@ -25,6 +25,8 @@ for my $w ( @{ $xtops->sorted } ) {
 
 return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
 
+<[base.log]>->( 2, "hiding window $window_id" );
+
 for ( 1 .. 2 ) {    # <- workaround (ignored state requests)
     X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'add', 'HIDDEN' );
 }
