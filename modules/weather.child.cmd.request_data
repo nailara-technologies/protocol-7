@@ -70,7 +70,8 @@ if (    exists $json_data->{'list'}
 
     } elsif ( $type eq 'hours' ) {
 
-        while ( $json_data->{'list'}->[0]->{'dt'} < time ) {
+        while ( defined $json_data->{'list'}->[0]->{'dt'}
+            and $json_data->{'list'}->[0]->{'dt'} < time ) {
             shift( @{ $json_data->{'list'} } );
             $json_data->{'cnt'}--;
         }
@@ -92,7 +93,7 @@ if (    exists $json_data->{'list'}
     <[base.log]>->(
         2, "trimming down '$type'-response element count to $count.."
     );
-    while ( $json_data->{'cnt'}-- > $count ) {
+    while ( defined $json_data->{'cnt'} and $json_data->{'cnt'}-- > $count ) {
         pop( @{ $json_data->{'list'} } );
     }
 }
