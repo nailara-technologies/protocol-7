@@ -178,6 +178,28 @@ if ( $cmd =~ s/^\(($re->{cmd_id})\) *//o ) { $cmd_id = $1 }
 $$call_args{'command_id'} = $cmd_id;
 $$call_args{'session_id'} = $id;
 
+# 'reroute' replacement regex
+
+if ( defined <core.reroute> ) {
+    if (    defined <core.reroute.pattern.match>
+        and defined <core.reroute.pattern.replace>
+        and uc($cmd) ne $cmd ) {
+        my $rre_pattern_match   = <core.reroute.pattern.match>;
+        my $rre_pattern_replace = <core.reroute.pattern.replace>;
+        my $rre_pattern_usr
+            = defined <core.reroute.pattern.usr>
+            ? <core.reroute.pattern.usr>
+            : '';
+
+        my $rre_m = qr/$rre_pattern_match/;
+        my $rre_u = qr/$rre_pattern_usr/;
+        $cmd =~ s|$rre_m|$rre_pattern_replace| if $usr =~ $rre_pattern_usr;
+    }
+    $cmd = <core.reroute.command>->{$cmd}
+        if defined <core.reroute.command>
+        and exists <core.reroute.command>->{$cmd};
+}
+
 # alias check and replacement
 
 my $alias_to;
@@ -278,8 +300,8 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                 # delete route
 
                 if ( $cmd ne 'WAIT' ) {
-                    delete $data{'session'}{ $$route{'source'}{'sid'} }{'route'}
-                        { $$route{'source'}{'cmd_id'} };
+                    delete $data{'session'}{ $$route{'source'}{'sid'} }
+                        {'route'}{ $$route{'source'}{'cmd_id'} };
                     delete $data{'route'}
                         { $data{'session'}{$id}{'route'}{$cmd_id} };
                     delete $data{'session'}{$id}{'route'}{$cmd_id};
