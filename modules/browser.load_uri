@@ -84,9 +84,11 @@ if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
         } else {
             $view->signal_handler_disconnect($signal_id_load_status)
                 if defined $signal_id_load_status;
+
             $view->signal_handler_disconnect(
                 delete <browser.signal_id.load_progress> )
                 if exists <browser.signal_id.load_progress>;
+
             my $st_txt = defined $status_code ? " ($status_code)" : '';
             my $reason_txt = $st_txt;
 
@@ -94,7 +96,8 @@ if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
             $reason_txt = " [$1]"
                 if $title =~ /^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$/i;
 
-            if (    not defined $status_code
+            if (    <browser.init_proxy>
+                and not defined $status_code
                 and !length($reason_txt)
                 and !length($title) ) {
                 my $check_sock = IO::Socket::INET->new(
