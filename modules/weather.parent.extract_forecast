@@ -27,9 +27,14 @@ my $forecast_ref_today = {};
 if ( $type eq 'hours' ) {
 
     while ( my $element = shift @{ $weather_data->{'list'} } ) {
-        my $timestamp = $element->{'dt'};
 
-        my $km_h = $element->{'wind'}->{'speed'} * 3600 / 1000;
+        if ( !keys %{$element} ) {
+            <[base.log]>->( 0, "'hours' forecast list is empty, skipping!" );
+            next;
+        }
+
+        my $timestamp = $element->{'dt'};
+        my $km_h      = $element->{'wind'}->{'speed'} * 3600 / 1000;
         $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
 
         my $beaufort = <[weather.parent.wind.calculate_beaufort]>
