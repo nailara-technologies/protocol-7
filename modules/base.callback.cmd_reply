@@ -5,6 +5,8 @@
 
 my ( $reply_id, $reply ) = @_;
 
+return if defined $reply_id and $reply_id eq 'none';    # silent mode
+
 die "expected numerical reply_id"
     if @_ != 2
     or not defined $reply_id
