@@ -3,7 +3,7 @@
 # name = net.connect_to_core
 
 my @connection_types = @_;
-my $successful       = 0;
+@connection_types = ('unix') if defined <unix.path>; # overriding (in -sic mode)
 
 my $core_sock;
 my $core_addr = <net.local.addr>;
@@ -63,7 +63,6 @@ foreach my $c_type (@connection_types) {
         <[base.session.init]>->( $core_sock, 'nailara', 'client', 'core' );
         return $core_sock;
     }
-
 }
 
 if ( not defined $core_sock ) {
