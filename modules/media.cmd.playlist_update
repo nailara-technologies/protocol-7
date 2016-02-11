@@ -1,0 +1,12 @@
+# >:]
+
+# name  = media.cmd.playlist_update
+# descr = initiate playlist update (recursive)
+
+<[base.log]>->( 1, "updating playlist..." );
+
+my @content_types = keys %{<media.content.agent_map>};
+<[media.get_playlist]>->(@content_types);
+
+# XXX: reply later
+return { 'mode' => 'ack', 'data' => 'playlist update initated' }

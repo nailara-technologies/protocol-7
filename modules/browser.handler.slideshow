@@ -11,7 +11,9 @@ my @url_list = @{<browser.url.list>};
 <browser.timer.slideshow>->cancel if exists <browser.timer.slideshow>;
 
 if ( <browser.slideshow.status> eq 'load' ) {
+
     my $load_url = $url_list[<browser.slideshow.url_index>];
+
     if ( not defined $load_url ) {
         <[base.log]>->(
             0,
@@ -24,9 +26,29 @@ if ( <browser.slideshow.status> eq 'load' ) {
             }
         );
     } else {
-        <[browser.load_uri]>->($load_url);
+        if (    <system.agent.mode> eq 'media-child'
+            and !<browser.slideshow.paused>
+            and ( $load_url eq '[PAUSE]' or !<browser.slideshow.iteration> ) ) {
+            return if <browser.slideshow.paused>;
+
+            <[browser.clear_views]> if <browser.slideshow.iteration>;
+            <browser.slideshow.iteration>++;
+            <browser.slideshow.paused> = 1;
+
+            <[base.proto.nailara.command.send.local]>
+                ->( { 'command' => "core.report_paused" } );
+
+            while ( $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' ) {
+                <browser.slideshow.url_index>++;
+                <browser.slideshow.url_index> = 0
+                    if <browser.slideshow.url_index> >= @url_list;
+            }
+        } else {
+            <[browser.load_uri]>->($load_url);
+            <browser.slideshow.iteration>++;
+            <browser.slideshow.url_index>++;
+        }
     }
-    <browser.slideshow.url_index>++;
 } elsif ( <browser.slideshow.status> eq 'load_finished' and <window.scrolling> )
 {
     <browser.slideshow.status> = 'scrolling';

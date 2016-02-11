@@ -1,0 +1,22 @@
+# >:]
+
+# name  = browser.cmd.resume
+# descr = 'unpause' slideshow
+
+return { 'mode' => 'nack', 'data' => 'slideshow was not paused' }
+    if !<browser.slideshow.paused>;
+
+<browser.slideshow.paused> = 0;
+
+my @url_list = @{<browser.url.list>};
+
+while ( $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' ) {
+    <browser.slideshow.url_index>++;
+    <browser.slideshow.url_index> = 0
+        if <browser.slideshow.url_index> >= @url_list;
+}
+
+<browser.slideshow.status> = 'load';
+<[browser.handler.slideshow]>;
+
+return { 'mode' => 'ack', 'data' => 'resumed slideshow' }
