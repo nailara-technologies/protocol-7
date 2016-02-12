@@ -45,7 +45,7 @@ if (    defined $forecast_data
     <[weather.parent.extract_forecast]>->( $type, $station_id, $forecast_data );
     my $update_minutes = sprintf( "%0.1f", $update_interval / 60 );
     <[base.log]>->(
-        1, "next 'forecast' data update in $update_minutes minutes.."
+        2, "next 'forecast' data update in $update_minutes minutes.."
     );
 } else {
     my $status_str = defined $status_code ? " ($status_code)" : '';
