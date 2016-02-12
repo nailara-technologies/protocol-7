@@ -64,6 +64,7 @@ SDL::TTF::init();
 my $font_path;
 $font_path = '/usr/share/fonts/truetype/droid';           # debian / ubuntu
 $font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
+$font_path = <system.root_path> . '/data/ttf/droid' if !-d $font_path;   # local
 
 # check font name
 my $font_matched = 0;
