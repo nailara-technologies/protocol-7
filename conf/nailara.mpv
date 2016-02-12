@@ -19,6 +19,7 @@ modules.load = auth net io.ip io.unix config.json digest mpv
 
 [net.connect_to_core:'tcp/ip']
 
+[base.x11.get_mode]
 [base.x11.get_display]
 mpv.geometry = [base.x11.get_geometry]
 mpv.coordinates = [base.x11.get_coordinates]
@@ -31,12 +32,13 @@ mpv.autorescale = 1  # rescale video automatically in the background (ffmpeg)
 
 mpv.rescale_max_width = 800 # limit ffmpeg reencoding video size
 
-mpv.vo_backend = x11 # [vdpau|vaapi|sdl...] ( see mpv -vo help )
+# mpv.vo_backend = vaapi # [vdpau|vaapi|x11|sdl...] ( see mpv -vo help )
+mpv.hwdec = auto
 
 mpv.fade_start_geom = 1x1--0--0
 #mpv.fade_start_geom = 31x31--0--0 # use this if above geometry fails at startup
 
-mpv.params = --idle --force-window --keep-open=always --loop=inf --hwdec=auto \
+mpv.params = --idle --force-window --keep-open=always --loop=inf \
               --no-config --no-audio --no-window-dragging --no-border \
               --no-input-terminal --no-input-cursor --input-vo-keyboard \
               --no-input-default-bindings --no-osc --osd-level=0 --really-quiet
