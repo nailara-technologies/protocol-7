@@ -17,7 +17,7 @@ my $query_url = "$base_url$query";
 
 $query_url .= "&units=$units&lang=$language";
 
-<[base.log]>->( 1, "requesting '$query_url'" );
+<[base.log]>->( 2, "requesting '$query_url'" );
 
 my $response;
 my $status_code;
@@ -67,7 +67,7 @@ if (   $@
     return ( $json_decoded->{'cod'}, undef );
 }
 
-<[base.log]>->( 1, "query successful" );
+<[base.log]>->( 2, "query successful" );
 
 return ( 200, $json_decoded );
 
