@@ -1,0 +1,37 @@
+# >:]
+
+# name = base.x11.get_mode
+
+my ($local_session_id) = keys( %{<user.core.session>} );
+
+<[base.log]>->( 2, "requesting xserver agent mode.." );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)xserver.get_mode\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    if ( !$matched_reply ) {
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
+            if uc($2) ne $2;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+    <x11.mode> = $1;
+    <[base.log]>->( 1, "received xserver agent mode [" . <x11.mode> . "]" );
+    return <x11.mode>;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol error (unexpected reply from xserver agent)"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
