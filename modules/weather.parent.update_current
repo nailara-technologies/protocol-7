@@ -20,7 +20,7 @@ if (   not exists <weather.data>->{$station_id}
     }
 }
 
-<[base.log]>->( 1, "<$station_id> updating current weather data.." );
+<[base.log]>->( 2, "<$station_id> updating current weather data.." );
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "child.request_data",
         'call_args' => { 'args' => "$station_id current" },
