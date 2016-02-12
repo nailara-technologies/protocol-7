@@ -6,6 +6,12 @@ my $abort_startup = 0;
 my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
 
+if ( <x11.mode> eq 'xephyr' ) {
+    <[base.log]>->( 1, "setting vo_backend to 'x11' [xephyr mode]" );
+    <mpv.vo_backend> = 'x11';
+    delete <mpv.hwdec>;
+}
+
 if ( not defined <mpv.geometry> or exists <x11.geometry_was_undefined> ) {
     <[base.log]>->( 0, "<!> geometry was undefined..." );
     if (<mpv.autoresize>) {
@@ -48,6 +54,7 @@ if (    ( not defined <mpv.geometry> or exists <x11.geometry_was_undefined> )
 }
 
 $mpv_params .= ' -vo ' . <mpv.vo_backend> if defined <mpv.vo_backend>;
+$mpv_params .= ' --hwdec=' . <mpv.hwdec>  if defined <mpv.hwdec>;
 
 if (    defined <mpv.geometry>
     and exists <x11.coordinates>
