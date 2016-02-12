@@ -55,6 +55,8 @@ my @font_names = qw(
     DroidSerif-Regular
 );
 
+<ticker.known_fonts> = \@font_names;
+
 # init SDL
 <ticker.sdl> = SDL::init(SDL_INIT_VIDEO);
 SDL::Mouse::show_cursor(SDL_DISABLE);
@@ -62,9 +64,11 @@ SDL::TTF::init();
 
 # adjust / add paths as needed.. (and install droid fonts or configure another)
 my $font_path;
-$font_path = '/usr/share/fonts/truetype/droid';           # debian / ubuntu
-$font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
-$font_path = <system.root_path> . '/data/ttf/droid' if !-d $font_path;   # local
+$font_path = '/usr/share/fonts/truetype/droid';               # debian / ubuntu
+$font_path = '/usr/share/fonts/TTF' if !f_chk($font_path);    # arch linux
+$font_path = <system.root_path> . '/data/ttf/droid' if !f_chk($font_path);
+die "[!] font path not found" if !-d $font_path;
+die "[!] known droid fonts not found" if !f_chk($font_path);
 
 # check font name
 my $font_matched = 0;
@@ -82,8 +86,6 @@ if ( !$font_matched ) {
 
 <[base.log]>->( 1, "loading '" . <ticker.font.name> . "' font.." );
 
-# determine font path (droid fonts need to be installed)
-die "font path not found" if !-d $font_path;
 $font_path .= '/' . <ticker.font.name> . '.ttf';
 
 <ticker.font.path> = $font_path;
@@ -220,4 +222,13 @@ SDL::Video::fill_rect( <sdl.display>,
 unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
     SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
         <sdl.display_height> );
+}
+
+sub f_chk {
+    my $check_dir = shift;
+    return 0 if !-d $check_dir;
+    foreach my $font_name ( @{<ticker.known_fonts>} ) {
+        return 0 if !-f "$check_dir/$font_name.ttf";
+    }
+    return 1;
 }
