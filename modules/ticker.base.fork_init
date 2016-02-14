@@ -10,9 +10,6 @@ socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 
-#<system.internal_verbosity> = 3;
-#<system.verbosity>          = 3;
-
 <ticker.use_transparency>  //= 1;
 <ticker.cfg.assign_window> //= 0;
 
@@ -20,19 +17,22 @@ $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 if ( !<ticker.child.pid> ) {    # child
     close($child_pipe);
     $0 = 'ticker child';
+    delete <process.renice_child>;
+
     <ticker.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
     close(<ticker.child.renice_fh>);
     delete <ticker.child.renice_fh>;
 
-    ( my $session_id ) = keys( %{<user.core.session>} );
-    $data{'session'}{$session_id}{'shutdown'} = 1;
-
     my $id
         = <[base.session.init]>
         ->( $parent_pipe, 'nailara', 'client', 'parent' );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    ( my $session_id ) = keys( %{<user.core.session>} );
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+    <[event.once]>;
 
     <[base.load_modules]>->('ticker.sdl');
     <[base.init_modules]>->('ticker.sdl');
@@ -53,7 +53,7 @@ if ( !<ticker.child.pid> ) {    # child
 
     if ( !<ticker.use_transparency> ) {
         <[base.x11.raise_window]>->( <ticker.window_id>, 'parent', 'core' );
-        <[base.x11.keep_above]>->(<ticker.window_id>);
+        <[base.x11.keep_above]>->( <ticker.window_id>, 'parent', 'core' );
         <ticker.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
@@ -62,6 +62,9 @@ if ( !<ticker.child.pid> ) {    # child
     } else {
         <[ticker.sdl.raise_and_fade]>;
     }
+
+    <[base.get_session_id]>->( 'parent', 'core' );
+
 } else {    # parent
 
     close($parent_pipe);
@@ -72,14 +75,12 @@ if ( !<ticker.child.pid> ) {    # child
         1, "setting priority of ticker child (PID $child_pid) to $prio"
     );
     print {<ticker.child.renice_fh>} "$child_pid $prio\n";
+    close(<ticker.child.renice_fh>);
     delete <ticker.child.renice_fh>;
 
     my $id
         = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
-
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.load_modules]>->('ticker.parent');
-
-    <[base.get_session_id]>;
 }
