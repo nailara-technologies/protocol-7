@@ -2,7 +2,11 @@
 
 # name = base.get_session_id
 
-my ($local_session_id) = keys( %{<user.core.session>} );
+my $usr_str   = shift // 'core';
+my $route_str = shift // '';
+$route_str .= '.' if length($route_str);
+
+my ($local_session_id) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
 if ( exists $data{'session'}{$local_session_id}{'core_sid'} ) {
     <[base.log]>->( 0, "already have a core sid, refused to request another!" );
     return undef;
@@ -11,7 +15,7 @@ my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
 
 <[base.log]>->( 2, "retrieving session id..." );
-<[net.out]>->( $core_fh, "($cmd_id)whoami\n" );
+<[net.out]>->( $core_fh, "($cmd_id)${route_str}whoami\n" );
 
 my $reply_string;
 my $matched_reply = 0;
