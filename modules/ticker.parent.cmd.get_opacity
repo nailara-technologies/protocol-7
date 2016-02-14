@@ -3,8 +3,6 @@
 # name  = ticker.parent.cmd.get_opacity
 # descr = return window opacity for ticker display
 
-my $opacity = 1;    # [0-1]
-$opacity = <ticker.opacity> / 100
-    if exists <ticker.opacity> and defined <ticker.opacity>;
+my $opacity = defined <ticker.opacity> ? <ticker.opacity> : 100;
 
-return { 'mode' => 'ack', 'data' => $opacity }
+return { 'mode' => 'ack', 'data' => "$opacity%" }
