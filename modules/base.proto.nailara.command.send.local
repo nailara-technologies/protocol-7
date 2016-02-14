@@ -26,7 +26,7 @@ return 0 if not defined $$call_args{'session_id'};
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
+my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
 if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
