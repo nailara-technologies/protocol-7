@@ -9,9 +9,23 @@ my $file_path = $$call{'args'};
 
 if ( not defined $file_path or !length($file_path) ) {
     return { 'mode' => 'nack', 'data' => 'expected valid file path!' };
-} elsif ( !-f $file_path ) {
+} elsif ( -d $file_path ) {
+    <[base.log]>->( 0, "read_file: '$file_path' is a directory!" );
+    return { 'mode' => 'nack', 'data' => 'specified path is a directory!' };
+} elsif ( !-e $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' not found!" );
     return { 'mode' => 'nack', 'data' => 'file not found!' };
+} elsif ( !-R $file_path ) {
+    <[base.log]>->(
+        0, "read_file: file '$file_path' not readable! (permissions?)"
+    );
+    return { 'mode' => 'nack', 'data' => 'file access permission denied!' };
+} elsif ( !<ticker.allow_non_regular_files> and !-f $file_path ) {
+    <[base.log]>->( 0, "read_file: '$file_path' is not a regular file!" );
+    return { 'mode' => 'nack', 'data' => 'not a regular file!' };
+} elsif ( -z $file_path ) {
+    <[base.log]>->( 0, "read_file: file '$file_path' is empty!" );
+    return { 'mode' => 'nack', 'data' => 'file is empty!' };
 }
 
 if ( !<ticker.request_pending.read_file> ) {
