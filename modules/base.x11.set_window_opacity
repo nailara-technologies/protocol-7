@@ -1,9 +1,12 @@
 # >:]
 
 # name = base.x11.set_window_opacity
+# todo = cleanup for consistency ...
 
-my $id      = shift;
-my $opacity = shift;
+my $id        = shift;
+my $opacity   = shift;
+my $target    = shift;
+my $route_str = defined $target ? "$target." : '';
 die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
 die "expected numerical opacity from 0 to 100"
     if not defined $opacity
@@ -12,13 +15,15 @@ die "expected numerical opacity from 0 to 100"
 
 <[base.log]>->( 2, "setting window '$id' opacity to $opacity% .." );
 
-my ($sid) = keys( %{ $data{'user'}{'core'}{'session'} } );
+$target //= 'core';
 
-if ( defined $data{'session'}->{$sid}->{'core_sid'} ) {    # status 'online'
+my ($sid) = keys( %{ $data{'user'}{$target}{'session'} } );
+
+if ( defined $data{'session'}->{$sid} ) {    # status 'online' # ->{'core_sid'}
+
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.xserver.set_opacity',
-            'call_args' => { 'args' => "$id $opacity" },
-            'reply'     => { 'handler' => 'dev.null' }
+        {   'command'   => $route_str . 'core.xserver.set_opacity',
+            'call_args' => { 'args' => "$id $opacity" }
         }
     );
     return 1;
@@ -26,7 +31,9 @@ if ( defined $data{'session'}->{$sid}->{'core_sid'} ) {    # status 'online'
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $core_fh = $data{'session'}{$sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)xserver.set_opacity $id $opacity\n" );
+<[net.out]>->(
+    $core_fh, "($cmd_id)${route_str}xserver.set_opacity $id $opacity\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
