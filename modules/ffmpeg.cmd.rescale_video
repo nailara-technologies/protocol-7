@@ -54,18 +54,19 @@ if ( -f $partial_output_file ) {
 unlink($partial_output_file);
 my $output_file = "$output_path/$box_size.mp4";
 
+my @audio_codec = <ffmpeg.drop_audio> ? ('-an') : ( '-c:a', 'aac' );
+
 my @ffmpeg_params = (
-    <ffmpeg.path.ffmpeg_bin>, '-i',
-    $video_path,              '-loglevel',
-    'error',                  '-y',
-    '-strict',                '-2',
-    '-preset',                'medium',
-    '-c:a',                   'copy',
-    '-c:v',                   'libx264',
-    '-x264-params',           'crf=' . <ffmpeg.quality>,
-    '-vf',                    "scale=$new_size",
-    '-threads',               <ffmpeg.threads>,
-    $partial_output_file
+    <ffmpeg.path.ffmpeg_bin>,  '-i',
+    $video_path,               '-loglevel',
+    'error',                   '-y',
+    '-strict',                 '-2',
+    '-preset',                 'medium',
+    @audio_codec,              '-c:v',
+    'libx264',                 '-x264-params',
+    'crf=' . <ffmpeg.quality>, '-vf',
+    "scale=$new_size",         '-threads',
+    <ffmpeg.threads>,          $partial_output_file
 );
 
 <[base.log]>->( 2, "executing '" . join( ' ', @ffmpeg_params ) . "'" );
