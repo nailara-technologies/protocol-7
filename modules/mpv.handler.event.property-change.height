@@ -6,24 +6,27 @@ my $params = shift;
 
 <mpv.current.video_height> = $params->{'data'};
 
+my $current_path = <mpv.current.path>;
 my $video_width  = <mpv.current.video_width>;
 my $video_height = <mpv.current.video_height>;
+
+<mpv.converting> //= {};
 
 if (    <mpv.autorescale>
     and defined $video_width
     and defined $video_height
-    and defined <mpv.current.path> ) {
+    and defined $current_path
+    and not exists <mpv.file_map.rescaled.source>->{$current_path} ) {
     my $target_path;
     my $window_width  = <mpv.current.window_width>;
     my $window_height = <mpv.current.window_height>;
     my $box_width     = <mpv.current.box_width>;
     my $box_height    = <mpv.current.box_height>;
     my $box_size      = "${box_width}x$box_height";
-    $target_path = <mpv.file_map.rescaled.target>->{<mpv.current.path>}
-        if defined <mpv.file_map.rescaled.target>->{<mpv.current.path>};
+    $target_path = <mpv.file_map.rescaled.target>->{$current_path}
+        if defined <mpv.file_map.rescaled.target>->{$current_path};
 
-    if ( defined $target_path and !-f $target_path
-        or !-f <mpv.current.path> ) {
+    if ( not defined $target_path or !-f $target_path ) {
 
         my $target_width
             = $window_width > $video_width ? $video_width : $window_width;
@@ -42,18 +45,22 @@ if (    <mpv.autorescale>
                 . " => target_width: $target_width )"
         );
 
+        my $cmd_args = join( ' ',
+            $current_path, "$target_width", "${box_width}x$box_height" );
+        my $chk_hash = <[digest.md5.hex]>->($cmd_args);
+
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => 'core.ffmpeg.rescale_video',
-                'call_args' => {
-                    'args' => join( ' ',
-                        <mpv.current.path>, "$target_width",
-                        "${box_width}x$box_height" )
-                },
-                'reply' => {
+                'call_args' => { 'args' => $cmd_args },
+                'reply'     => {
                     'handler' => 'mpv.handler.rescale_video_reply',
-                    'params'  => { 'orig_path' => <mpv.current.path> }
+                    'params'  => {
+                        'orig_path' => $current_path,
+                        'chk_hash'  => $chk_hash
+                    }
                 }
             }
-        );
+        ) if not exists <mpv.converting>->{$chk_hash};
+        <mpv.converting>->{$chk_hash} = $current_path;
     }
 }

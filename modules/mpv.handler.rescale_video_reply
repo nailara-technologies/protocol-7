@@ -2,7 +2,10 @@
 
 # name = mpv.handler.rescale_video_reply
 
-my $reply = shift;
+my $reply    = shift;
+my $chk_hash = $reply->{'params'}->{'chk_hash'};
+
+delete <mpv.converting>->{$chk_hash};
 
 return <[base.log]>->(
     0,

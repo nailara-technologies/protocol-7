@@ -4,6 +4,7 @@
 
 my $cmd       = ${ $_[0] }{'command'};
 my $call_args = ${ $_[0] }{'call_args'};
+${ $_[0] }{'reply'} //= {};
 $$call_args{'args'} //= '';
 
 die "'command' parameter expected" if not defined $cmd;
@@ -24,8 +25,7 @@ if ( not defined $$call_args{'session_id'} and $cmd =~ /^([^\.]+)\./ ) {
 }
 return 0 if not defined $$call_args{'session_id'};
 
-my $cmd_id = <[base.gen_id]>->( $data{'route'} );
-
+my $cmd_id        = <[base.gen_id]>->( $data{'route'} );
 my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
