@@ -13,12 +13,12 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 
 my @file_list;
 my %file_types = ( '[PAUSE]' => 'pause' );
-map {
-    my ( $type, $file ) = split( / /, $_, 2 );
+foreach my $rep_line ( split( "\n", $reply->{'data'} ) ) {
+    my ( $type, $file ) = split( / /, $rep_line, 2 );
+    next if not exists <media.content.agent_map>->{$type} or $file eq '[PAUSE]';
     $file_types{$file} = $type;
-    push( @file_list, $file )
-    }
-    split( "\n", $reply->{'data'} );
+    push( @file_list, $file );
+}
 my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
@@ -50,7 +50,8 @@ my $switch_count = 0;
 my $switched_map = {};
 my $last_index   = scalar @file_list - 1;
 foreach my $file (@file_list) {
-    my $type  = $file_types{$file};
+    my $type = $file_types{$file};
+    next if not exists <media.content.agent_map>->{$type};
     my $agent = <media.content.agent_map>->{$type};
     $switched_map->{$agent} //= 0;
     if ( defined $last_agent and $agent ne $last_agent ) {

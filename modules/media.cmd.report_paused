@@ -11,8 +11,11 @@ my $switch_agent = <media.sequence.switch_order>->[$position];
 
 if ( <media.child>->{$agent_name}->{'paused'} ) {
     <[base.log]>
-        ->( 0, "'$agent_name' already paused, ignoring pause-report.." );
-    return;
+        ->( 2, "'$agent_name' already paused, ignoring pause-report.." );
+    return {
+        'mode' => 'nack',
+        'data' => 'already paused'
+    };
 }
 
 <[base.log]>->( 2, "pause reported from '$agent_name'-child" );
