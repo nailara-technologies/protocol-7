@@ -19,6 +19,20 @@ my $old_path = $reply->{'params'}->{'orig_path'};
 
 <[base.log]>->( 1, "[rescaled] replacing playlist entry for '$video_name'" );
 
-<[mpv.send_command]>->('stop');
-<[mpv.send_command]>->('playlist_clear');
-<[mpv.get_playlist]>->('video');
+# quick-fix for entry order desyncronization
+if ( <system.agent.mode> eq 'media-child' ) {
+    my $sname_str
+        = defined <system.agent.subname>
+        ? '[' . <system.agent.subname> . ']'
+        : '';
+    <[base.log]>->( 1, "           : agent restart.. (media$sname_str)" );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.root.restart',
+            'call_args' => { 'args' => 'media' . $sname_str },
+        }
+    );
+} else {
+    <[mpv.send_command]>->('stop');
+    <[mpv.send_command]>->('playlist_clear');
+    <[mpv.get_playlist]>->('video');
+}
