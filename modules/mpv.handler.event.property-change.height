@@ -47,6 +47,7 @@ if (    <mpv.autorescale>
 
         my $cmd_args = join( ' ',
             $current_path, "$target_width", "${box_width}x$box_height" );
+        $cmd_args .= ' ' . <mpv.rescale_path> if defined <mpv.rescale_path>;
         my $chk_hash = <[digest.md5.hex]>->($cmd_args);
 
         <[base.proto.nailara.command.send.local]>->(
