@@ -4,6 +4,7 @@
 
 use JSON::XS;
 use IPC::Open3;
+use File::Path qw(make_path);
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
 
@@ -12,6 +13,20 @@ chomp( <mpv.bin_path> = qx(which mpv) ) if !-f <mpv.bin_path>;
 
 die "[!] mpv binary not found, aborting startup..."
     if not defined <mpv.bin_path> or !length(<mpv.bin_path>);
+
+if ( defined <mpv.rescale_path> ) {
+    <mpv.rescale_path> =~ s|\/$||;
+    if ( !-d <mpv.rescale_path> ) {
+        my $resc_path = <mpv.rescale_path>;
+        <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
+        my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+            or die "user '" . <system.privs.user> . "' not in passwd file";
+        make_path( $resc_path,
+            { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+            or warn "failed to create local config directory '$resc_path' [$!]";
+        delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
+    }
+}
 
 <mpv.fade_in>           //= 0;
 <mpv.reply_ids>         //= [];
