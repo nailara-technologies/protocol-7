@@ -35,8 +35,14 @@ if (<mpv.autorescale>) {
     my $box_size      = join( 'x', $window_width, $window_height );
 
     foreach my $playlist_path (@update_files) {
+        my $output_path;
         my $extension = '';
-        ( my $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
+        if ( defined <mpv.rescale_path> and -d <mpv.rescale_path> ) {
+            my $target_pth = <mpv.rescale_path>;
+            ( $output_path = $playlist_path ) =~ s|^.+/([^/]+)$|$target_pth/$1|;
+        } else {
+            ( $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
+        }
         my $rescaled_path = "$output_path/$box_size.mp4";
         next if !-f $rescaled_path;
         <mpv.file_map.rescaled.target>->{$playlist_path} = $rescaled_path;
