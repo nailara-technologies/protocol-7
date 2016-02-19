@@ -8,15 +8,14 @@ my @file_types = @_;
 <[base.log]>->( 1, "requesting file list from playlist agent .." );
 
 $sub_name = '[' . <system.agent.subname> . ']'
-    if exists <system.agent.subname>
-    and defined <system.agent.subname>
+    if defined <system.agent.subname>
     and length(<system.agent.subname>);
 
 my @args;
 if (@file_types) {
     my $args_str = join( ' ', @file_types );
     $args_str .= ' ' . $sub_name if defined $sub_name;
-    my @args = ( 'args' => $args_str );
+    @args = ( 'args' => $args_str );
 }
 
 <[base.proto.nailara.command.send.local]>->(
