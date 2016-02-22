@@ -25,8 +25,8 @@ if ( -d $path ) {
     foreach my $entry ( sort( readdir($dir_fh) ) ) {
         next if $entry =~ /^\.{1,2}$/;
         push( @{$result_aref}, abs_path("$path/$entry") ) if -f "$path/$entry";
-        <[file.all_files]>->( "$path/$entry", $result_aref )
-            if -d $entry and $recursive;
+        <[file.all_files]>->( abs_path("$path/$entry"), $result_aref )
+            if -d "$path/$entry" and $recursive;
     }
 }
 
