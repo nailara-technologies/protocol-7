@@ -44,6 +44,18 @@ foreach my $hide_agent ( keys %{<media.child>} ) {
     <media.child>->{$hide_agent}->{'visible'} = 0;
 }
 
-<[base.proto.nailara.command.send.local]>
-    ->( { 'command' => "$agent_name.resume" } );
-<media.child>->{$agent_name}->{'paused'} = 0;
+<media.timer.switch_timeout> = <[event.add_timer]>->(
+    {   'after'   => <media.switch_timeout>,
+        'handler' => 'media.handler.switch_timeout',
+        'data'    => { 'agent' => $agent_name }
+    }
+);
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "$agent_name.resume",
+        'reply'   => {
+            'handler' => 'media.handler.resume_reply',
+            'params'  => { 'agent' => $agent_name }
+        }
+    }
+);

@@ -1,0 +1,22 @@
+# >:]
+
+# name = media.handler.resume_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $agent_name = $params->{'agent'};
+
+<media.timer.switch_timeout>->cancel;
+delete <media.timer.switch_timeout>;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    my $reason = $reply->{'args'};
+    <[base.log]>
+        ->( 0, "resume command failed [agent '$agent_name'] ($reason)" );
+    <[base.sleep]>->(0.2);
+    <[base.log]>->( 0, ": retrying switch to agent '$agent_name'.." );
+    <[media.switch_child]>->($agent_name);
+} else {
+    <[base.log]>->( 2, "agent '$agent_name' resume successful.." );
+    <media.child>->{$agent_name}->{'paused'} = 0;
+}
