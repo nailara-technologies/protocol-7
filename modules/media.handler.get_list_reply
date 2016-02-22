@@ -23,9 +23,24 @@ my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty playlist!" );
-
-    # XXX: clear and hide sub-agents
-
+    foreach my $hide_agent ( keys %{<media.child>} ) {
+        my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
+        next if not defined $hide_wid;
+        <[base.log]>->( 2, ": hiding '$hide_agent' ($hide_wid)" );
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.xserver.hide_window",
+                'call_args' => { 'args' => $hide_wid }
+            }
+        );
+        <media.child>->{$hide_agent}->{'visible'} = 0;
+    }
+    <[base.log]>->( 2, ": stopping loadsplash agent.." );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command' => "core.root.stop",
+            'call_args' =>
+                { 'args' => 'loadsplash[' . <system.agent.subname> . ']' }
+        }
+    );
     return;
 }
 
