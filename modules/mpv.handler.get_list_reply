@@ -47,7 +47,9 @@ if (<mpv.autorescale>) {
         next if !-f $rescaled_path;
         <mpv.file_map.rescaled.target>->{$playlist_path} = $rescaled_path;
         <mpv.file_map.rescaled.source>->{$rescaled_path} = $playlist_path;
-        $playlist_path    = $rescaled_path;
+        $playlist_path = $rescaled_path;
+        <[mpv.create_timestamp]>->($rescaled_path)
+            if defined <mpv.rescale_path> and -d <mpv.rescale_path>;
         $playlist_changed = 1;
     }
 }
