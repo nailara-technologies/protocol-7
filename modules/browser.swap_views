@@ -26,3 +26,6 @@ if ( <browser.fg_opacity> == 1 ) {
 <browser.status.fade_view> = 1;
 
 <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+
+Glib::Timeout->add( <window.cfg.fade_step_delay>, $code{'browser.handler.fade_timer'},
+    undef, -10 );

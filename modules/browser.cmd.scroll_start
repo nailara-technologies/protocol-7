@@ -13,7 +13,7 @@ my $vadj     = $view->get_vadjustment();
 Event->unloop_all();
 
 <browser.adjust_scroll_delay> //= 0;
-<browser.scroll_delay_limit>  //= 32;
+<browser.scroll_min_delay>    //= 32;
 <window.scrolling>            //= 0;
 
 return { 'mode' => 'nack', 'data' => 'already scrolling' }
@@ -24,7 +24,7 @@ return { 'mode' => 'nack', 'data' => 'already scrolling' }
 
 <browser.gtk_obj.vadj>   = $vadj;
 <window.scroll.reply_id> = $reply_id;
-<window.cfg.scroll_delay> //= 42;
+<window.cfg.scroll_delay> //= 50;
 <window.cfg.scroll_steps> //= 1;
 <window.scroll.stop> = 0;
 
@@ -32,8 +32,8 @@ my $scroll_delay = <window.cfg.scroll_delay>;
 
 if ( <browser.auto_zoom> and <browser.adjust_scroll_delay> ) {
     $scroll_delay = sprintf( "%.0f", $scroll_delay / <browser.zoom_level> );
-    $scroll_delay = <browser.scroll_delay_limit>
-        if $scroll_delay < <browser.scroll_delay_limit>;
+    $scroll_delay = <browser.scroll_min_delay>
+        if $scroll_delay < <browser.scroll_min_delay>;
 
 }
 

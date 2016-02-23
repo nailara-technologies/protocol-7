@@ -8,11 +8,9 @@ my $view_index = <browser.overlay.index>->{$window_type};
 my $scr_win    = <browser.gtk_obj.scrolled_window>->{$view_index};
 
 <browser.timer.slideshow>->cancel if exists <browser.timer.slideshow>;
-<browser.loop_timer>->cancel;
-Event->unloop_all();
 
 <browser.adjust_scroll_delay> //= 0;
-<browser.scroll_delay_limit>  //= 32;
+<browser.scroll_min_delay>    //= 32;
 <window.scrolling>            //= 0;
 
 my $vadj = $scr_win->get_vadjustment();
@@ -28,12 +26,12 @@ my $scroll_delay = <window.cfg.scroll_delay>;
 
 if ( <browser.auto_zoom> and <browser.adjust_scroll_delay> ) {
     $scroll_delay = sprintf( "%.0f", $scroll_delay / <browser.zoom_level> );
-    $scroll_delay = <browser.scroll_delay_limit>
-        if $scroll_delay < <browser.scroll_delay_limit>;
+    $scroll_delay = <browser.scroll_min_delay>
+        if $scroll_delay < <browser.scroll_min_delay>;
 
 }
 
 Glib::Timeout->add( $scroll_delay, $code{'browser.handler.auto_scroll'},
-    undef, -10 );
+    undef, -42 );
 
 <window.scrolling> = 1;
