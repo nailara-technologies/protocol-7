@@ -73,4 +73,13 @@ $window->add($overlay);
 
 $window->show_all();
 
-Glib::Idle->add( sub { <[browser.wait_for_window]>; return 0 } );
+Glib::Idle->add(
+    sub {
+        <[browser.wait_for_window]>;
+        if (<browser.slideshow.autostart>) {
+            <[base.log]>->( 1, 'url slideshow autostart is enabled!' );
+            <[browser.get_url_list]>;
+        }
+        return 0;
+    }
+);
