@@ -11,6 +11,20 @@ my $agent_name = shift;
 
 my $window_id = <media.child>->{$agent_name}->{'window_id'};
 
+<media.timer.switch_timeout> = <[event.add_timer]>->(
+    {   'after'   => <media.switch_timeout>,
+        'handler' => 'media.handler.switch_timeout',
+        'data'    => { 'agent' => $agent_name }
+    }
+);
+
+if ( not defined $window_id ) {
+    <[base.log]>->(
+        0, "[!] window_id not known, can't switch to $agent_name-child!"
+    );
+    return;
+}
+
 <[base.log]>->( 2, "switching to '$agent_name'-child.." );
 
 <[base.log]>->( 2, ": unhiding '$agent_name' ($window_id)" );
@@ -43,13 +57,6 @@ foreach my $hide_agent ( keys %{<media.child>} ) {
     );
     <media.child>->{$hide_agent}->{'visible'} = 0;
 }
-
-<media.timer.switch_timeout> = <[event.add_timer]>->(
-    {   'after'   => <media.switch_timeout>,
-        'handler' => 'media.handler.switch_timeout',
-        'data'    => { 'agent' => $agent_name }
-    }
-);
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command' => "$agent_name.resume",

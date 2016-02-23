@@ -22,15 +22,20 @@ if ( <media.child>->{$agent_name}->{'paused'} ) {
 
 <media.child>->{$agent_name}->{'paused'} = 1;
 
+my $was_starting = 0;
 if ( <media.child>->{$agent_name}->{'status'} eq 'starting' ) {
     <media.child>->{$agent_name}->{'status'} = 'ready';
+    $was_starting = 1;
 }
 
 my $all_ready = 1;
 map { $all_ready = 0 if <media.child>->{$_}->{'status'} ne 'ready' }
     keys %{<media.child>};
 
-<[media.switch_child]>->($switch_agent) if $all_ready;
+if ($all_ready) {
+    <[base.log]>->( 1, "agent children are now online! :)" ) if $was_starting;
+    <[media.switch_child]>->($switch_agent);
+}
 
 return {
     'mode' => 'ack',
