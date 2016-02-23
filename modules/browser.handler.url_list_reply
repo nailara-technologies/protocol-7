@@ -83,9 +83,14 @@ foreach my $entry (@url_list) {
     $index++;
 }
 
-if (    @{<browser.url.list>}
-    and <browser.slideshow.autostart>
-    and !<browser.slideshow.running> ) {
+my $pause_cnt = 0;
+my $url_count = scalar @{<browser.url.list>};
+map { $pause_cnt++ if $_ eq '[PAUSE]' } @{<browser.url.list>};
+
+if (@{<browser.url.list>}
+    and $pause_cnt != $url_count    # <- prevents infinite while loops
+    and <browser.slideshow.autostart> and !<browser.slideshow.running>
+    ) {
     <[base.log]>->( 1, ": starting slideshow.." );
     <[browser.start_slideshow]>;
 }
