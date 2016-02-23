@@ -1,7 +1,7 @@
 # >:]
 
 # name = playlist.http.get_mime_type
-# todo = cache content types ...
+# todo = cache content types + make async -> 'download'-agent
 
 my $url = shift;
 my $content_type;
@@ -41,3 +41,4 @@ if ( $response->is_success ) {
     <[base.log]>->( 0, "failed to $method '$url' [$err]" );
     $content_type = 'network_error';
 }
+return $content_type;
