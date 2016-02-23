@@ -63,6 +63,18 @@ if ( <browser.slideshow.status> eq 'load' ) {
     $delay -= <browser.slideshow.swap_delay>
         if <browser.slideshow.status> eq 'scroll_finished';
     $delay = 0 if $delay < 0;
+
+    if (    <system.agent.mode> eq 'media-child'
+        and <browser.slideshow.status> eq 'scroll_finished' ) {
+        my $next_index
+            = <browser.slideshow.url_index> >= @url_list
+            ? 0
+            : <browser.slideshow.url_index>;
+        $delay = <browser.slideshow.swap_delay>
+            if $delay < <browser.slideshow.swap_delay>
+            and $url_list[$next_index] eq '[PAUSE]';
+    }
+
     if ( !<browser.slideshow.no_switch> ) {
         <browser.slideshow.status> = 'load';
         <browser.timer.slideshow>  = <[event.add_timer]>->(
