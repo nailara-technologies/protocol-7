@@ -44,13 +44,4 @@ if (<browser.init_proxy>) {
     $session->set( 'proxy-uri' => $proxy_uri );
 }
 
-if (<browser.slideshow.autostart>) {
-    <[base.log]>->( 1, 'url slideshow autostart is enabled!' );
-    <[event.add_timer]>->(
-        {   'after'   => 0,
-            'handler' => 'browser.get_url_list'
-        }
-    );
-}
-
 0;
