@@ -41,11 +41,9 @@ map { <[browser.init_view]>->($_) } ( 1, 2 );
 
 <browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
 
-Event->unloop_all();
-
-<browser.event.loop_timeout> //= 0.042;
-
-Glib::Idle->add( $code{'browser.handler.glib_idle'} );
+Glib::Timeout->add( <window.cfg.fade_step_delay>,
+    $code{'browser.handler.fade_timer'},
+    undef, -10 );
 
 $window->signal_connect(
     'size_allocate',
@@ -67,7 +65,6 @@ $window->signal_connect(
 
             $view->set_zoom_level($zoom_level);
         }
-
         return 0;
     }
 );
@@ -76,11 +73,4 @@ $window->add($overlay);
 
 $window->show_all();
 
-<[event.add_timer]>->(
-    {   'after'   => 0,
-        'prio'    => -1,
-        'handler' => 'browser.wait_for_window'
-    }
-);
-
-Gtk3->main;
+Glib::Idle->add( sub { <[browser.wait_for_window]>; return 0 } );
