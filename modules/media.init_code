@@ -5,10 +5,34 @@
 use IPC::Open2;
 
 $SIG{'CHLD'} = sub {
+    my @names;
+    my $child_pid;
+    do {
+        $child_pid = waitpid( -1, WNOHANG );
+        if ( exists <media.running>->{$child_pid} ) {
+            my $child_name = <media.running>->{$child_pid};
+            push( @names, "'$child_name'" );
+            delete <media.running>->{$child_pid};
+            delete <media.running>->{$child_name};
+        } elsif ($child_pid) {
+            push( @names, $child_pid );
+        }
+    } while $child_pid > 0;
     <[base.log]>->(
-        0, "[!] media-child agent crashed unexpectedly! shutting down..."
+        0,
+        "[!] media-child "
+            . join( ' and ', @names )
+            . " crashed unexpectedly! restarting..."
     );
-    exit(2);
+    <media.restarting_agent> //= 0;
+    <[event.add_timer]>->(
+        {   'after'   => 0.42,
+            'handler' => 'media.self_restart'
+        }
+    ) if !<media.restarting_agent>;
+    <media.restarting_agent> = 1;
+    $SIG{'CHLD'} = 'IGNORE';
+    map { kill( 15, $_ ) if $_ =~ /^\d+$/ } keys %{<media.running>};
 };
 
 my @dis_cmds = @{ $data{'disabled_commands'} };
