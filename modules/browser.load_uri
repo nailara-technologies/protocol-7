@@ -48,16 +48,17 @@ if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
 
         return 1 if $load_status ne 'finished' and $load_status ne 'failed';
 
-        $view->signal_handler_disconnect(
-            delete <browser.signal_id.load_status> )
-            if defined <browser.signal_id.load_status>;
+        delete <browser.timeout>;
+        Glib::Source->remove( delete <browser.signal_id.load_timeout> )
+            if defined <browser.signal_id.load_timeout>;
 
         $view->signal_handler_disconnect(
             delete <browser.signal_id.load_progress> )
             if defined <browser.signal_id.load_progress>;
 
-        Glib::Source->remove( delete <browser.signal_id.load_timeout> )
-            if defined <browser.signal_id.load_timeout>;
+        $view->signal_handler_disconnect(
+            delete <browser.signal_id.load_status> )
+            if defined <browser.signal_id.load_status>;
 
         if (    $load_status eq 'finished'
             and defined $status_code
@@ -128,20 +129,8 @@ if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
     }
 );
 
-<browser.signal_id.load_timeout> = Glib::Timeout->add_seconds(
-    <browser.cfg.load_timeout>,
-    sub {
-        my $bg_index = <browser.overlay.index.bg>;
-        my $view     = <browser.gtk_obj.view>->{$bg_index};
-        my $session  = Gtk3::WebKit::get_default_session();
-        my $load_uri = <browser.load_uri>;
-        <[base.log]>->( 0, "load timeout for '$load_uri', aborting.." );
-        $view->stop_loading();
-        $session->abort();
-        return 0;
-    },
-    undef,
-    -10
-);
+<browser.signal_id.load_timeout>
+    = Glib::Timeout->add_seconds( 1, $code{'browser.handler.load_timeout'},
+    undef, 10 );
 
 $view->load_uri($load_uri);
