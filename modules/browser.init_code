@@ -85,4 +85,7 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
 
 <browser.html_ref.loading_page> = <[file.slurp]>->(<browser.loading_page>);
 
+# [ workaround to suppress weird/untraceable Event.pm warnings on load timeout ]
+$SIG{__WARN__} = sub { <[base.sig_warn]>->(@_) if caller ne 'Carp' };
+
 0;

@@ -1,0 +1,14 @@
+# >:]
+
+# name = browser.callback.load_fail_page
+
+my $bg_index = <browser.overlay.index.bg>;
+my $bg_view  = <browser.gtk_obj.view>->{$bg_index};
+
+my $fail_page_ref = <[file.slurp]>->(<browser.error_page>);
+$$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.failed_to_load>|sg;
+
+$bg_view->load_string( $$fail_page_ref, 'text/html', 'UTF-8', '' );
+<[browser.swap_views]>;
+
+return 0;
