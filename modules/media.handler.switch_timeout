@@ -5,17 +5,8 @@
 my $params       = shift->w->data;
 my $agent_name   = $params->{'agent'};
 my $timeout_secs = <media.switch_timeout>;
-my $sname_str
-    = defined <system.agent.subname>
-    ? '[' . <system.agent.subname> . ']'
-    : '';
 
 <[base.log]>
     ->( 0, "[$agent_name] switch timeout after $timeout_secs seconds!" );
 
-<[base.log]>->( 0, ": restarting media$sname_str agent..." );
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => 'core.root.restart',
-        'call_args' => { 'args' => 'media' . $sname_str },
-    }
-);
+<[media.self_restart]>;
