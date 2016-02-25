@@ -9,9 +9,6 @@ my $fg_index = <browser.overlay.index.fg>;
 my $view     = <browser.gtk_obj.view>->{$fg_index};
 my $vadj     = $view->get_vadjustment();
 
-<browser.loop_timer>->cancel;
-Event->unloop_all();
-
 <browser.adjust_scroll_delay> //= 0;
 <browser.scroll_min_delay>    //= 32;
 <window.scrolling>            //= 0;
