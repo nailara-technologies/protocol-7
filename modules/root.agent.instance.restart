@@ -18,7 +18,7 @@ map { $child{$_} = 1 } (
     keys( %{ $instance->{'process'}->{'child'} } ),
     @{ <[root.process.get_children]>->( $instance->{'process'}->{'id'} ) }
 );
-my @children = keys %child;
+my @children = sort keys %child;
 
 <[base.log]>->(
     1, ": terminating instance pid " . $instance->{'process'}->{'id'}

@@ -90,7 +90,7 @@ if (    $status ne 'starting'
         keys( %{ $instance->{'process'}->{'child'} } ),
         @{ <[root.process.get_children]>->($pid) }
     );
-    my @children = keys %child;
+    my @children = sort keys %child;
     <[base.log]>->( 1, "instance $instance_id : killed process $pid !" )
         if kill( 9, $pid );    # XXX: 15 + timeout
     my $ren = scalar @children == 1 ? '' : 'ren :';
