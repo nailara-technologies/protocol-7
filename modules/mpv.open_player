@@ -93,6 +93,8 @@ if ( !<mpv.pid> ) {
     CORE::exit(1);
 }
 
+push( @{<system.kill_list>}, <mpv.pid> );
+
 <[base.log]>->( 1, ": mpv process spawned [PID=<mpv.pid>]" );
 
 close( delete(<mpv.fh.stdin>) );
