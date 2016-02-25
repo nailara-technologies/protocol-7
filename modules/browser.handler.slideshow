@@ -38,10 +38,14 @@ if ( <browser.slideshow.status> eq 'load' ) {
             <[base.proto.nailara.command.send.local]>
                 ->( { 'command' => "core.report_paused" } );
 
-            while ( $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' ) {
+            my $looped = 0;
+            while ( $looped < 2
+                and $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' ) {
                 <browser.slideshow.url_index>++;
-                <browser.slideshow.url_index> = 0
-                    if <browser.slideshow.url_index> >= @url_list;
+                if ( <browser.slideshow.url_index> >= @url_list ) {
+                    <browser.slideshow.url_index> = 0;
+                    $looped++;
+                }
             }
         } else {
             <[browser.load_uri]>->($load_url);
