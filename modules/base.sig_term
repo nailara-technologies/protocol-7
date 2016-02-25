@@ -1,6 +1,6 @@
 # >:]
 
-# name       = base.sig_term
+# name = base.sig_term
 
 ( my $pname = $0 ) =~ s/ +$//;
 $0 = "$pname :. shutdown in progress... please wait! ";
@@ -12,6 +12,10 @@ $0 = "$pname :. shutdown in progress... please wait! ";
 
 <[root.shutdown]>
     if exists <system.agent.type> and <system.agent.type> eq 'root';
+
+if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
+    map { kill( 15, $_ ) } @{<system.kill_list>};
+}
 
 <[base.log]>->( 1, ': done.' );
 CORE::exit(0);
