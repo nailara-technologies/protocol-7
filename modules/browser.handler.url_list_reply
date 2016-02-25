@@ -15,9 +15,15 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, "received empty url list!" );
     @{<browser.url.list>} = ();
     <browser.slideshow.running> = 0;
-
-    # XXX: parse/insert 'empty playlist'-page?
     <[browser.clear_views]>;
+
+    if ( <system.agent.mode> eq 'media-child'
+        and !<browser.slideshow.iteration> ) {
+        <browser.slideshow.iteration> = 1;
+        <[base.proto.nailara.command.send.local]>   # reporting agent as 'ready'
+            ->( { 'command' => "core.report_paused" } );
+    }
+
     return;
 }
 
