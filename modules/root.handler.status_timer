@@ -16,7 +16,7 @@ my $timeout_secs
 delete $agent_config->{'ping'} if !keys %{ $agent_config->{'ping'} };
 delete $globals->{'ping'}      if !keys %{ $globals->{'ping'} };
 
-$instance->{'status_timer'}->stop;    # reused later..
+$instance->{'status_timer'}->stop if !$instance->{'status_timer'}->is_cancelled;
 
 $instance->{'timeout_timer'} = <[event.add_timer]>->(
     {   'after'   => $timeout_secs,
