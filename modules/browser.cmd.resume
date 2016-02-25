@@ -10,10 +10,17 @@ return { 'mode' => 'nack', 'data' => 'slideshow was not paused' }
 
 my @url_list = @{<browser.url.list>};
 
-while ( $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' ) {
+<browser.slideshow.url_index> = 0
+    if <browser.slideshow.url_index> >= @url_list;
+
+my $looped = 0;
+while ( $looped < 2 and $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' )
+{
     <browser.slideshow.url_index>++;
-    <browser.slideshow.url_index> = 0
-        if <browser.slideshow.url_index> >= @url_list;
+    if ( <browser.slideshow.url_index> >= @url_list ) {
+        <browser.slideshow.url_index> = 0;
+        $looped++;
+    }
 }
 
 <browser.slideshow.status> = 'load';
