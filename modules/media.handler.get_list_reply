@@ -22,7 +22,7 @@ foreach my $rep_line ( split( "\n", $reply->{'data'} ) ) {
 my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <[base.log]>->( 0, "received empty playlist!" );
+    <[base.log]>->( 1, "received empty playlist!" );
     foreach my $hide_agent ( keys %{<media.child>} ) {
         my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
         next if not defined $hide_wid;

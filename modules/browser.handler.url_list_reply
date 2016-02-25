@@ -12,7 +12,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <[base.log]>->( 0, "received empty url list!" );
+    <[base.log]>->( 1, "received empty url list!" );
     @{<browser.url.list>} = ();
     <browser.slideshow.running> = 0;
     <[browser.clear_views]>;
