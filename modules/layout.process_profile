@@ -64,6 +64,7 @@ if (<layout.startup>) {
 
 <layout.coordinates> = {};
 <layout.window_ids>  = {};
+<layout.subconfig>   = {};
 <layout.layers>      = {};
 
 foreach my $agent_name ( keys %{$profile_data} ) {
@@ -75,6 +76,8 @@ foreach my $agent_name ( keys %{$profile_data} ) {
         cmpStr( $previous_data->{$agent_name}, $profile_data->{$agent_name} )
         == 0;    # agent setup identical (not touching running agent)
 
+    <layout.window_ids>->{$agent_name} = undef;
+
     <layout.coordinates>->{$agent_name}
         = <[layout.calculate_coordinates]>->( $profile_data->{$agent_name} );
 
@@ -82,7 +85,17 @@ foreach my $agent_name ( keys %{$profile_data} ) {
         if defined $profile_data->{$agent_name}->{'layer'}
         and $profile_data->{$agent_name}->{'layer'} =~ /^\-?\d+$/;
     <layout.layers>->{$agent_name} //= 0;
-    <layout.window_ids>->{$agent_name} = undef;
+
+    <layout.subconfig>->{$agent_name} = {};
+    ( my $name_plain = $agent_name ) =~ s|\[.+$||;
+    if ( defined <layout.mapped_subcfg>->{$name_plain} ) {
+        my @scfg_keys = split( / +/, <layout.mapped_subcfg>->{$name_plain} );
+        foreach my $sc_key (@scfg_keys) {
+            <layout.subconfig>->{$agent_name}->{$sc_key}
+                = $profile_data->{$agent_name}->{$sc_key}
+                if defined $profile_data->{$agent_name}->{$sc_key};
+        }
+    }
 
     <[layout.handler.agent_transition]>->(
         {   'action'       => 'start',

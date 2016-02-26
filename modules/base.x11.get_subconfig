@@ -1,0 +1,66 @@
+# >:]
+
+# name = base.x11.get_subconfig
+
+my ($local_session_id) = keys( %{<user.core.session>} );
+
+my $agent_name = <system.agent.name>;
+my $subname    = <system.agent.subname>;
+my $name_str   = defined $subname ? "$agent_name\[$subname]" : $agent_name;
+
+<[base.log]>->( 1, "requesting $name_str layout tile subcfg" );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)layout.get_subconfig $name_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
+    if ( !$matched_reply ) {
+        print "<NO_MATCH>\n";
+        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
+        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
+            if uc($2) ne $2;
+    }
+}
+
+my $subcfg_data  = {};
+my $read_timeout = 2;
+if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
+    my $bytes_to_go = $1;
+    my $bytes_total = $bytes_to_go;
+    if ( !$bytes_to_go ) {
+        <[base.log]>->(
+            2, "layout subconfig for '$name_str' was empty (0 bytes)"
+        );
+        return {};
+    }
+    my $buffer = '';
+    while ($bytes_to_go) {
+        my $bytes = read( $core_fh, $buffer, $bytes_to_go, length($buffer) );
+        $bytes_to_go -= $bytes if defined $bytes;
+    }
+    chop($buffer);
+    foreach my $cfg_line ( split( /\n/, $buffer ) ) {
+        my ( $c_key, $c_val ) = split( / +\= /, $cfg_line, 2 );
+        $subcfg_data->{$c_key} = $c_val;
+    }
+    <[base.log]>->(
+        1, "received layout subconfig for '$name_str' ($bytes_total bytes)"
+    );
+    return $subcfg_data;
+} elsif ( $reply_string =~ /^\($cmd_id\)NACK unknown command\n$/ ) {
+    <[base.log]>->( 0, "get_subconfig command failed for '$name_str' [NACK]" );
+    return undef;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol error (unexpected reply from layout agent)"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
