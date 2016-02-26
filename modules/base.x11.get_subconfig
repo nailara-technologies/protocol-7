@@ -4,14 +4,14 @@
 
 my ($local_session_id) = keys( %{<user.core.session>} );
 
-my $agent_name = <system.agent.name>;
-my $subname    = <system.agent.subname>;
-my $name_str   = defined $subname ? "$agent_name\[$subname]" : $agent_name;
+my $agent_name
+    = <system.agent.mode> ne 'media-child' ? <system.agent.name> : 'media';
+my $subname = <system.agent.subname>;
+my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
 
 <[base.log]>->( 1, "requesting $name_str layout tile subcfg" );
 
-my $cmd_id = <[base.gen_id]>->( $data{'route'} );
-
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $core_fh = $data{'session'}{$local_session_id}{'handle'};
 <[net.out]>->( $core_fh, "($cmd_id)layout.get_subconfig $name_str\n" );
 
