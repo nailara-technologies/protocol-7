@@ -1,0 +1,20 @@
+# >:]
+
+# name = browser.process_subcfg
+
+<browser.subcfg> //= {};
+
+<browser.subcfg>->{'adblock'}  //= 0;
+<browser.subcfg>->{'noscript'} //= 0;
+
+<[base.log]>->( 1, "processing layout tile subconfig.." );
+
+if ( <browser.subcfg>->{'adblock'} ) {
+    <browser.cfg.use_proxy> = 'auto';
+    <[base.log]>->( 1, ":  adblock enabled : [proxy:auto]" );
+}
+
+if ( <browser.subcfg>->{'noscript'} ) {
+    <browser.cfg.javascript_enabled> = 0;
+    <[base.log]>->( 1, ": noscript enabled : [javascript:off]" );
+}
