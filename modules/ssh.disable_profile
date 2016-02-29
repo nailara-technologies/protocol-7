@@ -2,7 +2,7 @@
 
 # name = ssh.disable_profile
 
-my $profile_name = shift || '';
+my $profile_name = shift // '';
 
 return <[base.log]>->( 0, "there is no active profile named '$profile_name'" )
     if not exists <ssh.profiles>->{$profile_name};

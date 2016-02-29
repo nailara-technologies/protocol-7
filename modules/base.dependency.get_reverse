@@ -3,7 +3,7 @@
 # name  = base.dependency.get_reverse
 # descr = return a list of all objects which depend on the specified object [id]
 
-my $object_id = shift || '';
+my $object_id = shift // '';
 die "base.dependency.add: expected valid dependency-object id"
     if not exists <dependency.object>->{$object_id};
 
