@@ -6,7 +6,7 @@
 
 my $filename   = abs_path(shift);
 my $target_ref = shift;              # optional scalar or array reference
-my @encoding   = ( shift || '' );    # optional encoding type ( i.e. ':raw' )
+my @encoding   = ( shift // '' );    # optional encoding type ( i.e. ':raw' )
 if ( defined $target_ref and !length( ref($target_ref) ) ) {
     @encoding = ($target_ref);
     undef $target_ref;
