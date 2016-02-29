@@ -1,0 +1,10 @@
+# >:]
+
+# name  = mpv.cmd.current_file
+# descr = return currently loaded video file path
+
+if ( defined <mpv.current.path> ) {
+    return { 'mode' => 'ack', 'data' => <mpv.current.path> };
+} else {
+    return { 'mode' => 'nack', 'data' => 'no video file loaded' };
+}
