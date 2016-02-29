@@ -1,0 +1,16 @@
+# >:]
+
+# name = root.handler.process_kill_list
+
+my @kill_list = @{ shift->w->data };
+
+<[base.log]>->(
+    2, sprintf( "processing kill list [%s]", join( ',', @kill_list ) )
+);
+
+my @actually_killed;
+map { push( @actually_killed, $_ ) if kill( 'KILL', $_ ) } @kill_list;
+
+<[base.log]>->(
+    1, sprintf( ": children KILLed : %s", join( ',', @actually_killed ) )
+) if @actually_killed;
