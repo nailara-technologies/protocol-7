@@ -12,12 +12,11 @@ if ( exists <media.timer.switch_timeout> ) {
 }
 
 if ( $reply->{'cmd'} ne 'ACK' ) {
-    my $reason = $reply->{'args'};
+    my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>
         ->( 0, "resume command failed [agent '$agent_name'] ($reason)" );
-    <[base.sleep]>->(0.2);
-    <[base.log]>->( 0, ": retrying switch to agent '$agent_name'.." );
-    <[media.switch_child]>->($agent_name);
+    <[base.log]>->( 0, ": attempting recovery through restart.." );
+    <[media.self_restart]>;
 } else {
     <[base.log]>->( 2, "agent '$agent_name' resume command successful!" );
     <media.child>->{$agent_name}->{'paused'} = 0;
