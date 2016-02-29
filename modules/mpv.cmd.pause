@@ -4,8 +4,11 @@
 # descr = pause playback
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-<mpv.success_reply_str> = 'playback paused';
-
-<[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+push(
+    @{<mpv.command.reply>},
+    { 'handler' => 'mpv.handler.cmd_pause_property' }
+);
+<mpv.pause_cmd_mode> = 'pause';
+<[mpv.send_command]>->( 'get_property_string', 'pause' );
 
 return { 'mode' => 'later' };
