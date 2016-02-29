@@ -4,7 +4,7 @@
 
 my $name     = shift;
 my $user     = shift || 'core';
-my $cmd_path = shift || '';
+my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 if ( not defined $name ) {
     $name = <system.agent.name>;

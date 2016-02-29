@@ -13,8 +13,8 @@ if ( @_ == 1 and $_[0] =~ /^\d+$/ ) {
     $link_name    = $connection->{'name'};
     $profile_name = $connection->{'profile'};
 } else {
-    $profile_name = shift || '';
-    $link_name    = shift || '';
+    $profile_name = shift // '';
+    $link_name    = shift // '';
 }
 my $ssh_timeout = <ssh.cfg.globals>->{'connections.timeout'};
 $ssh_timeout //= 10;    # default timeout (seconds)

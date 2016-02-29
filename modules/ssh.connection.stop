@@ -2,7 +2,7 @@
 
 # name = ssh.connection.stop
 
-my $con_id = shift || '';
+my $con_id = shift // '';
 
 return <[base.log]>->( 0, "there is no active connection with id '$con_id'" )
     if not exists <ssh.connections>->{$con_id};
