@@ -3,7 +3,7 @@
 # name  = root.agent.get_object_id
 # descr = return dependency object id for given agent id
 
-my $agent_id = shift || '';
+my $agent_id = shift // '';
 die "root.agent.get_object_id: agent id '$agent_id' does not exist\n"
     if not exists <root.agent.setup>->{$agent_id};
 

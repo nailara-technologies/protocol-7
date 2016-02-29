@@ -3,7 +3,7 @@
 # name  = root.shutdown
 # descr = shut down root agent with optional failure message
 
-my $reason = shift || '';
+my $reason = shift // '';
 my $exit_code = length($reason) ? 1 : $?;
 my $log_level = length($reason) ? 0 : 1;
 my $child_count   = keys %{<root.child>};

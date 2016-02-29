@@ -2,7 +2,7 @@
 
 # name = ssh.enable_profile
 
-my $profile_name = shift || '';
+my $profile_name = shift // '';
 my $profile_data = <ssh.cfg.profiles>->{$profile_name};
 die "ssh profile '$profile_name' not defined!" if not defined $profile_data;
 

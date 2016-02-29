@@ -3,8 +3,8 @@
 # name  = base.dependency.add
 # descr = add new object id to the dependency chain
 
-my $object_id  = shift || '';
-my $depends_on = shift || '';
+my $object_id  = shift // '';
+my $depends_on = shift // '';
 
 die "base.dependency.add: expecting two valid dependency-object ids"
     if not exists <dependency.object>->{$object_id}

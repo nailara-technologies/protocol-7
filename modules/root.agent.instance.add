@@ -3,7 +3,7 @@
 # name  = root.agent.instance.add
 # descr = register new agent and return its id
 
-my $agent_id = shift || '';
+my $agent_id = shift // '';
 die "agent id '$agent_id' does not exist!"
     if not exists <root.agent.setup>->{$agent_id};
 
