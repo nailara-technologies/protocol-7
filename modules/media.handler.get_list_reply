@@ -4,7 +4,8 @@
 
 my $reply = shift;
 
-<media.playlist_sha1> //= '';
+<media.playlist_sha1>  //= '';
+<media.playlist.files> //= [];
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
     <[base.log]>->( 0, ": failed to fetch playlist!" );
@@ -51,6 +52,11 @@ return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
     and !$playlist_changed;
 <media.playlist_sha1> = $playlist_sha1;
 
+my $last_type
+    = @{<media.playlist.files>}
+    ? <media.playlist.types>->{ <media.playlist.files>->[0] }
+    : '';
+
 <media.playlist.files> = \@file_list;
 <media.playlist.types> = \%file_types;
 <media.playlist.agent>
@@ -64,6 +70,8 @@ my $first_agent;
 my $switch_count = 0;
 my $switched_map = {};
 my $last_index   = scalar @file_list - 1;
+my $new_type     = scalar @file_list ? $file_types{ $file_list[0] } : '';
+
 foreach my $file (@file_list) {
     my $type = $file_types{$file};
     next if not exists <media.content.agent_map>->{$type};
@@ -102,8 +110,10 @@ push( @{ <media.playlist.agent>->{$last_agent} }, '[PAUSE]' )
 <media.playlist.change_count> //= 0;
 <[base.log]>->( 1, ": playlist changed.." );
 
-if ( $switch_count
-    and <media.playlist.change_count> ) {   # temporary (anti-desync) workaround
+if (<media.playlist.change_count>
+    and ( $switch_count
+        or !$switch_count and @file_list and $new_type ne $last_type )
+    ) {    # temporary (anti-desync) workaround
     <[media.self_restart]>;
 }
 <media.playlist.change_count>++;
