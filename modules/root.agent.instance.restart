@@ -21,14 +21,26 @@ map { $child{$_} = 1 } (
 my @children = sort keys %child;
 
 <[base.log]>->(
-    1, ": terminating instance pid " . $instance->{'process'}->{'id'}
+    1, ": TERMinating instance pid " . $instance->{'process'}->{'id'}
 );
-kill( 9, $instance->{'process'}->{'id'} );    # XXX: 15 + timeout
+my @kill_list;
+kill( 'TERM', $instance->{'process'}->{'id'} );
+push( @kill_list, $instance->{'process'}->{'id'} );
 my $ren = scalar @children == 1 ? '' : 'ren :';
-<[base.log]>->(
-    1, ": terminating instance child$ren " . join( ', ', @children )
-) if @children;
-kill( 9, @children );
+if (@children) {
+    <[base.log]>->(
+        1, ": TERMinating instance child$ren " . join( ', ', @children )
+    );
+    kill( 'TERM', @children );
+    push( @kill_list, @children );
+}
+
+<[event.add_timer]>->(
+    {   'after'   => <root.timeout.kill_list>,
+        'handler' => 'root.handler.process_kill_list',
+        'data'    => \@kill_list
+    }
+);
 
 <[agent.change_status]>->( $instance_id, 'queued' );
 <[jobqueue.move_job]>->( $job_id, 'queued' );
