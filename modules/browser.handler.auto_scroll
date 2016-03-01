@@ -9,6 +9,8 @@ my $view     = <browser.gtk_obj.view>->{$fg_index};
 my $vadj     = $view->get_vadjustment();
 
 <window.scroll.max> = $vadj->get_upper() - $vadj->get_page_size();
+<window.scroll.last_pos> = <window.scroll.pos> // 0;
+<window.scroll.no_js> //= 0;
 <window.scroll.pos> = $vadj->get_value();
 
 if (<window.scroll.stop>) {
@@ -26,6 +28,25 @@ if (<window.scroll.stop>) {
     delete <window.scroll.stop_reply_id>;
     return 0;
 } elsif ( <window.scroll.pos> < <window.scroll.max> ) {
+    if (    <browser.cfg.javascript_enabled>
+        and !<browser.scroll.fail.js_disabled>
+        and <window.scroll.pos> < <window.scroll.last_pos> )
+    {    # scroll failure? (might be caused by javascript intervention)
+        <window.scroll.fail_start> //= <[base.time]>->(2);
+        if ( <[base.time]>->(2) - <window.scroll.fail_start>
+            >= <browser.scroll.fail.timeout> ) {
+            <[base.log]>->(
+                0, "autoscroll failure! stopping javascript execution.."
+            );
+            my $settings = $view->get_settings;
+            $settings->set_property( 'enable-scripts', 0 );
+            $view->set_settings($settings);
+            <browser.scroll.fail.js_disabled> = 1;
+            delete <window.scroll.fail_start>;
+        }
+    } elsif ( exists <window.scroll.fail_start> ) {
+        delete <window.scroll.fail_start>;
+    }
     <window.scroll.pos> += <window.cfg.scroll_steps>;
     $vadj->set_value(<window.scroll.pos>);
     $view->set_vadjustment($vadj);
@@ -40,6 +61,17 @@ if (<window.scroll.stop>) {
 
     if (<browser.slideshow.running>) {
         <browser.slideshow.status> = 'scroll_finished';
+        if (<browser.scroll.fail.js_disabled>) {
+            delete <browser.scroll.fail.js_disabled>;
+            if (<browser.cfg.javascript_enabled>) {
+                my $settings = $view->get_settings;
+                $settings->set_property( 'enable-scripts', 1 );
+                $view->set_settings($settings);
+                <[base.log]>->(
+                    0, "autoscroll completed ..javascript reenabled!"
+                );
+            }
+        }
         <[browser.handler.slideshow]>;
     }
 

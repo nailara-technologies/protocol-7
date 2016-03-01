@@ -17,6 +17,16 @@ my $view     = <browser.gtk_obj.view>->{$bg_index};
 
 <[browser.cmd.scroll_stop]> if <window.scolling>;
 
+if (<browser.scroll.fail.js_disabled>) {
+    delete <browser.scroll.fail.js_disabled>;
+    if ( !<browser.slideshow.no_scroll> and <browser.cfg.javascript_enabled> ) {
+        my $settings = $view->get_settings;
+        $settings->set_property( 'enable-scripts', 1 );
+        $view->set_settings($settings);
+        <[base.log]>->( 0, "autoscroll stopped ..javascript reenabled!" );
+    }
+}
+
 <[base.log]>->( 2, "loading uri '$load_uri'.." );
 
 <browser.time.load_start> = <[base.time]>->(3);
