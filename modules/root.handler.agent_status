@@ -12,7 +12,7 @@ if ( $status eq 'shutdown'
     );
     return;
 }
-die "no such agent instance ($instance_id)"
+die "no such agent instance ($instance_id) [status:$status]"
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
 
@@ -83,21 +83,10 @@ $instance->{'status'} = $status;
 # quickly terminate leftover processes
 if (    $status ne 'starting'
     and $status ne 'online'
-    and exists $instance->{'process'} ) {
-    my $pid = $instance->{'process'}->{'id'};
-    my %child;    # XXX: create and use 'update_children' callback!
-    map { $child{$_} = 1 } (
-        keys( %{ $instance->{'process'}->{'child'} } ),
-        @{ <[root.process.get_children]>->($pid) }
-    );
-    my @children = sort keys %child;
-    <[base.log]>->( 1, "instance $instance_id : killed process $pid !" )
-        if kill( 9, $pid );    # XXX: 15 + timeout
-    my $ren = scalar @children == 1 ? '' : 'ren :';
-    <[base.log]>->(
-        1, ": terminating instance child$ren " . join( ', ', @children )
-    ) if @children;
-    kill( 9, @children );
+    and exists $instance->{'process'}
+    and defined $instance->{'process'}->{'id'} ) {
+
+    <[root.terminate_process]>->( $instance->{'process'}->{'id'} );
 }
 
 # instance startup failure hooks
@@ -247,11 +236,6 @@ if ( $old_status ne 'online' and $status eq 'online' ) {
 
     # clean up temporary agent instance startup data
     delete $instance->{'init_data'};
-
-    # record process child$ren pids XXX: install timer to cleanup child pids!
-    my $pid = $instance->{'process'}->{'id'};
-    map { $instance->{'process'}->{'child'}->{$_}->{'start_time'} = time() }
-        @{ <[root.process.get_children]>->($pid) };
 
     # start next delayed agent of the same name ...
     foreach my $id ( @{ <[agent.instance.get_ids]>->($agent_id) } ) {

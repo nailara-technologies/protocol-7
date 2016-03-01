@@ -10,6 +10,9 @@ my $child_count   = keys %{<root.child>};
 my $kill_timeout  = <system.kill_timeout> || 3;    # floating seconds
 my $abort_timeout = 1;
 
+map { $child_count += scalar @{ <[root.process.get_children]>->($_) } }
+    keys %{<root.child>};
+
 while ( ( waitpid( -1, WNOHANG ) ) > 0 ) {
     $child_count--;
 }
@@ -28,20 +31,14 @@ foreach my $pid ( sort keys %{<root.child>} ) {
     my $i_id = <root.child>->{$pid}->{'instance_id'};
     my $instance_str = $i_id ? " ( instance $i_id )" : '';
 
-    my %child;    # XXX: create and use 'update_children' callback!
-    map { $child{$_} = 1 } (
-        keys( %{ <root.agent.instance>->{$i_id}->{'process'}->{'child'} } ),
-        @{ <[root.process.get_children]>->($pid) }
-    );
-    my @children = keys %child;
+    my @children = @{ <[root.process.get_children]>->($pid) };
 
     if ( kill( 15, $pid ) ) {
-        <[base.log]>->( 2, ": terminating process $pid" . $instance_str );
+        <[base.log]>->( 2, ": <TERM> process $pid" . $instance_str );
         <root.child>->{$pid}->{'term_sent'} = <[base.time]>->($t_res);
         my $ren = scalar @children == 1 ? '' : 'ren :';
-        <[base.log]>->(
-            1, ": terminating instance child$ren " . join( ', ', @children )
-        ) if @children;
+        <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @children ) )
+            if @children;
         kill( 9, @children );
     } else {
         delete <root.child>->{$pid};
@@ -63,12 +60,11 @@ while ( keys %{<root.child>} ) {
                 push( @children, $proc->{'pid'} )
                     if $proc->{'ppid'} == $pid;
             }
-            <[base.log]>->( 1, ": terminating process $pid ( SIGKILL )" );
+            <[base.log]>->( 1, ": <KILL> process $pid" );
             kill( 9, $pid );    # XXX: 15 + timeout
             my $ren = scalar @children == 1 ? '' : 'ren :';
-            <[base.log]>->(
-                1, ": KILLing instance child$ren " . join( ', ', @children )
-            ) if @children;
+            <[base.log]>->( 1, ": <KILL> child$ren " . join( ', ', @children ) )
+                if @children;
             kill( 9, @children );
             <root.child>->{$pid}->{'kill_sent'} = 1;
         }

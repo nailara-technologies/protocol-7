@@ -1,0 +1,30 @@
+# >:]
+
+# name = root.terminate_process
+
+my $kill_pid = shift;
+
+return if exists <root.terminating.pid>->{$kill_pid};
+
+<[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid );
+
+my @children = @{ <[root.process.get_children]>->($kill_pid) };
+
+kill( 'TERM', $kill_pid );
+my @kill_list = ($kill_pid);
+
+my $ren = scalar @children == 1 ? '' : 'ren :';
+if (@children) {
+    <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @children ) );
+    kill( 'TERM', @children );
+    push( @kill_list, @children );
+}
+
+map { <root.terminating.pid>->{$_} = <[base.time]>->(3) } @kill_list;
+
+<[event.add_timer]>->(
+    {   'after'   => <root.timeout.kill_list>,
+        'handler' => 'root.handler.process_kill_list',
+        'data'    => \@kill_list
+    }
+);
