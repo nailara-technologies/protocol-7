@@ -53,8 +53,9 @@ return {
 
 <[base.log]>->( 1, "spawning agent '$agent_name'..." ) if !$recursion;
 
-foreach
-    my $dep_name ( split( / +/, <[agent.get_dependencies]>->($agent_name) ) ) {
+my $dep_str = <[agent.get_dependencies]>->($agent_name);
+my @dependencies = defined $dep_str ? split( / +/, $dep_str ) : ();
+foreach my $dep_name (@dependencies) {
     if ( !<[agent.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
 
