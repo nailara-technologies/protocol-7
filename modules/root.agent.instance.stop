@@ -27,43 +27,12 @@ $instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
 delete <callback.session.close_last> if $instance->{'is_core'};
 
-if ( defined $instance->{'process'}->{'id'} ) {
+delete <root.child>->{ $instance->{'process'}->{'id'} };
 
-    my %child;    # XXX: create and use 'update_children' callback!
-    map { $child{$_} = 1 } (
-        keys( %{ $instance->{'process'}->{'child'} } ),
-        @{  <[root.process.get_children]>->( $instance->{'process'}->{'id'} )
-        }
-    );
-    my @children = sort keys %child;
+<[root.terminate_process]>->( $instance->{'process'}->{'id'} )
+    if defined $instance->{'process'}->{'id'};
 
-    <[base.log]>->(
-        1, ": TERMinating instance pid " . $instance->{'process'}->{'id'}
-    );
-    my @kill_list;
-    kill( 'TERM', $instance->{'process'}->{'id'} );
-    push( @kill_list, $instance->{'process'}->{'id'} );
-    delete <root.child>->{ $instance->{'process'}->{'id'} };
-    my $ren = scalar @children == 1 ? '' : 'ren :';
-    if (@children) {
-        <[base.log]>->(
-            1, ": TERMinating instance child$ren " . join( ', ', @children )
-        );
-        kill( 'TERM', @children );
-        push( @kill_list, @children );
-        map { delete <root.child>->{$_} if exists <root.child>->{$_} }
-            @children;
-    }
-
-    <[event.add_timer]>->(
-        {   'after'   => <root.timeout.kill_list>,
-            'handler' => 'root.handler.process_kill_list',
-            'data'    => \@kill_list
-        }
-    );
-
-}
-
+# <[agent.change_status]>->( $instance_id, 'shutdown' );
 <[jobqueue.remove_job]>->($job_id);
 
 # undef $agent_instance->{'output_buffer'}; # -> done in output_handler

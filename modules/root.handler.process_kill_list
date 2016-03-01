@@ -11,6 +11,10 @@ my @kill_list = @{ shift->w->data };
 my @actually_killed;
 map { push( @actually_killed, $_ ) if kill( 'KILL', $_ ) } @kill_list;
 
+my $chld_str = scalar(@actually_killed) == 1 ? 'child' : 'children';
+
 <[base.log]>->(
-    1, sprintf( ": children KILLed : %s", join( ',', @actually_killed ) )
+    1, sprintf( ": <KILL>ed $chld_str : %s", join( ',', @actually_killed ) )
 ) if @actually_killed;
+
+map { delete <root.terminating.pid>->{$_} } @kill_list;
