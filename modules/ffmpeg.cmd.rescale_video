@@ -84,23 +84,39 @@ my @ffmpeg_params = (
 
 <[base.log]>->( 2, "executing '" . join( ' ', @ffmpeg_params ) . "'" );
 
+new_log_name:
+my $error_log_file = sprintf( "/tmp/.ffmpeg.$$.%f.log", <[base.time]>->(5) );
+goto new_log_name if -e $error_log_file;
+
 if ( !-f $output_file ) {
+    local $ENV{'FFREPORT'} = "file=$error_log_file:level=16";
     if ( system(@ffmpeg_params) != 0 or $? == -1 or $? & 127 ) {
         unlink($partial_output_file) if -f $partial_output_file;
+        my $err_str = $!;
+        if ( -f $error_log_file ) {
+            my $log_content = <[file.slurp]>->($error_log_file);
+            my @log_lines = split( /\n/, $$log_content );
+            if ( scalar(@log_lines) > 3 ) {
+                $err_str = $log_lines[2];
+            } elsif (@log_lines) {
+                $err_str = unshift(@log_lines);
+            }
+        }
         <[base.log]>->(
             0,
-            "ffmpeg failed to execute: $! ("
+            "ffmpeg failed to execute: $err_str ("
                 . join( ' ', @ffmpeg_params ) . ")"
         );
         return {
             'mode' => 'nack',
-            'data' => "ffmpeg failed to execute [$!]"
+            'data' => "ffmpeg failed to execute [$err_str]"
         };
     } else {
         rename( $partial_output_file, $output_file )
             or warn "rename failed: $!";
     }
 }
+unlink($error_log_file) if -f $error_log_file;
 
 <[base.log]>->( 1, ": done. (success)" );
 
