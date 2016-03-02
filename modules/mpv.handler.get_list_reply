@@ -92,4 +92,6 @@ if ( <system.agent.mode> eq 'media-child' ) {
         <mpv.success_reply_str> = '[PAUSE]d';
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
     }
+    <mpv.playlist_contains_pause> //= 0;
+    map { <mpv.playlist_contains_pause>++ if $_ eq '[PAUSE]' } @update_files;
 }
