@@ -34,9 +34,15 @@ if (    <mpv.autorescale>
             if defined <mpv.rescale_max_width>
             and $target_width > <mpv.rescale_max_width>;
 
-        while ( ( $video_height / $video_width * $target_width ) % 2
+        my $target_height
+            = sprintf( "%.0f", $video_height / $video_width * $target_width );
+
+        while ($target_height % 2
             or $target_width % 16 ) {
             $target_width--;
+            $target_height
+                = sprintf( "%.0f",
+                $video_height / $video_width * $target_width );
         }
 
         <[base.log]>->(
