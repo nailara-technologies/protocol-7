@@ -99,7 +99,7 @@ if ( !-f $output_file ) {
             if ( scalar(@log_lines) > 3 ) {
                 $err_str = $log_lines[2];
             } elsif (@log_lines) {
-                $err_str = unshift(@log_lines);
+                $err_str = pop(@log_lines);
             }
         }
         <[base.log]>->(
