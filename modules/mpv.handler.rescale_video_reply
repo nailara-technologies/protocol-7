@@ -20,7 +20,7 @@ my $old_path = $reply->{'params'}->{'orig_path'};
 <[base.log]>->( 1, "[rescaled] replacing playlist entry for '$video_name'" );
 
 # quick-fix for entry order desyncronization
-if ( <system.agent.mode> eq 'media-child' ) {
+if ( <system.agent.mode> eq 'media-child' and <mpv.playlist_contains_pause> ) {
     my $sname_str
         = defined <system.agent.subname>
         ? '[' . <system.agent.subname> . ']'
