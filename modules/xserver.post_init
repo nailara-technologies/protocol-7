@@ -36,6 +36,9 @@ my $server_bin;
 my $server_pid;
 my $server_params;
 
+<xserver.params>->{'xephyr'} .= ' -glamor'
+    if $mode eq 'xephyr' and <xserver.orientation> eq 'normal';
+
 if ( $mode ne 'host' ) {
     if ( not defined $mode or !length($mode) ) {
         die "xserver.mode not defined (expected 'xorg' or 'xephyr')";
