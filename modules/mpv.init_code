@@ -29,6 +29,7 @@ die "[!] mpv binary not found, aborting startup..."
 
 if ( defined <mpv.rescale_path> ) {
     <mpv.rescale_path> =~ s|\/$||;
+    <[base.log]>->( 2, "checking rescale_path '" . <mpv.rescale_path> . "'" );
     if ( !-d <mpv.rescale_path> ) {
         my $resc_path = <mpv.rescale_path>;    # XXX: check path on demand ...
         <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
@@ -38,7 +39,10 @@ if ( defined <mpv.rescale_path> ) {
             { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
             or warn "failed to create local config directory '$resc_path' [$!]";
         delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
-    } elsif (<mpv.cleanup_rescaled_after>) {    # <- 0 == cleanup disabled
+    }    # XXX: } else { check permissions..
+    if ( defined <mpv.rescale_path>
+        and <mpv.cleanup_rescaled_after> ) {    # <- 0 == cleanup disabled
+        <[base.log]>->( 2, ": rescale path ok [exists]" );
         <mpv.timer.rescaled_check> = <[event.add_timer]>->(
             {   'after'    => <mpv.cleanup_check_delay>,
                 'interval' => <mpv.cleanup_check_interval>,
