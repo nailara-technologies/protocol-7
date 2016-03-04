@@ -121,7 +121,9 @@ $target_queue = 'queued'  if $status eq 'offline';
     if defined $target_queue and $target_queue ne 'queued';
 
 # repling to startup notification requests..
-my @check_keys = defined $instance->{'subname'}
+
+my @check_keys
+    = defined $instance->{'subname'}
     ? (
     $agent_name . '[' . $instance->{'subname'} . ']',
     $agent_name, $instance_id
@@ -155,8 +157,8 @@ foreach my $name_or_id (@check_keys) {
                     }
                 );
             }
+            delete <root.agent.notify_online>->{$name_or_id};
         }
-        delete <root.agent.notify_online>->{$name_or_id};
     }
 }
 
