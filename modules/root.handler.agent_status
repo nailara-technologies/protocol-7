@@ -120,35 +120,41 @@ $target_queue = 'queued'  if $status eq 'offline';
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue and $target_queue ne 'queued';
 
-# reply to startup notification requests
-foreach my $name_or_id ( $agent_name, $instance_id ) {
-    if (    $name_or_id =~ /^\d+$/
-        and <root.agent.notify_online>->{$name_or_id}
-        and $status eq 'shutdown' ) {
-        map {
-            <[base.callback.cmd_reply]>->(
-                $_,
-                {   'mode' => 'nack',
-                    'data' => "instance $name_or_id has been shut down!"
-                }
-            );
-        } @{ <root.agent.notify_online>->{$name_or_id} };
-    } elsif ( exists <root.agent.notify_online>->{$name_or_id}
-        and $status =~ /^(online|offline|failed)$/ ) {
-        while ( my $reply_id
-            = shift @{ <root.agent.notify_online>->{$name_or_id} } ) {
-            my $startup_reply_mode = $status eq 'online' ? 'ack' : 'nack';
-            my $what = $name_or_id =~ /^\d+$/ ? 'agent instance' : 'agent';
-            my $startup_reply_msg
-                = $status eq 'online'
-                ? "$what '$name_or_id' now online."
-                : "$what '$name_or_id' startup failed!";
-            <[base.callback.cmd_reply]>->(
-                $reply_id,
-                {   'mode' => $startup_reply_mode,
-                    'data' => $startup_reply_msg
-                }
-            );
+# repling to startup notification requests..
+my @check_keys = defined $instance->{'subname'}
+    ? (
+    $agent_name . '[' . $instance->{'subname'} . ']',
+    $agent_name, $instance_id
+    )
+    : ( $agent_name, $instance_id );
+foreach my $name_or_id (@check_keys) {
+    if ( exists <root.agent.notify_online>->{$name_or_id} ) {
+        if ( $status eq 'shutdown' ) {
+            map {
+                <[base.callback.cmd_reply]>->(
+                    $_,
+                    {   'mode' => 'nack',
+                        'data' => "instance $name_or_id has been shut down!"
+                    }
+                );
+            } @{ <root.agent.notify_online>->{$name_or_id} };
+        } elsif ( $status =~ /^(online|offline|failed)$/ ) {
+            while ( my $reply_id
+                = shift @{ <root.agent.notify_online>->{$name_or_id} } ) {
+                my $startup_reply_mode = $status eq 'online' ? 'ack' : 'nack';
+                my $what = $name_or_id =~ /^\d+$/ ? 'agent instance' : 'agent';
+                my $startup_reply_msg
+                    = $status eq 'online'
+                    ? "$what '$name_or_id' now online! ["
+                    . $instance->{'core_sid'} . "]"
+                    : "$what '$name_or_id' startup failed!";
+                <[base.callback.cmd_reply]>->(
+                    $reply_id,
+                    {   'mode' => $startup_reply_mode,
+                        'data' => $startup_reply_msg
+                    }
+                );
+            }
         }
         delete <root.agent.notify_online>->{$name_or_id};
     }
