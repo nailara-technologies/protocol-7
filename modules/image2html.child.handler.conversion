@@ -81,7 +81,7 @@ if (<image2html.exif.auto_compensate_rotation>) {
                 $image->Flip();
             } elsif ( $orientation =~ /left.+bottom/ ) {     # rotate 270
                 $image->Rotate( 'degrees' => -270 );
-            } else {
+            } elsif ( $orientation ne 'unknown' ) {
                 <[base.log]>->(
                     0, "unknown EXIF image orientation '$orientation'"
                 );
