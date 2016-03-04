@@ -6,6 +6,7 @@
 
 <root.agent.notify_online> //= {};
 
+my $agent_subname;
 my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
@@ -28,6 +29,10 @@ if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
     }
 }
 
+my $query_copy = $query_param;
+$agent_subname = $1
+    if $query_param !~ /^\d+$/ and $query_param =~ s|\[([^\]]+)\]$||;
+
 if (    not defined <[agent.get_id]>->($query_param)
     and not defined <root.agent.instance>->{$query_param} ) {
     my $rep_msg
@@ -40,28 +45,30 @@ if (    not defined <[agent.get_id]>->($query_param)
     };
 }
 
-foreach my $id ( keys %{<root.agent.instance>} ) {
-    return {
-        'mode' => 'ack',
-        'data' => "agent '$query_param' already online!"
-        }
-        if <root.agent.instance>->{$id}->{'agent_name'} eq $query_param
-        and <root.agent.instance>->{$id}->{'status'} eq 'online';
-}
-
 if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     return {
         'mode' => 'ack',
-        'data' => "agent instance '$id' already online!"
+        'data' => "agent instance '$id' already online! [$id]"
         }
         if defined <root.agent.instance>->{$id}
         and <root.agent.instance>->{$id}->{'status'} eq 'online';
 }
 
+foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
+    return {
+        'mode' => 'ack',
+        'data' => "agent '$query_copy' already online! [$id]"
+        }
+        if <root.agent.instance>->{$id}->{'agent_name'} eq $query_param
+        and <root.agent.instance>->{$id}->{'status'} eq 'online'
+        and ( not defined $agent_subname
+        or <root.agent.instance>->{$id}->{'subname'} eq $agent_subname );
+}
+
 <[base.log]>->(
-    2, "startup notification request fot agent '$query_param' received"
+    2, "startup notification request fot agent '$query_copy' received"
 );
 
-push( @{ <root.agent.notify_online>->{$query_param} }, $reply_id );
+push( @{ <root.agent.notify_online>->{$query_copy} }, $reply_id );
 
 return { 'mode' => 'later' }
