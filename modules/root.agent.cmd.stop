@@ -64,6 +64,10 @@ map {
     $shutdown_names{$agent_name}++;
 } @instance_ids;
 foreach my $name ( keys %shutdown_names ) {
+    if ( exists <root.agent.auto_cleanup>->{$name} ) {
+        delete <root.agent.auto_cleanup>->{$name};
+        delete <root.agent.auto_cleanup> if !keys %{<root.agent.auto_cleanup>};
+    }
     my $instances_remaining = $agent_names{$name} - $shutdown_names{$name};
     if ( !$instances_remaining ) {
         my %agent_list;
@@ -80,7 +84,12 @@ foreach my $name ( keys %shutdown_names ) {
             delete <root.agent.dependency>->{$dep_name}->{$name};
             if ( !keys %{ <root.agent.dependency>->{$dep_name} } ) {
                 delete <root.agent.dependency>->{$dep_name};
-                <[agent.cmd.stop]>->( { 'args' => $dep_name } );
+                if ( exists <root.agent.auto_cleanup>->{$dep_name} ) {
+                    <[base.log]>->(
+                        1, "dependency based auto-start cleanup [$dep_name]"
+                    );
+                    <[agent.cmd.stop]>->( { 'args' => $dep_name } );
+                }
             }
         }
         delete <root.agent.dependency>
