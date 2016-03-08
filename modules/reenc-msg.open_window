@@ -1,0 +1,77 @@
+# >:]
+
+# name = reenc-msg.open_window
+
+$ENV{'DISPLAY'} = <x11.display>;
+my ( $width, $height );
+my ( $left, $top ) = ( 0, 0 );
+if ( defined <x11.coordinates> ) {
+    $left = <x11.coordinates>->{'left'};
+    $top  = <x11.coordinates>->{'top'};
+}
+
+my $message_str = <reenc-msg.display_txt>;
+my $title_str
+    = defined <system.agent.subname>
+    ? $message_str . ' [' . <system.agent.subname> . ']'
+    : $message_str;
+
+<[base.log]>->( 1, "opening message window.." );
+
+Gtk2->init;
+
+my $window = Gtk2::Window->new('popup');
+$window->set_title($title_str);
+$window->set_default_size( 0, 0 );
+$window->move( $left, $top );
+
+$window->set_app_paintable('TRUE');
+
+$window->signal_connect( 'delete_event', sub {exit} );
+$window->signal_connect( 'expose_event',   \&expose,         $window );
+$window->signal_connect( 'screen_changed', \&screen_changed, $window );
+screen_changed($window);
+
+$window->show_all();
+
+Gtk2->main;
+
+exit;
+
+sub expose {
+    my ( $widget, $event ) = @_;
+    my ( $width, $height, $radius );
+    my $message_str = <reenc-msg.display_txt>;
+
+    my $cr = Gtk2::Gdk::Cairo::Context->create( $widget->window() );
+
+    $cr->set_source_rgba( 1.0, 1.0, 1.0, 0.0 );
+
+    $cr->set_operator('source');
+    $cr->paint();
+
+    #    ( $width, $height ) = $widget->get_operator();
+
+    $cr->select_font_face( 'sans', 'normal', 'bold' );
+    $cr->set_font_size(23);
+    $cr->set_source_rgba( 0, 0, 0, 0.1 );
+    $cr->move_to( 12, 25 );
+    my $txt = \%{ $cr->text_extents($message_str) };
+    $cr->show_text($message_str);
+
+    $widget->resize( $txt->{'width'} + 24, $txt->{'height'} + 12 );
+
+    $cr->set_source_rgba( 0.8, 0.4, 0, 0.9 );
+    $cr->move_to( 11, 23 );
+    $cr->show_text($message_str);
+    $cr->fill();
+}
+
+sub screen_changed {
+    my ( $widget, $old_screen ) = @_;
+
+    my $screen   = $widget->get_screen();
+    my $colormap = $screen->get_rgba_colormap();
+
+    $widget->set_colormap($colormap);
+}
