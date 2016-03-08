@@ -45,8 +45,10 @@ if ( not exists $conversion->{'pages'} ) {
 my $err_status;
 my $page_count = $conversion->{'pages'};
 
+my $index = $conversion->{'current_page'}++;
+
 my ( $page_width, $page_height )
-    = <[pdf.html.base.get_page_size]>->($pdf_location)
+    = <[pdf.html.base.get_page_size]>->( $pdf_location, $index )
     if not exists $conversion->{'height'};
 
 my $target_width = $conversion->{'width'};
@@ -60,6 +62,8 @@ goto fail if defined $err_status;
 my $target_height
     = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width );
 
+<[base.log]>->( 2, "target page #$index size ${target_width}x$target_height" );
+
 $conversion->{'skip_hash'}
     = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height )
     if not exists $conversion->{'skip_hash'};
@@ -71,8 +75,6 @@ $white->Set( size => join( 'x', $target_width, $target_height ) );
 $white->ReadImage('xc:white');
 
 my $image = Graphics::Magick->new( density => '600' );
-
-my $index = $conversion->{'current_page'}++;
 
 $err_status = $image->Read("$pdf_location\[$index\]");
 goto fail if "$err_status";
