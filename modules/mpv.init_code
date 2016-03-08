@@ -16,6 +16,8 @@ die "[!] mpv binary not found, aborting startup..."
 
 <mpv.fade_in>           //= 0;
 <mpv.reply_ids>         //= [];
+<mpv.pause_next>        //= 0;
+<mpv.autorescale>       //= 0;
 <mpv.file_map.rescaled> //= {};
 <mpv.fade_start_geom>   //= '1x1--0--0';
 <system.agent.mode>     //= 'stand-alone';
@@ -27,19 +29,8 @@ die "[!] mpv binary not found, aborting startup..."
 <mpv.cleanup_check_interval> //= 3600 + int( rand(7200) );    # 1-3 hrs (repeat)
 <mpv.rescaled_extension>     //= 'mp4';
 
-if ( defined <mpv.rescale_path> ) {
-    <mpv.rescale_path> =~ s|\/$||;
-    <[base.log]>->( 2, "checking rescale_path '" . <mpv.rescale_path> . "'" );
-    if ( !-d <mpv.rescale_path> ) {
-        my $resc_path = <mpv.rescale_path>;    # XXX: check path on demand ...
-        <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
-        my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-            or die "user '" . <system.privs.user> . "' not in passwd file";
-        make_path( $resc_path,
-            { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-            or warn "failed to create local config directory '$resc_path' [$!]";
-        delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
-    }    # XXX: } else { check permissions..
+if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
+    <[mpv.check_rescale_path]>;
     if ( defined <mpv.rescale_path>
         and <mpv.cleanup_rescaled_after> ) {    # <- 0 == cleanup disabled
         <[base.log]>->( 2, ": rescale path ok [exists]" );

@@ -4,12 +4,10 @@
 
 my $params = shift;
 
-if (<system.agent.mode> eq 'media-child'
-    and (  not defined <mpv.current.path>
-        or <mpv.current.path> eq '[PAUSE]'
-        or <mpv.current.load_iteration> == 0 )
-    ) {
-    # report back to media agent..
+if ( <system.agent.mode> eq 'media-child' and <mpv.pause_next> ) {
+    <mpv.pause_next>         = 0;
+    <mpv.media_child_resume> = 1;
+    <[base.log]>->( 2, "playback paused, reporting back to media agent.." );
     <[base.proto.nailara.command.send.local]>
         ->( { 'command' => "core.report_paused" } );
 }

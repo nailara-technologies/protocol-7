@@ -1,0 +1,21 @@
+# >:]
+
+# name = mpv.handler.resume_timeout
+
+my $timeout_secs = <mpv.resume_timeout>;
+
+my $sname_str
+    = defined <system.agent.subname>
+    ? '[' . <system.agent.subname> . ']'
+    : '';
+my $snstr_lmsg = defined $sname_str ? ' ' . $sname_str : '';
+<[base.log]>->(
+    0,
+    "[!] resume timeout after $timeout_secs seconds, restarting media agent..."
+        . $snstr_lmsg
+);
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.root.restart',
+        'call_args' => { 'args' => 'media' . $sname_str },
+    }
+);
