@@ -61,6 +61,9 @@ foreach my $dep_name (@dependencies) {
 
         my $reply = <[agent.cmd.start]>
             ->( { 'args' => $dep_name, 'recursion' => $recursion + 1 } );
+
+        <root.agent.auto_cleanup>->{$dep_name} = $1
+            if $reply->{'data'} =~ / id (\d+)$/;
     }
     <root.agent.dependency>->{$dep_name}->{$agent_name} = 1
         if not exists <root.agent.autostart>->{$dep_name};
