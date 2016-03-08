@@ -54,6 +54,9 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     } elsif ( exists $decoded->{'error'}
         and $decoded->{'error'} ne 'success'
         and $reply_id = shift @{<mpv.reply_ids>} ) {
+        <[base.log]>->(
+            2, "[$reply_id] pipe-NACK [" . $decoded->{'error'} . "]"
+        );
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => 'nack',
@@ -65,6 +68,9 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and $decoded->{'error'} eq 'success'
         and exists <mpv.success_reply_str>
         and $reply_id = shift @{<mpv.reply_ids>} ) {
+        <[base.log]>->(
+            2, "[$reply_id] pipe-ACK [" . <mpv.success_reply_str> . "]"
+        );
         <[base.callback.cmd_reply]>->(
             $reply_id, { 'mode' => 'ack', 'data' => <mpv.success_reply_str> }
         );

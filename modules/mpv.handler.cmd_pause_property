@@ -4,7 +4,7 @@
 # descr = pause playback
 
 my $pause_status = shift // '';
-
+<mpv.media_resume_mode> //= 0;
 my $pause_mode = delete <mpv.pause_cmd_mode>;
 
 if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {

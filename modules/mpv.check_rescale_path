@@ -1,0 +1,30 @@
+# >:]
+
+# name = mpv.check_rescale_path
+
+<mpv.rescale_path> =~ s|\/$||;
+<[base.log]>->( 2, "checking rescale_path '" . <mpv.rescale_path> . "'" );
+if ( !-d <mpv.rescale_path> ) {
+    my $resc_path = <mpv.rescale_path>;    # XXX: check path on demand ...
+    <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    make_path(
+        $resc_path,
+        {   'mode'  => 0750,
+            'uid'   => $uid,
+            'group' => $gid,
+            'error' => sub {
+                warn "failed to create local config"
+                    . " directory '$resc_path' [$!]";
+                <mpv.autorescale> = 0;
+                <[base.log]>->(
+                    0,
+                    "autorescale disabled!"
+                        . " (failed to create target directory)"
+                );
+                }
+        }
+    );
+    delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
+}    # XXX: } else { check permissions..
