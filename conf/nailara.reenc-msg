@@ -1,0 +1,24 @@
+
+  .:[ 'reencoding video' notification agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+[set_privs:<system.privs.user>]
+
+access.cmd.usr.core = help ping verify_instance
+
+modules.load = auth net io.ip reenc-msg
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+[base.x11.get_coordinates:'core','','','']  # request tile name coordinates
+[base.get_session_id]
+
+reenc-msg.display_txt = 'reencoding video...'
+
+[reenc-msg.open_window]

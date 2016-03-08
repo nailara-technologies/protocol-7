@@ -124,7 +124,7 @@
 
   - hide-mouse
 
-      dependencies = xserver
+ #     dependencies = xserver
       spawn.on-demand  = 1
       ping.disabled    = 1
       respawn.disabled = 1
@@ -216,6 +216,18 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+  - reenc-msg
+
+      dependencies = core xserver openbox
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - notify
 
       dependencies = notify-osd
@@ -273,7 +285,7 @@
 
   - rss-ticker
 
-      dependencies = core ticker
+      dependencies = core playlist ticker
       ping.timeout = 42
 
       : root-init :
