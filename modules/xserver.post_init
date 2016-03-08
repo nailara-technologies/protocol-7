@@ -37,7 +37,9 @@ my $server_pid;
 my $server_params;
 
 <xserver.params>->{'xephyr'} .= ' -glamor'
-    if $mode eq 'xephyr' and <xserver.orientation> eq 'normal';
+    if $mode eq 'xephyr'
+    and <xserver.orientation> eq 'normal'
+    and !<xserver.disable_glamor>;
 
 if ( $mode ne 'host' ) {
     if ( not defined $mode or !length($mode) ) {
@@ -151,6 +153,7 @@ if (<xserver.keep_background>) {    # <- don't touch background image and color
 
 my @hsetroot_params;
 my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
+my $bg_mode      = <xserver.bg_mode>;
 if ( defined $bg_image ) {
     if ( !-x $hsetroot_bin ) {
         <[base.log]>->( 0, "cant't set bg color: '$hsetroot_bin' not found!" );
@@ -158,7 +161,7 @@ if ( defined $bg_image ) {
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
-    @hsetroot_params = ( '-center', $bg_image ); # <- no -cover on arch linux ;|
+    @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux!
 } elsif ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
     $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
     if ( !-x $hsetroot_bin ) {
