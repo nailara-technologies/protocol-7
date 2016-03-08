@@ -1,0 +1,9 @@
+# >:]
+
+# name = mpv.handler.event.unpause
+
+if ( <system.agent.mode> eq 'media-child'
+    and exists <mpv.timer.resume_timeout> ) {
+    <mpv.timer.resume_timeout>->cancel;
+    delete <mpv.timer.resume_timeout>;
+}

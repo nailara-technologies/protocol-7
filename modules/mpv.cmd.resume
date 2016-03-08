@@ -3,6 +3,16 @@
 # name  = mpv.cmd.resume
 # descr = resume playback
 
+<mpv.media_child_resume> //= 0;
+if ( <system.agent.mode> eq 'media-child' and <mpv.media_child_resume> ) {
+    <mpv.timer.resume_timeout> = <[event.add_timer]>->(
+        {   'after'   => <mpv.resume_timeout>,
+            'handler' => 'mpv.handler.resume_timeout',
+        }
+    );
+}
+delete <mpv.media_child_resume>;
+
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 push(
     @{<mpv.command.reply>},

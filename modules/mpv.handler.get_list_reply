@@ -88,7 +88,7 @@ if ( <system.agent.mode> eq 'media-child' ) {
     <mpv.startup> //= 1;
     if (<mpv.startup>) {
         <mpv.startup> = 0;
-        push( @{<mpv.reply_ids>}, 'none' );
+        push( @{<mpv.reply_ids>}, 'silent' );
         <mpv.success_reply_str> = '[PAUSE]d';
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
     }
