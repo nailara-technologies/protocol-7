@@ -36,8 +36,9 @@ if ( !<compton.pid> ) {
     {   'fd'      => <compton.out_fh>,
         'handler' => 'base.handler.child_output.simple',
         'data'    => {
-            'bin' => 'compton',
-            'pid' => <compton.pid>
+            'bin'           => 'compton',
+            'pid'           => <compton.pid>,
+            'log_whitelist' => ['invalid Window parameter']
         }
     }
 );
