@@ -51,6 +51,16 @@ return {
     and <[root.instance_count]>->($agent_name)
     >= $agent_config->{'max_concurrency'};
 
+if ( defined $agent_subname
+    and exists $agent_config->{'max_subname_concurrency'} ) {
+    return {
+        'mode' => 'nack',
+        'data' => "maximum concurrency reached for $agent_name\[$agent_subname]"
+        }
+        if <[root.instance_count]>->( $agent_name . "[$agent_subname]" )
+        >= $agent_config->{'max_subname_concurrency'};
+}
+
 <[base.log]>->( 1, "spawning agent '$agent_name'..." ) if !$recursion;
 
 my $dep_str = <[agent.get_dependencies]>->($agent_name);
