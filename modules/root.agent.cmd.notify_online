@@ -46,18 +46,20 @@ if (    not defined <[agent.get_id]>->($query_param)
 }
 
 if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+    my $core_sid = <root.agent.instance>->{$id}->{'core_sid'};
     return {
         'mode' => 'ack',
-        'data' => "agent instance '$id' already online! [$id]"
+        'data' => "agent instance '$id' already online! [$core_sid]"
         }
         if defined <root.agent.instance>->{$id}
         and <root.agent.instance>->{$id}->{'status'} eq 'online';
 }
 
 foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
+    my $core_sid = <root.agent.instance>->{$id}->{'core_sid'};
     return {
         'mode' => 'ack',
-        'data' => "agent '$query_copy' already online! [$id]"
+        'data' => "agent '$query_copy' already online! [$core_sid]"
         }
         if <root.agent.instance>->{$id}->{'agent_name'} eq $query_param
         and <root.agent.instance>->{$id}->{'status'} eq 'online'
