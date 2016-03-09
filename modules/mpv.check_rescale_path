@@ -9,22 +9,21 @@ if ( !-d <mpv.rescale_path> ) {
     <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
         or die "user '" . <system.privs.user> . "' not in passwd file";
+    my $err;
     make_path(
         $resc_path,
         {   'mode'  => 0750,
             'uid'   => $uid,
             'group' => $gid,
-            'error' => sub {
-                warn "failed to create local config"
-                    . " directory '$resc_path' [$!]";
-                <mpv.autorescale> = 0;
-                <[base.log]>->(
-                    0,
-                    "autorescale disabled!"
-                        . " (failed to create target directory)"
-                );
-                }
+            'error' => \$err
         }
     );
+    if ( defined $err and ref($err) eq 'ARRAY' and @{$err} ) {
+        warn "failed to create local config" . " directory '$resc_path' [$!]";
+        <mpv.autorescale> = 0;
+        <[base.log]>->(
+            0, "autorescale disabled! (failed to create target directory)"
+        );
+    }
     delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
 }    # XXX: } else { check permissions..
