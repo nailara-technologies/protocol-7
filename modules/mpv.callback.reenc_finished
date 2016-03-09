@@ -1,0 +1,13 @@
+# >:]
+
+# name = mpv.callback.reenc_finished
+
+<mpv.timer.reenc_refresh>->cancel if exists <mpv.timer.reenc_refresh>;
+
+my $reenc_sid = <mpv.reenc_msg_sid>;
+return if not defined $reenc_sid;
+
+<[base.log]>->( 2, " [reenc_finished] reenc-msg sid $reenc_sid" );
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => "core.$reenc_sid.finished" } );
