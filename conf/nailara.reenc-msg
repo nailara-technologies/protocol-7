@@ -7,7 +7,7 @@ buffer.system.log_cmd = log.msg
 
 [set_privs:<system.privs.user>]
 
-access.cmd.usr.core = help ping verify_instance
+access.cmd.usr.core = help ping verify_instance refresh finished
 
 modules.load = auth net io.ip reenc-msg
 [load_modules:<modules.load>]
@@ -20,5 +20,6 @@ modules.load = auth net io.ip reenc-msg
 [base.get_session_id]
 
 reenc-msg.display_txt = 'reencoding video...'
+reenc.msg.refresh_timeout = 8 # auto-shutdown after <n> seconds without refresh
 
 [reenc-msg.open_window]
