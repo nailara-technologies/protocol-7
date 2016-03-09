@@ -1,0 +1,10 @@
+# >:]
+
+# name = mpv.handler.reenc_refresh
+
+my $reenc_sid = shift->w->data;
+
+<[base.log]>->( 2, " [reenc_refresh] reenc-msg sid $reenc_sid" );
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => "core.$reenc_sid.refresh" } );
