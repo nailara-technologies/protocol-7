@@ -1,0 +1,15 @@
+# >:]
+
+# name  = reenc-msg.cmd.refresh
+# descr = reset agent shutdown timer
+
+<[base.log]>->( 2, "[refresh_cmd] resetting shutdown timeout..." );
+
+<reenc-msg.timer.shutdown>->cancel;
+<reenc-msg.timer.shutdown> = <[event.add_timer]>->(
+    {   'after'   => <reenc.msg.refresh_timeout>,
+        'handler' => 'reenc-msg.handler.shutdown_timer'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'shutdown timer reset' };
