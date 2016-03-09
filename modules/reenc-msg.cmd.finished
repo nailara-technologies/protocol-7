@@ -1,0 +1,19 @@
+# >:]
+
+# name  = reenc-msg.cmd.finished
+# descr = notify finished encoding (shutdown)
+
+my $shutdown_name
+    = defined <system.agent.subname>
+    ? <system.agent.name> . '[' . <system.agent.subname> . ']'
+    : <system.agent.name>;
+
+<[base.log]>->( 1, "encoding finished, shutting down $shutdown_name" );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.stop",
+        'call_args' => { 'args' => $shutdown_name }
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'acknowledged, shutting down..' }
