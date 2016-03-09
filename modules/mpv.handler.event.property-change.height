@@ -58,6 +58,7 @@ if (    <mpv.autorescale>
                 "autorescaling video ( ${video_width}x$video_height"
                     . " => target_width: $target_width )"
             );
+            <[mpv.callback.start_reenc_msg]> if !<mpv.disable_reenc_msg>;
             <[base.proto.nailara.command.send.local]>->(
                 {   'command'   => 'core.ffmpeg.rescale_video',
                     'call_args' => { 'args' => $cmd_args },

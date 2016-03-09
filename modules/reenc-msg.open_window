@@ -35,7 +35,7 @@ screen_changed($window);
 $window->show_all();
 
 <reenc-msg.timer.shutdown> = <[event.add_timer]>->(
-    {   'after'   => <reenc.msg.refresh_timeout>,
+    {   'after'   => <reenc-msg.refresh_timeout>,
         'handler' => 'reenc-msg.handler.shutdown_timer'
     }
 );
@@ -60,14 +60,14 @@ sub expose {
 
     $cr->select_font_face( 'sans', 'normal', 'bold' );
     $cr->set_font_size(23);
-    $cr->set_source_rgba( 0, 0, 0, 0.1 );
+    $cr->set_source_rgba( 0, 0, 0, <reenc-msg.shadow_alpha> );
     $cr->move_to( 12, 25 );
     my $txt = \%{ $cr->text_extents($message_str) };
     $cr->show_text($message_str);
 
     $widget->resize( $txt->{'width'} + 24, $txt->{'height'} + 12 );
 
-    $cr->set_source_rgba( 0.8, 0.4, 0, 0.9 );
+    $cr->set_source_rgba( 0.8, 0.4, 0, <reenc-msg.text_alpha> );
     $cr->move_to( 11, 23 );
     $cr->show_text($message_str);
     $cr->fill();
