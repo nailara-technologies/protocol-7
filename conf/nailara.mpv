@@ -15,16 +15,6 @@ access.cmd.usr.core = help ping get_subname reload verify_instance \
 
 modules.load = auth net io.ip io.unix config.json digest mpv
 [load_modules:<modules.load>]
-[init_modules]
-
-[set_privs:<system.privs.user>]
-
-[net.connect_to_core:'tcp/ip']
-
-[base.x11.get_mode]
-[base.x11.get_display]
-mpv.geometry = [base.x11.get_geometry]
-mpv.coordinates = [base.x11.get_coordinates]
 
 mpv.fade_in    = 1   # fade in mpv player at startup using compositing (xprop)
 mpv.auto_fs    = 1   # start in fullscreen mode in case no geometry was received
@@ -47,6 +37,17 @@ mpv.params = --idle --force-window --keep-open=always --loop=inf \
               --no-config --no-audio --no-window-dragging --no-border \
               --no-input-terminal --no-input-cursor --input-vo-keyboard \
               --no-input-default-bindings --no-osc --osd-level=0 --really-quiet
+
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_mode]
+[base.x11.get_display]
+mpv.geometry = [base.x11.get_geometry]
+mpv.coordinates = [base.x11.get_coordinates]
 
 [config.json.import_file:'mpv.config.json'] # .. from /etc/nailara/import/ ..
 
