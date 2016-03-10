@@ -2,8 +2,10 @@
 
 # name = base.locales.init_code
 
-<locales.string> = {};
-<locales.fallback_language> //= 'en';
+<locales.string>            = {};
+<locales.fallback_language> = 'en'
+    if not defined <locales.fallback_language>
+    or !length(<locales.fallback_language>);
 
 my $agent_name = <system.agent.name>;
 <locales.text_dir> = <system.root_path> . "/data/locales/$agent_name";
@@ -12,17 +14,21 @@ if ( !-d <locales.text_dir> ) {
     <[base.log]>->( 1, "agent has no locale text data.." );
     delete $data{'locales'};
 } else {
-
+    my $files;
+    my $language_found;
+    my $fb_lang = <locales.fallback_language>;
+fail_retry:
     my $lang = <system.language>;
     if ( not defined $lang or !length($lang) ) {
-        my $fb_lang = <locales.fallback_language>;
         warn("system.language not defined, falling back to '$fb_lang'!");
+        <system.language> = $fb_lang;
+        goto fail_retry;
     }
 
-    my $files = [];
+    $files = [];
     <[file.all_files]>->( <locales.text_dir>, $files );
 
-    my $language_found = 0;
+    $language_found = 0;
     foreach my $path ( @{$files} ) {
         ( my $filename = $path ) =~ s|^.*/||;
         if ( $filename !~ m|^locales\.(\w{2})(\.([^\.]+))?$| ) {
@@ -44,7 +50,15 @@ if ( !-d <locales.text_dir> ) {
             }
         }
     }
-    die "no locale file for language '$lang' found!" if !$language_found;
+    if ( !$language_found ) {
+        <[base.log]>->( 0, "no locale file for language '$lang' found!" );
+        if ( $lang ne $fb_lang ) {
+            <[base.log]>->( 0, "selecting fallback language '$fb_lang'" );
+            <locales.string>  = {};
+            <system.language> = $fb_lang;
+            goto fail_retry;
+        }
+    }
 }
 
 0;
