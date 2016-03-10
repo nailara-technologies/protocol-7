@@ -6,9 +6,21 @@
 <image2html.conversion.filter> //= 'Lanczos';
 
 <image2html.exif.auto_compensate_rotation> //= 1;
-<image2html.scale.landscape.crop_to_fit>   //= 1;
+<image2html.scale.landscape.scale_height>  //= 1;
+<image2html.scale.landscape.crop_to_fit>   //= 0;
 <image2html.scale.portrait.fit_width>      //= 1;
 
+if (    <image2html.scale.landscape.scale_height>
+    and <image2html.scale.landscape.crop_to_fit> ) {
+    <[base.log]>->(
+        0,
+        "[landscape] scale_height AND crop_to_fit are on,"
+            . " disabling crop_to_fit option!"
+    );
+    <image2html.scale.landscape.crop_to_fit> = 0;
+}
+
+my $fit_height  = <image2html.scale.landscape.scale_height>;
 my $crop_to_fit = <image2html.scale.landscape.crop_to_fit>;
 my $fit_width   = <image2html.scale.portrait.fit_width>;
 
@@ -105,13 +117,17 @@ my $prevent_crop = 0;
 my $scale_width;
 my $scale_height;
 
-if (   $orientation eq 'landscape' and $crop_to_fit
+if ( $orientation eq 'landscape' and $fit_height ) {
+    $scale_height = $target_height;
+    $scale_width
+        = sprintf( "%.0f", ( $image_width / $image_height ) * $scale_height );
+} elsif ( $orientation eq 'landscape' and $crop_to_fit
     or $orientation eq 'portrait' and $fit_width ) {
     if ( $image_ratio > $target_ratio ) {
         $scale_height = $target_height;
         $scale_width  = sprintf( "%.0f",
             ( $image_width / $image_height ) * $target_height );
-    } elsif ( $image_ratio < $target_ratio ) {
+    } elsif ( $image_ratio < $target_ratio ) {  # XXX: check _quadratic_ images!
         $scale_width  = $target_width;
         $scale_height = sprintf( "%.0f",
             ( $image_height / $image_width ) * $target_width );
