@@ -38,7 +38,11 @@ if ( !<compton.pid> ) {
         'data'    => {
             'bin'           => 'compton',
             'pid'           => <compton.pid>,
-            'log_whitelist' => ['invalid Window parameter']
+            'log_whitelist' => [
+                'invalid Window parameter',
+                'XIO:  fatal IO error 11',
+                'after \d+ requests'
+            ]
         }
     }
 );
