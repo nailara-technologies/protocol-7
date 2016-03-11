@@ -11,7 +11,7 @@ $tile_name = $1 if $city =~ s| \[([^\]]+)\]||;
 
 push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
 
-my $window_name = defined $tile_name ? "browser[$tile_name]" : 'browser';
+my $window_name = defined $tile_name ? "[$tile_name]" : 'browser';  # or 'media'
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.layout.get_coordinates',
