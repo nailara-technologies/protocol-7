@@ -10,6 +10,11 @@ my $txt   = $$call{'args'};
 my $id    = $$call{'session_id'};
 my $title = 'nailara message';
 
+if ( !utf8::is_utf8($txt) or !utf8::valid($txt) ) {
+    utf8::decode($txt);
+    utf8::downgrade($txt);
+}
+
 $ENV{'DISPLAY'} = <x11.display>;
 
 $title = $1 if $txt =~ s/^(\S+)\s+//;

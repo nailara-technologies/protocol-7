@@ -27,6 +27,15 @@ if ( !length($txt_param) and @matches ) {
     $title = $txt_param;
 }
 
+map {
+    if (    defined $_
+        and length($_)
+        and ( !utf8::is_utf8($_) or !utf8::valid($_) ) ) {
+        utf8::decode($_);
+        utf8::downgrade($_);
+    }
+} ( $title, $body );
+
 if ( defined $title or @matches ) {
     my $msg_str = <system.verbosity> >= 3 ? " ['$$call{args}']" : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
