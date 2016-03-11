@@ -1,7 +1,6 @@
 # >:]
 
 # name = weather.parent.write_pages
-# todo = internationalization...
 
 my $station_id = shift;
 die "expected (valid) station id parameter"
@@ -18,6 +17,8 @@ die "html template '$body_template' does not exist" if !-f $body_template;
 my $html_body_ref = <[file.slurp]>->($body_template);
 die "failed to load html template '$body_template'"
     if not defined $html_body_ref;
+
+$$html_body_ref =~ s|\[TXT:source\]|<locales.string.tmpl.source>|g;
 
 my $data_ref    = <weather.data>->{$station_id};
 my $current_ref = $data_ref->{'current'};
