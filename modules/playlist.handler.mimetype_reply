@@ -1,0 +1,62 @@
+# >:]
+
+# name = playlist.handler.mimetype_reply
+
+my $reply       = shift;
+my $url         = $reply->{'params'}->{'check_url'};
+my $retry_delay = $reply->{'params'}->{'retry_delay'};
+my $retry_count = $reply->{'params'}->{'retry_count'} // 0;
+my $reply_str   = $reply->{'call_args'}->{'args'};
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    my $log_level = $retry_count == 0 ? 0 : 2;
+    <[base.log]>->(
+        $log_level,
+        "<!> failed to resolve mimetype for '$url' [$reply_str]"
+            . ' ...retrying automatically...'
+    );
+    <playlist.file_types>->{$file} = 'unknown';    # || 'network_error'
+    ### retry ###
+
+    my $next_delay = sprintf( "%.2f", ( $retry_delay * 1.2 ) + rand(2) );
+    $next_delay = <playlist.mime_retry.max_delay>
+        if $next_delay > <playlist.mime_retry.max_delay>;
+
+    <playlist.mime_type.retry_timer>->{$url} = <[event.add_timer]>->(
+        {   'after'   => $retry_delay,
+            'handler' => 'playlist.callback.check_mimetype',
+            'data'    => {
+                'check_url'   => $url,
+                'retry_delay' => $next_delay,
+                'retry_count' => $retry_count + 1
+            }
+        }
+    );
+
+    return;
+}
+
+my $type = $reply_str;
+
+$type =~ s|^video/.*$|video|;
+$type =~ s|^audio/.*$|audio|;
+$type =~ s|^image/.*$|image|;
+$type =~ s|^.*application.*/||;
+$type =~ s|^text/||;
+$type =~ s|;.*$||g;
+$type =~ s| +|_|g;
+
+if ( $type eq 'unknown' ) {
+    <[base.log]>->( 0, ": <!> unknown file type for '$url'" );
+} else {
+    <[base.log]>->( 2, "updating file type [$type] $url" );
+}
+
+<playlist.file_types>->{$url} = $type;
+
+my $update_cmd = <update.notify_command> || 'playlist_update';
+
+map {
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.$_.$update_cmd", } );
+} split( / +/, <update.notify_agents> );

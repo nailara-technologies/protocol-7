@@ -17,6 +17,14 @@ if ( !-f $file_path ) {
 
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
+if ( exists <playlist.mime_type.retry_timer> ) {
+    map {
+        <playlist.mime_type.retry_timer>->{$_}->cancel
+            if <playlist.mime_type.retry_timer>->{$_}->is_active
+    } keys %{<playlist.mime_type.retry_timer>};
+    delete <playlist.mime_type.retry_timer>;
+}
+
 my @lines;
 my @file_names;
 <[file.slurp]>->( $file_path, \@lines );
@@ -36,11 +44,20 @@ map {
 <playlist.items_queued>   = 0;
 <playlist.network_errors> = 0;
 <playlist.had_network_errors> //= 0;
-<playlist.retry_delay>        //= 0.1;
-<playlist.retry_max_delay>    //= 5;
 
 if ( !@file_names ) {
     <[base.log]>->( 0, "no files in playlist!" );
+    my $update_cmd = <update.notify_command> || 'playlist_update';
+    map {
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => "core.$_.$update_cmd", } );
+    } split( / +/, <update.notify_agents> );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.restart",
+            'call_args' => { 'args' => <update.restart_on_empty> }
+        }
+    ) if defined <update.restart_on_empty>;
+
     return 0;
 }
 
@@ -85,40 +102,22 @@ foreach my $file (@file_names) {
     if ( $type eq 'unknown' and -f $file ) {
         $type = mimetype($file);
     } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
-        if ($check_types) {
+        if ( $check_types
+            and not exists <playlist.mime_type.retry_timer>->{$file} ) {
             if ( !$check_logged ) {
                 <[base.log]>->( 1, ': checking http content types ...' );
                 $check_logged = 1;
             }
-            $type = <[playlist.http.get_mime_type]>->($file);
-
-            if ( $type eq 'network_error' ) {
-
-                <playlist.network_errors>++;
-                <playlist.had_network_errors> = 1;
-
-                <[base.log]>->(
-                    0,
-                    ': network error, retrying in '
-                        . <playlist.retry_delay>
-                        . ' seconds..'
-                );
-
-                <playlist.timer.type_retry>->cancel
-                    if exists <playlist.timer.type_retry>;
-
-                <playlist.timer.type_retry> = <[event.add_timer]>->(
-                    {   'after'   => <playlist.retry_delay>,
-                        'handler' => 'playlist.cmd.update',
-                        'repeat'  => 0
+            <[event.add_timer]>->(
+                {   'after'   => 0,
+                    'handler' => 'playlist.callback.check_mimetype',
+                    'data'    => {
+                        'check_url'   => $file,
+                        'retry_delay' => <playlist.mime_retry.start_delay>
                     }
-                );
-                <playlist.retry_delay> *= 2;
-                <playlist.retry_delay> = <playlist.retry_max_delay>
-                    if <playlist.retry_delay> > <playlist.retry_max_delay>;
-            } elsif ( $type eq 'unknown' ) {
-                <[base.log]>->( 0, ": <!> unknown file type for '$file'" );
-            }
+                }
+            );
+            $type = ':waiting:';
         } else {
             $type = 'html';
         }
