@@ -15,8 +15,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         "<!> failed to resolve mimetype for '$url' [$reply_str]"
             . ' ...retrying automatically...'
     );
-    <playlist.file_types>->{$file} = 'unknown';    # || 'network_error'
-    ### retry ###
+    <playlist.file_types>->{$file} = 'network_error';
 
     my $next_delay = sprintf( "%.2f", ( $retry_delay * 1.2 ) + rand(2) );
     $next_delay = <playlist.mime_retry.max_delay>
