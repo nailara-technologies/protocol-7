@@ -102,13 +102,12 @@ foreach my $file (@file_names) {
     if ( $type eq 'unknown' and -f $file ) {
         $type = mimetype($file);
     } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
-        if ( $check_types
-            and not exists <playlist.mime_type.retry_timer>->{$file} ) {
+        if ($check_types) {
             if ( !$check_logged ) {
                 <[base.log]>->( 1, ': checking http content types ...' );
                 $check_logged = 1;
             }
-            <[event.add_timer]>->(
+            <playlist.mime_type.retry_timer>->{$file} = <[event.add_timer]>->(
                 {   'after'   => 0,
                     'handler' => 'playlist.callback.check_mimetype',
                     'data'    => {
@@ -116,7 +115,7 @@ foreach my $file (@file_names) {
                         'retry_delay' => <playlist.mime_retry.start_delay>
                     }
                 }
-            );
+            ) if not exists <playlist.mime_type.retry_timer>->{$file};
             $type = ':waiting:';
         } else {
             $type = 'html';
