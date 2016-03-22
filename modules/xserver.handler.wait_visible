@@ -9,25 +9,27 @@ $xtops->update;
 my $wait_req = <xserver.waiting>->{$id};
 
 my $window_id;
-for my $window ( values %{ $xtops->byid } ) {
-    if ( $window->title =~ $wait_req->{'pattern'} ) {
-        $window_id = $window->id;
-        last;
-    }
-}
-
-if ( defined $window_id ) {
-    $wait_req->{'timer'}->{'timeout'}->cancel
-        if exists $wait_req->{'timer'}->{'timeout'};
-    $wait_req->{'timer'}->{'poll'}->cancel;
-    <[base.callback.cmd_reply]>->(
-        $wait_req->{'reply_id'},
-        {   'mode' => 'ack',
-            'data' => $window_id
+eval {
+    for my $window ( values %{ $xtops->byid } ) {
+        if ( $window->title =~ $wait_req->{'pattern'} ) {
+            $window_id = $window->id;
+            last;
         }
-    );
-    delete <xserver.waiting>->{$id};
-    return 0;
-} else {
-    return 1;
-}
+    }
+    if ( defined $window_id ) {
+        $wait_req->{'timer'}->{'timeout'}->cancel
+            if exists $wait_req->{'timer'}->{'timeout'};
+        $wait_req->{'timer'}->{'poll'}->cancel;
+        <[base.callback.cmd_reply]>->(
+            $wait_req->{'reply_id'},
+            {   'mode' => 'ack',
+                'data' => $window_id
+            }
+        );
+        delete <xserver.waiting>->{$id};
+        return 0;
+    } else {
+        return 1;
+    }
+};
+return 0;
