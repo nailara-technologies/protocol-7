@@ -96,6 +96,7 @@ map { $pause_cnt++ if $_ eq '[PAUSE]' } @{<browser.url.list>};
 if (@{<browser.url.list>}
     and $pause_cnt != $url_count    # <- prevents infinite while loops
     and <browser.slideshow.autostart> and !<browser.slideshow.running>
+    and $reply->{'call_args'}->{'args'} > 0
     ) {
     <[base.log]>->( 1, ": starting slideshow.." );
     <[browser.start_slideshow]>;
