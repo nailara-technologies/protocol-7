@@ -10,6 +10,10 @@ return { 'mode' => 'nack', 'data' => 'slideshow was not paused' }
 
 my @url_list = @{<browser.url.list>};
 
+if ( !@url_list ) {
+    <browser.slideshow.running> = 0;
+    return { 'mode' => 'nack', 'data' => 'url list is empty' };
+}
 <browser.slideshow.url_index> = 0
     if <browser.slideshow.url_index> >= @url_list;
 

@@ -24,6 +24,8 @@ my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "received empty playlist!" );
+    <media.playlist.files> = [];
+    map { <media.playlist.agent>->{$_} = [] } @{<media.display_agents>};
     foreach my $hide_agent ( keys %{<media.child>} ) {
         my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
         next if not defined $hide_wid;
@@ -35,21 +37,17 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         );
         <media.child>->{$hide_agent}->{'visible'} = 0;
     }
-    <[base.log]>->( 2, ": stopping loadsplash agent.." );
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command' => "core.root.stop",
-            'call_args' =>
-                { 'args' => 'loadsplash[' . <system.agent.subname> . ']' }
-        }
-    );
+    <media.playlist_was_empty> = 1;
+    <media.playlist_sha1>      = $playlist_sha1;
+    map {
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => "$_.playlist_update" } )
+    } @{<media.display_agents>};
     return;
 }
 
-my $playlist_changed = 0;
-
 return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
-    if $playlist_sha1 eq <media.playlist_sha1>
-    and !$playlist_changed;
+    if $playlist_sha1 eq <media.playlist_sha1>;
 <media.playlist_sha1> = $playlist_sha1;
 
 my $last_type
@@ -118,8 +116,11 @@ if (<media.playlist.change_count>
 }
 <media.playlist.change_count>++;
 
-map {
-    <[base.proto.nailara.command.send.local]>
-        ->( { 'command' => "$_.playlist_update" } )
-} @{<media.display_agents>};
-
+if ( @file_list and <media.playlist_was_empty> ) {
+    <[media.self_restart]>;
+} else {
+    map {
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => "$_.playlist_update" } )
+    } @{<media.display_agents>};
+}
