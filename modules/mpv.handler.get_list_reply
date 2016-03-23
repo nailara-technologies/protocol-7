@@ -8,14 +8,16 @@ my $reply = shift;
 <mpv.playlist_sha1> //= '';
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    <[base.log]>->( 0, ": failed to fetch playlist!" );
+    my $reason_str = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, ": failed to fetch playlist! ['$reason_str']" );
     return;
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "received empty playlist!" );
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
-    <mpv.file_map.rescaled> = {};
+    <mpv.playlist_was_empty> = 1;
+    <mpv.file_map.rescaled>  = {};
     <[mpv.send_command]>->('stop');
     <[base.proto.nailara.command.send.local]>
         ->( { 'command' => "core.report_paused" } )
@@ -85,9 +87,11 @@ map {
 } @append_files;
 
 if ( <system.agent.mode> eq 'media-child' ) {
-    <mpv.startup> //= 1;
-    if (<mpv.startup>) {
-        <mpv.startup> = 0;
+    <mpv.playlist_was_empty> //= 0;
+    <mpv.startup>            //= 1;
+    if ( <mpv.startup> or <mpv.playlist_was_empty> ) {
+        <mpv.playlist_was_empty> = 0;
+        <mpv.startup>            = 0;
         push( @{<mpv.reply_ids>}, 'silent' );
         <mpv.success_reply_str> = '[PAUSE]d';
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
