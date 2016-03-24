@@ -11,6 +11,11 @@ my $agent_name = shift;
 
 my $window_id = <media.child>->{$agent_name}->{'window_id'};
 
+if ( $agent_name ne 'mpv' and exists <media.timer.mpv_idle_timer> ) {
+    <media.timer.mpv_idle_timer>->cancel;
+    delete <media.timer.mpv_idle_timer>;
+}
+
 <media.timer.switch_timeout> = <[event.add_timer]>->(
     {   'after'   => <media.switch_timeout>,
         'handler' => 'media.handler.switch_timeout',
@@ -66,3 +71,12 @@ foreach my $hide_agent ( keys %{<media.child>} ) {
         }
     }
 );
+
+if ( $agent_name eq 'mpv' ) {    # check if mpv actually resumed playing
+    <media.timer.mpv_idle_timer> = <[event.add_timer]>->(
+        {   'after'   => 0.42,
+            'handler' => 'media.callback.mpv_idle_check'
+        }
+    );
+
+}
