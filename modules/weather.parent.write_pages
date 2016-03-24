@@ -24,6 +24,11 @@ my $data_ref    = <weather.data>->{$station_id};
 my $current_ref = $data_ref->{'current'};
 my $today_ref   = $data_ref->{'forecast'}->{'today'};
 
+if ( not defined $current_ref or not exists $current_ref->{'temp'} ) {
+    <[base.log]>->( 0, "expected weather data not present, aborting write.." );
+    return;
+}
+
 my $current_temp = sprintf( "%.1f", $current_ref->{'temp'} );
 
 my %sun;

@@ -2,14 +2,13 @@
 
 # name = xserver.handler.wait_visible
 
-my $id    = shift->w->data;
-my $xtops = <xserver.x11_tops>;
-$xtops->update;
-
+my $id       = shift->w->data;
+my $xtops    = <xserver.x11_tops>;
 my $wait_req = <xserver.waiting>->{$id};
 
-my $window_id;
 eval {
+    $xtops->update;
+    my $window_id;
     for my $window ( values %{ $xtops->byid } ) {
         if ( $window->title =~ $wait_req->{'pattern'} ) {
             $window_id = $window->id;
@@ -32,4 +31,5 @@ eval {
         return 1;
     }
 };
-return 0;
+
+return 1;
