@@ -1,0 +1,26 @@
+# >:]
+
+# name = media.handler.mpv_idle_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $agent_name = $params->{'agent'};
+my $reply_str  = $reply->{'call_args'}->{'args'};
+
+delete <media.timer.mpv_idle_timer>;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <[base.log]>->( 0, "[!] 'mpv.is_idle' command failed ($reply_str)" );
+} else {
+    if ( $reply_str eq 'no' ) {
+        <[base.log]>->( 2, "[ok] mpv is not idle (switch succeeded)" );
+        return;
+    } else {
+        <[base.log]>->(
+            0, "<!> mpv is still idle ( switch / resume failed! ) <!>"
+        );
+    }
+}
+
+<[base.log]>->( 0, " : recovery initiated (restarting media agent).." );
+<[media.self_restart]>;
