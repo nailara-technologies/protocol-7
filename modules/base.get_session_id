@@ -31,7 +31,7 @@ while ( !$matched_reply ) {
     if ( !$matched_reply ) {
         my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
         <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
-            if uc($2) ne $2;
+            if uc($2) ne $2;    # XXX: catch undefined $2
     }
 }
 
