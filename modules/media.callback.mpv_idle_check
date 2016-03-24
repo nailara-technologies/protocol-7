@@ -1,0 +1,11 @@
+# >:]
+
+# name = media.callback.mpv_idle_check
+
+<[base.log]>->( 2, "checking if mpv really resumed playback.." );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => 'mpv.is_idle',
+        'reply'   => { 'handler' => 'media.handler.mpv_idle_reply' }
+    }
+);
