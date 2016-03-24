@@ -66,8 +66,24 @@ if ( $response->code == 200 ) {
         0,
         "failed to access RSS url '$rss_url' (" . $response->status_line . ")"
     );
+
     if ( !-f $output_file ) {
         <[base.log]>->( 0, "no cached data found for failed RSS feed!" );
+        <rss.ticker.fail_retry_interval>
+            //= <rss.ticker.fail_retry_min_interval>;
+        <rss.ticker.update_timer>->cancel;
+        <rss.ticker.update_timer> = <[event.add_timer]>->(
+            {   'after'  => 4.2,    # failure retry (quickfix)
+                'repeat' => 1,
+                'interval' => <rss.ticker.update_interval> || 120,
+                'handler'  => 'rss.ticker.fetch_content',
+                'data'     => <rss.ticker.update_command>
+            }
+        );
+        <rss.ticker.fail_retry_interval> *= 1.1;
+        <rss.ticker.fail_retry_interval> = <rss.ticker.fail_retry_max_interval>
+            if <rss.ticker.fail_retry_interval>
+            > <rss.ticker.fail_retry_max_interval>;
         return -2;
     }
     my ($dev,  $ino,   $mode,  $nlink, $uid,     $gid, $rdev,
