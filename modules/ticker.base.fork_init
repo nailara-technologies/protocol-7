@@ -62,9 +62,6 @@ if ( !<ticker.child.pid> ) {    # child
     } else {
         <[ticker.sdl.raise_and_fade]>;
     }
-
-    # XXX: race condition quick fix (startup delay)
-    <[base.sleep]>->(0.88);
     <[base.get_session_id]>->( 'parent', 'core' );
 
 } else {    # parent
