@@ -124,8 +124,26 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
     $feed_data_count++;
 }
 
-<[base.log]>->( 0, "<!> WARNING: no feed data available, ticker file empty!" )
-    if !$feed_data_count;
+if ( !$feed_data_count ) {
+    <[base.log]>->(
+        0, "<!> WARNING: no feed data available, ticker file empty!"
+    );
+    <rss.ticker.fail_retry_interval> //= <rss.ticker.fail_retry_min_interval>;
+    <rss.ticker.update_timer>->cancel;
+    <rss.ticker.update_timer> = <[event.add_timer]>->(
+        {   'after'  => 4.2,    # failure retry (quickfix)
+            'repeat' => 1,
+            'interval' => <rss.ticker.update_interval> || 120,
+            'handler'  => 'rss.ticker.fetch_content',
+            'data'     => <rss.ticker.update_command>
+        }
+    );
+    <rss.ticker.fail_retry_interval> *= 1.1;
+    <rss.ticker.fail_retry_interval> = <rss.ticker.fail_retry_max_interval>
+        if <rss.ticker.fail_retry_interval>
+        > <rss.ticker.fail_retry_max_interval>;
+    return -2;
+}
 
 open( my $txt_fh, '>', $output_file . '.NEW' )
     or die "can't write to ticker data file '$output_file.NEW' [$!]";
