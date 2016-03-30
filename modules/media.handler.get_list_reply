@@ -20,7 +20,7 @@ foreach my $rep_line ( split( "\n", $reply->{'data'} ) ) {
     next if not exists <media.content.agent_map>->{$type} or $file eq '[PAUSE]';
     if (    $type eq 'video'
         and $file ne '[PAUSE]'
-        and $file !~ /^https?:\/\//
+        and $file !~ /^\w+:\/\//
         and !-f $file ) {
         <[base.log]>->( 0, "<!> video file '$file' not found!" )
             if not exists <media.playlist.error_logged>->{$file};
