@@ -4,8 +4,9 @@
 
 my $reply = shift;
 
-<media.playlist_sha1>  //= '';
-<media.playlist.files> //= [];
+<media.playlist_sha1>         //= '';
+<media.playlist.files>        //= [];
+<media.playlist.error_logged> //= {};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
     <[base.log]>->( 0, ": failed to fetch playlist!" );
@@ -17,6 +18,15 @@ my %file_types = ( '[PAUSE]' => 'pause' );
 foreach my $rep_line ( split( "\n", $reply->{'data'} ) ) {
     my ( $type, $file ) = split( / /, $rep_line, 2 );
     next if not exists <media.content.agent_map>->{$type} or $file eq '[PAUSE]';
+    if (    $type eq 'video'
+        and $file ne '[PAUSE]'
+        and $file !~ /^https?:\/\//
+        and !-f $file ) {
+        <[base.log]>->( 0, "<!> video file '$file' not found!" )
+            if not exists <media.playlist.error_logged>->{$file};
+        <media.playlist.error_logged>->{$file} = 1;
+        next;
+    }
     $file_types{$file} = $type;
     push( @file_list, $file );
 }
