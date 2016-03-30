@@ -109,6 +109,20 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+  - power
+
+      dependencies = core
+      max_concurrency = 1
+
+      : root-init :
+        start_mode = exec-sic
+        command_line_modules = Device::Gembird
+        core.key = [base.rnd_chars_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - xserver
 
       dependencies = core

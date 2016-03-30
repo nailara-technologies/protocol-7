@@ -1,0 +1,27 @@
+# >:]
+
+# name = power.init_code
+
+use Net::Ping;
+use Device::Gembird;
+
+<power.cfg.ping_timeout> //= 3;    # seconds
+<power.cfg.devices> //= {};
+
+# XXX: add status timer for each device
+
+<list.devices> = {
+    'var'   => 'data',
+    'key'   => 'power.cfg.devices',
+    'mask'  => '<key>:id status ip:ip_addr port pass',
+    'align' => {
+        'id'     => 'right+2',
+        'status' => 'left+1',
+        'ip'     => 'left',
+        'port'   => 'right+5',
+        'pass'   => 'center-1'
+    },
+    'descr' => 'configured devices'
+};
+
+0;

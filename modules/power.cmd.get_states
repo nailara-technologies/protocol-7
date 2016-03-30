@@ -1,0 +1,47 @@
+# >:]
+
+# name  = power.cmd.get_states
+# descr = return power socket states
+# param = <device_id>
+
+<power.cfg.devices> //= {};
+my $device_id = $$call{'args'} // '';
+
+return { 'mode' => 'nack', 'data' => 'numerical device id expected' }
+    if !length($device_id)
+    or $device_id !~ /\d+/;
+
+return {
+    'mode' => 'nack',
+    'data' => "device '$device_id' does not exist"
+    }
+    if not exists <power.cfg.devices>->{$device_id};
+
+my $dev = <[power.dev_obj]>->($device_id);
+
+$dev->_set_ctrl( SOCK_SKIP, SOCK_SKIP, SOCK_SKIP, SOCK_SKIP );
+
+my @states;
+
+# print STDERR Dumper( $dev->{'stat'} );
+
+map {
+    if (   $dev->{'stat'}->[$_] == 17
+        or $dev->{'stat'}->[$_] == 18
+        or $dev->{'stat'}->[$_] == 65 ) {
+        $states[$_] = '1';
+    } elsif ( $dev->{'stat'}->[$_] == 33
+        or $dev->{'stat'}->[$_] == 34
+        or $dev->{'stat'}->[$_] == 130 ) {
+        $states[$_] = '0';
+    } else {
+        $states[$_] = 'E';
+    }
+} ( 0, 1, 2, 3 );
+
+if ( $dev->{poller}->can_write(0.1) ) {
+    $dev->{sock}->send( chr(0x11) );
+    $dev->{sock}->close();
+}
+
+return { 'mode' => 'ACK', 'data' => join( ' ', @states ) }
