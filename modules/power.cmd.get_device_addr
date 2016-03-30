@@ -1,0 +1,18 @@
+# >:]
+
+# name  = power.cmd.get_device_addr
+# param = <id>
+# descr = return ip address of specified device
+
+my $device_id = $$call{'args'} // '';
+<power.cfg.devices> //= {};
+
+return { 'mode' => 'nack', 'data' => 'expected device id' }
+    if !length($device_id);
+return { 'mode' => 'nack', 'data' => "device '$device_id' does not exist" }
+    if not exists <power.cfg.devices>->{$device_id};
+
+return {
+    'mode' => 'ack',
+    'data' => <power.cfg.devices>->{$device_id}->{'ip'}
+};
