@@ -1,0 +1,16 @@
+# >:]
+
+# name = power.dev_obj
+
+my $device_id = shift // '';
+die "device '$device_id' does not exist"
+    if not exists <power.cfg.devices>->{$device_id};
+
+#<power.cfg.devices>->{$device_id}->{'obj'} //= Device::Gembird->new(
+<power.cfg.devices>->{$device_id}->{'obj'} = Device::Gembird->new(
+    'host'   => <power.cfg.devices>->{$device_id}->{'ip'},
+    'port'   => <power.cfg.devices>->{$device_id}->{'port'},
+    'secret' => <power.cfg.devices>->{$device_id}->{'pass'}
+);
+
+return <power.cfg.devices>->{$device_id}->{'obj'};

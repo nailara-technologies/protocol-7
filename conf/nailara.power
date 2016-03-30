@@ -1,0 +1,30 @@
+
+ .:[ [gembird] power socket control agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+[set_privs:<system.privs.user>]
+
+access.cmd.usr.core = verify_instance ping help reload * # <- XXX
+
+modules.preload = power.config config.json
+[load_modules:<modules.preload>]
+[init_modules]
+[config.json.import_file:'power.config.json']
+
+# power.cfg. =
+
+modules.load = auth net io.ip power config.json # debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[base.disable_command:'get_subname']
+
+[net.connect_to_core:'tcp/ip']
+
+[base.get_session_id]
+
+[event.loop]
