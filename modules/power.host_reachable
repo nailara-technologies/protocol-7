@@ -11,7 +11,7 @@ my ( $ret, $duration, $ip_addr ) = $p->ping( $ping_host, $ping_timeout );
 my $ip_str
     = ( defined $ip_addr and $ip_addr ne $ping_host ) ? " [$ip_addr]" : '';
 <[base.log]>->(
-    1,
+    2,
     sprintf( ": ICMP ping response from '$ping_host'$ip_str after %.2f ms! :)",
         1000 * $duration )
 ) if $ret;
