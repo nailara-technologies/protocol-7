@@ -471,14 +471,14 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     and ( not defined $$reply{'data'}
                         or !length( $$reply{'data'} ) )
                     ) {
-                    $$reply{'mode'} = 'nack';
-                    $$reply{'data'} = 'internal error (details in log!)';
                     <[base.log]>->(
                         0,
-                        'base.handler.command: '
-                            . $$reply{'mode'}
-                            . '-reply without content (data)!'
+                        "[$id] empty "
+                            . uc( $$reply{'mode'} )
+                            . '-reply attempted! (base.handler.command)'
                     );
+                    $$reply{'mode'} = 'nack';
+                    $$reply{'data'} = 'internal error (details in log!)';
                 }
 
                 # check answer mode

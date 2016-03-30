@@ -37,14 +37,14 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
         ->( 0, 'base.handler.command: $reply is not a hash reference!' );
 } elsif ( not defined $$reply{'data'}
     or $$reply{'mode'} ne 'raw' and !length( $$reply{'data'} ) ) {
-    $$reply{'mode'} = 'nack';
-    $$reply{'data'} = 'internal error (details in log!)';
     <[base.log]>->(
         0,
-        'base.handler.command: '
-            . $$reply{'mode'}
-            . '-reply without content (data)!'
+        "[$session_id] empty "
+            . uc( $$reply{'mode'} )
+            . '-reply attempted! (base.callback.cmd_reply)'
     );
+    $$reply{'mode'} = 'nack';
+    $$reply{'data'} = 'internal error (details in log!)';
 }
 
 # check answer mode
