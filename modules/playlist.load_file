@@ -38,7 +38,7 @@ map {
     push( @file_names, $_ ) if length($_);
 } @lines;
 
-<playlist.file_list>      = \@file_names;
+<playlist.file_list>      = [];
 <playlist.file_types>     = {};
 <playlist.agent_subnames> = {};
 <playlist.items_queued>   = 0;
@@ -122,8 +122,9 @@ foreach my $file (@file_names) {
         }
     } elsif ( $file =~ m|^udp://| ) { # XXX: temporary hack for mcast live video
         $type = 'video';
-    } elsif ( $type eq 'unknown' ) {
-        <[base.log]>->( 0, "local content file '$file' not found!" );
+    } elsif ( $type eq 'unknown' and -f $file ) {
+        <[base.log]>->( 0, "failed to determine type of local file '$file'!" );
+        next;
     }
 
     $type =~ s|^video/.*$|video|;
@@ -133,6 +134,21 @@ foreach my $file (@file_names) {
     $type =~ s|^text/||;
     $type =~ s|;.*$||g;
     $type =~ s| +|_|g;
+
+    if (    $file !~ /^\w+:\/\//
+        and $file !~ /^\[.+\]$/
+        and !-e $file ) {
+        delete <playlist.agent_subnames>->{$file_index};
+        my $type_str = $type eq 'unknown' ? 'content' : $type;
+        <[base.log]>->( 0, "$type_str file '$file' not found!" )
+            if not exists <playlist.file_error_logged>->{$file};
+        <playlist.file_error_logged>->{$file} //= 1;
+        next;
+    }
+
+    push( @{<playlist.file_list>}, $file );
+    delete <playlist.file_error_logged>->{$file}
+        if exists <playlist.file_error_logged>->{$file};
 
     <playlist.file_types>->{$file} = $type;
     $file_index++;
