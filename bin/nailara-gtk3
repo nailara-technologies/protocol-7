@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Spec;
+
+### wrapper code to load Gtk3 module at compile time ###
+
+my $agentname;
+my @call_args = @ARGV;
+my $exec_name = File::Spec->rel2abs($0);
+( my $bin_path = $exec_name ) =~ s/bin\/[^\/]+$/bin/;
+die "[!] failed to determine nailara bin path" if $bin_path !~ /\/bin$/;
+
+my $perl_path = '/usr/bin/perl';
+$perl_path = '/usr/local/bin/perl'
+    if !-e $perl_path and -e '/usr/local/bin/perl';
+die "[!] weird! perl binary not found" if !-e $perl_path;
+my $nailara_path = $bin_path . '/nailara';
+die "[!] '$nailara_path': not found" if !-f $nailara_path;
+
+if ( -l $exec_name ) {
+    my $new_path = readlink($exec_name);
+    if ( $new_path =~ /\// ) {
+        $exec_name = $new_path;
+    }
+    $agentname = lc($0);
+    $agentname =~ s/^.*nailara\.|[\. ]$//g;
+    @call_args = ( $agentname, @ARGV );
+}
+$agentname //= 'nailara';
+exec( $perl_path, '-C31', '-MGtk3', $nailara_path, @call_args )
+    or die "failed to start $agentname agent: $!";
