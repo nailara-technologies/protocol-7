@@ -1,0 +1,100 @@
+# >:]
+
+# name = power-x11.open_window
+
+Gtk3->init;
+
+<power-x11.window> = Gtk3::Window->new('toplevel');
+<power-x11.window>->set_title('.: PMS-LAN - power control gui :.');
+<power-x11.window>->set_position("mouse");
+<power-x11.window>->set_default_size( 0, 0 );
+<power-x11.window>->set_border_width(0);
+<power-x11.window>->set_resizable(0);
+<power-x11.window>->signal_connect(
+    delete_event => sub {
+        Gtk3->main_quit;
+        <[base.log]>->( 1, "shutting down.." );
+        exit;
+    }
+);
+
+my $grid = Gtk3::Grid->new();
+<power-x11.window>->add($grid);
+
+my $logo_png = <system.root_path> . '/data/gfx/logos/power-x11/pms-lan.png';
+my $image    = Gtk3::Image->new_from_file($logo_png);
+$grid->attach( $image, 1, 1, 1, 1 );
+
+foreach my $s_num ( 1 .. 4 ) {
+    my $box = Gtk3::Box->new( 'vertical', 0 );
+    my $label = Gtk3::Label->new();
+    $label->set_markup("<span size=\"large\">Socket <b>$s_num</b></span>");
+    $box->pack_end( $label, 1, 1, 3 );
+    $grid->attach( $box, $s_num + 1, 1, 1, 1 );
+}
+
+my $d_num = 0;
+foreach my $d_id (
+    sort {
+        <power-x11.devices>->{$a}->{'ip'} cmp <power-x11.devices>->{$b}->{'ip'}
+    } keys %{<power-x11.devices>}
+    ) {
+    my $device = <power-x11.devices>->{$d_id};
+    $d_num++;
+
+    my $box     = Gtk3::Box->new( 'vertical', 0 );
+    my $label_1 = Gtk3::Label->new();
+    my $label_2 = Gtk3::Label->new();
+    $label_1->set_markup("<span size=\"large\"><b>Device $d_num</b></span>");
+    $label_2->set_markup(
+        "<span size=\"small\">( " . $device->{'ip'} . " )</span>" );
+    $box->pack_start( $label_1, 1, 1, 0 );
+    $box->pack_end( $label_2, 1, 1, 2 );
+    $grid->attach( $box, 1, $d_num + 1, 1, 1 );
+
+    foreach my $s_num ( 1 .. 4 ) {
+
+        my $switch = Gtk3::Switch->new;
+        <power-x11.switch>->{$d_id}->{$s_num} = $switch;
+        $switch->set_active( $device->{'state'}->{$s_num} );
+        my $hbox = Gtk3::Box->new( 'horizontal', 0 );
+        my $vbox = Gtk3::Box->new( 'vertical',   0 );
+        $hbox->pack_end( $switch, 1, 1, 4 );
+        $vbox->pack_end( $hbox,   1, 1, 2 );
+        $grid->attach( $vbox, $s_num + 1, $d_num + 1, 1, 1 );
+
+        $switch->signal_connect(
+            'notify::active' => sub {
+                my ( $widget, $switch_data ) = @_;
+                my ( $id, $sn, $found ) = ( 0, 0, 0 );
+                my $new_state = $widget->get_active;
+
+                foreach my $_id ( keys %{<power-x11.switch>} ) {
+                    foreach my $_sn ( keys %{ <power-x11.switch>->{$_id} } ) {
+                        if ( $widget == <power-x11.switch>->{$_id}->{$_sn} ) {
+                            $id = $_id;
+                            $sn = $_sn;
+                            last;
+                        }
+                    }
+                    last if $id;
+                }
+                my $command = $new_state ? 'on' : 'off';
+                if ($new_state != <power-x11.devices>->{$id}->{'state'}->{$sn} )
+                {
+                    <[base.proto.nailara.command.send.local]>->(
+                        {   'command'   => "core.power.$command",
+                            'call_args' => { 'args' => "$id $sn" },
+                            'reply'     => { 'handler' => 'dev.null' }
+                        }
+                    );
+                    <power-x11.devices>->{$id}->{'state'}->{$sn} = $new_state;
+                }
+                return 0;
+            }
+        );
+    }
+}
+
+<power-x11.window>->show_all;
+Gtk3->main;
