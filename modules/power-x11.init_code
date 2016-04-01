@@ -1,0 +1,17 @@
+# >:]
+
+# name = power-x11.init_code
+
+use Gtk3;
+use Glib::Event;
+
+<[base.disable_command]>->('verify_instance');
+
+open STDERR, '>>/dev/null' or warn "/dev/null: $!";
+
+if ( not defined $ENV{'DISPLAY'} ) {
+    <[base.log]>->( 0, "DISPLAY variable not defined, please log in with -XC" );
+    exit(1);
+}
+
+0;

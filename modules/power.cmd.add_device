@@ -34,6 +34,7 @@ return { 'mode' => 'nack', 'data' => 'invalid port parameter' }
 
 my $dev_id = <[base.gen_id]>->(<power.cfg.devices>);
 <power.cfg.devices>->{$dev_id} = {
+    'added'  => <[base.time]>->(5),
     'status' => 'online',
     'ip'     => $ip_addr,
     'port'   => $port // 5000,

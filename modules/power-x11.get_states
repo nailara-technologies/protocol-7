@@ -1,0 +1,10 @@
+# >:]
+
+# name = power-x11.get_states
+
+<[base.log]>->( 1, ": fetching device list and states ..." );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "core.power.show_all",
+        'reply'   => { 'handler' => 'power-x11.handler.show_all' }
+    }
+);
