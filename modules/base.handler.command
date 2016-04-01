@@ -388,19 +388,27 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
             }
         }
     } else {
-        <[base.log]>->( 1, "[$id] $cmd-reply to unknown route id, ignored." );
+        my $ignore_log_level = 1;
+        $ignore_log_level = 2
+            if exists <net.silent_ignore>->{$usr}
+            and <net.silent_ignore>->{$usr} == 1
+            or exists $data{'session'}{$id}{'silent_ignore'}
+            and $data{'session'}{$id}{'silent_ignore'} == 1;
+        <[base.log]>->(
+            $ignore_log_level, "[$id] $cmd-reply to unknown route id, ignored."
+        );
         if (    $cmd eq 'RAW'
             and $call_args->{'args'} =~ /^\d+$/
             and my $ignore_bytes = $call_args->{'args'} ) {
             if ( length($$input) >= $ignore_bytes ) {
                 substr( $$input, 0, $ignore_bytes, '' );
                 <[base.log]>->(
-                    1,
+                    $ignore_log_level,
                     "[$id] : dropped next $ignore_bytes bytes too.. (RAW body)"
                 );
             } else {
                 <[base.log]>->(
-                    1,
+                    $ignore_log_level,
                     "[$id] : ignoring next $ignore_bytes bytes as well.. (RAW)"
                 );
                 $data{'session'}{'ignore_bytes'} -= length($$input);
