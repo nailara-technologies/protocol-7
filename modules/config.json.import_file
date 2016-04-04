@@ -4,9 +4,12 @@
 
 my $filename    = shift;
 my $config_type = shift;    # <- optional (autodetect from filename if omitted)
+my $absolute_path = shift // 0;
 my $import_dir    = <config.json.import_dir>;
 my $agent_name    = <system.agent.name>;
 my $rules_subname = "$agent_name.config.import_rules";
+
+die "invalid characters in config filename" if $filename =~ /\s/;
 
 die "json file import is disabled in agent config"
     if not exists <config.json.import_allowed> or !<config.json.import_allowed>;
@@ -17,9 +20,16 @@ my $import_rules = $code{$rules_subname}->();
 
 die "config filename parameter expected"
     if not defined $filename or !length($filename);
-die "invalid config filename (only relative paths allowed)"
-    if $filename =~ m,^/|\.\.,;
 
+if ($absolute_path) {
+    die "expected abolute path" if $filename !~ /^\//;
+    if ( $filename =~ s|^(\/(.+\/)?)([^\/]+)$|$3| ) {
+        ( $import_dir = $1 ) =~ s|\/\/|\/|g;
+        ( $import_dir = $1 ) =~ s|\/$|| if length($import_dir) > 1;
+    }
+} elsif ( $filename =~ m,^/|\.\., ) {
+    die "invalid config filename (only relative paths allowed)";
+}
 $config_type = $1
     if not defined $config_type and $filename =~ /^[^\.]+\.([^\.]+)\.json$/;
 warn "[!] failed to detect config type from filename, will try type 'config'\n"
@@ -59,8 +69,11 @@ return
     <[base.log]>->( 2, "json config [$filename] not found, skipping import.." )
     if !-f $import_path;
 
-<[base.log]>->( 1, "importing json cfg '$filename'.." );
-
+if ($absolute_path) {
+    <[base.log]>->( 1, "loading configuration file $import_dir/$filename" );
+} else {
+    <[base.log]>->( 1, "importing json cfg '$filename'.." );
+}
 my $json_data;
 <[file.slurp]>->( $import_path, \$json_data );
 
