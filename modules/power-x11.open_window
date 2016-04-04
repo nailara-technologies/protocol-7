@@ -25,6 +25,18 @@ my $logo_png = <system.root_path> . '/data/gfx/logos/power-x11/pms-lan.png';
 my $image    = Gtk3::Image->new_from_file($logo_png);
 $grid->attach( $image, 1, 1, 1, 1 );
 
+if ( !keys %{<power-x11.devices>} ) {
+    my $label = Gtk3::Label->new();
+    $label->set_markup(
+        "<span size=\"large\"><b>no devices configured</b></span>");
+    my $hbox = Gtk3::Box->new( 'horizontal', 0 );
+    $hbox->pack_end( $label, 1, 1, 8 );
+    $grid->attach( $hbox, 2, 1, 1, 1 );
+    <power-x11.window>->show_all;
+    Gtk3->main;
+    return;
+}
+
 foreach my $s_num ( 1 .. 4 ) {
     my $box = Gtk3::Box->new( 'vertical', 0 );
     my $label = Gtk3::Label->new();
@@ -36,20 +48,29 @@ foreach my $s_num ( 1 .. 4 ) {
 my $d_num = 0;
 foreach my $d_id (
     sort {
-        <power-x11.devices>->{$a}->{'ip'} cmp <power-x11.devices>->{$b}->{'ip'}
+        <power-x11.devices>->{$a}->{'mac'} cmp
+            <power-x11.devices>->{$b}->{'mac'}
     } keys %{<power-x11.devices>}
     ) {
     my $device = <power-x11.devices>->{$d_id};
     $d_num++;
 
-    my $box     = Gtk3::Box->new( 'vertical', 0 );
-    my $label_1 = Gtk3::Label->new();
-    my $label_2 = Gtk3::Label->new();
-    $label_1->set_markup("<span size=\"large\"><b>Device $d_num</b></span>");
+    my $box      = Gtk3::Box->new( 'vertical', 0 );
+    my $label_1  = Gtk3::Label->new();
+    my $label_2  = Gtk3::Label->new();
+    my $label_3  = Gtk3::Label->new();
+    my $mac_name = uc("$1$2")
+        if <power-x11.devices>->{$d_id}->{'mac'}
+        =~ /:([0-9a-f]{2}):([0-9a-f]{2})$/;
+    $label_1->set_markup(
+        "<span size=\"large\"> <b>Device $mac_name</b> </span>");
     $label_2->set_markup(
-        "<span size=\"small\">( " . $device->{'ip'} . " )</span>" );
+        "<span size=\"small\">" . $device->{'ip'} . "</span>" );
+    $label_3->set_markup(
+        "<span size=\"small\">" . $device->{'mac'} . "</span>" );
     $box->pack_start( $label_1, 1, 1, 0 );
-    $box->pack_end( $label_2, 1, 1, 2 );
+    $box->pack_end( $label_3, 1, 1, 1 );
+    $box->pack_end( $label_2, 1, 1, 0 );
     $grid->attach( $box, 1, $d_num + 1, 1, 1 );
 
     foreach my $s_num ( 1 .. 4 ) {
@@ -67,9 +88,10 @@ foreach my $d_id (
             'notify::active' => sub {
                 my ( $widget, $switch_data ) = @_;
                 my ( $id, $sn, $found ) = ( 0, 0, 0 );
-                my $new_state = $widget->get_active;
+                my @device_ids = sort keys %{<power-x11.switch>};
+                my $new_state  = $widget->get_active;
 
-                foreach my $_id ( keys %{<power-x11.switch>} ) {
+                foreach my $_id (@device_ids) {
                     foreach my $_sn ( keys %{ <power-x11.switch>->{$_id} } ) {
                         if ( $widget == <power-x11.switch>->{$_id}->{$_sn} ) {
                             $id = $_id;
@@ -80,12 +102,16 @@ foreach my $d_id (
                     last if $id;
                 }
                 my $command = $new_state ? 'on' : 'off';
-                if ($new_state != <power-x11.devices>->{$id}->{'state'}->{$sn} )
+                if ( not defined $id ) {
+                    my $reset_state = $new_state ? 0 : 1;
+                    $widget->set_active($reset_state);
+                    return 1;
+                } elsif (
+                    $new_state ne <power-x11.devices>->{$id}->{'state'}->{$sn} )
                 {
                     <[base.proto.nailara.command.send.local]>->(
                         {   'command'   => "core.power.$command",
-                            'call_args' => { 'args' => "$id $sn" },
-                            'reply'     => { 'handler' => 'dev.null' }
+                            'call_args' => { 'args' => "$id $sn" }
                         }
                     );
                     <power-x11.devices>->{$id}->{'state'}->{$sn} = $new_state;
