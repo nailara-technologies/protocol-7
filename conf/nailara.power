@@ -14,9 +14,13 @@ modules.preload = power.config config.json
 [init_modules]
 [config.json.import_file:'power.config.json']
 
+power.config_dir  = /etc/nailara/nailara.power
+power.config_file = config.json
+power.state_file  = states.json
+
 # power.cfg. =
 
-modules.load = auth net io.ip power config.json # debug
+modules.load = auth net io.ip power config.json debug
 
 [load_modules:<modules.load>]
 [init_modules]

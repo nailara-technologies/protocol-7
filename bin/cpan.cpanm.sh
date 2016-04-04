@@ -19,7 +19,7 @@ xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Gtk3::WebKit \
       HTTP::Soup \
       Mediainfo \
-      Device::Gembird
+      Device::Gembird Net::Libnet::Arp
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
 
