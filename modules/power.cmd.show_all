@@ -10,6 +10,7 @@ my $reply_str = '';
 map {
     $reply_str .= join( ' ',
         $_,
+        <power.cfg.devices>->{$_}->{'mac'},
         <power.cfg.devices>->{$_}->{'ip'},
         <[power.cmd.get_states]>->($_)->{'data'} )
         . "\n"

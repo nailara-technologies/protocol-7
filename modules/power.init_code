@@ -4,21 +4,40 @@
 
 use Net::Ping;
 use Device::Gembird;
+use Net::Libdnet::Arp;
+use File::Path qw(make_path);
 
 <net.silent_ignore.core> //= 1;
 
-<power.cfg.ping_timeout> //= 3;    # seconds
+<power.cfg.ping_timeout> //= 1;    # seconds
 <power.cfg.devices> //= {};
+
+my $config_dir = <power.config_dir>;
+
+if ( !-d $config_dir ) {
+    <[base.log]>->( 1, "creating config directory '$config_dir'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    make_path( $config_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
+        or die "make_path: $!";
+}
+
+<[power.load_config]> if -f join( '/', $config_dir, <power.config_file> );
+
+<power.net_mac> //= Net::Libdnet::Arp->new;
+
+<power.pattern.gembird_mac> //= qr/^88:b6:27:/;
 
 # XXX: add status timer for each device
 
 <list.devices> = {
     'var'   => 'data',
     'key'   => 'power.cfg.devices',
-    'mask'  => '<key>:id status ip:ip_addr port pass',
+    'mask'  => '<key>:id status mac:mac_addr ip:ip_addr port pass',
     'align' => {
         'id'     => 'right+2',
         'status' => 'left+1',
+        'mac'    => 'left',
         'ip'     => 'left',
         'port'   => 'right+5',
         'pass'   => 'center-1'
