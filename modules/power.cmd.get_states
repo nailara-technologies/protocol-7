@@ -21,6 +21,11 @@ my $dev = <[power.dev_obj]>->($device_id);
 
 $dev->_set_ctrl( SOCK_SKIP, SOCK_SKIP, SOCK_SKIP, SOCK_SKIP );
 
+if ( not defined $dev or not defined $dev->{'poller'} ) {
+    <[base.log]>->( 0, "connection to device $device_id failed" );
+    return undef;
+}
+
 my @states;
 
 # print STDERR Dumper( $dev->{'stat'} );
