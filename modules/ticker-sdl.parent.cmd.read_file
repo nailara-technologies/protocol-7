@@ -1,11 +1,11 @@
 # >:]
 
-# name  = ticker.parent.cmd.read_file
+# name  = ticker-sdl.parent.cmd.read_file
 # param = <path>
 # descr = update ticker child from file
 
 my $file_path = $$call{'args'};
-<ticker.request_pending.read_file> //= 0;
+<ticker-sdl.request_pending.read_file> //= 0;
 
 if ( not defined $file_path or !length($file_path) ) {
     return { 'mode' => 'nack', 'data' => 'expected valid file path!' };
@@ -20,7 +20,7 @@ if ( not defined $file_path or !length($file_path) ) {
         0, "read_file: file '$file_path' not readable! (permissions?)"
     );
     return { 'mode' => 'nack', 'data' => 'file access permission denied!' };
-} elsif ( !<ticker.allow_non_regular_files> and !-f $file_path ) {
+} elsif ( !<ticker-sdl.allow_non_regular_files> and !-f $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is not a regular file!" );
     return { 'mode' => 'nack', 'data' => 'not a regular file!' };
 } elsif ( -z $file_path ) {
@@ -28,18 +28,18 @@ if ( not defined $file_path or !length($file_path) ) {
     return { 'mode' => 'nack', 'data' => 'file is empty!' };
 }
 
-if ( !<ticker.request_pending.read_file> ) {
+if ( !<ticker-sdl.request_pending.read_file> ) {
     my $cmd_id = <[base.gen_id]>->( $data{'route'} );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => 'child.read_file',
             'call_args' => { 'args' => $file_path },
             'reply'     => {
-                'handler' => 'ticker.parent.handler.cmd_read_file',
+                'handler' => 'ticker-sdl.parent.handler.cmd_read_file',
                 'params'  => {}
             }
         }
     );
-    <ticker.request_pending.read_file> = 1;
+    <ticker-sdl.request_pending.read_file> = 1;
     return { 'mode' => 'ack', 'data' => 'ticker update queued!' };
 } else {
     return { 'mode' => 'nack', 'data' => 'request already pending..' };

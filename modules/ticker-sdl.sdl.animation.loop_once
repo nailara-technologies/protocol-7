@@ -1,35 +1,36 @@
 # >:]
 
-# name  = ticker.sdl.animation.loop_once
+# name  = ticker-sdl.sdl.animation.loop_once
 # descr = draw one complete pass of the ticker animation and return
 
-<[ticker.sdl.raise_and_fade]> if !<ticker.window.raised>;
+<[ticker-sdl.sdl.raise_and_fade]> if !<ticker-sdl.window.raised>;
 
 <sdl.flip_failed>  //= 0;
 <redraw.last_time> //= <[base.time]>->(7);
-<ticker.content.work> = [];
+<ticker-sdl.content.work> = [];
 
-@{<ticker.content.work>} = @{<ticker.content.data>} # create a working data copy
-    if !@{<ticker.content.work>};
+@{<ticker-sdl.content.work>}
+    = @{<ticker-sdl.content.data>}    # create a working data copy
+    if !@{<ticker-sdl.content.work>};
 
 # initialize offsets / positions
 map {
     $_->{'text_offset'}   = 0;
     $_->{'screen_offset'} = <sdl.display_width>;
-} @{<ticker.content.work>};
+} @{<ticker-sdl.content.work>};
 
-while ( @{<ticker.content.work>} ) {
+while ( @{<ticker-sdl.content.work>} ) {
 
     # copy visible elements to screen
     my $last_offset;
-    for my $index ( 0 .. scalar @{<ticker.content.work>} - 1 ) {
-        my $element = <ticker.content.work>->[$index];
+    for my $index ( 0 .. scalar @{<ticker-sdl.content.work>} - 1 ) {
+        my $element = <ticker-sdl.content.work>->[$index];
         next if not defined $element->{'width'};
 
         # calculate text slice width and position
-        $element->{'text_offset'} += <ticker.animation.steps>
+        $element->{'text_offset'} += <ticker-sdl.animation.steps>
             if $element->{'screen_offset'} < 0;
-        $element->{'screen_offset'} -= <ticker.animation.steps>
+        $element->{'screen_offset'} -= <ticker-sdl.animation.steps>
             if !$element->{'text_offset'};
 
         # copy current text slice to screen
@@ -43,7 +44,7 @@ while ( @{<ticker.content.work>} ) {
             <sdl.display>,
             SDL::Rect->new(
                 $element->{'screen_offset'},
-                <ticker.border_height> + <ticker.border_offset>,
+                <ticker-sdl.border_height> + <ticker-sdl.border_offset>,
                 <sdl.display_width> - $element->{'screen_offset'},
                 $element->{'height'}
             )
@@ -57,13 +58,13 @@ while ( @{<ticker.content.work>} ) {
     }
 
     # remove no longer visible elements
-    shift @{<ticker.content.work>}
-        if <ticker.content.work>->[0]->{'text_offset'}
-        >= <ticker.content.work>->[0]->{'width'};
+    shift @{<ticker-sdl.content.work>}
+        if <ticker-sdl.content.work>->[0]->{'text_offset'}
+        >= <ticker-sdl.content.work>->[0]->{'width'};
 
     # pause to slow down
     my $delta_t = ( <[base.time]>->(7) - <redraw.last_time> ) * 1000;
-    my $wait_time = sprintf( "%.4f", <ticker.redraw_delay> - $delta_t );
+    my $wait_time = sprintf( "%.4f", <ticker-sdl.redraw_delay> - $delta_t );
     SDL::delay($wait_time) if $wait_time > 0;
 
     # update screen ( try hardware blitting first )

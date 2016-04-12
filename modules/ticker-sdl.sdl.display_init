@@ -1,6 +1,6 @@
 # >:]
 
-# name = ticker.sdl.display_init
+# name = ticker-sdl.sdl.display_init
 
 <[base.log]>->( 1, "initializing ticker display..." );
 
@@ -20,31 +20,32 @@ use SDL::VideoInfo;
 ## configuration ##
 
 # applying setup defaults
-<ticker.display.position>  //= 'bottom';      # [top|center|bottom]
-<ticker.font.name>         //= 'DroidSans';
-<ticker.font.size>         //= 84;
-<ticker.font.size_percent> //= 100;
-<ticker.redraw_delay>      //= 13;
-<ticker.font.bold>         //= 0;
-<ticker.shadow.enabled>    //= 1;
-<ticker.shadow.offset>     //= 2;
-<ticker.border_offset>     //= 0;
-<ticker.animation.steps>   //= 1;
-<ticker.colour.foreground> //= '#000000';
-<ticker.colour.background> //= '#FFFFFF';
+<ticker-sdl.display.position>  //= 'bottom';      # [top|center|bottom]
+<ticker-sdl.font.name>         //= 'DroidSans';
+<ticker-sdl.font.size>         //= 84;
+<ticker-sdl.font.size_percent> //= 100;
+<ticker-sdl.redraw_delay>      //= 13;
+<ticker-sdl.font.bold>         //= 0;
+<ticker-sdl.shadow.enabled>    //= 1;
+<ticker-sdl.shadow.offset>     //= 2;
+<ticker-sdl.border_offset>     //= 0;
+<ticker-sdl.animation.steps>   //= 1;
+<ticker-sdl.colour.foreground> //= '#000000';
+<ticker-sdl.colour.background> //= '#FFFFFF';
 
 # prepare colors to use for the ticker
-<ticker.col.fg> = SDL::Color->new(
-    <[ticker.base.colour.hex_split]>->(<ticker.colour.foreground>) );
+<ticker-sdl.col.fg> = SDL::Color->new(
+    <[ticker-sdl.base.colour.hex_split]>->(<ticker-sdl.colour.foreground>) );
 
-<ticker.col.sh> = <[ticker.base.colour.hex_split]>->(
-    <[ticker.base.colour.shadow_hex]>->(
-        <ticker.colour.foreground>, <ticker.colour.background>
+<ticker-sdl.col.sh> = <[ticker-sdl.base.colour.hex_split]>->(
+    <[ticker-sdl.base.colour.shadow_hex]>->(
+        <ticker-sdl.colour.foreground>,
+        <ticker-sdl.colour.background>
     )
 );
 
 my $bg_col = SDL::Color->new(
-    <[ticker.base.colour.hex_split]>->(<ticker.colour.background>) );
+    <[ticker-sdl.base.colour.hex_split]>->(<ticker-sdl.colour.background>) );
 
 # set up list of known fonts
 my @font_names = qw(
@@ -55,10 +56,10 @@ my @font_names = qw(
     DroidSerif-Regular
 );
 
-<ticker.known_fonts> = \@font_names;
+<ticker-sdl.known_fonts> = \@font_names;
 
 # init SDL
-<ticker.sdl> = SDL::init(SDL_INIT_VIDEO);
+<ticker-sdl.sdl> = SDL::init(SDL_INIT_VIDEO);
 SDL::Mouse::show_cursor(SDL_DISABLE);
 SDL::TTF::init();
 
@@ -72,23 +73,23 @@ die "[!] known droid fonts not found" if !f_chk($font_path);
 
 # check font name
 my $font_matched = 0;
-map { $font_matched = 1 if $_ eq <ticker.font.name> } @font_names;
+map { $font_matched = 1 if $_ eq <ticker-sdl.font.name> } @font_names;
 if ( !$font_matched ) {
     my $fallback_font = $font_names[0];
     <[base.log]>->(
         0,
         "(((!))) unknown font name '"
-            . <ticker.font.name>
+            . <ticker-sdl.font.name>
             . "' configured! [falling back to '$fallback_font'] (((!)))"
     );
-    <ticker.font.name> = $fallback_font;
+    <ticker-sdl.font.name> = $fallback_font;
 }
 
-<[base.log]>->( 1, "loading '" . <ticker.font.name> . "' font.." );
+<[base.log]>->( 1, "loading '" . <ticker-sdl.font.name> . "' font.." );
 
-$font_path .= '/' . <ticker.font.name> . '.ttf';
+$font_path .= '/' . <ticker-sdl.font.name> . '.ttf';
 
-<ticker.font.path> = $font_path;
+<ticker-sdl.font.path> = $font_path;
 
 if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     my $coord = <x11.coordinates>;
@@ -108,14 +109,18 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     while ( !$last and $font_and_border < $display_height ) {
         $font_size++;
     recalc:
-        <ticker.font.object> = SDL::TTF::open_font( $font_path, $font_size );
+        <ticker-sdl.font.object>
+            = SDL::TTF::open_font( $font_path, $font_size );
         die "failed to open font (size=$font_size) [" . SDL::get_error . "]"
-            if not defined <ticker.font.object> or !<ticker.font.object>;
-        <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
-        <ticker.border_height>
-            = int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
+            if not defined <ticker-sdl.font.object>
+            or !<ticker-sdl.font.object>;
+        <ticker-sdl.font.height>
+            = SDL::TTF::font_height(<ticker-sdl.font.object>);
+        <ticker-sdl.border_height>
+            = int(
+            abs( SDL::TTF::font_descent(<ticker-sdl.font.object>) ) / 2 );
         $font_and_border
-            = <ticker.font.height> + ( 2 * <ticker.border_height> );
+            = <ticker-sdl.font.height> + ( 2 * <ticker-sdl.border_height> );
         if ( $font_and_border > $display_height ) {
             $font_size--;
             $last = 1;
@@ -124,21 +129,22 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     }
 
     # apply user defined font scale
-    <ticker.font.size_percent> =~ s|%$||;
-    my $scale_factor = <ticker.font.size_percent> * 0.01;
+    <ticker-sdl.font.size_percent> =~ s|%$||;
+    my $scale_factor = <ticker-sdl.font.size_percent> * 0.01;
     if ( $scale_factor < 1 and $scale_factor > 0 ) {
 
         $font_size *= $scale_factor;
 
-        <ticker.font.object>
+        <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, int($font_size) );
         die "failed to open font (size=$font_size) [" . SDL::get_error . "]"
-            if not defined <ticker.font.object> or !<ticker.font.object>;
+            if not defined <ticker-sdl.font.object>
+            or !<ticker-sdl.font.object>;
 
-        <ticker.border_offset> += sprintf(
+        <ticker-sdl.border_offset> += sprintf(
             "%.0d",
-            (   <ticker.font.height>
-                    - SDL::TTF::font_height(<ticker.font.object>)
+            (   <ticker-sdl.font.height>
+                    - SDL::TTF::font_height(<ticker-sdl.font.object>)
             ) / 2
         );
 
@@ -149,16 +155,16 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 } else {    # old mode
 
     # load the configured font
-    <ticker.font.object>
-        = SDL::TTF::open_font( $font_path, <ticker.font.size> );
+    <ticker-sdl.font.object>
+        = SDL::TTF::open_font( $font_path, <ticker-sdl.font.size> );
     die "failed to open font (size="
-        . <ticker.font.size> . ") ["
+        . <ticker-sdl.font.size> . ") ["
         . SDL::get_error . "]"
-        if not defined <ticker.font.object> or !<ticker.font.object>;
-    <ticker.font.height> = SDL::TTF::font_height(<ticker.font.object>);
-    my $font_line_skip = SDL::TTF::font_line_skip(<ticker.font.object>);
-    <ticker.border_height>
-        //= int( abs( SDL::TTF::font_descent(<ticker.font.object>) ) / 2 );
+        if not defined <ticker-sdl.font.object> or !<ticker-sdl.font.object>;
+    <ticker-sdl.font.height> = SDL::TTF::font_height(<ticker-sdl.font.object>);
+    my $font_line_skip = SDL::TTF::font_line_skip(<ticker-sdl.font.object>);
+    <ticker-sdl.border_height>
+        //= int( abs( SDL::TTF::font_descent(<ticker-sdl.font.object>) ) / 2 );
 
     # determine screen size
     my $video_info = SDL::Video::get_video_info();
@@ -173,14 +179,15 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
     # calculate display size
     ( <sdl.display_width>, <sdl.display_height> )
-        = ( $max_mode->w, $font_line_skip + ( <ticker.border_height> * 2 ) );
+        = ( $max_mode->w,
+        $font_line_skip + ( <ticker-sdl.border_height> * 2 ) );
 
     # set up position on the screen
-    if ( <ticker.display.position> eq 'center' ) {
+    if ( <ticker-sdl.display.position> eq 'center' ) {
         SDL::putenv("SDL_VIDEO_CENTERED=center");
     } else {
         my $y_pos
-            = <ticker.display.position> eq 'top'
+            = <ticker-sdl.display.position> eq 'top'
             ? 0
             : $max_mode->h - <sdl.display_height>;
         SDL::putenv("SDL_VIDEO_WINDOW_POS=0,$y_pos");
@@ -205,20 +212,20 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
 # hide ticker window (until we have rendered text)
 SDL::Video::wm_iconify_window();
-<ticker.window.raised> = 0;
+<ticker-sdl.window.raised> = 0;
 
 # set window title
 SDL::Video::wm_set_caption( <system.agent.name> . '(' . $$ . ')',
     <system.agent.name> . '(' . $$ . ') [minimized]' );
 
-<ticker.col.m_bg>    # prepare a mapped color for screen background
+<ticker-sdl.col.m_bg>    # prepare a mapped color for screen background
     = SDL::Video::map_RGB( <sdl.display>->format(),
     $bg_col->r, $bg_col->g, $bg_col->b );
 
 # clear screen area
 SDL::Video::fill_rect( <sdl.display>,
     SDL::Rect->new( 0, 0, <sdl.display_width>, <sdl.display_height> ),
-    <ticker.col.m_bg> );
+    <ticker-sdl.col.m_bg> );
 unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
     SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
         <sdl.display_height> );
@@ -227,7 +234,7 @@ unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
 sub f_chk {
     my $check_dir = shift;
     return 0 if !-d $check_dir;
-    foreach my $font_name ( @{<ticker.known_fonts>} ) {
+    foreach my $font_name ( @{<ticker-sdl.known_fonts>} ) {
         return 0 if !-f "$check_dir/$font_name.ttf";
     }
     return 1;

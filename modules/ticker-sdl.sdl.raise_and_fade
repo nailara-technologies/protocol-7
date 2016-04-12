@@ -1,21 +1,23 @@
 # >:]
 
-# name = ticker.sdl.raise_and_fade
+# name = ticker-sdl.sdl.raise_and_fade
 
-my $window_id = <ticker.window_id>;
+my $window_id = <ticker-sdl.window_id>;
 die "got no window id for ticker display" if not defined $window_id;
 
-<ticker.opacity> //= 100;
-<ticker.opacity> = 5   if <ticker.opacity> < 5;
-<ticker.opacity> = 100 if <ticker.opacity> > 100;
+<ticker-sdl.opacity> //= 100;
+<ticker-sdl.opacity> = 5   if <ticker-sdl.opacity> < 5;
+<ticker-sdl.opacity> = 100 if <ticker-sdl.opacity> > 100;
 
 <[base.x11.set_window_opacity]>->( $window_id, 0, 'parent' );
 
 <[base.x11.raise_window]>->( $window_id, 'parent', 'core' );
 <[base.x11.keep_above]>->( $window_id, 'parent', 'core' );
-<ticker.window.raised> = 1;
+<ticker-sdl.window.raised> = 1;
 
-<[base.log]>->( 1, "fading in ticker display to " . <ticker.opacity> . "% .." );
+<[base.log]>->(
+    1, "fading in ticker display to " . <ticker-sdl.opacity> . "% .."
+);
 
 for my $count ( 1 .. 4 ) {    # making sure white background is already drawn
     unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
@@ -25,6 +27,6 @@ for my $count ( 1 .. 4 ) {    # making sure white background is already drawn
     <[base.x11.set_window_opacity]>->( $window_id, $count, 'parent' );
 }
 
-for my $opacity ( 5 .. <ticker.opacity> ) {
+for my $opacity ( 5 .. <ticker-sdl.opacity> ) {
     <[base.x11.set_window_opacity]>->( $window_id, $opacity, 'parent' );
 }
