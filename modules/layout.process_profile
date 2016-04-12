@@ -10,6 +10,22 @@ die "layout profile $profile_name not found"
 
 <[base.log]>->( 1, "processing layout profile '$profile_name'.." );
 
+if ( defined <layout.config.ticker_agent_type> ) {
+    my $ticker_type = <layout.config.ticker_agent_type>;
+    foreach my $profile ( keys %{<layout.config.profiles>} ) {
+        my $_profile_data = <layout.config.profiles>->{$profile};
+        map {
+            if ( $_ =~ /^ticker(-sdl|-gtk)?(\[[^\]]+\])?$/ ) {
+                my $tile_name = $2 // '';
+                my $new_name = "ticker-$ticker_type$tile_name";
+                if ( $new_name ne $_ ) {
+                    $_profile_data->{$new_name} = delete $_profile_data->{$_};
+                }
+            }
+        } keys %{ <layout.config.profiles>->{$profile} };
+    }
+}
+
 <layout.startup> //= 1;
 
 my @remove_agents;

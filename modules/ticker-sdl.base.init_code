@@ -7,4 +7,10 @@
 
 <ticker-sdl.allow_non_regular_files> //= 0;
 
+if ( exists $data{'ticker'} ) {
+    <[base.log]>->( 1, "merging 'ticker' namespace into 'ticker-sdl'.." );
+    $data{'ticker-sdl'} = Hash::Merge::Simple->clone_merge( $data{'ticker-sdl'},
+        delete $data{'ticker'} );
+}
+
 0;
