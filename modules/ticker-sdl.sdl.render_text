@@ -1,14 +1,14 @@
 # >:]
 
-# name  = ticker.sdl.render_text
+# name  = ticker-sdl.sdl.render_text
 # descr = prepare images of ticker text snipplets in memory
 
 die "[!] font object not initialized (undefined)"
-    if not defined <ticker.font.object>;
+    if not defined <ticker-sdl.font.object>;
 
 my $scroll_text = shift;
 
-<ticker.content.data> = [];
+<ticker-sdl.content.data> = [];
 
 # cleanup whitespaces..
 $scroll_text =~ s|\n| |g;
@@ -28,13 +28,13 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
 
     # use '^' chars to allow text to scroll out of screen before continueing ...
     if ( $string eq '^' ) {
-        ( $width, $height ) = ( <sdl.display_width>, <ticker.font.height> );
+        ( $width, $height ) = ( <sdl.display_width>, <ticker-sdl.font.height> );
         $string = '';
     }
 
     # calculate text snipplet size
     if ( length($string) ) {
-        my $aref = SDL::TTF::size_utf8( <ticker.font.object>, $string );
+        my $aref = SDL::TTF::size_utf8( <ticker-sdl.font.object>, $string );
         die "failed to calculate text snipplet size [" . SDL::get_error . "]"
             if not defined $aref
             or ref($aref) ne 'ARRAY';
@@ -42,9 +42,9 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
     }
 
     # adjust surface size for shadow dimensions
-    if (<ticker.shadow.enabled>) {
-        $width  += <ticker.shadow.offset>;
-        $height += <ticker.shadow.offset>;
+    if (<ticker-sdl.shadow.enabled>) {
+        $width  += <ticker-sdl.shadow.offset>;
+        $height += <ticker-sdl.shadow.offset>;
     }
 
     my $surface;
@@ -61,15 +61,15 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
         # fill snipplet surface with background color
         SDL::Video::fill_rect( $surface,
             SDL::Rect->new( 0, 0, $width, $height ),
-            <ticker.col.m_bg> );
+            <ticker-sdl.col.m_bg> );
 
         if ( length($string) ) {
-            if (<ticker.shadow.enabled>) {
+            if (<ticker-sdl.shadow.enabled>) {
 
                 # render text shadow (if configured)
                 my $text_shadow_surface
-                    = SDL::TTF::render_utf8_blended( <ticker.font.object>,
-                    $string, <ticker.col.sh> );
+                    = SDL::TTF::render_utf8_blended( <ticker-sdl.font.object>,
+                    $string, <ticker-sdl.col.sh> );
 
                 # copy shadow to text snipplet surface
                 SDL::Video::blit_surface(
@@ -77,16 +77,18 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
                     SDL::Rect->new( 0, 0, $width, $height ),
                     $surface,
                     SDL::Rect->new(
-                        <ticker.shadow.offset>, <ticker.shadow.offset>,
-                        $width,                 $height
+                        <ticker-sdl.shadow.offset>,
+                        <ticker-sdl.shadow.offset>,
+                        $width,
+                        $height
                     ),
                 );
             }
 
             # render foreground text
             my $text_surface
-                = SDL::TTF::render_utf8_blended( <ticker.font.object>, $string,
-                <ticker.col.fg> );
+                = SDL::TTF::render_utf8_blended( <ticker-sdl.font.object>,
+                $string, <ticker-sdl.col.fg> );
 
             # copy foreground text to text snipplet surface
             SDL::Video::blit_surface(
@@ -104,5 +106,5 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
         'width'   => $width,
         'text'    => $string,
     };
-    push( @{<ticker.content.data>}, $element );
+    push( @{<ticker-sdl.content.data>}, $element );
 }
