@@ -14,10 +14,13 @@ layout.default_profile = browser
 
 layout.hash_file = /tmp/.layout.sha1
 
-layout.startup.stop_agents = media mpv browser rss-ticker ticker-sdl impressive
+layout.startup.stop_agents = media mpv browser rss-ticker \
+                             ticker-sdl ticker-gtk impressive
 
 layout.mapped_subcfg.media   = adblock noscript
 layout.mapped_subcfg.browser = adblock noscript
+
+layout.config.ticker_agent_type = sdl
 
 modules.preload = layout.config config.json
 [load_modules:<modules.preload>]
@@ -26,7 +29,7 @@ modules.preload = layout.config config.json
 [config.json.import_file:'layout.config.json']
 [config.json.import_file:'layout.layout.json']
 
-modules.load = auth net io.ip digest.sha layout config.json
+modules.load = auth net io.ip digest.sha layout config.json debug
 [load_modules:<modules.load>]
 [init_modules]
 

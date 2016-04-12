@@ -16,6 +16,11 @@ use FreezeThaw qw(cmpStr);
 <layout.hash_file>              //= '/tmp/.layout.sha1';
 <layout.transition_in_progress> //= 0;
 
+delete <layout.config.ticker_agent_type>
+    if defined <layout.config.ticker_agent_type>
+    and <layout.config.ticker_agent_type> !~ /^gtk|sdl$/;
+<layout.config.ticker_agent_type> //= 'gtk';
+
 goto skip_load if defined <layout.config.profiles>;
 
 my $config_name     = <layout.config_name>;
