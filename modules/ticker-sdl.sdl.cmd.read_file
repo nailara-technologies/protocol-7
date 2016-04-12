@@ -1,6 +1,6 @@
 # >:]
 
-# name  = ticker.sdl.cmd.read_file
+# name  = ticker-sdl.sdl.cmd.read_file
 # param = <path>
 # descr = request ticker text update from specified file
 
@@ -14,14 +14,14 @@ if ( !-f $txt_file ) {
 
 my $txt_string = ${ <[file.slurp]>->($txt_file) };
 
-<[ticker.sdl.render_text]>->($txt_string);
+<[ticker-sdl.sdl.render_text]>->($txt_string);
 
-if ( not exists <ticker.idle_event.animation_loop> ) {
+if ( not exists <ticker-sdl.idle_event.animation_loop> ) {
     <[base.log]>->( 1, "starting ticker animation loop.." );
 
   # set up the animation loop (returns after one omplete pass to process events)
-    <ticker.idle_event.animation_loop> = Event->idle(
-        cb     => $code{'ticker.sdl.animation.loop_once'},
+    <ticker-sdl.idle_event.animation_loop> = Event->idle(
+        cb     => $code{'ticker-sdl.sdl.animation.loop_once'},
         repeat => 1
     );
 }

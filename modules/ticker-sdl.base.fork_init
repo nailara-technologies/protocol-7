@@ -1,6 +1,6 @@
 # >:]
 
-# name = ticker.base.fork_init
+# name = ticker-sdl.base.fork_init
 
 <[base.log]>->( 1, "forking off ticker animation loop.." );
 
@@ -10,20 +10,20 @@ socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 
-<ticker.use_transparency>  //= 1;
-<ticker.cfg.assign_window> //= 0;
+<ticker-sdl.use_transparency>  //= 1;
+<ticker-sdl.cfg.assign_window> //= 0;
 
-<ticker.child.pid> = fork;
-if ( !<ticker.child.pid> ) {    # child
+<ticker-sdl.child.pid> = fork;
+if ( !<ticker-sdl.child.pid> ) {    # child
     close($child_pipe);
     $0 = 'ticker child';
     delete <process.renice_child>;
 
-    <ticker.pipe.parent> = $parent_pipe;
+    <ticker-sdl.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
-    close(<ticker.child.renice_fh>);
-    delete <ticker.child.renice_fh>;
+    close(<ticker-sdl.child.renice_fh>);
+    delete <ticker-sdl.child.renice_fh>;
 
     my $id
         = <[base.session.init]>
@@ -34,52 +34,52 @@ if ( !<ticker.child.pid> ) {    # child
     $data{'session'}{$session_id}{'shutdown'} = 1;
     <[event.once]>;
 
-    <[base.load_modules]>->('ticker.sdl');
-    <[base.init_modules]>->('ticker.sdl');
+    <[base.load_modules]>->('ticker-sdl.sdl');
+    <[base.init_modules]>->('ticker-sdl.sdl');
 
-    <[ticker.sdl.display_init]>;
+    <[ticker-sdl.sdl.display_init]>;
 
     my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
-    <ticker.window_id>
+    <ticker-sdl.window_id>
         = <[base.x11.wait_for_window]>->( $title_pattern, 'parent', 'core' );
-    if ( not defined <ticker.window_id> ) {
+    if ( not defined <ticker-sdl.window_id> ) {
         <[base.log]>->(
             0, "agent startup failure (ticker window did not open)"
         );
         exit(2);    # XXX: deal with parent? (test SIGCHLD handler!)
-    } elsif (<ticker.cfg.assign_window>) {
-        <[base.x11.assign_window]>->( <ticker.window_id>, 'parent' );
+    } elsif (<ticker-sdl.cfg.assign_window>) {
+        <[base.x11.assign_window]>->( <ticker-sdl.window_id>, 'parent' );
     }
 
-    if ( !<ticker.use_transparency> ) {
-        <[base.x11.raise_window]>->( <ticker.window_id>, 'parent', 'core' );
-        <[base.x11.keep_above]>->( <ticker.window_id>, 'parent', 'core' );
-        <ticker.window.raised> = 1;
+    if ( !<ticker-sdl.use_transparency> ) {
+        <[base.x11.raise_window]>->( <ticker-sdl.window_id>, 'parent', 'core' );
+        <[base.x11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'core' );
+        <ticker-sdl.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
                 <sdl.display_height> );
         }
     } else {
-        <[ticker.sdl.raise_and_fade]>;
+        <[ticker-sdl.sdl.raise_and_fade]>;
     }
     <[base.get_session_id]>->( 'parent', 'core' );
 
 } else {    # parent
 
     close($parent_pipe);
-    <ticker.pipe.child> = $child_pipe;
-    my $child_pid = <ticker.child.pid>;
+    <ticker-sdl.pipe.child> = $child_pipe;
+    my $child_pid = <ticker-sdl.child.pid>;
     my $prio      = -20;
     <[base.log]>->(
         1, "setting priority of ticker child (PID $child_pid) to $prio"
     );
-    print {<ticker.child.renice_fh>} "$child_pid $prio\n";
-    close(<ticker.child.renice_fh>);
-    delete <ticker.child.renice_fh>;
+    print {<ticker-sdl.child.renice_fh>} "$child_pid $prio\n";
+    close(<ticker-sdl.child.renice_fh>);
+    delete <ticker-sdl.child.renice_fh>;
 
     my $id
         = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
-    <[base.load_modules]>->('ticker.parent');
+    <[base.load_modules]>->('ticker-sdl.parent');
 }
