@@ -135,6 +135,11 @@ if ( $orientation eq 'landscape' and $fit_height ) {
     }
 } elsif ( $orientation eq 'landscape' and !$crop_to_fit ) {
     $prevent_crop = 1;
+} elsif ( $orientation eq 'portrait' and !$fit_width ) {
+    $scale_height = $target_height;             # scale to fit 'portrait' images
+    $scale_width
+        = sprintf( "%.0f", ( $image_width / $image_height ) * $target_height );
+    $prevent_crop = 1;
 }
 
 $scale_width = $target_width if not defined $scale_width;
