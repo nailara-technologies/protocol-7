@@ -17,4 +17,29 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 <xserver.video_driver>   //= <[xserver.get_video_driver]>;
 <xserver.disable_glamor> //= 0;
 
+<xserver.max_intel_gpu_freq> //= 'no';
+
+if (    <xserver.mode> eq 'xorg'
+    and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/
+    and <xserver.video_driver> =~ /^i\d\d\d$/ ) {
+    chomp( my $freq_bin_path = qx(which intel_gpu_frequency) );
+    if ( !length($freq_bin_path) or !-x $freq_bin_path ) {
+        <[base.log]>->(
+            0,
+            "[!] max_intel_gpu_freq is enabled but"
+                . " intel_gpu_frequency binary not found.."
+        );
+    } else {
+        my $freq_output = qx($freq_bin_path -g);
+        my ( $cur_freq, $max_freq ) = ( $1, $2 )
+            if $freq_output =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s;
+        if ( $cur_freq ne $max_freq ) {
+            <[base.log]>->(
+                1, "<!> maximizing GPU frequency [ $cur_freq --> $max_freq ]"
+            );
+            system( $freq_bin_path, '-m' );
+        }
+    }
+}
+
 0;
