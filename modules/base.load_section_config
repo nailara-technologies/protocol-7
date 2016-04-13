@@ -28,14 +28,14 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
         $line =~ s/(#.*|\s*)+$//g;
         $line =~ s/^\s+//;
         next if $line eq '';
-        if ( $line =~ /^\.:\s*([\w_\.]+)\s*:\.$/ ) {
+        if ( $line =~ /^\.:\s*([\w_\-\.]+)\s*:\.$/ ) {
             $section         = $1;
             $sub_section     = undef;
             $sub_sub_section = undef;
-        } elsif ( $line =~ /^-\s*([\w_\.]+)$/ ) {
+        } elsif ( $line =~ /^-\s*([\w_\-\.]+)$/ ) {
             $sub_section     = $1;
             $sub_sub_section = undef;
-        } elsif ( $line =~ /^:\s*([\w\[\]_\.]+)\s*:$/ ) {
+        } elsif ( $line =~ /^:\s*([\w\[\]_\-\.]+)\s*:$/ ) {
             $sub_sub_section = $1;
         } else {
             if ( $line =~ /^([\w\._]+)\s*=\s*(.+)+$/ ) {
