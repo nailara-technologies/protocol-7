@@ -31,13 +31,26 @@ if (    <xserver.mode> eq 'xorg'
         );
     } else {
         my $freq_output = qx($freq_bin_path -g);
-        my ( $cur_freq, $max_freq ) = ( $1, $2 )
-            if $freq_output =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s;
-        if ( $cur_freq ne $max_freq ) {
-            <[base.log]>->(
-                1, "<!> maximizing GPU frequency [ $cur_freq --> $max_freq ]"
-            );
-            system( $freq_bin_path, '-m' );
+        if ( $freq_output =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s ) {
+            my ( $cur_freq, $max_freq ) = ( $1, $2 );
+            if ( $cur_freq ne $max_freq ) {
+                <[base.log]>->(
+                    1,
+                    "<!> maximizing GPU frequency [ $cur_freq --> $max_freq ]"
+                );
+
+                qx($freq_bin_path -m);    # <- max
+
+                if ( qx($freq_bin_path -g)
+                    =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s ) {
+                    ( $cur_freq, $max_freq ) = ( $1, $2 );
+                    <[base.log]>->(
+                        0,
+                        "[!] GPU frequency setting failed "
+                            . "[ now $cur_freq, should be $max_freq ]"
+                    ) if $cur_freq ne $max_freq;
+                }
+            }
         }
     }
 }
