@@ -2,8 +2,9 @@
 
 # name = openbox.start_wm
 
-my $display  = <x11.display>;
 my $cfg_name = <openbox.config_name>;
+
+$ENV{'DISPLAY'} = <x11.display>;
 
 <[base.log]>->( 1, "starting openbox with $cfg_name-config..." );
 my $cfg_path = <system.conf_path> . '/openbox.' . $cfg_name . '.xml';
@@ -12,7 +13,6 @@ if ( !-f $cfg_path ) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 }
-$ENV{'DISPLAY'} = $display;
 <child.openbox.pid> = open( my $out_fh,
     <openbox.bin_path> . " --sm-disable --config-file $cfg_path 2>&1 |" );
 if ( !<child.openbox.pid> ) {
