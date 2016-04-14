@@ -14,7 +14,7 @@ if ( !-f $cfg_path ) {
 }
 $ENV{'DISPLAY'} = $display;
 <child.openbox.pid> = open( my $out_fh,
-    "/usr/bin/openbox --sm-disable --config-file $cfg_path 2>&1 |" );
+    <openbox.bin_path> . " --sm-disable --config-file $cfg_path 2>&1 |" );
 if ( !<child.openbox.pid> ) {
     <[base.log]>->( 0, "[!] failed to start openbox [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
