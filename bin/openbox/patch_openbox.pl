@@ -62,8 +62,19 @@ print ": : successfully patched! :)\n"
     if !system( $git_bin, 'apply', $patch_file );
 
 print ": compiling....\n\n";
-die "\n[!] bootstrap failed [$@]\n\n"    if system("$branch_dir/bootstrap");
-die "\n[!] configure failed [$@]\n\n"    if system("$branch_dir/configure");
+die "\n[!] bootstrap failed [$@]\n\n" if system("$branch_dir/bootstrap");
+my $configure_path = "$branch_dir/configure";
+if ( open( my $configure_fh, "<$configure_path" ) ) {
+    undef $/;
+    my $conf_txt = <$configure_fh>;
+    close($configure_fh);
+    $conf_txt =~ s|(PACKAGE_VERSION=\')([^\']+)(\'\n)|$1$2.no-fs$3|s;
+    if ( open( $configure_fh, ">$configure_path" ) ) {
+        print {$configure_fh} $conf_txt;
+        close($configure_fh);
+    }
+}
+die "\n[!] configure failed [$@]\n\n"    if system($configure_path);
 die "\n[!] 'make clean' failed [$@]\n\n" if system( $make_bin, 'clean' );
 die "\n[!] 'make' failed [$@]\n\n"       if system($make_bin);
 
