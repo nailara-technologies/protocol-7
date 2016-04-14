@@ -27,4 +27,9 @@ die "[!] openbox binary not found [!]\n"
     if !length(<openbox.bin_path>)
     or !-x <openbox.bin_path>;
 
+( <openbox.version> = qx(<openbox.bin_path> --version) )
+    =~ s,^Openbox |\n.+$,,sg;
+<openbox.version> = 'unknown'
+    if not defined <openbox.version> or !length(<openbox.version>);
+
 0;
