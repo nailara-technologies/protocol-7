@@ -12,7 +12,19 @@ my $log_dir = "$home_path/.cache/openbox";
 make_path($log_dir)
     or die "can't create directory '$home_path' [$!]";
 
-<openbox.home_path> = $home_path;
-<openbox.log_file>  = "$log_dir/openbox.log";
+<openbox.home_path>            = $home_path;
+<openbox.log_file>             = "$log_dir/openbox.log";
+<openbox.patched_openbox_path> = '/usr/local/bin/openbox';
+<openbox.prefer_patched_openbox> //= 0;
+chomp( <openbox.bin_path> = qx(which openbox) // '' );
+
+if ( <openbox.prefer_patched_openbox> and -x <openbox.patched_openbox_path> ) {
+    <openbox.bin_path> = <openbox.patched_openbox_path>;
+    <[base.log]>->( 1, "selected patched openbox version..." );
+}
+
+die "[!] openbox binary not found [!]\n"
+    if !length(<openbox.bin_path>)
+    or !-x <openbox.bin_path>;
 
 0;
