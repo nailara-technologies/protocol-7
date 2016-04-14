@@ -26,7 +26,7 @@ if ( defined <layout.config.ticker_agent_type> ) {
     }
 }
 
-<layout.startup> //= 1;
+<layout.startup.first_profile> //= 1;
 
 my @remove_agents;
 my $previous_data;
@@ -45,7 +45,7 @@ if ( defined $previous_profile ) {
         keys( %{$previous_data} );
 }
 
-if (<layout.startup>) {
+if (<layout.startup.first_profile>) {
     my $kill_count = 0;
     foreach my $profile ( keys %{<layout.config.profiles>} ) {
         my $_profile_data = <layout.config.profiles>->{$profile};
@@ -56,11 +56,7 @@ if (<layout.startup>) {
                 : $_;
             <[base.proto.nailara.command.send.local]>->(
                 {   'command'   => 'core.root.stop',
-                    'call_args' => { 'args' => $stop_agents },
-                    'reply'     => {
-                        'handler' => 'dev.null',
-                        'params'  => {}
-                    }
+                    'call_args' => { 'args' => $stop_agents }
                 }
             );
             $kill_count++;
@@ -85,7 +81,7 @@ if (<layout.startup>) {
 
 foreach my $agent_name ( keys %{$profile_data} ) {
     next
-        if !<layout.startup>
+        if !<layout.startup.first_profile>
         and defined $previous_profile
         and exists $previous_data->{$agent_name}
         and
@@ -121,10 +117,7 @@ foreach my $agent_name ( keys %{$profile_data} ) {
     );
 }
 
-<layout.startup> = 0;
+<layout.startup.first_profile> = 0;
 
-<[base.proto.nailara.command.send.local]>->(
-    {   'command' => 'core.playlist.update',
-        'reply'   => { 'handler' => 'dev.null' }
-    }
-);
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => 'core.playlist.update' } );
