@@ -10,6 +10,9 @@ return { 'mode' => 'nack', 'data' => 'expected agent name or instance id' }
 
 my $restart_mode;
 my @instance_ids;
+my $failed_name;
+my $not_found   = 0;
+my $setup_found = 0;
 foreach my $param_str ( split / +/, $params ) {
     if ( $param_str =~ /^\d+$/ ) {    # instance id
         return {
@@ -22,12 +25,8 @@ foreach my $param_str ( split / +/, $params ) {
         my $agent_subname;
         $agent_subname = $1 if $param_str =~ s|\[([^\]]+)\]$||;
         my $agent_id = <[agent.get_id]>->($param_str);
-        return {
-            'mode' => 'nack',
-            'data' => "no agent '$param_str' found in setup!"
-                . " (see 'list agents')"
-            }
-            if not defined $agent_id;
+        if ( defined $agent_id ) { $setup_found++ }
+        else { $not_found++; $failed_name //= $param_str; next }
         map {
             push( @instance_ids, $_ )
                 if <root.agent.instance>->{$_}->{'agent_id'} == $agent_id
@@ -58,6 +57,12 @@ map { <[agent.instance.restart]>->($_) } @instance_ids;
 my $count   = scalar @instance_ids;
 my $s       = $count > 1 ? 's' : '';
 my $msg_str = "restarting of $count agent instance$s initiated!";
+
+return {
+    'mode' => 'nack',
+    'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
+    }
+    if !$setup_found and $not_found;
 
 if ($count) {
     return { 'mode' => 'ack', 'data' => $msg_str };
