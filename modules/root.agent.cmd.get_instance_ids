@@ -9,17 +9,16 @@ return { 'mode' => 'nack', 'data' => 'expected agent name[s]' }
     if !length($params);
 
 my @instance_ids;
+my $not_found   = 0;
+my $setup_found = 0;
+my $failed_name;
 foreach my $param_str ( split / +/, $params ) {
     my $agent_name = $param_str;
     my $agent_subname;
     $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
     my $agent_id = <[agent.get_id]>->($agent_name);
-    return {
-        'mode' => 'nack',
-        'data' => "no agent '$agent_name' found in setup!"
-            . " (see 'list agents')"
-        }
-        if not defined $agent_id;
+    if ( defined $agent_id ) { $setup_found++ }
+    else { $not_found++; $failed_name //= $agent_name; next }
     foreach my $iid ( keys %{<root.agent.instance>} ) {
         next
             if defined $agent_subname
@@ -32,6 +31,12 @@ foreach my $param_str ( split / +/, $params ) {
             if <root.agent.instance>->{$iid}->{'agent_id'} == $agent_id;
     }
 }
+
+return {
+    'mode' => 'nack',
+    'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
+    }
+    if !$setup_found and $not_found;
 
 if (@instance_ids) {
     return { 'mode' => 'ack', 'data' => join( ' ', @instance_ids ) };
