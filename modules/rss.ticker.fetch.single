@@ -4,11 +4,10 @@
 
 my $rss_url = shift;
 if ( not defined $rss_url or !length($rss_url) ) {
-    <[base.log]>->(
-        0, "<!> WARNING: no RSS-urls set up (referenced hash is empty)"
-    );
+    <[rss.ticker.warn_urls_undefined]>;
     return;
 }
+<rss.ticker.warned_undefined.urls> = 0;
 ( my $data_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
 my $output_file = <rss.ticker.txt_data_path>;
 

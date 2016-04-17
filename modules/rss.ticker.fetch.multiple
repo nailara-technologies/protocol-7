@@ -17,11 +17,10 @@ my $seperator = <rss.ticker.item_seperator>;
 my @urls;
 map { push( @urls, $rss_url_ref->{$_} ) } keys( %{$rss_url_ref} );
 if ( !@urls ) {
-    <[base.log]>->(
-        0, "<!> WARNING: no RSS-urls set up (referenced hash is empty)"
-    );
+    <[rss.ticker.warn_urls_undefined]>;
     return;
 }
+<rss.ticker.warned_undefined.urls> = 0;
 <[base.log]>->( 2, "checking RSS feeds for new data..." );
 
 my %failed;
