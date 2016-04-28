@@ -71,7 +71,6 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        binmode $shell_sock, ":utf8";
         clear();
         print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
         $0 = "nshell ( $core_addr : $core_port ) ";
