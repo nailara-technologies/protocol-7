@@ -3,7 +3,7 @@
 # name = base.set_privs
 # todo = cleanup!!
 
-if ( $_[0] eq '' ) {
+if ( not defined $_[0] or $_[0] eq '' ) {
     <[base.log]>->( 0, 'can not change priviledges [no username supplied]' );
     return -1;
 } else {
