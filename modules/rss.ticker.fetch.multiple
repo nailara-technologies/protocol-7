@@ -134,7 +134,7 @@ if ( !$feed_data_count ) {
             'repeat' => 1,
             'interval' => <rss.ticker.update_interval> || 120,
             'handler'  => 'rss.ticker.fetch_content',
-            'data'     => <rss.ticker.update_command>
+            'data'     => <rss.ticker.update_commands>
         }
     );
     <rss.ticker.fail_retry_interval> *= 1.1;
@@ -154,6 +154,7 @@ if ( $join_type eq 'mixed' ) {
             delete $txt_data{$txt_index} if !@{ $txt_data{$txt_index} };
         }
     }
+    push( @output_data, '' ) if <rss.ticker.trailing_seperator>;
     print {$txt_fh} join( " $seperator ", @output_data );
 } elsif ( $join_type eq 'seperate' ) {
     foreach my $txt_index ( sort keys(%txt_data) ) {
