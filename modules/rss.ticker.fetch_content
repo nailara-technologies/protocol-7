@@ -2,8 +2,8 @@
 
 # name = rss.ticker.fetch_content
 
-my $update_command = shift;
-my $rss_url        = <rss.ticker.content_url>;
+my $update_commands = shift->w->data;
+my $rss_url         = <rss.ticker.content_url>;
 if ( not defined $rss_url or !length($rss_url) ) {
     <[rss.ticker.warn_urls_undefined]>;
 } else {
@@ -23,9 +23,5 @@ if ( not defined $rss_url or !length($rss_url) ) {
         CORE::exit(1);    # XXX: reconsider shutdown?
     }
 
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.' . <rss.ticker.update_command>,
-            'call_args' => { 'args' => <rss.ticker.txt_data_path> }
-        }
-    ) if $got_updates;
+    <[rss.ticker.send_update]>->($update_commands) if $got_updates;
 }

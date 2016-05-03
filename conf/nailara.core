@@ -43,9 +43,12 @@ access.cmd.usr.compton = xserver.get_driver
 
 access.cmd.usr.ticker-sdl = xserver.wait_visible xserver.set_gravity \
                             xserver.raise_window xserver.keep_above \
-                            xserver.set_opacity xserver.wait_visible
+                            xserver.set_opacity
 
-access.cmd.usr.rss-ticker = ticker-sdl.read_file playlist.get_list
+access.cmd.usr.ticker-gtk = xserver.wait_visible
+
+access.cmd.usr.rss-ticker = ticker-gtk.read_file ticker-sdl.read_file \
+                            playlist.get_list
 
 access.cmd.usr.browser = xserver.wait_visible xserver.lower_window \
                          xserver.raise_window playlist.get_list_types \

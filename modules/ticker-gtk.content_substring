@@ -1,0 +1,87 @@
+# >:]
+
+# name = ticker-gtk.content_substring
+
+my $x_skipped    = 0;
+my $x_width      = 0;
+my $x_offset     = <ticker-gtk.draw.x_pos>;
+my $window_width = <x11.window.width>;
+my $return_str   = '';
+<ticker-gtk.last_substr>   //= [];
+<ticker-gtk.draw_sequence> //= [];
+
+$x_offset = <x11.window.width> - $x_offset;
+
+my $x_check = $x_offset - <x11.window.width> - <ticker-gtk.draw.skipped>;
+
+return <ticker-gtk.last_substr>
+    if @{<ticker-gtk.last_substr>}
+    and <ticker-gtk.last_substr>->[2]
+    and $x_check <= <ticker-gtk.last_substr>->[2]
+    and not exists <ticker-gtk.content.switch_at>;
+
+my $skip     = 1;
+my $complete = 0;
+my $first_advance;
+my $last_advance = 0;
+<ticker-gtk.draw_seq> = 0;
+
+if ( exists <ticker-gtk.switch_at_seq> and <ticker-gtk.switch_at_seq> == 1 ) {
+    <ticker-gtk.content.current.txt_map>
+        = delete <ticker-gtk.content.queued.txt_map>;
+    delete <ticker-gtk.switch_at_seq>;
+}
+
+my $txt_map = <ticker-gtk.content.current.txt_map>;
+my $next_map
+    = exists <ticker-gtk.content.queued.txt_map>
+    ? <ticker-gtk.content.queued.txt_map>
+    : {};
+
+my $dseq;
+
+repeat:
+
+<ticker-gtk.draw_seq>++;
+
+$dseq
+    = ( exists <ticker-gtk.switch_at_seq>
+        and <ticker-gtk.draw_seq> >= <ticker-gtk.switch_at_seq> )
+    ? [ @{ $next_map->{'sequence'} } ]
+    : [ @{ $txt_map->{'sequence'} } ];
+
+while ( my $word = shift @{$dseq} ) {
+    my $advance = $txt_map->{'sizes'}->{$word} // $next_map->{'sizes'}->{$word};
+    $skip = 0
+        if $skip
+        and $x_skipped
+        > ( $x_offset - <x11.window.width> ) - $advance - $last_advance;
+    if ( !$skip ) {
+        $return_str .= $word;
+        $x_width += $advance;
+        $first_advance //= $advance;
+        if ( ( $x_width - $x_skipped )
+            > ( <x11.window.width> + $advance + $last_advance ) ) {
+            $complete = 1;
+            last;
+        }
+    } else {
+        $x_skipped += $advance;
+    }
+    $last_advance = $advance;
+}
+
+$x_skipped += $txt_map->{'sizes'}->{' '} if $return_str =~ s/^ //;
+
+<ticker-gtk.last_substr> = [ $x_skipped, $return_str, $first_advance // 0 ];
+
+if ( !$complete and $x_width ) {
+    $return_str .= ' ';
+    $last_advance = $txt_map->{'sizes'}->{' '};
+    $x_width += $last_advance;
+    goto repeat;
+}
+
+<ticker-gtk.draw.skipped> = $x_skipped;
+
+return [ $x_skipped, $return_str ];

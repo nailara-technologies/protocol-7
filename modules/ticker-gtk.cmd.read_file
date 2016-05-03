@@ -1,0 +1,29 @@
+# >:]
+
+# name  = ticker-gtk.cmd.read_file
+# param = <path>
+# descr = update ticker from file
+
+my $file_path = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'file not found' } if !-f $file_path;
+
+<ticker-gtk.content.sha> //= '';
+my $new_sha = <[digest.sha1]>->($file_path);
+if ( $new_sha eq <ticker-gtk.content.sha> ) {
+    <[base.log]>->( 2, "content unchanged, update skipped.." );  # <- XXX: lvl 2
+    return { 'mode' => 'ack', 'data' => 'content unchanged' };
+}
+<ticker-gtk.content.sha> = $new_sha;
+<ticker-gtk.content.txt> = ${ <[file.slurp]>->($file_path) };
+
+<ticker-gtk.content.txt> =~ s|\s+| |sg;
+<ticker-gtk.content.txt> =~ s,^ | $,,g;
+
+<[ticker-gtk.parse_text]>->(<ticker-gtk.content.txt>);
+
+<[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
+
+<ticker.current_file> = $file_path;
+
+return { 'mode' => 'ack', 'data' => 'content updated' }
