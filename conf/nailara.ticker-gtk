@@ -1,0 +1,35 @@
+
+  .:[ ticker-gtk agent ]:.
+
+# system.verbosity = 2
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+[set_privs:<system.privs.user>]
+
+access.cmd.usr.core = help ping reload verify_instance * *.*
+
+[load_modules:'config.json ticker-gtk.config']
+[init_modules]
+
+[config.json.import_file:'ticker-gtk.config.json']
+
+#                known (expected) fonts:  DroidSans DroidSans-Bold DroidSansMono
+#                                         DroidSerif-Bold DroidSerif-Regular
+ticker-gtk.font.name = DroidSans
+
+modules.load = auth net io.ip ticker-gtk digest.sha digest.sha1 debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+[base.x11.get_coordinates]
+
+[ticker-gtk.open_window]
+
+[ticker-gtk.main_loop]
