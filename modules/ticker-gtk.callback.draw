@@ -1,0 +1,137 @@
+# >:]
+
+# name = ticker-gtk.callback.draw
+
+my ( $widget, $context, $ref_status ) = @_;
+
+<ticker-gtk.last_time> //= <[base.time]>->(5);
+
+my $window = <ticker-gtk.obj.window>;
+<ticker-gtk.obj.context> = $context;
+
+<ticker-gtk.draw.skipped>        //= 0;
+<ticker-gtk.draw.skipped_offset> //= 0;
+<ticker-gtk.draw.x_pos>          //= <x11.window.width>;
+
+if ( !$window->is_composited ) {
+    $context->set_source_rgb( 1, 1, 1 );
+    $context->paint;
+
+    my $screen = $window->get_screen();
+    my $rgba   = $screen->get_rgba_visual();
+
+    if ( !$rgba ) {
+        <ticker-gtk.supports_alpha> = 0;
+    } else {
+        <ticker-gtk.supports_alpha> = 1;
+        $window->set_visual($rgba);
+    }
+
+}
+
+my $speed = <ticker-gtk.speed> // 13;
+my $draw_shadow = $speed > 16 ? 0 : 1;
+
+if ( not defined <ticker-gtk.status.initialized> ) {
+    my $new_font_size = 0;
+    my $shadow_height = $draw_shadow ? 2 : 0;
+    while (
+        (     $context->font_extents->{'ascent'}
+            + $context->font_extents->{'descent'}
+        ) < <x11.window.height> - $shadow_height
+        ) {
+        $new_font_size++;
+        $context->set_font_size($new_font_size);
+    }
+    <ticker-gtk.font.size> = $new_font_size - 1;
+    $context->set_font_size(<ticker-gtk.font.size>);
+    <ticker-gtk.status.initialized> = 1;
+    return;
+}
+
+$context->set_font_face(<ticker-gtk.font.face>);
+$context->set_font_size(<ticker-gtk.font.size>);
+
+my $txt
+    = ( defined <ticker-gtk.content.txt> and length(<ticker-gtk.content.txt>) )
+    ? <ticker-gtk.content.txt>
+    : '[no content]';
+
+my $width = $context->text_extents($txt)->{'width'};
+
+my $content_substr
+    = <[ticker-gtk.content_substring]>->(<ticker-gtk.draw.x_pos>);
+
+my $x_skipped = $content_substr->[0] // 0;
+
+my $x_offset
+    = sprintf( "%.0f", <ticker-gtk.draw.x_pos> )
+    + $x_skipped
+    - <ticker-gtk.draw.skipped_offset>;
+
+<ticker-gtk.draw.old_pos> //= sprintf( "%.0f", <ticker-gtk.draw.x_pos> );
+
+if ($draw_shadow) {
+    $context->move_to(
+        $x_offset + 2,
+        $context->font_extents->{'height'}
+            - $context->font_extents->{'descent'} + 2
+    );
+    $context->set_source_rgba( 0, 0, 0, 0.13 );
+    $context->show_text( $content_substr->[1] );
+}
+
+$context->move_to( $x_offset,
+    $context->font_extents->{'height'} - $context->font_extents->{'descent'} );
+
+$context->set_source_rgba(
+    <ticker-gtk.font.color>->[0],
+    <ticker-gtk.font.color>->[1],
+    <ticker-gtk.font.color>->[2], 0.88
+);
+
+$context->show_text( $content_substr->[1] );
+
+my $ppsec = 1.42 * $speed**1.86;
+
+<ticker-gtk.last_time> = <[base.time]>->(5) if <ticker-gtk.paused>;
+
+<ticker-gtk.draw.x_pos>
+    -= sprintf( "%.5f",
+    $ppsec * ( <[base.time]>->(5) - <ticker-gtk.last_time> ) )
+    if !<ticker-gtk.paused>;
+
+if ( defined <ticker-gtk.content.current.txt_map>->{'total_width'}
+    and <ticker-gtk.draw.x_pos>
+    <= -<ticker-gtk.content.current.txt_map>->{'total_width'} ) {
+    <ticker-gtk.draw.x_pos>
+        = <ticker-gtk.content.current.txt_map>->{'space_width'};
+    <ticker-gtk.last_substr> = [];
+
+    <ticker-gtk.switch_at_seq>-- if <ticker-gtk.switch_at_seq>;
+
+    <ticker-gtk.content.current.txt_map>
+        = delete <ticker-gtk.content.queued.txt_map>
+        if exists <ticker-gtk.content.queued.txt_map>
+        and !<ticker-gtk.switch_at_seq>;
+
+    delete <ticker-gtk.switch_at_seq> if !<ticker-gtk.switch_at_seq>;
+}
+
+if (<ticker-gtk.animation_started>) {
+    if ( !<ticker-gtk.paused> ) {
+        $widget->queue_draw();
+    } else {
+        Glib::Timeout->add(
+            444,
+            sub {
+                <ticker-gtk.obj.window>->queue_draw();
+                return 0;
+            }
+        );
+    }
+}
+
+<ticker-gtk.last_time> = <[base.time]>->(5);
+
+return 1;

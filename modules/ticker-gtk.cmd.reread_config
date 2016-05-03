@@ -1,0 +1,26 @@
+# >:]
+
+# name  = ticker-gtk.cmd.reread_config
+# descr = reload json config file
+# todo  = XXX: handle only changed settings
+
+return { 'mode' => 'nack', 'data' => 'currently disabled! (buggy)' };
+
+<[config.json.import_file]>->('ticker-gtk.config.json');
+
+my $font_name = <ticker-gtk.font.name>;
+my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
+my $freetype  = Font::FreeType->new;
+my $ft_face   = $freetype->face($font_path);
+
+<ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face);
+
+if ( defined <ticker.current_file> and -f <ticker.current_file> ) {
+    delete <ticker-gtk.content>;
+    delete <ticker-gtk.draw>;
+    <[ticker-gtk.cmd.read_file]>->(<ticker.current_file>);
+}
+
+<[base.init_modules]>;
+
+return { 'mode' => 'ack', 'data' => 'config reloaded' }

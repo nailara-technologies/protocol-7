@@ -1,0 +1,11 @@
+# >:]
+
+# name  = ticker-gtk.cmd.resume
+# descr = resume ticker animation
+
+<ticker-gtk.paused>    = 0;
+<ticker-gtk.last_time> = <[base.time]>->(5);
+
+<ticker-gtk.obj.window>->queue_draw();
+
+return { 'mode' => 'ack', 'data' => 'ticker resumed' }
