@@ -1,0 +1,83 @@
+# >:]
+
+# name = ticker-gtk.open_window
+
+<[base.log]>->( 1, "opening ticker window.." );
+
+$ENV{'DISPLAY'} = <x11.display>;
+Gtk3->init;
+
+my $window = Gtk3::Window->new('toplevel');    # ('popup' || 'toplevel');
+
+$window->signal_connect( delete_event => sub { Gtk3->main_quit } );
+
+if ( $window->is_composited ) {
+    <ticker-gtk.is_composited> = 1;
+    <[base.log]>->( 1, "compositor detected.." );
+    $window->set_opacity(0);
+} else {
+    <ticker-gtk.is_composited> = 0;
+    <[base.log]>->( 1, "no compositor running.." );
+}
+
+<x11.window.width>  = <x11.coordinates.right> - <x11.coordinates.left>;
+<x11.window.height> = <x11.coordinates.bottom> - <x11.coordinates.top>;
+
+$window->move( <x11.coordinates.left>, <x11.coordinates.top> );
+$window->set_default_size( <x11.window.width>, <x11.window.height> );
+
+<x11.title_str>
+    = defined <system.agent.subname>
+    ? <system.agent.name> . '[' . <system.agent.subname> . ']'
+    : <system.agent.name>;
+
+$window->set_title(<x11.title_str>);
+$window->set_border_width(0);
+$window->set_decorated(0);
+
+$window->set_app_paintable(1);
+
+#my $drawable = Gtk3::DrawingArea->new;
+#$drawable->signal_connect( draw => $code{'ticker-gtk.callback.draw'} );
+#<ticker-gtk.obj.drawable> = $drawable;
+
+$window->signal_connect( draw => $code{'ticker-gtk.callback.draw'} );
+
+#$window->add($drawable);
+
+my $screen = $window->get_screen();
+my $rgba   = $screen->get_rgba_visual();
+
+if ( !$rgba ) {
+    <ticker-gtk.supports_alpha> = 0;
+} else {
+    <ticker-gtk.supports_alpha> = 1;
+    $window->set_visual($rgba);
+}
+
+$window->show_all;
+
+<ticker-gtk.obj.window> = $window;
+
+Glib::Idle->add(
+    sub {
+        unless ( <[base.x11.wait_for_window]>->( '^' . <x11.title_str> ) ) {
+            <[base.log]>->(
+                0, "[!] window failed to open, aborting agent startup.."
+            );
+            exit(2);
+        }
+        <[base.x11.assign_window]>;
+        return 0;
+    }
+);
+
+<ticker-gtk.font.size> = 0;
+
+my $font_name = <ticker-gtk.font.name>;
+my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
+my $freetype  = Font::FreeType->new;
+my $ft_face   = $freetype->face($font_path);
+<ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face);
+
+<[base.get_session_id]>;    # agent status -> 'online'

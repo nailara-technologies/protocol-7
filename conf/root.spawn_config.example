@@ -208,7 +208,7 @@
 
   - notify-osd
 
-      dependencies = core xserver openbox compton
+      dependencies = core xserver compton openbox
       max_concurrency = 1
 
       : root-init :
@@ -280,6 +280,20 @@
       : root-init :
         start_mode = exec-sic
         command_line_modules = Gtk3 Glib::Event Gtk3::WebKit
+        core.key = [base.rnd_chars_hex:64]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
+  - ticker-gtk
+
+      dependencies = core xserver openbox
+      max_concurrency = 1
+
+      : root-init :
+        start_mode = exec-sic
+        command_line_modules = Gtk3 Glib::Event Cairo
         core.key = [base.rnd_chars_hex:64]
         [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
 

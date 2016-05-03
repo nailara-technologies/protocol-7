@@ -1,0 +1,52 @@
+# >:]
+
+use Gtk3;
+use Glib::Event;
+use Cairo::GObject;
+use Font::FreeType;
+
+# open STDERR, '>>/dev/null' or warn "/dev/null: $!";
+
+<ticker-gtk.font.path> //= <system.root_path> . '/data/ttf/droid';
+<ticker-gtk.font.name>         //= 'DroidSans-Bold'; # XXX: <- load from config!
+<ticker-gtk.font.size_percent> //= 100;              # XXX: <- load from config!
+
+<ticker-gtk.animation_started> //= 0;
+
+<ticker-gtk.paused> //= 0;
+
+## XXX ###
+
+<ticker-gtk.speed> = <ticker.redraw_delay>
+    if defined <ticker.redraw_delay>    # XXX: change to 'speed' later
+    and <ticker.redraw_delay> =~ /^\d+$/
+    and <ticker.redraw_delay> >= 5
+    and <ticker.redraw_delay> <= 42;
+
+<ticker-gtk.font.name> = <ticker.font.name> if defined <ticker.font.name>;
+<ticker-gtk.font.color> //= [ 0, 0, 0 ];
+
+if ( defined <ticker.colour.foreground>
+    and <ticker.colour.foreground> =~ /^\#?[0-9a-f]{6}$/i ) {
+    ( my $col_str = <ticker.colour.foreground> ) =~ s|^#||;
+    <ticker-gtk.font.color> = [
+        map { hex($_) } (
+            substr( $col_str, 0, 2 ),
+            substr( $col_str, 2, 2 ),
+            substr( $col_str, 4, 2 )
+        )
+    ];
+}
+
+##########
+
+# die "[!] font file not found [$font_path]" if !-f $font_path;
+
+# <[base.log]>->( 1, "loading ticker font '$font_name' ..." );
+# my $font_name = <ticker-gtk.font.name>;
+# my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
+# my $freetype = Font::FreeType->new;
+# my $ft_face  = $freetype->face($font_path);
+# <ticker-gtk.font_face> = Cairo::FtFontFace->create($ft_face);
+
+0;
