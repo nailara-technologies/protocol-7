@@ -11,22 +11,20 @@ my $window = <ticker-gtk.obj.window>;
 
 <ticker-gtk.draw.skipped>        //= 0;
 <ticker-gtk.draw.skipped_offset> //= 0;
-<ticker-gtk.draw.x_pos>          //= <x11.window.width>;
+<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;    # <- XXX: calc!
 
-if ( !$window->is_composited ) {
+if (   !$window->is_composited
+    or !<ticker-gtk.use_transparency> ) {
     $context->set_source_rgb( 1, 1, 1 );
     $context->paint;
-
+} else {
     my $screen = $window->get_screen();
-    my $rgba   = $screen->get_rgba_visual();
-
+    my $rgba   = $screen->get_rgba_visual();    # XXX: auto update?
     if ( !$rgba ) {
-        <ticker-gtk.supports_alpha> = 0;
-    } else {
-        <ticker-gtk.supports_alpha> = 1;
+        <ticker-gtk.use_transparency> = 0;
+    } elsif (<ticker-gtk.use_transparency>) {
         $window->set_visual($rgba);
     }
-
 }
 
 my $speed = <ticker-gtk.speed> // 13;
@@ -77,18 +75,30 @@ if ($draw_shadow) {
         $context->font_extents->{'height'}
             - $context->font_extents->{'descent'} + 2
     );
-    $context->set_source_rgba( 0, 0, 0, 0.13 );
+    if (<ticker-gtk.use_transparency>) {
+        $context->set_source_rgba( 0, 0, 0, 0.13 );
+    } else {
+        $context->set_source_rgb( 0.87, 0.87, 0.87 );
+    }
     $context->show_text( $content_substr->[1] );
 }
 
 $context->move_to( $x_offset,
     $context->font_extents->{'height'} - $context->font_extents->{'descent'} );
 
-$context->set_source_rgba(
-    1 / 255 * <ticker-gtk.font.color>->[0],
-    1 / 255 * <ticker-gtk.font.color>->[1],
-    1 / 255 * <ticker-gtk.font.color>->[2], 0.88
-);
+if (<ticker-gtk.use_transparency>) {
+    $context->set_source_rgba(
+        1 / 255 * <ticker-gtk.font.color>->[0],
+        1 / 255 * <ticker-gtk.font.color>->[1],
+        1 / 255 * <ticker-gtk.font.color>->[2], 0.88
+    );
+} else {
+    $context->set_source_rgb(
+        1 / 255 * <ticker-gtk.font.color>->[0],
+        1 / 255 * <ticker-gtk.font.color>->[1],
+        1 / 255 * <ticker-gtk.font.color>->[2]
+    );
+}
 
 $context->show_text( $content_substr->[1] );
 
