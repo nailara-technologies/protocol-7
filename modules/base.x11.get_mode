@@ -4,7 +4,7 @@
 
 my ($local_session_id) = keys( %{<user.core.session>} );
 
-<[base.log]>->( 2, "requesting xserver agent mode.." );
+<[base.log]>->( 2, "requesting mode name from xserver agent.." );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -25,7 +25,7 @@ while ( !$matched_reply ) {
 
 if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     <x11.mode> = $1;
-    <[base.log]>->( 1, "received xserver agent mode [" . <x11.mode> . "]" );
+    <[base.log]>->( 1, "received xserver mode name [" . <x11.mode> . "]" );
     return <x11.mode>;
 } else {
     <[base.log]>->(
