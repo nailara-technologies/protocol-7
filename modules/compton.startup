@@ -13,6 +13,8 @@ my $vsync_options
     . '--refresh-rate=60 --unredir-if-possible';
 $vsync_options = '--paint-on-overlay --dbe --unredir-if-possible'
     if <x11.driver> eq 'nvidia';
+$vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
+    if <x11.mode> eq 'xephyr';
 
 <compton.pid> = open3(
     <compton.in_fh>,
