@@ -20,6 +20,7 @@ if (    <image2html.scale.landscape.scale_height>
     <image2html.scale.landscape.crop_to_fit> = 0;
 }
 
+my $error_msg   = 'an error occurred during image conversion';
 my $fit_height  = <image2html.scale.landscape.scale_height>;
 my $crop_to_fit = <image2html.scale.landscape.crop_to_fit>;
 my $fit_width   = <image2html.scale.portrait.fit_width>;
@@ -57,11 +58,19 @@ if ( $image_location =~ m|^https?://| ) {
 
 my $image = Graphics::Magick->new();
 
-$image->Read($image_location);
+if ( !$image->Read($image_location) ) {
+    $error_msg = 'failed to read image file';
+    goto error;
+}
 
 if (<image2html.exif.auto_compensate_rotation>) {
 
     my $source_format = $image->Get('format');
+
+    if ( not defined $source_format or !length($source_format) ) {
+        $error_msg = 'failed to recognize image file format';
+        goto error;
+    }
 
     if ( $source_format =~ /^Joint Photographic Experts Group/ ) {    # JPEG
         my $exif = Image::EXIF->new;
@@ -102,8 +111,17 @@ if (<image2html.exif.auto_compensate_rotation>) {
     }
 }
 
-my $image_width   = $image->Get('width');
-my $image_height  = $image->Get('height');
+my $image_width  = $image->Get('width');
+my $image_height = $image->Get('height');
+
+if ( not defined $image_width or not defined $image_height ) {
+    $error_msg = 'failed to obtain image size';
+    goto error;
+} elsif ( !$image_width or !$image_height ) {
+    $error_msg = 'invalid image size (0)';
+    goto error;
+}
+
 my $target_width  = $conversion->{'width'};
 my $target_height = $conversion->{'height'};
 my $image_ratio   = $image_width / $image_height;
@@ -202,6 +220,19 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
         $reply_id,
         {   'mode' => 'ack',
             'data' => "conversion complete"
+        }
+    );
+    delete <image2html.conversions>->{$current_key};
+}
+
+error:
+
+# XXX: create error image with target size dimensions(?)
+foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nack',
+            'data' => $error_msg
         }
     );
     delete <image2html.conversions>->{$current_key};
