@@ -25,12 +25,12 @@ if ( !@urls ) {
 
 my %failed;
 my $got_updates = 0;
-
+<rss.ticker.fail_warned> //= 0;
 foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$rss_index};
     my $response = <rss.browser>->get($rss_url);
     if ( $response->code == 200 ) {
-
+        <rss.ticker.fail_warned> = 0;
         <[base.log]>->( 2, ": got fresh RSS content..." );
 
         my $response_content
@@ -72,16 +72,19 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         <rss.browser>->commit;
 
     } elsif ( $response->code == 304 ) {
+        <rss.ticker.fail_warned> = 0;
         <[base.log]>->( 2, ": no new content since last request" );
     } else {
         <[base.log]>->(
             0,
             "failed to access RSS url '$rss_url' ("
                 . $response->status_line . ")"
-        );
+        ) if !<rss.ticker.fail_warned>;
         $failed{$rss_url} = 1;
     }
 }
+<rss.ticker.fail_warned> = 1 if !<rss.ticker.fail_warned> and keys(%failed);
+
 return 0 if !$got_updates and !keys(%failed);
 my %txt_data;
 my $feed_data_count = 0;
