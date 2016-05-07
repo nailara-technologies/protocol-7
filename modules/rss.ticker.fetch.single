@@ -18,7 +18,7 @@ my $seperator = <rss.ticker.item_seperator>;
 my $response = <rss.browser>->get($rss_url);
 
 if ( $response->code == 200 ) {
-
+    <rss.ticker.fail_warned> = 0;
     <[base.log]>->( 2, ": got fresh RSS content..." );
 
     my $response_content = $response->decoded_content( 'charset' => 'none' );
@@ -58,13 +58,16 @@ if ( $response->code == 200 ) {
     return 1;
 
 } elsif ( $response->code == 304 ) {
+    <rss.ticker.fail_warned> = 0;
     <[base.log]>->( 2, ": no new content since last request" );
     return 0;
 } else {
+    <rss.ticker.fail_warned> //= 0;
     <[base.log]>->(
         0,
         "failed to access RSS url '$rss_url' (" . $response->status_line . ")"
-    );
+    ) if !<rss.ticker.fail_warned>;
+    <rss.ticker.fail_warned> = 1;
 
     if ( !-f $output_file ) {
         <[base.log]>->( 0, "no cached data found for failed RSS feed!" );
