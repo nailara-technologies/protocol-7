@@ -27,10 +27,25 @@ if ( <browser.slideshow.status> eq 'load' ) {
                 <browser.slideshow.url_index> )
         );
         <browser.timer.slideshow> = <[event.add_timer]>->(
-            {   'after'   => 0.1,
+            {   'after'   => 0.13,
                 'handler' => 'browser.handler.slideshow'
             }
         );
+    } elsif ( $load_url =~ m|^file://(/.+)$|
+        and -f $1
+        and [ stat($1) ]->[7] == 12
+        and ${ <[file.slurp]>->($1) } eq "<!--SKIP-->\n" ) {
+        <[base.log]>->(
+            2,
+            'SKIP keyword encountered in local content file! [URL #'
+                . <browser.slideshow.url_index> . ']'
+        );
+        <browser.timer.slideshow> = <[event.add_timer]>->(
+            {   'after'   => 0.42,
+                'handler' => 'browser.handler.slideshow'
+            }
+        );
+
     } else {
         if (    <system.agent.mode> eq 'media-child'
             and !<browser.slideshow.paused>
