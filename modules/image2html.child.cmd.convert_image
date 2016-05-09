@@ -11,8 +11,8 @@ return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
     if not defined $image_path or !length($image_path);
 return { 'mode' => 'nack', 'data' => 'image file does not exist!' }
     if $image_path !~ m|^https?://| and !-f $image_path;
-return { 'mode' => 'nack', 'data' => 'image file not readable by agent uid!' }
-    if $image_path !~ m|^https?://| and !-r $image_path;
+# return { 'mode' => 'nack', 'data' => 'image file not readable by agent uid!' }
+#     if $image_path !~ m|^https?://| and !-r $image_path;
 return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
