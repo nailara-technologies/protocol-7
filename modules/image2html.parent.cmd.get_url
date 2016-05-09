@@ -11,7 +11,7 @@ return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
     if not defined $image_location or !length($image_location);
 return { 'mode' => 'nack', 'data' => 'file does not exist!' }
     if $image_location =~ m|^(file://)?(/.+)$| and !-f $2;
-return { 'mode' => 'nack', 'data' => "agent's UID can't read image file" }
+return { 'mode' => 'nack', 'data' => "image2html UID can't read image file" }
     if $image_location =~ m|^(file://)?(/.+)$| and !-r $2;
 return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
