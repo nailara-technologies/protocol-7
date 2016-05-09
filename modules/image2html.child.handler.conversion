@@ -58,8 +58,10 @@ if ( $image_location =~ m|^https?://| ) {
 
 my $image = Graphics::Magick->new();
 
-if ( !$image->Read($image_location) ) {
-    $error_msg = 'failed to read image file';
+( my $status = $image->Read($image_location) ) =~ s|^Exception \d+: ||;
+if ( length($status)
+    and $status !~ /^\d+$/ ) {
+    $error_msg = $status;
     goto error;
 }
 
@@ -72,7 +74,7 @@ if (<image2html.exif.auto_compensate_rotation>) {
         goto error;
     }
 
-    if ( $source_format =~ /^Joint Photographic Experts Group/ ) {    # JPEG
+    if ( $source_format =~ / ^ Joint Photographic Experts Group / ) {    # JPEG
         my $exif = Image::EXIF->new;
         $exif->file_name($image_location);
         my $image_info = $exif->get_image_info();
@@ -82,25 +84,25 @@ if (<image2html.exif.auto_compensate_rotation>) {
             my $orientation = lc( $image_info->{'Image Orientation'} );
             <[base.log]>->(
                 2, "compensating for EXIF orientation '$orientation'"
-            ) if $orientation !~ /top.+left/;
+            ) if $orientation !~ / top . +left /;
 
-            if ( $orientation =~ /top.+left/ ) {    # default - do nothing
+            if ( $orientation =~ / top . +left / ) {    # default - do nothing
 
-            } elsif ( $orientation =~ /top.+right/ ) {    # flip horizontal
+            } elsif ( $orientation =~ / top . +right / ) {    # flip horizontal
                 $image->Flop();
-            } elsif ( $orientation =~ /bottom.+right/ ) {    # rotate 180
+            } elsif ( $orientation =~ / bottom . +right / ) {    # rotate 180
                 $image->Rotate( 'degrees' => 180 );
-            } elsif ( $orientation =~ /bottom.+left/ ) {     # flip vertical
+            } elsif ( $orientation =~ / bottom . +left / ) {     # flip vertical
                 $image->Flip();
-            } elsif ( $orientation =~ /left.+top/ ) {        # transpose
+            } elsif ( $orientation =~ /left . +top / ) {         # transpose
                 $image->Rotate( 'degrees' => 90 );
                 $image->Flop();
-            } elsif ( $orientation =~ /right.+top/ ) {       # rotate 90
+            } elsif ( $orientation =~ / right . +top / ) {       # rotate 90
                 $image->Rotate( 'degrees' => 90 );
-            } elsif ( $orientation =~ /right.+bottom/ ) {    # transverse
+            } elsif ( $orientation =~ / right . +bottom / ) {    # transverse
                 $image->Rotate( 'degrees' => 270 );
                 $image->Flip();
-            } elsif ( $orientation =~ /left.+bottom/ ) {     # rotate 270
+            } elsif ( $orientation =~ /left . +bottom / ) {      # rotate 270
                 $image->Rotate( 'degrees' => -270 );
             } elsif ( $orientation ne 'unknown' ) {
                 <[base.log]>->(
