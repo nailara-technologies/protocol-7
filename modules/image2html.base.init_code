@@ -9,6 +9,7 @@ use Graphics::Magick;
 
 <image2html.converting> //= {};
 <image2html.cache_dir>  //= '/var/image2html';
+<image2html.fail_html> = <system.root_path> . '/data/html/failed_to_load.html';
 my $cache_dir = <image2html.cache_dir>;
 
 if ( !-d $cache_dir ) {
@@ -17,6 +18,19 @@ if ( !-d $cache_dir ) {
         or die "user '" . <system.privs.user> . "' not in passwd file";
     make_path( $cache_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die "make_path: $!";
+}
+
+my $image_dir = "$cache_dir/gfx";
+if ( !-d $image_dir ) {
+    <[base.log]>->( 1, ": creating 'gfx' directory.." );
+    make_path($image_dir) or die "make_path($image_dir): $!";
+}
+my $loading_icon_source = <system.root_path> . '/data/gfx/icons/loading.gif';
+my $loading_icon_target = "$image_dir/loading.gif";
+if ( !-f $loading_icon_target ) {
+    <[base.log]>->( 1, ": copying animated 'loading' image.." );
+    copy( $loading_icon_source, $loading_icon_target )
+        or warn "copy('$loading_icon_source','$loading_icon_target'): $!";
 }
 
 chdir($cache_dir) or die "chdir($cache_dir): $!";
