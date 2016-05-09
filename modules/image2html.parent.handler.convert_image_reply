@@ -13,7 +13,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "conversion of '$image_path' failed [$reason]" );
     my $errors;
-    remove_tree( $html_path, { error => \$errors } );
+    remove_tree( $html_path, { error => \$errors, keep_root => 1 } );
     for my $err (@$errors) {
         my ( $file, $message ) = %$err;
         if ( $file eq '' ) {
@@ -22,6 +22,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
             <[base.log]>->( 0, "remove_tree: $message [$file]" );
         }
     }
+    <[image2html.base.write_error_page]>->($html_path);
 }
 
 delete <image2html.converting>->{$html_dir};
