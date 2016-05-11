@@ -51,13 +51,13 @@ if ( defined $agentname and $agentname ne '' ) {
     $0 = "nailara.$data{'system'}{'agent'}{'name'} ";    # <- whowatch ;/
     $/ = "\n";
 
-    my @agent_config = <STDIN>;
+    my @agent_code = <STDIN>;
 
     if ( $data{'system'}{'daemon_mode'} ) { $code{'base.daemonize'}->() }
 
-    $code{'base.process_init_code'}
-        ->( $code{'base.parser.config'}->( '', @agent_config ) )
-        if @agent_config;
+    $code{'base.execute_agent_code'}
+        ->( $code{'base.parser.config'}->( \@agent_code ) )
+        if @agent_code;
 }
 
 $code{'log.ok'}->("done.");
