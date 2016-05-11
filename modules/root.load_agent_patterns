@@ -2,9 +2,10 @@
 
 # name = root.load_agent_patterns
 
-my $pattern_file = shift // '';
-my $base_file_name = <system.agent.name> . '.patterns.agent_output';
 my %pattern_handlers;
+my $pattern_file = shift // '';
+my $agent = <system.agent.name> eq '<stdin>' ? 'root' : <system.agent.name>;
+my $base_file_name   = "$agent.patterns.agent_output";
 my $pattern_file_txt = $pattern_file;
 <root.patterns.agent_output> //= {};
 $pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
@@ -14,7 +15,7 @@ my $log_msg = ": loading agent output patterns$pattern_file_txt..";
 
 if ( !-f <system.conf_path> . '/' . $pattern_filename ) {
     <[base.log]>->(
-        1, "agent pattern file '$pattern_filename' not found, skipped loading.."
+        0, "agent pattern file '$pattern_filename' not found, skipped loading.."
     );
     return;
 } else {

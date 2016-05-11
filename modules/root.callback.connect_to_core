@@ -8,7 +8,7 @@ my $core_addr   = <net.local.addr>;
 my $core_port   = <net.local.port>;
 my $init_data   = <root.agent.instance>->{$instance_id}->{'init_data'};
 my $core_key    = $init_data->{'core'}->{'key'};
-my $auth_name   = <system.agent.name>;
+my $auth_name = <system.agent.name> eq '<stdin>' ? 'root' : <system.agent.name>;
 $auth_name = <system.agent.auth_name> if exists <system.agent.auth_name>;
 
 <[base.log]>->( 1, "connecting to local core ($core_addr:$core_port) ..." );
