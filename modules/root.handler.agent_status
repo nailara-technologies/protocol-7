@@ -8,7 +8,7 @@ die "no status submitted"      if not defined $status;
 if ( $status eq 'shutdown'
     and not exists <root.agent.instance>->{$instance_id} ) {
     <[base.log]>->(
-        1, "instance $instance_id already gone, skipping status change!"
+        2, "instance $instance_id already gone, skipping status change!"
     );
     return;
 }
@@ -53,7 +53,8 @@ if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
 
 # 'root-post-init' code
 my $init_code = <root.spawn_config.agents.startup.init_code>->{$agent_name};
-if ( $status eq 'online' and exists $init_code->{'root-post-init'} ) {
+if ( ( $status eq 'online' or $status eq 'extbin' )
+    and exists $init_code->{'root-post-init'} ) {
     <[base.log]>->( 2, "'$agent_name'-agent post-init-code.." );
     my @post_init_code = <[base.parser.config]>->(
         $init_code->{'root-post-init'},
@@ -62,7 +63,7 @@ if ( $status eq 'online' and exists $init_code->{'root-post-init'} ) {
     map { $_ =~ s/<instance_id>/$instance_id/g } @post_init_code;
     <[base.execute_agent_code]>->(@post_init_code);
 }
-if (    $status eq 'online'
+if (    ( $status eq 'online' or $status eq 'extbin' )
     and exists $init_code->{'root-post-init'}
     and exists $instance->{'init_data'} ) {
     my $init_status = $instance->{'init_data'}->{'status'} || {};
@@ -83,6 +84,7 @@ $instance->{'status'} = $status;
 # quickly terminate leftover processes
 if (    $status ne 'starting'
     and $status ne 'online'
+    and $status ne 'extbin'
     and exists $instance->{'process'}
     and defined $instance->{'process'}->{'id'} ) {
 
@@ -90,8 +92,7 @@ if (    $status ne 'starting'
 }
 
 # instance startup failure hooks
-if (    $old_status eq 'starting'
-    and $status eq 'failed' ) {
+if ( $old_status eq 'starting' and $status eq 'failed' ) {
     $instance->{'respawn_delay'} *= 2;
     if ( exists $init_code->{'startup-failure'} ) {
         <[base.execute_agent_code]>
@@ -111,11 +112,13 @@ if (    $status eq 'offline'
     return;
 }
 
+delete $instance->{'core_sid'} if $status eq 'restart';
+
 # select correct target job queue
 my $target_queue;
-$target_queue = 'running' if $status eq 'online';
+$target_queue = 'running' if $status eq 'online' or $status eq 'extbin';
 $target_queue = 'failed'  if $status eq 'failed';
-$target_queue = 'queued'  if $status eq 'offline';
+$target_queue = 'queued'  if $status eq 'offline' or $status eq 'restart';
 
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue and $target_queue ne 'queued';
@@ -140,16 +143,27 @@ foreach my $name_or_id (@check_keys) {
                     }
                 );
             } @{ <root.agent.notify_online>->{$name_or_id} };
-        } elsif ( $status =~ /^(online|offline|failed)$/ ) {
+        } elsif ( $status =~ /^(online|extbin|offline|failed)$/ ) {
             while ( my $reply_id
                 = shift @{ <root.agent.notify_online>->{$name_or_id} } ) {
-                my $startup_reply_mode = $status eq 'online' ? 'ack' : 'nack';
+                my $startup_reply_mode
+                    = ( $status eq 'online' or $status eq 'extbin' )
+                    ? 'ack'
+                    : 'nack';
                 my $what = $name_or_id =~ /^\d+$/ ? 'agent instance' : 'agent';
-                my $startup_reply_msg
-                    = $status eq 'online'
-                    ? "$what '$name_or_id' now online! ["
-                    . $instance->{'core_sid'} . "]"
-                    : "$what '$name_or_id' startup failed!";
+                my $startup_reply_msg = "$what '$name_or_id' startup failed!";
+
+                if ( $status eq 'online' ) {
+                    $startup_reply_msg
+                        = "$what '$name_or_id' now online! ["
+                        . $instance->{'core_sid'} . "]";
+                } elsif ( $status eq 'extbin' ) {
+                    $what =~ s|^agent|external program|;
+                    $startup_reply_msg
+                        = "$what '$name_or_id' now running! [PID="
+                        . $instance->{'process'}->{'id'} . "]";
+                }
+
                 <[base.callback.cmd_reply]>->(
                     $reply_id,
                     {   'mode' => $startup_reply_mode,
@@ -163,8 +177,11 @@ foreach my $name_or_id (@check_keys) {
 }
 
 # delayed respawning on startup failure (slowing down with failures..)
-if ( defined $target_queue and $target_queue eq 'queued' ) {
-    $instance->{'respawn_timer'}->cancel if exists $instance->{'respawn_timer'};
+if (    defined $target_queue
+    and $target_queue eq 'queued'
+    and $status ne 'restart' ) {
+    $instance->{'respawn_timer'}->cancel
+        if exists $instance->{'respawn_timer'};
     $instance->{'respawn_delay'} = $max_respawn_delay
         if $instance->{'respawn_delay'} > $max_respawn_delay;
     <[base.log]>->(
@@ -181,8 +198,10 @@ if ( defined $target_queue and $target_queue eq 'queued' ) {
 }
 
 if (    $status ne 'online'
+    and $status ne 'extbin'
+    and $status ne 'restart'
     and $status ne 'starting'
-    and $old_status eq 'online' ) {
+    and ( $old_status eq 'online' or $old_status eq 'extbin' ) ) {
     delete $instance->{'core_sid'};
 
     # shutdown instances with unresolved dependencies
@@ -196,16 +215,16 @@ if (    $status ne 'online'
     }
 }
 
-if ( $status eq 'shutdown' or exists <agent.instance.shutdown>->{$instance_id} )
-{
+if ( $status eq 'shutdown'
+    or exists <agent.instance.shutdown>->{$instance_id} ) {
     $status = 'shutdown' if $status ne 'shutdown';
     delete <root.agent.instance>->{$instance_id};
     delete <agent.instance.shutdown>->{$instance_id};
     <[base.log]>->( 1, "instance $instance_id has been shut down." );
 }
 
-if ( $old_status ne 'online' and $status eq 'online' ) {
-    delete $instance->{'respawn_delay'};    # reset
+if ( $old_status ne 'online' and $status eq 'online' ) {    # XXX: extbin ?
+    delete $instance->{'respawn_delay'};                    # reset
 
     if ( not exists $agent_config->{'ping'}->{'disabled'}
         or !$agent_config->{'ping'}->{'disabled'} ) {

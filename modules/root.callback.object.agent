@@ -17,6 +17,7 @@ return undef if not exists <root.agent.setup>->{$agent_id};
 foreach my $id ( keys %{<root.agent.instance>} ) {
     return 1
         if <root.agent.instance>->{$id}->{'agent_id'} == $agent_id
-        and <root.agent.instance>->{$id}->{'status'} eq 'online';
+        and ( <root.agent.instance>->{$id}->{'status'} eq 'online'
+        or <root.agent.instance>->{$id}->{'status'} eq 'extbin' );
 }
 return 0;    # not online
