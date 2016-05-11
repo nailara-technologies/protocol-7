@@ -2,6 +2,14 @@
 
 # name = config.json.import_file
 
+if ( <system.agent.name> eq '<stdin>' ) {
+    <config.json.import_skip_warned> //= 0;
+    <[base.log]>->( 1, "skipping json import for <stdin>-mode!" )
+        if !<config.json.import_skip_warned>;
+    <config.json.import_skip_warned> = 1;
+    return;
+}
+
 my $filename    = shift;
 my $config_type = shift;    # <- optional (autodetect from filename if omitted)
 my $absolute_path = shift // 0;
