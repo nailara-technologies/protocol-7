@@ -30,8 +30,11 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
         <[base.log]>->( 2, ": was '$old_status' ..." );
         if ( $old_status eq 'starting' ) {
             <[agent.change_status]>->( $instance_id, 'failed' );
-        } else {
+        } elsif ( $old_status ne 'restart' ) {
             <[agent.change_status]>->( $instance_id, 'offline' );
+        } elsif ( $old_status eq 'restart' ) {
+            my $job_id = $instance_data->{'job_id'};
+            <[jobqueue.move_job]>->( $job_id, 'queued' );
         }
     }
 }

@@ -13,7 +13,5 @@ $instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
 delete <callback.session.close_last> if $instance->{'is_core'};
 
+<[agent.change_status]>->( $instance_id, 'restart' );
 <[root.terminate_process]>->( $instance->{'process'}->{'id'} );
-
-<[agent.change_status]>->( $instance_id, 'queued' );
-<[jobqueue.move_job]>->( $job_id, 'queued' );

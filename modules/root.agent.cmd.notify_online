@@ -47,24 +47,41 @@ if (    not defined <[agent.get_id]>->($query_param)
 
 if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     my $core_sid = <root.agent.instance>->{$id}->{'core_sid'};
-    return {
-        'mode' => 'ack',
-        'data' => "agent instance '$id' already online! [$core_sid]"
-        }
-        if defined <root.agent.instance>->{$id}
-        and <root.agent.instance>->{$id}->{'status'} eq 'online';
+    my $prog_pid = <root.agent.instance>->{$id}->{'process'}->{'id'};
+    if ( defined <root.agent.instance>->{$id} ) {
+        return {
+            'mode' => 'ack',
+            'data' => "agent instance '$id' already online! [$core_sid]"
+            }
+            if <root.agent.instance>->{$id}->{'status'} eq 'online';
+        return {
+            'mode' => 'ack',
+            'data' => "external program instance '$id'"
+                . " already running! [PID=$prog_pid]"
+            }
+            if <root.agent.instance>->{$id}->{'status'} eq 'extbin';
+    }
 }
 
 foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
     my $core_sid = <root.agent.instance>->{$id}->{'core_sid'};
-    return {
-        'mode' => 'ack',
-        'data' => "agent '$query_copy' already online! [$core_sid]"
-        }
-        if <root.agent.instance>->{$id}->{'agent_name'} eq $query_param
-        and <root.agent.instance>->{$id}->{'status'} eq 'online'
+    my $prog_pid = <root.agent.instance>->{$id}->{'process'}->{'id'};
+    if (<root.agent.instance>->{$id}->{'agent_name'} eq $query_param
         and ( not defined $agent_subname
-        or <root.agent.instance>->{$id}->{'subname'} eq $agent_subname );
+            or <root.agent.instance>->{$id}->{'subname'} eq $agent_subname )
+        ) {
+        return {
+            'mode' => 'ack',
+            'data' => "agent '$query_copy' already online! [$core_sid]"
+            }
+            if <root.agent.instance>->{$id}->{'status'} eq 'online';
+        return {
+            'mode' => 'ack',
+            'data' => "external program '$query_copy'"
+                . " already running! [PID=$prog_pid]"
+            }
+            if <root.agent.instance>->{$id}->{'status'} eq 'extbin';
+    }
 }
 
 <[base.log]>->(
