@@ -27,10 +27,10 @@ $instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
 delete <callback.session.close_last> if $instance->{'is_core'};
 
-delete <root.child>->{ $instance->{'process'}->{'id'} };
-
-<[root.terminate_process]>->( $instance->{'process'}->{'id'} )
-    if defined $instance->{'process'}->{'id'};
+if ( defined $instance->{'process'}->{'id'} ) {
+    delete <root.child>->{ $instance->{'process'}->{'id'} };
+    <[root.terminate_process]>->( $instance->{'process'}->{'id'} );
+}
 
 # <[agent.change_status]>->( $instance_id, 'shutdown' );
 <[jobqueue.remove_job]>->($job_id);

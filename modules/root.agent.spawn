@@ -60,6 +60,85 @@ if ( exists $init_code->{'root-init'} ) {
     }
 }
 
+my $agent_sn_str
+    = defined $agent_subname ? "$agent_name\[$agent_subname]" : $agent_name;
+
+my ( $pid, $out_fh, $in_fh );
+
+$instances->{$instance_id}->{'external'} = 0;
+
+if ( exists $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-external' ) {
+
+    $instances->{$instance_id}->{'external'} = 1;
+
+    my $exec_bin = $init_result_data->{'exec_bin'};
+    my $prog_usr = $init_result_data->{'exec_usr'};
+
+    if ( defined $prog_usr and $prog_usr eq '<x11-user>' ) {
+        if ( defined <x11.user> ) {
+            $prog_usr = <x11.user>;
+        } else {
+            <[base.log]>->(
+                0,
+                "exec_usr for '$agent_name' (\<x11.user>) is "
+                    . "not defined - FAILED"
+            );
+            <[agent.change_status]>->( $instance_id, 'failed' );
+            return undef;
+        }
+    }
+
+    if ( not defined $exec_bin or not defined $prog_usr ) {
+        my $reason = "expected program name (exec_bin) in '$agent_name' setup";
+        $reason = "expected 'exec_usr' for '$agent_name' to be defined"
+            if defined $exec_bin and not defined $prog_usr;
+        <[base.log]>->( 0, "$reason - ABORTED!" );
+        <[agent.change_status]>->( $instance_id, 'failed' );
+        <[agent.cmd.stop]>->( { 'args' => $instance_id } );
+        return undef;
+    } elsif ( $exec_bin =~ /\s/ or !-x $exec_bin ) {
+        <[base.log]>->(
+            0,
+            "'$agent_name' exec_bin '$exec_bin' not a valid executable - FAILED"
+        );
+        <[agent.change_status]>->( $instance_id, 'failed' );
+        return undef;
+    } else {
+
+        my $privs = <[base.set_privs]>->( $prog_usr, 'noop' );
+        if ( not defined $privs or ref($privs) ne 'HASH' ) {
+            <[base.log]>->(
+                0, "exec_usr for '$agent_name' is invalid - FAILED"
+            );
+            <[agent.change_status]>->( $instance_id, 'failed' );
+            return undef;
+        }
+        map { $privs->{$_} =~ s|'||g } keys %{$privs};    # XXX: abort on match?
+
+        # XXX: implement exec_args...
+        my $prepare_code = '%ENV=(); ';
+        my $display      = <x11.display>;
+        $prepare_code .= "\$ENV{'DISPLAY'}='$display'; " if defined $display;
+        $prepare_code
+            .= "\$)='$privs->{all_gids}'; \$(='$privs->{gid}'; "
+            . "\$>='$privs->{uid}'; \$<='$privs->{uid}'; "
+            . "\$ENV{'USER'}='$prog_usr'; "
+            . "\$ENV{'HOME'}='$privs->{home}'; "
+            . "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}'; "
+            . "chdir('$privs->{home}'); ";
+        <[base.log]>->(
+            1, "starting external '$agent_sn_str' program as '$prog_usr' .."
+        );
+        eval {
+            $pid
+                = open2( $out_fh, $in_fh, '/usr/bin/perl', '-e',
+                "$prepare_code exec \"$exec_bin\"" );
+        };
+        goto exec_skip;
+    }
+}
+
 $sic_mode = 1 && push( @exec_args, '-sic' )
     if exists $init_result_data->{'start_mode'}
     and $init_result_data->{'start_mode'} eq 'exec-sic'
@@ -68,11 +147,7 @@ $sic_mode = 1 && push( @exec_args, '-sic' )
 my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-my $agent_sn_str
-    = defined $agent_subname ? "$agent_name\[$agent_subname]" : $agent_name;
 <[base.log]>->( 1, "spawning '$agent_sn_str'-agent initiated ..." );
-
-my ( $pid, $out_fh, $in_fh );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
@@ -93,6 +168,8 @@ if (@cmd_line_mods) {
             = open2( $out_fh, $in_fh, $nailara_bin, $agent_sn_str, @exec_args );
     };
 }
+
+exec_skip:
 
 if ( not defined $pid or $@ ) {
     ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
@@ -120,6 +197,9 @@ $instances->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
 $instances->{$instance_id}->{'subname'} = $agent_subname
     if defined $agent_subname;
 
+<[agent.change_status]>->( $instance_id, "extbin" )
+    if $init_result_data->{'start_mode'} eq 'exec-external';
+
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
     <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent..." );
@@ -143,4 +223,4 @@ if ($sic_mode) {
 }
 close($in_fh);    # no more use for agent stdin handle (for now)
 
-<[base.log]>->( 1, "agent '$agent_sn_str' spawned ! [ pid : $pid ] " );
+<[base.log]>->( 1, "agent '$agent_sn_str' spawned ! [ pid : $pid ]" );

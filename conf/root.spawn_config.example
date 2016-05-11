@@ -137,6 +137,10 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+      : root-post-init :
+        [base.x11.get_display] # XXX: create special (async) callback/handler!
+        status.post-init = 1
+
   - hide-mouse
 
       dependencies = xserver
@@ -472,3 +476,14 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
         [base.agents.set_ondemand_timeout:64]
+
+## external program example:
+
+#  - xclock
+#      max_concurrency = 5
+#      dependencies = xserver
+#
+#      : root-init :
+#        start_mode = exec-external
+#        exec_bin = /usr/bin/xclock
+#        exec_usr = nailara     # <- supports '<x11-user>' (see ./conf/desktop)
