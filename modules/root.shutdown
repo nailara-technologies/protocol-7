@@ -39,7 +39,7 @@ foreach my $pid ( sort keys %{<root.child>} ) {
         my $ren = scalar @children == 1 ? '' : 'ren :';
         <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @children ) )
             if @children;
-        kill( 9, @children );
+        kill( 15, @children );
     } else {
         delete <root.child>->{$pid};
     }
