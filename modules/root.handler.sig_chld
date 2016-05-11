@@ -7,13 +7,13 @@ local ( $!, $? );
 while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
 
     # determine exit status
-    my $e_val = $? >> 8;
-    my $e_sig = $? & 127;
-    $e_sig = $e_sig ? ", signal $e_sig" : '';
-    my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
     my $log_level = 1;
-    $log_level = 0 if $e_val;
-    $log_level = 0 if $? & 128;
+    my $e_val     = $? >> 8;
+    my $e_sig     = $? & 127;
+    $e_sig = $e_sig ? ", signal $e_sig" : '';
+    $log_level = 0 if $e_sig =~ s|(signal 11)$|$1 (((SEGFAULT)))|;
+    my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
+    $log_level = 0 if $e_val or $? & 128;
     <[base.log]>->(
         $log_level,
         "child pid=$pid terminated ( exit code $e_val$e_sig )$e_dmp"
