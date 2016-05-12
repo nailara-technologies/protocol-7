@@ -16,7 +16,7 @@ if ( not defined $data_key or $data_key eq '' ) {
         0,
         "supplied data key too long ( max. $max_key_len bytes but was $len_was )"
     );
-} elsif ( $data_key !~ /^[A-Za-z0-9-_\.]+$/ ) {
+} elsif ( $data_key !~ /^[A-Za-z0-9-\[\]_\.]+$/ ) {
     ( $ok, $err_msg ) = ( 0, 'invalid character(s) in key name' );
 }
 return 1 if $ok;
