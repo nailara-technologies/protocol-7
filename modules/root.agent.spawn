@@ -198,7 +198,8 @@ $instances->{$instance_id}->{'subname'} = $agent_subname
     if defined $agent_subname;
 
 <[agent.change_status]>->( $instance_id, "extbin" )
-    if $init_result_data->{'start_mode'} eq 'exec-external';
+    if defined $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-external';
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
