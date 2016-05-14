@@ -1,17 +1,17 @@
 # >:]
 
 # name  = layout.cmd.assign_window
-# param = <id> [tilename]
-# descr = report x11 window id for current agent
+# param = <id[,id]> [tilename]
+# descr = report x11 window id[s] for current agent
 
-my ( $source_name, $window_id, $tile_name ) = split( / +/, $$call{'args'}, 3 );
+my ( $source_name, $wid_str, $tile_name ) = split( / +/, $$call{'args'}, 3 );
 $source_name =~ s|^.+\.||g;
 my $err_msg;
 
 $err_msg = 'core config error (source name parameter missing)'
     if not defined $source_name;
 $err_msg = 'expected numerical window_id parameter'
-    if not defined $window_id or $window_id !~ /^\d+$/;
+    if not defined $wid_str or $wid_str !~ /^\d+(,\d+)*$/;
 if ( defined $err_msg ) {
     my $source_str = defined $source_name ? "[$source_name]" : '';
     <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
@@ -49,9 +49,12 @@ if (exists <layout.window_ids>->{$agent_name}
 
     #    and not defined <layout.window_ids>->{$agent_name}
     ) {
-    <layout.window_ids>->{$agent_name} = $window_id;    # XXX: check if exists!
-
-    <[base.log]>->( 1, "assigned window id $window_id to '$agent_name'" );
+    $wid_str = join( ',', sort { $a <=> $b } split( /\D+/, $wid_str ) );
+    my $wid_lmsg = $wid_str;
+    $wid_str =~ s|,| |g;
+    <layout.window_ids>->{$agent_name} = $wid_str;    # XXX: check if exists!
+    my $s = $wid_str =~ / / ? 's' : '';
+    <[base.log]>->( 1, "assigned windows id$s $wid_lmsg to '$agent_name'" );
 
     <[layout.sort_layers]>;
 
