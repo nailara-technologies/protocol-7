@@ -21,7 +21,9 @@ while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
     if ( !$matched_reply ) {
-        print "<NO_MATCH>\n";
+        <base.log>->(
+            0, "unexpected reply during get_subconfig ['$reply_string']"
+        );
         my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
         <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
             if uc($2) ne $2;
