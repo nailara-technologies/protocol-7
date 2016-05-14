@@ -21,11 +21,23 @@ return <[base.callback.cmd_reply]>->(
 $answer->{'data'} =~ s|\n$||;
 my @window_stack = split( /\n/, $answer->{'data'} );
 
+my $missing = 0;
 my %wid_check = map { $_ => 1 } @window_stack;
 for my $agent_name ( keys %{<layout.layers>} ) {
-    my $w_chk = <layout.window_ids>->{$agent_name};
-    <layout.window_ids>->{$agent_name} = undef
-        if defined $w_chk and not exists $wid_check{$w_chk};
+    my $wid_str = <layout.window_ids>->{$agent_name};
+    next if not defined $wid_str;
+    my @wids_ok;
+    map {
+        push( @wids_ok, $_ ) if defined $_ and exists $wid_check{$_};
+        $missing++ if not exists $wid_check{$_}
+        }
+        split /\D+/, $wid_str;
+    if ( !@wids_ok ) {
+        <layout.window_ids>->{$agent_name} = undef;
+    } elsif ($missing) {
+        <layout.window_ids>->{$agent_name}
+            = join( ',', sort { $a <=> $b } @wids_ok );
+    }
 }
 
 my @lower_ids;
@@ -34,11 +46,12 @@ for my $agent_name (
     sort { <layout.layers>->{$b} <=> <layout.layers>->{$a} }
     keys %{<layout.layers>}
     ) {
-    my $window_id = <layout.window_ids>->{$agent_name};
-    next if not defined $window_id;
+    my $window_ids_str = <layout.window_ids>->{$agent_name};
+    next if not defined $window_ids_str;
+    my @window_ids = sort split( /\D+/, $window_ids_str );
     my $layer_pos = <layout.layers>->{$agent_name};
-    push( @lower_ids, $window_id );
-    $known_ids{$window_id} = 1;
+    push( @lower_ids, @window_ids );
+    map { $known_ids{$_} = 1 } @window_ids;
 }
 my @known_windows;
 map { push( @known_windows, $_ ) if exists $known_ids{$_} } @window_stack;

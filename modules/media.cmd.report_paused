@@ -35,6 +35,12 @@ map { $all_ready = 0 if <media.child>->{$_}->{'status'} ne 'ready' }
 
 if ($all_ready) {
     <[base.log]>->( 1, "agent children are now online! :)" ) if $was_starting;
+
+    <[base.x11.assign_window]>->(
+        join( ',',
+            map { <media.child>->{$_}->{'window_id'} } keys %{<media.child>} )
+    );
+
     if ( defined $switch_agent ) {
         <[media.switch_child]>->($switch_agent) if @{<media.playlist.files>};
     } elsif (<media.loadsplash_running>) {    # (empty playlist case)
