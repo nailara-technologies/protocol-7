@@ -72,6 +72,8 @@ if ( $mode ne 'host' ) {
         <[base.log]>->(
             1, ": $bin_name-Server process started (pid=$server_pid)"
         );
+        <xserver.pid> = $server_pid;
+        push( @{<system.kill_list>}, <xserver.pid> );
     }
 
     <[event.add_io]>->(
