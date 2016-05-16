@@ -25,9 +25,14 @@ for my $w ( @{ $xtops->sorted } ) {
 
 return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
 
-for ( 1 .. 2 ) {    # <- workaround (ignored state change requests)
-    X11::Protocol::WM::change_net_wm_state( $X, $window_id, "remove", "ABOVE" );
-    X11::Protocol::WM::change_net_wm_state( $X, $window_id, "add",    "BELOW" );
-}
-
+eval {
+    for ( 1 .. 2 ) {    # <- workaround (ignored state requests)
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, "remove",
+            "ABOVE" );
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, "add",
+            "BELOW" );
+    }
+};
+return { 'mode' => 'nack', 'data' => "failed to set window state 'below'" }
+    if $@;
 return { 'mode' => 'ack', 'data' => "set window state 'below'" };
