@@ -3,6 +3,7 @@
 # name = root.agent.instance.restart
 
 my $instance_id = shift;
+my $globals     = <root.spawn_config.globals> || {};
 my $instance    = <root.agent.instance>->{$instance_id};
 my $agent_name  = $instance->{'agent_name'};
 my $job_id      = $instance->{'job_id'};
@@ -12,6 +13,28 @@ my $job_id      = $instance->{'job_id'};
 $instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
 delete <callback.session.close_last> if $instance->{'is_core'};
+
+my $restart_timeout
+    = defined <sigterm.timeout>
+    ? ( <sigterm.timeout> + 2 )
+    : ( $globals->{'restart'}->{'timeout'} // 7 );
+
+$instance->{'timer'}->{'restart_timeout'} //= {};
+
+my $restart_id = <[base.gen_id]>->( $instance->{'timer'}->{'restart_timeout'} );
+
+$instance->{'restart_id'} = $restart_id;
+
+$instance->{'timer'}->{'restart_timeout'}->{$restart_id}
+    = <[event.add_timer]>->(
+    {   'after'   => $restart_timeout,
+        'handler' => 'root.handler.restart_timeout',
+        'data'    => {
+            'restart_id'  => $restart_id,
+            'instance_id' => $instance_id
+        }
+    }
+    );
 
 <[agent.change_status]>->( $instance_id, 'restart' );
 <[root.terminate_process]>->( $instance->{'process'}->{'id'} );
