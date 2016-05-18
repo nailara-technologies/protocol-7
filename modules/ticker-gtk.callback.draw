@@ -4,7 +4,7 @@
 
 my ( $widget, $context, $ref_status ) = @_;
 
-<ticker-gtk.last_time> //= <[base.time]>->(5);
+<ticker-gtk.last_time> //= <[base.time]>->(8);
 
 my $window = <ticker-gtk.obj.window>;
 <ticker-gtk.obj.context> = $context;
@@ -44,6 +44,15 @@ if ( not defined <ticker-gtk.status.initialized> ) {
     <ticker-gtk.font.size> = $new_font_size - 1;
     $context->set_font_size(<ticker-gtk.font.size>);
     <ticker-gtk.status.initialized> = 1;
+
+    <[base.get_session_id]>;    # agent status -> 'online'
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.notify_online",
+            'call_args' => { 'args' => 'rss-ticker' },
+            'reply'     => { 'handler' => 'ticker-gtk.request_rss_update' }
+        }
+    ) if <ticker-gtk.request_rss_updates>;
     return;
 }
 
@@ -104,11 +113,11 @@ $context->show_text( $content_substr->[1] );
 
 my $ppsec = 1.42 * $speed**1.86;
 
-<ticker-gtk.last_time> = <[base.time]>->(5) if <ticker-gtk.paused>;
+<ticker-gtk.last_time> = <[base.time]>->(8) if <ticker-gtk.paused>;
 
 <ticker-gtk.draw.x_pos>
     -= sprintf( "%.5f",
-    $ppsec * ( <[base.time]>->(5) - <ticker-gtk.last_time> ) )
+    $ppsec * ( <[base.time]>->(8) - <ticker-gtk.last_time> ) )
     if !<ticker-gtk.paused>;
 
 if ( defined <ticker-gtk.content.current.txt_map>->{'total_width'}
@@ -142,6 +151,6 @@ if (<ticker-gtk.animation_started>) {
     }
 }
 
-<ticker-gtk.last_time> = <[base.time]>->(5);
+<ticker-gtk.last_time> = <[base.time]>->(8);
 
 return 1;
