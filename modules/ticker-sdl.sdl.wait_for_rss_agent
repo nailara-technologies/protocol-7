@@ -1,0 +1,10 @@
+# >:]
+
+# name = ticker-sdl.sdl.wait_for_rss_agent
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "parent.core.root.notify_online",
+        'call_args' => { 'args' => 'rss-ticker' },
+        'reply'     => { 'handler' => 'ticker-sdl.sdl.request_rss_update' }
+    }
+    )
