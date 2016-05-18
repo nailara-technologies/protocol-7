@@ -2,6 +2,8 @@
 
 # name  = ticker-gtk.parse_text
 
+die "FATAL: invalid font size '0' <!> aborting ..." if !<ticker-gtk.font.size>;
+
 my $scroll_text = shift;
 my $chars       = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
 my $surface     = Cairo::ImageSurface->create( 'argb32', 1, 1 );
