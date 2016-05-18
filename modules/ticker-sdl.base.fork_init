@@ -69,7 +69,8 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     close($parent_pipe);
     <ticker-sdl.pipe.child> = $child_pipe;
     my $child_pid = <ticker-sdl.child.pid>;
-    my $prio      = -20;
+    push( @{<system.kill_list>}, $child_pid );
+    my $prio = -20;
     <[base.log]>->(
         1, "setting priority of ticker child (PID $child_pid) to $prio"
     );
