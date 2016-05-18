@@ -2,13 +2,22 @@
 
 # name = root.terminate_process
 
+my $instance_id;
 my $kill_pid = shift;
 
 return if exists <root.terminating.pid>->{$kill_pid};
 
 <[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid );
 
+$instance_id = <root.child>->{$kill_pid}->{'instance_id'}
+    if exists <root.child>->{$kill_pid};
+
 my @children = @{ <[root.process.get_children]>->($kill_pid) };
+
+map {
+    <root.child>->{$_}->{'instance_id'} = $instance_id
+        if defined $instance_id
+} @children;
 
 kill( 'TERM', $kill_pid );
 my @kill_list = ($kill_pid);
