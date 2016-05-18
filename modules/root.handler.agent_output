@@ -31,14 +31,28 @@ if (sysread(
     my $pid = $process->{'id'};
     <[base.log]>->( 1, "( pid $pid ) output fh closed!" );
 
-    undef $agent_instance->{'output_buffer'};
-    if (   not exists <agent.instance.shutdown>
-        or not exists <agent.instance.shutdown>->{$instance_id} ) {
-        <[agent.change_status]>->( $instance_id, 'failed' )
-            if $agent_instance->{'status'} eq 'online';
-    } else {
-        <[agent.change_status]>->( $instance_id, 'shutdown' );
+    my $was_ondemand = 0;
+    if ( defined <root.ondemand_agents> ) {
+        map { $was_ondemand = 1 if $_ eq $agent_name }
+            @{<root.ondemand_agents>};
     }
+
+    undef $agent_instance->{'output_buffer'};
+#    if (
+#        (      not exists <agent.instance.shutdown>
+#            or not exists <agent.instance.shutdown>->{$instance_id}
+#        )
+#        and $agent_instance->{'status'} ne 'restart'
+#        and $agent_instance->{'status'} ne 'starting'
+#        ) {
+#        if ( $agent_instance->{'status'} eq 'online' ) {
+#            if ($was_ondemand) {
+#                <[agent.change_status]>->( $instance_id, 'offline' );
+#            }
+#        } else {
+#            <[agent.change_status]>->( $instance_id, 'failed' );
+#        }
+#    }
     return;
 }
 

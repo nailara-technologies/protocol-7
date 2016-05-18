@@ -17,6 +17,13 @@ if (    ( $session_count + $exit_count ) == 0
     and exists $data{'callback'}
     and exists <callback.session>
     and exists <callback.session.close_last> ) {
+
+    if ( <system.agent.type> eq 'root' ) {
+        <root.check_last.fail_count> //= 0;
+        <root.check_last.fail_count>++;
+        return if <root.check_last.fail_count> < 2;
+    }
+
     <[base.log]>->( 2, "executing session.close_last callback..." );
     $code{<callback.session.close_last.name>}
         ->( @{<callback.session.close_last.params>} );
