@@ -62,9 +62,16 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     } else {
         <[ticker-sdl.sdl.raise_and_fade]>;
     }
-    <[base.get_session_id]>->( 'parent', 'core' );
 
-} else {    # parent
+    <[base.get_session_id]>->( 'parent', 'core' );    # agent status -> 'online'
+
+    <[event.add_timer]>->(
+        {   'after'   => 0.42,
+            'handler' => 'ticker-sdl.sdl.wait_for_rss_agent'
+        }
+    ) if <ticker-sdl.request_rss_updates>;
+
+} else {                                              # parent
 
     close($parent_pipe);
     <ticker-sdl.pipe.child> = $child_pipe;
