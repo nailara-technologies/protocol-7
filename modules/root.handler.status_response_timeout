@@ -4,10 +4,21 @@
 
 my $instance_id   = shift->w->data;
 my $agent_name    = <root.agent.instance>->{$instance_id}->{'agent_name'};
+my $agent_status  = <root.agent.instance>->{$instance_id}->{'status'};
 my $is_core_agent = <root.agent.instance>->{$instance_id}->{'is_core'};
 
 <[base.log]>->(
     0, "instance $instance_id [$agent_name] response.. ( TIMEOUT )"
 );
-delete <callback.session.close_last> if $is_core_agent;    # allow safe restart
+if ($is_core_agent) {
+    if ( $agent_status eq 'failed' ) {    # was already failed
+        <callback.session.close_last> = {
+            'name'   => 'root.shutdown',
+            'params' => ['fatal core agent failure']
+        };
+        <[base.session.check_last]>;
+    } else {
+        delete <callback.session.close_last>;    # allow safe restart
+    }
+}
 <[agent.change_status]>->( $instance_id, 'failed' );
