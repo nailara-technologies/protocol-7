@@ -4,6 +4,7 @@
 
 my $wid_str = shift // <x11.id>;
 my $route = shift;
+die "window id not defined" if not defined $wid_str;
 die "invalid window id string '$wid_str'" if $wid_str !~ /^\d+(,\d+)*$/;
 my $tile_name = <system.agent.subname>;
 my $tile_str  = defined $tile_name ? " for '$tile_name'" : '';
