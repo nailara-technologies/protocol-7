@@ -20,21 +20,66 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
     );
 
     if ( my $child = <root.child>->{$pid} ) {
-        my $instance_id   = $child->{'instance_id'};
-        my $instance_data = <root.agent.instance>->{$instance_id};
+        my $instance_id = $child->{'instance_id'};
+        my $instance    = <root.agent.instance>->{$instance_id};
+        my $agent_name  = $instance->{'agent_name'};
+
         <[base.log]>->( 2, ": was instance $instance_id ..." );
 
         delete <root.child>->{$pid};
 
-        my $old_status = $instance_data->{'status'} || 'undefined';
+        delete $instance->{'restart_pids'}->{$pid}
+            if exists $instance->{'restart_pids'};
+
+        my $old_status = $instance->{'status'} || 'undefined';
+
         <[base.log]>->( 2, ": was '$old_status' ..." );
-        if ( $old_status eq 'starting' ) {
-            <[agent.change_status]>->( $instance_id, 'failed' );
-        } elsif ( $old_status ne 'restart' ) {
-            <[agent.change_status]>->( $instance_id, 'offline' );
-        } elsif ( $old_status eq 'restart' ) {
-            my $job_id = $instance_data->{'job_id'};
-            <[jobqueue.move_job]>->( $job_id, 'queued' );
+
+        my $next_status = (
+                   $old_status eq 'online'
+                or $old_status eq 'starting'
+        ) ? 'failed' : 'offline';
+
+        if ( $old_status eq 'online' and defined <root.ondemand_agents> ) {
+            map { $next_status = 'offline' if $_ eq $agent_name }
+                @{<root.ondemand_agents>};
+        }
+
+        my $parent_pid = $instance->{'process'}->{'id'};
+
+        my %check_pids = ( $parent_pid => 1 );
+        map { $check_pids{$_} = 1 }
+            ( @{ <[root.process.get_children]>->($parent_pid) } );
+        map { $check_pids{$_} = 1 } keys %{ $instance->{'restart_pids'} }
+            if exists $instance->{'restart_pids'};
+
+        my $processes_left = 0;
+        map { $processes_left++ if <[root.process.exists]>->($_) }
+            keys %check_pids;
+
+        if ($processes_left) {
+            $instance->{'pid_check_timer'} = <[event.add_timer]>->(
+                {   'after'    => 0.042,
+                    'interval' => '0.1',
+                    'handler'  => 'root.handler.children_left',
+                    'data'     => {
+                        'instance_id' => $instance_id,
+                        'next_status' => $next_status
+                    }
+                }
+            );
+        } else {
+            <[agent.change_status]>->( $instance_id, $next_status );
+            my $spawn_cfg = <root.spawn_config.agents.config>->{$agent_name};
+            if (
+                (   not defined $spawn_cfg->{'respawn'}{'disabled'}
+                    or !$spawn_cfg->{'respawn'}{'disabled'}
+                )
+                and !<[agent.is_disabled]>->($agent_name)
+                ) {
+                my $job_id = $instance->{'job_id'};
+                <[jobqueue.move_job]>->( $job_id, 'queued' );
+            }
         }
     }
 }

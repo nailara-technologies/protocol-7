@@ -1,0 +1,33 @@
+# >:]
+
+# name = root.handler.children_left
+
+my $watcher     = shift->w;
+my $params      = $watcher->data;
+my $instance_id = $params->{'instance_id'};
+my $next_status = $params->{'next_status'};
+my $instance    = <root.agent.instance>->{$instance_id};
+
+my $child_count = 0;
+
+foreach my $pid ( keys %{<root.child>} ) {
+    next
+        if not exists <root.child>->{$pid}
+        or <root.child>->{$pid}->{'instance_id'} != $instance_id;
+
+    if ( <[root.process.exists]>->($pid) ) {
+        $child_count++;
+    } else {
+
+        # XXX
+    }
+}
+
+if ( !$child_count ) {
+    $watcher->cancel;
+    <[agent.change_status]>->( $instance_id, $next_status );
+    if ( $next_status eq 'offline' ) {
+        my $job_id = $instance->{'job_id'};
+        <[jobqueue.move_job]>->( $job_id, 'queued' );
+    }
+}
