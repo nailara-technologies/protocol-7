@@ -21,7 +21,7 @@ if ( $data{'system'}{'verbosity'} >= 2 ) {
     if exists <system.agent.type> and <system.agent.type> eq 'root';
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
-    map { kill( 15, $_ ) } @{<system.kill_list>};
+    map { kill( 9, $_ ) } @{<system.kill_list>};
 }
 
 <[base.log]>->( 1, ': done.' );
