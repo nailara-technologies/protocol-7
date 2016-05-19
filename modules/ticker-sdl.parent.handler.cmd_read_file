@@ -7,4 +7,11 @@ my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'ACK' ) {    # success
     <ticker-sdl.request_pending.read_file> = 0;
+} else {
+    my $reason_txt = $reply->{'call_args'}->{'args'};
+    <[base.log]>->(
+        0, "child.read_file failed with '$reason_txt', shutting down!"
+    );
+    kill( 9, <ticker-sdl.child.pid> ) if defined <ticker-sdl.child.pid>;
+    exit(2);
 }
