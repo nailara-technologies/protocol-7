@@ -27,19 +27,19 @@ my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
 $instance->{'respawn_delay'}
     //= $agent_config->{'respawn'}->{'min_delay'}
     || $globals->{'respawn'}->{'min_delay'}
-    || 0.1;    # <-- minimum respawn delay default (in seconds)
+    || 0.05;    # <-- minimum respawn delay default (in seconds)
 my $max_respawn_delay
     = $agent_config->{'respawn'}->{'max_delay'}
     || $globals->{'respawn'}->{'max_delay'}
-    || 300;    # <-- 5 minutes (internal default)
+    || 300;     # <-- 5 minutes (internal default)
 my $status_timer_delay
     = $agent_config->{'ping'}->{'after'}
     || $globals->{'ping'}->{'after'}
-    || 2;      # <-- (initial) ping delay default
+    || 2;       # <-- (initial) ping delay default
 my $status_timer_interval
     = $agent_config->{'ping'}->{'interval'}
     || $globals->{'ping'}->{'interval'}
-    || 5;      # <-- ping interval default
+    || 5;       # <-- ping interval default
 delete $agent_config->{'respawn'} if !keys %{ $agent_config->{'respawn'} };
 delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
 delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
@@ -96,15 +96,34 @@ if (    $status ne 'starting'
     <[root.terminate_process]>->( $instance->{'process'}->{'id'} );
 }
 
+if ( $old_status ne 'failed' and $status eq 'failed' ) {
+    $instance->{'respawn_delay'}
+        = sprintf( "%.2f", $instance->{'respawn_delay'} * 1.2 );
+    $instance->{'respawn_delay'}
+        = sprintf( "%.1f", $instance->{'respawn_delay'} )
+        if $instance->{'respawn_delay'} > 10;
+    $instance->{'respawn_delay'}
+        = sprintf( "%.0f", $instance->{'respawn_delay'} )
+        if $instance->{'respawn_delay'} > 20;
+}
+$instance->{'respawn_delay'} = $max_respawn_delay
+    if $instance->{'respawn_delay'} > $max_respawn_delay;
+if (    $status ne 'online'
+    and $status ne 'extbin'
+    and exists $instance->{'timer'}->{'reset_respawn_delay'} ) {
+    $instance->{'timer'}->{'reset_respawn_delay'}->cancel;
+    delete $instance->{'timer'}->{'reset_respawn_delay'};
+}
+
 # instance startup failure hooks
 if ( $old_status eq 'starting' and $status eq 'failed' ) {
-    $instance->{'respawn_delay'} *= 2;
     if ( exists $init_code->{'startup-failure'} ) {
         <[base.execute_agent_code]>
             ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
-    } else {  # <- prevents a failure race condition (getting stuck in 'failed')
+    } else {
         delete $instance->{'core_sid'};
-        <[agent.change_status]>->( $instance_id, 'offline' );
+        <[agent.change_status]>->( $instance_id, 'offline' )
+            if $status ne 'failed';
         return;
     }
 }
@@ -123,7 +142,7 @@ delete $instance->{'core_sid'} if $status eq 'restart';
 my $target_queue;
 $target_queue = 'running' if $status eq 'online' or $status eq 'extbin';
 $target_queue = 'failed'  if $status eq 'failed';
-# $target_queue = 'queued'  if $status eq 'offline'; # or $status eq 'restart';
+$target_queue = 'queued'  if $status eq 'offline' or $status eq 'restart';
 
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue and $target_queue ne 'queued';
@@ -182,25 +201,10 @@ foreach my $name_or_id (@check_keys) {
 }
 
 # delayed respawning on startup failure (slowing down with failures..)
-if (    defined $target_queue
+<[root.init_respawn_timer]>->($instance_id)
+    if defined $target_queue
     and $target_queue eq 'queued'
-    and $status ne 'restart' ) {
-    $instance->{'respawn_timer'}->cancel
-        if exists $instance->{'respawn_timer'};
-    $instance->{'respawn_delay'} = $max_respawn_delay
-        if $instance->{'respawn_delay'} > $max_respawn_delay;
-    <[base.log]>->(
-        1,
-        "instance $instance_id [$agent_name] respawn delay"
-            . " = $instance->{respawn_delay}s"
-    );
-    $instance->{'respawn_timer'} = <[event.add_timer]>->(
-        {   'after'   => $instance->{'respawn_delay'},
-            'handler' => 'root.callback.instance.respawn',
-            'data'    => $instance_id
-        }
-    );
-}
+    and !<[root.instance_pid_count]>->($instance_id);
 
 if (    $status ne 'online'
     and $status ne 'extbin'
@@ -227,7 +231,13 @@ if ( $status eq 'shutdown'
 }
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # XXX: extbin ?
-    delete $instance->{'respawn_delay'};                    # reset
+
+    $instance->{'timer'}->{'reset_respawn_delay'} = <[event.add_timer]>->(
+        {   'after'   => 4.2,
+            'handler' => 'root.handler.reset_respawn_delay',
+            'data'    => $instance_id
+        }
+    );
 
     if ( not exists $agent_config->{'ping'}->{'disabled'}
         or !$agent_config->{'ping'}->{'disabled'} ) {
