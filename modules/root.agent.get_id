@@ -12,7 +12,8 @@ $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)]$||;
 die 'expected agent name' if not defined $agent_name or !length($agent_name);
 
 foreach my $id ( keys %{<root.agent.setup>} ) {
-    return $id if <root.agent.setup>->{$id}->{'name'} eq $agent_name;
+    my $setup_agent = <root.agent.setup>->{$id}->{'name'};
+    return $id if defined $setup_agent and $setup_agent eq $agent_name;
 }
 
 <[base.log]>->( 2, "root.agent.get_id: no agent '$agent_name' found in setup" );
