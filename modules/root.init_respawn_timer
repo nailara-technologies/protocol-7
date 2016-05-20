@@ -4,7 +4,11 @@
 
 my $instance_id = shift;
 die "expected instance id" if not defined $instance_id;
-my $instance   = <root.agent.instance>->{$instance_id};
+my $instance = <root.agent.instance>->{$instance_id};
+if ( not defined $instance ) {
+    <[base.log]>->( 1, "init_respawn_timer: instance $instance_id is gone(?)" );
+    return undef;
+}
 my $agent_name = <root.agent.setup>->{ $instance->{'agent_id'} }->{'name'};
 
 $instance->{'respawn_timer'}->cancel if exists $instance->{'respawn_timer'};
