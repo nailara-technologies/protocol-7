@@ -15,6 +15,7 @@ my @children    = @{ <[root.process.get_children]>->($parent_pid) };
 $instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
 delete <callback.session.close_last> if $instance->{'is_core'};
+delete $instance->{'respawn_delay'};    # reset
 
 my $restart_timeout
     = defined <sigterm.timeout>
