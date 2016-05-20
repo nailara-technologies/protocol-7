@@ -6,7 +6,7 @@ my $instance_id = shift->w->data;
 
 if ( not exists <root.agent.instance>->{$instance_id} ) {
     <[base.log]>->(
-        1, "instance $instance_id no longer exists, aborting respawn callback!"
+        2, "instance $instance_id no longer exists, aborting respawn callback!"
     );
     return;
 }
