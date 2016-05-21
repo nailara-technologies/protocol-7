@@ -41,7 +41,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
                 or $old_status eq 'failed'
         ) ? 'failed' : 'offline';
 
-        $next_status = 'delayed' if $old_status eq 'restart';
+        $next_status = 'restart' if $old_status eq 'restart';
 
         if ( $old_status eq 'online' and defined <root.ondemand_agents> ) {
             map { $next_status = 'offline' if $_ eq $agent_name }
@@ -49,6 +49,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
         }
 
         if ( <[root.instance_pid_count]>->($instance_id) ) {
+            $next_status = 'delayed' if $old_status eq 'restart';
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
                 {   'after'    => 0.042,
                     'interval' => '0.1',
@@ -60,7 +61,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
                 }
             );
         } else {
-            <[agent.change_status]>->( $instance_id, $next_status );
+            <[agent.change_status]>->( $instance_id, $next_status )
+                if $old_status ne $next_status;
             <[root.init_respawn_timer]>->($instance_id);
         }
     }
