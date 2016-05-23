@@ -7,12 +7,11 @@ my $display = <x11.display>;
 <[base.log]>->( 1, "starting compton on display $display .." );
 
 # old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
-my $vsync_options
-    = '--backend glx --vsync opengl-swc --paint-on-overlay --glx-no-stencil'
-    . ' --glx-no-rebind-pixmap --glx-use-copysubbuffermesa '
-    . '--refresh-rate=60 --unredir-if-possible';
+my $vsync_options = '--unredir-if-possible';
+
 $vsync_options = '--paint-on-overlay --dbe --unredir-if-possible'
     if <x11.driver> eq 'nvidia';
+
 $vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
     if <x11.mode> eq 'xephyr';
 
