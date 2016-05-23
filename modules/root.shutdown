@@ -17,7 +17,7 @@ foreach my $p_pid ( keys %{<root.child>} ) {
 my $child_count = keys %wait_pids;
 
 while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
-    $child_count-- if $pid and delete $wait_pids{$pid}; # rest unaccounted for..
+    $child_count-- if $pid and delete $wait_pids{$pid};
 }
 
 my $ren = $child_count == 1 ? ' process' : 'ren';
