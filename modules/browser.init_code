@@ -7,6 +7,15 @@ use Glib::Event;
 use Gtk3::WebKit;
 use HTTP::Soup;
 
+delete $ENV{'GTK_DEBUG'};
+<browser.open_gtk_inspector> //= 0;
+if (<browser.open_gtk_inspector>) {
+    <[base.log]>->(
+        0, "((( 'Gtk Inspector' is enabled! )))  [open_gtk_inspector=1]"
+    );
+    $ENV{'GTK_DEBUG'} = 'interactive';
+}
+
 package Browser::ScrolledWindow;
 
 use Glib::Object::Subclass 'Gtk3::ScrolledWindow',;
