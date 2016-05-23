@@ -14,13 +14,21 @@ if (sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
     == 0 ) {
     $event->cancel;
     close($read_fh);
+    my $exit_code = 2;
+    my $log_level = 0;
     if ( !<agent.shutdown> ) {
         <[base.log]>->( 0, "mpv control pipe closed unexpectedly!" );
-        <[base.log]>->( 1, "killing mpv-process [PID:$pid].." );
+        <[base.log]>->( 1, "killed mpv-process [PID:$pid].." )
+            if kill( 9, $pid );
+    } else {
+        kill( 9, $pid );
+        $exit_code = 0;
+        $log_level = 1;
     }
-    kill( 9, $pid );
-    <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
-    CORE::exit(2);
+    <[base.log]>->(
+        $log_level, "shutting down " . <system.agent.name> . "-agent..."
+    );
+    exit($exit_code);
 }
 
 while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
