@@ -6,15 +6,18 @@
 my $reason = shift // '';
 my $exit_code = length($reason) ? 1 : $?;
 my $log_level = length($reason) ? 0 : 1;
-my $child_count   = keys %{<root.child>};
-my $kill_timeout  = <system.kill_timeout> || 3;    # floating seconds
+my $kill_timeout = <system.kill_timeout> || 3;    # floating seconds
 my $abort_timeout = 1;
 
-map { $child_count += scalar @{ <[root.process.get_children]>->($_) } }
-    keys %{<root.child>};
+my %wait_pids = map { $_ => 1 } keys %{<root.child>};
+foreach my $p_pid ( keys %{<root.child>} ) {
+    map { $wait_pids{$_} = 1 } @{ <[root.process.get_children]>->($p_pid) };
+}
 
-while ( ( waitpid( -1, WNOHANG ) ) > 0 ) {
-    $child_count--;
+my $child_count = keys %wait_pids;
+
+while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+    $child_count-- if $pid and delete $wait_pids{$pid}; # rest unaccounted for..
 }
 
 my $ren = $child_count == 1 ? ' process' : 'ren';
