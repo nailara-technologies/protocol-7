@@ -2,9 +2,12 @@
 
 # name = httpd.http_get
 
-my $id          = shift;
-my $session     = $data{'session'}{$id};
-my $http_host   = <[httpd.determine_host]>->($id);
+my $id        = shift;
+my $session   = $data{'session'}{$id};
+my $http_host = <[httpd.determine_host]>->($id);
+
+return <[httpd.error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
+
 my $request     = $session->{'http'}->{'request'};
 my $response    = $session->{'response'};
 my $headers     = $request->{'headers'};
