@@ -12,7 +12,7 @@
 if ( !<udev.adm.pid> ) {
     <[base.log]>->( 0, "[!] failed to start udevadm [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
-    CORE::exit(1);
+    exit(1);
 }
 
 <[event.add_io]>->(
