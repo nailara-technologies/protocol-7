@@ -8,14 +8,14 @@ my $file_hash  = $reply_data->{'params'}->{'file_hash'};
 if ( $reply_data->{'cmd'} eq 'NACK' ) {
     my $reason = $reply_data->{'call_args'}->{'args'};
     <[base.log]>->( 0, "layout config name request failed! [$reason]" );
-    CORE::exit(1);
+    exit(1);
 } else {
     my $config_name = $reply_data->{'call_args'}->{'args'};
     my $config_path = <system.conf_path> . '/config.layout.' . $config_name;
 
     if ( !-f $config_path ) {
         <[base.log]>->( 0, "layout config '$config_path' not found!" );
-        CORE::exit(2);
+        exit(2);
     }
     if ( $file_hash eq <[digest.sha.file_hex]>->($config_path) ) {
         <[base.log]>->(
@@ -36,5 +36,5 @@ if ( $reply_data->{'cmd'} eq 'NACK' ) {
         );
     }
     <[base.log]>->( 1, "done." );
-    CORE::exit(0);
+    exit(0);
 }
