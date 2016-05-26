@@ -28,7 +28,7 @@ if (sysread(
         : ' unexpectedly! (reason unknown)';
     <[base.log]>->( 0, "$bin-server died" . $err_str );
     <[base.log]>->( 1, "done." );
-    CORE::exit(2);
+    exit(2);
 }
 
 while ( <xserver.output_buffer> =~ s|^([^\n]*)\n||s ) {

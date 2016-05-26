@@ -22,7 +22,7 @@ if (sysread( $read_fh, <mpv.output.buffer>, 4096, length(<mpv.output.buffer>) )
     kill( 9, $pid );    # making sure it's really gone
     <[base.log]>->( 0, "mpv-process died unexpectedly!" ) if !<agent.shutdown>;
     <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
-    CORE::exit(2);
+    exit(2);
 }
 
 while ( <mpv.output.buffer> =~ s|^([^\n]*)\n||s ) {

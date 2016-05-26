@@ -90,7 +90,7 @@ $mpv_title_str .= ' ( ${?media-title:${media-title}}${!media-title:no file} )';
 if ( !<mpv.pid> ) {
     <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
-    CORE::exit(1);
+    exit(1);
 }
 
 push( @{<system.kill_list>}, <mpv.pid> );
@@ -151,7 +151,7 @@ if ($abort_startup) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
         if kill( 9, <mpv.pid> );
-    CORE::exit(1);
+    exit(1);
 }
 
 if (<mpv.fade_in>) {

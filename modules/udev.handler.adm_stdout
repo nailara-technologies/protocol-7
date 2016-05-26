@@ -27,7 +27,7 @@ if ( not defined $bytes or !$bytes ) {
     kill( 9, $pid );    # making sure it's really gone
     <[base.log]>->( 0, "udevadm process died unexpectedly!" );
     <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
-    CORE::exit(2);
+    exit(2);
 }
 
 while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {

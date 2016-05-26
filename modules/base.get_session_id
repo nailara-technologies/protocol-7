@@ -25,7 +25,7 @@ while ( !$matched_reply ) {
         <[base.log]>->(
             0, "base.get_session_id: socket exception, shutting down.."
         );
-        CORE::exit(1);
+        exit(1);
     }
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
     if ( !$matched_reply ) {
