@@ -9,7 +9,7 @@ xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       JSON JSON::PP \
       Net::SSH2 \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
-      X11::Protocol X11::Protocol::WM X11::Tops \
+      X11::Protocol X11::Keyboard X11::Protocol::WM X11::Tops \
       FreezeThaw \
       XML::RSS::TimingBot \
       SDL Gtk2 Glib::Event \

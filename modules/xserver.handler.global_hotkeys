@@ -1,0 +1,42 @@
+# >:]
+
+# name  = xserver.handler.global_hotkeys
+
+my $x11 = <xserver.x11>;
+
+<xserver.hotkeys>            //= {};
+<xserver.hotkeys.configured> //= {};
+<xserver.hotkeys.triggered>  //= {};
+<xserver.hotkeys.last_key>   //= {};
+
+my $no_key_pressed = $x11->QueryKeymap =~ /^\0+$/ ? 1 : 0;
+
+foreach my $e ( [ $x11->dequeue_event ], [ $x11->next_event ] ) {
+    next if !@$e;
+    my %event = @$e;
+    my $event_type;
+    $event_type = lc($1) if $event{'name'} =~ /^Key(Press|Release)$/;
+    next if not defined $event_type;
+
+    my $keycode   = $event{'detail'};
+    my $mod_state = $event{'state'};
+    my $triggered = <xserver.hotkeys.triggered>;
+
+    $triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
+    $triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
+    <xserver.hotkeys.last_key> = {
+        'keycode'    => $keycode,
+        'mod_state'  => $mod_state,
+        'event_type' => $event_type
+    };
+}
+
+# XXX: process key ...
+
+if ($no_key_pressed) {
+
+    # XXX: process key ...
+
+    delete <xserver.hotkeys.last_key>;
+    delete <xserver.hotkeys.triggered>;
+}
