@@ -6,7 +6,8 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libsdl-perl libtext-lorem-perl libevent-perl liblwpx-paranoidagent-perl\
   libproc-processtable-perl libglib-perl libterm-readpassword-perl\
   libterm-readline-perl-perl libx11-protocol-perl libhash-flatten-perl\
-  libx11-protocol-other-perl libfreezethaw-perl libclone-perl\
+  libx11-protocol-other-perl libx11-keyboard-perl \
+  libfreezethaw-perl libclone-perl\
   libhash-merge-simple-perl libwebkitgtk-dev libjson-xs-perl\
   libpoppler-glib-dev libgraphics-magick-perl libimage-exif-perl\
   libfreezethaw-perl libnet-ssh2-perl libxml-feed-perl\
