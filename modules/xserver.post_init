@@ -126,6 +126,15 @@ if ($ok) {
 
     <[xserver.xrandr.rotate]>->(<xserver.orientation>);
 
+    <xserver.x11>->{'event_handler'} = 'queue';
+    <[event.add_io]>->(
+        {   'fd'      => <xserver.x11>->{'connection'}->fh,
+            'handler' => 'xserver.handler.global_hotkeys'
+        }
+    );
+
+    # XXX: GrabKey( <kc>, <mod>, <root>, 0, 'Asynchronous', 'Asynchronous' )
+
     if (defined <xserver.disable_blanking>
         and (  <xserver.disable_blanking> eq 'yes'
             or <xserver.disable_blanking> eq '1' )
