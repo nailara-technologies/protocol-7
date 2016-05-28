@@ -9,7 +9,7 @@ my $reason = $params->{'args'};
 my $user   = $1 if $reason =~ s|^([^\s]+) *||;
 $user =~ s|^[^\.]+\.||;
 
-<[base.log]>->( 1, "<<!>> specfied shutdown reason : $reason <<!>>" )
+<[base.log]>->( 1, "<<!>> specified shutdown reason : $reason <<!>>" )
     if length($reason);
 
 <[event.add_timer]>->(
