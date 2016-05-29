@@ -16,3 +16,5 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   gcc make
 
 cpanm Crypt::PRNG::Fortuna
+
+# XXX cpan2deb --recursive --build --install-deps --install-build-deps --install
