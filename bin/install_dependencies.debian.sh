@@ -7,4 +7,4 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter\
             gnome-colors-common oxygen-icon-theme \
             dbus-x11 libnotify-bin notify-osd intel-gpu-tools \
             liblwpx-paranoidagent-perl libnet-arp-perl \
-            libimlib2-dev
+            libimlib2-dev libfile-mimeinfo-perl
