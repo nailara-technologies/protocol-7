@@ -41,10 +41,6 @@ map { <[browser.init_view]>->($_) } ( 1, 2 );
 
 <browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
 
-Glib::Timeout->add( <window.cfg.fade_step_delay>,
-    $code{'browser.handler.fade_timer'},
-    undef, -10 );
-
 $window->signal_connect(
     'size_allocate',
     sub {

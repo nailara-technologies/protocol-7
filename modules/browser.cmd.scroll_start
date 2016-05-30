@@ -9,9 +9,7 @@ my $fg_index = <browser.overlay.index.fg>;
 my $view     = <browser.gtk_obj.view>->{$fg_index};
 my $vadj     = $view->get_vadjustment();
 
-<browser.adjust_scroll_delay> //= 0;
-<browser.scroll_min_delay>    //= 32;
-<window.scrolling>            //= 0;
+<window.scrolling> //= 0;
 
 return { 'mode' => 'nack', 'data' => 'already scrolling' }
     if <window.scrolling>;
@@ -21,24 +19,12 @@ return { 'mode' => 'nack', 'data' => 'already scrolling' }
 
 <browser.gtk_obj.vadj>   = $vadj;
 <window.scroll.reply_id> = $reply_id;
-<window.cfg.scroll_delay> //= 50;
-<window.cfg.scroll_steps> //= 1;
-<window.scroll.stop> = 0;
-
-my $scroll_delay = <window.cfg.scroll_delay>;
-
-if ( <browser.auto_zoom> and <browser.adjust_scroll_delay> ) {
-    $scroll_delay = sprintf( "%.0f", $scroll_delay / <browser.zoom_level> );
-    $scroll_delay = <browser.scroll_min_delay>
-        if $scroll_delay < <browser.scroll_min_delay>;
-
-}
+<window.scroll.stop>     = 0;
 
 return { 'mode' => 'ack', 'data' => 'already at end of page' }
     if <window.scroll.pos> >= <window.scroll.max>;
 
-Glib::Timeout->add( $scroll_delay, $code{'browser.handler.auto_scroll'},
-    undef, -20 );
+<[browser.scroll_start]>->('fg');
 
 <window.scrolling> = 1;
 return { 'mode' => 'later' };
