@@ -2,11 +2,14 @@
 
 # name = browser.handler.auto_scroll
 
-my $reply_id = <window.scroll.reply_id>;
+my ( $widget, $context, $ref_status ) = @_;
 
+my $reply_id = <window.scroll.reply_id>;
 my $fg_index = <browser.overlay.index.fg>;
 my $view     = <browser.gtk_obj.view>->{$fg_index};
 my $vadj     = $view->get_vadjustment();
+
+<browser.autoscroll.brake_count> //= 0;
 
 <window.scroll.max> = $vadj->get_upper() - $vadj->get_page_size();
 <window.scroll.last_pos> = <window.scroll.pos> // 0;
@@ -26,7 +29,15 @@ if (<window.scroll.stop>) {
         { 'mode' => 'ack', 'data' => "scrolling stopped" }
     ) if exists <window.scroll.stop_reply_id>;
     delete <window.scroll.stop_reply_id>;
+
+    delete <browser.time.last_scroll>;
+    $widget->signal_handler_disconnect(
+        delete <browser.signal_id.auto_scroll> );
+
+    goto scroll_finished if <browser.slideshow.running>;
+
     return 0;
+
 } elsif ( <window.scroll.pos> < <window.scroll.max> ) {
     if (    <browser.cfg.javascript_enabled>
         and !<browser.scroll.fail.js_disabled>
@@ -47,10 +58,9 @@ if (<window.scroll.stop>) {
     } elsif ( exists <window.scroll.fail_start> ) {
         delete <window.scroll.fail_start>;
     }
-    <window.scroll.pos> += <window.cfg.scroll_steps>;
+    <window.scroll.pos>++;
     $vadj->set_value(<window.scroll.pos>);
     $view->set_vadjustment($vadj);
-    return 1;
 } else {
     delete <window.scroll>;
     <window.scrolling>             = 0;
@@ -58,6 +68,8 @@ if (<window.scroll.stop>) {
     <[base.callback.cmd_reply]>->(    # XXX: .cmd. only!
         $reply_id, { 'mode' => 'ack', 'data' => 'end of page reached' }
     ) if defined $reply_id;
+
+scroll_finished:
 
     if (<browser.slideshow.running>) {
         <browser.slideshow.status> = 'scroll_finished';
@@ -72,8 +84,57 @@ if (<window.scroll.stop>) {
                 );
             }
         }
-        <[browser.handler.slideshow]>;
-    }
 
-    return 0;
+        # slooowly speeding up again ...
+        if (   !<browser.autoscroll.brake_count>
+            and <browser.autoscroll.delay> > <browser.autoscroll.cfg_delay> ) {
+            <browser.autoscroll.delay>
+                = sprintf( "%.6f", <browser.autoscroll.delay> - 0.000001 );
+            <browser.autoscroll.fps>
+                = sprintf( "%.2f", 1 / <browser.autoscroll.delay> );
+        }
+
+        delete <browser.time.last_scroll>;
+        delete <browser.autoscroll.brake_count>;
+        $widget->signal_handler_disconnect(
+            delete <browser.signal_id.auto_scroll> )
+            if defined <browser.signal_id.auto_scroll>;
+
+        <[browser.handler.slideshow]>;
+        return 0;
+    }
 }
+
+<browser.autoscroll.delay> //= 0.033333;    # scroll speed 5 (default)
+<browser.autoscroll.too_fast> //= 0;
+
+<browser.time.last_scroll> //= <[base.time]>->(6);
+my $delta_t = <[base.time]>->(6) - <browser.time.last_scroll>;
+my $wait_time = sprintf( "%.6f", <browser.autoscroll.delay> - $delta_t );
+if ( $wait_time <= 0 ) {
+    <browser.autoscroll.too_fast>++;
+    if ( <browser.autoscroll.too_fast> >= 3 ) {
+        <browser.autoscroll.delay>
+            = sprintf( "%.6f", <browser.autoscroll.delay> + 0.000001 );
+        $wait_time = sprintf( "%.6f", <browser.autoscroll.delay> - $delta_t );
+        <browser.autoscroll.too_fast>--;
+        delete <browser.autoscroll.too_fast>
+            if <browser.autoscroll.too_fast> <= 0;
+        <[base.log]>->(
+            2,
+            sprintf(
+                "scrolling too fast.. slowing down.. [ %.4f ms ] <$wait_time>",
+                <browser.autoscroll.delay> * 100 )
+        );
+        <browser.autoscroll.fps>
+            = sprintf( "%.2f", 1 / <browser.autoscroll.delay> );
+        <browser.autoscroll.brake_count>++;
+    }
+} else {
+    delete <browser.autoscroll.too_fast>;
+}
+
+<[base.sleep]>->($wait_time) if $wait_time > 0;
+<browser.time.last_scroll> = <[base.time]>->(6);
+
+return 0;

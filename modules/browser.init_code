@@ -75,7 +75,6 @@ my $sn_str
 <browser.cfg.javascript_enabled>  //= 1;
 <browser.cfg.plugins_enabled>     //= 0;
 <browser.cfg.load_timeout>        //= 13;
-<window.cfg.fade_step_delay>      //= 17;
 <browser.cfg.use_transparency>    //= 1;
 <browser.slideshow.swap_delay>    //= 2;
 <browser.slideshow.err_delay>     //= 2;
@@ -84,6 +83,11 @@ my $sn_str
 <browser.scroll.fail.timeout>     //= 2.7;
 <browser.scroll.fail.js_disabled> //= 0;
 <browser.cfg.no_memory_cache>     //= 0;
+
+<[browser.calc_scroll_speed]>
+    if not defined <browser.subcfg>
+    or ref(<browser.subcfg>) eq 'HASH'
+    and not defined <browser.subcfg.scroll_speed>;
 
 map { <browser.page>->{$_}->{'scrollable'} //= 0 } ( 1, 2 );
 
