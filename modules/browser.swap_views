@@ -27,5 +27,10 @@ if ( <browser.fg_opacity> == 1 ) {
 
 <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
 
-Glib::Timeout->add( <window.cfg.fade_step_delay>, $code{'browser.handler.fade_timer'},
-    undef, -10 );
+my $window = <browser.gtk_obj.window>;
+
+$window->signal_handler_disconnect( delete <browser.signal_id.swap_views> )
+    if defined <browser.signal_id> and defined <browser.signal_id.swap_views>;
+
+<browser.signal_id.swap_views>
+    = $window->signal_connect( draw => $code{'browser.handler.swap_views'} );

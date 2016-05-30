@@ -1,0 +1,47 @@
+# >:]
+
+# name = browser.handler.swap_views
+
+my ( $widget, $context, $ref_status ) = @_;
+
+<browser.swap.update_delay> //= 1 / 60;    # initial FPS
+<browser.swap.fps> //= sprintf( "%.2f", 1 / <browser.swap.update_delay> );
+<browser.swap.update_start_time> //= <[base.time]>->(6);
+<browser.swap.brake_count> //= 0;
+my $xccel_steps = 0.00001;
+
+if (<browser.status.fade_view>) {
+
+    <[browser.handler.fade_in_view]>;
+
+    my $wait_delay = sprintf( "%.6f",
+        <browser.swap.update_delay>
+            - ( <[base.time]>->(6) - <browser.swap.update_start_time> ) );
+
+    if ( $wait_delay > 0 ) {
+        <[base.sleep]>->($wait_delay);
+
+    } elsif ( <browser.swap.update_delay> < 1 / 30 ) {    # ... slowing down ...
+
+        <browser.swap.update_delay>
+            = sprintf( "%.6f", <browser.swap.update_delay> + $xccel_steps );
+        <browser.swap.brake_count>++;
+        <browser.swap.fps> = sprintf( "%.2f", 1 / <browser.swap.update_delay> );
+    }
+    <browser.swap.update_start_time> = <[base.time]>->(6);
+
+} elsif ( defined <browser.signal_id.swap_views> ) {
+    delete <browser.swap.update_start_time>;
+    $widget->signal_handler_disconnect( delete <browser.signal_id.swap_views> );
+
+    # (slowly) speeding up again ...
+    if (   !<browser.swap.brake_count>
+        and <browser.swap.update_delay> >= 1 / 60 ) {
+        <browser.swap.update_delay> = sprintf( "%.6f",
+            <browser.swap.update_delay> - ( $xccel_steps / 10 ) );
+        <browser.swap.fps> = sprintf( "%.2f", 1 / <browser.swap.update_delay> );
+    }
+    delete <browser.swap.brake_count>;
+}
+
+$widget->queue_draw;
