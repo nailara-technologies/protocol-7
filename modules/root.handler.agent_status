@@ -45,6 +45,12 @@ delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
 delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
 delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
 
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
 # prevent undesired core shutdown (session.check.last)
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
     <[base.log]>->( 0, "removing session.close_last callback.." );
