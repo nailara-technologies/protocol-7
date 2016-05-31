@@ -3,7 +3,10 @@
 # name = root.process.get_children
 
 my $chk_pid = shift;
-die "expected parent process id" if not defined $chk_pid or $chk_pid !~ /^\d+$/;
+if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
+    ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
+    die "[$caller_str] expected parent process id";
+}
 
 my $proc_table = new Proc::ProcessTable;
 
