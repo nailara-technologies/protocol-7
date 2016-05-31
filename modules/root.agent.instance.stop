@@ -16,6 +16,12 @@ my $instance = <root.agent.instance>->{$instance_id};
 die "instance.stop: instance id $instance_id does not exist!"
     if not defined $instance;
 
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
 my $agent_name = $instance->{'agent_name'};
 my $job_id     = $instance->{'job_id'};
 
