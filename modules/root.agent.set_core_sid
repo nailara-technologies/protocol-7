@@ -22,16 +22,19 @@ my ($root_sid) = keys %{ $data{'session'} };
 $instance_data->{'root_sid'} = $root_sid;
 
 # send instance verification request
+<root.timeout.verify_instance> //= 5;
 my $verification_str = <[base.rnd_chars_hex]>->(8);
 $instance_data->{'instance_verification'} = $verification_str;
+$instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
+    {   'after'   => <root.timeout.verify_instance>,
+        'handler' => 'root.handler.verify_instance_timeout',
+        'data'    => { 'instance_id' => $instance_id }
+    }
+);
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command' => "$root_sid.$core_sid.verify_instance",
         'call_args' =>
-            { 'session_id' => $root_sid, 'args' => $verification_str },
-        'reply' => {
-            'handler' => 'dev.null',
-            'params'  => {}
-        }
+            { 'session_id' => $root_sid, 'args' => $verification_str }
     }
 );
