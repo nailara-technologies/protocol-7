@@ -38,6 +38,13 @@ my $next_map
     ? <ticker-gtk.content.queued.txt_map>
     : {};
 
+if ( not defined $txt_map->{'sequence'}
+    or ref( $txt_map->{'sequence'} ) ne 'ARRAY' ) {    # XXX: fix occurences ...
+    <[base.log]>->( 0, "content_substring: txt_map not defined (no content)" );
+    <[base.log]>->( 0, "                 : : shutting down due to errors..!" );
+    exit(2);
+}
+
 my $dseq;
 
 repeat:

@@ -43,9 +43,6 @@ if ( not defined <ticker-gtk.status.initialized> ) {
     }
     <ticker-gtk.font.size> = $new_font_size - 1;
     $context->set_font_size(<ticker-gtk.font.size>);
-    <ticker-gtk.status.initialized> = 1;
-
-    <[base.get_session_id]>;    # agent status -> 'online'
 
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.root.notify_online",
@@ -53,6 +50,11 @@ if ( not defined <ticker-gtk.status.initialized> ) {
             'reply'     => { 'handler' => 'ticker-gtk.request_rss_update' }
         }
     ) if <ticker-gtk.request_rss_updates>;
+
+    <[base.get_session_id]>;    # agent status -> 'online'
+
+    <ticker-gtk.status.initialized> = 1;
+
     return;
 }
 
