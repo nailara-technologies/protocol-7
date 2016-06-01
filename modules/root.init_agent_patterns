@@ -13,7 +13,7 @@ my $agent_pattern_data = <root.pattern_config>;
 foreach my $p_ref (@$agent_pattern_data) {
     foreach my $pattern ( keys %$p_ref ) {
         my $p_key = $pattern;
-        if ( $pattern =~ s/^([!\w\d_\-, \t]+):\/([^\/]+)\/(i?)/$2/g ) {
+        if ( $pattern =~ s/^([!\w\d_\-, \t\*]+):\/([^\/]+)\/(i?)/$2/g ) {
             my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 || '' );
             $agent_string =~ s/[ \t]+//g;
             foreach my $agent_match ( split( /,/, $agent_string ) ) {
@@ -34,6 +34,10 @@ foreach my $p_ref (@$agent_pattern_data) {
                 <root.patterns.agent_output>->{$agent_string}->{$pattern_re}
                     = eval $sub_code;
             }
+        } else {
+            <[base.log]>->(
+                0, "<!> syntax error in agent output pattern <!> ['$pattern']"
+            );
         }
     }
 }
