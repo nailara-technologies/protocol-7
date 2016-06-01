@@ -1,0 +1,25 @@
+# >:]
+
+# name = ticker-gtk.rgb_col
+
+my $color_hex_str = shift;
+return undef if not defined $color_hex_str;
+if ( $color_hex_str !~ /^\#?[0-9a-f]{6}$/i ) {
+    <[base.log]>->( 0, "invalid color string syntax '$color_hex_str'" );
+    return undef;
+}
+$color_hex_str =~ s|^#||;
+
+my @rgb_col = map { hex($_) } (
+    substr( $color_hex_str, 0, 2 ),
+    substr( $color_hex_str, 2, 2 ),
+    substr( $color_hex_str, 4, 2 )
+);
+
+foreach my $val (@rgb_col) {
+    next if $val <= 255;
+    <[base.log]>->( 0, "<!> color value '$val' is invalid <!> [0..255]" );
+    return undef;
+}
+
+return \@rgb_col;
