@@ -62,6 +62,7 @@ if ( $mode ne 'host' ) {
 
     <[base.log]>->( 1, "starting $bin_name-Server..." );
 
+    # XXX: change uid for 'xephyr'...
     $server_pid = open( my $out_fh, $cmd_line );
 
     if ( not defined $server_pid or $@ ) {
@@ -74,6 +75,7 @@ if ( $mode ne 'host' ) {
         );
         <xserver.pid> = $server_pid;
         push( @{<system.kill_list>}, <xserver.pid> );
+        <[base.renice]>->( <xserver.renice_priority>, <xserver.pid> );
     }
 
     <[event.add_io]>->(

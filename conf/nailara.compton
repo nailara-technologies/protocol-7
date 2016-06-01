@@ -13,6 +13,9 @@ modules.load = auth net io.ip compton
 [load_modules:<modules.load>]
 [init_modules]
 
+compton.priority  = -16
+compton.renice_fh = [base.spawn.renice_child]
+
 [set_privs:'nailara']
 
 [net.connect_to_core:'tcp/ip']
