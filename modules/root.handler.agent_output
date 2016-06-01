@@ -38,27 +38,40 @@ if (sysread(
     }
 
     undef $agent_instance->{'output_buffer'};
-#    if (
-#        (      not exists <agent.instance.shutdown>
-#            or not exists <agent.instance.shutdown>->{$instance_id}
-#        )
-#        and $agent_instance->{'status'} ne 'restart'
-#        and $agent_instance->{'status'} ne 'starting'
-#        ) {
-#        if ( $agent_instance->{'status'} eq 'online' ) {
-#            if ($was_ondemand) {
-#                <[agent.change_status]>->( $instance_id, 'offline' );
-#            }
-#        } else {
-#            <[agent.change_status]>->( $instance_id, 'failed' );
-#        }
-#    }
+
+    #    if (
+    #        (      not exists <agent.instance.shutdown>
+    #            or not exists <agent.instance.shutdown>->{$instance_id}
+    #        )
+    #        and $agent_instance->{'status'} ne 'restart'
+    #        and $agent_instance->{'status'} ne 'starting'
+    #        ) {
+    #        if ( $agent_instance->{'status'} eq 'online' ) {
+    #            if ($was_ondemand) {
+    #                <[agent.change_status]>->( $instance_id, 'offline' );
+    #            }
+    #        } else {
+    #            <[agent.change_status]>->( $instance_id, 'failed' );
+    #        }
+    #    }
     return;
 }
 
 my @matched_names;
 my $patterns_output = <root.patterns.agent_output>;
 foreach my $a_name ( keys %{$patterns_output} ) {
+    if ( $a_name =~ /\*/ ) {    # wildcard match
+        my $inverse_match = 0;
+        my $name_pattern  = $a_name;
+        $inverse_match = 1 if $name_pattern =~ s|^\!||;
+        $name_pattern =~ s|[^a-zA-Z0-9\-_\*]||g;
+        $name_pattern =~ s|\*\*|*|g;
+        $name_pattern =~ s|\*|\.*|g;
+        push( @matched_names, $a_name )
+            if $agent_name =~ /^$name_pattern$/
+            or $inverse_match and $agent_name !~ /^$name_pattern$/;
+        next;
+    }
     push( @matched_names, $a_name )
         if $a_name eq $agent_name    # agent name matches
         or $a_name =~ /^\!(.+)$/ and $1 ne $agent_name; # inverse match (!agent)
