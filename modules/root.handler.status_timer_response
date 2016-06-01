@@ -20,7 +20,8 @@ if (    $response->{'cmd'} eq 'ACK'
     and $response->{'call_args'}->{'args'} eq 'pong' ) {    # all fine
     <[base.log]>
         ->( 2, "instance $instance_id [$agent_name] response.. ( ok )" );
-    $instance->{'status_timer'}->again;    # restart status timer
+    $instance->{'status_timer'}->again
+        if !$instance->{'status_timer'}->is_cancelled;
 } else {
     <[base.log]>->(
         0, "instance $instance_id [$agent_name] response.. ( FAIL )"
