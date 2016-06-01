@@ -15,7 +15,7 @@ $vsync_options = '--paint-on-overlay --dbe --unredir-if-possible'
 $vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
     if <x11.mode> eq 'xephyr';
 
-<compton.pid> = open3(
+<compton.pid> = my $pid = open3(
     <compton.in_fh>,
     <compton.out_fh>,
     my $err_fh_dummy,
@@ -33,9 +33,14 @@ if ( !<compton.pid> ) {
     <[base.log]>->( 0, "[!] failed to start compton [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
-} else {
-    <[base.log]>->( 1, " : compton process spawned [PID=<compton.pid>]" );
 }
+
+<[base.log]>->( 1, " : compton process spawned [PID=$pid]" );
+my $prio = <compton.priority>;
+<[base.log]>->( 1, "setting priority of compton child (PID $pid) to $prio" );
+print {<compton.renice_fh>} "$pid $prio\n";
+close(<compton.renice_fh>);
+delete <compton.renice_fh>;
 
 <[event.add_io]>->(
     {   'fd'      => <compton.out_fh>,
