@@ -10,7 +10,7 @@ if ( $color_hex_str !~ /^\#?[0-9a-f]{6}$/i ) {
 }
 $color_hex_str =~ s|^#||;
 
-my @rgb_col = map { hex($_) / 255 } (    # [0..1]
+my @rgb_col = map { sprintf( "%.3f", hex($_) / 255 ) } (    # [0..1]
     substr( $color_hex_str, 0, 2 ),
     substr( $color_hex_str, 2, 2 ),
     substr( $color_hex_str, 4, 2 )
