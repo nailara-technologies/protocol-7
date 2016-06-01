@@ -9,9 +9,22 @@ my $x11 = <xserver.x11>;
 <xserver.hotkeys.triggered>  //= {};
 <xserver.hotkeys.last_key>   //= {};
 
-my $no_key_pressed = $x11->QueryKeymap =~ /^\0+$/ ? 1 : 0;
+my $qkmap = eval { $x11->QueryKeymap };
 
-foreach my $e ( [ $x11->dequeue_event ], [ $x11->next_event ] ) {
+if ( not defined $qkmap ) {    # XXX: implement reconnect / restart procedure!!
+    <[base.log]>->(
+        0, "<!> X11 protocol error during 'QueryKeymap' command <!>"
+    );
+    return;
+}
+
+my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
+
+my @ev_ref = eval { [ $x11->dequeue_event ], [ $x11->next_event ] };
+<[base.log]>->( 0, "<!> X11 protocol error while retrieving event <!>" )
+    if !@ev_ref;
+
+foreach my $e (@ev_ref) {
     next if !@$e;
     my %event = @$e;
     my $event_type;

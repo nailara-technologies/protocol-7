@@ -6,6 +6,11 @@ my $descr       = shift;
 my $screen      = <x11.screen>;
 my $screen_lcfg = <layout.config.screen>;
 
+die "'\<x11.screen>' not defined"
+    if not defined $data{'x11'} or not defined <x11.screen>;
+map { die "screen $_ not defined" if not defined $screen->{$_} }
+    ( 'width', 'height', 'orientation' );
+
 ### screen borders (underscan) ###
 
 my %screen_frame;
