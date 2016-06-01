@@ -2,12 +2,12 @@
 
 # name = impressive.open_window
 
-my $bg_colour   = <impressive.cfg.background_colour>;
+my $bg_color   = <impressive.cfg.background_color>;
 my $trans_delay = <impressive.cfg.transition_delay>;
 my $temp_dir    = <impressive.path.impressive_tmp>;
 my $tmp_bin     = "$temp_dir/impressive.$$";
 
-$bg_colour = '#000000'
+$bg_color = '#000000'
     if <impressive.cfg.black_on_fullscreen> and not defined <x11.geometry>;
 
 my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
@@ -16,7 +16,7 @@ push( @exec_params,
     <impressive.gfx.cursor_png>, '--nologo', @{<impressive.current_playlist>} );
 
 <[impressive.parse_bin]>
-    ->( { 'bg_col' => <impressive.cfg.background_colour> } );
+    ->( { 'bg_col' => <impressive.cfg.background_color> } );
 
 $ENV{'DISPLAY'} = <x11.display>;
 

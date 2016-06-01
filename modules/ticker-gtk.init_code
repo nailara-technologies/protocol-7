@@ -1,5 +1,7 @@
 # >:]
 
+# name = ticker-gtk.init_code
+
 use Gtk3;
 use Glib::Event;
 use Cairo::GObject;
@@ -27,17 +29,10 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 <ticker-gtk.font.name> = <ticker.font.name> if defined <ticker.font.name>;
 <ticker-gtk.font.color> //= [ 0, 0, 0 ];
 
-if ( defined <ticker.colour.foreground>
-    and <ticker.colour.foreground> =~ /^\#?[0-9a-f]{6}$/i ) {
-    ( my $col_str = <ticker.colour.foreground> ) =~ s|^#||;
-    <ticker-gtk.font.color> = [
-        map { hex($_) } (
-            substr( $col_str, 0, 2 ),
-            substr( $col_str, 2, 2 ),
-            substr( $col_str, 4, 2 )
-        )
-    ];
-}
+my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
+<ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
+<ticker-gtk.bg_col>     = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
+<ticker-gtk.bg_alpha>   = <ticker.cfg.bg_alpha> // 0;
 
 ##########
 
