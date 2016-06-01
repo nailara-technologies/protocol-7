@@ -5,7 +5,9 @@
 my ($local_session_id) = keys( %{<user.core.session>} );
 
 my $agent_name
-    = <system.agent.mode> ne 'media-child' ? <system.agent.name> : 'media';
+    = ( defined <system.agent.mode> and <system.agent.mode> eq 'media-child' )
+    ? 'media'
+    : <system.agent.name>;
 my $subname = <system.agent.subname>;
 my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
 
