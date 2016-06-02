@@ -26,8 +26,7 @@ my $bg_color    = <impressive.cfg.background_color>;
 my $trans_delay = <impressive.cfg.transition_delay>;
 my $temp_dir    = <impressive.path.impressive_tmp>;
 my $tmp_bin     = "$temp_dir/impressive.$$";
-
-my $light_mode = 0;
+my $light_mode  = <impressive.cfg.light_mode>;
 
 ## replace border (frame) color ##
 
@@ -74,7 +73,7 @@ $rnd_trans += 2222 if $light_mode;
 
 my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
 push( @exec_params, '--noback' ) if $light_mode;
-push( @exec_params, '--transition', $translist_str ) if @transitions;
+push( @exec_params, '--transition', $translist_str ) if length($translist_str);
 push( @exec_params,
     '--auto',       $trans_delay,
     '--transtime',  $rnd_trans,
