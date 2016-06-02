@@ -79,3 +79,12 @@ Glib::Idle->add(
         return 0;
     }
 );
+
+$SIG{'TERM'} = sub {
+    <browser.fading_out> //= 0;
+    return if <browser.fading_out>;
+    <browser.gtk_obj.window>
+        ->signal_connect( draw => $code{'browser.handler.quit_fade_out'} );
+    <browser.gtk_obj.window>->queue_draw;
+    <browser.fading_out> = 1;
+};
