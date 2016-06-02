@@ -44,9 +44,34 @@ if ([ stat($impr_src) ]->[7] == 244069  # check for problematic impressive vers.
 }
 
 my $title_str = <system.agent.name> . '[' . <system.agent.subname> . ']';
-$file_content =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m;
-$file_content =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg;
-$file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s;
+if (not $file_content
+    =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m ) {
+    <[base.log]>->(
+        0, "[!] failed to parse agent title string into impressive script ..."
+    );
+}
+if (not $file_content
+    =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg ) {
+    <[base.log]>->(
+        0, "[!] failed to parse background color into impressive script ..."
+    );
+}
+if ( not $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s ) {
+    <[base.log]>->(
+        0, "[!] failed to parse error image into impressive script ..."
+    );
+}
+
+# modifying Crossfade transition for 'light_mode' ( to minimize CPU / GPU load )
+if (not $file_content =~ s|
+                            \n(\s+)(SimpleQuad.draw\(\)\n
+                            AllTransitions.append\(Crossfade\)\n)
+        |\n$1time.sleep(0.023)\n$1$2|sx
+    ) {
+    <[base.log]>->(
+        0, "[!] failed to parse sleep() into Crossfade transition ..."
+    );
+}
 
 <[impressive.check_tmp_dir]>;
 
