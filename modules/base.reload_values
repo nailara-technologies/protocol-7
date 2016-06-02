@@ -4,8 +4,11 @@
 
 <[base.log]>->( 1, "reloading '" . $_[1] . "' config.." );
 
-return <[base.extract_values]>->(
+<base.parser.config.reloading> = 1;
+my $result = <[base.extract_values]>->(
     $_[0],
     [ ( <[base.get_file]>->( $data{'system'}{'conf_path'} . '/' . $_[1] ) ) ],
     'resolved'
 );
+delete <base.parser.config.reloading>;
+return $result;
