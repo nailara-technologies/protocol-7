@@ -16,6 +16,8 @@ if ( not defined $$call_args{'session_id'} and $cmd =~ /^([^\.]+)\./ ) {
     if ( keys( %{ $data{'user'}{$target_usr}{'session'} } ) == 1 ) {
         ( $$call_args{'session_id'} )
             = keys %{ $data{'user'}{$target_usr}{'session'} };
+    } elsif ( exists $data{'session'}{$target_usr} ) { # [numerical (sid) route]
+        $$call_args{'session_id'} = $target_usr;
     } else {
         foreach my $_sid ( keys %{ $data{'user'}{$target_usr}{'session'} } ) {
             $$call_args{'session_id'} = $_sid
@@ -73,6 +75,8 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
         my $src_name = <system.agent.name>;
         $src_name .= '[' . <system.agent.subname> . ']'
             if exists <system.agent.subname>;
+
+        # XXX: implement (debug) watch patterns for command logging
         <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" );
 
         $target_cmd_id =~ s/^(\d+)$/($1)/;
