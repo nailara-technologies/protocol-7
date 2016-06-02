@@ -25,7 +25,11 @@ my $missing = 0;
 my %wid_check = map { $_ => 1 } @window_stack;
 for my $agent_name ( keys %{<layout.layers>} ) {
     my $wid_str = <layout.window_ids>->{$agent_name};
-    next if not defined $wid_str;
+    if ( not defined $wid_str ) {
+        <[base.log]>->( 2, "[layers] no window id defined for '$agent_name'" );
+        next;
+    }
+
     my @wids_ok;
     map {
         push( @wids_ok, $_ ) if defined $_ and exists $wid_check{$_};
