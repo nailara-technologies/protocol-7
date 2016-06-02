@@ -25,8 +25,7 @@ delete $instance->{'respawn_delay'};    # reset
 my $restart_timeout
     = defined <sigterm.timeout>
     ? ( <sigterm.timeout> + 2 )
-    : ( $globals->{'restart'}->{'timeout'} // 7 );
-
+    : ( $globals->{'restart'}->{'timeout'} // 33 );
 $instance->{'timer'}->{'restart_timeout'} //= {};
 
 my $restart_id = <[base.gen_id]>->( $instance->{'timer'}->{'restart_timeout'} );
