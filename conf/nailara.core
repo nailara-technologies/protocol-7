@@ -10,7 +10,7 @@ buffer.system.log_cmd = log.msg
 
 system.agent.type               =       core
 modules.load                    =       auth digest net io.ip io.unix \
-                                        plugin.auth
+                                        plugin.auth core.cmd
 auth.methods                    =       pwd agent unix
 auth.rsa.key_file               =       rsa.core
 get.route                       =       file vortex.file :target:
@@ -31,7 +31,7 @@ access.cmd.usr.*     =  clear help exit whoami time localtime \
 access.cmd.usr.udev  =  notify.message   #   <- ( used in example rules config )
 
 access.cmd.usr.root  =  ping session_key *.verify_instance \
-                        *.ping ondemand_agent
+                        *.ping ondemand_agent set_initialized
 
 access.cmd.usr.config = get_config *.get_config_names *.get_config
 
