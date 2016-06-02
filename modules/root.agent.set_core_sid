@@ -22,7 +22,7 @@ my ($root_sid) = keys %{ $data{'session'} };
 $instance_data->{'root_sid'} = $root_sid;
 
 # send instance verification request
-<root.timeout.verify_instance> //= 5;
+<root.timeout.verify_instance> //= 13;
 my $verification_str = <[base.rnd_chars_hex]>->(8);
 $instance_data->{'instance_verification'} = $verification_str;
 $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
