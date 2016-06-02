@@ -89,7 +89,7 @@ foreach my $agent_name ( keys %{$profile_data} ) {
         cmpStr( $previous_data->{$agent_name}, $profile_data->{$agent_name} )
         == 0;    # agent setup identical (not touching running agent)
 
-    <layout.window_ids>->{$agent_name} = undef;
+    <layout.window_ids>->{$agent_name} //= undef;
 
     <layout.coordinates>->{$agent_name}
         = <[layout.calculate_coordinates]>->( $profile_data->{$agent_name} );
