@@ -3,6 +3,7 @@
 # name  = layout.cmd.assign_window
 # param = <id[,id]> [tilename]
 # descr = report x11 window id[s] for current agent
+# todo  = SIGTERM handler to remove them + auto cleanup of window ids
 
 my ( $source_name, $wid_str, $tile_name ) = split( / +/, $$call{'args'}, 3 );
 $source_name =~ s|^.+\.||g;
@@ -47,8 +48,9 @@ if ( not defined $tile_name ) {
 
 if (exists <layout.window_ids>->{$agent_name}
 
-    #    and not defined <layout.window_ids>->{$agent_name}
+    #    #    and not defined <layout.window_ids>->{$agent_name}
     ) {
+
     $wid_str = join( ',', sort { $a <=> $b } split( /\D+/, $wid_str ) );
     my $wid_lmsg = $wid_str;
     $wid_str =~ s|,| |g;
@@ -61,7 +63,7 @@ if (exists <layout.window_ids>->{$agent_name}
     return {
         'mode' => 'ack',
         'data' => 'assigned'
-        }
+    };
 
 } else {
 
