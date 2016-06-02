@@ -1,0 +1,16 @@
+# >:]
+
+# name  = impressive.callback.stop_loadsplash
+
+<[base.log]>->( 1, "stopping loadsplash agent.." );
+
+my $lsp_name
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash';
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.stop",
+        'call_args' => { 'args' => $lsp_name }
+    }
+);
