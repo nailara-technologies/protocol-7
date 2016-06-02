@@ -1,0 +1,14 @@
+# >:]
+
+# name = impressive.process_subcfg
+
+return if not defined <impressive.subcfg>;
+<[base.log]>->( 1, "importing layout subconfig ..." );
+return
+    if not defined <impressive.subcfg.light_mode>
+    or <impressive.subcfg.light_mode> !~ /^[1|0]$/;
+
+<impressive.cfg.light_mode> = delete <impressive.subcfg.light_mode>;
+
+<[base.log]>->( 1, ": 'light_mode' now enabled <!>" )
+    if <impressive.cfg.light_mode>;
