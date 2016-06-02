@@ -8,13 +8,13 @@ my $user     = shift // 'core';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
-my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 1, "setting window '$id' to state 'above'.." );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
 
 <[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.keep_above $id\n" );
 
@@ -25,9 +25,7 @@ while ( !$matched_reply ) {
     die "core handle had an exception!" if not defined $reply_string;
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(N?ACK) /;
     if ( !$matched_reply ) {
-        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
-        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
-            if uc($2) ne $2;
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 

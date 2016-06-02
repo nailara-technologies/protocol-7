@@ -2,7 +2,7 @@
 
 # name = base.x11.get_subconfig
 
-my ($local_session_id) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.core.session>} );
 
 my $agent_name
     = ( defined <system.agent.mode> and <system.agent.mode> eq 'media-child' )
@@ -14,7 +14,7 @@ my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
 <[base.log]>->( 1, "requesting $name_str layout tile subcfg" );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
-my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
 <[net.out]>->( $core_fh, "($cmd_id)layout.get_subconfig $name_str\n" );
 
 my $reply_string;
@@ -23,12 +23,7 @@ while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
     if ( !$matched_reply ) {
-        <[base.log]>->(
-            0, "unexpected reply during get_subconfig ['$reply_string']"
-        );
-        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
-        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
-            if uc($2) ne $2;
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
