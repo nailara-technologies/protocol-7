@@ -12,6 +12,7 @@ if ( $conf_key and $conf_key !~ /[{}]/ ) {
     $conf_key = "{'$conf_key'}";
 }
 <base.parser.config.errors> //= 0;
+my $reload_mode = <base.parser.config.reloading> // 0;
 my $last_line = '';
 foreach my $conf_line ( @{$file_ref} ) {
     $conf_line =~ s/[ \t]*#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
@@ -39,7 +40,11 @@ foreach my $conf_line ( @{$file_ref} ) {
             }
         }
         my $conf_hash = "\$data" . $conf_key . "{'$name'}";
-        my $cmd       = "$conf_hash='$value'";
+
+        # do not overwrite results of init commands with raw nailara cmd strings
+        next if $reload_mode and $value =~ /^\[[^\]]+\]/;
+
+        my $cmd = "$conf_hash='$value'";
         if ( defined $data{'system'}{'verbosity'}
             and $data{'system'}{'verbosity'} > 2 ) {
             <[base.log]>->( 1, $cmd );
