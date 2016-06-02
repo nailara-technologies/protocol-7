@@ -2,21 +2,90 @@
 
 # name = impressive.open_window
 
-my $bg_color   = <impressive.cfg.background_color>;
+<[base.log]>->( 1, "starting loadsplash agent.." );
+
+###[ loadsplash tile cover ]
+my $lsp_name
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash';
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.stop",
+        'call_args' => { 'args' => $lsp_name }
+    }
+);
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.start",
+        'call_args' => { 'args' => $lsp_name }
+    }
+);
+###
+
+my $bg_color    = <impressive.cfg.background_color>;
 my $trans_delay = <impressive.cfg.transition_delay>;
 my $temp_dir    = <impressive.path.impressive_tmp>;
 my $tmp_bin     = "$temp_dir/impressive.$$";
 
+my $light_mode = 0;
+
+## replace border (frame) color ##
+
 $bg_color = '#000000'
     if <impressive.cfg.black_on_fullscreen> and not defined <x11.geometry>;
+<[impressive.parse_bin]>->( { 'bg_col' => <impressive.cfg.background_color> } );
+
+my $mode_name = $light_mode ? 'light' : 'normal';
+
+<[base.log]>->(
+    1,
+    sprintf( "preparing impressive %s startup in < $mode_name > mode..",
+        <impressive.version> )
+);
+
+## select transitions ##
+
+my @transitions;
+if ($light_mode) {
+    @transitions = ('Crossfade');
+} else {
+    my $trans_list_output = qx($tmp_bin -l 2>/dev/null);
+    foreach my $trans_line ( split( /\n/, $trans_list_output ) ) {
+        next if $trans_line =~ /^[^ \*]/;
+        $trans_line =~ s|..([^ ]+) .+$|$1|;
+        push( @transitions, $trans_line ) if $trans_line !~ /fade|none|cloud/i;
+    }
+}
+<[base.log]>->( 0, "[!] failed to obtain transition list, using defaults [!]" )
+    if !@transitions;
+my @rnd_trans;
+while (@transitions) {
+    my $rnd_index = sprintf( "%.0f", rand(@transitions) );
+    push( @rnd_trans, shift(@transitions) ) if @transitions == 1;
+    next if not exists $transitions[$rnd_index];
+    push( @rnd_trans, delete $transitions[$rnd_index] );
+}
+my $translist_str = join( ',', @rnd_trans );
+
+my $rnd_trans = 1111 + int( rand(2222) );
+$rnd_trans += 2222 if $light_mode;
+
+## prepare parameter list ##
 
 my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
+push( @exec_params, '--noback' ) if $light_mode;
+push( @exec_params, '--transition', $translist_str ) if @transitions;
 push( @exec_params,
-    "-a$trans_delay", '-w', '-e', 'clearall', '-D', '1', '--scale', '-C',
-    <impressive.gfx.cursor_png>, '--nologo', @{<impressive.current_playlist>} );
+    '--auto',       $trans_delay,
+    '--transtime',  $rnd_trans,
+    '--fade',       '--wrap',
+    '--bind',       'clearall',
+    '--mousedelay', '1',
+    '--nologo',     '--scale',
+    '--cursor',     <impressive.gfx.cursor_png>,
+    @{<impressive.current_playlist>} );
 
-<[impressive.parse_bin]>
-    ->( { 'bg_col' => <impressive.cfg.background_color> } );
+## start up impressive window ##
 
 $ENV{'DISPLAY'} = <x11.display>;
 
@@ -40,6 +109,8 @@ if ( opendir( my $tdir_fh, $temp_dir ) ) {
     warn "failed to open directory '$temp_dir': $!";
 }
 
+## wait for it ##
+
 if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     <[base.log]>->( 0, "[!] failed to start impressive [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
@@ -49,6 +120,8 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     <[base.x11.assign_window]>->(<x11.id>);
 }
 
+## register output watcher ##
+
 <impressive.watcher.output> = <[event.add_io]>->(
     {   'fd'      => <impressive.out_fh>,
         'handler' => 'base.handler.child_output.simple',
@@ -56,10 +129,17 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
             'bin'           => 'impressive',
             'pid'           => <impressive.pid>,
             'log_whitelist' => [
-                qr/^Welcome to Impressive/,
-                qr/^Background rendering finished/,
-                qr/^OpenGL renderer:/
+                qr/^welcome to impressive/i,
+                qr/^background rendering finished/i,
+                qr/opengl (software )?renderer/i,
+                qr/likely be too slow/i
             ]
         }
+    }
+);
+
+<[event.add_timer]>->(
+    {   'after'   => 1.2,
+        'handler' => 'impressive.callback.stop_loadsplash'
     }
 );
