@@ -6,13 +6,13 @@ my $usr_str   = shift // 'core';
 my $route_str = shift // '';
 $route_str .= '.' if length($route_str);
 
-my ($local_session_id) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
-if ( exists $data{'session'}{$local_session_id}{'core_sid'} ) {
+my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+if ( exists $data{'session'}{$local_sid}{'core_sid'} ) {
     <[base.log]>->( 0, "already have a core sid, refused to request another!" );
     return undef;
 }
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
-my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
 
 <[base.log]>->( 2, "retrieving session id..." );
 <[net.out]>->( $core_fh, "($cmd_id)${route_str}whoami\n" );
@@ -29,9 +29,7 @@ while ( !$matched_reply ) {
     }
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
     if ( !$matched_reply ) {
-        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
-        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
-            if uc($2) ne $2;    # XXX: catch undefined $2
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
@@ -41,7 +39,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
         <[base.log]>->( 0, "received agent name does not match internal one!" );
         return undef;
     }
-    $data{'session'}{$local_session_id}{'core_sid'} = $core_session_id;
+    $data{'session'}{$local_sid}{'core_sid'} = $core_session_id;
     <[base.log]>->( 1, "core session id $core_session_id received!" );
     return $core_session_id;
 } else {
