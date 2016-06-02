@@ -17,8 +17,9 @@ if (    defined $instance->{'status'}
     );
 
     <[agent.change_status]>->( $instance_id, 'failed' );
-
     delete $instance->{'restart_id'};
+
+    <[root.init_respawn_timer]>->($instance_id);
 } else {
     delete $instance->{'restart_id'};
 }

@@ -49,7 +49,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
         }
 
         if ( <[root.instance_pid_count]>->($instance_id) ) {
-            $next_status = 'delayed' if $old_status eq 'restart';
+            <[agent.change_status]>->( $instance_id, 'delayed' )
+                if $old_status eq 'restart';
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
                 {   'after'    => 0.042,
                     'interval' => '0.1',
