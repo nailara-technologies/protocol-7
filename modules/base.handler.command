@@ -628,6 +628,23 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
             return 1;
         }
 
+        foreach my $target_sid (@send_sids) { # check if session initialized yet
+            next
+                if ( not defined <system.agent.mode>
+                or <system.agent.mode> ne 'core' )
+                or $usr eq 'root' # XXX: need better check if really root agent!
+                or ( $data{'session'}{$target_sid}{'initialized'} // 0 );
+
+            # if 'agent'-mode session and not initialized allowing replies only!
+            $$output .= $_cmd_id . "NACK not initialized yet\n";
+            <[base.log]>->(
+                0,
+                "[$id] command '$command_str' rejected!"
+                    . " ($target_name session $target_sid not initialized yet)"
+            );
+            return 1;
+        }
+
         # send to all clients with that username (group mode)
         my $targets_denied = 0;
         foreach my $target_sid (@send_sids) {

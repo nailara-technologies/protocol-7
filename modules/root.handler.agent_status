@@ -283,6 +283,19 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # XXX: extbin ?
     # clean up temporary agent instance startup data
     delete $instance->{'init_data'};
 
+    # set core session to 'initialized'
+    if (    defined $instance->{'core_sid'}
+        and $old_status ne 'online'
+        and $status eq 'online' ) {
+        my $root_sid = $instance->{'root_sid'};
+        my $core_sid = $instance->{'core_sid'};
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "$root_sid.set_initialized",
+                'call_args' => { 'args' => $core_sid }
+            }
+        );
+    }
+
     # start next delayed agent of the same name ...
     foreach my $id ( @{ <[agent.instance.get_ids]>->($agent_id) } ) {
         next

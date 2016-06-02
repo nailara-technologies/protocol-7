@@ -29,4 +29,11 @@ my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
     'params' => [ $instance_id, 'failed' ]
 };
 
-return 1;    # success
+my $root_sid = <root.agent.instance>->{$instance_id}->{'root_sid'};
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "$root_sid.set_initialized",
+        'call_args' => { 'args' => 0 }    # [ 0 == root-agent session (self) ]
+    }
+);
+
+return 1;                                 # success
