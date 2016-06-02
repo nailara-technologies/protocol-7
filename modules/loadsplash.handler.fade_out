@@ -1,0 +1,17 @@
+# >:]
+
+# name = loadsplash.handler.fade_out
+
+my $window = shift;
+
+<loadsplash.fade.start_time> //= <[base.time]>->(4);
+my $delta_t = <[base.time]>->(4) - <loadsplash.fade.start_time>;
+
+my $opacity = sprintf( "%.4f", 1 - $delta_t / 1.2 );
+
+if ( $opacity > 0 ) {
+    $window->set_opacity($opacity);
+    $window->queue_draw();
+} else {
+    exit(0);
+}
