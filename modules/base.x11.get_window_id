@@ -12,13 +12,13 @@ if ( not defined $name ) {
         if defined <system.agent.subname>;
 }
 die "expected window name parameter" if not defined $name or !length($name);
-my ($local_session_id) = keys( %{ $data{'user'}{$user}{'session'} } );
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 2, "requesting window id for '$name'.." );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_session_id}{'handle'};
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
 
 my $retry_count = 5;
 retry:
@@ -34,9 +34,7 @@ while ( !$matched_reply ) {
 
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
     if ( !$matched_reply ) {
-        my $reply_cmd_id = $reply_string =~ /^\((\d+)\)(\S+)/ ? "($1)" : '';
-        <[net.out]>->( $core_fh, "${reply_cmd_id}NACK not initialized yet!\n" )
-            if uc($2) ne $2;
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
