@@ -7,24 +7,33 @@ my $coords = <x11.coordinates>;
 my $width  = $coords->{'right'} - $coords->{'left'};
 my $height = $coords->{'bottom'} - $coords->{'top'};
 
-Gtk2->init;
+Gtk3->init;
 
-my $window = Gtk2::Window->new('popup');
+<loadsplash.window> = my $window = Gtk3::Window->new('popup');
+$window->signal_connect( 'delete_event', sub { Gtk3->main_quit } );
+$window->move( $coords->{'left'}, $coords->{'top'} );
+$window->set_default_size( $width, $height );
+$window->set_resizable(0);
 
-$window->signal_connect( 'delete_event', sub {Gtk2::main_quit} );
-
-my $pbuf  = Gtk2::Gdk::PixbufAnimation->new_from_file(<loadsplash.icon_file>);
-my $image = Gtk2::Image->new_from_animation($pbuf);
+my $pbuf  = Gtk3::Gdk::PixbufAnimation->new_from_file(<loadsplash.icon_file>);
+my $image = Gtk3::Image->new_from_animation($pbuf);
 
 $window->add($image);
 
-$window->resize( $width, $height );
-
-my $white = Gtk2::Gdk::Color->new( 0xFFFF, 0xFFFF, 0xFFFF );
-$window->modify_bg( 'normal', $white );
+my $css_prov = Gtk3::CssProvider->new();
+my $screen   = Gtk3::Gdk::Screen::get_default();
+$css_prov->load_from_data('*{background-color:#ffffff}');
+Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 
 $window->show_all;
 
-$window->move( $coords->{'left'}, $coords->{'top'} );
+$SIG{'TERM'} = sub {
+    <loadsplash.fading_out> //= 0;
+    return if <loadsplash.fading_out>;
+    <loadsplash.window>
+        ->signal_connect( draw => $code{'loadsplash.handler.fade_out'} );
+    <loadsplash.window>->queue_draw;
+    <loadsplash.fading_out> = 1;
+};
 
-Gtk2->main;
+Gtk3->main;
