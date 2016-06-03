@@ -10,8 +10,10 @@ my $pid     = $process->{'pid'};
 
 <mpv.pipe.buffer> //= '';
 
-if (sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
-    == 0 ) {
+if ( not defined $read_fh
+    or sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
+    == 0
+    or not defined <mpv.pipe.buffer> ) {
     $event->cancel;
     close($read_fh);
     my $exit_code = 2;

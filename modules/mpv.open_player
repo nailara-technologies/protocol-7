@@ -2,6 +2,11 @@
 
 # name = mpv.open_player
 
+$SIG{'PIPE'} = sub {
+    <[base.log]>->( 0, "SIGPIPE received! shutting down..." );
+    exit(2);
+};
+
 my $abort_startup = 0;
 my $mpv_params    = <mpv.params>;
 $ENV{'DISPLAY'} = <x11.display>;
