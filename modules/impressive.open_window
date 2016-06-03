@@ -10,16 +10,14 @@ my $lsp_name
     ? 'loadsplash[' . <system.agent.subname> . ']'
     : 'loadsplash';
 
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.stop",
-        'call_args' => { 'args' => $lsp_name }
-    }
-);
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.start",
-        'call_args' => { 'args' => $lsp_name }
-    }
-);
+map {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.$_",
+            'call_args' => { 'args' => $lsp_name }
+        }
+    );
+} ( 'stop', 'start' );
+<[base.sleep]>->(2.42);    # XXX: make async
 ###
 
 my $bg_color    = <impressive.cfg.background_color>;
@@ -141,7 +139,7 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
 );
 
 <[event.add_timer]>->(
-    {   'after'   => 0.42,
+    {   'after'   => 3.33,
         'handler' => 'impressive.callback.stop_loadsplash'
     }
 );
