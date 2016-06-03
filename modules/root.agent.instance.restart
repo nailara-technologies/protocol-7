@@ -35,6 +35,11 @@ $instance->{'restart_pids'} = {};
 map { $instance->{'restart_pids'}->{$_} = 1 } ( $parent_pid, @children )
     if defined $parent_pid;
 
+my $dependencies_ok
+    = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
+    ? <[dependency.ok]>->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
+    : 1;
+
 $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
     = <[event.add_timer]>->(
     {   'after'   => $restart_timeout,
@@ -44,7 +49,7 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
             'instance_id' => $instance_id
         }
     }
-    );
+    ) if $dependencies_ok;
 
 <[agent.change_status]>->( $instance_id, 'restart' );
 <[root.terminate_process]>->($parent_pid) if defined $parent_pid;
