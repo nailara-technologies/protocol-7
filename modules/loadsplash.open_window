@@ -14,6 +14,7 @@ $window->signal_connect( 'delete_event', sub { Gtk3->main_quit } );
 $window->move( $coords->{'left'}, $coords->{'top'} );
 $window->set_default_size( $width, $height );
 $window->set_resizable(0);
+$window->set_opacity(1);
 
 my $pbuf  = Gtk3::Gdk::PixbufAnimation->new_from_file(<loadsplash.icon_file>);
 my $image = Gtk3::Image->new_from_animation($pbuf);
@@ -24,6 +25,9 @@ my $css_prov = Gtk3::CssProvider->new();
 my $screen   = Gtk3::Gdk::Screen::get_default();
 $css_prov->load_from_data('*{background-color:#ffffff}');
 Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+
+<loadsplash.draw_signal>
+    = $window->signal_connect( draw => $code{'loadsplash.handler.fade_in'} );
 
 $window->show_all;
 
