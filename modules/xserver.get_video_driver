@@ -6,7 +6,7 @@ my $driver_name = 'unknown';
 my $lspci_bin   = '/usr/bin/lspci';
 if ( !-e $lspci_bin ) {
     my $check_path = qx(which lspci);
-    if ( length($check_path) and -e $check_path ) { $lspci_bin = $check_path }
+    if ( length($check_path) and -x $check_path ) { $lspci_bin = $check_path }
     else {
         <[base.log]>->(
             0, "'lspci' not found! (can't determine X11 driver name)"
