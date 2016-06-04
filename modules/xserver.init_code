@@ -4,6 +4,7 @@
 
 use X11::Protocol;
 use X11::Protocol::WM;
+use IPC::Open3;
 use X11::Tops;
 
 if ( <xserver.mode> eq 'auto-xephyr' ) {
@@ -18,6 +19,8 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 <xserver.disable_glamor> //= 0;
 
 <xserver.max_intel_gpu_freq> //= 'no';
+
+<xserver.collect_intel_gpu_stats> //= 0;
 
 if (    <xserver.mode> eq 'xorg'
     and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/

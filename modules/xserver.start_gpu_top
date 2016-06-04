@@ -1,0 +1,46 @@
+# >:]
+
+# name = xserver.start_gpu_top
+
+my $samples_per_sec = 111;    # min. 100 ( careful with too high values -> CPU )
+my $gpu_top_bin  = '/usr/bin/intel_gpu_top';
+my $gpu_freq_bin = '/usr/bin/intel_gpu_frequency';
+if ( !-e $gpu_top_bin ) {
+    chomp( my $check_path = qx(which intel_gpu_top) );
+    if ( length($check_path) and -x $check_path ) { $gpu_top_bin = $check_path }
+    else {
+        return <[base.log]>->(
+            0, "'intel_gpu_top' not found! ( intel-gpu-tools installed? )"
+        );
+    }
+}
+return <[base.log]>->( 0, "[!] failed to run 'intel_gpu_top'" )
+    if qx($gpu_top_bin -h) !~ /usage/;
+
+chomp( $gpu_freq_bin = qx(which intel_gpu_frequency) ) if !-x $gpu_freq_bin;
+return <[base.log]>->( 0, "<!> apparently no Intel GPU (intel_gpu_frequency)" )
+    if length($gpu_freq_bin)
+    and -x $gpu_freq_bin
+    and qx($gpu_freq_bin) =~ /no intel gpu found/i;
+
+<[base.log]>->( 1, "starting 'intel_gpu_top' process .." );
+
+<xserver.gpu_top.pid> = open3(
+    my $dummy_in, my $out_fh,
+    my $dummy_err,
+    "$gpu_top_bin -s $samples_per_sec -o -"
+);
+
+if ( !<xserver.gpu_top.pid> ) {
+    <[base.log]>->( 0, "<!> failed to open 'intel_gpu_top' pipe [$!]" );
+    return;
+}
+
+<xserver.gpu_top.process_started> = <[base.time]>->(4);
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'xserver.handler.read_gpu_top',
+        'data'    => { 'pid' => <xserver.gpu_top.pid> }
+    }
+);

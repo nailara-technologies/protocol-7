@@ -41,6 +41,8 @@ my $server_params;
     and <xserver.orientation> eq 'normal'
     and !<xserver.disable_glamor>;
 
+## startup / connect ##
+
 if ( $mode ne 'host' ) {
     if ( not defined $mode or !length($mode) ) {
         die "xserver.mode not defined (expected 'xorg' or 'xephyr')";
@@ -126,6 +128,8 @@ if ( !$ok and <xserver.mode> eq 'host' ) {
 if ($ok) {
     <[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
 
+## orientation ##
+
     <[xserver.xrandr.rotate]>->(<xserver.orientation>);
 
     <xserver.x11>->{'event_handler'} = 'queue';
@@ -136,6 +140,8 @@ if ($ok) {
     );
 
     # XXX: GrabKey( <kc>, <mod>, <root>, 0, 'Asynchronous', 'Asynchronous' )
+
+## screensaver / blanking ##
 
     if (defined <xserver.disable_blanking>
         and (  <xserver.disable_blanking> eq 'yes'
@@ -158,12 +164,13 @@ if ($ok) {
     exit(3);
 }
 
+## background image / color ##
+
 <xserver.keep_background> //= 0;
 if (<xserver.keep_background>) {    # <- don't touch background image and color
     <xserver.initialized> = 1;
     return 0;
 }
-
 my @hsetroot_params;
 my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
 my $bg_mode      = <xserver.bg_mode>;
@@ -188,5 +195,12 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
 }
 
+## GPU load statistics (intel only) ##
+<[xserver.start_gpu_top]>
+    if <xserver.collect_intel_gpu_stats>
+    and <xserver.video_driver> =~ /^i/i;    # i9xx <?>
+
 <xserver.initialized> = 1;
-return 0;    # all ok
+
+# success
+return 0;
