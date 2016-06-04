@@ -26,25 +26,30 @@ my $temp_dir    = <impressive.path.impressive_tmp>;
 my $tmp_bin     = "$temp_dir/impressive.$$";
 my $light_mode  = <impressive.cfg.light_mode>;
 
+$light_mode = 0 if $light_mode ne '1' and $light_mode ne '2';
+
 ## replace border (frame) color ##
 
 $bg_color = '#000000'
     if <impressive.cfg.black_on_fullscreen> and not defined <x11.geometry>;
 <[impressive.parse_bin]>->( { 'bg_col' => <impressive.cfg.background_color> } );
 
-my $mode_name = $light_mode ? 'light' : 'normal';
+my $mode_name = $light_mode     ? 'light' : 'normal';
+my $lvl       = $light_mode < 2 ? ''      : ' level 2';
 
 <[base.log]>->(
     1,
-    sprintf( "preparing impressive %s startup in < $mode_name > mode..",
+    sprintf( "preparing impressive %s in < $mode_name > mode$lvl",
         <impressive.version> )
 );
 
 ## select transitions ##
 
 my @transitions;
-if ($light_mode) {
+if ( $light_mode == 1 ) {
     @transitions = ('Crossfade');
+} elsif ( $light_mode == 2 ) {
+    @transitions = ('None');
 } else {
     my $trans_list_output = qx($tmp_bin -l 2>/dev/null);
     foreach my $trans_line ( split( /\n/, $trans_list_output ) ) {
