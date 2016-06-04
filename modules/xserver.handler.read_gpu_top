@@ -1,0 +1,91 @@
+# >:]
+
+# name  = xserver.handler.read_gpu_top
+# descr = reads output from 'intel_gpu_top' process and collects load statistics
+
+my $event    = shift->w;
+my $read_fh  = $event->fd;
+my $gtop_pid = $event->data->{'pid'};
+
+my @stat_secs = ( 5, 15, 30 );
+
+<xserver.gpu_top.stats>              //= {};
+<xserver.gpu_top.stats.sample>       //= {};
+<xserver.gpu_top.stats.load_average> //= {};
+<xserver.gpu_top.output_buffer>      //= '';
+
+if (sysread(
+        $read_fh, <xserver.gpu_top.output_buffer>,
+        4096,     length(<xserver.gpu_top.output_buffer>)
+    ) == 0    # ( filehandle has an exception )
+    ) {
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->(
+        1, "intel_gpu_top [PID:$gtop_pid] output filehandle closed."
+    );
+    <[base.log]>->( 0, "intel_gpu_top died unexpectedly! deleting stats.." );
+    $event->cancel if $event->is_active;
+    delete <xserver.gpu_top.stats>;
+}
+
+my $load_ref = <xserver.gpu_top.stats.load_average>;
+
+my ($max_samples) = reverse sort { $a <=> $b } @stat_secs;
+
+while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    next if $output_line =~ /^\#/;
+    my ( $time, $load );
+    if ( $output_line =~ /^(\d+(\.\d+)?)\s+(\d+(\.\d+)?)\s+/ ) {
+        ( $time, $load ) = ( $1, $3 );
+    } else {
+        substr( $output_line, 253, length($output_line) - 253, '...' );
+        <[base.log]>->( 0, "[WTF?] < intel_gpu_top > " . $output_line );
+    }
+    my $stat_ref   = <xserver.gpu_top.stats>;
+    my $sample_ref = <xserver.gpu_top.stats.sample>;
+    $load_ref->{1} = $sample_ref->{$time} = $load;
+
+    while ( keys( %{$sample_ref} ) > $max_samples ) {
+        ( my $del_tstamp ) = sort { $a <=> $b } keys( %{$sample_ref} );
+        delete $sample_ref->{$del_tstamp};
+    }
+
+    # XXX: adjust for timecode drift...
+    my $added;
+    my $sec_count = keys %{$load_ref};
+    foreach my $count (@stat_secs) {
+        $added = 0;
+        foreach
+            my $t_code ( reverse sort { $a <=> $b } keys( %{$sample_ref} ) ) {
+            last if ++$added == $count;
+            $load_ref->{$count} //= 0;
+            $load_ref->{$count} += $sample_ref->{$t_code};
+        }
+        if ( $added < $count ) {
+            delete $load_ref->{$count};
+            next;
+        }
+        $load_ref->{$count} = sprintf( "%.4f", $load_ref->{$count} / $added );
+    }
+    my $sec     = '';
+    my $new_sec = $sec_count < keys %{$load_ref} ? 1 : 0;
+    my $avg_str = join(
+        ' .. ',
+        map {
+            $sec = $new_sec ? " <- ${added}s" : '';
+            defined $load_ref->{$_}
+                ? sprintf( "%5s", sprintf( "%.2f", $load_ref->{$_} ) )
+                : '-- --'
+            }
+            reverse sort {
+            $a <=> $b
+            } @stat_secs
+    );
+    my $freq = '';
+    my $llvl = <xserver.gpu_top.stat_log_level> //= 3;
+    <[base.log]>->(
+        $llvl, sprintf "< GPU >  %3s  <  .. $avg_str ..  >$sec", "$load\%"
+    );
+}
