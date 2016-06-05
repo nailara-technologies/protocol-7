@@ -1,0 +1,44 @@
+# >:]
+
+# name  = base.handler.cmd_filter_hooks
+# descr = mangle arguments before sending cmd / routing reply
+
+my $params = shift;
+
+return undef
+    if not defined <base.filter_hooks.command>
+    or not defined ${ $params->{'args_ref'} }
+    or not defined <base.filter_hooks.command>->{ $params->{'command'} };
+
+my $cmd_hook = <base.filter_hooks.command>->{ $params->{'command'} };
+
+if (    ref($cmd_hook) eq 'HASH'
+    and defined $cmd_hook->{'send'}
+    and defined $cmd_hook->{'recv'}
+    and defined &{ $code{ $cmd_hook->{'send'} } }
+    and defined &{ $code{ $cmd_hook->{'recv'} } } ) {
+
+    <[base.log]>->(
+        2,
+        sprintf(
+            "[%d] calling filter hook for '%s' command ..",
+            $params->{'sid'}, $params->{'command'}
+        )
+    );
+
+    return {
+        'handler' => $code{ $cmd_hook->{'recv'} },
+        'data'    => $code{ $cmd_hook->{'send'} }->(
+            {   'target'  => $params->{'target'},
+                'command' => $params->{'command'},
+                'args'    => $params->{'args_ref'}
+            }
+        )
+    };
+
+} else {
+    <[base.log]>->(
+        0, "[!] '$params->{command}' - command filter hook setup is broken [!]"
+    );
+    return undef;
+}

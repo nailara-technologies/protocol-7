@@ -289,6 +289,14 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     }
                 } else {
 
+                    # was filter hook applied? if so call reply handler
+                    $route->{'hook_data'}->{'handler'}->(
+                        {   'mode' => $cmd,
+                            'args' => \$$call_args{'args'},
+                            'data' => $route->{'hook_data'}->{'data'}
+                        }
+                    ) if defined $route->{'hook_data'};
+
                     # route reply
                     $$call_args{'args'} //= '[no reply data]';
                     $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
@@ -298,13 +306,17 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                 }
 
                 # delete route
-
                 if ( $cmd ne 'WAIT' ) {
-                    delete $data{'session'}{ $$route{'source'}{'sid'} }
-                        {'route'}{ $$route{'source'}{'cmd_id'} };
+                    my $src_sid    = $$route{'source'}{'sid'};
+                    my $src_cmd_id = $$route{'source'}{'cmd_id'};
+                    delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
                     delete $data{'route'}
                         { $data{'session'}{$id}{'route'}{$cmd_id} };
+                    delete $data{'session'}{$src_sid}{'route'}
+                        if !keys %{ $data{'session'}{$src_sid}{'route'} };
                     delete $data{'session'}{$id}{'route'}{$cmd_id};
+                    delete $data{'session'}{$id}{'route'}
+                        if !keys %{ $data{'session'}{$id}{'route'} };
                 } else {
 
                     # insert WAIT limit here
@@ -363,12 +375,16 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                         }
 
                         # delete route
-
-                        delete $data{'session'}{ $$route{'source'}{'sid'} }
-                            {'route'}{ $$route{'source'}{'cmd_id'} };
+                        my $src_sid    = $$route{'source'}{'sid'};
+                        my $src_cmd_id = $$route{'source'}{'cmd_id'};
+                        delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
                         delete $data{'route'}
                             { $data{'session'}{$id}{'route'}{$cmd_id} };
+                        delete $data{'session'}{$src_sid}{'route'}
+                            if !keys %{ $data{'session'}{$src_sid}{'route'} };
                         delete $data{'session'}{$id}{'route'}{$cmd_id};
+                        delete $data{'session'}{$id}{'route'}
+                            if !keys %{ $data{'session'}{$id}{'route'} };
 
                         $valid_answer = 1;
                     } else {    # should never reach this point
@@ -431,7 +447,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
     if ( $cmd =~ /^$re->{cmd}$/ ) {
 
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
-            if ( exists $code{ $data{'base'}{'cmd'}{$cmd} }
+            if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
                 # prepare reply id (used in mode 'later')
@@ -628,12 +644,18 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
             return 1;
         }
 
+        my @send_sids_left;
         foreach my $target_sid (@send_sids) { # check if session initialized yet
-            next
-                if ( not defined <system.agent.mode>
-                or <system.agent.mode> ne 'core' )
+            if (
+                (   not defined <system.agent.mode>
+                    or <system.agent.mode> ne 'core'
+                )
                 or $usr eq 'root' # XXX: need better check if really root agent!
-                or ( $data{'session'}{$target_sid}{'initialized'} // 0 );
+                or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
+                ) {
+                push( @send_sids_left, $target_sid );
+                next;
+            }
 
             # if 'agent'-mode session and not initialized allowing replies only!
             $$output .= $_cmd_id . "NACK not initialized yet\n";
@@ -642,8 +664,19 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                 "[$id] command '$command_str' rejected!"
                     . " ($target_name session $target_sid not initialized yet)"
             );
-            return 1;
         }
+
+        return 1 if !@send_sids_left;
+        @send_sids = @send_sids_left if @send_sids_left != @send_sids;
+
+        # command (argument) filter hooks  ...
+        my $cmd_hook_data = <[base.handler.cmd_filter_hooks]>->(
+            {   'sid'      => $id,
+                'target'   => $target_name,
+                'command'  => $cmd,
+                'args_ref' => \$$call_args{'args'}
+            }
+        );
 
         # send to all clients with that username (group mode)
         my $targets_denied = 0;
@@ -664,6 +697,8 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     'target' => { 'sid' => $target_sid }
                 }
             );
+
+            $route->{'hook_data'} = $cmd_hook_data if defined $cmd_hook_data;
 
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
@@ -730,7 +765,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
             }
         }
 
-        if ( $targets_denied == @send_sids ) {    # nothing send
+        if ( $targets_denied == @send_sids ) {    # nothing sent
             $$output .= $_cmd_id . "NACK unknown command\n";
             <[base.log]>->(
                 1,
