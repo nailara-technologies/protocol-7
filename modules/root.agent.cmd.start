@@ -12,6 +12,11 @@ my $recursion
         and exists $_[0]->{'recursion'}
         and defined $_[0]->{'recursion'} ) ? $_[0]->{'recursion'} : 0;
 
+my $once
+    = (     ref( $_[0] ) eq 'HASH'
+        and exists $_[0]->{'once'}
+        and defined $_[0]->{'once'} ) ? $_[0]->{'once'} : 0;
+
 return { 'mode' => 'nack', 'data' => 'agent name or id expected' }
     if not defined $$call{'args'}
     or !length( $$call{'args'} );
@@ -42,6 +47,15 @@ return {
     'data' => 'agent is explicitly disabled in config!'
     }
     if <[agent.is_disabled]>->($agent_name);
+
+return {
+    'mode' => 'nack',
+    'data' => "agent '$agent_name' already running (start 'once' mode)"
+    }
+    if $once
+    and ( defined $agent_subname
+    and <[root.instance_count]>->( $agent_name . "[$agent_subname]" )
+    or not defined $agent_subname and <[root.instance_count]>->($agent_name) );
 
 return {
     'mode' => 'nack',
