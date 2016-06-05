@@ -1,0 +1,9 @@
+# >:]
+
+# name = base.handler.ping_time_reply
+
+my $params = shift;
+
+${ $params->{'args'} }
+    = sprintf( "%.4f seconds", <[base.time]>->(4) - $params->{'data'} )
+    if defined $params->{'data'};
