@@ -10,13 +10,11 @@ my $lsp_name
     ? 'loadsplash[' . <system.agent.subname> . ']'
     : 'loadsplash';
 
-map {
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.$_",
-            'call_args' => { 'args' => $lsp_name }
-        }
-    );
-} ( 'stop', 'start' );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.start_once",
+        'call_args' => { 'args' => $lsp_name }
+    }
+);
 <[base.sleep]>->(2.42);    # XXX: make async
 ###
 

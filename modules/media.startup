@@ -13,16 +13,11 @@ my $lsp_name
     : 'loadsplash';
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.stop",
+    {   'command'   => "core.root.start_once",
         'call_args' => { 'args' => $lsp_name }
     }
 );
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.start",
-        'call_args' => { 'args' => $lsp_name }
-    }
-);
-<[base.sleep]>->(2.42); # XXX: make async
+<[base.sleep]>->(2.42);    # XXX: make async
 <media.loadsplash_running> = 1;
 
 <[base.log]>->( 1, "starting display [sub]agents..." );
