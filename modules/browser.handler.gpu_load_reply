@@ -17,8 +17,7 @@ my $lower_tolerance = 4.2;
 return if $params->{'cmd'} ne 'ACK';
 my $load_percent = $params->{'call_args'}->{'args'};
 
-my $percent_exceeded
-    = sprintf( "%.2f", 100 * ( $load_percent - $limit ) / ( 100 - $limit ) );
+my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
 
 $accel_factor *= 0.42 if $percent_exceeded < 0;
 $accel_factor *= 0.01 if $percent_exceeded < 0 and !$is_scrolling;
@@ -42,11 +41,12 @@ my $skip = (
 # debug section
 $target_percent = <browser.redraw_fps.slowdown_target>;
 my $delta_t = sprintf( "%.2f", $target_percent - $old_target );
-my $delta_str = $delta_t > 0 ? "+$delta_t" : $delta_t;
+my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
+$delta_str = '' if $delta_t == 0;
 $load_percent = sprintf( "%.2f", $load_percent );
 <browser.debug.loglevel.autospeed> //= 2;
 <[base.log]>->(
     <browser.debug.loglevel.autospeed>,
     "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
-        . " >- [ SLW ${target_percent}% ] $delta_str"
+        . " >- [ SLW ${target_percent}% ]$delta_str"
 );
