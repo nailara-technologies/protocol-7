@@ -12,7 +12,9 @@ if ( $status eq 'shutdown'
     );
     return;
 }
-die "no such agent instance ($instance_id) [status:$status]"
+return <[base.log]>->(
+    2, "agent_status: no such agent instance ($instance_id) [status:$status]"
+    )
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
 
