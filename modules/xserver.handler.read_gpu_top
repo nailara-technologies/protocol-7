@@ -91,18 +91,22 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     );
 
     # handle configured GPU load alerts
+    my $min_wait    = 20;    # allow for startup action to settle..
+    my $alert_pause = 30;    # allow restarts to complete before re-triggering..
     if (    defined <xserver.gpu_load.alert>
         and ref(<xserver.gpu_load.alert>) eq 'HASH'
         and keys %{<xserver.gpu_load.alert>} ) {
-        <xserver.gpu_load.last_alert> //= {};
+        <xserver.gpu_load.last_alert>
+            //= <[base.time]>->(2) - $alert_pause + $min_wait;
         foreach
             my $al_secs ( sort { $a <=> $b } keys %{<xserver.gpu_load.alert>} )
         {
             next
-                if defined <xserver.gpu_load.last_alert>->{$al_secs}
-                and <[base.time]>->(2)
-                - <xserver.gpu_load.last_alert>->{$al_secs} < ( $al_secs + 30 );
+                if <[base.time]>->(2) - <xserver.gpu_load.last_alert>
+                < ( $alert_pause + $al_secs );
+
             my $alert_threshold = <xserver.gpu_load.alert>->{$al_secs};
+
             if ( defined $load_ref->{$al_secs}
                 and $load_ref->{$al_secs} >= $alert_threshold ) {
                 <[base.log]>->(
@@ -123,7 +127,7 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
                         );
                     } split( / +/, <xserver.gpu_load.send_alerts> );
                 }
-                <xserver.gpu_load.last_alert>->{$al_secs} = <[base.time]>->(2);
+                <xserver.gpu_load.last_alert> = <[base.time]>->(2);
             }
         }
     }
