@@ -5,11 +5,12 @@
 my $params = shift;
 
 <browser.cfg.max_gpu_load> //= 64;    # setting sane(?) defaults ..
-my $limit = <browser.cfg.max_gpu_load>;    # % GPU max. load target
+my $limit       = <browser.cfg.max_gpu_load>;    # % GPU max. load target
+my $stat_window = <browser.cfg.gpu_load_secs>;
 
 my $is_scrolling = <window.scrolling> // 0;
 
-my $accel_factor    = 0.2;
+my $accel_factor    = 1 / $stat_window;
 my $upper_tolerance = 1.2;
 my $lower_tolerance = 4.2;
 
@@ -43,8 +44,9 @@ $target_percent = <browser.redraw_fps.slowdown_target>;
 my $delta_t = sprintf( "%.2f", $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? "+$delta_t" : $delta_t;
 $load_percent = sprintf( "%.2f", $load_percent );
+<browser.debug.loglevel.autospeed> //= 2;
 <[base.log]>->(
-    2,
+    <browser.debug.loglevel.autospeed>,
     "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
         . " >- [ SLW ${target_percent}% ] $delta_str"
 );
