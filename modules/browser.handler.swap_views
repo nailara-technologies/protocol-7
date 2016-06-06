@@ -1,13 +1,17 @@
 # >:]
 
 # name = browser.handler.swap_views
+#  XXX : needs fixes for auto-speed mode (see FPS value)
 
 my ( $widget, $context, $ref_status ) = @_;
 
-<browser.swap.update_delay> //= 1 / 60;    # initial FPS
-<browser.swap.fps> //= sprintf( "%.2f", 1 / <browser.swap.update_delay> );
+my $max_delay = sprintf( "%.6f", 1 / 6 );
+my $slowdown_delay
+    = sprintf( "%.6f", 1 / ( ( 100 - <browser.redraw_fps.slowdown> ) * 60 ) );
+
+<browser.swap.update_delay>      //= 1 / 60;               # initial FPS
 <browser.swap.update_start_time> //= <[base.time]>->(6);
-<browser.swap.brake_count> //= 0;
+<browser.swap.brake_count>       //= 0;
 my $xccel_steps = 0.00001;
 
 if (<browser.status.fade_view>) {
@@ -15,14 +19,16 @@ if (<browser.status.fade_view>) {
     <[browser.handler.fade_in_view]>;
 
     my $wait_delay = sprintf( "%.6f",
-        <browser.swap.update_delay>
+        $slowdown_delay
+            + <browser.swap.update_delay>
             - ( <[base.time]>->(6) - <browser.swap.update_start_time> ) );
+
+    $wait_delay = $max_delay if $wait_delay > $max_delay;
 
     if ( $wait_delay > 0 ) {
         <[base.sleep]>->($wait_delay);
 
     } elsif ( <browser.swap.update_delay> < 1 / 30 ) {    # ... slowing down ...
-
         <browser.swap.update_delay>
             = sprintf( "%.6f", <browser.swap.update_delay> + $xccel_steps );
         <browser.swap.brake_count>++;
@@ -39,9 +45,12 @@ if (<browser.status.fade_view>) {
         and <browser.swap.update_delay> >= 1 / 60 ) {
         <browser.swap.update_delay> = sprintf( "%.6f",
             <browser.swap.update_delay> - ( $xccel_steps / 10 ) );
-        <browser.swap.fps> = sprintf( "%.2f", 1 / <browser.swap.update_delay> );
     }
     delete <browser.swap.brake_count>;
 }
+
+<browser.swap.fps>
+    = sprintf( "%.2f", 1 / ( <browser.swap.update_delay> + $slowdown_delay ) );
+<browser.swap.fps> = 6 if <browser.swap.fps> < 6;
 
 $widget->queue_draw;

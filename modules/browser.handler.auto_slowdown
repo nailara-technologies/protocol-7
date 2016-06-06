@@ -1,0 +1,12 @@
+# >:]
+
+# name = browser.handler.auto_slowdown
+
+my $stat_secs = 5;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.xserver.get_gpu_load",
+        'call_args' => { 'args' => $stat_secs },
+        'reply'     => { 'handler' => 'browser.handler.gpu_load_reply' }
+    }
+);
