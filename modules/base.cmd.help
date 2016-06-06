@@ -1,30 +1,44 @@
 # >:]
 
 # name  = base.cmd.help
+# param = [keyword]
 # descr = print available commands/descriptions
 
 my $id  = $$call{'session_id'};
 my $usr = $data{'session'}{$id}{'user'};
 
-my $command  = $$call{'args'};
+my $keyword  = $$call{'args'};
 my $max_len  = 0;
 my @commands = ();
 
-return { 'mode' => 'nack', 'data' => "not implemented yet... :/" }
-    if defined $command;
-
 # get a list of all commands the user who sent the request has access to
 
-foreach my $cmd ( sort( keys( %{ $data{'base'}{'cmd'} } ) ) ) {
+foreach my $cmd ( sort( keys( %{<base.cmd>} ) ) ) {
+    if ( defined <access.cmd.regex.usr>->{$usr}
+        and $cmd =~ <access.cmd.regex.usr>->{$usr}
+        or defined <access.cmd.regex.usr>->{'*'}
+        and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
 
-    if ( defined $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
-        and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
-        or defined $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'}
-        and $cmd =~ $data{'access'}{'cmd'}{'regex'}{'usr'}{'*'} ) {
+     #        # command description mode
+     #        return { 'mode' => 'nack', 'data' => "not implemented yet... :/" }
+     #            if defined $keyword and exists <base.cmd>->{$keyword};
+
+        # keyword search mode
+        next
+            if defined $keyword
+            and $cmd !~ /\Q$keyword\E/i
+            and <base.help.cmd>->{$cmd}->{'descr'} !~ /\Q$keyword\E/i;
+
         if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
         push( @commands, $cmd );
     }
 }
+
+return {
+    'mode' => 'nack',
+    'data' => "no commands matching '$keyword' available"
+    }
+    if defined $keyword and !@commands;
 
 # format and return the command list
 
