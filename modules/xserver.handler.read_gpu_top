@@ -88,4 +88,42 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     <[base.log]>->(
         $llvl, sprintf "< GPU >  %3s  <  .. $avg_str ..  >$sec", "$load\%"
     );
+
+    # handle configured GPU load alerts
+    if (    defined <xserver.gpu_load.alert>
+        and ref(<xserver.gpu_load.alert>) eq 'HASH'
+        and keys %{<xserver.gpu_load.alert>} ) {
+        <xserver.gpu_load.last_alert> //= {};
+        foreach
+            my $al_secs ( sort { $a <=> $b } keys %{<xserver.gpu_load.alert>} )
+        {
+            next
+                if defined <xserver.gpu_load.last_alert>->{$al_secs}
+                and <[base.time]>->(2)
+                - <xserver.gpu_load.last_alert>->{$al_secs} < ( $al_secs + 30 );
+            my $alert_threshold = <xserver.gpu_load.alert>->{$al_secs};
+            if ( defined $load_ref->{$al_secs}
+                and $load_ref->{$al_secs} >= $alert_threshold ) {
+                <[base.log]>->(
+                    0,
+                    sprintf( "<!> GPU load alert <!> ( ${al_secs}s at %.2f",
+                        $load_ref->{$al_secs} )
+                        . '% )'
+                );
+                if ( defined <xserver.gpu_load.send_alerts> ) {
+                    map {
+                        <[base.proto.nailara.command.send.local]>->(
+                            {   'command'   => "core.$_.gpu_load_alert",
+                                'call_args' => {
+                                    'args' => join( ' ',
+                                        $al_secs, $load_ref->{$al_secs} )
+                                }
+                            }
+                        );
+                    } split( / +/, <xserver.gpu_load.send_alerts> );
+                }
+                <xserver.gpu_load.last_alert>->{$al_secs} = <[base.time]>->(2);
+            }
+        }
+    }
 }
