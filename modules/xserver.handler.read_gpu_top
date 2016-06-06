@@ -9,7 +9,8 @@ my $gtop_pid = $event->data->{'pid'};
 
 my @stat_secs = ( 5, 15, 30 );
 
-<xserver.gpu_top.stats>              //= {};
+<xserver.gpu_top.stats> //= {};
+<xserver.gpu_top.stats.secs> = [ 1, sort { $a <=> $b } @stat_secs ];
 <xserver.gpu_top.stats.sample>       //= {};
 <xserver.gpu_top.stats.load_average> //= {};
 <xserver.gpu_top.output_buffer>      //= '';
