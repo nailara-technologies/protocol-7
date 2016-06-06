@@ -21,6 +21,13 @@ if ( defined $percent ) {
 
     if ( exists <browser.timer.auto_slowdown> ) {
         <browser.timer.auto_slowdown>->cancel;
+    } else {
+        my $target_load = <browser.cfg.max_gpu_load>;
+        <[base.log]>->(
+            0,
+            "<!> activating GPU load auto-speed mode"
+                . " ( limit : ${target_load}% )"
+        );
     }
     <browser.timer.auto_slowdown> = <[event.add_timer]>->(
         {   'after'    => 0,

@@ -32,4 +32,12 @@ if ( !<layout.warned.gpu_load_alert> ) {
     }
 );
 
-return { 'mode' => 'ack', 'data' => 'countermeasures activated' }
+map {
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.$_.slow_down" } )
+} ( 'browser', 'media.browser' );
+
+return {
+    'mode' => 'ack',
+    'data' => 'countermeasures activated'
+    }
