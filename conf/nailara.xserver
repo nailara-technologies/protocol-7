@@ -41,11 +41,12 @@ xserver.max_intel_gpu_freq = no
 xserver.collect_intel_gpu_stats = 1  # using 'intel_gpu_top'
 xserver.gpu_top.stat_log_level = 2  # <- for debugging only
 
-xserver.gpu_load.alert.5  = 98
-xserver.gpu_load.alert.15 = 94
-xserver.gpu_load.alert.30 = 82
+# alert if load at :  secs
+xserver.gpu_load.alert.5  = 98 # %
+xserver.gpu_load.alert.15 = 94 # %
+xserver.gpu_load.alert.30 = 82 # %
 
-xserver.gpu_load.send_alerts = layout
+xserver.gpu_load.send_alerts = layout # agents to receive 'gpu_load_alert' cmds
 
 access.cmd.usr.core = help message ping reload verify_instance \
                       get_mode get_display get_params get_screen_size \
