@@ -1,0 +1,32 @@
+# >:]
+
+# name  = browser.cmd.slow_down
+# param = [target_%]
+# descr = trigger slowing down autoscroll FPS
+
+my $percent = $$call{'args'};
+return { 'mode' => 'nack', 'data' => 'expected percent value [0..100]' }
+    if defined $percent and ( $percent !~ /^\d+$/ or $percent > 100 );
+
+if ( defined $percent ) {
+    if ( exists <browser.timer.auto_slowdown> ) {
+        <browser.timer.auto_slowdown>->cancel;
+        delete <browser.timer.auto_slowdown>;
+    }
+    <browser.redraw_fps.slowdown_target> = $percent;
+    return { 'mode' => 'ack', 'data' => "slow down target set to ${percent}%" };
+} else {
+
+    <browser.interval.auto_slowdown> //= 1;
+
+    if ( exists <browser.timer.auto_slowdown> ) {
+        <browser.timer.auto_slowdown>->cancel;
+    }
+    <browser.timer.auto_slowdown> = <[event.add_timer]>->(
+        {   'after'    => 0,
+            'interval' => <browser.interval.auto_slowdown>,
+            'handler'  => 'browser.handler.auto_slowdown'
+        }
+    );
+    return { 'mode' => 'ack', 'data' => "slow down mode 'auto' activated" };
+}

@@ -2,10 +2,20 @@
 
 # name = browser.calc_scroll_speed
 
-<browser.autoscroll.delay> //= 5;
-<browser.autoscroll.delay> = 10 if <browser.autoscroll.delay> > 10;
-<browser.autoscroll.delay> = 1  if <browser.autoscroll.delay> < 1;
-<browser.autoscroll.delay>
-    = sprintf( "%.6f", 1 / 60 / ( <browser.cfg.scroll_speed> / 10 ) );
+# load based slowdown
+<browser.redraw_fps.slowdown>        //= 0;
+<browser.redraw_fps.slowdown_target> //= 0;
+my $slowdown_factor = ( 100 - <browser.redraw_fps.slowdown> ) / 100;
+
+# configured scroll speed
+<browser.cfg.scroll_speed> //= 5;
+<browser.cfg.scroll_speed> = 10 if <browser.cfg.scroll_speed> > 10;
+<browser.cfg.scroll_speed> = 1  if <browser.cfg.scroll_speed> < 1;
+
+my $actual_speed = <browser.cfg.scroll_speed> * $slowdown_factor;
+$actual_speed = 1 if $actual_speed < 1;
+
+# redraw delay (padding)
+<browser.autoscroll.delay> = sprintf( "%.6f", 1 / 60 / ( $actual_speed / 10 ) );
 <browser.autoscroll.fps> = sprintf( "%.2f", 1 / <browser.autoscroll.delay> );
 <browser.autoscroll.cfg_delay> = <browser.autoscroll.delay>;

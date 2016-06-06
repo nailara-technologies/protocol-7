@@ -1,0 +1,50 @@
+# >:]
+
+# name = browser.handler.gpu_load_reply
+
+my $params = shift;
+
+<browser.cfg.max_gpu_load> //= 64;    # setting sane(?) defaults ..
+my $limit = <browser.cfg.max_gpu_load>;    # % GPU max. load target
+
+my $is_scrolling = <window.scrolling> // 0;
+
+my $accel_factor    = 0.2;
+my $upper_tolerance = 1.2;
+my $lower_tolerance = 4.2;
+
+return if $params->{'cmd'} ne 'ACK';
+my $load_percent = $params->{'call_args'}->{'args'};
+
+my $percent_exceeded
+    = sprintf( "%.2f", 100 * ( $load_percent - $limit ) / ( 100 - $limit ) );
+
+$accel_factor *= 0.42 if $percent_exceeded < 0;
+$accel_factor *= 0.01 if $percent_exceeded < 0 and !$is_scrolling;
+
+my $target_percent = <browser.redraw_fps.slowdown_target>;
+my $old_target     = $target_percent;
+
+$target_percent
+    = sprintf( "%.2f", $target_percent + $percent_exceeded * $accel_factor );
+
+$target_percent = 100 if $target_percent > 100;
+$target_percent = 0   if $target_percent < 0;
+
+my $skip = (
+           $percent_exceeded <= 0 and abs($percent_exceeded) < $lower_tolerance
+        or $percent_exceeded > 0  and abs($percent_exceeded) < $upper_tolerance
+) ? 1 : 0;
+
+<browser.redraw_fps.slowdown_target> = $target_percent if !$skip; # SET new val.
+
+# debug section
+$target_percent = <browser.redraw_fps.slowdown_target>;
+my $delta_t = sprintf( "%.2f", $target_percent - $old_target );
+my $delta_str = $delta_t > 0 ? "+$delta_t" : $delta_t;
+$load_percent = sprintf( "%.2f", $load_percent );
+<[base.log]>->(
+    0,
+    "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
+        . " >- [ SLW ${target_percent}% ] $delta_str"
+);
