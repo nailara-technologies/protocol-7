@@ -311,7 +311,8 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     my $src_cmd_id = $$route{'source'}{'cmd_id'};
                     delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
                     delete $data{'route'}
-                        { $data{'session'}{$id}{'route'}{$cmd_id} };
+                        { $data{'session'}{$id}{'route'}{$cmd_id} }
+                        if defined $data{'session'}{$id}{'route'}{$cmd_id};
                     delete $data{'session'}{$src_sid}{'route'}
                         if !keys %{ $data{'session'}{$src_sid}{'route'} };
                     delete $data{'session'}{$id}{'route'}{$cmd_id};
@@ -379,7 +380,8 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                         my $src_cmd_id = $$route{'source'}{'cmd_id'};
                         delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
                         delete $data{'route'}
-                            { $data{'session'}{$id}{'route'}{$cmd_id} };
+                            { $data{'session'}{$id}{'route'}{$cmd_id} }
+                            if defined $data{'session'}{$id}{'route'}{$cmd_id};
                         delete $data{'session'}{$src_sid}{'route'}
                             if !keys %{ $data{'session'}{$src_sid}{'route'} };
                         delete $data{'session'}{$id}{'route'}{$cmd_id};
