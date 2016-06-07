@@ -15,21 +15,26 @@ my $timeout_secs
     || 13;    # <-- internal timeout default
 delete $agent_config->{'ping'} if !keys %{ $agent_config->{'ping'} };
 delete $globals->{'ping'}      if !keys %{ $globals->{'ping'} };
+$instance->{'ping'}->{'failures'} //= 0;
 
-$instance->{'status_timer'}->stop if !$instance->{'status_timer'}->is_cancelled;
+$instance->{'status_timer'}->stop
+    if !$instance->{'status_timer'}->is_active
+    and !$instance->{'status_timer'}->is_cancelled;
 
 $instance->{'timeout_timer'} = <[event.add_timer]>->(
     {   'after'   => $timeout_secs,
         'handler' => 'root.handler.status_response_timeout',
         'data'    => $instance_id
     }
-);
+    )
+    if not defined $instance->{'timeout_timer'}
+    or !$instance->{'timeout_timer'}->is_active;
 
 my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "$command_route.ping",
-        'call_args' => { 'session_id' => $root_sid, 'args' => '' },
+        'call_args' => { 'session_id' => $root_sid },
         'reply'     => {
             'handler' => 'root.handler.status_timer_response',
             'params'  => { 'instance_id' => $instance_id }

@@ -47,6 +47,9 @@ delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
 delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
 delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
 
+$instance->{'ping'} //= {};
+$instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping failure
+
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     $instance->{'timer'}->{'verify_instance'}->cancel;
     delete $instance->{'timer'}->{'verify_instance'};
