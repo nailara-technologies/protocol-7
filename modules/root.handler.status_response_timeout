@@ -3,22 +3,45 @@
 # name = root.handler.status_response_timeout
 
 my $instance_id   = shift->w->data;
-my $agent_name    = <root.agent.instance>->{$instance_id}->{'agent_name'};
-my $agent_status  = <root.agent.instance>->{$instance_id}->{'status'};
-my $is_core_agent = <root.agent.instance>->{$instance_id}->{'is_core'};
-
+my $instance      = <root.agent.instance>->{$instance_id};
+my $agent_name    = $instance->{'agent_name'};
+my $agent_status  = $instance->{'status'};
+my $is_core_agent = $instance->{'is_core'};
+my $fail_count    = $instance->{'ping'}->{'failures'}++;
+my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
+my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 <[base.log]>->(
-    0, "instance $instance_id [$agent_name] response.. ( TIMEOUT )"
+    0, "instance $instance_id [$agent_name] response.. ( TIMEOUT )" . $retry_str
 );
-if ($is_core_agent) {
-    if ( $agent_status eq 'failed' ) {    # was already failed
-        <callback.session.close_last> = {
-            'name'   => 'root.shutdown',
-            'params' => ['fatal core agent failure']
-        };
-        <[base.session.check_last]>;
-    } else {
-        delete <callback.session.close_last>;    # allow safe restart
+
+if ( !$ping_retry ) {                                        # [no more retries]
+    if ($is_core_agent) {
+        if ( $agent_status eq 'failed' ) {    # was already failed
+            <callback.session.close_last> = {
+                'name'   => 'root.shutdown',
+                'params' => ['fatal core agent failure']
+            };
+            <[base.session.check_last]>;
+        } else {
+            delete <callback.session.close_last>;    # allow safe restart
+        }
     }
+    <[agent.change_status]>->( $instance_id, 'failed' );
+} else {
+
+    #    # setting shorter ping timeout..
+    $instance->{'timeout_timer'}->cancel
+        if defined $instance->{'timeout_timer'}
+        and $instance->{'timeout_timer'}->is_active;
+    $instance->{'timeout_timer'} = <[event.add_timer]>->(
+        {   'after' => $instance->{'ping'}->{'retry_timeout'} // 2,
+            'handler' => 'root.handler.status_response_timeout',
+            'data'    => $instance_id
+        }
+    );
+
+    # retrying ping request..
+    $instance->{'status_timer'}->now
+        if defined $instance->{'status_timer'}
+        and !$instance->{'status_timer'}->is_cancelled;
 }
-<[agent.change_status]>->( $instance_id, 'failed' );
