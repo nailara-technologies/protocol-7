@@ -13,9 +13,8 @@ if ( exists $code{'net.send_all'} ) {
             . '$code{\'net.send_all\'}->("close SIGINT manual shutdown\n");' );
 }
 
-if ( $data{'system'}{'verbosity'} >= 2 ) {
-    print "DEBUG MODE: agent state:\n" . <[base.dump_data]>;
-}
+print "DEBUG MODE: agent state:\n" . <[base.dump_data]>
+    if <system.verbosity> >= 2 and <debug.sig_int_dump>;
 
 <[root.shutdown]>
     if exists <system.agent.type> and <system.agent.type> eq 'root';
