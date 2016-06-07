@@ -710,7 +710,15 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     2,
                     "[$id] $data{'session'}{$id}{'user'}"
                         . " -> $target_name > $cmd [ mode $command_mode ]"
-                );
+                    )
+                    if ( $target_name ne 'log'
+                    or $cmd ne 'msg'
+                    or !<debug.skip_log_msg> )
+                    and ( $cmd ne 'log.msg'
+                    or !<debug.skip_log_msg> )
+                    and ( $usr ne 'root'
+                    or $cmd ne 'ping'
+                    or !<debug.skip_root_ping> );
             }
             if (   <system.verbosity> >= 3 and defined $$call_args{'args'}
                 or <system.internal_verbosity> >= 3
