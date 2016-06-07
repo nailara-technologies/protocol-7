@@ -9,6 +9,16 @@ my $next_status = $params->{'next_status'};
 my $instance    = <root.agent.instance>->{$instance_id};
 $next_status = 'restart' if $next_status eq 'delayed';   # <- should not happen!
 
+if ( $instance->{'status'} ne 'delayed' ) {
+    <[base.log]>->(
+        0,
+        "instance $instance_id status = '$instance->{status}',"
+            . " aborting 'children_left' watcher.."
+    );
+    $watcher->cancel;
+    return;
+}
+
 my $child_count = 0;
 
 foreach my $pid ( reverse sort keys %{<root.child>} ) {
