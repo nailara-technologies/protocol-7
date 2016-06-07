@@ -56,6 +56,11 @@ if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
 }
 
+if ( exists $instance->{'pid_check_timer'} and $status ne 'delayed' ) {
+    $instance->{'pid_check_timer'}->cancel;
+    delete $instance->{'pid_check_timer'};
+}
+
 # prevent undesired core shutdown (session.check.last)
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
     <[base.log]>->( 0, "removing session.close_last callback.." );
