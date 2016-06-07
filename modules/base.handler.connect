@@ -24,7 +24,7 @@ if ( not defined $data{'handle'}{$fd}{'proto'} ) {
     my $id = <[base.session.init]>->( $new_fd, $proto, $mode );
 
     # send server banner
-    if ( $banner ne '' and $mode eq 'in' ) {
+    if ( length($banner) and $mode eq 'in' ) {
         <[net.out]>->( $new_fd, $banner );
     }
     <[base.log]>->( 1, "[$id] $proto protocol connection established." );
