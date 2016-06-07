@@ -77,7 +77,11 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
             if exists <system.agent.subname>;
 
         # XXX: implement (debug) watch patterns for command logging
-        <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" );
+        <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" )
+            if $src_name ne 'core'
+            or $target_name ne 'log'
+            or $cmd ne 'msg';    # avoiding infinite loop in debug log ...
+                                # XXX: create log 'filter' patterns ...
 
         $target_cmd_id =~ s/^(\d+)$/($1)/;
 
