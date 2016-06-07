@@ -4,8 +4,9 @@
 
 <browser.subcfg> //= {};
 
-<browser.subcfg>->{'adblock'}  //= 0;
-<browser.subcfg>->{'noscript'} //= 0;
+<browser.subcfg>->{'adblock'}    //= 0;
+<browser.subcfg>->{'noscript'}   //= 0;
+<browser.subcfg>->{'auto_speed'} //= 0;
 
 <[base.log]>->( 1, "processing layout tile subconfig.." );
 
@@ -40,4 +41,10 @@ if (    defined <browser.subcfg.scroll_speed>
             . "' configured [1..10]"
     );
     delete <browser.subcfg.scroll_speed>;
+}
+
+if ( <browser.subcfg>->{'auto_speed'} ) {
+    <browser.cfg.javascript_enabled> = 0;
+    <[base.log]>->( 1, ": auto_speed enabled : [gpu load limit]" );
+    <[browser.enable_auto_speed]>;
 }

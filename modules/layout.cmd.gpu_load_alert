@@ -26,16 +26,13 @@ if ( !<layout.warned.gpu_load_alert> ) {
     <layout.warned.gpu_load_alert>++;
 }
 
+<[layout.browser.enable_auto_speed]>;
+
 <[event.add_timer]>->(
     {   'after'   => $restart_delay,
         'handler' => 'layout.impressive.increase_light_mode'
     }
 );
-
-map {
-    <[base.proto.nailara.command.send.local]>
-        ->( { 'command' => "core.$_.slow_down" } )
-} ( 'browser', 'media.browser' );
 
 return {
     'mode' => 'ack',

@@ -1,0 +1,19 @@
+# >:]
+
+# name  = layout.browser.enable_auto_speed
+# descr = send 'slow_down' command to browser agents ([GPU/CPU] load reduction)
+
+my $agents_present //= {};
+foreach my $agent_name ( keys %{<layout.subconfig>} ) {
+    next if $agent_name !~ /^(browser|media)/;
+    <layout.subconfig>->{$agent_name}->{'auto_speed'} = 1;
+    <[base.log]>->( 0, "switching $agent_name to auto_speed mode!" );
+    my $route = $agent_name =~ /^media/ ? 'media.browser' : 'browser';
+    $agents_present->{$route} //= 1;
+}
+
+map {
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.$_.slow_down" } )
+} sort keys %{$agents_present};
+
