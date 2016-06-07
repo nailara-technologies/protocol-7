@@ -74,7 +74,8 @@ foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
             'mode' => 'ack',
             'data' => "agent '$query_copy' already online! [$core_sid]"
             }
-            if <root.agent.instance>->{$id}->{'status'} eq 'online';
+            if defined $core_sid
+            and <root.agent.instance>->{$id}->{'status'} eq 'online';
         return {
             'mode' => 'ack',
             'data' => "external program '$query_copy'"
