@@ -3,7 +3,7 @@
 # name  = log.add_line
 # descr = add a log entry to specified log file
 
-my ( $log_name, $log_msg ) = @_;
+my ( $log_name, $log_msg_ref ) = @_;
 
 # validating input parameters
 return ( 0, "no log file specified" )
@@ -12,9 +12,9 @@ return ( 0, "invalid log file name '$log_name'" ) if $log_name =~ /^\./;
 return ( 0, "invalid characters in log file name '$log_name'" )
     if $log_name !~ /^[\w\d\-\.\_\ ]+$/;
 return ( 0, "empty log message" )
-    if not defined $log_msg or !length($log_msg);
-$log_msg =~ s/^0 //;    # core-agent source sid
-$log_msg .= "\n" if $log_msg !~ /\n$/;
+    if not defined $$log_msg_ref or !length($$log_msg_ref);
+$$log_msg_ref =~ s/^0 //;    # core-agent source sid
+$$log_msg_ref .= "\n" if $$log_msg_ref !~ /\n$/;
 
 my $log_path = <log.nailara_log.path>;
 my $log_file .= "$log_name.log";
@@ -25,7 +25,7 @@ my $file_create_mode = 0640;
 # check log directory
 if ( !-d $log_path ) {
     <[base.log]>->( 0, "log directory '$log_path' disappeared, recreating..." );
-    my ( $ok, $err_msg )    # XXX: use File::Path::make_path() ?
+    my ( $ok, $err_msg )     # XXX: use File::Path::make_path() ?
         = <[file.make_path]>->( $log_path, <log.nailara_log.dir_mask> );
     return ( 0, $err_msg ) if !$ok;
     my ( undef, undef, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
@@ -57,6 +57,6 @@ if ( !<log.files>->{$log_name}->{'locked'} ) {
     $log_fh = <log.files>->{$log_name}->{'fh'};
 }
 
-print {$log_fh} $log_msg;
+print {$log_fh} $$log_msg_ref;
 
 return 1;
