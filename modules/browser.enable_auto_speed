@@ -1,0 +1,21 @@
+# >:]
+
+# name  = browser.enable_auto_speed
+# descr = applies GPU load limit by automatically decreasing down scroll speed
+
+<browser.interval.auto_slowdown> //= 0.64;
+
+if ( exists <browser.timer.auto_slowdown> ) {
+    <browser.timer.auto_slowdown>->cancel;
+} else {
+    my $target_load = <browser.cfg.max_gpu_load>;
+    <[base.log]>->(
+        0, "activating GPU load auto-speed mode ( limit : ${target_load}% )"
+    );
+}
+<browser.timer.auto_slowdown> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => <browser.interval.auto_slowdown>,
+        'handler'  => 'browser.handler.auto_slowdown'
+    }
+);
