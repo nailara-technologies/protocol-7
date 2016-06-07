@@ -11,7 +11,7 @@ my $fail_count    = $instance->{'ping'}->{'failures'}++;
 my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
 my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 <[base.log]>->(
-    0, "instance $instance_id [$agent_name] response.. ( TIMEOUT )" . $retry_str
+    0, "instance $instance_id [$agent_name] ping response ( TIMEOUT )" . $retry_str
 );
 
 if ( !$ping_retry ) {                                        # [no more retries]

@@ -23,15 +23,16 @@ $instance->{'timeout_timer'}->cancel
 if (    $response->{'cmd'} eq 'ACK'
     and $response->{'call_args'}->{'args'} eq 'pong' ) {     # all fine
     delete $instance->{'ping'}->{'failures'};
-    <[base.log]>
-        ->( 2, "instance $instance_id [$agent_name] response.. ( OK )" );
+    <[base.log]>->(
+        2, "instance $instance_id [$agent_name] ping response ( OK )"
+    ) if !<debug.skip_root_ping>;
     $instance->{'status_timer'}->again
         if !$instance->{'status_timer'}->is_cancelled;
 
 } elsif ( !$ping_retry ) {
 
     <[base.log]>->(
-        0, "instance $instance_id [$agent_name] response.. ( FAIL )"
+        0, "instance $instance_id [$agent_name] ping response ( FAIL )"
     );
 
     delete <callback.session.close_last> if $is_core_agent; # allow safe restart
@@ -41,7 +42,7 @@ if (    $response->{'cmd'} eq 'ACK'
     <[base.log]>->(
         0,
         "instance $instance_id [$agent_name]"
-            . " response ( FAIL ).. (retrying..)"
+            . " ping response ( FAIL ) (retrying..)"
     );
 
     # setting shorter ping timeout..
