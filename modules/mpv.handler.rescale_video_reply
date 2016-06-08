@@ -7,14 +7,19 @@ my $chk_hash = $reply->{'params'}->{'chk_hash'};
 
 delete <mpv.converting>->{$chk_hash};
 
-return <[base.log]>->(
-    0,
-    'video rescaling failed [ ffmpeg agent: '
-        . $reply->{'call_args'}->{'args'} . ' ]'
-) if $reply->{'cmd'} ne 'ACK';
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <mpv.rescale_failed> //= {};
+    <mpv.rescale_failed>->{$chk_hash} = 1;
+    <[mpv.callback.reenc_finished]>;    # removing 'reencoding video...' message
+    return <[base.log]>->(
+        0,
+        '<!> video rescaling failed <!>  won\'t try again! :/  ( reason : '
+            . $reply->{'call_args'}->{'args'} . ' )'
+    );
+}
 
-my $new_path = $reply->{'call_args'}->{'args'};
 my $old_path = $reply->{'params'}->{'orig_path'};
+my $new_path = $reply->{'call_args'}->{'args'};
 ( my $video_name = $old_path ) =~ s|^.*/||;
 
 <[base.log]>->( 1, "[rescaled] replacing playlist entry for '$video_name'" );
