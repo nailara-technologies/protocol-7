@@ -6,23 +6,28 @@ my $reply = shift;
 my $reenc_msg_sid;
 my $refresh_interval = <mpv.reenc_refresh_interval>;
 
+delete <mpv.reenc_msg_sid>;
+
+my $err_reason;
 if ( $reply->{'cmd'} ne 'ACK' ) {
-    my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "reenc-msg startup failed [$reason]" );
-    return;
+    $err_reason = ' [' . $reply->{'call_args'}->{'args'} . ']';
+} else {
+    $reenc_msg_sid = $1
+        if $reply->{'call_args'}->{'args'} =~ /online! \[(\d+)\]$/;
 }
 
-$reenc_msg_sid = $1 if $reply->{'call_args'}->{'args'} =~ /online! \[(\d+)\]$/;
-
-if ( not defined $reenc_msg_sid or $reenc_msg_sid !~ /^\d+$/ ) {
-    <[base.log]>->( 0, "[!] failed to obtain reenc-msg agent sid!" );
-    delete <mpv.reenc_msg_sid> if exists <mpv.reenc_msg_sid>;
+if (   defined $err_reason
+    or not defined $reenc_msg_sid
+    or $reenc_msg_sid !~ /^\d+$/ ) {
+    <[base.log]>->( 0, "[!] failed to obtain reenc-msg agent sid!$err_reason" );
     return;
-} else {
-    <[base.log]>->( 2, "received reenc-msg agent sid $reenc_msg_sid" );
 }
 
 <mpv.reenc_msg_sid> = $reenc_msg_sid;
+
+<[base.log]>->( 2, "received reenc-msg agent sid $reenc_msg_sid" );
+
+<[mpv.callback.reenc_finished]> if !keys %{<mpv.converting>};  # already aborted
 
 <mpv.timer.reenc_refresh>->cancel
     if exists <reenc-msg.timer.reenc_refresh>;
