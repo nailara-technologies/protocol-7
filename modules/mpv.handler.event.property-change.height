@@ -1,6 +1,7 @@
 # >:]
 
 # name = mpv.handler.event.property-change.height
+# note = video will be reencoded even when sizes identical to reduce the bitrate
 
 my $params = shift;
 
@@ -10,7 +11,8 @@ my $current_path = <mpv.current.path>;
 my $video_width  = <mpv.current.video_width>;
 my $video_height = <mpv.current.video_height>;
 
-<mpv.converting> //= {};
+<mpv.converting>     //= {};
+<mpv.rescale_failed> //= {};
 
 if (    <mpv.autorescale>
     and defined $video_width
@@ -37,26 +39,56 @@ if (    <mpv.autorescale>
         my $target_height
             = sprintf( "%.0f", $video_height / $video_width * $target_width );
 
-        while ($target_height % 2
-            or $target_width % 16 ) {
-            $target_width--;
-            $target_height
-                = sprintf( "%.0f",
-                $video_height / $video_width * $target_width );
+        my %check_size;
+        foreach my $step ( -1, 1 ) {    # test both directions (smaller, larger)
+            $check_size{$step}
+                = { 'width' => $target_width, 'height' => $target_height };
+
+            while ($check_size{$step}{'height'} % 2
+                or $check_size{$step}{'width'} % 16 ) {
+                last
+                    if $video_width == 0
+                    or $check_size{$step}{'width'} == 0
+                    or $check_size{$step}{'height'} == 0;
+
+                $check_size{$step}{'width'} += $step;
+                $check_size{$step}{'height'} = sprintf( "%.0f",
+                    $video_height / $video_width * $check_size{$step}{'width'}
+                );
+            }
         }
 
+        # pick size closest to box size
+        ( $target_width, $target_height )
+            = ( $check_size{-1}{'width'}, $check_size{-1}{'height'} );
+        ( $target_width, $target_height )
+            = ( $check_size{1}{'width'}, $check_size{1}{'height'} )
+            if $target_width == 0
+            or $target_height == 0
+            or abs( $box_width - $check_size{1}{'width'} )
+            < abs( $box_width - $check_size{-1}{'width'} );
+
         my $cmd_args = join( ' ',
-            $current_path, "$target_width", "${box_width}x$box_height" );
+            $current_path, "${target_width}x$target_height",
+            "${box_width}x$box_height" );
         <[mpv.check_rescale_path]> if defined <mpv.rescale_path>; # XXX: cleanup
         $cmd_args .= ' ' . <mpv.rescale_path> if defined <mpv.rescale_path>;
         my $chk_hash = <[digest.md5.hex]>->($cmd_args);
 
-        if ( not exists <mpv.converting>->{$chk_hash} ) {
+        if (    not exists <mpv.converting>->{$chk_hash}
+            and not exists <mpv.rescale_failed>->{$chk_hash} ) {
             <mpv.converting>->{$chk_hash} = $current_path;
+            my $rmsg
+                = (     $video_width == $target_width
+                    and $video_height == $target_height )
+                ? ' ( reducing bitrate )'
+                : '';
             <[base.log]>->(
                 1,
-                "autorescaling video ( ${video_width}x$video_height"
-                    . " => target_width: $target_width )"
+                "[autorescale]--< reencoding video >--"
+                    . "[ ${video_width}x$video_height =>"
+                    . " ${target_width}x$target_height ]"
+                    . $rmsg
             );
             <[mpv.callback.start_reenc_msg]> if !<mpv.disable_reenc_msg>;
             <[base.proto.nailara.command.send.local]>->(
