@@ -1,14 +1,12 @@
 # >:]
 
-# name = browser.handler.gpu_load_reply
+# name = ticker-gtk.handler.gpu_load_reply
 
 my $params = shift;
 
-<browser.cfg.max_gpu_load> //= 68;    # setting sane(?) defaults ..
-my $limit       = <browser.cfg.max_gpu_load>;    # % GPU max. load target
-my $stat_window = <browser.cfg.gpu_load_secs>;
-
-my $is_scrolling = <window.scrolling> // 0;
+<ticker-gtk.cfg.max_gpu_load> //= 64;    # setting sane(?) defaults ..
+my $limit       = <ticker-gtk.cfg.max_gpu_load>;    # % GPU max. load target
+my $stat_window = <ticker-gtk.cfg.gpu_load_secs>;
 
 my $accel_factor    = 1.42 / $stat_window;
 my $upper_tolerance = 1.2;
@@ -19,13 +17,12 @@ my $load_percent = $params->{'call_args'}->{'args'};
 
 my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
 
-<browser.redraw_fps.slowdown_target>
+<ticker-gtk.slowdown.percent_target>
     //= $percent_exceeded > 0 ? $percent_exceeded * 2.42 : 0;
 
 $accel_factor *= 0.42 if $percent_exceeded < 0;
-$accel_factor *= 0.01 if $percent_exceeded < 0 and !$is_scrolling;
 
-my $target_percent = <browser.redraw_fps.slowdown_target>;
+my $target_percent = <ticker-gtk.slowdown.percent_target>;
 my $old_target     = $target_percent;
 
 $target_percent
@@ -39,17 +36,17 @@ my $skip = (
         or $percent_exceeded > 0  and abs($percent_exceeded) < $upper_tolerance
 ) ? 1 : 0;
 
-<browser.redraw_fps.slowdown_target> = $target_percent if !$skip; # SET new val.
+<ticker-gtk.slowdown.percent_target> = $target_percent if !$skip; # SET new val.
 
 # debug section
-$target_percent = <browser.redraw_fps.slowdown_target>;
+$target_percent = <ticker-gtk.slowdown.percent_target>;
 my $delta_t = sprintf( "%.2f", $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
 $delta_str = '' if $delta_t == 0;
 $load_percent = sprintf( "%.2f", $load_percent );
-<browser.debug.loglevel.autospeed> //= 2;
+<ticker-gtk.debug.loglevel.autospeed> //= 2;
 <[base.log]>->(
-    <browser.debug.loglevel.autospeed>,
+    <ticker-gtk.debug.loglevel.autospeed>,
     "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
         . " >- [ SLW ${target_percent}% ]$delta_str"
 );

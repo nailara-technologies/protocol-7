@@ -2,10 +2,10 @@
 
 # name = browser.handler.auto_slowdown
 
-<browser.cfg.gpu_load_secs> //= 5;    # [ 1, 5, 15, 30 ]s
+<browser.cfg.gpu_load_secs> //= 15;    # [ 1, 5, 15, 30 ]s
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.xserver.get_gpu_load",
+    {   'command'   => "core.xserver.gpu_load",
         'call_args' => { 'args' => <browser.cfg.gpu_load_secs> },
         'reply'     => { 'handler' => 'browser.handler.gpu_load_reply' }
     }

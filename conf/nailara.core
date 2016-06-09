@@ -47,7 +47,8 @@ access.cmd.usr.ticker-sdl = xserver.wait_visible xserver.set_gravity \
                             root.notify_online
 
 access.cmd.usr.ticker-gtk = xserver.wait_visible root.notify_online \
-                            rss-ticker.resend_update layout.get_subconfig
+                            rss-ticker.resend_update layout.get_subconfig \
+                            xserver.gpu_load
 
 access.cmd.usr.rss-ticker = ticker-gtk.read_file ticker-sdl.read_file \
                             playlist.get_list
@@ -55,7 +56,7 @@ access.cmd.usr.rss-ticker = ticker-gtk.read_file ticker-sdl.read_file \
 access.cmd.usr.browser = xserver.wait_visible xserver.lower_window \
                          xserver.raise_window playlist.get_list_types \
                          pdf2html.get_url image2html.get_url \
-                         layout.get_subconfig xserver.get_gpu_load
+                         layout.get_subconfig xserver.gpu_load
 
 access.cmd.usr.layout = root.start root.stop root.restart \
                         ticker-sdl.get_opacity \
@@ -63,7 +64,7 @@ access.cmd.usr.layout = root.start root.stop root.restart \
                         browser.hide_bg_window playlist.update \
                         xserver.set_opacity xserver.get_stack_order \
                         xserver.lower_window notify.warn browser.slow_down \
-                        media.browser.slow_down
+                        media.browser.slow_down ticker-gtk.slow_down
 
 access.cmd.usr.media = playlist.get_list playlist.get_list_types \
                        xserver.wait_visible xserver.lower_window \
@@ -74,7 +75,7 @@ access.cmd.usr.media = playlist.get_list playlist.get_list_types \
                        xserver.hide_window xserver.unhide_window \
                        xserver.get_mode root.start_once root.stop root.restart \
                        root.notify_online layout.get_subconfig \
-                       reenc-msg.refresh reenc-msg.finished xserver.get_gpu_load
+                       reenc-msg.refresh reenc-msg.finished xserver.gpu_load
 
 access.cmd.usr.mpv = playlist.get_list xserver.wait_visible xserver.keep_below \
                      xserver.set_geometry ffmpeg.rescale_video \
