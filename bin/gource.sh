@@ -10,12 +10,12 @@ gource \
     -f \
     --date-format '< %F >  %T' \
     --git-branch master \
-    -s .13 \
+    -s .33 \
     -1920x1080 \
     --font-colour 0099FF \
     --background-image $BG_IMG \
     --logo $PROJ_DIR/data/gfx/nailara_logo.png \
-    --auto-skip-seconds .1 \
+    --auto-skip-seconds .001 \
     --multi-sampling \
     --stop-at-end \
     --highlight-users \
@@ -30,6 +30,8 @@ gource \
     --output-ppm-stream - \
     --output-framerate 60 -o - \
     | ffmpeg -y -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 -preset fast -pix_fmt yuv420p -crf 1 -threads 0 -bf 0 $TARGET
+
+# current settings -> ~5 min / 6.0 GB
 
 #    | avconv -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K $TARGET 2>/dev/null
 
