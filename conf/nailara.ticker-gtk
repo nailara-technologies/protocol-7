@@ -23,6 +23,7 @@ ticker-gtk.request_rss_updates = 0  # ask rss-ticker agent for update on startup
 ticker-gtk.font.name = DroidSans
 
 ticker-gtk.use_transparency = 1 # set to '0' to disable fading / transp. backgr.
+ticker-gtk.cfg.max_gpu_load = 68 # GPU load target in auto_speed mode
 
 modules.load = auth net io.ip ticker-gtk digest.sha digest.sha1 debug
 
@@ -33,6 +34,8 @@ modules.load = auth net io.ip ticker-gtk digest.sha digest.sha1 debug
 
 [base.x11.get_display]
 [base.x11.get_coordinates]
+ticker-gtk.subcfg = [base.x11.get_subconfig]
+[ticker-gtk.process_subcfg]
 
 [ticker-gtk.open_window]
 

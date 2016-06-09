@@ -9,10 +9,19 @@ my ( $widget, $context, $ref_status ) = @_;
 my $window = <ticker-gtk.obj.window>;
 <ticker-gtk.obj.context> = $context;
 
+<ticker-gtk.auto_speed_mode>     //= 0;
+<ticker-gtk.slowdown.percent>    //= 0;
 <ticker-gtk.draw.skipped>        //= 0;
 <ticker-gtk.draw.skipped_offset> //= 0;
 <ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;    # <- XXX: calc!
 <ticker-gtk.bg_col>              //= [ 1, 1, 1 ];
+
+<ticker-gtk.speed> = 5
+    if not defined <ticker-gtk.speed> or <ticker-gtk.speed> < 5;
+<ticker-gtk.speed> = 42 if <ticker-gtk.speed> > 42;
+
+<ticker-gtk.slowdown.percent> = 0
+    if <ticker-gtk.slowdown.percent> < 0 or <ticker-gtk.slowdown.percent> > 100;
 
 if (   !$window->is_composited
     or !<ticker-gtk.use_transparency> ) {
@@ -79,12 +88,8 @@ my $content_substr
 
 my $x_skipped = $content_substr->[0] // 0;
 
-my $x_offset
-    = sprintf( "%.0f", <ticker-gtk.draw.x_pos> )
-    + $x_skipped
-    - <ticker-gtk.draw.skipped_offset>;
-
-<ticker-gtk.draw.old_pos> //= sprintf( "%.0f", <ticker-gtk.draw.x_pos> );
+my $x_offset = sprintf( "%.0f",
+    <ticker-gtk.draw.x_pos> + $x_skipped - <ticker-gtk.draw.skipped_offset> );
 
 if ($draw_shadow) {
     $context->move_to(
@@ -119,30 +124,61 @@ if (<ticker-gtk.use_transparency>) {
 
 $context->show_text( $content_substr->[1] );
 
-my $ppsec = 1.42 * $speed**1.86;
+my $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
 
-<ticker-gtk.last_time> = <[base.time]>->(8) if <ticker-gtk.paused>;
+if ( !<ticker-gtk.paused> ) {
 
-<ticker-gtk.draw.x_pos>
-    -= sprintf( "%.5f",
-    $ppsec * ( <[base.time]>->(8) - <ticker-gtk.last_time> ) )
-    if !<ticker-gtk.paused>;
+    if (<ticker-gtk.auto_speed_mode>) {    # XXX
+#
+        my $adjust  = 0;
+        my $sl_diff = 0;
+        if ( <ticker-gtk.slowdown.percent>
+            != <ticker-gtk.slowdown.percent_target> ) {
+            $adjust = sprintf(
+                "%.4f",
+                (         <ticker-gtk.slowdown.percent_target>
+                        - <ticker-gtk.slowdown.percent>
+                ) / 842
+            );
+            <ticker-gtk.slowdown.percent>
+                = sprintf( "%.4f", <ticker-gtk.slowdown.percent> + $adjust );
+            $sl_diff = abs(
+                sprintf( "%.4f",
+                          <ticker-gtk.slowdown.percent_target>
+                        - <ticker-gtk.slowdown.percent> )
+            );
+            <ticker-gtk.slowdown.percent> = <ticker-gtk.slowdown.percent_target>
+                if $sl_diff <= 0.05;
+        }
+#
+        $speed -= ( $speed - 5 ) * ( <ticker-gtk.slowdown.percent> / 100 );
+    }
 
-if ( defined <ticker-gtk.content.current.txt_map>->{'total_width'}
-    and <ticker-gtk.draw.x_pos>
-    <= -<ticker-gtk.content.current.txt_map>->{'total_width'} ) {
-    <ticker-gtk.draw.x_pos>
-        = <ticker-gtk.content.current.txt_map>->{'space_width'};
-    <ticker-gtk.last_substr> = [];
+    my $ppsec = 1.42 * $speed**1.86;
 
-    <ticker-gtk.switch_at_seq>-- if <ticker-gtk.switch_at_seq>;
+    my $fps_delay = ( 1 / $ppsec ) - $delta_t;
 
-    <ticker-gtk.content.current.txt_map>
-        = delete <ticker-gtk.content.queued.txt_map>
-        if exists <ticker-gtk.content.queued.txt_map>
-        and !<ticker-gtk.switch_at_seq>;
+    if ( $fps_delay > 0 ) {
+        <[base.sleep]>->($fps_delay);
+        $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
+    }
 
-    delete <ticker-gtk.switch_at_seq> if !<ticker-gtk.switch_at_seq>;
+    <ticker-gtk.draw.x_pos> -= $ppsec * $delta_t;
+
+    if ( defined <ticker-gtk.content.current.txt_map>->{'total_width'}
+        and <ticker-gtk.draw.x_pos>
+        <= -<ticker-gtk.content.current.txt_map>->{'total_width'} ) {
+        <ticker-gtk.draw.x_pos>
+            = <ticker-gtk.content.current.txt_map>->{'space_width'};
+        <ticker-gtk.last_substr> = [];
+        <ticker-gtk.switch_at_seq>-- if <ticker-gtk.switch_at_seq>;
+        <ticker-gtk.content.current.txt_map>
+            = delete <ticker-gtk.content.queued.txt_map>
+            if exists <ticker-gtk.content.queued.txt_map>
+            and !<ticker-gtk.switch_at_seq>;
+        delete <ticker-gtk.switch_at_seq> if !<ticker-gtk.switch_at_seq>;
+    }
+
 }
 
 if (<ticker-gtk.animation_started>) {
@@ -157,8 +193,11 @@ if (<ticker-gtk.animation_started>) {
             }
         );
     }
+} else {
+    Glib::Timeout->add( 23, $code{'ticker-gtk.handler.fade_in'}, undef, -42 );
 }
 
+<ticker-gtk.draw.fps> = sprintf( "%.2f", 1 / $delta_t );
 <ticker-gtk.last_time> = <[base.time]>->(8);
 
 return 1;
