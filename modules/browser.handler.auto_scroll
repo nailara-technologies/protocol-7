@@ -14,7 +14,9 @@ my $vadj     = $view->get_vadjustment();
 
 my $adjust  = 0;
 my $sl_diff = 0;
-if ( <browser.redraw_fps.slowdown> != <browser.redraw_fps.slowdown_target> ) {
+if ( defined <browser.redraw_fps.slowdown_target>
+    and <browser.redraw_fps.slowdown> != <browser.redraw_fps.slowdown_target> )
+{
     $adjust = sprintf(
         "%.3f",
         (         <browser.redraw_fps.slowdown_target>
@@ -145,8 +147,7 @@ if ( $wait_time <= 0 ) {
             if <browser.autoscroll.too_fast> <= 0;
         <[base.log]>->(
             2,
-            sprintf(
-                "scrolling too fast.. slowing.. [ %.4f ms ] <$wait_time>",
+            sprintf( "scrolling too fast.. slowing.. [ %.4f ms ] <$wait_time>",
                 <browser.autoscroll.delay> * 100 )
         );
         <browser.autoscroll.fps>

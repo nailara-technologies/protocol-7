@@ -1,0 +1,16 @@
+# >:]
+
+# name = ticker-gtk.process_subcfg
+
+<ticker-gtk.subcfg> //= {};
+
+<ticker-gtk.subcfg>->{'auto_speed'} //= 0;
+
+<[base.log]>->( 1, "processing layout tile subconfig.." );
+
+if ( <ticker-gtk.subcfg>->{'auto_speed'} ) {
+    <[base.log]>->( 1, ": auto_speed enabled : [gpu load limit]" );
+    undef <ticker-gtk.slowdown.percent_target>;
+    <ticker-gtk.auto_speed_mode> = 1;
+    <[ticker-gtk.enable_auto_speed]>;
+}
