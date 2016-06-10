@@ -135,15 +135,18 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
                 qr/^background rendering finished/i,
                 qr/opengl (software )?renderer/i,
                 qr/likely be too slow/i,
+                qr/^\[INIT\]/,
                 'XIO:  fatal IO error (0|11)',
                 'after \d+ requests'
-            ]
+            ],
+            'callback_patterns' =>
+                { qr/^\[INIT\]/ => 'impressive.callback.stop_loadsplash' }
         }
     }
 );
 
 <[event.add_timer]>->(
-    {   'after'   => 3.33,
+    {   'after'   => 4.2,
         'handler' => 'impressive.callback.stop_loadsplash'
     }
-);
+) if <impressive.parser.init_tag_failed>;
