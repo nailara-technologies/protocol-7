@@ -2,6 +2,9 @@
 
 # name  = impressive.callback.stop_loadsplash
 
+<impressive.loadsplash_stopped> //= 0;
+return if <impressive.loadsplash_stopped>;
+
 <[base.log]>->( 1, "stopping loadsplash agent.." );
 
 my $lsp_name
@@ -14,3 +17,5 @@ my $lsp_name
         'call_args' => { 'args' => $lsp_name }
     }
 );
+
+<impressive.loadsplash_stopped> = 1;
