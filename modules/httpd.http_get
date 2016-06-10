@@ -65,10 +65,9 @@ if ( defined $http_host and defined $link_target ) {
 
     my $base_dir = <httpd.cfg.hostnames>->{$http_host};
     $file_path = "$base_dir$http_uri";
-    if ( !-f $file_path and $file_path =~ /\/$/ ) {
-        if ( -f $file_path . 'index.html' ) {
-            $file_path .= 'index.html';
-        }
+    $file_path =~ s|/$||;
+    if ( -d $file_path ) {    # XXX: support !html index
+        $file_path .= '/index.html' if -f $file_path . '/index.html';
     }
     if ( -f $file_path ) {
         my @stat         = stat($file_path);
