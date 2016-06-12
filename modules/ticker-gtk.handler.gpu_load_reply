@@ -18,7 +18,7 @@ my $load_percent = $params->{'call_args'}->{'args'};
 my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
 
 <ticker-gtk.slowdown.percent_target>
-    //= $percent_exceeded > 0 ? $percent_exceeded * 2.42 : 0;
+    //= $percent_exceeded > 0 ? $percent_exceeded : 0; # initial value (adjusts)
 
 $accel_factor *= 0.42 if $percent_exceeded < 0;
 
