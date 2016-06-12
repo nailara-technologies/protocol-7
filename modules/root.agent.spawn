@@ -191,7 +191,9 @@ if ( not defined $pid or $@ ) {
     }
 );
 
-<[root.child.add]>->( $pid, { 'instance_id' => $instance_id } );
+<[root.child.add]>->(
+    $pid, { 'instance_id' => $instance_id, 'start_time' => <[base.time]>->(4) }
+);
 
 $instances->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
 $instances->{$instance_id}->{'subname'} = $agent_subname
