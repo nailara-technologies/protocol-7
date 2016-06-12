@@ -11,8 +11,10 @@ if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
 my $proc_table = new Proc::ProcessTable;
 
 my %ppids;
+my %start_times;
 foreach my $proc ( @{ $proc_table->table } ) {
-    $ppids{ $proc->{'pid'} } = $proc->{'ppid'};
+    $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
+    $start_times{ $proc->{'pid'} } = $proc->{'start'};
 }
 
 my %children;
@@ -38,4 +40,4 @@ while ($found) {
     }
 }
 
-return [ sort keys %children ];
+return [ sort { $start_times{$b} <=> $start_times{$a} } keys %children ];
