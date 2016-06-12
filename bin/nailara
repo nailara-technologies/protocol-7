@@ -370,37 +370,20 @@ sub prepare_subs {
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'} = 'ok';
                 $ok_count++;
-
-                if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) {
-                    my $section = $1;
-                    my $command = $2;
-                    if ( $data{'code'}{$sub_name}{'status'} eq 'ok' ) {
-                        if ( $sub_code =~ /\#\s*param\s*=\s*(.+)/ ) {
-                            $data{'base'}{'help'}{$section}{$command}{'param'}
-                                = $1;
-                        }
-                        if ( $sub_code =~ /\#\s*descr\s*=\s*(.+)/ ) {
-                            $data{'base'}{'help'}{$section}{$command}{'descr'}
-                                = $1;
-                        } else {
-                            $data{'base'}{'help'}{$section}{$command}{'descr'}
-                                = 'n/a';
-                        }
-
-                    } else {
-                        $data{'base'}{'modules'}{'load_errors'}++;
-                        $code{'log.failed'}->(": : command '$1' broken!");
-                        $data{'base'}{'help'}{$section}{$command}{'descr'}
-                            = '! command broken !';
-                    }
-                } elsif ( $sub_name =~ /\.end_code$/ ) {
+                if (    $sub_name !~ /\.(cmd|cli)\./
+                    and $sub_name =~ /\.end_code$/ ) {
                     push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
                 }
             } else {
                 $code{$sub_name} = sub {
                     {
                         $code{'log.failed'}
-                            ->("broken subroutine '$sub_name' called.")
+                            ->("< ! > - [ broken cmd sub '$sub_name' called ]");
+                        return {
+                            'mode' => 'nack',
+                            'data' => "$1 command is broken <!> see startup log"
+                            }
+                            if $sub_name =~ /\.cmd\.(.+)$/;
                     }
                 };
                 delete $data{'code'}{$sub_name}{'source'};
@@ -415,6 +398,26 @@ sub prepare_subs {
                 $err_str =~ tr/ //s;
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
                 $err_count++;
+            }
+            if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) { # set command desciptions
+                my $section = $1;
+                my $command = $2;
+                if ( $data{'code'}{$sub_name}{'status'} eq 'ok' ) {
+                    if ( $sub_code =~ /\#\s*param\s*=\s*(.+)/ ) {
+                        $data{'base'}{'help'}{$section}{$command}{'param'} = $1;
+                    }
+                    if ( $sub_code =~ /\#\s*descr\s*=\s*(.+)/ ) {
+                        $data{'base'}{'help'}{$section}{$command}{'descr'} = $1;
+                    } else {
+                        $data{'base'}{'help'}{$section}{$command}{'descr'}
+                            = 'n/a';
+                    }
+                } else {
+                    $data{'base'}{'modules'}{'load_errors'}++;
+                    $code{'log.failed'}->("!> broken command : $2");
+                    $data{'base'}{'help'}{$section}{$command}{'descr'}
+                        = '! command broken !';
+                }
             }
         }
         delete $data{'callbacks'}{'end_code'}
