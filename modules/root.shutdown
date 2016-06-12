@@ -12,6 +12,7 @@ my $abort_timeout = 1;
 my %wait_pids = map { $_ => 1 } keys %{<root.child>};
 foreach my $p_pid ( keys %{<root.child>} ) {
     map { $wait_pids{$_} = 1 } @{ <[root.process.get_children]>->($p_pid) };
+    <root.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # just in case
 }
 
 my $child_count = keys %wait_pids;
@@ -30,7 +31,14 @@ my $reason_txt = length($reason) ? " ( $reason )" : '';
     if $child_count and <system.verbosity> == 1;
 
 my $t_res = 3;
-foreach my $pid ( sort keys %{<root.child>} ) {
+
+foreach my $pid (
+    sort {
+        <root.child>->{$b}->{'start_time'} <=>
+            <root.child>->{$a}->{'start_time'}
+    }
+    keys %{<root.child>}
+    ) {
     my $i_id = <root.child>->{$pid}->{'instance_id'};
     my $instance_str = $i_id ? " ( instance $i_id )" : '';
 
@@ -49,7 +57,13 @@ foreach my $pid ( sort keys %{<root.child>} ) {
 }
 
 while ( keys %{<root.child>} ) {
-    foreach my $pid ( sort keys %{<root.child>} ) {
+    foreach my $pid (
+        sort {
+            <root.child>->{$b}->{'start_time'} <=>
+                <root.child>->{$a}->{'start_time'}
+        }
+        keys %{<root.child>}
+        ) {
         my $delta_t
             = <[base.time]>->($t_res) - <root.child>->{$pid}->{'term_sent'};
         if ( $delta_t >= ( $kill_timeout + $abort_timeout ) ) {
@@ -59,7 +73,8 @@ while ( keys %{<root.child>} ) {
             and not exists <root.child>->{$pid}->{'kill_sent'} ) {
             my @children;
             my $proc_table = new Proc::ProcessTable;
-            foreach my $proc ( @{ $proc_table->table } ) {
+            foreach my $proc ( sort { $b->{'start'} <=> $a->{'start'} }
+                @{ $proc_table->table } ) {
                 push( @children, $proc->{'pid'} )
                     if $proc->{'ppid'} == $pid;
             }
