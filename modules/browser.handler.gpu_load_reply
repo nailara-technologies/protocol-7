@@ -4,7 +4,7 @@
 
 my $params = shift;
 
-<browser.cfg.max_gpu_load> //= 68;    # setting sane(?) defaults ..
+<browser.cfg.max_gpu_load> //= 67;    # setting sane(?) defaults ..
 my $limit       = <browser.cfg.max_gpu_load>;    # % GPU max. load target
 my $stat_window = <browser.cfg.gpu_load_secs>;
 
@@ -20,7 +20,7 @@ my $load_percent = $params->{'call_args'}->{'args'};
 my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
 
 <browser.redraw_fps.slowdown_target>
-    //= $percent_exceeded > 0 ? $percent_exceeded * 2.42 : 0;
+    //= $percent_exceeded > 0 ? $percent_exceeded : 0; # initial value (adjusts)
 
 $accel_factor *= 0.42 if $percent_exceeded < 0;
 $accel_factor *= 0.01 if $percent_exceeded < 0 and !$is_scrolling;
