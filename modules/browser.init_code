@@ -7,7 +7,10 @@ use Glib::Event;
 use Gtk3::WebKit;
 use HTTP::Soup;
 
-delete $ENV{'GTK_DEBUG'};
+$ENV{'NO_AT_BRIDGE'} = 1;
+$ENV{'GTK_DEBUG'}    = 'no';
+$ENV{'GDK_DEBUG'}    = 'no';
+
 <browser.open_gtk_inspector> //= 0;
 if (<browser.open_gtk_inspector>) {
     <[base.log]>->(
@@ -85,7 +88,7 @@ my $sn_str
 <browser.cfg.no_memory_cache>        //= 0;
 <browser.redraw_fps.slowdown>        //= 0;
 <browser.redraw_fps.slowdown_target> //= 0;
-<browser.cfg.max_gpu_load>           //= 64; # % ( auto-speed mode load target )
+<browser.cfg.max_gpu_load>           //= 67; # % ( auto-speed mode load target )
 
 <[browser.calc_scroll_speed]>
     if not defined <browser.subcfg>

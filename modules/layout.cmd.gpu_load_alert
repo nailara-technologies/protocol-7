@@ -14,8 +14,8 @@ my $perc_str = sprintf( "%.2f", $percent );
 <[base.log]>->( 1, "<!> received GPU load alert [ ${sec}s at $perc_str% ]" );
 
 my $restart_delay = 0;
-<layout.warned.gpu_load_alert> //= 0;
-if ( !<layout.warned.gpu_load_alert> ) {
+<layout.counter.gpu_alerts> //= 0;
+if ( !<layout.counter.gpu_alerts> ) {
     my $warn_txt = "'GPU Load Alert' 'activating countermeasures...'";
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.notify.warn",
@@ -23,8 +23,8 @@ if ( !<layout.warned.gpu_load_alert> ) {
         }
     );
     $restart_delay = 3;
-    <layout.warned.gpu_load_alert>++;
 }
+<layout.counter.gpu_alerts>++;
 
 <[layout.gpu_alerts.enable_auto_speed]>;
 
