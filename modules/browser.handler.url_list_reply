@@ -10,6 +10,15 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     return;
 }
 
+my $url_list_sha1 = sha1_hex( $reply->{'data'} );
+if ( defined <browser.url_list.sha1>
+    and <browser.url_list.sha1> eq $url_list_sha1 ) {
+    <[base.log]>->( 2, "<i> received url list unchanged, ignoring..." );
+    return;
+} else {
+    <browser.url_list.sha1> = $url_list_sha1;
+}
+
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "received empty url list!" );
     @{<browser.url.list>} = ();
@@ -22,7 +31,6 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => "core.report_paused" } );
     }
-
     return;
 }
 
