@@ -9,7 +9,7 @@ my %file_types;
 my $reply_string   = '';
 my $type_list      = <playlist.file_types>;
 my $file_types_str = $$call{'args'} || '';
-$subname = $1 if $file_types_str =~ s| +\[([^\]]+)\]$||;
+$subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
 
 map { $file_types{$_} = 1 } split / +/, $file_types_str;
 
@@ -21,12 +21,19 @@ foreach my $file ( @{<playlist.file_list>} ) {
         and exists <playlist.agent_subnames>->{$index}
         and not exists <playlist.agent_subnames>->{$index}->{$subname};
 
+    my @url_flags;
+    map { push( @url_flags, $_ ) if exists <playlist.url_flags>->{$_}->{$file} }
+        keys %{<playlist.url_flags>};
+    my $url_flags_str
+        = @url_flags ? '#[' . uc( join( '|', sort @url_flags ) ) . ']#' : '';
+
     foreach my $type ( keys %file_types ) {
-        $reply_string .= "$file\n"
+        $reply_string .= "$file$url_flags_str\n"
             if !length($type)
             or index( $type_list->{$file}, $type ) != -1;
     }
-    $reply_string .= "$file\n" if !keys(%file_types);
+
+    $reply_string .= "$file$url_flags_str\n" if !keys(%file_types);
 }
 
 return { 'mode' => 'raw', 'data' => $reply_string }

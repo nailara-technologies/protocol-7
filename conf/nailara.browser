@@ -3,8 +3,6 @@
 
 buffer.system.log_cmd = log.msg
 
-[set_privs:'nobody']
-
 [load_config_file:'defaults']
 
 browser.playlist.content_types = html pdf image
@@ -62,11 +60,13 @@ browser.error_page     = '<system.root_path>/data/html/failed_to_load.html'
 [load_modules:'config.json browser.config']
 [init_modules]
 
+[browser.config.set_privs:'nobody'] # if not a media-child
+
 [config.json.import_file:'browser.config.json']
 
 browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector (for debugging)
 
-modules.load = auth net io.ip io.unix browser
+modules.load = auth net io.ip io.unix digest.md5 browser
 
 [load_modules:<modules.load>]
 [init_modules]

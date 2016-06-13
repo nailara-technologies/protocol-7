@@ -72,6 +72,10 @@ $window->show_all();
 Glib::Idle->add(
     sub {
         <[browser.wait_for_window]>;
+
+        # handle previous segfaults (if there have been any)
+        <[browser.process_crash_mitigation]>;
+
         if (<browser.slideshow.autostart>) {
             <[base.log]>->( 1, 'url slideshow autostart is enabled!' );
             <[browser.get_url_list]>;
@@ -80,9 +84,13 @@ Glib::Idle->add(
     }
 );
 
-$SIG{'TERM'} = sub {
+$SIG{'INT'} = $SIG{'TERM'} = sub {
     <browser.fading_out> //= 0;
     return if <browser.fading_out>;
+    <browser.shutdown> = 1;
+    my $url_file = '/tmp/.nailara.browser.' . $$;
+    unlink($url_file) if -f $url_file;    # clean shutdown
+
     <browser.gtk_obj.window>
         ->signal_connect( draw => $code{'browser.handler.quit_fade_out'} );
     <browser.gtk_obj.window>->queue_draw;

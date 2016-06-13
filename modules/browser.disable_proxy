@@ -1,0 +1,12 @@
+# >:]
+
+# name = browser.disable_proxy
+
+if (<browser.init_proxy>) {
+
+    my $session = Gtk3::WebKit::get_default_session();
+    $session->set( 'proxy-uri' => undef );
+    <browser.init_proxy> = 0;
+
+    <[base.log]>->( 2, "http proxy disabled" );
+}

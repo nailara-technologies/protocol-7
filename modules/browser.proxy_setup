@@ -2,17 +2,19 @@
 
 # name = browser.proxy_setup
 
+my $use_proxy = shift // <browser.cfg.use_proxy> // 'no';
+
 <browser.init_proxy> = 0;
 
 if (    defined <browser.cfg.proxy_addr>
     and defined <browser.cfg.proxy_port>
-    and defined <browser.cfg.use_proxy> ) {
+    and defined $use_proxy ) {
     my $proxy_addr = <browser.cfg.proxy_addr>;
     my $proxy_port = <browser.cfg.proxy_port>;
-    if ( <browser.cfg.use_proxy> eq 'yes' ) {
+    if ( $use_proxy eq 'yes' ) {
         <browser.init_proxy> = 1;
         <[base.log]>->( 1, "http proxy is enabled ($proxy_addr:$proxy_port)" );
-    } elsif ( <browser.cfg.use_proxy> eq 'auto' ) {
+    } elsif ( $use_proxy eq 'auto' ) {
         <[base.log]>->( 1, "checking http proxy... ($proxy_addr:$proxy_port)" );
         my $check_sock = IO::Socket::INET->new(
             PeerAddr => $proxy_addr,

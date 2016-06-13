@@ -1,0 +1,46 @@
+# >:]
+
+# name  = playlist.cmd.set_flags
+# param = <flags> <url>
+# descr = set url flags for given playlist url
+
+my ( $flag_names, $url ) = split( / +/, $$call{'args'}, 2 );
+return { 'mode' => 'nack', 'data' => 'flag name expected!' }
+    if not defined $flag_names or !length($flag_names);
+$flag_names =~ s|,,|,|g;
+map {
+    return {
+        'mode' => 'nack',
+        'data' => "invalid url flag name '$_' .. comma seperated .. < "
+            . join( ' | ', sort keys( %{<playlist.url_flags>} ) ) . ' >'
+        }
+        if not exists <playlist.url_flags>->{$_}
+} split( /,/, $flag_names );
+return { 'mode' => 'nack', 'data' => 'URL expected!' }
+    if not defined $url
+    or $url !~ m|^https?://|;
+
+my $match = 0;
+map { $match++ if $_ eq $url; } @{<playlist.file_list>};
+
+return { 'mode' => 'nack', 'data' => 'no match in playlist!' } if !$match;
+
+return {
+    'mode' => 'nack',
+    'data' => 'not allowed for determined content type!'
+    }
+    if <playlist.http.check_content_types>
+    and defined <playlist.file_types>->{$url}
+    and <playlist.file_types>->{$url} ne 'html';
+
+my $s = $flag_names =~ /,/ ? 's' : '';
+<[base.log]>->( 0, "setting url flag$s '$flag_names' for '$url'" );
+
+map { delete <playlist.url_flags>->{$_}->{$url} } keys %{<playlist.url_flags>};
+map { <playlist.url_flags>->{$_}->{$url} = 1 } split( /,/, $flag_names );
+
+<[playlist.update.send_notifications]>;
+
+my $msgstr = $flag_names !~ /,/ ? 'flag has been set!' : 'flags have been set!';
+
+return { 'mode' => 'ack', 'data' => $msgstr };

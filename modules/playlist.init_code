@@ -6,6 +6,10 @@ use File::MimeInfo::Magic;
 
 <playlist.file_list>  //= [];
 <playlist.file_types> //= {};
+<playlist.url_flags>  //= {};
+
+map { <playlist.url_flags>->{$_} //= {} }
+    ( 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
 
 <playlist.network_errors>  //= 0;
 <playlist.content_changed> //= 0;
