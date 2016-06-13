@@ -61,6 +61,10 @@ if (<window.scroll.stop>) {
 
     goto scroll_finished if <browser.slideshow.running>;
 
+    if ( my $load_uri = delete <browser.load_at_scroll_stop> ) {
+        <[browser.load_uri]>->($load_uri);
+    }
+
     return 0;
 
 } elsif ( <window.scroll.pos> < <window.scroll.max> ) {

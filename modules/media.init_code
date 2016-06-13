@@ -9,13 +9,36 @@ $SIG{'CHLD'} = sub {
     my $child_pid;
     do {
         $child_pid = waitpid( -1, WNOHANG );
+        my $e_val = $? >> 8;
+        my $e_sig = $? & 127;
         if ( exists <media.running>->{$child_pid} ) {
             my $child_name = <media.running>->{$child_pid};
             push( @names, "'$child_name'" );
             delete <media.running>->{$child_pid};
             delete <media.running>->{$child_name};
+            <[base.log]>->(
+                0,
+                "<!> SEGMENTATION FAULT <!> sub-agent"
+                    . " '$child_name' ( PID $child_pid )"
+            ) if $e_sig == 11;
+
+            ## record browser segfaults (for crash mitigation) ##
+            if ( $e_sig == 11 and $child_name eq 'browser' ) {
+                my $agent_subname = <system.agent.subname>;
+                my $sn_hash
+                    = ( defined $agent_subname and length($agent_subname) )
+                    ? '.' . encode_base64url($agent_subname)
+                    : '';
+                my $file_name = "/tmp/.nailara.browser.crash_pid$sn_hash";
+                <[file.put]>->( $file_name, "$child_pid\n" )
+                    or warn("$file_name: $!");
+                chmod( 0644, $file_name ) or warn("$file_name: $!");
+            }
+
         } elsif ($child_pid) {
             push( @names, $child_pid );
+            <[base.log]>->( 0, "<!> SEGMENTATION FAULT <!> ( PID $child_pid )" )
+                if $e_sig == 11;
         }
     } while $child_pid > 0;
     <[base.log]>->(
