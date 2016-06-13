@@ -41,7 +41,7 @@ if ( <browser.scroll.fail.js_disabled> or <browser.url_active.nojs> ) {
 
 # clear adblock #
 if ( <browser.url_active.adblock> and not exists $flags->{'adblock'} ) {
-    <[browser.disable_proxy]>;
+    <[browser.disable_proxy]>->(2);
     delete <browser.url_active.adblock>;
     <[base.log]>->( $loglevel, ": adblock disabled!" );
 }
@@ -71,7 +71,7 @@ if ( exists $flags->{'nojs'} and <browser.cfg.javascript_enabled> ) {
 ## ADBLOCK ##
 
 if ( exists $flags->{'adblock'} and !<browser.init_proxy> ) {
-    <[browser.proxy_setup]>->('auto');
+    <[browser.proxy_setup]>->( 'auto', 2 );
     <browser.url_active.adblock> = 1;
     <[base.log]>->( $loglevel, ": adblock enabled! ( adblock flag '$uri' )" );
 }

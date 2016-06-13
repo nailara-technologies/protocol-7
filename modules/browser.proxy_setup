@@ -3,6 +3,7 @@
 # name = browser.proxy_setup
 
 my $use_proxy = shift // <browser.cfg.use_proxy> // 'no';
+my $log_level = shift // 1;
 
 <browser.init_proxy> = 0;
 
@@ -13,9 +14,13 @@ if (    defined <browser.cfg.proxy_addr>
     my $proxy_port = <browser.cfg.proxy_port>;
     if ( $use_proxy eq 'yes' ) {
         <browser.init_proxy> = 1;
-        <[base.log]>->( 1, "http proxy is enabled ($proxy_addr:$proxy_port)" );
+        <[base.log]>->(
+            $log_level, "http proxy is enabled ($proxy_addr:$proxy_port)"
+        );
     } elsif ( $use_proxy eq 'auto' ) {
-        <[base.log]>->( 1, "checking http proxy... ($proxy_addr:$proxy_port)" );
+        <[base.log]>->(
+            $log_level, "checking http proxy... ($proxy_addr:$proxy_port)"
+        );
         my $check_sock = IO::Socket::INET->new(
             PeerAddr => $proxy_addr,
             PeerPort => $proxy_port,
@@ -25,14 +30,16 @@ if (    defined <browser.cfg.proxy_addr>
         if (    defined $check_sock
             and -S $check_sock
             and $check_sock->connected() ) {
-            <[base.log]>->( 1, ": proxy ok - enabled.." );
+            <[base.log]>->( $log_level, ": proxy ok - enabled.." );
             $check_sock->close();
             <browser.init_proxy> = 1;
         } else {
-            <[base.log]>->( 1, ": failed to connect to proxy - disabled" );
+            <[base.log]>->(
+                $log_level, ": failed to connect to proxy - disabled"
+            );
         }
     } else {
-        <[base.log]>->( 1, "http proxy is disabled in agent setup.." );
+        <[base.log]>->( $log_level, "http proxy is disabled in agent setup.." );
     }
 }
 
@@ -44,4 +51,4 @@ if (<browser.init_proxy>) {
     $session->set( 'proxy-uri' => $proxy_uri );
 }
 
-0;
+return <browser.init_proxy>; # no checks performed if use_proxy set to 'yes' ...
