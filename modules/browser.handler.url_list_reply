@@ -13,7 +13,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 my $url_list_sha1 = sha1_hex( $reply->{'data'} );
 if ( defined <browser.url_list.sha1>
     and <browser.url_list.sha1> eq $url_list_sha1 ) {
-    <[base.log]>->( 2, "<i> received url list unchanged, ignoring..." );
+    <[base.log]>->( 2, "<i> received url list is unchanged, ignoring..." );
     return;
 } else {
     <browser.url_list.sha1> = $url_list_sha1;
@@ -51,7 +51,8 @@ foreach my $url (@url_list) {
     $url_txt .= '...' if length($url_txt) < length($url);
     <[base.log]>->( 1, ": - $url_txt" );
 }
-<[base.log]>->( 1, ": $entry_count entries received" );
+my $y = $entry_count == 1 ? 'y' : 'ies';
+<[base.log]>->( 1, ": $entry_count entr$y received" );
 
 @{<browser.url.list_reply>} = @url_list;
 
