@@ -318,4 +318,15 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # XXX: extbin ?
     }
 }
 
+if ( $status ne 'online' ) {
+
+    # cancel ping timers to prevent false positives
+    $instance->{'status_timer'}->cancel
+        if exists $instance->{'status_timer'}
+        and $instance->{'status_timer'}->is_active;
+    $instance->{'timeout_timer'}->cancel
+        if exists $instance->{'timeout_timer'}
+        and $instance->{'timeout_timer'}->is_active;
+}
+
 <[jobqueue.check_dependencies]>;
