@@ -9,6 +9,8 @@ foreach my $agent_name ( keys %{<layout.subconfig>} ) {
     if ( not defined <layout.subconfig>->{$agent_name}->{'auto_speed'}
         or !<layout.subconfig>->{$agent_name}->{'auto_speed'} ) {
 
+        next if $agent_name !~ /ticker/ and <layout.counter.gpu_alerts> < 2;
+
         <[base.log]>->( 1, "activating auto_speed mode for '$agent_name'" );
         <layout.subconfig>->{$agent_name}->{'auto_speed'} = 1;
 
