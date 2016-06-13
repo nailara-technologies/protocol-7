@@ -5,11 +5,11 @@
 my $reply       = shift;
 my $url         = $reply->{'params'}->{'check_url'};
 my $retry_delay = $reply->{'params'}->{'retry_delay'};
-my $retry_count = $reply->{'params'}->{'retry_count'} // 0;
 my $reply_str   = $reply->{'call_args'}->{'args'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    my $log_level = $retry_count == 0 ? 0 : 2;
+    <playlist.types_retry_count>->{$url} //= 0;
+    my $log_level = <playlist.types_retry_count>->{$url}++ == 0 ? 0 : 2;
     <[base.log]>->(
         $log_level,
         "<!> failed to resolve mimetype for '$url' [$reply_str]"
@@ -26,14 +26,14 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
             'handler' => 'playlist.callback.check_mimetype',
             'data'    => {
                 'check_url'   => $url,
-                'retry_delay' => $next_delay,
-                'retry_count' => $retry_count + 1
+                'retry_delay' => $next_delay
             }
         }
     );
-
     return;
 }
+
+delete <playlist.types_retry_count>->{$url};
 
 my $type = $reply_str;
 
