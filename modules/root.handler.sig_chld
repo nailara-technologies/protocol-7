@@ -10,19 +10,20 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
     my $log_level = 1;
     my $e_val     = $? >> 8;
     my $e_sig     = $? & 127;
-    $e_sig = $e_sig ? ", signal $e_sig" : '';
-    $log_level = 0 if $e_sig =~ s|(signal 11)$|$1 (((SEGFAULT)))|;
+    my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
+    $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 (((SEGFAULT)))|;
     my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
     $log_level = 0 if $e_val or $? & 128;
     <[base.log]>->(
         $log_level,
-        "child pid=$pid terminated ( exit code $e_val$e_sig )$e_dmp"
+        "child pid=$pid terminated ( exit code $e_val$e_sig_str )$e_dmp"
     );
 
     if ( my $child = <root.child>->{$pid} ) {
-        my $instance_id = $child->{'instance_id'};
-        my $instance    = <root.agent.instance>->{$instance_id};
-        my $agent_name  = $instance->{'agent_name'};
+        my $instance_id   = $child->{'instance_id'};
+        my $instance      = <root.agent.instance>->{$instance_id};
+        my $agent_name    = $instance->{'agent_name'};
+        my $agent_subname = $instance->{'subname'};
 
         <[base.log]>->( 2, ": was instance $instance_id ..." );
 
@@ -34,6 +35,20 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
         my $old_status = $instance->{'status'} || 'undefined';
 
         <[base.log]>->( 2, ": was '$old_status' ..." );
+
+        ## record browser segfaults (for crash mitigation) ##
+        if ( $e_sig == 11 and $agent_name eq 'browser' ) {
+            my $browser_uname = 'nobody';    # XXX: determine automatically ...
+            my $sn_hash
+                = ( defined $agent_subname and length($agent_subname) )
+                ? '.' . encode_base64url($agent_subname)
+                : '';
+            my $file_name = "/tmp/.nailara.browser.crash_pid$sn_hash";
+            <[file.put]>->( $file_name, "$pid\n" ) or warn("$file_name: $!");
+            chmod( 0644, $file_name ) or warn("$file_name: $!");
+            my @pwn = getpwnam($browser_uname);
+            chown( $pwn[2], $pwn[3], $file_name ) or warn("$file_name: $!");
+        }
 
         my $next_status = (
                    $old_status eq 'online'
