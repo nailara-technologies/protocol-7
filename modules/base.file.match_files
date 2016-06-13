@@ -31,8 +31,7 @@ my @file_table = map {
     qr/\/$key$/
 } @wildcard_filenames;
 
-foreach
-    my $file ( grep { !/\/\.|~$/ } @{ <[file.all_files]>->($search_path) } ) {
+foreach my $file ( @{ <[file.all_files]>->($search_path) } ) {
     foreach my $pattern (@file_table) {
         if ( $file =~ $pattern ) {
             push( @{$results}, $file );
