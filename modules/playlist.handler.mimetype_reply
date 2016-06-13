@@ -8,7 +8,24 @@ my $retry_delay = $reply->{'params'}->{'retry_delay'};
 my $reply_str   = $reply->{'call_args'}->{'args'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    <playlist.types_retry_count>->{$url} //= 0;
+    my $retries = <playlist.types_retry_count>->{$url} //= 0;
+
+    if (    <playlist.http.url_types_max_retry>
+        and $url =~ m{^https?://}
+        and $url !~ /download/    # uhm, hopefully no file download? ;)
+        and $url =~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$}
+        and <playlist.types_retry_count>->{$url}
+        >= <playlist.http.url_types_max_retry>
+        ) {
+        # gave up and guessed as 'likely html' (let the browser deal with it...)
+        <[base.log]>->(
+            0, "giving up mime type check for '$url' after $retries retries!"
+        );
+        $reply_str = 'html';
+        goto giving_up;
+
+    }
+
     my $log_level = <playlist.types_retry_count>->{$url}++ == 0 ? 0 : 2;
     <[base.log]>->(
         $log_level,
@@ -31,6 +48,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         }
     );
     return;
+giving_up:
 }
 
 delete <playlist.types_retry_count>->{$url};
