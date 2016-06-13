@@ -49,6 +49,9 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     );
     return;
 giving_up:
+    <playlist.mime_type.retry_timer>->{$url}->cancel
+        if exists <playlist.mime_type.retry_timer>->{$url};
+    delete <playlist.mime_type.retry_timer>->{$url};
 }
 
 delete <playlist.types_retry_count>->{$url};
