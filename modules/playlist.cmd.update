@@ -4,35 +4,14 @@
 # descr = reload playlist file and notify configured agents
 
 my $reload_reply = <[playlist.cmd.reload_file]>;
-my $update_cmd = <update.notify_command> || 'playlist_update';
+my $update_cmd = <update.notify_command> // 'playlist_update';
 
 return $reload_reply
     if $reload_reply->{'mode'} eq 'nack' or not defined <update.notify_agents>;
 
-my $count = 0;
-map {
-    # XXX: check agent name syntax!
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.$_.$update_cmd",
-            'call_args' => {},
-            'reply'     => { 'handler' => 'dev.null' }    # XXX: check response!
-        }
-    );
-    $count++;
-} split( / +/, <update.notify_agents> );
+my $count = <[playlist.update.send_notifications]>->($update_cmd);
 
 my $s = $count == 1 ? '' : 's';
 my $notify_str = $count ? ", $count agent$s notified" : '';
-
-if (<playlist.content_changed>) {
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command' => "core.notify.msg_reload",
-            'call_args' =>
-                { 'args' => "'" . <locales.string.playlist_updated> . "'" },
-            'reply' => { 'handler' => 'dev.null', }
-        }
-    ) if <playlist.cfg.change_notifications>;
-    <playlist.content_changed> = 0;
-}
 
 return { 'mode' => 'ack', 'data' => 'playlist updated' . $notify_str }

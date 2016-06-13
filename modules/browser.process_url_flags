@@ -1,0 +1,86 @@
+# >:]
+
+# name = browser.process_url_flags
+
+<browser.url_flag_loglevel> //= 2;
+
+my $flags    = <browser.url_flags>;
+my $view     = <browser.current_view>;
+my $uri      = <browser.load_uri>;
+my $loglevel = <browser.url_flag_loglevel>;
+
+map { <browser.url_active>->{$_} //= 0 }
+    ( 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
+
+# fixing competing flags settings
+<browser.url_active>->{'nojs_scroll'} = 0 if <browser.url_active>->{'nojs'};
+<browser.url_active>->{'adblock'}     = 0 if <browser.url_active>->{'blkext'};
+
+### clear flag based restrictions ###
+
+# clear temp. js disabled #
+if ( <browser.scroll.fail.js_disabled> or <browser.url_active.nojs> ) {
+
+    map {    # XXX: make reenabling view-based
+        my $view_index = <browser.overlay.index>->{$_};
+        my $settings   = <browser.gtk_obj.view>->{$view_index}->get_settings;
+        $settings->set_property( 'enable-scripts', 1 );
+        <browser.gtk_obj.view>->{$view_index}->set_settings($settings);
+    } ( 'fg', 'bg' );
+
+    if ( !<browser.slideshow.no_scroll> and <browser.cfg.javascript_enabled> ) {
+        if ( delete <browser.scroll.fail.js_disabled> ) {
+            <[base.log]>->( 0, "autoscroll stopped ..javascript reenabled!" );
+        }
+    }
+    if ( <browser.url_active.nojs> and <browser.cfg.javascript_enabled> ) {
+        delete <browser.url_active.nojs>;
+        <[base.log]>->( $loglevel, "..javascript reenabled!" );
+    }
+}
+
+# clear adblock #
+if ( <browser.url_active.adblock> and not exists $flags->{'adblock'} ) {
+    <[browser.disable_proxy]>;
+    delete <browser.url_active.adblock>;
+    <[base.log]>->( $loglevel, ": adblock disabled!" );
+}
+
+# clear blkext #
+if ( defined <browser.signal_id.request_starting>->{$view} ) {
+    $view->signal_handler_disconnect(
+        delete <browser.signal_id.request_starting>->{$view} );
+    delete <browser.signal_id.request_starting>
+        if !keys %{<browser.signal_id.request_starting>};
+    <[base.log]>->( $loglevel, ": blkext disabled!" );
+
+}
+
+### process enabled url flags ###
+
+## NOJS ##
+
+if ( exists $flags->{'nojs'} and <browser.cfg.javascript_enabled> ) {
+    my $settings = $view->get_settings;
+    $settings->set_property( 'enable-scripts', 0 );
+    $view->set_settings($settings);
+    <browser.url_active.nojs> = 1;
+    <[base.log]>->( $loglevel, ": JS disabled! ( nojs flag '$uri' )" );
+}
+
+## ADBLOCK ##
+
+if ( exists $flags->{'adblock'} and !<browser.init_proxy> ) {
+    <[browser.proxy_setup]>->('auto');
+    <browser.url_active.adblock> = 1;
+    <[base.log]>->( $loglevel, ": adblock enabled! ( adblock flag '$uri' )" );
+}
+
+## BLKEXT ##
+
+if ( exists $flags->{'blkext'} ) {
+    <browser.signal_id.request_starting>->{$view}
+        = $view->signal_connect( 'resource-request-starting' =>
+            $code{'browser.handler.request_starting_signal'} );
+    <[base.log]>->( $loglevel, ": blocking external! ( blkext flag '$uri' )" );
+}

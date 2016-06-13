@@ -1,0 +1,92 @@
+# >:]
+
+# name = browser.handler.load_status_signal
+
+my $view        = shift;
+my $bg_index    = <browser.overlay.index.bg>;
+my $frame       = $view->get_main_frame;
+my $load_uri    = <browser.load_uri>;
+my $n_res       = $frame->get_network_response;
+my $message     = $n_res->get_message;
+my $load_status = $view->get_load_status;
+my $title       = $view->get_title // '';
+my $status_code = defined $message ? $message->get('status-code') : undef;
+
+return 1 if $load_status ne 'finished' and $load_status ne 'failed';
+
+delete <browser.timeout>;
+Glib::Source->remove( delete <browser.signal_id.load_timeout> )
+    if defined <browser.signal_id.load_timeout>;
+
+$view->signal_handler_disconnect( delete <browser.signal_id.load_progress> )
+    if defined <browser.signal_id.load_progress>;
+
+$view->signal_handler_disconnect( delete <browser.signal_id.load_status> )
+    if defined <browser.signal_id.load_status>;
+
+if (    $load_status eq 'finished'
+    and defined $status_code
+    and $status_code =~ /^(20)?0$/ ) {
+
+    <browser.time.load_finished> = <[base.time]>->(3);
+    my $load_time = sprintf( "%.2f",
+        <browser.time.load_finished> - <browser.time.load_start> );
+    <[base.log]>->( 2, "[$load_uri] loaded in $load_time seconds." );
+
+    <browser.fade.reply_mode> = 'ack';
+    <browser.fade.reply_msg>  = 'finished loading';
+
+    my $swap_delay
+        = exists <browser.time.scroll_complete>
+        ? <browser.slideshow.swap_delay>
+        - ( <[base.time]>->(3) - <browser.time.scroll_complete> )
+        : 0;
+    $swap_delay = 0 if $swap_delay < 0;
+    <browser.timer.swap_views> = <[event.add_timer]>->(
+        {   'after'   => $swap_delay,
+            'handler' => 'browser.swap_views'
+        }
+    );
+
+} else {
+
+    my $st_txt = defined $status_code ? " ($status_code)" : '';
+    my $reason_txt = $st_txt;
+
+    $reason_txt .= " [$title]" if $title eq '404 Not Found';
+    $reason_txt = " [$1]"
+        if $title =~ /^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$/i;
+
+    if (    <browser.init_proxy>
+        and not defined $status_code
+        and !length($reason_txt)
+        and !length($title) ) {
+        my $check_sock = IO::Socket::INET->new(
+            PeerAddr => <browser.cfg.proxy_addr>,
+            PeerPort => <browser.cfg.proxy_port>,
+            Proto    => 'tcp',
+            Timeout  => 0.2
+        );
+        if (   not defined $check_sock
+            or !-S $check_sock
+            or !$check_sock->connected() ) {
+            $reason_txt = ' [proxy unreachable!]';
+        } else {
+            $check_sock->close();
+        }
+    }
+
+    <[base.log]>->( 0, "failed to load uri '$load_uri'" . $reason_txt );
+
+    <browser.slideshow.temp_delay> = <browser.slideshow.err_delay>;
+
+    <browser.fade.reply_mode> = 'nack';
+    <browser.fade.reply_msg>  = 'loading failed';
+
+    #<[base.callback.cmd_reply]>->(
+    #    $reply_id,
+    #    { 'mode' => 'nack', 'data' => "failed to load" . $reason_txt }
+    #);
+
+    Glib::Idle->add( $code{'browser.callback.load_fail_page'} );
+}
