@@ -132,6 +132,15 @@ if ($ok) {
 
     <[xserver.xrandr.rotate]>->(<xserver.orientation>);
 
+## keyboard ##
+
+    #  <xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
+    #  my $any_key = <xserver.kbd>->KeysymToKeycode('AnyKey');
+    #  my $any_mod = <xserver.kbd>->KeysymToKeycode('AnyModifier');
+
+    <xserver.x11>->GrabKey( 0, undef, <xserver.x11>->root, 0, 'Asynchronous',
+        'Asynchronous' );
+
     <xserver.x11>->{'event_handler'} = 'queue';
     <[event.add_io]>->(
         {   'fd'      => <xserver.x11>->{'connection'}->fh,
