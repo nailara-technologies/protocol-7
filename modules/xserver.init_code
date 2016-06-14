@@ -7,6 +7,8 @@ use X11::Protocol::WM;
 use IPC::Open3;
 use X11::Tops;
 
+# use X11::Keyboard;
+
 if ( <xserver.mode> eq 'auto-xephyr' ) {
     system("ps h -C Xorg 1>/dev/null 2>/dev/null");
     <xserver.mode> = $? == 256 ? 'xorg' : 'xephyr';

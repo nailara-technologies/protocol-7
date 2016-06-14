@@ -2,7 +2,7 @@
 
 # name  = xserver.handler.global_hotkeys
 
-my $x11 = <xserver.x11>;
+my $watcher = shift->w;
 
 <xserver.hotkeys>            //= {};
 <xserver.hotkeys.configured> //= {};
@@ -20,29 +20,35 @@ if ( not defined $qkmap ) {    # XXX: implement reconnect / restart procedure!!
 
 my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
 
-my @ev_ref = eval { [ $x11->dequeue_event ], [ $x11->next_event ] };
-<[base.log]>->( 0, "<!> X11 protocol error while retrieving event <!>" )
-    if !@ev_ref;
+my $dq_e = [ <xserver.x11>->dequeue_event ];
 
-foreach my $e (@ev_ref) {
-    next if !@$e;
-    my %event = @$e;
-    my $event_type;
-    $event_type = lc($1) if $event{'name'} =~ /^Key(Press|Release)$/;
-    next if not defined $event_type;
-
-    my $keycode   = $event{'detail'};
-    my $mod_state = $event{'state'};
-    my $triggered = <xserver.hotkeys.triggered>;
-
-    $triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
-    $triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
-    <xserver.hotkeys.last_key> = {
-        'keycode'    => $keycode,
-        'mod_state'  => $mod_state,
-        'event_type' => $event_type
-    };
+if ( @{$dq_e} ) {
+    $watcher->now;             # <- again, there might be more events queued..
+} else {
+    return;                    # <- no, there weren't
 }
+
+my %event = @$dq_e;
+
+# print STDERR Dumper( \%event );
+
+my $event_type = $event{'name'} =~ /^Key(Press|Release)$/ ? lc($1) : undef;
+
+return if not defined $event_type;
+
+my $keycode   = $event{'detail'};
+my $mod_state = $event{'state'};
+my $triggered = <xserver.hotkeys.triggered>;
+
+$triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
+$triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
+<xserver.hotkeys.last_key> = {
+    'keycode'    => $keycode,
+    'mod_state'  => $mod_state,
+    'event_type' => $event_type
+};
+
+# <[base.log]>->( 0, " mod : $mod_state  key : $keycode  type : $event_type" );
 
 # XXX: process key ...
 
