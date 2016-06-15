@@ -138,9 +138,6 @@ if ($ok) {
     #  my $any_key = <xserver.kbd>->KeysymToKeycode('AnyKey');
     #  my $any_mod = <xserver.kbd>->KeysymToKeycode('AnyModifier');
 
-    <xserver.x11>->GrabKey( 0, undef, <xserver.x11>->root, 0, 'Asynchronous',
-        'Asynchronous' );
-
     <xserver.x11>->{'event_handler'} = 'queue';
     <[event.add_io]>->(
         {   'fd'      => <xserver.x11>->{'connection'}->fh,
@@ -148,7 +145,10 @@ if ($ok) {
         }
     );
 
-    # XXX: GrabKey( <kc>, <mod>, <root>, 0, 'Asynchronous', 'Asynchronous' )
+    <[xserver.grab_key]>
+        if defined <xserver.keybd.grab_all_keys>
+        and ( <xserver.keybd.grab_all_keys> eq '1'
+        or <xserver.keybd.grab_all_keys> eq 'yes' );
 
 ## screensaver / blanking ##
 
