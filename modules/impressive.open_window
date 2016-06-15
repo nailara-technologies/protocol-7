@@ -74,7 +74,6 @@ $trans_delay += sprintf( "%.0f", 4 + rand(4) ) if $light_mode >= 2;
 ## prepare parameter list ##
 
 my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
-push( @exec_params, '--noback' ) if $light_mode;
 push( @exec_params, '--transition', $translist_str ) if length($translist_str);
 push( @exec_params,
     '--auto',       $trans_delay,
