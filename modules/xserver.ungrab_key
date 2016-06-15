@@ -1,0 +1,10 @@
+# >:]
+
+# name = xserver.ungrab_key
+
+my $keycode  = shift // 0;        #     0 == AnyKey
+my $modifier = shift // undef;    # undef == AnyModifier
+
+<xserver.x11>
+    ->UngrabKey( $keycode, $modifier, <xserver.x11>->root, 0, 'Asynchronous',
+    'Asynchronous' );
