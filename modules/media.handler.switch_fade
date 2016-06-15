@@ -20,10 +20,25 @@ if ( <xserver.fade_in>->{$win_id}->{'opacity'} >= 100 ) {
 
     <[media.hide_except]>->($agent);
 
-    <[base.proto.nailara.command.send.local]>
-        ->( { 'command' => 'browser.clear_views' } )
-        if $agent ne 'browser';
+    if ( $agent eq 'mpv' ) {
 
+        my $frame_index = <media.sequence.frame_pos>++;
+        my $video_frame = <media.sequence.frame_path>->{$frame_index};
+
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => 'browser.clear_views' } );
+
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.image2html.get_url',
+                'call_args' => {
+                    'args' =>
+                        join( ' ', $video_frame, <x11.width>, <x11.height> )
+                },
+                'reply' => { 'handler' => 'media.handler.image2html_reply' }
+            }
+        ) if defined $video_frame;
+        <media.frame_index>++;
+    }
     return;
 }
 

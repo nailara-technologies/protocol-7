@@ -1,0 +1,54 @@
+# >:]
+
+# name = media.collect_video_frames
+
+my $video_frame_dir = '/tmp/.video_frames';
+
+<media.video_frames_complete> = 0;
+<media.video_frames>          = {};
+<media.frames_to_go>          = {};
+<media.sequence.frame_pos>    = {};
+<media.sequence.frame_path>   = {};
+
+my $video_path;
+my $sequence_pos = 0;
+foreach my $playlist_entry ( @{ <media.playlist.agent>->{'mpv'} } ) {
+    if ( defined $video_path and $playlist_entry eq '[PAUSE]' ) {
+        my $id = <[base.gen_id]>->(<media.frames_to_go>);
+        <media.frames_to_go>->{$id}       = $video_path;
+        <media.sequence.frame_pos>->{$id} = $sequence_pos;
+        $sequence_pos++;
+    } else {
+        $video_path = $playlist_entry;
+    }
+}
+
+foreach my $frame_id ( keys %{<media.frames_to_go>} ) {
+    my $file_path  = <media.frames_to_go>->{$frame_id};
+    my $path_md5   = md5_hex($file_path);
+    my $frame_path = "$video_frame_dir/$path_md5.png";
+    <media.video_frames>->{$file_path} = $frame_path;
+    my $pos = <media.sequence.frame_pos>->{$frame_id};
+    <media.sequence.frame_path>->{$pos} = $frame_path;
+    next if !-f $frame_path;
+    delete <media.frames_to_go>->{$frame_id};
+}
+delete <media.sequence.frame_pos>;
+
+my $count = keys %{<media.frames_to_go>};
+
+if ( !$count ) {    # frames already complete
+    <[media.startup_sub_agents]>;
+} else {
+    <[base.log]>->( 1, "extracting video frames ($count to go..)" );
+    my ( $frame_id, $frame_path ) = each %{<media.frames_to_go>};
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.ffmpeg.extract_last_frame",
+            'call_args' => { 'args' => $frame_path },
+            'reply'     => {
+                'handler' => 'media.handler.extract_frame_reply',
+                'params'  => { 'frame_id' => $frame_id }
+            }
+        }
+    );
+}

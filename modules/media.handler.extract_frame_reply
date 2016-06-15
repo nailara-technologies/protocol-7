@@ -1,0 +1,36 @@
+# >:]
+
+# name = media.handler.extract_frame_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "<!> failed to extract video frame [$reason]" );
+    <media.cfg.fade_on_switch> = 0;
+    <[base.log]>->( 0, " :. fade_on_switch disabled ... :/" );
+
+    <[media.startup_sub_agents]>;
+}
+
+my $frame_id   = $reply->{'params'}->{'frame_id'};
+my $frame_path = $reply->{'call_args'}->{'args'};
+my $video_path = delete <media.frames_to_go>->{$frame_id};
+
+<media.video_frames>->{$video_path} = $frame_path;
+
+if ( !keys %{<media.frames_to_go>} ) {    # frames complete
+    <[base.log]>->( 1, ": video frame extraction complete" );
+    <[media.startup_sub_agents]>;
+} else {                                  # more to extract
+    my ( $frame_id, $frame_path ) = each %{<media.frames_to_go>};
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.ffmpeg.extract_last_frame",
+            'call_args' => { 'args' => $frame_path },
+            'reply'     => {
+                'handler' => 'media.handler.extract_frame_reply',
+                'params'  => { 'frame_id' => $frame_id }
+            }
+        }
+    );
+}
