@@ -7,10 +7,19 @@ use File::Path qw(make_path);
 <ffmpeg.threads>    //= 1;
 <ffmpeg.drop_audio> //= 0;
 
-chomp( <ffmpeg.path.ffmpeg_bin> = qx(which ffmpeg) );
+<ffmpeg.path.ffmpeg_bin>  //= '/usr/bin/ffmpeg';
+<ffmpeg.path.ffprobe_bin> //= '/usr/bin/ffprobe';
 
+chomp( <ffmpeg.path.ffmpeg_bin> = qx(which ffmpeg) )
+    if !-x <ffmpeg.path.ffmpeg_bin>;
 if ( !length(<ffmpeg.path.ffmpeg_bin>) ) {
-    <[base.log]>->( 0, "[!] ffmpeg binary not found, shutting down..." );
+    <[base.log]>->( 0, "[!] 'ffmpeg' binary not found, shutting down..." );
+    exit(2);
+}
+chomp( <ffmpeg.path.ffprobe_bin> = qx(which ffprobe) )
+    if !-x <ffmpeg.path.ffprobe_bin>;
+if ( !length(<ffmpeg.path.ffprobe_bin>) ) {
+    <[base.log]>->( 0, "[!] 'ffprobe' binary not found, shutting down..." );
     exit(2);
 }
 
