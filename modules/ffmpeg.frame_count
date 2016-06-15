@@ -1,0 +1,15 @@
+# >:]
+
+# name  = ffmpeg.frame_count
+
+my $video_path = shift;
+
+die 'expected path to video file'
+    if not defined $video_path or !length($video_path);
+die 'video file not found!' if !-f $video_path;
+
+my $frame_count
+    = qx(<ffmpeg.path.ffprobe_bin> -show_streams -- $video_path 2>/dev/null)
+    =~ /^nb_frames=(\d+)$/m ? $1 : undef;
+
+return $frame_count;
