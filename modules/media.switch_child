@@ -4,6 +4,9 @@
 
 my $agent_name = shift;
 
+<media.cfg.fade_on_switch>    //= 0;
+<media.cfg.fade_step_inteval> //= 0.01;
+
 <media.sequence.startup> //= 1;
 <media.sequence.position>++;
 <media.sequence.position> = 0
@@ -33,7 +36,32 @@ if ( not defined $window_id ) {
 <[base.log]>->( 2, "switching to '$agent_name'-child.." );
 
 <[base.log]>->( 2, ": unhiding '$agent_name' ($window_id)" );
-<media.sequence.startup> = 0;
+
+if (    <media.cfg.fade_on_switch>
+    and !<media.sequence.startup>
+    and $agent_name ne 'browser' ) {
+
+    <media.timer.switch>->{$window_id}->{'fade'}->cancel
+        if defined <media.timer.switch>->{$window_id}->{'fade'}
+        and <media.timer.switch>->{$window_id}->{'fade'}->is_active;
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.set_opacity",
+            'call_args' => { 'args' => join( ' ', $window_id, 0 ) }
+        }
+    );
+
+    <media.timer.switch>->{$window_id}->{'fade'} = <[event.add_timer]>->(
+        {   'after'    => <media.cfg.fade_step_inteval>,
+            'interval' => <media.cfg.fade_step_inteval>,
+            'handler'  => 'media.handler.switch_fade',
+            'data' => { 'agent_name' => $agent_name, 'window_id' => $window_id }
+        }
+    );
+}
+
+<[media.lower_except]>->($agent_name) if !<media.sequence.startup>;
+
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "core.xserver.unhide_window",
         'call_args' => { 'args' => $window_id }
@@ -51,17 +79,18 @@ if (<media.loadsplash_running>) {
 }
 <media.child>->{$agent_name}->{'visible'} = 1;
 
-foreach my $hide_agent ( keys %{<media.child>} ) {
-    next if $hide_agent eq $agent_name;
-    my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
-    <[base.log]>->( 2, ": hiding '$hide_agent' ($hide_wid)" );
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.xserver.hide_window",
-            'call_args' => { 'args' => $hide_wid }
-        }
-    );
-    <media.child>->{$hide_agent}->{'visible'} = 0;
-}
+<[media.hide_except]>->($agent_name)
+    if <media.sequence.startup>
+    or ( !<media.cfg.fade_on_switch>
+    and $agent_name ne 'browser' );
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => 'browser.clear_views' } )
+    if !<media.sequence.startup>
+    and !<media.cfg.fade_on_switch>
+    and $agent_name ne 'browser';
+
+<media.sequence.startup> = 0;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command' => "$agent_name.resume",
