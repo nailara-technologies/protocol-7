@@ -6,14 +6,15 @@ buffer.system.log_cmd = log.msg
 [load_config_file:'defaults']
 
 access.cmd.usr.core = verify_instance ping help reload get_file \
-                      get_config get_config_names rescale_video frame_count
+                      get_config get_config_names rescale_video \
+                      frame_count extract_last_frame
 
 # modules.preload = download.config config.json
 # [load_modules:<modules.preload>]
 # [init_modules]
 # [config.json.import_file:'ffmpeg.config.json']
 
-modules.load = auth net io.ip ffmpeg config.json
+modules.load = auth net io.ip digest.md5 ffmpeg config.json
 
 ffmpeg.quality       = 20  # [18..28]
 ffmpeg.drop_audio    = 0   # remove audio layer [0|1]
