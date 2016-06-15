@@ -1,0 +1,37 @@
+# >:]
+
+# name = media.handler.switch_fade
+
+my $watcher = shift->w;
+my $params  = $watcher->data;
+my $win_id  = $params->{'window_id'};
+my $agent   = $params->{'agent_name'};
+
+<xserver.fade_in>->{$win_id}->{'opacity'} //= 0;
+
+# XXX: make fade steps time based (delta_t)!
+<xserver.fade_in>->{$win_id}->{'opacity'} += 1;
+
+if ( <xserver.fade_in>->{$win_id}->{'opacity'} >= 100 ) {
+    delete <xserver.fade_in>->{$win_id}->{'opacity'};
+    delete <xserver.fade_in>->{$win_id}
+        if !keys %{ <xserver.fade_in>->{$win_id} };
+    $watcher->cancel;
+
+    <[media.hide_except]>->($agent);
+
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => 'browser.clear_views' } )
+        if $agent ne 'browser';
+
+    return;
+}
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.xserver.set_opacity",
+        'call_args' => {
+            'args' =>
+                join( ' ', $win_id, <xserver.fade_in>->{$win_id}->{'opacity'} )
+        }
+    }
+);
