@@ -7,6 +7,7 @@ my $reply = shift;
 <media.playlist_sha1>         //= '';
 <media.playlist.files>        //= [];
 <media.playlist.error_logged> //= {};
+<media.cfg.fade_on_switch>    //= 0;
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
     <[base.log]>->( 0, ": failed to fetch playlist!" );
@@ -128,9 +129,17 @@ if (<media.playlist.change_count>
 
 if ( @file_list and <media.playlist_was_empty> ) {
     <[media.self_restart]>;
-} else {
+} elsif (
+    <media.agents_started>
+    and (  !<media.cfg.fade_on_switch>
+        or !$switch_count )
+    ) {
     map {
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => "$_.playlist_update" } )
     } @{<media.display_agents>};
+} elsif ( !<media.cfg.fade_on_switch> ) {
+    <[media.startup_sub_agents]>;
+} else {
+    <[media.collect_video_frames]>;    # need to extract video frames first..
 }
