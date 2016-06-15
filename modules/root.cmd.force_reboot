@@ -1,0 +1,21 @@
+# >:]
+
+# name  = root.cmd.force_reboot
+# descr = force reboot using sysrq-trigger
+
+return { 'mode' => 'nack', 'data' => '/proc/sysrq-trigger not found!' }
+    if !-e '/proc/sysrq-trigger';
+
+<[base.log]>->( 0, "<!> <<< initiating force-reboot >>> <!>" );
+
+while ( keys %{ $data{'route'} } ) { <[event.once]>->(0.1) }  # wait log written
+
+system('/bin/sync');
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => 'root.callback.force_reboot'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'rebooting <<now>>' }
