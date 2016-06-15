@@ -1,0 +1,22 @@
+# >:]
+
+# name = media.startup_sub_agents
+
+<[base.log]>->( 1, "starting display [sub]agents..." );
+
+my %display_agents;
+map { $display_agents{$_} = 1 } values %{<media.content.agent_map>};
+foreach my $agent_name ( keys(%display_agents) ) {
+    <auth.pwd>->{$agent_name} //= ':unix:' . <system.privs.user>;
+    <media.child>->{$agent_name}->{'status'} = 'starting';
+    if ( !<[media.start_agent]>->($agent_name) ) {
+        <[base.log]>->(
+            0, "<!> failed to start '$agent_name', shutting down.."
+        );
+        exit(2);
+    }
+}
+
+<media.agents_started> = 0;
+
+<[base.get_session_id]>;    # set agent status to 'online'

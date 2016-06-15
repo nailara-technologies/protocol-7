@@ -1,0 +1,16 @@
+# >:]
+
+# name = media.handler.loadsplash_started
+
+my $reply = shift;
+
+my @content_types = keys %{<media.content.agent_map>};
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    <media.loadsplash_running> = 1;
+} else {
+    <[base.log]>->( 0, "<!> failed to start loadsplash agent.." );
+}
+
+<media.agents_started> = 0;
+<[media.get_playlist]>->(@content_types);

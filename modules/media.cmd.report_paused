@@ -9,6 +9,8 @@ my $agent_name = $data{'session'}{$session_id}{'user'};
 my $position = <media.sequence.position>;
 my $switch_agent
     = defined $position ? <media.sequence.switch_order>->[$position] : undef;
+<media.sequence.frame_pos> //= 0;
+<media.sequence.frame_pos> = 0 if $position == 0;
 
 if ( <media.child>->{$agent_name}->{'paused'} ) {
     <[base.log]>
