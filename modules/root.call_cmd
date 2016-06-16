@@ -2,6 +2,6 @@
 
 # name = root.call_cmd
 
-my $params = shift;
+( my $params = shift ) =~ s/ *-+\w+ *//g;
 
 print "[CMD] $params\n" if length($params);
