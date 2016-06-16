@@ -2,6 +2,8 @@
 
 # name = media.startup_sub_agents
 
+return if <media.agents_started>;
+
 <[base.log]>->( 1, "starting display [sub]agents..." );
 
 my %display_agents;
@@ -17,6 +19,6 @@ foreach my $agent_name ( keys(%display_agents) ) {
     }
 }
 
-<media.agents_started> = 0;
+<media.agents_started> = 1;
 
 <[base.get_session_id]>;    # set agent status to 'online'
