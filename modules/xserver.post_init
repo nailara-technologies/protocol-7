@@ -133,47 +133,7 @@ if ( !$ok and <xserver.mode> eq 'host' ) {
     goto host_retry;    # wait for X-server indefinetly (in host mode)
 }
 
-if ($ok) {
-    <[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
-
-## orientation ##
-
-    <[xserver.xrandr.rotate]>->(<xserver.orientation>)
-        if !<xserver.keep_unchanged>;
-
-## keyboard ##
-
-    #  <xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
-    #  my $any_key = <xserver.kbd>->KeysymToKeycode('AnyKey');
-    #  my $any_mod = <xserver.kbd>->KeysymToKeycode('AnyModifier');
-
-    <xserver.x11>->{'event_handler'} = 'queue';
-    <[event.add_io]>->(
-        {   'fd'      => <xserver.x11>->{'connection'}->fh,
-            'handler' => 'xserver.handler.global_hotkeys'
-        }
-    );
-
-    <[xserver.grab_key]>
-        if !<xserver.keep_unchanged>
-        and defined <xserver.keybd.grab_all_keys>
-        and ( <xserver.keybd.grab_all_keys> eq '1'
-        or <xserver.keybd.grab_all_keys> eq 'yes' );
-
-## screensaver / blanking ##
-
-    if (    !<xserver.keep_unchanged>
-        and defined <xserver.disable_blanking>
-        and (  <xserver.disable_blanking> eq 'yes'
-            or <xserver.disable_blanking> eq '1' )
-        ) {
-        <[base.log]>->( 1, ": deactivating screen blanking ..." );
-        qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
-        die "failed to execute xset: $!" if $@;
-        qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
-        die "failed to execute xset: $!" if $@;
-    }
-} else {
+if ( !$ok ) {
     ( my $err_msg = $@ ) =~ s| at .+\n?$||;
     <[base.log]>->( 0, ": failed to connect to $bin_name-server.. [$err_msg]" );
     if ( $mode ne 'host' ) {
@@ -182,6 +142,46 @@ if ($ok) {
     }
     <[base.log]>->( 1, "done." );
     exit(3);
+}
+
+<[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
+
+## orientation ##
+
+<[xserver.xrandr.rotate]>->(<xserver.orientation>)
+    if !<xserver.keep_unchanged>;
+
+## keyboard ##
+
+#  <xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
+#  my $any_key = <xserver.kbd>->KeysymToKeycode('AnyKey');
+#  my $any_mod = <xserver.kbd>->KeysymToKeycode('AnyModifier');
+
+<xserver.x11>->{'event_handler'} = 'queue';
+<[event.add_io]>->(
+    {   'fd'      => <xserver.x11>->{'connection'}->fh,
+        'handler' => 'xserver.handler.global_hotkeys'
+    }
+);
+
+<[xserver.grab_key]>
+    if !<xserver.keep_unchanged>
+    and defined <xserver.keybd.grab_all_keys>
+    and ( <xserver.keybd.grab_all_keys> eq '1'
+    or <xserver.keybd.grab_all_keys> eq 'yes' );
+
+## screensaver / blanking ##
+
+if (    !<xserver.keep_unchanged>
+    and defined <xserver.disable_blanking>
+    and (  <xserver.disable_blanking> eq 'yes'
+        or <xserver.disable_blanking> eq '1' )
+    ) {
+    <[base.log]>->( 1, ": deactivating screen blanking ..." );
+    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
+    die "failed to execute xset: $!" if $@;
+    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
+    die "failed to execute xset: $!" if $@;
 }
 
 ## GPU load statistics (intel only) ##
