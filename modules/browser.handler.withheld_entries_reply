@@ -1,0 +1,11 @@
+# >:]
+
+# name = browser.handler.withheld_entries_reply
+
+my $reply = shift;
+
+return if $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} == 0;
+
+<[base.log]>->( 1, "got withheld playlist entries, presenting loading icon.." );
+
+<[browser.fg_view_insert]>->(<browser.load_icon_page>);
