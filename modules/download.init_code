@@ -2,19 +2,54 @@
 
 # name = download.init_code
 
-use LWPx::ParanoidAgent;
 use File::Path qw(make_path);
+
+package Download::UserAgent;
+use base 'LWPx::ParanoidAgent';
+
+our $etc_hosts = Config::Hosts->new();
+
+use Config::Hosts;
+
+sub read_hosts {
+    my ( $self, $hosts_file ) = @_;
+    $hosts_file //= '/etc/hosts';
+    <[base.log]>->( 1, "reading '$hosts_file' file.." );
+    $etc_hosts->read_hosts($hosts_file);
+}
+
+sub _resolve {
+    my ( $self, $host, $request, $timeout, $depth ) = @_;
+    <[base.log]>->( 2, "resolving host '$host'.." );
+
+    ## /etc/hosts ##
+    my $local_result;
+    $local_result = $etc_hosts->query_host($host);
+    if ( defined $local_result ) {
+        my $ip_addr = $local_result->{'ip'};
+        <[base.log]>->( 2, ": found local entry '$ip_addr'" );
+        return $ip_addr;
+    }
+
+    ## DNS Resolver ##
+    return $self->SUPER::_resolve( $host, $request, $timeout, $depth );
+}
+
+package main;
 
 my $download_path = <download.cfg.download_path>;
 
+<download.cfg.http.query_etc_hosts> //= 1;
 <download.cfg.http.request_timeout> //= 10;
 <download.cfg.http.user_agent>      //= '';
-<download.obj.ua> = LWPx::ParanoidAgent->new();
+
+<download.obj.ua> = Download::UserAgent->new();
+<download.obj.ua>->read_hosts() if <download.cfg.http.query_etc_hosts>;
 
 <download.obj.ua>->whitelisted_hosts( sub { return 1 } );
 <download.obj.ua>->agent(<download.cfg.http.user_agent>);
 <download.obj.ua>->protocols_allowed( [ 'ftp', 'http', 'https' ] );
-<download.obj.ua>->timeout(<playlist.http.request_timeout>);
+<download.obj.ua>->timeout(<download.cfg.http.request_timeout>);
 
 if ( !-d $download_path ) {
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)

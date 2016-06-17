@@ -7,7 +7,7 @@ xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Sys::Filesystem \
       Crypt::CBC CryptX \
       JSON JSON::PP \
-      Net::SSH2 \
+      Net::SSH2 Config::Hosts \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
       X11::Protocol X11::Keyboard X11::Protocol::WM X11::Tops \
       FreezeThaw \

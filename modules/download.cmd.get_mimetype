@@ -10,13 +10,9 @@ my $url = shift->{'args'} // '';
 return { 'mode' => 'nack', 'data' => 'url parameter expected' }
     if !length($url);
 
-<download.http.request_timeout> //= 3;
+my $uagent = <download.obj.ua>;
 
-my $uagent = LWPx::ParanoidAgent->new;
-
-$uagent->whitelisted_hosts( sub { return 1 } );
 $uagent->protocols_allowed( [ 'http', 'https' ] );
-$uagent->timeout(<download.http.request_timeout>);
 $uagent->agent("Mozilla/5.0");
 $uagent->cookie_jar( {} );
 
