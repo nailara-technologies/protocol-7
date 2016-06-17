@@ -13,10 +13,12 @@ my $http_uri    = $session->{'http'}{'request'}{'uri'};
 my $link_target = <httpd.cfg.hostnames>->{$http_host}
     if exists <httpd.cfg.hostnames>->{$http_host};
 
-if ( $http_host ne $req_host and $link_target =~ /^\d{3}$/ )
-{    # <- special codes
+if (    $link_target =~ /^\d{3}$/
+    and -l <httpd.site_dir> . '/' . $http_host
+    and !-e <httpd.site_dir> . '/' . $link_target ) {    # special codes
+
     $session->{'watcher'}->{'input_handler'}->cancel;
-    if ( $link_target ne '000' ) {
+    if ( $link_target ne '000' ) {    # n > 000 == HTTP error codes
         <[base.log]>->(
             1, "[$id] status '$link_target' for requested host '$req_host'"
         );
