@@ -25,6 +25,12 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <browser.slideshow.running> = 0;
     <[browser.clear_views]>;
 
+    <browser.timer.withheld> = <[event.add_timer]>->(
+        {   'after'   => 10,
+            'handler' => 'browser.callback.query_withheld_entries'
+        }
+    );
+
     if ( <system.agent.mode> eq 'media-child'
         and !<browser.slideshow.iteration> ) {
         <browser.slideshow.iteration> = 1;    # reporting media-child as 'ready'
@@ -32,6 +38,10 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             ->( { 'command' => "core.report_paused" } );
     }
     return;
+} else {
+    <browser.timer.withheld>->cancel
+        if defined <browser.timer.withheld>
+        and <browser.timer.withheld>->is_active;
 }
 
 my ( $width, $height ) = ( $1, $2 )
