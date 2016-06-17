@@ -21,11 +21,10 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         <[base.log]>->(
             0,
             sprintf( "giving up mime type check for '$url' after %d retries!",
-                <playlist.types_retry_count>->{$url} )
+                <playlist.types_retry_count>->{$url} - 1 )
         );
         $reply_str = 'html';
         goto giving_up;
-
     }
 
     my $log_level = <playlist.types_retry_count>->{$url} == 1 ? 0 : 2;
@@ -34,7 +33,12 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         "<!> failed to resolve mimetype for '$url' [$reply_str]"
             . ' ...retrying automatically...'
     );
-    <playlist.file_types>->{$file} = 'network_error';
+    if ( not defined <playlist.file_types>->{$url}
+        or <playlist.file_types>->{$url} ne 'network_error' ) {
+        <playlist.had_network_errors>++;
+        <playlist.network_errors>++;
+    }
+    <playlist.file_types>->{$url} = 'network_error';
 
     my $next_delay = sprintf( "%.2f", ( $retry_delay * 1.2 ) + rand(2) );
     $next_delay = <playlist.mime_retry.max_delay>
