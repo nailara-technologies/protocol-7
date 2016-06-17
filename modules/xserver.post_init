@@ -2,7 +2,8 @@
 
 # name = xserver.post_init
 
-<xserver.initialized> //= 0;
+<xserver.initialized>         //= 0;
+<xserver.host_mode_unchanged> //= 1;
 
 if ( <xserver.mode> !~ /^(host|xorg|xephyr|xvfb)$/ ) {
     <[base.log]>->(
@@ -11,10 +12,17 @@ if ( <xserver.mode> !~ /^(host|xorg|xephyr|xvfb)$/ ) {
     exit(2);
 }
 <xserver.params>->{<xserver.mode>} //= '';
+<xserver.host_mode_unchanged> = 0 if <xserver.host_mode_unchanged> eq 'no';
+<xserver.host_mode_unchanged> = 1 if <xserver.host_mode_unchanged> eq 'yes';
 if ( <xserver.mode> eq 'host' ) {
+    if (<xserver.host_mode_unchanged>) {
+        <xserver.keep_unchanged>  = 1;
+        <xserver.keep_background> = 1;
+    }
     <xserver.display.host> //= defined $ENV{'DISPLAY'} ? $ENV{'DISPLAY'} : ':0';
 } else {
     <xserver.display>->{<xserver.mode>} //= ':1';
+    <xserver.keep_unchanged> = 0;
 }
 <[base.log]>->(
     0,
@@ -130,7 +138,8 @@ if ($ok) {
 
 ## orientation ##
 
-    <[xserver.xrandr.rotate]>->(<xserver.orientation>);
+    <[xserver.xrandr.rotate]>->(<xserver.orientation>)
+        if !<xserver.keep_unchanged>;
 
 ## keyboard ##
 
@@ -146,13 +155,15 @@ if ($ok) {
     );
 
     <[xserver.grab_key]>
-        if defined <xserver.keybd.grab_all_keys>
+        if !<xserver.keep_unchanged>
+        and defined <xserver.keybd.grab_all_keys>
         and ( <xserver.keybd.grab_all_keys> eq '1'
         or <xserver.keybd.grab_all_keys> eq 'yes' );
 
 ## screensaver / blanking ##
 
-    if (defined <xserver.disable_blanking>
+    if (    !<xserver.keep_unchanged>
+        and defined <xserver.disable_blanking>
         and (  <xserver.disable_blanking> eq 'yes'
             or <xserver.disable_blanking> eq '1' )
         ) {
@@ -172,6 +183,11 @@ if ($ok) {
     <[base.log]>->( 1, "done." );
     exit(3);
 }
+
+## GPU load statistics (intel only) ##
+<[xserver.start_gpu_top]>
+    if <xserver.collect_intel_gpu_stats>
+    and <xserver.video_driver> =~ /^i/i;    # i9xx <?>
 
 ## background image / color ##
 
@@ -203,11 +219,6 @@ if ( defined $bg_image ) {
 if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
 }
-
-## GPU load statistics (intel only) ##
-<[xserver.start_gpu_top]>
-    if <xserver.collect_intel_gpu_stats>
-    and <xserver.video_driver> =~ /^i/i;    # i9xx <?>
 
 <xserver.initialized> = 1;
 
