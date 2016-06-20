@@ -1,0 +1,51 @@
+# >:]
+
+# name  = xserver.cmd.rotate_screen
+# descr = rotate the screen to specified mode
+# param = <mode>
+
+my $X     = <xserver.x11>;
+my $param = shift->{'args'};
+
+my $mirror = $param =~ s/-(x|y)$// ? $1 : '';
+
+my $mode;
+$mode = 1 if $param =~ 'normal';
+$mode = 2 if $param eq 'left';
+$mode = 4 if $param eq 'inverted';
+$mode = 8 if $param eq 'right';
+
+if ( not defined $mode ) {
+    my $err_msg = "invalid mode '$param$mirror'";
+    <[base.log]>->( 0, "<!> rotate_screen: $err_msg <!>" );
+    return { 'mode' => 'nack', 'data' => $err_msg };
+}
+
+$mode += 16 if $mirror eq 'x';
+$mode += 32 if $mirror eq 'y';
+
+my %screen_info = ( <xserver.x11>->RRGetScreenInfo( <xserver.x11>->root ) );
+
+return { 'mode' => 'nack', 'data' => "no changes" }
+    if $mode eq $screen_info{'rotation'};
+
+<[base.log]>->( 0, "<!> rotating screen to mode '$param$mirror'" );
+
+eval '$X->RRSetScreenConfig( $X->root, $screen_info{time},'
+    . '$screen_info{config_time}, $screen_info{size},'
+    . '$mode, $screen_info{rate} )';
+
+if ($@) {
+    my $err_msg = 'failed to rotate screen';
+    <[base.log]>->( 0, " :. $err_msg!" );
+    return { 'mode' => 'nack', 'data' => $err_msg };
+}
+
+# restart layout agent to update geometries
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.root.restart',
+        'call_args' => { 'args' => 'layout' },
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'screen rotated' }
