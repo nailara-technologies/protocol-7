@@ -1,0 +1,14 @@
+# >:]
+
+# name  = xserver.cmd.get_xorg_pid
+# descr = return PID of started Xorg process
+
+my $xserver_mode = <xserver.mode>;
+
+return {
+    'mode' => 'nack',
+    'data' => "running in $xserver_mode-mode ( not xorg )"
+    }
+    if $xserver_mode ne 'xorg';
+
+return { 'mode' => 'ack', 'data' => <xserver.pid> };
