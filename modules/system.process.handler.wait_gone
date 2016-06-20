@@ -1,0 +1,30 @@
+# >:]
+
+# name = system.process.handler.wait_gone
+
+my $watcher = shift->w;
+
+<system.process.wait_gone> //= {};
+if ( !keys %{<system.process.wait_gone>} ) {
+    delete <system.process.wait_gone>;
+    $watcher->cancel;
+    return;
+}
+
+my %pids_gone = map { $_ => 1 } keys %{<system.process.wait_gone>};
+
+foreach my $p ( @{ <system.process.pt>->table } ) {
+    my $pid = $p->pid;
+    delete $pids_gone{$pid} if defined <system.process.wait_gone>->{$pid};
+}
+
+map {
+    my $callback = delete <system.process.wait_gone>->{$_};
+    $code{$callback}->($_)
+        if defined $code{$callback} and ref( $code{$callback} ) eq 'CODE';
+} keys %pids_gone;
+
+if ( !keys %{<system.process.wait_gone>} ) {
+    delete <system.process.wait_gone>;
+    $watcher->cancel;
+}
