@@ -7,7 +7,7 @@ my @result;
 my $mode = shift;             # [clock|date]
 my $time = shift || time();
 
-if ( defined $mode and $mode =~ /^\d+$/ ) { $time = $mode; undef $mode }
+if ( defined $mode and $mode =~ /^(\d+)(\.\d+)?$/ ) { $time = $1; undef $mode }
 undef $mode if defined $mode and $mode eq 'timestamp';
 
 my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
