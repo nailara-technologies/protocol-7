@@ -95,7 +95,8 @@ if ( exists $init_result_data->{'start_mode'}
             if defined $exec_bin and not defined $prog_usr;
         <[base.log]>->( 0, "$reason - ABORTED!" );
         <[agent.change_status]>->( $instance_id, 'failed' );
-        <[agent.cmd.stop]>->( { 'args' => $instance_id } );
+        <[agent.cmd.stop]>
+            ->( { 'args' => $instance_id, 'mode' => 'implicit' } );
         return undef;
     } elsif ( $exec_bin =~ /\s/ or !-x $exec_bin ) {
         <[base.log]>->(
