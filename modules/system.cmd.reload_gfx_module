@@ -1,0 +1,17 @@
+# >:]
+
+# name  = system.cmd.reload_gfx_module
+# descr = force reload gfx kernel module and restart xserver
+
+return { 'mode' => 'nack', 'data' => '... already in progress!' }
+    if defined <system.gfx_reload>;
+
+<system.gfx_reload.reply_id> = $$call{'reply_id'};
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => 'core.xserver.get_driver',
+        'reply'   => { 'handler' => 'system.handler.xserver_driver_reply' }
+    }
+);
+
+return { 'mode' => 'later' }
