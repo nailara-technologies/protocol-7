@@ -18,6 +18,6 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   #libconvert-uu-perl
 
 # installs the rest from cpan (note: Gtk3::WebKit needs X-server or Xvfb)
-cpanm Crypt::Twofish2 X11::Tops X11::Protocol::WM Gtk3::WebKit Glib::Event \
+cpanm Crypt::Twofish2 X11::Tops Gtk3::WebKit Glib::Event \
       Crypt::PRNG::Fortuna XML::RSS::TimingBot File::MimeInfo::Magic \
       Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird
