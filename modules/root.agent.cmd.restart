@@ -42,9 +42,11 @@ map {
     my $agent_dependencies = <[agent.get_dependencies]>->($agent_name);
     goto skip_dependencies if not defined $agent_dependencies;
     foreach my $dep_name ( split( / +/, $agent_dependencies ) ) {
+        next if exists <root.agent.manually_stopped>->{$dep_name};
         if ( !<[agent.is_enabled]>->($dep_name) ) {
             <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
-            <[agent.cmd.start]>->( { 'args' => $dep_name } );
+            <[agent.cmd.start_once]>
+                ->( { 'args' => $dep_name, 'mode' => 'implicit' } );
         }
         <root.agent.dependency>->{$dep_name}->{$agent_name} = 1
             if not exists <root.agent.autostart>->{$dep_name};

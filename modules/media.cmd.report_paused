@@ -49,7 +49,7 @@ if ($all_ready) {
     } elsif (<media.loadsplash_running>) {    # (empty playlist case)
         <media.playlist_was_empty> = 1;
         <[base.proto.nailara.command.send.local]>->(
-            {   'command' => "core.root.stop",
+            {   'command' => "core.root.stop_implicit",
                 'call_args' =>
                     { 'args' => 'loadsplash[' . <system.agent.subname> . ']' }
             }
