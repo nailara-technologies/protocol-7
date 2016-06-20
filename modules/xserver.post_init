@@ -229,20 +229,23 @@ if ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
     }
     <[base.log]>->( 1, "setting background color '$bg_col'" );
     @hsetroot_params = ( '-solid', $bg_col );
-}
-if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-    <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
+    if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
+        <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
+    }
 }
 ##
 my $bg_mode = <xserver.bg_mode>;
 if ( defined $bg_image ) {
     if ( !-x $hsetroot_bin ) {
-        <[base.log]>->( 0, "cant't set bg color: '$hsetroot_bin' not found!" );
+        <[base.log]>->( 0, "cant't set bg image: '$hsetroot_bin' not found!" );
         return -1;
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
     @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux!
+    if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
+        <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
+    }
 }
 
 <xserver.initialized> = 1;
