@@ -35,6 +35,7 @@ if ( !<xserver.gpu_top.pid> ) {
     <[base.log]>->( 0, "<!> failed to open 'intel_gpu_top' pipe [$!]" );
     return;
 }
+push( @{<system.kill_list>}, <xserver.gpu_top.pid> );
 
 <xserver.gpu_top.process_started> = <[base.time]>->(2);
 
