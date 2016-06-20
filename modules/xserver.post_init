@@ -209,14 +209,7 @@ if (<xserver.keep_background>) {    # <- don't touch background image and color
 
 ## XXX: testing simple fade in
 if ( defined $bg_col and $bg_col =~ /^#?FFFFFF$/i ) {
-    <[base.log]>->( 1, "fading background color to white.." );
-    foreach my $c ( 0 .. 255 ) {
-        ( my $c_hex = sprintf( "%x", $c ) ) =~ s|^(.)$|0$1|;
-        $c_hex = $c_hex x 3;
-        $c_hex = "#$c_hex";
-        X11::Protocol::XSetRoot->set_background( 'color' => $c_hex );
-        <[base.sleep]>->(0.001);
-    }
+    <[xserver.fade_in_bg_col]>;
 } elsif ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
     $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
     <[base.log]>->( 1, "setting background color '$bg_col'" );
