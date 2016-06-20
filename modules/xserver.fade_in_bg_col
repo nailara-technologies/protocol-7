@@ -1,0 +1,20 @@
+# >:]
+
+# name = xserver.fade_in_bg_col
+# todo = fade to _any_ color
+
+<[base.log]>->( 1, "fading background color to white.." );
+
+my $fade_time  = 1.2;
+my $fade_start = <[base.time]>->(4);
+my $c          = 0;
+while ( $c < 255 ) {
+    $c = sprintf( "%.0f",
+        ( <[base.time]>->(4) - $fade_start ) * ( 255 / $fade_time ) );
+    $c = 255 if $c > 255;
+    ( my $c_hex = sprintf( "%x", $c ) ) =~ s|^(.)$|0$1|;
+    $c_hex = $c_hex x 3;
+    $c_hex = "#$c_hex";
+    X11::Protocol::XSetRoot->set_background( 'color' => $c_hex );
+    <[base.sleep]>->(0.0042);
+}
