@@ -4,8 +4,14 @@
 # descr = rotate the screen to specified mode
 # param = <mode>
 
-my $X     = <xserver.x11>;
-my $param = shift->{'args'};
+my $X = <xserver.x11>;
+my $param = shift->{'args'} // '';
+return {
+    'mode' => 'nack',
+    'data' => 'expected <mode> parameter :'
+        . ' <left|right|normal|inverted>[-x|-y]'
+    }
+    if !length($param);
 
 my $mirror = $param =~ s/-(x|y)$// ? $1 : '';
 
