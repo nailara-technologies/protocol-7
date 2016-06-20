@@ -2,11 +2,16 @@
 
 # name  = root.agent.cmd.stop
 # param = <agent_name(s)|instance(s)>
-# descr = shutdown agent instance(s)
+# descr = (manually) shutdown agent instance(s)
 
 my $params = $$call{'args'} || '';
 return { 'mode' => 'nack', 'data' => 'expected agent name or instance id' }
     if !length($params);
+
+my $stop_mode
+    = ( defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
+    ? 'implicit'
+    : 'manual';
 
 my @instance_ids;
 my $failed_name;
@@ -69,15 +74,24 @@ foreach my $name ( keys %shutdown_names ) {
     }
     my $instances_remaining = $agent_names{$name} - $shutdown_names{$name};
     if ( !$instances_remaining ) {
+
         my %agent_list;
         map { $agent_list{$_} = 1 } split / +/,
             <root.spawn_config.globals.agents.enabled>;
         delete $agent_list{$name};
         <root.spawn_config.globals.agents.enabled>
             = join( ' ', keys %agent_list );
+
+        <root.agent.manually_stopped>->{$name} = <[base.time]>->(4)
+            if $stop_mode eq 'manual';
+
         <[base.log]>->(
             1, "disabled agent '$name' (no more instances present)"
         );
+        <[base.log]>->(
+            1, ": <!> added '$name' to 'manually stopped' list <!>"
+        ) if $stop_mode eq 'manual';
+
         next if not exists <root.agent.dependency>;
         foreach my $dep_name ( keys %{<root.agent.dependency>} ) {
             delete <root.agent.dependency>->{$dep_name}->{$name};
@@ -87,7 +101,8 @@ foreach my $name ( keys %shutdown_names ) {
                     <[base.log]>->(
                         1, "dependency based auto-start cleanup [$dep_name]"
                     );
-                    <[agent.cmd.stop]>->( { 'args' => $dep_name } );
+                    <[agent.cmd.stop]>
+                        ->( { 'args' => $dep_name, 'mode' => 'implicit' } );
                 }
             }
         }

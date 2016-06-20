@@ -6,7 +6,7 @@
 my $display_agents = <layout.startup.stop_agents>;
 <[base.log]>->( 1, "stopping dispay agents (if present)" );
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.stop",
+    {   'command'   => "core.root.stop_implicit",
         'call_args' => { 'args' => $display_agents }
     }
 );

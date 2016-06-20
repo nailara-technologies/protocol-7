@@ -148,7 +148,7 @@ if (    $status eq 'offline'
     and exists $agent_config->{'respawn'}->{'disabled'}
     and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
     <[base.log]>->( 1, "auto-respawn for instance $instance_id is disabled.." );
-    <[agent.cmd.stop]>->( { 'args' => $instance_id } );
+    <[agent.cmd.stop]>->( { 'args' => $instance_id, 'mode' => 'implicit' } );
     return;
 }
 

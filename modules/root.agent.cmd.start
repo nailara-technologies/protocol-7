@@ -21,6 +21,11 @@ return { 'mode' => 'nack', 'data' => 'agent name or id expected' }
     if not defined $$call{'args'}
     or !length( $$call{'args'} );
 
+my $start_mode
+    = ( $recursion or defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
+    ? 'implicit'
+    : 'manual';
+
 if ( $$call{'args'} =~ /^\d+$/ ) {
     $agent_id   = $$call{'args'};
     $agent_name = <root.agent.setup>->{$agent_id}->{'name'}
@@ -54,15 +59,15 @@ return {
     }
     if $once
     and ( defined $agent_subname
-    and <[root.instance_count]>->( $agent_name . "[$agent_subname]" )
-    or not defined $agent_subname and <[root.instance_count]>->($agent_name) );
+    and <[root.spawn_count]>->( $agent_name . "[$agent_subname]" )
+    or not defined $agent_subname and <[root.spawn_count]>->($agent_name) );
 
 return {
     'mode' => 'nack',
     'data' => "reached configured maximum concurrency for agent '$agent_name'"
     }
     if exists $agent_config->{'max_concurrency'}
-    and <[root.instance_count]>->($agent_name)
+    and <[root.spawn_count]>->($agent_name)
     >= $agent_config->{'max_concurrency'};
 
 if ( defined $agent_subname
@@ -71,19 +76,29 @@ if ( defined $agent_subname
         'mode' => 'nack',
         'data' => "maximum concurrency reached for $agent_name\[$agent_subname]"
         }
-        if <[root.instance_count]>->( $agent_name . "[$agent_subname]" )
+        if <[root.spawn_count]>->( $agent_name . "[$agent_subname]" )
         >= $agent_config->{'max_subname_concurrency'};
 }
+
+return {
+    'mode' => 'nack',
+    'data' => "agent '$agent_name' has 'manually stopped' status"
+    }
+    if $start_mode eq 'implicit'
+    and exists <root.agent.manually_stopped>->{$agent_name};
+
+delete <root.agent.manually_stopped>->{$agent_name} if $start_mode eq 'manual';
 
 <[base.log]>->( 1, "spawning agent '$agent_name'..." ) if !$recursion;
 
 my $dep_str = <[agent.get_dependencies]>->($agent_name);
 my @dependencies = defined $dep_str ? split( / +/, $dep_str ) : ();
 foreach my $dep_name (@dependencies) {
+    next if exists <root.agent.manually_stopped>->{$dep_name};
     if ( !<[agent.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
 
-        my $reply = <[agent.cmd.start]>
+        my $reply = <[agent.cmd.start_once]>
             ->( { 'args' => $dep_name, 'recursion' => $recursion + 1 } );
 
         <root.agent.auto_cleanup>->{$dep_name} = $1
