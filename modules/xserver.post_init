@@ -195,9 +195,12 @@ if (    !<xserver.keep_unchanged>
 }
 
 ## GPU load statistics (intel only) ##
-<[xserver.start_gpu_top]>
-    if <xserver.collect_intel_gpu_stats>
-    and <xserver.video_driver> =~ /^i/i;    # i9xx <?>
+<xserver.collect_intel_gpu_stats> //= 0;
+<xserver.collect_gpu_stats_on_4K> //= 0;
+<[xserver.start_gpu_top]> if <xserver.video_driver> =~ /^i/i    # i9xx <?>
+    and ( <xserver.collect_intel_gpu_stats>
+    or <xserver.collect_gpu_stats_on_4K>
+    and <xserver.x11>->width_in_pixels >= 3840 );
 
 ## background image / color ##
 
