@@ -3,10 +3,10 @@
 # name  = xserver.cmd.get_screen_size
 # descr = return xserver screen size in pixels
 
-my $x = <xserver.x11>;
+<xserver.x11>->choose_screen(0);    # XXX: doesn't support multiple screens yet!
 
-$x->choose_screen(0);    # XXX: doesn't support multiple screens yet!
+my %screen_geom = <xserver.x11>->GetGeometry( <xserver.x11>->root );
 
-my ( $width, $height ) = ( $x->width_in_pixels, $x->height_in_pixels );
+my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return { 'mode' => 'ack', 'data' => "$width $height" }

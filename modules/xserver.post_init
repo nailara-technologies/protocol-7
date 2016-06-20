@@ -146,9 +146,19 @@ if ( !$ok ) {
 
 <[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
 
+## extensions ##
+
+# <[base.log]>->( 1, ": initializing extensions ..." );
+# <xserver.x11>->init_extensions;
+# print STDERR Dumper( keys( %{ <xserver.x11>->{'ext'} } ) );
+
+<xserver.x11>->init_extension('RANDR')
+    or die "[!] failed to initialize RAND extension!\n";
+<xserver.x11>->RRQueryVersion( 1, 0 );
+
 ## orientation ##
 
-<[xserver.xrandr.rotate]>->(<xserver.orientation>)
+<[xserver.cmd.rotate_screen]>->( { 'args' => <xserver.orientation> } )
     if !<xserver.keep_unchanged>;
 
 ## keyboard ##
@@ -196,7 +206,25 @@ if (<xserver.keep_background>) {    # <- don't touch background image and color
     <xserver.initialized> = 1;
     return 0;
 }
-my @hsetroot_params;
+
+## XXX: testing simple fade in
+if ( defined $bg_col and $bg_col =~ /^#?FFFFFF$/i ) {
+    <[base.log]>->( 1, "fading background color to white.." );
+    foreach my $c ( 0 .. 255 ) {
+        ( my $c_hex = sprintf( "%x", $c ) ) =~ s|^(.)$|0$1|;
+        $c_hex = $c_hex x 3;
+        $c_hex = "#$c_hex";
+        X11::Protocol::XSetRoot->set_background( 'color' => $c_hex );
+        <[base.sleep]>->(0.001);
+    }
+} elsif ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
+    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
+    <[base.log]>->( 1, "setting background color '$bg_col'" );
+    X11::Protocol::XSetRoot->set_background( 'color' => $bg_col );
+}
+##
+
+my @hsetroot_params;    # XXX: hsetroot call will be replaced soon...
 my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
 my $bg_mode      = <xserver.bg_mode>;
 if ( defined $bg_image ) {
@@ -207,17 +235,6 @@ if ( defined $bg_image ) {
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
     @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux!
-} elsif ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
-    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
-    if ( !-x $hsetroot_bin ) {
-        <[base.log]>->( 0, "cant't set bg color: '$hsetroot_bin' not found!" );
-        return -1;
-    }
-    <[base.log]>->( 1, "setting background color '$bg_col'" );
-    @hsetroot_params = ( '-solid', $bg_col );
-}
-if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-    <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
 }
 
 <xserver.initialized> = 1;
