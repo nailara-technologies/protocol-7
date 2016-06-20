@@ -1,0 +1,37 @@
+# >:]
+
+# name = system.handler.xserver_pid_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ /^\d+$/ ) {
+    my $reason = 'failed to obtain Xorg PID';
+    $reason = "xserver agent is not in 'xorg' mode"
+        if $reply->{'call_args'}->{'args'} =~ /not xorg/;
+    <[base.callback.cmd_reply]>->(
+        <system.gfx_reload.reply_id>,
+        {   'mode' => 'nack',
+            'data' => "$reason, aborted!"
+        }
+    );
+    delete <system.gfx_reload>;
+} else {
+    my $xorg_pid = $reply->{'call_args'}->{'args'};
+    <system.gfx_reload.xorg_pid> = $xorg_pid;
+
+    <system.process.wait_gone>->{$xorg_pid} = 'system.handler.xserver_stopped';
+
+    my $wait_gone_interval = 0.13;
+    <system.timer.wait_gone> = <[event.add_timer]>->(
+        {   'after'    => $wait_gone_interval,
+            'interval' => $wait_gone_interval,
+            'handler'  => 'system.process.handler.wait_gone'
+        }
+    );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.root.stop',
+            'call_args' => { 'args' => 'xserver' }
+        }
+    );
+}
