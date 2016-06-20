@@ -51,7 +51,7 @@ foreach my $key_name ( @{$display_keys} ) {
         $value_str //= '';
         my $filtered_val
             = <[base.call_filter]>->( $filters, $key_orig_str, $value_str );
-        $max_len{$key_name} = length($filtered_val) + 3
+        $max_len{$key_name} = length($filtered_val) + 4
             if length($filtered_val) > $max_len{$key_name} - 3;
     }
     $table_width += $max_len{$key_name};
@@ -86,7 +86,7 @@ foreach
                 $align->{$key_name_str} || 'left',
                 <[base.call_filter]>->( $filters, $key_name_str, $key_val ),
                 $max_len{$key_name} - 1
-                ) . ' ';
+                ) . ' ';                                   # <- XXX: kill ' '!
         } else {
             my $len = $max_len{$key_name};
             $key_name_str =~ s|:.+$||;
