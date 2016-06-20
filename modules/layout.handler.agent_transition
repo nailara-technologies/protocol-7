@@ -116,7 +116,7 @@ if ( $params->{'status'} eq 'start' ) {
         my $handler = @agents ? 'dev.null' : 'layout.handler.ping_reply';
 
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => 'core.root.start',
+            {   'command'   => 'core.root.start_once',
                 'call_args' => { 'args' => $start_name },
                 'reply'     => {
                     'handler' => $handler,
@@ -150,7 +150,7 @@ if ( $params->{'status'} eq 'remove' ) {
     $params->{'callback'} = 'layout.handler.agent_transition';
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.root.stop',
+        {   'command'   => 'core.root.stop_implicit',
             'call_args' => { 'args' => $params->{'instance_ids'} },
             'reply'     => {
                 'handler' => 'layout.handler.ping_reply',

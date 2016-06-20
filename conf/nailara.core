@@ -60,7 +60,7 @@ access.cmd.usr.browser = xserver.wait_visible xserver.lower_window \
                          layout.get_subconfig xserver.gpu_load \
                          playlist.set_flags playlist.entries_withheld
 
-access.cmd.usr.layout = root.start root.stop root.restart \
+access.cmd.usr.layout = root.start_once root.stop_implicit root.restart \
                         ticker-sdl.get_opacity \
                         xserver.get_window_ids root.get_instance_ids *.ping \
                         browser.hide_bg_window playlist.update \
@@ -75,8 +75,8 @@ access.cmd.usr.media = playlist.get_list playlist.get_list_types \
                        xserver.keep_below xserver.set_geometry \
                        ffmpeg.rescale_video xserver.set_opacity \
                        xserver.hide_window xserver.unhide_window \
-                       xserver.get_mode root.start_once root.stop root.restart \
-                       root.notify_online layout.get_subconfig \
+                       xserver.get_mode root.start_once root.stop_implicit \
+                       root.restart root.notify_online layout.get_subconfig \
                        reenc-msg.refresh reenc-msg.finished xserver.gpu_load \
                        playlist.set_flags ffmpeg.extract_last_frame \
                        playlist.entries_withheld
@@ -88,7 +88,8 @@ access.cmd.usr.mpv = playlist.get_list xserver.wait_visible xserver.keep_below \
                      reenc-msg.refresh reenc-msg.finished
 
 access.cmd.usr.impressive = playlist.get_list xserver.wait_visible \
-                            root.start_once root.stop layout.get_subconfig
+                            root.start_once root.stop_implicit \
+                            layout.get_subconfig
 
 access.cmd.usr.playlist = *.playlist_update weather.get_urls notify.msg_reload \
                           download.get_mimetype root.restart
@@ -99,7 +100,7 @@ access.cmd.usr.playlist-update = playlist.reload_file playlist.update \
 access.cmd.usr.power = power-x11.set_states
 access.cmd.usr.power-x11 = power.show_all power.on power.off
 
-access.cmd.usr.reenc-msg = root.stop
+access.cmd.usr.reenc-msg = root.stop_implicit
 
 access.cmd.usr.notify-info = notify.info
 access.cmd.usr.notify-warn = notify.warn

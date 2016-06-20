@@ -10,7 +10,8 @@ use Proc::ProcessTable;
 <root.timeout.kill_list>       //= 2;
 <root.timeout.verify_instance> //= 13;
 
-<root.agent.notify_online> //= {};
+<root.agent.notify_online>    //= {};
+<root.agent.manually_stopped> //= {};
 
 <root.cfg_data.spawn_config> //= [];
 
@@ -19,6 +20,19 @@ map { <[base.disable_command]>->($_) } qw(
     switch_user
     get_subname
 );
+
+<root.modprobe_bin> = '/sbin/modprobe';
+chomp( <root.modprobe_bin> = qx(which modprobe) ) if !-x <root.modprobe_bin>;
+if ( !-x <root.modprobe_bin> ) {
+    <root.modprobe_bin> = undef;
+    <[base.log]>->( 0, "<!> 'modprobe' binary not found <!>" );
+}
+<root.rmmod_bin> = '/sbin/rmmod';
+chomp( <root.rmmod_bin> = qx(which rmmod) ) if !-x <root.rmmod_bin>;
+if ( !-x <root.rmmod_bin> ) {
+    <root.rmmod_bin> = undef;
+    <[base.log]>->( 0, "<!> 'rmmod' binary not found <!>" );
+}
 
 <[root.load_spawn_config]>->(<load.spawn_config>)
     if defined <load.spawn_config>;
@@ -66,6 +80,18 @@ delete <list.users>;
         'agent_name' => 'right-2',
         'subname'    => 'left+1',
     }
+};
+
+<list.manual> = {
+    'var'   => 'data',
+    'key'   => 'root.agent.manually_stopped',
+    'descr' => "manually stopped",
+    'mask'  => '<key>:agent_name <key>:stopped_at',
+    'align' => {
+        'agent_name' => 'left+1',
+        'stopped_at' => 'left'
+    },
+    'filters' => { 'stopped_at' => 'root.parser.manually_stopped_tstamp' }
 };
 
 <list.processes> = {
