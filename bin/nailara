@@ -4,6 +4,11 @@ use v5.8.2;
 use strict;
 use warnings;
 
+BEGIN {
+    ( my $local_lib_path = $0 ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+}
+
 use open ':encoding(UTF-8)';
 
 # globals
@@ -121,9 +126,11 @@ sub prepare_subs {
         $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
         $data{'system'}{'perl_unicode'} = ${^UNICODE};
         $data{'system'}{'root_path'}    = $data{'system'}{'start'}{'exec_name'};
-        $data{'system'}{'root_path'} =~ s/\/[^\/]+\/[^\/]+$//;
+        $data{'system'}{'root_path'} =~ s|/[^/]+/[^/]+$||;
         $data{'system'}{'code_path'} = "$data{'system'}{'root_path'}/modules";
         $data{'system'}{'conf_path'} = $data{'system'}{'root_path'} . '/conf';
+        $data{'system'}{'lmod_path'} = $data{'system'}{'root_path'} . '/lib/pm';
+        delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
 
         if ( $0 =~ /^.*nailara\./ ) {
             $data{'system'}{'agent'}{'name'} = lc($0);
