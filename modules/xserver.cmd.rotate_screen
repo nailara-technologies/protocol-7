@@ -36,7 +36,7 @@ my $old_mode = $screen_info{'rotation'};
 return { 'mode' => 'nack', 'data' => "no changes" }
     if $mode eq $old_mode;
 $mirror = "-$mirror" if length($mirror);
-<[base.log]>->( 0, "<!> rotating screen to mode '$param$mirror'" );
+<[base.log]>->( 0, "<!> rotating screen to mode '$param$mirror' <!>" );
 
 eval '$X->RRSetScreenConfig( $X->root, $screen_info{time},'
     . '$screen_info{config_time}, $screen_info{size},'
