@@ -1,0 +1,19 @@
+# >:]
+
+# name  = xserver.display_connected
+
+my $xrandr_bin = <xserver.xrandr_bin>;
+
+if ( !<xserver.startup.display_connected> ) {
+    map { return 1 if $_ =~ /^[\w\d]+ connected / }
+        split( /\n/, qx($xrandr_bin 2>/dev/null) );
+    return 0;
+}
+
+<xserver.x11>->choose_screen(0);    # XXX: doesn't support multiple screens yet!
+
+my %screen_info = ( <xserver.x11>->RRGetScreenInfo( <xserver.x11>->root ) );
+
+my $connected = scalar @{ $screen_info{'sizes'} } == 0 ? 0 : 1;
+
+return $connected;
