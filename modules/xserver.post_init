@@ -179,8 +179,11 @@ if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) {
             0, "<!> xserver failed to select highest screen size <!>"
         );
         <[base.log]>->( 0, " :. fixing it! ( reloading gfx kernel module )" );
-        <[base.proto.nailara.command.send.local]>
-            ->( { 'command' => 'core.system.reload_gfx_module' } );
+        <[event.add_timer]>->(
+            {   'after'   => 0.13,
+                'handler' => 'xserver.callback.force_driver_reload'
+            }
+        );
     }
 }
 
