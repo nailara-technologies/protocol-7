@@ -9,10 +9,11 @@ my $height = $coords->{'bottom'} - $coords->{'top'};
 
 Gtk3->init;
 
-<loadsplash.window> = my $window = Gtk3::Window->new('popup');
+<loadsplash.window> = my $window = Gtk3::Window->new('toplevel');
 $window->signal_connect( 'delete_event', sub { Gtk3->main_quit } );
 $window->move( $coords->{'left'}, $coords->{'top'} );
 $window->set_default_size( $width, $height );
+$window->set_keep_above(1);
 $window->set_resizable(0);
 $window->set_opacity(1);
 
