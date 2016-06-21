@@ -89,6 +89,10 @@ if ( exists $init_result_data->{'start_mode'}
         }
     }
 
+    ## local ./bin/ path ## ( no /-es in exec_bin param )
+    $exec_bin = <system.root_path> . '/bin/' . $exec_bin
+        if $exec_bin !~ m|/| and -x <system.root_path> . '/bin/' . $exec_bin;
+
     if ( not defined $exec_bin or not defined $prog_usr ) {
         my $reason = "expected program name (exec_bin) in '$agent_name' setup";
         $reason = "expected 'exec_usr' for '$agent_name' to be defined"
