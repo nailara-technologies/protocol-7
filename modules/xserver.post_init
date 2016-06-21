@@ -156,6 +156,34 @@ if ( !$ok ) {
     or die "[!] failed to initialize RAND extension!\n";
 <xserver.x11>->RRQueryVersion( 1, 0 );
 
+<xserver.startup.display_connected> //= 1;
+
+if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) {
+    <xserver.startup.display_connected> = 0;
+    <[base.log]>->( 0, "<!> display is off / not connected <!>" );
+    my $screen_timer_interval = 4.2;
+    <xserver.timer.wait_for_display> = <[event.add_timer]>->(
+        {   'after'    => $screen_timer_interval,
+            'interval' => $screen_timer_interval,
+            'handler'  => 'xserver.handler.wait_for_display'
+        }
+    );
+} elsif ( <xserver.mode> eq 'xorg' ) {
+    <[base.log]>->( 1, ": : display is on / connected :)" );
+
+    my @max_size = <[xserver.max_screen_size]>;
+    if ( <xserver.mode> eq 'xorg'
+        and $max_size[0] > <xserver.x11>->width_in_pixels
+        or $max_size[1] > <xserver.x11>->height_in_pixels ) {
+        <[base.log]>->(
+            0, "<!> xserver failed to select highest screen size <!>"
+        );
+        <[base.log]>->( 0, " :. fixing it! ( reloading gfx kernel module )" );
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => 'core.system.reload_gfx_module' } );
+    }
+}
+
 ## orientation ##
 
 <[xserver.cmd.rotate_screen]>->( { 'args' => <xserver.orientation> } )
