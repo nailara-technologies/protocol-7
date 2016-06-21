@@ -6,6 +6,8 @@
 return { 'mode' => 'nack', 'data' => '... already in progress!' }
     if defined <system.gfx_reload>;
 
+<[base.log]>->( 0, "(!) forced reload of graphics kernel module requested..." );
+
 <system.gfx_reload.reply_id> = $$call{'reply_id'};
 
 <[base.proto.nailara.command.send.local]>->(
