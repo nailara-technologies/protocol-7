@@ -75,11 +75,19 @@ if (    $load_status eq 'finished'
             $check_sock->close();
         }
     }
+
     my $err_msg = "failed to load uri '$load_uri'" . $reason_txt;
     <browser.last_err_msg> //= '';
-    my $loglevel = $err_msg ne <browser.last_err_msg> ? 0 : 1;
+    my $loglevel = <browser.last_log_level> //= 0;
+    if ( $err_msg eq <browser.last_err_msg> ) {
+        $loglevel++ if <browser.last_log_level> < 2;
+    } else {
+        $loglevel = 0;
+    }
+    <browser.last_err_msg>   = $err_msg;
+    <browser.last_log_level> = $loglevel;
+    $err_msg .= ' <...>' if $loglevel > 0;
     <[base.log]>->( $loglevel, $err_msg );
-    <browser.last_err_msg> = $err_msg;
 
     <browser.slideshow.temp_delay> = <browser.slideshow.err_delay>;
 
