@@ -27,6 +27,13 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 
 <xserver.collect_intel_gpu_stats> //= 0;
 
+<xserver.xrandr_bin> //= '/usr/bin/xrandr';
+chomp( <xserver.xrandr_bin> = qx(which xrandr) ) if !-x <xserver.xrandr_bin>;
+if ( !-x <xserver.xrandr_bin> ) {
+    <[base.log]>->( 0, "<!> 'xrandr' binary not found <!>" );
+    <xserver.xrandr_bin> = undef;    # XXX: deal with it!
+}
+
 if (    <xserver.mode> eq 'xorg'
     and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/
     and <xserver.video_driver> =~ /^i\d\d\d$/ ) {
