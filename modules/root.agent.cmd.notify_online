@@ -67,7 +67,8 @@ foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
     my $core_sid = <root.agent.instance>->{$id}->{'core_sid'};
     my $prog_pid = <root.agent.instance>->{$id}->{'process'}->{'id'};
     if (<root.agent.instance>->{$id}->{'agent_name'} eq $query_param
-        and ( not defined $agent_subname
+        and (  not defined $agent_subname
+            or not defined <root.agent.instance>->{$id}->{'subname'}
             or <root.agent.instance>->{$id}->{'subname'} eq $agent_subname )
         ) {
         return {
