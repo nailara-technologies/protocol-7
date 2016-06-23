@@ -23,7 +23,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             1, ": killing impressive process [PID=<impressive.pid>]"
         );
         <impressive.watcher.output>->cancel;
-        kill( 15, <impressive.pid> );
+        kill( 9, <impressive.pid> );
         undef <impressive.pid>;
     }
     return;
@@ -44,8 +44,25 @@ return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
 if ( defined <impressive.pid> ) {
     <[base.log]>->( 1, ": killing impressive process [PID=<impressive.pid>]" );
     <impressive.watcher.output>->cancel;
-    kill( 15, <impressive.pid> );
+    kill( 9, <impressive.pid> );
     undef <impressive.pid>;
 }
 
-<[impressive.open_window]>;
+my $lsp_name
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash';
+
+<[base.log]>->( 1, "starting loadsplash agent.." );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.notify_online",
+        'call_args' => { 'args' => $lsp_name },
+        'reply'     => { 'handler' => 'impressive.open_window' }
+    }
+);
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.start_once",
+        'call_args' => { 'args' => $lsp_name }
+    }
+);

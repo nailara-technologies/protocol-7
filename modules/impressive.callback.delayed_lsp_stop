@@ -1,0 +1,16 @@
+# >:]
+
+# name = impressive.callback.delayed_lsp_stop
+
+<impressive.init_tag_detected> //= 0;
+return if <impressive.init_tag_detected>;
+
+<[base.log]>->( 2, "... [INIT] tag detected ... waiting ..." );
+
+<[event.add_timer]>->(
+    {   'after'   => 3.3,
+        'handler' => 'impressive.callback.stop_loadsplash'
+    }
+);
+
+<impressive.init_tag_detected> = 1;

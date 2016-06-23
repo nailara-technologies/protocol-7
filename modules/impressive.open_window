@@ -2,22 +2,6 @@
 
 # name = impressive.open_window
 
-<[base.log]>->( 1, "starting loadsplash agent.." );
-
-###[ loadsplash tile cover ]
-my $lsp_name
-    = defined <system.agent.subname>
-    ? 'loadsplash[' . <system.agent.subname> . ']'
-    : 'loadsplash';
-
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.start_once",
-        'call_args' => { 'args' => $lsp_name }
-    }
-);
-<[base.sleep]>->(2.42);    # XXX: make async
-###
-
 my $bg_color    = <impressive.cfg.background_color>;
 my $trans_delay = <impressive.cfg.transition_delay>;
 my $temp_dir    = <impressive.path.impressive_tmp>;
@@ -139,13 +123,13 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
                 'after \d+ requests'
             ],
             'callback_patterns' =>
-                { qr/^\[INIT\]/ => 'impressive.callback.stop_loadsplash' }
+                { qr/^\[INIT\]/ => 'impressive.callback.delayed_lsp_stop' }
         }
     }
 );
 
 <[event.add_timer]>->(
-    {   'after'   => 4.2,
-        'handler' => 'impressive.callback.stop_loadsplash'
+    {   'after'   => 7.7,
+        'handler' => 'impressive.callback.stop_loadsplash'    # failsafe only #
     }
 ) if <impressive.parser.init_tag_failed>;
