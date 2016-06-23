@@ -1,0 +1,18 @@
+# >:]
+
+# name = xserver.handler.display_power_state
+
+if ( not defined <xserver.display_power_state> ) {
+    <xserver.display_power_state> = <[xserver.display_connected]>;
+    return;
+} elsif ( <xserver.display_power_state> == <[xserver.display_connected]> ) {
+    return;
+}
+
+<xserver.display_power_state> = <[xserver.display_connected]>;
+
+if ( !<xserver.display_power_state> ) {
+    <[base.log]>->( 0, "<[-]> display is now < OFF > / disconnected <(-)>" );
+} else {
+    <[base.log]>->( 0, "<(+)> display is now < ON > / connected <(+)>" );
+}
