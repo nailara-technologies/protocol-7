@@ -9,12 +9,12 @@ die "expected valid icon type parameter [vclouds|oxygen]"
 
 die "icon type '$icon_type' is not implemented yet" if $icon_type ne 'vclouds';
 
-my $icon_dir = <system.root_path> . '/data/gfx/icons';
+my $gfx_dir = <system.root_path> . '/data/gfx';
 
 if ( $icon_type eq 'vclouds' ) {
-    my $weather_icon_dir = $icon_dir . '/vclouds/weather';
+    my $weather_icon_dir = $gfx_dir . '/icons/vclouds/weather';
     return {
-        'updating'      => $icon_dir . '/loading.gif',
+        'updating'      => $gfx_dir . '/anim/busy.2K.gif',
         'not_available' => $weather_icon_dir . '/na.png',
 
         ### standard openweathermap icons ###
