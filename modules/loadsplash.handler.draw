@@ -21,6 +21,7 @@ if ( <loadsplash.composited> and !$window->is_composited ) {  ## comp changed ##
 if ( !<loadsplash.composited> and <loadsplash.fade_mode> eq 'in' ) {
     $window->move( <x11.coordinates>->{'left'}, <x11.coordinates>->{'top'} );
     $window->set_size_request( <loadsplash.width>, <loadsplash.height> );
+    <[base.async.get_session_id]>;    # agent status -> 'online'
     <loadsplash.fade_mode> = 'idle';
     return;
 } elsif ( !<loadsplash.composited> and <loadsplash.fade_mode> eq 'out' ) {
@@ -63,6 +64,7 @@ if ( <loadsplash.fade_mode> eq 'out' ) {    ## fade out ##
 
     if ( $opacity >= 1 ) {
         delete <loadsplash.fade_in.start_time>;
+        <[base.async.get_session_id]>;    # agent status -> 'online'
         <loadsplash.fade_mode> = 'idle';
     }
 
