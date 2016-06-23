@@ -6,13 +6,11 @@ my $window = shift;
 
 if ( <loadsplash.composited> and !$window->is_composited ) {  ## comp changed ##
     $window->set_visual( $window->get_screen->get_system_visual() );
-    $window->set_app_paintable(0);
     <loadsplash.composited> = 0;
 } elsif ( <loadsplash.comp_at_startup>
     and !<loadsplash.composited>
     and $window->is_composited ) {
     $window->set_visual( $window->get_screen->get_rgba_visual() );
-    $window->set_app_paintable(1);
     <loadsplash.composited> = 1;
 }
 
