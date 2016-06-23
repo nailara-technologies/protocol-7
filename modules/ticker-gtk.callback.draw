@@ -66,7 +66,7 @@ if ( not defined <ticker-gtk.status.initialized> ) {
         }
     ) if <ticker-gtk.request_rss_updates>;
 
-    <[base.get_session_id]>;    # agent status -> 'online'
+    <[base.async.get_session_id]>;    # agent status -> 'online'
 
     <ticker-gtk.status.initialized> = 1;
 
@@ -129,7 +129,7 @@ my $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
 if ( !<ticker-gtk.paused> ) {
 
     if (<ticker-gtk.auto_speed_mode>) {    # XXX
-#
+        #
         my $adjust  = 0;
         my $sl_diff = 0;
         if ( <ticker-gtk.slowdown.percent>
@@ -150,7 +150,7 @@ if ( !<ticker-gtk.paused> ) {
             <ticker-gtk.slowdown.percent> = <ticker-gtk.slowdown.percent_target>
                 if $sl_diff <= 0.05;
         }
-#
+        #
         $speed -= ( $speed - 5 ) * ( <ticker-gtk.slowdown.percent> / 100 );
     }
 

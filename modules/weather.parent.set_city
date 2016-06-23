@@ -21,7 +21,7 @@ if ( defined <weather.station_id> ) {    # cached id found
     <[weather.parent.update_forecast]>->(<weather.station_id>);
 
     if ( !<weather.agent.initialized> ) {
-        <[base.get_session_id]>;         # change agent status to 'online'
+        <[base.async.get_session_id]>;    # change agent status to 'online'
         <weather.agent.initialized> = 1;
     }
 
