@@ -14,7 +14,7 @@ if ( defined $station_id ) {
     <weather.station_id> = $station_id;
     <[base.log]>->( 1, "loaded cached station id [$station_id]" );
     if ( !<weather.agent.initialized> ) {
-        <[base.get_session_id]>;
+        <[base.async.get_session_id]>;
         <weather.agent.initialized> = 1;
     }
 } else {
