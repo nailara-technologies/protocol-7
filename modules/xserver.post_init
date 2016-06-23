@@ -158,7 +158,7 @@ if ( !$ok ) {
 
 <xserver.startup.display_connected> //= 1;
 
-if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) {
+if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) { # wait 4 ON
     <xserver.startup.display_connected> = 0;
     <[base.log]>->( 0, "<!> display is off / not connected <!>" );
     my $screen_timer_interval = 4.2;
@@ -172,9 +172,8 @@ if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) {
     <[base.log]>->( 1, ": : display is on / connected :)" );
 
     my @max_size = <[xserver.max_screen_size]>;
-    if ( <xserver.mode> eq 'xorg'
-        and $max_size[0] > <xserver.x11>->width_in_pixels
-        or $max_size[1] > <xserver.x11>->height_in_pixels ) {
+    if (   $max_size[0] > <xserver.x11>->width_in_pixels
+        or $max_size[1] > <xserver.x11>->height_in_pixels ) { # check start size
         <[base.log]>->(
             0, "<!> xserver failed to select highest screen size <!>"
         );
@@ -182,6 +181,13 @@ if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) {
         <[event.add_timer]>->(
             {   'after'   => 0.13,
                 'handler' => 'xserver.callback.force_driver_reload'
+            }
+        );
+    } else {    # install[ing] on / off watcher
+        <[event.add_timer]>->(
+            {   'after'    => 0,
+                'interval' => 1.2,
+                'handler'  => 'xserver.handler.display_power_state'
             }
         );
     }
