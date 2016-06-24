@@ -1,0 +1,15 @@
+# >:]
+
+# name  = io_all.file.init_code
+# descr = moves io_all.file.* routines to file.* namespace
+# todo  = XXX: fix reinitialization !
+
+undef &main::io if defined &main::io;
+eval 'use IO::All';
+die $@ if $@;
+
+if ( exists $code{'io_all.file.init_code'} ) {
+    <[base.swap_subs]>->( 'io_all.file', 'file' );
+}
+
+return 0;
