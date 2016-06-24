@@ -20,12 +20,13 @@ sub read_hosts {
 
 sub _resolve {
     my ( $self, $host, $request, $timeout, $depth ) = @_;
+
     <[base.log]>->( 2, "resolving host '$host'.." );
 
     ## /etc/hosts ##
     my $local_result;
     $local_result = $etc_hosts->query_host($host);
-    if ( defined $local_result ) {
+    if ( defined $local_result and defined $local_result->{'ip'} ) {
         my $ip_addr = $local_result->{'ip'};
         <[base.log]>->( 2, ": found local entry '$ip_addr'" );
         return $ip_addr;
