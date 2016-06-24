@@ -5,7 +5,7 @@
 
 my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
-my $overwrite_policy  = shift || 'wipe';    # [wipe|overwrite|if_missing]
+my $overwrite_policy  = shift // 'wipe';    # [wipe|overwrite|if_missing]
 
 my @sub_names     = keys %code;
 my $subs_matching = 0;
@@ -18,7 +18,12 @@ if ( !$subs_matching ) {
 }
 
 if ( $overwrite_policy eq 'wipe' ) {
-    map { delete $code{$_} if $_ =~ /^$target_sub_prefix\./ } @sub_names;
+    map {
+        if ( $_ =~ /^$target_sub_prefix\./ ) {
+            delete $code{$_};
+            $data{'code'}{$_}{'status'} = 'wiped';
+        }
+    } @sub_names;
     my $wipe_count = @sub_names - keys %code;
     <[base.log]>->(
         2, "wiped $wipe_count subs from '$target_sub_prefix' namespace"
