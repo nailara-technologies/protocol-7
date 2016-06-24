@@ -71,6 +71,15 @@ foreach my $file (@file_names) {
     <playlist.agent_subnames>->{$file_index}->{$agent_subname} = 1
         if defined $agent_subname;
 
+    ### URL flags ###
+    <playlist.cfg.allow_url_flag_syntax> //= 0;
+    my $flag_str;
+    if ( <playlist.cfg.allow_url_flag_syntax>
+        and $file =~ s/#\[([A-Z0-9_\.\|=]+)\]#$// ) {
+        $flag_str = lc($1);
+    }
+    $file =~ s|#\[[^\]]+\]#||g;    # cleanup
+
     ### XXX: weather agent test hack ###
     if ( $file =~ /^\[weather:(.+)\]$/ ) {
 
@@ -151,6 +160,27 @@ foreach my $file (@file_names) {
         if exists <playlist.file_error_logged>->{$file};
 
     <playlist.file_types>->{$file} = $type;
+
+    ### URL flags ###
+    if ( defined $flag_str ) {
+        foreach my $flag_sub_str ( split /\|/, $flag_str ) {
+            my ( $flag_name, $flag_param ) = split( /=/, $flag_sub_str );
+            if ( not exists <playlist.url_flags>->{$flag_name} ) {
+                <[base.log]>->(
+                    1, "<::> invalid flag '$flag_name' requested! [$file]"
+                );
+                next;
+            }
+        }
+        my $s = $flag_str =~ s/\|/,/g ? 's' : '';
+        <[base.log]>->( 1, "<::> setting url flag$s for '$file'.." );
+        my $flag_reply
+            = <[playlist.cmd.set_flags]>
+            ->( { 'args' => join( ' ', $flag_str, $file ) } );
+        <[base.log]>->( 0, "<!> flag error on '$file' [$flag_reply->{data}]" )
+            if $flag_reply->{'mode'} ne 'ack';
+    }
+
     $file_index++;
 }
 
