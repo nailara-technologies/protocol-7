@@ -43,7 +43,10 @@ if ([ stat($impr_src) ]->[7] == 244069  # check for problematic impressive vers.
     $file_content =~ s|tostring\(|tobytes\(|mg;  # workaround (impressive crash)
 }
 
-my $title_str = <system.agent.name> . '[' . <system.agent.subname> . ']';
+my $title_str = <system.agent.name>;
+$title_str .= '[' . <system.agent.subname> . ']'
+    if defined <system.agent.subname> and length(<system.agent.subname>);
+
 if (not $file_content
     =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m ) {
     <[base.log]>->(
