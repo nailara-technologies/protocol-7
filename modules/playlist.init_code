@@ -9,7 +9,7 @@ use File::MimeInfo::Magic;
 <playlist.url_flags>  //= {};
 
 map { <playlist.url_flags>->{$_} //= {} }
-    ( 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
+    ( 'delay', 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
 
 <playlist.network_errors>  //= 0;
 <playlist.content_changed> //= 0;
@@ -19,7 +19,10 @@ map { <playlist.url_flags>->{$_} //= {} }
 <playlist.mime_retry.max_delay>   = 30;    # upper mimtype check retry delay
 
 <playlist.http.check_content_types> //= 1;
-<playlist.http.url_types_max_retry> //= 0; # 0 = never give up, <n> = max retry
+<playlist.http.url_types_max_retry> //= 0;  # 0 = never give up, <n> = max retry
 <playlist.cfg.change_notifications> //= 0;
+
+<[base.log]>->( 1, "<i> URL flag syntax is enabled..." )
+    if <playlist.cfg.disable_url_flag_syntax> //= 0;
 
 0;

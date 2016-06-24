@@ -27,9 +27,24 @@ my $view     = <browser.gtk_obj.view>->{$bg_index};
 <browser.current_view> = $view;
 <browser.url_flags>    = {};
 
-if ( $load_uri =~ s|#\[([\w+\_\|]+)\]#$|| ) {
-    map { <browser.url_flags>->{ lc($_) } = 1 } split( /\|/, $1 );
+if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
+    map {
+        my ( $flag_name, $flag_param ) = split( /=/, $_ );
+        $flag_param //= 1;
+        <browser.url_flags>->{ lc($flag_name) } = $flag_param
+    } split( /\|/, $1 );
 }
+
+<browser.slideshow.temp_delay> = <browser.url_flags.delay>
+    if defined <browser.url_flags.delay>
+    and <browser.url_flags.delay> =~ /^\d+(\.\d+)?$/;
+
+<[base.log]>->(
+    2,
+    "..setting (custom) delay to "
+        . <browser.slideshow.temp_delay>
+        . " seconds.."
+) if defined <browser.slideshow.temp_delay>;
 
 <browser.load_uri> = $load_uri;
 
