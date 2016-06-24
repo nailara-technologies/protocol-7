@@ -16,7 +16,8 @@ warn "expected reply data hash reference"
     if not defined $reply
     or ref($reply) ne 'HASH';
 
-die "no command meta data set up for id '$reply_id'"
+return
+    warn "no command meta data set up for id '$reply_id' (agent disappeared?)"
     if not exists <base.cmd_reply>->{$reply_id};
 
 my $meta_data  = <base.cmd_reply>->{$reply_id};
