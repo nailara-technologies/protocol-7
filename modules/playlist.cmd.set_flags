@@ -4,43 +4,71 @@
 # param = <flags> <url>
 # descr = set url flags for given playlist url
 
-my ( $flag_names, $url ) = split( / +/, $$call{'args'}, 2 );
+my ( $flag_str, $url ) = split( / +/, shift->{'args'}, 2 );
 return { 'mode' => 'nack', 'data' => 'flag name expected!' }
-    if not defined $flag_names or !length($flag_names);
-$flag_names =~ s|,,|,|g;
+    if not defined $flag_str or !length($flag_str);
+$flag_str =~ s|,,|,|g;
 map {
+    my ( $flag_name, $flag_param ) = split( /=/, $_ );
     return {
         'mode' => 'nack',
-        'data' => "invalid url flag name '$_' .. comma seperated .. < "
+        'data' => "invalid url flag name '$flag_name'"
+            . " .. comma seperated .. < "
             . join( ' | ', sort keys( %{<playlist.url_flags>} ) ) . ' >'
         }
-        if not exists <playlist.url_flags>->{$_}
-} split( /,/, $flag_names );
-return { 'mode' => 'nack', 'data' => 'URL expected!' }
-    if not defined $url
-    or $url !~ m|^https?://|;
+        if not exists <playlist.url_flags>->{$flag_name}
+} split( /,/, $flag_str );
+map {
+    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    return {
+        'mode' => 'nack',
+        'data' => "URL expected for '$flag_name' flag!"
+        }
+        if not defined $url
+        or $flag_name ne 'delay' and $url !~ m|^https?://|;
+} split( /,/, $flag_str );
 
 my $match = 0;
 map { $match++ if $_ eq $url; } @{<playlist.file_list>};
 
 return { 'mode' => 'nack', 'data' => 'no match in playlist!' } if !$match;
 
+my $un = <playlist.file_types>->{$url} =~ /:/ ? '(un)' : '';
 return {
     'mode' => 'nack',
-    'data' => 'not allowed for determined content type!'
+    'data' => "not allowed for ${un}determined content type!"
     }
     if <playlist.http.check_content_types>
     and defined <playlist.file_types>->{$url}
-    and <playlist.file_types>->{$url} ne 'html';
+    and <playlist.file_types>->{$url} ne 'html'
+    and $url !~ m{^https?://}    # likely html?
+    and $url !~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$};
 
-my $s = $flag_names =~ /,/ ? 's' : '';
-<[base.log]>->( 0, "setting url flag$s '$flag_names' for '$url'" );
+map {
+    if ( $_ !~ /^delay=\d+(\.\d+)?$/ and $_ =~ /^([^=]+)=/ ) {
+        return {
+            'mode' => 'nack',
+            'data' => "no parameter expected for flag '$1'!"
+        };
+    } elsif ( $_ =~ /^delay/ and $_ !~ /^delay=\d+(\.\d+)?$/ ) {
+        return {
+            'mode' => 'nack',
+            'data' => "expected time in seconds parameter for 'delay' flag!"
+        };
+    }
+} split( /,/, $flag_str );
 
+my $s = $flag_str =~ /,/ ? 's' : '';
+<[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
 map { delete <playlist.url_flags>->{$_}->{$url} } keys %{<playlist.url_flags>};
-map { <playlist.url_flags>->{$_}->{$url} = 1 } split( /,/, $flag_names );
+map {
+    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    $flag_param //= 1;
+    <playlist.url_flags>->{$flag_name}->{$url} = $flag_param
+} split( /,/, $flag_str );
 
 <[playlist.update.send_notifications]>;
 
-my $msgstr = $flag_names !~ /,/ ? 'flag has been set!' : 'flags have been set!';
+my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 
 return { 'mode' => 'ack', 'data' => $msgstr };
