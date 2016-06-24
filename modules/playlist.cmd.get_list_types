@@ -22,7 +22,14 @@ foreach my $file ( @{<playlist.file_list>} ) {
         and not exists <playlist.agent_subnames>->{$index}->{$subname};
 
     my @url_flags;
-    map { push( @url_flags, $_ ) if exists <playlist.url_flags>->{$_}->{$file} }
+    map {
+        if ( exists <playlist.url_flags>->{$_}->{$file} ) {
+            my $flag_str = $_;
+            $flag_str .= '=' . <playlist.url_flags>->{$_}->{$file}
+                if $_ eq 'delay';
+            push( @url_flags, $flag_str );
+        }
+        }
         keys %{<playlist.url_flags>};
     my $url_flags_str
         = @url_flags ? '#[' . uc( join( '|', sort @url_flags ) ) . ']#' : '';
