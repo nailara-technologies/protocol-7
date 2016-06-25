@@ -11,7 +11,10 @@ my $spawn_config_data = shift || [];
     )
 );
 
-my $agents_init_code = shift( @{$spawn_config_data} )->{'agents'};
+my $agents_init_code;
+while ( not defined $agents_init_code ) {    # skip other sections
+    $agents_init_code = shift( @{$spawn_config_data} )->{'agents'};
+}
 
 <root.spawn_config.agents.startup.init_code>   //= {};
 <root.spawn_config.agents.startup.spawn_order> //= [];
@@ -21,8 +24,7 @@ foreach my $agent_element ( @{$agents_init_code} ) {
     if ( ref($agent_element) ne 'HASH' ) {
         <[base.log]>->(
             0,
-            ": : spawn cfg" #  '$config_to_load :'
-                . " syntax error: '$agent_element'"
+            ": : spawn cfg syntax error: '$agent_element'"
                 . " ( expected \" - <agent_name>\" )"
         );
         next;
