@@ -26,6 +26,9 @@ if (sysread(
     kill( 9, $pid );    # to make sure
     <[base.log]>->( 0, "$bin-child died unexpectedly!" );
     <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
+    $code{<base.child_exit.callback>}->($pid)
+        if defined <base.child_exit.callback>
+        and defined $code{<base.child_exit.callback>};
     exit(2);
 }
 
