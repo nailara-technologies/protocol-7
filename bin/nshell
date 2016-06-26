@@ -38,6 +38,7 @@ foreach my $param (@ARGV) {
 
 my $core_user;
 my $core_pass;
+my $stored_cmd;
 my $link_type = 'tcp/ip';
 my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
@@ -71,9 +72,24 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        clear();
-        print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
         $0 = "nshell ( $core_addr : $core_port ) ";
+        if ( not defined $stored_cmd ) {
+            clear();
+            print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
+        } else {
+            if ( !syswrite( $shell_sock, "$stored_cmd\n" ) ) {
+                select( undef, undef, undef, 0.1 );
+                close($shell_sock);
+                exit(2);    # aborting connection, failed to send!
+            } else {
+                printf "\033[3A\r\e[5m.\e[0m < \e[32m%-70s\n\n",
+                    "reconnected$color >";
+                my $l_cmd = length($stored_cmd);
+                $l_cmd = 33 if $l_cmd < 33;
+                printf "\r$prompt. %-" . $l_cmd . "s$color\n\033[1A\n",
+                    $stored_cmd;
+            }
+        }
         shell_loop( $shell_sock, $prompt );
     }
 }
@@ -166,6 +182,10 @@ sub shell_loop {
     my $prompt = $_[1];
 
     if ( not $stdout_pid = fork() ) { stdout_fork(); exit }
+    if ( defined $stored_cmd ) {
+        select( undef, undef, undef, 0.2 );
+        undef $stored_cmd;
+    }
 
     while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
         $WARNED = 0;
@@ -180,15 +200,28 @@ sub shell_loop {
                 }
             } else {
 
-                if ( !syswrite( $sock, "$line\n" ) ) {
+                if ( $line ne '[quit]' and !syswrite( $sock, "$line\n" ) ) {
                     select( undef, undef, undef, 0.1 );
-                    exit;
+                    $stored_cmd = $line;
                 }
                 select( undef, undef, undef, 0.2 );
-                if ( $line eq '[quit]' or $line =~ "ACK session closed\n" ) {
+                if (   $line eq '[quit]'
+                    or defined $stored_cmd and $stored_cmd eq 'exit'
+                    or $line =~ "ACK session closed\n" ) {
+                    print {$sock} "exit user quit shell session\n"
+                        if $line eq '[quit]';
+                    close($sock);
                     exit;
-                } elsif ( !-S $sock or !$sock->connected ) {
-                    print "\e[2H\e[2J :: reconnecting...\n";
+                } elsif ( defined $stored_cmd
+                    or !-S $sock
+                    or !$sock->connected ) {
+                    my $r_msg = ' :: reconnecting...';
+                    if ( not defined $stored_cmd ) {
+                        print "\e[2H\e[2J$r_msg\n";
+                    } else {
+                        my $l_cmd = length($stored_cmd);
+                        printf "\033[1A\r%-" . $l_cmd . "s\n\033[2A\r", $r_msg;
+                    }
                     last;
                 }
 
