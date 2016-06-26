@@ -39,6 +39,7 @@ foreach my $param (@ARGV) {
 my $core_user;
 my $core_pass;
 my $stored_cmd;
+my $lines_up  = 3;
 my $link_type = 'tcp/ip';
 my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
@@ -82,7 +83,7 @@ while ($connect) {
                 close($shell_sock);
                 exit(2);    # aborting connection, failed to send!
             } else {
-                printf "\033[3A\r\e[5m.\e[0m < \e[32m%-70s\n\n",
+                printf "\033[${lines_up}A\r\e[5m.\e[0m < \e[32m%-70s\n\n",
                     "reconnected$color >";
                 my $l_cmd = length($stored_cmd);
                 $l_cmd = 33 if $l_cmd < 33;
@@ -90,6 +91,7 @@ while ($connect) {
                     $stored_cmd;
             }
         }
+        $lines_up = 3;
         shell_loop( $shell_sock, $prompt );
     }
 }
@@ -195,6 +197,7 @@ sub shell_loop {
             if ( $line =~ /^\.cd ([^\s]+)/ ) {
                 if ( !chdir($1) ) { print "cd: " . $! . "\n" }
             } elsif ( $line !~ /^\.\./ and $line =~ /^\.(.+)$/ ) {
+                $lines_up = 1;
                 if ( my $err = system($1) ) {
                     print "error code: " . $err . "\n";
                 }
