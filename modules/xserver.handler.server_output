@@ -13,15 +13,15 @@ my $pid     = $server->{'pid'};
 
 <xserver.output_buffer> //= '';
 
-if (sysread(
-        $read_fh, <xserver.output_buffer>,
-        4096,     length(<xserver.output_buffer>)
-    ) == 0    # ( filehandle has an exception )
-    ) {
+my $read_bytes = sysread(
+    $read_fh, <xserver.output_buffer>,
+    4096,     length(<xserver.output_buffer>)
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     close($read_fh);
     <[base.log]>->( 1, "$bin-server [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );    # to make sure
+    kill( 9, $pid );                                  # to make sure
     my $err_str
         = defined <xserver.first_error>
         ? ': "' . <xserver.first_error> . '"'

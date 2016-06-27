@@ -20,11 +20,11 @@ my $agent_name     = <root.agent.setup>->{$agent_id}->{'name'};
 
 $agent_instance->{'output_buffer'} //= '';
 
-if (sysread(
-        $read_fh, $agent_instance->{'output_buffer'},
-        4096,     length( $agent_instance->{'output_buffer'} )
-    ) == 0    # ( filehandle has an exception )
-    ) {
+my $read_bytes = sysread(
+    $read_fh, $agent_instance->{'output_buffer'},
+    4096,     length( $agent_instance->{'output_buffer'} )
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     my $process = $agent_instance->{'process'};
     close($read_fh);
