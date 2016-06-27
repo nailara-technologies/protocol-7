@@ -83,7 +83,7 @@ while ($connect) {
                 close($shell_sock);
                 exit(2);    # aborting connection, failed to send!
             } else {
-                printf "\033[${lines_up}A\r\e[5m.\e[0m < \e[32m%-70s\n\n",
+                printf "\033[${lines_up}A\r\e[5m.\e[0m < \e[32m%-79s\n\n",
                     "reconnected$color >";
                 my $l_cmd = length($stored_cmd);
                 $l_cmd = 33 if $l_cmd < 33;
