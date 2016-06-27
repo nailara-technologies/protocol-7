@@ -15,11 +15,11 @@ my @stat_secs = ( 5, 15, 30 );
 <xserver.gpu_top.stats.load_average> //= {};
 <xserver.gpu_top.output_buffer>      //= '';
 
-if (sysread(
-        $read_fh, <xserver.gpu_top.output_buffer>,
-        4096,     length(<xserver.gpu_top.output_buffer>)
-    ) == 0    # ( filehandle has an exception )
-    ) {
+my $read_bytes = sysread(
+    $read_fh, <xserver.gpu_top.output_buffer>,
+    4096,     length(<xserver.gpu_top.output_buffer>)
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     close($read_fh);
     <[base.log]>->(
