@@ -57,6 +57,22 @@ $trans_delay += sprintf( "%.0f", 4 + rand(4) ) if $light_mode >= 2;
 
 ## prepare parameter list ##
 
+if ( defined <x11.geometry> and <x11.geometry> =~ /^(\d+)x(\d+)/i ) { # min size
+    ( my $width, my $height ) = ( $1, $2 );
+    if ( $width < 320 ) {
+        <[base.log]>->(
+            0, "<!> configured window width $1 is too small -> forcing 320!"
+        );
+        <x11.geometry> =~ s/^$1x/320x/i;
+    }
+    if ( $height < 200 ) {
+        <[base.log]>->(
+            0, "<!> configured window height $2 is too small -> forcing 200!"
+        );
+        <x11.geometry> =~ s/x$2/x200/i;
+    }
+}
+
 my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
 push( @exec_params, '--transition', $translist_str ) if length($translist_str);
 push( @exec_params,
