@@ -7,7 +7,9 @@
 $ENV{'DISPLAY'} = <x11.display>;
 Gtk3->init;
 
-my $window = Gtk3::Window->new('toplevel');    # ('popup' || 'toplevel');
+my $window_mode = <ticker-gtk.window.force_above> ? 'popup' : 'toplevel';
+
+my $window = Gtk3::Window->new($window_mode);
 
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 
@@ -26,15 +28,10 @@ if ( $window->is_composited ) {
 $window->move( <x11.coordinates.left>, <x11.coordinates.top> );
 $window->set_default_size( <x11.window.width>, <x11.window.height> );
 
-<x11.title_str>
-    = defined <system.agent.subname>
-    ? <system.agent.name> . '[' . <system.agent.subname> . ']'
-    : <system.agent.name>;
-
 $window->set_title(<x11.title_str>);
 $window->set_border_width(0);
 $window->set_decorated(0);
-
+$window->set_keep_above(1) if <ticker-gtk.window.force_above>;
 $window->set_app_paintable(1);
 
 #my $drawable = Gtk3::DrawingArea->new;
@@ -60,19 +57,31 @@ $window->show_all;
 
 <ticker-gtk.obj.window> = $window;
 
-Glib::Idle->add(
-    sub {
-        unless ( <[base.x11.wait_for_window]>->( '^' . <x11.title_str> ) ) {
-            <[base.log]>->(
-                0, "[!] window failed to open, aborting agent startup.."
-            );
-            exit(2);
+if ( !<ticker-gtk.window.force_above> ) {
+    Glib::Idle->add(
+        sub {
+            unless ( <[base.x11.wait_for_window]>->( '^' . <x11.title_str> ) ) {
+                <[base.log]>->(
+                    0, "[!] window failed to open, aborting agent startup.."
+                );
+                exit(2);
+            }
+            <[base.x11.assign_window]>;
+            <ticker-gtk.window_opened> = 1;
+            <ticker-gtk.obj.window>->queue_draw;
+            return 0;
         }
-        <[base.x11.assign_window]>;
-        <ticker-gtk.obj.window>->queue_draw;
-        return 0;
-    }
-);
+    );
+} else {
+    Glib::Timeout->add(
+        0,
+        sub {
+            <ticker-gtk.window_opened> = 1;
+            <ticker-gtk.obj.window>->queue_draw;
+            return 0;
+        }
+    );
+}
 
 <ticker-gtk.font.size> = 0;
 
@@ -80,4 +89,4 @@ my $font_name = <ticker-gtk.font.name>;
 my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
 my $freetype  = Font::FreeType->new;
 my $ft_face   = $freetype->face($font_path);
-<ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face);
+<ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face)
