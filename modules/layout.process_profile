@@ -20,7 +20,7 @@ if ( defined <layout.config.ticker_agent_type> ) {
                 my $new_name = "ticker-$ticker_type$tile_name";
                 if ( $new_name ne $_ ) {
                     $_profile_data->{$new_name} = delete $_profile_data->{$_};
-                    $_profile_data->{$new_name}->{'layer'} //= 1;  # <- DEFAULT!
+                    $_profile_data->{$new_name}->{'layer'} //= 100; # <- on top!
                 }
             }
         } keys %{ <layout.config.profiles>->{$profile} };

@@ -2,6 +2,12 @@
 
 # name = ticker-gtk.callback.draw
 
+if ( not defined <ticker-gtk.window_opened> or !<ticker-gtk.window_opened> ) {
+    <ticker-gtk.obj.window>->queue_draw();
+    <[base.sleep]>->(0.042);
+    return 1;
+}
+
 my ( $widget, $context, $ref_status ) = @_;
 
 <ticker-gtk.last_time> //= <[base.time]>->(8);
@@ -129,7 +135,6 @@ my $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
 if ( !<ticker-gtk.paused> ) {
 
     if (<ticker-gtk.auto_speed_mode>) {    # XXX
-        #
         my $adjust  = 0;
         my $sl_diff = 0;
         if ( <ticker-gtk.slowdown.percent>
