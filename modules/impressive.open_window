@@ -57,19 +57,26 @@ $trans_delay += sprintf( "%.0f", 4 + rand(4) ) if $light_mode >= 2;
 
 ## prepare parameter list ##
 
-if ( defined <x11.geometry> and <x11.geometry> =~ /^(\d+)x(\d+)/i ) { # min size
+my $min_width  = 64;
+my $min_height = 40;
+
+( $min_width, $min_height ) = ( 320, 200 )
+    if <impressive.parser.size_assert_failed>;
+
+if ( defined <x11.geometry>
+    and <x11.geometry> =~ /^(\d+)x(\d+)/i ) {    # min size
     ( my $width, my $height ) = ( $1, $2 );
-    if ( $width < 320 ) {
+    if ( $width < $min_width ) {
         <[base.log]>->(
             0, "<!> configured window width $1 is too small -> forcing 320!"
         );
-        <x11.geometry> =~ s/^$1x/320x/i;
+        <x11.geometry> =~ s/^$1x/${min_width}x/i;
     }
-    if ( $height < 200 ) {
+    if ( $height < $min_height ) {
         <[base.log]>->(
             0, "<!> configured window height $2 is too small -> forcing 200!"
         );
-        <x11.geometry> =~ s/x$2/x200/i;
+        <x11.geometry> =~ s/x$2/x$min_height/i;
     }
 }
 
