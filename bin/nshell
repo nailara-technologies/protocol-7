@@ -21,6 +21,12 @@ $0 = 'nshell ';
 $SIG{'PIPE'} = 'IGNORE';
 
 my $stdout_pid;
+my $parent_pid = $$;
+$SIG{'INT'} = sub {
+    kill( 9, $stdout_pid );
+    print "\n";
+    exit();
+};
 $SIG{'CHLD'} = sub {
     $0 .= "[disconnected] " if waitpid( -1, WNOHANG ) == $stdout_pid;
 };
@@ -183,7 +189,12 @@ sub shell_loop {
     my $sock   = $_[0];
     my $prompt = $_[1];
 
-    if ( not $stdout_pid = fork() ) { stdout_fork(); exit }
+    if ( not $stdout_pid = fork() ) {
+        $SIG{'INT'} = 'IGNORE';
+        $SIG{'PIPE'} = sub { kill( 9, $parent_pid ); exit(2) };
+        stdout_fork();
+        exit;
+    }
     if ( defined $stored_cmd ) {
         select( undef, undef, undef, 0.2 );
         undef $stored_cmd;
@@ -198,11 +209,18 @@ sub shell_loop {
                 if ( !chdir($1) ) { print "cd: " . $! . "\n" }
             } elsif ( $line !~ /^\.\./ and $line =~ /^\.(.+)$/ ) {
                 $lines_up = 1;
+                no warnings;
                 if ( my $err = system($1) ) {
-                    print "error code: " . $err . "\n";
+                    my $failed  = '';
+                    my $err_msg = "exit code: $err";
+                    if ( $err == -1 ) {
+                        $err_msg = $!;
+                        $failed  = ' failed <!>';
+                    }
+                    print "\n <!>$failed ( " . $err_msg . " )\n\n";
                 }
+                use warnings;
             } else {
-
                 if ( $line ne '[quit]' and !syswrite( $sock, "$line\n" ) ) {
                     select( undef, undef, undef, 0.1 );
                     $stored_cmd = $line;
