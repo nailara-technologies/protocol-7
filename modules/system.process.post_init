@@ -6,10 +6,10 @@
 <system.path.perl_bin>  //= '/usr/bin/perl';
 
 if ( not exists <process.kill_child.w_fh> ) {
-    <[base.log]>->( 1, "spawning killer child..." );
+    <[base.log]>->( 1, "spawning kill child..." );
 
     my $child_code
-        = '$0 = "killer child "; while(<STDIN>){ kill( 9, $1 ) if /^(\d+)$/ }';
+        = '$0 = "<root>-kill "; while(<STDIN>){ kill( 9, $1 ) if /^(\d+)$/ }';
 
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
