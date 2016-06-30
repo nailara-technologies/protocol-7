@@ -1,0 +1,38 @@
+# >:]
+
+# name  = system.process.cmd.top
+# param = [max_entries]
+# descr = get top process list (cached [1s])
+
+my $limit = $$call{'args'} // '';
+my $top = <process.table.top>;
+
+my $top_table_txt .= sprintf( "%5s %11s %5s %5s %6s %s\n",
+    'PID', 'START_TIME', 'STATE', 'MEM%', 'CPU%', 'NAME' );
+
+my $entries = 0;
+foreach my $pid (
+    sort { $top->{$b}->{'pctcpu'} <=> $top->{$a}->{'pctcpu'} }
+    sort { $top->{$b}->{'pctmem'} <=> $top->{$a}->{'pctmem'} }
+    sort { $top->{$b}->{'start'} <=> $top->{$a}->{'start'} }
+    keys %{$top}
+    ) {
+    if ( $limit ne 'all' ) {
+        next if $top->{$pid}->{'state'} eq 'stop';
+        if ( $limit eq '' ) {
+            next
+                if $top->{$pid}->{'pctcpu'} < <process.top_min.cpu>
+                and $top->{$pid}->{'pctmem'} < <process.top_min.mem>;
+        } elsif ( $limit =~ /^\d+$/ ) {
+            last if $entries++ > $limit;
+        }
+    }
+    $top_table_txt .= sprintf(
+        "%5d %11d %5s %5s %6s %s\n",
+        $pid,                     $top->{$pid}->{'start'},
+        $top->{$pid}->{'state'},  $top->{$pid}->{'pctmem'},
+        $top->{$pid}->{'pctcpu'}, $top->{$pid}->{'fname'}
+    );
+}
+
+return { 'mode' => 'raw', 'data' => $top_table_txt };
