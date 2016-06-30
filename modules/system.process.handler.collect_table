@@ -2,10 +2,11 @@
 
 # name = system.process.handler.collect_table
 
-<process.table.top> = {};
+<process.limits> //= {};
+
 <process.count>     = 0;
+<process.table.top> = {};
 <process.poll.last> = <[base.time]>->(2);
-<system.memory_alert.warned> //= 0;
 
 my $mem_used_percent = 0;
 foreach my $p ( @{ <system.process.pt>->table } ) {
@@ -28,11 +29,49 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
         'pctcpu' => $cpu,
         'pctmem' => $mem,
     };
+
+    ## custom process limits ## [currently max cpu in %]
+    foreach my $lp_name ( keys %{<process.limits>} ) {
+        next
+            if $p->fname !~ /^\Q$lp_name\E/
+            and $p->cmndline !~ /^\Q$lp_name\E/;
+        my $lp = <process.limits>->{$lp_name};
+        next
+            if not defined $lp->{'max_cpu'}
+            or $lp->{'max_cpu'} !~ /^\d+(\.\d+)?$/
+            or $lp->{'max_cpu'} == 0;
+        delete $lp->{'condition_start'} if $cpu < $lp->{'max_cpu'};
+
+        $lp->{'condition_start'} //= <[base.time]>->(2)
+            if $cpu >= $lp->{'max_cpu'};
+
+        if ($cpu >= $lp->{'max_cpu'}
+            and ( not defined $lp->{'seconds'}
+                or ( <[base.time]>->(2) - $lp->{'condition_start'} )
+                >= $lp->{'seconds'} )
+            ) {
+            <[base.log]>->(
+                0, "<!> '$lp_name' exceeded CPU limit! [now $cpu%]"
+            );
+            if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
+                my $kill_pid = $p->pid;
+                <[base.log]>->(
+                    0, " : << killing '$lp_name' process >> [PID=$kill_pid]"
+                );
+                <process.kill_child.w_fh>->print("$kill_pid\n");
+                delete <process.table.top>->{$kill_pid};
+                delete $lp->{'condition_start'};
+            }
+        }
+    }
 }
+
+## memory limit alerts ##
 
 <system.mem.used_percent> = $mem_used_percent;
 
 my $mem_limit_reached = 0;
+<system.memory_alert.warned> //= 0;
 if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
     $mem_limit_reached = 1;
     my $reached = $mem_used_percent == <mem.max_used> ? 'reached' : 'exceeded';
@@ -40,7 +79,7 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
         = "<!> WARNING <!> used memory $reached " . <mem.max_used> . "% limit!";
     $warn_str .= " ( now $mem_used_percent% )" if $reached eq 'exceeded';
     <[base.log]>->( 0, $warn_str ) if !<system.memory_alert.warned>;
-    <system.memory_alert.warned> = 1;
+    <system.memory_alert.warned>++;
 } elsif (<system.memory_alert.warned>) {
     <[base.log]>->(
         1,
@@ -50,8 +89,7 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
     );
     <system.memory_alert.warned> = 0;
 }
-
-if ( $mem_limit_reached and <mem.auto_kill> ) {
+if ( $mem_limit_reached and <mem.auto_kill> ) {  # automatic overload mitigation
     foreach my $pid (
         sort {
             <process.table.top>->{$b}->{'pctmem'} <=>
@@ -68,6 +106,7 @@ if ( $mem_limit_reached and <mem.auto_kill> ) {
                 . $process->{'pctmem'} . "%]"
         );
         <process.kill_child.w_fh>->print("$pid\n");
+        delete <process.table.top>->{$pid};
         last;
     }
 }
