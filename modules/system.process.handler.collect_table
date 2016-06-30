@@ -16,15 +16,18 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
 
     $mem_used_percent += $mem;
 
+    my $p_name
+        = ( $p->cmndline eq '' or length( $p->cmndline ) > 42 )
+        ? $p->fname
+        : $p->cmndline;
+
     <process.table.top>->{ $p->pid } = {
-        'fname'  => $p->fname,
+        'fname'  => $p_name,
         'state'  => $p->state,
         'start'  => $p->start,
         'pctcpu' => $cpu,
         'pctmem' => $mem,
-        }
-        if $p->pctcpu >= <process.top_min.cpu>
-        or $p->pctmem >= <process.top_min.mem>;
+    };
 }
 
 <system.mem.used_percent> = $mem_used_percent;
@@ -48,7 +51,7 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
     <system.memory_alert.warned> = 0;
 }
 
-if ( $mem_limit_reached and <mem.kill_pig> ) {
+if ( $mem_limit_reached and <mem.auto_kill> ) {
     foreach my $pid (
         sort {
             <process.table.top>->{$b}->{'pctmem'} <=>
@@ -56,9 +59,11 @@ if ( $mem_limit_reached and <mem.kill_pig> ) {
         } keys( %{<process.table.top>} )
         ) {
         my $process = <process.table.top>->{$pid};
+        next
+            if defined <mem.kill_min> and $process->{'pctmem'} < <mem.kill_min>;
         <[base.log]>->(
             0,
-            " :. killing memory pig ( PID $pid '"
+            " :. killing top mem user ( PID $pid '"
                 . $process->{'fname'} . "' ) ["
                 . $process->{'pctmem'} . "%]"
         );
