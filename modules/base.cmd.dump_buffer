@@ -4,17 +4,17 @@
 # descr = dump buffer content
 # param = <name>
 
-my $arg    = $_[0];
-my $id     = $$arg{'session_id'};
-my $buffer = $$arg{'args'};
+my $param  = $_[0];
+my $id     = $$param{'session_id'};
+my $buffer = $$param{'args'};
 
-if ( defined $data{'buffer'}{$buffer} ) {
-    $$reply{'mode'} = 'raw';
-    $$reply{'data'}
-        = join( "\n", @{ $data{'buffer'}{$buffer}{'data'} } ) . "\n";
-} else {
-    $$reply{'mode'} = 'nack';
-    $$reply{'data'} = 'no such buffer';
-}
+return { 'mode' => 'nack', 'data' => 'buffer name required' }
+    if not defined $buffer;
 
-return $reply;
+return { 'mode' => 'nack', 'data' => 'no such buffer' }
+    if not defined $data{'buffer'}{$buffer};
+
+return {
+    'mode' => 'raw',
+    'data' => join( '', map {"$_\n"} @{ $data{'buffer'}{$buffer}{'data'} } )
+};
