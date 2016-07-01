@@ -41,7 +41,7 @@ if (   !$window->is_composited
     } elsif (<ticker-gtk.use_transparency>) {
         $window->set_visual($rgba);
         $context->set_source_rgba( @{<ticker-gtk.bg_col>},
-            <ticker-gtk.bg_alpha> / 100 );
+            ( 100 - <ticker-gtk.bg_alpha> ) / 100 );
         $context->set_operator('source');
         $context->paint;
         $context->set_operator('over');
