@@ -116,16 +116,12 @@ $context->move_to( $x_offset,
 
 if (<ticker-gtk.use_transparency>) {
     $context->set_source_rgba(
-        1 / 255 * <ticker-gtk.font.color>->[0],
-        1 / 255 * <ticker-gtk.font.color>->[1],
-        1 / 255 * <ticker-gtk.font.color>->[2], 0.88
+        <ticker-gtk.font.color>->[0],
+        <ticker-gtk.font.color>->[1],
+        <ticker-gtk.font.color>->[2], 0.88
     );
 } else {
-    $context->set_source_rgb(
-        1 / 255 * <ticker-gtk.font.color>->[0],
-        1 / 255 * <ticker-gtk.font.color>->[1],
-        1 / 255 * <ticker-gtk.font.color>->[2]
-    );
+    $context->set_source_rgb( @{<ticker-gtk.font.color>} );
 }
 
 $context->show_text( $content_substr->[1] );
