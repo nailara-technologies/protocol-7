@@ -18,7 +18,11 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     $mem_used_percent += $mem;
 
     my $p_name
-        = ( $p->cmndline eq '' or length( $p->cmndline ) > 42 )
+        = (
+               not defined $p->cmndline
+            or !length( $p->cmndline )
+            or length( $p->cmndline ) > 42
+        )
         ? $p->fname
         : $p->cmndline;
 
@@ -34,7 +38,8 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     foreach my $lp_name ( keys %{<process.limits>} ) {
         next
             if $p->fname !~ /^\Q$lp_name\E/
-            and $p->cmndline !~ /^\Q$lp_name\E/;
+            and ( not defined $p->cmndline
+            or $p->cmndline !~ /^\Q$lp_name\E/ );
         my $lp = <process.limits>->{$lp_name};
         next
             if not defined $lp->{'max_cpu'}
