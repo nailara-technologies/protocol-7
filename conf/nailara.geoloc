@@ -1,0 +1,24 @@
+
+.: filesystem (mount) agent :.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+modules.load          = net io.ip auth geoloc
+access.cmd.usr.core   = verify_instance help ping reload \
+                        coordinates elevation polulation country timezone
+
+geoloc.path.cache_dir = /var/cache/geoloc
+
+geoloc.cities_source  = http://download.geonames.org/export/dump/cities1000.zip
+geoloc.countries_source=http://download.geonames.org/export/dump/countryInfo.txt
+geoloc.details_source = http://download.geonames.org/export/dump/readme.txt
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+[base.get_session_id]
+
+[event.loop]
