@@ -4,14 +4,28 @@
 # param = <url>
 # descr = download file from specified url
 
-my $url = $$call{'args'} || '';
+my $url = $$call{'args'} // '';
 
 return { 'mode' => 'nack', 'data' => 'expected url parameter' }
     if !length($url);
 
 my $download_dir  = <download.cfg.download_path>;
-my $temp_filename = sha1_hex($url) . '.part';
-my $file_path     = "$download_dir/$temp_filename";
+my $url_md5u_hash = <[digest.md5.b64u]>->($url);
+my $temp_filename = 'part.' . $url_md5u_hash;
+my $target_dir    = "$download_dir/$url_md5u_hash";
+my $file_path     = "$target_dir/$temp_filename";
+
+<[base.log]>->( 1, ".: $url" );
+
+if ( !-d $target_dir ) {
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    <[base.log]>->( 2, "creating target directory '$target_dir'.." );
+    make_path( $target_dir, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+        or warn "failed to create target directory '$target_dir' [$!]";
+}
+
+unlink($file_path) if -f $file_path;
 
 my $response = <download.obj.ua>->get( $url, ':content_file' => $file_path );
 
@@ -25,8 +39,11 @@ if ( !$response->is_success ) {
 }
 
 ( my $filename = $response->filename ) =~ s|^.*/||g;
-my $target_path = "$download_dir/$filename";
-
+$filename =~ s| +|_|g;
+my $target_path = "$target_dir/$filename";
 rename( $file_path, $target_path ) or die "rename failed: $!";
+
+my $bytes_downloaded = [ stat($target_path) ]->[7];
+<[base.log]>->( 1, "ok <$bytes_downloaded bytes> $url_md5u_hash" );
 
 return { 'mode' => 'ack', 'data' => $target_path };
