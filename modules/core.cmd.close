@@ -1,0 +1,10 @@
+# >:]
+
+# name  = core.cmd.close
+# descr = close current connection [silently]
+
+my $id = $$call{'session_id'};
+
+$data{'session'}{$id}{'shutdown'} = 1;
+
+return { 'mode' => 'later' }
