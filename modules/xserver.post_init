@@ -183,13 +183,14 @@ if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) { # wait 4 ON
                 'handler' => 'xserver.callback.force_driver_reload'
             }
         );
-    } else {    # install[ing] on / off watcher
-        <[event.add_timer]>->(
-            {   'after'    => 0,
-                'interval' => 1.2,
-                'handler'  => 'xserver.handler.display_power_state'
-            }
-        );
+    } else {  # install[ing] on / off watcher XXX: to be replaced with inotify2!
+
+        #        <[event.add_timer]>->(
+        #            {   'after'    => 0,
+        #                'interval' => 1.2,
+        #                'handler'  => 'xserver.handler.display_power_state'
+        #            }
+        #        );
     }
 }
 
