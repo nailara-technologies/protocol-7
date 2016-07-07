@@ -1,0 +1,15 @@
+# >:]
+
+# name = base.inotify.install_io_watcher
+
+return if defined <base.obj.inotify>;
+
+<[base.log]>->( 2, "installing inotify event watcher..." );
+
+<base.obj.inotify> = Linux::Inotify2->new();
+
+<[event.add_io]>->(
+    {   'fd'      => <base.obj.inotify>->fileno,
+        'handler' => 'base.handler.inotify_poll'
+    }
+);
