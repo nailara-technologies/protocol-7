@@ -111,7 +111,7 @@ sub prepare_subs {
 
         $SIG{PIPE} = 'IGNORE';
 
-        $SIG{__WARN__} = $SIG{__WARN__} = $code{'base.sig_warn'};
+        $SIG{__WARN__} = $code{'base.sig_warn'};
 
         $data{'system'}{'start'}{'exec_name'} = File::Spec->rel2abs($0);
 
@@ -524,10 +524,12 @@ sub prepare_subs {
             }
             my ( $package, $filename, $line, $subroutine ) = caller;
             map { $_ =~ s| at $filename line $line\.$|| } @err;
-            push( @err, "[ called by : $filename, line $line ]" );
+            push( @err, "[ $filename, line $line ]" );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
-        return 1;
+
+        # XXX: handler gets lost the first time -> weird -> inverstigate!
+        $SIG{__WARN__} = $code{'base.sig_warn'} if not defined $SIG{__WARN__};
     };
 
     $code{'base.handler.end_code'} = sub {
