@@ -5,10 +5,13 @@
 use X11::Protocol;
 use X11::Protocol::WM;
 use X11::Protocol::XSetRoot;
+use Linux::Inotify2;
 use IPC::Open3;
 use X11::Tops;
 
 # use X11::Keyboard;
+
+<[base.inotify.install_io_watcher]>;
 
 if ( <xserver.mode> eq 'auto-xephyr' ) {
     system("ps h -C Xorg 1>/dev/null 2>/dev/null");
@@ -22,17 +25,9 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 <xserver.disable_glamor> //= 0;
 
 <xserver.keybd.grab_all_keys> //= 'no';
-
-<xserver.max_intel_gpu_freq> //= 'no';
+<xserver.max_intel_gpu_freq>  //= 'no';
 
 <xserver.collect_intel_gpu_stats> //= 0;
-
-<xserver.xrandr_bin> //= '/usr/bin/xrandr';
-chomp( <xserver.xrandr_bin> = qx(which xrandr) ) if !-x <xserver.xrandr_bin>;
-if ( !-x <xserver.xrandr_bin> ) {
-    <[base.log]>->( 0, "<!> 'xrandr' binary not found <!>" );
-    <xserver.xrandr_bin> = undef;    # XXX: deal with it!
-}
 
 if (    <xserver.mode> eq 'xorg'
     and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/

@@ -10,6 +10,7 @@ xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Net::SSH2 Config::Hosts \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
       X11::Protocol X11::Keyboard X11::Protocol::WM X11::Tops \
+      Linux::Inotify2 \
       FreezeThaw \
       XML::RSS::TimingBot \
       SDL Gtk2 Glib::Event \
