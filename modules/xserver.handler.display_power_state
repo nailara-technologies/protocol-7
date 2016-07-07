@@ -13,5 +13,27 @@ if ( !<xserver.display_power_state> ) {
 } else {
     <[base.log]>->( 0, "<(+)> display is now < ON > / connected <(+)>" );
 
-    # XXX: check resolutions(?)
+    ## verifying screen sizes ##
+
+    my @max_size = <[xserver.max_screen_size]>;
+    if (   $max_size[0] != <xserver.x11>->width_in_pixels
+        or $max_size[1] != <xserver.x11>->height_in_pixels ) {
+        <[base.log]>->( 0, "<!> maximum screen size has changed <!>" );
+        if (<[xserver.cmd.set_screen_size]>->(
+                { 'args' => join( 'x', @max_size ) }
+            )->{'mode'} eq 'nack'
+            ) {
+            <[base.log]>->(
+                0, " <!> restarting xserver ... [failed to resize]"
+            );
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => 'core.root.restart',
+                    'call_args' => { 'args' => <system.agent.name> }
+                }
+            );
+        } else { # XXX: stop GPU load monitoring if switched back from 4K to 2K!
+
+        }
+    }
+
 }
