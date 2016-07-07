@@ -156,18 +156,17 @@ if ( !$ok ) {
     or die "[!] failed to initialize RAND extension!\n";
 <xserver.x11>->RRQueryVersion( 1, 0 );
 
-<xserver.startup.display_connected> //= 1;
+## display connected? ##
 
-if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) { # wait 4 ON
-    <xserver.startup.display_connected> = 0;
+<xserver.display_connected.any> //= 1;
+
+<[xserver.init_display_states]> if <xserver.mode> eq 'xorg';
+
+if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
+
+    <xserver.wait_for_display.callback> = 'xserver.callback.display_connected';
     <[base.log]>->( 0, "<!> display is off / not connected <!>" );
-    my $screen_timer_interval = 4.2;
-    <xserver.timer.wait_for_display> = <[event.add_timer]>->(
-        {   'after'    => $screen_timer_interval,
-            'interval' => $screen_timer_interval,
-            'handler'  => 'xserver.handler.wait_for_display'
-        }
-    );
+
 } elsif ( <xserver.mode> eq 'xorg' ) {
     <[base.log]>->( 1, ": : display is on / connected :)" );
 
@@ -183,14 +182,9 @@ if ( <xserver.mode> eq 'xorg' and !<[xserver.display_connected]> ) { # wait 4 ON
                 'handler' => 'xserver.callback.force_driver_reload'
             }
         );
-    } else {  # install[ing] on / off watcher XXX: to be replaced with inotify2!
-
-        #        <[event.add_timer]>->(
-        #            {   'after'    => 0,
-        #                'interval' => 1.2,
-        #                'handler'  => 'xserver.handler.display_power_state'
-        #            }
-        #        );
+    } else {
+        <xserver.display_status.handler>
+            = 'xserver.handler.display_power_state';
     }
 }
 
