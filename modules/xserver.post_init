@@ -167,6 +167,24 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
     <xserver.wait_for_display.callback> = 'xserver.callback.display_connected';
     <[base.log]>->( 0, "<!> display is off / not connected <!>" );
 
+    # polling for screen sizes, otherwise drm display status never gets updated!
+    <xserver.timer.wait_for_display> = <[event.add_timer]>->(
+        {   'after'    => 1,
+            'interval' => 1,
+            'handler'  => 'xserver.handler.poll_size_list'
+        }
+    );
+    <[base.log]>->( 0, "    : waiting for a display to restart xserver!" );
+
+    if ( defined <xserver.host_mode.min_size>
+        and <xserver.host_mode.min_size> =~ /^\d+x\d+$/ ) {
+        <[base.log]>->(
+            0, "    : setting min_size [" . <xserver.host_mode.min_size> . "]"
+        );
+        <[xserver.cmd.set_screen_size]>
+            ->( { 'args' => <xserver.host_mode.min_size> } );
+    }
+
 } elsif ( <xserver.mode> eq 'xorg' ) {
     <[base.log]>->( 1, ": : display is on / connected :)" );
 
