@@ -1,0 +1,40 @@
+# >:]
+
+# name = events.handler.event_triggered
+
+my $watcher     = shift->w;
+my $event       = $watcher->data;
+my $ev_id       = $event->{'id'};
+my $ev_type     = $event->{'type'};
+my $ev_data     = <events.setup>->{$ev_id};
+my $event_name  = $ev_data->{'name'};
+my $action      = $ev_data->{'action'};
+my $action_type = $action->{'type'};
+
+if ( not exists <events.enabled>->{$event_name}
+    or !<events.enabled>->{$event_name} ) {
+    <[base.log]>->( 1, "[IGNORED] event '$event_name' not enabled (setup)" );
+    return;
+}
+
+<[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
+
+# print STDERR "\n\<events.handler.event_triggered> "
+#     . Dumper( $event, $ev_data ) . "\n";
+
+if ( $action_type eq 'agent_running' ) {
+    my $command;
+    my $agent_name = $action->{'agent_name'};
+    die "parameter agent_name not defined in event $ev_id setup"
+        if not defined $agent_name;
+    $command = 'start_once'    if $ev_type eq 'start';
+    $command = 'stop_implicit' if $ev_type eq 'end';
+    die "event $ev_id action command undefined" if not defined $command;
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.root.' . $command,
+            'call_args' => { 'args' => $agent_name }
+        }
+    );
+
+}

@@ -1,0 +1,69 @@
+# >:]
+
+# name = events.init_code
+# note = event.* and events.* namespaces have entirely different meanings! ;)
+
+use Date::Parse;
+use POSIX qw(strftime);
+
+<events.setup>   //= {};
+<events.enabled> //= {};
+
+<events.timetable> //= {};
+
+<events.intervals> //= {};
+<events.weekdays>  //= {};
+<events.dates>     //= {};
+
+<events.timers> //= {};
+
+if ( keys %{<events.timetable>} ) {
+    <[base.log]>->( 1, "skipping event setup (already initialized).." );
+    return 0;
+}
+
+my $config_data = <[base.load_section_config]>->('events.setup.example');
+
+# print Dumper($config_data);
+
+map { <events.enabled>->{$_} = 1 }
+    split( / +/, $config_data->{'events'}->{'enabled'} )
+    if defined $config_data->{'events'}->{'enabled'};
+
+foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
+    next if ref $config_data->{'events'}->{$event_name} ne 'HASH';
+
+    my $ev_id = <[base.gen_id]>->(<events.setup>);
+    <events.setup>->{$ev_id} = {
+        'name'   => $event_name,
+        'action' => $config_data->{'events'}->{$event_name}->{'action'}
+    };
+    if ( exists $config_data->{'timetable'}->{$event_name} ) {
+        <events.timetable>->{$ev_id}
+            = $config_data->{'timetable'}->{$event_name};
+    }
+}
+
+### test event ###
+
+# my $ev_id = <[base.gen_id]>->(<events.setup>);
+#
+# <events.setup>->{$ev_id} = {
+#     'name'   => 'soon_soon',
+#     'action' => { 'type' => 'agent_running', 'agent_name' => 'xclock' }
+# };
+#
+# my $next_start = strftime "%H:%M:%S", localtime( time + 23 );
+# my $next_end   = strftime "%H:%M:%S", localtime( time + 42 );
+#
+# <events.timetable>->{$ev_id} = {
+#     'name'  => 'soon_soon',
+#     'start' => $next_start,
+#     'end'   => $next_end,
+# };
+# ###
+
+<[events.calc_unix_table]>;
+<[events.set_up_timers]>;
+
+0;

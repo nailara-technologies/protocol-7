@@ -1,0 +1,52 @@
+# >:]
+
+# name = events.calc_unix_table
+
+<events.unix.timetable> = {};
+
+# use event ID if its name was not defined
+map { <events.timetable>->{$_}->{'name'} //= $_ } keys( %{<events.timetable>} );
+
+foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
+    my $ev_name = <events.timetable>->{$ev_id}->{'name'};
+    foreach my $key ( 'start', 'end' ) {
+        if ( $key eq 'start'
+            and not defined <events.timetable>->{$ev_id}->{$key} ) {
+            <[base.log]>->(
+                0,
+                "<!> event '$ev_name' start not defined in time table, skipped!"
+            );
+            next;
+        }
+        my $time;
+        if ($key eq 'end'    # 'duration' used instead of 'end'
+            and not defined <events.timetable>->{$ev_id}->{$key}
+            and defined <events.timetable>->{$ev_id}->{'duration'}
+            ) {
+            $time = <events.timetable>->{$ev_id}->{'start'}
+                + <events.timetable>->{$ev_id}->{'duration'};
+        } else {
+            $time = str2time( <events.timetable>->{$ev_id}->{$key} );
+        }
+        if ( not defined $time ) {
+            <[base.log]>->(
+                0,
+                "<!> '$key' value for event '$ev_name' is undefined, skipped!"
+            );
+            next;
+        }
+
+        $time += 86400    # 'end' is next day
+            if $key eq 'end'
+            and str2time( <events.timetable>->{$ev_id}->{'start'} ) > time
+            and str2time( <events.timetable>->{$ev_id}->{'end'} )
+            < str2time( <events.timetable>->{$ev_id}->{'start'} );
+
+        $time += 86400    # event passed already, prepare one on next day
+            if str2time( <events.timetable>->{$ev_id}->{'start'} ) < time
+            and str2time( <events.timetable>->{$ev_id}->{'end'} ) < time;
+
+        <events.unix.timetable>->{$ev_id}->{'start'} = $time if $key eq 'start';
+        <events.unix.timetable>->{$ev_id}->{'end'}   = $time if $key eq 'end';
+    }
+}
