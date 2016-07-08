@@ -29,9 +29,9 @@ my $font_path   = <system.root_path> . '/data/ttf/droid/DroidSansMono.ttf';
 my $screen_width;
 my $screen_height;
 
-my $zoom_cvr = <storchencam.zoom>;
-my $x_offset = <storchencam.x_offset>;
-my $y_offset = <storchencam.y_offset>;
+my $zoom_cvr   = <storchencam.zoom>;
+my $i_x_offset = <storchencam.img_x_offset>;
+my $i_y_offset = <storchencam.img_y_offset>;
 
 my $mask_left_corner = <storchencam.mask_left_corner>;
 my $display_temp     = <storchencam.display_temp>;
@@ -46,15 +46,14 @@ my $coord = <x11.coordinates>;
     $coord->{'bottom'} - $coord->{'top'}
 );
 
-my $time_pos_x = $screen_width - 65;
-my $time_pos_y = 16;
+my $time_pos_x = $screen_width - 63;
+my $time_pos_y = 17;
 $time_pos_y -= 10 if !$display_temp;
 
-my $temp_pos_x = $screen_width - 65;
-my $temp_pos_y = 6;
+my $temp_pos_x = $screen_width - 63;
+my $temp_pos_y = 7;
 
 my $err_pos_x = 8;
-my $err_pos_y = $screen_height - 20;
 my $err_size  = 13;
 
 my $time_offset;
@@ -94,8 +93,8 @@ my $screen = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
 
 my $zoom_2 = ( $screen->w / 1035 );
 
-$x_offset = sprintf( "%.0f", $x_offset * $zoom_2 );
-$y_offset = sprintf( "%.0f", $y_offset * $zoom_2 );
+$i_x_offset = sprintf( "%.0f", $i_x_offset * $zoom_2 );
+$i_y_offset = sprintf( "%.0f", $i_y_offset * $zoom_2 );
 
 SDL::Mouse::show_cursor(SDL_DISABLE);
 
@@ -117,9 +116,18 @@ SDL::Video::blit_surface(
 my $scaled = SDL::GFX::Rotozoom::surface( $image, 0, $zoom_cvr * $zoom_2,
     SMOOTHING_ON );
 
+my $s_y_offset = sprintf( "%.0f",
+    ( ( $screen->h - ( $scaled->h - abs($i_y_offset) ) ) / 2 ) );
+
+my $err_pos_y = $s_y_offset + $scaled->h - 26;
+
 SDL::Video::blit_surface(
-    $scaled, SDL::Rect->new( 0,         0,         $scaled->w, $scaled->h ),
-    $screen, SDL::Rect->new( $x_offset, $y_offset, $screen->w, $screen->h )
+    $scaled,
+    SDL::Rect->new(
+        0, -$i_y_offset, $scaled->w, $scaled->h - abs($i_y_offset)
+    ),
+    $screen,
+    SDL::Rect->new( $i_x_offset, $s_y_offset, $screen->w, $screen->h )
 );
 
 SDL::Video::flip($screen);
@@ -226,16 +234,23 @@ while (1) {
         SDL::Video::fill_rect( $screen,
             SDL::Rect->new( 0, 0, $screen->w, $screen->h ), $bg_col_map );
 
-        SDL::Video::blit_surface( $scaled,
-            SDL::Rect->new( 0, 0, $scaled->w, $scaled->h ),
+        # copy scaled image to screen
+        SDL::Video::blit_surface(
+            $scaled,
+            SDL::Rect->new(
+                0, -$i_y_offset, $scaled->w, $scaled->h - abs($i_y_offset)
+            ),
             $screen,
-            SDL::Rect->new( $x_offset, $y_offset, $screen->w, $screen->h ) );
+            SDL::Rect->new( $i_x_offset, $s_y_offset, $screen->w, $screen->h )
+        );
 
         SDL::Video::blit_surface( $temp, SDL::Rect->new( 0, 0, 56, 8 ),
-            $screen, SDL::Rect->new( $temp_pos_x, $temp_pos_y, 56, 8 ) )
+            $screen,
+            SDL::Rect->new( $temp_pos_x, $temp_pos_y + $s_y_offset, 56, 8 ) )
             if $display_temp and defined $temp;
 
-        mask_scan($screen) if $mask_left_corner and $resolution_changed;
+        mask_scan( $screen, $s_y_offset )
+            if $mask_left_corner and $resolution_changed;
 
         if (    $display_time
             and $font
@@ -256,9 +271,13 @@ while (1) {
                 = SDL::TTF::render_utf8_blended( $font, $timestamp,
                 $font_color );
             SDL::Video::blit_surface(
-                $txt, SDL::Rect->new( 0, 0, $txt->w, $txt->h ),
+                $txt,
+                SDL::Rect->new( 0, 0, $txt->w, $txt->h ),
                 $screen,
-                SDL::Rect->new( $time_pos_x, $time_pos_y, $txt->w, $txt->h ),
+                SDL::Rect->new(
+                    $time_pos_x, $time_pos_y + $s_y_offset,
+                    $txt->w,     $txt->h
+                ),
             );
         }
     } else {
@@ -299,6 +318,7 @@ sub loop_wait {    # processing network event while waiting
 
 sub mask_scan {
     my $surface    = shift;
+    my $s_y_offset = shift // 0;
     my @mask_areas = split( / +/, <storchencam.mask_areas> );
     my $pix_format = $surface->format();
 
@@ -310,7 +330,7 @@ sub mask_scan {
 
         foreach my $y ( $y_1 .. $y_2 ) {
             foreach my $x ( $x_1 .. $x_2 ) {
-                my $offset = $x + $y * $surface->w;
+                my $offset = $x + ( $y + $s_y_offset ) * $surface->w;
                 my $pixel  = $surface->get_pixel($offset);
                 my $rgb    = SDL::Video::get_RGB( $pix_format, $pixel );
 
