@@ -16,6 +16,8 @@ use MIME::Base64 qw(encode_base64url);
 
 my $bin_path = File::Spec->rel2abs($0);
 
+( my $hostname = qx(hostname) ) =~ s/(\..+|\n)$//g;
+
 $0 = 'nshell ';
 
 $SIG{'PIPE'} = 'IGNORE';
@@ -53,7 +55,7 @@ my $core_port = shift(@args) || 242;
 my $usock_dir = '/tmp/.n/s';
 
 my $color  = "\e[37m\e[40m";
-my $prompt = $color . ':. ';
+my $prompt = ": $hostname $color:. ";
 
 my $connect = 1;
 my $WARNED  = 0;
@@ -63,6 +65,7 @@ $| = 0;
 # clear();
 
 my $term = new Term::ReadLine 'nailara.shell';
+$term->ornaments(0);
 
 no warnings 'once';
 $readline::rl_completion_function = "main::rl_filename_list_lcl";
