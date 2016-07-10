@@ -4,7 +4,7 @@
 
 my $params = shift;
 die "expected hash reference" if ref($params) ne 'HASH';
-foreach my $key ( 'profile_name', 'agent_name' ) {
+foreach my $key ( 'layout_name', 'agent_name' ) {
     die "'$key' parameter required!"
         if not exists $params->{$key}
         or not defined $params->{$key}
@@ -13,16 +13,16 @@ foreach my $key ( 'profile_name', 'agent_name' ) {
 
 $params->{'status'} //= 'instance_ids';
 
-my $profile_data = <layout.config.profiles>
-    ->{ $params->{'profile_name'} }->{ $params->{'agent_name'} };
-my $stop_agents = $profile_data->{'stop_agents'};
+my $layout_data = <layout.config.layouts>
+    ->{ $params->{'layout_name'} }->{ $params->{'agent_name'} };
+my $stop_agents = $layout_data->{'stop_agents'};
 $stop_agents = $params->{'agent_name'} if not defined $stop_agents;
-my $start_agents = $profile_data->{'start_agents'};
+my $start_agents = $layout_data->{'start_agents'};
 $start_agents = $params->{'agent_name'} if not defined $start_agents;
 
 $params->{'fade'} = 1
-    if exists $profile_data->{'fade'}
-    and $profile_data->{'fade'} eq '1';
+    if exists $layout_data->{'fade'}
+    and $layout_data->{'fade'} eq '1';
 
 if ( $params->{'status'} eq 'instance_ids' ) {
     $params->{'remove'}   = 1;
@@ -44,8 +44,8 @@ if ( $params->{'status'} eq 'instance_ids' ) {
 
 if ( $params->{'status'} eq 'opacity' ) {
     $params->{'opacity'} = 1
-        if not exists $profile_data->{'get_opacity'}
-        or $profile_data->{'get_opacity'} ne '1';
+        if not exists $layout_data->{'get_opacity'}
+        or $layout_data->{'get_opacity'} ne '1';
     if ( not exists $params->{'opacity'} ) {
         $params->{'callback'} = 'layout.handler.agent_transition';
         $params->{'status'}   = 'window_ids';
@@ -68,9 +68,9 @@ if ( $params->{'status'} eq 'opacity' ) {
 if ( $params->{'status'} eq 'prepare_cmd' ) {
     $params->{'status'} = 'window_ids';
 
-    if ( exists $profile_data->{'prepare_cmd'} ) {
+    if ( exists $layout_data->{'prepare_cmd'} ) {
         $params->{'callback'} = 'layout.handler.agent_transition';
-        my $prepare_cmd = $profile_data->{'prepare_cmd'};
+        my $prepare_cmd = $layout_data->{'prepare_cmd'};
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => "core.$prepare_cmd",    # subname?
                 'call_args' => {},
@@ -144,7 +144,7 @@ if ( $params->{'status'} eq 'fade' ) {
 
 if ( $params->{'status'} eq 'remove' ) {
     <[base.log]>->(
-        1, "removing agents from '$params->{'agent_name'}' profile.."
+        1, "removing agents from '$params->{'agent_name'}' layout.."
     );
     $params->{'status'}   = 'done';
     $params->{'callback'} = 'layout.handler.agent_transition';
