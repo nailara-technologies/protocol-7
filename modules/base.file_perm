@@ -1,0 +1,10 @@
+# >:]
+
+# name  = base.file_perm
+# descr = return file permisions for specified path as octal (string)
+
+my $path = shift;
+die "expected path parameter" if not defined $path or !length($path);
+die "'$path' not found" if !-e $path;
+
+return sprintf( "%#o", ( stat $path )[2] & 07777 );
