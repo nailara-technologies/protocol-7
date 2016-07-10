@@ -1,0 +1,44 @@
+# >:]
+
+# name  = layout.cmd.switch_to
+# param = <layout_name>
+# descr = switch to specified layout
+# todo  = actually process the layout switch ['base_layout' etc..]
+
+my $layout_name = $$call{'args'};
+
+<layout.transition_queue> //= [];
+
+return {
+    'mode' => 'nack',
+    'data' => "expected valid layout name"
+    }
+    if not defined $layout_name or !length($layout_name);
+return {
+    'mode' => 'nack',
+    'data' => "layout \"$layout_name\" not found!"
+    }
+    if not exists <layout.config.layouts>->{$layout_name};
+
+if ( <layout.transition_in_progress> ) {
+    push( @{<layout.transition_queue>}, $layout_name );
+    return {
+        'mode' => 'ack',
+        'data' => "transition queued..."
+    };
+}
+
+return {
+    'mode' => 'nack',
+    'data' => "layout '$layout_name' is already active."
+    }
+    if $layout_name eq <layout.current_layout>;
+
+<layout.transition_in_progress> = 1;
+
+<[layout.switch_layout]>->($layout_name);
+
+return {
+    'mode' => 'ack',
+    'data' => "switching to layout '$layout_name'"
+};
