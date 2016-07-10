@@ -1,19 +1,18 @@
 #!/usr/bin/perl
-
 use strict;
 use warnings;
 
-my $dir = $ARGV[0] || '.';
+my $changes = 0;
+my @files   = @ARGV;
+if ( !@files ) {
+    opendir( DIR, '.' ) or die $!;
+    @files = readdir(DIR);
+    closedir(DIR);
+}
 
 $! = 1;
 
-chdir($dir) or die $!;
-
-opendir( DIR, $dir ) or die $!;
-
-my $changes = 0;
-
-print "\n\n:: make sure you have made a backup of this directory!\n\n"
+print "\n<!> [ make sure you have backups! ]\n .\n"
     . " :\n :: find    :. ";
 my $find = <STDIN>;
 chop($find);
@@ -25,7 +24,7 @@ $/ = undef;
 
 print " ::\n";
 
-foreach my $file ( readdir(DIR) ) {
+foreach my $file (@files) {
     if ( -f $file ) {
         print " :: parsing file $file..\n";
         open( FILE, "<$file" ) or die $!;
