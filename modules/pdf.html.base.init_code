@@ -15,12 +15,22 @@ use File::Path qw(make_path remove_tree);
 
 my $cache_dir = <pdf.html.cache_dir>;
 
+my $perms = <pdf.html.cache_perm> // '0750';
 if ( !-d $cache_dir ) {
-    <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
+    <[base.log]>->( 1, "creating cache directory '$cache_dir'.. [$perms]" );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
         or die "user '" . <system.privs.user> . "' not in passwd file";
-    make_path( $cache_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
+    make_path( $cache_dir,
+        { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
         or die "make_path: $!";
+} else {
+    my $old_perms = <[base.file_perm]>->($cache_dir);
+    if ( $old_perms ne $perms ) {
+        <[base.log]>->(
+            0, "<!> fixing cache dir permissions [ $old_perms -> $perms ]"
+        );
+        chmod( oct($perms), $cache_dir ) or warn("chmod($cache_dir): $!");
+    }
 }
 
 chdir($cache_dir) or die "chdir($cache_dir): $!";
