@@ -101,10 +101,18 @@ $view->signal_connect(
     $code{'browser.handler.progress_changed'} )
     if <browser.cfg.show_progress_bar> and $id == 2;
 
-$scrolled_window->set_policy( 'never', 'never' );
-
 my $user_scrolling = <browser.cfg.user_can_scroll>;
 $scrolled_window->set_kinetic_scrolling($user_scrolling);
+
+if ($user_scrolling) {
+    $scrolled_window->set_policy( 'automatic', 'automatic' );
+} else {
+    $scrolled_window->set_policy( 'external', 'external' );
+}
+
+# blocking website from overriding scrollbar policy
+$view->get_main_frame->signal_connect(
+    'scrollbars-policy-changed', => sub { return 1 } );
 
 $view->set_zoom_level( <browser.zoom_level> * <browser.zoom_factor> );
 $view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
