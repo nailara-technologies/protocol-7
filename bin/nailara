@@ -514,6 +514,7 @@ sub prepare_subs {
 
     $code{'base.sig_warn'} = sub {
         if (@_) {
+            my $level = 0;
             chomp( my @err = @_ );
             if ( $err[0] =~ /^Deep recursion / ) {
                 no warnings 'recursion';    # no followups!
@@ -530,9 +531,17 @@ sub prepare_subs {
                     or defined $data{'sig_warn_blacklist'}{'pattern'}
                     and join( ' ', @err )
                     =~ $data{'sig_warn_blacklist'}{'pattern'};
-            }
-            map { $_ =~ s| at $filename line $line[\.,].*$|| } @err;
-            push( @err, "[ $filename, line $line ]" );
+            }  # todo: human readable way do debug (eval) callers.. (+stacktrc?)
+            map {
+                $_ =~ s| at $filename line $line[\.,].*$||;
+                $level = $1 || 1 if $_ =~ s| *<\{C(\d{1,3})?\}>$||
+            } @err;
+            ( $package, $filename, $line, $subroutine ) = caller($level)
+                if $level;    # <- log parent caller instead ('<{C[level]}>')
+            my $caller_str = "[ $filename, line $line ]";
+            $caller_str = "[ ... caller level $level too high ... ]"
+                if !length( $filename . $line );
+            push( @err, $caller_str );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
 
