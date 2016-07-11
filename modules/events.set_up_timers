@@ -18,29 +18,27 @@ map {
 my $current_time = <[base.time]>->(2);
 
 foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
-    if ( <events.unix.timetable>->{$ev_id}->{'start'} > $current_time ) {
-        my $u_event  = <events.unix.timetable>->{$ev_id};
-        my $t_event  = <events.timetable>->{$ev_id};
-        my $event_in = sprintf( "%.1f",
-            <events.unix.timetable>->{$ev_id}->{'start'} - $current_time );
-        <[base.log]>->(
-            2,
-            "setting up timer for event $ev_id "
-                . "(..in $event_in seconds..) [$u_event->{start}]"
-        );
-        <events.timers>->{$ev_id} = {
-            map {
-                $_ => <[event.add_timer]>->(
-                    {   'at'      => $u_event->{$_},
-                        'handler' => 'events.handler.event_triggered',
-                        'data'    => {
-                            'type' => $_,
-                            'id'   => $ev_id,
-                            'name' => $t_event->{'name'}
-                        }
+    my $u_event  = <events.unix.timetable>->{$ev_id};
+    my $t_event  = <events.timetable>->{$ev_id};
+    my $event_in = sprintf( "%.1f",
+        <events.unix.timetable>->{$ev_id}->{'start'} - $current_time );
+    <[base.log]>->(
+        2,
+        "setting up timer for event $ev_id "
+            . "(..in $event_in seconds..) [$u_event->{start}]"
+    );
+    <events.timers>->{$ev_id} = {
+        map {
+            $_ => <[event.add_timer]>->(
+                {   'at'      => $u_event->{$_},
+                    'handler' => 'events.handler.event_triggered',
+                    'data'    => {
+                        'type' => $_,
+                        'id'   => $ev_id,
+                        'name' => $t_event->{'name'}
                     }
-                    )
-            } ( 'start', 'end' )
-        };
-    }
+                }
+                )
+        } ( 'start', 'end' )
+    };
 }
