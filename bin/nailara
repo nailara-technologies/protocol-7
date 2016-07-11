@@ -523,7 +523,7 @@ sub prepare_subs {
                 exit(2);
             }
             my ( $package, $filename, $line, $subroutine ) = caller;
-            map { $_ =~ s| at $filename line $line\.$|| } @err;
+            map { $_ =~ s| at $filename line $line[\.,].*$|| } @err;
             push( @err, "[ $filename, line $line ]" );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
