@@ -36,5 +36,9 @@ if ( $action_type eq 'agent_running' ) {
             'call_args' => { 'args' => $agent_name }
         }
     );
+}
 
+if ( $ev_type eq 'end' ) {
+    delete <events.unix.timetable>->{$ev_id};
+    <[events.calc_unix_table]>;
 }
