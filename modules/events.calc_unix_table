@@ -8,13 +8,18 @@ my $new_events = 0;
 <[base.log]>->( 2, "[re]calculating (unix) timetable.." );
 
 # use event ID if its name was not defined
-map { <events.timetable>->{$_}->{'name'} //= $_ } keys( %{<events.timetable>} );
+map { <events.setup>->{$_}->{'name'}     //= $_ } keys( %{<events.setup>} );
+map { <events.timetable>->{$_}->{'name'} //= <events.setup>->{$_}->{'name'} }
+    keys( %{<events.timetable>} );
 
 foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
     my $ev_name = <events.timetable>->{$ev_id}->{'name'};
 
     next if exists <events.unix.timetable>->{$ev_id};
     $new_events++;
+
+    <events.unix.timetable>->{$ev_id}->{'name'}
+        = <events.setup>->{$ev_id}->{'name'};
 
     my $hour_or_day = 86400;    # day (seconds)
 
