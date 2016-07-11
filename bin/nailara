@@ -523,6 +523,14 @@ sub prepare_subs {
                 exit(2);
             }
             my ( $package, $filename, $line, $subroutine ) = caller;
+            if ( defined $data{'sig_warn_blacklist'} ) { # XXX: <- use an array!
+                return
+                    if defined $data{'sig_warn_blacklist'}{'package'}
+                    and $package eq $data{'sig_warn_blacklist'}{'package'}
+                    or defined $data{'sig_warn_blacklist'}{'pattern'}
+                    and join( ' ', @err )
+                    =~ $data{'sig_warn_blacklist'}{'pattern'};
+            }
             map { $_ =~ s| at $filename line $line[\.,].*$|| } @err;
             push( @err, "[ $filename, line $line ]" );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
