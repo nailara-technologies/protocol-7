@@ -25,6 +25,11 @@ my $lvl       = $light_mode < 2 ? ''      : ' level 2';
         <impressive.version> )
 );
 
+if ( $light_mode >= 2 ) {
+    <[base.log]>->( 1, ": enforcing software renderer.." );
+    $ENV{'LIBGL_ALWAYS_SOFTWARE'} = 1;
+}
+
 ## select transitions ##
 
 my @transitions;
