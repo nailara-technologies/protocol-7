@@ -102,6 +102,9 @@ if (<window.scroll.stop>) {
 
 scroll_finished:
 
+    $widget->signal_handler_disconnect( delete <browser.signal_id.auto_scroll> )
+        if defined <browser.signal_id.auto_scroll>;
+
     if (<browser.slideshow.running>) {
         <browser.slideshow.status> = 'scroll_finished';
         if (<browser.scroll.fail.js_disabled>) {
@@ -127,9 +130,6 @@ scroll_finished:
 
         delete <browser.time.last_scroll>;
         delete <browser.autoscroll.brake_count>;
-        $widget->signal_handler_disconnect(
-            delete <browser.signal_id.auto_scroll> )
-            if defined <browser.signal_id.auto_scroll>;
 
         <[browser.handler.slideshow]>;
         return 0;
