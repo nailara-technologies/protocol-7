@@ -4,11 +4,18 @@
 
 <events.unix.timetable> = {};
 
+my $new_events = 0;
+<[base.log]>->( 2, "[re]calculating (unix) timetable.." );
+
 # use event ID if its name was not defined
 map { <events.timetable>->{$_}->{'name'} //= $_ } keys( %{<events.timetable>} );
 
 foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
     my $ev_name = <events.timetable>->{$ev_id}->{'name'};
+
+    next if exists <events.unix.timetable>->{$ev_id};
+    $new_events++;
+
     foreach my $key ( 'start', 'end' ) {
         if ( $key eq 'start'
             and not defined <events.timetable>->{$ev_id}->{$key} ) {
@@ -36,17 +43,25 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
             next;
         }
 
-        $time += 86400    # 'end' is next day
-            if $key eq 'end'
+        my $time_now = <[base.time]>->(5);
+        $time_now++ if $time_now !~ /\./;
+
+        if (    str2time( <events.timetable>->{$ev_id}->{'start'} ) < $time_now
+            and str2time( <events.timetable>->{$ev_id}->{'end'} ) < $time_now )
+        {
+            $time += 86400    # event passed already, prepare one on next day
+
+        } elsif ( $key eq 'end'
             and str2time( <events.timetable>->{$ev_id}->{'start'} ) > time
             and str2time( <events.timetable>->{$ev_id}->{'end'} )
-            < str2time( <events.timetable>->{$ev_id}->{'start'} );
+            < str2time( <events.timetable>->{$ev_id}->{'start'} ) ) {
 
-        $time += 86400    # event passed already, prepare one on next day
-            if str2time( <events.timetable>->{$ev_id}->{'start'} ) < time
-            and str2time( <events.timetable>->{$ev_id}->{'end'} ) < time;
+            $time += 86400    # 'end' is next day
+        }
 
+        # 'start' events will be triggered again on restart if they're <= time !
         <events.unix.timetable>->{$ev_id}->{'start'} = $time if $key eq 'start';
         <events.unix.timetable>->{$ev_id}->{'end'}   = $time if $key eq 'end';
     }
 }
+<[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
