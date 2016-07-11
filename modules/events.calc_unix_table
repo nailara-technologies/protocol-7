@@ -46,17 +46,31 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
         my $time_now = <[base.time]>->(5);
         $time_now++ if $time_now !~ /\./;
 
-        if (    str2time( <events.timetable>->{$ev_id}->{'start'} ) < $time_now
+        my $utime_start = str2time( <events.timetable>->{$ev_id}->{'start'} );
+        my $utime_end   = str2time( <events.timetable>->{$ev_id}->{'end'} );
+
+        # event passed already, prepare one on next day
+        if ( $utime_start < $time_now
             and str2time( <events.timetable>->{$ev_id}->{'end'} ) < $time_now )
         {
-            $time += 86400    # event passed already, prepare one on next day
+            $time += 86400
 
-        } elsif ( $key eq 'end'
-            and str2time( <events.timetable>->{$ev_id}->{'start'} ) > time
-            and str2time( <events.timetable>->{$ev_id}->{'end'} )
-            < str2time( <events.timetable>->{$ev_id}->{'start'} ) ) {
+        } elsif (
+            $key eq 'start'    # 'start' is previous day
+            and $utime_start > time
+            and $utime_end > time
+            and $utime_end < $utime_start
+            ) {
 
-            $time += 86400    # 'end' is next day
+            $time -= 86400;
+
+        } elsif (
+            $key eq 'end'      # 'end' is next day
+            and <events.unix.timetable>->{$ev_id}->{'start'} > time
+            and $utime_end < $utime_start
+            ) {
+
+            $time += 86400;
         }
 
         # 'start' events will be triggered again on restart if they're <= time !
