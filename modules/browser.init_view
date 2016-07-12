@@ -104,7 +104,7 @@ $view->signal_connect(
 my $user_scrolling = <browser.cfg.user_can_scroll>;
 $scrolled_window->set_kinetic_scrolling($user_scrolling);
 
-if ($user_scrolling) {
+if ( $user_scrolling and <browser.cfg.allow_scrollbars> ) {
     $scrolled_window->set_policy( 'automatic', 'automatic' );
 } else {
     $scrolled_window->set_policy( 'external', 'external' );
