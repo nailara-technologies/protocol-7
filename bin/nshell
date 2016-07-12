@@ -55,7 +55,7 @@ my $core_port = shift(@args) || 242;
 my $usock_dir = '/tmp/.n/s';
 
 my $color  = "\e[37m\e[40m";
-my $prompt = ": $hostname $color:. ";
+my $prompt = ": $hostname :. ";
 
 my $connect = 1;
 my $WARNED  = 0;
@@ -65,7 +65,7 @@ $| = 0;
 # clear();
 
 my $term = new Term::ReadLine 'nailara.shell';
-$term->ornaments(0);
+$term->ornaments('mh,me,md,me');
 
 no warnings 'once';
 $readline::rl_completion_function = "main::rl_filename_list_lcl";
@@ -96,7 +96,9 @@ while ($connect) {
                     "reconnected$color >";
                 my $l_cmd = length($stored_cmd);
                 $l_cmd = 33 if $l_cmd < 33;
-                printf "\r$prompt. %-" . $l_cmd . "s$color\n\033[1A\n",
+                printf "\r\e[2m$prompt\e[1m\e[31m%-"
+                    . $l_cmd
+                    . "s$color\n\033[1A\n\e[0m",
                     $stored_cmd;
             }
         }
