@@ -4,7 +4,7 @@
 # param = [target_%]
 # descr = trigger slowing down autoscroll FPS
 
-my $percent = $$call{'args'};
+( my $percent = $$call{'args'} ) =~ s|%$||;
 return { 'mode' => 'nack', 'data' => 'expected percent value [0..100]' }
     if length($percent)
     and ( $percent !~ /^\d+$/ or $percent > 100 );
