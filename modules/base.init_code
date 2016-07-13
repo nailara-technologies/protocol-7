@@ -121,6 +121,8 @@ map {
         ->( { 'signal' => uc($_), 'handler' => 'base.sig_' . $_ } );
 } ( 'int', 'term', 'hup', 'usr1', 'usr2', 'abrt' );
 
+$SIG{__WARN__} = <[base.sig_warn]>;
+
 # XXX: look out for problems with SIGCHLD!
 <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'base.sig_chld' } );
 
