@@ -4,6 +4,13 @@
 # note = primitive implementation, improve error handing before production usage
 
 my $display = <x11.display>;
+if ( not defined $display ) {
+    <[base.log]>->(
+        1,
+        "<!> failed to aquire DISPLAY setting from xserver, aborting startup!"
+    );
+    exit(2);
+}
 <[base.log]>->( 1, "starting compton on display $display .." );
 
 # old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
