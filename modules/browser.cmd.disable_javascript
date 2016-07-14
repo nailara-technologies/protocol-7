@@ -1,0 +1,19 @@
+# >:]
+
+# name  = browser.cmd.disable_javascript
+# descr = immediately stops/disables JS execution
+
+return { 'mode' => 'nack', 'data' => 'javascript was not enabled!' }
+    if !<browser.cfg.javascript_enabled>;
+
+<[base.log]>->( 0, "<!> globally disabling javascript (as requested..)" );
+
+map {
+    my $view     = <browser.gtk_obj.view>->{$_};
+    my $settings = $view->get_settings;
+    $settings->set_property( 'enable-scripts', 0 );
+    $view->set_settings($settings);
+} keys %{<browser.gtk_obj.view>};
+<browser.cfg.javascript_enabled> = 0;
+
+return { 'mode' => 'ack', 'data' => 'javascript disabled' }
