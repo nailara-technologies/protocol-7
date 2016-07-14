@@ -27,8 +27,8 @@ if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
 }
 my $ref_type = ref($target_ref);
 if ( $ref_type eq 'SCALAR' ) {
-
-    $$target_ref = join( '', <$file_fh> );
+    local $/ = undef;
+    $$target_ref = <$file_fh>;
 
 } elsif ( $ref_type eq 'ARRAY' ) {
 
