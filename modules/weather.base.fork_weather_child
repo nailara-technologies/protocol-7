@@ -73,7 +73,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     if ( defined <weather.cfg.city> and length(<weather.cfg.city>) ) {
         <[weather.parent.set_city]>->(<weather.cfg.city>);
     } else {
-        <[base.log]>->( 0, "no city configured at startup!" );
+        <[base.log]>->( 1, "no city configured at startup!" );
         if ( !<weather.agent.initialized> ) {
             <[base.async.get_session_id]>;    # change agent status to 'online'
             <weather.agent.initialized> = 1;
