@@ -25,7 +25,7 @@ $SIG{'PIPE'} = 'IGNORE';
 my $stdout_pid;
 my $parent_pid = $$;
 $SIG{'INT'} = sub {
-    kill( 9, $stdout_pid );
+    kill( 9, $stdout_pid ) if defined $stdout_pid;
     print "\n";
     exit();
 };
