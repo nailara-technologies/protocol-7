@@ -6,5 +6,5 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter\
             python-imaging python-pygame mupdf-tools pdftk\
             gnome-colors-common oxygen-icon-theme\
             dbus-x11 libnotify-bin notify-osd intel-gpu-tools\
-            liblwpx-paranoidagent-perl libnet-arp-perl libtimedate-perl\
+            liblwpx-paranoidagent-perl libnet-libdnet-perl libtimedate-perl\
             libimlib2-dev libfile-mimeinfo-perl liblinux-inotify2-perl

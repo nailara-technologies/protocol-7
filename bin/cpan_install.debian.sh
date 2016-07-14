@@ -13,7 +13,7 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   libfile-mimeinfo-perl libnet-ssh2-perl libxml-feed-perl\
   libgirepository1.0-dev pkg-config libgtk-3-dev \
   libglib2.0-dev libglib2.0-0 gir1.2-webkit-3.0 \
-  libgtk3-perl libgtk2-perl liblinux-inotify2-perl
+  libgtk3-perl libgtk2-perl liblinux-inotify2-perl libnet-libdnet-perl
   #libtext-unidecode-perl
   #libconvert-uu-perl
 
