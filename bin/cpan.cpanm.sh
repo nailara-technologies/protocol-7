@@ -21,7 +21,7 @@ xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       HTTP::Soup \
       Mediainfo \
       File::MimeInfo \
-      Device::Gembird Net::Libnet::Arp
+      Device::Gembird Net::Libdnet::Arp
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
 
