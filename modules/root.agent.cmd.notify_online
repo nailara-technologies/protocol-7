@@ -31,7 +31,7 @@ if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
 
 my $query_copy = $query_param;
 $agent_subname = $1
-    if $query_param !~ /^\d+$/ and $query_param =~ s|\[([^\]]+)\]$||;
+    if $query_param !~ /^\d+/ and $query_param =~ s|\[([^\]]+)\]$||;
 
 if (    not defined <[agent.get_id]>->($query_param)
     and not defined <root.agent.instance>->{$query_param} ) {
