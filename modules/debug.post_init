@@ -3,6 +3,8 @@
 # name  = debug.post_init
 # descr = dumps %data to stdout on -vvvvv
 
+<[base.disable_command]>->('switch_user') if <system.agent.type> ne 'core';
+
 print Dumper( \%data ) if <system.verbosity> >= 5;
 
 0;
