@@ -69,7 +69,10 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
 
         # event passed already, prepare one on next hour/day
         if (    $utime_start < $time_now
-            and $utime_end < $time_now ) {
+            and $utime_end < $time_now
+            and ( $utime_end > $utime_start
+                or ( $utime_end + $hour_or_day ) < $time_now )
+            ) {
             $time += $hour_or_day
 
         } elsif (
@@ -83,7 +86,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
 
         } elsif (
             $key eq 'end'      # 'end' is next hour/day
-            and <events.unix.timetable>->{$ev_id}->{'start'} > time
+            and <events.unix.timetable>->{$ev_id}->{'start'} < time
             and $utime_end < $utime_start
             ) {
 
