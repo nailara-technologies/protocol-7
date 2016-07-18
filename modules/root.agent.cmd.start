@@ -98,8 +98,17 @@ foreach my $dep_name (@dependencies) {
     if ( !<[agent.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
 
+        my $start_name_str = $dep_name;
+
+        $start_name_str .= "[$agent_subname]"
+            if defined $agent_subname
+            and defined
+            <root.spawn_config.agents.config>->{$dep_name}->{'inherit_subname'}
+            and
+            <root.spawn_config.agents.config>->{$dep_name}->{'inherit_subname'};
+
         my $reply = <[agent.cmd.start_once]>
-            ->( { 'args' => $dep_name, 'recursion' => $recursion + 1 } );
+            ->( { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
 
         <root.agent.auto_cleanup>->{$dep_name} = $1
             if $reply->{'data'} =~ / id (\d+)$/;
