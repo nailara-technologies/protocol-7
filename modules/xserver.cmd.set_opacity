@@ -16,9 +16,6 @@ return { 'mode' => 'nack', 'data' => 'window <opacity> required' }
 return { 'mode' => 'nack', 'data' => 'invalid window <opacity> [0..100]' }
     if $opacity !~ /^\d+$/ or $opacity > 100;
 
-<xserver.atom.opacity> //= $X->InternAtom( '_NET_WM_WINDOW_OPACITY', 0 );
-<xserver.const.cardinal> //= X11::AtomConstants::CARDINAL();
-
 my $xtops = <xserver.x11_tops>;
 $xtops->update;
 
@@ -34,17 +31,10 @@ return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
 
 <[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
 
-eval {
-    $X->ChangeProperty( $window_id, <xserver.atom.opacity>,
-        <xserver.const.cardinal>, 32, 'Replace',
-        pack( 'I*', sprintf( "%.0f", 0xffffffff * $opacity / 100 ) ) );
+my $result = <[xserver.set_window_opacity]>->( $window_id, $opacity / 100 );
 
-    $X->GetProperty( $window_id, <xserver.atom.opacity>,
-        X11::AtomConstants::CARDINAL(),
-        0, 1, 0 );
-};
 <[base.log]>->(
     0, "error during set_opacity($opacity) for window $window_id [closed?]"
-) if $@;
+) if not defined $result;
 
 return { 'mode' => 'ack', 'data' => "set opacity to $opacity%" };
