@@ -1,0 +1,63 @@
+# >:]
+
+# name  = xserver.cmd.fade_out
+# param = <time> <window_id(s)>
+# descr = fade out specified window(s) and reply
+
+my $X = <xserver.x11>;
+my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nack', 'data' => 'fade out duration in seconds expected!' }
+    if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
+return { 'mode' => 'nack', 'data' => 'window <id(s)> required!' }
+    if !@window_ids;
+map {
+    return {
+        'mode' => 'nack',
+        'data' => 'invalid window id syntax ( must be numerical)'
+        }
+        if $_ !~ /^\d+$/
+} @window_ids;
+
+my $reply_id = $$call{'reply_id'};
+my %fade_windows = map { $_ => 1 } @window_ids;
+
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+my %all_windows = map { $_->id => 1 } @{ $xtops->sorted };
+
+map { delete $fade_windows{$_} if not exists $all_windows{$_} }
+    keys %fade_windows;
+
+return { 'mode' => 'nack', 'data' => 'no such window(s)' }
+    if !keys(%fade_windows);
+
+map {
+    $fade_windows{$_} = <[xserver.get_window_opacity]>->($_);
+    delete $fade_windows{$_} if $fade_windows{$_} == 0
+    }
+    keys %fade_windows;
+
+return { 'mode' => 'ack', 'data' => 'fade out complete' }
+    if !keys %fade_windows;
+
+<xserver.fade_out> //= {};
+my $fade_id       = <[base.gen_id]>->(<xserver.fade_out>);
+my $fade_fps      = 30;
+my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
+<xserver.fade_out>->{$fade_id} = {
+    'fade_start' => <[base.time]>->(5),
+    'duration'   => $duration,
+    'windows'    => \%fade_windows,
+    'reply_id'   => $reply_id
+};
+<[event.add_timer]>->(
+    {   'after'    => $fade_interval,
+        'interval' => $fade_interval,
+        'handler'  => 'xserver.handler.fade_out_window',
+        'data'     => $fade_id
+    }
+);
+
+return { 'mode' => 'later' };
