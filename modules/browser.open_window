@@ -86,15 +86,51 @@ Glib::Idle->add(
     }
 );
 
+map { <base.watcher.signal>->{$_}->cancel }
+    grep ( !/hup/, keys %{<base.watcher.signal>} );
+
+undef %SIG;
 $SIG{'INT'} = $SIG{'TERM'} = sub {
-    <browser.fading_out> //= 0;
-    return if <browser.fading_out>;
-    <browser.shutdown> = 1;
+    undef %SIG;
+    <browser.shutting_down> //= 0;
+    return if <browser.shutting_down>;
+    <browser.shutting_down> = 1;
+
     my $url_file = '/tmp/.nailara.browser.' . $$;
     unlink($url_file) if -f $url_file;    # clean shutdown
 
-    <browser.gtk_obj.window>
-        ->signal_connect( draw => $code{'browser.handler.quit_fade_out'} );
-    <browser.gtk_obj.window>->queue_draw;
-    <browser.fading_out> = 1;
+    map { <browser.timer>->{$_}->cancel } keys %{<browser.timer>};
+
+    <[base.log]>->( 1, "shutting down ..." );
+
+    <browser.slideshow.no_switch> = 1;
+    <browser.slideshow.paused>    = 1;
+    map {
+        my $view     = <browser.gtk_obj.view>->{$_};
+        my $settings = $view->get_settings;
+        $settings->set_property( 'enable-scripts', 0 );
+        $view->set_settings($settings);
+    } keys %{<browser.gtk_obj.view>};
+
+    delete <browser.quit_fade.start_time>;
+    <browser.signal_id> //= {};
+    {
+        local $SIG{'__WARN__'} = sub { };
+        map {
+            <browser.gtk_obj.window>
+                ->signal_handler_disconnect( delete <browser.signal_id>->{$_} )
+            }
+            keys %{<browser.signal_id>};
+    }
+
+    Glib::Timeout->add(
+        300,
+        sub {
+            <browser.gtk_obj.window>->signal_connect(
+                draw => $code{'browser.handler.quit_fade_out'} );
+            <browser.gtk_obj.window>->queue_draw;
+            return 0;
+        }
+    );
+    return 0;
 };
