@@ -14,20 +14,21 @@ if ( defined <layout.config.ticker_agent_type> ) {
     my $ticker_type = <layout.config.ticker_agent_type>;
     foreach my $layout ( keys %{<layout.config.layouts>} ) {
         my $_layout_data = <layout.config.layouts>->{$layout};
-        map {
+        map {    # ticker-sdl probably won't work anymore until it was updated..
             if ( $_ =~ /^ticker(-sdl|-gtk)?(\[[^\]]+\])?$/ ) {
                 my $tile_name = $2 // '';
+
                 my $new_name = "ticker-$ticker_type$tile_name";
-                if ( $new_name ne $_ ) {
-                    $_layout_data->{$new_name} = delete $_layout_data->{$_};
-                    $_layout_data->{$new_name}->{'layer'} //= 100; # <- on top!
-                }
+                $_layout_data->{$new_name} = delete $_layout_data->{$_}
+                    if $new_name ne $_;
+
+                $_layout_data->{$new_name}->{'layer'} //= 100;    # <- on top!
             }
         } keys %{ <layout.config.layouts>->{$layout} };
     }
 }
 
-<layout.startup.first_layout> //= 1;
+<layout.startup.initializing> //= 1;
 
 my @remove_agents;
 my $previous_data;
@@ -46,10 +47,19 @@ if ( defined $previous_layout ) {
         keys( %{$previous_data} );
 }
 
-if (<layout.startup.first_layout>) {
+<layout.transition.status> //= {};
+
+if (<layout.startup.initializing>) {
     my $kill_count = 0;
     foreach my $layout ( keys %{<layout.config.layouts>} ) {
         my $_layout_data = <layout.config.layouts>->{$layout};
+        ###
+        foreach my $stop_agent ( keys %{ <layout.config.layouts>->{$layout} } )
+        {
+            <layout.transition.status.agents.stop>->{$stop_agent}
+                = $previous_layout // $layout_name;
+        }
+        ###
         map {
             my $stop_agents
                 = exists $_layout_data->{$_}->{'stop_agents'}
@@ -63,15 +73,10 @@ if (<layout.startup.first_layout>) {
             $kill_count++;
         } keys %{ <layout.config.layouts>->{$layout} };
     }
-    <[base.sleep]>->(0.42) if $kill_count;    # XXX: fix!
 } else {
     map {
-        <[layout.handler.agent_transition]>->(
-            {   'action'       => 'stop',
-                'layout_name' => $previous_layout,
-                'agent_name'   => $_
-            }
-        );
+        <layout.transition.status.agents.stop>->{$_} = $previous_layout
+            // $layout_name;
     } @remove_agents;
 }
 
@@ -82,11 +87,10 @@ if (<layout.startup.first_layout>) {
 
 foreach my $agent_name ( keys %{$layout_data} ) {
     next
-        if !<layout.startup.first_layout>
+        if !<layout.startup.initializing>
         and defined $previous_layout
         and exists $previous_data->{$agent_name}
-        and
-        cmpStr( $previous_data->{$agent_name}, $layout_data->{$agent_name} )
+        and cmpStr( $previous_data->{$agent_name}, $layout_data->{$agent_name} )
         == 0;    # agent setup identical (not touching running agent)
 
     <layout.window_ids>->{$agent_name} //= undef;
@@ -110,15 +114,12 @@ foreach my $agent_name ( keys %{$layout_data} ) {
         }
     }
 
-    <[layout.handler.agent_transition]>->(
-        {   'action'       => 'start',
-            'layout_name' => $layout_name,
-            'agent_name'   => $agent_name
-        }
-    );
+    <layout.transition.status.agents.start>->{$agent_name} = $layout_name;
 }
 
-<layout.startup.first_layout> = 0;
+<layout.startup.initializing> = 0;
 
 <[base.proto.nailara.command.send.local]>
     ->( { 'command' => 'core.playlist.update' } );
+
+<[layout.handler.transition]>;
