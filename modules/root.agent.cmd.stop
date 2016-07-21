@@ -65,6 +65,7 @@ map {
     my $agent_name
         = <root.agent.setup>
         ->{ <root.agent.instance>->{$_}->{'agent_id'} }->{'name'};
+    <root.agent.instance>->{$_}->{'stopping'} = 1;
     $shutdown_names{$agent_name}++;
 } @instance_ids;
 foreach my $name ( keys %shutdown_names ) {
