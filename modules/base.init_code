@@ -119,12 +119,11 @@ map {
     <base.watcher.signal>->{$_}
         = <[event.add_signal]>
         ->( { 'signal' => uc($_), 'handler' => 'base.sig_' . $_ } );
-} ( 'int', 'term', 'hup', 'usr1', 'usr2', 'abrt' );
+} ( 'int', 'term', 'hup', 'usr1', 'usr2', 'abrt', 'chld' );
+
+# XXX: watch out for problems with SIGCHLD!
 
 $SIG{__WARN__} = <[base.sig_warn]>;
-
-# XXX: look out for problems with SIGCHLD!
-<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'base.sig_chld' } );
 
 # initialize session list
 
