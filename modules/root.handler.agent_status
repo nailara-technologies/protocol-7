@@ -242,11 +242,14 @@ if (    $status ne 'online'
     # shutdown instances with unresolved dependencies
     foreach my $dep_id ( <[dependency.get_reverse]>->($object_id) ) {
         next if <[dependency.ok]>->($dep_id);
-        map { <[agent.instance.restart]>->($_) } @{
+        map {
+            <[agent.instance.restart]>->($_)
+                if not exists <root.agent.instance>->{$_}->{'stopping'}
+            } @{
             <[agent.instance.get_ids]>->(
                 <dependency.object>->{$dep_id}->{'agent_id'}
             )
-        };
+            };
     }
 }
 
