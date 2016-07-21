@@ -306,8 +306,8 @@
 
   - ticker-gtk
 
-      dependencies = core xserver openbox
-      max_subname_concurrency = 1
+      dependencies = core xserver openbox # rss-ticker
+      max_subname_concurrency = 1         # ^-- enable rss_updates in ticker-gtk
       inherit_subname = 1
 
       : root-init :
@@ -334,12 +334,13 @@
 
   - rss-ticker
 
-      dependencies = core playlist ticker-gtk
+      dependencies = core playlist
+      max_concurrency = 1
+      inherit_subname = 1
       ping.timeout = 42
 
       : root-init :
         start_mode = exec-sic
-        max_concurrency = 1
         core.key = [base.rnd_chars_hex:64]
         [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
 
