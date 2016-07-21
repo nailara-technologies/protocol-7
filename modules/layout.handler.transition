@@ -1,7 +1,6 @@
 # >:]
 
 # name = layout.handler.transition
-# todo = implement fade_out feature!
 
 my $core_reply = shift // {};
 
@@ -9,6 +8,8 @@ die "[!] no layout transition data defined"
     if not defined <layout.transition.status>
     or !keys %{<layout.transition.status>};
 <layout.transition.status>->{'start_time'} //= <[base.time]>->(4);
+
+my $fade_out_duration = 0.8;    # -> config
 
 ### removing agents not present in new layout / present before agent restart ###
 
@@ -22,44 +23,41 @@ if ( not defined <layout.transition.status.waiting.stop>
     foreach my $agent (@stop_agents) {
         my $layout_name = <layout.transition.status.agents.stop>->{$agent};
         my $layout_data = <layout.config.layouts>->{$layout_name}->{$agent};
-        <layout.transition.status.agents.fade_out>->{$agent} = 1
-            if 0
-            ; #defined $layout_data->{'fade'} and $layout_data->{'fade'} eq '1';
-
-        ## instance_id ##
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.root.get_instance_ids",
-                'call_args' => { 'args' => $agent },
-                'reply'     => {
-                    'handler' => 'layout.handler.transition',
-                    'params'  => {
-                        'event_type' => 'instance_id',
-                        'agent_name' => $agent
+        my $fade        = 0;
+        if ( defined $layout_data->{'fade'} and $layout_data->{'fade'} eq '1' )
+        {
+            <layout.transition.status.agents.fade_out>->{$agent} = $fade = 1;
+        }
+        if ( !$fade ) {    ## instance_id (no_fade) ##
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.root.get_instance_ids",
+                    'call_args' => { 'args' => $agent },
+                    'reply'     => {
+                        'handler' => 'layout.handler.transition',
+                        'params'  => {
+                            'event_type' => 'instance_id',
+                            'agent_name' => $agent
+                        }
                     }
                 }
-            }
-        );
-        <layout.transition.status.waiting.i_id>++;
-
-    }
-    my @fade_out_agents = keys %{<layout.transition.status.agents.fade_out>};
-    <layout.transition.status.waiting.fade_out> = scalar @fade_out_agents;
-
-    foreach my $agent (@fade_out_agents) {
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.xserver.get_window_ids",
-                'call_args' => { 'args' => $agent },
-                'reply'     => {
-                    'handler' => 'layout.handler.transition',
-                    'params'  => {
-                        'event_type' => 'window_id',
-                        'agent_name' => $agent
+            );
+            <layout.transition.status.waiting.i_id>++;
+        } else {    ## window_id(s) (fade) ##
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.xserver.get_window_ids",
+                    'call_args' => { 'args' => $agent },
+                    'reply'     => {
+                        'handler' => 'layout.handler.transition',
+                        'params'  => {
+                            'event_type' => 'window_id',
+                            'agent_name' => $agent
+                        }
                     }
                 }
-            }
-        );
+            );
+            <layout.transition.status.waiting.fade_out>++;
+        }
     }
-
 }
 
 my $event_type
@@ -90,13 +88,31 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
                 }
             }
         );
-        if ( exists <layout.transition.status.agents.fade_out>->{$agent} ) {
-        } else {    ## stop now ##
-            <[base.proto.nailara.command.send.local]>->(
+        if ( not defined <layout.transition.status.agents.fade_out>->{$agent}
+            or <layout.transition.status.agents.fade_out>->{$agent} ne '1' ) {
+            <[base.proto.nailara.command.send.local]>->(    ## stop (no fade) ##
                 {   'command'   => "core.root.stop_implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
+        } else {
+            my $window_ids = $core_reply->{'params'}->{'window_ids'};
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.xserver.fade_out",
+                    'call_args' => {
+                        'args' => join( ' ', $fade_out_duration, $window_ids )
+                    },
+                    'reply' => {
+                        'handler' => 'layout.handler.transition',
+                        'params'  => {
+                            'event_type'  => 'fade_out',
+                            'agent_name'  => $agent,
+                            'instance_id' => $instance_id
+                        }
+                    }
+                }
+            );
+
         }
     } else {    ## no such agent online ##
         if ( exists <layout.transition.status.agents.fade_out>->{$agent} ) {
@@ -106,6 +122,38 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         delete <layout.transition.status.agents.stop>->{$agent};
         <layout.transition.status.waiting.stop>--;
     }
+} elsif ( $event_type eq 'window_id' ) {
+    my $agent       = $core_reply->{'params'}->{'agent_name'};
+    my $instance_id = $core_reply->{'params'}->{'instance_id'};
+    my $window_ids
+        = (     $core_reply->{'cmd'} eq 'ACK'
+            and $core_reply->{'call_args'}->{'args'} =~ /^\d+/ )
+        ? $core_reply->{'call_args'}->{'args'}
+        : 0;    # <- 0 == failed, fade will be skipped!
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.get_instance_ids",
+            'call_args' => { 'args' => $agent },
+            'reply'     => {
+                'handler' => 'layout.handler.transition',
+                'params'  => {
+                    'event_type' => 'instance_id',
+                    'agent_name' => $agent,
+                    'window_ids' => $window_ids
+                }
+            }
+        }
+    );
+    <layout.transition.status.waiting.i_id>++;
+
+} elsif ( $event_type eq 'fade_out' ) {
+    my $agent       = $core_reply->{'params'}->{'agent_name'};
+    my $instance_id = $core_reply->{'params'}->{'instance_id'};
+    <[base.proto.nailara.command.send.local]>->(    ## stop (fading complete) ##
+        {   'command'   => "core.root.stop_implicit",
+            'call_args' => { 'args' => $instance_id }
+        }
+    );
 } elsif (
     $event_type eq 'is_offline'    ## agent stopped or not running ##
     and defined $core_reply->{'params'}->{'agent_name'}
@@ -150,6 +198,21 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
 
             # failed - log! retry?
         }
+    } else {
+        ( my $job_id = $core_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
+        ## notify_online ##
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.root.notify_online",
+                'call_args' => { 'args' => "job:$job_id" },
+                'reply'     => {
+                    'handler' => 'layout.handler.transition',
+                    'params'  => {
+                        'event_type' => 'is_online',
+                        'agent_name' => $agent
+                    }
+                }
+            }
+        );
     }
 }
 
@@ -160,20 +223,6 @@ if (    $event_type eq 'instance_id'
     <layout.transition.status.waiting.start> = scalar @start_agents;
 
     foreach my $agent (@start_agents) {
-
-        ## notify_online ##
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.root.notify_online",
-                'call_args' => { 'args' => $agent },
-                'reply'     => {
-                    'handler' => 'layout.handler.transition',
-                    'params'  => {
-                        'event_type' => 'is_online',
-                        'agent_name' => $agent
-                    }
-                }
-            }
-        );
         ## start ##
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => "core.root.start",
@@ -210,5 +259,5 @@ if ( defined <layout.transition.status.waiting> ) {    ## in progress? ##
 }
 
 # print STDERR ">---\n" . Dumper( $core_reply, <layout.transition> ) . "<---\n"
-#     if $event_type eq 'window_id';
+#     if $event_type eq 'fade_out';
 
