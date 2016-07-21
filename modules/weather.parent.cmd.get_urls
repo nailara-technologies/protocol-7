@@ -7,7 +7,7 @@
 my $zoom;
 my $tile_name;
 my $city = $$call{'args'};
-$tile_name = $1 if $city =~ s| \[([^\]]+)\]||;
+$tile_name = $1 if defined $city and $city =~ s| \[([^\]]+)\]||;
 
 push( @{<weather.get_urls.reply_ids>}, $$call{'reply_id'} );
 
