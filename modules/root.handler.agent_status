@@ -145,7 +145,7 @@ if ( $old_status eq 'starting' and $status eq 'failed' ) {
 }
 
 if (    $status eq 'offline'
-    and exists $agent_config->{'respawn'}->{'disabled'}
+    and defined $agent_config->{'respawn'}->{'disabled'}
     and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
     <[base.log]>->( 1, "auto-respawn for instance $instance_id is disabled.." );
     <[agent.cmd.stop]>->( { 'args' => $instance_id, 'mode' => 'implicit' } );
@@ -195,7 +195,10 @@ foreach my $name_or_id (@check_keys) {
                     }
                 );
             } @{ <root.agent.notify_online>->{$name_or_id} };
-        } elsif ( $status =~ /^(online|extbin|offline|failed)$/ ) {
+        } elsif ( $status =~ /^(online|extbin|failed)$/
+            or $status eq 'offline'
+            and defined $agent_config->{'respawn'}->{'disabled'}
+            and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
             while ( my $reply_id
                 = shift @{ <root.agent.notify_online>->{$name_or_id} } ) {
                 my $startup_reply_mode
@@ -203,7 +206,8 @@ foreach my $name_or_id (@check_keys) {
                     ? 'ack'
                     : 'nack';
                 my $what = $name_or_id =~ /^\d+$/ ? 'agent instance' : 'agent';
-                my $startup_reply_msg = "$what '$name_or_id' startup failed!";
+                my $startup_reply_msg
+                    = "$what '$name_or_id' startup failed [status=$status]";
 
                 if ( $status eq 'online' ) {
                     $startup_reply_msg
