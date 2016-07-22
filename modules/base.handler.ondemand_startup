@@ -18,10 +18,9 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
             .= $cmd_id . "NACK unknown command\n";
     }
 } else {
-    ( my $job_id = $reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => 'root.notify_online',
-            'call_args' => { 'args' => "job:$job_id" },
+            'call_args' => { 'args' => <agents.virtual>->{$v_id}->{'name'} },
             'reply'     => {
                 'handler' => 'base.agents.ondemand.handler.startup_reply',
                 'params'  => { 'v_id' => $v_id }
