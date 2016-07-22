@@ -600,7 +600,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
-                $target_command //= 'root.start';
+                $target_command //= 'root.start_once';
 
                 # ...
 
