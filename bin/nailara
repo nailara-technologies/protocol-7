@@ -544,9 +544,6 @@ sub prepare_subs {
             push( @err, $caller_str );
             $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
         }
-
-        # XXX: handler gets lost the first time -> weird -> inverstigate!
-        $SIG{__WARN__} = $code{'base.sig_warn'} if not defined $SIG{__WARN__};
     };
 
     $code{'base.handler.end_code'} = sub {
