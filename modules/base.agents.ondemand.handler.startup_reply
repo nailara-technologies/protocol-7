@@ -10,7 +10,10 @@ my $agent_name = <agents.virtual>->{$v_id}->{'name'};
 delete <agents.virtual>->{$v_id}->{'starting'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    <[base.log]>->( 0, "on demand startup of agent '$agent_name' failed!" );
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->(
+        0, "on demand startup of agent '$agent_name' failed [$reason]"
+    );
     while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
         my $sid    = $element->{'source_id'};
         my $cmd_id = $element->{'cmd_id'};
