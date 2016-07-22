@@ -110,20 +110,15 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
     );
 }
 
-# initialize signal handlers
-undef %SIG;
-
 map {
     <base.watcher.signal>->{$_}->cancel
         if defined <base.watcher.signal>->{$_};
-    <base.watcher.signal>->{$_}
-        = <[event.add_signal]>
-        ->( { 'signal' => uc($_), 'handler' => 'base.sig_' . $_ } );
+    my $uc_sig = uc($_);
+    delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
+    ## initializing signal handlers ##    [ <!> potential SIGCHLD problems <!> ]
+    <base.watcher.signal>->{$_} = <[event.add_signal]>
+        ->( { 'signal' => $uc_sig, 'handler' => 'base.sig_' . $_ } );
 } ( 'int', 'term', 'hup', 'usr1', 'usr2', 'abrt', 'chld' );
-
-# XXX: watch out for problems with SIGCHLD!
-
-$SIG{__WARN__} = <[base.sig_warn]>;
 
 # initialize session list
 
