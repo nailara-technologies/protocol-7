@@ -9,7 +9,7 @@ die "layout '$layout_name' does not exist"
     if not exists <layout.config.layouts>->{$layout_name};
 if ( $layout_name eq <layout.current_layout> ) {
     <[base.log]>->(
-        0, "layout $layout_name is already active, skipping switch!"
+        0, "'$layout_name' already active, layout transition skipped!"
     );
     return 0;
 }
@@ -19,5 +19,5 @@ if ( $layout_name eq <layout.current_layout> ) {
 
 <[layout.process_layout]>->($layout_name);
 
-<[base.log]>->( 1, "switched to layout '$layout_name'" );
+<[base.log]>->( 1, "switching to layout '$layout_name'.." );
 return 1;
