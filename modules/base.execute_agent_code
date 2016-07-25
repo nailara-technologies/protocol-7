@@ -23,7 +23,7 @@ foreach my $code_line (@_) {
         }
         if ($ok) {
             $@ =~ s/ at .+\n//;
-            <[base.log]>->( 0, "error while executing '$code_line' [$@]" );
+            warn( "error while executing '$code_line' [$@] <{C3}>" );
         }
         $ok = 0 if $ok;
     }
