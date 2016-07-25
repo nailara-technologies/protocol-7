@@ -12,4 +12,8 @@ my $s = @cmds > 1 ? 's:' : '';
 
 push( @{ $data{'disabled_commands'} }, @cmds );
 
-map { delete $data{'base'}{'cmd'}{$_}; delete $data{'base'}{'help'}{$_} } @cmds;
+map {
+    delete $code{"base.cmd.$_"};
+    delete $data{'base'}{'cmd'}{$_};
+    delete $data{'base'}{'help'}{$_}
+} @cmds;
