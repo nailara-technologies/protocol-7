@@ -2,6 +2,7 @@
 
 # name = layout.init_code
 
+use File::Path qw(make_path);
 use FreezeThaw qw(cmpStr);
 
 <list.layouts> = {
@@ -12,14 +13,37 @@ use FreezeThaw qw(cmpStr);
     'descr' => 'configured layouts'
 };
 
-<layout.config_name>            //= 'default';
-<layout.hash_file>              //= '/tmp/.layout.sha1';
+<layout.config_name>   //= 'default';
+<layout.cfg_directory> //= '/etc/nailara/nailara.layout';
+<layout.hash_file>     //= <layout.cfg_directory> . '/layout_file.sha1';
 <layout.transition_in_progress> //= 0;
+<layout.restore_layout_timeout> //= 300;    # seconds
 
 delete <layout.config.ticker_agent_type>
     if defined <layout.config.ticker_agent_type>
     and <layout.config.ticker_agent_type> !~ /^gtk|sdl$/;
 <layout.config.ticker_agent_type> //= 'gtk';
+
+if ( !-d <layout.cfg_directory> ) {
+    my $cfg_dir = <layout.cfg_directory>;
+    my $perms   = '0750';
+    if ( !-d $cfg_dir ) {
+        <[base.log]>->( 1, "creating config directory '$cfg_dir'.. [$perms]" );
+        my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+            or die "user '" . <system.privs.user> . "' not in passwd file";
+        make_path( $cfg_dir,
+            { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
+            or die "make_path: $!";
+    } else {
+        my $old_perms = <[base.file_perm]>->($cfg_dir);
+        if ( $old_perms ne $perms ) {
+            <[base.log]>->(
+                0, "<!> fixing config dir permissions [ $old_perms -> $perms ]"
+            );
+            chmod( oct($perms), $cfg_dir ) or warn("chmod($cfg_dir): $!");
+        }
+    }
+}
 
 goto skip_load if defined <layout.config.layouts>;
 
@@ -42,14 +66,45 @@ die "layout config file '$config_filename' not found!"
 
 skip_load:    # <- jumping here if layout has already been imported as json!
 
+my $current_cfg = <layout.cfg_directory> . '/layout.current';
+
+if ( -f $current_cfg ) {
+    <[base.log]>->( 1, "loading 'layout.current' config..." );
+    my $cfg_content = ${ <[file.slurp]>->($current_cfg) };
+    if ( $cfg_content =~ /^(\d+(\.\d+)?) +([^\n]+)\n$/s ) {
+        ( my $t_stamp, my $layout_name ) = ( $1, $3 );
+        my $timeout_secs = <layout.restore_layout_timeout>;
+        my $delta_t = sprintf( "%.4f", <[base.time]>->(4) - $t_stamp );
+        if ( $delta_t >= $timeout_secs ) {
+            <[base.log]>->(
+                1,
+                "stored layout selection has timed out (${timeout_secs}s),"
+                    . " ignoring.."
+            );
+            unlink($current_cfg) or warn("unlink($current_cfg): $!");
+        } else {
+            <[base.log]>->( 1, "loading 'layout.current' config..." );
+            if ( defined <layout.default_layout>
+                and <layout.default_layout> ne $layout_name ) {
+                <[base.log]>->(
+                    0, "restoring previous layout '$layout_name'..."
+                );
+                <layout.default_layout> = $layout_name;
+            }
+        }
+    } else {
+        <[base.log]>->( 0, ": <!> syntax error in 'layout.current' config..." );
+    }
+}
+
 <[base.log]>->( 0, "no default layout configured!" )
     if not exists <layout.default_layout>
     or not defined <layout.default_layout>
     or !length(<layout.default_layout>);
 
 my $layout_name = <layout.default_layout>;
-my $log_level    = 1;
-my $default_str  = ' default ';
+my $log_level   = 1;
+my $default_str = ' default ';
 if ( not exists <layout.config.layouts>->{$layout_name} ) {
     my $cfg_name_str = defined $config_name ? " '$config_name'" : '';
     <[base.log]>->(
@@ -62,10 +117,19 @@ if ( not exists <layout.config.layouts>->{$layout_name} ) {
     $log_level   = 0;
 }
 
-$default_str  //= ' default ';
+$default_str //= ' default ';
 $layout_name //= <layout.default_layout>;
 <layout.current_layout> = $layout_name;
 
 <[base.log]>->( $log_level, "selected${default_str}layout '$layout_name'" );
+
+map {
+    <base.watcher.signal>->{$_}->cancel
+        if defined <base.watcher.signal>->{$_};
+    my $uc_sig = uc($_);
+    delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
+    <base.watcher.signal>->{$_} = <[event.add_signal]>
+        ->( { 'signal' => $uc_sig, 'handler' => 'layout.handler.sig_term' } );
+} ( 'int', 'term' );
 
 0;
