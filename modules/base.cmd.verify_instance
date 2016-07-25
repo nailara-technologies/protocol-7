@@ -4,7 +4,7 @@
 # param = <rnd_str>
 # descr = verify root instance id through log feedback
 
-my $random_string = $$call{'args'} || '';
+my $random_string = $$call{'args'} // '';
 return { 'mode' => 'nack', 'data' => 'no random string supplied' }
     if !length($random_string);
 
