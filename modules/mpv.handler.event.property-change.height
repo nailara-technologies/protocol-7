@@ -14,7 +14,9 @@ my $video_height = <mpv.current.video_height>;
 <mpv.converting>     //= {};
 <mpv.rescale_failed> //= {};
 
-if (    <mpv.autorescale>
+if ( <mpv.autorescale> and !-f $current_path ) {
+    <[base.log]>->( 1, "[!local] skipped autorescale [$current_path]" );
+} elsif ( <mpv.autorescale>
     and defined $video_width
     and defined $video_height
     and defined $current_path
