@@ -22,7 +22,9 @@ my @url_list;
 map { push( @url_list, "file://$html_dir/$_.html" ) }
     <[weather.parent.page_list]>;
 
-$url_list[0] .= '#[DELAY=' . <weather.current_cond_delay> . ']#'
+unshift( @url_list, $url_list[0] . '#[DELAY=0.13]#' );
+
+$url_list[1] .= '#[DELAY=' . <weather.current_cond_delay> . ']#'
     if <weather.tile.count> == 3
     and defined <weather.current_cond_delay>
     and <weather.current_cond_delay> =~ /^\d+(\.\d+)?$/;
