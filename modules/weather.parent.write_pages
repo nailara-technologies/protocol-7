@@ -155,7 +155,7 @@ foreach my $page_name (@page_list) {
             my $index = $1 - 1;
             if ( not exists $timestamps[$index] ) {
                 <[base.log]>->(
-                    0, "'hours' forecast data with index $index does not exist!"
+                    1, "'hours' forecast data with index $index does not exist!"
                 );
                 $snipplet_ref
                     = <[file.slurp]>
@@ -233,7 +233,7 @@ foreach my $page_name (@page_list) {
             my $index = $1 - 1;
             if ( not exists $timestamps[$index] ) {
                 <[base.log]>->(
-                    0, "'days' forecast data with index $index does not exist!"
+                    1, "'days' forecast data with index $index does not exist!"
                 );
                 $snipplet_ref
                     = <[file.slurp]>
