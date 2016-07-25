@@ -6,6 +6,7 @@ my ($local_sid) = keys( %{<user.core.session>} );
 
 <[base.log]>->( 2, "requesting display name from xserver agent.." );
 
+$data{'route'} //= {};
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
