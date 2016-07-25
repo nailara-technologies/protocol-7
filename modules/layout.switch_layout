@@ -17,6 +17,11 @@ if ( $layout_name eq <layout.current_layout> ) {
 <layout.previous_layout> = <layout.current_layout>;
 <layout.current_layout>  = $layout_name;
 
+<[file.put]>->(
+    <layout.cfg_directory> . '/layout.current',
+    sprintf( "%.4f %s\n", <[base.time]>->(4), $layout_name )
+);
+
 <[layout.process_layout]>->($layout_name);
 
 <[base.log]>->( 1, "switching to layout '$layout_name'.." );
