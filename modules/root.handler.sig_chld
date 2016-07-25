@@ -6,6 +6,18 @@
 local ( $!, $? );
 while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
 
+    my $instance_id;
+    my $instance;
+    my $agent_name;
+    my $agent_subname;
+
+    if ( my $child = <root.child>->{$pid} ) {
+        $instance_id   = $child->{'instance_id'};
+        $instance      = <root.agent.instance>->{$instance_id};
+        $agent_name    = $instance->{'agent_name'};
+        $agent_subname = $instance->{'subname'};
+    }
+
     # determine exit status
     my $log_level = 1;
     my $e_val     = $? >> 8;
@@ -14,16 +26,15 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
     $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 (((SEGFAULT)))|;
     my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
     $log_level = 0 if $e_val or $? & 128;
+    my $agent_str = defined $agent_name ? "< $agent_name > " : '';
     <[base.log]>->(
         $log_level,
-        "child pid=$pid terminated ( exit code $e_val$e_sig_str )$e_dmp"
+        $agent_str
+            . "child pid=$pid terminated"
+            . " ( exit code $e_val$e_sig_str )$e_dmp"
     );
 
     if ( my $child = <root.child>->{$pid} ) {
-        my $instance_id   = $child->{'instance_id'};
-        my $instance      = <root.agent.instance>->{$instance_id};
-        my $agent_name    = $instance->{'agent_name'};
-        my $agent_subname = $instance->{'subname'};
 
         <[base.log]>->( 2, ": was instance $instance_id ..." );
 
