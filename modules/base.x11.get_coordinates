@@ -47,9 +47,11 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+) (\d+) (\d+)\n$/ ) {
 # else [no layout agent present or no coordinates for current agent configured]
 my $err_msg = "unexpected reply from layout agent ['$reply_string']";
 
-$err_msg = 'no coordinates defined' if $reply_string =~ /NACK no coordinates/;
+$err_msg = ': coordinates undefined'
+    if $reply_string =~ /NACK no coordinates/
+    or $reply_string =~ /NACK unknown command/;
 
-<[base.log]>->( 0, $err_msg );
+<[base.log]>->( 1, $err_msg );
 
 # use full X server geometry as window geometry...
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
@@ -74,8 +76,6 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     <x11.coordinates_were_undefined> = 1;
     return ( 0, 0, $1, $2 );
 } else {
-    <[base.log]>
-        ->( 0, "unexpected reply from xserver agent ['$reply_string']" );
-    <[base.log]>->( 0, "[!] failed to obtain a suitable window geometry" );
+    <[base.log]>->( 1, ": coordinates undefined" );
     return undef;
 }
