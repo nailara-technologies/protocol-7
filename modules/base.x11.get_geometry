@@ -44,9 +44,11 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
 # else [no layout agent present or no geometry for current agent configured]
 my $err_msg = "unexpected reply from layout agent ['$reply_string']";
 
-$err_msg = 'no geometry defined' if $reply_string =~ /NACK no geometry/;
+$err_msg = ': geometry undefined'
+    if $reply_string =~ /NACK no geometry/
+    or $reply_string =~ /NACK unknown command/;
 
-<[base.log]>->( 0, $err_msg );
+<[base.log]>->( 1, $err_msg );
 
 # use full X server geometry as window geometry...
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
@@ -71,8 +73,6 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     <x11.geometry_was_undefined> = 1;
     return <x11.geometry>;
 } else {
-    <[base.log]>
-        ->( 0, "unexpected reply from xserver agent ['$reply_string']" );
-    <[base.log]>->( 0, "[!] failed to obtain a suitable window geometry" );
+    <[base.log]>->( 1, "[!] window geometry undefined" );
     return undef;
 }
