@@ -1,0 +1,14 @@
+# >:]
+
+# name = layout.callback.start_corner_logo
+
+my $display_logo = <layout.display_logo> // 0;
+
+my $command_str
+    = $display_logo ? 'core.root.start_once' : 'core.root.stop_implicit';
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $command_str,
+        'call_args' => { 'args' => 'corner-logo' }
+    }
+);
