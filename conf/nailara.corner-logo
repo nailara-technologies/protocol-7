@@ -1,0 +1,37 @@
+
+  .:[ corner-logo agent ]:.
+
+system.privs.user = nailara
+
+[set_privs:<system.privs.user>]
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping verify_instance *
+
+corner-logo.logo_size = 9.81 # % [ height ( of screen height ) ]
+
+# corner-logo.image_file_path = ...
+# corner-logo.default_dir =
+
+modules.preload = corner-logo.config config.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[config.json.import_file:'layout.config.json']
+
+modules.load = auth net io.ip corner-logo debug
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+
+[base.get_session_id]
+
+[corner-logo.callback.download_image]
+
+[event.loop]
