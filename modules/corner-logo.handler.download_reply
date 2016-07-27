@@ -1,0 +1,21 @@
+# >:]
+
+# name = corner-logo.handler.download_reply
+
+my $params = shift // {};
+my $new_path = $params->{'call_args'}->{'args'};
+
+if ( $params->{'cmd'} eq 'NACK' or !-f $new_path ) {
+    <[base.log]>->( 0, "failed to obtain valid logo image path, aborting.." );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.root.stop_implicit',
+            'call_args' => { 'args' => 'corner-logo' }
+        }
+    );
+    exit(2);
+}
+
+<corner-logo.logo_path> = $new_path;
+<[base.log]>->( 2, "[local image] $new_path" );
+
+<[corner-logo.open_window]>;

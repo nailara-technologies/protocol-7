@@ -44,7 +44,7 @@ access.cmd.usr.config = get_config *.get_config_names *.get_config
 access.cmd.usr.ssh    = *.ping
 
 access.cmd.usr.xserver = hide-mouse.blank_cursor layout.gpu_load_alert \
-                         root.restart system.reload_gfx_module
+                         root.restart root.start_once system.reload_gfx_module
 
 access.cmd.usr.compton = xserver.get_driver xserver.get_mode
 
@@ -67,7 +67,7 @@ access.cmd.usr.browser = xserver.wait_visible xserver.lower_window \
                          playlist.set_flags playlist.entries_withheld
 
 access.cmd.usr.layout = root.start root.stop_implicit root.restart \
-                        root.notify_online root.notify_offline \
+                        root.start_once root.notify_online root.notify_offline \
                         root.get_instance_ids xserver.fade_out playlist.update \
                         xserver.get_window_ids xserver.get_stack_order \
                         xserver.lower_window notify.warn browser.slow_down \
@@ -106,6 +106,9 @@ access.cmd.usr.playlist-update = playlist.reload_file playlist.update \
 
 access.cmd.usr.power = power-x11.set_states
 access.cmd.usr.power-x11 = power.show_all power.on power.off
+
+access.cmd.usr.corner-logo = xserver.get_display download.get_file \
+                             root.stop_implicit
 
 access.cmd.usr.reenc-msg = root.stop_implicit
 
