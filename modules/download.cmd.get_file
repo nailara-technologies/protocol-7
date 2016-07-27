@@ -15,6 +15,17 @@ my $temp_filename = 'part.' . $url_md5u_hash;
 my $target_dir    = "$download_dir/$url_md5u_hash";
 my $file_path     = "$target_dir/$temp_filename";
 
+return { 'mode' => 'ack', 'data' => $url } if defined $url and -f $url;
+return { 'mode' => 'ack', 'data' => $1 }
+    if defined $url
+    and $url =~ m{^file://(.+)$}
+    and -f $1;
+
+if ( defined $url
+    and ( $url =~ m{^(file://)?(/.+)$} and !-f $2 or $url eq 'file://' ) ) {
+    return { 'mode' => 'nack', 'data' => 'file not found' };
+}
+
 <[base.log]>->( 1, ".: $url" );
 
 if ( !-d $target_dir ) {
@@ -27,10 +38,18 @@ if ( !-d $target_dir ) {
 
 unlink($file_path) if -f $file_path;
 
-my $response = <download.obj.ua>->get( $url, ':content_file' => $file_path );
+my $response;
+eval {
+    $response = <download.obj.ua>->get( $url, ':content_file' => $file_path );
+};
 
-if ( !$response->is_success ) {
-    my $err_msg = 'download failed [' . $response->status_line . ']';
+if ( not defined $response or !$response->is_success ) {
+    my $err_msg = 'download failed';
+    if ( defined $response ) {
+        $err_msg .= ' [' . $response->status_line . ']';
+    } else {
+        $err_msg .= ' (' . $url . ')';
+    }
     <[base.log]>->( 0, $err_msg );
     return {
         'mode' => 'nack',
@@ -38,7 +57,7 @@ if ( !$response->is_success ) {
     };
 }
 
-( my $filename = $response->filename ) =~ s|^.*/||g;
+( my $filename = $response->filename // 'index.html' ) =~ s|^.*/||g;
 $filename =~ s| +|_|g;
 my $target_path = "$target_dir/$filename";
 rename( $file_path, $target_path ) or die "rename failed: $!";
