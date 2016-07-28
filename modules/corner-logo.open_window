@@ -2,8 +2,6 @@
 
 # name = corner-logo.open_window
 
-my $scale_factor = 0.5;    # <- of screen width ...
-
 use Gtk3;
 use Time::HiRes qw(sleep time);
 
@@ -43,21 +41,63 @@ if ($use_transparency) {
     Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 }
 
+my $scr_w = $screen->get_width();
+my $scr_h = $screen->get_height();
+
+##
+<corner-logo.logo_size> = delete <layout.logo_height>
+    if defined <layout.logo_height>;
+
+my $position
+    = defined <layout.logo_position>
+    ? delete <layout.logo_position>
+    : 'top-right';
+
+##
+
 my $height_percent = <corner-logo.logo_size>;
 
 my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_path);
 my $img_w = $pbuf->get_width();
 my $img_h = $pbuf->get_height();
-my $scr_w = $screen->get_width();
-my $scr_h = $screen->get_height();
 
 my $scale_x = sprintf( "%.0f",
     $img_w * ( ( $scr_h / $img_h ) * ( $height_percent / 100 ) ) );
 my $scale_y = sprintf( "%.0f", $scr_h * ( $height_percent / 100 ) );
-my $x_offset = sprintf( "%.0f",
-    ( $scr_w * ( $height_percent / 100 ) ) * ( $scr_h / $scr_w ) );
 
-$window->move( $scr_w - $scale_x - $x_offset, $scale_y );
+my $pos_y = 0;                    # top-right
+my $pos_x = $scr_w - $scale_x;    # top-right
+$pos_x = 0                 if $position =~ /-left$/;
+$pos_y = $scr_h - $scale_y if $position =~ /^bottom-/;
+$pos_y = 0                 if $position =~ /^top-/;
+
+if ( defined <layout.logo_offset_x> ) {
+    my $x_offset_percent = delete <layout.logo_offset_x>;
+    <corner-logo.x_offset>
+        = sprintf( "%.0f", $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 ) );
+}
+if ( defined <layout.logo_offset_y> ) {
+    my $y_offset_percent = delete <layout.logo_offset_y>;
+    <corner-logo.y_offset>
+        = sprintf( "%.0f", ( $scr_h * ( $y_offset_percent / 100 ) ) );
+}
+
+<corner-logo.y_offset> = delete <layout.logo_offset_y>
+    if defined <layout.logo_offset_y>;
+
+<corner-logo.y_offset> //= $scale_y;
+<corner-logo.x_offset> //= sprintf( "%.0f", $scr_w * ( $height_percent / 100 ) )
+    * ( $scr_h / $scr_w );
+
+my $x_offset = <corner-logo.x_offset>;
+my $y_offset = <corner-logo.y_offset>;
+
+$pos_x += abs($x_offset) if $position =~ /-left$/;
+$pos_x -= abs($x_offset) if $position =~ /-right$/;
+$pos_y += abs($y_offset) if $position =~ /^top-/;
+$pos_y -= abs($y_offset) if $position =~ /^bottom-/;
+
+$window->move( $pos_x, $pos_y );
 
 my $image = Gtk3::Image->new_from_pixbuf(
     $pbuf->scale_simple( $scale_x, $scale_y, 'hyper' ) );
