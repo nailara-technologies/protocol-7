@@ -1,11 +1,13 @@
 # >:]
 
 # name  = xserver.cmd.fade_out
-# param = <time> <window_id(s)>
+# param = <time>[:%] <window(s)>
 # descr = fade out specified window(s) and reply
 
 my $X = <xserver.x11>;
 my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
+
+( $duration, my $fade_limit ) = split( /:/, $duration );
 
 return { 'mode' => 'nack', 'data' => 'fade out duration in seconds expected!' }
     if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
@@ -50,7 +52,8 @@ my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
     'fade_start' => <[base.time]>->(5),
     'duration'   => $duration,
     'windows'    => \%fade_windows,
-    'reply_id'   => $reply_id
+    'reply_id'   => $reply_id,
+    'fade_limit' => $fade_limit
 };
 <[event.add_timer]>->(
     {   'after'    => $fade_interval,
