@@ -4,12 +4,15 @@
 
 Gtk3->init;
 
+<power-x11.cfg.use_transparency> //= 1;
+
 <power-x11.window> = Gtk3::Window->new('toplevel');
 <power-x11.window>->set_title('.: PMS-LAN - power control gui :.');
 <power-x11.window>->set_position("mouse");
 <power-x11.window>->set_default_size( 0, 0 );
 <power-x11.window>->set_border_width(0);
 <power-x11.window>->set_resizable(0);
+<power-x11.window>->set_decorated(0) if <power-x11.cfg.use_transparency>;
 <power-x11.window>->signal_connect(
     delete_event => sub {
         Gtk3->main_quit;
@@ -17,6 +20,24 @@ Gtk3->init;
         exit;
     }
 );
+
+my $use_transparency = <power-x11.cfg.use_transparency>;
+
+<power-x11.window>->set_app_paintable(1);
+
+#<power-x11.window>->set_opacity(0.8);
+
+if ($use_transparency) {
+    my $screen = <power-x11.window>->get_screen();
+    <power-x11.screen_rgba> = $screen->get_rgba_visual();
+    <power-x11.window>->set_visual(<power-x11.screen_rgba>);
+
+} else {
+    my $css_prov = Gtk3::CssProvider->new();
+    my $screen   = Gtk3::Gdk::Screen::get_default();
+    $css_prov->load_from_data('*{background-color:#ffffff}');
+    Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+}
 
 my $grid = Gtk3::Grid->new();
 <power-x11.window>->add($grid);
@@ -77,6 +98,16 @@ foreach my $d_id (
 
         my $switch = Gtk3::Switch->new;
         <power-x11.switch>->{$d_id}->{$s_num} = $switch;
+        ###
+
+        my $sc = $switch->get_style_context;
+
+        #        print STDERR "<sc> " . $sc->get_background_color . "\n";
+
+        #<power-x11.switch>
+        #    ->{$d_id}->{$s_num}->set_visual(<power-x11.screen_rgba>);
+        <power-x11.switch>->{$d_id}->{$s_num}->set_opacity(0.5);
+        ###
         $switch->set_active( $device->{'state'}->{$s_num} );
         my $hbox = Gtk3::Box->new( 'horizontal', 0 );
         my $vbox = Gtk3::Box->new( 'vertical',   0 );
