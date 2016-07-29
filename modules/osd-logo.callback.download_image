@@ -1,13 +1,13 @@
 # >:]
 
-# name = corner-logo.callback.download_image
+# name = osd-logo.callback.download_image
 
-my $logo_path = <corner-logo.logo_path>;
+my $logo_path = <osd-logo.logo_path>;
 
 if (    defined $logo_path
-    and defined <corner-logo.default_dir>
-    and -d <corner-logo.default_dir> ) {
-    my $default_dir = <corner-logo.default_dir>;
+    and defined <osd-logo.default_dir>
+    and -d <osd-logo.default_dir> ) {
+    my $default_dir = <osd-logo.default_dir>;
     $logo_path = join( '/', $default_dir, $logo_path )
         if $logo_path !~ /^\// and -f $default_dir . '/' . $logo_path;
 }
@@ -17,6 +17,6 @@ if (    defined $logo_path
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.download.get_file',
         'call_args' => { 'args' => $logo_path },
-        'reply'     => { 'handler' => 'corner-logo.handler.download_reply' }
+        'reply'     => { 'handler' => 'osd-logo.handler.download_reply' }
     }
 );

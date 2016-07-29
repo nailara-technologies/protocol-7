@@ -1,11 +1,11 @@
 # >:]
 
-# name = corner-logo.open_window
+# name = osd-logo.open_window
 
 use Gtk3;
 use Time::HiRes qw(sleep time);
 
-my $logo_path = <corner-logo.logo_path>;
+my $logo_path = <osd-logo.logo_path>;
 
 if ( !-f $logo_path ) {
     <[base.log]>->( 0, "logo file '$logo_path' not found!" );
@@ -19,7 +19,7 @@ Gtk3->init;
 
 my $window = Gtk3::Window->new('popup');
 
-<corner-logo.obj.window> = $window;
+<osd-logo.obj.window> = $window;
 
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 my $use_transparency = $window->is_composited ? 1 : 0;
@@ -45,7 +45,7 @@ my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
 ##
-<corner-logo.logo_size> = delete <layout.logo_height>
+<osd-logo.logo_size> = delete <layout.logo_height>
     if defined <layout.logo_height>;
 
 my $position
@@ -55,7 +55,7 @@ my $position
 
 ##
 
-my $height_percent = <corner-logo.logo_size>;
+my $height_percent = <osd-logo.logo_size>;
 
 my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_path);
 my $img_w = $pbuf->get_width();
@@ -73,24 +73,24 @@ $pos_y = 0                 if $position =~ /^top-/;
 
 if ( defined <layout.logo_offset_x> ) {
     my $x_offset_percent = delete <layout.logo_offset_x>;
-    <corner-logo.x_offset>
+    <osd-logo.x_offset>
         = sprintf( "%.0f", $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 ) );
 }
 if ( defined <layout.logo_offset_y> ) {
     my $y_offset_percent = delete <layout.logo_offset_y>;
-    <corner-logo.y_offset>
+    <osd-logo.y_offset>
         = sprintf( "%.0f", ( $scr_h * ( $y_offset_percent / 100 ) ) );
 }
 
-<corner-logo.y_offset> = delete <layout.logo_offset_y>
+<osd-logo.y_offset> = delete <layout.logo_offset_y>
     if defined <layout.logo_offset_y>;
 
-<corner-logo.y_offset> //= $scale_y;
-<corner-logo.x_offset> //= sprintf( "%.0f", $scr_w * ( $height_percent / 100 ) )
+<osd-logo.y_offset> //= $scale_y;
+<osd-logo.x_offset> //= sprintf( "%.0f", $scr_w * ( $height_percent / 100 ) )
     * ( $scr_h / $scr_w );
 
-my $x_offset = <corner-logo.x_offset>;
-my $y_offset = <corner-logo.y_offset>;
+my $x_offset = <osd-logo.x_offset>;
+my $y_offset = <osd-logo.y_offset>;
 
 $pos_x += abs($x_offset) if $position =~ /-left$/;
 $pos_x -= abs($x_offset) if $position =~ /-right$/;
@@ -105,16 +105,16 @@ my $image = Gtk3::Image->new_from_pixbuf(
 $window->add($image);
 $window->show_all;
 
-<corner-logo.fade_signal> = 0;
-<corner-logo.fade_start>  = <[base.time]>->(4);
+<osd-logo.fade_signal> = 0;
+<osd-logo.fade_start>  = <[base.time]>->(4);
 
-<corner-logo.fade_signal> = $window->signal_connect(
+<osd-logo.fade_signal> = $window->signal_connect(
     'draw' => sub {
         my $window      = shift;
         my $old_opavity = $window->get_opacity;
         my $new_opacity = sprintf( "%.8f",
-                  ( time - <corner-logo.fade_start> ) * 2.1
-                - ( 0.365 * ( time - <corner-logo.fade_start> ) ) );
+                  ( time - <osd-logo.fade_start> ) * 2.1
+                - ( 0.365 * ( time - <osd-logo.fade_start> ) ) );
         my $ret = 1;
         $new_opacity = 1 if $new_opacity > 1;
 
@@ -125,8 +125,8 @@ $window->show_all;
             sleep 0.001;
         }
 
-        $window->signal_handler_disconnect( delete <corner-logo.fade_signal> )
-            if $new_opacity == 1 and defined <corner-logo.fade_signal>;
+        $window->signal_handler_disconnect( delete <osd-logo.fade_signal> )
+            if $new_opacity == 1 and defined <osd-logo.fade_signal>;
 
         return 0;
     }
