@@ -1,0 +1,400 @@
+# >:]
+
+# name = dsys-transfer.handler.parse_layout_reply
+
+my $reply      = shift;
+my $reply_str  = 'layout update successful';
+my $reply_mode = 'ack';
+
+<dsys.layout_update_requested> = 0;
+
+<dsys.watcher.layout_update_retry>->cancel;
+<dsys.watcher.layout_update_timeout>->cancel;
+delete <dsys.layout_update_force_retry>;
+
+<[base.log]>->( 1, "updating x11 layout configuration.." );
+
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    <dsys.updates_requested> = 0;
+    $reply_mode = 'nack';
+    $reply_str = "layout update process failed ['$reply->{call_args}->{args}']";
+    goto reply;
+}
+
+my $machine_name = <dibosys.cfg.display.machine_name>;
+
+my $layout_data = <json.parser>->decode( $reply->{'data'} );
+
+my $system_language = delete $layout_data->{'globals'}->{'system.language'};
+$system_language = undef if $system_language !~ /^[a-z]+$/;
+my $fallback_language = 'en';
+
+my $globals = $layout_data->{'globals'};
+my $layouts = $layout_data->{'layouts'}->{$machine_name};
+
+<[base.log]>->( 0, "(!) no layout data found for machine name '$machine_name'" )
+    if not defined $layouts;
+
+foreach my $layout_name ( keys %{$layouts} ) {
+    foreach my $tile_name ( keys %{ $layouts->{$layout_name} } ) {
+        my $tile_type = delete $layouts->{$layout_name}->{$tile_name}->{'type'};
+        $tile_type = <dibosys.map.tile_to_agent>->{$tile_type}
+            if exists <dibosys.map.tile_to_agent>->{$tile_type};
+        $layouts->{$layout_name}->{"$tile_type\[$tile_name]"}
+            = delete $layouts->{$layout_name}->{$tile_name};
+    }
+}
+
+my $file_path = <dibosys.cfg.file.path>;
+
+my @restart_agents;
+
+## update system language ##
+if ( defined $system_language ) {
+    my $locales_sha1;
+    $locales_sha1 = <[digest.sha.file_hex]>->( $file_path->{'locales'} )
+        if -f $file_path->{'locales'};
+    <[base.log]>->( 1, ": writing '$file_path->{locales}'.." );
+    <[file.put]>->(
+        $file_path->{'locales'} . '.part',
+        "system.language = $system_language\n"
+    );
+    rename( $file_path->{'locales'} . '.part', $file_path->{'locales'} )
+        or warn "((( $! )))";
+
+    if ( defined $locales_sha1
+        and <[digest.sha.file_hex]>->( $file_path->{'locales'} ) ne
+        $locales_sha1
+        or !-f $file_path->{'locales'}
+        and $system_language ne <system.language> ) {
+        ( my $locales_dir = <locales.text_dir> ) =~ s|\/[^\/]+$||;
+        my $switch_msg
+            = <system.language> ne $system_language
+            ? sprintf( "<!> switching system language from '%s' to '%s' <!>",
+            <system.language>, $system_language )
+            : "<!> switching system language to '$system_language' <!>";
+        <[base.log]>->( 0, $switch_msg );
+        if ( !-f <locales.text_dir> . '/locales.' . $system_language ) {
+            <[base.log]>->(
+                0,
+                " :  language '$system_language' not found, "
+                    . "falling back to '$fallback_language'.."
+            );
+            $system_language = <system.language> = $fallback_language;
+        }
+
+        if ( opendir( my $dir_fh, $locales_dir ) ) {
+            map { push( @restart_agents, $_ ) if $_ !~ /^(\.|dsys-)/ }
+                sort { length($a) <=> length($b) }
+                reverse sort ( 'media', readdir($dir_fh) );
+            closedir($dir_fh);
+        } else {
+            my $locale_dir = <locales.text_dir> // '[UNDEFINED]';
+            warn "failed to open locale directory '$locale_dir'";
+        }
+    }
+}
+
+## create xserver config ##
+my $xserver_sha1;
+$xserver_sha1 = <[digest.sha.file_hex]>->( $file_path->{'xserver'} )
+    if -f $file_path->{'xserver'};
+my $x_orientation = 'normal';    # landscape
+
+if ( $globals->{'screen'}->{'display_mode'} eq 'portrait' ) {    # <- old syntax
+    <[base.log]>->(
+        1, "display mode 'portrait' is deprecated, use 'right' instead!"
+    );
+    delete $globals->{'screen'}->{'display_mode'};
+    $x_orientation = 'right';
+} elsif ( $globals->{'screen'}->{'display_mode'}
+    =~ /^(normal|left|right|inverted)(-[xy])?$/ ) {
+    $x_orientation = delete $globals->{'screen'}->{'display_mode'};
+} else {
+    my $or_str = delete $globals->{'screen'}->{'display_mode'};
+    if ( $or_str eq 'landscape' ) {
+        <[base.log]>->(
+            1, "display mode 'landscape' is deprecated, use 'normal' instead!"
+        );
+    } else {
+        <[base.log]>->(
+            0, "invalid screen orientation '$or_str', using 'normal'!"
+        ) if $or_str ne 'normal';
+    }
+}
+
+my $xserver_cfg = { 'xserver' => { 'orientation' => $x_orientation } };
+my $xserver_json = <json.parser>->encode($xserver_cfg);
+<[base.log]>->( 1, ": writing '$file_path->{xserver}'.." );
+<[file.put]>->( $file_path->{'xserver'} . '.part', $xserver_json );
+rename( $file_path->{'xserver'} . '.part', $file_path->{'xserver'} )
+    or warn "((( $! )))";
+
+if ( <[digest.sha.file_hex]>->( $file_path->{'xserver'} ) ne $xserver_sha1
+    or !-f $file_path->{'xserver'} ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.rotate_screen",
+            'call_args' => { 'args' => $x_orientation }
+        }
+    );
+}
+
+## create layout config ##
+my $layout_sha1;
+$layout_sha1 = <[digest.sha.file_hex]>->( $file_path->{'layout'} )
+    if -f $file_path->{'layout'};
+
+my $default_layout = delete $globals->{'layout.default'};
+<layout.previous.default_layout> //= $default_layout;
+
+my $display_logo = 0;
+
+delete $globals->{'display_logo'}
+    if defined $globals->{'display_logo'} and $globals->{'display_logo'} eq 'f';
+$display_logo = 1 if delete $globals->{'display_logo'};
+my $logo_path = delete $globals->{'logo_path'};
+
+my $layout_agent_cfg = {
+    'layout' => {
+        'default_layout' => $default_layout,
+        'import_path'    => '/etc/nailara/import',
+        'display_logo'   => $display_logo
+    }
+};
+
+my $old_logo = <dsys-transfer.old_logo> // '';
+<dsys-transfer.old_logo> = $logo_path;
+
+$layout_agent_cfg->{'layout'}->{'logo_path'} = $logo_path
+    if $display_logo
+    and defined $logo_path
+    and length($logo_path);
+
+<dsys-transfer.position> //= $globals->{"logo_position"} // '';
+
+<dsys-transfer.old_logo_params> //= {};
+my $restart_logo = 0;
+
+if ( !keys %{<dsys-transfer.old_logo_params>} ) {
+    $restart_logo = 1;
+} else {
+    map {
+        $restart_logo = 1
+            if not defined $globals->{ 'logo_' . $_ }
+            or <dsys-transfer.old_logo_params>->{$_} ne
+            $globals->{ 'logo_' . $_ }
+        }
+        keys %{<dsys-transfer.old_logo_params>};
+    map {
+        $restart_logo = 1
+            if not defined <dsys-transfer.old_logo_params>->{$_}
+            or not defined $globals->{ 'logo_' . $_ }
+            or <dsys-transfer.old_logo_params>->{$_} ne
+            $globals->{ 'logo_' . $_ }
+    } ( 'height', 'position', 'offset_x', 'offset_y' );
+}
+
+map { <dsys-transfer.old_logo_params>->{$_} = $globals->{ 'logo_' . $_ } // '' }
+    ( 'height', 'position', 'offset_x', 'offset_y' );
+
+<dsys-transfer.position> = $globals->{"logo_position"}
+    if defined $globals->{"logo_position"};
+
+map {
+    $layout_agent_cfg->{'layout'}->{"logo_$_"}
+        = delete $globals->{ 'logo_' . $_ }
+        if defined $globals->{"logo_$_"}
+} ( 'height', 'position', 'offset_x', 'offset_y' );
+
+$logo_path //= '';
+
+my $command_str
+    = $display_logo ? 'core.root.start_once' : 'core.root.stop_implicit';
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.root.restart',
+        'call_args' => { 'args' => 'osd-logo' }
+    }
+    )
+    if $display_logo
+    and ( $restart_logo
+    or $command_str =~ /start_once$/ and $old_logo ne $logo_path );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $command_str,
+        'call_args' => { 'args' => 'osd-logo' }
+    }
+);
+
+<[base.log]>->( 1, ": writing '$file_path->{layout_cfg}'.." );
+<[file.put]>->(
+    $file_path->{'layout_cfg'} . '.part',
+    <json.parser>->encode($layout_agent_cfg)
+);
+rename( $file_path->{'layout_cfg'} . '.part', $file_path->{'layout_cfg'} )
+    or warn "((( $! )))";
+
+my $layout_cfg
+    = { 'layout' => { 'config' => { 'screen' => {}, 'layouts' => {} } } };
+
+my $underscan = delete $globals->{'screen'}->{'underscan'};
+
+delete $globals->{'screen'} if !keys %{ $globals->{'screen'} };
+
+map {
+    $underscan->{$_} = 0 if !length( $underscan->{$_} );
+    $layout_cfg->{'layout'}->{'config'}->{'screen'}->{"underscan.$_"}
+        = int( $underscan->{$_} )
+} keys %{$underscan} if defined $underscan;
+
+## write ticker config ##
+
+my $ticker_config_file = $file_path->{'ticker_cfg'};
+
+( my $ticker_sdl_cfg = $ticker_config_file )
+    =~ s|ticker\.config.json$|ticker-sdl.config.json|;
+( my $ticker_gtk_cfg = $ticker_config_file )
+    =~ s|ticker\.config.json$|ticker-gtk.config.json|;
+
+map { unlink($_) if -e $_ } ( $ticker_sdl_cfg, $ticker_gtk_cfg );
+
+my $ticker_cfg = { 'ticker' => {} };
+
+$ticker_cfg->{'ticker'}->{'redraw_delay'}
+    = delete $globals->{'ticker'}->{'redraw_delay'}
+    if exists $globals->{'ticker'}->{'redraw_delay'};
+$ticker_cfg->{'ticker'}->{'font'}->{'name'}
+    = delete $globals->{'ticker'}->{'font'}
+    if exists $globals->{'ticker'}->{'font'};
+$ticker_cfg->{'ticker'}->{'font'}->{'size_percent'}
+    = delete $globals->{'ticker'}->{'size'} # <- XXX: check key name if frontend
+    if exists $globals->{'ticker'}->{'size'};
+$ticker_cfg->{'ticker'}->{'color'}->{'foreground'}
+    = delete $globals->{'ticker'}->{'color'}
+    if exists $globals->{'ticker'}->{'color'};
+$ticker_cfg->{'ticker'}->{'cfg'}->{'bg_col'}
+    = delete $globals->{'ticker'}->{'bg_col'}
+    if exists $globals->{'ticker'}->{'bg_col'};
+$ticker_cfg->{'ticker'}->{'cfg'}->{'bg_alpha'}
+    = delete $globals->{'ticker'}->{'bg_alpha'}
+    if exists $globals->{'ticker'}->{'bg_alpha'};
+$ticker_cfg->{'ticker'}->{'color'}->{'background'}
+    = $ticker_cfg->{'ticker'}->{'cfg'}->{'bg_col'}
+    if defined $ticker_cfg->{'ticker'}->{'cfg'}->{'bg_col'};
+
+my $ticker_sha1;
+$ticker_sha1 = <[digest.sha.file_hex]>->($ticker_config_file)
+    if -f $file_path->{'ticker_cfg'};
+<[base.log]>->( 1, ": writing '$ticker_config_file'.." );
+<[file.put]>->(
+    $ticker_config_file . '.part',
+    <json.parser>->encode($ticker_cfg)
+);
+rename( $ticker_config_file . '.part', $ticker_config_file )
+    or warn "((( rename: $! )))";
+
+map { link( $ticker_config_file, $_ ) or warn "((( link: $! )))" }
+    ( $ticker_sdl_cfg, $ticker_gtk_cfg );
+
+if ( not defined $ticker_sha1
+    or <[digest.sha.file_hex]>->($ticker_config_file) ne $ticker_sha1 ) {
+    push( @restart_agents, 'ticker-gtk', 'ticker-sdl' );
+}
+
+## write rss(-ticker) config ##
+
+my $rss_sha1;
+my $rss_config_file = $file_path->{'rss_config'};
+$rss_sha1 = <[digest.sha.file_hex]>->($rss_config_file)
+    if -f $rss_config_file;
+
+my $rss_cfg;
+my $rss_json;
+<[file.slurp]>->( $rss_config_file, \$rss_json ) if -f $rss_config_file;
+
+$rss_cfg = <json.parser>->decode($rss_json) if defined $rss_json;
+$rss_cfg //= { 'rss' => { 'ticker' => {} } };
+
+$rss_cfg->{'rss'}->{'ticker'}->{'item_seperator'}
+    = delete $globals->{'ticker'}->{'seperator'}
+    if exists $globals->{'ticker'}->{'seperator'};
+
+<[base.log]>->( 1, ": writing '$rss_config_file'.." );
+<[file.put]>->( $rss_config_file . '.part', <json.parser>->encode($rss_cfg) );
+rename( $rss_config_file . '.part', $rss_config_file )
+    or warn "((( $! )))";
+
+if ( not defined $rss_sha1
+    or <[digest.sha.file_hex]>->($rss_config_file) ne $rss_sha1 ) {
+    push( @restart_agents, 'rss-ticker', 'ticker-gtk', 'ticker-sdl' );
+}
+
+delete $globals->{'ticker'} if !keys %{ $globals->{'ticker'} };
+
+<[base.log]>->( 0, "[!] found left over config data in globals section ..." )
+    if keys %{$globals};
+
+## create layout setup file ##
+
+foreach my $layout_name ( keys %{$layouts} ) {
+    $layout_cfg->{'layout'}->{'config'}->{'layouts'}->{$layout_name}
+        = delete $layouts->{$layout_name};
+}
+
+<[base.log]>->( 0, "[!] found left over config data in layout section ..." )
+    if keys %{$layouts};
+
+foreach my $layout_name (
+    keys %{ $layout_cfg->{'layout'}->{'config'}->{'layouts'} } ) {
+    my $_profile
+        = $layout_cfg->{'layout'}->{'config'}->{'layouts'}->{$layout_name};
+    foreach my $tile_name ( keys %{$_profile} ) {
+        my $_tile = $_profile->{$tile_name};
+        if ( $tile_name =~ /^mpv/ ) {
+            $_tile->{'fade'} = 1;
+        } elsif ( $tile_name =~ /^ticker(\[[^\]]+\])?$/ ) {
+            $_tile->{'fade'} = 1;
+        }
+    }
+}
+
+my $layout_json = <json.parser>->encode($layout_cfg);
+<[base.log]>->( 1, ": writing '$file_path->{layout}'.." );
+<[file.put]>->( $file_path->{'layout'} . '.part', $layout_json );
+rename( $file_path->{'layout'} . '.part', $file_path->{'layout'} )
+    or warn "((( $! )))";
+
+if (   not defined $layout_sha1
+    or <[digest.sha.file_hex]>->( $file_path->{'layout'} ) ne $layout_sha1
+    or !-f $file_path->{'layout'}
+    or <layout.previous.default_layout> ne $default_layout ) {
+    push( @restart_agents, 'layout' );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command' => "core.notify.msg_reload",
+            'call_args' =>
+                { 'args' => "'" . <locales.string.updating_layout> . "'" },
+            'reply' => { 'handler' => 'dev.null' }
+        }
+    ) if <dsys-transfer.cfg.layout_change_notifications>;
+}
+
+<layout.previous.default_layout> = $default_layout
+    if <layout.previous.default_layout> ne $default_layout;
+
+my %uniq = map { $_ => 1 } @restart_agents;
+@restart_agents = keys %uniq;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.restart",
+        'call_args' => { 'args' => join( ' ', @restart_agents ) }
+    }
+);
+
+reply:
+
+foreach my $reply_id ( @{<dsys.layout_update_reply_ids>} ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => $reply_mode, 'data' => $reply_str }
+    );
+}
+delete <dsys.layout_update_reply_ids>;
