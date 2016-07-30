@@ -9,10 +9,11 @@ Gtk3->init;
 my $window = Gtk3::Window->new('toplevel');
 <power-x11.obj.window> = $window;
 $window->set_title('.: PMS-LAN - power control gui :.');
-$window->set_position("mouse");
+#$window->set_position("mouse");
 $window->set_default_size( 0, 0 );
 $window->set_border_width(0);
 $window->set_resizable(0);
+$window->set_keep_above(1);
 $window->move( 100, 100 );
 $window->set_decorated(0) if <power-x11.cfg.use_transparency>;
 $window->signal_connect(
@@ -39,7 +40,7 @@ if ($use_transparency) {
 } else {
     my $css_prov = Gtk3::CssProvider->new();
     $screen = Gtk3::Gdk::Screen::get_default();
-    $css_prov->load_from_data('*{background-color:#ffffff}');
+    $css_prov->load_from_data('*{background-color:#424242}');
     Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 }
 
