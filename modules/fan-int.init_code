@@ -1,0 +1,14 @@
+# >:]
+
+# name = fan.init_code
+
+die "socket_id not configured"
+    if not defined <fan-int.cfg.socket_id> or <fan-int.cfg.socket_id> !~ /^\d+\.\d$/;
+
+<[event.add_timer]>->(
+    {   'after'   => 0.42,
+        'handler' => 'fan-int.handler.toggle'
+    }
+);
+
+0;
