@@ -1,0 +1,31 @@
+# >:]
+
+# name = fan.handler.toggle
+
+my $e = shift;
+$e->w->cancel if defined $e;
+
+my $current_mode = <fan-int.state.switch> // 'off';
+my $next_mode = $current_mode eq 'on' ? 'off' : 'on';
+
+again:
+my $delta_t = sprintf(
+    "%.1f",
+    <fan-int.cfg.time>->{$next_mode}->{'min'} + rand(
+        rand(
+                  <fan-int.cfg.time>->{$next_mode}->{'max'}
+                - <fan-int.cfg.time>->{$next_mode}->{'min'}
+        )
+    )
+);
+goto again
+    if $delta_t > ( <fan-int.cfg.time>->{$next_mode}->{'max'} / 2 )
+    and rand(1) % 1;
+
+<[base.log]>->( 2, "fan now $next_mode for the next $delta_t seconds .." );
+
+<[event.add_timer]>
+    ->( { 'after' => $delta_t, 'handler' => 'fan-int.handler.toggle' } );
+
+<[fan-int.switch]>->($next_mode);
+
