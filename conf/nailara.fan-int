@@ -1,0 +1,23 @@
+
+.: fan-interval agent :.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+modules.load         = net io.ip auth fan-int
+access.cmd.usr.core  = verify_instance help ping reload
+
+# fan-int.cfg.socket_id = 9031349.2
+
+fan-int.cfg.time.on.min = 3
+fan-int.cfg.time.on.max = 15
+fan-int.cfg.time.off.min = 11
+fan-int.cfg.time.off.max = 92
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[event.loop]
