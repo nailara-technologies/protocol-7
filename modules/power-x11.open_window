@@ -6,14 +6,16 @@ Gtk3->init;
 
 <power-x11.cfg.use_transparency> //= 1;
 
-<power-x11.window> = Gtk3::Window->new('toplevel');
-<power-x11.window>->set_title('.: PMS-LAN - power control gui :.');
-<power-x11.window>->set_position("mouse");
-<power-x11.window>->set_default_size( 0, 0 );
-<power-x11.window>->set_border_width(0);
-<power-x11.window>->set_resizable(0);
-<power-x11.window>->set_decorated(0) if <power-x11.cfg.use_transparency>;
-<power-x11.window>->signal_connect(
+my $window = Gtk3::Window->new('toplevel');
+<power-x11.obj.window> = $window;
+$window->set_title('.: PMS-LAN - power control gui :.');
+$window->set_position("mouse");
+$window->set_default_size( 0, 0 );
+$window->set_border_width(0);
+$window->set_resizable(0);
+$window->move( 100, 100 );
+$window->set_decorated(0) if <power-x11.cfg.use_transparency>;
+$window->signal_connect(
     delete_event => sub {
         Gtk3->main_quit;
         <[base.log]>->( 1, "shutting down.." );
@@ -23,24 +25,26 @@ Gtk3->init;
 
 my $use_transparency = <power-x11.cfg.use_transparency>;
 
-<power-x11.window>->set_app_paintable(1);
+$window->set_app_paintable(1);
 
-#<power-x11.window>->set_opacity(0.8);
+#$window->set_opacity(0.8);
+
+my $screen;
 
 if ($use_transparency) {
-    my $screen = <power-x11.window>->get_screen();
+    $screen = $window->get_screen();
     <power-x11.screen_rgba> = $screen->get_rgba_visual();
-    <power-x11.window>->set_visual(<power-x11.screen_rgba>);
+    $window->set_visual(<power-x11.screen_rgba>);
 
 } else {
     my $css_prov = Gtk3::CssProvider->new();
-    my $screen   = Gtk3::Gdk::Screen::get_default();
+    $screen = Gtk3::Gdk::Screen::get_default();
     $css_prov->load_from_data('*{background-color:#ffffff}');
     Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 }
 
 my $grid = Gtk3::Grid->new();
-<power-x11.window>->add($grid);
+$window->add($grid);
 
 my $logo_png = <system.root_path> . '/data/gfx/logos/power-x11/pms-lan.png';
 my $image    = Gtk3::Image->new_from_file($logo_png);
@@ -53,7 +57,7 @@ if ( !keys %{<power-x11.devices>} ) {
     my $hbox = Gtk3::Box->new( 'horizontal', 0 );
     $hbox->pack_end( $label, 1, 1, 8 );
     $grid->attach( $hbox, 2, 1, 1, 1 );
-    <power-x11.window>->show_all;
+    $window->show_all;
     Gtk3->main;
     return;
 }
@@ -153,5 +157,15 @@ foreach my $d_id (
     }
 }
 
-<power-x11.window>->show_all;
+$window->show_all;
+
+my ( $w_x, $w_y ) = ( $window->get_size() );
+
+<power-x11.cfg.pos_x> //= $screen->get_width() - $w_x - 10;
+<power-x11.cfg.pos_y> //= $screen->get_height() - $w_y - 9;
+
+( my $pos_x, my $pos_y ) = ( <power-x11.cfg.pos_x>, <power-x11.cfg.pos_y> );
+
+$window->move( $pos_x, $pos_y );
+
 Gtk3->main;
