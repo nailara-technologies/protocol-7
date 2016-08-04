@@ -2,21 +2,21 @@
 
 # name = osd-logo.callback.download_image
 
-my $logo_path = <osd-logo.logo_path>;
+my $logo_url = <osd-logo.logo_path>;
 
-if (    defined $logo_path
+if (    defined $logo_url
     and defined <osd-logo.default_dir>
     and -d <osd-logo.default_dir> ) {
     my $default_dir = <osd-logo.default_dir>;
-    $logo_path = join( '/', $default_dir, $logo_path )
-        if $logo_path !~ /^\// and -f $default_dir . '/' . $logo_path;
+    $logo_url = join( '/', $default_dir, $logo_url )
+        if $logo_url !~ /^\// and -f $default_dir . '/' . $logo_url;
 }
 
-<[base.log]>->( 1, "<downloading> $logo_path ..." ) if !-f $logo_path;
+<[base.log]>->( 1, "<downloading> $logo_url ..." ) if !-f $logo_url;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.download.get_file',
-        'call_args' => { 'args' => $logo_path },
+        'call_args' => { 'args' => $logo_url },
         'reply'     => { 'handler' => 'osd-logo.handler.download_reply' }
     }
 );

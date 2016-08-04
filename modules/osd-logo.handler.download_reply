@@ -2,20 +2,31 @@
 
 # name = osd-logo.handler.download_reply
 
-my $params = shift // {};
+my $params   = shift // {};
 my $new_path = $params->{'call_args'}->{'args'};
+my $warn_img = <system.root_path> . '/data/gfx/patterns/warning.svg';
 
 if ( $params->{'cmd'} eq 'NACK' or !-f $new_path ) {
-    <[base.log]>->( 0, "failed to obtain valid logo image path, aborting.." );
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.root.stop_implicit',
-            'call_args' => { 'args' => 'osd-logo' }
-        }
-    );
-    exit(2);
+    my $reason = $params->{'data'};
+    <[base.log]>->( 0, "failed to obtain valid logo image path [$reason]" );
 }
 
 <osd-logo.logo_path> = $new_path;
-<[base.log]>->( 2, "[local image] $new_path" );
+<[base.log]>->( 1, "[local image] $new_path" );
 
-<[osd-logo.open_window]>;
+if ( defined <osd-logo.cfg.bg_alpha> ) {
+    my $mode = <osd-logo.cfg.bg_alpha>;
+    <[base.log]>->( 1, "<color_to_alpha> [$mode] $new_path ..." );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.colortoalpha.filter',
+            'call_args' => { 'args' => join( ' ', $mode, $new_path ) },
+            'reply' => { 'handler' => 'osd-logo.handler.colortoalpha_reply' }
+        }
+    );
+
+} else {
+
+    <[osd-logo.open_window]>;
+
+}

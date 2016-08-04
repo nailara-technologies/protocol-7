@@ -1,0 +1,18 @@
+# >:]
+
+# name = osd-logo.handler.colortoalpha_reply
+
+my $params   = shift // {};
+my $new_path = $params->{'call_args'}->{'args'};
+my $warn_img = <system.root_path> . '/data/gfx/patterns/warning.svg';
+
+if ( $params->{'cmd'} eq 'NACK' or !-f $new_path ) {
+    my $reason = $params->{'data'};
+    <[base.log]>
+        ->( 0, "failed to obtain (filtered) logo image path [$reason]" );
+}
+
+<osd-logo.logo_path> = $new_path;
+<[base.log]>->( 1, "[filtered image] $new_path" );
+
+<[osd-logo.open_window]>;
