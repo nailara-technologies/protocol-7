@@ -12,7 +12,7 @@ if ( !-f $logo_path ) {
     exit(2);
 }
 
-open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on termin. xserver
+<[base.log]>->( 2, "going to display '$logo_path'..." );
 
 $ENV{'DISPLAY'} = <x11.display>;
 Gtk3->init;
@@ -45,12 +45,12 @@ my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
 ##
-<osd-logo.logo_size> = delete <layout.logo_height>
-    if defined <layout.logo_height>;
+<osd-logo.logo_size> = delete <osd-logo.cfg.height>
+    if defined <osd-logo.cfg.height>;
 
 my $position
-    = defined <layout.logo_position>
-    ? delete <layout.logo_position>
+    = defined <osd-logo.cfg.position>
+    ? delete <osd-logo.cfg.position>
     : 'top-right';
 
 ##
@@ -71,26 +71,23 @@ $pos_x = 0                 if $position =~ /-left$/;
 $pos_y = $scr_h - $scale_y if $position =~ /^bottom-/;
 $pos_y = 0                 if $position =~ /^top-/;
 
-if ( defined <layout.logo_offset_x> ) {
-    my $x_offset_percent = delete <layout.logo_offset_x>;
-    <osd-logo.x_offset>
+if ( defined <osd-logo.cfg>->{'offset.x'} ) {
+    my $x_offset_percent = delete <osd-logo.cfg>->{'offset.x'};
+    <osd-logo.offset.x>
         = sprintf( "%.0f", $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 ) );
 }
-if ( defined <layout.logo_offset_y> ) {
-    my $y_offset_percent = delete <layout.logo_offset_y>;
-    <osd-logo.y_offset>
+if ( defined <osd-logo.cfg>->{'offset.y'} ) {
+    my $y_offset_percent = delete <osd-logo.cfg>->{'offset.y'};
+    <osd-logo.offset.y>
         = sprintf( "%.0f", ( $scr_h * ( $y_offset_percent / 100 ) ) );
 }
 
-<osd-logo.y_offset> = delete <layout.logo_offset_y>
-    if defined <layout.logo_offset_y>;
-
-<osd-logo.y_offset> //= $scale_y;
-<osd-logo.x_offset> //= sprintf( "%.0f", $scr_w * ( $height_percent / 100 ) )
+<osd-logo.offset.y> //= $scale_y;
+<osd-logo.offset.x> //= sprintf( "%.0f", $scr_w * ( $height_percent / 100 ) )
     * ( $scr_h / $scr_w );
 
-my $x_offset = <osd-logo.x_offset>;
-my $y_offset = <osd-logo.y_offset>;
+my $x_offset = <osd-logo.offset.x>;
+my $y_offset = <osd-logo.offset.y>;
 
 $pos_x += abs($x_offset) if $position =~ /-left$/;
 $pos_x -= abs($x_offset) if $position =~ /-right$/;
