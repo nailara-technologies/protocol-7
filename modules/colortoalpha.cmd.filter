@@ -1,0 +1,45 @@
+# >:]
+
+# name  = colortoalpha.cmd.filter
+# param = <color|'auto'> <image>
+# descr = replaces specified color with transparency
+
+my $params = shift // {};
+my ( $color_str, $input_file ) = split( / +/, $params->{'args'}, 2 );
+
+return { 'mode' => 'nack', 'data' => 'expected alpha color parameter' }
+    if not defined $color_str or !length($color_str);
+return { 'mode' => 'nack', 'data' => 'expected path to image file' }
+    if not defined $input_file or !-f $input_file;
+return { 'mode' => 'nack', 'data' => 'input file not found' }
+    if !-f $input_file;
+
+my $image_sha1 = <[digest.sha.file_hex]>->($input_file);
+
+my $image  = Graphics::Magick->new;
+my $status = $image->Read($input_file);
+return { 'mode' => 'nack', 'data' => "$status" } if "$status";
+
+$image->Trim() if $color_str eq 'auto';
+
+$color_str = <[colortoalpha.guess_bg_color]>->($image) if $color_str eq 'auto';
+
+my $color_md5 = <[digest.md5.b64u]>->($color_str);
+
+my $output_file
+    = join( '/', <colortoalpha.cache_dir>, $image_sha1 . $color_md5 . '.png' );
+
+unlink($output_file) if -f $output_file and [stat($output_file)]->[7] == 0;
+
+<[base.log]>->( 0, "output file $output_file" );
+
+return { 'mode' => 'ack', 'data' => $output_file } if -f $output_file;
+
+my ( $img_w, $img_h ) = $image->get( 'width', 'height' );
+
+<[colortoalpha.filter_image]>->( $image, $color_str );    # apply the filter
+
+$image->Write($output_file);
+return { 'mode' => 'nack', 'data' => "$status" } if "$status";
+
+return { 'mode' => 'ack', 'data' => $output_file }
