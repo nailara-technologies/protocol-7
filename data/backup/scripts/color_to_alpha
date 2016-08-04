@@ -1,0 +1,159 @@
+#!/usr/bin/perl
+
+### required (debian) packages are 'libgraphics-magick-perl', 'libinline-c-perl'
+
+use strict;
+use warnings;
+use Graphics::Magick;
+use Inline (
+    C         => 'DATA',
+    directory => '/var/tmp/'
+);
+
+###########
+## SETUP ##
+###########
+
+my $input_file   = '/tmp/input.png';
+my $output_file  = '/tmp/output.png';
+my $alpha_color  = 'white';
+my $scale_factor = 1;
+my $trim_edges   = 1;
+
+###########
+
+die "\n [!] input file '$input_file' not found [!]\n\n" if !-f $input_file;
+
+unlink($output_file) if -f $output_file;
+
+my $image  = Graphics::Magick->new;
+my $status = $image->Read($input_file);
+die "$status" if "$status";
+
+my ( $img_w, $img_h ) = $image->get( 'width', 'height' );
+
+$image->Set( 'colorspace', 'RGB' );
+my $img_depth = $image->Get('depth');    # > 8 bit hasn't been tested yet ;/
+
+$image->Set( 'matte', 1 );               # <- enables transparency!
+
+filter_image( $image, $alpha_color );    # apply the filter routine
+
+$image->Trim() if defined $trim_edges and $trim_edges;   # cut off blank borders
+
+$image->Resize(
+    'width'  => sprintf( "%.0f", $img_w * $scale_factor ),
+    'height' => sprintf( "%.0f", $img_h * ( $img_h / $img_w ) * $scale_factor ),
+    'blur'   => '0.9891028367558475',
+    'filter' => 'Lanczos'
+) if defined $scale_factor and $scale_factor != 1;
+
+$image->Write($output_file);
+
+exit(0);
+
+###
+sub filter_image {
+    my ( $image, $alpha_color ) = @_;
+    $alpha_color //= 'white';    # default
+    my @alRGB = map { $_ /= 257 } ( $image->QueryColor($alpha_color) ); # 0..255
+    pop(@alRGB);    # remove alpha
+    my ( $img_w, $img_h ) = $image->get( 'width', 'height' );
+
+    for my $y ( 0 .. $img_h - 1 ) {
+        for my $x ( 0 .. $img_w - 1 ) {
+
+            my @RGBA = split( ',', $image->Get("pixelcolor[$x,$y]") );
+
+            map { $_ /= 257 } @RGBA;    # [0..255]
+
+            my @filtered_RGBA = colortoalpha( @RGBA, @alRGB ); # apply GIMP code
+
+            my @hex_cols
+                = $img_depth > 8
+                ? map { sprintf( "%x", sprintf( "%.0f", $_ * 257 ) ) }
+                @filtered_RGBA
+                : map { unpack( "H*", chr( sprintf( "%.0f", $_ ) ) ) }
+                @filtered_RGBA;
+
+            $image->Set( "pixel[$x,$y]", '#' . join( '', @hex_cols ) );
+        }
+    }
+}
+
+## the following C code was 'extracted' from [GIMP] :
+##
+## https://git.gnome.org/browse/gimp/plain/plug-ins/ ...
+##         ... common/colortoalpha.c?id=bcd98991017f85aff90aee36451970d59edcb95d
+##
+__DATA__
+__C__
+void
+colortoalpha (double a1,
+	      double a2,
+	      double a3,
+	      double a4,
+	      double c1,
+	      double c2,
+	      double c3)
+{
+  double alpha1, alpha2, alpha3, alpha4;
+  Inline_Stack_Vars;
+  a4 = ( 255.0 - a4 );
+  alpha4 = a4;
+
+  if ( a1 > c1 )
+    alpha1 = (a1 - c1)/(255.0-c1);
+  else if ( a1 < c1 )
+    alpha1 = (c1 - a1)/(c1);
+  else alpha1 = 0.0;
+
+  if ( a2 > c2 )
+    alpha2 = (a2 - c2)/(255.0-c2);
+  else if ( a2 < c2 )
+    alpha2 = (c2 - a2)/(c2);
+  else alpha2 = 0.0;
+
+  if ( a3 > c3 )
+    alpha3 = (a3 - c3)/(255.0-c3);
+  else if ( a3 < c3 )
+    alpha3 = (c3 - a3)/(c3);
+  else alpha3 = 0.0;
+
+  if ( alpha1 > alpha2 )
+    if ( alpha1 > alpha3 )
+      {
+	a4 = alpha1;
+      }
+    else
+      {
+	a4 = alpha3;
+      }
+  else
+    if ( alpha2 > alpha3 )
+      {
+	a4 = alpha2;
+      }
+    else
+      {
+	a4 = alpha3;
+      }
+
+  a4 *= 255.0;
+
+  if ( a4 == 1.0 )
+    {
+      a1 = 255.0 * (a1-c1)/ a4 + c1;
+      a2 = 255.0 * (a2-c2)/ a4 + c2;
+      a3 = 255.0 * (a3-c3)/ a4 + c3;
+
+      a4 *= alpha4/255.0;
+    }
+
+  Inline_Stack_Reset;
+  Inline_Stack_Push(sv_2mortal(newSViv(a1)));
+  Inline_Stack_Push(sv_2mortal(newSViv(a2)));
+  Inline_Stack_Push(sv_2mortal(newSViv(a3)));
+  Inline_Stack_Push(sv_2mortal(newSViv((255.0-a4))));
+  Inline_Stack_Done;
+}
