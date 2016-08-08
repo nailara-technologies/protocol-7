@@ -29,9 +29,9 @@ my $color_md5 = <[digest.md5.b64u]>->($color_str);
 my $output_file
     = join( '/', <colortoalpha.cache_dir>, $image_sha1 . $color_md5 . '.png' );
 
-unlink($output_file) if -f $output_file and [stat($output_file)]->[7] == 0;
+unlink($output_file) if -f $output_file and [ stat($output_file) ]->[7] == 0;
 
-<[base.log]>->( 0, "output file $output_file" );
+<[base.log]>->( 1, "output file: $output_file" );
 
 return { 'mode' => 'ack', 'data' => $output_file } if -f $output_file;
 
