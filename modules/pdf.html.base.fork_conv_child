@@ -27,6 +27,9 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
     $0 = "pdf.png-${sn_str}child ";
 
+    # silencing child shutdown ( incr. loglevel )
+    <callback.session.close_last.params>->[1] = 1;
+
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';

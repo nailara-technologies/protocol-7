@@ -27,6 +27,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
     <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
     $0 = "image2html-${sn_str}child ";
 
+    <callback.session.close_last.params>->[1] = 1;    # silencing child shutdown
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';
