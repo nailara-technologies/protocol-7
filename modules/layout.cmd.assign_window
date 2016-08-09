@@ -58,6 +58,22 @@ if (exists <layout.window_ids>->{$agent_name}
     my $s = $wid_str =~ / / ? 's' : '';
     <[base.log]>->( 1, "assigned window id$s $wid_lmsg to '$agent_name'" );
 
+###[ ALPHA SUPPORT ]###
+    my $layout_name = <layout.current_layout>;
+    my $layout_data = <layout.config.layouts>->{$layout_name}->{$agent_name};
+    if ( defined $layout_data->{'alpha'} ) {
+        my $alpha_str
+            = sprintf( "%.2f", ( 100 - $layout_data->{'alpha'} ) / 100 );
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.xserver.fade_out",
+                'call_args' => { 'args' => "0.8:$alpha_str $wid_str" }
+            }
+        );
+
+        # warn( "alpha:0.8:$alpha_str $wid_str" );
+    }
+#####
+
     <[layout.sort_layers]>;
 
     return {
