@@ -1,0 +1,16 @@
+# >:]
+
+# name  = layout.cmd.get_underscan
+# descr = show underscan values for current setup
+
+my @values;
+
+map {
+    push( @values, "$1:" . <layout.config.screen>->{$_} )
+        if $_ =~ /^underscan\.(\w+)/
+    }
+    reverse sort {
+    $a cmp $b
+    } keys %{<layout.config.screen>};
+
+return { 'mode' => 'ack', 'data' => join( ' ', @values ) }
