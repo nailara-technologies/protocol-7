@@ -11,6 +11,9 @@ my $current_path = <mpv.current.path>;
 my $video_width  = <mpv.current.video_width>;
 my $video_height = <mpv.current.video_height>;
 
+return if not defined $video_width and not defined $video_height;    # stopped ?
+return warn("current_path is undefined") if not defined $current_path;
+
 <mpv.converting>     //= {};
 <mpv.rescale_failed> //= {};
 
