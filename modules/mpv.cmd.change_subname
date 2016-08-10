@@ -1,0 +1,23 @@
+# >:]
+
+# name  = mpv.cmd.change_subname
+# descr = change agent subname (and fetch new playlist)
+
+my $new_subname = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'subname parameter expected' }
+    if not defined $new_subname or !length($new_subname);
+return {
+    'mode' => 'nack',
+    'data' => 'subnames identical - no changes'
+    }
+    if defined <system.agent.subname>
+    and $new_subname eq <system.agent.subname>;
+
+<[base.log]>->( 0, "changing agent subname to '$new_subname'" );
+
+<system.agent.subname> = $new_subname;
+
+<[mpv.cmd.reload_playlist]>;    # fetching entries for new subname / tile_name
+
+return { 'mode' => 'ack', 'data' => 'subname changed, playlist reloaded' }
