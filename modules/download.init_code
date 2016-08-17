@@ -16,7 +16,13 @@ sub read_hosts {
     my ( $self, $hosts_file ) = @_;
     $hosts_file //= '/etc/hosts';
     <[base.log]>->( 1, "reading '$hosts_file' file.." );
-    $etc_hosts->read_hosts($hosts_file);
+    eval { $etc_hosts->read_hosts($hosts_file) };
+    if ($@) {
+        ( my $reason_str = $@ ) =~ s/\n/ /g;
+        $reason_str =~ s|( Bailing out)?[ \.]+$||;
+        <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
+        $etc_hosts = undef;
+    }
 }
 
 sub _resolve {
@@ -25,12 +31,14 @@ sub _resolve {
     <[base.log]>->( 2, "resolving host '$host'.." );
 
     ## /etc/hosts ##
-    my $local_result;
-    $local_result = $etc_hosts->query_host($host);
-    if ( defined $local_result and defined $local_result->{'ip'} ) {
-        my $ip_addr = $local_result->{'ip'};
-        <[base.log]>->( 2, ": found local entry '$ip_addr'" );
-        return $ip_addr;
+    if ( defined $etc_hosts ) {
+        my $local_result;
+        $local_result = $etc_hosts->query_host($host);
+        if ( defined $local_result and defined $local_result->{'ip'} ) {
+            my $ip_addr = $local_result->{'ip'};
+            <[base.log]>->( 2, ": found local entry '$ip_addr'" );
+            return $ip_addr;
+        }
     }
 
     ## DNS Resolver ##
