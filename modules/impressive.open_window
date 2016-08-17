@@ -156,8 +156,17 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     }
 );
 
-<[event.add_timer]>->(
-    {   'after'   => 7.7,
-        'handler' => 'impressive.callback.stop_loadsplash'    # failsafe only #
-    }
-) if <impressive.parser.init_tag_failed>;
+if (<impressive.parser.init_tag_failed>) {
+    <[event.add_timer]>->(
+        {   'after'   => 7.7,
+            'handler' => 'impressive.callback.stop_loadsplash' # failsafe only #
+        }
+    );
+} elsif ( defined <impressive.cfg.loadsplash_timeout>
+    and <impressive.cfg.loadsplash_timeout> =~ /^\d+(\.\d+)?$/ ) {
+    <[event.add_timer]>->(
+        {   'after'   => <impressive.cfg.loadsplash_timeout>,
+            'handler' => 'impressive.callback.stop_loadsplash'
+        }
+    );
+}
