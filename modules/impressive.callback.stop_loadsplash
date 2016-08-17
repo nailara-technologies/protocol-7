@@ -2,10 +2,14 @@
 
 # name  = impressive.callback.stop_loadsplash
 
-<impressive.loadsplash_stopped> //= 0;
-return if <impressive.loadsplash_stopped>;
+<impressive.stop_lsp_sent> //= 0;
+return if <impressive.stop_sent>;
 
-<[base.log]>->( 1, "process initialized, stopping loadsplash agent.." );
+<[base.log]>->( 1, "stopping loadsplash agent.." );
+
+<impressive.timer.stop_loadsplash>->cancel
+    if defined <impressive.timer.stop_loadsplash>
+    and <impressive.timer.stop_loadsplash>->is_active;
 
 my $lsp_name
     = defined <system.agent.subname>
@@ -14,8 +18,9 @@ my $lsp_name
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "core.root.stop_implicit",
-        'call_args' => { 'args' => $lsp_name }
+        'call_args' => { 'args' => $lsp_name },
+        'reply'     => { 'handler' => 'impressive.handler.stop_lsp_reply' }
     }
 );
 
-<impressive.loadsplash_stopped> = 1;
+<impressive.stop_lsp_sent> = 1;
