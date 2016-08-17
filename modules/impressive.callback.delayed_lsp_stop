@@ -7,7 +7,11 @@ return if <impressive.init_tag_detected>;
 
 <[base.log]>->( 2, "... [INIT] tag detected ... waiting ..." );
 
-<[event.add_timer]>->(
+<impressive.timer.stop_loadsplash>->cancel
+    if defined <impressive.timer.stop_loadsplash>
+    and <impressive.timer.stop_loadsplash>->is_active;
+
+<impressive.timer.stop_loadsplash> = <[event.add_timer]>->(
     {   'after'   => 3.3,
         'handler' => 'impressive.callback.stop_loadsplash'
     }
