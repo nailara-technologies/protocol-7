@@ -1,7 +1,11 @@
 #!/bin/sh
 
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
 export DEBIAN_FRONTEND=noninteractive
 export APT_LISTCHANGES_FRONTEND=none
+
+echo "\n:\n: starting dist-upgrade ...\n:\n"
 
 apt-get update && \
 apt-get -fuy \
@@ -11,4 +15,4 @@ apt-get -fuy \
 	-o Dpkg::Options::="--force-overwrite" dist-upgrade && \
 	apt-get clean && \
 	apt-get -y --purge autoremove && \
-	echo done.
+	echo "\n:\n: done.\n:\n"
