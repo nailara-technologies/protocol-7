@@ -586,3 +586,14 @@
         start_mode = exec-external
         exec_bin = piglow_moodlight.pl
         exec_usr = root
+
+  - dist-upgrade
+
+      ping.disabled  = 1
+      max_concurrency = 1
+      respawn.disabled = 1
+
+      : root-init :
+        start_mode = exec-external
+        exec_bin = debian_dist_upgrade.sh
+        exec_usr = root
