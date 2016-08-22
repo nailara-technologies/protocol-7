@@ -21,7 +21,7 @@ int main( int argc, char * argv [] ) {
 
     /* print usage message */
     if ( argc < 2 ) {
-        printf( "\n usage: %s <command> [args]\n\n", argv [0] );
+        printf( "\n usage: %s <nailara_command> [command_args]\n\n", argv [0] );
         exit(1);
     }
 
@@ -52,7 +52,7 @@ int main( int argc, char * argv [] ) {
 
     /* connect to socket */
     if ( connect(socket_fd, ( struct sockaddr * ) & addr, sizeof(addr)) == -1 ){
-        perror("[!] connect error");
+        perror("<!> connect error"); /* XXX: needs better log message */
         exit(-1);
     }
 
@@ -69,37 +69,39 @@ int main( int argc, char * argv [] ) {
         if ( byte == '\n' ) { match++; }
     }
 
-    /* send nailara command */
-    write(socket_fd, cmd_str, strlen(cmd_str));
-    free(cmd_str);
 
-    /* read and print output until connection is closed */
-    int close_sent = 0;
+    /* preparing select [read] filehandle set */
     do {
         FD_ZERO(&readset);
         FD_SET( socket_fd, &readset );
         result = select( socket_fd + 1, &readset, NULL, NULL, NULL );
     } while ( result == -1 && errno == EINTR );
-        if ( result > 0 ) {
+
+    int close_sent = 0;
+    if ( result > 0 ) {
         if ( FD_ISSET( socket_fd, &readset ) ) {
             result = recv( socket_fd, buf, sizeof(buf), 0 );
             if ( result == 0 ) {
                     close(socket_fd);
             } else {
-                    while (
-                        ( result = read( socket_fd, buf, sizeof(buf) ) ) > 0 ) {
-                        if ( close_sent == 0 ) {
-                            /* we receive output, sent 'close' command */
-                            write(socket_fd, close_cmd, strlen(close_cmd));
-                            close_sent = 1; /* needs improvement! */
-                        }
-                        write( STDOUT_FILENO, buf, result );
+
+                /* send nailara command string to socket */
+                write(socket_fd, cmd_str, strlen(cmd_str));
+                free(cmd_str);
+
+                /* read and print output until connection is closed */
+                while ( ( result = read( socket_fd, buf, sizeof(buf) ) ) > 0 ) {
+                    if ( close_sent == 0 ) {
+                        /* we receive output, sent 'close' command */
+                        write(socket_fd, close_cmd, strlen(close_cmd));
+                        close_sent = 1; /* needs improvement! */
                     }
+                    write( STDOUT_FILENO, buf, result );
+                }
             }
         }
     } else if ( result < 0 ) {
         printf("Error on select(): %s", strerror(errno));
   }
-
   return 0;
 }
