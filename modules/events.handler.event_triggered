@@ -20,7 +20,7 @@ if ( not exists <events.enabled>->{$event_name}
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
 # print STDERR "\n\<events.handler.event_triggered> "
-#     . Dumper( $event, $ev_data ) . "\n";
+#      . Dumper( $event, $ev_data ) . "\n";
 
 if ( $action_type eq 'agent_running' ) {
     my $command;
@@ -29,6 +29,7 @@ if ( $action_type eq 'agent_running' ) {
         if not defined $agent_name;
     $command = 'start_once'    if $ev_type eq 'start';
     $command = 'stop_implicit' if $ev_type eq 'end';
+    $command = 'start_once'    if $ev_type eq 'at';
     die "event $ev_id action command undefined" if not defined $command;
 
     <[base.proto.nailara.command.send.local]>->(

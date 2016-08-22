@@ -18,14 +18,25 @@ map {
 my $current_time = <[base.time]>->(2);
 
 foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
-    my $u_event  = <events.unix.timetable>->{$ev_id};
-    my $t_event  = <events.timetable>->{$ev_id};
-    my $event_in = sprintf( "%.1f",
-        <events.unix.timetable>->{$ev_id}->{'start'} - $current_time );
+    my $u_event = <events.unix.timetable>->{$ev_id};
+
+    # print STDERR "[U] = " . Dumper($u_event);
+
+    my $t_event = <events.timetable>->{$ev_id};
+    my $e_start
+        = defined $u_event->{'at'} ? $u_event->{'at'} : $u_event->{'start'};
+    if ( not defined $e_start ) {
+        warn "[$t_event->{name}] no start time defined, skipping event..";
+        next;
+    }
+    my $event_in = sprintf( "%.1f", $e_start - $current_time );
+
+    my @timer_types = defined $u_event->{'at'} ? ('at') : ( 'start', 'end' );
+
     <[base.log]>->(
         2,
         "setting up timer for event $ev_id "
-            . "(..in $event_in seconds..) [$u_event->{start}]"
+            . "(..in $event_in seconds..) [$e_start]"
     );
     <events.timers>->{$ev_id} = {
         map {
@@ -39,6 +50,6 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                     }
                 }
                 )
-        } ( 'start', 'end' )
+        } @timer_types
     };
 }
