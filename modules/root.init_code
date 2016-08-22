@@ -21,6 +21,20 @@ map { <[base.disable_command]>->($_) } qw(
     get_subname
 );
 
+<root.gcc_bin> = '/usr/bin/gcc';
+<root.cfg.install_bin_unx> //= 'no';
+<root.cfg.unx_bin_path>    //= '/usr/local/bin/unx';
+chomp( <root.gcc_bin> = qx(which gcc) ) if !-x <root.gcc_bin>;
+if ( !-x <root.gcc_bin> ) {
+    <root.gcc_bin> = undef;
+    <[base.log]>->( 0, "<!> 'gcc' binary not found <!>" )
+        if defined <root.cfg.install_bin_unx>
+        and <root.cfg.install_bin_unx> =~ /^(1|yes)$/;
+} elsif ( defined <root.cfg.install_bin_unx>
+    and <root.cfg.install_bin_unx> =~ /^(1|yes)$/ ) {
+    <[root.callback.install_bin_unx]>;
+}
+
 <root.modprobe_bin> = '/sbin/modprobe';
 chomp( <root.modprobe_bin> = qx(which modprobe) ) if !-x <root.modprobe_bin>;
 if ( !-x <root.modprobe_bin> ) {
