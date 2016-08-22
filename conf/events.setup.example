@@ -5,7 +5,13 @@
 
 .: events :.
 
-    # enabled = moodlight
+    enabled = dist-upgrade
+
+    - dist-upgrade
+
+      : action :
+        type      = agent_running
+        agent_name = dist-upgrade
 
     - moodlight
 
@@ -14,6 +20,9 @@
         agent_name = moodlight
 
 .: timetable :.
+
+  - dist-upgrade
+    at  =  03:00
 
   - moodlight
 
