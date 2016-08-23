@@ -4,6 +4,7 @@ export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 export DEBIAN_FRONTEND=noninteractive
 export APT_LISTCHANGES_FRONTEND=none
+export PAGER=/bin/true
 
 echo "\n:\n: starting dist-upgrade ...\n:\n"
 
