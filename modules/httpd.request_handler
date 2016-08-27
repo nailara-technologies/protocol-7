@@ -29,9 +29,19 @@ my $req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'raw'} );
 
 $req->decode;
 
+my $r_key;
+$r_key = 'METHOD' if not defined $req->method;
+$r_key = 'URI' if not defined $r_key and not defined $req->uri;
+if ( defined $r_key ) {
+    <[base.log]>->( 0, "[$id] malfomed request (request $r_key undefined)" );
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 400 );
+    return 2;    # Bad Request
+}
+
 $request->{'method'} = $req->method;
 $request->{'host'} = lc( $req->header('host') ) if defined $req->header('host');
-$request->{'uri'}  = $req->uri->as_string;
+
+( $request->{'uri'} = $req->uri ) =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
 $session->{'http'}->{'close'}      = 1;
 $session->{'response'}->{'params'} = {};
 
