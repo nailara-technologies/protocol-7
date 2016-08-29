@@ -8,6 +8,9 @@ export PAGER=/bin/true
 
 echo "\n:\n: starting dist-upgrade ...\n:\n"
 
+
+dpkg --configure -a ; apt-get -f install # [automatic recovery, if required]
+
 apt-get update && \
 apt-get -fuy \
 	--no-allow-insecure-repositories \
