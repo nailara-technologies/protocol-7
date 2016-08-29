@@ -12,7 +12,7 @@ xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       X11::Protocol X11::Keyboard X11::Protocol::WM X11::Tops \
       Linux::Inotify2 \
       FreezeThaw \
-      XML::RSS::TimingBot \
+      XML::RSS::TimingBot XML::RSSLite \
       SDL Gtk2 Glib::Event \
       Crypt::PRNG::Fortuna \
       Crypt::Twofish2 \
