@@ -36,6 +36,12 @@ if ( $local_version eq 'not_found'
 
     my @package_urls = get_package_urls($arch);
 
+    if ( $action ne 'install' ) {
+        print "  : removing old mediainfo version...\n";
+        system( 'apt-get', '-y', 'purge',   'mediainfo' );
+        system( 'apt-get', '-y', '--purge', 'autoremove' );
+    }
+
     print "  : creating tmp dir '$tmp_dir' ..\n";
     make_path( $tmp_dir, { 'mode' => 0750, 'uid' => 0, 'group' => 0 } )
         or warn "failed to create temporary directory '$tmp_dir' [$!]";
