@@ -14,7 +14,9 @@ my @events_active;
 foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     push( @events_active,
         join( ' ', $ev_id, <events.timetable>->{$ev_id}->{'name'} ) )
-        if $current_time > <events.unix.timetable>->{$ev_id}->{'start'}
+        if defined <events.unix.timetable>->{$ev_id}->{'start'}
+        and $current_time > <events.unix.timetable>->{$ev_id}->{'start'}
+        and defined <events.unix.timetable>->{$ev_id}->{'end'}
         and $current_time < <events.unix.timetable>->{$ev_id}->{'end'};
 }
 
