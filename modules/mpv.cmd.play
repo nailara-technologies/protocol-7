@@ -1,0 +1,17 @@
+# >:]
+
+# name  = mpv.cmd.play
+# param = <file|url>
+# descr = play file or url immediately, replaces current playlist
+
+my $file = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'expected file or url' }
+    if not defined $file or !length($file);
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'command sent';
+
+<[mpv.send_command]>->( 'loadfile', $file, 'replace' );
+
+return { 'mode' => 'later' };
