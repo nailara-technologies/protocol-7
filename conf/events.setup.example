@@ -19,6 +19,12 @@
         type   = agent_running
         agent_name = moodlight
 
+    - network_example
+
+      : action :
+        type    = send_command
+        command = some_agent.do something
+
 .: timetable :.
 
   - dist-upgrade
@@ -26,5 +32,8 @@
 
   - moodlight
 
-    start = 21:00
+    start = 20:00
     end   = 10:00
+
+  - network_example
+    at = HH:23:42
