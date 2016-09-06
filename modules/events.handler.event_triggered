@@ -37,6 +37,29 @@ if ( $action_type eq 'agent_running' ) {
             'call_args' => { 'args' => $agent_name }
         }
     );
+} elsif ( $action_type eq 'send_command' ) { #XXX: need param check during setup
+    map {
+        die "'$_' param is invalid for action type '$action_type'"
+            . ", expected <at>-parameter"
+            if $ev_type eq $_
+    } ( 'start', 'end' );
+    die "setup parameter 'at' is missing for action type '$action_type'"
+        if $ev_type ne 'at';
+    die "'command' parameter is missing from '$action_type' setup"
+        if not defined $action->{'command'};
+
+    ( my $target_route, my $args_str )
+        = split( / +/, $action->{'command'}, 2 );
+    my $args_ref = defined $args_str ? { 'args' => $args_str } : {};
+
+    my $args_lstr = defined $args_str ? " ($args_str)" : '';
+    <[base.log]>->( 1, "sending '$target_route' command" . $args_lstr );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.$target_route",
+            'call_args' => $args_ref
+        }
+    );
+
 }
 
 if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
