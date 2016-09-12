@@ -68,7 +68,7 @@ if ( $local_version eq 'not_found'
         }
         unlink($local_deb);
     }
-    system( 'apt-get', '-fyu', 'install' );
+    system( 'apt-get', '-fy', 'install' );
 
     print "  : removing tmp dir ..\n";
     rmdir($tmp_dir) or warn "rmdir($tmp_dir): $!";
