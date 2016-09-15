@@ -34,21 +34,26 @@ $SIG{'CHLD'} = sub {
 };
 
 my @args;
+my $core_user;
 my $remember  = 0;
 my $arg_index = 0;
 foreach my $param (@ARGV) {
-    if ( $param =~ /^(-r|--remember)$/ ) {
+    if ( $param =~ /^-u$/ and defined $ARGV[ $arg_index + 1 ] ) {
+        $core_user = $ARGV[ $arg_index + 1 ];
+        delete $ARGV[$arg_index];
+        delete $ARGV[ $arg_index + 1 ];
+    } elsif ( $param =~ /^(-r|--remember)$/ ) {
         $remember = 1;
     } else {
         push( @args, $param );
     }
+    $arg_index++;
 }
 
-my $core_user;
 my $core_pass;
 my $stored_cmd;
 my $lines_up  = 3;
-my $link_type = 'tcp/ip';
+my $link_type = defined $core_user ? 'unix' : 'tcp/ip';
 my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
 my $core_port = shift(@args) || 242;
@@ -77,6 +82,8 @@ while ($connect) {
     $shell_sock = shell_connect( $core_addr, $core_port );
     if ( $link_type eq 'unix' and $bin_path =~ /\.([^\/\.]+)$/ ) {
         my $core_user = $1;
+        $shell_sock = unix_auth( $shell_sock, $core_user );
+    } elsif ( $link_type eq 'unix' and defined $core_user ) {
         $shell_sock = unix_auth( $shell_sock, $core_user );
     } else {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
