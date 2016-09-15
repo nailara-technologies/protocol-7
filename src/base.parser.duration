@@ -7,41 +7,64 @@ my @result;
 my $start_time = shift;
 
 return 'n/a' if not defined $start_time or $start_time !~ /^\d+(\.\d+)?$/;
-( my $delta_t = time() - $start_time ) =~ s/\.\d+$//;
+my $secs = Time::Seconds->new( time() - sprintf( "%d", $start_time ) );
 
-my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday )
-    = localtime($delta_t);
+my %result = (
+    'years'   => 0,
+    'days'    => 0,
+    'hours'   => 0,
+    'minutes' => 0,
+    'seconds' => 0,
+);
 
-$year -= 70;
-$hour--;
+if ( $secs >= ONE_YEAR ) {
+    $result{'years'} = sprintf( "%d", $secs->years );
+    my $d_rest = $secs->days - $secs->years * 365.24225;
+    $secs -= $d_rest * ONE_DAY;
+}
+if ( $secs >= ONE_DAY ) {
+    $result{'days'} = sprintf( "%d", $secs->days );
+    $secs -= $result{'days'} * ONE_DAY;
+}
+if ( $secs >= ONE_HOUR ) {
+    $result{'hours'} = sprintf( "%d", $secs->hours );
+    $secs -= $result{'hours'} * ONE_HOUR;
+}
+if ( $secs >= ONE_MINUTE ) {
+    $result{'minutes'} = sprintf( "%d", $secs->minutes );
+    $secs -= $result{'minutes'} * ONE_MINUTE;
+}
+$result{'seconds'} = $secs->seconds if $secs;
 
-if ( $year and !$yday ) {
-    my $s = $year > 1 ? 's' : '';
-    push( @result, sprintf( "%d year$s", $year ) );
-} elsif ($year) {
-    push( @result, sprintf( "%dy", $year ) );
+if ( $result{'years'} and !$result{'days'} ) {
+    my $s = $result{'years'} > 1 ? 's' : '';
+    push( @result, sprintf( "%d year$s", $result{'years'} ) );
+} elsif ( $result{'years'} ) {
+    push( @result, sprintf( "%dy", $result{'years'} ) );
 }
 
-if ( $yday and $year ) {
-    push( @result, sprintf( "%dd", $yday ) );
-} elsif ($yday) {
-    my $s = $yday > 1 ? 's' : '';
-    push( @result, sprintf( "%d day$s", $yday ) );
+if ( $result{'days'} and $result{'years'} ) {
+    push( @result, sprintf( "%dd", $result{'yday'} ) );
+} elsif ( $result{'days'} ) {
+    my $s = $result{'days'} > 1 ? 's' : '';
+    push( @result, sprintf( "%d day$s", $result{'days'} ) );
 }
 
-if ( $hour and !$min and !$sec ) {
-    my $s = $hour > 1 ? 's' : '';
-    push( @result, sprintf( "%d hour$s", $hour ) );
-} elsif ($hour) {
-    push( @result, sprintf( "%dh", $hour ) );
+if ( $result{'hours'} and !$result{'minutes'} and !$result{'seconds'} ) {
+    my $s = $result{'hours'} > 1 ? 's' : '';
+    push( @result, sprintf( "%d hour$s", $result{'hours'} ) );
+} elsif ( $result{'hours'} ) {
+    push( @result, sprintf( "%dh", $result{'hours'} ) );
 }
 
-if ( $min and !$sec ) {
-    push( @result, sprintf( "%d min", $min ) );
-} elsif ($min) {
-    push( @result, sprintf( "%d'%02d\"", $min, $sec ) );
+if ( $result{'minutes'} and !$result{'seconds'} ) {
+    push( @result, sprintf( "%d min", $result{'minutes'} ) );
+} elsif ( $result{'minutes'} ) {
+    push( @result,
+        sprintf( "%d'%02d\"", $result{'minutes'}, $result{'seconds'} ) );
 }
 
-push( @result, "${sec}s" ) if $sec and !$min or !@result;
+push( @result, "$result{seconds}s" )
+    if $result{'seconds'} and !$result{'minutes'} or !@result;
 
 return join( ' ', @result );
