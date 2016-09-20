@@ -42,7 +42,9 @@ foreach my $exp_key (@export_keys) {
             $parent_ref->{$k} //= {};
             $parent_ref = $parent_ref->{$k};
         } else {
-            $parent_ref->{$k} = ${ clone( <[base.resolve_key]>->($exp_key) ) };
+            my $exp_resolved = <[base.resolve_key]>->($exp_key);
+            $parent_ref->{$k} = ${ clone($exp_resolved) }
+                if defined $exp_resolved;
         }
     }
 }
