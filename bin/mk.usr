@@ -8,7 +8,7 @@ $pwname = $ARGV[0] || 'core';
 
 $DATA{'conf'}{'root'} = $FindBin::Bin;
 $DATA{'conf'}{'root'} =~ s/\/bin$//;
-$DATA{'conf'}{'file'} = $DATA{'conf'}{'root'}.'/conf/auth.pwd.'.$pwname;
+$DATA{'conf'}{'file'} = $DATA{'conf'}{'root'}.'/cfg/auth.pwd.'.$pwname;
 
 print "\n ::[ nailara.core user generator ]\n ::\n";
 
@@ -43,7 +43,7 @@ foreach my $line (<CONF>)
     {
 	my $usr=$1; $usr=~s/\s+|\t+//g;
 	my $pwd=$2; $pwd=~s/\s+|\t+//g;
-	
+
 	if($usr eq $user and $user_exists==0){$user_exists=1; push(@user_config,"auth.pwd.$user\t = $pass\n")}
 	elsif($usr ne $user){push(@user_config,$line)}
     }
