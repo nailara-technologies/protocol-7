@@ -81,8 +81,8 @@ my $configured_hostkey = join( '+',
     $link_setup->{'ssh.hostkey.sha1'} );
 
 my $host_key = join( '+',
-    unpack( 'H*', $ssh->hostkey('md5') ),
-    unpack( 'H*', $ssh->hostkey('sha1') ) );
+    unpack( 'H*', $ssh->hostkey_hash('md5') ),
+    unpack( 'H*', $ssh->hostkey_hash('sha1') ) );
 
 if ( $host_key ne $configured_hostkey ) {
     <[base.log]>->( 0, ": : <!> SSH HOSTKEY [$host_key] IS INVALID!" );
