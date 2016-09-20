@@ -33,11 +33,10 @@ SDL::init(SDL_INIT_VIDEO);
 SDL::TTF::init();
 
 my @font_names = qw(
-    DroidSans
-    DroidSans-Bold
-    DroidSansMono
-    DroidSerif-Bold
-    DroidSerif-Regular
+    FreeSans
+    FreeMono
+    FreeMonoBold
+    FreeSansBold
 );
 
 ## configuration ##
@@ -78,7 +77,7 @@ __EOT__
 
 # adjust / add paths as needed.. (and install droid fonts or configure another)
 my $font_path;
-$font_path = '/usr/share/fonts/truetype/droid';           # debian
+$font_path = '/usr/share/fonts/truetype/freefont';        # debian
 $font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
 
 # skip frames in event polling
