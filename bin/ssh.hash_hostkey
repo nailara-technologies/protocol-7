@@ -14,8 +14,8 @@ push( @args, $ssh_port ) if defined $ssh_port;
 
 $ssh2->connect(@args) or die $!;
 
-my $md5_hex  = unpack( "H*", $ssh2->hostkey('md5') );
-my $sha1_hex = unpack( "H*", $ssh2->hostkey('sha1') );
+my $md5_hex  = unpack( "H*", $ssh2->hostkey_hash('md5') );
+my $sha1_hex = unpack( "H*", $ssh2->hostkey_hash('sha1') );
 
 $ssh2->disconnect;
 
