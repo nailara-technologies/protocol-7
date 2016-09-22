@@ -2,7 +2,7 @@
 
 xvfbrun cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Term::ReadPassword Term::ReadKey Term::ReadLine::Perl \
-      Proc::ProcessTable Date::Parse \
+      POSIX::1003 Proc::ProcessTable Date::Parse \
       LWPx::ParanoidAgent \
       Sys::Filesystem \
       Crypt::CBC CryptX \
