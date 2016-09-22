@@ -11,12 +11,14 @@ if ( -S $fd ) {
         $data{'handle'}{$new_sock}{'link'} = 'unix';
         $data{'handle'}{$new_sock}{'mode'} = 'in';
         no strict;
-        my ( $pid, $uid, $gid )
-            = unpack( 'i*', $new_sock->sockopt(SO_PEERCRED) );
+        my @peercred = unpack( 'i*', $new_sock->sockopt(SO_PEERCRED) );
+        warn "[$id] SO_PEERCRED failed" if @peercred != 3;
         use strict;
-        $data{'handle'}{$new_sock}{'unix'}
-            = { 'pid' => $pid, 'uid' => $uid, 'gid' => $gid };
-
+        $data{'handle'}{$new_sock}{'unix'} = {
+            'pid' => $peercred[0],
+            'uid' => $peercred[1],
+            'gid' => $peercred[2]
+        };
         return $new_sock;
     } else {
         <[base.log]>->( 0, "io.unix.socket.in.connect: can not accept [$!]" );

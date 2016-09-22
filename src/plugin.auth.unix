@@ -29,6 +29,14 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
         = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'unix'}{'uid'};
     my $client_uname = getpwuid($client_uid);
 
+    if ( not defined $client_uname ) {
+        $$output .= ">:[\a\n";
+        <[base.log]>->(
+            0, "[$id] peer UID is undefined, unix auth aborted!"
+        );
+        return 2;
+    }
+
     if ( defined <auth.pwd>->{$auth_user}
         and <auth.pwd>->{$auth_user} =~ /^:unix:(.+)$/ ) {
         my @allowed_users = split( /\s*,\s*/, $1 );
