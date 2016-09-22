@@ -3,7 +3,6 @@
 # name       = base.daemonize
 
 <[base.log]>->( 1, 'daemonizing..' );
-use POSIX 'setsid';
 
 # sub daemonize {
 
@@ -13,7 +12,7 @@ open STDOUT, '>/dev/null'
     or die "Can't write to /dev/null: $!";
 defined( my $pid = fork ) or die "Can't fork: $!";
 exit if $pid;
-setsid or die "Can't start a new session: $!";
+POSIX::setsid() or die "setsid() failed: $!";
 open STDERR, '>&STDOUT' or die "Can't dup stdout: $!";
 
 # }
