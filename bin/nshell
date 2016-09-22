@@ -9,10 +9,10 @@ use IO::Socket;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Term::ReadPassword;
-use Term::ReadLine::Perl;
-use POSIX ":sys_wait_h";
 use Digest::MD5 qw(md5);
+use Term::ReadLine::Perl;
 use MIME::Base64 qw(encode_base64url);
+use POSIX::1003::Proc qw(WNOHANG waitpid setsid);
 
 my $bin_path = File::Spec->rel2abs($0);
 
