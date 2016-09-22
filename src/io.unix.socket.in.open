@@ -12,18 +12,17 @@ undef <unix.socket_paths> if ref(<unix.socket_paths>) ne 'ARRAY';
 
 $socket_umask //= 0777;
 
-unlink $socket_path if -e $socket_path;
-
 my $uaddr = sockaddr_un($socket_path);
 my $proto = getprotobyname('tcp');
 
-unlink($socket_path);
-
+unlink( my $tmp_spath = "$socket_path.NEW" );
 my $unix_sock = IO::Socket::UNIX->new(
     Type   => SOCK_STREAM(),
-    Local  => $socket_path,
+    Local  => $tmp_spath,
     Listen => 1,
 ) || die "io.unix.socket.in.open: socket: $!";
+
+rename( $tmp_spath, $socket_path ) or die "io.unix.socket.in.open: rename: $!";
 
 push( @{<unix.socket_paths>}, $socket_path );
 chmod( $socket_umask, $socket_path ) or die "io.unix.socket.in.open: chmod: $!";
@@ -34,7 +33,7 @@ if ( defined $data{'handle'}{$unix_sock} ) {
     <[base.log]>->(
         0,
         "io.ip.tcp.in.open: handle '$unix_sock' "
-            . "was not cleaned up. cleaning now.."
+            . "was not cleaned up, doing now .."
     );
     delete $data{'handle'}{$unix_sock};
 }
