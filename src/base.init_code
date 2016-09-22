@@ -4,6 +4,7 @@
 # descr      = initialize the base module
 
 use Time::Seconds;
+use POSIX::1003::Limit ':rlimit';
 use POSIX qw(WNOHANG strftime getcwd);
 
 # init some vars
@@ -26,6 +27,19 @@ $data{'system'}{'process_start'} = {
     'egid'  => $)
     }
     if not exists $data{'system'}{'process_start'};
+
+# maximizing open files limit
+
+my ( $of_cur, $of_max, $rl_success ) = getrlimit('RLIMIT_OFILE');
+if ( !$rl_success ) {
+    warn "getrlimit('RLIMIT_OFILE') failed [$!]";
+} elsif ( $of_cur != $of_max ) {
+    <[base.log]>->( 1, "reset open files limit [$of_cur->$of_max]" );
+    setrlimit( 'RLIMIT_OFILE', $of_max, $of_max )
+        or warn "setrlimit <$of_max> failed [$!]";
+}
+( $data{'system'}{'limits'}{'ofile'} ) = getrlimit('RLIMIT_OFILE')
+    if $rl_success;
 
 $data{'system'}{'host'} = {
     'os'       => { 'name' => $^O },
