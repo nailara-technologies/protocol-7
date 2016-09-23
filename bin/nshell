@@ -12,7 +12,7 @@ use Term::ReadPassword;
 use Digest::MD5 qw(md5);
 use Term::ReadLine::Perl;
 use MIME::Base64 qw(encode_base64url);
-use POSIX::1003::Proc qw(WNOHANG waitpid setsid);
+use POSIX::1003::Proc qw(WNOHANG waitpid);
 
 my $bin_path = File::Spec->rel2abs($0);
 
@@ -24,7 +24,7 @@ $SIG{'PIPE'} = 'IGNORE';
 
 my $stdout_pid;
 my $parent_pid = $$;
-$SIG{'INT'} = sub {
+$SIG{'TERM'} = $SIG{'INT'} = sub {
     kill( 9, $stdout_pid ) if defined $stdout_pid;
     print "\n";
     exit();
@@ -78,7 +78,6 @@ use warnings 'once';
 
 my $shell_sock;
 while ($connect) {
-
     $shell_sock = shell_connect( $core_addr, $core_port );
     if ( $link_type eq 'unix' and $bin_path =~ /\.([^\/\.]+)$/ ) {
         my $core_user = $1;
@@ -212,8 +211,11 @@ sub shell_loop {
         undef $stored_cmd;
     }
 
+    $connect = 0;
+
     while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
-        $WARNED = 0;
+        $WARNED  = 0;
+        $connect = 1;
         print $color;
 
         if ( $line ne '' ) {
@@ -263,6 +265,14 @@ sub shell_loop {
             print "\e[2H\e[2J :: reconnecting...\n";
             last;
         }
+    }
+    if ( !$connect ) {
+        if ( -S $shell_sock ) {
+            syswrite( $shell_sock, "\nexit ==\\ lost terminal \\==\n" );
+            close($shell_sock);
+        }
+        kill( 9, $parent_pid );
+        exit(1);
     }
 }
 
