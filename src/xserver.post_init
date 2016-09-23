@@ -153,8 +153,20 @@ if ( !$ok ) {
 # print STDERR Dumper( keys( %{ <xserver.x11>->{'ext'} } ) );
 
 <xserver.x11>->init_extension('RANDR')
-    or die "[!] failed to initialize RAND extension!\n";
+    or die "[!] failed to initialize RANDR extension!\n";
 <xserver.x11>->RRQueryVersion( 1, 0 );
+
+<xserver.x11>->init_extension('DPMS')
+    or die "[!] failed to initialize DPMS extension!\n";
+<xserver.x11>->DPMSGetVersion();
+
+if ( <xserver.x11>->DPMSCapable ) {
+    <[base.log]>->( 1, ": : DPMS is supported :)" );
+    <xserver.has_dpms> = 1;
+} else {
+    <[base.log]>->( 1, ": : DPMS not supported :|" );
+    <xserver.has_dpms> = 0;
+}
 
 ## display connected? ##
 
@@ -232,14 +244,17 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
 
 ## screensaver / blanking ##
 
-if (    !<xserver.keep_unchanged>
+if (    <xserver.has_dpms>
+    and !<xserver.keep_unchanged>
     and defined <xserver.disable_blanking>
     and (  <xserver.disable_blanking> eq 'yes'
         or <xserver.disable_blanking> eq '1' )
+
     ) {
     <[base.log]>->( 1, ": deactivating screen blanking ..." );
-    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset -dpms 2>&1);
-    die "failed to execute xset: $!" if $@;
+
+    <xserver.x11>->DPMSDisable();
+
     qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
     die "failed to execute xset: $!" if $@;
 }
