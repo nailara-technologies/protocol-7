@@ -55,7 +55,9 @@ sub update {
         . "'$CPAN_local_modlist_tgz' [$!]\n";
     print " :: downloading module list ($file_size bytes)...\n";
 
-    while ( sysread( $file_handle, $buffer, $file_size ) ) {
+    my $bytes_read = 0;
+    while ( $bytes_read < $file_size
+        and $bytes_read += sysread( $file_handle, $buffer, 16384 ) ) {
         syswrite( TGZ_file, $buffer );
     }
     close($file_handle);
