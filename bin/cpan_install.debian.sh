@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # installs cpanm and some basic (packaged) cpan modules
-apt-get install cpanminus libevent-perl libdigest-sha-perl\
+apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
   libio-all-perl libcrypt-cbc-perl libproc-processtable-perl\
   libsdl-perl libtext-lorem-perl libevent-perl liblwpx-paranoidagent-perl\
   libproc-processtable-perl libglib-perl libterm-readpassword-perl\
@@ -17,7 +17,9 @@ apt-get install cpanminus libevent-perl libdigest-sha-perl\
   #libtext-unidecode-perl
   #libconvert-uu-perl
 
-# installs the rest from cpan (note: Gtk3::WebKit needs X-server or Xvfb)
-cpanm Crypt::Twofish2 X11::Tops Gtk3::WebKit Glib::Event POSIX::1003 \
-      Crypt::PRNG::Fortuna XML::RSS::TimingBot File::MimeInfo::Magic \
-      Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird
+# installs the rest from cpan
+xvfb-run cpanm Crypt::Twofish2 POSIX::1003 Crypt::PRNG::Fortuna \
+                XML::RSS::TimingBot File::MimeInfo::Magic Config::Hosts \
+                HTTP::Soup Mediainfo Poppler Device::Gembird
+
+xvfb-run cpanm Glib::Event Gtk3::WebKit X11::Tops
