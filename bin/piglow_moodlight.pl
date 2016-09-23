@@ -1,4 +1,6 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -T
+
+$0 = 'pglow-moodlight ';
 
 use strict;
 use warnings;
