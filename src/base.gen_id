@@ -12,7 +12,7 @@ my $new_id      = 0;
 my $max_retries = 23;
 
 while ( !$new_id or exists $_[0]->{$new_id} ) {
-    $new_id = 1 + int( rand() * $max_ids * 100 );
+    $new_id = 1 + int( rand( $max_ids * 100 ) );
 
     if ( $retries > $max_retries ) {
         <[base.log]>->( 0, "gen_id: max_retries reached!" );
