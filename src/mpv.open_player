@@ -74,7 +74,7 @@ if (    defined <mpv.geometry>
 }
 
 my $socket_path = "/tmp/.mpv.socket.$$";
-$mpv_params .= " --input-unix-socket $socket_path";
+$mpv_params .= " --input-ipc-server $socket_path";
 
 my $mpv_title_str = <mpv.agent_title>;
 $mpv_title_str .= '[' . <system.agent.subname> . ']'
