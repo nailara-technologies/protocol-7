@@ -3,6 +3,8 @@
 # name       = base.init_code
 # descr      = initialize the base module
 
+$ANSI{'bold'} .= "\c[[33m" if $ANSI{'bold'} !~ /33m$/;    # yellow (visibility)
+
 use Time::Seconds;
 use POSIX::1003::Limit ':rlimit';
 use POSIX::1003::Time qw(strftime);
