@@ -179,7 +179,7 @@ sub prepare_subs {
         if ( $data{'system'}{'ansi_color'} ) {
             %ANSI = (
                 'bold'      => "\c[[1m",
-                'yelblue'   => "\c[[44m\c[[33m",
+                'yelblue'   => "\c[[44m\c[[33m\c[[38;5;202m\c[[48;5;17m",
                 'underline' => "\c[[4m",
                 'reverse'   => "\c[[7m",
                 'normal'    => "\c[[m",
@@ -209,8 +209,13 @@ sub prepare_subs {
             or return;
         my $banner = <$banner_fh>;
         close($banner_fh);
-        $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
-        print " : $ANSI{bold}$banner$ANSI{normal}\n";
+        if ( $data{'system'}{'ansi_color'} ) {
+            $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
+            print " : $ANSI{bold}$banner$ANSI{normal}\n";
+        } else {
+            print ' : ' . join( "\n : ", split( /\n/, $banner ), "\n" );
+            $ANSI{'yelblue'} = '';    # no color
+        }
 
     };
 
