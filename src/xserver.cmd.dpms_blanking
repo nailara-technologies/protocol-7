@@ -1,0 +1,33 @@
+# >:]
+
+# name  = xserver.cmd.dpms_blanking
+# param = [timeout]
+# descr = enable screen blanking using DPMS
+
+return { 'mode' => 'nack', 'data' => 'xserver has no DPMS support' }
+    if !<xserver.has_dpms>;
+
+my $param = shift;
+my $t_sec = 600;     # <- default [seconds]
+
+if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
+    $t_sec = $1;
+} elsif ( defined $param->{'args'} ) {
+    return {
+        'mode' => 'nack',
+        'data' => "parameter invalid (optional timeout in seconds)"
+    };
+}
+
+my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();
+
+<xserver.x11>->DPMSEnable() if $dpms_enabled;
+<xserver.x11>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+<xserver.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "manually enabled DPMS blanking (${t_sec}s)" );
+
+return {
+    'mode' => 'ack',
+    'data' => "automatic display poweroff enabled [timeout=${t_sec}s]"
+};
