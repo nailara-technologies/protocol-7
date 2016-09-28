@@ -10,6 +10,14 @@ my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();
 
 my $dpms_str = $dpms_enabled ? 'enabled' : 'disabled';
 $dpms_str = "DPMS is $dpms_str";
+
+my @t = <xserver.x11>->DPMSGetTimeouts();
+if ( $t[0] == $t[1] and $t[1] == $t[2] ) {
+    $dpms_str .= ' [' . $t[0] . 's]';
+} else {
+    $dpms_str .= ' [' . join( ',', @t ) . ']';
+}
+
 ( my $power_str = $power_level ) =~ s|DPMSMode(\w+)|uc($1)|e;
 $power_str = "power mode = $power_str";
 
