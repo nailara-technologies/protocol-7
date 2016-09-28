@@ -16,7 +16,7 @@ echo -e "\n:\n: starting $ID $ACTION ...\n:\n"
 dpkg --configure -a ; apt-get -fy install # [automatic recovery, if required]
 
 apt-get update && \
-apt-get -fuy \
+apt-get -fy \
 	-o Dpkg::Options::="--force-confnew" \
 	-o Dpkg::Options::="--force-confdef" \
 	-o Dpkg::Options::="--force-overwrite" $ACTION && \
