@@ -8,14 +8,13 @@ return { 'mode' => 'nack', 'data' => 'xserver has no DPMS support' }
 
 my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();
 
-return { 'mode' => 'ack',  'data' => "already in mode 'ON'" } if !$power_level;
-return { 'mode' => 'nack', 'data' => 'DPMS is disabled' }     if !$dpms_enabled;
+return { 'mode' => 'ack', 'data' => "already in mode 'ON'" } if !$power_level;
 
-<xserver.x11>->DPMSGetTimeouts( 0, 0, 0 );
-<xserver.x11>->DPMSForceLevel(0);
+<xserver.x11>->DPMSEnable() if !$dpms_enabled;
 <xserver.x11>->DPMSInfo();
+<xserver.x11>->DPMSForceLevel(0);
 <xserver.x11>->DPMSInfo();
 
 <[base.log]>->( 1, "DPMS manually forced ON" );
 
-return { 'mode' => 'ack', 'data' => 'DPMS forced ON' };
+return { 'mode' => 'ack', 'data' => 'dpms forced ON' };
