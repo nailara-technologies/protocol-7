@@ -174,7 +174,10 @@ sub install {
                         or die " :: [error] can not open file "
                         . "'$CPAN_tmp_dir/modules/$mod_file_name' [$!]\n";
 
-                    while ( sysread( $MOD_handle, $buffer, $MOD_size ) ) {
+                    my $bytes_read = 0;
+                    while ( $bytes_read < $MOD_size
+                        and $bytes_read += sysread $MOD_handle, $buffer,
+                        $MOD_size - $bytes_read ) {
                         syswrite( $file_handle, $buffer );
                     }
 
