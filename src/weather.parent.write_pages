@@ -11,7 +11,11 @@ my @page_list            = <[weather.parent.page_list]>;
 my $current_template_dir = <system.root_path> . '/data/html/templates/weather';
 my $body_template        = "$current_template_dir/body.html";
 
-die "target directory '$html_dir' does not exist"   if !-d $html_dir;
+if ( !-d $html_dir ) {
+    mkdir($html_dir)
+        or die "<!> failed to [re-]create target directory '$html_dir'";
+}
+
 die "html template '$body_template' does not exist" if !-f $body_template;
 
 my $html_body_ref = <[file.slurp]>->($body_template);
