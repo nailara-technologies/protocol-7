@@ -1,0 +1,11 @@
+# >:]
+
+# name  = storchencam.cmd.disable_temp
+# descr = disable temperature display
+
+return { 'mode' => 'ack', 'data' => 'already disabled' }
+    if !<storchencam.display_temp>;
+
+<[base.log]>->( 1, "manually disabling temp display" );
+<storchencam.display_temp> = 0;
+return { 'mode' => 'ack', 'data' => 'temp display disabled' }
