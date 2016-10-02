@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export PERL5LIB=. # <- for HTTP::Soup
+
 xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Term::ReadPassword Term::ReadKey Term::ReadLine::Perl \
       POSIX::1003 Proc::ProcessTable Date::Parse \
@@ -20,6 +22,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Gtk3::WebKit \
       HTTP::Soup \
       Mediainfo \
+      Imager::Sreenshot \
       File::MimeInfo \
       Device::Gembird Net::Libdnet::Arp
 
