@@ -9,18 +9,27 @@ my $retry_delay_nodata = 7;                  # seconds
 my $reply      = shift;
 my $station_id = $reply->{'params'}->{'station_id'};
 
-#my $city         = $reply->{'params'}->{'city'};
+#my $city     = $reply->{'params'}->{'city'};
+my $log_level = 0;
+
 my $data_str;
 my $status_code;
 my $current_data;
 
+<weather.timer.current>->cancel if exists <weather.timer.current>;
+
+my $interval_seconds = <weather.update_interval.current> * 60;
+
 if ( $reply->{'cmd'} eq 'NACK' ) {
+    my $err_reason = $reply->{'call_args'}->{'args'};
+    if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
+        $log_level++;
+        $interval_seconds += 128 + int( rand(242) );
+    }
     <[base.log]>->(
-        0,
-        "failed to retrieve current weather data ["
-            . $reply->{'call_args'}->{'args'} . "]"
+        $log_level, "failed to retrieve current weather data [$err_reason]"
     );
-    $status_code = $1 if $reply->{'call_args'}->{'args'} =~ /^(\d+)/;
+    $status_code = $1 if $err_reason =~ /^(\d+)/;
 } else {
     $data_str = $reply->{'data'};
     $data_str =~ s|\n$||;
@@ -30,9 +39,6 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 #print Dumper($reply);
 #print Dumper($current_data);
 
-<weather.timer.current>->cancel if exists <weather.timer.current>;
-
-my $interval_seconds = <weather.update_interval.current> * 60;
 my $update_interval
     = $interval_seconds + sprintf( "%.0f", rand($interval_seconds) );
 
@@ -49,21 +55,26 @@ if (    defined $current_data
     my $status_str = defined $status_code ? " ($status_code)" : '';
     $status_str = " (city not found)"
         if defined $status_code and $status_code eq '404';
-    <[base.log]>
-        ->( 0, "failed to obtain current weather data.." . $status_str );
     if (    exists <weather.data>->{$station_id}
         and exists <weather.data>->{$station_id}->{'current'}
         and defined <weather.data>->{$station_id}->{'current'}->{'data_time'} )
     {
         my $data_age
             = time - <weather.data>->{$station_id}->{'current'}->{'data_time'};
+
+        $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.8;
+
+        <[base.log]>->(
+            $log_level, "failed to obtain current weather data.." . $status_str
+        );
+
         my $age_str
             = $data_age > 3600
             ? sprintf( "%0.1f hours",   $data_age / 3600 )
             : sprintf( "%0.1f minutes", $data_age / 60 );
         $age_str =~ s|\.0 | |;
         $age_str =~ s| (1 \w+)s | $1 |;
-        <[base.log]>->( 0, "keeping cached data ( $age_str old )" );
+        <[base.log]>->( $log_level, "keeping cached data ( $age_str old )" );
         $update_interval
             = $retry_delay_cached
             + sprintf( "%.1f", rand( $retry_delay_cached / 2 ) );
@@ -73,6 +84,10 @@ if (    defined $current_data
     } else {
 
         # XXX: write n/a pages!
+
+        <[base.log]>->(
+            0, "failed to obtain current weather data.." . $status_str
+        );
 
         $update_interval
             = $retry_delay_nodata
