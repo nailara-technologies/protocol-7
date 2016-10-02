@@ -4,6 +4,8 @@ use v5.8.2;
 use strict;
 use warnings;
 
+no warnings 'deprecated';    # XXX: warning temporarely disabled (:utf8)
+
 BEGIN {
     ( my $local_lib_path = $0 ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
