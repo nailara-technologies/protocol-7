@@ -63,7 +63,7 @@ if (   $@
     } elsif ( exists $json_decoded->{'cod'} ) {
         $reason_str = " ($json_decoded->{'cod'})";
     }
-    <[base.log]>->( 0, "query failed$reason_str [$query_url]" );
+    <[base.log]>->( 1, "query failed$reason_str [$query_url]" );
     return ( $json_decoded->{'cod'}, undef );
 }
 
