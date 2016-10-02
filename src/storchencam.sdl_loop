@@ -34,8 +34,6 @@ my $i_x_offset = <storchencam.img_x_offset>;
 my $i_y_offset = <storchencam.img_y_offset>;
 
 my $mask_left_corner = <storchencam.mask_left_corner>;
-my $display_temp     = <storchencam.display_temp>;
-my $display_time     = <storchencam.display_time>;
 
 my $font_size = <storchencam.font_size>;
 
@@ -48,7 +46,7 @@ my $coord = <x11.coordinates>;
 
 my $time_pos_x = $screen_width - 63;
 my $time_pos_y = 17;
-$time_pos_y -= 10 if !$display_temp;
+$time_pos_y -= 10 if !<storchencam.display_temp>;
 
 my $temp_pos_x = $screen_width - 63;
 my $temp_pos_y = 7;
@@ -73,7 +71,7 @@ my $err_color;
 my $font_color;
 my $bg_color = SDL::Color->new( 0x13, 0x13, 0x13 );
 
-if ($display_time) {
+if (<storchencam.display_time>) {
     <[base.log]>->( 1, ": loading text font" );
     $font = SDL::TTF::open_font( $font_path, $font_size );
     warn "failed to open font [" . SDL::get_error . "]" if !$font;
@@ -202,7 +200,7 @@ while (1) {
         }
 
         my $temp;
-        if ($display_temp) {
+        if (<storchencam.display_temp>) {
             $temp = SDL::Surface->new( SDL_ASYNCBLIT | SDL_HWSURFACE,
                 56, 8, 32, 0, 0, 0, 0 );
             SDL::Video::blit_surface(
@@ -247,12 +245,12 @@ while (1) {
         SDL::Video::blit_surface( $temp, SDL::Rect->new( 0, 0, 56, 8 ),
             $screen,
             SDL::Rect->new( $temp_pos_x, $temp_pos_y + $s_y_offset, 56, 8 ) )
-            if $display_temp and defined $temp;
+            if <storchencam.display_temp> and defined $temp;
 
         mask_scan( $screen, $s_y_offset )
             if $mask_left_corner and $resolution_changed;
 
-        if (    $display_time
+        if (    <storchencam.display_time>
             and $font
             and $last_image_date =~ /(\d\d):(\d\d):(\d\d) GMT$/ ) {
             my ( $h, $m, $s ) = ( $1, $2, $3 );
@@ -314,7 +312,7 @@ sub loop_wait {    # processing network event while waiting
     }
 }
 
-# XXX: works on day images only -> implement color sampling area to fix that!!
+# XXX: works on day images only(?) -> implement color sampling area to fix that!
 
 sub mask_scan {
     my $surface    = shift;
