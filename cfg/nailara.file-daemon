@@ -1,0 +1,20 @@
+
+  .:[ nailara file-daemon ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = * *.*          # <-- XXX: dev, strict later
+
+modules.load = auth net io.ip config digest.sha file-daemon debug
+[load_modules:<modules.load>]
+[init_modules]
+
+# [set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.get_session_id]
+
+[event.loop]
