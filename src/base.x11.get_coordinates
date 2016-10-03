@@ -37,7 +37,7 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+) (\d+) (\d+)\n$/ ) {
+if ( $reply_string =~ /^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$/ ) {
     <x11.coordinates>
         = { 'left' => $1, 'top' => $2, 'right' => $3, 'bottom' => $4 };
     <[base.log]>->( 1, "received window coordinates.. [$1,$2,$3,$4]" );
