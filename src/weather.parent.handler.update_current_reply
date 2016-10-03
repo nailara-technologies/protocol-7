@@ -2,9 +2,10 @@
 
 # name = weather.parent.handler.update_current_reply
 
-<weather.update_interval.current> //= 15;    # minutes
-my $retry_delay_cached = 13;                 # seconds
-my $retry_delay_nodata = 7;                  # seconds
+<weather.update_fail_count.current> //= 0;
+<weather.update_interval.current>   //= 15;    # minutes
+my $retry_delay_cached = 13;                   # seconds
+my $retry_delay_nodata = 7;                    # seconds
 
 my $reply      = shift;
 my $station_id = $reply->{'params'}->{'station_id'};
@@ -45,6 +46,7 @@ my $update_interval
 if (    defined $current_data
     and exists $current_data->{'cod'}
     and $current_data->{'cod'} eq '200' ) {
+    <weather.update_fail_count.current> = 0;
     <[weather.parent.cache.write_data]>->( 'current', $station_id, $data_str );
     <[weather.parent.extract_current]>->( $station_id, $current_data );
     my $update_minutes = sprintf( "%0.1f minutes", $update_interval / 60 );
@@ -85,9 +87,13 @@ if (    defined $current_data
 
         # XXX: write n/a pages!
 
+        my $log_level = <weather.update_fail_count.current> ? 1 : 0;
+
         <[base.log]>->(
-            0, "failed to obtain current weather data.." . $status_str
+            $log_level, "failed to obtain current weather data.." . $status_str
         );
+
+        <weather.update_fail_count.current>++;
 
         $update_interval
             = $retry_delay_nodata

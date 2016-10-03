@@ -2,9 +2,10 @@
 
 # name = weather.parent.handler.update_forecast_reply
 
-<weather.update_interval.forecast> //= 15;    # minutes
-my $retry_delay_cached = 13;                  # seconds
-my $retry_delay_nodata = 7;                   # seconds
+<weather.update_fail_count.forecast> //= 0;
+<weather.update_interval.forecast>   //= 15;    # minutes
+my $retry_delay_cached = 13;                    # seconds
+my $retry_delay_nodata = 7;                     # seconds
 
 my $reply      = shift;
 my $station_id = $reply->{'params'}->{'station_id'};
@@ -46,6 +47,7 @@ my $update_interval
 if (    defined $forecast_data
     and exists $forecast_data->{'cod'}
     and $forecast_data->{'cod'} eq '200' ) {
+    <weather.update_fail_count.forecast> = 0;
     <[weather.parent.cache.write_data]>->( $type, $station_id, $data_str );
     <[weather.parent.extract_forecast]>->( $type, $station_id, $forecast_data );
     my $update_minutes = sprintf( "%0.1f", $update_interval / 60 );
@@ -87,9 +89,13 @@ if (    defined $forecast_data
 
         # XXX: write n/a pages!
 
+        my $log_level = <weather.update_fail_count.forecast> ? 1 : 0;
+
         <[base.log]>->(
-            0, "failed to obtain forecast weather data.." . $status_str
+            $log_level, "failed to obtain forecast weather data.." . $status_str
         );
+
+        <weather.update_fail_count.forecast>++;
 
         $update_interval
             = $retry_delay_nodata
