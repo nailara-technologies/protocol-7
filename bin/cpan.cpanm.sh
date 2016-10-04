@@ -24,7 +24,8 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Mediainfo \
       Imager::Sreenshot \
       File::MimeInfo \
-      Device::Gembird Net::Libdnet::Arp
+      Device::Gembird Net::Libdnet::Arp \
+      Crypt::Curve25519 Crypt::Ed25519
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
 

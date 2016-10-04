@@ -15,6 +15,6 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
   libfile-slurper-perl libtimedate-perl gcc make
 
-cpanm Crypt::PRNG::Fortuna POSIX::1003
+cpanm Crypt::PRNG::Fortuna POSIX::1003 Crypt::Curve25519 Crypt::Ed25519
 
 # XXX cpan2deb --recursive --build --install-deps --install-build-deps --install

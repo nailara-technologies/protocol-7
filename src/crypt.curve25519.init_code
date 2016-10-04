@@ -1,0 +1,23 @@
+# >:]
+
+# name = crypt.curve25519.init_code
+
+use Crypt::Curve25519;
+use File::Path qw(make_path);
+
+my $usr = <system.privs.user>;
+$usr //= getpwuid($>);
+my ( undef, undef, $uid, $gid, undef, undef, undef, $home_dir )
+    = getpwnam($usr);
+die "failed to obtain home directory for user '$usr'"
+    if not defined $home_dir or !length($home_dir);
+
+<crypt.curve25519.key_dir> //= "$home_dir/.nailara/keys";
+my $key_dir = <crypt.curve25519.key_dir>;
+
+if ( !-d $key_dir ) {
+    <[base.log]>->( 1, "creating key directory '$key_dir' .." );
+    make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
+}
+
+0;
