@@ -18,7 +18,8 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
   #libconvert-uu-perl
 
 # installs the rest from cpan
-xvfb-run cpanm Crypt::Twofish2 POSIX::1003 Crypt::PRNG::Fortuna \
+xvfb-run cpanm Crypt::Twofish2 Crypt::Curve25519 Crypt::Ed25519 \
+                POSIX::1003 Crypt::PRNG::Fortuna \
                 XML::RSS::TimingBot File::MimeInfo::Magic Config::Hosts \
                 HTTP::Soup Mediainfo Poppler Device::Gembird
 
