@@ -75,6 +75,8 @@ exit;
 
 sub prepare_subs {
 
+    map { $ANSI{$_} //= '' } ( 'bold', 'yelblue', 'normal' );
+
     # install Time::HiRes versions of base.time and base.sleep (if available)
     my $th_ref
         = (
