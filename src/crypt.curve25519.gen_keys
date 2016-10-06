@@ -1,0 +1,21 @@
+# >:]
+
+# name = crypt.curve25519.gen_keys
+
+<[base.log]>->( 0, "generating test key pair..." );
+
+require Crypt::Ed25519;
+
+my $t = <[base.time]>->(5);
+
+my ( $pubkey, $privkey ) = Crypt::Ed25519::generate_keypair();
+
+my $delta_t = sprintf( "%.5f", <[base.time]>->(5) - $t );
+
+print STDERR "\e[33m"
+    . Dumper(
+    [   sprintf( "generated in %.2f ms", $delta_t * 1000 ),
+        encode_base64url($pubkey),
+        encode_base64url($privkey)
+    ]
+    ) . "\e[0m";
