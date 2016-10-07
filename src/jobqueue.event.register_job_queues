@@ -24,7 +24,7 @@ foreach my $queue_name ( keys %{<jobqueue.joblist>} ) {
             'poll'    => 'w',
             'data'    => [ $queue_name, \$counters->{$queue_name} ],
             'prio'    => 0,
-            'repeat'  => 0,
+            'repeat'  => 1,
             'desc'    => "jobqueue '$queue_name' counter"
         }
     );
