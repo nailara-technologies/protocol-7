@@ -5,12 +5,12 @@
 
 die 'base.event.add_var: expected a hash reference!' if ref( $_[0] ) ne 'HASH';
 return Event->var(
-    'poll'      => ${ $_[0] }{'poll'}      || 'w',
-    'reentrant' => ${ $_[0] }{'reentrant'} || 1,
-    'repeat'    => ${ $_[0] }{'repeat'}    || 1,
-    'prio'      => ${ $_[0] }{'prio'}      || 2,
-    'async'     => ${ $_[0] }{'async'}     || 0,
-    'desc'      => ${ $_[0] }{'desc'}      || "${ $_[0] }{'var'}",
+    'poll'      => ${ $_[0] }{'poll'}      // 'w',
+    'reentrant' => ${ $_[0] }{'reentrant'} // 1,
+    'repeat'    => ${ $_[0] }{'repeat'}    // 1,
+    'prio'      => ${ $_[0] }{'prio'}      // 2,
+    'async'     => ${ $_[0] }{'async'}     // 0,
+    'desc'      => ${ $_[0] }{'desc'}      // "${ $_[0] }{'var'}",
     'var'       => ${ $_[0] }{'var'},
     'cb'        => $code{ ${ $_[0] }{'handler'} },
     'data'      => ${ $_[0] }{'data'}

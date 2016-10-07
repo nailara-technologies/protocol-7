@@ -10,11 +10,11 @@ map { push( @event_time, ( $_ => ${ $_[0] }{$_} ) ) if defined ${ $_[0] }{$_} }
     ( 'at', 'after' );
 
 return Event->timer(
-    'reentrant' => ${ $_[0] }{'reentrant'} || 1,
-    'repeat'    => ${ $_[0] }{'repeat'}    || 1,
-    'prio'      => ${ $_[0] }{'prio'}      || 1,
-    'async'     => ${ $_[0] }{'async'}     || 0,
-    'desc'      => ${ $_[0] }{'desc'}      || ${ $_[0] }{'handler'},
+    'reentrant' => ${ $_[0] }{'reentrant'} // 1,
+    'repeat'    => ${ $_[0] }{'repeat'}    // 1,
+    'prio'      => ${ $_[0] }{'prio'}      // 1,
+    'async'     => ${ $_[0] }{'async'}     // 0,
+    'desc'      => ${ $_[0] }{'desc'}      // ${ $_[0] }{'handler'},
     'cb'        => $code{ ${ $_[0] }{'handler'} },
     'time'      => ${ $_[0] }{'time'},
     'interval'  => ${ $_[0] }{'interval'},
