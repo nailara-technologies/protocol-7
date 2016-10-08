@@ -1,0 +1,11 @@
+# >:]
+
+# name = base.handler.debug_io
+
+my $ev = shift->w;
+my $fh = $ev->fd;
+
+if ( my $bytes = sysread( $fh, my $buffer, 4096 ) ) {
+    <[base.log]>->( 0, "<IO> $buffer" );
+    $ev->again if $bytes == 4096;
+}
