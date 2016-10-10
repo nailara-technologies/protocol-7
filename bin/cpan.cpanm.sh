@@ -16,7 +16,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       FreezeThaw \
       XML::RSS::TimingBot XML::RSSLite \
       SDL Gtk2 Glib::Event \
-      Crypt::PRNG::Fortuna \
+      CryptX \
       Crypt::Twofish2 \
       HTTP::Request \
       Gtk3::WebKit \
@@ -25,7 +25,9 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Imager::Sreenshot \
       File::MimeInfo \
       Device::Gembird Net::Libdnet::Arp \
-      Crypt::Curve25519 Crypt::Ed25519
+      Crypt::Curve25519 Crypt::Ed25519 \
+      https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git \
+      Digest::BLAKE2
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
 

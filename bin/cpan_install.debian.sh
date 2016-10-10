@@ -13,14 +13,17 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
   libfile-mimeinfo-perl libnet-ssh2-perl libxml-feed-perl libxml-rsslite-perl \
   libgirepository1.0-dev pkg-config libgtk-3-dev libfile-slurper-perl \
   libglib2.0-dev libglib2.0-0 gir1.2-webkit-3.0 \
-  libgtk3-perl libgtk2-perl liblinux-inotify2-perl libnet-libdnet-perl
+  libgtk3-perl libgtk2-perl liblinux-inotify2-perl libnet-libdnet-perl \
+  libclass-accessor-lite-perl
   #libtext-unidecode-perl
   #libconvert-uu-perl
 
 # installs the rest from cpan
-xvfb-run cpanm Crypt::Twofish2 Crypt::Curve25519 Crypt::Ed25519 \
-                POSIX::1003 Crypt::PRNG::Fortuna \
-                XML::RSS::TimingBot File::MimeInfo::Magic Config::Hosts \
-                HTTP::Soup Mediainfo Poppler Device::Gembird
+cpanm Crypt::Twofish2 Crypt::Curve25519 Crypt::Ed25519 \
+                POSIX::1003 CryptX XML::RSS::TimingBot \
+                File::MimeInfo::Magic Config::Hosts HTTP::Soup \
+                Mediainfo Poppler Device::Gembird \
+                https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git \
+                Digest::BLAKE2
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit X11::Tops
