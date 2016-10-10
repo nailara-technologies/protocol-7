@@ -1,0 +1,50 @@
+# >:]
+
+# name = discover.mcast.init_code
+
+use IO::Socket::Multicast;
+
+<discover.mcast.ip4_addr> //= '239.23.5.42';
+<discover.mcast.ip4_port> //= 242;
+<discover.mcast.mesg_ttl> //= 1;
+
+if (    defined <discover.mcast.obj.sock>
+    and <discover.mcast.ip4_port> < 1024
+    and $> > 0 ) {
+    <[base.log]>->( 0, ": skipping socket reinitialization [am not root]" );
+    return 0;
+}
+
+<[base.log]>->(
+    1,
+    sprintf(
+        ": opening mutlicast socket [%s:%d]",
+        <discover.mcast.ip4_addr>, <discover.mcast.ip4_port>
+    )
+);
+
+<discover.mcast.obj.sock> = IO::Socket::Multicast->new(
+    'Proto'     => 'udp',
+    'LocalAddr' => <discover.mcast.ip4_addr>,
+    'LocalPort' => <discover.mcast.ip4_port>,
+    'ReuseAddr' => 1
+) or die $!;
+
+<discover.mcast.obj.sock>->mcast_loopback(0);
+<discover.mcast.obj.sock>->mcast_ttl(<discover.mcast.mesg_ttl>);
+
+<[base.log]>->(
+    1, sprintf( ": joining multicast group [%s]", <discover.mcast.ip4_addr> )
+);
+
+<discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>) || die $!;
+
+#<discover.mcast.obj.sock>->mcast_dest(<discover.mcast.ip4_addr>);
+
+<[event.add_io]>->(
+    {   'fd'      => <discover.mcast.obj.sock>,
+        'handler' => 'base.handler.debug_io'
+    }
+);
+
+0;
