@@ -13,8 +13,11 @@ cp -v $NAILARA_ROOT/lib/systemd/system/nailara-root.service /lib/systemd/system/
 apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libterm-readpassword-perl libterm-readline-perl-perl libdigest-sha-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
-  libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make
+  libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
+  libclass-accessor-lite-perl
 
-cpanm Crypt::PRNG::Fortuna POSIX::1003 Crypt::Curve25519 Crypt::Ed25519
+cpanm CryptX POSIX::1003 Crypt::Curve25519 Crypt::Ed25519 \
+      https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git Digest::BLAKE2
+
 
 # XXX cpan2deb --recursive --build --install-deps --install-build-deps --install
