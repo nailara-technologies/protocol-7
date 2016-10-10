@@ -5,7 +5,7 @@ export PERL5LIB=. # <- for HTTP::Soup
 xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Term::ReadPassword Term::ReadKey Term::ReadLine::Perl \
       POSIX::1003 Proc::ProcessTable Date::Parse File::Slurper \
-      LWPx::ParanoidAgent \
+      IO::Socket::Multicast LWPx::ParanoidAgent \
       Sys::Filesystem \
       Crypt::CBC CryptX \
       JSON JSON::PP \
