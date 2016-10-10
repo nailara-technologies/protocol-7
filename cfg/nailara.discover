@@ -1,0 +1,25 @@
+
+  .:[ nailara host discovery daemon ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+
+discover.mcast.ip4_addr = 239.23.5.42
+discover.mcast.ip4_port = 242 # UDP
+
+
+access.cmd.usr.core = * *.*          # <-- XXX: dev, strict later
+
+modules.load = auth net io.ip digest.sha crypt.C25519 discover debug
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.get_session_id]
+
+[event.loop]

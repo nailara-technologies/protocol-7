@@ -5,15 +5,16 @@
 use Crypt::Ed25519;
 use Crypt::Curve25519;
 use File::Path qw(make_path);
+use MIME::Base64 qw( encode_base64url );
 
 my $usr = <system.privs.user>;
 $usr //= getpwuid($>);
-my ( undef, undef, $uid, $gid, undef, undef, undef, $home_dir )
-    = getpwnam($usr);
+my ( undef, undef, $uid, $gid, undef, undef, undef, $homedir ) = getpwnam($usr);
 die "failed to obtain home directory for user '$usr'"
-    if not defined $home_dir or !length($home_dir);
+    if ( not defined $homedir or !length($homedir) )
+    and not defined <crypt.curve25519.key_dir>;
 
-<crypt.curve25519.key_dir> //= "$home_dir/.nailara/keys";
+<crypt.curve25519.key_dir> //= "$homedir/.nailara/keys";
 my $key_dir = <crypt.curve25519.key_dir>;
 
 if ( !-d $key_dir ) {
