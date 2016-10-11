@@ -27,11 +27,8 @@ return <[base.log]>->( 0, "<!> apparently no Intel GPU (intel_gpu_frequency)" )
 
 <[base.log]>->( 1, "starting 'intel_gpu_top' process .." );
 
-<xserver.gpu_top.pid> = open3(
-    my $dummy_in, my $out_fh,
-    my $dummy_err,
-    "$gpu_top_bin -s $samples_per_sec -o -"
-);
+<xserver.gpu_top.pid> = open3( undef, my $out_fh, undef,
+    "$gpu_top_bin -s $samples_per_sec -o -" );
 
 if ( !<xserver.gpu_top.pid> ) {
     <[base.log]>->( 0, "<!> failed to open 'intel_gpu_top' pipe [$!]" );
