@@ -119,7 +119,7 @@ my $ssh_pubkey  = "$ssh_keyfile.pub";
 
 foreach my $key_type ( 'private', 'public' ) {
     my $key_file = $key_type eq 'private' ? $ssh_privkey : $ssh_pubkey;
-    if ( !open( my $dummy, '<' . $key_file ) ) {
+    if ( !open( my $test_fh, '<' . $key_file ) ) {
         <[base.log]>->(
             0, ": : SSH AUTH FAILURE [ failed to open $key_type key: $! ]"
         );
@@ -178,9 +178,9 @@ delete $connection->{'retry_delay'}
 
 <ssh.status.connections>->{$con_id} = 'online';
 
-$connection->{'io'}->{'ssh'}->now; # quickfix!
+$connection->{'io'}->{'ssh'}->now;    # quickfix!
 
-my $ping_delay = 5;    # XXX: -> config...
+my $ping_delay = 5;                   # XXX: -> config...
 $connection->{'timer'}->{'ping'} = <[event.add_timer]>->(
     {   'after'    => 1,
         'interval' => $ping_delay,
