@@ -8,8 +8,22 @@ die 'expected path to video file'
     if not defined $video_path or !length($video_path);
 die 'video file not found!' if !-f $video_path;
 
-my $frame_count
-    = qx(<ffmpeg.path.ffprobe_bin> -show_streams -- $video_path 2>/dev/null)
-    =~ /^nb_frames=(\d+)$/m ? $1 : undef;
+( my $file_name = $video_path ) =~ s|^.*/||g;
+
+<[base.log]>->( 2, "counting video frames in file '$file_name'..." );
+
+my $ffmpeg_cmd_line
+    = <ffmpeg.path.ffprobe_bin>
+    . " -v error -count_frames -select_streams v:0 -show_entries"
+    . " stream=nb_read_frames -of default=nokey=1:noprint_wrappers=1"
+    . " $video_path 2>/dev/null";
+
+my $frame_count = qx($ffmpeg_cmd_line) =~ /^(\d+)$/m ? $1 : undef;
+
+if ( defined $frame_count ) {
+    <[base.log]>->( 2, ": file '$file_name' has $frame_count video frames." );
+} else {
+    <[base.log]>->( 0, "<!> frame count failed for file '$file_name'" );
+}
 
 return $frame_count;
