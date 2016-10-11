@@ -58,8 +58,9 @@ my $call_args    = {};
 if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $$input !~ m|^\(($re->{cmd_id})\)| ) {
     my $cmd_id = $1 || '';
-    $$input =~ s|^\([^\)]*\)[^\n]+\n||;
+    $$input =~ s|^(\([^\)]*\)[^\n]+)\n||;
     <[base.log]>->( 1, "[$id] invalid command id ('$cmd_id')" );
+    <[base.log]>->( 0, "[$id] invalid cid DEBUG: '$1'" ); # <- XXX: remove later
     $$output .= "NACK invalid command id syntax or length\n";
     return 1;
 }
