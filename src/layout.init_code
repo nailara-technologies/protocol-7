@@ -17,6 +17,7 @@ use FreezeThaw qw(cmpStr);
 <layout.cfg_directory> //= '/etc/nailara/nailara.layout';
 <layout.hash_file>     //= <layout.cfg_directory> . '/layout_file.sha1';
 <layout.transition_in_progress> //= 0;
+<layout.restore_layout_enabled> //= 0;
 <layout.restore_layout_timeout> //= 300;    # seconds
 
 delete <layout.config.ticker_agent_type>
@@ -68,7 +69,7 @@ skip_load:    # <- jumping here if layout has already been imported as json!
 
 my $current_cfg = <layout.cfg_directory> . '/layout.current';
 
-if ( -f $current_cfg ) {
+if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
     <[base.log]>->( 1, "loading 'layout.current' config..." );
     my $cfg_content = ${ <[file.slurp]>->($current_cfg) };
     if ( $cfg_content =~ /^(\d+(\.\d+)?) +([^\n]+)\n$/s ) {
@@ -95,6 +96,8 @@ if ( -f $current_cfg ) {
     } else {
         <[base.log]>->( 0, ": <!> syntax error in 'layout.current' config..." );
     }
+} elsif ( -f $current_cfg and !<layout.restore_layout_enabled> ) {
+    <[base.log]>->( 1, "(!) restoring of current layout is disabled (!)" );
 }
 
 <[base.log]>->( 0, "no default layout configured!" )
