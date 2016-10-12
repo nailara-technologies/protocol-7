@@ -26,6 +26,12 @@ if ( -d $db_dir ) {
 }
 
 <rss.browser> = XML::RSS::TimingBot->new;
+push(
+    @LWP::Protocol::http::EXTRA_SOCK_OPTS,
+    PeerHTTPVersion => "1.1",
+    SendTE          => 0
+);
+<rss.browser>->default_headers->header( 'Accept' => '*' );
 <rss.browser>->agent(<rss.ticker.user_agent>);
 <rss.browser>->timeout(<rss.ticker.request_timeout>);
 
