@@ -20,9 +20,9 @@ if ( defined $percent ) {
         delete <ticker-gtk.timer.auto_slowdown>;
     }
 
-    <ticker-gtk.auto_speed_mode> = 1;    # XXX
-    <ticker-gtk.slowdown.percent_target> //= 0;
+    <ticker-gtk.auto_speed_mode>         = 1;          # XXX
     <ticker-gtk.slowdown.percent_target> = $percent;
+    <ticker-gtk.slowdown.percent_target> //= 0;
 
     return { 'mode' => 'ack', 'data' => "slow down target set to ${percent}%" };
 } else {
