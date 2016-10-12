@@ -4,7 +4,6 @@
 
 <rss.data.tmp_path>                  //= '/tmp';
 <rss.ticker.txt_data_path>           //= '/tmp/rssdata/ticker-content.txt';
-<rss.ticker.user_agent>              //= '';
 <rss.ticker.item_seperator>          //= '.:.';
 <rss.ticker.trailing_seperator>      //= 0;
 <rss.ticker.request_timeout>         //= 5;
@@ -31,9 +30,11 @@ push(
     PeerHTTPVersion => "1.1",
     SendTE          => 0
 );
-<rss.browser>->default_headers->header( 'Accept' => '*' );
-<rss.browser>->agent(<rss.ticker.user_agent>);
 <rss.browser>->timeout(<rss.ticker.request_timeout>);
+<rss.browser>->default_headers->header(
+    'User-Agent' => 'Mozilla/5.0',
+    'Accept'     => '*'
+);
 
 my @rss_urls;
 <rss.ticker.url_hash> //= <[digest.sha1]>->('');
