@@ -11,8 +11,8 @@ return { 'mode' => 'nack', 'data' => 'expected url parameter' }
 
 my $download_dir  = <download.cfg.download_path>;
 my $url_md5u_hash = <[digest.md5.b64u]>->($url);
+( my $target_dir = "$download_dir/$url_md5u_hash" ) =~ s|//|/|g;
 my $temp_filename = 'part.' . $url_md5u_hash;
-my $target_dir    = "$download_dir/$url_md5u_hash";
 my $file_path     = "$target_dir/$temp_filename";
 
 return { 'mode' => 'ack', 'data' => $url } if defined $url and -f $url;
