@@ -29,11 +29,17 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
 
     foreach my $type ( 'private', 'public' ) {
         my $file_name = $type eq 'public' ? "$key_basepath.pub" : $key_basepath;
-        <[file.put]>->(
-            "$file_name.$$",
-            sprintf( "%s\n",
-                encode_base64url( $key{'C25519'}{$key_name}{$type} ) )
+        open( my $k_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
+        if ( $type eq 'public' ) {
+            chmod( 0644, "$file_name.$$" ) or die "chmod: $!";
+        } else {
+            chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
+        }
+        printf(
+            {$k_fh} "%s\n",
+            encode_base64url( $key{'C25519'}{$key_name}{$type} )
         );
+        close($k_fh);
         rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
         <[base.log]>->( 1, ": $file_name" );
     }
