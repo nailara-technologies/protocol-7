@@ -31,15 +31,15 @@ $data{'system'}{'process_start'} = {
 
 # maximizing open files limit
 
-my ( $of_cur, $of_max, $rl_success ) = getrlimit('RLIMIT_OFILE');
+my ( $of_cur, $of_max, $rl_success ) = getrlimit('RLIMIT_NOFILE');
 if ( !$rl_success ) {
-    warn "getrlimit('RLIMIT_OFILE') failed [$!]";
+    warn "getrlimit('RLIMIT_NOFILE') failed [$!]";
 } elsif ( $of_cur != $of_max ) {
     <[base.log]>->( 2, ": open files limit increased [$of_cur->$of_max]" );
-    setrlimit( 'RLIMIT_OFILE', $of_max, $of_max )
+    setrlimit( 'RLIMIT_NOFILE', $of_max, $of_max )
         or warn "setrlimit <$of_max> failed [$!]";
 }
-( $data{'system'}{'limits'}{'ofile'} ) = getrlimit('RLIMIT_OFILE')
+( $data{'system'}{'limits'}{'ofile'} ) = getrlimit('RLIMIT_NOFILE')
     if $rl_success;
 
 $data{'system'}{'host'} = {
