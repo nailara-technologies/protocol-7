@@ -26,7 +26,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
     <[base.log]>->( 0, "generating default C25519 key pair ..." );
     my $key_name = 'default';    # -> cfg(?)
     <[crypt.C25519.gen_keys]>->($key_name);
-
+    $key_basepath .= ".$key_name";
     foreach my $type ( 'private', 'public' ) {
         my $file_name = $type eq 'public' ? "$key_basepath.pub" : $key_basepath;
         open( my $k_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
