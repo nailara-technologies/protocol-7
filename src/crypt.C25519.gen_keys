@@ -2,18 +2,19 @@
 
 # name = crypt.C25519.gen_keys
 
-<[base.log]>->( 0, "generating test key pair..." );
+my $key_name = shift // 'default';
 
-my $t = <[base.time]>->(5);
+<[base.log]>->( 2, "generating '$key_name' C25519 key pair..." );
+
+$key{'C25519'} //= {};
+
+die "a C25519 key with name '$key_name' already exists"
+    if exists $key{'C25519'}{$key_name};
 
 my ( $pubkey, $privkey ) = Crypt::Ed25519::generate_keypair();
 
-my $delta_t = sprintf( "%.5f", <[base.time]>->(5) - $t );
-
-print STDERR "\e[33m"
-    . Dumper(
-    [   sprintf( "generated in %.2f ms", $delta_t * 1000 ),
-        encode_base64url($pubkey),
-        encode_base64url($privkey)
-    ]
-    ) . "\e[0m";
+$key{'C25519'}{$key_name} = {
+    'name'    => $key_name,
+    'public'  => $pubkey,
+    'private' => $privkey
+};
