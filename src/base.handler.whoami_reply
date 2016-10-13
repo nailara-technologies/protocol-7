@@ -7,7 +7,7 @@ my $reply = shift;
 delete <base.in_progess.get_session_id>;
 
 if ( $reply->{'cmd'} ne 'ACK' ) {
-    my $reason = $reply->{'call_args'};
+    my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "<!> unexpected reply to whoami command <!> [$reason]" );
     return undef;
 }
