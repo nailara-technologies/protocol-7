@@ -5,7 +5,7 @@
 use Crypt::Ed25519;
 use Crypt::Curve25519;
 use File::Path qw(make_path);
-use MIME::Base64 qw( encode_base64url );
+use MIME::Base64 qw( encode_base64url decode_base64url );
 
 my $usr = <system.privs.user>;
 $usr //= getpwuid($>);
@@ -14,12 +14,29 @@ die "failed to obtain home directory for user '$usr'"
     if ( not defined $homedir or !length($homedir) )
     and not defined <crypt.curve25519.key_dir>;
 
-<crypt.curve25519.key_dir> //= "$homedir/.nailara/keys";
-my $key_dir = <crypt.curve25519.key_dir>;
+my $key_dir      = <crypt.curve25519.key_dir>      //= "$homedir/.nailara/keys";
+my $key_basepath = <crypt.curve25519.key_basepath> //= "$key_dir/C25519_b64u";
 
 if ( !-d $key_dir ) {
     <[base.log]>->( 1, "creating key directory '$key_dir' .." );
     make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
+}
+
+if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
+    <[base.log]>->( 0, "generating default C25519 key pair ..." );
+    my $key_name = 'default';    # -> cfg(?)
+    <[crypt.C25519.gen_keys]>->($key_name);
+
+    foreach my $type ( 'private', 'public' ) {
+        my $file_name = $type eq 'public' ? "$key_basepath.pub" : $key_basepath;
+        <[file.put]>->(
+            "$file_name.$$",
+            sprintf( "%s\n",
+                encode_base64url( $key{'C25519'}{$key_name}{$type} ) )
+        );
+        rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
+        <[base.log]>->( 1, ": $file_name" );
+    }
 }
 
 0;
