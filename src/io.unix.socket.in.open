@@ -2,9 +2,8 @@
 
 # name  = io.unix.socket.in.open
 
-my $socket_path   = shift;
-my $socket_umask  = shift;
-my $socket_listen = shift // 5;
+my $socket_path  = shift;
+my $socket_umask = shift;
 
 <[base.spawn.unlink_child]>;
 
@@ -20,7 +19,7 @@ unlink( my $tmp_spath = "$socket_path.NEW" );
 my $unix_sock = IO::Socket::UNIX->new(
     Type   => SOCK_STREAM(),
     Local  => $tmp_spath,
-    Listen => $socket_listen,
+    Listen => SOMAXCONN,
 ) || die "io.unix.socket.in.open: socket: $!";
 
 rename( $tmp_spath, $socket_path ) or die "io.unix.socket.in.open: rename: $!";
