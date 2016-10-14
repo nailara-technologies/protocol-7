@@ -10,9 +10,9 @@ eval 'use IPC::Open2';
 die $@ if $@;
 
 my $child_code
-    = '$0 = "`'
+    = '$0 = "'
     . <system.agent.name>
-    . '-<as_root>-renice() "; '
+    . '-<as_root>-renice-child "; '
     . 'setpriority( 0, $1, $2 ) if <STDIN> =~ /^(\d+) (\-?\d+)$/';
 
 $SIG{'CHLD'} = 'IGNORE';
