@@ -8,9 +8,9 @@
 if ( not exists <process.kill_child.w_fh> ) {
     <[base.log]>->( 1, "spawning kill child..." );
     my $child_code
-        = '$0 = "`'
+        = '$0 = "'
         . <system.agent.name>
-        . '-<as_root>-kill() "; while(<STDIN>){ kill(9, $1) if /^(\d+)$/ }';
+        . '-<as_root>-kill-child "; while(<STDIN>){ kill(9, $1) if /^(\d+)$/ }';
 
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
