@@ -72,7 +72,13 @@ if ( defined $http_host and defined $link_target ) {
     if ( -d $file_path ) {    # XXX: support !html index
         $file_path .= '/index.html' if -f $file_path . '/index.html';
     }
-    if ( -f $file_path ) {
+    if ( -f $file_path and !-r $file_path ) {
+        <[base.log]>->(
+            0,
+            "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
+        );
+        return <[httpd.error_page]>->( $id, 403 );   # Permission Denied (by FS)
+    } elsif ( -f $file_path ) {
         my @stat         = stat($file_path);
         my $content_size = $stat[7];
         my @byte_ranges;
