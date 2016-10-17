@@ -12,6 +12,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Net::SSH2 Config::Hosts \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
       X11::Protocol X11::Keyboard X11::Protocol::WM X11::Tops \
+      Convert::Color \
       Linux::Inotify2 \
       FreezeThaw \
       XML::RSS::TimingBot XML::RSSLite \
