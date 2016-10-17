@@ -114,6 +114,26 @@ if ($draw_shadow) {
     $context->show_text( $content_substr->[1] );
 }
 
+if (<ticker-gtk.cfg.draw_outline>) {
+    if (<ticker-gtk.use_transparency>) {
+        $context->set_source_rgba( @{<ticker-gtk.ol_col>}, 0.87 );
+    } else {
+        $context->set_source_rgb( @{<ticker-gtk.ol_col>} );
+    }
+    foreach my $o_y ( -1 .. +1 ) {
+        foreach my $o_x ( -1 .. +1 ) {
+            next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
+            $context->move_to(
+                $x_offset + $o_x,
+                $context->font_extents->{'height'}
+                    - $context->font_extents->{'descent'}
+                    + $o_y
+            );
+            $context->show_text( $content_substr->[1] );
+        }
+    }
+}
+
 $context->move_to( $x_offset,
     $context->font_extents->{'height'} - $context->font_extents->{'descent'} );
 
