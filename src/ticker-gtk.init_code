@@ -4,6 +4,7 @@
 
 use Gtk3;
 use Glib::Event;
+use Convert::Color;
 use Cairo::GObject;
 use Font::FreeType;
 
@@ -13,6 +14,7 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 <ticker-gtk.font.name>         //= 'DroidSans-Bold'; # XXX: <- load from config!
 <ticker-gtk.font.size_percent> //= 100;              # XXX: <- load from config!
 <ticker-gtk.use_transparency>  //= 1;
+<ticker-gtk.cfg.draw_outline>  //= 1;
 <ticker-gtk.animation_started> //= 0;
 <ticker-gtk.paused>            //= 0;
 <ticker-gtk.auto_speed_mode>   //= 0;
@@ -35,6 +37,15 @@ my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
 <ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
 <ticker-gtk.bg_col> = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
 <ticker-gtk.bg_alpha> = <ticker.cfg.bg_alpha> // 100;    # transparent default
+
+my $ovf = 0.94;    # <- outline value factor
+my $c = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
+my $hc = $c->convert_to('hsv');
+my $new_value = sprintf( "%.3f", abs( $ovf - sprintf( "%.0f", $hc->value ) ) );
+my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
+
+<ticker.color.outline> = $oc->as_rgb8->hex;
+<ticker-gtk.ol_col>    = [ $oc->rgb ];
 
 ##########
 
