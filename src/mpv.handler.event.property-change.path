@@ -15,4 +15,6 @@ if ( <system.agent.mode> eq 'media-child' and $path eq '[PAUSE]' ) {
     <mpv.pause_next> = 1;
 } else {
     <[base.log]>->( 2, "currently playing: '$path'" );
+    <[mpv.update_resc_timestamp]>->($path)
+        if exists <mpv.file_map.rescaled.source>->{$path};
 }
