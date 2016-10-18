@@ -12,11 +12,11 @@ $usr //= getpwuid($>);
 my ( undef, undef, $uid, $gid, undef, undef, undef, $homedir ) = getpwnam($usr);
 die "failed to obtain home directory for user '$usr'"
     if ( not defined $homedir or !length($homedir) )
-    and not defined <crypt.curve25519.key_dir>;
+    and not defined <crypt.C25519.key_dir>;
 
-my $key_name = 'default';    # -> cfg(?)
-my $key_dir      = <crypt.curve25519.key_dir> //= "$homedir/.nailara/keys";
-my $key_basepath = <crypt.curve25519.key_basepath>
+my $key_name = 'default';                                           # <- cfg (?)
+my $key_dir = <crypt.C25519.key_dir> //= "$homedir/.nailara/keys";
+my $key_basepath = <crypt.C25519.key_basepath>
     //= "$key_dir/$key_name.C25519_b64u";
 
 if ( !-d $key_dir ) {
@@ -43,6 +43,17 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
         rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
         <[base.log]>->( 1, ": $file_name" );
     }
+
+    if ( defined <crypt.C25519.root_key_path> ) {
+        my $root_key_tmp = <crypt.C25519.root_key_path>;
+        if ( <crypt.C25519.root_key_path> =~ m{^https?://} ) {
+
+            # XXX: download to temp file (or better inline [mem])
+        }
+
+        # XXX: sign with root key...
+    }
+
 }
 
 0;
