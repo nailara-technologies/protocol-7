@@ -1,15 +1,15 @@
 # >:]
 
-# name = mpv.create_timestamp
+# name = mpv.update_resc_timestamp
 
 my $rescaled_path = shift;
 my $extension     = <mpv.rescaled_extension>;
 
 ( my $timestamp_path = $rescaled_path ) =~ s|\.$extension$|.last_seen|;
 
-if ( !-f $rescaled_path ) {
+if ( !-f $rescaled_path ) {    # reencoded video file path
     <[base.log]>->(
-        0, "create_timestamp: rescaled path '$rescaled_path' does not exists!"
+        0, "create_timestamp: rescaled path '$rescaled_path' does not exist!"
     );
     unlink($timestamp_path) if -f $timestamp_path;
     return;
