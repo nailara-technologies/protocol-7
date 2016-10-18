@@ -43,14 +43,14 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
         <[base.log]>->( 1, ": $file_name" );
     }
 
-    if ( defined <crypt.C25519.root_key_path> ) {
+    if ( defined <crypt.C25519.root_key_url> ) {
         my %root_key = ( 'priv' => '', 'pub' => '' );
-        if ( <crypt.C25519.root_key_path> =~ m{^https?://} ) {
+        if ( <crypt.C25519.root_key_url> =~ m{^https?://} ) {
             require LWP::UserAgent;   # use download agent later, needs blocking
             my $ua = LWP::UserAgent->new();
-            $ua->get( <crypt.C25519.root_key_path>,
+            $ua->get( <crypt.C25519.root_key_url>,
                 ':content_cb' => sub { chomp( $root_key{'priv'} = shift ) } );
-            $ua->get( <crypt.C25519.root_key_path> . '.pub',
+            $ua->get( <crypt.C25519.root_key_url> . '.pub',
                 ':content_cb' => sub { chomp( $root_key{'pub'} = shift ) } );
         }
 
