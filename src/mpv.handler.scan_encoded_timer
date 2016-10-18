@@ -33,11 +33,18 @@ foreach my $check_file (
     next if $tstamp !~ /^\d+$/;
     my $age_days = sprintf( "%.2f", ( ( time - $tstamp ) / 86400 ) );
     if ( $age_days >= $max_days ) {
-        <[base.log]>->( 1, "[cleanup] $video_file" );
-        unlink($video_file) or warn "failed to delete '$video_file' [$!]";
-        unlink($check_file);
 
-        # XXX: check if parent dir is empty (and rmdir..)
+        if ( defined <mpv.file_map.rescaled.source>->{$check_file} ) {
+            <[base.log]>->(
+                2, "[cleanup_skipped] $video_file still in playlist, keeping it"
+            );
+        } else {
+            <[base.log]>->( 1, "[cleanup] $video_file" );
+            unlink($video_file) or warn "failed to delete '$video_file' [$!]";
+            unlink($check_file);
+
+            # XXX: check if parent dir is empty (and rmdir..)
+        }
     } else {
         <[base.log]>->( 2, ": [OK] : $video_file" );
     }
