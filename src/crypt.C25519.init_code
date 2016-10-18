@@ -44,8 +44,11 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
     }
 
     if ( defined <crypt.C25519.root_key_url> ) {
+        my $root_key_name;
         my %root_key = ( 'priv' => '', 'pub' => '' );
-        if ( <crypt.C25519.root_key_url> =~ m{^https?://} ) {
+        if ( <crypt.C25519.root_key_url>
+            =~ m{^https?://.+/C25519_b64u(\.(.+))?$} ) {
+            $root_key_name = $2 // '';
             require LWP::UserAgent;   # use download agent later, needs blocking
             my $ua = LWP::UserAgent->new();
             $ua->get( <crypt.C25519.root_key_url>,
@@ -53,9 +56,10 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
             $ua->get( <crypt.C25519.root_key_url> . '.pub',
                 ':content_cb' => sub { chomp( $root_key{'pub'} = shift ) } );
         }
-
-        <[base.log]>->( 0, ": signing C25519 key pair with root key ..." );
+        my $rkst = length($root_key_name) ? " '$root_key_name'" : '';
+        <[base.log]>->( 0, ": signing C25519 key pair with$rkst root key ..." );
         my $sig_file_path = <crypt.C25519.key_basepath> . '.sig';
+        $sig_file_path .= ".$root_key_name" if length($root_key_name);
         <[file.put]>->(
             $sig_file_path,
             encode_base64url(
@@ -66,8 +70,24 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
                     )
                     . "\n"
             )
-        );
-        <[base.log]>->( 1, ": : $sig_file_path" );
+            )
+            if length( $root_key{'pub'} ) == 43
+            and length( $root_key{'priv'} ) == 86;
+        my $fail = 0;
+        if ( -f $sig_file_path ) {
+            <[base.log]>->( 1, ": : $sig_file_path" );
+            (   my $root_pubkey_path = join( '.',
+                    <crypt.C25519.key_basepath>, 'rkp', $root_key_name )
+            ) =~ s|\.$||;
+            <[file.put]>->( $root_pubkey_path, $root_key{'pub'} . "\n" );
+            <[base.log]>->( 1, ": : $root_pubkey_path" );
+        } else {
+
+            # XXX: log reason ...
+            <[base.log]>->(
+                0, "<!> failed to sign public host key ( root key? )"
+            );
+        }
     } else {
         <[base.log]>->( 1, ": no root key path defined, skipped key signing!" );
     }
