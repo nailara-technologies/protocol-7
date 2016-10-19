@@ -72,14 +72,6 @@ if (   not $file_content =~ s|assert \(ScreenWidth  >= 320\) and |assert |m
         0, "[!] failed to parse out impressive minimum screen size limit ..."
     );
 }
-<impressive.parser.init_tag_failed> //= 0;
-if (not $file_content
-    =~ s|(\n(\s+)if not ShowLogo:\n)|$1$2$2print >>sys.stderr, "[INIT]"\n|s ) {
-    <impressive.parser.init_tag_failed> = 1;
-    <[base.log]>->(
-        0, "[!] failed to parse [INIT] tag into impressive script ..."
-    );
-}
 
 # modifying Crossfade transition for 'light_mode' ( to minimize CPU / GPU load )
 if (not $file_content =~ s|

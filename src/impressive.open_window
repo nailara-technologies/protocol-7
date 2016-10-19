@@ -142,15 +142,16 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
             'pid'           => <impressive.pid>,
             'log_whitelist' => [
                 qr/^welcome to impressive/i,
-                qr/^background rendering finished/i,
+                qr/^Background rendering finished/,
                 qr/opengl (software )?renderer/i,
                 qr/likely be too slow/i,
-                qr/^\[INIT\]/,
                 'XIO:  fatal IO error (0|11)',
                 'after \d+ requests'
             ],
-            'callback_patterns' =>
-                { qr/^\[INIT\]/ => 'impressive.callback.delayed_lsp_stop' }
+            'callback_patterns' => {
+                qr/^Background rendering finished/ =>
+                    'impressive.callback.delayed_lsp_stop'
+            }
         }
     }
 );
