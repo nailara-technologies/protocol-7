@@ -2,25 +2,35 @@
 
 # name  = impressive.callback.stop_loadsplash
 
-<impressive.stop_lsp_sent> //= 0;
-return if <impressive.stop_sent>;
-
-<[base.log]>->( 1, "stopping loadsplash agent.." );
-
 <impressive.timer.stop_loadsplash>->cancel
     if defined <impressive.timer.stop_loadsplash>
     and <impressive.timer.stop_loadsplash>->is_active;
+
+undef <impressive.timer.stop_loadsplash>;
+
+<impressive.stop_lsp_sent> //= 0;
+return if <impressive.stop_lsp_sent>;
+
+<[base.log]>->( 1, "startup successful / window becomes visible ..." );
 
 my $lsp_name
     = defined <system.agent.subname>
     ? 'loadsplash[' . <system.agent.subname> . ']'
     : 'loadsplash';
 
+# XXX: needs xserver.fade_in command..
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.stop_implicit",
-        'call_args' => { 'args' => $lsp_name },
-        'reply'     => { 'handler' => 'impressive.handler.stop_lsp_reply' }
+    {   'command'   => "core.xserver.set_opacity",
+        'call_args' => { 'args' => <x11.id> . ' 100' }
     }
 );
 
-<impressive.stop_lsp_sent> = 1;
+if (<impressive.cfg.use_loadsplash>) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.stop_implicit",
+            'call_args' => { 'args' => $lsp_name },
+            'reply'     => { 'handler' => 'impressive.handler.stop_lsp_reply' }
+        }
+    );
+    <impressive.stop_lsp_sent> = 1;
+}
