@@ -23,6 +23,13 @@ $window->set_decorated(0);
 $window->set_resizable(0);
 $window->set_keep_above(1);
 
+<loadsplash.window_title> = 'loadsplash';
+<loadsplash.window_title> .=
+    defined <system.agent.subname>
+    ? sprintf( "[%s]", <system.agent.subname> )
+    : $$;
+$window->set_title(<loadsplash.window_title>);
+
 $window->set_default_size( 1, 1 );
 
 <loadsplash.init_mode> = 1;
@@ -63,6 +70,12 @@ $layout->put( <loadsplash.image>, $pos_x, $pos_y );
 $window->add($layout);
 
 $window->show_all;
+
+<[event.add_timer]>->(
+    {   'after'   => 0.42,
+        'handler' => 'loadsplash.wait_for_window'
+    }
+);
 
 $SIG{'TERM'} = sub {
     <loadsplash.fading_out> //= 0;
