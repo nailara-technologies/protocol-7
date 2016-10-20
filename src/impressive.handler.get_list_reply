@@ -53,16 +53,21 @@ my $lsp_name
     ? 'loadsplash[' . <system.agent.subname> . ']'
     : 'loadsplash';
 
-<[base.log]>->( 1, "starting loadsplash agent.." );
+if (<impressive.cfg.use_loadsplash>) {
 
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.notify_online",
-        'call_args' => { 'args' => $lsp_name },
-        'reply'     => { 'handler' => 'impressive.open_window' }
-    }
-);
-<[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.root.start_once",
-        'call_args' => { 'args' => $lsp_name }
-    }
-);
+    <[base.log]>->( 1, "starting loadsplash agent.." );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.notify_online",
+            'call_args' => { 'args' => $lsp_name },
+            'reply'     => { 'handler' => 'impressive.open_window' }
+        }
+    );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.start_once",
+            'call_args' => { 'args' => $lsp_name }
+        }
+    );
+} else {
+    <[impressive.open_window]>;
+}
