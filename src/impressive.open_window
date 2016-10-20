@@ -127,46 +127,61 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {
+
     <[base.log]>->( 1, ": impressive process spawned [PID=<impressive.pid>]" );
-    <[base.sleep]>->(1.42);    # XXX: quckfix for restart race condition
-    <[base.x11.assign_window]>->(<x11.id>);
-}
 
-## register output watcher ##
+    <impressive.exec_params> = join( ' ', @exec_params );
 
-<impressive.watcher.output> = <[event.add_io]>->(
-    {   'fd'      => <impressive.out_fh>,
-        'handler' => 'base.handler.child_output.simple',
-        'data'    => {
-            'bin'           => 'impressive',
-            'pid'           => <impressive.pid>,
-            'log_whitelist' => [
-                qr/^welcome to impressive/i,
-                qr/^Background rendering finished/,
-                qr/opengl (software )?renderer/i,
-                qr/likely be too slow/i,
-                'XIO:  fatal IO error (0|11)',
-                'after \d+ requests'
-            ],
-            'callback_patterns' => {
-                qr/^Background rendering finished/ =>
-                    'impressive.callback.delayed_lsp_stop'
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.set_opacity",
+            'call_args' => { 'args' => <x11.id> . ' 0' }
+        }
+    );
+
+    <impressive.watcher.output> = <[event.add_io]>->(
+        {   'fd'      => <impressive.out_fh>,
+            'handler' => 'base.handler.child_output.simple',
+            'data'    => {
+                'bin'           => 'impressive',
+                'pid'           => <impressive.pid>,
+                'log_whitelist' => [
+                    qr/^Welcome to impressive/,
+                    qr/^Total presentation time/,
+                    qr/^Background rendering finished/,
+                    qr/opengl (software )?renderer/i,
+                    qr/likely be too slow/i,
+                    'XIO:  fatal IO error (0|11)',
+                    'after \d+ requests'
+                ],
+                'callback_patterns' => {
+                    qr/^Background rendering finished/ =>
+                        'impressive.callback.delayed_lsp_stop'
+                }
             }
         }
-    }
-);
+    );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.raise_window",
+            'call_args' => { 'args' => <x11.id> }
+        }
+    );
+    <[base.x11.assign_window]>->(<x11.id>);
+}
 
 <impressive.timer.stop_loadsplash>->cancel
     if defined <impressive.timer.stop_loadsplash>
     and <impressive.timer.stop_loadsplash>->is_active;
 
-if (<impressive.parser.init_tag_failed>) {
+if (    <impressive.cfg.use_loadsplash>
+    and <impressive.parser.init_tag_failed> ) {
     <impressive.timer.stop_loadsplash> = <[event.add_timer]>->(
         {   'after'   => 7.7,
             'handler' => 'impressive.callback.stop_loadsplash' # failsafe only #
         }
     );
-} elsif ( defined <impressive.cfg.loadsplash_timeout>
+} elsif ( <impressive.cfg.use_loadsplash>
+    and defined <impressive.cfg.loadsplash_timeout>
     and <impressive.cfg.loadsplash_timeout> =~ /^\d+(\.\d+)?$/ ) {
     <impressive.timer.stop_loadsplash> = <[event.add_timer]>->(
         {   'after'   => <impressive.cfg.loadsplash_timeout>,
