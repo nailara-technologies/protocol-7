@@ -10,19 +10,28 @@ use base 'LWPx::ParanoidAgent';
 
 our $etc_hosts = Config::Hosts->new();
 
+use IO::Scalar;
 use Config::Hosts;
 
 sub read_hosts {
     my ( $self, $hosts_file ) = @_;
     $hosts_file //= '/etc/hosts';
     <[base.log]>->( 1, "reading '$hosts_file' file.." );
+
+    my $stderr_fhcopy = *STDERR;
+    my $stderr_buffer = '';
+    tie *STDERR, 'IO::Scalar', \$stderr_buffer;
     eval { $etc_hosts->read_hosts($hosts_file) };
+    untie *STDERR;
+    *STDERR = $stderr_fhcopy;
     if ($@) {
         ( my $reason_str = $@ ) =~ s/\n/ /g;
         $reason_str =~ s|( Bailing out)?[ \.]+$||;
         <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
         $etc_hosts = undef;
     }
+    map { <[base.log]>->( 0, "[ $hosts_file ] $_" ) } split /\n/,
+        $stderr_buffer;
 }
 
 sub _resolve {
