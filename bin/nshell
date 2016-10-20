@@ -158,6 +158,8 @@ sub shell_auth {
     my ( $fh, $usr, $pwd ) = @_;
     syswrite( $fh, "auth $usr $pwd\n" );
     my $answer = <$fh>;
+    die "\n  [!] connection was prematurely terminated [!]\n\n"
+        if not defined $answer;
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
         return $fh;
@@ -175,6 +177,8 @@ sub unix_auth {
     my ( $fh, $usr ) = @_;
     syswrite( $fh, "select unix\n" );
     my $answer = <$fh>;
+    die "\n  [!] connection was prematurely terminated [!]\n\n"
+        if not defined $answer;
     if ( $answer !~ /^ACK continue/ ) {
         die " :: unix auth not available ::\n\n";
     }
