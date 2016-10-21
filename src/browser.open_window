@@ -123,14 +123,19 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
             keys %{<browser.signal_id>};
     }
 
-    Glib::Timeout->add(
-        300,
-        sub {
-            <browser.gtk_obj.window>->signal_connect(
-                draw => $code{'browser.handler.quit_fade_out'} );
-            <browser.gtk_obj.window>->queue_draw;
-            return 0;
-        }
-    );
-    return 0;
+    if ( !<browser.cfg.use_transparency> ) {
+        Gtk3->main_quit();
+        exit(0);
+    } else {
+        Glib::Timeout->add(
+            300,
+            sub {
+                <browser.gtk_obj.window>->signal_connect(
+                    draw => $code{'browser.handler.quit_fade_out'} );
+                <browser.gtk_obj.window>->queue_draw;
+                return 0;
+            }
+        );
+        return 0;
+    }
 };
