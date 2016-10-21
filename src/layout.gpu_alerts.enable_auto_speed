@@ -15,7 +15,6 @@ foreach my $agent_name ( keys %{<layout.subconfig>} ) {
         <layout.subconfig>->{$agent_name}->{'auto_speed'} = 1;
 
         ( my $route = $agent_name ) =~ s|\[.+$||;
-        $route = 'media.browser' if $route eq 'media';
 
         $agents_present->{$route} //= 1;
     }
