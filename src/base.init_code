@@ -120,10 +120,11 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
     };
 } else {    # remove some commands for non-core type agents
     map { <[base.disable_command]>->($_) } (
-        'online',   'session_key', 'whoami', 'slay',
-        'exit',     'clear',       'time',   'localtime',
-        'timezone', 'ondemand_agent'
+        'online', 'session_key', 'slay',      'exit',
+        'clear',  'time',        'localtime', 'timezone',
+        'ondemand_agent'
     );
+    <[base.disable_command]>->('whoami') if <system.agent.name> ne 'media';
 }
 
 map {
