@@ -8,9 +8,19 @@ my $fg_index = <browser.overlay.index>->{'fg'};
 my $bg_index = <browser.overlay.index>->{'bg'};
 
 if ( !<browser.cfg.use_transparency> ) {
+
+    map {
+        <browser.gtk_obj.scrolled_window>->{$_}->set_opacity(1)
+            if <browser.gtk_obj.scrolled_window>->{$_}->get_opacity() != 1;
+    } ( $fg_index, $bg_index );
+
     <browser.gtk_obj.overlay>
         ->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
     <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+
+    <browser.time.fade_complete> = sprintf( "%.3f",
+        <[base.time]>->(3) + ( <browser.slideshow.swap_delay> / 2 ) );
+
     <[browser.callback.load_finished]>;
     return;
 }
