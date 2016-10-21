@@ -20,3 +20,8 @@ if ( exists <browser.timer.auto_slowdown> ) {
         'handler'  => 'browser.handler.auto_slowdown'
     }
 );
+
+if ( <browser.cfg.use_transparency> and <browser.cfg.autospeed_notrans> ) {
+    <[base.log]>->( 1, "disabling transparency ( no more fading )" );
+    <browser.cfg.use_transparency> = 0;
+}
