@@ -22,4 +22,8 @@ while ( index( $new_id, '0' ) == 0 or exists $_[0]->{$new_id} ) {
     }
 }
 
+my $count = scalar keys %{ $_[0] };
+warn "max_ids ($max_ids) reached" if $count == $max_ids;
+warn "max_ids ($max_ids) exceeded ($count)" if $count > $max_ids;
+
 return $new_id;
