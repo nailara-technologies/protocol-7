@@ -4,8 +4,9 @@
 # descr      = initialize the base module
 
 use Time::Seconds;
+use POSIX::1003::Time 'strftime';
 use POSIX::1003::Limit ':rlimit';
-use POSIX::1003::Time qw(strftime);
+use Crypt::PRNG::Fortuna 'random_string_from';
 use POSIX::1003::Proc qw(WNOHANG waitpid setsid getcwd);
 
 # init some vars
