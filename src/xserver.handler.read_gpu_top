@@ -132,3 +132,12 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
         }
     }
 }
+
+if ( defined <xserver.gpu_top.write_to_disk.path> ) {
+    my $stats_file    = <xserver.gpu_top.write_to_disk.path>;
+    my $stats_content = join( "\n",
+        map { join( ':', $_, <xserver.gpu_top.stats.load_average>->{$_} ) }
+        sort { $a <=> $b } keys %{<xserver.gpu_top.stats.load_average>} );
+    eval { <[file.put]>->( "$stats_file.NEW", "$stats_content\n" ) };
+    rename( "$stats_file.NEW", $stats_file ) or die "rename: $!";
+}
