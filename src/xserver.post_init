@@ -254,9 +254,7 @@ if (    <xserver.has_dpms>
     <[base.log]>->( 1, ": deactivating screen blanking ..." );
 
     <xserver.x11>->DPMSDisable();
-
-    qx(DISPLAY=<xserver.display>->{$mode} /usr/bin/xset s off 2>&1);
-    die "failed to execute xset: $!" if $@;
+    <xserver.x11>->SetScreenSaver( 0, 0, 1, 0 );
 }
 
 ## GPU load statistics (intel only) ##
