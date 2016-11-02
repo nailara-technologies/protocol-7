@@ -4,9 +4,10 @@
 
 use IO::Socket::Multicast;
 
-<discover.mcast.ip4_addr> //= '239.23.5.42';
-<discover.mcast.ip4_port> //= 242;
-<discover.mcast.mesg_ttl> //= 1;
+<discover.mcast.ip4_addr>  //= '239.23.5.42';
+<discover.mcast.ip4_port>  //= 242;
+<discover.mcast.mesg_ttl>  //= 1;
+<discover.mcast.mesg_loop> //= 0;
 
 if (    defined <discover.mcast.obj.sock>
     and <discover.mcast.ip4_port> < 1024
@@ -30,8 +31,8 @@ if (    defined <discover.mcast.obj.sock>
     'ReuseAddr' => 1
 ) or die $!;
 
-<discover.mcast.obj.sock>->mcast_loopback(0);
-<discover.mcast.obj.sock>->mcast_ttl(<discover.mcast.mesg_ttl>);
+<discover.mcast.obj.sock>->mcast_ttl(<discover.mcast.mesg_ttl>)       or die $!;
+<discover.mcast.obj.sock>->mcast_loopback(<discover.mcast.mesg_loop>) or die $!;
 
 <[base.log]>->(
     1, sprintf( ": joining multicast group [%s]", <discover.mcast.ip4_addr> )
@@ -43,7 +44,7 @@ if (    defined <discover.mcast.obj.sock>
 
 <[event.add_io]>->(
     {   'fd'      => <discover.mcast.obj.sock>,
-        'handler' => 'base.handler.debug_io'
+        'handler' => 'discover.handler.incoming_packet'
     }
 );
 
