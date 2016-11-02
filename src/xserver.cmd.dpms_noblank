@@ -10,6 +10,8 @@ my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();
 
 <xserver.x11>->DPMSEnable() if !$dpms_enabled;
 <xserver.x11>->DPMSSetTimeouts( 0, 0, 0 );
+<xserver.x11>->DPMSDisable();
+<xserver.x11>->SetScreenSaver( 0, 0, 1, 0 );
 <xserver.x11>->DPMSInfo();
 
 <[base.log]>->( 1, "manually deactivated DPMS blanking (T=0s)" );
