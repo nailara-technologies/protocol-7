@@ -1,0 +1,59 @@
+# >:]
+
+# name = discover.handler.incoming_packet
+
+# use Data::Dumper 'Dumper';
+
+my $ev = shift->w;
+my $fh = $ev->fd;
+
+my $key_name = 'default';
+
+my $packet_buffer = '';
+my $read_size     = 65507;
+if ( my $bytes = sysread( $fh, $packet_buffer, $read_size ) ) {
+    $ev->again if $bytes == $read_size;
+}
+
+return if length($packet_buffer) < 142;
+
+# print "\n\n<----PACKET---->\n$packet_buffer<---/PACKET---->\n\n\n";
+
+( my $packet_copy = $packet_buffer ) =~ s|:\S+\n$|:|s;
+
+return if substr( $packet_buffer, 0, 3,  '' ) ne '[:<';
+return if substr( $packet_buffer, 0, 10, '' ) ne '|ANNOUNCE|';
+
+chomp( my $peer_pub = substr( $packet_buffer, 0, 44, '' ) );
+
+my $keys_matched = 0;
+while ( $packet_buffer =~ s|^([^:\s]+):(\S+)\n|| ) {
+    my ( $root_name, $root_sig ) = ( $1, $2 );
+    next if not defined $key{'C25519'}{$key_name}{'root'}{$root_name};
+    return <[base.log]>->( 2, ": '$root_name' root key signature [FAIL]" )
+        if not Crypt::Ed25519::verify(
+        "$peer_pub\n",
+        decode_base64url(
+            $key{'C25519'}{$key_name}{'root'}{$root_name}{'pub'}
+        ),
+        decode_base64url($root_sig)
+        );
+    $keys_matched++;
+}
+
+return if !$keys_matched or substr( $packet_buffer, 0, 1, '' ) ne "\n";
+return if $packet_buffer !~ s/\n(\d+):(\S{86})\n//s;
+my ( $tstamp_str, $packet_sig ) = ( $1, $2 );
+my $payload_len = length($packet_buffer);
+return if !$payload_len;
+
+return <[base.log]>->( 0, ": packet signature verification [FAIL]" )
+    if not Crypt::Ed25519::verify(
+    $packet_copy,
+    decode_base64url($peer_pub),
+    decode_base64url($packet_sig)
+    );
+
+<[base.log]>->( 1, "received [valid] packet payload [$payload_len bytes]" );
+
+print "<--payload-->\n$packet_buffer<-/payload-->\n";

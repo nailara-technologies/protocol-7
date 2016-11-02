@@ -6,9 +6,6 @@ die "\n usage: $0 <test_message>\n\n" if !@ARGV;
 
 my $msg  = join( ' ', @ARGV );
 my $addr = '239.23.5.42';
-
-#my $addr = '239.84.87.67';
-
 my $port = 242;
 my $ttl  = 1;
 
