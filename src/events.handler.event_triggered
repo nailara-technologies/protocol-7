@@ -65,5 +65,6 @@ if ( $action_type eq 'agent_running' ) {
 if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
     delete <events.unix.timetable>->{$ev_id};
     <event.timer.recalc>->cancel if defined <event.timer.recalc>;
-    <event.timer.recalc> = <[event.add_timer]>->( { 'at' => time + 1 } );
+    <event.timer.recalc> = <[event.add_timer]>
+        ->( { 'at' => time + 1, 'handler' => 'events.recalc' } );
 }
