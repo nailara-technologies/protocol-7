@@ -37,9 +37,12 @@ my $event_type = $event{'name'} =~ /^Key(Press|Release)$/ ? lc($1) : undef;
 
 return if not defined $event_type;
 
-my $keycode   = $event{'detail'};
-my $mod_state = $event{'state'};
-my $triggered = <xserver.hotkeys.triggered>;
+my $keycode     = $event{'detail'};
+my $mod_state   = $event{'state'};
+my $triggered   = <xserver.hotkeys.triggered>;
+my $is_modifier = exists <xserver.keycodes.modifiers>->{$keycode} ? 1 : 0;
+
+return if $is_modifier;    # <- modifier keys skipped ( for now )
 
 $triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
 $triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
@@ -49,11 +52,16 @@ $triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
     'event_type' => $event_type
 };
 
+my $mod_str
+    = $is_modifier
+    ? '  [' . <xserver.keycodes.modifiers>->{$keycode} . ']'
+    : '';
+
 <[base.log]>->(
     <xserver.loglevel.keys>,
     sprintf(
-        "<KEY> %-8s [ keycode  : %3s  ]  modifier : %d",
-        $event_type, $keycode, $mod_state
+        "<KEY> %-8s [ keycode  : %3s  ]  modifier : %d%s",
+        $event_type, $keycode, $mod_state, $mod_str
     )
 );
 
