@@ -1,0 +1,17 @@
+# >:]
+
+# name  = xserver.cmd.record_hotkey
+# param = <nailara_cmd_str>
+# descr = record a keypress to trigger given command
+
+my $re = <regex.base>;
+my $command = $$call{'args'} // '';
+
+return { 'mode' => 'nack', 'data' => 'expected valid nailara command string' }
+    if $command !~ /^($re->{usr}\.)+$re->{cmd} ?/;
+
+<xserver.hotkeys.recording> = $command;
+
+push( @{<xserver.hotkeys.rec_reply_ids>}, $$call{'reply_id'} );
+
+return { 'mode' => 'later' }
