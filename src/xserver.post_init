@@ -225,7 +225,10 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
 
 ## keyboard ##
 
-#  <xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
+<xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
+
+<xserver.keycodes.modifiers> = <[xserver.get_modifier_map]>;
+
 #  my $any_key = <xserver.kbd>->KeysymToKeycode('AnyKey');
 #  my $any_mod = <xserver.kbd>->KeysymToKeycode('AnyModifier');
 
