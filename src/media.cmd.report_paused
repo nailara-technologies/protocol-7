@@ -48,6 +48,7 @@ if ($all_ready) {
         <[media.switch_child]>->($switch_agent) if @{<media.playlist.files>};
     } elsif (<media.loadsplash_running>) {    # (empty playlist case)
         <media.playlist_was_empty> = 1;
+        <[base.log]>->( 2, "stopping agent " . <media.lsp_name> );
         <[base.proto.nailara.command.send.local]>->(
             {   'command'   => "core.root.stop_implicit",
                 'call_args' => { 'args' => <media.lsp_name> }
