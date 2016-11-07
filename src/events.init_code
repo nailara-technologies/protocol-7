@@ -25,9 +25,16 @@ my $config_data = <[base.load_section_config]>->('events.setup.example');
 
 # print Dumper($config_data);
 
-map { <events.enabled>->{$_} = 1 }
+my @enabled;
+map { <events.enabled>->{$_} = 1; push( @enabled, $_ ) }
     split( / +/, $config_data->{'events'}->{'enabled'} )
     if defined $config_data->{'events'}->{'enabled'};
+
+if (@enabled) {
+    <[base.log]>->( 1, sprintf( "enabled : '%s'", join( "', '", @enabled ) ) );
+} else {
+    <[base.log]>->( 0, "no events enabled in configuration!" );
+}
 
 foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
     next if ref $config_data->{'events'}->{$event_name} ne 'HASH';
