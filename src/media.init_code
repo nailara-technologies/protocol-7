@@ -6,6 +6,11 @@ use IPC::Open2;
 
 $SIG{'CHLD'} = $code{'media.handler.sig_chld'};
 
+<media.lsp_name>
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash[' . $$ . ']';
+
 my @dis_cmds = @{ $data{'disabled_commands'} };
 $data{'disabled_commands'} = [];
 map { push( @{ $data{'disabled_commands'} }, $_ ) if $_ ne 'whoami' } @dis_cmds;
