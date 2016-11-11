@@ -76,6 +76,7 @@ if ( not defined $_[0] or $_[0] eq '' ) {
             $ENV{'USER'}            = $name;
             $ENV{'HOME'}            = $home_dir;
             $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
+            $ENV{'NO_AT_BRIDGE'}    = 1;
             chdir($home_dir) or warn "chdir($home_dir): $!\n";
 
             <[base.log]>->( 1, "changed priviledges to user '$_[0]'" );

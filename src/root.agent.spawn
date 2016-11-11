@@ -131,6 +131,7 @@ if ( exists $init_result_data->{'start_mode'}
             . "\$ENV{'USER'}='$prog_usr'; "
             . "\$ENV{'HOME'}='$privs->{home}'; "
             . "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}'; "
+            . "\$ENV{'NO_AT_BRIDGE'}=1; "
             . "chdir('$privs->{home}'); ";
         <[base.log]>->(
             1, "starting external '$agent_sn_str' program as '$prog_usr' .."
