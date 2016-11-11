@@ -141,7 +141,8 @@ foreach my $page_name (@page_list) {
         if $page_name !~ /^forecast_hours\.(.+)$/
         or not exists $data_ref->{'forecast'}->{'hours'};
 
-    my @timestamps = sort keys %{ $data_ref->{'forecast'}->{'hours'} };
+    my @timestamps
+        = sort { $a <=> $b } keys %{ $data_ref->{'forecast'}->{'hours'} };
 
     foreach my $sname ( split( /\./, $1 ) ) {
         my $snipplet_index;
@@ -219,7 +220,8 @@ foreach my $page_name (@page_list) {
         if $page_name !~ /^forecast_days\.(.+)$/
         or not exists $data_ref->{'forecast'}->{'days'};
 
-    my @timestamps = sort keys %{ $data_ref->{'forecast'}->{'days'} };
+    my @timestamps
+        = sort { $a <=> $b } keys %{ $data_ref->{'forecast'}->{'days'} };
 
     foreach my $sname ( split( /\./, $1 ) ) {
         my $snipplet_index;
