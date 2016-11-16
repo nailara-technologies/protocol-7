@@ -2,6 +2,15 @@
 
 # name = ticker-gtk.callback.draw
 
+# XXX: quickfix for somehow changed Gtk3 / Glib event behaviour ( focus?-bug )
+<ticker-gtk.watcher.idle> = Event->timer(
+    'after'    => 0.0167,
+    'interval' => 0.0167,
+    'cb'       => sub { Gtk3::main_iteration() },
+    'repeat'   => 1
+) if not defined <ticker-gtk.watcher.idle>;
+#
+
 if ( not defined <ticker-gtk.window_opened> or !<ticker-gtk.window_opened> ) {
     <ticker-gtk.obj.window>->queue_draw();
     <[base.sleep]>->(0.042);
