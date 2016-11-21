@@ -49,6 +49,9 @@ if ( !$rgba ) {
 
 $window->show_all;
 
+Glib::Timeout->add( 42,   sub {0} );  # XXX: <<< weird Gtk3 event bug hotfix >>>
+Glib::Timeout->add( 2342, sub {0} );  # making sure there was no race condition
+
 <ticker-gtk.obj.window> = $window;
 
 if ( !<ticker-gtk.window.force_above> ) {
