@@ -1,0 +1,14 @@
+# >:]
+
+# name = xserver.move_pointer
+
+my %coords = ( 'x' => $_[0], 'y' => $_[1] );
+map {
+    die "expected $_ parameter"
+        if not defined $coords{$_}
+        or $coords{$_} !~ /^\d+$/
+} ( 'x', 'y' );
+
+my $root = <xserver.x11>->root;
+<xserver.x11>
+    ->WarpPointer( $root, $root, 0, 0, 0, 0, $coords{'x'}, $coords{'y'} );
