@@ -4,6 +4,7 @@
 # descr = return 1 if dependency for given object id is fulfilled, 0 if not
 
 my $object_id = shift // '';
+my $event_id = shift;    # optional
 
 if ( not exists <dependency.object>->{$object_id} ) {
     <[base.log]>->(
@@ -38,6 +39,6 @@ foreach my $chain_object_id ( @{ <dependency.chain>->{$object_id} } ) {
         );
         return undef;
     }
-    return 0 if !$callback->( $chain_object_id, $object_id );
+    return 0 if !$callback->( $chain_object_id, $event_id );
 }
 return 1;
