@@ -1,0 +1,15 @@
+# >:]
+
+# name = mpv.handler.pipe.volume
+
+my $volume_str = shift // '';
+my $reply_id = shift @{<mpv.reply_ids>};
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'nack', 'data' => 'volume is undefined' }
+) if $volume_str !~ /\d$/;
+$volume_str =~ s|\.0+$||;
+$volume_str .= '%';
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'ack', 'data' => $volume_str }
+);
