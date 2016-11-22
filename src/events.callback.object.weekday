@@ -1,0 +1,13 @@
+# >:]
+
+# name = events.callback.object.weekday
+
+my ( $day_obj, $event_id ) = @_;
+
+my $current_day = [localtime]->[6];
+
+return 0
+    if defined <events.setup>->{$event_id}->{'days'}
+    and not exists <events.setup>->{$event_id}->{'days'}->{$current_day};
+
+return 1;
