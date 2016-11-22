@@ -5,16 +5,22 @@
 
 use Date::Parse;
 
-<events.setup>   //= {};
-<events.enabled> //= {};
-
+<events.setup>     //= {};
+<events.enabled>   //= {};
 <events.timetable> //= {};
-
+<events.day_regex> //= {
+    0 => qr/^Su(n(day)?)?$/i,
+    1 => qr/^Mo(n(day)?)?$/i,
+    2 => qr/^Tu(e(sday)?)?$/i,
+    3 => qr/^We(d(nesday)?)?$/i,
+    4 => qr/^Th(u(rsday)?)?$/i,
+    5 => qr/^Fr(i(day)?)?$/i,
+    6 => qr/^Sa(t(urday)?)?$/i,
+};
 <events.intervals> //= {};
 <events.weekdays>  //= {};
 <events.dates>     //= {};
-
-<events.timers> //= {};
+<events.timers>    //= {};
 
 if ( keys %{<events.timetable>} ) {
     <[base.log]>->( 1, "skipping event setup (already initialized).." );
@@ -22,8 +28,6 @@ if ( keys %{<events.timetable>} ) {
 }
 
 my $config_data = <[base.load_section_config]>->('events.setup.example');
-
-# print Dumper($config_data);
 
 my @enabled;
 map { <events.enabled>->{$_} = 1; push( @enabled, $_ ) }
@@ -36,14 +40,40 @@ if (@enabled) {
     <[base.log]>->( 0, "no events enabled in configuration!" );
 }
 
+<[dependency.install_callbacks]>->('events');
+
+<event.dep_id.weekdays>
+    //= <[dependency.add_object]>->( { 'type' => 'weekday' } );
+
 foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
     next if ref $config_data->{'events'}->{$event_name} ne 'HASH';
 
     my $ev_id = <[base.gen_id]>->(<events.setup>);
     <events.setup>->{$ev_id} = {
         'name'   => $event_name,
-        'action' => $config_data->{'events'}->{$event_name}->{'action'}
+        'action' => $config_data->{'events'}->{$event_name}->{'action'},
+        'dep_id' => <[dependency.add_object]>->( { 'type' => 'event' } ),
+        'days'   => undef
     };
+
+    if ( defined $config_data->{'timetable'}->{$event_name}->{'days'} ) {
+        foreach my $day_name (
+            split(
+                / +/,
+                delete $config_data->{'timetable'}->{$event_name}->{'days'}
+            )
+            ) {
+            map {
+                <events.setup>->{$ev_id}->{'days'}->{$_} = 1
+                    if $day_name =~ <events.day_regex>->{$_}
+            } ( keys %{<events.day_regex>} );
+        }
+    }
+
+    <[dependency.add]>->(
+        <events.setup>->{$ev_id}->{'dep_id'},
+        <event.dep_id.weekdays>
+    );
     if ( exists $config_data->{'timetable'}->{$event_name} ) {
         <events.timetable>->{$ev_id}
             = $config_data->{'timetable'}->{$event_name};
