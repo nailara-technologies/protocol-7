@@ -17,6 +17,16 @@ if ( not exists <events.enabled>->{$event_name}
     return;
 }
 
+if ( defined $ev_data->{'dep_id'}
+    and !<[dependency.ok]>->( $ev_data->{'dep_id'}, $ev_id ) ) {
+    <[base.log]>->(
+        2, "[IGNORED] '$event_name' event has unresolved dependencies"
+    );
+    return;
+} else {
+    <[base.log]>->( 2, "[OK] dependencies resolved [event '$event_name']" );
+}
+
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
 # print STDERR "\n\<events.handler.event_triggered> "
