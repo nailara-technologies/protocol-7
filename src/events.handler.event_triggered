@@ -70,12 +70,24 @@ if ( $action_type eq 'agent_running' ) {
         }
     );
 } elsif ( $action_type eq 'playlist_show_entry' ) {
+    my $entry_path = $action->{'entry'};
+    die "'entry' parameter is missing from '$action_type' setup"
+        if not defined $entry_path;
+    <events.stack.playlist>->{$entry_path}->{'visibility'} //= 0;
+    my $change = $ev_type eq 'end' ? -1 : 1;
+    <events.stack.playlist>->{$entry_path}->{'visibility'} += $change;
 
-    warn "'playlist_show_entry' action type not implelemted yet";
+    print STDERR "<show:$event_name> " . Dumper <events.stack>;
 
 } elsif ( $action_type eq 'playlist_hide_entry' ) {
+    my $entry_path = $action->{'entry'};
+    die "'entry' parameter is missing from '$action_type' setup"
+        if not defined $entry_path;
+    <events.stack.playlist>->{$entry_path}->{'visibility'} //= 0;
+    my $change = $ev_type eq 'end' ? -1 : 1;
+    <events.stack.playlist>->{$entry_path}->{'visibility'} -= $change;
 
-    warn "'playlist_hide_entry' action type not implelemted yet";
+    print STDERR "<hide:$event_name> " . Dumper <events.stack>;
 
 }
 
