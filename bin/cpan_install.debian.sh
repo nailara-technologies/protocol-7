@@ -2,7 +2,7 @@
 
 # installs cpanm and some basic (packaged) cpan modules
 apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
-  libio-all-perl libcrypt-cbc-perl libproc-processtable-perl\
+  libio-all-perl libcrypt-cbc-perl libproc-processtable-perl libdigest-crc-perl\
   libsdl-perl libtext-lorem-perl libevent-perl liblwpx-paranoidagent-perl\
   libproc-processtable-perl libglib-perl libterm-readpassword-perl\
   libterm-readline-perl-perl libx11-protocol-perl libhash-flatten-perl\
@@ -22,8 +22,6 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
 cpanm Crypt::Twofish2 Crypt::Curve25519 Crypt::Ed25519 \
                 POSIX::1003 CryptX XML::RSS::TimingBot \
                 File::MimeInfo::Magic Config::Hosts HTTP::Soup \
-                Mediainfo Poppler Device::Gembird \
-                https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git \
-                Digest::BLAKE2
+                Mediainfo Poppler Device::Gembird
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit X11::Tops
