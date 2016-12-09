@@ -29,9 +29,6 @@ if ( defined $ev_data->{'dep_id'}
 
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
-# print STDERR "\n\<events.handler.event_triggered> "
-#      . Dumper( $event, $ev_data ) . "\n";
-
 if ( $action_type eq 'agent_running' ) {
     my $command;
     my $agent_name = $action->{'agent_name'};
@@ -70,25 +67,20 @@ if ( $action_type eq 'agent_running' ) {
         }
     );
 } elsif ( $action_type eq 'playlist_show_entry' ) {
-    my $entry_path = $action->{'entry'};
-    die "'entry' parameter is missing from '$action_type' setup"
-        if not defined $entry_path;
-    <events.stack.playlist>->{$entry_path}->{'visibility'} //= 0;
+    my $b8id = $action->{'b8id'};
+    die "'b8id' parameter is missing from '$action_type' setup"
+        if not defined $b8id;
+    <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
-    <events.stack.playlist>->{$entry_path}->{'visibility'} += $change;
-
-    print STDERR "<show:$event_name> " . Dumper <events.stack>;
+    <events.stack.playlist>->{$b8id}->{'visibility'} += $change;
 
 } elsif ( $action_type eq 'playlist_hide_entry' ) {
-    my $entry_path = $action->{'entry'};
-    die "'entry' parameter is missing from '$action_type' setup"
-        if not defined $entry_path;
-    <events.stack.playlist>->{$entry_path}->{'visibility'} //= 0;
+    my $b8id = $action->{'b8id'};
+    die "'b8id' parameter is missing from '$action_type' setup"
+        if not defined $b8id;
+    <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
-    <events.stack.playlist>->{$entry_path}->{'visibility'} -= $change;
-
-    print STDERR "<hide:$event_name> " . Dumper <events.stack>;
-
+    <events.stack.playlist>->{$b8id}->{'visibility'} -= $change;
 }
 
 if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
@@ -97,3 +89,7 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
     <event.timer.recalc> = <[event.add_timer]>
         ->( { 'at' => time + 1, 'handler' => 'events.recalc' } );
 }
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => "core.playlist.update" } )
+    if index( $action_type, 'playlist_' ) == 0;

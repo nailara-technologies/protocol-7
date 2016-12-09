@@ -35,7 +35,10 @@ if (    defined <discover.mcast.obj.sock>
 <discover.mcast.obj.sock>->mcast_loopback(<discover.mcast.mesg_loop>) or die $!;
 
 <[base.log]>->(
-    1, sprintf( ": joining multicast group [%s]", <discover.mcast.ip4_addr> )
+    1,
+    sprintf(
+        ": joining local multicast group [%s]", <discover.mcast.ip4_addr>
+    )
 );
 
 <discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>) || die $!;
