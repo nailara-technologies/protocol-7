@@ -37,12 +37,13 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     my @timer_types = defined $u_event->{'at'} ? ('at') : ( 'start', 'end' );
 
     <[base.log]>->(
-        2,
-        "setting up timer for event $ev_id "
-            . "(..in $event_in seconds..) [$e_start]"
+        2, "[timer setup] event $ev_id (..in $event_in seconds..) [$e_start]"
     );
     <events.timers>->{$ev_id} = {};
+    my $all_in_past = 1;
+    map { $all_in_past = 0 if $u_event->{$_} >= $current_time } @timer_types;
     map {
+        my $action_type = <events.setup>->{$ev_id}->{'action'}->{'type'};
         <events.timers>->{$ev_id}->{$_} = <[event.add_timer]>->(
             {   'at'      => $u_event->{$_},
                 'handler' => 'events.handler.event_triggered',
@@ -53,16 +54,23 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 }
             }
             )
-            if $_ ne 'start'
-            or ( $mode ne 'recalc'
-            or $u_event->{$_} >= $current_time );
+            if ( $mode ne 'recalc' or $action_type !~ /^playlist_/ )
+            or (
+            !$all_in_past
+            and (  $_ ne 'start'
+                or $mode ne 'recalc'
+                or $u_event->{$_} >= $current_time )
+            );
 
-        if ( <events.setup>->{$ev_id}->{'action'}->{'type'} =~ /^playlist_/ ) {
-            my $entry = <events.setup>->{$ev_id}->{'action'}->{'entry'} //= '';
-            if ( !length($entry) ) {
-                warn "'entry' not defined in event '$ev_id'";
+        #            if $_ ne 'start' and $u_event->{$_} >= $current_time
+        #            or $mode ne 'recalc' and $action_type !~ /^playlist_/;
+
+        if ( $action_type =~ /^playlist_/ ) {
+            my $b8id = <events.setup>->{$ev_id}->{'action'}->{'b8id'} //= '';
+            if ( !length($b8id) ) {
+                warn "playlist entry 'b8id' not defined in event '$ev_id'";
             } else {
-                <events.stack.playlist>->{$entry}->{'visibility'} //= 0;
+                <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
             }
         }
     } @timer_types;

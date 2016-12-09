@@ -1,0 +1,38 @@
+# >:]
+
+# name = events.callback.object.date_frame
+# todo = check / 86400 for rest (validity)
+
+my ( $day_obj, $event_id ) = @_;
+
+my $timetable = <events.timetable>->{$event_id};
+
+my $current_time = <[base.time]>->(4);
+
+return 1
+    if not defined $timetable->{'date_first'}
+    and not defined $timetable->{'date_last'};
+
+my $utime_from
+    = defined $timetable->{'date_first'}
+    ? str2time( $timetable->{'date_first'} )
+    : undef;
+
+my $utime_until
+    = defined $timetable->{'date_last'}
+    ? str2time( $timetable->{'date_last'} ) + 86400
+    : undef;
+
+# XXX: check str2time for returning undef ( invalid date-/timestamp syntax )
+
+<[base.log]>->(
+    0, "< events.callback.object.date_frame >  [ $utime_from - $utime_until ]"
+);
+
+return 0 if defined $utime_until and $utime_until < $current_time;
+return 0 if defined $utime_from  and $current_time < $utime_from;
+
+<[base.log]>
+    ->( 0, "< events.callback.object.date_frame >  FRAME IS VALID ..." );
+
+return 1;
