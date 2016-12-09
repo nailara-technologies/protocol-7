@@ -17,7 +17,7 @@ playlist.cfg.allow_url_flag_syntax= 1
 update.notify_agents = media mpv browser impressive
 #update.restart_on_empty = rss-ticker ticker-sdl weather
 
-modules.load = auth net io.ip config.json digest.sha playlist
+modules.load = auth net io.ip config.json digest.sha digest.crc playlist debug
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -29,9 +29,6 @@ playlist.file_name = '<system.conf_path>/config.playlist.default'
 
 [playlist.load_file:<playlist.file_name>]
 
-[base.get_session_id]
-playlist.agent_online = 1
-
-[playlist.check_queued]
+[playlist.update_hidden]
 
 [event.loop]

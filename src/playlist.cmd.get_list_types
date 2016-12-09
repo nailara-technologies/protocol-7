@@ -20,6 +20,9 @@ foreach my $file ( @{<playlist.file_list>} ) {
         if defined $subname
         and exists <playlist.agent_subnames>->{$index}
         and not exists <playlist.agent_subnames>->{$index}->{$subname};
+    next
+        if defined <playlist.b8id>->{$index}
+        and grep {/^$data{playlist}{b8id}{$index}$/} @{<playlist.hidden_b8id>};
 
     my @url_flags;
     map {

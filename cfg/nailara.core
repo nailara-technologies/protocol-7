@@ -37,7 +37,7 @@ access.cmd.usr.system = xserver.get_driver xserver.get_xorg_pid \
                         root.stop root.force_mod_reload root.start \
                         root.notify_online
 
-access.cmd.usr.events = root.start_once root.stop_implicit
+access.cmd.usr.events = root.start_once root.stop_implicit playlist.update
 
 access.cmd.usr.config = get_config *.get_config_names *.get_config
 
@@ -102,7 +102,8 @@ access.cmd.usr.loadsplash = xserver.wait_visible
 access.cmd.usr.storchencam = xserver.wait_visible
 
 access.cmd.usr.playlist = *.playlist_update weather.get_urls notify.msg_reload \
-                          download.get_mimetype root.restart
+                          download.get_mimetype root.restart \
+                          events.get_playlist_hidden
 
 access.cmd.usr.playlist-update = playlist.reload_file playlist.update \
                                  layout.config_name root.restart
