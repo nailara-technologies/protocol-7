@@ -15,7 +15,7 @@ if ( !-f $file_path ) {
     return -1;
 }
 
-<[playlist.update_hidden]> if defined <playlist.b8id>;
+<[playlist.update_hidden]> if defined <playlist.b8id_reverse>;
 
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
@@ -72,8 +72,7 @@ foreach my $file (@file_names) {
     ( my $parsed_line = $file ) =~ s/^([^:]+:) /$1/;
     $parsed_line =~ s/ \([^\)]+\)$//;
 
-    my $b8id = <playlist.b8id>->{$file_index}
-        = <[digest.crc.b64u_r8]>->($parsed_line);
+    my $b8id = <[digest.crc.b64u_r8]>->($parsed_line);
     <playlist.b8id_reverse>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
