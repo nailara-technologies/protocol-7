@@ -1,0 +1,11 @@
+# >:]
+
+# name = playlist.update_hidden
+
+<[base.log]>->( 2, "fetching playlist event stack ... [updating hidden]" );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => 'core.events.get_playlist_hidden',
+        'reply'   => { 'handler' => 'playlist.handler.get_hidden_reply' }
+    }
+);

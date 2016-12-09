@@ -15,6 +15,8 @@ if ( !-f $file_path ) {
     return -1;
 }
 
+<[playlist.update_hidden]> if defined <playlist.b8id>;
+
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
 if ( exists <playlist.mime_type.retry_timer> ) {
@@ -39,6 +41,7 @@ map {
 } @lines;
 
 <playlist.file_list>      = [];
+<playlist.b8id>           = {};
 <playlist.file_types>     = {};
 <playlist.agent_subnames> = {};
 <playlist.items_queued>   = 0;
@@ -65,6 +68,13 @@ my $file_index = 0;
 foreach my $file (@file_names) {
     my $agent_subname;
     my $type = 'unknown';
+
+    ( my $parsed_line = $file ) =~ s/^([^:]+:) /$1/;
+    $parsed_line =~ s/ \([^\)]+\)$//;
+
+    my $b8id = <playlist.b8id>->{$file_index}
+        = <[digest.crc.b64u_r8]>->($parsed_line);
+    <playlist.b8id_reverse>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
     $type          = 'unknown' if $type eq 'url';
@@ -156,10 +166,11 @@ foreach my $file (@file_names) {
     }
 
     push( @{<playlist.file_list>}, $file );
+
     delete <playlist.file_error_logged>->{$file}
         if exists <playlist.file_error_logged>->{$file};
 
-    <playlist.file_types>->{$file} = $type;
+    <playlist.file_types>->{$file} //= $type;
 
     ### URL flags ###
     if ( defined $flag_str ) {
@@ -189,4 +200,5 @@ if ( <playlist.had_network_errors> and !<playlist.network_errors> ) {
     delete <playlist.retry_delay>;
     <[base.log]>->( 1, ": all network errors resolved! :)" );
 }
+
 return scalar @file_names;

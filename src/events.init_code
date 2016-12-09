@@ -29,6 +29,16 @@ if ( keys %{<events.timetable>} ) {
 
 my $config_data = <[base.load_section_config]>->('events.setup.example');
 
+<[base.init_modules]>->('config.json');
+
+<[config.json.import_file]>->('events.config.json');
+$config_data = merge( $config_data, <import.playlist> );
+
+my @ev_names = keys %{<import.playlist.events>};
+foreach my $ev_name (@ev_names) {
+    <events.enabled>->{$ev_name} = 1;
+}
+
 my @enabled;
 map { <events.enabled>->{$_} = 1; push( @enabled, $_ ) }
     split( / +/, $config_data->{'events'}->{'enabled'} )
@@ -44,6 +54,8 @@ if (@enabled) {
 
 <event.dep_id.weekdays>
     //= <[dependency.add_object]>->( { 'type' => 'weekday' } );
+<event.dep_id.date_frame>
+    //= <[dependency.add_object]>->( { 'type' => 'date_frame' } );
 
 foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
     next if ref $config_data->{'events'}->{$event_name} ne 'HASH';
@@ -69,11 +81,12 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
             } ( keys %{<events.day_regex>} );
         }
     }
-
-    <[dependency.add]>->(
-        <events.setup>->{$ev_id}->{'dep_id'},
-        <event.dep_id.weekdays>
-    );
+    map {
+        <[dependency.add]>->(
+            <events.setup>->{$ev_id}->{'dep_id'},
+            <event.dep_id>->{$_}
+            )
+    } ( 'weekdays', 'date_frame' );
     if ( exists $config_data->{'timetable'}->{$event_name} ) {
         <events.timetable>->{$ev_id}
             = $config_data->{'timetable'}->{$event_name};
