@@ -5,9 +5,10 @@
 my $index = shift;
 die "expected playlist entry index" if not defined $index;
 
-my $entry_str = defined <playlist.agent_subnames>->{$index}
+my $entry_str
+    = defined <playlist.agent_subnames>->{$index}
     ? join( ':',
-    <playlist.agent_subnames>->{$index},
+    [ keys( %{ <playlist.agent_subnames>->{$index} } ) ]->[0],
     <playlist.file_list>->[$index] )
     : <playlist.file_list>->[$index];
 
