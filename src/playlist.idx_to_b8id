@@ -1,0 +1,14 @@
+# >:]
+
+# name = playlist.idx_to_b8id
+
+my $index = shift;
+die "expected playlist entry index" if not defined $index;
+
+my $entry_str = defined <playlist.agent_subnames>->{$index}
+    ? join( ':',
+    <playlist.agent_subnames>->{$index},
+    <playlist.file_list>->[$index] )
+    : <playlist.file_list>->[$index];
+
+return <[digest.crc.b64u_r8]>->($entry_str);
