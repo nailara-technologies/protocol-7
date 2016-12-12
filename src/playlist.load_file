@@ -15,7 +15,7 @@ if ( !-f $file_path ) {
     return -1;
 }
 
-<[playlist.update_hidden]> if defined <playlist.b8id_reverse>;
+<[playlist.update_hidden]> if defined <playlist.b8id_src_str>;
 
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
@@ -41,7 +41,7 @@ map {
 } @lines;
 
 <playlist.file_list>      = [];
-<playlist.b8id_reverse>   = {};
+<playlist.b8id_src_str>   = {};
 <playlist.file_types>     = {};
 <playlist.agent_subnames> = {};
 <playlist.items_queued>   = 0;
@@ -73,7 +73,7 @@ foreach my $file (@file_names) {
     $parsed_line =~ s/ \([^\)]+\)$//;
 
     my $b8id = <[digest.crc.b64u_r8]>->($parsed_line);
-    <playlist.b8id_reverse>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
+    <playlist.b8id_src_str>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
     $type          = 'unknown' if $type eq 'url';
