@@ -1,0 +1,18 @@
+# >:]
+
+# name  = mpv.cmd.set_volume
+# param = <volume%>
+# descr = set playback volume [0-100%]
+
+my $volume = $$call{'args'} // '';
+
+return { 'mode' => 'nack', 'data' => 'expected volume in percent' }
+    if !length($volume)
+    or $volume !~ /^\d+(\.\d+)?%?$/;
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'volume changed';
+
+<[mpv.send_command]>->( 'set_property', 'volume', sprintf( "%0.3f", $volume ) );
+
+return { 'mode' => 'later' };

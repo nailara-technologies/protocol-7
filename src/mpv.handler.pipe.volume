@@ -9,7 +9,7 @@ return <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => 'nack', 'data' => 'volume is undefined' }
 ) if $volume_str !~ /\d$/;
 $volume_str =~ s|\.0+$||;
-$volume_str .= '%';
 <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'ack', 'data' => $volume_str }
+    $reply_id,
+    { 'mode' => 'ack', 'data' => sprintf( "%.3f", $volume_str ) . '%' }
 );
