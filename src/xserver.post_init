@@ -230,6 +230,18 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
 <[xserver.cmd.rotate_screen]>->( { 'args' => <xserver.orientation> } )
     if !<xserver.keep_unchanged>;
 
+## custom xrandr ##
+
+map {
+    system( '/usr/bin/xrandr', split( / +/, <xserver.custom_xrandr>->{$_} ) )
+    }
+    sort {
+    $a <=> $b
+    } keys %{<xserver.custom_xrandr>}
+    if <xserver.mode> eq 'xorg'
+    and defined <xserver.custom_xrandr>
+    and ref(<xserver.custom_xrandr>) eq 'HASH';
+
 ## keyboard ##
 
 <xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
