@@ -14,8 +14,8 @@ return { 'mode' => 'nack', 'data' => 'requested command matches blacklist!' }
     if $cmd_str =~ /run|hook/;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-<mpv.success_reply_str> = "mpv reported success :)";
 
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.command' } );
 <[mpv.send_command]>->( split / +/, $cmd_str );
 
 return { 'mode' => 'later' };
