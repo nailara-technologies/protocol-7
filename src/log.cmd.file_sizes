@@ -1,0 +1,49 @@
+# >:]
+
+# name  = log.cmd.file_sizes
+# descr = list current nailara log file sizes
+
+return { 'mode' => 'nack', 'data' => 'nailara log directory not found' }
+    if !-d <log.nailara_log.path>;
+
+my $reply_str = '';
+my $hostname  = <system.host.hostname>;
+
+my %unit_value = (
+    'T' => 1024**4,
+    'G' => 1024**3,
+    'M' => 1024**2,
+    'K' => 1024
+);
+
+my $total = 0;
+my %file_size_str;
+my %file_size_raw;
+my %file_size_uval;
+
+map {
+    ( my $file_name = $_ ) =~ s|^.+\/||;
+    $total += $file_size_raw{$file_name} = [ stat("$_") ]->[7];
+    $file_size_str{$file_name}
+        = <[base.parser.human.fsize]>->( $file_size_raw{$file_name} );
+    $file_size_uval{$file_name} = $1 * $unit_value{$2}
+        if $file_size_str{$file_name} =~ /^(.+)(\w)$/;
+    } grep {
+    /\/$hostname\.[^\/]+\.log$/
+    } @{ <[file.all_files]>->(<log.nailara_log.path>) };
+
+foreach my $file_name (
+    sort { $file_size_uval{$a} <=> $file_size_uval{$b} }
+    sort { "$a" cmp "$b" } keys %file_size_str
+    ) {
+    $reply_str
+        .= sprintf( ":   %-7s :  $file_name\n", $file_size_str{$file_name} );
+}
+
+$reply_str
+    .= sprintf( "=\\  %-6s /=  <---\n", <[base.parser.human.fsize]>->($total) );
+
+return {
+    'mode' => 'raw',
+    'data' => $reply_str
+    }
