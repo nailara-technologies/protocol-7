@@ -1,0 +1,21 @@
+# >:]
+
+# name  = hide-mouse.cmd.restore_cursor
+# descr = restore default X11 mouse cursor
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+Gtk3->init;
+
+my $cursor = Gtk3::Gdk::Cursor->new('arrow');
+my $screen = Gtk3::Gdk::Screen::get_default();
+
+Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
+
+<[base.log]>->( 1, 'restoring default mouse cursor..' );
+
+$screen->get_root_window->set_cursor($cursor);
+
+Gtk3->main;
+
+return { 'mode' => 'ack', 'data' => 'arrow cursor has been restored' }
