@@ -13,8 +13,14 @@ use Socket;
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [$!]";
 
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
 <weather.child.pid> = fork;
 if ( !<weather.child.pid> ) {    ## child ##
+
+    <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+
     close($child_pipe);
     delete <weather.pipe.child> if exists <weather.pipe.child>;
     <weather.pipe.parent> = $parent_pipe;
