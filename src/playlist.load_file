@@ -156,7 +156,7 @@ foreach my $file (@file_names) {
     if (    $file !~ /^\w+:\/\//
         and $file !~ /^\[.+\]$/
         and !-e $file ) {
-        delete <playlist.agent_subnames>->{$file_index};
+        delete <playlist.agent_subnames>->{ $file_index-- };
         my $type_str = $type eq 'unknown' ? 'content' : $type;
         <[base.log]>->( 0, "$type_str file '$file' not found!" )
             if not exists <playlist.file_error_logged>->{$file};
