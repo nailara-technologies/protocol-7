@@ -1,0 +1,12 @@
+# >:]
+
+# name  = core.cmd.basepath
+# descr = return current command path (set by 'select')
+
+my $sid = shift->{'session_id'};
+
+return { 'mode' => 'nack', 'data' => 'not set' }
+    if not defined $data{'session'}{$sid}{'base_path'}
+    or !length( $data{'session'}{$sid}{'base_path'} );
+
+return { 'mode' => 'ack', 'data' => $data{'session'}{$sid}{'base_path'} }
