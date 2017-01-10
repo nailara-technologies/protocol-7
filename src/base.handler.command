@@ -71,6 +71,10 @@ if ( $$input
     $cmd = $1;
     if ( $$input =~ s/^(\($re->{cmd_id}\)|)[\w\d\-\_\.]+\+\n//o ) {
 
+        # core agent 'select' command [ base path prefix handling ]
+        $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
+            if defined $data{'session'}{$id}{'base_path'};
+
         # read argument header
 
         my $_cmd_id = '';
@@ -145,6 +149,11 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\d\-\_\.]+)( +(.+)|)\n//o ) {
     $_[0]->w->start;
 
     ( $cmd, $$call_args{'args'} ) = ( $1, $4 );
+
+    # core agent 'select' command [ base path prefix handling ]
+    $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
+        if defined $data{'session'}{$id}{'base_path'}
+        and $cmd !~ /^(\($re->{cmd_id}\)|) *(unselect|basepath)$/;
 
     $command_mode = 1;
 }
