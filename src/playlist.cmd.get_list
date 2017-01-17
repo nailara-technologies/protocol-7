@@ -13,6 +13,7 @@ $subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
 
 map { $file_types{$_} = 1 } split / +/, $file_types_str;
 
+my %b8_index;
 my $index = -1;
 foreach my $file ( @{<playlist.file_list>} ) {
     $index++;
@@ -21,7 +22,15 @@ foreach my $file ( @{<playlist.file_list>} ) {
         and exists <playlist.agent_subnames>->{$index}
         and not exists <playlist.agent_subnames>->{$index}->{$subname};
 
-    my $b8id_str = <[playlist.idx_to_b8id]>->($index);
+    my $sn_line_str
+        = ( exists <playlist.agent_subnames>->{$index}
+            and keys %{ <playlist.agent_subnames>->{$index} } )
+        ? join( ':',
+        [ keys %{ <playlist.agent_subnames>->{$index} } ]->[0], $file )
+        : $file;
+
+    my $b8id_str
+        = <[digest.crc.b64u_r8]>->( ++$b8_index{$sn_line_str}, $sn_line_str );
     next if grep {/^$b8id_str$/} @{<playlist.hidden_b8id>};
 
     my @url_flags;
