@@ -64,7 +64,8 @@ if ( !@file_names ) {
     return 0;
 }
 
-my $file_index = 0;
+my %b8_index;
+my $file_index = -1;
 foreach my $file (@file_names) {
     my $agent_subname;
     my $type = 'unknown';
@@ -72,7 +73,8 @@ foreach my $file (@file_names) {
     ( my $parsed_line = $file ) =~ s/^([^:]+:) /$1/;
     $parsed_line =~ s/ \([^\)]+\)$//;
 
-    my $b8id = <[digest.crc.b64u_r8]>->($parsed_line);
+    my $b8id
+        = <[digest.crc.b64u_r8]>->( ++$b8_index{$parsed_line}, $parsed_line );
     <playlist.b8id_src_str>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
