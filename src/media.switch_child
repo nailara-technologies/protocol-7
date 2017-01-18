@@ -5,7 +5,7 @@
 my $agent_name = shift;
 
 <media.cfg.fade_on_switch>    //= 0;
-<media.cfg.fade_step_inteval> //= 0.01;
+<media.cfg.fade_step_interval> //= 0.01;
 
 <media.sequence.startup> //= 1;
 <media.sequence.position>++;
@@ -52,8 +52,8 @@ if (    <media.cfg.fade_on_switch>
     );
 
     <media.timer.switch>->{$window_id}->{'fade'} = <[event.add_timer]>->(
-        {   'after'    => <media.cfg.fade_step_inteval>,
-            'interval' => <media.cfg.fade_step_inteval>,
+        {   'after'    => <media.cfg.fade_step_interval>,
+            'interval' => <media.cfg.fade_step_interval>,
             'handler'  => 'media.handler.switch_fade',
             'data' => { 'agent_name' => $agent_name, 'window_id' => $window_id }
         }
@@ -69,7 +69,7 @@ if (    <media.cfg.fade_on_switch>
 );
 
 if (<media.loadsplash_running>) {
-    <[base.log]>->( 2, "stopping agent " . <media.lsp_name> );
+    <[base.log]>->( 1, "stopping agent " . <media.lsp_name> );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.root.stop_implicit",
             'call_args' => { 'args' => <media.lsp_name> }
