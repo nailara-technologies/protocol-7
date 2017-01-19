@@ -12,7 +12,7 @@ my ( $ok, $output ) = ( 0, '' );
 my $known = 0;
 my @keywords = ( 'config', 'source', 'plugins', 'init', 'all' );
 if ( not defined $arg ) {
-    <[base.log]>->( 0, "[" . $id . "] no reload keyword specified." );
+    <[base.log]>->( 0, "[$id] no reload keyword specified." );
     return {
         'mode' => 'nack',
         'data' => 'no reload keyword specified' . ' < '
@@ -33,7 +33,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     $known = 1;
     delete $data{'base'}{'help'};
     $data{'callbacks'}{'end_code'} = [];
-    <[base.log]>->( 1, "[" . $id . "] reloading source code!" );
+    <[base.log]>->( 1, "[$id] reloading source code!" );
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
     my $failed = <[base.load_modules]>->("base $data{modules}{load}");
     if ( !$failed and !<base.modules.load_errors> ) {
@@ -55,7 +55,7 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
     $known = 1;
-    <[base.log]>->( 1, "[" . $id . "] reinitializing modules!" );
+    <[base.log]>->( 1, "[$id] reinitializing modules!" );
     if ( <[base.init_modules]>->() ) {
         $$reply{'data'} .= "reinit modules\t:  ok\n";
         $ok = 1;
@@ -65,11 +65,11 @@ if ( $arg eq 'init' or $arg eq 'all' ) {
 }
 if ( !$known ) {
     <[base.log]>->(
-        0, "[" . $id . "] invalid reload keyword '" . $arg . "' called!"
+        0, "[$id] invalid reload keyword '$arg' called!"
     );
     return { 'mode' => 'nack', 'data' => "unknown reload keyword '$arg'!" };
 }
 if ( !$ok ) {
-    <[base.log]>->( 0, "[" . $id . "] reloading $arg FAIL!" );
+    <[base.log]>->( 0, "[$id] reloading $arg FAIL!" );
 }
 $$reply{'mode'} = 'raw'
