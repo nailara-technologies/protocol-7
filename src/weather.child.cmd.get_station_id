@@ -1,6 +1,8 @@
 # >:]
 
-# name = weather.child.cmd.get_station_id
+# name  = weather.child.cmd.get_station_id
+# param = <city>
+# descr = query / return station id for requested city
 
 my $station_id;
 my $city_name = $$call{'args'};
@@ -35,4 +37,3 @@ foreach my $city_data ( @{ $json_response->{'list'} } ) {
 }
 
 return { 'mode' => 'ack', 'data' => $station_id }
-
