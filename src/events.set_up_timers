@@ -54,7 +54,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 }
             }
             )
-            if ( $mode ne 'recalc' or $action_type !~ /^playlist_/ )
+            if ( $mode ne 'recalc' or $action_type !~ /^(layout|playlist)_/ )
             or (
             !$all_in_past
             and (  $_ ne 'start'
@@ -62,8 +62,8 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 or $u_event->{$_} >= $current_time )
             );
 
-        #            if $_ ne 'start' and $u_event->{$_} >= $current_time
-        #            or $mode ne 'recalc' and $action_type !~ /^playlist_/;
+        #        if $_ ne 'start' and $u_event->{$_} >= $current_time
+        #        or $mode ne 'recalc' and $action_type !~ /^(layout|playlist)_/;
 
         if ( $action_type =~ /^playlist_/ ) {
             my $b8id = <events.setup>->{$ev_id}->{'action'}->{'b8id'} //= '';

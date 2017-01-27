@@ -68,6 +68,7 @@ die "layout config file '$config_filename' not found!"
 skip_load:    # <- jumping here if layout has already been imported as json!
 
 my $current_cfg = <layout.cfg_directory> . '/layout.current';
+my $restore_layout_name;
 
 if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
     <[base.log]>->( 1, "loading 'layout.current' config..." );
@@ -90,7 +91,7 @@ if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
                 <[base.log]>->(
                     0, "restoring previous layout '$layout_name'..."
                 );
-                <layout.default_layout> = $layout_name;
+                $restore_layout_name = $layout_name;
             }
         }
     } else {
@@ -105,7 +106,7 @@ if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
     or not defined <layout.default_layout>
     or !length(<layout.default_layout>);
 
-my $layout_name = <layout.default_layout>;
+my $layout_name = $restore_layout_name // <layout.default_layout>;
 my $log_level   = 1;
 my $default_str = ' default ';
 if ( not exists <layout.config.layouts>->{$layout_name} ) {

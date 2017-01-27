@@ -33,11 +33,10 @@ my $config_data = <[base.load_section_config]>->('events.setup.example');
 
 <[config.json.import_file]>->('events.config.json');
 $config_data = merge( $config_data, <import.playlist> );
+$config_data = merge( $config_data, <import.layout> );
 
-my @ev_names = keys %{<import.playlist.events>};
-foreach my $ev_name (@ev_names) {
-    <events.enabled>->{$ev_name} = 1;
-}
+map { <events.enabled>->{$_} = 1 }
+    ( keys %{<import.playlist.events>}, keys %{<import.layout.events>} );
 
 my @enabled;
 map { <events.enabled>->{$_} = 1; push( @enabled, $_ ) }
@@ -69,15 +68,16 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
     };
 
     if ( defined $config_data->{'timetable'}->{$event_name}->{'days'} ) {
-        foreach my $day_name (
-            split(
-                / +/,
-                delete $config_data->{'timetable'}->{$event_name}->{'days'}
-            )
-            ) {
+        my @selected_days;
+        my $day_ref
+            = delete $config_data->{'timetable'}->{$event_name}->{'days'};
+        @selected_days = sort keys %{$day_ref} if ref($day_ref) eq 'HASH';
+        @selected_days = sort @{$day_ref}      if ref($day_ref) eq 'ARRAY';
+        @selected_days = sort split( / +/, $day_ref ) if ref($day_ref) eq '';
+        foreach my $day_name (@selected_days) {
             map {
                 <events.setup>->{$ev_id}->{'days'}->{$_} = 1
-                    if $day_name =~ <events.day_regex>->{$_}
+                    if $day_name =~ <events.day_regex>->{$_};
             } ( keys %{<events.day_regex>} );
         }
     }
