@@ -19,6 +19,7 @@ $ENV{'DISPLAY'} = <x11.display>;
         'reply'     => { 'handler' => 'media.handler.loadsplash_started' }
     }
 );
+
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "core.root.start_once",
         'call_args' => { 'args' => <media.lsp_name> }
@@ -28,10 +29,5 @@ $ENV{'DISPLAY'} = <x11.display>;
 undef %SIG;
 $SIG{'INT'} = $SIG{'TERM'} = sub {
     undef %SIG;
-    <[base.log]>->( 2, "stopping agent " . <media.lsp_name> );
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.stop_implicit",
-            'call_args' => { 'args' => <media.lsp_name> }
-        }
-    );
+    <[media.stop_loadsplash]>;
 };
