@@ -31,11 +31,11 @@ if ( <media.child>->{$agent_name}->{'status'} eq 'starting' ) {
     $was_starting = 1;
 }
 
-my $all_ready = 1;
-map { $all_ready = 0 if <media.child>->{$_}->{'status'} ne 'ready' }
+<media.children_ready> = 1;
+map { <media.children_ready> = 0 if <media.child>->{$_}->{'status'} ne 'ready' }
     keys %{<media.child>};
 
-if ( $all_ready and $was_starting ) {
+if ( <media.children_ready> and $was_starting ) {
     <[base.log]>->( 1, "agent children are now online! :)" );
     <[base.x11.assign_window]>->(
         join( ',',
@@ -43,18 +43,12 @@ if ( $all_ready and $was_starting ) {
     );
 }
 
-if ($all_ready) {
+if (<media.children_ready>) {
     if ( defined $switch_agent ) {
         <[media.switch_child]>->($switch_agent) if @{<media.playlist.files>};
     } elsif (<media.loadsplash_running>) {    # (empty playlist case)
         <media.playlist_was_empty> = 1;
-        <[base.log]>->( 1, "stopping agent " . <media.lsp_name> );
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.root.stop_implicit",
-                'call_args' => { 'args' => <media.lsp_name> }
-            }
-        );
-        <media.loadsplash_running> = 0;
+        <[media.stop_loadsplash]>;
     }
 }
 
