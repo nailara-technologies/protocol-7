@@ -40,7 +40,7 @@ $window->set_default_size( 1, 1 );
 if (<loadsplash.composited>) {
     <loadsplash.comp_at_startup> = 1;
     $window->set_visual( $screen->get_rgba_visual() );
-    $window->set_opacity(0);
+    $window->set_opacity( 1 + int( <loadsplash.do_fade_in> > 0 ) );
 } else {
     $window->set_visual( $screen->get_system_visual() );
 }
