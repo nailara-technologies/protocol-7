@@ -20,7 +20,15 @@ if ( <loadsplash.fade_mode> eq 'in'
     and ( !<loadsplash.composited> or !<loadsplash.do_fade_in> ) ) {
     $window->move( <x11.coordinates>->{'left'}, <x11.coordinates>->{'top'} );
     $window->set_size_request( <loadsplash.width>, <loadsplash.height> );
-    <[base.async.get_session_id]>;    # agent status -> 'online'
+    my $min_delay = sprintf( "%.4f",
+        <loadsplash.min_startup_delay>
+            - ( <[base.time]>->(4) - <loadsplash.min_startup_time> ) );
+    $min_delay = 0 if $min_delay < 0;
+    <[event.add_timer]>->(
+        {   'after'   => $min_delay,
+            'handler' => 'loadsplash.callback.report_online'
+        }
+    );
     <loadsplash.fade_mode> = 'idle';
     return;
 } elsif ( !<loadsplash.composited> and <loadsplash.fade_mode> eq 'out' ) {
@@ -61,7 +69,15 @@ if ( <loadsplash.fade_mode> eq 'out' ) {    ## fade out ##
 
     if ( $opacity >= 1 ) {
         delete <loadsplash.fade_in.start_time>;
-        <[base.async.get_session_id]>;    # agent status -> 'online'
+        my $min_delay = sprintf( "%.4f",
+            <loadsplash.min_startup_delay>
+                - ( <[base.time]>->(4) - <loadsplash.min_startup_time> ) );
+        $min_delay = 0 if $min_delay < 0;
+        <[event.add_timer]>->(
+            {   'after'   => $min_delay,
+                'handler' => 'loadsplash.callback.report_online'
+            }
+        );
         <loadsplash.fade_mode> = 'idle';
     }
 
