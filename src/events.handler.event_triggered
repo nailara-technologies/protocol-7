@@ -29,6 +29,9 @@ if ( defined $ev_data->{'dep_id'}
 
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
+die "'layout_name' parameter is missing from '$action_type' setup"
+    if $action_type =~ /^layout_/ and not defined $action->{'layout_name'};
+
 if ( $action_type eq 'agent_running' ) {
     my $command;
     my $agent_name = $action->{'agent_name'};
@@ -66,7 +69,7 @@ if ( $action_type eq 'agent_running' ) {
             'call_args' => $args_ref
         }
     );
-} elsif ( $action_type eq 'playlist_show_entry' ) {
+} elsif ( $action_type eq 'playlist_show_entry' ) {    ### PLAYLIST EVENTS ###
     my $b8id = $action->{'b8id'};
     die "'b8id' parameter is missing from '$action_type' setup"
         if not defined $b8id;
@@ -81,6 +84,18 @@ if ( $action_type eq 'agent_running' ) {
     <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.playlist>->{$b8id}->{'visibility'} -= $change;
+
+} elsif ( $action_type eq 'layout_show' ) {    ### --- LAYOUT SHOW ---
+    my $l_name = $action->{'layout_name'};
+    <events.stack.layout.visibility>->{$l_name} //= 0;
+    my $change = $ev_type eq 'end' ? -1 : 1;
+    <events.stack.layout.visibility>->{$l_name} += $change;
+
+} elsif ( $action_type eq 'layout_hide' ) {    ### --- LAYOUT HIDE ---
+    my $l_name = $action->{'layout_name'};
+    <events.stack.layout.visibility>->{$l_name} //= 0;
+    my $change = $ev_type eq 'end' ? -1 : 1;
+    <events.stack.layout.visibility>->{$l_name} -= $change;
 }
 
 if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
@@ -93,3 +108,35 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
 <[base.proto.nailara.command.send.local]>
     ->( { 'command' => "core.playlist.update" } )
     if index( $action_type, 'playlist_' ) == 0;
+
+if ( $action_type =~ /^layout_/ ) {
+    <events.layout.cfg_directory> //= '/etc/nailara/nailara.layout';
+    delete <events.stack.layout.visibility>->{ $action->{'layout_name'} }
+        if <events.stack.layout.visibility>->{ $action->{'layout_name'} } == 0;
+    my @layout_stack = sort {
+        <events.stack.layout.visibility>->{$a} <=>
+            <events.stack.layout.visibility>->{$b}
+    } keys %{<events.stack.layout.visibility>};
+    my $current_layout = pop @layout_stack;
+    my $restore_config
+        = -d <events.layout.cfg_directory>
+        ? <events.layout.cfg_directory> . '/layout.current'
+        : undef;
+    if ( defined $current_layout
+        and <events.stack.layout.visibility>->{$current_layout} ) {
+        <[file.put]>->(
+            $restore_config,
+            sprintf( "%.4f %s\n", <[base.time]>->(4), $current_layout )
+        ) if defined $restore_config;
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.layout.switch_to',
+                'call_args' => { 'args' => $current_layout }
+            }
+        );
+    } else {
+        unlink $restore_config
+            if defined $restore_config and -f $restore_config;
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => 'core.layout.select_default' } );
+    }
+}
