@@ -16,16 +16,16 @@ if ( <loadsplash.composited> and !$window->is_composited ) {  ## comp changed ##
 
 <loadsplash.fade_mode> //= 'in';
 
-if ( !<loadsplash.composited> and <loadsplash.fade_mode> eq 'in' ) {
+if ( <loadsplash.fade_mode> eq 'in'
+    and ( !<loadsplash.composited> or !<loadsplash.do_fade_in> ) ) {
     $window->move( <x11.coordinates>->{'left'}, <x11.coordinates>->{'top'} );
     $window->set_size_request( <loadsplash.width>, <loadsplash.height> );
     <[base.async.get_session_id]>;    # agent status -> 'online'
     <loadsplash.fade_mode> = 'idle';
     return;
 } elsif ( !<loadsplash.composited> and <loadsplash.fade_mode> eq 'out' ) {
-    $window->set_size_request( 1, 1 );
-    Gtk3->main_quit;
-    exit(0);
+    $window->hide;
+    <loadsplash.fade_mode> = 'quit';
 }
 
 if ( <loadsplash.fade_mode> eq 'out' ) {    ## fade out ##
@@ -39,9 +39,8 @@ if ( <loadsplash.fade_mode> eq 'out' ) {    ## fade out ##
     if ( $opacity > 0 ) {
         $window->set_opacity($opacity);
     } else {
-        $window->set_size_request( 1, 1 );
-        Gtk3->main_quit;
-        exit(0);
+        $window->hide;
+        <loadsplash.fade_mode> = 'quit';
     }
 
 } elsif ( <loadsplash.fade_mode> eq 'in' ) {    ## fade in ##
@@ -67,4 +66,7 @@ if ( <loadsplash.fade_mode> eq 'out' ) {    ## fade out ##
     }
 
     $window->queue_draw();
+} elsif ( <loadsplash.fade_mode> eq 'quit' ) {
+    Gtk3->main_quit;
+    exit(0);
 }
