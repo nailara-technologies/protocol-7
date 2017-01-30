@@ -10,10 +10,14 @@ return { 'mode' => 'nack', 'data' => 'file not found' } if !-f $file_path;
 
 <ticker-gtk.content.sha> //= '';
 my $new_sha = <[digest.sha1]>->($file_path);
-if ( $new_sha eq <ticker-gtk.content.sha> ) {
-    <[base.log]>->( 2, "content unchanged, update skipped.." );  # <- XXX: lvl 2
-    return { 'mode' => 'ack', 'data' => 'content unchanged' };
-}
+
+## disabled: had new checksum but old content !
+#
+# if ( $new_sha eq <ticker-gtk.content.sha> ) {
+#     <[base.log]>->( 2, "content unchanged, update skipped.." );
+#     return { 'mode' => 'ack', 'data' => 'content unchanged' };
+# }
+
 <ticker-gtk.content.sha> = $new_sha;
 <ticker-gtk.content.txt> = ${ <[file.slurp]>->($file_path) };
 
@@ -25,5 +29,7 @@ if ( $new_sha eq <ticker-gtk.content.sha> ) {
 <[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
 
 <ticker.current_file> = $file_path;
+
+<[base.log]>->( 1, "content updated [$new_sha]" ); # debug
 
 return { 'mode' => 'ack', 'data' => 'content updated' }
