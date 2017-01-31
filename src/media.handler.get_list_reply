@@ -39,6 +39,14 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 
     <[media.stop_loadsplash]> if <media.loadsplash_running>;
 
+    if ( !<media.declared_online> ) {
+        <media.declared_online>++;
+        <[base.async.get_session_id]>;
+        <[base.log]>->(
+            1, "reported agent as online, skipping sub-agent startup [no files]"
+        );
+    }
+
     <media.playlist.files> = [];
     map { <media.playlist.agent>->{$_} = [] } @{<media.display_agents>};
     foreach my $hide_agent ( keys %{<media.child>} ) {
