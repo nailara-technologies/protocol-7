@@ -124,6 +124,7 @@ if ( $action_type =~ /^layout_/ ) {
         : undef;
     if ( defined $current_layout
         and <events.stack.layout.visibility>->{$current_layout} ) {
+        <[base.log]>->( 1, "writing 'layout.current' config.. [active event]" );
         <[file.put]>->(
             $restore_config,
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_layout )
