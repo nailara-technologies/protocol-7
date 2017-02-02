@@ -82,6 +82,12 @@ if ($absolute_path) {
 } else {
     <[base.log]>->( 1, "importing json cfg '$filename'.." );
 }
+
+if ( -z $import_path ) {
+    <[base.log]>->( 0, "json config [$filename] is empty.. [not expected!]" );
+    return {};
+}
+
 my $json_data;
 <[file.slurp]>->( $import_path, \$json_data );
 
