@@ -17,7 +17,8 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libclass-accessor-lite-perl libc6-dev
 
 cpanm CryptX POSIX::1003 Crypt::Curve25519 Crypt::Ed25519 \
-      https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git Digest::BLAKE2
+      https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git Digest::BLAKE2 \
+      File::MimeInfo::Magic
 
 
 # XXX cpan2deb --recursive --build --install-deps --install-build-deps --install
