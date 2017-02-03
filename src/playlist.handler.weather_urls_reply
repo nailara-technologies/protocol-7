@@ -5,10 +5,9 @@
 my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    <[base.log]>->(
+    return <[base.log]>->(
         0, "failed to fetch url [" . $reply->{'call_args'}->{'args'} . "]"
     );
-    return;
 }
 
 my $city    = $reply->{'params'}->{'city'};
@@ -64,13 +63,9 @@ if ($changes) {
     my $update_cmd = <update.notify_command> || 'playlist_update';
     my $count = 0;
     map {
-        # XXX: check agent name syntax!
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.$_.$update_cmd",
-                'call_args' => {},
-                'reply' => { 'handler' => 'dev.null' }    # XXX: check response!
-            }
-        );
+        # XXX: check agent name syntax [+response]!
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => "core.$_.$update_cmd" } );
         $count++;
     } split( / +/, <update.notify_agents> );
     my $s = $count == 1 ? '' : 's';
