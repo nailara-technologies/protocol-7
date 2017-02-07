@@ -10,8 +10,9 @@ return { 'mode' => 'nack', 'data' => 'expected file or url' }
     if not defined $file or !length($file);
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-<mpv.success_reply_str> = 'command sent';
+<mpv.success_reply_str> = 'playback requested';
 
 <[mpv.send_command]>->( 'loadfile', $file, 'replace' );
+<[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
 
 return { 'mode' => 'later' };
