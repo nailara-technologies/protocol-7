@@ -14,6 +14,8 @@ if (<system.agent.mode> eq 'media-child'
     push( @{<mpv.reply_ids>}, 'silent' );
     <mpv.success_reply_str> = '[PAUSE]d';
     <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+} else {
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
 }
 
 <mpv.current.load_iteration>++;
