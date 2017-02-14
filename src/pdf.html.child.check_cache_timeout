@@ -23,7 +23,7 @@ foreach my $subdir ( readdir($dir_fh) ) {
 
     if ($remove_cache) {
         my $errors = [];
-        <[base.log]>->( 1, "cache directory '$subdir' timed out, removing.." );
+        <[base.log]>->( 1, "cache directory '$subdir' expired, removing.." );
         remove_tree( "$cache_dir/$subdir", { error => \$errors } );
         for my $err (@$errors) {
             my ( $file, $message ) = %$err;
