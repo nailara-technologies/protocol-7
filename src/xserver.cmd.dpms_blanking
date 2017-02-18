@@ -21,7 +21,7 @@ if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
 
 my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();
 
-<xserver.x11>->DPMSEnable() if $dpms_enabled;
+<xserver.x11>->DPMSEnable() if !$dpms_enabled;
 <xserver.x11>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
 <xserver.x11>->DPMSInfo();
 
