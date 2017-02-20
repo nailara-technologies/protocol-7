@@ -84,14 +84,6 @@ if (<layout.startup.initializing>) {
 <layout.layers>      = {};
 
 foreach my $agent_name ( keys %{$layout_data} ) {
-    next
-        if !<layout.startup.initializing>
-        and defined $previous_layout
-        and exists $previous_data->{$agent_name}
-        and cmpStr( $previous_data->{$agent_name}, $layout_data->{$agent_name} )
-        == 0;    # agent setup identical (not touching running agent)
-
-    <layout.window_ids>->{$agent_name} //= undef;
 
     <layout.coordinates>->{$agent_name}
         = <[layout.calculate_coordinates]>->( $layout_data->{$agent_name} );
@@ -112,6 +104,14 @@ foreach my $agent_name ( keys %{$layout_data} ) {
         }
     }
 
+    next
+        if !<layout.startup.initializing>
+        and defined $previous_layout
+        and exists $previous_data->{$agent_name}
+        and cmpStr( $previous_data->{$agent_name}, $layout_data->{$agent_name} )
+        == 0;    # agent setup identical (not touching running agent)
+
+    <layout.window_ids>->{$agent_name} //= undef;
     <layout.transition.status.agents.start>->{$agent_name} = $layout_name;
 }
 
