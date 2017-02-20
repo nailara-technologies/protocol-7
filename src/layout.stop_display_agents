@@ -4,7 +4,7 @@
 # descr = quick fix to avoid remaining x11 agents on layout agent restart
 
 if ( defined <layout.startup.stop_agents> ) {
-    <[base.log]>->( 1, "stopping dispay agents (if present)" );
+    <[base.log]>->( 1, "stopping display agents (if present)" );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.root.stop_implicit",
             'call_args' => { 'args' => <layout.startup.stop_agents> }
@@ -12,7 +12,7 @@ if ( defined <layout.startup.stop_agents> ) {
     );
 }
 if ( defined <layout.startup.restart_agents> ) {
-    <[base.log]>->( 1, "restarting dispay agents (if present)" );
+    <[base.log]>->( 1, "restarting display agents (if present)" );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.root.restart",
             'call_args' => { 'args' => <layout.startup.restart_agents> }
