@@ -1,0 +1,56 @@
+# >:]
+
+# name  = layout.cmd.add_overlay
+# param = <layout_name[s]>
+# descr = overlay specified layout on current
+
+my $overlay_str = $$call{'args'} // '';
+
+<layout.transition_queue> //= [];
+<layout.overlays.current> //= [];
+<layout.overlays.previous> = [ @{<layout.overlays.current>} ];
+
+return {
+    'mode' => 'nack',
+    'data' => "current layout is already '$overlay_str' - nothing to do !"
+    }
+    if $overlay_str eq <layout.current_layout>;
+
+my %new_overlays = map { $_ => 1 } split / +/, $overlay_str;
+my @new_overlays = sort keys %new_overlays;
+
+map {
+    return {
+        'mode' => 'nack',
+        'data' => "expected valid layout name"
+        }
+        if not defined $_ or !length($_);
+    return {
+        'mode' => 'nack',
+        'data' => "layout \"$overlay_str\" not found!"
+        }
+        if not exists <layout.config.layouts>->{$_};
+
+    push( @{<layout.overlays.current>}, $_ );
+} @new_overlays;
+
+( my $current_one = <layout.current_layout> ) =~ s|\+.*$||;
+
+my %uniq = map { $_ => 1 }
+    grep { length($_) and $_ ne $current_one } @{<layout.overlays.current>};
+@{<layout.overlays.current>} = sort keys %uniq;
+
+my $merged_name = join( '+', $current_one, @{<layout.overlays.current>} );
+
+<[base.log]>->( 2, "creating merged [overlay] layout '$merged_name'" );
+
+<layout.config.layouts>->{$merged_name}
+    = <layout.config.layouts>->{$current_one};
+
+map {
+    <layout.config.layouts>->{$merged_name}
+        = merge( <layout.config.layouts>->{$merged_name},
+        <layout.config.layouts>->{$_} );
+} @new_overlays;
+
+return <[layout.cmd.switch_to]>->( { 'args' => $merged_name } );

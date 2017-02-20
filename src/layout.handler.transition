@@ -214,7 +214,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     }
 }
 
-if (    $event_type eq 'instance_id'
+if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
     and !<layout.transition.status.waiting.i_id>
     and defined <layout.transition.status.agents.start> ) {
     my @start_agents = keys %{<layout.transition.status.agents.start>};
@@ -246,6 +246,12 @@ if ( defined <layout.transition.status.waiting> ) {    ## in progress? ##
         delete <layout.transition.status.waiting>;
         <layout.transition_in_progress> = 0;
         <[base.log]>->( 1, "transition complete." );
+
+        # cleaning up merged layouts [see overlays]
+        my $prev_layout = <layout.previous_layout>;
+        delete <layout.config.layouts>->{$prev_layout}
+            if defined $prev_layout and $prev_layout =~ /\+/;
+
         if ( defined <layout.transition_queue>
             and @{<layout.transition_queue>} ) {
             my $trans_count = scalar @{<layout.transition_queue>};
