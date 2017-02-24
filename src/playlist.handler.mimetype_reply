@@ -78,6 +78,7 @@ if ( $type eq 'unknown' ) {
 }
 
 <playlist.file_types>->{$url} = $type;
+<playlist.type_cache>->{$url} = $type if <playlist.cfg.cache_content_types>;
 
 my $update_cmd = <update.notify_command> || 'playlist_update';
 
