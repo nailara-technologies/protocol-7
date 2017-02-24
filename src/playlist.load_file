@@ -40,28 +40,34 @@ map {
     push( @file_names, $_ ) if length($_);
 } @lines;
 
-<playlist.file_list>      = [];
-<playlist.b8id_src_str>   = {};
+<playlist.file_list>    = [];
+<playlist.b8id_src_str> = {};
+<playlist.file_types>   = {};
+<playlist.type_cache> //= {};
 <playlist.file_types>     = {};
 <playlist.agent_subnames> = {};
 <playlist.items_queued>   = 0;
 <playlist.network_errors> = 0;
-<playlist.had_network_errors> //= 0;
+<playlist.had_network_errors>      //= 0;
+<playlist.cfg.cache_content_types> //= 0;
 
 if ( !@file_names ) {
+    <playlist.type_cache> = {};
     <[base.log]>->( 0, "no files in playlist!" );
     my $update_cmd = <update.notify_command> || 'playlist_update';
-    map {
-        <[base.proto.nailara.command.send.local]>
-            ->( { 'command' => "core.$_.$update_cmd", } );
-    } split( / +/, <update.notify_agents> );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.root.restart",
             'call_args' => { 'args' => <update.restart_on_empty> }
         }
     ) if defined <update.restart_on_empty>;
-
+    map {
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => "core.$_.$update_cmd" } );
+    } split( / +/, <update.notify_agents> );
     return 0;
+} else {
+
+    # XXX: need file type cache auto cleanup + delay and combine update requests
 }
 
 my %b8_index;
@@ -122,7 +128,15 @@ foreach my $file (@file_names) {
     if ( $type eq 'unknown' and -f $file ) {
         $type = mimetype($file);
     } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
-        if ($check_types) {
+        if (    $check_types
+            and <playlist.cfg.cache_content_types>
+            and defined <playlist.type_cache>->{$file} ) {
+            $type = <playlist.type_cache>->{$file};
+            <[base.log]>->(
+                2, "using cached file type '$type' [entry #$file_index]"
+            );
+        } elsif ($check_types) {
+
             if ( !$check_logged ) {
                 <[base.log]>->( 1, ': checking http content types ...' );
                 $check_logged = 1;
@@ -172,6 +186,8 @@ foreach my $file (@file_names) {
         if exists <playlist.file_error_logged>->{$file};
 
     <playlist.file_types>->{$file} //= $type;
+    <playlist.type_cache>->{$file} = $type
+        if !<playlist.cfg.cache_content_types> or $type !~ /^:[^:]+:$/;
 
     ### URL flags ###
     if ( defined $flag_str ) {
