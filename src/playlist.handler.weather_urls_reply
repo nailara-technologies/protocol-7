@@ -41,8 +41,11 @@ foreach my $list_item ( @{<playlist.file_list>} ) {
                     = delete <playlist.agent_subnames>->{$idx_2};
             }
         }
+        my $content_type = 'html';
         map {
-            <playlist.file_types>->{$_} = 'html';
+            <playlist.file_types>->{$_} = $content_type;
+            <playlist.type_cache>->{$_} = $content_type
+                if <playlist.cfg.cache_content_types>;
             <playlist.agent_subnames>->{$file_index}->{$subname} = 1
                 if defined $subname;
             $file_index++;
