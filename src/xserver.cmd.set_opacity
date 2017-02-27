@@ -1,15 +1,15 @@
 # >:]
 
 # name  = xserver.cmd.set_opacity
-# param = <id> <opacity>
+# param = <w_id> <opacity>
 # descr = set window opacity in percent [0..100]
 
 my $X = <xserver.x11>;
 my ( $window_id, $opacity ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'window <id> required' }
+return { 'mode' => 'nack', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nack', 'data' => 'invalid window <id> syntax' }
+return { 'mode' => 'nack', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 return { 'mode' => 'nack', 'data' => 'window <opacity> required' }
     if not defined $opacity;
