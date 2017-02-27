@@ -1,12 +1,12 @@
 # >:]
 
 # name  = xserver.cmd.set_geometry
-# param = <id> <geometry>
-# descr = apply new geometry string to specified window
+# param = <win_id> <geometry>
+# descr = apply geometry to window
 
 my ( $id, $geometry ) = split( / +/, $$call{'args'}, 2 );
 
-return { 'mode' => 'nack', 'data' => 'required window <id> and <geometry>' }
+return { 'mode' => 'nack', 'data' => 'required x11 window id and <geometry>' }
     if not defined $id or not defined $geometry;
 return { 'mode' => 'nack', 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;

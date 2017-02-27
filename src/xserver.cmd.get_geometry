@@ -1,14 +1,14 @@
 # >:]
 
 # name  = xserver.cmd.get_geometry
-# param = <id>
-# descr = return the window width, height and position
+# param = <w_id>
+# descr = return window position, width and height
 
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'window <id> required' }
+return { 'mode' => 'nack', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nack', 'data' => 'invalid window <id> syntax' }
+return { 'mode' => 'nack', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <xserver.x11_tops>;

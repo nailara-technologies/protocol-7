@@ -1,12 +1,12 @@
 # >:]
 
 # name  = xserver.cmd.set_gravity
-# param = <id> <direction>
+# param = <w_id> <direction>
 # descr = move window to the specified screen border
 
 my ( $id, $gravity ) = split( / +/, $$call{'args'}, 2 );
 
-return { 'mode' => 'nack', 'data' => 'required window <id> and <gravity>' }
+return { 'mode' => 'nack', 'data' => 'required x11 window id and <gravity>' }
     if not defined $id or not defined $gravity;
 return { 'mode' => 'nack', 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;
