@@ -12,7 +12,7 @@ my $log_dir = "$home_path/.cache/openbox";
 make_path($log_dir)
     or die "can't create directory '$home_path' [$!]";
 
-map { remove_tree($_) if -d $_ } glob('/tmp/.openbox-*');
+map { remove_tree($_) if -d $_ and ( -o $_ or -w $_ ) } glob('/tmp/.openbox-*');
 
 <openbox.home_path>            = $home_path;
 <openbox.log_file>             = "$log_dir/openbox.log";
@@ -35,7 +35,8 @@ die "[!] openbox binary not found [!]\n"
     if not defined <openbox.version> or !length(<openbox.version>);
 
 $SIG{'TERM'} = sub {
-    map { remove_tree($_) if -d $_ } glob('/tmp/.openbox-*');
+    map { remove_tree($_) if -d $_ and ( -o $_ or -w $_ ) }
+        glob('/tmp/.openbox-*');
 };
 
 0;
