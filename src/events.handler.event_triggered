@@ -96,6 +96,17 @@ if ( $action_type eq 'agent_running' ) {
     <events.stack.layout.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.layout.visibility>->{$l_name} -= $change;
+} elsif ( $action_type eq 'overlay_show' ) {    ### --- OVERLAY SHOW ---
+    my $l_name = $action->{'layout_name'};
+    <events.stack.overlay.visibility>->{$l_name} //= 0;
+    my $change = $ev_type eq 'end' ? -1 : 1;
+    <events.stack.overlay.visibility>->{$l_name} += $change;
+
+} elsif ( $action_type eq 'overlay_hide' ) {    ### --- OVERLAY HIDE ---
+    my $l_name = $action->{'layout_name'};
+    <events.stack.overlay.visibility>->{$l_name} //= 0;
+    my $change = $ev_type eq 'end' ? -1 : 1;
+    <events.stack.overlay.visibility>->{$l_name} -= $change;
 }
 
 if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
@@ -109,8 +120,9 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
     ->( { 'command' => "core.playlist.update" } )
     if index( $action_type, 'playlist_' ) == 0;
 
+<events.layout.cfg_directory> //= '/etc/nailara/nailara.layout';
+
 if ( $action_type =~ /^layout_/ ) {
-    <events.layout.cfg_directory> //= '/etc/nailara/nailara.layout';
 
     delete <events.stack.layout.visibility>->{ $action->{'layout_name'} }
         if 0 == ( <events.stack.layout.visibility>->{ $action->{'layout_name'} }
@@ -143,4 +155,30 @@ if ( $action_type =~ /^layout_/ ) {
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => 'core.layout.select_default' } );
     }
+}
+if ( $action_type =~ /^overlay_(show|hide)$/ ) {
+    my $show_hide    = $1;
+    my $overlay_name = $action->{'layout_name'};
+    my $command_str  = (
+               $show_hide eq 'show' and $ev_type eq 'end'
+            or $show_hide eq 'hide' and $ev_type eq 'start'
+    ) ? 'remove' : 'add';
+
+    if ( $command_str eq 'add'
+        and <events.stack.overlay.visibility>->{$overlay_name} ) {
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.layout.add_overlay',
+                'call_args' => { 'args' => $overlay_name }
+            }
+        );
+    } elsif ( $command_str eq 'remove'
+        and !<events.stack.overlay.visibility>->{$overlay_name} ) {
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.layout.remove_overlay',
+                'call_args' => { 'args' => $overlay_name }
+            }
+        );
+    }
+    delete <events.stack.overlay.visibility>->{$overlay_name}
+        if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
