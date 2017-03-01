@@ -69,7 +69,20 @@ die "layout config file '$config_filename' not found!"
 skip_load:    # <- jumping here if layout has already been imported as json!
 
 my $current_cfg = <layout.cfg_directory> . '/layout.current';
+my $default_cfg = <layout.cfg_directory> . '/layout.default';
 my $restore_layout_name;
+
+if ( -f $default_cfg ) {
+
+    if ( defined <layout.default_layout>
+        and <layout.default_layout> ne ${ <[file.slurp]>->($default_cfg) } ) {
+        <[base.log]>->( 0, "<!> default layout has changed <!>" );
+        unlink($current_cfg) or warn "unlink($current_cfg): $!";
+
+    } else {
+        unlink($default_cfg) or warn "unlink($default_cfg): $!";
+    }
+}
 
 if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
     <[base.log]>->( 1, "loading 'layout.current' config..." );
@@ -127,6 +140,14 @@ $layout_name //= <layout.default_layout>;
 <layout.current_layout> = $layout_name;
 
 <[base.log]>->( $log_level, "selected${default_str}layout '$layout_name'" );
+
+if ( defined <layout.default_layout> ) {
+    ( my $fname = $default_cfg ) =~ s|^.*/||g;
+    <[base.log]>->(
+        2, 'writing default "' . <layout.default_layout> . "\" to '$fname'.."
+    );
+    <[file.put]>->( $default_cfg, <layout.default_layout> );
+}
 
 map {
     <base.watcher.signal>->{$_}->cancel
