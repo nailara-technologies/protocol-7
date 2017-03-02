@@ -259,6 +259,14 @@ if ( defined <layout.transition.status.waiting> ) {    ## in progress? ##
             <[base.log]>->( 1, "found $trans_count queued transition$s.." );
             <[layout.cmd.switch_to]>
                 ->( { 'args' => shift @{<layout.transition_queue>} } );
+        } elsif ( defined <layout.restore.overlays>
+            and @{<layout.restore.overlays>} ) {
+            my $count = scalar @{<layout.restore.overlays>};
+            my $s = $count > 1 ? 's' : '';
+            <[base.log]>->( 1, "restoring $count layout overlay$s.." );
+            <[layout.cmd.add_overlay]>
+                ->( { 'args' => join( ' ', @{<layout.restore.overlays>} ) } );
+            delete <layout.restore.overlays>;
         }
     }
 }
