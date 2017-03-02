@@ -100,12 +100,25 @@ if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
             unlink($current_cfg) or warn("unlink($current_cfg): $!");
         } else {
             <[base.log]>->( 2, "processing 'layout.current' config..." );
+
             if ( defined <layout.default_layout>
                 and <layout.default_layout> ne $layout_name ) {
                 <[base.log]>->(
                     0, "restoring previous layout '$layout_name'..."
                 );
-                $restore_layout_name = $layout_name; # XXX: add overlay support!
+                $restore_layout_name = $layout_name;
+            }
+
+            my @overlays;
+            @overlays = split( /\+/, $1 ) if $layout_name =~ s/\+(.+)$//;
+            if (@overlays) {
+                my $s = @overlays > 1 ? 's' : '';
+                <[base.log]>->(
+                    0,
+                    "restoring previous overlay$s: "
+                        . join( ', ', @overlays ) . " .."
+                );
+                <layout.restore.overlays> = \@overlays;
             }
         }
     } else {
