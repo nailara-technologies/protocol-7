@@ -4,6 +4,11 @@
 
 my @overlay_list = @_;
 
+if ( not defined <layout.current_layout> ) {
+    warn "layout.current_layout not defined, skipping merge..";
+    return undef;
+}
+
 ( my $current_one = <layout.current_layout> ) =~ s|\+.*$||;
 
 my %uniq = map { $_ => 1 }
