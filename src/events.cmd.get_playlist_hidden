@@ -5,13 +5,31 @@
 
 my $reply_str = '';
 
-map {
-    $reply_str .= "$_\n"
+my %hidden;
+
+map {    # SHOW/HIDE
+    $hidden{$_} = 1
         if defined <events.stack.playlist>->{$_}->{'action'}->{'type'}
         and <events.stack.playlist>->{$_}->{'action'}->{'type'} ne
         'playlist_exclusive_entry'
         and <events.stack.playlist>->{$_}->{'visibility'} < 1
     }
     keys %{<events.stack.playlist>};
+
+map {    # EXCLUSIVE
+    my $action = <events.setup>->{$_}->{'action'};
+    if (    defined $action
+        and defined $action->{'type'}
+        and $action->{'type'} eq 'playlist_exclusive_entry' ) {
+        my $b8id = $action->{'b8id'};
+        $hidden{$b8id} = 1
+            if not exists <events.stack.exclusive>->{$b8id}
+            and ( not defined <events.stack.playlist>->{$b8id}
+            or <events.stack.playlist>->{$b8id}->{'visibility'} < 1 );
+    }
+    }
+    keys %{<events.setup>};
+
+map { $reply_str .= "$_\n" } keys %hidden;
 
 return { 'mode' => 'raw', 'data' => $reply_str }
