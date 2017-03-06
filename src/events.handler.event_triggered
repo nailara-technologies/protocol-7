@@ -70,20 +70,33 @@ if ( $action_type eq 'agent_running' ) {
         }
     );
 } elsif ( $action_type eq 'playlist_show_entry' ) {    ### PLAYLIST EVENTS ###
-    my $b8id = $action->{'b8id'};
+    my $b8id = $action->{'b8id'};                      # SHOW event
     die "'b8id' parameter is missing from '$action_type' setup"
         if not defined $b8id;
     <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.playlist>->{$b8id}->{'visibility'} += $change;
 
-} elsif ( $action_type eq 'playlist_hide_entry' ) {
+} elsif ( $action_type eq 'playlist_hide_entry' ) {    # HIDE event
     my $b8id = $action->{'b8id'};
     die "'b8id' parameter is missing from '$action_type' setup"
         if not defined $b8id;
     <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.playlist>->{$b8id}->{'visibility'} -= $change;
+
+} elsif ( $action_type eq 'playlist_exclusive_entry' ) {    # EXCLUSIVE event
+    my $b8id = $action->{'b8id'};
+    die "'b8id' parameter is missing from '$action_type' setup"
+        if not defined $b8id;
+    <events.stack.exclusive>->{$b8id} //= 0;
+    if ( $ev_type eq 'start' ) {
+        <events.stack.exclusive>->{$b8id}++;
+    } elsif ( $ev_type eq 'end' ) {
+        <events.stack.exclusive>->{$b8id}--;
+        delete <events.stack.exclusive>->{$b8id}
+            if !<events.stack.exclusive>->{$b8id};
+    }
 
 } elsif ( $action_type eq 'layout_show' ) {    ### --- LAYOUT SHOW ---
     my $l_name = $action->{'layout_name'};
@@ -137,6 +150,7 @@ if ( $action_type =~ /^layout_/ ) {
         = -d <events.layout.cfg_directory>
         ? <events.layout.cfg_directory> . '/layout.current'
         : undef;
+
     if ( defined $current_layout
         and <events.stack.layout.visibility>->{$current_layout} ) {
         <[base.log]>->( 1, "writing 'layout.current' config.. [active event]" );
@@ -156,6 +170,7 @@ if ( $action_type =~ /^layout_/ ) {
             ->( { 'command' => 'core.layout.select_default' } );
     }
 }
+
 if ( $action_type =~ /^overlay_(show|hide)$/ ) {
     my $show_hide    = $1;
     my $overlay_name = $action->{'layout_name'};
