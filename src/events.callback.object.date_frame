@@ -25,14 +25,7 @@ my $utime_until
 
 # XXX: check str2time for returning undef ( invalid date-/timestamp syntax )
 
-<[base.log]>->(
-    0, "< events.callback.object.date_frame >  [ $utime_from - $utime_until ]"
-);
-
 return 0 if defined $utime_until and $utime_until < $current_time;
 return 0 if defined $utime_from  and $current_time < $utime_from;
-
-<[base.log]>
-    ->( 0, "< events.callback.object.date_frame >  FRAME IS VALID ..." );
 
 return 1;
