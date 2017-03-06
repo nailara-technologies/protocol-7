@@ -31,7 +31,18 @@ foreach my $file ( @{<playlist.file_list>} ) {
 
     my $b8id_str
         = <[digest.crc.b64u_r8]>->( ++$b8_index{$sn_line_str}, $sn_line_str );
-    next if grep {/^$b8id_str$/} @{<playlist.hidden_b8id>};
+
+    if ( defined <playlist.exclusive_b8id> ) {    # 'EXCLUSIVE' playlist event
+        ( my $entry_tile ) = ( keys %{ <playlist.agent_subnames>->{$index} } );
+        map {
+            next
+                if $_ eq $entry_tile
+                and not grep {/^$b8id_str$/}
+                @{ <playlist.exclusive_b8id>->{$_} }
+        } keys %{<playlist.exclusive_b8id>};
+    }
+
+    next if grep {/^$b8id_str$/} @{<playlist.hidden_b8id>}; # <- SHOW/HIDE event
 
     my @url_flags;
     map {
