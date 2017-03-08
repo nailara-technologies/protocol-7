@@ -1,0 +1,36 @@
+# >:]
+
+# name  = xserver.cmd.mouse_over_coords
+# param = <pos_x> <pos_y>
+# descr = move mouse pointer to given coordinates
+
+my $log_sid = $$call{'session_id'};
+my @params  = split( / +/, $$call{'args'} );
+my %coords  = ( 'x' => shift @params, 'y' => shift @params );
+map {
+    return { 'mode' => 'nack', 'data' => "expected $_ parameter" }
+        if not defined $coords{$_}
+        or $coords{$_} !~ /^\d+$/
+} ( 'x', 'y' );
+
+<[base.log]>->(
+    2,
+    "[$log_sid] hovering mouse pointer over position x=$coords{x}, y=$coords{y}"
+);
+
+<xserver.x11>->choose_screen(0);    # XXX: doesn't support multiple screens yet!
+my %screen_geom = <xserver.x11>->GetGeometry( <xserver.x11>->root );
+my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
+
+return {
+    'mode' => 'nack',
+    'data' => "mouse position must be within screen dimensions!"
+        . " [${width}x$height]"
+    }
+    if $coords{'x'} > $width
+    or $coords{'y'} > $height;
+
+<[xserver.move_pointer]>->( $coords{'x'}, $coords{'y'} );
+<xserver.x11>->QueryPointer( <xserver.x11>->root );
+
+return { 'mode' => 'ack', 'data' => "mouse position set" }
