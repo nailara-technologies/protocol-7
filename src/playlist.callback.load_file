@@ -1,0 +1,218 @@
+# >:]
+
+# name = playlist.callback.load_file
+
+my $file_path = shift;
+my $file_path //= <playlist.load_file.path>;
+my $check_logged = 0;
+my $check_types  = <playlist.http.check_content_types>;
+
+die "expected playlist file path"
+    if not defined $file_path or !length($file_path);
+( my $file_name = $file_path ) =~ s|^.*/||;
+
+if ( !-f $file_path ) {
+    <[base.log]>->( 0, "playlist file '$file_path' not found!" );
+    return -1;
+}
+
+<[base.log]>->( 1, "loading playlist file '$file_name'" );
+
+if ( exists <playlist.mime_type.retry_timer> ) {
+    map {
+        <playlist.mime_type.retry_timer>->{$_}->cancel
+            if <playlist.mime_type.retry_timer>->{$_}->is_active
+    } keys %{<playlist.mime_type.retry_timer>};
+    delete <playlist.mime_type.retry_timer>;
+}
+
+my @lines;
+my @file_names;
+<[file.slurp]>->( $file_path, \@lines );
+
+map {
+    $_ =~ s/^\s+|\s+$//g;
+    $_ =~ s|^ *#[^\n]*$||mg;
+    $_ =~ s| +#[^\n]*$||mg;
+    $_ =~ s|\n\n|\n|sg;
+    $_ =~ s/^\n|\n$//mg;
+    push( @file_names, $_ ) if length($_);
+} @lines;
+
+<playlist.file_list>    = [];
+<playlist.b8id_src_str> = {};
+<playlist.file_types>   = {};
+<playlist.type_cache> //= {};
+<playlist.file_types>     = {};
+<playlist.agent_subnames> = {};
+<playlist.items_queued>   = 0;
+<playlist.network_errors> = 0;
+<playlist.had_network_errors>      //= 0;
+<playlist.cfg.cache_content_types> //= 0;
+
+if ( !@file_names ) {
+    <playlist.type_cache> = {};
+    <[base.log]>->( 0, "no files in playlist!" );
+    my $update_cmd = <update.notify_command> || 'playlist_update';
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.root.restart",
+            'call_args' => { 'args' => <update.restart_on_empty> }
+        }
+    ) if defined <update.restart_on_empty>;
+    map {
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => "core.$_.$update_cmd" } );
+    } split( / +/, <update.notify_agents> );
+    return 0;
+} else {
+
+    # XXX: need file type cache auto cleanup + delay and combine update requests
+}
+
+my %b8_index;
+my $file_index = -1;
+foreach my $file (@file_names) {
+    $file_index++;
+    my $agent_subname;
+    my $type = 'unknown';
+
+    ( my $parsed_line = $file ) =~ s/^([^:]+:) /$1/;
+    $parsed_line =~ s/ \([^\)]+\)$//;
+
+    my $b8id
+        = <[digest.crc.b64u_r8]>->( ++$b8_index{$parsed_line}, $parsed_line );
+    <playlist.b8id_src_str>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
+
+    $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
+    $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
+    $type          = 'unknown' if $type eq 'url';
+    <playlist.agent_subnames>->{$file_index}->{$agent_subname} = 1
+        if defined $agent_subname;
+
+    ### URL flags ###
+    <playlist.cfg.allow_url_flag_syntax> //= 0;
+    my $flag_str;
+    if ( <playlist.cfg.allow_url_flag_syntax>
+        and $file =~ s/#\[([A-Z0-9_\.\|=]+)\]#$// ) {
+        $flag_str = lc($1);
+    }
+    $file =~ s|#\[[^\]]+\]#||g;    # cleanup
+
+    ### XXX: weather agent test hack ###
+    if ( $file =~ /^\[weather:(.+)\]$/ ) {
+
+        if ( not exists <playlist.agent_online> or !<playlist.agent_online> ) {
+            <playlist.items_queued>++;
+            $type = ':queued:';
+        } else {
+            ( my $city_str = $1 ) =~ s|\[.*$||g;
+            my $city = $city_str;
+            $city_str .= " [$agent_subname]" if defined $agent_subname;
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.weather.get_urls",
+                    'call_args' => { 'args' => $city_str },
+                    'reply'     => {
+                        'handler' => 'playlist.handler.weather_urls_reply',
+                        'params'  => {
+                            'city'    => $city,
+                            'subname' => $agent_subname
+                        }
+                    }
+                }
+            );
+            $type = ':waiting:';
+        }
+    }
+
+    ####################################
+
+    if ( $type eq 'unknown' and -f $file ) {
+        $type = mimetype($file);
+    } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
+        if (    $check_types
+            and <playlist.cfg.cache_content_types>
+            and defined <playlist.type_cache>->{$file} ) {
+            $type = <playlist.type_cache>->{$file};
+            <[base.log]>->(
+                2, "using cached file type '$type' [entry #$file_index]"
+            );
+        } elsif ($check_types) {
+
+            if ( !$check_logged ) {
+                <[base.log]>->( 1, ': checking http content types ...' );
+                $check_logged = 1;
+            }
+            <playlist.mime_type.retry_timer>->{$file} = <[event.add_timer]>->(
+                {   'after'   => 0,
+                    'handler' => 'playlist.callback.check_mimetype',
+                    'data'    => {
+                        'check_url'   => $file,
+                        'retry_delay' => <playlist.mime_retry.start_delay>
+                    }
+                }
+            ) if not exists <playlist.mime_type.retry_timer>->{$file};
+            $type = ':waiting:';
+        } else {
+            $type = 'html';
+        }
+    } elsif ( $file =~ m|^udp://| ) { # XXX: temporary hack for mcast live video
+        $type = 'video';
+    } elsif ( $type eq 'unknown' and -f $file ) {
+        <[base.log]>->( 0, "failed to determine type of local file '$file'!" );
+        next;
+    }
+
+    $type =~ s|^video/.*$|video|;
+    $type =~ s|^audio/.*$|audio|;
+    $type =~ s|^image/.*$|image|;
+    $type =~ s|^.*application.*/||;
+    $type =~ s|^text/||;
+    $type =~ s|;.*$||g;
+    $type =~ s| +|_|g;
+
+    if (    $file !~ /^\w+:\/\//
+        and $file !~ /^\[.+\]$/
+        and !-e $file ) {
+        delete <playlist.agent_subnames>->{ $file_index-- };
+        my $type_str = $type eq 'unknown' ? 'content' : $type;
+        <[base.log]>->( 0, "$type_str file '$file' not found!" )
+            if not exists <playlist.file_error_logged>->{$file};
+        <playlist.file_error_logged>->{$file} //= 1;
+        next;
+    }
+
+    push( @{<playlist.file_list>}, $file );
+
+    delete <playlist.file_error_logged>->{$file}
+        if exists <playlist.file_error_logged>->{$file};
+
+    <playlist.file_types>->{$file} //= $type;
+    <playlist.type_cache>->{$file} = $type
+        if !<playlist.cfg.cache_content_types> or $type !~ /^:[^:]+:$/;
+
+    ### URL flags ###
+    if ( defined $flag_str ) {
+        foreach my $flag_sub_str ( split /\|/, $flag_str ) {
+            my ( $flag_name, $flag_param ) = split( /=/, $flag_sub_str );
+            if ( not exists <playlist.url_flags>->{$flag_name} ) {
+                <[base.log]>->(
+                    1, "<::> invalid flag '$flag_name' requested! [$file]"
+                );
+                next;
+            }
+        }
+        my $s = $flag_str =~ s/\|/,/g ? 's' : '';
+        <[base.log]>->( 1, "<::> setting url flag$s for '$file'.." );
+        my $flag_reply
+            = <[playlist.cmd.set_flags]>
+            ->( { 'args' => join( ' ', $flag_str, $file ) } );
+        <[base.log]>->( 0, "<!> flag error on '$file' [$flag_reply->{data}]" )
+            if $flag_reply->{'mode'} ne 'ack';
+    }
+}
+
+if ( <playlist.had_network_errors> and !<playlist.network_errors> ) {
+    <playlist.had_network_errors> = 0;
+    delete <playlist.retry_delay>;
+    <[base.log]>->( 1, ": all network errors resolved! :)" );
+}

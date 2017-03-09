@@ -32,6 +32,10 @@ if ( defined $ev_data->{'dep_id'}
 die "'layout_name' parameter is missing from '$action_type' setup"
     if $action_type =~ /^layout_/ and not defined $action->{'layout_name'};
 
+<events.stack.playlist>->{ $action->{'b8id'} }->{'action'}->{'type'}
+    = $action_type
+    if defined $action->{'b8id'};
+
 if ( $action_type eq 'agent_running' ) {
     my $command;
     my $agent_name = $action->{'agent_name'};
