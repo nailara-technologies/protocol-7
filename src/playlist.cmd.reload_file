@@ -7,9 +7,7 @@ my $playlist_file = <playlist.file_name>;
 
 <[playlist.check_changes]>->($playlist_file);
 
-my $count = <[playlist.load_file]>->($playlist_file);
-
 return { 'mode' => 'nack', 'data' => 'playlist file not found!' }
-    if $count == -1;
+    if <[playlist.load_file]>->($playlist_file) == -1;
 
-return { 'mode' => 'ack', 'data' => "playlist reloaded, $count entries" }
+return { 'mode' => 'ack', 'data' => "reloading playlist!" }

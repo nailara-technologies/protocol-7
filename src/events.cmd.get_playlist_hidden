@@ -9,10 +9,10 @@ my %hidden;
 
 map {    # SHOW/HIDE
     $hidden{$_} = 1
-        if defined <events.stack.playlist>->{$_}->{'action'}->{'type'}
-        and <events.stack.playlist>->{$_}->{'action'}->{'type'} ne
-        'playlist_exclusive_entry'
-        and <events.stack.playlist>->{$_}->{'visibility'} < 1
+        if ( not defined <events.stack.playlist>->{$_}->{'action'}->{'type'}
+        or <events.stack.playlist>->{$_}->{'action'}->{'type'} ne
+        'playlist_exclusive_entry' )
+        and <events.stack.playlist>->{$_}->{'visibility'} < 1;
     }
     keys %{<events.stack.playlist>};
 
