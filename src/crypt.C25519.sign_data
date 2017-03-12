@@ -7,10 +7,10 @@ my $key_name = shift // 'default';
 
 die "expected scalar reference to payload data" if ref($data_ref) ne 'SCALAR';
 die "a C25519 key with name '$key_name' does not exist"
-    if not exists $key{'C25519'}{$key_name};
+    if not exists $KEYS{'C25519'}{$key_name};
 
 return Crypt::Ed25519::sign(
     ${$data_ref},
-    $key{'C25519'}{$key_name}{'pub'},
-    $key{'C25519'}{$key_name}{'priv'}
+    $KEYS{'C25519'}{$key_name}{'pub'},
+    $KEYS{'C25519'}{$key_name}{'priv'}
 );

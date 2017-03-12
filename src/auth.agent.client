@@ -6,10 +6,10 @@
 my ( $filehandle, $agent, $key_str ) = @_;
 
 if ( defined $key_str
-    or %key
-    and exists $key{'agent'}{'session_key'}
-    and $key{'agent'}{'session_key'} ne '' ) {
-    $key_str //= $key{'agent'}{'session_key'};
+    or %KEYS
+    and exists $KEYS{'agent'}{'session_key'}
+    and $KEYS{'agent'}{'session_key'} ne '' ) {
+    $key_str //= $KEYS{'agent'}{'session_key'};
     my $smiley;
     if ( sysread( $filehandle, $smiley, 4 ) ) {
         if ( $smiley =~ />:\]\n/ ) {
@@ -32,7 +32,8 @@ if ( defined $key_str
     }
 
     <[net.out]>->( $filehandle, "$agent $key_str\n" );
-    delete $key{'agent'}{'session_key'} if exists $key{'agent'}{'session_key'};
+    delete $KEYS{'agent'}{'session_key'}
+        if exists $KEYS{'agent'}{'session_key'};
 
     $answer = readline($filehandle);
 
