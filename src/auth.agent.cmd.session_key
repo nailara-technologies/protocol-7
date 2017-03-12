@@ -10,7 +10,7 @@ my ( $agent, $key ) = split( / +/, $$call{'args'}, 2 );
 
 if ( $agent ne '' and $key ne '' ) {
     if ( exists <auth.pwd>->{$agent} and <auth.pwd>->{$agent} eq ':agent:' ) {
-        $key{'auth'}{'agent'}{$agent} = <[digest.sha1]>->($key);
+        $KEYS{'auth'}{'agent'}{$agent} = <[digest.sha1]>->($key);
 
         $reply = { 'mode' => 'ack', 'data' => 'key added' };
         <[base.log]>->( 1, "[$id] received session key for '$agent'" );
