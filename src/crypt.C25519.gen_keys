@@ -6,14 +6,14 @@ my $key_name = shift // 'default';
 
 <[base.log]>->( 2, "generating '$key_name' C25519 key pair..." );
 
-$key{'C25519'} //= {};
+$KEYS{'C25519'} //= {};
 
 die "a C25519 key with name '$key_name' already exists"
-    if exists $key{'C25519'}{$key_name};
+    if exists $KEYS{'C25519'}{$key_name};
 
 my ( $pubkey, $privkey ) = Crypt::Ed25519::generate_keypair();
 
-$key{'C25519'}{$key_name} = {
+$KEYS{'C25519'}{$key_name} = {
     'name' => $key_name,
     'pub'  => $pubkey,
     'priv' => $privkey
