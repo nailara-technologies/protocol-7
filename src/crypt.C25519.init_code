@@ -37,7 +37,8 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
         } else {
             chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
         }
-        $key_b64u{$type} = encode_base64url( $KEYS{'C25519'}{$key_name}{$type} );
+        $key_b64u{$type}
+            = encode_base64url( $KEYS{'C25519'}{$key_name}{$type} );
         printf( {$k_fh} "%s\n", $key_b64u{$type} );
         close($k_fh);
         rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
@@ -82,9 +83,6 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
                     . "\n"
             )
         );
-
-        my $fail = 0;
-
         if ( -f $sig_file_path ) {
             <[base.log]>->( 1, ": : $sig_file_path" );
             (   my $root_pubkey_path = join( '.',
@@ -102,7 +100,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
     } else {
         <[base.log]>->( 1, ": no root key path defined, skipped key signing!" );
     }
-} elsif ( not defined $KEYS{'C25519'}{$key_name} ) { # skipping loaded keys, 4now
+} elsif ( not defined $KEYS{'C25519'}{$key_name} ) {
     <[base.log]>->( 1, ": loading C25519 ['$key_name'] key pair.." );
     $KEYS{'C25519'}{$key_name}{'priv'}
         = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
@@ -114,7 +112,7 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
     if (/([^\/]+\.(rkp|sig)\.(.+))$/) {
         my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
         <[base.log]>->( 1, ": loading '$fname'" );
-        $type = 'pub' if $type eq 'rkp';            # <- [root-key-pub]
+        $type = 'pub' if $type eq 'rkp';    # <- [root-key-pub]
         chomp( $KEYS{'C25519'}{$key_name}{'root'}{$rkname}{$type}
                 = ${ <[file.slurp]>->($_) } );
     }
