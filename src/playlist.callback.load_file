@@ -2,10 +2,9 @@
 
 # name = playlist.callback.load_file
 
-my $file_path = shift;
-my $file_path //= <playlist.load_file.path>;
-my $check_logged = 0;
+my $file_path    = shift // <playlist.load_file.path>;
 my $check_types  = <playlist.http.check_content_types>;
+my $check_logged = 0;
 
 die "expected playlist file path"
     if not defined $file_path or !length($file_path);
