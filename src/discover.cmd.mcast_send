@@ -21,8 +21,10 @@ if ( not defined <discover.announce_msg_header> ) {
         keys %{ $KEYS{'C25519'}{$key_name}{'root'} };
 }
 
+$ann_msg .= "\n" if $ann_msg !~ /\n/;
+
 ( my $t_stmp = <[base.time]>->( length(time) ) ) =~ s|\.||;
-my $packet_str = <discover.announce_msg_header> . "\n$ann_msg\n\n$t_stmp:";
+my $packet_str = <discover.announce_msg_header> . "\n$ann_msg\n$t_stmp:";
 
 $packet_str .= encode_base64url( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 

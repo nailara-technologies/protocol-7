@@ -2,9 +2,32 @@
 
 # name = discover.handler.anounce_host_addr
 
-<[base.log]>->( 1, "[ping]" );
+<[base.log]>->( 2, "sending announce_host packet .." );
 
+my $hostname = <system.host.hostname>;
+my $ifaces = Net::Ifconfig::Wrapper::Ifconfig( 'list', '', '', '' );
 
-my $mcast_payload = "HOST MAC IP ...";
+my $payload_str = "$hostname {\n";
+my $start_len   = length($payload_str);
+my $spaces      = ' ' x length($payload_str);
 
-<[discover.cmd.mcast_send]>->( { 'args' => $mcast_payload } );
+map { delete $ifaces->{$_} if $_ !~ /^(en|eth|wl)/ } keys %{$ifaces}; # <- conf!
+
+map {
+    $payload_str .= "\n" if length($payload_str) != $start_len;
+    foreach my $ip ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
+        $payload_str .= sprintf(
+            "%s %17s  %-15s # %s\n",
+            $spaces, $ifaces->{$_}->{'ether'},
+            $ip, $_
+        );
+    }
+
+    $payload_str .= "}\n";
+
+    }
+    sort sort {
+    length($a) <=> length($b)
+    } keys %{$ifaces};
+
+<[discover.cmd.mcast_send]>->( { 'args' => $payload_str } );
