@@ -7,7 +7,7 @@
 my $hostname = <system.host.hostname>;
 my $ifaces = Net::Ifconfig::Wrapper::Ifconfig( 'list', '', '', '' );
 
-my $payload_str = "$hostname {\n";
+my $payload_str = "HOST[ '$hostname' ] = {\n";
 my $start_len   = length($payload_str);
 my $spaces      = ' ' x length($payload_str);
 
@@ -15,15 +15,17 @@ map { delete $ifaces->{$_} if $_ !~ /^(en|eth|wl)/ } keys %{$ifaces}; # <- conf!
 
 map {
     $payload_str .= "\n" if length($payload_str) != $start_len;
-    foreach my $ip ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
+    foreach my $ip (
+        sort { length($a) <=> length($b) }
+        sort keys( %{ $ifaces->{$_}->{'inet'} } )
+        ) {
         $payload_str .= sprintf(
-            "%s %17s  %-15s # %s\n",
-            $spaces, $ifaces->{$_}->{'ether'},
-            $ip, $_
+            "%s %15s   #  %-17s  [ %s ]\n",
+            $spaces, $ip, $ifaces->{$_}->{'ether'},
+            , $_
         );
     }
-
-    $payload_str .= "}\n";
+    $payload_str .= "}\n" if $payload_str !~ /}\n$/;
 
     }
     sort sort {
