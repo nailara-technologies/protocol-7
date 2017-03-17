@@ -127,14 +127,15 @@ delete <list.users>;
 };
 
 <list.dependencies> = {
-    'var'   => 'data',
-    'key'   => 'dependency.object',
-    'descr' => 'agent dependency status',
-    'mask'  => 'agent_name <key>:depends_on_agents <key>:status',
-    'align' => {
+    'var'      => 'data',
+    'key'      => 'dependency.object',
+    'sort_key' => 'agent_name',
+    'descr'    => 'agent dependency status',
+    'mask'     => 'agent_name <key>:depends_on_agents <key>:status',
+    'align'    => {
         'agent_name'        => 'center',
         'depends_on_agents' => 'center-5',
-        'status'            => 'center-3'
+        'status'            => 'left'
     },
     'filters' => {
         'depends_on_agents' => 'root.parser.dependency_chain',
