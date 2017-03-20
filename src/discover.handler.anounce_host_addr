@@ -4,32 +4,81 @@
 
 <[base.log]>->( 2, "sending announce_host packet .." );
 
+my %ifconfig;
+my $mlenip   = 0;
 my $hostname = <system.host.hostname>;
-my $ifaces = Net::Ifconfig::Wrapper::Ifconfig( 'list', '', '', '' );
+my $ifaces   = Net::Ifconfig::Wrapper::Ifconfig('list');
+
+<discover.announce_interval.current> //= 0.23;
+<discover.announce_interval.maximum> = sprintf( "%.2f", 40 + rand(4) );
+<discover.announce_interval.ifactor> = 1.13;
+
+<discover.announce_interval.logged> //= 0;
+<[base.log]>->( 1, "starting 'announce host' broadcast interval ..." )
+    if !<discover.announce_interval.logged>++;
 
 my $payload_str = "HOST[ '$hostname' ] = {\n";
 my $start_len   = length($payload_str);
-my $spaces      = ' ' x length($payload_str);
-
-map { delete $ifaces->{$_} if $_ !~ /^(en|eth|wl)/ } keys %{$ifaces}; # <- conf!
-
 map {
-    $payload_str .= "\n" if length($payload_str) != $start_len;
-    foreach my $ip (
-        sort { length($a) <=> length($b) }
-        sort keys( %{ $ifaces->{$_}->{'inet'} } )
-        ) {
-        $payload_str .= sprintf(
-            "%s %15s   #  %-17s  [ %s ]\n",
-            $spaces, $ip, $ifaces->{$_}->{'ether'},
-            , $_
-        );
+    foreach my $ip ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
+        next if $_ !~ /^(en|\wth|wl)/;    # <- skipping other interfaces!
+        $mlenip = length($ip) if length($ip) > $mlenip;
+        $ifconfig{ <[base.gen_id]>->( \%ifconfig ) }
+            = { 'ip' => $ip, 'iface' => $_, 'mac' => $ifaces->{$_}->{'ether'} };
     }
-    $payload_str .= "}\n" if $payload_str !~ /}\n$/;
+    }
+    keys %{$ifaces};
+my $x_pos = $mlenip + $start_len + 1;
+foreach my $id (
+    sort { rfc_1918( $ifconfig{$b}{'ip'} ) <=> rfc_1918( $ifconfig{$a}{'ip'} ) }
+    sort {
+        length( $ifconfig{$a}{'iface'} ) <=> length( $ifconfig{$b}{'iface'} )
+    }
+    sort {
+        length( $ifconfig{$b}{'ip'} ) <=> length( $ifconfig{$a}{'ip'} )
+    }
+    keys %ifconfig
+    ) {
+    $payload_str .= sprintf(
+        "%" . $x_pos . "s   #  %-17s / %s\n",
+        $ifconfig{$id}{'ip'},
+        $ifconfig{$id}{'mac'},
+        $ifconfig{$id}{'iface'}
+    );
+}
+$payload_str .= "}\n" if $payload_str !~ /}\n$/;
 
-    }
-    sort sort {
-    length($a) <=> length($b)
-    } keys %{$ifaces};
+my $payload_len = length($payload_str);
+<[base.log]>->(
+    2, ".. sending 'announce host' packet .. [$payload_len payload bytes]"
+);
 
 <[discover.cmd.mcast_send]>->( { 'args' => $payload_str } );
+
+<discover.timer.announce_host>->cancel
+    if <discover.timer.announce_host>->is_active;
+<discover.timer.announce_host> = <[event.add_timer]>->(
+    {   'after'   => <discover.announce_interval.current>,
+        'handler' => 'discover.handler.anounce_host_addr'
+    }
+);
+
+# XXX: log interval changes
+
+<discover.announce_interval.current> = sprintf( "%.2f",
+    <discover.announce_interval.current> *
+        <discover.announce_interval.ifactor> );
+<discover.announce_interval.current> = <discover.announce_interval.maximum>
+    if <discover.announce_interval.current>
+    > <discover.announce_interval.maximum>;
+
+### ## SUBS ####### (extract later)
+sub rfc_1918 {    #
+    my $ip_addr = shift;
+    return $ip_addr =~ /
+                        (^10\.)|
+                        (^127\.)|
+                        (^192\.168\.)|
+                        (^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)
+                    /xl ? 1 : 0;
+}
