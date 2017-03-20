@@ -17,25 +17,64 @@ my $ifaces   = Net::Ifconfig::Wrapper::Ifconfig('list');
 <[base.log]>->( 1, "starting 'announce host' broadcast interval ..." )
     if !<discover.announce_interval.logged>++;
 
-my $payload_str = "HOST[ '$hostname' ] = {\n";
+my $payload_str = "HOST[ $hostname ] = {\n";
 my $start_len   = length($payload_str);
 map {
-    foreach my $ip ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
+    foreach my $ip_addr ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
+
+        # XXX: make exclusion patterns configurable!
         next if $_ !~ /^(en|\wth|wl)/;    # <- skipping other interfaces!
-        $mlenip = length($ip) if length($ip) > $mlenip;
-        $ifconfig{ <[base.gen_id]>->( \%ifconfig ) }
-            = { 'ip' => $ip, 'iface' => $_, 'mac' => $ifaces->{$_}->{'ether'} };
+
+        $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
+
+        # final sort
+        my $is_local = 0;
+
+        # LINK-LOCAL
+        $is_local++ if $ip_addr =~ /^169\.254\./;
+
+        # RFC1918
+        $is_local += 2 if $ip_addr =~ /
+                        (^10\.)|
+                        (^127\.)|
+                        (^192\.168\.)|
+                        (^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)
+                    /x;
+
+        # XXX: make prio patterns configurable!
+        my $iface_prio = 0;
+        $iface_prio-- if $_ =~ /^(e(th|n))/;
+        $iface_prio++ if $_ =~ /^(ath|wl(p|an))/;
+
+        $ifconfig{ <[base.gen_id]>->( \%ifconfig ) } = {
+            'ip'         => $ip_addr,
+            'iface'      => $_,
+            'mac'        => $ifaces->{$_}->{'ether'},
+            'is_local'   => $is_local,
+            'iface_prio' => $iface_prio
+        };
     }
     }
     keys %{$ifaces};
 my $x_pos = $mlenip + $start_len + 1;
+
+# print Dumper \%ifconfig;
+
 foreach my $id (
-    sort { rfc_1918( $ifconfig{$b}{'ip'} ) <=> rfc_1918( $ifconfig{$a}{'ip'} ) }
+    sort { $ifconfig{$b}{'is_local'} <=> $ifconfig{$a}{'is_local'} }
+    sort { $ifconfig{$a}{'iface_prio'} <=> $ifconfig{$b}{'iface_prio'} }
     sort {
         length( $ifconfig{$a}{'iface'} ) <=> length( $ifconfig{$b}{'iface'} )
     }
     sort {
-        length( $ifconfig{$b}{'ip'} ) <=> length( $ifconfig{$a}{'ip'} )
+        int(join( '',
+                map { sprintf "%03d", $_ } split /\./,
+                $ifconfig{$a}{'ip'} )
+            ) <=> int(
+            join( '',
+                map { sprintf "%03d", $_ } split /\./,
+                $ifconfig{$b}{'ip'} )
+            )
     }
     keys %ifconfig
     ) {
@@ -63,22 +102,9 @@ my $payload_len = length($payload_str);
     }
 );
 
-# XXX: log interval changes
-
 <discover.announce_interval.current> = sprintf( "%.2f",
     <discover.announce_interval.current> *
         <discover.announce_interval.ifactor> );
 <discover.announce_interval.current> = <discover.announce_interval.maximum>
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
-
-### ## SUBS ####### (extract later)
-sub rfc_1918 {    #
-    my $ip_addr = shift;
-    return $ip_addr =~ /
-                        (^10\.)|
-                        (^127\.)|
-                        (^192\.168\.)|
-                        (^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)
-                    /xl ? 1 : 0;
-}
