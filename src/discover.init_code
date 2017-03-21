@@ -3,6 +3,7 @@
 # name = discover.init_code
 
 use Net::Ifconfig::Wrapper;
+<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
 
 <discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
 
