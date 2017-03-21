@@ -22,10 +22,7 @@ if ( not defined <discover.announce_msg_header> ) {
         keys %{ $KEYS{'C25519'}{$key_name}{'root'} };
 }
 
-if ( $ann_msg !~ /\n\n/ ) {
-    $ann_msg =~ s/\n+$//;
-    $ann_msg .= "\n\n";
-}
+$ann_msg =~ s/\n*$/\n/;
 
 ( my $t_stmp = <[base.time]>->( length(time) ) ) =~ s|\.||;
 my $packet_str = <discover.announce_msg_header> . "\n$ann_msg\n$t_stmp:";
