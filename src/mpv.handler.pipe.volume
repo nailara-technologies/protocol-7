@@ -6,10 +6,11 @@ my $volume_str = shift // '';
 my $reply_id = shift @{<mpv.reply_ids>};
 
 return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'nack', 'data' => 'volume is undefined' }
+    $reply_id, { 'mode' => 'nack', 'data' => 'no volume defined' }
 ) if $volume_str !~ /\d$/;
-$volume_str =~ s|\.0+$||;
+$volume_str = sprintf( "%.3f", $volume_str );
+$volume_str =~ s/(\.0+|%)$//g;
+
 <[base.callback.cmd_reply]>->(
-    $reply_id,
-    { 'mode' => 'ack', 'data' => sprintf( "%.3f", $volume_str ) . '%' }
+    $reply_id, { 'mode' => 'ack', 'data' => $volume_str . '%' }
 );
