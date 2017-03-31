@@ -47,11 +47,11 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
         or $data{'session'}{$id}{'mode'} eq 'in' ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
-} else {
-    print "PLIK\n";
 }
 
 my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+
+return $_[0]->w->stop if not defined $len;    # deleted buffer stopping reading!
 
 if ( $len < $data{'size'}{'buffer'}{'input'}
     and !$data{'session'}{$id}{'shutdown'} ) {
