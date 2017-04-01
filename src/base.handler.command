@@ -93,7 +93,7 @@ if ( $$input
 
                 if ( $header and $arg ne '' ) {
 
-                    if ( $arg =~ /^([\w\.]+)[ \t]*[=:][ \t]*(.*)$/o ) {
+                    if ( $arg =~ /^([\w\.]+)[ \t]*[=:][ \t]*(.*)$/ ) {
                         my ( $key, $val ) = ( $1, $2 );
 
                         $$call_args{'param'}{$key} = $val;
@@ -170,7 +170,7 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
 
 # empty command line
 
-elsif ( $$input =~ s/^$//o ) { $_[0]->w->start; return 0 }
+elsif ( $$input =~ s/^$// ) { $_[0]->w->start; return 0 }
 
 # incomplete command line
 
@@ -548,7 +548,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
 
     # tree upwards
 
-    elsif ( $cmd =~ /^\.\.([^\.]+)\.(.+)$/o ) {
+    elsif ( $cmd =~ /^\.\.([^\.]+)\.(.+)$/ ) {
 
         #        not working yet..
 
@@ -567,7 +567,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
 
     # absolute address notation
 
-    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/o ) { # XXX: regex invalid! (only host)
+    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/ ) {  # XXX: regex invalid! (only host)
         my $network_name = $1;
         my $node_name    = $1;
 
