@@ -9,13 +9,12 @@ my $cmd_str    = $$call{'args'};
 
 return { 'mode' => 'nack', 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
-
 return { 'mode' => 'nack', 'data' => 'requested command matches blacklist!' }
     if $cmd_str =~ /run|hook/;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.command' } );
+
 <[mpv.send_command]>->( split / +/, $cmd_str );
 
 return { 'mode' => 'later' };
