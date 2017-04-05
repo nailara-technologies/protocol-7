@@ -1,0 +1,14 @@
+# >:]
+
+# name  = xserver.cmd.get_window_count
+# descr = count currently open windows [not 'popups']
+
+my $title_pattern = $$call{'args'};
+
+my $xtops = <xserver.x11_tops>;
+$xtops->update;
+
+return {
+    'mode' => 'ack',
+    'data' => scalar keys%{$xtops->byid}
+};
