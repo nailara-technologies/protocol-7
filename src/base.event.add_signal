@@ -6,6 +6,8 @@
 my $signal  = $_[0]->{'signal'};
 my $handler = $_[0]->{'handler'};
 
+die "callback '$handler' does not exist!" if not defined $code{$handler};
+
 <watcher.signal> //= {};
 
 $data{'watcher'}{'signal'}->{$signal}->cancel
