@@ -4,6 +4,10 @@
 # descr = install variable (access) watcher
 
 die 'base.event.add_var: expected a hash reference!' if ref( $_[0] ) ne 'HASH';
+my $callback     = ${ $_[0] }{'handler'};
+my $callback_ref = $code{$callback};
+die "callback '$callback' does not exist!" if not defined $code{$callback};
+
 return Event->var(
     'poll'      => ${ $_[0] }{'poll'}      // 'w',
     'reentrant' => ${ $_[0] }{'reentrant'} // 1,
@@ -12,6 +16,6 @@ return Event->var(
     'async'     => ${ $_[0] }{'async'}     // 0,
     'desc'      => ${ $_[0] }{'desc'}      // "${ $_[0] }{'var'}",
     'var'       => ${ $_[0] }{'var'},
-    'cb'        => $code{ ${ $_[0] }{'handler'} },
+    'cb'        => $callback_ref,
     'data'      => ${ $_[0] }{'data'}
 );

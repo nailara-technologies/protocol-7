@@ -5,6 +5,10 @@
 
 die 'base.event.add_timer: expected hash reference!' if ref( $_[0] ) ne 'HASH';
 
+my $callback     = ${ $_[0] }{'handler'};
+my $callback_ref = $code{$callback};
+die "callback '$callback' does not exist!" if not defined $code{$callback};
+
 my @event_time;
 map { push( @event_time, ( $_ => ${ $_[0] }{$_} ) ) if defined ${ $_[0] }{$_} }
     ( 'at', 'after' );
@@ -14,8 +18,8 @@ return Event->timer(
     'repeat'    => ${ $_[0] }{'repeat'}    // 1,
     'prio'      => ${ $_[0] }{'prio'}      // 1,
     'async'     => ${ $_[0] }{'async'}     // 0,
-    'desc'      => ${ $_[0] }{'desc'}      // ${ $_[0] }{'handler'},
-    'cb'        => $code{ ${ $_[0] }{'handler'} },
+    'desc'      => ${ $_[0] }{'desc'}      // $callback,
+    'cb'        => $callback_ref,
     'time'      => ${ $_[0] }{'time'},
     'interval'  => ${ $_[0] }{'interval'},
     'hard'      => ${ $_[0] }{'hard'},
