@@ -1,0 +1,17 @@
+# >:]
+
+# name = mpv.calc_incr
+
+my $dt   = shift;
+my $dt_2 = $dt - 4;
+$dt_2 = 0 if $dt_2 > 0;
+my $t_inc = $dt - 2;
+
+my $increase
+    = ( 1.1 - <mpv.volume.fade_factor> ) * 0.22 * <[base.calc_gauss]>->($t_inc);
+
+$increase
+    += ( ( 1.1 - <mpv.volume.fade_factor> ) * <[base.calc_gauss]>->($dt_2) )
+    / 4;
+
+return sprintf( "%.5f", $increase );

@@ -5,7 +5,7 @@
 my $params = shift;
 
 return
-       if <mpv.audio_only>
+       if ( <mpv.audio_only> and $params->{'name'} ne 'volume' )
     or not exists $params->{'event'}
     or not exists $params->{'name'};
 
