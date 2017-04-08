@@ -8,11 +8,11 @@ $dt_2 = 0 if $dt_2 > 0;
 my $t_inc = $dt - 2;
 
 my $increase = ( 1.1 - <ticker-gtk.fade_opacity> ) * 0.22 *
-    <[ticker-gtk.calc_gauss]>->($t_inc);
+    <[base.calc_gauss]>->($t_inc);
 
 $increase
     += (
-    ( 1.1 - <ticker-gtk.fade_opacity> ) * <[ticker-gtk.calc_gauss]>->($dt_2) )
+    ( 1.1 - <ticker-gtk.fade_opacity> ) * <[base.calc_gauss]>->($dt_2) )
     / 4;
 
 return sprintf( "%.5f", $increase );
