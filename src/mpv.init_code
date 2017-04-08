@@ -14,6 +14,7 @@ chomp( <mpv.bin_path> = qx(which mpv) ) if !-f <mpv.bin_path>;
 die "[!] mpv binary not found, aborting startup..."
     if not defined <mpv.bin_path> or !length(<mpv.bin_path>);
 
+<mpv.start_volume>      //= 100;             # <- ./cfg/nailara.mpv
 <mpv.fade_in>           //= 0;
 <mpv.reply_ids>         //= [];
 <mpv.pause_next>        //= 0;
@@ -30,6 +31,7 @@ die "[!] mpv binary not found, aborting startup..."
 <mpv.cleanup_check_interval> //= 3600 + int( rand(7200) );    # 1-3 hrs (repeat)
 <mpv.reenc_refresh_interval> //= 3.3;                         # seconds
 <mpv.rescaled_extension>     //= 'mp4';
+<mpv.current.volume>         //= 100;                         # will be set to 0
 
 if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
     <[mpv.check_rescale_path]>;

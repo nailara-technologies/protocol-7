@@ -1,0 +1,11 @@
+# >:]
+
+# name = mpv.handler.event.property-change.volume
+
+<mpv.current.volume> = shift->{'data'};
+
+<mpv.startup.volume_inittialized> //= 0;
+if ( !<mpv.startup.volume_inittialized> ) {
+    <[mpv.callback.init_volume]> if <mpv.current.volume> != <mpv.start_volume>;
+    <mpv.startup.volume_inittialized>++;
+}

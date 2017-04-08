@@ -11,8 +11,11 @@ return { 'mode' => 'nack', 'data' => 'expected volume in percent' }
     or $volume !~ /^\d+(\.\d+)?%?$/;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-<mpv.success_reply_str> = sprintf( "volume now %0.1f%", $volume );
+<mpv.success_reply_str> = sprintf( "volume now %0.1f", $volume ) . '%';
 <mpv.success_reply_str> =~ s|\.0||;
+
+<mpv.current.volume> = $volume;
+<mpv.fade_to.last_set> = $volume if defined <mpv.fade_to.last_set>;
 
 <[mpv.send_command]>->( 'set_property', 'volume', sprintf( "%0.3f", $volume ) );
 
