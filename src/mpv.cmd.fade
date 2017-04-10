@@ -1,12 +1,12 @@
 #! >:]
 
-# name  = mpv.cmd.fade_to
+# name  = mpv.cmd.fade
 # param = <vol_%>
 # descr = fade audio volume to given level
 
 my $id = $$call{'session_id'};
 ( my $volume = $$call{'args'} ) =~ s|%$||;
-( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.0$||;
+( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.?0+$||;
 
 return { 'mode' => 'nack', 'data' => 'expected numerical percent value' }
     if $volume !~ /^\d+(\.\d+)?$/;
@@ -17,32 +17,32 @@ return { 'mode' => 'ack', 'data' => "audio volume already at $vol_str%" }
 my $id_str = defined $id ? "[$id] " : '';
 
 my $l = length($id_str) ? 1 : 2;
-<[base.log]>->( $l, sprintf( "${id_str}fading volume to %.1f%% ..", $volume ) );
+<[base.log]>->( $l, "${id_str}fading volume to ${vol_str}%" );
 
 my $min_delay = 0.0064;
-<mpv.fade_to.target> = $volume;
+<mpv.audio_fade.target> = $volume;
 
-<mpv.fade_to.reply_ids> //= [];
-push( @{<mpv.fade_to.reply_ids>}, $$call{'reply_id'} );
+<mpv.audio_fade.reply_ids> //= [];
+push( @{<mpv.audio_fade.reply_ids>}, $$call{'reply_id'} );
 
 <mpv.timer.audio_fade>->cancel
     if defined <mpv.timer.audio_fade>
     and <mpv.timer.audio_fade>->is_active;
 
-<mpv.fade_to.start_vol> = <mpv.current.volume>;
-<mpv.fade_to.delta_vol> = sprintf( "%.4f", $volume - <mpv.current.volume> );
+<mpv.audio_fade.start_vol> = <mpv.current.volume>;
+<mpv.audio_fade.delta_vol> = sprintf( "%.4f", $volume - <mpv.current.volume> );
 <mpv.audio.fade_speed> //= 42;    # agent default
 
 my $interval_delay = sprintf( "%.3f",
     ( 1 / <mpv.audio.fade_speed> )
-        * 0.42 * ( abs(<mpv.fade_to.delta_vol>) / 100 ) );
+        * 0.42 * ( abs(<mpv.audio_fade.delta_vol>) / 100 ) );
 
 $interval_delay = $min_delay if $interval_delay < $min_delay;
 
 <mpv.timer.audio_fade> = <[event.add_timer]>->(
     {   'after'    => 0,
         'interval' => $interval_delay,
-        'handler'  => 'mpv.handler.fade_to',
+        'handler'  => 'mpv.handler.audio_fade',
         'data'     => $volume
     }
 );
