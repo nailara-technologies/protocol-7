@@ -17,6 +17,9 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 } elsif ( $pause_mode eq 'pause' ) {
     <mpv.success_reply_str> = 'playback paused';
     <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+
+    <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+
     return { 'mode' => 'later' };
 } elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
     <[base.callback.cmd_reply]>->(
