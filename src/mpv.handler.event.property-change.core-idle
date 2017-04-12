@@ -15,5 +15,5 @@ return
 if ( $core_idle and <mpv.fade_idle_volume> ) {
     <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
 } else {    # XXX: s/start/current/ volume ...
-    <[mpv.cmd.fade]>->( { 'args' => <mpv.start_volume> } );
+    <[mpv.cmd.fade]>->( { 'args' => <mpv.current.volume_target> } );
 }
