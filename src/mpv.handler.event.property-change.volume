@@ -4,6 +4,12 @@
 
 <mpv.current.volume> = shift->{'data'};
 
+<mpv.current.volume_target> //= <mpv.start_volume>;
+<mpv.current.volume_target> = <mpv.current.volume>
+    if not exists <mpv.current.volume_fading>
+    and ( <mpv.current.volume>
+    or !<mpv.current.volume> and <mpv.current.volume_target> == 1 );
+
 <mpv.startup.volume_inittialized> //= 0;
 if ( !<mpv.startup.volume_inittialized> ) {
     <[mpv.callback.init_volume]> if <mpv.current.volume> != <mpv.start_volume>;

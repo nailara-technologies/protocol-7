@@ -20,7 +20,7 @@ my $l = length($id_str) ? 1 : 2;
 <[base.log]>->( $l, "${id_str}fading volume to ${vol_str}%" );
 
 my $min_delay = 0.0064;
-<mpv.audio_fade.target> = $volume;
+<mpv.current.volume_target> = <mpv.audio_fade.target> = $volume;
 
 <mpv.audio_fade.reply_ids> //= [];
 push( @{<mpv.audio_fade.reply_ids>}, $$call{'reply_id'} );
