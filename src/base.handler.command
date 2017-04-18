@@ -153,7 +153,10 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\d\-\_\.]+)( +(.+)|)\n//o ) {
     # core agent 'select' command [ base path prefix handling ]
     $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
         if defined $data{'session'}{$id}{'base_path'}
-        and $cmd !~ /^(\($re->{cmd_id}\)|) *(unselect|basepath)$/;
+        and $cmd !~ /^(\($re->{cmd_id}\)|) *(unselect|basepath)$/
+        and $cmd !~ s/^(\($re->{cmd_id}\) *| *)\.\.([\w\d\-\_\.]+|)/$1$2/;
+
+    #       ^ commands prefixed with '..' mean "parent" to 'select'ed base_path!
 
     $command_mode = 1;
 }
