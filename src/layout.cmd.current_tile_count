@@ -13,4 +13,7 @@ $err_str //= "no setup found for layout '$layout_name'"
 
 return { 'mode' => 'nack', 'data' => $err_str } if defined $err_str;
 
-return { 'mode' => 'ack', 'data' => scalar keys( %{<layout.config.layouts>} ) };
+return {
+    'mode' => 'ack',
+    'data' => scalar keys( %{ <layout.config.layouts>->{$layout_name} } )
+};
