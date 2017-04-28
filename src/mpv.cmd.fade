@@ -5,12 +5,11 @@
 # descr = fade audio volume to given level
 
 my $id = $$call{'session_id'};
-( my $volume = $$call{'args'} ) =~ s|%$||;
-( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.?0+$||;
-
+( my $volume = $$call{'args'} // '' ) =~ s|%$||;
 return { 'mode' => 'nack', 'data' => 'expected numerical percent value' }
-    if $volume !~ /^\d+(\.\d+)?$/;
-
+    if !length($volume)
+    or $volume !~ /^\d+(\.\d+)?$/;
+( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.?0+$||;
 return { 'mode' => 'ack', 'data' => "audio volume already at $vol_str%" }
     if sprintf( "%.2f", <mpv.current.volume> ) == $vol_str;
 
