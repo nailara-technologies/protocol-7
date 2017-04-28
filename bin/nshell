@@ -223,9 +223,9 @@ sub shell_loop {
         print $color;
 
         if ( $line ne '' ) {
-            if ( $line =~ /^\.: cd (.+)/ ) {
+            if ( $line =~ /^\. cd (.+)/ ) {
                 if ( !chdir($1) ) { print "cd: " . $! . "\n" }
-            } elsif ( $line =~ /^\.: (.+)$/ ) {
+            } elsif ( $line =~ /^\. (.+)$/ ) {
                 $lines_up = 1;
                 no warnings;
                 if ( my $err = system($1) ) {
@@ -295,12 +295,12 @@ sub stdout_fork {
 sub rl_filename_list_lcl {
     my ( $text, $line, $pos ) = @_;
 
-    if ( !$pos or $line !~ /^\.: / ) {
+    if ( !$pos or $line !~ /^\. / ) {
         no warnings 'once';
         $readline::rl_completer_terminator_character = '';
         use warnings 'once';
-        if ( !$WARNED and $line !~ /^\.: / ) {
-            print "\n<!> prefix '.: ' can be used for local shell commands"
+        if ( !$WARNED and $line !~ /^\. / ) {
+            print "\n<!> prefix '. ' can be used for local shell commands"
                 . ", type 'help' for netw. <!>\n";
             $WARNED = 1;
         }
