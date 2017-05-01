@@ -1,0 +1,17 @@
+# >:]
+
+# name   = plugin.auth.C25519-TF
+# return = str(user name) (success), undef (failed)
+
+my $id = $_[0]->w->data;
+my $re = <regex.base>;
+
+my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
+my $output = \$data{'session'}{$id}{'buffer'}{'output'};
+
+#warn "INPUT BUFFER = '$$input'\n";
+
+$$output .= "`:|\n";
+warn "[$id] auth method C25519-TF not implemented";
+
+return 2;
