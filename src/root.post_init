@@ -10,39 +10,15 @@ return 0 if $module_reinitialization;
 
 my @all_agents = keys %{<root.spawn_config.agents.config>};
 
-my @agents = @{<root.spawn_config.agents.startup.spawn_order>};
+my @start_agents = @{<root.spawn_config.agents.startup.spawn_order>};
 
 #print Dumper(<root.spawn_config.agents.config>).join(', ',@all_agents)."\n";
 
 <[root.set_up_agent_dependencies]>->(@all_agents);
 
-<root.ondemand_agents> = [];
+<[root.set_up_ondemand_agents]>->(@all_agents);
 
-foreach my $agent_name (@all_agents) {
-    my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
-    my $start_ondemand = $agent_config->{'spawn'}->{'on-demand'} || 0;
-    push( @{<root.ondemand_agents>}, $agent_name ) if $start_ondemand;
-}
-
-foreach my $agent_name (@agents) {
-    my $agent_config   = <root.spawn_config.agents.config>->{$agent_name};
-    my $agent_id       = <[agent.get_id]>->($agent_name);
-    my $obj_id         = <[agent.get_object_id]>->($agent_id);
-    my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
-    my $instance_count = $agent_config->{'spawn'}->{'instances'} || 1;
-    delete $agent_config->{'spawn'} if !keys %{ $agent_config->{'spawn'} };
-
-    while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
-        my $job_id = <[jobqueue.add_job]>->(
-            {   'object_id'       => $obj_id,
-                'job_callback'    => 'agent.spawn',
-                'callback_params' => $agent_name,
-                'target_queue'    => $target_queue
-            }
-        );
-        <root.agent.autostart>->{$agent_name}->{'job'} = $job_id;
-    }
-}
+<[root.autostart_agents]>->(@start_agents);
 
 use Data::Dumper qw(Dumper);
 $Data::Dumper::Sortkeys = 1;
