@@ -32,7 +32,8 @@ if ( !-x <root.gcc_bin> ) {
         and <root.cfg.install_bin_unx> =~ /^(1|yes)$/;
 } elsif ( defined <root.cfg.install_bin_unx>
     and <root.cfg.install_bin_unx> =~ /^(1|yes)$/ ) {
-    <[root.callback.install_bin_unx]>;
+    eval {<[root.callback.install_bin_unx]>};
+    warn $@ if $@;
 }
 
 <root.modprobe_bin> = '/sbin/modprobe';
