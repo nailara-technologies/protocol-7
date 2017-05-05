@@ -1,0 +1,27 @@
+# >:]
+
+# name = base.diff_array
+
+my $aref_from = shift;
+my $aref_into = shift;
+
+die "expected two array references as parameters"
+    if ref($aref_from) ne 'ARRAY'
+    or ref($aref_into) ne 'ARRAY';
+
+my @added;
+my @removed;
+
+foreach my $from_element ( @{$aref_from} ) {
+    my $match = 0;
+    map { $match++ if $_ eq $from_element } @{$aref_into};
+    push( @removed, $from_element ) if !$match;
+}
+
+foreach my $into_element ( @{$aref_into} ) {
+    my $match = 0;
+    map { $match++ if $_ eq $into_element } @{$aref_from};
+    push( @added, $into_element ) if !$match;
+}
+
+return ( \@added, \@removed );
