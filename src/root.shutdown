@@ -22,7 +22,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
 }
 
 my $ren = $child_count == 1 ? ' process' : 'ren';
-$reason = "$child_count child$ren" if !length($reason) and $child_count;
+$reason = "$child_count child$ren left" if !length($reason) and $child_count;
 my $reason_txt = length($reason) ? " ( $reason )" : '';
 
 <[base.log]>->( $log_level, "root agent shutdown" . $reason_txt );
