@@ -16,8 +16,8 @@ while ( not defined $agents_init_code ) {    # skip other sections
     $agents_init_code = shift( @{$spawn_config_data} )->{'agents'};
 }
 
-<root.spawn_config.agents.startup.init_code>   //= {};
-<root.spawn_config.agents.startup.spawn_order> //= [];
+<root.spawn_config.agents.startup.init_code> //= {};
+<root.spawn_config.agents.startup.spawn_order> = [];
 
 foreach my $agent_element ( @{$agents_init_code} ) {
 

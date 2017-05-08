@@ -4,21 +4,32 @@
 # descr = starts configured agents
 
 my $module_reinitialization = shift;
-return 0 if $module_reinitialization;
 
-<[root.cleanup_temp_files]>;
+<[root.cleanup_temp_files]> if not $module_reinitialization;
 
-my @all_agents = keys %{<root.spawn_config.agents.config>};
-
+my @all_agents   = keys %{<root.spawn_config.agents.config>};
 my @start_agents = @{<root.spawn_config.agents.startup.spawn_order>};
 
-#print Dumper(<root.spawn_config.agents.config>).join(', ',@all_agents)."\n";
+my $prev_all   = <root.init_state.all_agents>   //= [];
+my $prev_start = <root.init_state.start_agents> //= [];
 
-<[root.set_up_agent_dependencies]>->(@all_agents);
+my ( $added_start_ref, $removed_start_ref )
+    = <[base.diff_array]>->( $prev_start, \@start_agents );
+my ( $added_all_ref, $removed_all_ref )
+    = <[base.diff_array]>->( $prev_all, \@all_agents );
 
-<[root.set_up_ondemand_agents]>->(@all_agents);
+<root.init_state.all_agents>   = \@all_agents;
+<root.init_state.start_agents> = \@start_agents;
 
-<[root.autostart_agents]>->(@start_agents);
+# print Dumper(<root.spawn_config.agents.config>).join(', ',@all_agents)."\n";
+
+if ( @{$added_all_ref} ) {
+    <[root.set_up_agent_dependencies]>->( @{$added_all_ref} );
+    <[root.set_up_ondemand_agents]>->( @{$added_all_ref} );
+}
+
+map { <[root.autostart_agents]>->($_) if !<[root.spawn_count]>->($_) }
+    @{$added_start_ref};
 
 use Data::Dumper qw(Dumper);
 $Data::Dumper::Sortkeys = 1;
