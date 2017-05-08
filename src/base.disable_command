@@ -3,17 +3,23 @@
 # name  = base.disable_command
 # descr = permanently disable / remove a specific command
 
-my @cmds = @_;
-die "expected list of commands to disable!" if !@cmds;
+my @requested = @_;
+die "expected list of commands to disable!" if !@requested;
 $data{'disabled_commands'} //= [];
 
-my $s = @cmds > 1 ? 's:' : '';
-<[base.log]>->( 2, "disabling command$s " . join( ', ', @cmds ) . ' ..' );
+my $s = @requested > 1 ? 's:' : '';
+<[base.log]>->( 2, "disabling command$s " . join( ', ', @requested ) . ' ..' );
 
-push( @{ $data{'disabled_commands'} }, @cmds );
+my %already_disabled;
+map { $already_disabled{$_} = 1 } @{ $data{'disabled_commands'} };
+
+map {
+    push( @{ $data{'disabled_commands'} }, $_ )
+        if not exists $already_disabled{$_}
+} @requested;
 
 map {
     delete $code{"base.cmd.$_"};
     delete $data{'base'}{'cmd'}{$_};
     delete $data{'base'}{'help'}{$_}
-} @cmds;
+} @{ $data{'disabled_commands'} };
