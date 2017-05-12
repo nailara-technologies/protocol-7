@@ -1,8 +1,8 @@
 # >:]
 
-# name  = root.cmd.delete_dependency
+# name  = root.cmd.drop_dependency
 # param = <agent_name>
-# descr = admin cmd to purge agent from dependencies
+# descr = admin cmd to purge agent from dependency chains
 
 return { 'mode' => 'nack', 'data' => 'expected valid agent name' }
     if !length( $$call{'args'} )
@@ -21,8 +21,10 @@ foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
 
 return {
     'mode' => 'nack',
-    'data' => "no agent seems to depend on '$agent_name' (already deleted?)"
+    'data' => "no agent seems to depend on '$agent_name' (already dropped?)"
     }
     if !$del_count;
 
-return { 'mode' => 'ack', 'data' => "deleted $del_count dependencies" };
+my $ies = $del_count > 1 ? 'ies' : 'y';
+
+return { 'mode' => 'ack', 'data' => "dropped $del_count dependenc$ies" };
