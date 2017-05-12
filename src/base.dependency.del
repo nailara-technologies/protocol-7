@@ -1,0 +1,25 @@
+# >:]
+
+# name  = base.dependency.del
+# descr = add new object id to the dependency chain
+
+my $object_id  = shift // '';
+my $depends_on = shift // '';
+
+die "base.dependency.del: expecting two valid dependency-object ids"
+    if not exists <dependency.object>->{$object_id}
+    or not exists <dependency.object>->{$depends_on};
+
+<dependency.chain>->{$object_id} //= [];
+my $chain_aref = <dependency.chain>->{$object_id};
+
+my @new_chain = grep { !/^$depends_on$/ } @{$chain_aref};
+
+my $difference = @{$chain_aref} - @new_chain;
+
+if ( !$difference ) {
+    warn "base.dependency.del: not found [$depends_on<-$object_id]";
+} else {
+    <dependency.chain>->{$object_id} = [@new_chain];
+    return $difference;
+}
