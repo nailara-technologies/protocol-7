@@ -1,0 +1,28 @@
+# >:]
+
+# name  = root.cmd.delete_dependency
+# param = <agent_name>
+# descr = admin cmd to purge agent from dependencies
+
+return { 'mode' => 'nack', 'data' => 'expected valid agent name' }
+    if !length( $$call{'args'} )
+    or not my $agent_id = <[agent.get_id]>->( $$call{'args'} );
+
+my $agent_name = $$call{'args'};
+
+my $del_count = 0;
+my $object_id = <[agent.get_object_id]>->($agent_id);
+
+foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
+    $del_count += <[dependency.del]>->( $dep_obj, $object_id );
+}
+
+# XXX: add full history / restore feature?
+
+return {
+    'mode' => 'nack',
+    'data' => "no agent seems to depend on '$agent_name' (already deleted?)"
+    }
+    if !$del_count;
+
+return { 'mode' => 'ack', 'data' => "deleted $del_count dependencies" };
