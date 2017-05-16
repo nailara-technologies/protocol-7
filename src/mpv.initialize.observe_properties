@@ -1,0 +1,17 @@
+# >:]
+
+# name = mpv.initialize.observe_properties
+
+map { <[mpv.send_command]>->( 'observe_property', 1, $_ ) } qw/
+    video-aspect
+    path
+    width
+    height
+    volume
+    /;
+
+if (<mpv.fade_idle_volume>) {
+    <[mpv.send_command]>->( 'set_property',     'volume', '0' );
+    <[mpv.send_command]>->( 'observe_property', 1,        'core-idle' );
+}
+
