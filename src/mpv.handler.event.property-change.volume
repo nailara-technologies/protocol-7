@@ -10,8 +10,13 @@
     and ( <mpv.current.volume>
     or !<mpv.current.volume> and <mpv.current.volume_target> == 1 );
 
-<mpv.startup.volume_inittialized> //= 0;
-if ( !<mpv.startup.volume_inittialized> ) {
+<mpv.startup.volume_initialized> //= 0;
+if (
+    (      <mpv.fade_idle_volume>
+        or <mpv.start_volume> != 100
+    )
+    and !<mpv.startup.volume_initialized>
+    ) {
     <[mpv.callback.init_volume]> if <mpv.current.volume> != <mpv.start_volume>;
-    <mpv.startup.volume_inittialized>++;
+    ++<mpv.startup.volume_initialized>;
 }
