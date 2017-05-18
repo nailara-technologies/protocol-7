@@ -23,6 +23,6 @@ substr(
     length($reason_str) - ( $reason_max_len - length($replace_str) ), '..'
 ) if length($reason_str) > $reason_max_len;
 
-<[base.log]>->( 1, "[$id] session shutdown requested ($reason_str)" );
+<[base.log]>->( 1, "[$id] session shutdown requested (\"$reason_str\")" );
 
 $reply = { 'mode' => 'shutdown', 'data' => 'session terminated' }
