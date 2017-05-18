@@ -43,7 +43,7 @@ if ( $result{'years'} and !$result{'days'} ) {
     push( @result, sprintf( "%dy", $result{'years'} ) );
 }
 
-if ( $result{'days'} and $result{'years'} ) {
+if ( $result{'days'} and $result{'years'} and defined $result{'yday'} ) {
     push( @result, sprintf( "%dd", $result{'yday'} ) );
 } elsif ( $result{'days'} ) {
     my $s = $result{'days'} > 1 ? 's' : '';
