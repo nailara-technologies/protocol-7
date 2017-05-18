@@ -1,19 +1,24 @@
 # >:]
 
 # name  = debug.cmd.startup_time
-# param = [unix]
-# descr = returns agent startup date or unix time
-
-my $mode = $$call{'args'};
+# param = [unix|rel[ative]]
+# descr = agent startup local, unix time or 'uptime'
+my $mode = $$call{'args'} // '';
+$mode = 'rel' if $mode eq 'relative';
+return {
+    'mode' => 'nack',
+    'data' => 'invalid output mode'
+    }
+    if $mode !~ /^(|unix|rel)$/;
 return {
     'mode' => 'nack',
     'data' => 'not available'
     }
     if not exists <system.process_start.time>;
 
-( my $startup_time = <system.process_start.time> ) =~ s/\.\d+$//;
-$startup_time = <[base.parser.timestamp]>->($startup_time)
-    if not defined $mode or $mode ne 'unix';
+( my $startup_time = <system.process_start.time> ) =~ s/\.\d+$//;    # unix
+$startup_time = <[base.parser.timestamp]>->($startup_time) if !length($mode);
+$startup_time = <[base.parser.duration]>->($startup_time)  if $mode eq 'rel';
 
 return {
     'mode' => 'ack',
