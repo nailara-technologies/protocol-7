@@ -9,7 +9,7 @@ my $input   = \$$session{'buffer'}{'input'};
 my $output  = \$$session{'buffer'}{'output'};
 my ( $auth_method, $auth_code, $auth_name );
 die "no auth methods defined" if not defined <auth.methods>;
-($auth_method) = $$session{'auth'}{'method'} || split( /\s+/, <auth.methods> );
+($auth_method) = $$session{'auth'}{'method'} // split( /\s+/, <auth.methods> );
 
 $_[0]->w->stop;    # stop handler to modify buffer
 
@@ -93,7 +93,7 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         and defined $auth_name
         and $auth_name =~ <regex.base.usr> ) {
         my $fh = $data{'session'}{$id}{'handle'};
-        $$session{'encryption'}  = $data{'handle'}{$fh}{'encryption'} || 'none';
+        $$session{'encryption'}  = $data{'handle'}{$fh}{'encryption'} // 'none';
         $$session{'mode'}        = 'client';
         $$session{'user'}        = $auth_name;
         $$session{'auth_time'}   = <[base.time]>->(5);
