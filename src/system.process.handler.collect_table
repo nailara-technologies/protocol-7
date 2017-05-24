@@ -14,6 +14,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     ( my $cpu = $p->pctcpu ) =~ s/^ +//;
     ( my $mem = $p->pctmem ) =~ s/^ +//;
     next if $cpu eq 'inf' or $mem eq 'inf';
+    map { $_ = sprintf( "%.2f", $_ ) if length($_) > 7 } ( $cpu, $mem );
 
     $mem_used_percent += $mem;
 
@@ -88,7 +89,7 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
 } elsif (<system.memory_alert.warned>) {
     <[base.log]>->(
         1,
-        " : memory usage dropped below "
+        " : memory usage dropped back below "
             . <mem.max_used>
             . "% limit ( now $mem_used_percent% )"
     );
