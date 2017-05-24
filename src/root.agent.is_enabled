@@ -13,12 +13,13 @@ my $config_href = <root.spawn_config.globals.agents>;
 foreach my $check_key ( 'enabled', 'disabled' ) {
     if (    exists $config_href->{$check_key}
         and defined $config_href->{$check_key}
-        and $config_href->{$check_key} !~ /^([a-z][a-z\.\-_\d]*\ *)+$/i ) {
+        and $config_href->{$check_key} !~ /^(([a-z][a-z\.\-_\d]*\ *)+)?\s*$/i )
+    {
         <[base.log]>->(
             0,
             "spawn config syntax error: agents.$check_key = '"
                 . $config_href->{$check_key}
-                . "' <- expecting valid agent names"
+                . "' <- expecting valid agent name(s)"
         );
         die "critical configuration error";
     }
@@ -27,7 +28,8 @@ foreach my $check_key ( 'enabled', 'disabled' ) {
 # all agents considered enabled in absence of explicit statements!
 return 1
     if not defined $config_href->{'enabled'}
-    and not defined $config_href->{'disabled'};
+    and ( not defined $config_href->{'disabled'}
+    or $config_href->{'disabled'} =~ /^\s+$/ );
 
 # agents.diabled takes precedence before agents.enabled!
 map { return 0 if $_ eq $agent_name } split( /\s+/, $config_href->{'disabled'} )
