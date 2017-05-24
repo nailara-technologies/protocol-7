@@ -11,7 +11,8 @@ my $config_href = <root.spawn_config.globals.agents>;
 
 return 0
     if not exists $config_href->{'disabled'}
-    or not defined $config_href->{'disabled'};
+    or not defined $config_href->{'disabled'}
+    or $config_href->{'disabled'} =~ /^\s*$/;
 
 # checking config syntax
 if ( $config_href->{'disabled'} !~ /^([a-z][a-z\.\-_\d]*\ *)+$/i ) {
@@ -19,7 +20,7 @@ if ( $config_href->{'disabled'} !~ /^([a-z][a-z\.\-_\d]*\ *)+$/i ) {
         0,
         "spawn config syntax error: agents.disabled = '"
             . $config_href->{'disabled'}
-            . "' <- expecting valid agent names"
+            . "' <- expecting valid agent name[[[s]]]"
     );
     die "configuration sybtax error in agents.disabled";
 }
