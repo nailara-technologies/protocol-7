@@ -19,9 +19,8 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
   #libconvert-uu-perl
 
 # installs the rest from cpan
-cpanm Crypt::Twofish2 Crypt::Curve25519 Crypt::Ed25519 \
-                POSIX::1003 CryptX XML::RSS::TimingBot \
-                File::MimeInfo::Magic Config::Hosts HTTP::Soup \
-                Mediainfo Poppler Device::Gembird
+cpanm   CryptX Crypt::Curve25519 Crypt::Ed25519 \
+        POSIX::1003 XML::RSS::TimingBot File::MimeInfo::Magic \
+        Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit X11::Tops

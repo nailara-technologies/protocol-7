@@ -18,7 +18,6 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       XML::RSS::TimingBot XML::RSSLite \
       SDL Gtk2 Glib::Event \
       CryptX \
-      Crypt::Twofish2 \
       HTTP::Request \
       Gtk3::WebKit \
       HTTP::Soup \
