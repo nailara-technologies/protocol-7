@@ -173,6 +173,6 @@ map {
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
     <base.watcher.signal>->{$_} = <[event.add_signal]>
         ->( { 'signal' => $uc_sig, 'handler' => 'layout.handler.sig_term' } );
-} ( 'int', 'term' );
+} ( 'int', 'term', 'quit' );
 
 0;
