@@ -1,0 +1,22 @@
+# >:]
+
+# name = layout.handler.region_color_reply
+
+my $answer   = shift;
+my $reply_id = delete $answer->{'params'};
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'nack',
+        'data' => "unexpected (NACK) reply from screenshot agent!"
+    }
+) if $answer->{'cmd'} ne 'ACK';
+
+my $color_str = $answer->{'call_args'}->{'args'};
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'ack',
+        'data' => $color_str
+    }
+);
