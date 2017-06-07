@@ -82,6 +82,7 @@ if (<layout.startup.initializing>) {
 <layout.coordinates> = {};
 <layout.subconfig>   = {};
 <layout.layers>      = {};
+<layout.tiles>       = {};
 
 foreach my $agent_name ( keys %{$layout_data} ) {
 
@@ -114,6 +115,57 @@ foreach my $agent_name ( keys %{$layout_data} ) {
     <layout.window_ids>->{$agent_name} //= undef;
     <layout.transition.status.agents.start>->{$agent_name} = $layout_name;
 }
+
+map {
+    my $tile_name = '';
+    my $name_copy = my $agent_name = $_;
+    $tile_name = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+    if ( length($tile_name) ) {
+        <layout.tiles>->{$tile_name}->{'agent'} = $agent_name;
+        my %pos_match;
+        my $pos_hint_str     = '';
+        my $coords           = <layout.coordinates>->{$name_copy};
+        my $border_tolerance = 2;
+        if (    $coords->{'left'} <= $border_tolerance
+            and $coords->{'top'} <= $border_tolerance
+            and $coords->{'right'} >= <x11.screen.width> - $border_tolerance
+            and $coords->{'bottom'} >= <x11.screen.height> - $border_tolerance )
+        {
+            $pos_hint_str = 'fullscreen';
+        } else {
+            foreach my $border_name ( keys %{$coords} ) {
+                my $coord_val = $coords->{$border_name};
+                my $h_w       = sprintf( "%.0f", <x11.screen.width> / 2 );
+                my $h_h       = sprintf( "%.0f", <x11.screen.height> / 2 );
+                $pos_match{$border_name} = 1
+                    if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
+                    or ( $border_name eq 'left'   and $coord_val < $h_w * 0.8 )
+                    or ( $border_name eq 'right'  and $coord_val > $h_w * 1.2 )
+                    or ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
+            }
+            if ( scalar keys(%pos_match) == 4 ) {
+                %pos_match = ( 'center' => 1 );
+            } elsif ( defined $pos_match{'top'}
+                and defined $pos_match{'bottom'} ) {
+                delete $pos_match{'top'};
+                delete $pos_match{'bottom'};
+            } elsif ( defined $pos_match{'left'}
+                and defined $pos_match{'right'} ) {
+                delete $pos_match{'left'};
+                delete $pos_match{'right'};
+            }
+            $pos_hint_str = join( '-', sort( keys(%pos_match) ) );
+        }
+        <layout.tiles>->{$tile_name}->{'pos_hint'} = $pos_hint_str;
+    }
+} keys %{ <layout.config.layouts>->{$layout_name} };
+<list.tiles> = {
+    'var'      => 'data',
+    'key'      => 'layout.tiles',
+    'mask'     => '<key>:tile_name agent pos_hint',
+    'sort_key' => 'pos_hint',
+    'descr'    => sprintf( 'configured tiles in layout "%s"', $layout_name )
+};
 
 <layout.startup.initializing> = 0;
 
