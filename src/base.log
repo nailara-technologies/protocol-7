@@ -4,11 +4,12 @@
 # descr = generate a log entry
 # args  = log_level log_msg [log_buffer]
 
-my ( $log_level, $log_msg, $log_buffer ) = ( $_[0], $_[1], $_[2] );
+my ( $log_level, $log_msg, $log_buffer )
+    = ( $_[0] || 0, $_[1] // '', $_[2] // '' );
 
-$log_level  = 0        if not defined $log_level  or $log_level !~ /^\d+$/;
-$log_buffer = 'system' if not defined $log_buffer or $log_buffer eq '';
-$log_msg = 'LOG MESSAGE UNDEFINED' if not defined $log_msg or !length($log_msg);
+$log_level  = 0                     if $log_level !~ /^\d+$/;
+$log_buffer = 'system'              if !length($log_buffer);
+$log_msg    = '[EMPTY LOG MESSAGE]' if !length($log_msg);
 
 $log_msg =~ s/\r/\\r/g;
 $log_msg =~ s/\n/\\n/g;
