@@ -4,7 +4,6 @@
 # param = <X1> <Y1> <X2> <Y2>
 # descr = return average color for specified region
 
-local $ENV{'DISPLAY'} = <x11.display>;
 my $param_str = shift->{'args'} // '';
 return { 'mode' => 'nack', 'data' => 'expected screen region coordinates' }
     if $param_str !~ /^(\d+ +){3}\d+$/;
@@ -12,6 +11,7 @@ my @coords = ( split( / +/, $param_str ) );
 
 my @RGB;
 eval {
+    $ENV{'DISPLAY'} = <x11.display>;
     @RGB = screenshot(
         'left'   => $coords[0],
         'top'    => $coords[1],
