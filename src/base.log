@@ -49,4 +49,6 @@ if ( exists <system.internal_verbosity>
 }
 
 # print to console
-print $log_txt if exists <system.verbosity> && $log_level <= <system.verbosity>;
+print $log_txt
+    if fileno(STDOUT)
+    and defined <system.verbosity> && $log_level <= <system.verbosity>;
