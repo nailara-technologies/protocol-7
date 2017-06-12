@@ -29,8 +29,9 @@ if ( not defined $del_key_ref ) {
 
 ( my $var_str = '${$data_ref}{\'' . $del_key . '\'}' ) =~ s|\.|'}{'|g;
 
-my $deleted = 0;
-eval "\$deleted = delete $var_str";
+my $code_bubble = Safe->new;
+$code_bubble->permit_only('delete');
+my $deleted = $code_bubble->reval("delete($var_str)") // 0;
 
 if ($deleted) {
     <[base.log]>->( 1, "base.del_key: key ($del_key) deleted" ) if !$silent;
