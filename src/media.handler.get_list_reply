@@ -37,37 +37,65 @@ my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "received empty playlist!" );
 
-    <[media.stop_loadsplash]> if <media.loadsplash_running>;
+    my $max_retries = <media.counter.empty_list_max_retries> //= 5;
+    <media.counter.empty_list_retries>--
+        if defined <media.counter.empty_list_retries>;
+    my $retries_left = <media.counter.empty_list_retries> //= $max_retries;
 
-    if ( !<media.declared_online> ) {
-        <media.declared_online>++;
-        <[base.async.get_session_id]>;
-        <[base.log]>->(
-            1,
-            "reported agent as online,"
-                . " skipping sub-agent startup [empty playlist]"
-        );
-    }
-
-    <media.playlist.files> = [];
-    map { <media.playlist.agent>->{$_} = [] } @{<media.display_agents>};
-    foreach my $hide_agent ( keys %{<media.child>} ) {
-        my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
-        next if not defined $hide_wid;
-        <[base.log]>->( 2, ": hiding '$hide_agent' ($hide_wid)" );
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.xserver.hide_window",
-                'call_args' => { 'args' => $hide_wid }
+    if ($retries_left) {
+        <media.timer.playlist_retry>->cancel
+            if defined <media.timer.playlist_retry>
+            and <media.timer.playlist_retry>->is_active;
+        my $retry_secs
+            = sprintf( "%.2f", ( 1 + $max_retries - $retries_left ) * 0.42 );
+        <[base.log]>->( 1, ": retrying update in ${retry_secs} seconds.." );
+        <media.timer.playlist_retry> = <[event.add_timer]>->(
+            {   'after'   => $retry_secs,
+                'repeat'  => 0,
+                'handler' => 'media.cmd.playlist_update'
             }
         );
-        <media.child>->{$hide_agent}->{'visible'} = 0;
+    } else {
+
+        if ( defined <media.counter.empty_list_retries> ) {
+            delete <media.counter.empty_list_retries>;
+            <[base.log]>->(
+                0, "giving up on playlist update as it remained empty!"
+            );
+        }
+
+        if ( !<media.declared_online> ) {
+            <media.declared_online>++;
+            <[base.async.get_session_id]>;
+            <[base.log]>->(
+                1,
+                "reported agent as online,"
+                    . " skipping sub-agent startup [empty playlist]"
+            );
+        }
+
+        <[media.stop_loadsplash]> if <media.loadsplash_running>;
+
+        <media.playlist.files> = [];
+        map { <media.playlist.agent>->{$_} = [] } @{<media.display_agents>};
+        foreach my $hide_agent ( keys %{<media.child>} ) {
+            my $hide_wid = <media.child>->{$hide_agent}->{'window_id'};
+            next if not defined $hide_wid;
+            <[base.log]>->( 2, ": hiding '$hide_agent' ($hide_wid)" );
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.xserver.hide_window",
+                    'call_args' => { 'args' => $hide_wid }
+                }
+            );
+            <media.child>->{$hide_agent}->{'visible'} = 0;
+        }
+        <media.playlist_was_empty> = 1;
+        <media.playlist_sha1>      = $playlist_sha1;
+        map {
+            <[base.proto.nailara.command.send.local]>
+                ->( { 'command' => "$_.playlist_update" } )
+        } @{<media.display_agents>};
     }
-    <media.playlist_was_empty> = 1;
-    <media.playlist_sha1>      = $playlist_sha1;
-    map {
-        <[base.proto.nailara.command.send.local]>
-            ->( { 'command' => "$_.playlist_update" } )
-    } @{<media.display_agents>};
     return;
 }
 
