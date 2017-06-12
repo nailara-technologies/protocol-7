@@ -1,7 +1,7 @@
 # >:]
 
 # name  = base.cmd.list
-# param = [name]
+# param = [list_name]
 # descr = show available lists or their content
 
 my $list_name = $$call{'args'};
@@ -28,9 +28,10 @@ if (    defined $list_name
     return {
         'mode' => 'raw',
         'data' => <[base.parser.list]>->(
-            {   'var'  => 'data',
-                'key'  => 'list',
-                'mask' => [qw| <key>:name descr |]
+            {   'var'   => 'data',
+                'key'   => 'list',
+                'align' => { 'list_name' => 'right+5' },
+                'mask'  => [qw| <key>:list_name descr:description |]
             }
         )
     };
