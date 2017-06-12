@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use IPC::Open2;
+use Class::Inspector;
+
+use Data::Dumper;
+$Data::Dumper::Sortkeys  = 1;
+$Data::Dumper::Indent    = 3;
+$Data::Dumper::Quotekeys = 0;
+
+chomp( my $perltidy_path = qx(which perltidy) );
+
+my $class_str = $ARGV[0] // '';
+
+( my $progname = $0 ) =~ s|^.+/||;
+die "\n  usage : $progname <perl_module/class_name>\n\n" if !length($class_str);
+
+eval {
+    use Gtk3;
+    use Glib ':constants';
+    use Gtk3 -init;
+    use Glib::Object::Introspection;
+    Glib::Object::Introspection->setup(
+        basename => 'GdkX11',
+        version  => '3.0',
+        package  => 'Gdk::X11'
+    );
+    Glib::Object::Introspection->setup(
+        basename => 'Gtk',
+        version  => '3.0',
+        package  => 'Gtk3'
+    );
+} if $class_str =~ /^Gtk3/;
+
+my $skip_load_re = qr/^(IPC::Open2|Data::Dumper|Class::Inspector|Gtk3)$/;
+
+eval "use $class_str" if not $class_str =~ /$skip_load_re/;
+my $header_str = "\n   ###  perl module/class : $class_str  ###";
+if ( $@ and $class_str =~ /::/ ) {
+    my $load_name = $class_str;
+    while ( $@ and $load_name =~ s/::[^:]+$// ) {
+        eval "use $load_name" if not $load_name =~ /$skip_load_re/;
+        $header_str = "\n   ###  perl module : $load_name  ###";
+    }
+}
+
+my $dump_str = Data::Dumper::Dumper( { eval "%{$class_str\::}" } );
+
+if ( length($perltidy_path) ) {
+    my $pid = open2( my $fh_out, my $fh_in, "$perltidy_path -l=0 -" );
+    die $! if not defined $pid;
+    print {$fh_in} $dump_str;
+    close($fh_in);
+    $dump_str = join( '', <$fh_out> ) . "\n";
+}
+
+my @lines = split( /\n/, $dump_str );
+shift(@lines);
+pop(@lines);
+
+( $dump_str = join( "\n", @lines ) . "\n" ) =~ s/,$//mg;
+$dump_str =~ s/=>\s([^\s]+)$/
+  my $glob_str = $1;
+  if (eval "defined \&{$glob_str}") {
+    $glob_str =~ s,^\*, , and $glob_str .= '()';
+    $glob_str =~ s{::([^:]+)\(\)$}{ -> $1( )};
+  } elsif(defined eval "\${$glob_str}") {
+    $glob_str =~ s,^\*,\$,;
+    $glob_str =~ s{::([^:]+)$}{->{'$1'}};
+  }
+  my $replace = " -->  $glob_str";
+$replace/mgxe;
+
+die "\n   [ module or class '$class_str' not found ]\n\n" if $dump_str eq "\n";
+
+print "$header_str\n\n'$dump_str'\n";
