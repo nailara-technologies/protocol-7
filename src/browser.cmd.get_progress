@@ -7,6 +7,6 @@ my $fg_index = <browser.overlay.index>->{'fg'};
 my $bg_index = <browser.overlay.index.bg>;
 my $view     = <browser.gtk_obj.view>->{$bg_index};
 
-my $progress_str = sprintf( "%.2f%", ( $view->get_progress() * 100 ) );
+my $progress_str = sprintf( "%.2f", ( $view->get_progress() * 100 ) ) . '%';
 
 return { 'mode' => 'ack', 'data' => $progress_str }
