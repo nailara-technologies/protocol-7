@@ -6,6 +6,11 @@ use File::Spec;
 
 ### wrapper code to load Gtk3 module at compile time ###
 
+BEGIN {
+    ( my $local_lib_path = $0 ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+}
+
 my $agentname;
 my @call_args = @ARGV;
 my $exec_name = File::Spec->rel2abs($0);
