@@ -12,7 +12,6 @@ export PAGER=/bin/true
 
 echo -e "\n:\n: starting $ID $ACTION ...\n:\n"
 
-
 dpkg --configure -a ; apt-get -fy install # [automatic recovery, if required]
 
 apt-get update && \
@@ -22,4 +21,5 @@ apt-get -fy \
 	-o Dpkg::Options::="--force-overwrite" $ACTION && \
 	apt-get clean && \
 	apt-get -y --purge autoremove && \
-	echo -e "\n:\n: done.\n:\n"
+        dpkg -l | grep '^rc' | awk '{print $2}' \
+        | xargs dpkg --purge && echo -e "\n:\n: done.\n:\n"
