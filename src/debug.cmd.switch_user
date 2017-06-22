@@ -18,7 +18,7 @@ if ( not defined $new_usr or !length($new_usr) ) {
 } elsif ( $new_usr =~ <regex.base.usr> ) {
 
     return { 'mode' => 'nack', 'data' => "no user '$new_usr' found!" }
-        if not defined $data{'auth'}{'pwd'}{$new_usr};
+        if not defined <auth.setup.usr>->{$new_usr};
 
     <[base.log]>->(
         0, "[$id] <!> switching session from user '$old_usr' to '$new_usr' <!>"
