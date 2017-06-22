@@ -8,8 +8,8 @@ my $session = $data{'session'}{$id};
 my $input   = \$$session{'buffer'}{'input'};
 my $output  = \$$session{'buffer'}{'output'};
 my ( $auth_method, $auth_code, $auth_name );
-die "no auth methods defined" if not defined <auth.methods>;
-($auth_method) = $$session{'auth'}{'method'} // split( /\s+/, <auth.methods> );
+die "no auth methods defined" if not defined <auth.supported_methods>;
+($auth_method) = $$session{'auth'}{'method'} // split( /\s+/, <auth.supported_methods> );
 
 $_[0]->w->stop;    # stop handler to modify buffer
 
