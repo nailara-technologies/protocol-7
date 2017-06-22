@@ -9,7 +9,8 @@ return if <media.agents_started>;
 my %display_agents;
 map { $display_agents{$_} = 1 } values %{<media.content.agent_map>};
 foreach my $agent_name ( keys(%display_agents) ) {
-    <auth.pwd>->{$agent_name} //= ':unix:' . <system.privs.user>;
+    $data{'auth'}{'setup'}{'usr'}{$agent_name}
+        //= ':unix:' . <system.privs.user>;
     <media.child>->{$agent_name}->{'status'} = 'starting';
     if ( !<[media.start_agent]>->($agent_name) ) {
         <[base.log]>->(

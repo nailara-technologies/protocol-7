@@ -37,8 +37,8 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
         return 2;
     }
 
-    if ( defined <auth.pwd>->{$auth_user}
-        and <auth.pwd>->{$auth_user} =~ /^:unix:(.+)$/ ) {
+    if ( defined <auth.setup.usr>->{$auth_user}
+        and <auth.setup.usr>->{$auth_user} =~ /^:unix:(.+)$/ ) {
         my @allowed_users = split( /\s*,\s*/, $1 );
 
         map { $auth_ok = 1 if $client_uname eq $_ } @allowed_users;
