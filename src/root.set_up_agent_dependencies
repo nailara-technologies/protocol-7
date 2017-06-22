@@ -84,7 +84,16 @@ foreach my $s_id (
 
             # choosing first agent with such a name (for now)
             my $first_id = <[agent.get_id]>->($dep_agent_name);
-            $object_id = <[agent.get_object_id]>->($first_id);
+            if ( not defined $first_id ) {
+                <[base.log]>->(
+                    0,
+                    "<!> obj. dependency $source_object: agent"
+                        . " \"$dep_agent_name\" not found in setup!"
+                );
+                next;
+            } else {
+                $object_id = <[agent.get_object_id]>->($first_id);
+            }
         }
         <[dependency.add]>->( $source_object, $object_id );
     }
