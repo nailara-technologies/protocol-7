@@ -310,7 +310,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     ) if defined $route->{'hook_data'};
 
                     # route reply
-                    $$call_args{'args'} //= '[no reply data]';
+                    $$call_args{'args'} //= 'UNDEFINED';
                     $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
                         {'output'}
                         .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
