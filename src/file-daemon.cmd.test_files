@@ -1,0 +1,18 @@
+# >:]
+
+# name  = file-daemon.cmd.test_files
+# descr = returns list of test files [debug cmd]
+
+my $reply_str = '';
+
+my $index = 0;
+
+map {
+    $reply_str .= sprintf( "[%d] ... %03d MB ... %s\n",
+        ++$index, [ stat($_) ]->[7] / 1024**2, $_ )
+} @{<file-daemon.testfiles>};
+
+return {
+    'mode' => 'raw',
+    'data' => $reply_str
+};
