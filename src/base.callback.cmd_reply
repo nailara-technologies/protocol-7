@@ -57,7 +57,7 @@ if ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
 } elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
     my $len = length( $$reply{'data'} );
     $$output .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
-} elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
+} elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
     <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
 }
 
