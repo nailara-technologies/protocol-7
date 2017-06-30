@@ -43,20 +43,14 @@ if ( defined <browser.redraw_fps.slowdown_target>
 <window.scroll.no_js> //= 0;
 <window.scroll.pos> = $vadj->get_value();
 
-if (<window.scroll.stop>) {
+if ( delete <window.scroll.stop> ) {
     <window.scrolling> = 0;
     my $pos_percent
         = int( ( <window.scroll.pos> * 100 ) / <window.scroll.max> );
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'ack', 'data' => "stopped at $pos_percent%" }
+        $reply_id, { 'mode' => 'ack', 'data' => "stopped [$pos_percent%]" }
     ) if defined $reply_id;
-    delete <window.scroll.stop>;
-    <[base.callback.cmd_reply]>->(
-        <window.scroll.stop_reply_id>,
-        { 'mode' => 'ack', 'data' => "scrolling stopped" }
-    ) if exists <window.scroll.stop_reply_id>;
     delete <window.scroll.stop_reply_id>;
-
     delete <browser.time.last_scroll>;
     $widget->signal_handler_disconnect(
         delete <browser.signal_id.auto_scroll> );
