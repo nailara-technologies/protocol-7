@@ -38,7 +38,7 @@ if ( $0 =~ /^.*nailara\./ ) {
 }
 
 ( $agentname, @ARGV ) = ( split( / +/, $agentname ), @ARGV )
-    if $agentname =~ / /;
+    if defined $agentname and index( $agentname, ' ' ) != -1;
 
 ( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s/ *-[v]+ *//;
 
