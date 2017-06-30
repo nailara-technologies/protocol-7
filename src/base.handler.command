@@ -259,7 +259,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
-if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
+if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
     if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
@@ -272,7 +272,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                 $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
             }
 
-            if ( $cmd =~ /^(N?ACK)$|^WAIT$|^SHUTDOWN$/ ) {
+            if ( $cmd =~ /^(N?ACK)$|^WAIT$|^TERM$/ ) {
 
                 # check if reply handler is set
 
@@ -531,7 +531,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|SHUTDOWN)$/ ) {
                     my $len = length( $$reply{'data'} );
                     $$output
                         .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
-                } elsif ( uc( $$reply{'mode'} ) eq 'SHUTDOWN' ) {
+                } elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
                     <[base.session.shutdown]>->( $id, $$reply{'data'} );
                 }
                 return 0;
