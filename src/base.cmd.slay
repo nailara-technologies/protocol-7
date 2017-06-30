@@ -21,11 +21,10 @@ if ( $$call{'args'} =~ /^($re->{usr})( +(.+))?$/ ) {
             if ( $data{'session'}{$sid}{'user'} eq $usr ) {
                 if ( $call->{'session_id'} eq $sid ) {
                     $killed_own = 1;
-                    $msg_string = "you've terminated your own session!"
+                    $msg_string = "you just forcefully closed your own session!"
                         if keys( %{ $data{'user'}{$usr}{'session'} } ) == 1;
-                } else {
-                    <[base.session.shutdown]>->( $sid, $msg_string );
                 }
+                <[base.session.shutdown]>->( $sid, $msg_string );
                 <[base.log]>->( 0, "slaying session $sid ($usr)" );
                 $killed++;
             }
