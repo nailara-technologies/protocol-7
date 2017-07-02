@@ -15,11 +15,17 @@ if ( not defined $_[0] ) {
 $data{'handle'}{ $_[0] }{'proto'} = $_[1];
 my $mode = $_[2] || 'server';
 
-if ( !fileno( $_[0] ) ) {
-    <[base.log]>
-        ->( 0, "failed to bind protocol '$_[1]' to invalid filehandle" );
+my $fd = eval { fileno( $_[0] ) };
+
+if ( $@ or not defined $fd ) {
+    my $ref_str = ref( $_[0] );
+    do { $@ =~ s/\n+/ /g and $@ =~ s/\.? +$//g } if defined $@;
+    <[base.log]>->(
+        0, "<<!>> failed to bind protocol '$_[1]' to '$ref_str'-filehandle [$@]"
+    );
     <[base.session.check_last]>;
 } else {
+    warn "file handle '$fd' does not have a real file descriptor" if $fd == -1;
     <[base.log]>->(
         2, "bound protocol '$_[1]' to handle '$_[0]' (mode: $mode)"
     );
