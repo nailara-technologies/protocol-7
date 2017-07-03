@@ -14,12 +14,12 @@ echo -e "\n:\n: starting $ID $ACTION ...\n:\n"
 
 dpkg --configure -a ; apt-get -fy install # [automatic recovery, if required]
 
+dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
+
 apt-get update && \
 apt-get -fy \
 	-o Dpkg::Options::="--force-confnew" \
 	-o Dpkg::Options::="--force-confdef" \
 	-o Dpkg::Options::="--force-overwrite" $ACTION && \
-	apt-get clean && \
-	apt-get -y --purge autoremove && \
-        dpkg -l | grep '^rc' | awk '{print $2}' \
-        | xargs dpkg --purge && echo -e "\n:\n: done.\n:\n"
+	apt-get clean && apt-get -y --purge autoremove && \
+	echo -e "\n:\n: done.\n:\n"
