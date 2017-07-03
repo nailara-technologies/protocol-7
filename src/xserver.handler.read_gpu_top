@@ -3,9 +3,9 @@
 # name  = xserver.handler.read_gpu_top
 # descr = reads output from 'intel_gpu_top' process and collects load statistics
 
-my $event    = shift->w;
-my $read_fh  = $event->fd;
-my $gtop_pid = $event->data->{'pid'};
+my $watcher  = shift->w;
+my $read_fh  = $watcher->fd;
+my $gtop_pid = $watcher->data->{'pid'};
 
 my @stat_secs = ( 5, 15, 30 );
 
@@ -20,14 +20,15 @@ my $read_bytes = sysread(
     4096,     length(<xserver.gpu_top.output_buffer>)
 );
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
-    $event->cancel;
+    $watcher->cancel;
     close($read_fh);
     <[base.log]>->(
         1, "intel_gpu_top [PID:$gtop_pid] output filehandle closed."
     );
     <[base.log]>->( 0, "intel_gpu_top died unexpectedly! deleting stats.." );
-    $event->cancel if $event->is_active;
+    $watcher->cancel if $watcher->is_active;
     delete <xserver.gpu_top.stats>;
+    return undef;
 }
 
 my $load_ref = <xserver.gpu_top.stats.load_average>;
@@ -41,8 +42,12 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     if ( $output_line =~ /^(\d+(\.\d+)?)\s+(\d+(\.\d+)?)\s+/ ) {
         ( $time, $load ) = ( $1, $3 );
     } else {
-        substr( $output_line, 253, length($output_line) - 253, '...' );
-        <[base.log]>->( 0, "[WTF?] < intel_gpu_top > " . $output_line );
+        substr( $output_line, 253, length($output_line) - 253, '...' )
+            if length($output_line) > 253;
+        <[base.log]>->( 0, "[FAIL] < intel_gpu_top > " . $output_line );
+        $watcher->cancel if $watcher->is_active;
+        delete <xserver.gpu_top.stats>;
+        return undef;
     }
     my $stat_ref   = <xserver.gpu_top.stats>;
     my $sample_ref = <xserver.gpu_top.stats.sample>;
