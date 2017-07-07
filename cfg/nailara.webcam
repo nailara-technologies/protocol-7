@@ -1,0 +1,32 @@
+
+  .:[ webcam agent ]:.
+
+[set_privs:'nailara']
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = verify_instance ping help playlist_update show_url reload
+
+# some test urls:
+# webcam.image_url = http://85.220.149.7/record/current.jpg
+# webcam.image_url = http://www.comune.arenzano.ge.it/uploads/images/webcam/current.jpg
+# webcam.image_url = http://penteli.meteo.gr/stations/variko/webcam/current.jpg
+
+webcam.http_timeout = 13
+webcam.http_maxsize = 7340032 # 7 MB image size limit
+
+# webcam.error_string = 'Webcam derzeit nicht erreichbar'
+
+modules.load = auth net io.ip digest.sha digest.sha1 webcam
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+[base.x11.get_coordinates]
+
+[base.get_session_id]
+[webcam.get_playlist]
+
+[webcam.sdl_loop]
