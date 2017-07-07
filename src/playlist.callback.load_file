@@ -52,16 +52,12 @@ map {
 if ( !@file_names ) {
     <playlist.type_cache> = {};
     <[base.log]>->( 0, "no files in playlist!" );
-    my $update_cmd = <update.notify_command> || 'playlist_update';
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.root.restart",
             'call_args' => { 'args' => <update.restart_on_empty> }
         }
     ) if defined <update.restart_on_empty>;
-    map {
-        <[base.proto.nailara.command.send.local]>
-            ->( { 'command' => "core.$_.$update_cmd" } );
-    } split( / +/, <update.notify_agents> );
+    <[playlist.update.send_notifications]>;
     return 0;
 } else {
 
