@@ -1,0 +1,11 @@
+# >:]
+
+# name  = webcam.cmd.show_url
+# descr = return currently used webcam url
+
+my $url_str = <webcam.image_url> // '';
+
+return { 'mode' => 'nack', 'data' => 'no cam image url has been set!' }
+    if !length($url_str);
+
+return { 'mode' => 'ack', 'data' => $url_str };
