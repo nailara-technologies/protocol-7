@@ -167,6 +167,16 @@ map {
     'descr'    => sprintf( 'configured tiles in layout "%s"', $layout_name )
 };
 
+if ( defined <layout.tiles_visible_file> ) {
+    <[base.log]>->(
+        1, sprintf( ":. writing to '%s'..", <layout.tiles_visible_file> )
+    );
+    <[file.put]>->(
+        <layout.tiles_visible_file>,
+        join( ', ', sort keys %{<layout.tiles>} ) . "\n"
+    );
+}
+
 <layout.startup.initializing> = 0;
 
 <[base.proto.nailara.command.send.local]>
