@@ -152,6 +152,8 @@ foreach my $file (@file_names) {
         }
     } elsif ( $file =~ m|^udp://| ) { # XXX: temporary hack for mcast live video
         $type = 'video';
+    } elsif ( $file =~ m|^rt[sm]p://| ) {    # video
+        $type = 'video';
     } elsif ( $type eq 'unknown' and -f $file ) {
         <[base.log]>->( 0, "failed to determine type of local file '$file'!" );
         next;
