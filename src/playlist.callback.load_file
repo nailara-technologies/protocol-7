@@ -38,6 +38,29 @@ map {
     push( @file_names, $_ ) if length($_);
 } @lines;
 
+my $tiles_visible_file = "$file_path.tiles_visible";
+if ( -f $tiles_visible_file ) {
+    if ( open( my $tilesv_fh, $tiles_visible_file ) ) {
+        $tiles_visible_file =~ s|^.+/||;
+        <[base.log]>->( 1, ": applying filter file '$tiles_visible_file'!" );
+        my @filtered_list;
+        my %visible_tiles;
+        map { chomp($_); $visible_tiles{$_} = 1 } split / *, */, <$tilesv_fh>;
+        map {
+            push( @filtered_list, $_ )
+                if $_ =~ /^([^:]+):/
+                and exists $visible_tiles{$1}
+        } @file_names;
+        my $skipped = @file_names - @filtered_list;
+        $skipped = 'no' if $skipped == 0;
+        <[base.log]>->( 1, ": : $skipped files skipped < ! >" );
+        @file_names = @filtered_list;
+        close($tilesv_fh) or warn $!;
+    }
+} else {
+    <[base.log]>->( 2, ": no filter file ('$tiles_visible_file') present .." );
+}
+
 <playlist.file_list>    = [];
 <playlist.b8id_src_str> = {};
 <playlist.file_types>   = {};
