@@ -14,6 +14,7 @@ if ( defined <layout.config.ticker_agent_type> ) {
     my $ticker_type = <layout.config.ticker_agent_type>;
     foreach my $layout ( keys %{<layout.config.layouts>} ) {
         my $_layout_data = <layout.config.layouts>->{$layout};
+
         map {    # ticker-sdl probably won't work anymore until it was updated..
             if ( $_ =~ /^ticker(-sdl|-gtk)?(\[[^\]]+\])?$/ ) {
                 my $tile_name = $2 // '';
@@ -24,6 +25,11 @@ if ( defined <layout.config.ticker_agent_type> ) {
 
                 $_layout_data->{$new_name}->{'layer'} //= 100;    # <- on top!
             }
+
+            # SETTING OVERLAY DEFAULT LAYER VALUE (999) [if undefined]
+
+            $_layout_data->{$_}->{'layer'} //= 1000 if $layout =~ /^overlay_/;
+
         } keys %{ <layout.config.layouts>->{$layout} };
     }
 }
