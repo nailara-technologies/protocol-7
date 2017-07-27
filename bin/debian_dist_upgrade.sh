@@ -14,7 +14,7 @@ echo -e "\n:\n: starting $ID $ACTION ...\n:\n"
 
 dpkg --configure -a ; apt-get -fy install # [automatic recovery, if required]
 
-dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
+# dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
 
 apt-get update && \
 apt-get -fy \
