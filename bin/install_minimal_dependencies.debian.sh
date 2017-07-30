@@ -16,7 +16,7 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
   libio-all-perl libdigest-crc-perl libclass-accessor-lite-perl libc6-dev
 
-cpanm CryptX POSIX::1003 Crypt::Curve25519 Crypt::Ed25519 \
+cpanm CryptX POSIX::1003 Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
       https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git Digest::BLAKE2 \
       File::MimeInfo::Magic
 

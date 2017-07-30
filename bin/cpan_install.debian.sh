@@ -19,7 +19,7 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
   #libconvert-uu-perl
 
 # installs the rest from cpan
-cpanm   CryptX Crypt::Curve25519 Crypt::Ed25519 \
+cpanm   CryptX Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
         POSIX::1003 XML::RSS::TimingBot File::MimeInfo::Magic \
         Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird
 
