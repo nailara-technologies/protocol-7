@@ -9,9 +9,19 @@ my $re = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-#warn "INPUT BUFFER = '$$input'\n";
+my $auth_state = $data{'session'}{$id}{'c25519'} //= {};
 
-$$output .= "`:|\n";
-warn "[$id] auth method C25519-TF not implemented";
+if ( $$input =~ s/^set_key ($re->{usr}) (\S+)\n// ) {
+    $auth_state->{'peer_name'}   = $1;
+    $auth_state->{'peer_pubkey'} = $2;
 
-return 2;
+    return 1;    # keep state
+
+} elsif ( $$input =~ /\n/ ) {
+    $$output .= ">:[\a\n";
+    <[base.log]>->( 0, "[$id] (C25519-TF) authentication protocol error!" );
+    return 2;    # terminate
+} else {
+
+    return 1;
+}
