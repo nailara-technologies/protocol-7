@@ -27,7 +27,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Device::Gembird Net::Libdnet::Arp \
       Crypt::Curve25519 Crypt::Ed25519 \
       https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git \
-      Digest::CRC
+      Digest::Skein Digest::CRC
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
 
