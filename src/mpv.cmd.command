@@ -4,8 +4,7 @@
 # param = <mpv_cmd>
 # descr = sends test commands through mpv control pipe
 
-my $mpv_socket = <mpv.socket>;
-my $cmd_str    = $$call{'args'};
+my $cmd_str = $$call{'args'};
 
 return { 'mode' => 'nack', 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
