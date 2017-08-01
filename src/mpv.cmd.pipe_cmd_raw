@@ -16,6 +16,11 @@ return {
     }
     if $cmd_str =~ /run|hook/;
 
+if ( not defined $mpv_socket ) {
+    warn "mpv control socket has been lost";
+    exit(2);    # TERM / KILL mpv in END code
+}
+
 syswrite( $mpv_socket, "$cmd_str\n" );
 
 return { 'mode' => 'ack', 'data' => 'string sent.' };

@@ -8,4 +8,9 @@ return <[base.log]>->( 0, "no command defined" ) if !$json_string;
 
 <[base.log]>->( 2, 'send_command: ' . $json_string );
 
+if ( not defined <mpv.socket> ) {
+    warn "mpv control socket has been lost";
+    exit(2);    # TERM / KILL mpv in END code
+}
+
 syswrite( <mpv.socket>, $json_string );

@@ -114,6 +114,12 @@ if ( !<mpv.pid> ) {
 
 push( @{<system.kill_list>}, <mpv.pid> );
 
+END {    # cleaning up left over process on lost socket
+    do { <[base.sleep]>->(0.13); kill( 9, <mpv.pid> ) }
+        if defined <mpv.pid>
+        and kill( 15, <mpv.pid> );
+}
+
 <[base.log]>->( 1, ": mpv process spawned [PID=<mpv.pid>]" );
 
 close( delete(<mpv.fh.stdin>) );
