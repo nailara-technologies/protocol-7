@@ -56,47 +56,47 @@ $data{'system'}{'host'} = {
 $data{'regex'} = { 'base' => <[base.regex]> };
 
 # init / reset lists
-$data{'list'} = {
-    'users' => {
-        'var'     => 'data',
-        'key'     => 'user',
-        'sub_key' => 'session',
-        'mask'    => '<key>:user connected_since session:sessions',
-        'align'   => { 'session' => 'center' },
-        'filters' => {
-            'session'         => 'base.parser.element_count',
-            'connected_since' => 'base.parser.timestamp'
-        },
-        'descr' => 'connected users'
+$data{'list'} //= {};
+
+<list.users> = {
+    'var'     => 'data',
+    'key'     => 'user',
+    'sub_key' => 'session',
+    'mask'    => '<key>:user connected_since session:sessions',
+    'align'   => { 'session' => 'center' },
+    'filters' => {
+        'session'         => 'base.parser.element_count',
+        'connected_since' => 'base.parser.timestamp'
     },
-    'sessions' => {
-        'var'      => 'data',
-        'key'      => 'session',
-        'sort_key' => 'num:start_time',
-        'mask'     => '<key>:sid proto link mode user start_time:since',
-        'align'    => {
-            'user'       => 'center-2',
-            'link'       => 'center-2',
-            'start_time' => 'right'
-        },
-        'filters' => { 'start_time' => 'base.parser.duration' },
-        'descr'   => 'registered sessions'
+    'descr' => 'connected users'
+};
+<list.sessions> = {
+    'var'      => 'data',
+    'key'      => 'session',
+    'sort_key' => 'num:start_time',
+    'mask'     => '<key>:sid proto link mode user start_time:since',
+    'align'    => {
+        'user'       => 'center-2',
+        'link'       => 'center-2',
+        'start_time' => 'right'
     },
-    'buffers' => {
-        'var'   => 'data',
-        'key'   => 'buffer',
-        'mask'  => '<key>:name data:lines size:bytes max_size',
-        'align' => {
-            'data'     => 'right-5',
-            'size'     => 'center-2',
-            'max_size' => 'right-5'
-        },
-        'filters' => {
-            'data'     => 'base.parser.element_count',
-            'max_size' => 'base.parser.size_str'
-        },
-        'descr' => 'available buffers'
-    }
+    'filters' => { 'start_time' => 'base.parser.duration' },
+    'descr'   => 'registered sessions'
+};
+<list.buffers> = {
+    'var'   => 'data',
+    'key'   => 'buffer',
+    'mask'  => '<key>:name data:lines size:bytes max_size',
+    'align' => {
+        'data'     => 'right-5',
+        'size'     => 'center-2',
+        'max_size' => 'right-5'
+    },
+    'filters' => {
+        'data'     => 'base.parser.element_count',
+        'max_size' => 'base.parser.size_str'
+    },
+    'descr' => 'available buffers'
 };
 
 # 'verify_instance' command not required in core type agents (for now)
