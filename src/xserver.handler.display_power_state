@@ -14,8 +14,8 @@ if ( !<xserver.display_power_state> ) {
     <[base.log]>->( 0, "<(+)> display is now < ON > / connected <(+)>" );
 
     ## verifying screen sizes ##
-
-    my @max_size = <[xserver.max_screen_size]>;
+    my $restarting = 0;
+    my @max_size   = <[xserver.max_screen_size]>;
     if (   $max_size[0] != <xserver.x11>->width_in_pixels
         or $max_size[1] != <xserver.x11>->height_in_pixels ) {
         <[base.log]>->( 0, "<!> maximum screen size has changed <!>" );
@@ -26,6 +26,7 @@ if ( !<xserver.display_power_state> ) {
             <[base.log]>->(
                 0, " <!> restarting xserver ... [failed to resize]"
             );
+            $restarting = 1;
             <[base.proto.nailara.command.send.local]>->(
                 {   'command'   => 'core.root.restart',
                     'call_args' => { 'args' => <system.agent.name> }
@@ -36,4 +37,8 @@ if ( !<xserver.display_power_state> ) {
         }
     }
 
+    if ( !$restarting ) {
+
+        # XXX: show optional splash screen ...
+    }
 }
