@@ -39,17 +39,19 @@ my $conversion  = <image2html.conversions>->{$current_key};
 my $image_location = $conversion->{'image_file'};
 
 if ( $image_location =~ m|^https?://| ) {
-    <[base.log]>->( 2, "downloading '$image_location'..." );
+    my $image_url = $image_location;
+    <[base.log]>->( 2, "downloading '$image_url'..." );
     $image_location = <[image2html.base.download_file]>->($image_location);
     if ( not defined $image_location ) {
         foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
                 {   'mode' => 'nack',
-                    'data' => "download of '$image_location' failed!"
+                    'data' => "download of '$image_url' failed!"
                 }
             );
             delete <image2html.conversions>->{$current_key};
+            exit(2);
         }
     }
 
