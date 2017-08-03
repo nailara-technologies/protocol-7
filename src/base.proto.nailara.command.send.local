@@ -54,7 +54,7 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
         next    # skip unauthorized connections / modes
             if not defined $session
             or $session->{'mode'} ne 'client'
-            or $session->{'user'} eq '-'
+            or $session->{'user'} eq <base.session.uname_server>
             or exists $session->{'authenticated'}
             and $session->{'authenticated'} ne 'yes';
 
