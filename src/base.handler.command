@@ -699,7 +699,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         foreach my $target_sid (@send_sids) {
 
             my $target_session = $data{'session'}{$target_sid};
-            if ( $target_session->{'user'} eq '-'
+            if ( $target_session->{'user'} eq <base.session.uname_server>
                 or exists $target_session->{'authenticated'}
                 and $target_session->{'authenticated'} ne 'yes' ) {
                 $targets_denied++;
