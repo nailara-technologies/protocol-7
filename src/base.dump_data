@@ -20,7 +20,7 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
     $_val =~ s/\\/\\\\/g;
     $_val =~ s/\n/\\n/g;
     $_key =~ s/\'/\\'/g;    # actually invalid key
-    $_key = "'$_key'" if $_key =~ /[\. \']/;
+    $_key = "'$_key'" if $_key =~ /[\. \'#]/;
     if ( defined $_[4] and $_[4] ne '' ) { $_key = "$_[4].$_key" }
     my $__key = $_key || '';
     if ( $_[5] ne '' ) { $__key =~ s/$_[5]/$_[6]/ge }
@@ -58,7 +58,7 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                         ' ',
                         map {
                             $_ = "\"$_\""
-                                if $_ =~ /[ '"\{\}]|TIED_/;
+                                if $_ =~ /[ '"\{\}#]|TIED_/;
                             $_
                         } @array
                     );
@@ -72,7 +72,7 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                     next;
                 }
                 $_val =~ s/"/\\"/g;
-                $_val = "\"$_val\"" if $_val =~ /[ '"\{\}]|TIED_/;
+                $_val = "\"$_val\"" if $_val =~ /[ '"\{\}#]|TIED_/;
             }
 
             $out .= "$__key = $_val\n";
