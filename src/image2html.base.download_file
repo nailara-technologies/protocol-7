@@ -47,7 +47,7 @@ my $content_length = $head_res->{'_headers'}->{'content-length'}; # XXX: use ...
 if ( $content_type =~ m|^image/(\w{3,4})$| ) {
     <[base.log]>->( 2, "found $1-image ($content_length bytes)" );
 } else {
-    die "didn't receive expected (image) content type for $file_url";
+    warn "content_type=\"$content_type\" [expected 'image/*'] for '$file_url'";
 }
 
 ( my $target_path = "$target_dir/image.download" ) =~ s|//|/|g;
