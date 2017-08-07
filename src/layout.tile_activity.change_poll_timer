@@ -1,0 +1,23 @@
+# >:]
+
+# name = layout.tile_activity.change_poll_timer
+
+my $tile_name  = shift;
+my $in_seconds = shift;
+
+<[base.log]>->(
+    2, "inactivity timer interval for '$tile_name' is now ${in_seconds}s"
+);
+
+<layout.timer.poll_tile_color>->{$tile_name}->cancel;
+<layout.timer.poll_tile_color>->{$tile_name} = <[event.add_timer]>->(
+    {   'after'    => $in_seconds,
+        'interval' => $in_seconds,
+        'repeat'   => 1,
+        'handler'  => 'layout.callback.poll_tile_color',
+        'data'     => {
+            'tile_name'        => $tile_name,
+            'current_interval' => $in_seconds
+        }
+    }
+);

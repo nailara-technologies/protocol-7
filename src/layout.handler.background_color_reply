@@ -1,0 +1,14 @@
+# >:]
+
+# name = layout.handler.background_color_reply
+
+my $answer = shift;
+
+return warn "unexpected (NACK) reply from xserver agent!"
+    if $answer->{'cmd'} ne 'ACK';
+
+<layout.x11_bg_color> = $answer->{'call_args'}->{'args'};
+
+<[base.log]>->(
+    1, " : received xserver background color '" . <layout.x11_bg_color> . "'"
+);
