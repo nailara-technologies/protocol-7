@@ -1,0 +1,28 @@
+# >:]
+
+# name = layout.handler.check_playlist_reply
+
+my $reply = shift // {};
+
+my $agent_name = $reply->{'params'}->{'agent_name'};
+my $tile_name  = $reply->{'params'}->{'tile_name'};
+
+warn "unexpected [NACK] reply from playlist agent" if $reply->{'cmd'} eq 'NACK';
+
+if ( $reply->{'cmd'} eq 'RAW' and $reply->{'call_args'}->{'args'} == 0 ) {
+
+    <[base.log]>->(
+        0, " :  playlist for tile '$tile_name' is empty <-> skipping restart!"
+    );
+
+} else {
+
+    <[base.log]>->( 1, " : : tile '$tile_name' does have playlist entries!" );
+    <[base.log]>->( 0, " :  restarting agent '$agent_name' ..." );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.root.restart',
+            'call_args' => { 'args' => $agent_name }
+        }
+    );
+}
