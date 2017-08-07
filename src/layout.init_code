@@ -21,6 +21,18 @@ use FreezeThaw qw(cmpStr);
 <layout.restore_layout_enabled> //= 0;
 <layout.restore_layout_timeout> //= 300;    # seconds
 
+# monitoring tile activity (colors) [default disabled]
+<layout.watch_tiles.poll_tile_color>  //= 0;
+<layout.watch_tiles.inactive_timeout> //= 300;
+<layout.watch_tiles.inactive_action>  //= 'warn';
+
+if ( !<layout.watch_tiles.poll_tile_color>
+    and defined <layout.timer.poll_tile_color> ) {
+    my $timers = <layout.timer.poll_tile_color>;
+    <[base.log]>->( 0, "stopping tile activity poll timers [config changed]" );
+    map { $timers->{$_}->cancel if $timers->{$_}->is_active } keys %{$timers};
+}
+
 delete <layout.config.ticker_agent_type>
     if defined <layout.config.ticker_agent_type>
     and <layout.config.ticker_agent_type> !~ /^gtk|sdl$/;
