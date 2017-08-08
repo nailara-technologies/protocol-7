@@ -35,7 +35,9 @@ if ( $new_volume ne <mpv.audio_fade.last_set> ) {
 
 if ( <mpv.volume.fade_factor> == 1 ) {
     delete <mpv.time.fade_volume>;
-    ( my $vol_str = sprintf( "%.2f", $target_volume ) ) =~ s/(0|\.)$//g;
+    my $vol_str = sprintf( "%.2f", $target_volume );
+    $vol_str =~ s/(\.[^0])0$/$1/g;
+    $vol_str =~ s/\.00$//g;
     map {
         <[base.callback.cmd_reply]>->(
             $_,
