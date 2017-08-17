@@ -7,4 +7,5 @@ die "expected instance id" if not defined $instance_id;
 my $instance = <root.agent.instance>->{$instance_id};
 
 <[base.log]>->( 2, "[$instance_id] resetting respawn delay" );
-delete $instance->{'respawn_delay'};
+delete $instance->{'timer'}->{'respawn_delay'};
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
