@@ -25,4 +25,6 @@ if (    defined $instance->{'status'}
 }
 
 delete $instance->{'timer'}->{'restart_timeout'}->{$restart_id};
+delete $instance->{'timer'}->{'restart_timeout'}
+    if !keys %{ $instance->{'timer'}->{'restart_timeout'} };
 delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
