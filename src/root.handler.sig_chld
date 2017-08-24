@@ -4,7 +4,7 @@
 
 <[base.log]>->( 2, 'SIGCHLD received.. collecting children...' );
 local ( $!, $? );
-while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     my $instance_id;
     my $instance;

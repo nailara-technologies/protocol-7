@@ -5,7 +5,7 @@
 my @names;
 my $child_pid;
 do {
-    $child_pid = waitpid( -1, WNOHANG );
+    $child_pid = waitpid( -1, WNOHANG() );
     my $e_val = $? >> 8;
     my $e_sig = $? & 127;
     if ( exists <media.running>->{$child_pid} ) {
