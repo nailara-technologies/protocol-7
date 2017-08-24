@@ -459,6 +459,24 @@ sub prepare_subs {
         my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
         my @_p           = @_;
 
+        # log all used subroutines if $sub_touch_dir exist and is owned by root!
+        my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
+            // '/tmp/nailara_debug.sub_log';
+        if ( -d $sub_touch_dir and [ stat($sub_touch_dir) ]->[4] == 0 ) {
+            my $agent_name = $data{'system'}{'agent'}{'name'};
+            my $actual_dir = "$sub_touch_dir/$agent_name";
+            if ( !-d $actual_dir ) {
+                mkdir($actual_dir);
+                chmod( 0777, $actual_dir );
+            }
+            open( my $_fh, ">$actual_dir/$sub_name" )
+                if !-f ">$actual_dir/$sub_name";
+            if ( fileno($_fh) ) {
+                print {$_fh} $code{'base.time'}->(5) . "\n";
+                close($_fh);
+            }
+        }
+
         # hiding plain text passwords in debug output (not including conf files)
         $_p[2] = '*' x 5 if $sub_name eq 'net.authme';
         $_p[1] = '*' x 5 if $sub_name eq 'auth.ok';
