@@ -4,6 +4,6 @@
 
 <[base.log]>->( 2, 'SIGCHLD received.. collecting children...' );
 local ( $!, $? );
-while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     <[base.log]>->( 2, "cleaning up child pid $pid (exit code: $?).." );
 }

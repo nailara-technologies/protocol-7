@@ -4,11 +4,12 @@
 # descr      = initialize the base module
 
 use Safe;
+use Module::Load;
 use Time::Seconds;
-use POSIX::1003::Time 'strftime';
-use POSIX::1003::Limit ':rlimit';
-use Crypt::PRNG::Fortuna 'random_string_from';
-use POSIX::1003::Proc qw(WNOHANG waitpid setsid getcwd);
+load POSIX::1003::Time,    'strftime';
+load POSIX::1003::Limit,   ':rlimit';
+load Crypt::PRNG::Fortuna, 'random_string_from';
+load POSIX::1003::Proc,    qw/ WNOHANG waitpid setsid getcwd /;
 
 # init some vars
 
