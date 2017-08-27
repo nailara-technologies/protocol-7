@@ -17,7 +17,7 @@ foreach my $p_pid ( keys %{<root.child>} ) {
 
 my $child_count = keys %wait_pids;
 
-while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     $child_count-- if $pid and delete $wait_pids{$pid};
 }
 
@@ -87,7 +87,7 @@ while ( keys %{<root.child>} ) {
             <root.child>->{$pid}->{'kill_sent'} = 1;
         }
     }
-    while ( ( my $w_pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+    while ( ( my $w_pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         delete <root.child>->{$w_pid};
     }
     <[base.sleep]>->(0.042);
