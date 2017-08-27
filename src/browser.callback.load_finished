@@ -13,5 +13,14 @@ if (    <browser.slideshow.running>
     if (<browser.slideshow.running>) {
         <browser.slideshow.status> = 'load_finished';
         <[browser.handler.slideshow]>;
+    } else {
+        while ( my $reply_id = shift @{<browser.fade.reply_ids>} ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => <browser.fade.reply_mode>,
+                    'data' => <browser.fade.reply_msg>
+                }
+            );
+        }
     }
 }
