@@ -3,8 +3,6 @@
 
 buffer.system.log_cmd = log.msg
 
-system.verbosity = 3
-
 [load_config_file:'defaults']
 
 modules.load         = net io.ip auth events config.json debug
@@ -12,6 +10,8 @@ access.cmd.usr.core  = verify_instance help ping reload *
 
 [load_modules:<modules.load>]
 [init_modules]
+
+[set_privs:<system.privs.user>]
 
 [net.connect_to_core:'tcp/ip']
 [base.get_session_id]
