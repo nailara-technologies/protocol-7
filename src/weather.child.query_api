@@ -33,7 +33,7 @@ while ( not defined $response or !$response->is_success and --$retries ) {
 
     if ( !$response->is_success and $retries ) {
         my $status_str = defined $status_code ? " ($status_code)" : '';
-        <[base.log]>->( 0, "query failed" . $status_str . ", retrying.." );
+        <[base.log]>->( 1, "query failed" . $status_str . ", retrying.." );
         <[base.sleep]>->( $retry_delay *= 2 );
     }
 }
