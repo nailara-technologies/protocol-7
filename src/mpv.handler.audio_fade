@@ -5,6 +5,7 @@
 my $event = shift->w;
 
 my $target_volume = <mpv.audio_fade.target>;
+<mpv.audio_fade.start_vol> //= <mpv.current.volume>;
 
 if ( not defined <mpv.time.fade_volume> ) {
     <[base.log]>->( 2, "fade-in started.." );
