@@ -1,0 +1,27 @@
+# >:]
+
+# name  = mpv.cmd.set_speed
+# param = <factor>
+# descr = set playback speed factor [0.01..100.0]
+
+my $speed = $$call{'args'} // '';
+
+return { 'mode' => 'nack', 'data' => 'expected speed factor (float value)' }
+    if !length($speed)
+    or $speed !~ /^\d+(\.\d+)?%?$/;
+
+my $speed_val = sprintf( "%0.2f", $speed );
+
+return { 'mode' => 'nack', 'data' => 'minimum value 0.01' }
+    if $speed_val < 0.01;
+return { 'mode' => 'nack', 'data' => 'maximum speed value is 100' }
+    if $speed_val > 100;
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = "playback speed now $speed_val";
+<mpv.success_reply_str> =~ s|\.?0+$|x|;
+<mpv.success_reply_str> =~ s|now 1x$|reset|;
+
+<[mpv.send_command]>->( 'set_property', 'speed', $speed_val );
+
+return { 'mode' => 'later' };
