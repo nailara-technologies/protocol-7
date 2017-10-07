@@ -2,11 +2,11 @@
 
 # name    = base.cmd.slay
 # descr   = close all sessions of specified user
-# param   = <user> [message]
+# param   = <user|sid> [message]
 
 my $re = <regex.base>;
 
-if ( $$call{'args'} =~ /^($re->{usr})( +(.+))?$/ ) {
+if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
     my $usr          = $1;
     my $slay_message = $3 || 'session terminated!';
     my $killed       = 0;
@@ -14,11 +14,13 @@ if ( $$call{'args'} =~ /^($re->{usr})( +(.+))?$/ ) {
 
     if ( $usr =~ /\s/ ) { ( $usr, $slay_message ) = split( /\s/, $usr, 2 ) }
 
-    if ( exists $data{'user'}{$usr}{'session'} ) {
+    if (   exists $data{'user'}{$usr}{'session'}
+        or exists $data{'session'}{$usr} ) {
         my $msg_string = $slay_message;
         <[base.log]>->( 2, "slaying of user '$usr' requested!" );
         foreach my $sid ( keys %{ $data{'session'} } ) {
-            if ( $data{'session'}{$sid}{'user'} eq $usr ) {
+            if (   $data{'session'}{$sid}{'user'} eq $usr
+                or $usr =~ /^\d+$/ and $usr eq $sid ) {
                 if ( $call->{'session_id'} eq $sid ) {
                     $killed_own = 1;
                     $msg_string = "you just forcefully closed your own session!"
@@ -41,9 +43,9 @@ if ( $$call{'args'} =~ /^($re->{usr})( +(.+))?$/ ) {
             'data' => $reply_string
         };
     } else {
-        return { 'mode' => 'nack', 'data' => "found no such user ($usr)" };
+        my $u_str = $usr =~ /^\d+$/ ? 'session' : 'user';
+        return { 'mode' => 'nack', 'data' => "found no such $u_str ($usr)" };
     }
 } else {
-    $$reply{'data'} = 'invalid username';
+    $$reply{'data'} = 'invalid username or session id';
 }
-
