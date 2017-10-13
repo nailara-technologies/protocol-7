@@ -18,8 +18,9 @@ dpkg --configure -a ; apt-get -fy install # [automatic recovery, if required]
 
 apt-get update && \
 apt-get -fy \
-	-o Dpkg::Options::="--force-confnew" \
+	-o Dpkg::Options::="--force-confold" \
 	-o Dpkg::Options::="--force-confdef" \
+	-o Dpkg::Options::="--force-confmiss" \
 	-o Dpkg::Options::="--force-overwrite" $ACTION && \
 	apt-get clean && apt-get -y --purge autoremove && \
 	echo -e "\n:\n: done.\n:\n"
