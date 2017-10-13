@@ -2,7 +2,7 @@
 
 # name  = mpv.cmd.command
 # param = [!]<mpv_cmd>
-# descr = sends test commands through mpv control pipe
+# descr = send raw command through mpv control pipe
 
 my $cmd_str = $$call{'args'};  # XXX: implement parameter quoting instead of '!'
 
