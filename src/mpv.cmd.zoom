@@ -1,7 +1,7 @@
 # >:]
 
 # name  = mpv.cmd.zoom
-# param = <zoom_level>
+# param = <level>
 # descr = set video zoom level [-1..20]
 
 my $zoom_level = $$call{'args'};
@@ -14,9 +14,9 @@ return { 'mode' => 'nack', 'data' => 'invalid zoom value! [-1..20]' }
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
 if ( $zoom_level == 0 ) {
-    <mpv.success_reply_str> = 'zoom reset to original video size';
+    <mpv.success_reply_str> = 'zoom = 0 (reset)';
 } else {
-    <mpv.success_reply_str> = "applied zoom level $zoom_level";
+    <mpv.success_reply_str> = "zoom = $zoom_level";
 }
 
 <[mpv.send_command]>->( 'set_property_string', 'video-zoom', "$zoom_level" );
