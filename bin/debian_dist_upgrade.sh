@@ -8,6 +8,8 @@ export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 export DEBIAN_FRONTEND=noninteractive
 export APT_LISTCHANGES_FRONTEND=none
+export UCF_FORCE_CONFMISS=true
+export UCF_FORCE_CONFOLD=true
 export PAGER=/bin/true
 
 echo -e "\n:\n: starting $ID $ACTION ...\n:\n"
