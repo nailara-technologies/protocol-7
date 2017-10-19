@@ -88,10 +88,10 @@ map {
 
 if ( <system.agent.mode> eq 'media-child' ) {
     <mpv.playlist_was_empty> //= 0;
-    <mpv.startup>            //= 1;
-    if ( <mpv.startup> or <mpv.playlist_was_empty> ) {
+    <mpv.startup.child_init> //= 1;
+    if ( <mpv.startup.child_init> or <mpv.playlist_was_empty> ) {
         <mpv.playlist_was_empty> = 0;
-        <mpv.startup>            = 0;
+        <mpv.startup.child_init> = 0;
         push( @{<mpv.reply_ids>}, 'silent' );
         <mpv.success_reply_str> = '[PAUSE]d';
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
