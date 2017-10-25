@@ -2,6 +2,7 @@
   .:[ mpv video player agent ]:.
 
 buffer.system.log_cmd = log.msg
+buffer.played.log_cmd = log.msg
 
 [load_config_file:'defaults']
 
@@ -17,6 +18,9 @@ access.cmd.usr.core = help ping get_subname reload verify_instance play \
 
 modules.load = auth net io.ip io.unix config.json digest mpv
 [load_modules:<modules.load>]
+
+
+mpv.log_played = 0   # seperately log which files or urls have been played(!)
 
 mpv.fade_in    = 0   # disabled ( now done using the compton fade in option! )
 mpv.auto_fs    = 1   # start in fullscreen mode in case no geometry was received
