@@ -23,7 +23,8 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 <xserver.video_driver>   //= <[xserver.get_video_driver]>;
 <xserver.disable_glamor> //= 0;
 
-<xserver.bg_color> =~ s/^([0-9a-f]{6})$/#$1/i;
+<xserver.bg_color> //= '000000';
+<xserver.bg_color> =~ s/^#?([0-9a-f]{6})$/#$1/i;
 
 <xserver.keybd.grab_all_keys> //= 'no';
 <xserver.max_intel_gpu_freq>  //= 'no';
