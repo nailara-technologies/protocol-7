@@ -7,9 +7,17 @@
 my ( $log_level, $log_msg, $log_buffer )
     = ( $_[0] || 0, $_[1] // '', $_[2] // '' );
 
-$log_level  = 0                     if $log_level !~ /^\d+$/;
-$log_buffer = 'system'              if !length($log_buffer);
-$log_msg    = '[EMPTY LOG MESSAGE]' if !length($log_msg);
+$log_level = 0 if $log_level !~ /^\d+$/;
+
+<system.verbosity>          //= 0;
+<system.internal_verbosity> //= 0;
+
+return
+    if $log_level > <system.verbosity>
+    and $log_level > <system.internal_verbosity>;
+
+$log_buffer = 'system' if !length($log_buffer);
+$log_msg = '[EMPTY LOG MESSAGE]' if !length($log_msg);
 
 $log_msg =~ s/\r/\\r/g;
 $log_msg =~ s/\n/\\n/g;
@@ -43,12 +51,9 @@ if ($fatal_exit) {
 my $log_stamp = join( ' ', <[base.time]>->(5), $log_level, $log_msg );
 
 # write to system log buffer
-if ( exists <system.internal_verbosity>
-    and $log_level <= <system.internal_verbosity> ) {
+if ( $log_level <= <system.internal_verbosity> ) {
     <[base.buffer.add_line]>->( $log_buffer, $log_stamp );
 }
 
 # print to console
-print $log_txt
-    if fileno(STDOUT)
-    and defined <system.verbosity> && $log_level <= <system.verbosity>;
+print $log_txt if fileno(STDOUT) and $log_level <= <system.verbosity>;
