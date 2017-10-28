@@ -1,0 +1,11 @@
+# >:]
+
+# name = base.time.year_float
+
+my $time  = shift // time;
+my $float = shift // 3;
+my $yday  = [ localtime($time) ]->[7];
+my $year = 1900 + [ localtime($time) ]->[5];
+my $days = <[base.time.is_leap_year]>->($year) ? 365 : 364;
+
+return sprintf( "%.0${float}f", $year % 100 + ( 1 / $days ) * ( 1 + $yday ) );
