@@ -4,8 +4,10 @@
 
 my $time  = shift // time;
 my $float = shift // 3;
-my $yday  = [ localtime($time) ]->[7];
-my $year = 1900 + [ localtime($time) ]->[5];
+my @time  = localtime($time);
+my $year  = 1900 + $time[5];
 my $days = <[base.time.is_leap_year]>->($year) ? 365 : 364;
+my $yday = $time[7]
+    + 1 / 24 * ( $time[2] + 1 / 60 * $time[1] + 1 / 3600 * $time[0] );
 
 return sprintf( "%.0${float}f", $year % 100 + ( 1 / $days ) * ( 1 + $yday ) );
