@@ -1,32 +1,29 @@
 # >:]
 
 # name  = base.cmd.time
-# param = [clock|date|%d]
-# descr = returns time, date or unix time (%d = float)
+# param = [date|unix[.<n>]]
+# descr = return current time, date or unixtime[%.<n>f]
 
 my $param = $$call{'args'};
 
 if ( not defined $param ) {
     return {
         'mode' => 'ack',
-        'data' => time()
-    };
-} elsif ( defined $param and $param eq 'clock' ) {
-    return {
-        'mode' => 'ack',
         'data' => <[base.parser.timestamp]>->('clock')
     };
-} elsif ( defined $param and $param eq 'date' ) {
+} elsif ( $param eq 'date' ) {
     return {
         'mode' => 'ack',
         'data' => <[base.parser.timestamp]>->('date')
     };
-} elsif ( defined $param and $param =~ /^\d+$|^$/ ) {
-    my $float = 0;
+} elsif ( $param eq 'unix' ) {
+    return {
+        'mode' => 'ack',
+        'data' => time()
+    };
+} elsif ( $param =~ /^unix\.(\d+)$/ ) {    # XXX: consider access control?
+    my $float = $1;
     my $limit = 22;
-
-    # XXX: consider additional access control to floating seconds?
-    $float = $param if defined $param and $param =~ /^\d+$/;
     return {
         'mode' => 'nack',
         'data' => "current float precision limit is $limit"
@@ -36,15 +33,9 @@ if ( not defined $param ) {
         'mode' => 'ack',
         'data' => <[base.time]>->($float)
     };
-} elsif ( defined $param and $param eq '%d' ) {
-    return {
-        'mode' => 'nack',
-        'data' => "'%d' is expected to be a decimal value"
-            . " describing floating point precision!"
-    };
 } else {
     return {
         'mode' => 'nack',
-        'data' => "invalid parameter '$param'.. [clock|date|%d]"
+        'data' => "invalid parameter '$param'.. [date|unix[.<n>]]"
     };
 }
