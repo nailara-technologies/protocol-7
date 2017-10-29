@@ -1,5 +1,5 @@
-# nailara project source code
+# [ nailara project ]
 
-### [ ISC LICENSE ]
+## version 17.8316-2380.5
 
-## master branch ( public )
+### ( public ) "master" branch ( ISC LICENSE )
