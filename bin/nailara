@@ -133,13 +133,12 @@ sub prepare_subs {
             = File::Spec->catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
 
+        my $ver_str = $data{'nailara'}{'version'} = 'unknown';
         my $version_file = File::Spec->catfile( $data{'system'}{'conf_path'},
             'nailara.version' );
         if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
-            ( $data{'nailara'}{'version'} = <$ver_fh> ) =~ s|\s||g;
+            ( $data{'nailara'}{'version'} = $ver_str = <$ver_fh> ) =~ s|\s||g;
             close($ver_fh);
-        } else {
-            $data{'nailara'}{'version'} = 'unknown';
         }
         if ( $0 =~ /^.*nailara\./ ) {
             $data{'system'}{'agent'}{'name'} = lc($0);
@@ -223,7 +222,8 @@ sub prepare_subs {
             chop($banner);
             $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
             print " :\n : $ANSI{bold}$banner$ANSI{normal}\n";
-            my $version_str = ' nailara base system version: ' . $data{'nailara'}{'version'};
+            my $version_str = ' nailara base system version: '
+                . $data{'nailara'}{'version'};
             printf( " :\n : %44s\n :\n", $version_str );
         } else {
             print ' : ' . join( "\n : ", split( /\n/, $banner ), "\n" );
@@ -300,6 +300,8 @@ sub prepare_subs {
                                 . $data{'code'}{$file_name}{'source'} );
                     }
                     push( @compile_them, $file_name );
+                } elsif ( $file_name =~ /\.orig$/ ) {
+                    $code{'log.failed'}->("[invalid/remove!] $file_name");
                 }
             }
             if ( !$code_count ) {
@@ -456,6 +458,16 @@ sub prepare_subs {
                 ->(": $ok_count routines ok, $err_count broken..");
         } else {
             $code{'log.debug'}->(": $ok_count routines, all ok.");
+        }
+        if ( defined $code{'base.buffer.add_line'} ) {
+            $data{'buffer'}{'system'}{'max_size'} //= 131072;    # 128K
+            $code{'base.buffer.add_line'}->(
+                'system',
+                join( ' ',
+                    $code{'base.time'}->(5),
+                    qw/ 1 VERSION /,
+                    "'" . $data{'nailara'}{'version'} . "'" )
+            );
         }
         return ( $ok_count, $err_count );
     };
