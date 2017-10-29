@@ -14,13 +14,15 @@ my $root_path
 our $version_file
     = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
     'nailara.version' );
-
-my $commit_count = Git::Wrapper->new($root_path)->log;
+my $readme_md    = File::Spec->catfile( $root_path, 'README.md' );
+my $old_version  = get_old_version();
+my $git          = Git::Wrapper->new($root_path);
+my $commit_count = $git->log;
 my $version_base = gen_ver_string($commit_count);
 my $increment    = ( @ARGV and $ARGV[0] eq 'down' ) ? -1 : 1;
 my $iteration    = 0;
 
-if ( old_version() =~ /^(.+)\.(\d+)$/ ) {
+if ( $old_version =~ /^(.+)\.(\d+)$/ ) {
     my $old_base = $1;
     my $old_iter = $2;
     $increment = 0 if $increment < 0 and !$old_iter;
@@ -29,9 +31,26 @@ if ( old_version() =~ /^(.+)\.(\d+)$/ ) {
 }
 
 my $version_string = gen_ver_string( $commit_count, $iteration );
+
+## ./cfg/nailara.version ##
 open( my $ver_fh, '>' . $version_file ) or die " -> $version_file : $!\n";
 print {$ver_fh} "$version_string\n";
 close($ver_fh);
+$git->add($version_file);
+
+## ./README.md ##
+{
+    local $/ = undef;
+    open( my $md_fh, '<' . $readme_md ) or die "$readme_md : $!\n";
+    my $md_str = <$md_fh>;
+    close($md_fh);
+    if ( $md_str =~ s|\Q$old_version\E|$version_string|g ) {
+        open( $md_fh, '>' . $readme_md ) or die " -> $readme_md : $!\n";
+        print {$md_fh} $md_str;
+        close($md_fh);
+        $git->add($readme_md);
+    }
+}
 
 print ":\n: updated version : $version_string\n:\n";
 
@@ -44,11 +63,11 @@ sub gen_ver_string {
     return join( '-', year_float(), $count_str );
 }
 
-sub old_version {
+sub get_old_version {
     local $/ = undef;
     return '' if !-f $version_file;
     open( my $fh, $version_file ) or die "$version_file : $!\n";
-    chomp( my $old_version = <$fh> );
+    ( my $old_version = <$fh> ) =~ s/\s//g;
     close($fh);
     return $old_version;
 }
