@@ -1,8 +1,8 @@
 # >:]
 
 # name  = base.cmd.time
-# param = [date|unix[.<n>]]
-# descr = return current time, date or unixtime[%.<n>f]
+# param = [zone|date|unix[.<n>]]
+# descr = return time[zone], date or unixtime [%.0<n>f]
 
 my $param = $$call{'args'};
 
@@ -15,6 +15,11 @@ if ( not defined $param ) {
     return {
         'mode' => 'ack',
         'data' => <[base.parser.timestamp]>->('date')
+    };
+} elsif ( $param eq 'zone' ) {
+    return {
+        'mode' => 'ack',
+        'data' => <[base.timezone]>
     };
 } elsif ( $param eq 'unix' ) {
     return {
