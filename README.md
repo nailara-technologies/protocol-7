@@ -1,5 +1,5 @@
 # [ nailara project ]
 
-## version 17.8317-2381.0
+## version 17.8317-2382.0
 
-### ( public ) "master" branch ( ISC LICENSE )
+### ( public ) "master" branch ( [ISC LICENSE](docs/license) )
