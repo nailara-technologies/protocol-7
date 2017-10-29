@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Spec;
+use Git::Wrapper;
+use Cwd 'abs_path';
+use FindBin qw($RealBin);
+
+my $root_path
+    = abs_path(
+    File::Spec->rel2abs( File::Spec->catdir( $RealBin, File::Spec->updir() ) )
+    );
+our $version_file
+    = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
+    'nailara.version' );
+
+my $commit_count = Git::Wrapper->new($root_path)->log;
+my $version_base = gen_ver_string($commit_count);
+my $increment    = ( @ARGV and $ARGV[0] eq 'down' ) ? -1 : 1;
+my $iteration    = 0;
+
+if ( old_version() =~ /^(.+)\.(\d+)$/ ) {
+    my $old_base = $1;
+    my $old_iter = $2;
+    $increment = 0 if $increment < 0 and !$old_iter;
+    map { $_ =~ s/^[^-]+-// } ( $old_base, $version_base );
+    $iteration = $old_iter + $increment if $version_base eq $old_base;
+}
+
+my $version_string = gen_ver_string( $commit_count, $iteration );
+open( my $ver_fh, '>' . $version_file ) or die " -> $version_file : $!\n";
+print {$ver_fh} "$version_string\n";
+close($ver_fh);
+
+print ":\n: updated version : $version_string\n:\n";
+
+### SUBROUTINES ################################################################
+
+sub gen_ver_string {
+    my $count_str = shift;
+    my $iteration = shift // '';
+    $count_str .= '.' . $iteration if length($iteration);
+    return join( '-', year_float(), $count_str );
+}
+
+sub old_version {
+    local $/ = undef;
+    return '' if !-f $version_file;
+    open( my $fh, $version_file ) or die "$version_file : $!\n";
+    chomp( my $old_version = <$fh> );
+    close($fh);
+    return $old_version;
+}
+
+sub year_float {
+    my $time  = shift // time;
+    my $float = shift // 4;
+    my @time  = localtime($time);
+    my $year  = 1900 + $time[5];
+    my $days = is_leap_year($year) ? 365 : 364;
+    my $yday = $time[7]
+        + 1 / 24 * ( $time[2] + 1 / 60 * $time[1] + 1 / 3600 * $time[0] );
+    return
+        sprintf( "%.0${float}f", $year % 100 + ( 1 / $days ) * ( 1 + $yday ) );
+}
+
+sub is_leap_year {
+    my $year = shift // 1900 + [ localtime(time) ]->[5];
+    return 0 if $year % 4;
+    return 1 if $year % 100;
+    return 0 if $year % 400;
+    return 1;
+}
