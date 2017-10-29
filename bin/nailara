@@ -111,6 +111,8 @@ sub prepare_subs {
 
     $code{'base.init_exec'} = sub {
 
+        use FindBin qw($RealBin $RealScript);
+        use Cwd 'abs_path';
         use Sys::Hostname;
         use File::Spec;
 
@@ -118,23 +120,17 @@ sub prepare_subs {
 
         $SIG{__WARN__} = $code{'base.sig_warn'};
 
-        $data{'system'}{'start'}{'exec_name'} = File::Spec->rel2abs($0);
-
-        if ( -l $data{'system'}{'start'}{'exec_name'} ) {
-            my $new_path = readlink( $data{'system'}{'start'}{'exec_name'} );
-            if ( $new_path =~ /\// ) {
-                $data{'system'}{'start'}{'exec_name'} = $new_path;
-            }
-        }
-
+        $data{'system'}{'start'}{'exec_name'}
+            = abs_path( File::Spec->catfile( $RealBin, $RealScript ) );
+        my $root_path = $data{'system'}{'root_path'}
+            = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir() ) );
         $data{'system'}{'perl_version'} = $];    # < v5.6
         $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
         $data{'system'}{'perl_unicode'} = ${^UNICODE};
-        $data{'system'}{'root_path'}    = $data{'system'}{'start'}{'exec_name'};
-        $data{'system'}{'root_path'} =~ s|/[^/]+/[^/]+$||;
-        $data{'system'}{'code_path'} = "$data{'system'}{'root_path'}/src";
-        $data{'system'}{'conf_path'} = $data{'system'}{'root_path'} . '/cfg';
-        $data{'system'}{'lmod_path'} = $data{'system'}{'root_path'} . '/lib/pm';
+        $data{'system'}{'code_path'} = File::Spec->catdir( $root_path, 'src' );
+        $data{'system'}{'conf_path'} = File::Spec->catdir( $root_path, 'cfg' );
+        $data{'system'}{'lmod_path'}
+            = File::Spec->catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
 
         if ( $0 =~ /^.*nailara\./ ) {
