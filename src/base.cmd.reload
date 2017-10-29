@@ -42,6 +42,20 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     } else {
         $$reply{'data'} .= "reload source\t:  FAIL!\n";
     }
+    my $version_file = File::Spec->catfile( $data{'system'}{'conf_path'},
+        'nailara.version' );
+    if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
+        my $old_version = $data{'nailara'}{'version'} // '';
+        ( $data{'nailara'}{'version'} = <$ver_fh> ) =~ s|\s||g;
+        close($ver_fh);
+        <[base.log]>->(
+            0,
+            sprintf( "NEW SOURCE CODE [ %s ]",
+                $data{'nailara'}{'version'} )
+        ) if $data{'nailara'}{'version'} ne $old_version;
+    } else {
+        $data{'nailara'}{'version'} = 'unknown';
+    }
 }
 if ( $arg eq 'plugins' or $arg eq 'all' ) {
     $known = 1;
@@ -64,9 +78,7 @@ if ( $arg eq 'init' or $arg eq 'all' ) {
     }
 }
 if ( !$known ) {
-    <[base.log]>->(
-        0, "[$id] invalid reload keyword '$arg' called!"
-    );
+    <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called!" );
     return { 'mode' => 'nack', 'data' => "unknown reload keyword '$arg'!" };
 }
 if ( !$ok ) {
