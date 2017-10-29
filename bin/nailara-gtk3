@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 use File::Spec;
+use Cwd 'abs_path';
+use FindBin qw($RealBin $RealScript);
 
 ### wrapper code to load Gtk3 module at compile time ###
 
@@ -13,22 +15,17 @@ BEGIN {
 
 my $agentname;
 my @call_args = @ARGV;
-my $exec_name = File::Spec->rel2abs($0);
-( my $bin_path = $exec_name ) =~ s/bin\/[^\/]+$/bin/;
-die "[!] failed to determine nailara bin path" if $bin_path !~ /\/bin$/;
-
+my $exec_path = abs_path( File::Spec->catfile( $RealBin, $RealScript ) );
+my $bin_path  = abs_path($RealBin);
 my $perl_path = '/usr/bin/perl';
 $perl_path = '/usr/local/bin/perl'
     if !-e $perl_path and -e '/usr/local/bin/perl';
+chomp( $perl_path = qx(which perl) ) if !-e $perl_path;
 die "[!] weird! perl binary not found" if !-e $perl_path;
-my $nailara_path = $bin_path . '/nailara';
+my $nailara_path = File::Spec->catfile( $bin_path, 'nailara' );
 die "[!] '$nailara_path': not found" if !-f $nailara_path;
 
-if ( -l $exec_name ) {
-    my $new_path = readlink($exec_name);
-    if ( $new_path =~ /\// ) {
-        $exec_name = $new_path;
-    }
+if ( -l File::Spec->rel2abs($0) ) {
     $agentname = lc($0);
     $agentname =~ s/^.*nailara\.|[\. ]$//g;
     @call_args = ( $agentname, @ARGV );
