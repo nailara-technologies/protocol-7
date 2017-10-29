@@ -7,6 +7,18 @@ use Git::Wrapper;
 use Cwd 'abs_path';
 use FindBin qw($RealBin);
 
+our $amend = 0;
+my $reset = 0;
+my $down  = 0;
+
+if (@ARGV) {
+    map { $amend = 1 if $_ eq 'amend' } @ARGV;
+    map { $down  = 1 if $_ eq 'down'; } @ARGV;
+    map {
+        if ( $_ eq 'reset' ) { $down = 0; $reset = 1 }
+    } @ARGV;
+}
+
 my $root_path
     = abs_path(
     File::Spec->rel2abs( File::Spec->catdir( $RealBin, File::Spec->updir() ) )
@@ -18,8 +30,9 @@ my $readme_md    = File::Spec->catfile( $root_path, 'README.md' );
 my $old_version  = get_old_version();
 my $git          = Git::Wrapper->new($root_path);
 my $commit_count = $git->log;
+$commit_count-- if $amend;
 my $version_base = gen_ver_string($commit_count);
-my $increment    = ( @ARGV and $ARGV[0] eq 'down' ) ? -1 : 1;
+my $increment    = $down ? -1 : 1;
 my $iteration    = 0;
 
 if ( $old_version =~ /^(.+)\.(\d+)$/ ) {
@@ -29,6 +42,9 @@ if ( $old_version =~ /^(.+)\.(\d+)$/ ) {
     map { $_ =~ s/^[^-]+-// } ( $old_base, $version_base );
     $iteration = $old_iter + $increment if $version_base eq $old_base;
 }
+
+$iteration = 0 if $reset;
+$iteration = 1 if $amend and !$iteration;
 
 my $version_string = gen_ver_string( $commit_count, $iteration );
 
