@@ -133,6 +133,14 @@ sub prepare_subs {
             = File::Spec->catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
 
+        my $version_file = File::Spec->catfile( $data{'system'}{'conf_path'},
+            'nailara.version' );
+        if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
+            ( $data{'nailara'}{'version'} = <$ver_fh> ) =~ s|\s||g;
+            close($ver_fh);
+        } else {
+            $data{'nailara'}{'version'} = 'unknown';
+        }
         if ( $0 =~ /^.*nailara\./ ) {
             $data{'system'}{'agent'}{'name'} = lc($0);
             $data{'system'}{'agent'}{'name'} =~ s/^.*nailara\.|[\. ]$//g;
@@ -212,8 +220,11 @@ sub prepare_subs {
         my $banner = <$banner_fh>;
         close($banner_fh);
         if ( $data{'system'}{'ansi_color'} ) {
+            chop($banner);
             $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
-            print " : $ANSI{bold}$banner$ANSI{normal}\n";
+            print " :\n : $ANSI{bold}$banner$ANSI{normal}\n";
+            my $version_str = ' nailara base system version: ' . $data{'nailara'}{'version'};
+            printf( " :\n : %44s\n :\n", $version_str );
         } else {
             print ' : ' . join( "\n : ", split( /\n/, $banner ), "\n" );
             $ANSI{'yelblue'} = '';    # no color
@@ -254,7 +265,7 @@ sub prepare_subs {
                     and $file_name =~ /^$code_name\.|^$code_name$/
                     and $file_name !~ /^\.|~$|\.orig$/ ) {
                     $code_count++;
-                    $/ = undef;
+                    local $/ = undef;
                     open( $file, '<',
                         $data{'system'}{'code_path'} . '/' . $file_name )
                         or die $!;
