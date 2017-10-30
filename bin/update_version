@@ -91,7 +91,7 @@ sub get_old_version {
 sub year_float {
     my $time  = shift // time;
     my $float = shift // 4;
-    my @time  = localtime($time);
+    my @time  = gmtime;
     my $year  = 1900 + $time[5];
     my $days = is_leap_year($year) ? 365 : 364;
     my $yday = $time[7]
@@ -101,7 +101,7 @@ sub year_float {
 }
 
 sub is_leap_year {
-    my $year = shift // 1900 + [ localtime(time) ]->[5];
+    my $year = shift // 1900 + [gmtime]->[5];
     return 0 if $year % 4;
     return 1 if $year % 100;
     return 0 if $year % 400;
