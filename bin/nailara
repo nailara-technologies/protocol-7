@@ -112,30 +112,29 @@ sub prepare_subs {
     $code{'base.init_exec'} = sub {
 
         use FindBin qw($RealBin $RealScript);
+        use File::Spec::Functions;
         use Cwd 'abs_path';
         use Sys::Hostname;
-        use File::Spec;
 
         $SIG{PIPE} = 'IGNORE';
 
         $SIG{__WARN__} = $code{'base.sig_warn'};
 
         $data{'system'}{'start'}{'exec_name'}
-            = abs_path( File::Spec->catfile( $RealBin, $RealScript ) );
+            = abs_path( catfile( $RealBin, $RealScript ) );
         my $root_path = $data{'system'}{'root_path'}
-            = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir() ) );
+            = abs_path( catdir( $RealBin, updir() ) );
         $data{'system'}{'perl_version'} = $];    # < v5.6
         $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
         $data{'system'}{'perl_unicode'} = ${^UNICODE};
-        $data{'system'}{'code_path'} = File::Spec->catdir( $root_path, 'src' );
-        $data{'system'}{'conf_path'} = File::Spec->catdir( $root_path, 'cfg' );
-        $data{'system'}{'lmod_path'}
-            = File::Spec->catdir( $root_path, 'lib', 'pm' );
+        $data{'system'}{'code_path'}    = catdir( $root_path, 'src' );
+        $data{'system'}{'conf_path'}    = catdir( $root_path, 'cfg' );
+        $data{'system'}{'lmod_path'}    = catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
 
         my $ver_str = $data{'nailara'}{'version'} = 'unknown';
-        my $version_file = File::Spec->catfile( $data{'system'}{'conf_path'},
-            'nailara.version' );
+        my $version_file
+            = catfile( $data{'system'}{'conf_path'}, 'nailara.version' );
         if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
             ( $data{'nailara'}{'version'} = $ver_str = <$ver_fh> ) =~ s|\s||g;
             close($ver_fh);
@@ -214,7 +213,8 @@ sub prepare_subs {
     $code{'base.banner'} = sub {
 
         local $/ = undef;
-        open( my $banner_fh, $data{'system'}{'conf_path'} . '/.banner' )
+        open( my $banner_fh,
+            catfile( $data{'system'}{'conf_path'}, '.banner' ) )
             or return;
         my $banner = <$banner_fh>;
         close($banner_fh);
@@ -267,7 +267,7 @@ sub prepare_subs {
                     $code_count++;
                     local $/ = undef;
                     open( $file, '<',
-                        $data{'system'}{'code_path'} . '/' . $file_name )
+                        catfile( $data{'system'}{'code_path'}, $file_name ) )
                         or die $!;
 
                     $data{'code'}{$file_name}{'source'} = <$file>;
