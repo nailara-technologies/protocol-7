@@ -459,14 +459,16 @@ sub prepare_subs {
         } else {
             $code{'log.debug'}->(": $ok_count routines, all ok.");
         }
-        if ( defined $code{'base.buffer.add_line'} ) {
+        if ( defined $code{'base.buffer.add_line'}
+            and not defined $data{'buffer'}{'system'} ) {
             $data{'buffer'}{'system'}{'max_size'} //= 131072;    # 128K
-            $code{'base.buffer.add_line'}->(
-                'system',
-                join( ' ',
-                    $code{'base.time'}->(5),
-                    qw/ 1 VERSION /,
-                    "'" . $data{'nailara'}{'version'} . "'" )
+            my $seperator_len = 18 + length( $data{'system'}{'agent'}{'name'} );
+            map { $code{'base.buffer.add_line'}->( 'system', $_ ) } (
+                join( ' ', $code{'base.time'}->(5), 1, '_' x $seperator_len ),
+                $code{'base.time'}->(5)
+                    . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
+                $code{'base.time'}->(5)
+                    . " 1 VERSION '$data{nailara}{version}'"
             );
         }
         return ( $ok_count, $err_count );
