@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Spec;
+use Cwd 'abs_path';
+use FindBin qw($RealBin);
+
+my $version_seed = 42523;
+
+my $root_path
+    = abs_path(
+    File::Spec->rel2abs( File::Spec->catdir( $RealBin, File::Spec->updir() ) )
+    );
+my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
+    'nailara.version' );
+{
+    local $| = 1;
+    local $/ = undef;
+    if ( open( my $v_fh, '<' . $version_file ) ) {
+        ( my $raw_str = <$v_fh> ) =~ s|\s+||g;
+        ( my $year_float, my $commit ) = split( /-/, $raw_str, 2 );
+        ( my $release_version
+                = sprintf( "%.3f", ( $commit * $year_float ) / $version_seed ) )
+            =~ s|(\d)$|\.$1|;
+        print STDOUT ":\n: release version : ";
+        print STDERR "$release_version\n";
+        print STDOUT ":\n";
+    } else {
+        die "$version_file: $!\n";
+    }
+}
