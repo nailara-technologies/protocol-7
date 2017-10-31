@@ -43,8 +43,8 @@ if ( $old_version =~ /^(.+)\.(\d+)$/ ) {
     $iteration = $old_iter + $increment if $version_base eq $old_base;
 }
 
-$iteration = 0 if $reset;
 $iteration = 1 if $amend and !$iteration;
+$iteration = 0 if $reset;
 
 my $version_string = gen_ver_string( $commit_count, $iteration );
 
