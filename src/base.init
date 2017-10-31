@@ -28,8 +28,11 @@ my $agent_cfg_path = "nailara.<system.agent.name>"; # <- older version of path..
 $agent_cfg_path = "agents/<system.agent.name>"
     if !-e "<system.conf_path>/$agent_cfg_path";
 
-return <[log.failed]>->("<<!>> no such agent ('<system.agent.name>') <<!>>")
-    if !-e "<system.conf_path>/$agent_cfg_path";
+if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
+    my $agent_name = <system.agent.name>;
+    local <system.agent.name> = 'fail';
+    return <[log.failed]>->("<<!>> no such agent ('$agent_name') <<!>>");
+}
 
 <system.path.agent_config> = $agent_cfg_path;
 
