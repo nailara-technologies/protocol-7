@@ -49,7 +49,12 @@ $iteration = 0 if $reset;
 my $version_string = gen_ver_string( $commit_count, $iteration );
 
 ## no a longer release version (modified)
-$git->rm($r_vers_file) if $version_string ne $old_version and -f $r_vers_file;
+$git->add($r_vers_file)
+    if !$amend
+    and $version_string ne $old_version
+    and -f $r_vers_file
+    and unlink($r_vers_file)
+    and $git->ls_files('cfg/release.version');
 
 ## ./cfg/nailara.version ##
 open( my $ver_fh, '>' . $version_file ) or die " -> $version_file : $!\n";
