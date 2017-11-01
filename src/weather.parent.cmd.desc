@@ -1,0 +1,15 @@
+# >:]
+
+# name  = weather.parent.cmd.desc
+# descr = return local weather short description text
+
+return {
+    'mode' => 'nack',
+    'data' => 'no city selected (undefined station id)'
+    }
+    if not defined <weather.station_id>;
+
+my $stid = <weather.station_id>;
+my $descr = <weather.data>->{$stid}->{'current'}->{'descr'} // 'n/a';
+
+return { 'mode' => 'ack', 'data' => $descr }
