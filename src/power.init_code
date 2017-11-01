@@ -2,14 +2,19 @@
 
 # name = power.init_code
 
-use Net::Ping;
 use Device::Gembird;
 use Net::Libdnet::Arp;
+use POSIX::1003::Errno;
 use File::Path qw(make_path);
 
-<net.silent_ignore.core> //= 1;
+map { eval "sub Net::Ping::$_ {$errno{$_}}" if not defined \&{"Net::Ping::$_"} }
+    errno_names();
 
+autoload Net::Ping;
+
+<net.silent_ignore.core> //= 1;
 <power.cfg.ping_timeout> //= 1;    # seconds
+
 <power.cfg.devices> //= {};
 
 my $config_dir = <power.config_dir>;
