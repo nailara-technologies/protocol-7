@@ -1,16 +1,20 @@
 # >:]
 
 # name  = weather.parent.cmd.temp
+# param = ['plain']
 # descr = return current temperature for selected city
+
+my $station_id = <weather.station_id>;
+my $param = $$call{'args'} // '';
 
 return {
     'mode' => 'nack',
     'data' => 'no city selected (undefined station id)'
     }
-    if not defined <weather.station_id>;
+    if not defined $station_id;
 
-my $stid = <weather.station_id>;
-my $temp = <weather.data>->{$stid}->{'current'}->{'temp'} // 'n/a';
-$temp .= "\x{00B0}C" if $temp =~ /^\d+(\.\d+)?$/;
+my $temp = <weather.data>->{$station_id}->{'current'}->{'temp'} // 'n/a';
+
+$temp .= "\x{00B0}C" if $temp =~ /^\d+(\.\d+)?$/ and $param ne 'plain';
 
 return { 'mode' => 'ack', 'data' => $temp }
