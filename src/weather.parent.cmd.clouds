@@ -1,0 +1,16 @@
+# >:]
+
+# name  = weather.parent.cmd.clouds
+# descr = return current local cloud coverage in %
+
+return {
+    'mode' => 'nack',
+    'data' => 'no city selected (undefined station id)'
+    }
+    if not defined <weather.station_id>;
+
+my $stid = <weather.station_id>;
+my $clouds = <weather.data>->{$stid}->{'current'}->{'clouds'} // 'n/a';
+$clouds .= "%" if $clouds =~ /^\d+(\.\d+)?$/;
+
+return { 'mode' => 'ack', 'data' => $clouds }
