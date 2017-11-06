@@ -1,0 +1,12 @@
+# >:]
+
+# name  = mpv.cmd.drop_buffers
+# descr = clear audio/video/demuxer buffers
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+<mpv.success_reply_str> = 'buffers cleared';
+
+<[mpv.send_command]>->('drop-buffers');
+
+return { 'mode' => 'later' };
