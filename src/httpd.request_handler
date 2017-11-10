@@ -49,7 +49,7 @@ $request->{'host'}   = lc( $h_req->header('host') )
 $session->{'http'}->{'close'}      = 1;
 $session->{'response'}->{'params'} = {};
 
-map { $request->{'headers'}->{ lc($_) } = $h_req->header($_) }
+map { $request->{'headers'}->{ lc($_) } = $h_req->header($_) // '' }
     $h_req->header_field_names;
 
 $session->{'http'}->{'close'} = 0
