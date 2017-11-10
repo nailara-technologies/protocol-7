@@ -25,28 +25,32 @@ return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
 
 $session->{'http'}->{'request'}->{'raw'} = $1;
 
-my $req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'raw'} );
+my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'raw'} );
 
-$req->decode;
+$h_req->decode;
 
 my $r_key;
-$r_key = 'METHOD' if not defined $req->method;
-$r_key = 'URI' if not defined $r_key and not defined $req->uri;
+if ( not defined $h_req->method ) { $r_key = 'METHOD' }
+elsif ( not defined $h_req->uri
+    and $h_req->method =~ /^(GET|HEAD|POST|PUT|DELETE)$/ ) {
+    $r_key = 'URI';
+}
 if ( defined $r_key ) {
     <[base.log]>->( 0, "[$id] malfomed request (request $r_key undefined)" );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 400 );
     return 2;    # Bad Request
 }
 
-$request->{'method'} = $req->method;
-$request->{'host'} = lc( $req->header('host') ) if defined $req->header('host');
+$request->{'method'} = $h_req->method;
+$request->{'host'}   = lc( $h_req->header('host') )
+    if defined $h_req->header('host');
 
-( $request->{'uri'} = $req->uri ) =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
+( $request->{'uri'} = $h_req->uri // '' ) =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
 $session->{'http'}->{'close'}      = 1;
 $session->{'response'}->{'params'} = {};
 
-map { $request->{'headers'}->{ lc($_) } = $req->header($_) }
-    $req->header_field_names;
+map { $request->{'headers'}->{ lc($_) } = $h_req->header($_) }
+    $h_req->header_field_names;
 
 $session->{'http'}->{'close'} = 0
     if defined $request->{'headers'}->{'connection'}
