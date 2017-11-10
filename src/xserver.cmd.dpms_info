@@ -9,7 +9,7 @@ return { 'mode' => 'nack', 'data' => 'xserver has no DPMS support' }
 my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();
 
 my $dpms_str = $dpms_enabled ? 'active' : 'is disabled';
-$dpms_str = "DPMS $dpms_str";
+$dpms_str = "DPMS is $dpms_str";
 
 my @t = <xserver.x11>->DPMSGetTimeouts();
 if ( $t[0] == $t[1] and $t[1] == $t[2] ) {
