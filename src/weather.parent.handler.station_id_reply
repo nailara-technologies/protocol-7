@@ -15,6 +15,15 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
             . $reply->{'call_args'}->{'args'}
             . "], shutting down!"
     );
+    foreach my $reply_id ( @{<weather.get_urls.reply_ids>} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'nack',
+                'data' => 'failed to get station id'
+            }
+        );
+        delete <weather.get_urls.reply_ids>;
+    }
     $shutdown = 1;
 } else {
     $city       = $reply->{'params'}->{'city'};
