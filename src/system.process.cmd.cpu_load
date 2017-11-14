@@ -1,0 +1,10 @@
+# >:]
+
+# name  = system.process.cmd.cpu_load
+# descr = get current cpu usage in percent
+
+return {
+    'mode' => 'ack',
+    'data' => sprintf( "%0.2f", <system.cpu_stats>->get->{'cpu'}->{'total'} )
+        . '%'
+};
