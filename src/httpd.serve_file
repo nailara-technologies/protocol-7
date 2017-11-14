@@ -13,7 +13,8 @@ if ( ref( $_[0] ) eq 'HASH' ) {
     $id        = shift;
     $file_path = shift;
 }
-my $session = $data{'session'}{$id};
+my $session         = $data{'session'}{$id};
+my $response_params = $session->{'response'}->{'params'};
 my $stat
     = ( defined $params and defined $params->{'stat'} and ref($params) )
     ? $params->{'stat'}
@@ -42,7 +43,8 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         'Connection'     => $session->{'http'}->{'close'}
         ? 'close'
         : 'keep-alive',
-        'Accept-Ranges' => 'bytes'
+        'Accept-Ranges' => 'bytes',
+        %{$response_params}
     }
 ) . <$content_fh>;
 close($content_fh);
