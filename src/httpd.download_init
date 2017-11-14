@@ -85,8 +85,7 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         ? 'close'
         : 'keep-alive',
         'Accept-Ranges' => 'bytes',
-        map { $_ => $response->{'params'}->{$_} }
-            keys %{ $response->{'params'} }
+        %{ $response->{'params'} }
     }
 );
 
