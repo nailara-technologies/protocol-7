@@ -1,0 +1,19 @@
+
+  .:[ web content agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping reload verify_instance list dump_buffer content
+
+modules.load = auth net io.ip web
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:'nailara']
+
+[net.connect_to_core:'tcp/ip']
+[base.get_session_id]
+
+[event.loop]
