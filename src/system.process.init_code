@@ -4,6 +4,7 @@
 
 use IPC::Open2;
 use Proc::ProcessTable;
+use Sys::Statistics::Linux::CpuStats;
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
@@ -13,6 +14,10 @@ use Proc::ProcessTable;
 <process.top_min.mem> //= 1;
 <process.top_min.cpu> //= 1;
 <system.process.pt>   //= new Proc::ProcessTable( 'cache_ttys' => 1 );
+
+<system.cpu_stats>->init
+    if not defined <system.cpu_stats>
+    and <system.cpu_stats> = Sys::Statistics::Linux::CpuStats->new;
 
 <list.top> = {
     'var'  => 'data',
