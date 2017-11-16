@@ -4,6 +4,9 @@
 
 my $id        = shift;
 my $session   = $data{'session'}{$id};
+my $request   = $session->{'http'}->{'request'};
+my $response  = $session->{'response'};
+my $headers   = $request->{'headers'};
 my $req_host  = $session->{'http'}{'request'}{'host'};
 my $http_host = <[httpd.determine_host]>->($id);
 
@@ -33,6 +36,7 @@ if (    $link_target =~ /^\d{3}$/
 }
 
 my $file_path;
+my $path_md5;
 
 # ...
 
@@ -49,28 +53,56 @@ if ( defined $http_host and defined $link_target ) {
     if ( -d $file_path ) {    # XXX: support !html index
         $file_path .= '/index.html' if -f $file_path . '/index.html';
     }
+    $path_md5 = <[digest.md5.hex]>->($file_path);
+
     if ( -f $file_path ) {
-        my @stat         = stat($file_path);
-        my $content_size = $stat[7];
-        my $content_date = time2str( $stat[9] );
-        my $server_date  = time2str(time);
+        my @stat          = stat($file_path);
+        my $content_inode = $stat[2];
+        my $content_size  = $stat[7];
+        my $content_date  = time2str( $stat[9] );
+        my $server_date   = time2str(time);
+        my $file_etag     = <[digest.md5.b64u]>
+            ->("$content_inode-$content_size-$content_date-$file_path");
+        $response->{'params'}->{'ETag'} = $file_etag;
 
-        my $content_type;
-        if ( $file_path =~ /\.htm(l)?$/ ) {
-            $content_type = 'text/html';
-        } else {
-            $content_type = mimetype($file_path);
+        my $meta = <http.meta_cache> //= {};
+        $meta->{'etags'}->{$path_md5} //= $file_etag;
+        delete $meta->{$file_etag}
+            and $meta->{'etags'}->{$path_md5} = $file_etag
+            if $meta->{'etags'}->{$path_md5} ne $file_etag;
+        $meta->{$file_etag}->{'types'} //= mimetype($file_path);
+        $meta->{$file_etag}->{'times'} //= <[base.time]>->(4);
+
+        my $content_type = $meta->{$file_etag}->{'types'};
+
+        my $reply_code = 200;    # OK
+
+        if ( defined $request->{'headers'}->{'if-none-match'}
+            and $request->{'headers'}->{'if-none-match'} eq
+            $response->{'params'}->{'ETag'} ) {
+            <[base.log]>->(
+                1, "[if-none-match] returning 304 [$file_etag]"
+            );
+            $reply_code = 304;    # Not Modified
+
+        } elsif ( defined $request->{'headers'}->{'if-modified-since'}
+            and $request->{'headers'}->{'if-modified-since'} ne $content_date )
+        {
+            <[base.log]>->(
+                1, "[if-modified-since] returning 304 [$file_etag]"
+            );
+            $reply_code = 304;    # Not Modified
         }
-
-        $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(    # OK
-            200,
+        $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+            $reply_code,
             {   'Content-Type'   => $content_type,
                 'Last-Modified'  => $content_date,
                 'Content-Length' => $content_size,
                 'Connection'     => $session->{'http'}->{'close'}
                 ? 'close'
                 : 'keep-alive',
-                'Accept-Ranges' => 'bytes'
+                'Accept-Ranges' => 'bytes',
+                %{ $response->{'params'} }
             }
         );
 
@@ -78,6 +110,11 @@ if ( defined $http_host and defined $link_target ) {
     }
 } else {
     return <[httpd.error_page]>->( $id, 400 );    # Bad Request
+}
+
+if ( defined $path_md5 and defined <http.meta_cache.etags>->{$path_md5} ) {
+    my $del_etag = <http.meta_cache.etags>->{$path_md5};
+    delete <http.meta_cache>->{$del_etag};
 }
 
 return <[httpd.error_page]>->( $id, 404 )         # Not Found
