@@ -19,21 +19,10 @@ my $response  = $session->{'response'};
 my $request   = $session->{'http'}->{'request'};
 my $client_fh = $session->{'handle'};
 
-my $stat
-    = ( defined $params and defined $params->{'stat'} and ref($params) )
-    ? $params->{'stat'}
-    : [ stat($file_path) ];
+my $header = $params->{'header'};
 
-my $content_size = $stat->[7];
-my $content_date = time2str( $stat->[9] );
-my $server_date  = time2str(time);
-
-my $content_type;
-if ( $file_path =~ /\.htm(l)?$/ ) {
-    $content_type = 'text/html';
-} else {
-    $content_type = mimetype($file_path);
-}
+my $content_size = $header->{'Content-Length'} // [ stat($file_path) ]->[7];
+my $content_type = $header->{'Content-Type'}   // mimetype($file_path);
 
 my $content_fh;
 if ( not open( $content_fh, '< :raw', $file_path ) ) {
@@ -76,18 +65,8 @@ $session->{'download'} = {
     'bytes_to_go' => $content_size,
 };
 
-$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
-    $status_code,
-    {   'Content-Type'   => $content_type,
-        'Last-Modified'  => $content_date,
-        'Content-Length' => $content_size,
-        'Connection'     => $session->{'http'}->{'close'}
-        ? 'close'
-        : 'keep-alive',
-        'Accept-Ranges' => 'bytes',
-        %{ $response->{'params'} }
-    }
-);
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( $status_code, $header );
 
 $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
     {   'fd'         => $client_fh,
