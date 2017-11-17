@@ -11,7 +11,7 @@ my $core_port = <net.local.port>;
 my $unix_path = defined <unix.path> ? <unix.path> : undef;
 
 foreach my $c_type (@connection_types) {
-    <[base.log]>->( 1, "attempting core connection [$c_type].." );
+    <[base.log]>->( 1, "initiating core connection [$c_type].." );
     if ( $c_type eq 'unix' ) {
         if ( not defined $unix_path ) {
             if ( not defined $core_addr and defined $core_port ) {
