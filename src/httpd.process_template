@@ -1,0 +1,40 @@
+# >:]
+
+# name = httpd.process_template
+
+my $session_id    = shift // '';
+my $template_path = shift // '';
+die "expected valid session id" if not defined $data{'session'}{$session_id};
+my $session = $data{'session'}{$session_id};
+die "expected template file path argument" if !length($template_path);
+die "template file not found" if !-f $template_path;
+my $response_params = $session->{'response'}->{'params'};
+
+<[base.log]>->( 1, "[process_template] $template_path" );
+
+my $html_ref = <[file.slurp]>->($template_path);
+
+# print Dumper($session);
+
+return <[httpd.error_page]>->( $session_id, 501 );
+######
+
+my $content_type = 'text/plain';
+$content_type = 'text/html' if mimetype($template_path) =~ /html/;
+
+my $content_date = time2str( int( $session->{'start_time'} ) );
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => $content_type,
+        'Last-Modified'  => $content_date,
+        'Content-Length' => length($$html_ref),
+        'Connection'     => $session->{'http'}->{'close'}
+        ? 'close'
+        : 'keep-alive',
+        'Accept-Ranges' => 'bytes',
+        %{$response_params}
+    }
+) . $$html_ref;
+
+return $session->{'http'}->{'close'} ? 2 : 0;

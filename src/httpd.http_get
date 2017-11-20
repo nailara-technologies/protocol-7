@@ -8,6 +8,8 @@ my $http_host = <[httpd.determine_host]>->($id);
 
 return <[httpd.error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
 
+$session->{'http_host'} = $http_host;
+
 my $request     = $session->{'http'}->{'request'};
 my $response    = $session->{'response'};
 my $headers     = $request->{'headers'};
@@ -62,15 +64,33 @@ if ( defined $http_host and defined $link_target ) {
         1,
         sprintf( "[$id] matched Host '%s' -> '$http_host'",
             $session->{'http'}{'request'}{'host'} )
-    ) if $http_host ne $session->{'http'}{'request'}{'host'};
+        )
+        if defined $session->{'http'}{'request'}{'host'}
+        and $http_host ne $session->{'http'}{'request'}{'host'};
 
     my $base_dir = <httpd.cfg.hostnames>->{$http_host};
-    $file_path = "$base_dir$http_uri";
+
+    my $uri_obj = URI->new($http_uri);
+
+    $file_path = join( '', $base_dir, $uri_obj->path );
     $file_path =~ s|/$||;
 
-    if ( -d $file_path ) {    # XXX: support !html index
+    return <[httpd.error_page]>->( $id, 404 )
+        if $file_path =~ /\.tmpl$/ and -f $file_path; # *.tmpl files are masked!
+
+    if ( -d $file_path ) {
         $file_path .= '/index.html' if -f $file_path . '/index.html';
+        $file_path .= '/index.tmpl' if -f $file_path . '/index.tmpl';
+    } elsif ( -f "$file_path.tmpl" ) {
+        $file_path .= '.tmpl';
     }
+
+    if ( $file_path =~ /\.tmpl$/ and -f $file_path ) { # <- nailara web template
+        $request->{'query'}
+            = { map { $_ => $uri_obj->query_param($_) } $uri_obj->query_param };
+        return <[httpd.process_template]>->( $id, $file_path );
+    }
+
     $path_md5 = <[digest.md5.hex]>->($file_path);
 
     if ( -f $file_path and !-r $file_path ) {   # XXX: cfg + deal with symlinks!
@@ -85,7 +105,9 @@ if ( defined $http_host and defined $link_target ) {
         my $content_size  = $stat[7];
         my $content_date  = time2str( $stat[9] );
         my $server_date   = time2str(time);
-        my $file_etag     = <[digest.md5.b64u]>
+
+        # XXX: make inode inclusion configurable:
+        my $file_etag = <[digest.md5.b64u]>
             ->("$content_inode-$content_size-$content_date-$file_path");
         $response->{'params'}->{'ETag'} = $file_etag;
 
