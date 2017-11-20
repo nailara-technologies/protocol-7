@@ -83,6 +83,17 @@ if ( defined $http_host and defined $link_target ) {
         $file_path .= '/index.tmpl' if -f $file_path . '/index.tmpl';
     } elsif ( -f "$file_path.tmpl" ) {
         $file_path .= '.tmpl';
+    } elsif ( $file_path =~ /\// ) {
+        my $real_path = $file_path;
+        while ( $real_path =~ s/\/+[^\/]*$// ) {
+            if ( -d $real_path and -f "$real_path/index.tmpl" ) {
+                $file_path = "$real_path/index.tmpl";
+                last;
+            } elsif ( !-d $real_path and -f "$real_path.tmpl" ) {
+                $file_path = "$real_path.tmpl";
+                last;
+            }
+        }
     }
 
     if ( $file_path =~ /\.tmpl$/ and -f $file_path ) { # <- nailara web template
