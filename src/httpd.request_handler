@@ -18,7 +18,18 @@ if ( $session->{'buffer'}{'input'} =~ /^[^\r\n]{$max_uri_len}/ ) {
     return 2;       # XXX: fix false positives!
 }
 
-$session->{'http'} //= { 'request' => { 'headers' => {} } };
+my $peer_fh = $session->{'handle'};
+
+$session->{'http'} //= {
+    'request' => {
+        'peer_host' => {
+            'addr' => $data{'handle'}{$peer_fh}{'peerhost'},
+            'port' => $data{'handle'}{$peer_fh}{'peerport'}
+        },
+        'request_time' => $session->{'start_time'},
+        'headers'      => {}
+    }
+};
 my $request = $session->{'http'}->{'request'};
 
 return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
