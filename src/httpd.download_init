@@ -21,6 +21,8 @@ my $client_fh = $session->{'handle'};
 
 my $header = $params->{'header'};
 
+$file_path = readlink($file_path) if -l $file_path and -f $file_path;    ##
+
 my $content_size = $header->{'Content-Length'} // [ stat($file_path) ]->[7];
 my $content_type = $header->{'Content-Type'}   // mimetype($file_path);
 
