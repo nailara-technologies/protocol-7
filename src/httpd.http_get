@@ -111,6 +111,9 @@ if ( defined $http_host and defined $link_target ) {
         );
         return <[httpd.error_page]>->( $id, 403 );   # Permission Denied (by FS)
     } elsif ( -f $file_path ) {
+
+        $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
+
         my @stat          = stat($file_path);
         my $content_inode = $stat[2];
         my $content_size  = $stat[7];

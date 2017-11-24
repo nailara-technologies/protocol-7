@@ -56,6 +56,9 @@ if ( defined $http_host and defined $link_target ) {
     $path_md5 = <[digest.md5.hex]>->($file_path);
 
     if ( -f $file_path ) {
+
+        $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
+
         my @stat          = stat($file_path);
         my $content_inode = $stat[2];
         my $content_size  = $stat[7];
@@ -80,9 +83,7 @@ if ( defined $http_host and defined $link_target ) {
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
             $response->{'params'}->{'ETag'} ) {
-            <[base.log]>->(
-                1, "[if-none-match] returning 304 [$file_etag]"
-            );
+            <[base.log]>->( 1, "[if-none-match] returning 304 [$file_etag]" );
             $reply_code = 304;    # Not Modified
 
         } elsif ( defined $request->{'headers'}->{'if-modified-since'}
