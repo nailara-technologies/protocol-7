@@ -85,10 +85,12 @@ if ( !$cmd_count ) {    # request / content complete :
 
         # <param_name>
         $part->{'params'}
-            =~ s/<([\-\w\d_\.]+)>/defined $query{$1} ? $query{$1} : ''/ge;
+            =~ s/<([\-\w\d_\.]+)>/defined $query{$1} ? $query{$1} : ''/ge
+            if defined $part->{'params'};
 
         # {param_name,param_name,..}: values base64url encoded, XXX: use + mode!
-        while ( $part->{'params'} =~ /\{([\-\w\d_\.,]+)\}/ ) {
+        while ( defined $part->{'params'}
+            and $part->{'params'} =~ /\{([\-\w\d_\.,]+)\}/ ) {
             my @key_vals;
             my $keys_str = $1;
             map {
