@@ -22,12 +22,12 @@ my $peer_fh = $session->{'handle'};
 
 $session->{'http'} //= {
     'request' => {
-        'peer_host' => {
+        'client' => {
             'addr' => $data{'handle'}{$peer_fh}{'peerhost'},
             'port' => $data{'handle'}{$peer_fh}{'peerport'}
         },
-        'request_time' => $session->{'start_time'},
-        'headers'      => {}
+        'req_time' => $session->{'start_time'},
+        'headers'  => {}
     }
 };
 my $request = $session->{'http'}->{'request'};
