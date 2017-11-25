@@ -13,6 +13,8 @@ my $content_date    = time2str( int( $session->{'start_time'} ) );
 my $content_type    = 'text/plain';
 $content_type = 'text/html' if mimetype($template_path) =~ /html/;
 
+# XXX: ;charset=...
+
 <[base.log]>->( 1, "[process_template] $template_path" );
 
 my $html_ref = $session->{'buffer'}->{'template'}
@@ -27,7 +29,17 @@ my $content_ref = $session->{'content'} = {
 
 my $r_seq = $content_ref->{'sequence'};
 
-my $template_re = qr/(?<!\\)<\[([\w\-_]+\.[^\]]+)\]>/;
+# XXX # [open/] ... [/close]
+# .. eq ..
+# XXX # [template:content....]
+#
+
+my $var_ref = $session->{'httpd'}->{'meta'} //= {};
+my $meta_var_re = qr/(?<!\\)\{([\w\-_]+\.[^\]]+)\}>/;    # <{meta_var_name}>
+
+#### ... [pre]
+
+my $template_re = qr/(?<!\\)<\[([\w\-_]+\.[^\]]+)\]>/;    # <[command_str]>
 
 my $tmpl_ref = $session->{'buffer'}->{'template'};
 
@@ -38,7 +50,7 @@ while ( length( ${$tmpl_ref} ) ) {
 
         ( my $cmd_str, my $params_str ) = split( /:/, $cmd_param_str, 2 );
 
-        push( @{$r_seq}, { 'data' => \$output // '' } );
+        push( @{$r_seq}, { 'data' => \$output } );
         push( @{$r_seq}, { 'command' => $cmd_str, 'params' => $params_str } );
         $tmpl_ref = $session->{'buffer'}->{'template'} = \$remaining;
 
@@ -47,6 +59,11 @@ while ( length( ${$tmpl_ref} ) ) {
         last;
     }
 }
+
+$var_ref = $session->{'vars'} //= {};
+my $session_var_re = qr/(?<!\\)<\(([\w\-_]+\.[^\]]+)\)>/;    # <(var_name)>
+
+#### ... [post]
 
 # print Dumper $r_seq;
 
@@ -83,12 +100,16 @@ if ( !$cmd_count ) {    # request / content complete :
 
         my %query = ( %{ $session->{'http'}->{'request'}->{'query'} } );
 
+        #
         # <param_name>
+        #
         $part->{'params'}
             =~ s/<([\-\w\d_\.]+)>/defined $query{$1} ? $query{$1} : ''/ge
             if defined $part->{'params'};
 
+        #
         # {param_name,param_name,..}: values base64url encoded, XXX: use + mode!
+        #
         while ( defined $part->{'params'}
             and $part->{'params'} =~ /\{([\-\w\d_\.,]+)\}/ ) {
             my @key_vals;
