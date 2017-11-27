@@ -14,6 +14,6 @@ $params->{'Date'} = $server_date;
 
 return join( "\n",
     "HTTP/1.1 $code $status_str",
-    map      {"$_: $params->{$_}"}
+    map { $params->{$_} //= ''; "$_: $params->{$_}" }
         sort { length($a) <=> length($b) } sort keys %{$params} )
     . "\n\n";
