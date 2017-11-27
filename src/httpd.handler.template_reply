@@ -7,6 +7,9 @@ my $sid     = $reply->{'params'}->{'client_sid'};
 my $session = $data{'session'}{$sid};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
+    $reply->{'call_args'}->{'args'}
+        = '<b style="color:#A01">' . $reply->{'call_args'}->{'args'} . '</b>'
+        if $session->{'content'}->{'type'} =~ /html/;
 }    # else {
 
 # print Dumper $reply;
