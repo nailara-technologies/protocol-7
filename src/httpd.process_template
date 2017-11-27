@@ -34,14 +34,16 @@ my $r_seq = $content_ref->{'sequence'};
 # XXX # [template:content....]
 #
 
-my $var_ref = $session->{'httpd'}->{'meta'} //= {};
-my $meta_var_re = qr/(?<!\\)\{([\w\-_]+\.[^\]]+)\}>/;    # <{meta_var_name}>
+my $tmpl_ref = $session->{'buffer'}->{'template'};
+
+my $var_ref = $session->{'meta'} //= {};
+my $meta_var_re = qr/(?<!\\)<\{([\w\-_\.]+)\}>/;    # <{meta_var_name}>
+
+${$tmpl_ref} =~ s/$meta_var_re/defined $var_ref->{$1} ? $var_ref->{$1} : ''/ge;
 
 #### ... [pre]
 
 my $template_re = qr/(?<!\\)<\[([\w\-_]+\.[^\]]+)\]>/;    # <[command_str]>
-
-my $tmpl_ref = $session->{'buffer'}->{'template'};
 
 while ( length( ${$tmpl_ref} ) ) {
     my ( $output, $cmd_param_str, $remaining )
