@@ -2,24 +2,31 @@
 
 # name = httpd.handler.template_reply
 
-my $reply   = shift;
-my $sid     = $reply->{'params'}->{'client_sid'};
-my $session = $data{'session'}{$sid};
+my $reply    = shift;
+my $sid      = $reply->{'params'}->{'client_sid'};
+my $session  = $data{'session'}{$sid};
+my $args_str = $reply->{'call_args'}->{'args'};
 
 if ( $reply->{'cmd'} eq 'NACK' ) {
-    $reply->{'call_args'}->{'args'}
-        = '<b style="color:#A01">' . $reply->{'call_args'}->{'args'} . '</b>'
-        if $session->{'content'}->{'type'} =~ /html/;
-}    # else {
 
-# print Dumper $reply;
+    if ( $args_str =~ /^\d\d\d$/ ) {
+        $session->{'buffer'}->{'output'}
+            .= <[httpd.error_page]>->( $sid, $args_str )
+            if $args_str > 0;    # 000 == drop connection, without any reply!
+        $session->{'flush_shutdown'} = 1;
+        return;
+
+    } elsif ( $session->{'content'}->{'type'} =~ /html/ ) {
+        $args_str = '<b style="color:#A01">' . $args_str . '</b>';
+    }
+}
 
 my $content_part = $reply->{'params'}->{'part'};
 
 if ( $reply->{'cmd'} eq 'RAW' ) {
     $content_part->{'data'} = \$reply->{'data'};
 } else {
-    $content_part->{'data'} = \$reply->{'call_args'}->{'args'};
+    $content_part->{'data'} = \$args_str;
 }
 
 my $done_cmd = delete $content_part->{'command'};
