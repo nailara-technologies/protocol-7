@@ -66,6 +66,7 @@ map { $request->{'headers'}->{ lc($_) } = $h_req->header($_) // '' }
 ( $session->{'meta'}->{'request_path'} = $request->{'uri'} ) =~ s|[#\?].*$||;
 $session->{'meta'}->{'request_host'}   = $request->{'host'};
 $session->{'meta'}->{'request_method'} = $request->{'method'};
+$session->{'meta'}->{'req_time'}       = $request->{'req_time'};
 $session->{'meta'}->{'client_addr'}    = $request->{'client'}->{'addr'};
 $session->{'meta'}->{'client_port'}    = $request->{'client'}->{'port'};
 
