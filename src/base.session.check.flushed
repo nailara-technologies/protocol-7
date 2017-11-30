@@ -1,10 +1,12 @@
 # >:]
 
-# name       = base.session.check.flushed
+# name = base.session.check.flushed
 
 my $id = $_[0]->w->data;
 
 $_[0]->w->stop;
 
 $data{'session'}{$id}{'shutdown'} = 1
-    if !length( $data{'session'}{$id}{'output_buffer'} );
+    if defined $id
+    and defined $data{'session'}{$id}
+    and !length( $data{'session'}{$id}{'output_buffer'} );
