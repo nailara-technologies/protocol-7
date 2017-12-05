@@ -32,11 +32,8 @@ my $id = <[base.gen_id]>->(
     $$key_ref, $data{'base'}{'element'}{$key_ref}{'max_count'}
 );
 
-if ( ${$$key_ref}{$id} = $$val_ref ) {
-    $data{'base'}{'element'}{$key_ref}{'count'}++;
-    return $id;
-} else {
-    <[base.log]>->( 0, 'base.list.element.add: failed [$!]' );
-    return undef;
-}
+${$$key_ref}{$id} = $$val_ref;
 
+$data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
+
+return $id;
