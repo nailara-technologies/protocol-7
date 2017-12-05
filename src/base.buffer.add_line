@@ -68,7 +68,7 @@ $data{'buffer'}{$name}{'size'} = 0
 while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     my $deleted_bytes = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) );
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
-    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes;
+    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
     $data{'buffer'}{$name}{'size'} -= $deleted_bytes;
     if (    exists <log.file>->{$name}
         and exists <log.file>->{$name}->{'start_index'} ) {
@@ -80,7 +80,7 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
 }
 
 push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
-$data{'buffer'}{$name}{'size'} += $message_len;
+$data{'buffer'}{$name}{'size'} += $message_len + 1;    # <- [\n]
 
 if ( exists $data{'buffer'}{$name}{'log_cmd'}
     and $data{'buffer'}{$name}{'log_cmd'} ne '' ) {
