@@ -21,6 +21,7 @@ if ( not defined $data{'handle'}{$fd}{'proto'} ) {
 } else {
     <[base.log]>->( 1, "calling connect handler [$handler]" );
     my $new_fd = $code{$handler}->( $_[0] );
+
     my $id = <[base.session.init]>->( $new_fd, $proto, $mode );
 
     # send server banner
