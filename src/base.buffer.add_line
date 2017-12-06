@@ -66,7 +66,8 @@ if ( $message_len > $buffer_size ) {
 $data{'buffer'}{$name}{'size'} = 0
     if not defined $data{'buffer'}{$name}{'size'};
 while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
-    my $deleted_bytes = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) );
+    my $deleted_bytes
+        = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) // '' );
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
     $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
     $data{'buffer'}{$name}{'size'} -= $deleted_bytes;
