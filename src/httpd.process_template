@@ -17,8 +17,7 @@ $content_type = 'text/html' if mimetype($template_path) =~ /html/;
 
 <[base.log]>->( 1, "[process_template] $template_path" );
 
-my $html_ref = $session->{'buffer'}->{'template'}
-    = <[file.slurp]>->($template_path);
+$session->{'buffer'}->{'template'} = <[file.slurp]>->($template_path);
 
 my $content_ref = $session->{'content'} = {
     'date'     => $content_date,
