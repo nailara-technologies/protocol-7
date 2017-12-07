@@ -5,6 +5,8 @@
 my $name         = shift;
 my $buffer_index = shift;
 
+return warn "log buffer name is undefined" if not defined $name;
+
 <log.file>->{$name} //= {
     'complete'        => 1,
     'start_index'     => $buffer_index,
@@ -13,9 +15,9 @@ my $buffer_index = shift;
     'resend_slowdown' => 1.8,
 };
 
-my $log_data = <log.file>->{$name};
-
 return if not exists <base.log.allow_buffer_send>;    # too early..
+
+my $log_data = <log.file>->{$name};
 
 # find path to log agent ...
 my $route_prefix = 'core.';
