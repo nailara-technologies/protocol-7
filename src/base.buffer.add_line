@@ -63,14 +63,16 @@ if ( $message_len > $buffer_size ) {
     );
     return 0;
 }
-$data{'buffer'}{$name}{'size'} = 0
-    if not defined $data{'buffer'}{$name}{'size'};
+$data{'buffer'}{$name}{'size'} //= 0;
+
+push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
+$data{'buffer'}{$name}{'size'} += $message_len + 1;    # <- [\n]
+
 while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
-    my $deleted_bytes
-        = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) // '' );
+    my $deleted_bytes = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) );
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
     $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
-    $data{'buffer'}{$name}{'size'} -= $deleted_bytes;
+    $data{'buffer'}{$name}{'size'} -= ( $deleted_bytes + 1 );
     if (    exists <log.file>->{$name}
         and exists <log.file>->{$name}->{'start_index'} ) {
         <log.file>->{$name}->{'start_index'}--
@@ -79,9 +81,6 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
             if <log.file>->{$name}->{'next_index'} > 0;
     }
 }
-
-push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
-$data{'buffer'}{$name}{'size'} += $message_len + 1;    # <- [\n]
 
 if ( exists $data{'buffer'}{$name}{'log_cmd'}
     and $data{'buffer'}{$name}{'log_cmd'} ne '' ) {
