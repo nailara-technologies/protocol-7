@@ -2,9 +2,10 @@
 
 # name = httpd.handler.download_transfer
 
-my $id      = $_[0]->w->data->{'id'};
-my $session = $data{'session'}{$id};
-my $file_fh = $session->{'download'}->{'content_fh'};
+my $id        = $_[0]->w->data->{'id'};
+my $session   = $data{'session'}{$id};
+my $read_size = <httpd.download.file_read_size> //= 4096;
+my $file_fh   = $session->{'download'}->{'content_fh'};
 
 $session->{'buffer'}->{'output'} //= '';    # XXX: track down undef...
 
@@ -13,27 +14,30 @@ my $bytes_to_go
     ? $session->{'download'}->{'bytes_to_go'}
     : <httpd.download.file_read_size>;
 
+$read_size = $bytes_to_go if $bytes_to_go < $read_size;
+
 my $bytes_read = sysread(
-    $file_fh,     $session->{'buffer'}->{'output'},
-    $bytes_to_go, length( $session->{'buffer'}->{'output'} )
+    $file_fh,   $session->{'buffer'}->{'output'},
+    $read_size, length( $session->{'buffer'}->{'output'} )
 );
 
 $session->{'download'}->{'bytes_to_go'} -= $bytes_read;
 
 if ( $session->{'download'}->{'bytes_to_go'} <= 0 ) {
     <[base.log]>->( 1, "[$id] download complete." );
+
     $session->{'watcher'}->{'download_handler'}->cancel;
-    close($file_fh);
-    delete $session->{'download'};
     delete $session->{'watcher'}->{'download_handler'};
+    delete $session->{'download'};
+    close($file_fh);
 
     if ( $session->{'http'}->{'close'} ) {
         $session->{'flush_shutdown'} = 1;
     } else {
         $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
     }
-
     return 0;
+
 } else {
     return 1;
 }
