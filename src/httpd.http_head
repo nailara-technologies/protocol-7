@@ -27,7 +27,7 @@ if (    $link_target =~ /^\d{3}$/
         );
         $session->{'buffer'}->{'output'}
             .= <[httpd.error_page]>->( $id, $link_target );
-        $session->{'flush_close'} = 1;
+        $session->{'flush_shutdown'} = 1;
     } else {
         <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
         $session->{'close'} = 1;
