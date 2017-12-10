@@ -31,6 +31,8 @@ if (    defined $data{'session'}{$id}{'rip_handler'}
 foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
     $data{'session'}{$id}{'watcher'}{$watcher}->cancel;
     delete $data{'session'}{$id}{'watcher'}{$watcher};
+
+    <[httpd.update_download_count]> if $watcher eq 'download_handler';
 }
 
 # cleanup user2session reference

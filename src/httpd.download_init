@@ -62,13 +62,15 @@ if ( $session->{'http'}->{'close'} ) {
     $session->{'watcher'}->{'input_handler'}->timeout(undef);
 }
 
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( $status_code, $header );
+
 $session->{'download'} = {
     'content_fh'  => $content_fh,
     'bytes_to_go' => $content_size,
 };
 
-$session->{'buffer'}->{'output'}
-    .= <[httpd.new_header]>->( $status_code, $header );
+<[httpd.update_download_count]>;
 
 $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
     {   'fd'         => $client_fh,
@@ -83,5 +85,7 @@ $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
         'data' => { 'id' => $id }
     }
 );
+
+$session->{'watcher'}->{'download_handler'}->now;
 
 return 0;
