@@ -27,6 +27,12 @@ if ( fileno $session->{'handle'} ) {
             $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'} += $written;
             substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
             $_[0]->w->start;
+
+            # httpd agent (download in progress)
+            if ( defined $session->{'watcher'}->{'download_handler'}
+                and !$session->{'watcher'}->{'download_handler'}->is_running ) {
+                $session->{'watcher'}->{'download_handler'}->start;
+            }
         }
     }
 } else {

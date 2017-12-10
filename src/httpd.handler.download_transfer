@@ -2,34 +2,44 @@
 
 # name = httpd.handler.download_transfer
 
-my $id        = $_[0]->w->data->{'id'};
-my $session   = $data{'session'}{$id};
-my $read_size = <httpd.download.file_read_size> //= 4096;
-my $file_fh   = $session->{'download'}->{'content_fh'};
+my $watcher  = $_[0]->w;
+my $id       = $watcher->data->{'id'};
+my $session  = $data{'session'}{$id};
+my $download = $session->{'download'};
+my $clients  = <httpd.downloads.in_progress> ||= 1;
 
-$session->{'buffer'}->{'output'} //= '';    # XXX: track down undef...
+my $min_buf_size = 4096;
+my $max_buf_size
+    = sprintf( "%.0f", <httpd.downloads.total_bufsize_max> / $clients );
+$max_buf_size = $min_buf_size if $max_buf_size < $min_buf_size;
+$max_buf_size = <httpd.downloads.max_buffer_size>
+    if $max_buf_size > <httpd.downloads.max_buffer_size>;
 
-my $bytes_to_go
-    = $session->{'download'}->{'bytes_to_go'} < <httpd.download.file_read_size>
-    ? $session->{'download'}->{'bytes_to_go'}
-    : <httpd.download.file_read_size>;
+# $session->{'buffer'}->{'output'} //= '';    # XXX: track down undef...
 
-$read_size = $bytes_to_go if $bytes_to_go < $read_size;
+my $read_size = $max_buf_size - length( $session->{'buffer'}->{'output'} );
+$read_size = $download->{'bytes_to_go'}
+    if $download->{'bytes_to_go'} < $read_size;
 
-my $bytes_read = sysread(
-    $file_fh,   $session->{'buffer'}->{'output'},
+if ( $read_size < 1 ) {
+    $watcher->stop;
+    return 1;
+}
+
+$download->{'bytes_to_go'} -= sysread(
+    $download->{'content_fh'},
+    $session->{'buffer'}->{'output'},
     $read_size, length( $session->{'buffer'}->{'output'} )
 );
 
-$session->{'download'}->{'bytes_to_go'} -= $bytes_read;
-
-if ( $session->{'download'}->{'bytes_to_go'} <= 0 ) {
+if ( $download->{'bytes_to_go'} <= 0 ) {
     <[base.log]>->( 1, "[$id] download complete." );
-
-    $session->{'watcher'}->{'download_handler'}->cancel;
+    $watcher->cancel;
+    close( $download->{'content_fh'} );
     delete $session->{'watcher'}->{'download_handler'};
     delete $session->{'download'};
-    close($file_fh);
+
+    <[httpd.update_download_count]>;
 
     if ( $session->{'http'}->{'close'} ) {
         $session->{'flush_shutdown'} = 1;
