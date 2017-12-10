@@ -9,7 +9,6 @@ $_[0]->w->cancel;
 <[base.log]>->( 2, "[$id] session shutdown ..." );
 
 # cancel outstanding commands / routes
-
 foreach my $s_cid ( keys %{ $data{'session'}{$id}{'route'} } ) {
     my $route_id = $data{'session'}{$id}{'route'}{$s_cid};
     my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
@@ -23,25 +22,13 @@ foreach my $s_cid ( keys %{ $data{'session'}{$id}{'route'} } ) {
 }
 
 # call rip handler
-
 if (    defined $data{'session'}{$id}{'rip_handler'}
     and defined &{ $data{'session'}{$id}{'rip_handler'} } ) {
     &{ $data{'session'}{$id}{'rip_handler'} }( $_[0] );
 }
 
-# stop input buffer
-
-$data{'session'}{$id}{'watcher'}{'input_buffer'}->stop;
-
-# flush output buffer
-
-# while(length $data{'session'}{$id}{'buffer'}{'output'})
-# { $data{'session'}{$id}{'watcher'}{'output_buffer'}->now }
-
 # cancel watchers
-
 foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
-
     $data{'session'}{$id}{'watcher'}{$watcher}->cancel;
     delete $data{'session'}{$id}{'watcher'}{$watcher};
 }
@@ -61,6 +48,14 @@ if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
 
 my $dfh = $data{'session'}{$id}{'handle'};
 close( $data{'session'}{$id}{'handle'} );
+
+# forced freeing of memory consumed by buffers((!))
+map { undef $data{'session'}{$id}{'buffer'}->{$_} }
+    keys %{ $data{'session'}{$id}{'buffer'} };
+
+map { undef $data{'session'}{$id}->{$_} } keys %{ $data{'session'}{$id} };
+map { undef $data{'handle'}{$dfh}->{$_} } keys %{ $data{'handle'}{$dfh} };
+
 delete $data{'session'}{$id};
 delete $data{'handle'}{$dfh};
 
