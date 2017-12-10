@@ -30,7 +30,7 @@ my $start_len = length( $data{'session'}{$id}{'buffer'}{'input'} );
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     my $ret_code = $code{$handler}->( $_[0] );
 
-    if ( $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
+    if ( defined $ret_code and $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
 } elsif ( defined $data{'session'}{$id} ) {
@@ -50,8 +50,7 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 }
 
 my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
-
-return $_[0]->w->stop if not defined $len;    # deleted buffer stopping reading!
+return $_[0]->w->cancel if not defined $len;    # <- buffer undef
 
 if ( $len < $data{'size'}{'buffer'}{'input'}
     and !$data{'session'}{$id}{'shutdown'} ) {
