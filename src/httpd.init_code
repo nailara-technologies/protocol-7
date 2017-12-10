@@ -19,9 +19,11 @@ use File::MimeInfo::Magic;
 
 <proto.http.status_codes> = <[httpd.status_codes]>;
 
-<httpd.download.file_read_size> = 1024 * 64;    # sysread() transfer chunk size
+<httpd.downloads.in_progress>     //= 0;
+<httpd.downloads.max_buffer_size> //= 128 * 1024;   # <- (session output buffer)
+<httpd.downloads.total_bufsize_max> //= 100 * <httpd.downloads.max_buffer_size>;
 
-# check user / group existance
+# check user / group existence
 <[base.log]>->( 2, "checking if httpd user / group exists.." );
 my $httpd_user  = <httpd.system.user>  //= 'httpd';
 my $httpd_group = <httpd.system.group> //= 'www';

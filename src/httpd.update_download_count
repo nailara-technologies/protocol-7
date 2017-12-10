@@ -1,0 +1,12 @@
+# >:]
+
+# name = httpd.update_download_count
+
+<httpd.downloads.in_progress> = 0;
+map {
+    <httpd.downloads.in_progress>++
+        if exists $data{'session'}{$_}{'watcher'}{'download_handler'}
+    }
+    keys %{ $data{'session'} };
+
+return <httpd.downloads.in_progress>;
