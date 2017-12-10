@@ -7,47 +7,34 @@ my $id;
 if   ( $_[0] =~ /^\d+/ ) { $id = $_[0] }
 else                     { $id = $_[0]->w->data }
 
-<[base.session.check_last]> if not exists $data{'session'}{$id};
+return <[base.session.check_last]> if not exists $data{'session'}{$id};
 
-my $len     = length( $data{'session'}{$id}{'buffer'}{'output'} );
+my $session = $data{'session'}{$id};
+my $len     = length( $session->{'buffer'}->{'output'} );
 my $written = 0;
 
-if ( exists $data{'session'}{$id}
-    and fileno $data{'session'}{$id}{'handle'} ) {
+if ( fileno $session->{'handle'} ) {
     if ( $len > 0 ) {
         $written = syswrite(
-            $data{'session'}{$id}{'handle'},
-            $data{'session'}{$id}{'buffer'}{'output'},
+            $session->{'handle'},
+            $session->{'buffer'}->{'output'},
             $data{'size'}{'buffer'}{'output'} || $len
         );
-
         if ( not defined $written ) {
-            $data{'session'}{$id}{'shutdown'} = 1;
+            $session->{'shutdown'} = 1;
         } else {
-
-            #            $_[0]->w->stop;
-
-            $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'bytes'}{'out'}
-                += $written;
-
-            $data{'session'}{$id}{'buffer'}{'output'}
-                = substr( $data{'session'}{$id}{'buffer'}{'output'},
-                $written, ( $len - $written ) );
-
-            #            $_[0]->w->start;
+            $_[0]->w->stop;
+            $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'} += $written;
+            substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
+            $_[0]->w->start;
         }
     }
 } else {
-
     $_[0]->w->cancel;
-    <[base.session.check_last]>;
-    $data{'session'}{$id}{'shutdown'} = 1;
+    return $session->{'shutdown'} = 1;
 }
 
-$len = length( $data{'session'}{$id}{'buffer'}{'output'} );
-
-if ($len) {
-
+if ( $len = length( $session->{'buffer'}->{'output'} ) ) {
     push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
 
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
@@ -55,14 +42,12 @@ if ($len) {
     }
 } else {
 
-    #    if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
-    $data{'session'}{$id}{'watcher'}{'output_buffer'}->start;
+    #    if ( !$session->{'watcher'}{'output_buffer'}->is_running ) {
+    $session->{'watcher'}->{'output_buffer'}->start;
 
     #    }
 }
 
-$data{'session'}{$id}{'shutdown'} = 1
-    if !$len
-    and $data{'session'}{$id}{'flush_shutdown'};
+$session->{'shutdown'} = 1 if !$len and $session->{'flush_shutdown'};
 
 return 0;
