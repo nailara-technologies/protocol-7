@@ -57,7 +57,7 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
 }
 if ( $message_len > $buffer_size ) {
     <[base.log]>->(
-        1,
+        0,
         "WARNING: log message longer than log-buffer-size"
             . " (buffer: $buffer_size bytes message: $message_len bytes)"
     );
@@ -69,7 +69,9 @@ push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
 $data{'buffer'}{$name}{'size'} += $message_len + 1;    # <- [\n]
 
 while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
-    my $deleted_bytes = length( shift( @{ $data{'buffer'}{$name}{'data'} } ) );
+    my $deleted_bytes = length( $data{'buffer'}{$name}{'data'}->[0] );
+    undef $data{'buffer'}{$name}{'data'}->[0];
+    shift @{ $data{'buffer'}{$name}{'data'} };
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
     $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
     $data{'buffer'}{$name}{'size'} -= ( $deleted_bytes + 1 );
