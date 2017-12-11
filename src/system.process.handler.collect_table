@@ -38,10 +38,39 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     ## custom process limits ## [currently max cpu in %]
     foreach my $lp_name ( keys %{<process.limits>} ) {
         next
-            if $p->fname !~ /^\Q$lp_name\E/
-            and ( not defined $p->cmndline
-            or $p->cmndline !~ /^\Q$lp_name\E/ );
+            if $p->fname !~ /\Q$lp_name\E/
+            and ( not defined $p->cmndline or $p->cmndline !~ /^\Q$lp_name\E/ );
         my $lp = <process.limits>->{$lp_name};
+        ( my $rl_name = $p->fname // $p->cmndline ) =~ s/ .*$//;
+
+        if (    defined $lp->{'max_mem'}
+            and $lp->{'max_mem'} =~ /^\d+(\.\d+)?$/
+            and $lp->{'max_mem'} != 0 ) {
+            $lp->{'condition_start'} //= <[base.time]>->(2)
+                if $mem >= $lp->{'max_mem'};
+            if ($mem >= $lp->{'max_mem'}
+                and ( not defined $lp->{'seconds'}
+                    or ( <[base.time]>->(2) - $lp->{'condition_start'} )
+                    >= $lp->{'seconds'} )
+                ) {
+                <[base.log]>->(
+                    0,
+                    "<!> MEMORY USAGE ALERT: (( $rl_name )) [now $mem%, limit "
+                        . $lp->{'max_mem'} . "%]"
+                );
+                if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
+                    my $kill_pid = $p->pid;
+                    <[base.log]>->(
+                        0, " : << killing '$rl_name' process >> [PID=$kill_pid]"
+                    );
+                    <process.kill_child.w_fh>->print("$kill_pid\n");
+                    delete <process.table.top>->{$kill_pid};
+                    delete $lp->{'condition_start'};
+                }
+            }
+
+        }
+
         next
             if not defined $lp->{'max_cpu'}
             or $lp->{'max_cpu'} !~ /^\d+(\.\d+)?$/
@@ -57,12 +86,14 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                 >= $lp->{'seconds'} )
             ) {
             <[base.log]>->(
-                0, "<!> '$lp_name' exceeded CPU limit! [now $cpu%]"
+                0,
+                "<!> CPU LOAD ALERT: (( $rl_name )) [now $cpu%, limit "
+                    . $lp->{'max_cpu'} . " ]"
             );
             if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
                 my $kill_pid = $p->pid;
                 <[base.log]>->(
-                    0, " : << killing '$lp_name' process >> [PID=$kill_pid]"
+                    0, " : << killing '$rl_name' process >> [PID=$kill_pid]"
                 );
                 <process.kill_child.w_fh>->print("$kill_pid\n");
                 delete <process.table.top>->{$kill_pid};
@@ -81,6 +112,7 @@ my $mem_limit_reached = 0;
 if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
     $mem_limit_reached = 1;
     my $reached = $mem_used_percent == <mem.max_used> ? 'reached' : 'exceeded';
+
     my $warn_str
         = "<!> WARNING <!> used memory $reached " . <mem.max_used> . "% limit!";
     $warn_str .= " ( now $mem_used_percent% )" if $reached eq 'exceeded';
@@ -107,9 +139,9 @@ if ( $mem_limit_reached and <mem.auto_kill> ) {  # automatic overload mitigation
             if defined <mem.kill_min> and $process->{'pctmem'} < <mem.kill_min>;
         <[base.log]>->(
             0,
-            " :. killing top mem user ( PID $pid '"
-                . $process->{'fname'} . "' ) ["
-                . $process->{'pctmem'} . "%]"
+            " :. killing highest memory user (PID $pid '"
+                . $process->{' fname '} . "') [ "
+                . $process->{'pctmem'} . " % ]"
         );
         <process.kill_child.w_fh>->print("$pid\n");
         delete <process.table.top>->{$pid};
