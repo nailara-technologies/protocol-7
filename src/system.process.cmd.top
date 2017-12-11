@@ -1,11 +1,18 @@
 # >:]
 
 # name  = system.process.cmd.top
-# param = [max_entries]
+# param = [pattern] [max_entries]
 # descr = get top process list (cached [5s])
 
+my $filter;
 my $limit = $$call{'args'} // '';
 my $top = <process.table.top>;
+
+if ( $limit =~ /([^\d][^\s]*)( +(\d+))?/ ) {
+    my $pattern = $1;
+    $filter = qr/$pattern/i;
+    $limit = $3 if defined $3;
+}
 
 my $top_table_txt .= sprintf( "%5s %11s %5s %5s %6s %s\n",
     'PID', 'START_TIME', 'STATE', 'MEM%', 'CPU%', 'NAME' );
@@ -17,6 +24,7 @@ foreach my $pid (
     sort { $top->{$b}->{'start'} <=> $top->{$a}->{'start'} }
     keys %{$top}
     ) {
+    next if defined $filter and $top->{$pid}->{'fname'} !~ $filter;
     if ( $limit ne 'all' ) {
         next if $top->{$pid}->{'state'} eq 'stop';
         if ( $limit eq '' ) {
@@ -24,7 +32,7 @@ foreach my $pid (
                 if $top->{$pid}->{'pctcpu'} < <process.top_min.cpu>
                 and $top->{$pid}->{'pctmem'} < <process.top_min.mem>;
         } elsif ( $limit =~ /^\d+$/ ) {
-            last if $entries++ > $limit;
+            last if $entries++ >= $limit;
         }
     }
     $top_table_txt .= sprintf(

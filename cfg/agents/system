@@ -17,11 +17,11 @@ mem.max_used = 95 # %
 mem.autokill = 1 # whether to kill process w. most used memory on max_used limit
 mem.kill_min = 11 # % (memory usage before mem-alert based auto-kill is allowed)
 
-# custom process rules example [in this case 'unattended-upgrade' infinite loop]
-process.limits.unattended-upgrade.max_cpu = 70 # %
-process.limits.unattended-upgrade.seconds = 90 # duration of condition
-process.limits.unattended-upgrade.action  = kill
-#
+## custom process rules example
+#process.limits.httpd.max_mem = 7.5 # [%]
+#process.limits.httpd.seconds = 15  # [s] duration of condition
+#process.limits.httpd.action  = kill
+##
 
 modules.load = auth net io.ip system
 [load_modules:<modules.load>]
