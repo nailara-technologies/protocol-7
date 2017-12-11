@@ -1,0 +1,24 @@
+# >:]
+
+# name  = base.file.content (file.content)
+# args  = <filename>[, <encoding>]
+# descr = returns the content of the specified file
+
+my $filename = abs_path(shift);
+my @encoding = ( shift // '' );    # optional encoding type ( i.e. ':raw' )
+
+if ( !-f $filename ) {
+    <[base.log]>->( 0, "file.content: file '$filename' not found." );
+    return undef;
+}
+
+my $file_fh;
+if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
+    <[base.log]>->( 0, "file.content: failed to open '$filename' [$!]" );
+    return undef;
+}
+
+{
+    local $/ = undef;
+    return <$file_fh>;
+}
