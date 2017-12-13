@@ -6,10 +6,15 @@
 use Safe;
 use Module::Load;
 use Time::Seconds;
-load POSIX::1003::Time,    'strftime';
-load POSIX::1003::Limit,   ':rlimit';
-load Crypt::PRNG::Fortuna, 'random_string_from';
-load POSIX::1003::Proc,    qw/ WNOHANG waitpid setsid getcwd /;
+
+<[base.perlmod.autoload]>->('Event');
+
+<[base.perlmod.load]>->( 'POSIX::1003::Time',    'strftime' );
+<[base.perlmod.load]>->( 'POSIX::1003::Limit',   ':rlimit' );
+<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', 'random_string_from' );
+<[base.perlmod.load]>->(
+    'POSIX::1003::Proc', qw/ WNOHANG waitpid setsid getcwd /
+);
 
 # init some vars
 

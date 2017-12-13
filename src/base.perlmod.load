@@ -1,0 +1,38 @@
+# >:]
+
+# name = base.perlmod.load
+
+my ( $module_name, @export ) = @_;
+<base.perlmod.auto_install> //= 1;
+
+<[base.log]>->( 2, "loading perl module '$module_name'.." );
+
+# success #
+<base.perlmod.loaded>->{$module_name} = 1;
+
+eval { load( $module_name, @export ) };
+return 1 if !$@;
+
+# failed #
+<base.perlmod.loaded>->{$module_name} = 0;
+if ( !<base.perlmod.auto_install> ) {
+    <[base.log]>->(
+        0,
+        "<<!>> failed load perl module '$module_name',"
+            . " auto_install is disabled <<!>>"
+    );
+    return 0;
+}
+
+<[base.log]>->(
+    2, ": <!> loading of '$module_name' failed but auto_install is enabled.."
+);
+
+# auto install #
+<[base.perlmod.install]>->($module_name);
+
+eval { load( $module_name, @export ) };
+die "<<!>> failed to automatically install perl module '$module_name' <<!>>\n"
+    if $@;
+
+return 1;
