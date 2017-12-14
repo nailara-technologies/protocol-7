@@ -2,9 +2,9 @@
 
 # name = impressive.init_code
 
-use IPC::Open3;
-use MIME::Base64;
-use File::Path qw(make_path);
+<[base.perlmod.autoload]>->('IPC::Open3');
+<[base.perlmod.autoload]>->('MIME::Base64');
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 
 <impressive.cfg.language> = 'en'
     if not defined <impressive.cfg.language>
