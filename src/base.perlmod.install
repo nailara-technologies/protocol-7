@@ -40,12 +40,27 @@ if ( <system.host.os.dist.name> eq 'debian'
         $ENV{'PAGER'}                    = '/bin/true';
         $ENV{'LANG'}                     = 'en_US.UTF-8';
 
+        my $wait;
+        my $warned;
+    retry_install:
+        $warned = 0;
+        $wait   = 2 + int( rand(5) );
+        while ( length(qx(lslocks|grep ^dpkg)) and $wait = 11 or $wait-- ) {
+            if ( $wait > 10 and !$warned++ ) {
+                <[base.log]>->(
+                    0,
+                    "[AUTO_INSTALL] ... waiting for dpkg lock to disappear ..."
+                );
+            }
+            <[base.sleep]>->(0.33);
+        }
         my $s = @deb_list > 1 ? 's' : '';
         <[base.log]>->(
             0, "[AUTO_INSTALL] debian package$s: " . join( ', ', @deb_list )
         );
 
-        system( 'apt-get', '-fy', 'install', @deb_list );
+        goto retry_install
+            if !( system( 'apt-get', '-fy', 'install', @deb_list ) == 0 );
     }
 }
 
