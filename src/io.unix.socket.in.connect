@@ -11,7 +11,7 @@ if ( -S $fd ) {
         $data{'handle'}{$new_sock}{'link'} = 'unix';
         $data{'handle'}{$new_sock}{'mode'} = 'in';
         no strict;
-        my @peercred = unpack( 'i*', $new_sock->sockopt(SO_PEERCRED) );
+        my @peercred = unpack( 'i*', $new_sock->sockopt( SO_PEERCRED() ) );
         die "[$id] SO_PEERCRED failed" if @peercred != 3;
         use strict;
         $data{'handle'}{$new_sock}{'unix'} = {

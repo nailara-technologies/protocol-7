@@ -2,8 +2,8 @@
 
 # name = discover.init_code
 
-use POSIX::1003::OS 'uname';
-use Net::Ifconfig::Wrapper;
+<[base.perlmod.load]>->( 'POSIX::1003::OS', qw/uname/ );
+<[base.perlmod.autoload]>->('Net::Ifconfig::Wrapper');
 
 <discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
 

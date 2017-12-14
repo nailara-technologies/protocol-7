@@ -2,7 +2,7 @@
 
 # name = compton.init_code
 
-use IPC::Open3;
+<[base.perlmod.autoload]>->('IPC::Open3');
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
