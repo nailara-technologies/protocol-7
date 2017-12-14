@@ -2,8 +2,8 @@
 
 # name = colortoalpha.init_code
 
-use File::Path qw(make_path);
-use Graphics::Magick;
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+<[base.perlmod.autoload]>->('Graphics::Magick');
 
 <colortoalpha.cache_dir> //= '/var/cache/colortoalpha';
 my $cache_dir = <colortoalpha.cache_dir>;

@@ -2,9 +2,9 @@
 
 # name = mpv.init_code
 
-use JSON::XS;
-use IPC::Open3;
-use File::Path qw(make_path);
+<[base.perlmod.autoload]>->('JSON::XS');
+<[base.perlmod.autoload]>->('IPC::Open3');
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
 

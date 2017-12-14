@@ -3,15 +3,17 @@
 # name = download.init_code
 # todo = clean empty sub dirs
 
-use File::Path qw(make_path);
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 
 package Download::UserAgent;
-use base 'LWPx::ParanoidAgent';
+
+<[base.perlmod.autoload]>->('IO::Scalar');
+<[base.perlmod.autoload]>->('Config::Hosts');
+<[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
+
+use parent qw/LWPx::ParanoidAgent/;
 
 our $etc_hosts = Config::Hosts->new();
-
-use IO::Scalar;
-use Config::Hosts;
 
 sub read_hosts {
     my ( $self, $hosts_file ) = @_;
