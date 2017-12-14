@@ -40,6 +40,14 @@ if ( not defined $httpd_uid ) {
     <[base.log]>->( 2, ": http user '$httpd_user' : UID $httpd_uid" );
 }
 
+my $site_dir = <httpd.site_dir> //= '/var/www';
+if ( !-d $site_dir ) {
+    <[base.log]>->( 0, "site_dir '$site_dir' did not exist, creating now..." );
+    qx(mkdir -p $site_dir/default);
+    qx(chmod -R 750 $site_dir);
+    qx(chown $httpd_user.$httpd_group $site_dir);
+}
+
 <[httpd.scan_site_dir]>;
 
 0;
