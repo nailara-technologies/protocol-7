@@ -2,13 +2,13 @@
 
 # name = crypt.C25519.init_code
 
-use File::Path 'make_path';
-use MIME::Base64 qw/ encode_base64url decode_base64url /;
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+<[base.perlmod.load]>->(qw( MIME::Base64 encode_base64url decode_base64url ));
 
 <[base.perlmod.autoload]>->('Crypt::Ed25519');
 <[base.perlmod.autoload]>->('Crypt::Curve25519');
 
-<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', 'random_string_from' );
+<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw/random_string_from/ );
 
 my $usr = <system.privs.user>;
 $usr //= getpwuid($>);
