@@ -4,8 +4,11 @@
 
 <[base.log]>->( 1, "forking off ticker animation loop.." );
 
-socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$!]";
+socketpair(
+    my $child_pipe,
+    my $parent_pipe,
+    AF_UNIX(), SOCK_STREAM(), PF_UNSPEC()
+) || die "can't create socketpair! [$!]";
 
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';

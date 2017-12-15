@@ -14,9 +14,9 @@ $ENV{'TIMINGBOTPATH'} = <rss.data.tmp_path>;
 die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
     if !-d <rss.data.tmp_path>;
 
-use XML::RSS::TimingBot;
-use File::Copy;
-use XML::Feed;
+<[base.perlmod.autoload]>->('XML::Feed');
+<[base.perlmod.autoload]>->('File::Copy');
+<[base.perlmod.autoload]>->('XML::RSS::TimingBot');
 
 ( my $db_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
 if ( -d $db_dir ) {

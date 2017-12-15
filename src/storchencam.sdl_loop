@@ -58,7 +58,7 @@ my $time_offset;
 
 SDL::putenv("SDL_VIDEO_WINDOW_POS=$coord->{left},$coord->{top}");
 
-SDL::init(SDL_INIT_VIDEO);
+SDL::init( SDL_INIT_VIDEO() );
 
 SDL::Video::wm_set_caption( <system.agent.name> . '(' . $$ . ')',
     <system.agent.name> . '(' . $$ . ') [minimized]' );
@@ -74,7 +74,7 @@ my $bg_color = SDL::Color->new( 0x13, 0x13, 0x13 );
 if (<storchencam.display_time>) {
     <[base.log]>->( 1, ": loading text font" );
     $font = SDL::TTF::open_font( $font_path, $font_size );
-    warn "failed to open font [" . SDL::get_error . "]" if !$font;
+    warn "failed to open font [" . SDL::get_error() . "]" if !$font;
     $font_color = SDL::Color->new( 0xFF, 0xFF, 0xFF );
 }
 
@@ -86,15 +86,15 @@ if ($font) {
 <[base.log]>->( 1, ": opening storchencam display" );
 
 my $screen = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
-    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC
-        | SDL_ASYNCBLIT );
+    SDL_DOUBLEBUF() | SDL_HWSURFACE() | SDL_HWACCEL() | SDL_NOFRAME()
+        | SDL_PREALLOC() | SDL_ASYNCBLIT() );
 
 my $zoom_2 = ( $screen->w / 1035 );
 
 $i_x_offset = sprintf( "%.0f", $i_x_offset * $zoom_2 );
 $i_y_offset = sprintf( "%.0f", $i_y_offset * $zoom_2 );
 
-SDL::Mouse::show_cursor(SDL_DISABLE);
+SDL::Mouse::show_cursor( SDL_DISABLE() );
 
 my $bg_col_map = SDL::Video::map_RGB( $screen->format(),
     $bg_color->r, $bg_color->g, $bg_color->b );
@@ -102,7 +102,7 @@ my $bg_col_map = SDL::Video::map_RGB( $screen->format(),
 <[base.log]>->( 1, ": loading cover image" );
 
 my $image = SDL::Image::load($cover_image);
-die SDL::get_error if ( !$image );
+die SDL::get_error() if ( !$image );
 
 #SDL::Video::fill_rect( $image, SDL::Rect->new( 106, 10, 37, 30 ), $bg_col_map );
 
@@ -112,7 +112,7 @@ SDL::Video::blit_surface(
 );
 
 my $scaled = SDL::GFX::Rotozoom::surface( $image, 0, $zoom_cvr * $zoom_2,
-    SMOOTHING_ON );
+    SMOOTHING_ON() );
 
 my $s_y_offset = sprintf( "%.0f",
     ( ( $screen->h - ( $scaled->h - abs($i_y_offset) ) ) / 2 ) );
@@ -188,7 +188,7 @@ while (1) {
 
         my $rw = SDL::RWOps->new_const_mem($image_data);
         $image = SDL::Image::load_JPG_rw($rw);
-        die SDL::get_error if ( !$image );
+        die SDL::get_error() if ( !$image );
 
         $resolution_changed = 1
             if $image->w != $current_res_w
@@ -201,7 +201,7 @@ while (1) {
 
         my $temp;
         if (<storchencam.display_temp>) {
-            $temp = SDL::Surface->new( SDL_ASYNCBLIT | SDL_HWSURFACE,
+            $temp = SDL::Surface->new( SDL_ASYNCBLIT() | SDL_HWSURFACE(),
                 56, 8, 32, 0, 0, 0, 0 );
             SDL::Video::blit_surface(
                 $image, SDL::Rect->new( 64, 24, 56, 8 ),
@@ -227,7 +227,7 @@ while (1) {
         my $zoom = ( $zoom_cvr / $image->w ) * 2048 * $zoom_2;
 
         my $scaled
-            = SDL::GFX::Rotozoom::surface( $image, 0, $zoom, SMOOTHING_ON );
+            = SDL::GFX::Rotozoom::surface( $image, 0, $zoom, SMOOTHING_ON() );
 
         SDL::Video::fill_rect( $screen,
             SDL::Rect->new( 0, 0, $screen->w, $screen->h ), $bg_col_map );
