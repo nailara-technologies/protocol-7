@@ -7,15 +7,16 @@
 $ENV{'DISPLAY'} = <x11.display>;
 $ENV{'SDL_AUDIODRIVER'} = 'disk';    # <- disables ALSA permission warnings :)
 
-use SDL;
-use SDL::TTF;
-use SDL::Rect;
-use SDL::Event;
-use SDL::Video;
-use SDL::Color;
-use SDL::Mouse;
-use SDL::Surface;
-use SDL::VideoInfo;
+<[base.perlmod.autoload]>->('SDL');
+<[base.perlmod.autoload]>->('SDL::TTF');
+<[base.perlmod.autoload]>->('SDL::Rect');
+<[base.perlmod.autoload]>->('SDL::Color');
+<[base.perlmod.autoload]>->('SDL::Event');
+<[base.perlmod.autoload]>->('SDL::Video');
+<[base.perlmod.autoload]>->('SDL::Color');
+<[base.perlmod.autoload]>->('SDL::Mouse');
+<[base.perlmod.autoload]>->('SDL::Surface');
+<[base.perlmod.autoload]>->('SDL::VideoInfo');
 
 ## configuration ##
 
@@ -58,8 +59,8 @@ my @font_names = qw(
 <ticker-sdl.known_fonts> = \@font_names;
 
 # init SDL
-<ticker-sdl.sdl> = SDL::init(SDL_INIT_VIDEO);
-SDL::Mouse::show_cursor(SDL_DISABLE);
+<ticker-sdl.sdl> = SDL::init( SDL_INIT_VIDEO() );
+SDL::Mouse::show_cursor( SDL_DISABLE() );
 SDL::TTF::init();
 
 # adjust / add paths as needed.. (and install droid fonts or configure another)
@@ -110,7 +111,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     recalc:
         <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, $font_size );
-        die "failed to open font (size=$font_size) [" . SDL::get_error . "]"
+        die "failed to open font (size=$font_size) [" . SDL::get_error() . "]"
             if not defined <ticker-sdl.font.object>
             or !<ticker-sdl.font.object>;
         <ticker-sdl.font.height>
@@ -136,7 +137,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
         <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, int($font_size) );
-        die "failed to open font (size=$font_size) [" . SDL::get_error . "]"
+        die "failed to open font (size=$font_size) [" . SDL::get_error() . "]"
             if not defined <ticker-sdl.font.object>
             or !<ticker-sdl.font.object>;
 
@@ -158,7 +159,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
         = SDL::TTF::open_font( $font_path, <ticker-sdl.font.size> );
     die "failed to open font (size="
         . <ticker-sdl.font.size> . ") ["
-        . SDL::get_error . "]"
+        . SDL::get_error() . "]"
         if not defined <ticker-sdl.font.object> or !<ticker-sdl.font.object>;
     <ticker-sdl.font.height> = SDL::TTF::font_height(<ticker-sdl.font.object>);
     my $font_line_skip = SDL::TTF::font_line_skip(<ticker-sdl.font.object>);
@@ -167,10 +168,10 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
     # determine screen size
     my $video_info = SDL::Video::get_video_info();
-    die "failed to get video info [" . SDL::get_error . "]"
+    die "failed to get video info [" . SDL::get_error() . "]"
         if not defined $video_info;
     my @modes
-        = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN ) };
+        = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN() ) };
     my $max_mode = shift(@modes);
 
     # store size parameters
@@ -205,8 +206,8 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     <sdl.display_width>,
     <sdl.display_height>,
     32,
-    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC
-        | SDL_ASYNCBLIT
+    SDL_DOUBLEBUF() | SDL_HWSURFACE() | SDL_HWACCEL() | SDL_NOFRAME()
+        | SDL_PREALLOC() | SDL_ASYNCBLIT()
 );
 
 # hide ticker window (until we have rendered text)
