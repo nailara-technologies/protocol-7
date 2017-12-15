@@ -2,10 +2,11 @@
 
 # name = browser.init_code
 
-use Gtk3;
-use Glib::Event;
-use Gtk3::WebKit;
-use HTTP::Soup;
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Glib');
+<[base.perlmod.autoload]>->('Glib::Event');
+<[base.perlmod.autoload]>->('Gtk3::WebKit');
+<[base.perlmod.autoload]>->('HTTP::Soup');
 
 $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = 'no';
@@ -21,7 +22,7 @@ if (<browser.open_gtk_inspector>) {
 
 package Browser::ScrolledWindow;
 
-use Glib::Object::Subclass 'Gtk3::ScrolledWindow',;
+use Glib::Object::Subclass 'Gtk3::ScrolledWindow';
 
 sub INIT_INSTANCE {
     my $self = shift;

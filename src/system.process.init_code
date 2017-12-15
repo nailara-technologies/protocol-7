@@ -2,9 +2,9 @@
 
 # name = system.process.init_code
 
-use IPC::Open2;
-use Proc::ProcessTable;
-use Sys::Statistics::Linux::CpuStats;
+<[base.perlmod.autoload]>->('IPC::Open2');
+<[base.perlmod.autoload]>->('Proc::ProcessTable');
+<[base.perlmod.autoload]>->('Sys::Statistics::Linux::CpuStats');
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );

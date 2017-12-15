@@ -25,7 +25,7 @@ foreach my $card_name ( readdir($drm_dir_fh) ) {
     <[base.log]>->( 2, ": : $target_path" );
 
     <base.obj.inotify>->watch( $target_path,
-        IN_ACCESS, $code{'xserver.scan_display_states'} );
+        IN_ACCESS(), $code{'xserver.scan_display_states'} );
 
     opendir( my $card_dir_fh, $target_path ) or die "$target_path: $!";
     foreach my $disp_name ( readdir($card_dir_fh) ) {

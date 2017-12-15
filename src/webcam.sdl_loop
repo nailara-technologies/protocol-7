@@ -31,9 +31,9 @@ my $coord = <x11.coordinates>;
 
 SDL::putenv("SDL_VIDEO_WINDOW_POS=$coord->{left},$coord->{top}");
 
-SDL::init(SDL_INIT_VIDEO);
+SDL::init( SDL_INIT_VIDEO() );
 
-SDL::Mouse::show_cursor(SDL_DISABLE);
+SDL::Mouse::show_cursor( SDL_DISABLE() );
 
 SDL::Video::wm_set_caption( <system.agent.name> . '(' . $$ . ')',
     <system.agent.name> . '(' . $$ . ') [minimized]' );
@@ -49,14 +49,14 @@ my $bg_color = SDL::Color->new( 0x13, 0x13, 0x13 );
 
 <[base.log]>->( 1, ": loading text font" );
 $font = SDL::TTF::open_font( $font_path, $font_size );
-warn "failed to open font [" . SDL::get_error . "]" if !$font;
+warn "failed to open font [" . SDL::get_error() . "]" if !$font;
 $font_color = SDL::Color->new( 0xAA, 0xAA, 0x00 );    # error message color
 
 <[base.log]>->( 1, ": opening webcam display screen" );
 
 my $screen = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
-    SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC
-        | SDL_ASYNCBLIT );
+    SDL_DOUBLEBUF() | SDL_HWSURFACE() | SDL_HWACCEL() | SDL_NOFRAME()
+        | SDL_PREALLOC() | SDL_ASYNCBLIT() );
 
 my $bg_col_map = SDL::Video::map_RGB( $screen->format(),
     $bg_color->r, $bg_color->g, $bg_color->b );
@@ -126,11 +126,11 @@ while (1) {
 
         my $rw    = SDL::RWOps->new_const_mem($image_data);
         my $image = SDL::Image::load_JPG_rw($rw);
-        die SDL::get_error if ( !$image );
+        die SDL::get_error() if ( !$image );
 
         my $zoom = ( $screen->w / $image->w );
         my $scaled
-            = SDL::GFX::Rotozoom::surface( $image, 0, $zoom, SMOOTHING_ON );
+            = SDL::GFX::Rotozoom::surface( $image, 0, $zoom, SMOOTHING_ON() );
 
         SDL::Video::fill_rect( $screen,
             SDL::Rect->new( 0, 0, $screen->w, $screen->h ), $bg_col_map );

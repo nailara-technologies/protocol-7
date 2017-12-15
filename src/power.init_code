@@ -2,15 +2,13 @@
 
 # name = power.init_code
 
-use Device::Gembird;
-use Net::Libdnet::Arp;
-use POSIX::1003::Errno;
-use File::Path qw(make_path);
-
+<[base.perlmod.autoload]>->('Device::Gembird');
+<[base.perlmod.autoload]>->('Net::Libdnet::Arp');
+<[base.perlmod.autoload]>->('POSIX::1003::Errno');
 map { eval "sub Net::Ping::$_ {$errno{$_}}" if not defined \&{"Net::Ping::$_"} }
     errno_names();
-
-autoload Net::Ping;
+<[base.perlmod.autoload]>->('Net::Ping');
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 
 <net.silent_ignore.core> //= 1;
 <power.cfg.ping_timeout> //= 1;    # seconds
