@@ -15,13 +15,13 @@ my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
 
 <[base.log]>->( 2, "checking if $host is reachable.." );
 
-my $ip_addr = <[power.host_reachable]>->($host);
+my $ip_addr = $host;    # XXX
 
 return {
     'mode' => 'nack',
     'data' => "device '$host' unreachable"
     }
-    if not defined $ip_addr;
+    if not <[power.host_reachable]>->($host);
 
 map {
     return {
