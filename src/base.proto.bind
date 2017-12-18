@@ -9,7 +9,7 @@ if ( not defined $_[0] ) {
     <[base.log]>->(
         0, "failed to bind protocol '$proto' [undefined filehandle]"
     );
-    <[base.session.check_last]>;
+    <[base.session.check_remaining]>;
     return undef;
 }
 $data{'handle'}{ $_[0] }{'proto'} = $_[1];
@@ -23,7 +23,7 @@ if ( $@ or not defined $fd ) {
     <[base.log]>->(
         0, "<<!>> failed to bind protocol '$_[1]' to '$ref_str'-filehandle [$@]"
     );
-    <[base.session.check_last]>;
+    <[base.session.check_remaining]>;
 } else {
     warn "file handle '$fd' does not have a real file descriptor" if $fd == -1;
     <[base.log]>->(

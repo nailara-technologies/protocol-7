@@ -31,7 +31,7 @@ my $job_id     = $instance->{'job_id'};
 
 $instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
-delete <callback.session.close_last> if $instance->{'is_core'};
+delete <callback.session.closing_last> if $instance->{'is_core'};
 
 if ( defined $instance->{'process'}->{'id'} ) {
     delete <root.child>->{ $instance->{'process'}->{'id'} };

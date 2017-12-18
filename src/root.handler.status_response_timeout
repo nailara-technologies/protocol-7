@@ -17,13 +17,13 @@ my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 if ( !$ping_retry ) {                                        # [no more retries]
     if ($is_core_agent) {
         if ( $agent_status eq 'failed' ) {    # was already failed
-            <callback.session.close_last> = {
+            <callback.session.closing_last> = {
                 'name'   => 'root.shutdown',
                 'params' => ['fatal core agent failure']
             };
-            <[base.session.check_last]>;
+            <[base.session.check_remaining]>;
         } else {
-            delete <callback.session.close_last>;    # allow safe restart
+            delete <callback.session.closing_last>;    # allow safe restart
         }
     }
     <[agent.change_status]>->( $instance_id, 'failed' );
