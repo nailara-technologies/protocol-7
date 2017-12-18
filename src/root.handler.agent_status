@@ -63,8 +63,8 @@ if ( exists $instance->{'pid_check_timer'} and $status ne 'delayed' ) {
 
 # prevent undesired core shutdown (session.check.last)
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
-    <[base.log]>->( 0, "removing session.close_last callback.." );
-    delete <callback.session.close_last>;
+    <[base.log]>->( 0, "removing session.closing_last callback.." );
+    delete <callback.session.closing_last>;
 }
 
 delete $instance->{'core_sid'}
