@@ -12,7 +12,16 @@ die "expected 'current' weather data"
 
 #print Dumper($weather_data);
 
-<weather.data>->{$station_id}->{'city'} = $weather_data->{'name'};
+## compensating for changed city name (,appears to be 'region' name string now!)
+my $cfg_city = <weather.cfg.city>;
+<weather.data>->{$station_id}->{'region'} = '';
+<weather.data>->{$station_id}->{'city'}   = $cfg_city;
+if ( $weather_data->{'name'} =~ /^$cfg_city/i ) {
+    <weather.data>->{$station_id}->{'city'} = $weather_data->{'name'};
+} else {
+    <weather.data>->{$station_id}->{'region'}
+        = sprintf( "( %s )", $weather_data->{'name'} );
+}
 
 <weather.data>->{$station_id}->{'country'}
     = $weather_data->{'sys'}->{'country'};
