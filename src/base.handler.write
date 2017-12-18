@@ -7,7 +7,7 @@ my $id;
 if   ( $_[0] =~ /^\d+/ ) { $id = $_[0] }
 else                     { $id = $_[0]->w->data }
 
-return <[base.session.check_last]> if not exists $data{'session'}{$id};
+return <[base.session.check_remaining]> if not exists $data{'session'}{$id};
 
 my $session = $data{'session'}{$id};
 my $len     = length( $session->{'buffer'}->{'output'} );

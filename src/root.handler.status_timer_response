@@ -35,7 +35,7 @@ if (    $response->{'cmd'} eq 'ACK'
         0, "instance $instance_id [$agent_name] ping response ( FAIL )"
     );
 
-    delete <callback.session.close_last> if $is_core_agent; # allow safe restart
+    delete <callback.session.closing_last> if $is_core_agent; # for safe restart
     <[agent.change_status]>->( $instance_id, 'failed' );
 
 } else {

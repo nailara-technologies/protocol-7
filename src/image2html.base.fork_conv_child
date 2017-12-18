@@ -27,7 +27,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
     <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
     $0 = "image2html-${sn_str}child ";
 
-    <callback.session.close_last.params>->[1] = 1;    # silencing child shutdown
+    <callback.session.closing_last.params>->[1] = 1;  # silencing child shutdown
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';
@@ -39,7 +39,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
     <[base.load_modules]>->('image2html.child');
     <[base.init_modules]>->('image2html.child');
 
-} else {    ## parent ##
+} else {                                              ## parent ##
     close($parent_pipe);
     delete <image2html.pipe.parent> if exists <image2html.pipe.parent>;
     <image2html.pipe.child> = $child_pipe;
