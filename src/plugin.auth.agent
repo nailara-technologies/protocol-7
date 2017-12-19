@@ -21,7 +21,7 @@ if (   not %KEYS
 }
 
 if ( $$input =~ s/^($re->{usr}) (\S+)\n// ) {
-    my ( $usr, $key_hash ) = ( $1, <[digest.sha1]>->($2) );
+    my ( $usr, $key_hash ) = ( $1, blake2b_384_b64($2) );
     my $kick_user = 1;
     if ( exists $KEYS{'auth'}{'agent'}->{$usr} ) {
 
