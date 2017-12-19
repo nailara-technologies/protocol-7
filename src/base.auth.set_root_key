@@ -2,17 +2,13 @@
 
 # name  = base.auth.set_root_key
 # descr = set up session auth key for 'root' agent
-# todo  = XXX: switch agent authentication hashes to sha512!
 
 my $key_str = shift;
 my $agent_name = shift || 'root';
 die "no key string supplied!" if not defined $key_str or !length($key_str);
 
-# provide sha1 function in case the Digest module hasn't been loaded yet
-if ( not exists $code{'digest.sha1'} ) {
-    eval 'use Digest::SHA qw(sha1_hex); $code{\'digest.sha1\'} = \&sha1_hex';
-    die "failed to load Digest::SHA module! ($!)" if $@;
-}
+# XXX: temporary solution
+<[base.perlmod.load]>->( 'Crypt::Digest::BLAKE2b_384', 'blake2b_384_b64' );
 
 <[base.log]>->( 1, "setting up session key for 'root' agent.." );
-$KEYS{'auth'}{'agent'}{$agent_name} = <[digest.sha1]>->($key_str);
+$KEYS{'auth'}{'agent'}{$agent_name} = blake2b_384_b64($key_str);
