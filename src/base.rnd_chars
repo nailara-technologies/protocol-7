@@ -4,8 +4,7 @@
 
 my $length = shift;
 die "ammount of random bytes not specified" if not defined $length;
-die "expected positive integer as argument (instead of '$length')"
-    if $length !~ /^\d+$/ or $length < 1;
+die "expected positive integer argument" if $length !~ /^\d+$/ or $length < 1;
 
 return random_string_from(
     '0123456789'
