@@ -19,7 +19,10 @@ return {
 
 $session->{'client_key'} = decode_base64url($key_str);
 
+my $base_time   = <[base.time]>->(4);
+my $key_sig_str = <[crypt.C25519.sign_data]>->( \"$base_time$key_str" );
+
 return {
     'mode' => 'ack',
-    'data' => 'client key set'
+    'data' => join( '|', $base_time, encode_base64url($key_sig_str) )
 };
