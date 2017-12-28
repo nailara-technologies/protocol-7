@@ -47,16 +47,11 @@ sub incr {
     my $dt   = shift;
     my $dt_2 = $dt - 4;
     $dt_2 = 0 if $dt_2 > 0;
-    my $t_inc    = $dt - 2;
-    my $increase = ( 1.1 - <browser.fg_opacity> ) * 0.22 * gauss($t_inc);
-    $increase += ( ( 1.1 - <browser.fg_opacity> ) * gauss($dt_2) ) / 4;
+    my $t_inc = $dt - 2;
+    my $increase
+        = ( 1.1 - <browser.fg_opacity> ) * 0.22 * <[base.calc.gauss]>->($t_inc);
+    $increase
+        += ( ( 1.1 - <browser.fg_opacity> ) * <[base.calc.gauss]>->($dt_2) )
+        / 4;
     return sprintf( "%.5f", $increase );
-}
-
-sub gauss {    # Gaussian probability density function
-    my $x   = shift;
-    my $m   = 0;
-    my $s   = 1;
-    my $tau = 6.283185307179586;
-    return exp( -0.5 * ( ( $x - $m ) / $s )**2 ) / sqrt( $tau * $s**2 );
 }
