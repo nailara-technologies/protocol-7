@@ -76,6 +76,8 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
         1, ": recalulated zoom level = " . <weather.zoom_level> . $m_str
     );
     return <weather.zoom_level>;
+} elsif ( $reply_string =~ /NACK unknown command$/ ) {
+    <[base.log]>->( 1, 'xserver agent unreachable (running?)' );
 } else {
     <[base.log]>->(
         0,
