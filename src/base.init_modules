@@ -2,8 +2,9 @@
 
 # name  = base.init_modules
 # descr = executes 'pre_init', 'init_code' and 'post_init' routines
+# todo  = track moved namespaces for agument list as well
 
-my @module_names = @_;
+my @module_names = map { split / +/, $_ } @_;
 
 my %skip_list;
 my $success = 1;
@@ -16,7 +17,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
             push(
                 @{<base.init_modules.sub_list>},
                 sort     { length($a) <=> length($b) }
-                    grep {/^$name_pattern\./} sort( keys(%code) )
+                    grep {/^\Q$name_pattern\E(\..+)?$/} sort( keys(%code) )
             );
         }
     } else {
