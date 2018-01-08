@@ -1,9 +1,9 @@
 
 # [ [nailara project](http://www.nailara.net/) ]
 
-### [ source code version : 18.0180-2484.1 ]
+### [ source code version : 18.0230-2485.0 ]
 
 ### ( this is the [ISC license](license)d "master" branch )
 ---
-## current [release](https://github.com/anotherlink/nailara/releases) \\\\// [1.04.2](https://github.com/anotherlink/nailara/releases/tag/1.04.2)
+## current [release](https://github.com/anotherlink/nailara/releases) \\\\// [1.05.3](https://github.com/anotherlink/nailara/releases/tag/1.05.3)
 ---
