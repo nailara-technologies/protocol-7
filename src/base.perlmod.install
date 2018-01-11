@@ -4,7 +4,7 @@
 
 my $module_name = shift;
 
-my $known_deps = <[base.known_dependencies]>->{$module_name} // {};
+my $known_deps = <[base.known_dependencies]>->{$module_name}->{'perlmod'} // {};
 
 $module_name = $known_deps->{'cpan'}
     if defined $known_deps->{'cpan'} and $known_deps->{'cpan'} ne $module_name;
