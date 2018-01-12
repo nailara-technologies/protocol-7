@@ -16,7 +16,8 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         $session->{'flush_shutdown'} = 1;
         return;
 
-    } elsif ( $session->{'content'}->{'type'} =~ /html/ ) {
+    } elsif ( defined $session->{'content'}->{'type'}
+        and $session->{'content'}->{'type'} =~ /html/ ) {
         $args_str = '<b style="color:#A01">' . $args_str . '</b>';
     }
 }
