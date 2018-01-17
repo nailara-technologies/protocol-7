@@ -1,0 +1,35 @@
+# >:]
+
+# name  = pdf.html.base.valid_pdf
+# param = <pdf_path> [width]
+
+my $path = shift;
+
+return 0
+    if not defined $path
+    or !length($path)
+    or !-f $path
+    or -z $path;
+
+my $file_fh;
+
+if ( !open( $file_fh, $path ) ) { warn $!; return 0; }
+
+my $result = sysread( $file_fh, my $buffer, 5 );
+
+return 0
+    if not defined $result
+    or $result != 5
+    or not defined $buffer
+    or $buffer ne '%PDF-'
+    or !sysseek( $file_fh, -7, 2 );
+
+$result = sysread( $file_fh, $buffer, 7 );
+
+return 0
+    if not defined $result
+    or $result < 6
+    or not defined $buffer
+    or $buffer !~ /%%EOF\r?\n$/;
+
+return 1;    # <- passed all above checks
