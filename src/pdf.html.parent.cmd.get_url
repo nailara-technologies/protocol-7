@@ -10,6 +10,16 @@ return { 'mode' => 'nack', 'data' => 'expected path to pdf file!' }
     if not defined $pdf_location or !length($pdf_location);
 return { 'mode' => 'nack', 'data' => 'file does not exist!' }
     if $pdf_location !~ m|^https?://| and !-f $pdf_location;
+return { 'mode' => 'nack', 'data' => "permission denied [$pdf_location]" }
+    if !-r $pdf_location;
+if ( !<[pdf.html.base.valid_pdf]>->($pdf_location) ) {
+    my $err_msg = "'$pdf_location' is not a valid PDF format file!";
+    <[base.log]>->( 0, $err_msg );
+    return {
+        'mode' => 'nack',
+        'data' => $err_msg
+    };
+}
 return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
