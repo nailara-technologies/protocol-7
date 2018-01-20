@@ -15,7 +15,7 @@ $module_name = $known_deps->{'cpan'}
 <system.host.os.dist.name> = 'debian'
     if <system.host.os.dist.name> eq 'unknown'
     and -f '/etc/os-release'
-    and <[file.content]>->('/etc/os-release') =~ /^ID=debian$/m;
+    and <[file.content]>->('/etc/os-release') =~ /^ID(_LIKE)?=debian$/m;
 
 my @cpan_list = ($module_name);
 
