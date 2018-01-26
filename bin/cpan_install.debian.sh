@@ -14,7 +14,7 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl\
   libgirepository1.0-dev pkg-config libgtk-3-dev libfile-slurper-perl \
   libglib2.0-dev libglib2.0-0 gir1.2-webkit-3.0 \
   libgtk3-perl libgtk2-perl liblinux-inotify2-perl libnet-libdnet-perl \
-  libclass-accessor-lite-perl libio-stringy-perl perl-tk \
+  libclass-accessor-lite-perl libio-stringy-perl \
   libimager-perl libfont-freetype-perl
 
   #libtext-unidecode-perl
@@ -26,4 +26,4 @@ cpanm   CryptX Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
         Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird \
         Imager::Screenshot
 
-xvfb-run cpanm Glib::Event Gtk3::WebKit X11::Tops
+xvfb-run cpanm Glib::Event Gtk3::WebKit
