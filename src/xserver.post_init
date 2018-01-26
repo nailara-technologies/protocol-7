@@ -260,8 +260,8 @@ if (<xserver.keep_background>) {    # <- don't touch background image and color
 ## XXX: testing simple fade in
 if ( defined $bg_col and $bg_col =~ /^#?FFFFFF$/i ) {
     <[xserver.fade_in_bg_col]>;
-} elsif ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
-    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
+} elsif ( defined $bg_col and $bg_col =~ /^\#?[0-9A-F]{6}$/i ) {
+    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/i;
     <[base.log]>->( 1, "setting background color '$bg_col'" );
     X11::Protocol::XSetRoot->set_background( 'color' => $bg_col );
 }
@@ -271,8 +271,8 @@ my @hsetroot_params;    # XXX: hsetroot call will be replaced soon...
 my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
 
 ## OLD METHOD ## ( still here because of compton glitch! )
-if ( defined $bg_col and $bg_col =~ /^\#?[A-F]{6}$/ ) {
-    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/;
+if ( defined $bg_col and $bg_col =~ /^\#?[0-9A-F]{6}$/i ) {
+    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/i;
     if ( !-x $hsetroot_bin ) {
         <[base.log]>->( 0, "cant't set bg color: '$hsetroot_bin' not found!" );
         return -1;

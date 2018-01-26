@@ -3,6 +3,10 @@
 # name = xserver.fade_in_bg_col
 # todo = fade to _any_ color
 
+return <[base.log]>->(
+    0, "bg fade in to " . <xserver.bg_color> . "skipped [not implemented yet]!"
+) if <xserver.bg_color> !~ /FFFFFF$/i;
+
 <[base.log]>->( 1, "fading background color to white.." );
 
 my $fade_time  = 1.2;
