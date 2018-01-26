@@ -6,12 +6,11 @@
 
 my $title_pattern = $$call{'args'};
 
-my $xtops = <xserver.x11_tops>;
-$xtops->update;
+<xserver.x11_tops>->update;
 
 my $reply_str;
 my @window_list;
-for my $win ( @{ $xtops->sorted } ) {
+for my $win ( @{ <xserver.x11_tops>->sorted } ) {
     $reply_str .= join( ' ', $win->id, $win->title ) . "\n"
         if not defined $title_pattern
         or index( $win->instance, $title_pattern ) != -1

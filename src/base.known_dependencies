@@ -204,7 +204,10 @@ return {
             ],
             'cpan' => 'Gtk3::WebKit'
         },
-        'X11::Tops'     => { 'cpan' => 'X11::Tops' },
+        'X11::Tops' => { # <- Tk dependency skipped by local version in ./lib/pm
+            'debian' => [ 'perl-tk', 'cpan:X11::Tops' ],
+            'cpan'   => 'X11::Tops'
+        },
         'X11::Protocol' => {
             'debian' => ['libx11-protocol-perl'],
             'cpan'   => 'X11::Protocol'
