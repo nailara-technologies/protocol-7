@@ -1,24 +1,51 @@
 # >:]
 
 # name = xserver.fade_in_bg_col
-# todo = fade to _any_ color
 
-return <[base.log]>->(
-    0, "bg fade in to " . <xserver.bg_color> . "skipped [not implemented yet]!"
-) if <xserver.bg_color> !~ /FFFFFF$/i;
+my $target_color = shift // <xserver.bg_color>;
 
-<[base.log]>->( 1, "fading background color to white.." );
+return warn "invalid target color '$target_color'"
+    if $target_color !~ /^\#?[0-9A-F]{6}$/i;
 
-my $fade_time  = 1.2;
-my $fade_start = <[base.time]>->(4);
-my $c          = 0;
-while ( $c < 255 ) {
-    $c = sprintf( "%.0f",
-        ( <[base.time]>->(4) - $fade_start ) * ( 255 / $fade_time ) );
-    $c = 255 if $c > 255;
-    ( my $c_hex = sprintf( "%x", $c ) ) =~ s|^(.)$|0$1|;
-    $c_hex = $c_hex x 3;
-    $c_hex = "#$c_hex";
-    X11::Protocol::XSetRoot->set_background( 'color' => $c_hex );
-    <[base.sleep]>->(0.0042);
+<[base.log]>->( 1, "fading background to '$target_color'" );
+substr( $target_color, 0, 1, '' ) if length($target_color) == 7;
+
+my @t_rgb = (
+    hex( '0x' . substr( $target_color, 0, 2 ) ),
+    hex( '0x' . substr( $target_color, 2, 2 ) ),
+    hex( '0x' . substr( $target_color, 4, 2 ) )
+);
+
+my $fade_val   = 0;
+my $last_hex   = '';
+my $rgb_high   = [ sort { $b <=> $a } @t_rgb ]->[0];
+my $time_start = <[base.time]>->(4);
+my $fade_factor
+    = 0.0005 + ( 0.0125 * sprintf( "%0.4f", ( 1 / 255 ) * $rgb_high ) );
+
+while ( $fade_val < 1 ) {
+    my $fade_inc
+        = $fade_factor
+        - sprintf( "%.6f",
+        $fade_factor * ( <[base.time]>->(4) - $time_start ) );
+    $fade_inc = 0.0005 if $fade_inc <= 0;
+    $fade_inc = 0.042  if $fade_inc > 0.042;
+    $fade_val += $fade_inc;
+    $fade_val = 1 if $fade_val > 1;
+    my $c_hex = sprintf( "#%02x%02x%02x",
+        $t_rgb[0] * $fade_val,
+        $t_rgb[1] * $fade_val,
+        $t_rgb[2] * $fade_val );
+    if ( $c_hex eq $last_hex ) {
+        <[base.sleep]>->(0.0002);
+        next;
+    }
+    <[base.log]>->( 2, ": <fading> bg_color = $c_hex" );
+    X11::Protocol::XSetRoot->set_background(
+        'color'        => $c_hex,
+        'use_esetroot' => $fade_val == 1
+    );
+    $last_hex = $c_hex;
 }
+
+<[base.log]>->( 2, ": <fading> complete" );

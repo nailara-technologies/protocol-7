@@ -257,37 +257,29 @@ if (<xserver.keep_background>) {    # <- don't touch background image and color
     return 0;
 }
 
-## XXX: testing simple fade in
-if ( defined $bg_col and $bg_col =~ /^#?FFFFFF$/i ) {
-    <[xserver.fade_in_bg_col]>;
-} elsif ( defined $bg_col and $bg_col =~ /^\#?[0-9A-F]{6}$/i ) {
-    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/i;
-    <[base.log]>->( 1, "setting background color '$bg_col'" );
-    X11::Protocol::XSetRoot->set_background( 'color' => $bg_col );
+if ( not defined $bg_col or $bg_col !~ /^\#?[0-9A-F]{6}$/i ) {
+    <[base.log]>->( 0, "<!> no a valid background color syntax ['$bg_col']" )
+        if defined $bg_col;
+    $bg_col = <xserver.bg_col_default> // '#000000';    # <- fallback color
 }
-##
 
-my @hsetroot_params;    # XXX: hsetroot call will be replaced soon...
-my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
-
-## OLD METHOD ## ( still here because of compton glitch! )
-if ( defined $bg_col and $bg_col =~ /^\#?[0-9A-F]{6}$/i ) {
-    $bg_col = "#$bg_col" if $bg_col =~ /^[0-9A-F]{6}$/i;
-    if ( !-x $hsetroot_bin ) {
-        <[base.log]>->( 0, "cant't set bg color: '$hsetroot_bin' not found!" );
-        return -1;
-    }
-    <[base.log]>->( 1, "setting background color '$bg_col'" );
-    @hsetroot_params = ( '-solid', $bg_col );
-    if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-        <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
-    }
+if ( <xserver.bg_fade> //= 1 and $bg_col ne '#000000' ) {
+    <[xserver.fade_in_bg_col]>->($bg_col);
+} else {
+    <[base.log]>->( 1, "setting background color to '$bg_col'" );
+    X11::Protocol::XSetRoot->set_background(
+        'color'        => $bg_col,
+        'use_esetroot' => 1
+    );
 }
-##
+
 my $bg_mode = <xserver.bg_mode>;
 if ( defined $bg_image ) {
+
+    my @hsetroot_params;    # XXX: hsetroot call will be replaced soon...
+    my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
     if ( !-x $hsetroot_bin ) {
-        <[base.log]>->( 0, "cant't set bg image: '$hsetroot_bin' not found!" );
+        <[base.log]>->( 0, "can't set bg image: '$hsetroot_bin' not found!" );
         return -1;
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
