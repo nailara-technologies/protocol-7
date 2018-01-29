@@ -39,6 +39,8 @@ while ( $fade_val < 1 ) {
     if ( $c_hex eq $last_hex ) {
         <[base.sleep]>->(0.0002);
         next;
+    } else {
+        <[base.sleep]>->(0.0042);
     }
     <[base.log]>->( 2, ": <fading> bg_color = $c_hex" );
     X11::Protocol::XSetRoot->set_background(
