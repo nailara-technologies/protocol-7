@@ -132,15 +132,33 @@ if ( $mode eq 'server' ) {
         }
         );
 
-    # http[d] timeout
-    @timeout = (
-        'timeout' => <httpd.timeout> || 13,
-        'timeout_cb' => sub {
-            <[base.log]>->( 1, "[$id] http timeout!" );
-            $data{'session'}{$id}{'shutdown'} = 1;
-        }
-    ) if $proto eq 'http' and $name eq <base.session.uname_server>;
+    if ( $proto eq 'http' and $name eq <base.session.uname_server> ) {
 
+        # http[d] timeout
+        @timeout = (
+            'timeout' => <httpd.timeout> || 13,
+            'timeout_cb' => sub {
+                <[base.log]>->( 1, "[$id] http timeout!" );
+                $data{'session'}{$id}{'shutdown'} = 1;
+            }
+        );
+    } elsif ( defined <net.input_timeout> ) {    # generic input timeout
+        <[base.log]>->(
+            2, "setting up " . <net.input_timeout> . " seconds input timeout"
+        );
+        @timeout = (
+            'timeout'    => <net.input_timeout>,
+            'timeout_cb' => sub {
+                <[base.log]>->(
+                    1,
+                    "[$id] input timeout after "
+                        . <net.input_timeout>
+                        . " seconds!"
+                );
+                $data{'session'}{$id}{'shutdown'} = 1;
+            }
+        );
+    }
     $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
         'fd'     => $fd,
         'cb'     => $code{'base.handler.read'},
