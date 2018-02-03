@@ -90,8 +90,9 @@ if ( defined $sort_key ) {
         };
     } elsif ( $sort_type eq 'num' ) {
         eval {
-            @sorted_keys = sort {
-                $data_ref->{$a}->{$sort_key} <=> $data_ref->{$b}->{$sort_key}
+            @sorted_keys = grep {/./} sort {
+                ( $data_ref->{$a}->{$sort_key} // 0 )
+                    <=> ( $data_ref->{$b}->{$sort_key} // 0 )
                 }
                 keys %{$data_ref};
         };
