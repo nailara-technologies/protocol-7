@@ -2,6 +2,8 @@
 
 # name = log.init_code
 
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+
 <log.nailara_log.dir_mask> //= 0750;
 <log.nailara_log.user>     //= 'nailara';
 <log.nailara_log.path>     //= '/var/log/nailara';
@@ -12,7 +14,7 @@ if ( !-d <log.nailara_log.path> ) {
     my ( undef, undef, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
         or die "user '<log.nailara_log.user>' not in passwd file";
 
-    <[file.make_path]>->( <log.nailara_log.path>, <log.nailara_log.dir_mask> );
+    make_path( <log.nailara_log.path>, { mode => <log.nailara_log.dir_mask> } );
     chown( $uid, $gid,
         <log.nailara_log.path> )    # XXX: use File::Path::make_path ?
         or die "chown(<log.nailara_log.path>): $!";
