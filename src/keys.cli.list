@@ -1,0 +1,16 @@
+# >:]
+
+# name  = keys.cli.list
+# descr = list exsisting nailara C25519 keys for current user
+
+my $key_dir = <keys.default_path> // '';
+my $key_usr = <crypt.C25519.key_uid_user>;
+
+opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
+my @key_files = grep { !/^\./ } sort readdir($dir_fh) or warn $!;
+closedir($dir_fh);
+
+<[base.log]>->( 1, "listing key files ['$key_dir']" );
+
+print "\n :: keys for user $key_usr :.\n :\n", ( map {" :. $_\n"} @key_files ),
+    "::\n\n";
