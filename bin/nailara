@@ -222,8 +222,9 @@ sub prepare_subs {
             chop($banner);
             $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
             print " :\n : $ANSI{bold}$banner$ANSI{normal}\n";
-            my $version_str = ' nailara base system version: '
-                . $data{'nailara'}{'version'};
+            my $version_str
+                = ':: SOURCE CODE VERSION :: '
+                . $data{'nailara'}{'version'} . ' ::';
             printf( " :\n : %44s\n :\n", $version_str );
         } else {
             print ' : ' . join( "\n : ", split( /\n/, $banner ), "\n" );
