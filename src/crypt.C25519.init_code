@@ -10,8 +10,7 @@
 
 <[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw/random_string_from/ );
 
-my $usr = <system.privs.user>;
-$usr //= getpwuid($>);
+<crypt.C25519.key_uid_user> = my $usr = getpwuid($>);
 my ( undef, undef, $uid, $gid, undef, undef, undef, $homedir ) = getpwnam($usr);
 die "failed to obtain home directory for user '$usr'"
     if ( not defined $homedir or !length($homedir) )
@@ -28,7 +27,7 @@ if ( !-d $key_dir ) {
 }
 
 if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
-    <[base.log]>->( 0, "generating default C25519 key pair ..." );
+    <[base.log]>->( 0, "generating default C25519 key pair for '$usr' ..." );
     <[crypt.C25519.gen_keys]>->($key_name);
     my %key_b64u = ( 'priv' => '', 'pub' => '' );
     foreach my $type ( 'priv', 'pub' ) {
