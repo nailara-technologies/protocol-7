@@ -11,10 +11,18 @@ my %own_children = map {
     }
     keys %{<root.agent.instance>};
 
-return map { $_->pid }
+my %orphans;
+map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
     grep {
     $_->ppid == 1             # parent is 'init' now
         and $_->pgrp == $$    # process group was root agent
         and $_->pid != $$     # and is not this process [root agent]
-        and not defined $own_children{$_}
+        and not exists $own_children{ $_->pid }
+        and ( not defined $_->exec
+        or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / XXX: -> config
     } @{ $proc_table->table };
+
+map { <[base.log]>->( 1, "found orphan process [$_:$orphans{$_}]" ) }
+    sort keys %orphans;
+
+return sort keys %orphans;
