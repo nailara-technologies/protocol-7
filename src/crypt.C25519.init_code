@@ -103,7 +103,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
         <[base.log]>->( 1, ": no root key path defined, skipped key signing!" );
     }
 } elsif ( not defined $KEYS{'C25519'}{$key_name} ) {
-    <[base.log]>->( 1, ": loading C25519 ['$key_name'] key pair.." );
+    <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [$homedir/]" );
     $KEYS{'C25519'}{$key_name}{'priv'}
         = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
     $KEYS{'C25519'}{$key_name}{'pub'}
