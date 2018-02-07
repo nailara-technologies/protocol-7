@@ -109,24 +109,6 @@ delete <list.users>;
     'filters' => { 'stopped_at' => 'root.parser.manually_stopped_tstamp' }
 };
 
-<list.processes> = {
-    'var'   => 'data',
-    'key'   => 'root.agent.instance',
-    'descr' => 'process IDs and children',
-    'mask' =>
-        '<key>:instance agent_name:agent <key>:process <key>:process_children',
-    'align' => {
-        'instance'         => 'left+1',
-        'agent_name'       => 'left+1',
-        'process'          => 'left',
-        'process_children' => 'left',
-    },
-    'filters' => {
-        'process'          => 'root.parser.process_id',
-        'process_children' => 'root.parser.children'
-    }
-};
-
 <list.dependencies> = {
     'var'      => 'data',
     'key'      => 'dependency.object',
