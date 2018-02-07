@@ -1,0 +1,20 @@
+# >:]
+
+# name  = root.process.orphan_pids
+# descr = returns PIDs of orphaned children of deceased agents
+
+my $proc_table = new Proc::ProcessTable;
+
+my %own_children = map {
+    <root.agent.instance>->{$_}->{'process'}->{'id'} =>
+        <root.agent.instance>->{$_}->{'agent_name'}
+    }
+    keys %{<root.agent.instance>};
+
+return map { $_->pid }
+    grep {
+    $_->ppid == 1             # parent is 'init' now
+        and $_->pgrp == $$    # process group was root agent
+        and $_->pid != $$     # and is not this process [root agent]
+        and not defined $own_children{$_}
+    } @{ $proc_table->table };

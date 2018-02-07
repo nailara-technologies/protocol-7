@@ -109,7 +109,8 @@ if (    $status ne 'starting'
     and exists $instance->{'process'}
     and defined $instance->{'process'}->{'id'} ) {
 
-    <[root.terminate_process]>->( $instance->{'process'}->{'id'} );
+    map { <[root.terminate_process]>->($_) }
+        ( $instance->{'process'}->{'id'}, <[root.process.orphan_pids]> );
 }
 
 if ( $old_status ne 'failed' and $status eq 'failed' ) {
