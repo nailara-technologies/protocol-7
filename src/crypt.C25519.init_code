@@ -10,7 +10,7 @@
 
 <[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw/random_string_from/ );
 
-<crypt.C25519.key_uid_user> = my $usr = getpwuid($>);
+my $usr = <crypt.C25519.key_uid_user> //= getpwuid($>);
 my ( undef, undef, $uid, $gid, undef, undef, undef, $homedir ) = getpwnam($usr);
 die "failed to obtain home directory for user '$usr'"
     if ( not defined $homedir or !length($homedir) )
@@ -43,6 +43,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
         printf( {$k_fh} "%s\n", $key_b64u{$type} );
         close($k_fh);
         rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
+        chown( $uid, $gid, $file_name ) or warn "$file_name: $!";
         <[base.log]>->( 1, ": $file_name" );
     }
 
