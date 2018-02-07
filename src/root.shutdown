@@ -11,10 +11,7 @@ my $abort_timeout = 3;
 
 my %wait_pids = map { $_ => 1 } keys %{<root.child>};
 foreach my $p_pid ( keys %{<root.child>} ) {
-    map { $wait_pids{$_} = 1 } (
-        @{ <[root.process.get_children]>->($p_pid) },
-        <[root.process.orphan_pids]>
-    );
+    map { $wait_pids{$_} = 1 } @{ <[root.process.get_children]>->($p_pid) };
     <root.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # just in case
 }
 
@@ -44,10 +41,7 @@ foreach my $pid (
     ) {
     my $inst_id      = <root.child>->{$pid}->{'instance_id'};
     my $instance_str = $inst_id ? " ( instance $inst_id )" : '';
-    my @children     = (
-        @{ <[root.process.get_children]>->($pid) },
-        <[root.process.orphan_pids]>
-    );
+    my @children     = @{ <[root.process.get_children]>->($pid) };
     if ( kill( 15, $pid, -$pid ) ) {
         <[base.log]>->( 2, ": <TERM> process $pid" . $instance_str );
         <root.child>->{$pid}->{'term_sent'} = <[base.time]>->($t_res);
@@ -58,8 +52,11 @@ foreach my $pid (
     } else {
         delete <root.child>->{$pid};
     }
-    map { kill( 15, $_, -$_ ) } ( @children, <[root.process.orphan_pids]> );
+    map { kill( 15, $_, -$_ ) } (@children);
 }
+
+map { <[base.log]>->( 1, ": <TERM> orphan $_" ); kill( 15, $_, -$_ ) }
+    <[root.process.orphan_pids]>;
 
 while ( keys %{<root.child>} ) {
     foreach my $pid (
@@ -82,7 +79,6 @@ while ( keys %{<root.child>} ) {
             my $ren = scalar @children == 1 ? '' : 'ren :';
             <[base.log]>->( 1, ": <KILL> child$ren " . join( ', ', @children ) )
                 if @children;
-            map { kill( 9, $_, -$_ ) } <[root.process.orphan_pids]>;
             <root.child>->{$pid}->{'kill_sent'} = 1;
         }
     }
@@ -91,6 +87,9 @@ while ( keys %{<root.child>} ) {
     }
     <[base.sleep]>->(0.042);
 }
+
+map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_, -$_ ) }
+    <[root.process.orphan_pids]>;
 
 <[base.log]>->( 1, ": done." );
 exit($exit_code);
