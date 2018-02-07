@@ -7,7 +7,7 @@ my $reason = shift // '';
 my $exit_code = length($reason) ? 1 : $?;
 my $log_level = length($reason) ? 0 : 1;
 my $kill_timeout = <system.kill_timeout> || 3;    # floating seconds
-my $abort_timeout = 1;
+my $abort_timeout = 3;
 
 my %wait_pids = map { $_ => 1 } keys %{<root.child>};
 foreach my $p_pid ( keys %{<root.child>} ) {
@@ -78,7 +78,7 @@ while ( keys %{<root.child>} ) {
             and not exists <root.child>->{$pid}->{'kill_sent'} ) {
             my @children = @{ <[root.process.get_children]>->($pid) };
             <[base.log]>->( 1, ": <KILL> process $pid" );
-            kill( 9, $pid, -$_ );
+            kill( 9, $pid, -$pid );
             my $ren = scalar @children == 1 ? '' : 'ren :';
             <[base.log]>->( 1, ": <KILL> child$ren " . join( ', ', @children ) )
                 if @children;
