@@ -1,7 +1,7 @@
 # >:]
 
 # name  = root.shutdown
-# descr = shut down root agent with optional failure message
+# descr = shut down root agent [with an optional failure message]
 
 my $reason = shift // '';
 my $exit_code = length($reason) ? 1 : $?;
@@ -11,7 +11,10 @@ my $abort_timeout = 1;
 
 my %wait_pids = map { $_ => 1 } keys %{<root.child>};
 foreach my $p_pid ( keys %{<root.child>} ) {
-    map { $wait_pids{$_} = 1 } @{ <[root.process.get_children]>->($p_pid) };
+    map { $wait_pids{$_} = 1 } (
+        @{ <[root.process.get_children]>->($p_pid) },
+        <[root.process.orphan_pids]>
+    );
     <root.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # just in case
 }
 
@@ -39,21 +42,23 @@ foreach my $pid (
     }
     keys %{<root.child>}
     ) {
-    my $i_id = <root.child>->{$pid}->{'instance_id'};
-    my $instance_str = $i_id ? " ( instance $i_id )" : '';
-
-    my @children = @{ <[root.process.get_children]>->($pid) };
-
-    if ( kill( 15, $pid ) ) {
+    my $inst_id      = <root.child>->{$pid}->{'instance_id'};
+    my $instance_str = $inst_id ? " ( instance $inst_id )" : '';
+    my @children     = (
+        @{ <[root.process.get_children]>->($pid) },
+        <[root.process.orphan_pids]>
+    );
+    if ( kill( 15, $pid, -$pid ) ) {
         <[base.log]>->( 2, ": <TERM> process $pid" . $instance_str );
         <root.child>->{$pid}->{'term_sent'} = <[base.time]>->($t_res);
         my $ren = scalar @children == 1 ? '' : 'ren :';
         <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @children ) )
             if @children;
-        kill( 15, @children );
+        kill( 15, map { $_, -$_ } @children );
     } else {
         delete <root.child>->{$pid};
     }
+    map { kill( 15, $_, -$_ ) } ( @children, <[root.process.orphan_pids]> );
 }
 
 while ( keys %{<root.child>} ) {
@@ -71,19 +76,13 @@ while ( keys %{<root.child>} ) {
             exit(1);
         } elsif ( $delta_t >= $kill_timeout
             and not exists <root.child>->{$pid}->{'kill_sent'} ) {
-            my @children;
-            my $proc_table = new Proc::ProcessTable;
-            foreach my $proc ( sort { $b->{'start'} <=> $a->{'start'} }
-                @{ $proc_table->table } ) {
-                push( @children, $proc->{'pid'} )
-                    if $proc->{'ppid'} == $pid;
-            }
+            my @children = @{ <[root.process.get_children]>->($pid) };
             <[base.log]>->( 1, ": <KILL> process $pid" );
-            kill( 9, $pid );    # XXX: 15 + timeout
+            kill( 9, $pid, -$_ );
             my $ren = scalar @children == 1 ? '' : 'ren :';
             <[base.log]>->( 1, ": <KILL> child$ren " . join( ', ', @children ) )
                 if @children;
-            kill( 9, @children );
+            map { kill( 9, $_, -$_ ) } <[root.process.orphan_pids]>;
             <root.child>->{$pid}->{'kill_sent'} = 1;
         }
     }
