@@ -22,7 +22,10 @@ map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
         or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / XXX: -> config
     } @{ $proc_table->table };
 
-map { <[base.log]>->( 1, "found orphan process [$_:$orphans{$_}]" ) }
+map {
+    my $name_str = length( $orphans{$_} ) ? " '$orphans{$_}'" : '';
+    <[base.log]>->( 1, ": found orphan process [$_]" . $name_str )
+    }
     sort keys %orphans;
 
 return sort keys %orphans;
