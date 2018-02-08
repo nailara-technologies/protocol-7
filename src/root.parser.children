@@ -1,0 +1,11 @@
+# >:]
+
+# name = root.parser.children
+
+my $instance_id = shift;
+
+return ''
+    if not exists <root.agent.instance>->{$instance_id}->{'process'}->{'child'};
+
+return join( ', ',
+    sort keys %{ <root.agent.instance>->{$instance_id}{'process'}{'child'} } );
