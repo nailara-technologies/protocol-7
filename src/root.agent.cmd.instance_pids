@@ -15,12 +15,11 @@ return {
 if ( not defined $instance_id ) {
     my $reply_list = '';
     foreach my $i_id ( sort { $a <=> $b } keys %{<root.agent.instance>} ) {
+        my %pids;
         my $parent_pid
             = <root.agent.instance>->{$instance_id}->{'process'}{'id'};
-        $reply_list .= join( ' ',
-            $i_id,
-            $parent_pid,
-            @{ <[root.process.get_children]>->($parent_pid) } . "\n" );
+        map { $pids{$_} = 1 } @{ <[root.process.get_children]>->($parent_pid) };
+        $reply_list .= join( ' ', $i_id, $parent_pid, sort keys(%pids), "\n" );
     }
     return {
         'mode' => 'raw',
