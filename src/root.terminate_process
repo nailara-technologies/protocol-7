@@ -19,13 +19,13 @@ map {
         if defined $instance_id
 } @children;
 
-kill( 'TERM', $kill_pid );
+kill( 'TERM', $kill_pid, -$kill_pid );
 my @kill_list = ($kill_pid);
 
 my $ren = scalar @children == 1 ? '' : 'ren :';
 if (@children) {
     <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @children ) );
-    kill( 'TERM', @children );
+    kill( 'TERM', @children, map { -$_ } @children );
     push( @kill_list, @children );
 }
 
