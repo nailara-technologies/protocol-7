@@ -85,6 +85,24 @@ delete <list.users>;
     }
 };
 
+<list.children> = {
+    'var'   => 'data',
+    'key'   => 'root.agent.instance',
+    'descr' => 'PIDs of agents/children',
+    'mask' =>
+        '<key>:instance agent_name:agent <key>:process <key>:process_children',
+    'align' => {
+        'instance'         => 'left+1',
+        'agent_name'       => 'left+1',
+        'process'          => 'left',
+        'process_children' => 'left',
+    },
+    'filters' => {
+        'process'          => 'root.parser.process_id',
+        'process_children' => 'root.parser.children'
+    }
+};
+
 <list.subnames> = {
     'var'   => 'data',
     'key'   => 'root.agent.instance',
