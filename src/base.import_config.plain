@@ -11,7 +11,7 @@ my $import_path = "$import_dir/$config_name";
 
 return 0 if !-d $import_dir or !-f $import_path;
 
-<[base.log]>->( 1, "importing external config '$config_name'.." );
+<[base.log]>->( 1, "importing \"$config_name\" from '$import_dir'" );
 
 my $status = <[base.execute_agent_code]>->(
     <[base.parser.config]>->(
