@@ -12,7 +12,7 @@ my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
 
 my $dir_path = <system.local_config_dir>;
 if ( !-d $dir_path ) {
-    <[base.log]>->( 1, "<!> creating local nailara config dir [$dir_path].." );
+    <[base.log]>->( 1, "<!> creating local nailara config dir [$dir_path]" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "failed to create local config directory '$dir_path' [$!]";
 }
@@ -21,7 +21,7 @@ $dir_path = <config.profile_dir>;
 if ( !-d $dir_path ) {
     my $root_path = <system.root_path>;
     ( my $path_rel = $dir_path ) =~ s|^$root_path|.|;
-    <[base.log]>->( 1, "<!> creating profile directory ['$path_rel'].." );
+    <[base.log]>->( 1, "<!> creating profile directory ['$path_rel']" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "failed to create profile directory '$dir_path' [$!]";
 }

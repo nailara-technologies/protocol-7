@@ -42,7 +42,8 @@ foreach my $sub_name ( keys %code ) {
         }
         if ( !$logged_yet ) {
             <[base.log]>->(
-                1, ": moving subs : $source_sub_prefix -> $target_sub_prefix"
+                2,
+                ": moving subroutines: $source_sub_prefix -> $target_sub_prefix"
             );
             ++$logged_yet;
         }
@@ -85,8 +86,5 @@ if ( !$moved ) {
     <base.modules.internal_name>->{$target_sub_prefix} = $source_sub_prefix;
     <base.modules.moved_to>->{$source_sub_prefix}      = $target_sub_prefix;
     my $s = $moved == 1 ? '' : 's';
-    <[base.log]>->(
-        2,
-        " ! [$source_sub_prefix>$target_sub_prefix] $moved subroutine$s moved!"
-    );
+    <[base.log]>->( 2, ": : done [ $moved sub$s ]" );
 }
