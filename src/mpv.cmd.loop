@@ -1,0 +1,33 @@
+# >:]
+
+# name  = mpv.cmd.loop
+# param = <file|playlist|off>
+# descr = enable / disable entry playback loop
+
+my $playlist_mode = $$call{'args'} // '';
+
+return {
+    'mode' => 'nack',
+    'data' => "expected loop parameter 'playlist', 'file' or 'off'!"
+    }
+    if $playlist_mode !~ /^(playlist|file|off)$/;
+
+my $cmd_map = {
+    'playlist' => { 'playlist' => 'inf', 'file' => 'no' },
+    'file'     => { 'playlist' => 'no',  'file' => 'yes' },
+    'off'      => { 'playlist' => 'no',  'file' => 'no' }
+};
+
+map {
+    <[mpv.send_command]>->(
+        'set_property_string', "loop-$_", $cmd_map->{$playlist_mode}->{$_}
+    );
+} sort keys %{ $cmd_map->{$playlist_mode} };
+
+$playlist_mode = 'current file' if $playlist_mode eq 'file';
+return {
+    'mode' => 'ack',
+    'data' => $playlist_mode ne 'off'
+    ? "will loop $playlist_mode"
+    : 'looping is disabled'
+};
