@@ -1,39 +1,55 @@
 # >:]
 
 # name  = core.cmd.select
-# param = <node/user>
-# descr = append node or user name to base command path
+# param = <user|sid>
+# descr = append user name or sid to base [command] path
 
-my $sid = $_[0]->{'session_id'};
+my $usr_sid = $_[0]->{'session_id'};
 my $param = $_[0]->{'args'} // '';
-
-return { 'mode' => 'nack', 'data' => 'expected node / user name to append' }
-    if $param !~ <regex.base.usr>;
-
-my $found = 0;
-map { $found++ if $data{'session'}{$_}{'user'} eq $param }
-    keys %{ $data{'session'} };
 
 return {
     'mode' => 'nack',
-    'data' => "node or user '$param' is unreachable"
+    'data' => 'expected user name or session id [for prepending]'
+    }
+    if $param !~ <regex.base.usr> and $param !~ <regex.base.sid>;
+
+my $found = 0;
+if ( $param =~ /^\d+$/ ) {
+    $found = 1 if exists $data{'session'}{$param};
+} else {
+    map { $found++ if $data{'session'}{$_}{'user'} eq $param }
+        keys %{ $data{'session'} };
+}
+
+my $source_usr = $data{'session'}{$usr_sid}{'user'};
+
+my $target_usr = $param;
+$target_usr = $data{'session'}{$param}{'user'}
+    if $param =~ /^\d+$/
+    and exists $data{'session'}{$param};
+
+return {
+    'mode' => 'nack',
+    'data' => $param =~ /^\d+$/
+    ? "there is no active session $param"
+    : "user '$param' not online"
     }
     if !$found
-    or $param !~ <access.cmd.regex.usr>->{ $data{'session'}{$sid}{'user'} };
+    or $target_usr !~ <access.cmd.regex.usr>->{$source_usr};
 
 my @base_path
-    = ( defined $data{'session'}{$sid}{'base_path'}
-        and length $data{'session'}{$sid}{'base_path'} )
-    ? ( $data{'session'}{$sid}{'base_path'}, $param )
+    = ( defined $data{'session'}{$usr_sid}{'base_path'}
+        and length $data{'session'}{$usr_sid}{'base_path'} )
+    ? ( $data{'session'}{$usr_sid}{'base_path'}, $param )
     : ($param);
 
-$data{'session'}{$sid}{'base_path'} = join( '.', @base_path );
+$data{'session'}{$usr_sid}{'base_path'} = join( '.', @base_path );
 
-my $bp_str = $data{'session'}{$sid}{'base_path'};
-<[base.log]>->( 1, "[$sid] <- session base_path -> \"$bp_str\"" );
+my $bp_str = $data{'session'}{$usr_sid}{'base_path'};
+<[base.log]>->( 1, "[$usr_sid] <- session base_path -> \"$bp_str\"" );
 
 return {
     'mode' => 'ack',
-    'data' => "base_path = '$bp_str', use 'unselect' or '../' to reset,"
-        . " '..<cmd>' for parent"
+    'data' => "base_path = '$bp_str', 'unselect' & '../' = reset,"
+        . " '..<cmd>' accesses parent"
     }
