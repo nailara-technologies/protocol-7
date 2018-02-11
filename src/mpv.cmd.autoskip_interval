@@ -1,0 +1,14 @@
+# >:]
+
+# name  = mpv.cmd.autoskip_interval
+# descr = return currently active 'autoskip' timer interval
+
+my $skip_interval = $$call{'args'};
+
+return { 'mode' => 'nack', 'data' => 'no autoskip timer active!' }
+    if not exists <mpv.timer.autoskip>;
+
+return {
+    'mode' => 'ack',
+    'data' => <mpv.timer.autoskip>->interval . ' seconds'
+};
