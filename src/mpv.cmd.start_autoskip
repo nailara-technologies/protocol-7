@@ -1,0 +1,33 @@
+# >:]
+
+# name  = mpv.cmd.start_autoskip
+# param = <seconds>
+# descr = set up timer to skip to next playlist entry
+
+my $skip_interval = $$call{'args'};
+
+return {
+    'mode' => 'nack',
+    'data' => 'autoskip timer already active ('
+        . <mpv.timer.autoskip>->interval
+        . ' sec interval)'
+    }
+    if exists <mpv.timer.autoskip>;
+
+return { 'mode' => 'nack', 'data' => 'expected interval in seconds (>=1)' }
+    if $skip_interval !~ /^\-?\d+(\.\d+)?$/ or $skip_interval < 1;
+
+<[mpv.cmd.loop]>->( { 'args' => 'playlist' } );
+
+<mpv.timer.autoskip> = <[event.add_timer]>->(
+    {   'after'    => $skip_interval,
+        'interval' => $skip_interval,
+        'handler'  => 'mpv.callback.play_next',
+        'repeat'   => 1
+    }
+);
+
+return {
+    'mode' => 'ack',
+    'data' => "ack, timer started [$skip_interval seconds interval]"
+};
