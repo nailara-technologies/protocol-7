@@ -35,7 +35,7 @@ access.cmd.usr.root  =  ping session_key *.verify_instance \
 
 access.cmd.usr.system = xserver.get_driver xserver.get_xorg_pid \
                         root.stop root.force_mod_reload root.start \
-                        root.notify_online
+                        root.notify_online root.register_child
 
 access.cmd.usr.events = root.start_once root.stop_implicit playlist.update \
                         layout.switch_to layout.select_default \
@@ -46,7 +46,8 @@ access.cmd.usr.config = get_config *.get_config_names *.get_config
 access.cmd.usr.ssh    = *.ping
 
 access.cmd.usr.xserver = hide-mouse.blank_cursor layout.gpu_load_alert \
-                         root.restart root.start_once system.reload_gfx_module
+                         root.restart root.start_once system.reload_gfx_module \
+                         root.register_child
 
 access.cmd.usr.compton = xserver.get_driver xserver.get_mode
 

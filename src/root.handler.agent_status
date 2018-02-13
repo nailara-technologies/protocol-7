@@ -117,8 +117,11 @@ if (    $status ne 'starting'
     and exists $instance->{'process'}
     and defined $instance->{'process'}->{'id'} ) {
 
-    map { <[root.terminate_process]>->($_) }
-        ( $instance->{'process'}->{'id'}, <[root.process.orphan_pids]> );
+    map { <[root.terminate_process]>->($_) } (
+        $instance->{'process'}->{'id'},
+        <[root.instance_child_pids]>->($instance_id),
+        <[root.process.orphan_pids]>    # XXX: <- make obsolete! (heavy)
+    );
 }
 
 if ( $old_status ne 'failed' and $status eq 'failed' ) {
@@ -141,14 +144,14 @@ if (    $status ne 'online'
 }
 
 # instance startup failure hooks
-if ( $old_status eq 'starting' and $status eq 'failed' ) {
+if ( $status eq 'failed' ) {
     if ( exists $init_code->{'startup-failure'} ) {
         <[base.execute_agent_code]>
             ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
     } else {
         delete $instance->{'core_sid'};
         <[agent.change_status]>->( $instance_id, 'offline' )
-            if $status ne 'failed';
+            if $old_status ne 'failed';
         return;
     }
 }

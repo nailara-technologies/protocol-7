@@ -12,4 +12,7 @@ return { 'mode' => 'nack', 'data' => 'no random string supplied' }
 
 <[base.disable_command]>->('verify_instance');   # used only once by root agent!
 
+map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $_ } ) }
+    @{ <system.callbacks.initialized> //= [] };
+
 return { 'mode' => 'ack', 'data' => 'verification string logged!' };
