@@ -36,6 +36,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     <[root.cancel_status_timer]>->($instance_id) if defined $instance_id;
 
+    <[root.terminate_process]>->($pid);    # <- cleans up children!
+
     if ( my $child = <root.child>->{$pid} ) {
 
         <[base.log]>->( 2, ": was instance $instance_id ..." );
@@ -80,7 +82,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             <[agent.change_status]>->( $instance_id, 'delayed' )
                 if $old_status eq 'restart';
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
-                {   'after'    => 0.042,
+                {   'after'    => 0.07,
                     'interval' => '0.1',
                     'handler'  => 'root.handler.children_left',
                     'data'     => {
