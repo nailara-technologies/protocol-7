@@ -1,0 +1,17 @@
+# >:]
+
+# name = base.agents.report_child_pid
+
+my $child_pid = shift // '';
+die "expected process id parameter" if $child_pid !~ /^\d+$/;
+
+push( @{ <system.report_children> //= [] }, $child_pid );
+
+if (<system.agent.initialized>) {
+    <[base.callback.report_children]>;
+} else {
+    push(
+        @{ <system.callbacks.initialized> //= [] },
+        'base.callback.report_children'
+    );
+}
