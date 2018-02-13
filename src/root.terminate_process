@@ -7,8 +7,6 @@ my $kill_pid = shift;
 
 return if exists <root.terminating.pid>->{$kill_pid};
 
-<[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid );
-
 $instance_id = <root.child>->{$kill_pid}->{'instance_id'}
     if exists <root.child>->{$kill_pid};
 
@@ -19,14 +17,18 @@ map {
         if defined $instance_id
 } @children;
 
-kill( 'TERM', $kill_pid, -$kill_pid );
+<[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid )
+    if kill( 'TERM', $kill_pid );
+
 my @kill_list = ($kill_pid);
 
-my $ren = scalar @children == 1 ? '' : 'ren :';
-if (@children) {
-    <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @children ) );
-    kill( 'TERM', @children, map { -$_ } @children );
-    push( @kill_list, @children );
+my @actually_killed;
+map { push( @actually_killed, $_ ) if kill( 'TERM', $_ ) } @children;
+
+if (@actually_killed) {
+    push( @kill_list, @actually_killed );
+    my $ren = scalar @actually_killed == 1 ? '' : 'ren :';
+    <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @actually_killed ) );
 }
 
 map { <root.terminating.pid>->{$_} = <[base.time]>->(3) } @kill_list;
@@ -36,4 +38,4 @@ map { <root.terminating.pid>->{$_} = <[base.time]>->(3) } @kill_list;
         'handler' => 'root.handler.process_kill_list',
         'data'    => \@kill_list
     }
-);
+) if @kill_list;
