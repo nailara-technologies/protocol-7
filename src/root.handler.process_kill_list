@@ -9,7 +9,7 @@ my @kill_list = @{ shift->w->data };
 );
 
 my @actually_killed;
-map { push( @actually_killed, $_ ) if kill( 'KILL', $_ ) } @kill_list;
+map { push( @actually_killed, $_ ) if kill( 9, $_ ) } @kill_list;
 
 my $chld_str = scalar(@actually_killed) == 1 ? 'child' : 'children';
 

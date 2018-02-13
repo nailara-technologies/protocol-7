@@ -8,6 +8,8 @@ if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
     die "[$caller_str] expected parent process id";
 }
 
+### old method ### (heavy, non-portable, to be removed..)
+
 my $proc_table = new Proc::ProcessTable;
 
 my %ppids;
@@ -18,6 +20,7 @@ foreach my $proc ( @{ $proc_table->table } ) {
 }
 
 my %children;
+
 my $found = 0;
 foreach my $pid ( keys(%ppids) ) {
     if ( $ppids{$pid} == $chk_pid ) {
@@ -40,4 +43,18 @@ while ($found) {
     }
 }
 
-return [ sort { $start_times{$b} <=> $start_times{$a} } keys %children ];
+### new method ### (requires strict child registration)
+my $instance_id;
+map {
+    $instance_id = $_
+        if $chk_pid == <root.agent.instance>->{$_}->{'process'}{'id'}
+} keys %{<root.agent.instance>};
+if ( defined $instance_id ) {
+    map { $children{$_} = 1 } ( <[root.instance_child_pids]>->($instance_id) );
+}
+###
+
+return [
+    sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
+    sort keys %children
+];
