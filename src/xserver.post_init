@@ -84,7 +84,11 @@ if ( $mode ne 'host' ) {
             1, ": $bin_name-Server process started (pid=$server_pid)"
         );
         <xserver.pid> = $server_pid;
+
+        ### registering Xorg process id ###
         push( @{<system.kill_list>}, <xserver.pid> );
+        <[base.agents.report_child_pid]>->($server_pid);
+
         <[base.renice]>->( <xserver.renice_priority>, <xserver.pid> );
     }
 

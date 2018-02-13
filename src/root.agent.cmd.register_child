@@ -30,7 +30,8 @@ return {
     if exists
     <root.agent.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid};
 
-<root.child>->{$child_pid} = <root.child>->{$parent_pid};
+%{ <root.child>->{$child_pid} } = %{ <root.child>->{$parent_pid} };
+<root.child>->{$child_pid}->{'agent_child'} = 1;
 
 <root.agent.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid} = 1;
 <[base.log]>->( 1, "[instance:$instance_id] child pid $child_pid registered." );
