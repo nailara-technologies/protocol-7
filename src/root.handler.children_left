@@ -7,38 +7,23 @@ my $params      = $watcher->data;
 my $instance_id = $params->{'instance_id'};
 my $next_status = $params->{'next_status'};
 my $instance    = <root.agent.instance>->{$instance_id};
+my $curr_status = $instance->{'status'};
 $next_status = 'restart' if $next_status eq 'delayed';   # <- should not happen!
 
-if ( $instance->{'status'} ne 'delayed' ) {
-    <[base.log]>->(
-        0,
-        "instance $instance_id status = '$instance->{status}',"
-            . " aborting 'children_left' watcher.."
-    );
-    $watcher->cancel;
-    return;
-}
-
+my @remaining_pids;
 my $child_count = 0;
-
-foreach my $pid ( reverse sort keys %{<root.child>} ) {
-    next
-        if not exists <root.child>->{$pid}
-        or <root.child>->{$pid}->{'instance_id'} != $instance_id;
-
+foreach my $pid ( sort keys %{<root.child>} ) {
+    next if <root.child>->{$pid}->{'instance_id'} != $instance_id;
     if ( <[root.process.exists]>->($pid) ) {
+        push( @remaining_pids, $pid );
         $child_count++;
     } else {
         delete <root.child>->{$pid};
+        kill( 9, $pid );    # <- assumed gone, making sure..
     }
 }
-<[base.log]>->(
-    2,
-    "instance : $instance_id -< children left:"
-        . " $child_count >- next_status : '$next_status'"
-);
 
-if ( !$child_count ) {    ## done waiting ##
+if ( !$child_count ) {      ## done waiting ##
     $watcher->cancel;
     <[agent.change_status]>->( $instance_id, $next_status );
     if ( $next_status eq 'offline' ) {
@@ -46,4 +31,13 @@ if ( !$child_count ) {    ## done waiting ##
         <[jobqueue.move_job]>->( $job_id, 'queued' );
         <[agent.change_status]>->( $instance_id, 'restart' );
     }
+} else {                    ## ..still waiting.. ##
+    <[base.log]>->(
+        2,
+        "instance : $instance_id -< children left: $child_count >- ["
+            . join( ',', @remaining_pids ) . ']'
+    );
+    <[base.log]>->(
+        2, ": status : $curr_status next_status: '$next_status'"
+    );
 }
