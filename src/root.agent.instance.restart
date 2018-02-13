@@ -17,8 +17,8 @@ my @children
 <[base.log]>->( 2, ": [!] parent_pid not defined [!] (race condition)" )
     if not defined $parent_pid;
 
-$instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
-$instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
+<[root.cancel_status_timer]>->($instance_id);
+
 delete <callback.session.closing_last> if $instance->{'is_core'};
 delete $instance->{'respawn_delay'};    # reset
 
