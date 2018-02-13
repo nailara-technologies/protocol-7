@@ -9,9 +9,7 @@ if ( not defined $id or not defined $data{'session'}{$id} ) {
     $_[0]->w->cancel;
     $id //= '---';
     <[base.log]>->(
-        1,
-        "[$id] handler of already closed session called.."
-            . "forcefully cancelled!"
+        1, "[$id] handler of already closed session called, cancelled!"
     );
     return undef;
 }
