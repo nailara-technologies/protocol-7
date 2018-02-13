@@ -11,7 +11,7 @@ my $fail_count    = $instance->{'ping'}->{'failures'}++;
 my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
 my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 <[base.log]>->(
-    0, "instance $instance_id [$agent_name] ping response ( TIMEOUT )" . $retry_str
+    0, "instance $instance_id [$agent_name] ping response ( TIMEOUT )$retry_str"
 );
 
 if ( !$ping_retry ) {                                        # [no more retries]
@@ -24,12 +24,14 @@ if ( !$ping_retry ) {                                        # [no more retries]
             <[base.session.check_remaining]>;
         } else {
             delete <callback.session.closing_last>;    # allow safe restart
+            <[agent.change_status]>->( $instance_id, 'failed' );
         }
+    } else {
+        <[agent.change_status]>->( $instance_id, 'failed' );
     }
-    <[agent.change_status]>->( $instance_id, 'failed' );
 } else {
 
-    #    # setting shorter ping timeout..
+    # setting shorter ping timeout..
     $instance->{'timeout_timer'}->cancel
         if defined $instance->{'timeout_timer'}
         and $instance->{'timeout_timer'}->is_active;
@@ -39,6 +41,8 @@ if ( !$ping_retry ) {                                        # [no more retries]
             'data'    => $instance_id
         }
     );
+    <[root.cancel_status_timer]>->($instance_id);
+    <[root.enable_status_timer]>->($instance_id);
 
     # retrying ping request..
     $instance->{'status_timer'}->now
