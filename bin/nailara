@@ -116,9 +116,9 @@ sub prepare_subs {
         use Cwd 'abs_path';
         use Sys::Hostname;
 
-        $SIG{PIPE} = 'IGNORE';
+        $SIG{'PIPE'} = 'IGNORE';
 
-        $SIG{__WARN__} = $code{'base.sig_warn'};
+        $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
         $data{'system'}{'start'}{'exec_name'}
             = abs_path( catfile( $RealBin, $RealScript ) );
@@ -140,7 +140,8 @@ sub prepare_subs {
             close($ver_fh);
         }
         if ( $0 =~ /^.*nailara\./ ) {
-            $data{'system'}{'agent'}{'name'} = lc($0);
+            $data{'system'}{'agent'}{'initialized'} = 0;
+            $data{'system'}{'agent'}{'name'}        = lc($0);
             $data{'system'}{'agent'}{'name'} =~ s/^.*nailara\.|[\. ]$//g;
         } elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-].*)/ ) {
             my $agent_name = $1;
@@ -329,8 +330,8 @@ sub prepare_subs {
 
         foreach my $sub_name ( sort(@compile_them) ) {
 
-            local $SIG{__WARN__} = 'IGNORE';
-            local $SIG{__DIE__}  = 'IGNORE';
+            local $SIG{'__WARN__'} = 'IGNORE';
+            local $SIG{'__DIE__'}  = 'IGNORE';
 
             my $sub_code     = undef;
             my $code_header  = '';
