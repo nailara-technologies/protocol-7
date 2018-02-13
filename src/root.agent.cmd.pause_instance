@@ -13,13 +13,8 @@ return { 'mode' => 'nack', 'data' => "instance not found!" }
 
 my $instance = <root.agent.instance>->{$instance_id};
 
-$instance->{'status_timer'}->stop
-    if exists $instance->{'status_timer'}
-    and $instance->{'status_timer'}->is_active;
-
-$instance->{'timeout_timer'}->cancel
-    if exists $instance->{'timeout_timer'}
-    and $instance->{'timeout_timer'}->is_active;
+$instance->{'paused_status_timer'}
+    = <[root.cancel_status_timer]>->($instance_id);
 
 my $parent_pid = <root.agent.instance>->{$instance_id}->{'process'}{'id'};
 my @pids = ( $parent_pid, @{ <[root.process.get_children]>->($parent_pid) } );
