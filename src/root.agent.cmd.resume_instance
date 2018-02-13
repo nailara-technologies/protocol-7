@@ -10,12 +10,10 @@ return { 'mode' => 'nack', 'data' => 'instance id must be numeric!' }
     if $instance_id !~ /^\d+$/;
 return { 'mode' => 'nack', 'data' => "instance not found!" }
     if not exists <root.agent.instance>->{$instance_id};
-
 my $instance = <root.agent.instance>->{$instance_id};
 
-$instance->{'status_timer'}->start
-    if exists $instance->{'status_timer'}
-    and !$instance->{'status_timer'}->is_active;
+<[root.enable_status_timer]>->($instance_id)
+    if delete $instance->{'paused_status_timer'};
 
 my $parent_pid = <root.agent.instance>->{$instance_id}->{'process'}{'id'};
 my @pids = ( $parent_pid, @{ <[root.process.get_children]>->($parent_pid) } );

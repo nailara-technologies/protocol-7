@@ -2,9 +2,10 @@
 
 # name = root.handler.status_timer
 
-my $instance_id  = shift->w->data;
+my $instance_id = shift->w->data;
+my $instance    = <root.agent.instance>->{$instance_id};
+$instance->{'ping'}->{'failures'} //= 0;
 my $globals      = <root.spawn_config.globals> || {};
-my $instance     = <root.agent.instance>->{$instance_id};
 my $agent_name   = $instance->{'agent_name'};
 my $root_sid     = $instance->{'root_sid'};
 my $core_sid     = $instance->{'core_sid'};
@@ -13,13 +14,6 @@ my $timeout_secs
     = $agent_config->{'ping'}->{'timeout'}
     || $globals->{'ping'}->{'timeout'}
     || 13;    # <-- internal timeout default
-delete $agent_config->{'ping'} if !keys %{ $agent_config->{'ping'} };
-delete $globals->{'ping'}      if !keys %{ $globals->{'ping'} };
-$instance->{'ping'}->{'failures'} //= 0;
-
-$instance->{'status_timer'}->stop
-    if !$instance->{'status_timer'}->is_active
-    and !$instance->{'status_timer'}->is_cancelled;
 
 $instance->{'timeout_timer'} = <[event.add_timer]>->(
     {   'after'   => $timeout_secs,
@@ -41,3 +35,6 @@ my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
         }
     }
 );
+
+delete $agent_config->{'ping'} if !keys %{ $agent_config->{'ping'} };
+delete $globals->{'ping'}      if !keys %{ $globals->{'ping'} };
