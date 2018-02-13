@@ -42,10 +42,6 @@ if ( !$ping_retry ) {                                        # [no more retries]
         }
     );
     <[root.cancel_status_timer]>->($instance_id);
-    <[root.enable_status_timer]>->($instance_id);
+    <[root.enable_status_timer]>->( $instance_id, 0 );    # <- retrying now [0]
 
-    # retrying ping request..
-    $instance->{'status_timer'}->now
-        if defined $instance->{'status_timer'}
-        and !$instance->{'status_timer'}->is_cancelled;
 }
