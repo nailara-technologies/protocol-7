@@ -45,19 +45,15 @@ foreach my $pid (
     my @children   = @{ <[root.process.get_children]>->($pid) };
     if ( kill( 15, $pid ) ) {
         <[base.log]>->(
-            1,
-            sprintf(
-                ": <TERM> PID %-7s : agent : %10s", $pid, "'$agent_name'"
-            )
+            1, sprintf( ": <TERM> PID %-7s  <-= %11s", $pid, "$agent_name" )
         );
     } else {
         delete <root.child>->{$pid};
     }
     if (@children) {
-        my $ren = scalar @children == 1 ? ' :' : 'ren :';
-        <[base.log]>->(
-            1, ": <TERM> PID : child$ren " . join( ', ', @children )
-        );
+        my $ren = scalar @children == 1 ? ' -- :' : 'ren :';
+        <[base.log]>
+            ->( 1, ": <TERM> `-- child$ren " . join( ', ', @children ) );
         map { delete <root.child>->{$pid} if !kill( 15, $_ ) } @children;
     }
 }
@@ -98,16 +94,15 @@ while ( keys %children_left ) {
                 <[base.log]>->(
                     1,
                     sprintf(
-                        ": <KILL> PID %-7s : agent : %10s",
-                        $pid, "'$agent_name'"
+                        ": <KILL> PID %-7s  <-= %11s", $pid, "$agent_name"
                     )
                 ) if kill( 9, $pid );
             }
             delete $children_left{$pid};
-            my $ren = scalar @children == 1 ? ' :' : 'ren :';
+            my $ren = scalar @children == 1 ? ' -- :' : 'ren :';
             <[base.log]>->(
-                1, ": <KILL> PID : child$ren " . join( ', ', @children )
-            ) if @children;
+                1, ": <KILL> `-- child$ren " . join( ', ', @children )
+            );
             kill( 9, @children );
             map { delete $children_left{$pid}; } @children;
         }
