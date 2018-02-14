@@ -1,7 +1,7 @@
 # >:]
 
 # name  = weather.parent.cmd.temp
-# param = ['plain']
+# param = ['utf8|plain']
 # descr = return current temperature for selected city
 
 my $station_id = <weather.station_id>;
@@ -12,9 +12,18 @@ return {
     'data' => 'no city selected (undefined station id)'
     }
     if not defined $station_id;
+return {
+    'mode' => 'nack',
+    'data' => "understood options are 'utf8' and 'plain'"
+    }
+    if length($param)
+    and $param !~ /^(utf8|plain)$/;
 
 my $temp = <weather.data>->{$station_id}->{'current'}->{'temp'} // 'n/a';
 
-$temp .= "\x{00B0}C" if $temp =~ /^\d+(\.\d+)?$/ and $param ne 'plain';
+my $encoding = $param eq 'utf8' ? 'UTF-8' : 'ISO-8859-1';
+
+$temp .= Encode::encode( $encoding, "\N{DEGREE SIGN}C" )
+    if $temp =~ /^-?\d+(\.\d+)?$/ and $param ne 'plain';
 
 return { 'mode' => 'ack', 'data' => $temp }
