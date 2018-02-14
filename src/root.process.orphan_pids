@@ -6,9 +6,10 @@
 
 my $proc_table = new Proc::ProcessTable;
 
-my %own_children = map {
-    <root.agent.instance>->{$_}->{'process'}->{'id'} =>
-        <root.agent.instance>->{$_}->{'agent_name'}
+my %own_children;
+map {
+    my $pid = <root.agent.instance>->{$_}->{'process'}->{'id'};
+    $own_children{$pid} //= <root.agent.instance>->{$_}->{'agent_name'}
     }
     keys %{<root.agent.instance>};
 
