@@ -3,33 +3,57 @@
 # name  = pdf.html.base.valid_pdf
 # param = <pdf_path> [width]
 
-my $path = shift;
+my $file_path = shift;
 
 return 0
-    if not defined $path
-    or !length($path)
-    or !-f $path
-    or -z $path;
+    if not defined $file_path
+    or !length($file_path)
+    or !-f $file_path
+    or -z $file_path;
 
 my $file_fh;
 
-if ( !open( $file_fh, $path ) ) { warn $!; return 0; }
+<[base.log]>->( 2, "[PDF] '$file_path'.." );
+
+if ( !open( $file_fh, $file_path ) ) { warn $!; return 0; }
+
+my $file_ok = 2;
 
 my $result = sysread( $file_fh, my $buffer, 5 );
 
-return 0
-    if not defined $result
+if (   not defined $result
     or $result != 5
     or not defined $buffer
     or $buffer ne '%PDF-'
-    or !sysseek( $file_fh, -7, 2 );
+    or !sysseek( $file_fh, -7, 2 ) ) {
+    <[base.log]>->( 2, " <!>  header mismatch ['$buffer']" );
+    $file_ok--;
+}
 
 $result = sysread( $file_fh, $buffer, 7 );
 
-return 0
-    if not defined $result
+if (   not defined $result
     or $result < 6
     or not defined $buffer
-    or $buffer !~ /%%EOF\r?\n$/;
+    or $buffer !~ /(\r?\n)?%%EOF(\r?\n)?$/ ) {
+    <[base.log]>->( 2, " <!>  footer mismatch ['$buffer']" );
+    $file_ok--;
 
-return 1;    # <- passed all above checks
+}
+
+if (    $file_ok == 1
+    and -x '/usr/bin/file'
+    and qx(/usr/bin/file $file_path) =~ /PDF document/ ) {
+    <[base.log]>->(
+        0, "[!] apparent error in internal validation pattern for '$file_path'"
+    );
+    return 1;
+}
+
+if ($file_ok) {
+    <[base.log]>->( 2, ": ok, valid." );
+    return 1 if $file_ok;
+} else {
+    <[base.log]>->( 1, " <!>  PDF format check failed : '$file_path'" );
+    return 0;
+}
