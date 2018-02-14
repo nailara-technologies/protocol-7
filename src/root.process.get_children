@@ -47,7 +47,8 @@ while ($found) {
 my $instance_id;
 map {
     $instance_id = $_
-        if $chk_pid == <root.agent.instance>->{$_}->{'process'}{'id'}
+        if defined <root.agent.instance>->{$_}
+        and $chk_pid == <root.agent.instance>->{$_}->{'process'}{'id'}
 } keys %{<root.agent.instance>};
 if ( defined $instance_id ) {
     map { $children{$_} = 1 } ( <[root.instance_child_pids]>->($instance_id) );
