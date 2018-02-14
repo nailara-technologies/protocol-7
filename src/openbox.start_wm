@@ -26,6 +26,8 @@ if ( !<child.openbox.pid> ) {
     <[base.log]>->( 0, "[!] failed to start openbox [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
+} else {
+    <[base.agents.report_child_pid]>->(<child.openbox.pid>);
 }
 <[base.log]>->(
     1,
