@@ -36,8 +36,10 @@ if ( !<child.openbox.pid> ) {
 my $max_wait = 70;    # wait no longer than 7 seconds..
 <[base.log]>->( 1, "waiting for openbox log file creation.." );
 while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }
-if ( -f <openbox.log_file> ) {<[openbox.cleanup_tmp_dir]>}
-else {
+if ( -f <openbox.log_file> ) {
+    <[event.add_timer]>
+        ->( { 'after' => 7, 'handler' => 'openbox.cleanup_tmp_dir' } );
+} else {
     <[base.log]>->(
         0,
         "openbox log file '"
