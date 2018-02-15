@@ -110,9 +110,10 @@ if ( !<mpv.pid> ) {
     <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
+} else {
+    push( @{<system.kill_list>}, <mpv.pid> );
+    <[base.agents.report_child_pid]>->(<mpv.pid>);
 }
-
-push( @{<system.kill_list>}, <mpv.pid> );
 
 END {    # cleaning up left over process on lost socket
     do { <[base.sleep]>->(0.13); kill( 9, <mpv.pid> ) }
