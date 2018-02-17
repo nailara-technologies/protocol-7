@@ -7,11 +7,11 @@
 my $proc_table = new Proc::ProcessTable;
 
 my %own_children;
-map {
-    my $pid = <root.agent.instance>->{$_}->{'process'}->{'id'};
-    $own_children{$pid} //= <root.agent.instance>->{$_}->{'agent_name'}
-    }
-    keys %{<root.agent.instance>};
+foreach my $i_id ( keys %{<root.agent.instance>} ) {
+    next if not defined <root.agent.instance>->{$i_id}->{'process'}->{'id'};
+    my $pid = <root.agent.instance>->{$i_id}->{'process'}->{'id'};
+    $own_children{$pid} //= <root.agent.instance>->{$i_id}->{'agent_name'};
+}
 
 my %orphans;
 map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
