@@ -17,6 +17,9 @@ if ( not defined $instance ) {
 }
 my $agent_name = <root.agent.setup>->{ $instance->{'agent_id'} }->{'name'};
 
+return warn "respawn_delay is undefined"
+    if not defined $instance->{'respawn_delay'};
+
 $instance->{'respawn_timer'}->cancel if exists $instance->{'respawn_timer'};
 
 <[base.log]>->(
