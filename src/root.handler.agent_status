@@ -21,17 +21,20 @@ return <[base.log]>->(
 my $globals = <root.spawn_config.globals> || {};
 my $instance = <root.agent.instance>->{$instance_id};
 
-return
-        if defined $status
-    and defined $instance->{'status'}
-    and $instance->{'status'} eq $status;
-
 my $old_status   = $instance->{'status'} // $status;
 my $agent_id     = $instance->{'agent_id'};
 my $object_id    = <[agent.get_object_id]>->($agent_id);
 my $agent_name   = <root.agent.setup>->{$agent_id}->{'name'};
 my $job_id       = $instance->{'job_id'};
 my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
+
+# some cleanup
+delete $agent_config->{'respawn'} if !keys %{ $agent_config->{'respawn'} };
+delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
+delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
+delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
+
+# initialize timer defaults
 $instance->{'respawn_delay'}
     //= $agent_config->{'respawn'}->{'min_delay'}
     || $globals->{'respawn'}->{'min_delay'}
@@ -48,10 +51,11 @@ my $status_timer_interval
     = $agent_config->{'ping'}->{'interval'}
     || $globals->{'ping'}->{'interval'}
     || 5;       # <-- ping interval default
-delete $agent_config->{'respawn'} if !keys %{ $agent_config->{'respawn'} };
-delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
-delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
-delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
+
+return
+        if defined $status
+    and defined $instance->{'status'}
+    and $instance->{'status'} eq $status;
 
 $instance->{'ping'} //= {};
 $instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping failure
