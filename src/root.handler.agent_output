@@ -11,7 +11,7 @@ my $instance_id = $event->data;
 if ( not exists <root.agent.instance>->{$instance_id} ) {
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "instance $instance_id : output pipe closed." );
+    <[base.log]>->( 2, "instance $instance_id : output pipe closed." );
     return;
 }
 my $agent_instance = <root.agent.instance>->{$instance_id};
@@ -29,7 +29,7 @@ if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     my $process = $agent_instance->{'process'};
     close($read_fh);
     my $pid = $process->{'id'};
-    <[base.log]>->( 1, "[PID:$pid] output pipe closed." );
+    <[base.log]>->( 2, "[PID:$pid] output pipe closed." );
 
     my $was_ondemand = 0;
     if ( defined <root.ondemand_agents> ) {

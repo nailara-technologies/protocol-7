@@ -278,7 +278,7 @@ if ( $status eq 'shutdown'
     $status = 'shutdown' if $status ne 'shutdown';
     delete <root.agent.instance>->{$instance_id};
     delete <agent.instance.shutdown>->{$instance_id};
-    <[base.log]>->( 1, "instance $instance_id has been shut down." );
+    <[base.log]>->( 2, "instance $instance_id has been shut down." );
 }
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # XXX: extbin ?

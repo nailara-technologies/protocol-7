@@ -19,10 +19,10 @@ my $read_bytes = sysread( $read_fh, <child.output_buffer>,
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "$bin-child [PID:$pid] output filehandle closed." );
+    <[base.log]>->( 2, "$bin-child [PID:$pid] output filehandle closed." );
     kill( 9, $pid );                                  # to make sure
     <[base.log]>->( 0, "$bin-child died unexpectedly!" );
-    <[base.log]>->( 1, "shutting down " . <system.agent.name> . "-agent!" );
+    <[base.log]>->( 2, "shutting down " . <system.agent.name> . "-agent!" );
     $code{<base.child_exit.callback>}->($pid)
         if defined <base.child_exit.callback>
         and defined $code{<base.child_exit.callback>};
