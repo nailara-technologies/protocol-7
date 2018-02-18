@@ -13,7 +13,7 @@ if ( exists <agent.instance.shutdown>->{$instance_id} ) {
 
 my $instance = <root.agent.instance>->{$instance_id};
 
-die "instance.stop: instance id $instance_id does not exist!"
+return warn "instance.stop: instance id $instance_id does not exist!"
     if not defined $instance;
 
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
