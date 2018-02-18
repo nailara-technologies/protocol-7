@@ -3,17 +3,20 @@
 # name  = mpv.handler.pipe_output
 # descr = reads and processes output from mpv control pipe
 
+my $bytes;
 my $event   = shift->w;
 my $read_fh = $event->fd;
 my $process = $event->data;
 my $pid     = $process->{'pid'};
 
 <mpv.pipe.buffer> //= '';
+if ( defined $read_fh ) {
+    $bytes
+        = sysread( $read_fh, <mpv.pipe.buffer>, 4096,
+        length(<mpv.pipe.buffer>) ) // 0;
+}
 
-if ( not defined $read_fh
-    or sysread( $read_fh, <mpv.pipe.buffer>, 4096, length(<mpv.pipe.buffer>) )
-    == 0
-    or not defined <mpv.pipe.buffer> ) {
+if ( not defined $read_fh or $bytes == 0 or not defined <mpv.pipe.buffer> ) {
     $event->cancel;
     close($read_fh);
     my $exit_code = 2;
