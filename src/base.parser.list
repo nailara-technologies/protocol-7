@@ -3,9 +3,15 @@
 # name  = base.parser.list
 # descr = returns a parsed list table according to supplied specification mask
 # todo  = fix alignment (width) bug! (<key>:foo and foo:bar cases)
+#         :     apparenly accumulative offset as result of 'align'
 
-our ( $h_name, $h_key, $sub_key, $display_keys, $align, $filters, $sort_key )
-    = map { $_[0]->{$_} } qw| var key sub_key mask align filters sort_key |;
+(   my $h_name, my $h_key, my $sub_key, my $display_keys,
+    my $align, my $defaults, my $filters, my $sort_key
+    )
+    = map { $_[0]->{$_} }
+    qw|
+    var key sub_key mask align
+    defaults filters sort_key |;
 
 my %max_len;
 my $data_ref;
@@ -138,7 +144,12 @@ foreach my $key_val (@sorted_keys) {
             my $len = $max_len{$key_name};
             $key_name_str =~ s|:.+$||;
             my $value = $data_ref->{$key_val}->{$key_name_str};
-            $value //= '';
+            my $val_default
+                = defined $defaults->{$key_name_str}
+                ? $defaults->{$key_name_str}
+                : '';
+            $val_default =~ s/<key>/$key_val/;
+            $value = $val_default if !length($value);
             $value = <[base.call_filter]>->( $filters, $key_name_str, $value );
             $table_string .= <[base.parser.align]>->(
                 $align->{$key_name_str} || 'left',
