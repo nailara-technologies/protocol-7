@@ -2,7 +2,7 @@
 
 NAILARA_ROOT=/usr/local/nailara
 
-useradd -r nailara
+useradd -m -r nailara
 ln -v -s $NAILARA_ROOT/bin/nailara /usr/bin/nailara
 ln -v -s $NAILARA_ROOT/bin/nshell /usr/bin/nshell
 
