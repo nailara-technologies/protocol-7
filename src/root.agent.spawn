@@ -110,7 +110,6 @@ if ( exists $init_result_data->{'start_mode'}
         <[agent.change_status]>->( $instance_id, 'failed' );
         return undef;
     } else {
-
         my $privs = <[base.set_privs]>->( $prog_usr, 'noop' );
         if ( not defined $privs or ref($privs) ne 'HASH' ) {
             <[base.log]>->(
@@ -120,6 +119,21 @@ if ( exists $init_result_data->{'start_mode'}
             return undef;
         }
         map { $privs->{$_} =~ s|'||g } keys %{$privs};    # XXX: abort on match?
+
+        if ( length( $privs->{'home'} // '' ) and !-d $privs->{'home'} ) {
+            <[base.log]>->(
+                0,
+                "<!> user '$prog_usr' home directory missing [creating "
+                    . $privs->{'home'} . "]"
+            );
+            make_path(
+                $privs->{'home'},
+                {   'mode'  => 0700,
+                    'uid'   => $privs->{'uid'},
+                    'group' => $privs->{'gid'}
+                }
+            );
+        }
 
         # XXX: implement exec_args...
         my $prepare_code = '%ENV=(); ';
