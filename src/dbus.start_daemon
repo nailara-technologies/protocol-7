@@ -1,0 +1,37 @@
+# >:]
+
+# name = dbus.start_daemon
+
+<[base.log]>->( 1, "starting DBUS mesaging daemon ..." );
+
+my @exec_params = qw/ dbus-daemon --print-address
+                        --session --nopidfile --nosyslog --nofork /;
+<dbus.pid> = my $pid
+    = open3( <dbus.in_fh>, <dbus.out_fh>, undef, @exec_params );
+if ( !<dbus.pid> ) {
+    <[base.log]>->( 0, "[!] failed to start dbus-daemon [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+}
+
+<[base.log]>->( 1, " : dbus-daemon process spawned [PID=$pid]" );
+
+<system.agent.initialized> = 1 if defined <dbus.pid>;
+
+<[base.agents.report_child_pid]>->(<dbus.pid>);
+
+<[event.add_io]>->(
+    {   'fd'      => <dbus.out_fh>,
+        'handler' => 'dbus.handler.daemon_output',
+        'data'    => {
+            'bin'           => 'dbus-daemon',
+            'pid'           => <dbus.pid>,
+            'log_whitelist' => [
+                'invalid Window parameter',
+                'XIO:  fatal IO error 11',
+                'XIO:  fatal IO error 104',
+                'after \d+ requests'
+            ]
+        }
+    }
+);
