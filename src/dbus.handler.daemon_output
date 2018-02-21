@@ -18,13 +18,13 @@ my $read_bytes = sysread( $read_fh, <dbus.output_buffer>,
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "$bin-server [PID:$pid] output filehandle closed." );
+    <[base.log]>->( 1, "$bin [PID:$pid] output filehandle closed." );
     kill( 9, $pid );                                  # to make sure
     my $err_str
         = defined <dbus.first_error>
         ? ': "' . <dbus.first_error> . '"'
         : ' unexpectedly! (reason unknown)';
-    <[base.log]>->( 0, "$bin-server died" . $err_str );
+    <[base.log]>->( 0, "$bin died" . $err_str );
     <[base.log]>->( 1, "done." );
     exit(2);
 }
