@@ -7,8 +7,6 @@
 <x11.display>              //= ':0.0';
 <notify-osd.path.exec_bin> //= '/usr/lib/x86_64-linux-gnu/notify-osd';
 
-undef $ENV{'XAUTHORITY'};
-
 if ( !-f <notify-osd.path.exec_bin> ) {
     chomp( my $path = qx(find /usr/lib/ -name notify-osd) );
     if ( length($path) and -x $path ) {
