@@ -1,0 +1,24 @@
+
+  .:[ dbus wrapper agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+[load_config_file:'desktop']
+
+access.cmd.usr.core = help ping reload verify_instance socket_address
+
+modules.load = auth net io.ip dbus
+
+dbus.privs_user = <x11.user> # -> needs auto-discovery
+
+[load_modules:<modules.load>]
+[set_privs:<dbus.privs_user>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+[base.x11.get_display]
+
+[dbus.start_daemon]
+
+[event.loop]

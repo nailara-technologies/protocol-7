@@ -4,6 +4,7 @@
 buffer.system.log_cmd = log.msg
 
 [load_config_file:'defaults']
+[load_config_file:'desktop']
 
 access.cmd.usr.core = help ping reload verify_instance
 
@@ -16,7 +17,7 @@ modules.load = auth net io.ip compton
 compton.priority  = -16
 compton.renice_fh = [base.spawn.renice_child]
 
-[set_privs:'nailara']
+[set_privs:<x11.user>] # -> needs auto-discovery
 
 [net.connect_to_core:'tcp/ip']
 
