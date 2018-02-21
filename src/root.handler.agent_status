@@ -148,7 +148,9 @@ if (    $status ne 'online'
 }
 
 # instance startup failure hooks
-if ( $status eq 'failed' ) {
+if (    $old_status ne 'online'
+    and $old_status ne 'extbin'
+    and $status eq 'failed' ) {
     if ( exists $init_code->{'startup-failure'} ) {
         <[base.execute_agent_code]>
             ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
