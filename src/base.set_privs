@@ -5,13 +5,15 @@
 
 my $noop = ( defined $_[1] and $_[1] eq 'noop' ) ? 1 : 0;
 
-if ( not defined $_[0] or $_[0] eq '' ) {
+my $usr = shift;
+
+if ( !length( $usr // '' ) ) {
     <[base.log]>->( 0, 'can not change priviledges [no username supplied]' );
     return -1;
 } else {
 
     my ( $name, $pwd, $uid, $gid, $quota, $comment, $gcos, $home_dir, $shell )
-        = getpwnam( $_[0] );
+        = getpwnam($usr);
 
     my %_gid = map { $_ => 1 } split( / /, $( );
     my %egid = map { $_ => 1 } split( / /, $) );
@@ -22,29 +24,45 @@ if ( not defined $_[0] or $_[0] eq '' ) {
         and exists $egid{$gid}    # XXX: fix (secondary groups)!
         and $> == $uid and $< == $uid
         ) {
-        <[base.log]>->( 1, "set_privs: already am '$_[0]', doing nothing." );
+        <[base.log]>->( 1, "set_privs: already am '$usr', doing nothing." );
         return -2;
     } elsif ($<) {
         <[base.log]>->(
-            0, "can not change privs to user '$_[0]' [i am not root]"
+            0, "can not change privs to user '$usr' [i am not root]"
         );
         return -1;
     } else {
-        if ( not defined $name or $name ne $_[0] ) {
+        if ( not defined $name or $name ne $usr ) {
             <[base.log]>->(
-                0, "can not change priviledges to '$_[0]' [no such user]"
+                0, "can not change priviledges to '$usr' [no such user]"
             );
             return -1;
         } else {
             my @rgids;
             while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
                 push( @rgids, $_gid )
-                    if ( grep( $_ eq $_[0], split( /\s+/, $_members ) ) );
+                    if ( grep( $_ eq $usr, split( /\s+/, $_members ) ) );
+            }
+
+            if ( length( $home_dir // '' ) and !-d $home_dir ) {
+                <[base.log]>->(
+                    0,
+                    "<!> user '$usr' home directory missing"
+                        . " [creating $home_dir]"
+                );
+                make_path(
+                    $home_dir,
+                    {   'mode'  => 0700,
+                        'uid'   => $uid,
+                        'group' => $gid
+                    }
+                );
             }
 
             if ( !-d $home_dir ) {
-                <[base.log]>
-                    ->( 1, "home directory '$home_dir' does not exist" );
+                <[base.log]>->(
+                    0, "failed to create home directory '$home_dir'"
+                );
                 $home_dir = '/tmp/.home_' . $name;
                 if ( -d $home_dir ) {
                     <[base.log]>->(
@@ -54,9 +72,13 @@ if ( not defined $_[0] or $_[0] eq '' ) {
                     <[base.log]>->(
                         1, ": creating temporary home dir '$home_dir' .."
                     );
-                    mkdir( $home_dir, 0700 ) or warn "mkdir($home_dir): $!";
-                    chown( $uid, $gid, $home_dir )
-                        or warn "chown($home_dir): $!";
+                    make_path(
+                        $home_dir,
+                        {   'mode' => 0700,
+                            'uid'  => $uid,
+                            'gid'  => $gid
+                        }
+                    );
                 }
             }
 
@@ -79,7 +101,7 @@ if ( not defined $_[0] or $_[0] eq '' ) {
             $ENV{'NO_AT_BRIDGE'}    = 1;
             chdir($home_dir) or warn "chdir($home_dir): $!\n";
 
-            <[base.log]>->( 1, "changed priviledges to user '$_[0]'" );
+            <[base.log]>->( 1, "changed priviledges to user '$usr'" );
         }
     }
 }
