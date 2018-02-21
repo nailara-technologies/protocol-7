@@ -51,8 +51,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     if ( defined <root.agent.instance>->{$id} ) {
         return {
             'mode' => 'ack',
-            'data' => "agent instance '$id' already online!"
-                . " [core_sid:$core_sid]"
+            'data' => "agent instance '$id' already online! [$core_sid]"
             }
             if <root.agent.instance>->{$id}->{'status'} eq 'online';
         return {
@@ -74,8 +73,7 @@ foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
         ) {
         return {
             'mode' => 'ack',
-            'data' => "agent '$query_copy' already online!"
-                . " [core_sid:$core_sid]"
+            'data' => "agent '$query_copy' already online! [$core_sid]"
             }
             if defined $core_sid
             and <root.agent.instance>->{$id}->{'status'} eq 'online';
