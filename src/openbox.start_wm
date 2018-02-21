@@ -14,13 +14,10 @@ if ( !-f $cfg_path ) {
     exit(1);
 }
 
-my $dbus_prefix = 'dbus-launch --exit-with-session';
-
 <child.openbox.pid> = open(
     my $out_fh,
     join( ' ',
-        $dbus_prefix, <openbox.bin_path>,
-        "--sm-disable --config-file $cfg_path 2>&1 |" )
+        <openbox.bin_path>, "--sm-disable --config-file $cfg_path 2>&1 |" )
 );
 if ( !<child.openbox.pid> ) {
     <[base.log]>->( 0, "[!] failed to start openbox [$!]" );

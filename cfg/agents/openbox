@@ -3,9 +3,8 @@
 
 buffer.system.log_cmd = log.msg
 
-[set_privs:'nailara']
-
 [load_config_file:'defaults']
+[load_config_file:'desktop']
 
 access.cmd.usr.core = help ping version reload verify_instance get_pid
 
@@ -15,6 +14,9 @@ openbox.prefer_patched_openbox = 1 # see ./bin/openbox/..
 
 modules.load = auth net io.ip openbox
 [load_modules:<modules.load>]
+
+[set_privs:<x11.user>] # -> autodiscovery
+
 [init_modules]
 
 [net.connect_to_core:'tcp/ip']
