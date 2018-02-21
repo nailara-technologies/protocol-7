@@ -25,4 +25,4 @@ cpanm HTTP::Soup
 
 xvfb-run cpanm Gtk3::WebKit
 
-useradd nailara
+useradd -m -r nailara
