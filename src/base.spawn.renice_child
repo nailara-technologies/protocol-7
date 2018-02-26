@@ -12,7 +12,7 @@ die $@ if $@;
 my $child_code
     = '$0 = "'
     . <system.agent.name>
-    . '-<as_root>-renice-child "; '
+    . '-<root>-renice-child "; '
     . 'setpriority( 0, $1, $2 ) if <STDIN> =~ /^(\d+) (\-?\d+)$/';
 
 $SIG{'CHLD'} = 'IGNORE';

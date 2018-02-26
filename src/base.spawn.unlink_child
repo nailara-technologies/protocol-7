@@ -10,7 +10,7 @@ if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
         = 'map {$SIG{$_}="IGNORE"} ("INT","TERM","QUIT");'
         . ' $0 = "'
         . <system.agent.name>
-        . '-<as_root>-unlink-child ";'
+        . '-<root>-unlink-child ";'
         . ' foreach $f (<STDIN>){ chomp($f); unlink($f) }';
     <process.unlink_child.pid>
         = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
