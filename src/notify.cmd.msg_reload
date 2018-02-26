@@ -12,6 +12,9 @@ $ENV{'DISPLAY'} = <x11.display>;
 my @matches;
 my ( $title, $body );
 
+return { 'mode' => 'nack', 'data' => 'no message text submitted' }
+    if not defined $title;
+
 $txt_param =~ s|\\0||go;
 $txt_param =~ s,^\s*|\s*$,,g;
 
