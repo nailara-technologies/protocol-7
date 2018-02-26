@@ -10,7 +10,7 @@ if ( not exists <process.kill_child.w_fh> ) {
     my $child_code
         = '$0 = "'
         . <system.agent.name>
-        . '-<as_root>-kill-child "; while(<STDIN>){ kill(9, $1) if /^(\d+)$/ }';
+        . '-<root>-kill-child "; while(<STDIN>){ kill(9, $1) if /^(\d+)$/ }';
 
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
