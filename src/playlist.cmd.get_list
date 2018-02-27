@@ -9,6 +9,9 @@ my %file_types;
 my $reply_string   = '';
 my $type_list      = <playlist.file_types>;
 my $file_types_str = $$call{'args'} || '';
+
+<[base.log]>->( 2, "* processing playlist request for '$file_types_str'" );
+
 $subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
 
 map { $file_types{$_} = 1 } split / +/, $file_types_str;
