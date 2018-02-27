@@ -41,6 +41,8 @@ mpv.start_volume = 100 # % <- volume at startup ; fading to after 'core-idle'
 mpv.vo_backend = opengl # [vdpau|vaapi|x11|sdl...] ( see mpv -vo help )
 mpv.hwdec = auto
 
+mpv.playlist_type = video # <- changed to audio if started with 'audio' subname!
+
 mpv.fade_start_geom = 1x1--0--0
 #mpv.fade_start_geom = 31x31--0--0 # use this if above geometry fails at startup
 
@@ -73,6 +75,6 @@ mpv.coordinates = [base.x11.get_coordinates]
 
 [base.get_session_id]
 
-[mpv.get_playlist:'video']
+[mpv.get_playlist:<mpv.playlist_type>]
 
 [event.loop]
