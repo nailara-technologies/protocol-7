@@ -11,7 +11,8 @@ $sub_name = '[' . <system.agent.subname> . ']'
     and length(<system.agent.subname>);
 
 my $args_str = $file_type if defined $file_type;
-$args_str .= ' ' . $sub_name if defined $file_type and defined $sub_name;
+$args_str = $sub_name if defined $sub_name; # XXX: fix combinations -> '[audio]'
+
 my @args = defined $file_type ? ( 'args' => $args_str ) : ();
 
 <[base.proto.nailara.command.send.local]>->(
