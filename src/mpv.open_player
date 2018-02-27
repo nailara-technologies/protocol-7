@@ -17,6 +17,8 @@ my $mpv_params = <mpv.params>;
     and defined <system.agent.subname>
     and <system.agent.subname> eq 'audio';
 
+<mpv.playlist_type> = 'audio' if <mpv.audio_only>; # <- run with 'audio' subname
+
 if ( !<mpv.audio_only> ) {
 
     $ENV{'DISPLAY'} = <x11.display>;
