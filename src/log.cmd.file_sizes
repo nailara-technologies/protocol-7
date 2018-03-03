@@ -22,12 +22,13 @@ map {
     $total += $file_size_raw{$file_name} = [ stat("$_") ]->[7];
     $file_size_str{$file_name}
         = <[base.parser.human.fsize]>->( $file_size_raw{$file_name} );
-    $file_size_uval{$file_name} = $1 * $unit_value{$2}
-        if $file_size_str{$file_name} =~ /^(.+)(\w)$/;
+    $file_size_uval{$file_name}
+        = $file_size_str{$file_name} =~ /^(.+)(\w)$/
+        ? $1 * $unit_value{$2}
+        : $file_size_str{$file_name};
     } grep {
     /\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/
     } @{ <[file.all_files]>->(<log.nailara_log.path>) };
-
 foreach my $file_name (
     sort {
         sprintf( "%.1f", $file_size_uval{$a} ) <=>
