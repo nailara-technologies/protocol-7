@@ -9,7 +9,7 @@ my $known_deps = <[base.known_dependencies]>->{'perlmod'}->{$module_name} // {};
 $module_name = $known_deps->{'cpan'}
     if defined $known_deps->{'cpan'} and $known_deps->{'cpan'} ne $module_name;
 
-<[base.log]>->( 1, "installing perl module '$module_name'.." );
+<[base.log]>->( 1, ".: installing perl module '$module_name' :." );
 
 <system.host.os.dist.name> //= 'unknown';
 <system.host.os.dist.name> = 'debian'
