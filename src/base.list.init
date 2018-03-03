@@ -14,9 +14,8 @@ if ( not defined ${ $_[0] }{'max_elements'} or ${ $_[0] }{'max_elements'} < 1 )
 {
     <[base.log]>->(
         1,
-        'base.list.init: max_elements not set or zero, using '
-            . $max_elements_default
-            . ' as default'
+        'base.list.init: max_elements not set, defaulting to '
+            . $max_elements_default . '!'
     );
     ${ $_[0] }{'max_elements'} = $max_elements_default;
     return 3;
