@@ -52,7 +52,7 @@ int main( int argc, char * argv[] ) {
 
     /* connect to socket */
     if (connect( socket_fd, ( struct sockaddr * ) & addr, sizeof(addr) ) == -1){
-        printf( "< connect error > '%s': %s!", socket_path, strerror(errno) );
+        printf( "< connection failed > socket path '%s': %s!\n", socket_path, strerror(errno) );
         exit(-1);
     }
 
