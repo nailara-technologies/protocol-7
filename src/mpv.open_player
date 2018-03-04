@@ -23,10 +23,16 @@ if ( !<mpv.audio_only> ) {
 
     $ENV{'DISPLAY'} = <x11.display>;
 
-    if ( <x11.mode> eq 'xephyr' ) {
-        <[base.log]>->( 1, "setting vo_backend to 'x11' [xephyr mode]" );
-        <mpv.vo_backend> = 'opengl';
-        delete <mpv.hwdec>;
+    if (    <x11.mode> eq 'xephyr'
+        and defined <mpv.cfg.xephyr.vo>
+        and <mpv.vo_backend> ne <mpv.cfg.xephyr.vo> ) {
+        <mpv.vo_backend> = <mpv.cfg.xephyr.vo>;
+        <mpv.hwdec> = <mpv.cfg.xephyr.hwdec> if defined <mpv.cfg.xephyr.hwdec>;
+        <[base.log]>->(
+            1,
+            sprintf( "switching vo_backend to '%s' [xephyr mode]",
+                <mpv.vo_backend> )
+        );
     }
 
     if ( not defined <mpv.geometry> or exists <x11.geometry_was_undefined> ) {
