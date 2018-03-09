@@ -43,29 +43,8 @@ map { <[browser.init_view]>->($_) } ( 1, 2 );
 
 <browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
 
-$window->signal_connect(
-    'size_allocate',
-    sub {
-        my $self = shift;
-        my ( $w, $h ) = $self->get_size();
-
-        <browser.window.size> = { 'x' => $w, 'y' => $h };
-
-        my $zoom_level
-            = sprintf( "%.3f", <browser.zoom_level> * <browser.zoom_factor> );
-
-        foreach my $id ( 1 .. 2 ) {
-            my $scrw = <browser.gtk_obj.scrolled_window>->{$id};
-            my $view = <browser.gtk_obj.view>->{$id};
-
-            $scrw->size_allocate( { 'width' => $w, 'height' => $h } );
-            $view->size_allocate( { 'width' => $w, 'height' => $h } );
-
-            $view->set_zoom_level($zoom_level);
-        }
-        return 0;
-    }
-);
+$window->signal_connect( 'size_allocate',
+    $code{'browser.handler.size_allocate'} );
 
 $window->add($overlay);
 
