@@ -1,0 +1,23 @@
+# >:]
+
+# name = browser.handler.size_allocate
+
+my $self = shift;
+my ( $w, $h ) = $self->get_size();
+
+<browser.window.size> = { 'x' => $w, 'y' => $h };
+
+my $zoom_level
+    = sprintf( "%.3f", <browser.zoom_level> * <browser.zoom_factor> );
+
+foreach my $id ( 1 .. 2 ) {
+    my $scrw = <browser.gtk_obj.scrolled_window>->{$id};
+    my $view = <browser.gtk_obj.view>->{$id};
+
+    $scrw->size_allocate( { 'width' => $w, 'height' => $h } );
+    $view->size_allocate( { 'width' => $w, 'height' => $h } );
+
+    $view->set_zoom_level($zoom_level);
+}
+
+return 0;
