@@ -301,7 +301,8 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                                 . $$route{'reply'}{'handler'} . ")"
                         );
                     }
-                } else {
+                } elsif ( exists $data{'session'}{ $$route{'source'}{'sid'} } )
+                {
 
                     # was filter hook applied? if so call reply handler
                     $route->{'hook_data'}->{'handler'}->(
@@ -317,6 +318,15 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                         {'output'}
                         .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
+                } else {
+                    <[base.log]>->(
+                        1,
+                        sprintf(
+                            '{%s} unknown session, dropped reply.. (%d bytes)',
+                            $$route{'source'}{'sid'},
+                            length("$s_cmd_id$cmd $$call_args{args}\n")
+                        )
+                    );
                 }
 
                 # delete route
