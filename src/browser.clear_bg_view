@@ -3,5 +3,10 @@
 # name = browser.clear_bg_view
 
 my $bg_index = <browser.overlay.index.bg>;
+my $bg_color = <browser.bg_color> // '#FFFFFF';
 my $view     = <browser.gtk_obj.view>->{$bg_index};
-$view->load_string( '', 'text/html', 'UTF-8', '' );
+
+$view->load_string(
+    "<html><body bgcolor=\"$bg_color\"></body><html>", 'text/html',
+    'UTF-8',                                           ''
+);
