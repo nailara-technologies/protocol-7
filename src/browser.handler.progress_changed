@@ -8,9 +8,12 @@ my $progress = shift;
 return 0
     if defined <browser.last_progress> and $progress == <browser.last_progress>;
 
+my $bg_color = <browser.bg_color> // '#FFFFFF';
+
 if ( exists <browser.last_progress> or $progress != 100 ) {
     my $fg_view  = <browser.gtk_obj.view>->{1};
     my $html_str = ${<browser.html_ref.loading_page>};
+    $html_str =~ s|\[BG_COLOR\]|$bg_color|sg;
     $html_str =~ s|\[COMPLETED_PERCENT\]|$progress|sg;
     $fg_view->load_string( $html_str, 'text/html', 'UTF-8', '' );
 }
