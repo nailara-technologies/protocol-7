@@ -4,7 +4,12 @@
 
 <browser.load_uri> = '';
 
+my $bg_color = <browser.bg_color> // '#FFFFFF';
+
 foreach my $id ( 1, 2 ) {
     my $view = <browser.gtk_obj.view>->{$id};
-    $view->load_string( '', 'text/html', 'UTF-8', '' );
+    $view->load_string(
+        "<html><body bgcolor=\"$bg_color\"></body><html>", 'text/html',
+        'UTF-8',                                           ''
+    );
 }
