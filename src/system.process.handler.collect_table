@@ -13,7 +13,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
     ( my $cpu = $p->pctcpu ) =~ s/^ +//;
     ( my $mem = $p->pctmem ) =~ s/^ +//;
-    next if $cpu eq 'inf' or $mem eq 'inf';
+    $cpu = 0 if $cpu !~ /^\d+(\.\d+)?$/;
     map { $_ = sprintf( "%.2f", $_ ) if length($_) > 7 } ( $cpu, $mem );
 
     $mem_used_percent += $mem;
