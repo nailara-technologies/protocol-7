@@ -4,6 +4,8 @@
 
 my $id = shift;
 
+my $bg_color = <browser.bg_color> // '#FFFFFF';
+
 my $filter_events = 1;
 
 %{<browser.blocked_signal_types>} = map { $_ => 1 } qw(
@@ -44,6 +46,10 @@ my $style_context = $scrolled_window->get_style_context();
 $style_context->add_provider( <browser.gtk_obj.css_prov>, -1 );
 
 my $view = Browser::WebView->new();
+$view->load_string(
+    "<html><body bgcolor=\"$bg_color\"></body><html>", 'text/html',
+    'UTF-8',                                           ''
+);
 
 <browser.view_index>->{$view} = $id;
 
