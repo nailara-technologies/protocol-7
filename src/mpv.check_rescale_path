@@ -24,6 +24,12 @@ if ( !-d <mpv.rescale_path> ) {
         <[base.log]>->(
             0, "autorescale disabled! (failed to create target directory)"
         );
+        delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
+    } else {    # XXX: if files disappeared...
+        delete <mpv.playlist_sha1>;
+        <[mpv.cmd.playlist_update]>;
     }
-    delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
+
 }    # XXX: } else { check permissions..
+
+# XXX: restart if it needs to recreate directory instead [files disappeared] ...
