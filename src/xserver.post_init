@@ -174,8 +174,13 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
     <[base.log]>->( 1, ": : display is on / connected :)" );
 
     my @max_size = <[xserver.max_screen_size]>;
-    if (   $max_size[0] > <xserver.x11>->width_in_pixels
-        or $max_size[1] > <xserver.x11>->height_in_pixels ) { # check start size
+
+    # XXX: make configurable..!
+    if (    defined <xserver.video_driver>
+        and <xserver.video_driver> ne 'qxl'
+        and (  $max_size[0] > <xserver.x11>->width_in_pixels
+            or $max_size[1] > <xserver.x11>->height_in_pixels )
+        ) {
         <[base.log]>->(
             0, "<!> xserver failed to select highest screen size <!>"
         );
