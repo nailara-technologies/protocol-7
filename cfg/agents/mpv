@@ -46,18 +46,22 @@ mpv.playlist_type = video # <- changed to audio if started with 'audio' subname!
 mpv.fade_start_geom = 1x1--0--0
 #mpv.fade_start_geom = 31x31--0--0 # use this if above geometry fails at startup
 
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+mpv.loop_plist_param = [mpv.loop_plist_param]
+
 #            --loop-playlist # for 'kiosk' mode
 #            --idle=once # with spawn on demand ...
-mpv.params = --idle --force-window --keep-open=yes \
+
+mpv.params = --idle --force-window --keep-open=yes \ # <mpv.loop_plist_param>
               --no-config --no-window-dragging --no-border \
               --no-input-terminal --no-input-cursor --input-vo-keyboard \
               --no-input-default-bindings --osc=no --osd-level=0 --really-quiet
 
-mpv.audio_params = -vo null --idle=yes --loop-playlist --no-config --really-quiet
-
-[init_modules]
-
-[set_privs:<system.privs.user>]
+mpv.audio_params = -vo null --idle=yes <mpv.loop_plist_param> \
+                   --no-config --really-quiet
 
 [net.connect_to_core:'tcp/ip']
 
