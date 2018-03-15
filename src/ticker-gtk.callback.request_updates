@@ -1,0 +1,10 @@
+# >:]
+
+# name = ticker-gtk.callback.request_updates
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.notify_online",
+        'call_args' => { 'args' => 'rss-ticker' },
+        'reply'     => { 'handler' => 'ticker-gtk.request_rss_update' }
+    }
+) if <ticker-gtk.request_rss_updates>;

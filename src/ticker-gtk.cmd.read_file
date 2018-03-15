@@ -24,10 +24,10 @@ if ( $new_sha eq <ticker-gtk.content.sha> ) {
 
 <[ticker-gtk.parse_text]>->(<ticker-gtk.content.txt>);
 
-<[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
-
 <ticker.current_file> = $file_path;
 
 <[base.log]>->( 2, "content updated [$new_sha]" );
+
+<[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
 
 return { 'mode' => 'ack', 'data' => 'content updated' }
