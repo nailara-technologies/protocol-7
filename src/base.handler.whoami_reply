@@ -4,6 +4,7 @@
 
 my $reply = shift;
 
+<base.callback_hooks.async_online> //= [];
 delete <base.in_progess.get_session_id>;
 
 if ( $reply->{'cmd'} ne 'ACK' ) {
@@ -18,13 +19,13 @@ if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
     my ( $agent_name, $core_sid ) = ( $1, $2 );
     if ( $agent_name ne <system.agent.name> ) {
         <[base.log]>->( 0, "whoami reply does not match internal agent name!" );
-
-        # return;
     }
     my $usr_str = $reply->{'params'}->{'route_user'};
     my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
     $data{'session'}{$local_sid}{'core_sid'} = $core_sid;
     <[base.log]>->( 1, "core session id $core_sid received!" );
+    <system.agent.initialized> = 1;
+    <[base.call_online_hooks]>;
 } else {
     <[base.log]>->(
         0, "protocol error (unexpected reply to whoami command!) [$reply_str]"
