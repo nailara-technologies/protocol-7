@@ -2,17 +2,35 @@
 
 # name = ticker-gtk.callback.draw
 
-if ( not defined <ticker-gtk.window_opened> or !<ticker-gtk.window_opened> ) {
-    <ticker-gtk.obj.window>->queue_draw();
-    <[base.sleep]>->(0.042);
-    return 1;
-}
-
 my ( $widget, $context, $ref_status ) = @_;
 
 <ticker-gtk.last_time> //= <[base.time]>->(8);
 
 my $window = <ticker-gtk.obj.window>;
+
+if ( not defined <ticker-gtk.window_opened>
+    or !<ticker-gtk.window_opened> ) {
+    ( my $title_pattern = <x11.title_str> ) =~ s|([\[\]])|\\$1|g;
+    unless ( <[base.x11.wait_for_window]>->( '^' . $title_pattern ) ) {
+        <[base.log]>->( 0, "failed to open window correctly, aborting..." );
+        exit(2);
+    }
+    <ticker-gtk.window_opened> = 1;
+    <[base.x11.assign_window]>;
+    <[event.add_timer]>->(
+        {   'after'    => 0,
+            'interval' => 0.017,
+            'handler'  => 'ticker-gtk.handler.fade_in'
+        }
+    ) if <ticker-gtk.use_transparency>;
+    <ticker-gtk.obj.window>->queue_draw();
+} elsif ( !$window->get_property('visible') or !<ticker-gtk.animation_started> )
+{
+    <ticker-gtk.obj.window>->queue_draw();
+    <[base.sleep]>->(0.042);
+    return 1;
+}
+
 <ticker-gtk.obj.context> = $context;
 
 <ticker-gtk.auto_speed_mode>         //= 0;
@@ -54,7 +72,10 @@ if (   !$window->is_composited
 my $speed = <ticker-gtk.speed> // 13;
 my $draw_shadow = $speed > 16 ? 0 : 1;
 
-if ( not defined <ticker-gtk.status.initialized> ) {
+# XXX: initialization part needs to be rewritten!
+if ( not defined <ticker-gtk.status.initialized>
+    or !<ticker-gtk.status.initialized> ) {
+    <[base.log]>->( 2, "calculating correct font size .." );
     my $new_font_size = 0;
     my $shadow_height = $draw_shadow ? 2 : 0;
     while (
@@ -68,13 +89,6 @@ if ( not defined <ticker-gtk.status.initialized> ) {
     <ticker-gtk.font.size> = $new_font_size - 1;
     $context->set_font_size(<ticker-gtk.font.size>);
 
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.notify_online",
-            'call_args' => { 'args' => 'rss-ticker' },
-            'reply'     => { 'handler' => 'ticker-gtk.request_rss_update' }
-        }
-    ) if <ticker-gtk.request_rss_updates>;
-
     <[base.async.get_session_id]>;    # agent status -> 'online'
 
     <ticker-gtk.status.initialized> = 1;
@@ -85,10 +99,7 @@ if ( not defined <ticker-gtk.status.initialized> ) {
 $context->set_font_face(<ticker-gtk.font.face>);
 $context->set_font_size(<ticker-gtk.font.size>);
 
-my $txt
-    = ( defined <ticker-gtk.content.txt> and length(<ticker-gtk.content.txt>) )
-    ? <ticker-gtk.content.txt>
-    : '[no content]';
+my $txt = <ticker-gtk.content.txt> // '';
 
 my $width = $context->text_extents($txt)->{'width'};
 
@@ -217,8 +228,6 @@ if (<ticker-gtk.animation_started>) {
             }
         );
     }
-} else {
-    Glib::Timeout->add( 23, $code{'ticker-gtk.handler.fade_in'}, undef, -42 );
 }
 
 <ticker-gtk.draw.fps> = sprintf( "%.2f", 1 / $delta_t );
