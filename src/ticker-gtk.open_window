@@ -34,8 +34,6 @@ $window->set_decorated(0);
 $window->set_keep_above(1) if <ticker-gtk.window.force_above>;
 $window->set_app_paintable(1);
 
-$window->signal_connect( draw => $code{'ticker-gtk.callback.draw'} );
-
 my $screen = $window->get_screen();
 
 my $rgba = 0;
@@ -47,39 +45,11 @@ if ( !$rgba ) {
     $window->set_visual($rgba);
 }
 
+$window->signal_connect( 'draw' => $code{'ticker-gtk.callback.draw'} );
+
 $window->show_all;
 
-Glib::Timeout->add( 42,   sub {0} );  # XXX: <<< weird Gtk3 event bug hotfix >>>
-Glib::Timeout->add( 2342, sub {0} );  # making sure there was no race condition
-
 <ticker-gtk.obj.window> = $window;
-
-if ( !<ticker-gtk.window.force_above> ) {
-    Glib::Idle->add(
-        sub {
-            ( my $title_pattern = <x11.title_str> ) =~ s|([\[\]])|\\$1|g;
-            unless ( <[base.x11.wait_for_window]>->( '^' . $title_pattern ) ) {
-                <[base.log]>->(
-                    0, "[!] window failed to open, aborting agent startup.."
-                );
-                exit(2);
-            }
-            <[base.x11.assign_window]>;
-            <ticker-gtk.window_opened> = 1;
-            <ticker-gtk.obj.window>->queue_draw;
-            return 0;
-        }
-    );
-} else {
-    Glib::Timeout->add(
-        0,
-        sub {
-            <ticker-gtk.window_opened> = 1;
-            <ticker-gtk.obj.window>->queue_draw;
-            return 0;
-        }
-    );
-}
 
 <ticker-gtk.font.size> = 0;
 
@@ -87,4 +57,6 @@ my $font_name = <ticker-gtk.font.name>;
 my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
 my $freetype  = Font::FreeType->new;
 my $ft_face   = $freetype->face($font_path);
-<ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face)
+<ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face);
+
+<ticker-gtk.obj.window>->queue_draw();

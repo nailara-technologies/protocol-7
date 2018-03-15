@@ -79,6 +79,8 @@ while ( my $word = shift @{$dseq} ) {
     $last_advance = $advance;
 }
 
+$complete = 1 if !length(<ticker-gtk.content.txt>);
+
 $x_skipped += $txt_map->{'space_width'} if $return_str =~ s/^ //;
 
 <ticker-gtk.last_substr> = [ $x_skipped, $return_str, $first_advance // 0 ];
