@@ -4,5 +4,8 @@
 
 <[base.log]>->( 1, "requesting content update from rss-ticker.." );
 
-<[base.proto.nailara.command.send.local]>
-    ->( { 'command' => "core.rss-ticker.resend_update" } );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => 'core.rss-ticker.resend_update',
+        'reply'   => { 'handler' => 'ticker-gtk.handler.resend_update_reply' }
+    }
+);
