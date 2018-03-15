@@ -171,6 +171,8 @@ if (    exists $data{'setup'}
         if defined <setup.aliases.source_agent_sid>;
 }
 
+<base.callback_hooks.async_online> //= []; # <- called after receiving core sid!
+
 # setting up command (argument) filter hooks
 <base.filter_hooks.command.ping.send> = 'base.handler.ping_time';
 <base.filter_hooks.command.ping.recv> = 'base.handler.ping_time_reply';
