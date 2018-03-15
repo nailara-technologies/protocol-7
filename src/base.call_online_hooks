@@ -1,0 +1,15 @@
+# >:]
+
+# name = base.call_online_hooks
+
+return
+       if not defined <base.callback_hooks.async_online>
+    or ref(<base.callback_hooks.async_online>) ne 'ARRAY'
+    or !@{<base.callback_hooks.async_online>};
+
+<[base.log]>->( 2, ": calling 'async_online' hooks ..." );
+
+map {
+    if ( defined $code{$_} and ref( $code{$_} ) eq 'CODE' ) { $code{$_}->() }
+    else { <[base.log]>->( 0, "async_online callback '$_' does not exist!" ); }
+} @{<base.callback_hooks.async_online>};
