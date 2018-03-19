@@ -9,14 +9,15 @@ Gtk3->init;
 
 my $window_mode = <ticker-gtk.window.force_above> ? 'popup' : 'toplevel';
 
-my $window = Gtk3::Window->new($window_mode);
+my $window = <ticker-gtk.obj.window> = Gtk3::Window->new($window_mode);
 
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 
 if ( $window->is_composited ) {
     <ticker-gtk.is_composited> = 1;
     <[base.log]>->( 1, "compositor detected.." );
-    $window->set_opacity(0);
+    $window->set_opacity(0)
+        if <ticker-gtk.use_transparency> and <ticker-gtk.do_custom_fade_in>;
 } else {
     <ticker-gtk.is_composited> = 0;
     <[base.log]>->( 1, "no compositor running.." );
@@ -49,7 +50,9 @@ $window->signal_connect( 'draw' => $code{'ticker-gtk.callback.draw'} );
 
 $window->show_all;
 
-<ticker-gtk.obj.window> = $window;
+<x11.id> = $window->get_toplevel()->get_window()->get_xid();
+
+<[base.x11.assign_window]>;
 
 <ticker-gtk.font.size> = 0;
 
