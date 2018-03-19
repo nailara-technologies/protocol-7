@@ -6,3 +6,10 @@
 
 <ticker-gtk.animation_started> = 1;
 <ticker-gtk.obj.window>->queue_draw();
+
+<[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => 0.017,
+        'handler'  => 'ticker-gtk.handler.fade_in'
+    }
+) if <ticker-gtk.use_transparency> and <ticker-gtk.do_custom_fade_in>;
