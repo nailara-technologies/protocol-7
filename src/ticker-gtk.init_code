@@ -7,6 +7,13 @@
 <[base.perlmod.autoload]>->('Convert::Color');
 <[base.perlmod.autoload]>->('Cairo::GObject');
 <[base.perlmod.autoload]>->('Font::FreeType');
+<[base.perlmod.autoload]>->('Glib::Object::Introspection');
+
+Glib::Object::Introspection->setup(
+    basename => 'GdkX11',
+    version  => '3.0',
+    package  => 'Gtk3::Gdk'
+);
 
 open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 
@@ -14,6 +21,7 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 <ticker-gtk.font.name>         //= 'DroidSans-Bold'; # XXX: <- load from config!
 <ticker-gtk.font.size_percent> //= 100;              # XXX: <- load from config!
 <ticker-gtk.use_transparency>  //= 1;
+<ticker-gtk.do_custom_fade_in> //= 1;
 <ticker-gtk.cfg.draw_outline>  //= 1;
 <ticker-gtk.animation_started> //= 0;
 <ticker-gtk.paused>            //= 0;

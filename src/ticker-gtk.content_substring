@@ -26,7 +26,7 @@ my $first_advance;
 my $last_advance = 0;
 <ticker-gtk.draw_seq> = 0;
 
-if ( exists <ticker-gtk.switch_at_seq> and <ticker-gtk.switch_at_seq> == 1 ) {
+if ( defined <ticker-gtk.switch_at_seq> and <ticker-gtk.switch_at_seq> == 1 ) {
     <ticker-gtk.content.current.txt_map>
         = delete <ticker-gtk.content.queued.txt_map>;
     delete <ticker-gtk.switch_at_seq>;
@@ -52,7 +52,7 @@ repeat:
 <ticker-gtk.draw_seq>++;
 
 $dseq
-    = ( exists <ticker-gtk.switch_at_seq>
+    = ( defined <ticker-gtk.switch_at_seq>
         and <ticker-gtk.draw_seq> >= <ticker-gtk.switch_at_seq> )
     ? [ @{ $next_map->{'sequence'} } ]
     : [ @{ $txt_map->{'sequence'} } ];
