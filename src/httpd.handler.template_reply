@@ -13,6 +13,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         $session->{'buffer'}->{'output'}
             .= <[httpd.error_page]>->( $sid, $args_str )
             if $args_str > 0;    # 000 == drop connection, without any reply!
+        delete $session->{'content'};
         $session->{'flush_shutdown'} = 1;
         return;
 
@@ -24,7 +25,13 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
 
 my $content_part = $reply->{'params'}->{'part'};
 
-if ( $reply->{'cmd'} eq 'RAW' ) {
+if ( $reply->{'cmd'} eq 'NACK' ) {
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $sid, 500 );
+    delete $session->{'content'};
+    $session->{'flush_shutdown'} = 1;
+    return;
+
+} elsif ( $reply->{'cmd'} eq 'RAW' ) {
     $content_part->{'data'} = \$reply->{'data'};
 } else {
     $content_part->{'data'} = \$args_str;
@@ -62,7 +69,6 @@ if ($cmd_count) {
         )
         . join( '',
         map { ${ $_->{'data'} } } @{ $session->{'content'}->{'sequence'} } );
-
+    delete $session->{'content'};
     $session->{'flush_shutdown'} = 1;
 }
-
