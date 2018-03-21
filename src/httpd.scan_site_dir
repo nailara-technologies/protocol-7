@@ -13,6 +13,7 @@ if ( !opendir( $dir_fh, $site_dir ) ) {
 
 <httpd.cfg.hostnames> = {};
 my @vhosts;
+my @ext_dirs;
 foreach
     my $dir_name ( sort { length($a) <=> length($b) } sort readdir($dir_fh) ) {
     ( my $dir_path = "$site_dir/$dir_name" ) =~ s|//|/|g;
@@ -23,7 +24,15 @@ foreach
         and !-d readlink($dir_path)
         and readlink($dir_path) !~ /^\d{3}$/ );    # <- custom status codes..
     if ( -l $dir_path ) {
-        push( @vhosts, $dir_name );
+        my $link_target = readlink("$site_dir/$dir_name");
+        if (    <httpd.cfg.external_sitedirs>
+            and $link_target =~ /\//
+            and -d $link_target ) {
+            <httpd.cfg.hostnames>->{$dir_name} = abs_path($link_target);
+            push( @ext_dirs, $dir_name, abs_path($link_target) );
+        } else {
+            push( @vhosts, $dir_name );
+        }
     } else {
         <[base.log]>->( 1, ":   host : $dir_name" );
         <httpd.cfg.hostnames>->{$dir_name} = $dir_path;
@@ -31,6 +40,13 @@ foreach
 }
 my $vh_max_len = 0;
 map { $vh_max_len = length($_) if length($_) > $vh_max_len } @vhosts;
+while (@ext_dirs) {
+    my $dir_name    = shift(@ext_dirs);
+    my $link_target = shift(@ext_dirs);
+    <[base.log]>->(
+        1, sprintf( ": extdir : %-${vh_max_len}s -> $link_target", "$dir_name" )
+    );
+}
 foreach my $link_name (@vhosts) {
     ( my $link_target = readlink("$site_dir/$link_name") ) =~ s|//|/|g;
     if ( $link_target =~ /^\d{3}$/ ) {
