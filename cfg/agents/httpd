@@ -21,9 +21,11 @@ my.connect_handler  =  httpd.connect_handler
 httpd.system.user   =  httpd
 httpd.system.group  =  www
 
-httpd.site_dir = /var/www/
+httpd.site_dir   = /var/www/
+httpd.upload_dir = /var/tmp/httpd/uploads
 
-httpd.cfg.external_sitedirs = 0 # allow site dir links pointing httpd directory?
+httpd.cfg.external_sitedirs = 1 # allow site_dir links to point outs. httpd dir?
+httpd.cfg.uploads_enabled   = 1 # files need to be explicitly announced to agent
 
 max.connections     =  1024
 httpd.timeout       =  23
