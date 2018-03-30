@@ -7,6 +7,16 @@ use File::Path qw(make_path);
 use Digest::MD5 qw( md5_base64 );
 use LWPx::ParanoidAgent;
 
+if (    @ARGV
+    and shift(@ARGV) eq '--if-missing'
+    and length(qx(which mediainfo))
+    and qx(mediainfo --Version) =~ /^MediaInfo / ) {
+    print "\n:\n";
+    my $local_version = &local_version;
+    print ": mediainfo is present :) [not missing]\n:\n\n";
+    exit(0);
+}
+
 my $ua = LWPx::ParanoidAgent->new;
 
 $ENV{'PATH'} = '/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
