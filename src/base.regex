@@ -4,11 +4,11 @@
 <[base.log]>->( 1, 'compiling base regex cache...' );
 
 return {
-
     'cmd_id'     => qr|\d{2,15}|o,                   # a valid command(route) id
     'sid'        => qr|\d{3,17}|o,                   # a valid session id
     'authmethod' => qr|[0-9A-Za-z\-_]{1,18}|o,       # auth method name string
     'usr'        => qr|[a-z][a-zA-Z0-9\-_]{1,16}|o,  # a valid username string
-    'cmd'        => qr|[a-z][a-zA-Z0-9\-_]{1,22}|o,  # nailara command string
-
+    'subname'    => qr|[0-9a-zA-Z\-_]{1,17}|o,       # [<subname>] string ...
+    'usr_sub' => qr|[a-z][a-zA-Z0-9\-_]{1,16}\[[0-9a-zA-Z\-_]{1,17}\]|o, # u+sub
+    'cmd' => qr|[a-z][a-zA-Z0-9\-_]{1,22}|o,    # nailara command string
 };
