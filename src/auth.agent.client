@@ -2,6 +2,7 @@
 
 # name  = auth.agent.client
 # descr = authenticate to core in agent mode
+# note  : agent name can now contain subnames
 
 my ( $filehandle, $agent, $key_str ) = @_;
 
@@ -15,14 +16,15 @@ if ( defined $key_str
         if ( $smiley =~ />:\]\n/ ) {
             <[base.log]>->( 1, "[*] protocol banner detected.." );
         } else {
-            <[base.log]>->( 0, "[#] some strange backendserver found!" );
+            <[base.log]>->(
+                0, "[#] protocol error! (no valid connection banner)"
+            );
             exit(1);
         }
     }
 
     <[net.out]>->( $filehandle, "select agent\n" );
     my $answer = readline($filehandle);
-
     if ( not defined $answer ) {
         <[base.log]>->( 0, "[X] connection lost :/" );
         return undef;
@@ -31,6 +33,7 @@ if ( defined $key_str
         return undef;
     }
 
+    <[base.log]>->( 2, "[>] authenticating as '$agent'.." );
     <[net.out]>->( $filehandle, "$agent $key_str\n" );
     delete $KEYS{'agent'}{'session_key'}
         if exists $KEYS{'agent'}{'session_key'};
@@ -41,7 +44,7 @@ if ( defined $key_str
         <[base.log]>->( 0, "[X] connection lost :/" );
         return undef;
     } elsif ( $answer =~ /^YEAH / ) {
-        <[base.log]>->( 1, "[*] successfully authenticated :)" );
+        <[base.log]>->( 1, "[*] success, remote end authorized session! :)" );
         return $filehandle;
     } elsif ( $answer =~ /^FAIL / ) {
         <[base.log]>->( 0, "[#] access denied :(" );
