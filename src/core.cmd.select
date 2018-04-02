@@ -4,35 +4,53 @@
 # param = <user|sid>
 # descr = append user/sid to base [command] path
 
-my $usr_sid = $_[0]->{'session_id'};
-my $param = $_[0]->{'args'} // '';
+my $param      = $_[0]->{'args'} // '';
+my $usr_sid    = $_[0]->{'session_id'};
+my $source_usr = $data{'session'}{$usr_sid}{'user'};
 
 return {
     'mode' => 'nack',
-    'data' => 'expected user name or session id [for prepending]'
+    'data' => 'invalid parameter syntax for user/agent/sid!'
     }
-    if $param !~ <regex.base.usr> and $param !~ <regex.base.sid>;
+    if $param !~ <regex.base.usr>
+    and $param !~ <regex.base.sid>
+    and $param !~ <regex.base.usr_sub>;
 
-my $found = 0;
-if ( $param =~ /^\d+$/ ) {
+my $target_subname;
+my $found      = 0;
+my $regex      = <regex.base>;
+my $target_usr = $param;
+my $append_str = $param;
+if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
     $found = 1 if exists $data{'session'}{$param};
-} else {
+} elsif ( $param =~ /^($regex->{usr})\[($regex->{subname})\]$/ ) { # <usr>[<sn>]
+    my $match_sid;
+    $target_usr     = $1;
+    $target_subname = $2;
+    map {
+                $match_sid = $_
+            and $found++
+            if $data{'session'}{$_}{'user'} eq $target_usr
+            and defined $data{'session'}{$_}{'subname'}
+            and $data{'session'}{$_}{'subname'} eq $target_subname
+        }
+        keys %{ $data{'session'} };
+    return {
+        'mode' => 'nack',
+        'data' => 'multiple $param found (not supported yet!)'
+        }
+        if $found > 1;
+    $append_str = $match_sid;
+} else {    # <username>
     map { $found++ if $data{'session'}{$_}{'user'} eq $param }
         keys %{ $data{'session'} };
 }
-
-my $source_usr = $data{'session'}{$usr_sid}{'user'};
-
-my $target_usr = $param;
-$target_usr = $data{'session'}{$param}{'user'}
-    if $param =~ /^\d+$/
-    and exists $data{'session'}{$param};
 
 return {
     'mode' => 'nack',
     'data' => $param =~ /^\d+$/
     ? "there is no active session $param"
-    : "user '$param' not online"
+    : "user '$target_usr' not online"
     }
     if !$found
     or $target_usr !~ <access.cmd.regex.usr>->{$source_usr};
@@ -40,8 +58,8 @@ return {
 my @base_path
     = ( defined $data{'session'}{$usr_sid}{'base_path'}
         and length $data{'session'}{$usr_sid}{'base_path'} )
-    ? ( $data{'session'}{$usr_sid}{'base_path'}, $param )
-    : ($param);
+    ? ( $data{'session'}{$usr_sid}{'base_path'}, $append_str )
+    : ($append_str);
 
 $data{'session'}{$usr_sid}{'base_path'} = join( '.', @base_path );
 
@@ -50,6 +68,6 @@ my $bp_str = $data{'session'}{$usr_sid}{'base_path'};
 
 return {
     'mode' => 'ack',
-    'data' => "base_path = '$bp_str', 'unselect' & '../' = reset,"
-        . " '..<cmd>' accesses parent"
-    }
+    'data' => "base_path = '$bp_str', 'unselect' or '../' to reset,"
+        . " '..<cmd>' for parent"
+};
