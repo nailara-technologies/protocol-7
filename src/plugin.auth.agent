@@ -20,30 +20,33 @@ if (   not %KEYS
     return 2;
 }
 
-if ( $$input =~ s/^($re->{usr}) (\S+)\n// ) {
-    my ( $usr, $key_hash ) = ( $1, blake2b_384_b64($2) );
-    my $kick_user = 1;
+if ( $$input =~ s/^($re->{usr}|$re->{usr_sub}) (\S+)\n// ) {
+    my ( $usr, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
+
+    my $subname = $usr =~ s|\[($re->{subname})\]$|| ? $1 : '';
+
     if ( exists $KEYS{'auth'}{'agent'}->{$usr} ) {
 
         if ( $key_hash eq $KEYS{'auth'}{'agent'}{$usr} ) {
+            $data{'session'}{$id}{'subname'} = $subname if length($subname);
             delete $KEYS{'auth'}{'agent'}{$usr};
             $$output .= "YEAH >:P\n";
 
             #            <[net.update.client_conf]>->($id);
 
-            <[base.log]>
-                ->( 1, "[$id] authentication successful (agent: '$1')" );
+            <[base.log]>->(
+                1, "[$id] ('$auth_name') authentication successful!"
+            );
             return ( 0, $usr );
         }
-
-        if ($kick_user) {
-            <[base.log]>->( 0, "[$id] [auth pwd] access denied to agent '$1'" );
-            $$output .= "FAIL >:|\n";
-            return 2;
-        }
     } else {
-        <[base.log]>->( 0, "[$id] (agent) authentication protocol error!" );
-        $$output .= ">:[\n";
+        <[base.log]>
+            ->( 0, "[$id] [agent] access denied to agent '$auth_name'" );
+        $$output .= "FAIL >:|\n";
         return 1;
     }
+} else {
+    <[base.log]>->( 0, "[$id] (agent) authentication protocol error!" );
+    $$output .= ">:[\n";
+    return 1;
 }
