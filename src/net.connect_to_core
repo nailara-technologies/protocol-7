@@ -48,8 +48,10 @@ foreach my $c_type (@connection_types) {
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
-            $core_sock
-                = <[auth.agent.client]>->( $core_sock, <system.agent.name> );
+            my $auth_name = <system.agent.name>;
+            $auth_name .= '[' . <system.agent.subname> . ']'
+                if defined <system.agent.subname>;
+            $core_sock = <[auth.agent.client]>->( $core_sock, $auth_name );
         } else {
             $core_sock = undef;
         }
