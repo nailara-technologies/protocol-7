@@ -8,13 +8,13 @@
   - core:/changed priviledges to user '[^\']+'$/
     [agent.change_status:<instance_id>,'online'];
 
-  - core:/^\[(\d+)\] authentication successful \((user|agent): '(\w+)'\)$/
+  - core:/^\[(\d+)\] auth ok, access granted \< (user|agent) '(\w+)' \>/
     [root.handler.core_session_auth:<instance_id>,<match_1>,<match_2>,<match_3>]
 
   - core:/^\[(\d+)\] connection closed.$/
     [root.handler.core_session_close:<instance_id>,<match_1>]
 
-  - !core:/^core session id (\d+) received!$/
+  - !core:/^core session id received \.\. \[(\d+)\]$/
     [agent.set_core_sid:<instance_id>,<match_1>]
 
   - !core:/^instance verification string : '([a-f\d]+)'$/
