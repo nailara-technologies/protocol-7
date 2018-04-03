@@ -31,9 +31,7 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
 
     if ( not defined $client_uname ) {
         $$output .= ">:[\a\n";
-        <[base.log]>->(
-            0, "[$id] peer UID is undefined, unix auth aborted!"
-        );
+        <[base.log]>->( 0, "[$id] peer UID is undefined, unix auth aborted!" );
         return 2;
     }
 
@@ -48,7 +46,7 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
         $$output .= "YEAH >:P\n";
         my $s_usr = $client_uname ne $auth_user ? " [$client_uname]" : '';
         <[base.log]>->(
-            1, "[$id] authentication successful (user: '$auth_user')" . $s_usr
+            1, "[$id] auth ok, access granted < user '$auth_user' >" . $s_usr
         );
         return ( 0, $auth_user );
     } else {
