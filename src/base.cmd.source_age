@@ -1,0 +1,35 @@
+# >:]
+
+# name  = base.cmd.source_age
+# param = ['date'] [Y_flt]
+# descr = code age from nailara version [year]timestamp
+
+my $param_str = shift->{'args'} // '';
+my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
+
+my $year_float = 2000 + $1 if <nailara.version> =~ /^(\d+(\.\d+)?)\-/;
+
+if ( $param_str =~ /^(\d{1,5}+(\.\d{1,5})?)\-?/ ) {
+    $year_float = 2000 + $1;
+} elsif ( length($param_str) ) {
+    return {
+        'mode' => 'nack',
+        'data' => "invalid version timestamp syntax! (see 'nailara_version')"
+    };
+}
+
+my $year_int  = int($year_float);
+my $ydays     = <[base.time.is_leap_year]>->($year_int) ? 365 : 364;
+my $day_float = sprintf( "%.5f", $ydays * ( $year_float - $year_int ) );
+my $vers_unix = timegm_nocheck( 0, 0, 0, $day_float, 0, $year_int );
+
+return {
+    'mode' => 'ack',
+    'data' => <[base.parser.timestamp]>->($vers_unix)
+    }
+    if $date_mode;
+
+return {
+    'mode' => 'ack',
+    'data' => <[base.parser.duration]>->($vers_unix)
+    }
