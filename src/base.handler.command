@@ -66,10 +66,10 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
 
 # check for multiple line commands
 
-if ( $$input
-    =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?[\w\d\-\_\.]+)\+\n(.*\n)*\.\n/o ) {
+if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
+{
     $cmd = $1;
-    if ( $$input =~ s/^(\($re->{cmd_id}\)|)[\w\d\-\_\.]+\+\n//o ) {
+    if ( $$input =~ s/^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n//o ) {
 
         # core agent 'select' command [ base path prefix handling ]
         $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
@@ -127,7 +127,7 @@ if ( $$input
 
 # incomplete multiple line command
 
-elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *[\w\.]+)\+\n/o ) {
+elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n/o ) {
 
     $_[0]->w->start;
     return 1;
@@ -144,7 +144,7 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *RAW +(\d+)\n)/o
 
 # single command line
 
-elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\d\-\_\.\/]+)( +(.+)|)\n//o ) {
+elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n//o ) {
 
     $_[0]->w->start;
 
@@ -155,7 +155,7 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[\w\d\-\_\.\/]+)( +(.+)|)\n//o ) {
     $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
         if defined $data{'session'}{$id}{'base_path'}
         and $cmd !~ /^(\($re->{cmd_id}\)|) *(unselect|basepath)$/
-        and $cmd !~ s/^(\($re->{cmd_id}\) *| *)\.\.([\w\d\-\_\.]+|)/$1$2/;
+        and $cmd !~ s/^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|)/$1$2/;
 
     #       ^ commands prefixed with '..' mean "parent" to 'select'ed base_path!
     #         'unselect' and '../' are synonyms, they reset the base_path to ''!
@@ -589,12 +589,15 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         # ^ uhm, this will take a while (route discovery feature..)
 
     } elsif (
-        $cmd =~ s/^($re->{sid}|$re->{usr})\.
-                    ((($re->{sid}|$re->{usr})\.)*
+        $cmd =~ s/^($re->{sid}|$re->{usr}|$re->{usr_sub})\.
+                    ((($re->{sid}|$re->{usr}|$re->{usr_sub})\.)*
                     $re->{cmd})$/$2/gxo
         ) {
         my $target_name = $1;                  # usr|sid
         my $command_str = $2;                  # [ deeper targets + ] command
+        my $target_subname
+            = $target_name =~ s|\[($re->{subname})\]$|| ? $1 : undef;
+
         my @send_sids;
 
         if ( $target_name =~ /^$re->{sid}$/ ) {
@@ -607,6 +610,14 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 next if $data{'session'}{$target_sid}{'mode'} ne 'client';
+
+                #### 'target[subname]' syntax:
+                next
+                    if defined $target_subname
+                    and ( not defined $data{'session'}{$target_sid}{'subname'}
+                    or $data{'session'}{$target_sid}{'subname'} ne
+                    $target_subname );
+
                 push( @send_sids, $target_sid );
             }
         } elsif ( my $v_id
@@ -639,15 +650,20 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
                 if ( not exists <agents.virtual>->{$v_id}->{'starting'} ) {
                     <agents.virtual>->{$v_id}->{'starting'} = 1;
+
+                    my $spawn_name = <agents.virtual>->{$v_id}->{'name'};
+
+                    # TODO: subname behaviour needs refinement / configuration!
+                    $spawn_name .= "[$target_subname]"
+                        if defined $target_subname;
+
                     <[base.log]>->(
-                        1, "ondemand agent '$target_name' requested ..."
+                        1, "ondemand agent '$spawn_name' requested ..."
                     );
                     <[base.proto.nailara.command.send.local]>->(
                         {   'command'   => $target_command,
-                            'call_args' => {
-                                'args' => <agents.virtual>->{$v_id}->{'name'}
-                            },
-                            'reply' => {
+                            'call_args' => { 'args' => $spawn_name },
+                            'reply'     => {
                                 'handler' => 'base.handler.ondemand_startup',
                                 'params'  => { 'v_id' => $v_id }
                             }
