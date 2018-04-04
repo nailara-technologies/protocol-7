@@ -167,7 +167,7 @@ $sic_mode = 1 && push( @exec_args, '-sic' )
 my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, "spawning '$agent_sn_str'-agent initiated ..." );
+<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..." );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
@@ -225,7 +225,7 @@ $instances->{$instance_id}->{'subname'} = $agent_subname
 
 # push init code to agent (stdin) if in 'sic' mode..
 if ($sic_mode) {
-    <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent..." );
+    <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent.." );
     foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
         my $code_line = $_line;    # keeping original intact!
              # <{foo.bar}> (agent instance namespace) variable fetching syntax
