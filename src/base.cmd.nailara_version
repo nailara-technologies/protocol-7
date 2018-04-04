@@ -1,0 +1,9 @@
+# >:]
+
+# name  = base.cmd.nailara_version
+# descr = running version of nailara agent source code
+
+return { 'mode' => 'nack', 'data' => 'the nailara version is not defined! :(' }
+    if not defined <nailara.version>;
+
+return { 'mode' => 'ack', 'data' => <nailara.version> }
