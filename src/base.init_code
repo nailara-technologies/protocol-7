@@ -133,7 +133,12 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
         'online', 'session_key', 'slay',      'exit',
         'clear',  'time',        'localtime', 'ondemand_agent'
     );
+
+    <base.help.cmd.source_age.param> = "['date']";  # <- disabling second param!
+    <base.help.cmd.source_age.descr> =~ s|\[year\]||;
+
     <[base.disable_command]>->('whoami') if <system.agent.name> ne 'media';
+
 }
 
 map {

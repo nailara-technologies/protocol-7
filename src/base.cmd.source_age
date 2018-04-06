@@ -9,7 +9,13 @@ my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
 
 my $year_float = 2000 + $1 if <nailara.version> =~ /^(\d+(\.\d+)?)\-/;
 
-if ( $param_str =~ /^(\d{1,5}+(\.\d{1,5})?)\-?/ ) {
+if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
+    and length($param_str) ) {    # <- no second param for non-core type agents!
+    return {
+        'mode' => 'nack',
+        'data' => "ask 'core' type agent for custom values!"
+    };
+} elsif ( $param_str =~ /^(\d{1,5}+(\.\d{1,5})?)\-?/ ) {
     $year_float = 2000 + $1;
 } elsif ( length($param_str) ) {
     return {
