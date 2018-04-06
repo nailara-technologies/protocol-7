@@ -1,7 +1,7 @@
 #! >:]
 
 # name  = mpv.cmd.fade
-# param = <vol_%> [speed]
+# param = [+-]<vol_%> [speed]
 # descr = fade audio volume to given level
 
 my $id = $$call{'session_id'};
@@ -10,9 +10,13 @@ my ( $volume, $speed ) = split( / +/, $$call{'args'} // '', 2 );
 
 return { 'mode' => 'nack', 'data' => 'expected numerical percent value' }
     if !length($volume)
-    or $volume !~ /^\d+(\.\d+)?\%?$/;
+    or $volume !~ /^[\-\+]?\d+(\.\d+)?\%?$/;
 
 $volume =~ s|\%$||;
+$volume = <mpv.current.volume> + sprintf( "%.3f", $volume )
+    if $volume =~ /^[\-\+]/;
+$volume = 0 if $volume < 0;
+
 $speed //= <mpv.audio.fade_speed> //= 42;
 
 return { 'mode' => 'nack', 'data' => 'speed is a float number [0..100]' }
