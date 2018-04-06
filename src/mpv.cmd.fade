@@ -6,10 +6,6 @@
 
 my $id = $$call{'session_id'};
 
-return { 'mode' => 'nack', 'data' => 'too many overlapping fade requests' }
-    if defined <mpv.audio_fade.reply_ids>
-    and @{<mpv.audio_fade.reply_ids>} > 100;
-
 my ( $volume, $speed ) = split( / +/, $$call{'args'} // '', 2 );
 
 return { 'mode' => 'nack', 'data' => 'expected numerical percent value' }
@@ -39,10 +35,19 @@ my $min_delay = 0.0064;
 <mpv.audio_fade.reply_ids> //= [];
 push( @{<mpv.audio_fade.reply_ids>}, $$call{'reply_id'} );
 
+# deal with existing fade seq.
 delete <mpv.time.fade_volume>;
 <mpv.timer.audio_fade>->cancel
     if defined <mpv.timer.audio_fade>
     and <mpv.timer.audio_fade>->is_active;
+<[base.callback.cmd_reply]>->(
+    shift( @{<mpv.audio_fade.reply_ids>} ),
+    {   'mode' => 'ack',
+        'data' => "volume fade cancelled (overridden)"
+    }
+    )
+    if defined <mpv.audio_fade.reply_ids>
+    and @{<mpv.audio_fade.reply_ids>} > 100;
 
 <mpv.audio_fade.start_vol> = <mpv.current.volume>;
 <mpv.audio_fade.delta_vol> = sprintf( "%.5f", $volume - <mpv.current.volume> );
