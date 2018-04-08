@@ -6,28 +6,32 @@
 # return  = $reply { mode data }
 # descr   = displays on-screen notification message
 
-my $txt   = $$call{'args'};
-my $id    = $$call{'session_id'};
+my $txt_param = $$call{'args'} // '';
+my $id = $$call{'session_id'};
+
+return { 'mode' => 'nack', 'data' => 'no message text submitted' }
+    if !length($txt_param);
+
 my $title = 'nailara message';
 
-if ( !utf8::is_utf8($txt) or !utf8::valid($txt) ) {
-    utf8::decode($txt);
-    utf8::downgrade($txt);
+if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
+    utf8::decode($txt_param);
+    utf8::downgrade($txt_param);
 }
 
 $ENV{'DISPLAY'} = <x11.display>;
 
-$title = $1 if $txt =~ s/^(\S+)\s+//;
+$title = $1 if $txt_param =~ s/^(\S+)\s+//;
 
-map { $_ =~ s|\\0||go } ( $title, $txt );  # prevents message from being cut off
+map { $_ =~ s|\\0||go } ( $title, $txt_param );  # <- prevents msg being cut off
 
-if ( defined $txt and $txt ne '' ) {
-    my $msg_str = <system.verbosity> >= 3 ? " ['$txt']" : ' ...';
+if ( defined $txt_param and $txt_param ne '' ) {
+    my $msg_str = <system.verbosity> >= 3 ? " ['$txt_param']" : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     if (!system(
             <notify.path.notify_send>,  '-i',
             <notify.path.nailara_icon>, " < $title >",
-            "\n$txt\n"
+            "\n$txt_param\n"
         )
         ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
