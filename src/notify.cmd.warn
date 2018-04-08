@@ -4,8 +4,16 @@
 # param = '<title>' '<message>'
 # descr = show notification message with warning icon
 
-my $txt_param = $$call{'args'};
-my $id        = $$call{'session_id'};
+my $txt_param = $$call{'args'} // '';
+my $id = $$call{'session_id'};
+
+return { 'mode' => 'nack', 'data' => 'no message text submitted' }
+    if !length($txt_param);
+
+if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
+    utf8::decode($txt_param);
+    utf8::downgrade($txt_param);
+}
 
 $ENV{'DISPLAY'} = <x11.display>;
 
@@ -20,6 +28,7 @@ if ( $txt_param =~ /('[^']+\'[^']*){1,2}/ ) {
         push( @matches, $1 );
     }
 }
+
 if ( !length($txt_param) and @matches ) {
     ( $title, $body ) = @matches;
 } else {
