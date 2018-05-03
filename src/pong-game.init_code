@@ -1,0 +1,24 @@
+# >:]
+
+# name = pong-game.init_code
+
+<[base.perlmod.autoload]>->('IPC::Open3');
+
+<pong-game.cfg.bin_path> //= '/usr/local/bin/pong-game';
+<pong-game.cfg.res_path> //= '/usr/local/share/pong-game';
+
+if ( !-x <pong-game.cfg.bin_path> ) {
+    <[base.log]>->(
+        0, "pong game binary not found at '%s', aborting...",
+        <pong-game.cfg.bin_path>
+    );
+    exit(1);
+} elsif ( !-d <pong-game.cfg.res_path> ) {
+    <[base.log]>->(
+        0, "pong game ressource path not found [%s], aborting...",
+        <pong-game.cfg.res_path>
+    );
+    exit(1);
+}
+
+0;
