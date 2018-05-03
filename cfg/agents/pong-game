@@ -1,0 +1,32 @@
+
+  .:[ pong-game wrapper agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+system.privs.user = nailara
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping reload verify_instance version
+
+pong-game.cfg.bin_path = '/usr/local/bin/pong-game'
+
+modules.load = auth net digest io.ip pong-game
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+[base.x11.get_coordinates]
+
+# pong-game.subcfg = [base.x11.get_subconfig]
+# [pong-game.process_subcfg]
+
+[base.get_session_id]
+
+[pong-game.open_window]
+
+[event.loop]
