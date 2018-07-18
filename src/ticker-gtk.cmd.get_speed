@@ -1,0 +1,12 @@
+# >:]
+
+# name  = ticker-gtk.cmd.get_speed
+# descr = return current ticker scroll speed
+
+my $current_speed = <ticker-gtk.speed> // '';
+
+if ( !length($current_speed) ) {
+    return { 'mode' => 'nack', 'data' => 'scroll speed undefined (( ! ))' };
+} else {
+    return { 'mode' => 'ack', 'data' => sprintf( "%.3f", $current_speed ) };
+}
