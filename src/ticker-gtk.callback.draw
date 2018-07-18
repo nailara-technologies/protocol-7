@@ -31,9 +31,23 @@ if ( <ticker-gtk.status.initialized>
 <ticker-gtk.bg_col>              //= [ 1, 1, 1 ];
 <ticker-gtk.bg_alpha> //= 100;    # transparent default
 
-<ticker-gtk.speed> = 5
-    if not defined <ticker-gtk.speed> or <ticker-gtk.speed> < 5;
-<ticker-gtk.speed> = 42 if <ticker-gtk.speed> > 42;
+if ( not defined <ticker-gtk.speed> ) {
+    <ticker-gtk.speed> //= <ticker-gtk.default_speed> // 16;  # internal default
+    <[base.log]>->(
+        0,
+        sprintf( "ticker scroll speed undefined [using default : %s]",
+            <ticker-gtk.speed> )
+    );
+} else {
+    <ticker-gtk.speed_logged> //= 0;
+    <ticker-gtk.speed> = 5  if <ticker-gtk.speed> < 5;
+    <ticker-gtk.speed> = 42 if <ticker-gtk.speed> > 42;
+    <[base.log]>->(
+        1,
+        sprintf( "initializing with ticker scroll speed = %s",
+            <ticker-gtk.speed> )
+    ) if !<ticker-gtk.speed_logged>++;
+}
 
 <ticker-gtk.slowdown.percent> = 0
     if <ticker-gtk.slowdown.percent> < 0 or <ticker-gtk.slowdown.percent> > 100;
