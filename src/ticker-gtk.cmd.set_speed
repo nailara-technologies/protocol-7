@@ -1,0 +1,24 @@
+# >:]
+
+# name  = ticker-gtk.cmd.set_speed
+# descr = change ticker scroll speed
+
+my $new_speed = $$call{'args'} // '';
+
+if (   !length($new_speed)
+    or $new_speed !~ /^\d+(\.\d+)?$/
+    or $new_speed < 5
+    or $new_speed > 42 ) {
+    return { 'mode' => 'nack', 'data' => 'scroll speed expected [5..42]' };
+} elsif ( $new_speed == <ticker-gtk.speed> ) {
+    return {
+        'mode' => 'nack',
+        'data' => 'scroll speed is already at ' . <ticker-gtk.speed>
+    };
+} else {
+    <ticker-gtk.speed> = $new_speed;
+    return {
+        'mode' => 'ack',
+        'data' => sprintf( "scroll speed now %.1f", $new_speed )
+    };
+}
