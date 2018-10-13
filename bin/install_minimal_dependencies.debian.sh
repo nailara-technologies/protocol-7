@@ -15,7 +15,8 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
   libdigest-crc-perl libclass-accessor-lite-perl libc6-dev \
-  liburi-perl libbsd-resource-perl
+  liburi-perl libbsd-resource-perl \
+  libtest-requires-perl libtest-sharedfork-perl libmodule-build-pluggable-perl
 
 cpanm CryptX POSIX::1003 Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
       https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git Digest::BLAKE2 \
