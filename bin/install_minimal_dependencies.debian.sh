@@ -3,8 +3,8 @@
 NAILARA_ROOT=/usr/local/nailara
 
 useradd -m -r nailara
-ln -v -f -s $NAILARA_ROOT/bin/nailara /usr/bin/nailara
-ln -v -f -s $NAILARA_ROOT/bin/nshell /usr/bin/nshell
+ln -v -f -s $NAILARA_ROOT/bin/nailara /usr/local/bin/nailara
+ln -v -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
 cp -v $NAILARA_ROOT/lib/systemd/system/nailara-root.service /lib/systemd/system/
 
