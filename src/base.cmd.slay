@@ -14,8 +14,10 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
 
     if ( $usr =~ /\s/ ) { ( $usr, $slay_message ) = split( /\s/, $usr, 2 ) }
 
-    if (   exists $data{'user'}{$usr}{'session'}
-        or exists $data{'session'}{$usr} ) {
+    if (exists $data{'user'}{$usr}{'session'}
+        or ( exists $data{'session'}{$usr}
+            and $data{'session'}{$usr}{'mode'} ne 'server' )
+    ) {
         my $msg_string = $slay_message;
         <[base.log]>->( 2, "slaying of user '$usr' requested!" );
         foreach my $sid ( keys %{ $data{'session'} } ) {
@@ -44,8 +46,12 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
         };
     } else {
         my $u_str = $usr =~ /^\d+$/ ? 'session' : 'user';
-        return { 'mode' => 'nack', 'data' => "found no such $u_str ($usr)" };
+        my $fail_msg = "found no such $u_str ($usr)";
+        $fail_msg = "will not destroy server mode sessions! >;["
+            if exists $data{'session'}{$usr}
+            and $data{'session'}{$usr}{'mode'} eq 'server';
+        return { 'mode' => 'nack', 'data' => $fail_msg };
     }
 } else {
-    $$reply{'data'} = 'invalid username or session id';
+    $$reply{'data'} = 'not a valid username or session id syntax!';
 }
