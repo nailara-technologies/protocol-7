@@ -3,11 +3,11 @@
 # name  = jobqueue.check_dependencies
 # descr = check if job dependencies have been resolved and move jobs if required
 
-<[base.log]>->( 2, "checking job dependencies..." );
-
 my $job_list = <jobqueue.joblist>;
 
 return undef if !$job_list->{'count'}->{'depending'};
+
+<[base.log]>->( 2, "checking job dependencies" );
 
 my $job_queue  = $job_list->{'depending'};
 my $prio_queue = $job_queue->{'by_priority'};
@@ -17,11 +17,11 @@ foreach my $prio ( sort { $a <=> $b } keys %$prio_queue ) {
 
     foreach my $job_id ( @{ $prio_queue->{$prio} } ) {
         my $object_id = $job_list->{'by_id'}->{$job_id}->{'object_id'};
-        <[base.log]>->( 2, "dependencies check for object $object_id.." );
+        <[base.log]>->( 2, ": dependencies check [object $object_id]" );
         if (   not defined $object_id
             or not exists <dependency.chain>->{$object_id}
             or <[dependency.ok]>->($object_id) ) {
-            <[base.log]>->( 1, "dependencies resolved for object $object_id!" );
+            <[base.log]>->( 1, ": resolved dependencies [obj.$object_id]" );
             <[jobqueue.move_job]>->( $job_id, 'queued' );
         }
     }

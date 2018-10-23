@@ -138,7 +138,7 @@ if ( $mode eq 'server' ) {
         @timeout = (
             'timeout' => <httpd.timeout> || 13,
             'timeout_cb' => sub {
-                <[base.log]>->( 1, "[$id] http timeout!" );
+                <[base.log]>->( 1, "[$id] .. http timeout .." );
                 $data{'session'}{$id}{'shutdown'} = 1;
             }
         );
