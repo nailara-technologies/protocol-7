@@ -33,7 +33,7 @@ if ( defined $http_host ) {
 
     if ( exists <httpd.cfg.hostnames>->{'default'} ) {
         <[base.log]>->(
-            1, "[$id] Host '$http_host' does not exist, selecting 'default'"
+            1, "[$id] no config for \"$http_host\", using 'default'"
         );
         return 'default';
     } else {
