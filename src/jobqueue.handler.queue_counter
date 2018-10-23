@@ -30,8 +30,8 @@ if ( $queue_name eq 'queued' ) {
         <[jobqueue.move_job]>->( $job_id, 'depending' );
         <[base.log]>->( 1, "moved job '$job_id' into 'depending' queue" );
     } else {
-        <[jobqueue.exec_job]>->($job_id);
         <[jobqueue.move_job]>->( $job_id, 'running' );
+        <[jobqueue.exec_job]>->($job_id);
     }
 }
 <[jobqueue.check_dependencies]>;
