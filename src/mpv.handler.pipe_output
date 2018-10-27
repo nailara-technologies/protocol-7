@@ -12,8 +12,8 @@ my $pid     = $process->{'pid'};
 <mpv.pipe.buffer> //= '';
 if ( defined $read_fh ) {
     $bytes
-        = sysread( $read_fh, <mpv.pipe.buffer>, 4096,
-        length(<mpv.pipe.buffer>) ) // 0;
+        = sysread( $read_fh, <mpv.pipe.buffer>, 16 * 1024,
+        length(<mpv.pipe.buffer>) ) // 0; # XXX: needs 'safer' read method (len)
 }
 
 if ( not defined $read_fh or $bytes == 0 or not defined <mpv.pipe.buffer> ) {
@@ -48,6 +48,20 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     }
 
     if (    exists $decoded->{'error'}
+        and $decoded->{'error'} ne 'success'
+        and $reply_id = shift @{<mpv.reply_ids>} ) {
+
+        <[base.log]>->(
+            0, "[$reply_id] pipe-NACK [" . $decoded->{'error'} . "]"
+        );
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'nack',
+                'data' => 'player child replied "' . $decoded->{'error'} . '"!'
+            }
+        );
+        next;
+    } elsif ( exists $decoded->{'error'}
         and exists <mpv.command.reply>
         and ref(<mpv.command.reply>) eq 'ARRAY'
         and @{<mpv.command.reply>} ) {
@@ -65,22 +79,10 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
 
         next;
     } elsif ( exists $decoded->{'error'}
-        and $decoded->{'error'} ne 'success'
-        and $reply_id = shift @{<mpv.reply_ids>} ) {
-        <[base.log]>->(
-            2, "[$reply_id] pipe-NACK [" . $decoded->{'error'} . "]"
-        );
-        <[base.callback.cmd_reply]>->(
-            $reply_id,
-            {   'mode' => 'nack',
-                'data' => 'mpv process replied "' . $decoded->{'error'} . '"!'
-            }
-        );
-        next;
-    } elsif ( exists $decoded->{'error'}
         and $decoded->{'error'} eq 'success'
         and exists <mpv.success_reply_str>
         and $reply_id = shift @{<mpv.reply_ids>} ) {
+
         <[base.log]>->(
             2, "[$reply_id] pipe-ACK [" . <mpv.success_reply_str> . "]"
         );
@@ -91,7 +93,7 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         next;
     }
 
-    # log remaining output
+    # log output [ no reply_id case ]
     my $log_level
         = ( exists $decoded->{'error'} and $decoded->{'error'} ne 'success' )
         ? 0
