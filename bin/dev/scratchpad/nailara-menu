@@ -1,0 +1,132 @@
+#!/usr/bin/perl
+
+BEGIN { $ENV{'NO_AT_BRIDGE'} = 1 }
+
+use utf8;
+use strict;
+use warnings;
+use File::Spec;
+use Gtk3 '-init';
+use feature ':5.10';
+use Glib qw/TRUE FALSE/;
+
+use Data::Dumper 'Dumper';
+
+( my $image_path = File::Spec->rel2abs($0) )
+    =~ s,[^/]+/[^/]+$,data/gfx/nailara_logo.png,;
+
+$image_path = '/tmp/nailara_logo.png' if `hostname` =~ /zeropoint/;    # XXX!
+
+my $scale_factor = 0.044;    # <- of screen width ...
+
+die "display environment variable not set" if not defined $ENV{'DISPLAY'};
+die "image file '$image_path' not found"   if !-f $image_path;
+
+#open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on termin. xserver
+
+my $window = Gtk3::Window->new('toplevel');
+$window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
+$window->signal_connect( 'touch-event' => \&menu_open );
+$window->signal_connect( 'button-release-event' => \&menu_open );
+$window->signal_connect( 'configure-event'      => \&position_changed );
+
+my $use_transparency = $window->is_composited ? 1 : 0;
+$window->set_opacity(1) if $use_transparency;
+$window->set_position('none');
+$window->set_border_width(0);
+$window->set_keep_below(1);
+$window->set_decorated(0);
+$window->stick;
+
+$window->set_app_paintable(1);
+my $screen = $window->get_screen();
+
+if ($use_transparency) {
+    my $rgba = $screen->get_rgba_visual();
+    $window->set_visual($rgba);
+}
+
+my $css_prov = Gtk3::CssProvider->new();
+$css_prov->load_from_data(<<EOT);
+          menu { background-color:#000013; border-color:#000042; color:#0055CC; font-size:x-large }
+          menu *:hover { background-color:#000042; color:#0088FF }
+          menu *:focus { background-color:#000042; color:#0088FF }
+EOT
+Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+
+my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($image_path);
+my $img_w = $pbuf->get_width();
+my $img_h = $pbuf->get_height();
+my $scr_w = $screen->get_width();
+my $scr_h = $screen->get_height();
+my $image = Gtk3::Image->new_from_pixbuf(
+    $pbuf->scale_simple(
+        sprintf( "%.0f", $scr_w * $scale_factor ),
+        sprintf( "%.0f", $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) ),
+        'hyper'
+    )
+);
+
+$window->add($image);
+
+##
+my $menu = Gtk3::Menu->new();
+
+my $trance_item = Gtk3::MenuItem->new_with_label("root.start trance");
+$trance_item->signal_connect(
+    'activate' => sub {qx(/usr/local/bin/unx root.start trance)} );
+$menu->append($trance_item);
+$trance_item = Gtk3::MenuItem->new_with_label("root.stop trance");
+$trance_item->signal_connect(
+    'activate' => sub {qx(/usr/local/bin/unx root.stop trance)} );
+$menu->append($trance_item);
+
+my $rt_item = Gtk3::MenuItem->new_with_label("root.start rt");
+$rt_item->signal_connect(
+    'activate' => sub {qx(/usr/local/bin/unx root.start rt)} );
+$menu->append($rt_item);
+
+my $dpms_item = Gtk3::MenuItem->new_with_label("xserver.dpms_force_off");
+$dpms_item->signal_connect(
+    'activate' => sub {qx(/usr/local/bin/unx xserver.dpms_force_off)} );
+$menu->append($dpms_item);
+
+my $quit_item = Gtk3::MenuItem->new_with_label("Quit");
+$quit_item->signal_connect( 'activate' => sub { Gtk3->main_quit } );
+$menu->append($quit_item);
+
+$menu->set_property( 'rect-anchor-dx', -42 );
+
+#$menu->set_property( 'anchor-hints',   'flip-y' );
+#$menu->set_opacity(0.88);
+$menu->show_all;
+##
+
+$window->move( 1836, 0 );
+$window->move( 1711, 0 ) if `hostname` =~ /w520/;
+
+$window->show_all;
+
+Gtk3->main;
+
+###[SUBROUTINES]################################################################
+
+sub menu_open {
+    my ( $window, $event ) = @_;
+    print "[menu_open]\n";
+
+    # Gtk3->main_quit; exit;
+    $menu->popup_at_widget( $window, 'east', 'east' );
+}
+
+sub position_changed {
+    print "< position changed >\n";
+}
+
+sub handler_menu_activated {
+    my $menuitem  = shift;
+    my $label_str = $menuitem->get_label();
+
+    #my $active_str = $menu->get_active()->get_label;
+    print "<activated> $label_str\n";
+}
