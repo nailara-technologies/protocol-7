@@ -1,29 +1,8 @@
 # >:]
 
 # name  = crypt.cbc.init_code
-# descr = initialize Crypt::CBC module and default cipher list
+# descr = initialize Crypt::Mode::CBC module
 
-<[base.perlmod.autoload]>->('Crypt::CBC');
-
-my $template;
-
-# known Crypt::CBC ciphers:
-my @cipher_list = qw(
-    Crypt::Twofish2
-    Crypt::Twofish
-    Crypt::Eksblowfish::Family
-    Crypt::Blowfish
-    Crypt::Rijndael
-    Crypt::AES
-);
-
-foreach my $cipher (@cipher_list) {
-    $data{'crypt'}{'cbc'}{'cipher_list'}{$cipher} = {
-        'installed' => undef,    # (unknown)
-                                 # 'is_loaded' => [0|1],
-                                 # 'descr_txt' => <apropos descr text>
-    };
-}
-<[crypt.cbc.check_installed]>->( \@cipher_list );
+<[base.perlmod.autoload]>->('Crypt::Mode::CBC');
 
 0;
