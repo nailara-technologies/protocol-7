@@ -14,12 +14,13 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libterm-readpassword-perl libterm-readline-perl-perl libdigest-sha-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
-  libdigest-crc-perl libclass-accessor-lite-perl libc6-dev \
-  liburi-perl libbsd-resource-perl libcryptx-perl \
+  libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libsub-uplevel-perl \
+  liburi-perl libbsd-resource-perl libcryptx-perl libtest-exception-perl \
   libtest-requires-perl libtest-sharedfork-perl libmodule-build-pluggable-perl &&
 
-cpanm POSIX::1003 Crypt::Curve25519 Crypt::Ed25519 Digest::Skein Digest::BLAKE2 \
-      File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam
+cpanm Crypt::Curve25519 Crypt::Ed25519 Digest::Skein Digest::BLAKE2 \
+      File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam &&
 
+cpanm --force POSIX::1003 # <- temporary forced (localtime test fails) <<!>>
 
 # XXX cpan2deb --recursive --build --install-deps --install-build-deps --install
