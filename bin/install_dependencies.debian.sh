@@ -1,5 +1,8 @@
 #!/bin/sh
 
+#<!> see 'install_browser_agent_dependencies.sh' for additional dependencies <!>
+#         #####################################
+
 apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter \
             compton openbox hsetroot xserver-xorg xserver-xephyr xvfb \
             mpv ffmpeg expect mediainfo dbus-x11 libnotify-bin notify-osd \
