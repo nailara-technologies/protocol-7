@@ -41,6 +41,13 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
     and <ticker.redraw_delay> >= 5
     and <ticker.redraw_delay> <= 42;
 
+# XXX fix range [1..100?]
+<ticker-gtk.speed> = delete <ticker.speed>
+    if defined <ticker.speed>
+    and <ticker.speed> =~ /^\d+$/
+    and <ticker.speed> >= 5
+    and <ticker.speed> <= 42;
+
 <ticker-gtk.font.name> = <ticker.font.name> if defined <ticker.font.name>;
 <ticker-gtk.font.color> //= [ 0, 0, 0 ];
 
