@@ -11,7 +11,7 @@ apt-get -y install pciutils cpanminus libevent-perl libproc-processtable-perl \
   libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libglib-perl \
   libgtk3-perl libx11-protocol-perl libx11-protocol-other-perl \
   libx11-keyboard-perl liblinux-inotify2-perl openbox hsetroot xvfb \
-  libwebkitgtk-3.0-dev libtest-needsdisplay-perl libcryptx-perl \
+  libgtk3-webkit2-perl libtest-needsdisplay-perl libcryptx-perl \
   libextutils-pkgconfig-perl libextutils-depends-perl
 
 cpanm Crypt::Curve25519 Crypt::Ed25519 \
