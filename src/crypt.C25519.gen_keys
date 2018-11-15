@@ -8,7 +8,7 @@ my $key_name = shift // 'default';
 
 $KEYS{'C25519'} //= {};
 
-die "a C25519 key with name '$key_name' already exists"
+return warn "a C25519 key with name '$key_name' already exists!"
     if exists $KEYS{'C25519'}{$key_name};
 
 my ( $pubkey, $privkey ) = Crypt::Ed25519::generate_keypair();
