@@ -16,6 +16,10 @@ die "failed to obtain home directory for user '$usr'"
     if ( not defined $homedir or !length($homedir) )
     and not defined <crypt.C25519.key_dir>;
 
+return
+    <[base.log]>->( 0, "<!> no homedir access for user '$usr', aborting init!" )
+    if !-r $homedir;
+
 my $key_name = 'default';                                           # <- cfg (?)
 my $key_dir = <crypt.C25519.key_dir> //= "$homedir/.nailara/keys";
 my $key_basepath = <crypt.C25519.key_basepath>
@@ -27,25 +31,27 @@ if ( !-d $key_dir ) {
     warn $@ if $@;
 }
 
-if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
+if ( !-f $key_basepath and !-f "$key_basepath.pub" and -r $key_basepath ) {
     <[base.log]>->( 0, "generating default C25519 key pair for '$usr' ..." );
-    <[crypt.C25519.gen_keys]>->($key_name);
     my %key_b64u = ( 'priv' => '', 'pub' => '' );
-    foreach my $type ( 'priv', 'pub' ) {
-        my $file_name = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
-        open( my $k_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
-        if ( $type eq 'pub' ) {
-            chmod( 0644, "$file_name.$$" ) or die "chmod: $!";
-        } else {
-            chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
+    if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
+        foreach my $type ( 'priv', 'pub' ) {
+            my $file_name
+                = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
+            open( my $k_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
+            if ( $type eq 'pub' ) {
+                chmod( 0644, "$file_name.$$" ) or die "chmod: $!";
+            } else {
+                chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
+            }
+            $key_b64u{$type}
+                = encode_base64url( $KEYS{'C25519'}{$key_name}{$type} );
+            printf( {$k_fh} "%s\n", $key_b64u{$type} );
+            close($k_fh);
+            rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
+            chown( $uid, $gid, $file_name ) or warn "$file_name: $!";
+            <[base.log]>->( 1, ": $file_name" );
         }
-        $key_b64u{$type}
-            = encode_base64url( $KEYS{'C25519'}{$key_name}{$type} );
-        printf( {$k_fh} "%s\n", $key_b64u{$type} );
-        close($k_fh);
-        rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
-        chown( $uid, $gid, $file_name ) or warn "$file_name: $!";
-        <[base.log]>->( 1, ": $file_name" );
     }
 
     if ( defined <crypt.C25519.root_key_url> ) {
@@ -104,11 +110,16 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
         <[base.log]>->( 1, ": no root key path defined, skipped key signing!" );
     }
 } elsif ( not defined $KEYS{'C25519'}{$key_name} ) {
-    <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [$homedir/]" );
-    $KEYS{'C25519'}{$key_name}{'priv'}
-        = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
-    $KEYS{'C25519'}{$key_name}{'pub'}
-        = decode_base64url( ${ <[file.slurp]>->("$key_basepath.pub") } );
+    my $pubkey_file = "$key_basepath.pub";
+    if ( -r $key_basepath and -r $pubkey_file ) {
+        <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [$homedir/]" );
+        $KEYS{'C25519'}{$key_name}{'priv'}
+            = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
+        $KEYS{'C25519'}{$key_name}{'pub'}
+            = decode_base64url( ${ <[file.slurp]>->($pubkey_file) } );
+    } else {
+        warn "failed to load '$key_name' key pair!";
+    }
 }
 
 while ( glob $key_basepath . '.{rkp,sig}.*' ) {
