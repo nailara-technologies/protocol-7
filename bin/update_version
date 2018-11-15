@@ -29,24 +29,29 @@ our $r_vers_file  = File::Spec->catfile( $cfg_path, 'release.version' );
 my $readme_md    = File::Spec->catfile( $root_path, 'README.md' );
 my $old_version  = get_old_version();
 my $git          = Git::Wrapper->new($root_path);
-my $commit_count = $git->log;
+my $commit_count = $git->log - 1;
+
 $commit_count-- if $amend;
-my $version_base = gen_ver_string($commit_count);
-my $increment    = $down ? -1 : 1;
-my $iteration    = 0;
+
+my $version_base = gen_ver_string( $commit_count + 1 - $reset );
+my $minor        = $down ? -1 : 1;
+my $new_minor    = 0;
+
+warn $old_version;
 
 if ( $old_version =~ /^(.+)\.(\d+)$/ ) {
-    my $old_base = $1;
-    my $old_iter = $2;
-    $increment = 0 if $increment < 0 and !$old_iter;
+    my $old_base  = $1;
+    my $old_minor = $2;
+
+    $minor = 0 if $minor < 0 and !$old_minor;
     map { $_ =~ s/^[^-]+-// } ( $old_base, $version_base );
-    $iteration = $old_iter + $increment if $version_base eq $old_base;
+    $new_minor = $old_minor + $minor if $amend;
 }
 
-$iteration = 1 if $amend and !$iteration;
-$iteration = 0 if $reset;
+$new_minor = 0 if $reset;
+$new_minor = 1 if $amend and !$new_minor;
 
-my $version_string = gen_ver_string( $commit_count, $iteration );
+my $version_string = gen_ver_string( $commit_count + 1 - $reset, $new_minor );
 
 ## no a longer release version (modified)
 $git->add($r_vers_file)
@@ -82,8 +87,8 @@ print ":\n: updated version : $version_string\n:\n";
 
 sub gen_ver_string {
     my $count_str = shift;
-    my $iteration = shift // '';
-    $count_str .= '.' . $iteration if length($iteration);
+    my $new_minor = shift // '';
+    $count_str .= '.' . $new_minor if length($new_minor);
     return join( '-', year_float(), $count_str );
 }
 
@@ -101,8 +106,8 @@ sub year_float {
     my $float = shift // 4;
     my @time  = gmtime;
     my $year  = 1900 + $time[5];
-    my $days = is_leap_year($year) ? 365 : 364;
-    my $yday = $time[7]
+    my $days  = is_leap_year($year) ? 365 : 364;
+    my $yday  = $time[7]
         + 1 / 24 * ( $time[2] + 1 / 60 * $time[1] + 1 / 3600 * $time[0] );
     return
         sprintf( "%.0${float}f", $year % 100 + ( 1 / $days ) * ( 1 + $yday ) );
