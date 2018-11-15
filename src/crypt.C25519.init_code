@@ -23,7 +23,8 @@ my $key_basepath = <crypt.C25519.key_basepath>
 
 if ( !-d $key_dir ) {
     <[base.log]>->( 1, "creating key directory '$key_dir' .." );
-    make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
+    eval { make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } ) };
+    warn $@ if $@;
 }
 
 if ( !-f $key_basepath and !-f "$key_basepath.pub" ) {
