@@ -19,12 +19,18 @@ if ( not exists $jobs->{$job_id} ) {
     return;
 }
 
-my $prio = $jobs->{$job_id}->{'priority'};
+my $prio         = $jobs->{$job_id}->{'priority'};
 my $source_queue = $jobs->{$job_id}->{'status'};
 
 return if $source_queue eq $target_queue;    # XXX: warn?
 
-<[base.log]>->( 2, "moving job $job_id [ '$source_queue' > '$target_queue' ]" );
+<[base.log]>->(
+    2,
+    sprintf(
+        "moving job %d [ '%s' -> '%s' ]",
+        $job_id, $source_queue, $target_queue
+    )
+);
 
 my $sq = $job_list->{$source_queue};
 my $tq = $job_list->{$target_queue};
