@@ -25,10 +25,10 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
                 or $usr =~ /^\d+$/ and $usr eq $sid ) {
                 if ( $call->{'session_id'} eq $sid ) {
                     $killed_own = 1;
-                    $msg_string = "you just forcefully closed your own session!"
-                        if keys( %{ $data{'user'}{$usr}{'session'} } ) == 1;
+                    $msg_string = "just killed your own session!"; # TERM reply!
+                } else {
+                    <[base.session.shutdown]>->( $sid, $msg_string );
                 }
-                <[base.session.shutdown]>->( $sid, $msg_string );
                 <[base.log]>->( 0, "slaying session $sid ($usr)" );
                 $killed++;
             }
@@ -41,7 +41,7 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
         $reply_string .= " ($yours_str)" if $killed_own;
         $reply_string = $msg_string if $killed_own and $killed == 1;
         return {
-            'mode' => $killed_own ? 'shutdown' : 'ack',
+            'mode' => $killed_own ? 'term' : 'ack',
             'data' => $reply_string
         };
     } else {
