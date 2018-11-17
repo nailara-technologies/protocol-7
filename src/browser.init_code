@@ -115,7 +115,8 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
 # [ workaround to suppress weird/untraceable Event.pm warnings on load timeout ]
 <sig_warn_blacklist.package> = 'Carp';
 <sig_warn_blacklist.pattern>
-    = qr/Source ID \d+ was not found when attempting to remove it/;
+    = qr/Source ID \d+ was not found when attempting to remove it
+        |GLib-LOG \*\*: posix_spawn avoided/;
 
 open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 
