@@ -3,9 +3,9 @@
 # name = layout.process_layout
 
 my $layout_name = shift;
-die "expected valid layout name"
+return <[base.log]>->( 0, "process_layout: expected a valid layout name!" )
     if not defined $layout_name or !length($layout_name);
-die "layout $layout_name not found"
+return <[base.log]>->( 0, "there is no layout named \"$layout_name\" defined!" )
     if not exists <layout.config.layouts>->{$layout_name};
 
 <[base.log]>->( 1, "processing layout '$layout_name'.." );
@@ -197,8 +197,7 @@ if (<layout.watch_tiles.poll_tile_color>) {
         );
         <[base.proto.nailara.command.send.local]>->(
             {   'command' => 'core.xserver.bg_color',
-                'reply' =>
-                    { 'handler' => 'layout.handler.bg_color_reply' }
+                'reply'   => { 'handler' => 'layout.handler.bg_color_reply' }
             }
         );
     }
