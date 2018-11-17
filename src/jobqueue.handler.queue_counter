@@ -7,14 +7,12 @@ my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
 <jobqueue.counter.last>->{$queue_name} //= 0;
 
 if ( <system.verbosity> > 1 or <system.internal_verbosity> > 1 ) {
-    my $spaces = 7 - length($queue_name);
-    $spaces = 0 if $spaces < 0;
     <[base.log]>->(
         2,
         sprintf(
-            ": jobqueue  < $queue_name >%s count: %d --> $$counter_ref",
-            ' ' x $spaces,
-            <jobqueue.counter.last>->{$queue_name}
+            ": number of jobs : %9s : %03d --> %03d",
+            "\"$queue_name\"", <jobqueue.counter.last>->{$queue_name},
+            $$counter_ref
         )
     ) if $$counter_ref != <jobqueue.counter.last>->{$queue_name};
 }
