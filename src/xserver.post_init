@@ -129,12 +129,9 @@ if ( $mode ne 'host' ) {
     or die "[!] failed to initialize RANDR extension!\n";
 <xserver.x11>->RRQueryVersion( 1, 0 );
 
-<xserver.x11>->init_extension('DPMS')
-    or die "[!] failed to initialize DPMS extension!\n";
-<xserver.x11>->DPMSGetVersion();
-
-if ( <xserver.x11>->DPMSCapable ) {
+if ( <xserver.x11>->init_extension('DPMS') and <xserver.x11>->DPMSCapable ) {
     <[base.log]>->( 1, ": : DPMS is supported :)" );
+    <xserver.x11>->DPMSGetVersion();
     <xserver.has_dpms> = 1;
 } else {
     <[base.log]>->( 1, ": : DPMS not supported :|" );
@@ -180,7 +177,7 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
         and <xserver.video_driver> ne 'qxl'
         and (  $max_size[0] > <xserver.x11>->width_in_pixels
             or $max_size[1] > <xserver.x11>->height_in_pixels )
-        ) {
+    ) {
         <[base.log]>->(
             0, "<!> xserver failed to select highest screen size <!>"
         );
@@ -243,7 +240,7 @@ if (    <xserver.has_dpms>
     and (  <xserver.disable_blanking> eq 'yes'
         or <xserver.disable_blanking> eq '1' )
 
-    ) {
+) {
     <[base.log]>->( 1, ": deactivating screen blanking ..." );
 
     <xserver.x11>->DPMSDisable();
