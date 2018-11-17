@@ -70,7 +70,7 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
-    <[base.log]>->( 1, "using xserver screen size as coordinates [0,0,$1,$2]" );
+    <[base.log]>->( 1, "using x11 root window coordinates [0,0,$1,$2]" );
     <x11.coordinates>
         = { 'left' => 0, 'top' => 0, 'right' => $1, 'bottom' => $2 };
     <x11.coordinates_were_undefined> = 1;
