@@ -40,7 +40,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
         return undef;
     }
     $data{'session'}{$local_sid}{'core_sid'} = $core_session_id;
-    <[base.log]>->( 1, "core session id received .. [$core_session_id]" );
+    <[base.log]>->( 1, "core session id received [$core_session_id]" );
     <system.agent.initialized> = 1;
     return $core_session_id;
 } else {

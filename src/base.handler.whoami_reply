@@ -23,7 +23,7 @@ if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
     my $usr_str = $reply->{'params'}->{'route_user'};
     my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
     $data{'session'}{$local_sid}{'core_sid'} = $core_sid;
-    <[base.log]>->( 1, "core session id received .. [$core_sid]" );
+    <[base.log]>->( 1, "core session id received [$core_sid]" );
     <system.agent.initialized> = 1;
     <[base.call_online_hooks]>;
 } else {
