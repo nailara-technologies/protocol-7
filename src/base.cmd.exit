@@ -25,4 +25,11 @@ substr(
 
 <[base.log]>->( 1, "[$id] session shutdown requested (\"$reason_str\")" );
 
-$reply = { 'mode' => 'shutdown', 'data' => 'session terminated' }
+my $night_hour = [localtime]->[2];
+$reply = {
+    'mode' => 'term',
+    'data' => (
+               $night_hour > 18
+            or $night_hour < 5
+    ) ? 'have a spacy night! >:]' : 'have a nice day! >:]'
+    }
