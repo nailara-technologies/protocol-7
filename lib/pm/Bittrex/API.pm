@@ -25,7 +25,6 @@ use Carp;
 use JSON;
 use LWP::UserAgent;
 use URI::Query;
-use Data::Dumper;
 use Digest::SHA qw( hmac_sha512_hex );
 
 # TODO add logging
