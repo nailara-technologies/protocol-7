@@ -1,7 +1,7 @@
 
 # [ [nailara project](http://www.nailara.net/) ]
 
-### [ source code version : 18.9014-2669.0 ]
+### [ source code version : 18.9014-2670.0 ]
 
 ### ( this is the [ISC license](license)d "master" branch )
 ---
