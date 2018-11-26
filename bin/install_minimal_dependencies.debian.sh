@@ -16,8 +16,7 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
   libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libsub-uplevel-perl \
   liburi-perl libbsd-resource-perl libcryptx-perl libtest-exception-perl \
-  libtest-requires-perl libtest-sharedfork-perl libmodule-build-pluggable-perl \
-  liburi-query-perl libconfig-simple-perl &&
+  libtest-requires-perl libtest-sharedfork-perl libmodule-build-pluggable-perl&&
 
 cpanm Crypt::Curve25519 Crypt::Ed25519 Digest::Skein Digest::BLAKE2 \
       File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam &&
