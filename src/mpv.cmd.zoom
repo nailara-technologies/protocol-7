@@ -2,13 +2,13 @@
 
 # name  = mpv.cmd.zoom
 # param = <level>
-# descr = set video zoom level [-1..20]
+# descr = set video zoom level [-10..20]
 
 my $zoom_level = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'invalid zoom value! [-1..20]' }
+return { 'mode' => 'nack', 'data' => 'invalid zoom value! [-10..20]' }
     if $zoom_level !~ /^\-?\d+(\.\d+)?$/
-    or $zoom_level < -1
+    or $zoom_level < -10
     or $zoom_level > 20;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
