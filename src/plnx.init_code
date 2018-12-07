@@ -3,6 +3,10 @@
 # name  = plnx.init_code
 # descr = plnx (poloniex) module initialization
 
+<[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('Poloniex::API');
+
+<plnx.api.pub> = new Poloniex::API;
+<plnx.json>    = JSON::XS->new->pretty(0);
 
 0;
