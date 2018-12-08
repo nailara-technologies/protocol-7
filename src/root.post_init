@@ -21,7 +21,13 @@ my ( $added_all_ref, $removed_all_ref )
 <root.init_state.all_agents>   = \@all_agents;
 <root.init_state.start_agents> = \@start_agents;
 
-# print Dumper(<root.spawn_config.agents.config>).join(', ',@all_agents)."\n";
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity> > 1 ) {
+    ( my $debug_str = Dumper(<root.spawn_config.agents.config>) )
+        =~ s/^.{7}|;$/  /mg;
+    print "\n < root.spawn_config.agents.config >\n\n$debug_str\n";
+}
 
 if ( @{$added_all_ref} ) {
     <[root.set_up_agent_dependencies]>->( @{$added_all_ref} );
