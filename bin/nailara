@@ -65,9 +65,13 @@ if ( defined $agentname and $agentname ne '' ) {
 
     if ( $data{'system'}{'daemon_mode'} ) { $code{'base.daemonize'}->() }
 
-    $code{'base.execute_agent_code'}
-        ->( $code{'base.parser.config'}->( \@agent_code ) )
-        if @agent_code;
+    if (@agent_code) {
+        $data{'base'}{'config_parser'}{'cfg_type'}  = 'start_cfg';
+        $data{'base'}{'config_parser'}{'cfg_name'}  = 'agent';
+        $data{'base'}{'config_parser'}{'cfg_descr'} = '<STDIN>';
+        $code{'base.execute_agent_code'}
+            ->( $code{'base.parser.config'}->( \@agent_code ) );
+    }
 }
 
 $code{'log.ok'}->("done.");
@@ -180,7 +184,8 @@ sub prepare_subs {
                 $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
         }
-
+        $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
+            if $stdin_mode;
         $data{'system'}{'node'}{'name'} = hostname || 'nailara';
         $data{'system'}{'node'}{'name'} =~ s/\..+$//;
 
