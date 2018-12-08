@@ -13,8 +13,9 @@
 
 <root.agent.notify_online>    //= {};
 <root.agent.manually_stopped> //= {};
+<root.cfg_data.spawn_config>  //= [];
 
-<root.cfg_data.spawn_config> //= [];
+<system.acfg_path> = <system.conf_path> . '/agents';
 
 map { <[base.disable_command]>->($_) } qw(
     verify_instance
@@ -72,8 +73,8 @@ if (    exists <system.subs_loaded.debug>
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'root.handler.sig_chld' } );
 
-<[root.load_agent_patterns]>;
-<[root.init_agent_patterns]>;
+<[root.load_agent_output_patterns]>;
+<[root.init_agent_output_patterns]>;
 
 delete <list.users>;
 
