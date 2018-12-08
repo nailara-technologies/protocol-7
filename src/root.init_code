@@ -58,10 +58,16 @@ if ( !-x <root.rmmod_bin> ) {
 map { <[root.init_spawn_config]>->($_) }
     @{ clone(<root.cfg_data.spawn_config>) };
 
-<[base.perlmod.autoload]>->('Data::Dumper');
-$Data::Dumper::Sortkeys = 1;
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity> > 1 ) {
 
-print Dumper(<root.spawn_config.globals>) if <system.verbosity> > 1;
+    <[base.perlmod.autoload]>->('Data::Dumper');
+    $Data::Dumper::Sortkeys = 1;
+
+    ( my $debug_str = Dumper(<root.spawn_config.globals>) ) =~ s/^.{7}|;$/  /mg;
+    print "\n < root.spawn_config.globals >\n\n$debug_str\n";
+}
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'root.handler.sig_chld' } );
