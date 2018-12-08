@@ -1,6 +1,6 @@
 # >:]
 
-# name       = base.load_config_file
+# name  = base.load_config_file
 
 <[base.log]>->( 1, "loading config '$_[0]'" );
 
@@ -9,7 +9,7 @@
 my $already_pushed = 0;
 map { $already_pushed = 1 if $_ eq $_[0] } @{<system.config.reload_order>};
 push( @{<system.config.reload_order>}, $_[0] )
-    if $_[0] ne <system.path.agent_config> and !$already_pushed;
+    if $_[0] ne <system.path.rel.cur_agent_cfg> and !$already_pushed;
 
 my $status = <[base.execute_agent_code]>->(
     <[base.parser.config]>->(
