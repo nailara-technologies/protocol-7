@@ -31,9 +31,9 @@ if ( @{$added_all_ref} ) {
 map { <[root.autostart_agents]>->($_) if !<[root.spawn_count]>->($_) }
     @{$added_start_ref};
 
-use Data::Dumper qw(Dumper);
-$Data::Dumper::Sortkeys = 1;
-
-print Dumper( $data{'jobqueue'} ) if <system.verbosity> > 2;
+print Dumper( $data{'jobqueue'} )
+    if exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity> > 2;
 
 0;
