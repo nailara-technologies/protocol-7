@@ -1,8 +1,8 @@
 # >:]
 
-# name  = mpv.cmd.add_file
+# name  = mpv.cmd.append
 # param = <file|url>
-# descr = add a file to current playlist (starts playback)
+# descr = add a file to current playlist (appends only)
 
 my $file = $$call{'args'};
 
@@ -12,6 +12,6 @@ return { 'mode' => 'nack', 'data' => 'expected path or url' }
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 <mpv.success_reply_str> = 'added to playlist';
 
-<[mpv.send_command]>->( 'loadfile', $file, 'append-play' );
+<[mpv.send_command]>->( 'loadfile', $file, 'append' );
 
 return { 'mode' => 'later' };
