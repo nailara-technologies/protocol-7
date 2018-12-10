@@ -3,8 +3,6 @@
 
 buffer.system.log_cmd = log.msg
 
-[set_privs:'nailara']
-
 [load_config_file:'defaults']
 
 access.cmd.usr.core = help ping reload verify_instance * # <- XXX
@@ -46,6 +44,8 @@ modules.preload = layout.config config.json
 modules.load = auth net io.ip digest.sha layout config.json debug
 [load_modules:<modules.load>]
 [init_modules]
+
+[set_privs:'nailara']
 
 [net.connect_to_core:'tcp/ip']
 
