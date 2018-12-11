@@ -1,0 +1,35 @@
+# >:]
+
+# name  = xserver.cmd.get_wm_name
+# descr = return wm name if window manager is running
+
+my $X       = <xserver.x11>;
+my $wm_name = '';
+
+{
+    local $SIG{'__WARN__'} = sub { };
+    eval {
+        ( my $check_id ) = $X->GetProperty(
+            $X->root,
+            $X->atom('_NET_SUPPORTING_WM_CHECK'),
+            X11::AtomConstants::WINDOW(),
+            0, -1, 0
+        );
+        ($wm_name) = $X->GetProperty(
+            unpack( 'l', $check_id ),
+            $X->InternAtom('_NET_WM_NAME'),
+            $X->atom('UTF8_STRING'),
+            0, -1, 0
+        ) if length($check_id);
+    };
+}
+
+return length($wm_name)
+    ? {
+    'mode' => 'ack',
+    'data' => $wm_name
+    }
+    : {
+    'mode' => 'nack',
+    'data' => 'not available'
+    };
