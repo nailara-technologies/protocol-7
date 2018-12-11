@@ -1,7 +1,11 @@
 # >:]
 
 # name  = xserver.cmd.get_xauth_data
-# descr = return xauth proto name and data
+# descr = return authorization protocol name and data
+
+return { 'mode' => 'nack', 'data' => 'no authorization data has been set up!' }
+    if !length( <xserver.x11>->{'authorization_protocol_name'} )
+    or !length( <xserver.x11>->{'authorization_protocol_data'} );
 
 return {
     'mode' => 'ack',
