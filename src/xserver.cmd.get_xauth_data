@@ -1,0 +1,11 @@
+# >:]
+
+# name  = xserver.cmd.get_xauth_data
+# descr = return xauth proto name and data
+
+return {
+    'mode' => 'ack',
+    'data' => join( ' = ',
+        <xserver.x11>->{'authorization_protocol_name'},
+        unpack( "H*", <xserver.x11>->{'authorization_protocol_data'} ) )
+};
