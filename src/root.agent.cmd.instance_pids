@@ -8,28 +8,28 @@ my $instance_id = $$call{'args'};
 
 return {
     'mode' => 'nack',
-    'data' => "expected instance id parameter"
+    'data' => "invalid instance id parameter [numeric value expected!]"
     }
-    if not defined $instance_id;
+    if defined $instance_id and $instance_id !~ /^\d+$/;
 
 if ( not defined $instance_id ) {
+    my %pids;
     my $reply_list = '';
     foreach my $i_id ( sort { $a <=> $b } keys %{<root.agent.instance>} ) {
-        my %pids;
-        my $parent_pid
-            = <root.agent.instance>->{$instance_id}->{'process'}{'id'};
-        map { $pids{$_} = 1 } @{ <[root.process.get_children]>->($parent_pid) };
-        $reply_list .= join( ' ', $i_id, $parent_pid, sort keys(%pids), "\n" );
+        my $parent_pid = <root.agent.instance>->{$i_id}->{'process'}{'id'};
+        map { $pids{$_} = 1 }
+            ( $parent_pid, @{ <[root.process.get_children]>->($parent_pid) } );
     }
+    $reply_list .= join( ' ', sort keys(%pids) );
     return {
-        'mode' => 'raw',
+        'mode' => 'ack',
         'data' => $reply_list
     };
 
 } elsif ( $instance_id =~ /^\d+$/ ) {
     return {
         'mode' => 'nack',
-        'data' => "instance not found!"
+        'data' => "instance not found! [ root.list (agents|children) ]"
         }
         if not exists <root.agent.instance>->{$instance_id};
     my $parent_pid
