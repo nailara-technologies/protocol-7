@@ -42,7 +42,15 @@ map {
     my $agent_dependencies = <[agent.get_dependencies]>->($agent_name);
     goto skip_dependencies if not defined $agent_dependencies;
     foreach my $dep_name ( split( / +/, $agent_dependencies ) ) {
-        next if exists <root.agent.manually_stopped>->{$dep_name};
+
+        delete <root.agent.manually_stopped>->{$dep_name}
+            and <[base.log]>->(
+            0, "cleared manually stopped status for '$dep_name'!"
+            ) if exists <root.agent.manually_stopped>->{$dep_name};
+        #
+        #     ^- forced dependency startup, or..
+        next if exists <root.agent.manually_stopped>->{$dep_name}; # <- skipped!
+
         if ( !<[agent.is_enabled]>->($dep_name) ) {
             <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
             <[agent.cmd.start_once]>

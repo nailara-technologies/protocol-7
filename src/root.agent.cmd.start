@@ -94,7 +94,14 @@ delete <root.agent.manually_stopped>->{$agent_name} if $start_mode eq 'manual';
 my $dep_str = <[agent.get_dependencies]>->($agent_name);
 my @dependencies = defined $dep_str ? split( / +/, $dep_str ) : ();
 foreach my $dep_name (@dependencies) {
-    next if exists <root.agent.manually_stopped>->{$dep_name};
+    delete <root.agent.manually_stopped>->{$dep_name}
+        and
+        <[base.log]>->( 0, "cleared manually stopped status for '$dep_name'!" )
+        if exists <root.agent.manually_stopped>->{$dep_name}
+        and $start_mode eq 'manual';    # <- forced dependency startup..
+
+    next if exists <root.agent.manually_stopped>->{$dep_name}; # <- ..or skipped
+
     if ( !<[agent.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
 
