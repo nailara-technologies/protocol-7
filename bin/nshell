@@ -18,7 +18,7 @@ my $bin_path = File::Spec->rel2abs($0);
 
 ( my $hostname = qx(hostname) ) =~ s/(\..+|\n)$//g;
 
-$0 = 'nshell ';
+$0 = 'nshell';
 
 $SIG{'PIPE'} = 'IGNORE';
 
@@ -30,7 +30,7 @@ $SIG{'TERM'} = $SIG{'INT'} = sub {
     exit();
 };
 $SIG{'CHLD'} = sub {
-    $0 .= "[disconnected] " if waitpid( -1, WNOHANG ) == $stdout_pid;
+    $0 .= "[disconnected]" if waitpid( -1, WNOHANG ) == $stdout_pid;
 };
 
 my @args;
@@ -88,7 +88,7 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        $0 = "nshell ( $core_addr : $core_port ) ";
+        $0 = "nshell ( $core_addr : $core_port )";
         if ( not defined $stored_cmd ) {
             clear();
             print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
@@ -282,7 +282,7 @@ sub shell_loop {
 
 sub stdout_fork {
     close(STDIN);
-    $0 = "nshell ( stdout ) ";
+    $0 = "nshell ( stdout )";
     while ( my $out = <$shell_sock> ) {
         $out =~ s/\n$//;
         print "$out\n";

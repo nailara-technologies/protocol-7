@@ -8,7 +8,7 @@ if ( $_[0] =~ /~$/ ) {
     exit(1);
 }
 
-$0 = "$_[0] ";   # <- the space is due to whowatch cutting off the last byte! ;/
+$0 = $_[0];
 
 if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
     ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );

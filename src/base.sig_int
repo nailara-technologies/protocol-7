@@ -3,17 +3,18 @@
 # name  = base.sig_int
 # descr = SIGINT interrupt handler
 
-( my $pname = $0 ) =~ s/ +$//;
-$0 = "$pname :. shutdown in progress... please wait! ";
+$0 .= ' :. shutdown in progress... please wait!';
 <[base.log]>->( 0, 'SIGINT received. shutting down..' );
 
 #if ( <system.agent.type> eq 'root' or <system.agent.type> eq 'core' ) {
 #    $SIG{'INT'} = 'IGNORE';
 #} else {
-    $SIG{'INT'} = sub {
-        <[base.log]>->( 0, 'SIGINT emergency shutdown' );
-        CORE::exit(1);
-    };
+
+$SIG{'INT'} = sub {
+    <[base.log]>->( 0, 'SIGINT emergency shutdown' );
+    CORE::exit(1);
+};
+
 #}
 
 if ( exists $code{'net.send_all'} ) {
