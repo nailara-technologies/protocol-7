@@ -1,40 +1,34 @@
 # >:]
 
 # name  = base.list.init
-# args  = { key_ref max_elements }
+# args  = { key_data_ref max_elements }
 
+my $key_data_ref         = shift;
 my $max_elements_default = 23542;
 
-if ( ref( $_[0] ) ne 'HASH' ) {
-    <[base.log]>->( 0, 'base.list.init: submitted argument is no hash' );
-    return 1;
+if ( ref($key_data_ref) ne 'HASH' ) {
+    return <[base.log]>->( 0, 'base.list.init: submitted argument is no hash' );
 }
 
-if ( not defined ${ $_[0] }{'max_elements'} or ${ $_[0] }{'max_elements'} < 1 )
-{
+if ( not defined ${$key_data_ref}{'max_elements'}
+    or ${$key_data_ref}{'max_elements'} < 1 ) {
     <[base.log]>->(
-        1,
-        'base.list.init: max_elements not set, defaulting to '
-            . $max_elements_default . '!'
+        0,
+        "base.list.init: 'max_elements' not set,"
+            . " defaulting to $max_elements_default!"
     );
-    ${ $_[0] }{'max_elements'} = $max_elements_default;
-    return 3;
+    ${$key_data_ref}{'max_elements'} = $max_elements_default;
 }
 
-if ( not defined ${ $_[0] }{'key_ref'}
-    or ref( ${ ${ $_[0] }{'key_ref'} } ) ne 'HASH' ) {
-    <[base.log]>->(
-        0, 'base.list.init: key_ref is neither a hash nor a scalar reference'
+if ( not defined ${$key_data_ref}{'key_ref'}
+    or ref( ${ ${$key_data_ref}{'key_ref'} } ) ne 'HASH' ) {
+    return <[base.log]>->(
+        0, "base.list.init: 'key_ref' is neither a hash nor a scalar reference"
     );
-    return 2;
 }
 
-$data{'base'}{'element'}{ ${ $_[0] }{'key_ref'} } = {
-
-    'name' => ${ $_[0] }{'name'} || 'unnamed',
-    'max_count' => ${ $_[0] }{'max_elements'},
-    'count'     => scalar keys( %{ ${ ${ $_[0] }{'key_ref'} } } )
-
+$data{'base'}{'element'}{ ${$key_data_ref}{'key_ref'} } = {
+    'name'      => ${$key_data_ref}{'name'} || 'unnamed',
+    'max_count' => ${$key_data_ref}{'max_elements'},
+    'count'     => scalar keys( %{ ${ ${$key_data_ref}{'key_ref'} } } )
 };
-
-return 0;
