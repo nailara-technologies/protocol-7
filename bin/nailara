@@ -31,7 +31,7 @@ my $agentname;
 
 if ( $0 =~ /^.*nailara\./ ) {
     $agentname = lc($0);
-    $agentname =~ s/^.*nailara\.|[\. ]$//g;
+    $agentname =~ s/^.*nailara\.//g;
 } elsif ( defined $ARGV[0] and $ARGV[0] =~ /^([^\-].*)/ ) {
     $agentname = $1;
     shift(@ARGV);
@@ -58,7 +58,7 @@ if ( defined $agentname and $agentname ne '' ) {
     if ( !@ARGV or not defined $data{'system'}{'agent'}{'name'} ) {
         $data{'system'}{'agent'}{'name'} = '<stdin>';
     }
-    $0 = "nailara.$data{'system'}{'agent'}{'name'} ";    # <- whowatch ;/
+    $0 = "nailara.$data{'system'}{'agent'}{'name'}";
     $/ = "\n";
 
     my @agent_code = <STDIN>;

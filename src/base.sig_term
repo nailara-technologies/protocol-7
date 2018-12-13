@@ -2,8 +2,7 @@
 
 # name = base.sig_term
 
-( my $pname = $0 ) =~ s/ +$//;
-$0 = "$pname :. shutdown in progress... please wait! ";
+$0 .= ' :. shutdown in progress... please wait!';
 <[base.log]>->( 1, 'SIGTERM received. shutting down...' );
 
 # <[net.send_all]>->("close SIGTERM"); # see base.sig_int

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-$0 = 'pglow-moodlight ';
+$0 = 'pglow-moodlight';
 
 use strict;
 use warnings;

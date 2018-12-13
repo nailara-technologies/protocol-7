@@ -30,8 +30,8 @@ if ( !<weather.child.pid> ) {    ## child ##
     my $subname = <system.agent.subname>;
     my $sn_str = defined $subname ? $subname . '-' : '';
 
-    <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
-    $0 = "weather-${sn_str}child ";
+    <system.agent.name> .= "[${sn_str}child]";
+    $0 = "weather-${sn_str}child";
 
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
