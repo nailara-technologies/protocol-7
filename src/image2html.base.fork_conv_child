@@ -24,8 +24,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
     my $subname = <system.agent.subname>;
     my $sn_str = defined $subname ? $subname . '-' : '';
 
-    <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
-    $0 = "image2html-${sn_str}child ";
+    <system.agent.name> .= "[${sn_str}child]";
+    $0 = "image2html-${sn_str}child";
 
     <callback.session.closing_last.params>->[1] = 1;  # silencing child shutdown
     $data{'session'}{$session_id}{'shutdown'} = 1;

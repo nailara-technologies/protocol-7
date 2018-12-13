@@ -24,8 +24,8 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     my $subname = <system.agent.subname>;
     my $sn_str = defined $subname ? $subname . '-' : '';
 
-    <system.agent.name> =~ s/\s*$/[${sn_str}child]/;
-    $0 = "pdf.png-${sn_str}child ";
+    <system.agent.name> .= "[${sn_str}child]";
+    $0 = "pdf.png-${sn_str}child";
 
     # silencing child shutdown ( incr. loglevel )
     <callback.session.closing_last.params>->[1] = 1;
