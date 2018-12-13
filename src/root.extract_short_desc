@@ -1,0 +1,12 @@
+# >:]
+
+# name  = root.extract_short_desc
+# descr = extract and return short decription texts from agent config files
+
+my $file_path = shift // '';
+
+die "expected agent config file path" if !length($file_path);
+warn "agent config '$file_path' not found!" if !-f $file_path;
+
+return $1 if <[file.content]>->($file_path) =~ /\.:\[ +([^:]+) +\]:\./;
+return '[ no description available ]';
