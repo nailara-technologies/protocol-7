@@ -270,7 +270,7 @@ sub prepare_subs {
             foreach my $file_name (@code_files) {
                 if (    -f $data{'system'}{'code_path'} . '/' . $file_name
                     and $file_name =~ /^$code_name\.|^$code_name$/
-                    and $file_name !~ /^\.|~$|\.orig$/ ) {
+                    and $file_name !~ /^\.|~$|\.orig$|\.LOG$/ ) {
                     $code_count++;
                     local $/ = undef;
                     open( $file, '<',
