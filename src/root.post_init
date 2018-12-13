@@ -13,6 +13,24 @@ my @start_agents = @{<root.spawn_config.agents.startup.spawn_order>};
 my $prev_all   = <root.init_state.all_agents>   //= [];
 my $prev_start = <root.init_state.start_agents> //= [];
 
+# locate agent config files / extract descriptions
+<root.agents.available> = {};    # <- reset on reload!
+
+<[file.all_files]>->( <system.acfg_path>, \my @acfg_fullpaths );
+map {s|^.*/||} my @found_acfg_names = @acfg_fullpaths;
+
+(   <root.agents.found_types.no_spawn_cfg> = [],
+    <root.agents.found_types.no_cfg_file>  = []
+) = <[base.diff_array]>->( \@all_agents, \@found_acfg_names );
+
+# XXX: todo: add external scripts from spawn config
+foreach my $cfg_file_path (@acfg_fullpaths) {
+    ( my $agent_name = $cfg_file_path ) =~ s|^.*/||g;
+    my $agent_desc_str = <[root.extract_short_desc]>->($cfg_file_path);
+    <root.agents.available>->{$agent_name}->{'short_desc'} = $agent_desc_str;
+}
+
+# prepare configured agent startup sequence
 my ( $added_start_ref, $removed_start_ref )
     = <[base.diff_array]>->( $prev_start, \@start_agents );
 my ( $added_all_ref, $removed_all_ref )
