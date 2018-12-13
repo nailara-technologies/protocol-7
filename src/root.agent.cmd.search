@@ -27,7 +27,7 @@ my $reply_str;
 my $max_cmd_len = 0;
 map { $max_cmd_len = length($_) if length($_) > $max_cmd_len } @matching_agents;
 
-foreach my $agent_name (@matching_agents) {
+foreach my $agent_name ( sort @matching_agents ) {
     $reply_str .= sprintf( "  %-${max_cmd_len}s   #  %s\n",
         $agent_name, <root.agents.available>->{$agent_name}->{'short_desc'} );
 }
