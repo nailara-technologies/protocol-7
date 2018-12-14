@@ -9,8 +9,8 @@ use IO::Socket;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Term::ReadPassword;
-use Digest::MD5 qw(md5);
 use Term::ReadLine::Perl;
+use Digest::JHash qw(jhash);
 use MIME::Base64 qw(encode_base64url);
 use POSIX::1003::Proc qw(WNOHANG waitpid);
 
@@ -132,7 +132,8 @@ sub shell_connect {
     my $sock;
     if ( !$sckargcnt ) {
         my $sock_path
-            = "$usock_dir/" . encode_base64url( md5("$core_addr:$core_port") );
+            = "$usock_dir/"
+            . encode_base64url( pack( 'N', jhash("$core_addr:$core_port") ) );
         if ( -e $sock_path ) {
             $sock = IO::Socket::UNIX->new(
                 Type => SOCK_STREAM(),
