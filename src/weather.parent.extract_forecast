@@ -13,13 +13,9 @@ die "expected (valid) station_id parameter"
     or !length($station_id)
     or $station_id !~ /^([\w\d]+)$/;
 
-#print "\n <forecast($type)>\n" . Dumper($weather_data) . "</forecast>\n\n";
-
 die "expected 'forecast' weather data"
     if not defined $weather_data
     or ref($weather_data) ne 'HASH';
-
-### return;
 
 my $forecast_ref       = {};
 my $forecast_ref_today = {};
@@ -67,8 +63,6 @@ if ( $type eq 'hours' ) {
     }
     <weather.data>->{$station_id}->{'forecast'}->{$type} = $forecast_ref;
 } elsif ( $type eq 'days' ) {
-
- #   print "\n <forecast($type)>\n" . Dumper($weather_data) . "</forecast>\n\n";
 
     while ( my $element = shift @{ $weather_data->{'list'} } ) {
         my $timestamp = $element->{'dt'};
@@ -136,12 +130,8 @@ if ( $type eq 'hours' ) {
 
 }
 
-#print "\n FORECAST_REF : " . Dumper($forecast_ref) . "\n\n";
-
 <weather.data>->{$station_id}->{'forecast'}->{$type} = $forecast_ref;
 <weather.data>->{$station_id}->{'forecast'}->{'today'} = $forecast_ref_today;
-
-#print Dumper(<weather.data>);
 
 <[base.log]>->( 2, "writing html pages.. [got new 'forecast' data]" );
 <[weather.parent.write_pages]>->($station_id);
