@@ -81,7 +81,7 @@ delete <list.users>;
 <list.agents> = {
     'var'   => 'data',
     'key'   => 'root.agent.instance',
-    'descr' => 'agent instances',
+    'descr' => 'currently running / managed agent instances',
     'mask'  => '<key>:instance job_id agent_name:name agent_id status',
     'align' => {
         'agent_id'   => 'right-5',
@@ -106,7 +106,7 @@ delete <list.users>;
 <list.children> = {
     'var'   => 'data',
     'key'   => 'root.agent.instance',
-    'descr' => 'PIDs of agents/children',
+    'descr' => 'PIDs of agents and their children',
     'mask' =>
         '<key>:instance agent_name:agent <key>:process <key>:process_children',
     'align' => {
@@ -124,7 +124,7 @@ delete <list.users>;
 <list.subnames> = {
     'var'   => 'data',
     'key'   => 'root.agent.instance',
-    'descr' => 'optional agent subnames',
+    'descr' => "'subnames' of registered agents [if available]",
     'mask'  => '<key>:instance status agent_name:agent subname',
     'align' => {
         'instance'   => 'left+1',
@@ -137,7 +137,7 @@ delete <list.users>;
 <list.manual> = {
     'var'   => 'data',
     'key'   => 'root.agent.manually_stopped',
-    'descr' => 'manually stopped agents',
+    'descr' => "agents marked as 'manually stopped'",
     'mask'  => '<key>:agent_name <key>:stopped_at',
     'align' => {
         'agent_name' => 'left+1',
@@ -150,7 +150,7 @@ delete <list.users>;
     'var'      => 'data',
     'key'      => 'dependency.object',
     'sort_key' => 'agent_name',
-    'descr'    => 'agent dependency status',
+    'descr'    => 'current agent dependency status',
     'mask'     => 'agent_name <key>:depends_on_agents <key>:status',
     'align'    => {
         'agent_name'        => 'center',
