@@ -12,7 +12,7 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter \
             libimlib2-dev libfile-mimeinfo-perl liblinux-inotify2-perl \
             libxml-rsslite-perl libtest-needsdisplay-perl libfile-slurper-perl \
             libconvert-color-perl libio-stringy-perl libdigest-crc-perl \
-            libimager-perl libfont-freetype-perl libc6-dev
+            libdigest-jhash-perl libimager-perl libfont-freetype-perl libc6-dev
 
 # optional [i.e. not on raspbian]
 apt-get -y install intel-gpu-tools 2>/dev/null
