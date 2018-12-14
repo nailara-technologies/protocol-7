@@ -1,0 +1,7 @@
+# >:]
+
+# name  = digest.jha.b64u
+# descr = returns base64 url encoded (network ordered) jhash value
+
+return MIME::Base64::encode_base64url(
+    pack( 'N', Digest::JHash::jhash( join( '', @_ ) ) ) )

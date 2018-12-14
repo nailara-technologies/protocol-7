@@ -7,7 +7,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       POSIX::1003 Proc::ProcessTable Date::Parse File::Slurper \
       IO::Socket::Multicast LWPx::ParanoidAgent \
       Sys::Filesystem IO::Scalar \
-      Crypt::CBC CryptX \
+      Crypt::CBC CryptX Digest::JHash \
       JSON JSON::PP \
       Net::SSH2 Config::Hosts \
       LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
