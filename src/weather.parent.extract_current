@@ -10,8 +10,6 @@ die "expected 'current' weather data"
     if not defined $weather_data
     or ref($weather_data) ne 'HASH';
 
-#print Dumper($weather_data);
-
 ## compensating for changed city name (,appears to be 'region' name string now!)
 my $cfg_city = <weather.cfg.city>;
 <weather.data>->{$station_id}->{'region'} = '';
@@ -65,8 +63,6 @@ my $beaufort = <[weather.parent.wind.calculate_beaufort]>
 foreach my $key ( 'clouds', 'humidity' ) {
     <weather.data>->{$station_id}->{'current'}->{$key} =~ s|\D+||g;
 }
-
-# print Dumper(<weather.data>);
 
 <[base.log]>->( 2, "writing html pages.. [got new 'current' data]" );
 <[weather.parent.write_pages]>->($station_id);

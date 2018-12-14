@@ -34,10 +34,6 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     ($forecast_data) = thaw($data_str);
 }
 
-open( my $fh, ">/tmp/forecast.$type" );    # XXX!
-print {$fh} Dumper($forecast_data);        # XXX!
-close($fh);                                # XXX!
-
 <weather.timer.forecast>->cancel if exists <weather.timer.forecast>;
 
 my $interval_seconds = <weather.update_interval.forecast> * 60;
