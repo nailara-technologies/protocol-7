@@ -192,7 +192,7 @@ sub install {
                             'tar',     'zxvf',
                             $tgz_file, "--index-file=$list_file"
                         )
-                        ) {
+                    ) {
                         if ( open( my $list_fh, $list_file ) ) {
                             ( my $stripped_mod_dir = $ext_mod_dir )
                                 =~ s/^(.+\/)//g;
@@ -252,7 +252,7 @@ sub install {
                                                         'su', 'root',
                                                         '-c', 'make install'
                                                     )
-                                                    ) {
+                                                ) {
                                                     print "..\n";
                                                 } else {
                                                     die "..\n :: [error] no "
@@ -298,11 +298,10 @@ sub install {
 
 sub show_readme {
     my $readme_mod_name = $_[0];
-    print " :: trying to get readme file for module "
-        . "'$readme_mod_name' :\n :\n";
+    print " ::[ \"$readme_mod_name\" ]:.\n :\n";
     open( MOD_list, $CPAN_local_modlist )
         or die
-        " :: [error] can not open module list file '$CPAN_local_modlist' [$!]\n";
+        " :: [ERR] can not open module list file '$CPAN_local_modlist' [$!]\n";
     my $found = 0;
     print " : parsing module list ..\n";
     foreach my $mod_line (<MOD_list>) {
@@ -324,26 +323,27 @@ sub show_readme {
                     $mod_name_len = length($mod_name);
                 }
                 my $buffer;
-                my ($txt_handle) = open_cpan_file($mod_uri);
+                my ( $txt_handle, $size ) = open_cpan_file($mod_uri);
+
                 if ( fileno($txt_handle) ) {
-
-                    print " : downloading readme file for '$mod_name' "
-                        . "[ version $mod_version ] ...\n";
-
-                    if ( open( PAGER, "| $pager_cmd" ) ) {
-                        while ( fileno $txt_handle
-                            and sysread( $txt_handle, $buffer, 4096 ) ) {
+                    print ".: : found '$mod_name' "
+                        . "(v.$mod_version) ..:. readme .:.. [$size bytes]\n";
+                    my $pager_ok = open( PAGER, "| $pager_cmd" ) ? 1 : 0;
+                    my $chnk_str = qr/\015\012/;
+                    print "\n" if !$pager_ok;
+                    while ( $size and my $buffer = <$txt_handle> ) {
+                        next if not defined $buffer;
+                        $size -= length($buffer);
+                        $buffer =~ s/\d+$chnk_str([^\015]+)$chnk_str/$1/g;
+                        if ($pager_ok) {
                             print PAGER $buffer;
-                        }
-                        close(PAGER);
-                        print "\n";
-                    } else {
-                        while ( sysread( $txt_handle, $buffer, 4096 ) ) {
+                        } else {
                             print $buffer;
                         }
                     }
-                    close($txt_handle);
+                    close(PAGER) if $pager_ok;
                 }
+                close($txt_handle) if defined $txt_handle;
             }
         }
     }
@@ -351,7 +351,6 @@ sub show_readme {
         print " :: module not found. try 'search <keyword>'"
             . " to determine the correct module name.\n";
     }
-    print " :\n";
     close(MOD_list);
 
 }
@@ -418,7 +417,7 @@ sub open_cpan_file {
             Proto    => 'tcp',
             Blocking => 1
         )
-        ) {
+    ) {
         my $url = "http://$CPAN_server$file";
         my ( $buffer, $ok ) = ( '', 0 );
         $SIG{'ALRM'} = sub {
@@ -451,8 +450,7 @@ sub open_cpan_file {
                 if ( $buffer =~ /^Content-Length: (\d+)$/ ) { $size = $1 }
                 $buffer = undef;
             } else {
-                die " :: [error] cannot download "
-                    . "file http://$CPAN_server$file'\n\n";
+                die " :: [ERR] failed to GET: 'http://$CPAN_server$file'\n\n";
                 return undef;
             }
         }
