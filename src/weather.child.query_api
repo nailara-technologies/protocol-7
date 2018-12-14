@@ -44,8 +44,6 @@ if ( not defined $response or !$response->is_success ) {
     return ( $status_code, undef );
 }
 
-#print Dumper($response);
-
 my $content = $response->{'_content'};    # XXX: check...
 
 $content =~ s|failed to set keepalive: unread data in buffer\n$||s;
