@@ -4,6 +4,7 @@
 
 my $code = shift;
 my $params = shift || {};
+
 $code = 500
     if not defined $code
     or not exists <proto.http.status_codes>->{$code};
@@ -11,9 +12,9 @@ my $status_str  = <proto.http.status_codes>->{$code};
 my $server_date = time2str(time);
 $params->{'Date'} = $server_date;
 
-my $header_str = "HTTP/1.1 $code $status_str\n";
+my $header_str = "HTTP/1.1 $code $status_str\r\n";
 
-map { $header_str .= "$_: $params->{$_}\n" if defined $params->{$_} }
+map { $header_str .= "$_: $params->{$_}\r\n" if defined $params->{$_} }
     sort { length($a) <=> length($b) } sort keys %{$params};
 
-return $header_str . "\n";
+return $header_str . "\r\n";
