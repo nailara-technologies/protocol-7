@@ -7,29 +7,33 @@
 my $re = <regex.base>;
 
 if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
-    my $usr          = $1;
+    my $param        = $1;
     my $slay_message = $3 || 'session terminated!';
     my $killed       = 0;
     my $killed_own   = 0;
 
-    if ( $usr =~ /\s/ ) { ( $usr, $slay_message ) = split( /\s/, $usr, 2 ) }
+    if ( $param =~ /\s/ ) {
+        ( $param, $slay_message ) = split( /\s/, $param, 2 );
+    }
 
-    if (exists $data{'user'}{$usr}{'session'}
-        or ( exists $data{'session'}{$usr}
-            and $data{'session'}{$usr}{'mode'} ne 'server' )
+    if (exists $data{'user'}{$param}{'session'}
+        or ( exists $data{'session'}{$param}
+            and $data{'session'}{$param}{'mode'} ne 'server' )
     ) {
         my $msg_string = $slay_message;
-        <[base.log]>->( 2, "slaying of user '$usr' requested!" );
+        my $uname
+            = $param =~ /^\d+$/ ? $data{'session'}{$param}{'user'} : $param;
+        <[base.log]>->( 2, "slaying of user '$uname' requested!" );
         foreach my $sid ( keys %{ $data{'session'} } ) {
-            if (   $data{'session'}{$sid}{'user'} eq $usr
-                or $usr =~ /^\d+$/ and $usr eq $sid ) {
+            if (   $data{'session'}{$sid}{'user'} eq $param
+                or $param =~ /^\d+$/ and $param eq $sid ) {
                 if ( $call->{'session_id'} eq $sid ) {
                     $killed_own = 1;
                     $msg_string = "just killed your own session!"; # TERM reply!
                 } else {
                     <[base.session.shutdown]>->( $sid, $msg_string );
                 }
-                <[base.log]>->( 0, "slaying session $sid ($usr)" );
+                <[base.log]>->( 0, "slaying session $sid ($uname)" );
                 $killed++;
             }
         }
@@ -45,11 +49,11 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
             'data' => $reply_string
         };
     } else {
-        my $u_str = $usr =~ /^\d+$/ ? 'session' : 'user';
-        my $fail_msg = "found no such $u_str ($usr)";
+        my $u_str = $param =~ /^\d+$/ ? 'session' : 'user';
+        my $fail_msg = "found no such $u_str ($param)";
         $fail_msg = "will not destroy server mode sessions! >;["
-            if exists $data{'session'}{$usr}
-            and $data{'session'}{$usr}{'mode'} eq 'server';
+            if exists $data{'session'}{$param}
+            and $data{'session'}{$param}{'mode'} eq 'server';
         return { 'mode' => 'nack', 'data' => $fail_msg };
     }
 } else {
