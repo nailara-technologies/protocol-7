@@ -1,0 +1,53 @@
+# >:]
+
+# name  = plnx.cmd.get_ticker
+# param = <cur_pair|'all'>
+# descr = return current ticker data
+
+my $cur_pair = uc( $$call{'args'} // '' );
+
+return {
+    'mode' => 'nack',
+    'data' => 'expected currency pair parameter'
+    }
+    if !length($cur_pair);
+
+my $ticker_data = <plnx.api.pub>->api_public('returnTicker');
+
+return {
+    'mode' => 'nack',
+    'data' => "invalid currency pair (see 'currencies' cmd for list)"
+    }
+    if $cur_pair ne 'ALL' and not exists $ticker_data->{$cur_pair};
+
+my $reply_str = "\n";
+
+foreach my $cur_key ( keys %{$ticker_data} ) {
+    next if $cur_pair ne 'ALL' and $cur_key ne $cur_pair;
+    delete <plnx.ticker_current>->{$cur_key};
+    next
+        if $cur_pair eq 'ALL'
+        and <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
+    return {
+        'mode' => 'nack',
+        'data' => 'currency pair is frozen!'
+        }
+        if <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
+
+    $reply_str .= "[$cur_key]\n\n";
+    foreach my $key_str (
+        sort { length($a) <=> length($b) }
+        keys %{ $ticker_data->{$cur_key} }
+    ) {
+        next if $key_str eq 'id' or $key_str eq 'isFrozen';
+        ( my $key_lc = $key_str ) =~ s/([A-Z])/_\L$1/g;
+        $key_lc =~ s/24hr/_24h/;
+        <plnx.ticker_current>->{$cur_key}->{$key_lc}
+            = $ticker_data->{$cur_key}->{$key_str};
+        $reply_str .= sprintf( "  $key_lc = %s\n",
+            $ticker_data->{$cur_key}->{$key_str} );
+    }
+    $reply_str .= "\n";
+}
+
+return { 'mode' => 'raw', 'data' => $reply_str }
