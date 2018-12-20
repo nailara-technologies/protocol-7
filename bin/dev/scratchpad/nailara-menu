@@ -13,7 +13,7 @@ use Glib qw/TRUE FALSE/;
 use Data::Dumper 'Dumper';
 
 ( my $image_path = File::Spec->rel2abs($0) )
-    =~ s,[^/]+/[^/]+$,data/gfx/nailara_logo.png,;
+    =~ s,[^/]+(/[^/]+){3}$,data/gfx/nailara_logo.png,;  # s,[^/]+/[^/]+$,data/..
 
 $image_path = '/tmp/nailara_logo.png' if `hostname` =~ /zeropoint/;    # XXX!
 
@@ -74,11 +74,11 @@ my $menu = Gtk3::Menu->new();
 
 my $trance_item = Gtk3::MenuItem->new_with_label("root.start trance");
 $trance_item->signal_connect(
-    'activate' => sub {qx(/usr/local/bin/unx root.start trance)} );
+    'activate' => sub {qx(/usr/bin/unx root.start trance)} );
 $menu->append($trance_item);
 $trance_item = Gtk3::MenuItem->new_with_label("root.stop trance");
 $trance_item->signal_connect(
-    'activate' => sub {qx(/usr/local/bin/unx root.stop trance)} );
+    'activate' => sub {qx(/usr/bin/unx root.stop trance)} );
 $menu->append($trance_item);
 
 my $rt_item = Gtk3::MenuItem->new_with_label("root.start rt");
@@ -88,7 +88,7 @@ $menu->append($rt_item);
 
 my $dpms_item = Gtk3::MenuItem->new_with_label("xserver.dpms_force_off");
 $dpms_item->signal_connect(
-    'activate' => sub {qx(/usr/local/bin/unx xserver.dpms_force_off)} );
+    'activate' => sub {qx(/usr/bin/unx xserver.dpms_force_off)} );
 $menu->append($dpms_item);
 
 my $quit_item = Gtk3::MenuItem->new_with_label("Quit");
@@ -103,7 +103,7 @@ $menu->show_all;
 ##
 
 $window->move( 1836, 0 );
-$window->move( 1711, 0 ) if `hostname` =~ /w520/;
+$window->move( 1757, -2 ) if `hostname` =~ /w520/;
 
 $window->show_all;
 
