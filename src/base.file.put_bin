@@ -1,11 +1,12 @@
 # >:]
 
-# name = base.file.put
+# name = base.file.put_bin
 
 my $file_path = shift;
 my @content   = @_;
 
 open( my $fh, '>', $file_path ) or die "$file_path: $!";
+binmode( $fh, ":raw" ) or warn "binmode(): $!";
 if ( @content > 1 ) {
     print {$fh} @content;
 } elsif ( @content and ref( $content[0] ) eq 'ARRAY' ) {
