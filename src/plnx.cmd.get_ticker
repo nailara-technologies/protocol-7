@@ -14,6 +14,14 @@ return {
 
 my $ticker_data = <plnx.api.pub>->api_public('returnTicker');
 
+my $top = $cur_pair =~ s/^TOP-(\d+)$// ? $1 : keys( %{$ticker_data} );
+$cur_pair = 'ALL' if defined $top and $top != keys( %{$ticker_data} );
+return {
+    'mode' => 'nack',
+    'data' => 'top-0 is invalid (waste of bandwitdh)'
+    }
+    if $cur_pair eq 'ALL' and !$top;
+
 return {
     'mode' => 'nack',
     'data' => "invalid currency pair (see 'currencies' cmd for list)"
@@ -22,12 +30,20 @@ return {
 
 my $reply_str = "\n";
 
-foreach my $cur_key ( keys %{$ticker_data} ) {
-    next if $cur_pair ne 'ALL' and $cur_key ne $cur_pair;
-    delete <plnx.ticker_current>->{$cur_key};
+foreach my $cur_key (
+    sort {
+        $ticker_data->{$b}->{'percentChange'}
+            <=> $ticker_data->{$a}->{'percentChange'}
+    } keys %{$ticker_data}
+) {
+    $top--;
     next
         if $cur_pair eq 'ALL'
         and <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
+    next
+        if $cur_pair ne 'ALL' and $cur_key ne $cur_pair
+        or $cur_pair eq 'ALL' and $top < 0;
+    delete <plnx.ticker_current>->{$cur_key};
     return {
         'mode' => 'nack',
         'data' => 'currency pair is frozen!'
