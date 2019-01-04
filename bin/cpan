@@ -1,15 +1,9 @@
 #!/usr/bin/perl
 
-#
-# this script was written because some years ago, before cpanminus existed,
-# the standard perl cpan shell used too much memory (and was waay too slow)
-# to be used on a specific (low mem) linux box... so, born was this one. ;)
-#
-
 use strict;
 use warnings;
 
-my $pager_cmd              = 'less';
+my $pager_cmd              = $ENV{'PAGER'} // 'less -XE';
 my $CPAN_server            = 'www.cpan.org';
 my $CPAN_http_port         = 80;
 my $CPAN_file_list         = '/modules/02packages.details.txt.gz';
@@ -344,6 +338,7 @@ sub show_readme {
                     close(PAGER) if $pager_ok;
                 }
                 close($txt_handle) if defined $txt_handle;
+                last;
             }
         }
     }
