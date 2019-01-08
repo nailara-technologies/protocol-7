@@ -6,13 +6,13 @@
 # todo  = improve/extend error handling
 
 my ( $key, $val ) = split( / /, $$call{'args'} || '', 2 );
-return { 'mode' => 'nack', 'data' => 'no key specified' }
+return { 'mode' => 'nak', 'data' => 'no key specified' }
     if not defined $key or !length($key);
 my @validation_result = ( <[base.validate.data_key_syntax]>->($key) );
-return { 'mode' => 'nack', 'data' => 'invalid key' }
+return { 'mode' => 'nak', 'data' => 'invalid key' }
     if not $validation_result[0];
 
-return { 'mode' => 'nack', 'data' => 'no value supplied' } if not defined $val;
+return { 'mode' => 'nak', 'data' => 'no value supplied' } if not defined $val;
 
 my $key_init = 0;
 my $cid      = $$call{'session_id'};
@@ -38,7 +38,7 @@ if ( defined $key_ref and $key_ref ne '' and !$@ ) {
         <[base.log]>->(
             1, "[$cid] set: no change, values identical ($key='$val')"
         );
-        $reply = { 'mode' => 'nack', 'data' => "no change, values identical" };
+        $reply = { 'mode' => 'nak', 'data' => "no change, values identical" };
     } else {
         $$key_ref = $val;
         <[base.log]>->( 1, "[$cid] set: value changed ( $key = '$val' )" );
@@ -46,5 +46,5 @@ if ( defined $key_ref and $key_ref ne '' and !$@ ) {
     }
 } else {
     <[base.log]>->( 0, "[$cid] set: failed to assign value ( $key = '$val' )" );
-    $reply = { 'mode' => 'nack', 'data' => "failed to assign value" };
+    $reply = { 'mode' => 'nak', 'data' => "failed to assign value" };
 }

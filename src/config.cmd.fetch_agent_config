@@ -5,10 +5,10 @@
 # descr = return config of specified agent as json
 
 my ( $agent_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
-return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
     if not defined $agent_name;
 
-return { 'mode' => 'nack', 'data' => 'invalid agent name syntax!' }
+return { 'mode' => 'nak', 'data' => 'invalid agent name syntax!' }
     if $agent_name !~ <regex.base.usr>;
 
 my $type_args = {};

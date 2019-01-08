@@ -6,7 +6,7 @@
 
 my $file_path = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'file not found' } if !-f $file_path;
+return { 'mode' => 'nak', 'data' => 'file not found' } if !-f $file_path;
 
 <ticker-gtk.content.sha> //= '';
 my $new_sha = <[digest.sha.file_hex]>->($file_path);

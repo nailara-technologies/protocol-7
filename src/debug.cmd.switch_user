@@ -10,14 +10,14 @@ my $new_usr = $params->{'args'};
 my $id      = $params->{'session_id'};
 my $old_usr = $data{'session'}{$id}{'user'};
 
-return { 'mode' => 'nack', 'data' => "you are '$new_usr' already!" }
+return { 'mode' => 'nak', 'data' => "you are '$new_usr' already!" }
     if $new_usr eq $old_usr;
 
 if ( not defined $new_usr or !length($new_usr) ) {
     $$reply{'data'} = 'no username specified';
 } elsif ( $new_usr =~ <regex.base.usr> ) {
 
-    return { 'mode' => 'nack', 'data' => "no user '$new_usr' found!" }
+    return { 'mode' => 'nak', 'data' => "no user '$new_usr' found!" }
         if not defined <auth.setup.usr>->{$new_usr};
 
     <[base.log]>->(
@@ -40,6 +40,6 @@ if ( not defined $new_usr or !length($new_usr) ) {
     return { 'mode' => 'ack', 'data' => "switched session to user '$new_usr'" };
 
 } else {
-    return { 'mode' => 'nack', 'data' => 'invalid user name syntax' };
+    return { 'mode' => 'nak', 'data' => 'invalid user name syntax' };
 }
 

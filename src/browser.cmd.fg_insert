@@ -3,12 +3,12 @@
 # name  = browser.cmd.fg_insert
 # descr = insert page on foreground view
 
-return { 'mode' => 'nack', 'data' => 'browser agent shutdown in progress' }
+return { 'mode' => 'nak', 'data' => 'browser agent shutdown in progress' }
     if defined <browser.shutdown> and <browser.shutdown>;
 
 my $load_uri = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'uri parameter required!' }
+return { 'mode' => 'nak', 'data' => 'uri parameter required!' }
     if not defined $load_uri or !length($load_uri);
 
 <[browser.fg_view_insert]>->($load_uri);

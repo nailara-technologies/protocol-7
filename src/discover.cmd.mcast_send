@@ -5,7 +5,7 @@
 
 my $key_name = 'default';
 my $ann_msg = shift->{'args'} // '';
-return { 'mode' => 'nack', 'data' => 'no announce message string given' }
+return { 'mode' => 'nak', 'data' => 'no announce message string given' }
     if not defined !length($ann_msg);
 
 if ( not defined <discover.announce_msg_header> ) {
@@ -31,7 +31,7 @@ $packet_str .= encode_base64url( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 
 # print "---<sent>---\n$packet_str--</sent---\n";
 
-return { 'mode' => 'nack', 'data' => "failed to send: $!" }
+return { 'mode' => 'nak', 'data' => "failed to send: $!" }
     unless <discover.mcast.obj.sock>->mcast_send( $packet_str . "\n",
     join( ':', <discover.mcast.ip4_addr>, <discover.mcast.ip4_port> ) );
 

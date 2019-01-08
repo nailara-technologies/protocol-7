@@ -7,7 +7,7 @@
 my $content_type;
 my $url = shift->{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'url parameter expected' }
+return { 'mode' => 'nak', 'data' => 'url parameter expected' }
     if !length($url);
 
 my $uagent = <download.obj.ua>;
@@ -16,7 +16,7 @@ $uagent->protocols_allowed( [ 'http', 'https' ] );
 $uagent->agent("Mozilla/5.0");
 $uagent->cookie_jar( {} );
 
-return { 'mode' => 'nack', 'data' => 'url parameter expected' }
+return { 'mode' => 'nak', 'data' => 'url parameter expected' }
     if not defined $url
     or !length($url)
     or $url !~ m|^http[s]?://|;
@@ -38,7 +38,7 @@ if ( $response->is_success ) {
     $content_type //= 'unknown';
 } else {
     my $err_reason = $response->status_line;
-    return { 'mode' => 'nack', 'data' => $err_reason };
+    return { 'mode' => 'nak', 'data' => $err_reason };
 }
-my $mode = $content_type eq 'unknown' ? 'nack' : 'ack';
+my $mode = $content_type eq 'unknown' ? 'nak' : 'ack';
 return { 'mode' => $mode, 'data' => $content_type };

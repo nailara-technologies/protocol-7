@@ -6,12 +6,12 @@
 
 my ( $id, $gravity ) = split( / +/, $$call{'args'}, 2 );
 
-return { 'mode' => 'nack', 'data' => 'required x11 window id and <gravity>' }
+return { 'mode' => 'nak', 'data' => 'required x11 window id and <gravity>' }
     if not defined $id or not defined $gravity;
-return { 'mode' => 'nack', 'data' => 'invalid <id> syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "invalid gravity keyword, valid are: left, right, top and bottom"
     }
     if $gravity !~ /^(left|right|top|bottom)$/;
@@ -27,7 +27,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 my ( $w, $h, $x, $y ) = $window->geometry;
 my ( $nx, $ny ) = ( "+$x", "+$y" );

@@ -4,7 +4,7 @@
 # param = [interval_secs]
 # descr = return current gpu load statistics
 
-return { 'mode' => 'nack', 'data' => 'no statistics available' }
+return { 'mode' => 'nak', 'data' => 'no statistics available' }
     if not defined <xserver.gpu_top.stats.load_average>
     or not defined <xserver.gpu_top.stats.secs>;
 
@@ -12,7 +12,7 @@ if ( defined $$call{'args'} ) {
     my $ivl = $$call{'args'};
     my %secs = map { $_ => 1 } @{<xserver.gpu_top.stats.secs>};
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "no statistics for interval \"$ivl\" collected .. [ "
             . join( ', ', @{<xserver.gpu_top.stats.secs>} ) . " ]"
         }
@@ -24,7 +24,7 @@ if ( defined $$call{'args'} ) {
         $s .= ' ..' if $retry_in >= 5;
         $s .= '.'   if $retry_in >= 15;
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "please retry in $retry_in second$s"
         };
     }

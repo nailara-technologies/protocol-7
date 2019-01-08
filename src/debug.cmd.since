@@ -6,12 +6,12 @@
 my $mode = $$call{'args'} // '';
 $mode = 'rel' if $mode eq 'relative';
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'invalid output mode'
     }
     if $mode !~ /^(|unix|rel)$/;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'not available'
     }
     if not exists <system.process_start.time>;

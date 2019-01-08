@@ -4,7 +4,7 @@
 # param = <agent_name>
 # descr = return configured layer for agent / tile
 
-return { 'mode' => 'nack', 'data' => "expected valid agent name" }
+return { 'mode' => 'nak', 'data' => "expected valid agent name" }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
 
@@ -23,7 +23,7 @@ if ( $agent_name =~ /^\[([^\]]+)\]$/ ) {    # <- only subname given
     } elsif ( keys(%agent_names) > 1 ) {
         $err_msg = 'multiple agents are matching, agent name required';
     }
-    return { 'mode' => 'nack', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
     ($agent_name) = keys(%agent_names);
 }
 
@@ -43,7 +43,7 @@ if ( not exists <layout.layers>->{$agent_name} ) {
         = "multiple '$agent_name' instances defined, agent subname required!"
         if $match > 1;
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => $msg_str
         }
         if $match != 1;

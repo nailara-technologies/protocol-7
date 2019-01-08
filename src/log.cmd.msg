@@ -44,6 +44,6 @@ return {
 # fail
 <[base.log]>->( 0, $err_msg );
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => $err_msg
 };

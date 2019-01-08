@@ -7,14 +7,14 @@
 my $skip_interval = $$call{'args'};
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'autoskip timer already active ('
         . <mpv.timer.autoskip>->interval
         . ' sec interval)'
     }
     if exists <mpv.timer.autoskip>;
 
-return { 'mode' => 'nack', 'data' => 'expected interval in seconds (>=1)' }
+return { 'mode' => 'nak', 'data' => 'expected interval in seconds (>=1)' }
     if $skip_interval !~ /^\-?\d+(\.\d+)?$/ or $skip_interval < 1;
 
 <[mpv.cmd.loop]>->( { 'args' => 'playlist' } );

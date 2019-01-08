@@ -30,7 +30,7 @@ if ( not defined $param ) {
     my $float = $1;
     my $limit = 22;
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "current float precision limit is $limit"
         }
         if $float > $limit;
@@ -40,7 +40,7 @@ if ( not defined $param ) {
     };
 } else {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "invalid parameter '$param'.. [date|unix[.<n>]]"
     };
 }

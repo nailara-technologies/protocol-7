@@ -7,13 +7,13 @@ my $reply_id = delete $answer->{'params'};
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'nack',
+    {   'mode' => 'nak',
         'data' => "unexpected answer from (missing?) xserver agent!"
     }
 ) if defined $reply_id and $answer->{'cmd'} ne 'RAW';
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'nack',
+    {   'mode' => 'nak',
         'data' => "no open windows found"
     }
 ) if defined $reply_id and $answer->{'call_args'}->{'args'} == 0;

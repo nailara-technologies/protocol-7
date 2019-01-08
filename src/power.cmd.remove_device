@@ -7,12 +7,12 @@
 <power.cfg.devices> //= {};
 my $device_id = $$call{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'numerical device id expected' }
+return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};

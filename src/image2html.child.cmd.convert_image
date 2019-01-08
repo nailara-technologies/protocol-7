@@ -7,16 +7,16 @@
 my ( $image_path, $target_width, $target_height )
     = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
+return { 'mode' => 'nak', 'data' => 'expected path to image file!' }
     if not defined $image_path or !length($image_path);
-return { 'mode' => 'nack', 'data' => 'file does not exist!' }
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
     if $image_path =~ m|^(file://)?(/.+)$| and !-f $2;
-return { 'mode' => 'nack', 'data' => "image2html UID can't read image file" }
+return { 'mode' => 'nak', 'data' => "image2html UID can't read image file" }
     if $image_path =~ m|^(file://)?(/.+)$| and !-r $2;
-return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
-return { 'mode' => 'nack', 'data' => 'invalid target height parameter!' }
+return { 'mode' => 'nak', 'data' => 'invalid target height parameter!' }
     if defined $target_height and $target_height !~ /^\d+$/
     or defined $target_height and !$target_height;
 
@@ -32,9 +32,9 @@ my $html_path = <[image2html.base.get_html_path]>->(
 );
 my $stub_file = "$html_path/image.html";
 
-return { 'mode' => 'nack', 'data' => 'expected html dir does not exist!' }
+return { 'mode' => 'nak', 'data' => 'expected html dir does not exist!' }
     if !-d $html_path;
-return { 'mode' => 'nack', 'data' => 'image2html stub file does not exist!' }
+return { 'mode' => 'nak', 'data' => 'image2html stub file does not exist!' }
     if !-f $stub_file;
 
 ( my $html_dir_name = $html_path ) =~ s|^.*/||g;

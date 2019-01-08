@@ -7,12 +7,12 @@
 my $seek_mode  = 'absolute';
 my $seek_value = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'expected seek value' }
+return { 'mode' => 'nak', 'data' => 'expected seek value' }
     if not defined $seek_value or !length($seek_value);
-return { 'mode' => 'nack', 'data' => 'invalid seek value' }
+return { 'mode' => 'nak', 'data' => 'invalid seek value' }
     if $seek_value !~ /^[\-\+]?\d+(\.\d{1,5})?%?$/;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'percentage value not allowed in relative mode'
     }
     if $seek_value =~ /^[\-\+]\d+(\.\d+)?%$/;
@@ -23,7 +23,7 @@ $seek_mode = 'relative'
 $seek_mode = 'absolute-percent' if $seek_value =~ s|%$||;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'valid percentages are between 0 and 100'
     }
     if $seek_mode eq 'absolute-percent' and $seek_value > 100;

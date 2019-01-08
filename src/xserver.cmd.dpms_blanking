@@ -4,7 +4,7 @@
 # param = [timeout]
 # descr = enable screen blanking using DPMS
 
-return { 'mode' => 'nack', 'data' => 'xserver has no DPMS support' }
+return { 'mode' => 'nak', 'data' => 'xserver has no DPMS support' }
     if !<xserver.has_dpms>;
 
 my $param = shift;
@@ -14,7 +14,7 @@ if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
     $t_sec = $1;
 } elsif ( defined $param->{'args'} ) {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "parameter invalid (optional timeout in seconds)"
     };
 }

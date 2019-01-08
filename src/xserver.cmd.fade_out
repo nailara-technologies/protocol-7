@@ -9,13 +9,13 @@ my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
 
 ( $duration, my $fade_limit ) = split( /:/, $duration );
 
-return { 'mode' => 'nack', 'data' => 'fade out duration in seconds expected!' }
+return { 'mode' => 'nak', 'data' => 'fade out duration in seconds expected!' }
     if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
-return { 'mode' => 'nack', 'data' => 'window <id(s)> required!' }
+return { 'mode' => 'nak', 'data' => 'window <id(s)> required!' }
     if !@window_ids;
 map {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'invalid window id syntax ( must be numerical)'
         }
         if $_ !~ /^\d+$/
@@ -32,7 +32,7 @@ my %all_windows = map { $_->id => 1 } @{ $xtops->sorted };
 map { delete $fade_windows{$_} if not exists $all_windows{$_} }
     keys %fade_windows;
 
-return { 'mode' => 'nack', 'data' => 'no such window(s)' }
+return { 'mode' => 'nak', 'data' => 'no such window(s)' }
     if !keys(%fade_windows);
 
 map {

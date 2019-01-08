@@ -7,8 +7,8 @@ my $reply_id = delete $answer->{'params'};
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'nack',
-        'data' => "unexpected (NACK) reply from screenshot agent!"
+    {   'mode' => 'nak',
+        'data' => "unexpected (NAK) reply from screenshot agent!"
     }
 ) if $answer->{'cmd'} ne 'ACK';
 

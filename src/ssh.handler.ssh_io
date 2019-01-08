@@ -93,7 +93,7 @@ if ( !$connection->{'authorized'} ) {
     if (   !$connection->{'linked'}
         and $connection->{'buffer'} =~ s/^\((\d+)\).+\n// ) {
         my $cmd_id = $1;
-        $channel->write("($cmd_id)NACK link not initialized yet!\n");
+        $channel->write("($cmd_id)NAK link not initialized yet!\n");
     } else {
         my $blen = length( $connection->{'buffer'} );
         my $bytes

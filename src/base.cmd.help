@@ -20,7 +20,7 @@ foreach my $cmd ( sort( keys( %{<base.cmd>} ) ) ) {
         and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
 
      #        # command description mode
-     #        return { 'mode' => 'nack', 'data' => "not implemented yet... :/" }
+     #        return { 'mode' => 'nak', 'data' => "not implemented yet... :/" }
      #            if defined $keyword and exists <base.cmd>->{$keyword};
 
         # keyword search mode
@@ -35,7 +35,7 @@ foreach my $cmd ( sort( keys( %{<base.cmd>} ) ) ) {
 }
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no commands matching '$keyword' available"
     }
     if defined $keyword and !@commands;

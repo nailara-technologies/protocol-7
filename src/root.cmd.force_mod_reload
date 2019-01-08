@@ -7,15 +7,15 @@
 
 my $module_name = $$call{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'expected valid <module> parameter' }
+return { 'mode' => 'nak', 'data' => 'expected valid <module> parameter' }
     if !length($module_name)
     or length($module_name) > 42
     or $module_name !~ /^[\w\s_]+$/;
 
-return { 'mode' => 'nack', 'data' => "'rmmod' binary not found!" }
+return { 'mode' => 'nak', 'data' => "'rmmod' binary not found!" }
     if not defined <root.rmmod_bin>;
 my $rmmod_bin = <root.rmmod_bin>;
-return { 'mode' => 'nack', 'data' => "'modprobe' binary not found!" }
+return { 'mode' => 'nak', 'data' => "'modprobe' binary not found!" }
     if not defined <root.modprobe_bin>;
 my $modprobe_bin = <root.modprobe_bin>;
 
@@ -46,7 +46,7 @@ if ( !length($modprobe_output) ) {
 
 chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
 if ( length($rmmod_output) ) {
-    $reply_mode = 'nack';
+    $reply_mode = 'nak';
     $rmmod_output =~ s/(^.*rmmod: (FATAL: )?(Module )?|\.$)//g;
     $reply_data = "failed to unload module ['$rmmod_output']";
     goto do_reply;
@@ -54,7 +54,7 @@ if ( length($rmmod_output) ) {
 
 chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
 if ( length($modprobe_output) ) {
-    $reply_mode = 'nack';
+    $reply_mode = 'nak';
     $modprobe_output =~ s/(^modprobe: FATAL: (Module )?|\.$)//g;
     $reply_data = "failed to load module ['$modprobe_output']";
     goto do_reply;

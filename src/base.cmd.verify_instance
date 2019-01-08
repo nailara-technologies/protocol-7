@@ -5,7 +5,7 @@
 # descr = verify root instance id through log feedback
 
 my $random_string = $$call{'args'} // '';
-return { 'mode' => 'nack', 'data' => 'no random string supplied' }
+return { 'mode' => 'nak', 'data' => 'no random string supplied' }
     if !length($random_string);
 
 <[base.log]>->( 1, "instance verification string : '$random_string'" );

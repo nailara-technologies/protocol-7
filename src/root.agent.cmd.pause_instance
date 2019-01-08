@@ -6,9 +6,9 @@
 
 my $instance_id = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'instance id must be numeric!' }
+return { 'mode' => 'nak', 'data' => 'instance id must be numeric!' }
     if $instance_id !~ /^\d+$/;
-return { 'mode' => 'nack', 'data' => "instance not found!" }
+return { 'mode' => 'nak', 'data' => "instance not found!" }
     if not exists <root.agent.instance>->{$instance_id};
 
 my $instance = <root.agent.instance>->{$instance_id};

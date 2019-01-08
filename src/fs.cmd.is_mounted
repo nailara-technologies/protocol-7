@@ -6,7 +6,7 @@
 
 ( my $mountpoint_str = $$call{'args'} || '' ) =~ s|/$||g;
 
-return { 'mode' => 'nack', 'data' => 'expected mountpoint parameter' }
+return { 'mode' => 'nak', 'data' => 'expected mountpoint parameter' }
     if !length($mountpoint_str);
 
 my $status = <[fs.is_mounted]>->($mountpoint_str);
@@ -14,7 +14,7 @@ my $status = <[fs.is_mounted]>->($mountpoint_str);
 if ( $status == 1 ) {
     return { 'mode' => 'ack', 'data' => 'is mounted' };
 } elsif ( $status == 0 ) {
-    return { 'mode' => 'nack', 'data' => 'is not mounted' };
+    return { 'mode' => 'nak', 'data' => 'is not mounted' };
 } elsif ( $status == -1 ) {
-    return { 'mode' => 'nack', 'data' => 'mountpoint does not exist' };
+    return { 'mode' => 'nak', 'data' => 'mountpoint does not exist' };
 }

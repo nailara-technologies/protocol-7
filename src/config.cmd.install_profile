@@ -5,16 +5,16 @@
 # descr = install config profile to import directory
 
 my $profile_name = $$call{'args'} || '';
-return { 'mode' => 'nack', 'data' => 'expected config name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
     if !length($profile_name);
-return { 'mode' => 'nack', 'data' => 'invalid profile name!' }
+return { 'mode' => 'nak', 'data' => 'invalid profile name!' }
     if $profile_name !~ /^[\w\-_\.]+$/;
 
 my $import_dir   = <config.json.import_dir>;
 my $profile_dir  = <config.profile_dir>;
 my $profile_file = "$profile_dir/$profile_name.json";
 
-return { 'mode' => 'nack', 'data' => 'specified profile not found!' }
+return { 'mode' => 'nak', 'data' => 'specified profile not found!' }
     if !-f $profile_file;
 
 <[base.log]>->( 1, "installing config profile '$profile_name'..." );
@@ -46,4 +46,4 @@ return {
     }
     if $file_count;
 
-return { 'mode' => 'nack', 'data' => 'no config files installed!' }
+return { 'mode' => 'nak', 'data' => 'no config files installed!' }

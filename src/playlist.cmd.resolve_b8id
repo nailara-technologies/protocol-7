@@ -5,11 +5,11 @@
 # descr = return parsed playlist entry string for given b8id
 
 my $b8id = $$call{'args'};
-return { 'mode' => 'nack', 'data' => 'valid <b8id> expected!' }
+return { 'mode' => 'nak', 'data' => 'valid <b8id> expected!' }
     if not defined $b8id
     or $b8id !~ m|^\w{5,23}$|;
 
-return { 'mode' => 'nack', 'data' => 'no matching playlist entry found!' }
+return { 'mode' => 'nak', 'data' => 'no matching playlist entry found!' }
     if not defined <playlist.b8id_src_str>->{$b8id};
 
 return { 'mode' => 'ack', 'data' => <playlist.b8id_src_str>->{$b8id} };

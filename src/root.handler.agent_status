@@ -208,7 +208,7 @@ foreach my $name_or_id (@check_keys) {
             map {
                 <[base.callback.cmd_reply]>->(
                     $_,
-                    {   'mode' => 'nack',
+                    {   'mode' => 'nak',
                         'data' => "instance $name_or_id has been shut down!"
                     }
                 );
@@ -222,7 +222,7 @@ foreach my $name_or_id (@check_keys) {
                 my $startup_reply_mode
                     = ( $status eq 'online' or $status eq 'extbin' )
                     ? 'ack'
-                    : 'nack';
+                    : 'nak';
                 my $what = $name_or_id =~ /^\d+$/ ? 'agent instance' : 'agent';
                 my $startup_reply_msg
                     = "$what '$name_or_id' startup failed [status=$status]";

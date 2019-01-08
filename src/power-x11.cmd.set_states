@@ -6,14 +6,14 @@
 
 my ( $dev_id, @states ) = split( / +/, shift->{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'expected device id' }
+return { 'mode' => 'nak', 'data' => 'expected device id' }
     if not defined $dev_id or !length($dev_id);
-return { 'mode' => 'nack', 'data' => "no such device ($dev_id)" }
+return { 'mode' => 'nak', 'data' => "no such device ($dev_id)" }
     if not exists <power-x11.devices>->{$dev_id};
-return { 'mode' => 'nack', 'data' => 'expected 4 socket states' }
+return { 'mode' => 'nak', 'data' => 'expected 4 socket states' }
     if @states != 4;
 map {
-    return { 'mode' => 'nack', 'data' => "state '$_' is not valid" }
+    return { 'mode' => 'nak', 'data' => "state '$_' is not valid" }
         if $_ !~ /^(0|1)$/
 } @states;
 

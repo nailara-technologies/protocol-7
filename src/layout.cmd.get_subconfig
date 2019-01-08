@@ -4,7 +4,7 @@
 # param = <agent[+tile]_name>
 # descr = return subconfig for layout tile
 
-return { 'mode' => 'nack', 'data' => "expected syntax is 'agent[subname]'" }
+return { 'mode' => 'nak', 'data' => "expected syntax is 'agent[subname]'" }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
 
@@ -28,7 +28,7 @@ if ( not exists <layout.subconfig>->{$agent_name} ) {
         = "multiple '$agent_name' instances defined, agent subname required!"
         if $match > 1;
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => $msg_str
         }
         if $match != 1;

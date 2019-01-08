@@ -8,10 +8,10 @@ my $param     = $$call{'args'} || '';
 my $cache_dir = <weather.cache_dir>;
 my $city_file = "$cache_dir/city.current";
 
-return { 'mode' => 'nack', 'data' => "cache dir '$cache_dir' not found!" }
+return { 'mode' => 'nak', 'data' => "cache dir '$cache_dir' not found!" }
     if !-d $cache_dir;
 
-return { 'mode' => 'nack', 'data' => 'parameter not recognized' }
+return { 'mode' => 'nak', 'data' => 'parameter not recognized' }
     if length($param)
     and $param !~ /^(html|data|stations)$/;
 

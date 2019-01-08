@@ -9,7 +9,7 @@ my $image_path = $reply->{'params'}->{'image_path'};
 my $html_path  = $reply->{'params'}->{'html_path'};
 ( my $html_dir = $html_path ) =~ s|^.*/||;
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "conversion of '$image_path' failed [$reason]" );
     my $errors;

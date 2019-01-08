@@ -9,7 +9,7 @@ my $v_id       = $reply->{'params'}->{'v_id'};
 my $agent_name = <agents.virtual>->{$v_id}->{'name'};
 delete <agents.virtual>->{$v_id}->{'starting'};
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->(
         0, "on demand startup of agent '$agent_name' failed [$reason]"
@@ -19,7 +19,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
         my $cmd_id = $element->{'cmd_id'};
         next if not exists $data{'session'}{$sid};
         $data{'session'}{$sid}{'buffer'}{'output'}
-            .= $cmd_id . "NACK unknown command\n";
+            .= $cmd_id . "NAK unknown command\n";
     }
 } else {
     <[base.log]>->( 1, "ondemand agent '$agent_name' now present.." );

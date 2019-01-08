@@ -15,7 +15,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }

@@ -5,11 +5,11 @@
 # descr = mount the specified device / filesystem
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'nack', 'data' => 'expected mountpoint parameter' }
+return { 'mode' => 'nak', 'data' => 'expected mountpoint parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'specified mountpoint does not exist'
     }
     if !-d $mount_point;
@@ -17,7 +17,7 @@ return {
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no filesystem mounted on $mount_point"
     }
     if $status != 1;
@@ -30,7 +30,7 @@ if ( system( '/bin/umount', $mount_point ) != 0 ) {
     if ( system( '/bin/umount', '-f', '-l', $mount_point ) != 0
         or <[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": forced unmount of '$mount_point' failed!" );
-        return { 'mode' => 'nack', 'data' => 'unmount failed!' };
+        return { 'mode' => 'nak', 'data' => 'unmount failed!' };
     } else {
         <[base.log]>->( 1, ": : forced unmount was successful" );
     }

@@ -5,9 +5,9 @@
 # descr = export a config profile from import dir
 
 my $profile_name = $$call{'args'} || '';
-return { 'mode' => 'nack', 'data' => 'expected config name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
     if !length($profile_name);
-return { 'mode' => 'nack', 'data' => 'invalid profile name!' }
+return { 'mode' => 'nak', 'data' => 'invalid profile name!' }
     if $profile_name !~ /^[\w\-_\.]+$/;
 
 my $import_dir   = <config.json.import_dir>;
@@ -19,7 +19,7 @@ my $dir_fh;
 if ( !opendir( $dir_fh, $import_dir ) ) {
     my $err_msg = "failed to open config import directory [$!]";
     <[base.log]>->( 0, $err_msg );
-    return { 'mode' => 'nack', 'data' => $err_msg };
+    return { 'mode' => 'nak', 'data' => $err_msg };
 }
 my @import_files = grep { /\.json$/ } readdir($dir_fh);
 closedir($dir_fh);
@@ -36,7 +36,7 @@ foreach my $file_name (@import_files) {
     if ( defined $err_msg and length($err_msg) ) {
         $err_msg = "reading json import file '$file_name' failed: $err_msg";
         <[base.log]>->( 0, $err_msg );
-        return { 'mode' => 'nack', 'data' => $err_msg };
+        return { 'mode' => 'nak', 'data' => $err_msg };
     }
     $import_data->{$file_name}
         = merge( $import_data->{$file_name}, $file_data );
@@ -52,7 +52,7 @@ my $out_fh;
 if ( !open( $out_fh, ">$profile_file" ) ) {
     my $err_msg = "failed to open/create output file [$profile_file]";
     <[base.log]>->( 0, $err_msg );
-    return { 'mode' => 'nack', 'data' => $err_msg };
+    return { 'mode' => 'nak', 'data' => $err_msg };
 }
 
 my $export_data = <json.parser>->encode($import_data);

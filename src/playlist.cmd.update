@@ -7,7 +7,7 @@ my $reload_reply = <[playlist.cmd.reload_file]>;
 my $update_cmd = <update.notify_command> // 'playlist_update';
 
 return $reload_reply
-    if $reload_reply->{'mode'} eq 'nack' or not defined <update.notify_agents>;
+    if $reload_reply->{'mode'} eq 'nak' or not defined <update.notify_agents>;
 
 my $count = <[playlist.update.send_notifications]>->($update_cmd);
 

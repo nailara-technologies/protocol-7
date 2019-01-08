@@ -6,15 +6,15 @@
 
 my $speed = $$call{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'expected speed factor (float value)' }
+return { 'mode' => 'nak', 'data' => 'expected speed factor (float value)' }
     if !length($speed)
     or $speed !~ /^\d+(\.\d+)?%?$/;
 
 my $speed_val = sprintf( "%0.2f", $speed );
 
-return { 'mode' => 'nack', 'data' => 'minimum value 0.01' }
+return { 'mode' => 'nak', 'data' => 'minimum value 0.01' }
     if $speed_val < 0.01;
-return { 'mode' => 'nack', 'data' => 'maximum speed value is 100' }
+return { 'mode' => 'nak', 'data' => 'maximum speed value is 100' }
     if $speed_val > 100;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );

@@ -9,7 +9,7 @@ my ( $cid, $requested_key ) = ( $_[0]->{'session_id'}, $_[0]->{'args'} );
 my ( $key_ok, $err_msg ) = <[base.validate.data_key_syntax]>->($requested_key);
 if ( !$key_ok ) {
     <[base.log]>->( 0, "[$cid] get: $err_msg" );
-    return { 'mode' => 'nack', 'data' => $err_msg };
+    return { 'mode' => 'nak', 'data' => $err_msg };
 }
 my $key_ref;
 if ( $key_ref = <[base.resolve_key]>->($requested_key) and defined $key_ref ) {
@@ -19,8 +19,8 @@ if ( $key_ref = <[base.resolve_key]>->($requested_key) and defined $key_ref ) {
         }
         if ref($key_ref) eq 'SCALAR';
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'only references to scalars are currently implemented'
     };
 }
-return { 'mode' => 'nack', 'data' => 'requested key not found' };
+return { 'mode' => 'nak', 'data' => 'requested key not found' };

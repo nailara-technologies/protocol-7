@@ -39,7 +39,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -76,7 +76,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
         1, ": recalulated zoom level = " . <weather.zoom_level> . $m_str
     );
     return <weather.zoom_level>;
-} elsif ( $reply_string =~ /NACK unknown command$/ ) {
+} elsif ( $reply_string =~ /NAK unknown command$/ ) {
     <[base.log]>->( 1, 'xserver agent unreachable (running?)' );
 } else {
     <[base.log]>->(

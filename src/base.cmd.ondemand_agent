@@ -6,7 +6,7 @@
 
 my $re = $data{'regex'}{'base'};
 
-return { 'mode' => 'nack', 'data' => 'expected <add|del> <agent_name>' }
+return { 'mode' => 'nak', 'data' => 'expected <add|del> <agent_name>' }
     if not defined $$call{'args'}
     or !length( $$call{'args'} )
     or $$call{'args'} !~ /^(add|del) ($re->{'usr'})$/;
@@ -16,7 +16,7 @@ my ( $cmd, $agent_name ) = split / +/, $$call{'args'};
 if ( $cmd eq 'add' ) {
     map {
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "there already is one registered ondemand type agent "
                 . "'$agent_name'"
             }
@@ -54,7 +54,7 @@ if ( $cmd eq 'add' ) {
         }
     } keys %{<agents.virtual>};
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "no such agent registered ('$agent_name')"
         }
         if not defined $del_id;
