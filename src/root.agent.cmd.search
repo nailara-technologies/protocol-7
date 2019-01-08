@@ -7,7 +7,7 @@
 my $search_pattern = $$call{'args'} // '';
 my @matching_agents;
 
-return { 'mode' => 'nack', 'data' => 'expected search pattern' }
+return { 'mode' => 'nak', 'data' => 'expected search pattern' }
     if !length($search_pattern);
 
 foreach my $agent_name ( keys %{<root.agents.available>} ) {
@@ -18,7 +18,7 @@ foreach my $agent_name ( keys %{<root.agents.available>} ) {
 }
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'no matches ( see \'root.list available\' for a complete list )'
     }
     if !@matching_agents;

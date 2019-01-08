@@ -8,24 +8,24 @@ my $file_path = $$call{'args'};
 <ticker-sdl.request_pending.read_file> //= 0;
 
 if ( not defined $file_path or !length($file_path) ) {
-    return { 'mode' => 'nack', 'data' => 'expected valid file path!' };
+    return { 'mode' => 'nak', 'data' => 'expected valid file path!' };
 } elsif ( -d $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is a directory!" );
-    return { 'mode' => 'nack', 'data' => 'specified path is a directory!' };
+    return { 'mode' => 'nak', 'data' => 'specified path is a directory!' };
 } elsif ( !-e $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' not found!" );
-    return { 'mode' => 'nack', 'data' => 'file not found!' };
+    return { 'mode' => 'nak', 'data' => 'file not found!' };
 } elsif ( !-R $file_path ) {
     <[base.log]>->(
         0, "read_file: file '$file_path' not readable! (permissions?)"
     );
-    return { 'mode' => 'nack', 'data' => 'file access permission denied!' };
+    return { 'mode' => 'nak', 'data' => 'file access permission denied!' };
 } elsif ( !<ticker-sdl.allow_non_regular_files> and !-f $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is not a regular file!" );
-    return { 'mode' => 'nack', 'data' => 'not a regular file!' };
+    return { 'mode' => 'nak', 'data' => 'not a regular file!' };
 } elsif ( -z $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' is empty!" );
-    return { 'mode' => 'nack', 'data' => 'file is empty!' };
+    return { 'mode' => 'nak', 'data' => 'file is empty!' };
 }
 
 if ( !<ticker-sdl.request_pending.read_file> ) {
@@ -42,5 +42,5 @@ if ( !<ticker-sdl.request_pending.read_file> ) {
     <ticker-sdl.request_pending.read_file> = 1;
     return { 'mode' => 'ack', 'data' => 'ticker update queued!' };
 } else {
-    return { 'mode' => 'nack', 'data' => 'request already pending..' };
+    return { 'mode' => 'nak', 'data' => 'request already pending..' };
 }

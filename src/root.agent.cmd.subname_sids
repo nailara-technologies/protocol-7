@@ -5,7 +5,7 @@
 # descr = list core sid[s] for given subname pattern
 
 my $subname_query = $$call{'args'} || '';
-return { 'mode' => 'nack', 'data' => 'expected agent subname pattern' }
+return { 'mode' => 'nak', 'data' => 'expected agent subname pattern' }
     if !length($subname_query);
 
 my @reply_list;
@@ -27,7 +27,7 @@ if (@reply_list) {
     return { 'mode' => 'raw', 'data' => join( '', map {"$_\n"} @reply_list ) };
 } else {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "no match for subname pattern /$subname_query/"
     };
 }

@@ -6,7 +6,7 @@
 my $sid = $_[0]->{'session_id'};
 my $param = $_[0]->{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'no base path defined' }
+return { 'mode' => 'nak', 'data' => 'no base path defined' }
     if not defined $data{'session'}{$sid}{'base_path'};
 
 if (    $data{'session'}{$sid}{'base_path'} =~ /\./

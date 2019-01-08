@@ -6,9 +6,9 @@
 
 my $cmd_str = $$call{'args'};  # XXX: implement parameter quoting instead of '!'
 
-return { 'mode' => 'nack', 'data' => 'expected mpv command' }
+return { 'mode' => 'nak', 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
-return { 'mode' => 'nack', 'data' => 'requested command matches blacklist!' }
+return { 'mode' => 'nak', 'data' => 'requested command matches blacklist!' }
     if $cmd_str =~ /^\!?(run|hook)/;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );

@@ -7,16 +7,16 @@
 my ( $image_location, $target_width, $target_height )
     = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'expected path to image file!' }
+return { 'mode' => 'nak', 'data' => 'expected path to image file!' }
     if not defined $image_location or !length($image_location);
-return { 'mode' => 'nack', 'data' => 'file does not exist!' }
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
     if $image_location =~ m|^(file://)?(/.+)$| and !-f $2;
-return { 'mode' => 'nack', 'data' => "image2html UID can't read image file" }
+return { 'mode' => 'nak', 'data' => "image2html UID can't read image file" }
     if $image_location =~ m|^(file://)?(/.+)$| and !-r $2;
-return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
-return { 'mode' => 'nack', 'data' => 'invalid target height parameter!' }
+return { 'mode' => 'nak', 'data' => 'invalid target height parameter!' }
     if defined $target_height and $target_height !~ /^\d+$/
     or defined $target_height and !$target_height;
 
@@ -25,7 +25,7 @@ if ( not defined $target_width ) {
     if ( $image_location =~ m|^https?://| ) {
         <[base.log]>->( 2, "downloading '$image_location' first..." );
         $image_location = <[image2html.base.download_file]>->($image_location);
-        return { 'mode' => 'nack', 'data' => 'download failed!' }
+        return { 'mode' => 'nak', 'data' => 'download failed!' }
             if not defined $image_location;
     }
     ($target_width) = <[image2html.base.get_image_size]>->($image_location);

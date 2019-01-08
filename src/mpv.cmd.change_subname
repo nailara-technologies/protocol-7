@@ -5,10 +5,10 @@
 
 my $new_subname = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'subname parameter expected' }
+return { 'mode' => 'nak', 'data' => 'subname parameter expected' }
     if not defined $new_subname or !length($new_subname);
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'subnames identical - no changes'
     }
     if defined <system.agent.subname>

@@ -8,7 +8,7 @@ my $id = $$call{'session_id'};
 
 my ( $volume, $speed ) = split( / +/, $$call{'args'} // '', 2 );
 
-return { 'mode' => 'nack', 'data' => 'expected numerical percent value' }
+return { 'mode' => 'nak', 'data' => 'expected numerical percent value' }
     if !length($volume)
     or $volume !~ /^[\-\+]?\d+(\.\d+)?\%?$/;
 
@@ -19,7 +19,7 @@ $volume = 0 if $volume < 0;
 
 $speed //= <mpv.audio.fade_speed> //= 42;
 
-return { 'mode' => 'nack', 'data' => 'speed is a float number [0..100]' }
+return { 'mode' => 'nak', 'data' => 'speed is a float number [0..100]' }
     if $speed !~ /^\d+(\.\d+)?$/
     or sprintf( "%.5f", $speed ) <= 0
     or $speed > 100;    # min. 0.00001, max. 100

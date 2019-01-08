@@ -4,7 +4,7 @@
 # param = <agent_name>
 # descr = purge specified agent from dependency chains
 
-return { 'mode' => 'nack', 'data' => 'expected valid agent name' }
+return { 'mode' => 'nak', 'data' => 'expected valid agent name' }
     if !length( $$call{'args'} )
     or not my $agent_id = <[agent.get_id]>->( $$call{'args'} );
 
@@ -20,7 +20,7 @@ foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
 # XXX: add full history / restore feature?
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no agent seems to depend on '$agent_name' (already dropped?)"
     }
     if !$del_count;

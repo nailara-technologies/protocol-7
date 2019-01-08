@@ -14,22 +14,22 @@ if ( not defined $target_path and $box_size !~ /^\d+x\d+$/ ) {
     undef $box_size;
 }
 
-return { 'mode' => 'nack', 'data' => 'expected path to video file' }
+return { 'mode' => 'nak', 'data' => 'expected path to video file' }
     if not defined $video_path;
-return { 'mode' => 'nack', 'data' => 'expected new video size' }
+return { 'mode' => 'nak', 'data' => 'expected new video size' }
     if not defined $new_size;
-return { 'mode' => 'nack', 'data' => 'syntax error in video size parameter' }
+return { 'mode' => 'nak', 'data' => 'syntax error in video size parameter' }
     if $new_size !~ /^\d+(x\d+)?$/;
-return { 'mode' => 'nack', 'data' => 'syntax error in box size parameter' }
+return { 'mode' => 'nak', 'data' => 'syntax error in box size parameter' }
     if defined $box_size and $box_size !~ /^\d+x\d+$/;
-return { 'mode' => 'nack', 'data' => 'target_path does not exist' }
+return { 'mode' => 'nak', 'data' => 'target_path does not exist' }
     if defined $target_path and !-d $target_path;
-return { 'mode' => 'nack', 'data' => 'video file not found!' }
+return { 'mode' => 'nak', 'data' => 'video file not found!' }
     if !-f $video_path;
 
 my ( $w, $h ) = ( $1, $3 ) if $new_size =~ /^(\d+)(x(\d+))?$/;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'invalid size parameters for libx264 codec'
     }
     if $w % 16
@@ -110,7 +110,7 @@ if ( !-f $output_file ) {
                 . join( ' ', @ffmpeg_params ) . ")"
         );
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "ffmpeg failed to execute [$err_str]"
         };
     } else {

@@ -6,9 +6,9 @@
 my $cache_dir = <weather.cache_dir>;
 my $city_file = "$cache_dir/city.current";
 
-return { 'mode' => 'nack', 'data' => "cache dir '$cache_dir' not found!" }
+return { 'mode' => 'nak', 'data' => "cache dir '$cache_dir' not found!" }
     if !-d $cache_dir;
-return { 'mode' => 'nack', 'data' => "there was no city saved yet" }
+return { 'mode' => 'nak', 'data' => "there was no city saved yet" }
     if !-f $city_file;
 
 unlink($city_file) or warn("error during unlink($city_file): $1");

@@ -7,9 +7,9 @@
 my $X         = <xserver.x11>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'x11 window id required' }
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nack', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <xserver.x11_tops>;
@@ -23,7 +23,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 my $result = <[xserver.get_window_opacity]>->($window_id);
 
@@ -31,7 +31,7 @@ if ( not defined $result ) {
     <[base.log]>->(
         0, "error during get_opacity() command for window $window_id [closed?]"
     );
-    return { 'mode' => 'nack', 'data' => 'window has been closed' };
+    return { 'mode' => 'nak', 'data' => 'window has been closed' };
 }
 
 return { 'mode' => 'ack', 'data' => sprintf( "%.3f%%", $result * 100 ) };

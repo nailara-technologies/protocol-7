@@ -7,12 +7,12 @@
 my $event_id = $$call{'args'} // '';
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'numerical <event_id> parameter expected!'
     }
     if $event_id !~ /^\d+$/;
 
-return { 'mode' => 'nack', 'data' => 'no such event configured' }
+return { 'mode' => 'nak', 'data' => 'no such event configured' }
     if not exists <events.timers>->{$event_id}->{'at'};
 
 <events.timers>->{$event_id}->{'at'}->now;

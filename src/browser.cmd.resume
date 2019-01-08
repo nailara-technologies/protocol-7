@@ -3,7 +3,7 @@
 # name  = browser.cmd.resume
 # descr = 'unpause' slideshow
 
-return { 'mode' => 'nack', 'data' => 'slideshow was not paused' }
+return { 'mode' => 'nak', 'data' => 'slideshow was not paused' }
     if !<browser.slideshow.paused>;
 
 <browser.slideshow.paused> = 0;
@@ -12,7 +12,7 @@ my @url_list = @{<browser.url.list>};
 
 if ( !@url_list ) {
     <browser.slideshow.running> = 0;
-    return { 'mode' => 'nack', 'data' => 'url list is empty' };
+    return { 'mode' => 'nak', 'data' => 'url list is empty' };
 }
 <browser.slideshow.url_index> = 0
     if <browser.slideshow.url_index> >= @url_list;

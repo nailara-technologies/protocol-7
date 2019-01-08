@@ -32,7 +32,7 @@ while ( !$matched_reply ) {
     die "core handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NACK|RAW) /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|RAW) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }

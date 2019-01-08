@@ -31,7 +31,7 @@ while ( !$matched_reply ) {
     die "core handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -48,8 +48,8 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$/ ) {
 my $err_msg = "unexpected reply from layout agent ['$reply_string']";
 
 $err_msg = ': coordinates undefined'
-    if $reply_string =~ /NACK no coordinates/
-    or $reply_string =~ /NACK unknown command/;
+    if $reply_string =~ /NAK no coordinates/
+    or $reply_string =~ /NAK unknown command/;
 
 <[base.log]>->( 1, $err_msg );
 
@@ -63,7 +63,7 @@ while ( !$matched_reply ) {
     die "core handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }

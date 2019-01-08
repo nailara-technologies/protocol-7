@@ -6,7 +6,7 @@
 
 my $title_pattern = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'expected title [sub]string argument' }
+return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
 my $xtops = <xserver.x11_tops>;
@@ -19,7 +19,7 @@ for my $win ( @{ $xtops->sorted } ) {
         or index( $win->title,    $title_pattern ) != -1;
 }
 
-return { 'mode' => 'nack', 'data' => 'no matching window captions!' }
+return { 'mode' => 'nak', 'data' => 'no matching window captions!' }
     if !@window_ids;
 
 return {

@@ -7,23 +7,23 @@
 <power.cfg.devices> //= {};
 my ( $device_id, @state_param ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'numerical device id expected' }
+return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};
 
-return { 'mode' => 'nack', 'data' => 'socket state parameters expected' }
+return { 'mode' => 'nak', 'data' => 'socket state parameters expected' }
     if @state_param < 4;
 
 my $skip_count = 0;
 map {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "invalid state \"$_\" requested! "
             . "( valid states are '0', '1' or '-' [skip] )"
         }
@@ -32,7 +32,7 @@ map {
 } @state_param;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no changes [ all 'skip'ped! ]"
     }
     if $skip_count == 4;

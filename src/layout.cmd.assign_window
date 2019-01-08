@@ -17,7 +17,7 @@ if ( defined $err_msg ) {
     my $source_str = defined $source_name ? "[$source_name]" : '';
     <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => $err_msg
     };
 }
@@ -39,7 +39,7 @@ if ( not defined $tile_name ) {
             0, "assign_window: multiple '$source_name' agents! [no tile name]"
         );
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' =>
                 'multiple agents with that name (and no tile name provided)'
         };
@@ -85,7 +85,7 @@ if (exists <layout.window_ids>->{$agent_name}
 
     # XXX: refine message (reason)
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'failed to assign!'
     };
 }

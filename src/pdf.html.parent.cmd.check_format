@@ -6,15 +6,15 @@
 
 my $pdf_path = $$call{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'expected path to pdf file!' }
+return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
     if !length($pdf_path);
-return { 'mode' => 'nack', 'data' => 'file does not exist!' }
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
     if $pdf_path !~ m|^https?://| and !-f $pdf_path;
 
 return { 'mode' => 'ack', 'data' => 'is valid! :)' }
     if <[pdf.html.base.valid_pdf]>->($pdf_path);
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "failed to recognize '$pdf_path' as PDF format!"
     }

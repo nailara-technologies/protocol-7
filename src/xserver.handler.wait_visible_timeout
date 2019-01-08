@@ -8,7 +8,7 @@ my $wait_req = <xserver.waiting>->{$id};
 $wait_req->{'timer'}->{'poll'}->cancel;
 <[base.callback.cmd_reply]>->(
     $wait_req->{'reply_id'},
-    {   'mode' => 'nack',
+    {   'mode' => 'nak',
         'data' => 'window startup timed out!'
     }
 );

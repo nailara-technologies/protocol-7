@@ -6,9 +6,9 @@
 
 my $sub_name = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'expected subroutine name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected subroutine name parameter' }
     if !length($sub_name);
-return { 'mode' => 'nack', 'data' => 'no such subroutine' }
+return { 'mode' => 'nak', 'data' => 'no such subroutine' }
     if not exists $code{$sub_name};
 
 $code{$sub_name}->();

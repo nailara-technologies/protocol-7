@@ -11,7 +11,7 @@ $err_str //= "\<layout.current_layout> not defined" if not defined $layout_name;
 $err_str //= "no setup found for layout '$layout_name'"
     if not exists <layout.config.layouts>->{$layout_name};
 
-return { 'mode' => 'nack', 'data' => $err_str } if defined $err_str;
+return { 'mode' => 'nak', 'data' => $err_str } if defined $err_str;
 
 return {
     'mode' => 'ack',

@@ -22,7 +22,7 @@ if ( $pdf_location =~ m|^https?://| ) {
         foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
-                {   'mode' => 'nack',
+                {   'mode' => 'nak',
                     'data' => "download of '$pdf_location' failed!"
                 }
             );
@@ -145,7 +145,7 @@ my $err_msg = "error during conversion of PDF page #$index [$err_status`]";
 foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nack',
+        {   'mode' => 'nak',
             'data' => $err_msg
         }
     );

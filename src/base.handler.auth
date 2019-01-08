@@ -68,7 +68,7 @@ if ( $$input =~ s/^(auth\.)?close\n// ) {
         $$session{'shutdown'} = 1;
     } elsif ( ( $$session{'counter'}{'auth'}{'list'} // 0 ) > 0 ) {
         <[base.log]>->( 0, "[$id] repeated auth list requested.." );
-        $$output .= "NACK once should be enough >;]\n";
+        $$output .= "NAK once should be enough >;]\n";
         $$session{'counter'}{'auth'}{'list'}++;
     } else {
         <[base.log]>->( 1, "[$id] auth method list requested" );

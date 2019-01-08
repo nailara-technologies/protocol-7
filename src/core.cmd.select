@@ -9,7 +9,7 @@ my $usr_sid    = $_[0]->{'session_id'};
 my $source_usr = $data{'session'}{$usr_sid}{'user'};
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'invalid parameter syntax for user/agent/sid!'
     }
     if $param !~ <regex.base.usr>
@@ -36,7 +36,7 @@ if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
         }
         keys %{ $data{'session'} };
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'multiple $param found (not supported yet!)'
         }
         if $found > 1;
@@ -47,7 +47,7 @@ if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
 }
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => $param =~ /^\d+$/
     ? "there is no active session $param"
     : "user '$target_usr' not online"

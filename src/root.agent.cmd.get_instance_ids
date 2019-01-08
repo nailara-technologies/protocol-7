@@ -5,7 +5,7 @@
 # descr = return instance ids for matching agent names
 
 my $params = $$call{'args'} || '';
-return { 'mode' => 'nack', 'data' => 'expected agent name[s]' }
+return { 'mode' => 'nak', 'data' => 'expected agent name[s]' }
     if !length($params);
 
 my @instance_ids;
@@ -33,7 +33,7 @@ foreach my $param_str ( split / +/, $params ) {
 }
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
     }
     if !$setup_found and $not_found;
@@ -42,7 +42,7 @@ if (@instance_ids) {
     return { 'mode' => 'ack', 'data' => join( ' ', @instance_ids ) };
 } else {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'no matches found!'
     };
 }

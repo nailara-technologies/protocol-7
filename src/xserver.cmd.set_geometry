@@ -6,11 +6,11 @@
 
 my ( $id, $geometry ) = split( / +/, $$call{'args'}, 2 );
 
-return { 'mode' => 'nack', 'data' => 'required x11 window id and <geometry>' }
+return { 'mode' => 'nak', 'data' => 'required x11 window id and <geometry>' }
     if not defined $id or not defined $geometry;
-return { 'mode' => 'nack', 'data' => 'invalid <id> syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;
-return { 'mode' => 'nack', 'data' => 'invalid <geometry> syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid <geometry> syntax' }
     if $geometry !~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
 
 my $xtops = <xserver.x11_tops>;
@@ -24,7 +24,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 $window->move($geometry);
 $xtops->update;

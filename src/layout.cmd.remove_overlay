@@ -11,13 +11,13 @@ my $overlay_str = $$call{'args'} // '';
 <layout.overlays.previous> = [ @{<layout.overlays.current>} ];
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no layout overlay is active"
     }
     if !@{<layout.overlays.current>};
 map {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "layout '$overlay_str' is not active"
         }
         if <layout.current_layout> !~ /$_/;
@@ -28,12 +28,12 @@ my @del_overlays = sort keys %del_overlays;
 
 map {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "expected valid layout name"
         }
         if not defined $_ or !length($_);
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "layout \"$overlay_str\" not found!"
         }
         if not exists <layout.config.layouts>->{$_};
@@ -50,7 +50,7 @@ map { delete $active{$_} if exists $active{$_} } @del_overlays;
 @{<layout.overlays.current>} = sort keys %active;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no match for layout '$overlay_str'"
     }
     if scalar @{<layout.overlays.current>} == $prev_count;

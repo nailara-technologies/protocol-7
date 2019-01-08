@@ -10,7 +10,7 @@ my $reply_mode = 'ack';
 my $reply_data = "kernel module '$module_name' reloaded ... xserver restarted";
 
 if ( $reply->{'cmd'} ne 'ACK' ) {
-    $reply_mode = 'nack';
+    $reply_mode = 'nak';
     $reply_data = "module '$module_name' reloaded, xserver restart failed ["
         . $reply->{'call_args'}->{'args'} . "]";
 }

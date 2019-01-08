@@ -54,7 +54,7 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
         $fail_msg = "will not destroy server mode sessions! >;["
             if exists $data{'session'}{$param}
             and $data{'session'}{$param}{'mode'} eq 'server';
-        return { 'mode' => 'nack', 'data' => $fail_msg };
+        return { 'mode' => 'nak', 'data' => $fail_msg };
     }
 } else {
     $$reply{'data'} = 'not a valid username or session id syntax!';

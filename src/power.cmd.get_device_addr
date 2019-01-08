@@ -7,9 +7,9 @@
 my $device_id = $$call{'args'} // '';
 <power.cfg.devices> //= {};
 
-return { 'mode' => 'nack', 'data' => 'expected device id' }
+return { 'mode' => 'nak', 'data' => 'expected device id' }
     if !length($device_id);
-return { 'mode' => 'nack', 'data' => "device '$device_id' does not exist" }
+return { 'mode' => 'nak', 'data' => "device '$device_id' does not exist" }
     if not exists <power.cfg.devices>->{$device_id};
 
 return {

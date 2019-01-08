@@ -3,7 +3,7 @@
 # name  = xserver.cmd.dpms_info
 # descr = return DPMS status and power mode
 
-return { 'mode' => 'nack', 'data' => 'xserver has no DPMS support' }
+return { 'mode' => 'nak', 'data' => 'xserver has no DPMS support' }
     if !<xserver.has_dpms>;
 
 my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();

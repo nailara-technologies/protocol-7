@@ -6,7 +6,7 @@ my $params   = shift // {};
 my $new_path = $params->{'call_args'}->{'args'};
 my $warn_img = <system.root_path> . '/data/gfx/patterns/warning.svg';
 
-if ( $params->{'cmd'} eq 'NACK' or !-f $new_path ) {
+if ( $params->{'cmd'} eq 'NAK' or !-f $new_path ) {
     my $reason = $params->{'cmd'} eq 'ACK' ? 'file not found' : $new_path;
     <[base.log]>->( 0, "failed to obtain valid logo image path [$reason]" );
 }

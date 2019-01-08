@@ -7,13 +7,13 @@
 my $X = <xserver.x11>;
 my ( $window_id, $opacity ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'x11 window id required' }
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nack', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
-return { 'mode' => 'nack', 'data' => 'window <opacity> required' }
+return { 'mode' => 'nak', 'data' => 'window <opacity> required' }
     if not defined $opacity;
-return { 'mode' => 'nack', 'data' => 'invalid window <opacity> [0..100]' }
+return { 'mode' => 'nak', 'data' => 'invalid window <opacity> [0..100]' }
     if $opacity !~ /^\d+$/ or $opacity > 100;
 
 my $xtops = <xserver.x11_tops>;
@@ -27,7 +27,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 <[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
 

@@ -10,7 +10,7 @@ my $agent_subname;
 my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
-return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
     if not defined $query_param or !length($query_param);
 
 my $query_copy = $query_param;
@@ -24,7 +24,7 @@ if (    not defined <[agent.get_id]>->($query_param)
         ? "no such agent instance ($query_param)"
         : "no such agent in setup [$query_param]";
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => $rep_msg
     };
 }

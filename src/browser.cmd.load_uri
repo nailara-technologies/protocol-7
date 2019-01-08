@@ -9,7 +9,7 @@ my $bg_index = <browser.overlay.index.bg>;
 my $view     = <browser.gtk_obj.view>->{$bg_index};
 my $window   = <browser.gtk_obj.window>;
 
-return { 'mode' => 'nack', 'data' => 'page loading in progress' }
+return { 'mode' => 'nak', 'data' => 'page loading in progress' }
     if exists <browser.signal_id.load_status> or <browser.status.fade_view>;
 
 $window->signal_handler_disconnect( delete <browser.signal_id.swap_views> )

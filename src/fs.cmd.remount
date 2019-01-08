@@ -5,7 +5,7 @@
 # descr = forced remounting of specified mountpoint
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'nack', 'data' => 'expected mountpoint parameter' }
+return { 'mode' => 'nak', 'data' => 'expected mountpoint parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 
@@ -14,7 +14,7 @@ $mount_point =~ s|/+$|| if length($mount_point) > 1;
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'specified mountpoint does not exist'
     }
     if $status == -1;
@@ -31,7 +31,7 @@ if ( $status == 1 ) {
             or <[fs.is_mounted]>->($mount_point) ) {
             <[base.log]>->( 0, ": forced unmount of '$mount_point' failed!" );
             return {
-                'mode' => 'nack',
+                'mode' => 'nak',
                 'data' => "failed to unmount $mount_point"
             };
         }
@@ -42,7 +42,7 @@ if ( $status == 1 ) {
 if ( system( '/bin/mount', $mount_point ) != 0
     or !<[fs.is_mounted]>->($mount_point) ) {
     <[base.log]>->( 0, ": mounting of '$mount_point' failed!" );
-    return { 'mode' => 'nack', 'data' => "failed to mount '$mount_point'" };
+    return { 'mode' => 'nak', 'data' => "failed to mount '$mount_point'" };
 }
 
 return { 'mode' => 'ack', 'data' => $success_msg };

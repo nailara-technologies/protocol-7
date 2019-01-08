@@ -5,7 +5,7 @@
 # descr = restart agent instance(s)
 
 my $params = $$call{'args'} || '';
-return { 'mode' => 'nack', 'data' => 'expected agent name or instance id' }
+return { 'mode' => 'nak', 'data' => 'expected agent name or instance id' }
     if !length($params);
 
 my $restart_mode;
@@ -16,7 +16,7 @@ my $setup_found = 0;
 foreach my $param_str ( split / +/, $params ) {
     if ( $param_str =~ /^\d+$/ ) {    # instance id
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "unknown agent instance '$param_str' (see 'list agents')"
             }
             if not exists <root.agent.instance>->{$param_str};
@@ -69,7 +69,7 @@ my $s       = $count > 1 ? 's' : '';
 my $msg_str = "restarting of $count agent instance$s initiated!";
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
     }
     if !$setup_found and $not_found;
@@ -78,7 +78,7 @@ if ($count) {
     return { 'mode' => 'ack', 'data' => $msg_str };
 } else {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'there is no matching agent running'
     };
 }

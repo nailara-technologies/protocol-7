@@ -8,12 +8,12 @@ my $cache_dir  = <weather.cache_dir> . '/data';
 my $max_age    = <weather.cache_timeout> * 3600;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "type parameter required [current|hours|days]"
     }
     if not defined $type or !length($type);
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "invalid type parameter [current|hours|days]"
     }
     if $type !~ /^(current|hours|days)$/;

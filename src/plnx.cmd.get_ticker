@@ -7,7 +7,7 @@
 my $cur_pair = uc( $$call{'args'} // '' );
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'expected currency pair parameter'
     }
     if !length($cur_pair);
@@ -17,13 +17,13 @@ my $ticker_data = <plnx.api.pub>->api_public('returnTicker');
 my $top = $cur_pair =~ s/^TOP-(\d+)$// ? $1 : keys( %{$ticker_data} );
 $cur_pair = 'ALL' if defined $top and $top != keys( %{$ticker_data} );
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'top-0 is invalid (waste of bandwitdh)'
     }
     if $cur_pair eq 'ALL' and !$top;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "invalid currency pair (see 'currencies' cmd for list)"
     }
     if $cur_pair ne 'ALL' and not exists $ticker_data->{$cur_pair};
@@ -45,7 +45,7 @@ foreach my $cur_key (
         or $cur_pair eq 'ALL' and $top < 0;
     delete <plnx.ticker_current>->{$cur_key};
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'currency pair is frozen!'
         }
         if <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
