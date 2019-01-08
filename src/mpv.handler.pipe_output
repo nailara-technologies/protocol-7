@@ -52,11 +52,11 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and $reply_id = shift @{<mpv.reply_ids>} ) {
 
         <[base.log]>->(
-            0, "[$reply_id] pipe-NACK [" . $decoded->{'error'} . "]"
+            0, "[$reply_id] pipe-NAK [" . $decoded->{'error'} . "]"
         );
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'nack',
+            {   'mode' => 'nak',
                 'data' => 'player child replied "' . $decoded->{'error'} . '"!'
             }
         );

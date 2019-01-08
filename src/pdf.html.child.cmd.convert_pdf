@@ -6,19 +6,19 @@
 
 my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nack', 'data' => 'expected path to pdf file!' }
+return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
     if not defined $pdf_path or !length($pdf_path);
-return { 'mode' => 'nack', 'data' => 'file does not exist!' }
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
     if $pdf_path !~ m|^https?://| and !-f $pdf_path;
 if ( !<[pdf.html.base.valid_pdf]>->($pdf_path) ) {
     my $err_msg = "'$pdf_path' is not a valid PDF format file!";
     <[base.log]>->( 0, $err_msg );
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => $err_msg
     };
 }
-return { 'mode' => 'nack', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
 
@@ -33,9 +33,9 @@ if ( not defined $target_width ) {
 my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
 my $stub_file = "$html_path/pdf.html";
 
-return { 'mode' => 'nack', 'data' => 'expected html dir does not exist!' }
+return { 'mode' => 'nak', 'data' => 'expected html dir does not exist!' }
     if !-d $html_path;
-return { 'mode' => 'nack', 'data' => 'pdf.html stub file does not exist!' }
+return { 'mode' => 'nak', 'data' => 'pdf.html stub file does not exist!' }
     if !-f $stub_file;
 
 ( my $html_dir_name = $html_path ) =~ s|^.*/||g;

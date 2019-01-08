@@ -5,7 +5,7 @@
 # descr = return average color for given region
 
 my $param_str = shift->{'args'} // '';
-return { 'mode' => 'nack', 'data' => 'expected screen region coordinates' }
+return { 'mode' => 'nak', 'data' => 'expected screen region coordinates' }
     if $param_str !~ /^(\d+ +){3}\d+$/;
 my @coords = ( split( / +/, $param_str ) );
 
@@ -26,7 +26,7 @@ eval {
 };
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'failed to take screenshot [' . Imager->errstr . ']'
     }
     if !@RGB;

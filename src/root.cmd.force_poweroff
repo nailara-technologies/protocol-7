@@ -4,7 +4,7 @@
 # param = [nosync]
 # descr = force power off using sysrq-trigger
 
-return { 'mode' => 'nack', 'data' => '/proc/sysrq-trigger not found!' }
+return { 'mode' => 'nak', 'data' => '/proc/sysrq-trigger not found!' }
     if !-e '/proc/sysrq-trigger';
 
 my $param = $$call{'args'} // '';

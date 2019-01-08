@@ -7,18 +7,18 @@
 my $params = shift // {};
 my ( $color_str, $input_file ) = split( / +/, $params->{'args'}, 2 );
 
-return { 'mode' => 'nack', 'data' => 'expected alpha color parameter' }
+return { 'mode' => 'nak', 'data' => 'expected alpha color parameter' }
     if not defined $color_str or !length($color_str);
-return { 'mode' => 'nack', 'data' => 'expected path to image file' }
+return { 'mode' => 'nak', 'data' => 'expected path to image file' }
     if not defined $input_file or !-f $input_file;
-return { 'mode' => 'nack', 'data' => 'input file not found' }
+return { 'mode' => 'nak', 'data' => 'input file not found' }
     if !-f $input_file;
 
 my $image_sha1 = <[digest.sha.file_hex]>->($input_file);
 
 my $image  = Graphics::Magick->new;
 my $status = $image->Read($input_file);
-return { 'mode' => 'nack', 'data' => "$status" } if "$status";
+return { 'mode' => 'nak', 'data' => "$status" } if "$status";
 
 $image->Trim() if $color_str eq 'auto';
 
@@ -40,6 +40,6 @@ my ( $img_w, $img_h ) = $image->get( 'width', 'height' );
 <[colortoalpha.filter_image]>->( $image, $color_str );    # apply the filter
 
 $image->Write($output_file);
-return { 'mode' => 'nack', 'data' => "$status" } if "$status";
+return { 'mode' => 'nak', 'data' => "$status" } if "$status";
 
 return { 'mode' => 'ack', 'data' => $output_file }

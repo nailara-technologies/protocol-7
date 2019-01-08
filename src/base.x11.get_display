@@ -17,7 +17,7 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     die "core handle exception" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)N?ACK /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -27,7 +27,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     <x11.display> = $1;
     <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
     return <x11.display>;
-} elsif ( $reply_string =~ /^\($cmd_id\)NACK unknown command\n$/ ) {
+} elsif ( $reply_string =~ /^\($cmd_id\)NAK unknown command\n$/ ) {
     <x11.display> //= ':0.0';
     <[base.log]>->(
         1,

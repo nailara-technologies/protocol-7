@@ -5,20 +5,20 @@
 # descr = clear url flags for given playlist url
 
 my $url = $$call{'args'};
-return { 'mode' => 'nack', 'data' => 'URL expected!' }
+return { 'mode' => 'nak', 'data' => 'URL expected!' }
     if not defined $url
     or $url !~ m|^https?://|;
 
 my $match = 0;
 map { $match++ if $_ eq $url; } @{<playlist.file_list>};
 
-return { 'mode' => 'nack', 'data' => 'no such url in playlist!' } if !$match;
+return { 'mode' => 'nak', 'data' => 'no such url in playlist!' } if !$match;
 
 my $clear_count;
 map { $clear_count++ if delete <playlist.url_flags>->{$_}->{$url} }
     keys %{<playlist.url_flags>};
 
-return { 'mode' => 'nack', 'data' => 'no flags were set for given url!' }
+return { 'mode' => 'nak', 'data' => 'no flags were set for given url!' }
     if !$clear_count;
 
 <[playlist.update.send_notifications]>;

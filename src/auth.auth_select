@@ -20,7 +20,7 @@ if ($ok) {
 } else {
     <[net.out]>->(
         $data{'session'}{$id}{'handle'},
-        "NACK not available, see 'list' command\n"
+        "NAK not available, see 'list' command\n"
     ) if $data{'session'}{$id}{'counter'}{'auth'}{'select'}{'errors'} < 2;
     my $m_len = 23;
     substr( $method, $m_len - 3, length($method) - $m_len + 3, '...' )

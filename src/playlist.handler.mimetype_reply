@@ -7,7 +7,7 @@ my $url         = $reply->{'params'}->{'check_url'};
 my $retry_delay = $reply->{'params'}->{'retry_delay'};
 my $reply_str   = $reply->{'call_args'}->{'args'};
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     <playlist.types_retry_count>->{$url} //= 0;
 
     if (    <playlist.http.url_types_max_retry>

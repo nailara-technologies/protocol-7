@@ -8,7 +8,7 @@ my $log_sid = $$call{'session_id'};
 my @params  = split( / +/, $$call{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
-    return { 'mode' => 'nack', 'data' => "expected $_ parameter" }
+    return { 'mode' => 'nak', 'data' => "expected $_ parameter" }
         if not defined $coords{$_}
         or $coords{$_} !~ /^\d+$/
 } ( 'x', 'y' );
@@ -23,7 +23,7 @@ my %screen_geom = <xserver.x11>->GetGeometry( <xserver.x11>->root );
 my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "mouse position must be within screen dimensions!"
         . " [${width}x$height]"
     }

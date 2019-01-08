@@ -10,7 +10,7 @@ my $pause_mode = delete <mpv.pause_cmd_mode>;
 if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
-        {   'mode' => 'nack',
+        {   'mode' => 'nak',
             'data' => 'playback was already paused'
         }
     );
@@ -24,7 +24,7 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 } elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
-        {   'mode' => 'nack',
+        {   'mode' => 'nak',
             'data' => 'playback wasn\'t paused'
         }
     );

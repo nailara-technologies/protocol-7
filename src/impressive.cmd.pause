@@ -3,7 +3,7 @@
 # name  = impressive.cmd.pause
 # descr = send STOP signal to impressive process
 
-return { 'mode' => 'nack', 'data' => 'was already paused' }
+return { 'mode' => 'nak', 'data' => 'was already paused' }
     if <impressive.process_paused>;
 
 kill( 'STOP', <impressive.pid> );

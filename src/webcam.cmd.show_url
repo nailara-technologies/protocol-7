@@ -5,7 +5,7 @@
 
 my $url_str = <webcam.image_url> // '';
 
-return { 'mode' => 'nack', 'data' => 'no cam image url has been set!' }
+return { 'mode' => 'nak', 'data' => 'no cam image url has been set!' }
     if !length($url_str);
 
 return { 'mode' => 'ack', 'data' => $url_str };

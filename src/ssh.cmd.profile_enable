@@ -6,13 +6,13 @@
 my $profile_name = $$call{'args'};
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "there is no ssh profile '$profile_name' defined"
     }
     if not exists <ssh.cfg.profiles>->{$profile_name};
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "ssh profile '$profile_name' is already enabled"
     }
     if <ssh.status.profiles>->{$profile_name} eq 'enabled';

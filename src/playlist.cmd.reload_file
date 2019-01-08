@@ -7,7 +7,7 @@ my $playlist_file = <playlist.file_name>;
 
 <[playlist.check_changes]>->($playlist_file);
 
-return { 'mode' => 'nack', 'data' => 'playlist file not found!' }
+return { 'mode' => 'nak', 'data' => 'playlist file not found!' }
     if <[playlist.load_file]>->($playlist_file) == -1;
 
 return { 'mode' => 'ack', 'data' => "reloading playlist!" }

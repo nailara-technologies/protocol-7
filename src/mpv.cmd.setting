@@ -9,14 +9,14 @@ my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
 
 my $settings_map = <mpv.map.settings> // {};
 
-return { 'mode' => 'nack', 'data' => "expected <key> [value] parameter" }
+return { 'mode' => 'nak', 'data' => "expected <key> [value] parameter" }
     if not defined $setting_key or !length($setting_key);
 
-return { 'mode' => 'nack', 'data' => "unknown setting '$setting_key'" }
+return { 'mode' => 'nak', 'data' => "unknown setting '$setting_key'" }
     if not defined( my $map_entry = $settings_map->{$setting_key} );
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "not implemented yet!"
     }
     if !@target_values;
@@ -25,7 +25,7 @@ my $mpv_key = $map_entry->{'key'} // $setting_key;
 my $val_str = join( ' ', @target_values );
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "not implemented yet!"
     }
     if not defined $mpv_key;
@@ -40,13 +40,13 @@ if ( defined $map_entry->{'int'} ) {
         my $opt_str
             = @options ? " or " . join( ', ', map {"'$_'"} @options ) : '';
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => 'expected integer value' . $opt_str
             }
             if @target_values > 1
             or $val_str !~ /^-?\d+$/;
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "out of range ( \"$setting_key\" ["
                 . join( ',', sort @{ $map_entry->{'int'} } ) . '] )'
             }
@@ -63,11 +63,11 @@ if ( defined $map_entry->{'int'} ) {
     if ( !$opt_match ) {
         my $opt_str
             = @options ? " or " . join( ', ', map { "'$_'", @options } ) : '';
-        return { 'mode' => 'nack', 'data' => 'expected float value' }
+        return { 'mode' => 'nak', 'data' => 'expected float value' }
             if @target_values > 1
             or $val_str !~ /^-?\d+(\.\d+)?$/;
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "out of range ( \"$setting_key\" ["
                 . join( ',', sort @{ $map_entry->{'float'} } ) . '] )'
             }

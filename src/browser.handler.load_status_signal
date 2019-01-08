@@ -91,12 +91,12 @@ if (    $load_status eq 'finished'
 
     <browser.slideshow.temp_delay> = <browser.slideshow.err_delay>;
 
-    <browser.fade.reply_mode> = 'nack';
+    <browser.fade.reply_mode> = 'nak';
     <browser.fade.reply_msg>  = 'loading failed';
 
     #<[base.callback.cmd_reply]>->(
     #    $reply_id,
-    #    { 'mode' => 'nack', 'data' => "failed to load" . $reason_txt }
+    #    { 'mode' => 'nak', 'data' => "failed to load" . $reason_txt }
     #);
 
     Glib::Idle->add( $code{'browser.callback.load_fail_page'} );

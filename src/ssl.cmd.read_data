@@ -13,12 +13,12 @@ if ( -S $data{'link'}{$name}{'handle'} ) {
             $data{'link'}{$name}{'handle'}->flush();
             <[base.log]>->( 1, "ok - flushed" );
         } else {
-            <[net.nack]>->( "link terminated", $_[1] );
+            <[net.nak]>->( "link terminated", $_[1] );
             <[base.log]>->( 0, "link '$name' terminated" );
             $data{'link'}{$name}{'status'} = 'closed';
         }
     }
 } else {
-    <[net.nack]>->( "not a valid link", $_[1] );
+    <[net.nak]>->( "not a valid link", $_[1] );
     <[base.log]>->( 0, "[$id] read_data: not a valid link '$name'" );
 }

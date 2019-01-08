@@ -11,7 +11,7 @@ my $overlay_str = $$call{'args'} // '';
 <layout.overlays.previous> = [ @{<layout.overlays.current>} ];
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "current layout is already '$overlay_str' - nothing to do !"
     }
     if $overlay_str eq <layout.current_layout>;
@@ -21,12 +21,12 @@ my @new_overlays = sort keys %new_overlays;
 
 map {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "expected valid layout name"
         }
         if not defined $_ or !length($_);
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "layout \"$overlay_str\" not found!"
         }
         if not exists <layout.config.layouts>->{$_};

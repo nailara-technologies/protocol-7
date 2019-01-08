@@ -14,7 +14,7 @@ my @keywords = ( 'config', 'source', 'plugins', 'init', 'all' );
 if ( not defined $arg ) {
     <[base.log]>->( 0, "[$id] no reload keyword specified." );
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'no reload keyword specified' . ' < '
             . join( ' | ', @keywords ) . ' >'
     };
@@ -77,7 +77,7 @@ if ( $arg eq 'init' or $arg eq 'all' ) {
 }
 if ( !$known ) {
     <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called!" );
-    return { 'mode' => 'nack', 'data' => "unknown reload keyword '$arg'!" };
+    return { 'mode' => 'nak', 'data' => "unknown reload keyword '$arg'!" };
 }
 if ( !$ok ) {
     <[base.log]>->( 0, "[$id] reloading $arg FAIL!" );

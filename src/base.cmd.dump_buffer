@@ -8,10 +8,10 @@ my $param  = $_[0];
 my $id     = $$param{'session_id'};
 my $buffer = $$param{'args'};
 
-return { 'mode' => 'nack', 'data' => 'buffer name required' }
+return { 'mode' => 'nak', 'data' => 'buffer name required' }
     if not defined $buffer;
 
-return { 'mode' => 'nack', 'data' => 'no such buffer' }
+return { 'mode' => 'nak', 'data' => 'no such buffer' }
     if not defined $data{'buffer'}{$buffer};
 
 return {

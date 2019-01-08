@@ -21,7 +21,7 @@ my $current_data;
 
 my $interval_seconds = <weather.update_interval.current> * 60;
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
     if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
         $log_level++;

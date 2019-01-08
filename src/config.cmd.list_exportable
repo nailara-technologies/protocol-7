@@ -5,10 +5,10 @@
 # descr = list exportable configs
 
 my $agent_name = $$call{'args'};
-return { 'mode' => 'nack', 'data' => 'expected agent name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
     if not defined $agent_name;
 
-return { 'mode' => 'nack', 'data' => 'invalid agent name syntax!' }
+return { 'mode' => 'nak', 'data' => 'invalid agent name syntax!' }
     if $agent_name !~ <regex.base.usr>;
 
 my $cmd_path = "core.$agent_name.get_config_names";

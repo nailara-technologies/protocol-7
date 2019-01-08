@@ -17,7 +17,7 @@ my $once
         and exists $_[0]->{'once'}
         and defined $_[0]->{'once'} ) ? $_[0]->{'once'} : 0;
 
-return { 'mode' => 'nack', 'data' => 'agent name or id expected' }
+return { 'mode' => 'nak', 'data' => 'agent name or id expected' }
     if not defined $$call{'args'}
     or !length( $$call{'args'} );
 
@@ -31,7 +31,7 @@ if ( $$call{'args'} =~ /^\d+$/ ) {
     $agent_name = <root.agent.setup>->{$agent_id}->{'name'}
         if exists <root.agent.setup>->{$agent_id};
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "found no agent with id $agent_id"
         }
         if not defined $agent_name;
@@ -42,13 +42,13 @@ if ( $$call{'args'} =~ /^\d+$/ ) {
 
 my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "spawn config contains no agent named '$agent_name'!"
     }
     if not defined $agent_config;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'agent is explicitly disabled in config!'
     }
     if <[agent.is_disabled]>->($agent_name);
@@ -63,7 +63,7 @@ return {
     or not defined $agent_subname and <[root.spawn_count]>->($agent_name) );
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "reached configured maximum concurrency for agent '$agent_name'"
     }
     if exists $agent_config->{'max_concurrency'}
@@ -73,7 +73,7 @@ return {
 if ( defined $agent_subname
     and exists $agent_config->{'max_subname_concurrency'} ) {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "maximum concurrency reached for $agent_name\[$agent_subname]"
         }
         if <[root.spawn_count]>->( $agent_name . "[$agent_subname]" )
@@ -81,7 +81,7 @@ if ( defined $agent_subname
 }
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "agent '$agent_name' has 'manually stopped' status"
     }
     if $start_mode eq 'implicit'

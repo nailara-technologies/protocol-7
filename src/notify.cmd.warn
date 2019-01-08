@@ -7,7 +7,7 @@
 my $txt_param = $$call{'args'} // '';
 my $id = $$call{'session_id'};
 
-return { 'mode' => 'nack', 'data' => 'no message text submitted' }
+return { 'mode' => 'nak', 'data' => 'no message text submitted' }
     if !length($txt_param);
 
 if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
@@ -55,10 +55,10 @@ if ( defined $title or @matches ) {
         ) {
         return { 'mode' => 'ack', 'data' => 'warn message sent' };
     } elsif ( $? == -1 ) {
-        return { 'mode' => 'nack', 'data' => 'failed to execute: ' . $! };
+        return { 'mode' => 'nak', 'data' => 'failed to execute: ' . $! };
     } else {
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => sprintf(
                 "notify-send exited with code %d%s",
                 ( $? >> 8 ),
@@ -67,5 +67,5 @@ if ( defined $title or @matches ) {
         };
     }
 } else {
-    return { 'mode' => 'nack', 'data' => 'no message text submitted' };
+    return { 'mode' => 'nak', 'data' => 'no message text submitted' };
 }

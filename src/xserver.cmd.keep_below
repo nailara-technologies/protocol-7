@@ -7,9 +7,9 @@
 my $X         = <xserver.x11>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'x11 window id required' }
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nack', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <xserver.x11_tops>;
@@ -23,7 +23,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 eval {
     for ( 1 .. 2 ) {    # <- workaround (ignored state requests)
@@ -33,6 +33,6 @@ eval {
             "BELOW" );
     }
 };
-return { 'mode' => 'nack', 'data' => "failed to set window state 'below'" }
+return { 'mode' => 'nak', 'data' => "failed to set window state 'below'" }
     if $@;
 return { 'mode' => 'ack', 'data' => "set window state 'below'" };

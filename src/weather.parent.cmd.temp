@@ -8,12 +8,12 @@ my $station_id = <weather.station_id>;
 my $param = $$call{'args'} // '';
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'no city selected (undefined station id)'
     }
     if not defined $station_id;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "understood options are 'utf8' and 'plain'"
     }
     if length($param)

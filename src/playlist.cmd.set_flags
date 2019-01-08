@@ -5,13 +5,13 @@
 # descr = set url flags for given playlist url
 
 my ( $flag_str, $url ) = split( / +/, shift->{'args'}, 2 );
-return { 'mode' => 'nack', 'data' => 'flag name expected!' }
+return { 'mode' => 'nak', 'data' => 'flag name expected!' }
     if not defined $flag_str or !length($flag_str);
 $flag_str =~ s|,,|,|g;
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $_ );
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "invalid url flag name '$flag_name'"
             . " .. comma seperated .. < "
             . join( ' | ', sort keys( %{<playlist.url_flags>} ) ) . ' >'
@@ -21,7 +21,7 @@ map {
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $_ );
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "URL expected for '$flag_name' flag!"
         }
         if not defined $url
@@ -31,11 +31,11 @@ map {
 my $match = 0;
 map { $match++ if $_ eq $url; } @{<playlist.file_list>};
 
-return { 'mode' => 'nack', 'data' => 'no match in playlist!' } if !$match;
+return { 'mode' => 'nak', 'data' => 'no match in playlist!' } if !$match;
 
 my $un = <playlist.file_types>->{$url} =~ /:/ ? '(un)' : '';
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "not allowed for ${un}determined content type!"
     }
     if <playlist.http.check_content_types>
@@ -47,12 +47,12 @@ return {
 map {
     if ( $_ !~ /^delay=\d+(\.\d+)?$/ and $_ =~ /^([^=]+)=/ ) {
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "no parameter expected for flag '$1'!"
         };
     } elsif ( $_ =~ /^delay/ and $_ !~ /^delay=\d+(\.\d+)?$/ ) {
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "expected time in seconds parameter for 'delay' flag!"
         };
     }

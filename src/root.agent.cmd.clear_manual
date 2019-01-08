@@ -8,7 +8,7 @@ my $clear_agents = $$call{'args'} // '';
 
 <root.agent.manually_stopped> //= {};
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no agents have 'manually stopped' status"
     }
     if !keys( %{<root.agent.manually_stopped>} );
@@ -21,7 +21,7 @@ if ( !length($clear_agents) ) {
 } else {
     map {
         return {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "no 'manually stopped' status exits for '$_', aborted!"
             }
             if not exists <root.agent.manually_stopped>->{$_}

@@ -6,7 +6,7 @@
 
 my $url = $$call{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'expected url parameter' }
+return { 'mode' => 'nak', 'data' => 'expected url parameter' }
     if !length($url);
 
 my $download_dir  = <download.cfg.download_path>;
@@ -23,7 +23,7 @@ return { 'mode' => 'ack', 'data' => $1 }
 
 if ( defined $url
     and ( $url =~ m{^(file://)?(/.+)$} and !-f $2 or $url eq 'file://' ) ) {
-    return { 'mode' => 'nack', 'data' => 'file not found' };
+    return { 'mode' => 'nak', 'data' => 'file not found' };
 }
 
 <[base.log]>->( 1, ".: $url" );
@@ -52,7 +52,7 @@ if ( not defined $response or !$response->is_success ) {
     }
     <[base.log]>->( 0, $err_msg );
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => $err_msg
     };
 }

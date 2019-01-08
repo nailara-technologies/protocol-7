@@ -5,7 +5,7 @@
 my $answer = shift;
 my $c_mode = <layout.watch_tiles.comparison_mode> //= 'last';
 
-return warn "unexpected (NACK) reply from screenshot agent!"
+return warn "unexpected (NAK) reply from screenshot agent!"
     if $answer->{'cmd'} ne 'ACK';
 
 <layout.last_tile_color> //= {};

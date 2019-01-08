@@ -8,13 +8,13 @@ my $unix_time = $$call{'args'};
 $unix_time //= time();
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "unix_time parameter string is not valid"
     }
     if not defined $unix_time or $unix_time !~ /^\d{1,17}(\.\d{1,20})?$/;
 $unix_time = int($unix_time) if $unix_time =~ /\./;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "unix_time value is too high"
     }
     if $unix_time > 67767976233316804;
@@ -22,7 +22,7 @@ return {
 my $ltime_str = scalar localtime $unix_time;
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "unix_time value is too high"
     }
     if not defined $ltime_str or !length($ltime_str);

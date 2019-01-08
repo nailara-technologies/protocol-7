@@ -18,7 +18,7 @@ if ( $agent ne '' and $key ne '' ) {
         <[base.log]>->( 1, "[$id] received session key for '$agent'" );
     } else {
         $reply = {
-            'mode' => 'nack',
+            'mode' => 'nak',
             'data' => "user '$agent' not accepted for core authentication"
         };
         <[base.log]>->(
@@ -28,6 +28,6 @@ if ( $agent ne '' and $key ne '' ) {
         );
     }
 } else {
-    $reply = { 'mode' => 'nack', 'data' => 'not enough arguments' };
+    $reply = { 'mode' => 'nak', 'data' => 'not enough arguments' };
     &{ $code{'base.log'} }( 0, "[$id] add_session_key: not enough arguments" );
 }
