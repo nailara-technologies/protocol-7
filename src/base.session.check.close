@@ -15,7 +15,7 @@ foreach my $s_cid ( keys %{ $data{'session'}{$id}{'route'} } ) {
     next if not defined $s_sid;
     my $s_cid = $data{'route'}{$route_id}{'source'}{'cmd_id'};
     my $reply_str = $s_cid ? "($s_cid)" : '';
-    $reply_str .= "NACK command route collapsed\n";
+    $reply_str .= "NAK command route collapsed\n";
     $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str
         if exists $data{'session'}{$s_sid};
     delete $data{'route'}{$route_id};

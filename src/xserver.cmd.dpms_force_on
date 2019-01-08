@@ -3,7 +3,7 @@
 # name  = xserver.cmd.dpms_force_on
 # descr = force screen power on using DPMS
 
-return { 'mode' => 'nack', 'data' => 'xserver has no DPMS support' }
+return { 'mode' => 'nak', 'data' => 'xserver has no DPMS support' }
     if !<xserver.has_dpms>;
 
 my ( $power_level, $dpms_enabled ) = <xserver.x11>->DPMSInfo();

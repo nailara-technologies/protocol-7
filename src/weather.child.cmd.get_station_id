@@ -7,15 +7,15 @@
 my $station_id;
 my $city_name = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'expected city name parameter' }
+return { 'mode' => 'nak', 'data' => 'expected city name parameter' }
     if not defined $city_name or !length($city_name);
 
 my $json_response = <[weather.child.query_api]>->("find?q=$city_name");
 
-return { 'mode' => 'nack', 'data' => 'weather API query failed' }
+return { 'mode' => 'nak', 'data' => 'weather API query failed' }
     if not defined $json_response;
 
-return { 'mode' => 'nack', 'data' => 'city not found!' }
+return { 'mode' => 'nak', 'data' => 'city not found!' }
     if !$json_response->{'count'};
 
 my $country = $1 if $city_name =~ s|\,(\w+)$||;

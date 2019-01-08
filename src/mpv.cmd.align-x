@@ -6,7 +6,7 @@
 
 my $offset = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'invalid alignment value! [-1..1]' }
+return { 'mode' => 'nak', 'data' => 'invalid alignment value! [-1..1]' }
     if $offset !~ /^\-?\d+(\.\d+)?$/
     or $offset < -1
     or $offset > 1;

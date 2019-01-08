@@ -6,9 +6,9 @@
 
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'x11 window id required' }
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nack', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <xserver.x11_tops>;
@@ -22,7 +22,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nack', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 $window->lower;
 $xtops->update;

@@ -5,7 +5,7 @@
 
 <power.cfg.devices> //= {};
 
-return { 'mode' => 'nack', 'data' => 'no devices configured' }
+return { 'mode' => 'nak', 'data' => 'no devices configured' }
     if !keys( %{<power.cfg.devices>} );
 
 map { <[power.cmd.set_states]>->( { 'args' => "$_ 0 0 0 0" } ) }

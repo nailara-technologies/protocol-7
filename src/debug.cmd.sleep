@@ -12,7 +12,7 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
 } else {
     my $woke = '';
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'floating point precision not available [!Time::HiRes]'
         }
         if !$hi_res and length($1);

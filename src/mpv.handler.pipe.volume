@@ -6,7 +6,7 @@ my $volume_str = shift // '';
 my $reply_id = shift @{<mpv.reply_ids>};
 
 return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'nack', 'data' => 'no volume defined' }
+    $reply_id, { 'mode' => 'nak', 'data' => 'no volume defined' }
 ) if defined $reply_id and $volume_str !~ /\d$/;
 $volume_str = sprintf( "%.3f", $volume_str );
 $volume_str =~ s/(\.0+|%)$//g;

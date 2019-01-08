@@ -10,14 +10,14 @@ my $config_type   = $$call{'args'} || 'config';
 my $agent_name    = <system.agent.name>;
 my $rules_subname = "$agent_name.config.export_rules";
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "no export rules defined for agent '$agent_name'!"
     }
     if not exists $code{$rules_subname};
 my $export_rules = $code{$rules_subname}->();
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "config type '$config_type' not defined in export rules!"
     }
     if not exists $export_rules->{'keys'}->{$config_type};
@@ -25,7 +25,7 @@ return {
 my @export_keys = @{ $export_rules->{'keys'}->{$config_type}->{'export'} };
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "type '$config_type' export key list is empty!"
     }
     if !@export_keys;
@@ -65,7 +65,7 @@ $@ = undef;
 my $err_msg;
 eval '$json_data = $data{json}{parser}->encode($data_copy)';
 ( $err_msg = $@ ) =~ s|at \(.+\n$|| if defined $@;
-return { 'mode' => 'nack', 'data' => $err_msg }
+return { 'mode' => 'nak', 'data' => $err_msg }
     if defined $err_msg and length($err_msg);
 
 return {

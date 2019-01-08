@@ -8,10 +8,10 @@
 my $url_ref   = <browser.url.list>;
 my $url_count = scalar @{$url_ref};
 
-return { 'mode' => 'nack', 'data' => 'slideshow already running' }
+return { 'mode' => 'nak', 'data' => 'slideshow already running' }
     if <browser.slideshow.running>;
 
-return { 'mode' => 'nack', 'data' => 'url list is emtpy' }
+return { 'mode' => 'nak', 'data' => 'url list is emtpy' }
     if !$url_count;
 
 <[browser.start_slideshow]>;

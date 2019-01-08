@@ -8,7 +8,7 @@ my $instance_id;
 my $child_pid = $$call{'args'};
 
 my $parent_pid = <[root.process.get_ppid]>->($child_pid);
-return { 'mode' => 'nack', 'data' => 'child still here' }
+return { 'mode' => 'nak', 'data' => 'child still here' }
     if defined $parent_pid and $parent_pid > 0;
 
 foreach my $iid ( keys( %{<root.agent.instance>} ) ) {
@@ -24,4 +24,4 @@ foreach my $iid ( keys( %{<root.agent.instance>} ) ) {
     return { 'mode' => 'ack', 'data' => 'unregistered' };
 }
 
-return { 'mode' => 'nack', 'data' => 'was not registered' }
+return { 'mode' => 'nak', 'data' => 'was not registered' }

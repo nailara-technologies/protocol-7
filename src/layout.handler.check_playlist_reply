@@ -7,7 +7,7 @@ my $reply = shift // {};
 my $agent_name = $reply->{'params'}->{'agent_name'};
 my $tile_name  = $reply->{'params'}->{'tile_name'};
 
-warn "unexpected [NACK] reply from playlist agent" if $reply->{'cmd'} eq 'NACK';
+warn "unexpected [NAK] reply from playlist agent" if $reply->{'cmd'} eq 'NAK';
 
 if ( $reply->{'cmd'} eq 'RAW' and $reply->{'call_args'}->{'args'} == 0 ) {
 

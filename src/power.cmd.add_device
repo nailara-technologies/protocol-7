@@ -8,7 +8,7 @@ my @parameters;
 <power.cfg.devices> //= {};
 my $params_str = $$call{'args'} // '';
 
-return { 'mode' => 'nack', 'data' => 'hostname or ip address expected' }
+return { 'mode' => 'nak', 'data' => 'hostname or ip address expected' }
     if !length($params_str);
 
 my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
@@ -18,30 +18,30 @@ my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
 my $ip_addr = $host;    # XXX
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "device '$host' unreachable"
     }
     if not <[power.host_reachable]>->($host);
 
 map {
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => 'device already exists'
         }
         if <power.cfg.devices>->{$_}->{'ip'} eq $ip_addr
 } keys %{<power.cfg.devices>};
 
-return { 'mode' => 'nack', 'data' => 'invalid port parameter' }
+return { 'mode' => 'nak', 'data' => 'invalid port parameter' }
     if defined $port and $port !~ /\d+/;
 
 <[base.log]>->( 2, "resolving mac address for $ip_addr.." );
 
 my $mac_addr = <power.net_mac>->get($ip_addr);
 
-return { 'mode' => 'nack', 'data' => 'failed to resolve mac address' }
+return { 'mode' => 'nak', 'data' => 'failed to resolve mac address' }
     if not defined $mac_addr;
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'not a gembird device (mac address not recognized)'
     }
     if $mac_addr !~ <power.pattern.gembird_mac>;

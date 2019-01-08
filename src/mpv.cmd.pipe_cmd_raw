@@ -7,11 +7,11 @@
 my $mpv_socket = <mpv.socket>;
 my $cmd_str    = $$call{'args'};
 
-return { 'mode' => 'nack', 'data' => 'expected mpv command string' }
+return { 'mode' => 'nak', 'data' => 'expected mpv command string' }
     if not defined $cmd_str or !length($cmd_str);
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'string contains blacklisted byte sequence!'
     }
     if $cmd_str =~ /run|hook/;

@@ -22,13 +22,13 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     die "core handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(N?ACK) /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)NACK (.+)$/ ) {
+if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
     <[base.log]>->( 0, "lower_window command failed with '$1'.." );
     return 0;
 } else {

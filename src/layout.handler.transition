@@ -187,7 +187,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     <layout.transition.status.waiting.start>--;
 } elsif ( $event_type eq 'start' ) {
     my $agent = $core_reply->{'params'}->{'agent_name'};
-    if ( $core_reply->{'cmd'} eq 'NACK' ) {
+    if ( $core_reply->{'cmd'} eq 'NAK' ) {
         my $reason = $core_reply->{'call_args'}->{'args'};
         if ( $reason =~ /concurrency/ ) {
             $agent =~ s/\[.+$// if $reason !~ /subname/;

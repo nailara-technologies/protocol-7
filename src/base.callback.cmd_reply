@@ -33,7 +33,7 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
 if ( not defined $reply or ref($reply) ne 'HASH' ) {
     $reply          = {};
-    $$reply{'mode'} = 'nack';
+    $$reply{'mode'} = 'nak';
     $$reply{'data'} = 'internal error (details in log!)';
     <[base.log]>
         ->( 0, 'base.handler.command: $reply is not a hash reference!' );
@@ -45,13 +45,13 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
             . uc( $$reply{'mode'} )
             . '-reply attempted! (base.callback.cmd_reply)'
     );
-    $$reply{'mode'} = 'nack';
+    $$reply{'mode'} = 'nak';
     $$reply{'data'} = 'internal error (details in log!)';
 }
 
 # check answer mode
 
-if ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
+if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
     $$reply{'data'} =~ s/\n/\\n/go;
     $$output .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
 } elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {

@@ -18,7 +18,7 @@ my $data_str;
 my $status_code;
 my $forecast_data;
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
     if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
         $log_level++;

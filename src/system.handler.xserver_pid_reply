@@ -10,7 +10,7 @@ if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ /^\d+$/ ) {
         if $reply->{'call_args'}->{'args'} =~ /not xorg/;
     <[base.callback.cmd_reply]>->(
         <system.gfx_reload.reply_id>,
-        {   'mode' => 'nack',
+        {   'mode' => 'nak',
             'data' => "$reason, aborted!"
         }
     );

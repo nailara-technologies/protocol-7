@@ -4,7 +4,7 @@
 
 my $reply = shift;
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "<!> failed to extract video frame [$reason]" );
     <media.cfg.fade_on_switch> = 0;

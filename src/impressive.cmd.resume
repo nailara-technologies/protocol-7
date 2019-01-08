@@ -3,7 +3,7 @@
 # name  = impressive.cmd.resume
 # descr = send CONT signal to impressive process
 
-return { 'mode' => 'nack', 'data' => 'was not paused' }
+return { 'mode' => 'nak', 'data' => 'was not paused' }
     if !<impressive.process_paused>;
 
 kill( 'CONT', <impressive.pid> );

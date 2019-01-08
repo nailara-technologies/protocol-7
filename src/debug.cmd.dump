@@ -8,7 +8,7 @@ my $keyword = $$call{'args'} || '';
 if ( not eval {qr/$keyword/} ) {
     ( my $regex_err = lc($@) ) =~ s/ in regex.+\n$//;
     return {
-        'mode' => 'nack',
+        'mode' => 'nak',
         'data' => "$regex_err in regex (invalid pattern)"
     };
 }

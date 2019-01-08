@@ -13,20 +13,20 @@ my $count_days    = <weather.forecast.count.days>;
 my $next_midnight = <[weather.base.tomorrow_unix]>;
 
 #return {
-#    'mode' => 'nack',
+#    'mode' => 'nak',
 #    'data' => "500 test fail"
 #    };
 
-return { 'mode' => 'nack', 'data' => "station_id parameter required" }
+return { 'mode' => 'nak', 'data' => "station_id parameter required" }
     if not defined $station_id or !length($station_id);
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "type parameter required [current|hours|days]"
     }
     if not defined $type or !length($type);
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "invalid type parameter [current|hours|days]"
     }
     if $type !~ /^(current|hours|days)$/;
@@ -47,7 +47,7 @@ my $status_str = defined $status_code ? " ($status_code)" : '';
 $status_str = " (city not found)" if $status_code eq '404';
 
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => "query failed" . $status_str
     }
     if not defined $json_data;

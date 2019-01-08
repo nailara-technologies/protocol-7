@@ -378,7 +378,7 @@ sub prepare_subs {
                 $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
                     if !$sub_conflict;
                 $code_header
-                    = 'my $call={}; my $reply={ \'mode\' => \'nack\', \'data\''
+                    = 'my $call={}; my $reply={ \'mode\' => \'nak\', \'data\''
                     . " => \"internal error in '$cmd_name' command!\" }; "
                     . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
                     . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
@@ -420,7 +420,7 @@ sub prepare_subs {
                         $code{'log.failed'}
                             ->("< ! > - [ broken cmd sub '$sub_name' called ]");
                         return {
-                            'mode' => 'nack',
+                            'mode' => 'nak',
                             'data' => "$1 command is broken <!> see startup log"
                             }
                             if $sub_name =~ /\.cmd\.(.+)$/;

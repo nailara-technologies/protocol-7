@@ -7,9 +7,9 @@
 
 my ( $timeout, $title_pattern ) = split( / +/, $$call{'args'}, 2 );
 
-return { 'mode' => 'nack', 'data' => 'expected numerical timeout argument' }
+return { 'mode' => 'nak', 'data' => 'expected numerical timeout argument' }
     if not defined $timeout or $timeout !~ /^\d+(\.\d+)?$/;
-return { 'mode' => 'nack', 'data' => 'expected title [sub]string argument' }
+return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
 my $xtops = <xserver.x11_tops>;

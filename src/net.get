@@ -3,7 +3,7 @@
 # name = net.get
 # descr = retrieves a value from 'core' agent (if connected to it)
 # args = <key to retrieve>
-# note = currently only supports single line replies (ACK/NACK)
+# note = currently only supports single line replies (ACK/NAK)
 
 my $key_to_retrieve = shift;
 die "expected a key as argument"
@@ -17,7 +17,7 @@ chomp( my $get_reply = <$core_fh> );
 
 if ( $get_reply =~ s/^ACK // ) {
     return $get_reply;
-} elsif ( $get_reply =~ s/^NACK // ) {
+} elsif ( $get_reply =~ s/^NAK // ) {
     <[base.log]>->(
         0, "net.get: failed to get key '$key_to_retrieve' [$get_reply]"
     );

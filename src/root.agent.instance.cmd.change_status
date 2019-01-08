@@ -24,7 +24,7 @@ $error_msg = "instance $instance_id already has status '$new_status'"
     if not defined $error_msg
     and <root.agent.instance>->{$instance_id}->{'status'} eq $new_status;
 
-return { 'mode' => 'nack', 'data' => $error_msg } if defined $error_msg;
+return { 'mode' => 'nak', 'data' => $error_msg } if defined $error_msg;
 
 <[root.handler.agent_status]>->( $instance_id, $new_status );
 

@@ -5,10 +5,10 @@
 
 my $reply_id = $$call{'reply_id'};
 
-return { 'mode' => 'nack', 'data' => 'no scrolling in progress' }
+return { 'mode' => 'nak', 'data' => 'no scrolling in progress' }
     if !<window.scrolling>;
 
-return { 'mode' => 'nack', 'data' => 'stop request already sent' }
+return { 'mode' => 'nak', 'data' => 'stop request already sent' }
     if <window.scroll.stop>;
 
 <window.scroll.stop>          = 1;

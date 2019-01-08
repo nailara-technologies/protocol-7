@@ -60,7 +60,7 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     my $cmd_id = $1 || '';
     $$input =~ s|^(\([^\)]*\)[^\n]+)\n||;
     <[base.log]>->( 1, "[$id] invalid command id ('$cmd_id')" );
-    $$output .= "NACK invalid command id syntax or length\n";
+    $$output .= "NAK invalid command id syntax or length\n";
     return 1;
 }
 
@@ -107,7 +107,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
                             1, "[$id] invalid command parameter format"
                         );
                         $$output .= $_cmd_id
-                            . "NACK invalid command parameter format\n";  # FIX!
+                            . "NAK invalid command parameter format\n";  # FIX!
                         $_[0]->w->start;
                         return 1;
                     }
@@ -168,7 +168,7 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n//o ) {
 elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
     <[base.log]>->( 1, "[$id] protocol error ['$cmd_string\']" );
-    $$output .= $_cmd_id . "NACK protocol error\n";
+    $$output .= $_cmd_id . "NAK protocol error\n";
     $_[0]->w->start;
     return 0;
 }
@@ -261,7 +261,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
-if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
+if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
     if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
@@ -274,7 +274,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                 $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
             }
 
-            if ( $cmd =~ /^(N?ACK)$|^WAIT$|^TERM$/ ) {
+            if ( $cmd =~ /^(ACK|NAK|WAIT|TERM)$/ ) {
 
                 # check if reply handler is set
 
@@ -462,7 +462,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'!" );
-    $$output .= $_cmd_id . "NACK invalid reply type! (protocol error)\n";
+    $$output .= $_cmd_id . "NAK invalid reply type! (protocol error)\n";
 } elsif ( exists <access.cmd.regex.usr>->{$usr}
     and $cmd_usr_str =~ <access.cmd.regex.usr>->{$usr}
     or exists <access.cmd.regex.usr>->{'*'}
@@ -510,7 +510,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
                 if ( ref($reply) ne 'HASH' ) {
                     $reply          = {};
-                    $$reply{'mode'} = 'nack';
+                    $$reply{'mode'} = 'nak';
                     $$reply{'data'} = 'internal error (details in log!)';
                     <[base.log]>->(
                         0,
@@ -527,13 +527,13 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                             . uc( $$reply{'mode'} )
                             . '-reply attempted! (base.handler.command)'
                     );
-                    $$reply{'mode'} = 'nack';
+                    $$reply{'mode'} = 'nak';
                     $$reply{'data'} = 'internal error (details in log!)';
                 }
 
                 # check answer mode
 
-                if ( $$reply{'mode'} =~ /^N?ACK$|^WAIT$/io ) {
+                if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
                     $$reply{'data'} =~ s/\n/\\n/go;
                     $$output
                         .= $_cmd_id
@@ -556,7 +556,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
             <[base.log]>->( 1, "[$id] unknown command '$cmd'" );
         }
 
-        $$output .= $_cmd_id . "NACK unknown command\n";
+        $$output .= $_cmd_id . "NAK unknown command\n";
 
         return 1;
     }
@@ -569,7 +569,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
 
-        $$output .= "NACK not implemented yet..\n";
+        $$output .= "NAK not implemented yet..\n";
         return 1;
 
         if ( exists $data{'user'}{$1}{'session'}
@@ -677,7 +677,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         }
 
         if ( !@send_sids ) {
-            $$output .= $_cmd_id . "NACK unknown command\n";
+            $$output .= $_cmd_id . "NAK unknown command\n";
             <[base.log]>->(
                 2,
                 "[$id] command '$command_str' rejected!"
@@ -700,7 +700,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
             }
 
             # if 'agent'-mode session and not initialized allowing replies only!
-            $$output .= $_cmd_id . "NACK not initialized yet\n";
+            $$output .= $_cmd_id . "NAK not initialized yet\n";
             <[base.log]>->(
                 0,
                 "[$id] command '$command_str' rejected!"
@@ -816,7 +816,7 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         }
 
         if ( $targets_denied == @send_sids ) {    # nothing sent
-            $$output .= $_cmd_id . "NACK unknown command\n";
+            $$output .= $_cmd_id . "NAK unknown command\n";
             <[base.log]>->(
                 1,
                 "[$id] access denied! ( usr:'$usr' cmd:'$target_name.$cmd' )"
@@ -827,17 +827,17 @@ if ( $cmd =~ /^(N?ACK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         # at least one target was valid
         return 0;
     } else {    # invalid command syntax
-        $$output .= $_cmd_id . "NACK protocol error\n";
+        $$output .= $_cmd_id . "NAK protocol error\n";
         <[base.log]>->( 1, "[$id] protocol error ['$cmd']" );
         return 1;
     }
 
     # unknown command
-    $$output .= $_cmd_id . "NACK unknown command\n";
+    $$output .= $_cmd_id . "NAK unknown command\n";
     <[base.log]>->( 1, "[$id] unknown command. ( usr:'$usr' cmd:'$cmd' )" );
 } else    # access denied
 {
-    $$output .= $_cmd_id . "NACK unknown command\n";
+    $$output .= $_cmd_id . "NAK unknown command\n";
     <[base.log]>->( 1, "[$id] access denied! ( usr:'$usr' cmd:'$cmd' )" );
     return 1;
 }

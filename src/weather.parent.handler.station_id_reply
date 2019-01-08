@@ -8,7 +8,7 @@ my $city;
 my $station_id;
 my $shutdown = 0;
 
-if ( $reply->{'cmd'} eq 'NACK' ) {
+if ( $reply->{'cmd'} eq 'NAK' ) {
     <[base.log]>->(
         0,
         "failed to retrieve station id ["
@@ -18,7 +18,7 @@ if ( $reply->{'cmd'} eq 'NACK' ) {
     foreach my $reply_id ( @{<weather.get_urls.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'nack',
+            {   'mode' => 'nak',
                 'data' => 'failed to get station id'
             }
         );

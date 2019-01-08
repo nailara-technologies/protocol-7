@@ -7,7 +7,7 @@
 my $X = <xserver.x11>;
 my $param = shift->{'args'} // '';
 return {
-    'mode' => 'nack',
+    'mode' => 'nak',
     'data' => 'expected <mode> parameter :'
         . ' <left|right|normal|inverted>[-x|-y]'
     }
@@ -24,7 +24,7 @@ $mode = 8 if $param eq 'right';
 if ( not defined $mode ) {
     my $err_msg = "invalid mode '$param$mirror'";
     <[base.log]>->( 0, "<!> rotate_screen: $err_msg <!>" );
-    return { 'mode' => 'nack', 'data' => $err_msg };
+    return { 'mode' => 'nak', 'data' => $err_msg };
 }
 
 $mode += 16 if $mirror eq 'x';
@@ -33,7 +33,7 @@ $mode += 32 if $mirror eq 'y';
 my %screen_info = ( <xserver.x11>->RRGetScreenInfo( <xserver.x11>->root ) );
 
 my $old_mode = $screen_info{'rotation'};
-return { 'mode' => 'nack', 'data' => "no changes" }
+return { 'mode' => 'nak', 'data' => "no changes" }
     if $mode eq $old_mode;
 $mirror = "-$mirror" if length($mirror);
 <[base.log]>->( 0, "<!> rotating screen to mode '$param$mirror' <!>" );
@@ -45,7 +45,7 @@ eval '$X->RRSetScreenConfig( $X->root, $screen_info{time},'
 if ($@) {
     my $err_msg = 'failed to rotate screen';
     <[base.log]>->( 0, " :. $err_msg!" );
-    return { 'mode' => 'nack', 'data' => $err_msg };
+    return { 'mode' => 'nak', 'data' => $err_msg };
 }
 
 # strip mirrored flag
