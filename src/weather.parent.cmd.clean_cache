@@ -29,8 +29,8 @@ $which_str = " station-id" if $param eq 'stations';
 
 map { remove_tree( "$cache_dir/$_", { 'keep_root' => 1 } ) } @subdirs;
 
-# unlink($city_file) if -f $city_file; # XXX: would likely break restart!
+# unlink($city_file) if -f $city_file; # LLL: would likely break restart!
 
-# XXX: update weather data and files... ; clean up weather data in ram...
+# LLL: update weather data and files... ; clean up weather data in ram...
 
 return { 'mode' => 'ack', 'data' => "weather$which_str disk cache cleared!" }

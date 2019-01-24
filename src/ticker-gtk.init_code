@@ -18,8 +18,8 @@ Glib::Object::Introspection->setup(
 open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 
 <ticker-gtk.font.path> //= <system.root_path> . '/data/ttf/droid';
-<ticker-gtk.font.name>         //= 'DroidSans-Bold'; # XXX: <- load from config!
-<ticker-gtk.font.size_percent> //= 100;              # XXX: <- load from config!
+<ticker-gtk.font.name>         //= 'DroidSans-Bold'; # LLL: <- load from config!
+<ticker-gtk.font.size_percent> //= 100;              # LLL: <- load from config!
 <ticker-gtk.use_transparency>  //= 1;
 <ticker-gtk.do_custom_fade_in> //= 1;
 <ticker-gtk.cfg.draw_outline>  //= 1;
@@ -33,15 +33,15 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 
 <base.callback_hooks.async_online> = ['ticker-gtk.callback.request_updates'];
 
-## XXX ###
+## LLL ###
 
 <ticker-gtk.speed> = <ticker.redraw_delay>
-    if defined <ticker.redraw_delay>    # XXX: change to 'speed' later
+    if defined <ticker.redraw_delay>    # LLL: change to 'speed' later
     and <ticker.redraw_delay> =~ /^\d+$/
     and <ticker.redraw_delay> >= 5
     and <ticker.redraw_delay> <= 42;
 
-# XXX fix range [1..100?]
+# LLL fix range [1..100?]
 <ticker-gtk.speed> = delete <ticker.speed>
     if defined <ticker.speed>
     and <ticker.speed> =~ /^\d+$/

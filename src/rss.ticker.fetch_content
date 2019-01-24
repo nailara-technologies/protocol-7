@@ -20,7 +20,7 @@ if ( not defined $rss_url or !length($rss_url) ) {
         <[base.log]>->( 0, "fetch_content: $@" );
         <[base.log]>
             ->( 0, "shutting down " . <system.agent.name> . " agent.." );
-        exit(1);    # XXX: reconsider shutdown?
+        exit(1);    # LLL: reconsider shutdown?
     }
 
     <[rss.ticker.send_update]>->($update_commands) if $got_updates;

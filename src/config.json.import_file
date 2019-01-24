@@ -104,11 +104,11 @@ foreach my $d_key (@delete_keys) {
     <[base.del_key]>->($d_key) if defined $d_key_ref;
 }
 
-foreach my $o_key (@overwrite_keys) {    # XXX: implement for key depth > 1
+foreach my $o_key (@overwrite_keys) {    # LLL: implement for key depth > 1
     $data{$o_key} = $import_data->{$o_key};
 }
 
-foreach my $m_key (@merge_keys) {        # XXX: implement for key depth > 1
+foreach my $m_key (@merge_keys) {        # LLL: implement for key depth > 1
     $data{$m_key} = merge( $data{$m_key}, $import_data->{$m_key} );
 }
 

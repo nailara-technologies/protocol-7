@@ -6,7 +6,7 @@ my $update_cmd = shift // 'playlist_update';
 
 my $count = 0;
 map {
-    # XXX: check agent name syntax!
+    # LLL: check agent name syntax!
     <[base.proto.nailara.command.send.local]>
         ->( { 'command' => "core.$_.$update_cmd" } );
     $count++;

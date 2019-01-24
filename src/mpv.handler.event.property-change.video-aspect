@@ -18,7 +18,7 @@ if ( not defined $aspect ) {
 if ( not defined $window_id ) {
     <[base.log]>->( 0, "window id is undefined! aborting resizing attempt.." );
 
-    # XXX: retry to obtain id or disable --no-keepaspect option!
+    # LLL: retry to obtain id or disable --no-keepaspect option!
     return;
 }
 
@@ -65,7 +65,7 @@ if ( $orientation eq 'landscape' ) {
 
 my $new_geometry = "${new_x}x${new_y}+$pos_x+$pos_y";
 
-# XXX: investigate negative $new_x log messages, fix...
+# LLL: investigate negative $new_x log messages, fix...
 <[base.log]>->( 2, ": resizing window : $new_x x $new_y ($new_geometry)" );
 
 <mpv.current.window_width>  = $new_x;
@@ -77,7 +77,7 @@ my $new_geometry = "${new_x}x${new_y}+$pos_x+$pos_y";
     {   'command'   => 'core.xserver.set_geometry',
         'call_args' => { 'args' => "$window_id $new_geometry" },
         'reply'     => {
-            'handler' => 'dev.null',    # XXX: catch errors
+            'handler' => 'dev.null',    # LLL: catch errors
             'params'  => {}
         }
     }

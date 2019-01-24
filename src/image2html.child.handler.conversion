@@ -55,7 +55,7 @@ if ( $image_location =~ m|^https?://| ) {
         }
     }
 
-    # XXX: cleanup / error page
+    # LLL: cleanup / error page
 }
 
 my $image = Graphics::Magick->new();
@@ -149,7 +149,7 @@ if ( $orientation eq 'landscape' and $fit_height ) {
         $scale_height = $target_height;
         $scale_width  = sprintf( "%.0f",
             ( $image_width / $image_height ) * $target_height );
-    } elsif ( $image_ratio < $target_ratio ) {  # XXX: check _quadratic_ images!
+    } elsif ( $image_ratio < $target_ratio ) {  # LLL: check _quadratic_ images!
         $scale_width  = $target_width;
         $scale_height = sprintf( "%.0f",
             ( $image_height / $image_width ) * $target_width );
@@ -231,7 +231,7 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 
 error:
 
-# XXX: create error image with target size dimensions(?)
+# LLL: create error image with target size dimensions(?)
 foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,

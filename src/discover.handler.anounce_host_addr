@@ -7,7 +7,7 @@
 my %ifconfig;
 my $mlenip   = 0;
 my $hostname = <system.host.hostname>;
-my $ifaces   = Net::Ifconfig::Wrapper::Ifconfig('list'); # XXX -> Net::Interface
+my $ifaces   = Net::Ifconfig::Wrapper::Ifconfig('list'); # LLL -> Net::Interface
 
 <discover.announce_interval.current> //= 0.23;
 <discover.announce_interval.maximum> = sprintf( "%.2f", 40 + rand(4) );
@@ -22,7 +22,7 @@ my $start_len   = length($payload_str);
 map {
     foreach my $ip_addr ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
 
-        # XXX: make exclusion patterns configurable!
+        # LLL: make exclusion patterns configurable!
         next if $_ !~ /^(en|\wth|wl)/;    # <- skipping other interfaces!
 
         $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
@@ -41,7 +41,7 @@ map {
                         (^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)
                     /x;
 
-        # XXX: make prio patterns configurable!
+        # LLL: make prio patterns configurable!
         my $iface_prio = 0;
         $iface_prio-- if $_ =~ /^(e(th|n))/;
         $iface_prio++ if $_ =~ /^(ath|wl(p|an))/;

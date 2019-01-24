@@ -3,7 +3,7 @@
 # name = rss.ticker.post_init
 
 <rss.ticker.update_timer> = <[event.add_timer]>->(
-    {   'after'  => 1.2,    # XXX: race condition quick fix [->ticker-agent]
+    {   'after'  => 1.2,    # LLL: race condition quick fix [->ticker-agent]
         'repeat' => 1,
         'interval' => <rss.ticker.update_interval> || 120,
         'handler'  => 'rss.ticker.fetch_content',
