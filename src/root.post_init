@@ -24,7 +24,7 @@ map {s|^.*/||} my @found_acfg_names = sort grep { !/$skip_re/ } @acfg_fullpaths;
     <root.agents.found_types.no_cfg_file>  = []
 ) = <[base.diff_array]>->( \@all_agents, \@found_acfg_names );
 
-# XXX: todo: add external scripts [extbin] from spawn configuration!
+# LLL: todo: add external scripts [extbin] from spawn configuration!
 foreach my $cfg_file_path ( grep { !/$skip_re/ } @acfg_fullpaths ) {
     ( my $agent_name = $cfg_file_path ) =~ s|^.*/||g;
     my $agent_desc_str = <[root.extract_short_desc]>->($cfg_file_path);

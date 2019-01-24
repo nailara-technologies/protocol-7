@@ -12,7 +12,7 @@ my $watcher = shift->w;
 
 my $qkmap = eval { <xserver.x11>->QueryKeymap };
 
-if ( not defined $qkmap ) {    # XXX: implement reconnect / restart procedure!!
+if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
     <[base.log]>->(
         0, "<!> X11 protocol error during 'QueryKeymap' command <!>"
     );
@@ -65,7 +65,7 @@ my $mod_str
     )
 );
 
-# XXX: process key ...
+# LLL: process key ...
 
 <xserver.hotkeys.active> //= {};
 if ( defined <xserver.hotkeys.recording> and $event_type eq 'press' ) {
@@ -73,7 +73,7 @@ if ( defined <xserver.hotkeys.recording> and $event_type eq 'press' ) {
         = split( / +/, delete <xserver.hotkeys.recording>, 2 );
     my $hotkey_id = <[base.gen_id]>->(<xserver.hotkeys.active>);
 
-    # XXX: filter duplicates
+    # LLL: filter duplicates
 
     <xserver.hotkeys.active>->{$hotkey_id} = {
         'keycode'   => $keycode,
@@ -127,7 +127,7 @@ if ( defined <xserver.hotkeys.recording> and $event_type eq 'press' ) {
 
 if ($no_key_pressed) {
 
-    # XXX: process key ...
+    # LLL: process key ...
 
     delete <xserver.hotkeys.last_key>;
     delete <xserver.hotkeys.triggered>;

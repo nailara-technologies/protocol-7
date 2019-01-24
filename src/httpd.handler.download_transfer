@@ -15,7 +15,7 @@ $max_buf_size = $min_buf_size if $max_buf_size < $min_buf_size;
 $max_buf_size = <httpd.downloads.max_buffer_size>
     if $max_buf_size > <httpd.downloads.max_buffer_size>;
 
-# $session->{'buffer'}->{'output'} //= '';    # XXX: track down undef...
+# $session->{'buffer'}->{'output'} //= '';    # LLL: track down undef...
 
 my $read_size = $max_buf_size - length( $session->{'buffer'}->{'output'} );
 $read_size = $download->{'bytes_to_go'}

@@ -12,7 +12,7 @@ if ( $reply->{'cmd'} eq 'RAW' and $reply->{'call_args'}->{'args'} > 0 ) {
     @exclusive_b8ids = split( /\n+/, $reply->{'data'} );
     map {
         if ( <playlist.b8id_src_str>->{$_} =~ /^([^:]+):/ ) {
-            my $tile_name = $1;    # XXX: handle no tilename case? (global ex.)
+            my $tile_name = $1;    # LLL: handle no tilename case? (global ex.)
             <playlist.exclusive_b8id>->{$tile_name} //= [];
             push( @{ <playlist.exclusive_b8id>->{$tile_name} }, $_ );
         }

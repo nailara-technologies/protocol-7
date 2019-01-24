@@ -118,7 +118,7 @@ if ( exists $init_result_data->{'start_mode'}
             <[agent.change_status]>->( $instance_id, 'failed' );
             return undef;
         }
-        map { $privs->{$_} =~ s|'||g } keys %{$privs};    # XXX: abort on match?
+        map { $privs->{$_} =~ s|'||g } keys %{$privs};    # LLL: abort on match?
 
         if ( length( $privs->{'home'} // '' ) and !-d $privs->{'home'} ) {
             <[base.log]>->(
@@ -135,7 +135,7 @@ if ( exists $init_result_data->{'start_mode'}
             );
         }
 
-        # XXX: implement exec_args...
+        # LLL: implement exec_args...
         my $prepare_code = '%ENV=(); ';
         my $display      = <x11.display>;
         $prepare_code .= "\$ENV{'DISPLAY'}='$display'; " if defined $display;

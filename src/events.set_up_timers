@@ -11,7 +11,7 @@ die "invalid mode '$mode'" if length($mode) and $mode ne 'recalc';
 map {
     if ( exists <event.timers>->{$_} ) {
 
-        # XXX: trigger 'end' handler ...
+        # LLL: trigger 'end' handler ...
         <event.timers>->{$_}->cancel if <event.timers>->{$_}->is_active;
         delete <event.timers>->{$_};
         <[base.log]>->( 0, "cancelled timer for event $_ (no longer defined)" );

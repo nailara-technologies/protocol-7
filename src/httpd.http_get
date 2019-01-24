@@ -104,7 +104,7 @@ if ( defined $http_host and defined $link_target ) {
 
     $path_md5 = <[digest.md5.hex]>->($file_path);
 
-    if ( -f $file_path and !-r $file_path ) {   # XXX: cfg + deal with symlinks!
+    if ( -f $file_path and !-r $file_path ) {   # LLL: cfg + deal with symlinks!
         <[base.log]>->(
             0,
             "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
@@ -120,7 +120,7 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $stat[9] );
         my $server_date   = time2str(time);
 
-        # XXX: make inode inclusion configurable:
+        # LLL: make inode inclusion configurable:
         my $file_etag = <[digest.md5.b64u]>
             ->("$content_inode-$content_size-$content_date-$file_path");
         $response->{'params'}->{'ETag'} = $file_etag;
@@ -202,7 +202,7 @@ if ( defined $http_host and defined $link_target ) {
             and not exists $request->{'range'} ) {  # <- 'small' file, send now!
             local $/ = undef;
             open( my $content_fh, '< :raw', $file_path )
-                or warn "<!> $file_path: $!";    # XXX: needs error handling...
+                or warn "<!> $file_path: $!";    # LLL: needs error handling...
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header )
                 . <$content_fh>;

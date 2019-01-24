@@ -25,7 +25,7 @@ my $file_create_mode = 0640;
 # check log directory
 if ( !-d $log_path ) {
     <[base.log]>->( 0, "log directory '$log_path' disappeared, recreating..." );
-    my ( $ok, $err_msg )     # XXX: use File::Path::make_path() ?
+    my ( $ok, $err_msg )     # LLL: use File::Path::make_path() ?
         = <[file.make_path]>->( $log_path, <log.nailara_log.dir_mask> );
     return ( 0, $err_msg ) if !$ok;
     my ( undef, undef, $uid, $gid ) = getpwnam(<log.nailara_log.user>)

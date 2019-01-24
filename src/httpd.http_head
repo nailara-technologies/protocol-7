@@ -50,7 +50,7 @@ if ( defined $http_host and defined $link_target ) {
     my $base_dir = <httpd.cfg.hostnames>->{$http_host};
     $file_path = "$base_dir$http_uri";
     $file_path =~ s|/$||;
-    if ( -d $file_path ) {    # XXX: support !html index
+    if ( -d $file_path ) {    # LLL: support !html index
         $file_path .= '/index.html' if -f $file_path . '/index.html';
     }
     $path_md5 = <[digest.md5.hex]>->($file_path);

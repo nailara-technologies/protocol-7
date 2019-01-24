@@ -110,7 +110,7 @@ while (1) {
         local $SIG{'ALRM'} = sub { $timed_out = 1 };
         alarm( <webcam.http_timeout> + 1 );
 
-        # warn "< get >"; # XXX: needs automatically adjusted interval !!!
+        # warn "< get >"; # LLL: needs automatically adjusted interval !!!
         $response = $http->get(<webcam.image_url>)
             if length(<webcam.image_url>);
         alarm(0);

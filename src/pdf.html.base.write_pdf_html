@@ -12,7 +12,7 @@ my $temp_file     = "$target_file.NEW";
 die "path '$path' does not exist"                   if !-d $path;
 die "html template '$html_template' does not exist" if !-f $html_template;
 die "expected array reference to image names" if ref($image_ref) ne 'ARRAY';
-die "image name array is empty!" if !@{$image_ref};    # XXX: deal with it!
+die "image name array is empty!" if !@{$image_ref};    # LLL: deal with it!
 
 my $html_ref = <[file.slurp]>->($html_template);
 die "failed to load html template '$html_template'" if not defined $html_ref;

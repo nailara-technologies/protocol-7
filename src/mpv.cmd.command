@@ -4,7 +4,7 @@
 # param = [!]<mpv_cmd>
 # descr = send raw command through mpv control pipe
 
-my $cmd_str = $$call{'args'};  # XXX: implement parameter quoting instead of '!'
+my $cmd_str = $$call{'args'};  # LLL: implement parameter quoting instead of '!'
 
 return { 'mode' => 'nak', 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
