@@ -13,7 +13,7 @@ Event->unloop_all();    # making sure log messages make it..
 
 $SIG{'CHLD'} = 'IGNORE';
 
-# XXX: temporary quickfix for leftover mpv process
+# LLL: temporary quickfix for leftover mpv process
 map { kill( 'TERM', $_ ) if $_ =~ /^\d+$/ } keys %{<media.running>};
 <[base.sleep]>->(0.42);
 

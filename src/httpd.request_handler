@@ -15,7 +15,7 @@ if ( $session->{'buffer'}{'input'} =~ /^[^\r\n]{$max_uri_len}/ ) {
     <[base.log]>    # Request Entity Too Large
         ->( 0, "[$id] maximum Request length ($max_req_len) exceeded!" );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 413 );
-    return 2;       # XXX: fix false positives!
+    return 2;       # LLL: fix false positives!
 }
 
 my $peer_fh = $session->{'handle'};

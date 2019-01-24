@@ -180,7 +180,7 @@ delete $connection->{'retry_delay'}
 
 $connection->{'io'}->{'ssh'}->now;    # quickfix!
 
-my $ping_delay = 5;                   # XXX: -> config...
+my $ping_delay = 5;                   # LLL: -> config...
 $connection->{'timer'}->{'ping'} = <[event.add_timer]>->(
     {   'after'    => 1,
         'interval' => $ping_delay,
@@ -196,7 +196,7 @@ failed:
 <ssh.status.connections>->{$con_id} = 'failed';
 $connection->{'retry_delay'} *= 2
     if exists $connection->{'retry_delay'};
-$connection->{'retry_delay'} //= 0.5;    # XXX: -> config!
+$connection->{'retry_delay'} //= 0.5;    # LLL: -> config!
 $connection->{'retry_delay'} = 30 if $connection->{'retry_delay'} > 30;
 
 <[base.log]>->( 1, ": : : retrying in $connection->{retry_delay} seconds ..." );

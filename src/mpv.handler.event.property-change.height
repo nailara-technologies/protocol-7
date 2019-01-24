@@ -76,7 +76,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
         my $cmd_args = join( ' ',
             $current_path, "${target_width}x$target_height",
             "${box_width}x$box_height" );
-        <[mpv.check_rescale_path]> if defined <mpv.rescale_path>; # XXX: cleanup
+        <[mpv.check_rescale_path]> if defined <mpv.rescale_path>; # LLL: cleanup
         $cmd_args .= ' ' . <mpv.rescale_path> if defined <mpv.rescale_path>;
         my $chk_hash = <[digest.md5.hex]>->($cmd_args);
 

@@ -10,6 +10,8 @@
 
 <[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw/random_string_from/ );
 
+# warn sprintf( "[ %s (%s) ]", <[base.get_homedir]>->($>) );
+
 my $usr = <crypt.C25519.key_uid_user> //= getpwuid($>);
 my ( undef, undef, $uid, $gid, undef, undef, undef, $homedir ) = getpwnam($usr);
 die "failed to obtain home directory for user '$usr'"
@@ -75,7 +77,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -r $key_basepath ) {
                 0, "<!> failed to read root key <<!>> key signing aborted <!>"
             );
 
-            # XXX: log reason ...
+            # LLL: log reason ...
             goto skip_sign;
         }
         <[base.log]>->( 0, ": signing C25519 key pair with$rkst root key ..." );

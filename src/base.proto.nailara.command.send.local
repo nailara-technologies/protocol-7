@@ -35,7 +35,7 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
 
     my $target_name = $1;
 
-    #XXX: needs error handling on unknown target!
+    #LLL: needs error handling on unknown target!
 
     # send to all clients with that session id (or username [group mode])
     my @send_sids;
@@ -76,7 +76,7 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
         $src_name .= '[' . <system.agent.subname> . ']'
             if exists <system.agent.subname>;
 
-        # XXX: implement (debug) watch and filter patterns for command logging
+        # LLL: implement (debug) watch and filter patterns for command logging
         if (   <system.verbosity> >= 2
             or <system.internal_verbosity> >= 2 ) {
             <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" )

@@ -54,7 +54,7 @@ if (exists <layout.window_ids>->{$agent_name}
     $wid_str = join( ',', sort { $a <=> $b } split( /\D+/, $wid_str ) );
     my $wid_lmsg = $wid_str;
     $wid_str =~ s|,| |g;
-    <layout.window_ids>->{$agent_name} = $wid_str;    # XXX: check if exists!
+    <layout.window_ids>->{$agent_name} = $wid_str;    # LLL: check if exists!
     my $s = $wid_str =~ / / ? 's' : '';
     <[base.log]>->( 1, "assigned window id$s $wid_lmsg to '$agent_name'" );
 
@@ -83,7 +83,7 @@ if (exists <layout.window_ids>->{$agent_name}
 
 } else {
 
-    # XXX: refine message (reason)
+    # LLL: refine message (reason)
     return {
         'mode' => 'nak',
         'data' => 'failed to assign!'

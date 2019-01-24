@@ -28,7 +28,7 @@ my $content_type = $header->{'Content-Type'}   // mimetype($file_path);
 
 my $content_fh;
 if ( not open( $content_fh, '< :raw', $file_path ) ) {
-    warn "<!> $file_path: $!";    # XXX: error handling...
+    warn "<!> $file_path: $!";    # LLL: error handling...
     return 2;
 }
 
@@ -44,7 +44,7 @@ if ( exists $request->{'range'} ) {
             = "bytes $start-$end/$content_size";
         $content_size = 1 + $end - $start;
     } else {
-        <[base.log]>->(    # XXX: implement multipart byte ranges...
+        <[base.log]>->(    # LLL: implement multipart byte ranges...
             0, "[$id] multiple range segments requested ( Not Implemented! )"
         );
         close($content_fh);

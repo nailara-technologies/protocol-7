@@ -84,7 +84,7 @@ if ( !@file_names ) {
     return 0;
 } else {
 
-    # XXX: need file type cache auto cleanup + delay and combine update requests
+    # LLL: need file type cache auto cleanup + delay and combine update requests
 }
 
 my %b8_index;
@@ -99,7 +99,7 @@ foreach my $file (@file_names) {
 
     my $b8id
         = <[digest.crc.b64u_r8]>->( ++$b8_index{$parsed_line}, $parsed_line );
-    <playlist.b8id_src_str>->{$b8id} = $parsed_line; # XXX: cleanup + collisions
+    <playlist.b8id_src_str>->{$b8id} = $parsed_line; # LLL: cleanup + collisions
 
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
@@ -116,7 +116,7 @@ foreach my $file (@file_names) {
     }
     $file =~ s|#\[[^\]]+\]#||g;    # cleanup
 
-    ### XXX: weather agent test hack ###
+    ### LLL: weather agent test hack ###
     if ( $file =~ /^\[weather:(.+)\]$/ ) {
 
         if ( not exists <playlist.agent_online> or !<playlist.agent_online> ) {
@@ -173,7 +173,7 @@ foreach my $file (@file_names) {
         } else {
             $type = 'html';
         }
-    } elsif ( $file =~ m|^udp://| ) { # XXX: temporary hack for mcast live video
+    } elsif ( $file =~ m|^udp://| ) { # LLL: temporary hack for mcast live video
         $type = 'video';
     } elsif ( $file =~ m|^rt[sm]p://| ) {    # video
         $type = 'video';

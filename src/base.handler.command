@@ -133,7 +133,7 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n/o ) {
     return 1;
 }
 
-# incomplete RAW reply   XXX: switch to stream type transfer!!!
+# incomplete RAW reply   LLL: switch to stream type transfer!!!
 
 elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *RAW +(\d+)\n)/o
     and length($$input) < ( $3 + length($1) ) ) {
@@ -263,7 +263,8 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
 
 if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
-    if ( defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
+    if ( exists $data{'session'}{$id}
+        and defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
         my $route = $data{'route'}{ $data{'session'}{$id}{'route'}{$cmd_id} };
         if ( exists $$route{'target'}{'sid'}
@@ -318,9 +319,9 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                         {'output'}
                         .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
-                } else {
+                } else {    # should never come here [SID gone!]
                     <[base.log]>->(
-                        1,
+                        0,
                         sprintf(
                             '{%s} unknown session, dropped reply.. (%d bytes)',
                             $$route{'source'}{'sid'},
@@ -501,7 +502,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                         2, "setting up async reply for reply-id $reply_id"
                     );
 
-                    # XXX: set up reply timeout?
+                    # LLL: set up reply timeout?
                     return 0;
                 }
                 delete <base.cmd_reply>->{$reply_id};
@@ -520,7 +521,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                     $$reply{'mode'} ne 'raw'
                     and ( not defined $$reply{'data'}
                         or !length( $$reply{'data'} ) )
-                    ) {
+                ) {
                     <[base.log]>->(
                         0,
                         "[$id] empty "
@@ -582,7 +583,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
     # absolute address notation
 
-    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/ ) {  # XXX: regex invalid! (only host)
+    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/ ) {  # LLL: regex invalid! (only host)
         my $network_name = $1;
         my $node_name    = $1;
 
@@ -592,7 +593,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         $cmd =~ s/^($re->{sid}|$re->{usr}|$re->{usr_sub})\.
                     ((($re->{sid}|$re->{usr}|$re->{usr_sub})\.)*
                     $re->{cmd})$/$2/gxo
-        ) {
+    ) {
         my $target_name = $1;                  # usr|sid
         my $command_str = $2;                  # [ deeper targets + ] command
         my $target_subname
@@ -631,7 +632,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                 undef $target_user;
             }
 
-            # XXX: deal with multi line commands... (command_mode 2)
+            # LLL: deal with multi line commands... (command_mode 2)
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
@@ -692,9 +693,9 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                 (   not defined <system.agent.mode>
                     or <system.agent.mode> ne 'core'
                 )
-                or $usr eq 'root' # XXX: need better check if really root agent!
+                or $usr eq 'root' # LLL: need better check if really root agent!
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
-                ) {
+            ) {
                 push( @send_sids_left, $target_sid );
                 next;
             }

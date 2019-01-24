@@ -5,7 +5,7 @@
 <mpv.rescale_path> =~ s|\/$||;
 <[base.log]>->( 2, "checking rescale_path '" . <mpv.rescale_path> . "'" );
 if ( !-d <mpv.rescale_path> ) {
-    my $resc_path = <mpv.rescale_path>;    # XXX: check path on demand ...
+    my $resc_path = <mpv.rescale_path>;    # LLL: check path on demand ...
     <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
         or die "user '" . <system.privs.user> . "' not in passwd file";
@@ -25,11 +25,11 @@ if ( !-d <mpv.rescale_path> ) {
             0, "autorescale disabled! (failed to create target directory)"
         );
         delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
-    } else {    # XXX: if files disappeared...
+    } else {    # LLL: if files disappeared...
         delete <mpv.playlist_sha1>;
         <[mpv.cmd.playlist_update]>;
     }
 
-}    # XXX: } else { check permissions..
+}    # LLL: } else { check permissions..
 
-# XXX: restart if it needs to recreate directory instead [files disappeared] ...
+# LLL: restart if it needs to recreate directory instead [files disappeared] ...
