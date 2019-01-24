@@ -72,7 +72,7 @@ if ( $mode ne 'host' ) {
 
     <[base.log]>->( 1, "starting $bin_name-Server..." );
 
-    # XXX: change uid for 'xephyr'...
+    # LLL: change uid for 'xephyr'...
     $server_pid = open( my $out_fh, $cmd_line );
 
     if ( not defined $server_pid or $@ ) {
@@ -172,7 +172,7 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
 
     my @max_size = <[xserver.max_screen_size]>;
 
-    # XXX: make configurable..!
+    # LLL: make configurable..!
     if (    defined <xserver.video_driver>
         and <xserver.video_driver> ne 'qxl'
         and (  $max_size[0] > <xserver.x11>->width_in_pixels
@@ -282,8 +282,8 @@ if ( <xserver.bg_fade> //= 1 and $bg_col ne '#000000' ) {
 my $bg_mode = <xserver.bg_mode>;
 if ( defined $bg_image ) {
 
-    my @hsetroot_params;    # XXX: hsetroot call will be replaced soon...
-    my $hsetroot_bin = '/usr/bin/hsetroot';    # XXX: -> config || `which`
+    my @hsetroot_params;    # LLL: hsetroot call will be replaced soon...
+    my $hsetroot_bin = '/usr/bin/hsetroot';    # LLL: -> config || `which`
     if ( !-x $hsetroot_bin ) {
         <[base.log]>->( 0, "can't set bg image: '$hsetroot_bin' not found!" );
         return -1;

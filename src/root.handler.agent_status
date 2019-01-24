@@ -124,7 +124,7 @@ if (    $status ne 'starting'
     map { <[root.terminate_process]>->($_) } (
         $instance->{'process'}->{'id'},
         <[root.instance_child_pids]>->($instance_id),
-        <[root.process.orphan_pids]>    # XXX: <- make obsolete! (heavy)
+        <[root.process.orphan_pids]>    # LLL: <- make obsolete! (heavy)
     );
 }
 
@@ -283,7 +283,7 @@ if ( $status eq 'shutdown'
     <[base.log]>->( 2, "instance $instance_id has been shut down." );
 }
 
-if ( $old_status ne 'online' and $status eq 'online' ) {    # XXX: extbin ?
+if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
     $instance->{'timer'}->{'reset_respawn_delay'} = <[event.add_timer]>->(
         {   'after'   => 4.2,

@@ -3,7 +3,7 @@
 # name  = xserver.cmd.mouse_over_coords
 # param = <pos_x> <pos_y>
 # descr = move mouse to new coorinates and back again
-# todo  = XXX check / enforce screen boundaries
+# todo  = LLL check / enforce screen boundaries
 
 my $log_sid = $$call{'session_id'};
 my @params  = split( / +/, $$call{'args'} );
@@ -19,7 +19,7 @@ map {
     "[$log_sid] hovering mouse pointer over position x=$coords{x}, y=$coords{y}"
 );
 
-<xserver.x11>->choose_screen(0);    # XXX: doesn't support multiple screens yet!
+<xserver.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
 my %screen_geom = <xserver.x11>->GetGeometry( <xserver.x11>->root );
 my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 

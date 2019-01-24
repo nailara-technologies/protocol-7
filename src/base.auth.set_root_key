@@ -7,7 +7,7 @@ my $key_str = shift;
 my $agent_name = shift || 'root';
 die "no key string supplied!" if not defined $key_str or !length($key_str);
 
-# XXX: temporary solution
+# LLL: temporary solution
 <[base.perlmod.load]>->( 'Crypt::Digest::BLAKE2b_384', 'blake2b_384_b64' );
 
 <[base.log]>->( 1, "setting up session key for 'root' agent.." );

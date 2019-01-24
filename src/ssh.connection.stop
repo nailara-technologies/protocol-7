@@ -49,7 +49,7 @@ if (    <ssh.cfg.globals>->{'connections.reconnect'}
 
     <ssh.status.connections>->{$con_id} = 'offline';
     $connection->{'retry_delay'} *= 2 if exists $connection->{'retry_delay'};
-    $connection->{'retry_delay'} //= 0.5;    # XXX: -> config!
+    $connection->{'retry_delay'} //= 0.5;    # LLL: -> config!
     $connection->{'retry_delay'} = 30 if $connection->{'retry_delay'} > 30;
 
     <[base.log]>->(

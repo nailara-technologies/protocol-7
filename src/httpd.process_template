@@ -13,7 +13,7 @@ my $content_date    = time2str( int( $session->{'start_time'} ) );
 my $content_type    = 'text/plain';
 $content_type = 'text/html' if mimetype($template_path) =~ /html/;
 
-# XXX: ;charset=...
+# LLL: ;charset=...
 
 <[base.log]>->( 1, "[process_template] $template_path" );
 
@@ -28,9 +28,9 @@ my $content_ref = $session->{'content'} = {
 
 my $r_seq = $content_ref->{'sequence'};
 
-# XXX # [open/] ... [/close]
+# LLL # [open/] ... [/close]
 # .. eq ..
-# XXX # [template:content....]
+# LLL # [template:content....]
 #
 
 my $tmpl_ref = $session->{'buffer'}->{'template'};
@@ -97,7 +97,7 @@ if ( !$cmd_count ) {    # request / content complete :
         next if not exists $part->{'command'};
         my $command_str = $part->{'command'};
 
-        # XXX: filter command syntax ( define allowed ones )
+        # LLL: filter command syntax ( define allowed ones )
 
         my %query = ( %{ $session->{'http'}->{'request'}->{'query'} } );
 
@@ -109,7 +109,7 @@ if ( !$cmd_count ) {    # request / content complete :
             if defined $part->{'params'};
 
         #
-        # {param_name,param_name,..}: values base64url encoded, XXX: use + mode!
+        # {param_name,param_name,..}: values base64url encoded, LLL: use + mode!
         #
         while ( defined $part->{'params'}
             and $part->{'params'} =~ /\{([\-\w\d_\.,]+)\}/ ) {
@@ -138,7 +138,7 @@ if ( !$cmd_count ) {    # request / content complete :
             }
         );
 
-        # XXX: set up check + timeout timers...
+        # LLL: set up check + timeout timers...
     }
     return 1;
 }

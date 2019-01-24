@@ -27,7 +27,7 @@ if ( <ticker-gtk.status.initialized>
 
 <ticker-gtk.draw.skipped>        //= 0;
 <ticker-gtk.draw.skipped_offset> //= 0;
-<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;    # <- XXX: calc!
+<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;    # <- LLL: calc!
 <ticker-gtk.bg_col>              //= [ 1, 1, 1 ];
 <ticker-gtk.bg_alpha> //= 100;    # transparent default
 
@@ -58,7 +58,7 @@ if (   !$window->is_composited
     $context->paint;
 } else {
     my $screen = $window->get_screen();
-    my $rgba   = $screen->get_rgba_visual();    # XXX: auto update?
+    my $rgba   = $screen->get_rgba_visual();    # LLL: auto update?
     if ( !$rgba ) {
         <ticker-gtk.use_transparency> = 0;
     } elsif (<ticker-gtk.use_transparency>) {
@@ -74,7 +74,7 @@ if (   !$window->is_composited
 my $speed = <ticker-gtk.speed> // 13;
 my $draw_shadow = $speed > 16 ? 0 : 1;
 
-# XXX: initialization part needs to be rewritten!
+# LLL: initialization part needs to be rewritten!
 if ( !<ticker-gtk.status.initialized> ) {
 
     <[base.log]>->( 1, "calculating required font size .." );
@@ -168,7 +168,7 @@ my $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
 
 if ( !<ticker-gtk.paused> ) {
 
-    if (<ticker-gtk.auto_speed_mode>) {    # XXX
+    if (<ticker-gtk.auto_speed_mode>) {    # LLL
         my $adjust  = 0;
         my $sl_diff = 0;
         if ( <ticker-gtk.slowdown.percent>

@@ -21,7 +21,7 @@ map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
         and $_->pid != $$     # and is not this process [root agent]
         and not exists $own_children{ $_->pid }
         and ( not defined $_->exec
-        or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / XXX: -> config
+        or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / LLL: -> config
     } @{ $proc_table->table };
 
 map {

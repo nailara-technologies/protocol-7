@@ -13,7 +13,7 @@ my $pid     = $process->{'pid'};
 if ( defined $read_fh ) {
     $bytes
         = sysread( $read_fh, <mpv.pipe.buffer>, 16 * 1024,
-        length(<mpv.pipe.buffer>) ) // 0; # XXX: needs 'safer' read method (len)
+        length(<mpv.pipe.buffer>) ) // 0; # LLL: needs 'safer' read method (len)
 }
 
 if ( not defined $read_fh or $bytes == 0 or not defined <mpv.pipe.buffer> ) {

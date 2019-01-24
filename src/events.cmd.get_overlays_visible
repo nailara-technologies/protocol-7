@@ -8,6 +8,6 @@ my $reply_str = '';
 <events.stack.overlay.visibility> //= {};
 
 map { $reply_str .= "$_\n" if <events.stack.overlay.visibility>->{$_} > 0 }
-    sort keys %{<events.stack.overlay.visibility>};    # XXX: sort by timestamp!
+    sort keys %{<events.stack.overlay.visibility>};    # LLL: sort by timestamp!
 
 return { 'mode' => 'raw', 'data' => $reply_str }

@@ -12,7 +12,7 @@ die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
 my $ua = LWPx::ParanoidAgent->new;
 $ua->whitelisted_hosts( sub { return 1 } );
-$ua->timeout(10);    # XXX: make configurable!
+$ua->timeout(10);    # LLL: make configurable!
 
 my $url_hash = <[digest.sha1]>->($file_url);
 
@@ -43,7 +43,7 @@ if ( !-d $target_dir ) {
 
 my $head_res       = $ua->head($file_url);
 my $content_type   = $head_res->{'_headers'}->{'content-type'};
-my $content_length = $head_res->{'_headers'}->{'content-length'}; # XXX: use ...
+my $content_length = $head_res->{'_headers'}->{'content-length'}; # LLL: use ...
 if ( $content_type =~ m|^image/(\w{3,4})$| ) {
     <[base.log]>->( 2, "found $1-image ($content_length bytes)" );
 } else {
@@ -63,7 +63,7 @@ if ( $status_code ne '200' ) {
         0, "failed to download '$file_url' [$status_code $status_message]"
     );
 
-    # XXX: cleanup
+    # LLL: cleanup
     return undef;
 } else {
     <[file.put]>->( "$target_dir/.last_modified", "$last_modified\n" )

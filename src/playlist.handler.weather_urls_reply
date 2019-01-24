@@ -62,11 +62,11 @@ if ($changes) {
     <playlist.file_list> = \@new_list;
     <[base.log]>->( 1, "weather urls added to playlist, updating..." );
 
-    # XXX: extract to seperate subroutine:
+    # LLL: extract to seperate subroutine:
     my $update_cmd = <update.notify_command> || 'playlist_update';
     my $count = 0;
     map {
-        # XXX: check agent name syntax [+response]!
+        # LLL: check agent name syntax [+response]!
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => "core.$_.$update_cmd" } );
         $count++;

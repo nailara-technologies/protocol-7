@@ -21,7 +21,7 @@ if ( !length( $usr // '' ) ) {
     if (    !$noop
         and defined $name
         and exists $_gid{$gid}
-        and exists $egid{$gid}    # XXX: fix (secondary groups)!
+        and exists $egid{$gid}    # LLL: fix (secondary groups)!
         and $> == $uid and $< == $uid
         ) {
         <[base.log]>->( 1, "set_privs: already am '$usr', doing nothing." );

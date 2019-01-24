@@ -21,7 +21,7 @@ map { <browser.url_active>->{$_} //= 0 }
 # clear temp. js disabled #
 if ( <browser.scroll.fail.js_disabled> or <browser.url_active.nojs> ) {
 
-    map {    # XXX: make reenabling view-based
+    map {    # LLL: make reenabling view-based
         my $view_index = <browser.overlay.index>->{$_};
         my $settings   = <browser.gtk_obj.view>->{$view_index}->get_settings;
         $settings->set_property( 'enable-scripts', 1 );

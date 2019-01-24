@@ -54,7 +54,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
         ## record browser segfaults (for crash mitigation) ##
         if ( $e_sig == 11 and $agent_name eq 'browser' ) {
-            my $browser_uname = 'nobody';    # XXX: determine automatically ...
+            my $browser_uname = 'nobody';    # LLL: determine automatically ...
             my $sn_hash
                 = ( defined $agent_subname and length($agent_subname) )
                 ? '.' . encode_base64url($agent_subname)
