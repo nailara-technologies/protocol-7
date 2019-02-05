@@ -1,0 +1,11 @@
+# >:]
+
+# name  = keys.cli.path
+# descr = return current user's nailara C25519 keys path
+
+my $key_path = <keys.default_path> // '';
+my $key_usr  = <crypt.C25519.key_uid_user>;
+
+<[base.log]>->( 1, "returning $key_usr\'s key path ['$key_path']" );
+
+printf ":\n: nailara key path [$key_usr] : %s\n:\n", $key_path;
