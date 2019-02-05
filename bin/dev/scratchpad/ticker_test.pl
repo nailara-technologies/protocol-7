@@ -65,13 +65,17 @@ my $sh_col = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
 
 # the test text ...
 my $test_text = << '__EOT__'
+        00000 0000
+        . parasites do not compute ., - HOLES IN SPACE -
+        ..parasites do not compute.., - HOLES IN SPACE -
+
         The's'at katra k'tei i'k'therie -
         In' k'tmneri a'nailara laikani'he.
-        The's'at katra - a'ri'nailara.
+        The's'at katra - a'ri'nailara..,
     ^
         Our Katra is a clear surface -
         It reflects the universe in harmony.
-        Our Katra - the universe are one.
+        Our Katra - the universe are one..,
 __EOT__
     ;
 
