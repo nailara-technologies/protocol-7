@@ -4,7 +4,8 @@
 # descr = initializes the notify agent (which uses notify-osd)
 
 my $bin_name  = 'notify-send';
-my $icon_path = <system.root_path> . '/data/gfx/nailara_logo.png';
+my $gfx_path  = <system.root_path> . '/data/gfx/';
+my $icon_path = $gfx_path . '/icons/';
 chomp( my $bin_path = qx(which $bin_name) );
 die "$bin_name binary not found (please install 'notify-osd')"
     if !length($bin_path);
@@ -13,12 +14,12 @@ undef $ENV{'XAUTHORITY'};
 undef $ENV{'LOGNAME'};
 
 <notify.path> = {
-    'notify_send'  => $bin_path,
-    'nailara_icon' => $icon_path,
+    'notify_send'   => $bin_path,
+    'nailara_icon'  => $gfx_path . 'nailara_logo.png',
+    'loves_it_icon' => $icon_path . 'lain/loves_it.png',
 
     'info_icon' => '/usr/share/icons/oxygen/base/64x64/'
         . 'status/dialog-information.png',
-
     'warn_icon' => '/usr/share/icons/gnome-colors-common/'
         . 'scalable/status/dialog-warning.svg',
 
