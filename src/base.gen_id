@@ -1,19 +1,20 @@
 # >:]
 
 # name   = base.gen_id
-# args   = hashref(id_var), int(max_ids)
+# args   = hashref(id_var), int(max_ids) [, str(number_range)]
 # return = int(id)
 
 die "base.gen_id: expected hash reference" if ref( $_[0] ) ne 'HASH';
 
 my $max_ids     = $_[1] || 230000;
+my $num_range   = $_[2] // '01234577790';
 my $retries     = 0;
 my $new_id      = 0;
 my $max_retries = 32 + int( $max_ids / 1000 );
 $max_retries = 4096 if $max_retries > 4096;
 
 while ( index( $new_id, '0' ) == 0 or exists $_[0]->{$new_id} ) {
-    $new_id = random_string_from( '01234577790', length( $max_ids * 100 ) );
+    $new_id = random_string_from( $num_range, length( $max_ids * 100 ) );
 
     if ( $retries > $max_retries ) {
         <[base.log]>->( 0, "gen_id: max_retries reached!" );
