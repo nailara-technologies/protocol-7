@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 # installs cpanm and some basic (packaged) cpan modules
 apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl \
@@ -21,6 +23,7 @@ apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl \
   #libconvert-uu-perl
 
 # installs the rest from cpan
+$SCRIPTPATH/perlmod_test_fail_overrides.sh # (temporary) test fail override(s)!
 cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
         POSIX::1003 XML::RSS::TimingBot File::MimeInfo::Magic \
         Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird \
