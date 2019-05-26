@@ -22,7 +22,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
     if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
         $log_level++;
-        $retry_delay_cached += 128 + int( rand(242) );
+        $retry_delay_cached += 113 + int( rand(237) );
     }
     <[base.log]>->(
         $log_level, "failed to retrieve forecast weather data [$err_reason]"
