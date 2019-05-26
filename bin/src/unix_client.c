@@ -1,3 +1,6 @@
+
+#define _GNU_SOURCE
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -10,20 +13,31 @@
 
 char * socket_path = "/tmp/.n/s/KvPlpg";
 
-char auth_str[64] = "select unix\nauth photon\n";
-char close_cmd[6] = "close\n";
-
 int main( int argc, char * argv[] ) {
-    struct sockaddr_un addr;
-    char buf [1024];
-    int errno, socket_fd, result;
     fd_set readset;
+    char buf [1024];
+    struct sockaddr_un addr;
+    int errno, socket_fd, result;
+
+    char * auth_str;
+    char * auth_usr = secure_getenv("USER");
+    char close_cmd[6] = "close\n";
 
     /* print usage message */
     if ( argc < 2 ) {
         printf( "\n usage: %s <nailara_command> [command_args]\n\n", argv[0] );
         exit(1);
     }
+
+    /* retrieve auth username */
+    if ( auth_usr == NULL ) {
+        fprintf( stderr, "%s",
+            "[!] expected environment variable USER is not set!\n" );
+        exit(1);
+    }
+
+    /* prepare authentication */
+    asprintf(&auth_str, "select unix\nauth %s\n", auth_usr);
 
     /* prepare command string */
     int i;
