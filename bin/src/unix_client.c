@@ -8,7 +8,7 @@
 
 /* XXX: needs a least a timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/tmp/.n/s/idxgug";
+char * socket_path = "/tmp/.n/s/KvPlpg";
 
 char auth_str[64] = "select unix\nauth photon\n";
 char close_cmd[6] = "close\n";
