@@ -23,16 +23,15 @@ int main( int argc, char * argv[] ) {
     char * auth_usr = secure_getenv("USER");
     char close_cmd[6] = "close\n";
 
-    /* print usage message */
     if ( argc < 2 ) {
-        printf( "\n usage: %s <nailara_command> [command_args]\n\n", argv[0] );
+        fprintf( stderr, "\n usage: %s <nailara_command> [command_args]\n\n",
+            argv[0] );
         exit(1);
     }
 
-    /* retrieve auth username */
     if ( auth_usr == NULL ) {
-        fprintf( stderr, "%s",
-            "[!] expected environment variable USER is not set!\n" );
+        fprintf( stderr, "{!} %s!",
+            "expected environment variable USER is not set\n" );
         exit(1);
     }
 
