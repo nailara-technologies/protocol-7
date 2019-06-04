@@ -1,10 +1,10 @@
 # >:]
 
-# name = root.callback.install_bin_unx
+# name = root.callback.compile_bin_nlr
 
 my $gcc_bin  = <root.gcc_bin>;
-my $src_path = <system.root_path> . '/bin/src/unix_client.c';
-my $bin_path = <root.cfg.unx_bin_path>;
+my $src_path = join( '/', <system.root_path>, <system.nlr_src_path> );
+my $bin_path = <root.cfg.nlr_bin_path>;
 die "gcc_bin not found"                  if !-x $gcc_bin;
 die "source file '$src_path' not found!" if !-f $src_path;
 
@@ -21,8 +21,8 @@ if ( -f $bin_path and -f $sha1_file ) {
     <[base.log]>->( 0, "updating '$bin_path'.. [no src sha1 file found]" );
     unlink($bin_path) or die "unlink($bin_path): $!";
 } else {
-    my $cfg_val = <root.cfg.install_bin_unx>;
-    <[base.log]>->( 0, "installing '$bin_path'.. [install_bin_unx=$cfg_val]" );
+    my $cfg_val = <root.cfg.install_bin_nlr>;
+    <[base.log]>->( 0, "installing '$bin_path'.. [install_bin_nlr=$cfg_val]" );
 }
 
 if ( !-f $bin_path ) {
