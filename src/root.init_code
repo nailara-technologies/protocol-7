@@ -24,17 +24,17 @@ map { <[base.disable_command]>->($_) } qw(
 );
 
 <root.gcc_bin> = '/usr/bin/gcc';
-<root.cfg.install_bin_unx> //= 'no';
-<root.cfg.unx_bin_path>    //= '/usr/local/bin/unx';
+<root.cfg.install_bin_nlr> //= 'yes';               # LLL: if root!
+<root.cfg.nlr_bin_path> //= '/usr/local/bin/nlr';
 chomp( <root.gcc_bin> = qx(which gcc) ) if !-x <root.gcc_bin>;
 if ( !-x <root.gcc_bin> ) {
     <root.gcc_bin> = undef;
     <[base.log]>->( 0, "<!> 'gcc' binary not found <!>" )
-        if defined <root.cfg.install_bin_unx>
-        and <root.cfg.install_bin_unx> =~ /^(1|yes)$/;
-} elsif ( defined <root.cfg.install_bin_unx>
-    and <root.cfg.install_bin_unx> =~ /^(1|yes)$/ ) {
-    eval {<[root.callback.install_bin_unx]>};
+        if defined <root.cfg.install_bin_nlr>
+        and <root.cfg.install_bin_nlr> =~ /^(1|yes)$/;
+} elsif ( defined <root.cfg.install_bin_nlr>
+    and <root.cfg.install_bin_nlr> =~ /^(1|yes)$/ ) {
+    eval {<[root.callback.compile_bin_nlr]>};
     warn $@ if $@;
 }
 
