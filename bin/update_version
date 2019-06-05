@@ -24,8 +24,8 @@ my $root_path
     File::Spec->rel2abs( File::Spec->catdir( $RealBin, File::Spec->updir() ) )
     );
 my $cfg_path = File::Spec->catdir( $root_path, 'cfg' );
-our $version_file = File::Spec->catfile( $cfg_path, 'nailara.version' );
-our $r_vers_file  = File::Spec->catfile( $cfg_path, 'release.version' );
+our $version_file = File::Spec->catfile( $cfg_path, 'nailara.source_version' );
+our $r_vers_file  = File::Spec->catfile( $cfg_path, 'nailara.release_version' );
 my $readme_md    = File::Spec->catfile( $root_path, 'README.md' );
 my $old_version  = get_old_version();
 my $git          = Git::Wrapper->new($root_path);
@@ -57,9 +57,9 @@ $git->add($r_vers_file)
     and $version_string ne $old_version
     and -f $r_vers_file
     and unlink($r_vers_file)
-    and $git->ls_files('cfg/release.version');
+    and $git->ls_files('cfg/nailara.release_version');
 
-## ./cfg/nailara.version ##
+## ./cfg/nailara.source_version ##
 open( my $ver_fh, '>' . $version_file ) or die " -> $version_file : $!\n";
 print {$ver_fh} "$version_string\n";
 close($ver_fh);
