@@ -43,7 +43,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         $$reply{'data'} .= "reload source\t:  FAIL!\n";
     }
     my $version_file
-        = catfile( $data{'system'}{'conf_path'}, 'nailara.version' );
+        = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
     if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
         my $old_version = $data{'nailara'}{'version'} // '';
         ( $data{'nailara'}{'version'} = <$ver_fh> ) =~ s|\s||g;
