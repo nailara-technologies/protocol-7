@@ -138,9 +138,18 @@ sub prepare_subs {
 
         my $ver_str = $data{'nailara'}{'version'} = 'unknown';
         my $version_file
-            = catfile( $data{'system'}{'conf_path'}, 'nailara.version' );
+            = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
         if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
-            ( $data{'nailara'}{'version'} = $ver_str = <$ver_fh> ) =~ s|\s||g;
+            ( $data{'nailara'}{'source_version'} = $ver_str = <$ver_fh> )
+                =~ s|\s||g;
+            close($ver_fh);
+        }
+        my $release_file
+            = catfile( $data{'system'}{'conf_path'},
+            'nailara.release_version' );
+        if ( -f $release_file and open( my $ver_fh, '<' . $release_file ) ) {
+            ( $data{'nailara'}{'release_version'} = $ver_str = <$ver_fh> )
+                =~ s|\s||g;
             close($ver_fh);
         }
         if ( $0 =~ /^.*nailara\./ ) {
