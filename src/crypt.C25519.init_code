@@ -10,20 +10,21 @@
 
 <[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw/random_string_from/ );
 
-# warn sprintf( "[ %s (%s) ]", <[base.get_homedir]>->($>) );
+my $home_dir = <[base.get_homedir]>->($>);
 
 my $usr = <crypt.C25519.key_uid_user> //= getpwuid($>);
-my ( undef, undef, $uid, $gid, undef, undef, undef, $homedir ) = getpwnam($usr);
-die "failed to obtain home directory for user '$usr'"
-    if ( not defined $homedir or !length($homedir) )
-    and not defined <crypt.C25519.key_dir>;
 
-return
-    <[base.log]>->( 0, "<!> no homedir access for user '$usr', aborting init!" )
-    if !-r $homedir;
+my ( undef, undef, $uid, $gid, undef, undef, undef, undef ) = getpwnam($usr);
+
+if ( not defined $home_dir or !-r $home_dir ) {
+    <[base.log]>
+        ->( 2, "<!> no homedir access for user '$usr', aborting init!" );
+    <[base.log]>->( 1, ": skipped key reload.. [homedir]" );
+    return 0;    # still valid state!
+}
 
 my $key_name = 'default';                                           # <- cfg (?)
-my $key_dir = <crypt.C25519.key_dir> //= "$homedir/.nailara/keys";
+my $key_dir = <crypt.C25519.key_dir> //= "$home_dir/.nailara/keys";
 my $key_basepath = <crypt.C25519.key_basepath>
     //= "$key_dir/$key_name.C25519_b64u";
 
@@ -114,7 +115,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -r $key_basepath ) {
 } elsif ( not defined $KEYS{'C25519'}{$key_name} ) {
     my $pubkey_file = "$key_basepath.pub";
     if ( -r $key_basepath and -r $pubkey_file ) {
-        <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [$homedir/]" );
+        <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [$home_dir/]" );
         $KEYS{'C25519'}{$key_name}{'priv'}
             = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
         $KEYS{'C25519'}{$key_name}{'pub'}
