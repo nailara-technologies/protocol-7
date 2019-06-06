@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Net::SSH2;
+use Digest::BMW qw/bmw_256_base64/;
 my $ssh2 = Net::SSH2->new();
 
 die "\n usage: $0 <host>[:<port>]\n\n" if !@ARGV;
@@ -16,7 +17,11 @@ $ssh2->connect(@args) or die $!;
 
 my $md5_hex  = unpack( "H*", $ssh2->hostkey_hash('md5') );
 my $sha1_hex = unpack( "H*", $ssh2->hostkey_hash('sha1') );
+my $bmw_b64u = bmw_256_base64( $ssh2->remote_hostkey );
+
+$bmw_b64u =~ s|\+|-|g;
+$bmw_b64u =~ s|/|_|g;
 
 $ssh2->disconnect;
 
-print "\n : md5  : $md5_hex\n : sha1 : $sha1_hex\n\n";
+print "\n : md5  : $md5_hex\n : sha1 : $sha1_hex\n : BMW  : $bmw_b64u\n\n";
