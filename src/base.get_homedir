@@ -6,6 +6,6 @@ my $user = shift // getpwuid($>);
 
 my $homedir = [ getpwnam($user) ]->[7];
 
-warn "failed to obtain home directory for user '$user'" if not defined $homedir;
+<[base.log]>->( 2, "no home directory [user '$user']" ) if not defined $homedir;
 
 return $homedir;
