@@ -2,10 +2,13 @@
 
 # name = base.get_homedir
 
-my $user = shift // getpwuid($>);
+my $user = shift // '';
+$user = getpwuid($>) if $user =~ /^\d*$/;
 
-my $homedir = [ getpwnam($user) ]->[7];
+my $homedir = [ getpwnam($user) ]->[7] // $ENV{'HOME'};
+warn "differring home directories detected.. <<!>>" if $homedir ne $ENV{'HOME'};
 
-<[base.log]>->( 2, "no home directory [user '$user']" ) if not defined $homedir;
+<[base.log]>->( 1, "<!> no home directory [user '$user'] <!>" )
+    if !length($homedir);
 
 return $homedir;
