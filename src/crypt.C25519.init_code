@@ -17,9 +17,13 @@ my $usr = <crypt.C25519.key_uid_user> //= getpwuid($>);
 my ( undef, undef, $uid, $gid, undef, undef, undef, undef ) = getpwnam($usr);
 
 if ( not defined $home_dir or !-r $home_dir ) {
-    <[base.log]>
-        ->( 2, "<!> no homedir access for user '$usr', aborting init!" );
-    <[base.log]>->( 1, ": skipped key reload.. [homedir]" );
+    if ( !<base.parser.config.reloading> ) {
+        <[base.log]>->(
+            0, "<!> no homedir access for user '$usr', aborting init!"
+        );
+    } else {
+        <[base.log]>->( 1, ": skipped key reload.. [homedir]" );
+    }
     return 0;    # still valid state!
 }
 
