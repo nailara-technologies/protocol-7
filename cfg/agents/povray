@@ -1,0 +1,21 @@
+
+.:[ povray raytracing agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = help ping verify_instance list dump_buffer filter reload *
+
+
+modules.load = auth net io.ip digest.sha digest.md5 povray
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.get_session_id]
+
+[event.loop]
