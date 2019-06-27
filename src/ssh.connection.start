@@ -99,18 +99,18 @@ my $ssh_user = $link_setup->{'ssh.user'};
 
 my %auth_methods = map { $_ => 1 } $ssh->auth_list($ssh_user);
 
-<[base.log]>->( 2, ": : password authentication is enabled..(!)" )
+<[base.log]>->( 2, ": : password auth. is enabled..(!)" )
     if exists $auth_methods{'password'};
 if ( not exists $auth_methods{'publickey'} ) {
     <[base.log]>->(
         0,
-        ": : <!> no public key authentication for user '$ssh_user' available!"
+        ": : <!> no public key auth. for user '$ssh_user' available!"
     );
     $ssh->disconnect;
     $sock->shutdown('NOW');
     goto failed;
 } else {
-    <[base.log]>->( 2, ": : public key authentication is available.." );
+    <[base.log]>->( 2, ": : public key auth. is available.." );
 }
 
 my $ssh_keyfile = $link_setup->{'ssh.keyfile'};
@@ -136,7 +136,7 @@ if ( !$ssh->auth_publickey( $ssh_user, $ssh_pubkey, $ssh_privkey ) ) {
     $sock->shutdown('NOW');
     goto failed;
 }
-<[base.log]>->( 1, ": : ssh authentication successful.." );
+<[base.log]>->( 1, ": : ssh auth. successful.." );
 
 my $nailara_addr = $link_setup->{'nailara.remote.addr'};
 my $nailara_port = $link_setup->{'nailara.remote.port'};
