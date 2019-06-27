@@ -40,7 +40,7 @@ if ( !$connection->{'authorized'} ) {
     } elsif ( $connection->{'buffer'} =~ s/^YEAH >:P\n// ) {
         $connection->{'authorized'} = 1;
         <[base.log]>->(
-            1, ": : remote nailara authentication successful [$remote_user]"
+            1, ": : remote nailara auth. successful [$remote_user]"
         );
         $connection->{'remote_user'} = $remote_user;
 
@@ -58,12 +58,12 @@ if ( !$connection->{'authorized'} ) {
             $profile_data->{$link_name}->{'nailara.local.pass'}
         );
         if ( not defined $local_sock or !$local_sock->connected ) {
-            <[base.log]>->( 0, ": : local nailara authentication failed!" );
+            <[base.log]>->( 0, ": : local nailara auth. failed!" );
             return <[ssh.connection.stop]>->($con_id);
         }
         $connection->{'local_user'} = $local_user;
         $connection->{'local_fh'}   = $local_sock;
-        <[base.log]>->( 1, ": : local nailara authentication successful" );
+        <[base.log]>->( 1, ": : local nailara auth. successful" );
         $connection->{'io'}->{'nailara'} = <[event.add_io]>->(
             {   'fd'      => $connection->{'local_fh'},
                 'handler' => 'ssh.handler.nailara_io',
@@ -78,14 +78,14 @@ if ( !$connection->{'authorized'} ) {
         $connection->{'linked'} = 1;
 
     } elsif ( $connection->{'buffer'} =~ s/^FAIL >:\|\n// ) {
-        <[base.log]>->( 0, ": : remote nailara authentication failed!" );
+        <[base.log]>->( 0, ": : remote nailara auth. failed!" );
         <[ssh.connection.stop]>->($con_id);
     } elsif ( $connection->{'buffer'} =~ s/^>:\|\n// ) {
-        <[base.log]>->( 0, ": : remote nailara authentication timeout!" );
+        <[base.log]>->( 0, ": : remote nailara auth. timeout!" );
         <[ssh.connection.stop]>->($con_id);
     } else {
         <[base.log]>->(
-            0, ": : protocol error during remote nailara authentication!"
+            0, ": : protocol error during remote nailara auth.!"
         );
         <[ssh.connection.stop]>->($con_id);
     }
