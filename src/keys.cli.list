@@ -7,8 +7,11 @@ my $key_dir = <keys.default_path> // '';
 my $key_usr = <crypt.C25519.key_uid_user>;
 
 opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
-my @key_files = grep { !/^\./ } sort readdir($dir_fh) or warn $!;
+my @key_files = grep { !/^\./ } sort readdir($dir_fh)
+    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
+
+return if !@key_files;    # <- no keys, skipping further output!
 
 <[base.log]>->( 1, "listing key files ['$key_dir']" );
 

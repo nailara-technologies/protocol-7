@@ -2,6 +2,8 @@
 
 # name = crypt.C25519.init_code
 
+<crypt.C25519.initialized> //= 0;
+
 <[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 <[base.perlmod.load]>->(qw( MIME::Base64 encode_base64url decode_base64url ));
 
@@ -28,15 +30,31 @@ if ( not defined $home_dir or !-r $home_dir ) {
 }
 
 my $key_name = 'default';                                           # <- cfg (?)
-my $key_dir = <crypt.C25519.key_dir> //= "$home_dir/.nailara/keys";
+my $key_dir  = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys/";
 my $key_basepath = <crypt.C25519.key_basepath>
     //= "$key_dir/$key_name.C25519_b64u";
 
-if ( !-d $key_dir ) {
-    <[base.log]>->( 1, "creating key directory '$key_dir' .." );
-    eval { make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } ) };
-    warn $@ if $@;
+# chk_key_dir {
+
+if ( -w "$key_dir/.." or "$key_dir/../.." ) {
+    if ( !-d $key_dir ) {
+        <[base.log]>->( 1, "creating key directory '$key_dir' .." );
+        eval {
+            make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
+        };
+        warn $@ if $@;
+    }
+} elsif ( !-r $key_dir or !-d $key_dir ) {
+    my $perms     = -e $key_dir ? '' : ' (permissions)';
+    my $log_level = <crypt.C25519.initialized> // 0;
+    $log_level++ if $log_level;
+    <[base.log]>->( $log_level, "no key dir$perms ['$key_dir']!" );
+    return 0;
 }
+
+# }
+
+# create_keys {
 
 if ( !-f $key_basepath and !-f "$key_basepath.pub" and -r $key_basepath ) {
     <[base.log]>->( 0, "generating default C25519 key pair for '$usr' ..." );
@@ -60,6 +78,10 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -r $key_basepath ) {
             <[base.log]>->( 1, ": $file_name" );
         }
     }
+
+    # }
+
+    # sign_keys {
 
     if ( defined <crypt.C25519.root_key_url> ) {
         my $root_key_name;
@@ -125,7 +147,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -r $key_basepath ) {
         $KEYS{'C25519'}{$key_name}{'pub'}
             = decode_base64url( ${ <[file.slurp]>->($pubkey_file) } );
     } else {
-        warn "failed to load '$key_name' key pair!";
+        <[base.log]>->( 1, "failed to load '$key_name' key pair ..." );
     }
 }
 
@@ -138,5 +160,7 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
                 = ${ <[file.slurp]>->($_) } );
     }
 }
+
+<crypt.C25519.initialized>++;
 
 0;
