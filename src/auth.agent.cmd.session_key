@@ -2,7 +2,7 @@
 
 # name  = auth.agent.cmd.session_key
 # param = <agent> <key_str>
-# descr = set up session key for agent authentication
+# descr = set up session key for agent auth.
 # todo  = parameter validation!
 
 my $id = $$call{'session_id'};
@@ -19,12 +19,12 @@ if ( $agent ne '' and $key ne '' ) {
     } else {
         $reply = {
             'mode' => 'nak',
-            'data' => "user '$agent' not accepted for core authentication"
+            'data' => "user '$agent' not accepted for :agent: auth."
         };
         <[base.log]>->(
             0,
             "[$id] add_session_key: user '$agent'"
-                . " not accepted for core authentication"
+                . " not accepted for :agent: auth."
         );
     }
 } else {
