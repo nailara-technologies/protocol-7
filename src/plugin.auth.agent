@@ -1,7 +1,7 @@
 # >:]
 
 # name  = plugin.auth.agent
-# descr = perform 'agent' authentication initiated / enabled by root agent
+# descr = perform 'agent' auth. initiated / enabled by root agent
 
 my $id     = $_[0]->w->data;
 my $re     = <regex.base>;
@@ -14,7 +14,7 @@ if (   not %KEYS
     or ref( $KEYS{'auth'}{'agent'} ) ne 'HASH'
     or !keys( %{ $KEYS{'auth'}{'agent'} } ) ) {
     <[base.log]>->(
-        0, "[$id] no agent authentication keys set up - access denied"
+        0, "[$id] no agent auth. keys set up - access denied"
     );
     $$output .= "FAIL >:|\n";    # LLL: move down?
     return 2;
@@ -46,7 +46,7 @@ if ( $$input =~ s/^($re->{usr}|$re->{usr_sub}) (\S+)\n// ) {
         return 1;
     }
 } else {
-    <[base.log]>->( 0, "[$id] (agent) authentication protocol error!" );
+    <[base.log]>->( 0, "[$id] (agent) auth. protocol error!" );
     $$output .= ">:[\n";
     return 1;
 }
