@@ -26,7 +26,7 @@ die "image file '$image_path' not found"   if !-f $image_path;
 
 my $window = Gtk3::Window->new('toplevel');
 $window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
-$window->signal_connect( 'touch-event' => \&menu_open );
+$window->signal_connect( 'touch-event'  => \&menu_open );
 $window->signal_connect( 'button-release-event' => \&menu_open );
 $window->signal_connect( 'configure-event'      => \&position_changed );
 
@@ -102,8 +102,10 @@ $menu->set_property( 'rect-anchor-dx', -42 );
 $menu->show_all;
 ##
 
-$window->move( 1836, 0 );
-$window->move( 1757, -2 ) if `hostname` =~ /w520/;
+$window->move( 1836, -2 ) if `hostname` =~ /zeropoint/;
+$window->move( 1827, -2 );
+
+#   $window->move( 1827, -2 ) if `hostname` =~ /w520/;
 
 $window->show_all;
 
