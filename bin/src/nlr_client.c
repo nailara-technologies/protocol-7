@@ -16,12 +16,12 @@ char * socket_path = "/tmp/.n/s/KvPlpg";
 int main( int argc, char * argv[] ) {
     fd_set readset;
     char buf [1024];
+    char * auth_str = '\0';
     struct sockaddr_un addr;
     int errno, socket_fd, result;
 
-    char * auth_str;
     char * auth_usr = secure_getenv("USER");
-    char close_cmd[6] = "close\n";
+    const char close_cmd [] = "close\n";
 
     if ( argc < 2 ) {
         fprintf( stderr, "\n usage: %s <nailara_command> [command_args]\n\n",
@@ -35,8 +35,12 @@ int main( int argc, char * argv[] ) {
         exit(1);
     }
 
+    // debug:
+    // printf( " account user [%s]\n", auth_usr );
+
     /* prepare authentication */
     asprintf(&auth_str, "select unix\nauth %s\n", auth_usr);
+    // asprintf(&auth_str, "select unix\nauth %s\n", auth_usr);
 
     /* prepare command string */
     int i;
