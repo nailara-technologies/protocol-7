@@ -5,6 +5,17 @@
 
 <[base.perlmod.autoload]>->('Date::Parse');
 
+<list.events> = {
+    'var'   => 'data',
+    'key'   => 'events.timetable',
+    'descr' => 'events and their IDs',
+    'mask'  => 'name:agent_name <key>:event_ID',
+    'align' => {
+        'name'     => 'center',
+        'event_ID' => 'center-1'
+    }
+};
+
 <events.setup>     //= {};
 <events.enabled>   //= {};
 <events.timetable> //= {};
@@ -85,7 +96,7 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
         <[dependency.add]>->(
             <events.setup>->{$ev_id}->{'dep_id'},
             <event.dep_id>->{$_}
-            )
+        )
     } ( 'weekdays', 'date_frame' );
     if ( exists $config_data->{'timetable'}->{$event_name} ) {
         <events.timetable>->{$ev_id}
