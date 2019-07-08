@@ -6,11 +6,12 @@
 
 my $id  = $$call{'session_id'};
 my $arg = $$call{'args'};
+my ( $ok, $output ) = ( 0, '' );
+my @keywords      = ( 'config', 'source', 'plugins', 'init', 'all' );
+my $keyword_match = 0;
+
 $$reply{'data'} = '';
 
-my ( $ok, $output ) = ( 0, '' );
-my $known = 0;
-my @keywords = ( 'config', 'source', 'plugins', 'init', 'all' );
 if ( not defined $arg ) {
     <[base.log]>->( 0, "[$id] no reload keyword specified." );
     return {
@@ -20,7 +21,7 @@ if ( not defined $arg ) {
     };
 }
 if ( $arg eq 'config' or $arg eq 'all' ) {
-    $known = 1;
+    $keyword_match = 1;
     <[base.log]>->( 1, "[$id] reloading config!" );
     if (<[base.reload_config]>) {
         $$reply{'data'} .= "reload config\t:  ok\n";
@@ -30,7 +31,7 @@ if ( $arg eq 'config' or $arg eq 'all' ) {
     $ok = 1;
 }
 if ( $arg eq 'source' or $arg eq 'all' ) {
-    $known = 1;
+    $keyword_match = 1;
     delete $data{'base'}{'help'};
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] reloading source code!" );
@@ -45,18 +46,18 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     my $version_file
         = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
     if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
-        my $old_version = $data{'nailara'}{'version'} // '';
-        ( $data{'nailara'}{'version'} = <$ver_fh> ) =~ s|\s||g;
+        my $old_version = <nailara.source_version> // '';
+        ( <nailara.source_version> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
         <[base.log]>->(
-            0, sprintf( "NEW SOURCE CODE [ %s ]", $data{'nailara'}{'version'} )
-        ) if $data{'nailara'}{'version'} ne $old_version;
+            0, sprintf( "NEW SOURCE CODE [ %s ]", <nailara.source_version> )
+        ) if <nailara.source_version> ne $old_version;
     } else {
-        $data{'nailara'}{'version'} = 'unknown';
+        <nailara.source_version> = 'unknown';
     }
 }
 if ( $arg eq 'plugins' or $arg eq 'all' ) {
-    $known = 1;
+    $keyword_match = 1;
     <[base.log]>->( 1, "[$id] reloading plugins!" );
     if (<[base.reload_plugins]>) {
         $$reply{'data'} .= "reload plugins\t:  ok\n";
@@ -66,7 +67,7 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
     }
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
-    $known = 1;
+    $keyword_match = 1;
     <[base.log]>->( 1, "[$id] reinitializing modules!" );
     if ( <[base.init_modules]>->() ) {
         $$reply{'data'} .= "reinit modules\t:  ok\n";
@@ -75,7 +76,7 @@ if ( $arg eq 'init' or $arg eq 'all' ) {
         $$reply{'data'} .= "reinit modules\t:  FAIL!\n";
     }
 }
-if ( !$known ) {
+if ( !$keyword_match ) {
     <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called!" );
     return { 'mode' => 'nak', 'data' => "unknown reload keyword '$arg'!" };
 }
