@@ -21,8 +21,11 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
 
 # no longer found: libmodule-build-pluggable-perl
 
-cpanm Crypt::Curve25519 Crypt::Ed25519 Digest::Skein Digest::BLAKE2 \
+cpanm Crypt::Ed25519 Digest::Skein Digest::BLAKE2 \
       File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam &&
+
+# Crypt::Curve25519 no longer compiles as orig., provided fixed copy locally now
+cpanm $NAILARA_ROOT/lib/pm-src/crypt-curve25519  # until fmul issue fixed upstr.
 
 cpanm --force POSIX::1003 # <- temporary forced (localtime test fails) <<!>>
 
