@@ -6,8 +6,10 @@ my $data_ref = shift // '';
 my $key_name = shift // 'default';
 
 die "expected scalar reference to payload data" if ref($data_ref) ne 'SCALAR';
-die "a C25519 key with name '$key_name' does not exist"
-    if not exists $KEYS{'C25519'}{$key_name};
+die "a C25519 key with name '$key_name' does not exist [cannot sign without!]"
+    if not exists $KEYS{'C25519'}{$key_name}
+    or ref( $KEYS{'C25519'}{$key_name} ) ne 'HASH'
+    or keys( %{ $KEYS{'C25519'}{$key_name} } ) < 2;    # <- empty root key hash?
 
 return Crypt::Ed25519::sign(
     ${$data_ref},
