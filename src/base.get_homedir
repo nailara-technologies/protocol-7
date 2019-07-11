@@ -2,13 +2,20 @@
 
 # name = base.get_homedir
 
-my $user = shift // '';
-$user = getpwuid($>) if $user =~ /^\d*$/;
+my $user = shift // $ENV{'HOME'} // '';
 
-my $homedir = [ getpwnam($user) ]->[7] // $ENV{'HOME'};
-warn "differring home directories detected.. <<!>>" if $homedir ne $ENV{'HOME'};
+if ( $user eq '' ) {
+    $user = getpwuid($>);    # current user(id)
+} elsif ( $user =~ /^\d+$/ ) {
+    $user = getpwuid($user);    # given by uid
+}    # else provided as name!
 
-<[base.log]>->( 1, "<!> no home directory [user '$user'] <!>" )
-    if !length($homedir);
+my $homedir = [ getpwnam($user) ]->[7];
+
+if ( length($homedir) ) {
+    <[base.log]>->( 2, "[get_homedir] home directory '$homedir' selected.." );
+} else {
+    <[base.log]>->( 1, "<!> no home directory [user '$user'] <!>" );
+}
 
 return $homedir;
