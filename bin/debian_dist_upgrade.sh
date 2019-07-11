@@ -33,5 +33,6 @@ apt-get -fy \
 	echo -e "\n:\n: done.\n:\n"
 
 rm -rf /var/cache/apt/mediainfo_tmp*
+rm -rf /root/.cpanm
 
 # dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
