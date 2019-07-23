@@ -7,7 +7,7 @@ my $display = <x11.display>;
 if ( not defined $display ) {
     <[base.log]>->(
         1,
-        "<!> failed to aquire DISPLAY setting from xserver, aborting startup!"
+        "<!> unable to aquire DISPLAY setting from xserver, aborting startup!"
     );
     exit(2);
 }
@@ -38,7 +38,7 @@ $vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
     )
 );
 if ( !<compton.pid> ) {
-    <[base.log]>->( 0, "[!] failed to start compton [$!]" );
+    <[base.log]>->( 0, "[!] unable to start compton [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 }

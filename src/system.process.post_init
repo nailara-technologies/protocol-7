@@ -15,7 +15,7 @@ if ( not exists <process.kill_child.w_fh> ) {
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
         <system.path.perl_bin>, '-e', $child_code )
-        || die "failed to spawn perl kill child process [$!]";
+        || die "unable to spawn perl kill child process [$!]";
 
     <[base.log]>->(
         1, ": child process started [pid=" . <process.kill_child.pid> . "]"

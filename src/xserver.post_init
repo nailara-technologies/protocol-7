@@ -77,7 +77,7 @@ if ( $mode ne 'host' ) {
 
     if ( not defined $server_pid or $@ ) {
         my $err_reason = ( defined $! and length($!) ) ? ": \"$!\"" : '!';
-        <[base.log]>->( 0, ": failed to spawn $bin_name-server" . $err_reason );
+        <[base.log]>->( 0, ": unable to spawn $bin_name-server" . $err_reason );
         exit(2);
     } else {
         <[base.log]>->(
@@ -126,7 +126,7 @@ if ( $mode ne 'host' ) {
 # print STDERR Dumper( keys( %{ <xserver.x11>->{'ext'} } ) );
 
 <xserver.x11>->init_extension('RANDR')
-    or die "[!] failed to initialize RANDR extension!\n";
+    or die "[!] unable to initialize RANDR extension!\n";
 <xserver.x11>->RRQueryVersion( 1, 0 );
 
 if ( <xserver.x11>->init_extension('DPMS') and <xserver.x11>->DPMSCapable ) {
@@ -179,7 +179,7 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
             or $max_size[1] > <xserver.x11>->height_in_pixels )
     ) {
         <[base.log]>->(
-            0, "<!> xserver failed to select highest screen size <!>"
+            0, "<!> xserver unable to select highest screen size <!>"
         );
         <[base.log]>->( 0, " :. fixing it! ( reloading gfx kernel module )" );
         <[event.add_timer]>->(
@@ -292,7 +292,7 @@ if ( defined $bg_image ) {
     <[base.log]>->( 1, "setting background image '$img_txt'" );
     @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux!
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-        <[base.log]>->( 0, "failed to execute 'hsetroot' ( returned $? )" );
+        <[base.log]>->( 0, "unable to execute 'hsetroot' ( returned $? )" );
     }
 }
 

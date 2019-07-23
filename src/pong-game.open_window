@@ -31,7 +31,7 @@ chdir(<pong-game.cfg.res_path>) or die $!;
 
 if ( not defined <[base.x11.wait_for_window]>->('pong-game')
     or !<pong-game.pid> ) {
-    <[base.log]>->( 0, "[!] failed to start pong-game [$!]" );
+    <[base.log]>->( 0, "[!] unable to start pong-game [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {

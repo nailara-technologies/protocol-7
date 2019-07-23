@@ -40,7 +40,7 @@ foreach my $check_file (
             );
         } else {
             <[base.log]>->( 1, "[cleanup] $video_file" );
-            unlink($video_file) or warn "failed to delete '$video_file' [$!]";
+            unlink($video_file) or warn "unable to delete '$video_file' [$!]";
             unlink($check_file);
 
             # LLL: check if parent dir is empty (and rmdir..)

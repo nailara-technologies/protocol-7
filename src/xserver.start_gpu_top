@@ -16,7 +16,7 @@ if ( !-e $gpu_top_bin ) {
         );
     }
 }
-return <[base.log]>->( 0, "[!] failed to run 'intel_gpu_top'" )
+return <[base.log]>->( 0, "[!] unable to run 'intel_gpu_top'" )
     if qx($gpu_top_bin -h) !~ /usage/;
 
 chomp( $gpu_freq_bin = qx(which intel_gpu_frequency) ) if !-x $gpu_freq_bin;
@@ -31,7 +31,7 @@ return <[base.log]>->( 0, "<!> apparently no Intel GPU (intel_gpu_frequency)" )
     "$gpu_top_bin -s $samples_per_sec -o -" );
 
 if ( !<xserver.gpu_top.pid> ) {
-    <[base.log]>->( 0, "<!> failed to open 'intel_gpu_top' pipe [$!]" );
+    <[base.log]>->( 0, "<!> unable to open 'intel_gpu_top' pipe [$!]" );
     return;
 }
 push( @{<system.kill_list>}, <xserver.gpu_top.pid> );

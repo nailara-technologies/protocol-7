@@ -29,7 +29,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     my $log_level = <playlist.types_retry_count>->{$url} == 1 ? 0 : 2;
     <[base.log]>->(
         $log_level,
-        "<!> failed to resolve mimetype for '$url' [$reply_str]"
+        "<!> unable to resolve mimetype for '$url' [$reply_str]"
             . ' ...retrying automatically...'
     );
     if ( not defined <playlist.file_types>->{$url}

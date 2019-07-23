@@ -17,7 +17,7 @@ my $profile_file = "$profile_dir/$profile_name.json";
 
 my $dir_fh;
 if ( !opendir( $dir_fh, $import_dir ) ) {
-    my $err_msg = "failed to open config import directory [$!]";
+    my $err_msg = "unable to open config import directory [$!]";
     <[base.log]>->( 0, $err_msg );
     return { 'mode' => 'nak', 'data' => $err_msg };
 }
@@ -50,7 +50,7 @@ if ( -f $profile_file ) {
 
 my $out_fh;
 if ( !open( $out_fh, ">$profile_file" ) ) {
-    my $err_msg = "failed to open/create output file [$profile_file]";
+    my $err_msg = "unable to open/create output file [$profile_file]";
     <[base.log]>->( 0, $err_msg );
     return { 'mode' => 'nak', 'data' => $err_msg };
 }

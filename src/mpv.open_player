@@ -115,7 +115,7 @@ $mpv_title_str .= ' ( ${?media-title:${media-title}}${!media-title:no file} )';
     ( <mpv.bin_path>, split( / +/, $mpv_params ), '--title', $mpv_title_str ) );
 
 if ( !<mpv.pid> ) {
-    <[base.log]>->( 0, "[!] failed to start mpv [$!]" );
+    <[base.log]>->( 0, "[!] unable to start mpv [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {

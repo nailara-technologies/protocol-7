@@ -25,7 +25,7 @@ return {
 <[base.log]>->( 1, "unmounting '$mount_point'.." );
 my $msg = 'unmounted';
 if ( system( '/bin/umount', $mount_point ) != 0 ) {
-    <[base.log]>->( 0, ": failed to unmount '$mount_point', using force!" );
+    <[base.log]>->( 0, ": unable to unmount '$mount_point', using force!" );
     $msg = 'unmounted [forced!]';
     if ( system( '/bin/umount', '-f', '-l', $mount_point ) != 0
         or <[fs.is_mounted]>->($mount_point) ) {

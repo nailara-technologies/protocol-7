@@ -72,7 +72,7 @@ while ( @{<ticker-sdl.content.work>} ) {
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             my $err_str = SDL::get_error() || $!;
             my $err_str_brackets = length($err_str) ? " [ $err_str ]" : '';
-            warn "failed to swap buffers! (switching to software mode)"
+            warn "unable to swap buffers! (switching to software mode)"
                 . $err_str_brackets . "\n";
             <sdl.flip_failed> = 1;
         }

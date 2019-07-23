@@ -10,7 +10,7 @@ my $reply = shift;
 <media.cfg.fade_on_switch>    //= 0;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
-    <[base.log]>->( 0, ": failed to fetch playlist!" );
+    <[base.log]>->( 0, ": unable to fetch playlist!" );
     <[media.stop_loadsplash]> if <media.loadsplash_running>;
     return;
 }

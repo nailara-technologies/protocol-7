@@ -22,7 +22,7 @@ my $status = <[base.execute_agent_code]>->(
             join( '/', $data{'system'}{'conf_path'}, $_[0] ),
             sub {
                 $_[0] =~ s/^.+\///g;
-                <[log.failed]>->("failed to load '$_[0]' config [$!]");
+                <[log.failed]>->("unable to load '$_[0]' config [$!]");
                 return undef;
             }
         )

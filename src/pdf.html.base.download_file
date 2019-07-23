@@ -33,7 +33,7 @@ if ( -d $target_dir and !-f $target_dir . '/.complete' ) {
             <[base.log]>->( 0, "remove_tree: $message [$file]" );
         }
     }
-    die "failed to remove '$target_dir'" if @$errors;
+    die "unable to remove '$target_dir'" if @$errors;
 }
 
 if ( !-d $target_dir ) {
@@ -60,7 +60,7 @@ my $last_modified  = $response->{'_headers'}->{'last-modified'};
 
 if ( $status_code ne '200' ) {
     <[base.log]>->(
-        0, "failed to download '$file_url' [$status_code $status_message]"
+        0, "unable to download '$file_url' [$status_code $status_message]"
     );
 
     # LLL: cleanup

@@ -45,7 +45,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
             <[base.log]>->(
                 0, "[!] feed parser error on URL $rss_index [ $err_str ]"
             );
-            @txt_data = ("[!] failed to parse feed #$rss_index [!]");
+            @txt_data = ("[!] unable to parse feed #$rss_index [!]");
         } else {
             eval {
                 foreach my $entry ( $feed->entries ) {
@@ -77,7 +77,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
     } else {
         <[base.log]>->(
             0,
-            "failed to access RSS url '$rss_url' ("
+            "unable to access RSS url '$rss_url' ("
                 . $response->status_line . ")"
         ) if !<rss.ticker.fail_warned>;
         $failed{$rss_url} = 1;

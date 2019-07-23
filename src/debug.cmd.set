@@ -45,6 +45,6 @@ if ( defined $key_ref and $key_ref ne '' and !$@ ) {
         $reply = { 'mode' => 'ack', 'data' => "value changed" };
     }
 } else {
-    <[base.log]>->( 0, "[$cid] set: failed to assign value ( $key = '$val' )" );
-    $reply = { 'mode' => 'nak', 'data' => "failed to assign value" };
+    <[base.log]>->( 0, "[$cid] set: unable to assign value ( $key = '$val' )" );
+    $reply = { 'mode' => 'nak', 'data' => "unable to assign value" };
 }

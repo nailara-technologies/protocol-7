@@ -35,7 +35,7 @@ while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
     # calculate text snipplet size
     if ( length($string) ) {
         my $aref = SDL::TTF::size_utf8( <ticker-sdl.font.object>, $string );
-        die "failed to calculate text snipplet size [" . SDL::get_error() . "]"
+        die "unable to calculate text snipplet size [" . SDL::get_error() . "]"
             if not defined $aref
             or ref($aref) ne 'ARRAY';
         ( $width, $height ) = @{$aref};

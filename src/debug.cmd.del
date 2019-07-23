@@ -46,6 +46,6 @@ if ($deleted) {
     <[base.log]>->( 1, "[$cid] del: key \"$del_key\" deleted" );
     return { 'mode' => 'ack', 'data' => 'deleted' };
 } else {
-    <[base.log]>->( 0, "[$cid] del: failed to delete key \"'$del_key\"" );
+    <[base.log]>->( 0, "[$cid] del: unable to delete key \"'$del_key\"" );
     return { 'mode' => 'nak', 'data' => 'failed' };
 }
