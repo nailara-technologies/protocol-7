@@ -9,14 +9,15 @@
 
 if ( !-x <pong-game.cfg.bin_path> ) {
     <[base.log]>->(
-        0, "pong game binary not found at '%s', aborting...",
+        0, sprintf("pong game binary not found at '%s', aborting..."),
         <pong-game.cfg.bin_path>
     );
     exit(1);
 } elsif ( !-d <pong-game.cfg.res_path> ) {
     <[base.log]>->(
-        0, "pong game ressource path not found [%s], aborting...",
-        <pong-game.cfg.res_path>
+        0,
+        sprintf( "pong game resource path not found [%s], aborting...",
+            <pong-game.cfg.res_path> )
     );
     exit(1);
 }
