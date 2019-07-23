@@ -12,7 +12,7 @@ my $idle_time = <unclutter.idle_time>;
         . "-root -noevents -idle $idle_time 2>&1 |"
 );
 if ( !<child.unclutter.pid> ) {
-    <[base.log]>->( 0, "[!] failed to start unclutter [$!]" );
+    <[base.log]>->( 0, "[!] unable to start unclutter [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 }

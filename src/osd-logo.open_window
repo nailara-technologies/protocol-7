@@ -50,7 +50,7 @@ if ( !$scr_w or !$scr_h ) {    # <- on xephyr [NEW GTK3 BUG]
     $scr_h = $root_window->get_height();
 }
 
-die "failed to determine screen size" if !$scr_w or !$scr_h;
+die "unable to determine screen size" if !$scr_w or !$scr_h;
 
 ##
 <osd-logo.logo_size> = delete <osd-logo.cfg.height>
@@ -69,7 +69,7 @@ my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_path);
 my $img_w = $pbuf->get_width();
 my $img_h = $pbuf->get_height();
 
-die "failed to determine image size" if !$img_w or !$img_h;
+die "unable to determine image size" if !$img_w or !$img_h;
 
 my $scale_x = sprintf( "%.0f",
     $img_w * ( ( $scr_h / $img_h ) * ( $height_percent / 100 ) ) );

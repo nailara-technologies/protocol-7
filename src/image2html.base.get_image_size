@@ -9,7 +9,7 @@ die "image file '$image_file' does not exist" if !-f $image_file;
 my $image = new Graphics::Magick;
 
 my $status = $image->Read($image_file);
-warn "failed to read '$image_file' [$status]"
+warn "unable to read '$image_file' [$status]"
     if defined $status and length($status);
 
 my $width  = $image->Get('width');

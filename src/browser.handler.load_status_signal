@@ -76,7 +76,7 @@ if (    $load_status eq 'finished'
         }
     }
 
-    my $err_msg = "failed to load uri '$load_uri'" . $reason_txt;
+    my $err_msg = "unable to load uri '$load_uri'" . $reason_txt;
     <browser.last_err_msg> //= '';
     my $loglevel = <browser.last_log_level> //= 0;
     if ( $err_msg eq <browser.last_err_msg> ) {
@@ -96,7 +96,7 @@ if (    $load_status eq 'finished'
 
     #<[base.callback.cmd_reply]>->(
     #    $reply_id,
-    #    { 'mode' => 'nak', 'data' => "failed to load" . $reason_txt }
+    #    { 'mode' => 'nak', 'data' => "unable to load" . $reason_txt }
     #);
 
     Glib::Idle->add( $code{'browser.callback.load_fail_page'} );

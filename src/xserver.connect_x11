@@ -38,7 +38,7 @@ if ( !$ok and <xserver.mode> eq 'host' ) {
 
 if ( !$ok ) {
     ( my $err_msg = $@ ) =~ s| at .+\n?$||;
-    <[base.log]>->( 0, ": failed to connect to $bin_name-server.. [$err_msg]" );
+    <[base.log]>->( 0, ": unable to connect to $bin_name-server.. [$err_msg]" );
     if ( $mode ne 'host' ) {
         <[base.log]>->( 0, ": : terminating pid " . <xserver.pid> . ".." );
         kill( 9, <xserver.pid> );

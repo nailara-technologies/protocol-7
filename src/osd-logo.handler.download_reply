@@ -8,7 +8,7 @@ my $warn_img = <system.root_path> . '/data/gfx/patterns/warning.svg';
 
 if ( $params->{'cmd'} eq 'NAK' or !-f $new_path ) {
     my $reason = $params->{'cmd'} eq 'ACK' ? 'file not found' : $new_path;
-    <[base.log]>->( 0, "failed to obtain valid logo image path [$reason]" );
+    <[base.log]>->( 0, "unable to obtain valid logo image path [$reason]" );
 }
 
 <osd-logo.logo_path> = $new_path;

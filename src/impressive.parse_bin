@@ -50,18 +50,18 @@ $title_str .= '[' . <system.agent.subname> . ']'
 if (not $file_content
     =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m ) {
     <[base.log]>->(
-        0, "[!] failed to parse agent title string into impressive script ..."
+        0, "[!] unable to parse agent title string into impressive script ..."
     );
 }
 if (not $file_content
     =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg ) {
     <[base.log]>->(
-        0, "[!] failed to parse background color into impressive script ..."
+        0, "[!] unable to parse background color into impressive script ..."
     );
 }
 if ( not $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s ) {
     <[base.log]>->(
-        0, "[!] failed to parse error image into impressive script ..."
+        0, "[!] unable to parse error image into impressive script ..."
     );
 }
 <impressive.parser.size_assert_failed> //= 0;
@@ -69,7 +69,7 @@ if (   not $file_content =~ s|assert \(ScreenWidth  >= 320\) and |assert |m
     or not $file_content =~ s|assert \(ScreenHeight >= 200\) and |assert |m ) {
     <impressive.parser.size_assert_failed> = 1;
     <[base.log]>->(
-        0, "[!] failed to parse out impressive minimum screen size limit ..."
+        0, "[!] unable to parse out impressive minimum screen size limit ..."
     );
 }
 
@@ -80,7 +80,7 @@ if (not $file_content =~ s|
         |\n$1time.sleep(0.023)\n$1$2|sx
     ) {
     <[base.log]>->(
-        0, "[!] failed to parse sleep() into Crossfade transition ..."
+        0, "[!] unable to parse sleep() into Crossfade transition ..."
     );
 }
 

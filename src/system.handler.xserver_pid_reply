@@ -5,7 +5,7 @@
 my $reply = shift;
 
 if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ /^\d+$/ ) {
-    my $reason = 'failed to obtain Xorg PID';
+    my $reason = 'unable to obtain Xorg PID';
     $reason = "xserver agent is not in 'xorg' mode"
         if $reply->{'call_args'}->{'args'} =~ /not xorg/;
     <[base.callback.cmd_reply]>->(

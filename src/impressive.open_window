@@ -45,7 +45,7 @@ if ( $light_mode == 1 ) {
         push( @transitions, $trans_line ) if $trans_line !~ /fade|none|cloud/i;
     }
 }
-<[base.log]>->( 0, "[!] failed to obtain transition list, using defaults [!]" )
+<[base.log]>->( 0, "[!] unable to obtain transition list, using defaults [!]" )
     if !@transitions;
 my @rnd_trans;
 while (@transitions) {
@@ -108,16 +108,16 @@ if (<impressive.pid>) {    # waiting for python interpreter to read $tmp_bin ..
     vec( $bits, fileno(<impressive.out_fh>), 1 ) = 1;
     select( $bits, undef, undef, undef );
 }
-unlink($tmp_bin) or warn "failed to delete '$tmp_bin' [$!]";
+unlink($tmp_bin) or warn "unable to delete '$tmp_bin' [$!]";
 
 if ( opendir( my $tdir_fh, $temp_dir ) ) {
     my @t_files = grep { !/^\./ } ( readdir($tdir_fh) );
     if ( !@t_files ) {
         <[base.log]>->( 1, "removing temp dir '$temp_dir'.." );
-        rmdir($temp_dir) or warn "failed to remove directory '$temp_dir': $!";
+        rmdir($temp_dir) or warn "unable to remove directory '$temp_dir': $!";
     }
 } else {
-    warn "failed to open directory '$temp_dir': $!";
+    warn "unable to open directory '$temp_dir': $!";
 }
 
 <[base.agents.report_child_pid]>->(<impressive.pid>) if <impressive.pid>;
@@ -125,7 +125,7 @@ if ( opendir( my $tdir_fh, $temp_dir ) ) {
 ## wait for it ##
 
 if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
-    <[base.log]>->( 0, "[!] failed to start impressive [$!]" );
+    <[base.log]>->( 0, "[!] unable to start impressive [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {

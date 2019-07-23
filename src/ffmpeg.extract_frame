@@ -31,7 +31,7 @@ $target_file //= md5_hex($video_path) . '.png';
 $target_path = join( '/', $target_dir, $target_file );
 
 if ( -f $target_path ) {
-    unlink($target_path) or die "failed to unlink($target_path): $!";
+    unlink($target_path) or die "unable to unlink($target_path): $!";
 }
 
 if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',

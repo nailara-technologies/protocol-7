@@ -19,10 +19,10 @@ if ( !-d <mpv.rescale_path> ) {
         }
     );
     if ( defined $err and ref($err) eq 'ARRAY' and @{$err} ) {
-        warn "failed to create local config" . " directory '$resc_path' [$!]";
+        warn "unable to create local config" . " directory '$resc_path' [$!]";
         <mpv.autorescale> = 0;
         <[base.log]>->(
-            0, "autorescale disabled! (failed to create target directory)"
+            0, "autorescale disabled! (unable to create target directory)"
         );
         delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
     } else {    # LLL: if files disappeared...

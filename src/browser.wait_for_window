@@ -4,7 +4,7 @@
 
 ( my $wait_title_str = <browser.window.title_str> ) =~ s|([\[\]\.])|\\$1|g;
 unless ( <[base.x11.wait_for_window]>->( '^' . $wait_title_str ) ) {
-    <[base.log]>->( 0, "[!] window failed to open, aborting agent startup.." );
+    <[base.log]>->( 0, "[!] window unable to open, aborting agent startup.." );
     exit(2);
 }
 <[base.x11.assign_window]>;

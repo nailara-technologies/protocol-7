@@ -47,7 +47,7 @@ $X->RRSetScreenSize( $X->root, $width, $height, $X->width_in_millimeters,
 # checking for failures... ;/
 eval '$X->RRGetScreenInfo( $X->root )';
 if ($@) {
-    my $err_msg = 'failed to set screen size ( out of range )';
+    my $err_msg = 'unable to set screen size ( out of range )';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
         'mode' => 'nak',
@@ -71,7 +71,7 @@ if (   $screen_geom{'width'} != $current_width
         'data' => "screen size is now $screen_geom{width}x$screen_geom{height}"
     };
 } else {
-    my $err_msg = 'failed to set screen size ( remained unchanged )';
+    my $err_msg = 'unable to set screen size ( remained unchanged )';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
         'mode' => 'nak',

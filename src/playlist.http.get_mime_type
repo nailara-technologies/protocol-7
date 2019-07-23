@@ -38,7 +38,7 @@ if ( $response->is_success ) {
     $content_type //= 'unknown';
 } else {
     my $err = $response->status_line;
-    <[base.log]>->( 0, "failed to $method '$url' [$err]" );
+    <[base.log]>->( 0, "unable to $method '$url' [$err]" );
     $content_type = 'network_error';
 }
 return $content_type;

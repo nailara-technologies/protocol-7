@@ -72,7 +72,7 @@ if (<image2html.exif.auto_compensate_rotation>) {
     my $source_format = $image->Get('format');
 
     if ( not defined $source_format or !length($source_format) ) {
-        $error_msg = 'failed to recognize image file format';
+        $error_msg = 'unable to recognize image file format';
         goto error;
     }
 
@@ -119,7 +119,7 @@ my $image_width  = $image->Get('width');
 my $image_height = $image->Get('height');
 
 if ( not defined $image_width or not defined $image_height ) {
-    $error_msg = 'failed to obtain image size';
+    $error_msg = 'unable to obtain image size';
     goto error;
 } elsif ( !$image_width or !$image_height ) {
     $error_msg = 'invalid image size (0)';
