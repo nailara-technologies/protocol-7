@@ -2,7 +2,7 @@
 
 # name = base.x11.get_geometry
 
-my $user = shift || 'core';
+my $user     = shift || 'core';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 my $agent_subname = <system.agent.subname>;
@@ -44,7 +44,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
 # else [no layout agent present or no geometry for current agent configured]
 my $err_msg = "unexpected reply from layout agent ['$reply_string']";
 
-$err_msg = ': geometry undefined'
+$err_msg = ": <!> geometry undefined$sn_log_str .."
     if $reply_string =~ /NAK no geometry/
     or $reply_string =~ /NAK unknown command/;
 
