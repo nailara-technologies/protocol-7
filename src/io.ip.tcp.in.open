@@ -11,7 +11,7 @@ my $lsock = new IO::Socket::INET(
     ReuseAddr => 1,
     TimeOut   => 1,
     Blocking  => 0
-) or <[base.log]>->( 0, "failed to allocate $_[0]:$_[1] [$!]" );
+) or <[base.log]>->( 0, "unable to allocate $_[0]:$_[1] [$!]" );
 if ( not defined $lsock ) { return undef }
 else {
     $lsock->listen()

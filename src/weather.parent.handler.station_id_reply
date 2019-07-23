@@ -11,7 +11,7 @@ my $shutdown = 0;
 if ( $reply->{'cmd'} eq 'NAK' ) {
     <[base.log]>->(
         0,
-        "failed to retrieve station id ["
+        "unable to retrieve station id ["
             . $reply->{'call_args'}->{'args'}
             . "], shutting down!"
     );
@@ -19,7 +19,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => 'nak',
-                'data' => 'failed to get station id'
+                'data' => 'unable to get station id'
             }
         );
         delete <weather.get_urls.reply_ids>;

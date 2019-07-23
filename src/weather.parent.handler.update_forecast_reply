@@ -25,7 +25,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
         $retry_delay_cached += 113 + int( rand(237) );
     }
     <[base.log]>->(
-        $log_level, "failed to retrieve forecast weather data [$err_reason]"
+        $log_level, "unable to retrieve forecast weather data [$err_reason]"
     );
     $status_code = $1 if $err_reason =~ /^(\d+)/;
 } else {
@@ -65,7 +65,7 @@ if (    defined $forecast_data
         $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.8;
 
         <[base.log]>->(
-            $log_level, "failed to obtain forecast weather data.." . $status_str
+            $log_level, "unable to obtain forecast weather data.." . $status_str
         );
 
         my $age_str
@@ -88,7 +88,7 @@ if (    defined $forecast_data
         my $log_level = <weather.update_fail_count.forecast> ? 1 : 0;
 
         <[base.log]>->(
-            $log_level, "failed to obtain forecast weather data.." . $status_str
+            $log_level, "unable to obtain forecast weather data.." . $status_str
         );
 
         <weather.update_fail_count.forecast>++;

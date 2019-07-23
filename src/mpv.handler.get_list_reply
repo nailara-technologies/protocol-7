@@ -9,7 +9,7 @@ my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $reason_str = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, ": failed to fetch playlist! ['$reason_str']" );
+    <[base.log]>->( 0, ": unable to fetch playlist! ['$reason_str']" );
     return;
 }
 

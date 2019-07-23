@@ -31,7 +31,7 @@ $packet_str .= encode_base64url( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 
 # print "---<sent>---\n$packet_str--</sent---\n";
 
-return { 'mode' => 'nak', 'data' => "failed to send: $!" }
+return { 'mode' => 'nak', 'data' => "unable to send: $!" }
     unless <discover.mcast.obj.sock>->mcast_send( $packet_str . "\n",
     join( ':', <discover.mcast.ip4_addr>, <discover.mcast.ip4_port> ) );
 

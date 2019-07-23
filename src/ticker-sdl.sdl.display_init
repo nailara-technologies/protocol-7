@@ -111,7 +111,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     recalc:
         <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, $font_size );
-        die "failed to open font (size=$font_size) [" . SDL::get_error() . "]"
+        die "unable to open font (size=$font_size) [" . SDL::get_error() . "]"
             if not defined <ticker-sdl.font.object>
             or !<ticker-sdl.font.object>;
         <ticker-sdl.font.height>
@@ -137,7 +137,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
         <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, int($font_size) );
-        die "failed to open font (size=$font_size) [" . SDL::get_error() . "]"
+        die "unable to open font (size=$font_size) [" . SDL::get_error() . "]"
             if not defined <ticker-sdl.font.object>
             or !<ticker-sdl.font.object>;
 
@@ -157,7 +157,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     # load the configured font
     <ticker-sdl.font.object>
         = SDL::TTF::open_font( $font_path, <ticker-sdl.font.size> );
-    die "failed to open font (size="
+    die "unable to open font (size="
         . <ticker-sdl.font.size> . ") ["
         . SDL::get_error() . "]"
         if not defined <ticker-sdl.font.object> or !<ticker-sdl.font.object>;
@@ -168,7 +168,7 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
     # determine screen size
     my $video_info = SDL::Video::get_video_info();
-    die "failed to get video info [" . SDL::get_error() . "]"
+    die "unable to get video info [" . SDL::get_error() . "]"
         if not defined $video_info;
     my @modes
         = @{ SDL::Video::list_modes( $video_info->vfmt, SDL_FULLSCREEN() ) };

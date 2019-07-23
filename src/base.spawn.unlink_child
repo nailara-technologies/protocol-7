@@ -15,7 +15,7 @@ if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
     <process.unlink_child.pid>
         = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
         '-e', $child_code )
-        || die "failed to spawn perl unlink child process [$!]";
+        || die "unable to spawn perl unlink child process [$!]";
     <[base.log]>->(
         1, ": spawned unlink child [pid=" . <process.unlink_child.pid> . "]"
     );

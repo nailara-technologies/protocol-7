@@ -13,7 +13,7 @@ return { 'mode' => 'nak', 'data' => 'video file not found!' }
 
 my $frame_count = <[ffmpeg.frame_count]>->($video_path);
 
-return { 'mode' => 'nak', 'data' => 'failed to extract frame count!' }
+return { 'mode' => 'nak', 'data' => 'unable to extract frame count!' }
     if not defined $frame_count;
 
 return { 'mode' => 'ack', 'data' => $frame_count }

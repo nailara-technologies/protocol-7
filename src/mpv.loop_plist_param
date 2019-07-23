@@ -5,7 +5,7 @@
 my $mpv_bin = <mpv.bin_path>;
 
 die "'mpv.bin_path' is not defined!" if not defined $mpv_bin;
-die "failed to find mpv player executable at '$mpv_bin'" if !-x $mpv_bin;
+die "unable to find mpv player executable at '$mpv_bin'" if !-x $mpv_bin;
 
 my $opts_str = qx($mpv_bin --list-options);
 

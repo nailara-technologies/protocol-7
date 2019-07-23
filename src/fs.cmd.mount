@@ -34,16 +34,16 @@ if ( not defined $device ) {
     if ( system( '/bin/mount', $mount_point ) != 0
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": mounting of '$mount_point' failed!" );
-        return { 'mode' => 'nak', 'data' => "failed to mount '$mount_point'" };
+        return { 'mode' => 'nak', 'data' => "unable to mount '$mount_point'" };
     }
 } else {
     <[base.log]>->( 1, "mounting $device to $mount_point .." );
     if ( system( '/bin/mount', $device, $mount_point ) != 0
         or !<[fs.is_mounted]>->($mount_point) ) {
-        <[base.log]>->( 0, ": failed to mount $device to $mount_point" );
+        <[base.log]>->( 0, ": unable to mount $device to $mount_point" );
         return {
             'mode' => 'nak',
-            'data' => "failed to mount $device to $mount_point"
+            'data' => "unable to mount $device to $mount_point"
         };
     }
 }

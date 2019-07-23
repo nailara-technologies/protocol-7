@@ -9,7 +9,7 @@ my @exec_params
 <dbus.pid> = my $pid
     = open3( <dbus.in_fh>, <dbus.out_fh>, undef, @exec_params );
 if ( !<dbus.pid> ) {
-    <[base.log]>->( 0, "[!] failed to start dbus-daemon [$!]" );
+    <[base.log]>->( 0, "[!] unable to start dbus-daemon [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 }

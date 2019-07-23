@@ -23,7 +23,7 @@ if ( !-f <system.conf_path> . '/' . $pattern_filename ) {
 }
 my $agent_pattern_data
     = <[base.load_section_code]>->($pattern_filename)->[0]->{'output patterns'};
-die "failed to load pattern data"
+die "unable to load pattern data"
     if not defined $agent_pattern_data
     or ref($agent_pattern_data) ne 'ARRAY';
 

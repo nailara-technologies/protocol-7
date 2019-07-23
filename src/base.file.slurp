@@ -22,7 +22,7 @@ if ( !-f $filename ) {
 }
 my $file_fh;
 if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
-    <[base.log]>->( 0, "file.slurp: failed to open '$filename' [$!]" );
+    <[base.log]>->( 0, "file.slurp: unable to open '$filename' [$!]" );
     return undef;
 }
 my $ref_type = ref($target_ref);

@@ -20,7 +20,7 @@ $SIG{'CHLD'} = 'IGNORE';
 <process.renice_child.pid>
     = open2( <process.renice_child.r_fh>, <process.renice_child.w_fh>,
     <system.path.perl_bin>, '-e', $child_code )
-    || die "failed to spawn perl renice child process [$!]";
+    || die "unable to spawn perl renice child process [$!]";
 
 <[base.log]>->(
     1, ": child process started [pid=" . <process.renice_child.pid> . "]"

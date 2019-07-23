@@ -38,8 +38,8 @@ if ( not defined $new_state ) {
 }
 
 if ( $new_state ne '1' ) {
-    my $err_msg = 'failed to retrieve new socket state';
-    $err_msg = 'failed to set socket state to \'ON\'' if $new_state eq '0';
+    my $err_msg = 'unable to retrieve new socket state';
+    $err_msg = 'unable to set socket state to \'ON\'' if $new_state eq '0';
     return { 'mode' => 'NAK', 'data' => $err_msg };
 }
 
