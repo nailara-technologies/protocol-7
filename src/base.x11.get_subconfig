@@ -8,7 +8,7 @@ my $agent_name
     = ( defined <system.agent.mode> and <system.agent.mode> eq 'media-child' )
     ? 'media'
     : <system.agent.name>;
-my $subname = <system.agent.subname>;
+my $subname  = <system.agent.subname>;
 my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
 
 <[base.log]>->( 1, "requesting $name_str layout tile subcfg" );
@@ -20,7 +20,7 @@ my $core_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
+    $reply_string  = <$core_fh>;
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|RAW) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -52,6 +52,9 @@ if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
         1, "received layout subconfig for '$name_str' ($bytes_total bytes)"
     );
     return $subcfg_data;
+} elsif ( $reply_string =~ /^\($cmd_id\)NAK no config for agent '([^ ]+)'/ ) {
+    <[base.log]>->( 1, ": <!> layout agent has no config for \"$1\" <!>" );
+    return undef;
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK unknown command\n$/ ) {
     <[base.log]>->( 0, "get_subconfig command failed for '$name_str' [NAK]" );
     return undef;
