@@ -14,11 +14,11 @@ if ( $perl_module !~ /^(\w+|::)+$/ ) {
 if ( eval "use $perl_module" or $@ or length($!) ) {
     if ( $data{'system'}{'verbosity'} >= 1 ) {
         <[base.log]>->(
-            0, "on_load: failed to load perl module '$perl_module' [$!]"
+            0, "on_load: unable to load perl module '$perl_module' [$!]"
         );
     } else {
         <[base.log]>->(
-            2, "on_load: failed to load perl module '$perl_module' [$!]"
+            2, "on_load: unable to load perl module '$perl_module' [$!]"
         );
     }
     return 0;

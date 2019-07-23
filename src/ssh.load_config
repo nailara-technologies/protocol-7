@@ -15,7 +15,7 @@ my $config_data = <[base.load_section_config]>->($config_filename);
 map { <ssh.status.profiles>->{$_} //= 'disabled' }
     keys %{ $config_data->{'profiles'} };
 
-<[base.log]>->( 0, "failed to load ssh '$config_name' config!" )
+<[base.log]>->( 0, "unable to load ssh '$config_name' config!" )
     if not defined $config_data
     or !keys %{$config_data};
 return $config_data;

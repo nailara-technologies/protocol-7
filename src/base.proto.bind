@@ -7,7 +7,7 @@
 if ( not defined $_[0] ) {
     my $proto = $_[1];
     <[base.log]>->(
-        0, "failed to bind protocol '$proto' [undefined filehandle]"
+        0, "unable to bind protocol '$proto' [undefined filehandle]"
     );
     <[base.session.check_remaining]>;
     return undef;
@@ -21,7 +21,7 @@ if ( $@ or not defined $fd ) {
     my $ref_str = ref( $_[0] );
     do { $@ =~ s/\n+/ /g and $@ =~ s/\.? +$//g } if defined $@;
     <[base.log]>->(
-        0, "<<!>> failed to bind protocol '$_[1]' to '$ref_str'-filehandle [$@]"
+        0, "<<!>> unable to bind protocol '$_[1]' to '$ref_str'-filehandle [$@]"
     );
     <[base.session.check_remaining]>;
 } else {

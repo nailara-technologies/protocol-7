@@ -55,7 +55,7 @@ if ( defined $title or @matches ) {
         ) {
         return { 'mode' => 'ack', 'data' => 'warn message sent' };
     } elsif ( $? == -1 ) {
-        return { 'mode' => 'nak', 'data' => 'failed to execute: ' . $! };
+        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };
     } else {
         return {
             'mode' => 'nak',

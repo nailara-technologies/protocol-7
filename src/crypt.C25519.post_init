@@ -93,7 +93,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
         my $rk_priv_len = length( $root_key{'priv'} );
         if ( length( $root_key{'pub'} ) != 43 or $rk_priv_len != 86 ) {
             <[base.log]>->(
-                0, "<!> failed to read root key <<!>> key signing aborted <!>"
+                0, "<!> unable to read root key <<!>> key signing aborted <!>"
             );
 
             # LLL: log reason ...
@@ -121,7 +121,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
             <[file.put]>->( $root_pubkey_path, $root_key{'pub'} . "\n" );
             <[base.log]>->( 1, ": : $root_pubkey_path" );
         } else {
-            <[base.log]>->( 0, "<!> failed to sign public host key <!>" );
+            <[base.log]>->( 0, "<!> unable to sign public host key <!>" );
         }
     skip_sign:
         substr( $root_key{'priv'}, 0, $rk_priv_len,
@@ -139,7 +139,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
         $KEYS{'C25519'}{$key_name}{'pub'}
             = decode_base64url( ${ <[file.slurp]>->($pubkey_file) } );
     } else {
-        <[base.log]>->( 0, "failed to load '$key_name' key pair ..." );
+        <[base.log]>->( 0, "unable to load '$key_name' key pair ..." );
     }
 }
 

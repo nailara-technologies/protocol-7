@@ -20,7 +20,7 @@ my $lsock = new IO::Socket::SSL(
 if ( not defined $lsock ) {
     my $ssl_err = &IO::Socket::SSL::errstr();
     $ssl_err =~ s/\n.+//mg;
-    <[base.log]>->( 0, "ssl: failed to launch server $_[0]:$_[1] [$ssl_err]" );
+    <[base.log]>->( 0, "ssl: unable to launch server $_[0]:$_[1] [$ssl_err]" );
     return -1;
 } else {
     $lsock->listen()

@@ -14,7 +14,7 @@ die "target directory '$target_dir' does not exist" if !-d $target_dir;
 die "html template '$html_template' does not exist" if !-f $html_template;
 
 my $html_ref = <[file.slurp]>->($html_template);
-die "failed to load html template '$html_template'" if not defined $html_ref;
+die "unable to load html template '$html_template'" if not defined $html_ref;
 
 $$html_ref =~ s|\[TXT:loading\]|<locales.string.tmpl.loading>|g;
 $$html_ref =~ s|\[TXT:updating\]|<locales.string.tmpl.updating>|g;

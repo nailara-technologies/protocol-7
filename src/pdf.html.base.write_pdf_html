@@ -15,7 +15,7 @@ die "expected array reference to image names" if ref($image_ref) ne 'ARRAY';
 die "image name array is empty!" if !@{$image_ref};    # LLL: deal with it!
 
 my $html_ref = <[file.slurp]>->($html_template);
-die "failed to load html template '$html_template'" if not defined $html_ref;
+die "unable to load html template '$html_template'" if not defined $html_ref;
 
 my $img_html_str;
 map { $img_html_str .= "<img src=\"./$_\"><br>\n" } @{$image_ref};

@@ -15,7 +15,7 @@ die "expected output image file name"
     if not defined $image_file or !length($image_file);
 
 my $html_ref = <[file.slurp]>->($html_template);
-die "failed to load html template '$html_template'" if not defined $html_ref;
+die "unable to load html template '$html_template'" if not defined $html_ref;
 
 my $img_html_str .= "<img src=\"./$image_file\">";
 

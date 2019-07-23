@@ -9,6 +9,6 @@ return undef if $child_pid !~ /^\d+$/ or !-d "/proc/$child_pid";
 if ( <[file.content]>->("/proc/$child_pid/status") =~ /\nPPid:\s+(\d+)\n/s ) {
     return $1;
 } else {
-    warn "failed to extract ppid value from '/proc/$child_pid/status'";
+    warn "unable to extract ppid value from '/proc/$child_pid/status'";
     return undef;
 }

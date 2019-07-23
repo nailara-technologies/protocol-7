@@ -33,7 +33,7 @@ if ( !-d $target_dir ) {
         or die "user '" . <system.privs.user> . "' not in passwd file";
     <[base.log]>->( 2, "creating target directory '$target_dir'.." );
     make_path( $target_dir, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-        or warn "failed to create target directory '$target_dir' [$!]";
+        or warn "unable to create target directory '$target_dir' [$!]";
 }
 
 unlink($file_path) if -f $file_path;

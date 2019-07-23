@@ -36,7 +36,7 @@ if ( defined $txt_param and $txt_param ne '' ) {
         ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
     } elsif ( $? == -1 ) {
-        return { 'mode' => 'nak', 'data' => 'failed to execute: ' . $! };
+        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };
     } else {
         return {
             'mode' => 'nak',

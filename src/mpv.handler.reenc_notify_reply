@@ -20,7 +20,7 @@ if (   defined $err_reason
     or not defined $reenc_msg_sid
     or $reenc_msg_sid !~ /^\d+$/ ) {
     $err_reason //= " [ answered '$$reply{call_args}{args}' ]";
-    <[base.log]>->( 0, "[!] failed to obtain reenc-msg agent sid!$err_reason" );
+    <[base.log]>->( 0, "[!] unable to obtain reenc-msg agent sid!$err_reason" );
     return;
 }
 

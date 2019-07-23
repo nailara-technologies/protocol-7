@@ -46,7 +46,7 @@ if ( not defined $response or !$response->is_success ) {
 
 my $content = $response->{'_content'};    # LLL: check...
 
-$content =~ s|failed to set keepalive: unread data in buffer\n$||s;
+$content =~ s|unable to set keepalive: unread data in buffer\n$||s;
 
 my $json_decoded;
 eval { $json_decoded = <weather.child.json>->decode($content) };

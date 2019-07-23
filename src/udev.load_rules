@@ -12,7 +12,7 @@ if ( defined $rulefile_name ) {
 } else {
     my $dir_fh;
     <[base.log]>->( 1, "no specific rule file configured, loading all..." );
-    opendir( $dir_fh, <system.conf_path> ) or die "failed to open conf dir: $!";
+    opendir( $dir_fh, <system.conf_path> ) or die "unable to open conf dir: $!";
     map { push( @rule_files, $_ ) if $_ =~ /^conf\.udev_rules\..+$/ }
         readdir($dir_fh);
     closedir($dir_fh);

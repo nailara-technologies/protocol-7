@@ -14,7 +14,7 @@ my $dir_path = <system.local_config_dir>;
 if ( !-d $dir_path ) {
     <[base.log]>->( 1, "<!> creating local nailara config dir [$dir_path]" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-        or warn "failed to create local config directory '$dir_path' [$!]";
+        or warn "unable to create local config directory '$dir_path' [$!]";
 }
 
 $dir_path = <config.profile_dir>;
@@ -23,7 +23,7 @@ if ( !-d $dir_path ) {
     ( my $path_rel = $dir_path ) =~ s|^$root_path|.|;
     <[base.log]>->( 1, "<!> creating profile directory ['$path_rel']" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-        or warn "failed to create profile directory '$dir_path' [$!]";
+        or warn "unable to create profile directory '$dir_path' [$!]";
 }
 
 0;

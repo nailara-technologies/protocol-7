@@ -48,7 +48,7 @@ chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
 if ( length($rmmod_output) ) {
     $reply_mode = 'nak';
     $rmmod_output =~ s/(^.*rmmod: (FATAL: )?(Module )?|\.$)//g;
-    $reply_data = "failed to unload module ['$rmmod_output']";
+    $reply_data = "unable to unload module ['$rmmod_output']";
     goto do_reply;
 }
 
@@ -56,7 +56,7 @@ chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
 if ( length($modprobe_output) ) {
     $reply_mode = 'nak';
     $modprobe_output =~ s/(^modprobe: FATAL: (Module )?|\.$)//g;
-    $reply_data = "failed to load module ['$modprobe_output']";
+    $reply_data = "unable to load module ['$modprobe_output']";
     goto do_reply;
 }
 

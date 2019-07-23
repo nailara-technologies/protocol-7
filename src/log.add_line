@@ -41,9 +41,9 @@ my $log_fh;
 if ( !<log.files>->{$log_name}->{'locked'} ) {
     <[base.log]>->( 2, "opening log '$log_name'..." );
     open( $log_fh, ">>$log_path/$log_file" )
-        or return ( 0, "failed to open logfile [$!]" );
+        or return ( 0, "unable to open logfile [$!]" );
     flock( $log_fh, 2 )    # LOCK_EX
-        or return ( 0, "failed to lock logfile [$!]" );
+        or return ( 0, "unable to lock logfile [$!]" );
     <log.files>->{$log_name}->{'locked'} = 1;
     <log.files>->{$log_name}->{'fh'}     = $log_fh;
     <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(

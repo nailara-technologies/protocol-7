@@ -121,7 +121,7 @@ foreach my $key_type ( 'private', 'public' ) {
     my $key_file = $key_type eq 'private' ? $ssh_privkey : $ssh_pubkey;
     if ( !open( my $test_fh, '<' . $key_file ) ) {
         <[base.log]>->(
-            0, ": : SSH AUTH FAILURE [ failed to open $key_type key: $! ]"
+            0, ": : SSH AUTH FAILURE [ unable to open $key_type key: $! ]"
         );
         $ssh->disconnect;
         $sock->shutdown('NOW');

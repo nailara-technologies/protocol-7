@@ -106,12 +106,12 @@ if ( !-f $output_file ) {
         }
         <[base.log]>->(
             0,
-            "ffmpeg failed to execute: $err_str ("
+            "ffmpeg unable to execute: $err_str ("
                 . join( ' ', @ffmpeg_params ) . ")"
         );
         return {
             'mode' => 'nak',
-            'data' => "ffmpeg failed to execute [$err_str]"
+            'data' => "ffmpeg unable to execute [$err_str]"
         };
     } else {
         rename( $partial_output_file, $output_file )
