@@ -5,10 +5,18 @@
 <browser.timeout.fail_seconds>  //= 0;
 <browser.timeout.last_progress> //= 0;
 
-my $bg_index     = <browser.overlay.index.bg>;
-my $view         = <browser.gtk_obj.view>->{$bg_index};
-my $progress     = $view->get_progress();
-my $session      = Gtk3::WebKit::get_default_session();
+my $bg_index    = <browser.overlay.index.bg>;
+my $view        = <browser.gtk_obj.view>->{$bg_index};
+my $resource    = $view->get_main_resource;
+my $response    = defined $resource ? $resource->get_response : undef;
+my $status_code = defined $response ? $response->get_status_code : 0;
+
+my $progress = $view->get_estimated_load_progress();
+
+warn "< PROGRESS > $progress\n";
+
+# my $session      = Gtk3::WebKit2::get_default_session();
+
 my $load_timeout = <browser.cfg.load_timeout>;
 my $load_uri     = <browser.load_uri>;
 
@@ -35,5 +43,7 @@ delete <browser.timeout>;
 
 <[base.log]>->( 0, "loading of '$load_uri' timed out! aborting.." );
 $view->stop_loading();
-$session->abort();
+
+# $session->abort();
+
 return 0;

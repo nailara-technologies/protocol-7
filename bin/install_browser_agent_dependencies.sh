@@ -25,6 +25,6 @@ export PERL_USE_UNSAFE_INC=1
 cpanm HTTP::Soup
 #--<
 
-xvfb-run cpanm Gtk3::WebKit
+xvfb-run cpanm Gtk3::WebKit2
 
 useradd -m -r nailara

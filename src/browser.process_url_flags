@@ -24,7 +24,7 @@ if ( <browser.scroll.fail.js_disabled> or <browser.url_active.nojs> ) {
     map {    # LLL: make reenabling view-based
         my $view_index = <browser.overlay.index>->{$_};
         my $settings   = <browser.gtk_obj.view>->{$view_index}->get_settings;
-        $settings->set_property( 'enable-scripts', 1 );
+        $settings->set_enable_javascript(1);
         <browser.gtk_obj.view>->{$view_index}->set_settings($settings);
     } ( 'fg', 'bg' );
 
@@ -62,7 +62,7 @@ if ( defined <browser.signal_id.request_starting>->{$view} ) {
 
 if ( exists $flags->{'nojs'} and <browser.cfg.javascript_enabled> ) {
     my $settings = $view->get_settings;
-    $settings->set_property( 'enable-scripts', 0 );
+    $settings->set_enable_javascript(0);
     $view->set_settings($settings);
     <browser.url_active.nojs> = 1;
     <[base.log]>->( $loglevel, ": JS disabled! ( nojs flag '$uri' )" );

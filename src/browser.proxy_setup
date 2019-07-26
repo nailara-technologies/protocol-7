@@ -46,7 +46,7 @@ if (    defined <browser.cfg.proxy_addr>
 if (<browser.init_proxy>) {
     my $proxy_addr = <browser.cfg.proxy_addr>;
     my $proxy_port = <browser.cfg.proxy_port>;
-    my $session    = Gtk3::WebKit::get_default_session();
+    my $session    = Gtk3::WebKit2::get_default_session();
     my $proxy_uri  = HTTP::Soup::URI->new("http://$proxy_addr:$proxy_port");
     $session->set( 'proxy-uri' => $proxy_uri );
 }

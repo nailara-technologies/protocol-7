@@ -17,13 +17,17 @@ Gtk3->init;
 <[base.log]>->( 1, "window initializaion..." );
 
 my $window = Gtk3::Window->new('toplevel');
+
 <browser.gtk_obj.window> = $window;
 if ( defined <browser.cfg.change_cursor> ) {
     my $cursor = Gtk3::Gdk::Cursor->new(<browser.cfg.change_cursor>);
     $window->get_root_window->set_cursor($cursor);
 }
+
 $window->signal_connect( destroy => sub { Gtk3->main_quit() } );
+
 $window->set_title(<browser.window.title_str>);
+
 $window->move( $pos_x, $pos_y );
 $window->set_default_size( $size_x, $size_y );
 
@@ -43,8 +47,12 @@ map { <[browser.init_view]>->($_) } ( 1, 2 );
 
 <browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
 
-$window->signal_connect( 'size_allocate',
-    $code{'browser.handler.size_allocate'} );
+$window->signal_connect(
+    'size_allocate',
+    sub {
+        &{ $code{'browser.handler.size_allocate'} };
+    }
+);
 
 $window->add($overlay);
 
@@ -87,7 +95,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     map {
         my $view     = <browser.gtk_obj.view>->{$_};
         my $settings = $view->get_settings;
-        $settings->set_property( 'enable-scripts', 0 );
+        $settings->set_enable_javascript(0);
         $view->set_settings($settings);
     } keys %{<browser.gtk_obj.view>};
 

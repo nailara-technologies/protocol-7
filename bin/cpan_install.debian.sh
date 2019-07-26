@@ -29,4 +29,4 @@ cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
         Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird \
         Imager::Screenshot
 
-xvfb-run cpanm Glib::Event Gtk3::WebKit
+xvfb-run cpanm Glib::Event Gtk3::WebKit2

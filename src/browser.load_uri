@@ -21,10 +21,15 @@ if (<window.scrolling>) {
 $load_uri = "file://$load_uri" if $load_uri =~ m|^/|;
 $load_uri = "http://$load_uri" if $load_uri !~ m|^\w+:|;
 
+##[loading on to bg view]###
 my $bg_index = <browser.overlay.index.bg>;
-my $view     = <browser.gtk_obj.view>->{$bg_index};
+my $bg_view  = <browser.gtk_obj.view>->{$bg_index};
+##[progress bar on fg view]###
+my $fg_index    = <browser.overlay.index.fg>;
+my $fg_view     = <browser.gtk_obj.view>->{$fg_index};
+my $fg_resource = $bg_view->get_main_resource;
 
-<browser.current_view> = $view;
+<browser.current_view> = $bg_view;
 <browser.url_flags>    = {};
 
 if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
@@ -41,35 +46,53 @@ if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
 
 <[base.log]>->(
     2,
-    "..setting (custom) delay to "
-        . <browser.slideshow.temp_delay>
-        . " seconds.."
+    "(i) slideshow delay is " . <browser.slideshow.temp_delay> . " seconds.."
 ) if defined <browser.slideshow.temp_delay>;
 
 <browser.load_uri> = $load_uri;
 
 <[browser.process_url_flags]>;
 
-<[base.log]>->( 2, "loading uri '$load_uri'.." );
+<[base.log]>->( 2, ":. loading uri '$load_uri'.." );
 
 <browser.time.load_start> = <[base.time]>->(3);
 
 if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
 {
+    my $settings     = $bg_view->get_settings;
     my $skip_pattern = qr{^file://<browser.skip_content_zoom_path>};
     if ( $load_uri =~ $skip_pattern ) {
-        $view->set_full_content_zoom(0);
+        $settings->set_zoom_text_only(1);
+        $bg_view->set_settings($settings);
     } else {
-        $view->set_full_content_zoom(1);
+        $settings->set_zoom_text_only(0);
+        $bg_view->set_settings($settings);
     }
 }
 
-<browser.signal_id.load_status> = $view->signal_connect(
-    'notify::load-status' => $code{'browser.handler.load_status_signal'} );
+### disable old progress (on other view?) ###     <-- check for bg progress bar!
+#$bg_resource->signal_handler_disconnect(            [ store signal id differ. ]
+#    delete <browser.signal_id.received_data> )
+#    if defined <browser.signal_id.received_data>;
 
-<browser.signal_id.load_timeout>
-    = Glib::Timeout->add_seconds( 1, $code{'browser.handler.load_timeout'},
-    undef, 10 );
+<browser.signal_id.received_data>
+    = $fg_resource->signal_connect( 'received-data',
+    $code{'browser.handler.progress_changed'} )
+    if <browser.cfg.show_progress_bar>
+    and not defined <browser.signal_id.received_data>;
+
+<browser.signal_id.load_changed> = $bg_view->signal_connect(
+    'load-changed' => sub { $code{'browser.handler.load_changed'}->(@_) } );
+
+<browser.signal_id.load_failed> = $bg_view->signal_connect(
+    'load-failed' => sub {
+        $code{'browser.handler.signal.load_failed'}->(@_)  # <- reloadable code!
+    }
+);
+
+# <browser.signal_id.load_timeout>
+#    = Glib::Timeout->add_seconds( 1, $code{'browser.handler.load_timeout'},
+#    undef, 10 );
 
 # store current url in /tmp in case browser engine segfaults
 my $url_file     = '/tmp/.nailara.browser.' . $$;
@@ -78,6 +101,6 @@ my $file_content = "current_url : $load_uri\nurl_flags   : "
 <[file.put]>->( $url_file, $file_content ) or warn "$url_file: $!";
 #
 
-$view->load_uri($load_uri);
+$bg_view->load_uri($load_uri);
 
 return 0;
