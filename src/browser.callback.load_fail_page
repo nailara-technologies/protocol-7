@@ -10,7 +10,7 @@ my $fail_page_ref = <[file.slurp]>->(<browser.error_page>);
 $$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.failed_to_load>|sg;
 $$fail_page_ref =~ s|\[BG_COLOR\]|$bg_color|sg;
 
-$bg_view->load_string( $$fail_page_ref, 'text/html', 'UTF-8', '' );
+$bg_view->load_alternate_html( $$fail_page_ref, '[error:unknown]' );
 <[browser.swap_views]>;
 
 return 0;

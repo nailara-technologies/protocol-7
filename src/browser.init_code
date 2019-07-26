@@ -5,7 +5,12 @@
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Glib');
 <[base.perlmod.autoload]>->('Glib::Event');
-<[base.perlmod.autoload]>->('Gtk3::WebKit');
+<[base.perlmod.autoload]>->('Glib::Object::Introspection');
+
+# <[base.perlmod.autoload]>->('Gtk3::WebKit2');
+
+# use Gtk3::WebKit2;
+
 <[base.perlmod.autoload]>->('HTTP::Soup');
 <[base.perlmod.load]>->( 'MIME::Base64', qw/encode_base64url/ );
 
@@ -32,10 +37,15 @@ sub INIT_INSTANCE {
 
 package Browser::WebView;
 
-use Glib::Object::Subclass 'Gtk3::WebKit::WebView',
+Glib::Object::Introspection->setup(
+    qw/ basename WebKit2 version 4.0 package Gtk3::WebKit2 /);
+
+use Glib::Object::Subclass 'Gtk3::WebKit2::WebView',
     properties => [
     Glib::ParamSpec->boolean(
-        'self-scrolling', 'foo', 'foo', 0, [qw/readable writable/]
+        'self-scrolling', 'undefined',
+        'undefined',      0,
+        [qw/readable writable/]
     ),
     ];
 
@@ -43,6 +53,11 @@ sub INIT_INSTANCE {
     my $self = shift;
     $self->set_property( 'self-scrolling', 0 );
 }
+
+#[ AUTOSCROLL WITHOUT JS ]######################################################
+# web extension to access DOM coming later: needs webkit2/webkit-web-extension.h
+#        ( ... see https://github.com/tlby/webkit2gtk-webextension-example.git )
+################################################################################
 
 package main;
 

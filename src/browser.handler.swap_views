@@ -56,7 +56,9 @@ if (<browser.status.fade_view>) {
         my $view     = <browser.gtk_obj.view>->{$fg_index};
         my $settings = $view->get_settings;
         my $l_level  = <browser.url_flag_loglevel> // 2;
-        $settings->set_property( 'enable-scripts', 0 );
+
+        # $settings->set_property( 'enable-scripts', 0 );
+
         $view->set_settings($settings);
         <browser.url_active.nojs> = 1;
         <[base.log]>->( $l_level, ": JS disabled ( nojs_scroll flag '$uri' )" );

@@ -8,11 +8,29 @@ my $bg_color = <browser.bg_color> // '#FFFFFF';
 
 my $filter_events = 1;
 
+################################################################################
+##  following signals/events need to be managed if usr interaction is desired ##
+################################################################################
+
 %{<browser.blocked_signal_types>} = map { $_ => 1 } qw(
-    script-alert
-    script-prompt
-    script-confirm
+    close
+    print
+    run-as-modal
+    context-menu
+    authenticate
+    decide-policy
+    script-dialog
+    enter-fullscreen
+    leave-fullscreen
+    show-option-menu
+    run-file-chooser
+    show-notification
+    run-color-chooser
+    permission-request
 );
+
+##
+#
 
 %{<browser.blocked_event_types>} = map { $_ => 1 } qw(
     scroll
@@ -25,6 +43,9 @@ my $filter_events = 1;
     button-release
     run-file-chooser
 );
+
+#
+##
 
 delete @{<browser.blocked_event_types>}{'scroll'}
     if <browser.cfg.user_can_scroll>;
@@ -46,10 +67,11 @@ my $style_context = $scrolled_window->get_style_context();
 $style_context->add_provider( <browser.gtk_obj.css_prov>, -1 );
 
 my $view = Browser::WebView->new();
-$view->load_string(
-    "<html><body bgcolor=\"$bg_color\"></body><html>", 'text/html',
-    'UTF-8',                                           ''
-);
+
+<browser.scr_win>->{$view} = $scrolled_window;
+
+$view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
+    '[init:blank]' );
 
 <browser.view_index>->{$view} = $id;
 
@@ -76,16 +98,6 @@ $view->signal_connect( # filtering all events according to blocklist setup above
 ) if $filter_events;
 
 $view->signal_connect(
-    'console-message' => sub {
-        my $view     = shift;
-        my $message  = shift;
-        my $view_uri = $view->get_uri;
-        <[base.log]>->( 2, "CONSOLE_MESSAGE('$view_uri'): '$message'" );
-        return 1;
-    }
-);
-
-$view->signal_connect(
     'size_allocate',
     sub {
         my $view          = shift;
@@ -102,10 +114,6 @@ $view->signal_connect(
     }
 );
 
-<browser.signal_id.load_progress>
-    = $view->signal_connect( 'load-progress-changed',
-    $code{'browser.handler.progress_changed'} )
-    if <browser.cfg.show_progress_bar> and $id == 2;
 
 my $user_scrolling = <browser.cfg.user_can_scroll>;
 $scrolled_window->set_kinetic_scrolling($user_scrolling);
@@ -117,23 +125,28 @@ if ( $user_scrolling and <browser.cfg.allow_scrollbars> ) {
 }
 
 # blocking website from overriding scrollbar policy
-$view->get_main_frame->signal_connect(
-    'scrollbars-policy-changed', => sub { return 1 } );
+# $view->get_main_resource->signal_connect('scrollbars-policy-changed', => sub { return 1 } );
 
 $view->set_zoom_level( <browser.zoom_level> * <browser.zoom_factor> );
-$view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
+
+# $view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
 
 $view->set_editable(0);
-$view->can_go_back_or_forward(0);
-$view->set_maintains_back_forward_list(0);
+
+# $view->can_go_back_or_forward(0);
+
+# $view->set_maintains_back_forward_list(0);
 
 <[browser.set_properties]>->($view);
 
 if (<browser.cfg.no_memory_cache>) {
-    Gtk3::WebKit::set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
+
+    # Gtk3::WebKit2::set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
+
     <[base.log]>->( 1, "in-memory cache disabled.." );
 } else {
-    Gtk3::WebKit::set_cache_model('WEBKIT_CACHE_MODEL_WEB_BROWSER');
+
+    # Gtk3::WebKit2::set_cache_model('WEBKIT_CACHE_MODEL_WEB_BROWSER');
 
     # LLL: deal with cache size / auto-clear...
 
