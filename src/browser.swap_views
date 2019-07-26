@@ -6,6 +6,18 @@ my $scrolled_window = <browser.gtk_obj.scrolled_window>;
 
 my $fg_index = <browser.overlay.index>->{'fg'};
 my $bg_index = <browser.overlay.index>->{'bg'};
+my $bg_view  = <browser.gtk_obj.view>->{$bg_index};
+my $fg_view  = <browser.gtk_obj.view>->{$fg_index};
+my $window   = <browser.gtk_obj.window>;
+my $overlay  = <browser.gtk_obj.overlay>;
+
+### disable progress bar if signal connected ( on whichever view it was .. ) ###
+foreach my $res ( $fg_view->get_main_resource, $bg_view->get_main_resource ) {
+    $res->signal_handler_disconnect(<browser.signal_id.received_data>)
+        if defined <browser.signal_id.received_data>
+        and $res->signal_handler_is_connected(<browser.signal_id.received_data>)
+        and delete <browser.signal_id.received_data>;
+}
 
 if ( !<browser.cfg.use_transparency> ) {
 
@@ -14,8 +26,7 @@ if ( !<browser.cfg.use_transparency> ) {
             if <browser.gtk_obj.scrolled_window>->{$_}->get_opacity() != 1;
     } ( $fg_index, $bg_index );
 
-    <browser.gtk_obj.overlay>
-        ->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+    $overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
     <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
 
     <browser.time.fade_complete> = sprintf( "%.3f",
@@ -25,22 +36,24 @@ if ( !<browser.cfg.use_transparency> ) {
     return;
 }
 
-<browser.fg_opacity> = <browser.gtk_obj.view>->{$bg_index}->get_opacity;
+<browser.fg_opacity> = $bg_view->get_opacity;
+
 if ( <browser.fg_opacity> == 1 ) {
     <browser.gtk_obj.scrolled_window>->{$bg_index}->set_opacity(0);
     <browser.fg_opacity> = 0;
 }
-<browser.gtk_obj.overlay>->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+
+$overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+
 <browser.gtk_obj.scrolled_window>->{$fg_index}->set_opacity(1);
 <browser.time.fade_view>   = <[base.time]>->(3);
 <browser.status.fade_view> = 1;
 
 <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
 
-my $window = <browser.gtk_obj.window>;
-
 $window->signal_handler_disconnect( delete <browser.signal_id.swap_views> )
-    if defined <browser.signal_id> and defined <browser.signal_id.swap_views>;
+    if defined <browser.signal_id.swap_views>
+    and $window->signal_handler_is_connected(<browser.signal_id.swap_views>);
 
 <browser.signal_id.swap_views>
     = $window->signal_connect( draw => $code{'browser.handler.swap_views'} );
