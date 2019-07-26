@@ -7,7 +7,7 @@ my ( $widget, $context, $ref_status ) = @_;
 my $reply_id = <window.scroll.reply_id>;
 my $fg_index = <browser.overlay.index.fg>;
 my $view     = <browser.gtk_obj.view>->{$fg_index};
-my $vadj     = $view->get_vadjustment();
+
 <browser.autoscroll.brake_count> //= 0;
 
 <browser.gtk_obj.window>->queue_draw();
@@ -38,10 +38,13 @@ if ( defined <browser.redraw_fps.slowdown_target>
     <[browser.calc_scroll_speed]>;
 }
 
-<window.scroll.max> = $vadj->get_upper() - $vadj->get_page_size();
+#       GETTING POS
+################### ( update max and posY? )
+
 <window.scroll.last_pos> = <window.scroll.pos> // 0;
 <window.scroll.no_js> //= 0;
-<window.scroll.pos> = $vadj->get_value();
+
+###################
 
 if ( delete <window.scroll.stop> ) {
     <window.scrolling> = 0;
@@ -63,7 +66,7 @@ if ( delete <window.scroll.stop> ) {
 
     return 0;
 
-} elsif ( <window.scroll.pos> < <window.scroll.max> ) {
+} elsif ( <window.scroll.pos> < <window.scroll.max> ) { # backwards?? [happened]
     if (    <browser.cfg.javascript_enabled>
         and !<browser.scroll.fail.js_disabled>
         and <window.scroll.pos> < <window.scroll.last_pos> )
@@ -71,21 +74,32 @@ if ( delete <window.scroll.stop> ) {
         <window.scroll.fail_start> //= <[base.time]>->(2);
         if ( <[base.time]>->(2) - <window.scroll.fail_start>
             >= <browser.scroll.fail.timeout> ) {
-            <[base.log]>->(
-                0, "autoscroll failure! stopping javascript execution.."
-            );
-            my $settings = $view->get_settings;
-            $settings->set_property( 'enable-scripts', 0 );
-            $view->set_settings($settings);
-            <browser.scroll.fail.js_disabled> = 1;
-            delete <window.scroll.fail_start>;
+            warn "autoscroll failure! behaviour change required.."
+
+                # <[base.log]>->(
+                #     0, "autoscroll failure! stopping javascript execution.."
+                # );
+                # my $settings = $view->get_settings;
+                # $settings->set_enable_javascript(0);
+                # $view->set_settings($settings);
+                # <browser.scroll.fail.js_disabled> = 1;
+                # delete <window.scroll.fail_start>;
         }
     } elsif ( exists <window.scroll.fail_start> ) {
         delete <window.scroll.fail_start>;
     }
-    <window.scroll.pos>++;
-    $vadj->set_value(<window.scroll.pos>);
-    $view->set_vadjustment($vadj);
+
+################# SETTING POS #####
+
+    <window.scroll.pos>++;    # <--- incr. by [new to write] js_callback!!!
+
+    <[browser.js_call]>->(
+        'window.scroll(0,' . <window.scroll.pos> . ')',
+        sub { }, $reply_id
+    );
+
+    ###############################
+
 } else {
     delete <window.scroll>;
     <window.scrolling>             = 0;
@@ -105,7 +119,7 @@ scroll_finished:
             delete <browser.scroll.fail.js_disabled>;
             if (<browser.cfg.javascript_enabled>) {
                 my $settings = $view->get_settings;
-                $settings->set_property( 'enable-scripts', 1 );
+                $settings->set_enable_javascript(1);
                 $view->set_settings($settings);
                 <[base.log]>->(
                     0, "autoscroll completed ..javascript reenabled!"
@@ -113,7 +127,7 @@ scroll_finished:
             }
         }
 
-        # slooowly speeding up again ...
+        # slowly speeding up again ...
         if (   !<browser.autoscroll.brake_count>
             and <browser.autoscroll.delay> > <browser.autoscroll.cfg_delay> ) {
             <browser.autoscroll.delay>
@@ -130,11 +144,11 @@ scroll_finished:
     }
 }
 
-<browser.autoscroll.delay> //= 0.033333;    # scroll speed 5 (default)
+<browser.autoscroll.delay>    //= 0.033333;    # scroll speed 5 (default)
 <browser.autoscroll.too_fast> //= 0;
 
 <browser.time.last_scroll> //= <[base.time]>->(6);
-my $delta_t = <[base.time]>->(6) - <browser.time.last_scroll>;
+my $delta_t   = <[base.time]>->(6) - <browser.time.last_scroll>;
 my $wait_time = sprintf( "%.6f", <browser.autoscroll.delay> - $delta_t );
 if ( $wait_time <= 0 ) {
     <browser.autoscroll.too_fast>++;

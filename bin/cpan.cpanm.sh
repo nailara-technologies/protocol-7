@@ -19,7 +19,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       SDL Gtk2 Glib::Event \
       CryptX \
       HTTP::Request \
-      Gtk3::WebKit \
+      Gtk3::WebKit2 \
       HTTP::Soup \
       Mediainfo \
       Imager::Sreenshot \

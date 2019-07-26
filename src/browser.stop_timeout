@@ -1,0 +1,10 @@
+# >:]
+
+# name = browser.stop_timeout
+
+delete <browser.timeout>;
+
+if ( defined <browser.signal_id.load_timeout> ) {
+    Glib::Source->remove( delete <browser.signal_id.load_timeout> );
+    <[base.log]>->( 2, "..load timeout stopped.." );
+}
