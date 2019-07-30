@@ -11,13 +11,7 @@ my $fg_view  = <browser.gtk_obj.view>->{$fg_index};
 my $window   = <browser.gtk_obj.window>;
 my $overlay  = <browser.gtk_obj.overlay>;
 
-### disable progress bar if signal connected ( on whichever view it was .. ) ###
-foreach my $res ( $fg_view->get_main_resource, $bg_view->get_main_resource ) {
-    $res->signal_handler_disconnect(<browser.signal_id.received_data>)
-        if defined <browser.signal_id.received_data>
-        and $res->signal_handler_is_connected(<browser.signal_id.received_data>)
-        and delete <browser.signal_id.received_data>;
-}
+<[browser.disconnect_signal.received_data]>;
 
 if ( !<browser.cfg.use_transparency> ) {
 

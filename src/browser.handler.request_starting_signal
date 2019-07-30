@@ -1,7 +1,7 @@
 # >:]
 
 # name = browser.handler.request_starting_signal
-# todo = implement request whitelist support ...
+# todo = implement request whitelist support ... // PORT TO WEBKIT2!!
 
 my ( $view, $frame, $resource, $request, $response ) = @_;
 ( my $allowed = <browser.load_uri> ) =~ s{^https?://|/.*$}{}g;
@@ -9,7 +9,7 @@ my ( $view, $frame, $resource, $request, $response ) = @_;
 ## allowed ##
 
 return 0
-    if $request->get_uri eq 'about:blank'
+    if $request->get_uri =~ /:blank\]?$/
     or $request->get_uri =~ m{^https?://([^/]+\.)?\Q$allowed\E}i;
 
 ## blocked ##
