@@ -25,9 +25,11 @@ $load_uri = "http://$load_uri" if $load_uri !~ m|^\w+:|;
 my $bg_index = <browser.overlay.index.bg>;
 my $bg_view  = <browser.gtk_obj.view>->{$bg_index};
 ##[progress bar on fg view]###
-my $fg_index    = <browser.overlay.index.fg>;
-my $fg_view     = <browser.gtk_obj.view>->{$fg_index};
-my $fg_resource = $bg_view->get_main_resource;
+my $fg_index = <browser.overlay.index.fg>;
+my $fg_view  = <browser.gtk_obj.view>->{$fg_index};
+
+my $bg_resource = $bg_view->get_main_resource;
+my $fg_resource = $fg_view->get_main_resource;
 
 <browser.current_view> = $bg_view;
 <browser.url_flags>    = {};
@@ -70,15 +72,13 @@ if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
     }
 }
 
-### disable old progress (on other view?) ###     <-- check for bg progress bar!
-#$bg_resource->signal_handler_disconnect(            [ store signal id differ. ]
-#    delete <browser.signal_id.received_data> )
-#    if defined <browser.signal_id.received_data>;
+<[browser.disconnect_signal.received_data]>;
 
 <browser.signal_id.received_data>
     = $fg_resource->signal_connect( 'received-data',
     $code{'browser.handler.progress_changed'} )
     if <browser.cfg.show_progress_bar>
+    and defined $fg_resource
     and not defined <browser.signal_id.received_data>;
 
 <browser.signal_id.load_changed> = $bg_view->signal_connect(

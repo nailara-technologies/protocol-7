@@ -9,6 +9,9 @@ my $view     = <browser.current_view>;
 my $uri      = <browser.load_uri>;
 my $loglevel = <browser.url_flag_loglevel>;
 
+<[base.log]>->( 2, "<!> skipped URL flags processing... [TMP DISABLED]" );
+return;    # NEEDS SIGNAL / SETTINGS FIXING AFTER WEBKIT2 PORT, some impossible!
+
 map { <browser.url_active>->{$_} //= 0 }
     ( 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
 

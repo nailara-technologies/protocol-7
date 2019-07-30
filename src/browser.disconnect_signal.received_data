@@ -1,0 +1,16 @@
+# >:]
+
+# name = browser.disconnect_signal.received_data
+
+my $rd_sig_id = delete <browser.signal_id.received_data>;
+
+return if not defined $rd_sig_id;
+
+foreach my $v_layer ( 'fg', 'bg' ) {
+    my $view = <browser.gtk_obj.view>->{ <browser.overlay.index>->{$v_layer} };
+    my $resource = $view->get_main_resource;
+    next if not defined $resource;
+
+    $resource->signal_handler_disconnect($rd_sig_id)
+        if $resource->signal_handler_is_connected($rd_sig_id);
+}
