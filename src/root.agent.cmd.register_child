@@ -12,7 +12,7 @@ my $parent_pid = <[root.process.get_ppid]>->($child_pid);
 foreach my $iid ( keys( %{<root.agent.instance>} ) ) {
     next if not defined <root.agent.instance>->{$iid}->{'process'}{'id'};
     my $pid = <root.agent.instance>->{$iid}->{'process'}{'id'};
-    if ( $pid == $parent_pid ) {
+    if ( defined $parent_pid and $pid == $parent_pid ) {
         $instance_id = $iid;
         last;
     }
