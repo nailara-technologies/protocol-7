@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# :: code :: developement tool for parsing [perl/nailara] source code
+# :: ncode :: developement tool for parsing [perl/nailara] source code
 
 use strict;
 use warnings;
@@ -125,7 +125,7 @@ sub cmd_help {
                 $help_txt = '( alias to command below.. )' if length($cmd) <= 3;
 
             } else {
-                $help_txt = ansi('red') . "command broken" . ansi('reset');
+                $help_txt = ansi('red') . "not yet implemented" . ansi('reset');
             }
 
             my $line_len = $max_len + 2 - length($cmd);
@@ -1900,35 +1900,6 @@ sub raw_mode_off {
     system "stty", 'icanon', 'eol', '^@';
 }
 
-# :: kompare :: show diffs of two directories using the 'kompare' (X11) tool
-
-sub kompare {
-    my %k_path;
-    ( $k_path{'first'}, $k_path{'second'} ) = (@_);
-
-    # check paths first
-    foreach my $_path_type ( 'first', 'second' ) {
-
-        if ( not defined $k_path{$_path_type}
-            or $k_path{$_path_type} eq '' ) {
-            die ":: kompare() :: $_path_type path not defined\n";
-        }
-        if ( !-d $k_path{$_path_type} ) {
-            die ":: kompare() :: $_path_type path '"
-                . $k_path{$_path_type}
-                . "' does not exist\n";
-        }
-    }
-    print "\n :. starting kompare ...\r";
-
-    if ( !system( 'kompare', $k_path{'first'}, $k_path{'second'} ) ) {
-        return 1;    # staring kompare was successful
-    } else {
-        return 0;    # starting kompare failed
-    }
-
-}
-
 # :: diff_less :: displaying an [ansi] diff between two directories using less
 
 sub diff_less {
@@ -2048,7 +2019,7 @@ sub ansi {
 # :: print_usage :: displays usage / help header
 
 sub print_usage {
-    my $usage_txt = "code <command> [parameters]\n";
+    my $usage_txt = "ncode <command> [parameters]\n";
     $usage_txt =~ s/(\W+)/&ansi('reset').$1.&ansi('cyan')/ge;
     print "\n    " . ansi('cyan') . $usage_txt . ansi('reset');
 }
