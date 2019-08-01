@@ -2,30 +2,25 @@
 #
 # :: code :: developement tool for parsing [perl/nailara] source code
 
-my $PATH;
-
-my $USE_ANSI = 1;  # <- deactivate ANSI colors here if they happen to annoy you!
-
-BEGIN {
-    use File::Spec;
-    my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
-    $root_path =~ s/\/[^\/]+\/[^\/]+$//;    # relative to ./bin/ path (parent)
-    $PATH = {
-        'root' => $root_path,
-        'work' => $ENV{'HOME'} . '/.code/'
-    };
-}
-
 use strict;
 use warnings;
-use Switch;
+use File::Spec;
 use IO::Select;
 use Term::ANSIColor;
 use Digest::SHA1 qw(sha1_hex);
 
 my @params = @ARGV;
+my $USE_ANSI = 1;  # <- deactivate ANSI colors here if they happen to annoy you!
 
-my $cmd = shift(@params);
+my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
+$root_path =~ s/\/[^\/]+\/[^\/]+$//;    # relative to ./bin/ path (parent)
+
+my $PATH = {
+    'root' => $root_path,
+    'work' => $ENV{'HOME'} . '/.code/'
+};
+
+my $cmd = shift(@params) // '';
 
 push( @params, '.' ) if $cmd =~ /^(s(earch)?|rep(lace)?)$/;  # defaults to `pwd`
 
@@ -561,19 +556,16 @@ sub help_txt {
     my ( $cmd, $help_type ) = (@call_params);
 
     if ( defined $cmd and $cmd eq 'help_txt' ) {
-        switch ($help_type) {
-            case 'params' {
-                $params_txt =~ s/(\w+)/&ansi('cyan').$1.&ansi('reset')/ge;
-                return $params_txt;
+        if ( $help_type eq 'params' ) {
+            $params_txt =~ s/(\w+)/&ansi('cyan').$1.&ansi('reset')/ge;
+            return $params_txt;
+        } elsif ( $help_type eq 'text' ) {
+            $description_text =~ s/^\n+/\n/gms;
+            $description_text =~ s/^\s*\n+$//gms;
+            if ( $description_text !~ /^\s+$/ ) {
+                $description_text =~ s/^(.*)$/  :   $1/gm;
             }
-            case 'text' {
-                $description_text =~ s/^\n+/\n/gms;
-                $description_text =~ s/^\s*\n+$//gms;
-                if ( $description_text !~ /^\s+$/ ) {
-                    $description_text =~ s/^(.*)$/  :   $1/gm;
-                }
-                return $description_text;
-            }
+            return $description_text;
         }
     }
     return "[$cmd] [$help_type]";
@@ -1821,18 +1813,13 @@ sub pattern_invalid {
     # remove escaped and trailing '$' chars
     $_tmp_pattern =~ s/\\\$|\$$//g;
 
-    switch ($pattern_type) {
-        case 'search' {
-        }
-        case 'replace' {
+    if ( $pattern_type eq 'search' ) {
+    } elsif ( $pattern_type eq 'replace' ) {
 
-            # remove $1, $2 etc.. [as they are allowed]
-            $_tmp_pattern =~ s/\$\d+//g;
-        } else {
-
-            # pattern type invalid
-            return 1;
-        }
+        # remove $1, $2 etc.. [as they are allowed]
+        $_tmp_pattern =~ s/\$\d+//g;
+    } else {
+        return 1;    # pattern type invalid
     }
     if ( $_tmp_pattern =~ /(\$\w+)/ ) {
         my $var_name = $1;
@@ -1909,10 +1896,7 @@ sub user_confirmed {
     my $space_len = $q_len + 20;
     print "\r" . ' ' x $space_len . "\r";
 
-    switch ($choice) {
-        case 'y' { return 1 }
-        case 'n' { return 0 }
-    }
+    return $choice eq 'y' ? 1 : 0;
 }
 
 # :: get_character :: grabs a single key from STDIN [sets terminal to raw mode]
