@@ -9,8 +9,8 @@ use IO::Select;
 use Term::ANSIColor;
 use Digest::SHA1 qw(sha1_hex);
 
-my @params = @ARGV;
-my $USE_ANSI = 1;  # <- deactivate ANSI colors here if they happen to annoy you!
+my @params   = @ARGV;
+my $USE_ANSI = 1;
 
 my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
 $root_path =~ s/\/[^\/]+\/[^\/]+$//;    # relative to ./bin/ path (parent)
@@ -22,7 +22,7 @@ my $PATH = {
 
 my $cmd = shift(@params) // '';
 
-push( @params, '.' ) if $cmd =~ /^(s(earch)?|rep(lace)?)$/;  # defaults to `pwd`
+push( @params, '.' ) if $cmd =~ /^(s(earch)?|rep(lace)?)$/ and !@params;
 
 my $target = $params[0];
 
@@ -41,11 +41,11 @@ my %targets = (
 # currently understood commands and their callbacks
 
 my %commands = (
-    'list_perl_subs' => \&cmd_list_perl_subs,
+    'list_psubs'     => \&cmd_list_psubs,
     's'              => \&cmd_search,
     'search'         => \&cmd_search,
-    'show_perl_sub'  => \&cmd_show_perl_sub,
-    'move_perl_subs' => \&cmd_move_perl_subs,
+    'show_psub'      => \&cmd_show_psub,
+    'move_psubs'     => \&cmd_move_psubs,
     'rep'            => \&cmd_replace,
     'replace'        => \&cmd_replace,
     'restore_backup' => \&cmd_restore_backup,
@@ -169,9 +169,9 @@ sub cmd_help {
     exit;
 }
 
-# :: cmd_list_perl_subs :: lists all subroutines or those matchting optional patterns
+# :: cmd_list_psubs :: lists all subroutines or those matchting optional patterns
 
-sub cmd_list_perl_subs {
+sub cmd_list_psubs {
 
     my @params = @_;
 
@@ -218,7 +218,7 @@ sub cmd_list_perl_subs {
     }
 }
 
-sub cmd_show_perl_sub {
+sub cmd_show_psub {
     my @params = @_;
 
     if ( defined $params[0] and $params[0] eq 'help_txt' ) {
@@ -300,10 +300,10 @@ sub cmd_replace {
 
             while ( not defined $regexp{'search'}
                 or $regexp{'search'} eq '' ) {
-                $regexp{'search'} = get_user_input('search regexp pattern');
+                $regexp{'search'} = get_user_input(' search (regexp) pattern');
             }
             while ( not defined $regexp{'replace'} ) {
-                $regexp{'replace'} = get_user_input('replace regexp pattern');
+                $regexp{'replace'} = get_user_input('replace [regexp] pattern');
             }
 
             $regexp{'options'} = 'g';    # default option is [g]lobal
@@ -325,23 +325,13 @@ sub cmd_replace {
             }
         }
 
-        my $diff_mode = 'diff';
-
-        if (defined $ENV{'DISPLAY'} and    # X11 necessary to use this tool
-            user_confirmed("do you want to use 'kompare' to see the changes?")
-        ) {
-
-            $diff_mode = 'kompare';
-        }
-
         # perform regexp operation on source and get modified version
         my ( $modified_source, $changes )
             = replace_all( $original_source, \%regexp );
 
         remove_unmodified( $original_source, $modified_source );
 
-        preview( $original_source, $modified_source, $diff_mode, $changes,
-            \%regexp );
+        preview( $original_source, $modified_source, $changes, \%regexp );
 
         # ask if we should apply the changes on the source
         if ( user_confirmed('apply those changes to the source code?') ) {
@@ -459,9 +449,9 @@ sub cmd_search {
     print ":\n\n";
 }
 
-# :: cmd_move_perl_subs :: moves subroutine[s] from one module to another [adjusts calls]
+# :: cmd_move_psubs :: moves subroutine[s] from one module to another [adjusts calls]
 
-sub cmd_move_perl_subs {
+sub cmd_move_psubs {
     my @params = @_;
 
     if ( defined $params[0] and $params[0] eq 'help_txt' ) {
@@ -527,7 +517,7 @@ sub cmd_move_perl_subs {
 
             'backup'    => { 'type' => 'changes' },
             'operation' => {
-                'type'            => 'move_perl_subs',
+                'type'            => 'move_psubs',
                 'target'          => $target,
                 'source_sub'      => $source_sub,
                 'destination_sub' => $sub_destination
@@ -628,7 +618,6 @@ sub aborted {
 sub preview {
     my $original_source = shift;
     my $modified_source = shift;
-    my $diff_mode       = shift || 'diff';
     my $changes         = shift;
     my $regexp          = shift;
 
@@ -658,27 +647,10 @@ sub preview {
     print "\n:: saving modified source ::\n\n";
     save_source( $modified_source, $preview_path );
 
-    if ( $diff_mode eq 'kompare'
-        and not kompare( $original_source_path, $modified_source_path )
-        or $diff_mode eq 'diff' ) {
-
-        if ($diff_mode eq 'kompare'
-            and not user_confirmed(
-                "failed to start 'kompare' : " . " use 'diff | less' instead?"
-            )
-        ) {
-            die "\r :: login with ssh -X if you want"
-                . " to use 'kompare' ::"
-                . ' ' x 20
-                . "\n :\n .\n\n";
-
-        }
-
-        if ( !diff_less( $original_source_path, $modified_source_path, $regexp )
-        ) {
-            die " :: failed to run diff ::\n\n";
-        }
+    if ( !diff_less( $original_source_path, $modified_source_path, $regexp ) ) {
+        die " :: failed to run diff ::\n\n";
     }
+
     clean_dir($preview_path);
     print "\n";
 }
@@ -1283,7 +1255,7 @@ sub new_path {
 sub get_user_input {
     my $prompt = shift;
     $| = 1;
-    print "\n  :\n  : $prompt : ";
+    print "  :\n  : $prompt : ";
     chomp( my $pattern = <STDIN> );
     print "  :\n\n";
     return $pattern;
