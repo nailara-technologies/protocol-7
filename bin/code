@@ -27,6 +27,8 @@ my @params = @ARGV;
 
 my $cmd = shift(@params);
 
+push( @params, '.' ) if $cmd =~ /^(s(earch)?|rep(lace)?)$/;  # defaults to `pwd`
+
 my $target = $params[0];
 
 $SIG{'INT'} = sub { print "\n\n"; &aborted; };
@@ -34,7 +36,7 @@ $SIG{'INT'} = sub { print "\n\n"; &aborted; };
 # define target paths on which the code parser is supposed to work on
 
 my %targets = (
-    '.'      => $PATH->{'root'} . '/',               # current path(!)
+    '.'      => Cwd::cwd(),                          # current path(!)
     'bin'    => $PATH->{'root'} . '/bin/',           # nailara executable code
     'src'    => $PATH->{'root'} . '/src/',           # the nailara module source
     'conf'   => $PATH->{'root'} . '/cfg/',           # nailara config files
@@ -263,7 +265,7 @@ sub cmd_replace {
 
     if ( defined $params[0] and $params[0] eq 'help_txt' ) {
         return help_txt(
-            '<target> [search_pattern] [replace_pattern]', '
+            '[target] [search_pattern] [replace_pattern]', '
 
 <target> [search] [replace] ..... regular expression replace operation
 
@@ -389,7 +391,7 @@ sub cmd_search {
 
     if ( defined $params[0] and $params[0] eq 'help_txt' ) {
         return help_txt(
-            '<target> [pattern(s)]', '
+            '[target] [pattern(s)]', '
 
 <target> [pattern] ..... regexp search on all <target> files
 
