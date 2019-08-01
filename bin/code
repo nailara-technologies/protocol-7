@@ -45,9 +45,11 @@ my %targets = (
 
 my %commands = (
     'list_perl_subs' => \&cmd_list_perl_subs,
+    's'              => \&cmd_search,
     'search'         => \&cmd_search,
-    'show_sub'       => \&cmd_show_sub,
+    'show_perl_sub'  => \&cmd_show_perl_sub,
     'move_perl_subs' => \&cmd_move_perl_subs,
+    'rep'            => \&cmd_replace,
     'replace'        => \&cmd_replace,
     'restore_backup' => \&cmd_restore_backup,
     'undo'           => \&cmd_undo,
@@ -122,6 +124,9 @@ sub cmd_help {
 
             if ( defined &{ $commands{$cmd} } ) {
                 $help_txt = &{ $commands{$cmd} }( 'help_txt', 'params' );
+
+                $help_txt = '( alias to command below.. )' if length($cmd) <= 3;
+
             } else {
                 $help_txt = ansi('red') . "command broken" . ansi('reset');
             }
@@ -216,7 +221,7 @@ sub cmd_list_perl_subs {
     }
 }
 
-sub cmd_show_sub {
+sub cmd_show_perl_sub {
     my @params = @_;
 
     if ( defined $params[0] and $params[0] eq 'help_txt' ) {
@@ -245,7 +250,7 @@ sub cmd_show_sub {
             @subroutines = get_user_input('subroutine name');
         }
         foreach my $sub_name (@subroutines) {
-            print show_sub( $source, $sub_name, 1 ) . "\n";
+            print show_perl_sub( $source, $sub_name, 1 ) . "\n";
         }
     }
     exit;
@@ -378,7 +383,6 @@ sub cmd_replace {
 }
 
 # :: cmd_search :: regexp search with highlighting on all <target> files
-
 sub cmd_search {
     my @params = @_;
     my $search_pattern;
@@ -423,38 +427,33 @@ sub cmd_search {
                     $file_changed = 1;
                 }
 
-                switch ($cmd) {
-                    case 'search' {
-
-                        if ( lc($search_pattern) ne $search_pattern
-                            and $source_line =~ /$search_pattern/
-                            or lc($search_pattern) eq $search_pattern
-                            and $source_line =~ /$search_pattern/i ) {
-                            if ( $file_changed
-                                or not defined $last_filename ) {
-                                if ( lc($search_pattern) ne $search_pattern ) {
-                                    print
-                                        "\n::: [ search =~ /$search_pattern/ ]";
-                                } else {
-                                    print
-                                        "\n::: [ search =~ /$search_pattern/i ]";
-                                }
-                                print ' :: '
-                                    . ansi('cyan')
-                                    . $filename
-                                    . ansi('reset')
-                                    . " ::\n:\n";
+                if ( $cmd =~ /^s(earch)?$/ ) {
+                    if ( lc($search_pattern) ne $search_pattern
+                        and $source_line =~ /$search_pattern/
+                        or lc($search_pattern) eq $search_pattern
+                        and $source_line =~ /$search_pattern/i ) {
+                        if ( $file_changed
+                            or not defined $last_filename ) {
+                            if ( lc($search_pattern) ne $search_pattern ) {
+                                print "\n::: [ search =~ /$search_pattern/ ]";
+                            } else {
+                                print "\n::: [ search =~ /$search_pattern/i ]";
                             }
-
-                            print ": "
+                            print ' :: '
                                 . ansi('cyan')
-                                . sprintf( "%03d", $line_num )
-                                . ansi('reset') . " : "
-                                . highlight( $source_line, $search_pattern,
-                                ansi('yellow') )
-                                . "\n";
-                            $last_filename = $filename;
+                                . $filename
+                                . ansi('reset')
+                                . " ::\n:\n";
                         }
+
+                        print ": "
+                            . ansi('cyan')
+                            . sprintf( "%03d", $line_num )
+                            . ansi('reset') . " : "
+                            . highlight( $source_line, $search_pattern,
+                            ansi('yellow') )
+                            . "\n";
+                        $last_filename = $filename;
                     }
                 }
             }
@@ -1372,9 +1371,9 @@ sub overwrite_source_files {
     save_source( $source_code, $PATH->{'root'} . '/' );
 }
 
-# :: show_sub :: returns the source code of a certain subroutine [TODO: rewrite parsing!]
+# :: show_perl_sub :: returns the source code of a certain subroutine [TODO: rewrite parsing!]
 
-sub show_sub {
+sub show_perl_sub {
     my $source    = shift;
     my $sub_name  = shift;
     my $formatted = shift || 0;
@@ -1609,7 +1608,7 @@ sub cut_out_sub {
 
     # get the subroutine source and location
     my ( $sub_source, $file, $start_line, $start_pos, $offset )
-        = show_sub( $work_source, $sub_name );
+        = show_perl_sub( $work_source, $sub_name );
 
     if ( defined $file ) {
         substr( $work_source->{$file}, $start_pos, $offset, $substitution );
@@ -2095,4 +2094,3 @@ sub print_usage {
     $usage_txt =~ s/(\W+)/&ansi('reset').$1.&ansi('cyan')/ge;
     print "\n    " . ansi('cyan') . $usage_txt . ansi('reset');
 }
-
