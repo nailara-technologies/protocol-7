@@ -1,0 +1,2098 @@
+#!/usr/bin/perl
+#
+# :: code :: developement tool for parsing [perl/nailara] source code
+
+my $PATH;
+
+my $USE_ANSI = 1;  # <- deactivate ANSI colors here if they happen to annoy you!
+
+BEGIN {
+    use File::Spec;
+    my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
+    $root_path =~ s/\/[^\/]+\/[^\/]+$//;    # relative to ./bin/ path (parent)
+    $PATH = {
+        'root' => $root_path,
+        'work' => $ENV{'HOME'} . '/.code/'
+    };
+}
+
+use strict;
+use warnings;
+use Switch;
+use IO::Select;
+use Term::ANSIColor;
+use Digest::SHA1 qw(sha1_hex);
+
+my @params = @ARGV;
+
+my $cmd = shift(@params);
+
+my $target = $params[0];
+
+$SIG{'INT'} = sub { print "\n\n"; &aborted; };
+
+# define target paths on which the code parser is supposed to work on
+
+my %targets = (
+    '.'      => $PATH->{'root'} . '/',               # current path(!)
+    'bin'    => $PATH->{'root'} . '/bin/',           # nailara executable code
+    'src'    => $PATH->{'root'} . '/src/',           # the nailara module source
+    'conf'   => $PATH->{'root'} . '/cfg/',           # nailara config files
+    'agents' => $PATH->{'root'} . '/cfg/agents/',    # nailara agent configs
+);
+
+# currently understood commands and their callbacks
+
+my %commands = (
+    'list_perl_subs' => \&cmd_list_perl_subs,
+    'search'         => \&cmd_search,
+    'show_sub'       => \&cmd_show_sub,
+    'move_perl_subs' => \&cmd_move_perl_subs,
+    'replace'        => \&cmd_replace,
+    'restore_backup' => \&cmd_restore_backup,
+    'undo'           => \&cmd_undo,
+    'undo_move'      => \&cmd_undo_move,
+    'help'           => \&cmd_help
+);
+
+if ( !@params ) {
+    &cmd_help;
+    exit;
+}
+
+print "\n";
+
+# unknown parser command
+if ( not defined $commands{$cmd} ) {
+    print ansi('red') . "\n ::"
+        . ansi('reset')
+        . " a command '$cmd' does not exist"
+        . ansi('red') . " ::\n"
+        . ansi('reset') . "\n";
+    &cmd_help;
+    exit;
+}
+
+# <target> = 'all' is an alias for all target paths combined
+if ( $params[0] eq 'all' ) {
+    $params[0] = join( '+', keys(%targets) );
+}
+
+# execute parser command callback if defined
+if ( defined &{ $commands{$cmd} } ) {
+    &{ $commands{$cmd} }(@params);
+} else {
+    die "\n :: callback for command '$cmd' not defined\n\n";
+}
+
+exit;
+
+# ::: parser commands :::
+
+# :: cmd_help :: display help text [for a given command or lists all commands]
+
+sub cmd_help {
+
+    my $command = shift;
+    my @params  = @_;
+
+    if ( defined $command and $command eq 'help_txt' ) {
+        return help_txt(
+            '[command]', '
+
+     help ................... list available commands
+     help <command> ......... show command description
+
+              ', ( $command, @params )
+        );
+    }
+
+    if ( not defined $command ) {
+        &print_usage;
+
+        print "\n    c o m m a n d     p a r a m e t e r s\n:\n";
+
+        my $max_len = 0;
+        foreach my $cmd ( keys(%commands) ) {
+            if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
+        }
+
+        foreach my $cmd ( sort( keys(%commands) ) ) {
+            my $help_txt = 'not defined';
+
+            if ( defined &{ $commands{$cmd} } ) {
+                $help_txt = &{ $commands{$cmd} }( 'help_txt', 'params' );
+            } else {
+                $help_txt = ansi('red') . "command broken" . ansi('reset');
+            }
+
+            my $line_len = $max_len + 2 - length($cmd);
+
+            if ( $cmd eq 'help' and defined $ARGV[0] and $ARGV[0] eq 'help' ) {
+                $cmd = ansi('bold') . $cmd;
+            }
+
+            print ansi('reset') . ": : "
+                . ansi('cyan')
+                . $cmd . ' '
+                . ansi('reset')
+                . '_' x $line_len
+                . ansi('reset') . ' '
+                . $help_txt
+                . ansi('reset') . "\n";
+        }
+        print ansi('reset') . ':' . ansi('reset') . "\n\n";
+    } elsif ( defined &{ $commands{$command} } ) {
+        my $params_txt       = &{ $commands{$command} }( 'help_txt', 'params' );
+        my $description_text = &{ $commands{$command} }( 'help_txt', 'text' );
+
+        print ansi('reset')
+            . "  :\n  : : "
+            . ansi('cyan') . 'code '
+            . ansi('cyan bold')
+            . $command . ' '
+            . ansi('reset')
+            . $params_txt
+            . "\n  :\n\n      "
+            . ansi('bold')
+            . 'p a r a m e t e r s'
+            . ansi('reset') . "\n\n";
+
+        $description_text =~ s/(\W+)/&ansi('reset').$1.&ansi('cyan')/ge;
+
+        print ansi('cyan') . $description_text . ansi('reset') . "\n\n";
+
+    }
+
+    exit;
+}
+
+# :: cmd_list_perl_subs :: lists all subroutines or those matchting optional patterns
+
+sub cmd_list_perl_subs {
+
+    my @params = @_;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            '<target> [pattern(s)]', '
+
+<target> [pattern] ..... displays the list of defined subroutines
+
+                         <target>  source code target path keywords
+                                   ( see list_targets for details )
+
+                         [pattern] substring patterns to match
+          ', @params
+        );
+    }
+
+    if (@params) {
+
+        my $target = shift(@params);
+
+        if ( my $source = load_source($target) ) {
+            print "\n : defined subroutines [$target source] :\n\n:";
+
+            if ( !@params ) {
+
+                # print all subroutine names
+                print "\n: : " . join( "\n: : ", get_perl_subs($source) );
+            } else {
+                my @filter_patterns = @params;
+                foreach my $sub_name ( get_perl_subs($source) ) {
+                    foreach my $pattern (@filter_patterns) {
+                        if ( $sub_name =~ /$pattern/i ) {
+                            $sub_name = highlight( $sub_name, $pattern,
+                                ansi('bold yellow') );
+                            print "\n: : " . $sub_name;
+                        }
+                    }    # XXX: [todo] add 'no matches' message
+                }
+            }
+            print "\n:\n\n";
+            exit;
+        }
+    }
+}
+
+sub cmd_show_sub {
+    my @params = @_;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            '<target> [subroutine_name(s)]', '
+
+<target> [sub_name] .... display source code of specified subroutine
+
+                         <target>   source code target path keywords
+                                    ( see list_targets for details )
+
+                         [sub_name] name of subroutine[s] to display
+                                    ( the package name is optional )
+
+                                    if you haven\'t specified a
+                                    subroutine name, you will be
+                                    asked for one.
+          ', @params
+        );
+    }
+
+    if ( my $source = load_source($target) ) {
+        my @subroutines;
+        if (@params) { @subroutines = @params }
+        else {
+            @subroutines = get_user_input('subroutine name');
+        }
+        foreach my $sub_name (@subroutines) {
+            print show_sub( $source, $sub_name, 1 ) . "\n";
+        }
+    }
+    exit;
+}
+
+# :: cmd_replace :: regular expression search/replace operation on <target> code
+
+sub cmd_replace {
+    my @params = @_;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            '<target> [search_pattern] [replace_pattern]', '
+
+<target> [search] [replace] ..... regular expression replace operation
+
+                            <target>  source code target path keywords
+                                      ( see list_targets for details )
+
+                            [search]  : regexp search pattern
+
+                            example search pattern: (\w+)
+
+                            [replace] : regexp replace pattern
+
+                            you can select different regexp options by
+                            defining a special replace pattern like this:
+
+                            <e|g|s|m|i>/<pattern>
+
+                            example replace pattern : ge/lc($1)
+
+                            if you do not specify the patterns as parameters
+                            you will be asked for them - less to escape then.
+          ', @params
+        );
+    }
+
+    if (@params) {
+        my $target = shift(@params);
+
+        my $original_source = load_source($target);
+
+        my %regexp;
+        ( $regexp{'search'}, $regexp{'replace'} ) = (@params);
+
+        my $ok = 0;
+
+        while ( !$ok ) {
+
+            while ( not defined $regexp{'search'}
+                or $regexp{'search'} eq '' ) {
+                $regexp{'search'} = get_user_input('search regexp pattern');
+            }
+            while ( not defined $regexp{'replace'} ) {
+                $regexp{'replace'} = get_user_input('replace regexp pattern');
+            }
+
+            $regexp{'options'} = 'g';    # default option is [g]lobal
+
+            # activate different options with a replace
+            # pattern beginning with '<regex_options>/'
+
+            if ( $regexp{'replace'} =~ s/^([e|g|s|m|i]+)\/// ) {
+                $regexp{'options'} = $1;
+            }
+
+            my $regexp_pattern = create_regexp( \%regexp );
+
+            if ( user_confirmed("is the regexp pattern  $regexp_pattern  ok?") )
+            {
+                $ok = 1;
+            } else {
+                %regexp = ();    # reset pattern
+            }
+        }
+
+        my $diff_mode = 'diff';
+
+        if (defined $ENV{'DISPLAY'} and    # X11 necessary to use this tool
+            user_confirmed("do you want to use 'kompare' to see the changes?")
+        ) {
+
+            $diff_mode = 'kompare';
+        }
+
+        # perform regexp operation on source and get modified version
+        my ( $modified_source, $changes )
+            = replace_all( $original_source, \%regexp );
+
+        remove_unmodified( $original_source, $modified_source );
+
+        preview( $original_source, $modified_source, $diff_mode, $changes,
+            \%regexp );
+
+        # ask if we should apply the changes on the source
+        if ( user_confirmed('apply those changes to the source code?') ) {
+
+            warn_apply();
+
+            my $backup_metadata = {
+
+                'backup'    => { 'type' => 'changes' },
+                'operation' => {
+                    'type'          => 'replace',
+                    'target'        => $target,
+                    'total_changes' => $changes->{'total_changes'},
+                    'files_parsed'  => $changes->{'files_parsed'},
+                    'files_changed' => $changes->{'files_changed'}
+                },
+                'regexp' => {
+                    'search'  => $regexp{'search'},
+                    'replace' => $regexp{'replace'},
+                    'options' => $regexp{'options'}
+                },
+            };
+
+            # create a backup first
+            create_backup( $original_source, $backup_metadata,
+                $modified_source );
+
+            # write modification to disk
+            overwrite_source_files( $modified_source, $backup_metadata );
+        } else {
+            &aborted;
+        }
+
+        &done;
+    }
+}
+
+# :: cmd_search :: regexp search with highlighting on all <target> files
+
+sub cmd_search {
+    my @params = @_;
+    my $search_pattern;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            '<target> [pattern(s)]', '
+
+<target> [pattern] ..... regexp search on all <target> files
+
+                         <target>  source code target path keywords
+                                   ( see list_targets for details )
+
+                         [pattern] regular expression patterns to match
+          ', @params
+        );
+    }
+
+    my $target = shift(@params);
+
+    if (@params) { $search_pattern = join( ' ', @params ) }
+    else {
+        $search_pattern = get_user_input('regexp search pattern');
+    }
+
+    my $source_data = load_source($target);
+
+    my $last_filename;
+    foreach my $filename ( keys(%$source_data) ) {
+        my $line_num = 0;
+        if ( defined $source_data->{$filename} ) {
+            foreach my $source_line ( split( /\n/, $source_data->{$filename} ) )
+            {
+                $line_num++;
+                my $file_changed = 0;
+
+                my $cut_path = $PATH->{'root'};
+                $filename =~ s/^$cut_path\///;
+
+                if ( defined $last_filename
+                    and $last_filename ne $filename ) {
+                    $file_changed = 1;
+                }
+
+                switch ($cmd) {
+                    case 'search' {
+
+                        if ( lc($search_pattern) ne $search_pattern
+                            and $source_line =~ /$search_pattern/
+                            or lc($search_pattern) eq $search_pattern
+                            and $source_line =~ /$search_pattern/i ) {
+                            if ( $file_changed
+                                or not defined $last_filename ) {
+                                if ( lc($search_pattern) ne $search_pattern ) {
+                                    print
+                                        "\n::: [ search =~ /$search_pattern/ ]";
+                                } else {
+                                    print
+                                        "\n::: [ search =~ /$search_pattern/i ]";
+                                }
+                                print ' :: '
+                                    . ansi('cyan')
+                                    . $filename
+                                    . ansi('reset')
+                                    . " ::\n:\n";
+                            }
+
+                            print ": "
+                                . ansi('cyan')
+                                . sprintf( "%03d", $line_num )
+                                . ansi('reset') . " : "
+                                . highlight( $source_line, $search_pattern,
+                                ansi('yellow') )
+                                . "\n";
+                            $last_filename = $filename;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    print ":\n\n";
+}
+
+# :: cmd_move_perl_subs :: moves subroutine[s] from one module to another [adjusts calls]
+
+sub cmd_move_perl_subs {
+    my @params = @_;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            '<code_target> [source_sub] [target_sub]', '
+
+<target> [source_sub[s]] [target_sub] .... moves one or more subroutines
+
+                             <target>   source code target path keywords
+                                        ( see list_targets for details )
+
+                      [source_sub[s]]    the subroutine[s] to be moved
+                                        ( * as wildcard is understood )
+
+                                         if you haven\'t specified any
+                                         subroutines or a destination
+                                         you will be asked for them.
+          ', @params
+        );
+    }
+
+    my ( $work_target, $source_sub, $sub_destination ) = (@params);
+
+    while ( not defined $source_sub or $source_sub eq '' ) {
+        $source_sub = get_user_input('source subroutine[s]');
+    }
+    while (not defined $sub_destination
+        or $sub_destination eq ''
+        or $sub_destination !~ /^[\w\_\:]+\:\:([\w\_]+)?$/ ) {
+        if ( $sub_destination !~ /^[\w\_\:]+\:\:([\w\_]+)?$/ ) {
+            print "\n  :: invalid target package syntax - please retry ::\n";
+        }
+        $sub_destination = get_user_input('target package or subroutine');
+    }
+
+    print ansi('bold')
+        . "\n .: "
+        . ansi('reset')
+        . ' p r e p a r i n g   t o   m o v e   s u b r o u t i n e s '
+        . ansi('bold') . ' :.'
+        . ansi('reset')
+        . "\n\n\n";
+
+    my $original_source = load_source($work_target);
+
+    my $modified_source;
+    %{$modified_source} = %{$original_source};
+
+    move_perl_subs( $modified_source, $source_sub, $sub_destination );
+
+    print "\n";
+
+    remove_unmodified( $original_source, $modified_source );
+
+    preview( $original_source, $modified_source, 'kompare' );
+
+    # ask if we should apply the changes on the source
+    if ( user_confirmed('apply those changes to the source code?') ) {
+
+        warn_apply();
+
+        my $backup_metadata = {
+
+            'backup'    => { 'type' => 'changes' },
+            'operation' => {
+                'type'            => 'move_perl_subs',
+                'target'          => $target,
+                'source_sub'      => $source_sub,
+                'destination_sub' => $sub_destination
+            }
+        };
+
+        # create a backup first
+        create_backup( $original_source, $backup_metadata, $modified_source );
+
+        # write modification to disk
+        overwrite_source_files( $modified_source, $backup_metadata );
+    } else {
+        &aborted;
+    }
+
+    &done;
+}
+
+# ::: additional subroutines :::
+
+# :: help_txt :: defines help text and short description
+#                returns corresponding text if first parameter equals 'help'
+sub help_txt {
+    my ( $params_txt, $description_text, @call_params ) = (@_);
+
+    my ( $cmd, $help_type ) = (@call_params);
+
+    if ( defined $cmd and $cmd eq 'help_txt' ) {
+        switch ($help_type) {
+            case 'params' {
+                $params_txt =~ s/(\w+)/&ansi('cyan').$1.&ansi('reset')/ge;
+                return $params_txt;
+            }
+            case 'text' {
+                $description_text =~ s/^\n+/\n/gms;
+                $description_text =~ s/^\s*\n+$//gms;
+                if ( $description_text !~ /^\s+$/ ) {
+                    $description_text =~ s/^(.*)$/  :   $1/gm;
+                }
+                return $description_text;
+            }
+        }
+    }
+    return "[$cmd] [$help_type]";
+}
+
+# :: warn_apply :: warns before applying changes to disk [ <anykey> == abort ]
+
+sub warn_apply {
+    $| = 1;
+
+    my $s = IO::Select->new();
+    &raw_mode_on;
+    $s->add( \*STDIN );
+
+    my $msg;
+    for ( 0 .. 6 ) {
+        if ( not defined $msg or $msg =~ /^\s+$/ ) {
+            $msg = "A P P L Y I N G   C H A N G E S";
+        } elsif ( $msg !~ /^\s+$/ ) {
+            $msg = ' ' x length($msg);
+        }
+
+        print ansi('bold')
+            . "\r.:  "
+            . ansi('red')
+            . $msg
+            . ansi('reset bold') . '  :. '
+            . ansi('reset');
+
+        if ( $s->can_read(0.42) ) {
+            print "\r" . ' ' x 42 . "\r";
+            my $dev_null;
+            sysread( STDIN, $dev_null, 42 );
+            &aborted;
+        }
+    }
+    print "\r"
+        . ansi('bold') . ".:  "
+        . ansi('reset')
+        . $msg
+        . ansi('bold') . "  :."
+        . ansi('reset') . "\n\n";
+}
+
+# :: aborted :: display 'aborted' message and exit program
+
+sub aborted {
+    print ansi('reset bold') . " .: "
+        . ansi('red')
+        . "A B O R T E D"
+        . ansi('reset bold') . " :.\n"
+        . ansi('reset')
+        . " :\n ."
+        . ansi('reset') . "\n\n";
+    exit;
+}
+
+# :: preview :: shows differences between original and modified source
+
+sub preview {
+    my $original_source = shift;
+    my $modified_source = shift;
+    my $diff_mode       = shift || 'diff';
+    my $changes         = shift;
+    my $regexp          = shift;
+
+    my ( $search_pattern, $replace_pattern )
+        = ( $regexp->{'search'}, $regexp->{'replace'} );
+
+    my $preview_path = $PATH->{'work'} . 'preview/';
+
+    print ansi('bold') . '.:  '
+        . ansi('reset')
+        . "c r e a t i n g   p r e v i e w"
+        . ansi('bold') . '  :.'
+        . ansi('reset') . "\n\n";
+
+    # remove any previous contents
+    if ( clean_dir($preview_path) ) { print "\n" }
+
+    my $original_source_path = $preview_path . 'original/';
+    my $modified_source_path = $preview_path . 'modified/';
+
+    $original_source = new_path( $original_source_path, $original_source );
+    $modified_source = new_path( $modified_source_path, $modified_source );
+
+    print ":: saving original source ::\n\n";
+    save_source( $original_source, $preview_path );
+
+    print "\n:: saving modified source ::\n\n";
+    save_source( $modified_source, $preview_path );
+
+    if ( $diff_mode eq 'kompare'
+        and not kompare( $original_source_path, $modified_source_path )
+        or $diff_mode eq 'diff' ) {
+
+        if ($diff_mode eq 'kompare'
+            and not user_confirmed(
+                "failed to start 'kompare' : " . " use 'diff | less' instead?"
+            )
+        ) {
+            die "\r :: login with ssh -X if you want"
+                . " to use 'kompare' ::"
+                . ' ' x 20
+                . "\n :\n .\n\n";
+
+        }
+
+        if ( !diff_less( $original_source_path, $modified_source_path, $regexp )
+        ) {
+            die " :: failed to run diff ::\n\n";
+        }
+    }
+    clean_dir($preview_path);
+    print "\n";
+}
+
+# :: create_backup :: creates a backup of the actual change
+
+sub create_backup {
+    my $backup_source   = shift;  # the sourcecode hash of files to be backupped
+    my $backup_metadata = shift;  # hashref to some meta data of the backup
+    my $modified_source = shift;  # modified source [if exists] (for checksums)
+
+    print ":: creating backup of original files ::\n\n";
+
+    # first make sure we have a valid backup directory
+
+    my $backup_dir = $PATH->{'work'} . 'backups/';
+    check_path($backup_dir);
+
+    my $pack_dir = $PATH->{'work'} . 'current_backup/';
+    clean_dir($pack_dir);
+
+    # make a copy of the sourcecode in current_backup dir
+
+    save_source( new_path( $pack_dir, $backup_source ), $pack_dir );
+
+    print "\n";
+
+    # prepare some meta data
+
+    my $metadata_file = $pack_dir . '.backup.meta_data';
+
+    $backup_metadata->{'backup'}{'time'} = time();
+
+    chomp( my $username = $ENV{'USER'} || qx(whoami) );
+    if ( defined $username ) {
+        $backup_metadata->{'backup'}{'created_by'} = $username;
+    }
+
+    chomp( my $hostname = $ENV{'HOSTNAME'} || qx(hostname) );
+    if ( defined $hostname ) {
+        $backup_metadata->{'backup'}{'created_on'} = $hostname;
+    }
+
+    print ":: calculating backup checksums ::\n\n";
+
+    # add checksums of modified source for target file checks during restore
+    if ( ref($modified_source) eq 'HASH' ) {
+        $backup_metadata->{'original_sha1'}
+            = create_checksums($backup_source);    # get checksum hashref
+    }
+
+    print ":: calculating modification checksums ::\n\n";
+
+    # add checksums of modified source for target file checks during restore
+    if ( ref($modified_source) eq 'HASH' ) {
+        $backup_metadata->{'modified_sha1'}
+            = create_checksums($modified_source);    # get checksum hashref
+    }
+
+    save_metadata( $metadata_file, $backup_metadata, $PATH->{'work'} );
+
+    my $operation_type = '';
+    if ( defined $backup_metadata->{'operation'}{'type'} ) {
+        $operation_type = $backup_metadata->{'operation'}{'type'} . '.';
+    }
+
+    my $backup_file;
+
+    while ( not defined $backup_file or -f $backup_dir . $backup_file ) {
+
+        # if such a file already exists wait 1 second to get different timestamp
+        if ( defined $backup_file and -f $backup_dir . $backup_file ) {
+            sleep 1;
+        }
+
+        $backup_file
+            = $backup_dir
+            . 'backup.'
+            . $operation_type
+            . &timestamp_string
+            . '.tar.gz';
+    }
+
+    pack_backup( $backup_dir, $backup_file, $PATH->{'work'} );
+
+    clean_dir($pack_dir);
+
+    #my $test_data = load_metadata( $backup_file, $PATH->{'work'} );
+
+    #    check_target_files( $backup_source, $test_data );
+
+}
+
+# :: timestamp_string :: return a timestamp string for use in filenames
+
+sub timestamp_string {
+    my @t                 = localtime( time() );
+    my $_Y                = 1900 + $t[5];
+    my $_M                = sprintf( "%02d", ( $t[4] + 1 ) );
+    my $_D                = sprintf( "%02d", $t[3] );
+    my $_h                = sprintf( "%02d", $t[2] );
+    my $_m                = sprintf( "%02d", $t[1] );
+    my $_s                = sprintf( "%02d", $t[0] );
+    my $_timestamp_string = "$_Y-$_M-$_D" . '.' . "$_h:$_m:$_s";
+
+    return $_timestamp_string;
+}
+
+# :: pack_backup :: create an archive file from the prepared backup directory
+
+sub pack_backup {
+    my $backup_dir  = shift;
+    my $backup_file = shift;
+    my $cut_path    = shift;
+    my $pack_dir    = $PATH->{'work'} . 'current_backup/';
+
+    my $backup_file_short = $backup_file;
+    if ( defined $cut_path ) { $backup_file_short =~ s/^$cut_path// }
+
+    $backup_file_short =~ s/\/([^\/]+)$/'\/'.&ansi('green').$1.&ansi('reset')/e;
+
+    print ":: creating backup archive file $backup_file_short ::\n\n";
+
+    chdir($pack_dir);
+    my $pack_results = qx(tar czvvf $backup_file .);
+    chmod( 0400, $backup_file );
+    chdir( $PATH->{'work'} )
+        ;    # change back to a secure path as the dir will disappear
+
+    foreach my $tar_out_line ( split( /\n/, $pack_results ) ) {
+        if ( $tar_out_line =~ /^(\S+)\s(\S+)\s+(\S+)\s(\S+)\s(\S+)\s(.+)$/ ) {
+            my ( $permissions, $owner, $size, $creation_date, $creation_time,
+                $filename )
+                = ( $1, $2, $3, $4, $5, $6 );
+            my $owner_padding = 20 - length($owner);
+            $filename =~ s/([^\/]+)$/&ansi('green').$1.&ansi('reset')/e;
+            if ( $filename =~ /\/$/ ) { $size = '' }
+
+            print ': '
+                . ansi('cyan')
+                . $creation_date
+                . ansi('reset') . ' '
+                . ansi('yellow')
+                . $owner
+                . ' ' x $owner_padding
+
+                #. sprintf("%*s",20,$owner)
+                . ansi('reset') . "\n"
+                . '       '
+                . ansi('cyan')
+                . $creation_time
+                . ansi('reset') . ' '
+                . ansi('yellow')
+                . $permissions
+                . ansi('reset') . '   '
+                . ansi('green')
+                . sprintf( "% 10s", $size ) . ' '
+                . ansi('reset') . ': '
+                . $filename
+                . ansi('reset') . "\n";
+        }
+    }
+    print "\n";
+    return $backup_file;
+}
+
+# :: restore_backup :: restores a specific backup with preview of the changes
+
+sub restore_backup {
+    my $backup_file = shift;
+
+    if ( !-f $backup_file ) {
+        die " :: backup file '$backup_file' does not exist ::\n";
+    }
+
+}
+
+# :: check_target_files :: necessary target file checks before restoring backup data
+
+sub check_target_files {    # XXX: incomplete
+    my ( $source_data, $meta_data ) = (@_);
+
+    print "\n :: checking target files ::\n\n";
+
+    if ( ref( $meta_data->{'sha1'} ) ne 'HASH' ) {
+        die " :: check_target_files() ::"
+            . " no checksums found in backup meta data ::\n";
+    }
+
+    foreach my $sha1_sum ( keys( %{ $meta_data->{'sha1'} } ) ) {
+        my $check_file = $meta_data->{'sha1'}{$sha1_sum};
+
+        if ( !-f $check_file ) {
+            if ( user_confirmed("target file '$check_file' is missing - abort?")
+            ) {
+                exit;
+            }
+        } else {
+            open( my $CHK_FILE, '<' . $check_file )
+                or die " :: can not open target file '$check_file' : $! ::\n";
+            my $sha1 = Digest::SHA1->new;
+            $sha1->addfile($CHK_FILE);
+            my $chk_sum = $sha1->hexdigest;
+            close($CHK_FILE);
+
+            if ( $sha1_sum eq $chk_sum ) {
+                print "[MATCH] $check_file\n";    # debug output
+            } else {
+                if ( user_confirmed("file '$check_file' has changed. abort?") )
+                {
+                    exit;
+                }
+            }
+        }
+    }
+}
+
+# :: load_metadata :: loads the backup metadata and returns a hash reference to it
+
+sub load_metadata {
+    my $file_name         = shift;
+    my $cut_path          = shift;
+    my $metadata_filename = '.backup.meta_data';
+    my %meta_data;
+
+    my @metadata_file;
+
+    my $file_name_short = $file_name;
+    if ( defined $cut_path ) { $file_name_short =~ s/^$cut_path// }
+
+    $file_name_short =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+
+    print "\n:: loading meta data from $file_name_short ::\n";
+
+    if ( $file_name =~ /$metadata_filename$/ ) {
+
+        if ( !-f $file_name ) {
+            die " :: expected metadata file '$file_name' does not exist ::\n";
+        }
+
+        open( my $META_FILE, '<' . $file_name )
+            or die " :: can not open metadata file '$file_name : $! ::\n";
+
+        @metadata_file = <$META_FILE>;
+        close($META_FILE);
+
+    } elsif ( $file_name =~ /backup\..+\.tar.gz$/ ) {
+        my $archive_content = qx(tar ztf $file_name);
+
+        # find the actual path of the metadata file in the archive
+
+        foreach
+            my $archive_content_file ( sort( split( /\n/, $archive_content ) ) )
+        {
+            if ( $archive_content_file =~ /$metadata_filename$/ ) {
+                $metadata_filename = $archive_content_file;
+                last;
+            }
+        }
+        my $file_contents = qx(tar zxf $file_name $metadata_filename -O);
+        @metadata_file = split( /\n/, $file_contents );
+    }
+
+    foreach my $data_line (@metadata_file) {
+        chomp($data_line);
+        if ( $data_line =~ /^([^\.]+)\s(.*)$/ ) {
+            $meta_data{$1} = $2;
+        } elsif ( $data_line =~ /^([^\.]+)\.([^\.]+)\s(.*)$/ ) {
+            $meta_data{$1}{$2} = $3;
+        } else {
+            die " :: invalid syntax in meta data file : '$data_line' ::\n";
+        }
+    }
+
+    if ( !keys(%meta_data) ) {
+        die " :: meta data file '$file_name' was empty ::\n";
+    }
+    return \%meta_data;
+}
+
+# :: save_metadata :: creates a file with the backup metadata for use in restore operation
+
+sub save_metadata {
+    my $file_name = shift;
+    my $meta_data = shift;
+    my $cut_path  = shift;
+    my @file_data;
+
+    if ( not defined $file_name or ref($meta_data) ne 'HASH' ) {
+        die ":: save_metadata() :: parameter error :: ";
+    }
+    check_path($file_name);
+    foreach my $first_key ( keys(%$meta_data) ) {
+        my $file_key = $first_key;
+        if ( ref( $meta_data->{$first_key} ) eq 'HASH' ) {
+            foreach my $second_key ( keys( %{ $meta_data->{$first_key} } ) ) {
+
+                # swap key and value for SHA1 hashes
+                if ( $first_key =~ /sha1$/ ) {
+                    $file_key = $first_key . '.'
+                        . $meta_data->{$first_key}{$second_key};
+                    push( @file_data, "$file_key $second_key" . "\n" );
+                } else {
+                    $file_key = $first_key . '.' . $second_key;
+                    push( @file_data,
+                              "$file_key "
+                            . $meta_data->{$first_key}{$second_key}
+                            . "\n" );
+                }
+            }
+        } else {
+            push( @file_data,
+                "$file_key = " . $meta_data->{$first_key} . "\n" );
+        }
+    }
+    if (@file_data) {
+        if ( open( my $META_FILE, '>' . $file_name ) ) {
+            print {$META_FILE} sort(@file_data);
+            close($META_FILE);
+            my $file_name_short = $file_name;
+            if ( defined $cut_path ) { $file_name_short =~ s/^$cut_path// }
+            $file_name_short
+                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+
+            print ":: backup metadata saved to $file_name_short ::\n\n";
+        } else {
+            die " :: failed to open backup meta "
+                . "data file '$file_name' :: $! ::\n";
+        }
+    } else {
+        die " :: save_metadata() :: nothing to save :: ";
+    }
+}
+
+# :: create_checksums :: returns a hashref to sha1 checksums for given code
+
+sub create_checksums {
+    my $source_code = shift;
+    my %file_checksums;
+    foreach my $file ( keys(%$source_code) ) {
+        if ( defined $source_code->{$file} ) {
+            $file_checksums{$file} = sha1_hex( $source_code->{$file} );
+
+            my $root_path         = $PATH->{'root'};
+            my $relative_filename = $file;
+            $relative_filename =~ s/^$root_path\/?//;
+
+            $relative_filename
+                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+
+            print ': '
+                . ansi('cyan')
+                . $file_checksums{$file}
+                . ansi('reset')
+                . " : $relative_filename\n";
+        }
+
+        # else { file is a directory }
+    }
+    print "\n";
+    return \%file_checksums;
+}
+
+# :: load source :: loads all module files into memory and returns a hash ref
+
+sub load_source {
+    my $type = shift;
+    my %source;
+
+    my @load_types = ( split( /\+/, $type ) );
+
+    foreach my $PATH_key (@load_types) {
+        foreach my $file ( &files($PATH_key) ) {
+            check_link($file);
+            local $/ = undef;
+            open( my $FILE, '<' . $file )
+                or die " can not open file '"
+                . ansi('cyan')
+                . $file
+                . ansi('reset') . "' ["
+                . ansi('bold red')
+                . $!
+                . ansi('reset') . "]\n\n";
+            $source{$file} = <$FILE>;
+        }
+    }
+    return \%source;
+}
+
+# :: save_source :: mirrors all files in %{$source} to a given directory
+
+sub save_source {
+    my $source_data = shift;
+    my $cut_path    = shift;
+
+    if ( ref($source_data) ne 'HASH' ) {
+        die '$source_data is not a hash reference';
+    }
+
+    my $change_count = 0;
+
+    foreach my $file ( sort( keys(%$source_data) ) ) {
+
+        check_path( $file, $cut_path );
+
+        if ( defined $source_data->{$file} ) {
+
+            open( my $FILE, '>' . $file )
+                or die ":: can not open file '$file' : $! ::\n";
+            print {$FILE} $source_data->{$file};
+            close($FILE);
+            $change_count++;
+            my $bytes_written = length( $source_data->{$file} );
+
+            if ( defined $cut_path ) { $file =~ s/^$cut_path// }
+
+            my $output_line
+                = ': '
+                . ansi('yellow')
+                . 'save file'
+                . ansi('reset') . ' :'
+                . ansi('green')
+                . sprintf( "% 6d", $bytes_written )
+                . ' bytes'
+                . ansi('reset') . ' : '
+                . ansi('reset')
+                . $file
+                . ansi('reset') . "\n";
+
+            $output_line
+                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+
+            print $output_line;
+
+        }
+    }
+    if ( !$change_count ) {
+        die ansi('bold') . ':: '
+            . ansi('red')
+            . 'no files written - aborting'
+            . ansi('reset bold') . ' ::'
+            . ansi('reset') . "\n\n";
+    }
+}
+
+# :: check_path :: checks path and creates dirs recursively if missing
+
+sub check_path {
+    my $_chk_path = shift;
+    $_chk_path =~ s/[^\/]+$//;
+    my $cut_path = shift;
+    my $current_path;
+
+    foreach my $dir ( split( /\/+/, $_chk_path ) ) {
+        $current_path .= '/' . $dir;
+        $current_path =~ s/\/\//\//g;
+
+        my $current_path_short = $current_path;
+
+        if ( defined $cut_path ) { $current_path_short =~ s/^$cut_path// }
+
+        if ( !-d $current_path ) {
+            if ( mkdir($current_path) ) {
+                my $output_line
+                    = ': '
+                    . ansi('yellow')
+                    . 'directory'
+                    . ansi('reset')
+                    . ' :     '
+                    . ansi('green')
+                    . 'created'
+                    . ansi('reset')
+                    . " : $current_path_short " . "\n";
+
+                $output_line
+                    =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+                print $output_line;
+            } else {
+                die ":: failed to create directory '$current_path' : $! ::\n";
+            }
+        }
+    }
+}
+
+# :: create_dir :: creates a directory if it doesn't exist already
+
+sub create_dir {
+    my $full_path = shift;
+
+    my $parent_dir;
+    my $new_dir;
+
+    # remove trailing slash
+    $full_path =~ s/\/$//;
+
+    if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
+        ( $parent_dir, $new_dir ) = ( $1, $2 );
+    } else {
+        die ":: create_dir() : directory argument should include full path!\n";
+    }
+
+    if ( !-d $parent_dir ) {
+        die
+            ":: create_dir() : parent directory '$parent_dir' does not exist :: ";
+    }
+
+    if ( !-d $full_path ) {
+        if ( mkdir($full_path) ) {
+            print ": directory '$full_path' created :\n";
+        } else {
+            die ":: failed to create directory '$full_path' :: ";
+        }
+    } else {
+        print ": directory '$full_path' already_ exists :\n";
+    }
+}
+
+# :: clean_dir :: delete and recreate a directory to get rid of it's contents
+
+sub clean_dir {
+    my $directory_path = shift;
+
+    # remove trailing slash
+    $directory_path =~ s/\/$//;
+
+    if ( defined $directory_path and -d $directory_path ) {
+
+        # remove ..
+        if ( !system( 'rm', '-rf', $directory_path ) ) {
+            my $output_line
+                = ': '
+                . ansi('yellow')
+                . 'directory'
+                . ansi('reset')
+                . ' :     '
+                . ansi('red')
+                . 'removed'
+                . ansi('reset')
+                . " : $directory_path " . "\n";
+
+            $output_line
+                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+            print $output_line;
+            return 1;
+        } else {
+            die " :: clean_dir() : removing of "
+                . "directory '$directory_path' failed : $! ::\n";
+        }
+    }
+}
+
+# :: tree :: returns a list of module files [with full path]
+
+sub files {
+    my $type = shift;
+    my @files;
+
+    my $path = $targets{$type};
+    if ( defined $path and $path ne '' and -d $path ) {
+        opendir( my $dir_fh, $path ) or die "failed to open dir '$path': $!\n";
+        foreach my $filename ( readdir($dir_fh) ) {
+            ( $filename = "$path/$filename" ) =~ s|//|/|g;
+            if ( $filename !~ /(\.bak|\.orig|\~)$/i ) {
+                chomp($filename);
+                push( @files, $filename );
+            }
+        }
+        closedir($dir_fh);
+    }
+    return sort(@files);
+}
+
+# :: new_path :: parses a new path into the source hash keys [filenames]
+
+sub new_path {
+    my $_new_path   = shift;
+    my $source_hash = shift;
+
+    my $root_path = $PATH->{'root'} . '/';
+    $root_path =~ s/\/\//\//g;
+
+    my $result_hash = {};
+
+    if ( not defined $_new_path ) { die "new_path: no new path defined\n" }
+
+    foreach my $old_filename ( keys(%$source_hash) ) {
+        my $new_filename = $old_filename;
+
+        # exchange path
+        $new_filename =~ s/^$root_path/$_new_path/;
+
+        # remove double slashes
+        $new_filename =~ s/\/\//\//g;
+        $result_hash->{$new_filename} = $source_hash->{$old_filename};
+    }
+
+    return $result_hash;
+}
+
+# :: get_search_pattern :: prompt the user for a search pattern and return it
+
+sub get_user_input {
+    my $prompt = shift;
+    $| = 1;
+    print "\n  :\n  : $prompt : ";
+    chomp( my $pattern = <STDIN> );
+    print "  :\n\n";
+    return $pattern;
+}
+
+# :: get_perl_subs :: return a list of all subroutines in given code hash
+
+sub get_perl_subs {
+    my $source = shift;    # default is to parse module source code
+    my @subroutines;
+
+    foreach my $file ( keys(%$source) ) {
+        my $current_package = '';
+
+        if ( defined $source->{$file} ) {
+            foreach my $source_line ( split( /\n/, $source->{$file} ) ) {
+
+                # check for package borders
+                if ( $source_line =~ /package\s+([\w|\:]+)\s*\;/ ) {
+                    $current_package = $1;
+                }
+
+                # check for subroutine names
+                if ( $source_line =~ /sub\s+(\w+)\s+{/sm ) {
+                    my $new_sub = $1;
+                    if ( $current_package ne '' and $new_sub ne '' ) {
+                        push( @subroutines,
+                            $current_package . '::' . $new_sub );
+                    } elsif ( $new_sub ne '' ) {
+                        push( @subroutines, $new_sub )
+                            ;    # sub without package name
+                    }
+                }
+            }
+        }
+    }
+    return sort(@subroutines);
+}
+
+# :: done :: print 'done' message and exit program
+
+sub done {
+    print "\n"
+        . ansi('reset bold') . ' :: '
+        . ansi('green')
+        . 'D O N E'
+        . ansi('reset bold')
+        . "\n :\n ."
+        . ansi('reset') . "\n\n";
+    exit;
+}
+
+# :: check_links :: follow links and die if dead
+
+sub check_link {
+    my $file = shift;
+    my $path = $file =~ s|/[^/]+$|/|;
+
+    if ( -l $file and !-f readlink($file) and !-f $path . $file ) {
+        die " '"
+            . ansi('cyan')
+            . $file
+            . ansi('reset')
+            . "' is a "
+            . ansi('bold red')
+            . "dead link"
+            . ansi('reset')
+            . ". please fix..\n\n";
+    }
+}
+
+# :: overwrite_source_files :: include change files and write source to disk
+
+sub overwrite_source_files {
+    my $source_code     = shift;
+    my $backup_metadata = shift;
+
+    print ":: writing changes to disk ::\n\n";
+    save_source( $source_code, $PATH->{'root'} . '/' );
+}
+
+# :: show_sub :: returns the source code of a certain subroutine [TODO: rewrite parsing!]
+
+sub show_sub {
+    my $source    = shift;
+    my $sub_name  = shift;
+    my $formatted = shift || 0;
+    my $cut_path  = $PATH->{'root'};
+    my $package_name;
+    my $sub_source_code;
+
+    if ( $sub_name =~ /^(.+)\:{2}([^\:]+)$/ ) {
+        $package_name = $1;
+        $sub_name     = $2;
+    }
+
+    foreach my $file ( keys(%$source) ) {
+        my $current_package = '';
+        my $current_sub     = '';
+        my $line_num        = 0;
+        if ( defined $source->{$file} ) {
+            foreach my $source_line ( split( /\n/, $source->{$file} ) ) {
+                $line_num++;
+
+                my $package_matches = 0;
+
+                # check for package borders
+                if ( $source_line =~ /package\s+([\w\:]+)\s*\;/ ) {
+                    $current_package = $1;
+                }
+
+                # check if the requested package name does not differ to current
+                if (   not defined $package_name
+                    or $package_name eq ''
+                    or $current_package eq $package_name ) {
+                    $package_matches = 1;
+                }
+
+                # check for subroutine names
+
+         # XXX: buggy!! FIX! fails if brace is next line or names begin same way
+
+                if ( $source_line =~ /(sub\s+(\w+))\s+/ ) {
+
+                    my ( $sub_string, $current_sub ) = ( $1, $2, $3 );
+
+                    my $start_line = $line_num;
+
+                    if ( $package_matches and $current_sub eq $sub_name ) {
+
+                       # we found the beginning line of the requested subroutine
+
+                        my $full_sub_name = $current_package;
+                        if ( $full_sub_name ne '' ) {
+                            $full_sub_name .= '::';
+                        }
+                        $full_sub_name .= $current_sub;
+
+                        # searching for the corresponding offset in the file
+
+                        my $start_pos = index( $source->{$file}, $sub_string );
+                        if ($start_pos) {
+                            my $loop   = 1;
+                            my $braces = 0;
+                            my $offset = 0;
+
+                            # XXX: [TODO] fix behaviour for quoted braces
+
+                            while ( !$offset or $loop or $braces ) {
+                                my $current_byte = substr( $source->{$file},
+                                    $start_pos + $offset, 1 );
+
+                                #             keep track of the braces
+                                # ! careful ! braces in strings are counted too
+                                if ( $current_byte eq '{' ) {
+                                    $braces++;
+                                    if ($loop) { $loop = 0 }
+                                } elsif ( $current_byte eq '}' ) {
+                                    $braces--;
+                                }
+                                $offset++;    # move to next character
+                            }
+
+                            # all braces closed, subroutine complete
+                            my $end_pos = $offset;
+
+                            my $sub_source
+                                = substr( $source->{$file}, $start_pos,
+                                $offset )
+                                . "\n";
+
+                            my $file_txt = $file;
+                            $file_txt =~ s/^$cut_path\/?//;
+
+                            if ($formatted) {
+                                my $formatted_source
+                                    = "\n:\n:: [source] :: "
+                                    . ansi('cyan')
+                                    . $file_txt
+                                    . ansi('reset') . " :: "
+                                    . ansi('yellow')
+                                    . $full_sub_name
+                                    . ansi('reset')
+                                    . " ::\n:\n\n:\n";
+                                my $sub_line_num = $start_line;
+                                foreach
+                                    my $sub_line ( split( "\n", $sub_source ) )
+                                {
+                                    $formatted_source
+                                        .= ': '
+                                        . ansi('cyan')
+                                        . sprintf( "%03d", $sub_line_num )
+                                        . ansi('reset') . ' : '
+                                        . $sub_line . "\n";
+                                    $sub_line_num++;
+                                }
+                                $formatted_source .= ":\n";
+
+                                # return subroutine with parsed in line numbers
+                                return $formatted_source;
+                            } else {
+
+                                # return unformatted [raw] subroutine sourcecode
+                                return (
+                                    $sub_source, $file, $start_line,
+                                    $start_pos,  $offset
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+# :: move_perl_subs :: moves one or more subroutines from one module to another
+
+sub move_perl_subs {
+    my $work_source     = shift;
+    my $source_sub      = shift;
+    my $sub_destination = shift;
+
+    my $source_sub_txt = $source_sub;
+    $source_sub =~ s/\*/.+/g;    # wildcards ('*') allowed
+    my $target_sub_name;
+    my $destination_package = $sub_destination;
+    if ( $destination_package =~ s/([^\:]+)$// ) { $target_sub_name = $1 }
+    $destination_package =~ s/\:\:$//;
+
+    # first check if target package name exists
+    my $destination_package_exists = 0;
+    foreach my $sub_name ( get_perl_subs($work_source) ) {
+        if ( $sub_name =~ /^$destination_package/ ) {
+            $destination_package_exists = 1;
+        }
+    }
+    if ( !$destination_package_exists ) {
+        die "\n :: specified target package not"
+            . " found in source code ::\n\n\n";
+    }
+
+    # select all subs which are to be moved
+    my @selected_perl_subs;
+    foreach my $sub_name ( get_perl_subs($work_source) ) {
+        if ( $sub_name =~ /^$source_sub$/ )    # must match exactly
+        {
+            push( @selected_perl_subs, $sub_name );
+        }
+    }
+
+    if ( !@selected_perl_subs ) {
+        die ansi('bold')
+            . "\n :: "
+            . ansi('reset')
+            . 'no subroutines selected'
+            . ansi('bold') . ' ::'
+            . ansi('reset')
+            . "\n\n\n";
+    }
+
+    my $max_len = 0;
+    foreach my $sub_name (@selected_perl_subs) {
+        if ( length($sub_name) > $max_len ) { $max_len = length($sub_name) }
+    }
+    $max_len += 1;
+
+    foreach my $sub_name ( sort(@selected_perl_subs) ) {
+
+        # prepare names
+
+        my $destination_sub_name = $sub_name;
+        if ( $sub_destination =~ /\:\:$/ ) {
+            $destination_sub_name
+                =~ s/^.+\:\:([^\:]+)$/$destination_package\:\:$1/;
+        } elsif ( $sub_destination =~ /\w+$/ ) {
+            $destination_sub_name = $sub_destination;
+        }
+
+        my $sub_name_txt = sprintf( "%-*s", $max_len, $sub_name );
+        $sub_name_txt =~ s/(\w+\s+)$/&ansi('bold').$1.&ansi('reset')/e;
+
+        my $dest_sub_txt = $destination_sub_name;
+        $dest_sub_txt =~ s/(\w+)/&ansi('bold').$1.&ansi('reset')/ge;
+
+        print ': ' . $sub_name_txt
+
+            #            . ansi('cyan').' > '
+            . ansi('cyan') . '>'
+            . ansi('bold cyan') . '>  '
+            . ansi('reset')
+            . $dest_sub_txt . "\n";
+
+        my $sub_source = cut_out_sub( $work_source, $sub_name );
+        insert_sub( $work_source, $sub_destination, $sub_source );
+
+        adjust_subroutine_calls( $work_source, $sub_name,
+            $destination_sub_name );
+    }
+    print "\n";
+
+}
+
+# :: cut_out_sub :: removes a specific subroutine from a source hash
+
+sub cut_out_sub {
+    my $work_source  = shift;
+    my $sub_name     = shift;
+    my $substitution = shift;
+
+    if ( not defined $substitution ) {
+        my $plain_subname = $sub_name;
+        $plain_subname =~ s/^.+\://;
+        $substitution = "# [ sub '$plain_subname' has been moved ]";
+    }
+
+    # get the subroutine source and location
+    my ( $sub_source, $file, $start_line, $start_pos, $offset )
+        = show_sub( $work_source, $sub_name );
+
+    if ( defined $file ) {
+        substr( $work_source->{$file}, $start_pos, $offset, $substitution );
+    } else {
+        print ansi('bold') . "\n:: "
+            . ansi('red')
+            . "failed to cut out source of subroutine '"
+            . ansi('reset')
+            . $sub_name
+            . ansi('bold red') . "'"
+            . ansi('reset bold') . " ::"
+            . ansi('reset') . "\n\n";
+    }
+
+    return $sub_source;
+}
+
+# :: insert_sub :: inserts given subroutine code at the end of specified package
+
+sub insert_sub {
+    my $work_source     = shift;
+    my $sub_destination = shift;
+    my $sub_source      = shift;
+
+    my $sub_name;
+    my $destination_package = $sub_destination;
+    if ( $destination_package =~ s/([^\:]+)$// ) { $sub_name = $1 }
+    $destination_package =~ s/\:\:$//;
+
+    foreach my $file ( keys(%$work_source) ) {
+        my $current_package = '';
+        my $current_sub     = '';
+        my $line_num        = 0;
+        if ( defined $work_source->{$file} ) {
+            my @modified_file;
+            my $package_matches = 0;
+            foreach my $source_line ( split( /\n/, $work_source->{$file} ) ) {
+                $line_num++;
+
+                # check for package borders
+                my $package_border = 0;
+                if ( $source_line =~ /^\s*1;|package\s+([\w\:]+)\s*\;/ ) {
+                    $current_package = $1 || '';
+                    $package_border  = 1;
+                }
+
+                # check if we are at the end of a package to insert our code
+                if ( $package_matches and $package_border ) {
+
+                    # inserting subroutine source code
+                    push( @modified_file, $sub_source . "\n" );
+                }
+
+                push( @modified_file, $source_line . "\n" );
+
+                # check if in destination package boundary
+                if ( $current_package eq $destination_package ) {
+                    $package_matches = 1;
+                } else {
+                    $package_matches = 0;
+                }
+            }
+            $work_source->{$file} = join( '', @modified_file );
+        }
+    }
+}
+
+# :: adjust_subroutine_calls :: fixes calls after moving of subs between packages
+
+sub adjust_subroutine_calls {
+    my $work_source         = shift;
+    my $source_subname      = shift;
+    my $destination_subname = shift;
+
+    my %regexp = (
+        'search'  => $source_subname,
+        'replace' => $destination_subname,
+        'options' => 'g'
+    );
+
+    my ($modified_source) = replace_all( $work_source, \%regexp );
+
+    my $source_package = $source_subname;
+    $source_package =~ s/\:\:([^\:]+)$//;
+    my $plain_src_subname   = $1;
+    my $destination_package = $destination_subname;
+    $destination_package =~ s/\:\:([^\:]+)$//;
+    my $plain_dest_subname = $1;
+
+    foreach my $file ( keys(%$modified_source) ) {
+        my $package_name    = '';
+        my $current_package = '';
+        my $current_sub     = '';
+        my $line_num        = 0;
+
+        if ( defined $modified_source->{$file} ) {
+            my @modified_file;
+            foreach my $source_line ( split( /\n/, $modified_source->{$file} ) )
+            {
+                $line_num++;
+
+                # check for package borders
+                if ( $source_line =~ /package\s+([\w\:]+)\s*\;/ ) {
+                    $current_package = $1;
+                }
+                if ( $current_package eq $destination_package ) {
+
+                    # remove package name in calls if sub is in same package
+                    my $old_line = $source_line;
+                    $source_line
+                        =~ s/$destination_subname([^\w\_])/$plain_dest_subname$1/g;
+                } elsif ( $current_package eq $source_package ) {
+                    $source_line
+                        =~ s/$plain_src_subname([^\w\_])/$destination_subname$1/g;
+                }
+                push( @modified_file, $source_line . "\n" );
+            }
+            $modified_source->{$file} = join( '', @modified_file );
+        }
+    }
+
+    # update changes on source code hash
+    %{$work_source} = %{$modified_source};
+}
+
+# :: remove_unmodified :: removes identical source files from two given hashrefs
+
+sub remove_unmodified {
+    my $source_1 = shift;
+    my $source_2 = shift;
+
+    foreach my $file_name ( keys(%$source_1) ) {
+        if (    defined $source_1->{$file_name}
+            and defined $source_2->{$file_name}
+            and $source_1->{$file_name} eq $source_2->{$file_name} ) {
+            delete $source_1->{$file_name};
+            delete $source_2->{$file_name};
+        }
+    }
+    return ( $source_1, $source_2 );
+}
+
+# :: replace_all :: regexp replace on source, returns hashref of modified source
+
+sub replace_all {
+    my $source  = shift;
+    my %regexp  = %{ $_[0] };
+    my $changed = {};           # change results
+    my $changed_source;
+    %{$changed_source} = %{$source};
+
+    # default option is to replace global
+    if ( not defined $regexp{'options'} ) {
+        $regexp{'options'} = 'g';
+    }
+
+    my $regexp_pattern = create_regexp( \%regexp );
+
+    if ( not pattern_test_ok( \%regexp ) ) {
+        die "\n";
+    }
+
+    my $file_count = 0;
+
+    foreach my $file ( keys(%$source) ) {
+
+        if ( defined $source->{$file} ) {
+
+            # the actual replace operation
+
+            my $match_count = eval "\$changed_source->{\$file} =~ "
+                . "s/\$regexp{search}/$regexp{replace}/$regexp{options}";
+            $changed->{'files_parsed'}++;
+
+            if ($@) { die "\n :: error during regexp operation :: $@\n\n" }
+
+            if ($match_count) {
+
+                # store replace results
+                $changed->{'file'}{$file} = { 'changes' => $match_count };
+                $changed->{'total_changes'} += $match_count;
+                $changed->{'files_changed'}++;
+            }
+            $file_count++;
+        }
+    }
+    return ( $changed_source, $changed );
+}
+
+# :: pattern_invalid :: returns true if regexp pattern contains illegal characters
+
+sub pattern_invalid {
+    my $pattern_type   = shift;
+    my $regexp_pattern = shift;
+
+    my $_tmp_pattern = $regexp_pattern;
+
+    # remove any escaped slashes
+    $_tmp_pattern =~ s/\\\///g;
+
+    # check if there still are some slashes
+    if ( $_tmp_pattern =~ /\// ) {
+        print " : error in regular expression : "
+            . "$pattern_type pattern contains unescaped slash[es].\n";
+        return 1;
+    }
+
+    # remove escaped and trailing '$' chars
+    $_tmp_pattern =~ s/\\\$|\$$//g;
+
+    switch ($pattern_type) {
+        case 'search' {
+        }
+        case 'replace' {
+
+            # remove $1, $2 etc.. [as they are allowed]
+            $_tmp_pattern =~ s/\$\d+//g;
+        } else {
+
+            # pattern type invalid
+            return 1;
+        }
+    }
+    if ( $_tmp_pattern =~ /(\$\w+)/ ) {
+        my $var_name = $1;
+        print " : error in regular expression : "
+            . "$pattern_type pattern contains an illegal variable ($var_name).\n";
+        return 1;
+    }
+    if ( $_tmp_pattern =~ /\$/ ) {
+        print " : error in regular expression : "
+            . "$pattern_type pattern contains unescaped '$' characters.\n";
+        return 1;
+    }
+
+    # nothing happend until here so pattern should be ok
+    return 0;    # not invalid
+}
+
+# :: pattern_test_ok :: checks the regular expression pattern in %regexp via eval
+
+sub pattern_test_ok {
+    my %regexp = %{ $_[0] };
+
+    # check for illegal characters in regexp pattern
+    foreach my $p_type ( 'search', 'replace' ) {
+        if ( pattern_invalid( $p_type, $regexp{$p_type} ) ) {
+            die "\n";
+        }
+    }
+
+    # now check with eval if this regular expression pattern is valid
+    my $rep_test     = '';
+    my $re_test_code = '$rep_test =~ ' . create_regexp( \%regexp );
+    eval $re_test_code;
+    if ($@) {
+        print " : error in regular expression : $@\n";
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+# :: create_regexp :: creates an regular expression string from submitted %regexp hash
+
+sub create_regexp {
+    my %regexp         = %{ $_[0] };
+    my $regexp_pattern = "s/$regexp{search}/$regexp{replace}/$regexp{options}";
+    return $regexp_pattern;
+}
+
+# :: user_confirmed :: asks the user a question, answers: <y/n>, returns true on 'y'
+
+sub user_confirmed {
+    my $question = shift;
+    my $q_len    = length($question);
+
+    $question =~ s/(\w{2,})/ansi('bold').$1.ansi('reset')/ge;
+
+    my $bold   = '';
+    my $choice = '';
+    while ( $choice ne 'y' and $choice ne 'n' ) {
+
+        my $question_string
+            = "\r :: $question :: "
+            . ansi( $bold . 'red' ) . '['
+            . ansi( 'reset' . $bold ) . 'y'
+            . ansi('red') . '/'
+            . ansi( 'reset' . $bold ) . 'n'
+            . ansi('red') . ']'
+            . ansi('reset') . ' :. ';
+        print $question_string;
+        $choice = &get_character;
+        if ( $bold eq '' ) { $bold = ' bold ' }
+    }
+    my $space_len = $q_len + 20;
+    print "\r" . ' ' x $space_len . "\r";
+
+    switch ($choice) {
+        case 'y' { return 1 }
+        case 'n' { return 0 }
+    }
+}
+
+# :: get_character :: grabs a single key from STDIN [sets terminal to raw mode]
+
+sub get_character {
+    &raw_mode_on;
+
+    # get a single character from STDIN
+    my $key = getc(STDIN);
+    &raw_mode_off;
+
+    # return the captured key
+    return $key;
+}
+
+# :: raw_mode_on :: enables raw mode for the connected terminal (using stty)
+
+sub raw_mode_on {
+
+    # set terminal to raw mode
+    system "stty", '-icanon', 'eol', "\001";
+}
+
+# :: raw_mode_on :: diables raw mode on current terminal
+
+sub raw_mode_off {
+
+    # reset terminal
+    system "stty", 'icanon', 'eol', '^@';
+}
+
+# :: kompare :: show diffs of two directories using the 'kompare' (X11) tool
+
+sub kompare {
+    my %k_path;
+    ( $k_path{'first'}, $k_path{'second'} ) = (@_);
+
+    # check paths first
+    foreach my $_path_type ( 'first', 'second' ) {
+
+        if ( not defined $k_path{$_path_type}
+            or $k_path{$_path_type} eq '' ) {
+            die ":: kompare() :: $_path_type path not defined\n";
+        }
+        if ( !-d $k_path{$_path_type} ) {
+            die ":: kompare() :: $_path_type path '"
+                . $k_path{$_path_type}
+                . "' does not exist\n";
+        }
+    }
+    print "\n :. starting kompare ...\r";
+
+    if ( !system( 'kompare', $k_path{'first'}, $k_path{'second'} ) ) {
+        return 1;    # staring kompare was successful
+    } else {
+        return 0;    # starting kompare failed
+    }
+
+}
+
+# :: diff_less :: displaying an [ansi] diff between two directories using less
+
+sub diff_less {
+    my $pager = 'less -R';
+    my %k_path;
+    my $regexp = {};
+    ( $k_path{'first'}, $k_path{'second'}, $regexp ) = (@_);
+    my ( $search_pattern, $replace_pattern )
+        = ( $regexp->{'search'}, $regexp->{'replace'} );
+    my $cut_path = '';
+
+    foreach my $offset_identical ( 0 .. length( $k_path{'first'} ) ) {
+        if ($offset_identical
+            and index( $k_path{'second'},
+                substr( $k_path{'first'}, 0, $offset_identical ) ) > -1
+        ) {
+            $cut_path = substr( $k_path{'first'}, 0, $offset_identical );
+        }
+    }
+
+    # check paths first
+    foreach my $_path_type ( 'first', 'second' ) {
+
+        if ( not defined $k_path{$_path_type}
+            or $k_path{$_path_type} eq '' ) {
+            die ":: kompare() :: $_path_type path not defined\n";
+        }
+        if ( !-d $k_path{$_path_type} ) {
+            die ":: kompare() :: $_path_type path '"
+                . $k_path{$_path_type}
+                . "' does not exist\n";
+        }
+        $k_path{$_path_type} =~ s/^$cut_path//;
+    }
+    chdir($cut_path);
+    print "\n :. creating diff preview ...\r";
+    if ( open( my $DIFF, "diff -u -r $k_path{'first'} $k_path{'second'} |" ) ) {
+        my @diff_output = <$DIFF>;
+        close($DIFF);
+        my $diff_txt;
+        if ( defined $search_pattern and defined $replace_pattern ) {
+            foreach my $diff_line (@diff_output) {
+                if ( $diff_line =~ s/^([<|-]{1})([^-]{1})/$2/ ) {
+
+                    $diff_txt
+                        .= &ansi('bold red')
+                        . $1
+                        . &ansi('reset')
+                        . highlight(
+                        $diff_line,            $search_pattern,
+                        ansi('underline red'), ansi('reset')
+                        );
+                } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
+                    my $replace_highlight = $replace_pattern;
+                    if ( $regexp->{'options'} =~ /e/ ) {
+                        $replace_highlight = eval $replace_pattern;
+                    }
+                    $diff_txt
+                        .= &ansi('bold cyan')
+                        . $1
+                        . ansi('reset')
+                        . highlight( $diff_line, $replace_highlight,
+                        ansi('underline cyan'), ansi('reset') );
+                } elsif ( $diff_line =~ /^(diff |\+\+\+|\-\-\-|\@\@)/ ) {
+                    if ( $diff_line =~ /^diff / ) {
+
+                        # highlight file names
+                        $diff_line
+                            =~ s/\/([^\/]+)\s*$/'\/'.&ansi('green').$1/ge;
+                    }
+                    $diff_txt .= ansi('blue') . $diff_line . ansi('reset');
+                } else {
+                    $diff_txt .= $diff_line;
+                }
+            }
+        } else {
+            $diff_txt = join( '', @diff_output );
+        }
+
+        if ( open( my $LESS, '| ' . $pager ) ) {
+            print {$LESS} $diff_txt;
+        } else {
+            print "\n :: pager broken - printing to stdout instead ::\n\n";
+            print $diff_txt;
+        }
+    }
+
+    chdir( $PATH->{'work'} );
+    return 1;
+}
+
+# :: highlight :: highlights a specific pattern in a given string
+
+sub highlight {
+    my $text             = shift;
+    my $pattern          = shift;
+    my $open_tag         = shift || ansi('cyan');
+    my $close_tag        = shift || ansi('reset');
+    my $case_insensitive = shift || 1;
+
+    if ($case_insensitive) {
+        $text =~ s/($pattern)/$open_tag$1$close_tag/ig;
+    } else {
+        $text =~ s/($pattern)/$open_tag$1$close_tag/g;
+    }
+    return $text;
+}
+
+# :: ansi :: returns ansi color codes using Term::ANSIColor
+
+sub ansi {
+    return '' if not $USE_ANSI;
+    my $requested_color = shift || 'reset';
+    return color $requested_color;
+}
+
+# :: print_usage :: displays usage / help header
+
+sub print_usage {
+    my $usage_txt = "code <command> [parameters]\n";
+    $usage_txt =~ s/(\W+)/&ansi('reset').$1.&ansi('cyan')/ge;
+    print "\n    " . ansi('cyan') . $usage_txt . ansi('reset');
+}
+
