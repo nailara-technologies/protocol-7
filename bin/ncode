@@ -41,6 +41,7 @@ my %targets = (
 # currently understood commands and their callbacks
 
 my %commands = (
+    'list_targets'   => \&cmd_list_targets,
     'list_psubs'     => \&cmd_list_psubs,
     's'              => \&cmd_search,
     'search'         => \&cmd_search,
@@ -54,7 +55,7 @@ my %commands = (
     'help'           => \&cmd_help
 );
 
-if ( !@params ) {
+if ( !@params and $cmd ne 'list_targets' ) {
     &cmd_help;
     exit;
 }
@@ -73,8 +74,8 @@ if ( not defined $commands{$cmd} ) {
 }
 
 # <target> = 'all' is an alias for all target paths combined
-if ( $params[0] eq 'all' ) {
-    $params[0] = join( '+', keys(%targets) );
+if ( @params and $params[0] eq 'all' ) {
+    $params[0] = join( '+', grep { !/\./ } keys(%targets) );
 }
 
 # execute parser command callback if defined
@@ -166,6 +167,40 @@ sub cmd_help {
 
     }
 
+    exit;
+}
+
+# :: cmd_list_targets :: lists all available code targets and their paths
+
+sub cmd_list_targets {
+
+    my @params = @_;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            'none \\\\\\ lists code targets and their paths', '
+
+            this command will list all configured code targets and their paths
+
+            the code targets are the first keyword after the commands and before
+            their parameters and assign on which project directory tree given
+            commands will be applied on. special meaning has the \'.\' and the
+            \'all\' keyword, which stands for current directory and all
+            configured targets minus the \'.\' target respectively.
+          ', @params
+        );
+    }
+
+    print ".:[ currently available code [parser] targets ]:.\n\n:\n";
+    foreach my $target ( sort { length($a) <=> length($b) } keys %targets ) {
+        my $target_path_str
+            = $target ne '.'
+            ? $targets{$target}
+            : $targets{$target} . "  ( current )\n:";
+        printf ":  %-8s  :  %s\n", "\"$target\"", $target_path_str;
+    }
+    printf ":\n:  %-8s  :  %s\n", "\"all\"", "all of the above without '.' (!)";
+    print ":\n\n";
     exit;
 }
 
