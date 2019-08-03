@@ -22,7 +22,8 @@ my $PATH = {
 
 my $cmd = shift(@params) // '';
 
-push( @params, '.' ) if $cmd =~ /^(s(earch)?|rep(lace)?)$/ and !@params;
+push( @params, '.' )   if $cmd =~ /^(s(earch)?|rep(lace)?)$/ and !@params;
+push( @params, 'src' ) if $cmd eq 'parse_headers'            and !@params;
 
 my $target = $params[0];
 
@@ -49,6 +50,7 @@ my %commands = (
     'move_psubs'     => \&cmd_move_psubs,
     'rep'            => \&cmd_replace,
     'replace'        => \&cmd_replace,
+    'parse_headers'  => \&cmd_parse_headers,
     'restore_backup' => \&cmd_restore_backup,
     'undo'           => \&cmd_undo,
     'undo_move'      => \&cmd_undo_move,
@@ -178,15 +180,15 @@ sub cmd_list_targets {
 
     if ( defined $params[0] and $params[0] eq 'help_txt' ) {
         return help_txt(
-            'none \\\\\\ lists code targets and their paths', '
+            '(none) \\\\\\ lists code targets and their paths', '
 
-            this command will list all configured code targets and their paths
+  this command will list all configured code targets and their paths
 
-            the code targets are the first keyword after the commands and before
-            their parameters and assign on which project directory tree given
-            commands will be applied on. special meaning has the \'.\' and the
-            \'all\' keyword, which stands for current directory and all
-            configured targets minus the \'.\' target respectively.
+  the code targets are the first keyword after the commands and before
+  their parameters and assign on which project directory tree given
+  commands will be applied on. special meaning has the \'.\' and the
+  \'all\' keyword, which stands for current directory and all
+  configured targets minus the \'.\' target respectively.
           ', @params
         );
     }
@@ -216,7 +218,7 @@ sub cmd_list_psubs {
 
 <target> [pattern] ..... displays the list of defined subroutines
 
-                         <target>  source code target path keywords
+                         <target>  source code target path keyword
                                    ( see list_targets for details )
 
                          [pattern] substring patterns to match
@@ -262,7 +264,7 @@ sub cmd_show_psub {
 
 <target> [sub_name] .... display source code of specified subroutine
 
-                         <target>   source code target path keywords
+                         <target>   source code target path keyword
                                     ( see list_targets for details )
 
                          [sub_name] name of subroutine[s] to display
@@ -299,7 +301,7 @@ sub cmd_replace {
 
 <target> [search] [replace] ..... regular expression replace operation
 
-                            <target>  source code target path keywords
+                            <target>  source code target path keyword
                                       ( see list_targets for details )
 
                             [search]  : regexp search pattern
@@ -399,7 +401,108 @@ sub cmd_replace {
         } else {
             &aborted;
         }
+        &done;
+    }
+}
 
+# :: cmd_parse_headers :: repair headers of renamed subroutines ('src' target)
+
+sub cmd_parse_headers {
+    my @params = @_;
+
+    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
+        return help_txt(
+            "[target] \\\\\\ 'src' being the default", '
+
+<target>  ..... repairs \'name\' header params of files in given code target
+
+                <target>  source code target path keyword
+                          ( see list_targets for details )
+
+                this command will repair changed \'name\' parameter
+                values for renamed files / subroutines in the
+                the specified code target path.
+
+                an example of such a header looks as follows:
+
+                # >:]
+
+                # name  = notify.cmd.loves_it
+                # param = \'<title>\' \'<message>\'
+                # descr = custom notification (using \'loves it\' icon)
+
+          ', @params
+        );
+    }
+
+    if (@params) {
+        my $target = shift(@params);
+
+        my $original_source = load_source($target);
+
+        my %regexp;
+        ( $regexp{'search'}, $regexp{'replace'} ) = (@params);
+
+        my $ok = 0;
+
+        #  while ( !$ok ) {
+
+        $regexp{'search'}  = '^(# >:\]\n+# +name += +)[^\n]+\n';
+        $regexp{'replace'} = '$1<fname>\n';
+        $regexp{'options'} = 's';
+
+        my $regexp_pattern = create_regexp( \%regexp );
+
+        #      if (user_confirmed(
+        #              "is the regexp pattern  $regexp_pattern  ok?")
+        #      ) {
+        #          $ok = 1;
+        #      } else {
+        #          %regexp = ();    # reset pattern
+        #      }
+        #
+        #  }
+
+        # perform regexp operation on source and get modified version
+        #
+        my ( $modified_source, $changes )
+            = replace_all( $original_source, \%regexp, 1 );
+
+        remove_unmodified( $original_source, $modified_source );
+
+        preview( $original_source, $modified_source, $changes, \%regexp );
+
+        # ask if we should apply the changes on the source
+        if ( user_confirmed('apply those changes to the source code?') ) {
+
+            warn_apply();
+
+            my $backup_metadata = {
+
+                'backup'    => { 'type' => 'changes' },
+                'operation' => {
+                    'type'          => 'replace',
+                    'target'        => $target,
+                    'total_changes' => $changes->{'total_changes'},
+                    'files_parsed'  => $changes->{'files_parsed'},
+                    'files_changed' => $changes->{'files_changed'}
+                },
+                'regexp' => {
+                    'search'  => $regexp{'search'},
+                    'replace' => $regexp{'replace'},
+                    'options' => $regexp{'options'}
+                },
+            };
+
+            # create a backup first
+            create_backup( $original_source, $backup_metadata,
+                $modified_source );
+
+            # write modification to disk
+            overwrite_source_files( $modified_source, $backup_metadata );
+        } else {
+            &aborted;
+        }
         &done;
     }
 }
@@ -415,7 +518,7 @@ sub cmd_search {
 
 <target> [pattern] ..... regexp search on all <target> files
 
-                         <target>  source code target path keywords
+                         <target>  source code target path keyword
                                    ( see list_targets for details )
 
                          [pattern] regular expression patterns to match
@@ -495,7 +598,7 @@ sub cmd_move_psubs {
 
 <target> [source_sub[s]] [target_sub] .... moves one or more subroutines
 
-                             <target>   source code target path keywords
+                             <target>   source code target path keyword
                                         ( see list_targets for details )
 
                       [source_sub[s]]    the subroutine[s] to be moved
@@ -1756,10 +1859,14 @@ sub remove_unmodified {
 
 sub replace_all {
     my $source  = shift;
-    my %regexp  = %{ $_[0] };
-    my $changed = {};           # change results
+    my %regexp  = %{ shift() };
+    my $fnames  = shift // 0;
+    my $changed = {};             # change results
     my $changed_source;
     %{$changed_source} = %{$source};
+
+    warn "\n\n fnames: $fnames === caller : "
+        . scalar( ( caller(1) )[3] ) . "\n\n";
 
     # default option is to replace global
     if ( not defined $regexp{'options'} ) {
@@ -1778,10 +1885,16 @@ sub replace_all {
 
         if ( defined $source->{$file} ) {
 
+            my $rep_rex = $regexp{'replace'};
+            if ($fnames) {
+                ( my $fname_str = $file ) =~ s|^.+/||;
+                $rep_rex =~ s|<fname>|$fname_str|g;
+            }
+
             # the actual replace operation
 
             my $match_count = eval "\$changed_source->{\$file} =~ "
-                . "s/\$regexp{search}/$regexp{replace}/$regexp{options}";
+                . "s/\$regexp{search}/$rep_rex/$regexp{options}";
             $changed->{'files_parsed'}++;
 
             if ($@) { die "\n :: error during regexp operation :: $@\n\n" }
