@@ -560,31 +560,44 @@ sub cmd_search {
                         if ( $file_changed
                             or not defined $last_filename ) {
                             if ( lc($search_pattern) ne $search_pattern ) {
-                                print "\n::: [ search =~ /$search_pattern/ ]";
+                                print print "\n"
+                                    . ansi('reset')
+                                    . ansi('blue dark')
+                                    . "::: [ search =~ /$search_pattern/ ]";
                             } else {
-                                print "\n::: [ search =~ /$search_pattern/i ]";
+                                print "\n"
+                                    . ansi('reset')
+                                    . ansi('blue dark')
+                                    . "::: [ search =~ /$search_pattern/i ]";
                             }
-                            print ' :: '
+                            print ansi('reset')
+                                . ansi('dark') . ' :: '
+                                . ansi('reset')
                                 . ansi('cyan')
                                 . $filename
                                 . ansi('reset')
-                                . " ::\n:\n";
+                                . ansi('dark') . " ::\n"
+                                . ansi('blue') . ":\n";
                         }
 
-                        print ": "
+                        print ansi('blue dark') . ": "
                             . ansi('cyan')
                             . sprintf( "%03d", $line_num )
-                            . ansi('reset') . " : "
-                            . highlight( $source_line, $search_pattern,
-                            ansi('yellow') )
-                            . "\n";
+                            . ansi('reset')
+                            . ansi('blue dark') . " : "
+                            . ansi('reset dark')
+                            . highlight(
+                            $source_line, $search_pattern,
+                            ansi('reset') . ansi('yellow'),
+                            ansi('reset') . ansi('dark')
+                            ) . "\n";
                         $last_filename = $filename;
                     }
                 }
             }
         }
     }
-    print ":\n\n";
+    print ansi('blue dark') . ":\n" . ansi('reset') . "\n";
 }
 
 # :: cmd_move_psubs :: moves subroutine[s] from one module to another [adjusts calls]
