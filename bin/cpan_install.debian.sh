@@ -3,7 +3,7 @@
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 # installs cpanm and some basic (packaged) cpan modules
-apt-get install xvfb cpanminus libevent-perl libdigest-sha-perl \
+apt-get install xvfb cpanminus libevent-perl \
   libcryptx-perl libproc-processtable-perl libdigest-crc-perl \
   libsdl-perl libtext-lorem-perl libevent-perl liblwpx-paranoidagent-perl \
   libproc-processtable-perl libglib-perl libterm-readpassword-perl \
