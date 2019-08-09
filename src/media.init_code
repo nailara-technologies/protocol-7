@@ -33,5 +33,9 @@ $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 <media.loadsplash_timeout>    //= 7;
 <media.playlist_was_empty>    //= 0;
 <media.cfg.autospeed_notrans> //= 1;
+<media.cfg.can_self_restart>  //= 1;
+
+<[base.log]>->( 1, "[ self-restart is disabled ]  << ! >>" )
+    if !<media.cfg.can_self_restart>;
 
 0;

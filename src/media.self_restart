@@ -7,7 +7,12 @@ my $sname_str
     ? '[' . <system.agent.subname> . ']'
     : '';
 
-<[base.log]>->( 1, ": : agent restart.. (media$sname_str)" );
+if (<media.cfg.can_self_restart>) {
+    <[base.log]>->( 1, ": : agent restart.. (media$sname_str)" );
+} else {
+    <[base.log]>->( 0, ": . <!> self restart is disabled <!>" );
+    return 0;
+}
 
 Event->unloop_all();    # making sure log messages make it..
 
@@ -22,3 +27,5 @@ map { kill( 'TERM', $_ ) if $_ =~ /^\d+$/ } keys %{<media.running>};
         'call_args' => { 'args' => 'media' . $sname_str },
     }
 );
+
+return 1;
