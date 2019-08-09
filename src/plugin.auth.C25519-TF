@@ -11,17 +11,20 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 my $auth_state = $data{'session'}{$id}{'c25519'} //= {};
 
-if ( $$input =~ s/^set_key ($re->{usr}) (\S+)\n// ) {
-    $auth_state->{'peer_name'}   = $1;
-    $auth_state->{'peer_pubkey'} = $2;
+if ( $$input =~ s/^set_key ($re->{usr}) (\S+)( (\S+))?\n// ) {
+    $auth_state->{'peer_name'}          = $1;
+    $auth_state->{'peer_pubkey'}        = $2;
+    $auth_state->{'peer_net_signature'} = $3;    # optional in 'anon-usr' case
 
-    return 1;    # keep state
+    ## search and check signature [if given]
+    my $has_net_sig = defined $auth_state->{'peer_net_signature'} ? 1 : 0;
+
+    return 1;                                    # <- keep state
 
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
     <[base.log]>->( 0, "[$id] (C25519-TF) auth. protocol error!" );
-    return 2;    # terminate
+    return 2;                                    # <- terminate
 } else {
-
-    return 1;
+    return 1;                                    # <- keep state
 }
