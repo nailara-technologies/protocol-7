@@ -7,7 +7,7 @@ use warnings;
 use File::Spec;
 use IO::Select;
 use Term::ANSIColor;
-use Digest::SHA1 qw(sha1_hex);
+use Crypt::Digest::SHA1 qw(sha1_hex);
 
 my @params   = @ARGV;
 my $USE_ANSI = 1;
@@ -1002,7 +1002,7 @@ sub check_target_files {    # XXX: incomplete
         } else {
             open( my $CHK_FILE, '<' . $check_file )
                 or die " :: can not open target file '$check_file' : $! ::\n";
-            my $sha1 = Digest::SHA1->new;
+            my $sha1 = Crypt::Digest::SHA1->new;
             $sha1->addfile($CHK_FILE);
             my $chk_sum = $sha1->hexdigest;
             close($CHK_FILE);
