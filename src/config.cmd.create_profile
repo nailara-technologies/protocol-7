@@ -4,7 +4,7 @@
 # param = <name>
 # descr = export a config profile from import dir
 
-my $profile_name = $$call{'args'} || '';
+my $profile_name = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
     if !length($profile_name);
 return { 'mode' => 'nak', 'data' => 'invalid profile name!' }

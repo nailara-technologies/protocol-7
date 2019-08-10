@@ -63,7 +63,7 @@ return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
 push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->('playlist_clear');
 
-my $current_path = <mpv.current.path> || '';
+my $current_path = <mpv.current.path> // '';
 
 my @append_files = @update_files;
 my $keep_file    = 0;

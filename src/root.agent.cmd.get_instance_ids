@@ -4,7 +4,7 @@
 # param = <agent_name[s]>
 # descr = return instance ids for matching agent names
 
-my $params = $$call{'args'} || '';
+my $params = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected agent name[s]' }
     if !length($params);
 

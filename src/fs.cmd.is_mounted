@@ -4,7 +4,7 @@
 # param = <mountpoint>
 # descr = return if filesystem is mounted
 
-( my $mountpoint_str = $$call{'args'} || '' ) =~ s|/$||g;
+( my $mountpoint_str = $$call{'args'} // '' ) =~ s|/$||g;
 
 return { 'mode' => 'nak', 'data' => 'expected mountpoint parameter' }
     if !length($mountpoint_str);

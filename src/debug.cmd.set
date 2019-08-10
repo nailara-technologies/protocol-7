@@ -5,7 +5,7 @@
 # descr = assign a value to a $data key
 # todo  = improve/extend error handling
 
-my ( $key, $val ) = split( / /, $$call{'args'} || '', 2 );
+my ( $key, $val ) = split( / /, $$call{'args'} // '', 2 );
 return { 'mode' => 'nak', 'data' => 'no key specified' }
     if not defined $key or !length($key);
 my @validation_result = ( <[base.validate.data_key_syntax]>->($key) );

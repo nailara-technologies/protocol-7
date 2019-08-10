@@ -57,7 +57,7 @@ my $call_args    = {};
 # check cmd_id regex (for numbers or valid length)
 if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $$input !~ m|^\(($re->{cmd_id})\)| ) {
-    my $cmd_id = $1 || '';
+    my $cmd_id = $1 // '';
     $$input =~ s|^(\([^\)]*\)[^\n]+)\n||;
     <[base.log]>->( 1, "[$id] invalid command id ('$cmd_id')" );
     $$output .= "NAK invalid command id syntax or length\n";
@@ -85,7 +85,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
 
         while ( $$input =~ s/^(.*)\n// ) {
 
-            my $arg = $1 || '';
+            my $arg = $1 // '';
 
             if ( $arg ne '.' ) {
 
