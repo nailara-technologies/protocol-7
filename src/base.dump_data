@@ -22,7 +22,7 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
     $_key =~ s/\'/\\'/g;    # actually invalid key
     $_key = "'$_key'" if $_key =~ /[\. \'#]/;
     if ( defined $_[4] and $_[4] ne '' ) { $_key = "$_[4].$_key" }
-    my $__key = $_key || '';
+    my $__key = $_key // '';
     if ( $_[5] ne '' ) { $__key =~ s/$_[5]/$_[6]/ge }
 
     if ( ref($_val) ne 'HASH' ) {
