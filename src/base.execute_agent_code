@@ -13,7 +13,7 @@ foreach my $code_line (@_) {
         if ( $@ =~ /^Can't use string \(""\) as a subroutine ref/ ) {
             my $code_line_copy = $code_line;
             while ( $code_line_copy =~ s/(\$code\{'([^\']*)'\})// ) {
-                my ( $sub_call, $sub_name ) = ( $1, $2 || '' );
+                my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
                 next if length($sub_name) and exists $code{$sub_name};
                 <[base.log]>->(
                     0, "unknown subroutine '$sub_name' called! [ $sub_call ]"

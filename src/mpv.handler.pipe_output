@@ -67,8 +67,8 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and @{<mpv.command.reply>} ) {
         my $reply_setup = shift @{<mpv.command.reply>};
 
-        my $command_handler  = $reply_setup->{'handler'}  || '';
-        my $command_callback = $reply_setup->{'callback'} || '';
+        my $command_handler  = $reply_setup->{'handler'}  // '';
+        my $command_callback = $reply_setup->{'callback'} // '';
 
         $code{$command_handler}->( $decoded->{'data'} )
             if $decoded->{'error'} eq 'success'

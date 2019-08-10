@@ -14,7 +14,7 @@ foreach my $p_ref (@$agent_pattern_data) {
     foreach my $pattern ( keys %$p_ref ) {
         my $p_key = $pattern;
         if ( $pattern =~ s/^([!\w\d_\-, \t\*]+):\/([^\/]+)\/(i?)/$2/g ) {
-            my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 || '' );
+            my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 // '' );
             $agent_string =~ s/[ \t]+//g;
             foreach my $agent_match ( split( /,/, $agent_string ) ) {
                 my $pattern_code_aref = $p_ref->{$p_key};
