@@ -4,7 +4,7 @@
 # param = <agent_name(s)|instance(s)>
 # descr = (manually) shutdown agent instance(s)
 
-my $params = $$call{'args'} || '';
+my $params = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected agent name or instance id' }
     if !length($params);
 

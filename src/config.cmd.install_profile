@@ -4,7 +4,7 @@
 # param = <name>
 # descr = install config profile to import directory
 
-my $profile_name = $$call{'args'} || '';
+my $profile_name = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
     if !length($profile_name);
 return { 'mode' => 'nak', 'data' => 'invalid profile name!' }

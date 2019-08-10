@@ -4,7 +4,7 @@
 # param = <pattern>
 # descr = list core sid[s] for given subname pattern
 
-my $subname_query = $$call{'args'} || '';
+my $subname_query = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected agent subname pattern' }
     if !length($subname_query);
 
