@@ -16,6 +16,6 @@ return Event->var(
     'async'     => ${ $_[0] }{'async'}     // 0,
     'desc'      => ${ $_[0] }{'desc'}      // "${ $_[0] }{'var'}",
     'var'       => ${ $_[0] }{'var'},
-    'cb'        => $callback_ref,
-    'data'      => ${ $_[0] }{'data'}
+    'cb'   => sub { &{$callback_ref} },
+    'data' => ${ $_[0] }{'data'}
 );

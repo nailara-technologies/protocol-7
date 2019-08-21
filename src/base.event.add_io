@@ -17,8 +17,8 @@ return Event->io(
     'prio'    => ${ $_[0] }{'desc'}    // 3,
     'timeout' => ${ $_[0] }{'timeout'} // 0,
     'hard'    => ${ $_[0] }{'hard'}    // 0,
-    'timeout_cb' => ${ $_[0] }{'timeout_cb'},
-    'cb'         => $callback_ref,
+    'timeout_cb' => sub { &{ ${ $_[0] }{'timeout_cb'} } },
+    'cb'         => sub { &{$callback_ref} },
     'fd'         => ${ $_[0] }{'fd'},
     'data'       => ${ $_[0] }{'data'}
 );
