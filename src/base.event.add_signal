@@ -15,7 +15,7 @@ $data{'watcher'}{'signal'}->{$signal}->cancel
 
 $data{'watcher'}{'signal'}->{$signal} = Event->signal(
     'signal' => $signal,
-    'cb'     => $code{$handler},
+    'cb'     => sub { &{ $code{$handler} } },
     'desc'   => "signal handler [$signal]",
     'prio'   => 0
 );
