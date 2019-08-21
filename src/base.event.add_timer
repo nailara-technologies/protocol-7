@@ -19,10 +19,10 @@ return Event->timer(
     'prio'      => ${ $_[0] }{'prio'}      // 1,
     'async'     => ${ $_[0] }{'async'}     // 0,
     'desc'      => ${ $_[0] }{'desc'}      // $callback,
-    'cb'        => $callback_ref,
-    'time'      => ${ $_[0] }{'time'},
-    'interval'  => ${ $_[0] }{'interval'},
-    'hard'      => ${ $_[0] }{'hard'},
-    'data'      => ${ $_[0] }{'data'},
+    'cb'       => sub { &{$callback_ref} },
+    'time'     => ${ $_[0] }{'time'},
+    'interval' => ${ $_[0] }{'interval'},
+    'hard'     => ${ $_[0] }{'hard'},
+    'data'     => ${ $_[0] }{'data'},
     @event_time
 );

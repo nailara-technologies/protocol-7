@@ -41,16 +41,15 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     if ( my $child = <root.child>->{$pid} ) {
 
-        <[base.log]>->( 2, ": was instance $instance_id ..." );
+        <[base.log]>->( 2, ": was instance $instance_id" );
 
         delete <root.child>->{$pid};
-
         delete $instance->{'restart_pids'}->{$pid}
             if exists $instance->{'restart_pids'};
 
         my $old_status = $instance->{'status'} || 'undefined';
 
-        <[base.log]>->( 2, ": was '$old_status' ..." );
+        <[base.log]>->( 2, ": had status : '$old_status'" );
 
         ## record browser segfaults (for crash mitigation) ##
         if ( $e_sig == 11 and $agent_name eq 'browser' ) {
