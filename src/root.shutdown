@@ -101,12 +101,14 @@ while ( keys %children_left ) {
                 ) if kill( 9, $pid );
             }
             delete $children_left{$pid};
-            my $ren = scalar @children == 1 ? ' -- :' : 'ren :';
-            <[base.log]>->(
-                1, ": <KILL> `-- child$ren " . join( ', ', @children )
-            );
-            kill( 9, @children );
-            map { delete $children_left{$pid}; } @children;
+            if (@children) {
+                my $ren = scalar @children == 1 ? ' -- :' : 'ren :';
+                <[base.log]>->(
+                    1, ": <KILL> `-- child$ren " . join( ', ', @children )
+                );
+                kill( 9, @children );
+                map { delete $children_left{$pid}; } @children;
+            }
         }
     }
     <[base.sleep]>->(0.042);
