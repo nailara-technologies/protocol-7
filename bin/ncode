@@ -536,7 +536,7 @@ sub cmd_search {
     my $source_data = load_source($target);
 
     my $last_filename;
-    foreach my $filename ( keys(%$source_data) ) {
+    foreach my $filename ( sort keys(%$source_data) ) {
         my $line_num = 0;
         if ( defined $source_data->{$filename} ) {
             foreach my $source_line ( split( /\n/, $source_data->{$filename} ) )
