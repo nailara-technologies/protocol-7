@@ -1,0 +1,16 @@
+# >:]
+
+# name = melt.init_code
+
+( my $melt_bin_path = qx(which melt) ) =~ s|[^\w/]+||g;
+
+if ( !-x $melt_bin_path ) {
+    <[base.log]>->(
+        0, "'melt' is not installed (or in path), aborting startup!"
+    );
+    exit(-1);
+}
+
+<melt.bin_path> = $melt_bin_path;
+
+0;

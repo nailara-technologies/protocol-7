@@ -1,0 +1,26 @@
+
+ .:[ 'melt' (video editor) agent ]:.
+
+# note : currently only one command is implemented, more to come as needed ...
+
+buffer.system.log_cmd = log.msg
+
+system.verbosity = 2 # [dbg!]
+system.internal_verbosity = 2
+
+[load_config_file:'defaults']
+
+access.cmd.usr.core = verify_instance ping help reload extract_frame
+
+modules.load = auth net io.ip melt debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:'nailara']
+
+[net.connect_to_core:'tcp/ip']
+
+[base.get_session_id]
+
+[event.loop]
