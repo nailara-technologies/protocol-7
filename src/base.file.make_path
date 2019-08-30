@@ -15,13 +15,16 @@ die "invalid path '$path'" if $path !~ m,^/[^/]+,;
 
 if ( -d $path ) {
     <[base.log]>->( 2, "make_path: directory '$path' exists already." );
-    return;
-} else {
-    <[base.log]>->( 1, "creating directory path '$path'" );
+    return $path;
 }
+
+<[base.log]>->( 1, "creating directory path '$path'" );
+
 my $current_path = '';
 foreach my $_dir ( split /\//, $path ) {
     $current_path .= '/' . $_dir;
     next if -d $current_path;
     mkdir( $current_path, $mode ) or die "mkdir '$current_path' failed [$!]";
 }
+
+return $path;
