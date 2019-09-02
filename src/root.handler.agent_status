@@ -295,7 +295,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
     if ( not exists $agent_config->{'ping'}->{'disabled'}
         or !$agent_config->{'ping'}->{'disabled'} ) {
         <[base.log]>->(
-            2, "setting up ping response timer for instance $instance_id.."
+            2, "setting up ping response timer for instance $instance_id"
         );
 
         <[root.cancel_status_timer]>->($instance_id);
