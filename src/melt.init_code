@@ -2,6 +2,8 @@
 
 # name = melt.init_code
 
+<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+
 ( my $melt_bin_path = qx(which melt) ) =~ s|[^\w/]+||g;
 
 if ( !-x $melt_bin_path ) {
@@ -12,5 +14,9 @@ if ( !-x $melt_bin_path ) {
 }
 
 <melt.bin_path> = $melt_bin_path;
+
+my $out_path = -d '/var/run' ? '/var/run/melt' : '/tmp/melt_out';
+
+<melt.output_path> = <[file.make_path]>->($out_path);
 
 0;
