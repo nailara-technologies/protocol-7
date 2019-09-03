@@ -14,16 +14,18 @@ die 'video file not found!' if !-f $video_path;
 
 my $ffmpeg_cmd_line
     = <ffmpeg.path.ffprobe_bin>
-    . " -v error -count_frames -select_streams v:0 -show_entries"
-    . " stream=nb_read_frames -of default=nokey=1:noprint_wrappers=1"
-    . " $video_path 2>/dev/null";
+    . " -v error -select_streams v:0 -show_entries stream=nb_frames"
+    . " -of default=nokey=1:noprint_wrappers=1 -- $video_path 2>/dev/null";
 
-my $frame_count = qx($ffmpeg_cmd_line) =~ /^(\d+)$/m ? $1 : undef;
+my $output_str  = qx($ffmpeg_cmd_line);
+my $frame_count = $output_str =~ /^(\d+)$/m ? $1 : undef;
 
 if ( defined $frame_count ) {
     <[base.log]>->( 2, ": file '$file_name' has $frame_count video frames." );
 } else {
-    <[base.log]>->( 0, "<!> frame count failed for file '$file_name'" );
+    <[base.log]>->(
+        0, "<!> frame count failed for file '$file_name' [$output_str]"
+    );
 }
 
 return $frame_count;
