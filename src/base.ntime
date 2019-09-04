@@ -1,0 +1,11 @@
+# >:]
+
+# name  = base.ntime
+# descr = returns nailara network time [ calc.: seconds from 2002-06-01 * 4200 ]
+
+my $precision = shift // 0;
+$precision = 11 if $precision > 11;
+<base.ntime_ustart> //= 1022882400;
+
+return sprintf( "%.${precision}f",
+    ( <[base.time]>->( 2 + $precision ) - <base.ntime_ustart> ) * 4200 );
