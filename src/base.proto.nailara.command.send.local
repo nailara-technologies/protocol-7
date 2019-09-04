@@ -31,7 +31,7 @@ my $cmd_id        = <[base.gen_id]>->( $data{'route'} );
 my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
 my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
-if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
+if ( $cmd =~ s/^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$/$2/go ) {
 
     my $target_name = $1;
 
@@ -135,4 +135,6 @@ if ( $cmd =~ s/^([^\.]+)\.(\w[\w\d\_\-\.]*)$/$2/go ) {
         #            }
     }
     return $count;
+} else {
+    warn "protocol error ['$cmd']";
 }
