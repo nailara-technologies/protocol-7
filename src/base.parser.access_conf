@@ -8,7 +8,7 @@
 
 my $error = 0;
 
-foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
+foreach my $usr ( sort keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
 
     my $regex_mask = '';
     my $pos        = 0;
@@ -27,7 +27,7 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
         {
 
             # compile command regex mask
-            if ( $cmd =~ /[^\w\-_\.\^\*]/ ) {
+            if ( $cmd =~ /[^\w\-_\\\[\]\.\^\*]/ ) {
                 <[base.log]>->(
                     0,
                     'invalid character in command regex mask (user \''
@@ -37,13 +37,13 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
                 );
                 $error = 1;
             } else {
-                $cmd =~ s/(.)\./$1\\\./g;
-                $cmd =~ s/\^/\\^/g;
-                $cmd =~ s/^\.\*\*/[^\\.\\^].%/;
-                $cmd =~ s/\*\*/.+/g;
-                $cmd =~ s/^\.\*/[^\\.\\^][^\\.]%/;
-                $cmd =~ s/\*/[^\\.]+/g;
-                $cmd =~ s/\%/*/g;
+                $cmd =~ s,\.,\\\.,g;
+                $cmd =~ s,\^,\\^,g;
+                $cmd =~ s,^\.\*\*,[^\.\\^].%,;
+                $cmd =~ s,\*\*,.+,g;
+                $cmd =~ s,^\.\*,[^\\\.\\^][^\\.]%,;
+                $cmd =~ s,\*,[^\\.]+,g;
+                $cmd =~ s,\%,*,g;
                 $cmd = '^' . $cmd . '$';
 
                 no warnings;
@@ -66,7 +66,7 @@ foreach my $usr ( keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
 
         chop $regex_mask;
 
-        #	print "REGEX: $regex_mask\n";
+        # print "\nREGEX[$usr]: $regex_mask\n\n";
 
         no warnings;
         if ( not $data{'access'}{'cmd'}{'regex'}{'usr'}{$usr}
