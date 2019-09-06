@@ -3,7 +3,7 @@
 # name  = log.cmd.file_sizes
 # descr = nailara log file size summary table
 
-my $hostname = <system.host.hostname>;
+my $hostname  = <system.host.hostname>;
 my $reply_str = sprintf( "..%11s\n", '..' );
 return { 'mode' => 'nak', 'data' => 'nailara log directory not found' }
     if !-d <log.nailara_log.path>;
@@ -21,28 +21,27 @@ map {
     ( my $file_name = $_ ) =~ s|^.+\/||;
     $total += $file_size_raw{$file_name} = [ stat("$_") ]->[7];
     $file_size_str{$file_name}
-        = <[base.parser.human.fsize]>->( $file_size_raw{$file_name} );
+        = <[base.parser.human.fsize_fixed]>->( $file_size_raw{$file_name} );
     $file_size_uval{$file_name}
         = $file_size_str{$file_name} =~ /^(.+)(\w)$/
         ? $1 * $unit_value{$2}
         : $file_size_str{$file_name};
-    } grep {
-    /\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/
-    } @{ <[file.all_files]>->(<log.nailara_log.path>) };
+} grep {/\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/}
+    @{ <[file.all_files]>->(<log.nailara_log.path>) };
 foreach my $file_name (
     sort {
         sprintf( "%.1f", $file_size_uval{$a} ) <=>
             sprintf( "%.1f", $file_size_uval{$b} )
     }
-    sort {
-        "$a" cmp "$b"
-    } keys %file_size_str
-    ) {
+    sort { "$a" cmp "$b" } keys %file_size_str
+) {
     $reply_str
-        .= sprintf( ":   %-7s :  $file_name\n", $file_size_str{$file_name} );
+        .= sprintf( ":  %-7s  :  $file_name\n", $file_size_str{$file_name} );
 }
-$reply_str
-    .= sprintf( "=\\  %-6s /=  <---\n", <[base.parser.human.fsize]>->($total) );
+my $l = abs( length(<system.host.hostname>) - 4 );
+my $x = '-' x $l;
+$reply_str .= sprintf( "=\\ %-6s /=  <----$x\n",
+    <[base.parser.human.fsize_fixed]>->($total) );
 return {
     'mode' => 'raw',
     'data' => $reply_str
