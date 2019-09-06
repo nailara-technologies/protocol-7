@@ -1,0 +1,26 @@
+# >:]
+
+# name = base.parser.human.fsize
+
+my $size_str = shift;
+
+return 'n/a' if not defined $size_str or $size_str !~ /^\d+$/;
+
+my %size_suffix = (
+    1024**4 => 'T',
+    1024**3 => 'G',
+    1024**2 => 'M',
+    1024    => 'K'
+);
+
+for my $grade ( sort { $b <=> $a } keys %size_suffix ) {
+    my $value = sprintf( "%.1f", $size_str / $grade );
+    if ( int($value) ) {
+        $size_str = $value . $size_suffix{$grade};
+        last;
+    }
+}
+
+$size_str =~ s|^(\d+)|sprintf("%04d",$1)|e;
+
+return $size_str;
