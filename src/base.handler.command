@@ -107,7 +107,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
                             1, "[$id] invalid command parameter format"
                         );
                         $$output .= $_cmd_id
-                            . "NAK invalid command parameter format\n";  # FIX!
+                            . "NAK invalid command parameter format\n";   # FIX!
                         $_[0]->w->start;
                         return 1;
                     }
@@ -601,13 +601,19 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
         my @send_sids;
 
-        if ( $target_name =~ /^$re->{sid}$/ ) {
+        if ( $target_name =~ /^$re->{sid}$/ ) {   ## <session_id>.<command> mode
             my $target_sid = $target_name;
             if ( exists $data{'session'}{$target_sid}
                 and $data{'session'}{$target_sid}{'mode'} eq 'client' ) {
                 @send_sids = ($target_sid);
             }
-        } elsif ( exists $data{'user'}{$target_name}{'session'} ) {
+        } elsif (
+            exists $data{'user'}{$target_name}{'session'}
+            and ( not defined $target_subname
+                or
+                defined $data{'user'}{$target_name}{'subname'}{$target_subname}
+            )
+            ) {                                   ## is online / present
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 next if $data{'session'}{$target_sid}{'mode'} ne 'client';
@@ -622,7 +628,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                 push( @send_sids, $target_sid );
             }
         } elsif ( my $v_id
-            = <[base.agents.ondemand_registered]>->($target_name) ) {
+            = <[base.agents.ondemand_registered]>->($target_name) ) { # ondemand
             my $target_user    = 'root';
             my $target_command = <agents.virtual>->{$v_id}->{'target_command'};
             if ( defined $target_command
