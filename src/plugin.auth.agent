@@ -13,9 +13,7 @@ if (   not %KEYS
     or not exists $KEYS{'auth'}{'agent'}
     or ref( $KEYS{'auth'}{'agent'} ) ne 'HASH'
     or !keys( %{ $KEYS{'auth'}{'agent'} } ) ) {
-    <[base.log]>->(
-        0, "[$id] no agent auth. keys set up - access denied"
-    );
+    <[base.log]>->( 0, "[$id] no agent auth. keys set up - access denied" );
     $$output .= "FAIL >:|\n";    # LLL: move down?
     return 2;
 }
@@ -28,7 +26,12 @@ if ( $$input =~ s/^($re->{usr}|$re->{usr_sub}) (\S+)\n// ) {
     if ( exists $KEYS{'auth'}{'agent'}->{$usr} ) {
 
         if ( $key_hash eq $KEYS{'auth'}{'agent'}{$usr} ) {
-            $data{'session'}{$id}{'subname'} = $subname if length($subname);
+
+            if ( length($subname) ) {
+                $data{'session'}{$id}{'subname'} = $subname;
+                $data{'user'}{$usr}{'subname'}{$subname}++;
+            }
+
             delete $KEYS{'auth'}{'agent'}{$usr};
             $$output .= "YEAH >:P\n";
 
