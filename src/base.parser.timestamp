@@ -2,13 +2,16 @@
 
 # name  = base.parser.timestamp
 # descr = returns diffenent timestamp strings for specified unix-/current time
+# note  = ntime values are also accepted ( length >= 13 )
 
 my @result;
 my $mode = shift;             # [clock|date]
-my $time = shift || time();
+my $time = shift // time();
 
 if ( defined $mode and $mode =~ /^(\d+)(\.\d+)?$/ ) { $time = $1; undef $mode }
 undef $mode if defined $mode and $mode eq 'timestamp';
+
+$time = <[base.n2u_time]>->($time) if length($time) >= 13;    # network time
 
 my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
 
