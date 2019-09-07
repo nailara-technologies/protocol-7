@@ -7,30 +7,44 @@
 my ($node_agent, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
 ) = split( / /, shift->{'args'}, 6 );
-<log.timestamp_mode> //= 'localtime';
+
+# note : log_time is accepted in unix or nailara network time, default: ntime!!!
+
+my $default_mode = 'localtime';
+<log.timestamp_mode> //= $default_mode;
 
 my $log_file = "$node_agent.$buffer_name";
 
-if ( <log.timestamp_mode> ne 'localtime' and <log.timestamp_mode> ne 'unix' ) {
+## input ##
+
+if ( <log.timestamp_mode> !~ /^localtime|ntime|unix/ ) {
     <[base.log]>->(
         0, "invalid timestamp mode '" . <log.timestamp_mode> . "' configured!"
     );
-    <[base.log]>->( 1, "setting timestamp mode 'localtime' (fallback)" );
-    <log.timestamp_mode> = 'localtime';
+    <[base.log]>->( 1, "setting timestamp mode '$default_mode' (fallback)" );
+    <log.timestamp_mode> = $default_mode;
+} elsif ( $log_time !~ /^(\d{1,17})(\.\d+)?/ ) { # invalid time value -> current
+    $log_time = <[base.ntime]>;                  # TODO: deliver warning _once_!
+} elsif ( length($1) < 13 ) {                    # unix time input value
+    $log_time = <[base.ntime]>->($log_time);
 }
 
-my $time_string;
-if ( <log.timestamp_mode> eq 'localtime' ) {
-    my ( $u_time, $time_fp ) = split( /\./, $log_time );
-    (   $time_string = join( '.',
-            <[base.parser.timestamp]>->( 'timestamp', $u_time ), $time_fp )
+## output ##
+
+if ( <log.timestamp_mode> eq 'unix' ) {          # output in unix time
+
+    $log_time = <[base.n2u_time]>->( $log_time, 5 );
+
+} elsif ( <log.timestamp_mode> eq 'localtime' ) {   # human readable time string
+    my ( $unix, $secs_fp ) = split( /\./, <[base.n2u_time]>->( $log_time, 5 ) );
+    (   $log_time = join( '.',
+            <[base.parser.timestamp]>->( 'timestamp', $unix ),
+            $secs_fp // 0 )
     ) =~ s' '|';
-} else {
-    $time_string = $log_time;
 }
 
 my $write_line = sprintf( "%s %7s %d %s\n",
-    $time_string, $instance_id, $log_level, $log_message );
+    $log_time, $instance_id, $log_level, $log_message );
 
 my $msg_len = length($write_line);
 my ( $ok, $err_msg ) = <[log.add_line]>->( $log_file, \$write_line );
