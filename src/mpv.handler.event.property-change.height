@@ -97,7 +97,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
             );
             <[mpv.callback.start_reenc_msg]> if !<mpv.disable_reenc_msg>;
             <[base.proto.nailara.command.send.local]>->(
-                {   'command'   => 'core.ffmpeg.rescale_video',
+                {   'command'   => 'core.ffmpeg[mpv].rescale_video',
                     'call_args' => { 'args' => $cmd_args },
                     'reply'     => {
                         'handler' => 'mpv.handler.rescale_video_reply',
