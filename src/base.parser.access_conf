@@ -37,6 +37,7 @@ foreach my $usr ( sort keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
                 );
                 $error = 1;
             } else {
+                $cmd =~ s|([\[\]])|\\$1|g;
                 $cmd =~ s,\.,\\\.,g;
                 $cmd =~ s,\^,\\^,g;
                 $cmd =~ s,^\.\*\*,[^\.\\^].%,;
