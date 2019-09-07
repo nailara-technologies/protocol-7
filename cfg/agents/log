@@ -3,8 +3,11 @@
 
 [load_config_file:'defaults']
 
+log.timestamp_mode = ntime # [ntime|unix|localtime]
+
 modules.load = auth net io.ip log
-access.cmd.usr.core = help ping reload verify_instance msg file_sizes
+access.cmd.usr.core = help ping reload verify_instance \
+                      msg file_sizes dump_buffer
 
 [load_modules:<modules.load>]
 [init_modules]
