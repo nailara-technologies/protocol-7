@@ -13,7 +13,7 @@ foreach my $s_cid ( keys %{ $data{'session'}{$id}{'route'} } ) {
     my $route_id = $data{'session'}{$id}{'route'}{$s_cid};
     my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
     next if not defined $s_sid;
-    my $s_cid = $data{'route'}{$route_id}{'source'}{'cmd_id'};
+    my $s_cid     = $data{'route'}{$route_id}{'source'}{'cmd_id'};
     my $reply_str = $s_cid ? "($s_cid)" : '';
     $reply_str .= "NAK command route collapsed\n";
     $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str
@@ -35,17 +35,35 @@ foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
     <[httpd.update_download_count]> if $watcher eq 'download_handler';
 }
 
-# cleanup user2session reference
 my $user = $data{'session'}{$id}{'user'};
+
+# clean up user -> session reference
 if ( defined $data{'user'}{$user}{'session'}{$id} ) {
+
+    # first clean up subname -> session reference
+    if (    defined $data{'session'}{$id}{'subname'}
+        and defined $data{'user'}{$user}{'subname'} ) {
+        my $subname = $data{'session'}{$id}{'subname'};
+        $data{'user'}{$user}{'subname'}{$subname}--
+            if defined defined $data{'user'}{$user}{'subname'}{$subname};
+        delete $data{'user'}{$user}{'subname'}{$subname}
+            if !$data{'user'}{$user}{'subname'}{$subname};
+        delete $data{'user'}{$user}{'subname'}
+            if !keys( %{ $data{'user'}{$user}{'subname'} } );
+    }
+
     delete $data{'user'}{$user}{'session'}{$id};
 }
 
-# record the timestamp in case it was the last session
 if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
     delete $data{'user'}{$user}{'connected_since'};
+
+    # record timestamp in case it was the last session
     $data{'user'}{$user}{'last_seen'} = time();
+
     delete $data{'user'}{$user}{'session'};
+    delete $data{'user'}{$user};
+    delete $data{'user'} if !keys( %{ $data{'user'} } );
 }
 
 my $dfh = $data{'session'}{$id}{'handle'};
