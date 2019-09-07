@@ -10,7 +10,7 @@ my ($node_agent, $instance_id, $buffer_name,
 
 # note : log_time is accepted in unix or nailara network time, default: ntime!!!
 
-my $default_mode = 'localtime';
+my $default_mode = 'ntime';
 <log.timestamp_mode> //= $default_mode;
 
 my $log_file = "$node_agent.$buffer_name";
