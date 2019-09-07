@@ -5,7 +5,7 @@
 
 my $ntime = shift;
 die "expected nailara network time" if $ntime !~ /^\d{13,}(\.\d+)?/;
-my $precision = shift // length( $1 // '' );
+my $precision = shift // 0;
 $precision = 13 if $precision > 13;
 <base.ntime_ustart> //= 1022882400;
 
