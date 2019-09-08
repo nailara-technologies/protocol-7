@@ -9,7 +9,7 @@ $mode = oct($mode) if $mode =~ /^0/;
 die "expected absolute path (to create)"
     if not defined $path or $path !~ m,^/[^/]+,;
 $path =~ s,/[^/]+/\.\./,,g;
-$path =~ tr|/||s;
+$path =~ s|//|/|g;
 $path =~ s,/$,,;
 die "invalid path '$path'" if $path !~ m,^/[^/]+,;
 
@@ -22,9 +22,11 @@ if ( -d $path ) {
 
 my $current_path = '';
 foreach my $_dir ( split /\//, $path ) {
+    next if !length($_dir);
     $current_path .= '/' . $_dir;
     next if -d $current_path;
-    mkdir( $current_path, $mode ) or die "mkdir '$current_path' failed [$!]";
+
+    mkdir( $current_path, $mode ) or die " mkdir '$current_path' failed [$!] ";
 }
 
 return $path;
