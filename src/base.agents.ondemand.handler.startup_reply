@@ -24,11 +24,15 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 } else {
     <[base.log]>->( 1, "ondemand agent '$agent_name' now present.." );
     while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
-        my $sid    = $element->{'source_id'};
-        my $cmd_id = $element->{'cmd_id'};
+        my $sid = $element->{'source_id'};
         next if not exists $data{'session'}{$sid};
+        my $cmd_id = $element->{'cmd_id'};
+        my $s_name
+            = defined $element->{'cmd_subname'}
+            ? sprintf( "[%s]", $element->{'cmd_subname'} )
+            : '';
 
-        my $output_str = "$cmd_id$agent_name." . $element->{'cmd_str'};
+        my $output_str = "$cmd_id$agent_name$s_name." . $element->{'cmd_str'};
         $output_str .= ' ' . $element->{'cmd_args'}
             if defined $element->{'cmd_args'};
         $output_str .= "\n";    # LLL: add multiline command parameters..
