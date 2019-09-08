@@ -648,10 +648,11 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
                 push(
                     @{ <agents.virtual>->{$v_id}->{'queue'} },
-                    {   'source_id' => $id,
-                        'cmd_id'    => $_cmd_id,
-                        'cmd_str'   => $command_str,
-                        'cmd_args'  => $args_orig
+                    {   'source_id'   => $id,
+                        'cmd_id'      => $_cmd_id,
+                        'cmd_subname' => $target_subname,
+                        'cmd_str'     => $command_str,
+                        'cmd_args'    => $args_orig
                     }
                 );
 
@@ -825,7 +826,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         if ( $targets_denied == @send_sids ) {    # nothing sent
             $$output .= $_cmd_id . "NAK unknown command\n";
             <[base.log]>->(
-                1,
+                0,
                 "[$id] access denied! ( usr:'$usr' cmd:'$target_name.$cmd' )"
             );
             return 1;
@@ -845,7 +846,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 } else    # access denied
 {
     $$output .= $_cmd_id . "NAK unknown command\n";
-    <[base.log]>->( 1, "[$id] access denied! ( usr:'$usr' cmd:'$cmd' )" );
+    <[base.log]>->( 0, "[$id] access denied! ( usr:'$usr' cmd:'$cmd' )" );
     return 1;
 }
 
