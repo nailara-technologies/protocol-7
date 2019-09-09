@@ -23,7 +23,7 @@ if ( $pdf_location =~ m|^https?://| ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
                 {   'mode' => 'nak',
-                    'data' => "download of '$pdf_location' failed!"
+                    'data' => "could not download '$pdf_location'!"
                 }
             );
             delete <pdf.html.conversions>->{$current_key};
@@ -57,7 +57,7 @@ $err_status = 'target_width not defined' if not defined $target_width;
 $err_status = 'page_width not defined'   if not defined $page_width;
 $err_status = 'page_height not defined'  if not defined $page_height;
 
-goto fail if defined $err_status;
+goto error if defined $err_status;
 
 my $target_height
     = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width );
@@ -77,7 +77,7 @@ $white->ReadImage('xc:white');
 my $image = Graphics::Magick->new( density => '600' );
 
 $err_status = $image->Read("$pdf_location\[$index\]");
-goto fail if "$err_status";
+goto error if "$err_status";
 
 $err_status = $image->Resize(
     width  => $target_width,
@@ -85,7 +85,7 @@ $err_status = $image->Resize(
     blur   => 0.57,
     filter => 'Cubic'
 );
-goto fail if "$err_status";
+goto error if "$err_status";
 
 my $img_index = sprintf( "%0" . length($page_count) . "d",
     $conversion->{'current_page'} );
@@ -93,12 +93,12 @@ my $image_name  = "page.$img_index.png";
 my $output_file = $conversion->{'html_path'} . '/' . $image_name;
 
 $err_status = $image->Signature();
-goto fail if "$err_status";
+goto error if "$err_status";
 
 if ( $image->Get('signature') ne $skip_hash ) {
     <[base.log]>->( 2, "writing image file '$image_name'" );
     $err_status = $image->Write("png24:$output_file");
-    goto fail if "$err_status";
+    goto error if "$err_status";
     push( @{ $conversion->{'image_names'} }, $image_name );
 } else {
     <[base.log]>->( 2, "skipped image file '$image_name' (white page)" );
@@ -124,7 +124,7 @@ if ( $conversion->{'current_page'} == $page_count ) {
         2, "conversion of '" . $conversion->{'pdf_file'} . "' completed"
     );
 
-    foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+    while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => 'ack',
@@ -137,7 +137,7 @@ if ( $conversion->{'current_page'} == $page_count ) {
 
 return;
 
-fail:
+error:
 
 $index++;
 my $err_msg = "error during conversion of PDF page #$index [$err_status`]";
