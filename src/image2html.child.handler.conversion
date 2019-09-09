@@ -133,7 +133,7 @@ $target_height
     = sprintf( "%.0f", ( $image_height / $image_width ) * $target_width )
     if not defined $target_height;
 my $target_ratio = $target_width / $target_height;
-my $orientation = $image_ratio < 1 ? 'portrait' : 'landscape';
+my $orientation  = $image_ratio < 1 ? 'portrait' : 'landscape';
 
 my $prevent_crop = 0;
 my $scale_width;
@@ -219,7 +219,7 @@ close($touch_fh);
     2, "conversion of '" . $conversion->{'image_file'} . "' completed"
 );
 
-foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
         {   'mode' => 'ack',
