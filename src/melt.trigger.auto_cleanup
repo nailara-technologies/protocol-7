@@ -1,0 +1,28 @@
+# >:]
+
+# name = melt.trigger.auto_cleanup
+
+my $cleanup_path  = <melt.output_path>;
+my $files_removed = 0;
+
+my $ntime_now = <[base.ntime]>;
+my $ntics_day = 362880000;    # a day in network time [ ntics = 4200th seconds ]
+my $keep_ntics = <melt.keep_last.days> * $ntics_day;
+my $keep_bytes = <melt.keep_last.mbytes> * 1024**2;
+
+foreach my $file_path ( reverse @{ <[file.all_files]>->($cleanup_path) } ) {
+    next unless -w $file_path and $file_path =~ /(\d+)\.png$/;
+    $keep_bytes -= [ stat($file_path) ]->[7];
+    my $ntime_age = $ntime_now - $1;
+    if ( $keep_bytes <= 0 or $ntime_age > $keep_ntics ) {
+        if ( unlink($file_path) ) { $files_removed++ }
+        else                      { warn "[$file_path] unable to remove [$!]" }
+    }
+}
+
+if ( !$files_removed ) {
+    my $log_level = [caller]->[1] eq 'melt.init_code' ? 1 : 2;
+    <[base.log]>->( $log_level, ": auto_cleanup : nothing done." );
+} else {
+    <[base.log]>->( 1, ": auto_cleanup : files removed : $files_removed" );
+}
