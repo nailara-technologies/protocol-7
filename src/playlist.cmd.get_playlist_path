@@ -1,0 +1,11 @@
+# >:]
+
+# name  = playlist.cmd.get_playlist_path
+# descr = return path of loaded playlist
+
+my $list_path = <playlist.load_file.path> // '';
+
+return { 'mode' => 'nak', 'data' => 'playlist path is not defined!' }
+    if !length($list_path);
+
+return { 'mode' => 'ack', 'data' => $list_path }
