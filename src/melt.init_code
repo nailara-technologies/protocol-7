@@ -2,7 +2,15 @@
 
 # name = melt.init_code
 
+<[base.perlmod.load]>->('File::Spec');
+<[base.perlmod.load]>->( 'IPC::Open3', qw/open3/ );
 <[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+
+## auto img cleanup defaults ##
+<melt.keep_last.days>   //= 32;
+<melt.keep_last.mbytes> //= 32;
+
+open( NULL, '>', File::Spec->devnull );
 
 ( my $melt_bin_path = qx(which melt) ) =~ s|[^\w/]+||g;
 
@@ -17,6 +25,20 @@ if ( !-x $melt_bin_path ) {
 
 my $out_path = -d '/var/run' ? '/var/run/melt' : '/tmp/melt_out';
 
-<melt.output_path> = <[file.make_path]>->($out_path);
+$out_path = <melt.out_path> if length( <melt.out_path> // '' );
+
+<[base.log]>->( 1, ": image path : '$out_path'" );
+
+if ( !-d $out_path ) {
+    <[base.log]>->( 1, ": : creating '$out_path'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    make_path( $out_path, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
+        or die " make_path: $! ";
+}
+
+<melt.output_path> = $out_path;
+
+<[melt.trigger.auto_cleanup]>;
 
 0;

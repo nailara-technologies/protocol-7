@@ -1,18 +1,25 @@
 
  .:[ 'melt' (video editor) agent ]:.
 
-# note : currently only one command is implemented, more to come as needed ...
+# note : currently only extract_frame command is implemented, more when required
 
 buffer.system.log_cmd = log.msg
 
-system.verbosity = 2 # [dbg!]
+#system.verbosity = 2 # [log]
 system.internal_verbosity = 2
 
 [load_config_file:'defaults']
 
-access.cmd.usr.core = verify_instance ping help reload extract_frame
+## auto cleanup parameters
+melt.keep_last.days   = 32
+melt.keep_last.mbytes = 32
+##########################
 
-modules.load = auth net io.ip melt debug
+# melt.out_path = /var/run/melt # <- change if desired
+
+access.cmd.usr.core = verify_instance ping help reload extract_frame dump_buffer
+
+modules.load = auth net io.ip melt
 
 [load_modules:<modules.load>]
 [init_modules]
