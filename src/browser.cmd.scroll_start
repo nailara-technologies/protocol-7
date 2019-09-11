@@ -9,11 +9,6 @@ my $reply_id = $$call{'reply_id'};
 return { 'mode' => 'nak', 'data' => 'already scrolling' }
     if <window.scrolling>;
 
-<[browser.js_call]>->(
-    'String( document.body.scrollHeight -'
-        . ' window.innerHeight ) +'
-        . ' ":" + window.scrollY',
-    $code{'browser.scroll_start'}, $reply_id
-);
+<[browser.scroll_start]>->($reply_id);
 
 return { 'mode' => 'later' };

@@ -2,13 +2,17 @@
 
 # name = browser.callback.load_finished
 
-my $fg_index = <browser.overlay.index.fg>;
+my $fg_index  = <browser.overlay.index.fg>;
+my $call_mode = shift // 'scroll_check';      # [scroll_check|no_scroll]
 
 if (    <browser.slideshow.running>
     and !<browser.slideshow.no_scroll>
-    and <browser.window>->{$fg_index}->{'scrollable'}
-    and !<window.scrolling> ) {
-    <[browser.scroll_start]>->('fg');
+    and !<window.scrolling>
+    and $call_mode ne 'no_scroll' ) {
+
+    # next calls browser.callback.load_finished again if at end of page already!
+    <[browser.scroll_start]>;
+
 } else {
     if (<browser.slideshow.running>) {
         <browser.slideshow.status> = 'load_finished';
