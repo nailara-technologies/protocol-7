@@ -9,13 +9,22 @@ my $settings        = $view->get_settings();
 my $view_uri        = $view->get_uri();
 my $js_string       = shift // '';
 my $result_callback = shift // sub { warn "[js_call] invoked empty callback!" };
-my $re_cb_params = shift;    # no params (default) undef
+my $re_cb_params    = shift;           # no params (default) undef
+my $caller_sub_name = [caller]->[1];
 
 return warn "<<!>> javascript execution is disabled <<!>>"
     if !$settings->get_enable_javascript();
 return warn 'expected javascript command string' if !length($js_string);
 
-<[base.log]>->( 2, "<js_call> [$view_uri] : '$js_string'" );
+if ( $caller_sub_name eq 'browser.callback.scroll_start_js_exec' ) {
+    <[base.log]>->( 2, ".. checking if scrollable ..." );
+} elsif ( $caller_sub_name eq 'browser.handler.auto_scroll' ) {
+
+    # LLL: log periodically the current scroll progress percentage ...
+
+} else {
+    <[base.log]>->( 2, "<js_call> [$view_uri] : '$js_string'" );
+}
 
 $js_string = "throw $js_string";    # <-prepares result access through exception
 
