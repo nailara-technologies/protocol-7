@@ -3,28 +3,7 @@
 # name  = browser.scroll_start
 # descr = callback invoked from js_call
 
-my $result   = shift // '';                # "<scroll_max_Y>:<scroll_pos_Y>"
-my $reply_id = shift;
-my $window   = <browser.gtk_obj.window>;
+my $reply_id = shift;           # <- can be undefined!
+my $call_sub = [caller]->[1];
 
-<window.scrolling> //= 0;
-<window.scroll.reply_id> = $reply_id;
-
-warn "result string not as expected, can not scroll"
-    if $result !~ /^(\d+):(\d+)/;
-
-<window.scroll.max> = $1 // 0;
-<window.scroll.pos> = $2 // 0;
-<window.scroll.stop> = 0;
-
-return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'ack', 'data' => 'already at end of page' }
-) if <window.scroll.pos> >= <window.scroll.max>;
-
-<browser.timer.slideshow>->cancel if exists <browser.timer.slideshow>; # <- chk!
-
-<browser.signal_id.auto_scroll>
-    = $window->signal_connect( draw => $code{'browser.handler.auto_scroll'} );
-
-$window->queue_draw();
-<window.scrolling> = 1;
+<[browser.callback.scroll_start_js_exec]>->( $call_sub, $reply_id );
