@@ -13,11 +13,11 @@ if ( $reply->{'cmd'} ne 'ACK' ) {
     <[base.log]>->( 0, "[!] 'mpv.is_idle' command failed ($reply_str)" );
 } else {
     if ( $reply_str eq 'no' ) {
-        <[base.log]>->( 2, "[ok] mpv is not idle (switch succeeded)" );
+        <[base.log]>->( 2, "[success] mpv is playing (switch performed)" );
         return;
     } else {
         <[base.log]>->(
-            0, "<!> mpv is still idle ( switch / resume failed! ) <!>"
+            0, "<!> mpv is still idle ( resume failed [$reply_str] ) <!>"
         );
     }
 }

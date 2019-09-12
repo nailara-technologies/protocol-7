@@ -60,7 +60,9 @@ if (    <media.cfg.fade_on_switch>
     );
 }
 
-<[media.lower_except]>->($agent_name) if !<media.sequence.startup>;
+<[base.sleep]>->( 2.1 + rand(1.2) ) if <media.sequence.startup>;
+
+<[base.sleep]>->(0.37);
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "core.xserver.unhide_window",
@@ -68,7 +70,14 @@ if (    <media.cfg.fade_on_switch>
     }
 );
 
-<[media.stop_loadsplash]> if <media.loadsplash_running>;
+<[media.lower_except]>->($agent_name) if !<media.sequence.startup>;
+
+if (<media.loadsplash_running>) {
+    <[base.sleep]>->(0.777);
+    <[media.stop_loadsplash]>;
+}
+
+<[base.sleep]>->(0.17);
 
 <media.child>->{$agent_name}->{'visible'} = 1;
 
