@@ -5,20 +5,23 @@ system.privs.user = nailara
 
 buffer.system.log_cmd = log.msg
 
-# system.verbosity          = 3
-# system.internal_verbosity = 3
+# system.verbosity = 2 # [dbg!]
+# system.internal_verbosity = 2
+
 
 [load_config_file:'defaults']
 
-media.cfg.fade_on_switch = 1 # fade in on switch ( browser -> mpv [currently] )
-media.cfg.autospeed_notrans = 1 # disable mpv / browser fading on load alerts
+media.vid_frame_dir = /tmp/.video_frames
+
+media.cfg.fade_on_switch  = 1 # fade in on switch ( browser -> mpv [currently] )
 media.cfg.can_self_restart = 1 # auto-recovery ( through media agent restart )
+media.cfg.autospeed_notrans = 1 # disable mpv / browser fading on load alerts
 
 access.cmd.usr.core    = help ping reload verify_instance * # <- XXX
 access.cmd.usr.mpv     = whoami
 access.cmd.usr.browser = whoami
 
-modules.load = auth net io.ip io.unix plugin.auth digest media
+modules.load = auth net io.ip io.unix plugin.auth digest media # debug
 [load_modules:<modules.load>]
 [init_modules]
 
