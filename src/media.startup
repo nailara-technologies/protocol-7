@@ -2,11 +2,21 @@
 
 # name = media.startup
 
+my @content_types = keys %{<media.content.agent_map>};
+<[media.get_playlist]>->(@content_types);
+
 $ENV{'DISPLAY'} = <x11.display>;
 
 ( <x11.width>, <x11.height> ) = (
     <x11.coordinates.right> - <x11.coordinates.left>,
     <x11.coordinates.bottom> - <x11.coordinates.top>
+);
+
+<[base.log]>->(
+    2,
+    sprintf(
+        "calculated window dimensions %s x %s", <x11.width>, <x11.height>
+    )
 );
 
 <[base.log]>->( 1, "starting loadsplash agent.." );

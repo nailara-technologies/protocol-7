@@ -58,6 +58,8 @@ $window->add($overlay);
 
 $window->show_all();
 
+$window->iconify() if <system.agent.mode> eq 'media-child';
+
 Glib::Idle->add(
     sub {
         <[browser.wait_for_window]>;

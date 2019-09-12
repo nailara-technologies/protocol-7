@@ -14,7 +14,7 @@ return 0
 
 ## blocked ##
 
-<[base.log]>->( 2, "<!> <$allowed> blocked access : " . $request->get_uri )
+<[base.log]>->( 0, "<!> <$allowed> blocked access : " . $request->get_uri )
     if length( $request->get_uri );
 
-$request->set_uri('about:blank');
+$request->set_uri('');    # was 'about:blank' ...

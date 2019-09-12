@@ -11,8 +11,6 @@ my $resource    = $view->get_main_resource;
 my $response    = defined $resource ? $resource->get_response : undef;
 my $status_code = defined $response ? $response->get_status_code : 0;
 
-# warn "load_status : $load_status [ $actual_uri ]";
-
 <browser.time.load_start> = <[base.time]>->(3) if $load_status eq 'started';
 
 my $is_loading = $view->get_property('is-loading');
