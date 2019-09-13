@@ -66,7 +66,7 @@ my $scrolled_window = Browser::ScrolledWindow->new;
 my $style_context = $scrolled_window->get_style_context();
 $style_context->add_provider( <browser.gtk_obj.css_prov>, -1 );
 
-my $view = Browser::WebView->new();
+my $view = Browser::WebView->new_with_context(<browser.gtk_obj.web_context>);
 
 <browser.scr_win>->{$view} = $scrolled_window;
 
@@ -137,19 +137,6 @@ $view->set_editable(0);
 # $view->set_maintains_back_forward_list(0);
 
 <[browser.set_properties]>->($view);
-
-if (<browser.cfg.no_memory_cache>) {
-
-    # Gtk3::WebKit2::set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
-
-    <[base.log]>->( 1, "in-memory cache disabled.." );
-} else {
-
-    # Gtk3::WebKit2::set_cache_model('WEBKIT_CACHE_MODEL_WEB_BROWSER');
-
-    # LLL: deal with cache size / auto-clear...
-
-}
 
 $view->set_property( 'editable', 0 );
 

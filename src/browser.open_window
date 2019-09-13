@@ -41,7 +41,31 @@ my $overlay = Gtk3::Overlay->new();
 }
 EOT
 
-map { <[browser.init_view]>->($_) } ( 1, 2 );
+# web context setup #
+
+my $web_context = Gtk3::WebKit2::WebContext->new();
+
+my $proc_model = 'WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES';
+$web_context->set_process_model($proc_model);
+
+if (<browser.cfg.no_memory_cache>) {
+
+    $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
+    <[base.log]>->( 2, ": deactivating in-memory cache.." );
+} else {
+
+    <[base.log]>->( 2, ": moderate caching enabled.." );
+    $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER');
+
+    # LLL: deal with cache size / auto-clear...
+    # $web_context->set_cache_model('WEBKIT_CACHE_MODEL_WEB_BROWSER');
+
+}
+
+<browser.gtk_obj.web_context> = $web_context;
+
+map { <[browser.init_view]>->($_) } ( 1, 2 ); # will use initialized web context
+
 <browser.gtk_obj.overlay>
     ->reorder_overlay( <browser.gtk_obj.scrolled_window>->{2}, 0 );
 
