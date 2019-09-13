@@ -1,0 +1,33 @@
+# >:]
+
+# name  = browser.cmd.set_cache_model
+# descr = change currently used web-cache model
+
+my $selected_model = $$call{'args'};
+my $web_context    = <browser.gtk_obj.web_context>;
+my %cache_models
+    = map { $_ => 1 } ( 'web-browser', 'document-viewer', 'document-browser' );
+
+return {
+    'mode' => 'nak',
+    'data' => sprintf( "use one of : %s",
+        join( ', ', map {"'$_'"} sort keys(%cache_models) ) )
+    }
+    unless exists $cache_models{$selected_model};
+
+return {
+    'mode' => 'ack',
+    'data' => sprintf("web cache model already '$selected_model'(!)")
+    }
+    if $web_context->get_cache_model() eq $selected_model;
+
+<browser.cfg.no_memory_cache> = $selected_model eq 'document-viewer' ? 1 : 0;
+
+<[base.log]>->( 0, "changing cache model to '$selected_model' (requested)" );
+
+$web_context->set_cache_model($selected_model);
+
+return {
+    'mode' => 'ack',
+    'data' => sprintf("web cache model set to '$selected_model'")
+};

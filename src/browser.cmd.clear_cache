@@ -1,0 +1,15 @@
+# >:]
+
+# name  = browser.cmd.clear_cache
+# descr = clear the browser cache to free memory
+
+my $web_context = <browser.gtk_obj.web_context>;
+
+$web_context->clear_cache();
+
+<[base.log]>->( 1, "browser cache cleared. (requested)" );
+
+return {
+    'mode' => 'ack',
+    'data' => 'browser cache cleared'
+};
