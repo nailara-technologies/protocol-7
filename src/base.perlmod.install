@@ -19,8 +19,10 @@ $module_name = $known_deps->{'cpan'}
 
 my @cpan_list = ($module_name);
 
-if ( <system.host.os.dist.name> eq 'debian'
-    and defined $known_deps->{'debian'} ) {
+if (    <system.host.os.dist.name> eq 'debian'
+    and defined $known_deps->{'debian'}
+    and ref( $known_deps->{'debian'} ) eq 'ARRAY'
+    and @{ $known_deps->{'debian'} } ) {
     @cpan_list = ();
     my @deb_list;
     map {
