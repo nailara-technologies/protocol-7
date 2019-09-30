@@ -9,7 +9,7 @@ apt-get install xvfb cpanminus libevent-perl \
   libproc-processtable-perl libglib-perl libterm-readpassword-perl \
   libterm-readline-perl-perl libx11-protocol-perl libhash-flatten-perl \
   libx11-protocol-other-perl libx11-keyboard-perl libtest-needsdisplay-perl \
-  libfreezethaw-perl libclone-perl libtimedate-perl \
+  libfreezethaw-perl libclone-perl libtimedate-perl shared-mime-info \
   libhash-merge-simple-perl libwebkitgtk-dev libjson-xs-perl \
   libpoppler-glib-dev libgraphics-magick-perl libimage-exif-perl \
   libfile-mimeinfo-perl libnet-ssh2-perl libxml-feed-perl libxml-rsslite-perl \
