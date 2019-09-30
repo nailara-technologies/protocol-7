@@ -50,7 +50,7 @@ if ( defined $agentname and $agentname ne '' ) {
             push( @{ $data{'startup'}{'init_code'} }, $_ );
         }
         my $lines = @{ $data{'startup'}{'init_code'} };
-        my $s = $lines != 1 ? 's' : '';
+        my $s     = $lines != 1 ? 's' : '';
         $code{'log.ok'}->("< / read $lines line$s of init-code >");
     }
     $code{'base.init'}->( $data{'system'}{'node'}{'name'} . '.' . $agentname );
@@ -136,7 +136,7 @@ sub prepare_subs {
         $data{'system'}{'lmod_path'}    = catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
 
-        my $ver_str = $data{'nailara'}{'version'} = 'unknown';
+        my $ver_str = $data{'nailara'}{'source_version'} = 'unknown';
         my $version_file
             = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
         if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
@@ -332,7 +332,7 @@ sub prepare_subs {
         }
         my $mod_count = scalar @compile_them;
         return if !$mod_count and !@remaining;
-        next if !$mod_count;
+        next   if !$mod_count;
 
         $code{'log.debug'}->(": compiling ...");
         my ( $ok_count, $err_count ) = ( 0, 0 );
@@ -489,7 +489,7 @@ sub prepare_subs {
                 $code{'base.time'}->(5)
                     . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
                 $code{'base.time'}->(5)
-                    . " 1 VERSION '$data{nailara}{version}'"
+                    . " 1 VERSION '$data{nailara}{source_version}'"
             );
         }
         return ( $ok_count, $err_count );
