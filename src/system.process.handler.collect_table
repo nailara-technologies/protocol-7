@@ -52,7 +52,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                 and ( not defined $lp->{'seconds'}
                     or ( <[base.time]>->(2) - $lp->{'condition_start'} )
                     >= $lp->{'seconds'} )
-                ) {
+            ) {
                 <[base.log]>->(
                     0,
                     "<!> MEMORY USAGE ALERT: (( $rl_name )) [now $mem%, limit "
@@ -84,7 +84,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
             and ( not defined $lp->{'seconds'}
                 or ( <[base.time]>->(2) - $lp->{'condition_start'} )
                 >= $lp->{'seconds'} )
-            ) {
+        ) {
             <[base.log]>->(
                 0,
                 "<!> CPU LOAD ALERT: (( $rl_name )) [now $cpu%, limit "
@@ -127,13 +127,13 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
     );
     <system.memory_alert.warned> = 0;
 }
-if ( $mem_limit_reached and <mem.auto_kill> ) {  # automatic overload mitigation
+if ( $mem_limit_reached and <mem.autokill> ) { # automatic mem. load mitigation!
     foreach my $pid (
         sort {
             <process.table.top>->{$b}->{'pctmem'} <=>
                 <process.table.top>->{$a}->{'pctmem'}
         } keys( %{<process.table.top>} )
-        ) {
+    ) {
         my $process = <process.table.top>->{$pid};
         next
             if defined <mem.kill_min> and $process->{'pctmem'} < <mem.kill_min>;
