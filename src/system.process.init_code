@@ -1,10 +1,28 @@
 # >:]
 
 # name = system.process.init_code
+# todo = configurable blacklist!!!
 
 <[base.perlmod.autoload]>->('IPC::Open2');
 <[base.perlmod.autoload]>->('Proc::ProcessTable');
-<[base.perlmod.autoload]>->('Sys::Statistics::Linux::CpuStats');
+<[base.perlmod.autoload]>->('Sys::Statistics::Linux');
+
+<system.statistics> = Sys::Statistics::Linux->new(    # LLL: use initfile option
+    sysinfo   => 0,
+    cpustats  => 1,
+    procstats => 0,
+    memstats  => 1,
+    pgswstats => 0,
+    netstats  => 0,
+    sockstats => 0,
+    diskstats => 0,
+    diskusage => 0,
+    loadavg   => 0,
+    filestats => 0,
+    processes => 0,
+);
+
+<system.statistics>->init;
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
@@ -14,10 +32,19 @@
 <process.top_min.mem> //= 1;
 <process.top_min.cpu> //= 1;
 <system.process.pt>   //= new Proc::ProcessTable( 'cache_ttys' => 1 );
-
-<system.cpu_stats>->init
-    if not defined <system.cpu_stats>
-    and <system.cpu_stats> = Sys::Statistics::Linux::CpuStats->new;
+<system.process.blacklist_match> = {};
+<system.blacklist.autokill> //= [
+    map {qr|$_|}
+        qw/
+        \.core$
+        \.root$
+        \.system$
+        kill\-child$
+        ^(auto)?ssh
+        ^\/sbin\/init(\s.+)$
+        ^\/lib\/systemd(\s.+)$
+        /
+];
 
 <list.top> = {
     'var'  => 'data',
