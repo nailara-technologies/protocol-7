@@ -3,8 +3,9 @@
 # name  = system.process.cmd.cpu_load
 # descr = get current cpu usage in percent
 
+my $cpu_statistics = <system.statistics>->get->cpustats;
+
 return {
     'mode' => 'ack',
-    'data' => sprintf( "%0.2f", <system.cpu_stats>->get->{'cpu'}->{'total'} )
-        . '%'
+    'data' => sprintf( "%0.2f%%", $cpu_statistics->{'cpu'}->{'total'} )
 };
