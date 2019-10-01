@@ -1,6 +1,7 @@
 # >:]
 
 # name = system.process.handler.collect_table
+# todo = check agents nailara agent pids, use root.restart instead of kill then!
 
 <process.limits> //= {};
 
@@ -8,15 +9,17 @@
 <process.table.top> = {};
 <process.poll.last> = <[base.time]>->(2);
 
-my $mem_used_percent = 0;
+my $mem_statistics = <system.statistics>->get->memstats;
+<system.mem.used_percent> = my $mem_used_pct
+    = sprintf( "%.2f", 100 - $mem_statistics->{'realfreeper'} );
+
 foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
-    ( my $cpu = $p->pctcpu ) =~ s/^ +//;
-    ( my $mem = $p->pctmem ) =~ s/^ +//;
+    ( my $cpu = sprintf( "%.2f", $p->pctcpu ) ) =~ s/^ +//;
+    ( my $mem = sprintf( "%.2f", $p->pctmem ) ) =~ s/^ +//;
     $cpu = 0 if $cpu !~ /^\d+(\.\d+)?$/;
-    map { $_ = sprintf( "%.2f", $_ ) if length($_) > 7 } ( $cpu, $mem );
-
-    $mem_used_percent += $mem;
+    $cpu =~ s/^(\d+\.\d+)0+$/$1/;
+    $mem =~ s/^(\d+\.\d+)0+$/$1/;
 
     my $p_name
         = (
@@ -34,6 +37,16 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
         'pctcpu' => $cpu,
         'pctmem' => $mem,
     };
+
+    ## process name blacklist ( not to be killed ) ##
+    my $bl_match = 0;
+    map {
+        if ( $p_name =~ $_ ) {
+            $bl_match = 1;
+            <system.process.blacklist_match>->{$p_name} //= $_;
+        }
+    } @{<system.blacklist.autokill>};
+    next if $bl_match;
 
     ## custom process limits ## [currently max cpu in %]
     foreach my $lp_name ( keys %{<process.limits>} ) {
@@ -105,17 +118,15 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
 
 ## memory limit alerts ##
 
-<system.mem.used_percent> = $mem_used_percent;
-
 my $mem_limit_reached = 0;
 <system.memory_alert.warned> //= 0;
-if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
+if ( $mem_used_pct >= <mem.max_used> ) {    # system memory alert limit
     $mem_limit_reached = 1;
-    my $reached = $mem_used_percent == <mem.max_used> ? 'reached' : 'exceeded';
+    my $reached = $mem_used_pct == <mem.max_used> ? 'reached' : 'exceeded';
 
     my $warn_str
         = "<!> WARNING <!> used memory $reached " . <mem.max_used> . "% limit!";
-    $warn_str .= " ( now $mem_used_percent% )" if $reached eq 'exceeded';
+    $warn_str .= " ( now $mem_used_pct% )" if $reached eq 'exceeded';
     <[base.log]>->( 0, $warn_str ) if !<system.memory_alert.warned>;
     <system.memory_alert.warned>++;
 } elsif (<system.memory_alert.warned>) {
@@ -123,7 +134,7 @@ if ( $mem_used_percent >= <mem.max_used> ) {    # system memory alert limit
         1,
         " : memory usage dropped back below "
             . <mem.max_used>
-            . "% limit ( now $mem_used_percent% )"
+            . "% limit ( now $mem_used_pct% )"
     );
     <system.memory_alert.warned> = 0;
 }
@@ -140,7 +151,7 @@ if ( $mem_limit_reached and <mem.autokill> ) { # automatic mem. load mitigation!
         <[base.log]>->(
             0,
             " :. killing highest memory user (PID $pid '"
-                . $process->{' fname '} . "') [ "
+                . $process->{'fname'} . "') [ "
                 . $process->{'pctmem'} . " % ]"
         );
         <process.kill_child.w_fh>->print("$pid\n");
