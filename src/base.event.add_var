@@ -3,10 +3,17 @@
 # name  = base.event.add_var
 # descr = install variable (access) watcher
 
-die 'base.event.add_var: expected a hash reference!' if ref( $_[0] ) ne 'HASH';
-my $callback     = ${ $_[0] }{'handler'};
+return undef
+    if ref( $_[0] ) ne 'HASH'
+    and warn 'base.event.add_var: expected a hash reference <{C1}>';
+my $callback = ${ $_[0] }{'handler'};
+return undef
+    if not defined $callback
+    and warn "base.event.add_var: callback ['handler'] is missing <{C1}>";
 my $callback_ref = $code{$callback};
-die "callback '$callback' does not exist!" if not defined $code{$callback};
+return undef
+    if not defined $code{$callback}
+    and warn "base.event.add_var: callback '$callback' does not exist <{C1}>";
 
 return Event->var(
     'poll'      => ${ $_[0] }{'poll'}      // 'w',
