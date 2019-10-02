@@ -3,11 +3,18 @@
 # name  = base.event.add_timer
 # descr = install a timer watcher
 
-die 'base.event.add_timer: expected hash reference!' if ref( $_[0] ) ne 'HASH';
+return undef
+    if ref( $_[0] ) ne 'HASH'
+    and warn 'base.event.add_timer: expected hash reference <{C1}>';
+my $callback = ${ $_[0] }{'handler'};
+return undef
+    if not defined $callback
+    and warn "base.event.add_timer: callback ['handler'] is missing <{C1}>";
+return undef
+    if not defined $code{$callback}
+    and warn "base.event.add_timer: callback '$callback' does not exist <{C1}>";
 
-my $callback     = ${ $_[0] }{'handler'};
 my $callback_ref = $code{$callback};
-die "callback '$callback' does not exist!" if not defined $code{$callback};
 
 my @event_time;
 map { push( @event_time, ( $_ => ${ $_[0] }{$_} ) ) if defined ${ $_[0] }{$_} }
