@@ -3,11 +3,17 @@
 # name  = base.event.add_io
 # descr = install I/O watcher on a filehandle
 
-die 'base.event.add_io: expected a hash reference!' if ref( $_[0] ) ne 'HASH';
-
-my $callback     = ${ $_[0] }{'handler'};
+return undef
+    if ref( $_[0] ) ne 'HASH'
+    and warn 'base.event.add_io: expected a hash reference <{C1}>';
+my $callback = ${ $_[0] }{'handler'};
+return undef
+    if not defined $callback
+    and warn "base.event.add_io: callback ['handler'] is missing <{C1}>";
 my $callback_ref = $code{$callback};
-die "callback '$callback' does not exist!" if not defined $code{$callback};
+return undef
+    if not defined $code{$callback}
+    and warn "base.event.add_io: callback '$callback' does not exist <{C1}>";
 
 return Event->io(
     'poll'    => ${ $_[0] }{'poll'}    // 'r',
