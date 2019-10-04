@@ -1,0 +1,17 @@
+# >:]
+
+# name  = mpv.cmd.current-vo
+# descr = return the selected vid. output driver
+
+my $reply_id = $$call{'reply_id'};
+push( @{<mpv.reply_ids>}, $reply_id );
+
+my $mpv_command = 'current-vo';
+
+<mpv.command.sent>->{$reply_id} = $mpv_command;   # <- stored for error handling
+
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.single_line' } );
+
+<[mpv.send_command]>->( 'get_property_string', $mpv_command );
+
+return { 'mode' => 'later' };
