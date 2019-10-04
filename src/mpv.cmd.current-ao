@@ -1,12 +1,12 @@
 # >:]
 
-# name  = mpv.cmd.current-hwdec
-# descr = return chosen hardware decoding driver [if any]
+# name  = mpv.cmd.current-ao
+# descr = return loaded audio output driver [if available]
 
 my $reply_id = $$call{'reply_id'};
 push( @{<mpv.reply_ids>}, $reply_id );
 
-my $mpv_command = 'hwdec-current';
+my $mpv_command = 'current-ao';
 
 <mpv.command.sent>->{$reply_id} = $mpv_command;   # <- stored for error handling
 
