@@ -3,9 +3,15 @@
 # name  = mpv.cmd.is_idle
 # descr = return if player core is idle or not
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+my $reply_id = $$call{'reply_id'};
+push( @{<mpv.reply_ids>}, $reply_id );
 
-push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.version' } );
-<[mpv.send_command]>->( 'get_property_string', 'core-idle' );
+my $mpv_command = 'core-idle';
+
+<mpv.command.sent>->{$reply_id} = $mpv_command;   # <- stored for error handling
+
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.single_line' } );
+
+<[mpv.send_command]>->( 'get_property_string', $mpv_command );
 
 return { 'mode' => 'later' };
