@@ -2,10 +2,13 @@
 #
 # :: ncode :: developement tool for parsing [perl/nailara] source code
 
+BEGIN { $ENV{'PERL_RL'} = 'Perl' }
+
 use strict;
 use warnings;
 use File::Spec;
 use IO::Select;
+use Term::ReadLine;
 use Term::ANSIColor;
 use Crypt::Digest::SHA1 qw(sha1_hex);
 
@@ -14,6 +17,9 @@ my $USE_ANSI = 1;
 
 my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
 $root_path =~ s/\/[^\/]+\/[^\/]+$//;    # relative to ./bin/ path (parent)
+
+my $term = new Term::ReadLine 'ncode';
+$term->ornaments('0,0,md,me');
 
 my $PATH = {
     'root' => $root_path,
@@ -1406,8 +1412,9 @@ sub new_path {
 sub get_user_input {
     my $prompt = shift;
     $| = 1;
-    print "  :\n  : $prompt : ";
-    chomp( my $pattern = <STDIN> );
+    print "  :\n";
+    my $pattern = $term->readline("  : $prompt : ");
+    $term->addhistory($pattern);
     print "  :\n\n";
     return $pattern;
 }
