@@ -37,13 +37,13 @@ $q_str = 'weather'       if $type eq 'current';
 $count = $count_hours    if $type eq 'hours';
 $count = $count_days + 2 if $type eq 'days';
 my $count_str = defined $count ? '&cnt=' . $count : '';
-my $params = "id=$station_id&units=$units&lang=$language" . $count_str;
+my $params    = "id=$station_id&units=$units&lang=$language" . $count_str;
 $count -= 2 if $type eq 'days';
 
 my ( $status_code, $json_data )
     = <[weather.child.query_api]>->("$q_str?$params");
 
-my $status_str = defined $status_code ? " ($status_code)" : '';
+my $status_str = length( $status_code // '' ) ? " ($status_code)" : '';
 $status_str = " (city not found)" if $status_code eq '404';
 
 return {
