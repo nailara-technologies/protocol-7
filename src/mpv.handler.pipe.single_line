@@ -5,7 +5,7 @@
 my $cmd_reply_str = shift // '';
 my $reply_id      = shift @{<mpv.reply_ids>};
 
-my $cmd_sent = delete <mpv.command.sent>->{$reply_id} // 'unknown';
+my $property = delete <mpv.request.property>->{$reply_id} // 'unknown';
 
 if ( length($cmd_reply_str) ) {
     <[base.callback.cmd_reply]>->(
@@ -15,7 +15,7 @@ if ( length($cmd_reply_str) ) {
         }
     );
 } else {
-    <[base.log]>->( 2, "<!> empty reply from mpv pipe <!> [cmd:'$cmd_sent']" );
+    <[base.log]>->( 2, "<!> empty reply from mpv pipe <!> [prop:'$property']" );
     <[base.callback.cmd_reply]>->(
         $reply_id,
         {   'mode' => 'nak',

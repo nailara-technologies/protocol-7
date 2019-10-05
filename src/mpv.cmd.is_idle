@@ -6,12 +6,12 @@
 my $reply_id = $$call{'reply_id'};
 push( @{<mpv.reply_ids>}, $reply_id );
 
-my $mpv_command = 'core-idle';
+my $mpv_property = 'core-idle';
 
-<mpv.command.sent>->{$reply_id} = $mpv_command;   # <- stored for error handling
+<mpv.request.property>->{$reply_id} = $mpv_property;   # <- stored for err. msgs
 
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.single_line' } );
 
-<[mpv.send_command]>->( 'get_property_string', $mpv_command );
+<[mpv.send_command]>->( 'get_property_string', $mpv_property );
 
 return { 'mode' => 'later' };
