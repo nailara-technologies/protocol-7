@@ -5,9 +5,10 @@
 # descr = return or change specified mpv setting
 # todo  = understand / deal with quoted strings (containing spaces)
 
-my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
-
+my $reply_id     = $$call{'reply_id'};
 my $settings_map = <mpv.map.settings> // {};
+
+my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
 
 return { 'mode' => 'nak', 'data' => "expected <key> [value] parameter" }
     if not defined $setting_key or !length($setting_key);
@@ -15,20 +16,29 @@ return { 'mode' => 'nak', 'data' => "expected <key> [value] parameter" }
 return { 'mode' => 'nak', 'data' => "unknown setting '$setting_key'" }
     if not defined( my $map_entry = $settings_map->{$setting_key} );
 
-return {
-    'mode' => 'nak',
-    'data' => "not implemented yet!"
-    }
-    if !@target_values;
+my $mpv_property = $map_entry->{'key'} // $setting_key;
 
-my $mpv_key = $map_entry->{'key'} // $setting_key;
+if ( !@target_values ) {
+
+    <mpv.request.property>->{$reply_id} = $mpv_property;
+
+    push( @{<mpv.reply_ids>}, $reply_id );
+    push(
+        @{<mpv.command.reply>},
+        { 'handler' => 'mpv.handler.pipe.single_line' }
+    );
+    <[mpv.send_command]>->( 'get_property_string', $mpv_property );
+
+    return { 'mode' => 'later' };
+}
+
 my $val_str = join( ' ', @target_values );
 
 return {
     'mode' => 'nak',
     'data' => "not implemented yet!"
     }
-    if not defined $mpv_key;
+    if not defined $mpv_property;
 
 if ( defined $map_entry->{'int'} ) {
     ( my $int_min, my $int_max, my @options ) = @{ $map_entry->{'int'} };
@@ -76,13 +86,13 @@ if ( defined $map_entry->{'int'} ) {
     }
 }
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $reply_id );
 
 my $value_str = join( ' ', @target_values );
 <mpv.success_reply_str> = "$setting_key = $value_str";
 
 <[base.log]>->( 2, "setting : '$setting_key' = '$value_str'" );
 
-<[mpv.send_command]>->( 'set_property_string', $mpv_key, $value_str );
+<[mpv.send_command]>->( 'set_property_string', $mpv_property, $value_str );
 
 return { 'mode' => 'later' };
