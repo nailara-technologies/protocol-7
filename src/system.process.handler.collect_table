@@ -72,12 +72,14 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                         . $lp->{'max_mem'} . "%]"
                 );
                 if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
-                    my $kill_pid = $p->pid;
-                    <[base.log]>->(
-                        0, " : << killing '$rl_name' process >> [PID=$kill_pid]"
-                    );
-                    <process.kill_child.w_fh>->print("$kill_pid\n");
-                    delete <process.table.top>->{$kill_pid};
+                    my $term_pid = $p->pid;
+
+                    my $log_msg
+                        = sprintf( " : << killing '%s' process >> [PID=%d]",
+                        $rl_name, $term_pid );
+
+                    <[system.process.autokill]>->( $term_pid, $log_msg );
+
                     delete $lp->{'condition_start'};
                 }
             }
@@ -104,12 +106,13 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                     . $lp->{'max_cpu'} . " ]"
             );
             if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
-                my $kill_pid = $p->pid;
-                <[base.log]>->(
-                    0, " : << killing '$rl_name' process >> [PID=$kill_pid]"
-                );
-                <process.kill_child.w_fh>->print("$kill_pid\n");
-                delete <process.table.top>->{$kill_pid};
+                my $term_pid = $p->pid;
+
+                my $log_msg = sprintf( " : << killing '%s' process >> [PID=%d]",
+                    $rl_name, $term_pid );
+
+                <[system.process.autokill]>->( $term_pid, $log_msg );
+
                 delete $lp->{'condition_start'};
             }
         }
@@ -148,14 +151,14 @@ if ( $mem_limit_reached and <mem.autokill> ) { # automatic mem. load mitigation!
         my $process = <process.table.top>->{$pid};
         next
             if defined <mem.kill_min> and $process->{'pctmem'} < <mem.kill_min>;
-        <[base.log]>->(
-            0,
-            " :. killing highest memory user (PID $pid '"
-                . $process->{'fname'} . "') [ "
-                . $process->{'pctmem'} . " % ]"
-        );
-        <process.kill_child.w_fh>->print("$pid\n");
-        delete <process.table.top>->{$pid};
+
+        my $log_msg
+            = sprintf(
+            " :. killing highest memory user (PID %d '%s') [ %s %% ]",
+            $pid, $process->{'fname'}, $process->{'pctmem'} );
+
+        <[system.process.autokill]>->( $pid, $log_msg );
+
         last;
     }
 }
