@@ -8,9 +8,9 @@ my $process_id = $$call{'args'};
 
 return {
     'mode' => 'nak',
-    'data' => "invalid PID parameter [numerical value expected]"
+    'data' => "expected numerical PID parameter"
     }
-    if defined $process_id and $process_id !~ /^\d+$/;
+    if not defined $process_id or $process_id !~ /^\d+$/;
 
 my $match_iid;
 foreach my $i_id ( keys %{<root.agent.instance>} ) {
