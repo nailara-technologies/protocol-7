@@ -1,0 +1,30 @@
+# >:]
+
+# name  = root.agent.cmd.pid_instance
+# param = <pid>
+# descr = return instance id for a given process IDs
+
+my $process_id = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => "invalid PID parameter [numerical value expected]"
+    }
+    if defined $process_id and $process_id !~ /^\d+$/;
+
+my $match_iid;
+foreach my $i_id ( keys %{<root.agent.instance>} ) {
+    my $parent_pid = <root.agent.instance>->{$i_id}->{'process'}{'id'};
+    if ( $process_id == $parent_pid ) {
+        $match_iid = $i_id;
+        last;
+    } else {
+        map {
+            if ( $_ == $process_id ) { $match_iid = $i_id; last }
+        } @{ <[root.process.get_children]>->($parent_pid) };
+    }
+}
+
+return { 'mode' => 'ack', 'data' => $match_iid } if defined $match_iid;  # match
+
+return { 'mode' => 'nak', 'data' => "found no matching instance" };   # no match
