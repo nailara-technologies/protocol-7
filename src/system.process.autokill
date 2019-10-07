@@ -1,0 +1,16 @@
+# >:]
+
+# name = system.process.autokill
+
+my $term_pid = shift;    # process to terminate
+my $log_msg  = shift;    # optional log_message
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.root.pid_instance",
+        'call_args' => { 'args' => $term_pid },
+        'reply'     => {
+            'handler' => 'system.process.handler.pid_instance_response',
+            'params' => { 'process_id' => $term_pid, 'log_message' => $log_msg }
+        }
+    }
+);

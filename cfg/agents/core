@@ -18,7 +18,7 @@ auth.supported_methods          =       pwd agent unix C25519-TF
 get.command                     =       file.get
 setup.aliases.source_agent      =       notify.message layout.get_coordinates \
                                         layout.get_geometry root.shutdown \
-                                        layout.assign_window
+                                        layout.assign_window system.pid_autokill
 setup.aliases.source_agent_sid  =       log.msg
 
 net.auth.timeout     =  13  #  seconds
@@ -38,7 +38,8 @@ access.cmd.usr.root  =  ping session_key *.verify_instance \
 
 access.cmd.usr.system = xserver.get_driver xserver.get_xorg_pid \
                         root.stop root.force_mod_reload root.start \
-                        root.notify_online root.register_child
+                        root.notify_online root.register_child \
+                        root.pid_instance root.restart
 
 access.cmd.usr.events = root.start_once root.stop_implicit playlist.update \
                         layout.switch_to layout.select_default \

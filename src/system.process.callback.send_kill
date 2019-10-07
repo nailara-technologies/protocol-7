@@ -1,0 +1,13 @@
+# >:]
+
+# name = system.process.callback.send_kill
+
+my $process_id  = shift;
+my $log_message = shift;
+
+# $log_message //= " : << killing '$rl_name' process >> [PID=$kill_pid]";
+
+<[base.log]>->( 0, $log_message );
+
+<process.kill_child.w_fh>->print("$process_id\n");
+delete <process.table.top>->{$process_id};
