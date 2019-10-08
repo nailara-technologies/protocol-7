@@ -19,9 +19,9 @@ if ( not defined $home_dir or !-r $home_dir ) {
 }
 
 my $key_name = 'default';                                           # <- cfg (?)
-my $key_dir  = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys/";
-my $key_basepath = <crypt.C25519.key_basepath>
-    //= "$key_dir/$key_name.C25519_b64u";
+my $key_dir  = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys";
+<crypt.C25519.key_basepath> //= "$key_dir/$key_name.C25519_b64u";
+my $key_basepath = <crypt.C25519.key_basepath>;
 
 # warn "key_dir : $key_dir";
 
