@@ -1,0 +1,11 @@
+# >:]
+
+# name  = debug.print_dump
+
+my $dump_key = shift // '';
+
+print "\n  .:[ '$dump_key' ]:.\n:`\n"
+    . join( '',
+    map {": $_\n"}
+        split( /\n/, <[base.dump_data]>->( undef, undef, $dump_key ) ) )
+    . ":.\n\n";
