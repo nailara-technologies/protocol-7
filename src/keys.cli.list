@@ -20,7 +20,7 @@ map {
     $key_names{$_} = "'$1'" if $_ =~ /^(.+)\.C25519_b64u(\.pub)?$/;
     my $l = length( $key_names{$_} );
     $key_names{$_} =~ s|.| |g if defined $2;
-    $max_nlen if $l > $max_nlen
+    $max_nlen = $l if $l > $max_nlen
 } @key_files;
 
 <[base.log]>->( 1, "listing key files ['$key_dir']" );
