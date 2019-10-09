@@ -18,7 +18,7 @@ if ( not defined $home_dir or !-r $home_dir ) {
     return 0;    # still valid state!
 }
 
-my $key_name = 'default';                                           # <- cfg (?)
+my $key_name = join( '.', $key_usr, 'base' );                       # <- cfg (!)
 my $key_dir  = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys";
 <crypt.C25519.key_basepath> //= "$key_dir/$key_name.C25519_b64u";
 my $key_basepath = <crypt.C25519.key_basepath>;
@@ -48,8 +48,7 @@ if ( -w "$key_dir/.." or "$key_dir/../.." ) {
 # create_keys {
 
 if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
-    <[base.log]>
-        ->( 0, "generating default C25519 key pair for '$key_usr' ..." );
+    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..." );
     my %key_b64u = ( 'priv' => '', 'pub' => '' );
     if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
         foreach my $type ( 'priv', 'pub' ) {
