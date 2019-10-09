@@ -10,8 +10,8 @@ my $max_len = 0;
 $max_len = length($title_str) + 2 if length($title_str);
 
 map { $max_len = length($_) if length($_) > $max_len } @txt_data;
-my $len_2     = $max_len + 6;
-my $title_bar = '   ,' . '.' x $len_2 . ',';
+my $len_2     = $max_len + 5;
+my $title_bar = '  ,' . '.' x $len_2 . ',';
 
 if ( length($title_str) ) {
     substr(
@@ -25,8 +25,8 @@ if ( length($title_str) ) {
 return join( "\n",
     '',
     $title_bar,
-    '   :' . ' ' x $len_2 . ':',
-    ( map { sprintf '   :   %-' . $max_len . "s   :", $_ } sort @txt_data ),
-    '   :' . ' ' x $len_2 . ':',
-    '   :' . '.' x $len_2 . ":\n",
+    '  :' . ' ' x $len_2 . ':',
+    ( map { sprintf '  :   %-' . $max_len . "s  :", $_ } sort @txt_data ),
+    '  :' . ' ' x $len_2 . ':',
+    '  :' . '.' x $len_2 . ":\n",
     '' );
