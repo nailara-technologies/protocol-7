@@ -7,7 +7,7 @@ my $key_dir = <keys.default_path> // '';
 my $key_usr = <crypt.C25519.key_uid_user>;
 
 opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
-my @key_files = grep { !/^\./ } sort readdir($dir_fh)
+my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
 
