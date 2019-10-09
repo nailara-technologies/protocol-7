@@ -1,0 +1,53 @@
+# >:]
+
+# name  = keys.cli.rename
+# param = <from> <to>
+# descr = change a user key name [ 'list' cmd for names ]
+
+my $param_str = $$call{'args'}      // '';
+my $key_dir   = <keys.key_dir_path> // '';
+my $key_usr   = <crypt.C25519.key_uid_user>;
+
+( my $ren_from, my $ren_to ) = split( / +/, $param_str );
+
+opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
+my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
+    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
+closedir($dir_fh);
+
+return warn "no key files found [$key_dir]" if !@key_files;
+
+return print STDERR "\n  [!] expected <from> and <to> parameter [!]\n\n"
+    if not defined $ren_from or not defined $ren_to;
+
+my $match_re = qr/^(\Q$ren_from\E\.C25519_b64u(\.pub)?)$/;
+
+my $space_len = 0;
+my $key_found = 0;
+map {
+    $key_found = 1          if $_ =~ $match_re;
+    $space_len = length($1) if length($1) > $space_len;
+    my $k_path = "$key_dir/$1";
+    return print STDERR "\n [!] no write access to '$k_path' [!]\n\n"
+        if $1 =~ $match_re and !-w $k_path;
+} @key_files;
+return print STDERR "\n  [!] specified key \"$ren_from\" not found [!]\n\n"
+    if not $key_found;
+
+my $ren_count = 0;
+
+chdir($key_dir) or die "[!] chdir( $key_dir ) : $!";
+
+print "\n :\n";
+
+my $len = 0;
+foreach my $file_name (@key_files) {
+    my $target_name = $file_name;
+    next if $target_name !~ s|^$ren_from\.|$ren_to.|;
+    printf( " : %-${space_len}s  ->  %s\n", $file_name, $target_name );
+    return print STDERR "\n rename failed : $!\n\n"
+        unless rename( $file_name, $target_name );
+    $ren_count++;
+}
+my $s = $ren_count == 1 ? '' : 's';
+print " :\n :. [ renamed $ren_count file$s ]\n\n";
