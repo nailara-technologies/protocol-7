@@ -8,6 +8,8 @@ my $key_name = $$call{'args'}      // '';
 my $key_dir  = <keys.key_dir_path> // '';
 my $key_usr  = <crypt.C25519.key_uid_user>;
 
+chomp( my $shred_bin = qx(which shred) // '' ); # <- optional +FS/disk dependent
+
 opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
 my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
@@ -42,8 +44,12 @@ my $len = 0;
 foreach my $file_name (@key_files) {
     next if $file_name !~ m|^$key_name\.|;
     printf( " : removing file '%s'\n", $file_name );
+    system( $shred_bin, '-fzu', $file_name )
+        if length($shred_bin)
+        and -x $shred_bin;
     return print STDERR "\n unlink failed : $!\n\n"
-        unless unlink($file_name);
+        unless unlink($file_name)
+        or !-f $file_name;
     $del_count++;
 }
 my $s = $del_count == 1 ? '' : 's';
