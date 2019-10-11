@@ -1,6 +1,7 @@
 # >:]
 
 # name = crypt.C25519.post_init
+# note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
 my $key_usr  = <crypt.C25519.key_uid_user> // getpwuid($>);
 my $home_dir = <[base.get_homedir]>->($key_usr);
@@ -18,7 +19,7 @@ if ( not defined $home_dir or !-r $home_dir ) {
     return 0;    # still valid state!
 }
 
-my $key_name = join( '.', $key_usr, 'base' );                       # <- cfg (!)
+my $key_name = <crypt.C25519.base_key_name> // join( '.', $key_usr, 'base' );
 my $key_dir  = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys";
 <crypt.C25519.key_basepath> //= "$key_dir/$key_name.C25519_b64u";
 my $key_basepath = <crypt.C25519.key_basepath>;
