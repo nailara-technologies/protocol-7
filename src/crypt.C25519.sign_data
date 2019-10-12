@@ -3,7 +3,9 @@
 # name = crypt.C25519.sign_data
 
 my $data_ref = shift // \'';
-my $key_name = shift // 'default';
+
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
+my $key_name = $key_vars->{'key_name'};
 
 die "expected scalar reference to payload data" if ref($data_ref) ne 'SCALAR';
 die "a C25519 key with name '$key_name' does not exist [cannot sign without!]"
