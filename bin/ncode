@@ -1181,16 +1181,18 @@ sub load_source {
 
     foreach my $PATH_key (@load_types) {
         foreach my $file ( &files($PATH_key) ) {
+            next if -d $file;
             check_link($file);
             local $/ = undef;
             open( my $FILE, '<' . $file )
-                or die " can not open file '"
+                or warn " can not open file '"
                 . ansi('cyan')
                 . $file
                 . ansi('reset') . "' ["
                 . ansi('bold red')
                 . $!
-                . ansi('reset') . "]\n\n";
+                . ansi('reset') . "]\n\n"
+                and next;
             $source{$file} = <$FILE>;
         }
     }
