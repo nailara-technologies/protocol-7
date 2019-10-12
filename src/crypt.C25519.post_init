@@ -32,23 +32,7 @@ if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
     <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..." );
     my %key_b64u = ( 'priv' => '', 'pub' => '' );
     if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
-        foreach my $type ( 'priv', 'pub' ) {
-            my $file_name
-                = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
-            open( my $k_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
-            if ( $type eq 'pub' ) {
-                chmod( 0644, "$file_name.$$" ) or die "chmod: $!";
-            } else {
-                chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
-            }
-            $key_b64u{$type}
-                = encode_base64url( $KEYS{'C25519'}{$key_name}{$type} );
-            printf( {$k_fh} "%s\n", $key_b64u{$type} );
-            close($k_fh);
-            rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
-            chown( $uid, $gid, $file_name ) or warn "$file_name: $!";
-            <[base.log]>->( 1, ": $file_name" );
-        }
+        <[crypt.C25519.write_keys]>->($key_name);
     }
 
     # }

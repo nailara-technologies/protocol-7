@@ -2,7 +2,8 @@
 
 # name = crypt.C25519.gen_keys
 
-my $key_name = shift // 'default';
+my $key_usr  = <crypt.C25519.key_owner.usr>;
+my $key_name = shift // "$key_usr.base";
 
 <[base.log]>->( 2, "generating '$key_name' C25519 key pair..." );
 
