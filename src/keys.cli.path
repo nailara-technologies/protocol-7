@@ -4,9 +4,11 @@
 # descr = return current user's C25519 key directory path
 # note  = nailara keys path | grep -v ':$' | sed 's/.*: *//'
 
-my $key_path = <keys.key_dir_path> // '';
-my $key_usr  = <crypt.C25519.key_owner.usr>;
+my $key_vars = <[crypt.C25519.key_vars]>;
 
-<[base.log]>->( 1, "returning $key_usr\'s key path ['$key_path']" );
+my $key_dir = $key_vars->{'key_dir'};
+my $key_usr = $key_vars->{'usr_name'};
 
-printf ":\n: nailara key path [$key_usr] : %s\n:\n", $key_path;
+<[base.log]>->( 1, "returning $key_usr\'s key path ['$key_dir']" );
+
+printf ":\n: nailara key path [$key_usr] : %s\n:\n", $key_dir;

@@ -1,0 +1,22 @@
+# >:]
+
+# name = crypt.C25519.load_keypair
+
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
+
+my $key_dir      = $key_vars->{'key_dir'};
+my $key_usr      = $key_vars->{'usr_name'};
+my $key_name     = $key_vars->{'key_name'};
+my $key_basepath = $key_vars->{'key_basepath'};
+
+my $pubkey_file = "$key_basepath.pub";
+
+if ( -r $key_basepath and -r $pubkey_file ) {
+    <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [usr:$key_usr]" );
+    $KEYS{'C25519'}{$key_name}{'priv'}
+        = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
+    $KEYS{'C25519'}{$key_name}{'pub'}
+        = decode_base64url( ${ <[file.slurp]>->($pubkey_file) } );
+} else {
+    <[base.log]>->( 0, "unable to load '$key_name' key pair ..." );
+}

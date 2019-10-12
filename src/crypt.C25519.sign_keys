@@ -2,11 +2,13 @@
 
 # name = crypt.C25519.sign_keys
 
-my $key_usr      = <crypt.C25519.key_owner.usr>;
-my $key_name     = shift // "$key_usr.base";
-my $key_basepath = <crypt.C25519.key_basepath>;
-my $key_owner    = <crypt.C25519.key_owner>;
-( my $uid, my $gid ) = ( $key_owner->{'uid'}, $key_owner->{'gid'} );
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
+
+my $uid          = $key_vars->{'uid'};
+my $gid          = $key_vars->{'gid'};
+my $key_usr      = $key_vars->{'usr_name'};
+my $key_name     = $key_vars->{'key_name'};
+my $key_basepath = $key_vars->{'key_basepath'};
 
 my $key_b64u = $KEYS{'C25519'}{$key_name};
 
@@ -57,7 +59,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
             goto skip_sign;
         }
         <[base.log]>->( 0, ": signing C25519 key pair with$rkst root key ..." );
-        my $sig_file_path = <crypt.C25519.key_basepath> . '.sig';
+        my $sig_file_path = $key_basepath . '.sig';
         $sig_file_path .= ".$root_key_name" if length($root_key_name);
         <[file.put]>->(
             $sig_file_path,
@@ -72,9 +74,9 @@ if ( defined <crypt.C25519.root_key_url> ) {
         );
         if ( -f $sig_file_path or -r $sig_file_path ) {
             <[base.log]>->( 1, ": : $sig_file_path" );
-            (   my $root_pkey_path = join( '.',
-                    <crypt.C25519.key_basepath>, 'rkp', $root_key_name )
-            ) =~ s|\.$||;
+            ( my $root_pkey_path
+                    = join( '.', $key_basepath, 'rkp', $root_key_name ) )
+                =~ s|\.$||;
             <[file.put]>->( $root_pkey_path, $root_key{'pub'} . "\n" );
             <[base.log]>->( 1, ": : $root_pkey_path" );
             return 1;

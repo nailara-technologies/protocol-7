@@ -1,0 +1,28 @@
+# >:]
+
+# name = crypt.C25519.key_vars
+
+my $key_name = shift;
+my $key_usr  = <crypt.C25519.key_usr> // $ENV{'USER'} // getpwuid($>);
+
+if ( defined $key_name ) {
+    <crypt.C25519.base_key_name> = $key_name;
+} else {
+    $key_name //= <crypt.C25519.base_key_name> // join( '.', $key_usr, 'base' );
+}
+my $home_dir = <[base.get_homedir]>->($key_usr);
+my $key_dir  = <crypt.C25519.key_dir> = "$home_dir/.n/user-keys";
+
+my $key_basepath = "$key_dir/$key_name.C25519_b64u";
+
+( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
+
+return <crypt.C25519.key_vars> = {
+    'uid'          => $uid,
+    'gid'          => $gid,
+    'usr_name'     => $key_usr,
+    'usr_home'     => $home_dir,
+    'key_dir'      => $key_dir,
+    'key_name'     => $key_name,
+    'key_basepath' => $key_basepath,
+};

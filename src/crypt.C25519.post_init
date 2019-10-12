@@ -3,10 +3,15 @@
 # name = crypt.C25519.post_init
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
-my $key_usr = getpwuid($>);
-my ( undef, undef, $uid, $gid, undef ) = getpwnam($key_usr);
-<crypt.C25519.key_owner> = { 'usr' => $key_usr, 'uid' => $uid, 'gid' => $gid };
-my $home_dir = <crypt.C25519.key_owner.home> = <[base.get_homedir]>->($key_usr);
+my $key_vars = <[crypt.C25519.key_vars]>;
+
+my $uid          = $key_vars->{'uid'};
+my $gid          = $key_vars->{'gid'};
+my $key_dir      = $key_vars->{'key_dir'};
+my $key_name     = $key_vars->{'key_name'};
+my $home_dir     = $key_vars->{'usr_home'};
+my $key_usr      = $key_vars->{'usr_name'};
+my $key_basepath = $key_vars->{'key_basepath'};
 
 if ( not defined $home_dir or !-r $home_dir ) {
     if ( !<base.parser.config.reloading> ) {
@@ -19,40 +24,18 @@ if ( not defined $home_dir or !-r $home_dir ) {
     return 0;    # still valid state!
 }
 
-my $key_name = <crypt.C25519.base_key_name> // join( '.', $key_usr, 'base' );
-my $key_dir  = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys";
-<crypt.C25519.key_basepath> //= "$key_dir/$key_name.C25519_b64u";
-my $key_basepath = <crypt.C25519.key_basepath>;
-
-return 0 if not <[keys.chk_key_dir]>;    # <- creates if missing ...
-
-# create_keys {
+return -1 if not <[crypt.C25519.chk_key_dir]>;    # <- creates if missing ...
 
 if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
     <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..." );
     my %key_b64u = ( 'priv' => '', 'pub' => '' );
-    if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
-        <[crypt.C25519.write_keys]>->($key_name);
+    if (<[crypt.C25519.gen_keys]>) {
+        <[crypt.C25519.write_keys]>;
     }
-
-    # }
-
-    # sign_keys {
-
-    <[crypt.C25519.sign_keys]>->($key_name);
-
+    <[crypt.C25519.sign_keys]>;
 
 } elsif ( not defined $KEYS{'C25519'}{$key_name} ) {
-    my $pubkey_file = "$key_basepath.pub";
-    if ( -r $key_basepath and -r $pubkey_file ) {
-        <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [$home_dir/]" );
-        $KEYS{'C25519'}{$key_name}{'priv'}
-            = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
-        $KEYS{'C25519'}{$key_name}{'pub'}
-            = decode_base64url( ${ <[file.slurp]>->($pubkey_file) } );
-    } else {
-        <[base.log]>->( 0, "unable to load '$key_name' key pair ..." );
-    }
+    <[crypt.C25519.load_keypair]>;
 }
 
 while ( glob $key_basepath . '.{rkp,sig}.*' ) {
