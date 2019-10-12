@@ -1,0 +1,96 @@
+# >:]
+
+# name = crypt.C25519.sign_keys
+
+my $key_usr      = <crypt.C25519.key_owner.usr>;
+my $key_name     = shift // "$key_usr.base";
+my $key_basepath = <crypt.C25519.key_basepath>;
+my $key_owner    = <crypt.C25519.key_owner>;
+( my $uid, my $gid ) = ( $key_owner->{'uid'}, $key_owner->{'gid'} );
+
+my $key_b64u = $KEYS{'C25519'}{$key_name};
+
+if ( defined <crypt.C25519.root_key_url> ) {
+    my $root_key_name;
+    my %root_key = ( 'priv' => '', 'pub' => '' );
+
+    ## DOWNLOAD IF URL ## ( todo : implement local file case )
+    if ( <crypt.C25519.root_key_url> =~ m{^https?://.+/C25519_b64u(\.(.+))?$} )
+    {
+        $root_key_name = $2 // '';
+        my %root_key_url;
+        $root_key_url{'priv'} = <crypt.C25519.root_key_url>;
+        $root_key_url{'pub'}  = <crypt.C25519.root_key_url> . '.pub';
+
+        require LWP::UserAgent;    # use download agent later, needs blocking
+        my $ua = LWP::UserAgent->new();
+
+        foreach my $type ( 'priv', 'pub' ) {
+            <crypt.C25519.download_type> = $type;
+            <[base.log]>->( 1, ": downloading '$root_key_url{$type}'.." );
+            my $response = $ua->get( $root_key_url{$type} );
+            if ( not $response->is_success ) {
+                map { delete $root_key{$_} } ( 'priv', 'pub' );
+                my $reason = $response->status_line;
+                <[base.log]>->(
+                    0, "[!] download [ $root_key_url{$type} ] $reason [!]"
+                );
+                <[base.log]>->(
+                    0, "<!> key signing aborted ( download error ) <!>"
+                );
+                return -2;
+            } else {
+                chomp( $root_key{$type} = $response->decoded_content );
+            }
+        }
+        ##
+
+        my $rkst = length($root_key_name) ? " '$root_key_name'" : '';
+
+        my $rk_priv_len = length( $root_key{'priv'} );
+        if ( length( $root_key{'pub'} ) != 43 or $rk_priv_len != 86 ) {
+            <[base.log]>->(
+                0, "<!> root key not valid <<!>> key signing aborted <!>"
+            );
+
+            # LLL: log reason ...
+            goto skip_sign;
+        }
+        <[base.log]>->( 0, ": signing C25519 key pair with$rkst root key ..." );
+        my $sig_file_path = <crypt.C25519.key_basepath> . '.sig';
+        $sig_file_path .= ".$root_key_name" if length($root_key_name);
+        <[file.put]>->(
+            $sig_file_path,
+            encode_base64url(
+                Crypt::Ed25519::sign(
+                    $key_b64u->{'pub'} . "\n",
+                    decode_base64url( $root_key{'pub'} ),
+                    decode_base64url( $root_key{'priv'} )
+                    )
+                    . "\n"
+            )
+        );
+        if ( -f $sig_file_path or -r $sig_file_path ) {
+            <[base.log]>->( 1, ": : $sig_file_path" );
+            (   my $root_pkey_path = join( '.',
+                    <crypt.C25519.key_basepath>, 'rkp', $root_key_name )
+            ) =~ s|\.$||;
+            <[file.put]>->( $root_pkey_path, $root_key{'pub'} . "\n" );
+            <[base.log]>->( 1, ": : $root_pkey_path" );
+            return 1;
+        } else {
+            <[base.log]>->( 0, "<!> unable to sign public host key <!>" );
+            return -1;
+        }
+    skip_sign:
+        substr( $root_key{'priv'}, 0, $rk_priv_len,
+            <[base.rnd_chars]>->($rk_priv_len) );
+        map { undef $root_key{$_} } ( 'priv', 'pub' );
+    } else {
+        <[base.log]>->( 1, ": unrecognized root key url, skipped signing!" );
+        return -1;
+    }
+} else {
+    <[base.log]>->( 1, ": no root key url defined, skipped key signing!" );
+    return 0;
+}
