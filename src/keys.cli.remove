@@ -4,9 +4,15 @@
 # param = <name>
 # descr = delete the C25519 key with the specified name
 
-my $key_name = $$call{'args'}      // '';
-my $key_dir  = <keys.key_dir_path> // '';
-my $key_usr  = <crypt.C25519.key_owner.usr>;
+my $key_name = $$call{'args'};
+
+return print STDERR "\n  [!] expected <name> parameter [!]\n\n"
+    if not defined $key_name;
+
+my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
+
+my $key_dir = $key_vars->{'key_dir'};
+my $key_usr = $key_vars->{'usr_name'};
 
 chomp( my $shred_bin = qx(which shred) // '' ); # <- optional +FS/disk dependent
 
@@ -16,9 +22,6 @@ my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
 closedir($dir_fh);
 
 return warn "no key files found [$key_dir]" if !@key_files;
-
-return print STDERR "\n  [!] expected <name> parameter [!]\n\n"
-    if not defined $key_name;
 
 my $match_re = qr/^(\Q$key_name\E\.C25519_b64u(\.pub)?)$/;
 
