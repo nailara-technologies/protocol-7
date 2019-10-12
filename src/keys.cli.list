@@ -5,7 +5,7 @@
 # note  = nailara keys list | grep ' : .*: ' | sed 's/.* : //'
 
 my $key_dir = <keys.key_dir_path> // '';
-my $key_usr = <crypt.C25519.key_uid_user>;
+my $key_usr = <crypt.C25519.key_owner.usr>;
 
 opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
 my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
