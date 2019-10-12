@@ -1,10 +1,12 @@
 # >:]
 
-# name = keys.chk_key_dir
+# name = crypt.C25519.chk_key_dir
 
-my $key_dir   = <crypt.C25519.key_dir>;
-my $key_owner = <crypt.C25519.key_owner>;
-( my $uid, my $gid ) = ( $key_owner->{'uid'}, $key_owner->{'gid'} );
+my $key_vars = <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars->{'key_dir'};
+my $uid     = $key_vars->{'uid'};
+my $gid     = $key_vars->{'gid'};
 
 if ( -w "$key_dir/.." or "$key_dir/../.." ) {
     if ( !-d $key_dir ) {
@@ -12,15 +14,16 @@ if ( -w "$key_dir/.." or "$key_dir/../.." ) {
         eval {
             make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
         };
-        warn $@ if $@;
-        return -1;    # <- error state
+        warn $@   if $@;
+        return -2 if !-d $key_dir;    # <- error state
+        return 1;                     # success [dir exists now]
     }
 } elsif ( !-r $key_dir or !-d $key_dir ) {
     my $perms     = -e $key_dir ? '' : ' (permissions)';
     my $log_level = <crypt.C25519.initialized> // 0;
     $log_level++ if $log_level;
     <[base.log]>->( $log_level, "no key dir$perms ['$key_dir']!" );
-    return -1;        # <- error state
+    return -1;                        # <- error state
 }
 
-return 1              # <- success [true]
+return 1                              # <- success [true]

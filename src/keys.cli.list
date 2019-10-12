@@ -4,8 +4,10 @@
 # descr = list C25519 key files/names for current user
 # note  = nailara keys list | grep ' : .*: ' | sed 's/.* : //'
 
-my $key_dir = <keys.key_dir_path> // '';
-my $key_usr = <crypt.C25519.key_owner.usr>;
+my $key_vars = <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars->{'key_dir'};
+my $key_usr = $key_vars->{'usr_name'};
 
 opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
 my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)

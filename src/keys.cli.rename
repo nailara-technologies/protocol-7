@@ -4,11 +4,14 @@
 # param = <from> <to>
 # descr = change a user key name [ 'list' cmd for names ]
 
-my $param_str = $$call{'args'}      // '';
-my $key_dir   = <keys.key_dir_path> // '';
-my $key_usr   = <crypt.C25519.key_owner.usr>;
+my $param_str = $$call{'args'} // '';
+
+my $key_vars = <[crypt.C25519.key_vars]>;
 
 ( my $ren_from, my $ren_to ) = split( / +/, $param_str );
+
+my $key_dir = $key_vars->{'key_dir'};
+my $key_usr = $key_vars->{'usr_name'};
 
 opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
 my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
