@@ -1,0 +1,27 @@
+# >:]
+
+# name = crypt.C25519.write_keys
+
+my $key_usr      = <crypt.C25519.key_owner.usr>;
+my $key_name     = shift // "$key_usr.base";
+my $key_basepath = <crypt.C25519.key_basepath>;
+my $key_owner    = <crypt.C25519.key_owner>;
+( my $uid, my $gid ) = ( $key_owner->{'uid'}, $key_owner->{'gid'} );
+
+foreach my $type ( 'priv', 'pub' ) {
+    my $file_name = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
+
+    open( my $key_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
+    if ( $type eq 'pub' ) {
+        chmod( 0644, "$file_name.$$" ) or die "chmod: $!";
+    } else {
+        chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
+    }
+    my $key_str_b64u = encode_base64url( $KEYS{'C25519'}{$key_name}{$type} );
+    printf( {$key_fh} "%s\n", $key_str_b64u );
+    close($key_fh);
+    rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
+    chown( $uid, $gid, $file_name ) or warn "$file_name: $!";
+
+    <[base.log]>->( 1, ": $file_name" );
+}
