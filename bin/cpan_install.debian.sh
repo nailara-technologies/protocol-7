@@ -1,13 +1,14 @@
 #!/bin/bash
 
-SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+script_path=`realpath $0`
+BIN_PATH=`dirname $script_path`
 
 # installs cpanm and some basic (packaged) cpan modules
-apt-get install xvfb cpanminus libevent-perl \
+apt-get install xvfb cpanminus libevent-perl libio-aio-perl \
   libcryptx-perl libproc-processtable-perl libdigest-crc-perl \
   libsdl-perl libtext-lorem-perl libevent-perl liblwpx-paranoidagent-perl \
   libproc-processtable-perl libglib-perl libterm-readpassword-perl \
-  libterm-readline-perl-perl libx11-protocol-perl libhash-flatten-perl \
+  libterm-readline-gnu-perl libx11-protocol-perl libhash-flatten-perl \
   libx11-protocol-other-perl libx11-keyboard-perl libtest-needsdisplay-perl \
   libfreezethaw-perl libclone-perl libtimedate-perl shared-mime-info \
   libhash-merge-simple-perl libwebkitgtk-dev libjson-xs-perl \
@@ -23,7 +24,7 @@ apt-get install xvfb cpanminus libevent-perl \
   #libconvert-uu-perl
 
 # installs the rest from cpan
-$SCRIPTPATH/perlmod_test_fail_overrides.sh # (temporary) test fail override(s)!
+$BIN_PATH/perlmod_test_fail_overrides.sh # (temporary) test fail override(s)!
 cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
         POSIX::1003 XML::RSS::TimingBot File::MimeInfo::Magic \
         Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird \
