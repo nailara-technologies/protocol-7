@@ -5,7 +5,7 @@
 apt-get update
 
 apt-get -y install pciutils cpanminus libevent-perl libproc-processtable-perl \
-  libterm-readpassword-perl libterm-readline-perl-perl \
+  libterm-readpassword-perl libterm-readline-gnu-perl libio-aio-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
   libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libglib-perl \

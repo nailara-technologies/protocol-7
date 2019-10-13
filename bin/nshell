@@ -1,8 +1,8 @@
 #!/usr/bin/perl -C31
 
-BEGIN { $ENV{'PERL_RL'} = 'Perl' }
-
+use utf8;
 use strict;
+use IO::AIO;
 use warnings;
 use File::Spec;
 use IO::Socket;
@@ -13,6 +13,8 @@ use Term::ReadLine::Perl;
 use Digest::JHash qw(jhash);
 use MIME::Base64 qw(encode_base64url);
 use POSIX::1003::Proc qw(WNOHANG waitpid);
+use POSIX::SigAction;
+use POSIX::SigSet;
 
 my $bin_path = File::Spec->rel2abs($0);
 
@@ -22,13 +24,15 @@ $0 = 'nshell';
 
 $SIG{'PIPE'} = 'IGNORE';
 
+map { $SIG{$_} = \&parent_exit; } qw/TERM INT HUP/;
+
+my $sigset          = POSIX::SigSet->new();
+my $sigaction       = POSIX::SigAction->new( \&readline_signals, $sigset, 0 );
+my $old_int_handler = POSIX::SigAction->new;
+
 my $stdout_pid;
 my $parent_pid = $$;
-$SIG{'TERM'} = $SIG{'INT'} = sub {
-    kill( 9, $stdout_pid ) if defined $stdout_pid;
-    print "\n";
-    exit();
-};
+
 $SIG{'CHLD'} = sub {
     $0 .= "[disconnected]" if waitpid( -1, WNOHANG ) == $stdout_pid;
 };
@@ -52,6 +56,7 @@ foreach my $param (@ARGV) {
 
 my $core_pass;
 my $stored_cmd;
+my $term_loop = 0;
 my $lines_up  = 3;
 my $link_type = defined $core_user ? 'unix' : 'tcp/ip';
 my $sckargcnt = scalar @args;
@@ -69,8 +74,9 @@ $| = 0;
 
 # clear();
 
-my $term = new Term::ReadLine 'nailara.shell';
+my $term = new Term::ReadLine('nailara.shell');
 $term->ornaments('mh,me,md,me');
+$term->enableUTF8();
 
 no warnings 'once';
 $readline::rl_completion_function = "main::rl_filename_list_lcl";
@@ -93,7 +99,7 @@ while ($connect) {
             clear();
             print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
         } else {
-            if ( !syswrite( $shell_sock, "$stored_cmd\n" ) ) {
+            if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
                 select( undef, undef, undef, 0.1 );
                 close($shell_sock);
                 exit(2);    # aborting connection, failed to send!
@@ -151,6 +157,9 @@ sub shell_connect {
     } else {
         $link_type = 'unix';
     }
+
+    binmode( $sock, ':encoding(UTF-8)' );
+
     die " [!] connection failed [protocol error]\n" if <$sock> !~ />:\]/;
     return $sock;
 }
@@ -176,14 +185,14 @@ sub shell_auth {
 
 sub unix_auth {
     my ( $fh, $usr ) = @_;
-    syswrite( $fh, "select unix\n" );
+    s_write( $fh, "select unix\n" );
     my $answer = <$fh>;
     die "\n  [!] connection was prematurely terminated [!]\n\n"
         if not defined $answer;
     if ( $answer !~ /^ACK continue/ ) {
         die " :: unix auth not available ::\n\n";
     }
-    syswrite( $fh, "auth $usr\n" );
+    s_write( $fh, "auth $usr\n" );
     $answer = <$fh>;
     print "\n";
     if ( $answer =~ /YEAH/ ) {
@@ -199,6 +208,17 @@ sub unix_auth {
     }
 }
 
+sub s_write {
+    my $b_written;
+    my $write_fh  = shift;
+    my $write_str = shift;
+    utf8::encode($write_str);
+    IO::AIO::aio_write( $write_fh, undef, length($write_str),
+        $write_str, 0, sub { $b_written = $_[0] } );
+    IO::AIO::flush();
+    return $b_written;
+}
+
 sub clear { print "\e[37m\e[40m\e[H\e[2J" }
 
 sub shell_loop {
@@ -206,7 +226,7 @@ sub shell_loop {
     my $prompt = $_[1];
 
     if ( not $stdout_pid = fork() ) {
-        $SIG{'INT'} = 'IGNORE';
+        $SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = 'IGNORE';
         $SIG{'PIPE'} = sub { kill( 9, $parent_pid ); exit(2) };
         stdout_fork();
         exit;
@@ -216,9 +236,15 @@ sub shell_loop {
         undef $stored_cmd;
     }
 
+    map {
+        $SIG{$_} = sub { parent_exit( shift, $stdout_pid ) }
+    } qw| TERM INT HUP |;
+
     $connect = 0;
 
-    while ( defined( my $line = $term->readline($prompt) ) and -S $sock ) {
+    while ( -S $sock
+        and override_signals()
+        and defined( my $line = $term->readline($prompt) ) ) {
         $WARNED  = 0;
         $connect = 1;
         print $color;
@@ -240,7 +266,7 @@ sub shell_loop {
                 }
                 use warnings;
             } else {
-                if ( $line ne '[quit]' and !syswrite( $sock, "$line\n" ) ) {
+                if ( $line ne '[quit]' and !s_write( $sock, "$line\n" ) ) {
                     select( undef, undef, undef, 0.1 );
                     $stored_cmd = $line;
                 }
@@ -319,4 +345,33 @@ sub rl_filename_list_lcl {
     $readline::rl_completer_terminator_character = '';
     use warnings 'once';
     return @files;
+}
+
+sub override_signals {
+    POSIX::sigaction( &POSIX::SIGINT, $sigaction, $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGHUP, $sigaction );
+    POSIX::sigaction( &POSIX::SIGTERM, $sigaction );
+    return $term_loop = 1;
+}
+
+sub restore_signals {
+    POSIX::sigaction( &POSIX::SIGINT,  $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGHUP,  $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGTERM, $old_int_handler );
+}
+
+sub readline_signals {
+    my $sig_name = shift;
+    $term->free_line_state;
+    $term->cleanup_after_signal;
+    parent_exit($sig_name);
+}
+
+sub parent_exit {
+    my $sig_type = shift;
+    my $term_pid = shift;
+    kill( 9, $term_pid ) if defined $term_pid;
+    my $term_str = $term_loop ? "\n:\n.\n\n" : "\n ::\n :\n\n";
+    print $term_str;
+    exit;
 }
