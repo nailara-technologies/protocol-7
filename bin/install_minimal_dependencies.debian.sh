@@ -1,6 +1,8 @@
 #!/bin/sh
 
-NAILARA_ROOT=/usr/local/nailara
+script_path=`realpath $0`
+bin_path=`dirname $script_path`
+NAILARA_ROOT=`realpath $bin_path/..`
 
 useradd -m -r nailara
 ln -v -f -s $NAILARA_ROOT/bin/nailara /usr/local/bin/nailara
@@ -21,11 +23,12 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
 
 # no longer found: libmodule-build-pluggable-perl
 
-cpanm Crypt::Ed25519 Digest::Skein Digest::BLAKE2 \
+cpanm Crypt::Ed25519 Digest::Skein Digest::BLAKE2 Digest::BMW \
       File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam &&
 
 # Crypt::Curve25519 no longer compiles as orig., provided fixed copy locally now
 cpanm $NAILARA_ROOT/lib/pm-src/crypt-curve25519  # until fmul issue fixed upstr.
+cd $NAILARA_ROOT && git clean -fxd $NAILARA_ROOT/lib/pm-src
 
 cpanm --force POSIX::1003 # <- temporary forced (localtime test fails) <<!>>
 
