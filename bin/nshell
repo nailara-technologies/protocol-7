@@ -9,7 +9,7 @@ use IO::Socket;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Term::ReadPassword;
-use Term::ReadLine::Perl;
+use Time::HiRes 'sleep';
 use Digest::JHash qw(jhash);
 use MIME::Base64 qw(encode_base64url);
 use POSIX::1003::Proc qw(WNOHANG waitpid);
@@ -100,8 +100,9 @@ while ($connect) {
             print "\e[1m\e[5m\e[36m\e[40m`\e[0m\n";
         } else {
             if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
-                select( undef, undef, undef, 0.1 );
+                sleep(0.1);
                 close($shell_sock);
+
                 exit(2);    # aborting connection, failed to send!
             } else {
                 printf "\033[${lines_up}A\r\e[5m.\e[0m < \e[32m%-79s\n\n",
@@ -166,7 +167,7 @@ sub shell_connect {
 
 sub shell_auth {
     my ( $fh, $usr, $pwd ) = @_;
-    syswrite( $fh, "auth $usr $pwd\n" );
+    s_write( $fh, "auth $usr $pwd\n" );
     my $answer = <$fh>;
     die "\n  [!] connection was prematurely terminated [!]\n\n"
         if not defined $answer;
@@ -216,6 +217,7 @@ sub s_write {
     IO::AIO::aio_write( $write_fh, undef, length($write_str),
         $write_str, 0, sub { $b_written = $_[0] } );
     IO::AIO::flush();
+    undef $b_written if $b_written < 0;    # <- emulates sysread() behaviour ..
     return $b_written;
 }
 
@@ -232,7 +234,7 @@ sub shell_loop {
         exit;
     }
     if ( defined $stored_cmd ) {
-        select( undef, undef, undef, 0.2 );
+        sleep(0.2);
         undef $stored_cmd;
     }
 
@@ -267,10 +269,10 @@ sub shell_loop {
                 use warnings;
             } else {
                 if ( $line ne '[quit]' and !s_write( $sock, "$line\n" ) ) {
-                    select( undef, undef, undef, 0.1 );
+                    sleep(0.1);
                     $stored_cmd = $line;
                 }
-                select( undef, undef, undef, 0.2 );
+                sleep(0.2);
                 if (   $line eq '[quit]'
                     or defined $stored_cmd and $stored_cmd eq 'exit'
                     or $line =~ "ACK session closed\n" ) {
@@ -292,14 +294,14 @@ sub shell_loop {
                 }
 
             }
-        } elsif ( !-S $sock or !syswrite( $sock, "\n" ) or !$sock->connected ) {
+        } elsif ( !-S $sock or !s_write( $sock, "\n" ) or !$sock->connected ) {
             print "\e[2H\e[2J :: reconnecting...\n";
             last;
         }
     }
     if ( !$connect ) {
         if ( -S $shell_sock ) {
-            syswrite( $shell_sock, "\nexit ==\\ lost terminal \\==\n" );
+            s_write( $shell_sock, "\nexit ==\\ lost terminal \\==\n" );
             close($shell_sock);
         }
         kill( 9, $parent_pid );
@@ -364,14 +366,17 @@ sub readline_signals {
     my $sig_name = shift;
     $term->free_line_state;
     $term->cleanup_after_signal;
-    parent_exit($sig_name);
+    parent_exit();
 }
 
-sub parent_exit {
-    my $sig_type = shift;
-    my $term_pid = shift;
-    kill( 9, $term_pid ) if defined $term_pid;
-    my $term_str = $term_loop ? "\n:\n.\n\n" : "\n ::\n :\n\n";
+sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
+    my $term_str = $term_loop ? "\n\e[5m.\e[0m\n\n" : "\n ::\n :\n\n";
     print $term_str;
+    if ( -S $shell_sock ) {
+        $shell_sock->shutdown(2);
+        $shell_sock->close();
+        sleep(0.13);
+    }
+    kill( 9, $stdout_pid ) if defined $stdout_pid;
     exit;
 }
