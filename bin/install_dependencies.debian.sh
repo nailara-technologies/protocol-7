@@ -12,8 +12,10 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter \
             libc6-dev libimlib2-dev liblinux-inotify2-perl libimager-perl \
             libxml-rsslite-perl libtest-needsdisplay-perl libfile-slurper-perl \
             libconvert-color-perl libio-stringy-perl libdigest-crc-perl \
-            libdigest-jhash-perl libfont-freetype-perl \
-            libfile-mimeinfo-perl shared-mime-info
+            libdigest-jhash-perl libfont-freetype-perl libhttp-message-perl \
+            libfile-mimeinfo-perl shared-mime-info libhttp-date-perl \
+            libdigest-elf-perl
+
 
 cpanm --force XML::RSS::Timing  # <- temporary forced [date_conv test fails] <!>
 

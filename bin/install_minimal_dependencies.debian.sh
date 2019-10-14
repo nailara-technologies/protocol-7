@@ -18,8 +18,8 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
   libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libsub-uplevel-perl \
   liburi-perl libbsd-resource-perl libcryptx-perl libtest-exception-perl \
-  libdigest-jhash-perl \
-  libtest-requires-perl libtest-sharedfork-perl &&
+  libdigest-jhash-perl libdigest-elf-perl libhttp-date-perl \
+  libtest-requires-perl libtest-sharedfork-perl libhttp-message-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
