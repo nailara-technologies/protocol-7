@@ -17,12 +17,15 @@ socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
 if ( !<image2html.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <image2html.pipe.child> if exists <image2html.pipe.child>;
+
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+
     <image2html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
 
     my $subname = <system.agent.subname>;
-    my $sn_str = defined $subname ? $subname . '-' : '';
+    my $sn_str  = defined $subname ? $subname . '-' : '';
 
     <system.agent.name> .= "[${sn_str}child]";
     $0 = "image2html-${sn_str}child";

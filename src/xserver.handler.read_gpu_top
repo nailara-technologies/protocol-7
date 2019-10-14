@@ -15,8 +15,8 @@ my @stat_secs = ( 5, 15, 30 );
 <xserver.gpu_top.stats.load_average> //= {};
 <xserver.gpu_top.output_buffer>      //= '';
 
-my $read_bytes = sysread(
-    $read_fh, <xserver.gpu_top.output_buffer>,
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'xserver'}{'gpu_top.output_buffer'},
     4096,     length(<xserver.gpu_top.output_buffer>)
 );
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
@@ -85,9 +85,7 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
                 ? sprintf( "%5s", sprintf( "%.2f", $load_ref->{$_} ) )
                 : '-- --'
             }
-            reverse sort {
-            $a <=> $b
-            } @stat_secs
+            reverse sort { $a <=> $b } @stat_secs
     );
     my $freq = '';
     my $llvl = <xserver.gpu_top.stat_log_level> //= 3;

@@ -217,7 +217,7 @@ sub s_write {
     IO::AIO::aio_write( $write_fh, undef, length($write_str),
         $write_str, 0, sub { $b_written = $_[0] } );
     IO::AIO::flush();
-    undef $b_written if $b_written < 0;    # <- emulates sysread() behaviour ..
+    undef $b_written if $b_written < 0;    # <- emulates syswrite() behaviour ..
     return $b_written;
 }
 

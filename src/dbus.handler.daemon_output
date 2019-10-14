@@ -13,8 +13,10 @@ my $pid     = $server->{'pid'};
 
 <dbus.output_buffer> //= '';
 
-my $read_bytes = sysread( $read_fh, <dbus.output_buffer>,
-    4096, length(<dbus.output_buffer>) );
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'dbus'}{'output_buffer'},
+    4096,     length(<dbus.output_buffer>)
+);
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     close($read_fh);

@@ -1,0 +1,44 @@
+# >:]
+
+# name = base.s_write
+# desc = utf8 safe syswrite replacement [ with optional fh_offset parameter ]
+# todo = pass buffer by reference !!!
+
+my $write_fh   = $_[0];
+my $write_str  = $_[1];
+my $write_len  = $_[2] // length($write_str);
+my $str_offset = $_[3] // 0;
+my $fh_offset  = $_[4];
+
+#    syswrite FILEHANDLE,SCALAR,LENGTH,OFFSET
+#    syswrite FILEHANDLE,SCALAR,LENGTH
+#    syswrite FILEHANDLE,SCALAR
+
+#    aio_write $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
+
+#utf8::upgrade($write_str) if !utf8::is_utf8($write_str);
+# utf8::upgrade($write_str) if utf8::is_valid($write_str);
+
+my $b_written;
+my $write_copy;
+
+print "<< s_write >> '$write_str'\n" if <system.agent.name> eq 'child';
+
+$write_copy = utf8::unicode_to_native($write_str)
+    if utf8::is_utf8($write_str)
+    and utf8::valid($write_str);
+
+if ( defined $write_copy ) {
+    IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_copy,
+        $str_offset, sub { $b_written = $_[0] } );
+} else {
+    IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_str,
+        $str_offset, sub { $b_written = $_[0] } );
+}
+
+IO::AIO::flush();
+
+print "<< s_write >> (( $b_written ))\n" if <system.agent.name> eq 'child';
+
+return undef if $b_written < 0;    # <- syswrite() behaviour
+return $b_written;

@@ -57,6 +57,8 @@ if ( !<log.files>->{$log_name}->{'locked'} ) {
     $log_fh = <log.files>->{$log_name}->{'fh'};
 }
 
+utf8::decode($$log_msg_ref);
+
 print {$log_fh} $$log_msg_ref;
 
 return 1;

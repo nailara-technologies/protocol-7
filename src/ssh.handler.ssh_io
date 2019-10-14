@@ -84,9 +84,7 @@ if ( !$connection->{'authorized'} ) {
         <[base.log]>->( 0, ": : remote nailara auth. timeout!" );
         <[ssh.connection.stop]>->($con_id);
     } else {
-        <[base.log]>->(
-            0, ": : protocol error during remote nailara auth.!"
-        );
+        <[base.log]>->( 0, ": : protocol error during remote nailara auth.!" );
         <[ssh.connection.stop]>->($con_id);
     }
 } else {
@@ -95,9 +93,11 @@ if ( !$connection->{'authorized'} ) {
         my $cmd_id = $1;
         $channel->write("($cmd_id)NAK link not initialized yet!\n");
     } else {
-        my $blen = length( $connection->{'buffer'} );
-        my $bytes
-            = syswrite( $connection->{'local_fh'}, $connection->{'buffer'} );
+        my $blen  = length( $connection->{'buffer'} );
+        my $bytes = <[base.s_write]>->(
+            $connection->{'local_fh'},
+            $connection->{'buffer'}
+        );
         if ( not defined $bytes ) {
             <[base.log]>->(
                 0, "local nailara link filehandle closed! connection shutdown.."

@@ -9,8 +9,8 @@ my $self_name  = <system.agent.name>;
 
 <media.agent.output_buffer>->{$agent_name} //= '';
 
-my $read_bytes = sysread(
-    $read_fh, <media.agent.output_buffer>->{$agent_name},
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'media'}{'agent.output_buffer'}{$agent_name},
     4096,     length( <media.agent.output_buffer>->{$agent_name} )
 );
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )

@@ -4,14 +4,14 @@ use v5.10.1;
 use strict;
 use warnings;
 
-no warnings 'deprecated';    # XXX: warning temporarely disabled (:utf8)
-
 BEGIN {
     ( my $local_lib_path = $0 ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
+# somewhat reduntant with -C31 ... to be decided later [which to drop]..,
 use open ':encoding(UTF-8)';
+map { binmode( $_, ':encoding(UTF-8)' ) } ( *STDIN, *STDOUT, *STDERR );
 
 # globals
 our %code;
