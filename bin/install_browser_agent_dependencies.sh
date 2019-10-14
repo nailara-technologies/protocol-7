@@ -17,7 +17,7 @@ apt-get -y install pciutils cpanminus libevent-perl libproc-processtable-perl \
   libx11-keyboard-perl liblinux-inotify2-perl openbox hsetroot xvfb \
   libgtk3-webkit2-perl libtest-needsdisplay-perl libcryptx-perl \
   libextutils-pkgconfig-perl libextutils-depends-perl libhttp-message-perl \
-  libhttp-date-perl libdigest-elf-perl
+  libhttp-date-perl libdigest-elf-perl libglib2.0-dev libsoup2.4-dev
 
 cpanm Crypt::Ed25519 Digest::Skein Glib::Event
 
@@ -33,7 +33,5 @@ export PERL5LIB=.
 export PERL_USE_UNSAFE_INC=1
 cpanm HTTP::Soup
 #--<
-
-xvfb-run cpanm Gtk3::WebKit2
 
 useradd -m -r nailara
