@@ -11,7 +11,7 @@ my $key_name = 'default';
 
 my $packet_buffer = '';
 my $read_size     = 65507;
-if ( my $bytes = sysread( $fh, $packet_buffer, $read_size ) ) {
+if ( my $bytes = <[base.s_read]>->( $fh, \$packet_buffer, $read_size ) ) {
     $ev->again if $bytes == $read_size;
 }
 

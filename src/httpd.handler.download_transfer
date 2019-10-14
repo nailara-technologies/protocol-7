@@ -26,9 +26,9 @@ if ( $read_size < 1 ) {
     return 1;
 }
 
-$download->{'bytes_to_go'} -= sysread(
+$download->{'bytes_to_go'} -= <[base.s_read]>->(
     $download->{'content_fh'},
-    $session->{'buffer'}->{'output'},
+    \$session->{'buffer'}->{'output'},
     $read_size, length( $session->{'buffer'}->{'output'} )
 );
 

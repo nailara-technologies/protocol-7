@@ -1,14 +1,14 @@
 # >:]
 
-# name       = base.init_code
-# descr      = initialize the base module
+# name  = base.init_code
+# descr = initialize the base module
 
 use Safe;
 use Module::Load;
 use Time::Seconds;
 
 <[base.perlmod.autoload]>->('Event');
-
+<[base.perlmod.autoload]>->('IO::AIO');
 <[base.perlmod.load]>->( 'Time::Local',          'timegm_nocheck' );
 <[base.perlmod.load]>->( 'POSIX::1003::Time',    'strftime' );
 <[base.perlmod.load]>->( 'POSIX::1003::Limit',   ':rlimit' );

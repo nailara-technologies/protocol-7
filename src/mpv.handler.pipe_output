@@ -11,9 +11,10 @@ my $pid     = $process->{'pid'};
 
 <mpv.pipe.buffer> //= '';
 if ( defined $read_fh ) {
-    $bytes
-        = sysread( $read_fh, <mpv.pipe.buffer>, 16 * 1024,
-        length(<mpv.pipe.buffer>) ) // 0; # LLL: needs 'safer' read method (len)
+    $bytes = <[base.s_read]>->(
+        $read_fh,  \$data{'mpv'}{'pipe'}{'buffer'},
+        16 * 1024, length(<mpv.pipe.buffer>)
+    ) // 0;    # LLL: needs 'safer' read method (len)
 }
 
 if ( not defined $read_fh or $bytes == 0 or not defined <mpv.pipe.buffer> ) {
