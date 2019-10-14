@@ -1,0 +1,33 @@
+# >:]
+
+# name = base.s_read
+# desc = utf8 safe sysread replacement [ with optional fh_offset parameter ]
+# note = buffer parameter expects passing by reference
+
+my $read_fh    = $_[0];
+my $buffer_ref = $_[1];
+my $read_len   = $_[2];
+my $buf_offset = $_[3];
+my $fh_offset  = $_[4];
+
+$$buffer_ref //= '';
+$buf_offset  //= length($$buffer_ref);
+
+#    sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
+#    sysread FILEHANDLE,SCALAR,LENGTH
+
+#    aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
+
+my $b_read;
+
+if ( <system.agent.name> =~ /child/ ) {
+    $read_fh->blocking(0) if $read_fh->blocking();
+}
+
+IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, $$buffer_ref,
+    $buf_offset, sub { $b_read = $_[0] } );
+
+IO::AIO::flush();
+
+return undef if $b_read < 0;    # <- sysread() behaviour
+return $b_read;

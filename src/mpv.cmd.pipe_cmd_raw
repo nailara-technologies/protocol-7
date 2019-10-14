@@ -21,6 +21,6 @@ if ( not defined $mpv_socket ) {
     exit(2);    # TERM / KILL mpv in END code
 }
 
-syswrite( $mpv_socket, "$cmd_str\n" );
+<[base.s_write]>->( $mpv_socket, "$cmd_str\n" );
 
 return { 'mode' => 'ack', 'data' => 'string sent.' };

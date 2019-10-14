@@ -15,8 +15,8 @@ if ( fileno $_[0] ) {
                         {'output'}{'handler'}
                 }
             }
-            ) {
-            syswrite(
+        ) {
+            <[base.s_write]>->(
                 $_[0],
                 &{  $code{
                         $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }
@@ -35,7 +35,7 @@ if ( fileno $_[0] ) {
             return 1;
         }
     } else {
-        syswrite( $_[0], $_[1] );
+        <[base.s_write]>->( $_[0], $_[1] );
     }
 
     if ( $data{'handle'}{ $_[0] }{'cid'} ) {

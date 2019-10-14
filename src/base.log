@@ -57,4 +57,6 @@ if ( $log_level <= <system.internal_verbosity> ) {
 }
 
 # print to console
-print $log_txt if fileno(STDOUT) and $log_level <= <system.verbosity>;
+utf8::decode($log_txt) and print $log_txt
+    if fileno(STDOUT)
+    and $log_level <= <system.verbosity>;

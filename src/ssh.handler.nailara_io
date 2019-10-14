@@ -16,7 +16,7 @@ my $channel      = $connection->{'nch'};
 
 my $buffer = '';
 
-my $bytes = sysread( $read_fh, $buffer, 4096, length($buffer) );
+my $bytes = <[base.s_read]>->( $read_fh, \$buffer, 4096, length($buffer) );
 
 if ( not defined $bytes or !$bytes ) {
     <[ssh.connection.stop]>->($con_id);

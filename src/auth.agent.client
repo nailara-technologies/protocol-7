@@ -12,7 +12,7 @@ if ( defined $key_str
     and $KEYS{'agent'}{'session_key'} ne '' ) {
     $key_str //= $KEYS{'agent'}{'session_key'};
     my $smiley;
-    if ( sysread( $filehandle, $smiley, 4 ) ) {
+    if ( <[base.s_read]>->( $filehandle, \$smiley, 4 ) > 0 ) {
         if ( $smiley =~ />:\]\n/ ) {
             <[base.log]>->( 1, "[*] protocol banner detected.." );
         } else {

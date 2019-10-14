@@ -23,6 +23,8 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     $0 = 'ticker child';
     delete <process.renice_child>;
 
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+
     <ticker-sdl.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
