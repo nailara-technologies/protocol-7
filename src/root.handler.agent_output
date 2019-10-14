@@ -20,8 +20,8 @@ my $agent_name     = <root.agent.setup>->{$agent_id}->{'name'};
 
 $agent_instance->{'output_buffer'} //= '';
 
-my $read_bytes = sysread(
-    $read_fh, $agent_instance->{'output_buffer'},
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$agent_instance->{'output_buffer'},
     4096,     length( $agent_instance->{'output_buffer'} )
 );
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
@@ -73,12 +73,15 @@ foreach my $a_name ( keys %{$patterns_output} ) {
         next;
     }
     push( @matched_names, $a_name )
-        if $a_name eq $agent_name    # agent name matches
+        if $a_name eq $agent_name                       # agent name matches
         or $a_name =~ /^\!(.+)$/ and $1 ne $agent_name; # inverse match (!agent)
 }
 
 while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
+
+    utf8::decode($output_line);
+
     print $output_line. "\n"
         if <system.verbosity> or $output_line =~ /\Q$ANSI{bold}/;
     if (@matched_names) {    # matching pattern name exists

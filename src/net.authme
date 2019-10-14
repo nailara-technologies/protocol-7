@@ -2,13 +2,13 @@
 
 # name  = net.authme
 # descr = plain text password auth. (client side)
-# todo  = fix sysread(s) for possible race conditions...
+# todo  = check for possible race conditions ...
 
 my $answer;
 my $smiley;
 my $backend_socket = $_[0], $smiley = "", $answer = "";
 die "net.authme: no password supplied" if not defined $_[2];
-if ( sysread( $backend_socket, $smiley, 4 ) ) {
+if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
         <[base.log]>->( 1, '[*] protocol banner detected..' );
     } else {
@@ -16,7 +16,7 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
         return undef;
     }
     <[net.out]>->( $backend_socket, "auth $_[1] $_[2]\n" );
-    if ( sysread( $backend_socket, $answer, 9 ) ) {
+    if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
         if ( $answer =~ /YEAH/ ) {
             <[base.log]>->( 1, '[*] successfully authenticated :)' );
             return $backend_socket;

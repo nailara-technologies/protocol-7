@@ -19,7 +19,7 @@ if ( !open( $file_fh, $file_path ) ) { warn $!; return 0; }
 
 my $file_ok = 2;
 
-my $result = sysread( $file_fh, my $buffer, 5 );
+my $result = <[base.s_read]>->( $file_fh, \my $buffer, 5 );
 
 if (   not defined $result
     or $result != 5
@@ -30,7 +30,7 @@ if (   not defined $result
     $file_ok--;
 }
 
-$result = sysread( $file_fh, $buffer, 7 );
+$result = <[base.s_read]>->( $file_fh, \$buffer, 7 );
 
 if (   not defined $result
     or $result < 6

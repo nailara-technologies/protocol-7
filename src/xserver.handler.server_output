@@ -13,8 +13,8 @@ my $pid     = $server->{'pid'};
 
 <xserver.output_buffer> //= '';
 
-my $read_bytes = sysread(
-    $read_fh, <xserver.output_buffer>,
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'xserver'}{'output_buffer'},
     4096,     length(<xserver.output_buffer>)
 );
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )

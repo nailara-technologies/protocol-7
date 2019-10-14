@@ -14,8 +14,10 @@ my $whitelist = $child->{'log_whitelist'} || [];
 my $xpatterns = $child->{'callback_patterns'} || {};
 
 <child.output_buffer> //= '';
-my $read_bytes = sysread( $read_fh, <child.output_buffer>,
-    4096, length(<child.output_buffer>) );
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'child'}{'output_buffer'},
+    4096,     length(<child.output_buffer>)
+);
 if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
     $event->cancel;
     close($read_fh);

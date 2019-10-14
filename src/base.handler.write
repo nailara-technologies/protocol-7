@@ -10,15 +10,12 @@ else                     { $id = $_[0]->w->data }
 return <[base.session.check_remaining]> if not exists $data{'session'}{$id};
 
 my $session = $data{'session'}{$id};
-my $len     = length( $session->{'buffer'}->{'output'} );
-my $written = 0;
+my $dat_len = length( $session->{'buffer'}->{'output'} );
 
 if ( fileno $session->{'handle'} ) {
-    if ( $len > 0 ) {
-        $written = syswrite(
-            $session->{'handle'},
-            $session->{'buffer'}->{'output'},
-            $data{'size'}{'buffer'}{'output'} || $len
+    if ( $dat_len > 0 ) {
+        my $written = <[base.s_write]>->(
+            $session->{'handle'}, $session->{'buffer'}->{'output'}, $dat_len
         );
         if ( not defined $written ) {
             $session->{'shutdown'} = 1;
@@ -40,7 +37,7 @@ if ( fileno $session->{'handle'} ) {
     return $session->{'shutdown'} = 1;
 }
 
-if ( $len = length( $session->{'buffer'}->{'output'} ) ) {
+if ( $dat_len = length( $session->{'buffer'}->{'output'} ) ) {
     push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
 
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
@@ -48,12 +45,13 @@ if ( $len = length( $session->{'buffer'}->{'output'} ) ) {
     }
 } else {
 
-    #    if ( !$session->{'watcher'}{'output_buffer'}->is_running ) {
+    # if ( !$session->{'watcher'}{'output_buffer'}->is_running ) {
+
     $session->{'watcher'}->{'output_buffer'}->start;
 
-    #    }
+    # }
 }
 
-$session->{'shutdown'} = 1 if !$len and $session->{'flush_shutdown'};
+$session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
 
 return 0;

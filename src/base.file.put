@@ -11,9 +11,9 @@ if ( @content > 1 ) {
 } elsif ( @content and ref( $content[0] ) eq 'ARRAY' ) {
     print {$fh} @{ $content[0] };
 } elsif ( @content and ref( $content[0] ) eq 'SCALAR' ) {
-    syswrite( $fh, ${ $content[0] } );
+    print {$fh} ${ $content[0] };
 } elsif (@content) {
-    syswrite( $fh, $content[0] );
+    print {$fh} $content[0];
 }
 close($fh);
 

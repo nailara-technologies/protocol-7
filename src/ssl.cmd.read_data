@@ -3,19 +3,23 @@
 # name = ssl.cmd.read_data
 
 local ( $id, $com_id, $name, $mode, $count ) = @_;
-if ( -S $data{'link'}{$name}{'handle'} ) {
+if ( -S $buffer{'link'}{$name}{'handle'} ) {
     if ( $mode eq 'bytes' ) {
-        local $data;
-        if ( sysread( $data{'link'}{$name}{'handle'}, $data, $count ) ) {
-            <[base.log]>->( 0, "length: " . length($data) );
-            <[net.raw_out]>->( $data, $com_id );
+        my $buffer;
+        if (<[base.s_read]>->(
+                $buffer{'link'}{$name}{'handle'},
+                \$buffer, $count
+            )
+        ) {
+            <[base.log]>->( 0, "length: " . length($buffer) );
+            <[net.raw_out]>->( $buffer, $com_id );
             <[base.log]>->( 1, "ok - wrote" );
-            $data{'link'}{$name}{'handle'}->flush();
+            $buffer{'link'}{$name}{'handle'}->flush();
             <[base.log]>->( 1, "ok - flushed" );
         } else {
             <[net.nak]>->( "link terminated", $_[1] );
             <[base.log]>->( 0, "link '$name' terminated" );
-            $data{'link'}{$name}{'status'} = 'closed';
+            $buffer{'link'}{$name}{'status'} = 'closed';
         }
     }
 } else {

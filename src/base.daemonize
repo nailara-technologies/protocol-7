@@ -15,6 +15,8 @@ exit if $pid;
 POSIX::setsid() or die "setsid() failed: $!";
 open STDERR, '>&STDOUT' or die "Can't dup stdout: $!";
 
+IO::AIO::reinit();    # <- makes base.s_read() and base.s_write() work again...
+
 # }
 
 # if($pid=fork){exit($pid)}

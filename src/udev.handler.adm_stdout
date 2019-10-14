@@ -15,8 +15,8 @@ my $actions  = <udev.rules.actions>;
 
 my $bufsize = 4096;
 
-my $bytes = sysread(
-    $read_fh, <udev.adm.output.buffer>,
+my $bytes = <[base.s_read]>->(
+    $read_fh, \$data{'udev.adm'}{'output.buffer'},
     $bufsize, length(<udev.adm.output.buffer>)
 );
 
@@ -56,7 +56,7 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
 
                 #    print Dumper($adm_event);
                 if (exists <udev.rules.actions>->{$pattern_name}->{$match_name}
-                    ) {
+                ) {
                     my $action
                         = <udev.rules.actions>->{$pattern_name}->{$match_name};
                     my ( $cmd, $params )

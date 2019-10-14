@@ -18,7 +18,7 @@ if (   not defined $backend_socket
     return undef;
 }
 
-if ( sysread( $backend_socket, $smiley, 4 ) ) {
+if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
         <[base.log]>->( 1, '[*] protocol banner detected..' );
     } else {
@@ -35,7 +35,7 @@ if ( sysread( $backend_socket, $smiley, 4 ) ) {
         return undef;
     }
     <[net.out]>->( $backend_socket, "auth $user\n" );
-    if ( sysread( $backend_socket, $answer, 9 ) ) {
+    if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
         if ( $answer =~ /YEAH/ ) {
             <[base.log]>->( 1, '[*] successfully authenticated :)' );
             return $backend_socket;
