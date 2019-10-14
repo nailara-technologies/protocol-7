@@ -22,8 +22,6 @@ my $fh_offset  = $_[4];
 my $b_written;
 my $write_copy;
 
-print "<< s_write >> '$write_str'\n" if <system.agent.name> eq 'child';
-
 $write_copy = utf8::unicode_to_native($write_str)
     if utf8::is_utf8($write_str)
     and utf8::valid($write_str);
@@ -37,8 +35,6 @@ if ( defined $write_copy ) {
 }
 
 IO::AIO::flush();
-
-print "<< s_write >> (( $b_written ))\n" if <system.agent.name> eq 'child';
 
 return undef if $b_written < 0;    # <- syswrite() behaviour
 return $b_written;
