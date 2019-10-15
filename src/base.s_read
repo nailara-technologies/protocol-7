@@ -19,11 +19,6 @@ $buf_offset  //= length($$buffer_ref);
 #    aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 
 my $b_read;
-
-if ( <system.agent.name> =~ /child/ ) {
-    $read_fh->blocking(0) if $read_fh->blocking();
-}
-
 IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, $$buffer_ref,
     $buf_offset, sub { $b_read = $_[0] } );
 
