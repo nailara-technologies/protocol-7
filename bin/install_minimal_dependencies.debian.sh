@@ -23,7 +23,7 @@ apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
 
 # no longer found: libmodule-build-pluggable-perl
 
-cpanm Crypt::Ed25519 Digest::Skein Digest::BLAKE2 Digest::BMW \
+cpanm Crypt::Ed25519 Digest::Skein Digest::BMW \
       File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam &&
 
 # Crypt::Curve25519 no longer compiles as orig., provided fixed copy locally now
