@@ -1,32 +1,37 @@
 # >:]
 
-# name       = base.handler.connect
+# name  = base.handler.connect
 
-my $id    = $_[0]->w->data;
-my $fd    = $data{'session'}{$id}{'handle'};
-my $type  = $data{'handle'}{$fd}{'link'};
-my $proto = $data{'session'}{$id}{'proto'};
-my $state = $data{'session'}{$id}{'state'};
-my $mode  = $data{'handle'}{$fd}{'mode'};
+my $id     = $_[0]->w->data;
+my $fd_srv = $data{'session'}{$id}{'handle'};
+my $type   = $data{'handle'}{$fd_srv}{'link'};
+my $proto  = $data{'session'}{$id}{'proto'};
+my $state  = $data{'session'}{$id}{'state'};
+my $mode   = $data{'handle'}{$fd_srv}{'mode'};
 
 my $handler = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
-my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'};
+my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'} // '';
 
-if ( not defined $data{'handle'}{$fd}{'proto'} ) {
+if ( not defined $data{'handle'}{$fd_srv}{'proto'} ) {
     <[base.log]>->(
         1, 'base.handler.connect: no protocol defined for submitted handle'
     );
     <[base.session.check_remaining]>;
     return undef;
 } else {
-    <[base.log]>->( 1, "calling connect handler [$handler]" );
-    my $new_fd = $code{$handler}->( $_[0] );
+    ( my $handler_str = $handler ) =~ s{^io\.|\.connect$}{}g;
+    <[base.log]>->( 1, "[$id] calling connect handler [$handler_str]" );
+    my $fd_client = $code{$handler}->( $_[0] );
+    if ( defined $fd_client and $fd_client->connected() ) {
+        my $id = <[base.session.init]>->( $fd_client, $proto, $mode );
 
-    my $id = <[base.session.init]>->( $new_fd, $proto, $mode );
-
-    # send server banner
-    if ( length($banner) and $mode eq 'in' ) {
-        <[net.out]>->( $new_fd, $banner );
+        # send server banner
+        if ( length($banner) and $mode eq 'in' ) {
+            <[net.out]>->( $fd_client, $banner );
+        }
+        <[base.log]>->( 1, "[$id] $proto protocol connection established." );
+    } else {
+        <[base.log]>->( 1, "[$id] connection prematurely closed." );
+        return undef;
     }
-    <[base.log]>->( 1, "[$id] $proto protocol connection established." );
 }
