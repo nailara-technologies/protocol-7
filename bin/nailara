@@ -303,12 +303,16 @@ sub prepare_subs {
                     # <[sub_name]>->(  -->  $code{'sub_name'}->(
                     my $orig_len
                         = length( $data{'code'}{$file_name}{'source'} );
+
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
                             |\$code{'$1'}->(|sgxo;
 
                     # warn: this parser currently doesn't respect quoted strings
                     #       escape like \<[sub.name]> <-- this to avoid a match!
+
+                    # note: a generic quoted string match would be :  ##########
+                    # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
 
                     # <[sub_name]>  -->  $code{'sub_name'}->()
                     $data{'code'}{$file_name}{'source'}
