@@ -8,23 +8,30 @@ my $fd = $data{'session'}{$id}{'handle'};
 if ( -S $fd ) {
     my $new_sock = $fd->accept()
         or <[base.log]>->( 0, "tcp.connect_handler: can not accept [$!]" );
-    my ( $peer_host, $peer_port )
-        = ( $new_sock->peerhost(), $new_sock->peerport() );
-    $data{'handle'}{$new_sock}{'link'}       = 'tcp/ip';
-    $data{'handle'}{$new_sock}{'mode'}       = 'in';
-    $data{'handle'}{$new_sock}{'encryption'} = 'none';
-    $data{'handle'}{$new_sock}{'peerhost'}   = $peer_host;
-    $data{'handle'}{$new_sock}{'peerport'}   = $peer_port;
+    my ( $p_host, $p_port ) = ( $new_sock->peerhost(), $new_sock->peerport() );
+
+    return undef if not defined $p_host or not defined $p_port;  # <- closed (!)
+
+    $data{'handle'}{$new_sock} = {
+        'mode'       => 'in',
+        'encryption' => 'none',
+        'link'       => 'tcp/ip',
+        'peerhost'   => $p_host,
+        'peerport'   => $p_port
+    };
 
     <[base.log]>->(
         1,
-        'incoming tcp connection ['
-            . $data{'handle'}{$new_sock}{'peerhost'} . ':'
-            . $data{'handle'}{$new_sock}{'peerport'} . ']'
+        sprintf(
+            '[%s] incoming tcp connection [%s:%s]',
+            $id,
+            $data{'handle'}{$new_sock}{'peerhost'},
+            $data{'handle'}{$new_sock}{'peerport'}
+        )
     );
 
     return $new_sock;
 } else {
     <[base.log]>->( 0, "tcp.connect_handler: no socket supplied" );
-    return 0;
+    return undef;
 }
