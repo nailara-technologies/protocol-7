@@ -1,15 +1,16 @@
 # >:]
 
-# name       = base.proto.nailara.init_code
+# name = base.proto.nailara.init_code
 
-$data{'proto'}{'nailara'}{'state'} = {
-    '0' => {
-        'in'  => { 'handler' => 'base.handler.auth' },
-        'out' => { 'handler' => 'base.handler.command' },
-    },
-    '1' => { 'in' => { 'handler' => 'base.handler.command' } },
+<proto.nailara> = {
+    'connect' => { 'banner' => ">:]\n" },
+    'state'   => {
+        '0' => {
+            'in'  => { 'handler' => 'base.handler.auth' },
+            'out' => { 'handler' => 'base.handler.command' },
+        },
+        '1' => { 'in' => { 'handler' => 'base.handler.command' } }
+    }
 };
-
-$data{'proto'}{'nailara'}{'connect'}{'banner'} = ">:]\n";
 
 return 0;
