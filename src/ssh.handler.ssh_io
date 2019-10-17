@@ -77,7 +77,7 @@ if ( !$connection->{'authorized'} ) {
         );
         $connection->{'linked'} = 1;
 
-    } elsif ( $connection->{'buffer'} =~ s/^FAIL >:\|\n// ) {
+    } elsif ( $connection->{'buffer'} =~ s/^NOPE >:\|\n// ) {
         <[base.log]>->( 0, ": : remote nailara auth. failed!" );
         <[ssh.connection.stop]>->($con_id);
     } elsif ( $connection->{'buffer'} =~ s/^>:\|\n// ) {
