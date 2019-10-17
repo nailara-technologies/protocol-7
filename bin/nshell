@@ -174,7 +174,7 @@ sub shell_auth {
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ /FAIL >:\|/ ) {
+    } elsif ( $answer =~ /NOPE >:\|/ ) {
         die " :: authentication failed ::\n\n";
     } elsif ( $answer =~ />:\|/ ) {
         print " :: authentication timeout ::\n";
@@ -199,7 +199,7 @@ sub unix_auth {
     if ( $answer =~ /YEAH/ ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ /FAIL >:\|/ ) {
+    } elsif ( $answer =~ /NOPE >:\|/ ) {
         die " :: authentication failed ::\n\n";
     } elsif ( $answer =~ />:\|/ ) {
         print " :: authentication timeout ::\n";

@@ -50,7 +50,7 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
         );
         return ( 0, $auth_user );
     } else {
-        $$output .= "FAIL >:|\n";
+        $$output .= "NOPE >:|\n";
         my $s_usr = $client_uname ne $auth_user ? " [uname=$client_uname]" : '';
         <[base.log]>->(
             0, "[$id] [auth unix] access as '$auth_user' denied" . $s_usr

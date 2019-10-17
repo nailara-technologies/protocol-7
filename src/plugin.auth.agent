@@ -14,7 +14,7 @@ if (   not %KEYS
     or ref( $KEYS{'auth'}{'agent'} ) ne 'HASH'
     or !keys( %{ $KEYS{'auth'}{'agent'} } ) ) {
     <[base.log]>->( 0, "[$id] no agent auth. keys set up - access denied" );
-    $$output .= "FAIL >:|\n";    # LLL: move down?
+    $$output .= "NOPE >:|\n";    # LLL: move down?
     return 2;
 }
 
@@ -45,7 +45,7 @@ if ( $$input =~ s/^($re->{usr}|$re->{usr_sub}) (\S+)\n// ) {
     } else {
         <[base.log]>
             ->( 0, "[$id] [agent] access denied to agent '$auth_name'" );
-        $$output .= "FAIL >:|\n";
+        $$output .= "NOPE >:|\n";
         return 1;
     }
 } else {
