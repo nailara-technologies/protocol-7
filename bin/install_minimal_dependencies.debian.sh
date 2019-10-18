@@ -12,7 +12,7 @@ cp -v $NAILARA_ROOT/lib/systemd/system/nailara-root.service /lib/systemd/system/
 
 # dependencies for 'root','core','config', 'events' agents + nshell
 
-apt-get -y install cpanminus libevent-perl libproc-processtable-perl \
+apt-get -y install cpanminus git libevent-perl libproc-processtable-perl \
   libterm-readpassword-perl libterm-readline-gnu-perl libio-aio-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
