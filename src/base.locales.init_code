@@ -11,7 +11,7 @@ my $agent_name = <system.agent.name>;
 <locales.text_dir> = <system.root_path> . "/data/locales/$agent_name";
 
 if ( !-d <locales.text_dir> ) {
-    <[base.log]>->( 1, "agent has no locale text data.." );
+    <[base.log]>->( 2, "agent has no locale text data.." );
     delete $data{'locales'};
 } else {
     my $files;
