@@ -137,8 +137,12 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
     <base.help.cmd.source_age.param> = "['date']";  # <- disabling second param!
     <base.help.cmd.source_age.descr> =~ s|\[year\]||;
 
-    <[base.disable_command]>->('whoami') if <system.agent.name> ne 'media';
+    if ( <system.agent.name> ne 'media' ) {
+        <[base.disable_command]>->(qw/ whoami /);
+        <[base.hide_list]>->(qw/ sessions /);
+    }
 
+    <[base.hide_list]>->(qw/ users /);
 }
 
 map {
