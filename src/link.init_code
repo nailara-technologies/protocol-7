@@ -1,0 +1,17 @@
+
+<[base.perlmod.autoload]>->('IO::Socket::INET');
+
+<link.nodes> //= {};
+
+<list.nodes> = {
+    'var'     => 'data',
+    'key'     => 'link.conn',
+    'descr'   => 'nailara connections / status',
+    'mask'    => '<key>:id <key>:status <key>:target_node',
+    'filters' => {
+        'status'      => 'link.parser.connection_status',
+        'target_node' => 'link.parser.connection_target',
+    }
+};
+
+0;
