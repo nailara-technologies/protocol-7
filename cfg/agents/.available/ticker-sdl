@@ -10,15 +10,15 @@ ticker-sdl.child.renice_fh = [base.spawn.renice_child]
 [load_config_file:'defaults']
 
 access.cmd.usr.core = help ping reload verify_instance read_file pause resume \
-                      get_opacity
+                      get_opacity list dump_buffer child.*
 
-access.cmd.usr.parent = read_file
+access.cmd.usr.parent = help reload read_file dump_buffer
 
 access.cmd.usr.child  = core.xserver.wait_visible core.xserver.raise_window \
                         core.layout.assign_window core.xserver.set_opacity \
-                        core.xserver.keep_above core.whoami \
-                        core.root.notify_online core.rss-ticker.resend_update
-
+                        core.xserver.keep_above core.whoami core.dump_buffer \
+                        core.root.notify_online core.rss-ticker.resend_update \
+                        core.list
 
 #                known (expected) fonts:  DroidSans DroidSans-Bold DroidSansMono
 #                                         DroidSerif-Bold DroidSerif-Regular
