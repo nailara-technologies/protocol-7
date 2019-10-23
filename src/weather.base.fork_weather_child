@@ -62,14 +62,12 @@ if ( !<weather.child.pid> ) {    ## child ##
     my $cache_dir = <weather.cache_dir>;
     my $city_file = "$cache_dir/city.current";
     if ( -f $city_file ) {
-        <[base.log]>->(
-            1, "found previously saved city setup in disk cache..."
-        );
+        <[base.log]>->( 1, "found saved location setup in cache.." );
         my $city_sref = <[file.slurp]>->($city_file);
         my ( $timestamp, $loaded_city ) = ( $1, $2 )
             if $$city_sref =~ m|^(\d+)\s+(.+)$|;
         if ( defined $loaded_city ) {
-            <[base.log]>->( 1, "restoring city '$loaded_city' from cache.." );
+            <[base.log]>->( 1, "<*> restoring location '$loaded_city'" );
             <weather.cfg.city> = $loaded_city;
         } else {
             <[base.log]>
