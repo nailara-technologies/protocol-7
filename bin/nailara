@@ -279,7 +279,7 @@ sub prepare_subs {
         my @compile_them = ();
         my @remaining    = @_;
         while ( my $code_name = shift @remaining ) {
-            $code{'log.ok'}->( "loading module '" . $code_name . "'" );
+            $code{'log.debug'}->( "loading module '" . $code_name . "'" );
             my $code_count      = 0;
             my $last_code_count = 0;
             if ( exists $data{'base'}{'modules'}{'internal_name'} ) {
