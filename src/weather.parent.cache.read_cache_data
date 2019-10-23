@@ -54,7 +54,7 @@ $age_str =~ s| (1 \w+)s | $1 |;
 
 if ( $data_age >= $max_age ) {
     <[base.log]>->(
-        1, "'$type' data cache timed out ($age_str old), removing.."
+        1, "'$type' data cache timed out ($age_str old), purging.."
     );
     unlink($file_path) or die "unlink($file_path): $!";
     delete <weather.data>->{$station_id};
