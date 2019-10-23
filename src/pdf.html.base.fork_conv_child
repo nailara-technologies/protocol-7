@@ -12,6 +12,7 @@ use Socket;
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [$!]";
+map { $data{'handle'}{$_}{'link'} = 'ipc/pipe' } ( $child_pipe, $parent_pipe );
 
 <pdf.html.child.pid> = fork;
 if ( !<pdf.html.child.pid> ) {    ## child ##
