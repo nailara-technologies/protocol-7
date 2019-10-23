@@ -69,7 +69,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     if ( defined <weather.min_zoom> ) {
         <weather.zoom_level> = <weather.min_zoom>
             if <weather.zoom_level> < <weather.min_zoom>;
-        $m_str = ' (configured minimum value)'
+        $m_str = ' (configured min.)'
             if <weather.zoom_level> == <weather.min_zoom>;
     }
     <[base.log]>->(
