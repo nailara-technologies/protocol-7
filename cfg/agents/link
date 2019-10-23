@@ -1,0 +1,18 @@
+
+ .:[ nailara 'link' agent ]:.
+
+[load_config_file:'defaults']
+
+modules.load = auth net io.ip link debug
+access.cmd.usr.core = help ping reload verify_instance \
+                      list get set dump dump_buffer
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:'nailara']
+
+[net.connect_to_core:'tcp/ip']
+[base.get_session_id]
+
+[event.loop]
