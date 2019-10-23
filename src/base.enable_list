@@ -1,0 +1,17 @@
+# >:]
+
+# name  = base.enable_list
+# descr = hide specified lists from 'list' command
+
+my @params = @_;
+die "list names expected!" if !@params;
+$data{'lists_hidden'} //= {};
+
+my @matches;
+
+map { push( @matches, $_ ) if delete $data{'lists_hidden'}{$_} } @params;
+
+return <[base.log]>->( 0, "no matching list to [re]enable.." ) if !@matches;
+
+my $s = @matches > 1 ? 's:' : '';
+<[base.log]>->( 2, "enabled list$s " . join( ', ', @matches ) . ' ..' );
