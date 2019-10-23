@@ -106,7 +106,7 @@ foreach my $page_name (@page_list) {
         $icon_day   = <weather.icons>->{"${icon_num}d"};
         $icon_night = <weather.icons>->{"${icon_num}n"};
     }
-    $icon_day =~ s|^.*/|./images/|;
+    $icon_day   =~ s|^.*/|./images/|;
     $icon_night =~ s|^.*/|./images/|;
 
     $html_str =~ s|\[TEMP_MORN\]|$temps{morn}|g;
@@ -160,7 +160,7 @@ foreach my $page_name (@page_list) {
             my $index = $1 - 1;
             if ( not exists $timestamps[$index] ) {
                 <[base.log]>->(
-                    1, "'hours' forecast data with index $index does not exist!"
+                    2, "'hours' forecast data with index $index not found.."
                 );
                 $snipplet_ref
                     = <[file.slurp]>
@@ -185,7 +185,7 @@ foreach my $page_name (@page_list) {
                     . $data_ref->{'daytime'}->{'now'} };
             $icon_path = <weather.icons>->{ $hr_data_ref->{'icon'} }
                 if not defined $icon_path;
-            $icon_path =~ s|^.*/|./images/|;
+            $icon_path     =~ s|^.*/|./images/|;
             $$snipplet_ref =~ s|\[ICON\]|$icon_path|g;
 
         }
@@ -240,7 +240,7 @@ foreach my $page_name (@page_list) {
             my $index = $1 - 1;
             if ( not exists $timestamps[$index] ) {
                 <[base.log]>->(
-                    1, "'days' forecast data with index $index does not exist!"
+                    2, "'days' forecast data with index $index not found.."
                 );
                 $snipplet_ref
                     = <[file.slurp]>
@@ -265,7 +265,7 @@ foreach my $page_name (@page_list) {
                     . $data_ref->{'daytime'}->{'now'} };
             $icon_path = <weather.icons>->{ $day_data_ref->{'icon'} }
                 if not defined $icon_path;
-            $icon_path =~ s|^.*/|./images/|;
+            $icon_path     =~ s|^.*/|./images/|;
             $$snipplet_ref =~ s|\[ICON\]|$icon_path|g;
 
         }
