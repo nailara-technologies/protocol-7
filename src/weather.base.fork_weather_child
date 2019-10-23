@@ -10,8 +10,11 @@ use Socket;
 
 <[base.log]>->( 1, "forking weather child.." );
 
+<[base.enable_list]>->('sessions');
+
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [$!]";
+map { $data{'handle'}{$_}{'link'} = 'ipc/pipe' } ( $child_pipe, $parent_pipe );
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );

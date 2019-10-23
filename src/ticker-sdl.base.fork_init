@@ -2,13 +2,15 @@
 
 # name = ticker-sdl.base.fork_init
 
+use Socket qw/ AF_UNIX SOCK_STREAM PF_UNSPEC /;
+
 <[base.log]>->( 1, "forking off ticker animation loop.." );
 
-socketpair(
-    my $child_pipe,
-    my $parent_pipe,
-    AF_UNIX(), SOCK_STREAM(), PF_UNSPEC()
-) || die "can't create socketpair! [$!]";
+<[base.enable_list]>->('sessions');
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+map { $data{'handle'}{$_}{'link'} = 'ipc/pipe' } ( $child_pipe, $parent_pipe );
 
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';
