@@ -1,0 +1,13 @@
+# >:]
+
+# name  = base.hide_list
+# descr = hide specified lists from 'list' command
+
+my @params = @_;
+die "list names expected!" if !@params;
+$data{'lists_hidden'} //= {};
+
+my $s = @params > 1 ? 's:' : '';
+<[base.log]>->( 2, "disabling list$s " . join( ', ', @params ) . ' ..' );
+
+map { $data{'lists_hidden'}{$_}++ } @params;
