@@ -7,7 +7,7 @@ die "locale file '$file_path' not found!" if !-f $file_path;
 ( my $filename = $file_path ) =~ s|^.*/||;
 my $locale_data = {};
 
-<[base.log]>->( 1, ": loading locale file '$filename'.." );
+<[base.log]>->( 1, ": loading '$filename'" );
 
 my @lines;
 
@@ -29,6 +29,6 @@ map {
     }
 } @lines;
 my $s = $entries == 1 ? 'y' : 'ies';
-<[base.log]>->( 1, ": : $entries entr$s" );
+<[base.log]>->( 2, ": : $entries entr$s loaded / found" );
 
 return $locale_data;
