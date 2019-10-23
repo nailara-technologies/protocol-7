@@ -55,6 +55,19 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
+  - link
+
+      dependencies = core
+      max_concurrency = 1
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_anum:42]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - discover
 
       dependencies = core
