@@ -19,8 +19,7 @@ $c_fh = <[auth.agent.client]>->( $c_fh, $auth_name, $core_key );
 return 0 if not defined $c_fh;    # failed
 
 my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
-<[base.log]>
-    ->( 1, "auth. to core successful ( session $session_id )" );
+<[base.log]>->( 1, "auth. to core successful ( session $session_id )" );
 <root.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <root.agent.instance>->{$instance_id}->{'is_core'}  = 1;
 
