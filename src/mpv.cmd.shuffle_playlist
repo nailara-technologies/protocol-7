@@ -1,11 +1,11 @@
 # >:]
 
 # name  = mpv.cmd.shuffle_playlist
-# descr = randomize current playlist item order
+# descr = randomize the current playlist item order
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-<mpv.success_reply_str> = 'playlist randomized ..';
+<mpv.success_reply_str> = 'playlist randomized';
 
-<[mpv.send_command]>->('playlist_shuffle');
+<[mpv.send_command]>->('playlist-shuffle');
 
 return { 'mode' => 'later' };
