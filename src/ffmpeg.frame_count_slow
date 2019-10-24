@@ -1,6 +1,6 @@
 # >:]
 
-# name  = ffmpeg.frame_count
+# name  = ffmpeg.frame_count_slow
 
 my $video_path = shift;
 
@@ -10,12 +10,13 @@ die 'video file not found!' if !-f $video_path;
 
 ( my $file_name = $video_path ) =~ s|^.*/||g;
 
-<[base.log]>->( 2, "video frame count [v.con.] : '$file_name'..." );
+<[base.log]>->( 2, "video frame count [serial] : '$file_name'..." );
 
 my $ffmpeg_cmd_line
     = <ffmpeg.path.ffprobe_bin>
-    . " -v error -select_streams v:0 -show_entries stream=nb_frames"
-    . " -of default=nokey=1:noprint_wrappers=1 -- $video_path 2>/dev/null";
+    . " -v error -count_frames -select_streams v:0 -show_entries"
+    . " stream=nb_read_frames -of default=nokey=1:noprint_wrappers=1"
+    . " $video_path 2>/dev/null";
 
 chomp( my $output_str = qx($ffmpeg_cmd_line) );
 my $frame_count = $output_str =~ /^(\d+)$/m ? $1 : undef;
