@@ -130,8 +130,18 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
     };
 } else {    # remove some commands for non-core type agents
     map { <[base.disable_command]>->($_) } (
-        'session_key', 'slay',      'exit',           'clear',
-        'time',        'localtime', 'ondemand_agent', 'is-online'
+        qw/
+            clear
+            exit
+            is-online
+            last_sid
+            localtime
+            ntime
+            ondemand_agent
+            session_key
+            slay
+            time
+            /
     );
 
     <base.help.cmd.source_age.param> = "['date']";  # <- disabling second param!
