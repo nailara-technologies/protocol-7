@@ -4,9 +4,11 @@
 
 <base.session.uname_server> = '----';  # <- must _not_ be valid username syntax!
 
+my $a_name = <system.agent.name>;
+
 <callback.session.closing_last> = {
     'name' => 'base.exit',    # default.. (overwrite or delete as required)
-    'params' => [ 'no remaining sessions, shutting down..', 0 ]
+    'params' => [ "terminating '$a_name' agent ( no more sessions )", 0 ]
 };
 
 return 0;
