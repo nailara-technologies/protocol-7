@@ -10,4 +10,7 @@ $exit_msg  //= "exit($exit_code) called.";
 $log_level //= 1;
 
 <[base.log]>->( $log_level, $exit_msg );
+
+Event->unloop_all() if defined &Event::unloop_all;
+
 exit($exit_code);
