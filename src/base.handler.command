@@ -689,8 +689,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
             my $l_lvl = $target_name eq 'log' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl,
-                "[$id] cmd \"$command_str\" unroutable"
-                    . " [ no '$target_name' usr ]"
+                "[$id] cmd \"$command_str\" unroutable [offline:'$target_name']"
             );
             return 1;
         }
