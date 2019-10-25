@@ -20,7 +20,7 @@ if ( !<image2html.write_error_page> ) {
 }
 
 $fail_page_ref = <[file.slurp]>->($error_template_file);
-$$html_ref      =~ s|\[BG_COLOR\]|$img_bg_color|sg;
+$$fail_page_ref =~ s|\[BG_COLOR\]|$img_bg_color|sg;
 $$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.conversion_failed>|sg;
 
 SKIP:
