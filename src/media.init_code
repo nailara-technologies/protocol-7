@@ -6,6 +6,20 @@
 <[base.perlmod.load]>->( 'File::Copy', qw/move/ );
 <[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 
+## tracking state ##
+<media.state> //= {
+    'playlist' => { 'entries' => 0, 'last_request' => 0, 'last_success' => 0 },
+    'agents'   => {
+        'start_time'    => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+        'init_reported' => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+    },
+    'windows' => {
+        'raised' => 'none',
+        'xids'   => { 'mpv' => undef, 'browser' => undef, }
+    }
+};
+##
+
 <media.vid_frame_dir> //= '/tmp/.video_frames';
 
 $SIG{'CHLD'} = $code{'media.handler.sig_chld'};
