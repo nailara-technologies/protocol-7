@@ -16,7 +16,7 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Linux::Inotify2 \
       FreezeThaw \
       XML::RSS::TimingBot XML::RSSLite \
-      SDL Gtk2 Glib::Event \
+      SDL Glib::Event \
       CryptX \
       HTTP::Request \
       Gtk3::WebKit2 \
