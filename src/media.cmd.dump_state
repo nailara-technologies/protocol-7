@@ -1,0 +1,15 @@
+# >:]
+
+# name  = media.cmd.dump_state
+# descr = dump current agent state [new version]
+
+my $dump_key = 'media.state';
+
+return {
+    'mode' => 'raw',
+    'data' => "\n  .:[ '$dump_key' ]:.\n:`\n"
+        . join( '',
+        map {": $_\n"}
+            split( /\n/, <[base.dump_data]>->( undef, undef, $dump_key ) ) )
+        . ":.\n\n"
+};
