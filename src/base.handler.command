@@ -686,10 +686,11 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
         if ( !@send_sids ) {
             $$output .= $_cmd_id . "NAK unknown command\n";
+            my $l_lvl = $target_name eq 'log' ? 2 : 1;
             <[base.log]>->(
-                2,
-                "[$id] command '$command_str' rejected!"
-                    . " (client '$target_name' not found)"
+                $l_lvl,
+                "[$id] cmd \"$command_str\" unroutable"
+                    . " [ no '$target_name' usr ]"
             );
             return 1;
         }
@@ -711,8 +712,8 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
             $$output .= $_cmd_id . "NAK not initialized yet\n";
             <[base.log]>->(
                 0,
-                "[$id] command '$command_str' rejected!"
-                    . " ($target_name session $target_sid not initialized yet)"
+                "[$id] unroutable command \"$command_str\" "
+                    . "[ $target_name session $target_sid not initialized yet ]"
             );
         }
 
@@ -826,8 +827,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         if ( $targets_denied == @send_sids ) {    # nothing sent
             $$output .= $_cmd_id . "NAK unknown command\n";
             <[base.log]>->(
-                0,
-                "[$id] access denied! ( usr:'$usr' cmd:'$target_name.$cmd' )"
+                0, "[$id] denied access [ usr:'$usr' cmd:'$target_name.$cmd' ]"
             );
             return 1;
         }
