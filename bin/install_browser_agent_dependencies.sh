@@ -13,7 +13,7 @@ apt-get -y install pciutils cpanminus libevent-perl libproc-processtable-perl \
   libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
   libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
   libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libglib-perl \
-  libgtk3-perl libx11-protocol-perl libx11-protocol-other-perl \
+  libx11-protocol-perl libx11-protocol-other-perl \
   libx11-keyboard-perl liblinux-inotify2-perl openbox hsetroot xvfb \
   libgtk3-webkit2-perl libtest-needsdisplay-perl libcryptx-perl \
   libextutils-pkgconfig-perl libextutils-depends-perl libhttp-message-perl \

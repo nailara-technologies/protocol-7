@@ -16,7 +16,7 @@ apt-get install xvfb cpanminus libevent-perl libio-aio-perl \
   libfile-mimeinfo-perl libnet-ssh2-perl libxml-feed-perl libxml-rsslite-perl \
   libgirepository1.0-dev pkg-config libgtk-3-dev libfile-slurper-perl \
   libglib2.0-dev libglib2.0-0 gir1.2-webkit-3.0 \
-  libgtk3-perl libgtk2-perl liblinux-inotify2-perl libnet-libdnet-perl \
+  liblinux-inotify2-perl libnet-libdnet-perl \
   libclass-accessor-lite-perl libio-stringy-perl libdigest-jhash-perl \
   libimager-perl libfont-freetype-perl liblwp-useragent-determined-perl
 
