@@ -4,15 +4,24 @@
 # param = <video_path>
 # descr = return video frame count result
 
-my $video_path = shift->{'args'};
+my $video_path     = shift->{'args'};
+my $allow_slow_cmd = <ffmpeg.cfg.allow_slow_count> //= 1;
 
 return { 'mode' => 'nak', 'data' => 'expected path to video file' }
     if not defined $video_path;
 return { 'mode' => 'nak', 'data' => 'video file not found!' }
     if !-f $video_path;
 
-my $frame_count = <[ffmpeg.frame_count]>->($video_path)
-    // <[ffmpeg.frame_count_slow]>->($video_path);
+my $frame_count = <[ffmpeg.frame_count]>->($video_path);
+
+if ( not defined $frame_count and $allow_slow_cmd ) {
+    <[base.log]>->( 1, " : using slower fallback method ..." );
+    $frame_count = <[ffmpeg.frame_count_slow]>->($video_path);
+} elsif ( not defined $frame_count ) {
+    <[base.log]>->(
+        1, " : slower fallback method is disabled in agent config .. (!)"
+    );
+}
 
 return { 'mode' => 'nak', 'data' => 'unable to extract frame count!' }
     if not defined $frame_count;
