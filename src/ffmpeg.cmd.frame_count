@@ -11,7 +11,8 @@ return { 'mode' => 'nak', 'data' => 'expected path to video file' }
 return { 'mode' => 'nak', 'data' => 'video file not found!' }
     if !-f $video_path;
 
-my $frame_count = <[ffmpeg.frame_count]>->($video_path);
+my $frame_count = <[ffmpeg.frame_count]>->($video_path)
+    // <[ffmpeg.frame_count_slow]>->($video_path);
 
 return { 'mode' => 'nak', 'data' => 'unable to extract frame count!' }
     if not defined $frame_count;
