@@ -6,7 +6,7 @@
 apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter \
             compton openbox hsetroot xserver-xorg xserver-xephyr xvfb fuse3 \
             mpv ffmpeg melt expect mediainfo dbus-x11 libnotify-bin notify-osd \
-            python-pil python-pygame mupdf-tools pdftk libgtk3-perl \
+            python-pil python-pygame mupdf-tools pdftk \
             libio-socket-multicast-perl gnome-colors-common oxygen-icon-theme \
             liblwpx-paranoidagent-perl libnet-libdnet-perl libtimedate-perl \
             libc6-dev libimlib2-dev liblinux-inotify2-perl libimager-perl \
