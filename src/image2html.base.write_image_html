@@ -4,6 +4,7 @@
 
 my $path          = shift;
 my $image_file    = shift;
+my $img_bg_color  = <image2html.bg_color>;
 my $template_dir  = <system.root_path> . '/data/html/templates/image2html';
 my $html_template = "$template_dir/image.html";
 my $target_file   = "$path/image.html";
@@ -19,6 +20,7 @@ die "unable to load html template '$html_template'" if not defined $html_ref;
 
 my $img_html_str .= "<img src=\"./$image_file\">";
 
+$$html_ref =~ s|\[BG_COLOR\]|$img_bg_color|sg;
 $$html_ref =~ s|\[IMAGE_FILE\]|$img_html_str|sg;
 
 open( my $html_fh, ">$temp_file" ) or die "$temp_file: $!";
