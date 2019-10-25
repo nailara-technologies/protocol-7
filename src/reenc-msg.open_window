@@ -3,6 +3,9 @@
 # name = reenc-msg.open_window
 
 $ENV{'DISPLAY'} = <x11.display>;
+
+my $message_str = <reenc-msg.display_txt>;
+
 my ( $width, $height );
 my ( $left, $top ) = ( 0, 0 );
 if ( defined <x11.coordinates> ) {
@@ -10,7 +13,6 @@ if ( defined <x11.coordinates> ) {
     $top  = <x11.coordinates>->{'top'};
 }
 
-my $message_str = <reenc-msg.display_txt>;
 my $title_str
     = defined <system.agent.subname>
     ? $message_str . ' [' . <system.agent.subname> . ']'
@@ -18,9 +20,9 @@ my $title_str
 
 <[base.log]>->( 1, "opening message window.." );
 
-Gtk2->init;
+Gtk3->init;
 
-my $window = Gtk2::Window->new('popup');
+my $window = Gtk3::Window->new('popup');
 $window->set_title($title_str);
 $window->set_property( 'accept_focus', 0 );
 $window->set_keep_above(1);   # LLL: disable if it disturbs layer (stack) order!
@@ -30,7 +32,7 @@ $window->move( $left, $top );
 $window->set_app_paintable('TRUE');
 
 $window->signal_connect( 'delete_event', sub {exit} );
-$window->signal_connect( 'expose_event',   \&expose,         $window );
+$window->signal_connect( 'draw',           \&cairo_draw,     $window );
 $window->signal_connect( 'screen_changed', \&screen_changed, $window );
 screen_changed($window);
 
@@ -42,44 +44,39 @@ $window->show_all();
     }
 );
 
-Gtk2->main;
+Gtk3->main;
 
 exit;
 
-sub expose {
-    my ( $widget, $event ) = @_;
-    my ( $width, $height, $radius );
+sub cairo_draw {
+    my ( $widget, $context, $ref_status ) = @_;
     my $message_str = <reenc-msg.display_txt>;
 
-    my $cr = Gtk2::Gdk::Cairo::Context->create( $widget->window() );
+    $context->set_source_rgba( 1.0, 1.0, 1.0, 0.0 );
 
-    $cr->set_source_rgba( 1.0, 1.0, 1.0, 0.0 );
+    $context->set_operator('source');
+    $context->paint();
 
-    $cr->set_operator('source');
-    $cr->paint();
-
-    #    ( $width, $height ) = $widget->get_operator();
-
-    $cr->select_font_face( 'sans', 'normal', 'bold' );
-    $cr->set_font_size(23);
-    $cr->set_source_rgba( 0, 0, 0, <reenc-msg.shadow_alpha> );
-    $cr->move_to( 12, 25 );
-    my $txt = \%{ $cr->text_extents($message_str) };
-    $cr->show_text($message_str);
+    $context->select_font_face( 'sans', 'normal', 'bold' );
+    $context->set_font_size(23);
+    $context->set_source_rgba( 0, 0, 0, <reenc-msg.shadow_alpha> );
+    $context->move_to( 12, 25 );
+    my $txt = \%{ $context->text_extents($message_str) };
+    $context->show_text($message_str);
 
     $widget->resize( $txt->{'width'} + 24, $txt->{'height'} + 12 );
 
-    $cr->set_source_rgba( 0.8, 0.4, 0, <reenc-msg.text_alpha> );
-    $cr->move_to( 11, 23 );
-    $cr->show_text($message_str);
-    $cr->fill();
+    $context->set_source_rgba( 0.8, 0.4, 0, <reenc-msg.text_alpha> );
+    $context->move_to( 11, 23 );
+    $context->show_text($message_str);
+    $context->fill();
 }
 
 sub screen_changed {
     my ( $widget, $old_screen ) = @_;
 
-    my $screen   = $widget->get_screen();
-    my $colormap = $screen->get_rgba_colormap();
+    my $screen = $widget->get_screen();
+    my $visual = $screen->get_rgba_visual() // $screen->get_system_visual();
 
-    $widget->set_colormap($colormap);
+    $widget->set_visual($visual);
 }
