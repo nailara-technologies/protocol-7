@@ -7,6 +7,7 @@ my $target_html_path = shift;
 
 make_path($target_html_path) if !-d $target_html_path;
 
+my $img_bg_color        = <image2html.bg_color>;
 my $error_template_file = <image2html.fail_html>;
 my $target_file         = "$target_html_path/image.html";
 my $temp_file           = "$target_file.NEW";
@@ -19,6 +20,7 @@ if ( !<image2html.write_error_page> ) {
 }
 
 $fail_page_ref = <[file.slurp]>->($error_template_file);
+$$html_ref      =~ s|\[BG_COLOR\]|$img_bg_color|sg;
 $$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.conversion_failed>|sg;
 
 SKIP:
