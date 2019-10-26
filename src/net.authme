@@ -10,7 +10,7 @@ my $backend_socket = $_[0], $smiley = "", $answer = "";
 die "net.authme: no password supplied" if not defined $_[2];
 if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
-        <[base.log]>->( 1, '[*] protocol banner detected..' );
+        <[base.log]>->( 2, '[*] protocol banner detected..' );
     } else {
         <[base.log]>->( 0, '[#] no valid smiley found! :(' );
         return undef;
