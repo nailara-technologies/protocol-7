@@ -373,9 +373,9 @@ sub prepare_subs {
                     if (not exists $data{'base'}{'overwritten'}{$cmd_type}
                         {$cmd_name} ) {
                         if ( $sub_name ne $old_sub ) {
-                            $code{'log.ok'}->("[!] $sub_name >> $old_sub");
+                            $code{'log.debug'}->("[!] $sub_name >> $old_sub");
                         } else {
-                            $code{'log.ok'}->("[!] replacing $sub_name");
+                            $code{'log.debug'}->("[!] replacing sub $sub_name");
                         }
                         $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name} = {
                             'old' => $old_sub,
