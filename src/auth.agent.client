@@ -14,7 +14,7 @@ if ( defined $key_str
     my $smiley;
     if ( <[base.s_read]>->( $filehandle, \$smiley, 4 ) > 0 ) {
         if ( $smiley =~ />:\]\n/ ) {
-            <[base.log]>->( 1, "[*] protocol banner detected.." );
+            <[base.log]>->( 2, "[*] protocol banner detected.." );
         } else {
             <[base.log]>->(
                 0, "[#] protocol error! (no valid connection banner)"
