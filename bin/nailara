@@ -248,8 +248,11 @@ sub prepare_subs {
         my $banner = <$banner_fh>;
         close($banner_fh);
         my $n = $b = '';
-        $n = $ANSI{'normal'} and $b = $ANSI{'bold'} and $ANSI{'yelblue'} = ''
-            if $data{'system'}{'ansi_color'};
+        if ( $data{'system'}{'ansi_color'} ) {
+            $n = $ANSI{'normal'} and $b = $ANSI{'bold'};
+        } else {
+            $ANSI{'yelblue'} = '';
+        }
         map { say "$n : $b$_" } split( /\n/, $banner ), '';
         say "$n : $version_str\n :";
     };
