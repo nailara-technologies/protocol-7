@@ -427,7 +427,7 @@ sub prepare_subs {
             if ( $code{$sub_name} = eval($sub_code)
                 and ref( $code{$sub_name} ) eq 'CODE' ) {
                 delete $data{'code'}{$sub_name}{'source'};
-                $data{'code'}{$sub_name}{'status'} = 'ok';
+                $data{'code'}{$sub_name}{'status'} = 'no-err';
                 $ok_count++;
                 if (    $sub_name !~ /\.(cmd|cli)\./
                     and $sub_name =~ /\.end_code$/ ) {
@@ -461,7 +461,7 @@ sub prepare_subs {
             if ( $sub_name =~ /\.(cmd|cli)\.(.+)$/ ) { # set command desciptions
                 my $section = $1;
                 my $command = $2;
-                if ( $data{'code'}{$sub_name}{'status'} eq 'ok' ) {
+                if ( $data{'code'}{$sub_name}{'status'} eq 'no-err' ) {
                     if ( $sub_code =~ /\#\s*param\s*=\s*(.+)/ ) {
                         $data{'base'}{'help'}{$section}{$command}{'param'} = $1;
                     }
