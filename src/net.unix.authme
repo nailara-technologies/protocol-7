@@ -20,7 +20,7 @@ if (   not defined $backend_socket
 
 if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
     if ( $smiley =~ />:\]\n/ ) {
-        <[base.log]>->( 1, '[*] protocol banner detected..' );
+        <[base.log]>->( 2, '[*] protocol banner detected..' );
     } else {
         <[base.log]>->( 0, '[#] no valid smiley found! :(' );
         return undef;
@@ -29,7 +29,7 @@ if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
     <[base.sleep]>->(0.2);
     $answer = <$backend_socket>;
     if ( $answer =~ /ACK continue\n/ ) {
-        <[base.log]>->( 1, '[*] unix auth. selected' );
+        <[base.log]>->( 2, '[*] unix auth. selected' );
     } else {
         <[base.log]>->( 0, '[#] unix auth. not available!' );
         return undef;
