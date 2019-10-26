@@ -34,18 +34,16 @@ $log_msg = "call to unknown subroutine while executing '$1'!"
 
 my $agent_prefix = join( '.', ' :' . <system.node.name>, <system.agent.name> );
 
-my $log_txt;
+my $log_str;
 if ( $log_level > 0 ) {
-    $log_txt = "$agent_prefix $log_msg\n";
+    $log_str = "$agent_prefix $log_msg";
 } else {
-    $log_txt = "$agent_prefix $ANSI{bold}"
-        . "$ANSI{yelblue} $log_msg $ANSI{normal}\n";
+    $log_str = "$agent_prefix $ANSI{bold}$ANSI{yelblue} $log_msg $ANSI{normal}";
 }
 
 if ($fatal_exit) {
-    print STDERR $log_txt
-        . "$agent_prefix EMERGENCY SHUTDOWN!"
-        . " [anticipated deep recursion in log system!]\n";
+    say STDERR $log_str, "$agent_prefix << EMERGENCY SHUTDOWN >> ",
+        " [anticipated deep recursion in log system!]";
     exit 2;
 }
 
@@ -57,6 +55,6 @@ if ( $log_level <= <system.internal_verbosity> ) {
 }
 
 # print to console
-utf8::decode($log_txt) and print $log_txt
+utf8::decode($log_str) and say $log_str
     if fileno(STDOUT)
     and $log_level <= <system.verbosity>;
