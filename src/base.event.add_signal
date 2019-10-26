@@ -10,13 +10,22 @@ die "callback '$handler' does not exist!" if not defined $code{$handler};
 
 <watcher.signal> //= {};
 
-$data{'watcher'}{'signal'}->{$signal}->cancel
-    if exists $data{'watcher'}{'signal'}->{$signal};
+<watcher.signal>->{$signal}->cancel if exists <watcher.signal>->{$signal};
 
-$data{'watcher'}{'signal'}->{$signal} = Event->signal(
-    'signal' => $signal,
-    'cb'     => sub { &{ $code{$handler} } },
-    'desc'   => "signal handler [$signal]",
-    'prio'   => 0
-);
-return $data{'watcher'}{'signal'}->{$signal};
+eval {
+    <watcher.signal>->{$signal} = Event->signal(
+        'signal' => $signal,
+        'cb'     => sub { &{ $code{$handler} } },
+        'desc'   => "signal handler [$signal]",
+        'prio'   => 0
+    );
+};
+
+if ($@) {
+    delete <watcher.signal>->{$signal};
+    ( my $reason = "$@" ) =~ s| at .+$|<{C}>|;
+    warn $reason;
+    return undef;
+}
+
+return <watcher.signal>->{$signal};
