@@ -5,7 +5,7 @@
 
 <[base.log]>->( 2, ': executing agent code..' );
 
-my $ok = 1;
+my $noerr = 1;
 foreach my $code_line (@_) {
     $code_line =~ s/&cmd\.([^\(]+)/<[base.check_alias]>->($1)/eg;
     if ( $code_line ne '' ) { eval($code_line) }
@@ -18,14 +18,14 @@ foreach my $code_line (@_) {
                 <[base.log]>->(
                     0, "unknown subroutine '$sub_name' called! [ $sub_call ]"
                 );
-                $ok = 0 if $ok;
+                $noerr = 0 if $noerr;
             }
         }
-        if ($ok) {
+        if ($noerr) {
             $@ =~ s/ at .+\n//;
-            warn( "error while executing '$code_line' [$@] <{C3}>" );
+            warn("error while executing '$code_line' [$@] <{C3}>");
         }
-        $ok = 0 if $ok;
+        $noerr = 0 if $noerr;
     }
 }
-return $ok;
+return $noerr;
