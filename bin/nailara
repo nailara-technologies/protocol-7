@@ -232,32 +232,26 @@ sub prepare_subs {
 
         if (   $data{'system'}{'verbosity'}
             && $data{'system'}{'start'}{'showbanner'} ) {
-            print "..\n";
+            say '..';
             &{ $code{'base.banner'} };
         }
     };
 
     $code{'base.banner'} = sub {
-
+        my $version_str
+            = '.: PROTOCOL-SEVEN VERSION : '
+            . $data{'nailara'}{'source_version'} . ' :.';
         local $/ = undef;
         open( my $banner_fh,
             catfile( $data{'system'}{'conf_path'}, '.banner' ) )
             or return;
         my $banner = <$banner_fh>;
         close($banner_fh);
-        if ( $data{'system'}{'ansi_color'} ) {
-            chop($banner);
-            $banner =~ s/\n/$ANSI{normal}\n : $ANSI{bold}/g;
-            print " :\n : $ANSI{bold}$banner$ANSI{normal}\n";
-            my $version_str
-                = ".: PROTOCOL-SEVEN VERSION : "
-                . $data{'nailara'}{'source_version'} . ' :.';
-            printf( " :\n : %44s\n :\n", $version_str );
-        } else {
-            print ' : ' . join( "\n : ", split( /\n/, $banner ), "\n" );
-            $ANSI{'yelblue'} = '';    # no color
-        }
-
+        my $n = $b = '';
+        $n = $ANSI{'normal'} and $b = $ANSI{'bold'} and $ANSI{'yelblue'} = ''
+            if $data{'system'}{'ansi_color'};
+        map { say "$n : $b$_" } split( /\n/, $banner ), '';
+        say "$n : $version_str\n :";
     };
 
     $code{'base.load_code'} = sub {
@@ -308,11 +302,11 @@ sub prepare_subs {
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
                             |\$code{'$1'}->(|sgxo;
 
-                    # warn: this parser currently doesn't respect quoted strings
-                    #       escape like \<[sub.name]> <-- this to avoid a match!
-
-                    # note: a generic quoted string match would be :  ##########
-                    # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
+                   # warn: this parser currently doesn't respect quoted strings
+                   #       escape like \<[sub.name]> <-- this to avoid a match!
+                   #
+                   # note: a generic quoted string match would be :  ##########
+                   # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
 
                     # <[sub_name]>  -->  $code{'sub_name'}->()
                     $data{'code'}{$file_name}{'source'}
@@ -530,7 +524,7 @@ sub prepare_subs {
             open( my $_fh, ">$actual_dir/$sub_name" )
                 if !-f ">$actual_dir/$sub_name";
             if ( fileno($_fh) ) {
-                print {$_fh} $code{'base.ntime'}->(3) . "\n";
+                say {$_fh} $code{'base.ntime'}->(3);
                 close($_fh);
             }
         }
@@ -551,10 +545,8 @@ sub prepare_subs {
         $param_list =~ s|\e|\\e|g;
         $param_list =~ s|\0|\\0|g;
 
-        print ' . '
-            . $data{'system'}{'agent'}{'name'}
-            . " : $sub_name ( "
-            . $param_list . " )\n"
+        say ' . ', $data{'system'}{'agent'}{'name'},
+            " : $sub_name ( $param_list )"
             if $sub_name ne 'base.log'
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'system' )
             and $sub_name ne 'base.dump_data';    # skipping too much output...
@@ -564,10 +556,8 @@ sub prepare_subs {
             map { $code{'base.log'}->( 1, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} ) {
             map {
-                      print ' :'
-                    . $data{'system'}{'node'}{'name'} . '.'
-                    . $data{'system'}{'agent'}{'name'} . ' '
-                    . $_ . "\n"
+                say ' :', $data{'system'}{'node'}{'name'}, '.',
+                    $data{'system'}{'agent'}{'name'}, ' ', $_
             } @_;
         }
     };
@@ -576,12 +566,9 @@ sub prepare_subs {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
             map {
-                      print ' :'
-                    . $data{'system'}{'node'}{'name'} . '.'
-                    . $data{'system'}{'agent'}{'name'} . ' '
-                    . $ANSI{'bold'}
-                    . $_
-                    . $ANSI{'normal'} . "\n"
+                say ' :', $data{'system'}{'node'}{'name'}, '.',
+                    $data{'system'}{'agent'}{'name'}, ' ', $ANSI{'bold'}, $_,
+                    $ANSI{'normal'}
             } @_;
         }
     };
@@ -590,10 +577,8 @@ sub prepare_subs {
             map { $code{'base.log'}->( 2, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} > 1 ) {
             map {
-                      print ' :'
-                    . $data{'system'}{'node'}{'name'} . '.'
-                    . $data{'system'}{'agent'}{'name'} . ' '
-                    . $_ . "\n"
+                say ' :', $data{'system'}{'node'}{'name'}, '.',
+                    $data{'system'}{'agent'}{'name'}, ' ', $_
             } @_;
         }
     };
