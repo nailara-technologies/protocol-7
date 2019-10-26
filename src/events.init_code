@@ -5,6 +5,9 @@
 
 <[base.perlmod.autoload]>->('Date::Parse');
 
+my $config_name = <events.load_config> //= 'example';
+my $config_path = "events.setup.$config_name";
+
 <list.events> = {
     'var'      => 'data',
     'key'      => 'events.timetable',
@@ -39,7 +42,7 @@ if ( keys %{<events.timetable>} ) {
     return 0;
 }
 
-my $config_data = <[base.load_section_config]>->('events.setup.example');
+my $config_data = <[base.load_section_config]>->($config_path);
 
 <[base.init_modules]>->('config.json');
 
