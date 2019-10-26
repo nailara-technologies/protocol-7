@@ -36,7 +36,7 @@ $chain_code .= "\$_[0]" . $brackets;
 <[base.log]>->( 2, "chain[$id]code: '$chain_code'" );
 undef $!;
 $code{ 'filter.chain.' . $id } = eval($chain_code);
-if ( !$@ ) { $data{'code'}{'filter'}{$id}{'status'} = 'ok'; return $id }
+if ( !$@ ) { $data{'code'}{'filter'}{$id}{'status'} = 'no-err'; return $id }
 else {
     <[base.log]>->( 0, "broken chain code [$id:$@]" );
     <[filter.del_chain]>->($id);
