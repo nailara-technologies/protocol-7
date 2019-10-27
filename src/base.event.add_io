@@ -10,7 +10,6 @@ my $callback = ${ $_[0] }{'handler'};
 return undef
     if not defined $callback
     and warn "base.event.add_io: callback ['handler'] is missing <{C1}>";
-my $callback_ref = $code{$callback};
 return undef
     if not defined $code{$callback}
     and warn "base.event.add_io: callback '$callback' does not exist <{C1}>";
@@ -24,7 +23,7 @@ return Event->io(
     'timeout' => ${ $_[0] }{'timeout'} // 0,
     'hard'    => ${ $_[0] }{'hard'}    // 0,
     'timeout_cb' => sub { &{ ${ $_[0] }{'timeout_cb'} } },
-    'cb'         => sub { &{$callback_ref} },
+    'cb'         => sub { &{ $code{$callback} } },
     'fd'         => ${ $_[0] }{'fd'},
     'data'       => ${ $_[0] }{'data'}
 );
