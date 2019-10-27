@@ -37,7 +37,7 @@ if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
     <[net.out]>->( $backend_socket, "auth $user\n" );
     if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
         if ( $answer =~ /YEAH/ ) {
-            <[base.log]>->( 1, '[*] successfully authenticated :)' );
+            <[base.log]>->( 1, '[*] successfully authenticated =)' );
             return $backend_socket;
         } elsif ( $answer =~ /FAIL/ ) {
             <[base.log]>->( 0, '[#] access denied :(' );
