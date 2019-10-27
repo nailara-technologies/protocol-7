@@ -14,22 +14,27 @@ return undef
     if not defined $code{$callback}
     and warn "base.event.add_timer: callback '$callback' does not exist <{C1}>";
 
-my $callback_ref = $code{$callback};
-
 my @event_time;
 map { push( @event_time, ( $_ => ${ $_[0] }{$_} ) ) if defined ${ $_[0] }{$_} }
     ( 'at', 'after' );
 
-return Event->timer(
-    'reentrant' => ${ $_[0] }{'reentrant'} // 1,
-    'repeat'    => ${ $_[0] }{'repeat'}    // 1,
-    'prio'      => ${ $_[0] }{'prio'}      // 1,
-    'async'     => ${ $_[0] }{'async'}     // 0,
-    'desc'      => ${ $_[0] }{'desc'}      // $callback,
-    'cb'       => sub { &{$callback_ref} },
-    'time'     => ${ $_[0] }{'time'},
-    'interval' => ${ $_[0] }{'interval'},
-    'hard'     => ${ $_[0] }{'hard'},
-    'data'     => ${ $_[0] }{'data'},
-    @event_time
-);
+my $timer;
+eval {
+    $timer = Event->timer(
+        'reentrant' => ${ $_[0] }{'reentrant'} // 1,
+        'repeat'    => ${ $_[0] }{'repeat'}    // 1,
+        'prio'      => ${ $_[0] }{'prio'}      // 1,
+        'async'     => ${ $_[0] }{'async'}     // 0,
+        'desc'      => ${ $_[0] }{'desc'}      // $callback,
+        'cb'       => sub { &{ $code{$callback} } },
+        'time'     => ${ $_[0] }{'time'},
+        'interval' => ${ $_[0] }{'interval'},
+        'hard'     => ${ $_[0] }{'hard'},
+        'data'     => ${ $_[0] }{'data'},
+        @event_time
+    );
+};
+
+warn "add_timer: $@ <{C}>" if $@ or not defined $timer;
+
+return $timer;
