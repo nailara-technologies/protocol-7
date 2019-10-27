@@ -13,7 +13,7 @@ if (    @ARGV
     and qx(mediainfo --Version) =~ /^MediaInfo / ) {
     print "\n:\n";
     my $local_version = &local_version;
-    print ": mediainfo is present :) [not missing]\n:\n\n";
+    print ": mediainfo is present =) [not missing]\n:\n\n";
     exit(0);
 }
 

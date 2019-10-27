@@ -36,7 +36,7 @@ map { <media.children_ready> = 0 if <media.child>->{$_}->{'status'} ne 'ready' }
     keys %{<media.child>};
 
 if ( <media.children_ready> and $was_starting ) {
-    <[base.log]>->( 1, "agent children are now online! :)" );
+    <[base.log]>->( 1, "agent children are now online! =)" );
     <[base.x11.assign_window]>->(
         join( ',',
             map { <media.child>->{$_}->{'window_id'} } keys %{<media.child>} )
