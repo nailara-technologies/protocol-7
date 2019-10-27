@@ -25,7 +25,7 @@ my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
 
 <callback.session.closing_last> = {
     'name'   => 'agent.change_status',
-    'params' => [ $instance_id, 'failed' ]
+    'params' => [ $instance_id, 'error' ]
 };
 
 my $root_sid = <root.agent.instance>->{$instance_id}->{'root_sid'};

@@ -18,5 +18,5 @@ if ( $verification_string eq $instance->{'instance_verification'} ) {
 } else {
     <[base.log]>->( 0, "instance $instance_id verification has failed!" );
     delete $instance->{'instance_verification'};
-    <[agent.change_status]>->( $instance_id, 'failed' );
+    <[agent.change_status]>->( $instance_id, 'error' );
 }
