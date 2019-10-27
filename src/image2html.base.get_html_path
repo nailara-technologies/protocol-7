@@ -13,7 +13,7 @@ die "html_path_name: image file '$image_path' does not exist!\n"
 
 my $sha_hash
     = $image_path =~ m|^https?://|
-    ? <[digest.sha1]>->($image_path)
+    ? <[digest.sha.1]>->($image_path)
     : <[digest.sha.file_hex]>->($image_path);
 
 ( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;

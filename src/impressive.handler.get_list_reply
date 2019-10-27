@@ -12,7 +12,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 my @file_list = split( "\n", $reply->{'data'} );
-my $playlist_sha1 = <[digest.sha1]>->( join( ' ', @file_list ) );
+my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "received empty playlist!" );
