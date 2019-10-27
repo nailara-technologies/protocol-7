@@ -53,7 +53,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
                 }
             };
         }
-        my $url_hash = <[digest.sha1]>->($rss_url);
+        my $url_hash = <[digest.sha.1]>->($rss_url);
         if ( !-d $data_dir ) {
             mkdir($data_dir)
                 or die "can't create rss data dir '$data_dir'! [$!]";
@@ -90,7 +90,7 @@ my %txt_data;
 my $feed_data_count = 0;
 foreach my $index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$index};
-    my $url_hash = <[digest.sha1]>->($rss_url);
+    my $url_hash = <[digest.sha.1]>->($rss_url);
     my $url_data_file .= "$data_dir/$url_hash.txt";
 
     if ( !-f $url_data_file ) {

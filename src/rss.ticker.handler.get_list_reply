@@ -24,7 +24,7 @@ my $rss_index = 0;
 <rss.ticker.content_url> = {};
 map { <rss.ticker.content_url>->{ $rss_index++ } = $_ } @rss_urls;
 
-my $ticker_sha = <[digest.sha1]>->( join( '', map {"$_\n"} @rss_urls ) );
+my $ticker_sha = <[digest.sha.1]>->( join( '', map {"$_\n"} @rss_urls ) );
 <rss.ticker.url_hash> //= $ticker_sha;
 
 if ( $ticker_sha ne <rss.ticker.url_hash> ) {
