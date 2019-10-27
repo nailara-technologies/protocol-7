@@ -1,13 +1,14 @@
 # >:]
 
 # name  = xpointer.cmd.restore_cursor
-# descr = restore default X11 mouse cursor
+# descr = restore visible mouse pointer
+# todo  = save / restore the prevoius pointer type
 
 $ENV{'DISPLAY'} = <x11.display>;
 
 Gtk3->init;
 
-my $cursor = Gtk3::Gdk::Cursor->new('arrow');
+my $cursor = Gtk3::Gdk::Cursor->new('left_ptr');
 my $screen = Gtk3::Gdk::Screen::get_default();
 
 Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
@@ -18,4 +19,4 @@ $screen->get_root_window->set_cursor($cursor);
 
 Gtk3->main;
 
-return { 'mode' => 'ack', 'data' => 'arrow cursor has been restored' }
+return { 'mode' => 'ack', 'data' => 'pointer has been restored' }
