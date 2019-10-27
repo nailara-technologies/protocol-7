@@ -18,11 +18,14 @@ my @event_time;
 map { push( @event_time, ( $_ => ${ $_[0] }{$_} ) ) if defined ${ $_[0] }{$_} }
     ( 'at', 'after' );
 
+my $repeat
+    = ( defined ${ $_[0] }{'interval'} and ${ $_[0] }{'interval'} ) ? 1 : 0;
+
 my $timer;
 eval {
     $timer = Event->timer(
         'reentrant' => ${ $_[0] }{'reentrant'} // 1,
-        'repeat'    => ${ $_[0] }{'repeat'}    // 1,
+        'repeat'    => ${ $_[0] }{'repeat'}    // $repeat,
         'prio'      => ${ $_[0] }{'prio'}      // 1,
         'async'     => ${ $_[0] }{'async'}     // 0,
         'desc'      => ${ $_[0] }{'desc'}      // $callback,
