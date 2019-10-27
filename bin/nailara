@@ -257,6 +257,22 @@ sub prepare_subs {
         say "$n : $version_str\n :";
     };
 
+    $code{'base.purge_code'} = sub { # todo : create callback registry [to skip]
+        my $code_name   = shift;
+        my $purge_count = 0;
+        map {
+            if ( $_ !~ /\.(callback|handler)\./
+                and not exists $data{'base'}{'core_subs'}{$_} ) {
+                ++$purge_count
+                    and $data{'code'}{$_}{'status'} = 'purged'
+                    and eval { undef &{ delete $code{$_} } };
+                --$purge_count if $@;
+            }
+            }
+            grep {/^$code_name(\..+)?$/} keys %code;
+        return $purge_count;
+    };
+
     $code{'base.load_code'} = sub {
 
         my ( $codedir, $file, $code_name );
@@ -276,7 +292,13 @@ sub prepare_subs {
         my @compile_them = ();
         my @remaining    = @_;
         while ( my $code_name = shift @remaining ) {
-            $code{'log.debug'}->( "loading module '" . $code_name . "'" );
+
+            $code{'log.debug'}->("loading module '$code_name'");
+
+            if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
+                $code{'log.debug'}->(": purged $purge_count old routines ..");
+            }
+
             my $code_count      = 0;
             my $last_code_count = 0;
             if ( exists $data{'base'}{'modules'}{'internal_name'} ) {
@@ -639,6 +661,8 @@ sub prepare_subs {
             }
         }
     };
+
+    map { $data{'base'}{'core_subs'}{$_} = $code{$_} } keys %code;
 }
 
 END {

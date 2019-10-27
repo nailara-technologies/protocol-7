@@ -35,6 +35,11 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     delete $data{'base'}{'help'};
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] reloading source code!" );
+
+    <[base.log]>->( 0, "[reload] purging debug module.." )
+        if ref( $code{'debug.dump'} ) eq 'CODE';
+    <[base.purge_code]>->('debug'); # todo: create src tracking unload mechanism
+
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
     my $failed = <[base.load_modules]>->("base $data{modules}{load}");
     if ( !$failed and !<base.modules.load_errors> ) {
