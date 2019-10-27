@@ -4,7 +4,7 @@
 
 # <[base.perlmod.autoload]>->('Event'); # LLL: base.init_code
 
-$Event::DebugLevel = 0;
+$Event::DebugLevel = 1;
 $Event::DIED       = \&Event::verbose_exception_handler;
 
 # setup io handler
@@ -12,6 +12,6 @@ $Event::DIED       = \&Event::verbose_exception_handler;
 $data{'watcher_list'}{'paused'} = [];
 
 $data{'watcher'}{'io'}{'transfer'}
-    = Event->idle( cb => $code{'event.idle_restart'}, repeat => 1 );
+    = Event->idle( cb => $code{'event.callback.idle_restart'}, repeat => 1 );
 
 return 0;
