@@ -278,7 +278,6 @@ sub prepare_subs {
         my ( $codedir, $file, $code_name );
         $data{'callbacks'}{'end_code'} //= [];
         $data{'base'}{'modules'}{'load_errors'} = 0;
-
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
             $code{'log.failed'}->( ": can not open module directory"
@@ -288,15 +287,15 @@ sub prepare_subs {
         my @code_files = readdir($codedir);
         closedir($codedir);
         $| = 1;
-
         my @compile_them = ();
         my @remaining    = @_;
-        while ( my $code_name = shift @remaining ) {
+        while ( $code_name = shift @remaining ) {
 
-            $code{'log.debug'}->("loading module '$code_name'");
+            $code{'log.ok'}->("loading module '$code_name'");
 
             if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
-                $code{'log.debug'}->(": purged $purge_count old routines ..");
+                my $s = $purge_count == 1 ? '' : 's';
+                $code{'log.debug'}->(": $purge_count sub$s undefined");
             }
 
             my $code_count      = 0;
@@ -508,12 +507,12 @@ sub prepare_subs {
             if !@{ $data{'callbacks'}{'end_code'} };
         map { $data{'code'}{$_}{'status'} = 'removed' if not exists $code{$_} }
             keys %{ $data{'code'} };
-
+        my $s = $ok_count != 1 ? 's' : '';
         if ($err_count) {
             $code{'log.failed'}
-                ->(": $ok_count routines ok, $err_count broken.. `:|");
+                ->(": success on $ok_count sub$s, $err_count broken.. `:|");
         } else {
-            $code{'log.debug'}->(": $ok_count routines, no errors.. =)");
+            $code{'log.ok'}->(": $ok_count sub$s., no errors.. =)");
         }
         if ( defined $code{'base.buffer.add_line'}
             and not defined $data{'buffer'}{'system'} ) {
