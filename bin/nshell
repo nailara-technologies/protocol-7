@@ -77,6 +77,7 @@ $| = 0;
 my $term = new Term::ReadLine('nailara.shell');
 $term->ornaments('mh,me,md,me');
 $term->enableUTF8();
+$term->MinLine(undef);
 
 no warnings 'once';
 $readline::rl_completion_function = "main::rl_filename_list_lcl";
@@ -242,16 +243,21 @@ sub shell_loop {
         $SIG{$_} = sub { parent_exit( shift, $stdout_pid ) }
     } qw| TERM INT HUP |;
 
-    $connect = 0;
+    $term->add_history('');
 
+    $connect = 0;
+    my $last_line = '';
     while ( -S $sock
         and override_signals()
         and defined( my $line = $term->readline($prompt) ) ) {
         $WARNED  = 0;
         $connect = 1;
         print $color;
-
         if ( $line ne '' ) {
+
+            $term->add_history($line) if $line ne $last_line;
+            $last_line = $line;
+
             if ( $line =~ /^\. cd (.+)/ ) {
                 if ( !chdir($1) ) { print "cd: " . $! . "\n" }
             } elsif ( $line =~ /^\. (.+)$/ ) {
