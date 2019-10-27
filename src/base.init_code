@@ -160,10 +160,15 @@ map {
         if defined <base.watcher.signal>->{$_};
     my $uc_sig = uc($_);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
+
     ## initializing signal handlers ##    [ <!> potential SIGCHLD problems <!> ]
     <base.watcher.signal>->{$_} = <[event.add_signal]>
         ->( { 'signal' => $uc_sig, 'handler' => 'base.sig_' . $_ } );
-} ( 'int', 'term', 'hup', 'usr1', 'usr2', 'abrt', 'chld' );
+} ( qw-
+        int   term  hup
+        chld  abrt  trap
+        usr1  usr2  -
+);
 
 # initialize session list
 
