@@ -39,7 +39,7 @@ push(
 );
 
 my @rss_urls;
-<rss.ticker.url_hash> //= <[digest.sha1]>->('');
+<rss.ticker.url_hash> //= <[digest.sha.1]>->('');
 if ( defined <rss.ticker.content_url> ) {
     if ( ref(<rss.ticker.content_url>) ne 'HASH' ) {
         @rss_urls = (<rss.ticker.content_url>);
@@ -48,7 +48,7 @@ if ( defined <rss.ticker.content_url> ) {
             keys %{<rss.ticker.content_url>};
     }
     <rss.ticker.url_hash>
-        = <[digest.sha1]>->( join( '', map {"$_\n"} @rss_urls ) );
+        = <[digest.sha.1]>->( join( '', map {"$_\n"} @rss_urls ) );
 }
 
 0;
