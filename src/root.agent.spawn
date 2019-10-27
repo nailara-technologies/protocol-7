@@ -55,7 +55,7 @@ if ( exists $init_code->{'root-init'} ) {
         <[base.log]>->(
             0, "errors in agent '$agent_name' init-code, aborting start-up!"
         );
-        <[agent.change_status]>->( $instance_id, 'failed' );
+        <[agent.change_status]>->( $instance_id, 'error' );
         return undef;
     }
 }
@@ -84,7 +84,7 @@ if ( exists $init_result_data->{'start_mode'}
                 "exec_usr for '$agent_name' (\<x11.user>) is "
                     . "not defined - FAILED"
             );
-            <[agent.change_status]>->( $instance_id, 'failed' );
+            <[agent.change_status]>->( $instance_id, 'error' );
             return undef;
         }
     }
@@ -98,7 +98,7 @@ if ( exists $init_result_data->{'start_mode'}
         $reason = "expected 'exec_usr' for '$agent_name' to be defined"
             if defined $exec_bin and not defined $prog_usr;
         <[base.log]>->( 0, "$reason - ABORTED!" );
-        <[agent.change_status]>->( $instance_id, 'failed' );
+        <[agent.change_status]>->( $instance_id, 'error' );
         <[agent.cmd.stop]>
             ->( { 'args' => $instance_id, 'mode' => 'implicit' } );
         return undef;
@@ -107,7 +107,7 @@ if ( exists $init_result_data->{'start_mode'}
             0,
             "'$agent_name' exec_bin '$exec_bin' not a valid executable - FAILED"
         );
-        <[agent.change_status]>->( $instance_id, 'failed' );
+        <[agent.change_status]>->( $instance_id, 'error' );
         return undef;
     } else {
         my $privs = <[base.set_privs]>->( $prog_usr, 'noop' );
@@ -115,7 +115,7 @@ if ( exists $init_result_data->{'start_mode'}
             <[base.log]>->(
                 0, "exec_usr for '$agent_name' is invalid - FAILED"
             );
-            <[agent.change_status]>->( $instance_id, 'failed' );
+            <[agent.change_status]>->( $instance_id, 'error' );
             return undef;
         }
         map { $privs->{$_} =~ s|'||g } keys %{$privs};    # LLL: abort on match?
@@ -200,7 +200,7 @@ if ( not defined $pid or $@ ) {
             "unable to spawn agent '$agent_name'",
             $err_reason, " [ $err_msg ]" )
     );
-    <[agent.change_status]>->( $instance_id, 'failed' );
+    <[agent.change_status]>->( $instance_id, 'error' );
     return undef;
 }
 

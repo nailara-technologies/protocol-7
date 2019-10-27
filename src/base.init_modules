@@ -61,7 +61,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                     $success = 0;
                     <[base.log]>->(
                         0,
-                        ": unable to initialize module '$module_name'"
+                        ": module '$module_name' init not successful"
                             . " ( $init_mode != 0 )"
                     );
                 } else {
@@ -80,7 +80,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                 $success = 0;
                 <[base.log]>->(
                     0,
-                    ": initialization of '$module_name' failed"
+                    ": module '$module_name' init not successful"
                         . " ( $sub_name vanished or broken )"
                 );
             }
