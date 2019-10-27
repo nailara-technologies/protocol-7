@@ -1,18 +1,19 @@
 # >:]
 
-# name = mpv.handler.pipe.volume
+# name = mpv.handler.pipe.val_percent
 
-my $volume_str = shift // '';
-my $reply_id = shift @{<mpv.reply_ids>};
+my $value_str = shift // '';
+my $reply_id  = shift @{<mpv.reply_ids>};
 
 return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'nak', 'data' => 'no volume defined' }
-) if defined $reply_id and $volume_str !~ /\d$/;
-$volume_str = sprintf( "%.3f", $volume_str );
-$volume_str =~ s/(\.0+|%)$//g;
+    $reply_id, { 'mode' => 'nak', 'data' => 'value undefined' }
+) if defined $reply_id and $value_str !~ /\d$/;
+$value_str = sprintf( "%.3f", $value_str );
+$value_str =~ s/(\.0+|%)$//g;
 
-<mpv.current.volume> = $volume_str;
+my $what = delete <mpv.request>->{$reply_id};
+<mpv.current>->{$what} = $value_str if defined $what;
 
 <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'ack', 'data' => $volume_str . '%' }
+    $reply_id, { 'mode' => 'ack', 'data' => $value_str . '%' }
 );
