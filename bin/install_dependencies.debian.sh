@@ -16,7 +16,7 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter \
             libfile-mimeinfo-perl shared-mime-info libhttp-date-perl \
             libdigest-elf-perl
 
-
+cpanm Glib::Event
 cpanm --force XML::RSS::Timing  # <- temporary forced [date_conv test fails] <!>
 
 # optional [i.e. not on raspbian]
