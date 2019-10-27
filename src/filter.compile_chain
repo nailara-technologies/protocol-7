@@ -6,11 +6,11 @@
 my ( $chain_name, @chain_list ) = @_;
 my $warps = scalar(@chain_list);
 <[base.log]>->( 1, "compiling chain '$chain_name'" );
-my $id = <[base.gen_id]>->( \%data, $data{'system'}{'max'}{'chains'} || 512 );
-my $chain_code = "sub {return ";
+my $id = <[base.gen_id]>->( \%data, $data{'system'}{'max'}{'chains'} || 777 );
+my $chain_code = 'sub {';
 $data{$id}{'name'} = $chain_name;
 $data{$id} = join( ".", @chain_list );
-my $brackets = '}';
+my $closure = '}';
 
 foreach my $filter_id ( reverse(@chain_list) ) {
     if ( $filter_id !~ /^\d+$/ ) {
@@ -25,14 +25,15 @@ foreach my $filter_id ( reverse(@chain_list) ) {
         if ( length( $data{'filter'}{$filter_id}{'options'} ) ) {
             $options = "," . $data{'filter'}{$filter_id}{'options'};
         }
-        $brackets = $options . ")" . $brackets;
+        $closure = $options . ")" . $closure;
     } else {
         <[base.log]>->( 0, "error in filter $filter_id: handler not defined" );
         <[filter.del_chain]>->($id);
         return undef;
     }
 }
-$chain_code .= "\$_[0]" . $brackets;
+$chain_code .= '$_[0]' if length($chain_code) == 5;
+$chain_code .= $closure;
 <[base.log]>->( 2, "chain[$id]code: '$chain_code'" );
 undef $!;
 $code{ 'filter.chain.' . $id } = eval($chain_code);
