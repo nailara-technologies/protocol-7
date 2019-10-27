@@ -18,7 +18,7 @@ return <[base.log]>->(
     if not exists <root.agent.instance>
     or not exists <root.agent.instance>->{$instance_id};
 
-my $globals = <root.spawn_config.globals> || {};
+my $globals  = <root.spawn_config.globals> || {};
 my $instance = <root.agent.instance>->{$instance_id};
 
 my $old_status   = $instance->{'status'} // $status;
@@ -286,7 +286,8 @@ if ( $status eq 'shutdown'
 if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
     $instance->{'timer'}->{'reset_respawn_delay'} = <[event.add_timer]>->(
-        {   'after'   => 4.2,
+        {   'repeat'  => 0,
+            'after'   => 4.2,
             'handler' => 'root.handler.reset_respawn_delay',
             'data'    => $instance_id
         }
