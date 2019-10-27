@@ -6,7 +6,7 @@
 
 my $id  = $$call{'session_id'};
 my $arg = $$call{'args'};
-my ( $ok, $output ) = ( 0, '' );
+my ( $success, $output ) = ( 0, '' );
 my @keywords      = ( 'config', 'source', 'plugins', 'init', 'all' );
 my $keyword_match = 0;
 
@@ -24,11 +24,11 @@ if ( $arg eq 'config' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] reloading config!" );
     if (<[base.reload_config]>) {
-        $$reply{'data'} .= "reload config\t:  ok\n";
+        $$reply{'data'} .= "reload config  [ success ]\n";
     } else {
-        $$reply{'data'} .= "reload config\t:  FAIL!\n";
+        $$reply{'data'} .= "reload config  [  ERROR  ]\n";
     }
-    $ok = 1;
+    $success = 1;
 }
 if ( $arg eq 'source' or $arg eq 'all' ) {
     $keyword_match = 1;
@@ -41,12 +41,12 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     <[base.purge_code]>->('debug'); # todo: create src tracking unload mechanism
 
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
-    my $failed = <[base.load_modules]>->("base $data{modules}{load}");
-    if ( !$failed and !<base.modules.load_errors> ) {
-        $$reply{'data'} .= "reload source\t:  ok\n";
-        $ok = 1;
+    my $error = <[base.load_modules]>->("base $data{modules}{load}");
+    if ( !$error and !<base.modules.load_errors> ) {
+        $$reply{'data'} .= "reload source  [ success ]\n";
+        $success = 1;
     } else {
-        $$reply{'data'} .= "reload source\t:  FAIL!\n";
+        $$reply{'data'} .= "reload source  [  ERROR  ]\n";
     }
     my $version_file
         = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
@@ -65,27 +65,27 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] reloading plugins!" );
     if (<[base.reload_plugins]>) {
-        $$reply{'data'} .= "reload plugins\t:  ok\n";
-        $ok = 1;
+        $$reply{'data'} .= "reload plugins [ success ]\n";
+        $success = 1;
     } else {
-        $$reply{'data'} .= "reload plugins\t:  FAIL!\n";
+        $$reply{'data'} .= "reload plugins [  ERROR  ]\n";
     }
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] reinitializing modules!" );
     if ( <[base.init_modules]>->() ) {
-        $$reply{'data'} .= "reinit modules\t:  ok\n";
-        $ok = 1;
+        $$reply{'data'} .= "reinit modules [ success ]\n";
+        $success = 1;
     } else {
-        $$reply{'data'} .= "reinit modules\t:  FAIL!\n";
+        $$reply{'data'} .= "reinit modules [  ERROR  ]\n";
     }
 }
 if ( !$keyword_match ) {
     <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called!" );
     return { 'mode' => 'nak', 'data' => "unknown reload keyword '$arg'!" };
 }
-if ( !$ok ) {
-    <[base.log]>->( 0, "[$id] reloading $arg FAIL!" );
+if ( !$success ) {
+    <[base.log]>->( 0, "[$id] reloading $arg not successful `:|" );
 }
 $$reply{'mode'} = 'raw'
