@@ -193,7 +193,7 @@ $connection->{'timer'}->{'ping'} = <[event.add_timer]>->(
 return 1;
 
 failed:
-<ssh.status.connections>->{$con_id} = 'failed';
+<ssh.status.connections>->{$con_id} = 'error';
 $connection->{'retry_delay'} *= 2
     if exists $connection->{'retry_delay'};
 $connection->{'retry_delay'} //= 0.5;    # LLL: -> config!

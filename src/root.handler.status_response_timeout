@@ -16,7 +16,7 @@ my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 
 if ( !$ping_retry ) {                                        # [no more retries]
     if ($is_core_agent) {
-        if ( $agent_status eq 'failed' ) {    # was already failed
+        if ( $agent_status eq 'error' ) {    # was already unsuccessful
             <callback.session.closing_last> = {
                 'name'   => 'root.shutdown',
                 'params' => ['fatal core agent failure']
@@ -24,10 +24,10 @@ if ( !$ping_retry ) {                                        # [no more retries]
             <[base.session.check_remaining]>;
         } else {
             delete <callback.session.closing_last>;    # allow safe restart
-            <[agent.change_status]>->( $instance_id, 'failed' );
+            <[agent.change_status]>->( $instance_id, 'error' );
         }
     } else {
-        <[agent.change_status]>->( $instance_id, 'failed' );
+        <[agent.change_status]>->( $instance_id, 'error' );
     }
 } else {
 
@@ -36,7 +36,7 @@ if ( !$ping_retry ) {                                        # [no more retries]
         if defined $instance->{'timeout_timer'}
         and $instance->{'timeout_timer'}->is_active;
     $instance->{'timeout_timer'} = <[event.add_timer]>->(
-        {   'after' => $instance->{'ping'}->{'retry_timeout'} // 2,
+        {   'after'   => $instance->{'ping'}->{'retry_timeout'} // 2,
             'handler' => 'root.handler.status_response_timeout',
             'data'    => $instance_id
         }

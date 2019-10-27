@@ -68,8 +68,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         my $next_status = (
                    $old_status eq 'online'
                 or $old_status eq 'starting'
-                or $old_status eq 'failed'
-        ) ? 'failed' : 'offline';
+                or $old_status eq 'error'
+        ) ? 'error' : 'offline';
 
         $next_status = 'restart' if $old_status eq 'restart';
 

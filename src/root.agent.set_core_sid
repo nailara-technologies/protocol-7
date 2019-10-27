@@ -9,7 +9,7 @@ if ( exists $instance_data->{'core_sid'} ) {
     <[base.log]>->(
         0, "[WARNING] core sid for instance $instance_id was already set!"
     );
-    <[agent.change_status]>->( $instance_id, 'failed' ); # possibly compromised!
+    <[agent.change_status]>->( $instance_id, 'error' ); # possibly compromised!
     return;
 }
 
