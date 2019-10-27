@@ -16,7 +16,7 @@ if (    defined $instance->{'status'}
         0, "<!> restart timed out for $agent_name instance $instance_id!"
     );
 
-    <[agent.change_status]>->( $instance_id, 'failed' );
+    <[agent.change_status]>->( $instance_id, 'error' );
     delete $instance->{'restart_id'};
 
     <[root.init_respawn_timer]>->($instance_id);

@@ -103,7 +103,7 @@ if (    ( $status eq 'online' or $status eq 'extbin' )
         <[base.log]>->(
             0, "instance $instance_id : failure in post-init code!"
         );
-        $status = 'failed';
+        $status = 'error';
     }
     <[base.log]>->( 2, "cleaning up instance $instance_id init_data" );
     delete $instance->{'init_data'};
@@ -128,7 +128,7 @@ if (    $status ne 'starting'
     );
 }
 
-if ( $old_status ne 'failed' and $status eq 'failed' ) {
+if ( $old_status ne 'error' and $status eq 'error' ) {
     $instance->{'respawn_delay'}
         = sprintf( "%.2f", $instance->{'respawn_delay'} * 1.2 );
     $instance->{'respawn_delay'}
@@ -150,14 +150,14 @@ if (    $status ne 'online'
 # instance startup failure hooks
 if (    $old_status ne 'online'
     and $old_status ne 'extbin'
-    and $status eq 'failed' ) {
+    and $status eq 'error' ) {
     if ( exists $init_code->{'startup-failure'} ) {
         <[base.execute_agent_code]>
             ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
     } else {
         delete $instance->{'core_sid'};
         <[agent.change_status]>->( $instance_id, 'offline' )
-            if $old_status ne 'failed';
+            if $old_status ne 'error';
         return;
     }
 }
@@ -175,7 +175,7 @@ delete $instance->{'core_sid'} if $status eq 'restart';
 # select correct target job queue
 my $target_queue;
 $target_queue = 'running' if $status eq 'online' or $status eq 'extbin';
-$target_queue = 'failed'  if $status eq 'failed';
+$target_queue = 'error'   if $status eq 'error';
 $target_queue = 'queued'  if $status eq 'offline' or $status eq 'restart';
 
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
@@ -213,7 +213,7 @@ foreach my $name_or_id (@check_keys) {
                     }
                 );
             } @{ <root.agent.notify_online>->{$name_or_id} };
-        } elsif ( $status =~ /^(online|extbin|failed)$/
+        } elsif ( $status =~ /^(online|extbin|error)$/
             or $status eq 'offline'
             and defined $agent_config->{'respawn'}->{'disabled'}
             and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
@@ -225,7 +225,8 @@ foreach my $name_or_id (@check_keys) {
                     : 'nak';
                 my $what = $name_or_id =~ /^\d+$/ ? 'agent instance' : 'agent';
                 my $startup_reply_msg
-                    = "$what '$name_or_id' startup failed [status=$status]";
+                    = "$what '$name_or_id' startup "
+                    . "unsuccessful [status=$status]";
 
                 if ( $status eq 'online' ) {
                     $startup_reply_msg

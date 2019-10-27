@@ -29,7 +29,7 @@ if (    $response->{'cmd'} eq 'ACK'
 
 } elsif ( !$ping_retry ) {
 
-    return if $instance->{'status'} eq 'failed';
+    return if $instance->{'status'} eq 'error';
 
     <[base.log]>->(
         0, "instance $instance_id [$agent_name] ping response ( FAIL )"
@@ -38,7 +38,7 @@ if (    $response->{'cmd'} eq 'ACK'
 
     <[root.cancel_status_timer]>->($instance_id);
     $instance->{'ping'}->{'failures'} = 0;    # <- resetting fail counter
-    <[agent.change_status]>->( $instance_id, 'failed' );
+    <[agent.change_status]>->( $instance_id, 'error' );
 
 } else {
     <[base.log]>->(

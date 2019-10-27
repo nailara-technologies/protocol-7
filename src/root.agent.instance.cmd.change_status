@@ -16,7 +16,7 @@ $error_msg = 'no new status string submitted'
     if not defined $error_msg and !length($new_status);
 $error_msg = "status string '$new_status' is invalid"
     if not defined $error_msg
-    and $new_status !~ /^(online|extbin|failed|queued|depending|offline)$/;
+    and $new_status !~ /^(online|extbin|queued|depending|error|offline)$/;
 $error_msg = "instance $instance_id does not exist"
     if not defined $error_msg
     and not exists <root.agent.instance>->{$instance_id};
