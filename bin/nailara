@@ -554,9 +554,9 @@ sub prepare_subs {
         }
 
         # hiding plain text passwords in debug output (not including conf files)
-        $_p[2] = '*' x 5 if $sub_name eq 'net.authme';
-        $_p[1] = '*' x 5 if $sub_name eq 'auth.ok';
-        $_p[0] = '*' x 5 if $sub_name eq 'digest.sha1';
+        $_p[2] = '*' x 7 if $sub_name eq 'net.authme';
+        $_p[1] = '*' x 7 if $sub_name eq 'auth.ok';
+        $_p[0] = '*' x 7 if $sub_name eq 'digest.sha.1';
         $_p[1] =~ s/^(auth [^\ ]+) [^\ ]+\n$/$1 *****\n/o
             if $sub_name eq 'net.out';
 

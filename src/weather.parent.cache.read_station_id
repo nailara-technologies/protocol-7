@@ -10,7 +10,7 @@ die "expected city name parameter" if not defined $city or !length($city);
 
 <[base.log]>->( 2, "checking station id cache for '$city'.." );
 
-my $city_hash = <[digest.sha1]>->($city);
+my $city_hash = <[digest.sha.1]>->($city);
 my $file_path = "$cache_dir/$city_hash";
 
 if ( !-f $file_path ) {
