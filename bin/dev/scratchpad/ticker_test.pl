@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-#   Copyright (c) 2015 Alexander Taute <photon@nailara.net>
+#   copyright /c\ 2015,2019 \/ Alexander (Taeki) Taute <src@dev.nailara.net>
 #
 #   Permission to use, copy, modify, and/or distribute this software for any
 #   purpose with or without fee is hereby granted, provided that the above
@@ -59,23 +59,26 @@ my $border_offset = 0;
 my $steps = 1;
 
 # prepare colors to use for the ticker
-my $fg_col = SDL::Color->new( 0x00, 0x00, 0x00 );    # foreground
-my $bg_col = SDL::Color->new( 0xFF, 0xFF, 0xFF );    # background
-my $sh_col = SDL::Color->new( 0xF0, 0xF0, 0xF0 );    # text shadow
+my $fg_col = SDL::Color->new( 0x00, 0x02, 0x69 );    # foreground
+my $bg_col = SDL::Color->new( 0x00, 0x00, 0x13 );    # background
+my $sh_col = SDL::Color->new( 0x00, 0x01, 0x17 );    # text shadow
 
 # the test text ...
 my $test_text = << '__EOT__'
-        00000 0000
-        . parasites do not compute ., - HOLES IN SPACE -
-        ..parasites do not compute.., - HOLES IN SPACE -
-
-        The's'at katra k'tei i'k'therie -
-        In' k'tmneri a'nailara laikani'he.
-        The's'at katra - a'ri'nailara..,
+     . 0 000 4511 932 230769 - 040 \ 707 .,
     ^
-        Our Katra is a clear surface -
+        . parasites do not compute ., .:[ HOLES IN SPACE ]:.
+        . parasites do not compute ., .:[ HOLES IN SPACE ]:.
+
+      . The's'at katra k'tei i'k'therie -
+        In' k'tmneri a'nailara laikani'he.
+        The's'at katra - a'ri'nailara .,
+    ^
+      . Our Katra is a clear surface -
         It reflects the universe in harmony.
-        Our Katra - the universe are one..,
+        Our Katra - the universe are one .,
+    ^
+      . 0000 00000 0110 0010 .,
 __EOT__
     ;
 
