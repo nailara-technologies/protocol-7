@@ -20,7 +20,7 @@ if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
         if ( $answer =~ /YEAH/ ) {
             <[base.log]>->( 1, '[*] successfully authenticated =)' );
             return $backend_socket;
-        } elsif ( $answer =~ /FAIL/ ) {
+        } elsif ( $answer =~ /NOPE/ ) {
             <[base.log]>->( 0, '[#] access denied :(' );
             return undef;
         } else {
