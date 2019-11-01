@@ -16,7 +16,7 @@ return
     if $log_level > <system.verbosity>
     and $log_level > <system.internal_verbosity>;
 
-$log_buffer = 'system' if !length($log_buffer);
+$log_buffer = 'agent' if !length($log_buffer);
 $log_msg = '[EMPTY LOG MESSAGE]' if !length($log_msg);
 
 $log_msg =~ s/\r/\\r/g;
@@ -55,6 +55,7 @@ if ( $log_level <= <system.internal_verbosity> ) {
 }
 
 # print to console
-utf8::decode($log_str) and say $log_str
+utf8::decode($log_str)
+    and say $log_str
     if fileno(STDOUT)
     and $log_level <= <system.verbosity>;
