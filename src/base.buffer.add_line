@@ -43,9 +43,7 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
         );
     } elsif ( !$default_found ) {
         <[base.log]>->(
-            1,
-            "[!] no [default] log buffer size found,"
-                . " using $size_str for '$name'"
+            1, "no log buffer size set [using $size_str for '$name']"
         );
     } else {
         <[base.log]>->(
