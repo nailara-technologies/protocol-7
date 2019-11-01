@@ -515,10 +515,10 @@ sub prepare_subs {
             $code{'log.ok'}->(": $ok_count sub$s., no errors.. =)");
         }
         if ( defined $code{'base.buffer.add_line'}
-            and not defined $data{'buffer'}{'system'} ) {
-            $data{'buffer'}{'system'}{'max_size'} //= 131072;    # 128K
+            and not defined $data{'buffer'}{'agent'} ) {
+            $data{'buffer'}{'agent'}{'max_size'} //= 131072;    # 128K
             my $seperator_len = 18 + length( $data{'system'}{'agent'}{'name'} );
-            map { $code{'base.buffer.add_line'}->( 'system', $_ ) } (
+            map { $code{'base.buffer.add_line'}->( 'agent', $_ ) } (
                 join( ' ', $code{'base.ntime'}->(3), 1, '_' x $seperator_len ),
                 $code{'base.ntime'}->(3)
                     . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
@@ -572,7 +572,7 @@ sub prepare_subs {
         say ' . ', $data{'system'}{'agent'}{'name'},
             " : $sub_name ( $param_list )"
             if $sub_name ne 'base.log'
-            and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'system' )
+            and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'agent' )
             and $sub_name ne 'base.dump_data';    # skipping too much output...
     };
     $code{'log.ok'} = sub {
@@ -639,7 +639,7 @@ sub prepare_subs {
             $caller_str = "[ ... caller level $level too high ... ]"
                 if !length( $filename . $line );
             push( @err, $caller_str );
-            $code{'log.failed'}->( join( ' ', '[warn]', @err ) );
+            $code{'log.failed'}->( join( ' ', '[[warn]]', @err ) );
         }
     };
 
