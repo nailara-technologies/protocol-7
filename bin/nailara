@@ -635,11 +635,11 @@ sub prepare_subs {
             } @err;
             ( $package, $filename, $line, $subroutine ) = caller($level)
                 if $level;    # <- log parent caller instead ('<{C[level]}>')
-            my $caller_str = "[ $filename, line $line ]";
+            my $caller_str = "[ $filename, $line ]";
             $caller_str = "[ ... caller level $level too high ... ]"
                 if !length( $filename . $line );
             push( @err, $caller_str );
-            $code{'log.failed'}->( join( ' ', '[WARN]', @err ) );
+            $code{'log.failed'}->( join( ' ', '[warn]', @err ) );
         }
     };
 
