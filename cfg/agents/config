@@ -1,13 +1,14 @@
 
- .:[ 'config' daemon agent ]:.
+ .:[ 'config' agent ]:.
 
-buffer.system.log_cmd = log.msg
+buffer.agent.log_cmd = log.msg
 
 [load_config_file:'defaults']
 
 access.cmd.usr.core = help ping reload verify_instance list show-buffer \
                       create_profile install_profile export_config \
-                      list_exportable fetch_agent_config
+                      list_exportable fetch_agent_config \
+                      list-dependencies dump
 
 modules.load = auth net io.ip config digest.sha digest.jha
 [load_modules:<modules.load>]
