@@ -498,9 +498,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
 
                 if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'later' ) {
 
-                    <[base.log]>->(
-                        2, "setting up async reply for reply-id $reply_id"
-                    );
+                    <[base.log]>->( 2, "setting up reply for id $reply_id" );
 
                     # LLL: set up reply timeout?
                     return 0;
