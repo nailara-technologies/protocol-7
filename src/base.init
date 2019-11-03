@@ -35,7 +35,7 @@ $agent_cfg_path = "agents/<system.agent.name>"
 
 if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
     my $agent_name = <system.agent.name>;
-    local <system.agent.name> = 'fail';
+    local <system.agent.name> = 'error';    # <- changed agent name to 'error'
     return <[log.failed]>->("<<!>> no such agent ('$agent_name') <<!>>");
 }
 
