@@ -10,6 +10,11 @@ my $usr = $data{'session'}{$id}{'user'};
 my $keyword  = $$call{'args'};
 my $max_len  = 0;
 my @commands = ();
+my @dbg_cmds;
+
+<base.help.is_debug> //= {};
+map      { $_ =~ s|^debug\.cmd\.||; <base.help.is_debug>->{$_} //= 1 }
+    grep {/^debug.*\.cmd\./} keys %code;
 
 # get a list of all commands the user who sent the request has access to
 
@@ -19,9 +24,9 @@ foreach my $cmd ( sort( keys( %{<base.cmd>} ) ) ) {
         or defined <access.cmd.regex.usr>->{'*'}
         and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
 
-     #        # command description mode
-     #        return { 'mode' => 'nak', 'data' => "not implemented yet... :/" }
-     #            if defined $keyword and exists <base.cmd>->{$keyword};
+      #        # command description mode
+      #        return { 'mode' => 'nak', 'data' => "not implemented yet... :/" }
+      #            if defined $keyword and exists <base.cmd>->{$keyword};
 
         # keyword search mode
         next
@@ -30,7 +35,9 @@ foreach my $cmd ( sort( keys( %{<base.cmd>} ) ) ) {
             and <base.help.cmd>->{$cmd}->{'descr'} !~ /\Q$keyword\E/i;
 
         if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
-        push( @commands, $cmd );
+        my $is_debug_command = <base.help.is_debug>->{$cmd} //= 0;
+        if   ($is_debug_command) { push( @dbg_cmds, $cmd ) }
+        else                     { push( @commands, $cmd ) }
     }
 }
 
@@ -42,5 +49,19 @@ return {
 
 # format and return the command list
 
+$$reply{'data'} = sprintf "\n %60s\n\n",
+    '.: ' . <system.agent.name> . ' agent commands :.';
+( my $h_str, my $h_len ) = <[base.parser.help_list]>->( \@commands, 'cmd', );
+$$reply{'data'} .= $$h_str;
+if (@dbg_cmds) {
+    $$reply{'data'} .= sprintf "\n %60s\n\n",
+        sprintf( '.: debug commands (%s) :.', <system.agent.name> );
+    ( $h_str, undef )
+        = ( <[base.parser.help_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
+    $$reply{'data'} .= $$h_str;
+} else {
+    $$reply{'data'} .= sprintf "\n%33s\n", ':. debug module not loaded .:';
+}
+
+$$reply{'data'} .= "\n";
 $$reply{'mode'} = 'raw';
-$$reply{'data'} = <[base.parser.help_list]>->( \@commands );
