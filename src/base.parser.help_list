@@ -6,9 +6,9 @@
 # descr    = format command list with descriptions (help text)
 
 my $cmd_aref  = shift;
-my $section   = shift || 'cmd';    # [cmd|cli]
+my $section   = shift // 'cmd';    # [cmd|cli]
+my $max_len   = shift // 0;
 my $reply_str = '';
-my $max_len   = 0;
 my @commands;
 my %param;
 
@@ -16,9 +16,7 @@ map {
     if ( not exists $data{'base'}{$section}{$_} ) {
         my $cli = " $section";
         $cli = '' if $section eq 'cmd';
-        <[base.log]>->(
-            0, "base.parser.help_list:" . $cli . " command '$_' does not exist!"
-        );
+        warn $cli . " cmd '$_' does not exist! <{C1}>";
     } else {
         my $cmd_str = $_;
         if ( exists $data{'base'}{'help'}{$section}{$_}{'param'} ) {
@@ -48,4 +46,4 @@ foreach my $cmd (@commands) {
     $reply_str .= "$cmd " . '_' x $dots . " $cmd_descr\n";
 }
 
-return $reply_str;
+return ( \$reply_str, $max_len );
