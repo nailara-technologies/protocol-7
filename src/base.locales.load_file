@@ -9,9 +9,7 @@ my $locale_data = {};
 
 <[base.log]>->( 1, ": loading '$filename'" );
 
-my @lines;
-
-<[file.slurp]>->( $file_path, \@lines );
+<[file.slurp]>->( $file_path, \my @lines, ':raw' );    # <- file is UTF-8
 
 my $entries = 0;
 
