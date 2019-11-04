@@ -5,7 +5,7 @@
 
 .: globals :.
 
-  agents.enabled = core log config # file-daemon system ssh udev
+  agents.enabled = core log # file-daemon system ssh udev
                  # xserver openbox compton layout playlist
 
 .: agents :.
@@ -28,19 +28,6 @@
 
       : startup-failure :
         [root.shutdown:'core-agent startup failure']
-
-  - config
-
-      dependencies = core
-      max_concurrency = 1
-
-      : root-init :
-        start_mode = exec-sic
-        core.key = [base.rnd_chars_anum:42]
-        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
-
-      : agent-init :
-        [base.auth.set_agent_key:'<{core.key}>']
 
   - log
 
@@ -106,6 +93,23 @@
 
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
+
+  - config
+
+      dependencies = core
+      max_concurrency  = 1
+      spawn.on-demand  = 1
+      ping.disabled    = 1
+      respawn.disabled = 1
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_anum:42]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+        [base.agents.set_ondemand_timeout:147]
 
   - indexer
 
