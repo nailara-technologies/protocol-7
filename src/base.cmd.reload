@@ -48,9 +48,12 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     } else {
         $$reply{'data'} .= "reload source  [  ERROR  ]\n";
     }
-    my $version_file
+
+    ## source version ##
+    my $src_version_file
         = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
-    if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
+    if ( -f $src_version_file and open( my $ver_fh, '<' . $src_version_file ) )
+    {
         my $old_version = <nailara.source_version> // '';
         ( <nailara.source_version> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
@@ -59,6 +62,25 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         ) if <nailara.source_version> ne $old_version;
     } else {
         <nailara.source_version> = 'unknown';
+    }
+
+    ## release version ##
+    my $rel_version_file
+        = catfile( $data{'system'}{'conf_path'}, 'nailara.release_version' );
+    if ( -f $rel_version_file and open( my $ver_fh, '<' . $rel_version_file ) )
+    {
+        my $old_release = <nailara.release_version> // '';
+        ( <nailara.release_version> = <$ver_fh> ) =~ s|\s||g;
+        close($ver_fh);
+        <[base.log]>->(
+            0,
+            sprintf(
+                "RELEASE VERSION : %s -> %s",
+                $old_release, <nailara.release_version>
+            )
+        ) if <nailara.release_version> ne $old_release;
+    } else {
+        <nailara.release_version> = 'unknown';
     }
 }
 if ( $arg eq 'plugins' or $arg eq 'all' ) {
