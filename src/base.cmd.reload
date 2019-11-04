@@ -22,7 +22,7 @@ if ( not defined $arg ) {
 }
 if ( $arg eq 'config' or $arg eq 'all' ) {
     $keyword_match = 1;
-    <[base.log]>->( 1, "[$id] reloading config!" );
+    <[base.log]>->( 1, "[$id] < reloading config >" );
     if (<[base.reload_config]>) {
         $$reply{'data'} .= "reload config  [ success ]\n";
     } else {
@@ -34,9 +34,9 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     $keyword_match = 1;
     delete $data{'base'}{'help'};
     $data{'callbacks'}{'end_code'} = [];
-    <[base.log]>->( 1, "[$id] reloading source code!" );
+    <[base.log]>->( 1, "[$id] < reloading source code >" );
 
-    <[base.log]>->( 0, "[reload] purging debug module.." )
+    <[base.log]>->( 0, "[reload] .. removing debug module .." )
         if ref( $code{'debug.dump'} ) eq 'CODE';
     <[base.purge_code]>->('debug'); # todo: create src tracking unload mechanism
 
@@ -63,7 +63,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
 }
 if ( $arg eq 'plugins' or $arg eq 'all' ) {
     $keyword_match = 1;
-    <[base.log]>->( 1, "[$id] reloading plugins!" );
+    <[base.log]>->( 1, "[$id] < reloading plugins >" );
     if (<[base.reload_plugins]>) {
         $$reply{'data'} .= "reload plugins [ success ]\n";
         $success = 1;
@@ -73,7 +73,7 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
     $keyword_match = 1;
-    <[base.log]>->( 1, "[$id] reinitializing modules!" );
+    <[base.log]>->( 1, "[$id] < reinitializing modules >" );
     if ( <[base.init_modules]>->() ) {
         $$reply{'data'} .= "reinit modules [ success ]\n";
         $success = 1;
@@ -85,7 +85,9 @@ if ( !$keyword_match ) {
     <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called!" );
     return { 'mode' => 'nak', 'data' => "unknown reload keyword '$arg'!" };
 }
-if ( !$success ) {
+if ($success) {
+    <[base.log]>->( 1, "[$id] .. reloading complete =)" );
+} else {
     <[base.log]>->( 0, "[$id] reloading $arg not successful `:|" );
 }
 $$reply{'mode'} = 'raw'
