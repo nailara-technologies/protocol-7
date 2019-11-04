@@ -4,12 +4,13 @@
 # param = [keyword]
 # descr = print available commands/descriptions
 
-my $id  = $$call{'session_id'};
-my $usr = $data{'session'}{$id}{'user'};
+my $id      = $$call{'session_id'};
+my $usr     = $data{'session'}{$id}{'user'};
+my $keyword = $$call{'args'};
 
-my $keyword  = $$call{'args'};
-my $max_len  = 0;
-my @commands = ();
+my $agent_name = <system.agent.name>;
+my $max_len    = 0;
+my @commands   = ();
 my @dbg_cmds;
 
 <base.help.is_debug> //= {};
@@ -49,18 +50,17 @@ return {
 
 # format and return the command list
 
-$$reply{'data'} = sprintf "\n %60s\n\n",
-    '.: ' . <system.agent.name> . ' agent commands :.';
+$$reply{'data'} = sprintf( "%78s\n\n",
+    sprintf( "%-43s", ".: '$agent_name' agent commands :." ) );
 ( my $h_str, my $h_len ) = <[base.parser.help_list]>->( \@commands, 'cmd', );
 $$reply{'data'} .= $$h_str;
+
 if (@dbg_cmds) {
-    $$reply{'data'} .= sprintf "\n %60s\n\n",
-        sprintf( '.: debug commands (%s) :.', <system.agent.name> );
+    $$reply{'data'} .= sprintf( "\n %77s\n\n",
+        sprintf( "%-43s", ".: debug commands in '$agent_name' :." ) );
     ( $h_str, undef )
         = ( <[base.parser.help_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
     $$reply{'data'} .= $$h_str;
-} else {
-    $$reply{'data'} .= sprintf "\n%33s\n", ':. debug module not loaded .:';
 }
 
 $$reply{'data'} .= "\n";
