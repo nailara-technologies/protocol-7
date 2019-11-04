@@ -3,6 +3,14 @@
 # name  = core.cmd.clear_cons
 # descr = clear [STDERR] console of core agent
 
-print STDERR "\e[37m\e[40m\e[H\e[2J\n  [ " . <system.host.hostname> . " ]\n\n";
+my $host_str  = sprintf "nailara console '%s'", <system.host.hostname>;
+my $clear_msg = 'console cleared';
+if (<system.ansi_color>) {
+    printf STDERR "\e[H\e[2J\e[34m\n .:[\e[39m %s \e[34m]:.\c[[m\n\n",
+        $host_str;
+} else {
+    printf STDERR "\n .:[ %s ]:.\n\n", $host_str;
+    $clear_msg = 'wrote only hostname marker [ ansi not enabled ]';
+}
+return { 'mode' => 'ack', 'data' => $clear_msg };
 
-return { 'mode' => 'ack', 'data' => 'console cleared' }
