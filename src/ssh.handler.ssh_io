@@ -5,6 +5,9 @@
 
 my $event = shift->w;
 
+my $core_addr = <nailara.net.int.addr>;
+my $core_port = <nailara.net.int.port>;
+
 my $read_fh      = $event->fd;
 my $con_id       = $event->data->{'con_id'};
 my $ssh          = $event->data->{'ssh_obj'};
@@ -45,24 +48,22 @@ if ( !$connection->{'authorized'} ) {
         $connection->{'remote_user'} = $remote_user;
 
         # LLL: check status...
-        my $local_sock = <[base.open]>->(
-            'tcp/ip', 'out', <net.local.addr>, <net.local.port>
-        );
-        if ( not defined $local_sock or !$local_sock->connected ) {
+        my $l_sock = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
+        if ( not defined $l_sock or !$l_sock->connected ) {
             <[base.log]>->( 0, ": : tcp connection to local core failed!" );
             return <[ssh.connection.stop]>->($con_id);
         }
         my $local_user = $profile_data->{$link_name}->{'nailara.local.user'};
-        $local_sock = <[net.authme]>->(
-            $local_sock, $local_user,
+        $l_sock = <[net.authme]>->(
+            $l_sock, $local_user,
             $profile_data->{$link_name}->{'nailara.local.pass'}
         );
-        if ( not defined $local_sock or !$local_sock->connected ) {
+        if ( not defined $l_sock or !$l_sock->connected ) {
             <[base.log]>->( 0, ": : local nailara auth. failed!" );
             return <[ssh.connection.stop]>->($con_id);
         }
         $connection->{'local_user'} = $local_user;
-        $connection->{'local_fh'}   = $local_sock;
+        $connection->{'local_fh'}   = $l_sock;
         <[base.log]>->( 1, ": : local nailara auth. successful" );
         $connection->{'io'}->{'nailara'} = <[event.add_io]>->(
             {   'fd'      => $connection->{'local_fh'},

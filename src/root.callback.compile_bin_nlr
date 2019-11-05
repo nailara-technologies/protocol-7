@@ -14,7 +14,7 @@ if ( -f $bin_path and -f $sha1_file ) {
     chomp( my $src_sha1 = ${ <[file.slurp]>->($sha1_file) } // '' );
     unlink($sha1_file) if !length($src_sha1);
     if ( <[digest.sha.file_hex]>->($src_path) ne $src_sha1 ) {
-        <[base.log]>->( 0, "updating '$bin_path'.. [source has changed]" );
+        <[base.log]>->( 0, "updating '$bin_path'.. [source changed]" );
         unlink($bin_path) or die "unlink($bin_path): $!";
     }
 } elsif ( -f $bin_path ) {

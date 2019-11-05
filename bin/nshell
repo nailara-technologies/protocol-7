@@ -10,13 +10,19 @@ use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Term::ReadPassword;
 use Time::HiRes 'sleep';
+use Digest::Elf qw(elf);
 use Digest::JHash qw(jhash);
 use MIME::Base64 qw(encode_base64url);
 use POSIX::1003::Proc qw(WNOHANG waitpid);
 use POSIX::SigAction;
 use POSIX::SigSet;
 
-my $bin_path = File::Spec->rel2abs($0);
+my $bin_path = File::Spec->rel2abs( readlink($0) // $0 );
+( my $root_path = $bin_path ) =~ s/\/[^\/]+\/[^\/]+$//;
+
+my $path_digest = elf($root_path);
+my $path_offset = $path_digest ^ 105641153; # <- /usr/local/nailara [or current]
+my $nailara_port = calc_port($path_offset);
 
 ( my $hostname = qx(hostname) ) =~ s/(\..+|\n)$//g;
 
@@ -61,7 +67,7 @@ my $lines_up  = 3;
 my $link_type = defined $core_user ? 'unix' : 'tcp/ip';
 my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
-my $core_port = shift(@args) || 47;
+my $core_port = shift(@args) || $nailara_port;
 my $usock_dir = '/tmp/.n/s';
 
 my $color  = "\e[37m\e[40m";
@@ -119,6 +125,23 @@ while ($connect) {
         $lines_up = 3;
         shell_loop( $shell_sock, $prompt );
     }
+}
+
+# <system.path_digest> //= elf(<system.root_path>);
+# <system.path_offset> = <system.path_digest> ^ 105641153;   #<-/usr/local/nailara
+
+##  calculated values  :      /usr/local/nailara : ext-port = 47, int-port = 57
+##                     :  /data/projects/nailara : ext-port = 87, int-port = 737
+
+sub calc_port {
+    my $path_offset = shift;
+    my $port_start  = 57;    # <- [ details : 'net.init_code', 'net.calc_port' ]
+    my $port_end    = 1021;
+    my $port_delta = $port_end - $port_start;
+
+    my $n_port = $port_start + $path_offset % $port_delta;
+
+    return $n_port;
 }
 
 sub login_prompt {

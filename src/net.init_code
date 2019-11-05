@@ -1,0 +1,23 @@
+# >:]
+
+# name = net.init_code
+
+<[base.perlmod.load]>->( 'Digest::Elf', 'elf' );
+
+<system.path_digest> //= elf(<system.root_path>);
+<system.path_offset> = <system.path_digest> ^ 105641153;   #<-/usr/local/nailara
+
+my $port_ranges = {
+    'ext' => { 'start' => 47, 'end' => 1021 }, # <- regular external port: 47 <-
+    'int' => { 'start' => 57, 'end' => 1021 }  # <- regular internal port: 57 <-
+};
+
+# ..following values can be overridden in './cfg/defaults', './cfg/network', ...
+
+<nailara.net.ext.addr> //= '0.0.0.0';
+<nailara.net.ext.port> //= <[net.calc_port]>->( $port_ranges->{'ext'} ); #<-soon
+
+<nailara.net.int.addr> //= '127.0.0.1';
+<nailara.net.int.port> //= <[net.calc_port]>->( $port_ranges->{'int'} ); #<-core
+
+0;

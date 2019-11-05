@@ -10,8 +10,8 @@ if ( defined $key_name ) {
 } else {
     $key_name //= <crypt.C25519.base_key_name> // join( '.', $key_usr, 'base' );
 }
-my $home_dir = <[base.get_homedir]>->($key_usr);
-my $key_dir  = <crypt.C25519.key_dir> = "$home_dir/.n/user-keys";
+my $home_dir = <crypt.C25519.key_usr_home> //= <[base.get_homedir]>->($key_usr);
+my $key_dir  = <crypt.C25519.key_dir>      //= "$home_dir/.n/user-keys";
 
 my $key_basepath = "$key_dir/$key_name.C25519_b64u";
 

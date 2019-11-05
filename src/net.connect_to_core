@@ -6,8 +6,8 @@ my @connection_types = @_;
 @connection_types = ('unix') if defined <unix.path>; # overriding (in -sic mode)
 
 my $core_sock;
-my $core_addr = <net.local.addr>;
-my $core_port = <net.local.port>;
+my $core_addr = <nailara.net.int.addr>;
+my $core_port = <nailara.net.int.port>;
 my $unix_path = defined <unix.path> ? <unix.path> : undef;
 
 foreach my $c_type (@connection_types) {
@@ -25,7 +25,7 @@ foreach my $c_type (@connection_types) {
                 <unix.path> = $unix_path
                     = '/tmp/.n/s/'
                     . <[digest.jha.b64u]>
-                    ->( join( ':', <net.local.addr>, <net.local.port> ) );
+                    ->( join( ':', $core_addr, $core_port ) );
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
@@ -42,9 +42,7 @@ foreach my $c_type (@connection_types) {
             $core_sock = undef;
         }
     } elsif ( $c_type eq 'tcp/ip' ) {
-        $core_sock = <[base.open]>->(
-            'tcp/ip', 'out', <net.local.addr>, <net.local.port>
-        );
+        $core_sock = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
@@ -56,7 +54,7 @@ foreach my $c_type (@connection_types) {
             $core_sock = undef;
         }
     } elsif ( $c_type eq 'pipe' ) {
-        die "((( connection type 'pipe' hasn't been implemented yet )))";
+        die "((( connection type 'pipe' not implemented yet )))";
     } else {
         die "[!] unknown connection type '$c_type' requested...";
     }
