@@ -43,7 +43,7 @@ $view->run_javascript(
         $ex_str =~ s|^[^ ]+ ||;
 
         my $re_mode = $ex_str =~ /^[^:]*Error[^:]*:/ ? 'nak' : 'ack';
-        $re_mode = 'raw' if $ex_str =~ /\n/;
+        $re_mode = 'data' if $ex_str =~ /\n/;
         $ex_str  = '<!> "throw" already being prepended internally <!>'
             if $ex_str eq "SyntaxError: Unexpected keyword 'throw'";
 

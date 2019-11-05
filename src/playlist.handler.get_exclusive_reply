@@ -7,7 +7,7 @@ my $reply = shift;
 
 <playlist.exclusive_b8id> = {};
 
-if ( $reply->{'cmd'} eq 'RAW' and $reply->{'call_args'}->{'args'} > 0 ) {
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
     chomp( $reply->{'data'} );
     @exclusive_b8ids = split( /\n+/, $reply->{'data'} );
     map {

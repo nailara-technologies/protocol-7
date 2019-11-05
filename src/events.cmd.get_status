@@ -20,4 +20,4 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         and $current_time > <events.unix.timetable>->{$ev_id}->{'start'};
 }
 
-return { 'mode' => 'raw', 'data' => join( '', map {"$_\n"} @events_active ) }
+return { 'mode' => 'data', 'data' => join( '', map {"$_\n"} @events_active ) }
