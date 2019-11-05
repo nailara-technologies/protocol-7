@@ -9,9 +9,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-/* XXX: needs a least a timeout, cut param at endlines, read line or RAW <n> */
+/* LLL: needs at least a timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/tmp/.n/s/KvPlpg";
+char * socket_path = "/tmp/.n/s/ntHg_A"; /* ::todo:: calculate or look up.. */
 
 int main( int argc, char * argv[] ) {
     fd_set readset;
@@ -69,7 +69,8 @@ int main( int argc, char * argv[] ) {
 
     /* connect to socket */
     if (connect( socket_fd, ( struct sockaddr * ) & addr, sizeof(addr) ) == -1){
-        printf( "< connection failed > socket path '%s': %s!\n", socket_path, strerror(errno) );
+        printf( "< connection failed > socket path '%s': %s!\n",
+                socket_path, strerror(errno) );
         exit(-1);
     }
 

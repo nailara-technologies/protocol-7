@@ -4,8 +4,8 @@
 # descr = create root agent client session to local core
 
 my $instance_id = shift;
-my $core_addr   = <net.local.addr>;
-my $core_port   = <net.local.port>;
+my $core_addr   = <nailara.net.int.addr>;
+my $core_port   = <nailara.net.int.port>;
 my $init_data   = <root.agent.instance>->{$instance_id}->{'init_data'};
 my $core_key    = $init_data->{'core'}->{'key'};
 my $auth_name = <system.agent.name> eq '<stdin>' ? 'root' : <system.agent.name>;
@@ -16,10 +16,11 @@ $auth_name = <system.agent.auth_name> if exists <system.agent.auth_name>;
 my $c_fh = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
 $c_fh = <[auth.agent.client]>->( $c_fh, $auth_name, $core_key );
 
-return 0 if not defined $c_fh;    # failed
+#[error(false)]
+return 0 if not defined $c_fh;
 
 my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
-<[base.log]>->( 1, "auth. to core successful ( session $session_id )" );
+<[base.log]>->( 1, "auth. to core successful [ session $session_id ]" );
 <root.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <root.agent.instance>->{$instance_id}->{'is_core'}  = 1;
 
@@ -35,4 +36,5 @@ my $root_sid = <root.agent.instance>->{$instance_id}->{'root_sid'};
     }
 );
 
-return 1;                                 # success
+#[success]
+return 1;

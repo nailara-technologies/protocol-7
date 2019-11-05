@@ -156,20 +156,23 @@ modules.pre_load = core.config config.json
 #[load_modules:'plugin.auth'] # XXX: doesn't reload right now... fix!
 [init_modules] # XXX: fix redundant initializations: modules.pre_load
 
+# calulated network addr/port
+core.local = <nailara.net.int>
+
 # open unix domain socket
 [file.make_path:'/tmp/.n/s',0777]
-unix.path = [digest.jha.b64u:"<net.local.addr>:<net.local.port>"]
+unix.path = [digest.jha.b64u:"<core.local.addr>:<core.local.port>"]
 unix.sock = [base.open:'unix','in',"/tmp/.n/s/<unix.path>"]
 
 # open tcp/ip socket
-tcp_ip.sock = [base.open:'tcp/ip','in',<net.local.addr>,<net.local.port>]
+tcp_ip.sock = [base.open:'tcp/ip','in',<core.local.addr>,<core.local.port>]
 
 # drop root priviledges
 [set_privs:'nailara']
 
 # bind nailara protocol to socket
-[base.proto.bind:<tcp_ip.sock>,'nailara']
 [base.proto.bind:<unix.sock>,'nailara']
+[base.proto.bind:<tcp_ip.sock>,'nailara']
 
-# start event loop
+# run agent
 [event.loop]

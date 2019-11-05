@@ -13,7 +13,7 @@ if ( $user eq '' ) {
 my $homedir = [ getpwnam($user) ]->[7];
 
 if ( length($homedir) ) {
-    <[base.log]>->( 2, "[get_homedir] home directory '$homedir' selected.." );
+    <[base.log]>->( 2, "[get_homedir] '$user' -> '$homedir'" );
 } else {
     <[base.log]>->( 1, "<!> no home directory [user '$user'] <!>" );
 }
