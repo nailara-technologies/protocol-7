@@ -38,7 +38,7 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
     <[base.log]>
         ->( 0, 'base.handler.command: $reply is not a hash reference!' );
 } elsif ( not defined $$reply{'data'}
-    or $$reply{'mode'} ne 'raw' and !length( $$reply{'data'} ) ) {
+    or $$reply{'mode'} ne 'data' and !length( $$reply{'data'} ) ) {
     <[base.log]>->(
         0,
         "[$session_id] empty "
@@ -54,9 +54,9 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
 if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
     $$reply{'data'} =~ s/\n/\\n/go;
     $$output .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
-} elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
+} elsif ( uc( $$reply{'mode'} ) eq 'DATA' ) {
     my $len = length( $$reply{'data'} );
-    $$output .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
+    $$output .= $_cmd_id . 'DATA ' . $len . "\n" . $$reply{'data'};
 } elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
     <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
 }

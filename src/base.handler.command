@@ -20,7 +20,7 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 # regex cache
 my $re = $data{'regex'}{'base'};
 
-if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped RAW replies..
+if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies..
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
         <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore]bytes.." );
         if ( length($$input) >= $ignore_bytes ) {
@@ -133,9 +133,9 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n/o ) {
     return 1;
 }
 
-# incomplete RAW reply   LLL: switch to stream type transfer!!!
+# incomplete DATA reply   LLL: switch to stream type transfer!!!
 
-elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *RAW +(\d+)\n)/o
+elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *DATA +(\d+)\n)/o
     and length($$input) < ( $3 + length($1) ) ) {
 
     $_[0]->w->start;
@@ -261,7 +261,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
-if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
+if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
     if ( exists $data{'session'}{$id}
         and defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
@@ -351,7 +351,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                 }
 
                 $valid_answer = 1;
-            } elsif ( $cmd =~ /^RAW$/ ) {
+            } elsif ( $cmd =~ /^DATA$/ ) {
                 if ( $$call_args{'args'} =~ /^\d+$/ ) {
                     my $msg_len = $$call_args{'args'};
 
@@ -417,7 +417,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                     } else {    # should never reach this point
                         <[base.log]>->(
                             1,
-                            "[$id] (RAW) buffer is missing data ( $msg_len <= "
+                            "[$id] (DATA) buffer is missing data ( $msg_len <= "
                                 . $$call_args{'args'} . ")"
                         );
                     }
@@ -440,19 +440,19 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
         <[base.log]>->(
             $ignore_log_level, "[$id] $cmd-reply to unknown route id, ignored."
         );
-        if (    $cmd eq 'RAW'
+        if (    $cmd eq 'DATA'
             and $call_args->{'args'} =~ /^\d+$/
             and my $ignore_bytes = $call_args->{'args'} ) {
             if ( length($$input) >= $ignore_bytes ) {
                 substr( $$input, 0, $ignore_bytes, '' );
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : dropped next $ignore_bytes bytes too.. (RAW body)"
+                    "[$id] : dropped next $ignore_bytes bytes too.. (DATA body)"
                 );
             } else {
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : ignoring next $ignore_bytes bytes as well.. (RAW)"
+                    "[$id] : ignoring next $ignore_bytes bytes as well.. (DATA)"
                 );
                 $data{'session'}{'ignore_bytes'} -= length($$input);
                 truncate( $$input, 0 );
@@ -516,7 +516,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                         'base.handler.command: $reply is not a hash reference!'
                     );
                 } elsif (
-                    $$reply{'mode'} ne 'raw'
+                    $$reply{'mode'} ne 'data'
                     and ( not defined $$reply{'data'}
                         or !length( $$reply{'data'} ) )
                 ) {
@@ -538,10 +538,10 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|RAW|GET|STRM|TERM)$/ ) {
                         .= $_cmd_id
                         . uc( $$reply{'mode'} ) . ' '
                         . $$reply{'data'} . "\n";
-                } elsif ( uc( $$reply{'mode'} ) eq 'RAW' ) {
+                } elsif ( uc( $$reply{'mode'} ) eq 'DATA' ) {
                     my $len = length( $$reply{'data'} );
                     $$output
-                        .= $_cmd_id . 'RAW ' . $len . "\n" . $$reply{'data'};
+                        .= $_cmd_id . 'DATA ' . $len . "\n" . $$reply{'data'};
                 } elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
                     <[base.session.shutdown]>->( $id, $$reply{'data'} );
                 }

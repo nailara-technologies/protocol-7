@@ -9,10 +9,10 @@ my $agent_name = $data{'session'}{$session_id}{'user'};
 if ( not exists <media.playlist.agent>->{$agent_name} ) {
     <[base.log]>
         ->( 2, "no playlist available for agent or user '$agent_name'" );
-    return { 'mode' => 'raw', 'data' => '' };
+    return { 'mode' => 'data', 'data' => '' };
 } else {
     return {
-        'mode' => 'raw',
+        'mode' => 'data',
         'data' =>
             join( '', map {"$_\n"} @{ <media.playlist.agent>->{$agent_name} } )
     };

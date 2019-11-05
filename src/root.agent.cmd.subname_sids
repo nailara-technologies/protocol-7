@@ -24,7 +24,7 @@ foreach my $instance_id ( keys %{<root.agent.instance>} ) {
 }
 
 if (@reply_list) {
-    return { 'mode' => 'raw', 'data' => join( '', map {"$_\n"} @reply_list ) };
+    return { 'mode' => 'data', 'data' => join( '', map {"$_\n"} @reply_list ) };
 } else {
     return {
         'mode' => 'nak',
