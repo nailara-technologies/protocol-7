@@ -10,4 +10,4 @@ my $reply_str = '';
 map { $reply_str .= "$_\n" if <events.stack.overlay.visibility>->{$_} > 0 }
     sort keys %{<events.stack.overlay.visibility>};    # LLL: sort by timestamp!
 
-return { 'mode' => 'raw', 'data' => $reply_str }
+return { 'mode' => 'data', 'data' => $reply_str }

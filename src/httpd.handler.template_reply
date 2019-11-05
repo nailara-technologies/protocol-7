@@ -31,7 +31,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     $session->{'flush_shutdown'} = 1;
     return;
 
-} elsif ( $reply->{'cmd'} eq 'RAW' ) {
+} elsif ( $reply->{'cmd'} eq 'DATA' ) {
     $content_part->{'data'} = \$reply->{'data'};
 } else {
     $content_part->{'data'} = \$args_str;

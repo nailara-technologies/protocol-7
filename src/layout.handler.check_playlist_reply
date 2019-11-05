@@ -9,7 +9,7 @@ my $tile_name  = $reply->{'params'}->{'tile_name'};
 
 warn "unexpected [NAK] reply from playlist agent" if $reply->{'cmd'} eq 'NAK';
 
-if ( $reply->{'cmd'} eq 'RAW' and $reply->{'call_args'}->{'args'} == 0 ) {
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
 
     <[base.log]>->(
         0, " :  playlist for tile '$tile_name' is empty <-> skipping restart!"

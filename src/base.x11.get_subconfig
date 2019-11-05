@@ -21,7 +21,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|RAW) /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|DATA) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -29,7 +29,7 @@ while ( !$matched_reply ) {
 
 my $subcfg_data  = {};
 my $read_timeout = 2;
-if ( $reply_string =~ /^\($cmd_id\)RAW (\d+)\n$/ ) {
+if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
     my $bytes_to_go = $1;
     my $bytes_total = $bytes_to_go;
     if ( !$bytes_to_go ) {

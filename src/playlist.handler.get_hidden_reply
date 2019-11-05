@@ -5,7 +5,7 @@
 my @hidden_b8ids;
 my $reply = shift;
 
-if ( $reply->{'cmd'} eq 'RAW' and $reply->{'call_args'}->{'args'} > 0 ) {
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
     chomp( $reply->{'data'} );
     @hidden_b8ids = split( /\n+/, $reply->{'data'} );
 }

@@ -10,7 +10,7 @@ return <[base.callback.cmd_reply]>->(
     {   'mode' => 'nak',
         'data' => "unexpected answer from (missing?) xserver agent!"
     }
-) if defined $reply_id and $answer->{'cmd'} ne 'RAW';
+) if defined $reply_id and $answer->{'cmd'} ne 'DATA';
 return <[base.callback.cmd_reply]>->(
     $reply_id,
     {   'mode' => 'nak',

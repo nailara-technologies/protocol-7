@@ -16,7 +16,7 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     $cmd_reply_str .= "\n" if length($cmd_reply_str);
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'raw',
+        {   'mode' => 'data',
             'data' => $cmd_reply_str
         }
     );

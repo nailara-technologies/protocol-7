@@ -4,7 +4,7 @@
 # descr = dump agent's %ENV content
 
 return {
-    'mode' => 'raw',
+    'mode' => 'data',
     'data' => join( '',
         map { my $val = $ENV{$_}; $val =~ s|\n|\\n|g; "$_ = $val\n" }
             keys %ENV )
