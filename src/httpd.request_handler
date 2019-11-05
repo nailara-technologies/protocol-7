@@ -34,9 +34,9 @@ my $request = $session->{'http'}->{'request'};
 
 return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
 
-$session->{'http'}->{'request'}->{'raw'} = $1;
+$session->{'http'}->{'request'}->{'data'} = $1;
 
-my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'raw'} );
+my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'data'} );
 
 $h_req->decode;
 

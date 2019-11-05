@@ -74,7 +74,7 @@ if ( $$input =~ s/^(auth\.)?close\n// ) {
         <[base.log]>->( 1, "[$id] auth method list requested" );
 
         my $auth_list = <[auth.auth_list]>->($id);
-        $auth_list = 'RAW ' . length($auth_list) . "\n" . $auth_list;
+        $auth_list = 'DATA ' . length($auth_list) . "\n" . $auth_list;
         $$session{'counter'}{'auth'}{'list'}++;
         $$output .= $auth_list;
     }
