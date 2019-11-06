@@ -1,6 +1,6 @@
 # >:]
 
-# name  = notify.cmd.loves_it
+# name  = notify.cmd.loves
 # param = '<title>' '<message>'
 # descr = custom notification (using 'loves it' icon)
 
@@ -51,7 +51,7 @@ if ( defined $title or @matches ) {
     push( @msg, $body ) if defined $body;
     if (!system(
             <notify.path.notify_send>,   '-i',
-            <notify.path.loves_it_icon>, @msg
+            <notify.path.loves_icon>, @msg
         )
     ) {
         return { 'mode' => 'ack', 'data' => 'notification message sent' };
