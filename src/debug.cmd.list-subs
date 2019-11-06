@@ -1,0 +1,41 @@
+# >:]
+
+# name  = debug.cmd.list-subs
+# param = [pattern]
+# descr = return matching list of loaded nailara subs
+
+my $pattern = $$call{'args'};
+
+return {
+    'mode' => 'data',
+    'data' => "\n### list of loaded nailara subroutines ###\n\n"
+        . join( "\n", sort { length $b <=> length $a } sort keys %code )
+        . "\n\n"
+    }
+    if not defined $pattern;
+
+my $pattern_re;
+eval { $pattern_re = qr/$pattern/ };
+
+if ($@) {
+    ( my $reason = $@ ) =~ s| at .+\n$||;
+    return {
+        'mode' => 'nak',
+        'data' => "invalid regular expression /$pattern/ [ $reason ]"
+    };
+}
+
+my @sub_list
+    = sort { length $b <=> length $a } sort grep {/$pattern/} keys %code;
+
+return {
+    'mode' => 'nak',
+    'data' => "no loaded subroutines match /$pattern/"
+    }
+    if !@sub_list;
+
+return {
+    'mode' => 'data',
+    'data' => "\n# .: nailara subs matching /$pattern/ :.\n\n"
+        . join( "\n", @sub_list ) . "\n\n"
+    }
