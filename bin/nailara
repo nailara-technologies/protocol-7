@@ -260,16 +260,22 @@ sub prepare_subs {
     $code{'base.purge_code'} = sub { # todo : create callback registry [to skip]
         my $code_name   = shift;
         my $purge_count = 0;
+        my @agent_commands;
         map {
             if ( $_ !~ /\.(callback|handler)\./
                 and not exists $data{'base'}{'core_subs'}{$_} ) {
                 ++$purge_count
                     and $data{'code'}{$_}{'status'} = 'purged'
                     and eval { undef &{ delete $code{$_} } };
+                push( @agent_commands, $1 ) if $_ =~ /\.cmd\.(.+)$/;
                 --$purge_count if $@;
             }
             }
             grep {/^$code_name(\..+)?$/} keys %code;
+        map {
+            delete $data{'base'}{'cmd'}{$_};
+            delete $data{'base'}{'help'}{'cmd'}{$_};
+        } @agent_commands;
         return $purge_count;
     };
 
