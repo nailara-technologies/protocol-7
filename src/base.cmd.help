@@ -2,7 +2,7 @@
 
 # name  = base.cmd.help
 # param = [keyword]
-# descr = print available commands/descriptions
+# descr = print available commands + descriptions
 
 my $id      = $$call{'session_id'};
 my $usr     = $data{'session'}{$id}{'user'};
@@ -17,9 +17,11 @@ my @dbg_cmds;
 map      { $_ =~ s|^debug\.cmd\.||; <base.help.is_debug>->{$_} //= 1 }
     grep {/^debug.*\.cmd\./} keys %code;
 
-# get a list of all commands the user who sent the request has access to
+# getting a list of all commands the user [ who sent the request ] has access to
 
-foreach my $cmd ( sort( keys( %{<base.cmd>} ) ) ) {
+foreach
+    my $cmd ( sort { length($b) <=> length($a) } sort( keys( %{<base.cmd>} ) ) )
+{
     if ( defined <access.cmd.regex.usr>->{$usr}
         and $cmd =~ <access.cmd.regex.usr>->{$usr}
         or defined <access.cmd.regex.usr>->{'*'}
