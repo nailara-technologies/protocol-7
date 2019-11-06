@@ -5,9 +5,7 @@
 my $response    = shift;
 my $instance_id = $response->{'params'}->{'instance_id'};
 if ( not exists <root.agent.instance>->{$instance_id} ) {
-    <[base.log]>->(
-        1, "instance $instance_id is gone, skipping response timer!"
-    );
+    <[base.log]>->( 1, "instance $instance_id gone, skipping response timer" );
     return;
 }
 my $instance      = <root.agent.instance>->{$instance_id};
@@ -24,7 +22,7 @@ if (    $response->{'cmd'} eq 'ACK'
     and $response->{'call_args'}->{'args'} eq 'pong' ) {     # all fine
     delete $instance->{'ping'}->{'errors'};
     <[base.log]>->(
-        2, "instance $instance_id [$agent_name] ping response ( OK )"
+        2, "instance $instance_id [$agent_name] ping response ( success )"
     ) if !<debug.skip_root_ping>;
 
 } elsif ( !$ping_retry ) {
@@ -32,7 +30,7 @@ if (    $response->{'cmd'} eq 'ACK'
     return if $instance->{'status'} eq 'error';
 
     <[base.log]>->(
-        0, "instance $instance_id [$agent_name] ping response ( FAIL )"
+        0, "instance $instance_id [$agent_name] ping response ( error )"
     );
     delete <callback.session.closing_last> if $is_core_agent; # for safe restart
 
@@ -44,7 +42,7 @@ if (    $response->{'cmd'} eq 'ACK'
     <[base.log]>->(
         0,
         "instance $instance_id [$agent_name]"
-            . " ping response ( FAIL ) (retrying..)"
+            . " ping response ( error ) [..retrying..]"
     );
 
     # setting shorter ping timeout..

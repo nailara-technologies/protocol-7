@@ -1,7 +1,7 @@
 # >:]
 
 # name   = plugin.auth.C25519-TF
-# return = str(user name) (success), undef (failed)
+# return = str(user name) (success), undef [error]
 
 my $id = $_[0]->w->data;
 my $re = <regex.base>;
@@ -23,7 +23,7 @@ if ( $$input =~ s/^set_key ($re->{usr}) (\S+)( (\S+))?\n// ) {
 
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    <[base.log]>->( 0, "[$id] (C25519-TF) auth. protocol error!" );
+    <[base.log]>->( 0, "[$id] authentication protocol error [ C25519-TF ]" );
     return 2;                                    # <- terminate
 } else {
     return 1;                                    # <- keep state

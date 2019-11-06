@@ -167,7 +167,7 @@ while ( $max_retries-- ) {
 }
 if ( not -e $socket_path ) {
     <[base.log]>->(
-        0, "[!] mpv socket creation failed ['$socket_path' does not exist]"
+        0, "[!] mpv socket creation error ['$socket_path' does not exist]"
     );
     $abort_startup = 1;
 } else {
@@ -179,7 +179,7 @@ if ( not -e $socket_path ) {
 
 if (   !$abort_startup and not defined <mpv.socket>
     or !$abort_startup and !-S <mpv.socket> ) {
-    <[base.log]>->( 0, "[!] mpv socket creation failed [opened handle valid]" );
+    <[base.log]>->( 0, "[!] mpv socket creation error [opened handle valid]" );
     $abort_startup = 1;
 }
 
