@@ -280,7 +280,7 @@ sub prepare_subs {
         $data{'base'}{'modules'}{'load_errors'} = 0;
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
-            $code{'log.failed'}->( ": can not open module directory"
+            $code{'log.error'}->( ": can not open module directory"
                     . " '$data{'system'}{'code_path'}' [$!]" );
             return undef;
         }
@@ -346,16 +346,16 @@ sub prepare_subs {
                     $/ = "\n";
                     if (length( $data{'code'}{$file_name}{'source'} )
                         > $orig_len and $data{'system'}{'verbosity'} > 3 ) {
-                        $code{'log.failed'}->( "\n\n .: $file_name :.\n\n"
+                        $code{'log.error'}->( "\n\n .: $file_name :.\n\n"
                                 . $data{'code'}{$file_name}{'source'} );
                     }
                     push( @compile_them, $file_name );
                 } elsif ( $file_name =~ /\.orig$/ ) {
-                    $code{'log.failed'}->("[invalid/remove!] $file_name");
+                    $code{'log.error'}->("[invalid/remove!] $file_name");
                 }
             }
             if ( !$code_count ) {
-                $code{'log.failed'}
+                $code{'log.error'}
                     ->(": failed to load module '$code_name' \t[ not found ]");
                 $data{'base'}{'modules'}{'load_errors'}++;
             } elsif ( $code_count > $last_code_count ) {
@@ -413,7 +413,7 @@ sub prepare_subs {
                             $sub_name
                         );
                         $data{'base'}{'modules'}{'load_errors'}++;
-                        $code{'log.failed'}->("[!] conflict: $sub_name");
+                        $code{'log.error'}->("[!] conflict: $sub_name");
                         $sub_conflict = 1;
                     }
                 }
@@ -460,7 +460,7 @@ sub prepare_subs {
             } else {
                 $code{$sub_name} = sub {
                     {
-                        $code{'log.failed'}
+                        $code{'log.error'}
                             ->("< ! > - [ broken cmd sub '$sub_name' called ]");
                         return {
                             'mode' => 'nak',
@@ -473,7 +473,7 @@ sub prepare_subs {
                 $data{'base'}{'modules'}{'load_errors'}++;
                 my $err_str = $@;
                 $err_str =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg;
-                $code{'log.failed'}->(
+                $code{'log.error'}->(
                     '>', ".:[ $sub_name ]:.",
                     ':', ( map {": [!] $_"} split( /\n+/, $err_str ) ), '-'
                 );
@@ -497,7 +497,7 @@ sub prepare_subs {
                     }
                 } else {
                     $data{'base'}{'modules'}{'load_errors'}++;
-                    $code{'log.failed'}->("!> broken command : $2");
+                    $code{'log.error'}->("!> broken command : $2");
                     $data{'base'}{'help'}{$section}{$command}{'descr'}
                         = '! command broken !';
                 }
@@ -509,7 +509,7 @@ sub prepare_subs {
             keys %{ $data{'code'} };
         my $s = $ok_count != 1 ? 's' : '';
         if ($err_count) {
-            $code{'log.failed'}
+            $code{'log.error'}
                 ->(": success on $ok_count sub$s, $err_count broken.. `:|");
         } else {
             $code{'log.ok'}->(": $ok_count sub$s., no errors.. =)");
@@ -585,7 +585,7 @@ sub prepare_subs {
             } @_;
         }
     };
-    $code{'log.failed'} = sub {
+    $code{'log.error'} = sub {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
@@ -617,7 +617,7 @@ sub prepare_subs {
                 no warnings 'recursion';    # no followups!
                 my $msg = join( ' ', '((FATAL))', @err );
                 undef $code{'base.log'} if $err[0] =~ /$0|nailara/;
-                $code{'log.failed'}->($msg);
+                $code{'log.error'}->($msg);
                 exit(2);
             }
             my ( $package, $filename, $line, $subroutine ) = caller;
@@ -639,7 +639,7 @@ sub prepare_subs {
             $caller_str = "[ ... caller level $level too high ... ]"
                 if !length( $filename . $line );
             push( @err, $caller_str );
-            $code{'log.failed'}->( join( ' ', '[[warn]]', @err ) );
+            $code{'log.error'}->( join( ' ', '[[warn]]', @err ) );
         }
     };
 
