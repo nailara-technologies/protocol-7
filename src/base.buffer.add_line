@@ -26,16 +26,16 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
     my $default_found = exists <default.max_size>
         and exists <default.max_size.log_buffers> ? 1 : 0;
     $default_size = <default.max_size.log_buffers> if $default_found;
-    my $min_size_failure = 0;
+    my $min_size_error = 0;
     if ( defined $buffer_size and $buffer_size < $min_bufsize ) {
-        $default_size     = $min_bufsize;
-        $min_size_failure = 1;
+        $default_size   = $min_bufsize;
+        $min_size_error = 1;
     }
     my $size_str = $default_size;
     if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
     $buffer_size = $data{'buffer'}{$name}{'max_size'}
         = $default_size;
-    if ($min_size_failure) {
+    if ($min_size_error) {
         <[base.log]>->(
             0,
             "[!] log buffer size too small,"

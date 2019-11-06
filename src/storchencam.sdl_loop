@@ -132,7 +132,7 @@ SDL::Video::flip($screen);
 
 my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
 if ( not defined <[base.x11.wait_for_window]>->($title_pattern) ) {
-    <[base.log]>->( 0, "agent startup failure (sdl window did not open)" );
+    <[base.log]>->( 0, "agent startup error (sdl window did not open)" );
     exit(2);
 } else {
     <[base.x11.assign_window]>;
