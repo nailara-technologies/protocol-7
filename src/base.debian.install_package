@@ -3,7 +3,7 @@
 # name = base.debian.install_package
 
 my @deb_list = @_;
-my $failures = 0;
+my $errors   = 0;
 my $max_fail = 5;
 
 return 0 if !@deb_list;
@@ -38,9 +38,9 @@ while ( !$ok and $max_fail-- ) {
         <[base.log]>->( 1, ":. successfully installed." );
         $ok = 1;
     } else {
-        $failures++;
+        $errors++;
         <[base.log]>->( 1, ": retrying automatic installation ..." );
     }
 
 }
-return $failures;
+return $errors;

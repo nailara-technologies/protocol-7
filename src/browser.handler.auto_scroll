@@ -70,14 +70,14 @@ if ( delete <window.scroll.stop> ) {
     if (    <browser.cfg.javascript_enabled>
         and !<browser.scroll.fail.js_disabled>
         and <window.scroll.pos> < <window.scroll.last_pos> )
-    {    # scroll failure? (might be caused by javascript intervention)
+    {    # scroll error? (might be caused by javascript intervention)
         <window.scroll.fail_start> //= <[base.time]>->(2);
         if ( <[base.time]>->(2) - <window.scroll.fail_start>
             >= <browser.scroll.fail.timeout> ) {
-            warn "autoscroll failure! behaviour change required.."
+            warn "autoscroll error, behaviour change required.."
 
                 # <[base.log]>->(
-                #     0, "autoscroll failure! stopping javascript execution.."
+                #     0, "autoscroll error, stopping javascript execution.."
                 # );
                 # my $settings = $view->get_settings;
                 # $settings->set_enable_javascript(0);
