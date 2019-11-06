@@ -44,9 +44,9 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
 
     if ($auth_ok) {
         $$output .= "YEAH >:P\n";
-        my $s_usr = $client_uname ne $auth_user ? " [$client_uname]" : '';
+        my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
         <[base.log]>->(
-            1, "[$id] auth ok, access granted < user '$auth_user' >" . $s_usr
+            1, "[$id] session authorized as '$auth_user'" . $s_usr
         );
         return ( 0, $auth_user );
     } else {

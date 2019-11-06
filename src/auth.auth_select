@@ -15,7 +15,7 @@ foreach my $available ( split( /\n/, <[auth.auth_list]>->($id) ) ) {
 if ($ok) {
     $data{'session'}{$id}{'auth'}{'method'} = $method;
     <[net.out]>->( $data{'session'}{$id}{'handle'}, "ACK continue\n" );
-    <[base.log]>->( 1, "[$id] selected auth method '$method'" );
+    <[base.log]>->( 1, "[$id] selected auth method '$method'.." );
     return 1;
 } else {
     <[net.out]>->(

@@ -41,19 +41,19 @@ if ( defined $key_str
     $answer = readline($filehandle);
 
     if ( not defined $answer ) {
-        <[base.log]>->( 0, "[X] connection lost :/" );
+        <[base.log]>->( 0, "[X] connection lost `:|" );
         return undef;
     } elsif ( $answer =~ /^YEAH / ) {
-        <[base.log]>->( 1, "[*] success! =), remote end authorized session." );
+        <[base.log]>->( 1, "[*] success., =), core authorized session." );
         return $filehandle;
     } elsif ( $answer =~ /^NOPE / ) {
-        <[base.log]>->( 0, "[#] access denied :(" );
+        <[base.log]>->( 0, "[#] access denied >:|" );
         return undef;
     } elsif ( $answer =~ /^>:\|$/ ) {
-        <[base.log]>->( 0, "[#] auth. timeout :|" );
+        <[base.log]>->( 0, "[#] authentication timeout :|" );
         return undef;
     } else {
-        <[base.log]>->( 0, "[#] protocol error :(" );
+        <[base.log]>->( 0, "[#] protocol error >:[" );
         return undef;
     }
 

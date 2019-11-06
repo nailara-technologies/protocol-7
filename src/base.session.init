@@ -127,7 +127,7 @@ if ( $mode eq 'server' ) {
         # set up auth. (input) timeout for nailara protocol sessions
         'timeout'    => <net.auth.timeout> || 13,
         'timeout_cb' => sub {
-            <[base.log]>->( 1, "[$id] auth. timeout!" );
+            <[base.log]>->( 1, "[$id] authentication timeout.." );
             $data{'session'}{$id}{'buffer'}{'output'} .= ">:|\n";
             $data{'session'}{$id}{'shutdown'} = 1;
         }
