@@ -43,7 +43,7 @@ if ( !$connection->{'authorized'} ) {
     } elsif ( $connection->{'buffer'} =~ s/^YEAH >:P\n// ) {
         $connection->{'authorized'} = 1;
         <[base.log]>->(
-            1, ": : remote nailara auth. successful [$remote_user]"
+            1, ": : successful remote end nailara auth. [$remote_user]"
         );
         $connection->{'remote_user'} = $remote_user;
 
@@ -79,20 +79,20 @@ if ( !$connection->{'authorized'} ) {
         $connection->{'linked'} = 1;
 
     } elsif ( $connection->{'buffer'} =~ s/^NOPE >:\|\n// ) {
-        <[base.log]>->( 0, ": : remote nailara auth. failed!" );
+        <[base.log]>->( 0, ": : remote end nailara auth. was not successful" );
         <[ssh.connection.stop]>->($con_id);
     } elsif ( $connection->{'buffer'} =~ s/^>:\|\n// ) {
-        <[base.log]>->( 0, ": : remote nailara auth. timeout!" );
+        <[base.log]>->( 0, ": : nailara authentication timeout on remote end" );
         <[ssh.connection.stop]>->($con_id);
     } else {
-        <[base.log]>->( 0, ": : protocol error during remote nailara auth.!" );
+        <[base.log]>->( 0, ": : protocol error on remote end nailara auth.!" );
         <[ssh.connection.stop]>->($con_id);
     }
 } else {
     if (   !$connection->{'linked'}
         and $connection->{'buffer'} =~ s/^\((\d+)\).+\n// ) {
         my $cmd_id = $1;
-        $channel->write("($cmd_id)NAK link not initialized yet!\n");
+        $channel->write("($cmd_id)NAK link not initialized yet..\n");
     } else {
         my $blen  = length( $connection->{'buffer'} );
         my $bytes = <[base.s_write]>->(
@@ -101,7 +101,7 @@ if ( !$connection->{'authorized'} ) {
         );
         if ( not defined $bytes ) {
             <[base.log]>->(
-                0, "local nailara link filehandle closed! connection shutdown.."
+                0, "local nailara link filehandle closed, connection shutdown.."
             );
             <[ssh.connection.stop]>->($con_id);
         } else {
