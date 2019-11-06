@@ -185,7 +185,8 @@ sub shell_connect {
 
     binmode( $sock, ':encoding(UTF-8)' );
 
-    die " [!] connection failed [protocol error]\n" if <$sock> !~ />:\]/;
+    die " [!] connection not successful [ protocol error ]\n"
+        if <$sock> !~ />:\]/;
     return $sock;
 }
 
@@ -199,7 +200,7 @@ sub shell_auth {
         print " :: authentication successful ::\n";
         return $fh;
     } elsif ( $answer =~ /NOPE >:\|/ ) {
-        die " :: authentication failed ::\n\n";
+        die " :: authentication not successful ::\n\n";
     } elsif ( $answer =~ />:\|/ ) {
         print " :: authentication timeout ::\n";
         return 0;
@@ -224,7 +225,7 @@ sub unix_auth {
         print " :: authentication successful ::\n";
         return $fh;
     } elsif ( $answer =~ /NOPE >:\|/ ) {
-        die " :: authentication failed ::\n\n";
+        die " :: authentication not successful ::\n\n";
     } elsif ( $answer =~ />:\|/ ) {
         print " :: authentication timeout ::\n";
         return 0;
