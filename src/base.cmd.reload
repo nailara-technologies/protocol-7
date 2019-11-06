@@ -4,10 +4,13 @@
 # param = [keyword]
 # descr = reload modules and/or configuration
 
-my $id  = $$call{'session_id'};
+my @keywords = qw|  config  source  plugins  init  all  |;
+
 my $arg = $$call{'args'};
+my $id  = $$call{'session_id'};
+
 my ( $success, $output ) = ( 0, '' );
-my @keywords      = ( 'config', 'source', 'plugins', 'init', 'all' );
+<base.reload.unload_debog_mod> //= 1;    # <- overridden in ./cfg/defaults
 my $keyword_match = 0;
 
 $$reply{'data'} = '';
@@ -36,9 +39,13 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] < reloading source code >" );
 
-    <[base.log]>->( 0, "[reload] .. removing debug module .." )
-        if ref( $code{'debug.dump'} ) eq 'CODE';
-    <[base.purge_code]>->('debug'); # todo: create src tracking unload mechanism
+    if (<base.reload.unload_debog_mod>) {
+        <[base.log]>->( 0, "[reload] .. removing debug module .." )
+            if ref( $code{'debug.dump'} ) eq 'CODE';
+
+        # todo: create src tracking unload mechanism
+        <[base.purge_code]>->('debug');
+    }
 
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
     my $error = <[base.load_modules]>->("base $data{modules}{load}");

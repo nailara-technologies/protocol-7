@@ -39,7 +39,7 @@ foreach my $cmd (@commands) {
         }
         $cmd_descr = 'n/a' if not defined $cmd_descr or $cmd_descr eq '';
     } else {
-        $cmd_descr = "WARNING: this command is broken!!";
+        $cmd_descr = "<!> broken command <!> [ '$cmd' ]";
     }
     $cmd .= ' ' . $param{$cmd} if exists $param{$cmd};
     my $dots = $max_len - length($cmd);

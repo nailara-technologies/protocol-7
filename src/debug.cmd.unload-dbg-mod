@@ -1,0 +1,18 @@
+# >:]
+
+# name  = debug.cmd.unload-dbg-mod
+# descr = remove all loaded debug subroutines
+
+my $id = $$call{'session_id'};
+
+return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
+    if ref( $code{'debug.dump'} ) ne 'CODE';
+
+<[base.log]>->( 0, "[$id] unloading debug source code ..," );
+
+<[base.purge_code]>->('debug');
+
+return { 'mode' => 'ack', 'data' => 'debug module removed from memory' }
+    if ref( $code{'debug.dump'} ) ne 'CODE';
+
+return { 'mode' => 'nak', 'data' => 'can not remove debug module' }

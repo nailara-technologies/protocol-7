@@ -4,11 +4,9 @@
 # descr = load debug module in running agent
 
 if ( ref( $code{'debug.dump'} ) eq 'CODE' ) {
-    <[base.log]>->(
-        0, "[SIGTRAP] 'debug' module already present.. [ ignoring ]"
-    );
+    <[base.log]>->( 1, "[SIGTRAP] 'debug' routines already present" );
 } else {
-    <[base.log]>->( 0, "[SIGTRAP] loading 'debug' module ..." );
+    <[base.log]>->( 0, "[SIGTRAP] loading 'debug' source code ..," );
 
     <[base.load_modules]>->('debug');
     <[base.init_modules]>->('debug');
