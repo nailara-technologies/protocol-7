@@ -62,16 +62,16 @@ my $sock = IO::Socket::INET->new(
 );
 
 if ( not $sock ) {
-    <[base.log]>->( 0, ": : tcp connection failed [$!]" );
-    goto failed;
+    <[base.log]>->( 0, ": : tcp connection error [$!]" );
+    goto error;
 }
 
 $sock->sockopt( SO_LINGER(), pack( 'SS', 0, 0 ) );
 
 if ( !$ssh->connect($sock) ) {
-    <[base.log]>->( 0, ": : ssh connection failed [$!]" );
+    <[base.log]>->( 0, ": : ssh connection error [$!]" );
     $sock->shutdown('NOW') if $sock->connected;
-    goto failed;
+    goto error;
 }
 
 <[base.log]>->( 2, ": : ssh connection established.." );
@@ -88,7 +88,7 @@ if ( $host_key ne $configured_hostkey ) {
     <[base.log]>->( 0, ": : <!> SSH HOSTKEY [$host_key] IS INVALID!" );
     $ssh->disconnect;
     $sock->shutdown('NOW');
-    goto failed;
+    goto error;
 } else {
     my $hk_str = $host_key;
     substr( $hk_str, 10, 35, '...' );
@@ -107,7 +107,7 @@ if ( not exists $auth_methods{'publickey'} ) {
     );
     $ssh->disconnect;
     $sock->shutdown('NOW');
-    goto failed;
+    goto error;
 } else {
     <[base.log]>->( 2, ": : public key auth. is available.." );
 }
@@ -120,20 +120,20 @@ foreach my $key_type ( 'private', 'public' ) {
     my $key_file = $key_type eq 'private' ? $ssh_privkey : $ssh_pubkey;
     if ( !open( my $test_fh, '<' . $key_file ) ) {
         <[base.log]>->(
-            0, ": : SSH AUTH FAILURE [ unable to open $key_type key: $! ]"
+            0, ": : SSH AUTH ERROR [ unable to open $key_type key: $! ]"
         );
         $ssh->disconnect;
         $sock->shutdown('NOW');
-        goto failed;
+        goto error;
     }
 }
 
 if ( !$ssh->auth_publickey( $ssh_user, $ssh_pubkey, $ssh_privkey ) ) {
     my ( $err_code, $err_name, $err_str ) = $ssh->error;
-    <[base.log]>->( 0, ": : SSH AUTH FAILURE [ $err_str! ]" );
+    <[base.log]>->( 0, ": : SSH AUTH ERROR [ $err_str! ]" );
     $ssh->disconnect;
     $sock->shutdown('NOW');
-    goto failed;
+    goto error;
 }
 <[base.log]>->( 1, ": : ssh auth. successful.." );
 
@@ -142,10 +142,10 @@ my $nailara_port = $link_setup->{'nailara.remote.port'};
 
 my $channel = $ssh->tcpip( $nailara_addr, $nailara_port );
 if ( not defined $channel ) {
-    <[base.log]>->( 0, ": : remote nailara connection failed [$!]" );
+    <[base.log]>->( 0, ": : remote nailara connection error [$!]" );
     $ssh->disconnect;
     $sock->shutdown('NOW');
-    goto failed;
+    goto error;
 }
 $channel->blocking(0);
 
@@ -191,7 +191,7 @@ $connection->{'timer'}->{'ping'} = <[event.add_timer]>->(
 
 return 1;
 
-failed:
+error:
 <ssh.status.connections>->{$con_id} = 'error';
 $connection->{'retry_delay'} *= 2
     if exists $connection->{'retry_delay'};

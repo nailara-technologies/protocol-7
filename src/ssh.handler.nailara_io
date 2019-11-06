@@ -23,7 +23,7 @@ if ( not defined $bytes or !$bytes ) {
 } else {
     my $bytes = $channel->write($buffer);
     if ( not defined $bytes ) {
-        <[base.log]>->( 0, "<!> [nailara_io] WRITE FAILED!" );
+        <[base.log]>->( 0, "<!> [nailara_io] WRITE ERROR" );
         <[ssh.connection.stop]>->($con_id);
     }
 }

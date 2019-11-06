@@ -62,7 +62,7 @@ eval {
     waitpid( $pid, 0 );
 };
 
-<[base.log]>->( 0, "melt exec unsuccessful [ $@ ]" ) if $@ =~ s| at melt.+\n$||;
+<[base.log]>->( 0, "melt exec not successful [ $@ ]" ) if $@ =~ s| at melt.+\n$||;
 
 if ( -f $out_file_path ) {
     <[base.log]>->( 1, ": $out_file_path" );
@@ -71,7 +71,7 @@ if ( -f $out_file_path ) {
     );
 } else {
     <[base.log]>->(
-        0, "<!> [frame $frame_num] extraction failed [ $! ] : $vid_path"
+        0, "<!> [frame $frame_num] extraction not successful [ $! ] : $vid_path"
     );
     <[base.callback.cmd_reply]>->(
         $reply_id,

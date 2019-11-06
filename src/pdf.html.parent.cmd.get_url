@@ -28,7 +28,7 @@ if ( not defined $target_width ) {
     if ( $pdf_location =~ m|^https?://| ) {
         <[base.log]>->( 2, "downloading '$pdf_location' first..." );
         $pdf_location = <[pdf.html.base.download_file]>->($pdf_location);
-        return { 'mode' => 'nak', 'data' => 'download failed!' }
+        return { 'mode' => 'nak', 'data' => 'download error' }
             if not defined $pdf_location;
     }
     ($target_width) = <[pdf.html.base.get_page_size]>->($pdf_location);

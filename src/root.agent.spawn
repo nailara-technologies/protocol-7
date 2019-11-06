@@ -82,7 +82,7 @@ if ( exists $init_result_data->{'start_mode'}
             <[base.log]>->(
                 0,
                 "exec_usr for '$agent_name' (\<x11.user>) is "
-                    . "not defined - FAILED"
+                    . "not defined - ERROR"
             );
             <[agent.change_status]>->( $instance_id, 'error' );
             return undef;
@@ -105,7 +105,7 @@ if ( exists $init_result_data->{'start_mode'}
     } elsif ( $exec_bin =~ /\s/ or !-x $exec_bin ) {
         <[base.log]>->(
             0,
-            "'$agent_name' exec_bin '$exec_bin' not a valid executable - FAILED"
+            "'$agent_name' exec_bin '$exec_bin' not a valid executable - ERROR"
         );
         <[agent.change_status]>->( $instance_id, 'error' );
         return undef;
@@ -113,7 +113,7 @@ if ( exists $init_result_data->{'start_mode'}
         my $privs = <[base.set_privs]>->( $prog_usr, 'noop' );
         if ( not defined $privs or ref($privs) ne 'HASH' ) {
             <[base.log]>->(
-                0, "exec_usr for '$agent_name' is invalid - FAILED"
+                0, "exec_usr for '$agent_name' is invalid - ERROR"
             );
             <[agent.change_status]>->( $instance_id, 'error' );
             return undef;

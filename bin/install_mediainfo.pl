@@ -67,7 +67,7 @@ if ( $local_version eq 'not_found'
         eval { $response = $ua->get( $url, ':content_file' => $local_deb ) };
 
         if ( not defined $response or !$response->is_success ) {
-            my $err_msg = 'download failed';
+            my $err_msg = 'download error';
             if ( defined $response ) {
                 $err_msg .= ' [' . $response->status_line . ']';
             }
