@@ -58,5 +58,6 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
         return { 'mode' => 'nak', 'data' => $fail_msg };
     }
 } else {
-    $$reply{'data'} = 'not a valid username or session id syntax!';
+    ( my $term_usr = $$call{'args'} ) =~ s| .+$||;
+    $$reply{'data'} = "'$term_usr' is not a valid username [ nor session id ]";
 }
