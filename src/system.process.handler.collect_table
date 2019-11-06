@@ -128,14 +128,14 @@ if ( $mem_used_pct >= <mem.max_used> ) {    # system memory alert limit
     my $reached = $mem_used_pct == <mem.max_used> ? 'reached' : 'exceeded';
 
     my $warn_str
-        = "<!> WARNING <!> used memory $reached " . <mem.max_used> . "% limit!";
+        = "<!> WARNING <!> used memory $reached " . <mem.max_used> . "% limit";
     $warn_str .= " ( now $mem_used_pct% )" if $reached eq 'exceeded';
     <[base.log]>->( 0, $warn_str ) if !<system.memory_alert.warned>;
     <system.memory_alert.warned>++;
 } elsif (<system.memory_alert.warned>) {
     <[base.log]>->(
         1,
-        " : memory usage dropped back below "
+        " : memory usage dropped below "
             . <mem.max_used>
             . "% limit ( now $mem_used_pct% )"
     );
