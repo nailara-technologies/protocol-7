@@ -14,7 +14,7 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
 
     if ( <[auth.pwd.ok]>->( $1, $2 ) ) {
         $$output .= "YEAH >:P\n";
-        <[base.log]>->( 1, "[$id] auth ok, access granted < user '$1'>" );
+        <[base.log]>->( 1, "[$id] user session authorized to '$1'" );
         return ( 0, $1 );
     } else {
         $$output .= "NOPE >:|\n";
@@ -23,7 +23,7 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
     }
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    <[base.log]>->( 0, "[$id] (pwd) auth. protocol error!" );
+    <[base.log]>->( 0, "[$id] authentication protocol error [pwd] >:[" );
 } else {
     return 1;
 }
