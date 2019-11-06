@@ -24,7 +24,7 @@ my $status = <[base.execute_agent_code]>->(
             $import_path,
             sub {
                 $_[0] =~ s|^.*/||g;
-                <[log.failed]>->("unable to import '$_[0]' config [$!]");
+                <[log.error]>->("unable to import '$_[0]' config [$!]");
                 return undef;
             }
         )

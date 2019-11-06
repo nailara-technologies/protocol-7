@@ -14,7 +14,7 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
     my @cfg_lines;
     <[file.slurp]>->( $filename, \@cfg_lines );
     if ( !@cfg_lines ) {
-        <[log.failed]>->("unable to load config file '$filename'");
+        <[log.error]>->("unable to load config file '$filename'");
         return undef;
     }
     my $line_num = 0;
