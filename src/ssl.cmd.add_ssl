@@ -23,5 +23,5 @@ if ( -S $sock ) {
     $data{'link'}{$name}{'start_time'} = <[base.time]>->(5);
     <[net.ack]>->( "link '$name' established", $com_id );
 } else {
-    <[net.nak]>->( "connection failed", $com_id );
+    <[net.nak]>->( "connection error", $com_id );
 }

@@ -44,7 +44,7 @@ while ( <xserver.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     } else {
         substr( $output_line, 253, length($output_line) - 253, '...' )
             if length($output_line) > 253;
-        <[base.log]>->( 0, "[FAIL] < intel_gpu_top > " . $output_line );
+        <[base.log]>->( 0, "[ERROR] < intel_gpu_top > $output_line" );
         $watcher->cancel if $watcher->is_active;
         delete <xserver.gpu_top.stats>;
         return undef;

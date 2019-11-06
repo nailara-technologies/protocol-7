@@ -2,7 +2,7 @@
 
 # name    = plugin.auth.unix
 # args    = int(session id)
-# return  = str(user name) [success], undef [failed]
+# return  = str(user name) [success], undef [error]
 
 my $id = $_[0]->w->data;
 my $re = <regex.base>;
@@ -17,7 +17,7 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
     {
         <[base.log]>->(
             0,
-            "[$id] [auth unix] access denied to user '$1' (not a unix link!)"
+            "[$id] [auth unix] access denied to user '$1' [ not a unix link ]"
         );
         $$output .= ">:[\a\n";
         return 2;
@@ -31,7 +31,7 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
 
     if ( not defined $client_uname ) {
         $$output .= ">:[\a\n";
-        <[base.log]>->( 0, "[$id] peer UID is undefined, unix auth aborted!" );
+        <[base.log]>->( 0, "[$id] peer UID is undefined, unix auth aborted.." );
         return 2;
     }
 
@@ -45,9 +45,8 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
     if ($auth_ok) {
         $$output .= "YEAH >:P\n";
         my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
-        <[base.log]>->(
-            1, "[$id] session authorized as '$auth_user'" . $s_usr
-        );
+        <[base.log]>
+            ->( 1, "[$id] session authorized as '$auth_user'" . $s_usr );
         return ( 0, $auth_user );
     } else {
         $$output .= "NOPE >:|\n";
@@ -59,7 +58,7 @@ if ( $$input =~ s/^auth ($re->{usr})\n// ) {
     }
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    <[base.log]>->( 0, "[$id] (unix) auth. protocol error!" );
+    <[base.log]>->( 0, "[$id] authentication protocol error [ unix ]" );
 } else {
     return 1;
 }
