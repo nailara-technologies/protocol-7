@@ -75,7 +75,7 @@ if ( $response->code == 200 ) {
             //= <rss.ticker.fail_retry_min_interval>;
         <rss.ticker.update_timer>->cancel;
         <rss.ticker.update_timer> = <[event.add_timer]>->(
-            {   'after'  => 4.2,    # failure retry (quickfix)
+            {   'after'  => 4.2,    # error retry (quickfix)
                 'repeat' => 1,
                 'interval' => <rss.ticker.update_interval> || 120,
                 'handler'  => 'rss.ticker.fetch_content',
