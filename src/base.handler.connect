@@ -29,9 +29,9 @@ if ( not defined $data{'handle'}{$fd_srv}{'proto'} ) {
         if ( length($banner) and $mode eq 'in' ) {
             <[net.out]>->( $fd_client, $banner );
         }
-        <[base.log]>->( 1, "[$id] $proto protocol connection established." );
+        <[base.log]>->( 1, "[$id] establishing $proto protocol connection" );
     } else {
-        <[base.log]>->( 1, "[$id] connection prematurely closed." );
+        <[base.log]>->( 1, "[$id] connection [already] closed.." );
         return undef;
     }
 }
