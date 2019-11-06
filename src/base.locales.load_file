@@ -21,6 +21,7 @@ map {
     $_ =~ s/^\n|\n$//mg;
     if ( length($_) and $_ =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
         $locale_data->{$1} = $2;
+        utf8::decode( $locale_data->{$1} );
         $entries++;
     } elsif ( length($_) ) {
         warn("syntax error in locale file '$filename' [$_]");
