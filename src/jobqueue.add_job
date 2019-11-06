@@ -5,8 +5,8 @@
 
 die "no parameter supplied" if !@_ or not defined $_[0];
 
-my $max_jobs = <jobqueue.max_jobs> || 42523;
-my $job_id = <[base.gen_id]>->( <jobqueue.joblist.by_id>, $max_jobs );
+my $max_jobs   = <jobqueue.max_jobs> || 42513;
+my $job_id     = <[base.gen_id]>->( <jobqueue.joblist.by_id>, $max_jobs );
 my $job_params = {};
 if ( ref( $_[0] ) eq 'HASH' ) { $job_params = shift }
 elsif ( exists $code{ $_[0] } ) {
@@ -41,7 +41,7 @@ my $job_data = {
     # LLL: following features still need implementation...
     'repeat_count' => 0,
     'max_repeat'   => undef,
-    'repeat'       => $job_params->{'repeat'} || 'on_failure',
+    'repeat'       => $job_params->{'repeat'} || 'on_error',
     'repeat_delay' => $job_params->{'repeat_delay'} || 5,
 };
 
