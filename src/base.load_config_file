@@ -27,7 +27,7 @@ my $status = <[base.execute_agent_code]>->(
             join( '/', $data{'system'}{'conf_path'}, $cfg_name ),
             sub {
                 $cfg_name =~ s/^.+\///g;
-                <[log.failed]>->("unable to load '$cfg_name' config [$!]");
+                <[log.error]>->("unable to load '$cfg_name' config [$!]");
                 <base.modules.cfg_level>--;
                 return undef;
             }

@@ -36,7 +36,7 @@ $agent_cfg_path = "agents/<system.agent.name>"
 if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
     my $agent_name = <system.agent.name>;
     local <system.agent.name> = 'error';    # <- changed agent name to 'error'
-    return <[log.failed]>->("<<!>> no such agent ('$agent_name') <<!>>");
+    return <[log.error]>->("<<!>> no such agent ('$agent_name') <<!>>");
 }
 
 <system.path.rel.cur_agent_cfg> = $agent_cfg_path;
@@ -46,4 +46,4 @@ if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
 
 # note: 'load_config_file' will not return for agents invoking the event loop!
 <[base.load_config_file]>->($agent_cfg_path)
-    or <[log.failed]>->("startup of agent '<system.agent.name>' has failed!");
+    or <[log.error]>->("startup of agent '<system.agent.name>' has failed!");
