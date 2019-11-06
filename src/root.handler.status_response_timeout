@@ -7,7 +7,7 @@ my $instance      = <root.agent.instance>->{$instance_id};
 my $agent_name    = $instance->{'agent_name'};
 my $agent_status  = $instance->{'status'};
 my $is_core_agent = $instance->{'is_core'};
-my $fail_count    = $instance->{'ping'}->{'failures'}++;
+my $fail_count    = $instance->{'ping'}->{'errors'}++;
 my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
 my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 <[base.log]>->(
@@ -19,7 +19,7 @@ if ( !$ping_retry ) {                                        # [no more retries]
         if ( $agent_status eq 'error' ) {    # was already unsuccessful
             <callback.session.closing_last> = {
                 'name'   => 'root.shutdown',
-                'params' => ['fatal core agent failure']
+                'params' => ['fatal core agent error']
             };
             <[base.session.check_remaining]>;
         } else {

@@ -58,7 +58,7 @@ return
     and $instance->{'status'} eq $status;
 
 $instance->{'ping'} //= {};
-$instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping failure
+$instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping error
 
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     $instance->{'timer'}->{'verify_instance'}->cancel;
@@ -100,9 +100,7 @@ if (    ( $status eq 'online' or $status eq 'extbin' )
     my $init_status = $instance->{'init_data'}->{'status'} || {};
     if ( not exists $init_status->{'post-init'}
         or !$init_status->{'post-init'} ) {
-        <[base.log]>->(
-            0, "instance $instance_id : failure in post-init code!"
-        );
+        <[base.log]>->( 0, "instance $instance_id : error in post-init code" );
         $status = 'error';
     }
     <[base.log]>->( 2, "cleaning up instance $instance_id init_data" );
@@ -147,13 +145,13 @@ if (    $status ne 'online'
     delete $instance->{'timer'}->{'reset_respawn_delay'};
 }
 
-# instance startup failure hooks
+# instance startup error hooks
 if (    $old_status ne 'online'
     and $old_status ne 'extbin'
     and $status eq 'error' ) {
-    if ( exists $init_code->{'startup-failure'} ) {
+    if ( exists $init_code->{'startup-error'} ) {
         <[base.execute_agent_code]>
-            ->( <[base.parser.config]>->( $init_code->{'startup-failure'} ) );
+            ->( <[base.parser.config]>->( $init_code->{'startup-error'} ) );
     } else {
         delete $instance->{'core_sid'};
         <[agent.change_status]>->( $instance_id, 'offline' )
@@ -251,7 +249,7 @@ foreach my $name_or_id (@check_keys) {
     }
 }
 
-# delayed respawning on startup failure (slowing down with failures..)
+# delayed respawning on startup error (..slowing down with errors..)
 <[root.init_respawn_timer]>->($instance_id)
     if defined $target_queue
     and $target_queue eq 'queued'

@@ -4,7 +4,7 @@
 
 my $instance_id = shift->w->data;
 my $instance    = <root.agent.instance>->{$instance_id};
-$instance->{'ping'}->{'failures'} //= 0;
+$instance->{'ping'}->{'errors'} //= 0;
 my $globals      = <root.spawn_config.globals> || {};
 my $agent_name   = $instance->{'agent_name'};
 my $root_sid     = $instance->{'root_sid'};

@@ -103,8 +103,7 @@ my %auth_methods = map { $_ => 1 } $ssh->auth_list($ssh_user);
     if exists $auth_methods{'password'};
 if ( not exists $auth_methods{'publickey'} ) {
     <[base.log]>->(
-        0,
-        ": : <!> no public key auth. for user '$ssh_user' available!"
+        0, ": : <!> no public key auth. for user '$ssh_user' available!"
     );
     $ssh->disconnect;
     $sock->shutdown('NOW');
@@ -164,14 +163,14 @@ $connection->{'io'}->{'ssh'} = <[event.add_io]>->(
     }
 );
 
-$connection->{'sock'}          = $sock;
-$connection->{'obj'}           = $ssh;
-$connection->{'nch'}           = $channel;
-$connection->{'buffer'}        = '';
-$connection->{'authorized'}    = 0;
-$connection->{'linked'}        = 0;
-$connection->{'ping_failures'} = 0;
-$connection->{'latency'}       = 'unknown';
+$connection->{'sock'}        = $sock;
+$connection->{'obj'}         = $ssh;
+$connection->{'nch'}         = $channel;
+$connection->{'buffer'}      = '';
+$connection->{'authorized'}  = 0;
+$connection->{'linked'}      = 0;
+$connection->{'ping_errors'} = 0;
+$connection->{'latency'}     = 'unknown';
 
 delete $connection->{'retry_delay'}
     if exists $connection->{'retry_delay'};

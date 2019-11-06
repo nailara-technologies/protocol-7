@@ -13,11 +13,11 @@ my $agent_config = <root.spawn_config.agents.config>->{$agent_name};
 
 my $status_timer_delay
     = $after // $agent_config->{'ping'}->{'after'}
-    // $globals->{'ping'}->{'after'} // 2;    # <-- (initial) ping delay default
+    // $globals->{'ping'}->{'after'} // 2;    # <- (initial) ping delay default
 
 my $status_timer_interval
     = $interval // $agent_config->{'ping'}->{'interval'}
-    // $globals->{'ping'}->{'interval'} // 5;    # <-- ping interval default
+    // $globals->{'ping'}->{'interval'} // 5;    # <- ping interval default
 
 <[base.log]>->(
     2,
@@ -31,7 +31,7 @@ delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
 delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
 
 $instance->{'ping'} //= {};
-$instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping failure
+$instance->{'ping'}->{'retry_timeout'} //= 2;    # setting short ping timeout
 
 # set up new status timer..
 $instance->{'status_timer'} = <[event.add_timer]>->(
