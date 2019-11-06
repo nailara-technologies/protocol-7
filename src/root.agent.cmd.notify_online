@@ -70,7 +70,7 @@ foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
         and (  not defined $agent_subname
             or not defined <root.agent.instance>->{$id}->{'subname'}
             or <root.agent.instance>->{$id}->{'subname'} eq $agent_subname )
-        ) {
+    ) {
         return {
             'mode' => 'ack',
             'data' => "agent '$query_copy' already online! [$core_sid]"
@@ -86,9 +86,7 @@ foreach my $id ( keys %{<root.agent.instance>} ) {    # agent name [+subname]
     }
 }
 
-<[base.log]>->(
-    2, "startup notification request for agent '$query_copy' received"
-);
+<[base.log]>->( 2, "startup notification request ['$query_copy']" );
 
 push( @{ <root.agent.notify_online>->{$query_copy} }, $reply_id );
 
