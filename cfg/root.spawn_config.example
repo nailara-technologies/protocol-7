@@ -111,6 +111,21 @@
         [base.auth.set_agent_key:'<{core.key}>']
         [base.agents.set_ondemand_timeout:147]
 
+  - os-pkg
+
+      max_concurrency  = 1
+      spawn.on-demand  = 1
+      ping.disabled    = 1
+      respawn.disabled = 1
+
+      : root-init :
+        start_mode = exec-sic
+        core.key = [base.rnd_chars_anum:42]
+        [root.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
   - indexer
 
       dependencies = core
