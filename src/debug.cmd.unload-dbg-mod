@@ -12,7 +12,9 @@ return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
 
 <[base.purge_code]>->('debug');
 
-return { 'mode' => 'ack', 'data' => 'debug module removed from memory' }
+return { 'mode' => 'ack', 'data' => 'debug commands removed =)' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
-return { 'mode' => 'nak', 'data' => 'can not remove debug module' }
+<[base.log]>->( 0, "<!> unable to remove debug module <!>" );
+
+return { 'mode' => 'nak', 'data' => 'can not remove debug module `:|' }
