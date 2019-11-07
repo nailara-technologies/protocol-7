@@ -2,21 +2,25 @@
 
 # name  = io.ip.tcp.in.open
 
+my $l_addr = shift;
+my $l_port = shift;
+
 my $lsock = new IO::Socket::IP(
-    LocalAddr => $_[0],
-    LocalPort => $_[1],
+    LocalAddr => $l_addr,
+    LocalPort => $l_port,
     Proto     => 'tcp',
     Listen    => 23,
     ReusePort => 1,
     ReuseAddr => 1,
     TimeOut   => 1,
     Blocking  => 0
-) or <[base.log]>->( 0, "unable to allocate $_[0]:$_[1] [$!]" );
+) or <[base.log]>->( 0, "unable to allocate $l_addr:$l_port [$!]" );
 if ( not defined $lsock ) { return undef }
 else {
+    $l_addr //= '<undefined>';
     $lsock->listen()
         or <[base.log]>->( 0, "tcp.server: listen: $!" );
-    <[base.log]>->( 1, "TCP server launched [$_[0]:$_[1]]" );
+    <[base.log]>->( 1, "TCP server launched [$l_addr:$l_port]" );
 
     if ( defined $data{'handle'}{$lsock} ) {
         <[base.log]>->(
