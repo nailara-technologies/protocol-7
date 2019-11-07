@@ -280,24 +280,27 @@ sub prepare_subs {
     };
 
     $code{'base.load_code'} = sub {
+        my @src_names = @_;
 
         my ( $codedir, $file, $code_name );
         $data{'callbacks'}{'end_code'} //= [];
         $data{'base'}{'modules'}{'load_errors'} = 0;
         if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
-            $code{'log.error'}->( ": can not open module directory"
+            $code{'log.error'}->( ": can not open source code directory"
                     . " '$data{'system'}{'code_path'}' [$!]" );
             return undef;
         }
+        map      { $data{'plugins'}{'status'}{$_}{'load_errors'} = 0 }
+            grep {/^plugin\./} @src_names;
+
         my @code_files = readdir($codedir);
         closedir($codedir);
         $| = 1;
         my @compile_them = ();
-        my @remaining    = @_;
-        while ( $code_name = shift @remaining ) {
-
-            $code{'log.ok'}->("loading module '$code_name'");
+        while ( $code_name = shift @src_names ) {
+            my $src_str = $code_name =~ /^plugin./ ? '' : ' source';
+            $code{'log.ok'}->("loading$src_str '$code_name'");
 
             if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
                 my $s = $purge_count == 1 ? '' : 's';
@@ -354,6 +357,9 @@ sub prepare_subs {
                         > $orig_len and $data{'system'}{'verbosity'} > 3 ) {
                         $code{'log.error'}->( "\n\n .: $file_name :.\n\n"
                                 . $data{'code'}{$file_name}{'source'} );
+
+                        $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
+                            if !length($src_str);    # <- is plugin..
                     }
                     push( @compile_them, $file_name );
                 } elsif ( $file_name =~ /\.orig$/ ) {
@@ -371,7 +377,7 @@ sub prepare_subs {
             $last_code_count = $code_count;
         }
         my $mod_count = scalar @compile_them;
-        return if !$mod_count and !@remaining;
+        return if !$mod_count and !@src_names;
         next   if !$mod_count;
 
         $code{'log.debug'}->(": compiling ...");
