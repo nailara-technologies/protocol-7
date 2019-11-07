@@ -12,7 +12,8 @@ my $key_basepath = $key_vars->{'key_basepath'};
 my $pubkey_file = "$key_basepath.pub";
 
 if ( -r $key_basepath and -r $pubkey_file ) {
-    <[base.log]>->( 1, ": loading ['$key_name'] key pair.. [usr:$key_usr]" );
+    my $u_str = $key_name =~ /^$key_usr(?:\..+)$/ ? '' : " [usr:$key_usr]";
+    <[base.log]>->( 1, ":. C25519-key .:. '$key_name'$u_str" );
     $KEYS{'C25519'}{$key_name}{'priv'}
         = decode_base64url( ${ <[file.slurp]>->($key_basepath) } );
     $KEYS{'C25519'}{$key_name}{'pub'}
