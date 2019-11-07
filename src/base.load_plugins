@@ -1,7 +1,19 @@
 # >:]
 
-# name = base.load_plugins
+# name  = base.load_plugins
+# descr = load specified plugin code
 
-if ( !$_[0] ) { <[base.log]>->( 1, 'no plugin specified' ); return -1 }
-<[base.load_code]>->( $_[0], $data{'plugin'}{'dir'}, $_[1] );
-return 1;
+my @plugins_to_load = grep {/^plugin./} split / /, join( ' ', @_ );
+
+if ( !@plugins_to_load ) {
+    <[base.log]>->( 0, 'base.load_plugins: no plugin names specified' );
+    return 1;
+}
+<[base.log]>->( 1, '... loading plugins ..,' );
+my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@plugins_to_load);
+
+if ( not defined $subs_ok or !$subs_ok ) {
+    <[base.log]>->( 1, 'base.load_plugins: no plugins were loaded ..' );
+    return 1;
+}
+return $subs_failed;

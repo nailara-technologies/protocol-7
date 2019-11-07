@@ -27,9 +27,9 @@ if ( $arg eq 'config' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reloading config >" );
     if (<[base.reload_config]>) {
-        $$reply{'data'} .= "reload config  [ success ]\n";
+        $$reply{'data'} .= "  reload config  [ success ]\n";
     } else {
-        $$reply{'data'} .= "reload config  [  ERROR  ]\n";
+        $$reply{'data'} .= "  reload config  [  ERROR  ]\n";
     }
     $success = 1;
 }
@@ -50,10 +50,10 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
     my $error = <[base.load_modules]>->("base $data{modules}{load}");
     if ( !$error and !<base.modules.load_errors> ) {
-        $$reply{'data'} .= "reload source  [ success ]\n";
+        $$reply{'data'} .= "  reload source  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "reload source  [  ERROR  ]\n";
+        $$reply{'data'} .= "  reload source  [  ERROR  ]\n";
     }
 
     ## source version ##
@@ -94,20 +94,20 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reloading plugins >" );
     if (<[base.reload_plugins]>) {
-        $$reply{'data'} .= "reload plugins [ success ]\n";
+        $$reply{'data'} .= "  plugin reload  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "reload plugins [  ERROR  ]\n";
+        $$reply{'data'} .= "  plugin reload  [  ERROR  ]\n";
     }
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reinitializing modules >" );
     if ( <[base.init_modules]>->() ) {
-        $$reply{'data'} .= "reinit modules [ success ]\n";
+        $$reply{'data'} .= "  reinit source  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "reinit modules [  ERROR  ]\n";
+        $$reply{'data'} .= "  reinit source  [  ERROR  ]\n";
     }
 }
 if ( !$keyword_match ) {
