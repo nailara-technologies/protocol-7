@@ -2,11 +2,16 @@
 
 # name = io.ip.tcp.init_code
 
-<[base.perlmod.autoload]>->('IO::Socket::INET');
+my $restore_pattern = <sig_warn_blacklist.pattern>;
+<sig_warn_blacklist.pattern> = qr/^(Constant s|S)ubroutine \S+ redefined /;
+
+<[base.perlmod.load]>->( 'IO::Socket::IP', qw| -register | );
+
+<sig_warn_blacklist.pattern> = $restore_pattern;
 
 $data{'io'}{'type'}{'tcp/ip'} = {
 
-    'ref' => 'IO::Socket::INET',
+    'ref' => 'IO::Socket::IP',
 
     'handler' => {
 

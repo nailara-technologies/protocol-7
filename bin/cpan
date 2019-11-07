@@ -404,9 +404,9 @@ sub clean {
 # {}
 
 sub open_cpan_file {
-    use IO::Socket::INET;
+    use IO::Socket::IP;
     my $file = $_[0];
-    if (my $sock = IO::Socket::INET->new(
+    if (my $sock = IO::Socket::IP->new(
             PeerAddr => $CPAN_server,
             PeerPort => $CPAN_http_port,
             Proto    => 'tcp',
