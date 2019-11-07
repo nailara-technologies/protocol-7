@@ -12,12 +12,15 @@ if ( -S $fd ) {
 
     return undef if not defined $p_host or not defined $p_port;  # <- closed (!)
 
+    my $v4_over_6 = $p_host =~ s|^::ffff:|| ? 1 : 0;
+
     $data{'handle'}{$new_sock} = {
         'mode'       => 'in',
         'encryption' => 'none',
         'link'       => 'tcp/ip',
         'peerhost'   => $p_host,
-        'peerport'   => $p_port
+        'peerport'   => $p_port,
+        'v4_over_6'  => $v4_over_6
     };
 
     <[base.log]>->(
