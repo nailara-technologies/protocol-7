@@ -6,7 +6,7 @@ use IO::AIO;
 use warnings;
 use File::Spec;
 use IO::Socket;
-use IO::Socket::INET;
+use IO::Socket::IP;
 use IO::Socket::UNIX;
 use Term::ReadPassword;
 use Time::HiRes 'sleep';
@@ -173,7 +173,7 @@ sub shell_connect {
         }
     }
     if ( not defined $sock ) {
-        $sock = new IO::Socket::INET(
+        $sock = new IO::Socket::IP(
             PeerAddr => $core_addr,
             PeerPort => $core_port,
             Proto    => 'tcp'

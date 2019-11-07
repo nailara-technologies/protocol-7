@@ -21,7 +21,7 @@ if (    defined <browser.cfg.proxy_addr>
         <[base.log]>->(
             $log_level, "checking http proxy... ($proxy_addr:$proxy_port)"
         );
-        my $check_sock = IO::Socket::INET->new(
+        my $check_sock = IO::Socket::IP->new(
             PeerAddr => $proxy_addr,
             PeerPort => $proxy_port,
             Proto    => 'tcp',
