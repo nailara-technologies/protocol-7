@@ -12,11 +12,10 @@ if ( defined $help_param ) {
     return;
 }
 
-my @commands = sort keys %{ $data{'base'}{'cli'} };
+my $title_str = "'" . <system.agent.name> . '\'-agent commands';
+my @commands  = sort keys %{ $data{'base'}{'cli'} };
+( my $t_ref ) = <[base.parser.help_list]>->( \@commands, 'cli' );
 
-print <[base.parser.txt_box]>->(
-    <[base.parser.help_list]>->( \@commands, 'cli' ),
-    "'" . <system.agent.name> . '\'-agent commands'
-);
+print <[base.parser.txt_box]>->( $t_ref, $title_str );
 
 0;
