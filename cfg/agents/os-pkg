@@ -1,0 +1,19 @@
+
+.:[ os-package installer ]:.
+
+buffer.agent.log_cmd = log.msg
+
+[load_config_file:'defaults']
+
+modules.load          = net io.ip auth os-pkg
+access.cmd.usr.core   = *
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+[base.get_session_id]
+
+[event.loop]
