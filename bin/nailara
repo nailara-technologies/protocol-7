@@ -613,7 +613,7 @@ sub prepare_subs {
         }
     };
 
-    $code{'dev.null'} = sub { };
+    $code{'dev.null'} = $code{'base.undef'} = sub { return undef };
 
     $code{'base.sig_warn'} = sub {
         if (@_) {
