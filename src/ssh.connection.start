@@ -55,7 +55,7 @@ if ( not defined $con_id ) {
 my $ssh = Net::SSH2->new();
 $ssh->timeout( $ssh_timeout * 1000 );
 
-my $sock = IO::Socket::INET->new(
+my $sock = IO::Socket::IP->new(
     PeerHost => $ssh_addr,
     PeerPort => $ssh_port,
     Timeout  => $ssh_timeout,
