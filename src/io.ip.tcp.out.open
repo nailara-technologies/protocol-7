@@ -1,13 +1,12 @@
 # >:]
 
-# name       = io.ip.tcp.out.open
+# name  = io.ip.tcp.out.open
 
-my $sock;
-if ($sock = new IO::Socket::INET(
+if (my $sock = new IO::Socket::IP(
         PeerAddr => "$_[0]",
         PeerPort => "$_[1]",
         Proto    => 'tcp',
-        Timeout  => 5,
+        Timeout  => 7,
         Blocking => 1
     )
 ) {

@@ -79,7 +79,7 @@ if (    $load_status eq 'finished'
         and not defined $status_code
         and !length($reason_txt)
         and !length($title) ) {
-        my $check_sock = IO::Socket::INET->new(
+        my $check_sock = IO::Socket::IP->new(
             PeerAddr => <browser.cfg.proxy_addr>,
             PeerPort => <browser.cfg.proxy_port>,
             Proto    => 'tcp',
