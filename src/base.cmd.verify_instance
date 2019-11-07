@@ -8,11 +8,11 @@ my $random_string = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'no random string supplied' }
     if !length($random_string);
 
-<[base.log]>->( 1, "instance verification string : '$random_string'" );
+<[base.log]>->( 1, "instance verification <$random_string>" );
 
 <[base.disable_command]>->('verify_instance');   # used only once by root agent!
 
 map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $_ } ) }
     @{ <system.callbacks.initialized> //= [] };
 
-return { 'mode' => 'ack', 'data' => 'verification string logged!' };
+return { 'mode' => 'ack', 'data' => 'verification code logged' };

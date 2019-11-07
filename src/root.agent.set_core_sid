@@ -9,7 +9,7 @@ if ( exists $instance_data->{'core_sid'} ) {
     <[base.log]>->(
         0, "[WARNING] core sid for instance $instance_id was already set!"
     );
-    <[agent.change_status]>->( $instance_id, 'error' ); # possibly compromised!
+    <[agent.change_status]>->( $instance_id, 'error' );  # possibly compromised!
     return;
 }
 
@@ -23,7 +23,7 @@ $instance_data->{'root_sid'} = $root_sid;
 
 # send instance verification request
 <root.timeout.verify_instance> //= 13;
-my $verification_str = <[base.rnd_chars_hex]>->(8);
+my $verification_str = uc( <[base.rnd_chars_anum]>->(13) );
 $instance_data->{'instance_verification'} = $verification_str;
 $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
     {   'after'   => <root.timeout.verify_instance>,
