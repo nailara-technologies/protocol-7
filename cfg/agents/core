@@ -12,7 +12,8 @@ buffer.agent.log_cmd = log.msg
 
 system.agent.type               =       core
 modules.load                    =       auth digest net io.ip io.unix \
-                                        plugin.auth core.cmd crypt.C25519
+                                        core.cmd crypt.C25519
+plugins.load                    =       plugin.auth
 auth.supported_methods          =       pwd agent unix C25519-TF
 # get.route                     =       file node_name.file :target:
 get.command                     =       file.get
@@ -155,6 +156,8 @@ modules.pre_load = core.config config.json
 [load_modules:<modules.load>]
 #[load_modules:'plugin.auth'] # XXX: doesn't reload right now... fix!
 [init_modules] # XXX: fix redundant initializations: modules.pre_load
+
+[load_plugins:<plugins.load>]
 
 # calulated network addr/port
 core.local = <nailara.net.int>
