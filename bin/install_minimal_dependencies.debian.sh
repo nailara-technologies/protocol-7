@@ -32,4 +32,4 @@ cd $NAILARA_ROOT && git clean -fxd $NAILARA_ROOT/lib/pm-src
 
 cpanm --force POSIX::1003 # <- temporary forced (localtime test fails) <<!>>
 
-# XXX cpan2deb --recursive --build --install-deps --install-build-deps --install
+# LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
