@@ -1,6 +1,6 @@
 # >:]
 
-# name  = base.cmd.verify_instance
+# name  = base.cmd.verify-instance
 # param = <rnd_str>
 # descr = verify root instance id through log feedback
 
@@ -10,7 +10,7 @@ return { 'mode' => 'nak', 'data' => 'no random string supplied' }
 
 <[base.log]>->( 1, "instance verification <$random_string>" );
 
-<[base.disable_command]>->('verify_instance');   # used only once by root agent!
+<[base.disable_command]>->('verify-instance');   # used only once by root agent!
 
 map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $_ } ) }
     @{ <system.callbacks.initialized> //= [] };

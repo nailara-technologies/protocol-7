@@ -8,11 +8,11 @@ my $instance_data = <root.agent.instance>->{$instance_id};
 
 # take first one ( for now! )
 my ($root_sid) = keys %{ $data{'session'} };
-die "no valid session defined yet (can't determine root_sid!)"
+die "no valid session defined yet [ can not determine root_sid ]"
     if not defined $root_sid;
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "$root_sid.session_key",
+    {   'command'   => "$root_sid.session-key",
         'call_args' => {
             'session_id' => $root_sid,
             'args'       => "$agent_name $agent_key"

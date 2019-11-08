@@ -14,7 +14,7 @@ die "expected array reference with agent names"
 
 foreach my $agent_name ( @{$ondemand_agents} ) {
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.ondemand_agent",
+        {   'command'   => "core.ondemand-agent",
             'call_args' => { 'args' => "add $agent_name" },
             'reply'     => {
                 'handler' => 'dev.null',
