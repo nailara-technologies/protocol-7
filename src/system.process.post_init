@@ -2,8 +2,8 @@
 
 # name = system.process.post_init
 
-<process.poll.interval> //= 5;
-<system.path.perl_bin>  //= '/usr/bin/perl';
+<process.poll.interval> //= 7;
+<system.path.perl_bin>  //= <[base.get_path.perl_exec]>;
 
 if ( not exists <process.kill_child.w_fh> ) {
     <[base.log]>->( 1, "spawning kill child..." );

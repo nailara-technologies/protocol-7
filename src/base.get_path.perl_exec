@@ -1,0 +1,16 @@
+# >:]
+
+# name = base.get_path.perl_exec
+
+my $perl_path;
+
+eval {
+    use Config;
+    $perl_path = $Config{'perlpath'};
+    if ( $^O ne 'VMS' ) {
+        $perl_path .= $Config{'_exe'}
+            unless $perl_path =~ m/\Q$Config{_exe}\E$/i;
+    }
+};
+
+return $perl_path;
