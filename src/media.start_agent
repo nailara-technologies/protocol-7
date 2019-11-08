@@ -5,7 +5,7 @@
 my $agent_name    = shift;
 my $agent_subname = <system.agent.subname>;
 my $nailara_bin   = <system.start.exec_name>;
-my $perl_bin_path = <system.path.perl_bin> // 'perl';
+my $perl_bin_path = <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 <media.running> //= {};
 my @exec_args = ( '-nb', '-sic' );
