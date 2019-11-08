@@ -106,9 +106,9 @@ $data{'list'} //= {};
     'descr' => 'available log / data buffers'
 };
 
-# 'verify_instance' command not required in core type agents (for now)
+# 'verify-instance' command not required in core type agents [for now]
 if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
-    <[base.disable_command]>->('verify_instance');
+    <[base.disable_command]>->('verify-instance');
     <agents.virtual> //= {};
     my $key_ref = \$data{'agents'}{'virtual'};
     $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4096;  # LLL: -> config!
@@ -131,21 +131,21 @@ if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
 } else {    # remove some commands for non-core type agents
     map { <[base.disable_command]>->($_) } (
         qw/
-            clear
             exit
-            is-online
-            last_sid
-            localtime
+            clear
             ntime
-            ondemand_agent
-            session_key
+            last-sid
+            localtime
+            is-online
+            ondemand-agent
+            session-key
             term-all
             time
             /
     );
 
-    <base.help.cmd.source_age.param> = "['date']";  # <- disabling second param!
-    <base.help.cmd.source_age.descr> =~ s|\[year\]||;
+    <base.help.cmd.source-age.param> = "['date']";  # <- disabling second param!
+    <base.help.cmd.source-age.descr> =~ s|\[year\]||;
 
     if ( <system.agent.name> ne 'media' ) {
         <[base.disable_command]>->(qw/ whoami /);

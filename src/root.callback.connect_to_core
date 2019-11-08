@@ -31,7 +31,7 @@ my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
 
 my $root_sid = <root.agent.instance>->{$instance_id}->{'root_sid'};
 <[base.proto.nailara.command.send.local]>->(
-    {   'command' => "$root_sid.set_initialized",
+    {   'command' => "$root_sid.set-initialized",
         'call_args' => { 'args' => 0 }    # [ 0 == root-agent session (self) ]
     }
 );

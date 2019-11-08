@@ -252,7 +252,7 @@ sub cmd_list_psubs {
                                 ansi('bold yellow') );
                             print "\n: : " . $sub_name;
                         }
-                    }    # XXX: [todo] add 'no matches' message
+                    }    # LLL: [todo] add 'no matches' message
                 }
             }
             print "\n:\n\n";
@@ -987,7 +987,7 @@ sub restore_backup {
 
 # :: check_target_files :: necessary target file checks before restoring backup data
 
-sub check_target_files {    # XXX: incomplete
+sub check_target_files {    # LLL: incomplete
     my ( $source_data, $meta_data ) = (@_);
 
     print "\n :: checking target files ::\n\n";
@@ -1536,7 +1536,7 @@ sub show_perl_sub {
 
                 # check for subroutine names
 
-         # XXX: buggy!! FIX! fails if brace is next line or names begin same way
+         # LLL: buggy!! FIX! fails if brace is next line or names begin same way
 
                 if ( $source_line =~ /(sub\s+(\w+))\s+/ ) {
 
@@ -1562,7 +1562,7 @@ sub show_perl_sub {
                             my $braces = 0;
                             my $offset = 0;
 
-                            # XXX: [TODO] fix behaviour for quoted braces
+                            # LLL: [TODO] fix behaviour for quoted braces
 
                             while ( !$offset or $loop or $braces ) {
                                 my $current_byte = substr( $source->{$file},

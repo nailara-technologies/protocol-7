@@ -18,24 +18,24 @@ auth.supported_methods          =       pwd agent unix C25519-TF
 # get.route                     =       file node_name.file :target:
 get.command                     =       file.get
 setup.aliases.source_agent      =       notify.message layout.get_coordinates \
-                                        layout.get_geometry root.shutdown \
+                                        layout.get_geometry root.tear-down \
                                         layout.assign_window system.pid_autokill
 setup.aliases.source_agent_sid  =       log.msg
 
 net.auth.timeout     =  13  #  seconds
 
 # access control
-access.cmd.usr.*     =  clear help exit whoami time localtime set_client_key \
-                        since ping log.msg *.get_subname get_pub_key ntime \
+access.cmd.usr.*     =  clear help exit whoami time localtime set-client-key \
+                        since ping log.msg *.subname public-key ntime \
                         xserver.get_display xserver.get_screen_size \
                         xserver.get_geometry xserver.get_stack_order \
                         xserver.get_orientation layout.get_coordinates \
-                        layout.get_geometry layout.assign_window nailara_version
+                        layout.get_geometry layout.assign_window nailara-version
 
 access.cmd.usr.udev  =  notify.message   #   <- ( used in example rules config )
 
-access.cmd.usr.root  =  ping session_key *.verify_instance \
-                        *.ping ondemand_agent set_initialized
+access.cmd.usr.root  =  ping session-key *.verify-instance \
+                        *.ping ondemand-agent set-initialized
 
 access.cmd.usr.system = xserver.get_driver xserver.get_xorg_pid \
                         root.stop root.force_mod_reload root.start \
@@ -154,8 +154,8 @@ modules.pre_load = core.config config.json
 
 # load and initialize modules
 [load_modules:<modules.load>]
-#[load_modules:'plugin.auth'] # XXX: doesn't reload right now... fix!
-[init_modules] # XXX: fix redundant initializations: modules.pre_load
+#[load_modules:'plugin.auth'] # LLL: doesn't reload right now... fix!
+[init_modules] # LLL: fix redundant initializations: modules.pre_load
 
 [load_plugins:<plugins.load>]
 
