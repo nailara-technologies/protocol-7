@@ -2,7 +2,7 @@
 
 # name = base.spawn.unlink_child
 
-<system.path.perl_bin> //= '/usr/bin/perl';
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
     <[base.log]>->( 1, "spawning unlink child .." );
