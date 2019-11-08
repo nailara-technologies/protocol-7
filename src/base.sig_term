@@ -9,7 +9,7 @@ $0 .= ' :. shutdown in progress... please wait!';
 # $SIG{'ALRM'} = sub { <[base.log]>->( 1, 'done.'); exit(0); };
 # alarm( $data{'sigterm'}{'timeout'} || 1 );
 
-<[root.shutdown]>
+<[root.tear-down]>
     if exists <system.agent.type> and <system.agent.type> eq 'root';
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
