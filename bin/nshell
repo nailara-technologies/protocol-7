@@ -17,7 +17,11 @@ use POSIX::1003::Proc qw(WNOHANG waitpid);
 use POSIX::SigAction;
 use POSIX::SigSet;
 
-my $bin_path = File::Spec->rel2abs($0);
+my $lnk_path = File::Spec->rel2abs($0);
+my $bin_path = readlink($lnk_path) // $lnk_path;
+while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
+    $bin_path = $readlink_path;
+}
 ( my $root_path = $bin_path ) =~ s/\/[^\/]+\/[^\/]+$//;
 
 my $path_digest = elf($root_path);
@@ -92,7 +96,7 @@ use warnings 'once';
 my $shell_sock;
 while ($connect) {
     $shell_sock = shell_connect( $core_addr, $core_port );
-    if ( $link_type eq 'unix' and $bin_path =~ /\.([^\/\.]+)$/ ) {
+    if ( $link_type eq 'unix' and $lnk_path =~ /\.([^\/\.]+)$/ ) {
         my $core_user = $1;
         $shell_sock = unix_auth( $shell_sock, $core_user );
     } elsif ( $link_type eq 'unix' and defined $core_user ) {
