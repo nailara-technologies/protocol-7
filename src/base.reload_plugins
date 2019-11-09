@@ -3,8 +3,7 @@
 # name = base.reload_plugins
 # todo = implement unload mechanism
 
-my $plugin_count = 0;
-my $success      = 1;
+my $success = 1;
 
 map { delete $data{'callbacks'}{'end_code'}->{$_} if $_ =~ /^plugin\./ }
     @{ $data{'callbacks'}{'end_code'} }
@@ -15,6 +14,6 @@ my @loaded_plugins = sort { length $a <=> length $b }
 
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@loaded_plugins);
 
-$success = 0 if $subs_failed or not $subs_ok;
+$success = 0 if $subs_failed;
 
 return $success;
