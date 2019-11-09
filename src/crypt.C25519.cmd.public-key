@@ -12,5 +12,6 @@ return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
 
 return {
     'mode' => 'ack',
-    'data' => encode_base64url( $KEYS{'C25519'}{$key_name}{'pub'} )
+    'data' => sprintf( "[%s] %s",
+        $key_name, encode_base64url( $KEYS{'C25519'}{$key_name}{'pub'} ) )
 };
