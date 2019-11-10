@@ -54,11 +54,11 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         ## record browser segfaults (for crash mitigation) ##
         if ( $e_sig == 11 and $agent_name eq 'browser' ) {
             my $browser_uname = 'nobody';    # LLL: determine automatically ...
-            my $sn_hash
+            my $subname_b32
                 = ( defined $agent_subname and length($agent_subname) )
-                ? '.' . encode_base64url($agent_subname)
+                ? '.' . encode_b32r($agent_subname)
                 : '';
-            my $file_name = "/tmp/.nailara.browser.crash_pid$sn_hash";
+            my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$pid\n" ) or warn("$file_name: $!");
             chmod( 0644, $file_name ) or warn("$file_name: $!");
             my @pwn = getpwnam($browser_uname);
