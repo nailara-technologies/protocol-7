@@ -13,11 +13,11 @@ my $flag_map = {
     'blkext,nojs_scroll'  => 'blkext,nojs'
 };
 
-my $sn_hash
+my $subname_b32
     = ( defined <system.agent.subname> and length(<system.agent.subname>) )
-    ? '.' . encode_base64url(<system.agent.subname>)
+    ? '.' . encode_b32r(<system.agent.subname>)
     : '';
-my $file_name = "/tmp/.nailara.browser.crash_pid$sn_hash";
+my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
 return if !-f $file_name;
 chomp( my $crash_pid = ${ <[file.slurp]>->($file_name) } );
 unlink($file_name) or warn("$file_name: $!");
@@ -48,12 +48,13 @@ $url_flags = ''
 
 if ( not exists $flag_map->{$url_flags} ) {
     <[base.log]>->(
-        0, ": maximum mitigation level reached! unable to prevent segfault :/"
+        0, ": maximum mitigation level reached! unable to prevent segfault `:|"
     );
     return;
 }
 
 my $next_flags = $flag_map->{$url_flags};
+
 my $s = $next_flags =~ /,/ ? 's' : '';
 <[base.log]>->( 1, ": setting flag$s '$next_flags' for '$crash_url'.." );
 

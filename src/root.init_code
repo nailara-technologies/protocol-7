@@ -4,7 +4,7 @@
 # descr = initializes root module
 
 <[base.perlmod.autoload]>->('Proc::ProcessTable');
-<[base.perlmod.load]>->( 'MIME::Base64', qw/encode_base64url/ );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
 <system.agent.type> = 'root';
 
@@ -24,8 +24,8 @@ map { <[base.disable_command]>->($_) } qw(
 );
 
 <root.gcc_bin> = '/usr/bin/gcc';
-<root.cfg.install_bin_nlr> //= 'yes';               # LLL: if root!
-<root.cfg.nlr_bin_path> //= '/usr/local/bin/nlr';
+<root.cfg.install_bin_nlr> //= 'yes';                  # LLL: if root!
+<root.cfg.nlr_bin_path>    //= '/usr/local/bin/nlr';
 chomp( <root.gcc_bin> = qx(which gcc) ) if !-x <root.gcc_bin>;
 if ( !-x <root.gcc_bin> ) {
     <root.gcc_bin> = undef;
