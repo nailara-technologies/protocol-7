@@ -16,17 +16,17 @@ do {
         <[base.log]>->(
             0,
             "<!> SEGMENTATION FAULT <!> sub-agent"
-                . " '$child_name' ( PID $child_pid )"
+                . " '$child_name' [ PID $child_pid ]"
         ) if $e_sig == 11;
 
         ## record browser segfaults (for crash mitigation) ##
         if ( $e_sig == 11 and $child_name eq 'browser' ) {
             my $agent_subname = <system.agent.subname>;
-            my $sn_hash
+            my $subname_b32
                 = ( defined $agent_subname and length($agent_subname) )
-                ? '.' . encode_base64url($agent_subname)
+                ? '.' . encode_b32r($agent_subname)
                 : '';
-            my $file_name = "/tmp/.nailara.browser.crash_pid$sn_hash";
+            my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
                 or warn("$file_name: $!");
             chmod( 0644, $file_name ) or warn("$file_name: $!");
@@ -34,7 +34,7 @@ do {
 
     } elsif ($child_pid) {
         push( @names, $child_pid );
-        <[base.log]>->( 0, "<!> SEGMENTATION FAULT <!> ( PID $child_pid )" )
+        <[base.log]>->( 0, "<!> SEGMENTATION FAULT <!> [ PID $child_pid ]" )
             if $e_sig == 11;
     }
 } while $child_pid > 0;

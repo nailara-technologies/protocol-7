@@ -3,8 +3,9 @@
 # name = media.init_code
 
 <[base.perlmod.load]>->('IPC::Open2');
-<[base.perlmod.load]>->( 'File::Copy', qw/move/ );
-<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+<[base.perlmod.load]>->( 'File::Copy',  qw| move | );
+<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
 ## tracking state ##
 <media.state> //= {
@@ -38,9 +39,9 @@ $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 
 <[media.reroute_commands]>;
 
-<media.agents_started> //= 0;
-<media.switch_timeout> //= 7; # restart media agent after 7 secs resume timeout..
-<media.children_ready> //= 0;
+<media.agents_started>        //= 0;
+<media.switch_timeout>        //= 7; # restart agent after 7 secs resume timeout
+<media.children_ready>        //= 0;
 <media.declared_online>       //= 0;
 <media.loadsplash_timeout>    //= 17;
 <media.playlist_was_empty>    //= 0;
