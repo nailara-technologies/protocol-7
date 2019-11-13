@@ -32,9 +32,9 @@ if ( defined $ev_data->{'dep_id'}
 die "'layout_name' parameter is missing from '$action_type' setup"
     if $action_type =~ /^layout_/ and not defined $action->{'layout_name'};
 
-<events.stack.playlist>->{ $action->{'b8id'} }->{'action'}->{'type'}
+<events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
     = $action_type
-    if defined $action->{'b8id'};
+    if defined $action->{'b32id'};
 
 if ( $action_type eq 'agent_running' ) {
     my $command;
@@ -74,32 +74,32 @@ if ( $action_type eq 'agent_running' ) {
         }
     );
 } elsif ( $action_type eq 'playlist_show_entry' ) {    ### PLAYLIST EVENTS ###
-    my $b8id = $action->{'b8id'};                      # SHOW event
-    die "'b8id' parameter is missing from '$action_type' setup"
-        if not defined $b8id;
-    <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
+    my $b32id = $action->{'b32id'};                    # SHOW event
+    die "'b32id' parameter is missing from '$action_type' setup"
+        if not defined $b32id;
+    <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
-    <events.stack.playlist>->{$b8id}->{'visibility'} += $change;
+    <events.stack.playlist>->{$b32id}->{'visibility'} += $change;
 
 } elsif ( $action_type eq 'playlist_hide_entry' ) {    # HIDE event
-    my $b8id = $action->{'b8id'};
-    die "'b8id' parameter is missing from '$action_type' setup"
-        if not defined $b8id;
-    <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
+    my $b32id = $action->{'b32id'};
+    die "'b32id' parameter is missing from '$action_type' setup"
+        if not defined $b32id;
+    <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
-    <events.stack.playlist>->{$b8id}->{'visibility'} -= $change;
+    <events.stack.playlist>->{$b32id}->{'visibility'} -= $change;
 
 } elsif ( $action_type eq 'playlist_exclusive_entry' ) {    # EXCLUSIVE event
-    my $b8id = $action->{'b8id'};
-    die "'b8id' parameter is missing from '$action_type' setup"
-        if not defined $b8id;
-    <events.stack.exclusive>->{$b8id} //= 0;
+    my $b32id = $action->{'b32id'};
+    die "'b32id' parameter is missing from '$action_type' setup"
+        if not defined $b32id;
+    <events.stack.exclusive>->{$b32id} //= 0;
     if ( $ev_type eq 'start' ) {
-        <events.stack.exclusive>->{$b8id}++;
+        <events.stack.exclusive>->{$b32id}++;
     } elsif ( $ev_type eq 'end' ) {
-        <events.stack.exclusive>->{$b8id}--;
-        delete <events.stack.exclusive>->{$b8id}
-            if !<events.stack.exclusive>->{$b8id};
+        <events.stack.exclusive>->{$b32id}--;
+        delete <events.stack.exclusive>->{$b32id}
+            if !<events.stack.exclusive>->{$b32id};
     }
 
 } elsif ( $action_type eq 'layout_show' ) {    ### --- LAYOUT SHOW ---

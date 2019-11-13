@@ -21,11 +21,11 @@ map {    # EXCLUSIVE
     if (    defined $action
         and defined $action->{'type'}
         and $action->{'type'} eq 'playlist_exclusive_entry' ) {
-        my $b8id = $action->{'b8id'};
-        $hidden{$b8id} = 1
-            if not exists <events.stack.exclusive>->{$b8id}
-            and ( not defined <events.stack.playlist>->{$b8id}
-            or <events.stack.playlist>->{$b8id}->{'visibility'} < 1 );
+        my $b32id = $action->{'b32id'};
+        $hidden{$b32id} = 1
+            if not exists <events.stack.exclusive>->{$b32id}
+            and ( not defined <events.stack.playlist>->{$b32id}
+            or <events.stack.playlist>->{$b32id}->{'visibility'} < 1 );
     }
     }
     keys %{<events.setup>};

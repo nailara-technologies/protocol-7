@@ -16,7 +16,7 @@ $subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
 
 map { $file_types{$_} = 1 } split / +/, $file_types_str;
 
-my %b8_index;
+my %b32_index;
 my $index = -1;
 foreach my $file ( @{<playlist.file_list>} ) {
     $index++;
@@ -32,20 +32,20 @@ foreach my $file ( @{<playlist.file_list>} ) {
         [ keys %{ <playlist.agent_subnames>->{$index} } ]->[0], $file )
         : $file;
 
-    my $b8id_str
-        = <[digest.crc.b64u_r8]>->( ++$b8_index{$sn_line_str}, $sn_line_str );
+    my $b32id_str
+        = <[digest.crc.b32]>->( ++$b32_index{$sn_line_str}, $sn_line_str );
 
-    if ( defined <playlist.exclusive_b8id> ) {    # 'EXCLUSIVE' playlist event
+    if ( defined <playlist.exclusive_b32id> ) {    # 'EXCLUSIVE' playlist event
         ( my $entry_tile ) = ( keys %{ <playlist.agent_subnames>->{$index} } );
         map {
             next
                 if $_ eq $entry_tile
-                and not grep {/^$b8id_str$/}
-                @{ <playlist.exclusive_b8id>->{$_} }
-        } keys %{<playlist.exclusive_b8id>};
+                and not grep {/^$b32id_str$/}
+                @{ <playlist.exclusive_b32id>->{$_} }
+        } keys %{<playlist.exclusive_b32id>};
     }
 
-    next if grep {/^$b8id_str$/} @{<playlist.hidden_b8id>}; # <- SHOW/HIDE event
+    next if grep {/^$b32id_str$/} @{<playlist.hidden_b32id>}; # <- SHOW/HIDE event
 
     my @url_flags;
     map {

@@ -61,9 +61,9 @@ if ( -f $tiles_visible_file ) {
     <[base.log]>->( 2, ": no filter file ('$tiles_visible_file') present .." );
 }
 
-<playlist.file_list>    = [];
-<playlist.b8id_src_str> = {};
-<playlist.file_types>   = {};
+<playlist.file_list>     = [];
+<playlist.b32id_src_str> = {};
+<playlist.file_types>    = {};
 <playlist.type_cache> //= {};
 <playlist.file_types>     = {};
 <playlist.agent_subnames> = {};
@@ -87,7 +87,7 @@ if ( !@file_names ) {
     # LLL: need file type cache auto cleanup + delay and combine update requests
 }
 
-my %b8_index;
+my %b32_index;
 my $file_index = -1;
 foreach my $file (@file_names) {
     $file_index++;
@@ -97,9 +97,11 @@ foreach my $file (@file_names) {
     ( my $parsed_line = $file ) =~ s/^([^:]+:) /$1/;
     $parsed_line =~ s/ \([^\)]+\)$//;
 
-    my $b8id
-        = <[digest.crc.b64u_r8]>->( ++$b8_index{$parsed_line}, $parsed_line );
-    <playlist.b8id_src_str>->{$b8id} = $parsed_line; # LLL: cleanup + collisions
+    my $b32id
+        = <[digest.crc.b32]>->( ++$b32_index{$parsed_line}, $parsed_line );
+
+    <playlist.b32id_src_str>->{$b32id}
+        = $parsed_line;    # LLL: cleanup + collisions
 
     $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
     $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
