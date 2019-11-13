@@ -1,0 +1,16 @@
+# >:]
+
+# name  = playlist.cmd.resolve_b32id
+# param = <b32id>
+# descr = return parsed playlist entry for given b32id
+
+my $b32id = $$call{'args'};
+return { 'mode' => 'nak', 'data' => 'valid <b32id> expected!' }
+    if not defined $b32id
+    or $b32id !~ m|^\w{5,23}$|;
+
+return { 'mode' => 'nak', 'data' => 'no matching playlist entry found!' }
+    if not defined <playlist.b32id_src_str>->{$b32id};
+
+return { 'mode' => 'ack', 'data' => <playlist.b32id_src_str>->{$b32id} };
+

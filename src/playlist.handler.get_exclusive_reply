@@ -2,21 +2,21 @@
 
 # name = playlist.handler.get_exclusive_reply
 
-my @exclusive_b8ids;
+my @exclusive_b32ids;
 my $reply = shift;
 
-<playlist.exclusive_b8id> = {};
+<playlist.exclusive_b32id> = {};
 
 if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
     chomp( $reply->{'data'} );
-    @exclusive_b8ids = split( /\n+/, $reply->{'data'} );
+    @exclusive_b32ids = split( /\n+/, $reply->{'data'} );
     map {
-        if ( <playlist.b8id_src_str>->{$_} =~ /^([^:]+):/ ) {
+        if ( <playlist.b32id_src_str>->{$_} =~ /^([^:]+):/ ) {
             my $tile_name = $1;    # LLL: handle no tilename case? (global ex.)
-            <playlist.exclusive_b8id>->{$tile_name} //= [];
-            push( @{ <playlist.exclusive_b8id>->{$tile_name} }, $_ );
+            <playlist.exclusive_b32id>->{$tile_name} //= [];
+            push( @{ <playlist.exclusive_b32id>->{$tile_name} }, $_ );
         }
-    } @exclusive_b8ids;
+    } @exclusive_b32ids;
 }
 
 <[playlist.update_hidden]>;

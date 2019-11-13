@@ -66,11 +66,11 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         #        or $mode ne 'recalc' and $action_type !~ /^(layout|playlist)_/;
 
         if ( $action_type =~ /^playlist_/ ) {
-            my $b8id = <events.setup>->{$ev_id}->{'action'}->{'b8id'} //= '';
-            if ( !length($b8id) ) {
-                warn "playlist entry 'b8id' not defined in event '$ev_id'";
+            my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'} //= '';
+            if ( !length($b32id) ) {
+                warn "playlist entry 'b32id' not defined in event '$ev_id'";
             } else {
-                <events.stack.playlist>->{$b8id}->{'visibility'} //= 0;
+                <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
             }
         }
     } @timer_types;
