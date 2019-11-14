@@ -1,17 +1,32 @@
 
+<[base.perlmod.autoload]>->('Net::IP::Lite');
 <[base.perlmod.autoload]>->('IO::Socket::IP');
 
 <link.nodes> //= {};
 
 <list.nodes> = {
-    'var'     => 'data',
-    'key'     => 'link.conn',
-    'descr'   => 'nailara connections / status',
-    'mask'    => '<key>:id <key>:status <key>:target_node',
+    'var'      => 'data',
+    'key'      => 'link.nodes',
+    'sort_key' => 'alpha_len:name',
+    'descr'    => 'nailara node setup',
+    'mask'     => 'name:node addr:node_address pkey:public_key',
+    'align'    => {
+        'name' => 'right-2',
+        'addr' => 'left',
+        'pkey' => 'left'
+    },
     'filters' => {
-        'status'      => 'link.parser.connection_status',
-        'target_node' => 'link.parser.connection_target',
+
+        #        'status'      => 'link.parser.connection_status',
+        #        'target_node' => 'link.parser.connection_target',
     }
 };
+
+<[base.list.init]>->(
+    {   'name'         => 'nodes',
+        'key_ref'      => \$data{'link'}{'nodes'},
+        'max_elements' => 4097
+    }
+);
 
 0;
