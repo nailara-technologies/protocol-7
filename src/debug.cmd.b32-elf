@@ -1,0 +1,22 @@
+# >:]
+
+# name  = debug.cmd.b32-elf
+# descr = decode base32 + VAX encoded elf value
+# param = <b32>
+
+my $b32_str = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected base32 encoded elf value' }
+    if $b32_str !~ /^[0-9A-Z]+$/;
+
+my $elf_bin = Crypt::Misc::decode_b32r($b32_str);
+
+return { 'mode' => 'nak', 'data' => 'expected base32 encoding' }
+    if not defined $elf_bin;
+
+my $elf_int = unpack( 'V', $elf_bin );
+
+return { 'mode' => 'nak', 'data' => 'not an encoded number' }
+    if $elf_int !~ /^\d+$/;
+
+return { 'mode' => 'ack', 'data' => $elf_int }
