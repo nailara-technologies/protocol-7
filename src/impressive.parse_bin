@@ -27,7 +27,7 @@ my $tmp_bin  = "$temp_dir/impressive.$$";
 
 my $error_img;
 <[file.slurp]>->( <impressive.gfx.read_error>, \$error_img, ':raw' );
-$error_img = encode_base64($error_img);
+$error_img = encode_b64u($error_img);
 
 <impressive.version> = $1 if $file_content =~ /^__version__ *= *"([^"]+)"/m;
 <impressive.version> //= 'unknown';
@@ -38,7 +38,7 @@ if ([ stat($impr_src) ]->[7] == 244069  # check for problematic impressive vers.
     and qx(sha1sum $impr_src) =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/
     ) {                                 # v_0.11.0b
     <[base.log]>->(
-        0, "<!> please update impressive version! [donwload_impressive.pl]"
+        0, "<!> please update impressive version <!> [donwload_impressive.pl]"
     );
     $file_content =~ s|tostring\(|tobytes\(|mg;  # workaround (impressive crash)
 }
@@ -78,7 +78,7 @@ if (not $file_content =~ s|
                             \n(\s+)(SimpleQuad.draw\(\)\n
                             AllTransitions.append\(Crossfade\)\n)
         |\n$1time.sleep(0.023)\n$1$2|sx
-    ) {
+) {
     <[base.log]>->(
         0, "[!] unable to parse sleep() into Crossfade transition ..."
     );
