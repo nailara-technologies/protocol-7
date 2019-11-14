@@ -2,24 +2,58 @@
 
 # name  = link.cmd.add-node
 # descr = add a nailara link node
-# param = <name> <pkey> <addr>
+# param = <name> <addr> <pkey>
 
+<link.setup> //= {};
 my @params = split( / +/, $$call{'args'} // '' );
 
 return {
     'mode' => 'nak',
-    'data' => 'expected <name> <pkey> and <addr> parameters'
+    'data' => 'expected <name> <addr> and <pkey> parameters'
     }
     if @params != 3;
 
-
 my $err_msg;
 my $name = shift @params;
+my $addr = shift @params;
+my $pkey = shift @params;
 
+$err_msg = "not a valid node name" if $name !~ <regex.base.usr>;
 
+foreach my $id ( keys %{<link.nodes>} ) {
+    last if defined $err_msg;
+    $err_msg = "link '$name' already exists"
+        if <link.nodes>->{$id}->{'name'} eq $name;
+}
 
+$err_msg = "specified IP address is not valid"
+    if not defined $err_msg
+    and ( $addr !~ /[\.:]/ or !ip_validate($addr) );
+
+$err_msg = "not a valid [C25519] public key"
+    if length($pkey) !~ 43 or $pkey !~ /^[a-zA-Z0-9-_]+$/;
+
+return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+
+$addr = ip_transform($addr);    # ..expanding..
+
+my $node_id = <[base.list.element.add]>->(
+    {   'key_ref' => \$data{'link'}{'nodes'},
+        'val_ref' => \{
+            'name' => $name,
+            'addr' => $addr,
+            'pkey' => $pkey
+        }
+    }
+);
 
 return {
     'mode' => 'nak',
-    'data' => 'functionality not implemented yet'
+    'data' => "failed to add node [reason unknown]"
+    }
+    if not defined $node_id;
+
+return {
+    'mode' => 'ack',
+    'data' => "node '$name' added"
 };
