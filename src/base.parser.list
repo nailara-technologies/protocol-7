@@ -94,6 +94,8 @@ if ( defined $sort_key ) {
                 }
                 sort keys( %{$data_ref} );
         };
+    } elsif ( $sort_type eq 'alpha' ) {
+        eval { @sorted_keys = sort keys( %{$data_ref} ); };
     } elsif ( $sort_type eq 'num' ) {
         eval {
             @sorted_keys = grep {/./} sort {
