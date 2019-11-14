@@ -1,0 +1,6 @@
+# >:]
+
+# name  = digest.elf.b32
+# descr = return VAX [l.e.] + base32 encoded elf hash value
+
+return encode_b32r( pack 'V', Digest::Elf::elf( join( '', @_ ) ) )
