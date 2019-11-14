@@ -31,13 +31,9 @@ while ( $packet_buffer =~ s|^([^:\s]+):(\S+)\n|| ) {
     my ( $root_name, $root_sig ) = ( $1, $2 );
     next if not defined $KEYS{'C25519'}{$key_name}{'root'}{$root_name};
     return <[base.log]>->( 2, ": '$root_name' root key signature [ERROR]" )
-        if not Crypt::Ed25519::verify(
-        "$peer_pub\n",
-        decode_base64url(
-            $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'pub'}
-        ),
-        decode_base64url($root_sig)
-        );
+        if not Crypt::Ed25519::verify( "$peer_pub\n",
+        decode_b64u( $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'pub'} ),
+        decode_b64u($root_sig) );
     $keys_matched++;
 }
 
@@ -48,11 +44,8 @@ my $payload_len = length($packet_buffer);
 return if !$payload_len;
 
 return <[base.log]>->( 0, ": packet signature verification [ERROR]" )
-    if not Crypt::Ed25519::verify(
-    $packet_copy,
-    decode_base64url($peer_pub),
-    decode_base64url($packet_sig)
-    );
+    if not Crypt::Ed25519::verify( $packet_copy, decode_b64u($peer_pub),
+    decode_b64u($packet_sig) );
 
 <[base.log]>->( 1, "received [valid] packet payload [$payload_len bytes]" );
 

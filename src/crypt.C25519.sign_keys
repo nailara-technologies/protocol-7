@@ -63,11 +63,11 @@ if ( defined <crypt.C25519.root_key_url> ) {
         $sig_file_path .= ".$root_key_name" if length($root_key_name);
         <[file.put]>->(
             $sig_file_path,
-            encode_base64url(
+            encode_b64u(
                 Crypt::Ed25519::sign(
                     $key_b64u->{'pub'} . "\n",
-                    decode_base64url( $root_key{'pub'} ),
-                    decode_base64url( $root_key{'priv'} )
+                    decode_b64u( $root_key{'pub'} ),
+                    decode_b64u( $root_key{'priv'} )
                     )
                     . "\n"
             )

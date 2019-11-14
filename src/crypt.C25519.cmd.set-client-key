@@ -17,12 +17,12 @@ return {
     or length($key_str) != 43
     or $key_str !~ /^[a-z0-9\-_]+$/i;
 
-$session->{'client_key'} = decode_base64url($key_str);
+$session->{'client_key'} = decode_b64u($key_str);
 
 my $base_time   = <[base.time]>->(4);
 my $key_sig_str = <[crypt.C25519.sign_data]>->( \"$base_time$key_str" );
 
 return {
     'mode' => 'ack',
-    'data' => join( '|', $base_time, encode_base64url($key_sig_str) )
+    'data' => join( '|', $base_time, encode_b64u($key_sig_str) )
 };
