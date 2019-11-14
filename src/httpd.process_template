@@ -117,7 +117,7 @@ if ( !$cmd_count ) {    # request / content complete :
             my $keys_str = $1;
             map {
                 push( @key_vals,
-                    join( '=', $_, encode_base64url( $query{$_} ) ) )
+                    join( '=', $_, encode_b64u( $query{$_} ) ) )
                     if defined $query{$_}
                 }
                 split( /,/, $keys_str );
