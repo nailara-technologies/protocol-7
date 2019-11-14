@@ -4,13 +4,12 @@
 
 <crypt.C25519.initialized> //= 0;
 
-<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
-<[base.perlmod.load]>->(qw( MIME::Base64 encode_base64url decode_base64url ));
+<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b64u decode_b64u | );
+<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw| random_string_from | );
 
 <[base.perlmod.autoload]>->('Crypt::Ed25519');
 <[base.perlmod.autoload]>->('Crypt::Curve25519');
-
-<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw/random_string_from/ );
 
 <crypt.C25519.key_usr> //= <system.privs.user>;    # <- C25519 key path owner!
 
