@@ -11,7 +11,7 @@
 
 /* LLL: needs at least a timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/tmp/.n/s/ntHg_A"; /* ::todo:: calculate or look up.. */
+char * socket_path = "/tmp/.n/s/W7WHIAQ"; /* ::todo:: calculate or look up.. */
 
 int main( int argc, char * argv[] ) {
     fd_set readset;
