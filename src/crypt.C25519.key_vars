@@ -3,7 +3,8 @@
 # name = crypt.C25519.key_vars
 
 my $key_name = shift;
-my $key_usr  = <crypt.C25519.key_usr> // $ENV{'USER'} // getpwuid($>);
+my $cur_usr  = $ENV{'USER'} // getpwuid($>);
+my $key_usr  = <crypt.C25519.key_usr> // <system.privs.user> // $cur_usr;
 
 if ( defined $key_name ) {
     <crypt.C25519.base_key_name> = $key_name;
