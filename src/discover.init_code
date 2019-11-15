@@ -2,10 +2,11 @@
 
 # name = discover.init_code
 
-<[base.perlmod.load]>->( 'POSIX::1003::OS', qw/uname/ );
+<[base.perlmod.load]>->( 'POSIX::1003::OS', qw| uname | );
 <[base.perlmod.autoload]>->('Net::Ifconfig::Wrapper');
 
-<discover.crypt.key_user> //= <system.privs.user>; # <- owner of the C25519 key!
+<discover.crypt.key_user> //= <crypt.C25519.key_usr> // <system.privs.user>;
+<discover.crypt.key_name> = <[crypt.C25519.key_vars]>->{'key_name'};
 
 <discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
 
