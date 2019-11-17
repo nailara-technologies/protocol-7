@@ -29,9 +29,7 @@ if ( !$success or $@ ) {
     undef $@;
 }
 
-my $agent_cfg_path = "nailara.<system.agent.name>"; # <- older version of path..
-$agent_cfg_path = "agents/<system.agent.name>"
-    if !-e "<system.conf_path>/$agent_cfg_path";
+my $agent_cfg_path = <[base.get_path.agent_cfg]>->(<system.agent.name>);
 
 if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
     my $agent_name = <system.agent.name>;
