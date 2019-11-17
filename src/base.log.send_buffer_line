@@ -32,7 +32,7 @@ push( @send_line, $data{'buffer'}{$name}{'data'}[ $log_data->{'next_index'} ] );
 $log_data->{'complete'} = 0;
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
-        'call_args' => { 'args' => join( ' ', @send_line ) },
+        'call_args' => { 'args' => join( ' ', map { $_ // '' } @send_line ) },
         'reply'     => {
             'handler' => 'base.log.handler.log_reply',
             'params'  => { 'name' => $name }
