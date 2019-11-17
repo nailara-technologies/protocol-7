@@ -33,8 +33,7 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
     }
     my $size_str = $default_size;
     if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
-    $buffer_size = $data{'buffer'}{$name}{'max_size'}
-        = $default_size;
+    $buffer_size = $data{'buffer'}{$name}{'max_size'} = $default_size;
     if ($min_size_error) {
         <[base.log]>->(
             0,
@@ -49,7 +48,7 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
         <[base.log]>->(
             2,
             "[!] no '$name'-buffer size set,"
-                . " using default setting ($size_str)"
+                . " using default setting [$size_str]"
         );
     }
 }
@@ -57,7 +56,7 @@ if ( $message_len > $buffer_size ) {
     <[base.log]>->(
         0,
         "WARNING: log message longer than log-buffer-size"
-            . " (buffer: $buffer_size bytes message: $message_len bytes)"
+            . " [ buffer: $buffer_size bytes message: $message_len bytes ]"
     );
     return 0;
 }
