@@ -45,7 +45,7 @@ if ( !<compton.pid> ) {
 
 <[base.log]>->( 1, " : compton process spawned [PID=$pid]" );
 my $prio = <compton.priority>;
-<[base.log]>->( 1, "setting priority of compton child (PID $pid) to $prio" );
+<[base.log]>->( 2, "setting priority of compton child (PID $pid) to $prio" );
 print {<compton.renice_fh>} "$pid $prio\n";
 close(<compton.renice_fh>);
 delete <compton.renice_fh>;
