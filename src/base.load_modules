@@ -10,6 +10,9 @@ if ( not scalar @modules_to_load ) {
     <[base.log]>->( 0, 'base.load_modules: no source names specified' );
     return 1;
 }
+
+<[base.register_src_deps]>->(@modules_to_load);
+
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
 
 if ( not defined $subs_ok or !$subs_ok ) {

@@ -87,7 +87,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     push( @{<system.kill_list>}, $child_pid );
     my $prio = <ticker-sdl.renice_priority>;
     <[base.log]>->(
-        1, "setting priority of ticker child (PID $child_pid) to $prio"
+        2, "setting priority of ticker child (PID $child_pid) to $prio"
     );
     print {<ticker-sdl.child.renice_fh>} "$child_pid $prio\n";
     close(<ticker-sdl.child.renice_fh>);
