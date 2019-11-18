@@ -1,0 +1,30 @@
+# >:]
+
+# name = root.available_agents
+
+my @found_agents;
+my $skip_re  = qr/(~|\.orig)$/;   # skipping joe and meld backup files [invalid]
+my $acfg_dir = <system.acfg_path>;
+
+my $dir_fh;
+unless ( opendir( $dir_fh, $acfg_dir ) ) {
+    warn "$acfg_dir: $!";
+    return ();
+}
+
+foreach
+    my $agent_name ( sort { length($a) <=> length($b) } sort readdir($dir_fh) )
+{
+    next if $agent_name =~ /^\./ or $agent_name =~ /$skip_re/;
+    my $agent_cfg_file = "$acfg_dir/$agent_name";
+    $agent_cfg_file = "$acfg_dir/$agent_name/config" if -d $agent_cfg_file;
+    next if !-f $agent_cfg_file;
+
+    push( @found_agents, $agent_name );
+
+    my $agent_desc_str = <[root.extract_short_desc]>->($agent_cfg_file);
+    <root.agents.available>->{$agent_name}->{'short_desc'} = $agent_desc_str;
+}
+close($dir_fh);
+
+return @found_agents;
