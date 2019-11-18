@@ -1374,6 +1374,9 @@ sub files {
             ( $filename = "$path/$filename" ) =~ s|//|/|g;
             if ( $filename !~ /(\.bak|\.orig|\~)$/i ) {
                 chomp($filename);
+                $filename .= "/config"
+                    if -d $filename and -f "$filename/config";
+
                 push( @files, $filename );
             }
         }
