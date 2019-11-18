@@ -14,10 +14,17 @@ my $pubkey_file = "$key_basepath.pub";
 if ( -r $key_basepath and -r $pubkey_file ) {
     my $u_str = $key_name =~ /^$key_usr(?:\..+)$/ ? '' : " [usr:$key_usr]";
     <[base.log]>->( 1, ":. C25519-key .:. '$key_name'$u_str" );
-    $KEYS{'C25519'}{$key_name}{'priv'}
-        = decode_b64u( ${ <[file.slurp]>->($key_basepath) } );
-    $KEYS{'C25519'}{$key_name}{'pub'}
-        = decode_b64u( ${ <[file.slurp]>->($pubkey_file) } );
+    if ( $key_basepath =~ /\.C25519_b64u$/ ) {        # base64
+        $KEYS{'C25519'}{$key_name}{'priv'}
+            = decode_b64u( ${ <[file.slurp]>->($key_basepath) } );
+        $KEYS{'C25519'}{$key_name}{'pub'}
+            = decode_b64u( ${ <[file.slurp]>->($pubkey_file) } );
+    } elsif ( $key_basepath =~ /\.C25519_b32$/ ) {    # base32
+        $KEYS{'C25519'}{$key_name}{'priv'}
+            = decode_b32r( ${ <[file.slurp]>->($key_basepath) } );
+        $KEYS{'C25519'}{$key_name}{'pub'}
+            = decode_b32r( ${ <[file.slurp]>->($pubkey_file) } );
+    }
 } else {
     <[base.log]>->( 0, "unable to load '$key_name' key pair ..." );
 }
