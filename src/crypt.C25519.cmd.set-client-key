@@ -1,8 +1,8 @@
 # >:]
 
 # name  = crypt.C25519.cmd.set-client-key
-# param = <pub_key_b64u>
-# descr = set client C25519 public key [b64u encoded]
+# param = <pub_key_b32>
+# descr = set client C25519 public key [base32 encoded]
 
 my $params  = shift;
 my $key_str = $params->{'args'};
@@ -11,18 +11,18 @@ my $session = $data{'session'}{$sid};
 
 return {
     'mode' => 'nak',
-    'data' => "expected your [base64url encoded] C25519 public key!"
+    'data' => "expected your [ base32 encoded ] C25519 public key"
     }
     if not defined $key_str
     or length($key_str) != 43
     or $key_str !~ /^[a-z0-9\-_]+$/i;
 
-$session->{'client_key'} = decode_b64u($key_str);
+$session->{'client_key'} = decode_b32r($key_str);
 
 my $base_time   = <[base.time]>->(4);
 my $key_sig_str = <[crypt.C25519.sign_data]>->( \"$base_time$key_str" );
 
 return {
     'mode' => 'ack',
-    'data' => join( '|', $base_time, encode_b64u($key_sig_str) )
+    'data' => join( '|', $base_time, encode_b32r($key_sig_str) )
 };

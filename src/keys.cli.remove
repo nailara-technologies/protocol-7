@@ -17,13 +17,13 @@ my $key_usr = $key_vars->{'usr_name'};
 chomp( my $shred_bin = qx(which shred) // '' ); # <- optional +FS/disk dependent
 
 opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
-my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
+my @key_files = grep {/[^\.].*\.C25519_b32(\.pub)?$/} sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
 
 return warn "no key files found [$key_dir]" if !@key_files;
 
-my $match_re = qr/^(\Q$key_name\E\.C25519_b64u(\.pub)?)$/;
+my $match_re = qr/^(\Q$key_name\E\.C25519_b32(\.pub)?)$/;
 
 my $space_len = 0;
 my $key_found = 0;
