@@ -1,7 +1,7 @@
 # >:]
 
 # name  = crypt.C25519.cmd.public-key
-# descr = return default C25519 public key [b64u]
+# descr = return default C25519 public key [b32]
 
 my $key_name = <crypt.C25519.key_vars.key_name>;
 
@@ -13,5 +13,5 @@ return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
 return {
     'mode' => 'ack',
     'data' => sprintf( "[%s] %s",
-        $key_name, encode_b64u( $KEYS{'C25519'}{$key_name}{'pub'} ) )
+        $key_name, encode_b32r( $KEYS{'C25519'}{$key_name}{'pub'} ) )
 };

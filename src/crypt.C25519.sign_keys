@@ -10,15 +10,14 @@ my $key_usr      = $key_vars->{'usr_name'};
 my $key_name     = $key_vars->{'key_name'};
 my $key_basepath = $key_vars->{'key_basepath'};
 
-my $key_b64u = $KEYS{'C25519'}{$key_name};
+my $key_bin = $KEYS{'C25519'}{$key_name};
 
 if ( defined <crypt.C25519.root_key_url> ) {
     my $root_key_name;
     my %root_key = ( 'priv' => '', 'pub' => '' );
 
     ## DOWNLOAD IF URL ## ( todo : implement local file case )
-    if ( <crypt.C25519.root_key_url> =~ m{^https?://.+/C25519_b64u(\.(.+))?$} )
-    {
+    if ( <crypt.C25519.root_key_url> =~ m{^https?://.+/C25519_b32(\.(.+))?$} ) {
         $root_key_name = $2 // '';
         my %root_key_url;
         $root_key_url{'priv'} = <crypt.C25519.root_key_url>;
@@ -63,11 +62,11 @@ if ( defined <crypt.C25519.root_key_url> ) {
         $sig_file_path .= ".$root_key_name" if length($root_key_name);
         <[file.put]>->(
             $sig_file_path,
-            encode_b64u(
+            encode_b32r(
                 Crypt::Ed25519::sign(
-                    $key_b64u->{'pub'} . "\n",
-                    decode_b64u( $root_key{'pub'} ),
-                    decode_b64u( $root_key{'priv'} )
+                    $key_bin->{'pub'} . "\n",
+                    decode_b32r( $root_key{'pub'} ),
+                    decode_b32r( $root_key{'priv'} )
                     )
                     . "\n"
             )
