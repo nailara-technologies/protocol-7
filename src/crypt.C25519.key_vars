@@ -14,7 +14,7 @@ if ( defined $key_name ) {
 my $home_dir = <crypt.C25519.key_usr_home> //= <[base.get_homedir]>->($key_usr);
 my $key_dir  = <crypt.C25519.key_dir>      //= "$home_dir/.n/user-keys";
 
-my $key_basepath = "$key_dir/$key_name.C25519_b64u";
+my $key_basepath = "$key_dir/$key_name.C25519_b32";
 
 ( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 

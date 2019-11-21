@@ -10,7 +10,7 @@ my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
 
 opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
-my @key_files = grep {/[^\.].*\.C25519_b64u(\.pub)?$/} sort readdir($dir_fh)
+my @key_files = grep {/[^\.].*\.C25519_b32(\.pub)?$/} sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
 
@@ -20,7 +20,7 @@ my %key_names;
 my $max_nlen = 0;
 
 map {
-    $key_names{$_} = "'$1'" if $_ =~ /^(.+)\.C25519_b64u(\.pub)?$/;
+    $key_names{$_} = "'$1'" if $_ =~ /^(.+)\.C25519_b32(\.pub)?$/;
     my $l = length( $key_names{$_} );
     $key_names{$_} =~ s|.| |g if defined $2;
     $max_nlen = $l if $l > $max_nlen
