@@ -1,0 +1,23 @@
+# >:]
+
+# name = base.register_bin_deps
+
+my %binaries = map { $_ => 1 } @_;
+my $agent    = <system.agent.name>;
+my $cfg_path = <system.conf_path>;
+
+my $bin_deps = <[base.get_path.agent_cfg]>;
+
+if ( $bin_deps =~ s|agents/$agent/config$|$cfg_path/agents/$agent/os-dep/binary|
+    and -d $bin_deps
+    and -w $bin_deps ) {
+    foreach my $bin_name ( sort keys %binaries ) {
+        next if -e "$bin_deps/$bin_name";
+        my $fh;
+        open( $fh, '>', "$bin_deps/$bin_name" ) and close($fh);
+    }
+} elsif ( -d $bin_deps ) {
+    <[base.log]>->(
+        0, "can not register binary dependency [ os-dep dir readonly ]"
+    );
+}

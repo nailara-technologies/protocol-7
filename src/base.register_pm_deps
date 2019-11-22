@@ -8,7 +8,7 @@ my $cfg_path = <system.conf_path>;
 
 my $mod_dir = <[base.get_path.agent_cfg]>;
 
-if (    $mod_dir =~ s|(agents/$agent)/config|$cfg_path/$1/pm-dep|
+if (    $mod_dir =~ s|agents/$agent/config|$cfg_path/$agent/pm-dep|
     and -d $mod_dir
     and -w $mod_dir ) {
     foreach my $mod_name ( sort keys %pmods ) {
