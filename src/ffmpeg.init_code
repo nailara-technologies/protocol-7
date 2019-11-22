@@ -7,20 +7,14 @@
 <ffmpeg.threads>    //= 1;
 <ffmpeg.drop_audio> //= 0;
 
-<ffmpeg.path.ffmpeg_bin>  //= '/usr/bin/ffmpeg';
-<ffmpeg.path.ffprobe_bin> //= '/usr/bin/ffprobe';
+<ffmpeg.path.ffmpeg_bin>  //= <[base.required_bin_path]>->('ffmpeg');
+<ffmpeg.path.ffprobe_bin> //= <[base.required_bin_path]>->('ffprobe');
 
-chomp( <ffmpeg.path.ffmpeg_bin> = qx(which ffmpeg) )
-    if !-x <ffmpeg.path.ffmpeg_bin>;
-if ( !length(<ffmpeg.path.ffmpeg_bin>) ) {
-    <[base.log]>->( 0, "[!] 'ffmpeg' binary not found, shutting down..." );
-    exit(2);
-}
-chomp( <ffmpeg.path.ffprobe_bin> = qx(which ffprobe) )
-    if !-x <ffmpeg.path.ffprobe_bin>;
-if ( !length(<ffmpeg.path.ffprobe_bin>) ) {
-    <[base.log]>->( 0, "[!] 'ffprobe' binary not found, shutting down..." );
-    exit(2);
+foreach my $bin_name (qw| ffmpeg ffprobe |) {
+    my $bin_path = <ffmpeg.path>->{"${bin_name}_bin"};
+    <[base.log]>->( 0, "[!] '$bin_name' binary not found, shutting down..." )
+        and exit(2)
+        if !-x $bin_path;
 }
 
 0;
