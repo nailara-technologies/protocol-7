@@ -7,6 +7,8 @@ my $noop = ( defined $_[1] and $_[1] eq 'noop' ) ? 1 : 0;
 
 my $usr = shift;
 
+<[base.check_dependency_dirs]>->($usr);
+
 if ( !length( $usr // '' ) ) {
     <[base.log]>->( 0, 'can not change priviledges [no username supplied]' );
     return -1;
@@ -23,7 +25,7 @@ if ( !length( $usr // '' ) ) {
         and exists $_gid{$gid}
         and exists $egid{$gid}    # LLL: fix (secondary groups)!
         and $> == $uid and $< == $uid
-        ) {
+    ) {
         <[base.log]>->( 1, "set_privs: already am '$usr', doing nothing." );
         return -2;
     } elsif ($<) {
