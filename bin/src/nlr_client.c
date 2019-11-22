@@ -11,7 +11,18 @@
 
 /* LLL: needs at least a timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/tmp/.n/s/W7WHIAQ"; /* ::todo:: calculate or look up.. */
+char * socket_path = "/tmp/.n/s/W7WHIAQ"; /* or ENV{'NAILARA_SOCKET'} */
+
+char* concat(const char *s1, const char *s2)
+{
+    const size_t len1 = strlen(s1);
+    const size_t len2 = strlen(s2);
+    char *result = malloc(len1 + len2 + 1); // +1 for the null-terminator
+    // in real code you would check for errors in malloc here
+    memcpy(result, s1, len1);
+    memcpy(result + len1, s2, len2 + 1); // +1 to copy the null-terminator
+    return result;
+}
 
 int main( int argc, char * argv[] ) {
     fd_set readset;
@@ -20,7 +31,17 @@ int main( int argc, char * argv[] ) {
     struct sockaddr_un addr;
     int errno, socket_fd, result;
 
-    char * auth_usr = secure_getenv("USER");
+    char * nailara_socket  = secure_getenv("NAILARA_SOCKET");
+    char * unix_user       = secure_getenv("USER");
+
+    if ( unix_user == NULL ) {
+        strncpy( "root", unix_user, 4 );
+    }
+    if ( nailara_socket != NULL ) {
+        socket_path = nailara_socket;
+    }
+
+    char * auth_user = concat("unix-",unix_user);
     const char close_cmd [] = "close\n";
 
     if ( argc < 2 ) {
@@ -29,18 +50,11 @@ int main( int argc, char * argv[] ) {
         exit(1);
     }
 
-    if ( auth_usr == NULL ) {
-        fprintf( stderr, "{!} %s!",
-            "expected environment variable USER is not set\n" );
-        exit(1);
-    }
-
     // debug:
-    // printf( " account user [%s]\n", auth_usr );
+    // printf(": unix_user = %s\n: auth_user = %s\n", unix_user, auth_user);
 
     /* prepare authentication */
-    asprintf(&auth_str, "select unix\nauth %s\n", auth_usr);
-    // asprintf(&auth_str, "select unix\nauth %s\n", auth_usr);
+    asprintf(&auth_str, "select unix\nauth %s\n", auth_user);
 
     /* prepare command string */
     int i;
@@ -76,6 +90,7 @@ int main( int argc, char * argv[] ) {
 
     /* authenticate to nailara core */
     write( socket_fd, auth_str, strlen(auth_str) );
+    free(auth_user);
     int match = 0;
     char byte = ' ';
     while ( match < 2 ) {
