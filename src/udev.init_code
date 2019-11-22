@@ -4,8 +4,8 @@
 
 <udev.rules> //= {};
 
-chomp( <udev.path.udevadm>  = qx(which udevadm) );
-chomp( <udev.path.unbuffer> = qx(which unbuffer) );
+<udev.path.udevadm>  = <[base.required_bin_path]>->('udevadm');
+<udev.path.unbuffer> = <[base.required_bin_path]>->('unbuffer');
 
 die "'udevadm' command not found!\n" if not defined <udev.path.udevadm>;
 die "'unbuffer' command not found (install 'expect' package)!\n"
