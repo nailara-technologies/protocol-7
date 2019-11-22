@@ -1,0 +1,14 @@
+# >:]
+
+# name = base.required_bin_path
+
+my $bin_name = shift // '';
+warn "expected bin_name parameter" if !length($bin_name);
+
+<[base.register_bin_deps]>->($bin_name);
+
+( my $bin_path ) = <[file.which]>->($bin_name);
+
+<[base.log]>->( 0, "binary '$bin_name' not found" ) if not defined $bin_path;
+
+return $bin_path;
