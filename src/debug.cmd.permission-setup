@@ -1,0 +1,64 @@
+# >:]
+
+# name  = debug.cmd.permission-setup
+# descr = return formatted access config section
+# param = [name_pattern]
+
+my $param_str = $$call{'args'} // '';
+my $reply_str = '';
+
+my $param_re = qr|$param_str|i;
+
+if ( length($param_str) ) {
+    $reply_str .= "\n#\n# ";
+    $reply_str .= ' ' x 7;
+    $reply_str .= ".: access permission setup"
+        . " matching '$param_str' pattern :.\n#\n";
+}
+
+my $cmd_len = 0;
+map {
+    $cmd_len = length($_)
+        if length($_) > $cmd_len
+        and ( $_ =~ /$param_re/
+        or <access.cmd.usr>->{$_} =~ /$param_re/ )
+    }
+    keys %{<access.cmd.usr>};
+$cmd_len += 15;
+my $max_width   = 77;
+my $match_count = 0;
+
+foreach
+    my $usr ( sort { length $a <=> length $b } sort keys %{<access.cmd.usr>} ) {
+    next if $usr !~ /$param_re/ and <access.cmd.usr>->{$usr} !~ /$param_re/;
+    $match_count++;
+    my @perms = sort { length $a <=> length $b } sort split / +/,
+        <access.cmd.usr>->{$usr};
+
+    my $new_line  = sprintf( "\n  %${cmd_len}s  =  ", "access.cmd.usr.$usr" );
+    my $first_len = length($new_line) - 1;
+    my $subtract  = 0;
+    while ( my $next_item = shift @perms ) {
+        if (length($new_line) - $subtract + length($next_item) + 2
+            > $max_width ) {
+            $new_line .= " \\\n";
+            $new_line .= ' ' x $first_len;
+            $subtract = length($new_line) - $first_len;
+            $new_line .= $next_item;
+
+            # $new_line .= " [$subtract]";
+        } else {
+            $new_line .= ' ' if length($new_line) > $first_len + 1;
+            $new_line .= $next_item;
+
+            # $new_line .= " [$subtract]";
+        }
+    }
+    $reply_str .= "$new_line\n";
+}
+$reply_str .= "\n";
+
+return { 'mode' => 'nak', 'data' => "no match for '$param_str' pattern" }
+    if !$match_count;
+
+return { 'mode' => 'data', 'data' => $reply_str }
