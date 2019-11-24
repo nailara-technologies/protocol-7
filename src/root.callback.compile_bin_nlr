@@ -29,5 +29,5 @@ if ( !-f $bin_path ) {
     system( $gcc_bin, '-o', $bin_path, $src_path );  # LLL: add error handling..
     <[file.put]>->( $sha1_file, <[digest.sha.file_hex]>->($src_path) . "\n" );
 } else {
-    <[base.log]>->( 2, "'$bin_path' is up to date, nothing to do here..." );
+    <[base.log]>->( 2, "'$bin_path' version is current, update skipped" );
 }
