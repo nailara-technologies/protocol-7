@@ -3,12 +3,12 @@
 # name = udev.load_rules
 
 my @rule_files;
-my $rulefile_name = shift;
+my $setup_name = shift;
 
-<[base.log]>->( 1, "loading udev rules.." );
+<[base.log]>->( 1, "..loading udev rule setup files..," );
 
-if ( defined $rulefile_name ) {
-    @rule_files = "config.udev_rules.$rulefile_name";
+if ( defined $setup_name ) {
+    @rule_files = "agents/udev/rule-setup.$setup_name";
 } else {
     my $dir_fh;
     <[base.log]>->( 1, "no specific rule file configured, loading all..." );
@@ -18,7 +18,7 @@ if ( defined $rulefile_name ) {
     closedir($dir_fh);
 }
 
-return <[base.log]>->( 0, "found no rules file to load!" ) if !@rule_files;
+return <[base.log]>->( 0, "found no rules file to load" ) if !@rule_files;
 
 foreach my $file (@rule_files) {
     <[base.log]>->( 1, ": '$file'" );
