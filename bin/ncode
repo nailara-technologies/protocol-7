@@ -1374,10 +1374,15 @@ sub files {
             ( $filename = "$path/$filename" ) =~ s|//|/|g;
             if ( $filename !~ /(\.bak|\.orig|\~)$/i ) {
                 chomp($filename);
+
+                ## cfg/agents/*/config ##
                 $filename .= "/config"
                     if -d $filename and -f "$filename/config";
-
                 push( @files, $filename );
+
+                ## cfg/agents/*/access ##
+                push( @files, $filename )
+                    if $filename =~ s|/config$|/access| and -f $filename;
             }
         }
         closedir($dir_fh);
