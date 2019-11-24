@@ -2,12 +2,15 @@
 
 # name = ssh.load_config
 
-my $config_name = shift || <ssh.config_name>;
+my $config_name = shift // <ssh.config_name>;
 die "no ssh config name supplied or configured"
     if not defined $config_name or !length($config_name);
-my $config_filename = "config.ssh.$config_name";
+
+my $config_filename = "agents/ssh/link-setup.$config_name";
+
 my $config_file_path = join( '/', <system.conf_path>, $config_filename );
-die "ssh config '$config_name' not found!\n" if !-f $config_file_path;
+die "ssh config '$config_name' not found in agents/ssh/...\n"
+    if !-f $config_file_path;
 
 <[base.log]>->( 1, "loading ssh profile configuration '$config_name'" );
 my $config_data = <[base.load_section_config]>->($config_filename);
