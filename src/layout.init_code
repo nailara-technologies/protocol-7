@@ -64,13 +64,14 @@ goto skip_load if defined <layout.config.layouts>;
 ## loading layout configuration ##
 
 my $config_name     = <layout.config_name>;
+my $cfg_root_path   = <system.conf_path>;
 my $config_filename = "agents/layout/layout-setup.$config_name";
 my $config_file_path;
 $config_file_path = <layout.import_path> if defined <layout.import_path>;
 $config_file_path //= <system.conf_path>;
 $config_file_path .= "/$config_filename";
 
-die "layout config file '$config_filename' not found!"
+die "<!> layout setup '$config_file_path' not found <!>"
     if !-f $config_file_path;
 
 <[base.log]>->( 1, "<!> loading layout configuration '$config_name' <!>" );
@@ -78,7 +79,20 @@ die "layout config file '$config_filename' not found!"
 <[file.put]>->(
     <layout.hash_file>, <[digest.sha.file_hex]>->($config_file_path) . "\n"
 );
-<layout.config> = <[base.load_section_config]>->($config_filename);
+{
+    local <system.conf_path> = "$cfg_root_path/agents/" . <system.agent.name>;
+    <layout.config> = <[base.load_section_config]>->($config_filename);
+}
+
+<[base.log]>->( 0, "<!> layout loading not successful [ no data ] <!>" )
+    if !keys %{<layout.config>};
+
+<[base.log]>->( 0, "<!> layout loading not successful [ empty layout ] <!>" )
+    if keys %{<layout.config>}
+    and defined <layout.config.layouts>
+    and not keys %{<layout.config.layouts>};
+
+# use Data::Dumper 'Dumper'; print Dumper(<layout.config>);
 
 skip_load:    # <- jumping here if layout has already been imported as json!
 
@@ -99,7 +113,7 @@ if ( -f $default_cfg ) {
 }
 
 if ( <layout.restore_layout_enabled> and -f $current_cfg ) {
-    <[base.log]>->( 1, "loading 'layout.current' config..." );
+    <[base.log]>->( 1, "loading 'layout.current' file ..." );
     my $cfg_content = ${ <[file.slurp]>->($current_cfg) };
     if ( $cfg_content =~ /^(\d+(\.\d+)?) +([^\n]+)\n$/s ) {
         ( my $t_stamp, my $layout_name ) = ( $1, $3 );

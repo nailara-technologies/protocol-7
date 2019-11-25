@@ -144,7 +144,7 @@ map {
                 my $h_w       = sprintf( "%.0f", <x11.screen.width> / 2 );
                 my $h_h       = sprintf( "%.0f", <x11.screen.height> / 2 );
                 $pos_match{$border_name} = 1
-                    if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
+                    if ( $border_name eq 'top'    and $coord_val < $h_h * 0.8 )
                     or ( $border_name eq 'left'   and $coord_val < $h_w * 0.8 )
                     or ( $border_name eq 'right'  and $coord_val > $h_w * 1.2 )
                     or ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
@@ -174,13 +174,25 @@ map {
 };
 
 if ( defined <layout.tiles_visible_file> ) {
-    <[base.log]>->(
-        1, sprintf( ":. writing to '%s'..", <layout.tiles_visible_file> )
-    );
-    <[file.put]>->(
-        <layout.tiles_visible_file>,
-        join( ', ', sort keys %{<layout.tiles>} ) . "\n"
-    );
+    ( my $parent_dir = <layout.tiles_visible_file> ) =~ s|/([^/]*)$||;
+    my $file_name = $1;
+    if ( !length($parent_dir)
+        or -d $parent_dir ) {
+        <[base.log]>->(
+            1, sprintf( ":. writing to '%s'..", <layout.tiles_visible_file> )
+        );
+        <[file.put]>->(
+            <layout.tiles_visible_file>,
+            join( ', ', sort keys %{<layout.tiles>} ) . "\n"
+        );
+    } else {
+        <[base.log]>->(
+            0, "<!> '$parent_dir' not found <!>"
+        );
+        <[base.log]>->(
+            1, " : not creating '$file_name'"
+        );
+    }
 }
 
 # (if enabled) monitor tile activity [by average color] restart agent on timeout
