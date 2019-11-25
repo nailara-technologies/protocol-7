@@ -57,6 +57,8 @@ return
     and defined $instance->{'status'}
     and $instance->{'status'} eq $status;
 
+<root.agent.instance>->{$instance_id}->{'status-since'} = <[base.ntime]>->(3);
+
 $instance->{'ping'} //= {};
 $instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping error
 
