@@ -10,7 +10,9 @@ my $arg = $$call{'args'};
 my $id  = $$call{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
-<base.reload.unload_debog_mod> //= 1;    # <- overridden in ./cfg/defaults
+
+<base.debug.keep_on_reload> //= 0;    # <- [persistence] override : cfg/defaults
+
 my $keyword_match = 0;
 
 $$reply{'data'} = '';
@@ -39,12 +41,20 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] < reload source code >" );
 
-    if (<base.reload.unload_debog_mod>) {
+    if ( !<base.debug.keep_on_reload> ) {
         <[base.log]>->( 0, "[reload] .. removing debug module .." )
             if ref( $code{'debug.dump'} ) eq 'CODE';
 
         # todo: create src tracking unload mechanism
         <[base.purge_code]>->('debug');
+    } else {
+        my %mod = map { $_ => 1 } split / +/, <modules.load>; # <!> create iface
+        if ( not exists $mod{'debug'} ) {
+            <[base.log]>->( 1, "<!> persistently enabling debug module <!>" );
+            $mod{'debug'} = 1;
+            <modules.load>
+                = join( ' ', sort { length $a <=> length $b } sort keys %mod );
+        }
     }
 
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
