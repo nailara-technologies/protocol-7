@@ -10,7 +10,10 @@ my $agent_subname;
 my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
-return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
+return {
+    'mode' => 'nak',
+    'data' => 'expected agent name or instance parameter'
+    }
     if not defined $query_param or !length($query_param);
 
 my $query_copy = $query_param;
@@ -43,7 +46,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
             and (  not defined $agent_subname
                 or not defined <root.agent.instance>->{$id}->{'subname'}
                 or <root.agent.instance>->{$id}->{'subname'} eq $agent_subname )
-            ) {
+        ) {
             $found = 1;
             last;
         }
