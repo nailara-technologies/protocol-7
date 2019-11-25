@@ -5,8 +5,17 @@
 
 my $id = $$call{'session_id'};
 
+<base.debug.keep_on_reload> = 0;
+
 return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
+
+my %mod = map { $_ => 1 } split / +/, <modules.load>;    # LLL: <!> create iface
+if ( delete $mod{'debug'} ) {
+    <[base.log]>->( 1, "<!> persistently disabling debug module <!>" );
+    <modules.load>
+        = join( ' ', sort { length $a <=> length $b } sort keys %mod );
+}
 
 <[base.log]>->( 0, "[$id] unloading debug source code ..," );
 
