@@ -6,8 +6,10 @@ my $cfg_name = <openbox.config_name>;
 
 $ENV{'DISPLAY'} = <x11.display>;
 
+my $openbox_rc_path = <system.conf_path> . '/agents/' . <system.agent.name>;
+
 <[base.log]>->( 1, "starting openbox with $cfg_name-config..." );
-my $cfg_path = <system.conf_path> . '/openbox.' . $cfg_name . '.xml';
+my $cfg_path = $openbox_rc_path . '/openbox.' . $cfg_name . '.xml';
 if ( !-f $cfg_path ) {
     <[base.log]>->( 0, "openbox config file '$cfg_path' not found!" );
     <[base.log]>->( 1, " : aborting agent startup .." );
@@ -48,13 +50,10 @@ if ( -f <openbox.log_file> ) {
     {   'fd'      => $out_fh,
         'handler' => 'base.handler.child_output.simple',
         'data'    => {
-            'bin'           => 'openbox',
-            'pid'           => <child.openbox.pid>,
-            'log_whitelist' => [
-                'Xinerama',
-                'XIO:  fatal IO error ',
-                'after \d+ requests'
-            ]
+            'bin' => 'openbox',
+            'pid' => <child.openbox.pid>,
+            'log_whitelist' =>
+                [ 'Xinerama', 'XIO:  fatal IO error ', 'after \d+ requests' ]
         }
     }
 );
