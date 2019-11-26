@@ -11,7 +11,7 @@ my $work_dir   = '/usr/src/openbox';
 my $target_bin = "/usr/local/bin/openbox";
 my $git_url    = 'git://git.openbox.org/mikachu/openbox.git';
 ( my $patch_file = $exec_name )
-    =~ s|^(.+)(\/[^\/]+){3}|$1/cfg/openbox.fullscreen_fix.patch|;
+    =~ s|^(.+)(\/[^\/]+){3}|$1/cfg/agents/openbox/openbox.fullscreen_fix.patch|;
 die "\n[!] openbox patch file not found at '$patch_file'\n    aborting ...\n\n"
     if !-f $patch_file;
 
