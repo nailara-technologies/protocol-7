@@ -1,0 +1,45 @@
+# >:]
+
+# name = system.pre_init
+
+my $uname = <system.privs.user>;
+my $dmode = 0750;
+my ( undef, undef, $uid, $gid ) = getpwnam($uname);
+
+my @cfg_paths = qw|
+    /etc/nailara
+    /var/run/nailara
+    /var/cache/nailara
+    |;
+
+my $sub_dir = <system.agent.name>;
+
+<[base.log]>->( 1, 'checking configuration paths..' );
+
+map { <[file.make_path]>->( "$_/$sub_dir", $dmode ) if !-d "$_/$sub_dir" }
+    @cfg_paths;
+
+map { <[file.all_dirs]>->( $_, <system.startup.chk_paths> //= \@cfg_paths ) }
+    @cfg_paths;
+
+foreach my $check_dir ( @{<system.startup.chk_paths>} ) {
+    <[base.log]>->( 2, ": owner : '$check_dir'" );
+    my @dirstat = stat $check_dir;
+    if ( !-w $check_dir ) {
+        <[base.log]>->( 0, ": <!> no write permissions on '$check_dir' <!>" );
+        next;
+    } elsif ( $dirstat[4] != $uid or $dirstat[5] != $gid ) {
+        <[base.log]>->( 1, ": changing ownership [$uname] : '$check_dir'" );
+        chown( $uid, $gid, $check_dir ) or warn "$check_dir: $!";
+    }
+    my $cur_mode = sprintf "%04o", $dirstat[2] & 07777;
+    if ( $cur_mode != sprintf "%04o", $dmode ) {
+        <[base.log]>->(
+            1, sprintf ": changing mode [%04o] : '%s'",
+            $dmode, $check_dir
+        );
+        chmod( $dmode, $check_dir ) or warn "$check_dir: $!";
+    }
+}
+
+0;
