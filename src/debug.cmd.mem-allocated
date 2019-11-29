@@ -1,0 +1,18 @@
+# >:]
+
+# name  = debug.cmd.mem-allocated
+# descr = show how many bytes were allocated: eat-mem
+
+my $bytes;
+$bytes = length(<debug.eaten_memory>) if defined <debug.eaten_memory>;
+
+return { 'mode' => 'nak', 'data' => 'none was allocated' }
+    if not defined <debug.eaten_memory> or !length(<debug.eaten_memory>);
+
+return {
+    'mode' => 'ack',
+    'data' => sprintf(
+        "bytes held in memory allocation : %d [%s]",
+        $bytes, <[base.parser.size_str]>->($bytes)
+    )
+};
