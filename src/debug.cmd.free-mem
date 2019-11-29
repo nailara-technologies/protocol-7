@@ -1,0 +1,15 @@
+# >:]
+
+# name  = debug.cmd.free-mem
+# descr = return allocated bytes to agent memory pool
+
+return { 'mode' => 'nak', 'data' => 'none was allocated' }
+    if not defined <debug.eaten_memory> or !length(<debug.eaten_memory>);
+
+my $bytes_returned = length(<debug.eaten_memory>);
+undef <debug.eaten_memory>;
+
+return {
+    'mode' => 'ack',
+    'data' => "returned $bytes_returned to agent memory pool"
+};
