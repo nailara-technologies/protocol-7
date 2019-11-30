@@ -1,0 +1,18 @@
+
+ .:[ nailara 'nodes' agent ]:.
+
+[load_config_file:'defaults']
+
+modules.load = auth net io.ip nodes
+access.cmd.usr.core = help ping reload verify-instance *-version source-age \
+                      list add-trunc get set dump show-buffer clear-buffer
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:'nailara']
+
+[net.connect_to_core:'tcp/ip']
+[base.get_session_id]
+
+[event.loop]
