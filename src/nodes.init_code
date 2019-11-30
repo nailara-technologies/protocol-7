@@ -2,14 +2,14 @@
 <[base.perlmod.autoload]>->('Net::IP::Lite');
 <[base.perlmod.autoload]>->('IO::Socket::IP');
 
-<link.nodes> //= {};
+<nodes.trunc> //= {};
 
-<list.nodes> = {
+<list.truncs> = {
     'var'      => 'data',
-    'key'      => 'link.nodes',
+    'key'      => 'nodes.trunc',
     'sort_key' => 'alpha_len:name',
     'descr'    => 'nailara node setup',
-    'mask'     => 'name:node addr:node_address pkey:public_key',
+    'mask'     => 'name:trunc_node addr:node_address pkey:public_key',
     'align'    => {
         'name' => 'right-2',
         'addr' => 'left',
@@ -17,14 +17,14 @@
     },
     'filters' => {
 
-        #        'status'      => 'link.parser.connection_status',
-        #        'target_node' => 'link.parser.connection_target',
+        #        'status'      => 'nodes.parser.connection_status',
+        #        'target_node' => 'nodes.parser.connection_target',
     }
 };
 
 <[base.list.init]>->(
-    {   'name'         => 'nodes',
-        'key_ref'      => \$data{'link'}{'nodes'},
+    {   'name'         => 'truncs',
+        'key_ref'      => \$data{'nodes'}{'trunc'},
         'max_elements' => 4097
     }
 );
