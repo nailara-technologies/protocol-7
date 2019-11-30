@@ -1,10 +1,10 @@
 # >:]
 
-# name  = link.cmd.add-node
-# descr = add a nailara link node
+# name  = nodes.cmd.add-trunc
+# descr = add a nailara node and route
 # param = <name> <addr> <pkey>
 
-<link.setup> //= {};
+<nodes.setup> //= {};
 my @params = split( / +/, $$call{'args'} // '' );
 
 return {
@@ -20,10 +20,10 @@ my $pkey = shift @params;
 
 $err_msg = "not a valid node name" if $name !~ <regex.base.usr>;
 
-foreach my $id ( keys %{<link.nodes>} ) {
+foreach my $id ( keys %{<nodes.trunc>} ) {
     last if defined $err_msg;
     $err_msg = "link '$name' already exists"
-        if <link.nodes>->{$id}->{'name'} eq $name;
+        if <nodes.trunc>->{$id}->{'name'} eq $name;
 }
 
 $err_msg = "specified IP address is not valid"
