@@ -3,9 +3,9 @@
 # name   = base.cmd.clear
 # descr  = return ansi sequence to clear screen
 
-my @smileys    = qw| (= /o\ >:] \o/ [:< (. >:P' oO ^^ '\o o/ /o/ |;
+my @smileys    = qw| =) \o/ >=P' >:] |;
 my $chosen_one = int( rand(@smileys) );
 $reply = {
     'mode' => 'data',
-    'data' => $ANSI{'cls'} . $smileys[$chosen_one] . "\n\n"
+    'data' => sprintf( "%s%3s\n\n", $ANSI{'cls'}, $smileys[$chosen_one] )
 };
