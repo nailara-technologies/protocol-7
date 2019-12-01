@@ -4,12 +4,12 @@ use FindBin;
 use Crypt::Digest::SHA1 qw( sha1_hex );
 use Term::ReadPassword;
 
-$pwname = $ARGV[0] || 'core';
+$aname = $ARGV[0] // 'core';
 
 $DATA{'conf'}{'root'} = $FindBin::Bin;
 $DATA{'conf'}{'root'} =~ s/\/bin$//;
 $DATA{'conf'}{'file'}
-    = $DATA{'conf'}{'root'} . '/cfg/auth.setup.' . $pwname;
+    = $DATA{'conf'}{'root'} . "/cfg/agents/$aname/core-auth";
 
 print "\n ::[ nailara.core user generator ]\n ::\n";
 
