@@ -1,11 +1,12 @@
 # >:]
 
-# name       = auth.pwd.ok
+# name  = auth.pwd.ok
 
 return 0 if $_[0] eq "" or $_[1] eq "";
 
 my $key_ref = <[base.resolve_key]>->( 'auth.setup.usr.' . $_[0] );
-if ( ref($key_ref) eq 'SCALAR' and ${$key_ref} eq <[digest.sha.1]>->( $_[1] ) ) {
+if ( ref($key_ref) eq 'SCALAR' and ${$key_ref} eq <[digest.sha.1]>->( $_[1] ) )
+{
     return 1;
 } else {
     return 0;
