@@ -1,0 +1,45 @@
+# >:]
+
+# name  = root.agent.cmd.debug-enable
+# param = [instance]
+# descr = notify agent [instance] to load debug module
+
+my $instance_id = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => "instance id parameter expected"
+    }
+    if not defined $instance_id or $instance_id !~ /^\d+$/;
+
+return {
+    'mode' => 'nak',
+    'data' => "instance not found [ use 'root.list' to see IDs ]"
+    }
+    if not exists <root.agent.instance>->{$instance_id};
+
+my $agent_name = <root.agent.instance>->{$instance_id}->{'agent_name'};
+my $agent_pid
+    = <root.agent.instance>->{$instance_id}->{'process'}{'id'};
+
+my $count = kill( 5, $agent_pid );
+
+<[base.log]>->(
+    0,
+    "[ debug-enable ] notifying instance"
+        . " $instance_id < '$agent_name' agent >"
+);
+
+return {
+    'mode' => 'ack',
+    'data' => "sent SIGTRAP to instance $instance_id,"
+        . " process $agent_pid [ loads dbg mod ]"
+    }
+    if $count;
+
+## else ##
+
+return {
+    'mode' => 'nak',
+    'data' => "no success sending a signal to process [PID:$agent_pid]"
+};
