@@ -6,7 +6,14 @@ buffer.agent.log_cmd = log.msg
 [load_config_file:'defaults']
 
 access.cmd.usr.core = help ping reload verify-instance list show-buffer \
-                      top cpu_load mem_used reload_gfx_module pid_autokill
+                      top cpu_load mem_used reload_gfx_module pid_autokill \
+                      cur-pid \
+                      keep-debug-loaded dump get set
+
+system.cleanup_on_startup = 1  # [ .., perform cleanup tasks from list in ]
+                               # [ ./cfg/agents/system/cleanup-on-upgrade ]
+
+#[ configuring thresholds ]
 
 process.top_min.mem = 1 # %
 process.top_min.cpu = 1 # %
