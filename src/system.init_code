@@ -1,0 +1,12 @@
+# >:]
+
+# name = system.init_code
+
+<[base.perlmod.load]>->( 'File::Path', qw| remove_tree | );
+
+<system.cleanup_on_startup> //= 1;
+
+<system.path.cleanup_files> //= sprintf( "%s/agents/%s/cleanup-on-upgrade",
+    <system.conf_path>, <system.agent.name> );
+
+0;
