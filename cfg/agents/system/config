@@ -1,11 +1,11 @@
 
-  .:[ 'system' monitor and watchdog agent ]:.
+  .:[ 'system' monitor and utility agent ]:.
 
 buffer.agent.log_cmd = log.msg
 
 [load_config_file:'defaults']
 
-access.cmd.usr.core = help ping reload verify-instance list show-buffer \
+access.cmd.usr.core = help ping name reload verify-instance list show-buffer \
                       top cpu_load mem_used reload_gfx_module pid_autokill \
                       cur-pid \
                       keep-debug-loaded dump get set
@@ -24,9 +24,9 @@ mem.max_used = 95 # %
 mem.autokill = 1 # whether to kill process w. most used memory on max_used limit
 mem.kill_min = 11 # % (memory usage before mem-alert based auto-kill is allowed)
 
-## custom process rules example
-#process.limits.httpd.max_mem = 7.5 # [%]
-#process.limits.httpd.seconds = 15  # [s] duration of condition
+## custom process rules example [ also matches agents named <servername>.httpd ]
+#process.limits.httpd.max_mem = 4.7 # [%]
+#process.limits.httpd.seconds = 37  # [s] duration of condition
 #process.limits.httpd.action  = kill
 ##
 

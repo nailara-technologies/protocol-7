@@ -1,7 +1,6 @@
 # >:]
 
 # name = system.process.handler.collect_table
-# todo = check agents nailara agent pids, use root.restart instead of kill then!
 
 <process.limits> //= {};
 
@@ -48,11 +47,12 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     } @{<system.blacklist.autokill>};
     next if $bl_match;
 
-    ## custom process limits ## [currently max cpu in %]
+    ## custom process limits ## [ currently 'max_mem' and 'max_cpu' in percent ]
     foreach my $lp_name ( keys %{<process.limits>} ) {
         next
             if $p->fname !~ /\Q$lp_name\E/
-            and ( not defined $p->cmndline or $p->cmndline !~ /^\Q$lp_name\E/ );
+            and ( not defined $p->cmndline
+            or $p->cmndline !~ /^[^\s]*\Q$lp_name\E/ );
         my $lp = <process.limits>->{$lp_name};
         ( my $rl_name = $p->fname // $p->cmndline ) =~ s/ .*$//;
 
@@ -68,8 +68,11 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
             ) {
                 <[base.log]>->(
                     0,
-                    "<!> MEMORY USAGE ALERT: (( $rl_name )) [now $mem%, limit "
-                        . $lp->{'max_mem'} . "%]"
+                    sprintf(
+                        "<!> MEMORY USAGE ALERT: (( %s )) "
+                            . "[ .. %s%% .. limit=%s%% ]",
+                        $rl_name, $mem, $lp->{'max_mem'}
+                    )
                 );
                 if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
                     my $term_pid = $p->pid;
@@ -83,7 +86,6 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                     delete $lp->{'condition_start'};
                 }
             }
-
         }
 
         next
