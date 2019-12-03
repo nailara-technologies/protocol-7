@@ -29,7 +29,7 @@ my $PATH = {
 my $cmd = shift(@params) // '';
 
 push( @params, '.' )   if $cmd =~ /^(s(earch)?|rep(lace)?)$/ and !@params;
-push( @params, 'src' ) if $cmd eq 'parse_headers'            and !@params;
+push( @params, 'src' ) if $cmd =~ /^parse(-headers)?$/       and !@params;
 
 my $target = $params[0];
 
@@ -48,18 +48,19 @@ my %targets = (
 # currently understood commands and their callbacks
 
 my %commands = (
-    'list_targets'   => \&cmd_list_targets,
-    'list_psubs'     => \&cmd_list_psubs,
+    'list-targets'   => \&cmd_list_targets,
+    'list-psubs'     => \&cmd_list_psubs,
     's'              => \&cmd_search,
     'search'         => \&cmd_search,
-    'show_psub'      => \&cmd_show_psub,
-    'move_psubs'     => \&cmd_move_psubs,
+    'show-psub'      => \&cmd_show_psub,
+    'move-psubs'     => \&cmd_move_psubs,
     'rep'            => \&cmd_replace,
     'replace'        => \&cmd_replace,
-    'parse_headers'  => \&cmd_parse_headers,
-    'restore_backup' => \&cmd_restore_backup,
+    'parse'          => \&cmd_parse_headers,
+    'parse-headers'  => \&cmd_parse_headers,
+    'restore-backup' => \&cmd_restore_backup,
     'undo'           => \&cmd_undo,
-    'undo_move'      => \&cmd_undo_move,
+    'undo-move'      => \&cmd_undo_move,
     'help'           => \&cmd_help
 );
 
@@ -134,7 +135,8 @@ sub cmd_help {
                 $help_txt = '( alias to command below.. )' if length($cmd) <= 3;
 
             } else {
-                $help_txt = ansi('red') . "not yet implemented" . ansi('reset');
+                $help_txt
+                    = ansi('blue') . "not yet implemented" . ansi('reset');
             }
 
             my $line_len = $max_len + 2 - length($cmd);
