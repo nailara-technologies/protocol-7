@@ -18,16 +18,19 @@ my %unit_value = (
 );
 my $total = 0;
 map {
+
     ( my $file_name = $_ ) =~ s|^.+\/||;
     $total += $file_size_raw{$file_name} = [ stat("$_") ]->[7];
     $file_size_str{$file_name}
         = <[base.parser.human.fsize_fixed]>->( $file_size_raw{$file_name} );
     $file_size_uval{$file_name}
-        = $file_size_str{$file_name} =~ /^(.+)(\w)$/
+        = $file_size_str{$file_name} =~ /^(.+)(\D)$/
         ? $1 * $unit_value{$2}
         : $file_size_str{$file_name};
+
 } grep {/\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/}
     @{ <[file.all_files]>->(<log.nailara_log.path>) };
+
 foreach my $file_name (
     sort {
         sprintf( "%.1f", $file_size_uval{$a} ) <=>
@@ -38,11 +41,10 @@ foreach my $file_name (
     $reply_str
         .= sprintf( ":  %-7s  :  $file_name\n", $file_size_str{$file_name} );
 }
+
 my $l = abs( length(<system.host.hostname>) - 4 );
 my $x = '-' x $l;
 $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n",
     <[base.parser.human.fsize_fixed]>->($total) );
-return {
-    'mode' => 'data',
-    'data' => $reply_str
-    }
+
+return { 'mode' => 'data', 'data' => $reply_str }
