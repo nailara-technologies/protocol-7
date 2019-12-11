@@ -188,7 +188,7 @@ sub shell_connect {
 
     binmode( $sock, ':encoding(UTF-8)' );
 
-    die " [!] connection not successful [ protocol error ]\n"
+    die " [!] connection not successful [ protocol mismatch ]\n"
         if <$sock> !~ />:\]/;
     return $sock;
 
@@ -209,7 +209,7 @@ sub shell_auth {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
-        die " :: protocol error ::\n\n";
+        die " :: protocol mismatch ::\n\n";
     }
 }
 
@@ -234,7 +234,7 @@ sub unix_auth {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
-        die " :: protocol error ::\n\n";
+        die " :: protocol mismatch ::\n\n";
     }
 }
 
