@@ -100,7 +100,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
 
                     }
 
-                    # protocol error
+                    # protocol mismatch
 
                     else {
                         <[base.log]>->(
@@ -163,12 +163,12 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n//o ) {
     $command_mode = 1;
 }
 
-# protocol error
+# protocol mismatch
 
 elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
-    <[base.log]>->( 1, "[$id] protocol error ['$cmd_string\']" );
-    $$output .= $_cmd_id . "NAK protocol error\n";
+    <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
+    $$output .= $_cmd_id . "NAK protocol mismatch\n";
     $_[0]->w->start;
     return 0;
 }
@@ -463,7 +463,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'!" );
-    $$output .= $_cmd_id . "NAK invalid reply type! (protocol error)\n";
+    $$output .= $_cmd_id . "NAK invalid reply type! (protocol mismatch)\n";
 } elsif ( exists <access.cmd.regex.usr>->{$usr}
     and $cmd_usr_str =~ <access.cmd.regex.usr>->{$usr}
     or exists <access.cmd.regex.usr>->{'*'}
@@ -552,10 +552,10 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 );
             }
         } else {
-            <[base.log]>->( 1, "[$id] unknown command '$cmd'" );
+            <[base.log]>->( 1, "[$id] command unknown '$cmd'" );
         }
 
-        $$output .= $_cmd_id . "NAK unknown command\n";
+        $$output .= $_cmd_id . "NAK command unknown\n";
 
         return 1;
     }
@@ -683,7 +683,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
         }
 
         if ( !@send_sids ) {
-            $$output .= $_cmd_id . "NAK unknown command\n";
+            $$output .= $_cmd_id . "NAK command unknown\n";
             my $l_lvl = $target_name eq 'log' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl,
@@ -813,18 +813,13 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                     $data{'session'}{$target_sid}{'buffer'}{'output'}
                         .= $target_cmd_id . $cmd . "+\n" . $header . ".\n";
                 }
-
-            } else    # should never get here..
-            {
-                <[base.log]>->( 1, 'unknown command mode' );
-                return 1;
             }
         }
 
         if ( $targets_denied == @send_sids ) {    # nothing sent
-            $$output .= $_cmd_id . "NAK unknown command\n";
+            $$output .= $_cmd_id . "NAK command unknown\n";
             <[base.log]>->(
-                0, "[$id] denied access [ usr:'$usr' cmd:'$target_name.$cmd' ]"
+                0, "[$id] blocked access [ usr:'$usr' cmd:'$target_name.$cmd' ]"
             );
             return 1;
         }
@@ -832,20 +827,18 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
         # at least one target was valid
         return 0;
     } else {    # invalid command syntax
-        $$output .= $_cmd_id . "NAK protocol error\n";
-        <[base.log]>->( 1, "[$id] protocol error ['$cmd']" );
+        $$output .= $_cmd_id . "NAK protocol mismatch\n";
+        <[base.log]>->( 1, "[$id] protocol mismatch ['$cmd']" );
         return 1;
     }
 
-    # unknown command
-    $$output .= $_cmd_id . "NAK unknown command\n";
-    <[base.log]>->( 1, "[$id] unknown command. ( usr:'$usr' cmd:'$cmd' )" );
-} else    # access denied
-{
-    $$output .= $_cmd_id . "NAK unknown command\n";
-    <[base.log]>->( 0, "[$id] access denied! ( usr:'$usr' cmd:'$cmd' )" );
+    # command unknown
+    $$output .= $_cmd_id . "NAK command unknown\n";
+    <[base.log]>->( 1, "[$id] command unknown [ usr:'$usr' cmd:'$cmd' ]" );
+} else {    # blocked access
+    $$output .= $_cmd_id . "NAK command unknown\n";
+    <[base.log]>->( 0, "[$id] blocked access [ usr:'$usr' cmd:'$cmd' ]" );
     return 1;
 }
 
 return 0;
-

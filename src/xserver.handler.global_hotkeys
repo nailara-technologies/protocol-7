@@ -14,7 +14,7 @@ my $qkmap = eval { <xserver.x11>->QueryKeymap };
 
 if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
     <[base.log]>->(
-        0, "<!> X11 protocol error during 'QueryKeymap' command <!>"
+        0, "<!> X11 protocol mismatch during 'QueryKeymap' command <!>"
     );
     return;
 }

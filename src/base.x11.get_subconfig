@@ -61,7 +61,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 } else {
     <[base.log]>->(
         0,
-        "protocol error (unexpected reply from layout agent)"
+        "protocol mismatch (unexpected reply from layout agent)"
             . " ['$reply_string']"
     );
     return undef;
