@@ -29,7 +29,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
 } else {
     <[base.log]>->(
         0,
-        "protocol error (unexpected reply from dbus agent) ['$reply_string']"
+        "protocol mismatch (unexpected reply from dbus agent) ['$reply_string']"
     );
     return undef;
 }

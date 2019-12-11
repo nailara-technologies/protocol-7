@@ -23,7 +23,7 @@ if ( $$input =~ s/^set_key ($re->{usr}) (\S+)( (\S+))?\n// ) {
 
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    <[base.log]>->( 0, "[$id] authentication protocol error [ C25519-TF ]" );
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ C25519-TF ]" );
     return 2;                                    # <- terminate
 } else {
     return 1;                                    # <- keep state

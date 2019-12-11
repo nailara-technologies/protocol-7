@@ -28,7 +28,7 @@ if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
     <[base.call_online_hooks]>;
 } else {
     <[base.log]>->(
-        0, "protocol error (unexpected reply to whoami command!) [$reply_str]"
+        0, "protocol mismatch (unexpected reply to whoami command!) [$reply_str]"
     );
     return undef;
 }

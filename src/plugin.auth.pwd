@@ -23,7 +23,7 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
     }
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    <[base.log]>->( 0, "[$id] authentication protocol error [pwd] >:[" );
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [pwd] >:[" );
 } else {
     return 1;
 }
