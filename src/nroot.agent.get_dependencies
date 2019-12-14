@@ -1,0 +1,9 @@
+# name   = nroot.agent.get_dependencies
+# descr  = return agent dependencies of specified agent
+# return = <list_of_agents> (as space seperated string)
+
+my $agent_name = shift;
+
+return undef if not exists <nroot.spawn_config.agents.config>;
+my $config = <nroot.spawn_config.agents.config>->{$agent_name} || {};
+return $config->{'dependencies'} || undef;

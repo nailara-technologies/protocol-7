@@ -1,0 +1,12 @@
+# >:]
+
+# name = nroot.handler.core_session_auth
+
+my ( $core_instance, $auth_session, $auth_mode_string, $auth_user ) = @_;
+
+my $instance = <nroot.agent.instance>->{$core_instance};
+
+$instance->{'core_sessions'}->{$auth_session} = {
+    'name' => $auth_user,
+    'mode' => $auth_mode_string
+};

@@ -18,10 +18,10 @@ if (    ( $session_count + $exit_count ) == 0
     and exists <callback.session>
     and exists <callback.session.closing_last> ) {
 
-    if ( <system.agent.type> eq 'root' ) {
-        <root.check_remaining.fail_count> //= 0;
-        <root.check_remaining.fail_count>++;
-        return if <root.check_remaining.fail_count> < 2;
+    if ( <system.agent.type> eq 'nroot' ) {
+        <nroot.check_remaining.fail_count> //= 0;
+        <nroot.check_remaining.fail_count>++;
+        return if <nroot.check_remaining.fail_count> < 2;
     }
 
     <[base.log]>->( 2, "executing 'closing_last' callback..." );
@@ -29,7 +29,7 @@ if (    ( $session_count + $exit_count ) == 0
         ->( @{<callback.session.closing_last.params>} );
 }
 
-<[root.tear-down]>
+<[nroot.tear-down]>
     if !$session_count
-    and <system.agent.name> eq 'root'
+    and <system.agent.name> eq 'nroot'
     and <[agent.cmd.get_instance_ids]>->('core')->{'mode'} eq 'nak';

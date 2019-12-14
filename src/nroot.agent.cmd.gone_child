@@ -1,0 +1,27 @@
+# >:]
+
+# name  = nroot.agent.cmd.gone_child
+# param = <child_pid>
+# descr = notify about gone instance child subprocess
+
+my $instance_id;
+my $child_pid = $$call{'args'};
+
+my $parent_pid = <[nroot.process.get_ppid]>->($child_pid);
+return { 'mode' => 'nak', 'data' => 'child still here' }
+    if defined $parent_pid and $parent_pid > 0;
+
+foreach my $iid ( keys( %{<nroot.agent.instance>} ) ) {
+    my $children
+        = defined <nroot.agent.instance>->{$iid}->{'process'}{'child'}
+        ? <nroot.agent.instance>->{$iid}->{'process'}{'child'}
+        : {};
+    next
+        if not delete <nroot.child>->{$child_pid}
+        and not delete $children->{$child_pid};
+
+    <[base.log]>->( 1, "[instance:$iid] child pid $child_pid unlinked!" );
+    return { 'mode' => 'ack', 'data' => 'unregistered' };
+}
+
+return { 'mode' => 'nak', 'data' => 'was not registered' }

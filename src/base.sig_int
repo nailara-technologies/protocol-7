@@ -6,7 +6,7 @@
 $0 .= ' :. shutdown in progress... please wait!';
 <[base.log]>->( 0, 'SIGINT received. shutting down..' );
 
-#if ( <system.agent.type> eq 'root' or <system.agent.type> eq 'core' ) {
+#if ( <system.agent.type> eq 'nroot' or <system.agent.type> eq 'core' ) {
 #    $SIG{'INT'} = 'IGNORE';
 #} else {
 
@@ -27,8 +27,8 @@ if ( exists $code{'net.send_all'} ) {
 print "DEBUG MODE: agent state:\n" . <[base.dump_data]>
     if <system.verbosity> >= 2 and <debug.sig_int_dump>;
 
-<[root.tear-down]>
-    if exists <system.agent.type> and <system.agent.type> eq 'root';
+<[nroot.tear-down]>
+    if exists <system.agent.type> and <system.agent.type> eq 'nroot';
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
     map { kill( 9, $_ ) } @{<system.kill_list>};

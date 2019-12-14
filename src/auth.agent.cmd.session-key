@@ -7,7 +7,7 @@
 
 my $id = $$call{'session_id'};
 my ( $sn_agent, $key ) = split( / +/, $$call{'args'}, 2 );
-my $agent = $sn_agent;    # <- $sn_agent also contains subname if agent has one!
+my $agent = $sn_agent;    # <- $sn_agent also contains subname if agent has one.
 my $subname = $agent =~ s/\[(.+)\]$// ? $1 : '';
 
 if ( $agent ne '' and $key ne '' ) {

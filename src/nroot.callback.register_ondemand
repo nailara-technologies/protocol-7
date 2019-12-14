@@ -1,0 +1,25 @@
+# >:]
+
+# name = nroot.callback.register_ondemand
+
+my $ondemand_agents = shift;
+$ondemand_agents //= <nroot.ondemand_agents>;
+
+die "expected array reference with agent names"
+    if not defined $ondemand_agents
+    or ref($ondemand_agents) ne 'ARRAY';
+
+<[base.log]>->( 1, "registering ondemand agents at core ..." )
+    if @{$ondemand_agents};
+
+foreach my $agent_name ( @{$ondemand_agents} ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.ondemand-agent",
+            'call_args' => { 'args' => "add $agent_name" },
+            'reply'     => {
+                'handler' => 'dev.null',
+                'params'  => {}
+            }
+        }
+    );
+}

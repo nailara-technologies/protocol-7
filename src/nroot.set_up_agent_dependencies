@@ -1,0 +1,100 @@
+# >:]
+
+# name  = nroot.set_up_agent_dependencies
+# descr = configures agent dependency chains
+
+my @agents = @_;
+
+if ( !@agents ) {
+    <[base.log]>->(
+        0, 'nroot.set_up_agent_dependencies: no agent list provided'
+    );
+    return;
+}
+
+# callbacks for dependency validation
+<[dependency.install_callbacks]>->('nroot');
+
+# set up dependency objects ...
+foreach my $agent_name (@agents) {
+
+    <[base.log]>->( 2, ": dependency object : agent '$agent_name'" );
+
+    # install agent setup data
+    my $agent_id = <[agent.setup.add]>->( { 'name' => $agent_name } );
+
+    # create dependency objects for the agents
+    <[dependency.add_object]>->(
+        {   'type'       => 'agent',
+            'agent_id'   => $agent_id,
+            'agent_name' => $agent_name,
+        }
+    );
+}
+
+<[base.log]>->( 1, 'setting up agent dependency chains ...' );
+
+foreach my $s_id (
+    sort {
+        <nroot.agent.setup>->{$a}->{'name'} cmp
+            <nroot.agent.setup>->{$b}->{'name'}
+    } keys( %{<nroot.agent.setup>} )
+) {
+    my $agent_name   = <nroot.agent.setup>->{$s_id}->{'name'};
+    my $dependencies = <[agent.get_dependencies]>->($agent_name);
+    next if not defined $dependencies;
+
+    <[base.log]>->( 2, ": agent '$agent_name' dependencies [ $dependencies ]" );
+
+    my $source_object = <[agent.get_object_id]>->($s_id);
+
+    foreach my $dep_agent_name ( split / +/, $dependencies ) {
+        my $object_id;
+        if ( $dep_agent_name =~ /^([\w\.]+)\.(\w+)$/ ) {
+            my ( $type, $name ) = ( $1, $2 );
+            foreach my $id ( keys %{<dependency.object>} ) {
+                next if <dependency.object>->{$id}->{'type'} ne $type;
+                if ( <dependency.object>->{$id}->{'name'} eq $name ) {
+                    $object_id = $id;
+                    last;
+                }
+            }
+            if ( not defined $object_id ) {
+                <[base.log]>->(
+                    0, "a '$type' type object named '$name' does not exist!"
+                );
+                <[base.log]>->(
+                    0,
+                    "[WARNING] skipping invalid $type "
+                        . "dependency for object $source_object"
+                );
+                next;
+            }
+        } else {
+
+            if ( !<[agent.is_enabled]>->($dep_agent_name) ) {
+                <[base.log]>->(
+                    2,
+                    "<!> agent '$dep_agent_name' listed as dependency"
+                        . " but is not enabled!"
+                );
+
+                #                <[nroot.tear-down]>;
+            }
+
+            # choosing first agent with such a name (for now)
+            my $first_id = <[agent.get_id]>->($dep_agent_name);
+            if ( not defined $first_id ) {
+                <[base.log]>->(
+                    0,
+                    "<!> obj. dependency $source_object: agent"
+                        . " \"$dep_agent_name\" not found in setup!"
+                );
+                next;
+            } else {
+                $object_id = <[agent.get_object_id]>->($first_id);
+            }
+        }
+        <[dependency.add]>->( $source_object, $object_id );
+    }
+}

@@ -1,0 +1,33 @@
+# >:]
+
+# name  = nroot.agent.cmd.subname_sids
+# param = <pattern>
+# descr = list core sid[s] for given subname pattern
+
+my $subname_query = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'expected agent subname pattern' }
+    if !length($subname_query);
+
+my @reply_list;
+foreach my $instance_id ( keys %{<nroot.agent.instance>} ) {
+    my $instance = <nroot.agent.instance>->{$instance_id};
+    next
+        if not exists $instance->{'subname'}
+        or not exists $instance->{'core_sid'}
+        or $instance->{'subname'} !~ qr/$subname_query/;
+    push(
+        @reply_list,
+        join( ' ',
+            $instance->{'core_sid'},
+            "$instance->{agent_name} \[ $instance->{subname} ]" )
+    );
+}
+
+if (@reply_list) {
+    return { 'mode' => 'data', 'data' => join( '', map {"$_\n"} @reply_list ) };
+} else {
+    return {
+        'mode' => 'nak',
+        'data' => "no match for subname pattern /$subname_query/"
+    };
+}

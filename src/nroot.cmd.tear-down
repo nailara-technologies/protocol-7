@@ -1,0 +1,24 @@
+# >:]
+
+# name  = nroot.cmd.tear-down
+# param = [reason]
+# descr = shut down nroot agent and all agent instances
+
+my $params = shift;
+my $reason = $params->{'args'};
+my $user   = $1 if $reason =~ s|^([^\s]+) *||;
+$user =~ s|^[^\.]+\.||;
+
+<[base.log]>->( 1, "<<!>> specified shutdown reason : $reason <<!>>" )
+    if length($reason);
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'repeat'  => 0,
+        'prio'    => 5,
+        'handler' => 'nroot.handler.shutdown_cmd',
+        'data'    => "requested by '$user'"
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'shutting down nroot agent ..' };

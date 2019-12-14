@@ -13,10 +13,10 @@
                                      xserver.get_screen_size \
                                      xserver.get_stack_order
 
-              access.cmd.usr.mpv  =  root.start_once xserver.get_mode \
+              access.cmd.usr.mpv  =  nroot.start_once xserver.get_mode \
                                      playlist.get_list reenc-msg.refresh \
-                                     reenc-msg.finished root.notify_online \
-                                     xserver.keep_below root.register_child \
+                                     reenc-msg.finished nroot.notify_online \
+                                     xserver.keep_below nroot.register_child \
                                      xserver.set_opacity \
                                      xserver.set_geometry \
                                      xserver.wait_visible \
@@ -24,22 +24,22 @@
 
               access.cmd.usr.ssh  =  *.ping
 
-             access.cmd.usr.dbus  =  root.register_child
+             access.cmd.usr.dbus  =  nroot.register_child
 
              access.cmd.usr.melt  =  ffmpeg[melt].frame_count
 
-             access.cmd.usr.root  =  ping *.ping session-key ondemand-agent \
+             access.cmd.usr.nroot =  ping *.ping session-key ondemand-agent \
                                      set-initialized *.verify-instance
 
              access.cmd.usr.udev  =  notify.message
 
-            access.cmd.usr.media  =  root.restart root.start_once \
+            access.cmd.usr.media  =  nroot.restart nroot.start_once \
                                      pdf2html.get_url xserver.bg_color \
                                      xserver.get_mode xserver.gpu_load \
                                      playlist.get_list reenc-msg.refresh \
                                      image2html.get_url melt.extract_frame \
                                      playlist.set_flags reenc-msg.finished \
-                                     root.notify_online root.stop_implicit \
+                                     nroot.notify_online nroot.stop_implicit \
                                      xserver.keep_below xserver.hide_window \
                                      xserver.set_opacity \
                                      layout.get_subconfig \
@@ -60,32 +60,32 @@
            access.cmd.usr.config  =  get_config *.get_config \
                                      *.get_config_names
 
-           access.cmd.usr.events  =  playlist.update root.start_once \
+           access.cmd.usr.events  =  playlist.update nroot.start_once \
                                      layout.switch_to layout.add_overlay \
-                                     root.stop_implicit \
+                                     nroot.stop_implicit \
                                      layout.remove_overlay \
                                      layout.select_default
 
-           access.cmd.usr.layout  =  root.start notify.warn root.restart \
+           access.cmd.usr.layout  =  nroot.start notify.warn nroot.restart \
                                      media.slow_down playlist.update \
-                                     root.start_once xserver.bg_color \
+                                     nroot.start_once xserver.bg_color \
                                      xserver.fade_out browser.slow_down \
-                                     playlist.get_list root.notify_online \
-                                     root.stop_implicit root.notify_offline \
+                                     playlist.get_list nroot.notify_online \
+                                     nroot.stop_implicit nroot.notify_offline \
                                      ticker-gtk.slow_down \
                                      xserver.lower_window \
-                                     root.get_instance_ids \
+                                     nroot.get_instance_ids \
                                      xserver.get_window_ids \
                                      xserver.get_stack_order \
                                      screenshot.get_region_color
 
            access.cmd.usr.notify  =  dbus.socket_address
 
-           access.cmd.usr.system  =  root.stop root.start root.restart \
-                                     root.pid_instance root.notify_online \
-                                     xserver.get_driver root.register_child \
+           access.cmd.usr.system  =  nroot.stop nroot.start nroot.restart \
+                                     nroot.pid_instance nroot.notify_online \
+                                     xserver.get_driver nroot.register_child \
                                      xserver.get_xorg_pid \
-                                     root.force_mod_reload
+                                     nroot.force_mod_reload
 
            access.cmd.usr.webcam  =  playlist.get_list xserver.wait_visible
 
@@ -102,18 +102,18 @@
 
           access.cmd.usr.fan-int  =  power.on power.off
 
-          access.cmd.usr.openbox  =  root.register_child
+          access.cmd.usr.openbox  =  nroot.register_child
 
-          access.cmd.usr.xserver  =  root.restart root.start_once \
-                                     root.register_child \
+          access.cmd.usr.xserver  =  nroot.restart nroot.start_once \
+                                     nroot.register_child \
                                      layout.gpu_load_alert \
                                      xpointer.blank_cursor \
                                      system.reload_gfx_module
 
-         access.cmd.usr.osd-logo  =  download.get_file root.stop_implicit \
+         access.cmd.usr.osd-logo  =  download.get_file nroot.stop_implicit \
                                      colortoalpha.filter xserver.get_display
 
-         access.cmd.usr.playlist  =  root.restart weather.get_urls \
+         access.cmd.usr.playlist  =  nroot.restart weather.get_urls \
                                      *.playlist_update notify.msg_reload \
                                      download.get_mimetype \
                                      events.get_playlist_hidden \
@@ -124,15 +124,15 @@
 
         access.cmd.usr.power-x11  =  power.on power.off power.show_all
 
-        access.cmd.usr.reenc-msg  =  root.stop_implicit
+        access.cmd.usr.reenc-msg  =  nroot.stop_implicit
 
         access.cmd.usr.unix-root  =  ** ..*.**
 
        access.cmd.usr.image2html  =  xserver.bg_color
 
-       access.cmd.usr.impressive  =  root.start_once playlist.get_list \
-                                     root.notify_online root.stop_implicit \
-                                     root.register_child xserver.set_opacity \
+       access.cmd.usr.impressive  =  nroot.start_once playlist.get_list \
+                                     nroot.notify_online nroot.stop_implicit \
+                                     nroot.register_child xserver.set_opacity \
                                      layout.get_subconfig \
                                      xserver.raise_window \
                                      xserver.wait_visible
@@ -145,10 +145,10 @@
                                      ticker-sdl.read_file
 
        access.cmd.usr.ticker-gtk  =  layout.get_layer xserver.gpu_load \
-                                     root.notify_online layout.get_subconfig \
+                                     nroot.notify_online layout.get_subconfig \
                                      rss-ticker.resend_update
 
-       access.cmd.usr.ticker-sdl  =  root.notify_online xserver.keep_above \
+       access.cmd.usr.ticker-sdl  =  nroot.notify_online xserver.keep_above \
                                      xserver.set_gravity xserver.set_opacity \
                                      xserver.raise_window \
                                      xserver.wait_visible \
@@ -164,6 +164,6 @@
 
       access.cmd.usr.storchencam  =  xserver.wait_visible
 
-  access.cmd.usr.playlist-update  =  root.restart playlist.update \
+  access.cmd.usr.playlist-update  =  nroot.restart playlist.update \
                                      layout.config_name playlist.reload_file
 

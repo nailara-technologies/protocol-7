@@ -19,7 +19,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     }
 } else {
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'root.notify_online',
+        {   'command'   => 'nroot.notify_online',
             'call_args' => { 'args' => <agents.virtual>->{$v_id}->{'name'} },
             'reply'     => {
                 'handler' => 'base.agents.ondemand.handler.startup_reply',
