@@ -1,0 +1,39 @@
+# >:]
+
+# name  = nroot.agent.cmd.clear_manual
+# param = [agent_name(s)]
+# descr = clear "manually stopped" status for agent(s)
+
+my $clear_agents = $$call{'args'} // '';
+
+<nroot.agent.manually_stopped> //= {};
+return {
+    'mode' => 'nak',
+    'data' => "no agents have 'manually stopped' status"
+    }
+    if !keys( %{<nroot.agent.manually_stopped>} );
+
+my $cleared_count = 0;
+
+if ( !length($clear_agents) ) {
+    $cleared_count = scalar keys( %{<nroot.agent.manually_stopped>} );
+    <nroot.agent.manually_stopped> = {};
+} else {
+    map {
+        return {
+            'mode' => 'nak',
+            'data' => "no 'manually stopped' status exits for '$_', aborted!"
+            }
+            if not exists <nroot.agent.manually_stopped>->{$_}
+    } split / +/, $clear_agents;
+
+    map { $cleared_count++ if delete <nroot.agent.manually_stopped>->{$_} }
+        split / +/, $clear_agents;
+}
+
+my $s = $cleared_count > 1 ? 's' : '';
+
+return {
+    'mode' => 'ack',
+    'data' => "'manually stopped' status cleared ( $cleared_count agent$s )"
+    }

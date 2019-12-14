@@ -1,0 +1,11 @@
+# >:]
+
+# name = nroot.child.add
+
+my ( $pid, $process_data ) = @_;
+die "no pid supplied" if not defined $pid;
+$process_data //= {};
+
+<[base.log]>->( 2, "registering child process id $pid" );
+
+<nroot.child>->{$pid} = $process_data;

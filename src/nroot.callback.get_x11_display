@@ -1,0 +1,17 @@
+# >:]
+
+# name = nroot.callback.get_x11_display
+
+# take first one ( for now! )
+my ($root_sid) = keys %{ $data{'session'} };
+die "no valid session defined yet (can't determine root_sid!)"
+    if not defined $root_sid;
+
+<[base.log]>->( 1, "requesting x11.display from xserver agent.." );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "$root_sid.xserver.get_display",
+        'call_args' => { 'session_id' => $root_sid },
+        'reply'     => { 'handler' => 'nroot.handler.get_display_reply' }
+    }
+);

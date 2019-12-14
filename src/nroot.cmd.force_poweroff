@@ -1,0 +1,24 @@
+# >:]
+
+# name  = nroot.cmd.force_poweroff
+# param = [nosync]
+# descr = force power off using sysrq-trigger
+
+return { 'mode' => 'nak', 'data' => '/proc/sysrq-trigger not found!' }
+    if !-e '/proc/sysrq-trigger';
+
+my $param = $$call{'args'} // '';
+
+<[base.log]>->( 0, "<!> <<< initiating force-poweroff >>> <!>" );
+
+while ( keys %{ $data{'route'} } ) { <[event.once]>->(0.1) }  # wait log written
+
+system('/bin/sync') if $param ne 'nosync';
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => 'nroot.callback.force_poweroff'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'initiating power off <<now>>' }

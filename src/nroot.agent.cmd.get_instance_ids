@@ -1,0 +1,48 @@
+# >:]
+
+# name  = nroot.agent.cmd.get_instance_ids
+# param = <agent_name[s]>
+# descr = return instance ids for matching agent names
+
+my $params = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'expected agent name[s]' }
+    if !length($params);
+
+my @instance_ids;
+my $not_found   = 0;
+my $setup_found = 0;
+my $failed_name;
+foreach my $param_str ( split / +/, $params ) {
+    my $agent_name = $param_str;
+    my $agent_subname;
+    $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+    my $agent_id = <[agent.get_id]>->($agent_name);
+    if ( defined $agent_id ) { $setup_found++ }
+    else { $not_found++; $failed_name //= $agent_name; next }
+    foreach my $iid ( keys %{<nroot.agent.instance>} ) {
+        next
+            if defined $agent_subname
+            and not exists <nroot.agent.instance>->{$iid}->{'subname'}
+            or defined $agent_subname
+            and exists <nroot.agent.instance>->{$iid}->{'subname'}
+            and <nroot.agent.instance>->{$iid}->{'subname'} ne $agent_subname;
+
+        push( @instance_ids, $iid )
+            if <nroot.agent.instance>->{$iid}->{'agent_id'} == $agent_id;
+    }
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
+    }
+    if !$setup_found and $not_found;
+
+if (@instance_ids) {
+    return { 'mode' => 'ack', 'data' => join( ' ', @instance_ids ) };
+} else {
+    return {
+        'mode' => 'nak',
+        'data' => 'no matches found!'
+    };
+}

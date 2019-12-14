@@ -1,0 +1,30 @@
+# >:]
+
+# name  = nroot.cmd.drop_dependency
+# param = <agent_name>
+# descr = purge specified agent from dependency chains
+
+return { 'mode' => 'nak', 'data' => 'expected valid agent name' }
+    if !length( $$call{'args'} )
+    or not my $agent_id = <[agent.get_id]>->( $$call{'args'} );
+
+my $agent_name = $$call{'args'};
+
+my $del_count = 0;
+my $object_id = <[agent.get_object_id]>->($agent_id);
+
+foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
+    $del_count += <[dependency.del]>->( $dep_obj, $object_id );
+}
+
+# LLL: add full history / restore feature?
+
+return {
+    'mode' => 'nak',
+    'data' => "no agent seems to depend on '$agent_name' (already dropped?)"
+    }
+    if !$del_count;
+
+my $ies = $del_count > 1 ? 'ies' : 'y';
+
+return { 'mode' => 'ack', 'data' => "dropped $del_count dependenc$ies" };

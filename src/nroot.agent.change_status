@@ -1,0 +1,10 @@
+# >:]
+
+# name  = nroot.agent.change_status
+# descr = wrapper function for agent status change handler
+
+my ( $instance_id, $new_status ) = @_;
+die "no instance id specified"       if not defined $instance_id;
+die "no new status string submitted" if not defined $new_status;
+
+<[nroot.handler.agent_status]>->( $instance_id, $new_status );

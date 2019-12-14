@@ -627,7 +627,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
             }
         } elsif ( my $v_id
             = <[base.agents.ondemand_registered]>->($target_name) ) { # ondemand
-            my $target_user    = 'root';
+            my $target_user    = 'nroot';
             my $target_command = <agents.virtual>->{$v_id}->{'target_command'};
             if ( defined $target_command
                 and $target_command =~ /^([^\.]+)\.[^\.]+$/ ) {
@@ -640,7 +640,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
-                $target_command //= 'root.start_once';
+                $target_command //= 'nroot.start_once';
 
                 # ...
 
@@ -698,7 +698,8 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 (   not defined <system.agent.mode>
                     or <system.agent.mode> ne 'core'
                 )
-                or $usr eq 'root' # LLL: need better check if really root agent!
+                or $usr eq
+                'nroot'    # LLL: need better check if really nroot agent
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
                 push( @send_sids_left, $target_sid );
@@ -762,9 +763,9 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                     or !<debug.skip_log_msg> )
                     and ( $cmd ne 'log.msg'
                     or !<debug.skip_log_msg> )
-                    and ( $usr ne 'root'
+                    and ( $usr ne 'nroot'
                     or $cmd ne 'ping'
-                    or !<debug.skip_root_ping> );
+                    or !<debug.skip_nroot_ping> );
             }
             if (   <system.verbosity> >= 3 and defined $$call_args{'args'}
                 or <system.internal_verbosity> >= 3
