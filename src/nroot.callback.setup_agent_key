@@ -1,0 +1,25 @@
+# >:]
+
+# name = nroot.callback.setup_agent_key
+
+my ( $instance_id, $agent_name, $agent_key ) = @_;
+
+my $instance_data = <nroot.agent.instance>->{$instance_id};
+
+# take first one ( for now! )
+my ($root_sid) = keys %{ $data{'session'} };
+die "no valid session defined yet [ can not determine root_sid ]"
+    if not defined $root_sid;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "$root_sid.session-key",
+        'call_args' => {
+            'session_id' => $root_sid,
+            'args'       => "$agent_name $agent_key"
+        },
+        'reply' => {
+            'handler' => 'dev.null',
+            'params'  => {}
+        }
+    }
+);

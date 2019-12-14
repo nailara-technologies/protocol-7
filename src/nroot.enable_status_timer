@@ -1,0 +1,43 @@
+# >:]
+
+# name = nroot.enable_status_timer
+
+my ( $instance_id, $after, $interval ) = @_;
+die "no instance id specified" if not defined $instance_id;
+
+my $globals      = <nroot.spawn_config.globals> || {};
+my $instance     = <nroot.agent.instance>->{$instance_id};
+my $agent_id     = $instance->{'agent_id'};
+my $agent_name   = <nroot.agent.setup>->{$agent_id}->{'name'};
+my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
+
+my $status_timer_delay
+    = $after // $agent_config->{'ping'}->{'after'}
+    // $globals->{'ping'}->{'after'} // 2;    # <- (initial) ping delay default
+
+my $status_timer_interval
+    = $interval // $agent_config->{'ping'}->{'interval'}
+    // $globals->{'ping'}->{'interval'} // 5;    # <- ping interval default
+
+<[base.log]>->(
+    2,
+    ": instance $instance_id new status timer setup "
+        . "[${status_timer_delay}s,int=$status_timer_interval]"
+);
+
+delete $agent_config->{'respawn'} if !keys %{ $agent_config->{'respawn'} };
+delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
+delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
+delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
+
+$instance->{'ping'} //= {};
+$instance->{'ping'}->{'retry_timeout'} //= 2;    # setting short ping timeout
+
+# set up new status timer..
+$instance->{'status_timer'} = <[event.add_timer]>->(
+    {   'after'    => $status_timer_delay,
+        'interval' => $status_timer_interval + sprintf( "%.3f", rand(2) ),
+        'handler'  => 'nroot.handler.status_timer',
+        'data'     => $instance_id
+    }
+);

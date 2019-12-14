@@ -1,0 +1,67 @@
+# >:]
+
+# name  = nroot.cmd.force_mod_reload
+# param = <module>
+# descr = force rmmod/modprobe specified kernel module
+# todo  = open rmmod as pipe, create output handler [make async.]
+
+my $module_name = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected valid <module> parameter' }
+    if !length($module_name)
+    or length($module_name) > 42
+    or $module_name !~ /^[\w\s_]+$/;
+
+return { 'mode' => 'nak', 'data' => "'rmmod' binary not found!" }
+    if not defined <nroot.rmmod_bin>;
+my $rmmod_bin = <nroot.rmmod_bin>;
+return { 'mode' => 'nak', 'data' => "'modprobe' binary not found!" }
+    if not defined <nroot.modprobe_bin>;
+my $modprobe_bin = <nroot.modprobe_bin>;
+
+<[base.log]>->( 0, "<!> [forced] reloading module '$module_name' <!>" );
+
+my @restart_timers;
+map {
+    if ( defined <nroot.agent.instance>->{$_}->{'timeout_timer'}
+        and <nroot.agent.instance>->{$_}->{'timeout_timer'}->is_active ) {
+        push( @restart_timers, <nroot.agent.instance>->{$_}->{'timeout_timer'} );
+        <nroot.agent.instance>->{$_}->{'timeout_timer'}->stop;
+    }
+} keys %{<nroot.agent.instance>};
+
+my $reply_mode = 'ack';
+my $reply_data = 'module reloaded';
+
+chomp( my $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
+if ( !length($modprobe_output) ) {
+    $reply_data = 'module loaded';
+    goto do_reply;
+} elsif ( $modprobe_output =~ / not found / ) {
+    $reply_data = "module '$module_name' not found!";
+    goto do_reply;
+}
+
+## already in kernel ##
+
+chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
+if ( length($rmmod_output) ) {
+    $reply_mode = 'nak';
+    $rmmod_output =~ s/(^.*rmmod: (FATAL: )?(Module )?|\.$)//g;
+    $reply_data = "unable to unload module ['$rmmod_output']";
+    goto do_reply;
+}
+
+chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
+if ( length($modprobe_output) ) {
+    $reply_mode = 'nak';
+    $modprobe_output =~ s/(^modprobe: FATAL: (Module )?|\.$)//g;
+    $reply_data = "unable to load module ['$modprobe_output']";
+    goto do_reply;
+}
+
+do_reply:
+
+map { $_->start } @restart_timers;
+
+return { 'mode' => $reply_mode, 'data' => $reply_data }

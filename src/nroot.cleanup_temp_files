@@ -1,0 +1,15 @@
+# >:]
+
+# name  = nroot.cleanup_temp_files
+
+## browser crash mitigation files ##
+my $count = my @browser_files
+    = <[file.match_files]>->( '/tmp', '.nailara.browser.**' );
+if ($count) {
+    my $s = $count > 1 ? 's' : '';
+    <[base.log]>->(
+        1, "removing $count left over browser agent temp file$s..."
+    );
+    unlink(@browser_files) or warn $!;
+}
+##

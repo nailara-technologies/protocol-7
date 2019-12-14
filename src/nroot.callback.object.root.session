@@ -1,0 +1,11 @@
+# >:]
+
+# name = nroot.callback.object.root.session
+
+my $object_id = shift;
+my $name      = <dependency.object>->{$object_id}->{'name'};
+return 0 if not exists $data{'session'};
+foreach my $id ( keys %{ $data{'session'} } ) {
+    return 1 if $data{'session'}{$id}{'user'} eq $name;    # session present
+}
+return 0;                                                  # not online

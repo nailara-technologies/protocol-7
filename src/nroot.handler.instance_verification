@@ -1,0 +1,22 @@
+# >:]
+
+# name = nroot.handler.instance_verification
+
+my ( $instance_id, $verification_string ) = @_;
+my $instance = <nroot.agent.instance>->{$instance_id};
+
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+if ( $verification_string eq $instance->{'instance_verification'} ) {
+    <[base.log]>->( 1, "instance $instance_id verification successful" );
+    delete $instance->{'instance_verification'};
+    <[agent.change_status]>->( $instance_id, 'online' );
+} else {
+    <[base.log]>->( 0, "instance $instance_id verification has failed!" );
+    delete $instance->{'instance_verification'};
+    <[agent.change_status]>->( $instance_id, 'error' );
+}

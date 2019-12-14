@@ -6,7 +6,7 @@
 if ( defined <layout.startup.stop_agents> ) {
     <[base.log]>->( 1, "stopping display agents (if present)" );
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.stop_implicit",
+        {   'command'   => "core.nroot.stop_implicit",
             'call_args' => { 'args' => <layout.startup.stop_agents> }
         }
     );
@@ -14,7 +14,7 @@ if ( defined <layout.startup.stop_agents> ) {
 if ( defined <layout.startup.restart_agents> ) {
     <[base.log]>->( 1, "restarting display agents (if present)" );
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.restart",
+        {   'command'   => "core.nroot.restart",
             'call_args' => { 'args' => <layout.startup.restart_agents> }
         }
     );

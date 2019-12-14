@@ -1,0 +1,47 @@
+# >:]
+
+# name = nroot.handler.status_response_timeout
+
+my $instance_id   = shift->w->data;
+my $instance      = <nroot.agent.instance>->{$instance_id};
+my $agent_name    = $instance->{'agent_name'};
+my $agent_status  = $instance->{'status'};
+my $is_core_agent = $instance->{'is_core'};
+my $fail_count    = $instance->{'ping'}->{'errors'}++;
+my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
+my $retry_str     = $ping_retry ? ' (retrying..)' : '';
+<[base.log]>->(
+    0, "instance $instance_id [$agent_name] ping response ( TIMEOUT )$retry_str"
+);
+
+if ( !$ping_retry ) {                                        # [no more retries]
+    if ($is_core_agent) {
+        if ( $agent_status eq 'error' ) {    # was already not successful
+            <callback.session.closing_last> = {
+                'name'   => 'nroot.tear-down',
+                'params' => ['fatal core agent error']
+            };
+            <[base.session.check_remaining]>;
+        } else {
+            delete <callback.session.closing_last>;    # allow safe restart
+            <[agent.change_status]>->( $instance_id, 'error' );
+        }
+    } else {
+        <[agent.change_status]>->( $instance_id, 'error' );
+    }
+} else {
+
+    # setting shorter ping timeout..
+    $instance->{'timeout_timer'}->cancel
+        if defined $instance->{'timeout_timer'}
+        and $instance->{'timeout_timer'}->is_active;
+    $instance->{'timeout_timer'} = <[event.add_timer]>->(
+        {   'after'   => $instance->{'ping'}->{'retry_timeout'} // 2,
+            'handler' => 'nroot.handler.status_response_timeout',
+            'data'    => $instance_id
+        }
+    );
+    <[nroot.cancel_status_timer]>->($instance_id);
+    <[nroot.enable_status_timer]>->( $instance_id, 0 );    # <- retrying now [0]
+
+}

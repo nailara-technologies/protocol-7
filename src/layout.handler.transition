@@ -30,7 +30,7 @@ if ( not defined <layout.transition.status.waiting.stop>
         }
         if ( !$fade ) {    ## instance_id (no_fade) ##
             <[base.proto.nailara.command.send.local]>->(
-                {   'command'   => "core.root.get_instance_ids",
+                {   'command'   => "core.nroot.get_instance_ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
                         'handler' => 'layout.handler.transition',
@@ -76,7 +76,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         my $instance_id = $core_reply->{'call_args'}->{'args'};
         ## notify_offline ##
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.root.notify_offline",
+            {   'command'   => "core.nroot.notify_offline",
                 'call_args' => { 'args' => $instance_id },
                 'reply'     => {
                     'handler' => 'layout.handler.transition',
@@ -91,7 +91,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         if ( not defined <layout.transition.status.agents.fade_out>->{$agent}
             or <layout.transition.status.agents.fade_out>->{$agent} ne '1' ) {
             <[base.proto.nailara.command.send.local]>->(    ## stop (no fade) ##
-                {   'command'   => "core.root.stop_implicit",
+                {   'command'   => "core.nroot.stop_implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
@@ -132,7 +132,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         : 0;    # <- 0 == failed, fade will be skipped!
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.get_instance_ids",
+        {   'command'   => "core.nroot.get_instance_ids",
             'call_args' => { 'args' => $agent },
             'reply'     => {
                 'handler' => 'layout.handler.transition',
@@ -148,7 +148,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     my $agent       = $core_reply->{'params'}->{'agent_name'};
     my $instance_id = $core_reply->{'params'}->{'instance_id'};
     <[base.proto.nailara.command.send.local]>->(    ## stop (fading complete) ##
-        {   'command'   => "core.root.stop_implicit",
+        {   'command'   => "core.nroot.stop_implicit",
             'call_args' => { 'args' => $instance_id }
         }
     );
@@ -167,7 +167,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     map {
         if ( exists <layout.transition.status.agents.concurrency>->{$_} ) {
             <[base.proto.nailara.command.send.local]>->(
-                {   'command'   => "core.root.start",
+                {   'command'   => "core.nroot.start",
                     'call_args' => { 'args' => $_ },
                     'reply'     => {
                         'handler' => 'layout.handler.transition',
@@ -200,7 +200,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         ( my $job_id = $core_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
         ## notify_online ##
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.root.notify_online",
+            {   'command'   => "core.nroot.notify_online",
                 'call_args' => { 'args' => "job:$job_id" },
                 'reply'     => {
                     'handler' => 'layout.handler.transition',
@@ -223,7 +223,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
     foreach my $agent (@start_agents) {
         ## start ##
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.root.start",
+            {   'command'   => "core.nroot.start",
                 'call_args' => { 'args' => $agent },
                 'reply'     => {
                     'handler' => 'layout.handler.transition',

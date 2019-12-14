@@ -21,7 +21,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 0, " :  restarting agent '$agent_name' ..." );
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.root.restart',
+        {   'command'   => 'core.nroot.restart',
             'call_args' => { 'args' => $agent_name }
         }
     );

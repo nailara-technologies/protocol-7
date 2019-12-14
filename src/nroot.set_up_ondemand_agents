@@ -1,0 +1,12 @@
+# >:]
+
+# name  = nroot.set_up_ondemand_agents
+# descr = set up specified agents for ondemand startup
+
+<nroot.ondemand_agents> = [];
+
+foreach my $agent_name (@_) {
+    my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
+    my $start_ondemand = $agent_config->{'spawn'}->{'on-demand'} // 0;
+    push( @{<nroot.ondemand_agents>}, $agent_name ) if $start_ondemand;
+}

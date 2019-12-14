@@ -1,0 +1,11 @@
+# >:]
+
+# name  = nroot.parser.dependency_chain
+
+my $object_id = shift;
+
+return '--' if not exists <dependency.chain>->{$object_id};
+
+return join( ' ',
+    map { <dependency.object>->{$_}->{'agent_name'} }
+        @{ <dependency.chain>->{$object_id} } );
