@@ -55,7 +55,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK no config for agent '([^ ]+)'/ ) {
     <[base.log]>->( 1, ": <!> layout agent has no config for \"$1\" <!>" );
     return undef;
-} elsif ( $reply_string =~ /^\($cmd_id\)NAK unknown command\n$/ ) {
+} elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
     <[base.log]>->( 0, "get_subconfig command failed for '$name_str' [NAK]" );
     return undef;
 } else {

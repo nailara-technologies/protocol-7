@@ -27,7 +27,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     <x11.display> = $1;
     <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
     return <x11.display>;
-} elsif ( $reply_string =~ /^\($cmd_id\)NAK unknown command\n$/ ) {
+} elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
     <x11.display> //= ':0.0';
     <[base.log]>->(
         1,
