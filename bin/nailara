@@ -238,9 +238,8 @@ sub prepare_subs {
     };
 
     $code{'base.banner'} = sub {
-        my $version_str
-            = '.: PROTOCOL-SEVEN VERSION : '
-            . $data{'nailara'}{'source_version'} . ' :.';
+        my $version_str = sprintf( "  .protocol-seven version :: %s",
+            $data{'nailara'}{'source_version'} );
         local $/ = undef;
         open( my $banner_fh,
             catfile( $data{'system'}{'conf_path'}, '.banner' ) )
