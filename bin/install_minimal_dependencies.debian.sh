@@ -10,7 +10,7 @@ ln -v -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
 cp -v $NAILARA_ROOT/lib/systemd/system/nailara-root.service /lib/systemd/system/
 
-# dependencies for 'root','core','config', 'events' agents + nshell
+# dependencies for 'nroot','core','config', 'events' agents + nshell
 
 apt-get -y install cpanminus git libevent-perl libproc-processtable-perl \
   libterm-readpassword-perl libterm-readline-gnu-perl libio-aio-perl \

@@ -1,0 +1,12 @@
+# >:]
+
+# name = nroot.callback.force_poweroff
+
+my $sysrq_file = '/proc/sysrq-trigger';
+die '/proc/sysrq-trigger not found!' if !-e $sysrq_file;
+
+map {
+    open( my $sysrq_fh, ">$sysrq_file" ) or die "$sysrq_file: $!";
+    print {$sysrq_fh} "$_\n";
+    close($sysrq_file)
+} ( 's', 's', 'u', 'e', 'o' );

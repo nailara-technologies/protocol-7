@@ -1,0 +1,22 @@
+# >:]
+
+# name = nroot.instance_count
+
+my $agent_subname;
+my $agent_name = shift;
+
+return scalar keys %{<nroot.agent.instance>} if not defined $agent_name;
+
+$agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+
+my $instance_count = 0;
+map {
+    $instance_count++
+        if <nroot.agent.instance>->{$_}->{'agent_name'} eq $agent_name
+        and ( not defined $agent_subname
+        or defined $agent_subname
+        and defined <nroot.agent.instance>->{$_}->{'subname'}
+        and $agent_subname eq <nroot.agent.instance>->{$_}->{'subname'} )
+} keys %{<nroot.agent.instance>};
+
+return $instance_count;

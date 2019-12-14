@@ -1,0 +1,55 @@
+# >:]
+
+# name = nroot.agent.instance.restart
+
+my $instance_id = shift;
+my $globals     = <nroot.spawn_config.globals> || {};
+my $instance    = <nroot.agent.instance>->{$instance_id};
+my $agent_name  = $instance->{'agent_name'};
+my $job_id      = $instance->{'job_id'};
+my $parent_pid  = $instance->{'process'}->{'id'};
+my @children
+    = defined $parent_pid
+    ? @{ <[nroot.process.get_children]>->($parent_pid) }
+    : ();
+
+<[base.log]>->( 1, "restarting instance $instance_id ($agent_name)..." );
+<[base.log]>->( 2, ": [!] parent_pid not defined [!] (race condition)" )
+    if not defined $parent_pid;
+
+<[nroot.cancel_status_timer]>->($instance_id);
+
+delete <callback.session.closing_last> if $instance->{'is_core'};
+delete $instance->{'respawn_delay'};    # reset
+
+my $restart_timeout
+    = defined <sigterm.timeout>
+    ? ( <sigterm.timeout> + 2 )
+    : ( $globals->{'restart'}->{'timeout'} // 33 );
+$instance->{'timer'}->{'restart_timeout'} //= {};
+
+my $restart_id = <[base.gen_id]>->( $instance->{'timer'}->{'restart_timeout'} );
+
+$instance->{'restart_id'}   = $restart_id;
+$instance->{'restart_pids'} = {};
+map { $instance->{'restart_pids'}->{$_} = 1 } ( $parent_pid, @children )
+    if defined $parent_pid;
+
+my $dependencies_ok
+    = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
+    ? <[dependency.ok]>->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
+    : 1;
+
+$instance->{'timer'}->{'restart_timeout'}->{$restart_id}
+    = <[event.add_timer]>->(
+    {   'after'   => $restart_timeout,
+        'handler' => 'nroot.handler.restart_timeout',
+        'data'    => {
+            'restart_id'  => $restart_id,
+            'instance_id' => $instance_id
+        }
+    }
+    ) if $dependencies_ok;
+
+<[agent.change_status]>->( $instance_id, 'restart' );
+<[nroot.terminate_process]>->($parent_pid) if defined $parent_pid;

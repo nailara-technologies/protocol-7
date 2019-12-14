@@ -1,0 +1,33 @@
+# >:]
+
+# name = nroot.callback.compile_bin_nlr
+
+my $gcc_bin  = <nroot.gcc_bin>;
+my $src_path = join( '/', <system.root_path>, <system.nlr_src_path> );
+my $bin_path = <nroot.cfg.nlr_bin_path>;
+die "gcc_bin not found"                  if !-x $gcc_bin;
+die "source file '$src_path' not found!" if !-f $src_path;
+
+( my $sha1_file = $bin_path ) =~ s|/([^/]+)$|/.sha1.src.$1|;
+
+if ( -f $bin_path and -f $sha1_file ) {
+    chomp( my $src_sha1 = ${ <[file.slurp]>->($sha1_file) } // '' );
+    unlink($sha1_file) if !length($src_sha1);
+    if ( <[digest.sha.file_hex]>->($src_path) ne $src_sha1 ) {
+        <[base.log]>->( 0, "updating '$bin_path'.. [source changed]" );
+        unlink($bin_path) or die "unlink($bin_path): $!";
+    }
+} elsif ( -f $bin_path ) {
+    <[base.log]>->( 0, "updating '$bin_path'.. [no src sha1 file found]" );
+    unlink($bin_path) or die "unlink($bin_path): $!";
+} else {
+    my $cfg_val = <nroot.cfg.install_bin_nlr>;
+    <[base.log]>->( 0, "installing '$bin_path'.. [install_bin_nlr=$cfg_val]" );
+}
+
+if ( !-f $bin_path ) {
+    system( $gcc_bin, '-o', $bin_path, $src_path );  # LLL: add error handling..
+    <[file.put]>->( $sha1_file, <[digest.sha.file_hex]>->($src_path) . "\n" );
+} else {
+    <[base.log]>->( 2, "'$bin_path' version is current, update skipped" );
+}

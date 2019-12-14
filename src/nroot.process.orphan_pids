@@ -1,0 +1,33 @@
+# >:]
+
+# name  = nroot.process.orphan_pids
+# descr = returns PIDs of orphaned children of deceased agents
+# todo  = sort pids by process start time
+
+my $proc_table = new Proc::ProcessTable;
+
+my %own_children;
+foreach my $i_id ( keys %{<nroot.agent.instance>} ) {
+    next if not defined <nroot.agent.instance>->{$i_id}->{'process'}->{'id'};
+    my $pid = <nroot.agent.instance>->{$i_id}->{'process'}->{'id'};
+    $own_children{$pid} //= <nroot.agent.instance>->{$i_id}->{'agent_name'};
+}
+
+my %orphans;
+map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
+    grep {
+    $_->ppid == 1             # parent is 'init' now
+        and $_->pgrp == $$    # process group was nroot agent
+        and $_->pid != $$     # and is not this process [nroot agent]
+        and not exists $own_children{ $_->pid }
+        and ( not defined $_->exec
+        or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / LLL: -> config
+    } @{ $proc_table->table };
+
+map {
+    my $name_str = length( $orphans{$_} ) ? " '$orphans{$_}'" : '';
+    <[base.log]>->( 1, ": found orphan process [$_]" . $name_str )
+    }
+    sort keys %orphans;
+
+return sort keys %orphans;

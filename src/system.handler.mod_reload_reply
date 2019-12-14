@@ -3,14 +3,14 @@
 # name = system.handler.mod_reload_reply
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => 'core.root.notify_online',
+    {   'command'   => 'core.nroot.notify_online',
         'call_args' => { 'args' => 'xserver' },
         'reply'     => { 'handler' => 'system.handler.xserver_restarted' }
     }
 );
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => 'core.root.start',
+    {   'command'   => 'core.nroot.start',
         'call_args' => { 'args' => 'xserver' }
     }
 );

@@ -1,0 +1,20 @@
+# >:]
+
+# name  = nroot.agent.instance.get_ids
+# descr = return agent id for given name from setup (in order of creation)
+
+my $agent_id     = shift;
+my $instance_ids = [];
+die 'expected agent id' if not defined $agent_id or $agent_id !~ /^\d+$/;
+
+foreach my $id (
+    sort {
+        <nroot.agent.instance>->{$a}->{'created'} <=>
+            <nroot.agent.instance>->{$b}->{'created'}
+    } keys %{<nroot.agent.instance>}
+    ) {
+    push( @{$instance_ids}, $id )
+        if <nroot.agent.instance>->{$id}->{'agent_id'} == $agent_id;
+}
+
+return $instance_ids;

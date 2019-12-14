@@ -13,19 +13,19 @@ return warn "received instance id is not numerical"
 
 if ( $response->{'cmd'} eq 'ACK' ) {                  # restart by root
     my $instance_id = $cmd_rep_str;
-    <[base.log]>->( 0, " : asking 'root' to restart instance $instance_id .." );
+    <[base.log]>->( 0, " : asking 'nroot' to restart instance $instance_id" );
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.root.restart",
+        {   'command'   => "core.nroot.restart",
             'call_args' => { 'args' => $instance_id },
             'reply'     => { 'handler' => 'dev.null' }
         }
     );
 } elsif ( $cmd_rep_str eq 'found no matching instance' ) {    # kill allowed
-    <[base.log]>->( 1, "[PID:$process_id] process not managed by root agent" );
+    <[base.log]>->( 1, "[PID:$process_id] process not managed by nroot agent" );
 
     <[system.process.callback.send_kill]>->( $process_id, $log_msg_str );
 
-} else {    # unclear -> warn (no root agent access?)
-    return warn "aborted autokill for pid $process_id [no root agent access?]";
+} else {    # unclear -> warn (no nroot agent access?)
+    return warn "aborted autokill for pid $process_id [no nroot agent access?]";
 }

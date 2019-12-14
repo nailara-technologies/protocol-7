@@ -87,9 +87,9 @@ if ( $cmd =~ s/^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$/$2/go ) {
                 and ( $target_name ne 'core'
                 or $cmd ne 'log.msg'
                 or !<debug.skip_log_msg> )
-                and ( $src_name ne 'root'
+                and ( $src_name ne 'nroot'
                 or ( $cmd ne 'ping' and substr( $cmd, -5, 5 ) ne '.ping' )
-                or !<debug.skip_root_ping> );
+                or !<debug.skip_nroot_ping> );
         }
 
         $target_cmd_id =~ s/^(\d+)$/($1)/;

@@ -1,0 +1,30 @@
+# >:]
+
+# name = nroot.handler.restart_timeout
+
+my $params      = shift->w->data;
+my $restart_id  = $params->{'restart_id'};
+my $instance_id = $params->{'instance_id'};
+my $instance    = <nroot.agent.instance>->{$instance_id};
+my $agent_name  = $instance->{'agent_name'};
+
+if (    defined $instance->{'status'}
+    and $instance->{'status'} eq 'restart'
+    and defined $instance->{'restart_id'}
+    and $instance->{'restart_id'} eq $restart_id ) {
+    <[base.log]>->(
+        0, "<!> restart timed out for $agent_name instance $instance_id!"
+    );
+
+    <[agent.change_status]>->( $instance_id, 'error' );
+    delete $instance->{'restart_id'};
+
+    <[nroot.init_respawn_timer]>->($instance_id);
+} else {
+    delete $instance->{'restart_id'};
+}
+
+delete $instance->{'timer'}->{'restart_timeout'}->{$restart_id};
+delete $instance->{'timer'}->{'restart_timeout'}
+    if !keys %{ $instance->{'timer'}->{'restart_timeout'} };
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };

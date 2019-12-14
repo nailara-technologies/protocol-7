@@ -1,0 +1,9 @@
+# >:]
+
+# name = nroot.handler.core_session_close
+
+my ( $core_instance, $auth_session ) = @_;
+
+my $instance = <nroot.agent.instance>->{$core_instance};
+
+delete $instance->{'core_sessions'}->{$auth_session};

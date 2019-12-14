@@ -32,7 +32,7 @@ if ( <system.agent.mode> eq 'media-child' and <mpv.playlist_contains_pause> ) {
         : '';
     <[base.log]>->( 1, "           : agent restart.. (media$sname_str)" );
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.root.restart',
+        {   'command'   => 'core.nroot.restart',
             'call_args' => { 'args' => 'media' . $sname_str },
         }
     );

@@ -12,7 +12,7 @@ $route_str .= '.' if length($route_str);
 map {
     <[base.log]>->( 1, "reporting new child process [PID:$_].." );
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "${route_str}root.register_child",
+        {   'command'   => "${route_str}nroot.register_child",
             'call_args' => { 'args' => $_ }
         }
     );

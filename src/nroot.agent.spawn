@@ -1,0 +1,248 @@
+# >:]
+
+# name = nroot.agent.spawn
+# descr = spawn nailara agent and add it to process maintenance table
+
+my $job_id     = $_[0]->{'job_id'};
+my $agent_name = $_[0]->{'params'};
+my $sic_mode   = 0;
+my @exec_args  = qw( -nb );
+my $agent_subname;
+$agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
+die "no agent name supplied" if not defined $agent_name;
+my $init_code = <nroot.spawn_config.agents.startup.init_code>->{$agent_name};
+my $instances = <nroot.agent.instance>;
+my $agent_id  = <[agent.get_id]>->($agent_name);
+
+# reuse instance id or create new one if none exists
+my $instance_id = <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'};
+$instance_id //= <[agent.instance.add]>->($agent_id);
+<jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
+$instances->{$instance_id}->{'job_id'} = $job_id;
+
+my $starting = 0;    # check status of agents with same name ...
+map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
+    @{ <[agent.instance.get_ids]>->($agent_id) };
+
+if ($starting) {     # delay agent startup until previous one is online ...
+    <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..." );
+    <[agent.change_status]>->( $instance_id, 'delayed' );
+    return;
+}
+
+# initialize agent instance startup ...
+<[agent.change_status]>->( $instance_id, 'starting' );
+
+# execute nroot-init code
+my $init_result_data = {};
+my $namespace_str
+    = "\$data{'nroot'}{'agent'}{'instance'}{$instance_id}{'init_data'}";
+if ( exists $init_code->{'nroot-init'} ) {
+    <[base.log]>->(
+        2, "executing spawn init-code for instance $instance_id ($agent_name)"
+    );
+    my @root_init_code
+        = <[base.parser.config]>->( $init_code->{'nroot-init'}, $namespace_str );
+    map {
+        $_ =~ s/<instance_id>/$instance_id/g;
+        $_ =~ s/<agent_name>/$agent_name/g
+    } @root_init_code;
+    my $success = <[base.execute_agent_code]>->(@root_init_code);
+    $init_result_data = $instances->{$instance_id}->{'init_data'};
+
+    if ( !$success ) {
+        <[base.log]>->(
+            0, "errors in agent '$agent_name' init-code, aborting start-up!"
+        );
+        <[agent.change_status]>->( $instance_id, 'error' );
+        return undef;
+    }
+}
+
+my $agent_sn_str
+    = defined $agent_subname ? "$agent_name\[$agent_subname]" : $agent_name;
+
+my ( $pid, $out_fh, $in_fh );
+
+$instances->{$instance_id}->{'external'} = 0;
+
+if ( exists $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-external' ) {
+
+    $instances->{$instance_id}->{'external'} = 1;
+
+    my $exec_bin = $init_result_data->{'exec_bin'};
+    my $prog_usr = $init_result_data->{'exec_usr'};
+
+    if ( defined $prog_usr and $prog_usr eq '<x11-user>' ) {
+        if ( defined <x11.user> ) {
+            $prog_usr = <x11.user>;
+        } else {
+            <[base.log]>->(
+                0,
+                "exec_usr for '$agent_name' (\<x11.user>) is "
+                    . "not defined - ERROR"
+            );
+            <[agent.change_status]>->( $instance_id, 'error' );
+            return undef;
+        }
+    }
+
+    ## local ./bin/ path ## ( no /-es in exec_bin param )
+    $exec_bin = <system.root_path> . '/bin/' . $exec_bin
+        if $exec_bin !~ m|/| and -x <system.root_path> . '/bin/' . $exec_bin;
+
+    if ( not defined $exec_bin or not defined $prog_usr ) {
+        my $reason = "expected program name (exec_bin) in '$agent_name' setup";
+        $reason = "expected 'exec_usr' for '$agent_name' to be defined"
+            if defined $exec_bin and not defined $prog_usr;
+        <[base.log]>->( 0, "$reason - ABORTED!" );
+        <[agent.change_status]>->( $instance_id, 'error' );
+        <[agent.cmd.stop]>
+            ->( { 'args' => $instance_id, 'mode' => 'implicit' } );
+        return undef;
+    } elsif ( $exec_bin =~ /\s/ or !-x $exec_bin ) {
+        <[base.log]>->(
+            0,
+            "'$agent_name' exec_bin '$exec_bin' not a valid executable - ERROR"
+        );
+        <[agent.change_status]>->( $instance_id, 'error' );
+        return undef;
+    } else {
+        my $privs = <[base.set_privs]>->( $prog_usr, 'noop' );
+        if ( not defined $privs or ref($privs) ne 'HASH' ) {
+            <[base.log]>
+                ->( 0, "exec_usr for '$agent_name' is invalid - ERROR" );
+            <[agent.change_status]>->( $instance_id, 'error' );
+            return undef;
+        }
+        map { $privs->{$_} =~ s|'||g } keys %{$privs};    # LLL: abort on match?
+
+        if ( length( $privs->{'home'} // '' ) and !-d $privs->{'home'} ) {
+            <[base.log]>->(
+                0,
+                "<!> user '$prog_usr' home dir is missing [creating "
+                    . $privs->{'home'} . "]"
+            );
+            make_path(
+                $privs->{'home'},
+                {   'mode'  => 0700,
+                    'uid'   => $privs->{'uid'},
+                    'group' => $privs->{'gid'}
+                }
+            );
+        }
+
+        # LLL: implement exec_args...
+        my $prepare_code = '%ENV=(); ';
+        my $display      = <x11.display>;
+        $prepare_code .= "\$ENV{'DISPLAY'}='$display'; " if defined $display;
+        $prepare_code
+            .= "\$)='$privs->{all_gids}'; \$(='$privs->{gid}'; "
+            . "\$>='$privs->{uid}'; \$<='$privs->{uid}'; "
+            . "\$ENV{'USER'}='$prog_usr'; "
+            . "\$ENV{'HOME'}='$privs->{home}'; "
+            . "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}'; "
+            . "\$ENV{'NO_AT_BRIDGE'}=1; "
+            . "chdir('$privs->{home}'); ";
+        <[base.log]>->(
+            1, "starting external '$agent_sn_str' program as '$prog_usr' .."
+        );
+        eval {
+            $pid
+                = open2( $out_fh, $in_fh, '/usr/bin/perl', '-e',
+                "$prepare_code exec \"$exec_bin\"" );
+        };
+        goto exec_skip;
+    }
+}
+
+$sic_mode = 1 && push( @exec_args, '-sic' )
+    if exists $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-sic'
+    and exists $init_code->{'agent-init'};
+
+my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
+push( @exec_args, '-' . 'v' x $agent_verbosity );
+
+<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..." );
+
+my @cmd_line_mods
+    = defined $init_result_data->{'command_line_modules'}
+    ? map {"-M$_"} split( / +/, $init_result_data->{'command_line_modules'} )
+    : ();
+
+if (@cmd_line_mods) {
+    my $_C = <system.perl_unicode>;
+    push( @cmd_line_mods, "-C$_C" ) if defined $_C;
+    eval {
+        $pid
+            = open2( $out_fh, $in_fh, 'perl', @cmd_line_mods, $nailara_bin,
+            $agent_sn_str, @exec_args );
+    };
+} else {
+    eval {
+        $pid
+            = open2( $out_fh, $in_fh, $nailara_bin, $agent_sn_str, @exec_args );
+    };
+}
+
+exec_skip:
+
+if ( not defined $pid or $@ ) {
+    ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason = ( defined $! and length($!) ) ? " ('$!')" : '';
+    <[base.log]>->(
+        0,
+        join( '',
+            "unable to spawn agent '$agent_name'",
+            $err_reason, " [ $err_msg ]" )
+    );
+    <[agent.change_status]>->( $instance_id, 'error' );
+    return undef;
+}
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'nroot.handler.agent_output',
+        'data'    => $instance_id
+    }
+);
+
+<[nroot.child.add]>->(
+    $pid, { 'instance_id' => $instance_id, 'start_time' => <[base.time]>->(4) }
+);
+
+$instances->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
+$instances->{$instance_id}->{'subname'} = $agent_subname
+    if defined $agent_subname;
+
+<[agent.change_status]>->( $instance_id, "extbin" )
+    if defined $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-external';
+
+# push init code to agent (stdin) if in 'sic' mode..
+if ($sic_mode) {
+    <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent.." );
+    foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
+        my $code_line = $_line;    # keeping original intact!
+             # <{foo.bar}> (agent instance namespace) variable fetching syntax
+        while ( $code_line =~ /<\{([^\}]+)\}>/ ) {
+            ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
+            my $var_value;
+            eval "\$var_value = $namespace_str$var_str";
+            if ($@) {
+                $@ =~ s|\n| |g;
+                <[base.log]>->( 0, "[!] error in agent init-code: $@" );
+                last;
+            } else {
+                $code_line =~ s|<\{([^\}]+)\}>|$var_value|;
+            }
+        }
+        print {$in_fh} "$code_line\n";
+    }
+}
+close($in_fh);    # no more use for agent stdin handle (for now)
+
+<[base.log]>->( 1, "agent '$agent_sn_str' spawned ! [ pid : $pid ]" );

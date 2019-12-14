@@ -47,7 +47,7 @@ if ( $action_type eq 'agent_running' ) {
     die "event $ev_id action command undefined" if not defined $command;
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.root.' . $command,
+        {   'command'   => 'core.nroot.' . $command,
             'call_args' => { 'args' => $agent_name }
         }
     );
