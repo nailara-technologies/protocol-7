@@ -12,12 +12,12 @@ use Glib qw/TRUE FALSE/;
 
 use Data::Dumper 'Dumper';
 
-( my $image_path = File::Spec->rel2abs($0) )
-    =~ s,[^/]+(/[^/]+){3}$,data/gfx/nailara_logo.png,;  # s,[^/]+/[^/]+$,data/..
+my $image_path = File::Spec->rel2abs($0);
+while ( -l $image_path ) { $image_path = readlink($image_path) }
+$image_path
+    =~ s,[^/]+(/[^/]+){3}$,data/gfx/logos/nailara.png,; # s,[^/]+/[^/]+$,data/..
 
-$image_path = '/tmp/nailara_logo.png' if `hostname` =~ /zeropoint/;    # XXX!
-
-my $scale_factor = 0.044;    # <- of screen width ...
+my $scale_factor = 0.044;                               # <- of screen width ...
 
 die "display environment variable not set" if not defined $ENV{'DISPLAY'};
 die "image file '$image_path' not found"   if !-f $image_path;
@@ -25,8 +25,8 @@ die "image file '$image_path' not found"   if !-f $image_path;
 #open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on termin. xserver
 
 my $window = Gtk3::Window->new('toplevel');
-$window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
-$window->signal_connect( 'touch-event'  => \&menu_open );
+$window->signal_connect( 'delete_event'         => sub { Gtk3->main_quit } );
+$window->signal_connect( 'touch-event'          => \&menu_open );
 $window->signal_connect( 'button-release-event' => \&menu_open );
 $window->signal_connect( 'configure-event'      => \&position_changed );
 
