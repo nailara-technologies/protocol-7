@@ -1,23 +1,34 @@
 #!/usr/bin/perl
 
+use Time::HiRes qw/sleep/;
+
 my @edit_files;
 
 @ARGV = split( /\s+/, qx(xsel -o) ) if !@ARGV;
 
-my @check_paths = ( qw(
-        /data/projects/nailara/src
-        /data/projects/nailara/cfg
-        /data/projects/nailara/cfg/agents
-        /data/projects/nailara/bin
-        /data/projects/nailara
-        ), $ENV{'HOME'} // '/home/' . $ENV{'USER'}, '/tmp'
+my @check_paths = qw(
+    /data/projects/nailara/src
+    /data/projects/nailara/cfg/agents
+    /data/projects/nailara/cfg
+    /data/projects/nailara/bin
+    /data/projects/nailara
 );
 
+{
+    $ENV{'HOME'} //= 'taeki';
+    push( @check_paths, $ENV{'HOME'}, '/tmp' );
+}
+
 foreach my $filename (@ARGV) {
+    $filename =~ s|\n||g;
     if ( $filename =~ /^\// or -f $filename ) {
         push( @edit_files, $filename );
     } else {
         foreach my $path (@check_paths) {
+            $filename = "$filename/config"
+                if $path =~ m|/agents$|
+                and -d "$path/$filename"
+                and -f "$path/$filename/config";
             if ( -f "$path/$filename" ) {
                 push( @edit_files, "$path/$filename" );
                 last;
@@ -26,4 +37,11 @@ foreach my $filename (@ARGV) {
     }
 }
 
-system( 'scite', @edit_files );
+warn "not found" if !@edit_files;
+
+system( join( ' ', 'scite', @edit_files, '&' ) );
+system("wmctrl -a ' - SciTE'&");
+for ( my $t = 0.93; $t > 0.77; $t -= 0.01 ) {
+    qx/transset -n SciTE $t/;
+    sleep 0.042;
+}
