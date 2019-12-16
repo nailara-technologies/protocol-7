@@ -1,0 +1,18 @@
+# >:]
+
+# name = nailara-logo.init_code
+
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.load]>->('File::Spec');
+
+<nailara-logo.image_path>
+    //= <system.root_path> . '/data/gfx/logos/nailara.png';
+
+return
+    <[base.log]>
+    ->( sprintf( 0, "[not found] image file '%s'", <nailara-logo.image_path> ) )
+    if !-f <nailara-logo.image_path>;
+
+open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on xserver SIGTERM
+
+0;

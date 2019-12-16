@@ -1,0 +1,24 @@
+
+ .:[ 'nailara-logo' [menu] agent ]:.
+
+system.privs.user = nailara # <x11-user>
+
+[set_privs:<system.privs.user>]
+
+buffer.agent.log_cmd = log.msg
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.core = help ping verify-instance
+
+modules.load = auth net io.ip nailara-logo
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.x11.get_display]
+
+[base.get_session_id]
+
+[event.loop]
