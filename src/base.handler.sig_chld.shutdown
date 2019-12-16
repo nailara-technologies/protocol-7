@@ -2,7 +2,7 @@
 
 # name  = base.handler.sig_chld.shutdown
 
-<[base.log]>->( 0, 'SIGCHLD received.. collecting children...' );
+<[base.log]>->( 0, 'SIGCHLD received. collecting children.,' );
 my %died_pid;
 local ( $!, $? );
 while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
@@ -11,7 +11,7 @@ while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
     my $e_val = $? >> 8;
     my $e_sig = $? & 127;
     $e_sig = $e_sig ? ", signal $e_sig" : '';
-    my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
+    my $e_dmp = $? & 128 ? ' < with a core dump! >' : '';
     my $log_level = 2;
     $log_level = 1 if $e_val;
     $log_level = 0 if $? & 128;
@@ -21,7 +21,7 @@ while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
         and $e_sig ne 'signal 11';
     <[base.log]>->(
         $log_level,
-        ": child pid=$pid terminated ( exit code $e_val$e_sig )$e_dmp"
+        ": child pid=$pid terminated [ exit code $e_val$e_sig ]$e_dmp"
     );
     $died_pid{$pid} = 1;
 }

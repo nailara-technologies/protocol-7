@@ -3,7 +3,7 @@
 # name = base.sig_term
 
 $0 .= ' :. shutdown in progress... please wait!';
-<[base.log]>->( 1, 'SIGTERM received. shutting down...' );
+<[base.log]>->( 1, 'SIGTERM received. shutting down..,' );
 
 # <[net.send_all]>->("close SIGTERM"); # see base.sig_int
 # $SIG{'ALRM'} = sub { <[base.log]>->( 1, 'done.'); exit(0); };

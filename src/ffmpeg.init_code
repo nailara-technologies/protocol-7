@@ -12,7 +12,7 @@
 
 foreach my $bin_name (qw| ffmpeg ffprobe |) {
     my $bin_path = <ffmpeg.path>->{"${bin_name}_bin"};
-    <[base.log]>->( 0, "[!] '$bin_name' binary not found, shutting down..." )
+    <[base.log]>->( 0, "[!] '$bin_name' binary not found, shutting down..," )
         and exit(2)
         if !-x $bin_path;
 }

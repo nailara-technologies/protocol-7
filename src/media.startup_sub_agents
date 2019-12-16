@@ -14,7 +14,7 @@ foreach my $agent_name ( keys(%display_agents) ) {
     <media.child>->{$agent_name}->{'status'} = 'starting';
     if ( !<[media.start_agent]>->($agent_name) ) {
         <[base.log]>->(
-            0, "<!> unable to start '$agent_name', shutting down.."
+            0, "<!> unable to start '$agent_name', shutting down..,"
         );
         exit(2);
     }
