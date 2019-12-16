@@ -351,7 +351,21 @@
       : agent-init :
         [base.auth.set_agent_key:'<{core.key}>']
 
-  - osd-logo
+  - nailara-logo
+
+      dependencies = core xserver compton
+      max_concurrency = 1
+
+      : nroot-init :
+        start_mode = exec-sic
+        command_line_modules = Gtk3 Glib::Event
+        core.key = [base.rnd_chars_anum:42]
+        [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+      : agent-init :
+        [base.auth.set_agent_key:'<{core.key}>']
+
+- osd-logo
 
       dependencies = core xserver compton
       max_concurrency = 1
