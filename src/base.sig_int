@@ -4,7 +4,7 @@
 # descr = SIGINT interrupt handler
 
 $0 .= ' :. shutdown in progress... please wait!';
-<[base.log]>->( 0, 'SIGINT received. shutting down..' );
+<[base.log]>->( 0, 'SIGINT received. shutting down..,' );
 
 #if ( <system.agent.type> eq 'nroot' or <system.agent.type> eq 'core' ) {
 #    $SIG{'INT'} = 'IGNORE';
