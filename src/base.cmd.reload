@@ -41,7 +41,8 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] < reload source code >" );
 
-    if ( !<base.debug.keep_on_reload> ) {
+    if ( !<base.debug.keep_on_reload>
+        and ( not defined <modules.load> or <modules.load> !~ /debug/ ) ) {
         <[base.log]>->( 0, "[reload] .. removing debug module .." )
             if ref( $code{'debug.dump'} ) eq 'CODE';
 
