@@ -1,6 +1,6 @@
 # >:]
 
-# name  = log.cmd.file_sizes
+# name  = log.cmd.file-sizes
 # descr = nailara log file size summary table
 
 my $hostname  = <system.host.hostname>;
@@ -44,7 +44,7 @@ foreach my $file_name (
 
 my $l = abs( length(<system.host.hostname>) - 4 );
 my $x = '-' x $l;
-$reply_str .= sprintf( "=\\ %-6s /=  <----$x\n",
+$reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
     <[base.parser.human.fsize_fixed]>->($total) );
 
 return { 'mode' => 'data', 'data' => $reply_str }
