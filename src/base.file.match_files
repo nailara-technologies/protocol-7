@@ -28,7 +28,7 @@ my @file_table = map {
     my $key = $_ // '';
     $key =~ s/\./\\./g;
     $key =~ s/(\*\*|\*)/$1 eq '*' ? '[^\.]*' : '.*'/ge;
-    qr/\/$key$/
+    qr/$key$/
 } @wildcard_filenames;
 
 foreach my $file ( @{ <[file.all_files]>->($search_path) } ) {
