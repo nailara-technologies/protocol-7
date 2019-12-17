@@ -1,8 +1,8 @@
 # >:]
 
-# name  = nroot.cmd.force_poweroff
+# name  = nroot.cmd.system-poweroff
 # param = [nosync]
-# descr = force power off using sysrq-trigger
+# descr = force power off using sysrq-trigger [host]
 
 return { 'mode' => 'nak', 'data' => '/proc/sysrq-trigger not found!' }
     if !-e '/proc/sysrq-trigger';
@@ -17,7 +17,7 @@ system('/bin/sync') if $param ne 'nosync';
 
 <[event.add_timer]>->(
     {   'after'   => 0,
-        'handler' => 'nroot.callback.force_poweroff'
+        'handler' => 'nroot.callback.system-poweroff'
     }
 );
 
