@@ -1,8 +1,8 @@
 # >:]
 
-# name  = nroot.agent.cmd.pause_instance
+# name  = nroot.agent.cmd.resume-instance
 # param = <id>
-# descr = send STOP signal to instance processes
+# descr = send CONT signal to instance processes
 
 my $instance_id = $$call{'args'};
 
@@ -10,21 +10,19 @@ return { 'mode' => 'nak', 'data' => 'instance id must be numeric!' }
     if $instance_id !~ /^\d+$/;
 return { 'mode' => 'nak', 'data' => "instance not found!" }
     if not exists <nroot.agent.instance>->{$instance_id};
-
 my $instance = <nroot.agent.instance>->{$instance_id};
 
-$instance->{'paused_status_timer'}
-    = <[nroot.cancel_status_timer]>->($instance_id);
+<[nroot.enable_status_timer]>->($instance_id)
+    if delete $instance->{'paused_status_timer'};
 
 my $parent_pid = <nroot.agent.instance>->{$instance_id}->{'process'}{'id'};
 my @pids = ( $parent_pid, @{ <[nroot.process.get_children]>->($parent_pid) } );
 
-my $count = kill 'STOP', @pids;
+my $count = kill 'CONT', @pids;
 
 my $es = $count > 1 ? 'es' : '';
-<[base.log]>->( 1, "paused instance $instance_id ($count process$es)" );
+<[base.log]>->( 1, "resumed instance $instance_id ($count process$es)" );
 return {
     'mode' => 'ack',
-    'data' => "$count process$es paused (SIGSTOP)"
+    'data' => "$count process$es paused (SIGCONT)"
 };
-
