@@ -6,6 +6,8 @@ my $key_name = shift;
 my $cur_usr  = $ENV{'USER'} // getpwuid($>);
 my $key_usr  = <crypt.C25519.key_usr> // <system.privs.user> // $cur_usr;
 
+$key_usr = $cur_usr if $cur_usr ne 'root';
+
 if ( defined $key_name ) {
     <crypt.C25519.base_key_name> = $key_name;
 } else {
