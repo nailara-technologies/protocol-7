@@ -1,0 +1,27 @@
+# >:]
+
+# name    = base.file.count_lines
+# credits = source adapted from File::CountLines
+
+my ( $filename, $seperator, $blocksize ) = @_;
+
+$seperator //= "\n";
+$blocksize ||= 4096;
+
+open my $handle, '<:raw', $filename
+    or return warn "can not open '$filename' [ $! ]";
+binmode $handle;
+my $lines = 0;
+$seperator =~ s/([\\{}])/\\$1/g;
+
+my $sysread_status;
+eval qq[
+    while (\$sysread_status = sysread \$handle, my \$buffer, $blocksize) {
+        \$lines += (\$buffer =~ tr{$seperator}{});
+    }
+];
+
+die "can not sysread() from '$filename': $!" unless defined($sysread_status);
+close $handle or warn "can not close '$filename': $!";
+
+return $lines;
