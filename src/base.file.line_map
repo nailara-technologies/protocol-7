@@ -1,0 +1,38 @@
+# >:]
+
+# name    = base.file.line_map
+# credits = source adapted from File::CountLines
+# descr   = returns a slim table with line numbers and offsets [read efficiency]
+
+my ( $filename, $seperator, $blocksize ) = @_;
+
+$seperator //= "\n";
+$blocksize ||= 7777;
+
+open my $handle, '<:raw', $filename
+    or return warn "can not open '$filename' [ $! ]";
+binmode $handle;
+my $lines = 0;
+$seperator =~ s/([\\{}])/\\$1/g;
+
+my %line_map;
+
+my $pos          = 0;
+my $last_pos     = 0;
+my $min_distance = 7;
+my $status;
+eval qq[
+    while (\$status = sysread \$handle, my \$buffer, $blocksize) {
+        \$lines += ( \$buffer =~ tr{$seperator}{} );
+        \$pos += \$status if \$status > 0;
+        my \$distance = \$pos - \$last_pos;
+        \$line_map{ sprintf("%07d",\$lines) } = \$pos if \$lines =~ /[07]\$/
+            and \$distance >= \$min_distance;
+        \$last_pos = \$pos;
+    }
+];
+
+die "can not sysread() from '$filename': $!" unless defined($status);
+close $handle or warn "can not close '$filename': $!";
+
+return \%line_map;
