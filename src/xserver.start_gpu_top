@@ -5,22 +5,16 @@
 return if defined <xserver.gpu_top.process_started>;
 
 my $samples_per_sec = 100;    # min. 100 ( careful with too high values -> CPU )
-my $gpu_top_bin  = '/usr/bin/intel_gpu_top';
-my $gpu_freq_bin = '/usr/bin/intel_gpu_frequency';
-if ( !-e $gpu_top_bin ) {
-    chomp( my $check_path = qx(which intel_gpu_top) );
-    if ( length($check_path) and -x $check_path ) { $gpu_top_bin = $check_path }
-    else {
-        return <[base.log]>->(
-            0, "'intel_gpu_top' not found! ( intel-gpu-tools installed? )"
-        );
-    }
-}
+my $gpu_top_bin  = <xserver.bin_path.intel_gpu_top>;
+my $gpu_freq_bin = <xserver.bin_path.intel_gpu_frequency>;
+return <[base.log]>->(
+    0, "'intel_gpu_top' not found <!> [ intel-gpu-tools installed? ]"
+) if !-x $gpu_top_bin;
+
 return <[base.log]>->( 0, "[!] unable to run 'intel_gpu_top'" )
     if qx($gpu_top_bin -h) !~ /usage/;
 
-chomp( $gpu_freq_bin = qx(which intel_gpu_frequency) ) if !-x $gpu_freq_bin;
-return <[base.log]>->( 0, "<!> apparently no Intel GPU (intel_gpu_frequency)" )
+return <[base.log]>->( 0, "<!> apparently no Intel GPU [intel_gpu_frequency]" )
     if length($gpu_freq_bin)
     and -x $gpu_freq_bin
     and qx($gpu_freq_bin) =~ /no intel gpu found/i;

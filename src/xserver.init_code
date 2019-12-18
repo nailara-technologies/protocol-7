@@ -10,6 +10,20 @@
 <[base.perlmod.autoload]>->('IPC::Open3');
 <[base.perlmod.autoload]>->('X11::Tops');
 
+foreach my $bin_name (
+    qw|
+
+    Xorg
+    lspci
+    Xephyr
+    intel_gpu_top
+    intel_gpu_frequency
+
+    |
+) {
+    <xserver.bin_path>->{$bin_name} = <[base.required_bin_path]>->($bin_name);
+}
+
 <[base.inotify.install_io_watcher]>;
 
 if ( <xserver.mode> eq 'auto-xephyr' ) {
@@ -34,7 +48,7 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 if (    <xserver.mode> eq 'xorg'
     and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/
     and <xserver.video_driver> =~ /^i\d\d\d$/ ) {
-    chomp( my $freq_bin_path = qx(which intel_gpu_frequency) );
+    my $freq_bin_path = <xserver.bin_path.intel_gpu_frequency>;
     if ( !length($freq_bin_path) or !-x $freq_bin_path ) {
         <[base.log]>->(
             0,
