@@ -14,7 +14,7 @@ my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
 my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
 
-chomp( my $shred_bin = qx(which shred) // '' ); # <- optional +FS/disk dependent
+my $shred_bin = <keys.bin_path.shred>;
 
 opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
 my @key_files = grep {/[^\.].*\.C25519_b32(\.pub)?$/} sort readdir($dir_fh)
