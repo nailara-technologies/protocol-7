@@ -1,6 +1,6 @@
 # >:]
 
-# name       = base.session.check.close
+# name = base.session.check.close
 
 my $id = $_[0]->w->data;
 
@@ -9,17 +9,11 @@ $_[0]->w->cancel;
 <[base.log]>->( 2, "[$id] session shutdown ..." );
 
 # cancel outstanding commands / routes
-foreach my $s_cid ( keys %{ $data{'session'}{$id}{'route'} } ) {
-    my $route_id = $data{'session'}{$id}{'route'}{$s_cid};
-    my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
-    next if not defined $s_sid;
-    my $s_cid     = $data{'route'}{$route_id}{'source'}{'cmd_id'};
-    my $reply_str = $s_cid ? "($s_cid)" : '';
-    $reply_str .= "NAK command route collapsed\n";
-    $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str
-        if exists $data{'session'}{$s_sid};
-    delete $data{'route'}{$route_id};
-}
+my $route_term_msg = 'NAK command route collapsed';
+
+<[base.session.cancel_route]>->(
+    $id, $route_term_msg, keys %{ $data{'session'}{$id}{'route'} }
+);
 
 # call rip handler
 if (    defined $data{'session'}{$id}{'rip_handler'}
