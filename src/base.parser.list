@@ -22,7 +22,7 @@ if ( $h_key !~ /\./ ) {
     no strict 'refs';
     $data_ref = ${$h_name}{$h_key};
     use strict 'refs';
-} elsif ( $h_key =~ /^\w[\w\.]+\w$/ ) {
+} elsif ( $h_key =~ /^\w[\w\.\-]+\w$/ ) {
     $h_key =~ s|\.|'}{'|go;
     no strict 'refs';
     eval "\$data_ref = \${'$h_name'}{'$h_key'}";

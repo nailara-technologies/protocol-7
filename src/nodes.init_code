@@ -2,7 +2,8 @@
 <[base.perlmod.autoload]>->('Net::IP::Lite');
 <[base.perlmod.autoload]>->('IO::Socket::IP');
 
-<nodes.trunc> //= {};
+<nodes.trunc>       //= {};
+<nodes.group.by-id> //= {};
 
 <list.truncs> = {
     'var'      => 'data',
@@ -22,6 +23,23 @@
     {   'name'         => 'truncs',
         'key_ref'      => \$data{'nodes'}{'trunc'},
         'max_elements' => 4097
+    }
+);
+
+<list.groups> = {
+    'var'      => 'data',
+    'key'      => 'nodes.group.by-id',
+    'sort_key' => 'alpha_len:name',
+    'descr'    => 'account group table',
+    'mask'     => 'name:group_name regex:account_regex',
+    'align'    => { 'name' => 'center', 'regex' => 'left+1' },
+    'filters'  => { 'regex' => 'base.parser.quoted' }
+};
+
+<[base.list.init]>->(
+    {   'name'         => 'groups',
+        'key_ref'      => \$data{'nodes'}{'group'}{'by-id'},
+        'max_elements' => 247
     }
 );
 
