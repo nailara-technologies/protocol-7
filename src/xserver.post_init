@@ -28,7 +28,7 @@ if ( <xserver.mode> eq 'host' ) {
     0,
     "warning: xserver mode changed to '"
         . <xserver.mode>
-        . "', restart required!"
+        . "', restart required <!>"
 ) if defined <xserver.old_mode> and <xserver.mode> ne <xserver.old_mode>;
 
 return 0 if <xserver.initialized>;
@@ -55,14 +55,13 @@ if ( $mode ne 'host' ) {
     if ( not defined $mode or !length($mode) ) {
         die "xserver.mode not defined (expected 'xorg' or 'xephyr')";
     } elsif ( $mode eq 'xorg' or $mode eq 'xephyr' or $mode eq 'xvfb' ) {
-        $bin_name = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
-        $bin_name = 'Xvfb' if $mode eq 'xvfb';
-        chomp( $server_bin = qx(which $bin_name) );
-        die "xserver binary '$bin_name' not found. (not installed?)"
+        $bin_name   = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
+        $bin_name   = 'Xvfb' if $mode eq 'xvfb';
+        $server_bin = <xserver.bin_path>->{$bin_name};
+        die "xserver binary '$bin_name' not found. [ installed? ]"
             if not defined $server_bin or !-x $server_bin;
 
-        $server_params
-            = join( ' ', <xserver.display>->{$mode},
+        $server_params = join( ' ', <xserver.display>->{$mode},
             <xserver.params>->{$mode} );
     } else {
         die "invalid mode '$mode' (xserver.mode)";
@@ -203,9 +202,7 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
 map {
     system( '/usr/bin/xrandr', split( / +/, <xserver.custom_xrandr>->{$_} ) )
     }
-    sort {
-    $a <=> $b
-    } keys %{<xserver.custom_xrandr>}
+    sort { $a <=> $b } keys %{<xserver.custom_xrandr>}
     if <xserver.mode> eq 'xorg'
     and defined <xserver.custom_xrandr>
     and ref(<xserver.custom_xrandr>) eq 'HASH';
