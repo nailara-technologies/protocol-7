@@ -6,22 +6,20 @@
 <[base.perlmod.load]>->( 'IPC::Open3', qw/open3/ );
 <[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
 
+<melt.bin_path> = <[base.required_bin_path]>->('melt');
+
 ## auto img cleanup defaults ##
 <melt.keep_last.days>   //= 32;
 <melt.keep_last.mbytes> //= 32;
 
 open( NULL, '>', File::Spec->devnull );
 
-( my $melt_bin_path = qx(which melt) ) =~ s|[^\w/]+||g;
-
-if ( !-x $melt_bin_path ) {
+if ( !-x <melt.bin_path> ) {
     <[base.log]>->(
-        0, "'melt' is not installed (or in path), aborting startup!"
+        0, "'melt' is not installed (or in path), aborting startup.,"
     );
     exit(-1);
 }
-
-<melt.bin_path> = $melt_bin_path;
 
 my $out_path = -d '/var/run' ? '/var/run/melt' : '/tmp/melt_out';
 
