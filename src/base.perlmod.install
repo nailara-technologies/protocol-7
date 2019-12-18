@@ -3,7 +3,7 @@
 # name = base.perlmod.install
 
 my $module_name = shift;
-
+my $cpanm_path  = <system.bin_path.cpanm>;
 my $known_deps = <[base.known_dependencies]>->{'perlmod'}->{$module_name} // {};
 
 $module_name = $known_deps->{'cpan'}
@@ -37,7 +37,7 @@ if (    <system.host.os.dist.name> eq 'debian'
 }
 
 if (@cpan_list) {
-    if ( !length(qx(which cpanm)) ) {
+    if ( !length($cpanm_path) ) {
         <[base.log]>->( 0, "[AUTO_INSTALL] 'cpanminus' ..." );
         if ( <system.host.os.dist.name> eq 'debian' ) {
             system( 'apt-get', '-fy', 'install', 'cpanminus' );
