@@ -67,20 +67,21 @@ if ( $mode ne 'host' ) {
         die "invalid mode '$mode' (xserver.mode)";
     }
 
-    my $cmd_line = "$server_bin $server_params 2>&1 |";
+    my $bin_name_lc = lc($bin_name);
+    my $cmd_line    = "$server_bin $server_params 2>&1 |";
 
-    <[base.log]>->( 1, "starting $bin_name-Server..." );
+    <[base.log]>->( 1, sprintf( "starting '%s'-server...", $bin_name_lc ) );
 
     # LLL: change uid for 'xephyr'...
     $server_pid = open( my $out_fh, $cmd_line );
 
     if ( not defined $server_pid or $@ ) {
         my $err_reason = ( defined $! and length($!) ) ? ": \"$!\"" : '!';
-        <[base.log]>->( 0, ": unable to spawn $bin_name-server" . $err_reason );
+        <[base.log]>->( 0, ": unable to start $bin_name_lc-server$err_reason" );
         exit(2);
     } else {
         <[base.log]>->(
-            1, ": $bin_name-Server process started (pid=$server_pid)"
+            1, ": '$bin_name_lc' process started [pid=$server_pid]"
         );
         <xserver.pid> = $server_pid;
 
@@ -100,16 +101,19 @@ if ( $mode ne 'host' ) {
 } else {
     $bin_name = '(host) x11';
     <xserver.connect_timeout> = 15 if <xserver.connect_timeout> < 15;
-    <[base.log]>->( 1, "running in host mode ( using existing X11-server )" );
+    <[base.log]>->( 1, "running in host mode [ using existing X11-server ]" );
 }
 
 <xserver.x11_bin_name> = $bin_name;
+my $bin_name_lc = lc($bin_name);
 
-<[base.log]>->( 1, ": connecting to X display " . <xserver.display>->{$mode} );
+<[base.log]>->(
+    1, sprintf( ": connecting to X display [%s]", <xserver.display>->{$mode} )
+);
 
 <[xserver.connect_x11]>;
 
-<[base.log]>->( 1, ": : $bin_name-server ok! (responding)" );
+<[base.log]>->( 1, ": : link to '$bin_name_lc' established [responsive]" );
 
 <xserver.x11>->{'error_handler'} = sub {
     my ( $self, $err_data ) = @_;
@@ -180,7 +184,7 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
         <[base.log]>->(
             0, "<!> xserver unable to select highest screen size <!>"
         );
-        <[base.log]>->( 0, " :. fixing it! ( reloading gfx kernel module )" );
+        <[base.log]>->( 0, " :. mitigating.. [ reloading gfx kernel module ]" );
         <[event.add_timer]>->(
             {   'after'   => 0.13,
                 'handler' => 'xserver.callback.force_driver_reload'
