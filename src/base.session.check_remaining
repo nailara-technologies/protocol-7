@@ -29,7 +29,7 @@ if (    ( $session_count + $exit_count ) == 0
         ->( @{<callback.session.closing_last.params>} );
 }
 
-<[nroot.tear-down]>
+<[nroot.teardown]>
     if !$session_count
     and <system.agent.name> eq 'nroot'
     and <[agent.cmd.get_instance_ids]>->('core')->{'mode'} eq 'nak';
