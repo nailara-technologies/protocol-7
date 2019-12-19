@@ -18,6 +18,8 @@
     },
 };
 
+<http.nailara_tun_uri> =~ s|/+$|| if defined <http.nailara_tun_uri>;
+
 <proto.http.connect.banner> = '';
 
 <proto.http.status_codes> = <[httpd.status_codes]>;
@@ -31,7 +33,7 @@
 # check user / group existence
 <[base.log]>->( 2, "checking if httpd user / group exists.." );
 my $httpd_user  = <httpd.system.user>  //= 'httpd';
-my $httpd_group = <httpd.system.group> //= 'www';
+my $httpd_group = <httpd.system.group> //= 'httpd';
 
 my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
 if ( not defined $httpd_uid ) {
@@ -47,7 +49,7 @@ if ( not defined $httpd_uid ) {
     <[base.log]>->( 2, ": http user '$httpd_user' : UID $httpd_uid" );
 }
 
-my $site_dir = <httpd.site_dir> //= '/var/www';
+my $site_dir = <httpd.site_dir> //= '/var/httpd';
 if ( !-d $site_dir ) {
     <[base.log]>->( 0, "site_dir '$site_dir' did not exist, creating now..." );
     make_path( "$site_dir/default",
@@ -57,7 +59,7 @@ if ( !-d $site_dir ) {
 
 <[httpd.scan_site_dir]>;
 
-my $upload_dir = <httpd.upload_dir> //= '/var/www';
+my $upload_dir = <httpd.upload_dir> //= '/var/httpd/..incoming..';
 if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
     <[base.log]>->( 0, "upload_dir \"$upload_dir\" didn't exist, creating..." );
     make_path( "$upload_dir",
