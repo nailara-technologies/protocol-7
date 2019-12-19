@@ -232,7 +232,7 @@ sub prepare_subs {
 
         if (   $data{'system'}{'verbosity'}
             && $data{'system'}{'start'}{'showbanner'} ) {
-            say '..';
+            say ".\n.";
             &{ $code{'base.banner'} };
         }
     };
@@ -252,8 +252,8 @@ sub prepare_subs {
         } else {
             $ANSI{'yelblue'} = '';
         }
-        map { say "$n : $b$_" } split( /\n/, $banner ), '';
-        say "$n : $version_str\n :";
+        map { say "$n: $b$_" } split( /\n/, $banner ), '';
+        say "$n: $version_str\n:";
     };
 
     $code{'base.purge_code'} = sub { # todo : create callback registry [to skip]
@@ -299,7 +299,7 @@ sub prepare_subs {
         my @compile_them = ();
         while ( $code_name = shift @src_names ) {
             my $src_str = $code_name =~ /^plugin./ ? '' : ' source';
-            $code{'log.ok'}->("loading$src_str '$code_name'");
+            $code{'log.ok'}->(": loading$src_str '$code_name'");
 
             if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
                 my $s = $purge_count == 1 ? '' : 's';
@@ -590,9 +590,10 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} ) {
+            my $dot = defined $data{'log'}{'dots'} ? $data{'log'}{'dots'} : '.';
             map {
-                say ' :', $data{'system'}{'node'}{'name'}, '.',
-                    $data{'system'}{'agent'}{'name'}, ' ', $_
+                say ':.', $data{'system'}{'node'}{'name'},
+                    $dot, $data{'system'}{'agent'}{'name'}, '.', $_
             } @_;
         }
     };
@@ -600,9 +601,11 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
+            my $dot = defined $data{'log'}{'dots'} ? $data{'log'}{'dots'} : '.';
             map {
-                say ' :', $data{'system'}{'node'}{'name'}, '.',
-                    $data{'system'}{'agent'}{'name'}, ' ', $ANSI{'bold'}, $_,
+                say ':.', $data{'system'}{'node'}{'name'},
+                    $dot, $data{'system'}{'agent'}{'name'}, '.', $ANSI{'bold'},
+                    $_,
                     $ANSI{'normal'}
             } @_;
         }
@@ -611,9 +614,10 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 2, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} > 1 ) {
+            my $dot = defined $data{'log'}{'dots'} ? $data{'log'}{'dots'} : '.';
             map {
-                say ' :', $data{'system'}{'node'}{'name'}, '.',
-                    $data{'system'}{'agent'}{'name'}, ' ', $_
+                say ':.', $data{'system'}{'node'}{'name'},
+                    $dot, $data{'system'}{'agent'}{'name'}, '.', $_
             } @_;
         }
     };
