@@ -32,7 +32,9 @@ $log_msg = "call to unknown subroutine while executing '$1'!"
     if $log_msg
     =~ /\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine/;
 
-my $agent_prefix = join( '.', ' :' . <system.node.name>, <system.agent.name> );
+my $dots = <[base.log.dots]>;
+my $agent_prefix
+    = sprintf( ":.%s%s%s.:", <system.node.name>, $dots, <system.agent.name> );
 
 my $log_str;
 if ( $log_level > 0 ) {

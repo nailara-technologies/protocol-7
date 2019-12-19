@@ -1,0 +1,15 @@
+# >:]
+
+# name = base.log.dots
+
+<log.min_len>
+    //= length( join( '.', ' :' . <system.node.name>, <system.agent.name> ) );
+<log.name_width> //= <log.min_len>;
+
+my $min_len  = <log.min_len>;
+my $l_width  = <log.name_width> - $min_len + 1;
+my $dots_str = '.' x $l_width;
+
+<log.dots> = $dots_str if $l_width <=> length( <log.dots> // '' );
+
+return <log.dots>;
