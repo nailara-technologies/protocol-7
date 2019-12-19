@@ -18,7 +18,8 @@ map { remove_tree($_) if -d $_ and ( -o $_ or -w $_ ) } glob('/tmp/.openbox-*');
 <openbox.log_file>             = "$log_dir/openbox.log";
 <openbox.patched_openbox_path> = '/usr/local/bin/openbox';
 <openbox.prefer_patched_openbox> //= 0;
-chomp( <openbox.bin_path> = qx(which openbox) // '' );
+
+<openbox.bin_path> = <[base.required_bin_path]>->('openbox');
 
 if ( <openbox.prefer_patched_openbox> and -x <openbox.patched_openbox_path> ) {
     <openbox.bin_path> = <openbox.patched_openbox_path>;
