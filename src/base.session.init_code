@@ -2,13 +2,15 @@
 
 # name = base.session.init_code
 
-<base.session.uname_server> = '----';  # <- must _not_ be valid username syntax!
-
-my $a_name = <system.agent.name>;
+<base.session.uname_server> = '-----';  # <- must *not* be valid username syntax
 
 <callback.session.closing_last> = {
-    'name' => 'base.exit',    # default.. (overwrite or delete as required)
-    'params' => [ "terminating '$a_name' agent ( no more sessions )", 0 ]
+    'name'   => 'base.exit',    # <- change [ or comment out ] as required ...
+    'params' => [
+        sprintf( "terminating '%s' agent [ no more sessions ]",
+            <system.agent.name> ),
+        0
+    ]
 };
 
 return 0;

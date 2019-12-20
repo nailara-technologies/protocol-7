@@ -12,7 +12,7 @@ my $re = $data{'regex'}{'base'};
 
 if ( not defined $fd ) {
     <[base.log]>->(
-        0, "[!] base.session.init: [undefined filehandle] can't create session!"
+        0, "< base.session.init > [undefined filehandle] can not create session"
     );
     <[base.session.check_remaining]>;
     return -1;
@@ -20,7 +20,7 @@ if ( not defined $fd ) {
 
 if ( defined $name and $name !~ /^$re->{usr}$/ ) {
     <[base.log]>->(
-        0, "base.session.init: value '$name' for parameter name is invalid"
+        0, "< base.session.init > value '$name' for parameter name is not valid"
     );
     <[base.session.check_remaining]>;
     return -1;
@@ -29,7 +29,7 @@ if ( defined $name and $name !~ /^$re->{usr}$/ ) {
 $name //= <base.session.uname_server>;
 
 if ( not defined $data{'proto'}{$proto} ) {
-    <[base.log]>->( 0, "base.session.init: unknown protocol '$proto'" );
+    <[base.log]>->( 0, "< base.session.init > unknown protocol '$proto'" );
     <[base.session.check_remaining]>;
     return -1;
 }
