@@ -19,7 +19,7 @@ if (    $reply->{'cmd'} eq 'NAK'
     $reply_str
         = $agent_name eq 'core'
         ? "'core' agent refused reply!"
-        : "agent '$agent_name' not online or refusing reply";
+        : "agent '$agent_name' not online [ or refusing reply ]";
 } elsif ( $reply->{'cmd'} eq 'DATA' ) {
     $mode      = 'ack';
     $reply_str = "config written to export directory ('$export_file')";
@@ -27,7 +27,7 @@ if (    $reply->{'cmd'} eq 'NAK'
     eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
     if ( defined $@ and $@ ) {
         $@ =~ s| at base.file.put.+\n$||;
-        <[base.log]>->( 0, "config export to '$export_file' failed! [$@]" );
+        <[base.log]>->( 0, "config export to '$export_file' failed. [$@]" );
         $@ =~ s|^[^:]+: ||;
         $mode      = 'nak';
         $reply_str = "config export failed [ write error: $@ ]";
