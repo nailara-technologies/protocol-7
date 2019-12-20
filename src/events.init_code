@@ -73,7 +73,7 @@ map { <events.enabled>->{$_} = 1; push( @enabled, $_ ) }
     if defined $config_data->{'events'}->{'enabled'};
 
 if (@enabled) {
-    <[base.log]>->( 1, sprintf( "enabled : '%s'", join( "', '", @enabled ) ) );
+    <[base.logs]>->( 1, "enabled : '%s'", join( "', '", @enabled ) );
 } else {
     <[base.log]>->( 0, "<!> no events enabled in configuration <!>" );
 }
