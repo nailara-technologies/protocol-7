@@ -70,7 +70,7 @@ if ( $mode ne 'host' ) {
     my $bin_name_lc = lc($bin_name);
     my $cmd_line    = "$server_bin $server_params 2>&1 |";
 
-    <[base.log]>->( 1, sprintf( "starting '%s'-server...", $bin_name_lc ) );
+    <[base.logs]>->( 1, "starting '%s'-server...", $bin_name_lc );
 
     # LLL: change uid for 'xephyr'...
     $server_pid = open( my $out_fh, $cmd_line );
@@ -107,9 +107,7 @@ if ( $mode ne 'host' ) {
 <xserver.x11_bin_name> = $bin_name;
 my $bin_name_lc = lc($bin_name);
 
-<[base.log]>->(
-    1, sprintf( ": connecting to X display [%s]", <xserver.display>->{$mode} )
-);
+<[base.logs]>->( ": connecting to X display [%s]", <xserver.display>->{$mode} );
 
 <[xserver.connect_x11]>;
 
