@@ -5,12 +5,10 @@
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.load]>->('File::Spec');
 
-<nailara-logo.image_path>
+my $logo_image_path = <nailara-logo.image_path>
     //= <system.root_path> . '/data/gfx/logos/nailara.png';
 
-return
-    <[base.log]>
-    ->( sprintf( 0, "[not found] image file '%s'", <nailara-logo.image_path> ) )
+return <[base.logs]>->( 0, "[not found] image file '%s'", $logo_image_path )
     if !-f <nailara-logo.image_path>;
 
 open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on xserver SIGTERM
