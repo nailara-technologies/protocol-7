@@ -5,6 +5,8 @@
 <content.path.storage>
     //= -d '/data' ? '/data/nailara/content' : '/var/nailara/content';
 
-<[base.logs]>->( 1, "< storage path : '%s' >", <content.path.storage> );
+<[base.logs]>->( 1, "<< storage path : '%s' >>", <content.path.storage> );
+<[base.logs]>->( 1, "sourcecode path : '%s'",   <content.path.source> )
+    if <content.path.source> ne <system.code_path>;
 
 0;
