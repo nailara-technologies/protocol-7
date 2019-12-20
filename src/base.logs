@@ -1,0 +1,7 @@
+# >:]
+
+# name = base.logs
+
+return warn "insufficient parameters" if @_ < 2;
+return <[base.log]>->( 1, sprintf(@_) ) if length $_[0] > 1 or $_[0] !~ /^\d$/;
+return <[base.log]>->( shift, sprintf( shift, @_ ) );

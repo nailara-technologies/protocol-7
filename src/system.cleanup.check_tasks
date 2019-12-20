@@ -20,7 +20,7 @@ my $hostname_str = <system.host.hostname>;
 my $root_path = <system.root_path>;
 ( my $cleanup_path_rel = $cleanup_path ) =~ s|^$root_path/?||;
 
-<[base.log]>->( 2, sprintf( "[ %s ]", $cleanup_path_rel ) );
+<[base.logs]>->( 2, "[ %s ]", $cleanup_path_rel );
 
 my $task_count    = 0;
 my $items_removed = 0;
