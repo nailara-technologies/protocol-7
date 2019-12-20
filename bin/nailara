@@ -459,8 +459,21 @@ sub prepare_subs {
                     . $data{'code'}{$sub_name}{'source'} . '}';
             }
 
-            if ( $code{$sub_name} = eval($sub_code)
-                and ref( $code{$sub_name} ) eq 'CODE' ) {
+            ##                      ###
+            ## compiling subroutine ###
+            ##                      ###
+
+            open( my $std_err, ">&", \*STDERR ) or warn "can not dup [STDERR]";
+            open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # <- silencing..
+
+            my $compilation_success
+                = ( $code{$sub_name} = eval($sub_code)
+                    and ref( $code{$sub_name} ) eq 'CODE' )
+                ? 1
+                : 0;
+            open( STDERR, ">&$std_err" ) or warn "can not dup [OERR]"; # restore
+
+            if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'} = 'no-err';
                 $ok_count++;
@@ -484,10 +497,16 @@ sub prepare_subs {
                 $data{'base'}{'modules'}{'load_errors'}++;
                 my $err_str = $@;
                 $err_str =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg;
-                $code{'log.error'}->(
+
+                my @compile_errors = (
                     '>', ".:[ $sub_name ]:.",
                     ':', ( map {": [!] $_"} split( /\n+/, $err_str ) ), '-'
                 );
+
+                $code{'log.error'}->(@compile_errors);
+                map { $code{'base.buffer.add_line'}->( 'compile-errors', $_ ) }
+                    @compile_errors;
+
                 $err_str =~ s/\n/ /sg;
                 $err_str =~ tr/ //s;
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
@@ -605,8 +624,7 @@ sub prepare_subs {
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $ANSI{'bold'},
-                    $_,
-                    $ANSI{'normal'}
+                    $_, $ANSI{'normal'}
             } @_;
         }
     };
