@@ -45,7 +45,8 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
         if (<nroot.agent.instance>->{$id}->{'agent_name'} eq $query_param
             and (  not defined $agent_subname
                 or not defined <nroot.agent.instance>->{$id}->{'subname'}
-                or <nroot.agent.instance>->{$id}->{'subname'} eq $agent_subname )
+                or <nroot.agent.instance>->{$id}->{'subname'} eq
+                $agent_subname )
         ) {
             $found = 1;
             last;
@@ -53,7 +54,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     }
     return {
         'mode' => 'ack',
-        'data' => "agent '$query_copy' is not online!"
+        'data' => "agent '$query_copy' is not online."
         }
         if !$found;
 }
