@@ -9,7 +9,8 @@ if ( !-f <impressive.path.impressive_src> ) {
         and <impressive.cfg.autoinstall_impressive_py>
         and !-f $touch_file ) {
         my $installer_bin
-            = <system.root_path> . '/bin/impressive/download_impressive.pl';
+            = sprintf "%s/bin/install-scripts/download_impressive.pl",
+            <system.root_path>;
         qx(touch $touch_file);
         <[base.log]>->(
             0, "expected impressive installation not found, installing now ..."
