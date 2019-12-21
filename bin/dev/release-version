@@ -10,10 +10,9 @@ my $version_seed = 42513;
 
 my $mode = ( @ARGV and $ARGV[0] eq '-m' ) ? 'msg_str' : 'rel_ver';
 
+my $u = File::Spec->updir;
 my $root_path
-    = abs_path(
-    File::Spec->rel2abs( File::Spec->catdir( $RealBin, File::Spec->updir() ) )
-    );
+    = abs_path( File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
 my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
     'nailara.source_version' );
 {
@@ -26,11 +25,11 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
                 = sprintf( "%.3f", ( $commit * $year_float ) / $version_seed ) )
             =~ s|(\d)$|\.$1|;
         if ( $mode eq 'rel_ver' ) {
-            print STDOUT ":\n: release version : ";
-            print STDERR "$release_version\n";
+            print STDOUT ":\n: calculated nailara release : ";
+            print STDERR "v$release_version\n";
             print STDOUT ":\n";
         } else {
-            printf "release version [ nailara-%s ] // source code v.: %s\n",
+            printf "release version [ nailara-v%s ] // source code v.: %s\n",
                 $release_version, $raw_str;
         }
     } else {
