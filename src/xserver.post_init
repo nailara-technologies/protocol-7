@@ -116,7 +116,7 @@ my $bin_name_lc = lc($bin_name);
 <xserver.x11>->{'error_handler'} = sub {
     my ( $self, $err_data ) = @_;
     chomp( my $err_str = $self->format_error_msg($err_data) );
-    $err_str =~ s|\s*\n+\s*| --- |g;
+    $err_str =~ s|\s*\n+\s*| <!> |g;
     warn( $err_str, '<{C7}>' );
 };
 
