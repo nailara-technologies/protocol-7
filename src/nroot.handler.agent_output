@@ -74,7 +74,7 @@ foreach my $a_name ( keys %{$patterns_output} ) {
     }
     push( @matched_names, $a_name )
         if $a_name eq $agent_name                       # agent name matches
-        or $a_name =~ /^\!(.+)$/ and $1 ne $agent_name; # inverse match (!agent)
+        or $a_name =~ /^\!(.+)$/ and $1 ne $agent_name; # inverse match [!agent]
 }
 
 while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
@@ -85,7 +85,7 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     print $output_line. "\n"
         if <system.verbosity> or $output_line =~ /\Q$ANSI{bold}/;
     if (@matched_names) {    # matching pattern name exists
-        $output_line =~ s/^ :[^\.]+\.$agent_name //;
+        $output_line =~ s/^:(\.[^\.]+)?\.+$agent_name\.+: //;
         foreach my $pattern_name (@matched_names) {
             foreach my $pattern (
                 keys %{ <nroot.patterns.agent_output>->{$pattern_name} } ) {
