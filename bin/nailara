@@ -151,6 +151,7 @@ sub prepare_subs {
         my $ver_str = $data{'nailara'}{'source_version'} = 'unknown';
         my $version_file
             = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
+
         if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
             ( $data{'nailara'}{'source_version'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
@@ -193,9 +194,9 @@ sub prepare_subs {
             if ( $arg =~ /^-(v+)$/ ) {
                 $data{'system'}{'verbosity'} = length($1);
             }
-            if ( $arg eq '-d' )   { $data{'system'}{'daemon_mode'}      = 1 }
-            if ( $arg eq '-na' )  { $data{'system'}{'ansi_color'}       = 0 }
-            if ( $arg eq '-sic' ) { $data{'system'}{'startup_initcode'} = 1 }
+            if ( $arg eq '-d' )     { $data{'system'}{'daemon_mode'}      = 1 }
+            if ( $arg eq '-stdin' ) { $data{'system'}{'startup_initcode'} = 1 }
+            if ( $arg eq '-na' )    { $data{'system'}{'ansi_color'}       = 0 }
             if ( $arg eq '-nb' ) {
                 $data{'system'}{'start'}{'showbanner'} = 0;
             }
