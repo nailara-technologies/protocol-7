@@ -8,17 +8,17 @@ my $sid = $$call{'args'} || $$call{'session_id'};  # 0 == self (current session)
 
 return { 'mode' => 'nak', 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
-return { 'mode' => 'nak', 'data' => "not an 'agent' mode session!" }
+return { 'mode' => 'nak', 'data' => "not an 'agent' mode session" }
     if not defined $data{'session'}{$sid}{'auth'}{'method'}
     or $data{'session'}{$sid}{'auth'}{'method'} ne 'agent';
-return { 'mode' => 'nak', 'data' => 'was already initialized!' }
+return { 'mode' => 'nak', 'data' => 'was already initialized' }
     if defined $data{'session'}{$sid}{'initialized'}
     and $data{'session'}{$sid}{'initialized'} eq '1';
 
 $data{'session'}{$sid}{'initialized'} = 1;
 
 my $agent_name = $data{'session'}{$sid}{'user'};
-<[base.log]>->( 1, "[$sid] agent \"$agent_name\" marked as 'initialized'" );
+<[base.log]>->( 1, "[$sid] $agent_name-agent marked as initialized" );
 
 return { 'mode' => 'ack', 'data' => 'initialized' }
 
