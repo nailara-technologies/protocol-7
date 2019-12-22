@@ -7,11 +7,11 @@ log.timestamp_mode = ntime # [ntime|unix|localtime]
 
 modules.load = auth net io.ip log
 
-debug.subs = del dump dump-env echo exec-sub get \
-             list-subs set since sleep unload-dbg-mod
+debug.subs = get since dump dump-env echo exec-sub list-subs \
+             set del sleep keep-debug-loaded unload-dbg-mod
 
-access.cmd.usr.core = help ping reload cur-pid verify-instance list-logs \
-                      msg file-sizes list show-buffer <debug.subs>
+access.cmd.usr.core = msg help ping reload cur-pid verify-instance list-logs \
+                      file-sizes list show-buffer set-name-width <debug.subs>
 
 [load_modules:<modules.load>]
 [init_modules]
