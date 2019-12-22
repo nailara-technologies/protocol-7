@@ -8,7 +8,7 @@ my $nailara_bin   = <system.start.exec_name>;
 my $perl_bin_path = <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 <media.running> //= {};
-my @exec_args = ( '-nb', '-sic' );
+my @exec_args = ( '-nb', '-stdin' );
 
 my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
