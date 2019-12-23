@@ -110,6 +110,16 @@ sub prepare_subs {
         return sprintf( "%.${precision}f", ( $cur_time - $ntime ) * 4200 );
     };
 
+    $code{'base.log_prefix_width'} = sub {
+        ( my $agent_name, my $agent_subname ) = @_;
+        $agent_name //= $data{'system'}{'agent'}{'name'};
+        $agent_subname = $data{'system'}{'agent'}{'subname'} if !@_;
+        my $lp_len = 4 + length( $data{'system'}{'node'}{'name'} )
+            + length($agent_name);
+        $lp_len += 2 + length($agent_subname) if defined $agent_subname;
+        return $lp_len;
+    };
+
     # override fork() to make rand() fork safe
     $code{'base.fork'} = sub {
         my $pid = CORE::fork;
