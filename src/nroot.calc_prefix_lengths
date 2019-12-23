@@ -1,0 +1,17 @@
+# >:]
+
+# name  = nroot.calc_prefix_lengths
+# descr = initialize agents for automatic / immediate startup
+
+my $apw_href = <nroot.agent.prefix_width> //= {};
+
+foreach my $agent_name (@_) {
+    $apw_href->{$agent_name} = <[base.log_prefix_width]>->($agent_name);
+}
+
+my $max_len = 0;
+foreach my $agent_name ( keys %{$apw_href} ) {
+    $max_len = $apw_href->{$agent_name} if $max_len < $apw_href->{$agent_name};
+}
+
+map { $apw_href->{$_} = $max_len } keys %{$apw_href}
