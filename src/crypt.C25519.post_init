@@ -15,9 +15,8 @@ my $key_basepath = $key_vars->{'key_basepath'};
 
 if ( not defined $home_dir or !-r $home_dir ) {
     if ( !<base.parser.config.reloading> ) {
-        <[base.log]>->(
-            0, "<!> no homedir access for user '$key_usr', aborting init!"
-        );
+        <[base.log]>->( 0, "<!> no homedir access [ user '$key_usr' ]" );
+        <[base.log]>->( 0, " :. skipping C25519 key initialization" );
     } else {
         <[base.log]>->( 1, ": skipped key reload.. [homedir]" );
     }
