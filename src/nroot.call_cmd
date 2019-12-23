@@ -5,6 +5,6 @@
 my $params = shift;
 return if not defined $params or !length($params);
 
-$params =~ s/ *-+\w+ *//g;
+$params =~ s/ *-+\w+(=[^\s]+)? *//g;
 
 print "[CMD] $params\n" if length($params);

@@ -163,7 +163,11 @@ $stdin_mode = 1 && push( @exec_args, '-stdin' )
     and $init_result_data->{'start_mode'} eq 'stdin-agent'
     and exists $init_code->{'agent-init'};
 
-my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
+my $apw_href = <nroot.agent.prefix_width> //= {};
+push( @exec_args, '-lpw=' . $apw_href->{$agent_name} )
+    if defined $apw_href->{$agent_name};
+
+my $agent_verbosity = <system.verbosity> || 1; # -v is min. [a. output patterns]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
 <[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..." );
