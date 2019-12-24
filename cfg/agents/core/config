@@ -1,5 +1,5 @@
 
- .:[ nailara local core (routing) agent ]:.
+ .:[ nailara 'core' [ local routing ] agent ]:.
 
 buffer.agent.log_cmd = log.msg
 
@@ -14,19 +14,19 @@ buffer.agent.log_cmd = log.msg
 # load command access permission setup
 [load_config_file:'agents/core/access']
 
-system.agent.type               =       core
-modules.load                    =       auth digest net io.ip io.unix \
-                                        core.cmd crypt.C25519
-plugins.load                    =       plugin.auth
-auth.supported_methods          =       pwd agent unix C25519-TF
-# get.route                     =       file node_name.file :target:
-get.command                     =       file.get
-setup.aliases.source_agent      =       notify.message layout.get_coordinates \
-                                        layout.get_geometry nroot.teardown \
-                                        layout.assign_window system.pid_autokill
-setup.aliases.source_agent_sid  =       log.msg
+system.agent.type               =    core
+modules.load                    =    auth digest net io.ip io.unix \
+                                     core.cmd crypt.C25519 debug
+plugins.load                    =    plugin.auth
+auth.supported_methods          =    pwd agent unix C25519-TF
+# get.route                     =    file node_name.file :target:
+get.command                     =    file.get
+setup.aliases.source_agent      =    notify.message layout.get_coordinates \
+                                     layout.get_geometry nroot.teardown \
+                                     layout.assign_window system.pid_autokill
+setup.aliases.source_agent_sid  =    log.msg
 
-net.auth.timeout     =  13  #  seconds
+net.auth.timeout = 13   # nailara protocol
 
 # loading additional (.json) configuration files from /etc/nailara/import/
 modules.pre_load = core.config config.json
@@ -37,7 +37,6 @@ modules.pre_load = core.config config.json
 
 # load and initialize modules
 [load_modules:<modules.load>]
-#[load_modules:'plugin.auth'] # LLL: doesn't reload right now... fix!
 [init_modules] # LLL: fix redundant initializations: modules.pre_load
 
 # loading [authentication] plugins
@@ -46,7 +45,7 @@ modules.pre_load = core.config config.json
 # calulated network addr/port
 core.local = <nailara.net.int>
 
-# open unix domain socket
+# open local unix domain socket
 [file.make_path:'/tmp/.n/s',0777]
 unix.path = [digest.elf.b32:"<core.local.addr>:<core.local.port>"]
 unix.sock = [base.open:'unix','in',"/tmp/.n/s/<unix.path>"]
