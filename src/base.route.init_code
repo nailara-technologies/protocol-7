@@ -2,26 +2,15 @@
 
 # name = base.route.init_code
 
-my $max_routes_default = 42513;
+$data{'route'} //= {};
 
-if ( not defined $data{'limit'}{'max'}{'routes'}
-    or $data{'limit'}{'max'}{'routes'} < 1 ) {
-    <[base.log]>->(
-        1,
-        'limit.max.routes not defined or zero,'
-            . " using $max_routes_default as default.."
-    );
-    return 0;
-}
-
-if ( not defined $data{'route'} ) {
-    $data{'route'} = {};
-}
+<lmits.routes.combined>   //= 13542;
+<lmits.routes.per_client> //= 1342;
 
 <[base.list.init]>->(
     {   'name'         => 'routes',
         'key_ref'      => \$data{'route'},
-        'max_elements' => $data{'limit'}{'max'}{'routes'},
+        'max_elements' => <lmits.routes.combined>,
     }
 );
 
