@@ -38,7 +38,7 @@ if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
         "select=\'eq\(n,$frame_index\)",
         '-vframes', 1, '-loglevel', 'quiet', $target_path ) == 0
     and -f $target_path
-    ) {
+) {
     return $target_path;
 }
 

@@ -5,7 +5,7 @@
 my ( $widget, $context, $ref_status ) = @_;
 
 <ticker-gtk.status.initialized> //= 0;
-<ticker-gtk.last_time> //= <[base.time]>->(8);
+<ticker-gtk.last_time>          //= <[base.time]>->(8);
 
 my $window = <ticker-gtk.obj.window>;
 
@@ -71,7 +71,7 @@ if (   !$window->is_composited
     }
 }
 
-my $speed = <ticker-gtk.speed> // 13;
+my $speed       = <ticker-gtk.speed> // 13;
 my $draw_shadow = $speed > 16 ? 0 : 1;
 
 # LLL: initialization part needs to be rewritten!
@@ -84,7 +84,7 @@ if ( !<ticker-gtk.status.initialized> ) {
         (     $context->font_extents->{'ascent'}
             + $context->font_extents->{'descent'}
         ) < <x11.window.height> - $shadow_height
-        ) {
+    ) {
         $new_font_size++;
         $context->set_font_size($new_font_size);
     }
@@ -234,7 +234,7 @@ if (<ticker-gtk.animation_started>) {
     }
 }
 
-<ticker-gtk.draw.fps> = sprintf( "%.2f", 1 / $delta_t );
+<ticker-gtk.draw.fps>  = sprintf( "%.2f", 1 / $delta_t );
 <ticker-gtk.last_time> = <[base.time]>->(8);
 
 return 1;

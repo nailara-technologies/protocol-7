@@ -10,10 +10,6 @@ map {
     my $marker_l = $_ eq <layout.current_layout> ? '-->'  : '   ';
     my $marker_r = $marker_l =~ /\S/             ? ' <--' : '';
     $reply_str .= sprintf( " %s %s%s\n", $marker_l, $_, $marker_r )
-    } sort {
-    length($a) <=> length($b)
-    } sort {
-    $a cmp $b
-    } @layouts;
+} sort { length($a) <=> length($b) } sort { $a cmp $b } @layouts;
 
 return { 'mode' => 'data', 'data' => $reply_str }

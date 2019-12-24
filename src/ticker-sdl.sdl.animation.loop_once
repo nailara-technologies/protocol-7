@@ -63,14 +63,14 @@ while ( @{<ticker-sdl.content.work>} ) {
         >= <ticker-sdl.content.work>->[0]->{'width'};
 
     # pause to slow down
-    my $delta_t = ( <[base.time]>->(7) - <redraw.last_time> ) * 1000;
+    my $delta_t   = ( <[base.time]>->(7) - <redraw.last_time> ) * 1000;
     my $wait_time = sprintf( "%.4f", <ticker-sdl.redraw_delay> - $delta_t );
     SDL::delay($wait_time) if $wait_time > 0;
 
     # update screen ( try hardware blitting first )
     if ( !<sdl.flip_failed> ) {
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
-            my $err_str = SDL::get_error() || $!;
+            my $err_str          = SDL::get_error() || $!;
             my $err_str_brackets = length($err_str) ? " [ $err_str ]" : '';
             warn "unable to swap buffers! (switching to software mode)"
                 . $err_str_brackets . "\n";

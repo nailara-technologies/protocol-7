@@ -25,7 +25,8 @@ my @restart_timers;
 map {
     if ( defined <nroot.agent.instance>->{$_}->{'timeout_timer'}
         and <nroot.agent.instance>->{$_}->{'timeout_timer'}->is_active ) {
-        push( @restart_timers, <nroot.agent.instance>->{$_}->{'timeout_timer'} );
+        push( @restart_timers,
+            <nroot.agent.instance>->{$_}->{'timeout_timer'} );
         <nroot.agent.instance>->{$_}->{'timeout_timer'}->stop;
     }
 } keys %{<nroot.agent.instance>};

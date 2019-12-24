@@ -9,7 +9,7 @@ return {
     }
     if not defined <weather.station_id>;
 
-my $stid = <weather.station_id>;
+my $stid   = <weather.station_id>;
 my $clouds = <weather.data>->{$stid}->{'current'}->{'clouds'} // 'n/a';
 $clouds .= "%" if $clouds =~ /^\d+(\.\d+)?$/;
 

@@ -16,7 +16,7 @@ $opacity_factor = $fade_limit if $opacity_factor < $fade_limit;
 
 foreach my $window_id ( keys %{ $params->{'windows'} } ) {
     my $start_opacity = $params->{'windows'}->{$window_id};
-    my $new_opacity = sprintf( "%.5f", $start_opacity * $opacity_factor );
+    my $new_opacity   = sprintf( "%.5f", $start_opacity * $opacity_factor );
     delete $params->{'windows'}->{$window_id}
         if not defined
         <[xserver.set_window_opacity]>->( $window_id, $new_opacity )

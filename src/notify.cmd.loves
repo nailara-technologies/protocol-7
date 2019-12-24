@@ -50,8 +50,7 @@ if ( defined $title or @matches ) {
     my @msg = $title;
     push( @msg, $body ) if defined $body;
     if (!system(
-            <notify.path.notify_send>,   '-i',
-            <notify.path.loves_icon>, @msg
+            <notify.path.notify_send>, '-i', <notify.path.loves_icon>, @msg
         )
     ) {
         return { 'mode' => 'ack', 'data' => 'notification message sent' };

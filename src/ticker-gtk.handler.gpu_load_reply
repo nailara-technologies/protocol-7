@@ -40,9 +40,9 @@ my $skip = (
 
 # debug section
 $target_percent = <ticker-gtk.slowdown.percent_target>;
-my $delta_t = sprintf( "%.2f", $target_percent - $old_target );
+my $delta_t   = sprintf( "%.2f", $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
-$delta_str = '' if $delta_t == 0;
+$delta_str    = '' if $delta_t == 0;
 $load_percent = sprintf( "%.2f", $load_percent );
 <ticker-gtk.debug.loglevel.autospeed> //= 2;
 <[base.log]>->(

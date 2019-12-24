@@ -5,7 +5,7 @@
 my $answer = shift;
 my $c_mode = <layout.watch_tiles.comparison_mode> //= 'last';
 
-return warn "unexpected (NAK) reply from screenshot agent!"
+return warn "unexpected [NAK] reply from screenshot agent"
     if $answer->{'cmd'} ne 'ACK';
 
 <layout.last_tile_color> //= {};
@@ -22,7 +22,7 @@ my $inactive_timeout = <layout.watch_tiles.inactive_timeout> //= 300;
 my $inactive_action  = <layout.watch_tiles.inactive_action> //= 'warn';
 my $check_playlist   = <layout.watch_tiles.check_playlist> //= 1;
 
-<layout.tile_last_changed>->{$tile_name} //= time;
+<layout.tile_last_changed>->{$tile_name}    //= time;
 <layout.tile_alert_triggered>->{$tile_name} //= 0;
 
 if (!<layout.tile_alert_triggered>->{$tile_name}
@@ -33,7 +33,7 @@ if (!<layout.tile_alert_triggered>->{$tile_name}
 
         or $c_mode eq 'last' and $tile_color eq $last_color
     )
-    ) {
+) {
 
     if ( <[base.time]>->(1) - <layout.tile_last_changed>->{$tile_name}
         >= $inactive_timeout ) {    # TIMEOUT TRIGGERED

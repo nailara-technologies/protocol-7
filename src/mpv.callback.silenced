@@ -2,7 +2,7 @@
 
 # name = mpv.callback.silenced
 
-my $audio_device  = <mpv.audio_device> // 'auto';
+my $audio_device  = <mpv.audio_device>  // 'auto';
 my $audio_channel = <mpv.audio_channel> // 1;
 
 push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
@@ -10,4 +10,4 @@ push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 
 push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->( 'set_property_string', 'audio-device', $audio_device );
-<[mpv.send_command]>->( 'set_property_string', 'audio', $audio_channel );
+<[mpv.send_command]>->( 'set_property_string', 'audio',        $audio_channel );

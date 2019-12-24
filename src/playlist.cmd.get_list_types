@@ -45,7 +45,9 @@ foreach my $file ( @{<playlist.file_list>} ) {
         } keys %{<playlist.exclusive_b32id>};
     }
 
-    next if grep {/^$b32id_str$/} @{<playlist.hidden_b32id>}; # <- SHOW/HIDE event
+    next
+        if grep {/^$b32id_str$/}
+        @{<playlist.hidden_b32id>};                # <- SHOW/HIDE event
 
     my @url_flags;
     map {

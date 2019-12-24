@@ -18,7 +18,7 @@ my $reply_str = $reply->{'call_args'}->{'args'};
 if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
     my ( $agent_name, $core_sid ) = ( $1, $2 );
     if ( $agent_name ne <system.agent.name> ) {
-        <[base.log]>->( 0, "whoami reply does not match internal agent name!" );
+        <[base.log]>->( 0, "<!> 'whoami' reply does not match agent name <!>" );
     }
     my $usr_str = $reply->{'params'}->{'route_user'};
     my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
@@ -28,7 +28,7 @@ if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
     <[base.call_online_hooks]>;
 } else {
     <[base.log]>->(
-        0, "protocol mismatch (unexpected reply to whoami command!) [$reply_str]"
+        0, "protocol mismatch [ unexpected reply to 'whoami' ] ( $reply_str )"
     );
     return undef;
 }

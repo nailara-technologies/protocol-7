@@ -97,7 +97,7 @@ if ( !-f $output_file ) {
         my $err_str = $!;
         if ( -f $error_log_file ) {
             my $log_content = <[file.slurp]>->($error_log_file);
-            my @log_lines = split( /\n/, $$log_content );
+            my @log_lines   = split( /\n/, $$log_content );
             if ( scalar(@log_lines) > 3 ) {
                 $err_str = $log_lines[2];
             } elsif (@log_lines) {

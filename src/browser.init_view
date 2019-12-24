@@ -87,7 +87,7 @@ $view->signal_connect( # filtering all events according to blocklist setup above
         my $type = $evt->type();
 
         return 1 if exists <browser.blocked_event_types>->{$type};    # block
-             # print "\n [ event : $type ]\n\n";
+            # print "\n [ event : $type ]\n\n";
         if ( index( $type, 'key' ) == 0 )
         {    # block key presses outside input fields
             return 1 if !$v->can_paste_clipboard();

@@ -3,10 +3,10 @@
 # name  = nroot.teardown
 # descr = shut down nroot agent [with an optional error message]
 
-my $reason = shift // '';
+my $reason    = shift // '';
 my $exit_code = length($reason) ? 1 : $?;
 my $log_level = length($reason) ? 0 : 1;
-my $t_res = 3;    # <- time delta float resolution
+my $t_res     = 3;                          # <- time delta float resolution
 
 my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
 my $abort_timeout = 2;

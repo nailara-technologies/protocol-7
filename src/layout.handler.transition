@@ -155,7 +155,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
 } elsif (
     $event_type eq 'is_offline'    ## agent stopped or not running ##
     and defined $core_reply->{'params'}->{'agent_name'}
-    ) {
+) {
     my $agent = $core_reply->{'params'}->{'agent_name'};
     if ( exists <layout.transition.status.agents.fade_out>->{$agent} ) {
         delete <layout.transition.status.agents.fade_out>->{$agent};
@@ -255,14 +255,14 @@ if ( defined <layout.transition.status.waiting> ) {    ## in progress? ##
         if ( defined <layout.transition_queue>
             and @{<layout.transition_queue>} ) {
             my $trans_count = scalar @{<layout.transition_queue>};
-            my $s = $trans_count > 1 ? 's' : '';
+            my $s           = $trans_count > 1 ? 's' : '';
             <[base.log]>->( 1, "found $trans_count queued transition$s.." );
             <[layout.cmd.switch_to]>
                 ->( { 'args' => shift @{<layout.transition_queue>} } );
         } elsif ( defined <layout.restore.overlays>
             and @{<layout.restore.overlays>} ) {
             my $count = scalar @{<layout.restore.overlays>};
-            my $s = $count > 1 ? 's' : '';
+            my $s     = $count > 1 ? 's' : '';
             <[base.log]>->( 1, "restoring $count layout overlay$s.." );
             <[layout.cmd.add_overlay]>
                 ->( { 'args' => join( ' ', @{<layout.restore.overlays>} ) } );

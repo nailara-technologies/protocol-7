@@ -4,7 +4,7 @@
 # descr = reload playlist file and notify configured agents
 
 my $reload_reply = <[playlist.cmd.reload_file]>;
-my $update_cmd = <update.notify_command> // 'playlist_update';
+my $update_cmd   = <update.notify_command> // 'playlist_update';
 
 return $reload_reply
     if $reload_reply->{'mode'} eq 'nak' or not defined <update.notify_agents>;

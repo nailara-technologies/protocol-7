@@ -11,7 +11,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     return;
 }
 
-my @file_list = split( "\n", $reply->{'data'} );
+my @file_list     = split( "\n", $reply->{'data'} );
 my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {

@@ -16,7 +16,7 @@ $context->set_font_face(<ticker-gtk.font.face>);
 $context->set_font_size(<ticker-gtk.font.size>);
 
 my $total_width = $context->text_extents($scroll_text)->{'x_advance'};
-my $txt_width = { ' ' => $context->text_extents(' ')->{'x_advance'} };
+my $txt_width   = { ' ' => $context->text_extents(' ')->{'x_advance'} };
 
 my @txt_sequence;
 while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {

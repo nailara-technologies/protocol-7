@@ -6,11 +6,13 @@
 my ( $path, $mode ) = @_;
 $mode //= 0700;    # <- strict default
 $mode = oct($mode) if $mode =~ /^0/;
-die "expected absolute path (to create)"
+die "expected absolute path [ to create ]"
     if not defined $path or $path !~ m,^/[^/]+,;
+
 $path =~ s,/[^/]+/\.\./,,g;
 $path =~ s|//|/|g;
 $path =~ s,/$,,;
+
 die "invalid path '$path'" if $path !~ m,^/[^/]+,;
 
 if ( -d $path ) {
@@ -26,7 +28,7 @@ foreach my $_dir ( split /\//, $path ) {
     $current_path .= '/' . $_dir;
     next if -d $current_path;
 
-    mkdir( $current_path, $mode ) or die " mkdir '$current_path' failed [$!] ";
+    mkdir( $current_path, $mode ) or die " mkdir '$current_path' : [ $! ]";
 }
 
 return $path;

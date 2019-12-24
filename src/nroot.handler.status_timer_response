@@ -12,14 +12,14 @@ my $instance      = <nroot.agent.instance>->{$instance_id};
 my $is_core_agent = $instance->{'is_core'};
 my $agent_name    = $instance->{'agent_name'};
 my $fail_count    = $instance->{'ping'}->{'errors'}++;
-my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
+my $ping_retry    = $fail_count ? 0 : 1;                      # retry once
 
 $instance->{'timeout_timer'}->cancel
     if defined $instance->{'timeout_timer'}
     and !$instance->{'timeout_timer'}->is_cancelled;
 
 if (    $response->{'cmd'} eq 'ACK'
-    and $response->{'call_args'}->{'args'} eq 'pong' ) {     # all fine
+    and $response->{'call_args'}->{'args'} eq 'pong' ) {      # all fine
     delete $instance->{'ping'}->{'errors'};
     <[base.log]>->(
         2, "instance $instance_id [$agent_name] ping response ( success )"

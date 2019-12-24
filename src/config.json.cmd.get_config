@@ -36,7 +36,7 @@ my @exclude_list = ();
 
 foreach my $exp_key (@export_keys) {
     my $parent_ref = $data_copy;
-    my @rest_keys = split /\./, $exp_key;
+    my @rest_keys  = split /\./, $exp_key;
     while ( my $k = shift @rest_keys ) {
         if (@rest_keys) {
             $parent_ref->{$k} //= {};
