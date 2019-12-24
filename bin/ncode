@@ -1366,25 +1366,24 @@ sub clean_dir {
 # :: tree :: returns a list of module files [with full path]
 
 sub files {
-    my $type = shift;
     my @files;
-
+    my $type = shift;
     my $path = $targets{$type};
     if ( defined $path and $path ne '' and -d $path ) {
         opendir( my $dir_fh, $path ) or die "failed to open dir '$path': $!\n";
         foreach my $filename ( readdir($dir_fh) ) {
+            next if $filename eq '.' or $filename eq '..';
             ( $filename = "$path/$filename" ) =~ s|//|/|g;
             if ( $filename !~ /(\.bak|\.orig|\~)$/i ) {
                 chomp($filename);
-
-                ## cfg/agents/*/config ##
-                $filename .= "/config"
-                    if -d $filename and -f "$filename/config";
                 push( @files, $filename );
-
-                ## cfg/agents/*/access ##
-                push( @files, $filename )
-                    if $filename =~ s|/config$|/access| and -f $filename;
+                ## cfg/agents/*/... ##
+                if ( $filename =~ m|cfg/agents/[^\/]+$| and -d $filename ) {
+                    opendir( my $adir_fh, $filename )
+                        or die "failed to open dir '$filename': $!\n";
+                    map { push( @files, $filename . "/$_" ) } readdir($adir_fh);
+                    closedir($adir_fh);
+                }
             }
         }
         closedir($dir_fh);
