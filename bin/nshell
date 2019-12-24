@@ -73,9 +73,7 @@ my $core_addr = shift(@args) || '127.0.0.1';
 my $core_port = shift(@args) || $nailara_port;
 my $usock_dir = '/tmp/.n/s';
 
-my $color  = "\e[37m\e[40m";
 my $prompt = "\\ $hostname \\:[?]:, ";
-
 
 my $connect = 1;
 my $WARNED  = 0;
@@ -108,7 +106,7 @@ while ($connect) {
         $0 = "nshell ( $core_addr : $core_port )";
         if ( not defined $stored_cmd ) {
             clear();
-            print "\e[1m\e[5m\e[34m\e[40m`\e[0m\n";
+            print "\e[1m\e[5m\e[34m\e-\e[0m\n";
         } else {
             if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
                 sleep(0.1);
@@ -116,13 +114,14 @@ while ($connect) {
 
                 exit(2);    # aborting connection, failed to send!
             } else {
-                printf "\033[${lines_up}A\r\e[5m.\e[0m < \e[32m%-79s\n\n",
-                    "reconnected$color >";
+                printf "\033[${lines_up}A\r\e[5m\e[34m.\e[0m"
+                    . "  \e[34m< \e[32m%-79s\n\n",
+                    "reconnected \e[34m>\e[0m";
                 my $l_cmd = length($stored_cmd);
                 $l_cmd = 33 if $l_cmd < 33;
-                printf "\r\e[2m$prompt\e[1m\e[31m%-"
+                printf "\r\e[2m$prompt\e[1m\e[32m%-"
                     . $l_cmd
-                    . "s$color\n\033[1A\n\e[0m",
+                    . "s\e[37m\n\033[1A\n\e[0m",
                     $stored_cmd;
             }
         }
@@ -251,7 +250,7 @@ sub s_write {
     return $b_written;
 }
 
-sub clear { print "\e[37m\e[40m\e[H\e[2J" }
+sub clear { print "\e[37m\e[H\e[2J" }
 
 sub shell_loop {
     my $sock   = $_[0];
@@ -281,7 +280,7 @@ sub shell_loop {
         and defined( my $line = $term->readline($prompt) ) ) {
         $WARNED  = 0;
         $connect = 1;
-        print $color;
+        print "\e[37m";
         if ( $line ne '' ) {
 
             $term->add_history($line) if $line ne $last_line;
@@ -352,11 +351,13 @@ sub stdout_fork {
         print "$out\n";
     }
     close($shell_sock);
-    print ".\n      \e[5m.\e[0m      .     .    .:\e[31m [\e[\e[0m connection"
-        . " terminated\e[0m \e[31m]\e[0m :.    .     .      \e[5m.\e[0m\n.\n";
+    print "\e[34m.\n      \e[5m.      .     .     "
+        . "\e[0m\e[34m.:\e[34m[\e[\e[0m connection"
+        . " terminated\e[0m \e[34m]\e[34m:.\e[5m  "
+        . "   .     .      .\e[0m\n\e[34m.\e[0m\n";
 }
 
-sub rl_filename_list_lcl {
+sub rl_filename_list_lcl { #<- currently not working since Term::ReadLine switch
     my ( $text, $line, $pos ) = @_;
 
     if ( !$pos or $line !~ /^\. / ) {
@@ -405,8 +406,7 @@ sub readline_signals {
 }
 
 sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
-    my $term_str = $term_loop ? "\n\e[5m.\e[0m\n\n" : "\n ::\n :\n\n";
-    print $term_str;
+    print $term_loop ? "\n\e[34m\e[5m.\n.\n.\n\e[0m\n" : "\n ::\n :\n\n";
     if ( -S $shell_sock ) {
         $shell_sock->shutdown(2);
         $shell_sock->close();
