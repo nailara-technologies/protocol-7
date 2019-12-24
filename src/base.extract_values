@@ -4,7 +4,7 @@
 
 my $entries        = 0;
 my $conf_key       = shift;
-my $file_ref       = shift || [];
+my $file_ref       = shift // [];
 my $resolve_values = ( @_ and $_[0] eq 'resolved' ) ? 1 : 0;
 if ( $conf_key and $conf_key !~ /[{}]/ ) {
     $conf_key =~ s/'//g;

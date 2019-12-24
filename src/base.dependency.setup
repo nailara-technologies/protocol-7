@@ -4,7 +4,7 @@
 # descr = setup dependency resolution callbacks for given object type
 
 my $object_type = shift // '';
-my $type_setup  = shift || {};
+my $type_setup  = shift // {};
 
 if ( exists <dependency.setup.type>->{$object_type} ) {
     <[base.log]>->( 2, "redefining object type '$object_type' ..." );
