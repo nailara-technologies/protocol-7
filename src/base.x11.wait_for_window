@@ -4,7 +4,7 @@
 
 my $timeout  = <x11.window_timeout> || 10;
 my $name     = shift;
-my $user     = shift || 'core';
+my $user     = shift // 'core';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 if ( not defined $name ) {
