@@ -4,7 +4,7 @@
 # descr = return 1 if dependency for given object id is fulfilled, 0 if not
 
 my $object_id = shift // '';
-my $event_id = shift;    # optional
+my $event_id  = shift;         # <- optional
 
 if ( not exists <dependency.object>->{$object_id} ) {
     <[base.log]>->(

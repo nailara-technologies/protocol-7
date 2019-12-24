@@ -28,7 +28,7 @@ while ( not defined $response or !$response->is_success and --$retries ) {
     push( @headers, 'x-api-key' => $api_key )
         if defined $api_key
         and length($api_key);
-    $response = $ua->get( $query_url, @headers );
+    $response    = $ua->get( $query_url, @headers );
     $status_code = $response->{'_rc'};
 
     if ( !$response->is_success and $retries ) {

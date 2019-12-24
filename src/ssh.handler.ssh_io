@@ -85,7 +85,9 @@ if ( !$connection->{'authorized'} ) {
         <[base.log]>->( 0, ": : nailara authentication timeout on remote end" );
         <[ssh.connection.stop]>->($con_id);
     } else {
-        <[base.log]>->( 0, ": : protocol mismatch on remote end nailara auth.!" );
+        <[base.log]>->(
+            0, ": : protocol mismatch on remote end nailara auth.!"
+        );
         <[ssh.connection.stop]>->($con_id);
     }
 } else {

@@ -31,6 +31,6 @@ if ( ref($callback) ne 'CODE' ) {
 
 return () if not exists <dependency.chain>->{$object_id};
 foreach my $chain_obj_id ( @{ <dependency.chain>->{$object_id} } ) {
-    push(@missing_objects, $chain_obj_id) if !$callback->($chain_obj_id);
+    push( @missing_objects, $chain_obj_id ) if !$callback->($chain_obj_id);
 }
 return @missing_objects;

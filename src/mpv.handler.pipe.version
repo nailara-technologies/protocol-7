@@ -3,7 +3,7 @@
 # name = mpv.handler.pipe.version
 
 my $version_str = shift // 'unknown';
-my $reply_id = shift @{<mpv.reply_ids>};
+my $reply_id    = shift @{<mpv.reply_ids>};
 $version_str =~ s|^mpv ||;
 <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => 'ack', 'data' => $version_str }

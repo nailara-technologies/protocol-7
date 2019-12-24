@@ -8,13 +8,13 @@ my $agent_name    = $instance->{'agent_name'};
 my $agent_status  = $instance->{'status'};
 my $is_core_agent = $instance->{'is_core'};
 my $fail_count    = $instance->{'ping'}->{'errors'}++;
-my $ping_retry    = $fail_count ? 0 : 1;                     # retry once
+my $ping_retry    = $fail_count ? 0 : 1;                      # retry once
 my $retry_str     = $ping_retry ? ' (retrying..)' : '';
 <[base.log]>->(
     0, "instance $instance_id [$agent_name] ping response ( TIMEOUT )$retry_str"
 );
 
-if ( !$ping_retry ) {                                        # [no more retries]
+if ( !$ping_retry ) {    # [no more retries]
     if ($is_core_agent) {
         if ( $agent_status eq 'error' ) {    # was already not successful
             <callback.session.closing_last> = {

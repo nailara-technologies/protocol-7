@@ -22,9 +22,10 @@ $http->agent(<storchencam.user_agent>);
 $http->protocols_allowed( [ 'http', 'https' ] );
 $http->timeout(<storchencam.http_timeout>);
 
-my $image_url   = <storchencam.image_url>;
-my $cover_image = <system.root_path> . '/data/gfx/agent/storchencam/cover-image.jpg';
-my $font_path   = <system.root_path> . '/data/ttf/droid/DroidSansMono.ttf';
+my $image_url = <storchencam.image_url>;
+my $cover_image
+    = <system.root_path> . '/data/gfx/agent/storchencam/cover-image.jpg';
+my $font_path = <system.root_path> . '/data/ttf/droid/DroidSansMono.ttf';
 
 my $screen_width;
 my $screen_height;
@@ -79,7 +80,7 @@ if (<storchencam.display_time>) {
 }
 
 if ($font) {
-    $err_font = SDL::TTF::open_font( $font_path, $err_size );
+    $err_font  = SDL::TTF::open_font( $font_path, $err_size );
     $err_color = SDL::Color->new( 0xFF, 0x00, 0x00 );
 }
 

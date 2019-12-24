@@ -15,7 +15,7 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 <mpv.success_reply_str> =~ s|\.0||;
 
 <mpv.current.volume_target> = <mpv.current.volume> = $volume;
-<mpv.audio_fade.last_set> = $volume if defined <mpv.audio_fade.last_set>;
+<mpv.audio_fade.last_set>   = $volume if defined <mpv.audio_fade.last_set>;
 
 <[mpv.send_command]>->( 'set_property', 'volume', sprintf( "%0.3f", $volume ) );
 

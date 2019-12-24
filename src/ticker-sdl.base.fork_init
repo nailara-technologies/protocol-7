@@ -51,9 +51,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     <ticker-sdl.window_id>
         = <[base.x11.wait_for_window]>->( $title_pattern, 'parent', 'core' );
     if ( not defined <ticker-sdl.window_id> ) {
-        <[base.log]>->(
-            0, "agent startup error (ticker window did not open)"
-        );
+        <[base.log]>->( 0, "agent startup error (ticker window did not open)" );
         exit(2);    # LLL: deal with parent? (test SIGCHLD handler!)
     } elsif (<ticker-sdl.cfg.assign_window>) {
         <[base.x11.assign_window]>->( <ticker-sdl.window_id>, 'parent' );

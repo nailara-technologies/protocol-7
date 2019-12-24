@@ -13,7 +13,7 @@ if ( $conf_key and $conf_key !~ /[{}]/ ) {
 }
 <base.parser.config.errors> //= 0;
 my $reload_mode = <base.parser.config.reloading> // 0;
-my $last_line = '';
+my $last_line   = '';
 foreach my $conf_line ( @{$file_ref} ) {
     $conf_line =~ s/[ \t]*#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
     if ( $conf_line =~ s|\\ *$|| ) {
@@ -27,8 +27,8 @@ foreach my $conf_line ( @{$file_ref} ) {
     $conf_line =~ s/(^[^=]+=)[ \t]+/$1/;
     ( my $name, my $value ) = split( /=/, $conf_line );
     if ( defined $value ) {
-        $name =~ s/[ \t]+//g;
-        $name =~ s/\./'}{'/g;
+        $name  =~ s/[ \t]+//g;
+        $name  =~ s/\./'}{'/g;
         $value =~ s/'//g;
         if ($resolve_values) {
             while ( $value =~ m{<([^>]+)>} ) {

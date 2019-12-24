@@ -70,14 +70,14 @@ foreach my $id (
         int(join( '',
                 map { sprintf "%03d", $_ } split /\./,
                 $ifconfig{$a}{'ip'} )
-            ) <=> int(
+        ) <=> int(
             join( '',
                 map { sprintf "%03d", $_ } split /\./,
                 $ifconfig{$b}{'ip'} )
-            )
+        )
     }
     keys %ifconfig
-    ) {
+) {
     $payload_str .= sprintf(
         "%" . $x_pos . "s   #  %-17s / %s\n",
         $ifconfig{$id}{'ip'},

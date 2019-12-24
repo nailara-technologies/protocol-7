@@ -20,7 +20,7 @@ return {
     }
     if not exists <layout.config.layouts>->{$layout_name};
 
-if ( <layout.transition_in_progress> ) {
+if (<layout.transition_in_progress>) {
     push( @{<layout.transition_queue>}, $layout_name );
     return {
         'mode' => 'ack',

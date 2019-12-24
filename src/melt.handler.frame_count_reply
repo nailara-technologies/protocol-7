@@ -62,7 +62,8 @@ eval {
     waitpid( $pid, 0 );
 };
 
-<[base.log]>->( 0, "melt exec not successful [ $@ ]" ) if $@ =~ s| at melt.+\n$||;
+<[base.log]>->( 0, "melt exec not successful [ $@ ]" )
+    if $@ =~ s| at melt.+\n$||;
 
 if ( -f $out_file_path ) {
     <[base.log]>->( 1, ": $out_file_path" );

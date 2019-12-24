@@ -14,9 +14,9 @@ map {
         <power.cfg.devices>->{$_}->{'ip'},
         <[power.cmd.get_states]>->($_)->{'data'} )
         . "\n"
-    } sort {
+} sort {
     <power.cfg.devices>->{$a}->{'added'} <=>
         <power.cfg.devices>->{$b}->{'added'}
-    } keys %{<power.cfg.devices>};
+} keys %{<power.cfg.devices>};
 
 return { 'mode' => 'data', 'data' => $reply_str };

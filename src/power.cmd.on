@@ -21,10 +21,10 @@ return { 'mode' => 'nak', 'data' => 'power socket number expected [1..4]' }
     if not defined $sock_num or $sock_num !~ /^[1234]$/;
 
 my @set_states = ( undef, undef, undef, undef );
-my $index = $sock_num - 1;
+my $index      = $sock_num - 1;
 $set_states[$index] = 1;
 
-my @states = <[power.set_states]>->( $device_id, @set_states );
+my @states    = <[power.set_states]>->( $device_id, @set_states );
 my $new_state = $states[$index];
 
 if ( not defined $new_state ) {

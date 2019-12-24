@@ -36,7 +36,7 @@ push( @icon_paths, "$gradient_dir/gray-tq.png" );
 
 my $copied = 0;
 foreach my $icon_file (@icon_paths) {
-    my $file_name = $1 if $icon_file =~ /([^\/]+)$/;
+    my $file_name   = $1 if $icon_file =~ /([^\/]+)$/;
     my $target_path = "$image_dir/$file_name";
     next if -f $target_path;
     copy( $icon_file, $target_path )
