@@ -13,7 +13,8 @@ if (   not %KEYS
     or not exists $KEYS{'auth'}{'agent'}
     or ref( $KEYS{'auth'}{'agent'} ) ne 'HASH'
     or !keys( %{ $KEYS{'auth'}{'agent'} } ) ) {
-    <[base.log]>->( 0, "[$id] can not authenticate agent session [..no key..]" );
+    <[base.log]>
+        ->( 0, "[$id] can not authenticate agent session [..no key..]" );
     $$output .= "NOPE >:|\n";    # LLL: move down?
     return 2;
 }

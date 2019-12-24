@@ -4,10 +4,7 @@
 # descr = toggle playback (pause status)
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-push(
-    @{<mpv.command.reply>},
-    { 'handler' => 'mpv.handler.cmd_prop.pause' }
-);
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.cmd_prop.pause' } );
 <mpv.pause_cmd_mode> = 'toggle';
 <[mpv.send_command]>->( 'get_property_string', 'pause' );
 

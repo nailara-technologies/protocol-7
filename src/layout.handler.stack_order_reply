@@ -21,7 +21,7 @@ return <[base.callback.cmd_reply]>->(
 $answer->{'data'} =~ s|\n$||;
 my @window_stack = split( /\n/, $answer->{'data'} );
 
-my $missing = 0;
+my $missing   = 0;
 my %wid_check = map { $_ => 1 } @window_stack;
 for my $agent_name ( keys %{<layout.layers>} ) {
     my $wid_str = <layout.window_ids>->{$agent_name};
@@ -49,11 +49,11 @@ my %known_ids;
 for my $agent_name (
     sort { <layout.layers>->{$b} <=> <layout.layers>->{$a} }
     keys %{<layout.layers>}
-    ) {
+) {
     my $window_ids_str = <layout.window_ids>->{$agent_name};
     next if not defined $window_ids_str;
     my @window_ids = sort split( /\D+/, $window_ids_str );
-    my $layer_pos = <layout.layers>->{$agent_name};
+    my $layer_pos  = <layout.layers>->{$agent_name};
     push( @lower_ids, @window_ids );
     map { $known_ids{$_} = 1 } @window_ids;
 }
@@ -70,7 +70,7 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
                 'call_args' => { 'args' => $_ },
                 'reply'     => { 'handler' => 'dev.null' }
             }
-            )
+        )
     } @lower_ids;
 }
 

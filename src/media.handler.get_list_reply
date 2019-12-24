@@ -150,7 +150,7 @@ foreach my $file (@file_list) {
             ->{ $file_types{ $file_list[$last_index] } } );
     }
     $first_agent = $agent if not defined $first_agent;
-    $last_agent = $agent;
+    $last_agent  = $agent;
     $index++;
 }
 push( @{ <media.playlist.agent>->{$last_agent} }, '[PAUSE]' )
@@ -175,7 +175,7 @@ if ( @file_list and <media.playlist_was_empty> ) {
     <media.agents_started>
     and (  !<media.cfg.fade_on_switch>
         or !$switch_count )
-    ) {
+) {
     map {
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => "$_.playlist_update" } )

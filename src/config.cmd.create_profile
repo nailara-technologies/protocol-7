@@ -21,7 +21,7 @@ if ( !opendir( $dir_fh, $import_dir ) ) {
     <[base.log]>->( 0, $err_msg );
     return { 'mode' => 'nak', 'data' => $err_msg };
 }
-my @import_files = grep { /\.json$/ } readdir($dir_fh);
+my @import_files = grep {/\.json$/} readdir($dir_fh);
 closedir($dir_fh);
 
 my $import_data;

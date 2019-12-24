@@ -11,7 +11,7 @@ my $agent_name
     = ( defined <system.agent.mode> and <system.agent.mode> eq 'media-child' )
     ? 'media'
     : <system.agent.name>;
-my $subname = <system.agent.subname>;
+my $subname  = <system.agent.subname>;
 my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
 
 <[base.log]>->( 1, "requesting $name_str layer position" );
@@ -23,7 +23,7 @@ my $core_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
+    $reply_string  = <$core_fh>;
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;

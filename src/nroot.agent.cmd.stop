@@ -71,7 +71,8 @@ map {
 foreach my $name ( keys %shutdown_names ) {
     if ( exists <nroot.agent.auto_cleanup>->{$name} ) {
         delete <nroot.agent.auto_cleanup>->{$name};
-        delete <nroot.agent.auto_cleanup> if !keys %{<nroot.agent.auto_cleanup>};
+        delete <nroot.agent.auto_cleanup>
+            if !keys %{<nroot.agent.auto_cleanup>};
     }
     my $instances_remaining = $agent_names{$name} - $shutdown_names{$name};
     if ( !$instances_remaining ) {

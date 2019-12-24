@@ -59,7 +59,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
             if ($key eq 'end'           # 'duration' used instead of 'end'
                 and not defined $time_str{$key}
                 and defined <events.timetable>->{$ev_id}->{'duration'}
-                ) {
+            ) {
                 $time = $time_str{'start'}
                     + <events.timetable>->{$ev_id}->{'duration'};
             } else {
@@ -81,15 +81,15 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
                 and $utime_end < $time_now
                 and ( $utime_end > $utime_start
                     or ( $utime_end + $hour_or_day ) < $time_now )
-                ) {
-                $time += $hour_or_day
+            ) {
+                $time += $hour_or_day;
 
             } elsif (
                 $key eq 'start'    # 'start' is previous hour/day
                 and $utime_start > time
                 and $utime_end > time
                 and $utime_end < $utime_start
-                ) {
+            ) {
 
                 $time -= $hour_or_day;
 
@@ -97,7 +97,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
                 $key eq 'end'      # 'end' is next hour/day
                 and <events.unix.timetable>->{$ev_id}->{'start'} < time
                 and $utime_end < $utime_start
-                ) {
+            ) {
 
                 $time += $hour_or_day;
             }

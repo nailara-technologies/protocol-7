@@ -22,7 +22,7 @@ if ( !<xserver.display_power_state> ) {
         if (<[xserver.cmd.set_screen_size]>->(
                 { 'args' => join( 'x', @max_size ) }
             )->{'mode'} eq 'nak'
-            ) {
+        ) {
             <[base.log]>->(
                 0, " <!> restarting xserver ... [unable to resize]"
             );

@@ -2,7 +2,7 @@
 
 # name = httpd.new_header
 
-my $code = shift;
+my $code   = shift;
 my $params = shift || {};
 
 $code = 500
@@ -14,7 +14,7 @@ $params->{'Date'} = $server_date;
 
 my $header_str = "HTTP/1.1 $code $status_str\r\n";
 
-map { $header_str .= "$_: $params->{$_}\r\n" if defined $params->{$_} }
+map      { $header_str .= "$_: $params->{$_}\r\n" if defined $params->{$_} }
     sort { length($a) <=> length($b) } sort keys %{$params};
 
 return $header_str . "\r\n";

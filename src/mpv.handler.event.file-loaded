@@ -8,7 +8,7 @@ if (<system.agent.mode> eq 'media-child'
     and (  <mpv.pause_next>
         or not defined <mpv.current.load_iteration>
         or <mpv.current.load_iteration> == 0 )
-    ) {
+) {
     <[base.log]>->( 2, "file loaded, pausing playback.." );
     <mpv.pause_next> = 1;
     push( @{<mpv.reply_ids>}, 'silent' );

@@ -7,7 +7,7 @@
 # descr   = displays on-screen notification message
 
 my $txt_param = $$call{'args'} // '';
-my $id = $$call{'session_id'};
+my $id        = $$call{'session_id'};
 
 return { 'mode' => 'nak', 'data' => 'no message text submitted' }
     if !length($txt_param);
@@ -33,7 +33,7 @@ if ( defined $txt_param and $txt_param ne '' ) {
             <notify.path.nailara_icon>, " < $title >",
             "\n$txt_param\n"
         )
-        ) {
+    ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
     } elsif ( $? == -1 ) {
         return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };

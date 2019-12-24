@@ -3,7 +3,7 @@
 # name = mpv.handler.pipe.command
 
 my $cmd_reply_str = shift // '';
-my $reply_id = shift @{<mpv.reply_ids>};
+my $reply_id      = shift @{<mpv.reply_ids>};
 
 if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     <[base.callback.cmd_reply]>->(

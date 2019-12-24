@@ -22,7 +22,5 @@ if ( exists $code{$handler_name} ) {
         <mpv.log_str_len> = $len;
     }
 
-    <[base.log]>->(
-        2, sprintf( "%-${len}s", $log_str ) . " ( no handler ) "
-    );
+    <[base.log]>->( 2, sprintf( "%-${len}s", $log_str ) . " ( no handler ) " );
 }
