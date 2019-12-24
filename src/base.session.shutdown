@@ -4,7 +4,7 @@
 # descr = terminate a specific client session
 
 my $sid = shift;
-my $msg = shift || 'session closed';
+my $msg = shift // 'session closed';
 
 if ( not defined $sid or $sid !~ /^\d+$/ ) {
     <[base.log]>->( 0, "base.session.shutdown: expected session id!" );

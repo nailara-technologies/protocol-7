@@ -1511,7 +1511,7 @@ sub overwrite_source_files {
 sub show_perl_sub {
     my $source    = shift;
     my $sub_name  = shift;
-    my $formatted = shift || 0;
+    my $formatted = shift // 0;
     my $cut_path  = $PATH->{'root'};
     my $package_name;
     my $sub_source_code;
@@ -2175,9 +2175,9 @@ sub diff_less {
 sub highlight {
     my $text             = shift;
     my $pattern          = shift;
-    my $open_tag         = shift || ansi('cyan');
-    my $close_tag        = shift || ansi('reset');
-    my $case_insensitive = shift || 1;
+    my $open_tag         = shift // ansi('cyan');
+    my $close_tag        = shift // ansi('reset');
+    my $case_insensitive = shift // 1;
 
     if ($case_insensitive) {
         $text =~ s/($pattern)/$open_tag$1$close_tag/ig;
@@ -2191,7 +2191,7 @@ sub highlight {
 
 sub ansi {
     return '' if not $USE_ANSI;
-    my $requested_color = shift || 'reset';
+    my $requested_color = shift // 'reset';
     return color $requested_color;
 }
 
