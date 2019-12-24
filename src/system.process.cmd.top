@@ -6,12 +6,12 @@
 
 my $filter;
 my $limit = $$call{'args'} // '';
-my $top = <process.table.top>;
+my $top   = <process.table.top>;
 
 if ( $limit =~ /([^\d][^\s]*)( +(\d+))?/ ) {
     my $pattern = $1;
     $filter = qr/$pattern/i;
-    $limit = $3 if defined $3;
+    $limit  = $3 if defined $3;
 }
 
 my $top_table_txt .= sprintf( "%5s %11s %5s %5s %6s %s\n",
@@ -23,7 +23,7 @@ foreach my $pid (
     sort { $top->{$b}->{'pctmem'} <=> $top->{$a}->{'pctmem'} }
     sort { $top->{$b}->{'start'} <=> $top->{$a}->{'start'} }
     keys %{$top}
-    ) {
+) {
     next if defined $filter and $top->{$pid}->{'fname'} !~ $filter;
     if ( $limit ne 'all' ) {
         next if $top->{$pid}->{'state'} eq 'stop';

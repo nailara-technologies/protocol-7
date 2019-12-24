@@ -16,5 +16,6 @@ foreach my $id ( keys %{<nroot.agent.setup>} ) {
     return $id if defined $setup_agent and $setup_agent eq $agent_name;
 }
 
-<[base.log]>->( 2, "nroot.agent.get_id: no agent '$agent_name' found in setup" );
+<[base.log]>
+    ->( 2, "nroot.agent.get_id: no agent '$agent_name' found in setup" );
 return undef;    # no such agent

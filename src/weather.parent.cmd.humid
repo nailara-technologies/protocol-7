@@ -9,7 +9,7 @@ return {
     }
     if not defined <weather.station_id>;
 
-my $stid = <weather.station_id>;
+my $stid     = <weather.station_id>;
 my $humidity = <weather.data>->{$stid}->{'current'}->{'humidity'} // 'n/a';
 $humidity .= "%" if $humidity =~ /^\d+(\.\d+)?$/;
 

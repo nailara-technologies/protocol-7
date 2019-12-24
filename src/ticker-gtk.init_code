@@ -53,12 +53,12 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 
 my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
 <ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
-<ticker-gtk.bg_col> = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
+<ticker-gtk.bg_col>     = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
 <ticker-gtk.bg_alpha> = <ticker.cfg.bg_alpha> // 100;    # transparent default
 
 my $ovf = 0.94;    # <- outline value factor
 my $c = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
-my $hc = $c->convert_to('hsv');
+my $hc        = $c->convert_to('hsv');
 my $new_value = sprintf( "%.3f", abs( $ovf - sprintf( "%.0f", $hc->value ) ) );
 my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 

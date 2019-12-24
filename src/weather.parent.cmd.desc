@@ -9,7 +9,7 @@ return {
     }
     if not defined <weather.station_id>;
 
-my $stid = <weather.station_id>;
+my $stid  = <weather.station_id>;
 my $descr = <weather.data>->{$stid}->{'current'}->{'descr'} // 'n/a';
 
 return { 'mode' => 'ack', 'data' => $descr }

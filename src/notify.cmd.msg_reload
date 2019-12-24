@@ -5,7 +5,7 @@
 # descr = custom notification message with reload icon
 
 my $txt_param = $$call{'args'} // '';
-my $id = $$call{'session_id'};
+my $id        = $$call{'session_id'};
 
 return { 'mode' => 'nak', 'data' => 'no message text submitted' }
     if !length($txt_param);
@@ -52,7 +52,7 @@ if ( defined $title or @matches ) {
     if (!system(
             <notify.path.notify_send>, '-i', <notify.path.reload_icon>, @msg
         )
-        ) {
+    ) {
         return { 'mode' => 'ack', 'data' => 'info message sent' };
     } elsif ( $? == -1 ) {
         return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };

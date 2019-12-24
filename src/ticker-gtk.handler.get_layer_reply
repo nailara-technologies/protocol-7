@@ -7,9 +7,7 @@ my $reply = shift;
 if ( $reply->{'cmd'} eq 'ACK' ) {
     <ticker-gtk.layout.layer> = $reply->{'call_args'}->{'args'};
     if ( <ticker-gtk.layout.layer> == 100 ) {
-        <[base.log]>->(
-            1, "layout layer == 100 <!> (enabling 'force_above')"
-        );
+        <[base.log]>->( 1, "layout layer == 100 <!> (enabling 'force_above')" );
         <ticker-gtk.window.force_above> = 1;
     }
 }

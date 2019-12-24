@@ -15,7 +15,7 @@ if ( !defined &{ $code{$handler} } ) {
     return undef;
 }
 my $max_filters = $data{'net.max_filters'} || 256;
-my $id = <[base.gen_id]>->( $data{'filter'}, $max_filters );
+my $id          = <[base.gen_id]>->( $data{'filter'}, $max_filters );
 $data{'filter'}{$id}{'name'}    = $filter;
 $data{'filter'}{$id}{'handler'} = $handler;
 $data{'filter'}{$id}{'options'} = $options || undef;

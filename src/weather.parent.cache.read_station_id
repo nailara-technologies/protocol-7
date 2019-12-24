@@ -30,9 +30,7 @@ if ( $$content_ref =~ /^(\d+) ([\w\d]+)$/ ) {
 
 my $data_age = time - $timestamp;
 if ( $data_age >= $max_age ) {
-    <[base.log]>->(
-        1, "cached station id has expired, removing cache file.."
-    );
+    <[base.log]>->( 1, "cached station id has expired, removing cache file.." );
     unlink($file_path) or die "unlink($file_path): $!";
     return undef;
 } else {

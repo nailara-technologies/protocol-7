@@ -66,7 +66,8 @@ if (    exists <system.subs_loaded.debug>
     <[base.perlmod.autoload]>->('Data::Dumper');
     $Data::Dumper::Sortkeys = 1;
 
-    ( my $debug_str = Dumper(<nroot.spawn_config.globals>) ) =~ s/^.{7}|;$/  /mg;
+    ( my $debug_str = Dumper(<nroot.spawn_config.globals>) )
+        =~ s/^.{7}|;$/  /mg;
     print "\n < nroot.spawn_config.globals >\n\n$debug_str\n";
 }
 

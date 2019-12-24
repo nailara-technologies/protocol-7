@@ -51,6 +51,6 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     my $slept_str = sprintf( "%.${fp}f", $slept_time );
     $woke = ' (woke up early!)' if $slept_time < $seconds;    # !hires?
     <[base.log]>->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
-    $s = !$fp && $slept_str == 1 ? '' : 's';
+    $s     = !$fp && $slept_str == 1 ? '' : 's';
     $reply = { 'mode' => 'ack', 'data' => "slept $slept_str second$s" . $woke };
 }

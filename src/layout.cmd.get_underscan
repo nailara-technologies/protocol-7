@@ -7,8 +7,6 @@ my @values;
 map {
     push( @values, sprintf( "%s:%s", $1, <layout.config.screen>->{$_} ) )
         if $_ =~ /^underscan\.(\w+)/
-    } reverse sort {
-    $a cmp $b
-    } keys %{<layout.config.screen>};
+} reverse sort { $a cmp $b } keys %{<layout.config.screen>};
 
 return { 'mode' => 'ack', 'data' => join( ' ', @values ) }

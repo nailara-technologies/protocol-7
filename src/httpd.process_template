@@ -35,7 +35,7 @@ my $r_seq = $content_ref->{'sequence'};
 
 my $tmpl_ref = $session->{'buffer'}->{'template'};
 
-my $var_ref = $session->{'meta'} //= {};
+my $var_ref     = $session->{'meta'} //= {};
 my $meta_var_re = qr/(?<!\\)<\{([\w\-_\.]+)\}>/;    # <{meta_var_name}>
 
 ${$tmpl_ref} =~ s/$meta_var_re/defined $var_ref->{$1} ? $var_ref->{$1} : ''/ge;
@@ -116,8 +116,7 @@ if ( !$cmd_count ) {    # request / content complete :
             my @key_vals;
             my $keys_str = $1;
             map {
-                push( @key_vals,
-                    join( '=', $_, encode_b64u( $query{$_} ) ) )
+                push( @key_vals, join( '=', $_, encode_b64u( $query{$_} ) ) )
                     if defined $query{$_}
                 }
                 split( /,/, $keys_str );

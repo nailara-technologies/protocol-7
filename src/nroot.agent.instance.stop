@@ -29,8 +29,8 @@ my $job_id     = $instance->{'job_id'};
 
 <agent.instance.shutdown>->{$instance_id} = <[base.time]>->(5);
 
-$instance->{'status_timer'}->cancel  if exists $instance->{'status_timer'};
-$instance->{'timeout_timer'}->cancel if exists $instance->{'timeout_timer'};
+$instance->{'status_timer'}->cancel    if exists $instance->{'status_timer'};
+$instance->{'timeout_timer'}->cancel   if exists $instance->{'timeout_timer'};
 delete <callback.session.closing_last> if $instance->{'is_core'};
 
 if ( defined $instance->{'process'}->{'id'} ) {

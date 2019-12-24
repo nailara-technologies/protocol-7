@@ -49,7 +49,8 @@ map {
             ) if exists <nroot.agent.manually_stopped>->{$dep_name};
         #
         #     ^- forced dependency startup, or..
-        next if exists <nroot.agent.manually_stopped>->{$dep_name}; # <- skipped!
+        next
+            if exists <nroot.agent.manually_stopped>->{$dep_name}; # <- skipped!
 
         if ( !<[agent.is_enabled]>->($dep_name) ) {
             <[base.log]>->( 1, "agent enabled: '$dep_name' (dependency)" );
