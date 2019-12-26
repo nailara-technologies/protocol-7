@@ -4,14 +4,14 @@
 # descr = SIGINT interrupt handler
 
 $0 .= ' :. shutdown in progress.., please wait!';
-<[base.log]>->( 0, '<< SIGINT >> shutting down ..' );
+<[base.log]>->( 0, '<< SIGINT >> terminating agents ..,' );
 
 #if ( <system.agent.type> eq 'nroot' or <system.agent.type> eq 'core' ) {
 #    $SIG{'INT'} = 'IGNORE';
 #} else {
 
 $SIG{'INT'} = sub {
-    <[base.log]>->( 0, 'SIGINT emergency shutdown' );
+    <[base.log]>->( 0, '<< SIGINT >> emergency shutdown ..' );
     CORE::exit(1);
 };
 
@@ -24,7 +24,7 @@ if ( exists $code{'net.send_all'} ) {
             . '$code{\'net.send_all\'}->("close SIGINT manual shutdown\n");' );
 }
 
-print "DEBUG MODE: agent state:\n" . <[base.dump_data]>
+print "\n <!> DEBUG MODE: agent state:\n\n" . <[base.dump_data]> . "\n"
     if <system.verbosity> >= 2 and <debug.sig_int_dump>;
 
 <[nroot.teardown]>
