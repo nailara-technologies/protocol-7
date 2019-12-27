@@ -137,7 +137,7 @@ sub prepare_subs {
 
     $code{'base.init_exec'} = sub {
 
-        use FindBin qw($RealBin $RealScript);
+        use FindBin qw| $RealBin $RealScript |;
         use File::Spec::Functions;
         use Cwd 'abs_path';
         use Sys::Hostname;
@@ -218,6 +218,10 @@ sub prepare_subs {
             if ( $arg =~ /^-lpw=(\d{1,2})$/ ) {    # <- used by 'nroot' agent
                 $data{'system'}{'start'}{'log_prefix_width'} = $1;
             }
+            if ( $arg =~ /^-export-core-subs$/ ) {
+                $code{'dump_core_subs'}->();
+                exit(0);
+            }
         }
         $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
             if $stdin_mode;
@@ -276,6 +280,38 @@ sub prepare_subs {
         }
         map { say "$n: $b$_" } split( /\n/, $banner ), '';
         say "$n: $version_str\n:";
+    };
+
+    $code{'dump_core_subs'} = sub {
+        my %core_subs;
+        my $bin_path = $data{'system'}{'start'}{'exec_name'};
+        open( my $nlr_fh, $bin_path ) or die "$bin_path: $!\n";
+        my %sub_src;
+        my $sub_name;
+        foreach my $src_line (<$nlr_fh>) {
+            $sub_name = undef
+                if defined $sub_name and $src_line =~ m|^\s*};\s*(\#.*)?\n$|;
+            if ( defined $sub_name ) {
+                $sub_src{$sub_name} //= [];
+                push( @{ $sub_src{$sub_name} }, $src_line );
+            }
+            $sub_name = $1
+                if $src_line
+                =~ m|^\s*\$code\{\'([^\']+)\'\}\s*=\s*sub\s*\{\s*(\#[^\n]*)?\n$|;
+        }
+        print "\n";
+        close($nlr_fh);
+        foreach
+            my $sub_name ( sort { length $a <=> length $b } sort keys %sub_src )
+        {
+            print "\n\n # -----[ $sub_name ]\n\n";
+            foreach my $sub_line ( @{ $sub_src{$sub_name} } ) {
+                print $sub_line;
+            }
+            print "\n # -----\n";
+
+        }
+        exit;
     };
 
     $code{'base.purge_code'} = sub { # todo : create callback registry [to skip]
@@ -609,13 +645,15 @@ sub prepare_subs {
         $_p[2] = '*' x 7 if $sub_name eq 'net.authme';
         $_p[1] = '*' x 7 if $sub_name eq 'auth.ok';
         $_p[0] = '*' x 7 if $sub_name eq 'digest.sha.1';
-        $_p[1] =~ s/^(auth [^\ ]+) [^\ ]+\n$/$1 *****\n/o
+        $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$1 *****\n|o
             if $sub_name eq 'net.out';
 
-        map { $_ =~ s|\'|\\'|go if defined $_ } @_p;
-        my $param_list = join( ', ',
-            map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' }
-                @_p );
+        map { $_ =~ s|(\')|\\$1|go if defined $_ } @_p;
+        my @params
+            = map { defined $_ ? ( $_ =~ $quoted_chars ? "'$_'" : $_ ) : '' }
+            @_p;
+
+        my $param_list = join( ', ', @params );
 
         $param_list =~ s|\n|\\n|g;
         $param_list =~ s|\e|\\e|g;
