@@ -120,19 +120,6 @@ sub prepare_subs {
         return $lp_len;
     };
 
-    # override fork() to make rand() fork safe
-    $code{'base.fork'} = sub {
-        my $pid = CORE::fork;
-        if ( !$pid ) {
-            ( my $seed = $$ + $code{'base.ntime'}->(13) ) =~ s/\.//;
-            srand($seed);
-        }
-        return $pid;
-    };
-    no warnings 'once';
-    *CORE::GLOBAL::fork = $code{'base.fork'};
-    use warnings 'once';
-
     # basic subroutine definitions
 
     $code{'base.init_exec'} = sub {
