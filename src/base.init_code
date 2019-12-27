@@ -7,6 +7,10 @@ use Safe;
 use Module::Load;
 use Time::Seconds;
 
+no warnings 'once';
+*CORE::GLOBAL::fork = $code{'base.fork'}; # <- cryptographically safe version..,
+use warnings 'once';
+
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('IO::AIO');
 <[base.perlmod.load]>->( 'Time::Local',          'timegm_nocheck' );

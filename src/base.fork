@@ -1,0 +1,12 @@
+# >:]
+
+# name = base.fork
+
+my $pid = CORE::fork;
+
+if ( !$pid ) {    # making rand() fork-safe..,
+    ( my $seed = $$ + $code{'base.ntime'}->(13) ) =~ s/\.//;
+    srand($seed);
+}
+
+return $pid;
