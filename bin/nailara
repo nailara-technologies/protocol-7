@@ -323,23 +323,30 @@ sub prepare_subs {
         return $purge_count;
     };
 
-    $code{'base.load_code'} = sub {
-        my @src_names = @_;
-
-        my ( $codedir, $file, $code_name );
-        $data{'callbacks'}{'end_code'} //= [];
-        $data{'base'}{'modules'}{'load_errors'} = 0;
-        if ( !opendir( $codedir, $data{'system'}{'code_path'} ) ) {
+    $code{'base.code.file_list'} = sub {
+        my $codedir_fh;
+        $data{'base'}{'modules'}{'load_errors'} //= 0;
+        if ( !opendir( $codedir_fh, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
             $code{'log.error'}->( ": can not open source code directory"
                     . " '$data{'system'}{'code_path'}' [$!]" );
             return undef;
         }
+        my @code_files = grep { !/^\./ } readdir($codedir_fh);
+        closedir($codedir_fh);
+        return @code_files;
+    };
+
+    $code{'base.load_code'} = sub {
+        my @src_names = @_;
+        my ( $file, $code_name );
+        $data{'callbacks'}{'end_code'} //= [];
+
         map      { $data{'plugins'}{'status'}{$_}{'load_errors'} = 0 }
             grep {/^plugin\./} @src_names;
 
-        my @code_files = readdir($codedir);
-        closedir($codedir);
+        my @code_files = $code{'base.code.file_list'}->();
+
         $| = 1;
         my @compile_them = ();
         while ( $code_name = shift @src_names ) {
