@@ -4,15 +4,17 @@
 # param = <file|url>
 # descr = play a file or url, replaces current playlist
 
-my $file = $$call{'args'};
+my $file_path = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'expected path or url' }
-    if not defined $file or !length($file);
+    if not defined $file_path or !length($file_path);
+
+$file_path =~ s|/+$|| if -d $file_path;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
-<mpv.success_reply_str> = 'playback requested';
+<mpv.success_reply_str> = 'submitted for playback';
 
-<[mpv.send_command]>->( 'loadfile',            $file,   'replace' );
-<[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
+<[mpv.send_command]>->( 'loadfile',            $file_path, 'replace' );
+<[mpv.send_command]>->( 'set_property_string', 'pause',    'no' );
 
 return { 'mode' => 'later' };
