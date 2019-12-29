@@ -4,14 +4,16 @@
 # param = <file|url>
 # descr = add a file to current playlist (appends only)
 
-my $file = $$call{'args'};
+my $file_path = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'expected path or url' }
-    if not defined $file or !length($file);
+    if not defined $file_path or !length($file_path);
+
+$file_path =~ s|/+$|| if -d $file_path;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 <mpv.success_reply_str> = 'added to playlist';
 
-<[mpv.send_command]>->( 'loadfile', $file, 'append' );
+<[mpv.send_command]>->( 'loadfile', $file_path, 'append' );
 
 return { 'mode' => 'later' };
