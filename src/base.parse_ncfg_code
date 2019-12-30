@@ -1,0 +1,76 @@
+# >:]
+
+# name  = base.parse_ncfg_code
+# args  = <cfg_name>, [target_hashref ,] <@cfg_lines>
+# descr = parse ncfg 'section' code files, return array ref to structure
+# todo  = make more generic [ use recursion, allow arbitary section syntax ]
+# note: the way comments are stripped currently doesn't allow #'s in values.
+
+my $conf_path = <system.conf_path>;
+my $code_data = [];
+my $cfg_name  = shift // die "expected <cfg_name> as first parameter";
+$code_data = shift(@ARGV) if ref( $ARGV[0] ) eq 'ARRAY';
+
+my @cfg_lines = @_;    # parsed data will be appended to @{$code_data} array-ref
+if ( !@cfg_lines ) {
+    <[log.error]>->("no data lines in ncfg '$cfg_name'");
+    return [];
+}
+my $line_num = 0;
+my ( $section_ref, $sub_section_ref );
+my ( $section, $sub_section, $sub_sub_section, $data_ref );
+foreach my $line (@cfg_lines) {
+    $line_num++;
+    $line =~ s/(#.*|[ \t]*)+$//g;
+    $line =~ s/^[ \t]+//;
+    next if $line eq '';
+    if ( $line =~ /^\.: *([^:]*\S) *:\.$/ ) {
+        $section = $1;
+        ( $sub_section, $sub_section_ref, $sub_sub_section )
+            = ( undef, undef, undef );
+        if ( !<[base.code_section_exists]>->( $section, $code_data ) ) {
+            $data_ref = [];
+            push( @$code_data, { $section => $data_ref } );
+        } else {
+            $data_ref = <[base.code_section_ref]>->( $code_data, $section );
+        }
+        $section_ref = $data_ref;
+    } elsif ( $line =~ /^- *(.+)$/ ) {
+        $sub_section     = $1;
+        $sub_sub_section = undef;
+        die "no parent section defined for sub-section '$sub_section' "
+            . "[ ncfg '$cfg_name' at line $line_num ]"
+            if not defined $section;
+        if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) ) {
+            my $new_data_ref = [];
+            push( @$section_ref, { $sub_section => $new_data_ref } );
+            $data_ref = $new_data_ref;
+        } else {
+            $data_ref = <[base.code_section_ref]>->(
+                $code_data, $section, $sub_section
+            );
+        }
+        $sub_section_ref = $data_ref;
+    } elsif ( $line =~ /^: *([^:]*\S) *:$/ ) {
+        $sub_sub_section = $1;
+        die "parent section missing for sub-sub-section"
+            . " '$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
+            if not defined $section;
+        die "no parent sub-section defined for sub-sub-section"
+            . " '$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
+            if not defined $sub_section;
+        if ( !<[base.code_section_exists]>->( $sub_sub_section, $data_ref ) ) {
+            my $new_data_ref = [];
+            push( @$sub_section_ref, { $sub_sub_section => $new_data_ref } );
+            $data_ref = $new_data_ref;
+        } else {
+            $data_ref = <[base.code_section_ref]>->(
+                $code_data, $section, $sub_section, $sub_sub_section
+            );
+        }
+    } else {
+        push( @$data_ref, $line );
+    }
+}
+
+return $code_data;

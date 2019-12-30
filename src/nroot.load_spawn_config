@@ -1,11 +1,12 @@
 # >:]
 
-# name = nroot.load_spawn_config
+# name  = nroot.load_spawn_config
+# descr = loads startup configuration for agents into agent setup [ single cfg ]
 
 my $config_to_load = shift;
 my $cfg_root_path  = <system.conf_path>;
 my $base_file_name = 'agents/nroot/spawn-config.';
-die "load_spawn_config: no spawn config specified!"
+die "load_spawn_config: no spawn config specified"
     if not defined $config_to_load;
 
 my $spawn_config_pattern
@@ -14,7 +15,7 @@ my $spawn_config_pattern
 return <[base.log]>->( 0, "<!> config '$spawn_config_pattern' not found <!>" )
     if !-f "$cfg_root_path/$spawn_config_pattern";
 
-<[base.log]>->( 1, ": loading spawn config '$config_to_load'" );
+<[base.log]>->( 1, ": loading '$config_to_load' process spawn setup" );
 my $spawn_config_data;
 {
     local <system.conf_path> = "$cfg_root_path/agents/nroot";

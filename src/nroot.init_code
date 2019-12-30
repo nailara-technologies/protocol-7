@@ -4,7 +4,8 @@
 # descr = initializes root module
 
 <[base.perlmod.autoload]>->('Proc::ProcessTable');
-<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+<[base.perlmod.load]>->( 'Hash::Merge::Simple', qw| merge | );
+<[base.perlmod.load]>->( 'Crypt::Misc',         qw| encode_b32r | );
 
 <system.agent.type> = 'nroot';
 
@@ -51,9 +52,14 @@ if ( !-x <nroot.rmmod_bin> ) {
     <[base.log]>->( 0, "<!> 'rmmod' binary not found <!>" );
 }
 
+# single named file based startup configuration ##
 <[nroot.load_spawn_config]>->(<load.spawn_config>)
     if defined <load.spawn_config>;
 
+## agent dir based startup configs #
+<[nroot.load_agent_startup_cfgs]>;
+
+# json based configuration import ##
 <[config.json.import_file]>->('nroot.spawn_config.json');
 
 map { <[nroot.init_spawn_config]>->($_) }
