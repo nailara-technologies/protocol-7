@@ -32,7 +32,8 @@ if ( $ref_type eq 'SCALAR' ) {
 
 } elsif ( $ref_type eq 'ARRAY' ) {
 
-    chomp( @$target_ref = <$file_fh> );
+    push( @$target_ref, <$file_fh> );
+    chomp(@$target_ref);
 
 } else {
     <[log.error]>->("file.slurp: unsupported reference type '$ref_type'!");
