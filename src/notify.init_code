@@ -6,7 +6,7 @@
 my $bin_name  = 'notify-send';
 my $gfx_path  = <system.root_path> . '/data/gfx/';
 my $icon_path = $gfx_path . '/icons/';
-chomp( my $bin_path = qx(which $bin_name) );
+my $bin_path  = <[base.required_bin_path]>->($bin_name);
 die "$bin_name binary not found (please install 'notify-osd')"
     if !length($bin_path);
 
