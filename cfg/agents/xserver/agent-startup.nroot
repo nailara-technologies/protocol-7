@@ -1,10 +1,11 @@
 # >:]
 
 # name  = agent-startup.nroot
-# descr = 'channels' agent startup configuration used by 'nroot' agent
+# descr = 'xserver' agent startup configuration used by 'nroot' agent
 
 dependencies = core
 max_concurrency = 1
+ping.timeout = 9
 
 : nroot-init :
   start_mode = stdin-agent
@@ -13,3 +14,8 @@ max_concurrency = 1
 
 : agent-init :
   [base.auth.set_agent_key:'<{core.key}>']
+
+: nroot-post-init :
+  [nroot.callback.get_x11_display]
+  status.post-init = 1
+
