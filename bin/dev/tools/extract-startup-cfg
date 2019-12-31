@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+
+use v5.30.0;
+
+my $filename = 'nroot/spawn-config.example';
+
+use strict;
+use warnings;
+
+die "\n <!> execute from ./cfg/agents/ drectory <!>\n" if !-d 'nroot';
+
+my $header_str = << 'EOT';
+# >:]
+
+# name  = agent-startup.nroot
+# descr = '<agent>' agent startup configuration used by 'nroot' agent
+
+EOT
+
+open( my $fh, $filename ) or die "$filename : $!";
+my @file_data = <$fh>;
+close($fh);
+
+while ( my $line = shift @file_data ) { last if $line =~ /: agents :/ }
+
+map {s|^\s{6}||} @file_data;
+
+my %agent_setups
+    = ( '', split /\n? *\n* - ([\w\d\-]+)\n*/, join( '', @file_data ) );
+map { delete $agent_setups{$_} if !length($_) or !-d $_ } keys %agent_setups;
+
+foreach my $agent ( keys %agent_setups ) {
+    my $cfg_path = "$agent/agent-startup.nroot";
+    next if -f $cfg_path;
+
+    ( my $cfg_head = $header_str ) =~ s|<agent>|$agent|g;
+
+    open( my $fh, '>', $cfg_path ) or die "$cfg_path: $!";
+    say {$fh} join( '', $cfg_head, $agent_setups{$agent} );
+    close($cfg_path);
+}
