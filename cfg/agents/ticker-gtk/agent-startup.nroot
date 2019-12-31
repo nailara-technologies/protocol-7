@@ -1,0 +1,18 @@
+# >:]
+
+# name  = agent-startup.nroot
+# descr = 'ticker-gtk' agent startup configuration used by 'nroot' agent
+
+dependencies = core xserver openbox # rss-ticker
+max_subname_concurrency = 1         # ^-- enable rss_updates in ticker-gtk
+inherit_subname = 1
+
+: nroot-init :
+  start_mode = stdin-agent
+  command_line_modules = Gtk3 Glib::Event Cairo
+  core.key = [base.rnd_chars_anum:42]
+  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+: agent-init :
+  [base.auth.set_agent_key:'<{core.key}>']
+

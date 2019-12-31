@@ -1,10 +1,12 @@
 # >:]
 
 # name  = agent-startup.nroot
-# descr = 'channels' agent startup configuration used by 'nroot' agent
+# descr = 'download' agent startup configuration used by 'nroot' agent
 
 dependencies = core
-max_concurrency = 1
+spawn.on-demand  = 1
+ping.disabled    = 1
+respawn.disabled = 1
 
 : nroot-init :
   start_mode = stdin-agent
@@ -13,3 +15,6 @@ max_concurrency = 1
 
 : agent-init :
   [base.auth.set_agent_key:'<{core.key}>']
+  [base.agents.set_ondemand_timeout:33]
+
+

@@ -1,0 +1,22 @@
+# >:]
+
+# name  = agent-startup.nroot
+# descr = 'core' agent startup configuration used by 'nroot' agent
+
+max_concurrency = 1
+ping.timeout = 3
+
+: nroot-init :
+  start_mode = stdin-agent
+  core.key = [base.rnd_chars_anum:42]
+
+: agent-init :
+  [base.auth.set_nroot_key:'<{core.key}>']
+
+: nroot-post-init :
+  status.post-init = [nroot.callback.connect_to_core:<instance_id>]
+  [nroot.callback.register_ondemand]
+
+: startup-error :
+  [nroot.tear-down:"'core' agent startup not successful"]
+
