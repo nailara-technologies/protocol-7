@@ -20,8 +20,7 @@ my $cmd_len = 0;
 map {
     $cmd_len = length($_)
         if length($_) > $cmd_len
-        and ( $_ =~ /$param_re/
-        or <access.cmd.usr>->{$_} =~ /$param_re/ )
+        and ( $_ =~ $param_re or <access.cmd.usr>->{$_} =~ $param_re )
     }
     keys %{<access.cmd.usr>};
 $cmd_len += 15;
@@ -30,7 +29,7 @@ my $match_count = 0;
 
 foreach
     my $usr ( sort { length $a <=> length $b } sort keys %{<access.cmd.usr>} ) {
-    next if $usr !~ /$param_re/ and <access.cmd.usr>->{$usr} !~ /$param_re/;
+    next if $usr !~ $param_re and <access.cmd.usr>->{$usr} !~ $param_re;
     $match_count++;
     my @perms = sort { length $a <=> length $b } sort split / +/,
         <access.cmd.usr>->{$usr};
