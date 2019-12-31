@@ -1,28 +1,24 @@
 # >:]
 
-# name  = nroot.spawn_config.local
-# descr = defines agent startup for setup 'local'
+# name  = spawn-config.example
+# descr = defines minimal example agent startup configuration
+# note  = ... most of what was here is now in the agent subdirectories ...
+
 
 .: globals :.
 
-  agents.enabled = core log # file-daemon system ssh udev
-                 # xserver openbox compton layout playlist
+  agents.enabled = core log  #  <- add additional agent names for autostart mode
+
+ # agents.disabled =         #  <- use this option for start permission override
 
 .: agents :.
 
-## config data imported from './cfg/agents/<agent_name>/agent-startup.nroot' ###
+
+#
+## config data being imported from 'agents/<agent_name>/agent-startup.nroot' ###
 #
 
-## external program example:
-
-#  - xclock
-#      max_concurrency = 5
-#      dependencies = xserver
-#
-#      : nroot-init :
-#        start_mode = exec-external
-#        exec_bin = /usr/bin/xclock
-#        exec_usr = nailara     # <- supports '<x11-user>' (see ./conf/desktop)
+### external program examples ##
 
   - moodlight
 
@@ -32,7 +28,7 @@
       : nroot-init :
         start_mode = exec-external
         exec_bin = piglow_moodlight.pl
-        exec_usr = nroot
+        exec_usr = nroot       # <- supports '<x11-user>' [ see ./cfg/x11-vars ]
 
   - dist-upgrade
 
