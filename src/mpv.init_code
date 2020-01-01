@@ -4,15 +4,16 @@
 
 <[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('IPC::Open3');
-<[base.perlmod.load]>->( 'File::Path', qw/make_path/ );
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
 
-<mpv.bin_path> //= '/usr/bin/mpv';
-chomp( <mpv.bin_path> = qx(which mpv) ) if !-f <mpv.bin_path>;
+<mpv.bin_path> //= <[base.required_bin_path]>->('mpv');
 
 die "[!] mpv binary not found, aborting startup..."
-    if not defined <mpv.bin_path> or !length(<mpv.bin_path>);
+    if not defined <mpv.bin_path>
+    or !length(<mpv.bin_path>)
+    or !-x <mpv.bin_path>;
 
 <[mpv.init_settings_map]>;
 
