@@ -27,7 +27,9 @@ map { <[base.disable_command]>->($_) } qw(
 <nroot.gcc_bin> = '/usr/bin/gcc';
 <nroot.cfg.install_bin_nlr> //= 'yes';                  # LLL: if root!
 <nroot.cfg.nlr_bin_path>    //= '/usr/local/bin/nlr';
-chomp( <nroot.gcc_bin> = qx(which gcc) ) if !-x <nroot.gcc_bin>;
+
+## gcc ##
+<nroot.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <nroot.gcc_bin> ) {
     <nroot.gcc_bin> = undef;
     <[base.log]>->( 0, "<!> 'gcc' binary not found <!>" )
@@ -38,15 +40,14 @@ if ( !-x <nroot.gcc_bin> ) {
     eval {<[nroot.callback.compile_bin_nlr]>};
     warn $@ if $@;
 }
-
-<nroot.modprobe_bin> = '/sbin/modprobe';
-chomp( <nroot.modprobe_bin> = qx(which modprobe) ) if !-x <nroot.modprobe_bin>;
+## modprobe ##
+<nroot.modprobe_bin> = <[base.required_bin_path]>->('modprobe');
 if ( !-x <nroot.modprobe_bin> ) {
     <nroot.modprobe_bin> = undef;
     <[base.log]>->( 0, "<!> 'modprobe' binary not found <!>" );
 }
-<nroot.rmmod_bin> = '/sbin/rmmod';
-chomp( <nroot.rmmod_bin> = qx(which rmmod) ) if !-x <nroot.rmmod_bin>;
+## rmmod ##
+<nroot.rmmod_bin> = <[base.required_bin_path]>->('rmmod');
 if ( !-x <nroot.rmmod_bin> ) {
     <nroot.rmmod_bin> = undef;
     <[base.log]>->( 0, "<!> 'rmmod' binary not found <!>" );
