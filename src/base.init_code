@@ -111,11 +111,11 @@ $data{'list'} //= {};
 };
 
 # 'verify-instance' command not required in core type agents [for now]
-if ( exists <system.agent.type> and <system.agent.type> eq 'core' ) {
+if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
     <[base.disable_command]>->('verify-instance');
     <agents.virtual> //= {};
     my $key_ref = \$data{'agents'}{'virtual'};
-    $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4096;  # LLL: -> config!
+    $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4097; # LLL: -> config..
     <list.virtual> = {
         'var'   => 'data',
         'key'   => 'agents.virtual',
