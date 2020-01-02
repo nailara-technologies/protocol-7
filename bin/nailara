@@ -338,8 +338,10 @@ sub prepare_subs {
     };
 
     $code{'base.load_code'} = sub {
-        my @src_names = @_;
         my ( $file, $code_name );
+
+        my @src_names = sort { length $a <=> length $b } sort @_;
+
         $data{'callbacks'}{'end_code'} //= [];
 
         map      { $data{'plugins'}{'status'}{$_}{'load_errors'} = 0 }
