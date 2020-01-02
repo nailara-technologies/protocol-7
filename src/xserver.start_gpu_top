@@ -4,7 +4,7 @@
 
 return if defined <xserver.gpu_top.process_started>;
 
-my $samples_per_sec = 100;    # min. 100 ( careful with too high values -> CPU )
+my $refresh_period = 1137;   # def.: 1000 [ careful with too low values -> CPU ]
 my $gpu_top_bin  = <xserver.bin_path.intel_gpu_top>;
 my $gpu_freq_bin = <xserver.bin_path.intel_gpu_frequency>;
 return <[base.log]>->(
@@ -21,8 +21,8 @@ return <[base.log]>->( 0, "<!> apparently no Intel GPU [intel_gpu_frequency]" )
 
 <[base.log]>->( 1, "starting 'intel_gpu_top' process .." );
 
-<xserver.gpu_top.pid> = open3( undef, my $out_fh, undef,
-    "$gpu_top_bin -s $samples_per_sec -o -" );
+<xserver.gpu_top.pid>
+    = open3( undef, my $out_fh, undef, "$gpu_top_bin -s $refresh_period -o -" );
 
 if ( !<xserver.gpu_top.pid> ) {
     <[base.log]>->( 0, "<!> unable to open 'intel_gpu_top' pipe [$!]" );
