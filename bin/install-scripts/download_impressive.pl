@@ -150,7 +150,7 @@ if ( !-f $paths->{'archive_tmp'} ) {
         chown( 0, 0, $target_path ) or installation_failed("chown failed : $!");
         unlink( $paths->{'archive_tmp'} )
             or warn " : [!] failed to delete archive [$!]\n";
-        print " : installation successful :) [ checksum OK ]\n :\n\n";
+        print " : installation successful =) [ checksum OK ]\n :\n\n";
         exit;
     } else {
         unlink( $paths->{'archive_tmp'} )
