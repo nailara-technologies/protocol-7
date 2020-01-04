@@ -1,0 +1,11 @@
+# >:]
+
+# name  = debug.cmd.ntime-b32
+# descr = return nailara network time in base32
+
+my $param = $$call{'args'} // '';
+
+return {
+    'mode' => 'ack',
+    'data' => encode_b32r( pack( 'w', <[base.ntime]> ) )
+};
