@@ -1,9 +1,14 @@
 # >:]
 
-# name       = base.resolve_hash
+# name  = base.resolve_hash
+# descr = translate 'system.agent.name' type key to %data hash ref and return it
 
 my $key_ref = *data{HASH};
 foreach my $sub_key ( split( /\./, $_[0] ) ) {
-    $key_ref = \%{ $$key_ref{$sub_key} };
+    if ( ref($key_ref) eq 'HASH' ) {
+        $key_ref = \%{ $$key_ref{$sub_key} };
+    } else {
+        return undef
+    }
 }
 return $key_ref;
