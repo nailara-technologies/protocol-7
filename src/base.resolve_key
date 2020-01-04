@@ -11,7 +11,9 @@ $key_str =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
 my @key_tree = split( /\./, $key_str );
 map { $_ =~ s/\0/./g } @key_tree;
 while ( my $sub_key = shift @key_tree ) {
-    if ( not defined ${$hash_ref}{$sub_key} ) { return undef }
+    if ( ref($hash_ref) ne 'HASH' or not defined ${$hash_ref}{$sub_key} ) {
+        return undef;
+    }
     if ( @key_tree and ref( ${$hash_ref}{$sub_key} ) eq 'HASH' ) {
         $hash_ref = \%{ $$hash_ref{$sub_key} };
     } elsif ( !@key_tree ) {
