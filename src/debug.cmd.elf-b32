@@ -4,7 +4,8 @@
 # descr = return VAX + base32 encoded elf hash value
 # param = [str]
 
-return {
-    'mode' => 'ack',
-    'data' => encode_b32r( pack 'V', Digest::Elf::elf( $$call{'args'} // '' ) )
-    }
+( my $b32_str
+        = encode_b32r( pack 'V', Digest::Elf::elf( $$call{'args'} // '' ) ) )
+    =~ s|A+$||;
+
+return { 'mode' => 'ack', 'data' => $b32_str }
