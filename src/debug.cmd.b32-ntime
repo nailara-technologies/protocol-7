@@ -1,0 +1,24 @@
+# >:]
+
+# name  = debug.cmd.b32-ntime
+# descr = decode base32 + VAX encoded network time
+
+my $param = $$call{'args'} // '';
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected base32 encoded [VAX little endian] network time code'
+    }
+    if $param !~ /^[A-Z0-9]{1,22}$/;
+
+my $decoded_vax;
+eval { $decoded_vax = decode_b32r($param) };
+
+return {
+    'mode' => 'nack',
+    'data' => 'decoding unsuccessful'
+    }
+    if $@
+    or !length( $decoded_vax // '' );
+
+return { 'mode' => 'ack', 'data' => unpack( 'w', $decoded_vax ) };

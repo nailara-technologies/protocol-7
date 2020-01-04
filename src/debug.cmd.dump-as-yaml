@@ -1,0 +1,30 @@
+# >:]
+
+# name  = debug.cmd.dump-as-yaml
+# param = [key_pattern]
+# descr = dump internal program state
+
+my $d_ref;
+my $keyword = $$call{'args'} // '';
+if ( length($keyword) and not eval {qr/$keyword/} ) {
+    ( my $regex_err = lc($@) ) =~ s/ in regex.+\n$//;
+    return {
+        'mode' => 'nak',
+        'data' => "$regex_err in regex [ invalid pattern n param ]"
+    };
+} elsif ( length( $keyword ) ) {
+    $d_ref = <[base.resolve_key]>->($keyword);
+} else {
+    $d_ref = \%data;
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "failed to resolve key '$keyword'"
+    }
+    if !length( ref($d_ref) );
+
+$reply = {
+    'mode' => 'data',
+    'data' => "#:Y:['$keyword']:.\n\n" . YAML::XS::Dump($d_ref) . "\n#:Y:.\n"
+};
