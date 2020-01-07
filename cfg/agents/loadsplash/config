@@ -1,9 +1,7 @@
 
- .:[ simple 'loading'-animation 'splash screen' agent ]:.
+ .:[ rudimentary 'loading' animation agent ]:.
 
-system.privs.user = nailara
-
-[set_privs:<system.privs.user>]
+[set_privs:'nobody']
 
 buffer.agent.log_cmd = log.msg
 
@@ -21,6 +19,6 @@ modules.load = auth net io.ip loadsplash
 [net.connect_to_core:'tcp/ip']
 
 [base.x11.get_display]
-[base.x11.get_coordinates:,,'']   #   <-  requests coords for ['tile-name'] only
+[base.x11.get_coordinates:undef,undef,'']   #  <- request for only ['tile-name']
 
 [loadsplash.open_window]

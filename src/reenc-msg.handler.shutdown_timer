@@ -7,7 +7,7 @@ my $shutdown_name
     ? <system.agent.name> . '[' . <system.agent.subname> . ']'
     : <system.agent.name>;
 
-<[base.log]>->( 0, "timeout reached... shutting down $shutdown_name" );
+<[base.log]>->( 0, "timeout reached. terminating $shutdown_name" );
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "core.nroot.stop_implicit",

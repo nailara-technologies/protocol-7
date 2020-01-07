@@ -18,7 +18,7 @@ my $title_str
     ? $message_str . ' [' . <system.agent.subname> . ']'
     : $message_str;
 
-<[base.log]>->( 1, "opening message window.." );
+<[base.log]>->( 1, "opening notification message window..," );
 
 Gtk3->init;
 
@@ -66,7 +66,7 @@ sub cairo_draw {
 
     $widget->resize( $txt->{'width'} + 24, $txt->{'height'} + 12 );
 
-    $context->set_source_rgba( 0.8, 0.4, 0, <reenc-msg.text_alpha> );
+    $context->set_source_rgba( 0.2, 0, 0.97, <reenc-msg.text_alpha> );
     $context->move_to( 11, 23 );
     $context->show_text($message_str);
     $context->fill();
