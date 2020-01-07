@@ -1,11 +1,11 @@
 
  .:[ (X11, ffmpeg) "reencoding video" notification agent ]:.
 
+[set_privs:'nobody']
+
 buffer.agent.log_cmd = log.msg
 
 [load_config_file:'shared-params']
-
-[set_privs:<system.privs.user>]
 
 access.cmd.usr.core = help ping verify-instance refresh finished
 
@@ -16,10 +16,10 @@ modules.load = auth net io.ip reenc-msg
 [net.connect_to_core:'tcp/ip']
 
 [base.x11.get_display]
-[base.x11.get_coordinates:,,'']   #   <-  requests coords for ['tile-name'] only
+[base.x11.get_coordinates:undef,undef,'']   #  <- request for only ['tile-name']
 [base.get_session_id]
 
-reenc-msg.display_txt = 'reencoding video...'
-reenc.msg.refresh_timeout = 8 # auto-shutdown after <n> seconds without refresh
+reenc-msg.display_txt = '\\\\\\ reencoding \\\\\\'
+reenc.msg.refresh_timeout = 7 # auto-shutdown after <n> seconds without refresh
 
 [reenc-msg.open_window]
