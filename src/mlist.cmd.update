@@ -1,15 +1,15 @@
 # >:]
 
-# name  = playlist.cmd.update
-# descr = reload playlist file and notify configured agents
+# name  = mlist.cmd.update
+# descr = reload playlist file and notify agents
 
-my $reload_reply = <[playlist.cmd.reload_file]>;
+my $reload_reply = <[mlist.cmd.reload_file]>;
 my $update_cmd   = <update.notify_command> // 'playlist_update';
 
 return $reload_reply
     if $reload_reply->{'mode'} eq 'nak' or not defined <update.notify_agents>;
 
-my $count = <[playlist.update.send_notifications]>->($update_cmd);
+my $count = <[mlist.update.send_notifications]>->($update_cmd);
 
 my $s = $count == 1 ? '' : 's';
 my $notify_str = $count ? ", $count agent$s notified" : '';

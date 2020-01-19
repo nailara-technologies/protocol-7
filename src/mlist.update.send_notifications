@@ -1,6 +1,6 @@
 # >:]
 
-# name  = playlist.update.send_notifications
+# name  = mlist.update.send_notifications
 
 my $update_cmd = shift // 'playlist_update';
 
@@ -12,14 +12,14 @@ map {
     $count++;
 } split( / +/, <update.notify_agents> );
 
-if (<playlist.content_changed>) {
+if (<mlist.content_changed>) {
     <[base.proto.nailara.command.send.local]>->(
         {   'command' => "core.notify.msg_reload",
             'call_args' =>
                 { 'args' => "'" . <locales.string.playlist_updated> . "'" }
         }
-    ) if <playlist.cfg.change_notifications>;
-    <playlist.content_changed> = 0;
+    ) if <mlist.cfg.change_notifications>;
+    <mlist.content_changed> = 0;
 }
 
 return $count;
