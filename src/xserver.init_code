@@ -10,7 +10,7 @@
 <[base.perlmod.autoload]>->('IPC::Open3');
 <[base.perlmod.autoload]>->('X11::Tops');
 
-my $modes_re = qr,^(host|xorg|xephyr|auto-xephyr|xvfb)$,;
+my $modes_re = <xserver.modes_re> = qr,^(host|xnest|nxagent|xorg|xephyr|xvfb)$,;
 
 if ( defined <system.agent.subname> ) {
     my $override_mode = <system.agent.subname>;
@@ -23,7 +23,7 @@ if ( defined <system.agent.subname> ) {
         my $old_mode = <xserver.mode>;
         <[base.log]>->(
             0,
-            "[!] invalid agent mode \"$override_mode\" : keeping '$old_mode'[!]"
+            "<!> invalid agent mode \"$override_mode\", keeping '$old_mode' <!>"
         );
     }
 }
@@ -31,9 +31,12 @@ if ( defined <system.agent.subname> ) {
 foreach my $bin_name (
     qw|
 
+    Xvfb
     Xorg
+    Xnest
     lspci
     Xephyr
+    nxagent
     intel_gpu_top
     intel_gpu_frequency
 

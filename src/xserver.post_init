@@ -5,11 +5,14 @@
 <xserver.initialized>         //= 0;
 <xserver.host_mode_unchanged> //= 1;
 
-if ( <xserver.mode> !~ /^(host|xorg|xephyr|xvfb)$/ ) {
+my $modes_re = <xserver.modes_re>;
+
+if ( <xserver.mode> !~ $modes_re ) {
     <[base.log]>->(
-        0, "invalid xserver mode '" . <xserver.mode> . "' in agent config!"
+        0,
+        sprintf( "configured xserver mode '%s' is not valid", <xserver.mode> )
     );
-    exit(2);
+    exit(1);
 }
 <xserver.params>->{<xserver.mode>} //= '';
 <xserver.host_mode_unchanged> = 0 if <xserver.host_mode_unchanged> eq 'no';
@@ -26,9 +29,8 @@ if ( <xserver.mode> eq 'host' ) {
 }
 <[base.log]>->(
     0,
-    "warning: xserver mode changed to '"
-        . <xserver.mode>
-        . "', restart required <!>"
+    sprintf( "warning: xserver mode changed to '%s', restart required <!>",
+        <xserver.mode> )
 ) if defined <xserver.old_mode> and <xserver.mode> ne <xserver.old_mode>;
 
 return 0 if <xserver.initialized>;
@@ -51,21 +53,22 @@ my $server_params;
 
 ## startup / connect ##
 
-if ( $mode ne 'host' ) {
-    if ( not defined $mode or !length($mode) ) {
-        die "xserver.mode not defined (expected 'xorg' or 'xephyr')";
-    } elsif ( $mode eq 'xorg' or $mode eq 'xephyr' or $mode eq 'xvfb' ) {
-        $bin_name   = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
-        $bin_name   = 'Xvfb' if $mode eq 'xvfb';
-        $server_bin = <xserver.bin_path>->{$bin_name};
-        die "xserver binary '$bin_name' not found. [ installed? ]"
-            if not defined $server_bin or !-x $server_bin;
+die "xserver.mode is not defined" if not defined $mode or !length($mode);
 
-        $server_params = join( ' ', <xserver.display>->{$mode},
-            <xserver.params>->{$mode} );
-    } else {
-        die "invalid mode '$mode' (xserver.mode)";
-    }
+if ( $mode ne 'host' ) {
+
+    $bin_name = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
+
+    $bin_name = 'Xvfb'    if $mode eq 'xvfb';
+    $bin_name = 'Xnest'   if $mode eq 'xnest';
+    $bin_name = 'nxagent' if $mode eq 'nxagent';
+
+    $server_bin = <xserver.bin_path>->{$bin_name};
+    die "xserver binary '$bin_name' not found. [ installed? ]"
+        if not defined $server_bin or !-x $server_bin;
+
+    $server_params
+        = join( ' ', <xserver.display>->{$mode}, <xserver.params>->{$mode} );
 
     my $bin_name_lc = lc($bin_name);
     my $cmd_line    = "$server_bin $server_params 2>&1 |";

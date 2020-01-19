@@ -5,13 +5,14 @@ buffer.agent.log_cmd = log.msg
 
 [load_config_file:'shared-params']
 
-xserver.mode = auto-xephyr  # [host|xorg|xephyr|auto-xephyr|xvfb]
+xserver.mode = auto-xephyr  # [host|xorg|xephyr|nxagent|nest|auto-xephyr|xvfb]
                             # override configured agent mode using agent subname
 
 xserver.orientation = normal # <left|right|normal|inverted>[-x|-y]
 
-xserver.display.xorg   = :0.0
-xserver.display.xephyr = :1
+xserver.display.xorg    = :0.0
+xserver.display.xephyr  = :7
+xserver.display.nxagent = :7
 
 xserver.renice_priority = -17
 
@@ -22,7 +23,14 @@ xserver.params.xorg    = -quiet
 # xserver.custom_xrandr.1 = --auto --output HDMI3 --pos 0x0 \
 #                           --mode 1280x1024 -r 75.02
 
-xserver.params.xephyr  = -screen 912x513 # '-glamor' added if not disabled below
+xserver.dev.dimensions = 917x517
+
+xserver.params.xnest   = -geometry <xserver.dev.dimensions>
+xserver.params.nxagent = -ac -geometry <xserver.dev.dimensions>
+# LLL;                   ^^^ tie into access control mechanisms <!>
+
+xserver.params.xephyr  = -screen <xserver.dev.dimensions>
+#                                         -glamor added ^, if not disabled below
 xserver.disable_glamor = 0
 
 #xserver.params.xephyr = -screen 1040x110 # weather (mode 1)
