@@ -1,13 +1,13 @@
 # >:]
 
-# name  = playlist.cmd.get_list_types
+# name  = mlist.cmd.get_list_types
 # param = [type]
 # descr = return current playlist items (with types)
 
 my $subname;
 my %file_types;
 my $reply_string   = '';
-my $type_list      = <playlist.file_types>;
+my $type_list      = <mlist.file_types>;
 my $file_types_str = $$call{'args'} // '';
 
 <[base.log]>->( 2, "* processing playlist request for '$file_types_str'" );
@@ -18,47 +18,47 @@ map { $file_types{$_} = 1 } split / +/, $file_types_str;
 
 my %b32_index;
 my $index = -1;
-foreach my $file ( @{<playlist.file_list>} ) {
+foreach my $file ( @{<mlist.file_list>} ) {
     $index++;
     next
         if defined $subname
-        and exists <playlist.agent_subnames>->{$index}
-        and not exists <playlist.agent_subnames>->{$index}->{$subname};
+        and exists <mlist.agent_subnames>->{$index}
+        and not exists <mlist.agent_subnames>->{$index}->{$subname};
 
     my $sn_line_str
-        = ( exists <playlist.agent_subnames>->{$index}
-            and keys %{ <playlist.agent_subnames>->{$index} } )
+        = ( exists <mlist.agent_subnames>->{$index}
+            and keys %{ <mlist.agent_subnames>->{$index} } )
         ? join( ':',
-        [ keys %{ <playlist.agent_subnames>->{$index} } ]->[0], $file )
+        [ keys %{ <mlist.agent_subnames>->{$index} } ]->[0], $file )
         : $file;
 
     my $b32id_str
         = <[digest.crc.b32]>->( ++$b32_index{$sn_line_str}, $sn_line_str );
 
-    if ( defined <playlist.exclusive_b32id> ) {    # 'EXCLUSIVE' playlist event
-        ( my $entry_tile ) = ( keys %{ <playlist.agent_subnames>->{$index} } );
+    if ( defined <mlist.exclusive_b32id> ) {    # 'EXCLUSIVE' playlist event
+        ( my $entry_tile ) = ( keys %{ <mlist.agent_subnames>->{$index} } );
         map {
             next
                 if $_ eq $entry_tile
                 and not grep {/^$b32id_str$/}
-                @{ <playlist.exclusive_b32id>->{$_} }
-        } keys %{<playlist.exclusive_b32id>};
+                @{ <mlist.exclusive_b32id>->{$_} }
+        } keys %{<mlist.exclusive_b32id>};
     }
 
     next
         if grep {/^$b32id_str$/}
-        @{<playlist.hidden_b32id>};                # <- SHOW/HIDE event
+        @{<mlist.hidden_b32id>};                # <- SHOW/HIDE event
 
     my @url_flags;
     map {
-        if ( exists <playlist.url_flags>->{$_}->{$file} ) {
+        if ( exists <mlist.url_flags>->{$_}->{$file} ) {
             my $flag_str = $_;
-            $flag_str .= '=' . <playlist.url_flags>->{$_}->{$file}
+            $flag_str .= '=' . <mlist.url_flags>->{$_}->{$file}
                 if $_ eq 'delay';
             push( @url_flags, $flag_str );
         }
         }
-        keys %{<playlist.url_flags>};
+        keys %{<mlist.url_flags>};
     my $url_flags_str
         = @url_flags ? '#[' . uc( join( '|', sort @url_flags ) ) . ']#' : '';
 

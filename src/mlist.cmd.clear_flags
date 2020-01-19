@@ -1,6 +1,6 @@
 # >:]
 
-# name  = playlist.cmd.clear_flags
+# name  = mlist.cmd.clear_flags
 # param = <url>
 # descr = clear url flags for given playlist url
 
@@ -10,18 +10,18 @@ return { 'mode' => 'nak', 'data' => 'URL expected!' }
     or $url !~ m|^https?://|;
 
 my $match = 0;
-map { $match++ if $_ eq $url; } @{<playlist.file_list>};
+map { $match++ if $_ eq $url; } @{<mlist.file_list>};
 
 return { 'mode' => 'nak', 'data' => 'no such url in playlist!' } if !$match;
 
 my $clear_count;
-map { $clear_count++ if delete <playlist.url_flags>->{$_}->{$url} }
-    keys %{<playlist.url_flags>};
+map { $clear_count++ if delete <mlist.url_flags>->{$_}->{$url} }
+    keys %{<mlist.url_flags>};
 
 return { 'mode' => 'nak', 'data' => 'no flags were set for given url!' }
     if !$clear_count;
 
-<[playlist.update.send_notifications]>;
+<[mlist.update.send_notifications]>;
 
 my $s = $clear_count > 1 ? 's' : '';
 

@@ -14,7 +14,7 @@
                                      xserver.get_stack_order
 
               access.cmd.usr.mpv  =  nroot.start_once xserver.get_mode \
-                                     playlist.get_list reenc-msg.refresh \
+                                     mlist.get_list reenc-msg.refresh \
                                      reenc-msg.finished nroot.notify_online \
                                      xserver.keep_below nroot.register_child \
                                      xserver.set_opacity \
@@ -36,9 +36,9 @@
             access.cmd.usr.media  =  nroot.restart nroot.start_once \
                                      pdf2html.get_url xserver.bg_color \
                                      xserver.get_mode xserver.gpu_load \
-                                     playlist.get_list reenc-msg.refresh \
+                                     mlist.get_list reenc-msg.refresh \
                                      image2html.get_url melt.extract_frame \
-                                     playlist.set_flags reenc-msg.finished \
+                                     mlist.set_flags reenc-msg.finished \
                                      nroot.notify_online nroot.stop_implicit \
                                      xserver.keep_below xserver.hide_window \
                                      xserver.set_opacity \
@@ -48,10 +48,10 @@
                                      xserver.set_geometry \
                                      xserver.wait_visible \
                                      xserver.unhide_window \
-                                     playlist.get_list_types \
-                                     playlist.get_list_types \
+                                     mlist.get_list_types \
+                                     mlist.get_list_types \
                                      ffmpeg[mpv].rescale_video \
-                                     playlist.entries_withheld
+                                     mlist.entries_withheld
 
             access.cmd.usr.power  =  power-x11.set_states
 
@@ -60,17 +60,23 @@
            access.cmd.usr.config  =  get-config *.get-config \
                                      *.get-config-names
 
-           access.cmd.usr.events  =  playlist.update nroot.start_once \
+           access.cmd.usr.events  =  mlist.update nroot.start_once \
                                      layout.switch_to layout.add_overlay \
                                      nroot.stop_implicit \
                                      layout.remove_overlay \
                                      layout.select_default
 
+         access.cmd.usr.mlist     =  nroot.restart weather.get_urls \
+                                     *.playlist_update notify.msg_reload \
+                                     download.get_mimetype \
+                                     events.get_playlist_hidden \
+                                     events.get_playlist_exclusive
+
            access.cmd.usr.layout  =  nroot.start notify.warn nroot.restart \
-                                     media.slow_down playlist.update \
+                                     media.slow_down mlist.update \
                                      nroot.start_once xserver.bg_color \
                                      xserver.fade_out browser.slow_down \
-                                     playlist.get_list nroot.notify_online \
+                                     mlist.get_list nroot.notify_online \
                                      nroot.stop_implicit nroot.notify_offline \
                                      ticker-gtk.slow_down \
                                      xserver.lower_window \
@@ -87,16 +93,16 @@
                                      xserver.get_xorg_pid \
                                      nroot.forced-mod-reload
 
-           access.cmd.usr.webcam  =  playlist.get_list xserver.wait_visible
+           access.cmd.usr.webcam  =  mlist.get_list xserver.wait_visible
 
           access.cmd.usr.browser  =  pdf2html.get_url xserver.bg_color \
                                      xserver.gpu_load image2html.get_url \
-                                     playlist.set_flags layout.get_subconfig \
+                                     mlist.set_flags layout.get_subconfig \
                                      xserver.lower_window \
                                      xserver.raise_window \
                                      xserver.wait_visible \
-                                     playlist.get_list_types \
-                                     playlist.entries_withheld
+                                     mlist.get_list_types \
+                                     mlist.entries_withheld
 
           access.cmd.usr.compton  =  xserver.get_mode xserver.get_driver
 
@@ -113,12 +119,6 @@
          access.cmd.usr.osd-logo  =  download.get_file nroot.stop_implicit \
                                      colortoalpha.filter xserver.get_display
 
-         access.cmd.usr.playlist  =  nroot.restart weather.get_urls \
-                                     *.playlist_update notify.msg_reload \
-                                     download.get_mimetype \
-                                     events.get_playlist_hidden \
-                                     events.get_playlist_exclusive
-
         access.cmd.usr.pong-game  =  xserver.wait_visible \
                                      xserver.get_coordinates
 
@@ -130,7 +130,7 @@
 
        access.cmd.usr.image2html  =  xserver.bg_color
 
-       access.cmd.usr.impressive  =  nroot.start_once playlist.get_list \
+       access.cmd.usr.impressive  =  nroot.start_once mlist.get_list \
                                      nroot.notify_online nroot.stop_implicit \
                                      nroot.register_child xserver.set_opacity \
                                      layout.get_subconfig \
@@ -141,7 +141,7 @@
 
        access.cmd.usr.notify-osd  =  dbus.socket_address
 
-       access.cmd.usr.rss-ticker  =  playlist.get_list ticker-gtk.read_file \
+       access.cmd.usr.rss-ticker  =  mlist.get_list ticker-gtk.read_file \
                                      ticker-sdl.read_file
 
        access.cmd.usr.ticker-gtk  =  layout.get_layer xserver.gpu_load \
@@ -164,6 +164,6 @@
 
       access.cmd.usr.storchencam  =  xserver.wait_visible
 
-  access.cmd.usr.playlist-update  =  nroot.restart playlist.update \
-                                     layout.config_name playlist.reload_file
+  access.cmd.usr.playlist-update  =  nroot.restart mlist.update \
+                                     layout.config_name mlist.reload_file
 
