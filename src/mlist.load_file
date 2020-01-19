@@ -1,8 +1,8 @@
 # >:]
 
-# name = playlist.load_file
+# name = mlist.load_file
 
-<playlist.load_file.path> = my $file_path = shift;
+<mlist.load_file.path> = my $file_path = shift;
 
 die "expected playlist file path"
     if not defined $file_path or !length($file_path);
@@ -13,10 +13,10 @@ if ( !-f $file_path ) {
     return -1;
 }
 
-if ( defined <playlist.b32id_src_str> ) {
-    <[playlist.check_exclusive]>;
+if ( defined <mlist.b32id_src_str> ) {
+    <[mlist.check_exclusive]>;
 } else {
-    <[playlist.callback.load_file]>->($file_path);
+    <[mlist.callback.load_file]>->($file_path);
 }
 
 return 0

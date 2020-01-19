@@ -1,6 +1,6 @@
 # >:]
 
-# name  = playlist.cmd.set_flags
+# name  = mlist.cmd.set_flags
 # param = <flags> <url>
 # descr = set url flags for given playlist url
 
@@ -14,9 +14,9 @@ map {
         'mode' => 'nak',
         'data' => "invalid url flag name '$flag_name'"
             . " .. comma seperated .. < "
-            . join( ' | ', sort keys( %{<playlist.url_flags>} ) ) . ' >'
+            . join( ' | ', sort keys( %{<mlist.url_flags>} ) ) . ' >'
         }
-        if not exists <playlist.url_flags>->{$flag_name}
+        if not exists <mlist.url_flags>->{$flag_name}
 } split( /,/, $flag_str );
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $_ );
@@ -29,18 +29,18 @@ map {
 } split( /,/, $flag_str );
 
 my $match = 0;
-map { $match++ if $_ eq $url; } @{<playlist.file_list>};
+map { $match++ if $_ eq $url; } @{<mlist.file_list>};
 
 return { 'mode' => 'nak', 'data' => 'no match in playlist!' } if !$match;
 
-my $un = <playlist.file_types>->{$url} =~ /:/ ? '(un)' : '';
+my $un = <mlist.file_types>->{$url} =~ /:/ ? '(un)' : '';
 return {
     'mode' => 'nak',
     'data' => "not allowed for ${un}determined content type!"
     }
-    if <playlist.http.check_content_types>
-    and defined <playlist.file_types>->{$url}
-    and <playlist.file_types>->{$url} ne 'html'
+    if <mlist.http.check_content_types>
+    and defined <mlist.file_types>->{$url}
+    and <mlist.file_types>->{$url} ne 'html'
     and $url !~ m{^https?://}    # likely html?
     and $url !~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$};
 
@@ -60,14 +60,14 @@ map {
 
 my $s = $flag_str =~ /,/ ? 's' : '';
 <[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
-map { delete <playlist.url_flags>->{$_}->{$url} } keys %{<playlist.url_flags>};
+map { delete <mlist.url_flags>->{$_}->{$url} } keys %{<mlist.url_flags>};
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $_ );
     $flag_param //= 1;
-    <playlist.url_flags>->{$flag_name}->{$url} = $flag_param
+    <mlist.url_flags>->{$flag_name}->{$url} = $flag_param
 } split( /,/, $flag_str );
 
-<[playlist.update.send_notifications]>;
+<[mlist.update.send_notifications]>;
 
 my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 

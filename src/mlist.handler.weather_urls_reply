@@ -1,6 +1,6 @@
 # >:]
 
-# name = playlist.handler.weather_urls_reply
+# name = mlist.handler.weather_urls_reply
 
 my $reply = shift;
 
@@ -20,33 +20,33 @@ my $changes = 0;
 my @new_list;
 
 my $file_index = 0;
-foreach my $list_item ( @{<playlist.file_list>} ) {
-    my $type = <playlist.file_types>->{$list_item};
+foreach my $list_item ( @{<mlist.file_list>} ) {
+    my $type = <mlist.file_types>->{$list_item};
     next if not defined $type;
     if ( $type eq ':waiting:' and $list_item =~ /^\[weather:$city\]$/ ) {
         <[base.log]>->( 1, "received weather urls for '$city'.." );
-        delete <playlist.file_types>->{$list_item};
-        delete <playlist.agent_subnames>->{$file_index}
-            if defined <playlist.agent_subnames>->{$file_index};
+        delete <mlist.file_types>->{$list_item};
+        delete <mlist.agent_subnames>->{$file_index}
+            if defined <mlist.agent_subnames>->{$file_index};
         push( @new_list, @weather_urls );
 
-        if ( defined <playlist.agent_subnames>
-            and @{<playlist.file_list>} > ( $file_index + 1 ) ) {
+        if ( defined <mlist.agent_subnames>
+            and @{<mlist.file_list>} > ( $file_index + 1 ) ) {
             my $index_offset = @weather_urls;
-            my $file_count   = @{<playlist.file_list>};
+            my $file_count   = @{<mlist.file_list>};
             foreach
                 my $idx_2 ( reverse( ( $file_index + 1 ) .. $file_count - 1 ) )
             {
-                <playlist.agent_subnames>->{ $idx_2 + $index_offset - 1 }
-                    = delete <playlist.agent_subnames>->{$idx_2};
+                <mlist.agent_subnames>->{ $idx_2 + $index_offset - 1 }
+                    = delete <mlist.agent_subnames>->{$idx_2};
             }
         }
         my $content_type = 'html';
         map {
-            <playlist.file_types>->{$_} = $content_type;
-            <playlist.type_cache>->{$_} = $content_type
-                if <playlist.cfg.cache_content_types>;
-            <playlist.agent_subnames>->{$file_index}->{$subname} = 1
+            <mlist.file_types>->{$_} = $content_type;
+            <mlist.type_cache>->{$_} = $content_type
+                if <mlist.cfg.cache_content_types>;
+            <mlist.agent_subnames>->{$file_index}->{$subname} = 1
                 if defined $subname;
             $file_index++;
         } @weather_urls;
@@ -59,7 +59,7 @@ foreach my $list_item ( @{<playlist.file_list>} ) {
 }
 
 if ($changes) {
-    <playlist.file_list> = \@new_list;
+    <mlist.file_list> = \@new_list;
     <[base.log]>->( 1, "weather urls added to playlist, updating..." );
 
     # LLL: extract to seperate subroutine:

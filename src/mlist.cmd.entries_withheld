@@ -1,23 +1,23 @@
 # >:]
 
-# name  = playlist.cmd.entries_withheld
+# name  = mlist.cmd.entries_withheld
 # param = [subname]
 # descr = query how many withheld playlist entries exist
 
 my %file_types;
-my $type_list = <playlist.file_types>;
+my $type_list = <mlist.file_types>;
 my $param     = $$call{'args'} // '';
 my $subname   = length($param) ? $param : undef;
 
 my $entries_withheld = 0;
 
 my $index = -1;
-foreach my $file ( @{<playlist.file_list>} ) {
+foreach my $file ( @{<mlist.file_list>} ) {
     $index++;
     next
         if defined $subname
-        and exists <playlist.agent_subnames>->{$index}
-        and not exists <playlist.agent_subnames>->{$index}->{$subname};
+        and exists <mlist.agent_subnames>->{$index}
+        and not exists <mlist.agent_subnames>->{$index}->{$subname};
 
     $entries_withheld++ if $type_list->{$file} eq 'network_error';
 }

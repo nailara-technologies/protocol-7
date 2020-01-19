@@ -1,18 +1,18 @@
 # >:]
 
-# name = playlist.http.get_mime_type
+# name = mlist.http.get_mime_type
 # todo = cache content types + make async -> 'download'-agent
 
 my $url = shift;
 my $content_type;
 
-<playlist.http.request_timeout> //= 3;
+<mlist.http.request_timeout> //= 3;
 
 my $uagent = LWPx::ParanoidAgent->new;
 
 $uagent->whitelisted_hosts( sub { return 1 } );
 $uagent->protocols_allowed( [ 'http', 'https' ] );
-$uagent->timeout(<playlist.http.request_timeout>);
+$uagent->timeout(<mlist.http.request_timeout>);
 $uagent->agent("Mozilla/5.0");
 $uagent->cookie_jar( {} );
 
