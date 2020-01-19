@@ -1,0 +1,27 @@
+# >:]
+
+# name  = debug.cmd.change-log-verbosity
+# descr = changes current [debug] log level
+# param = <[0..,5]>
+
+my $usr_sid = $$call{'session_id'};
+my $llvl    = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'you need to supply an integer value [0..,5]'
+    }
+    if !length( $llvl // '' )
+    or $llvl !~ /^\d+$/;
+
+return { 'mode' => 'nak', 'data' => sprintf( "already at '%s'", $llvl // '' ) }
+    if $llvl == <system.verbosity>;
+
+<system.verbosity>          = $llvl;
+<system.internal_verbosity> = $llvl;
+
+my $usr = $data{'session'}{$usr_sid}{'user'};
+
+<[base.log]>->( 0, "changed verbosity : '$llvl' [ requested by '$usr' ]" );
+
+return { 'mode' => 'ack', 'data' => "verbosity = $llvl" }
