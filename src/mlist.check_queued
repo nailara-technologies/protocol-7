@@ -1,0 +1,12 @@
+# >:]
+
+# name = mlist.check_queued
+
+return if not exists <mlist.items_queued> or !<mlist.items_queued>;
+
+# LLL: quick and dirty version ... clean up!
+
+<[base.log]>->( 1, "found queued items, reloading playlist..." );
+
+my $playlist_file = <mlist.file_name>;
+<[mlist.load_file]>->($playlist_file);

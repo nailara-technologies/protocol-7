@@ -1,0 +1,13 @@
+# >:]
+
+# name = mlist.check_changes
+
+my $file_name = shift;
+return if !-f $file_name;
+
+my $playlist_sha1 = <[digest.sha.file_hex]>->($file_name);
+
+<mlist.content_changed>++
+    if defined <mlist.sha1> and $playlist_sha1 ne <mlist.sha1>;
+
+<mlist.sha1> = $playlist_sha1;

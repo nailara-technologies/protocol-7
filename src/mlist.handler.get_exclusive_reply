@@ -1,22 +1,22 @@
 # >:]
 
-# name = playlist.handler.get_exclusive_reply
+# name = mlist.handler.get_exclusive_reply
 
 my @exclusive_b32ids;
 my $reply = shift;
 
-<playlist.exclusive_b32id> = {};
+<mlist.exclusive_b32id> = {};
 
 if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
     chomp( $reply->{'data'} );
     @exclusive_b32ids = split( /\n+/, $reply->{'data'} );
     map {
-        if ( <playlist.b32id_src_str>->{$_} =~ /^([^:]+):/ ) {
+        if ( <mlist.b32id_src_str>->{$_} =~ /^([^:]+):/ ) {
             my $tile_name = $1;    # LLL: handle no tilename case? (global ex.)
-            <playlist.exclusive_b32id>->{$tile_name} //= [];
-            push( @{ <playlist.exclusive_b32id>->{$tile_name} }, $_ );
+            <mlist.exclusive_b32id>->{$tile_name} //= [];
+            push( @{ <mlist.exclusive_b32id>->{$tile_name} }, $_ );
         }
     } @exclusive_b32ids;
 }
 
-<[playlist.update_hidden]>;
+<[mlist.update_hidden]>;
