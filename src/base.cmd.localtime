@@ -1,17 +1,21 @@
 # >:]
 
 # name  = base.cmd.localtime
-# param = [unix|ntime]
+# param = [unix|ntime[-b32]]
 # descr = return local date string [in host's timezone]
 
-my $unix_time = $$call{'args'};
-$unix_time //= time();
+my $unix_time = $$call{'args'} // time();
+
+eval { $unix_time = unpack( 'w', decode_b32r($unix_time) ) }
+    if $unix_time =~ m,^\w+$, and length($unix_time) == 10;
 
 return {
     'mode' => 'nak',
     'data' => "invalid parameter string submitted"
     }
-    if not defined $unix_time or $unix_time !~ /^\d{1,17}(\.\d{1,20})?$/;
+    if $@
+    or not defined $unix_time
+    or $unix_time !~ /^\d{1,17}(\.\d{1,20})?$/;
 $unix_time = int($unix_time) if $unix_time =~ /\./;
 
 $unix_time = <[base.n2u_time]>->($unix_time) if length($unix_time) >= 13; # <-nt
