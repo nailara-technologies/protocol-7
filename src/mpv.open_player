@@ -20,18 +20,20 @@ my $mpv_params = <mpv.params>;
 <mpv.playlist_type> = 'audio' if <mpv.audio_only>; # <- run with 'audio' subname
 
 if ( !<mpv.audio_only> ) {
-
+    my $xmode = <x11.mode>;
     $ENV{'DISPLAY'} = <x11.display>;
 
-    if (    <x11.mode> eq 'xephyr'
-        and defined <mpv.cfg.xephyr.vo>
-        and <mpv.vo_backend> ne <mpv.cfg.xephyr.vo> ) {
-        <mpv.vo_backend> = <mpv.cfg.xephyr.vo>;
-        <mpv.hwdec> = <mpv.cfg.xephyr.hwdec> if defined <mpv.cfg.xephyr.hwdec>;
+    if ( defined $xmode and defined <mpv.xmode>->{$xmode} ) {
+        <mpv.vo_backend> = <mpv.xmode>->{$xmode}->{'vo'}
+            if defined <mpv.xmode>->{$xmode}->{'vo'};
+        <mpv.hwdec> = <mpv.xmode>->{$xmode}->{'hwdec'}
+            if defined <mpv.xmode>->{$xmode}->{'hwdec'};
         <[base.log]>->(
             1,
-            sprintf( "switching vo_backend to '%s' [xephyr mode]",
-                <mpv.vo_backend> )
+            sprintf(
+                "<!> switching vo_backend to '%s' [ %s-mode ] <!>",
+                <mpv.vo_backend>, $xmode
+            )
         );
     }
 

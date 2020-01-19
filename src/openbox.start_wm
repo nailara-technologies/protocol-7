@@ -50,10 +50,14 @@ if ( -f <openbox.log_file> ) {
     {   'fd'      => $out_fh,
         'handler' => 'base.handler.child_output.simple',
         'data'    => {
-            'bin' => 'openbox',
-            'pid' => <child.openbox.pid>,
-            'log_whitelist' =>
-                [ 'Xinerama', 'XIO:  fatal IO error ', 'after \d+ requests' ]
+            'bin'           => 'openbox',
+            'pid'           => <child.openbox.pid>,
+            'log_whitelist' => [
+                'Xinerama',
+                'XRandR extension is not present',
+                'XIO:  fatal IO error ',
+                'after \d+ requests',
+            ]
         }
     }
 );
