@@ -44,7 +44,9 @@ mpv.start_volume = 100 # % <- volume at startup ; fading to after 'core-idle'
 mpv.vo_backend = gpu#,sdl # [gpu-hq|gpu|sdl|...] ( see mpv -vo help for list )
 mpv.hwdec      = auto     # [no|auto|gpu|...] ( ..more with mpv --hwdec=help )
 
-mpv.cfg.xephyr.vo = xv  # [sdl|xv] <- override if SDL is broken [ dev. feature ]
+mpv.xmode.xephyr.vo = xv  # [sdl|xv] <- override if SDL is broken [dev. feature]
+mpv.xmode.xnest.vo = x11
+mpv.xmode.nxagent.vo = x11
 
 mpv.playlist_type = video # <- changed to audio if started with 'audio' subname!
 
@@ -61,7 +63,7 @@ mpv.loop_plist_param = [mpv.loop_plist_param]
 #            --idle=once # with spawn on demand ...
 
 mpv.params = --idle --force-window --keep-open=yes \ # <mpv.loop_plist_param>
-              --no-config --no-window-dragging --no-border \
+              --no-config --no-window-dragging --no-border --gamma=-1 \
               --no-input-terminal --no-input-cursor --input-vo-keyboard \
               --no-input-default-bindings --osc=no --osd-level=0 --really-quiet
 
