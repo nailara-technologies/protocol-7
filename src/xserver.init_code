@@ -42,7 +42,7 @@ foreach my $bin_name (
 
     |
 ) {
-    <xserver.bin_path>->{$bin_name} = <[base.required_bin_path]>->($bin_name);
+    <xserver.bin_path>->{$bin_name} //= <[base.required_bin_path]>->($bin_name);
 }
 
 <[base.inotify.install_io_watcher]>;
