@@ -51,16 +51,21 @@ close(<compton.renice_fh>);
 delete <compton.renice_fh>;
 
 <[event.add_io]>->(
-    {   'fd'      => <compton.out_fh>,
-        'handler' => 'base.handler.child_output.simple',
-        'data'    => {
-            'bin'           => 'compton',
-            'pid'           => <compton.pid>,
-            'log_whitelist' => [
-                'invalid Window parameter',
-                'XIO:  fatal IO error ',
-                'after \d+ requests'
-            ]
+    {   'fd'            => <compton.out_fh>,
+        'handler'       => 'base.handler.child_output.simple',
+        'log_whitelist' => [
+            'invalid Window parameter',
+            'XIO:  fatal IO error ',
+            'after \d+ requests',
+            'No composite extension'
+        ],
+        'data' => {
+            'bin'               => 'compton',
+            'pid'               => <compton.pid>,
+            'callback_patterns' => {
+                qr/^No composite extension$/ =>
+                    'compton.callback.not_composited'
+            }
         }
     }
 );

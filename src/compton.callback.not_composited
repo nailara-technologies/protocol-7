@@ -1,0 +1,13 @@
+# >:]
+
+# name = compton.callback.not_composited
+
+my $shutdown_delay = <compton.no_coposite_delay>
+    // sprintf( "%.2f", 7 + rand(4) );
+
+<[base.log]>->( 0, "[STARTUP_ERROR] no composite extension [ delayed exit ]" );
+
+<[base.sleep]>->($shutdown_delay);
+
+<[base.log]>->( 1, "delayed shutdown after $shutdown_delay seconds..," );
+<[base.exit]>->(3);
