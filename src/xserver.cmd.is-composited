@@ -1,0 +1,14 @@
+# >:]
+
+# name  = xserver.cmd.is-composited
+# descr = return if running xserver is composited
+
+my $composited = <xserver.is_composited>;
+
+<xserver.is_composited> = <xserver.x11>->init_extension('Composite') ? 1 : 0;
+
+# <xserver.x11>->CompositeRedirectWindow( $window, 'Automatic' ); # <- add cmd.,
+
+return { 'mode' => 'ack', 'data' => 'yes, is composited' } if $composited;
+return { 'mode' => 'nak', 'data' => 'no composite extension' };
+

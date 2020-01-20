@@ -64,8 +64,11 @@ if ( $mode ne 'host' ) {
     $bin_name = 'nxagent' if $mode eq 'nxagent';
 
     $server_bin = <xserver.bin_path>->{$bin_name};
+
     die "xserver binary '$bin_name' not found. [ installed? ]"
         if not defined $server_bin or !-x $server_bin;
+
+    <[base.log]>->( 2, ":: xsrv-bin-path :: $server_bin" );
 
     $server_params
         = join( ' ', <xserver.display>->{$mode}, <xserver.params>->{$mode} );
@@ -130,7 +133,7 @@ my $bin_name_lc = lc($bin_name);
 # print STDERR Dumper( keys( %{ <xserver.x11>->{'ext'} } ) );
 
 <xserver.x11>->init_extension('RANDR')
-    or die "[!] unable to initialize RANDR extension!\n";
+    or die "[!] unable to initialize RANDR extension <!>\n";
 <xserver.x11>->RRQueryVersion( 1, 0 );
 
 if ( <xserver.x11>->init_extension('DPMS') and <xserver.x11>->DPMSCapable ) {
@@ -140,6 +143,15 @@ if ( <xserver.x11>->init_extension('DPMS') and <xserver.x11>->DPMSCapable ) {
 } else {
     <[base.log]>->( 1, ": : DPMS not supported :|" );
     <xserver.has_dpms> = 0;
+}
+
+if ( <xserver.x11>->init_extension('Composite') ) {
+    <xserver.is_composited> = 1;
+    <[base.log]>->( 1, ": : xserver is composited =)" );
+} else {
+    <xserver.is_composited> = 0;
+    <[base.log]>->( 1, ": : xserver is not composited :|" );
+
 }
 
 ## display connected? ##
