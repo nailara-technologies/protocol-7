@@ -4,14 +4,16 @@
 # param = [nosync]
 # descr = force host system reboot using sysrq-trigger
 
-my $param = $$call{'args'} // '';
+my $param   = $$call{'args'} // '';
+my $enabled = <nroot.host-reboot.enabled> //= 1;
+
+return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
+    if !-e '/proc/sysrq-trigger';
 return {
     'mode' => 'nak',
     'data' => 'specifically disabled [ nroot.host-reboot.enabled = 0 ]'
     }
-    if <nroot.host-reboot.enabled> //= 1;
-return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
-    if !-e '/proc/sysrq-trigger';
+    if !$enabled;
 
 <[base.log]>->( 0, "<!> <<< initiating force-reboot >>> <!>" );
 
