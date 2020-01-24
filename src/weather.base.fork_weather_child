@@ -49,6 +49,8 @@ if ( !<weather.child.pid> ) {    ## child ##
     <[base.load_modules]>->('weather.child');
     <[base.init_modules]>->('weather.child');
 
+    <[base.log]>->( 1, 'preparing to close core session of child .,' );
+
 } else {    ## parent ##
     close($parent_pipe);
     delete <weather.pipe.parent> if exists <weather.pipe.parent>;
@@ -73,8 +75,9 @@ if ( !<weather.child.pid> ) {    ## child ##
             <[base.log]>->( 1, "<*> restoring location '$loaded_city'" );
             <weather.cfg.city> = $loaded_city;
         } else {
-            <[base.log]>
-                ->( 0, "syntax error in city cache file, removing it!" );
+            <[base.log]>->(
+                0, "<!> syntax error in city cache file, purging.., <!>"
+            );
             unlink($city_file) or warn "unlink failed: $!";
         }
     }
@@ -82,7 +85,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     if ( defined <weather.cfg.city> and length(<weather.cfg.city>) ) {
         <[weather.parent.set_city]>->(<weather.cfg.city>);
     } else {
-        <[base.log]>->( 1, "no city configured at startup!" );
+        <[base.log]>->( 1, '<!> no city configured at startup <!>' );
         if ( !<weather.agent.initialized> ) {
             <[base.async.get_session_id]>;    # change agent status to 'online'
             <weather.agent.initialized> = 1;

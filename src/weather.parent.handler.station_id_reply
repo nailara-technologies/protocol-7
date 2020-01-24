@@ -4,17 +4,26 @@
 
 my $reply = shift;
 
-my $city;
+my $location;
 my $station_id;
-my $shutdown = 0;
+my $shutdown  = 0;
+my $term_wait = <weather.cfg.term_wait> // 13;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     <[base.log]>->(
         0,
-        "unable to retrieve station id ["
+        "unsuccessful station id request [ "
             . $reply->{'call_args'}->{'args'}
-            . "], shutting down!"
+            . " ] delayed shutdown in $term_wait secs..,"
     );
+
+    ## removing current city file to prevent restoring old settings ##
+    my $cache_dir     = <weather.cache_dir>;
+    my $location_file = "$cache_dir/city.current";
+    <[base.log]>->( 1, "[error-cleanup] removing '$location_file'" );
+    unlink($location_file) or warn "cannot remove $location_file [ $! ]";
+    ##
+
     foreach my $reply_id ( @{<weather.get_urls.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
@@ -25,11 +34,14 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
         delete <weather.get_urls.reply_ids>;
     }
     $shutdown = 1;
+
+    <[base.sleep]>->($term_wait);
+
 } else {
-    $city       = $reply->{'params'}->{'city'};
+    $location   = $reply->{'params'}->{'city'};
     $station_id = $reply->{'call_args'}->{'args'};
     if ( not defined $station_id or !$station_id ) {
-        <[base.log]>->( 0, "no valid station id found!" );
+        <[base.log]>->( 0, "<<!>> found no valid station id <<!>>" );
         $shutdown = 1;
     }
 }
@@ -39,9 +51,9 @@ if ($shutdown) {    # LLL: write error html page ...
 
 <weather.station_id> = $station_id;
 
-<[weather.parent.cache.write_station_id]>->( $city, $station_id );
+<[weather.parent.cache.write_station_id]>->( $location, $station_id );
 
-<[base.log]>->( 1, "received station id ( $city ) = $station_id" );
+<[base.log]>->( 1, "received station id for $location [ $station_id ]" );
 
 <[weather.parent.populate_html_dir]>->(<weather.station_id>);
 <[weather.parent.update_current]>->(<weather.station_id>);
