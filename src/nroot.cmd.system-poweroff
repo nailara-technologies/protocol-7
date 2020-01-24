@@ -4,15 +4,16 @@
 # param = [nosync]
 # descr = force power off using sysrq-trigger [host]
 
+my $param   = $$call{'args'} // '';
+my $enabled = <nroot.system-poweroff.enabled> //= 1;
+
+return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
+    if !-e '/proc/sysrq-trigger';
 return {
     'mode' => 'nak',
     'data' => 'specifically disabled [ nroot.system-poweroff.enabled = 0 ]'
     }
-    if <nroot.system-poweroff.enabled> //= 1;
-return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
-    if !-e '/proc/sysrq-trigger';
-
-my $param = $$call{'args'} // '';
+    if !$enabled;
 
 <[base.log]>->( 0, "<!> <<< initiating force-poweroff >>> <!>" );
 
