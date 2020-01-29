@@ -4,7 +4,8 @@
 # descr = returns PIDs of orphaned children of deceased agents
 # todo  = sort pids by process start time
 
-my $proc_table = new Proc::ProcessTable;
+my $proc_table = <nroot.process.pt>
+    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
 
 my %own_children;
 foreach my $i_id ( keys %{<nroot.agent.instance>} ) {
@@ -18,7 +19,7 @@ map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
     grep {
     $_->ppid == 1             # parent is 'init' now
         and $_->pgrp == $$    # process group was nroot agent
-        and $_->pid != $$     # and is not this process [nroot agent]
+        and $_->pid != $$     # and is not this process [nroot]
         and not exists $own_children{ $_->pid }
         and ( not defined $_->exec
         or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / LLL: -> config

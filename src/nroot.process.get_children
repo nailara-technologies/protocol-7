@@ -10,7 +10,8 @@ if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
 
 ### old method ### (heavy, non-portable, to be removed..)
 
-my $proc_table = new Proc::ProcessTable;
+my $proc_table = <nroot.process.pt>
+    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
 
 my %ppids;
 my %start_times;
