@@ -1,0 +1,20 @@
+
+ .:[ generic authentication agent ]:.
+
+buffer.system.log_cmd = log.msg
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.core = verify-instance help ping reload * # <- <<< ! >>>
+
+modules.load = net io.ip auth digest.bmw crypt.C25519 keys debug # <- <<< ! >>>
+
+[base.set_privs:'nailara']
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'tcp/ip']
+[base.get_session_id]
+
+[event.loop]
