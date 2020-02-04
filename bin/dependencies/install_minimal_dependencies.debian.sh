@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 script_path=`realpath $0`
-bin_path=`dirname $script_path`
-NAILARA_ROOT=`realpath $bin_path/..`
+bin_path=`dirname $script_path` # ./bin/dependencies/
+NAILARA_ROOT=`realpath $bin_path/../..`
 
 useradd -m -r nailara
 ln -v -f -s $NAILARA_ROOT/bin/nailara /usr/local/bin/nailara
