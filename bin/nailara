@@ -45,13 +45,13 @@ if ( $0 =~ /^.*nailara\./ ) {
 if ( defined $agentname and $agentname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
         $data{'startup'}{'init_code'} = [];
-        $code{'log.ok'}->('< accepting stdin init-code >');
+        $code{'log.ok'}->('> awaiting stdin init-code');
         while (<STDIN>) {
             push( @{ $data{'startup'}{'init_code'} }, $_ );
         }
         my $lines = @{ $data{'startup'}{'init_code'} };
         my $s     = $lines != 1 ? 's' : '';
-        $code{'log.ok'}->("< / read $lines line$s of init-code >");
+        $code{'log.ok'}->("< read $lines line$s of init-code");
     }
     $code{'base.init'}->( $data{'system'}{'node'}{'name'} . '.' . $agentname );
 } else {
