@@ -3,8 +3,8 @@
 # a crude dependency installation script for browser agent + some infrastructure
 
 script_path=`realpath $0`
-bin_path=`dirname $script_path`
-NAILARA_ROOT=`realpath $bin_path/..`
+bin_path=`dirname $script_path` # ./bin/dependencies/
+NAILARA_ROOT=`realpath $bin_path/../..`
 
 apt-get update
 
