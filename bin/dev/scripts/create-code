@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+use v5.17;
+
+use strict;
+use warnings;
+use File::Spec;
+use Cwd 'abs_path';
+use FindBin '$RealBin';
+use File::Which 'which';
+
+my $code_name = shift @ARGV;
+die "\n <<!>> code file name expected, rel. src path <<!>>\n\n"
+    if !defined $code_name or $code_name =~ m|^/|;
+
+my $u = File::Spec->updir;
+my $root_path
+    = abs_path(
+    File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u, $u ) ) );
+my $code_path = File::Spec->catfile( File::Spec->catdir( $root_path, 'src' ),
+    $code_name );
+
+die "\n <<!>> code path 'src/$code_name' already exists <<!>>\n\n"
+    if -f $code_path;
+
+say "\n :. creating 'src/$code_name'..,\n";
+
+open( my $src_fh, '>', $code_path ) or die "\n [!] '$code_path' : $! [!]\n\n";
+
+print {$src_fh} "# >:]\n\n# name  = $code_name\n\n";
+
+close($src_fh);
+
+if ( my $sct_path = which 'sct' ) { exec( $sct_path, $code_path ) }
