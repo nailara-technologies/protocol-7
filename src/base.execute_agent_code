@@ -16,14 +16,16 @@ foreach my $code_line (@_) {
                 my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
                 next if length($sub_name) and exists $code{$sub_name};
                 <[base.log]>->(
-                    0, "unknown subroutine '$sub_name' called! [ $sub_call ]"
+                    0, "unknown subroutine '$sub_name' called [ $sub_call ]"
                 );
                 $noerr = 0 if $noerr;
             }
         }
         if ($noerr) {
-            $@ =~ s/ at .+\n//;
-            warn("error while executing '$code_line' [$@] <{C3}>");
+            $@ =~ s/ at ([^\s]+) line (\d+).+\n//;
+            <base.eval_error.name> = $1;
+            <base.eval_error.line> = $2;
+            warn("no success on eval '$code_line' [ '$@' ] <{C3}>");
         }
         $noerr = 0 if $noerr;
     }
