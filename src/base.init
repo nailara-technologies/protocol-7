@@ -42,6 +42,6 @@ if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
 <base.config_parser.cfg_type> = 'start_cfg';
 <base.config_parser.cfg_name> = 'agent';
 
-# note: 'load_config_file' will not return for agents invoking the event loop!
+# note: 'load_config_file' will not return for agents invoking the event loop!!!
 <[base.load_config_file]>->($agent_cfg_path)
-    or <[log.error]>->("startup of agent '<system.agent.name>' has failed!");
+    or <[log.error]>->("startup of agent '<system.agent.name>' not successful");
