@@ -724,6 +724,17 @@ sub prepare_subs {
             } @err;
             ( $package, $filename, $line, $subroutine ) = caller($level)
                 if $level;    # <- log parent caller instead ('<{C[level]}>')
+
+            # special exception for agent code evaluation
+            if (    $filename eq $data{'system'}{'start'}{'exec_name'}
+                and $line == 56 ) {
+                my $l = 0;
+                $filename = $data{'base'}{'eval_error'}{'name'}
+                    //= [ caller($l) ]->[1];
+                $line = $data{'base'}{'eval_error'}{'line'}
+                    //= [ caller($l) ]->[2];
+            }
+
             my $caller_str = "[ $filename, $line ]";
             $caller_str = "[ ... caller level $level too high ... ]"
                 if !length( $filename . $line );
