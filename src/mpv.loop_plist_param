@@ -4,8 +4,9 @@
 
 my $mpv_bin    = <mpv.bin_path>;
 my $kiosk_mode = <mpv.kiosk_mode> //= 0;
+my $audio_only = <mpv.audio_only> //= 0;
 
-return '' if !$kiosk_mode;
+return '' if !$kiosk_mode and !$audio_only;
 
 die "'mpv.bin_path' is not defined!" if not defined $mpv_bin;
 die "unable to find mpv player executable at '$mpv_bin'" if !-x $mpv_bin;
