@@ -2,7 +2,7 @@
 
 # name = base.x11.wait_for_window
 
-my $timeout  = <x11.window_timeout> || 10;
+my $timeout  = <x11.window_timeout> || 7;
 my $name     = shift;
 my $user     = shift // 'core';
 my $cmd_path = shift // '';
@@ -16,7 +16,7 @@ if ( not defined $name ) {
 die "expected window name parameter" if not defined $name or !length($name);
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 2, "waiting for window '$name'.." );
+<[base.log]>->( 2, "waiting for window '$name'.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -30,7 +30,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
-    die "core handle had an exception!"
+    die "<<<!>>> core handle exception <<<!>>>"
         if not defined $reply_string or !length($reply_string);
 
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
@@ -43,7 +43,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+)\n$/ and <x11.id> = $1 ) {
     <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
     return <x11.id>;
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK window startup timed out!\n$/ ) {
-    <[base.log]>->( 0, ": window startup timed out after $timeout seconds!" );
+    <[base.log]>->( 0, ": window startup timed out after $timeout seconds..," );
     return undef;
 } else {
     <[base.log]>->(

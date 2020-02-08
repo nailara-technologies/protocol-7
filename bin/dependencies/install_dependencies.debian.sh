@@ -3,7 +3,7 @@
 #<!> see 'install_browser_agent_dependencies.sh' for additional dependencies <!>
 #         #####################################
 
-apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter \
+apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter xnest nxagent \
             compton openbox hsetroot xserver-xorg xserver-xephyr xvfb fuse3 \
             mpv ffmpeg melt expect mediainfo dbus-x11 libnotify-bin notify-osd \
             python-pil python-pygame mupdf-tools pdftk \
