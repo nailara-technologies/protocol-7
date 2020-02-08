@@ -1,0 +1,23 @@
+# >:]
+
+# name = mpv.await_window_presence
+
+<x11.window_timeout> //= 7;
+
+my $wait_title_str = <mpv.agent_title>;
+$wait_title_str .= '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname> and length(<system.agent.subname>);
+$wait_title_str =~ s|([\[\]\.])|\\$1|g;
+if ( not defined <[base.x11.wait_for_window]>->($wait_title_str) ) {
+    <[base.log]>->( 0, "<<<!>>> mpv window creation timed out <<<!>>>" );
+    <[mpv.abort_startup]>;    # <-- exiting
+} else {
+    <[base.x11.assign_window]>->(<x11.id>);
+    if ( <system.agent.mode> eq 'media-child' ) {
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.xserver.hide_window",
+                'call_args' => { 'args' => <x11.id> }
+            }
+        );
+    }
+}

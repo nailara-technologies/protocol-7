@@ -1,0 +1,8 @@
+# >:]
+
+# name = mpv.abort_startup
+
+<[base.log]>->( 1, ": aborting agent startup..," );
+<[base.log]>->( 1, ": terminated mpv process " . <mpv.pid> . ".," )
+    if kill( 9, <mpv.pid> );
+exit(1);
