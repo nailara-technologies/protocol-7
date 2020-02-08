@@ -8,7 +8,6 @@ $SIG{'PIPE'} = sub {
 };
 
 my $target_geometry;
-my $abort_startup = 0;
 <mpv.audio_only> = 0;
 my $mpv_params = <mpv.params>;
 
@@ -70,14 +69,14 @@ if ( !<mpv.audio_only> ) {
             <[base.log]>->( 1, " : disabled 'autoresize' function.." );
             <mpv.autoresize> = 0;
         }
-        <[base.log]>->( 1, " : fullscreen mode is enabled (auto_fs).." );
+        <[base.log]>->( 1, " : fullscreen mode is enabled [auto_fs].." );
         <mpv.current.window_width>  = <x11.coordinates.right>;
         <mpv.current.window_height> = <x11.coordinates.bottom>;
         <mpv.current.box_width>     = <x11.coordinates.right>; # LLL: check, fix
         <mpv.current.box_height>    = <x11.coordinates.bottom>;
     }
 
-    $mpv_params .= ' -vo ' . <mpv.vo_backend> if defined <mpv.vo_backend>;
+    $mpv_params .= ' -vo=' . <mpv.vo_backend> if defined <mpv.vo_backend>;
     $mpv_params .= ' --hwdec=' . <mpv.hwdec>  if defined <mpv.hwdec>;
 
     if (    defined <mpv.geometry>
@@ -97,29 +96,44 @@ if ( !<mpv.audio_only> ) {
         ( 'zoom', 'align-x', 'align-y', 'change_subname' );
 }
 
-my $socket_path = "/tmp/.mpv.socket.$$";
-$mpv_params .= " --input-ipc-server $socket_path";
+my $socket_path = <mpv.path.ipc_socket> = "/tmp/.mpv.socket.$$";
+$mpv_params .= " --input-ipc-server=$socket_path";
+
+$mpv_params =~ s|  +| |g;
+
+my @mpv_params = split( / +/, $mpv_params );
 
 my $mpv_title_str = <mpv.agent_title>;
 $mpv_title_str .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
 $mpv_title_str .= ' ( ${?media-title:${media-title}}${!media-title:no file} )';
 
+push( @mpv_params, "--title='$mpv_title_str'" );
+<mpv.started_with_params> = join( ' ', @mpv_params );
+
 <[base.log]>->(
-    2, "current mpv parameters: " . <mpv.bin_path> . " $mpv_params"
+    2, join( ' ', "current parameters : ", <mpv.bin_path>, @mpv_params )
 );
 
-<[base.log]>->( 1, 'starting mpv player..' );
+<mpv.fh.stdin>  = IO::Handle->new();
+<mpv.fh.stdout> = IO::Handle->new();
+<mpv.fh.stderr> = IO::Handle->new();
 
-<mpv.started_with_params> = $mpv_params . ' --title="' . $mpv_title_str . '"';
+<[base.log]>->( 1, "starting mpv player.," );
 
+## note ## mpv writes errors to stdout, consider replacement with open2 .., ##
 <mpv.pid> = open3( <mpv.fh.stdin>, <mpv.fh.stdout>, <mpv.fh.stderr>,
-    ( <mpv.bin_path>, split( / +/, $mpv_params ), '--title', $mpv_title_str ) );
+    ( <mpv.bin_path>, @mpv_params ) );
 
-if ( !<mpv.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start mpv [$!]" );
-    <[base.log]>->( 1, " : aborting agent startup .." );
-    exit(1);
+my $wait_res = waitpid( <mpv.pid>, WNOHANG() );
+
+if (   not defined <mpv.pid>
+    or !<mpv.pid>
+    or $wait_res == <mpv.pid>
+    or $wait_res < 0 ) {
+    <[base.log]>->( 0, "[!] unable to start mpv [$@]" );
+    <[mpv.handler.error_output]>;
+    <[mpv.callback.abort_startup]>;    # <-- exiting
 } else {
     push( @{<system.kill_list>}, <mpv.pid> );
     <[base.agents.report_child_pid]>->(<mpv.pid>);
@@ -132,86 +146,20 @@ END {    # cleaning up left over process on lost socket
 }
 
 <[base.log]>->( 1, ": mpv process spawned [PID=<mpv.pid>]" );
+close( delete(<mpv.fh.stdin>) );    # input fd not required
 
-close( delete(<mpv.fh.stdin>) );
-
-goto no_window if <mpv.audio_only>;
-
-<x11.window_timeout> //= 7;
-
-my $wait_title_str = <mpv.agent_title>;
-$wait_title_str .= '[' . <system.agent.subname> . ']'
-    if exists <system.agent.subname> and length(<system.agent.subname>);
-$wait_title_str =~ s|([\[\]\.])|\\$1|g;
-if ( not defined <[base.x11.wait_for_window]>->($wait_title_str) ) {
-    <[base.log]>->( 0, "[!] mpv window creation timed out!" );
-    $abort_startup = 1;
-    goto abort;
-} else {
-    <[base.x11.assign_window]>->(<x11.id>);
-    if ( <system.agent.mode> eq 'media-child' ) {
-        <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.xserver.hide_window",
-                'call_args' => { 'args' => <x11.id> }
-            }
-        );
+<[event.add_io]>->(
+    {   'fd'      => <mpv.fh.stderr>,
+        'handler' => 'mpv.handler.stderr',
+        'data'    => { 'pid' => <mpv.pid>, }
     }
-}
+);
 
-no_window:
+<[mpv.open_control_socket]>;
 
-my $max_retries = 42;
-while ( $max_retries-- ) {
-    last if -e $socket_path;
-    <[base.sleep]>->(0.1);
-    <[base.log]>->( 2, ": waiting for $socket_path .." )
-        if !-e $socket_path;
-}
-if ( not -e $socket_path ) {
-    <[base.log]>->(
-        0, "[!] mpv socket creation error ['$socket_path' does not exist]"
-    );
-    $abort_startup = 1;
-} else {
-    <[base.log]>->( 1, "opening unix domain socket '$socket_path'.." );
-    <mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
-    <[base.log]>->( 1, "unlinking socket $socket_path.." );
-    unlink($socket_path) or warn("unlink($socket_path): $!");
-}
+<[mpv.await_window_presence]> if !<mpv.audio_only>;
 
-if (   !$abort_startup and not defined <mpv.socket>
-    or !$abort_startup and !-S <mpv.socket> ) {
-    <[base.log]>->( 0, "[!] mpv socket creation error [opened handle valid]" );
-    $abort_startup = 1;
-}
-
-abort:
-
-if ($abort_startup) {
-    <[base.log]>->( 1, " : aborting agent startup .." );
-    <[base.log]>->( 1, " : terminated mpv process " . <mpv.pid> . ".." )
-        if kill( 9, <mpv.pid> );
-    exit(1);
-}
-
-if ( <mpv.fade_in> and !<mpv.audio_only> ) {
-    <[base.x11.set_window_opacity]>->( <x11.id>, 0 );
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => 'core.xserver.set_geometry',
-            'call_args' => { 'args' => join( ' ', <x11.id>, $target_geometry ) }
-        }
-    );
-    <mpv.opacity> = 0;
-    Event->idle(
-        cb => sub {
-            <mpv.opacity>++;
-            return 0 if <mpv.opacity> > 100;
-            <[base.x11.set_window_opacity]>->( <x11.id>, <mpv.opacity> );
-            return 1;
-        },
-        repeat => 1
-    );
-}
+<[mpv.callback.fade_in]> if <mpv.fade_in> and !<mpv.audio_only>;
 
 <[event.add_io]>->(
     {   'fd'      => <mpv.fh.stdout>,
@@ -240,13 +188,6 @@ if ( <mpv.fade_in> and !<mpv.audio_only> ) {
                 'Failed to open VDPAU backend libvdpau_nvidia.so',
             ]
         }
-    }
-);
-
-<[event.add_io]>->(
-    {   'fd'      => <mpv.socket>,
-        'handler' => 'mpv.handler.pipe_output',
-        'data'    => { 'pid' => <mpv.pid> }
     }
 );
 

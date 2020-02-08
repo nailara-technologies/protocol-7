@@ -3,7 +3,7 @@
 # name = mpv.init_code
 
 <[base.perlmod.autoload]>->('JSON::XS');
-<[base.perlmod.autoload]>->('IPC::Open3');
+<[base.perlmod.autoload]>->('IPC::Open3', qw | open3 | );
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
@@ -26,19 +26,19 @@ die "[!] mpv binary not found, aborting startup..."
     'descr'    => 'adjustable mpv settings'
 };
 
-<mpv.current.volume>    //= 100;
-<mpv.start_volume>      //= 100;             # <- ./cfg/agents/mpv
-<mpv.fade_in>           //= 0;               # <- video fade (in)
-<mpv.fade_idle_volume>  //= 1;               # <- audio zero-vol/fade-in on idle
-<mpv.reply_ids>         //= [];
-<mpv.pause_next>        //= 0;
-<mpv.autorescale>       //= 0;
-<mpv.disable_reenc_msg> //= 0;
-<mpv.file_map.rescaled> //= {};
-<mpv.xmode.xephyr.vo>     //= 'sdl';
-<mpv.xmode.xephyr.hwdec>  //= 'auto';
-<mpv.fade_start_geom>   //= '1x1--0--0';
-<system.agent.mode>     //= 'stand-alone';
+<mpv.current.volume>     //= 100;
+<mpv.start_volume>       //= 100;            # <- ./cfg/agents/mpv
+<mpv.fade_in>            //= 0;              # <- video fade (in)
+<mpv.fade_idle_volume>   //= 1;              # <- audio zero-vol/fade-in on idle
+<mpv.reply_ids>          //= [];
+<mpv.pause_next>         //= 0;
+<mpv.autorescale>        //= 0;
+<mpv.disable_reenc_msg>  //= 0;
+<mpv.file_map.rescaled>  //= {};
+<mpv.xmode.xephyr.vo>    //= 'sdl';
+<mpv.xmode.xephyr.hwdec> //= 'auto';
+<mpv.fade_start_geom>    //= '1x1--0--0';
+<system.agent.mode>      //= 'stand-alone';
 <mpv.agent_title>
     = <system.agent.mode> eq 'media-child' ? 'media.mpv' : <system.agent.name>;
 <mpv.current.load_iteration> //= 0;
@@ -55,7 +55,9 @@ if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
     <[mpv.check_rescale_path]>;
     if ( defined <mpv.rescale_path>
         and <mpv.cleanup_rescaled_after> ) {    # <- 0 == cleanup disabled
-        <[base.log]>->( 2, ": rescale path ok [exists]" );
+        <[base.log]>->(
+            2, ": rescale path does exist ['" . <mpv.rescale_path> . "']"
+        );
         <mpv.timer.rescaled_check> = <[event.add_timer]>->(
             {   'after'    => <mpv.cleanup_check_delay>,
                 'interval' => <mpv.cleanup_check_interval>,
