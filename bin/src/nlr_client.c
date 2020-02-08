@@ -12,6 +12,7 @@
 /* LLL: needs at least a timeout, cut param at endlines, read line or RAW <n> */
 
 char * socket_path = "/tmp/.n/s/W7WHIAQ"; /* or ENV{'NAILARA_SOCKET'} */
+char * src_bmw_b32 = "[BMW_FILE_DIGEST]";
 
 char* concat(const char *s1, const char *s2)
 {
@@ -48,6 +49,23 @@ int main( int argc, char * argv[] ) {
         fprintf( stderr, "\n usage: %s <nailara_command> [command_args]\n\n",
             argv[0] );
         exit(1);
+    }
+
+    for (int i = 1; i < argc; i++) {
+        if (argv[i][0] == '-') {
+           if (argv[i][1] == 'd')
+           {
+                printf(":\n: nlr_client.c :. %s .:\n:\n", src_bmw_b32);
+                return 0;
+           }
+           else
+           {
+                printf(
+                   "\n <<!>> option invalid <<!>> [ '-d' for BMW checksum ]\n\n"
+                );
+                return 2;
+           }
+        }
     }
 
     // debug:
