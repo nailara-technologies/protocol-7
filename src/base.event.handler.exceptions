@@ -1,0 +1,35 @@
+# >:]
+
+# name  = base.event.handler.exceptions
+
+my $event   = shift;
+my $err_str = shift;
+my $watcher = $event->w;
+
+return if $err_str eq '?';    # <-- WEIIIRD and redundant
+
+my $ev_desc = $watcher->desc // 'not named';
+
+$err_str =~ s| at (\S+) line (\d+).*\n$||;
+my $file = $1;
+my $line = $2;
+
+$err_str .= " < $@ >" if $@;
+
+<[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" );
+
+return if <system.verbosity> < 2 and <system.internal_verbosity> < 2;
+
+my @attr_names = sort { length($a) <=> length($b) } sort $watcher->attributes;
+
+my $lvl  = 2;
+my $mlen = 0;
+map { $mlen = length($_) if length($_) > $mlen } @attr_names;
+
+<[base.log]>->( $lvl, ".:[ event ]:." );
+
+foreach my $akey (@attr_names) {
+    my $val = $watcher->$akey // '<undef>';
+    next if $akey eq 'debug' and !length($val);
+    <[base.log]>->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
+}
