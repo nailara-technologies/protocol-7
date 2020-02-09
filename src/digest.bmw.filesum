@@ -1,0 +1,19 @@
+# >:]
+
+# name  = digest.bmw.filesum
+# note  = this will block on large files -> need event bassed async method =)
+
+my $bits = shift // '';
+die "expected valid bit size [ 224, 256, 384, 512 ]"
+    if not exists <digest.bmw>->{$bits};
+my $fname = shift;
+die "expected file name parameter" if not defined $fname;
+die "file '$fname' not found" if !-f $fname;
+
+my $bmw = <[digest.bmw.ctx]>->($bits);
+
+open( my $SUM_FD, '<' . $fname ) or die "\n <!> $fname : $!\n\n";
+my $bmw_b32 = encode_b32r( $bmw->addfile($SUM_FD)->digest );
+close($SUM_FD);
+
+return $bmw_b32;

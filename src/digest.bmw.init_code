@@ -4,5 +4,9 @@
 # descr = 512-bit Blue Midnight Wish digest algorithm module initialization code
 
 <[base.perlmod.load]>->('Digest::BMW');
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+## note: only using cloned copies of context via <[digest.bmw.ctx.<n>]> ##
+map { <digest.bmw>->{$_} //= undef } ( 224, 256, 384, 512 );
 
 0;
