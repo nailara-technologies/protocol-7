@@ -17,11 +17,11 @@ warn "expected reply data hash reference"
     or ref($reply) ne 'HASH';
 
 return
-    warn "no command meta data set up for id '$reply_id' (agent disappeared?) "
-    . "<{C}>"
+    warn "no command meta data set up for id '$reply_id' [ agent gone? ] <{C}>"
     if not exists <base.cmd_reply>->{$reply_id};
 
 my $meta_data  = <base.cmd_reply>->{$reply_id};
+my $cmd        = $meta_data->{'cmd'};
 my $cmd_id     = $meta_data->{'cmd_id'};
 my $output     = $meta_data->{'output_fh'};
 my $session_id = $meta_data->{'session_id'};
@@ -34,9 +34,9 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 if ( not defined $reply or ref($reply) ne 'HASH' ) {
     $reply          = {};
     $$reply{'mode'} = 'nak';
-    $$reply{'data'} = 'internal error (details in log!)';
-    <[base.log]>
-        ->( 0, 'base.handler.command: $reply is not a hash reference!' );
+    $$reply{'data'} = 'error during command invocation [ details are logged ]';
+    <[base.log]>->( 0, "[$session_id] cmd ['$cmd'] err [ href expected ]" );
+
 } elsif ( not defined $$reply{'data'}
     or $$reply{'mode'} ne 'data' and !length( $$reply{'data'} ) ) {
     <[base.log]>->(
@@ -46,7 +46,7 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
             . '-reply attempted! (base.callback.cmd_reply)'
     );
     $$reply{'mode'} = 'nak';
-    $$reply{'data'} = 'internal error (details in log!)';
+    $$reply{'data'} = 'error during command invocation [ details are logged ]';
 }
 
 # check answer mode

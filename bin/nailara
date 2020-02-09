@@ -487,7 +487,8 @@ sub prepare_subs {
                     if !$sub_conflict;
                 $code_header
                     = 'my $call={}; my $reply={ \'mode\' => \'nak\', \'data\''
-                    . " => \"internal error in '$cmd_name' command!\" }; "
+                    . " => \"error during invocation of '$cmd_name' command"
+                    . " [ details logged ]\" }; "
                     . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
                     . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
                 $code_footer = ' ; return $reply';
