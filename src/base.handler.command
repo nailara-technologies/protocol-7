@@ -22,7 +22,7 @@ my $re = $data{'regex'}{'base'};
 
 if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies..
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
-        <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore]bytes.." );
+        <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore]bytes.," );
         if ( length($$input) >= $ignore_bytes ) {
             substr( $$input, 0, $ignore_bytes, '' );
             delete $data{'session'}{'ignore_bytes'};
@@ -462,8 +462,8 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
     }
 
 } elsif ( $cmd eq uc($cmd) ) {
-    <[base.log]>->( 1, "[$id] invalid reply type '$cmd'!" );
-    $$output .= $_cmd_id . "NAK invalid reply type! (protocol mismatch)\n";
+    <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
+    $$output .= $_cmd_id . "NAK invalid reply type [ protocol mismatch ]\n";
 } elsif ( exists <access.cmd.regex.usr>->{$usr}
     and $cmd_usr_str =~ <access.cmd.regex.usr>->{$usr}
     or exists <access.cmd.regex.usr>->{'*'}
@@ -489,10 +489,20 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 };
                 $call_args->{'reply_id'} = $reply_id;
 
-                # call command handler
-
-                my $reply
-                    = &{ $code{ $data{'base'}{'cmd'}{$cmd} } }($call_args);
+                # calling command handler
+                my $reply;
+                {
+                    local $@ = undef;
+                    $reply = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
+                    if ( my $err_str = $@ ) {
+                        $err_str =~ s| at (\S+) line (\d+).*\n$||;
+                        my $file = $1;
+                        my $line = $2;
+                        <[base.log]>->(
+                            0, "[$id] <<< $err_str >>> [ $file, $line ]"
+                        );
+                    }
+                }
 
                 # replying later...
 
@@ -507,13 +517,13 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
                 # reply error check
 
-                if ( ref($reply) ne 'HASH' ) {
+                if ( ref($reply) ne 'HASH' ) {    # <-- catches undef
                     $reply          = {};
                     $$reply{'mode'} = 'nak';
-                    $$reply{'data'} = 'internal error (details in log!)';
+                    $$reply{'data'} = 'error during command invocation'
+                        . ' [ details are logged ]';
                     <[base.log]>->(
-                        0,
-                        'base.handler.command: $reply is not a hash reference!'
+                        0, "[$id] cmd ['$cmd'] err [ href expected ]"
                     );
                 } elsif (
                     $$reply{'mode'} ne 'data'
@@ -524,10 +534,11 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                         0,
                         "[$id] empty "
                             . uc( $$reply{'mode'} )
-                            . '-reply attempted! (base.handler.command)'
+                            . '-reply attempted <<!>> [base.handler.command]'
                     );
                     $$reply{'mode'} = 'nak';
-                    $$reply{'data'} = 'internal error (details in log!)';
+                    $$reply{'data'} = 'error during command invocation'
+                        . ' [ details are logged ]';
                 }
 
                 # check answer mode
