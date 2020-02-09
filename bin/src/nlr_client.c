@@ -55,13 +55,18 @@ int main( int argc, char * argv[] ) {
         if (argv[i][0] == '-') {
            if (argv[i][1] == 'd')
            {
-                printf(":\n: nlr_client.c :. %s .:\n:\n", src_bmw_b32);
+                if (argv[i][2] == 'q') // -dq == checksum only
+                {
+                    printf("%s\n", src_bmw_b32);
+                } else {
+                    printf(":\n: nlr_client.c :. %s .:\n:\n", src_bmw_b32);
+                }
                 return 0;
            }
            else
            {
                 printf(
-                   "\n <<!>> option invalid <<!>> [ '-d' for BMW checksum ]\n\n"
+                  "\n <<!>> option invalid <<!>> [ -d[q] for BMW checksum ]\n\n"
                 );
                 return 2;
            }
