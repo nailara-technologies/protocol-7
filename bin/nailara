@@ -98,9 +98,9 @@ sub prepare_subs {
     $code{'base.sleep'} = \&{ $th_ref->[1] };
     undef $th_ref;
 
-    $code{'base.ntime'} = sub { # [ network time : secs from 2002-06-02 * 4200 ]
+    $code{'base.ntime'} = sub { # [ network time : secs from 2002-06-05 * 4200 ]
         my $param = shift // 0;
-        my $ntime = $data{'base'}{'ntime_ustart'} //= 1022968800;
+        my $ntime = $data{'base'}{'ntime_ustart'} //= 1023228000;
         my ( $cur_time, $precision ) = ( undef, 0 );
         if ( length($param) >= 9 ) { $cur_time = $param }    # <- < unix time >
         else {
