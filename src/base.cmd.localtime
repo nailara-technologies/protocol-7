@@ -6,12 +6,15 @@
 
 my $unix_time = $$call{'args'} // time();
 
+my $utime_copy = $unix_time;
 eval { $unix_time = unpack( 'w', decode_b32r($unix_time) ) }
-    if $unix_time =~ m,^\w+$, and length($unix_time) == 10;
+    if $unix_time =~ m|[A-Z]| and length($unix_time) == 10;
+$unix_time = $utime_copy    # <<[?]>> deal with rare false positives <<[?]>>
+    if $$call{'args'} =~ m|[A-Z]| and ( not defined $unix_time or $@ );
 
 return {
     'mode' => 'nak',
-    'data' => "invalid parameter string submitted"
+    'data' => "submitted parameter string is not valid"
     }
     if $@
     or not defined $unix_time
