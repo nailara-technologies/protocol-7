@@ -7,6 +7,6 @@ my $ntime = shift;
 die "expected nailara network time" if $ntime !~ /^\d{13,}(\.\d+)?/;
 my $precision = shift // 0;
 $precision = 13 if $precision > 13;
-<base.ntime_ustart> //= 1022882400;
+<base.ntime_ustart> //= 1023228000;
 
 return sprintf( "%.${precision}f", ( $ntime / 4200 ) + <base.ntime_ustart> );
