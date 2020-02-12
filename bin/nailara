@@ -727,7 +727,7 @@ sub prepare_subs {
                 if $level;    # <- log parent caller instead ('<{C[level]}>')
 
             # special exception for agent code evaluation
-            if (    $filename eq $data{'system'}{'start'}{'exec_name'}
+            if ( abs_path($filename) eq $data{'system'}{'start'}{'exec_name'}
                 and $line == 56 ) {
                 my $l = 0;
                 $filename = $data{'base'}{'eval_error'}{'name'}
