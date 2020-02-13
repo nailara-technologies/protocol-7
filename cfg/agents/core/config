@@ -9,10 +9,12 @@ buffer.agent.log_cmd = log.msg
 [load_config_file:'shared-params']
 
 # loading core agent authentication setup
-[load_config_file:'agents/core/core-auth']
+[load_config_file:'agents/core/core-auth.users']
+[load_config_file:'agents/core/core-auth.agents']
 
 # load command access permission setup
-[load_config_file:'agents/core/access']
+[load_config_file:'agents/core/access.agents']
+[load_config_file:'agents/core/access.users']
 
 system.agent.type               =    core
 modules.load                    =    auth digest net io.ip io.unix \
