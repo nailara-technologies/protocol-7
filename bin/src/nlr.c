@@ -59,7 +59,7 @@ int main( int argc, char * argv[] ) {
                 {
                     printf("%s\n", src_bmw_b32);
                 } else {
-                    printf(":\n: nlr_client.c :. %s .:\n:\n", src_bmw_b32);
+                    printf(":\n: nlr.c :. %s .:\n:\n", src_bmw_b32);
                 }
                 return 0;
            }
