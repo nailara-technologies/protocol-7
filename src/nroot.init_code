@@ -3,9 +3,11 @@
 # name  = nroot.init_code
 # descr = initializes root module
 
+<[base.perlmod.load]>->('IO::Handle');
 <[base.perlmod.autoload]>->('Proc::ProcessTable');
-<[base.perlmod.load]>->( 'Hash::Merge::Simple', qw| merge | );
+<[base.perlmod.load]>->( 'IPC::Open3',          qw| open3 | );
 <[base.perlmod.load]>->( 'Crypt::Misc',         qw| encode_b32r | );
+<[base.perlmod.load]>->( 'Hash::Merge::Simple', qw| merge | );
 
 <system.agent.type> = 'nroot';
 
@@ -30,10 +32,10 @@ map { <[base.disable_command]>->($_) } qw(
 );
 
 <nroot.gcc_bin> = '/usr/bin/gcc';
-<nroot.cfg.install_bin_nlr> //= 'yes';                  # LLL: if root!
+<nroot.cfg.install_bin_nlr> //= 'yes';                  # LLL: only when root..,
 <nroot.cfg.nlr_bin_path>    //= '/usr/local/bin/nlr';
 
-## gcc ##
+## gcc \ nlr ##
 <nroot.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <nroot.gcc_bin> ) {
     <nroot.gcc_bin> = undef;
@@ -41,9 +43,9 @@ if ( !-x <nroot.gcc_bin> ) {
         if defined <nroot.cfg.install_bin_nlr>
         and <nroot.cfg.install_bin_nlr> =~ /^(1|yes)$/;
 } elsif ( defined <nroot.cfg.install_bin_nlr>
-    and <nroot.cfg.install_bin_nlr> =~ /^(1|yes)$/ ) {
-    eval {<[nroot.compile_bin_nlr]>};
-    warn $@ if $@;
+    and <nroot.cfg.install_bin_nlr> =~ /^(1|yes)$/
+    and not <[nroot.bin_nlr_is_current]> ) {
+    <[nroot.compile_bin_nlr]>;
 }
 ## modprobe ##
 <nroot.modprobe_bin> = <[base.required_bin_path]>->('modprobe');
