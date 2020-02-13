@@ -1,6 +1,16 @@
 
  .:[ core agents auth setup ]:.
 
+
+  .: local core users :.
+
+auth.setup.usr.taeki        = :unix:root,taeki # used by './bin/nshell' terminal
+auth.setup.usr.unix-taeki   = :unix:root,taeki
+                                              # 'unix-*' are used by './bin/nlr'
+auth.setup.usr.unix-root    = :unix:root      ## ... adjust these as desired ..,
+
+  .: agents [ started by 'nroot' agent ] :.
+
 auth.setup.usr.fs           = :agent:
 auth.setup.usr.log          = :agent:
 auth.setup.usr.dbus         = :agent:
@@ -62,12 +72,5 @@ auth.setup.usr.notify-info  = :unix:nailara,taeki
 auth.setup.usr.notify-warn  = :unix:nailara,taeki
 
 auth.setup.usr.power-x11    = :unix:admin,taeki
-
-  .: core users :.
-
-auth.setup.usr.unix-root    = :unix:root
-
-auth.setup.usr.unix-taeki   = :unix:root,taeki
-auth.setup.usr.taeki        = :unix:root,taeki
 
 ## you can use the './bin/mk.usr' script to create users with password hashes ##
