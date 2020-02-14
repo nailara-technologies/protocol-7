@@ -1,0 +1,15 @@
+# >:]
+
+# name  = screenshot.grab_region
+
+my @coords = @_;
+die "expected region coordinates" if @coords != 4;
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+return screenshot(
+    'left'   => $coords[0],
+    'top'    => $coords[1],
+    'right'  => $coords[2],
+    'bottom' => $coords[3]
+) or return Imager->errstr;
