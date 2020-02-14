@@ -1,0 +1,22 @@
+# >:]
+
+# name  = screenshot.cmd.write_png
+# param = [coords]
+# descr = grab screen or region and return path
+
+return { 'mode' => 'nak', 'data' => "not implemented yet" };    # <-- << ! >>
+
+my $param_str = shift->{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'expected screen region coordinates' }
+    if $param_str !~ /^(\d+ +){3}\d+$/;
+my @coords = ( split( / +/, $param_str ) );
+
+my $image   = <[screenshot.grab_region]>->(@coords);
+my $err_str = $image if ref($image) ne 'Imager';
+
+return {
+    'mode' => 'nak',
+    'data' => "unable to acquire screenshot [ $err_str ]"
+    }
+    if defined $err_str;
+

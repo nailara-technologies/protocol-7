@@ -1,0 +1,17 @@
+# >:]
+
+# name  = screenshot.pixel_color
+
+( my $image, my $pos_x, my $pos_y ) = @_;
+
+die "expected image as 'Imager' object" if ref( $image // '' ) ne 'Imager';
+die "expected pixel position parameters"
+    if not defined $pos_x
+    or $pos_x !~ /^\d+$/
+    or not defined $pos_y
+    or $pos_y !~ /^\d+$/;
+
+my $pixel = $image->getpixel( 'x' => $pos_x, 'y' => $pos_y )
+    or return Imager->errstr;
+
+return $pixel->rgba or return Imager->errstr;

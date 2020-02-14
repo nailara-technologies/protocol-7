@@ -5,31 +5,24 @@
 # descr = return average color for given region
 
 my $param_str = shift->{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'expected screen region coordinates' }
+return { 'mode' => 'nak', 'data' => 'expected valid region coordinates' }
     if $param_str !~ /^(\d+ +){3}\d+$/;
 my @coords = ( split( / +/, $param_str ) );
 
-my @RGB;
-eval {
-    $ENV{'DISPLAY'} = <x11.display>;
-    @RGB = screenshot(
-        'left'   => $coords[0],
-        'top'    => $coords[1],
-        'right'  => $coords[2],
-        'bottom' => $coords[3]
-    )->scale(
-        'xpixels' => 1,
-        'ypixels' => 1,
-        'qtype'   => 'mixing',
-        'type'    => 'nonprop'
-    )->getpixel( 'x' => 0, 'y' => 0 )->rgba;
-};
+my $img     = <[screenshot.grab_region]>->(@coords);
+my $err_str = $img if ref($img) ne 'Imager';
+
+$img = <[screenshot.scale_image]>->( $img, 1, 1 ) if not defined $err_str;
+my $err_str = $img if not defined $err_str and ref($img) ne 'Imager';
+
+my @RGB     = <[screenshot.pixel_color]>->( $img, 0, 0 );
+my $err_str = shift @RGB if @RGB == 1;
 
 return {
     'mode' => 'nak',
-    'data' => 'unable to take screenshot [' . Imager->errstr . ']'
+    'data' => "unable to acquire region color [ $err_str ]"
     }
-    if !@RGB;
+    if defined $err_str;
 
 pop(@RGB);    # removing alpha
 
