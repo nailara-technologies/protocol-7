@@ -1,0 +1,19 @@
+# >:]
+
+# name  = screenshot.scale_image
+
+( my $image, my $width, my $height ) = @_;
+
+die "expected image as 'Imager' object" if ref( $image // '' ) ne 'Imager';
+die "expected width and height in pixels"
+    if not defined $width
+    or $width !~ /^\d+$/
+    or not defined $height
+    or $height !~ /^\d+$/;
+
+return $image->scale(
+    'xpixels' => $width,
+    'ypixels' => $height,
+    'qtype'   => 'mixing',
+    'type'    => 'nonprop'
+) or return Imager->errstr;
