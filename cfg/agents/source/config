@@ -1,0 +1,21 @@
+
+ .:[ nailara source code agent ]:.
+
+buffer.agent.log_cmd = log.msg
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.core = * *.*     # <-- LLL: dev, strict later
+
+modules.load = auth net io.ip digest.bmw crypt.C25519 source debug
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'tcp/ip']
+
+[base.get_session_id]
+
+[event.loop]
+

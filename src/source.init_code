@@ -1,0 +1,37 @@
+# >:]
+
+# name  = source.init_code
+
+my $bit_size = 384;
+my $src_path = <source.code_path> //= <system.code_path>;
+
+<[base.log]>->( 1, ": src path : '$src_path'" );
+
+<source.checksums> //= {};
+
+my $file_count = 0;
+my $start_time = <[base.time]>->(5);
+( my $path_name = $src_path ) =~ s|^.*/||g;
+foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {
+    ( my $file_name = $file_path ) =~ s|^.*/||;
+    <source.checksums>->{$path_name}->{$file_name}
+        = <[digest.bmw.filesum]>->( $bit_size, $file_path );
+    $file_count++;
+}
+
+<[base.log]>->(
+    1,
+    sprintf(
+        ": %s : %04d checksums in %.4f seconds.",
+        $path_name, $file_count, <[base.time]>->(5) - $start_time
+    )
+);
+
+0;
+
+# [ stub example \ BMW-B32 \ C25519-B32 ] :
+
+# [ code signature ]___________________________________________________________
+#/VX5FU772JFEIQZZZIIMF7BTO7GAKO3TM4I5JO43YJM76ES5IM7S6XR7DMLT6B6ULTAWJJUMSVLQHW\
+#\42AYUSXDSIS7RLYFMXLWOQB25AUKZ5NLHBCVN5MJRQKO24OSNTSZB2PDQPESG6SNC777XINZUPJ6M/
+# ``````````````````````````````````````````````````````````````````````````````
