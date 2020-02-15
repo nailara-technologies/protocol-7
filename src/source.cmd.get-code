@@ -1,0 +1,18 @@
+# >:]
+
+# name  = source.cmd.get-code
+
+my $code_name = $$call{'args'};
+my $src_path  = File::Spec->catfile( <source.code_path>, $code_name );
+
+return { 'mode' => 'nak', 'data' => 'requested code name is not valid' }
+    if !<[source.valid_src_name]>->($code_name);
+return { 'mode' => 'nak', 'data' => 'code file not found' } if !-f $src_path;
+
+<[file.slurp]>->( $src_path, \my $src_str );
+return { 'mode' => 'nak', 'data' => 'failed to read code file' }
+    if not defined $src_path;
+return { 'mode' => 'nak', 'data' => 'requested code file is not valid' }
+    if substr( $src_str, 0, 7 ) ne "# >:]\n\n";
+
+return { 'mode' => 'data', 'data' => $src_str }
