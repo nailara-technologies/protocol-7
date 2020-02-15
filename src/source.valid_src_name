@@ -1,0 +1,13 @@
+# >:]
+
+# name  = source.valid_src_name
+
+my $src_file_name = shift // '';
+
+return 0
+    if !length($src_file_name)
+    or $src_file_name =~ m|\./|
+    or $src_file_name =~ m|/\.|
+    or $src_file_name !~ m|^[a-zA-Z][0-9a-zA-Z\-_\./]+$|;
+
+return 1;    # valid [ no exclusion match ]
