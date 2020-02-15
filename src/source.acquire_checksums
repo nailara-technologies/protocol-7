@@ -1,0 +1,25 @@
+# >:]
+
+# name  = source.acquire_checksums
+
+my $bit_size = <source.chksum_bitsize>;
+my $src_path = <source.code_path>;
+
+my $file_count = 0;
+<source.checksums> //= {};
+my $start_time = <[base.time]>->(5);
+( my $path_name = $src_path ) =~ s|^.*/||g;
+foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {
+    ( my $file_name = $file_path ) =~ s|^.*/||;
+    <source.checksums>->{$path_name}->{$file_name}
+        = <[digest.bmw.filesum]>->( $bit_size, $file_path );
+    $file_count++;
+}
+
+<[base.log]>->(
+    1,
+    sprintf(
+        ": %s : %04d checksums in %.4f seconds.",
+        $path_name, $file_count, <[base.time]>->(5) - $start_time
+    )
+);
