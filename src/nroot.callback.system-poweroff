@@ -22,7 +22,7 @@ map {
     print {$sysrq_fh} "$_\n";
     if ( $_ eq 'e' ) {
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
-        sleep 7;
+        <[base.sleep]>->($term_delay);
         print {$sysrq_fh} "i\n";
         <[base.log]>->( 0, "<<< powering off host system >>>" );
     }
