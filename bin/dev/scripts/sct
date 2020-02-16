@@ -37,11 +37,15 @@ foreach my $filename (@ARGV) {
     }
 }
 
-warn "not found" if !@edit_files;
+warn "\n <!> selected file name or path not found <!>\n\n"
+    if @ARGV and !@edit_files;
 
 system( join( ' ', 'scite', @edit_files, '&' ) );
-system("wmctrl -a ' - SciTE'&");
-for ( my $t = 0.93; $t > 0.77; $t -= 0.01 ) {
+sleep 0.32;
+system("wmctrl -a ' - SciTE' -e '0,0,-77,947,1137' &");
+my $accel = 0.047;
+for ( my $t = 0.97; $t > 0.63; $t -= 0.01 ) {
     qx/transset -n SciTE $t/;
-    sleep 0.042;
+    sleep $accel;
+    $accel = 0.047 - sprintf( "%.04f", $accel * 0.47 );
 }
