@@ -5,17 +5,25 @@
 my %pmods    = map { $_ => 1 } @_;
 my $agent    = <system.agent.name>;
 my $cfg_path = <system.conf_path>;
+state $access_warned = 0;
 
 my $mod_dir = <[base.get_path.agent_cfg]>;
 
-if (    $mod_dir =~ s|agents/$agent/config|$cfg_path/$agent/pm-dep|
-    and -d $mod_dir
-    and -w $mod_dir ) {
-    foreach my $mod_name ( sort keys %pmods ) {
-        next if -e "$mod_dir/$mod_name";
-        eval 'use Module::CoreList' if not defined &Module::CoreList::is_core;
-        next if $@ or Module::CoreList::is_core($mod_name);
-        my $fh;
-        open( $fh, '>', "$mod_dir/$mod_name" ) and close($fh);
+if ( $mod_dir =~ s|agents/$agent/config|$cfg_path/agents/$agent/pm-dep| ) {
+    <[base.check_dependency_dirs]> if !-d $mod_dir; # LLL: find elegant option.,
+    if (    -d $mod_dir
+        and -w $mod_dir ) {
+        foreach my $mod_name ( sort keys %pmods ) {
+            next if -e "$mod_dir/$mod_name";
+            eval 'use Module::CoreList'
+                if not defined &Module::CoreList::is_core;
+            next if $@ or Module::CoreList::is_core($mod_name);
+            my $fh;
+            open( $fh, '>', "$mod_dir/$mod_name" ) and close($fh);
+        }
+    } elsif ( not <system.agent.initialized> and not $access_warned++ ) {
+        my $root_path = <system.root_path>;
+        ( my $mod_dir_rel = $mod_dir ) =~ s|^$root_path/?||g;
+        <[base.log]>->( 0, "<<!>> no write access to '$mod_dir_rel' <<!>>" );
     }
 }
