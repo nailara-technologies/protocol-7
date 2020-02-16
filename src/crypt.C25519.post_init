@@ -3,6 +3,12 @@
 # name = crypt.C25519.post_init
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
+if ( not <crypt.C25519.auto_load_keys> //= 1 ) {
+    <[base.log]>->( 2, ": autoload disabled, skipped key loading." );
+    <crypt.C25519.initialized>++;
+    return 0;
+}
+
 my $key_vars = <[crypt.C25519.key_vars]>;
 
 my $uid          = $key_vars->{'uid'};
@@ -28,7 +34,7 @@ return -1 if not <[crypt.C25519.chk_key_dir]>;    # <- creates if missing ...
 <[crypt.C25519.convert_keys_to_b32]>;
 
 if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
-    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..." );
+    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
     my %key_b32 = ( 'priv' => '', 'pub' => '' );
     if (<[crypt.C25519.gen_keys]>) {
         <[crypt.C25519.write_keys]>;
