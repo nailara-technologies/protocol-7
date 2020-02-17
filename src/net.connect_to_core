@@ -11,14 +11,14 @@ my $core_port = <nailara.net.int.port>;
 my $unix_path = defined <unix.path> ? <unix.path> : undef;
 
 foreach my $c_type (@connection_types) {
-    <[base.log]>->( 1, "initiating core connection [$c_type].." );
+    <[base.log]>->( 1, "initiating core connection [$c_type].," );
     if ( $c_type eq 'unix' ) {
         if ( not defined $unix_path ) {
             if ( not defined $core_addr and defined $core_port ) {
                 <[base.log]>->(
                     0,
                     'connect_to_core(unix): neither unix.path nor '
-                        . 'net.local.{addr,port} are defined, aborting..'
+                        . 'net.local.{addr,port} are defined, aborting.,'
                 );
                 exit(2);
             } else {
@@ -29,7 +29,7 @@ foreach my $c_type (@connection_types) {
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
-            <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.." );
+            <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.," );
             next;
         }
         $core_sock = <[base.open]>->( 'unix', 'out', <unix.path> );
@@ -56,18 +56,19 @@ foreach my $c_type (@connection_types) {
     } elsif ( $c_type eq 'pipe' ) {
         die "((( connection type 'pipe' not implemented yet )))";
     } else {
-        die "[!] unknown connection type '$c_type' requested...";
+        die "[!] unknown connection type '$c_type' requested [!]";
     }
 
     if ( defined $core_sock ) {
         <[base.session.init]>->( $core_sock, 'nailara', 'client', 'core' );
+        <[base.session.send_init_reports]>;
         return $core_sock;
     }
 }
 
 if ( not defined $core_sock ) {
     <[base.log]>->(
-        0, "[!] unable to connect to local core, aborting agent startup!"
+        0, "<!> unable to connect to local core, aborting agent startup <!>"
     );
     exit(1);
 }
