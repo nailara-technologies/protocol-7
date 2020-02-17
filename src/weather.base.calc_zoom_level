@@ -22,12 +22,12 @@ if ( -f $tile_zoom_file ) {
 if ( not defined <weather.browser_zoom> or !<weather.browser_zoom> ) {
     <[base.log]>->(
         1,
-        sprintf( "auto zoom is disabled.. using default value [%.2f]",
+        sprintf( "auto zoom is disabled., using default value [%.2f]",
             <weather.zoom_level> )
     );
     return;
 } else {
-    <[base.log]>->( 1, "auto zoom is enabled.." );
+    <[base.log]>->( 1, "auto zoom is enabled.," );
 }
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
@@ -69,7 +69,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     if ( defined <weather.min_zoom> ) {
         <weather.zoom_level> = <weather.min_zoom>
             if <weather.zoom_level> < <weather.min_zoom>;
-        $m_str = ' (configured min.)'
+        $m_str = ' [ configured minimum ]'
             if <weather.zoom_level> == <weather.min_zoom>;
     }
     <[base.log]>->(

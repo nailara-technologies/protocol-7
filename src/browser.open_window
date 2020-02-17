@@ -14,7 +14,7 @@ my ( $size_x, $size_y, $pos_x, $pos_y )
 
 Gtk3->init;
 
-<[base.log]>->( 1, "window initializaion..." );
+<[base.log]>->( 1, "window initializaion..," );
 
 my $window = Gtk3::Window->new('toplevel');
 
@@ -88,11 +88,11 @@ Glib::Idle->add(
     sub {
         <[browser.wait_for_window]>;
 
-        # handle previous segfaults (if there have been any)
+        # handle previous segfaults [ should there have been any ]
         <[browser.process_crash_mitigation]>;
 
         if (<browser.slideshow.autostart>) {
-            <[base.log]>->( 1, 'url slideshow autostart is enabled!' );
+            <[base.log]>->( 1, ':: slideshow autostart is enabled ::' );
             <[browser.get_url_list]>;
         }
         return 0;

@@ -6,14 +6,14 @@ my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $msg = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "unable to fetch url list! [$msg]" );
+    <[base.log]>->( 0, "<!> unable to fetch url list <!> [$msg]" );
     return;
 }
 
 my $url_list_sha1 = sha1_hex( $reply->{'data'} );
 if ( defined <browser.url_list.sha1>
     and <browser.url_list.sha1> eq $url_list_sha1 ) {
-    <[base.log]>->( 2, "<i> received url list is unchanged, ignoring..." );
+    <[base.log]>->( 2, "<i> received url list is unchanged, ignoring..," );
     return;
 } else {
     <browser.url_list.sha1> = $url_list_sha1;
@@ -58,8 +58,8 @@ my $entry_count = scalar @url_list;
 
 foreach my $url (@url_list) {
     my $url_txt = substr( $url, 0, 52 );
-    $url_txt .= '...' if length($url_txt) < length($url);
-    <[base.log]>->( 1, ": - $url_txt" );
+    $url_txt .= '.:' if length($url_txt) < length($url);
+    <[base.log]>->( 1, ": $url_txt" );
 }
 my $y = $entry_count == 1 ? 'y' : 'ies';
 <[base.log]>->( 1, ": $entry_count entr$y received" );
@@ -114,7 +114,7 @@ map {
 
     if ( <browser.min_zoom> <=> 1
         and index( $_, '/var/cache/weather/html/', 0 ) > -1 ) {    # weather
-        <[base.log]>->( 1, ": found weather URLs, resetting min_zoom to 1 .." );
+        <[base.log]>->( 1, ": found weather URLs, resetting min_zoom to 1 .," );
         <browser.min_zoom> = 1;
         <[browser.calc_zoom_level]>;
     }
