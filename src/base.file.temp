@@ -9,7 +9,8 @@ my $first_dir;
 my $agent_name = <system.agent.name>;
 my @check_dirs = qw| /var/run/nailara /var/cache/nailara /tmp/nailara |;
 
-<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | )
+    if not exists &{'make_path'};
 
 foreach my $chk_dir (@check_dirs) {
     my $subdir_path = "$chk_dir/$agent_name";
@@ -20,7 +21,7 @@ foreach my $chk_dir (@check_dirs) {
         last;
     }
 }
-die "failed to create temp dir [ $! ]" if not defined $first_dir;
+die "no success creating temp dir [ $! ]" if not defined $first_dir;
 
 my $retries = 47;
 my $tmp_file_path;
@@ -31,7 +32,7 @@ while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
     $tmp_file_path = File::Spec->catfile( $first_dir, $fname );
 }
 
-die "failed to file suitable temp file name [ exists ]" if -e $tmp_file_path;
+die "can not find suitable temp file name [ exists ]" if -e $tmp_file_path;
 
 <[base.log]>->( 1, " : tmp-file-path : $tmp_file_path" );
 
