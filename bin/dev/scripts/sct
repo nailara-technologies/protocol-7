@@ -42,7 +42,7 @@ warn "\n <!> selected file name or path not found <!>\n\n"
 
 system( join( ' ', 'scite', @edit_files, '&' ) );
 sleep 0.32;
-system("wmctrl -a ' - SciTE' -e '0,0,-77,947,1137' &");
+system("wmctrl -e '0,0,-77,947,1137' -a ' - SciTE' &");
 my $accel = 0.047;
 for ( my $t = 0.97; $t > 0.63; $t -= 0.01 ) {
     qx/transset -n SciTE $t/;
