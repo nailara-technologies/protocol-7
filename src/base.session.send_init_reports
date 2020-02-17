@@ -1,0 +1,31 @@
+# >:]
+
+# name  = base.session.send_init_reports
+
+return 0
+    if not defined <system.init_reports>
+    or ref(<system.init_reports>) ne 'ARRAY';
+my @pending_reports = @{ delete <system.init_reports> };
+my $report_count    = scalar @pending_reports;
+return 0 if !$report_count;
+my $s = $report_count == 1 ? '' : 's';
+<[base.log]>->( 1, " :. sending $report_count initialization report$s.," );
+
+foreach my $item (@pending_reports) {
+    my $target_command = $item->{'target_command'};
+    my $cmd_param      = $item->{'param'};
+    my $description    = $item->{'descr'};
+    my $target_route
+        = substr( $target_command, 0, 5 ) ne 'core.'
+        ? "core.$target_command"
+        : $target_command;
+    <[base.log]>->( 1, " : '$description'" );
+    <[base.log]>->( 2, " :: $target_route $cmd_param" );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => $target_route,
+            'call_args' => { 'args' => $cmd_param }
+        }
+    );
+}
+
+return $report_count;
