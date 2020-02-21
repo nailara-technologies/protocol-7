@@ -2,7 +2,7 @@
 
 # name  = nroot.handler.sig_chld
 
-<[base.log]>->( 2, 'SIGCHLD received.. collecting children...' );
+<[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
 local ( $!, $? );
 while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
@@ -37,7 +37,13 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     <[nroot.cancel_status_timer]>->($instance_id) if defined $instance_id;
 
-    <[nroot.terminate_process]>->($pid);    # <- cleans up children!
+    <[nroot.terminate_process]>->($pid);    # <- cleans up children too..,
+
+    <[nroot.cleanup_temp_paths]>->( $pid, $instance_id );
+
+    delete <nroot.process.instance_cache>->{$pid};
+    delete <nroot.process.instance_cache>
+        if !keys %{<nroot.process.instance_cache>};
 
     if ( my $child = <nroot.child>->{$pid} ) {
 
@@ -53,12 +59,13 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
         ## record browser segfaults (for crash mitigation) ##
         if ( $e_sig == 11 and $agent_name eq 'browser' ) {
-            my $browser_uname = 'nobody';    # LLL: determine automatically ...
+            my $browser_uname = 'nobody';    # LLL: determine automatically ..,
             my $subname_b32
                 = ( defined $agent_subname and length($agent_subname) )
                 ? '.' . encode_b32r($agent_subname)
                 : '';
-            my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
+            my $file_name
+                = "/tmp/.nailara.browser.crash_pid$subname_b32";    # <<< ! >>>
             <[file.put]>->( $file_name, "$pid\n" ) or warn("$file_name: $!");
             chmod( 0644, $file_name ) or warn("$file_name: $!");
             my @pwn = getpwnam($browser_uname);

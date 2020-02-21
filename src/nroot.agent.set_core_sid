@@ -7,7 +7,7 @@ my $instance_data = <nroot.agent.instance>->{$instance_id};
 
 if ( exists $instance_data->{'core_sid'} ) {
     <[base.log]>->(
-        0, "[WARNING] core sid for instance $instance_id was already set!"
+        0, "<< core sid for instance $instance_id was already set >>"
     );
     <[agent.change_status]>->( $instance_id, 'error' );  # possibly compromised!
     return;
@@ -16,7 +16,7 @@ if ( exists $instance_data->{'core_sid'} ) {
 <[base.log]>->( 2, "instance $instance_id : core sid = $core_sid" );
 $instance_data->{'core_sid'} = $core_sid;
 
-# acquire local core sid (get first sid for now)
+# acquire local core sid [ get first and only sid for now ]
 my ($root_sid) = keys %{ $data{'session'} };
 
 $instance_data->{'root_sid'} = $root_sid;

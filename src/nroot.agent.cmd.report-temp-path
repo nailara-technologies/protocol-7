@@ -1,0 +1,100 @@
+# >:]
+
+# name  = nroot.agent.cmd.report-temp-path
+# param = <tmp-path>
+# descr = register temporary path[s] for later cleanup
+
+( my $agent, my $agent_sid, my $temp_path ) = split( / /, $$call{'args'}, 3 );
+
+my $valid_chars_re = qr|[0-9a-zA-Z\-_\./]+|;
+$agent =~ s|^.*\.||;    # <-- node portion
+
+my $err_reason;
+$err_reason = 'expected agent sid from core [ misconfigured ]'
+    if not defined $agent_sid or $agent_sid !~ m|^\d+$|;
+warn sprintf( "[%d] << $err_reason >>", $$call{'session_id'} )
+    if defined $err_reason;
+$err_reason = 'expected path parameter' if !length( $temp_path // '' );
+$err_reason = 'absolute path expected'
+    if not defined $err_reason and $temp_path !~ m|^/|;
+
+( my $inv_chars = $temp_path ) =~ s|$valid_chars_re||g;
+$err_reason = "temp dir path contains invalid characters ['$inv_chars']"
+    if not defined $err_reason and $temp_path !~ m|^$valid_chars_re$|;
+
+$temp_path  = abs_path($temp_path) if not defined $err_reason;
+$err_reason = 'specified directory path does not exist'
+    if not defined $err_reason
+    and ( not defined $temp_path or !-d $temp_path );
+
+my $agent_instance;
+if ( not defined $err_reason ) {
+    foreach my $instance_id ( keys( %{<nroot.agent.instance>} ) ) {
+        my $instance = <nroot.agent.instance>->{$instance_id};
+        $agent_instance = $instance_id
+            and last
+            if defined $instance->{'core_sid'}
+            and $instance->{'core_sid'} == $agent_sid;
+    }
+}
+$err_reason = "no instance matches core-sid $agent_sid"
+    if not defined $err_reason and not defined $agent_instance;
+
+my $instance;
+my %has_uid;
+my %has_gid;
+if ( not defined $err_reason ) {
+    $instance = <nroot.agent.instance>->{$agent_instance};
+    my $p_pid = $instance->{'process'}{'id'};
+
+    <nroot.process.instance_cache>->{$p_pid} = $agent_instance;
+
+    my @children = @{ <[nroot.sub-process.get_children]>->($p_pid) };
+    my @i_pids   = @children ? ( $p_pid, @children ) : ($p_pid);
+    map {
+        ( my $p_uid, my $p_gid ) = <[nroot.sub-process.get_uid]>->($_);
+        push( @{ $has_uid{$p_uid} }, $_ );
+        push( @{ $has_gid{$p_gid} }, $_ ) if defined $p_gid
+    } @i_pids;
+    $err_reason = "could not map instance to user id" if !keys %has_uid;
+}
+
+my $uid_match = 0;    # LLL: also check gids.,
+if ( not defined $err_reason ) {
+    my @match_type;
+    my $stat_ref = File::stat::stat($temp_path);
+    my $stat_uid = $stat_ref->uid;
+    my $stat_gid = $stat_ref->gid;
+    my %match_pid;
+    push( @match_type, 'user' )
+        if exists $has_uid{$stat_uid}
+        and $stat_ref->cando( S_IWUSR(), $stat_uid );  # <-- user write access.,
+    push( @match_type, 'group' )
+        if defined $stat_gid
+        and exists $has_gid{$stat_gid}
+        and $stat_ref->cando( S_IWGRP(), $stat_gid );   # <-- group write access
+    if (@match_type) {
+        $instance->{'stat_uid'} = $stat_uid;
+        $instance->{'stat_gid'} = $stat_gid;
+        <[base.log]>->(
+            2,
+            sprintf( "<report-temp-path> %s write access for '$agent'",
+                join( ' and ', @match_type ) )
+        );
+    } else {
+        $err_reason = 'path ownsership does not match process owner[s]';
+    }
+}
+
+<[base.log]>->( 0, "<<$agent>> [$agent_sid] <report-temp-path> $err_reason" )
+    if defined $err_reason;
+return { 'mode' => 'nak', 'data' => $err_reason } if defined $err_reason;
+
+<[base.log]>->( 1, "[$agent_instance] <+temp-path+> '$temp_path'" );
+
+push(
+    @{ <nroot.agent.instance>->{$agent_instance}->{'temp-path'} },
+    $temp_path
+);
+
+return { 'mode' => 'ack', 'data' => "registered '$temp_path'" };

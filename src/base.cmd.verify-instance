@@ -15,4 +15,9 @@ return { 'mode' => 'nak', 'data' => 'no random string supplied' }
 map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $_ } ) }
     @{ <system.callbacks.initialized> //= [] };
 
+## triggering instance reports before the timer does ##
+<system.timer>->{'send_reports'}->now
+    if defined <system.timer>->{'send_reports'}
+    and <system.timer>->{'send_reports'}->is_active;
+
 return { 'mode' => 'ack', 'data' => 'verification code logged' };

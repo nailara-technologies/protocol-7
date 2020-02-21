@@ -13,10 +13,12 @@ use warnings 'once';
 
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('IO::AIO');
-<[base.perlmod.load]>->( 'Time::Local',          'timegm_nocheck' );
-<[base.perlmod.load]>->( 'POSIX::1003::Time',    'strftime' );
-<[base.perlmod.load]>->( 'POSIX::1003::Limit',   ':rlimit' );
-<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', 'random_string_from' );
+<[base.perlmod.load]>->( 'Time::Local',        'timegm_nocheck' );
+<[base.perlmod.load]>->( 'POSIX::1003::Time',  'strftime' );
+<[base.perlmod.load]>->( 'POSIX::1003::Limit', ':rlimit' );
+<[base.perlmod.load]>->(
+    'Crypt::PRNG::Fortuna', qw | random_string random_string_from |
+);
 <[base.perlmod.load]>->(
     'POSIX::1003::Proc', qw/ WNOHANG waitpid setsid getcwd /
 );

@@ -17,7 +17,7 @@ $instance->{'paused_status_timer'}
     = <[nroot.cancel_status_timer]>->($instance_id);
 
 my $parent_pid = <nroot.agent.instance>->{$instance_id}->{'process'}{'id'};
-my @pids = ( $parent_pid, @{ <[nroot.process.get_children]>->($parent_pid) } );
+my @pids = ( $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
 
 my $count = kill 'STOP', @pids;
 
