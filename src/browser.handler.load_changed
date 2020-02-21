@@ -41,7 +41,7 @@ $view->signal_handler_disconnect( delete <browser.signal_id.load_changed> )
 
 if (    $load_status eq 'finished'
     and defined $status_code
-    and $status_code =~ /^(20)?0$/ ) {
+    and ( $status_code =~ /^(20)?0$/ or $status_code == 304 ) ) {
 
     <browser.time.load_finished> = <[base.time]>->(3);
     my $load_time = sprintf( "%.3f",
@@ -88,7 +88,7 @@ if (    $load_status eq 'finished'
         if (   not defined $check_sock
             or !-S $check_sock
             or !$check_sock->connected() ) {
-            $reason_txt = ' [proxy unreachable!]';
+            $reason_txt = ' [ proxy unreachable ]';
         } else {
             $check_sock->close();
         }

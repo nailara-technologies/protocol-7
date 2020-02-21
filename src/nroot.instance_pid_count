@@ -11,12 +11,12 @@ return 0 if not defined $parent_pid;
 
 my %check_pids = ( $parent_pid => 1 );
 map { $check_pids{$_} = 1 }
-    ( @{ <[nroot.process.get_children]>->($parent_pid) } );
+    ( @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
 map { $check_pids{$_} = 1 } keys %{ $instance->{'restart_pids'} }
     if exists $instance->{'restart_pids'};
 
 my $processes_left = 0;
-map { $processes_left++ if <[nroot.process.exists]>->($_) }
+map { $processes_left++ if <[nroot.sub-process.exists]>->($_) }
     keys %check_pids;
 
 return $processes_left;

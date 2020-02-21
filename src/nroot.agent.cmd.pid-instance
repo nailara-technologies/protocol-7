@@ -21,7 +21,7 @@ foreach my $i_id ( keys %{<nroot.agent.instance>} ) {
     } else {
         map {
             if ( $_ == $process_id ) { $match_iid = $i_id; last }
-        } @{ <[nroot.process.get_children]>->($parent_pid) };
+        } @{ <[nroot.sub-process.get_children]>->($parent_pid) };
     }
 }
 

@@ -17,8 +17,9 @@ if ( not defined $instance_id ) {
     my $reply_list = '';
     foreach my $i_id ( sort { $a <=> $b } keys %{<nroot.agent.instance>} ) {
         my $parent_pid = <nroot.agent.instance>->{$i_id}->{'process'}{'id'};
-        map { $pids{$_} = 1 }
-            ( $parent_pid, @{ <[nroot.process.get_children]>->($parent_pid) } );
+        map { $pids{$_} = 1 } (
+            $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) }
+        );
     }
     $reply_list .= join( ' ', sort keys(%pids) );
     return {
@@ -29,7 +30,7 @@ if ( not defined $instance_id ) {
 } elsif ( $instance_id =~ /^\d+$/ ) {
     return {
         'mode' => 'nak',
-        'data' => "instance not found! [ nroot.list (agents|children) ]"
+        'data' => "instance not found [ nroot.list (agents|children) ]"
         }
         if not exists <nroot.agent.instance>->{$instance_id};
     my $parent_pid
@@ -37,11 +38,12 @@ if ( not defined $instance_id ) {
     return {
         'mode' => 'ack',
         'data' => join( ' ',
-            $parent_pid, @{ <[nroot.process.get_children]>->($parent_pid) } )
+            $parent_pid,
+            @{ <[nroot.sub-process.get_children]>->($parent_pid) } )
     };
 } else {
     return {
         'mode' => 'nak',
-        'data' => 'instance id must be numeric!'
+        'data' => 'instance id must be numeric'
     };
 }
