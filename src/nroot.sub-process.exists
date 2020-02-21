@@ -1,0 +1,11 @@
+# >:]
+
+# name = nroot.sub-process.exists
+
+my $chk_pid = shift;
+my $stat;
+
+warn "expected process id <{C1}>" and return 0
+    if not defined $chk_pid or $chk_pid !~ /^\d+$/;
+return 0 if $stat = waitpid( $chk_pid, WNOHANG() ) <=> 0;
+return 1;

@@ -26,7 +26,7 @@ map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
     @{ <[agent.instance.get_ids]>->($agent_id) };
 
 if ($starting) {     # delay agent startup until previous one is online ...
-    <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..." );
+    <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..," );
     <[agent.change_status]>->( $instance_id, 'delayed' );
     return;
 }
@@ -40,7 +40,7 @@ my $namespace_str
     = "\$data{'nroot'}{'agent'}{'instance'}{$instance_id}{'init_data'}";
 if ( exists $init_code->{'nroot-init'} ) {
     <[base.log]>->(
-        2, "executing spawn init-code for instance $instance_id ($agent_name)"
+        2, "executing spawn init-code for instance $instance_id [$agent_name]"
     );
     my @root_init_code = <[base.parser.config]>
         ->( $init_code->{'nroot-init'}, $namespace_str );
@@ -53,7 +53,7 @@ if ( exists $init_code->{'nroot-init'} ) {
 
     if ( !$success ) {
         <[base.log]>->(
-            0, "errors in agent '$agent_name' init-code, aborting start-up!"
+            0, "errors in agent '$agent_name' init-code, aborting start << ! >>"
         );
         <[agent.change_status]>->( $instance_id, 'error' );
         return undef;
@@ -121,25 +121,11 @@ if ( exists $init_result_data->{'start_mode'}
         }
         map { $privs->{$_} =~ s|'||g } keys %{$privs};    # LLL: abort on match?
 
-        if ( length( $privs->{'home'} // '' ) and !-d $privs->{'home'} ) {
-            <[base.log]>->(
-                0,
-                "<!> user '$prog_usr' home dir is missing [creating "
-                    . $privs->{'home'} . "]"
-            );
-            make_path(
-                $privs->{'home'},
-                {   'mode'  => 0700,
-                    'uid'   => $privs->{'uid'},
-                    'group' => $privs->{'gid'}
-                }
-            );
-        }
-
         # LLL: implement exec_args...
         my $prepare_code = '%ENV=(); ';
         my $display      = <x11.display>;
-        $prepare_code .= "\$ENV{'DISPLAY'}='$display'; " if defined $display;
+        $prepare_code .= "\$ENV{'DISPLAY'}='$display'; "
+            if defined $display;
         $prepare_code
             .= "\$)='$privs->{all_gids}'; \$(='$privs->{gid}'; "
             . "\$>='$privs->{uid}'; \$<='$privs->{uid}'; "
@@ -172,11 +158,12 @@ push( @exec_args, '-lpw=' . $apw_href->{$agent_name} )
 my $agent_verbosity = <system.verbosity> || 1; # -v is min. [a. output patterns]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..." );
+<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated .," );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
-    ? map {"-M$_"} split( / +/, $init_result_data->{'command_line_modules'} )
+    ? map {"-M$_"}
+    split( / +/, $init_result_data->{'command_line_modules'} )
     : ();
 
 if (@cmd_line_mods) {

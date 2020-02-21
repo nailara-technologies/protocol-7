@@ -31,7 +31,9 @@ foreach my $param_str ( split / +/, $params ) {
             push( @instance_ids, $_ )
                 if <nroot.agent.instance>->{$_}->{'agent_id'} == $agent_id
                 and ( not defined $agent_subname
-                or $agent_subname eq <nroot.agent.instance>->{$_}->{'subname'} )
+                or defined <nroot.agent.instance>->{$_}->{'subname'}
+                and $agent_subname eq <nroot.agent.instance>->{$_}->{'subname'}
+                )
         } keys %{<nroot.agent.instance>};
     }
 }
@@ -67,7 +69,7 @@ map { <[agent.instance.restart]>->($_) } @instance_ids;
 
 my $count   = scalar @instance_ids;
 my $s       = $count > 1 ? 's' : '';
-my $msg_str = "restarting of $count agent instance$s initiated!";
+my $msg_str = "restarting of $count agent instance$s initiated.,";
 
 return {
     'mode' => 'nak',
