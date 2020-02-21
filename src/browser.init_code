@@ -16,7 +16,7 @@ $ENV{'GDK_DEBUG'}    = 'no';
 <browser.open_gtk_inspector> //= 0;
 if (<browser.open_gtk_inspector>) {
     <[base.log]>->(
-        0, "((( 'Gtk Inspector' is enabled! )))  [open_gtk_inspector=1]"
+        0, "((( 'Gtk Inspector' is enabled. )))  [ open_gtk_inspector=1 ]"
     );
     $ENV{'GTK_DEBUG'} = 'interactive';
 }
@@ -55,11 +55,6 @@ sub INIT_INSTANCE {
 ################################################################################
 
 package main;
-
-my $browser_root = '/tmp/.browser';    # LLL: random tmp dir
-mkdir($browser_root) if !-d $browser_root;
-chdir($browser_root);
-$ENV{'HOME'} = $browser_root;
 
 <system.agent.mode> //= 'stand-alone';
 

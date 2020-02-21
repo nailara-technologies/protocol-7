@@ -13,7 +13,7 @@ my $abort_timeout = 2;
 
 my %wait_pids = map { $_ => 1 } keys %{<nroot.child>};
 foreach my $p_pid ( keys %{<nroot.child>} ) {
-    map { $wait_pids{$_} = 1 } @{ <[nroot.process.get_children]>->($p_pid) };
+    map { $wait_pids{$_} = 1 } @{ <[nroot.sub-process.get_children]>->($p_pid) };
     <nroot.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # just in case
 }
 
@@ -43,7 +43,7 @@ foreach my $pid (
     my $inst_id    = <nroot.child>->{$pid}->{'instance_id'};
     my $agent_name = <nroot.agent.instance>->{$inst_id}->{'agent_name'}
         // 'unknown';
-    my @children = @{ <[nroot.process.get_children]>->($pid) };
+    my @children = @{ <[nroot.sub-process.get_children]>->($pid) };
     if ( kill( 15, $pid ) ) {
         <[base.log]>->(
             1, sprintf( ": <TERM> PID %-7s  <-= %11s", $pid, "$agent_name" )
@@ -60,7 +60,7 @@ foreach my $pid (
 }
 
 map { <[base.log]>->( 1, ": <TERM> orphan $_" ) if kill( 15, $_ ); }
-    <[nroot.process.orphan_pids]>;
+    <[nroot.sub-process.orphan_pids]>;
 
 while ( ( my $w_pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     delete <nroot.child>->{$w_pid};
@@ -90,7 +90,7 @@ while ( keys %children_left ) {
             exit(1);
         }
         if ( $waiting_secs >= $kill_timeout ) {
-            my @children = @{ <[nroot.process.get_children]>->($pid) };
+            my @children = @{ <[nroot.sub-process.get_children]>->($pid) };
             if ( not exists <nroot.child>->{$pid}->{'agent_child'} ) {
                 <[base.log]>->(
                     1,
@@ -115,7 +115,7 @@ while ( keys %children_left ) {
 }
 
 map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_ ) }
-    <[nroot.process.orphan_pids]>;
+    <[nroot.sub-process.orphan_pids]>;
 
 <[base.log]>->( 1, ':. done' );
 exit($exit_code);

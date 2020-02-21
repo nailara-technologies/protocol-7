@@ -40,7 +40,7 @@ if (    not defined <[agent.get_id]>->($query_param)
     and not defined <nroot.agent.instance>->{$query_param} ) {
     my $rep_msg
         = $query_param =~ /^\d+$/
-        ? "no such agent instance ($query_param)"
+        ? "no such agent instance [$query_param]"
         : "no such agent in setup [$query_param]";
     return {
         'mode' => 'nak',
@@ -54,19 +54,19 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     if ( defined <nroot.agent.instance>->{$id} ) {
         return {
             'mode' => 'ack',
-            'data' => "agent instance '$id' already online! [$core_sid]"
+            'data' => "agent instance '$id' already online., [$core_sid]"
             }
             if <nroot.agent.instance>->{$id}->{'status'} eq 'online';
         return {
             'mode' => 'ack',
             'data' => "external program instance '$id'"
-                . " already running! [PID=$prog_pid]"
+                . " already running., [PID=$prog_pid]"
             }
             if <nroot.agent.instance>->{$id}->{'status'} eq 'extbin';
     }
 }
 
-foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [+subname]
+foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [ +subname ]
     my $core_sid = <nroot.agent.instance>->{$id}->{'core_sid'};
     my $prog_pid = <nroot.agent.instance>->{$id}->{'process'}->{'id'};
     if (<nroot.agent.instance>->{$id}->{'agent_name'} eq $query_param
@@ -76,14 +76,14 @@ foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [+subname]
     ) {
         return {
             'mode' => 'ack',
-            'data' => "agent '$query_copy' already online! [$core_sid]"
+            'data' => "agent '$query_copy' already online., [$core_sid]"
             }
             if defined $core_sid
             and <nroot.agent.instance>->{$id}->{'status'} eq 'online';
         return {
             'mode' => 'ack',
             'data' => "external program '$query_copy'"
-                . " already running! [PID=$prog_pid]"
+                . " already running., [PID=$prog_pid]"
             }
             if <nroot.agent.instance>->{$id}->{'status'} eq 'extbin';
     }

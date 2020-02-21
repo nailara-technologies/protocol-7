@@ -10,7 +10,7 @@ return if exists <nroot.terminating.pid>->{$kill_pid};
 $instance_id = <nroot.child>->{$kill_pid}->{'instance_id'}
     if exists <nroot.child>->{$kill_pid};
 
-my @children = @{ <[nroot.process.get_children]>->($kill_pid) };
+my @children = @{ <[nroot.sub-process.get_children]>->($kill_pid) };
 
 map {
     <nroot.child>->{$_}->{'instance_id'} = $instance_id

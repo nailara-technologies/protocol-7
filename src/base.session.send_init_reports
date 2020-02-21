@@ -2,14 +2,19 @@
 
 # name  = base.session.send_init_reports
 
+<system.timer>->{'send_reports'}->cancel
+    if <system.timer>->{'send_reports'}->is_active;
+delete <system.timer>->{'send_reports'};
+
 return 0
     if not defined <system.init_reports>
     or ref(<system.init_reports>) ne 'ARRAY';
 my @pending_reports = @{ delete <system.init_reports> };
 my $report_count    = scalar @pending_reports;
 return 0 if !$report_count;
+
 my $s = $report_count == 1 ? '' : 's';
-<[base.log]>->( 1, " :. sending $report_count initialization report$s.," );
+<[base.log]>->( 1, " :. $report_count initialization report$s pending" );
 
 foreach my $item (@pending_reports) {
     my $target_command = $item->{'target_command'};

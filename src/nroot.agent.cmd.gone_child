@@ -7,7 +7,7 @@
 my $instance_id;
 my $child_pid = $$call{'args'};
 
-my $parent_pid = <[nroot.process.get_ppid]>->($child_pid);
+my $parent_pid = <[nroot.sub-process.get_ppid]>->($child_pid);
 return { 'mode' => 'nak', 'data' => 'child still here' }
     if defined $parent_pid and $parent_pid > 0;
 

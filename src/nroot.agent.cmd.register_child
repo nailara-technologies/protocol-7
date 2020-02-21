@@ -7,7 +7,7 @@
 
 my $instance_id;
 my $child_pid  = $$call{'args'};
-my $parent_pid = <[nroot.process.get_ppid]>->($child_pid);
+my $parent_pid = <[nroot.sub-process.get_ppid]>->($child_pid);
 
 foreach my $iid ( keys( %{<nroot.agent.instance>} ) ) {
     next if not defined <nroot.agent.instance>->{$iid}->{'process'}{'id'};

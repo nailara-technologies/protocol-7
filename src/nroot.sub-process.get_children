@@ -1,6 +1,6 @@
 # >:]
 
-# name = nroot.process.get_children
+# name = nroot.sub-process.get_children
 
 my $chk_pid = shift;
 if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
@@ -8,7 +8,7 @@ if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
     die "[$caller_str] expected parent process id";
 }
 
-### old method ### (heavy, non-portable, to be removed..)
+### old method ### [ heavy, non-portable, to be removed.. ]
 
 my $proc_table = <nroot.process.pt>
     //= new Proc::ProcessTable( 'enable_ttys' => 0 );
@@ -16,6 +16,7 @@ my $proc_table = <nroot.process.pt>
 my %ppids;
 my %start_times;
 foreach my $proc ( @{ $proc_table->table } ) {
+    next if not <[nroot.sub-process.exists]>->( $proc->{'pid'} );
     $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
     $start_times{ $proc->{'pid'} } = $proc->{'start'};
 }
@@ -44,14 +45,15 @@ while ($found) {
     }
 }
 
-### new method ### (requires strict child registration)
+### new method ### [ requires strict child registration ]
 my $instance_id;
 map {
     $instance_id = $_
         if $chk_pid == ( <nroot.agent.instance>->{$_}->{'process'}{'id'} // -1 )
 } keys %{<nroot.agent.instance>};
 if ( defined $instance_id ) {
-    map { $children{$_} = 1 } ( <[nroot.instance_child_pids]>->($instance_id) );
+    map { $children{$_} = 1 if <[nroot.sub-process.exists]>->($_) }
+        ( <[nroot.instance_child_pids]>->($instance_id) );
 }
 ###
 
