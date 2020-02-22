@@ -11,7 +11,8 @@ my $key_usr  = $key_vars->{'usr_name'};
 
 $KEYS{'C25519'} //= {};
 
-return warn "a C25519 key with name '$key_name' already exists!"
+warn "a C25519 key with name '$key_name' is already loaded [ skipped ]"
+    and return 0
     if exists $KEYS{'C25519'}{$key_name};
 
 my ( $pubkey, $privkey ) = Crypt::Ed25519::generate_keypair();
