@@ -6,7 +6,7 @@
 
 my $key_name = $$call{'args'};
 
-return print STDERR "\n  [!] expected <name> parameter [!]\n\n"
+return print "\n  [!] expected <name> parameter [!]\n\n"
     if not defined $key_name;
 
 my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
@@ -34,7 +34,7 @@ map {
     return print STDERR "\n [!] no write access to '$k_path' [!]\n\n"
         if $1 =~ $match_re and !-w $k_path;
 } @key_files;
-return print STDERR "\n  [!] specified key \"$key_name\" not found [!]\n\n"
+return print "\n  [!] specified key \"$key_name\" not found [!]\n\n"
     if not $key_found;
 
 my $del_count = 0;
@@ -45,8 +45,8 @@ print "\n::\n";
 
 my $len = 0;
 foreach my $file_name (@key_files) {
-    next if $file_name !~ m|^$key_name\.|;
-    printf( " : removing file '%s'\n", $file_name );
+    next if $file_name !~ $match_re;
+    printf( " : purging '%s'\n", $file_name );
     system( $shred_bin, '-fzu', $file_name )
         if length($shred_bin)
         and -x $shred_bin;
@@ -56,4 +56,4 @@ foreach my $file_name (@key_files) {
     $del_count++;
 }
 my $s = $del_count == 1 ? '' : 's';
-print " :\n :: [ removed $del_count file$s. ]\n\n";
+print " :\n :: [ removed $del_count key file$s ]\n\n";
