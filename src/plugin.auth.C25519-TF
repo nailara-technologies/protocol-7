@@ -11,7 +11,11 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 my $auth_state = $data{'session'}{$id}{'c25519'} //= {};
 
-if ( $$input =~ s/^set_key ($re->{usr}) (\S+)( (\S+))?\n// ) {
+if ( $$input =~ s|^get-key ($re->{usr})\n|| ) {
+
+    ## creates and returns signed temp key ##
+
+} elsif ( $$input =~ s|^set-key ($re->{usr}) (\S+)( (\S+))?\n|| ) {
     $auth_state->{'peer_name'}          = $1;
     $auth_state->{'peer_pubkey'}        = $2;
     $auth_state->{'peer_net_signature'} = $3;    # optional in 'anon-usr' case
@@ -21,7 +25,7 @@ if ( $$input =~ s/^set_key ($re->{usr}) (\S+)( (\S+))?\n// ) {
 
     return 1;                                    # <- keep state
 
-} elsif ( $$input =~ /\n/ ) {
+} elsif ( $$input =~ m|\n| ) {
     $$output .= ">:[\a\n";
     <[base.log]>->( 0, "[$id] authentication protocol mismatch [ C25519-TF ]" );
     return 2;                                    # <- terminate
