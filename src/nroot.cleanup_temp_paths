@@ -6,11 +6,11 @@
 
 return warn "process_id not defined <{C1}>" if not defined $process_id;
 
-$instance_id //= <nroot.process.instance_cache>->{$process_id};   # <-- cached.,
+$instance_id //= <[nroot.sub-process.retrieve_cached_iid]>->($process_id);
 
 return warn "instance_id not defined <{C1}>" if not defined $instance_id;
 my $instance = <nroot.agent.instance>->{$instance_id};
-return warn "instance $instance_id is gome" if not defined $instance;
+return if not defined $instance;    # <-- gone..,
 return
     <[base.log]>->( 1, "no temp-paths to clean up for instance $instance_id" )
     if not defined $instance->{'temp-path'}
