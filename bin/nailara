@@ -656,6 +656,21 @@ sub prepare_subs {
         $param_list =~ s|\e|\\e|g;
         $param_list =~ s|\0|\\0|g;
 
+        ## replacing perl objects ##
+        eval { use Crypt::Misc qw|encode_b32r| }
+            if not defined &{'encode_base32'};
+        if ( $param_list =~ s|\'?(\S+(::\S+)+)|lc($1)|ge ) {
+            $param_list =~ s|::|.|g;
+            $param_list =~ s|event\.event|event|g;
+        }
+        $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}{' : '.lc($1)}ige;
+        $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}{lc($1)}ge;
+        $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( " :: %s ::",
+            lc(encode_b32r(pack("H*",$1))))
+        }gxe
+            if defined &{'encode_b32r'};
+        ##
+
         say ' . ', $data{'system'}{'agent'}{'name'},
             " : $sub_name ( $param_list )"
             if $sub_name ne 'base.log'
