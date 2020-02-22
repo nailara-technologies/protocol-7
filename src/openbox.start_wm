@@ -28,10 +28,8 @@ if ( !<child.openbox.pid> ) {
 } else {
     <[base.agents.report_child_pid]>->(<child.openbox.pid>);
 }
-<[base.log]>->(
-    1,
-    ": openbox started [pid=<child.openbox.pid>], registering output handler.."
-);
+<[base.log]>->( 1, ": openbox started [pid=<child.openbox.pid>].," );
+<[base.log]>->( 2, ": : registering output handler..," );
 my $max_wait = 70;    # wait no longer than 7 seconds..
 <[base.log]>->( 1, "waiting for openbox log file creation.." );
 while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }

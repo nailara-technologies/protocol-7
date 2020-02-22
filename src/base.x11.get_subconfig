@@ -34,7 +34,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
     my $bytes_total = $bytes_to_go;
     if ( !$bytes_to_go ) {
         <[base.log]>->(
-            2, "layout subconfig for '$name_str' was empty (0 bytes)"
+            2, "layout subconfig for '$name_str' was empty [ 0 bytes ]"
         );
         return {};
     }
@@ -56,12 +56,14 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
     <[base.log]>->( 1, ": <!> layout agent has no config for \"$1\" <!>" );
     return undef;
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
-    <[base.log]>->( 0, "get_subconfig command failed for '$name_str' [NAK]" );
+    <[base.log]>->(
+        1, ": << get_subconfig not successful >> for '$name_str' [NAK]"
+    );
     return undef;
 } else {
     <[base.log]>->(
         0,
-        "protocol mismatch (unexpected reply from layout agent)"
+        "[ protocol mismatch ] unexpected reply from layout agent"
             . " ['$reply_string']"
     );
     return undef;
