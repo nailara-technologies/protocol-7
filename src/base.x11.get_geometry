@@ -44,7 +44,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
 # else [no layout agent present or no geometry for current agent configured]
 my $err_msg = "unexpected reply from layout agent ['$reply_string']";
 
-$err_msg = ": <!> geometry undefined$sn_log_str .."
+$err_msg = ": << geometry undefined$sn_log_str >>"
     if $reply_string =~ /NAK no geometry/
     or $reply_string =~ /NAK command unknown/;
 
@@ -73,6 +73,6 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     <x11.geometry_was_undefined> = 1;
     return <x11.geometry>;
 } else {
-    <[base.log]>->( 1, "[!] window geometry undefined" );
+    <[base.log]>->( 1, "[!] window geometry undefined [!]" );
     return undef;
 }
