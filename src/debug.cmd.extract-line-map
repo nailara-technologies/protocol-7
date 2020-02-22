@@ -6,8 +6,19 @@
 
 my $usr_sid   = $$call{'session_id'};
 my $file_name = $$call{'args'};
+state $last_warned = '';
 
-return { 'mode' => 'nak', 'data' => 'not found' } if !-f $file_name;
+my $std_msg = 'file not found or insufficient read permissions';
+return { 'mode' => 'nak', 'data' => $std_msg }
+    if !-f $file_name;
+if ( !-r $file_name ) {
+    my $lvl = $last_warned ne $file_name ? 0 : 2;
+    <[base.log]>->(
+        $lvl, "[$usr_sid] <extract_line_map> no read permission [ $file_name ]"
+    );
+    $last_warned = $file_name;
+    return { 'mode' => 'nak', 'data' => $std_msg };
+}
 
 my $response = "\n# .: $file_name :.\n\n# [line-num] [offset]\n\n";
 my $line_map = <[file.line_map]>->($file_name);
