@@ -35,7 +35,7 @@ foreach my $rep_line ( split( "\n", $reply->{'data'} ) ) {
 my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <[base.log]>->( 1, "received empty playlist!" );
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
 
     my $max_retries = <media.counter.empty_list_max_retries> //= 5;
     <media.counter.empty_list_retries>--

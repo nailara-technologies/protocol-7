@@ -15,7 +15,7 @@ my @file_list     = split( "\n", $reply->{'data'} );
 my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <[base.log]>->( 1, "received empty playlist!" );
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
 
     # LLL: create image for empty playlist instead of shutown(?)
     if ( defined <impressive.pid> ) {
