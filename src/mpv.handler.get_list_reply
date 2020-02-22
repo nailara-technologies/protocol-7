@@ -14,7 +14,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <[base.log]>->( 1, "received empty playlist!" );
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
     <mpv.playlist_was_empty> = 1;
     <mpv.file_map.rescaled>  = {};
