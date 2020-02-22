@@ -14,14 +14,14 @@ if ( exists $instance->{'status_timer'}
     and $instance->{'status_timer'}->is_active ) {
     $instance->{'status_timer'}->cancel;
     $cancelled++;
-    <[base.log]>->( 2, ": cancelled instance $instance_id status ping timer" );
+    <[base.log]>->( 2, ": cancelled instance $instance_id status heartbeat timer" );
 }
 delete $instance->{'status_timer'};
 if ( exists $instance->{'timeout_timer'}
     and $instance->{'timeout_timer'}->is_active ) {
     $instance->{'timeout_timer'}->cancel;
     $cancelled++;
-    <[base.log]>->( 2, ": cancelled instance $instance_id ping timeout timer" );
+    <[base.log]>->( 2, ": cancelled instance $instance_id heartbeat timeout timer" );
 }
 delete $instance->{'timeout_timer'};
 

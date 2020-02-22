@@ -30,9 +30,9 @@ my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
 
 # some cleanup
 delete $agent_config->{'respawn'} if !keys %{ $agent_config->{'respawn'} };
-delete $agent_config->{'ping'}    if !keys %{ $agent_config->{'ping'} };
+delete $agent_config->{'heartbeat'}    if !keys %{ $agent_config->{'heartbeat'} };
 delete $globals->{'respawn'}      if !keys %{ $globals->{'respawn'} };
-delete $globals->{'ping'}         if !keys %{ $globals->{'ping'} };
+delete $globals->{'heartbeat'}         if !keys %{ $globals->{'heartbeat'} };
 
 # initialize timer defaults
 $instance->{'respawn_delay'}
@@ -44,13 +44,13 @@ my $max_respawn_delay
     || $globals->{'respawn'}->{'max_delay'}
     || 300;     # <-- 5 minutes (internal default)
 my $status_timer_delay
-    = $agent_config->{'ping'}->{'after'}
-    || $globals->{'ping'}->{'after'}
-    || 2;       # <-- (initial) ping delay default
+    = $agent_config->{'heartbeat'}->{'after'}
+    || $globals->{'heartbeat'}->{'after'}
+    || 2;       # <-- (initial) heartbeat delay default
 my $status_timer_interval
-    = $agent_config->{'ping'}->{'interval'}
-    || $globals->{'ping'}->{'interval'}
-    || 5;       # <-- ping interval default
+    = $agent_config->{'heartbeat'}->{'interval'}
+    || $globals->{'heartbeat'}->{'interval'}
+    || 5;       # <-- heartbeat interval default
 
 return
         if defined $status
@@ -59,8 +59,8 @@ return
 
 <nroot.agent.instance>->{$instance_id}->{'status-since'} = <[base.ntime]>->(3);
 
-$instance->{'ping'} //= {};
-$instance->{'ping'}->{'retry_timeout'} //= 2;    # short timeout on ping error
+$instance->{'heartbeat'} //= {};
+$instance->{'heartbeat'}->{'retry_timeout'} //= 2;    # short timeout on heartbeat error
 
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     $instance->{'timer'}->{'verify_instance'}->cancel;
@@ -294,10 +294,10 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
         }
     );
 
-    if ( not exists $agent_config->{'ping'}->{'disabled'}
-        or !$agent_config->{'ping'}->{'disabled'} ) {
+    if ( not exists $agent_config->{'heartbeat'}->{'disabled'}
+        or !$agent_config->{'heartbeat'}->{'disabled'} ) {
         <[base.log]>->(
-            2, "setting up ping response timer for instance $instance_id"
+            2, "setting up heartbeat response timer for instance $instance_id"
         );
 
         <[nroot.cancel_status_timer]>->($instance_id);
@@ -305,7 +305,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
     } else {
         <[base.log]>->(
-            2, ": no heartbeat ping enabled! ( $instance_id [$agent_name] )"
+            2, ": no heartbeat heartbeat enabled! ( $instance_id [$agent_name] )"
         );
     }
 

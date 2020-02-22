@@ -1,0 +1,13 @@
+# >:]
+
+# name  = base.cmd.heart
+# descr = return 'beating' [or heartbeat response time]
+# param = ['latency']
+
+return {
+    'mode' => 'nak',
+    'data' => 'needs target agent [ latency measurement ]'
+    }
+    if defined $$call{'args'} and $$call{'args'} eq 'latency';  # [filter_hooks]
+
+return { 'mode' => 'ack', 'data' => 'beating' }

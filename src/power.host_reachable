@@ -2,25 +2,26 @@
 
 # name = power.host_reachable
 
-my ( $ping_host, $ping_timeout ) = @_;
-die "expected hostname or ip address" if not defined $ping_host;
-$ping_timeout //= <power.cfg.ping_timeout>;
+my ( $target_host, $icmp_timeout ) = @_;
+die "expected hostname or ip address" if not defined $target_host;
+$icmp_timeout //= <power.cfg.heartbeat_timeout>;
 
 my $op_obj = Net::Oping->new();
-$op_obj->timeout($ping_timeout);
-$op_obj->host_add($ping_host);
+$op_obj->timeout($icmp_timeout);
+$op_obj->host_add($target_host);
 
-my $response_time = $op_obj->ping()->{$ping_host};
+my $response_time = $op_obj->ping()->{$target_host};
 
 if ( defined $response_time ) {
     <[base.log]>->(
         2,
-        sprintf( ": ICMP ping response from '$ping_host' after %.2f ms! =)",
+        sprintf(
+            ": ICMP heartbeat response from '$target_host' after %.2f ms! =)",
             $response_time )
     );
     return 1;
 } else {
-    my $err_msg = "ping timeout for '$ping_host'! ( $ping_timeout seconds )";
+    my $err_msg = "reply timeout for '$target_host'! ( $icmp_timeout seconds )";
     <[base.log]>->( 0, ": $err_msg" );
     return 0;
 }
