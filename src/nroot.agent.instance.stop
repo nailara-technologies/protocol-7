@@ -33,9 +33,10 @@ $instance->{'status_timer'}->cancel    if exists $instance->{'status_timer'};
 $instance->{'timeout_timer'}->cancel   if exists $instance->{'timeout_timer'};
 delete <callback.session.closing_last> if $instance->{'is_core'};
 
-if ( defined $instance->{'process'}->{'id'} ) {
-    delete <nroot.child>->{ $instance->{'process'}->{'id'} };
-    <[nroot.terminate_process]>->( $instance->{'process'}->{'id'} );
+if ( my $process_id = $instance->{'process'}->{'id'} ) {
+    <nroot.process.instance_cache>->{$process_id} = $instance_id;
+    delete <nroot.child>->{$process_id};
+    <[nroot.terminate_process]>->($process_id);
 }
 
 # <[agent.change_status]>->( $instance_id, 'shutdown' );
