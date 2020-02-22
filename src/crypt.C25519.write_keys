@@ -7,9 +7,18 @@ my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
 my $uid          = $key_vars->{'uid'};
 my $gid          = $key_vars->{'gid'};
 my $key_usr      = $key_vars->{'usr_name'};
+my $usr_hdir     = $key_vars->{'usr_home'};
 my $key_name     = $key_vars->{'key_name'};
 my $key_basepath = $key_vars->{'key_basepath'};
 
+foreach my $type ( 'priv', 'pub' ) {
+    my $file_name = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
+    next if not -f $file_name;
+    $file_name =~ s|^$usr_hdir||;
+    <[base.log]>->( 0, "<<!>> key '$file_name' exists..," );
+    <[base.log]>->( 0, "  :.  not overwriting .," );
+    return 0;
+}
 foreach my $type ( 'priv', 'pub' ) {
     my $file_name = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
 
@@ -27,3 +36,4 @@ foreach my $type ( 'priv', 'pub' ) {
 
     <[base.log]>->( 1, ": $file_name" );
 }
+return 1;
