@@ -16,9 +16,8 @@ if ( !<child.unclutter.pid> ) {
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 }
-<[base.log]>->(
-    1, ": started [pid=<child.unclutter.pid>], registering output handler.."
-);
+<[base.log]>->( 1, ": started [pid=<child.unclutter.pid>].," );
+<[base.log]>->( 2, ": : registering output handler..," );
 <[event.add_io]>->(
     {   'fd'      => $out_fh,
         'handler' => 'base.handler.child_output.simple',
