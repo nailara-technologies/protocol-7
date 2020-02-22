@@ -144,7 +144,7 @@ if ( defined $http_host and defined $link_target ) {
             $reply_code = 304;    # Not Modified
 
         } elsif ( defined $request->{'headers'}->{'if-modified-since'}
-            and $request->{'headers'}->{'if-modified-since'} ne $content_date )
+            and $request->{'headers'}->{'if-modified-since'} eq $content_date )
         {
             <[base.log]>->(
                 1, "[if-modified-since] returning 304 [$file_etag]"
