@@ -2,33 +2,33 @@
 
 # name = ssh.handler.connection_heartbeat
 
-my $con_id       = shift->w->data;
-my $connection   = $data{'ssh'}{'connections'}->{$con_id};
-my $local_user   = $connection->{'local_user'};
-my $nailara_fh   = $connection->{'local_fh'};
-my $ping_timeout = <ssh.cfg.globals>->{'connections.timeout'};
-<ssh.ping_request> //= {};
-<ssh.ping_request>->{$con_id} //= {};
+my $con_id            = shift->w->data;
+my $connection        = $data{'ssh'}{'connections'}->{$con_id};
+my $local_user        = $connection->{'local_user'};
+my $nailara_fh        = $connection->{'local_fh'};
+my $heartbeat_timeout = <ssh.cfg.globals>->{'connections.timeout'};
+<ssh.heartbeat_request> //= {};
+<ssh.heartbeat_request>->{$con_id} //= {};
 
-<[base.log]>->( 2, "checking status of connection connection $con_id..." );
+<[base.log]>->( 2, "checking link status [conn:$con_id]..," );
 
-my $interval_id = <[base.gen_id]>->(<ssh.ping_request>);
+my $interval_id = <[base.gen_id]>->(<ssh.heartbeat_request>);
 
 $connection->{'timer'}->{$interval_id} = <[event.add_timer]>->(
-    {   'after'   => $ping_timeout,
-        'handler' => 'ssh.handler.ping_timeout',
+    {   'after'   => $heartbeat_timeout,
+        'handler' => 'ssh.handler.heartbeat_timeout',
         'data'    => { 'con_id' => $con_id, 'int_id' => $interval_id }
     }
 );
 
-<ssh.ping_request>->{$con_id}->{$interval_id}
+<ssh.heartbeat_request>->{$con_id}->{$interval_id}
     = { 'time_sent' => <[base.time]>->(5), };
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "core.$local_user.ping",
+    {   'command'   => "core.$local_user.heart",
         'call_args' => { 'args' => '' },
         'reply'     => {
-            'handler' => 'ssh.handler.ping_response',
+            'handler' => 'ssh.handler.heartbeat_response',
             'params'  => { 'con_id' => $con_id, 'int_id' => $interval_id }
         }
     }
