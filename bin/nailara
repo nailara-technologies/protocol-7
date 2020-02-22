@@ -45,13 +45,13 @@ if ( $0 =~ /^.*nailara\./ ) {
 if ( defined $agentname and $agentname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
         $data{'startup'}{'init_code'} = [];
-        $code{'log.ok'}->('> awaiting stdin init-code');
+        $code{'log.noerr'}->('> awaiting stdin init-code');
         while (<STDIN>) {
             push( @{ $data{'startup'}{'init_code'} }, $_ );
         }
         my $lines = @{ $data{'startup'}{'init_code'} };
         my $s     = $lines != 1 ? 's' : '';
-        $code{'log.ok'}->("< read $lines line$s of init-code");
+        $code{'log.noerr'}->("< read $lines line$s of init-code");
     }
     $code{'base.init'}->( $data{'system'}{'node'}{'name'} . '.' . $agentname );
 } else {
@@ -74,7 +74,7 @@ if ( defined $agentname and $agentname ne '' ) {
     }
 }
 
-$code{'log.ok'}->("done.");
+$code{'log.noerr'}->("done.");
 close;
 exit;
 
@@ -353,7 +353,7 @@ sub prepare_subs {
         my @compile_them = ();
         while ( $code_name = shift @src_names ) {
             my $src_str = $code_name =~ /^plugin./ ? '' : ' source';
-            $code{'log.ok'}->(": loading$src_str '$code_name'");
+            $code{'log.noerr'}->(": loading$src_str '$code_name'");
 
             if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
                 my $s = $purge_count == 1 ? '' : 's';
@@ -597,7 +597,7 @@ sub prepare_subs {
             $code{'log.error'}
                 ->(": success on $ok_count sub$s, $err_count broken.. `:|");
         } else {
-            $code{'log.ok'}->(": $ok_count sub$s., no errors.. =)");
+            $code{'log.noerr'}->(": $ok_count sub$s., no errors.. =)");
         }
         if ( defined $code{'base.buffer.add_line'}
             and not defined $data{'buffer'}{'agent'} ) {
@@ -677,7 +677,7 @@ sub prepare_subs {
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'agent' )
             and $sub_name ne 'base.dump_data';    # skipping too much output...
     };
-    $code{'log.ok'} = sub {
+    $code{'log.noerr'} = sub {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} ) {

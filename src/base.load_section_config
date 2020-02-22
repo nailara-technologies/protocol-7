@@ -12,7 +12,7 @@ my @cfg_files = @_;
 
 foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
     ( my $file_name = $file_path ) =~ s/^.*\///g;
-    <[log.ok]>->("loading section config '$file_name'");
+    <[log.noerr]>->("loading section config '$file_name'");
 
     my @cfg_lines;
     <[file.slurp]>->( $file_path, \@cfg_lines );
