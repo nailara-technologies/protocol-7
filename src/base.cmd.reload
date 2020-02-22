@@ -52,7 +52,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     } else {
         my %mod = map { $_ => 1 } split / +/, <modules.load>; # <!> create iface
         if ( not exists $mod{'debug'} ) {
-            <[base.log]>->( 1, "<!> persistently enabling debug module <!>" );
+            <[base.log]>->( 1, "<< persistently enabling debug module >>" );
             $mod{'debug'} = 1;
             <modules.load>
                 = join( ' ', sort { length $a <=> length $b } sort keys %mod );
@@ -123,8 +123,8 @@ if ( $arg eq 'init' or $arg eq 'all' ) {
     }
 }
 if ( !$keyword_match ) {
-    <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called!" );
-    return { 'mode' => 'nak', 'data' => "unknown reload keyword '$arg'!" };
+    <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called.," );
+    return { 'mode' => 'nak', 'data' => "unknown reload keyword '$arg'" };
 }
 if ($success) {
     <[base.log]>->( 1, "[$id] .. reloading complete =)" );

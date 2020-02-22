@@ -1,10 +1,10 @@
 # >:]
 
 # name = power.add_status_timer
-# todo = implement 'ping' agent and make check asynchronous! [LLL]
+# todo = implement 'heart' agent and make check asynchronous! [LLL]
 
 my $device_id = shift // '';
-my $check_interval = <power.cfg.ping_interval> // 7;
+my $check_interval = <power.cfg.heartbeat_interval> // 7;
 
 die "device '$device_id' does not exist"
     if not exists <power.cfg.devices>->{$device_id};

@@ -163,14 +163,14 @@ $connection->{'io'}->{'ssh'} = <[event.add_io]>->(
     }
 );
 
-$connection->{'sock'}        = $sock;
-$connection->{'obj'}         = $ssh;
-$connection->{'nch'}         = $channel;
-$connection->{'buffer'}      = '';
-$connection->{'authorized'}  = 0;
-$connection->{'linked'}      = 0;
-$connection->{'ping_errors'} = 0;
-$connection->{'latency'}     = 'unknown';
+$connection->{'sock'}             = $sock;
+$connection->{'obj'}              = $ssh;
+$connection->{'nch'}              = $channel;
+$connection->{'buffer'}           = '';
+$connection->{'authorized'}       = 0;
+$connection->{'linked'}           = 0;
+$connection->{'heartbeat_errors'} = 0;
+$connection->{'latency'}          = 'unknown';
 
 delete $connection->{'retry_delay'}
     if exists $connection->{'retry_delay'};
@@ -179,10 +179,10 @@ delete $connection->{'retry_delay'}
 
 $connection->{'io'}->{'ssh'}->now;    # quickfix!
 
-my $ping_delay = 5;                   # LLL: -> config...
-$connection->{'timer'}->{'ping'} = <[event.add_timer]>->(
+my $heartbeat_delay = 5;              # LLL: -> config...
+$connection->{'timer'}->{'heartbeat'} = <[event.add_timer]>->(
     {   'after'    => 1,
-        'interval' => $ping_delay,
+        'interval' => $heartbeat_delay,
         'repeat'   => 1,
         'handler'  => 'ssh.handler.connection_heartbeat',
         'data'     => $con_id

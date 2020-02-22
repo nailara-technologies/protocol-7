@@ -29,9 +29,10 @@ use warnings 'once';
 
 $data{'debug'} //= {};
 ## reducing debug ( verbosity >= 2 ) log output ###
-<debug.sig_int_dump>    = 0; # dump %data state on SIGINT in log level 2
-<debug.skip_log_msg>    = 1; # skip log.msg commands in log level 2 debug output
-<debug.skip_nroot_ping> = 1; # skip nroot agent status pings (and responses)
+<debug.sig_int_dump> = 0;    # dump %data state on SIGINT in log level 2
+<debug.skip_log_msg> = 1;    # skip log.msg commands in log level 2 debug output
+<debug.skip_nroot_heartbeat>
+    = 1;    # skip nroot agent status heartbeats (and responses)
 ##
 $data{'system'}{'process_start'} = {
     'time'  => <[base.time]>->(5),
@@ -204,8 +205,8 @@ if (    exists $data{'setup'}
 
 <base.callback_hooks.async_online> //= []; # <- called after receiving core sid!
 
-# setting up command (argument) filter hooks
-<base.filter_hooks.command.ping.send> = 'base.handler.ping_time';
-<base.filter_hooks.command.ping.recv> = 'base.handler.ping_time_reply';
+# setting up command [argument] filter hooks
+<base.filter_hooks.command.heart.send> = 'base.handler.heart';
+<base.filter_hooks.command.heart.recv> = 'base.handler.heart_reply';
 
 return 0;

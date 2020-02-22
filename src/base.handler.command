@@ -775,8 +775,8 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                     and ( $cmd ne 'log.msg'
                     or !<debug.skip_log_msg> )
                     and ( $usr ne 'nroot'
-                    or $cmd ne 'ping'
-                    or !<debug.skip_nroot_ping> );
+                    or $cmd ne 'heart'
+                    or !<debug.skip_nroot_heartbeat> );
             }
             if (   <system.verbosity> >= 3 and defined $$call_args{'args'}
                 or <system.internal_verbosity> >= 3
