@@ -98,7 +98,7 @@ while (1) {
         and $last_image_date ne $last_modified ) {
         SDL::Video::flip($screen);
 
-        # ping replies / logging
+        # heartbeat replies + logging
         loop_wait(222);
     }
     $last_modified = $last_image_date;
@@ -192,12 +192,12 @@ while (1) {
         }
         $warned_cam = 1;
 
-        # ping replies / logging
+        # heartbeat replies + logging
         loop_wait(0.333);
     }
     SDL::Video::flip($screen);
 
-    # ping replies / logging
+    # heartbeat replies + logging
     loop_wait(0.222);
 }
 

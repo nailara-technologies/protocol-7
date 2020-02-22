@@ -36,12 +36,12 @@ map {
     keys %{ $connection->{'timer'} }
     if exists $connection->{'timer'};
 
-if ( exists <ssh.ping_request>->{$con_id} ) {
-    map { delete <ssh.ping_request>->{$con_id}->{$_} }
-        keys %{ <ssh.ping_request>->{$con_id} };
-    delete <ssh.ping_request>->{$con_id}
-        if !keys %{ <ssh.ping_request>->{$con_id} };
-    delete <ssh.ping_request> if !keys %{<ssh.ping_request>};
+if ( exists <ssh.heartbeat_request>->{$con_id} ) {
+    map { delete <ssh.heartbeat_request>->{$con_id}->{$_} }
+        keys %{ <ssh.heartbeat_request>->{$con_id} };
+    delete <ssh.heartbeat_request>->{$con_id}
+        if !keys %{ <ssh.heartbeat_request>->{$con_id} };
+    delete <ssh.heartbeat_request> if !keys %{<ssh.heartbeat_request>};
 }
 
 if (    <ssh.cfg.globals>->{'connections.reconnect'}
