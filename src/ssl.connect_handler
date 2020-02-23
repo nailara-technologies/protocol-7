@@ -9,7 +9,7 @@ if ( -S $_[0] ) {
         <[base.log]>->( 0, "ssl.connect_handler: can not accept [$ssl_err]" );
     } else {
         <[base.s_write]>->( $new_sock, ">:]\n" );
-        $data{'handle'}{$new_sock}{'link'}       = 'tcp/ip';
+        $data{'handle'}{$new_sock}{'link'}       = 'ip.tcp';
         $data{'handle'}{$new_sock}{'encryption'} = 'ssl';
         return $new_sock;
     }

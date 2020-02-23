@@ -7,7 +7,7 @@ my $agent_id = shift // '';
 die "agent id '$agent_id' does not exist!"
     if not exists <nroot.agent.setup>->{$agent_id};
 
-my $instance_id = <[base.gen_id]>->(<nroot.agent.instance>);
+my $instance_id = <[base.gen_id]>->(<nroot.agent.instance>); # dec. max width -2
 
 my $now_ntime = <[base.ntime]>->(3);
 
