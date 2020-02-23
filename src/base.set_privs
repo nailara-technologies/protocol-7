@@ -71,23 +71,34 @@ if ( !length( $usr // '' ) ) {
                     0, "unable to create home directory '$home_dir'"
                 ) if $home_dir ne '/nonexistent';
                 ### temporary home directory ###
-                my $tdir_template
-                    = <system.agent.name> ne 'nroot'
-                    ? sprintf "T.h.%s.%s.%d", <system.agent.name>, $usr, $$
-                    : sprintf "T.h.%s.XXXXXXXXXX", $usr;
-                $home_dir = <[base.temp_dir]>->( '/tmp/', $tdir_template );
-                if ( -d $home_dir ) {
-                    chown( $uid, $gid, $home_dir )
-                        or warn "chown($uid,$gid,$home_dir): $!";
-                    <[base.log]>->( 1, ":: created temporary home directory" );
-                    <[base.log]>->( 1, " : $home_dir" );
-                    push(
-                        @{<system.init_reports>},
-                        {   'target_command' => 'nroot.report-temp-path',
-                            'param'          => $home_dir,
-                            'descr' => 'registering temporary directory'
-                        }
+                <system.privs.create_temp_home> //= 0;
+
+                if ( !<system.privs.create_temp_home> ) {
+                    $home_dir = '/';
+                    <[base.log]>->(
+                        1, "[unix:'nobody'] changing home path to '$home_dir'"
                     );
+                } else { # creating temporary home directory for user 'nobody':.
+                    my $tdir_template
+                        = <system.agent.name> ne 'nroot'
+                        ? sprintf "T.h.%s.%s.%d", <system.agent.name>, $usr, $$
+                        : sprintf "T.h.%s.XXXXXXXXXX", $usr;
+                    $home_dir = <[base.temp_dir]>->( '/tmp/', $tdir_template );
+                    if ( -d $home_dir ) {
+                        chown( $uid, $gid, $home_dir )
+                            or warn "chown($uid,$gid,$home_dir): $!";
+                        <[base.log]>->(
+                            1, ":: created temporary home directory"
+                        );
+                        <[base.log]>->( 1, " : $home_dir" );
+                        push(
+                            @{<system.init_reports>},
+                            {   'target_command' => 'nroot.report-temp-path',
+                                'param'          => $home_dir,
+                                'descr' => 'registering temporary directory'
+                            }
+                        );
+                    }
                 }
             }
 
