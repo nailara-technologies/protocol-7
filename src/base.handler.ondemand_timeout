@@ -3,7 +3,8 @@
 # name = base.handler.ondemand_timeout
 
 my $timeout = <system.ondemand_timeout>;
+my $s       = $timeout == 1 ? '' : 's';
 
-<[base.log]>->( 1, "agent auto-shutdown ($timeout seconds idle).." );
+<[base.log]>->( 1, "agent idle shutdown.., [ $timeout sec$s ]" );
 
 exit(0);

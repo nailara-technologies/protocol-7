@@ -579,7 +579,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
 
-        $$output .= "NAK not implemented yet..\n";
+        $$output .= "NAK not implemented yet.,\n";
         return 1;
 
         if ( exists $data{'user'}{$1}{'session'}
@@ -592,11 +592,11 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
     # absolute address notation
 
-    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/ ) {  # LLL: regex invalid! (only host)
+    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/ ) {  # LLL: regex invalid: <only host>
         my $network_name = $1;
         my $node_name    = $1;
 
-        # ^ uhm, this will take a while (route discovery feature..)
+        # ^ not yet implemented [ route discovery feature., ]
 
     } elsif (
         $cmd =~ s/^($re->{sid}|$re->{usr}|$re->{usr_sub})\.
@@ -647,7 +647,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 undef $target_user;
             }
 
-            # LLL: deal with multi line commands... (command_mode 2)
+            # LLL: deal with multi-line commands.., [command_mode 2]
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
@@ -675,7 +675,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                         if defined $target_subname;
 
                     <[base.log]>->(
-                        1, "ondemand agent '$spawn_name' requested ..."
+                        1, "ondemand agent '$spawn_name' requested ..,"
                     );
                     <[base.proto.nailara.command.send.local]>->(
                         {   'command'   => $target_command,
@@ -689,7 +689,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 }
                 return 0;
             } else {
-                <[base.log]>->( 1, ": target user '$target_user' not found!" );
+                <[base.log]>->( 1, ": target user '$target_user' not found" );
             }
         }
 
@@ -698,7 +698,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
             my $l_lvl = $target_name eq 'log' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl,
-                "[$id] cmd \"$command_str\" unroutable [offline:'$target_name']"
+                "[$id] offline : '$target_name' : '$command_str' unroutable"
             );
             return 1;
         }
