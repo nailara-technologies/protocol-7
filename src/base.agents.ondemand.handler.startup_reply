@@ -22,7 +22,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
             .= $cmd_id . "NAK command unknown\n";
     }
 } else {
-    <[base.log]>->( 1, "ondemand agent '$agent_name' now present.." );
+    <[base.log]>->( 1, "ondemand agent '$agent_name' is now present." );
     while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
         my $sid = $element->{'source_id'};
         next if not exists $data{'session'}{$sid};
