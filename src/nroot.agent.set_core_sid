@@ -9,12 +9,17 @@ if ( exists $instance_data->{'core_sid'} ) {
     <[base.log]>->(
         0, "<< core sid for instance $instance_id was already set >>"
     );
-    <[agent.change_status]>->( $instance_id, 'error' );  # possibly compromised!
+    <[agent.change_status]>->( $instance_id, 'error' ); # compromisation attempt
     return;
 }
 
 <[base.log]>->( 2, "instance $instance_id : core sid = $core_sid" );
 $instance_data->{'core_sid'} = $core_sid;
+
+## LLL: unclear if will be required \ used later ##
+my $inst_pid = $instance_data->{'process'}->{'id'};
+<nroot.process.instance_cache>->{$inst_pid} = $instance_id if defined $inst_pid;
+##
 
 # acquire local core sid [ get first and only sid for now ]
 my ($root_sid) = keys %{ $data{'session'} };
