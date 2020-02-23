@@ -15,7 +15,7 @@ foreach my $available ( split( /\n/, <[auth.auth_list]>->($id) ) ) {
 if ($ok) {
     $data{'session'}{$id}{'auth'}{'method'} = $method;
     <[net.out]>->( $data{'session'}{$id}{'handle'}, "ACK continue\n" );
-    <[base.log]>->( 1, "[$id] selected auth method '$method'.." );
+    <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
     return 1;
 } else {
     <[net.out]>->(
@@ -23,8 +23,8 @@ if ($ok) {
         "NAK not available, see 'list' command\n"
     ) if $data{'session'}{$id}{'counter'}{'auth'}{'select'}{'errors'} < 2;
     my $m_len = 23;
-    substr( $method, $m_len - 3, length($method) - $m_len + 3, '...' )
+    substr( $method, $m_len - 3, length($method) - $m_len + 3, '..,' )
         if length($method) > $m_len;
-    <[base.log]>->( 0, "[$id] unsupported auth method requested [$method]" );
+    <[base.log]>->( 0, "[$id] unsupported auth method requested [ $method ]" );
     return 0;
 }

@@ -21,11 +21,11 @@ $instance_id //= <[agent.instance.add]>->($agent_id);
 <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
 $instances->{$instance_id}->{'job_id'} = $job_id;
 
-my $starting = 0;    # check status of agents with same name ...
+my $starting = 0;    # check status of agents with same name ..,
 map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
     @{ <[agent.instance.get_ids]>->($agent_id) };
 
-if ($starting) {     # delay agent startup until previous one is online ...
+if ($starting) {     # delay agent startup until previous one is online ..,
     <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..," );
     <[agent.change_status]>->( $instance_id, 'delayed' );
     return;
@@ -135,7 +135,7 @@ if ( exists $init_result_data->{'start_mode'}
             . "\$ENV{'NO_AT_BRIDGE'}=1; "
             . "chdir('$privs->{home}'); ";
         <[base.log]>->(
-            1, "starting external '$agent_sn_str' program as '$prog_usr' .."
+            1, "starting external '$agent_sn_str' program as '$prog_usr' ..,"
         );
         eval {
             $pid
@@ -158,7 +158,7 @@ push( @exec_args, '-lpw=' . $apw_href->{$agent_name} )
 my $agent_verbosity = <system.verbosity> || 1; # -v is min. [a. output patterns]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated .," );
+<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..," );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
@@ -217,7 +217,7 @@ $instances->{$instance_id}->{'subname'} = $agent_subname
 
 # push init code to agent <stdin> if in 'stdin' mode..
 if ($stdin_mode) {
-    <[base.log]>->( 1, "pushing startup init code to '$agent_name'-agent.." );
+    <[base.log]>->( 1, ": pushing startup init-code < agent '$agent_name' >" );
     foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
         my $code_line = $_line;    # <- keeping copy
              # <{foo.bar}> (agent instance namespace) variable fetching syntax
