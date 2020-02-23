@@ -1,0 +1,10 @@
+# >:]
+
+# name  = base.utf8.sanitize
+# descr = reencodes and returns potentially malformed UTF-8
+
+return warn "expected string argument <{C1}>" if not defined $_[0];
+
+return Encode::encode( 'UTF-8',
+    Encode::decode( 'UTF-8', $_[0], Encode::FB_DEFAULT ),
+    Encode::FB_CROAK );
