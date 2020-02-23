@@ -67,11 +67,13 @@ browser.load_icon_page = '<system.root_path>/data/html/loading_animation.html'
 [load_modules:'config.json browser.config']
 [init_modules]
 
-[browser.config.set_privs:'nobody'] # if not a media-child
+
+system.privs.create_temp_home = 1   # allow temporary 'nobody' home dir creation
+[browser.config.set_privs:'nobody'] # <-- switches only when not a media-child.,
 
 [config.json.import_file:'browser.config.json']
 
-browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector (for debugging)
+browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector [for debugging]
 
 modules.load = auth net io.ip io.unix digest.sha browser
 
@@ -83,7 +85,7 @@ modules.load = auth net io.ip io.unix digest.sha browser
 [base.x11.get_display]
 browser.subcfg = [base.x11.get_subconfig]
 browser.geometry = [base.x11.get_geometry]
-browser.bg_color = [base.x11.get_bg_color] # comment in to use white as default!
+browser.bg_color = [base.x11.get_bg_color] # comment in to use a static white bg
 
 [browser.calc_zoom_level]
 [browser.process_subcfg]
