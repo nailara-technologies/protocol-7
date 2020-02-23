@@ -11,10 +11,11 @@ my $title_pattern = $$call{'args'};
 my $reply_str;
 my @window_list;
 for my $win ( @{ <xserver.x11_tops>->sorted } ) {
-    $reply_str .= join( ' ', $win->id, $win->title ) . "\n"
+    my $window_title = <[base.utf8.sanitize]>->( $win->title // '' );
+    $reply_str .= join( ' ', $win->id, $window_title ) . "\n"
         if not defined $title_pattern
         or index( $win->instance, $title_pattern ) != -1
-        or index( $win->title,    $title_pattern ) != -1;
+        or index( $window_title,  $title_pattern ) != -1;
 }
 $reply_str //= '';
 return {
