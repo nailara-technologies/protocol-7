@@ -1,8 +1,8 @@
 # >:]
 
 # name  = nroot.agent.cmd.stop
-# param = <name(s)|instance(s)>
-# descr = (manually) shutdown agent instance(s)
+# param = <name[s]|instance[s]>
+# descr = [manually] shutdown agent instance[s]
 
 my $params = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected agent name or instance id' }
@@ -21,11 +21,11 @@ foreach my $param_str ( split / +/, $params ) {
     if ( $param_str =~ /^\d+$/ ) {    # instance id
         return {
             'mode' => 'nak',
-            'data' => "unknown agent instance '$param_str' (see 'list agents')"
+            'data' => "unknown agent instance '$param_str' [see 'list agents']"
             }
             if not exists <nroot.agent.instance>->{$param_str};
         push( @instance_ids, $param_str );
-    } else {                          # agent name ( LLL: validate syntax! )
+    } else {                          # agent name [ LLL: validate syntax ]
         my $agent_name = $param_str;
         my $agent_subname;
         $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
@@ -88,11 +88,10 @@ foreach my $name ( keys %shutdown_names ) {
             if $stop_mode eq 'manual';
 
         <[base.log]>->(
-            2, "disabled agent '$name' (no more instances present)"
+            2, "disabled agent '$name' [ no more instances present ]"
         );
-        <[base.log]>->(
-            1, ": <!> added '$name' to 'manually stopped' list <!>"
-        ) if $stop_mode eq 'manual';
+        <[base.log]>->( 1, ": << added '$name' to 'manually stopped' list >>" )
+            if $stop_mode eq 'manual';
 
         next if not exists <nroot.agent.dependency>;
         foreach my $dep_name ( keys %{<nroot.agent.dependency>} ) {
@@ -101,7 +100,7 @@ foreach my $name ( keys %shutdown_names ) {
                 delete <nroot.agent.dependency>->{$dep_name};
                 if ( exists <nroot.agent.auto_cleanup>->{$dep_name} ) {
                     <[base.log]>->(
-                        1, "dependency based auto-start cleanup [$dep_name]"
+                        1, "dependency based auto-start cleanup [ $dep_name ]"
                     );
                     <[agent.cmd.stop]>
                         ->( { 'args' => $dep_name, 'mode' => 'implicit' } );
@@ -117,7 +116,7 @@ map { <[agent.change_status]>->( $_, 'shutdown' ) } @instance_ids;
 
 return {
     'mode' => 'nak',
-    'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
+    'data' => "no agent '$failed_name' found in setup [ see 'list agents' ]"
     }
     if !$setup_found and $not_found;
 
