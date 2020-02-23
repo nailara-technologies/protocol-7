@@ -41,8 +41,8 @@ foreach my $c_type (@connection_types) {
         } else {
             $core_sock = undef;
         }
-    } elsif ( $c_type eq 'tcp/ip' ) {
-        $core_sock = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
+    } elsif ( $c_type eq 'ip.tcp' ) {
+        $core_sock = <[base.open]>->( 'ip.tcp', 'out', $core_addr, $core_port );
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
