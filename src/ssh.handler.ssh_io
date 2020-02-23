@@ -48,7 +48,7 @@ if ( !$connection->{'authorized'} ) {
         $connection->{'remote_user'} = $remote_user;
 
         # LLL: check status...
-        my $l_sock = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
+        my $l_sock = <[base.open]>->( 'ip.tcp', 'out', $core_addr, $core_port );
         if ( not defined $l_sock or !$l_sock->connected ) {
             <[base.log]>->( 0, ": : tcp connection to local core failed!" );
             return <[ssh.connection.stop]>->($con_id);

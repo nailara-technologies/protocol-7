@@ -13,7 +13,7 @@ $authname = <system.agent.auth_name> if exists <system.agent.auth_name>;
 
 <[base.log]>->( 1, "connecting to local core [$core_addr:$core_port] ..," );
 
-my $c_fh = <[base.open]>->( 'tcp/ip', 'out', $core_addr, $core_port );
+my $c_fh = <[base.open]>->( 'ip.tcp', 'out', $core_addr, $core_port );
 $c_fh = <[auth.agent.client]>->( $c_fh, $authname, $core_key );
 
 #[error(false)]
