@@ -14,7 +14,7 @@ apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter xnest nxagen
             libconvert-color-perl libio-stringy-perl libdigest-crc-perl \
             libdigest-jhash-perl libfont-freetype-perl libhttp-message-perl \
             libfile-mimeinfo-perl shared-mime-info libhttp-date-perl \
-            libdigest-elf-perl
+            libdigest-elf libyaml-libyaml-perl
 
 cpanm Glib::Event
 cpanm --force XML::RSS::Timing  # <- temporary forced [date_conv test fails] <!>
