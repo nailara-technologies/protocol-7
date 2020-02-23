@@ -20,7 +20,7 @@ apt-get -y install cpanminus git libevent-perl libproc-processtable-perl \
   liburi-perl libbsd-resource-perl libcryptx-perl libtest-exception-perl \
   libdigest-jhash-perl libdigest-elf-perl libhttp-date-perl libnet-dns-perl \
   libtest-requires-perl libtest-sharedfork-perl libhttp-message-perl \
-  libfile-which-perl &&
+  libfile-which-perl libyaml-libyaml-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
