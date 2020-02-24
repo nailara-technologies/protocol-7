@@ -240,7 +240,7 @@ sub prepare_subs {
             and $own_len <= $data{'system'}{'start'}{'log_prefix_width'} ) {
             my $dot_cnt
                 = $data{'system'}{'start'}{'log_prefix_width'} - $own_len + 2;
-            $data{'log'}{'dots'} = '.' x $dot_cnt;
+            $data{'history'}{'dots'} = '.' x $dot_cnt;
         }
 
         if (   $data{'system'}{'verbosity'}
@@ -681,7 +681,7 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} ) {
-            my $dot = defined $data{'log'}{'dots'} ? $data{'log'}{'dots'} : '.';
+            my $dot = defined $data{'history'}{'dots'} ? $data{'history'}{'dots'} : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $_
@@ -692,7 +692,7 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
-            my $dot = defined $data{'log'}{'dots'} ? $data{'log'}{'dots'} : '.';
+            my $dot = defined $data{'history'}{'dots'} ? $data{'history'}{'dots'} : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $ANSI{'bold'},
@@ -704,7 +704,7 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 2, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} > 1 ) {
-            my $dot = defined $data{'log'}{'dots'} ? $data{'log'}{'dots'} : '.';
+            my $dot = defined $data{'history'}{'dots'} ? $data{'history'}{'dots'} : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $_
