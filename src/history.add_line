@@ -1,6 +1,6 @@
 # >:]
 
-# name  = log.add_line
+# name  = history.add_line
 # descr = add a log entry to specified log file
 
 my ( $log_name, $log_msg_ref ) = @_;
@@ -48,7 +48,7 @@ if ( !<log.files>->{$log_name}->{'locked'} ) {
     <log.files>->{$log_name}->{'fh'}     = $log_fh;
     <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(
         {   'after'   => 1,
-            'handler' => 'log.handler.close_log',
+            'handler' => 'history.handler.close_log',
             'data'    => $log_name
         }
     );

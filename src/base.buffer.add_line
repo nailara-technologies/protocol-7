@@ -85,7 +85,7 @@ if ( exists $data{'buffer'}{$name}{'log_cmd'}
     and $data{'buffer'}{$name}{'log_cmd'} ne '' ) {
     my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
     <[base.log.send_buffer_line]>->( $name, $buffer_index )
-        if not exists $data{'log'}
+        if not exists $data{'history'}
         or not exists <log.file>
         or not exists <log.file>->{$name}
         or <log.file>->{$name}->{'complete'} == 1;

@@ -1,7 +1,7 @@
 
  .:[ nailara 'core' [ local routing ] agent ]:.
 
-buffer.agent.log_cmd = log.msg
+buffer.agent.log_cmd = history.append
 
 # change priority
 [base.renice:-13]
@@ -23,7 +23,7 @@ plugins.load                    =    plugin.auth
 auth.supported_methods          =    pwd agent unix C25519-TF
 # get.route                     =    file node_name.file :target:
 get.command                     =    file.get
-setup.aliases.source_agent_sid  =    log.msg nroot.report-temp-path
+setup.aliases.source_agent_sid  =    history.append nroot.report-temp-path
 setup.aliases.source_agent      =    notify.message layout.get_coordinates \
                                      layout.get_geometry nroot.teardown \
                                      layout.assign_window system.pid_autokill
