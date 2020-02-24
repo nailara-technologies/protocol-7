@@ -17,7 +17,7 @@ $volume = <mpv.current.volume> + sprintf( "%.3f", $volume )
     if $volume =~ /^[\-\+]/;
 $volume = 0 if $volume < 0;
 
-$speed //= <mpv.audio.fade_speed> //= 42;
+$speed //= <mpv.audio.fade_speed> //= 0.013;
 
 return { 'mode' => 'nak', 'data' => 'fade-speed is a float number [0..100]' }
     if $speed !~ /^\d+(\.\d+)?$/
