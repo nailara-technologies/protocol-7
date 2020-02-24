@@ -81,11 +81,11 @@ if ( $cmd =~ s/^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$/$2/go ) {
             or <system.internal_verbosity> >= 2 ) {
             <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" )
                 if ( $src_name ne 'core'
-                or $target_name ne 'log'
+                or $target_name ne 'history'
                 or $cmd ne 'msg'
                 or !<debug.skip_log_msg> )
                 and ( $target_name ne 'core'
-                or $cmd ne 'log.msg'
+                or $cmd ne 'history.append'
                 or !<debug.skip_log_msg> )
                 and ( $src_name ne 'nroot'
                 or ( $cmd ne 'heart' and substr( $cmd, -5, 5 ) ne '.heart' )

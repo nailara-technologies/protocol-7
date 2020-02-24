@@ -695,7 +695,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
         if ( !@send_sids ) {
             $$output .= $_cmd_id . "NAK command unknown\n";
-            my $l_lvl = $target_name eq 'log' ? 2 : 1;
+            my $l_lvl = $target_name eq 'history' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl,
                 "[$id] offline : '$target_name' : '$command_str' unroutable"
@@ -769,10 +769,10 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                     "[$id] $data{'session'}{$id}{'user'}"
                         . " -> $target_name > $cmd [ mode $command_mode ]"
                     )
-                    if ( $target_name ne 'log'
+                    if ( $target_name ne 'history'
                     or $cmd ne 'msg'
                     or !<debug.skip_log_msg> )
-                    and ( $cmd ne 'log.msg'
+                    and ( $cmd ne 'history.append'
                     or !<debug.skip_log_msg> )
                     and ( $usr ne 'nroot'
                     or $cmd ne 'heart'
