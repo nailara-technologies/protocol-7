@@ -1,6 +1,6 @@
 # >:]
 
-# name  = log.cmd.msg
+# name  = history.cmd.append
 # param = <log_line>
 # descr = write a log message to the named log file
 # todo  = implement buffered write [ instead of line by line ]
@@ -55,7 +55,7 @@ my $write_line = sprintf( "%s %7s %d %s\n",
     $log_time, $instance_id, $log_level, $log_message );
 
 my $msg_len = length($write_line);
-my ( $success, $err_msg ) = <[log.add_line]>->( $log_file, \$write_line );
+my ( $success, $err_msg ) = <[history.add_line]>->( $log_file, \$write_line );
 
 # success
 return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;

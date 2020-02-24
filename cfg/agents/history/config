@@ -1,18 +1,18 @@
 
- .:[ nailara 'log' (writer) agent ]:.
+ .:[ nailara 'history' [log-writer] agent ]:.
 
 [load_config_file:'shared-params']
 
 log.timestamp_mode = ntime # [ntime|unix|localtime]
 
-modules.load = auth net io.ip log
+modules.load = auth net io.ip history
 
 debug.subs = get since dump dump-env echo exec-sub list-subs \
              set del sleep keep-debug-loaded unload-dbg-mod
 
-access.cmd.usr.core = msg help heart reload cur-pid verify-instance list-logs \
-                      change-log-verbosity list show-buffer set-name-width \
-                      file-sizes <debug.subs>
+access.cmd.usr.core = append help heart reload cur-pid verify-instance \
+                      list-logs change-log-verbosity list clear-buffer \
+                      show-buffer set-name-width file-sizes <debug.subs>
 
 [load_modules:<modules.load>]
 [init_modules]
