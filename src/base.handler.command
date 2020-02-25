@@ -729,7 +729,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
         return 1 if !@send_sids_left;
         @send_sids = @send_sids_left if @send_sids_left != @send_sids;
 
-        # command (argument) filter hooks  ...
+        # command [argument] filter hooks  ..,
         my $cmd_hook_data = <[base.handler.cmd_filter_hooks]>->(
             {   'sid'      => $id,
                 'target'   => $target_name,
