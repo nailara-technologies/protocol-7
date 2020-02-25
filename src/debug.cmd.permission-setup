@@ -6,8 +6,15 @@
 
 my $param_str = $$call{'args'} // '';
 my $reply_str = '';
+my $param_re;
 
-my $param_re = qr|$param_str|i;
+eval { $param_re = qr|$param_str|i };
+if ( defined $@ ) { $@ =~ s| at .+\n?$||; $@ =~ s|;| \\\\ |g }
+return {
+    'mode' => 'nak',
+    'data' => "input pattern regex error [ $@ ] escape the pattern ?"
+    }
+    if $@ or not defined $param_re;
 
 if ( length($param_str) ) {
     $reply_str .= "\n#\n# ";
@@ -27,8 +34,14 @@ $cmd_len += 15;
 my $max_width   = 77;
 my $match_count = 0;
 
-foreach
-    my $usr ( sort { length $a <=> length $b } sort keys %{<access.cmd.usr>} ) {
+foreach my $usr (
+    sort { length <access.cmd.usr>->{$a} <=> length <access.cmd.usr>->{$b} }
+    sort {
+        split( / +/, <access.cmd.usr>->{$a} ) <=>
+            split( / +/, <access.cmd.usr>->{$b} )
+    }
+    sort { length $a <=> length $b } sort keys %{<access.cmd.usr>}
+) {
     next if $usr !~ $param_re and <access.cmd.usr>->{$usr} !~ $param_re;
     $match_count++;
     my @perms = sort { length $a <=> length $b } sort split / +/,
