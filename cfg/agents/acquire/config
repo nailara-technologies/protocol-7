@@ -1,0 +1,20 @@
+
+ .:[ generic file or data acquisition agent ]:.
+
+buffer.system.log_cmd = history.append
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.core = verify-instance help heart reload * # <- <<< ! >>>
+
+modules.load = net io.ip auth digest.bmw acquire debug
+
+[base.set_privs:'nailara']
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]
