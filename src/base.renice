@@ -8,7 +8,7 @@ my $rpid = shift // $$;
 die "base.renice: invalid priority '$prio' given!" if $prio !~ /^\-?\d{1,2}$/;
 die "base.renice: invalid pid '$rpid' given!"      if $rpid !~ /^\d+$/;
 
-<[base.log]>->( 1, "(PID $rpid) <- priority $prio" );
+<[base.log]>->( 1, "(PID $rpid) <-- priority $prio" );
 
 undef $!;
 $rpid = 0 if $rpid == $$;
