@@ -28,7 +28,7 @@ my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "$command_route.heart",
-        'call_args' => { 'session_id' => $root_sid },
+        'call_args' => { 'args' => 'nolatency', 'session_id' => $root_sid },
         'reply'     => {
             'handler' => 'nroot.handler.status_timer_response',
             'params'  => { 'instance_id' => $instance_id }

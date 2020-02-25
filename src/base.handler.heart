@@ -4,11 +4,11 @@
 
 my $params = shift;
 
-if ( ${ $params->{'args'} } eq 'latency' ) {
-
+if (   ref( $params->{'args'} ) ne 'SCALAR'
+    or not defined ${ $params->{'args'} }
+    or ${ $params->{'args'} } ne 'nolatency' ) {
     ${ $params->{'args'} } = '';
-    return <[base.time]>->(4);
-
+    return <[base.time]>->(5);
 } else {
     return undef;
 }
