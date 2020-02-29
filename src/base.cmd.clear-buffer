@@ -1,25 +1,23 @@
 # >:]
 
 # name  = base.cmd.clear-buffer
-# descr = erase log [memory] buffer content
-# param = <buffer-name>
+# descr = remove [in-memory] log buffer content
+# param = <name>
 
 my $param = $_[0];
 my $id    = $$param{'session_id'};
 my $name  = $$param{'args'};
 
-return { 'mode' => 'nak', 'data' => 'buffer name required' }
+return { 'mode' => 'nak', 'data' => 'buffer name expected' }
     if not defined $name;
 
 return { 'mode' => 'nak', 'data' => 'no such buffer' }
     if not defined $data{'buffer'}{$name};
 
-<[base.log]>->( 1, "[$id] <!> clearing log buffer '$name' <!>" );
-
 my $bytes = $data{'buffer'}{$name}{'size'};
+return { 'mode' => 'nak', 'data' => 'buffer was empty' } if !$bytes;
 
-return { 'mode' => 'nak', 'data' => 'buffer already empty' }
-    if !$bytes;
+<[base.log]>->( 1, "[$id] << clearing log buffer '$name' [ ${bytes} b ] >>" );
 
 undef @{ $data{'buffer'}{$name}{'data'} };
 $data{'buffer'}{$name}{'data'} = [];
@@ -27,4 +25,4 @@ $data{'buffer'}{$name}{'size'} = 0;
 <log.file>->{$name}->{'next_index'}  = 0;
 <log.file>->{$name}->{'start_index'} = 0;
 
-return { 'mode' => 'ack', 'data' => "buffer cleared [ $bytes bytes ]" };
+return { 'mode' => 'ack', 'data' => "buffer '$name' cleared [ $bytes bytes ]" };
