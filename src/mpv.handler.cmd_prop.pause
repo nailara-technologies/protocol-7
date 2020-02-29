@@ -20,7 +20,7 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 
     <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
 
-    return { 'mode' => 'later' };
+    return { 'mode' => 'deferred' };
 } elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
@@ -31,10 +31,10 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 } elsif ( $pause_mode eq 'resume' ) {
     <mpv.success_reply_str> = 'playback resumed';
     <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
-    return { 'mode' => 'later' };
+    return { 'mode' => 'deferred' };
 } elsif ( $pause_mode eq 'toggle' ) {
     <mpv.success_reply_str>
         = $pause_status eq 'yes' ? 'playback resumed' : 'playback paused';
     <[mpv.send_command]>->( 'cycle', 'pause' );
-    return { 'mode' => 'later' };
+    return { 'mode' => 'deferred' };
 }
