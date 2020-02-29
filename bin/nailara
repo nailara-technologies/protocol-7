@@ -578,13 +578,13 @@ sub prepare_subs {
                         $data{'base'}{'help'}{$section}{$command}{'descr'} = $1;
                     } else {
                         $data{'base'}{'help'}{$section}{$command}{'descr'}
-                            = 'n/a ("descr" header key not defined!)';
+                            = '<<< \'descr\' header key not defined >>>';
                     }
                 } else {
                     $data{'base'}{'modules'}{'load_errors'}++;
                     $code{'log.error'}->("!> broken command : $2");
                     $data{'base'}{'help'}{$section}{$command}{'descr'}
-                        = '! command broken !';
+                        = '<<< command did not compile properly >>>';
                 }
             }
         }
@@ -681,7 +681,10 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} ) {
-            my $dot = defined $data{'history'}{'dots'} ? $data{'history'}{'dots'} : '.';
+            my $dot
+                = defined $data{'history'}{'dots'}
+                ? $data{'history'}{'dots'}
+                : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $_
@@ -692,7 +695,10 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
-            my $dot = defined $data{'history'}{'dots'} ? $data{'history'}{'dots'} : '.';
+            my $dot
+                = defined $data{'history'}{'dots'}
+                ? $data{'history'}{'dots'}
+                : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $ANSI{'bold'},
@@ -704,7 +710,10 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 2, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} > 1 ) {
-            my $dot = defined $data{'history'}{'dots'} ? $data{'history'}{'dots'} : '.';
+            my $dot
+                = defined $data{'history'}{'dots'}
+                ? $data{'history'}{'dots'}
+                : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $_
