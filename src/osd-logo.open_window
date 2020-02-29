@@ -2,17 +2,14 @@
 
 # name = osd-logo.open_window
 
-use Gtk3;
-use Time::HiRes qw(sleep time);
-
 my $logo_path = <osd-logo.logo_path>;
 
 if ( !-f $logo_path ) {
-    <[base.log]>->( 0, "logo file '$logo_path' not found!" );
-    exit(2);
+    <[base.log]>->( 0, "<< logo file '$logo_path' not found >>" );
+    <[base.exit]>->(2);
 }
 
-<[base.log]>->( 2, "going to display '$logo_path'..." );
+<[base.log]>->( 1, ":: opening window .," );
 
 $ENV{'DISPLAY'} = <x11.display>;
 Gtk3->init;
@@ -139,4 +136,7 @@ $window->show_all;
     }
 );
 
+<[base.log]>->( 1, ":: gtk main loop ..," );
+
 Gtk3->main;
+<[base.exit]>->(1);    # <-- terminate [ X11 session gone., ]
