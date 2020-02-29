@@ -1,0 +1,19 @@
+# >:]
+
+# name  = config.chk_profile_dir
+
+my $root_path = <system.root_path>;
+my $chk_path  = <config.profile_dir>;
+
+die "<config.profile_dir> is not defined" if not defined $chk_path;
+
+if ( !-d $chk_path ) {
+    ( my $path_rel = $chk_path ) =~ s|^$root_path|.|;
+
+    <[base.log]>->( 1, "<< creating profile directory ['$path_rel'] >>" );
+
+    ## changing to parent directory ownership ##
+    ( my $uid, my $gid ) = [ stat(<system.conf_path>) ]->[ 4, 5 ];
+    make_path( $chk_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+        or warn "unable to create profile directory '$chk_path' [ $! ]";
+}
