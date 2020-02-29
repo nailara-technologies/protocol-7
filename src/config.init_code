@@ -13,7 +13,7 @@ my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
 
 my $dir_path = <system.local_config_dir>;
 if ( !-d $dir_path ) {
-    <[base.log]>->( 1, "<!> creating local nailara config dir [$dir_path]" );
+    <[base.log]>->( 1, "<< creating local nailara config dir [$dir_path] >>" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "unable to create local config directory '$dir_path' [$!]";
 }
@@ -27,5 +27,13 @@ map { <[base.disable_command]>->($_) } qw|
     create-profile
     install-profile
     | if <system.agent.name> ne 'config';
+
+if (not
+    exists $code{ sprintf( '%s.config.export_rules', <system.agent.name> ) } ) {
+    <[base.log]>->( 0, "no export rules defined, disabling config commands.," )
+        if <system.agent.name> ne 'config';
+    <[base.disable_command]>->('get-config-names');
+    <[base.disable_command]>->('get-config');
+}
 
 0;
