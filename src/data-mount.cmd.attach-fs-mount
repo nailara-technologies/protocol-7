@@ -1,0 +1,20 @@
+# >:]
+
+# name  = data-mount.cmd.path-attach
+# param = <path> <data-src>
+# descr = mount specified data source onto filesystem
+
+( my $mount_path, my $data_source ) = split( / /, $$call{'args'} // '', 2 );
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected <mount-path> and <data-source> arguments'
+    }
+    if not defined $mount_path or not defined $data_source;
+
+return { 'mode' => 'nak', 'data' => 'mount point does not exist' }
+    if !-d $mount_path;
+
+return { 'mode' => 'nak', 'data' => 'not implemented yet' };    # <<< ! >>>
+
+return { 'mode' => 'deferred' }
