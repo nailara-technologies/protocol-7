@@ -20,4 +20,4 @@ if ( $cmd_str !~ s/^\!// ) {
     <[mpv.send_command]>->( split / +/, $cmd_str, 2 ); # i.e. !show-text foo bar
 }
 
-return { 'mode' => 'later' };
+return { 'mode' => 'deferred' };
