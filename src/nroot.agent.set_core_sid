@@ -37,6 +37,8 @@ $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
     }
 );
 
+<[base.log]>->( 1, "[$instance_id] verifcation request <$core_sid>" );
+
 <[base.proto.nailara.command.send.local]>->(
     {   'command' => "$root_sid.$core_sid.verify-instance",
         'call_args' =>
