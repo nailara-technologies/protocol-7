@@ -477,7 +477,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
-                # prepare reply id (used in mode 'later')
+                # prepare reply id (used in mode 'deferred')
 
                 <base.cmd_reply> //= {};
                 my $reply_id = <[base.gen_id]>->(<base.cmd_reply>);
@@ -506,7 +506,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
 
                 # replying later...
 
-                if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'later' ) {
+                if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' ) {
 
                     <[base.log]>->( 2, "setting up reply for id $reply_id" );
 

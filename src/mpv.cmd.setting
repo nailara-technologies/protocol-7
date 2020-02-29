@@ -29,7 +29,7 @@ if ( !@target_values ) {
     );
     <[mpv.send_command]>->( 'get_property_string', $mpv_property );
 
-    return { 'mode' => 'later' };
+    return { 'mode' => 'deferred' };
 }
 
 my $val_str = join( ' ', @target_values );
@@ -95,4 +95,4 @@ my $value_str = join( ' ', @target_values );
 
 <[mpv.send_command]>->( 'set_property_string', $mpv_property, $value_str );
 
-return { 'mode' => 'later' };
+return { 'mode' => 'deferred' };
