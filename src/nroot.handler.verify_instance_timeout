@@ -5,16 +5,14 @@
 my $params      = shift->w->data;
 my $instance_id = $params->{'instance_id'};
 if ( not exists <nroot.agent.instance>->{$instance_id} ) {
-    <[base.log]>->(
-        2, "verify_instance_timeout: instance $instance_id no longer exists!"
-    );
+    <[base.log]>->( 2, "<verify_instance_timeout> gone instance $instance_id" );
     return;
 }
 my $instance   = <nroot.agent.instance>->{$instance_id};
 my $agent_name = $instance->{'agent_name'};
 
 <[base.log]>->(
-    0, "<!> instance $instance_id ('$agent_name') verification timeout <!>"
+    0, "<< instance $instance_id ('$agent_name') verification timeout >>"
 );
 
 <[agent.change_status]>->( $instance_id, 'error' );

@@ -14,7 +14,7 @@ if ( exists $data{'session'}{$local_sid}{'core_sid'} ) {
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
 
-<[base.log]>->( 2, "retrieving session id..." );
+<[base.log]>->( 2, "acquiring session id..," );
 <[net.out]>->( $core_fh, "($cmd_id)${route_str}whoami\n" );
 
 my $reply_string;
