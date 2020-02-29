@@ -1,20 +1,15 @@
 
- .:[ (X11, GTK3 based) 'osd-logo' display agent ]:.
-
-system.privs.user = nailara
-
-[set_privs:<system.privs.user>]
-
-buffer.agent.log_cmd = history.append
+ .:[ [ X11, GTK3 ] 'osd-logo' display agent ]:.
 
 [load_config_file:'shared-params']
+[set_privs:<system.privs.user>]
 
-access.cmd.usr.core = help heart verify-instance
+access.cmd.usr.core = help heart verify-instance clear-buffer show-buffer reload
 
-osd-logo.logo_size = 9.81 # % [ height ( of screen height ) ]
+osd-logo.logo_size = 9.81 # % [ relative to screen height ]
 
-# osd-logo.image_file = ...
-osd-logo.default_dir = /data/dibosys/media
+# osd-logo.image_file = ..,
+# osd-logo.default_dir = /usr/local/nailara/data/gfx/logos
 
 modules.preload = osd-logo.config config.json
 [load_modules:<modules.preload>]

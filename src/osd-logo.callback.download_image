@@ -12,7 +12,7 @@ if (    defined $logo_url
         if $logo_url !~ /^\// and -f $default_dir . '/' . $logo_url;
 }
 
-<[base.log]>->( 1, "<downloading> $logo_url ..." ) if !-f $logo_url;
+<[base.log]>->( 1, "<downloading> $logo_url ..," ) if !-f $logo_url;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.download.get_file',
