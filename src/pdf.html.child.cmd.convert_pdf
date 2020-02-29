@@ -45,7 +45,7 @@ if ( exists <pdf.html.conversions>->{$html_dir_name} ) {
         @{ <pdf.html.conversions>->{$html_dir_name}->{'reply_ids'} },
         $$call{'reply_id'}
     );
-    return { 'mode' => 'later' };
+    return { 'mode' => 'deferred' };
 }
 
 my $conversion_setup = {
@@ -64,4 +64,4 @@ my $conversion_setup = {
     repeat => 1
 ) if not exists <pdf.html.event.idle>;
 
-return { 'mode' => 'later' };
+return { 'mode' => 'deferred' };

@@ -44,7 +44,7 @@ if ( exists <image2html.conversions>->{$html_dir_name} ) {
         @{ <image2html.conversions>->{$html_dir_name}->{'reply_ids'} },
         $$call{'reply_id'}
     );
-    return { 'mode' => 'later' };
+    return { 'mode' => 'deferred' };
 }
 
 <[base.log]>->( 2, "converting '$image_path' .." );
@@ -65,4 +65,4 @@ my $conversion_setup = {
     repeat => 1
 ) if not exists <image2html.event.idle>;
 
-return { 'mode' => 'later' };
+return { 'mode' => 'deferred' };
