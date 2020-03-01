@@ -1,7 +1,5 @@
 
- .:[ 'ffmpeg' (video resize) agent ]:.
-
-buffer.agent.log_cmd = history.append
+ .:[ 'ffmpeg' [ video resizing ] agent ]:.
 
 [load_config_file:'shared-params']
 
@@ -26,7 +24,7 @@ ffmpeg.cfg.allow_slow_count = 1 # <- allow slow frame count method as fallback?
 [load_modules:<modules.load>]
 [init_modules]
 
-[set_privs:'nailara']
+set_privs:<system.privs.user>]
 
 [net.connect_to_core:'ip.tcp']
 

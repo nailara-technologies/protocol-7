@@ -1,15 +1,12 @@
 
-.:[ (X11) 'xpointer' agent ]:.
-
-buffer.agent.log_cmd = history.append
-
-[set_privs:'nailara']
+.:[ [X11] 'xpointer' agent ]:.
 
 [load_config_file:'shared-params']
+[set_privs:<system.privs.user>]
 
 modules.load = auth net io.ip xpointer
 
-access.cmd.usr.core = help verify-instance blank_cursor restore_cursor
+access.cmd.usr.core = help verify-instance blank_cursor restore_cursor reload
 
 [load_modules:<modules.load>]
 [init_modules]
