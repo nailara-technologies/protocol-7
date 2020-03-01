@@ -6,7 +6,7 @@ my $timer  = shift->w;
 my $window = <ticker-gtk.obj.window>;
 
 if ( not defined <ticker-gtk.time.fade_view> ) {
-    <[base.log]>->( 2, ":. fade-in started.." );
+    <[base.log]>->( 2, ":. fade-in started.," );
     <ticker-gtk.fade_opacity>   = 0;
     <ticker-gtk.time.fade_view> = <[base.time]>->(3);
 }
@@ -22,7 +22,7 @@ if (<ticker-gtk.is_composited>) {
 }
 
 if ( <ticker-gtk.fade_opacity> == 1 ) {
-    <[base.log]>->( 2, ":: fade-in complete" );
+    <[base.log]>->( 2, ":: fade-in complete." );
     delete <ticker-gtk.fade_opacity>;
     $timer->cancel;
 }
