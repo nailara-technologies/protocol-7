@@ -1,15 +1,12 @@
 
- .:[ 'nailara-logo' [menu] agent ]:.
-
-system.privs.user = nailara # <x11-user>
-
-[set_privs:<system.privs.user>]
-
-buffer.agent.log_cmd = history.append
+ .:[ 'nailara-logo' [ user-menu ] agent ]:.
 
 [load_config_file:'shared-params']
+[load_config_file:'x11-vars']
 
-access.cmd.usr.core = help heart verify-instance
+[set_privs:<x11.user>]  # LLL:  implement x11-user auto-discovery
+
+access.cmd.usr.core = help heart verify-instance reload
 
 modules.load = auth net io.ip nailara-logo
 [load_modules:<modules.load>]
