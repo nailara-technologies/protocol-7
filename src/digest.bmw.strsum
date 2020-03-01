@@ -1,0 +1,8 @@
+# >:]
+
+# name  = digest.bmw.strsum
+
+my $bmw = <[digest.bmw.ctx]>->(shift);
+die 'data parameter is undefined' if not defined $_[0];
+
+return encode_b32r( $bmw->add( shift // '' )->digest );

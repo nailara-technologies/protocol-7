@@ -3,7 +3,8 @@
 # name  = digest.bmw.ctx
 
 my $bits = shift || 512;
-die "invalid bit size [$bits] -> [ 224, 256, 384, 512 ]"
+$bits = substr( $bits, 0, 5 ) . '..,' if length($bits) > 7;
+die "invalid bit size ['$bits'] <-- [ valid : 224, 256, 384, 512 ]"
     if not exists <digest.bmw>->{$bits};
 
 <digest.bmw>->{$bits} //= Digest::BMW->new($bits); # <-- ondemand initialization

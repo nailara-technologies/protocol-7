@@ -729,7 +729,7 @@ sub prepare_subs {
             chomp( my @err = @_ );
             if ( $err[0] =~ /^Deep recursion / ) {
                 no warnings 'recursion';    # no followups!
-                my $msg = join( ' ', '((FATAL))', @err );
+                my $msg = join( ' ', '<< FATAL >>', @err );
                 undef $code{'base.log'} if $err[0] =~ /$0|nailara/;
                 $code{'log.error'}->($msg);
                 exit(2);
@@ -764,7 +764,7 @@ sub prepare_subs {
             $caller_str = "[ ... caller level $level too high ... ]"
                 if !length( $filename . $line );
             push( @err, $caller_str );
-            $code{'log.error'}->( join( ' ', '[[warn]]', @err ) );
+            $code{'log.error'}->( join( ' ', '<< warn >>', @err ) );
         }
     };
 
@@ -779,8 +779,8 @@ sub prepare_subs {
             } else {
                 $code{'base.log'}->(
                     0,
-                    "[!] referenced end_code callback " ..
-                        "'$callback_name' does not exist!"
+                    "<< ! >> referenced end_code callback "
+                        . "'$callback_name' does not exist. << ! >>"
                 );
             }
         }
