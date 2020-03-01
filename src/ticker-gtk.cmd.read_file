@@ -4,20 +4,27 @@
 # param = <path>
 # descr = update ticker from file
 
-my $file_path = $$call{'args'};
+my $file_path = $call->{'args'};
+my $sid       = $call->{'session_id'};
+my $err_msg;
+$err_msg = 'no read permission on file' if -f $file_path and !-r $file_path;
+$err_msg = 'no such file path exists'   if !-f $file_path;
 
-return { 'mode' => 'nak', 'data' => 'file not found' } if !-f $file_path;
+<[base.log]>->( 0, "[$sid] $err_msg [ $file_path ]" )
+    and return { 'mode' => 'nak', 'data' => $err_msg }
+    if defined $err_msg;
 
-<ticker-gtk.content.sha> //= '';
-my $new_sha = <[digest.sha.file_hex]>->($file_path);
+<ticker-gtk.content.chksum> //= '';
+my $content_chksum = <[digest.bmw.filesum]>->( 224, $file_path );
 
-if ( $new_sha eq <ticker-gtk.content.sha> ) {
-    <[base.log]>->( 2, "content unchanged, update skipped.." );
-    return { 'mode' => 'ack', 'data' => 'content unchanged' };
+if ( $content_chksum eq <ticker-gtk.content.chksum> ) {
+    <[base.log]>->( 2, "content unchanged, update skipped.," );
+    return { 'mode' => 'ack', 'data' => 'source content unchanged' };
 }
 
-<ticker-gtk.content.sha> = $new_sha;
-<ticker-gtk.content.txt> = ${ <[file.slurp]>->($file_path) };
+<ticker-gtk.content.chksum> = $content_chksum;
+<ticker-gtk.content.txt>    = ${ <[file.slurp]>->($file_path) };
+<ticker-gtk.content.len>    = length(<ticker-gtk.content.txt>);
 
 <ticker-gtk.content.txt> =~ s|\s+| |sg;
 <ticker-gtk.content.txt> =~ s,^ | $,,g;
@@ -26,8 +33,13 @@ if ( $new_sha eq <ticker-gtk.content.sha> ) {
 
 <ticker.current_file> = $file_path;
 
-<[base.log]>->( 2, "content updated [$new_sha]" );
+<[base.log]>->(
+    1,
+    sprintf( ": ticker text content updated [ %d bytes ]",
+        <ticker-gtk.content.len> )
+);
+<[base.log]>->( 2, "[ $content_chksum ]" );
 
 <[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
 
-return { 'mode' => 'ack', 'data' => 'content updated' }
+return { 'mode' => 'ack', 'data' => 'ticker display content updated' }

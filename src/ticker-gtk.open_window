@@ -2,7 +2,7 @@
 
 # name = ticker-gtk.open_window
 
-<[base.log]>->( 1, "opening ticker window.." );
+<[base.log]>->( 1, ": opening ticker window.," );
 
 $ENV{'DISPLAY'} = <x11.display>;
 Gtk3->init;
@@ -15,12 +15,12 @@ $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 
 if ( $window->is_composited ) {
     <ticker-gtk.is_composited> = 1;
-    <[base.log]>->( 1, "compositor detected.." );
+    <[base.log]>->( 1, ": : compositor detected =)" );
     $window->set_opacity(0)
         if <ticker-gtk.use_transparency> and <ticker-gtk.do_custom_fade_in>;
 } else {
     <ticker-gtk.is_composited> = 0;
-    <[base.log]>->( 1, "no compositor running.." );
+    <[base.log]>->( 1, ": : no compositor running :|" );
 }
 
 <x11.window.width>  = <x11.coordinates.right> - <x11.coordinates.left>;
