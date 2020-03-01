@@ -9,6 +9,7 @@ use FindBin qw($RealBin);
 my $version_seed = 42513;
 
 my $mode = ( @ARGV and $ARGV[0] eq '-m' ) ? 'msg_str' : 'rel_ver';
+if ( @ARGV and $ARGV[0] eq '-s' ) { $mode = 'set_tag'; shift @ARGV }
 
 my $u = File::Spec->updir;
 my $root_path
@@ -24,13 +25,21 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
         ( my $release_version
                 = sprintf( "%.3f", ( $commit * $year_float ) / $version_seed ) )
             =~ s|(\d)$|\.$1|;
+        my $tag_msg
+            = sprintf(
+            "<< release \\\\// nailara-v%s || source code \\\\// %s >>",
+            $release_version, $raw_str );
         if ( $mode eq 'rel_ver' ) {
             print STDOUT ":\n: calculated nailara release : ";
             print STDERR "v$release_version\n";
             print STDOUT ":\n";
-        } else {
-            printf "release version [ nailara-v%s ] // source code v.: %s\n",
-                $release_version, $raw_str;
+        } elsif ( $mode eq 'msg_str' ) {
+            print "'$tag_msg'\n";
+        } elsif ( $mode eq 'set_tag' ) {
+            print ":\n: setting release tag [ 'v$release_version' ]\n:\n::";
+            system( 'git', 'tag', "v$release_version", '-m', $tag_msg, @ARGV )
+                && die "::<<!>>:\n\n";
+            print ":\n\n";
         }
     } else {
         die "$version_file: $!\n";
