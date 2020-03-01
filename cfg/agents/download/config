@@ -1,7 +1,5 @@
 
- .:[ simple 'download' agent ]:.
-
-buffer.agent.log_cmd = history.append
+ .:[ rudimentary 'download' agent [ deperecated ] ]:.
 
 [load_config_file:'shared-params']
 
@@ -21,7 +19,7 @@ modules.load = auth net io.ip download config.json digest.md5
 [load_modules:<modules.load>]
 [init_modules]
 
-[set_privs:'nailara']
+[set_privs:<system.privs.user>]
 
 [net.connect_to_core:'ip.tcp']
 
