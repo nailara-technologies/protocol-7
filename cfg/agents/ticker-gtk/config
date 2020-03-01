@@ -1,12 +1,8 @@
 
   .:[ ticker-gtk agent ]:.
 
-[base.renice:-15]
-
-buffer.agent.log_cmd = history.append
-
 [load_config_file:'shared-params']
-
+[base.renice:-15]
 [set_privs:<system.privs.user>]
 
 access.cmd.usr.core = help heart reload verify-instance * *.*
@@ -29,10 +25,10 @@ ticker-gtk.use_transparency = 1 # set to '0' to disable fading / transp. backgr.
 ticker-gtk.cfg.max_gpu_load = 67 # GPU load target in auto_speed mode
 
 
-# ticker-gtk.bg_col   = FFFFFF
+# ticker-gtk.bg_col   = 000013
 # ticker-gtk.bg_alpha = 100 # [0..100] 0 == opaque, 100 == transparent
 
-modules.load = auth net io.ip ticker-gtk digest.sha
+modules.load = auth net io.ip digest.bmw ticker-gtk
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -45,4 +41,3 @@ ticker-gtk.subcfg = [base.x11.get_subconfig]
 [ticker-gtk.process_subcfg]
 
 [ticker-gtk.startup]
-

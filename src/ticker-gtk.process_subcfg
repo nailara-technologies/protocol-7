@@ -4,9 +4,10 @@
 
 <ticker-gtk.subcfg> //= {};
 
-<ticker-gtk.subcfg>->{'auto_speed'} //= 0;
+<[base.log]>->( 1, "processing layout tile subconfig..," )
+    if keys( %{<ticker-gtk.subcfg>} );
 
-<[base.log]>->( 1, "processing layout tile subconfig.." );
+<ticker-gtk.subcfg>->{'auto_speed'} //= 0;
 
 if ( <ticker-gtk.subcfg>->{'auto_speed'} ) {
     <[base.log]>->( 1, ": auto_speed enabled : [gpu load limit]" );
