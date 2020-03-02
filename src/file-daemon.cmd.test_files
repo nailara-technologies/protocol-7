@@ -9,7 +9,7 @@ my $index = 0;
 
 map {
     $reply_str .= sprintf( "[%d] ... %03d MB ... %s\n",
-        ++$index, [ stat($_) ]->[7] / 1024**2, $_ )
+        ++$index, File::stat::stat($_)->size / 1024**2, $_ )
 } @{<file-daemon.testfiles>};
 
 return {

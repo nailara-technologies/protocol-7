@@ -13,13 +13,13 @@ my $output_file = <rss.ticker.txt_data_path>;
 
 my $seperator = <rss.ticker.item_seperator>;
 
-<[base.log]>->( 2, "checking RSS feed for new data..." );
+<[base.log]>->( 2, "checking RSS feed for new data..," );
 
 my $response = <rss.browser>->get($rss_url);
 
 if ( $response->code == 200 ) {
     <rss.ticker.fail_warned> = 0;
-    <[base.log]>->( 2, ": got fresh RSS content..." );
+    <[base.log]>->( 2, ": received updated RSS content .," );
 
     my $response_content = $response->decoded_content( 'charset' => 'none' );
 
@@ -29,8 +29,8 @@ if ( $response->code == 200 ) {
         or $err_str = XML::Feed->errstr;
 
     if ( defined $err_str ) {
-        <[base.log]>->( 0, "[!] feed parser error [ $err_str ]" );
-        @txt_data = ("[!] rss feed parsing error [!]");
+        <[base.log]>->( 0, "<< feed parser error [ $err_str ] >>" );
+        @txt_data = ("<< RSS feed parsing error >>");
     } else {
         eval {
             foreach my $entry ( $feed->entries ) {
@@ -41,18 +41,18 @@ if ( $response->code == 200 ) {
 
     if ( !-d $data_dir ) {
         mkdir($data_dir)
-            or die "can't create rss data dir '$data_dir'! [$!]";
+            or die "cannot create rss data dir '$data_dir'! [ $! ]";
         chmod( 0700, $data_dir );
     }
 
     open( my $txt_fh, '>', $output_file . '.NEW' )
-        or die "can't write to TXT data file [$!]";
+        or die "cannot write to TXT data file [ $! ]";
     {
         print {$txt_fh} join( " $seperator ", @txt_data );
     }
     close($txt_fh);
     move( $output_file . '.NEW', $output_file )
-        or die "can't move '$output_file.NEW' to '$output_file' [$!]";
+        or die "cannot move '$output_file.NEW' to '$output_file' [ $! ]";
     <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
     <rss.browser>->commit;
     return 1;
@@ -65,17 +65,18 @@ if ( $response->code == 200 ) {
     <rss.ticker.fail_warned> //= 0;
     <[base.log]>->(
         0,
-        "unable to access RSS url '$rss_url' (" . $response->status_line . ")"
+        sprintf( "unable to access RSS url '$rss_url' [ %s ]",
+            $response->status_line )
     ) if !<rss.ticker.fail_warned>;
     <rss.ticker.fail_warned> = 1;
 
     if ( !-f $output_file ) {
-        <[base.log]>->( 0, "no cached data found for failed RSS feed!" );
+        <[base.log]>->( 0, "<< no cached data for not available RSS feed >>" );
         <rss.ticker.fail_retry_interval>
             //= <rss.ticker.fail_retry_min_interval>;
         <rss.ticker.update_timer>->cancel;
         <rss.ticker.update_timer> = <[event.add_timer]>->(
-            {   'after'  => 4.2,    # error retry (quickfix)
+            {   'after'  => 4.2,    # error retry [ quickfix ]
                 'repeat' => 1,
                 'interval' => <rss.ticker.update_interval> || 120,
                 'handler'  => 'rss.ticker.fetch_content',
@@ -88,18 +89,17 @@ if ( $response->code == 200 ) {
             > <rss.ticker.fail_retry_max_interval>;
         return -2;
     }
-    my ($dev,  $ino,   $mode,  $nlink, $uid,     $gid, $rdev,
-        $size, $atime, $mtime, $ctime, $blksize, $blocks
-    ) = stat($output_file);
-    my $file_age = sprintf( "%.2f", ( time() - $ctime ) / 3600 );
+
+    my $file_stat = File::stat::stat($output_file);
+    my $file_age  = sprintf( "%.2f", ( time() - $file_stat->ctime ) / 3600 );
     if ( $file_age >= <rss.ticker.cache_timeout> ) {
-        <[base.log]>->( 0, "local feed data has timed out ($file_age hours)" );
+        <[base.log]>->( 0, "local feed data has expired [ $file_age hours ]" );
         open( my $txt_fh, '>' . $output_file )
-            or die "can't open TXT data file for writing [$!]";
+            or die "can't open text data file for writing [ $! ]";
         close($txt_fh);
         return 1;    # update with empty file
     } else {
-        <[base.log]>->( 1, "keeping cached feed data ($file_age hours old)" );
+        <[base.log]>->( 1, "keeping cached feed data [ $file_age hours old ]" );
     }
     return -1;
 }

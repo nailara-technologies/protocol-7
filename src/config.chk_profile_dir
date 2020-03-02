@@ -13,7 +13,8 @@ if ( !-d $chk_path ) {
     <[base.log]>->( 1, "<< creating profile directory ['$path_rel'] >>" );
 
     ## changing to parent directory ownership ##
-    ( my $uid, my $gid ) = [ stat(<system.conf_path>) ]->[ 4, 5 ];
-    make_path( $chk_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+    my $cfg_stat = File::stat::stat(<system.conf_path>);
+    make_path( $chk_path,
+        { 'mode' => 0750, 'uid' => $cfg_stat->uid, 'group' => $cfg_stat->gid } )
         or warn "unable to create profile directory '$chk_path' [ $! ]";
 }
