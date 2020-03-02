@@ -60,9 +60,9 @@ if ( not defined $response or !$response->is_success ) {
 ( my $filename = $response->filename // 'index.html' ) =~ s|^.*/||g;
 $filename =~ s| +|_|g;
 my $target_path = "$target_dir/$filename";
-rename( $file_path, $target_path ) or die "rename failed: $!";
+rename( $file_path, $target_path ) or die "< rename > $!";
 
-my $bytes_downloaded = [ stat($target_path) ]->[7];
+my $bytes_downloaded = File::stat::stat($target_path)->size;
 <[base.log]>->( 1, "ok <$bytes_downloaded bytes> $url_md5u_hash" );
 
 return { 'mode' => 'ack', 'data' => $target_path };

@@ -15,13 +15,13 @@ if ( ref( $_[0] ) eq 'HASH' ) {
 }
 my $session         = $data{'session'}{$id};
 my $response_params = $session->{'response'}->{'params'};
-my $stat
+my $file_stat
     = ( defined $params and defined $params->{'stat'} and ref($params) )
     ? $params->{'stat'}
-    : [ stat($file_path) ];
+    : File::stat::stat($file_path);
 
-my $content_size = $stat->[7];
-my $content_date = time2str( $stat->[9] );
+my $content_size = $file_stat->size;
+my $content_date = time2str( $file_stat->mtime );
 my $server_date  = time2str(time);
 
 my $content_type = 'text/plain';
@@ -33,7 +33,7 @@ if ( $file_path =~ /\.htm(l)?$/i ) {
 }
 
 open( my $content_fh, '< :raw', $file_path )
-    or warn "<!> $file_path: $!";    # LLL: error handling...
+    or warn "<!> $file_path: $!";    # LLL: error handling..,
 local $/ = undef;
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
     200,

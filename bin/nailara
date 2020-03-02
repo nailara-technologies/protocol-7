@@ -624,7 +624,8 @@ sub prepare_subs {
         # log all used subroutines if $sub_touch_dir exist and is owned by root!
         my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
             // '/tmp/nailara_debug.sub_log';
-        if ( -d $sub_touch_dir and [ stat($sub_touch_dir) ]->[4] == 0 ) {
+        if ( -d $sub_touch_dir and File::stat::stat($sub_touch_dir)->uid == 0 )
+        {
             my $agent_name = $data{'system'}{'agent'}{'name'};
             my $actual_dir = "$sub_touch_dir/$agent_name";
             if ( !-d $actual_dir ) {
