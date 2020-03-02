@@ -7,4 +7,4 @@ my $path = shift;
 die "expected path parameter" if not defined $path or !length($path);
 die "'$path' not found" if !-e $path;
 
-return sprintf( "%#o", ( stat $path )[2] & 07777 );
+return sprintf( "%#o", File::stat::stat($path)->mode & 07777 );

@@ -38,7 +38,7 @@ if (    $link_target =~ /^\d{3}$/
 my $file_path;
 my $path_md5;
 
-# ...
+# ..,
 
 if ( defined $http_host and defined $link_target ) {
     <[base.log]>->(
@@ -59,12 +59,14 @@ if ( defined $http_host and defined $link_target ) {
 
         $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
 
-        my @stat          = stat($file_path);
-        my $content_inode = $stat[2];
-        my $content_size  = $stat[7];
-        my $content_date  = time2str( $stat[9] );
+        my $file_stat     = File::stat::stat($file_path);
+        my $content_inode = $file_stat->ino;
+        my $content_size  = $file_stat->size;
+        my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
-        my $file_etag     = <[digest.md5.b64u]>
+
+        # LLL: change etag encoding to bmw.b32.,
+        my $file_etag = <[digest.md5.b64u]>
             ->("$content_inode-$content_size-$content_date-$file_path");
         $response->{'params'}->{'ETag'} = $file_etag;
 

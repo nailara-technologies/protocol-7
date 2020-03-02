@@ -20,7 +20,7 @@ my $total = 0;
 map {
 
     ( my $file_name = $_ ) =~ s|^.+\/||;
-    $total += $file_size_raw{$file_name} = [ stat("$_") ]->[7];
+    $total += $file_size_raw{$file_name} = File::stat::stat($_)->size;
     $file_size_str{$file_name}
         = <[base.parser.human.fsize_fixed]>->( $file_size_raw{$file_name} );
     $file_size_uval{$file_name}

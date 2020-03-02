@@ -33,7 +33,7 @@ if ( <browser.slideshow.status> eq 'load' ) {
         );
     } elsif ( $load_url =~ m|^file://(/.+)$|
         and -f $1
-        and [ stat($1) ]->[7] == 12
+        and File::stat::stat($1)->size == 12
         and ${ <[file.slurp]>->($1) } eq "<!--SKIP-->\n" ) {
         <[base.log]>->(
             2,

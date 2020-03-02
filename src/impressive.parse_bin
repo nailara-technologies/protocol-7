@@ -34,9 +34,10 @@ $error_img = encode_b64u($error_img);
 
 $file_content =~ s|\\\n\s*||sg;
 
-if ([ stat($impr_src) ]->[7] == 244069  # check for problematic impressive vers.
-    and qx(sha1sum $impr_src) =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/
-    ) {                                 # v_0.11.0b
+# checking for problematic impressive version..,
+if ( File::stat::stat($impr_src)->size == 244069
+    and <[digest.sha.file_hex]>->($impr_src)
+    =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/ ) {    # v_0.11.0b
     <[base.log]>->(
         0, "<!> please update impressive version <!> [donwload_impressive.pl]"
     );
