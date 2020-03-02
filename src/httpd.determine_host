@@ -31,6 +31,8 @@ if ( defined $http_host ) {
             and $http_host =~ /\Q$1\E/;
     }
 
+    <[base.parser.ellipse_center]>->( \$http_host, 37 );
+
     if ( exists <httpd.cfg.hostnames>->{'default'} ) {
         <[base.log]>->(
             1, "[$id] no config for \"$http_host\", using 'default'"
@@ -38,12 +40,12 @@ if ( defined $http_host ) {
         return 'default';
     } else {
         <[base.log]>->(
-            0, "[$id] Host '$http_host' does not match any configured pattern!"
+            0, "[$id] Host '$http_host' does not match any configured pattern"
         );
         return undef;
     }
 
 } else {
-    <[base.log]>->( 0, "[$id] $http_method request without host parameter!" );
+    <[base.log]>->( 0, "[$id] $http_method request without host parameter.," );
     return undef;
 }
