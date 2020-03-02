@@ -1,21 +1,26 @@
 # >:]
 # name = httpd.request_handler
-# note : return 2 to close connection!
+# note : return 2 to close connection
 
 my $id          = $_[0]->w->data;
 my $session     = $data{'session'}{$id};
-my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length> || 1024 * 8 );
-my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 12 );
+my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length> || 1024 * 7 );
+my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 13 );
 
 if ( $session->{'buffer'}{'input'} =~ /^[^\r\n]{$max_uri_len}/ ) {
-    <[base.log]>->( 0, "[$id] maximum URI length ($max_uri_len) exceeded!" );
+    $max_uri_len--;
+    <[base.log]>->(
+        0, "[$id] maximum URI length [ $max_uri_len bytes ] exceeded.,"
+    );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 414 );
     return 2;    # Request-URI Too Long
 } elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
-    <[base.log]>    # Request Entity Too Large
-        ->( 0, "[$id] maximum Request length ($max_req_len) exceeded!" );
+    $max_req_len--;
+    <[base.log]>->(
+        0, "[$id] maximum Request length [ $max_req_len bytes ] exceeded."
+    );           # Request Entity Too Large
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 413 );
-    return 2;       # LLL: fix false positives!
+    return 2;    # LLL: fix false positives..,
 }
 
 my $peer_fh = $session->{'handle'};
