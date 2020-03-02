@@ -2,11 +2,11 @@
 
 # name = mpv.handler.scan_encoded_timer
 
-<[base.log]>->( 2, "checking reencoded file age..." );
+<[base.log]>->( 2, "checking reencoded file age..," );
 
 if ( not defined <mpv.rescale_path> or !-d <mpv.rescale_path> ) {
     <[base.log]>->(
-        2, "rescale_path not defined or doesn't exist, skipping age check.."
+        2, "rescale_path not defined or doesn't exist, skipping age check.,"
     );
     <mpv.timer.rescaled_check>->cancel;
     delete <mpv.timer.rescaled_check>;
@@ -22,12 +22,12 @@ foreach my $check_file (
     ( my $video_file = $check_file ) =~ s|\.last_seen$|.$file_extension|;
     if ( !-f $video_file ) {
         <[base.log]>->(
-            0, ": video file '$video_file' is missing, cleaning up.."
+            0, ": video file '$video_file' is missing, cleaning up.,"
         );
         unlink($check_file);
         next;
     }
-    my $file_size = [ stat($check_file) ]->[7];
+    my $file_size = File::stat::stat($check_file)->size;
     next if $file_size < 11 or $file_size > 17;
     chomp( my $tstamp = ${ <[file.slurp]>->($check_file) } );
     next if $tstamp !~ /^\d+$/;
@@ -40,13 +40,13 @@ foreach my $check_file (
             );
         } else {
             <[base.log]>->( 1, "[cleanup] $video_file" );
-            unlink($video_file) or warn "unable to delete '$video_file' [$!]";
+            unlink($video_file) or warn "unable to delete '$video_file' [ $! ]";
             unlink($check_file);
 
-            # LLL: check if parent dir is empty (and rmdir..)
+            # LLL: check if parent dir is empty [ + remove_path ]
         }
     } else {
-        <[base.log]>->( 2, ": [OK] : $video_file" );
+        <[base.log]>->( 2, "[keeping] $video_file" );
     }
 }
 

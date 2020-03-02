@@ -76,7 +76,7 @@ if ( defined $http_host and defined $link_target ) {
     $file_path =~ s|/$||;
 
     return <[httpd.error_page]>->( $id, 404 )
-        if $file_path =~ /\.tmpl$/ and -f $file_path; # *.tmpl files are masked!
+        if $file_path =~ /\.tmpl$/ and -f $file_path; # *.tmpl files are masked.
 
     if ( -d $file_path ) {
         $file_path .= '/index.html' if -f $file_path . '/index.html';
@@ -102,9 +102,9 @@ if ( defined $http_host and defined $link_target ) {
         return <[httpd.process_template]>->( $id, $file_path );
     }
 
-    $path_md5 = <[digest.md5.hex]>->($file_path);
+    $path_md5 = <[digest.md5.hex]>->($file_path);    # LLL: change to bmw.b32..,
 
-    if ( -f $file_path and !-r $file_path ) {   # LLL: cfg + deal with symlinks!
+    if ( -f $file_path and !-r $file_path ) {   # LLL: cfg + deal with symlinks.
         <[base.log]>->(
             0,
             "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
@@ -114,10 +114,10 @@ if ( defined $http_host and defined $link_target ) {
 
         $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
 
-        my @stat          = stat($file_path);
-        my $content_inode = $stat[2];
-        my $content_size  = $stat[7];
-        my $content_date  = time2str( $stat[9] );
+        my $file_stat     = File::stat::stat($file_path);
+        my $content_inode = $file_stat->ino;
+        my $content_size  = $file_stat->size;
+        my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
         # LLL: make inode inclusion configurable:
@@ -199,10 +199,10 @@ if ( defined $http_host and defined $link_target ) {
                 .= <[httpd.new_header]>->( $reply_code, $reply_header );
             return $session->{'http'}->{'close'} ? 2 : 0;
         } elsif ( $content_size <= 16 * 1024
-            and not exists $request->{'range'} ) {  # <- 'small' file, send now!
+            and not exists $request->{'range'} ) {  # <-- 'small' file, send now
             local $/ = undef;
             open( my $content_fh, '< :raw', $file_path )
-                or warn "<!> $file_path: $!";    # LLL: needs error handling...
+                or warn "<!> $file_path: $!";    # LLL: needs error handling..,
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header )
                 . <$content_fh>;
