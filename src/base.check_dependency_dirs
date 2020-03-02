@@ -26,7 +26,7 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
     my @dir_names = grep { !/^\,/ } readdir($dir_fh);
     close($dir_fh);
 
-    my $src_stat = [ stat($dep_dir) ];
+    my $src_stat = File::stat::stat($dep_dir);
 
     foreach my $sub_dir (@sub_dirs) {
         my $dir_path = "$dep_dir/$sub_dir";
@@ -36,12 +36,15 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
                 or warn "mkdir($dir_path) : $!";
         }
         next if !-d $dir_path;
-        my @stat = ( stat($dir_path) );
+
+        my $dir_stat = File::stat::stat($dir_path);
+
         ## chmod ##
-        chmod( 0775, $dir_path ) if $stat[2] != 0755;
-        if ( $stat[4] != $src_stat->[4] or $stat[5] != $gid ) {
+        chmod( 0775, $dir_path ) if $dir_stat->mode != 0755;
+        if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
             ## chown ##
-            chown( $src_stat->[4], $gid, $dir_path ) or warn "$dir_path : $!";
+            chown( $src_stat->uid, $gid, $dir_path )
+                or warn "$dir_path : $!";
         }
         ## placeholder ##
         my $placeholder_path = "$dir_path/.placeholder";
