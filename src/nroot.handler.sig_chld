@@ -23,8 +23,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     my $e_val     = $? >> 8;
     my $e_sig     = $? & 127;
     my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
-    $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 (((SEGFAULT)))|;
-    my $e_dmp = $? & 128 ? ' [with a core dump!]' : '';
+    $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
+    my $e_dmp = $? & 128 ? ' [ with core dump ]' : '';
     $log_level = 1 if $e_val;
     $log_level = 0 if $? & 128;
     my $agent_str = defined $agent_name ? "< $agent_name > " : '';
@@ -101,7 +101,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         } else {
             <[agent.change_status]>->( $instance_id, $next_status )
                 if $old_status ne $next_status;
-            <[nroot.init_respawn_timer]>->($instance_id);
+            <[nroot.init_respawn_timer]>->($instance_id)
+                if $next_status ne 'offline' and $next_status ne 'shutdown';
         }
     }
 }
