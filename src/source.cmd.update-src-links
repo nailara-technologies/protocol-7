@@ -1,0 +1,12 @@
+# >:]
+
+# name  = source.cmd.update-src-links
+# descr = update checksumed links in './src/subroutines'
+
+my $files_updated = 0;
+my $src_dir       = <source.code_path>;
+
+<[base.log]>->( 0, "no write permissions on '$src_dir' directory..," )
+    and return $files_updated
+    if !-w $src_dir;
+<[base.log]>->( 1, 'updating src directory..,' );
