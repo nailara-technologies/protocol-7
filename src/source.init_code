@@ -6,15 +6,24 @@
 
 <source.chksum_bitsize> //= 384;
 <source.code_path>      //= <system.code_path>;
+<source.sign_template>  //= '';
+
+# [ SRC SIGNATURE template: first line is decoration \ BMW-B32 \ C25519-B32 ] :.
+<source.sign_template> = << 'EOT';
+# ______________________________________________________________________________
+#\\_____________________________________________________________________________
+# \\ ____________________________________________________ \\// C25519-BASE-32 //
+#  \\// ___________________________________________________ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
+EOT
 
 <[source.acquire_checksums]>;
 
 0;
 
-# [ stub example \ BMW-B32 \ C25519-B32 ] :.
-
+# >> source code signature example << [ soon replaced with real ones ]
 # ______________________________________________________________________________
-#\\VX5FU772JFEIQZZZIIMF7BTO7GAKO3TM4I5JO43YJM76ES5IM7S6XR7DMLT6B6ULTAWJJUMSVLQHW
+#\\RPGZV3CQNKVKSCWUASY32RNGNUDHLOS6E4EJ6PB6FSOEVILEMKCHGOP2YK5DQSUXEIGCKIGMMEMH6
 # \\ MHU32HKMLZEYLJJB5CCJYVEC3XCBCCDAFRGXE4YGVMK6FGRNPIML \\// C25519-BASE-32 //
 #  \\// RP6F4QDKPWNMFDPQ6P2P4IZKKY4LC4A6RR3AAXBJBQTC66Z2SBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
