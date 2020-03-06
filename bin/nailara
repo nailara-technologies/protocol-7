@@ -206,7 +206,10 @@ sub prepare_subs {
             if ( $arg =~ /^-lpw=(\d{1,2})$/ ) {    # <- used by 'nroot' agent
                 $data{'system'}{'start'}{'log_prefix_width'} = $1;
             }
-            if ( $arg =~ /^-export-core-subs$/ ) {
+            if ( $arg eq '-use-http-src' ) {
+                $data{'system'}{'use_http_source'} = 1;
+            }
+            if ( $arg eq '-export-core-subs' ) {
                 $code{'dump_core_subs'}->();
                 exit(0);
             }
@@ -338,6 +341,84 @@ sub prepare_subs {
         return @code_files;
     };
 
+    $code{'base.chk_nlr_path'} = sub {
+        my $chk_path = shift // '';
+        my $d_aref   = shift // [qw| ext/ / |];
+        my $base_dir = shift // $data{'system'}{'root_path'} // '';
+        die "no base_dir defined"                   if !length($base_dir);
+        die "chk_path argument expected"            if !length($chk_path);
+        die "expected array ref as second argument" if ref($d_aref) ne 'ARRAY';
+        foreach my $chk_parent ( @{$d_aref} ) {
+            my $f_path
+                = abs_path(
+                catfile( catfile( $base_dir, $chk_parent ), $chk_path ) );
+            ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
+            return $path_str if defined $f_path and -r $f_path;
+        }
+        warn "<< nailara source not found : '$chk_path' >> <{C1}>";
+        return undef;
+    };
+
+    $code{'base.httpc.remote_file'} = sub {
+        return undef if !( $data{'system'}{'use_http_source'} // 1 );
+        my $http_retries = $data{'system'}{'http_src_retries'} // 4;
+        eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
+        $@ =~ s| ?\(\@INC contains:.+\n?$|| if $@;
+        warn "<< 'HTTP::Tiny' pmod. not found [ yet in corelist ] [ $@ ] >>"
+            and return undef
+            if $@;
+        $data{'system'}{'http_reqs'}++;
+        my $file_name = shift // '';
+        my $base_urls = shift // ['http://src.nailara.net/'];
+        warn "expected http file name" and return undef
+            if !length($file_name);
+        warn "expected array ref to base urls" and return undef
+            if ref($base_urls) ne 'ARRAY' or !@{$base_urls};
+        ####
+        $code{'log.debug'}->(".:: $file_name .,");
+        foreach my $http_base_url ( @{$base_urls} ) {
+            my $abs_url = join( '/', $http_base_url, $file_name );
+            $abs_url =~ s|//$file_name$|/$file_name|;
+            my $h_res;
+            my $retries      = $data{'system'}{'http_retries_total'} //= 0;
+            my $retries_left = $http_retries;
+            while ( $retries_left-- ) {
+                my $r = $retries ? "[$retries\\$http_retries]" : '';
+                $code{'log.debug'}->(":$r: $abs_url ..,");
+                $h_res = HTTP::Tiny->new->get($abs_url);
+                my $h_code = $h_res->{'status'};
+                if ( not $h_res->{'success'} ) {
+                    my $r_str = $@ ? " < $@ >" : '';
+                    $code{'log.debug'}->(
+                        sprintf(
+                            ":[ %d ] %s : [ %s ]%s",
+                            $h_code, $abs_url, $h_res->{'reason'}, $r_str
+                        )
+                    );
+                    if ( $h_code == 404 or $h_code eq 599 ) {
+                        $retries_left = 0;
+                        $code{'log.noerr'}->( ":: aborting retries ["
+                                . " after first $h_code code ] ::" );
+                        return undef;
+                    } else {    ## client side rate limiting ##
+                        $code{'base.sleep'}->(
+                            0.13 + rand(
+                                0.777 * ++$data{'system'}{'http_retries_total'}
+                            )
+                        );
+                    }
+                    next;
+                }
+                if ( $h_code == 200 and length $h_res->{'content'} ) {
+                    return $h_res->{'content'};
+                } else {
+                    warn "<< failed to acquire http file '$file_name' >>";
+                    return undef;
+                }
+            }
+        }
+    };
+
     $code{'base.load_code'} = sub {
         my ( $file, $code_name );
 
@@ -345,15 +426,53 @@ sub prepare_subs {
 
         $data{'callbacks'}{'end_code'} //= [];
 
-        map      { $data{'plugins'}{'status'}{$_}{'load_errors'} = 0 }
+        map      { $code{'plugins.status'}->{$_}->{'load_errors'} = 0 }
             grep {/^plugin\./} @src_names;
 
-        my @code_files = $code{'base.code.file_list'}->();
+        ## http source ### ..,/.v7/file-list
+        my $base_url_aref = $data{'system'}{'http_src_base_urls'};
+        my @http_src_base_urls
+            = ref($base_url_aref) eq 'ARRAY'
+            ? @{$base_url_aref}
+            : qw| http://src.nailara.net/ http://src.v7.ax/nailara/ |;
 
+        my @code_files;
+
+        my $src_from_http = (
+            ( $data{'system'}{'use_http_source'} // 0 )
+                or !-r $data{'system'}{'code_path'}
+                and not( $data{'system'}{'no_http_source'} // 0 )
+        ) ? 1 : 0;
+
+        if ($src_from_http) {
+            $code{'log.error'}->("<<< reading source from network enabled >>>");
+            ##### remote source code access ###
+            my $method = $1 if $http_src_base_urls[0] =~ m|^(\w+):|;
+            $code{'log.debug'}->(": reading source file list over $method ..,");
+            my $remote_data_str
+                = $code{'base.httpc.remote_file'}
+                ->( '.v7/file-list/base', \@http_src_base_urls );
+            if ( defined $remote_data_str ) {
+                my $read_len = length($remote_data_str);
+                @code_files = split( /\n/, $remote_data_str );
+            } else {
+                $code{'log.error'}
+                    ->(": no success reading remote source file list .,");
+                $code{'log.noerr'}->(": :");
+                $code{'log.error'}->(": :. terminating startup sequence..,");
+                $code{'log.noerr'}->(':....,');
+                if   ( defined $code{'base.exit'} ) { $code{'base.exit'}->(1) }
+                else                                { exit(1) }
+            }
+            ####
+        } else {
+            $code{'log.debug'}->(": reading source file list from disk.,");
+            @code_files = $code{'base.code.file_list'}->();
+        }
         $| = 1;
         my @compile_them = ();
         while ( $code_name = shift @src_names ) {
-            my $src_str = $code_name =~ /^plugin./ ? '' : ' source';
+            my $src_str = $code_name =~ /^(.+\/)?plugin./ ? '' : ' source';
             $code{'log.noerr'}->(": loading$src_str '$code_name'");
 
             if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
@@ -370,16 +489,38 @@ sub prepare_subs {
                     if exists $data{'base'}{'modules'}{'moved_to'};
             }
             foreach my $file_name (@code_files) {
-                if (    -f $data{'system'}{'code_path'} . '/' . $file_name
-                    and $file_name =~ /^$code_name\.|^$code_name$/
+                next if not defined $file_name or !length($file_name);
+                ## todo : reconcile with code_path ##
+                my $src_abs_path;
+                my $src_rel = $code{'base.chk_nlr_path'}->("src/$file_name");
+                $src_abs_path
+                    = abs_path(
+                    catfile( $data{'system'}{'root_path'}, $src_rel ) )
+                    if defined $src_rel;
+                if (    defined $src_abs_path
+                    and -f $src_abs_path
+                    and $src_abs_path =~ m|/$code_name(\..+)?$|
                     and $file_name !~ /^\.|~$|\.orig$|\.LOG$/ ) {
                     $code_count++;
                     local $/ = undef;
-                    open( $file, '<',
-                        catfile( $data{'system'}{'code_path'}, $file_name ) )
-                        or die $!;
 
-                    $data{'code'}{$file_name}{'source'} = <$file>;
+                    if ( $src_from_http
+                        or !-r $src_abs_path
+                        and !( $data{'system'}{'no_http_source'} // 0 ) ) {
+                        #### read src from network [ more methods to come ] ####
+                        $code{'log.debug'}->(":[http]: $src_rel .,");
+                        $data{'code'}{$file_name}{'source'}
+                            = $code{'base.httpc.remote_file'}
+                            ->( $src_rel, \@http_src_base_urls );
+                        ####
+                    } else {
+                        ## loading code from disk [ including ext/ directory ]
+                        $code{'log.debug'}->(":[disk]: $src_rel .,");
+                        open( my $src_fh, '<', $src_abs_path )
+                            or die ":$src_abs_path : $!";
+                        $data{'code'}{$file_name}{'source'} = <$src_fh>;
+                        close($src_fh);
+                    }
 
                     # <[sub_name]>->(  -->  $code{'sub_name'}->(
                     my $orig_len
@@ -405,7 +546,6 @@ sub prepare_subs {
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)(?<!\\)>
                             |my $k="\$data{'$1'}";$k=~s/\./'}{'/g;$k|gexo;
-                    close($file);
                     $/ = "\n";
                     if (length( $data{'code'}{$file_name}{'source'} )
                         > $orig_len and $data{'system'}{'verbosity'} > 3 ) {
@@ -417,7 +557,7 @@ sub prepare_subs {
                     }
                     push( @compile_them, $file_name );
                 } elsif ( $file_name =~ /\.orig$/ ) {
-                    $code{'log.error'}->("[invalid/remove!] $file_name");
+                    $code{'log.error'}->("[invalid/remove.,] $file_name");
                 }
             }
             if ( !$code_count ) {
@@ -433,7 +573,7 @@ sub prepare_subs {
         my $mod_count = scalar @compile_them;
         return if !$mod_count and !@src_names;
         next   if !$mod_count;
-
+        my $src_bytes_total = 0;
         $code{'log.debug'}->(": compiling ...");
         my ( $ok_count, $err_count ) = ( 0, 0 );
 
@@ -443,7 +583,6 @@ sub prepare_subs {
             and ref( $data{'disabled_commands'} ) eq 'ARRAY';
 
         foreach my $sub_name ( sort(@compile_them) ) {
-
             local $SIG{'__WARN__'} = 'IGNORE';
             local $SIG{'__DIE__'}  = 'IGNORE';
 
@@ -519,15 +658,19 @@ sub prepare_subs {
             ## compiling subroutine ###
             ##                      ###
 
-            open( my $std_err, ">&", \*STDERR ) or warn "can not dup [STDERR]";
-            open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # <- silencing..
+            open( my $std_err, ">&", \*STDERR )
+                or warn "can not dup [STDERR]";
+            open STDERR, '>>/dev/null'
+                or warn "/dev/null: $!";    # <- silencing..
 
+            $src_bytes_total += length($sub_code);
             my $compilation_success
                 = ( $code{$sub_name} = eval($sub_code)
                     and ref( $code{$sub_name} ) eq 'CODE' )
                 ? 1
                 : 0;
-            open( STDERR, ">&$std_err" ) or warn "can not dup [OERR]"; # restore
+            open( STDERR, ">&$std_err" )
+                or warn "can not dup [OERR]";    # restore
 
             if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
@@ -544,7 +687,8 @@ sub prepare_subs {
                             ->("< ! > - [ broken cmd sub '$sub_name' called ]");
                         return {
                             'mode' => 'nak',
-                            'data' => "$1 command is broken <!> see startup log"
+                            'data' =>
+                                "$1 command is broken <!> see startup log"
                             }
                             if $sub_name =~ /\.cmd\.(.+)$/;
                     }
@@ -573,10 +717,12 @@ sub prepare_subs {
                 my $command = $2;
                 if ( $data{'code'}{$sub_name}{'status'} eq 'no-err' ) {
                     if ( $sub_code =~ /\#\s*param\s*=\s*(.+)/ ) {
-                        $data{'base'}{'help'}{$section}{$command}{'param'} = $1;
+                        $data{'base'}{'help'}{$section}{$command}{'param'}
+                            = $1;
                     }
                     if ( $sub_code =~ /\#\s*descr\s*=\s*(.+)/ ) {
-                        $data{'base'}{'help'}{$section}{$command}{'descr'} = $1;
+                        $data{'base'}{'help'}{$section}{$command}{'descr'}
+                            = $1;
                     } else {
                         $data{'base'}{'help'}{$section}{$command}{'descr'}
                             = '<<< \'descr\' header key not defined >>>';
@@ -598,12 +744,20 @@ sub prepare_subs {
             $code{'log.error'}
                 ->(": success on $ok_count sub$s, $err_count broken., `:|");
         } else {
-            $code{'log.noerr'}->(": $ok_count sub$s., no errors.., =)");
+            $src_bytes_total = sprintf( "%.2f", $src_bytes_total / 1024 );
+            $src_bytes_total =~ s|\.?0+$||;
+            $code{'log.noerr'}->(
+                sprintf(
+                    ": %d sub%s., %dK src., no errors.., =)",
+                    $ok_count, $s, $src_bytes_total
+                )
+            );
         }
         if ( defined $code{'base.buffer.add_line'}
             and not defined $data{'buffer'}{'agent'} ) {
             $data{'buffer'}{'agent'}{'max_size'} //= 131072;    # 128K
-            my $seperator_len = 18 + length( $data{'system'}{'agent'}{'name'} );
+            my $seperator_len
+                = 18 + length( $data{'system'}{'agent'}{'name'} );
             map { $code{'base.buffer.add_line'}->( 'agent', $_ ) } (
                 join( ' ', $code{'base.ntime'}->(3), 1, '_' x $seperator_len ),
                 $code{'base.ntime'}->(3)
@@ -624,8 +778,8 @@ sub prepare_subs {
         # log all used subroutines if $sub_touch_dir exist and is owned by root!
         my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
             // '/tmp/nailara_debug.sub_log';
-        if ( -d $sub_touch_dir and File::stat::stat($sub_touch_dir)->uid == 0 )
-        {
+        if ( -d $sub_touch_dir
+            and File::stat::stat($sub_touch_dir)->uid == 0 ) {
             my $agent_name = $data{'system'}{'agent'}{'name'};
             my $actual_dir = "$sub_touch_dir/$agent_name";
             if ( !-d $actual_dir ) {
@@ -703,7 +857,8 @@ sub prepare_subs {
                 : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
-                    $dot, $data{'system'}{'agent'}{'name'}, '.', $ANSI{'bold'},
+                    $dot, $data{'system'}{'agent'}{'name'}, '.',
+                    $ANSI{'bold'},
                     $_, $ANSI{'normal'}
             } @_;
         }
