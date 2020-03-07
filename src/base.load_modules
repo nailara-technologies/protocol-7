@@ -16,7 +16,7 @@ if ( not scalar @modules_to_load ) {
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
 
 if ( not defined $subs_ok or !$subs_ok ) {
-    <[base.log]>->( 1, 'base.load_modules: no source was loaded ..' );
+    <[base.log]>->( 1, 'base.load_modules: no source was loaded .,' );
     return 1;
 }
 return $subs_failed;
