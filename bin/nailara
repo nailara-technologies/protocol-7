@@ -487,19 +487,18 @@ sub prepare_subs {
         ## ignored ##
         return 0
             if !length($src_file_rel)
-            or $src_file_rel =~ /~$|\.orig$|\.LOG$/;
+            or $src_file_rel =~ m,~$|\.orig$|\.LOG$,;
         ## remote ##
         return 1
             if $data{'system'}{'use_http_source'}
             and exists $src_remote->{$src_file_rel};
         ## local ##
-        my $src_abs_path = abs_path($src_file_rel);
+        my $src_abs_path = abs_path(
+            catfile( $data{'system'}{'root_path'}, $src_file_rel ) );
         return 1
             if defined $src_abs_path
             and -f $src_abs_path;
-
-        $code{'log.debug'}->("< no-match > $src_file_rel");
-
+        warn "<< no match : $src_abs_path >> <{C1}>";
         return 0;    # <-- no match.
     };
 
@@ -560,9 +559,11 @@ sub prepare_subs {
                 }
             }
             ####
-        } elsif (@code_files) {
-            $code{'log.debug'}->(": reading source file list from disk.,");
+        } else {
+            $code{'log.debug'}->(": reading source list from disk.,");
             @code_files = $code{'base.code.file_list'}->();
+            my $file_cnt = scalar @code_files;
+            $code{'log.debug'}->(": :. $file_cnt files. [src]");
         }
         $| = 1;
         my @compile_them = ();
@@ -583,6 +584,7 @@ sub prepare_subs {
                 delete $data{'base'}{'modules'}{'moved_to'}{$internal_name}
                     if exists $data{'base'}{'modules'}{'moved_to'};
             }
+
             foreach my $file_name (@code_files) {
                 next if not defined $file_name or !length($file_name);
                 ## todo : reconcile with code_path ##
@@ -596,7 +598,7 @@ sub prepare_subs {
                     catfile( $data{'system'}{'root_path'}, $src_rel ) )
                     if defined $src_rel;
 
-                if (    $src_rel =~ m|/$code_name(\..+)?$|
+                if (    $src_rel =~ m|^(.*/)?$code_name(\..+)?$|
                     and $code{'base.source_path_valid'}->($src_rel) ) {
                     $code_count++;
                     local $/ = undef;
@@ -659,7 +661,8 @@ sub prepare_subs {
                     $code{'log.error'}->("[invalid/remove.,] $file_name");
                 }
             }
-            if ( $data{'system'}{'verbosity'} == 1
+            if (    $data{'system'}{'verbosity'} == 1
+                and !$data{'system'}{'use_http_source'}
                 and exists $data{'base'}{'httpc'}{'last_len_mstr'} ) {
                 my $last_mlen = delete $data{'base'}{'httpc'}{'last_len_mstr'};
                 $last_mlen += 92;
@@ -671,7 +674,7 @@ sub prepare_subs {
             }
             if ( !$code_count ) {
                 $code{'log.error'}
-                    ->(": failed to load module '$code_name' \t[ not found ]");
+                    ->(": no success loading src '$code_name' \t[ not found ]");
                 $data{'base'}{'modules'}{'load_errors'}++;
             } elsif ( $code_count > $last_code_count ) {
                 $data{'system'}{'subs_loaded'}{$code_name}
@@ -1027,7 +1030,7 @@ sub prepare_subs {
             }
 
             my $caller_str = "[ $filename, $line ]";
-            $caller_str = "[ ... caller level $level too high ... ]"
+            $caller_str = "[ ... caller level $level too high .., ]"
                 if !length( $filename . $line );
             push( @err, $caller_str );
             $code{'log.error'}->( join( ' ', '<< warn >>', @err ) );
