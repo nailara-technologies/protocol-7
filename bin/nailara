@@ -327,6 +327,24 @@ sub prepare_subs {
         return $purge_count;
     };
 
+    $code{'base.parser.ellipse_center'} = sub {
+        my $str_param = shift;
+        my $len_param = shift;
+        die "expected string and maximum length [>=5] parameters"
+            if not defined $str_param
+            or not defined $len_param
+            or $len_param =~ m|^\d+$| and $len_param < 5;
+        my $by_reference = ref($str_param) eq 'SCALAR' ? 1 : 0;
+        my $str_ref = $by_reference ? $str_param : \$str_param;
+        my $str_len = length($$str_ref);
+        return 0 if $by_reference and $str_len <= $len_param;
+        return $str_param if $str_len <= $len_param;
+        my $start_pos = int( $len_param / 2 ) - 1;
+        my $chars_cut = $str_len - $len_param + 3;
+        substr( $$str_ref, $start_pos, $chars_cut, '.,.' );
+        return $str_len - $len_param if $by_reference;
+        return $$str_ref;
+    };
     $code{'base.code.file_list'} = sub {
         my $codedir_fh;
         $data{'base'}{'modules'}{'load_errors'} //= 0;
@@ -339,24 +357,6 @@ sub prepare_subs {
         my @code_files = grep { !/^\./ } readdir($codedir_fh);
         closedir($codedir_fh);
         return @code_files;
-    };
-
-    $code{'base.chk_nlr_path'} = sub {
-        my $chk_path = shift // '';
-        my $d_aref   = shift // [qw| ext/ / |];
-        my $base_dir = shift // $data{'system'}{'root_path'} // '';
-        die "no base_dir defined"                   if !length($base_dir);
-        die "chk_path argument expected"            if !length($chk_path);
-        die "expected array ref as second argument" if ref($d_aref) ne 'ARRAY';
-        foreach my $chk_parent ( @{$d_aref} ) {
-            my $f_path
-                = abs_path(
-                catfile( catfile( $base_dir, $chk_parent ), $chk_path ) );
-            ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
-            return $path_str if defined $f_path and -r $f_path;
-        }
-        warn "<< nailara source not found : '$chk_path' >> <{C1}>";
-        return undef;
     };
 
     $code{'base.httpc.remote_file'} = sub {
@@ -375,7 +375,8 @@ sub prepare_subs {
         warn "expected array ref to base urls" and return undef
             if ref($base_urls) ne 'ARRAY' or !@{$base_urls};
         ####
-        $code{'log.debug'}->(".:: $file_name .,");
+        # $code{'log.debug'}->(": $file_name .,");
+        $| = 1;
         foreach my $http_base_url ( @{$base_urls} ) {
             my $abs_url = join( '/', $http_base_url, $file_name );
             $abs_url =~ s|//$file_name$|/$file_name|;
@@ -384,17 +385,49 @@ sub prepare_subs {
             my $retries_left = $http_retries;
             while ( $retries_left-- ) {
                 my $r = $retries ? "[$retries\\$http_retries]" : '';
-                $code{'log.debug'}->(":$r: $abs_url ..,");
-                $h_res = HTTP::Tiny->new->get($abs_url);
+                ( my $msg_url = $abs_url ) =~ s|^(\w+)://|<$1> |;
+                my $len
+                    = length( $data{'system'}{'agent'}{'name'} )
+                    + length( $data{'system'}{'host'}{'hostname'} // '' );
+                $len = 26 if $len < 27;
+
+                my $w_len
+                    = 94 - $len
+                    - (
+                          length( $data{'system'}{'node'}{'name'} )
+                        + length( $data{'system'}{'agent'}{'name'} ) );
+
+                $code{'base.parser.ellipse_center'}->( \$msg_url, $w_len )
+                    if defined $msg_url;
+
+                $msg_url =~ s| | : |;
+                my $last_len = $data{'base'}{'httpc'}{'last_mlen'} //= 0;
+                my $m_len    = length($msg_url);
+                my $s_len    = $last_len > $m_len ? $last_len - $m_len : 13;
+                my $s        = ' ' x $s_len;
+                my $m_str    = ": $msg_url ..,$s";
+                $data{'base'}{'httpc'}{'last_len_mstr'} = length($m_str);
+
+                print "\r$m_str\r" if $data{'system'}{'verbosity'} == 1;
+                $data{'base'}{'httpc'}{'last_mlen'} = $m_len
+                    if $m_len != $data{'base'}{'httpc'}{'last_mlen'};
+                $code{'log.debug'}->(":$r: $msg_url")
+                    if $retries_left != $retries;
+                my $h_obj = $data{'base'}{'httpc'}{'obj'}
+                    //= HTTP::Tiny->new( 'timeout' => 7 );
+                $h_res = $h_obj->get($abs_url);
                 my $h_code = $h_res->{'status'};
+
                 if ( not $h_res->{'success'} ) {
                     my $r_str = $@ ? " < $@ >" : '';
+                    goto skiplog_httpmsg;
                     $code{'log.debug'}->(
                         sprintf(
                             ":[ %d ] %s : [ %s ]%s",
                             $h_code, $abs_url, $h_res->{'reason'}, $r_str
                         )
                     );
+                skiplog_httpmsg:
                     if ( $h_code == 404 or $h_code eq 599 ) {
                         $retries_left = 0;
                         $code{'log.noerr'}->( ":: aborting retries ["
@@ -417,6 +450,57 @@ sub prepare_subs {
                 }
             }
         }
+        $| = 0;
+    };
+
+    $code{'base.chk_nlr_path'} = sub {
+        my $chk_path = shift // '';
+        my $d_aref   = shift // [qw| ext/ / |];
+        my $base_dir = shift // $data{'system'}{'root_path'} // '';
+        die "no base_dir defined"                   if !length($base_dir);
+        die "chk_path argument expected"            if !length($chk_path);
+        die "expected array ref as second argument" if ref($d_aref) ne 'ARRAY';
+
+        if ( $data{'system'}{'use_http_source'} ) {
+            return $chk_path
+                if exists $data{'base'}{'httpc'}{'remote_source'}->{$chk_path};
+            ## else | not exists ###
+            warn "<< remote source file not found : $chk_path >> <{C1}>";
+            return undef;
+        }
+
+        foreach my $chk_parent ( @{$d_aref} ) {
+            my $f_path
+                = abs_path(
+                catfile( catfile( $base_dir, $chk_parent ), $chk_path ) );
+            ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
+            return $path_str if defined $f_path and -r $f_path;
+        }
+        warn "<< nailara source not found : '$chk_path' >> <{C1}>";
+        return undef;
+    };
+
+    $code{'base.source_path_valid'} = sub {
+        my $src_file_rel = shift // '';
+        warn 'no file name supplied' if !length($src_file_rel);
+        my $src_remote = $data{'base'}{'httpc'}{'remote_source'} // {};
+        ## ignored ##
+        return 0
+            if !length($src_file_rel)
+            or $src_file_rel =~ /~$|\.orig$|\.LOG$/;
+        ## remote ##
+        return 1
+            if $data{'system'}{'use_http_source'}
+            and exists $src_remote->{$src_file_rel};
+        ## local ##
+        my $src_abs_path = abs_path($src_file_rel);
+        return 1
+            if defined $src_abs_path
+            and -f $src_abs_path;
+
+        $code{'log.debug'}->("< no-match > $src_file_rel");
+
+        return 0;    # <-- no match.
     };
 
     $code{'base.load_code'} = sub {
@@ -436,16 +520,20 @@ sub prepare_subs {
             ? @{$base_url_aref}
             : qw| http://src.nailara.net/ http://src.v7.ax/nailara/ |;
 
-        my @code_files;
-
         my $src_from_http = (
             ( $data{'system'}{'use_http_source'} // 0 )
                 or !-r $data{'system'}{'code_path'}
                 and not( $data{'system'}{'no_http_source'} // 0 )
         ) ? 1 : 0;
 
+        $data{'system'}{'use_http_source'} = $src_from_http;
+
+        my $c_ref      = $data{'base'}{'source'}{'code_files'} // [];
+        my @code_files = @{$c_ref};
+
         if ($src_from_http) {
-            $code{'log.error'}->("<<< reading source from network enabled >>>");
+            $code{'log.error'}->("<<< network source loading enabled >>>")
+                if !@code_files;
             ##### remote source code access ###
             my $method = $1 if $http_src_base_urls[0] =~ m|^(\w+):|;
             $code{'log.debug'}->(": reading source file list over $method ..,");
@@ -455,17 +543,24 @@ sub prepare_subs {
             if ( defined $remote_data_str ) {
                 my $read_len = length($remote_data_str);
                 @code_files = split( /\n/, $remote_data_str );
+                $data{'base'}{'httpc'}{'remote_source'} = {};
+                map { $data{'base'}{'httpc'}{'remote_source'}->{"src/$_"} = 1 }
+                    @code_files;
+                $data{'base'}{'source'}{'code_files'} = \@code_files;
             } else {
                 $code{'log.error'}
                     ->(": no success reading remote source file list .,");
                 $code{'log.noerr'}->(": :");
                 $code{'log.error'}->(": :. terminating startup sequence..,");
                 $code{'log.noerr'}->(':....,');
-                if   ( defined $code{'base.exit'} ) { $code{'base.exit'}->(1) }
-                else                                { exit(1) }
+                if ( defined $code{'base.exit'} ) {
+                    $code{'base.exit'}->(1);
+                } else {
+                    exit(1);
+                }
             }
             ####
-        } else {
+        } elsif (@code_files) {
             $code{'log.debug'}->(": reading source file list from disk.,");
             @code_files = $code{'base.code.file_list'}->();
         }
@@ -493,14 +588,16 @@ sub prepare_subs {
                 ## todo : reconcile with code_path ##
                 my $src_abs_path;
                 my $src_rel = $code{'base.chk_nlr_path'}->("src/$file_name");
+
+                $src_rel = "src/$file_name" if not defined $src_rel; # <-- warn.
+
                 $src_abs_path
                     = abs_path(
                     catfile( $data{'system'}{'root_path'}, $src_rel ) )
                     if defined $src_rel;
-                if (    defined $src_abs_path
-                    and -f $src_abs_path
-                    and $src_abs_path =~ m|/$code_name(\..+)?$|
-                    and $file_name !~ /^\.|~$|\.orig$|\.LOG$/ ) {
+
+                if (    $src_rel =~ m|/$code_name(\..+)?$|
+                    and $code{'base.source_path_valid'}->($src_rel) ) {
                     $code_count++;
                     local $/ = undef;
 
@@ -508,7 +605,9 @@ sub prepare_subs {
                         or !-r $src_abs_path
                         and !( $data{'system'}{'no_http_source'} // 0 ) ) {
                         #### read src from network [ more methods to come ] ####
-                        $code{'log.debug'}->(":[http]: $src_rel .,");
+
+                        # $code{'log.debug'}->(":[http]: $src_rel .,");
+
                         $data{'code'}{$file_name}{'source'}
                             = $code{'base.httpc.remote_file'}
                             ->( $src_rel, \@http_src_base_urls );
@@ -559,6 +658,16 @@ sub prepare_subs {
                 } elsif ( $file_name =~ /\.orig$/ ) {
                     $code{'log.error'}->("[invalid/remove.,] $file_name");
                 }
+            }
+            if ( $data{'system'}{'verbosity'} == 1
+                and exists $data{'base'}{'httpc'}{'last_len_mstr'} ) {
+                my $last_mlen = delete $data{'base'}{'httpc'}{'last_len_mstr'};
+                $last_mlen += 92;
+                $last_mlen = 79 if $last_mlen > 79;
+                my $space_str = ' ' x $last_mlen;
+                $| = 1;
+                print "\r$space_str\r";
+                $| = 0;
             }
             if ( !$code_count ) {
                 $code{'log.error'}
