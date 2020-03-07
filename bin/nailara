@@ -742,10 +742,23 @@ sub prepare_subs {
 
                 $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
                     if !$sub_conflict;
+                my $stat_start_cref
+                    = defined $code{'stats.sub_start'}
+                    ? $code{'stats.sub_start'}->($sub_name)
+                    : sub { };
+                my $stat_end_cref
+                    = defined $code{'stats.sub_end'}
+                    ? $code{'stats.sub_end'}->($sub_name)
+                    : sub { };
+                $code_footer
+                    .= "\$code{'stats.sub_end'}->(\$sub_name)"
+                    . " if ref(\$code{'stats.sub_end'}) eq 'CODE';";
                 $code_header
                     = 'my $call={}; my $reply={ \'mode\' => \'nak\', \'data\''
                     . " => \"error during invocation of '$cmd_name' command"
                     . " [ details logged ]\" }; "
+                    . "\$code{'stats.sub_start'}->(\$sub_name) if defined "
+                    . "ref(\$code{'stats.sub_start'}) eq 'CODE'; "
                     . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
                     . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
                 $code_footer = ' ; return $reply';
@@ -886,9 +899,14 @@ sub prepare_subs {
         return ( $ok_count, $err_count );
     };
 
+    $code{'base.collect_sub_stats'} = sub {
+        my $sub_name = shift;
+    };
+
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'} < 2;
-        my $sub_name     = shift(@_);
+        my $sub_name = shift(@_);
+        $code{'base.collect_sub_stats'}->($sub_name);
         my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
         my @_p           = @_;
 
