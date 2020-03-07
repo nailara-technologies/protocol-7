@@ -187,17 +187,22 @@ sub prepare_subs {
         $data{'system'}{'start'}{'showbanner'} = 1;
 
         my $stdin_mode = 1;
+        $data{'system'}{'cli-mode'} //= 0;
         foreach my $arg (@ARGV) {
             $stdin_mode = 0 if $arg =~ /^[^\-]/;
             if ( $arg =~ /^-(v+)$/ ) {
                 $data{'system'}{'verbosity'} = length($1);
             }
-            if ( $arg eq '-d' )     { $data{'system'}{'daemon_mode'}      = 1 }
-            if ( $arg eq '-stdin' ) { $data{'system'}{'startup_initcode'} = 1 }
-            if ( $arg eq '-na' )    { $data{'system'}{'ansi_color'}       = 0 }
-            if ( $arg eq '-nb' ) {
-                $data{'system'}{'start'}{'showbanner'} = 0;
+            if ( $arg eq '-d' ) { $data{'system'}{'daemon_mode'} = 1 }
+            if ( $arg eq '-stdin' ) {
+                $data{'system'}{'startup_initcode'} = 1;
+                $data{'system'}{'cli-mode'}         = 0; ## LLL: more conditions
             }
+            if ( $arg eq '-cli' ) {
+                $data{'system'}{'cli-mode'} = 1;
+                $code{'log.error'}->('<< in cli mode >>');
+            }
+            if ( $arg eq '-nb' ) { $data{'system'}{'start'}{'showbanner'} = 0 }
             if ( $arg =~ /^-N(.+)$/ ) {
                 $data{'system'}{'agent'}{'name'} = $1;
             } elsif ($stdin_mode) {
@@ -968,10 +973,14 @@ sub prepare_subs {
                 ? $data{'history'}{'dots'}
                 : '.';
             map {
-                say ':.', $data{'system'}{'node'}{'name'},
-                    $dot, $data{'system'}{'agent'}{'name'}, '.',
-                    $ANSI{'bold'},
-                    $_, $ANSI{'normal'}
+                if ( defined $_ ) {
+                    my $n_n = $data{'system'}{'node'}{'name'}  // '';
+                    my $a_n = $data{'system'}{'agent'}{'name'} // '';
+                    say ':.', $n_n, $dot, $a_n, '.', $ANSI{'bold'} // '', $_,
+                        $ANSI{'normal'} // '';
+                } else {
+                    warn '<< error message undefined >> <{C1}>';
+                }
             } @_;
         }
     };
