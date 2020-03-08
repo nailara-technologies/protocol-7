@@ -397,7 +397,7 @@ sub prepare_subs {
                 $len = 26 if $len < 27;
 
                 my $w_len
-                    = 94 - $len
+                    = 95 - $len
                     - (
                           length( $data{'system'}{'node'}{'name'} )
                         + length( $data{'system'}{'agent'}{'name'} ) );
@@ -406,16 +406,14 @@ sub prepare_subs {
                     if defined $msg_url;
 
                 $msg_url =~ s| | : |;
-                my $last_len = $data{'base'}{'httpc'}{'last_mlen'} //= 0;
-                my $m_len    = length($msg_url);
-                my $s_len    = $last_len > $m_len ? $last_len - $m_len : 13;
-                my $s        = ' ' x $s_len;
-                my $m_str    = ": $msg_url ..,$s";
-                $data{'base'}{'httpc'}{'last_len_mstr'} = length($m_str);
+                my $m_len = length($msg_url);
+                $data{'base'}{'httpc'}{'last_mlen'} //= 79;
+                my $last_len = $data{'base'}{'httpc'}{'last_mlen'};
+                my $s        = ' ' x $last_len;
+                my $m_str    = "\r$s\r: $msg_url ..,";
+                $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 7;
 
                 print "\r$m_str\r" if $data{'system'}{'verbosity'} == 1;
-                $data{'base'}{'httpc'}{'last_mlen'} = $m_len
-                    if $m_len != $data{'base'}{'httpc'}{'last_mlen'};
                 $code{'log.debug'}->(":$r: $msg_url")
                     if $retries_left != $retries;
                 my $h_obj = $data{'base'}{'httpc'}{'obj'}
@@ -668,8 +666,8 @@ sub prepare_subs {
             }
             if (    $data{'system'}{'verbosity'} == 1
                 and !$data{'system'}{'use_http_source'}
-                and exists $data{'base'}{'httpc'}{'last_len_mstr'} ) {
-                my $last_mlen = delete $data{'base'}{'httpc'}{'last_len_mstr'};
+                and exists $data{'base'}{'httpc'}{'last_mlen'} ) {
+                my $last_mlen = delete $data{'base'}{'httpc'}{'last_mlen'};
                 $last_mlen += 92;
                 $last_mlen = 79 if $last_mlen > 79;
                 my $space_str = ' ' x $last_mlen;
