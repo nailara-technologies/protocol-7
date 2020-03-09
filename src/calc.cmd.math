@@ -1,0 +1,29 @@
+# >:]
+
+# name  = calc.cmd.math
+# param = <math-expr>
+# descr = calculate generic mathematical expressions
+
+( my $expr_str = $$call{'args'} // '' ) =~ s| +||g;
+
+return { 'mode' => 'nak', 'data' => 'expected mathematical expression' }
+    if !length($expr_str);
+
+$expr_str =~ s,([^\d\w\s]+|)?(\-?[\w\d\.]+)([^\d\w\s]+|)?,$1 $2 $3,g;
+
+my $formula = Math::Symbolic::parse_from_string($expr_str)
+    or return
+    return { 'mode' => 'nak', 'data' => "error in expression [$expr_str]" };
+
+my $value_str = $formula->value;
+
+return { 'mode' => 'nak', 'data' => "error during calculation [$expr_str]" }
+    if not defined $value_str;
+
+$expr_str =~ s,^ +| +$,,g;
+
+my $result_str = "___ $value_str ___ [ $expr_str ]";
+
+<[base.buffer.add_line]>->( 'history', "_$result_str" );
+
+return { 'mode' => 'ack', 'data' => $result_str };
