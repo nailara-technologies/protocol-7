@@ -1,8 +1,9 @@
 # >:]
 
 # name  = base.cmd.source-age
-# param = ['date'] [Y_flt]
-# descr = installed nailara 'protocol-7' source age
+# param = ['date']
+# descr = installed nailara 'protocol-7' code age
+# additional param = [year_float]
 
 my $param_str = shift->{'args'} // '';
 my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
@@ -13,14 +14,14 @@ if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
     and length($param_str) ) {    # <- no second param for non-core type agents!
     return {
         'mode' => 'nak',
-        'data' => "ask 'core' type agent for custom values!"
+        'data' => "ask a 'core'-type agent for custom values"
     };
 } elsif ( $param_str =~ /^(\d{1,5}+(\.\d{1,5})?)\-?/ ) {
     $year_float = 2000 + $1;
 } elsif ( length($param_str) ) {
     return {
         'mode' => 'nak',
-        'data' => "invalid version timestamp syntax! (see 'source_version')"
+        'data' => "invalid version timestamp syntax [ see 'source_version' ]"
     };
 }
 
