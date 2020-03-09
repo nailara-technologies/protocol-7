@@ -17,10 +17,10 @@ $expr_str =~ s|  +| |g;
 
 my $formula = Math::Symbolic::parse_from_string($expr_str)
     or return
-    return { 'mode' => 'nak', 'data' => "error in expression [$expr_str]" };
+    return { 'mode' => 'nak', 'data' => "expression not valid [$expr_str]" };
 
 my $value_str = $formula->value;
-return { 'mode' => 'nak', 'data' => "error during calculation [$expr_str]" }
+return { 'mode' => 'nak', 'data' => "calculation not successful [$expr_str]" }
     if not defined $value_str;
 
 ### plain value mode ###
@@ -31,4 +31,4 @@ $expr_str =~ s,^ +| +$,,g;
 my $result_str = "____ $value_str ___ [ $expr_str ]";
 <[base.buffer.add_line]>->( 'history', $result_str );
 
-return { 'mode' => 'data', 'data' => "\n   $result_str\n\n" };
+return { 'mode' => 'data', 'data' => "        $result_str\n\n" };
