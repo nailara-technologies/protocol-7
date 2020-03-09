@@ -1,0 +1,21 @@
+
+.:[ simple calculator agent ]:.
+
+[load_config_file:'shared-params']
+
+buffer.history.log_cmd = history.append
+
+access.cmd.usr.core = math heart subname name help reload verify-instance \
+                      source-age source-version list show-buffer clear-buffer
+
+modules.load = auth net io.ip calc
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'ip.tcp']
+
+[base.get_session_id]
+
+[event.loop]
