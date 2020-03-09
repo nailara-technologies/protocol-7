@@ -1,0 +1,25 @@
+# >:]
+
+# name  = calc.init_code
+
+<[base.perlmod.autoload]>->('Math::Symbolic');
+<[base.perlmod.autoload]>->('Math::Symbolic::Parser::Precompiled');
+
+<calc.math.function_names> = [
+    qw| partial_derivative  total_derivative  sinh  cosh  asinh  acosh  asin
+        acos  atan2  atan  acot  sin  cos  tan  cot  exp  sqrt   |
+];
+
+my $date = <[base.parser.timestamp]>->('date');
+my $time = <[base.parser.timestamp]>->('clock');
+
+my $start_str
+    = sprintf(
+    "..  %s  \\\\  started calc session  \\\\  %s  \\\\\\  \\\\   \\",
+    $time, $date );
+map { <[base.buffer.add_line]>->( 'history', $_ ) } (
+    ".            \\\\",
+    $start_str, "...                                      \\\\"
+);
+
+0;
