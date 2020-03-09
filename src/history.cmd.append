@@ -15,6 +15,21 @@ return {
         "insufficent parameters in log line [ <buffer> <time> <level> <mesg> ]"
     }
     if not defined $log_message;
+return {
+    'mode' => 'nak',
+    'data' => 'expected <buffer-name> parameter'
+    }
+    if not defined $buffer_name;
+return {
+    'mode' => 'nak',
+    'data' => 'expected <log-time> param'
+    }
+    if not defined $log_time;
+return {
+    'mode' => 'nak',
+    'data' => 'expected numeric <log-level> param'
+    }
+    if $log_level !~ m|^\d+$|;
 
 # note : log_time is accepted in unix or nailara network time, default: ntime!!!
 
@@ -27,7 +42,7 @@ my $log_file = "$node_agent.$buffer_name";
 
 if ( <log.timestamp_mode> !~ /^localtime|ntime|unix/ ) {
     <[base.log]>->(
-        0, "invalid timestamp mode '" . <log.timestamp_mode> . "' configured!"
+        0, "invalid timestamp mode '" . <log.timestamp_mode> . "' configured"
     );
     <[base.log]>->( 1, "setting timestamp mode '$default_mode' [fallback]" );
     <log.timestamp_mode> = $default_mode;
