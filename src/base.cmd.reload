@@ -2,29 +2,20 @@
 
 # name  = base.cmd.reload
 # param = [keyword]
-# descr = reload modules and/or configuration
+# descr = reload or reinitialize source code or config
 
 my @keywords = qw|  config  source  plugins  init  all  |;
 
-my $arg = $$call{'args'};
+my $arg = $$call{'args'} // 'all';
 my $id  = $$call{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
 
 <base.debug.keep_on_reload> //= 0;    # <- [persistence] override : cfg/defaults
 
+$$reply{'data'} = '';
 my $keyword_match = 0;
 
-$$reply{'data'} = '';
-
-if ( not defined $arg ) {
-    <[base.log]>->( 0, "[$id] no reload keyword specified." );
-    return {
-        'mode' => 'nak',
-        'data' => 'no reload keyword specified' . ' < '
-            . join( ' | ', @keywords ) . ' >'
-    };
-}
 if ( $arg eq 'config' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reload config >" );
