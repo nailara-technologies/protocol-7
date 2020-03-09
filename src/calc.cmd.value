@@ -1,29 +1,34 @@
 # >:]
 
 # name  = calc.cmd.value
-# param = <math-expr>
-# descr = calculate generic mathematical expressions
+# param = ['only'] <..math-expr..>
+# descr = calculate a generic mathematical expression
 
-( my $expr_str = $$call{'args'} // '' ) =~ s| +||g;
+my $val_only = 0;
+my $expr_str = $$call{'args'} // '';
+$val_only = 1 if $expr_str =~ s|^only ||;
 
 return { 'mode' => 'nak', 'data' => 'expected mathematical expression' }
     if !length($expr_str);
 
 $expr_str =~ s,([^\d\w\s]+|)?(\-?[\w\d\.]+)([^\d\w\s]+|)?,$1 $2 $3,g;
+$expr_str = " $expr_str ";
+$expr_str =~ s|  +| |g;
 
 my $formula = Math::Symbolic::parse_from_string($expr_str)
     or return
     return { 'mode' => 'nak', 'data' => "error in expression [$expr_str]" };
 
 my $value_str = $formula->value;
-
 return { 'mode' => 'nak', 'data' => "error during calculation [$expr_str]" }
     if not defined $value_str;
 
+### plain value mode ###
+return { 'mode' => 'ack', 'data' => $value_str } if $val_only;
+
+### formatted mode ###
 $expr_str =~ s,^ +| +$,,g;
+my $result_str = "____ $value_str ___ [ $expr_str ]";
+<[base.buffer.add_line]>->( 'history', $result_str );
 
-my $result_str = "___ $value_str ___ [ $expr_str ]";
-
-<[base.buffer.add_line]>->( 'history', "_$result_str" );
-
-return { 'mode' => 'ack', 'data' => $result_str };
+return { 'mode' => 'data', 'data' => "\n   $result_str\n\n" };
