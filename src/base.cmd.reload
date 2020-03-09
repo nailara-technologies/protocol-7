@@ -2,7 +2,7 @@
 
 # name  = base.cmd.reload
 # param = [keyword]
-# descr = reload or reinitialize source code or config
+# descr = reload and reinit source code or config
 
 my @keywords = qw|  config  source  plugins  init  all  |;
 
@@ -13,16 +13,17 @@ my ( $success, $output ) = ( 0, '' );
 
 <base.debug.keep_on_reload> //= 0;    # <- [persistence] override : cfg/defaults
 
-$$reply{'data'} = '';
+my $s = '   ';
+$$reply{'data'} = "::\n";
 my $keyword_match = 0;
 
 if ( $arg eq 'config' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reload config >" );
     if (<[base.reload_config]>) {
-        $$reply{'data'} .= "  reload config  [ success ]\n";
+        $$reply{'data'} .= "$s reload config  [ success ]\n";
     } else {
-        $$reply{'data'} .= "  reload config  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s reload config  [  ERROR  ]\n";
     }
     $success = 1;
 }
@@ -53,10 +54,10 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     map { delete $data{'base'}{$_} } ( 'cmd', 'cli', 'overwritten' );
     my $error = <[base.load_modules]>->("base $data{modules}{load}");
     if ( !$error and !<base.modules.load_errors> ) {
-        $$reply{'data'} .= "  reload source  [ success ]\n";
+        $$reply{'data'} .= "$s reload source  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "  reload source  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s reload source  [  ERROR  ]\n";
     }
 
     ## source version ##
@@ -97,20 +98,20 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reload plugins >" );
     if (<[base.reload_plugins]>) {
-        $$reply{'data'} .= "  plugin reload  [ success ]\n";
+        $$reply{'data'} .= "$s plugin reload  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "  plugin reload  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s plugin reload  [  ERROR  ]\n";
     }
 }
 if ( $arg eq 'init' or $arg eq 'all' ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < source code reinit >" );
     if ( <[base.init_modules]>->() ) {
-        $$reply{'data'} .= "  reinit source  [ success ]\n";
+        $$reply{'data'} .= "$s reinit source  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "  reinit source  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s reinit source  [  ERROR  ]\n";
     }
 }
 if ( !$keyword_match ) {
@@ -122,4 +123,5 @@ if ($success) {
 } else {
     <[base.log]>->( 0, "[$id] reloading $arg was not successful `:|" );
 }
-$$reply{'mode'} = 'data'
+$$reply{'mode'} = 'data';
+$$reply{'data'} .= "::\n";
