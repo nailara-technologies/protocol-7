@@ -1,0 +1,18 @@
+
+.:[ nailara 'data' agent [ in development ] ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.core = * *.*  # <-- LLL: dev, strict later
+
+modules.load = auth net io.ip data
+[load_modules:<modules.load>]
+[init_modules]
+
+# [set_privs:<system.privs.user>]
+
+[net.connect_to_core:'ip.tcp']
+
+[base.get_session_id]
+
+[event.loop]
