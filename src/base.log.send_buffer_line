@@ -15,18 +15,24 @@ return warn "log buffer name is undefined" if not defined $name;
     'resend_slowdown' => 1.8,
 };
 
-return if not exists <base.log.allow_buffer_send>;    # too early..
+return if not exists <base.log.allow_buffer_send>;    # <-- too early .,
 
 my $log_data = <log.file>->{$name};
 
-# find path to log agent ...
+# find path to log agent..,
 my $route_prefix = 'core.';
 my @send_line;
+
+##[ core has sid 0 ]##
 if ( <system.agent.type> eq 'core' ) {
     push( @send_line, "<system.node.name>.<system.agent.name>", 0 );
     $route_prefix = '';
 }
+
+##[ buffer name ]##
 push( @send_line, $name );
+
+##[ t-stmp, lvl, msg ]##
 push( @send_line, $data{'buffer'}{$name}{'data'}[ $log_data->{'next_index'} ] );
 
 $log_data->{'complete'} = 0;
