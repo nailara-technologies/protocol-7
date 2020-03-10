@@ -5,6 +5,8 @@
 <[base.perlmod.autoload]>->('Math::Symbolic');
 <[base.perlmod.autoload]>->('Math::Symbolic::Parser::Precompiled');
 
+my $cb_name = <calc.log_buffer.name> //= 'session';
+
 <calc.math.function_names> = [
     qw| partial_derivative  total_derivative  sinh  cosh  asinh  acosh  asin
         acos  atan2  atan  acot  sin  cos  tan  cot  exp  sqrt   |
@@ -17,7 +19,7 @@ my $start_str
     = sprintf(
     "..  %s  \\\\  started calc session  \\\\  %s  \\\\\\  \\\\   \\",
     $time, $date );
-map { <[base.buffer.add_line]>->( 'history', $_ ) } (
+map { <[base.buffer.add_line]>->( $cb_name, join( ' ', '0', '0', $_ ) ) } (
     ".            \\\\",
     $start_str, "...                                      \\\\"
 );
