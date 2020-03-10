@@ -148,6 +148,7 @@ sub prepare_subs {
         $data{'system'}{'conf_path'}    = catdir( $root_path, 'cfg' );
         $data{'system'}{'lmod_path'}    = catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
+        $data{'base'}{'httpc'}{'last_mlen'} //= 80;
 
         my $ver_str = $data{'nailara'}{'source_version'} = 'unknown';
         my $version_file
@@ -409,13 +410,11 @@ sub prepare_subs {
                     if defined $msg_url;
 
                 $msg_url =~ s| | : |;
-                my $m_len = length($msg_url);
-                $data{'base'}{'httpc'}{'last_mlen'} //= 79;
+                my $m_len    = length($msg_url);
                 my $last_len = $data{'base'}{'httpc'}{'last_mlen'};
-                my $s        = ' ' x $last_len;
-                my $m_str    = "\r$s\r: $msg_url ..,";
-                $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 7;
-
+                $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 13;
+                my $s     = ' ' x $last_len;
+                my $m_str = "\r$s\r: $msg_url ..,";
                 print "\r$m_str\r" if $data{'system'}{'verbosity'} == 1;
                 $code{'log.debug'}->(":$r: $msg_url")
                     if $retries_left != $retries;
@@ -969,7 +968,25 @@ sub prepare_subs {
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'agent' )
             and $sub_name ne 'base.dump_data';    # skipping too much output...
     };
+
+    $code{'base.log_hook'} = sub {
+        return;
+        if ( $data{'system'}{'verbosity'}
+            and my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
+            my $spaces = ' ' x $last_len;
+            $| = 1;
+            print "\r$spaces|\r";
+            return $last_len;
+        }
+        return undef;
+    };
+
     $code{'log.noerr'} = sub {
+        my $s_len;
+        $s_len = $code{'base.log_hook'}->()
+            if defined $code{'base.log_hook'};
+        $s_len //= 1;    # <-- << ! >>
+        my $spaces = ' ' x $s_len;
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} ) {
@@ -979,11 +996,13 @@ sub prepare_subs {
                 : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
-                    $dot, $data{'system'}{'agent'}{'name'}, '.', $_
+                    $dot, $data{'system'}{'agent'}{'name'}, '.', $_, $spaces
             } @_;
         }
     };
+
     $code{'log.error'} = sub {
+        $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
@@ -993,9 +1012,16 @@ sub prepare_subs {
                 : '.';
             map {
                 if ( defined $_ ) {
-                    my $n_n = $data{'system'}{'node'}{'name'}  // '';
-                    my $a_n = $data{'system'}{'agent'}{'name'} // '';
-                    say ':.', $n_n, $dot, $a_n, '.', $ANSI{'bold'} // '', $_,
+                    my $s_len;
+                    $s_len = $code{'base.log_hook'}->()
+                        if defined $code{'base.log_hook'};
+                    $s_len //= 0;
+                    my $spaces  = ' ' x $s_len;
+                    my $msg_str = $_ . $spaces;
+                    my $n_n     = $data{'system'}{'node'}{'name'} // '';
+                    my $a_n     = $data{'system'}{'agent'}{'name'} // '';
+                    say ':.', $n_n, $dot, $a_n, '.', $ANSI{'bold'} // '',
+                        $msg_str,
                         $ANSI{'normal'} // '';
                 } else {
                     warn '<< error message undefined >> <{C1}>';
@@ -1004,16 +1030,23 @@ sub prepare_subs {
         }
     };
     $code{'log.debug'} = sub {
+        $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 2, $_ ) } @_;
         } elsif ( $data{'system'}{'verbosity'} > 1 ) {
+            my $s_len;
+            $s_len = $code{'base.log_hook'}->()
+                if defined $code{'base.log_hook'};
+            $s_len //= 0;
+            my $spaces  = ' ' x $s_len;
+            my $msg_str = $_ . $spaces;
             my $dot
                 = defined $data{'history'}{'dots'}
                 ? $data{'history'}{'dots'}
                 : '.';
             map {
                 say ':.', $data{'system'}{'node'}{'name'},
-                    $dot, $data{'system'}{'agent'}{'name'}, '.', $_
+                    $dot, $data{'system'}{'agent'}{'name'}, '.', $msg_str
             } @_;
         }
     };
@@ -1021,9 +1054,14 @@ sub prepare_subs {
     $code{'dev.null'} = $code{'base.undef'} = sub { return undef };
 
     $code{'base.sig_warn'} = sub {
+        my $s_len;
+        $s_len = $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
+        $s_len //= 0;
+        my $spaces = ' ' x $s_len;
         if (@_) {
             my $level = 0;
             chomp( my @err = @_ );
+            push( @err, $spaces ) if length($spaces);
             if ( $err[0] =~ /^Deep recursion / ) {
                 no warnings 'recursion';    # no followups!
                 my $msg = join( ' ', '<< FATAL >>', @err );

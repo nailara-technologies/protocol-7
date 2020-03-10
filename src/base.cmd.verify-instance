@@ -8,7 +8,7 @@ my $random_string = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'no random string supplied' }
     if !length($random_string);
 
-<[base.log]>->( 1, "instance verification <$random_string>" );
+<[base.log]>->( 1, "instance verification [KEY:$random_string]" );
 
 <[base.disable_command]>->('verify-instance');   # used only once by nroot agent
 
