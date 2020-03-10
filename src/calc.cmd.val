@@ -5,8 +5,9 @@
 # descr = calculate a generic mathematical expression
 
 my $plain_value = 0;
-my $expr_str = $$call{'args'} // '';
+my $expr_str    = $$call{'args'} // '';
 $plain_value = 1 if $expr_str =~ s|^plain ||;
+my $cb_name = <calc.log_buffer.name>;
 
 return { 'mode' => 'nak', 'data' => 'expected mathematical expression' }
     if !length($expr_str);
@@ -29,6 +30,8 @@ return { 'mode' => 'ack', 'data' => $value_str } if $plain_value;
 ### formatted mode ###
 $expr_str =~ s,^ +| +$,,g;
 my $result_str = "____ $value_str ___ [ $expr_str ]";
-<[base.buffer.add_line]>->( 'history', 0, $result_str );
+
+<[base.buffer.add_line]>->( $cb_name, join( ' ', '0', '0', $result_str ) )
+    if !$plain_value;
 
 return { 'mode' => 'data', 'data' => "        $result_str\n\n" };
