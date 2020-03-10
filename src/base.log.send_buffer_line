@@ -5,7 +5,7 @@
 my $name         = shift;
 my $buffer_index = shift;
 
-return warn "log buffer name is undefined" if not defined $name;
+return warn "expected log buffer name parameter" if not defined $name;
 
 <log.file>->{$name} //= {
     'complete'        => 1,
@@ -15,7 +15,7 @@ return warn "log buffer name is undefined" if not defined $name;
     'resend_slowdown' => 1.8,
 };
 
-return if not exists <base.log.allow_buffer_send>;    # <-- too early .,
+return if not exists <base.log.allow_buffer_send>;    #  <--  connected ?.,
 
 my $log_data = <log.file>->{$name};
 
