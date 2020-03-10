@@ -4,25 +4,28 @@
 # descr = write log messages to buffer and screen
 
 my $name        = $_[0];
-my $log_message = $_[1];
+my $log_message = $_[1];    #   <--   <t-stmp>  <lvl>  <msg>
 my $min_bufsize = 10000;
 my $buffer_size = $data{'buffer'}{$name}{'max_size'};
-$log_message = $_[2] if defined $_[2] and $_[1] == -1;
+$log_message = $_[2] if defined $_[2] and $_[1] == -1; # LLL: explain \ redefine
 $log_message =~ s/^\s+|\s+$//;
 $log_message =~ s/\n/\\n/g;
 $log_message =~ s/\r/\\r/g;
 $log_message =~ s/\0/\\0/g;
+
 my $message_len = length($log_message);
 
 if ( $name eq '' ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
+    warn 'expected buffer name <{C1}>';
     return -1;
 } elsif ( $name !~ /^[\w\-]+$/ or length($name) > 23 ) {
-    <[base.log]>->( 1, 'add_ram_log: invalid buffer name suppied' );
+    warn 'invalid buffer name specified <{C1}>';
     return -1;
 }
-if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
-    my $default_size  = 128000;                     # internal default
+
+if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {  ## buf-size ##
+    my $default_size  = 128000;                     # <-- internal default
     my $default_found = exists <default.max_size>
         and exists <default.max_size.log_buffers> ? 1 : 0;
     $default_size = <default.max_size.log_buffers> if $default_found;
@@ -37,8 +40,8 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
     if ($min_size_error) {
         <[base.log]>->(
             0,
-            "[!] log buffer size too small,"
-                . " using $size_str for '$name' buffer!"
+            "<<< log buffer size too small,"
+                . " using $size_str for '$name' buffer >>>"
         );
     } elsif ( !$default_found ) {
         <[base.log]>->(
@@ -47,8 +50,8 @@ if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {
     } else {
         <[base.log]>->(
             2,
-            "[!] no '$name'-buffer size set,"
-                . " using default setting [$size_str]"
+            "<< no '$name'-buffer size set,"
+                . " using default setting [$size_str] >>"
         );
     }
 }
