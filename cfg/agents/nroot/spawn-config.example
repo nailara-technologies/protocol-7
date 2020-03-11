@@ -7,7 +7,7 @@
 
 .: globals :.
 
-  agents.enabled = core history authen nodes # <-- add agents for autostart mode
+  agents.enabled = core source history authen nodes # <-- add agents [autostart]
 
  # agents.disabled =         #  <- use this option for start permission override
 
@@ -18,18 +18,6 @@
 ## config data being imported from 'agents/<agent_name>/agent-startup.nroot' ###
 #
 
-### external program examples ##
-
-  - moodlight
-
-      max_concurrency = 1
-      dependencies = core
-
-      : nroot-init :
-        start_mode = exec-external
-        exec_bin = piglow_moodlight.pl
-        exec_usr = root       # <- supports '<x11-user>' [ see ./cfg/x11-vars ]
-
   - dist-upgrade
 
       max_concurrency     = 1
@@ -39,4 +27,16 @@
       : nroot-init :
         start_mode = exec-external
         exec_bin = debian_dist_upgrade.sh # [ ./bin/dependencies/.., ]
+        exec_usr = root
+
+### external program example ### [ supports '<x11-user>' from './cfg/x11-vars' ]
+
+  - namesrv
+
+      max_concurrency = 1
+      dependencies = core
+
+      : nroot-init :
+        start_mode = exec-external
+        exec_bin = /usr/local/bin/namesrv
         exec_usr = root
