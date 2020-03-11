@@ -1,0 +1,27 @@
+# >:]
+
+# name  = base.nfile.resolve_path
+
+<nfile.version_table> //= {};
+my $file_path = shift // '';
+warn "expected file path parameter <{C1}>" and return if !length($file_path);
+
+return <nfile.version_table>->{$file_path}
+    if defined <nfile.version_table>->{$file_path};
+
+my $full_path = abs_file( catfile( <system.root_path>, $file_path ) );
+
+if ( not defined $full_path or !-e $full_path ) {
+    warn "< nfile > unresolvable path '$file_path' <{C1}>";
+    return undef;
+}
+
+if ( -l $full_path and my $resolved = readlink($full_path) ) {
+    if ( !-e $resolved ) {
+        warn "< nfile > resolved path '$file_path' is missing <{C1}>";
+        return undef;
+    }
+    return $resolved;
+}
+
+return $file_path if -e $file_path;
