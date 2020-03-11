@@ -7,14 +7,12 @@
 
 my ($node_agent, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
-) = split( / /, shift->{'args'}, 6 );
+) = split( / /, $_[0]->{'args'}, 6 );
 
 $log_level //= 0;
 
 my $err_msg;
-$err_msg
-    = "insufficent parameters in log line"
-    . " [ <buffer> <time> <level> <mesg> ]"
+$err_msg = "append with insufficent parameters "
     if not defined $log_message;
 $err_msg = 'expected <buffer-name> parameter'
     if not defined $err_msg and not defined $buffer_name;
@@ -28,6 +26,10 @@ if ( defined $err_msg ) {
     $node_agent =~ s|^$node_name\.||;
     <history.disable_err_log_dump> //= 0; ## <-- suppress err log data on demand
     <[base.log]>->( 0, "\<$instance_id> ['$node_agent'] $err_msg" );
+    ## log offending line for debugging ###
+    <[base.log]>->( 1, " < usage >  [ <buffer> <timestamp> <log-level> <mesg> ]" );
+    <[base.log]>->( 1, "< request > [ '$_[0]->{'args'}' ]" );
+
     if ( $data{'system'}{'verbosity'} and !<history.disable_err_log_dump> ) {
         my $show_line = $$call{'args'};
         <[base.parser.ellipse_center]>->( \$show_line, 74 );
