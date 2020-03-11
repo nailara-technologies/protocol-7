@@ -3,6 +3,12 @@
 # name  = sourcecode.cli.version
 # descr = return current nailara source code version
 
-printf( "\r:\n:     nailara base os release : [ %s ]\n:\r"
-        . ":\n:  protocol-seven source code : %s\n:\n",
-    <nailara.release_version>, <nailara.source_version> )
+my $template = << 'EOT';
+,____
+:__ /
+:/ / protocol-seven source code version [ %s ]
+:_/ nailara base system release version [ %s ]
+:
+EOT
+
+printf( $template, <nailara.source_version>, <nailara.release_version> );
