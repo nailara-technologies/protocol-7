@@ -126,7 +126,8 @@ sub prepare_subs {
 
         use utf8;
         use constant 'τ'  => 6.28318530717958647692;
-        use constant 'tau' => τ;
+        use constant 'tau' => 'τ';
+
         use File::Spec::Functions;
         use FindBin qw| $RealBin $RealScript |;
         use Cwd 'abs_path';
@@ -1038,13 +1039,13 @@ sub prepare_subs {
             $s_len = $code{'base.log_hook'}->()
                 if defined $code{'base.log_hook'};
             $s_len //= 0;
-            my $spaces  = ' ' x $s_len;
-            my $msg_str = $_ . $spaces;
+            my $spaces = ' ' x $s_len;
             my $dot
                 = defined $data{'history'}{'dots'}
                 ? $data{'history'}{'dots'}
                 : '.';
             map {
+                my $msg_str = $_ . $spaces;
                 say ':.', $data{'system'}{'node'}{'name'},
                     $dot, $data{'system'}{'agent'}{'name'}, '.', $msg_str
             } @_;
