@@ -1,0 +1,27 @@
+# >:]
+
+# name  = source.fill_source_template
+
+my $data_ref     = shift                  // {};
+my $params       = shift                  // {};
+my $template_str = <source.sign_template> // '';
+
+die "signature template not defined" if !length($template_str);
+die "expected has reference to source parameters" if ref($params) ne 'HASH';
+
+my %variable_map = (
+    'data-chksum'    => [ 'pos' => 13542, 'data' => '' ],
+    'data-signature' => [ 'pos' => 13542, 'data' => '' ],
+    'data-type'      => [ 'pos' => 13542, 'data' => 'CODE' ],
+    'checksum-type'  => [ 'pos' => 13542, 'data' => 'BMW-384-B32' ],
+    'signature-type' => [ 'pos' => 13542, 'data' => 'C25519-B32' ],
+);
+
+my $signature_b32;
+foreach my $name ( keys %variable_map ) {
+    my $pos = $variable_map{'pos'};
+    my $len = $variable_map{'len'};
+
+}
+
+return $data_ref;
