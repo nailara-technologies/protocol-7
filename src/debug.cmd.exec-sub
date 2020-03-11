@@ -8,12 +8,20 @@ my $sub_name = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'expected subroutine name parameter' }
     if !length($sub_name);
+return { 'mode' => 'nak', 'data' => 'subroutine parameters are not supported' }
+    if $sub_name =~ m| |;
 return { 'mode' => 'nak', 'data' => 'no such subroutine' }
     if not exists $code{$sub_name};
 
-my $sub_output = $code{$sub_name}->();
+my $sub_output;
+eval { $sub_output = $code{$sub_name}->() };
 
-$sub_output =~ s|\n$|| if $sub_output =~ /\n/ <= 1;
+my $err_msg;
+$err_msg = 'errors during subroutine execution' if $@;
+$err_msg = 'undefined subroutine output'        if not defined $sub_output;
+return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+
+$sub_output =~ s|\n$|| if $sub_output =~ m|\n| <= 1;
 
 my $rep_mode
     = $sub_output =~ /\n/
