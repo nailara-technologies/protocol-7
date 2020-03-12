@@ -1,0 +1,19 @@
+# >:]
+
+# name  = source.load_signature_key
+
+my $success  = 0;
+my $key_name = shift // '';
+die "signature key name expected" if length( !$key_name );
+
+my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir  = $key_vars->{'key_dir'};
+my $key_basepath = $key_vars->{'key_basepath'};
+
+$success = 1
+    if <[crypt.C25519.gen_keys]>->($key_name)
+    and <[crypt.C25519.write_keys]>->($key_name);
+
+printf( " :\n :: [ created key '%s' in '%s' ]\n:\n", $key_name, $key_dir )
+    and return 1
+    if $success;
