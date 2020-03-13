@@ -20,7 +20,10 @@ if ( -d $path ) {
     return $path;
 }
 
-<[base.log]>->( 1, "creating directory path '$path'" );
+my $install_root = <system.root_path>;
+( my $report_path = $path ) =~ s|^$install_root/?||;
+
+<[base.log]>->( 1, "< new path > creating '$report_path'" );
 
 my $current_path = '';
 foreach my $_dir ( split /\//, $path ) {
