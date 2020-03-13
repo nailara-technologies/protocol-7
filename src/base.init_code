@@ -20,7 +20,7 @@ use warnings 'once';
     'Crypt::PRNG::Fortuna', qw | random_string random_string_from |
 );
 <[base.perlmod.load]>->(
-    'POSIX::1003::Proc', qw/ WNOHANG waitpid setsid getcwd /
+    'POSIX::1003::Proc', qw| WNOHANG waitpid setsid getcwd |
 );
 
 # init some vars
@@ -157,11 +157,11 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
     <base.help.cmd.source-age.descr> =~ s|\[year\]||;
 
     if ( <system.agent.name> ne 'media' ) {
-        <[base.disable_command]>->(qw/ whoami /);
-        <[base.hide_list]>->(qw/ sessions /);
+        <[base.disable_command]>->(qw| whoami |);
+        <[base.hide_list]>->(qw| sessions |);
     }
 
-    <[base.hide_list]>->(qw/ users /);
+    <[base.hide_list]>->(qw| users |);
 }
 
 map {
