@@ -33,7 +33,7 @@ $0 = 'nshell';
 
 $SIG{'PIPE'} = 'IGNORE';
 
-map { $SIG{$_} = \&parent_exit; } qw/TERM INT HUP/;
+map { $SIG{$_} = \&parent_exit; } qw| TERM INT HUP |;
 
 my $sigset          = POSIX::SigSet->new();
 my $sigaction       = POSIX::SigAction->new( \&readline_signals, $sigset, 0 );
