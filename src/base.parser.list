@@ -73,8 +73,10 @@ foreach my $key_name ( @{$display_keys} ) {
     $table_string
         .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
 }
+$table_string =~ s| +$||;
 my $last_d_key = $$display_keys[ scalar @{$display_keys} - 1 ];
 $max_len{$last_d_key} -= 2;
+$table_width-- if $table_width >= 80;
 my $sub_line  .= '-' x $table_width;
 $table_string .= "\n$sub_line\n";
 
@@ -142,7 +144,7 @@ foreach my $key_val (@sorted_keys) {
                 $align->{$key_name_str} || 'left',
                 <[base.call_filter]>->( $filters, $key_name_str, $key_val ),
                 $max_len{$key_name} - 1
-                ) . ' ';                                   # <- LLL: kill ' '!
+                ) . ' ';                                   # <- LLL: remove ' '!
         } else {
             my $len = $max_len{$key_name};
             $key_name_str =~ s|:.+$||;
@@ -160,6 +162,7 @@ foreach my $key_val (@sorted_keys) {
             ) . ' ';
         }
     }
+    $table_string =~ s| +$||;
     $table_string .= "\n";
 }
 $table_string .= "\n";
