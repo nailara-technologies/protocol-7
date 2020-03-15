@@ -38,6 +38,14 @@ if ( $$call{'args'} =~ /^\d+$/ ) {
 } else {
     $agent_name    = $$call{'args'};
     $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+    my $sn_regex = <regex.base.subname>;
+    ( my $chars = $agent_subname // '' ) =~ s|$sn_regex||g;
+    if ( length($chars) and length($chars) != length($agent_subname) ) {
+        return {
+            'mode' => 'nak',
+            'data' => "invalid characters in agent subname ['$chars']"
+        };
+    }
 }
 
 my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
