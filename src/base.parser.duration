@@ -54,17 +54,25 @@ if ( $result{'hours'} and !$result{'minutes'} and !$result{'seconds'} ) {
     my $s = $result{'hours'} > 1 ? 's' : '';
     push( @result, sprintf( "%d hour$s", $result{'hours'} ) );
 } elsif ( $result{'hours'} ) {
-    push( @result, sprintf( "%dh", $result{'hours'} ) );
+    push( @result, sprintf( "%02dh", $result{'hours'} ) );
 }
 
 if ( $result{'minutes'} and !$result{'seconds'} ) {
     push( @result, sprintf( "%d min", $result{'minutes'} ) );
 } elsif ( $result{'minutes'} ) {
-    push( @result,
-        sprintf( "%d'%02d\"", $result{'minutes'}, $result{'seconds'} ) );
+    if ( $result{'hours'} ) {
+        push( @result,
+            sprintf( "%02d'%02d\"", $result{'minutes'}, $result{'seconds'} ) );
+    } else {
+        push( @result,
+            sprintf( "%d'%02d\"", $result{'minutes'}, $result{'seconds'} ) );
+    }
 }
 
 push( @result, "$result{seconds}s" )
     if $result{'seconds'} and !$result{'minutes'} or !@result;
 
-return join( ' ', @result );
+my $result_str = join( ' ', @result );
+$result_str =~ s| days? (\d+)h |d $1 | if length($result_str) >= 10;
+$result_str =~ s|(\d+d)(\d+ hours)|$1 $2|;
+return $result_str;
