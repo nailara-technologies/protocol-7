@@ -1,14 +1,14 @@
 # name  = base.regex
 # descr = returns precompiled regex cache
 
-<[base.log]>->( 2, 'compiling base regex cache...' );
+<[base.log]>->( 2, 'compiling base regex cache.,' );
 
 return {
     'cmd_id'     => qr|\d{2,15}|o,                   # a valid command(route) id
     'sid'        => qr|\d{3,17}|o,                   # a valid session id
     'authmethod' => qr|[0-9A-Za-z\-_]{1,18}|o,       # auth method name string
     'usr'        => qr|[a-z][0-9a-zA-Z\-_]{1,16}|o,  # a valid username string
-    'subname'    => qr|[0-9a-zA-Z\-\._]{1,17}|o,     # [<subname>] string ...
+    'subname'    => qr|[0-9a-zA-Z\-\+\.:_]{1,17}|o,  # [<subname>] string ...
     'usr_sub' => qr|[a-z][0-9a-zA-Z\-_]{1,16}\[[0-9a-zA-Z\-\._]{1,17}\]|o, # u+s
     'cmd'   => qr|[a-z][0-9a-zA-Z\-_]{1,22}|o,   # nailara command string syntax
     'cmdp'  => qr|[a-z][0-9a-zA-Z\-_\.]{1,}|o,   # cmd path (cmd including '.'s)
