@@ -10,7 +10,7 @@ use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [$!]";
-map { $data{'handle'}{$_}{'link'} = 'ipc/pipe' } ( $child_pipe, $parent_pipe );
+map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
 
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';
@@ -22,7 +22,12 @@ $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 <ticker-sdl.child.pid> = fork;
 if ( !<ticker-sdl.child.pid> ) {    # child
     close($child_pipe);
-    $0 = 'ticker child';
+
+    my $subname = <system.agent.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.agent.subname> = 'child' . $sn_str;
+    $0 = <system.agent.name> . "[child$sn_str]";
+
     delete <process.renice_child>;
 
     IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...

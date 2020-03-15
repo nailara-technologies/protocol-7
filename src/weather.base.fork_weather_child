@@ -14,7 +14,7 @@ use Socket;
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [$!]";
-map { $data{'handle'}{$_}{'link'} = 'ipc/pipe' } ( $child_pipe, $parent_pipe );
+map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
@@ -33,10 +33,9 @@ if ( !<weather.child.pid> ) {    ## child ##
         if exists <log.file.system.retry_timer>;
 
     my $subname = <system.agent.subname>;
-    my $sn_str  = defined $subname ? $subname . '-' : '';
-
-    <system.agent.name> .= "[${sn_str}child]";
-    $0 = "weather-${sn_str}child";
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.agent.subname> = 'child' . $sn_str;
+    $0 = <system.agent.name> . "[child$sn_str]";
 
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
