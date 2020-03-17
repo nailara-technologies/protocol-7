@@ -17,8 +17,10 @@ use POSIX::SigAction;
 use POSIX::SigSet;
 
 my $lnk_path = File::Spec->rel2abs($0);
-my $bin_path = readlink($lnk_path) // $lnk_path;
+my $bin_path = $lnk_path;
+
 while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
+    last if $bin_path =~ m|/nshell$|;  # skip resolving last stage., [ improve ]
     $bin_path = $readlink_path;
 }
 ( my $root_path = $bin_path ) =~ s/\/[^\/]+\/[^\/]+$//;
