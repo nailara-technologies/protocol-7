@@ -1,15 +1,17 @@
 # >:]
 
 # name  = source.acquire_checksums
+# todo  = make recursion work with update-checksums command ['sourcecode' agent]
 
-my $bit_size = <source.chksum_bitsize>;
-my $src_path = <source.code_path>;
+my $src_path = shift // <source.code_path>;
+my $bit_size = shift // <source.chksum_bitsize>;
 
 my $file_count = 0;
 <source.checksums> //= {};
 my $start_time = <[base.time]>->(5);
 ( my $path_name = $src_path ) =~ s|^.*/||g;
-foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {
+
+foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {  # <-- recurs.!
     ( my $file_name = $file_path ) =~ s|^.*/||;
     <source.checksums>->{$path_name}->{$file_name}
         = <[digest.bmw.filesum]>->( $bit_size, $file_path );
@@ -17,9 +19,11 @@ foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {
 }
 
 <[base.log]>->(
-    1,
+    2,
     sprintf(
         ": %s : %04d checksums in %.4f seconds.",
         $path_name, $file_count, <[base.time]>->(5) - $start_time
     )
 );
+
+return <source.checksums>->{$path_name};
