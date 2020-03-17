@@ -40,7 +40,7 @@ if ( $0 =~ /^.*nailara\./ ) {
 ( $agentname, @ARGV ) = ( split( / +/, $agentname ), @ARGV )
     if defined $agentname and index( $agentname, ' ' ) != -1;
 
-( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s/ *-[v]+ *//;
+( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s/ *-[v]+( *)/$1/;
 
 if ( defined $agentname and $agentname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
