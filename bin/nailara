@@ -138,16 +138,19 @@ sub prepare_subs {
 
         $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
-        $data{'system'}{'start'}{'exec_name'}
-            = abs_path( catfile( $RealBin, $RealScript ) );
-        my $root_path = $data{'system'}{'root_path'}
-            = abs_path( catdir( $RealBin, updir() ) );
-        $data{'system'}{'perl_version'} = $];    # < v5.6
+        my $apparent_exec = File::Spec->rel2abs( canonpath($0) ); # is a symlink
+        my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
+        my $bin_path    = [ File::Spec->splitpath($apparent_exec) ]->[1];
+        $data{'system'}{'start'}{'exec_name'} = $apparent_exec;
+        $data{'system'}{'start'}{'true_exec'} = $actual_exec;
+        $data{'system'}{'root_path'} = abs_path( catdir( $bin_path, updir() ) );
+        $data{'system'}{'perl_version'} = $];                     # < v5.6
         $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
         $data{'system'}{'perl_unicode'} = ${^UNICODE};
-        $data{'system'}{'code_path'}    = catdir( $root_path, 'src' );
-        $data{'system'}{'conf_path'}    = catdir( $root_path, 'cfg' );
-        $data{'system'}{'lmod_path'}    = catdir( $root_path, 'lib', 'pm' );
+        my $root_path = $data{'system'}{'root_path'};
+        $data{'system'}{'code_path'} = catdir( $root_path, 'src' );
+        $data{'system'}{'conf_path'} = catdir( $root_path, 'cfg' );
+        $data{'system'}{'lmod_path'} = catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
         $data{'base'}{'httpc'}{'last_mlen'} //= 80;
 
@@ -155,7 +158,7 @@ sub prepare_subs {
         my $version_file
             = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
 
-        if ( -f $version_file and open( my $ver_fh, '<' . $version_file ) ) {
+        if ( -e $version_file and open( my $ver_fh, '<' . $version_file ) ) {
             ( $data{'nailara'}{'source_version'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
@@ -163,7 +166,7 @@ sub prepare_subs {
         my $release_file
             = catfile( $data{'system'}{'conf_path'},
             'nailara.release_version' );
-        if ( -f $release_file and open( my $ver_fh, '<' . $release_file ) ) {
+        if ( -e $release_file and open( my $ver_fh, '<' . $release_file ) ) {
             ( $data{'nailara'}{'release_version'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
@@ -415,7 +418,7 @@ sub prepare_subs {
                 my $last_len = $data{'base'}{'httpc'}{'last_mlen'};
                 $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 13;
                 my $s     = ' ' x $last_len;
-                my $m_str = "\r$s\r: $msg_url ..,";
+                my $m_str = "\r$s\r: $msg_url.,";
                 print "\r$m_str\r" if $data{'system'}{'verbosity'} == 1;
                 $code{'log.debug'}->(":$r: $msg_url")
                     if $retries_left != $retries;
@@ -459,7 +462,7 @@ sub prepare_subs {
         $| = 0;
     };
 
-    $code{'base.chk_nlr_path'} = sub {
+    $code{'base.chk_nlr_path'} = sub {    ## todo : reduce calls \ exposure .,
         my $chk_path = shift // '';
         my $d_aref   = shift // [qw| ext/ / |];
         my $base_dir = shift // $data{'system'}{'root_path'} // '';
@@ -474,15 +477,17 @@ sub prepare_subs {
             warn "<< remote source file not found : $chk_path >> <{C1}>";
             return undef;
         }
-
+        my $f_path;
         foreach my $chk_parent ( @{$d_aref} ) {
-            my $f_path
-                = abs_path(
+            $f_path
+                = canonpath(
                 catfile( catfile( $base_dir, $chk_parent ), $chk_path ) );
             ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
             return $path_str if defined $f_path and -r $f_path;
         }
-        warn "<< nailara source not found : '$chk_path' >> <{C1}>";
+        my $reason
+            = ( -l $f_path and !-r readlink($f_path) ) ? 'readable' : 'found';
+        warn "<< nailara source not $reason : '$chk_path' >> <{C1}>";
         return undef;
     };
 
@@ -503,14 +508,14 @@ sub prepare_subs {
             catfile( $data{'system'}{'root_path'}, $src_file_rel ) );
         return 1
             if defined $src_abs_path
-            and -f $src_abs_path;
+            and ( -f $src_abs_path
+            or -l $src_abs_path and -f readlink($src_abs_path) );
         warn "<< no match : $src_abs_path >> <{C1}>";
         return 0;    # <-- no match.
     };
 
     $code{'base.load_code'} = sub {
         my ( $file, $code_name );
-
         my @src_names = sort { length $a <=> length $b } sort @_;
 
         $data{'callbacks'}{'end_code'} //= [];
@@ -608,7 +613,6 @@ sub prepare_subs {
                     and $code{'base.source_path_valid'}->($src_rel) ) {
                     $code_count++;
                     local $/ = undef;
-
                     if ( $src_from_http
                         or !-r $src_abs_path
                         and !( $data{'system'}{'no_http_source'} // 0 ) ) {
@@ -668,7 +672,7 @@ sub prepare_subs {
                 }
             }
             if (    $data{'system'}{'verbosity'} == 1
-                and !$data{'system'}{'use_http_source'}
+                and $data{'system'}{'use_http_source'}
                 and exists $data{'base'}{'httpc'}{'last_mlen'} ) {
                 my $last_mlen = delete $data{'base'}{'httpc'}{'last_mlen'};
                 $last_mlen += 92;
@@ -692,7 +696,7 @@ sub prepare_subs {
         return if !$mod_count and !@src_names;
         next   if !$mod_count;
         my $src_bytes_total = 0;
-        $code{'log.debug'}->(": compiling ...");
+        $code{'log.debug'}->(": compiling ..,");
         my ( $ok_count, $err_count ) = ( 0, 0 );
 
         my %disabled_commands;
