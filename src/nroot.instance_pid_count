@@ -17,6 +17,6 @@ map { $check_pids{$_} = 1 } keys %{ $instance->{'restart_pids'} }
 
 my $processes_left = 0;
 map { $processes_left++ if <[nroot.sub-process.exists]>->($_) }
-    keys %check_pids;
+    reverse sort keys %check_pids;
 
 return $processes_left;
