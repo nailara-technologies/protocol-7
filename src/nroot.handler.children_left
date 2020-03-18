@@ -12,7 +12,7 @@ $next_status = 'restart' if $next_status eq 'delayed';   # <- should not happen!
 
 my @remaining_pids;
 my $child_count = 0;
-foreach my $pid ( sort keys %{<nroot.child>} ) {
+foreach my $pid ( reverse sort keys %{<nroot.child>} ) {
     next if <nroot.child>->{$pid}->{'instance_id'} != $instance_id;
     if ( <[nroot.sub-process.exists]>->($pid) ) {
         push( @remaining_pids, $pid );
