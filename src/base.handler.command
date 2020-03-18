@@ -261,7 +261,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
 
-if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
+if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     if ( exists $data{'session'}{$id}
         and defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
@@ -275,7 +275,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
             }
 
-            if ( $cmd =~ /^(ACK|NAK|WAIT|TERM)$/ ) {
+            if ( $cmd =~ m ,^(ACK|NAK|WAIT|GET|TERM)$, ) {
 
                 # check if reply handler is set
 
@@ -323,7 +323,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                     <[base.log]>->(
                         0,
                         sprintf(
-                            '{%s} unknown session, dropped reply.. (%d bytes)',
+                            '{%s} unknown session, dropped reply.. [%d bytes]',
                             $$route{'source'}{'sid'},
                             length("$s_cmd_id$cmd $$call_args{args}\n")
                         )
@@ -351,7 +351,7 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 }
 
                 $valid_answer = 1;
-            } elsif ( $cmd =~ /^DATA$/ ) {
+            } elsif ( $cmd eq 'DATA' ) {
                 if ( $$call_args{'args'} =~ /^\d+$/ ) {
                     my $msg_len = $$call_args{'args'};
 
@@ -422,9 +422,27 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                         );
                     }
                 }
+            } elsif ( $cmd eq 'STRM' ) {
+                ####
+                if ( $$call_args{'args'} =~ m|^open( (\d+))?$| ) {
+                    my $open_size = $2 || 0;
+
+
+
+                    warn "[ STRM REPLY ] open size : $open_size";
+
+                } elsif ( $$call_args{'args'} =~ m|^\d+$| ) {
+                    my $msg_len = $$call_args{'args'};
+                    if ( length($$input) >= $msg_len ) {
+
+                        # cut out body data
+                        my $raw_data = substr( $$input, 0, $msg_len, '' );
+                    }
+                }
+                ####
             } else {
                 <[base.log]>->(
-                    1, "[$id] called unimplemented answer type ($cmd)"
+                    1, "[$id] called unimplemented answer type [$cmd]"
                 );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
                 return 1;
@@ -447,12 +465,12 @@ if ( $cmd =~ /^(ACK|NAK|WAIT|DATA|GET|STRM|TERM)$/ ) {
                 substr( $$input, 0, $ignore_bytes, '' );
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : dropped next $ignore_bytes bytes too.. (DATA body)"
+                    "[$id] : dropped next $ignore_bytes bytes too.. [DATA body]"
                 );
             } else {
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : ignoring next $ignore_bytes bytes as well.. (DATA)"
+                    "[$id] : ignoring next $ignore_bytes bytes as well., [DATA]"
                 );
                 $data{'session'}{'ignore_bytes'} -= length($$input);
                 truncate( $$input, 0 );
