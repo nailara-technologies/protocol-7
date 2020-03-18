@@ -15,7 +15,7 @@ my $proc_table = <nroot.process.pt>
 
 my %ppids;
 my %start_times;
-foreach my $proc ( @{ $proc_table->table } ) {
+foreach my $proc ( reverse @{ $proc_table->table } ) {
     next if not <[nroot.sub-process.exists]>->( $proc->{'pid'} );
     $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
     $start_times{ $proc->{'pid'} } = $proc->{'start'};
@@ -58,6 +58,6 @@ if ( defined $instance_id ) {
 ###
 
 return [
-    sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
-    sort keys %children
+    reverse sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
+    reverse sort keys %children
 ];
