@@ -12,8 +12,10 @@ my ($node_agent, $instance_id, $buffer_name,
 $log_level //= 0;
 
 my $err_msg;
-$err_msg = "append with insufficent parameters "
-    if not defined $log_message;
+if ( not defined $log_message ) {
+    ( my $line_str = $_[0]->{'args'} ) =~ s|^$node_agent $instance_id ||;
+    $err_msg = sprintf( "insufficent parameters [ %s ]", $line_str );
+}
 $err_msg = 'expected <buffer-name> parameter'
     if not defined $err_msg and not defined $buffer_name;
 $err_msg = 'expected <log-time> parameter'
@@ -27,7 +29,9 @@ if ( defined $err_msg ) {
     <history.disable_err_log_dump> //= 0; ## <-- suppress err log data on demand
     <[base.log]>->( 0, "\<$instance_id> ['$node_agent'] $err_msg" );
     ## log offending line for debugging ###
-    <[base.log]>->( 1, " < usage >  [ <buffer> <timestamp> <log-level> <mesg> ]" );
+    <[base.log]>->(
+        1, " < usage >  [ <buffer> <timestamp> <log-level> <mesg> ]"
+    );
     <[base.log]>->( 1, "< request > [ '$_[0]->{'args'}' ]" );
 
     if ( $data{'system'}{'verbosity'} and !<history.disable_err_log_dump> ) {
