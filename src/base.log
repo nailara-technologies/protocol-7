@@ -17,7 +17,8 @@ return
     and $log_level > <system.internal_verbosity>;
 
 $log_buffer = 'agent' if !length($log_buffer);
-$log_msg = '[EMPTY LOG MESSAGE]' if !length($log_msg);
+
+$log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
 
 $log_msg =~ s/\r/\\r/g;
 $log_msg =~ s/\n/\\n/g;
@@ -26,11 +27,11 @@ $log_msg =~ s/\e/\\e/g;
 
 # prevent deep recursions in error log system:
 my $fatal_exit
-    = ( $log_msg =~ /Deep recursion / and $log_msg =~ /log|buffer/ ) ? 1 : 0;
+    = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, ) ? 1 : 0;
 
 $log_msg = "call to unknown subroutine while executing '$1'!"
     if $log_msg
-    =~ /\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine/;
+    =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
 
 my $dots = <log.dots> //= '.';
 my $agent_prefix
@@ -45,16 +46,14 @@ if ( $log_level > 0 ) {
 
 if ($fatal_exit) {
     say STDERR $log_str, "$agent_prefix << EMERGENCY SHUTDOWN >> ",
-        " [anticipated deep recursion in log system!]";
+        " [ anticipated deep recursion in log system ]";
     exit 2;
 }
 
-my $log_stamp = join( ' ', <[base.ntime]>->(3), $log_level, $log_msg );
-
-# write to system log buffer
-if ( $log_level <= <system.internal_verbosity> ) {
-    <[base.buffer.add_line]>->( $log_buffer, $log_stamp );
-}
+# write to 'agent' log buffer
+<[base.buffer.add_line]>->(
+    $log_buffer, join( ' ', <[base.ntime]>->(3), $log_level, $log_msg )
+) if $log_level <= <system.internal_verbosity>;
 
 # print to console
 utf8::decode($log_str)

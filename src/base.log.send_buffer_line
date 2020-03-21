@@ -17,7 +17,10 @@ return warn "expected log buffer name parameter" if not defined $name;
 
 return if not exists <base.log.allow_buffer_send>;    #  <--  connected ?.,
 
-my $log_data = <log.file>->{$name};
+my $log_data   = <log.file>->{$name};
+my $next_index = $log_data->{'next_index'};
+
+return if not defined $data{'buffer'}{$name}{'data'}[$next_index];
 
 # find path to log agent..,
 my $route_prefix = 'core.';
@@ -33,9 +36,10 @@ if ( <system.agent.type> eq 'core' ) {
 push( @send_line, $name );
 
 ##[ t-stmp, lvl, msg ]##
-push( @send_line, $data{'buffer'}{$name}{'data'}[ $log_data->{'next_index'} ] );
+push( @send_line, $data{'buffer'}{$name}{'data'}[$next_index] );
 
 $log_data->{'complete'} = 0;
+
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
         'call_args' => { 'args' => join( ' ', map { $_ // '' } @send_line ) },
@@ -45,5 +49,9 @@ $log_data->{'complete'} = 0;
         }
     }
     )
-    or <[base.log.handler.log_reply]>
-    ->( { 'cmd' => 'NAK', 'params' => { 'name' => $name } } );
+    or <[base.log.handler.log_reply]>->(
+    {   'cmd'       => 'NAK',
+        'call_args' => { 'args' => 'command unknown' },
+        'params'    => { 'name' => $name }
+    }
+    );
