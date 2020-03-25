@@ -9,19 +9,60 @@ my $template_str = <source.sign_template> // '';
 die "signature template not defined" if !length($template_str);
 die "expected has reference to source parameters" if ref($params) ne 'HASH';
 
-my %variable_map = (
-    'data-chksum'    => [ 'pos' => 13542, 'data' => '' ],
-    'data-signature' => [ 'pos' => 13542, 'data' => '' ],
-    'data-type'      => [ 'pos' => 13542, 'data' => 'CODE' ],
-    'checksum-type'  => [ 'pos' => 13542, 'data' => 'BMW-384-B32' ],
-    'signature-type' => [ 'pos' => 13542, 'data' => 'C25519-B32' ],
+# my @dummy;
+# print Dumper($data_ref);
+# for ( 0 .. 13 ) { push( @dummy, 'DATA-SIGNATURE' ) }
+# $data_ref->{'signature'} //= join( '-', @dummy );
+
+$data_ref->{'signature'} //= <[source.sign_data]>->(
+    $data_ref->{'data-reference'},
+    $data_ref->{'data-chksum'}
 );
 
+my $sig_str_padded = $data_ref->{'signature'};
+my $bytes_left     = 103 - length($sig_str_padded);
+$sig_str_padded .= '#' x $bytes_left if $bytes_left;
+
+warn 'signature-length : ' . length( $data_ref->{'signature'} );
+
+my %variable_map = (
+    'data-chksum' =>
+        [ { 'pos' => 84, 'len' => 77, 'str' => $data_ref->{'data-chksum'} } ],
+    'signature' => [
+        {   'pos' => 167,
+            'len' => 52,
+            'str' => substr( $sig_str_padded, 0, 52 )
+        },
+        {   'pos' => 251,
+            'len' => 51,
+            'str' => substr( $sig_str_padded, 52, 51 )
+        }
+    ],
+    'data-type' => [ { 'pos' => 306, 'len' => 4, 'str' => 'CODE' } ],
+    'signature-type' =>
+        [ { 'pos' => 225, 'len' => 14, 'str' => 'C25519-BASE-32' } ],
+);
+
+my $result_ref = {};
 my $signature_b32;
 foreach my $name ( keys %variable_map ) {
-    my $pos = $variable_map{'pos'};
-    my $len = $variable_map{'len'};
+    my $str;
+    while ( my $var_data = shift( @{ $variable_map{$name} } ) ) {
+        if ( not defined $var_data->{'str'} ) {
+            warn "template data key '$name' is not defined";
+            return undef;
+        }
+        my $pos = $var_data->{'pos'};
+        my $len = $var_data->{'len'};
+        $str = $var_data->{'str'};
 
+        # print Dumper($var_data);
+
+        substr( $template_str, $pos, $len, $str );
+    }
+    $result_ref->{$name} = $str;
 }
+$result_ref->{'checksum-type'} = 'BMW-384-BASE-32';
+$result_ref->{'source-footer'} = $template_str;
 
-return $data_ref;
+return $result_ref;

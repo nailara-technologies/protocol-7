@@ -2,11 +2,15 @@
 
 # name  = source.extract_sig_body
 
-my $src_ref = shift;
-my $strip   = shift // '';
+my $src_ref     = shift;
+my $strip       = shift // '';
+my $footer_data = {
+    'was_present'     => 0,
+    'structure_valid' => 0,
+    'data-reference'  => $src_ref
+};
 $strip = $strip eq 'strip' ? 1 : 0;
-my $bit_size    = <source.chksum_bitsize>;
-my $footer_data = { 'was_present' => 0, 'structure_valid' => 0 };
+my $bit_size = <source.chksum_bitsize>;
 die "invalid keyword '$strip' for 'strip' parameter" if $strip !~ m,^[0|1]$,;
 die "expected source_str scalar reference" if ref($src_ref) ne 'SCALAR';
 
@@ -15,7 +19,8 @@ my $footer_body;
 my $footer_start = '# ';
 $footer_start .= '_' x 78;
 if ($strip) {
-    $footer_body = $1 if $$src_ref =~ s|$footer_start\n((#[^\n]+\n){4})$||sg;
+    $footer_body = $1
+        if $$src_ref =~ s|\n?\n$footer_start\n((#[^\n]+\n){4})$|\n|sg;
 } else {
     $footer_body = $1 if $$src_ref =~ m|$footer_start\n((#[^\n]+\n){4})$|;
 }
@@ -66,7 +71,7 @@ $footer_data->{'signature-type'} = 'C25519-B32';  # <-- ########################
 
 $footer_data->{'data-type'} = 'CODE';   # [ other types soon : DATA, NCFG, .., ]
 
-$footer_data->{'signed-chksum'}  = $sig_checksum;
+$footer_data->{'signature'}      = $sig_checksum;
 $footer_data->{'data-signature'} = $signature_b32;
 
 return $footer_data;
