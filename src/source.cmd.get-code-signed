@@ -21,28 +21,32 @@ return { 'mode' => 'nak', 'data' => 'requested code file is not valid' }
 my $footer_start = '# ';
 $footer_start = '_' x 78;
 
-my $footer_data = <[source.extract_sig_body]>->( \$src_str );
+$src_str .= "\n" if $src_str !~ m|\#   `+$|;
+
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, 'strip' );
 
 ## verification // ammense ## ( no data optional ]
 
 my $packet_data = <[source.fill_source_template]>->($footer_data);
 
-if ( $packet_data->{'data-chksum'} eq $packet_data->{'signed-chksum'} ) {
-    <[base.log]>->( 1, ':*: blue midnight wish signature is still valid.' );
-} else {
-    <[base.log]>->( 1, ':*: body data checksum has changed ..,' );
+if ( not defined $packet_data->{'signature'}
+    or $packet_data->{'signature'} ne $packet_data->{'data-chksum'} ) {
+    if ( not defined $packet_data->{'signature'} ) {
+        <[base.log]>->( 1, ':*: was not signed yet ..,' );
+    } else {
+        <[base.log]>->( 1, ':*: body data checksum has changed ..,' );
+    }
+    $src_str .= $packet_data->{'source-footer'};
     <[base.log]>->( 2, ': :' );
     <[base.log]>->( 2, ':*: [ signed BMW checksum ]' );
-    <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'signed-chksum'} ) );
+    <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'signature'} ) );
     <[base.log]>->( 2, ': :' );
     <[base.log]>->( 2, ':*: [ BMW data checksum ] < now >' );
     <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'data-chksum'} ) );
+} else {
+    <[base.log]>->( 1, ':*: blue midnight wish signature is still valid.' );
 }
 
-return {
-    'mode' => 'data',
-    'data' => Dumper($footer_data)
-};
 return {
     'mode' => 'data',
     'data' => $src_str
