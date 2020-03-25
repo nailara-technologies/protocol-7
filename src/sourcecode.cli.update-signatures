@@ -1,0 +1,38 @@
+# >:]
+
+# name  = sourcecode.cli.update-signatures
+# descr = register source checksums in version path
+
+my $source_version  = <nailara.source_version>;
+my $release_version = <nailara.release_version>;
+
+# my @copy_sources = (<system.code_path>);    # <-- change to previous version..,
+
+my $project_root = <system.root_path>;
+my $source_root  = <source.path.source>;
+my $version_root = catfile( <source.path.source>, 'version' );
+
+my @copy_sources;
+map {
+    my $source_path = catfile( $project_root, $_ );
+    die "source path $source_path does not exist" if !-d $source_path;
+    if ( !-w $source_path ) {
+        <[base.log]>->(
+            0, "<<< write permission missing for '$source_path' >>>"
+        );
+        <[base.exit]>->(1);
+    }
+    push( @copy_sources, $_ );
+} qw| bin cfg src |;
+
+<[base.log]>->( 1, ".:[ UPDATING SOURCE SIGNATURES ]:." );
+
+my @source_paths;
+
+my $file_count = 0;
+foreach my $directory (@copy_sources) {
+    my $src_path = catfile( $project_root, $directory );
+    <[file.all_files]>->( $src_path, \@source_paths );
+}
+
+say join "\n", @source_paths;
