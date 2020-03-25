@@ -1,0 +1,17 @@
+# >:]
+
+# name  = source.sign_data
+
+my $src_data_ref = shift;
+die "expected source data scalar reference"
+    if not defined $src_data_ref
+    or ref($src_data_ref) ne 'SCALAR';
+
+my $bit_size   = <source.chksum_bitsize>;
+my $chksum_b32 = shift // <[digest.bmw.strsum]>->( $bit_size, $$src_data_ref );
+my $data_len   = length($$src_data_ref);
+
+<[base.log]>->( 1, "signing $data_len bytes of data..," );
+
+return encode_b32r(
+    <[crypt.C25519.sign_data]>->( \join( "\n", $src_data_ref, $chksum_b32 ) ) );
