@@ -28,3 +28,9 @@ $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }{'params'}
 );
 
 # return $command_id;
+
+# ______________________________________________________________________________
+#\\MBVYQODLAG7XMXSX6ZUZMTIQJMN4TL6WH26KD6JI5JRVR325OBPAD2V6GU4RPYFRIAT4KWYJUJR4S
+# \\ CRI32PNN6WO6K7MPQUYFHW7QY5PIPHIASSJGCWFDLLCGS6IZVMOH \\// C25519-BASE-32 //
+#  \\// WGJNSNA32UIKMIQT3VPK27U7LJN2A4QZNG3VUPPIECCB3JXGIAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
