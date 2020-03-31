@@ -872,3 +872,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 }
 
 return 0;
+
+# ______________________________________________________________________________
+#\\B7ORJBZ6UMI7J5JJOUJMBZXFBM6BHKQUTFS734HNLXGFDM7FZQVKYVKT3M4VZGXCDPDIGKZZHVWRW
+# \\ VC57JOZEEWSAMZD3EEUIJEW4V6JZSM6NCCRNKRPA46DBUNC2UZST \\// C25519-BASE-32 //
+#  \\// U2HIKBHHTDLHQQBKGO67QYO56HLO637SY6XAJOF6SN742FSYCAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
