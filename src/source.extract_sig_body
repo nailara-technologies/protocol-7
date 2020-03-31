@@ -20,7 +20,7 @@ my $footer_start = '# ';
 $footer_start .= '_' x 78;
 if ($strip) {
     $footer_body = $1
-        if $$src_ref =~ s|\n?\n$footer_start\n((#[^\n]+\n){4})$|\n|sg;
+        if $$src_ref =~ s|\n$footer_start\n((#[^\n]+\n){4})$|\n|sg;
 } else {
     $footer_body = $1 if $$src_ref =~ m|$footer_start\n((#[^\n]+\n){4})$|;
 }
@@ -66,12 +66,9 @@ warn sprintf( "invalid characters in signature data [ %s ]",
 
 $footer_data->{'structure_valid'} = 1;
 
+$footer_data->{'data-type'} = 'CODE';   # [ other types soon : DATA, NCFG, .., ]
 $footer_data->{'checksum-type'}  = 'BMW-384-B32'; # only ones implemented so far
 $footer_data->{'signature-type'} = 'C25519-B32';  # <-- ########################
-
-$footer_data->{'data-type'} = 'CODE';   # [ other types soon : DATA, NCFG, .., ]
-
-$footer_data->{'signature'}      = $sig_checksum;
-$footer_data->{'data-signature'} = $signature_b32;
+$footer_data->{'signature'}      = $signature_b32;
 
 return $footer_data;
