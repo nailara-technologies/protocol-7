@@ -9,21 +9,10 @@ my $template_str = <source.sign_template> // '';
 die "signature template not defined" if !length($template_str);
 die "expected has reference to source parameters" if ref($params) ne 'HASH';
 
-# my @dummy;
-# print Dumper($data_ref);
-# for ( 0 .. 13 ) { push( @dummy, 'DATA-SIGNATURE' ) }
-# $data_ref->{'signature'} //= join( '-', @dummy );
-
 $data_ref->{'signature'} //= <[source.sign_data]>->(
     $data_ref->{'data-reference'},
     $data_ref->{'data-chksum'}
 );
-
-my $sig_str_padded = $data_ref->{'signature'};
-my $bytes_left     = 103 - length($sig_str_padded);
-$sig_str_padded .= '#' x $bytes_left if $bytes_left;
-
-warn 'signature-length : ' . length( $data_ref->{'signature'} );
 
 my %variable_map = (
     'data-chksum' =>
@@ -31,11 +20,11 @@ my %variable_map = (
     'signature' => [
         {   'pos' => 167,
             'len' => 52,
-            'str' => substr( $sig_str_padded, 0, 52 )
+            'str' => substr( $data_ref->{'signature'}, 0, 52 )
         },
         {   'pos' => 251,
             'len' => 51,
-            'str' => substr( $sig_str_padded, 52, 51 )
+            'str' => substr( $data_ref->{'signature'}, 52, 51 )
         }
     ],
     'data-type' => [ { 'pos' => 306, 'len' => 4, 'str' => 'CODE' } ],
@@ -55,8 +44,6 @@ foreach my $name ( keys %variable_map ) {
         my $pos = $var_data->{'pos'};
         my $len = $var_data->{'len'};
         $str = $var_data->{'str'};
-
-        # print Dumper($var_data);
 
         substr( $template_str, $pos, $len, $str );
     }

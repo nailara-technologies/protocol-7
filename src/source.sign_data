@@ -11,7 +11,14 @@ my $bit_size   = <source.chksum_bitsize>;
 my $chksum_b32 = shift // <[digest.bmw.strsum]>->( $bit_size, $$src_data_ref );
 my $data_len   = length($$src_data_ref);
 
-<[base.log]>->( 1, "signing $data_len bytes of data..," );
+<[base.log]>->( 2, "signing $data_len bytes of data..," );
 
 return encode_b32r(
-    <[crypt.C25519.sign_data]>->( \join( "\n", $src_data_ref, $chksum_b32 ) ) );
+    <[crypt.C25519.sign_data]>->(
+        \join( "\n",
+            $chksum_b32,
+            utf8::is_utf8($$src_data_ref)
+            ? Encode::encode_utf8($$src_data_ref)
+            : $$src_data_ref )
+    )
+);
