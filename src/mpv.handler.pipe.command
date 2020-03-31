@@ -21,3 +21,9 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
         }
     );
 }
+
+# ______________________________________________________________________________
+#\\NS4XY6IHK7V6Y6TVAQH3U7KHDMNREG75F7VTJYOOLNPIT4BMQOYA7U36VPFMRYWYVQ7PMMLTQNILO
+# \\ PASOFLC72OVU55VYCNRJXYRBTORMISZGNW6644GVFYJIEKUPQL75 \\// C25519-BASE-32 //
+#  \\// 5U4QHY465BX4BM6GAZEHRHQNX54NJHJOUEZUKT4IPZ7AMTOQSBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -5,5 +5,5 @@
 
 ### ( this is the [ISC license](license)d "base" branch )
 ---
-## current [release](https://github.com/anotherlink/nailara/releases) \\\\// [v1.58.7](https://github.com/anotherlink/nailara/releases/tag/v1.58.7)
+## current [release](https://github.com/anotherlink/nailara/releases) \\\\// [v1.65.0](https://github.com/anotherlink/nailara/releases/tag/v1.65.0)
 ---
