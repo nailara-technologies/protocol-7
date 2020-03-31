@@ -21,3 +21,9 @@ if ( $cmd_str !~ s/^\!// ) {
 }
 
 return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\URW2Y6HMBIYJ2NZMX5CQFTOUONN2CNAD2XWZSMWPDXTAK6B3KQDQ7CR4QGHIFISDBZ5GN7DOXTTHO
+# \\ TO4KS2YGCWIFHDTQWCQDG2TJ46DYEVXGIQGYXIXEL7GMNQW4GGL6 \\// C25519-BASE-32 //
+#  \\// XKOS5Y4WU2SAURF3RNPI7BRFILQMLFBWBYQR7AQUWHPPXWNZGAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
