@@ -8,11 +8,11 @@ my $file_path = shift // '';
 die "expected agent config file path" if !length($file_path);
 warn "agent config '$file_path' not found!" if !-f $file_path;
 
-return $1 if <[file.content]>->($file_path) =~ /\.:\[ +([^:]+) +\]:\./;
+return $1 if <[file.content]>->($file_path) =~ m|\.:\[ +([^\n]+) +\]:\.\n|;
 return '[ no description available ]';
 
 # ______________________________________________________________________________
-#\\JVNOHYOO2YXX7BXUAJ5K67HP5SNX3E22GAEZBHJOUARYJUKS4Z5H4XKHXFVIY6JY6FKPYFMYIVSBA
-# \\ DQ4ZA7CU5ZZQWE43PE46RZJWYFFMKI2JKUJXZRAMXF3TQZZJAXF5 \\// C25519-BASE-32 //
-#  \\// XNEJ4QOFDD4MRSOOY4YMX2E75TXPMY2EJL7YNTXJJ5OE4AVYKCA \\ CODE SIGNATURE \\
+#\\3UIUYTY37HJCNLBEPQ67CBFRFMTKRBNGXG3PBDH2I26XEACBV323HAYZVZFT4LIDA3AO4XUKZJLDU
+# \\ MDLSM7W2K7BEWC3DBDIWLA62UZBC43VYG237MQT4BBNTA4BFC7BX \\// C25519-BASE-32 //
+#  \\// 2JB6U4WEENJEUOFGYKT4QBPJY5XWARPQG6QCK2DXI4EZEKU5IAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
