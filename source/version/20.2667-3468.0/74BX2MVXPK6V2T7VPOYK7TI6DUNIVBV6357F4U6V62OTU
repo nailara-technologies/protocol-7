@@ -1,0 +1,19 @@
+# >:]
+
+# name  = mlist.cmd.reload_file
+# descr = reload configured playlist file from disk
+
+my $playlist_file = <mlist.file_name>;
+
+<[mlist.check_changes]>->($playlist_file);
+
+return { 'mode' => 'nak', 'data' => 'playlist file not found!' }
+    if <[mlist.load_file]>->($playlist_file) == -1;
+
+return { 'mode' => 'ack', 'data' => "reloading playlist!" }
+
+# ______________________________________________________________________________
+#\\TFUUL3U2SXDI4FHX3VF45WGJZRXIBEH6RG23WTNHE64ULC3OAOGQQ2DOZQJ64UG5YBMV42M5MN6AS
+# \\ 4DZHMJX7UQ2AA6W735ZGXTSTYJZQ4AFJ7Y6ONRQM52YD37CXNJ7M \\// C25519-BASE-32 //
+#  \\// 333ZEVVBSSO4ETFHCEXYVQETYY5E3ATCVGDIVSQI2HDUQEPHYAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

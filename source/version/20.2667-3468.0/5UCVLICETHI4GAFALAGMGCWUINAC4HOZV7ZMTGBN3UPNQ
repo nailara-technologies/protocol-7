@@ -1,0 +1,29 @@
+# >:]
+
+# name  = base.cmd.verify-instance
+# param = <rnd_str>
+# descr = verify root instance id through log feedback
+
+my $random_string = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'no random string supplied' }
+    if !length($random_string);
+
+<[base.log]>->( 1, "instance verification [KEY:$random_string]" );
+
+<[base.disable_command]>->('verify-instance');   # used only once by nroot agent
+
+map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $_ } ) }
+    @{ <system.callbacks.initialized> //= [] };
+
+## triggering instance reports before the timer does ##
+<system.timer>->{'send_reports'}->now
+    if defined <system.timer>->{'send_reports'}
+    and <system.timer>->{'send_reports'}->is_active;
+
+return { 'mode' => 'ack', 'data' => 'verification code logged' };
+
+# ______________________________________________________________________________
+#\\YFL4OD2GLTPJE6LR7VDFGSF5REJQEPSLJFBIWWGLINNZDWWE64TL2NRWSBKRRO2SUVBBXPN53NPYQ
+# \\ GX4FNZIOP6EZMK6D7HX3MHP53XU3VKWRYMZH3DWY6ITIP74GCSWG \\// C25519-BASE-32 //
+#  \\// KNVV7NQLILRJ4R6V357GEG2SCVWJXFY4ZVTAAZDP2KX4RDXIYCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,132 @@
+# >:]
+
+# name = browser.init_code
+
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Glib');
+<[base.perlmod.autoload]>->('HTTP::Soup');
+<[base.perlmod.autoload]>->('Glib::Event');
+<[base.perlmod.autoload]>->('Glib::Object::Introspection');
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+$ENV{'NO_AT_BRIDGE'} = 1;
+$ENV{'GTK_DEBUG'}    = 'no';
+$ENV{'GDK_DEBUG'}    = 'no';
+
+<browser.open_gtk_inspector> //= 0;
+if (<browser.open_gtk_inspector>) {
+    <[base.log]>->(
+        0, "((( 'Gtk Inspector' is enabled. )))  [ open_gtk_inspector=1 ]"
+    );
+    $ENV{'GTK_DEBUG'} = 'interactive';
+}
+
+package Browser::ScrolledWindow;
+
+use Glib::Object::Subclass 'Gtk3::ScrolledWindow';
+
+sub INIT_INSTANCE {
+    my $self = shift;
+    $self->set_policy( 'never', 'never' );
+}
+
+package Browser::WebView;
+
+Glib::Object::Introspection->setup(
+    qw| basename WebKit2 version 4.0 package Gtk3::WebKit2 |);
+
+use Glib::Object::Subclass 'Gtk3::WebKit2::WebView',
+    properties => [
+    Glib::ParamSpec->boolean(
+        'self-scrolling', 'undefined',
+        'undefined',      0,
+        [qw| readable writable |]
+    ),
+    ];
+
+sub INIT_INSTANCE {
+    my $self = shift;
+    $self->set_property( 'self-scrolling', 0 );
+}
+
+#[ AUTOSCROLL WITHOUT JS ]######################################################
+# web extension to access DOM coming later: needs webkit2/webkit-web-extension.h
+#        ( ... see https://github.com/tlby/webkit2gtk-webextension-example.git )
+################################################################################
+
+package main;
+
+<system.agent.mode> //= 'stand-alone';
+
+my $sn_str
+    = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
+
+<browser.window.title_str>
+    = <system.agent.mode> eq 'media-child' ? 'media.browser' : 'browser';
+<browser.window.title_str> .= $sn_str;
+<browser.window.title_str> .= "-$$" if !length($sn_str);
+
+<browser.status.fade_view> //= 0;
+<browser.fg_opacity>       //= 1;
+
+<browser.bg_color> //= '#FFFFFF';
+
+<browser.zoom_level>     //= 1;
+<browser.zoom_factor>    //= 1;    # adjusts configured or calculated zoom level
+<browser.zoom_text_only> //= 0;
+
+<browser.slideshow.no_scroll>        //= 0;
+<browser.slideshow.no_switch>        //= 0;
+<browser.cfg.user_can_scroll>        //= 0;
+<browser.cfg.links_clickable>        //= 0;
+<browser.cfg.allow_text_edit>        //= 0;
+<browser.cfg.allow_scrollbars>       //= 0;
+<browser.cfg.overlay_scrolling>      //= 1;
+<browser.cfg.force_overlay>          //= 0;
+<browser.cfg.show_progress_bar>      //= 1;
+<browser.cfg.javascript_enabled>     //= 1;
+<browser.cfg.plugins_enabled>        //= 0;
+<browser.cfg.load_timeout>           //= 13;
+<browser.cfg.use_transparency>       //= 1;
+<browser.cfg.autospeed_notrans>      //= 1;
+<browser.slideshow.swap_delay>       //= 2;
+<browser.slideshow.err_delay>        //= 2;
+<browser.slideshow.iteration>        //= 0;
+<browser.slideshow.paused>           //= 0;
+<browser.scroll.fail.timeout>        //= 2.7;
+<browser.scroll.fail.js_disabled>    //= 0;
+<browser.cfg.no_memory_cache>        //= 0;
+<browser.redraw_fps.slowdown>        //= 0;
+<browser.redraw_fps.slowdown_target> //= 0;
+<browser.cfg.max_gpu_load>           //= 67; # % ( auto-speed mode load target )
+
+<[browser.calc_scroll_speed]>
+    if not defined <browser.subcfg>
+    or ref(<browser.subcfg>) eq 'HASH'
+    and not defined <browser.subcfg.scroll_speed>;
+
+$ENV{'GTK_OVERLAY_SCROLLING'}
+    = (
+           <browser.cfg.force_overlay>
+        or <browser.cfg.allow_scrollbars> && <browser.cfg.overlay_scrolling>
+    )
+    ? 1
+    : 0;
+
+<browser.html_ref.loading_page> = <[file.slurp]>->(<browser.loading_page>);
+
+# [ workaround to suppress weird/untraceable Event.pm warnings on load timeout ]
+<sig_warn_blacklist.package> = 'Carp';
+<sig_warn_blacklist.pattern>
+    = qr/Source ID \d+ was not found when attempting to remove it
+        |GLib-LOG \*\*: posix_spawn avoided/;
+
+open STDERR, '>>/dev/null' or warn "/dev/null: $!";
+
+0;
+
+# ______________________________________________________________________________
+#\\ICQJNEVF2LHNFQODCZTHIYF4QF6HUM2TSCSKR7UPSUA73R422YRZ7YXQPBDRI7B64BZVHI4AYV7Y6
+# \\ OKQAVCXOEHN4P2K3B4GOLKQ2PFPYSGXBQNAIBEI24KRPTSO6S3T6 \\// C25519-BASE-32 //
+#  \\// UI234D5IZZPGBAPHRCNDGPENE7WTZEL2ROQ5WGTRMHKMNBY2QDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

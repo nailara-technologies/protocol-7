@@ -1,0 +1,107 @@
+# >:]
+
+# name = mpv.handler.get_list_reply
+# todo = fix continuous playback in case current file is in playlist!
+
+my $reply = shift;
+
+<mpv.playlist_sha1> //= '';
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason_str = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, ": unable to fetch playlist! ['$reason_str']" );
+    return;
+}
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <mpv.playlist_was_empty> = 1;
+    <mpv.file_map.rescaled>  = {};
+    <[mpv.send_command]>->('stop');
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.report_paused" } )
+        if <system.agent.mode> eq 'media-child';
+    return;
+}
+
+my @update_files = split( "\n", $reply->{'data'} );
+
+my $playlist_changed = 0;
+my $playlist_sha1    = <[digest.sha.1]>->( join( ' ', @update_files ) );
+
+if (<mpv.autorescale>) {
+    <mpv.file_map.rescaled> = {};
+    my $window_width  = <x11.coordinates.right> - <x11.coordinates.left>;
+    my $window_height = <x11.coordinates.bottom> - <x11.coordinates.top>;
+    my $box_size      = join( 'x', $window_width, $window_height );
+
+    foreach my $playlist_path (@update_files) {
+        my $output_path;
+        my $extension = '';
+        if ( defined <mpv.rescale_path> and -d <mpv.rescale_path> ) {
+            my $target_pth = <mpv.rescale_path>;
+            ( $output_path = $playlist_path ) =~ s|^.+/([^/]+)$|$target_pth/$1|;
+        } else {
+            ( $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
+        }
+        my $rescaled_path = "$output_path/$box_size.mp4";
+        next if !-f $rescaled_path;
+        <mpv.file_map.rescaled.target>->{$playlist_path} = $rescaled_path;
+        <mpv.file_map.rescaled.source>->{$rescaled_path} = $playlist_path;
+        $playlist_path = $rescaled_path;
+        <[mpv.update_resc_timestamp]>->($rescaled_path)
+            if defined <mpv.rescale_path> and -d <mpv.rescale_path>;
+        $playlist_changed = 1;
+    }
+}
+
+return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
+    if $playlist_sha1 eq <mpv.playlist_sha1> and !$playlist_changed;
+<mpv.playlist_sha1> = $playlist_sha1;
+
+push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+<[mpv.send_command]>->('playlist_clear');
+
+my $current_path = <mpv.current.path> // '';
+
+my @append_files = @update_files;
+my $keep_file    = 0;
+foreach my $check_path (@update_files) {
+    if ( $check_path eq $current_path ) {
+        shift @append_files;
+        $keep_file = 1;
+        last;
+    }
+    push( @append_files, shift @append_files );
+}
+
+if ( !$keep_file ) {
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <[mpv.send_command]>->('stop');
+}
+
+map {
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <[mpv.send_command]>->( 'loadfile', $_, 'append-play' );
+} @append_files;
+
+if ( <system.agent.mode> eq 'media-child' ) {
+    <mpv.playlist_was_empty> //= 0;
+    <mpv.startup.child_init> //= 1;
+    if ( <mpv.startup.child_init> or <mpv.playlist_was_empty> ) {
+        <mpv.playlist_was_empty> = 0;
+        <mpv.startup.child_init> = 0;
+        push( @{<mpv.reply_ids>}, 'silent' );
+        <mpv.success_reply_str> = '[PAUSE]d';
+        <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+    }
+    <mpv.playlist_contains_pause> //= 0;
+    map { <mpv.playlist_contains_pause>++ if $_ eq '[PAUSE]' } @update_files;
+}
+
+# ______________________________________________________________________________
+#\\VE53LOQG65K3XFK6STEPFKW53JT5SHP3ALATHIBBIK4M4LE5JOEKFDLEZ5NGE5TCEKJ6T3LZBPZQY
+# \\ 7GDPL76B2HJ3XXZVCQ3IUJM3VL62ERHCN2SKZCALWOSO4FI5RLM2 \\// C25519-BASE-32 //
+#  \\// ESDUGZXCN7EZMWG7IO5NMETARPKFIWS6UJ4P7OIMRE6Q3CGUEAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

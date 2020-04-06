@@ -1,0 +1,22 @@
+# >:]
+
+# name  = base.dependency.get_reverse
+# descr = return a list of all objects which depend on the specified object [id]
+
+my $object_id = shift // '';
+die "base.dependency.add: expected valid dependency-object id"
+    if not exists <dependency.object>->{$object_id};
+
+my %depending_objects;
+foreach my $id ( keys %{<dependency.chain>} ) {
+    map { $depending_objects{$id} = 1 if $_ == $object_id }
+        @{ <dependency.chain>->{$id} };
+}
+
+return keys %depending_objects;
+
+# ______________________________________________________________________________
+#\\ZEG2OAWTRZCU35ZLASAYAICZ67IOPZQKC7UIIUOXNJRWURX44A4W3L5YOFKRIQMYXZEXJ4RNQ7WRA
+# \\ R5N7GU74DUNRUDPBOJJYULMLC2LGJ7UUKZVUZLYTJMYJ7VS77NGC \\// C25519-BASE-32 //
+#  \\// J4QBOSQGFI44AATV5WIHGL4WSKTGY4OTV6HF3GSMR5KWD3MZOAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

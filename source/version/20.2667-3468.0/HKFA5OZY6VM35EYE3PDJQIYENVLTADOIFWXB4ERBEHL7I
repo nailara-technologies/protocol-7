@@ -1,0 +1,27 @@
+# >:]
+
+# name  = nroot.agent.get_id
+# descr = return agent id for given name from setup
+# note  = doesn't deal with multiple agent setups for same name yet!
+
+my $agent_subname;
+my $agent_name = shift;
+
+$agent_subname = $1 if $agent_name =~ s|\[([^\]]+)]$||;
+
+die 'expected agent name' if not defined $agent_name or !length($agent_name);
+
+foreach my $id ( keys %{<nroot.agent.setup>} ) {
+    my $setup_agent = <nroot.agent.setup>->{$id}->{'name'};
+    return $id if defined $setup_agent and $setup_agent eq $agent_name;
+}
+
+<[base.log]>
+    ->( 2, "nroot.agent.get_id: no agent '$agent_name' found in setup" );
+return undef;    # no such agent
+
+# ______________________________________________________________________________
+#\\DXIOUIWF4QOXDLWCAWHM5KAVKNMLJEWEHKE6X2N6TYR45C4WB3XL5H2FOA7QUJCFIZ44RT35UWWK6
+# \\ QWMI2SUOLWQ4Z2JOFVFXIXOPD4AFMJ7MHTRYDRDEYP24SBMSCHUU \\// C25519-BASE-32 //
+#  \\// XN4ZU2TNJRD44ZTQ6O7XD7DWFC6BDGGRAZJANZHKUK73SFRNIAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

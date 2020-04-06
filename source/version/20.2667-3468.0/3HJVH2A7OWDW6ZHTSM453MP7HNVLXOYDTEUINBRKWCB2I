@@ -1,0 +1,79 @@
+# >:]
+
+# name  = core.cmd.select
+# param = <user|sid>
+# descr = append user/sid to base [command] path
+
+my $param      = $_[0]->{'args'} // '';
+my $usr_sid    = $_[0]->{'session_id'};
+my $source_usr = $data{'session'}{$usr_sid}{'user'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'invalid parameter syntax for user/agent/sid!'
+    }
+    if $param  !~ <regex.base.usr>
+    and $param !~ <regex.base.sid>
+    and $param !~ <regex.base.usr_sub>;
+
+my $target_subname;
+my $found      = 0;
+my $regex      = <regex.base>;
+my $target_usr = $param;
+my $append_str = $param;
+if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
+    $found = 1 if exists $data{'session'}{$param};
+} elsif ( $param =~ /^($regex->{usr})\[($regex->{subname})\]$/ ) { # <usr>[<sn>]
+    my $match_sid;
+    $target_usr     = $1;
+    $target_subname = $2;
+    map {
+                $match_sid = $_
+            and $found++
+            if $data{'session'}{$_}{'user'} eq $target_usr
+            and defined $data{'session'}{$_}{'subname'}
+            and $data{'session'}{$_}{'subname'} eq $target_subname
+        }
+        keys %{ $data{'session'} };
+    return {
+        'mode' => 'nak',
+        'data' => 'multiple $param found (not supported yet!)'
+        }
+        if $found > 1;
+    $append_str = $match_sid;
+} else {    # <username>
+    map { $found++ if $data{'session'}{$_}{'user'} eq $param }
+        keys %{ $data{'session'} };
+}
+
+return {
+    'mode' => 'nak',
+    'data' => $param =~ /^\d+$/
+    ? "there is no active session $param"
+    : "user '$target_usr' not online"
+    }
+    if !$found
+    or $target_usr !~ <access.cmd.regex.usr>->{$source_usr};
+
+my @base_path
+    = ( defined $data{'session'}{$usr_sid}{'base_path'}
+        and length $data{'session'}{$usr_sid}{'base_path'} )
+    ? ( $data{'session'}{$usr_sid}{'base_path'}, $append_str )
+    : ($append_str);
+
+$data{'session'}{$usr_sid}{'base_path'} = join( '.', @base_path );
+
+my $bp_str = $data{'session'}{$usr_sid}{'base_path'};
+<[base.log]>->( 1, "[$usr_sid] <- session base_path -> \"$bp_str\"" );
+
+return {
+    'mode' => 'ack',
+    'data' => "base_path = '$bp_str', 'unselect' or '../' to reset,"
+        . " '..<cmd>' for parent"
+};
+
+# ______________________________________________________________________________
+#\\WCBV4QU24ZYXKMJWRKZPQQNVFP6F6UQ4RZHKTGNYPBPFQLYUMXVNMJ45JU3GN55JE23OPRNMS44QA
+# \\ HQ7UMLWORIAFWWQWRDLRA76DVA3GXWAD4HZYD6MYN3GZFPCXYCEX \\// C25519-BASE-32 //
+#  \\// AHE3S5POVBX64NQBN4OGDG53LT2VFNHA7AM7HAUXOATIJE7UIBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

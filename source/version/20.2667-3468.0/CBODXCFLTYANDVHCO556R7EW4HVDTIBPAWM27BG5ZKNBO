@@ -1,0 +1,65 @@
+# >:]
+
+# name = power.set_states
+
+my $device_id  = shift;
+my @set_states = @_;
+die "expected valid device id"
+    if not defined $device_id
+    or not exists <power.cfg.devices>->{$device_id};
+die "expected four socket state parameters" if @set_states != 4;
+
+my $dev = <[power.dev_obj]>->($device_id);
+
+map {
+    if ( defined $set_states[$_] and $set_states[$_] eq '1' ) {
+        $set_states[$_] = SOCK_ON;
+    } elsif ( defined $set_states[$_] and $set_states[$_] eq '0' ) {
+        $set_states[$_] = SOCK_OFF;
+    } else {
+        $set_states[$_] = SOCK_SKIP;
+    }
+} ( 0 .. 3 );
+
+$dev->_set_ctrl(@set_states);
+
+if ( not defined $dev or not defined $dev->{'poller'} ) {
+    <[base.log]>->( 0, "connection to device $device_id failed" );
+    return undef;
+}
+
+my @new_states;
+
+map {
+    if (defined $dev->{'stat'}->[$_]
+        and (  $dev->{'stat'}->[$_] == 17
+            or $dev->{'stat'}->[$_] == 18
+            or $dev->{'stat'}->[$_] == 65 )
+    ) {
+        $new_states[$_] = '1';
+    } elsif (
+        defined $dev->{'stat'}->[$_]
+        and (  $dev->{'stat'}->[$_] == 33
+            or $dev->{'stat'}->[$_] == 34
+            or $dev->{'stat'}->[$_] == 130 )
+    ) {
+        $new_states[$_] = '0';
+    } else {
+        $new_states[$_] = 'E';
+    }
+} ( 0, 1, 2, 3 );
+
+if ( $dev->{'poller'}->can_write(0.1) ) {
+    $dev->{'sock'}->send( chr(0x11) );
+    $dev->{'sock'}->close();
+}
+
+<power.last_states> = \@new_states;
+
+return @new_states;
+
+# ______________________________________________________________________________
+#\\32TOGXMIBZGDQOUIGMLED62L3PTYA7YAB6P4GFUVB5THAWWQHYQHCNUIEZKKXBIRMNHRD2OI77FVK
+# \\ RFPRBV2RXEBSVGUQCONOSPYNOCOESNHMAGRK6VEOR5J4OGDK3ZHK \\// C25519-BASE-32 //
+#  \\// S5EG33UWJQ6Q7457SJKRUUYY5YIEEJPMCCTQIYWVOOMCJHCBUBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

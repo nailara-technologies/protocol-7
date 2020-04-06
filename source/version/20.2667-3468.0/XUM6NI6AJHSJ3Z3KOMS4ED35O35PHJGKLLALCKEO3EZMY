@@ -1,0 +1,43 @@
+# >:]
+
+# name  = power-x11.cmd.set_states
+# param = <id> <S1> <S2> <S3> <S4>
+# descr = update power swich states
+
+my ( $dev_id, @states ) = split( / +/, shift->{'args'} );
+
+return { 'mode' => 'nak', 'data' => 'expected device id' }
+    if not defined $dev_id or !length($dev_id);
+return { 'mode' => 'nak', 'data' => "no such device ($dev_id)" }
+    if not exists <power-x11.devices>->{$dev_id};
+return { 'mode' => 'nak', 'data' => 'expected 4 socket states' }
+    if @states != 4;
+map {
+    return { 'mode' => 'nak', 'data' => "state '$_' is not valid" }
+        if $_ !~ /^(0|1)$/
+} @states;
+
+my $changed = 0;
+foreach my $snum ( keys %{ <power-x11.switch>->{$dev_id} } ) {
+    my $new_state = $states[ $snum - 1 ];
+    my $switch    = <power-x11.switch>->{$dev_id}->{$snum};
+    $changed++
+        if $new_state != <power-x11.devices>->{$dev_id}->{'state'}->{$snum};
+    <power-x11.devices>->{$dev_id}->{'state'}->{$snum} = $new_state;
+    $switch->set_active($new_state);
+}
+<[base.sleep]>->(0.01);
+while ( Gtk3::events_pending() ) {
+    Gtk3::main_iteration();
+}
+
+return {
+    'mode' => 'ack',
+    'data' => $changed . ' states changed'
+    }
+
+# ______________________________________________________________________________
+#\\PQBORLL7BVTWB7Q62N7T6MMHN3KCAUKCQ3WXN54K3P2IP3GHPC5YNU4IIIBUVD7GHHTETF4TK5SMI
+# \\ DS7E5Y7GL7TSYU4BOSPQJMJ7TI3AI4SCAWUGJBNSCBPMRRZMK6OV \\// C25519-BASE-32 //
+#  \\// R2FZMKKS7GTI4D4Q5WIEBLZQWA764TCWU5S2SAP6Q2ZFHQZUUDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

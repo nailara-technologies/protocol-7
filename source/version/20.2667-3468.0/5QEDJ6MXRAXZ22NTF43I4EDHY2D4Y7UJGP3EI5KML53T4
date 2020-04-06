@@ -1,0 +1,21 @@
+# >:]
+
+# name  = media.cmd.dump_state
+# descr = dump current agent state [new version]
+
+my $dump_key = 'media.state';
+
+return {
+    'mode' => 'data',
+    'data' => "\n  .:[ '$dump_key' ]:.\n:`\n"
+        . join( '',
+        map {": $_\n"}
+            split( /\n/, <[base.dump_data]>->( undef, undef, $dump_key ) ) )
+        . ":.\n\n"
+};
+
+# ______________________________________________________________________________
+#\\XIAGMDQ3JXS3SQCLTOYYWXPIK6Z32QNEXKWF5RWP7LDBWJ5ZBYT5SA4KLCYS6IVZZKKSQY4AMMIGY
+# \\ AP4G35TNGJK6NHYDHR5XCOPI6PDS27LDFJ6C25LZHLTHSC3I5ZV6 \\// C25519-BASE-32 //
+#  \\// 5ROAR4RBEKYMEQUP5IMKOIGPFEXMI2D2TS6QTBVO2UAI7AFDKDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

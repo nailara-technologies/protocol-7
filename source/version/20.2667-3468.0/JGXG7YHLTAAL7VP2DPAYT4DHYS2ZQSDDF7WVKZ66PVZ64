@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.import_config.plain
+# todo = implement config import rules!
+
+my $config_name = shift // '';
+die 'expected config name parameter' if !length($config_name);
+$config_name =~ s|^.*/||g;
+my $import_dir  = '/etc/nailara/import';
+my $import_path = "$import_dir/$config_name";
+
+return 0 if !-d $import_dir or !-f $import_path;
+
+<[base.log]>->( 1, "importing config '$config_name'.." );
+<[base.log]>->( 2, ": from directory '$import_dir'" );
+
+<base.config_parser.cfg_type> = 'local_imp'
+    if not defined <base.config_parser.cfg_type>;
+<base.config_parser.cfg_name> = $config_name
+    if not defined <base.config_parser.cfg_name>;
+
+my $status = <[base.execute_agent_code]>->(
+    <[base.parser.config]>->(
+        <[base.get_file.aref]>->(
+            $import_path,
+            sub {
+                $_[0] =~ s|^.*/||g;
+                <[log.error]>->("unable to import '$_[0]' config [$!]");
+                return undef;
+            }
+        )
+    )
+);
+
+return $status;
+
+# ______________________________________________________________________________
+#\\LCVZXRG6ZODMMPF43GWU7B7IECCPK3NUXOTSOJLYVXZGVDJL4XA636SZTPLMQZ6NGUKF4JBPZCCRS
+# \\ HVCOGVL23NVKEBTKKXNVQ3V2Y2OOTIT3XZRKG2VNZ4ETES5LAR7K \\// C25519-BASE-32 //
+#  \\// KD5C2RYR2CLU5GPYBEZLNK6QIJEZM6S26BVSHOATHYHVNQN3CAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

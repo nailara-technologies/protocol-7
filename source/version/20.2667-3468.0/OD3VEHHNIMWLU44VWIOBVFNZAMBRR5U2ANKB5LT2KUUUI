@@ -1,0 +1,18 @@
+# >:]
+
+# name  = jobqueue.get_job_data
+# descr = returns job data hash for job with specified id
+
+my $job_id = shift;
+die "no job id supplied" if not defined $job_id;
+my $job_queue = <jobqueue.joblist.by_id>;
+die "a job with id '$job_id' does not exist"
+    if not exists $job_queue->{$job_id};
+
+return $job_queue->{$job_id};
+
+# ______________________________________________________________________________
+#\\VEOJAW6YEB2O5GK7JFZ7373EQ7XHM2HRS7KKTR5HTSFCZGKNDR2GAMW5DMDEHYEOXKZCD5EGJLDT4
+# \\ VJKWHX4B5BVHOID6ZVOU4SKRBOD3JXGLFU53HJY6IWVTPXXL5L4E \\// C25519-BASE-32 //
+#  \\// 6F6HSL6FL53YOU2HYCRBP4RAXP35JFNFJ4KJP4MI7DPOT7P5WCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

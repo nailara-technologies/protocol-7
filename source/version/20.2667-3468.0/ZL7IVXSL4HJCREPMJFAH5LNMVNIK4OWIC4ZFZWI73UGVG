@@ -1,0 +1,19 @@
+# >:]
+
+# name  = base.hide_list
+# descr = hide specified lists from 'list' command
+
+my @params = @_;
+die "list names expected!" if !@params;
+$data{'lists_hidden'} //= {};
+
+my $s = @params > 1 ? 's:' : '';
+<[base.log]>->( 2, "disabling list$s " . join( ', ', @params ) . ' ..' );
+
+map { $data{'lists_hidden'}{$_}++ } @params;
+
+# ______________________________________________________________________________
+#\\ECSUBDDBTPICXXEYGT5FBN5U7BQSNAWN6VNIF6FD2C3P76BRSCNDVAHSRFICETMWLM5F7OF2VZKPG
+# \\ 2LTW25RS4VFZPPYOPJ6CCA3P6FAOXGVMGC6V34YQYHFC4FVWSVHF \\// C25519-BASE-32 //
+#  \\// SKPDXEXYWE7BEJID6YLLIZUIDH6KYMDNWOUGTCRHOFWJ3IZUMCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

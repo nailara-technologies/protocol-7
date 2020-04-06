@@ -1,0 +1,45 @@
+# >:]
+
+# name = config.init_code
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | )
+    if not defined &{'make_path'};
+
+<system.local_config_dir> //= '/etc/nailara';    # set up in ./conf/defaults
+<config.profile_dir> //= <system.conf_path> . '/profiles'; # created ondemand..,
+
+my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+    or die "user '" . <system.privs.user> . "' not in passwd file";
+
+my $dir_path = <system.local_config_dir>;
+if ( !-d $dir_path ) {
+    <[base.log]>->( 1, "<< creating local nailara config dir [$dir_path] >>" );
+    make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+        or warn "unable to create local config directory '$dir_path' [$!]";
+}
+
+## './cfg/profiles' is created in config.chk_profile_dir ..,
+
+map { <[base.disable_command]>->($_) } qw|
+    list-exportable
+    export-config
+    fetch-agent-config
+    create-profile
+    install-profile
+    | if <system.agent.name> ne 'config';
+
+if (not
+    exists $code{ sprintf( '%s.config.export_rules', <system.agent.name> ) } ) {
+    <[base.log]>->( 0, "no export rules defined, disabling config commands.," )
+        if <system.agent.name> ne 'config';
+    <[base.disable_command]>->('get-config-names');
+    <[base.disable_command]>->('get-config');
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\ZNSGAB6O34WDGMJPA4CC7OEPPZ6PRG7X5VXWEXS4EQGJYBZ42NWIN2WDUPZSARPQRH7AXUHYB3VVI
+# \\ 7U6JW5ZLW4EI4P42G3MW735LCKHGCHXG53SCH7TQQGHAXBR5IVXR \\// C25519-BASE-32 //
+#  \\// QQNZSQLI34VNHL55VD24CUVIKH2GTL34COPGLYEM26BBKEY5CDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

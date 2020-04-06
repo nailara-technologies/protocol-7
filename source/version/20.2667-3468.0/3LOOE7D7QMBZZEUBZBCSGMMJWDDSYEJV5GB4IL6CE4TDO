@@ -1,0 +1,22 @@
+# >:]
+
+# name  = xserver.cmd.enable_dpms
+# descr = [re]activate display power saving modes
+
+return { 'mode' => 'nak', 'data' => 'xserver has no DPMS support' }
+    if !<xserver.has_dpms>;
+
+<xserver.x11>->DPMSEnable();
+<xserver.x11>->DPMSInfo();
+<xserver.x11>->DPMSSetTimeouts( 600, 600, 600 ); # <- move to config / automatic
+<xserver.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "DPMS manually activated" );
+
+return { 'mode' => 'ack', 'data' => 'DPMS enabled' };
+
+# ______________________________________________________________________________
+#\\3DYXWDX6CPP3V4C5DVRO4CIVDLNKJG2NTZJCJR6KO3IU7EWNMKT4GWDYPYIJLYISA36XW6NQKI2O2
+# \\ 2SNW7AUOOA526OPSIFXXIGNDIZVJ3R74EH7B7JOOKGPF2E2CKC64 \\// C25519-BASE-32 //
+#  \\// Z6PBRWTIEJAHGEULPK4KZV6HCPYUY5IZ3XB2GYTTU4P2GOSLSDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

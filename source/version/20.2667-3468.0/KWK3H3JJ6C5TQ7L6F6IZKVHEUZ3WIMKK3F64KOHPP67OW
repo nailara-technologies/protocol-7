@@ -1,0 +1,29 @@
+# >:]
+
+# name  = core.cmd.unselect
+# descr = revert base command path prefix (incomplete)
+
+my $sid   = $_[0]->{'session_id'};
+my $param = $_[0]->{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'no base path defined' }
+    if not defined $data{'session'}{$sid}{'base_path'};
+
+if (    $data{'session'}{$sid}{'base_path'} =~ /\./
+    and $data{'session'}{$sid}{'base_path'} =~ s/\.([^\.]*)$// ) {
+
+    <[base.log]>->(
+        0, "[$sid] base_path = '" . $data{'session'}{$sid}{'base_path'} . "'"
+    );
+    return { 'mode' => 'ack', 'data' => "unselected '$1'" };
+} else {
+    delete $data{'session'}{$sid}{'base_path'};
+    <[base.log]>->( 1, "[$sid] <- session base_path -> \"\"" );
+    return { 'mode' => 'ack', 'data' => 'base path reset to local peer' };
+}
+
+# ______________________________________________________________________________
+#\\3XNQE5NOKLGOUSLMIIKDXLRYS5EAD2P3XKEKZIQV6LDMPZLRKQF2FEDQQMZA46ISW5HOQDSRPK2HS
+# \\ ZXOTDDUUP2SWTZT3NF37H65K65RL6APR7XFKPCGD7OOWCJ5PC2KS \\// C25519-BASE-32 //
+#  \\// S3CIJFKCM2FLJUZOTTVPF7TMMF52X4FZLKED3H4VMNMITBPJUCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

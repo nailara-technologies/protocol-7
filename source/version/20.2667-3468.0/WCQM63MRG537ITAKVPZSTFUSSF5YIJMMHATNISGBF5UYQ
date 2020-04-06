@@ -1,0 +1,246 @@
+# >:]
+
+# name = ticker-gtk.callback.draw
+
+my ( $widget, $context, $ref_status ) = @_;
+
+<ticker-gtk.status.initialized> //= 0;
+<ticker-gtk.last_time>          //= <[base.time]>->(8);
+
+my $window = <ticker-gtk.obj.window>;
+
+if ( <ticker-gtk.status.initialized>
+    and
+    ( !$window->get_property('visible') or !<ticker-gtk.animation_started> ) ) {
+    <ticker-gtk.obj.window>->queue_draw();
+    <[base.sleep]>->(0.042);
+    return 1;
+}
+
+<ticker-gtk.obj.window>->queue_draw();
+
+<ticker-gtk.obj.context> = $context;
+
+<ticker-gtk.auto_speed_mode>         //= 0;
+<ticker-gtk.slowdown.percent>        //= 0;
+<ticker-gtk.slowdown.percent_target> //= 0;
+
+<ticker-gtk.draw.skipped>        //= 0;
+<ticker-gtk.draw.skipped_offset> //= 0;
+<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;    # <- LLL: calc!
+<ticker-gtk.bg_col>              //= [ 1, 1, 1 ];
+<ticker-gtk.bg_alpha> //= 100;    # transparent default
+
+if ( not defined <ticker-gtk.speed> ) {
+    <ticker-gtk.speed> //= <ticker-gtk.default_speed> // 16;  # internal default
+    <[base.log]>->(
+        0,
+        sprintf( "ticker scroll speed undefined [using default : %s]",
+            <ticker-gtk.speed> )
+    );
+} else {
+    <ticker-gtk.speed_logged> //= 0;
+    <ticker-gtk.speed> = 5  if <ticker-gtk.speed> < 5;
+    <ticker-gtk.speed> = 42 if <ticker-gtk.speed> > 42;
+    <[base.log]>->(
+        1,
+        sprintf( "initializing with ticker scroll speed = %s",
+            <ticker-gtk.speed> )
+    ) if !<ticker-gtk.speed_logged>++;
+}
+
+<ticker-gtk.slowdown.percent> = 0
+    if <ticker-gtk.slowdown.percent> < 0 or <ticker-gtk.slowdown.percent> > 100;
+
+if (   !$window->is_composited
+    or !<ticker-gtk.use_transparency> ) {
+    $context->set_source_rgb( @{<ticker-gtk.bg_col>} );
+    $context->paint;
+} else {
+    my $screen = $window->get_screen();
+    my $rgba   = $screen->get_rgba_visual();    # LLL: auto update?
+    if ( !$rgba ) {
+        <ticker-gtk.use_transparency> = 0;
+    } elsif (<ticker-gtk.use_transparency>) {
+        $window->set_visual($rgba);
+        $context->set_source_rgba( @{<ticker-gtk.bg_col>},
+            ( 100 - <ticker-gtk.bg_alpha> ) / 100 );
+        $context->set_operator('source');
+        $context->paint;
+        $context->set_operator('over');
+    }
+}
+
+my $speed       = <ticker-gtk.speed> // 13;
+my $draw_shadow = $speed > 16 ? 0 : 1;
+
+# LLL: initialization part needs to be rewritten!
+if ( !<ticker-gtk.status.initialized> ) {
+
+    <[base.log]>->( 1, "calculating required font size .," );
+    my $new_font_size = 0;
+    my $shadow_height = $draw_shadow ? 2 : 0;
+    while (
+        (     $context->font_extents->{'ascent'}
+            + $context->font_extents->{'descent'}
+        ) < <x11.window.height> - $shadow_height
+    ) {
+        $new_font_size++;
+        $context->set_font_size($new_font_size);
+    }
+    <ticker-gtk.font.size> = $new_font_size - 1;
+    $context->set_font_size(<ticker-gtk.font.size>);
+    <[base.log]>->(
+        1, "initialized window [font.size=" . <ticker-gtk.font.size> . ']'
+    );
+    <ticker-gtk.status.initialized> = 1;
+
+    <[base.async.get_session_id]>;    # agent status -> 'online'
+
+    return;
+}
+
+$context->set_font_face(<ticker-gtk.font.face>);
+$context->set_font_size(<ticker-gtk.font.size>);
+
+my $txt = <ticker-gtk.content.txt> // '';
+
+my $width = $context->text_extents($txt)->{'width'};
+
+my $content_substr
+    = <[ticker-gtk.content_substring]>->(<ticker-gtk.draw.x_pos>);
+
+my $x_skipped = $content_substr->[0] // 0;
+
+my $x_offset = sprintf( "%.0f",
+    <ticker-gtk.draw.x_pos> + $x_skipped - <ticker-gtk.draw.skipped_offset> );
+
+if ($draw_shadow) {
+    $context->move_to(
+        $x_offset + 2,
+        $context->font_extents->{'height'}
+            - $context->font_extents->{'descent'} + 2
+    );
+    if (<ticker-gtk.use_transparency>) {
+        $context->set_source_rgba( 0, 0, 0, 0.13 );
+    } else {
+        $context->set_source_rgb( 0.87, 0.87, 0.87 );
+    }
+    $context->show_text( $content_substr->[1] );
+}
+
+if (<ticker-gtk.cfg.draw_outline>) {
+    if (<ticker-gtk.use_transparency>) {
+        $context->set_source_rgba( @{<ticker-gtk.ol_col>}, 0.87 );
+    } else {
+        $context->set_source_rgb( @{<ticker-gtk.ol_col>} );
+    }
+    foreach my $o_y ( -1 .. +1 ) {
+        foreach my $o_x ( -1 .. +1 ) {
+            next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
+            $context->move_to(
+                $x_offset + $o_x,
+                $context->font_extents->{'height'}
+                    - $context->font_extents->{'descent'}
+                    + $o_y
+            );
+            $context->show_text( $content_substr->[1] );
+        }
+    }
+}
+
+$context->move_to( $x_offset,
+    $context->font_extents->{'height'} - $context->font_extents->{'descent'} );
+
+if (<ticker-gtk.use_transparency>) {
+    $context->set_source_rgba(
+        <ticker-gtk.font.color>->[0],
+        <ticker-gtk.font.color>->[1],
+        <ticker-gtk.font.color>->[2], 0.88
+    );
+} else {
+    $context->set_source_rgb( @{<ticker-gtk.font.color>} );
+}
+
+$context->show_text( $content_substr->[1] );
+
+my $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
+
+if ( !<ticker-gtk.paused> ) {
+
+    if (<ticker-gtk.auto_speed_mode>) {    # LLL
+        my $adjust  = 0;
+        my $sl_diff = 0;
+        if ( <ticker-gtk.slowdown.percent>
+            != <ticker-gtk.slowdown.percent_target> ) {
+            $adjust = sprintf(
+                "%.4f",
+                (         <ticker-gtk.slowdown.percent_target>
+                        - <ticker-gtk.slowdown.percent>
+                ) / 842
+            );
+            <ticker-gtk.slowdown.percent>
+                = sprintf( "%.4f", <ticker-gtk.slowdown.percent> + $adjust );
+            $sl_diff = abs(
+                sprintf( "%.4f",
+                          <ticker-gtk.slowdown.percent_target>
+                        - <ticker-gtk.slowdown.percent> )
+            );
+            <ticker-gtk.slowdown.percent> = <ticker-gtk.slowdown.percent_target>
+                if $sl_diff <= 0.05;
+        }
+        #
+        $speed -= ( $speed - 5 ) * ( <ticker-gtk.slowdown.percent> / 100 );
+    }
+
+    my $ppsec = 1.42 * $speed**1.86;
+
+    my $fps_delay = ( 1 / $ppsec ) - $delta_t;
+
+    if ( $fps_delay > 0 ) {
+        <[base.sleep]>->($fps_delay);
+        $delta_t = <[base.time]>->(8) - <ticker-gtk.last_time>;
+    }
+
+    <ticker-gtk.draw.x_pos> -= $ppsec * $delta_t;
+
+    if ( defined <ticker-gtk.content.current.txt_map>->{'total_width'}
+        and <ticker-gtk.draw.x_pos>
+        <= -<ticker-gtk.content.current.txt_map>->{'total_width'} ) {
+        <ticker-gtk.draw.x_pos>
+            = <ticker-gtk.content.current.txt_map>->{'space_width'};
+        <ticker-gtk.last_substr> = [];
+        <ticker-gtk.switch_at_seq>-- if <ticker-gtk.switch_at_seq>;
+        <ticker-gtk.content.current.txt_map>
+            = delete <ticker-gtk.content.queued.txt_map>
+            if exists <ticker-gtk.content.queued.txt_map>
+            and !<ticker-gtk.switch_at_seq>;
+        delete <ticker-gtk.switch_at_seq> if !<ticker-gtk.switch_at_seq>;
+    }
+
+}
+
+if (<ticker-gtk.animation_started>) {
+    if ( !<ticker-gtk.paused> ) {
+        $widget->queue_draw();
+    } else {
+        Glib::Timeout->add(
+            444,
+            sub {
+                <ticker-gtk.obj.window>->queue_draw();
+                return 0;
+            }
+        );
+    }
+}
+
+<ticker-gtk.draw.fps>  = sprintf( "%.2f", 1 / $delta_t );
+<ticker-gtk.last_time> = <[base.time]>->(8);
+
+return 1;
+
+# ______________________________________________________________________________
+#\\6D4WN6J4JR2ERUKPMAG6LFLSMR2LKKQRDLCSZEGP4CUFJ5GBW36GQYHGDIP2TE7AC2NTKMN2WRL5U
+# \\ TDU6P6J6YNCKHHPAIIKYYFJB7XK3RLWQZTUGTYDFTC3QNFIOGTQO \\// C25519-BASE-32 //
+#  \\// VSWFQIKFWAGUDKGW7BKKBB2U3KYCHDWEIOTLS3KBAJD626JHAAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

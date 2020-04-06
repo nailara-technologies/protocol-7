@@ -1,0 +1,75 @@
+# >:]
+
+# name  = plnx.cmd.get_ticker
+# param = <cur_pair|'all'>
+# descr = return current ticker data
+
+my $cur_pair = uc( $$call{'args'} // '' );
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected currency pair parameter'
+    }
+    if !length($cur_pair);
+
+my $ticker_data = <plnx.api.pub>->api_public('returnTicker');
+
+my $top = $cur_pair =~ s/^TOP-(\d+)$// ? $1 : keys( %{$ticker_data} );
+$cur_pair = 'ALL' if defined $top and $top != keys( %{$ticker_data} );
+return {
+    'mode' => 'nak',
+    'data' => 'top-0 is invalid (waste of bandwitdh)'
+    }
+    if $cur_pair eq 'ALL' and !$top;
+
+return {
+    'mode' => 'nak',
+    'data' => "invalid currency pair (see 'currencies' cmd for list)"
+    }
+    if $cur_pair ne 'ALL' and not exists $ticker_data->{$cur_pair};
+
+my $reply_str = "\n";
+
+foreach my $cur_key (
+    sort {
+        $ticker_data->{$b}->{'percentChange'}
+            <=> $ticker_data->{$a}->{'percentChange'}
+    } keys %{$ticker_data}
+) {
+    $top--;
+    next
+        if $cur_pair eq 'ALL'
+        and <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
+    next
+        if $cur_pair ne 'ALL' and $cur_key ne $cur_pair
+        or $cur_pair eq 'ALL' and $top < 0;
+    delete <plnx.ticker_current>->{$cur_key};
+    return {
+        'mode' => 'nak',
+        'data' => 'currency pair is frozen!'
+        }
+        if <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
+
+    $reply_str .= "[$cur_key]\n\n";
+    foreach my $key_str (
+        sort { length($a) <=> length($b) }
+        keys %{ $ticker_data->{$cur_key} }
+    ) {
+        next if $key_str eq 'id' or $key_str eq 'isFrozen';
+        ( my $key_lc = $key_str ) =~ s/([A-Z])/_\L$1/g;
+        $key_lc =~ s/24hr/_24h/;
+        <plnx.ticker_current>->{$cur_key}->{$key_lc}
+            = $ticker_data->{$cur_key}->{$key_str};
+        $reply_str .= sprintf( "  $key_lc = %s\n",
+            $ticker_data->{$cur_key}->{$key_str} );
+    }
+    $reply_str .= "\n";
+}
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\4WJF7H55ZCA45U27JOHXVFNLTJD2ZMCQN43OBMANRTEQCLRDNPC3PEILIZSA5CMCTPLPIY6IG3ULG
+# \\ 37U3WYNBFWML2NW7IHF6KV2QSXK5E4VWRE5EV7VYYDQBBRHNQRVI \\// C25519-BASE-32 //
+#  \\// 6M5SMHXLIJK7SATS4PFO4QV4DFGJ52YGXKXTCZHJY3SYN66ESAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

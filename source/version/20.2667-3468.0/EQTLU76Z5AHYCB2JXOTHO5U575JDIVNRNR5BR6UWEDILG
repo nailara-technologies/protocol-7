@@ -1,0 +1,23 @@
+# >:]
+
+# name = notify-info.send_message
+
+<[base.log]>->( 1, "sending 'info' command to notify agent.." );
+
+my $msg_str = @ARGV == 2 ? join( ' ', map {"'$_'"} @ARGV ) : <system.args>;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.notify.info",
+        'call_args' => { 'args' => $msg_str },
+        'reply'     => {
+            'handler' => 'base.exit',
+            'params'  => {}
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\ILTATBPUJJ4GFSP4XYUSQZZXJBLQRA4K5MTQ5MDQAPZZVNNMEMTZKVJE4NAXQNVCQYDKS3J27DDWI
+# \\ LORJ2TVZEOKNPEL3O7ZQS4QEVCPKJCDPRBMXZEBUJA3XNRUF6OFJ \\// C25519-BASE-32 //
+#  \\// 6ZV32AD7ZDCP42HR4HQGYFYPGCB45JXD5QAEUWWKJBBIRD4ZOCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

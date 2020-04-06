@@ -1,0 +1,69 @@
+# >:]
+
+# name    = base.cmd.term-all
+# descr   = close all sessions of specified user
+# param   = <user|sid> [message]
+
+my $re = <regex.base>;
+
+if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
+    my $param      = $1;
+    my $term_msg   = $3 || 'session terminated';
+    my $sid        = $$call{'session_id'};
+    my $killed     = 0;
+    my $killed_own = 0;
+
+    if ( $param =~ /\s/ ) {
+        ( $param, $term_msg ) = split( /\s/, $param, 2 );
+    }
+
+    if (exists $data{'user'}{$param}{'session'}
+        or ( exists $data{'session'}{$param}
+            and $data{'session'}{$param}{'mode'} ne 'server' )
+    ) {
+        my $msg_string = $term_msg;
+        my $uname
+            = $param =~ /^\d+$/ ? $data{'session'}{$param}{'user'} : $param;
+        <[base.log]>->( 1, "[$sid] closing all '$uname' sessions <!>" );
+        foreach my $sid ( keys %{ $data{'session'} } ) {
+            if (   $data{'session'}{$sid}{'user'} eq $param
+                or $param =~ /^\d+$/ and $param eq $sid ) {
+                if ( $call->{'session_id'} eq $sid ) {
+                    $killed_own = 1;
+                    $msg_string = "..terminated your own session..";
+                } else {
+                    <[base.session.shutdown]>->( $sid, $msg_string );
+                }
+                <[base.log]>->( 0, ":. terminating session : [$uname] $sid" );
+                $killed++;
+            }
+        }
+        my $s            = $killed > 1 ? 's' : '';
+        my $reply_string = " : $killed session$s terminated";
+        <[base.log]>->( 1, $reply_string ) if $killed;
+        my $yours_str = 'yours included';
+        $yours_str = 'yours' if $killed == 1;
+        $reply_string .= ", $yours_str" if $killed_own;
+        $reply_string = $msg_string if $killed_own and $killed == 1;
+        return {
+            'mode' => $killed_own ? 'term' : 'ack',
+            'data' => $reply_string
+        };
+    } else {
+        my $u_str    = $param =~ /^\d+$/ ? 'session' : 'user';
+        my $fail_msg = "found no such $u_str ($param)";
+        $fail_msg = "will not destroy server mode sessions! >;["
+            if exists $data{'session'}{$param}
+            and $data{'session'}{$param}{'mode'} eq 'server';
+        return { 'mode' => 'nak', 'data' => $fail_msg };
+    }
+} else {
+    ( my $term_usr = $$call{'args'} ) =~ s| .+$||;
+    $$reply{'data'} = "'$term_usr' is not a valid username [ nor session id ]";
+}
+
+# ______________________________________________________________________________
+#\\N7LJ4LPKXFJHHN45RHI6RVUCRELHTZFWQRSHIZKSMF5YHXJQBVCVVPMERV6C7XEMOF4LM3AUU25HO
+# \\ 3B3T2I3HXD5D7RBTY56D7OL5G25XSP732PSRTIGHDI4O6U7F3IVK \\// C25519-BASE-32 //
+#  \\// ADAWCXE2RTZNPR44Z65GOYDD3K3TQ4CXTYUEX63WKLX4PLUIEDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

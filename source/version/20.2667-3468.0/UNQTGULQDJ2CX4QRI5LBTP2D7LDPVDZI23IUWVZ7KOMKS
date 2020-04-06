@@ -1,0 +1,53 @@
+# >:]
+
+# name  = plnx.cmd.currencies
+# descr = return list of (active) currencies
+
+my $api_command   = 'getCurrencies';
+my $hide_disabled = 1;
+
+<plnx.api.pub>->{'msg'} = 'no data';
+my $currency_list = <plnx.api.pub>->api_public('returnCurrencies');
+
+#  'KEY' => {
+#             'disabled' => 1,
+#             'id' => 116,
+#             'minConf' => 10000,
+#             'txFee' => '0.01000000',
+#             'name' => 'KeyCoin',
+#             'frozen' => 0,
+#             'depositAddress' => undef,
+#             'delisted' => 1
+#           },
+
+if ( ref($currency_list) ne 'HASH' ) {
+    ( my $reason_str = lc( <plnx.api.pub>->{'msg'} ) ) =~ s/\.$//;
+    my $log_msg = "API request failed ['$reason_str']";
+    <[base.log]>->( 0, $api_command . ': ' . $log_msg );
+    return {
+        'mode' => 'nak',
+        'data' => $log_msg
+    };
+}
+
+my @currencies;
+
+foreach my $key_name ( sort( keys( %{$currency_list} ) ) ) {
+    my $cur_data = $currency_list->{$key_name};
+    push( @currencies, sprintf( "%-8s %s\n", $key_name, $cur_data->{'name'} ) )
+        if !$hide_disabled
+        or (!$cur_data->{'delisted'}
+        and !$cur_data->{'frozen'}
+        and !$cur_data->{'disabled'} );
+}
+
+return {
+    'mode' => 'data',
+    'data' => join( '', @currencies )
+};
+
+# ______________________________________________________________________________
+#\\OUV74E5X4UK25JXUB4KPVBQD3ZZK7DWRIW3QZ7JCZRKKNQZ26AJHEMGVQH6OLXDGXPX7EIY3V72IC
+# \\ BFBPKSKZYNEN67NMDJG7VV5LF5YCUYSAWUW5X2U7N4MYPCTTPCLL \\// C25519-BASE-32 //
+#  \\// HJ5KSYKS2XN2GICVEU2AMFMODGRQBJFQIB3FFBJQ4WKEXPXPMAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

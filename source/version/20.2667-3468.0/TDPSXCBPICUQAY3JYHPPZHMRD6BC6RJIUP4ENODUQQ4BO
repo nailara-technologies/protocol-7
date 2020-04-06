@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.x11.coordinates_to_geometry
+
+die "expected 4 (coordinate) parameters" if @_ != 4;
+foreach my $check_string (@_) {
+    die "invalid coordinate value '$check_string'"
+        if $check_string !~ /^\-?\d+$/;
+}
+my ( $left, $top, $right, $bottom ) = @_;
+
+my $width  = $right - $left;
+my $height = $bottom - $top;
+
+return "${width}x${height}+${left}+${top}";
+
+# ______________________________________________________________________________
+#\\YL3L7AKOPMOAJE6O3XIXYDVAUWFIZJSTGKASKLNJYMOHOYM5HMCY77PBCIOYXUXKCDXCYLF5K73I4
+# \\ MZZYSVPZ67V7GXQNOKTXMKB54IZ3E5JS2ETZNA2D2C5U3D33FHRL \\// C25519-BASE-32 //
+#  \\// AUPZXK7KNPDIJZTI7WKXVLVAHMVOMLWEY7NFXJCHA5XMSCCC6DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

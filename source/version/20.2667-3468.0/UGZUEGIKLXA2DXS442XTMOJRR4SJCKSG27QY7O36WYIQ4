@@ -1,0 +1,82 @@
+# >:]
+
+# name       = base.handler.input
+# descr      = call input handler
+
+my $id = $_[0]->w->data;
+
+if ( not defined $id or not exists $data{'session'}{$id} ) {
+    my $id = '!' if not defined $id;
+    $_[0]->w->cancel;
+
+    # call cleanup... (proto..)
+    <[base.log]>->(
+        0,
+        "[$id] session of input handler was already closed - watcher cancelled!"
+    );
+    return undef;
+}
+
+my $fd = $data{'session'}{$id}{'input'}{'handle'}
+    || $data{'session'}{$id}{'handle'};
+my $type    = $data{'handle'}{$fd}{'link'};
+my $proto   = $data{'session'}{$id}{'proto'};
+my $state   = $data{'session'}{$id}{'state'};
+my $mode    = $data{'handle'}{$fd}{'mode'};
+my $handler = $data{'session'}{$id}{'input'}{'handler'};
+
+my $start_len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+
+if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
+    my $ret_code = $code{$handler}->( $_[0] );
+
+    if ( defined $ret_code and $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
+        $data{'session'}{$id}{'shutdown'} = 1;
+    }
+} elsif ( defined $data{'session'}{$id} ) {
+
+    $_[0]->w->stop;
+    $data{'session'}{$id}{'buffer'}{'input'} = '';
+    $_[0]->w->start;
+
+    <[base.log]>->(
+        0, "[$id] undefined input handler '$handler'. dropped buffer!"
+    );
+
+    if (   $data{'session'}{$id}{'mode'} eq 'client'
+        or $data{'session'}{$id}{'mode'} eq 'in' ) {
+        $data{'session'}{$id}{'shutdown'} = 1;
+    }
+}
+
+my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+return $_[0]->w->cancel if not defined $len;    # <- buffer undef
+
+if ( $len < $data{'size'}{'buffer'}{'input'}
+    and !$data{'session'}{$id}{'shutdown'} ) {
+    push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
+    if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
+        $data{'watcher'}{'io'}{'transfer'}->start;
+    }
+}
+
+if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
+    $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
+}
+
+if (    $len
+    and $len != $start_len
+    and $data{'session'}{$id}{'buffer'}{'input'} =~ /\n/ ) {
+    $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
+}
+
+# if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
+#    $data{'session'}{$id}{'watcher'}{'output_buffer'}->now;
+# }
+
+
+# ______________________________________________________________________________
+#\\IPM6YTZPY4A45SSWQKMPVPOSDTRSEGZNWQXELQMDXYCMKWBTAIZIMGEVZB4P3UB65CVRUT642MOI6
+# \\ UZMIMXKEWARNI5A7BK5CH5MEDOF2PNLCMY3JZRE5ZTOEUF5RBQUR \\// C25519-BASE-32 //
+#  \\// AUQB2RFPCTEVSWDFNL7Z6AISD7B46U77CX3D5ZECU7D47WZWYCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,58 @@
+#! >:]
+
+# name  = mpv.handler.audio_fade
+
+my $event = shift->w;
+
+my $target_volume = <mpv.audio_fade.target>;
+<mpv.audio_fade.start_vol> //= <mpv.current.volume>;
+
+if ( not defined <mpv.time.fade_volume> ) {
+    <[base.log]>->( 2, "fade-in started..," );
+    <mpv.time.fade_volume>   = <[base.time]>->(3);
+    <mpv.volume.fade_factor> = 0;
+}
+
+my $delta_t = sprintf( "%.3f", <[base.time]>->(3) - <mpv.time.fade_volume> );
+
+# adjusting fade speed based on volume difference
+$delta_t *= ( 1 - ( ( abs(<mpv.audio_fade.delta_vol>) * 0.2342 ) / 100 ) );
+
+<mpv.volume.fade_factor> += <[mpv.volume.calc_incr]>->($delta_t);
+<mpv.volume.fade_factor> = 1 if <mpv.volume.fade_factor> > 1;
+<mpv.audio_fade.last_set> //= '';
+
+my $new_volume = sprintf( "%.3f",
+          <mpv.audio_fade.start_vol>
+        + <mpv.audio_fade.delta_vol> * <mpv.volume.fade_factor> );
+
+if ( $new_volume ne <mpv.audio_fade.last_set> ) {
+    <[base.log]>
+        ->( 2, sprintf( "< FADE > volume == %.3f", $new_volume ) . '%' );
+    <[mpv.send_command]>->( 'set_property', 'volume', $new_volume );
+    <mpv.audio_fade.last_set> = $new_volume;
+}
+
+if ( <mpv.volume.fade_factor> == 1 ) {
+    delete <mpv.time.fade_volume>;
+    my $vol_str = sprintf( "%.2f", $target_volume );
+    $vol_str =~ s/(\.[^0])0$/$1/g;
+    $vol_str =~ s/\.00$//g;
+    map {
+        <[base.callback.cmd_reply]>->(
+            $_,
+            {   'mode' => 'ack',
+                'data' => "volume fade complete [$vol_str%]"
+            }
+        ) if defined $_;
+    } @{<mpv.audio_fade.reply_ids>};
+    delete <mpv.audio_fade.reply_ids>;
+    delete <mpv.audio_fade>;
+    $event->cancel;
+}
+
+# ______________________________________________________________________________
+#\\72L4ICAUJOE3CYTBQ66FKWLZPOUUDRGBGPBPYGXA7ITUE7FNYDEBPWPFPL4ADQTWA324ZTMYYXTAY
+# \\ DO6M4C2BLO52BZYA43MZRLW644CMLPR3VR2NTPEIJICDKUTXACR7 \\// C25519-BASE-32 //
+#  \\// G3ELICTPQIN22LA5X6BOAT3JBSDUX5ENZ5JM5XGPAONZHTDZIAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

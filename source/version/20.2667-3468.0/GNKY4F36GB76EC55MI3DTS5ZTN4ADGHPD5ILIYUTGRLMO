@@ -1,0 +1,71 @@
+# >:]
+
+# name  = xserver.cmd.rotate_screen
+# descr = rotate the screen to specified mode
+# param = <mode>
+
+my $X     = <xserver.x11>;
+my $param = shift->{'args'} // '';
+return {
+    'mode' => 'nak',
+    'data' => 'expected <mode> parameter :'
+        . ' <left|right|normal|inverted>[-x|-y]'
+    }
+    if !length($param);
+
+my $mirror = $param =~ s/-(x|y)$// ? $1 : '';
+
+my $mode;
+$mode = 1 if $param =~ 'normal';
+$mode = 2 if $param eq 'left';
+$mode = 4 if $param eq 'inverted';
+$mode = 8 if $param eq 'right';
+
+if ( not defined $mode ) {
+    my $err_msg = "invalid mode '$param$mirror'";
+    <[base.log]>->( 0, "<!> rotate_screen: $err_msg <!>" );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+
+$mode += 16 if $mirror eq 'x';
+$mode += 32 if $mirror eq 'y';
+
+my %screen_info = ( <xserver.x11>->RRGetScreenInfo( <xserver.x11>->root ) );
+
+my $old_mode = $screen_info{'rotation'};
+return { 'mode' => 'nak', 'data' => "no changes" }
+    if $mode eq $old_mode;
+$mirror = "-$mirror" if length($mirror);
+<[base.log]>->( 0, "<!> rotating screen to mode '$param$mirror' <!>" );
+
+eval '$X->RRSetScreenConfig( $X->root, $screen_info{time},'
+    . '$screen_info{config_time}, $screen_info{size},'
+    . '$mode, $screen_info{rate} )';
+
+if ($@) {
+    my $err_msg = 'unable to rotate screen';
+    <[base.log]>->( 0, " :. $err_msg!" );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+
+# strip mirrored flag
+$old_mode -= 16 while $old_mode > 16;
+$mode     -= 16 while $mode > 16;
+
+# restart layout agent to update geometries
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.nroot.restart',
+        'call_args' => { 'args' => 'layout' }
+    }
+    )
+    if $mode != $old_mode
+    and $mode + $old_mode != 5
+    and $mode + $old_mode != 10;
+
+return { 'mode' => 'ack', 'data' => 'screen rotated' }
+
+# ______________________________________________________________________________
+#\\DD4LYZ3DRSTAU3CVPL4DBPHJAJNBQSBNPVC57KY4JLICR5SF7XW7HDB2MLLCRC6MMKHT4KYNRKYCE
+# \\ QHVUI7G53NIXMNBRNC667SYEOCIQWXJT5CUJI6JJRM4AGP4BDQ7R \\// C25519-BASE-32 //
+#  \\// RETJ7V3JVFCJA3I23RGGZ225YRKLIFWQ4IHEDCLZNQYRFZ2ZWDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

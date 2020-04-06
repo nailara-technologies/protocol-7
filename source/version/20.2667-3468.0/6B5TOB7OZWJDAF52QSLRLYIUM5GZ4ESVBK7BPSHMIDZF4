@@ -1,0 +1,124 @@
+# >:]
+
+# name = layout.handler.poll_tile_color_reply
+
+my $answer = shift;
+my $c_mode = <layout.watch_tiles.comparison_mode> //= 'last';
+
+return warn "unexpected [NAK] reply from screenshot agent"
+    if $answer->{'cmd'} ne 'ACK';
+
+<layout.last_tile_color> //= {};
+
+my $tile_color       = $answer->{'call_args'}->{'args'};
+my $tile_name        = $answer->{'params'}->{'tile_name'};
+my $agent_name       = <layout.tiles>->{$tile_name}->{'agent'};
+my $last_color       = <layout.last_tile_color>->{$tile_name};
+my $timer            = <layout.timer.poll_tile_color>->{$tile_name};
+my $last_interval    = $answer->{'params'}->{'current_interval'};
+my $start_interval   = <layout.watch_tiles.poll_int_start> //= 42;
+my $trigger_value    = <layout.watch_tiles.poll_int_trigger> //= 1.2;
+my $inactive_timeout = <layout.watch_tiles.inactive_timeout> //= 300;
+my $inactive_action  = <layout.watch_tiles.inactive_action> //= 'warn';
+my $check_playlist   = <layout.watch_tiles.check_playlist> //= 1;
+
+<layout.tile_last_changed>->{$tile_name}    //= time;
+<layout.tile_alert_triggered>->{$tile_name} //= 0;
+
+if (!<layout.tile_alert_triggered>->{$tile_name}
+    and (
+            $c_mode eq 'bgcol'
+        and defined <layout.x11_bg_color>
+        and $tile_color eq <layout.x11_bg_color>
+
+        or $c_mode eq 'last' and $tile_color eq $last_color
+    )
+) {
+
+    if ( <[base.time]>->(1) - <layout.tile_last_changed>->{$tile_name}
+        >= $inactive_timeout ) {    # TIMEOUT TRIGGERED
+        <layout.tile_alert_triggered>->{$tile_name} = 1;
+        <[base.log]>->(
+            0, "<!> inactivity alert for tile '$tile_name' ($agent_name) <!>"
+        );
+
+        <[layout.tile_activity.change_poll_timer]>->(
+            $tile_name,
+            sprintf( "%.2f", $start_interval + rand( $start_interval * 0.1 ) )
+        );
+
+        my $agent_name_str = sprintf( "%s[%s]", $agent_name, $tile_name );
+
+        if ( $inactive_action eq 'restart' and $check_playlist ) {
+
+            <[base.log]>->( 1, " : checking playlist for tile '$tile_name'.." );
+
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => 'core.mlist.get_list',
+                    'call_args' => { 'args' => "[$tile_name]" },
+                    'reply'     => {
+                        'handler' => 'layout.handler.check_playlist_reply',
+                        'params'  => {
+                            'agent_name' => $agent_name_str,
+                            'tile_name'  => $tile_name
+                        }
+                    }
+                }
+            );
+
+        } elsif ( $inactive_action eq 'restart' ) {
+
+            <[base.log]>->( 0, " :  restarting agent '$agent_name_str' ..." );
+
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => 'core.nroot.restart',
+                    'call_args' => { 'args' => $agent_name_str }
+                }
+            );
+        }
+
+    } elsif ( $last_interval > 1.2 ) {    # decreasing interval..
+        my $new_interval
+            = $last_interval - ( $last_interval * ( 0.42 - rand(0.13) ) );
+        $new_interval = 1.42 if $new_interval < 1.42;
+        <[layout.tile_activity.change_poll_timer]>->(
+            $tile_name, sprintf( "%.2f", $new_interval )
+        ) if $new_interval ne $last_interval;
+        my $log_msg_str
+            = $c_mode eq 'bgcol'
+            ? "tile color '$tile_name' : $tile_color == <x11_bg_color>"
+            : "tile color '$tile_name' : $last_color (unchanged)";
+        <[base.log]>->( 2, $log_msg_str );
+    }
+
+} else {
+    if ( $c_mode eq 'bgcol' ) {
+        my $is_what_str = $tile_color ne $last_color ? 'active' : 'not empty';
+        my $log_msg_str
+            = "tile color '$tile_name' : $tile_color != "
+            . <layout.x11_bg_color>
+            . " ['$is_what_str']";
+    } else {
+        my $is_what_str = $tile_color ne $last_color ? 'active' : 'inactivity';
+        <[base.log]>->(
+            2,
+            "tile color '$tile_name' : $last_color"
+                . " -> $tile_color ['$is_what_str']"
+        );
+    }
+    <[layout.tile_activity.change_poll_timer]>->(
+        $tile_name,
+        sprintf( "%.2f", $start_interval + rand( $start_interval * 0.1 ) )
+    ) if $last_interval < $start_interval;
+
+    <layout.tile_last_changed>->{$tile_name}    = <[base.time]>->(1);
+    <layout.tile_alert_triggered>->{$tile_name} = 0;
+}
+
+<layout.last_tile_color>->{$tile_name} = $tile_color;
+
+# ______________________________________________________________________________
+#\\THFE2RFHABXN6RGOFIFRSB6QXF3YMPOUWBHDFD6UFB3XNMW3VMM4Q5BWWBFOX7OGWMOXVWPJBFGOI
+# \\ ZS6D76VRCQYOPUBHGX547GZ2TRVGDIB5UBYKQ3A35WSGX5JXGZG5 \\// C25519-BASE-32 //
+#  \\// EZZTY4JOLVHL36ISIFPK45SZZ3XYI7LWPP7ZJB542YRFRBN6EBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

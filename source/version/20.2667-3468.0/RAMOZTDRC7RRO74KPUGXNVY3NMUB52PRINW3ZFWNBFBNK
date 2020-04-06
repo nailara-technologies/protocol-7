@@ -1,0 +1,26 @@
+# >:]
+
+# name  = browser.start_slideshow
+
+<browser.url.list> //= [];
+
+<browser.slideshow.min_delay> //= 7;
+
+my $url_ref   = <browser.url.list>;
+my $url_count = scalar @{$url_ref};
+
+<[base.log]>->( 0, 'start_slideshow: slideshow is already running!' )
+    if <browser.slideshow.running>;
+
+<[base.log]>->( 0, 'start_slideshow: url list is emtpy, slideshow aborted!' )
+    if !$url_count;
+
+<browser.slideshow.running> = 1;
+<[browser.handler.slideshow]>;
+
+
+# ______________________________________________________________________________
+#\\HHXO7BBNQNIQBISIN4UGLIGUUZCKHT4QPB5QD5IGOPAH5Y4LVBDHOUGTWWKT7OCK5XPVQTGK3LBAA
+# \\ 5BWPQPU7VTP5A7C2DDVRQPCMELQC7SLZFRGWUOXEA3IFU4HIESX2 \\// C25519-BASE-32 //
+#  \\// 5VKGVDZUNUV7SZIDPICAIRFG3BUVYMYINM3TIEUJDYBUSL5SCBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

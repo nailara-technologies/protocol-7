@@ -1,0 +1,27 @@
+# >:]
+
+# name  = browser.cmd.enable_javascript
+# descr = immediately (re)enable JS execution
+
+return { 'mode' => 'nak', 'data' => 'javascript was already enabled!' }
+    if <browser.cfg.javascript_enabled>;
+
+<[base.log]>->( 0, "<!> globally (re)enabling javascript (user request)" );
+
+map {
+    my $view     = <browser.gtk_obj.view>->{$_};
+    my $settings = $view->get_settings;
+
+    $settings->set_enable_javascript(1);
+
+    $view->set_settings($settings);
+} keys %{<browser.gtk_obj.view>};
+<browser.cfg.javascript_enabled> = 1;
+
+return { 'mode' => 'ack', 'data' => 'javascript enabled' }
+
+# ______________________________________________________________________________
+#\\JGZQMF26ELY7OQLLQB4G4KOXPF77DHZ3KJVKB3I3LQ5SMMG7LFDFVZQ7OUKYK5ZGGZBOJ7NYGTQK2
+# \\ Y4PRZRGFRHDGMHIU5JRSW3U5VCV2QAFWTJP5P2ZBJHBHF7D2QGUS \\// C25519-BASE-32 //
+#  \\// 7LM7DWO5T3AP7PKTR327HQKEW6TYMVTN4CXHKP5CVXXMZHZLYAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

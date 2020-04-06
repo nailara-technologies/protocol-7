@@ -1,0 +1,77 @@
+# >:]
+
+# name  = notify.cmd.warn
+# param = '<title>' '<message>'
+# descr = show notification message with warning icon
+
+my $txt_param = $$call{'args'} // '';
+my $id        = $$call{'session_id'};
+
+return { 'mode' => 'nak', 'data' => 'no message text submitted' }
+    if !length($txt_param);
+
+if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
+    utf8::decode($txt_param);
+    utf8::downgrade($txt_param);
+}
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+my @matches;
+my ( $title, $body );
+
+$txt_param =~ s|\\0||go;
+$txt_param =~ s,^\s*|\s*$,,g;
+
+if ( $txt_param =~ /('[^']+\'[^']*){1,2}/ ) {
+    while ( $txt_param =~ s|^\s*'([^']+)'\s*|| ) {
+        push( @matches, $1 );
+    }
+}
+
+if ( !length($txt_param) and @matches ) {
+    ( $title, $body ) = @matches;
+} else {
+    $title = $txt_param;
+}
+
+map {
+    if (    defined $_
+        and length($_)
+        and ( !utf8::is_utf8($_) or !utf8::valid($_) ) ) {
+        utf8::decode($_);
+        utf8::downgrade($_);
+    }
+} ( $title, $body );
+
+if ( defined $title or @matches ) {
+    my $msg_str = <system.verbosity> >= 3 ? " ['$$call{args}']" : ' ...';
+    <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
+    my @msg = $title;
+    push( @msg, $body ) if defined $body;
+    if (!system(
+            <notify.path.notify_send>, '-i', <notify.path.warn_icon>, @msg
+        )
+    ) {
+        return { 'mode' => 'ack', 'data' => 'warn message sent' };
+    } elsif ( $? == -1 ) {
+        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };
+    } else {
+        return {
+            'mode' => 'nak',
+            'data' => sprintf(
+                "notify-send exited with code %d%s",
+                ( $? >> 8 ),
+                defined $! && length($!) ? " [$!]" : ''
+            )
+        };
+    }
+} else {
+    return { 'mode' => 'nak', 'data' => 'no message text submitted' };
+}
+
+# ______________________________________________________________________________
+#\\MN56SAXHIHQS2SM4S36S3E2D4SRE2VXYBQ2BZ5XKDFPEFMK4MG4577NZBCUXTJBEAV6YLLOE5PSUI
+# \\ OJ3DPP22J2T5ER5TOVW7HUYCOS2VXDY7DTTERG56ETQDR3BFFW3C \\// C25519-BASE-32 //
+#  \\// Z5XGJETQIDTHMKDKQIBPHWEJPNIZ7P3DNC6ESLAMQHM4GOKVABA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

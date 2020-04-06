@@ -1,0 +1,21 @@
+# >:]
+
+# name  = core.cmd.clear-cons
+# descr = clear 'core'-agent [stdout] console output
+
+my $host_str  = sprintf "nailara console '%s'", <system.host.hostname>;
+my $clear_msg = 'console cleared';
+if (<system.ansi_color>) {
+    printf "\e[H\e[2J\e[34m\n .:[\e[39m %s \e[34m]:.\c[[m\n\n", $host_str;
+} else {
+    printf "\n .:[ %s ]:.\n\n", $host_str;
+    $clear_msg = "wrote hostname marker only [ active '-na' option ]";
+}
+return { 'mode' => 'ack', 'data' => $clear_msg };
+
+
+# ______________________________________________________________________________
+#\\HP6JDLVWCEKU6ICNG2MXWQVOEXAE7V5NMJQGLUPF74BSAMBJ4376USN4JED2H2XRLB2YR4THXWCNQ
+# \\ NBSPOTSFJEZCLCLHHCGFEP2BHFBHELCXH24JU2B4P7CFJ67SGG4S \\// C25519-BASE-32 //
+#  \\// NJLJO2EWCEWW7C2HK3TL7I572S4CY2HYDH74D3HMBOWRUQWZOCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

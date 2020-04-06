@@ -1,0 +1,31 @@
+# >:]
+
+# name  = jobqueue.get_next_job
+# descr = returns next job from specified queue
+
+my $queue_name = shift;
+my $job_list   = <jobqueue.joblist>;
+
+die "jobqueue.get_next_job: requested queue '$queue_name' does not exist!\n"
+    if not exists $job_list->{$queue_name};
+
+return undef if !$job_list->{'count'}->{$queue_name};
+my $job_queue  = $job_list->{$queue_name};
+my $prio_queue = $job_queue->{'by_priority'};
+
+my $next_job_id;
+foreach my $prio ( sort { $a <=> $b } keys %$prio_queue ) {
+    next if !@{ $prio_queue->{$prio} };
+    ($next_job_id) = @{ $prio_queue->{$prio} };
+    last if defined $next_job_id;
+}
+
+return undef if not defined $next_job_id;
+
+return ( $next_job_id, $job_list->{'by_id'}->{$next_job_id} );
+
+# ______________________________________________________________________________
+#\\DPPLQFLUH4YOT7WRC6O3I2V5RTXGEEEUMZDTTTSWPDLOKUV5OBSJDZXOUHHSUYO23HLFBIIRJUMWW
+# \\ MQ7PJ2NES6C3R5STZK7IWX627QU56JJ46T46F5YYK6ZDHWOSGZLT \\// C25519-BASE-32 //
+#  \\// POTD3VUFAEF3PG53VBUGSIC6KL7RRD2XITDZPPUTAISW3DSOODQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,55 @@
+# >:]
+
+# name = browser.handler.load_timeout
+
+<browser.timeout.fail_seconds>  //= 0;
+<browser.timeout.last_progress> //= 0;
+
+my $bg_index    = <browser.overlay.index.bg>;
+my $view        = <browser.gtk_obj.view>->{$bg_index};
+my $resource    = $view->get_main_resource;
+my $response    = defined $resource ? $resource->get_response : undef;
+my $status_code = defined $response ? $response->get_status_code : 0;
+
+my $progress = $view->get_estimated_load_progress();
+
+warn "< PROGRESS > $progress\n";
+
+# my $session      = Gtk3::WebKit2::get_default_session();
+
+my $load_timeout = <browser.cfg.load_timeout>;
+my $load_uri     = <browser.load_uri>;
+
+<[base.log]>->(
+    2,
+    sprintf(
+        ": timeout check < %02ds | %d",
+        <browser.timeout.fail_seconds>,
+        ( $progress * 100 )
+        )
+        . "% >"
+);
+
+if ( $progress != <browser.timeout.last_progress> ) {
+    <browser.timeout.fail_seconds> = 0;
+}
+if ( $progress < 1 and <browser.timeout.fail_seconds> < $load_timeout ) {
+    <browser.timeout.last_progress> = $progress;
+    <browser.timeout.fail_seconds>++;
+    return 1;
+}
+
+delete <browser.timeout>;
+
+<[base.log]>->( 0, "loading of '$load_uri' timed out! aborting.." );
+$view->stop_loading();
+
+# $session->abort();
+
+return 0;
+
+# ______________________________________________________________________________
+#\\3F7VMHRXVVZAOTGL6UBHAHHTXXXE2MEUGHICYXQHIFDHHUXNC5DZHYHR6KHX3P5AZEIXPE4VXDTZM
+# \\ GYKFPGBCMYYVCYRMQ4GBN33ZSFAYP62C5GCWBIDKP6PKAA4TYC5M \\// C25519-BASE-32 //
+#  \\// ZAMLOJEHX35GMHSGHRUKVHYRW4CFQOOULK6ISPTS4BQJCEGLWBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

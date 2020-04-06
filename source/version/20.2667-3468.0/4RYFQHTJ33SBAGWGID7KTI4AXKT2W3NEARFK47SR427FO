@@ -1,0 +1,33 @@
+# >:]
+
+# name = power.host_reachable
+
+my ( $target_host, $icmp_timeout ) = @_;
+die "expected hostname or ip address" if not defined $target_host;
+$icmp_timeout //= <power.cfg.heartbeat_timeout>;
+
+my $op_obj = Net::Oping->new();
+$op_obj->timeout($icmp_timeout);
+$op_obj->host_add($target_host);
+
+my $response_time = $op_obj->ping()->{$target_host};
+
+if ( defined $response_time ) {
+    <[base.log]>->(
+        2,
+        sprintf(
+            ": ICMP heartbeat response from '$target_host' after %.2f ms! =)",
+            $response_time )
+    );
+    return 1;
+} else {
+    my $err_msg = "reply timeout for '$target_host'! ( $icmp_timeout seconds )";
+    <[base.log]>->( 0, ": $err_msg" );
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\WVEOIYQP6QMPOHDBI4J54FQKE635CPK3UKPGWFZMFQNQA2BSGWICFEXIAIEV7ZKQOWMKXCL4BPPJ6
+# \\ 4JNHP564K534WW3F2GKWXFGQEEPUU4MSDKZOKXMNBIMZLPZ3BKMN \\// C25519-BASE-32 //
+#  \\// YTVDJUH6ZEUTM3CTLKHJRKUJWYAIJYBNLDUAWIQILAHYSB5EWCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,35 @@
+# >:]
+
+# name = pdf.html.base.write_pdf_html
+
+my $path          = shift;
+my $image_ref     = shift;
+my $template_dir  = <system.root_path> . '/data/html/templates/pdf2html';
+my $html_template = "$template_dir/pdf.html";
+my $target_file   = "$path/pdf.html";
+my $temp_file     = "$target_file.NEW";
+
+die "path '$path' does not exist"                   if !-d $path;
+die "html template '$html_template' does not exist" if !-f $html_template;
+die "expected array reference to image names" if ref($image_ref) ne 'ARRAY';
+die "image name array is empty!" if !@{$image_ref};    # LLL: deal with it!
+
+my $html_ref = <[file.slurp]>->($html_template);
+die "unable to load html template '$html_template'" if not defined $html_ref;
+
+my $img_html_str;
+map { $img_html_str .= "<img src=\"./$_\"><br>\n" } @{$image_ref};
+
+$$html_ref =~ s|\[PDF_IMAGES\]\n?|$img_html_str|sg;
+
+open( my $html_fh, ">$temp_file" ) or die "$temp_file: $!";
+print {$html_fh} $$html_ref;
+close($html_fh);
+
+rename( $temp_file, $target_file ) or die "$temp_file -> $target_file: $!";
+
+# ______________________________________________________________________________
+#\\BD563PJUTWXQICFGYSYSCCNSSW35A6LUY5W3DTY4JJ3IA3AVHHFET7XTCRY3R3FEFKAXWZEVVHTJW
+# \\ DOUCYC6FAYQEFIQCBIULWMDUDNFKFCA3I3XXO26O7PJMLJZ4ZPKD \\// C25519-BASE-32 //
+#  \\// HVEW4MA3MAQIYICU26LIUKI5D3Z3YWBUHPRCOQFADLU3QOLRWAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

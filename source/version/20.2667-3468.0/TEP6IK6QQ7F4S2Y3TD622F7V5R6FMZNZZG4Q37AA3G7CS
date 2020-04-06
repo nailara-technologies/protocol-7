@@ -1,0 +1,63 @@
+# >:]
+
+# name = ssh.init_code
+
+<[base.perlmod.autoload]>->('IO::Socket::IP');
+<[base.perlmod.autoload]>->('Net::SSH2');
+
+<ssh.status>             //= { 'profiles' => {}, 'connections' => {} };
+<ssh.profiles>           //= {};
+<ssh.connections>        //= {};
+<ssh.autostart_profiles> //= '';
+
+<ssh.cfg> = <[ssh.load_config]>->(<ssh.config_name>)
+    if exists <ssh.config_name> and length(<ssh.config_name>);
+
+<ssh.cfg.globals>->{'connections.autostart'} //= 1;
+<ssh.cfg.globals>->{'connections.reconnect'} //= 1;
+<ssh.cfg.globals>->{'connections.timeout'}   //= 10;
+
+# LLL: table alignment currently broken
+
+<list.profiles> = {
+    'var'   => 'data',
+    'key'   => 'ssh.cfg.profiles',
+    'descr' => 'ssh connection profiles',
+    'mask'  => '<key>:profile <key>:status <key>:connections',
+    'align' => {
+        'profile'     => 'center-2',
+        'status'      => 'left',
+        'connections' => 'center-5',
+    },
+    'filters' => {
+        'status'      => 'ssh.parser.profile_status',
+        'connections' => 'ssh.parser.profile_connections',
+    }
+};
+
+<list.connections> = {
+    'var'     => 'data',
+    'key'     => 'ssh.connections',
+    'descr'   => 'active ssh connections',
+    'mask'    => '<key>:id <key>:status <key>:target_host',
+    'filters' => {
+        'status'      => 'ssh.parser.connection_status',
+        'target_host' => 'ssh.parser.connection_target',
+    }
+};
+
+if (    exists <ssh.cfg.globals>->{'connections.autostart'}
+    and <ssh.cfg.globals>->{'connections.autostart'}
+    and exists <ssh.autostart_profiles> ) {
+    <[base.log]>->( 1, 'autostart is enabled..' );
+    map { <[ssh.enable_profile]>->($_) }
+        split( / +/, <ssh.autostart_profiles> );
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\5AYVVVKAMOZTXP373CNBVPNDR7NQKCFQJUCZ6DX6MDJYDW7VCFHE57P4KEFVO2MRQGUHRFBCEF57M
+# \\ ZJWZVQC7C336GP4BXYG7JFDNJ4LAC2NLWAGNXWXI2VW7D4ZEFJK3 \\// C25519-BASE-32 //
+#  \\// TK6TD4JQ3DZ7JENXHT44IJL42F2PPBDYBB4NBYNU4HJ6EYSSKAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

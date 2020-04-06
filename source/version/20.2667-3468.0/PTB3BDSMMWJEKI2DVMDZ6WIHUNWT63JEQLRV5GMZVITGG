@@ -1,0 +1,50 @@
+# >:]
+
+# name  = io.unix.socket.in.open
+
+my $socket_path  = shift;
+my $socket_umask = shift;
+
+<[base.spawn.unlink_child]>;
+
+undef <unix.socket_paths> if ref(<unix.socket_paths>) ne 'ARRAY';
+<unix.socket_paths> //= [];
+
+$socket_umask //= 0777;
+
+my $uaddr = sockaddr_un($socket_path);
+my $proto = getprotobyname('tcp');
+
+unlink( my $tmp_spath = "$socket_path.NEW" );
+my $unix_sock = IO::Socket::UNIX->new(
+    Type   => SOCK_STREAM(),
+    Local  => $tmp_spath,
+    Listen => SOMAXCONN(),
+) || die "io.unix.socket.in.open: socket: $!";
+
+rename( $tmp_spath, $socket_path ) or die "io.unix.socket.in.open: rename: $!";
+
+push( @{<unix.socket_paths>}, $socket_path );
+chmod( $socket_umask, $socket_path ) or die "io.unix.socket.in.open: chmod: $!";
+
+<[base.log]>->( 1, "UNX server launched [unix:$socket_path]" );
+
+if ( defined $data{'handle'}{$unix_sock} ) {
+    <[base.log]>->(
+        0,
+        "io.ip.tcp.in.open: handle '$unix_sock' "
+            . "was not cleaned up, doing now .."
+    );
+    delete $data{'handle'}{$unix_sock};
+}
+
+$data{'handle'}{$unix_sock}{'mode'} = 'in';
+$data{'handle'}{$unix_sock}{'link'} = 'unix';
+
+return $unix_sock;
+
+# ______________________________________________________________________________
+#\\HH6DZNTJJ3UWMTHAUEKGFOJDNQOUSNQGXD2AVVQHYWOFXL6VKRI4JOOHG3KWXOB443COSGEGTZR2K
+# \\ TXKAABNUW2WWT4C4I54QQPGK2QWXXYUPGJRK4Q4K2R3B7PJTGU5C \\// C25519-BASE-32 //
+#  \\// PIPJTJBE3EZZ7W6CMOL5WJLNNDIAA2PPLUKTEVDDTMMZ5HS4YAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,18 @@
+# >:]
+
+# name = nroot.instance_child_pids
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <nroot.agent.instance>->{$instance_id};
+
+return
+    exists $instance->{'process'}->{'child'}
+    ? sort keys %{ $instance->{'process'}->{'child'} }
+    : ();
+
+# ______________________________________________________________________________
+#\\K6FPIKIASAJ2C5M7DC4EROXIP4KO6TV543KRAECUMB2H4XZUPEWLDKCKN3F345PM45CAFOBFGI6QO
+# \\ KCMC7XOQWTXBW6TQE5ACODZJQBSZW3UMSPBWVG5DY2UPPDZGUFPI \\// C25519-BASE-32 //
+#  \\// A3OH77PHGJ6ZWP6A52H2ZRVMSJIE356DRKCOJT2DMKHBQHZFYDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

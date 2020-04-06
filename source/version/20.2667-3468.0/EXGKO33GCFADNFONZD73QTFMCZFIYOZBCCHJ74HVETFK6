@@ -1,0 +1,48 @@
+# >:]
+
+# name  = base.del_key
+
+my $params = shift // {};
+
+my $data_ref = *data{HASH};
+my $del_key;
+my $silent = 1;
+
+$data_ref = $params->{'data_ref'} if exists $params->{'data_ref'};
+$del_key  = $params->{'del_key'}  if exists $params->{'del_key'};
+$silent   = $params->{'silent'}   if exists $params->{'silent'};
+
+die 'no key specified' if not defined $del_key or !length($del_key);
+die "invalid key '$del_key'"
+    if $del_key =~ /^\.|\.$/
+    or $del_key !~ /^[\w\d_\-\.\[\]']+$/
+    or $del_key =~ /~/;
+my $_del_key = $del_key;
+$_del_key =~ s/'(([^']|\.)+)'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
+die 'invalid key' if $_del_key =~ /\'/;
+
+my $del_key_ref = <[base.resolve_key]>->( $del_key, $data_ref );
+if ( not defined $del_key_ref ) {
+    <[base.log]>->( 0, "base.del_key: no such key ($del_key)" ) if !$silent;
+    return 0;
+}
+
+( my $var_str = '${$data_ref}{\'' . $del_key . '\'}' ) =~ s|\.|'}{'|g;
+
+my $code_bubble = Safe->new;
+$code_bubble->permit_only('delete');
+my $deleted = $code_bubble->reval("delete($var_str)") // 0;
+
+if ($deleted) {
+    <[base.log]>->( 1, "base.del_key: key ($del_key) deleted" ) if !$silent;
+    return $deleted;
+} else {
+    <[base.log]>->( 0, "base.del_key: unable to delete key ($del_key)" );
+    return -1;
+}
+
+# ______________________________________________________________________________
+#\\RHNCWBMRLTH2IP4PV543A4RX2XLLGGGY7P6APW26YOFPC6GSCJUFJ4ZD7EEAADC5352N5ODTQVZOQ
+# \\ NJZ4YNEULJNVVZTJXULEJTZVYOYB3SYZDNA6TTO5H5LW3HXWW5HM \\// C25519-BASE-32 //
+#  \\// VMOFEYOV56MZLIDX3E6CXI25BTCF6L7T3IHLMRSFQQAXAHTXKCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

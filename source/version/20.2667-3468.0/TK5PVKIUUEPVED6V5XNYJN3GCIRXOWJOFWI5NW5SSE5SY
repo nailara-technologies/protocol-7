@@ -1,0 +1,86 @@
+# >:]
+
+# name  = pdf.html.parent.cmd.get_url
+# param = <pdf_path> [width]
+# descr = returns file:// url to html version of pdf
+
+my ( $pdf_location, $target_width ) = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
+    if not defined $pdf_location or !length($pdf_location);
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+    if $pdf_location !~ m|^https?://| and !-f $pdf_location;
+return { 'mode' => 'nak', 'data' => "permission denied [$pdf_location]" }
+    if !-r $pdf_location;
+if ( !<[pdf.html.base.valid_pdf]>->($pdf_location) ) {
+    my $err_msg = "'$pdf_location' is not a valid PDF format file!";
+    <[base.log]>->( 0, $err_msg );
+    return {
+        'mode' => 'nak',
+        'data' => $err_msg
+    };
+}
+return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
+    if defined $target_width and $target_width !~ /^\d+$/
+    or defined $target_width and !$target_width;
+if ( not defined $target_width ) {
+    <[base.log]>->( 2, "no target width supplied, using document width!" );
+    if ( $pdf_location =~ m|^https?://| ) {
+        <[base.log]>->( 2, "downloading '$pdf_location' first..." );
+        $pdf_location = <[pdf.html.base.download_file]>->($pdf_location);
+        return { 'mode' => 'nak', 'data' => 'download error' }
+            if not defined $pdf_location;
+    }
+    ($target_width) = <[pdf.html.base.get_page_size]>->($pdf_location);
+}
+
+my $html_path
+    = <[pdf.html.base.get_html_path]>->( $pdf_location, $target_width );
+( my $html_dir = $html_path ) =~ s|^.*/||;
+
+if (    -d $html_path
+    and !-f $html_path . '/.complete'
+    and not exists <pdf.html.converting>->{$html_dir} ) {
+    my $errors;
+    <[base.log]>->(
+        1, "incomplete conversion found, removing html dir '$html_dir'.."
+    );
+    remove_tree( $html_path, { error => \$errors } );
+    for my $err (@$errors) {
+        my ( $file, $message ) = %$err;
+        if ( $file eq '' ) {
+            <[base.log]>->( 0, "remove_tree($html_path): $message" );
+        } else {
+            <[base.log]>->( 0, "remove_tree: $message [$file]" );
+        }
+    }
+    die "unable to remove '$html_path'" if @$errors;
+}
+
+if ( !-d $html_path ) {
+    <pdf.html.converting>->{$html_dir} = 1;
+    <[base.log]>->( 2, "creating html dir '$html_dir'.." );
+    make_path($html_path) or die "make_path($html_path): $!";
+    <[pdf.html.base.write_stub_page]>->($html_path);
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "child.convert_pdf",
+            'call_args' => { 'args' => "$pdf_location $target_width" },
+            'reply'     => {
+                'handler' => 'pdf.html.parent.handler.convert_pdf_reply',
+                'params' =>
+                    { 'pdf_path' => $pdf_location, 'html_path' => $html_path }
+            }
+        }
+    );
+}
+
+<[file.write_timestamp]>->("$html_path/.last_used");
+
+return { 'mode' => 'ack', 'data' => "file://$html_path/pdf.html" }
+
+# ______________________________________________________________________________
+#\\B7OCITJTZNEOEZXOULEOQ6JDSF7O2N7D3JYGRIDRG6UIW4ZZXYGTZJVMRWBJJPAZXH3WIYH3FACGK
+# \\ K2QBUGKDIFBVAA4GOGSIMBB6SJYH3BPSCPEHCK74MC2UXPUYZBUB \\// C25519-BASE-32 //
+#  \\// UOBLR63JTYL6DPU65MEITAUMC64444PFSZQ5TKIWEXZQM42MOBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

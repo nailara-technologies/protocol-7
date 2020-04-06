@@ -1,0 +1,32 @@
+# >:]
+
+# name  = base.dependency.install_callbacks
+# descr = set up callbacks for checking agent dependency fullfillment status
+
+my $name_prefix = shift;
+$name_prefix //= <system.agent.name>;
+
+<[base.log]>->( 2, "installing '$name_prefix' dependency object callbacks.." );
+
+my @callbacks;
+foreach my $sub_name ( sort keys %code ) {
+    if ( $sub_name =~ m{^$name_prefix\.callback\.object\.([\w\.]+)$} ) {
+        my $object_type = $1;
+        <[base.log]>->( 2, ": found object type '$object_type'" );
+        push( @callbacks, [ $object_type, $sub_name ] );
+    }
+}
+
+<[base.log]>->( 0, ": no dependency object callbacks found for '$name_prefix'" )
+    if !@callbacks;
+
+map { <[dependency.setup]>->( $_->[0], { 'callback' => $code{ $_->[1] } } ) }
+    @callbacks;
+
+return scalar @callbacks;
+
+# ______________________________________________________________________________
+#\\57N5ITSOH2XPAPB36LJ52GBTDXRJFCE32RRXNRM5NAM7IMM75PDKFK345PF7YKURGA3BNS37I5K7S
+# \\ FGOYDIHLZZXWA632JQAD7NRWFRL44ZGQEQGJIUW5QM3KQLRUUWOB \\// C25519-BASE-32 //
+#  \\// DDSR7CWXR6Q4VMOUZPXTG3SXPAIVHE36KURVJT4V654GX7DVEBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

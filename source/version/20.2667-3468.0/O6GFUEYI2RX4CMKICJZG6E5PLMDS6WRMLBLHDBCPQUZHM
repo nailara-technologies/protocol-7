@@ -1,0 +1,26 @@
+# >:]
+
+# name = ffmpeg.init_code
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+
+<ffmpeg.threads>    //= 1;
+<ffmpeg.drop_audio> //= 0;
+
+<ffmpeg.path.ffmpeg_bin>  //= <[base.required_bin_path]>->('ffmpeg');
+<ffmpeg.path.ffprobe_bin> //= <[base.required_bin_path]>->('ffprobe');
+
+foreach my $bin_name (qw| ffmpeg ffprobe |) {
+    my $bin_path = <ffmpeg.path>->{"${bin_name}_bin"};
+    <[base.log]>->( 0, "[!] '$bin_name' binary not found, shutting down..," )
+        and exit(2)
+        if !-x $bin_path;
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\LGRNSGIH6UFLVDMVKF5SQWJD5FLHQ6WEORHO27JXSRSGB4YLZXFQDEANWDV67766RI6HUWZKU6FP6
+# \\ 62ARG55KA5BU6PJUTONYUAWFFYUMZVWG22CDZEVPPEVTEORJI2WH \\// C25519-BASE-32 //
+#  \\// HYEPXVDNQPOI5WBXSK7IYYDPUFJBGVDKAJIWHSFMZPXYYYHAKCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

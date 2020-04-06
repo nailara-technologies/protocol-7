@@ -1,0 +1,322 @@
+# >:]
+
+# name = xserver.post_init
+
+<xserver.initialized>         //= 0;
+<xserver.host_mode_unchanged> //= 1;
+
+my $modes_re = <xserver.modes_re>;
+
+if ( <xserver.mode> !~ $modes_re ) {
+    <[base.log]>->(
+        0,
+        sprintf( "configured xserver mode '%s' is not valid", <xserver.mode> )
+    );
+    exit(1);
+}
+<xserver.params>->{<xserver.mode>} //= '';
+<xserver.host_mode_unchanged> = 0 if <xserver.host_mode_unchanged> eq 'no';
+<xserver.host_mode_unchanged> = 1 if <xserver.host_mode_unchanged> eq 'yes';
+if ( <xserver.mode> eq 'host' ) {
+    if (<xserver.host_mode_unchanged>) {
+        <xserver.keep_unchanged>  = 1;
+        <xserver.keep_background> = 1;
+    }
+    <xserver.display.host> //= defined $ENV{'DISPLAY'} ? $ENV{'DISPLAY'} : ':0';
+} else {
+    <xserver.display>->{<xserver.mode>} //= ':1';
+    <xserver.keep_unchanged> = 0;
+}
+<[base.log]>->(
+    0,
+    sprintf( "warning: xserver mode changed to '%s', restart required <!>",
+        <xserver.mode> )
+) if defined <xserver.old_mode> and <xserver.mode> ne <xserver.old_mode>;
+
+return 0 if <xserver.initialized>;
+
+<xserver.connect_timeout> //= 7.7;
+<xserver.orientation>     //= 'normal';
+<xserver.old_mode> = <xserver.mode>;
+my $mode     = <xserver.mode>;
+my $bg_col   = <xserver.bg_color>;
+my $bg_image = <xserver.bg_image>;
+my $bin_name;
+my $server_bin;
+my $server_pid;
+my $server_params;
+
+<xserver.params>->{'xephyr'} .= ' -glamor'
+    if $mode eq 'xephyr'
+    and <xserver.orientation> eq 'normal'
+    and !<xserver.disable_glamor>;
+
+## startup / connect ##
+
+die "xserver.mode is not defined" if not defined $mode or !length($mode);
+
+if ( $mode ne 'host' ) {
+
+    $bin_name = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
+
+    $bin_name = 'Xvfb'    if $mode eq 'xvfb';
+    $bin_name = 'Xnest'   if $mode eq 'xnest';
+    $bin_name = 'nxagent' if $mode eq 'nxagent';
+
+    $server_bin = <xserver.bin_path>->{$bin_name};
+
+    die "xserver binary '$bin_name' not found. [ installed? ]"
+        if not defined $server_bin or !-x $server_bin;
+
+    <[base.log]>->( 2, ":: xsrv-bin-path :: $server_bin" );
+
+    $server_params
+        = join( ' ', <xserver.display>->{$mode}, <xserver.params>->{$mode} );
+
+    my $bin_name_lc = lc($bin_name);
+    my $cmd_line    = "$server_bin $server_params 2>&1 |";
+
+    <[base.logs]>->( 1, "starting '%s'-server...", $bin_name_lc );
+
+    # LLL: change uid for 'xephyr'...
+    $server_pid = open( my $out_fh, $cmd_line );
+
+    if ( not defined $server_pid or $@ ) {
+        my $err_reason = ( defined $! and length($!) ) ? ": \"$!\"" : '!';
+        <[base.log]>->( 0, ": unable to start $bin_name_lc-server$err_reason" );
+        exit(2);
+    } else {
+        <[base.log]>->(
+            1, ": '$bin_name_lc' process started [pid=$server_pid]"
+        );
+        <xserver.pid> = $server_pid;
+
+        ### registering Xorg process id ###
+        push( @{<system.kill_list>}, <xserver.pid> );
+        <[base.agents.report_child_pid]>->($server_pid);
+
+        <[base.renice]>->( <xserver.renice_priority>, <xserver.pid> );
+    }
+
+    <[event.add_io]>->(
+        {   'fd'      => $out_fh,
+            'handler' => 'xserver.handler.server_output',
+            'data'    => { 'bin' => $bin_name, 'pid' => $server_pid }
+        }
+    );
+} else {
+    $bin_name = '(host) x11';
+    <xserver.connect_timeout> = 15 if <xserver.connect_timeout> < 15;
+    <[base.log]>->( 1, "running in host mode [ using existing X11-server ]" );
+}
+
+<xserver.x11_bin_name> = $bin_name;
+my $bin_name_lc = lc($bin_name);
+
+<[base.logs]>->( ": connecting to X display [%s]", <xserver.display>->{$mode} );
+
+<[xserver.connect_x11]>;
+
+<[base.log]>->( 1, ": : link to '$bin_name_lc' established [responsive]" );
+
+<xserver.x11>->{'error_handler'} = sub {
+    my ( $self, $err_data ) = @_;
+    chomp( my $err_str = $self->format_error_msg($err_data) );
+    $err_str =~ s|\s*\n+\s*| <!> |g;
+    warn( $err_str, '<{C7}>' );
+};
+
+## extensions ##
+
+# <[base.log]>->( 1, ": initializing extensions ..." );
+# <xserver.x11>->init_extensions;
+# print STDERR Dumper( keys( %{ <xserver.x11>->{'ext'} } ) );
+
+<xserver.x11>->init_extension('RANDR')
+    or die "[!] unable to initialize RANDR extension <!>\n";
+<xserver.x11>->RRQueryVersion( 1, 0 );
+
+if ( <xserver.x11>->init_extension('DPMS') and <xserver.x11>->DPMSCapable ) {
+    <[base.log]>->( 1, ": : DPMS is supported =)" );
+    <xserver.x11>->DPMSGetVersion();
+    <xserver.has_dpms> = 1;
+} else {
+    <[base.log]>->( 1, ": : DPMS not supported :|" );
+    <xserver.has_dpms> = 0;
+}
+
+if ( <xserver.x11>->init_extension('Composite') ) {
+    <xserver.is_composited> = 1;
+    <[base.log]>->( 1, ": : xserver is composited =)" );
+} else {
+    <xserver.is_composited> = 0;
+    <[base.log]>->( 1, ": : xserver is not composited :|" );
+
+}
+
+## display connected? ##
+
+<xserver.display_connected.any> //= 1;
+
+<[xserver.init_display_states]> if <xserver.mode> eq 'xorg';
+
+if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
+
+    <xserver.wait_for_display.callback> = 'xserver.callback.display_connected';
+    <[base.log]>->( 0, "<!> display is off / not connected <!>" );
+
+    # polling for screen sizes, otherwise drm display status never gets updated!
+    <xserver.timer.wait_for_display> = <[event.add_timer]>->(
+        {   'after'    => 1,
+            'interval' => 1,
+            'handler'  => 'xserver.handler.poll_size_list'
+        }
+    );
+    <[base.log]>->( 0, "    : waiting for a display to restart xserver!" );
+
+    if ( defined <xserver.host_mode.min_size>
+        and <xserver.host_mode.min_size> =~ /^\d+x\d+$/ ) {
+        <[base.log]>->(
+            0, "    : setting min_size [" . <xserver.host_mode.min_size> . "]"
+        );
+        <[xserver.cmd.set_screen_size]>
+            ->( { 'args' => <xserver.host_mode.min_size> } );
+    }
+
+} elsif ( <xserver.mode> eq 'xorg' ) {
+    <[base.log]>->( 1, ": : display is on / connected =)" );
+
+    my @max_size = <[xserver.max_screen_size]>;
+
+    # LLL: make configurable..!
+    if (    defined <xserver.video_driver>
+        and <xserver.video_driver> ne 'qxl'
+        and (  $max_size[0] > <xserver.x11>->width_in_pixels
+            or $max_size[1] > <xserver.x11>->height_in_pixels )
+    ) {
+        <[base.log]>->(
+            0, "<!> xserver unable to select highest screen size <!>"
+        );
+        <[base.log]>->( 0, " :. mitigating.. [ reloading gfx kernel module ]" );
+        <[event.add_timer]>->(
+            {   'after'   => 0.13,
+                'handler' => 'xserver.callback.force_driver_reload'
+            }
+        );
+    } else {
+        <xserver.display_status.handler>
+            = 'xserver.handler.display_power_state';
+    }
+}
+
+## orientation ##
+
+<[xserver.cmd.rotate_screen]>->( { 'args' => <xserver.orientation> } )
+    if !<xserver.keep_unchanged>;
+
+## custom xrandr ##
+
+map {
+    system( '/usr/bin/xrandr', split( / +/, <xserver.custom_xrandr>->{$_} ) )
+    }
+    sort { $a <=> $b } keys %{<xserver.custom_xrandr>}
+    if <xserver.mode> eq 'xorg'
+    and defined <xserver.custom_xrandr>
+    and ref(<xserver.custom_xrandr>) eq 'HASH';
+
+## keyboard ##
+
+<xserver.kbd> = X11::Keyboard->new(<xserver.x11>);
+
+<xserver.keycodes.modifiers> = <[xserver.get_modifier_map]>;
+
+#  my $any_key = <xserver.kbd>->KeysymToKeycode('AnyKey');
+#  my $any_mod = <xserver.kbd>->KeysymToKeycode('AnyModifier');
+
+<xserver.x11>->{'event_handler'} = 'queue';
+<[event.add_io]>->(
+    {   'fd'      => <xserver.x11>->{'connection'}->fh,
+        'handler' => 'xserver.handler.global_hotkeys'
+    }
+);
+
+<[xserver.grab_key]>
+    if !<xserver.keep_unchanged>
+    and defined <xserver.keybd.grab_all_keys>
+    and ( <xserver.keybd.grab_all_keys> eq '1'
+    or <xserver.keybd.grab_all_keys> eq 'yes' );
+
+## screensaver / blanking ##
+
+if (    <xserver.has_dpms>
+    and !<xserver.keep_unchanged>
+    and defined <xserver.disable_blanking>
+    and (  <xserver.disable_blanking> eq 'yes'
+        or <xserver.disable_blanking> eq '1' )
+
+) {
+    <[base.log]>->( 1, ": deactivating screen blanking ..," );
+
+    <xserver.x11>->DPMSDisable();
+    <xserver.x11>->SetScreenSaver( 0, 0, 1, 0 );
+}
+
+## GPU load statistics (intel only) ##
+<xserver.collect_intel_gpu_stats> //= 0;
+<xserver.collect_gpu_stats_on_4K> //= 0;
+<[xserver.start_gpu_top]> if <xserver.video_driver> =~ /^i/i    # i9xx <?>
+    and ( <xserver.collect_intel_gpu_stats>
+    or <xserver.collect_gpu_stats_on_4K>
+    and <xserver.x11>->width_in_pixels >= 3840 );
+
+## background image / color ##
+
+<xserver.keep_background> //= 0;
+if (<xserver.keep_background>) {    # <- don't touch background image and color
+    <xserver.initialized> = 1;
+    return 0;
+}
+
+if ( not defined $bg_col or $bg_col !~ /^\#?[0-9A-F]{6}$/i ) {
+    <[base.log]>->( 0, "<!> no a valid background color syntax ['$bg_col']" )
+        if defined $bg_col;
+    $bg_col = <xserver.bg_col_default> // '#000000';    # <- fallback color
+}
+
+if ( <xserver.bg_fade> //= 1 and $bg_col ne '#000000' ) {
+    <[xserver.fade_in_bg_col]>->($bg_col);
+} else {
+    <[base.log]>->( 1, "setting background color to '$bg_col'" );
+    X11::Protocol::XSetRoot->set_background(
+        'color'        => $bg_col,
+        'use_esetroot' => 1
+    );
+}
+
+my $bg_mode = <xserver.bg_mode>;
+if ( defined $bg_image ) {
+
+    my @hsetroot_params;    # LLL: 'hsetroot' call to be replaced soon ..,
+    my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
+    if ( !-x $hsetroot_bin ) {
+        <[base.log]>->( 0, "can not set bg-image : '$hsetroot_bin' not found" );
+        return -1;
+    }
+    ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
+    <[base.log]>->( 1, "setting background image '$img_txt'" );
+    @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux.
+    if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
+        <[base.log]>->( 0, "unable to execute 'hsetroot' ( returned $? )" );
+    }
+}
+
+<xserver.initialized> = 1;
+
+# success
+return 0;
+
+# ______________________________________________________________________________
+#\\I73VECCFWCCEFB5SX55WSSN5XOSDX7RLCD4S2AFQOPROKBTLLIBAKTCF7E7E7CWT7V7QTHI262TDC
+# \\ I7MQISCUY7RSKKIUMUMO5FH6W75QY3N2DCRWKL4KXTMNYHZFPNEN \\// C25519-BASE-32 //
+#  \\// ZTNKZ6JOVKLQWUY3DSR52BAULGL2B7TW7366PRRFRBKO6V75IDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

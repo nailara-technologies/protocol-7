@@ -1,0 +1,26 @@
+# >:]
+
+# name  = media.cmd.get_list_types
+# descr = return url list and content types
+
+my $session_id = $call->{'session_id'};
+my $agent_name = $data{'session'}{$session_id}{'user'};
+
+if ( not exists <media.playlist.agent>->{$agent_name} ) {
+    <[base.log]>
+        ->( 2, "no playlist available for agent or user '$agent_name'" );
+    return { 'mode' => 'data', 'data' => '' };
+} else {
+    return {
+        'mode' => 'data',
+        'data' => join( '',
+            map { <media.playlist.types>->{$_} . " $_\n" }
+                @{ <media.playlist.agent>->{$agent_name} } )
+    };
+}
+
+# ______________________________________________________________________________
+#\\RIDAGUGNARTYC4KIMOGVYSRE5GKRY3FQAT7RO2NHMRRU2CMLL6OZ5ZQVB3AXCF4QH5TVJKLJOKH2A
+# \\ MKYXXIBOCGOLAM6BUKE43G2NZPSL3N2LYZMQ3ODTTF6KVZDIJOUQ \\// C25519-BASE-32 //
+#  \\// TOGXDGGQW64UFFKSHLT7RPXWCKV2KYXQYP3BUNPMGFIGMMBKUAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

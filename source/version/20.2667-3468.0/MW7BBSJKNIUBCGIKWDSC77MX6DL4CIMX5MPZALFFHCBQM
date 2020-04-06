@@ -1,0 +1,39 @@
+# >:]
+
+# name  = mpv.cmd.start_autoskip
+# param = <seconds>
+# descr = set up timer to skip to next playlist entry
+
+my $skip_interval = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'autoskip timer already active ('
+        . <mpv.timer.autoskip>->interval
+        . ' sec interval)'
+    }
+    if exists <mpv.timer.autoskip>;
+
+return { 'mode' => 'nak', 'data' => 'expected interval in seconds (>=1)' }
+    if $skip_interval !~ /^\-?\d+(\.\d+)?$/ or $skip_interval < 1;
+
+<[mpv.cmd.loop]>->( { 'args' => 'playlist' } );
+
+<mpv.timer.autoskip> = <[event.add_timer]>->(
+    {   'after'    => $skip_interval,
+        'interval' => $skip_interval,
+        'handler'  => 'mpv.callback.play_next',
+        'repeat'   => 1
+    }
+);
+
+return {
+    'mode' => 'ack',
+    'data' => "timer started [$skip_interval seconds interval]"
+};
+
+# ______________________________________________________________________________
+#\\CRJSP6YTOY7OMHHPB6F4IKWT3OPRKKZAPTNKS3AVBKJQBH3TXX3FPX2ZKEDDDLGI4KJNJBPX2WTUS
+# \\ X5BVXTDUE5RYS6JQZ3WHMU2DIWFPIFGGHN2CN3OCAV5RTMEGUOTR \\// C25519-BASE-32 //
+#  \\// HRYHGURXKLQMTZRS2WSVQTV7ZRUIJMVIAP2KGQATIKGCTLUTEBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

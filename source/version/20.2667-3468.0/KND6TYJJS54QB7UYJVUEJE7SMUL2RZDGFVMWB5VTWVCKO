@@ -1,0 +1,24 @@
+# >:]
+
+# name = image2html.base.get_image_size
+
+my $image_file = shift;
+
+die "image file '$image_file' does not exist" if !-f $image_file;
+
+my $image = new Graphics::Magick;
+
+my $status = $image->Read($image_file);
+warn "unable to read '$image_file' [$status]"
+    if defined $status and length($status);
+
+my $width  = $image->Get('width');
+my $height = $image->Get('height');
+
+return ( $width, $height );
+
+# ______________________________________________________________________________
+#\\63M42CHSFRIAW2ZO4UV2D2LEWS77CRIKAKPXIYVVUJYZCCXZU7HJHI73KBJRXPFV2PDOUYYNYXUIC
+# \\ UTW7OBORTSU2GW5ENTR5YSJB7F4RZREEENIV35LTTCNGXFRERRWY \\// C25519-BASE-32 //
+#  \\// Y5X5B42CQJQZZOUG27ODEAKV3K6K4SXEL5MZE55GARCAJHK66AI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

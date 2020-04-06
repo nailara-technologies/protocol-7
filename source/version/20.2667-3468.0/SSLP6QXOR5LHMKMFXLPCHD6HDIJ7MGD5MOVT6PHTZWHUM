@@ -1,0 +1,34 @@
+# >:]
+
+# name  = media.handler.agent_output
+
+my $event      = shift->w;
+my $read_fh    = $event->fd;
+my $agent_name = $event->data;
+my $self_name  = <system.agent.name>;
+
+<media.agent.output_buffer>->{$agent_name} //= '';
+
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'media'}{'agent.output_buffer'}{$agent_name},
+    4096,     length( <media.agent.output_buffer>->{$agent_name} )
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "( $agent_name ) output pipe closed." );
+    undef <media.agent.output_buffer>->{$agent_name};
+    return;
+}
+
+while ( <media.agent.output_buffer>->{$agent_name} =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    $output_line =~ s/^(.+?)(\.$agent_name )/$1.$self_name$2/;
+    print $output_line . "\n";
+}
+
+# ______________________________________________________________________________
+#\\CWL43TIIBBACPW5WE5PGHMRYL54E7U7IFDEUZUYHVQK6T5NQ2PKEYQCJRAEQ4UTTAPC2XY3VX6XXM
+# \\ EFT3LJZF2S4KXP466AK2FBANR3P4HZZDJ346IQVS7ISKAZQZ6JDJ \\// C25519-BASE-32 //
+#  \\// QUDAUHV5HUA5PDE7N7TMTVDDWEJJSZ7AQLUXRLUZCYMLKCHKUCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

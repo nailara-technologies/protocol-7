@@ -1,0 +1,39 @@
+# >:]
+
+# name = base.locales.load_file
+
+my $file_path = shift;
+die "locale file '$file_path' not found!" if !-f $file_path;
+( my $filename = $file_path ) =~ s|^.*/||;
+my $locale_data = {};
+
+<[base.log]>->( 1, ": loading '$filename'" );
+
+<[file.slurp]>->( $file_path, \my @lines, ':raw' );    # <- file is UTF-8
+
+my $entries = 0;
+
+map {
+    $_ =~ s/^\s+|\s+$//g;
+    $_ =~ s|^ *#[^\n]*$||mg;
+    $_ =~ s| +#[^\n]*$||mg;
+    $_ =~ s|\n\n|\n|sg;
+    $_ =~ s/^\n|\n$//mg;
+    if ( length($_) and $_ =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
+        $locale_data->{$1} = $2;
+        utf8::decode( $locale_data->{$1} );
+        $entries++;
+    } elsif ( length($_) ) {
+        warn("syntax error in locale file '$filename' [$_]");
+    }
+} @lines;
+my $s = $entries == 1 ? 'y' : 'ies';
+<[base.log]>->( 2, ": : $entries entr$s loaded / found" );
+
+return $locale_data;
+
+# ______________________________________________________________________________
+#\\M4XZBXPEZZ35YPCJHTV5O25533BKVO3IRB4TR2T4FOB6N67ZIZE52G2CSFT72HVIXXUXSB2KKIB3S
+# \\ ZONCCZ54EBQXRRBSJCQGCYXOSYZM5QNHPVVY3N24ZS5AJ2P5IKSW \\// C25519-BASE-32 //
+#  \\// ASZYJ7RGGGFOSEA7CHYZIKBC23YJ4W2XVEJSYROJT5YVYA2ASAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

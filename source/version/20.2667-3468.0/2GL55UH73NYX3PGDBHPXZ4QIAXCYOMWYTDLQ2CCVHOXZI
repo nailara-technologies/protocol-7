@@ -1,0 +1,23 @@
+# >:]
+
+# name = udev.init_code
+
+<udev.rules> //= {};
+
+<udev.path.udevadm>  = <[base.required_bin_path]>->('udevadm');
+<udev.path.unbuffer> = <[base.required_bin_path]>->('unbuffer');
+
+die "'udevadm' command not found!\n" if not defined <udev.path.udevadm>;
+die "'unbuffer' command not found (install 'expect' package)!\n"
+    if not defined <udev.path.unbuffer>;
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+0;
+
+# ______________________________________________________________________________
+#\\W77TLKAH3FXZ37ESUEAX2VXWCDAT5IAXQ22ZAILCOKBDBJDAEOVJ7MOWQ6LOM7FP4MFFVZVAGBHBO
+# \\ SKDICRN43DQYULT6NM5C64LGN3F2JB52UXYRXKT7JOB53MWT4W3X \\// C25519-BASE-32 //
+#  \\// UUPV477EIWG4OTL7G7PADFPTLWZEDHF35EDZZHLQCQ53JU5LKCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

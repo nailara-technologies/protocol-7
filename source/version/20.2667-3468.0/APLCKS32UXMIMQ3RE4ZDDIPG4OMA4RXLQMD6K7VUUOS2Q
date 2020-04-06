@@ -1,0 +1,45 @@
+# >:]
+
+# name  = melt.cmd.extract_frame
+# param = <position> <video_path>
+# descr = extract specified video frame, start=0
+
+my ( $frame_num, $video_path ) = split( / +/, $$call{'args'} // '', 2 );
+
+<[melt.trigger.auto_cleanup]>;
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected frame number and video path parameters!'
+    }
+    if not defined $frame_num
+    or $frame_num !~ /^\-?\d+$/
+    or not defined $video_path
+    or !length($video_path);
+
+if ( !-r $video_path ) {
+    my $reason = !-e $video_path ? 'existing' : 'redable';
+    return { 'mode' => 'nak', 'data' => "file not $reason" };
+}
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.ffmpeg[melt].frame_count',
+        'call_args' => { 'args' => $video_path },
+        'reply'     => {
+            'handler' => 'melt.handler.frame_count_reply',
+            'params'  => {
+                'frame'    => $frame_num,
+                'vid_path' => $video_path,
+                'reply_id' => $$call{'reply_id'}
+            }
+        }
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\MBAWU7TV6UP7BA3OZU3HEPDJBMK5UA57T5KFAAKCHMKZUWLPP7LFK3BGGWKO4EKUIZ4HVLR5VOHTS
+# \\ FJAJJPCIT3V5VFKZ5BNXVU5AXWBTQPPA6E355A3UK55JJKE44B3Z \\// C25519-BASE-32 //
+#  \\// S4V4H644D4374ODPHTPPWOKLYPGRI3ZQLNOKA3H4WFPWSUZWIAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.x11.get_dbus_addr
+
+my ($local_sid) = keys( %{<user.core.session>} );
+
+<[base.log]>->( 1, "requesting socket address from dbus agent.." );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)dbus.socket_address\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+    ( my $path_str = <x11.dbus_addr> = $1 ) =~ s/^[^=]+=|,.+$//g;
+    <[base.log]>->( 1, "received dbus socket address ['$path_str']" );
+    $ENV{'DBUS_SESSION_BUS_ADDRESS'} = <x11.dbus_addr>;
+    return <x11.dbus_addr>;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply from dbus agent) ['$reply_string']"
+    );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\RN32CRPQK2JUHCGCRL4LCKROXGBKCBN2ADAJHMRFJ5N7AUB3EH3IAM7JUFR6RRUXM2XVWUX254UCE
+# \\ PGHPKI5KF24PK2I2Z4E2TDSSZ4PF4ORBAF6UP35JVZSAOJ6QUQ3Y \\// C25519-BASE-32 //
+#  \\// YN35OXUMQ4BIYIMHCM4P2FAMU4CXSW3MAJX2DY2DKXKUPBROCDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

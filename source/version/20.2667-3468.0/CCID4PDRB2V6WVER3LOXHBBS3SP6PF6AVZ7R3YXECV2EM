@@ -1,0 +1,60 @@
+# >:]
+
+# name = media.init_code
+
+<[base.perlmod.load]>->('IPC::Open2');
+<[base.perlmod.load]>->( 'File::Copy',  qw| move | );
+<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+## tracking state ##
+<media.state> //= {
+    'playlist' => { 'entries' => 0, 'last_request' => 0, 'last_success' => 0 },
+    'agents'   => {
+        'start_time'    => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+        'init_reported' => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+    },
+    'windows' => {
+        'raised' => 'none',
+        'xids'   => { 'mpv' => undef, 'browser' => undef, }
+    }
+};
+##
+
+<media.vid_frame_dir> //= '/tmp/.video_frames';
+
+$SIG{'CHLD'} = $code{'media.handler.sig_chld'};
+
+<media.lsp_name>
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash[' . $$ . ']';
+
+my @dis_cmds = @{ $data{'disabled_commands'} };
+$data{'disabled_commands'} = [];
+map { push( @{ $data{'disabled_commands'} }, $_ ) if $_ ne 'whoami' } @dis_cmds;
+$data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
+
+<media.cmdline_mods> = { 'browser' => 'Gtk3 Glib::Event Gtk3::WebKit2' };
+
+<[media.reroute_commands]>;
+
+<media.agents_started>        //= 0;
+<media.switch_timeout>        //= 7; # restart agent after 7 secs resume timeout
+<media.children_ready>        //= 0;
+<media.declared_online>       //= 0;
+<media.loadsplash_timeout>    //= 17;
+<media.playlist_was_empty>    //= 0;
+<media.cfg.autospeed_notrans> //= 1;
+<media.cfg.can_self_restart>  //= 1;
+
+<[base.log]>->( 1, "[ self-restart is disabled ]  << ! >>" )
+    if !<media.cfg.can_self_restart>;
+
+0;
+
+# ______________________________________________________________________________
+#\\GR4R6NCO6X3E4YSFHY5UWEJGCPM7GHIT4ICIJGSGEAEOR2Q4UVTYSLJ3F23FVUTA3GWFNS32EBCGK
+# \\ ZDR2WF445XDK5JHERZXRSLUGN3NTCH2BE6VMLNQ4ASBKDFQ7S5Y3 \\// C25519-BASE-32 //
+#  \\// U6OX2J2LBDY6OPY5EUS5KFMF7YSU2ANPP4UDWDKJWQTDQE4UWBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

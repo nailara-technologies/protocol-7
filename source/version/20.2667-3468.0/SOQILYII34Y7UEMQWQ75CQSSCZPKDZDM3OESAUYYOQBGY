@@ -1,0 +1,93 @@
+# >:]
+
+# name  = ticker-sdl.sdl.animation.loop_once
+# descr = draw one complete pass of the ticker animation and return
+
+<[ticker-sdl.sdl.raise_and_fade]> if !<ticker-sdl.window.raised>;
+
+<sdl.flip_failed>  //= 0;
+<redraw.last_time> //= <[base.time]>->(7);
+<ticker-sdl.content.work> = [];
+
+@{<ticker-sdl.content.work>}
+    = @{<ticker-sdl.content.data>}    # create a working data copy
+    if !@{<ticker-sdl.content.work>};
+
+# initialize offsets / positions
+map {
+    $_->{'text_offset'}   = 0;
+    $_->{'screen_offset'} = <sdl.display_width>;
+} @{<ticker-sdl.content.work>};
+
+while ( @{<ticker-sdl.content.work>} ) {
+
+    # copy visible elements to screen
+    my $last_offset;
+    for my $index ( 0 .. scalar @{<ticker-sdl.content.work>} - 1 ) {
+        my $element = <ticker-sdl.content.work>->[$index];
+        next if not defined $element->{'width'};
+
+        # calculate text slice width and position
+        $element->{'text_offset'} += <ticker-sdl.animation.steps>
+            if $element->{'screen_offset'} < 0;
+        $element->{'screen_offset'} -= <ticker-sdl.animation.steps>
+            if !$element->{'text_offset'};
+
+        # copy current text slice to screen
+        SDL::Video::blit_surface(
+            $element->{'surface'},
+            SDL::Rect->new(
+                $element->{'text_offset'},
+                0, <sdl.display_width> - $element->{'screen_offset'},
+                $element->{'height'}
+            ),
+            <sdl.display>,
+            SDL::Rect->new(
+                $element->{'screen_offset'},
+                <ticker-sdl.border_height> + <ticker-sdl.border_offset>,
+                <sdl.display_width> - $element->{'screen_offset'},
+                $element->{'height'}
+            )
+        );
+
+        last    # skip elements beyond the right screen border
+            if $element->{'screen_offset'}
+            + ( $element->{'width'} - $element->{'text_offset'} )
+            >= <sdl.display_width>;
+
+    }
+
+    # remove no longer visible elements
+    shift @{<ticker-sdl.content.work>}
+        if <ticker-sdl.content.work>->[0]->{'text_offset'}
+        >= <ticker-sdl.content.work>->[0]->{'width'};
+
+    # pause to slow down
+    my $delta_t   = ( <[base.time]>->(7) - <redraw.last_time> ) * 1000;
+    my $wait_time = sprintf( "%.4f", <ticker-sdl.redraw_delay> - $delta_t );
+    SDL::delay($wait_time) if $wait_time > 0;
+
+    # update screen ( try hardware blitting first )
+    if ( !<sdl.flip_failed> ) {
+        unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+            my $err_str          = SDL::get_error() || $!;
+            my $err_str_brackets = length($err_str) ? " [ $err_str ]" : '';
+            warn "unable to swap buffers! (switching to software mode)"
+                . $err_str_brackets . "\n";
+            <sdl.flip_failed> = 1;
+        }
+    }
+
+    # in case hardware blitting failed, use the software method
+    SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+        <sdl.display_height> )
+        if <sdl.flip_failed>;
+
+    <redraw.last_time> = <[base.time]>->(7);
+}
+
+# ______________________________________________________________________________
+#\\YRUFGB5AG4LWNQIIANVI4BZWTV2T5FXPUYWHA46TOGSXUA4K2RCP4KYXCKRQKZZMJBGP4XJ5SVFWE
+# \\ LRD4ZGYV55VS6FJPO5234UL22QXKZM2ADOAPRCRB5GYRRQDCWEI4 \\// C25519-BASE-32 //
+#  \\// MYDHWLNE2POL4R3ZJIKLIA2UGZEWAMUEO2NWVJEXE6ZOFJ7GEAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+
+use FindBin;
+use Crypt::Digest::SHA1 qw( sha1_hex );
+use Term::ReadPassword;
+
+$aname = $ARGV[0] // 'core';
+
+$DATA{'conf'}{'root'} = $FindBin::Bin;
+$DATA{'conf'}{'root'} =~ s/\/bin$//;
+$DATA{'conf'}{'file'}
+    = $DATA{'conf'}{'root'} . "/cfg/agents/$aname/core-auth";
+
+print "\n ::[ nailara.core user generator ]\n ::\n";
+
+print " :: enter username :. ";
+chop( $user = <STDIN> );
+$user =~ s/\t|\s//g;
+while ( $pass ne $re_pass or $pass eq "" ) {
+    $pass    = sha1_hex( read_password(" :: enter password :. ") );
+    $re_pass = sha1_hex( read_password(" :: once again...  :. ") );
+    if ( $pass ne $re_pass ) { print " ::\n :::[ passwords do not match ]\n\n" }
+}
+
+if ( $pass eq "da39a3ee5e6b4b0d3255bfef95601890afd80709" ) {
+    die " ::\n ::. ... aborted. (empty password)\n\n";
+}
+
+$new_file = 0;
+
+if ( !-f $DATA{'conf'}{'file'} ) {
+    $new_file = 1;
+    open( NEW, ">$DATA{'conf'}{'file'}" )
+        or die " ::\n :::[ can not create user config file ]\n\n";
+    print NEW "\n  .: nailara user config :.\n\n";
+    close(NEW);
+}
+
+$user_exists = 0;
+
+open( CONF, $DATA{'conf'}{'file'} )
+    or die " ::\n :::[ can not open user config file ]\n\n";
+foreach my $line (<CONF>) {
+    if ( $line =~ /^auth.setup.usr.([^=]+)=([^=]+)$/ ) {
+        my $usr = $1;
+        $usr =~ s/\s+|\t+//g;
+        my $pwd = $2;
+        $pwd =~ s/\s+|\t+//g;
+
+        if ( $usr eq $user and $user_exists == 0 ) {
+            $user_exists = 1;
+            push( @user_config, "auth.setup.usr.$user\t = $pass\n" );
+        } elsif ( $usr ne $user ) {
+            push( @user_config, $line );
+        }
+    } else {
+        push( @user_config, $line );
+    }
+}
+close(CONF);
+
+if ( !$user_exists ) {
+    push( @user_config, "auth.setup.usr.$user\t = $pass\n" );
+}
+
+open( CONF, ">$DATA{conf}{file}" )
+    or die " ::\n :::[ can not write user config file ]\n\n";
+print CONF @user_config;
+close(CONF);
+
+print " ::\n :\n\n";
+
+# ______________________________________________________________________________
+#\\I3SEK4VGQAGUIEQ4NGDPL5EXOIMOOMKZJISYVZ75JYAIGBCRVFVSM67ULTX6ZOCL5BGSYXFZOADEO
+# \\ P6KAIGBM2ETKM3Z5TL5D4CI6GORJTKTDIEEYYCZ37GJ7SRPIQJAW \\// C25519-BASE-32 //
+#  \\// ZBS2CUCMEPTFBGMPXHJCSHILQWPBK247FD6IVPSU6VFHHAZGWBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

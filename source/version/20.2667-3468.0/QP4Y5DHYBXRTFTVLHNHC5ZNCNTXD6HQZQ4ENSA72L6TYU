@@ -1,0 +1,33 @@
+# >:]
+
+# name  = mpv.cmd.set_speed
+# param = <factor>
+# descr = set playback speed factor [0.01..100.0]
+
+my $speed = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected speed factor (float value)' }
+    if !length($speed)
+    or $speed !~ /^\d+(\.\d+)?%?$/;
+
+my $speed_val = sprintf( "%0.2f", $speed );
+
+return { 'mode' => 'nak', 'data' => 'minimum value 0.01' }
+    if $speed_val < 0.01;
+return { 'mode' => 'nak', 'data' => 'maximum speed value is 100' }
+    if $speed_val > 100;
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = "playback speed now $speed_val";
+<mpv.success_reply_str> =~ s|\.?0+$|x|;
+<mpv.success_reply_str> =~ s|now 1x$|reset|;
+
+<[mpv.send_command]>->( 'set_property', 'speed', $speed_val );
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\E4XST5WYCAXBQYQEZW7WLA6LY7KHOFCM6D5OGTRXRFZ3AIFHT3WPK5N4OQ67V7B4UACNDVZYZMJBW
+# \\ JV6DL7T2CLIUCH4TLLWXQGKYMLZDM4RXFLHLLXIAXJR5E3GYAKEN \\// C25519-BASE-32 //
+#  \\// YCPG2AEI3H7YKB3H4EPZBBDC6JUYSMSQUZWCUL3AKX5SDA7YUBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

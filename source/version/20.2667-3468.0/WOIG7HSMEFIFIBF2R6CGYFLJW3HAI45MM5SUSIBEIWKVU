@@ -1,0 +1,21 @@
+# >:]
+
+# name  = nroot.cleanup_temp_files
+
+## browser crash mitigation files ##
+my $count = my @browser_files
+    = <[file.match_files]>->( '/tmp', '.nailara.browser.**' );
+if ($count) {
+    my $s = $count > 1 ? 's' : '';
+    <[base.log]>->(
+        1, "removing $count left over browser agent temp file$s..."
+    );
+    unlink(@browser_files) or warn $!;
+}
+##
+
+# ______________________________________________________________________________
+#\\57Z6YVS5IIARCRTBDEQGDBWXRYIAHS53JHQLGEKRD4M3RVWNY5R6FKDTE4EDUS3AC63AR4654DPGK
+# \\ ZALT6IIA2ULBVZATBH6SIWTC2NUA3CKIM2RWJ3HPZY6ZICSUFDGM \\// C25519-BASE-32 //
+#  \\// GKDTUYRAAH37XD32SPIM752RBBBFKEP6ZLTMK6DLZTP4IAXBIBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

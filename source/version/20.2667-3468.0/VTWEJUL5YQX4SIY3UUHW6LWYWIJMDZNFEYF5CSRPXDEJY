@@ -1,0 +1,35 @@
+# >:]
+
+# name  = notify.init_code
+# descr = initializes the notify agent (which uses notify-osd)
+
+my $bin_name  = 'notify-send';
+my $gfx_path  = <system.root_path> . '/data/gfx/';
+my $icon_path = $gfx_path . '/icons/';
+my $bin_path  = <[base.required_bin_path]>->($bin_name);
+die "$bin_name binary not found (please install 'notify-osd')"
+    if !length($bin_path);
+
+undef $ENV{'XAUTHORITY'};
+undef $ENV{'LOGNAME'};
+
+<notify.path> = {
+    'notify_send'  => $bin_path,
+    'nailara_icon' => $gfx_path . 'logos/nailara.png',
+    'loves_icon'   => $icon_path . 'lain/loves.png',
+
+    'info_icon' => '/usr/share/icons/oxygen/base/64x64/'
+        . 'status/dialog-information.png',
+    'warn_icon' => '/usr/share/icons/gnome-colors-common/'
+        . 'scalable/status/dialog-warning.svg',
+
+    'reload_icon' => '/usr/share/icons/gnome/256x256/actions/reload.png'
+};
+
+0;
+
+# ______________________________________________________________________________
+#\\FUHURIR5CJEAQTJVP6KYLBZGWNXPOF6SXUQZ2QEQHZI7JOXUTOMXCVO6SAVQWIO6IIRXRTNV6HXBW
+# \\ C6YOYW7G52ZIO43XJKMJAYLVTVKN4O5VVFDRU3X2ASNLWVHDFFLU \\// C25519-BASE-32 //
+#  \\// PPHQQP5524CH7XBJOZFT7PHEQ5CS2MI4SPC3NTYXSXYW2HFRGBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

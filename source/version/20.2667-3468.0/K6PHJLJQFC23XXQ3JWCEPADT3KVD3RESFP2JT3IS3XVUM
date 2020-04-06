@@ -1,0 +1,37 @@
+# >:]
+
+# name  = net.authme
+# descr = plain text password auth. (client side)
+# todo  = check for possible race conditions ...
+
+my $answer;
+my $smiley;
+my $backend_socket = $_[0], $smiley = "", $answer = "";
+die "net.authme: no password supplied" if not defined $_[2];
+if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
+    if ( $smiley =~ />:\]\n/ ) {
+        <[base.log]>->( 2, '[*] protocol banner detected..' );
+    } else {
+        <[base.log]>->( 0, '[#] no valid smiley found! :(' );
+        return undef;
+    }
+    <[net.out]>->( $backend_socket, "auth $_[1] $_[2]\n" );
+    if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
+        if ( $answer =~ /YEAH/ ) {
+            <[base.log]>->( 1, '[*] successfully authenticated =)' );
+            return $backend_socket;
+        } elsif ( $answer =~ /NOPE/ ) {
+            <[base.log]>->( 0, '[#] access denied :(' );
+            return undef;
+        } else {
+            <[base.log]>->( 0, '[#] protocol mismatch :(' );
+            return undef;
+        }
+    }
+}
+
+# ______________________________________________________________________________
+#\\OHTPPP6Q34GARIQ5POIV2GMJKLMAIGRBOY6ZPLFHMBL7A4O4FJXYXX3YZWHZIROKUWM356SKKYPZ2
+# \\ XWAJQA5OVDQGX63SHABC3ZJ3CXMGHHEAJ63RDN57GBS6MRDKQNVV \\// C25519-BASE-32 //
+#  \\// A62Y53DSPO4KVTMQUCS76CBUF34LQBMTVERJNXVKUPBVVGWJYDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

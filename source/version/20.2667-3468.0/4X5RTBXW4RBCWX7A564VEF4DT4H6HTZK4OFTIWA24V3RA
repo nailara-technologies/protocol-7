@@ -1,0 +1,13 @@
+# >:]
+
+# name  = digest.jha.b32
+# descr = returns base64 url encoded [ network ordered ] jhash value
+
+return Crypt::Misc::encode_b32r(
+    pack( 'N', Digest::JHash::jhash( join( '', @_ ) ) ) )
+
+# ______________________________________________________________________________
+#\\U67KUM5E7BH3I3X6BGCS6WKFTKXW6HRAPXACHW3REFZSRIIRXCTMQY65UHIYTLISFD6SA7QHOMET4
+# \\ BVYZOXVW66TCS5CDPY7ETGZYWL7Q5AWQYY4CGA2774HJDI3XYXNT \\// C25519-BASE-32 //
+#  \\// 77MRMSENLXGGSWUE6L7NINTE44C3RPHG4MXKTD2ORGYURBBB2DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

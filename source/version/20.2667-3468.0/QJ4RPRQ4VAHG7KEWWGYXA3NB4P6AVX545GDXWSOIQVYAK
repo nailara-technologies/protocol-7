@@ -1,0 +1,16 @@
+# >:]
+
+# name = loadsplash.wait_for_window
+
+( my $match_str = <loadsplash.window_title> ) =~ s|([\[\]])|\\$1|g;
+unless ( <[base.x11.wait_for_window]>->($match_str) ) {
+    <[base.log]>->( 0, "[!] window unable to open, aborting agent startup.." );
+    exit(2);
+}
+<[base.x11.assign_window]>;
+
+# ______________________________________________________________________________
+#\\PEA6YU6AVIHBJCZ4AAV3VYXJYYGVQZTSARPSA5INVRJ5XNWN4C5DLTVGREKHRST3YMUZ5ZL7BJWNO
+# \\ 4RDCEX2TPNKNBWVAY4CHYTX7XWI2ZVWGUBUT2JYZDFXBCMZIEZAK \\// C25519-BASE-32 //
+#  \\// SOP5XRC6SKHW5XCOQKDIUEYXGAR25P67SXK2YTUBURG6JCY4KBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

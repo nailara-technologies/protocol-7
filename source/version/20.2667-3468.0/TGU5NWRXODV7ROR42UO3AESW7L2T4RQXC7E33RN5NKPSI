@@ -1,0 +1,37 @@
+# >:]
+
+# name = system.process.handler.pid-instance_response
+
+my $response   = shift;
+my $process_id = $response->{'params'}->{'process_id'};
+my $cmd_rep_str = $response->{'call_args'}->{'args'}; # verbose cmd reply string
+my $log_msg_str = $response->{'params'}->{'log_message'};
+
+return warn "received instance id is not numerical"
+    if $response->{'cmd'} eq 'ACK'
+    and $cmd_rep_str !~ /^\d+$/;
+
+if ( $response->{'cmd'} eq 'ACK' ) {                  # restart by root
+    my $instance_id = $cmd_rep_str;
+    <[base.log]>->( 0, " : asking 'nroot' to restart instance $instance_id" );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.restart",
+            'call_args' => { 'args' => $instance_id },
+            'reply'     => { 'handler' => 'dev.null' }
+        }
+    );
+} elsif ( $cmd_rep_str eq 'found no matching instance' ) {    # kill allowed
+    <[base.log]>->( 1, "[PID:$process_id] process not managed by nroot agent" );
+
+    <[system.process.callback.send_kill]>->( $process_id, $log_msg_str );
+
+} else {    # unclear -> warn (no nroot agent access?)
+    return warn "aborted autokill for pid $process_id [no nroot agent access?]";
+}
+
+# ______________________________________________________________________________
+#\\SHJUBK7SI2CFCUP5772JF3T6POGK3ZNUXWWH3RNFL4Z7Q4TO4QK6QWEKSTLCUX4Q24IAAACTZX5BC
+# \\ CJZ43LHPBPR6WO5HN6JAPFSNHJ337DJNLVJVJS77K6LQELCFQCFT \\// C25519-BASE-32 //
+#  \\// 4T4KS2ATHUVTPZG2ZUTFFFO7EJBQV33OJHV4RDBV2IS2KEKAAAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

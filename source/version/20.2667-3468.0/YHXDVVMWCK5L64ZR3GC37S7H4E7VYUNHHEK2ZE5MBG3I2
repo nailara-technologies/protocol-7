@@ -1,0 +1,97 @@
+# >:]
+
+# name = impressive.parse_bin
+
+my $params = shift // {};
+
+if ( defined $params->{'bg_col'} and $params->{'bg_col'} !~ /\#[0-9A-F]{6}$/i )
+{
+    <[base.log]>->(
+        0,
+        "WARNING: invalid background color parameter"
+            . " '$params->{bg_col}', resetting to default!"
+    );
+    undef $params->{'bg_col'};
+}
+
+$params->{'bg_col'} //= '#FFFFFF';
+$params->{'lang'}   //= 'en';
+
+my $file_content;
+
+my $impr_src = <impressive.path.impressive_src>;
+my $temp_dir = <impressive.path.impressive_tmp>;
+my $tmp_bin  = "$temp_dir/impressive.$$";
+
+<[file.slurp]>->( $impr_src, \$file_content );
+
+my $error_img;
+<[file.slurp]>->( <impressive.gfx.read_error>, \$error_img, ':raw' );
+$error_img = encode_b64u($error_img);
+
+<impressive.version> = $1 if $file_content =~ /^__version__ *= *"([^"]+)"/m;
+<impressive.version> //= 'unknown';
+
+$file_content =~ s|\\\n\s*||sg;
+
+# checking for problematic impressive version..,
+if ( File::stat::stat($impr_src)->size == 244069
+    and <[digest.sha.file_hex]>->($impr_src)
+    =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/ ) {    # v_0.11.0b
+    <[base.log]>->(
+        0, "<!> please update impressive version <!> [donwload_impressive.pl]"
+    );
+    $file_content =~ s|tostring\(|tobytes\(|mg;  # workaround (impressive crash)
+}
+
+my $title_str = <system.agent.name>;
+$title_str .= '[' . <system.agent.subname> . ']'
+    if defined <system.agent.subname> and length(<system.agent.subname>);
+
+if (not $file_content
+    =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m ) {
+    <[base.log]>->(
+        0, "[!] unable to parse agent title string into impressive script ..."
+    );
+}
+if (not $file_content
+    =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg ) {
+    <[base.log]>->(
+        0, "[!] unable to parse background color into impressive script ..."
+    );
+}
+if ( not $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s ) {
+    <[base.log]>->(
+        0, "[!] unable to parse error image into impressive script ..."
+    );
+}
+<impressive.parser.size_assert_failed> //= 0;
+if (   not $file_content =~ s|assert \(ScreenWidth  >= 320\) and |assert |m
+    or not $file_content =~ s|assert \(ScreenHeight >= 200\) and |assert |m ) {
+    <impressive.parser.size_assert_failed> = 1;
+    <[base.log]>->(
+        0, "[!] unable to parse out impressive minimum screen size limit ..."
+    );
+}
+
+# modifying Crossfade transition for 'light_mode' ( to minimize CPU / GPU load )
+if (not $file_content =~ s|
+                            \n(\s+)(SimpleQuad.draw\(\)\n
+                            AllTransitions.append\(Crossfade\)\n)
+        |\n$1time.sleep(0.023)\n$1$2|sx
+) {
+    <[base.log]>->(
+        0, "[!] unable to parse sleep() into Crossfade transition ..."
+    );
+}
+
+<[impressive.check_tmp_dir]>;
+
+<[file.put]>->( $tmp_bin, $file_content );
+chmod( 0755, $tmp_bin ) or die "chmod failed: $!";
+
+# ______________________________________________________________________________
+#\\4QSFO4WF7NFNR3MHCJ2RCUPGWWWCLIXA2J6HOWVEU64UTCLE2ATXAW2UJVUIJQI4NNTN2XASRC44K
+# \\ A3RZ5THYYNMWSGAF4M2SVSP7L4MMYTXK2SIY2Z5QVQIAYBABYKS3 \\// C25519-BASE-32 //
+#  \\// HSUVM4CASQZKXHANUCLAFLE37SSTVE2GH6XPWJD36RG7VKELWCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

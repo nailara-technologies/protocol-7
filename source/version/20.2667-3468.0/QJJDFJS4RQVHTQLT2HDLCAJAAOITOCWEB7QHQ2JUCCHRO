@@ -1,0 +1,19 @@
+# >:]
+
+# name = mpv.handler.event.property-change
+
+my $params = shift;
+
+return
+    if ( <mpv.audio_only> and $params->{'name'} !~ /^(volume|path|core-idle)$/ )
+    or not exists $params->{'event'}
+    or not exists $params->{'name'};
+
+my $handler_name = "mpv.handler.event.property-change.$params->{name}";
+$code{$handler_name}->($params) if exists $code{$handler_name};
+
+# ______________________________________________________________________________
+#\\YF3AWKESHE63H7EMCZSHRTIKYUXGDYQPKMO22VOP7LNZ7675BRQYPBC5AKR7NEPZGXPTLSZDFV6VG
+# \\ PZ3TV6WQFV7NY75TMJ6WOYSDG5IAFEJJAUUQLOU4C3X4EG7NVV3U \\// C25519-BASE-32 //
+#  \\// K3VQ6LXHAJ4DMOAND7PU2PUJ7DLCQWUXETYFQC3VQANGKWYVCDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

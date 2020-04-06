@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.get_file.aref
+# descr = return array reference to file content
+
+# $_[0] : file name
+# $_[1] : error coderef
+
+if ( !open( my $file_fh, "<$_[0]" ) ) {
+    <[base.log]>->( 1, "can not open file \'$_[0]\' for reading [$!]" );
+    return &{ $_[1] } if defined $_[1] and ref( $_[1] ) eq 'CODE';
+    return undef;
+} else {
+    return [<$file_fh>];
+}
+
+# ______________________________________________________________________________
+#\\UIBBYPT23332JX3DFTBHFH3HDJESBVCPT5KR5GGPOKAAS6QVN3QQ3KRT3JKWGCNN2PGOVLUQDRL62
+# \\ ZAO6AG5CUXAM5RZ4A2QVPDBF2L3RSZ5D7DFJJM4ITUTEGS577DJB \\// C25519-BASE-32 //
+#  \\// JIQA7KP7M7WXVQXBVYKZSITPPXPHWLX5HUH7Z2XXX5KFV2TH6BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

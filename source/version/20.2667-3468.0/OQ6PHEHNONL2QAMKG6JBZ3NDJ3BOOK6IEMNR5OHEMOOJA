@@ -1,0 +1,149 @@
+# >:]
+
+# name = httpd.process_template
+
+my $session_id    = shift // '';
+my $template_path = shift // '';
+die "expected valid session id" if not defined $data{'session'}{$session_id};
+my $session = $data{'session'}{$session_id};
+die "expected template file path argument" if !length($template_path);
+die "template file not found" if !-f $template_path;
+my $response_params = $session->{'response'}->{'params'};
+my $content_date    = time2str( int( $session->{'start_time'} ) );
+my $content_type    = 'text/plain';
+$content_type = 'text/html' if mimetype($template_path) =~ /html/;
+
+# LLL: ;charset=...
+
+<[base.log]>->( 1, "[process_template] $template_path" );
+
+$session->{'buffer'}->{'template'} = <[file.slurp]>->($template_path);
+
+my $content_ref = $session->{'content'} = {
+    'date'     => $content_date,
+    'type'     => $content_type,
+    'complete' => 0,
+    'sequence' => []
+};
+
+my $r_seq = $content_ref->{'sequence'};
+
+# LLL # [open/] ... [/close]
+# .. eq ..
+# LLL # [template:content....]
+#
+
+my $tmpl_ref = $session->{'buffer'}->{'template'};
+
+my $var_ref     = $session->{'meta'} //= {};
+my $meta_var_re = qr/(?<!\\)<\{([\w\-_\.]+)\}>/;    # <{meta_var_name}>
+
+${$tmpl_ref} =~ s/$meta_var_re/defined $var_ref->{$1} ? $var_ref->{$1} : ''/ge;
+
+#### ... [pre]
+
+my $template_re = qr/(?<!\\)<\[([\w\-_]+\.[^\]]+)\]>/;    # <[command_str]>
+
+while ( length( ${$tmpl_ref} ) ) {
+    my ( $output, $cmd_param_str, $remaining )
+        = split( $template_re, ${$tmpl_ref}, 2 );
+    if ( defined $cmd_param_str ) {
+
+        ( my $cmd_str, my $params_str ) = split( /:/, $cmd_param_str, 2 );
+
+        push( @{$r_seq}, { 'data' => \$output } );
+        push( @{$r_seq}, { 'command' => $cmd_str, 'params' => $params_str } );
+        $tmpl_ref = $session->{'buffer'}->{'template'} = \$remaining;
+
+    } else {
+        push( @{$r_seq}, { 'data' => $session->{'buffer'}->{'template'} } );
+        last;
+    }
+}
+
+$var_ref = $session->{'vars'} //= {};
+my $session_var_re = qr/(?<!\\)<\(([\w\-_]+\.[^\]]+)\)>/;    # <(var_name)>
+
+#### ... [post]
+
+# print Dumper $r_seq;
+
+my $cmd_count = 0;
+map { $cmd_count++ if defined $_->{'command'} } @{$r_seq};
+
+if ( !$cmd_count ) {    # request / content complete :
+
+    my $content_length = 0;
+    map { $content_length += length( ${ $_->{'data'} } ) } @{$r_seq};
+
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        200,
+        {   'Content-Type'   => $content_type,
+            'Last-Modified'  => $content_date,
+            'Content-Length' => $content_length,
+            'Connection'     => $session->{'http'}->{'close'}
+            ? 'close'
+            : 'keep-alive',
+            'Accept-Ranges' => 'bytes',
+            %{$response_params}
+        }
+    ) . join( '', map { ${ $_->{'data'} } } @{$r_seq} );
+
+    return $session->{'http'}->{'close'} ? 2 : 0;
+
+} else {    # ... something left to do ...
+
+    foreach my $part ( @{$r_seq} ) {
+        next if not exists $part->{'command'};
+        my $command_str = $part->{'command'};
+
+        # LLL: filter command syntax ( define allowed ones )
+
+        my %query = ( %{ $session->{'http'}->{'request'}->{'query'} } );
+
+        #
+        # <param_name>
+        #
+        $part->{'params'}
+            =~ s/<([\-\w\d_\.]+)>/defined $query{$1} ? $query{$1} : ''/ge
+            if defined $part->{'params'};
+
+        #
+        # {param_name,param_name,..}: values base64url encoded, LLL: use + mode!
+        #
+        while ( defined $part->{'params'}
+            and $part->{'params'} =~ /\{([\-\w\d_\.,]+)\}/ ) {
+            my @key_vals;
+            my $keys_str = $1;
+            map {
+                push( @key_vals, join( '=', $_, encode_b64u( $query{$_} ) ) )
+                    if defined $query{$_}
+                }
+                split( /,/, $keys_str );
+            my $param_line_str = join( ',', @key_vals );
+            $part->{'params'} =~ s/\{$keys_str\}/$param_line_str/g;
+        }
+        #
+
+        # <[base.log]>->( 1, "params: " . $part->{'params'} );
+
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.$command_str",
+                'call_args' => { 'args' => $part->{'params'} },
+                'reply'     => {
+                    'handler' => 'httpd.handler.template_reply',
+                    'params' => { 'client_sid' => $session_id, 'part' => $part }
+                }
+            }
+        );
+
+        # LLL: set up check + timeout timers...
+    }
+    return 1;
+}
+
+# ______________________________________________________________________________
+#\\RA6LO2JMU6OQDOV6PD4SVUTE3PLNMTU3CAHVCYFWTFVPVAUH2OAYZ7WTAGP4JZ53BWTSISKK2R622
+# \\ LK67OOZGCO4TIAYHY4O57WIGERQHO6W7LID5P4VTLKJIBLN6ED3H \\// C25519-BASE-32 //
+#  \\// IJIG6MPVIQQY4M3QLYLETHLVZSSMMMUPYROZWO4O5VOXYRNBUCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

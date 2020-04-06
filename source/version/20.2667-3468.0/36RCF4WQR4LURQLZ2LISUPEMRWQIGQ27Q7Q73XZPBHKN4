@@ -1,0 +1,39 @@
+# >:]
+
+# name = weather.parent.apply_zoom
+
+my $html_ref = shift;
+<weather.zoom_level> //= 1;
+<weather.zoom_text>  //= 0;
+
+my $zoom_level = <weather.zoom_level>;
+my $tile_zoom  = <weather.tile_zoom>;
+
+$$html_ref =~ s|(\d+)px|sprintf("%.0fpx",$1*$tile_zoom)|ge
+    if <weather.tile_scale> and defined $tile_zoom;
+
+return if not defined $zoom_level or $zoom_level == 1;
+
+# $$html_ref =~ s|(font-size:\s*\d+)px|$1PX|g if !<weather.zoom_text>;
+# $$html_ref =~ s|(\d+)px|sprintf("%.0fpx",$1*$zoom_level)|ge;
+# $$html_ref =~ s|(\d+)PX|$1px|g;
+
+#if (   !<weather.zoom_text>
+#    and <weather.browser_zoom>
+#    and <weather.base_zoom> != 1 ) {
+#    my $zoom_adjust = <weather.base_zoom>;
+my $zoom_adjust = <weather.zoom_level>;
+
+$zoom_adjust = <weather.min_zoom> if $zoom_adjust < <weather.min_zoom>;
+
+# print "\n\nzoom_adjust : $zoom_adjust\n\n";
+
+$$html_ref =~ s|(font-size:\s*)(\d+)px|sprintf("$1%.0fpx",$2/$zoom_adjust)|ge;
+
+#}
+
+# ______________________________________________________________________________
+#\\LYAZHHAJLPYSXWRUCZOKT6K4N4ZHQL4NXVNJDO6CZNUCG6FYWQYYGJKJZNAA342NFLNKBNUBN644S
+# \\ CPT7VHPLIMBAC2F67YXSXMROKS4AJUOYQEGNPT4LS4GCEP5KVGGL \\// C25519-BASE-32 //
+#  \\// PJKAMZLGD7NTDNGXOQEYRIRD7OZIASRSWHWC5IC7JKOICCKD2AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

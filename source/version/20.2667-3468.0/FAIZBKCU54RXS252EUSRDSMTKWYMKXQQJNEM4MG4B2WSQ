@@ -1,0 +1,22 @@
+# >:]
+
+# name = mpv.send_command
+
+my $json_string = <[mpv.json.command]>->(@_);
+
+return <[base.log]>->( 0, "no command defined" ) if !$json_string;
+
+<[base.log]>->( 2, 'send_command: ' . $json_string );
+
+if ( not defined <mpv.socket> ) {
+    warn "mpv control socket has been lost";
+    exit(2);    # TERM / KILL mpv in END code
+}
+
+<[base.s_write]>->( <mpv.socket>, $json_string );
+
+# ______________________________________________________________________________
+#\\ZLCYRUIL6O5UCSIXD5X7JMW4Z44SWBNTL7JXDAP57RG3IWXZK53VP3UBIYAXBR4SWCXPNFAPBBDNM
+# \\ HQVM4TVOF5KWSCCU23FX2WY4JTGCVJH2S72YOTYK54QMAOSMXLBD \\// C25519-BASE-32 //
+#  \\// VRP6IKDJGO34SL5BPNSFPRMMQE3KAHBTUVCC7MSQXV6UV4QLODA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,22 @@
+# >:]
+
+# name  = base.perlmod.is_loaded
+# descr = returns 1 if perl module is loaded, else 0
+
+my $module_name = shift;
+
+die "no module name supplied"
+    if not defined $module_name or !length($module_name);
+die "invalid module name '$module_name'"
+    if $module_name !~ /^\w+(::\w+)*$/;
+
+my $module_file = join( '.', join( '/', split( /::/, $module_name ) ), 'pm' );
+
+if   ( exists $INC{$module_file} ) { return 1 }
+else                               { return 0 }
+
+# ______________________________________________________________________________
+#\\XPLNIDY3S5IMYMNB4CMXAWB3L2FUCXECGHS2L4E3IPCKNDWBWBEEQ24RIFY3RPJOW7KPCXASU2OFI
+# \\ KYWUC3WTNA5VCAWVVCNSJU2DAXDTWS6JCMJD4T52YWVVEZP3SLNG \\// C25519-BASE-32 //
+#  \\// PONXVQVOKUEGARN3T2OL765Z73VNFM7G56NMUEZLPRISEAW6MBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

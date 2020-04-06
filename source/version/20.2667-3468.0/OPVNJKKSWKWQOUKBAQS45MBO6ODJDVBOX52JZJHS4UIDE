@@ -1,0 +1,36 @@
+# >:]
+
+# name  = nroot.cmd.system-poweroff
+# param = [nosync]
+# descr = force power off using sysrq-trigger [host]
+
+my $param   = $$call{'args'} // '';
+my $enabled = <nroot.system-poweroff.enabled> //= 1;
+
+return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
+    if !-e '/proc/sysrq-trigger';
+return {
+    'mode' => 'nak',
+    'data' => 'specifically disabled [ nroot.system-poweroff.enabled = 0 ]'
+    }
+    if !$enabled;
+
+<[base.log]>->( 0, "<!> <<< initiating force-poweroff >>> <!>" );
+
+while ( keys %{ $data{'route'} } ) { <[event.once]>->(0.1) }  # wait log written
+
+system('/bin/sync') if $param ne 'nosync';
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => 'nroot.callback.system-poweroff'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => '<< powering off host system >>' }
+
+# ______________________________________________________________________________
+#\\HM67BBSYBN23N2LUTSNTCRBVJGG3XIUQIJRZO35MF7QL7XQZHWKNUXPR63T474JJG5L4PJHT2JBZU
+# \\ CT5HETSHFL3OM24LN5U3MZVOY3GPTHT37UZ3ZRLRWGSMHOE6ZIKB \\// C25519-BASE-32 //
+#  \\// 53B3E5SDVOWOKK3J7EWUF7HG4ORUDQNQTQ7JWSYKWEHBL42UODA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

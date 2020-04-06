@@ -1,0 +1,111 @@
+# >:]
+
+# name = xserver.init_code
+
+<[base.perlmod.autoload]>->('X11::Protocol');
+<[base.perlmod.autoload]>->('X11::Keyboard');
+<[base.perlmod.autoload]>->('X11::Protocol::WM');
+<[base.perlmod.autoload]>->('X11::Protocol::XSetRoot');
+<[base.perlmod.autoload]>->('Linux::Inotify2');
+<[base.perlmod.autoload]>->('IPC::Open3');
+<[base.perlmod.autoload]>->('X11::Tops');
+
+my $modes_re = <xserver.modes_re> = qr,^(host|xnest|nxagent|xorg|xephyr|xvfb)$,;
+
+if ( defined <system.agent.subname> ) {
+    my $override_mode = <system.agent.subname>;
+    if ( $override_mode =~ $modes_re ) {
+        <[base.log]>->(
+            0, "<< overriding xserver agent mode [ with '$override_mode' ] >>"
+        );
+        <xserver.mode> = $override_mode;
+    } else {
+        my $old_mode = <xserver.mode>;
+        <[base.log]>->(
+            0,
+            "<<< invalid agent mode \"$override_mode\", keeping '$old_mode' >>>"
+        );
+    }
+}
+
+foreach my $bin_name (
+    qw|
+
+    Xvfb
+    Xorg
+    Xnest
+    lspci
+    Xephyr
+    nxagent
+    intel_gpu_top
+    intel_gpu_frequency
+
+    |
+) {
+    <xserver.bin_path>->{$bin_name} //= <[base.required_bin_path]>->($bin_name);
+}
+
+<[base.inotify.install_io_watcher]>;
+
+if ( <xserver.mode> eq 'auto-xephyr' ) {
+    system("ps h -C Xorg 1>/dev/null 2>/dev/null");
+    <xserver.mode> = $? == 256 ? 'xorg' : 'xephyr';
+    <[base.log]>->( 1, "[auto] switched to '<xserver.mode>'-mode.." );
+}
+
+<xserver.waiting>        //= {};
+<xserver.bg_mode>        //= 'full';
+<xserver.video_driver>   //= <[xserver.get_video_driver]>;
+<xserver.disable_glamor> //= 0;
+
+<xserver.bg_color> //= '000000';
+<xserver.bg_color> =~ s/^#?([0-9a-f]{6})$/#$1/i;
+
+<xserver.keybd.grab_all_keys> //= 'no';
+<xserver.max_intel_gpu_freq>  //= 'no';
+
+<xserver.collect_intel_gpu_stats> //= 0;
+
+if (    <xserver.mode> eq 'xorg'
+    and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/
+    and <xserver.video_driver> =~ /^i\d\d\d$/ ) {
+    my $freq_bin_path = <xserver.bin_path.intel_gpu_frequency>;
+    if ( !length($freq_bin_path) or !-x $freq_bin_path ) {
+        <[base.log]>->(
+            0,
+            "[!] max_intel_gpu_freq is enabled but"
+                . " intel_gpu_frequency binary not found.."
+        );
+    } else {
+        my $freq_output = qx($freq_bin_path -g);
+        if ( $freq_output =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s ) {
+            my ( $cur_freq, $max_freq ) = ( $1, $2 );
+            if ( $cur_freq ne $max_freq ) {
+                <[base.log]>->(
+                    1,
+                    "<!> maximizing GPU frequency [ $cur_freq --> $max_freq ]"
+                );
+
+                qx($freq_bin_path -m);    # <- max
+
+                if ( qx($freq_bin_path -g)
+                    =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s ) {
+                    ( $cur_freq, $max_freq ) = ( $1, $2 );
+                    <[base.log]>->(
+                        0,
+                        "[!] GPU frequency setting failed "
+                            . "[ now $cur_freq, should be $max_freq ]"
+                    ) if $cur_freq ne $max_freq;
+                }
+            }
+        }
+    }
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\3AMHI3X2AXX3EYGFGPOHOINPIPKCR43FLG6HNZKN5RE3FAQD3W4VM3OTRXVYHUK76443EGMCN6Y4S
+# \\ CMAZP7RQBSSVCO354VY4GGTZOZVDG5UJ6RWSANILNIZXY4SHWUIK \\// C25519-BASE-32 //
+#  \\// ZG6OPMDVVHLAGR5G5PR3GDGJSZQKWDY6YEVTSY6AERI3VBW5KCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,175 @@
+# >:]
+
+# name  = base.parser.list
+# descr = returns a parsed list table according to supplied specification mask
+# todo  = fix alignment (width) bug! (<key>:foo and foo:bar cases)
+#         :     apparenly accumulative offset as result of 'align'
+
+(   my $h_name, my $h_key, my $sub_key, my $display_keys,
+    my $align, my $defaults, my $filters, my $sort_key
+    )
+    = map { $_[0]->{$_} }
+    qw|
+    var key sub_key mask align
+    defaults filters sort_key |;
+
+my %max_len;
+my $data_ref;
+my $spacing      = 4;
+my $table_string = "\n";
+die "invalid variable name '$h_name'" if $h_name !~ /^[a-z][\w_]*$/i;
+if ( $h_key !~ /\./ ) {
+    no strict 'refs';
+    $data_ref = ${$h_name}{$h_key};
+    use strict 'refs';
+} elsif ( $h_key =~ /^\w[\w\.\-]+\w$/ ) {
+    $h_key =~ s|\.|'}{'|go;
+    no strict 'refs';
+    eval "\$data_ref = \${'$h_name'}{'$h_key'}";
+    use strict 'refs';
+    die $@ if $@;
+} else {
+    die "invalid list key syntax in '$h_key'";
+}
+
+# .: preparation :.
+my $table_width = 0;
+foreach my $key_name ( @{$display_keys} ) {
+    my $index        = 0;
+    my $key_name_str = $key_name;
+    my $key_orig_str = $key_name;
+    if ( $key_name_str =~ s/^<key>:// ) {
+        $index        = 1;
+        $key_orig_str = $key_name_str;
+    } else {
+        $key_name_str =~ s/^([^:]+):([^:]+)$/$2/;
+        $key_orig_str = $1 if defined $1;
+    }
+    $max_len{$key_name} = length($key_name_str) + $spacing + 3;
+    foreach my $key_val ( keys(%$data_ref) ) {
+        next
+            if defined $sub_key
+            and not exists $data_ref->{$key_val}->{$sub_key};   # only requested
+        my $value_str = $key_val;
+        if ( !$index ) {
+            $value_str = $data_ref->{$key_val}->{$key_orig_str};
+        }
+        $value_str //= '';
+        my $filtered_val
+            = <[base.call_filter]>->( $filters, $key_orig_str, $value_str );
+        $max_len{$key_name} = length($filtered_val) + 4
+            if length($filtered_val) > $max_len{$key_name} - 3;
+    }
+    $table_width += $max_len{$key_name};
+}
+
+# .: header :.
+foreach my $key_name ( @{$display_keys} ) {
+    my $key_name_str = $key_name;
+    $key_name_str =~ s/^<key>://;
+    $key_name_str =~ s/^[^:]+:([^:]+)$/$1/;
+    $key_name_str =~ s/_/ /g;
+    my $len = length($key_name_str) + $spacing;
+    $table_string
+        .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
+}
+$table_string =~ s| +$||;
+my $last_d_key = $$display_keys[ scalar @{$display_keys} - 1 ];
+$max_len{$last_d_key} -= 2;
+$table_width-- if $table_width >= 80;
+my $sub_line  .= '-' x $table_width;
+$table_string .= "\n$sub_line\n";
+
+my @sorted_keys;
+@sorted_keys = sort { length $a <=> length $b } sort keys( %{$data_ref} );
+
+# .: custom sorting :.
+
+if ( defined $sort_key ) {
+    my $sort_type = $sort_key =~ s/^([^:]+):// ? $1 : 'alpha_len';  # <- default
+
+    if ( $sort_type eq 'alpha_len' ) {
+        eval {
+            @sorted_keys = sort {
+                length $data_ref->{$a}->{$sort_key} <=>
+                    length $data_ref->{$b}->{$sort_key}
+                }
+                sort keys( %{$data_ref} );
+        };
+    } elsif ( $sort_type eq 'alpha' ) {
+        eval { @sorted_keys = sort keys( %{$data_ref} ); };
+    } elsif ( $sort_type eq 'num' ) {
+        eval {
+            @sorted_keys = grep {/./} sort {
+                ( $data_ref->{$a}->{$sort_key} // 0 )
+                    <=> ( $data_ref->{$b}->{$sort_key} // 0 )
+                }
+                keys %{$data_ref};
+        };
+    } elsif ( $sort_type eq 'reverse-num' ) {
+        eval {
+            @sorted_keys = sort {
+                $data_ref->{$b}->{$sort_key} <=> $data_ref->{$a}->{$sort_key}
+                }
+                keys %{$data_ref};
+        };
+    } elsif ( $sort_type eq 'reverse-len_alpha' ) {
+        eval {
+            @sorted_keys = sort {
+                warn
+                    "yo[ $data_ref->{$a}->{$sort_key} <-> $data_ref->{$b}->{$sort_key} ]";
+                length $data_ref->{$b}->{$sort_key} <=>
+                    length $data_ref->{$a}->{$sort_key}
+                }
+                sort keys( %{$data_ref} );
+        };
+    } else {
+        warn "unknown sort_type '$sort_type'";
+    }
+}
+
+warn "custom sort failed [$@]" if defined $sort_key and $@;
+
+# .: data :.
+foreach my $key_val (@sorted_keys) {
+    next if exists $data{'lists_hidden'}{$key_val};
+    next
+        if defined $sub_key
+        and not exists $data_ref->{$key_val}->{$sub_key};  # show only requested
+    foreach my $key_name ( @{$display_keys} ) {
+        my $key_name_str = $key_name;
+        if ( $key_name_str =~ s/^<key>:// ) {
+            $table_string .= '  '
+                . <[base.parser.align]>->(
+                $align->{$key_name_str} || 'left',
+                <[base.call_filter]>->( $filters, $key_name_str, $key_val ),
+                $max_len{$key_name} - 1
+                ) . ' ';                                   # <- LLL: remove ' '!
+        } else {
+            my $len = $max_len{$key_name};
+            $key_name_str =~ s|:.+$||;
+            my $value = $data_ref->{$key_val}->{$key_name_str};
+            my $val_default
+                = defined $defaults->{$key_name_str}
+                ? $defaults->{$key_name_str}
+                : '';
+            $val_default =~ s/<key>/$key_val/;
+            $value = $val_default if !length($value);
+            $value = <[base.call_filter]>->( $filters, $key_name_str, $value );
+            $table_string .= <[base.parser.align]>->(
+                $align->{$key_name_str} || 'left',
+                $value, $len - 1
+            ) . ' ';
+        }
+    }
+    $table_string =~ s| +$||;
+    $table_string .= "\n";
+}
+$table_string .= "\n";
+return $table_string;
+
+# ______________________________________________________________________________
+#\\STSLK24MFJK5YT6N7CT2SDVZCUH6HHKYBYYKMBQT73SX43PNQ7DIMNYU2U5MJS52NZC4QYP4A7HSA
+# \\ O22MFFOGTOZQFDKNOIUNAPQKSHBS4VQOI5KYKTCYRJ6MA7FJFJY3 \\// C25519-BASE-32 //
+#  \\// QYQIC6NHXQN45FHFQJPETJ3VF6RJI4G3SNX32TWNJ4G2KVQE6BQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,23 @@
+# >:]
+
+# name = xserver.handler.wait_visible_timeout
+
+my $id       = shift->w->data;
+my $wait_req = <xserver.waiting>->{$id};
+
+$wait_req->{'timer'}->{'poll'}->cancel;
+<[base.callback.cmd_reply]>->(
+    $wait_req->{'reply_id'},
+    {   'mode' => 'nak',
+        'data' => 'window startup timed out!'
+    }
+);
+
+delete <xserver.waiting>->{$id};
+return 0;
+
+# ______________________________________________________________________________
+#\\ISSQUVRNR44IWZVNHXFME4NTIOPYX4U4Z3SHFQ5WBLAESXFTTQZCCKFZWQ3SZFZHLC3U747LI2646
+# \\ CJ5EBXSODAOFUOUNIMI7H3ZHV6XICWTRDGMZGO7PUTGKBTG6D7WZ \\// C25519-BASE-32 //
+#  \\// YYECQAJLGLSZFO7OXBL3CIMIQ4DVTPKJTOA26C5OSEVXBV5XWDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

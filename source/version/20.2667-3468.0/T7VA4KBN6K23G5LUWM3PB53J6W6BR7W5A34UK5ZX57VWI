@@ -1,0 +1,37 @@
+# >:]
+
+# name = fan-int.handler.toggle
+
+my $e = shift;
+$e->w->cancel if defined $e;
+
+my $current_mode = <fan-int.state.switch> // 'off';
+my $next_mode    = $current_mode eq 'on' ? 'off' : 'on';
+
+again:
+my $delta_t = sprintf(
+    "%.1f",
+    <fan-int.cfg.time>->{$next_mode}->{'min'} + rand(
+        rand(
+                  <fan-int.cfg.time>->{$next_mode}->{'max'}
+                - <fan-int.cfg.time>->{$next_mode}->{'min'}
+        )
+    )
+);
+goto again
+    if $delta_t > ( <fan-int.cfg.time>->{$next_mode}->{'max'} / 2 )
+    and rand(1) % 1;
+
+<[base.log]>->( 2, "fan now $next_mode for the next $delta_t seconds .." );
+
+<[event.add_timer]>
+    ->( { 'after' => $delta_t, 'handler' => 'fan-int.handler.toggle' } );
+
+<[fan-int.switch]>->($next_mode);
+
+
+# ______________________________________________________________________________
+#\\XCSJ7SRDYHKFFAFZLBAOXJ4GEVPQHDHC76QBUA7NSVGSS74PSRBDLKEZKFHXX5EWK4WP4FLJB4JCG
+# \\ GY7HLTBEIGMJQN2MPSIJTHJAJ6D7J6DLPUIUSEVICAAABNKQ5UY4 \\// C25519-BASE-32 //
+#  \\// KW6MOKBLFLS4CXCQ4QQVSF46OYK22VOI7FXM7O36Z2XCEH6QYDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

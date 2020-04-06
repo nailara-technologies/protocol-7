@@ -1,0 +1,68 @@
+# >:]
+
+# name = pdf.html.base.fork_conv_child
+
+use Socket;
+
+( my $session_id ) = keys( %{<user.core.session>} );
+
+<pdf.html.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, "forking pdf conversion child.." );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+
+<pdf.html.child.pid> = fork;
+if ( !<pdf.html.child.pid> ) {    ## child ##
+    close($child_pipe);
+    delete <pdf.html.pipe.child> if exists <pdf.html.pipe.child>;
+
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+
+    <pdf.html.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.agent.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.agent.subname> = 'child' . $sn_str;
+    $0 = <system.agent.name> . "[child$sn_str]";
+
+    # silencing child shutdown ( incr. loglevel )
+    <callback.session.closing_last.params>->[1] = 1;
+
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    my $id = <[base.session.init]>
+        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('pdf.html.child');
+    <[base.init_modules]>->('pdf.html.child');
+
+} else {    ## parent ##
+    close($parent_pipe);
+    delete <pdf.html.pipe.parent> if exists <pdf.html.pipe.parent>;
+    <pdf.html.pipe.child> = $child_pipe;
+
+    <[base.load_modules]>->('pdf.html.parent');
+    <[base.init_modules]>->('pdf.html.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    my $id
+        = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.async.get_session_id]>;    # -> 'online'
+
+}
+
+# ______________________________________________________________________________
+#\\7SMG4VW5LEGWUZ2DDXARMK5IMUZYFL33DLTPLXIIMWHK6MJWDB7B4HJKOXRSA7Y7P3JQBIY5CV6XA
+# \\ BAUPUB633VEUK2DNDCYQN2IMH3HB45FYZWUIZDNDDL7BLJXR3KQY \\// C25519-BASE-32 //
+#  \\// CWSHZEBVKP7OMFLVOMG3CRLNVILYMTU3FT7SHEYLPDUS4GGPSAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

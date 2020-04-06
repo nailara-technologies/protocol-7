@@ -1,0 +1,76 @@
+# >:]
+
+# name = weather.parent.icon_setup
+# todo = sort by weather id codes (finer granularity) + add oxygen icons
+
+my $icon_type = shift;    # [vclouds|oxygen]
+die "expected valid icon type parameter [vclouds|oxygen]"
+    if not defined $icon_type or $icon_type !~ /^(vclouds|oxygen)$/;
+
+die "icon type '$icon_type' is not implemented yet" if $icon_type ne 'vclouds';
+
+my $gfx_dir = <system.root_path> . '/data/gfx';
+
+if ( $icon_type eq 'vclouds' ) {
+    my $weather_icon_dir = $gfx_dir . '/icons/vclouds/weather';
+    return {
+        'updating'      => $gfx_dir . '/anim/busy.2K.gif',
+        'not_available' => $weather_icon_dir . '/na.png',
+
+        ### standard openweathermap icons ###
+
+        '01d' => $weather_icon_dir . '/32.png',
+        '01n' => $weather_icon_dir . '/31.png',
+        '02d' => $weather_icon_dir . '/30.png',
+        '02n' => $weather_icon_dir . '/29.png',
+        '03d' => $weather_icon_dir . '/28.png',
+        '03n' => $weather_icon_dir . '/27.png',
+        '04d' => $weather_icon_dir . '/26.png',
+        '04n' => $weather_icon_dir . '/26.png',
+        '09d' => $weather_icon_dir . '/12.png',
+        '09n' => $weather_icon_dir . '/12.png',
+        '10d' => $weather_icon_dir . '/39.png',
+        '10n' => $weather_icon_dir . '/45.png',
+        '11d' => $weather_icon_dir . '/0.png',
+        '11n' => $weather_icon_dir . '/0.png',
+        '13d' => $weather_icon_dir . '/42.png',
+        '13n' => $weather_icon_dir . '/42.png',
+        '50d' => $weather_icon_dir . '/20.png',
+        '50n' => $weather_icon_dir . '/20.png',
+
+        ### weather id codes (take precedence!) ###
+
+        # light rain
+        '500.day'   => $weather_icon_dir . '/11.png',
+        '500.night' => $weather_icon_dir . '/11.png',
+
+        # heavy intensity rain
+        '502.day'   => $weather_icon_dir . '/12.png',
+        '502.night' => $weather_icon_dir . '/12.png',
+
+        # very heavy rain
+        '503.day'   => $weather_icon_dir . '/12.png',
+        '503.night' => $weather_icon_dir . '/12.png',
+
+        # extreme rain
+        '504.day'   => $weather_icon_dir . '/12.png',
+        '504.night' => $weather_icon_dir . '/12.png',
+
+        # freezing rain
+        '511.day'   => $weather_icon_dir . '/10.png',
+        '511.night' => $weather_icon_dir . '/10.png',
+
+        # light snow
+        '600.day'   => $weather_icon_dir . '/16.png',
+        '600.night' => $weather_icon_dir . '/16.png',
+
+        # hot
+        '904.day' => $weather_icon_dir . '/36.png',
+    };
+}
+
+# ______________________________________________________________________________
+#\\OZR7RYJFWBDQK6ZCUXRTSS4GEXIFGGF4Z47LXDXFBIQZ6S5L44QVOZLWXYWYCLU2Y6NOBSTNJLA7I
+# \\ UI5OLGIQNZMZ7CKYZR42JGYOC5SALOPSQA7NLRY5N3FOYWCEIYRP \\// C25519-BASE-32 //
+#  \\// USKDSQYLC4TI74LUT4XNVVXS7WIIVBXTHVUERF2GCPBDVL7RGBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

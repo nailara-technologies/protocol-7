@@ -1,0 +1,25 @@
+# >:]
+
+# name = base.callback.report_children
+
+return if not exists <system.report_children> or !@{<system.report_children>};
+
+return warn "agent not initialized" if !<system.agent.initialized>;
+
+my $route_str = <system.net.core_route> // 'core';
+$route_str .= '.' if length($route_str);
+
+map {
+    <[base.log]>->( 1, "reporting new child process [PID:$_].." );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "${route_str}nroot.register_child",
+            'call_args' => { 'args' => $_ }
+        }
+    );
+} @{<system.report_children>};
+
+# ______________________________________________________________________________
+#\\27ZIRX4DHTPUA5RDRZOFHGPJ2PU7Y2REJM3URYC27UHDHIIASOJPBT7SJ7LBTAGZXVK73RHALILQ6
+# \\ BZ2HXYW5Z7DX372UWITHVLMG3M6QAYGBSO26UO44HK7CMV2HATMH \\// C25519-BASE-32 //
+#  \\// 5S3PM7HWVE2TSLXH63PLVXOKDHRGFGEFOJBKK2YCWZUIY7Q5UDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

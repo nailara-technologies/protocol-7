@@ -1,0 +1,90 @@
+# >:]
+
+# name = mpv.handler.event.property-change.video-aspect
+
+my $params = shift;
+
+my $window_id = <x11.id>;
+my $aspect    = $params->{'data'};
+if ( exists <mpv.autoresize> and !<mpv.autoresize> ) {
+    <[base.log]>->( 2, ": auto resize is disabled, nothing to do.." );
+    return;
+}
+if ( not defined $aspect ) {
+    <[base.log]>->( 2, ": aspect property undefined(!), nothing to do.." );
+    return;
+}
+
+if ( not defined $window_id ) {
+    <[base.log]>->( 0, "window id is undefined! aborting resizing attempt.." );
+
+    # LLL: retry to obtain id or disable --no-keepaspect option!
+    return;
+}
+
+<mpv.current_aspect> = 0;    # window aspect
+if ( <mpv.current_aspect> == $aspect ) {
+    <[base.log]>->( 1, ": video aspect ratio is unchanged" );
+}
+<mpv.current_aspect> = $aspect;
+my $orientation = $aspect >= 1 ? 'landscape' : 'portrait';
+<mpv.orientation> = $orientation;
+
+my $box_width  = <x11.coordinates.right> - <x11.coordinates.left>;
+my $box_height = <x11.coordinates.bottom> - <x11.coordinates.top>;
+
+my $new_x;
+my $new_y;
+my $pos_x = <x11.coordinates.left>;
+my $pos_y = <x11.coordinates.top>;
+
+if ( $orientation eq 'landscape' ) {
+    $new_x = $box_width;
+    $new_y = sprintf( "%.0f", $box_width / $aspect );
+    $pos_y += sprintf( "%.0f", ( $box_height - $new_y ) / 2 );
+
+    if ( $new_y > $box_height ) {
+        $new_y = $box_height;
+        $new_x = sprintf( "%.0f", $box_height * $aspect );
+        $pos_x += sprintf( "%.0f", ( $box_width - $new_x ) / 2 );
+        $pos_y = <x11.coordinates.top>;
+    }
+
+} else {
+    $new_y = $box_height;
+    $new_x = sprintf( "%.0f", $box_height * $aspect );
+    $pos_x += sprintf( "%.0f", ( $box_width - $new_x ) / 2 );
+
+    if ( $new_x > $box_width ) {
+        $new_x = $box_width;
+        $new_y = sprintf( "%.0f", $box_width / $aspect );
+        $pos_y += sprintf( "%.0f", ( $box_height - $new_y ) / 2 );
+        $pos_x = <x11.coordinates.left>;
+    }
+}
+
+my $new_geometry = "${new_x}x${new_y}+$pos_x+$pos_y";
+
+# LLL: investigate negative $new_x log messages, fix...
+<[base.log]>->( 2, ": resizing window : $new_x x $new_y ($new_geometry)" );
+
+<mpv.current.window_width>  = $new_x;
+<mpv.current.window_height> = $new_y;
+<mpv.current.box_width>     = $box_width;
+<mpv.current.box_height>    = $box_height;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.xserver.set_geometry',
+        'call_args' => { 'args' => "$window_id $new_geometry" },
+        'reply'     => {
+            'handler' => 'dev.null',    # LLL: catch errors
+            'params'  => {}
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\JM63QTWRTAWBHAIKIVB2Y4QQKONW7H6KKUOANPDPMEZVRGQQ2335CYSDD73L4H7CSKRREELS725HO
+# \\ GCOX2YNOV2RNWMGTSVIYIB2M2IDQXWVDE6ZVXDIWOFLWR7E3HMKJ \\// C25519-BASE-32 //
+#  \\// GKY5YOXBHLTXM64BRMI5OWVK7BRFENITVHT56WI2RXK4VX2NCAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

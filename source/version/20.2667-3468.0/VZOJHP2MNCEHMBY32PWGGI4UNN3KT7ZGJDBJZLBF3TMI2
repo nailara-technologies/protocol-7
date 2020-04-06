@@ -1,0 +1,25 @@
+# >:]
+
+# name = base.session.cancel_route
+
+( my $sid, my $msg, my @route_cids ) = @_;
+return warn "expected session id" if not defined $sid or $sid !~ /^\d+$/;
+return warn "[cancel_route] expected termination message" if !length $msg // '';
+
+foreach my $s_cid (@route_cids) {
+    my $route_id = $data{'session'}{$sid}{'route'}{$s_cid};
+    my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
+    next if not defined $s_sid;
+    my $s_cid     = $data{'route'}{$route_id}{'source'}{'cmd_id'};
+    my $reply_str = $s_cid ? "($s_cid)" : '';
+    $reply_str .= "NAK command route collapsed\n";
+    $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str
+        if exists $data{'session'}{$s_sid};
+    delete $data{'route'}{$route_id};
+}
+
+# ______________________________________________________________________________
+#\\FKRRI7AC2NXYXFBIAKJXQIAYU4Z2J7YB5CAC25WF4DQ7SJJJHYIYWLUTVO5SAYTJFBW2MHKJZEWJG
+# \\ UH7PXGBDJC3L2FYJJ4E3IVXDPRL5WQVORWGHDB5PZQXNZUQIZE6Z \\// C25519-BASE-32 //
+#  \\// ZL3RRQ6NEUG6IC5Q3PGXFN7C5DK5HEGHI5I7QA2SBX3SIBU2AAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

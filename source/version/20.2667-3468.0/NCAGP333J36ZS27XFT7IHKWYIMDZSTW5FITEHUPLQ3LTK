@@ -1,0 +1,29 @@
+# >:]
+
+# name  = ticker-gtk.enable_auto_speed
+# descr = applies GPU load limit by automatically decreasing scroll speed
+
+<ticker-gtk.interval.auto_slowdown> //= 0.63;
+<ticker-gtk.cfg.max_gpu_load>       //= 67;     # setting sane(?) defaults ..
+
+if ( exists <ticker-gtk.timer.auto_slowdown> ) {
+    <ticker-gtk.timer.auto_slowdown>->cancel;
+} else {
+    my $target_load = <ticker-gtk.cfg.max_gpu_load>;
+    <[base.log]>->(
+        0, ": activating GPU load auto-speed mode <!> [limit=${target_load}%]"
+    );
+    undef <ticker-gtk.slowdown.percent_target>;
+}
+<ticker-gtk.timer.auto_slowdown> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => <ticker-gtk.interval.auto_slowdown>,
+        'handler'  => 'ticker-gtk.handler.auto_slowdown'
+    }
+);
+
+# ______________________________________________________________________________
+#\\YBKTQ7FC2MRRCUPSSHBB4AKAJVQGTMEMDEKWDOLYJCAN23ZMUWEOKHAR5XFQ5Y5QA5UTXN6D2VREG
+# \\ 6FPSTUJN5ILNP4VYUPQZZHHN2G3PXEDCTYKEEPV3SAF3RAHMPWOU \\// C25519-BASE-32 //
+#  \\// JGRVWSNFCU5ZF7ID3DXPPOUR2PJ2BIIHQDK2B7RLKB5NXD7QAAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

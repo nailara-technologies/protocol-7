@@ -1,0 +1,60 @@
+# >:]
+
+# name  = base.handler.child_output.simple
+# descr = reads output from child process, terminates agent if it dies
+
+<nroot.patterns.agent_output> //= {};
+
+my $event     = shift->w;
+my $read_fh   = $event->fd;
+my $child     = $event->data;
+my $bin       = $child->{'bin'};
+my $pid       = $child->{'pid'};
+my $whitelist = $child->{'log_whitelist'} || [];
+my $xpatterns = $child->{'callback_patterns'} || {};
+
+<child.output_buffer> //= '';
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'child'}{'output_buffer'},
+    4096,     length(<child.output_buffer>)
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 2, "$bin-child [PID:$pid] output filehandle closed." );
+    kill( 9, $pid );                                  # to make sure
+    <[base.log]>->( 0, "$bin-child has been terminated." );
+    <[base.log]>->( 2, "shutting down " . <system.agent.name> . "-agent!" );
+    $code{<base.child_exit.callback>}->($pid)
+        if defined <base.child_exit.callback>
+        and defined $code{<base.child_exit.callback>};
+    exit(2);
+}
+
+while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    $output_line =~ s/\r//sg;
+    next if !length($output_line);
+    my $log_level = 0;
+    for my $pattern ( keys %{$xpatterns} ) {
+        if ( $output_line =~ /($pattern)/ ) {
+            my $c_name = $xpatterns->{$pattern};
+            next if not defined $code{$c_name};
+            <[base.log]>->( 2, "calling opc '$c_name'" );
+            $code{$c_name}->($1);
+        }
+    }
+    for my $pattern ( @{$whitelist} ) {
+        if ( $output_line =~ /$pattern/ ) {
+            $log_level = 2;
+            last;
+        }
+    }
+    <[base.log]>->( $log_level, "< $bin > " . $output_line );
+}
+
+# ______________________________________________________________________________
+#\\QKLFCFGB7HWXBQHGFPDIGPEGPHIWFNNJATB32TMGYN2LJ6ITZEQVN4V4F5TUEJWJULDLG3UJRHZ4U
+# \\ NYMGK5A7P7I6XZWNDVWSQ6VSQVOWHGKA7HDPVGROPM2FBO2IFCSH \\// C25519-BASE-32 //
+#  \\// ZGLSF2IAPKZXVXMK5QVOIBHIICKNP2FBHCM2HLWCLYO5S2LKYBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

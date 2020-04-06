@@ -1,0 +1,57 @@
+# >:]
+
+# name = httpd.determine_host
+
+my $id      = shift;
+my $session = $data{'session'}{$id};
+return undef if not exists $session->{'http'}{'request'};
+my $http_host   = $session->{'http'}{'request'}{'host'};
+my $http_uri    = $session->{'http'}{'request'}{'uri'};
+my $http_method = $session->{'http'}{'request'}{'method'};
+
+if ( defined $http_host ) {
+
+    return $http_host if exists <httpd.cfg.hostnames>->{$http_host};
+
+    foreach my $cfg_host ( keys %{<httpd.cfg.hostnames>} ) {
+        next if $cfg_host !~ /\*/;
+        return $cfg_host
+            if $cfg_host =~ /^\*(\..+)$/ and $http_host =~ /^[^\.]+\Q$1\E$/;
+        return $cfg_host
+            if $cfg_host =~ /^(.+\.)\*$/ and $http_host =~ /^\Q$1\E[^\.]+$/;
+        return $cfg_host
+            if $cfg_host =~ /^\*\*(\..+)$/ and $http_host =~ /\Q$1\E$/;
+        return $cfg_host
+            if $cfg_host =~ /^(.+\.)\*\*$/ and $http_host =~ /^\Q$1\E/;
+        return $cfg_host
+            if $cfg_host =~ /^\*(\..+\.)\*$/
+            and $http_host =~ /^[^\.]+\Q$1\E[^\.]+$/;
+        return $cfg_host
+            if $cfg_host =~ /^\*\*(\..+\.)\*\*$/
+            and $http_host =~ /\Q$1\E/;
+    }
+
+    <[base.parser.ellipse_center]>->( \$http_host, 37 );
+
+    if ( exists <httpd.cfg.hostnames>->{'default'} ) {
+        <[base.log]>->(
+            1, "[$id] no config for \"$http_host\", using 'default'"
+        );
+        return 'default';
+    } else {
+        <[base.log]>->(
+            0, "[$id] Host '$http_host' does not match any configured pattern"
+        );
+        return undef;
+    }
+
+} else {
+    <[base.log]>->( 0, "[$id] $http_method request without host parameter.," );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\YNVS3Z3LY5B6CQ5CHDZFA3X3SEIY2M47GHAWIOXZU7KHJX7EIHBLNQUYV7EEINEDUXRTDB7PACATU
+# \\ N2YV7FTUTALFAQH5LCVM6IJ6PFULLMSIEKU4C4IP7GZ46RJBNBTR \\// C25519-BASE-32 //
+#  \\// CIJEYKSS3IFPLQOVRTOA2L3SMYOXQF7GCYKVRL6FSJVB5KOTWCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

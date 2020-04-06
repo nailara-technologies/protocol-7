@@ -1,0 +1,21 @@
+# >:]
+
+# name  = weather.parent.cmd.desc
+# descr = return local weather short description text
+
+return {
+    'mode' => 'nak',
+    'data' => 'no city selected (undefined station id)'
+    }
+    if not defined <weather.station_id>;
+
+my $stid  = <weather.station_id>;
+my $descr = <weather.data>->{$stid}->{'current'}->{'descr'} // 'n/a';
+
+return { 'mode' => 'ack', 'data' => $descr }
+
+# ______________________________________________________________________________
+#\\IJQUJUYANPCYAR4YUSDEC3BQLYDIMBIPVWHC437GIMNX74V6GS3RXS4WU7CENTRLVWF2GPDKCHVWC
+# \\ NBGM6FAINH73NSEVRKEQH6KRODGO4VHCMCG6DV74SRQERXBHINUZ \\// C25519-BASE-32 //
+#  \\// HY4H5OWIHLGYYXPIASY6FMTQT3ZJ4R7MN24JAQABKDRIH4IFQCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

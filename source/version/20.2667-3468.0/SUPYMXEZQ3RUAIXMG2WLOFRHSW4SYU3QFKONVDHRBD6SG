@@ -1,0 +1,80 @@
+# >:]
+
+# name = httpd.handler.template_reply
+
+my $reply    = shift;
+my $sid      = $reply->{'params'}->{'client_sid'};
+my $session  = $data{'session'}{$sid};
+my $args_str = $reply->{'call_args'}->{'args'};
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+
+    if ( $args_str =~ /^\d\d\d$/ ) {
+        $session->{'buffer'}->{'output'}
+            .= <[httpd.error_page]>->( $sid, $args_str )
+            if $args_str > 0;    # 000 == drop connection, without any reply!
+        delete $session->{'content'};
+        $session->{'flush_shutdown'} = 1;
+        return;
+
+    } elsif ( defined $session->{'content'}->{'type'}
+        and $session->{'content'}->{'type'} =~ /html/ ) {
+        $args_str = '<b style="color:#A01">' . $args_str . '</b>';
+    }
+}
+
+my $content_part = $reply->{'params'}->{'part'};
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $sid, 500 );
+    delete $session->{'content'};
+    $session->{'flush_shutdown'} = 1;
+    return;
+
+} elsif ( $reply->{'cmd'} eq 'DATA' ) {
+    $content_part->{'data'} = \$reply->{'data'};
+} else {
+    $content_part->{'data'} = \$args_str;
+}
+
+my $done_cmd = delete $content_part->{'command'};
+delete $content_part->{'params'};
+
+my $cmd_count = 0;
+map { $cmd_count++ if defined $_->{'command'} }
+    @{ $session->{'content'}->{'sequence'} };
+
+if ($cmd_count) {
+    <[base.log]>->( 1, "['$done_cmd'] segment complete, $cmd_count to go..." );
+} else {
+
+    my $content_length = 0;
+    map { $content_length += length( ${ $_->{'data'} } ) }
+        @{ $session->{'content'}->{'sequence'} };
+
+    my $s = $cmd_count > 1 ? 's' : '';
+    <[base.log]>->(
+        1, "content segments complete, returning page [${content_length} bytes]"
+    );
+
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        200,
+        {   'Content-Length' => $content_length,
+            'Content-Type'   => $session->{'content'}->{'type'},
+            'Last-Modified'  => $session->{'content'}->{'date'},
+            'Connection'     => $session->{'http'}->{'close'}
+            ? 'close'
+            : 'keep-alive'
+        }
+        )
+        . join( '',
+        map { ${ $_->{'data'} } } @{ $session->{'content'}->{'sequence'} } );
+    delete $session->{'content'};
+    $session->{'flush_shutdown'} = 1;
+}
+
+# ______________________________________________________________________________
+#\\MLXSI5OSMKNLNFOD7PCJOOJBJ7GIG6L63G5W5HEZV5NLEXFTSVUV4VOJZ3MRT6VBGB7NXZBKRPQOC
+# \\ ME7CLOFYKESSAIJLN54O4UZHRLVTTOGWYG4BT6OVRYKRZ7E6M3JA \\// C25519-BASE-32 //
+#  \\// QEV6OJKBAW6U22SIUMX5MLPOC5V3I7K65RAV6BXM5VW24BKQABY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

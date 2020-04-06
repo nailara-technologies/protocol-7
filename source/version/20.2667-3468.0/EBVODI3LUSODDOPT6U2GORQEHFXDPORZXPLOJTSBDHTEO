@@ -1,0 +1,36 @@
+# >:]
+
+# name = io.unix.socket.out.open
+
+my $socket_file = $_[0];
+
+if ( !-S $socket_file ) {
+    <[base.log]>
+        ->( 0, "[!] unix domain socket '$socket_file' does not exist!" );
+    return undef;
+}
+
+my $return_socket = IO::Socket::UNIX->new(
+    Type => SOCK_STREAM(),
+    Peer => $socket_file,
+) or <[base.log]>->( 0, "io.unix.socket.out.open: $!! ('$socket_file')" );
+
+if (    defined $return_socket
+    and -S $return_socket
+    and $return_socket->connected ) {
+    <[base.log]>->( 1, "connected to unix socket [$socket_file]" );
+
+    $data{'handle'}{$return_socket}{'link'} = 'unix';
+    $data{'handle'}{$return_socket}{'mode'} = 'out';
+
+    return $return_socket;
+} else {
+    <[base.log]>->( 0, "[!] can't connect to unix socket [$socket_file]: $!" );
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\ED5RJFUDKI5Q3UN3Z2MV7AVOGWHERZKHKFQZ5U5K4OGQEHQZLOMHH4DSMZPUYQXED5RVKYNRI3DU6
+# \\ HT4L4Z5WLRSQGU2CJOFJVV53QZOXVOV35ZMW2E2RLMYUFQ5XBCIB \\// C25519-BASE-32 //
+#  \\// 53FOEBULRWKXM6CNJSRDIBG5WYZ73ZI2GV75NYBU4NB4XZZGSAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

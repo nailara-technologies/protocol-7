@@ -1,0 +1,80 @@
+# >:]
+
+# name  = mlist.cmd.set_flags
+# param = <flags> <url>
+# descr = set url flags for given playlist url
+
+my ( $flag_str, $url ) = split( / +/, shift->{'args'}, 2 );
+return { 'mode' => 'nak', 'data' => 'flag name expected!' }
+    if not defined $flag_str or !length($flag_str);
+$flag_str =~ s|,,|,|g;
+map {
+    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    return {
+        'mode' => 'nak',
+        'data' => "invalid url flag name '$flag_name'"
+            . " .. comma seperated .. < "
+            . join( ' | ', sort keys( %{<mlist.url_flags>} ) ) . ' >'
+        }
+        if not exists <mlist.url_flags>->{$flag_name}
+} split( /,/, $flag_str );
+map {
+    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    return {
+        'mode' => 'nak',
+        'data' => "URL expected for '$flag_name' flag!"
+        }
+        if not defined $url
+        or $flag_name ne 'delay' and $url !~ m|^https?://|;
+} split( /,/, $flag_str );
+
+my $match = 0;
+map { $match++ if $_ eq $url; } @{<mlist.file_list>};
+
+return { 'mode' => 'nak', 'data' => 'no match in playlist!' } if !$match;
+
+my $un = <mlist.file_types>->{$url} =~ /:/ ? '(un)' : '';
+return {
+    'mode' => 'nak',
+    'data' => "not allowed for ${un}determined content type!"
+    }
+    if <mlist.http.check_content_types>
+    and defined <mlist.file_types>->{$url}
+    and <mlist.file_types>->{$url} ne 'html'
+    and $url !~ m{^https?://}    # likely html?
+    and $url !~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$};
+
+map {
+    if ( $_ !~ /^delay=\d+(\.\d+)?$/ and $_ =~ /^([^=]+)=/ ) {
+        return {
+            'mode' => 'nak',
+            'data' => "no parameter expected for flag '$1'!"
+        };
+    } elsif ( $_ =~ /^delay/ and $_ !~ /^delay=\d+(\.\d+)?$/ ) {
+        return {
+            'mode' => 'nak',
+            'data' => "expected time in seconds parameter for 'delay' flag!"
+        };
+    }
+} split( /,/, $flag_str );
+
+my $s = $flag_str =~ /,/ ? 's' : '';
+<[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
+map { delete <mlist.url_flags>->{$_}->{$url} } keys %{<mlist.url_flags>};
+map {
+    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    $flag_param //= 1;
+    <mlist.url_flags>->{$flag_name}->{$url} = $flag_param
+} split( /,/, $flag_str );
+
+<[mlist.update.send_notifications]>;
+
+my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
+
+return { 'mode' => 'ack', 'data' => $msgstr };
+
+# ______________________________________________________________________________
+#\\HPQ6BPTMSTXRBGOWMITEUIJJ7623SMGJJVSAM7HHFDMQ5VBJZXJL33NT4DDFIZZFMY56JVBTY7HW2
+# \\ YOQJGXKEUW6I2HGH7JQAZJKJDHBFRHDJ6XRAJXIFEZOG2725FL5R \\// C25519-BASE-32 //
+#  \\// ABNOJMXQOPXCJURO53D4SFKX775MV4PQWPZR3YO5TLVKQ6HVUBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

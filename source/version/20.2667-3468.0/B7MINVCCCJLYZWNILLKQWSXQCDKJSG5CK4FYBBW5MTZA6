@@ -1,0 +1,26 @@
+# >:]
+
+# name  = pdf.html.parent.cmd.check_format
+# param = <pdf_path>
+# descr = check if file is recognized as valid pdf
+
+my $pdf_path = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
+    if !length($pdf_path);
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+    if $pdf_path !~ m|^https?://| and !-f $pdf_path;
+
+return { 'mode' => 'ack', 'data' => 'is valid! =)' }
+    if <[pdf.html.base.valid_pdf]>->($pdf_path);
+
+return {
+    'mode' => 'nak',
+    'data' => "unable to recognize '$pdf_path' as PDF format!"
+    }
+
+# ______________________________________________________________________________
+#\\CXA5IORGPYLIE52E63VW3J4CT4UKW7JFVG4ZOLODAYYYMAEHV2VTQ3JWOPUCXWZ73VRGRP77VRRXC
+# \\ 7A62RXS2HMDPFSR2KNHRFGSIVURUFTEWJLHYNWH5ONEK23FIKA4G \\// C25519-BASE-32 //
+#  \\// TMLAQ5VUSM5ENLZRYXKS3Y2WYA6SOKEDVFU6UMPFKRCKBT3CYBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,34 @@
+# >:]
+
+# name  = crypt.C25519.cmd.set-client-key
+# param = <pub_key_b32>
+# descr = set client C25519 public key [base32 encoded]
+
+my $params  = shift;
+my $key_str = $params->{'args'};
+my $sid     = $params->{'session_id'};
+my $session = $data{'session'}{$sid};
+
+return {
+    'mode' => 'nak',
+    'data' => "expected your [ base32 encoded ] C25519 public key"
+    }
+    if not defined $key_str
+    or length($key_str) != 43
+    or $key_str !~ /^[a-z0-9\-_]+$/i;
+
+$session->{'client_key'} = decode_b32r($key_str);
+
+my $base_time   = <[base.time]>->(4);
+my $key_sig_str = <[crypt.C25519.sign_data]>->( \"$base_time$key_str" );
+
+return {
+    'mode' => 'ack',
+    'data' => join( '|', $base_time, encode_b32r($key_sig_str) )
+};
+
+# ______________________________________________________________________________
+#\\RO4YFKJZM5S4IDRB7MDSEOP2DD5IJFC7MKBGQMKKYL4WDM6GJNLBYHXE4W5SSIM6GK6U3YOL2YJTU
+# \\ 7XD3SJX6MBLZELIINSIGCI5INQZF35P5ZFNLQOOUN7BUKMRLHKXB \\// C25519-BASE-32 //
+#  \\// XTHQ57I63L77LYXTZPUH7QK56Z6P67ORH3IYLXHC3I6JVKB6ECY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,46 @@
+# >:]
+
+# name  = mpv.handler.cmd_prop.pause
+# descr = pause playback
+
+my $pause_status = shift // '';
+<mpv.media_resume_mode> //= 0;
+my $pause_mode = delete <mpv.pause_cmd_mode>;
+
+if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
+    <[base.callback.cmd_reply]>->(
+        shift @{<mpv.reply_ids>},
+        {   'mode' => 'nak',
+            'data' => 'playback was already paused'
+        }
+    );
+} elsif ( $pause_mode eq 'pause' ) {
+    <mpv.success_reply_str> = 'playback paused';
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+
+    <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+
+    return { 'mode' => 'deferred' };
+} elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
+    <[base.callback.cmd_reply]>->(
+        shift @{<mpv.reply_ids>},
+        {   'mode' => 'nak',
+            'data' => 'playback wasn\'t paused'
+        }
+    );
+} elsif ( $pause_mode eq 'resume' ) {
+    <mpv.success_reply_str> = 'playback resumed';
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
+    return { 'mode' => 'deferred' };
+} elsif ( $pause_mode eq 'toggle' ) {
+    <mpv.success_reply_str>
+        = $pause_status eq 'yes' ? 'playback resumed' : 'playback paused';
+    <[mpv.send_command]>->( 'cycle', 'pause' );
+    return { 'mode' => 'deferred' };
+}
+
+# ______________________________________________________________________________
+#\\Y3DBQDUYXA4NNHDLH5VVWHH6UZAC2CK3PVDAFEZLKA3IDLGYE5ZOAX4ZKQD2XSLBGXIMPGGPW3DMM
+# \\ BMSL32VVRPHCJKVS6QDBNIFISHG37ZQUHIDZQXY7XS32I4EZGT3G \\// C25519-BASE-32 //
+#  \\// S64WEILEIJNL5HPIVEIAJ3WYIJYLYJSXLO45ADO4ASSERV3TGAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

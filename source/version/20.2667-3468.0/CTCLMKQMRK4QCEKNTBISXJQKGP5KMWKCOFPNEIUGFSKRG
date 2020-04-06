@@ -1,0 +1,46 @@
+# >:]
+
+# name = io.ip.tcp.in.connect
+
+my $id = $_[0]->w->data;
+my $fd = $data{'session'}{$id}{'handle'};
+
+if ( -S $fd ) {
+    my $new_sock = $fd->accept()
+        or <[base.log]>->( 0, "tcp.connect_handler: can not accept [$!]" );
+    my ( $p_host, $p_port ) = ( $new_sock->peerhost(), $new_sock->peerport() );
+
+    return undef if not defined $p_host or not defined $p_port;  # <- closed (!)
+
+    my $v4_over_6 = $p_host =~ s|^::ffff:|| ? 1 : 0;
+
+    $data{'handle'}{$new_sock} = {
+        'mode'       => 'in',
+        'encryption' => 'none',
+        'link'       => 'ip.tcp',
+        'peerhost'   => $p_host,
+        'peerport'   => $p_port,
+        'v4_over_6'  => $v4_over_6
+    };
+
+    <[base.log]>->(
+        1,
+        sprintf(
+            '[%s] IN.-TCP [%s:%s]',
+            $id,
+            $data{'handle'}{$new_sock}{'peerhost'},
+            $data{'handle'}{$new_sock}{'peerport'}
+        )
+    );
+
+    return $new_sock;
+} else {
+    <[base.log]>->( 0, "tcp.connect_handler: no socket supplied" );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\YIICCIUY6IWIDT72NKHBUS7JYIGEMFHABEAR5XHZHZAQVQDWA5QWREVOOVMUXM53DZMRDQ62ZIJPQ
+# \\ 3EF5LQYU7GDZGAAFMFXJVKYE5X7L6SUYWIY3SWBIEBYJ2NSXLLKV \\// C25519-BASE-32 //
+#  \\// VKKFPGC3WPHXXMNRAZJLL3DMJCMT5NQYV7O6CGST6CUXLUH7EAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

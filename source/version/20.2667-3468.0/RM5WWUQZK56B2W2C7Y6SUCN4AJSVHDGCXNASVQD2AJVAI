@@ -1,0 +1,73 @@
+# >:]
+
+# name  = pdf.html.child.cmd.convert_pdf
+# param = <pdf_path> [width]
+# descr = returns file:// url to html version of pdf
+
+my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
+    if not defined $pdf_path or !length($pdf_path);
+return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+    if $pdf_path !~ m|^https?://| and !-f $pdf_path;
+if ( !<[pdf.html.base.valid_pdf]>->($pdf_path) ) {
+    my $err_msg = "'$pdf_path' is not a valid PDF format file!";
+    <[base.log]>->( 0, $err_msg );
+    return {
+        'mode' => 'nak',
+        'data' => $err_msg
+    };
+}
+return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
+    if defined $target_width and $target_width !~ /^\d+$/
+    or defined $target_width and !$target_width;
+
+my $target_height;
+if ( not defined $target_width ) {
+    <[base.log]>->( 2, "no target width supplied, using document width!" );
+    my ( $page_width, $page_height )
+        = <[pdf.html.base.get_page_size]>->($pdf_path);
+    $target_width = $page_width;
+}
+
+my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
+my $stub_file = "$html_path/pdf.html";
+
+return { 'mode' => 'nak', 'data' => 'expected html dir does not exist!' }
+    if !-d $html_path;
+return { 'mode' => 'nak', 'data' => 'pdf.html stub file does not exist!' }
+    if !-f $stub_file;
+
+( my $html_dir_name = $html_path ) =~ s|^.*/||g;
+
+if ( exists <pdf.html.conversions>->{$html_dir_name} ) {
+    push(
+        @{ <pdf.html.conversions>->{$html_dir_name}->{'reply_ids'} },
+        $$call{'reply_id'}
+    );
+    return { 'mode' => 'deferred' };
+}
+
+my $conversion_setup = {
+    'reply_ids'    => [ $$call{'reply_id'} ],
+    'width'        => $target_width,
+    'pdf_file'     => $pdf_path,
+    'html_path'    => $html_path,
+    'current_page' => 0,
+    'image_names'  => [],
+};
+
+<pdf.html.conversions>->{$html_dir_name} = $conversion_setup;
+
+<pdf.html.event.idle> = Event->idle(
+    cb     => $code{'pdf.html.child.handler.conversion'},
+    repeat => 1
+) if not exists <pdf.html.event.idle>;
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\CHR6Y7GAQSTN2LVAWOOKSUWC3FUCZ22YMEG4XQ7GO2HM5ETWWSQL4O36YWVRNSXMBY4CM5QS6TYX4
+# \\ 4RGYTKBGCJ3OMDBSY2MR2MROC6S4IIRYXWNOTMPZMJE25C2JEH6V \\// C25519-BASE-32 //
+#  \\// JVHLQ4JRB7UBDXLJXH7BA6SYRWVJD7FKUYHLCPD4UQJURFUCUDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

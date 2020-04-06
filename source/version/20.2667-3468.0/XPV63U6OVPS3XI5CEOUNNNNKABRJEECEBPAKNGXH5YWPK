@@ -1,0 +1,24 @@
+# >:]
+
+# name = ssh.handler.heartbeat_timeout
+
+my $event      = shift->w;
+my $con_id     = $event->data->{'con_id'};
+my $int_id     = $event->data->{'int_id'};
+my $connection = <ssh.connections>->{$con_id};
+my $link_name  = $connection->{'name'};
+
+delete $connection->{'timer'}->{$int_id};
+
+if (    exists <ssh.heartbeat_request>
+    and exists <ssh.heartbeat_request>->{$con_id}
+    and exists <ssh.heartbeat_request>->{$con_id}->{$int_id} ) {
+    <[base.log]>->( 0, "[!] ssh link '$link_name' has timed out!" );
+    <[ssh.connection.stop]>->($con_id);
+}
+
+# ______________________________________________________________________________
+#\\ENEHGC5PZ3BI3VFMGW37JHQQ7CKIGYELOZG7DWMEUA7QRODMWLJZN2RLLRWCF3X6XCSNVKIKRS6MS
+# \\ 3TRRMLCZ4HDVSMR4GZ5RJX63QCANQSI7R2NK6J45BIUST2WKDG3L \\// C25519-BASE-32 //
+#  \\// VC7JJ33CP5PHGICS3TK6ZLKABLXA77JR7RTKJLPZ4U2AZFLN4DI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

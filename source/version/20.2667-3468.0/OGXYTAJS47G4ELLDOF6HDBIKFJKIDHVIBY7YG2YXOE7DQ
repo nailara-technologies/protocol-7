@@ -1,0 +1,72 @@
+# >:]
+
+# name    = plugin.auth.unix
+# args    = int(session id)
+# return  = str(user name) [success], undef [error]
+
+my $id = $_[0]->w->data;
+my $re = <regex.base>;
+
+my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
+my $output = \$data{'session'}{$id}{'buffer'}{'output'};
+
+if ( $$input =~ s/^auth ($re->{usr})\n// ) {
+    my $auth_user = $1;
+
+    if ( $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'} ne 'unix' )
+    {
+        <[base.log]>->(
+            0,
+            "[$id] [auth unix] access denied to user '$1' [ not a unix link ]"
+        );
+        $$output .= ">:[\a\n";
+        return 2;
+    }
+
+    my $auth_ok = 0;
+
+    my $client_uid
+        = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'unix'}{'uid'};
+    my $client_uname = getpwuid($client_uid);
+
+    if ( not defined $client_uname ) {
+        $$output .= ">:[\a\n";
+        <[base.log]>->( 0, "[$id] peer UID is undefined, unix auth aborted.." );
+        return 2;
+    }
+
+    if ( defined <auth.setup.usr>->{$auth_user}
+        and <auth.setup.usr>->{$auth_user} =~ /^:unix:(.+)$/ ) {
+        my @allowed_users = split( /\s*,\s*/, $1 );
+
+        map { $auth_ok = 1 if $client_uname eq $_ } @allowed_users;
+    }
+
+    if ($auth_ok) {
+        $$output .= "YEAH >:P\n";
+        my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
+        <[base.log]>
+            ->( 1, "[$id] session authorized as '$auth_user'" . $s_usr );
+        return ( 0, $auth_user );
+    } else {
+        $$output .= "NOPE >:|\n";
+        my $s_usr = $client_uname ne $auth_user ? " [uname=$client_uname]" : '';
+        <[base.log]>->(
+            0, "[$id] [auth unix] access as '$auth_user' denied" . $s_usr
+        );
+        return 2;
+    }
+} elsif ( $$input =~ /\n/ ) {
+    $$output .= ">:[\a\n";
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ unix ]" );
+} else {
+    return 1;
+}
+
+return 2;
+
+# ______________________________________________________________________________
+#\\FYZ2VOP3YJTOW6SBHLR3ADYV32P3AC3IBLI4V27QG26RBZZ2YH6U2NC2E5QLY3YVMHUJWG4XES5GK
+# \\ JR6B4OIJKG6E2CQP6TSVVSEC6GDM62WKXIPZF5YYFESO46QK6DPG \\// C25519-BASE-32 //
+#  \\// WIASK77QP4QCJ3ZMH7C4HR3W7K6ISB3R72LLON3ZZVPEJHGFQCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

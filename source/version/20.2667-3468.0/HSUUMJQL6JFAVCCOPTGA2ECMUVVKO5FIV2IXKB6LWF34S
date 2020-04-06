@@ -1,0 +1,28 @@
+# >:]
+
+# name  = nroot.agent.instance.add
+# descr = register new agent and return its id
+
+my $agent_id = shift // '';
+die "agent id '$agent_id' does not exist!"
+    if not exists <nroot.agent.setup>->{$agent_id};
+
+my $instance_id = <[base.gen_id]>->(<nroot.agent.instance>); # dec. max width -2
+
+my $now_ntime = <[base.ntime]>->(3);
+
+<nroot.agent.instance>->{$instance_id} = {
+    'agent_id'     => $agent_id,
+    'agent_name'   => <nroot.agent.setup>->{$agent_id}->{'name'},
+    'created'      => $now_ntime,
+    'status-since' => $now_ntime,
+    'status'       => 'offline'
+};
+
+return $instance_id;
+
+# ______________________________________________________________________________
+#\\N7Q3PSXWRA2U2JAY7SN7FIWX5PLGZ5UHU4QQXCGIBPRIWESP7HCIVJICFHEROBJ73BTWSCA6JCQ4Q
+# \\ 6MWRTYEMFFMNTOM7IEZQBAF4HH3GUY3AJYQBJZPUTV44YX35VYQE \\// C25519-BASE-32 //
+#  \\// KOX22W3H2RISB5BQOWGHGVCYC5YSGD7XJDJ5IAUNNX5YB6N42BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

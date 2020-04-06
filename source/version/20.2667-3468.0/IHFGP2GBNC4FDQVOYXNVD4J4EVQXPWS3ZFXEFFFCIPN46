@@ -1,0 +1,232 @@
+# >:]
+
+# name = httpd.http_get
+
+my $id        = shift;
+my $session   = $data{'session'}{$id};
+my $http_host = <[httpd.determine_host]>->($id);
+
+return <[httpd.error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
+
+$session->{'http_host'} = $http_host;
+
+my $request     = $session->{'http'}->{'request'};
+my $response    = $session->{'response'};
+my $headers     = $request->{'headers'};
+my $req_host    = $request->{'host'};
+my $http_uri    = $request->{'uri'};
+my $link_target = <httpd.cfg.hostnames>->{$http_host}
+    if exists <httpd.cfg.hostnames>->{$http_host};
+
+if (    $link_target =~ /^\d{3}$/
+    and -l <httpd.site_dir> . '/' . $http_host
+    and !-e <httpd.site_dir> . '/' . $link_target ) {    # special codes
+
+    $session->{'watcher'}->{'input_handler'}->cancel;
+    if ( $link_target ne '000' ) {    # n > 000 == HTTP error codes
+        <[base.log]>->(
+            1, "[$id] status '$link_target' for requested host '$req_host'"
+        );
+        $session->{'buffer'}->{'output'}
+            .= <[httpd.error_page]>->( $id, $link_target );
+        $session->{'flush_shutdown'} = 1;
+    } else {
+        <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
+        $session->{'close'} = 1;
+    }
+    return 2;
+}
+
+$session->{'http'}{'request'}{'matched_host'} = $http_host;
+
+if ( exists $headers->{'range'} ) {    # print Dumper( $headers->{'range'} );
+    my $bad_req = 0;
+    my $max_len = 1024;
+    if ( length( $headers->{'range'} ) > $max_len ) {
+        $bad_req = 1;
+    } else {
+        $headers->{'range'} =~ s| +||g;
+    }
+    $bad_req = 1 if $headers->{'range'} !~ s|^bytes=||;
+    my $range_reg = qr/(\d+-\d+|-\d+|\d+-)/;
+    return <[httpd.error_page]>->( $id, 400 )    # Bad Request
+        if $bad_req
+        or $headers->{'range'} !~ /^$range_reg(,$range_reg)*$/;
+}
+
+my $file_path;
+my $path_md5;
+
+# ...
+
+if ( defined $http_host and defined $link_target ) {
+    <[base.log]>->(
+        1,
+        sprintf( "[$id] matched Host: '%s' -> '$http_host'",
+            $session->{'http'}{'request'}{'host'} )
+        )
+        if defined $session->{'http'}{'request'}{'host'}
+        and $http_host ne $session->{'http'}{'request'}{'host'};
+
+    my $base_dir = <httpd.cfg.hostnames>->{$http_host};
+
+    my $uri_obj = URI->new($http_uri);
+
+    $file_path = join( '', $base_dir, $uri_obj->path );
+    $file_path =~ s|/$||;
+
+    return <[httpd.error_page]>->( $id, 404 )
+        if $file_path =~ /\.tmpl$/ and -f $file_path; # *.tmpl files are masked.
+
+    if ( -d $file_path ) {
+        $file_path .= '/index.html' if -f $file_path . '/index.html';
+        $file_path .= '/index.tmpl' if -f $file_path . '/index.tmpl';
+    } elsif ( -f "$file_path.tmpl" ) {
+        $file_path .= '.tmpl';
+    } elsif ( $file_path =~ /\// ) {
+        my $real_path = $file_path;
+        while ( $real_path =~ s/\/+[^\/]*$// ) {
+            if ( -d $real_path and -f "$real_path/index.tmpl" ) {
+                $file_path = "$real_path/index.tmpl";
+                last;
+            } elsif ( !-d $real_path and -f "$real_path.tmpl" ) {
+                $file_path = "$real_path.tmpl";
+                last;
+            }
+        }
+    }
+
+    if ( $file_path =~ /\.tmpl$/ and -f $file_path ) { # <- nailara web template
+        $request->{'query'}
+            = { map { $_ => $uri_obj->query_param($_) } $uri_obj->query_param };
+        return <[httpd.process_template]>->( $id, $file_path );
+    }
+
+    $path_md5 = <[digest.md5.hex]>->($file_path);    # LLL: change to bmw.b32..,
+
+    if ( -f $file_path and !-r $file_path ) {   # LLL: cfg + deal with symlinks.
+        <[base.log]>->(
+            0,
+            "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
+        );
+        return <[httpd.error_page]>->( $id, 403 );   # Permission Denied (by FS)
+    } elsif ( -f $file_path ) {
+
+        $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
+
+        my $file_stat     = File::stat::stat($file_path);
+        my $content_inode = $file_stat->ino;
+        my $content_size  = $file_stat->size;
+        my $content_date  = time2str( $file_stat->mtime );
+        my $server_date   = time2str(time);
+
+        # LLL: make inode inclusion configurable:
+        my $file_etag = <[digest.md5.b64u]>
+            ->("$content_inode-$content_size-$content_date-$file_path");
+        $response->{'params'}->{'ETag'} = $file_etag;
+
+        my $meta = <http.meta_cache> //= {};
+        $meta->{'etags'}->{$path_md5} //= $file_etag;
+        delete $meta->{$file_etag}
+            and $meta->{'etags'}->{$path_md5} = $file_etag
+            if $meta->{'etags'}->{$path_md5} ne $file_etag;
+        $meta->{$file_etag}->{'types'} //= mimetype($file_path);
+        $meta->{$file_etag}->{'times'} //= <[base.time]>->(4);
+
+        my $content_type = $meta->{$file_etag}->{'types'};
+
+        my $reply_code = 200;
+
+        if ( defined $request->{'headers'}->{'if-none-match'}
+            and $request->{'headers'}->{'if-none-match'} eq
+            $response->{'params'}->{'ETag'} ) {
+            <[base.log]>->( 1, "[if-none-match] returning 304 [$file_etag]" );
+            $reply_code = 304;    # Not Modified
+
+        } elsif ( defined $request->{'headers'}->{'if-modified-since'}
+            and $request->{'headers'}->{'if-modified-since'} eq $content_date )
+        {
+            <[base.log]>->(
+                1, "[if-modified-since] returning 304 [$file_etag]"
+            );
+            $reply_code = 304;    # Not Modified
+        }
+
+        my @byte_ranges;
+        goto skip_range
+            if not exists $headers->{'range'}
+            or not defined $headers->{'range'};
+        $response->{'params'}->{'Content-Range'} = "bytes */$content_size";
+        foreach my $range_str ( split /,/, $headers->{'range'} ) {
+            my ( $start, $end );
+            ( $start, $end ) = ( $1, $2 ) if $range_str =~ /^(\d+)-(\d+)$/;
+            ( $start, $end ) = ( 0, $1 ) if $range_str =~ /^-(\d+)$/;
+            ( $start, $end ) = ( $1, $content_size - 1 )
+                if $range_str =~ /^(\d+)-$/;
+            return <[httpd.error_page]>->( $id, 416 )    # Range Not Satisfiable
+                if $start >= $content_size
+                or $end >= $content_size
+                or $end < $start;
+            map {    # check for overlapping ranges
+                return
+                    <[httpd.error_page]>->( $id, 416 )   # Range Not Satisfiable
+                    if ($start >= $_->{'start'}
+                    and $start <= $_->{'end'} )
+                    or ($end >= $_->{'start'}
+                    and $end <= $_->{'end'} )
+            } @byte_ranges;
+            push( @byte_ranges, { 'start' => $start, 'end' => $end } );
+        }
+        delete $response->{'params'}->{'Content-Range'};
+        $request->{'range'} = \@byte_ranges if @byte_ranges;
+    skip_range:
+
+        # print "\n range : " . Dumper( $request->{'range'} );
+
+        my $reply_header = {
+            'Content-Type'   => $content_type,
+            'Last-Modified'  => $content_date,
+            'Content-Length' => $content_size,
+            'Connection'     => $session->{'http'}->{'close'}
+            ? 'close'
+            : 'keep-alive',
+            'Accept-Ranges' => 'bytes',
+            %{ $response->{'params'} }
+        };
+
+        if ( $reply_code != 200 ) {    # <- 304 Not Modified
+            $session->{'buffer'}->{'output'}
+                .= <[httpd.new_header]>->( $reply_code, $reply_header );
+            return $session->{'http'}->{'close'} ? 2 : 0;
+        } elsif ( $content_size <= 16 * 1024
+            and not exists $request->{'range'} ) {  # <-- 'small' file, send now
+            local $/ = undef;
+            open( my $content_fh, '< :raw', $file_path )
+                or warn "<!> $file_path: $!";    # LLL: needs error handling..,
+            $session->{'buffer'}->{'output'}
+                .= <[httpd.new_header]>->( $reply_code, $reply_header )
+                . <$content_fh>;
+            close($content_fh);
+            return $session->{'http'}->{'close'} ? 2 : 0;
+        } else {    # 'larger' file, transfer in pieces..
+            return <[httpd.download_init]>->(
+                {   'sid'    => $id,
+                    'path'   => $file_path,
+                    'header' => $reply_header
+                }
+            );
+        }
+    }
+} else {
+    return <[httpd.error_page]>->( $id, 400 );    # Bad Request
+}
+
+return <[httpd.error_page]>->( $id, 404 )         # Not Found
+    if not defined $file_path
+    or !-f $file_path;
+
+# ______________________________________________________________________________
+#\\4IESF5JHPILPLFZMR3RXEAUYHMQ7MA3UJMFREOFQBMRWIIUPPNSWOU26GEJJBZE5CEWIARS4BTAPW
+# \\ SX2CXVMWENLC77JZMZVFKRZARPHJVMDYPDDO2V5WBALWGXIEI7FH \\// C25519-BASE-32 //
+#  \\// 7BJURSRROFK76YDJ4P5GCQD2YPFBOWHUU5B3CEIISJEHR5BOEAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

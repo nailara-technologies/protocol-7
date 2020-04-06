@@ -1,0 +1,33 @@
+# >:]
+
+# name = pdf.html.parent.handler.convert_pdf_reply
+# todo = deal with missing html path (notify browser vs. error page)
+
+my $reply = shift;
+
+my $pdf_path  = $reply->{'params'}->{'pdf_path'};
+my $html_path = $reply->{'params'}->{'html_path'};
+( my $html_dir = $html_path ) =~ s|^.*/||;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "conversion of '$pdf_path' failed [$reason]" );
+    my $errors;
+    remove_tree( $html_path, { error => \$errors } );
+    for my $err (@$errors) {
+        my ( $file, $message ) = %$err;
+        if ( $file eq '' ) {
+            <[base.log]>->( 0, "remove_tree($html_path): $message" );
+        } else {
+            <[base.log]>->( 0, "remove_tree: $message [$file]" );
+        }
+    }
+}
+
+delete <pdf.html.converting>->{$html_dir};
+
+# ______________________________________________________________________________
+#\\JCTW47UZX2IFSEO3S2Y5WUYHXWPLFVW4TGK6A66MPUU3HFQSBKZZOJUB23J55SFI5BQZF6WBYZZJ6
+# \\ LJSXHP2FRSGJ3MYEV5Y2B7R6Z272AIQLH4J7OLE5HCYHC5JWONOW \\// C25519-BASE-32 //
+#  \\// 5GVCWZR3AQAZLOSE23FHMVO6DOQJ2GQIVI2NVDXXJEKS5VXW6BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

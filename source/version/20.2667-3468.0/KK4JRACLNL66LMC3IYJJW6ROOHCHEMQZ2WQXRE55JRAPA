@@ -1,0 +1,33 @@
+# >:]
+
+# name  = calc.init_code
+
+<[base.perlmod.autoload]>->('Math::Symbolic');
+<[base.perlmod.autoload]>->('Math::Symbolic::Parser::Precompiled');
+
+my $cb_name = <calc.log_buffer.name> //= 'session';
+
+<calc.math.function_names> = [
+    qw| partial_derivative  total_derivative  sinh  cosh  asinh  acosh  asin
+        acos  atan2  atan  acot  sin  cos  tan  cot  exp  sqrt   |
+];
+
+my $date = <[base.parser.timestamp]>->('date');
+my $time = <[base.parser.timestamp]>->('clock');
+
+my $start_str
+    = sprintf(
+    "..  %s  \\\\  started calc session  \\\\  %s  \\\\\\  \\\\   \\",
+    $time, $date );
+map { <[base.buffer.add_line]>->( $cb_name, join( ' ', '0', '0', $_ ) ) } (
+    ".            \\\\",
+    $start_str, "...                                      \\\\"
+);
+
+0;
+
+# ______________________________________________________________________________
+#\\GGNLIX2HUULVDLZ7YR633FVBW4UUBKLTN25RAQ75LFDRQGYNHGE7SZRQTEJVYJOFQKKCPRSNLHIQE
+# \\ DL6AOSGYMI43SOGIOPSAPVHRXR3PBCVDFVZXCTTIBG4YKBJB7SSZ \\// C25519-BASE-32 //
+#  \\// HFLWTVELAOJ5LLUAROTJNWAPCMMSHJ43D6TNB4JGK4TLJNJJACQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

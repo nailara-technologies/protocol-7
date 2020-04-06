@@ -1,0 +1,35 @@
+# >:]
+
+# name  = nroot.agent.cmd.gone_child
+# param = <child-pid>
+# descr = notify about gone instance child subprocess
+
+my $instance_id;
+my $child_pid = $$call{'args'};
+
+<nroot.process.instance_cache>->{$child_pid} = $instance_id;
+
+my $parent_pid = <[nroot.sub-process.get_ppid]>->($child_pid);
+return { 'mode' => 'nak', 'data' => 'child still here' }
+    if defined $parent_pid and $parent_pid > 0;
+
+foreach my $iid ( keys( %{<nroot.agent.instance>} ) ) {
+    my $children
+        = defined <nroot.agent.instance>->{$iid}->{'process'}{'child'}
+        ? <nroot.agent.instance>->{$iid}->{'process'}{'child'}
+        : {};
+    next
+        if not delete <nroot.child>->{$child_pid}
+        and not delete $children->{$child_pid};
+
+    <[base.log]>->( 1, "[instance:$iid] child pid $child_pid unlinked!" );
+    return { 'mode' => 'ack', 'data' => 'unregistered' };
+}
+
+return { 'mode' => 'nak', 'data' => 'was not registered' }
+
+# ______________________________________________________________________________
+#\\FZESDB6JVL5AKOW45HYSS57LFHBHBGRBCFZSNHNNZ7BAFY44GXTNBO4W7VFRUN4VUGFE4OKUW32LQ
+# \\ 7P7LQE2PLUAW477UWYVFMYSYMA5UAES2L3XID5SH6MT6EVEBQACE \\// C25519-BASE-32 //
+#  \\// TUGZJEMM5EB33BZ2CUH33PZQTNGFUW4H7Z4SBV2M3V4DUM7DKDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

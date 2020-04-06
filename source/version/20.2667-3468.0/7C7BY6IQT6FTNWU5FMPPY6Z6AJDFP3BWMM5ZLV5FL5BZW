@@ -1,0 +1,45 @@
+# >:]
+
+# name  = base.list.element.add
+# args  = { key_ref val_ref }
+
+if ( ref( $_[0] ) ne 'HASH' ) {
+    <[base.log]>->( 0, 'base.list.element.add: submitted argument is no hash' );
+    return undef;
+}
+
+my $key_ref = ${ $_[0] }{'key_ref'};
+my $val_ref = ${ $_[0] }{'val_ref'};
+
+if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
+    <[base.log]>->(
+        0, 'base.list.element.add: key_ref is no reference to a hash reference'
+    );
+    return undef;
+} elsif ( not defined $val_ref or ref($$val_ref) ne 'HASH' ) {
+    <[base.log]>->(
+        0, 'base.list.element.add: val_ref is no reference to a hash reference'
+    );
+    return undef;
+} elsif ( not defined $data{'base'}{'element'}{$key_ref}
+    or not defined $data{'base'}{'element'}{$key_ref}{'max_count'}
+    or $data{'base'}{'element'}{$key_ref}{'max_count'} < 1 ) {
+    <[base.log]>->( 0, 'base.list.element.add: max_count not set or zero' );
+    return undef;
+}
+
+my $id = <[base.gen_id]>->(
+    $$key_ref, $data{'base'}{'element'}{$key_ref}{'max_count'}
+);
+
+${$$key_ref}{$id} = $$val_ref;
+
+$data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
+
+return $id;
+
+# ______________________________________________________________________________
+#\\GNHE4LYH7KXWFMNTD3ESY4ONSW5QTFRHBSCBFOUUDWUFN2LLH2OQ724NF5HWCY3AHH47HYZIBEFAS
+# \\ OLHGJDF4SRN5JVY7T3JGFBFTJWJNX2DNO5PD3FEBQXOQI2DJW4QC \\// C25519-BASE-32 //
+#  \\// MJB5CU6DIQXOZHBFGCRFC4GRR5PH4H5436WEJE7LVS5WNMXCEBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,20 @@
+# >:]
+
+# name = ticker-gtk.callback.request_updates
+
+return if !<ticker-gtk.request_rss_updates>;
+
+<[base.log]>->( 1, 'requesting updates from rss-ticker agent..' );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.nroot.notify_online",
+        'call_args' => { 'args' => 'rss-ticker' },
+        'reply'     => { 'handler' => 'ticker-gtk.request_rss_update' }
+    }
+);
+
+# ______________________________________________________________________________
+#\\Q64XJY7TE2GEEIIJVYKYUQWAPV4M6XQ4HMW7LKLMQAMNJKFVY7NXXGTGFPNIONWIK6F6I7A4AO4N4
+# \\ IQE7YQLIRDTGHZ7KGN2FG2KRDPCUKTHF53RSGEC6TRTNQTAMIXGG \\// C25519-BASE-32 //
+#  \\// QWNKGHPDQIQJA47K2ZC5S7KEDMQ2RFLR3POJYGR6SMV7WNOKOBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

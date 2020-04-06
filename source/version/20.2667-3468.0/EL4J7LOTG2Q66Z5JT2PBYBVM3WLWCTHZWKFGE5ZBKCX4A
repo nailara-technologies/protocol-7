@@ -1,0 +1,70 @@
+# >:]
+
+# name = base.extract_values
+
+my $entries        = 0;
+my $conf_key       = shift;
+my $file_ref       = shift // [];
+my $resolve_values = ( @_ and $_[0] eq 'resolved' ) ? 1 : 0;
+if ( $conf_key and $conf_key !~ /[{}]/ ) {
+    $conf_key =~ s/'//g;
+    $conf_key =~ s/\./'}{'/g;
+    $conf_key = "{'$conf_key'}";
+}
+<base.parser.config.errors> //= 0;
+my $reload_mode = <base.parser.config.reloading> // 0;
+my $last_line   = '';
+foreach my $conf_line ( @{$file_ref} ) {
+    $conf_line =~ s/[ \t]*#.*|[ \t]*\.:.*| +$|[\r\n\t]+//g;
+    if ( $conf_line =~ s|\\ *$|| ) {
+        $last_line .= $conf_line;
+        next;
+    } elsif ( length($last_line) ) {
+        $conf_line =~ s|^[ \t]+||;
+        $conf_line = "$last_line$conf_line";
+        $last_line = '';
+    }
+    $conf_line =~ s/(^[^=]+=)[ \t]+/$1/;
+    ( my $name, my $value ) = split( /=/, $conf_line );
+    if ( defined $value ) {
+        $name  =~ s/[ \t]+//g;
+        $name  =~ s/\./'}{'/g;
+        $value =~ s/'//g;
+        if ($resolve_values) {
+            while ( $value =~ m{<([^>]+)>} ) {
+                my $key      = $1;
+                my $resolved = <[base.resolve_key]>->($key);
+                $resolved = ref($resolved) eq 'SCALAR' ? $$resolved : '';
+                $resolved //= '';
+                $value =~ s|<$key>|$resolved|g;
+            }
+        }
+        my $conf_hash = "\$data" . $conf_key . "{'$name'}";
+
+        # do not overwrite results of init commands with raw nailara cmd strings
+        next if $reload_mode and $value =~ /^\[[^\]]+\]/;
+
+        my $cmd = "$conf_hash='$value'";
+        if ( defined $data{'system'}{'verbosity'}
+            and $data{'system'}{'verbosity'} > 2 ) {
+            <[base.log]>->( 1, $cmd );
+        }
+        eval("$cmd");
+        if ($@) {
+            <base.parser.config.errors>++;
+            <[base.log]>->(
+                0, "WARNING: ERROR DURING CONFIG PARSING: ($cmd) $!"
+            );
+            undef $@;
+        } else {
+            $entries++;
+        }
+    }
+}
+return $entries;
+
+# ______________________________________________________________________________
+#\\VFJPAISACDJMKWKPNEIPJNBYRGY27EXUSVNULUBQT4GUL7ZQK6MNDZTXLN3UZFZYVNVEPVP3HZVPQ
+# \\ V6IXYY4ABRR3Z5RL4SHCHTOL3J4RWWV2KAO657RSMVAMJRCBUQLI \\// C25519-BASE-32 //
+#  \\// 5HHQDIWO3M2NKRGJ6UPELDPOCR6IQMRJMRNCBLXGENYP2TS5KCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

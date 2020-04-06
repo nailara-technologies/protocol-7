@@ -1,0 +1,52 @@
+
+.:[ variables shared by most agents ]:.
+
+[load_config_file:'network']
+
+[load_config_file:'system-language']
+
+buffer.agent.log_cmd         = history.append
+
+log.level.auto-decay.agent.1 = 1123200 #  <-- 13 days decay for info, error none
+log.level.auto-decay.agent.3 = 420  #  <-- 4 min. debug log level message decay.
+log.level.auto-decay.agent.2 = 1020  #  <-- 17 min. decay for level 2 and above.
+
+system.internal_verbosity    = 2
+
+system.privs.user            = nailara
+
+system.local_config_dir      = /etc/nailara
+
+default.max_size.log_buffers =  130048 # 127K
+
+limits.client_sessions       =  77777
+limits.routes.combined       =  57777
+limits.routes.per_client     =  7777
+
+size.buffer.input            =  131072 # 128K
+size.buffer.output           =  131072 # 128K
+
+## manual override ####
+## nailara.net.ext.addr      = 0.0.0.0
+## nailara.net.ext.port      = 47
+
+## nailara.net.int.addr      = 127.0.0.1
+## nailara.net.int.port      = 57
+
+net.authentication.timeout   =  13
+
+net.local.web.addr           =  127.0.0.1
+net.local.web.port           =  847        #  <-  ..calculate as well.. [todo]
+
+sigterm.timeout              =  5
+system.max_routes            =  13542
+
+# base.debug.keep_on_reload  = 0  #  <- whether debug module persists reload ..,
+
+### feel free to override these values in './cfg/agents/<agent-name>/config' ###
+
+# ______________________________________________________________________________
+#\\2IVAHNKKZK77SNAZ4QQZDLJRTCJK7S6HOXWIPK2SFLXUJPROPY3SVBFPFK3AO7RZXKKJENIR2H55S
+# \\ 5HLANKGWCWFWPEY432OIOZBMSMACZKWXW6Y7SUJTKUC24BL4WSIG \\// C25519-BASE-32 //
+#  \\// R7J67FFDAAFCJZZCJFDE3PCWIPUKOXB3FMEVV6PLLZONRBGKOAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

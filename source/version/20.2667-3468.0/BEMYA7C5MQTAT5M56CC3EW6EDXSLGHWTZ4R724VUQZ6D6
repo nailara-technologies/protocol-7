@@ -1,0 +1,35 @@
+# >:]
+
+# name  = ssh.handler.nailara_io
+# descr = reads and processes output from mpv control pipe
+
+my $event = shift->w;
+
+my $read_fh      = $event->fd;
+my $con_id       = $event->data->{'con_id'};
+my $ssh          = $event->data->{'ssh_obj'};
+my $profile_name = $event->data->{'profile_name'};
+my $link_name    = $event->data->{'link_name'};
+my $connection   = $data{'ssh'}{'connections'}->{$con_id};
+my $profile_data = <ssh.cfg.profiles>->{$profile_name};
+my $channel      = $connection->{'nch'};
+
+my $buffer = '';
+
+my $bytes = <[base.s_read]>->( $read_fh, \$buffer, 4096, length($buffer) );
+
+if ( not defined $bytes or !$bytes ) {
+    <[ssh.connection.stop]>->($con_id);
+} else {
+    my $bytes = $channel->write($buffer);
+    if ( not defined $bytes ) {
+        <[base.log]>->( 0, "<!> [nailara_io] WRITE ERROR" );
+        <[ssh.connection.stop]>->($con_id);
+    }
+}
+
+# ______________________________________________________________________________
+#\\4F752UAO34YMJUJSYYJBZH4TK6SYGMKPUIGJBBRPOAOQLQNKZBYOZELUA3K2SE4O7WVNYWV4GBUW2
+# \\ MLNJWZXY4WKGN2BRSG3CSBHQO6MTQZHM4MG4ITSH3XKQKF2RHCMA \\// C25519-BASE-32 //
+#  \\// QMVYGKJJJ4NXAMNWKA2IFXVSZWCTXV5LCDSCG4LDGWGWOKNBOCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

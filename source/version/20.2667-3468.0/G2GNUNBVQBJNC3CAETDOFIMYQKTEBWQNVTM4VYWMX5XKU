@@ -1,0 +1,41 @@
+# >:]
+
+# name = ssh.handler.connection_heartbeat
+
+my $con_id            = shift->w->data;
+my $connection        = $data{'ssh'}{'connections'}->{$con_id};
+my $local_user        = $connection->{'local_user'};
+my $nailara_fh        = $connection->{'local_fh'};
+my $heartbeat_timeout = <ssh.cfg.globals>->{'connections.timeout'};
+<ssh.heartbeat_request> //= {};
+<ssh.heartbeat_request>->{$con_id} //= {};
+
+<[base.log]>->( 2, "checking link status [conn:$con_id]..," );
+
+my $interval_id = <[base.gen_id]>->(<ssh.heartbeat_request>);
+
+$connection->{'timer'}->{$interval_id} = <[event.add_timer]>->(
+    {   'after'   => $heartbeat_timeout,
+        'handler' => 'ssh.handler.heartbeat_timeout',
+        'data'    => { 'con_id' => $con_id, 'int_id' => $interval_id }
+    }
+);
+
+<ssh.heartbeat_request>->{$con_id}->{$interval_id}
+    = { 'time_sent' => <[base.time]>->(5), };
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.$local_user.heart",
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => 'ssh.handler.heartbeat_response',
+            'params'  => { 'con_id' => $con_id, 'int_id' => $interval_id }
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\2BC3RYGP7V3EXTHKJM4PO4HZCLADSVROUNAMVR7T2C3YAVCSBG7AV3NMM5U4UC5FTU5VZZVPIBWOE
+# \\ XDA22GLLYCHLWW3FYNMZHTM4IQQKGKP3GZMO6WODG4PL6HZEU4PB \\// C25519-BASE-32 //
+#  \\// RAEK6WQHH2W47SGZJL6NOYGHM24J32MAWDEABNFXW4KKRBG5ACI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

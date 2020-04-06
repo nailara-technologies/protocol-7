@@ -1,0 +1,20 @@
+# >:]
+
+# name  = digest.bmw.filesum
+# note  = this will block on large files -> need event based asynchr. method .,
+
+my $bmw = <[digest.bmw.ctx]>->(shift);
+die "expected file name parameter" if not my $fname = shift;
+die "file '$fname' not found" if !-f $fname;
+
+open( my $SUM_FD, '<' . $fname ) or die "<< $fname : $! >>";
+$bmw->addfile($SUM_FD);
+close($SUM_FD);
+
+return encode_b32r( $bmw->digest );
+
+# ______________________________________________________________________________
+#\\R3BTLQ3SXQEDH73BZOSFIV5L4CFTSDMMPVGDYICWKNQSKCDPSWIPU5MVOHNXANFFOFZDXHWNO76LC
+# \\ UF5WT4UY44OYQE7P2GTJN3ROPESQ546Z3GGUEQGV5OYCQG4VASU2 \\// C25519-BASE-32 //
+#  \\// OB26PMR6MWA3THBXX5CSFQGJUD2LJWUIU3ZW6L3KJY7IVGSMGBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

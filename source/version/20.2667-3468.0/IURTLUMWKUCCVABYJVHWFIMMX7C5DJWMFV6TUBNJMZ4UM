@@ -1,0 +1,30 @@
+# >:]
+
+# name  = nroot.autostart_agents
+# descr = initialize agents for automatic / immediate startup
+
+foreach my $agent_name (@_) {
+    my $agent_config   = <nroot.spawn_config.agents.config>->{$agent_name};
+    my $agent_id       = <[agent.get_id]>->($agent_name);
+    my $obj_id         = <[agent.get_object_id]>->($agent_id);
+    my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+    my $instance_count = $agent_config->{'spawn'}->{'instances'} || 1;
+    delete $agent_config->{'spawn'} if !keys %{ $agent_config->{'spawn'} };
+
+    while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
+        my $job_id = <[jobqueue.add_job]>->(
+            {   'object_id'       => $obj_id,
+                'job_callback'    => 'agent.spawn',
+                'callback_params' => $agent_name,
+                'target_queue'    => $target_queue
+            }
+        );
+        <nroot.agent.autostart>->{$agent_name}->{'job'} = $job_id;
+    }
+}
+
+# ______________________________________________________________________________
+#\\73ATEU7GWOVJHJQRGZHX3TUFN47AMS5YBWCMVAUSFTRMMR6AVLS4GTTUSR5ZIQJQUZJHC55FCCH36
+# \\ 5T5MCYTM2U747M52FC2TMBTMRW6CDX77EG6BUXVWTWUF2C3T3XAR \\// C25519-BASE-32 //
+#  \\// F46DBQ5ZVFIHLSKIRLR4DFFARL5DSL4JBOTGP7CZXIBVLUVFWAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

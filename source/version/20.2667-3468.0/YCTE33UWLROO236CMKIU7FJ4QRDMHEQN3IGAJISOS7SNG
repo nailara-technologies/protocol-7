@@ -1,0 +1,48 @@
+# >:]
+
+# name = mpv.handler.event.property-change.path
+
+my $params = shift;
+
+my $path = $params->{'data'};
+
+return delete <mpv.current> if not defined $path;
+
+<mpv.log_played> //= 0;
+<mpv.current.path> = $path;
+
+if ( <system.agent.mode> eq 'media-child' and $path eq '[PAUSE]' ) {
+    <[base.log]>->( 2, '[PAUSE] keyword encountered, queuing up next file...' );
+    <mpv.pause_next> = 1;
+} elsif ( exists <mpv.file_map.rescaled.source>->{$path} and !-f $path ) {
+    my $base_path = <mpv.rescale_path>;
+    ( my $path_short = $path ) =~ s|^$base_path/?||;
+    <[base.log]>->( 0, "<!> reencoded '$path_short' vanished!" );
+    if ( !-d $base_path and !-r "$base_path/.." ) {
+        <[base.log]>->(
+            0,
+            " :  entire reencoded media dir is gone,"
+                . " shutting down! [permissions]"
+        );
+        exit(1);
+    } else {
+        <[base.log]>->( 1, " :. will try to reencode..." );
+        delete <mpv.playlist_sha1>;
+        <[mpv.cmd.playlist_update]>;
+    }
+} else {
+    <[base.log]>->( 2, "playing '$path'" );
+
+    <[base.buffer.add_line]>->(
+        'played', join( ' ', <[base.time]>->(5), 1, $path )
+    ) if <mpv.log_played>;
+
+    <[mpv.update_resc_timestamp]>->($path)
+        if exists <mpv.file_map.rescaled.source>->{$path};
+}
+
+# ______________________________________________________________________________
+#\\SRPGTSAZATCIAR45UKWJI7MMCD3XMW2RRS4DVF3BXEIAT6SKXQTWAYJT55TTHFASMAXURE7LLX7SQ
+# \\ P2EDZLOPD6G3SVMKOVPSAGA7PRJNIPOHYFVC6IWGQKBGKDASBJBU \\// C25519-BASE-32 //
+#  \\// PV3OAZOJZSEMKCJEWZR34M3CQLZ64KE4T63N4Z53AE3TZ45YKDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

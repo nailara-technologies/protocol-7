@@ -1,0 +1,88 @@
+# >:]
+
+# name = layout.handler.stack_order_reply
+
+my $answer   = shift;
+my $reply_id = delete $answer->{'params'};
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'nak',
+        'data' => "unexpected answer from (missing?) xserver agent!"
+    }
+) if defined $reply_id and $answer->{'cmd'} ne 'DATA';
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'nak',
+        'data' => "no open windows found"
+    }
+) if defined $reply_id and $answer->{'call_args'}->{'args'} == 0;
+
+$answer->{'data'} =~ s|\n$||;
+my @window_stack = split( /\n/, $answer->{'data'} );
+
+my $missing   = 0;
+my %wid_check = map { $_ => 1 } @window_stack;
+for my $agent_name ( keys %{<layout.layers>} ) {
+    my $wid_str = <layout.window_ids>->{$agent_name};
+    if ( not defined $wid_str ) {
+        <[base.log]>->( 2, "[layers] no window id defined for '$agent_name'" );
+        next;
+    }
+
+    my @wids_ok;
+    map {
+        push( @wids_ok, $_ ) if defined $_ and exists $wid_check{$_};
+        $missing++ if not exists $wid_check{$_}
+        }
+        split /\D+/, $wid_str;
+    if ( !@wids_ok ) {
+        <layout.window_ids>->{$agent_name} = undef;
+    } elsif ($missing) {
+        <layout.window_ids>->{$agent_name}
+            = join( ',', sort { $a <=> $b } @wids_ok );
+    }
+}
+
+my @lower_ids;
+my %known_ids;
+for my $agent_name (
+    sort { <layout.layers>->{$b} <=> <layout.layers>->{$a} }
+    keys %{<layout.layers>}
+) {
+    my $window_ids_str = <layout.window_ids>->{$agent_name};
+    next if not defined $window_ids_str;
+    my @window_ids = sort split( /\D+/, $window_ids_str );
+    my $layer_pos  = <layout.layers>->{$agent_name};
+    push( @lower_ids, @window_ids );
+    map { $known_ids{$_} = 1 } @window_ids;
+}
+my @known_windows;
+map { push( @known_windows, $_ ) if exists $known_ids{$_} } @window_stack;
+
+my $ack_msg = 'layers sorted';
+if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
+    $ack_msg = 'already sorted';
+} else {
+    map {
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.xserver.lower_window",
+                'call_args' => { 'args' => $_ },
+                'reply'     => { 'handler' => 'dev.null' }
+            }
+        )
+    } @lower_ids;
+}
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'ack',
+        'data' => $ack_msg
+    }
+) if defined $reply_id;
+
+# ______________________________________________________________________________
+#\\XUOWSAGPXJEZUUWITAJW4PIQVJKXVGJNN7VGT4IJ6ZGKEWZTOZROJWPA3RMZWDNJOCOY4OPBIZXGU
+# \\ PICHVE7XCFLEOWF4FAHXQMLWEK43ICGOUMVQA3Y2DXAR2BKDLENL \\// C25519-BASE-32 //
+#  \\// PBXELJGVV3BL7LXVKU22BVTEJV7A2MYAAOXDH3I2ZJFTO4FYEAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

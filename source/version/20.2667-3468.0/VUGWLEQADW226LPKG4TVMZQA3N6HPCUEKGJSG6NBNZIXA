@@ -1,0 +1,30 @@
+# >:]
+
+# name = rss.ticker.get_feed_urls
+
+my $sub_name;
+my $file_type = 'ticker';
+
+$sub_name = '[' . <system.agent.subname> . ']'
+    if exists <system.agent.subname>
+    and defined <system.agent.subname>
+    and length(<system.agent.subname>);
+
+my $args_str = $file_type;
+$args_str .= ' ' . $sub_name if defined $sub_name;
+my @args = ( 'args' => $args_str );
+
+<[base.log]>->( 1, "fetching RSS feed URLs from 'mlist' agent.," );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.mlist.get_list',
+        'call_args' => {@args},
+        'reply'     => { 'handler' => 'rss.ticker.handler.get_list_reply' }
+    }
+);
+
+# ______________________________________________________________________________
+#\\GC2T6G6ZJ5SOOMFAL7N7N6XZRQZGHR5WBLAJIDNH74Z2J2BPNQBDCCAUGB23FTML3HZNBFREKIJAE
+# \\ EVRH6OLMOK36UUSPNLHD35LEAV2C5LXONQFW5VLDH3YUZG5KV6Q2 \\// C25519-BASE-32 //
+#  \\// BAYGFRQTSEEOTNSG7FYRKID24KSAW6A7T24RQJDWTPWZARZFKDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

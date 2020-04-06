@@ -1,0 +1,34 @@
+# >:]
+
+# name = ticker-gtk.handler.fade_in
+
+my $timer  = shift->w;
+my $window = <ticker-gtk.obj.window>;
+
+if ( not defined <ticker-gtk.time.fade_view> ) {
+    <[base.log]>->( 2, ":. fade-in started.," );
+    <ticker-gtk.fade_opacity>   = 0;
+    <ticker-gtk.time.fade_view> = <[base.time]>->(3);
+}
+
+my $delta_t
+    = sprintf( "%.3f", <[base.time]>->(3) - <ticker-gtk.time.fade_view> );
+
+<ticker-gtk.fade_opacity> += <[ticker-gtk.calc_incr]>->($delta_t);
+<ticker-gtk.fade_opacity> = 1 if <ticker-gtk.fade_opacity> >= 1;
+
+if (<ticker-gtk.is_composited>) {
+    $window->set_opacity(<ticker-gtk.fade_opacity>);
+}
+
+if ( <ticker-gtk.fade_opacity> == 1 ) {
+    <[base.log]>->( 2, ":: fade-in complete." );
+    delete <ticker-gtk.fade_opacity>;
+    $timer->cancel;
+}
+
+# ______________________________________________________________________________
+#\\SZVDWQF7KL2PN7JDANJILSFXMO5NKZC66RC4TALXGNB4FJROHBQ3Y7WYVHBWLY4OHFLF5UQJZCAKO
+# \\ GW5K5VC7DDL37LKYGK6LSYYDK2IUFERTD75QWMVVAJY2PLBDEWO6 \\// C25519-BASE-32 //
+#  \\// ZGII4YBVEXGI6SD6XLPIQNUMQE2WT4VTAHQVZ633NPIUQR3L4AA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

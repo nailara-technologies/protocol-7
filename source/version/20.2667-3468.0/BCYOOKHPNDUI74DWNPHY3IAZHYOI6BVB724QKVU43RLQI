@@ -1,0 +1,103 @@
+# >:]
+
+# name = ticker-gtk.content_substring
+
+my $x_skipped    = 0;
+my $x_width      = 0;
+my $x_offset     = <ticker-gtk.draw.x_pos>;
+my $window_width = <x11.window.width>;
+my $return_str   = '';
+<ticker-gtk.last_substr>   //= [];
+<ticker-gtk.draw_sequence> //= [];
+
+$x_offset = <x11.window.width> - $x_offset;
+
+my $x_check = $x_offset - <x11.window.width> - <ticker-gtk.draw.skipped>;
+
+return <ticker-gtk.last_substr>
+    if @{<ticker-gtk.last_substr>}
+    and <ticker-gtk.last_substr>->[2]
+    and $x_check <= <ticker-gtk.last_substr>->[2]
+    and not exists <ticker-gtk.content.switch_at>;
+
+my $skip     = 1;
+my $complete = 0;
+my $first_advance;
+my $last_advance = 0;
+<ticker-gtk.draw_seq> = 0;
+
+if ( defined <ticker-gtk.switch_at_seq> and <ticker-gtk.switch_at_seq> == 1 ) {
+    <ticker-gtk.content.current.txt_map>
+        = delete <ticker-gtk.content.queued.txt_map>;
+    delete <ticker-gtk.switch_at_seq>;
+}
+
+my $txt_map = <ticker-gtk.content.current.txt_map>;
+my $next_map
+    = exists <ticker-gtk.content.queued.txt_map>
+    ? <ticker-gtk.content.queued.txt_map>
+    : {};
+
+if ( not defined $txt_map->{'sequence'}
+    or ref( $txt_map->{'sequence'} ) ne 'ARRAY' ) {    # LLL: fix occurences ...
+    <[base.log]>->( 0, "content_substring: txt_map not defined (no content)" );
+    <[base.log]>->( 0, "                 : : shutting down due to errors..!" );
+    exit(2);
+}
+
+my $dseq;
+
+repeat:
+
+<ticker-gtk.draw_seq>++;
+
+$dseq
+    = ( defined <ticker-gtk.switch_at_seq>
+        and <ticker-gtk.draw_seq> >= <ticker-gtk.switch_at_seq> )
+    ? [ @{ $next_map->{'sequence'} } ]
+    : [ @{ $txt_map->{'sequence'} } ];
+
+while ( my $word = shift @{$dseq} ) {
+    my $advance = $txt_map->{'sizes'}->{$word} // $next_map->{'sizes'}->{$word};
+    $skip = 0
+        if $skip
+        and $x_skipped
+        > ( $x_offset - <x11.window.width> ) - $advance - $last_advance;
+    if ( !$skip ) {
+        $return_str .= $word;
+        $x_width += $advance;
+        $first_advance //= $advance;
+        if ( ( $x_width - $x_skipped )
+            > ( <x11.window.width> + $first_advance + $advance + $last_advance )
+        ) {
+            $complete = 1;
+            last;
+        }
+    } else {
+        $x_skipped += $advance;
+    }
+    $last_advance = $advance;
+}
+
+$complete = 1 if !length(<ticker-gtk.content.txt>);
+
+$x_skipped += $txt_map->{'space_width'} if $return_str =~ s/^ //;
+
+<ticker-gtk.last_substr> = [ $x_skipped, $return_str, $first_advance // 0 ];
+
+if ( !$complete and $x_width ) {
+    $return_str .= ' ';
+    $last_advance = $txt_map->{'space_width'};
+    $x_width += $last_advance;
+    goto repeat;
+}
+
+<ticker-gtk.draw.skipped> = $x_skipped;
+
+return [ $x_skipped, $return_str ];
+
+# ______________________________________________________________________________
+#\\T2NRRZTCZEUAIFPZBB7ZC3G6THPEO7J3VXPLH6ZQMC4WTCXN3JU7YNQGH4SQIMEQXQ3UZRE5SIFZI
+# \\ 7GWHWBKVMCFYQFD62M5UOJ772ONS6HWTGCF7UYL5TKDKSVKYOI66 \\// C25519-BASE-32 //
+#  \\// GREOLLIYTMUSZYGLLIUBSFPRCJPO6TDSEQMG5QKKMBGXXKAYOCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

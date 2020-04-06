@@ -1,0 +1,25 @@
+# >:]
+
+# name  = jobqueue.exec_job
+# descr = executes a queued job by calling its exec handler
+
+my $job_id = shift;
+
+<[base.log]>->( 2, "executing job $job_id callback ..." );
+
+my $job_data = <[jobqueue.get_job_data]>->($job_id);
+die "can not execute job '$job_id' (no such job)"
+    if not defined $job_data;
+die "can not execute job '$job_id' (no callback defined)"
+    if not exists $job_data->{'job_callback'};
+die "job callback '" . $job_data->{'job_callback'} . "' does not exist"
+    if not exists $code{ $job_data->{'job_callback'} };
+
+return $code{ $job_data->{'job_callback'} }
+    ->( { 'job_id' => $job_id, 'params' => $job_data->{'callback_params'} } );
+
+# ______________________________________________________________________________
+#\\3GGOOPKMNJOXHRRQOW6TKQQ4M6PH22MXA5GIV7DLUE7SMWMS6OVXL2DG24E7OTWWEEJ4MRQUHUVTW
+# \\ SWP6LX4MFE4B67SFTATHJFOOJYCWYNLHG3ZJLL4REWJGBUGETXHI \\// C25519-BASE-32 //
+#  \\// 437Z7K7T4XNKVQALLHOC7YZ3MLZESM5XSNLBQ37T6A3P7X224DA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

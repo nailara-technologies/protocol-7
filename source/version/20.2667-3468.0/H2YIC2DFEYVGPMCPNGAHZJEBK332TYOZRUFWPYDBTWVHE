@@ -1,0 +1,87 @@
+# >:]
+
+# name = base.x11.get_coordinates
+
+my $user     = shift // 'core';
+my $cmd_path = shift // '';
+$cmd_path .= '.' if length($cmd_path);
+my $agent_name = shift // <system.agent.name>;   # <- '' requests tile-name only
+my $agent_subname = shift // <system.agent.subname>;
+
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $sn_str
+    = defined $agent_subname
+    ? ' ' . $agent_name . "[$agent_subname]"
+    : '';
+
+my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
+<[base.log]>->( 1, "requesting coordinates$sn_log_str" );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>
+    ->( $core_fh, "($cmd_id)${cmd_path}layout.get_coordinates$sn_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$/ ) {
+    <x11.coordinates>
+        = { 'left' => $1, 'top' => $2, 'right' => $3, 'bottom' => $4 };
+    <[base.log]>->( 1, "received window coordinates.. [$1,$2,$3,$4]" );
+    return [ $1, $2, $3, $4 ];
+}
+
+# else [no layout agent present or no coordinates for current agent configured]
+my $err_msg = "unexpected reply from layout agent ['$reply_string']";
+
+$err_msg = ': coordinates undefined'
+    if $reply_string =~ /NAK no coordinates/
+    or $reply_string =~ /NAK command unknown/;
+
+<[base.log]>->( 1, $err_msg );
+
+# use full X server geometry as window geometry...
+$cmd_id = <[base.gen_id]>->( $data{'route'} );
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.get_screen_size\n" );
+
+$matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
+    <[base.log]>->( 1, "using x11 root window coordinates [0,0,$1,$2]" );
+    <x11.coordinates>
+        = { 'left' => 0, 'top' => 0, 'right' => $1, 'bottom' => $2 };
+    <x11.coordinates_were_undefined> = 1;
+    return ( 0, 0, $1, $2 );
+} else {
+    <[base.log]>->( 1, ": coordinates undefined" );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\NWUMTPHYPIR5CRK7GKSLR43JCPYYEKBKPXIJ6TFAR5FALODFOVUU5VAANXB4NOMBWOV7DAEAJTU7Q
+# \\ 4AVUYJ6JQ4DGXIK7AT3MEIWCGOKPOG3Q2Q7RUESNTOOD5BYB2ASF \\// C25519-BASE-32 //
+#  \\// BOHWMSUBMQDF6W6554AW2O7IEJSZ463VNEHWJ2KFC2IINSN2WDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

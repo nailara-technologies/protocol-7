@@ -1,0 +1,38 @@
+# >:]
+
+# name  = base.handler.sig_chld.shutdown
+
+<[base.log]>->( 0, 'SIGCHLD received. collecting children.,' );
+my %died_pid;
+local ( $!, $? );
+while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
+
+    # determine exit status
+    my $e_val = $? >> 8;
+    my $e_sig = $? & 127;
+    $e_sig = $e_sig ? ", signal $e_sig" : '';
+    my $e_dmp     = $? & 128 ? ' < with a core dump! >' : '';
+    my $log_level = 2;
+    $log_level = 1 if $e_val;
+    $log_level = 0 if $? & 128;
+    $log_level = 2
+        if <agent.shutdown>
+        and !length($e_dmp)
+        and $e_sig ne 'signal 11';
+    <[base.log]>->(
+        $log_level,
+        ": child pid=$pid terminated [ exit code $e_val$e_sig ]$e_dmp"
+    );
+    $died_pid{$pid} = 1;
+}
+
+<[base.log]>->( 0, ": shutting down " . <system.agent.name> . " agent ..." );
+
+<[base.log]>->( 1, ": done." );
+exit(0);
+
+# ______________________________________________________________________________
+#\\4554T7QA5ORPFQ3PV5JIXS2YNP5YZD2VGKFBAQ6ORYBZ2X2FJ6VRJERNNHZ2G6N6TOZXVSZZVP2N4
+# \\ FXH44M7XP6EN6MHHYMMYAYLVAQ4YQ47R63GRIRVJJLJI5U2ASHG6 \\// C25519-BASE-32 //
+#  \\// W7KT2ML54M6ALH34M7KDSES2MN4IFFGFRJPZRCSS4XSRSD7SACA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

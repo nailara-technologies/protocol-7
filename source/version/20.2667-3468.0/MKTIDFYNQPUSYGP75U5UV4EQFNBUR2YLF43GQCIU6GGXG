@@ -1,0 +1,66 @@
+# >:]
+
+# name = image2html.base.fork_conv_child
+
+use Socket;
+
+( my $session_id ) = keys( %{<user.core.session>} );
+
+<image2html.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, "forking image conversion child.." );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+
+<image2html.child.pid> = fork;
+if ( !<image2html.child.pid> ) {    ## child ##
+    close($child_pipe);
+    delete <image2html.pipe.child> if exists <image2html.pipe.child>;
+
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+
+    <image2html.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.agent.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.agent.subname> = 'child' . $sn_str;
+    $0 = <system.agent.name> . "[child$sn_str]";
+
+    <callback.session.closing_last.params>->[1] = 1;  # silencing child shutdown
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    my $id = <[base.session.init]>
+        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('image2html.child');
+    <[base.init_modules]>->('image2html.child');
+
+} else {                                              ## parent ##
+    close($parent_pipe);
+    delete <image2html.pipe.parent> if exists <image2html.pipe.parent>;
+    <image2html.pipe.child> = $child_pipe;
+
+    <[base.load_modules]>->('image2html.parent');
+    <[base.init_modules]>->('image2html.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    my $id
+        = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.async.get_session_id]>;    # -> 'online'
+
+}
+
+# ______________________________________________________________________________
+#\\5VYTF5C2Z6562BCP3ERJM7QG7FPDD66FTLUGEZHW62BJMWTHMXOG56BNQTEDJLX7A2NTUPAX357OA
+# \\ BLGD5PQ6INTZHAM4ZZQNAQZGJNEJ4GZC2TZ677LF6IOPVHK66DMN \\// C25519-BASE-32 //
+#  \\// KOBCZJUVMGKTMIGM5JKPGQ5SKTKKDGFTZB33H3DDPE4F2QFR6CY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,65 @@
+# >:]
+
+# name  = nodes.cmd.add-trunc
+# descr = add a nailara node with name and key [b32]
+# param = <name> <addr> <pkey>
+
+<nodes.setup> //= {};
+my @params = split( / +/, $$call{'args'} // '' );
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected <name> <addr> and <pkey> parameters'
+    }
+    if @params != 3;
+
+my $err_msg;
+my $name = shift @params;
+my $addr = shift @params;
+my $pkey = shift @params;
+
+$err_msg = "not a valid node name" if $name !~ <regex.base.usr>;
+
+foreach my $id ( keys %{<nodes.trunc>} ) {
+    last if defined $err_msg;
+    $err_msg = "link '$name' already exists"
+        if <nodes.trunc>->{$id}->{'name'} eq $name;
+}
+
+$err_msg = "specified IP address is not valid"
+    if not defined $err_msg
+    and ( $addr !~ /[\.:]/ or !ip_validate($addr) );
+
+$err_msg = "expect base32 encoded [C25519] public key"
+    if length($pkey) !~ 52 or $pkey !~ /^[A-Z0-9]+$/;
+
+return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+
+$addr = ip_transform($addr);    # ..expanding..
+
+my $node_id = <[base.list.element.add]>->(
+    {   'key_ref' => \$data{'nodes'}{'trunc'},
+        'val_ref' => \{
+            'name' => $name,
+            'addr' => $addr,
+            'pkey' => $pkey
+        }
+    }
+);
+
+return {
+    'mode' => 'nak',
+    'data' => "failed to add node [reason unknown]"
+    }
+    if not defined $node_id;
+
+return {
+    'mode' => 'ack',
+    'data' => "node '$name' added"
+};
+
+# ______________________________________________________________________________
+#\\QYZLKBNVI64S7QIJ7GH7KQ7POG3M7DK6ALQRU2GPV2FDEY4JSHXWALUJYVY5SIJRCBTLPL4Q2O5NI
+# \\ HJ6ABFLMWROMMX4RXKHGTFQYZQ5UV2KXLSQIWF6FSYI6TRIKYYX6 \\// C25519-BASE-32 //
+#  \\// AHS4J7LOYOULDUA2J7G6VP7ABGKG734WBHL2LITKYACL5RZEEBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,33 @@
+# >:]
+
+# name = jobqueue.remove_job
+
+my $job_id   = shift;
+my $jobs     = <jobqueue.joblist.by_id>;
+my $job_list = <jobqueue.joblist>;
+my $prio     = $jobs->{$job_id}->{'priority'};
+die "expected numerical job id" if not defined $job_id or $job_id !~ /^\d+$/;
+
+if ( not exists $jobs->{$job_id} or not defined $prio ) {
+    <[base.log]>->( 2, "remove_job: a job with id $job_id does not exist" );
+    return undef;
+}
+<[base.log]>->( 2, "removing job $job_id" );
+
+my $queue_name = $jobs->{$job_id}->{'status'};
+my $job_queue  = $job_list->{$queue_name};
+
+foreach my $del_queue ( $job_queue->{'by_priority'}->{$prio},
+    $job_queue->{'by_timestamp'} ) {
+    my $del_index = 0;
+    map { splice( @$del_queue, $del_index, 1 ) if $_ == $job_id; $del_index++ }
+        @$del_queue;
+}
+
+delete $jobs->{$job_id};
+
+# ______________________________________________________________________________
+#\\CKZ7IGAW6IDDXFLOEDRQEE4SJFFN6GZWFV3BGAEYHLGL3T5PTZFCYBNXC4NCIKHGEH2VRIBW4UDPU
+# \\ 2U4VWVXIP7F6JZQG4ULSISZWK4XI34DOMX3U2F4C2BDZUANCDNJ6 \\// C25519-BASE-32 //
+#  \\// A2JIJ6NIFHQ7ILH7UFMMPD7BSSX4WOEKEBISK6QTXFYVCXXFGAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

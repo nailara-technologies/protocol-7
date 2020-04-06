@@ -1,0 +1,38 @@
+# >:]
+
+# name  = jobqueue.check_dependencies
+# descr = check if job dependencies have been resolved and move jobs if required
+
+my $job_list = <jobqueue.joblist>;
+
+return undef if !$job_list->{'count'}->{'depending'};
+
+<[base.log]>->( 2, "checking job dependencies" );
+
+my $job_queue  = $job_list->{'depending'};
+my $prio_queue = $job_queue->{'by_priority'};
+
+foreach my $prio ( sort { $a <=> $b } keys %$prio_queue ) {
+    next if !@{ $prio_queue->{$prio} };
+
+    foreach my $job_id ( @{ $prio_queue->{$prio} } ) {
+        my $object_id = $job_list->{'by_id'}->{$job_id}->{'object_id'};
+        <[base.log]>->( 2, ": dependencies for object $object_id" );
+        if (   not defined $object_id
+            or not exists <dependency.chain>->{$object_id}
+            or <[dependency.ok]>->($object_id) ) {
+            <[base.log]>->(
+                2, ": : deps successfully resolved [obj.$object_id]"
+            );
+            <[jobqueue.move_job]>->( $job_id, 'queued' );
+        } else {
+            <[base.log]>->( 2, ": : unresolved, waiting.." );
+        }
+    }
+}
+
+# ______________________________________________________________________________
+#\\X47ECH67TYBSOBMKYSES3NRS34SJL2DJA7DZX6VTBRWVVZFUZSA3JYCA4VVPP2IZ3VQRYUJP546C4
+# \\ KYM4TW6JF36IBZA2E43SFPMYCLY45ASCIT365EA47AZQ4BXRLEQA \\// C25519-BASE-32 //
+#  \\// GOEA2OPB6I3GDDYE7P7G24DTZKKF6O5UKB4V6BSOMC6HRH3IUCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

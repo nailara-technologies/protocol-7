@@ -1,0 +1,76 @@
+# >:]
+
+# name = httpd.init_code
+# todo = check for shared-mime-info, handle absence and also hashing at start...
+
+<[base.perlmod.autoload]>->('URI');
+<[base.perlmod.autoload]>->('HTTP::Date');
+<[base.perlmod.autoload]>->('HTTP::Request');
+<[base.perlmod.autoload]>->('URI::QueryParam');
+<[base.perlmod.autoload]>->('File::MimeInfo::Magic');
+<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b64u decode_b64u | );
+
+<proto.http.state> = {
+    '0' => {
+        'in'  => { 'handler' => 'httpd.request_handler' },
+        'out' => { 'handler' => 'base.handler.write' },
+    },
+};
+
+<http.nailara_tun_uri> =~ s|/+$|| if defined <http.nailara_tun_uri>;
+
+<proto.http.connect.banner> = '';
+
+<proto.http.status_codes> = <[httpd.status_codes]>;
+
+<httpd.cfg.external_sitedirs>     //= 0;
+<httpd.cfg.uploads_enabled>       //= 0;
+<httpd.downloads.in_progress>     //= 0;
+<httpd.downloads.max_buffer_size> //= 128 * 1024;   # <- (session output buffer)
+<httpd.downloads.total_bufsize_max> //= 100 * <httpd.downloads.max_buffer_size>;
+
+# check user / group existence
+<[base.log]>->( 2, "checking if httpd user / group exists.," );
+my $httpd_user  = <httpd.system.user>  //= 'httpd';
+my $httpd_group = <httpd.system.group> //= 'httpd';
+
+my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
+if ( not defined $httpd_uid ) {
+    <[base.log]>->( 0, "httpd user '$httpd_user' does not exist, creating..," );
+    system( 'useradd', '-r', $httpd_user ) == 0
+        or die "<< unable to create httpd user '$httpd_user': $? >>";
+    $httpd_uid = getpwnam($httpd_user);
+    die "unable to create httpd user '$httpd_user'" if not defined $httpd_uid;
+    <[base.log]>->( 0, ": httpd user '$httpd_user' created [UID=$httpd_uid]" );
+    ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
+
+} else {
+    <[base.log]>->( 2, ": http user '$httpd_user' : UID $httpd_uid" );
+}
+
+my $site_dir = <httpd.site_dir> //= '/var/httpd';
+if ( !-d $site_dir ) {
+    <[base.log]>->( 0, "creating site_dir '$site_dir'..," );
+    make_path( "$site_dir/default",
+        { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid } )
+        or die "<< unable to create httpd dir '$site_dir' >> [$!]";
+}
+
+<[httpd.scan_site_dir]>;
+
+my $upload_dir = <httpd.upload_dir> //= '/var/httpd/..incoming..';
+if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
+    <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
+    make_path( "$upload_dir",
+        { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid } )
+        or die "<< unable to create upload dir '$upload_dir' >> [ $! ]";
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\I74PVPGQG7KLBWIOP63LI2VDQ5LCCBMBAINSOY374GL3VBIRD3AGLFOMHBQEZ5PCDJ3FMP2Q3ITRM
+# \\ BHI76IYGDEJL2JZXRKROBMKBFORPJJUB2QCNVCH4BPMGMUHR6QA5 \\// C25519-BASE-32 //
+#  \\// JJC3BDYMZKI6INHS7NET64A32ZEY6BS6KWJDNYQOD3IZY3YPCAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

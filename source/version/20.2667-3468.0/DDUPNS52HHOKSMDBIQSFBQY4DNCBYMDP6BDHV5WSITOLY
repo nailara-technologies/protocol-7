@@ -1,0 +1,22 @@
+# >:]
+
+# name  = mlist.cmd.resolve_b32id
+# param = <b32id>
+# descr = return parsed playlist entry for given b32id
+
+my $b32id = $$call{'args'};
+return { 'mode' => 'nak', 'data' => 'valid <b32id> expected!' }
+    if not defined $b32id
+    or $b32id !~ m|^\w{5,23}$|;
+
+return { 'mode' => 'nak', 'data' => 'no matching playlist entry found!' }
+    if not defined <mlist.b32id_src_str>->{$b32id};
+
+return { 'mode' => 'ack', 'data' => <mlist.b32id_src_str>->{$b32id} };
+
+
+# ______________________________________________________________________________
+#\\OPHY7ZEAC5WISHBJIWVACFH7UNAI5HG62KY6KN5OHSAIM55D62FFPRQFM3L4YSM7B5VIZKVYM5XKK
+# \\ XFVRKMVC364LEWALCRHTX7VDFBFOE5GQOCVW4RUEH4C74DSIUZJI \\// C25519-BASE-32 //
+#  \\// ZRHFCMDGLBI53FNN2JNDQVV2LANAVKBF3WV2FGDWWICMECANSCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,22 @@
+# >:]
+
+# name = base.get_path.perl_exec
+
+my $perl_path;
+
+eval {
+    use Config;
+    $perl_path = $Config{'perlpath'};
+    if ( $^O ne 'VMS' ) {
+        $perl_path .= $Config{'_exe'}
+            unless $perl_path =~ m/\Q$Config{_exe}\E$/i;
+    }
+};
+
+return $perl_path;
+
+# ______________________________________________________________________________
+#\\5ZMRUKYGQQB7ZNTKLVG7XQ25HDTG4IMR4BWU36ETKZB7KBJD72XO2P76QBOGVKGYSJ2NPD2QNM6FQ
+# \\ HHCUIIOUUO2B27752PB45AKISHC4HVLW4DNKF4SC6CZXMRHMFPLV \\// C25519-BASE-32 //
+#  \\// BOOGYQFV5YMJAMDH723WDRQJ5P6TRD463KD3DF6G2CWJKFE52DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

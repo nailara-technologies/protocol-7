@@ -1,0 +1,28 @@
+# >:]
+
+# name = base.x11.assign_window
+
+my $wid_str = shift // <x11.id>;
+my $route   = shift;
+die "window id not defined" if not defined $wid_str;
+die "invalid window id string '$wid_str'" if $wid_str !~ /^\d+(,\d+)*$/;
+my $tile_name = <system.agent.subname>;
+my $tile_str  = defined $tile_name ? " for '$tile_name'" : '';
+my $s         = $wid_str =~ /,/ ? 's' : '';
+my $log_msg   = "reporting window id$s $wid_str$tile_str..";
+my @args      = $wid_str;
+push( @args, $tile_name ) if defined $tile_name;
+$route .= '.' if defined $route;
+$route //= '';
+<[base.log]>->( 1, $log_msg );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $route . "core.layout.assign_window",
+        'call_args' => { 'args' => join( ' ', @args ) }
+    }
+);
+
+# ______________________________________________________________________________
+#\\RGWVWFQLMUXZQ3CJWDJ7KYGGV4AUGYX5PJKDJN6YGCI4REHTX4LISUEFPV2K5UVWIBDQA3G22E2T4
+# \\ 7UJATFEAQRW5MOGB2PGCVU4CVBTQJNKIMSPQJIW7IA6CD47LBSYB \\// C25519-BASE-32 //
+#  \\// PDUX55N75MCVCTNRBW4IZ77FNLU5QVDJBZMDU4IWE4VRX6BEQAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

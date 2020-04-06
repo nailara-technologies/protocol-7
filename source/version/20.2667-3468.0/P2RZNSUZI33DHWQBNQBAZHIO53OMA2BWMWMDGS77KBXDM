@@ -1,0 +1,32 @@
+# >:]
+
+# name = mpv.handler.event
+
+my $params  = shift;
+my $min_len = 33;
+
+return if not exists $params->{'event'};
+my $event = $params->{'event'};
+
+my $handler_name = "mpv.handler.event.$event";
+if ( exists $code{$handler_name} ) {
+    <[base.log]>->( 2, "calling '$event' event handler.." );
+    $code{$handler_name}->($params);
+} else {
+    my $log_str = "event '$event' received";
+    my $len     = length($log_str);
+    if ( exists <mpv.log_str_len> and <mpv.log_str_len> > $len ) {
+        $len = <mpv.log_str_len>;
+    } else {
+        $len = $min_len if $min_len > $len;
+        <mpv.log_str_len> = $len;
+    }
+
+    <[base.log]>->( 2, sprintf( "%-${len}s", $log_str ) . " ( no handler ) " );
+}
+
+# ______________________________________________________________________________
+#\\BZCZAUOGOXN4MUGM6MDOR3VIQ3GRTHHHM6KEC2UMKMVGFRUXQA2AOPP5JQNGSYIS7Z6DZZIMW3Y4W
+# \\ KGFCKUNV243AXGI5RZ7IKMVJE5LEGW23FXZSTDRS5T5XS4NLLOIK \\// C25519-BASE-32 //
+#  \\// 775RUJ74TFSYJBLUBI732NYSNIG5M2CVYUZ3NQLM4CKBASBGIDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

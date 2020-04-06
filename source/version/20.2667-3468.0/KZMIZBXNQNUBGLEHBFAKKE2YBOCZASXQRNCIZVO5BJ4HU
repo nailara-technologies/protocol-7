@@ -1,0 +1,24 @@
+# >:]
+
+# name  = xserver.cmd.dpms_force_off
+# descr = power off the screen using DPMS
+
+return { 'mode' => 'nak', 'data' => 'xserver has no DPMS support' }
+    if !<xserver.has_dpms>;
+
+<xserver.x11>->DPMSEnable();
+
+# <xserver.x11>->DPMSSetTimeouts( 600, 600, 600 );
+<xserver.x11>->DPMSInfo();
+<xserver.x11>->DPMSForceLevel(3);
+<xserver.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "display manually forced OFF, DPMS is enabled" );
+
+return { 'mode' => 'ack', 'data' => 'display forced OFF, DPMS is enabled' };
+
+# ______________________________________________________________________________
+#\\PE2KNANMF4NZ6WWFIRFTDXIDOFI3IXJLQWLATH5ISLX2RIBV5D477AV5AJBHPRWYUTHO6IRPP5JEC
+# \\ ARJL75QENONRYXVBFPK2TKUETN24BLIHPSWSCO67FYSENC2OKQJD \\// C25519-BASE-32 //
+#  \\// OXSN5G45BD4RXDD654Z43UZNKMSK2SDP6KYP753FMALREIIEIBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

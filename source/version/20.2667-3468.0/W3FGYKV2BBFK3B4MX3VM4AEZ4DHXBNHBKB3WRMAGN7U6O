@@ -1,0 +1,59 @@
+# >:]
+
+# name = browser.swap_views
+
+my $scrolled_window = <browser.gtk_obj.scrolled_window>;
+
+my $fg_index = <browser.overlay.index>->{'fg'};
+my $bg_index = <browser.overlay.index>->{'bg'};
+my $bg_view  = <browser.gtk_obj.view>->{$bg_index};
+my $fg_view  = <browser.gtk_obj.view>->{$fg_index};
+my $window   = <browser.gtk_obj.window>;
+my $overlay  = <browser.gtk_obj.overlay>;
+
+<[browser.disconnect_signal.received_data]>;
+
+if ( !<browser.cfg.use_transparency> ) {
+
+    map {
+        <browser.gtk_obj.scrolled_window>->{$_}->set_opacity(1)
+            if <browser.gtk_obj.scrolled_window>->{$_}->get_opacity() != 1;
+    } ( $fg_index, $bg_index );
+
+    $overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+    <browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+
+    <browser.time.fade_complete> = sprintf( "%.3f",
+        <[base.time]>->(3) + ( <browser.slideshow.swap_delay> / 2 ) );
+
+    <[browser.callback.load_finished]>;
+    return;
+}
+
+<browser.fg_opacity> = $bg_view->get_opacity;
+
+if ( <browser.fg_opacity> == 1 ) {
+    <browser.gtk_obj.scrolled_window>->{$bg_index}->set_opacity(0);
+    <browser.fg_opacity> = 0;
+}
+
+$overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+
+<browser.gtk_obj.scrolled_window>->{$fg_index}->set_opacity(1);
+<browser.time.fade_view>   = <[base.time]>->(3);
+<browser.status.fade_view> = 1;
+
+<browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+
+$window->signal_handler_disconnect( delete <browser.signal_id.swap_views> )
+    if defined <browser.signal_id.swap_views>
+    and $window->signal_handler_is_connected(<browser.signal_id.swap_views>);
+
+<browser.signal_id.swap_views>
+    = $window->signal_connect( draw => $code{'browser.handler.swap_views'} );
+
+# ______________________________________________________________________________
+#\\VZOPQYVLFAE3VP2GR26JOCOEB3E3SOLLGWEZUJRG6EHMQJY6HFVCUIZGYNPPLCYW7OD5DOKMLWHO6
+# \\ GOAKUK54VH2TZNR5IBM3TW46DTNROEFOBSBDL7VNVOKDSO4IHYVF \\// C25519-BASE-32 //
+#  \\// WVSXU5TIOXHY6ZJXCHLBEKU3QOLZPV5ODMFS62VE3UHMIXG2MCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

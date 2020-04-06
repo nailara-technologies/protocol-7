@@ -1,0 +1,72 @@
+# >:]
+
+# name  = base.cmd.ondemand-agent
+# param = <add|del> <name>
+# descr = register/remove ondemand agents
+
+my $re = $data{'regex'}{'base'};
+
+return { 'mode' => 'nak', 'data' => 'expected <add|del> <agent_name>' }
+    if not defined $$call{'args'}
+    or !length( $$call{'args'} )
+    or $$call{'args'} !~ /^(add|del) ($re->{'usr'})$/;
+
+my ( $cmd, $agent_name ) = split / +/, $$call{'args'};
+
+if ( $cmd eq 'add' ) {
+    map {
+        return {
+            'mode' => 'nak',
+            'data' => "there already is one registered ondemand type agent "
+                . "'$agent_name'"
+            }
+            if <agents.virtual>->{$_}->{'type'} eq 'ondemand'
+            and <agents.virtual>->{$_}->{'name'} eq $agent_name
+    } keys %{<agents.virtual>};
+
+    my $agent_id = <[base.list.element.add]>->(
+        {   'key_ref' => \$data{'agents'}{'virtual'},
+            'val_ref' => \{
+                'name'    => $agent_name,
+                'type'    => 'ondemand',
+                'status'  => $agent_name,
+                'session' => $agent_name,
+                'queue'   => []
+            }
+        }
+    );
+    <[base.log]>->(
+        2, "registered ondemand agent '$agent_name' [id=$agent_id]"
+    );
+    return {
+        'mode' => 'ack',
+        'data' => "agent registered ( id = $agent_id )"
+    };
+
+} elsif ( $cmd eq 'del' ) {
+    my $_agent;
+    my $del_id;
+    map {
+        if (    <agents.virtual>->{$_}->{'type'} eq 'ondemand'
+            and <agents.virtual>->{$_}->{'name'} eq $agent_name ) {
+            $_agent = delete <agents.virtual>->{$_};
+            $del_id = $_;
+        }
+    } keys %{<agents.virtual>};
+    return {
+        'mode' => 'nak',
+        'data' => "no such agent registered ('$agent_name')"
+        }
+        if not defined $del_id;
+    <[base.log]>->( 1, "unregistered ondemand agent $del_id ('$agent_name')" );
+    return {
+        'mode' => 'ack',
+        'data' => "virtual agent $del_id ['$agent_name'] unregistered"
+    };
+}
+
+# ______________________________________________________________________________
+#\\SQQHUXOXR3XYAOUQJ6G3GCLOSID6BMUHS5DD7ORDM6FMW3AHCXUAOEJHQUAJAUGOR5SMZMQHWDK54
+# \\ 64TBGBAFFPAEQRM3SJTC7TSOE3676JOV5PF53LJW32IQQ3NW7VMM \\// C25519-BASE-32 //
+#  \\// L5U3K7ZN5NCHAVQV44SWK5JCICDLTOZLV4PW6EVQWU7TEYSCQAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

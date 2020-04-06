@@ -1,0 +1,79 @@
+# >:]
+
+# name = impressive.handler.get_list_reply
+
+my $reply = shift;
+
+<impressive.playlist_sha1> //= '';
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    <[base.log]>->( 0, ": unable to fetch playlist!" );
+    return;
+}
+
+my @file_list     = split( "\n", $reply->{'data'} );
+my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
+
+    # LLL: create image for empty playlist instead of shutown(?)
+    if ( defined <impressive.pid> ) {
+        <[base.log]>->(
+            1, ": killing impressive process [PID=<impressive.pid>]"
+        );
+        <impressive.watcher.output>->cancel;
+        kill( 'KILL', <impressive.pid> );
+        undef <impressive.pid>;
+    }
+    return;
+}
+
+my $playlist_changed = 0;
+
+return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
+    if defined <impressive.pid>
+    and $playlist_sha1 eq <impressive.playlist_sha1>
+    and !$playlist_changed;
+<impressive.playlist_sha1> = $playlist_sha1;
+
+<impressive.current_playlist> = \@file_list;
+
+<[base.log]>->( 1, ": playlist changed.." );
+
+if ( defined <impressive.pid> ) {
+    <[base.log]>->( 1, ": killing impressive process [PID=<impressive.pid>]" );
+    <impressive.watcher.output>->cancel;
+    kill( 9, <impressive.pid> );
+    undef <impressive.pid>;
+}
+
+my $lsp_name
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash';
+
+if (<impressive.cfg.use_loadsplash>) {
+
+    <[base.log]>->( 1, "starting loadsplash agent.." );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.notify_online",
+            'call_args' => { 'args' => $lsp_name },
+            'reply'     => { 'handler' => 'impressive.open_window' }
+        }
+    );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.start_once",
+            'call_args' => { 'args' => $lsp_name }
+        }
+    );
+} else {
+    <[impressive.open_window]>;
+}
+
+# ______________________________________________________________________________
+#\\LWZ4XVYE6BEECAC3CAIKXUZA3NIZ7VQFLL4ZRYEZYZ2PVE2UHVA57WS2KYHHWV2U7EKCERIUT4YRW
+# \\ OVQ2GIRB45KPDSXTVSB5DR7S54DDBOP54O246ZSQ746YG3USWMKW \\// C25519-BASE-32 //
+#  \\// FHKUYMFGV2WPME7LJDK376Y46424RFJNFU2NHVO3DQ7JSJFQSCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

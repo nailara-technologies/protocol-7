@@ -1,0 +1,24 @@
+# >:]
+
+# name  = net.calc_port
+# descr = calculate nailara network ports based on installation path
+# todo  = implement exclusion based on /etc/services and already bound ports ...
+
+my $port_range  = shift;
+my $port_start  = $port_range->{'start'};
+my $port_end    = $port_range->{'end'};
+my $port_delta  = $port_end - $port_start;
+my $path_offset = <system.path_offset>;
+
+##  calculated values  :      /usr/local/nailara : ext-port = 47, int-port = 57
+##                     :  /data/projects/nailara : ext-port = 87, int-port = 737
+
+my $n_port = $port_start + $path_offset % $port_delta;
+
+return $n_port;
+
+# ______________________________________________________________________________
+#\\OBPEYFU2IZTEGBGALAJZBFDAA64PLG7EH346GMSMS5XHOURXH7ZPE37JCU6JQKE7VQZQ2MBOJKAJ2
+# \\ 2BLWE57FYYKIBL37YVPZUH6H4LHZJJQHM2WMUP6LDK5DUSL64IQ7 \\// C25519-BASE-32 //
+#  \\// P6DFVJSOGYVHONNY4JZZE4NM2FJS2FP3QGI5TXS3E2WD6RT4SCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

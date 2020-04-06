@@ -1,0 +1,36 @@
+# >:]
+
+# name  = auth.auth_select
+
+my $id     = shift;
+my $method = shift;
+my $ok     = 0;
+
+warn "[$id] expected auth _method_ parameter" if not defined $method;
+
+foreach my $available ( split( /\n/, <[auth.auth_list]>->($id) ) ) {
+    if ( $available eq $method ) { $ok = 1; last }
+}
+
+if ($ok) {
+    $data{'session'}{$id}{'auth'}{'method'} = $method;
+    <[net.out]>->( $data{'session'}{$id}{'handle'}, "ACK continue\n" );
+    <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
+    return 1;
+} else {
+    <[net.out]>->(
+        $data{'session'}{$id}{'handle'},
+        "NAK not available, see 'list' command\n"
+    ) if $data{'session'}{$id}{'counter'}{'auth'}{'select'}{'errors'} < 2;
+    my $m_len = 23;
+    substr( $method, $m_len - 3, length($method) - $m_len + 3, '..,' )
+        if length($method) > $m_len;
+    <[base.log]>->( 0, "[$id] unsupported auth method requested [ $method ]" );
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\W35IWDJEKHVQW55DCJVV6VK4OYD3H5AMH7TP6CR7EKA6XIFEDF5THSUYMWUSSY32A75HO256VVHQ4
+# \\ K723XXPHHVULDVO37YILCNBKQ6PDFEZE2HECWAD4CNGNLBR3VNPN \\// C25519-BASE-32 //
+#  \\// VDFHG4J4UIHWZOWLJ4DHZM55KB5EH5JOP2ZCN2AO2EHL7YDK2DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

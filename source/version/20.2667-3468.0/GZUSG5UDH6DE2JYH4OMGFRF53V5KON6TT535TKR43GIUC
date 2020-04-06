@@ -1,0 +1,26 @@
+# >:]
+
+# name = layout.handler.root_restart_reply
+
+my $answer = shift;
+
+my $agent_name_str = $answer->{'params'};
+
+if (    $answer->{'cmd'} ne 'ACK'
+    and $answer->{'call_args'}->{'args'} =~ /no agent/ ) {
+
+    <[base.log]>->(
+        0, "<!> no '$agent_name_str' agent was running, starting now..."
+    );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.nroot.start_once',
+            'call_args' => { 'args' => $agent_name_str }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\TWSF7SZXAVDUJ3BJH3A7FHRNKNZXSRMR3NW56X2ZR4N6QB5THAK7WFFMKQW76QBG7ACW4B3NZDTPG
+# \\ TSYE673TGJF4UIT67ZNWKFZUGN7VK7JAUEQNDUJOFWUX7PIKAPYW \\// C25519-BASE-32 //
+#  \\// FNX7YN7UWTSOBQDNHRHJ6SYLFT4NE5W43TB75UPR65B7FQLV4CA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,33 @@
+# >:]
+
+# name = ssl.cmd.add_ssl
+
+local ( $id, $com_id, $name, $host, $port ) = @_;
+foreach my $_key ( 'name', 'host', 'port' ) {
+    if ( !defined $$_key ) {
+        <[net.nak]>->("no $_key supplied");
+        <[base.log]>->( 0, "add_tcp: no $_key supplied" );
+        return 0;
+    }
+}
+<[base.log]>->( 1, "adding [$name:$host,$port]" );
+my $sock = &client( $host, $port );
+if ( -S $sock ) {
+    $data{'link'}{$name}{'handle'}     = $sock;
+    $data{'link'}{$name}{'status'}     = 'connected';
+    $data{'link'}{$name}{'host'}       = $host;
+    $data{'link'}{$name}{'ip'}         = $sock->peerhost();
+    $data{'link'}{$name}{'port'}       = $port;
+    $data{'link'}{$name}{'transport'}  = 'ip.tcp';
+    $data{'link'}{$name}{'encryption'} = 'ssl';
+    $data{'link'}{$name}{'start_time'} = <[base.time]>->(5);
+    <[net.ack]>->( "link '$name' established", $com_id );
+} else {
+    <[net.nak]>->( "connection error", $com_id );
+}
+
+# ______________________________________________________________________________
+#\\UMRKC3HZ6AHVTY2A2SZYNWHIJSGNNZTTMGICMWZ7OFRMPHYVR2V7O56ZBNUT7JYPTF7C554E6IJKA
+# \\ ON6BOFGERMQCDDZL42MJPPYK26WR5R2NN7PJ4TUTRE5WMGMVG2HA \\// C25519-BASE-32 //
+#  \\// F4LHK4JSFAYTUXZ4YLET6O6E3WPPWFHK6RYTCLRDCLACLBA3OCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

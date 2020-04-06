@@ -1,0 +1,16 @@
+# >:]
+
+# name  = base.file_perm
+# descr = return file permisions for specified path as octal (string)
+
+my $path = shift;
+die "expected path parameter" if not defined $path or !length($path);
+die "'$path' not found" if !-e $path;
+
+return sprintf( "%#o", File::stat::stat($path)->mode & 07777 );
+
+# ______________________________________________________________________________
+#\\5TYJ4UU2C36WOBRCBOIY4N42XB4PCIXTSPN4YWBQN23QNGPXHTOZ7VDNYES47BEHKHD7OLWTZST54
+# \\ EUPGUM5GYH5ZGQ6HZCA4HKF7AZWCVQREB4MKUOPL7UCKX7SRPDRL \\// C25519-BASE-32 //
+#  \\// 2Y3YD675BNSICEZJNVXVNX6C2BU3CU4EPWBTMAPNTC2SR73YYBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

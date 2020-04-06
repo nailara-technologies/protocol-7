@@ -1,0 +1,14 @@
+# >:]
+
+# name  = digest.bmw.strsum
+
+my $bmw = <[digest.bmw.ctx]>->(shift);
+die 'data parameter is undefined' if not defined $_[0];
+
+return encode_b32r( $bmw->add( shift // '' )->digest );
+
+# ______________________________________________________________________________
+#\\WITLPS2HWQT37VNK5EJ2NKDSODQ7DWJATQBQRYUE3MUCQRQPNF42DHRVVCYRXTXX7ULI2JDJYDXPC
+# \\ QNG3MXGY4I2IALQ5VOFKJC5X7GDUKOCWRUP2F7VS4TJAPZSPIE7F \\// C25519-BASE-32 //
+#  \\// PZRWXMV7BCL3EWB5K5CYLZIGAXNP2DWP6KV3CGE5ABOYJIV2CDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,42 @@
+# >:]
+
+# name  = weather.parent.cmd.clean_cache
+# param = [html|data|stations]
+# descr = erase weather data disk cache
+
+my $param     = $$call{'args'} // '';
+my $cache_dir = <weather.cache_dir>;
+my $city_file = "$cache_dir/city.current";
+
+return { 'mode' => 'nak', 'data' => "cache dir '$cache_dir' not found!" }
+    if !-d $cache_dir;
+
+return { 'mode' => 'nak', 'data' => 'parameter not recognized' }
+    if length($param)
+    and $param !~ /^(html|data|stations)$/;
+
+my @subdirs = ( 'data', 'html', 'station_ids' );    # default (all)
+
+@subdirs = ('data')     if $param eq 'data';
+@subdirs = ('html')     if $param eq 'html';
+@subdirs = ('stations') if $param eq 'stations';
+
+my $which_str = '';
+$which_str = " $param"     if length($param);
+$which_str = " station-id" if $param eq 'stations';
+
+<[base.log]>->( 1, "cleaning up weather$which_str cache... (requested)" );
+
+map { remove_tree( "$cache_dir/$_", { 'keep_root' => 1 } ) } @subdirs;
+
+# unlink($city_file) if -f $city_file; # LLL: would likely break restart!
+
+# LLL: update weather data and files... ; clean up weather data in ram...
+
+return { 'mode' => 'ack', 'data' => "weather$which_str disk cache cleared" }
+
+# ______________________________________________________________________________
+#\\7ADDZFABZHZEIOONC2477IXNZ33QUH2CQATTE6NKXRMW5FQPT7LYWWGXB5KQHUFA66BG23ZVLHINC
+# \\ FVNB7HUT76BSR3GWXCE2VBVL7IJHFZKQXXV37GPOV4WN2NXYCOYA \\// C25519-BASE-32 //
+#  \\// CN6M7SKMSKE3JYTRR7DQD6SCLSAL7W3OPKKQUBNIBXWDW6JK2DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,85 @@
+# >:]
+
+# name = ticker-gtk.init_code
+
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Glib::Event');
+<[base.perlmod.autoload]>->('Convert::Color');
+<[base.perlmod.autoload]>->('Cairo::GObject');
+<[base.perlmod.autoload]>->('Font::FreeType');
+<[base.perlmod.autoload]>->('Glib::Object::Introspection');
+
+Glib::Object::Introspection->setup(
+    basename => 'GdkX11',
+    version  => '3.0',
+    package  => 'Gtk3::Gdk'
+);
+
+open STDERR, '>>/dev/null' or warn "/dev/null: $!";
+
+<ticker-gtk.font.path> //= <system.root_path> . '/data/ttf/droid';
+<ticker-gtk.font.name>         //= 'DroidSans-Bold'; # LLL: <- load from config!
+<ticker-gtk.font.size_percent> //= 100;              # LLL: <- load from config!
+<ticker-gtk.use_transparency>  //= 1;
+<ticker-gtk.do_custom_fade_in> //= 1;
+<ticker-gtk.cfg.draw_outline>  //= 1;
+<ticker-gtk.animation_started> //= 0;
+<ticker-gtk.paused>            //= 0;
+<ticker-gtk.default_speed>     //= 16;
+<ticker-gtk.auto_speed_mode>   //= 0;
+<ticker-gtk.slowdown.percent>  //= 0;
+
+<ticker-gtk.request_rss_updates> //= 0;
+
+<base.callback_hooks.async_online> = ['ticker-gtk.callback.request_updates'];
+
+## LLL ###
+
+<ticker-gtk.speed> = <ticker.redraw_delay>
+    if defined <ticker.redraw_delay>    # LLL: change to 'speed' later
+    and <ticker.redraw_delay> =~ /^\d+$/
+    and <ticker.redraw_delay> >= 5
+    and <ticker.redraw_delay> <= 42;
+
+# LLL fix range [1..100?]
+<ticker-gtk.speed> = delete <ticker.speed>
+    if defined <ticker.speed>
+    and <ticker.speed> =~ /^\d+$/
+    and <ticker.speed> >= 5
+    and <ticker.speed> <= 42;
+
+<ticker-gtk.font.name> = <ticker.font.name> if defined <ticker.font.name>;
+<ticker-gtk.font.color> //= [ 0, 0, 0 ];
+
+my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
+<ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
+<ticker-gtk.bg_col>     = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
+<ticker-gtk.bg_alpha> = <ticker.cfg.bg_alpha> // 100;    # transparent default
+
+my $ovf = 0.94;    # <- outline value factor
+my $c = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
+my $hc        = $c->convert_to('hsv');
+my $new_value = sprintf( "%.3f", abs( $ovf - sprintf( "%.0f", $hc->value ) ) );
+my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
+
+<ticker.color.outline> = $oc->as_rgb8->hex;
+<ticker-gtk.ol_col>    = [ $oc->rgb ];
+
+##########
+
+# die "[!] font file not found [$font_path]" if !-f $font_path;
+
+# <[base.log]>->( 1, "loading ticker font '$font_name' ..." );
+# my $font_name = <ticker-gtk.font.name>;
+# my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
+# my $freetype = Font::FreeType->new;
+# my $ft_face  = $freetype->face($font_path);
+# <ticker-gtk.font_face> = Cairo::FtFontFace->create($ft_face);
+
+0;
+
+# ______________________________________________________________________________
+#\\VASOFJHYW4TMTVGZEVBBU5SUMSUR4QYSCBAWGV26BPVSUKHYLDTWNGDWGB3WJIO63HYH6QZCHAYMC
+# \\ HAQZXYM7X5DKQVU5KAC4A3POZ2OVJN3734GRH3MCGVUNVO7FQ33Q \\// C25519-BASE-32 //
+#  \\// EC76KX5UAUSYSF5BAZ2AVY4WINTW6MQ7R2Q7QCNW6ZLRZTGBWDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

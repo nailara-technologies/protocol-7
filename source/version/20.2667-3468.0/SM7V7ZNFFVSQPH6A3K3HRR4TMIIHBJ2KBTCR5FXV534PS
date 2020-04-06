@@ -1,0 +1,24 @@
+# >:]
+
+# name  = base.cmd.ntime
+# param = [fp_precision|unix_t]
+# descr = return nailara network time, current or unix
+
+my $param = $$call{'args'} // 0;
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected floating point precision or unix timestamp'
+    }
+    if $param =~ /\D/;
+
+return {
+    'mode' => 'ack',
+    'data' => <[base.ntime]>->($param)
+};
+
+# ______________________________________________________________________________
+#\\KZ434IYGGRBCKCVR5XMGOJD7SZH2TSSRDYED6OL7Y2TONJWUKQUK2H36VHKXNA4ABUWY26D3JLCZQ
+# \\ 7BZPWVSSIMRGHMISIKFME26MH6LFLIXT3YFABW42RQZUBJ4GNMEE \\// C25519-BASE-32 //
+#  \\// 3OVGV4IU5PSUS7PGBW4QBT5273GUAPINJ6KM67TVUTSIE2G6OBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

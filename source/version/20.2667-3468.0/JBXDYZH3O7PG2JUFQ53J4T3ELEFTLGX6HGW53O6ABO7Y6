@@ -1,0 +1,26 @@
+# >:]
+
+# name = config.json.cmd.get-config-names
+# descr = return list of exportable configurations
+
+my $agent_name    = <system.agent.name>;
+my $rules_subname = "$agent_name.config.export_rules";
+
+return {
+    'mode' => 'nak',
+    'data' => "no export rules defined for agent '$agent_name'!"
+    }
+    if not exists $code{$rules_subname};
+
+my $export_rules = $code{$rules_subname}->();
+
+return {
+    'mode' => 'data',
+    'data' => join( '', map {"$_\n"} sort keys( %{ $export_rules->{'keys'} } ) )
+};
+
+# ______________________________________________________________________________
+#\\JZG6GMEQTQPY2FTEMFGU5WGMUMVC7FQTQQCAMWRKIDE4IWAJEOXA4H6DGIRZ6KGIPRUM5BJFHJRJG
+# \\ L224MSDRGK7DYSDCAYYMCUWMZAVLW5DOMXTEWTZHGTG4YEBYJUCV \\// C25519-BASE-32 //
+#  \\// RNLOVGBQZLWMKN6KLXR3PLZPAMDZO44N55AB7SSKDFYUOJCCEBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

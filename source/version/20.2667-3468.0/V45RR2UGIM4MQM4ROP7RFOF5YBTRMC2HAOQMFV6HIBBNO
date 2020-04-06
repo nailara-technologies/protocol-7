@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.x11.get_layer
+
+return if defined <x11.layout.layer> and <x11.layout.layer> =~ /^\d+$/;
+undef <x11.layout.layer> if defined <x11.layout.layer>;
+
+my ($local_sid) = keys( %{<user.core.session>} );
+
+my $agent_name
+    = ( defined <system.agent.mode> and <system.agent.mode> eq 'media-child' )
+    ? 'media'
+    : <system.agent.name>;
+my $subname  = <system.agent.subname>;
+my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
+
+<[base.log]>->( 1, "requesting $name_str layer position" );
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)layout.get_layer $name_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+<x11.layout.layer> = $1 if $reply_string =~ /^\($cmd_id\)ACK (\d+)\n$/;
+<[base.log]>->( 2, "layout layer for '$name_str' = " . <x11.layout.layer> )
+    if defined <x11.layout.layer>;
+
+# ______________________________________________________________________________
+#\\6QE7G6NJBB3QNP3F5RQNCYY57SSZKI5UAMG4YP2BUU32SIJHJ3GR3UJSVEPWFSD5SX6NILJUZ2Q2E
+# \\ OSW7ZEWD33MFUZF5V6426LRYTGBIGA3NL4ROBWPS42MBF7M6EHL5 \\// C25519-BASE-32 //
+#  \\// I6COPFYTZKC3JTSTZWTQ22PSFVPIB2MEPOXMSNLCQZJ7DJW4OBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

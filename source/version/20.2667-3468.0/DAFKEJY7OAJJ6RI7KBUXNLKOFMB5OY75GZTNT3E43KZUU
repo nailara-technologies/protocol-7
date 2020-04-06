@@ -1,0 +1,131 @@
+# >:]
+
+# name  = ffmpeg.cmd.rescale_video
+# param = <src> <size> [box] [path]
+# descr = rescale video dimensions
+
+my $params = shift->{'args'};
+my ( $video_path, $new_size, $box_size, $target_path ) = split( / +/, $params );
+
+my $format = <ffmpeg.output_format> // 'mp4';
+
+if ( not defined $target_path and $box_size !~ /^\d+x\d+$/ ) {
+    $target_path = $box_size;
+    undef $box_size;
+}
+
+return { 'mode' => 'nak', 'data' => 'expected path to video file' }
+    if not defined $video_path;
+return { 'mode' => 'nak', 'data' => 'expected new video size' }
+    if not defined $new_size;
+return { 'mode' => 'nak', 'data' => 'syntax error in video size parameter' }
+    if $new_size !~ /^\d+(x\d+)?$/;
+return { 'mode' => 'nak', 'data' => 'syntax error in box size parameter' }
+    if defined $box_size and $box_size !~ /^\d+x\d+$/;
+return { 'mode' => 'nak', 'data' => 'target_path does not exist' }
+    if defined $target_path and !-d $target_path;
+return { 'mode' => 'nak', 'data' => 'video file not found!' }
+    if !-f $video_path;
+
+my ( $w, $h ) = ( $1, $3 ) if $new_size =~ /^(\d+)(x(\d+))?$/;
+return {
+    'mode' => 'nak',
+    'data' => 'invalid size parameters for libx264 codec'
+    }
+    if $w % 16
+    or defined $h and $h % 2;
+
+$box_size //= $new_size;
+( my $video_name = $video_path ) =~ s|^.*/||;
+
+my $size_msg = $new_size;
+if ( $new_size !~ /x/ ) {
+    $size_msg = "width:$new_size";
+    $new_size = "$new_size:-1";
+}
+
+<[base.log]>->(
+    1, "rescaling video '$video_name' ($size_msg) [box:$box_size] ..."
+);
+
+my $output_path;
+$new_size =~ s|x|:|;
+
+if ( defined $target_path ) {
+    ( $output_path = $video_path ) =~ s|^.+/([^/]+)$|$target_path/$1|;
+} else {
+    ( $output_path = $video_path ) =~ s|/([^/]+)$|/rescaled/$1|;
+}
+
+if ( !-d $output_path ) {
+    make_path($output_path) or die "make_path($output_path): $!";
+}
+
+my $partial_output_file = "$output_path/$box_size...converting...$format";
+if ( -f $partial_output_file ) {
+    <[base.log]>->( 0, ": found partial output file, cleaning up..." );
+    unlink($partial_output_file) or warn "unlink($partial_output_file): $!";
+}
+unlink($partial_output_file);
+my $output_file = "$output_path/$box_size.$format";
+
+my @audio_codec = <ffmpeg.drop_audio> ? ('-an') : ( '-c:a', 'aac' );
+
+my @ffmpeg_params = (
+    <ffmpeg.path.ffmpeg_bin>,  '-i',
+    $video_path,               '-loglevel',
+    'error',                   '-y',
+    '-strict',                 '-2',
+    '-preset',                 'medium',
+    @audio_codec,              '-c:v',
+    'libx264',                 '-x264-params',
+    'crf=' . <ffmpeg.quality>, '-vf',
+    "scale=$new_size",         '-threads',
+    <ffmpeg.threads>,          $partial_output_file
+);
+
+<[base.log]>->( 2, "executing '" . join( ' ', @ffmpeg_params ) . "'" );
+
+new_log_name:
+my $error_log_file = sprintf( "/tmp/.ffmpeg.$$.%f.log", <[base.time]>->(5) );
+goto new_log_name if -e $error_log_file;
+
+if ( !-f $output_file ) {
+    local $ENV{'FFREPORT'} = "file=$error_log_file:level=16";
+    if ( system(@ffmpeg_params) != 0 or $? == -1 or $? & 127 ) {
+        unlink($partial_output_file) if -f $partial_output_file;
+        my $err_str = $!;
+        if ( -f $error_log_file ) {
+            my $log_content = <[file.slurp]>->($error_log_file);
+            my @log_lines   = split( /\n/, $$log_content );
+            if ( scalar(@log_lines) > 3 ) {
+                $err_str = $log_lines[2];
+            } elsif (@log_lines) {
+                $err_str = pop(@log_lines);
+            }
+        }
+        <[base.log]>->(
+            0,
+            "ffmpeg unable to execute: $err_str ("
+                . join( ' ', @ffmpeg_params ) . ")"
+        );
+        return {
+            'mode' => 'nak',
+            'data' => "ffmpeg unable to execute [$err_str]"
+        };
+    } else {
+        rename( $partial_output_file, $output_file )
+            or warn "rename failed: $!";
+    }
+}
+unlink($error_log_file) if -f $error_log_file;
+
+<[base.log]>->( 1, ": done. (success)" );
+
+return { 'mode' => 'ack', 'data' => $output_file }
+
+# ______________________________________________________________________________
+#\\7ZMVKKAP6W532EZV5S52XGQF6F4INWPC6MDLAHQ3WCIZ6YK5KNZOLJWPCJ23GFSZEZ56WV7PBCG52
+# \\ XAWWNANRPSAD6GQU6W3KBKCK46IRQYCRWPYVHP4TR5XPFYJPU24Y \\// C25519-BASE-32 //
+#  \\// NXLY4JJVEJCUKIQ42XPIYBMTR2T3IVOD74NPVOJ6EHTWGAMECAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

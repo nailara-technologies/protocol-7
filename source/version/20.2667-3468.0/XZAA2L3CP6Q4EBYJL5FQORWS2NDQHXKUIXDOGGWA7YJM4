@@ -1,0 +1,48 @@
+# >:]
+
+# name  = base.cmd.source-age
+# param = ['date']
+# descr = installed nailara 'protocol-7' code age
+# additional param = [year_float]
+
+my $param_str = shift->{'args'} // '';
+my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
+
+my $year_float = 2000 + $1 if <nailara.source_version> =~ /^(\d+(\.\d+)?)\-/;
+
+if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
+    and length($param_str) ) {    # <- no second param for non-core type agents!
+    return {
+        'mode' => 'nak',
+        'data' => "ask a 'core'-type agent for custom values"
+    };
+} elsif ( $param_str =~ /^(\d{1,5}+(\.\d{1,5})?)\-?/ ) {
+    $year_float = 2000 + $1;
+} elsif ( length($param_str) ) {
+    return {
+        'mode' => 'nak',
+        'data' => "invalid version timestamp syntax [ see 'source_version' ]"
+    };
+}
+
+my $year_int  = int($year_float);
+my $ydays     = <[base.time.is_leap_year]>->($year_int) ? 365 : 364;
+my $day_float = sprintf( "%.5f", $ydays * ( $year_float - $year_int ) );
+my $vers_unix = timegm_nocheck( 0, 0, 0, $day_float, 0, $year_int );
+
+return {
+    'mode' => 'ack',
+    'data' => <[base.parser.timestamp]>->($vers_unix)
+    }
+    if $date_mode;
+
+return {
+    'mode' => 'ack',
+    'data' => <[base.parser.duration]>->($vers_unix)
+    }
+
+# ______________________________________________________________________________
+#\\MDLS7MNSLXHBK532VBBVL5SJMQTRCFLPS2OVO56BKSES5OKF5AHISVLRAZ4VARY27RQGYZ4XYGI5W
+# \\ IQLMQNSL5RR5KCAS3W5UZ5MC22IAAXQ3MSEP2REI7VRXVHD5APLT \\// C25519-BASE-32 //
+#  \\// VAWGHIC65HFT7AF4UX2VVHZR3MKQPEELJVEARH6MHYXWBIAZ2AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

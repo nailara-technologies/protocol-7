@@ -1,0 +1,46 @@
+# >:]
+
+# name = base.file.all_links
+
+my ( $path, $result_href ) = @_;
+my $old_path;
+my $recursive         = 0;
+my $recursion_entered = 0;
+if ( not defined $result_href ) {
+    $result_href = {};
+} elsif ( $result_href eq 'recursive' ) {
+    $result_href = {};
+    $recursive   = 1;
+} else {
+    $recursion_entered = 1;
+}
+
+if ( -d $path ) {
+    my $dir_fh;
+    $path =~ s/\/+$//;
+    if ( !opendir( $dir_fh, $path ) ) {
+        <[base.log]>->( 0, "can not open directory '$path' [$!]" );
+        return undef;
+    }
+    foreach my $entry ( sort( readdir($dir_fh) ) ) {
+        next if $entry =~ /^\.{1,2}$/;
+        my $file_path = "$path/$entry";
+        next if -f $file_path and !-l $file_path;
+
+        if ( -l $file_path ) {
+            my $link_val = readlink($file_path);
+            $result_href->{$file_path} = $link_val;
+        } elsif ( $recursive and -d $file_path ) {
+            my $result = <[file.all_links]>->( $file_path, $result_href );
+            $result_href->{$file_path} = $result if -l $file_path;
+        }
+    }
+}
+
+return $result_href if !$recursion_entered;
+
+# ______________________________________________________________________________
+#\\N3WFOVU3PEJQ7UY4NXK6B6BRYZKG2DNMGCWAGYQHRFDR44TK2ZWKSYJVKF54TUYTCAU5YTWXSOLXY
+# \\ YXGGEHF5JF7M3QO3KE4LAJHMQLPG6OCGRJ2MU44TFBCWNSRUGLDR \\// C25519-BASE-32 //
+#  \\// 6PI7N7BOY32F7XV7FDX7EHAU7PUGIU3EX7G5B5TS4EEKLNSSQCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

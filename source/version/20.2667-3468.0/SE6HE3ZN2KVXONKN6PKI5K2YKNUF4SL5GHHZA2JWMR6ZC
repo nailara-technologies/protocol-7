@@ -1,0 +1,24 @@
+# >:]
+
+# name = crypt.C25519.init_code
+
+<crypt.C25519.initialized> //= 0;
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+<[base.perlmod.load]>->(
+    'Crypt::Misc', map { $_ . '_b32r', $_ . '_b64u' } qw| encode decode |
+);
+<[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw| random_string_from | );
+
+<[base.perlmod.autoload]>->('Crypt::Ed25519');
+<[base.perlmod.autoload]>->('Crypt::Curve25519');
+
+<crypt.C25519.key_usr> //= <system.privs.user>;    # <- C25519 key path owner
+
+0;
+
+# ______________________________________________________________________________
+#\\P33U6KQ76E4Y7EWKRGM6QIHIAGLEJ6ROGJQYDJONYUK7Y5FNKI5MUZVIYJZJL2TJBFIZPXGUWLNCY
+# \\ 3HSKMWPH6GMUYP6ESINJ7GZXY6SMUCY7R6WRPT7KQQ64TZACDMDU \\// C25519-BASE-32 //
+#  \\// BZYCG4VBCZLGH6RDZ2H6UQBAB7GI4NG2RESILNXLR5LAYYG3GCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

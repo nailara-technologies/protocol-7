@@ -1,0 +1,38 @@
+# >:]
+
+# name = ticker-sdl.sdl.raise_and_fade
+
+my $window_id = <ticker-sdl.window_id>;
+die "got no window id for ticker display" if not defined $window_id;
+
+<ticker-sdl.opacity> //= 100;
+<ticker-sdl.opacity> = 5   if <ticker-sdl.opacity> < 5;
+<ticker-sdl.opacity> = 100 if <ticker-sdl.opacity> > 100;
+
+<[base.x11.set_window_opacity]>->( $window_id, 0, 'parent' );
+
+<[base.x11.raise_window]>->( $window_id, 'parent', 'core' );
+<[base.x11.keep_above]>->( $window_id, 'parent', 'core' );
+<ticker-sdl.window.raised> = 1;
+
+<[base.log]>->(
+    1, "fading in ticker display to " . <ticker-sdl.opacity> . "% .."
+);
+
+for my $count ( 1 .. 4 ) {    # making sure white background is already drawn
+    unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+        SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+            <sdl.display_height> );
+    }
+    <[base.x11.set_window_opacity]>->( $window_id, $count, 'parent' );
+}
+
+for my $opacity ( 5 .. <ticker-sdl.opacity> ) {
+    <[base.x11.set_window_opacity]>->( $window_id, $opacity, 'parent' );
+}
+
+# ______________________________________________________________________________
+#\\RU6GY3QP5ZEVY6VEFNM5LFYWASDKFCZRBA4XTARFI3KR36W5NPYQTRFDAFY57A3SBHAYDUAQZA7LS
+# \\ DIXXT5QS2ZMPHPNIYQYN2EGI7KGCRENYATMNUFV2VCCRJ2VHYL4E \\// C25519-BASE-32 //
+#  \\// KGMS57USDZ74HO4QA5GHJ26MHULRSPMPFTRLQMMZPDK7NV3SUDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

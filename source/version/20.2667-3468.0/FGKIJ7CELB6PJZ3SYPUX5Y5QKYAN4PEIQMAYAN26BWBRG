@@ -1,0 +1,50 @@
+# >:]
+
+# name  = layout.cmd.switch_to
+# param = <layout_name>
+# descr = switch to specified layout
+# todo  = actually process the layout switch ['base_layout' etc..]
+
+my $layout_name = $$call{'args'};
+
+<layout.transition_queue> //= [];
+
+return {
+    'mode' => 'nak',
+    'data' => "expected valid layout name"
+    }
+    if not defined $layout_name or !length($layout_name);
+return {
+    'mode' => 'nak',
+    'data' => "layout \"$layout_name\" not found!"
+    }
+    if not exists <layout.config.layouts>->{$layout_name};
+
+if (<layout.transition_in_progress>) {
+    push( @{<layout.transition_queue>}, $layout_name );
+    return {
+        'mode' => 'ack',
+        'data' => "transition queued..."
+    };
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "layout '$layout_name' is already active."
+    }
+    if $layout_name eq <layout.current_layout>;
+
+<layout.transition_in_progress> = 1;
+
+<[layout.switch_layout]>->($layout_name);
+
+return {
+    'mode' => 'ack',
+    'data' => "switching to layout '$layout_name'"
+};
+
+# ______________________________________________________________________________
+#\\SKDUPDXWDZA5MFD3BBE54CPZMSE36GNFLB5OADSH3T6VINIJ6B6EQ254XBDG7JV7DNTW3B3G56UPE
+# \\ UFC7J3LHPKEFJKBYQAVJHV65R64FOHXXPDTYJW5AWT5GG5563Y3F \\// C25519-BASE-32 //
+#  \\// 3TAIBQG2BTLPGTHEC35HQ7UY246YCFJOPEX5TEU2MWXU4KJ3CCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

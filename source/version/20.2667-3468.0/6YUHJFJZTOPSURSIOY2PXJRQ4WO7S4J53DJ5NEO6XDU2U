@@ -1,0 +1,95 @@
+# >:]
+
+# name  = weather.child.cmd.get_station_id
+# param = <location>
+# descr = query / return station id for location name
+
+my $station_id;
+my %total_matches;
+my $location_name = $$call{'args'};
+
+my $use_first_match = <weather.cfg.first-location-match> //= 0;
+my $language_code   = <weather.cfg.language> // <system.language>;
+my $country_code = uc($language_code);    # <- LLL: coincidental only, geoloc?
+
+return { 'mode' => 'nak', 'data' => 'expected location name parameter' }
+    if not defined $location_name or !length($location_name);
+
+my $query_str = "find?q=$location_name";
+
+my $retry_with_country_code = 0;
+NO_MATCH_RETRY:
+
+$query_str .= ",$country_code" if $retry_with_country_code;
+
+my $json_response = <[weather.child.query_api]>->($query_str);
+
+return { 'mode' => 'nak', 'data' => 'weather API query failed' }
+    if not defined $json_response;
+
+return { 'mode' => 'nak', 'data' => 'found no station for given location' }
+    if !$json_response->{'count'};
+
+my $country = $1 if $location_name =~ s|\,(\w+)$||;
+
+my $result_count = scalar( @{ $json_response->{'list'} } );
+
+my $matches = 0;
+foreach my $location_data ( @{ $json_response->{'list'} } ) {
+    my $match_name = $location_data->{'name'};
+    $total_matches{ $location_data->{'id'} } = $match_name;
+    if (   $result_count == 1
+        or $match_name =~ /^$location_name/i ) {
+
+        if ( $use_first_match and $matches ) {
+            <[base.log]>->(
+                1, "multiple matches, using first one, as configured <<!>>"
+            );
+            last;
+        }
+
+        $station_id = $location_data->{'id'};
+        <[base.log]>->(
+            1, "found location '$match_name' [ station_id = $station_id ]"
+        );
+        <weather.cache_data>->{$station_id}
+            = { 'timestamp' => time, 'data' => $location_data };
+        $matches++;
+    }
+    if ( $matches > 1 and !$use_first_match ) {
+        <[base.log]>
+            ->( 0, "<<!>> too many stations [ $result_count matches ]" );
+        undef $station_id;
+    }
+}
+
+if ( not defined $station_id and $query_str !~ m|\s*,\s*\u\w\w$| ) {
+    my $match_str = $matches == 0 ? 'no direct match' : 'too many matches';
+    <[base.log]>->( 0, "$match_str, retrying with country code $country_code" );
+    $retry_with_country_code = 1;
+    goto NO_MATCH_RETRY;
+}
+
+if ( not defined $station_id ) {
+    my $lpath = "/tmp/weather.replied-locations." . encode_b32r($location_name);
+    my @match_entries = map {"[ID=$_] $total_matches{$_}"} keys %total_matches;
+    my $matched_names_list
+        = join( '',
+        map {"$_\n"} sort { length $a <=> length $b } @match_entries );
+    eval { <[file.put]>->( $lpath, $matched_names_list ) };
+    <[base.log]>->( 0, "returned locations -> $lpath" ) if !$@;
+}
+return {
+    'mode' => 'nak',
+    'data' => "cannot match the $result_count returned stations to requested"
+        . " location"
+    }
+    if not defined $station_id;
+
+return { 'mode' => 'ack', 'data' => $station_id }
+
+# ______________________________________________________________________________
+#\\ZFZTUE6DXCHLYEMDKX7EUDGEDTHRP4W7DPOK2HI6J6H6ZPFQ5ORLY4XRIMAAOBBCGBUHEBMIRJZRQ
+# \\ XI6COCU7BNZRDUJFULMEN2AC7PPUKURW6KBFY473OQMNLDGM5IRK \\// C25519-BASE-32 //
+#  \\// DSJ727QBZCSQ5NR33XD433CXMOIIXIMDWRSLMN6HLY2S7IQ2IBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

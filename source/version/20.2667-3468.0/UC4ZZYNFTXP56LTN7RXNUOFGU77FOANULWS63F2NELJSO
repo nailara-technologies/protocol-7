@@ -1,0 +1,54 @@
+# >:]
+
+# name = weather.parent.wind.calculate_beaufort
+
+my $speed = shift;
+my $units = <weather.cfg.units>;
+
+die "expected numerical wind speed parameter"
+    if not defined $speed or $speed !~ /^\d+(\.\d+)?$/;
+
+my $beaufort;
+
+if ( $units eq 'metric' ) {
+    $beaufort = 0  if $speed < 0.3;
+    $beaufort = 1  if $speed >= 0.3 and $speed < 1.6;
+    $beaufort = 2  if $speed >= 1.6 and $speed < 3.4;
+    $beaufort = 3  if $speed >= 3.4 and $speed < 5.5;
+    $beaufort = 4  if $speed >= 5.5 and $speed < 8;
+    $beaufort = 5  if $speed >= 8 and $speed < 10.8;
+    $beaufort = 6  if $speed >= 10.8 and $speed < 13.9;
+    $beaufort = 7  if $speed >= 13.9 and $speed < 17.2;
+    $beaufort = 8  if $speed >= 17.2 and $speed < 20.8;
+    $beaufort = 9  if $speed >= 20.8 and $speed < 24.5;
+    $beaufort = 10 if $speed >= 24.5 and $speed < 28.5;
+    $beaufort = 11 if $speed >= 28.5 and $speed < 32.7;
+    $beaufort = 12 if $speed >= 32.7;
+} else {
+
+    # LLL: imperial ...
+}
+
+return $beaufort;
+
+#     BF        KN              m/s             km/h            mph
+
+#     0 	0 - <1  	0,0 - <0,3 	0 - 1 	        0 - <1,2
+#     1 	1 - <4  	0,3 - <1,6 	1 - 5 	        1,2 - <4,6
+#     2 	4 - <7  	1,6 - <3,4 	6 - 11 	        4,6 - <8,1
+#     3 	7 - <11 	3,4 - <5,5 	12 - 19 	8,1 - <12,7
+#     4 	11 - <16 	5,5 - <8,0 	20 - 28 	12,7 - <18,4
+#     5 	16 - <22 	8,0 - <10,8 	29 - 38 	18,4 - <25,3
+#     6 	22 - <28 	10,8 - <13,9 	39 - 49 	25,3 - <32,2
+#     7 	28 - <34 	13,9 - <17,2 	50 - 61 	32,2 - <39,1
+#     8 	34 - <41 	17,2 - <20,8 	62 - 74 	39,1 - <47,2
+#     9 	41 - <48 	20,8 - <24,5 	75 - 88 	47,2 - <55,2
+#     10 	48 - <56 	24,5 - <28,5 	89 - 102 	55,2 - <64,4
+#     11 	56 - <64 	28,5 - <32,7 	103 - 117 	64,4 - <73,6
+#     12 	>= 64           >= 32,7 	>= 117 	        >= 73,6
+
+# ______________________________________________________________________________
+#\\W5T7QU6W6FGJ6AAISMZZJJHPLQXUJ3M2IIOYCEQOJFZFYUSG2QWYY2NCW5PDJOGF77GY4F5LIZSV4
+# \\ DW4OJPJ3KOGGOFWCSGD4VJ7JNGSG3CKIOC3TML4YVFHERESC3BLC \\// C25519-BASE-32 //
+#  \\// HK2NMICA2HB4QRCGRZBX4WAGF6OPM5KBAFOFOJVNKZZX54H4MDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,28 @@
+# >:]
+
+# name = mpv.handler.event.property-change.volume
+
+<mpv.current.volume> = shift->{'data'};
+
+<mpv.current.volume_target> //= <mpv.start_volume>;
+<mpv.current.volume_target> = <mpv.current.volume>
+    if not exists <mpv.current.volume_fading>
+    and ( <mpv.current.volume>
+    or !<mpv.current.volume> and <mpv.current.volume_target> == 1 );
+
+<mpv.startup.volume_initialized> //= 0;
+if (
+    (      <mpv.fade_idle_volume>
+        or <mpv.start_volume> != 100
+    )
+    and !<mpv.startup.volume_initialized>
+) {
+    <[mpv.callback.init_volume]> if <mpv.current.volume> != <mpv.start_volume>;
+    ++<mpv.startup.volume_initialized>;
+}
+
+# ______________________________________________________________________________
+#\\GY5IK6ZSJJVNVEE4LPM7QXVODPJBGCBIIVLPC3ULM3XG76U72KR2I65J6PAEMR52HQGAROXAGFN46
+# \\ SQS4NOCN3CIQIVLEJZTDGOZRRL4D62EQNXSI4VXPWH5RPCU3B3W3 \\// C25519-BASE-32 //
+#  \\// PAWQIFEC56R5ENPK2FZ6I7JHHBX7A6AILXYE6KVUWPEIN2AL2BY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

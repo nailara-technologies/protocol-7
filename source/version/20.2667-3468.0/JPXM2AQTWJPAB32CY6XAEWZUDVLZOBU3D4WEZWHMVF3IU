@@ -1,0 +1,27 @@
+# >:]
+
+# name = base.get_homedir
+
+my $user = shift // $ENV{'HOME'} // '';
+
+if ( $user eq '' ) {
+    $user = getpwuid($>);    # current user(id)
+} elsif ( $user =~ /^\d+$/ ) {
+    $user = getpwuid($user);    # given by uid
+}    # else provided as name!
+
+my $homedir = [ getpwnam($user) ]->[7];
+
+if ( length($homedir) ) {
+    <[base.log]>->( 2, "[get_homedir] '$user' -> '$homedir'" );
+} else {
+    <[base.log]>->( 1, "<!> no home directory [user '$user'] <!>" );
+}
+
+return $homedir;
+
+# ______________________________________________________________________________
+#\\DYFMOU5DXZCO7OZXHPQAVAAUK4FWVBW53ANXGGQF7DIQ3QWVPQAIN46FARPFTHSD7BSSSW7TI24SQ
+# \\ 3HMWSHCUEVYNBZVSI7ENRS5WNZ234JSHBVSCOSWPBQC7THXG6SMH \\// C25519-BASE-32 //
+#  \\// PW3ZCNQ6LBAHS44XFOFCH6R7DHMLNPAXZ22FHLSFU36EF5G6GCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

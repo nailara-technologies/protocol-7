@@ -1,0 +1,21 @@
+# >:]
+
+# name  = browser.cmd.get_bg_uri
+# descr = return current URI from background view
+
+my $bg_index = <browser.overlay.index>->{'bg'};
+my $view     = <browser.gtk_obj.view>->{$bg_index};
+
+my $background_uri = $view->get_uri;
+
+if ( !length($background_uri) ) {
+    return { 'mode' => 'nak', 'data' => 'background view is empty' };
+} else {
+    return { 'mode' => 'ack', 'data' => $background_uri };
+}
+
+# ______________________________________________________________________________
+#\\G2227KOGJCCDDBR74HMYDKNBPYYCFWOSAUCHHY3D32OEPLVY6QBHG7QHPGX3WKEZEWWEYRHVRAC3W
+# \\ 5XGTCV5VP5QB3LTOZYXSSHVVLQC422C35TSQMMTPEAQVNHCHKK24 \\// C25519-BASE-32 //
+#  \\// I5KTUFWLT52ZEK4NMUULACWPFLR5VTD7TCYOTYXIFRD7MBVOYDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

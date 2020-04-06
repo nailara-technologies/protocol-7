@@ -1,0 +1,54 @@
+# >:]
+
+# name = nroot.handler.status_response_timeout
+
+my $instance_id     = shift->w->data;
+my $instance        = <nroot.agent.instance>->{$instance_id};
+my $agent_name      = $instance->{'agent_name'};
+my $agent_status    = $instance->{'status'};
+my $is_core_agent   = $instance->{'is_core'};
+my $error_count     = $instance->{'heartbeat'}->{'errors'}++;
+my $heartbeat_retry = $error_count ? 0 : 1;                      # retrying once
+my $retry_str       = $heartbeat_retry ? ' [retrying..]' : '';
+<[base.log]>->(
+    0,
+    "instance $instance_id [$agent_name] status response [ TIMEOUT ]$retry_str"
+);
+
+if ( !$heartbeat_retry ) {    # [no more retries]
+    if ($is_core_agent) {
+        if ( $agent_status eq 'error' ) {    # was already not successful
+            <callback.session.closing_last> = {
+                'name'   => 'nroot.teardown',
+                'params' => ['fatal core agent error']
+            };
+            <[base.session.check_remaining]>;
+        } else {
+            delete <callback.session.closing_last>;    # allowing safe restart
+            <[agent.change_status]>->( $instance_id, 'error' );
+        }
+    } else {
+        <[agent.change_status]>->( $instance_id, 'error' );
+    }
+} else {
+
+    # setting shorter heartbeat timeout..
+    $instance->{'timeout_timer'}->cancel
+        if defined $instance->{'timeout_timer'}
+        and $instance->{'timeout_timer'}->is_active;
+    $instance->{'timeout_timer'} = <[event.add_timer]>->(
+        {   'after'   => $instance->{'heartbeat'}->{'retry_timeout'} // 2,
+            'handler' => 'nroot.handler.status_response_timeout',
+            'data'    => $instance_id
+        }
+    );
+    <[nroot.cancel_status_timer]>->($instance_id);
+    <[nroot.enable_status_timer]>->( $instance_id, 0 );    # <- retrying now [0]
+
+}
+
+# ______________________________________________________________________________
+#\\BW6UDZCFUNQJCP6M4INNQPUV2NSHPNOIMZI4ZBV7BELRUDDFHGGXGHNI3YXCC6FTMZEQXU672K4IW
+# \\ XCDWOU2HIDKP42JOVIDTWRDJB4SOC7OP6PCLRQF4K6GNGNMRXVST \\// C25519-BASE-32 //
+#  \\// EOF6PKUNZILT74P6PILURP2XBPOE56F4F7AX6M3UPTOFD2NDMDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

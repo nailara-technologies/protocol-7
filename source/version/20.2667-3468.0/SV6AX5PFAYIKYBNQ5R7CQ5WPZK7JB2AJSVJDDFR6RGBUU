@@ -1,0 +1,160 @@
+# >:]
+
+# name = browser.open_window
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+my ( $size_x, $size_y, $pos_x, $pos_y )
+    = ( $1, $2, sprintf( "%.0f", $4 ), sprintf( "%.0f", $5 ) )
+    if defined <browser.geometry>
+    and <browser.geometry> =~ /^(\d+)x(\d+)(([\-\+]\d+)([\-\+]\d+))?$/;
+
+<browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
+<browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
+
+Gtk3->init;
+
+<[base.log]>->( 1, "window initializaion..," );
+
+my $window = Gtk3::Window->new('toplevel');
+
+<browser.gtk_obj.window> = $window;
+if ( defined <browser.cfg.change_cursor> ) {
+    my $cursor = Gtk3::Gdk::Cursor->new(<browser.cfg.change_cursor>);
+    $window->get_root_window->set_cursor($cursor);
+}
+
+$window->signal_connect( destroy => sub { Gtk3->main_quit() } );
+
+$window->set_title(<browser.window.title_str>);
+
+$window->move( $pos_x, $pos_y );
+$window->set_default_size( $size_x, $size_y );
+
+my $overlay = Gtk3::Overlay->new();
+<browser.gtk_obj.overlay> = $overlay;
+
+<browser.gtk_obj.css_prov> = Gtk3::CssProvider->new();
+<browser.gtk_obj.css_prov>->load_from_data(<<'EOT');
+*undershoot.top, *undershoot.right, *undershoot.bottom, *undershoot.left {
+    background-image: none;
+}
+EOT
+
+# web context setup #
+
+my $web_context = Gtk3::WebKit2::WebContext->new();
+
+my $proc_model = 'WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES';
+$web_context->set_process_model($proc_model);
+
+if (<browser.cfg.no_memory_cache>) {
+
+    $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
+    <[base.log]>->( 1, ": deactivating in-memory cache.." );
+} else {
+
+    <[base.log]>->( 1, ": moderate caching enabled.." );
+    $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER');
+
+    # LLL: deal with cache size / auto-clear...
+    # $web_context->set_cache_model('WEBKIT_CACHE_MODEL_WEB_BROWSER');
+
+}
+
+<browser.gtk_obj.web_context> = $web_context;
+
+map { <[browser.init_view]>->($_) } ( 1, 2 ); # will use initialized web context
+
+<browser.gtk_obj.overlay>
+    ->reorder_overlay( <browser.gtk_obj.scrolled_window>->{2}, 0 );
+
+<browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
+
+$window->signal_connect(
+    'size_allocate',
+    sub {
+        &{ $code{'browser.handler.size_allocate'} };
+    }
+);
+
+$window->add($overlay);
+
+$window->show_all();
+
+$window->iconify() if <system.agent.mode> eq 'media-child';
+
+Glib::Idle->add(
+    sub {
+        <[browser.wait_for_window]>;
+
+        # handle previous segfaults [ should there have been any ]
+        <[browser.process_crash_mitigation]>;
+
+        if (<browser.slideshow.autostart>) {
+            <[base.log]>->( 1, ':: slideshow autostart is enabled ::' );
+            <[browser.get_url_list]>;
+        }
+        return 0;
+    }
+);
+
+map { <base.watcher.signal>->{$_}->cancel }
+    grep ( !/hup/, keys %{<base.watcher.signal>} );
+
+undef %SIG;
+$SIG{'INT'} = $SIG{'TERM'} = sub {
+    undef %SIG;
+    <browser.shutting_down> //= 0;
+    return if <browser.shutting_down>;
+    <browser.shutting_down> = 1;
+
+    my $url_file = '/tmp/.nailara.browser.' . $$;
+    unlink($url_file) if -f $url_file;    # clean shutdown
+
+    map { <browser.timer>->{$_}->cancel } keys %{<browser.timer>};
+
+    <[base.log]>->( 1, "shutting down ..." );
+
+    <browser.slideshow.no_switch> = 1;
+    <browser.slideshow.paused>    = 1;
+    map {
+        my $view     = <browser.gtk_obj.view>->{$_};
+        my $settings = $view->get_settings;
+        $settings->set_enable_javascript(0);
+        $view->set_settings($settings);
+    } keys %{<browser.gtk_obj.view>};
+
+    delete <browser.quit_fade.start_time>;
+    <browser.signal_id> //= {};
+    {
+        local $SIG{'__WARN__'} = sub { };
+        map {
+            <browser.gtk_obj.window>
+                ->signal_handler_disconnect( delete <browser.signal_id>->{$_} )
+            }
+            keys %{<browser.signal_id>};
+    }
+
+    if ( !<browser.cfg.use_transparency> ) {
+        Gtk3->main_quit();
+        exit(0);
+    } else {
+        Glib::Timeout->add(
+            300,
+            sub {
+                <browser.gtk_obj.window>->signal_connect(
+                    draw => $code{'browser.handler.quit_fade_out'} );
+                <browser.gtk_obj.window>->queue_draw;
+                return 0;
+            }
+        );
+        return 0;
+    }
+};
+
+# ______________________________________________________________________________
+#\\3RIIAVVYDW5HGDCASYQ36SUFR24EUY2W7JKIOYQQHK3WMURFP2RATMED4XBHCVW3FUYHDWRSUQFTW
+# \\ GMS3B2CLP27QF7MECO6QOWKXYCAUYDRL5RQPGZYQMY5JFQGNJW3J \\// C25519-BASE-32 //
+#  \\// A2XNKLXQAOG3FYQMDU3A6OD4FDTVW6ZDUZVTLRB5W4J7SLOYYBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

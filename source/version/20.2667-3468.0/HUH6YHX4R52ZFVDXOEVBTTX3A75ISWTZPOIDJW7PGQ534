@@ -1,0 +1,425 @@
+#!/usr/bin/perl -C31
+
+use utf8;
+use strict;
+use IO::AIO;
+use warnings;
+use File::Spec;
+use IO::Socket;
+use IO::Socket::IP;
+use IO::Socket::UNIX;
+use Term::ReadPassword;
+use Time::HiRes 'sleep';
+use Digest::Elf qw| elf |;
+use Crypt::Misc qw| encode_b32r |;
+use POSIX::1003::Proc qw| WNOHANG waitpid |;
+use POSIX::SigAction;
+use POSIX::SigSet;
+
+my $lnk_path = File::Spec->rel2abs( File::Spec->canonpath($0) );
+my $bin_path = $lnk_path;
+
+while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
+    $bin_path = $readlink_path;
+    last if $bin_path =~ m|/nshell$|;  # skip resolving last stage., [ improve ]
+}
+( my $root_path = $bin_path ) =~ s/\/[^\/]+\/[^\/]+$//;
+
+my $path_digest = elf($root_path);
+my $path_offset = $path_digest ^ 105641153; # <- /usr/local/nailara [or current]
+my $nailara_port = calc_port($path_offset);
+
+( my $hostname = qx(hostname) ) =~ s/(\..+|\n)$//g;
+
+$0 = 'nshell';
+
+$SIG{'PIPE'} = 'IGNORE';
+
+map { $SIG{$_} = \&parent_exit; } qw| TERM INT HUP |;
+
+my $sigset          = POSIX::SigSet->new();
+my $sigaction       = POSIX::SigAction->new( \&readline_signals, $sigset, 0 );
+my $old_int_handler = POSIX::SigAction->new;
+
+my $stdout_pid;
+my $parent_pid = $$;
+
+$SIG{'CHLD'} = sub {
+    $0 .= "[disconnected]" if waitpid( -1, WNOHANG ) == $stdout_pid;
+};
+
+my @args;
+my $core_user;
+my $remember  = 0;
+my $arg_index = 0;
+foreach my $param (@ARGV) {
+    if ( $param =~ /^-u$/ and defined $ARGV[ $arg_index + 1 ] ) {
+        $core_user = $ARGV[ $arg_index + 1 ];
+        delete $ARGV[$arg_index];
+        delete $ARGV[ $arg_index + 1 ];
+    } elsif ( $param =~ /^(-r|--remember)$/ ) {
+        $remember = 1;
+    } else {
+        push( @args, $param );
+    }
+    $arg_index++;
+}
+
+my $core_pass;
+my $stored_cmd;
+my $term_loop = 0;
+my $lines_up  = 3;
+my $link_type = defined $core_user ? 'unix' : 'ip.tcp';
+my $sckargcnt = scalar @args;
+my $core_addr = shift(@args) || '127.0.0.1';
+my $core_port = shift(@args) || $nailara_port;
+my $usock_dir = '/tmp/.n/s';
+
+my $prompt = "\\ $hostname \\:[?]:, ";
+
+my $connect = 1;
+my $WARNED  = 0;
+
+$| = 0;
+
+# clear();
+
+my $term = new Term::ReadLine('nailara.shell');
+$term->ornaments('mh,me,md,me');
+$term->enableUTF8();
+$term->MinLine(undef);
+
+no warnings 'once';
+$readline::rl_completion_function = "main::rl_filename_list_lcl";
+use warnings 'once';
+
+my $shell_sock;
+while ($connect) {
+    $shell_sock = shell_connect( $core_addr, $core_port );
+    if ( $link_type eq 'unix' and $lnk_path =~ /\.([^\/\.]+)$/ ) {
+        my $core_user = $1;
+        $shell_sock = unix_auth( $shell_sock, $core_user );
+    } elsif ( $link_type eq 'unix' and defined $core_user ) {
+        $shell_sock = unix_auth( $shell_sock, $core_user );
+    } else {
+        $shell_sock = shell_auth( $shell_sock, login_prompt() );
+    }
+    if ( -S $shell_sock ) {
+        $0 = "nshell ( $core_addr : $core_port )";
+        if ( not defined $stored_cmd ) {
+            clear();
+            print "\e[1m\e[5m\e[34m\e-\e[0m\n";
+        } else {
+            if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
+                sleep(0.1);
+                close($shell_sock);
+
+                exit(2);    # aborting connection, failed to send!
+            } else {
+                printf "\033[${lines_up}A\r\e[5m\e[34m.\e[0m"
+                    . "  \e[34m< \e[32m%-79s\n\n",
+                    "reconnected \e[34m>\e[0m";
+                my $l_cmd = length($stored_cmd);
+                $l_cmd = 33 if $l_cmd < 33;
+                printf "\r\e[2m$prompt\e[1m\e[32m%-"
+                    . $l_cmd
+                    . "s\e[37m\n\033[1A\n\e[0m",
+                    $stored_cmd;
+            }
+        }
+        $lines_up = 3;
+        shell_loop( $shell_sock, $prompt );
+    }
+}
+
+# <system.path_digest> //= elf(<system.root_path>);
+# <system.path_offset> = <system.path_digest> ^ 105641153;   #<-/usr/local/nailara
+
+##  calculated values  :      /usr/local/nailara : ext-port = 47, int-port = 57
+##                     :  /data/projects/nailara : ext-port = 87, int-port = 737
+
+sub calc_port {
+    my $path_offset = shift;
+    my $port_start  = 57;    # <- [ details : 'net.init_code', 'net.calc_port' ]
+    my $port_end    = 1021;
+    my $port_delta = $port_end - $port_start;
+
+    my $n_port = $port_start + $path_offset % $port_delta;
+
+    return $n_port;
+}
+
+sub login_prompt {
+    if (    $remember
+        and defined $core_user
+        and defined $core_pass ) {
+        return ( $core_user, $core_pass );
+    }
+    my ( $user, $pass );
+    print "\n :: user :. ";
+    chop( $user = <STDIN> );
+    $pass = read_password(" :: pass :. ");
+    print "\n";
+    ( $core_user, $core_pass ) = ( $user, $pass ) if $remember;
+    return ( $user, $pass );
+}
+
+sub sock_path { encode_b32r( pack( 'V', elf( $_[0] ) ) ) }
+
+sub shell_connect {
+    my $sock;
+    if ( !$sckargcnt ) {
+        my $sock_path = "$usock_dir/" . sock_path("$core_addr:$core_port");
+        if ( -e $sock_path ) {
+            $sock = IO::Socket::UNIX->new(
+                Type => SOCK_STREAM(),
+                Peer => $sock_path,
+            ) or warn "\n [!] failed to connect to unix:$sock_path [$!]\n";
+        }
+    }
+    if ( not defined $sock ) {
+        $sock = new IO::Socket::IP(
+            PeerAddr => $core_addr,
+            PeerPort => $core_port,
+            Proto    => 'tcp'
+            )
+            or die "\n [!] failed to connect to $core_addr:$core_port [$!]\n\n";
+    } else {
+        $link_type = 'unix';
+    }
+
+    binmode( $sock, ':encoding(UTF-8)' );
+
+    die " [!] connection not successful [ protocol mismatch ]\n"
+        if <$sock> !~ />:\]/;
+    return $sock;
+
+}
+
+sub shell_auth {
+    my ( $fh, $usr, $pwd ) = @_;
+    s_write( $fh, "auth $usr $pwd\n" );
+    my $answer = <$fh>;
+    die "\n  [!] connection was prematurely terminated [!]\n\n"
+        if not defined $answer;
+    if ( $answer =~ /YEAH/ ) {
+        print " :: authentication successful ::\n";
+        return $fh;
+    } elsif ( $answer =~ /NOPE >:\|/ ) {
+        die " :: authentication not successful ::\n\n";
+    } elsif ( $answer =~ />:\|/ ) {
+        print " :: authentication timeout ::\n";
+        return 0;
+    } else {
+        die " :: protocol mismatch ::\n\n";
+    }
+}
+
+sub unix_auth {
+    my ( $fh, $usr ) = @_;
+    s_write( $fh, "select unix\n" );
+    my $answer = <$fh>;
+    die "\n  [!] connection was prematurely terminated [!]\n\n"
+        if not defined $answer;
+    if ( $answer !~ /^ACK continue/ ) {
+        die " :: unix auth not available ::\n\n";
+    }
+    s_write( $fh, "auth $usr\n" );
+    $answer = <$fh>;
+    print "\n";
+    if ( $answer =~ /YEAH/ ) {
+        print " :: authentication successful ::\n";
+        return $fh;
+    } elsif ( $answer =~ /NOPE >:\|/ ) {
+        die " :: authentication not successful ::\n\n";
+    } elsif ( $answer =~ />:\|/ ) {
+        print " :: authentication timeout ::\n";
+        return 0;
+    } else {
+        die " :: protocol mismatch ::\n\n";
+    }
+}
+
+sub s_write {
+    my $b_written;
+    my $write_fh  = shift;
+    my $write_str = shift;
+    utf8::encode($write_str);
+    IO::AIO::aio_write( $write_fh, undef, length($write_str),
+        $write_str, 0, sub { $b_written = $_[0] } );
+    IO::AIO::flush();
+    undef $b_written if $b_written < 0;    # <- emulates syswrite() behaviour ..
+    return $b_written;
+}
+
+sub clear { print "\e[37m\e[H\e[2J" }
+
+sub shell_loop {
+    my $sock   = $_[0];
+    my $prompt = $_[1];
+
+    if ( not $stdout_pid = fork() ) {
+        $SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = 'IGNORE';
+        $SIG{'PIPE'} = sub { kill( 9, $parent_pid ); exit(2) };
+        stdout_fork();
+        exit;
+    }
+    if ( defined $stored_cmd ) {
+        sleep(0.2);
+        undef $stored_cmd;
+    }
+
+    map {
+        $SIG{$_} = sub { parent_exit( shift, $stdout_pid ) }
+    } qw| TERM INT HUP |;
+
+    $term->add_history('');
+
+    $connect = 0;
+    my $last_line = '';
+    while ( -S $sock
+        and override_signals()
+        and defined( my $line = $term->readline($prompt) ) ) {
+        $WARNED  = 0;
+        $connect = 1;
+        print "\e[37m";
+        if ( $line ne '' ) {
+
+            $term->add_history($line) if $line ne $last_line;
+            $last_line = $line;
+
+            if ( $line =~ /^\. cd (.+)/ ) {
+                if ( !chdir($1) ) { print "cd: " . $! . "\n" }
+            } elsif ( $line =~ /^\. (.+)$/ ) {
+                $lines_up = 1;
+                no warnings;
+                if ( my $err = system($1) ) {
+                    my $failed  = '';
+                    my $err_msg = "exit code: $err";
+                    if ( $err == -1 ) {
+                        $err_msg = $!;
+                        $failed  = ' failed - ! -';
+                    }
+                    print "\n - ! -$failed ( " . $err_msg . " )\n\n";
+                }
+                use warnings;
+            } else {
+                if ( $line ne '[quit]' and !s_write( $sock, "$line\n" ) ) {
+                    sleep(0.1);
+                    $stored_cmd = $line;
+                }
+                sleep(0.2);
+                if (   $line eq '[quit]'
+                    or defined $stored_cmd and $stored_cmd eq 'exit'
+                    or $line =~ "ACK session closed\n" ) {
+                    print {$sock} "exit user quit shell session\n"
+                        if $line eq '[quit]';
+                    close($sock);
+                    exit;
+                } elsif ( defined $stored_cmd
+                    or !-S $sock
+                    or !$sock->connected ) {
+                    my $r_msg = ' :: reconnecting...';
+                    if ( not defined $stored_cmd ) {
+                        print "\e[2H\e[2J$r_msg\n";
+                    } else {
+                        my $l_cmd = length($stored_cmd);
+                        printf "\033[1A\r%-" . $l_cmd . "s\n\033[2A\r", $r_msg;
+                    }
+                    last;
+                }
+
+            }
+        } elsif ( !-S $sock or !s_write( $sock, "\n" ) or !$sock->connected ) {
+            print "\e[2H\e[2J :: reconnecting...\n";
+            last;
+        }
+    }
+    if ( !$connect ) {
+        if ( -S $shell_sock ) {
+            s_write( $shell_sock, "\nexit ==\\ lost terminal \\==\n" );
+            close($shell_sock);
+        }
+        kill( 9, $parent_pid );
+        exit(1);
+    }
+}
+
+sub stdout_fork {
+    close(STDIN);
+    $0 = "nshell ( stdout )";
+    while ( my $out = <$shell_sock> ) {
+        $out =~ s/\n$//;
+        print "$out\n";
+    }
+    close($shell_sock);
+    print "\e[34m.\n      \e[5m.      .     .     "
+        . "\e[0m\e[34m.:\e[34m[\e[\e[0m connection"
+        . " terminated\e[0m \e[34m]\e[34m:.\e[5m  "
+        . "   .     .      .\e[0m\n\e[34m.\e[0m\n";
+}
+
+sub rl_filename_list_lcl { #<- currently not working since Term::ReadLine switch
+    my ( $text, $line, $pos ) = @_;
+
+    if ( !$pos or $line !~ /^\. / ) {
+        no warnings 'once';
+        $readline::rl_completer_terminator_character = '';
+        use warnings 'once';
+        if ( !$WARNED and $line !~ /^\. / ) {
+            print "\n<!> prefix '. ' can be used for local shell commands"
+                . ", type 'help' for netw. <!>\n";
+            $WARNED = 1;
+        }
+        return '';
+    }
+
+    my @files = (<$text*>);
+    foreach (@files) {
+        if ( -d $_ ) {
+            next if $pos == 0 and !-x $_;
+            $_ .= '/';
+        }
+    }
+    no warnings 'once';
+    $readline::rl_completer_terminator_character = '';
+    use warnings 'once';
+    return @files;
+}
+
+sub override_signals {
+    POSIX::sigaction( &POSIX::SIGINT, $sigaction, $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGHUP, $sigaction );
+    POSIX::sigaction( &POSIX::SIGTERM, $sigaction );
+    return $term_loop = 1;
+}
+
+sub restore_signals {
+    POSIX::sigaction( &POSIX::SIGINT,  $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGHUP,  $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGTERM, $old_int_handler );
+}
+
+sub readline_signals {
+    my $sig_name = shift;
+    $term->free_line_state;
+    $term->cleanup_after_signal;
+    parent_exit();
+}
+
+sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
+    print $term_loop ? "\n\e[34m\e[5m.\n.\n.\n\e[0m\n" : "\n ::\n :\n\n";
+    if ( -S $shell_sock ) {
+        $shell_sock->shutdown(2);
+        $shell_sock->close();
+        sleep(0.13);
+    }
+    kill( 9, $stdout_pid ) if defined $stdout_pid;
+    exit;
+}
+
+# ______________________________________________________________________________
+#\\QZHUBTVW6ND7FNH4VDNOZNLWF6FUDYBF6XBV7H6HF6FXHIHPTU6EGBIA6MCNAEGH77YC3VDJQWLZW
+# \\ CGC74IFEDDH42WABG64IME5MGWMUEENYA3ZNEYMH2A4SIK23HPV4 \\// C25519-BASE-32 //
+#  \\// WUJMD2SNK76PC6I5GTAW7EAP6Q2ADWJWPABF5N3BRRDI3QXICBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

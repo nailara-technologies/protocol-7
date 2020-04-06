@@ -1,0 +1,63 @@
+# >:]
+
+# name  = nroot.post_init
+# descr = starts configured agents
+
+my $module_reinitialization = shift;
+
+<[nroot.cleanup_temp_files]> if not $module_reinitialization;
+
+my @all_agents   = keys %{<nroot.spawn_config.agents.config>};
+my @start_agents = @{<nroot.spawn_config.agents.startup.spawn_order>};
+
+my $prev_all   = <nroot.init_state.all_agents>   //= [];
+my $prev_start = <nroot.init_state.start_agents> //= [];
+
+# locate agent config files / extract descriptions
+<nroot.agents.available> = {};    # <- reset on reload!
+
+my @found_agents = <[nroot.available_agents]>;
+
+(   <nroot.agents.found_types.no_spawn_cfg> = [],
+    <nroot.agents.found_types.no_cfg_file>  = []
+) = <[base.diff_array]>->( \@all_agents, \@found_agents );
+
+# prepare configured agent startup sequence
+my ( $added_start_ref, $removed_start_ref )
+    = <[base.diff_array]>->( $prev_start, \@start_agents );
+my ( $added_all_ref, $removed_all_ref )
+    = <[base.diff_array]>->( $prev_all, \@all_agents );
+
+<nroot.init_state.all_agents>   = \@all_agents;
+<nroot.init_state.start_agents> = \@start_agents;
+
+<[nroot.calc_prefix_lengths]>->(@start_agents);
+
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity> > 1 ) {
+    ( my $debug_str = Dumper(<nroot.spawn_config.agents.config>) )
+        =~ s/^.{7}|;$/  /mg;
+    print "\n < nroot.spawn_config.agents.config >\n\n$debug_str\n";
+}
+
+if ( @{$added_all_ref} ) {
+    <[nroot.set_up_agent_dependencies]>->( @{$added_all_ref} );
+    <[nroot.set_up_ondemand_agents]>->( @{$added_all_ref} );
+}
+
+map { <[nroot.autostart_agents]>->($_) if !<[nroot.spawn_count]>->($_) }
+    @{$added_start_ref};
+
+print Dumper( $data{'jobqueue'} )
+    if exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity> > 2;
+
+0;
+
+# ______________________________________________________________________________
+#\\HPE62XNCEUVGPXF6EKHHMABRXYFU2DY7YZJS3A5QBB7EM2ZOS3ASWDNXCCK7RCYA5B4G47WWZI3OM
+# \\ YJYPQ44YEUDFLEDBDUH462VX4KJUCGQRI4OU546T745MF6IXTMKR \\// C25519-BASE-32 //
+#  \\// W23I6H42R6MCF53DTZOFLELM6OOHHLV7WB5I2XWOUQ6Q6QXL4AY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,32 @@
+# >:]
+
+# name = crypt.C25519.gen_keys
+
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
+
+my $key_name = $key_vars->{'key_name'};
+my $key_usr  = $key_vars->{'usr_name'};
+
+<[base.log]>->( 2, "generating '$key_name' C25519 key pair..." );
+
+$KEYS{'C25519'} //= {};
+
+warn "a C25519 key with name '$key_name' is already loaded [ skipped ]"
+    and return 0
+    if exists $KEYS{'C25519'}{$key_name};
+
+my ( $pubkey, $privkey ) = Crypt::Ed25519::generate_keypair();
+
+$KEYS{'C25519'}{$key_name} = {
+    'name' => $key_name,
+    'pub'  => $pubkey,
+    'priv' => $privkey
+};
+
+return 1;
+
+# ______________________________________________________________________________
+#\\I4POZXMICHQMURZM5EKXNJABT7X36FJPZIU2DBG3UFJAJ4I77BNHGXNTLNP64ZSUPK5IEURUJK6K2
+# \\ 6DC2V2FZRJQ3QZBVRUWQH6O7JLFHQSZXUNAQTQHYM6I3I344SJPP \\// C25519-BASE-32 //
+#  \\// 73GNARTKC2QLX3WBMQOTT5ULIIV5DI5YKHWA2P75HGVUOYCU2BY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

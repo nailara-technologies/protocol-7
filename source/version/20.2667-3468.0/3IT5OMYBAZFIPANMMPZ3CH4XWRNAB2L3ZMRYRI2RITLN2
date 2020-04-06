@@ -1,0 +1,114 @@
+# >:]
+# name = httpd.request_handler
+# note : return 2 to close connection
+
+my $id          = $_[0]->w->data;
+my $session     = $data{'session'}{$id};
+my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length> || 1024 * 7 );
+my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 13 );
+
+if ( $session->{'buffer'}{'input'} =~ /^[^\r\n]{$max_uri_len}/ ) {
+    $max_uri_len--;
+    <[base.log]>->(
+        0, "[$id] maximum URI length [ $max_uri_len bytes ] exceeded.,"
+    );
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 414 );
+    return 2;    # Request-URI Too Long
+} elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
+    $max_req_len--;
+    <[base.log]>->(
+        0, "[$id] maximum Request length [ $max_req_len bytes ] exceeded."
+    );           # Request Entity Too Large
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 413 );
+    return 2;    # LLL: fix false positives..,
+}
+
+my $peer_fh = $session->{'handle'};
+
+$session->{'http'} //= {
+    'request' => {
+        'client' => {
+            'addr' => $data{'handle'}{$peer_fh}{'peerhost'},
+            'port' => $data{'handle'}{$peer_fh}{'peerport'}
+        },
+        'req_time' => $session->{'start_time'},
+        'headers'  => {}
+    }
+};
+my $request = $session->{'http'}->{'request'};
+
+return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
+
+$session->{'http'}->{'request'}->{'data'} = $1;
+
+my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'data'} );
+
+$h_req->decode;
+
+<[base.log]>->(
+    2, sprintf( " < %s > %s", $request->{'client'}->{'addr'}, $h_req->uri )
+);
+
+my $r_key;
+if ( not defined $h_req->method ) { $r_key = 'METHOD' }
+elsif ( not defined $h_req->uri
+    and $h_req->method =~ /^(GET|HEAD|POST|PUT|DELETE)$/ ) {
+    $r_key = 'URI';
+}
+if ( defined $r_key ) {
+    <[base.log]>->( 0, "[$id] malfomed request (request $r_key undefined)" );
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 400 );
+    return 2;    # Bad Request
+}
+
+$request->{'method'} = $h_req->method;
+$request->{'host'}   = lc( $h_req->header('host') )
+    if defined $h_req->header('host');
+
+( $request->{'uri'} = $h_req->uri // '' ) =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
+$session->{'http'}->{'close'}      = 1;
+$session->{'response'}->{'params'} = {};
+
+map { $request->{'headers'}->{ lc($_) } = $h_req->header($_) // '' }
+    $h_req->header_field_names;
+
+( $session->{'meta'}->{'request_path'} = $request->{'uri'} ) =~ s|[#\?].*$||;
+( $session->{'meta'}->{'request_file'} = $session->{'meta'}->{'request_path'} )
+    =~ s|^.*/||;
+$session->{'meta'}->{'request_host'}   = $request->{'host'};
+$session->{'meta'}->{'request_method'} = $request->{'method'};
+$session->{'meta'}->{'req_time'}       = $request->{'req_time'};
+$session->{'meta'}->{'client_addr'}    = $request->{'client'}->{'addr'};
+$session->{'meta'}->{'client_port'}    = $request->{'client'}->{'port'};
+
+$session->{'http'}->{'close'} = 0
+    if defined $request->{'headers'}->{'connection'}
+    and lc( $request->{'headers'}->{'connection'} ) eq 'keep-alive';
+
+if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
+    my $handler_name = <http.handler>->{ lc( $request->{'method'} ) };
+    if ( exists $code{$handler_name} ) {
+        return $code{$handler_name}->($id);
+    } else {
+        <[base.log]>->(
+            0,
+            "[$id] http [$request->{method}] handler defined,"
+                . " but callback missing!"
+        );
+        $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 500 );
+        return 2;    # Internal Server Error
+    }
+
+} else {
+    <[base.log]>->( 0, "[$id] http handler not defined [$request->{method}]" );
+    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 405 );
+    return 2;        # Method Not Allowed
+}
+
+return 2;
+
+# ______________________________________________________________________________
+#\\B4QMZBFTHSNUMARAJXVWO63ZM6FGO5HRT5GDDZHOITRV7NUTWIJRYL62V5RU5ZK44U6YJLISIMBNY
+# \\ CZWXTCY5SHZFGWITU5LOL32WZPTL76P42WTNP2B3PBW2QCFYQ7VP \\// C25519-BASE-32 //
+#  \\// QPZUXHULRGJNQUPSDZYHHCIPCS3XTL2YX4FYD6RZRAWBWYN5UAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

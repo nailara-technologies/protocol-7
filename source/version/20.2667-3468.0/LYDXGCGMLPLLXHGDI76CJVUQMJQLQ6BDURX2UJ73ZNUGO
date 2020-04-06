@@ -1,0 +1,100 @@
+# >:]
+
+# name = weather.base.fork_weather_child
+
+use Socket;
+
+( my $session_id ) = keys( %{<user.core.session>} );
+
+<weather.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, "forking weather child.." );
+
+<[base.enable_list]>->('sessions');
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$!]";
+map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+<weather.child.pid> = fork;
+if ( !<weather.child.pid> ) {    ## child ##
+
+    <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+    close($child_pipe);
+    delete <weather.pipe.child> if exists <weather.pipe.child>;
+
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+
+    <weather.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.agent.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.agent.subname> = 'child' . $sn_str;
+    $0 = <system.agent.name> . "[child$sn_str]";
+
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    my $id = <[base.session.init]>
+        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('weather.child');
+    <[base.init_modules]>->('weather.child');
+
+    <[base.log]>->( 1, 'preparing to close core session of child .,' );
+
+} else {    ## parent ##
+    close($parent_pipe);
+    delete <weather.pipe.parent> if exists <weather.pipe.parent>;
+    <weather.pipe.child> = $child_pipe;
+
+    <[base.load_modules]>->('weather.parent');
+    <[base.init_modules]>->('weather.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    my $id
+        = <[base.session.init]>->( $child_pipe, 'nailara', 'client', 'child' );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    my $cache_dir = <weather.cache_dir>;
+    my $city_file = "$cache_dir/city.current";
+    if ( -f $city_file ) {
+        <[base.log]>->( 1, "found saved location setup in cache.." );
+        my $city_sref = <[file.slurp]>->($city_file);
+        my ( $timestamp, $loaded_city ) = ( $1, $2 )
+            if $$city_sref =~ m|^(\d+)\s+(.+)$|;
+        if ( defined $loaded_city ) {
+            <[base.log]>->( 1, "<*> restoring location '$loaded_city'" );
+            <weather.cfg.city> = $loaded_city;
+        } else {
+            <[base.log]>->(
+                0, "<!> syntax error in city cache file, purging.., <!>"
+            );
+            unlink($city_file) or warn "unlink failed: $!";
+        }
+    }
+
+    if ( defined <weather.cfg.city> and length(<weather.cfg.city>) ) {
+        <[weather.parent.set_city]>->(<weather.cfg.city>);
+    } else {
+        <[base.log]>->( 1, '<!> no city configured at startup <!>' );
+        if ( !<weather.agent.initialized> ) {
+            <[base.async.get_session_id]>;    # change agent status to 'online'
+            <weather.agent.initialized> = 1;
+        }
+    }
+
+}
+
+# ______________________________________________________________________________
+#\\HVI3J4UB2EUGGXOIHAH4PQQ5VHK7XMLOQEMATOFRQM5VDXAXTUQW6FEY2FX7DVEFCBN4GQUJRAXZM
+# \\ J6CQPT7UFS355LWSEOMIHS75UHA3VKQ3MVYO2Z7GZAXJE7CIHILN \\// C25519-BASE-32 //
+#  \\// 657M6WCLOGQNXYLJAT3D6MAJ75IWX6SX3VFCO5CF5XU3VZ2GADI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

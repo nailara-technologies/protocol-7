@@ -1,0 +1,21 @@
+# >:]
+
+# name = base.call_online_hooks
+
+return
+       if not defined <base.callback_hooks.async_online>
+    or ref(<base.callback_hooks.async_online>) ne 'ARRAY'
+    or !@{<base.callback_hooks.async_online>};
+
+<[base.log]>->( 2, ": calling 'async_online' hooks ..." );
+
+map {
+    if ( defined $code{$_} and ref( $code{$_} ) eq 'CODE' ) { $code{$_}->() }
+    else { <[base.log]>->( 0, "async_online callback '$_' does not exist!" ); }
+} @{<base.callback_hooks.async_online>};
+
+# ______________________________________________________________________________
+#\\5ZFUAHIMAVFTA6JBQ6XXXKFLKGE6COYILCCAZA25A4QMSTNYJJMX45EMFWI6VHVOBD4237S3FL22S
+# \\ 4QNGH3W24CP5L2TGEDLFIGIBZFVOZPH4CX3IIOGHBQMH4W7R4Y72 \\// C25519-BASE-32 //
+#  \\// 27O335AJG2KECNSTE6ZD6ZKBLQD4P62ZTHQ3GG5AINBQXYWLECI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

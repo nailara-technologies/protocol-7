@@ -1,0 +1,116 @@
+# >:]
+
+# name  = weather.parent.handler.coordinates_reply
+# todo  = request 'media' coordinates if browser not available...
+
+my $reply = shift;
+
+my $zoom;
+my $tile_zoom;
+my $tile_width;
+my $tile_height;
+my $reply_id       = shift @{<weather.get_urls.reply_ids>};
+my $city           = $reply->{'params'}->{'city'};
+my $tile_name      = $reply->{'params'}->{'tile_name'};
+my $cache_dir      = <weather.cache_dir>;
+my $city_file      = "$cache_dir/city.current";
+my $zoom_file      = "$cache_dir/weather.zoom";
+my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
+<[weather.base.check_dirs]>;
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    my ( $x1, $y1, $x2, $y2 ) = split( / /, $reply->{'call_args'}->{'args'} );
+    my $tile_width   = $x2 - $x1;
+    my $tile_height  = $y2 - $y1;
+    my $aspect_ratio = sprintf( "%.3f", $tile_width / $tile_height );
+
+    if (<weather.tile.adjust>) {
+        <weather.tile.count> = 3 if $aspect_ratio > 5.3;
+        <weather.tile.count> = 2 if $aspect_ratio <= 5.3;
+        <weather.tile.count> = 1 if $aspect_ratio <= 2.8;
+    }
+
+    my $tile_count = <weather.tile.count>;
+
+    my $zoom_x = sprintf( "%.7f",
+        $tile_width / <weather.template_width>->{$tile_count} );
+    my $zoom_y = sprintf( "%.7f", $tile_height / <weather.template_height> );
+
+    ($tile_zoom) = sort ( $zoom_x, $zoom_y );
+
+    <[file.put]>->( $tile_zoom_file, "$tile_zoom\n" );
+
+    <weather.tile_zoom> = $tile_zoom;
+}
+my $city_changed = 0;
+if (    defined $city
+    and defined <weather.cfg.city>
+    and $city ne <weather.cfg.city> ) {
+    $city_changed = 1;
+    delete <weather.cfg.city>;
+    delete <weather.station_id>;
+    delete <weather.cfg.station_id>;
+    if ( -d $cache_dir ) {
+        chdir('/tmp/');
+        remove_tree( $cache_dir, { 'keep_root' => 1 } );
+        <[weather.base.check_dirs]>;
+    }
+}
+$city //= <weather.cfg.city>;
+<weather.cfg.city> = $city;
+
+my $custom_zoom = 0;
+$zoom = $1 if defined $city and $city =~ s/\s*:\s*zoom\s*=\s*([\d\.]+)$//;
+if ( not defined $zoom or $zoom == 1 ) {
+    unlink($zoom_file) if -f $zoom_file;
+} else {
+    <[file.put]>->( $zoom_file, "$zoom\n" );
+    <[weather.base.calc_zoom_level]>;
+    $custom_zoom = 1;
+}
+
+my $station_id = $1 if defined $city and $city =~ /^(\d+)$/;    # LLL!
+$station_id //= <weather.station_id> || <weather.cfg.station_id>;
+
+$station_id = undef if $city_changed;
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'nak',
+        'data' => 'no city or station id configured or provided'
+    }
+    )
+    if not defined $station_id and not defined $city
+    or not defined $station_id and !length($city);
+
+my $city_str = defined $station_id ? "station id $station_id" : "'$city'";
+<[base.log]>->( 1, "weather urls for $city_str requested" );
+
+if ( defined $station_id ) {
+    my $url_list_str;
+    map { $url_list_str .= "$_\n" }
+        <[weather.parent.get_url_list]>->($station_id);
+    if ( !-f $city_file ) {
+        <[base.log]>->( 1, "storing current city setup to disk cache.." );
+        <[file.put]>->( $city_file, time() . " $city\n" );
+    }
+    <[weather.parent.write_pages]>->($station_id) if $custom_zoom;
+
+    return <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'data',
+            'data' => $url_list_str
+        }
+    );
+} else {
+    push( @{<weather.get_urls.reply_ids>}, $reply_id );
+    <[weather.parent.set_city]>->($city);
+    return { 'mode' => 'deferred' };
+}
+
+
+# ______________________________________________________________________________
+#\\NBIP6IF4VBU2INUDXVFEMRWMEIWEXDIVNAYG5WZL52SAP62N4DVHVSI23RVOYYOYQXWGXKEZ24YUM
+# \\ H75TFB4Z2CM3PFR6HWTYQQC3FTQZ7U7NGBT77GZXUER7L6TPTQLZ \\// C25519-BASE-32 //
+#  \\// 4MOLNGTA7Y5R75O2KK4DK3RFESJ2YVDUWV4GECKJXOTJTHPRYBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

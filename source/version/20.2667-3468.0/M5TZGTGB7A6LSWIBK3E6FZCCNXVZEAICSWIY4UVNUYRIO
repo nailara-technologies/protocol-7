@@ -1,0 +1,75 @@
+# >:]
+
+# name  = base.cmd.help
+# param = [keyword]
+# descr = print available commands + descriptions
+
+my $id      = $$call{'session_id'};
+my $usr     = $data{'session'}{$id}{'user'};
+my $keyword = $$call{'args'};
+
+my $agent_name = <system.agent.name>;
+my $max_len    = 0;
+my @commands   = ();
+my @dbg_cmds;
+
+<base.help.is_debug> //= {};
+map      { $_ =~ s|^debug\.cmd\.||; <base.help.is_debug>->{$_} //= 1 }
+    grep {/^debug.*\.cmd\./} keys %code;
+
+# getting a list of all commands the user [ who sent the request ] has access to
+
+foreach
+    my $cmd ( sort { length($b) <=> length($a) } sort( keys( %{<base.cmd>} ) ) )
+{
+    if ( defined <access.cmd.regex.usr>->{$usr}
+        and $cmd =~ <access.cmd.regex.usr>->{$usr}
+        or defined <access.cmd.regex.usr>->{'*'}
+        and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
+
+      #        # command description mode
+      #        return { 'mode' => 'nak', 'data' => "not implemented yet... :/" }
+      #            if defined $keyword and exists <base.cmd>->{$keyword};
+
+        # keyword search mode
+        next
+            if defined $keyword
+            and $cmd !~ /\Q$keyword\E/i
+            and <base.help.cmd>->{$cmd}->{'descr'} !~ /\Q$keyword\E/i;
+
+        if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
+        my $is_debug_command = <base.help.is_debug>->{$cmd} //= 0;
+        if   ($is_debug_command) { push( @dbg_cmds, $cmd ) }
+        else                     { push( @commands, $cmd ) }
+    }
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "no commands matching '$keyword' available"
+    }
+    if defined $keyword and !@commands;
+
+# format and return the command list
+
+$$reply{'data'} = sprintf( "%78s\n\n",
+    sprintf( "%-43s", ".: '$agent_name' agent commands :." ) );
+( my $h_str, my $h_len ) = <[base.parser.help_list]>->( \@commands, 'cmd', );
+$$reply{'data'} .= $$h_str;
+
+if (@dbg_cmds) {
+    $$reply{'data'} .= sprintf( "\n %77s\n\n",
+        sprintf( "%-43s", ".: debug commands in '$agent_name' :." ) );
+    ( $h_str, undef )
+        = ( <[base.parser.help_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
+    $$reply{'data'} .= $$h_str;
+}
+
+$$reply{'data'} .= "\n";
+$$reply{'mode'} = 'data';
+
+# ______________________________________________________________________________
+#\\2WPP7DFTUK6FUOC52QFLFDDNWD4D56NZWE5XZSMAJPFBTNUYJL4ZN57DHQVGLHXMK3LYUI3P2ZKHO
+# \\ ALXEAUWBZKG2JK2QYSD276FS75V5OIRYWERMUJANGRTFJ3PEHUNC \\// C25519-BASE-32 //
+#  \\// XYGO4J5OOHVAZAMYFSXLTZIE2FI3CUE6DEAE6BNE7Q6TS37CGAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

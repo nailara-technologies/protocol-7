@@ -1,0 +1,51 @@
+# >:]
+
+# name  = filter.compile_chain
+# descr = compile filter chains
+
+my ( $chain_name, @chain_list ) = @_;
+my $warps = scalar(@chain_list);
+<[base.log]>->( 1, "compiling chain '$chain_name'" );
+my $id = <[base.gen_id]>->( \%data, $data{'system'}{'max'}{'chains'} || 777 );
+my $chain_code = 'sub {';
+$data{$id}{'name'} = $chain_name;
+$data{$id} = join( ".", @chain_list );
+my $closure = '}';
+
+foreach my $filter_id ( reverse(@chain_list) ) {
+    if ( $filter_id !~ /^\d+$/ ) {
+        <[base.log]>->( 0, "invalid filter '$filter_id' specified" );
+        <[filter.del_chain]>->($id);
+        return undef;
+    }
+    if ( defined &{ $code{ $data{'filter'}{$filter_id}{'handler'} } } ) {
+        $chain_code
+            .= "&{\$code{'" . $data{'filter'}{$filter_id}{'handler'} . "'}}(";
+        my $options = '';
+        if ( length( $data{'filter'}{$filter_id}{'options'} ) ) {
+            $options = "," . $data{'filter'}{$filter_id}{'options'};
+        }
+        $closure = $options . ")" . $closure;
+    } else {
+        <[base.log]>->( 0, "error in filter $filter_id: handler not defined" );
+        <[filter.del_chain]>->($id);
+        return undef;
+    }
+}
+$chain_code .= '$_[0]' if length($chain_code) == 5;
+$chain_code .= $closure;
+<[base.log]>->( 2, "chain[$id]code: '$chain_code'" );
+undef $!;
+$code{ 'filter.chain.' . $id } = eval($chain_code);
+if ( !$@ ) { $data{'code'}{'filter'}{$id}{'status'} = 'no-err'; return $id }
+else {
+    <[base.log]>->( 0, "broken chain code [$id:$@]" );
+    <[filter.del_chain]>->($id);
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\VS4NLCG6AFWZK3NPXB325NBF3BNWXQ4FNYHQ2R6AD5QMHVHAIQRWQMQMNLCJJ4SRLOFBZUJUOMT2A
+# \\ X7JM7CN46HPGNBVMK3WZCUUDGWJWQ7YVNOWEBTOLQG3ZLLXEI4UH \\// C25519-BASE-32 //
+#  \\// 2H4FJACT4IIITLUPCH2CPT2Y53UZMNZVXCOTUWTXJZE4HPBJABY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

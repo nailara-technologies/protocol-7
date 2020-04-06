@@ -1,0 +1,34 @@
+# >:]
+
+# name  = source.init_code
+
+<source.checksums> //= {};
+
+<source.chksum_bitsize> //= 384;
+<source.code_path>      //= <system.code_path>;    # <-- old path [gone soon]
+<source.path.source>   //= <system.root_path> . '/source';
+<source.path.n-files>  //= <source.path.source> . '/files';
+<source.sign_template> //= '';
+
+my $sig_key_name = <source.C25519.signature_key_name> //= 'nailara.source';
+
+# [ SRC SIGNATURE template: first line is decoration \ BMW-B32 \ C25519-B32 ] :.
+<source.sign_template> = << 'EOT';
+# ______________________________________________________________________________
+#\\_____________________________________________________________________________
+# \\ ____________________________________________________ \\// C25519-BASE-32 //
+#  \\// ___________________________________________________ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
+EOT
+
+<[source.load_signature_key]>->($sig_key_name);
+
+# <[source.acquire_checksums]>;
+
+0;
+
+# ______________________________________________________________________________
+#\\E7QI22FB4F2IC353AQKUVD5U3GL43W7XDUZ6VOD54KIMO3GD5BLARHOGA2A5YZXDOJNE4PD2EDWZG
+# \\ LAKJH7GCE7GCJG5NM5F2YAA5YNEK44KW6SV5IS5HI4WOREVK5COM \\// C25519-BASE-32 //
+#  \\// Z76CT7T6BLZYUXEZFCIU7QIH2XWEMPIHWZFNR2FVH5H4OEUBACA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,59 @@
+# >:]
+
+# name = base.get_session_id
+
+my $usr_str   = shift // 'core';
+my $route_str = shift // '';
+$route_str .= '.' if length($route_str);
+
+my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+if ( exists $data{'session'}{$local_sid}{'core_sid'} ) {
+    <[base.log]>->( 0, "already have a core sid, refused to request another!" );
+    return undef;
+}
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+
+<[base.log]>->( 2, "acquiring session id..," );
+<[net.out]>->( $core_fh, "($cmd_id)${route_str}whoami\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    if ( not defined $reply_string ) {
+        <[base.log]>->(
+            0, "base.get_session_id: socket exception, shutting down..,"
+        );
+        exit(1);
+    }
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
+    my ( $agent_name, $core_session_id ) = ( $1, $2 );
+    if ( $agent_name ne <system.agent.name> ) {
+        <[base.log]>->( 0, "received agent name does not match internal one!" );
+        return undef;
+    }
+    $data{'session'}{$local_sid}{'core_sid'} = $core_session_id;
+    <[base.log]>->( 1, "core session id received [$core_session_id]" );
+    <system.agent.initialized> = 1;
+    return $core_session_id;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply to whoami command!)"
+            . " [$reply_string]"
+    );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\LIBUKNR3W7MOSISIXO2VPIN3VHC5K7EHNBSSUJUDV4MVVAJJ6IX4CC3OV3AFHFK23RS2BNKJRMLS4
+# \\ 66MCK22C5R5CHJM7WDN7AVGGKITCJKBSOZWK3BJO5NLH3PAKHLNZ \\// C25519-BASE-32 //
+#  \\// HB6ARLCEGIRBB2GGXZA2WA57363SSIKVPFEWWADW7QUPEHF6IDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

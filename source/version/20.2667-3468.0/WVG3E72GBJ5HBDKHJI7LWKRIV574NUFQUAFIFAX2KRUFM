@@ -1,0 +1,43 @@
+# >:]
+
+# name  = base.log.handler.log_reply
+# descr = handle responses from log agent [ 'append' command ]
+
+my $reply        = shift;
+my $name         = $reply->{'params'}->{'name'};
+my $buffer_count = @{ $data{'buffer'}{$name}{'data'} };
+my $log_data     = <log.file>->{$name};
+my $retry
+    = (     $reply->{'cmd'} eq 'NAK' and defined $reply->{'call_args'}->{'args'}
+        and $reply->{'call_args'}->{'args'} eq 'command unknown' ) ? 1 : 0;
+
+if ( $reply->{'cmd'} eq 'ACK' ) {    # success =)
+    $log_data->{'next_index'}++;
+    $log_data->{'resend_delay'} = 0.1;
+    if ( $log_data->{'next_index'} < $buffer_count ) {    # more to send .,
+        $log_data->{'retry_timer'} = <[event.add_timer]>->(
+            {   'after'   => 0,
+                'handler' => 'base.log.handler.send_timer',
+                'data'    => $name
+            }
+        );
+    } else {
+        $log_data->{'complete'} = 1;
+    }
+} elsif ($retry) {    # was not written .,
+    $log_data->{'retry_timer'} = <[event.add_timer]>->(
+        {   'after' => $log_data->{'resend_delay'}
+                *= $log_data->{'resend_slowdown'},
+            'handler' => 'base.log.handler.send_timer',
+            'data'    => $name
+        }
+    );
+} else {              # giving up \ parameter mismatch
+    <[base.log]>->( 0, "[ '$name' buffer ] loosing log line $buffer_count" );
+}
+
+# ______________________________________________________________________________
+#\\S5XE4UTUSNG64DCT6KKD7VKIUYCFMC3CIQ6ODBUI47ZDQE57HGQY2QLGBCQHOBSTRUK5ZQIDIAMCS
+# \\ GU3773XEUAFZOUE2SFY4GXOHVATEBQ2EAMK5MUW7CFTA4ASZI4JG \\// C25519-BASE-32 //
+#  \\// HZSEVFB3XEPIAROBPCCDN4JUNGRSYSVZA6QQXCRM4FZQCWCEEDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

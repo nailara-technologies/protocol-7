@@ -1,0 +1,58 @@
+# >:]
+
+# name  = power.cmd.get_states
+# descr = return power socket states
+# param = <device_id>
+
+<power.cfg.devices> //= {};
+my $device_id = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
+    if !length($device_id)
+    or $device_id !~ /\d+/;
+
+return {
+    'mode' => 'nak',
+    'data' => "device '$device_id' does not exist"
+    }
+    if not exists <power.cfg.devices>->{$device_id};
+
+my $dev = <[power.dev_obj]>->($device_id);
+
+$dev->_set_ctrl( SOCK_SKIP, SOCK_SKIP, SOCK_SKIP, SOCK_SKIP );
+
+if ( not defined $dev or not defined $dev->{'poller'} ) {
+    <[base.log]>->( 0, "connection to device $device_id failed" );
+    return undef;
+}
+
+my @states;
+
+# print STDERR Dumper( $dev->{'stat'} );
+
+map {
+    if (   $dev->{'stat'}->[$_] == 17
+        or $dev->{'stat'}->[$_] == 18
+        or $dev->{'stat'}->[$_] == 65 ) {
+        $states[$_] = '1';
+    } elsif ( $dev->{'stat'}->[$_] == 33
+        or $dev->{'stat'}->[$_] == 34
+        or $dev->{'stat'}->[$_] == 130 ) {
+        $states[$_] = '0';
+    } else {
+        $states[$_] = 'E';
+    }
+} ( 0, 1, 2, 3 );
+
+if ( $dev->{poller}->can_write(0.1) ) {
+    $dev->{sock}->send( chr(0x11) );
+    $dev->{sock}->close();
+}
+
+return { 'mode' => 'ACK', 'data' => join( ' ', @states ) }
+
+# ______________________________________________________________________________
+#\\75EN52H3IKRXDCI73F6SWHHNHZBO5EBRL2XHNJBWJS5OFA32DPYQHZ5NV22LYAY6T7JYA7QDP3OOA
+# \\ G6DOVVGHKSVP2VYXNOAARMXGFJJLQRBT2QYF3L65DILAGVYT233D \\// C25519-BASE-32 //
+#  \\// XW7WUKEJHHVPONMHKSW3BYKPY6HS22EZKGJO5KB4Z73NXYOYECQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

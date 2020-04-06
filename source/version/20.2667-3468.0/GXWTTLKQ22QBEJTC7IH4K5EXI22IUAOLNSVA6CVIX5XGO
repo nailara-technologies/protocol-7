@@ -1,0 +1,63 @@
+# >:]
+
+# name = base.log.send_buffer_line
+
+my $name         = shift;
+my $buffer_index = shift;
+
+return warn "expected log buffer name parameter" if not defined $name;
+
+<log.file>->{$name} //= {
+    'complete'        => 1,
+    'start_index'     => $buffer_index,
+    'next_index'      => 0,
+    'resend_delay'    => 0.1,
+    'resend_slowdown' => 1.8,
+};
+
+return if not exists <base.log.allow_buffer_send>;    #  <--  connected ?.,
+
+my $log_data   = <log.file>->{$name};
+my $next_index = $log_data->{'next_index'};
+
+return if not defined $data{'buffer'}{$name}{'data'}[$next_index];
+
+# find path to log agent..,
+my $route_prefix = 'core.';
+my @send_line;
+
+##[ core has sid 0 ]##
+if ( <system.agent.type> eq 'core' ) {
+    push( @send_line, "<system.node.name>.<system.agent.name>", 0 );
+    $route_prefix = '';
+}
+
+##[ buffer name ]##
+push( @send_line, $name );
+
+##[ t-stmp, lvl, msg ]##
+push( @send_line, $data{'buffer'}{$name}{'data'}[$next_index] );
+
+$log_data->{'complete'} = 0;
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
+        'call_args' => { 'args' => join( ' ', map { $_ // '' } @send_line ) },
+        'reply'     => {
+            'handler' => 'base.log.handler.log_reply',
+            'params'  => { 'name' => $name }
+        }
+    }
+    )
+    or <[base.log.handler.log_reply]>->(
+    {   'cmd'       => 'NAK',
+        'call_args' => { 'args' => 'command unknown' },
+        'params'    => { 'name' => $name }
+    }
+    );
+
+# ______________________________________________________________________________
+#\\L6UDIYXYJ6UQG67ZJL6NYNVBQSQPPBOL4D6XY2RJXLLBZT4G72N6XLDYMJR4UVF4VXI4ZMVYEXYCE
+# \\ KJVWWXFI3VG2VOHYUPCXINBPYER2W24G47BAYCBHIWIHECB6PZ2S \\// C25519-BASE-32 //
+#  \\// OVC5U7FGDUD24TQL4DHOA5OINP33UOBEPYBIFR5ZKMCLNTY3EDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

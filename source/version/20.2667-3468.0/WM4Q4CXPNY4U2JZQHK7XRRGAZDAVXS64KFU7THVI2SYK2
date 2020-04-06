@@ -1,0 +1,30 @@
+# >:]
+
+# name  = browser.cmd.slow_down
+# param = [target_%]
+# descr = trigger slowing down autoscroll FPS
+
+my $percent = $$call{'args'};
+$percent =~ s|%$|| if defined $percent;
+return { 'mode' => 'nak', 'data' => 'expected percent value [0..100]' }
+    if defined $percent and ( $percent !~ /^\d+$/ or $percent > 100 );
+
+if ( defined $percent ) {
+    if ( exists <browser.timer.auto_slowdown> ) {
+        <browser.timer.auto_slowdown>->cancel;
+        delete <browser.timer.auto_slowdown>;
+    }
+    <browser.redraw_fps.slowdown_target> = $percent;
+    return { 'mode' => 'ack', 'data' => "slow down target set to ${percent}%" };
+} else {
+
+    <[browser.enable_auto_speed]>;
+
+    return { 'mode' => 'ack', 'data' => "slow down mode 'auto' activated" };
+}
+
+# ______________________________________________________________________________
+#\\7JEYFMRUHJBPUKILQVPP5VCG2MFD2ZLFP7XM33O2PSX2DPZSEHZYK6TUG3Y2L2SHEWGORAHS7VHVY
+# \\ CB5M6O2FNDKIEUPC6TPCCQYTHEEA4OHZFGAMGRNBKI7OLPSL4FVP \\// C25519-BASE-32 //
+#  \\// 63B4GTRFDHQTMBTODFPYSZDGENFIUYJF2EEJN4O6DOF6VHEGSBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

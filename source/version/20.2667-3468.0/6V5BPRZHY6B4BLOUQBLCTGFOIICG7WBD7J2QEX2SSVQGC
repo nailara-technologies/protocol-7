@@ -1,0 +1,94 @@
+# >:]
+
+# name = loadsplash.handler.draw
+
+my $window = shift;
+
+if ( <loadsplash.composited> and !$window->is_composited ) {  ## comp changed ##
+    $window->set_visual( $window->get_screen->get_system_visual() );
+    <loadsplash.composited> = 0;
+} elsif ( <loadsplash.comp_at_startup>
+    and !<loadsplash.composited>
+    and $window->is_composited ) {
+    $window->set_visual( $window->get_screen->get_rgba_visual() );
+    <loadsplash.composited> = 1;
+}
+
+<loadsplash.fade_mode> //= 'in';
+
+if ( <loadsplash.fade_mode> eq 'in'
+    and ( !<loadsplash.composited> or !<loadsplash.do_fade_in> ) ) {
+    $window->move( <x11.coordinates>->{'left'}, <x11.coordinates>->{'top'} );
+    $window->set_size_request( <loadsplash.width>, <loadsplash.height> );
+    my $min_delay = sprintf( "%.4f",
+        <loadsplash.min_startup_delay>
+            - ( <[base.time]>->(4) - <loadsplash.min_startup_time> ) );
+    $min_delay = 0 if $min_delay < 0;
+    <[event.add_timer]>->(
+        {   'after'   => $min_delay,
+            'handler' => 'loadsplash.callback.report_online'
+        }
+    );
+    <loadsplash.fade_mode> = 'idle';
+    return;
+} elsif ( !<loadsplash.composited> and <loadsplash.fade_mode> eq 'out' ) {
+    $window->hide;
+    <loadsplash.fade_mode> = 'quit';
+}
+
+if ( <loadsplash.fade_mode> eq 'out' ) {    ## fade out ##
+
+    <loadsplash.fade_out.start_time> //= <[base.time]>->(4);
+    my $delta_t = <[base.time]>->(4) - <loadsplash.fade_out.start_time>;
+
+    my $opacity = sprintf( "%.4f", 1 - $delta_t );
+    $opacity = 0 if $opacity < 0;
+
+    if ( $opacity > 0 ) {
+        $window->set_opacity($opacity);
+    } else {
+        $window->hide;
+        <loadsplash.fade_mode> = 'quit';
+    }
+
+} elsif ( <loadsplash.fade_mode> eq 'in' ) {    ## fade in ##
+
+    <loadsplash.fade_in.start_time> //= <[base.time]>->(6);
+    my $delta_t = <[base.time]>->(6) - <loadsplash.fade_in.start_time>;
+
+    if ( delete <loadsplash.init_mode> ) {
+        $window->move( <x11.coordinates>->{'left'},
+            <x11.coordinates>->{'top'} );
+        $window->set_size_request( <loadsplash.width>, <loadsplash.height> );
+    }
+
+    my $opacity = sprintf( "%.6f", $delta_t / 0.8 );
+    $opacity = 1 if $opacity > 1;
+
+    $window->set_opacity($opacity);
+
+    if ( $opacity >= 1 ) {
+        delete <loadsplash.fade_in.start_time>;
+        my $min_delay = sprintf( "%.4f",
+            <loadsplash.min_startup_delay>
+                - ( <[base.time]>->(4) - <loadsplash.min_startup_time> ) );
+        $min_delay = 0 if $min_delay < 0;
+        <[event.add_timer]>->(
+            {   'after'   => $min_delay,
+                'handler' => 'loadsplash.callback.report_online'
+            }
+        );
+        <loadsplash.fade_mode> = 'idle';
+    }
+
+    $window->queue_draw();
+} elsif ( <loadsplash.fade_mode> eq 'quit' ) {
+    Gtk3->main_quit;
+    exit(0);
+}
+
+# ______________________________________________________________________________
+#\\OZJFEWOJWX46HGCA7YEERXGGN2HB5KG3D75JWMD3DKUCE4QMWTNJHMSBX6ILIOH6WNGYVZSFLTIG4
+# \\ SIQBVRTTFIYAZSZP5DUKW7NP7MQ4R2AWPANHRWI7TW2JERWTGEYD \\// C25519-BASE-32 //
+#  \\// 7SVMBOQUOZ2YCUHPSETHY7ILCWQRN7GV6SDH5T65QEXZUYK5ICI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

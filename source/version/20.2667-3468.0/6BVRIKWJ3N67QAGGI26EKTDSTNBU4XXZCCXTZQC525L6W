@@ -1,0 +1,17 @@
+# >:]
+
+# name  = storchencam.cmd.disable_time
+# descr = disable time display (t.r. corner)
+
+return { 'mode' => 'ack', 'data' => 'already disabled' }
+    if !<storchencam.display_time>;
+
+<[base.log]>->( 1, "manually disabling time display" );
+<storchencam.display_time> = 0;
+return { 'mode' => 'ack', 'data' => 'time display disabled' }
+
+# ______________________________________________________________________________
+#\\F2H3HYEA6IEZKTPQKBWVGFYMD56OT24QRSEQGSYQ66KHKDHEGBNLAE2NW6WWN7B5TTB6CJJXMCWGC
+# \\ XX33A7EODEB23OA4PEQ7MPDGULWA4ZMQ3XGJY3NAIFMML4BLI5QX \\// C25519-BASE-32 //
+#  \\// E3DO3TCDJQGZJYLDMUGQ2QAEGKGMDAO4QQEHXM5RES446K5XGDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

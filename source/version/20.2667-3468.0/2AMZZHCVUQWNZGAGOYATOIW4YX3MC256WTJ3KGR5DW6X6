@@ -1,0 +1,26 @@
+# >:]
+
+# name  = debug.cmd.echo
+# descr = returns the supplied parameter
+# param = <usr_str>
+
+my $usr_sid = $$call{'session_id'};
+my $usr_str = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'you need to supply a string to return'
+    }
+    if !length( $usr_str // '' );
+
+$data{'session'}{$usr_sid}{'echo_str'} = $usr_str;  # stored for later debugging
+
+<[base.log]>->( 1, "echo string : '$usr_str'" );
+
+return { 'mode' => 'ack', 'data' => $usr_str }
+
+# ______________________________________________________________________________
+#\\4F7M6Q5RRW7SDM4OC5IEY3W7TUGPHPTIN5QX4EM5YTXMMLSXXVTV6YWFPXCLBJB5IEC6LWXUCWURY
+# \\ 4F577D5YTNNOQ2IZKWFB2BYS7JBV4YIVNOLZEM2JYBSEIOWD3GWO \\// C25519-BASE-32 //
+#  \\// 67MPVGHQ3U5F7RHH4X47XHLMKNNS4CFDYEU6NT5IWSETVLIZUDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

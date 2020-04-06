@@ -1,0 +1,32 @@
+# >:]
+
+# name  = debug.cmd.get
+# param = <key>
+# descr = returns internal data values
+# note  = todo: implement access control filter and root namespace
+
+my ( $cid, $requested_key ) = ( $_[0]->{'session_id'}, $_[0]->{'args'} );
+my ( $key_ok, $err_msg ) = <[base.validate.data_key_syntax]>->($requested_key);
+if ( !$key_ok ) {
+    <[base.log]>->( 0, "[$cid] get: $err_msg" );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+my $key_ref;
+if ( $key_ref = <[base.resolve_key]>->($requested_key) and defined $key_ref ) {
+    return {
+        'mode' => 'ack',
+        'data' => $$key_ref
+        }
+        if ref($key_ref) eq 'SCALAR';
+    return {
+        'mode' => 'nak',
+        'data' => 'only references to scalars are currently implemented'
+    };
+}
+return { 'mode' => 'nak', 'data' => 'requested key not found' };
+
+# ______________________________________________________________________________
+#\\INPMSNFBJLTRLBFDRJGDSQSEKEGNFXIADBN2HBJ7R32WMM67ZBMLSZHNDFOKN6HTUEZBH57PSHWEA
+# \\ GAJREKKVWQ25ROWFCSD73AXEA2MTAUHZPKPIS3MXJAFPPGBU3KEK \\// C25519-BASE-32 //
+#  \\// G62RKSG2KEHYUHJ2SSXUDVR76FH5TYJH3ACJXTJFU2EIT6SE2CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

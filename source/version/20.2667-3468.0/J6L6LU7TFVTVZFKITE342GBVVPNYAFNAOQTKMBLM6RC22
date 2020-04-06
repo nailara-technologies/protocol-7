@@ -1,0 +1,36 @@
+# >:]
+
+# name = nroot.callback.system-poweroff
+
+my $sysrq_file = '/proc/sysrq-trigger';
+my $sys_kernel = '/proc/sys/kernel/sysrq';
+
+my $poweroff_enabled = <system.system-poweroff.enabled>    //= 1;
+my $term_delay       = <system.system-poweroff.term-delay> //= 1.3787;
+
+return <[base.log]>->(
+    0, "[ system.system-poweroff.enabled = 0  <- shutdown cancelled., ]"
+) if !$poweroff_enabled;
+
+<[base.log]>->( 0, "[ '$sysrq_file' not found, shutdown cancelled., ]" )
+    if !-e $sysrq_file;
+
+<[file.put]>->( $sys_kernel, "1\n" ) if -e $sys_kernel;
+
+map {
+    open( my $sysrq_fh, ">$sysrq_file" ) or die "[ $sysrq_file : $! ]";
+    print {$sysrq_fh} "$_\n";
+    if ( $_ eq 'e' ) {
+        <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
+        <[base.sleep]>->($term_delay);
+        print {$sysrq_fh} "i\n";
+        <[base.log]>->( 0, "<<< powering off host system >>>" );
+    }
+    close($sysrq_file)
+} ( 's', 's', 'u', 'e', 'o' );
+
+# ______________________________________________________________________________
+#\\EE2745ZWNYMGTZ2VAOF36JZAA6XMEI7UMNW3YINLRZIV5MPEKABZJQ5PRA2KOZ547TCEGJ62DEV4C
+# \\ CD2DD7FSECHA7FLS6QDEJTJVD2DJT4MAJET4VCASMMKVLQB73JBD \\// C25519-BASE-32 //
+#  \\// RZFML7RKY2VNKJKHXITZRXQKTXMHLJVPINCMQ5MNYQUTIWZQGDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

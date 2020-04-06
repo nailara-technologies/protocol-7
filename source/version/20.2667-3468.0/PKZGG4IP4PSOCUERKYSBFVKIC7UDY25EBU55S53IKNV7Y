@@ -1,0 +1,58 @@
+# >:]
+
+# name = media.handler.switch_fade
+
+my $watcher = shift->w;
+my $params  = $watcher->data;
+my $win_id  = $params->{'window_id'};
+my $agent   = $params->{'agent_name'};
+
+<xserver.fade_in>->{$win_id}->{'opacity'} //= 0;
+
+# LLL: make fade steps time based (delta_t)!
+<xserver.fade_in>->{$win_id}->{'opacity'} += 1;
+
+if ( <xserver.fade_in>->{$win_id}->{'opacity'} >= 100 ) {
+    delete <xserver.fade_in>->{$win_id}->{'opacity'};
+    delete <xserver.fade_in>->{$win_id}
+        if !keys %{ <xserver.fade_in>->{$win_id} };
+    $watcher->cancel;
+
+    <[media.hide_except]>->($agent);
+
+    if ( $agent eq 'mpv' ) {
+
+        my $frame_index = <media.sequence.frame_pos>++;
+        my $video_frame = <media.sequence.frame_path>->{$frame_index};
+
+        <[base.proto.nailara.command.send.local]>
+            ->( { 'command' => 'browser.clear_views' } );
+
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.image2html.get_url',
+                'call_args' => {
+                    'args' =>
+                        join( ' ', $video_frame, <x11.width>, <x11.height> )
+                },
+                'reply' => { 'handler' => 'media.handler.image2html_reply' }
+            }
+        ) if defined $video_frame;
+        <media.frame_index>++;
+    }
+    return;
+}
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.xserver.set_opacity",
+        'call_args' => {
+            'args' =>
+                join( ' ', $win_id, <xserver.fade_in>->{$win_id}->{'opacity'} )
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\AMRDPQB2RAKYBSSIXO3JVU2WC57JXLSWPYQVQYLBXWMMPS6V6NKP5ZUJDZBCLLGWLWFRLZD2MOIZY
+# \\ CGXSWEYHPPJPHBDN7XINBKGTHYSWP56YADJDSSFZAQJX3ZJ5OEES \\// C25519-BASE-32 //
+#  \\// WO2YPIYXJXTYIYXQ2PDXL4YWB6USAMEJBQWRP6KDMW365LBHCAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

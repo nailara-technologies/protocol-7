@@ -1,0 +1,134 @@
+# >:]
+
+# name   = base.handler.auth
+# return = 0 -> session authorized, 1 -> keep state , 2 -> not valid: disconnect
+
+my $id           = $_[0]->w->data;
+my $session      = $data{'session'}{$id};
+my $input        = \$$session{'buffer'}{'input'};
+my $output       = \$$session{'buffer'}{'output'};
+my $count_select = $$session{'counter'}{'auth'}{'select'} //= {};
+my ( $auth_method, $auth_code, $auth_name );
+
+$count_select->{'limit'}  //= 3;    # <- <!>
+$count_select->{'errors'} //= 0;
+$count_select->{'calls'}  //= 0;
+
+my $s_met = <auth.supported_methods>;
+die "no auth methods defined" if not defined $s_met;
+($auth_method) = $$session{'auth'}{'method'} // split( /\s+/, $s_met );
+
+$_[0]->w->stop;                     # <- stopping event handler to modify buffer
+
+if ( $$input =~ s/^(auth\.)?close\n// ) {
+    $$output .= "ACK connection closed\n";
+    <[base.log]>->( 1, "[$id] connection shutdown requested" );
+    return 2;                       # <- disconnect
+} elsif ( $$input =~ s/^(auth\.)?select (?<method>\S+)\n// ) {  # <- auth method
+    my $req_method = $+{method};
+    $_[0]->w->start;
+
+    if ( not exists $code{'auth.auth_select'} ) {
+        <[base.log]>->( 0, "[$id] auth module not loaded, 'select' rejected!" );
+        $$session{'shutdown'} = 1;
+        $$output .= ">:[\n";
+    } elsif ( $req_method !~ <regex.base.authmethod> ) {
+        <[base.log]>->( 0, "[$id] invalid characters in auth method string" );
+        <[base.log]>->( 2, "[$id] : (requested auth method) : '$req_method'" );
+        $$session{'shutdown'} = 1;
+        $$output .= ">:[\n";
+
+    } else {
+        if ( $count_select->{'calls'} >= $count_select->{'limit'} ) {
+            <[base.log]>->( 0, "[$id] auth select count limit exceeded >:[" );
+            $$session{'shutdown'} = 1;
+            $$output .= ">:[\n";
+        } else {
+            if ( <[auth.auth_select]>->( $id, $req_method ) ) {
+                $count_select->{'calls'}++;
+            } else {
+                $count_select->{'errors'}++;
+            }
+            if ( $count_select->{'errors'} > 2 ) {
+                $$session{'shutdown'} = 1;
+                $$output .= ">:[\n";
+            }
+        }
+    }
+} elsif ( $$input =~ s/^(auth\.)?list\n// ) {    # list auth methods
+
+    $_[0]->w->start;
+
+    if ( not exists $code{'auth.auth_list'} ) {
+        <[base.log]>->( 0, "[$id] auth module not loaded, 'list' rejected!" );
+        $$output .= ">:[\n";
+        $$session{'shutdown'} = 1;
+
+    } elsif ( ( $count_select->{'list'} // 0 ) > 1 ) {
+        <[base.log]>->( 0, "[$id] 3rd auth list requested >:[" );
+        $$output .= ">:[\n";
+        $$session{'shutdown'} = 1;
+    } elsif ( ( $count_select->{'list'} // 0 ) > 0 ) {
+        <[base.log]>->( 0, "[$id] repeated auth list requested.." );
+        $$output .= "NAK once should be enough >;]\n";
+        $count_select->{'list'}++;
+    } else {
+        <[base.log]>->( 1, "[$id] auth method list requested" );
+
+        my $auth_list = <[auth.auth_list]>->($id);
+        $auth_list = 'DATA ' . length($auth_list) . "\n" . $auth_list;
+        $count_select->{'list'}++;
+        $$output .= $auth_list;
+    }
+}
+
+# ... calling selected authentication plugin ...
+elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
+
+    $_[0]->w->start;    # <- resume event watcher
+
+    ( $auth_code, $auth_name )
+        = ( $code{"plugin.auth.$auth_method"}->( $_[0] ) );
+
+    if (    $auth_code == 0
+        and defined $auth_name
+        and $auth_name =~ <regex.base.usr> ) {
+        my $fh = $data{'session'}{$id}{'handle'};
+        $$session{'encryption'}  = $data{'handle'}{$fh}{'encryption'} // 'none';
+        $$session{'mode'}        = 'client';
+        $$session{'user'}        = $auth_name;
+        $$session{'auth_time'}   = <[base.time]>->(5);
+        $$session{'initialized'} = 1 if $auth_method ne 'agent';
+        $$session{'authenticated'} = 'yes';
+
+        $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = 'client';
+
+        $data{'user'}{$auth_name}{'connected_since'} = time()
+            if delete $data{'user'}{$auth_name}{'last_seen'}
+            or keys( %{ $data{'user'}{$auth_name}{'session'} } ) == 1;
+
+        <[base.session.init_state]>->( $id, 1 );
+
+        # disable the authentication timeout
+        $$session{'watcher'}{'input_handler'}->timeout(undef);
+
+        undef $count_select;    # .. cleanup ..
+        delete $$session{'counter'}{'auth'};
+        delete $$session{'counter'} if !keys( %{ $$session{'counter'} } );
+
+        return 0;               # <- authorized
+    } elsif ( $auth_code == 1 ) {
+        return 1;               # <- continue..
+    } else {
+        return 2;               # <- disconnect
+    }
+} else {
+    <[base.log]>->( 0, "auth plugin '$auth_method' not loaded" );
+    return 2;                   # <- disconnect
+}
+
+# ______________________________________________________________________________
+#\\AK7TGWMF56LYYDUOT5SZBFJULYWOSW4K5AF2YR4APSGLM5D435VLV55CJY32SNTAPPY4MHXQSDQ4Q
+# \\ G7HZKRMODJWQ6ASO46Z6VERDYHEUI7LHG2BHSS63FF7P2CHUBB6P \\// C25519-BASE-32 //
+#  \\// 6HGUCJVMXLF6WXYLSINW3M6DZ63G5R35HAPG7MV5FOOPGVYL2CA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

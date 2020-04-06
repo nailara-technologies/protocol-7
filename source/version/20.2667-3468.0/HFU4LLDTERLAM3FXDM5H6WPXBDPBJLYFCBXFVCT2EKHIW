@@ -1,0 +1,33 @@
+# >:]
+
+# name = udev.load_rules
+
+my @rule_files;
+my $setup_name = shift;
+
+<[base.log]>->( 1, "..loading udev rule setup files..," );
+
+if ( defined $setup_name ) {
+    @rule_files = "agents/udev/rule-setup.$setup_name";
+} else {
+    my $dir_fh;
+    <[base.log]>->( 1, "no specific rule file configured, loading all..." );
+    opendir( $dir_fh, <system.conf_path> ) or die "unable to open conf dir: $!";
+    map { push( @rule_files, $_ ) if $_ =~ /^conf\.udev_rules\..+$/ }
+        readdir($dir_fh);
+    closedir($dir_fh);
+}
+
+return <[base.log]>->( 0, "found no rules file to load" ) if !@rule_files;
+
+foreach my $file (@rule_files) {
+    <[base.log]>->( 1, ": '$file'" );
+    <udev.rules> = <[base.load_section_config]>
+        ->( join( '/' . <system.conf_path>, $file ) );
+}
+
+# ______________________________________________________________________________
+#\\SU7A3DYJMHGV4U4M5QQAQFHWVNCE7NR3JZAHJNWQKXQYKEGBMQVIJDPU6VMVU4CPGAXCMW2F5VLLG
+# \\ RHFIRDKAVX7Z7HVIDGOQRDNNYYJKOBHILNU5J5OREOMHNAC2G6XS \\// C25519-BASE-32 //
+#  \\// DYOKU2LZ4PR3OFOCKMANK5SYWSXX46KHHVPZD74DXYHOBXYXABQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

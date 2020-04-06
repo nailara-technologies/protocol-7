@@ -1,0 +1,31 @@
+# >:]
+
+# name  = base.disable_command
+# descr = permanently disable / remove a specific command
+
+my @requested = sort { length($a) <=> length($b) } @_;
+die "expected list of commands to disable" if !@requested;
+$data{'disabled_commands'} //= [];
+
+my $s = @requested > 1 ? 's:' : '';
+<[base.log]>->( 2, "disabling command$s : " . join( ', ', @requested ) );
+
+my %already_disabled;
+map { $already_disabled{$_} = 1 } @{ $data{'disabled_commands'} };
+
+map {
+    push( @{ $data{'disabled_commands'} }, $_ )
+        if not exists $already_disabled{$_}
+} @requested;
+
+map {
+    delete $code{"base.cmd.$_"};
+    delete $data{'base'}{'cmd'}{$_};
+    delete $data{'base'}{'help'}{$_}
+} @{ $data{'disabled_commands'} };
+
+# ______________________________________________________________________________
+#\\RPT47SY5CAXMPJ56OYSZMZE62O3SMZ3WIKTRRGL3YMT6BKZ4CKLBJPFB26HB5IP3RXCTWTTULLJC6
+# \\ SFCP5BFCPJJ3ZWX7ZNB4YN2ZY4Z7R26NGJKYX5W53HCK6YQKWCE4 \\// C25519-BASE-32 //
+#  \\// DFZCE6LZUM33Y3IUGRZELW3ATXCLTK4ZTFNORZATGGNCGKSS4DQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

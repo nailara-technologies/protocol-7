@@ -1,0 +1,69 @@
+# >:]
+
+# name  = power.cmd.add_device
+# descr = add new power socket device to config
+# param = <host|ip> [port] [passwd]
+
+my @parameters;
+<power.cfg.devices> //= {};
+my $params_str = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'hostname or ip address expected' }
+    if !length($params_str);
+
+my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
+
+<[base.log]>->( 2, "checking if $host is reachable.." );
+
+my $ip_addr = $host;    # LLL
+
+return {
+    'mode' => 'nak',
+    'data' => "device '$host' unreachable"
+    }
+    if not <[power.host_reachable]>->($host);
+
+map {
+    return {
+        'mode' => 'nak',
+        'data' => 'device already exists'
+        }
+        if <power.cfg.devices>->{$_}->{'ip'} eq $ip_addr
+} keys %{<power.cfg.devices>};
+
+return { 'mode' => 'nak', 'data' => 'invalid port parameter' }
+    if defined $port and $port !~ /\d+/;
+
+<[base.log]>->( 2, "resolving mac address for $ip_addr.." );
+
+my $mac_addr = <power.net_mac>->get($ip_addr);
+
+return { 'mode' => 'nak', 'data' => 'unable to resolve mac address' }
+    if not defined $mac_addr;
+return {
+    'mode' => 'nak',
+    'data' => 'not a gembird device (mac address not recognized)'
+    }
+    if $mac_addr !~ <power.pattern.gembird_mac>;
+
+my $dev_id = <[base.gen_id]>->(<power.cfg.devices>);
+<power.cfg.devices>->{$dev_id} = {
+    'added'  => <[base.time]>->(5),
+    'status' => 'online',
+    'ip'     => $ip_addr,
+    'mac'    => $mac_addr,
+    'port'   => $port // 5000,
+    'pass'   => $pass // '1'
+};
+
+<[base.log]>->( 1, "added new device $dev_id ( $ip_addr [$mac_addr] )" );
+
+<[power.save_config]>;
+
+return { 'mode' => 'ack', 'data' => "device added [id=$dev_id]" }
+
+# ______________________________________________________________________________
+#\\YWZLQF73REPYQXRB73YTGFRSK3XBQLVRTQPI3PTMNC3ZKIBO4GBYQF5MFXBVPKLNQGG73446JI3PC
+# \\ SDO6KSNRSRKL2YSAIH7NLGW2EGCZFSBTRSLFXQWYWJCFCGHK7USG \\// C25519-BASE-32 //
+#  \\// BKJEBIDBILRVUMGXRGVI23R4S4OAVH4P66IVNG6KWCCM3NW3OCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

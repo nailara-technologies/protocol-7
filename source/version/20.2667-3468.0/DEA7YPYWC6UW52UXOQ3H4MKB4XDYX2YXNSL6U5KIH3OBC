@@ -1,0 +1,48 @@
+# >:]
+
+# name = base.x11.set_gravity
+
+my $gravity = shift;
+$gravity //= '';
+die "invalid gravity keyword '$gravity' [left|right|top|bottom]"
+    if $gravity !~ /^(top|bottom|left|right)$/;
+my ($local_sid) = keys( %{<user.core.session>} );
+
+<[base.log]>->(
+    1, "setting gravity for window id " . <x11.id> . " to '$gravity'.."
+);
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->(
+    $core_fh, "($cmd_id)xserver.set_gravity " . <x11.id> . " bottom\n"
+);
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+    <x11.display> = $1;
+    <[base.log]>->( 2, ": ok, gravity applied." );
+    return 1;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply from xserver agent)"
+            . " ['$reply_string']"
+    );
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\4HLC3DTTXSTYH3Z7UY2OJH3TDKAPG2WOSUBQASPWLHHOUGVUFXVRT6PZZMWEMXTGWUWTO7C3QXQMQ
+# \\ 2WIEDILZ6UQ42GQ2CHWA5QR54XPRWYO5GRI3PZPQL6EUJ66QLPAT \\// C25519-BASE-32 //
+#  \\// 6RFDXXZHNFCZTNTKMR7BHXVDOSSSRHODRRTXPUS5XLJQYVC4YCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

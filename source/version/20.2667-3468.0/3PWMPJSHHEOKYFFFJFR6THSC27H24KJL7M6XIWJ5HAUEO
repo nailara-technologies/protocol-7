@@ -1,0 +1,36 @@
+# >:]
+
+# name  = nroot.bin_nlr_is_current
+
+my $log_level    = shift // 1;
+my $nlr_bin_path = <nroot.cfg.nlr_bin_path>;
+my $nlr_src_path = join( '/', <system.root_path>, <system.nlr_src_path> );
+return warn "[ nlr-bin ] $nlr_src_path not found <<!>>" if !-f $nlr_src_path;
+
+my $bin_checksum = '';
+my $src_checksum = <[digest.bmw.filesum]>->( 224, $nlr_src_path );
+chomp( $bin_checksum = eval { $bin_checksum = qx|$nlr_bin_path -dq| } // '' )
+    if -x $nlr_bin_path;
+
+if ( $src_checksum eq $bin_checksum ) {
+    <[base.log]>->( $log_level, ": 'nlr' binary installed and current =)" );
+    <[base.log]>->( 2,          ":. src: $src_checksum" );
+    return 1;
+} else {
+    my $result_msg
+        = !length($bin_checksum)
+        ? "'nlr' binary is not installed [ /usr/local/bin/nlr ].,"
+        : "'nlr' binary needs upgrade. [ bmw checksum differs ].,";
+    <[base.log]>->( --$log_level, ": $result_msg" );
+    <[base.log]>->( 2,            ":. src: $src_checksum" );
+    <[base.log]>->( 2,            ":: bin: $bin_checksum" )
+        if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
+    <nroot.checksum.nlr_source> = $src_checksum;
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\GBCX6Z7OAPAPG3JFWEWDIFZFUWOCYUDJ5L2MHPF2KSKTJSNHJ7NTAZQJITEI7IRQSHE6D7Y4YNMYI
+# \\ QG7FR2LBDX3MULSDQQX6YXZ54XXAKV6RULGBLLKSK52UL6I2LHXA \\// C25519-BASE-32 //
+#  \\// LKKLBNWO6SM7KZKAV74JN7WQXF74VJCQB4X4BD2WZ5C7Z6SIKBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,143 @@
+# >:]
+
+# name = weather.parent.extract_forecast
+
+my ( $type, $station_id, $weather_data ) = @_;
+
+die "forecast type parameter required [hours|days]"
+    if not defined $type or !length($type);
+die "invalid type parameter [hours|days]" if $type !~ /^(hours|days)$/;
+
+die "expected (valid) station_id parameter"
+    if not defined $station_id
+    or !length($station_id)
+    or $station_id !~ /^([\w\d]+)$/;
+
+die "expected 'forecast' weather data"
+    if not defined $weather_data
+    or ref($weather_data) ne 'HASH';
+
+my $forecast_ref       = {};
+my $forecast_ref_today = {};
+
+if ( $type eq 'hours' ) {
+
+    while ( my $element = shift @{ $weather_data->{'list'} } ) {
+
+        if ( !keys %{$element} ) {
+            <[base.log]>->( 0, "'hours' forecast list is empty, skipping.," );
+            next;
+        }
+
+        my $timestamp = $element->{'dt'};
+        my $km_h      = $element->{'wind'}->{'speed'} * 3600 / 1000;
+        $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+
+        my $beaufort = <[weather.parent.wind.calculate_beaufort]>
+            ->( $element->{'wind'}->{'speed'} );
+
+        my $time_hours = <[base.parser.timestamp]>->( 'clock', $timestamp );
+        $time_hours =~ s|:\d\d$||;
+
+        $forecast_ref->{$timestamp} = {
+            'time'   => $time_hours,
+            'code'   => $element->{'weather'}->[0]->{'id'},
+            'icon'   => $element->{'weather'}->[0]->{'icon'},
+            'descr'  => $element->{'weather'}->[0]->{'description'},
+            'clouds' => $element->{'clouds'}->{'all'},
+            'wind'   => {
+                'direction' => $element->{'wind'}->{'deg'},
+                'speed'     => $element->{'wind'}->{'speed'},
+                'speed_kmh' => $km_h,
+                'beaufort'  => $beaufort,
+                'descr'     => <[weather.parent.wind.descr_txt]>->($beaufort)
+            },
+            'temp'     => $element->{'main'}->{'temp'},
+            'pressure' => $element->{'main'}->{'pressure'},
+            'humidity' => $element->{'main'}->{'humidity'},
+        };
+
+        foreach my $key ( 'clouds', 'humidity' ) {
+            $forecast_ref->{$timestamp}->{$key} =~ s|\D+||g;
+        }
+    }
+    <weather.data>->{$station_id}->{'forecast'}->{$type} = $forecast_ref;
+} elsif ( $type eq 'days' ) {
+
+    while ( my $element = shift @{ $weather_data->{'list'} } ) {
+        my $timestamp = $element->{'dt'};
+
+        my $day_name = <[weather.parent.day_name]>->($timestamp);
+
+        my $km_h = $element->{'speed'} * 3600 / 1000;
+        $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+
+        my $beaufort
+            = <[weather.parent.wind.calculate_beaufort]>
+            ->( $element->{'speed'} );
+
+        $forecast_ref->{$timestamp} = {
+            'day'    => $day_name,
+            'code'   => $element->{'weather'}->[0]->{'id'},
+            'icon'   => $element->{'weather'}->[0]->{'icon'},
+            'descr'  => $element->{'weather'}->[0]->{'description'},
+            'clouds' => $element->{'clouds'},
+            'wind'   => {
+                'direction' => $element->{'deg'},
+                'speed'     => $element->{'speed'},
+                'speed_kmh' => $km_h,
+                'beaufort'  => $beaufort,
+                'descr'     => <[weather.parent.wind.descr_txt]>->($beaufort)
+            },
+            'pressure' => $element->{'pressure'},
+            'temp'     => $element->{'temp'},
+
+            # 'humidity' is disabled as it always returned '0%'
+        };
+
+        $forecast_ref->{$timestamp}->{'clouds'} =~ s|\D+||g;
+    }
+    ## today ##
+
+    my $element   = $weather_data->{'today'};
+    my $timestamp = $element->{'dt'};
+
+    my $km_h = $element->{'speed'} * 3600 / 1000;
+    $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+
+    my $beaufort
+        = <[weather.parent.wind.calculate_beaufort]>->( $element->{'speed'} );
+
+    $forecast_ref_today = {
+        'timestamp' => $timestamp,
+        'expires'   => <[weather.base.tomorrow_unix]>,
+        'code'      => $element->{'weather'}->[0]->{'id'},
+        'icon'      => $element->{'weather'}->[0]->{'icon'},
+        'descr'     => $element->{'weather'}->[0]->{'description'},
+        'clouds'    => $element->{'clouds'},
+        'wind'      => {
+            'direction' => $element->{'deg'},
+            'speed'     => $element->{'speed'},
+            'speed_kmh' => $km_h,
+            'beaufort'  => $beaufort,
+            'descr'     => <[weather.parent.wind.descr_txt]>->($beaufort)
+        },
+        'pressure' => $element->{'pressure'},
+        'temp'     => $element->{'temp'},
+    };
+
+    $forecast_ref_today->{'clouds'} =~ s|\D+||g;
+
+}
+
+<weather.data>->{$station_id}->{'forecast'}->{$type} = $forecast_ref;
+<weather.data>->{$station_id}->{'forecast'}->{'today'} = $forecast_ref_today;
+
+<[base.log]>->( 2, "writing html pages.. [ got new 'forecast' data ]" );
+<[weather.parent.write_pages]>->($station_id);
+
+# ______________________________________________________________________________
+#\\PPM3II6SLPGKJ5N3K2YL2GATGTJUX6RNQCFWIHGG5UIKAVKLJQWMF7WU7BKYKZYU4XPJK7Y2VFRQC
+# \\ D5Y4WEIELYYPV5NBNM3RNO5FDICHTUPAM3WDHRSQLVX5EC37PDZC \\// C25519-BASE-32 //
+#  \\// YS7ZNBA35SZX6UK47KFU5QNNI3QLONTG34HIW2KOWCJFYM54CAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

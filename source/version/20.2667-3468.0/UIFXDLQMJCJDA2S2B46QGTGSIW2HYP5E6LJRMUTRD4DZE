@@ -1,0 +1,59 @@
+# >:]
+
+# name = mpv.handler.scan_encoded_timer
+
+<[base.log]>->( 2, "checking reencoded file age..," );
+
+if ( not defined <mpv.rescale_path> or !-d <mpv.rescale_path> ) {
+    <[base.log]>->(
+        2, "rescale_path not defined or doesn't exist, skipping age check.,"
+    );
+    <mpv.timer.rescaled_check>->cancel;
+    delete <mpv.timer.rescaled_check>;
+    return;
+}
+
+my $max_days       = <mpv.cleanup_rescaled_after>;
+my $file_extension = <mpv.rescaled_extension>;
+
+foreach my $check_file (
+    @{ <[file.all_files]>->( <mpv.rescale_path>, 'recursive' ) } ) {
+    next if $check_file !~ /\.last_seen$/;
+    ( my $video_file = $check_file ) =~ s|\.last_seen$|.$file_extension|;
+    if ( !-f $video_file ) {
+        <[base.log]>->(
+            0, ": video file '$video_file' is missing, cleaning up.,"
+        );
+        unlink($check_file);
+        next;
+    }
+    my $file_size = File::stat::stat($check_file)->size;
+    next if $file_size < 11 or $file_size > 17;
+    chomp( my $tstamp = ${ <[file.slurp]>->($check_file) } );
+    next if $tstamp !~ /^\d+$/;
+    my $age_days = sprintf( "%.2f", ( ( time - $tstamp ) / 86400 ) );
+    if ( $age_days >= $max_days ) {
+
+        if ( defined <mpv.file_map.rescaled.source>->{$check_file} ) {
+            <[base.log]>->(
+                2, "[cleanup_skipped] $video_file still in playlist, keeping it"
+            );
+        } else {
+            <[base.log]>->( 1, "[cleanup] $video_file" );
+            unlink($video_file) or warn "unable to delete '$video_file' [ $! ]";
+            unlink($check_file);
+
+            # LLL: check if parent dir is empty [ + remove_path ]
+        }
+    } else {
+        <[base.log]>->( 2, "[keeping] $video_file" );
+    }
+}
+
+<[mpv.callback.check_parent_dirs]>->(<mpv.rescale_path>);
+
+# ______________________________________________________________________________
+#\\UIJXGQZSSJIEE2BOYZ4H2W5YKLV6Y5TLLG5GOH747V76EBA25WOGEN2EY7QBJTP25WOXWMNW4MLDM
+# \\ 62DLVPVDBW2FGJCLMMKKDJK5XL6VM6JRCTALDW3FXFCH2DA34YX6 \\// C25519-BASE-32 //
+#  \\// 7MKARYKDCTG5GZ2VOCISQASSOMWU63V3YFGVSXLXSOGXLRRYUCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

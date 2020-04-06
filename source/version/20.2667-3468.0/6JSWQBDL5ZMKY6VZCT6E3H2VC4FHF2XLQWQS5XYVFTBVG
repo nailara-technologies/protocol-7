@@ -1,0 +1,21 @@
+# >:]
+
+# name = layout.handler.sig_term
+
+return
+    if not defined <layout.current_layout>
+    or !length(<layout.current_layout>);
+
+my $cfg_file = <layout.cfg_directory> . '/layout.current';
+<[base.log]>->( 1, "storing current layout in 'layout.current' config.." );
+
+<[file.put]>->(
+    $cfg_file,
+    sprintf( "%.4f %s\n", <[base.time]>->(4), <layout.current_layout> )
+);
+
+# ______________________________________________________________________________
+#\\BGLG5PJE4NZDYUTNJ4EASOYZO3QEPRSEJUL2MV3M7DZUH22IL33BDP65HPXZP4274YFWX6GR3NMUO
+# \\ 6OYNAOQLBSZMGRVRYYA52HNEXHJPVDOKMX6NF4RFLC6ATFSRT4PK \\// C25519-BASE-32 //
+#  \\// 6V2BBZNFQMSPL2RPCVQ7PQMQLODH4IWAXJWSSRLWVMQNXHUAQCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

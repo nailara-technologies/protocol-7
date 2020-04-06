@@ -1,0 +1,37 @@
+# >:]
+
+# name    = plugin.auth.pwd
+# args    = int(session id)
+# return  = str(user name) (success), undef [error]
+
+my $id = $_[0]->w->data;
+my $re = <regex.base>;
+
+my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
+my $output = \$data{'session'}{$id}{'buffer'}{'output'};
+
+if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
+
+    if ( <[auth.pwd.success]>->( $1, $2 ) ) {
+        $$output .= "YEAH >:P\n";
+        <[base.log]>->( 1, "[$id] user session authorized to '$1'" );
+        return ( 0, $1 );
+    } else {
+        $$output .= "NOPE >:|\n";
+        <[base.log]>->( 0, "[$id] [auth pwd] access denied to user '$1'" );
+        return 2;
+    }
+} elsif ( $$input =~ /\n/ ) {
+    $$output .= ">:[\a\n";
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [pwd] >:[" );
+} else {
+    return 1;
+}
+
+return 2;
+
+# ______________________________________________________________________________
+#\\MBBUCHFPXVL353VLJE3UGY2WSIQAP7JQ644AHBEVYHW2GNDSNXMKVARPK5TBFA2LRJCJ35HPZHLM6
+# \\ MKCJYU6QUVQWAVKAVDX6A4Q2CFGN3QYXO6UICLNLM3IBJJ6IAZJW \\// C25519-BASE-32 //
+#  \\// SETKOJBT7X5QCRA4VZ747BSQ6WXO34CZJC5TQSRXZ2GAFG644BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

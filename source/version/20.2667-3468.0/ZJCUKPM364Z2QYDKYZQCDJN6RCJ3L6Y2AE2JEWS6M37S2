@@ -1,0 +1,41 @@
+# >:]
+
+# name = webcam.handler.get_list_reply
+
+my $reply = shift;
+
+<webcam.playlist_sha1> //= '';
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    <[base.log]>->( 0, ": unable to fetch playlist!" );
+    return;
+}
+
+my @file_list     = split( "\n", $reply->{'data'} );
+my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
+    return;
+}
+
+my $playlist_changed = 0;
+
+return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
+    if defined <webcam.pid>
+    and $playlist_sha1 eq <webcam.playlist_sha1>
+    and !$playlist_changed;
+
+<webcam.playlist_sha1>    = $playlist_sha1;
+<webcam.current_playlist> = \@file_list;
+(<webcam.image_url>) = @file_list;
+
+warn "multiple url playlist entries currently not supported" if @file_list > 1;
+
+<[base.log]>->( 1, "[CAM_URL] " . <webcam.image_url> );
+
+# ______________________________________________________________________________
+#\\GPESE45WTOBI5LU2V6FA5UNSB75BH4CU47SRJROREUK2KG4Q4R6VE27B7I7GVDTB4YD374NRTTQCC
+# \\ O2BCZWM4YEYRXOHAGL4AYVPZXIKNVYEU4HLLFHD73JUC3KTWN764 \\// C25519-BASE-32 //
+#  \\// N24WYP55YIXDDS2KGZVPMWFDYF52EDE4TQNYAQFFQ2ROABNIWCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

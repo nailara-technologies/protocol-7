@@ -1,0 +1,130 @@
+# >:]
+
+# name = httpd.http_head
+
+my $id        = shift;
+my $session   = $data{'session'}{$id};
+my $request   = $session->{'http'}->{'request'};
+my $response  = $session->{'response'};
+my $headers   = $request->{'headers'};
+my $req_host  = $session->{'http'}{'request'}{'host'};
+my $http_host = <[httpd.determine_host]>->($id);
+
+return <[httpd.error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
+
+my $http_uri    = $session->{'http'}{'request'}{'uri'};
+my $link_target = <httpd.cfg.hostnames>->{$http_host}
+    if exists <httpd.cfg.hostnames>->{$http_host};
+
+if (    $link_target =~ /^\d{3}$/
+    and -l <httpd.site_dir> . '/' . $http_host
+    and !-e <httpd.site_dir> . '/' . $link_target ) {    # special codes
+
+    $session->{'watcher'}->{'input_handler'}->cancel;
+    if ( $link_target ne '000' ) {    # n > 000 == HTTP error codes
+        <[base.log]>->(
+            1, "[$id] status '$link_target' for requested host '$req_host'"
+        );
+        $session->{'buffer'}->{'output'}
+            .= <[httpd.error_page]>->( $id, $link_target );
+        $session->{'flush_shutdown'} = 1;
+    } else {
+        <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
+        $session->{'close'} = 1;
+    }
+    return 2;
+}
+
+my $file_path;
+my $path_md5;
+
+# ..,
+
+if ( defined $http_host and defined $link_target ) {
+    <[base.log]>->(
+        1,
+        sprintf( "[$id] matched Host: '%s' -> '$http_host'",
+            $session->{'http'}{'request'}{'host'} )
+    ) if $http_host ne $session->{'http'}{'request'}{'host'};
+
+    my $base_dir = <httpd.cfg.hostnames>->{$http_host};
+    $file_path = "$base_dir$http_uri";
+    $file_path =~ s|/$||;
+    if ( -d $file_path ) {    # LLL: support !html index
+        $file_path .= '/index.html' if -f $file_path . '/index.html';
+    }
+    $path_md5 = <[digest.md5.hex]>->($file_path);
+
+    if ( -f $file_path ) {
+
+        $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
+
+        my $file_stat     = File::stat::stat($file_path);
+        my $content_inode = $file_stat->ino;
+        my $content_size  = $file_stat->size;
+        my $content_date  = time2str( $file_stat->mtime );
+        my $server_date   = time2str(time);
+
+        # LLL: change etag encoding to bmw.b32.,
+        my $file_etag = <[digest.md5.b64u]>
+            ->("$content_inode-$content_size-$content_date-$file_path");
+        $response->{'params'}->{'ETag'} = $file_etag;
+
+        my $meta = <http.meta_cache> //= {};
+        $meta->{'etags'}->{$path_md5} //= $file_etag;
+        delete $meta->{$file_etag}
+            and $meta->{'etags'}->{$path_md5} = $file_etag
+            if $meta->{'etags'}->{$path_md5} ne $file_etag;
+        $meta->{$file_etag}->{'types'} //= mimetype($file_path);
+        $meta->{$file_etag}->{'times'} //= <[base.time]>->(4);
+
+        my $content_type = $meta->{$file_etag}->{'types'};
+
+        my $reply_code = 200;    # OK
+
+        if ( defined $request->{'headers'}->{'if-none-match'}
+            and $request->{'headers'}->{'if-none-match'} eq
+            $response->{'params'}->{'ETag'} ) {
+            <[base.log]>->( 1, "[if-none-match] returning 304 [$file_etag]" );
+            $reply_code = 304;    # Not Modified
+
+        } elsif ( defined $request->{'headers'}->{'if-modified-since'}
+            and $request->{'headers'}->{'if-modified-since'} eq $content_date )
+        {
+            <[base.log]>->(
+                1, "[if-modified-since] returning 304 [$file_etag]"
+            );
+            $reply_code = 304;    # Not Modified
+        }
+        $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+            $reply_code,
+            {   'Content-Type'   => $content_type,
+                'Last-Modified'  => $content_date,
+                'Content-Length' => $content_size,
+                'Connection'     => $session->{'http'}->{'close'}
+                ? 'close'
+                : 'keep-alive',
+                'Accept-Ranges' => 'bytes',
+                %{ $response->{'params'} }
+            }
+        );
+
+        return $session->{'http'}->{'close'} ? 2 : 0;
+    }
+} else {
+    return <[httpd.error_page]>->( $id, 400 );    # Bad Request
+}
+
+if ( defined $path_md5 and defined <http.meta_cache.etags>->{$path_md5} ) {
+    my $del_etag = <http.meta_cache.etags>->{$path_md5};
+    delete <http.meta_cache>->{$del_etag};
+}
+
+return <[httpd.error_page]>->( $id, 404 )         # Not Found
+    if not defined $file_path or !-f $file_path;
+
+# ______________________________________________________________________________
+#\\AF2CDMP7727KMGZJDB7C2YZ2E72JBVF6OPCRLQZVRUT2SWSGDJ4FQMA34HZNVFEKPIFCCUYN2IXLM
+# \\ UWUMZ62OO4TMXDR2WIV75V5QWAMVBLSFNVNTKSOFPL534YI3QQFY \\// C25519-BASE-32 //
+#  \\// F5LM7R7BZU7ZIFAJUCDGVCLC6H4WUUAV6KZ7MJQC35X775XRWDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

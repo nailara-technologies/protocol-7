@@ -1,0 +1,51 @@
+# >:]
+
+# name  = ticker-gtk.cmd.read_file
+# param = <path>
+# descr = update ticker from file
+
+my $file_path = $call->{'args'};
+my $sid       = $call->{'session_id'};
+my $err_msg;
+$err_msg = 'no read permission on file' if -f $file_path and !-r $file_path;
+$err_msg = 'no such file path exists'   if !-f $file_path;
+
+<[base.log]>->( 0, "[$sid] $err_msg [ $file_path ]" )
+    and return { 'mode' => 'nak', 'data' => $err_msg }
+    if defined $err_msg;
+
+<ticker-gtk.content.chksum> //= '';
+my $content_chksum = <[digest.bmw.filesum]>->( 224, $file_path );
+
+if ( $content_chksum eq <ticker-gtk.content.chksum> ) {
+    <[base.log]>->( 2, "content unchanged, update skipped.," );
+    return { 'mode' => 'ack', 'data' => 'source content unchanged' };
+}
+
+<ticker-gtk.content.chksum> = $content_chksum;
+<ticker-gtk.content.txt>    = ${ <[file.slurp]>->($file_path) };
+<ticker-gtk.content.len>    = length(<ticker-gtk.content.txt>);
+
+<ticker-gtk.content.txt> =~ s|\s+| |sg;
+<ticker-gtk.content.txt> =~ s,^ | $,,g;
+
+<[ticker-gtk.parse_text]>->(<ticker-gtk.content.txt>);
+
+<ticker.current_file> = $file_path;
+
+<[base.log]>->(
+    1,
+    sprintf( ": ticker text content updated [ %d bytes ]",
+        <ticker-gtk.content.len> )
+);
+<[base.log]>->( 2, "[ $content_chksum ]" );
+
+<[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
+
+return { 'mode' => 'ack', 'data' => 'ticker display content updated' }
+
+# ______________________________________________________________________________
+#\\IEFV4TBVKN3L4NS2FBBGVYA3Y5Q45MQOY3YYSUQUSEKDU2LWBFNEVPBR3IABEQDM62ILWZO7LQ6SI
+# \\ TH52ZHVS236L75LBGPZMX6V6GVDICXEHMLSPKOQOJREK4AZRDN4T \\// C25519-BASE-32 //
+#  \\// EUHNI7NT4EXGHRZDS7X3HELH7FTGERMZDDMYD25E5Z7BGRP42DA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

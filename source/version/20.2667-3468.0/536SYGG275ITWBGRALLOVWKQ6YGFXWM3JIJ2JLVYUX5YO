@@ -1,0 +1,20 @@
+# >:]
+
+# name  = keys.cli.path
+# descr = return current user's C25519 key directory path
+# note  = nailara keys path | grep -v ':$' | sed 's/.*: *//'
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars->{'key_dir'};
+my $key_usr = $key_vars->{'usr_name'};
+
+<[base.log]>->( 1, "returning $key_usr\'s key path ['$key_dir']" );
+
+printf ":\n: nailara key path [$key_usr] : %s\n:\n", $key_dir;
+
+# ______________________________________________________________________________
+#\\S6VOPEQJQ5B6MOKBLTRGQDE7C3KCHAEGOB5XKR45TR4WCQQCOEZOK7KRXSSDUSAK3WIDM3FNXSVH2
+# \\ A2LDXN4S7CQAT6M2EFE6VR7IQKHNGGDAVKN23JJW6OUHSFQHA42S \\// C25519-BASE-32 //
+#  \\// EOCXSOUAREJGRRSRA6STK4TS6JZVLJYESEOI7PX5PZBAZF4PUCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

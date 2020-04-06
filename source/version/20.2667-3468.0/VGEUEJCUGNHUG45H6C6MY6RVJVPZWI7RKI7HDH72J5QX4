@@ -1,0 +1,33 @@
+# >:]
+
+# name  = base.list.element.del
+# args  = { key_ref id }
+
+if ( ref( $_[0] ) ne 'HASH' ) {
+    <[base.log]>->( 0, 'base.list.element.del: submitted argument is no hash' );
+    return 2;
+}
+
+my $key_ref = ${ $_[0] }{'key_ref'};
+my $id      = ${ $_[0] }{'id'};
+
+if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
+    <[base.log]>->(
+        0, 'base.list.element.del: key_ref is no reference to a hash reference'
+    );
+    return 3;
+} elsif ( not defined ${$$key_ref}{$id} ) {
+    <[base.log]>->( 0, "base.list.element.del: no such element ($id)" );
+    return 1;
+}
+
+delete ${$$key_ref}{$id};
+$data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
+
+return 0;
+
+# ______________________________________________________________________________
+#\\2DC4WXGDTRBO4BG4OIYQ36MC47M3E7XLSIHYBNFQBXZER6OE555LI4DF2TOEHNGJ5GPUBFYJAK3PA
+# \\ PGUB4MTYWMFLIN76OBRFMYBKUCXMKRRS7OMNMK6SC7JOJY5PIIC2 \\// C25519-BASE-32 //
+#  \\// GDDTYFS5CUEAYBHZEATMPFSHOSZWNFE5LILENSKCEQQGLZ6SABI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

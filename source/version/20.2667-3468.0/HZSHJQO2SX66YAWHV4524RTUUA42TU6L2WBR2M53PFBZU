@@ -1,0 +1,47 @@
+# >:]
+
+# name = nroot.terminate_process
+
+my $instance_id;
+my $kill_pid = shift;
+
+return if exists <nroot.terminating.pid>->{$kill_pid};
+
+$instance_id = <nroot.child>->{$kill_pid}->{'instance_id'}
+    if exists <nroot.child>->{$kill_pid};
+
+my @children = @{ <[nroot.sub-process.get_children]>->($kill_pid) };
+
+map {
+    <nroot.child>->{$_}->{'instance_id'} = $instance_id
+        if defined $instance_id
+} @children;
+
+<[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid )
+    if kill( 'TERM', $kill_pid );
+
+my @kill_list = ($kill_pid);
+
+my @actually_killed;
+map { push( @actually_killed, $_ ) if kill( 'TERM', $_ ) } @children;
+
+if (@actually_killed) {
+    push( @kill_list, @actually_killed );
+    my $ren = scalar @actually_killed == 1 ? '' : 'ren :';
+    <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @actually_killed ) );
+}
+
+map { <nroot.terminating.pid>->{$_} = <[base.time]>->(3) } @kill_list;
+
+<[event.add_timer]>->(
+    {   'after'   => <nroot.timeout.kill_list>,
+        'handler' => 'nroot.handler.process_kill_list',
+        'data'    => \@kill_list
+    }
+) if @kill_list;
+
+# ______________________________________________________________________________
+#\\TXRYRBKUFVC7ZO7EXSPMLEOTQUIOCVE4L4LQOJHEPHPUKN7H5NCPL4P4LTO2UOEFA4FEAYARV7XQ4
+# \\ QZUD5VAWSYTP5XQDEBAS5ERXRCF2QFRFKDXHNBASKH7Y2VEEBNFS \\// C25519-BASE-32 //
+#  \\// CONTQOUKSR5PNILJS5LKKEN5AXG4S7XBNDLJGM2NQF2LTWVA2AA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

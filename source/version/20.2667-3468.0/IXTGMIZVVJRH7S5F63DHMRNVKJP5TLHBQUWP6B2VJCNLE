@@ -1,0 +1,86 @@
+# >:]
+
+# name = net.connect_to_core
+
+my @connection_types = @_;
+@connection_types = ('unix') if defined <unix.path>; # overriding (in -sic mode)
+
+my $core_sock;
+my $core_addr = <nailara.net.int.addr>;
+my $core_port = <nailara.net.int.port>;
+my $unix_path = defined <unix.path> ? <unix.path> : undef;
+
+foreach my $c_type (@connection_types) {
+    <[base.log]>->( 1, "initiating core connection [$c_type].," );
+    if ( $c_type eq 'unix' ) {
+        if ( not defined $unix_path ) {
+            if ( not defined $core_addr and defined $core_port ) {
+                <[base.log]>->(
+                    0,
+                    'connect_to_core(unix): neither unix.path nor '
+                        . 'net.local.{addr,port} are defined, aborting.,'
+                );
+                exit(2);
+            } else {
+                <unix.path> = $unix_path
+                    = '/tmp/.n/s/'
+                    . <[digest.elf.b32]>
+                    ->( join( ':', $core_addr, $core_port ) );
+            }
+        }
+        if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
+            <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.," );
+            next;
+        }
+        $core_sock = <[base.open]>->( 'unix', 'out', <unix.path> );
+        if (    defined $core_sock
+            and -S $core_sock
+            and $core_sock->connected ) {
+            $core_sock
+                = <[net.unix.authme]>->( $core_sock, <system.agent.name> );
+        } else {
+            $core_sock = undef;
+        }
+    } elsif ( $c_type eq 'ip.tcp' ) {
+        $core_sock = <[base.open]>->( 'ip.tcp', 'out', $core_addr, $core_port );
+        if (    defined $core_sock
+            and -S $core_sock
+            and $core_sock->connected ) {
+            my $auth_name = <system.agent.name>;
+            $auth_name .= '[' . <system.agent.subname> . ']'
+                if defined <system.agent.subname>;
+            $core_sock = <[auth.agent.client]>->( $core_sock, $auth_name );
+        } else {
+            $core_sock = undef;
+        }
+    } elsif ( $c_type eq 'pipe' ) {
+        die "((( connection type 'pipe' not implemented yet )))";
+    } else {
+        die "[!] unknown connection type '$c_type' requested [!]";
+    }
+
+    if ( defined $core_sock ) {
+        <[base.session.init]>->( $core_sock, 'nailara', 'client', 'core' );
+
+        <system.timer>->{'send_reports'} = <[event.add_timer]>->(
+            {   'repeat'  => 0,
+                'after'   => 0.777,
+                'handler' => 'base.session.send_init_reports'
+            }
+        );
+        return $core_sock;
+    }
+}
+
+if ( not defined $core_sock ) {
+    <[base.log]>->(
+        0, "<!> unable to connect to local core, aborting agent startup <!>"
+    );
+    exit(1);
+}
+
+# ______________________________________________________________________________
+#\\375CB5ANHZOU6344EBOOWJMB2XKTDZHZWW67MMYQZ6U5DOJCSIJ252GTGJC6HCTVHPHDQ65Q2ULLW
+# \\ XWDOJ4DT3RXTW4IUQVJWUBVLISTL32ZBQGJ23YJB2NFCIHTJNQ2C \\// C25519-BASE-32 //
+#  \\// USHSSMC3RU36VFX55PV4UCNN3ZFDD6O6TVROBECJ3P3PDG4AQDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

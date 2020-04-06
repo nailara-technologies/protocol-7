@@ -1,0 +1,37 @@
+# >:]
+
+# name  = nroot.load_agent_startup_cfgs
+# descr = load agent directory based startup configurations into known setup
+
+my $cfg_root_path  = <system.conf_path>;
+my $agent_cfg_path = "$cfg_root_path/agents";
+my $prepared_cfgs  = <nroot.cfg_data.spawn_config>->[0] // [];
+
+my $s_cfg_data = <[base.code_section_ref]>->( $prepared_cfgs, 'agents' );
+
+if ( my @spawn_cfgs = grep {/\/agent-startup.nroot$/}
+    @{ <[file.all_files]>->( $agent_cfg_path, 'recursive' ) } ) {
+    my $file_count = @spawn_cfgs;
+    my $s          = $file_count == 1 ? '' : 's';
+    <[base.log]>->( 1, ": loading $file_count agent startup configuration$s" );
+
+    foreach my $cfg_path (@spawn_cfgs) {
+        my $agent_name = $1 if $cfg_path =~ m|/agents/([^/]+)/[^/]+\.nroot$|;
+        next if not defined $agent_name;
+        <[base.log]>->( 2, ": :. including '$agent_name' agent startup" );
+        my @ncfg_cfg_lines = ( " .: agents :.\n\n", "  - $agent_name\n\n" );
+        <[file.slurp]>->( $cfg_path, \@ncfg_cfg_lines );
+        chomp(@ncfg_cfg_lines);
+        push( @$s_cfg_data,
+            <[base.parse_ncfg_code]>
+                ->( $agent_name, @ncfg_cfg_lines )->[0]->{'agents'}->[0] );
+    }
+} else {
+    <[base.log]>->( 1, ": :.. no additional startup configs .." );
+}
+
+# ______________________________________________________________________________
+#\\BXIN74ZBIHV3ENMY2L6FRWGXGZC77C7JAREOPOHDIGA5XVJJBKTZAKOEFEJF2E54ID72LV3RHKTD6
+# \\ OXE4Q5ABJNVHGD2NZP2S45LX57DI7EDBHJKLPQVDHSRF2DEZBO6T \\// C25519-BASE-32 //
+#  \\// B7ATD2XVCZG7LFS2BMQA3O7TWAZAPL4EFMFILG7RJHPZDSIPEAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

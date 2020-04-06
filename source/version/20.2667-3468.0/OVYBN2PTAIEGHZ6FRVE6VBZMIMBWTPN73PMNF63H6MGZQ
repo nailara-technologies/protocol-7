@@ -1,0 +1,55 @@
+# >:]
+
+# name = browser.process_subcfg
+
+<browser.subcfg> //= {};
+
+<browser.subcfg>->{'adblock'}    //= 0;
+<browser.subcfg>->{'noscript'}   //= 0;
+<browser.subcfg>->{'auto_speed'} //= 0;
+
+<[base.log]>->( 1, "processing layout tile subconfig..," );
+
+if ( <browser.subcfg>->{'adblock'} ) {
+    <browser.cfg.use_proxy> = 'auto';
+    <[base.log]>->( 1, ":  adblock enabled : [proxy:auto]" );
+}
+
+if ( <browser.subcfg>->{'noscript'} ) {
+    <browser.cfg.javascript_enabled> = 0;
+    <[base.log]>->( 1, ": noscript enabled : [javascript:off]" );
+}
+
+if (    defined <browser.subcfg.scroll_speed>
+    and <browser.subcfg.scroll_speed> =~ /^\d+$/
+    and <browser.subcfg.scroll_speed> >= 1
+    and <browser.subcfg.scroll_speed> <= 10 ) {
+    <browser.cfg.scroll_speed> = <browser.subcfg.scroll_speed>;
+    <[browser.calc_scroll_speed]>;
+    <[base.log]>->(
+        1,
+        sprintf(
+            ": cfg scroll speed : %2s  ( %s FPS )",
+            <browser.cfg.scroll_speed>, <browser.autoscroll.fps>
+        )
+    );
+} elsif ( defined <browser.subcfg.scroll_speed> ) {
+    <[base.log]>->(
+        0,
+        "invalid scroll speed '"
+            . <browser.subcfg.scroll_speed>
+            . "' configured [1..10]"
+    );
+    delete <browser.subcfg.scroll_speed>;
+}
+
+if ( <browser.subcfg>->{'auto_speed'} ) {
+    <[base.log]>->( 1, ": auto_speed enabled : [gpu load limit]" );
+    <[browser.enable_auto_speed]>;
+}
+
+# ______________________________________________________________________________
+#\\I2RVMLOLOUFXJAOC2IYYVT6UBZM5ZWZT3UHKYAHMOKTN6ZHW44YDQEKQUOJTEFOKCCKZQX3KJM5KM
+# \\ ACG6TAWD6D7WZ7SAIPDNFHYZX2DL6VP5CFSASAG2PKMKZWFJ5JDL \\// C25519-BASE-32 //
+#  \\// K2KPQSXNH64K5ZBK5YGE57JVVWVM2RNQ7FY34DWDTZFAISJGICA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

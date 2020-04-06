@@ -1,0 +1,19 @@
+# >:]
+
+# name = ticker-gtk.handler.resend_update_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    <[base.log]>->( 2, "'resend_update' command was successful =)" );
+} else {
+    <[base.log]>->( 0, "'resend_update' failed! retrying..." );
+    <[event.add_timer]>
+        ->( { 'after' => 1.2, 'handler' => 'ticker-gtk.request_rss_update' } );
+}
+
+# ______________________________________________________________________________
+#\\XYMIA4PG4SWGN6K5ZIRWHS3WFL3PXVR7VUEO4FIPN2OGGMA6YMA3WQ3YI62GNTVYETYJYI64TSQOC
+# \\ S4GYPHPLAPHKC2JQJKLIXOHZ5AICPNV7FIKOHXYQXX5LH7RW3G6S \\// C25519-BASE-32 //
+#  \\// QK2TZKV42DKTCQLUCN2D5KWI2NYVFTHN2JKE4POJRGANXUUA2CY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

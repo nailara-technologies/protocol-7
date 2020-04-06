@@ -1,0 +1,17 @@
+# >:]
+
+# name  = mpv.cmd.get_speed
+# descr = return current playback speed factor
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.float' } );
+<[mpv.send_command]>->( 'get_property_string', 'speed' );
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\KVCND64LRAHI7JG7F3N4DPJIBSD5JSRO5R6IEGIIM4U5G4K4JLWTR3AELF7QHD7JG6UUGHUIDNBAO
+# \\ 625CMTGFQA5WBZMDGBHSPAKWAFZI5FPR5T7UBCWXE67AXCNXINZS \\// C25519-BASE-32 //
+#  \\// 5SKBW5XPF2BIJ7KBALIWMVDW57ESKED6J5FM2HGFUMWG3K6P6CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

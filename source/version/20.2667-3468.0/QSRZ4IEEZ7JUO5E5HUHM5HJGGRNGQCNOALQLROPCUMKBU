@@ -1,0 +1,42 @@
+# >:]
+
+# name  = impressive.callback.stop_loadsplash
+
+<impressive.timer.stop_loadsplash>->cancel
+    if defined <impressive.timer.stop_loadsplash>
+    and <impressive.timer.stop_loadsplash>->is_active;
+
+undef <impressive.timer.stop_loadsplash>;
+
+<impressive.stop_lsp_sent> //= 0;
+return if <impressive.stop_lsp_sent>;
+
+<[base.log]>->( 1, "startup successful / window becomes visible ..." );
+
+my $lsp_name
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash';
+
+# LLL: needs xserver.fade_in command..
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.xserver.set_opacity",
+        'call_args' => { 'args' => <x11.id> . ' 100' }
+    }
+);
+
+if (<impressive.cfg.use_loadsplash>) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.stop_implicit",
+            'call_args' => { 'args' => $lsp_name },
+            'reply'     => { 'handler' => 'impressive.handler.stop_lsp_reply' }
+        }
+    );
+    <impressive.stop_lsp_sent> = 1;
+}
+
+# ______________________________________________________________________________
+#\\WIOCO3KLRNPRSI36KXUOG2XH7CJLAZIJHKUYPEB7XVP5VRRPIX7XFIMUN2OULBUDPYB5CY7LSAJSU
+# \\ DACWJ5GLYIXFTVZ5UTHUPCDIGZQVYLM4LPEKV4NO7TFUUY4URZU2 \\// C25519-BASE-32 //
+#  \\// 2XUQQVVW76KEYBFP5X7ERYXHOBGN3MAOAKE7IAVZKHOYE337WBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

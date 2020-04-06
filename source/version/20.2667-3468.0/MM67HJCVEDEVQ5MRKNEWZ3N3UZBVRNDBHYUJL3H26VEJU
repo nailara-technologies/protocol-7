@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.x11.get_screen_size
+
+my ($local_sid) = keys( %{<user.core.session>} );
+
+<[base.log]>->( 2, "requesting screen size from xserver agent.." );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)xserver.get_screen_size\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+) ([^\n]+)\n$/ ) {
+    ( <x11.screen.width>, <x11.screen.height> ) = ( $1, $2 );
+    <[base.log]>->( 1, "received screen size [$1x$2]" );
+    return ( <x11.screen.width>, <x11.screen.height> );
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply from xserver agent)"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\ZVY66P3XFJOBVMXQTO42KVQYT52CZAWC3GEML5FJGA5OQYLYAQRRXSMNZ7MBEK5T75I43XR5AO7LE
+# \\ X5J6MUIVT6L47PHOECFKVMMW6HMX2HA32GKLGQG5AVQXHXLDUNZ3 \\// C25519-BASE-32 //
+#  \\// N5QRJWW7NXZCP4PP53VQ2J7EOU7T7RYPVW4CNFFL7GT3XPMKCCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,78 @@
+#! >:]
+
+# name  = mpv.cmd.fade
+# param = [+-]<vol_%> [speed]
+# descr = fade audio volume to given level
+
+my $id = $$call{'session_id'};
+
+my ( $volume, $speed ) = split( / +/, $$call{'args'} // '', 2 );
+
+return { 'mode' => 'nak', 'data' => 'expected numerical percent value' }
+    if !length($volume)
+    or $volume !~ /^[\-\+]?\d+(\.\d+)?\%?$/;
+
+$volume =~ s|\%$||;
+$volume = <mpv.current.volume> + sprintf( "%.3f", $volume )
+    if $volume =~ /^[\-\+]/;
+$volume = 0 if $volume < 0;
+
+$speed //= <mpv.audio.fade_speed> //= 0.013;
+
+return { 'mode' => 'nak', 'data' => 'fade-speed is a float number [0..100]' }
+    if $speed !~ /^\d+(\.\d+)?$/
+    or sprintf( "%.5f", $speed ) <= 0
+    or $speed > 100;    # min. 0.00001, max. 100
+
+( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.?0+$||;
+return { 'mode' => 'ack', 'data' => "audio volume already at $vol_str%" }
+    if sprintf( "%.2f", <mpv.current.volume> ) == $vol_str;
+
+my $id_str = defined $id ? "[$id] " : '';
+
+my $l = length($id_str) ? 1 : 2;
+<[base.log]>->( $l, "${id_str}fading volume to ${vol_str}%" );
+
+my $min_delay = 0.0064;
+<mpv.current.volume_target> = <mpv.audio_fade.target> = $volume;
+
+<mpv.audio_fade.reply_ids> //= [];
+push( @{<mpv.audio_fade.reply_ids>}, $$call{'reply_id'} );
+
+# deal with existing fade seq.
+delete <mpv.time.fade_volume>;
+<mpv.timer.audio_fade>->cancel
+    if defined <mpv.timer.audio_fade>
+    and <mpv.timer.audio_fade>->is_active;
+<[base.callback.cmd_reply]>->(
+    shift( @{<mpv.audio_fade.reply_ids>} ),
+    {   'mode' => 'ack',
+        'data' => "volume fade cancelled (overridden)"
+    }
+    )
+    if defined <mpv.audio_fade.reply_ids>
+    and @{<mpv.audio_fade.reply_ids>} > 100;
+
+<mpv.audio_fade.start_vol> = <mpv.current.volume>;
+<mpv.audio_fade.delta_vol> = sprintf( "%.5f", $volume - <mpv.current.volume> );
+
+my $interval_delay = sprintf( "%.4f",
+    ( 1 / $speed ) * 0.42 * ( abs(<mpv.audio_fade.delta_vol>) / 100 ) );
+
+$interval_delay = $min_delay if $interval_delay < $min_delay;
+
+<mpv.timer.audio_fade> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => $interval_delay,
+        'handler'  => 'mpv.handler.audio_fade',
+        'data'     => $volume
+    }
+);
+
+return { 'mode' => 'deferred' }
+
+# ______________________________________________________________________________
+#\\2GAMM2YSM5U6ZOEQDHXAU5K7AFHZCUCLFDWFAS4AR72HA7CMXZQEOARTWARQBDSRPLHLEIT73WMK6
+# \\ NH3LCSADY6BT5E23GCIAJIMFNKEPMENZRWA4RL3CNWWTSOHIVPEY \\// C25519-BASE-32 //
+#  \\// OUBXWN4R2FAAPNMESAYDDYLDSVMUQCCTGQK3RBRMD5FOREERIBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

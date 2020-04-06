@@ -1,0 +1,42 @@
+# >:]
+
+# name = weather.parent.update_forecast
+
+my $station_id = shift;
+die "expected station_id parameter"
+    if not defined $station_id or !length($station_id);
+<weather.cache_timeout> //= 3;    # hours
+
+if (   not exists <weather.data>->{$station_id}
+    or not exists <weather.data>->{$station_id}->{'forecast'} ) {
+
+    foreach my $type ( 'hours', 'days' ) {
+        my $forecast_data
+            = <[weather.parent.cache.read_cache_data]>->( $type, $station_id );
+        if ( defined $forecast_data ) {
+            <[base.log]>->( 1, "found cached '$type'-forecast data.." );
+            <[weather.parent.extract_forecast]>->(
+                $type, $station_id, $forecast_data
+            );
+        }
+    }
+}
+
+<[base.log]>->( 2, "<$station_id> updating forecast weather data.." );
+foreach my $type ( 'hours', 'days' ) {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "child.request_data",
+            'call_args' => { 'args' => "$station_id $type" },
+            'reply'     => {
+                'handler' => 'weather.parent.handler.update_forecast_reply',
+                'params'  => { 'station_id' => $station_id, 'type' => $type }
+            }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\Q6NFVWAHDKQO4NRKNSFVYWQHY55ANNUXEEP2ZQMGKDDTGU2T5CORTZX2Z3SBFRQ62MDZBFXLTNERK
+# \\ ILCJBF5CNAMF2XVFWNKH7KGQIW67EWKWXS2GPG3SM3WCBFJAGJOA \\// C25519-BASE-32 //
+#  \\// GCES2YBDLL5PBUCRRCHCRKI2UG6DXCLGRIEK5FFNHKPSUVQKUCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

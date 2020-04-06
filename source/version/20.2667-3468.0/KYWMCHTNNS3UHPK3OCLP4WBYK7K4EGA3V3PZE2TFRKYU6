@@ -1,0 +1,31 @@
+# >:]
+
+# name = discover.init_code
+
+<[base.perlmod.load]>->( 'POSIX::1003::OS', qw| uname | );
+<[base.perlmod.autoload]>->('Net::Ifconfig::Wrapper');
+
+<discover.crypt.key_user> //= <crypt.C25519.key_usr> // <system.privs.user>;
+<discover.crypt.key_name> = <[crypt.C25519.key_vars]>->{'key_name'};
+
+<discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
+
+<discover.announce_interval.current> //= 0.23;
+<discover.announce_interval.maximum> = sprintf( "%.2f", 40 + rand(4) );
+<discover.announce_interval.ifactor> = 1.13;
+
+<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+
+<discover.timer.announce_host> = <[event.add_timer]>->(
+    {   'after'   => 0.11,
+        'handler' => 'discover.handler.anounce_host_addr'
+    }
+);
+
+0;
+
+# ______________________________________________________________________________
+#\\XE4ELDXL6HNBO472D564FZYCIY2OCLQ6QSUNNZCCVFKK5UVFNCYL5OTD2CHEA4RAMOL6ISFORWU3W
+# \\ ZI3C32XT3UR3OHK2HAA42ZDZJLW6G7L2ZSWZ65XFULFTYCQZCZS4 \\// C25519-BASE-32 //
+#  \\// UPNYI4SCPBSDRE7ULPD2UYUBJEHISCNQCEVFTFYXANX55BKYABY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

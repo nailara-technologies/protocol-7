@@ -1,0 +1,56 @@
+# >:]
+
+# name  = mpv.open_control_socket
+
+my $socket_path = <mpv.path.ipc_socket>;
+
+my $max_retries = 42;
+while ( $max_retries-- ) {
+    last if -e $socket_path;
+    <[base.sleep]>->(0.1);
+    <[base.log]>->( 2, ": waiting for $socket_path .." )
+        if !-e $socket_path;
+
+    my $wait_res = waitpid( <mpv.pid>, WNOHANG() );
+    if ( $wait_res < 0 or $wait_res == <mpv.pid> ) {
+        my $level = <mpv.fh.stdout>->eof ? 0 : 1;
+        <[base.log]>->(
+            $level, "<<< ! >>> mpv process terminated unexpectedly..,"
+        );
+        <[base.log]>->(
+            1, ":. no further output : is 'really-quiet' enabled?"
+        );
+        <[mpv.handler.error_output]>;
+        <[mpv.abort_startup]>;
+    }
+
+}
+if ( not -e $socket_path ) {
+    <[base.log]>->(
+        0, "[!] mpv socket creation error [ '$socket_path' does not exist ]"
+    );
+    <[mpv.callback.abort_startup]>;    # <-- exiting
+} else {
+    <[base.log]>->( 1, "opening unix domain socket '$socket_path'.." );
+    <mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
+    <[base.log]>->( 1, "unlinking socket $socket_path.." );
+    unlink($socket_path) or warn("unlink($socket_path): $!");
+}
+
+if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
+    <[base.log]>->( 0, "[!] mpv socket creation error [ not a valid socket ]" );
+    <[mpv.callback.abort_startup]>     # <-- exiting
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <mpv.socket>,
+        'handler' => 'mpv.handler.pipe_output',
+        'data'    => { 'pid' => <mpv.pid> }
+    }
+);
+
+# ______________________________________________________________________________
+#\\AFRSIE5FIOSPVA7FRYFBCTO2SJYTQ5YZSSY6B4CNFXGTYXRECCOETB4ANJRBB65OGMN7LFNJC6KAE
+# \\ FMLGITWAJXYKYCULZQV4JJ5LOMZ4TKG2JPTCLVT7YR2OKPLHAXQY \\// C25519-BASE-32 //
+#  \\// G7ECAPPRV64VYUF3522FASC66KP25YD2NOWFQMMHMXODXYZI2CA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

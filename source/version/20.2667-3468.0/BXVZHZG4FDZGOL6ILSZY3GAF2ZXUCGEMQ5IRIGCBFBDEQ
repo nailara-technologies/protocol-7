@@ -1,0 +1,50 @@
+# >:]
+
+# name  = base.dependency.ok
+# descr = return 1 if dependency for given object id is fulfilled, 0 if not
+
+my $object_id = shift // '';
+my $event_id  = shift;         # <- optional
+
+if ( not exists <dependency.object>->{$object_id} ) {
+    <[base.log]>->(
+        0, "base.dependency.ok: object id '$object_id' does not exist!"
+    );
+    return undef;
+}
+return 1 if not exists <dependency.chain>->{$object_id};
+foreach my $chain_object_id ( @{ <dependency.chain>->{$object_id} } ) {
+    if ( not exists <dependency.object>->{$chain_object_id} ) {
+        <[base.log]>->(
+            0,
+            "base.dependency.ok: chain object id '$object_id' does not exist!"
+        );
+        return undef;
+    }
+    my $object_type = <dependency.object>->{$chain_object_id}->{'type'};
+
+    if ( not exists <dependency.setup.type>->{$object_type} ) {
+        <[base.log]>->(
+            0,
+            "base.dependency.ok: dependency setup for object type"
+                . " '$object_type' does not exist!"
+        );
+        return undef;
+    }
+    my $callback = <dependency.setup.type>->{$object_type}->{'callback'};
+    if ( ref($callback) ne 'CODE' ) {
+        <[base.log]>->(
+            0,
+            "base.dependency.ok: no valid callback found in object type setup!"
+        );
+        return undef;
+    }
+    return 0 if !$callback->( $chain_object_id, $event_id );
+}
+return 1;
+
+# ______________________________________________________________________________
+#\\HP3OUYWUSFWH2PA5I2OUO6DGWLRCXL2NERYPU5YL25G2AO6MZKCHO2KJZTST7U4NMRBHMVCO4T4D6
+# \\ Y2REXUWWVJWYBKDU33OJJIRX7S2SXCIREZWTRFOZGKHRWIKJPG3N \\// C25519-BASE-32 //
+#  \\// NJN36EASAETD6YPY7KGRHDXADG4OHW6YAEIEHZNYWPWSF7B2WAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

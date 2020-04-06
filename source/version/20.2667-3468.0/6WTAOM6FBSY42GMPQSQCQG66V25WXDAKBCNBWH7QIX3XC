@@ -1,0 +1,104 @@
+# >:]
+
+# name  = mpv.cmd.setting
+# param = <key> [val]
+# descr = return or change specified mpv setting
+# todo  = understand / deal with quoted strings (containing spaces)
+
+my $reply_id     = $$call{'reply_id'};
+my $settings_map = <mpv.map.settings> // {};
+
+my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
+
+return { 'mode' => 'nak', 'data' => "expected <key> [value] parameter" }
+    if not defined $setting_key or !length($setting_key);
+
+return { 'mode' => 'nak', 'data' => "unknown setting '$setting_key'" }
+    if not defined( my $map_entry = $settings_map->{$setting_key} );
+
+my $mpv_property = $map_entry->{'key'} // $setting_key;
+
+if ( !@target_values ) {
+
+    <mpv.request.property>->{$reply_id} = $mpv_property;
+
+    push( @{<mpv.reply_ids>}, $reply_id );
+    push(
+        @{<mpv.command.reply>},
+        { 'handler' => 'mpv.handler.pipe.single_line' }
+    );
+    <[mpv.send_command]>->( 'get_property_string', $mpv_property );
+
+    return { 'mode' => 'deferred' };
+}
+
+my $val_str = join( ' ', @target_values );
+
+return {
+    'mode' => 'nak',
+    'data' => "not implemented yet!"
+    }
+    if not defined $mpv_property;
+
+if ( defined $map_entry->{'int'} ) {
+    ( my $int_min, my $int_max, my @options ) = @{ $map_entry->{'int'} };
+
+    my $opt_match = 0;
+    map { $opt_match++ if $_ eq $val_str } @options;
+
+    if ( !$opt_match ) {
+        my $opt_str
+            = @options ? " or " . join( ', ', map {"'$_'"} @options ) : '';
+        return {
+            'mode' => 'nak',
+            'data' => 'expected integer value' . $opt_str
+            }
+            if @target_values > 1
+            or $val_str !~ /^-?\d+$/;
+        return {
+            'mode' => 'nak',
+            'data' => "out of range ( \"$setting_key\" ["
+                . join( ',', sort @{ $map_entry->{'int'} } ) . '] )'
+            }
+            if $val_str < $map_entry->{'int'}->[0]
+            or $val_str > $map_entry->{'int'}->[1];
+    }
+
+} elsif ( defined $map_entry->{'float'} ) {
+    ( my $float_min, my $float_max, my @options ) = @{ $map_entry->{'float'} };
+
+    my $opt_match = 0;
+    map { $opt_match++ if $_ eq $val_str } @options;
+
+    if ( !$opt_match ) {
+        my $opt_str
+            = @options ? " or " . join( ', ', map { "'$_'", @options } ) : '';
+        return { 'mode' => 'nak', 'data' => 'expected float value' }
+            if @target_values > 1
+            or $val_str !~ /^-?\d+(\.\d+)?$/;
+        return {
+            'mode' => 'nak',
+            'data' => "out of range ( \"$setting_key\" ["
+                . join( ',', sort @{ $map_entry->{'float'} } ) . '] )'
+            }
+            if $val_str < $map_entry->{'float'}->[0]
+            or $val_str > $map_entry->{'float'}->[1];
+    }
+}
+
+push( @{<mpv.reply_ids>}, $reply_id );
+
+my $value_str = join( ' ', @target_values );
+<mpv.success_reply_str> = "$setting_key = $value_str";
+
+<[base.log]>->( 2, "setting : '$setting_key' = '$value_str'" );
+
+<[mpv.send_command]>->( 'set_property_string', $mpv_property, $value_str );
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\F33PT4ZKNGAXJRS4ND3XSJFTTLI5ER7R35IYJR6TB2RK6PJWLFZXOWTKAO3SBFE75D67W625TD3D4
+# \\ TIQYRJONA45IGULP6IJNWYSFAZFLBNRMEDG5TZD3DYE3CRMMHURA \\// C25519-BASE-32 //
+#  \\// PA5GHYPZYO7NQAZ2XE3YOHYIXORMKKSONDKKZJO3LNSY4CFWGBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

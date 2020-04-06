@@ -1,0 +1,27 @@
+# >:]
+
+# name  = browser.cmd.load_uri
+# descr = load specified URI in browser
+
+my $uri      = $$call{'args'};
+my $reply_id = $$call{'reply_id'};
+my $bg_index = <browser.overlay.index.bg>;
+my $view     = <browser.gtk_obj.view>->{$bg_index};
+my $window   = <browser.gtk_obj.window>;
+
+return { 'mode' => 'nak', 'data' => 'page loading in progress' }
+    if exists <browser.signal_id.load_changed> or <browser.status.fade_view>;
+
+$window->signal_handler_disconnect( delete <browser.signal_id.swap_views> )
+    if defined <browser.signal_id.swap_views>;
+
+<[browser.load_uri]>->($uri);
+
+push( @{<browser.fade.reply_ids>}, $reply_id );
+return { 'mode' => 'deferred' }
+
+# ______________________________________________________________________________
+#\\BENMPZYU2ALYARTMHCEXBHJGX5KXBWFUUQ5UFUGIQKHAYVH4EXZ5JROGFMX6P6Y67KEAEIZNMPM64
+# \\ IHX7KCBWOVXYHVWHXKQUWMPMTHCKIEJ4RXA3SQBBQ7MMWI6UMNSV \\// C25519-BASE-32 //
+#  \\// 73XNB3K2SGHIWCNUUF6FH2S2VO2BZKL5HLJYIRHRRQSRLDFXIBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

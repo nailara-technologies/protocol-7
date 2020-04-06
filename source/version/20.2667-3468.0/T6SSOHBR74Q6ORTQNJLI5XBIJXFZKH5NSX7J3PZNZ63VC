@@ -1,0 +1,19 @@
+# >:]
+
+# name = base.log.handler.send_timer
+
+my $name     = shift->w->data;
+my $log_data = <log.file>->{$name};
+
+$log_data->{'retry_timer'}->cancel
+    and delete( $log_data->{'retry_timer'} )
+    if defined $log_data->{'retry_timer'}
+    and $log_data->{'retry_timer'}->is_active;
+
+<[base.log.send_buffer_line]>->($name);
+
+# ______________________________________________________________________________
+#\\SZBPYPNSXYPQIVR3G6ETEWPAWE4V57EKAHMLA4TIDRN5OY5BFJDMRIGOJ5AIV7C4CSE5OLKC3D5DK
+# \\ 2NGKWEEIAFYDURNIIZUFILTM7A7UEH6DBQLJGWT2ECVQUZFZTLPC \\// C25519-BASE-32 //
+#  \\// ENKHZHMY55YQYRFAOBYSOFCTDQFDKG762O2HDDE33SQX7N4OSAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,38 @@
+# >:]
+
+# name = base.async.get_session_id
+
+my $usr_str   = shift // 'core';
+my $route_str = shift // $usr_str;
+$route_str .= '.' if length($route_str);
+<base.in_progess.get_session_id> //= 0;
+
+my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+
+if ( exists $data{'session'}{$local_sid}{'core_sid'} ) {
+    <[base.log]>->( 0, "already have a core sid, refused to request another!" );
+    return undef;
+} elsif (<base.in_progess.get_session_id>) {
+    my $secs = sprintf( "%.2f",
+        <[base.time]>->(2) - <base.in_progess.get_session_id> );
+    <[base.log]>->( 0, "already requested a core sid... ($secs seconds ago)" );
+    return undef;
+}
+
+<base.in_progess.get_session_id> = <[base.time]>->(2);
+
+<[base.log]>->( 1, "acquiring session id..," );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "${route_str}whoami",
+        'reply'   => {
+            'handler' => 'base.handler.whoami_reply',
+            'params'  => { 'route_user' => $usr_str }
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\CFXFOEW5LLDR6ZTYOHZ2V73JKJULTAXTLLRGSOSPCPCFO5SRO7NQNCZTERHYIXQA72EMX6IDQ2ZL6
+# \\ CDTFXJ4RHEVD5EMJFBWQJYB43RYDTYG4VKC6XDVNXN7ACTA2NKPG \\// C25519-BASE-32 //
+#  \\// 7LRQ4WTSWRJNSGBK7SYU4FE7LW2LQ4HWESLH7JWFDJIN7SJNUCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

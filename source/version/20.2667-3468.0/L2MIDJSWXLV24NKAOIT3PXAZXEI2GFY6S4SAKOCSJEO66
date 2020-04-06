@@ -1,0 +1,18 @@
+# >:]
+
+# name  = nroot.extract_short_desc
+# descr = extract and return short decription texts from agent config files
+
+my $file_path = shift // '';
+
+die "expected agent config file path" if !length($file_path);
+warn "agent config '$file_path' not found!" if !-f $file_path;
+
+return $1 if <[file.content]>->($file_path) =~ m|\.:\[ +([^\n]+) +\]:\.\n|;
+return '[ no description available ]';
+
+# ______________________________________________________________________________
+#\\3UIUYTY37HJCNLBEPQ67CBFRFMTKRBNGXG3PBDH2I26XEACBV323HAYZVZFT4LIDA3AO4XUKZJLDU
+# \\ MDLSM7W2K7BEWC3DBDIWLA62UZBC43VYG237MQT4BBNTA4BFC7BX \\// C25519-BASE-32 //
+#  \\// 2JB6U4WEENJEUOFGYKT4QBPJY5XWARPQG6QCK2DXI4EZEKU5IAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

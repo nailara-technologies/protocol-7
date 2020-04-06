@@ -1,0 +1,31 @@
+# >:]
+
+# name = base.parser.human.fsize
+
+my $size_str = shift;
+
+return 'n/a' if not defined $size_str or $size_str !~ /^\d+$/;
+
+my %size_suffix = (
+    1024**4 => 'T',
+    1024**3 => 'G',
+    1024**2 => 'M',
+    1024    => 'K'
+);
+
+for my $grade ( sort { $b <=> $a } keys %size_suffix ) {
+    my $value = sprintf( "%.1f", $size_str / $grade );
+    if ( int($value) ) {
+        $value =~ s/\.0+$//;
+        $size_str = $value . $size_suffix{$grade};
+        last;
+    }
+}
+
+return $size_str;
+
+# ______________________________________________________________________________
+#\\DLPHYKR3TORMHS2HAYH5ZIXUPMNSJHT562TTV4UUT2U5VKJO7S3RUW5L3JAAHGI7ZDVHZVJ4WRTFG
+# \\ WF4YZCS7L3UEWJ2BDOOKSJ2KYZF2IOZ5AHUY5D353XP5ZUCDBHA6 \\// C25519-BASE-32 //
+#  \\// RMCWUJILTT45FM3APTPKH4JRBAFERF2663GXW5GCMOR3FEIGMCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

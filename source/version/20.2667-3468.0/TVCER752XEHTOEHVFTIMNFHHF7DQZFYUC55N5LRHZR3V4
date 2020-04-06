@@ -1,0 +1,60 @@
+# >:]
+
+# name = base.x11.set_window_opacity
+# todo = cleanup for consistency ...
+
+my $id        = shift;
+my $opacity   = shift;
+my $target    = shift;
+my $route_str = defined $target ? "$target." : '';
+die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical opacity from 0 to 100"
+    if not defined $opacity
+    or $opacity !~ /^\d+$/
+    or $opacity > 100;
+
+<[base.log]>->( 2, "setting window '$id' opacity to $opacity% .." );
+
+$target //= 'core';
+
+my ($sid) = keys( %{ $data{'user'}{$target}{'session'} } );
+
+if ( defined $data{'session'}->{$sid} ) {    # status 'online' # ->{'core_sid'}
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => $route_str . 'core.xserver.set_opacity',
+            'call_args' => { 'args' => "$id $opacity" }
+        }
+    );
+    return 1;
+}
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$sid}{'handle'};
+<[net.out]>->(
+    $core_fh, "($cmd_id)${route_str}xserver.set_opacity $id $opacity\n"
+);
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!" if not defined $reply_string;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
+    <[base.log]>->( 0, "set_opacity command failed with '$1'.." );
+    return 0;
+} else {
+    return 1;
+}
+
+# ______________________________________________________________________________
+#\\D5W3SGH2RL6M4QSAIHBLRMKYTFWKG5CGM3TB37NPID7R6PZ3NNIDJ2ADPEFVP672WMDGIKOXO6UJY
+# \\ 5CCGAUVGOZD26MXRFAJ2SJSOFQ3NZER4SFM4PDGOHGGVLPBHMQCY \\// C25519-BASE-32 //
+#  \\// JVHI4EU45KJLTTQRMXQF3ZGYQO7TKMK4CYMMA5JHVL6CCPQ3SAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

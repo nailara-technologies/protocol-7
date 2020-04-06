@@ -1,0 +1,21 @@
+# >:]
+
+# name  = layout.cmd.show_layouts
+# descr = list available and active layouts
+
+my $reply_str = '';
+my @layouts   = keys %{<layout.config.layouts>};
+
+map {
+    my $marker_l = $_ eq <layout.current_layout> ? '-->'  : '   ';
+    my $marker_r = $marker_l =~ /\S/             ? ' <--' : '';
+    $reply_str .= sprintf( " %s %s%s\n", $marker_l, $_, $marker_r )
+} sort { length($a) <=> length($b) } sort { $a cmp $b } @layouts;
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\2Q4GRYER7YS4WAUYEC3KGJEPOLYUHHDBEZP66FDIBOOHWBJLKO2ND5D2DTYXTRXTM4T5RAN2TXGJK
+# \\ X2VXDRZPEIX23AWP5P4G4LXPGM7T5TEZ2MBYFZSB4ACGR5LRYPPE \\// C25519-BASE-32 //
+#  \\// 6CPVVB7277HLY6TA736OI7UPSWAW5RPMK3GNAC37SSGIPUHQKDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

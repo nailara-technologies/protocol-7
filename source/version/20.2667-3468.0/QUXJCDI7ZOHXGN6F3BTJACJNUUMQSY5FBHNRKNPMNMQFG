@@ -1,0 +1,66 @@
+# >:]
+
+# name = crypt.C25519.post_init
+# note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
+
+if ( not <crypt.C25519.auto_load_keys> //= 1 ) {
+    <[base.log]>->( 2, ": autoload disabled, skipped key loading." );
+    <crypt.C25519.initialized>++;
+    return 0;
+}
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+
+my $uid          = $key_vars->{'uid'};
+my $gid          = $key_vars->{'gid'};
+my $key_dir      = $key_vars->{'key_dir'};
+my $key_name     = $key_vars->{'key_name'};
+my $home_dir     = $key_vars->{'usr_home'};
+my $key_usr      = $key_vars->{'usr_name'};
+my $key_basepath = $key_vars->{'key_basepath'};
+
+if ( not defined $home_dir or !-r $home_dir ) {
+    if ( !<base.parser.config.reloading> ) {
+        <[base.log]>->( 0, "<!> no homedir access [ user '$key_usr' ]" );
+        <[base.log]>->( 0, " :. skipping C25519 key initialization" );
+    } else {
+        <[base.log]>->( 1, ": skipped key reload.. [homedir]" );
+    }
+    return 0;    # still valid state!
+}
+
+return -1 if not <[crypt.C25519.chk_key_dir]>;    # <- creates if missing ...
+
+<[crypt.C25519.convert_keys_to_b32]>;
+
+if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
+    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
+    my %key_b32 = ( 'priv' => '', 'pub' => '' );
+    if (<[crypt.C25519.gen_keys]>) {
+        <[crypt.C25519.write_keys]>;
+    }
+    <[crypt.C25519.sign_keys]>;
+
+} elsif ( not defined $KEYS{'C25519'}{$key_name} ) {
+    <[crypt.C25519.load_keypair]>;
+}
+
+while ( glob $key_basepath . '.{rkp,sig}.*' ) {
+    if (/([^\/]+\.(rkp|sig)\.(.+))$/) {
+        my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
+        <[base.log]>->( 1, ": : $type : '$fname'" );
+        $type = 'pub' if $type eq 'rkp';    # <- [root-key-pub]
+        chomp( $KEYS{'C25519'}{$key_name}{'root'}{$rkname}{$type}
+                = ${ <[file.slurp]>->($_) } );
+    }
+}
+
+<crypt.C25519.initialized>++;
+
+0;
+
+# ______________________________________________________________________________
+#\\KNSB5ISM4H5ZBPU2A7SNVYCGHBCHNQRDZLSKHOYATRSS6UK3MZ77LEV6TTV5Q3X7KHA7TQV4IEK3G
+# \\ SZN4IQDOBJHNNOHXJHDS445YNJHGT3CRKJZCQBGL7Y2YM54RNGK6 \\// C25519-BASE-32 //
+#  \\// QX5IRL6XJV2CTB5G3675YP3XONDJIDL45D2PYQW5FLD544AS4BY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

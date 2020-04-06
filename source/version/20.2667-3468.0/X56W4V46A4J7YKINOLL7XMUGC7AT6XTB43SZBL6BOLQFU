@@ -1,0 +1,30 @@
+# >:]
+
+# name = fan-int.init_code
+
+die "socket_id not configured"
+    if not defined <fan-int.cfg.socket_id>
+    or <fan-int.cfg.socket_id> !~ /^\d+\.\d$/;
+
+map {
+    <base.watcher.signal>->{$_}->cancel
+        if defined <base.watcher.signal>->{$_};
+    my $uc_sig = uc($_);
+    delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
+    <base.watcher.signal>->{$_} = <[event.add_signal]>
+        ->( { 'signal' => $uc_sig, 'handler' => 'fan-int.handler.shutdown' } );
+} ( 'int', 'term', 'quit' );
+
+<[event.add_timer]>->(
+    {   'after'   => 0.42,
+        'handler' => 'fan-int.handler.toggle'
+    }
+);
+
+0;
+
+# ______________________________________________________________________________
+#\\VE6SR7D36IYQTOQ4RJ4VKCZUI6WW4Z4KFALUG3W3GFA67QHRWHJ2DVXRAF6LWHI6XMPCJZCNV4GR4
+# \\ YP2VIPLWRIQZSCXENH5FVKPXYGCM2UBQK53S6UMPZJCW2XUSMVL5 \\// C25519-BASE-32 //
+#  \\// WJR46QKOQPASPXGEM7YSRXDNCVOADG4JM44MQNSAVBW22QHQ6CY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

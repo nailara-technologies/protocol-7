@@ -1,0 +1,53 @@
+# >:]
+
+# name  = base.file.temp
+
+my $tmpl = shift // 'X' x 13;
+die "invalid template syntax [ no paths ]" if $tmpl =~ m|/|; # allow paths later
+
+my $first_dir;
+my $agent_name = <system.agent.name>;
+my @check_dirs = qw| /var/run/nailara /var/cache/nailara /tmp/nailara |;
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | )
+    if not exists &{'make_path'};
+
+foreach my $chk_dir (@check_dirs) {
+    my $subdir_path = "$chk_dir/$agent_name";
+    <[base.log]>->( 2, ":. tmp-dir-chck :. $subdir_path" );
+    if ( -d $subdir_path and -w $subdir_path
+        or make_path( $subdir_path, { 'mode' => 0750 } ) ) {
+        $first_dir = $subdir_path;
+        last;
+    }
+}
+die "no success creating temp dir [ $! ]" if not defined $first_dir;
+
+my $retries = 47;
+my $tmp_file_path;
+while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
+    $retries = 0 if $tmpl !~ m|X|;    # <-- no rnd char range in template
+    ( my $fname = $tmpl )
+        =~ s|(X+)|uc( <[base.rnd_chars_anum]>->( length $1 ) )|ge;
+    $tmp_file_path = File::Spec->catfile( $first_dir, $fname );
+}
+
+die "can not find suitable temp file name [ exists ]" if -e $tmp_file_path;
+
+<[base.log]>->( 1, " : tmp-file-path : $tmp_file_path" );
+
+return $tmp_file_path if !wantarray; # <-- scalar context does not open the file
+
+<[base.log]>->( 1, " :. opening file : $tmp_file_path .," );
+
+open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $!";
+
+# LLL: implement optional file locking and unlink mechanism here, see File::Temp
+
+return ( $tmp_fh, $tmp_file_path );
+
+# ______________________________________________________________________________
+#\\CV5ZEDYADFVEB7FXR3T7NQNU6JBKOUGNRNIA3RX4RGUDXIFBY5DC73Y2PKKEYM2QZN6ZKJV5ZXO2M
+# \\ S4NNBGATX45TSR7S3JHOKSRDDSTBPYPQYORBP32MRYWJN65DNGRO \\// C25519-BASE-32 //
+#  \\// EAXOFRCR4P72UZYIPJK2K4I42I7OFWIT7J7DROCOO6YTHRWPIDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,51 @@
+# >:]
+
+# name = ffmpeg.extract_frame
+
+my ( $frame_index, $video_path, $target_path ) = @_;
+
+die "expected frame index parameter"
+    if not defined $frame_index or $frame_index !~ /^\d+$/;
+die "expected (existing) video path parameter"
+    if not defined $video_path or !-f $video_path;
+die "expected (absolute) target path parameter"
+    if defined $target_path and $target_path !~ m{^/.+};
+my $target_dir;
+my $target_file;
+
+( $target_dir, $target_file ) = ( $1, $2 )
+    if defined $target_path and $target_path =~ m{^(/.+[]/?)([^/]+)?};
+$target_dir =~ s|/$||g if defined $target_dir;
+die "target directory does not exist"
+    if defined $target_dir and !-d $target_dir;
+
+$target_dir //= '/tmp/.video_frames';    # <- default
+
+if ( !-d $target_dir ) {
+    make_path($target_dir) or die "make_path($target_dir): $!";
+    chmod( 0755, $target_dir ) or die "chmod($target_dir) : $!";
+}
+
+$target_file //= md5_hex($video_path) . '.png';
+
+$target_path = join( '/', $target_dir, $target_file );
+
+if ( -f $target_path ) {
+    unlink($target_path) or die "unable to unlink($target_path): $!";
+}
+
+if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
+        "select=\'eq\(n,$frame_index\)",
+        '-vframes', 1, '-loglevel', 'quiet', $target_path ) == 0
+    and -f $target_path
+) {
+    return $target_path;
+}
+
+return undef;
+
+# ______________________________________________________________________________
+#\\UEFEKNP46QTBR63QCWWTU7DMBZOQ75DL5MNF2AH74FYUUWGI7AU4JTQAS32WAJDGTD5TLSEO5T5TO
+# \\ 4VWOKBXTWY6JXMMFQ7HIG5Z42HWZN56EAB5KQLNYTYLPV574G4M6 \\// C25519-BASE-32 //
+#  \\// R3TCEUWLNXDCYEO5VQUBWVFISZZYV4Z42U6QKZ5MPIYDEMPWSCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

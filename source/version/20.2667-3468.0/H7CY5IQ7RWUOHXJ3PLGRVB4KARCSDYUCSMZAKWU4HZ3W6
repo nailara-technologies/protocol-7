@@ -1,0 +1,37 @@
+# >:]
+
+# name  = nroot.agent.is_disabled
+# descr = returns true if agent is explicitly disabled in spawn config
+
+my $agent_name = shift;
+die "nroot.agent.is_disabled: no agent name specified"
+    if not defined $agent_name;
+
+my $config_href = <nroot.spawn_config.globals.agents>;
+
+return 0
+    if not exists $config_href->{'disabled'}
+    or not defined $config_href->{'disabled'}
+    or $config_href->{'disabled'} =~ /^\s*$/;
+
+# checking config syntax
+if ( $config_href->{'disabled'} !~ /^([a-z][a-z\.\-_\d]*\ *)+$/i ) {
+    <[base.log]>->(
+        0,
+        "spawn config syntax error: agents.disabled = '"
+            . $config_href->{'disabled'}
+            . "' <- expecting valid agent name[[[s]]]"
+    );
+    die "configuration sybtax error in agents.disabled";
+}
+
+map { return 1 if $_ eq $agent_name }
+    split( /\s+/, $config_href->{'disabled'} );
+
+return 0;
+
+# ______________________________________________________________________________
+#\\64TLEWLLKQ5EQBJAD4AZCGKVHOYMI4CZCHPZYVMDXPYWCDEK6DOLMY5AEYEWVUAMXSPQBA6EUBB4C
+# \\ OZHEYKH5TZIS7SWPBKH4CQWYIV5JUTMCMYOZPW5T4TBYKG7FM6RU \\// C25519-BASE-32 //
+#  \\// CII42PPRKLG4I3DZJR2B4K37KHBVUBNYAT2FAE2JSYKS4AQPMDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,97 @@
+# >:]
+
+# name  = layout.cmd.assign_window
+# param = <id[,id]> [tilename]
+# descr = report x11 window id[s] for current agent
+# todo  = SIGTERM handler to remove them + auto cleanup of window ids
+
+my ( $source_name, $wid_str, $tile_name ) = split( / +/, $$call{'args'}, 3 );
+$source_name =~ s|^.+\.||g;
+my $err_msg;
+
+$err_msg = 'core config error (source name parameter missing)'
+    if not defined $source_name;
+$err_msg = 'expected numerical window_id parameter'
+    if not defined $wid_str or $wid_str !~ /^\d+(,\d+)*$/;
+if ( defined $err_msg ) {
+    my $source_str = defined $source_name ? "[$source_name]" : '';
+    <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
+    return {
+        'mode' => 'nak',
+        'data' => $err_msg
+    };
+}
+
+my $agent_name
+    = defined $tile_name ? "$source_name\[$tile_name]" : $source_name;
+
+if ( not defined $tile_name ) {
+    my $agent_count = 0;
+    map {
+        if ( $_ =~ /^$source_name\[/ ) {
+            $agent_count++;
+            $agent_name = $_;
+        }
+        }
+        keys %{<layout.window_ids>};
+    if ( $agent_count > 1 ) {
+        <[base.log]>->(
+            0, "assign_window: multiple '$source_name' agents! [no tile name]"
+        );
+        return {
+            'mode' => 'nak',
+            'data' =>
+                'multiple agents with that name (and no tile name provided)'
+        };
+    }
+}
+
+if (exists <layout.window_ids>->{$agent_name}
+
+    #    #    and not defined <layout.window_ids>->{$agent_name}
+) {
+
+    $wid_str = join( ',', sort { $a <=> $b } split( /\D+/, $wid_str ) );
+    my $wid_lmsg = $wid_str;
+    $wid_str =~ s|,| |g;
+    <layout.window_ids>->{$agent_name} = $wid_str;    # LLL: check if exists!
+    my $s = $wid_str =~ / / ? 's' : '';
+    <[base.log]>->( 1, "assigned window id$s $wid_lmsg to '$agent_name'" );
+
+###[ ALPHA SUPPORT ]###
+    my $layout_name = <layout.current_layout>;
+    my $layout_data = <layout.config.layouts>->{$layout_name}->{$agent_name};
+    if ( defined $layout_data->{'alpha'} ) {
+        my $alpha_str
+            = sprintf( "%.2f", ( 100 - $layout_data->{'alpha'} ) / 100 );
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.xserver.fade_out",
+                'call_args' => { 'args' => "0.8:$alpha_str $wid_str" }
+            }
+        );
+
+        # warn( "alpha:0.8:$alpha_str $wid_str" );
+    }
+#####
+
+    <[layout.sort_layers]>;
+
+    return {
+        'mode' => 'ack',
+        'data' => 'assigned'
+    };
+
+} else {
+
+    # LLL: refine message (reason)
+    return {
+        'mode' => 'nak',
+        'data' => 'unable to assign!'
+    };
+}
+
+# ______________________________________________________________________________
+#\\2YT3HMEE5FWCAGIDNQL2RY2ZMAXIKH2QDENPWNOP23AU5DTIVCXNZY3ETJOP6H3DIWPDFODCG6ELU
+# \\ H7WZUUXGOFVDHJCY3EXM5U4LVTOMNFZBXWGIURJHSNOWVTUS2L7F \\// C25519-BASE-32 //
+#  \\// TVWERYB64FRW25UTT67ZXWD4JOCPOHWL4SKK52B2LY3OGCPVCBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

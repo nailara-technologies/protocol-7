@@ -1,0 +1,33 @@
+# >:]
+
+# name    = base.debug.dump.param_hash
+# args    = hashref(call args)
+# descr   = print human readable formatted content of call argument hash to stdout
+# comment = recursion depth is only 2!
+
+if ( not %{ $_[0] } ) {
+    print "\ndebug: first argument is no hash reference!\n\n";
+} else {
+    print "\ndebug:\n";
+    foreach my $key ( keys( %{ $_[0] } ) ) {
+
+        if ( ref( $_[0]{$key} ) eq 'HASH' ) {
+            foreach my $subkey ( keys( %{ $_[0]{$key} } ) ) {
+                print "\t$key.$subkey = '" . ${ $_[0]{$key} }{$subkey} . "'\n";
+            }
+        } else {
+            my $val = ${ $_[0] }{$key};
+            $val =~ s/\n/\\n/g;
+            $val =~ s/\'/\\\'/g;
+            print "\t$key = '$val'\n";
+        }
+    }
+    print "\n";
+}
+
+
+# ______________________________________________________________________________
+#\\CWBQPJKP7A5T735O7J3S7IN3W373ZD4ZIYJVKGWBLJQQM4SKHHWV62XGG6PGCFVAQBOAKY7A7POWC
+# \\ VEW2PCFLHESVKEXDSBVSQQ3LSDQP63RDNMZZRXU7T2IVSFFYB6UV \\// C25519-BASE-32 //
+#  \\// L6DVLECV43DUX5EOSDJHJUYBSWYALIJ633CWNI6XSGGUDRVCACY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

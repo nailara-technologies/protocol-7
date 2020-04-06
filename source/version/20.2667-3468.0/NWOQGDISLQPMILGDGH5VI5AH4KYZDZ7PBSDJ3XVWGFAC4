@@ -1,0 +1,249 @@
+# >:]
+
+# name = image2html.child.handler.conversion
+
+<image2html.conversion.blur>   //= '0.9891028367558475';
+<image2html.conversion.filter> //= 'Lanczos';
+
+<image2html.exif.auto_compensate_rotation> //= 1;
+<image2html.scale.landscape.scale_height>  //= 1;
+<image2html.scale.landscape.crop_to_fit>   //= 0;
+<image2html.scale.portrait.fit_width>      //= 1;
+
+if (    <image2html.scale.landscape.scale_height>
+    and <image2html.scale.landscape.crop_to_fit> ) {
+    <[base.log]>->(
+        0,
+        "[landscape] scale_height AND crop_to_fit are on,"
+            . " disabling crop_to_fit option!"
+    );
+    <image2html.scale.landscape.crop_to_fit> = 0;
+}
+
+my $error_msg   = 'an error occurred during image conversion';
+my $fit_height  = <image2html.scale.landscape.scale_height>;
+my $crop_to_fit = <image2html.scale.landscape.crop_to_fit>;
+my $fit_width   = <image2html.scale.portrait.fit_width>;
+
+my @dir_names = sort keys %{<image2html.conversions>};
+
+if ( !@dir_names ) {
+    <image2html.event.idle>->cancel;
+    delete <image2html.event.idle>;
+    return;
+}
+
+my $current_key = $dir_names[ rand @dir_names ];
+my $conversion  = <image2html.conversions>->{$current_key};
+
+my $image_location = $conversion->{'image_file'};
+
+if ( $image_location =~ m|^https?://| ) {
+    my $image_url = $image_location;
+    <[base.log]>->( 2, "downloading '$image_url'..." );
+    $image_location = <[image2html.base.download_file]>->($image_location);
+    if ( not defined $image_location ) {
+        foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => 'nak',
+                    'data' => "download of '$image_url' failed!"
+                }
+            );
+            delete <image2html.conversions>->{$current_key};
+            exit(2);
+        }
+    }
+
+    # LLL: cleanup / error page
+}
+
+my $image = Graphics::Magick->new();
+
+( my $status = $image->Read($image_location) ) =~ s|^Exception \d+: ||;
+if ( length($status)
+    and $status !~ /^\d+$/ ) {
+    $error_msg = $status;
+    goto error;
+}
+
+if (<image2html.exif.auto_compensate_rotation>) {
+
+    my $source_format = $image->Get('format');
+
+    if ( not defined $source_format or !length($source_format) ) {
+        $error_msg = 'unable to recognize image file format';
+        goto error;
+    }
+
+    if ( $source_format =~ / ^ Joint Photographic Experts Group / ) {    # JPEG
+        my $exif = Image::EXIF->new;
+        $exif->file_name($image_location);
+        my $image_info = $exif->get_image_info();
+        if (    defined $image_info
+            and ref($image_info) eq 'HASH'
+            and exists $image_info->{'Image Orientation'} ) {
+            my $orientation = lc( $image_info->{'Image Orientation'} );
+            <[base.log]>->(
+                2, "compensating for EXIF orientation '$orientation'"
+            ) if $orientation !~ / top . +left /;
+
+            if ( $orientation =~ / top . +left / ) {    # default - do nothing
+
+            } elsif ( $orientation =~ / top . +right / ) {    # flip horizontal
+                $image->Flop();
+            } elsif ( $orientation =~ / bottom . +right / ) {    # rotate 180
+                $image->Rotate( 'degrees' => 180 );
+            } elsif ( $orientation =~ / bottom . +left / ) {     # flip vertical
+                $image->Flip();
+            } elsif ( $orientation =~ /left . +top / ) {         # transpose
+                $image->Rotate( 'degrees' => 90 );
+                $image->Flop();
+            } elsif ( $orientation =~ / right . +top / ) {       # rotate 90
+                $image->Rotate( 'degrees' => 90 );
+            } elsif ( $orientation =~ / right . +bottom / ) {    # transverse
+                $image->Rotate( 'degrees' => 270 );
+                $image->Flip();
+            } elsif ( $orientation =~ /left . +bottom / ) {      # rotate 270
+                $image->Rotate( 'degrees' => -270 );
+            } elsif ( $orientation ne 'unknown' ) {
+                <[base.log]>->(
+                    0, "unknown EXIF image orientation '$orientation'"
+                );
+            }
+        }
+    }
+}
+
+my $image_width  = $image->Get('width');
+my $image_height = $image->Get('height');
+
+if ( not defined $image_width or not defined $image_height ) {
+    $error_msg = 'unable to obtain image size';
+    goto error;
+} elsif ( !$image_width or !$image_height ) {
+    $error_msg = 'invalid image size (0)';
+    goto error;
+}
+
+my $target_width  = $conversion->{'width'};
+my $target_height = $conversion->{'height'};
+my $image_ratio   = $image_width / $image_height;
+$target_height
+    = sprintf( "%.0f", ( $image_height / $image_width ) * $target_width )
+    if not defined $target_height;
+my $target_ratio = $target_width / $target_height;
+my $orientation  = $image_ratio < 1 ? 'portrait' : 'landscape';
+
+my $prevent_crop = 0;
+my $scale_width;
+my $scale_height;
+
+if ( $orientation eq 'landscape' and $fit_height ) {
+    $scale_height = $target_height;
+    $scale_width
+        = sprintf( "%.0f", ( $image_width / $image_height ) * $scale_height );
+} elsif ( $orientation eq 'landscape' and $crop_to_fit
+    or $orientation eq 'portrait' and $fit_width ) {
+    if ( $image_ratio > $target_ratio ) {
+        $scale_height = $target_height;
+        $scale_width  = sprintf( "%.0f",
+            ( $image_width / $image_height ) * $target_height );
+    } elsif ( $image_ratio < $target_ratio ) {  # LLL: check _quadratic_ images!
+        $scale_width  = $target_width;
+        $scale_height = sprintf( "%.0f",
+            ( $image_height / $image_width ) * $target_width );
+        $prevent_crop = 1 if $orientation eq 'portrait' and $fit_width;
+    }
+} elsif ( $orientation eq 'landscape' and !$crop_to_fit ) {
+    $prevent_crop = 1;
+} elsif ( $orientation eq 'portrait' and !$fit_width ) {
+    $scale_height = $target_height;             # scale to fit 'portrait' images
+    $scale_width
+        = sprintf( "%.0f", ( $image_width / $image_height ) * $target_height );
+    $prevent_crop = 1;
+}
+
+$scale_width = $target_width if not defined $scale_width;
+$scale_height
+    = sprintf( "%.0f", ( $image_height / $image_width ) * $target_width )
+    if not defined $scale_height;
+
+<[base.log]>->( 2, "scaling image to ${scale_width}x$scale_height.." );
+$image->Resize(
+    width  => $scale_width,
+    height => $scale_height,
+    blur   => <image2html.conversion.blur>,
+    filter => <image2html.conversion.filter>
+);
+
+my ( $x_offset, $y_offset );
+my $crop_image = 0;
+if ( $scale_width > $target_width or $scale_height > $target_height ) {
+    ( $x_offset, $y_offset ) = (
+        sprintf( "%.0f", ( $scale_width - $target_width ) / 2 ),
+        sprintf( "%.0f", ( $scale_height - $target_height ) / 2 )
+    );
+    $crop_image = 1 if !$prevent_crop;
+}
+if ($crop_image) {
+    <[base.log]>->( 2, "cropping image to ${target_width}x$target_height.." );
+    $image->Crop(
+        'width'  => $target_width,
+        'height' => $target_height,
+        'x'      => $x_offset,
+        'y'      => $y_offset
+    );
+}
+
+my $image_name  = $conversion->{'image_name'};
+my $output_file = $conversion->{'html_path'} . '/' . $image_name;
+
+<[base.log]>->( 2, "writing image file '$image_name'" );
+$image->Write("png24:$output_file");
+
+my $html_file = $conversion->{'html_path'} . '/image2html';
+
+<[image2html.base.write_image_html]>->(
+    $conversion->{'html_path'}, $image_name
+);
+
+my $loading_icon = $conversion->{'html_path'} . '/busy.2K.gif';
+unlink($loading_icon) or warn "unlink($loading_icon): $!";
+
+my $touch_file = $conversion->{'html_path'} . '/.complete';
+open( my $touch_fh, ">$touch_file" ) or die "$touch_file: $!";
+close($touch_fh);
+
+<[base.log]>->(
+    2, "conversion of '" . $conversion->{'image_file'} . "' completed"
+);
+
+while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'ack',
+            'data' => "conversion complete"
+        }
+    );
+    delete <image2html.conversions>->{$current_key};
+}
+
+error:
+
+# LLL: create error image with target size dimensions(?)
+foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nak',
+            'data' => $error_msg
+        }
+    );
+    delete <image2html.conversions>->{$current_key};
+}
+
+# ______________________________________________________________________________
+#\\RXNBK2MHVIR7LBFU3FUN33CYCXPA6UNZYVNBBHYZFDJEILA557U3J22OJGFZPCYVM4EAWRGKWUB5Y
+# \\ N3RU6TIJ4Z5KQAUCXRYGUVVAIYMTNRB5O2UN6R6ABGMTPHE4W5DX \\// C25519-BASE-32 //
+#  \\// HLH57WR5V2JRXAFJWJ4SNBTDCJVAXEP7BISSKDHXPO56WRHLUBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

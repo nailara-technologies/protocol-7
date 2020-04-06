@@ -1,0 +1,28 @@
+# >:]
+
+# name    = base.load_modules
+# descr   = load a given set of modules
+# comment = todo: clean reload
+
+my @modules_to_load = split( / /, $_[0] );
+
+if ( not scalar @modules_to_load ) {
+    <[base.log]>->( 0, 'base.load_modules: no source names specified' );
+    return 1;
+}
+
+<[base.register_src_deps]>->(@modules_to_load);
+
+my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
+
+if ( not defined $subs_ok or !$subs_ok ) {
+    <[base.log]>->( 1, 'base.load_modules: no source was loaded .,' );
+    return 1;
+}
+return $subs_failed;
+
+# ______________________________________________________________________________
+#\\QXWQFHXPIKCTCXKDGFOSUWBVPOIYMDBX2KN7H3PL5LLOBHWKEVLAHZLAPHGHLCMW2BIG375SO7RRE
+# \\ BYRX4DIKHYOIWY5DJKB4RIYQ5QXFBZGHEKTA4HIA3MLQ5Q26YY2K \\// C25519-BASE-32 //
+#  \\// 5LJCD5S7FTNBWU5LBFIGJO5NVQHTGVVICZTRU5RWCZIPG3DSIDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

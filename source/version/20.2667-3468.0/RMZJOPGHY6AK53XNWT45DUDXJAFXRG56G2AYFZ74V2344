@@ -1,0 +1,39 @@
+# >:]
+
+# name  = base.execute_agent_code
+# descr = executes nailara agent code
+
+<[base.log]>->( 2, ': executing agent code..' );
+
+my $noerr = 1;
+foreach my $code_line (@_) {
+    $code_line =~ s/&cmd\.([^\(]+)/<[base.check_alias]>->($1)/eg;
+    if ( $code_line ne '' ) { eval($code_line) }
+    if ($@) {
+        if ( $@ =~ /^Can't use string \(""\) as a subroutine ref/ ) {
+            my $code_line_copy = $code_line;
+            while ( $code_line_copy =~ s/(\$code\{'([^\']*)'\})// ) {
+                my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
+                next if length($sub_name) and exists $code{$sub_name};
+                <[base.log]>->(
+                    0, "unknown subroutine '$sub_name' called [ $sub_call ]"
+                );
+                $noerr = 0 if $noerr;
+            }
+        }
+        if ($noerr) {
+            $@ =~ s/ at ([^\s]+) line (\d+).+\n//;
+            <base.eval_error.name> = $1;
+            <base.eval_error.line> = $2;
+            warn("no success on eval '$code_line' [ '$@' ] <{C3}>");
+        }
+        $noerr = 0 if $noerr;
+    }
+}
+return $noerr;
+
+# ______________________________________________________________________________
+#\\MZWBY3HYXFIJ3HAUOTUCVY4P66TSH54RFQGL5ILEN3PVPABZ6BTMD37JSGFJHEAD6MBTHF5DPAH32
+# \\ 2FBF73QHAJSZOUNTVHBXGU7YYY2F423F4S6PLSDCHQNBPOA4RVB2 \\// C25519-BASE-32 //
+#  \\// 7LTJNXF2Z5C3DS3AP2UKP4DEDISQTS42DAPP2ZSUVUWPNOWXUAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

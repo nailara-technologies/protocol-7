@@ -1,0 +1,40 @@
+# >:]
+
+# name = notify-osd.startup
+# note = primitive implementation, improve error handing before production usage
+
+<[base.log]>->( 1, "starting notify-osd on display " . <x11.display> . " .." );
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+<notify-osd.pid> = open3(
+    <notify-osd.in_fh>, <notify-osd.out_fh>,
+    my $err_fh,         <notify-osd.path.exec_bin>
+);
+if ( !<notify-osd.pid> ) {
+    <[base.log]>->( 0, "[!] unable to start notify-osd [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+} else {
+    <[base.log]>->( 1, " : notify-osd process spawned [PID=<notify-osd.pid>]" );
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <notify-osd.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin'           => 'notify-osd',
+            'pid'           => <notify-osd.pid>,
+            'log_whitelist' => [
+                '_OB_WM_ACTION_UNDECORATE', 'Gdk-WARNING',
+                'not present in theme',     'org.gnome.ScreenSaver'
+            ]
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\6V2TEQXNZAZXIH67C5DYFKGQBYZ4CRP32XXNH5ONXNY2RSZKMXVK4OZEGTP7JUSX4JNN5U5FBEOC6
+# \\ 2AFZOEKR2OFTY5XAO5DTWNZBPDQQRHC7BEFD2EZZKGIO3HB5GP4V \\// C25519-BASE-32 //
+#  \\// 6ESHX6Z33CABR4LW3LSZLSLIP4WMLWAVX3OQ3H2NB52WAJE7EAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

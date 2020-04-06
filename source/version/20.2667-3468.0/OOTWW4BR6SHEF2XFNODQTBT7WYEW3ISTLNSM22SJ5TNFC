@@ -1,0 +1,36 @@
+# >:]
+
+# name       = ssl.server
+
+my $key_file = $data{'system'}{'root_path'} . '/cfg/ssl.pem';
+if ( !-f $key_file ) {
+    <[base.log]>->( 0, "cert file '$key_file' not found" );
+}
+my $lsock = new IO::Socket::SSL(
+    LocalAddr     => $_[0],
+    LocalPort     => $_[1],
+    Proto         => 'tcp',
+    Listen        => 23,
+    ReuseAddr     => 1,
+    TimeOut       => 1,
+    SSL_Server    => 1,
+    SSL_key_file  => $key_file,
+    SSL_cert_file => $key_file
+);
+if ( not defined $lsock ) {
+    my $ssl_err = &IO::Socket::SSL::errstr();
+    $ssl_err =~ s/\n.+//mg;
+    <[base.log]>->( 0, "ssl: unable to launch server $_[0]:$_[1] [$ssl_err]" );
+    return -1;
+} else {
+    $lsock->listen()
+        or <[base.log]>->( 0, "ssl.server: listen: $!" );
+    <[base.log]>->( 1, "SSL server launched [$_[0]:$_[1]]" );
+    return $lsock;
+}
+
+# ______________________________________________________________________________
+#\\3I5XKLV2JBDCV7ZIWQ4JURIZ4KZIAW2VOSKVPVGLEMYKILKP5V24GASWKNKX5AR327V4ZIIGYK6KQ
+# \\ ZLPMLQ2NKWU3BYLOK5N54NZ7OILEF72ILNV55RWZQMFA44W4ULWL \\// C25519-BASE-32 //
+#  \\// MEQSYABIYWM7OUNS7GL3RA2R6QLHU655XJPKPS3G2TE2VHN5OAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

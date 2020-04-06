@@ -1,0 +1,26 @@
+# >:]
+
+# name = media.handler.loadsplash_started
+
+my $reply = shift;
+
+my @content_types = keys %{<media.content.agent_map>};
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    if (<media.children_ready>) {
+        <[media.stop_loadsplash]>;
+    } else {
+        <media.loadsplash_running> = 1;
+    }
+} else {
+    <[base.log]>->( 0, "<!> unable to start loadsplash agent.." );
+    <media.loadsplash_running> = 0;
+}
+
+<[media.get_playlist]>->(@content_types);
+
+# ______________________________________________________________________________
+#\\PAO3UFY3EP6M3FB6ZPD6M2GE6INRV7DBOUIXY6O5HRUUGBEOUSM6QN4JBKGLQ7DNYO3KPWUPYP624
+# \\ BHQJHKCHNIEKUPU5DOQNZBYLQC3NNB3TIJFVOPW7PVBIXKIILFO7 \\// C25519-BASE-32 //
+#  \\// OXBM3G4VTE7O5OZ5KINWMWPX4LWOO3STBABMYUZXV6RREEVEKBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

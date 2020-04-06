@@ -1,0 +1,77 @@
+# >:]
+
+# name  = notify.cmd.loves
+# param = '<title>' '<message>'
+# descr = custom notification (using 'loves it' icon)
+
+my $txt_param = $$call{'args'} // '';
+my $id        = $$call{'session_id'};
+
+return { 'mode' => 'nak', 'data' => 'no message text submitted' }
+    if !length($txt_param);
+
+if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
+    utf8::decode($txt_param);
+    utf8::downgrade($txt_param);
+}
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+my @matches;
+my ( $title, $body );
+
+$txt_param =~ s|\\0||go;
+$txt_param =~ s,^\s*|\s*$,,g;
+
+if ( $txt_param =~ /('[^']+\'[^']*){1,2}/ ) {
+    while ( $txt_param =~ s|^\s*'([^']+)'\s*|| ) {
+        push( @matches, $1 );
+    }
+}
+
+if ( !length($txt_param) and @matches ) {
+    ( $title, $body ) = @matches;
+} else {
+    $title = $txt_param;
+}
+
+map {
+    if (    defined $_
+        and length($_)
+        and ( !utf8::is_utf8($_) or !utf8::valid($_) ) ) {
+        utf8::decode($_);
+        utf8::downgrade($_);
+    }
+} ( $title, $body );
+
+if ( defined $title or @matches ) {
+    my $msg_str = <system.verbosity> >= 3 ? " ['$$call{args}']" : ' ...';
+    <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
+    my @msg = $title;
+    push( @msg, $body ) if defined $body;
+    if (!system(
+            <notify.path.notify_send>, '-i', <notify.path.loves_icon>, @msg
+        )
+    ) {
+        return { 'mode' => 'ack', 'data' => 'notification message sent' };
+    } elsif ( $? == -1 ) {
+        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };
+    } else {
+        return {
+            'mode' => 'nak',
+            'data' => sprintf(
+                "notify-send exited with code %d%s",
+                ( $? >> 8 ),
+                defined $! && length($!) ? " [$!]" : ''
+            )
+        };
+    }
+} else {
+    return { 'mode' => 'nak', 'data' => 'no message text submitted' };
+}
+
+# ______________________________________________________________________________
+#\\RMI6ZMZFFW76MYRQBVARATHKWKTJ4LTQUMYKGYJLU7BPJ5SHM3SD45YLZYVXMVJFTWQK2CQDNY7Q6
+# \\ YN33R6AJZLNB5U4EWPVEQ6NLWVZVXUDMOSBXHPWVWTMMCI5V24GV \\// C25519-BASE-32 //
+#  \\// Y37TO5PFC5S7WBT3GW2N3YYSUG2LZG4MLK2N2UDBMJ75KSY4ADQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,77 @@
+# >:]
+
+# name = compton.startup
+# note = primitive implementation, improve error handing before production usage
+
+my $display = <x11.display>;
+if ( not defined $display ) {
+    <[base.log]>->(
+        1,
+        "<!> unable to aquire DISPLAY setting from xserver, aborting startup!"
+    );
+    exit(2);
+}
+<[base.log]>->( 1, "starting compton on display $display .." );
+
+# old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
+my $vsync_options = '--unredir-if-possible';
+
+$vsync_options = '--paint-on-overlay --dbe --unredir-if-possible'
+    if <x11.driver> eq 'nvidia';
+
+$vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
+    if <x11.mode> eq 'xephyr';
+
+<compton.pid> = my $pid = open3(
+    <compton.in_fh>,
+    <compton.out_fh>,
+    undef,
+    split(
+        / +/,
+        join( ' ',
+            "compton -d $display --shadow --no-dock-shadow",
+            $vsync_options,
+            "-t -18 -l -15 -r 10 -o 1 -c -C",
+            "-f -D 21 --no-fading-destroyed-argb --detect-client-opacity",
+            '--shadow-exclude !name~="ticker-sdl"',
+            "--shadow-red 1 --shadow-green 1 --shadow-blue 1" )
+    )
+);
+if ( !<compton.pid> ) {
+    <[base.log]>->( 0, "[!] unable to start compton [$!]" );
+    <[base.log]>->( 1, " : aborting agent startup .." );
+    exit(1);
+}
+
+<[base.log]>->( 1, " : compton process spawned [PID=$pid]" );
+my $prio = <compton.priority>;
+<[base.log]>->( 2, "setting priority of compton child (PID $pid) to $prio" );
+print {<compton.renice_fh>} "$pid $prio\n";
+close(<compton.renice_fh>);
+delete <compton.renice_fh>;
+
+<[event.add_io]>->(
+    {   'fd'            => <compton.out_fh>,
+        'handler'       => 'base.handler.child_output.simple',
+        'log_whitelist' => [
+            'invalid Window parameter',
+            'XIO:  fatal IO error ',
+            'after \d+ requests',
+            'No composite extension'
+        ],
+        'data' => {
+            'bin'               => 'compton',
+            'pid'               => <compton.pid>,
+            'callback_patterns' => {
+                qr/^No composite extension$/ =>
+                    'compton.callback.not_composited'
+            }
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\X2IPDVLFCEBC6PTH6YGW2QZ3FWJM66Y5EPGGE2TDUGWVBWKM6CJ2O7ZO4S4R27KUTQIVFIHFLEZDE
+# \\ NEDNBZNXDFEHJNM2LBWPRWDUBTUQMKAXAOQ6LY57MZBLMUF2PEAG \\// C25519-BASE-32 //
+#  \\// KAWW6A3EMRD2IPBVGU3B54RXBMJHNHWLCEQLF7EUDRILLH562AY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

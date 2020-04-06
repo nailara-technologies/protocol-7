@@ -1,0 +1,32 @@
+# >:]
+
+# name  = base.open
+
+my ( $type, $mode, @params ) = @_;
+
+if ( not defined $data{'io'}{'type'}{$type} ) {
+    <[base.log]>->(
+        0, "base.open: io type '$type' not defined ( module loaded? )"
+    );
+    return undef;
+} elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
+    <[base.log]>->( 0, "base.open: unknown io mode '$mode' for type '$type'" );
+    return undef;
+} elsif (
+    not
+    defined &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } } )
+{
+    <[base.log]>->(
+        0, "base.open: '$type'-handler for mode '$mode' not defined"
+    );
+    return undef;
+}
+
+return &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } }
+    (@params);
+
+# ______________________________________________________________________________
+#\\5GEUSN4F4QV4I2WOUG6TBT6R5AWEBJ24GS6E42LYGJ4WJVMULPIHOQRUUZFKUGOSZX6AGWVG7OP4Q
+# \\ MEE7CEKNB52JJ2QZZBDUPP6Y3O2BZCMJIOG7B5BRO45K7W45SCBK \\// C25519-BASE-32 //
+#  \\// QH7SJPP36K6I6WDGSLDQOIW2J2CNY5CECCA7ISRNDDDYSEWJUDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

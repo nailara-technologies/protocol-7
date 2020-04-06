@@ -1,0 +1,30 @@
+# >:]
+
+# name  = power.cmd.remove_device
+# descr = delete power socket device from config
+# param = <device_id>
+
+<power.cfg.devices> //= {};
+my $device_id = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
+    if !length($device_id)
+    or $device_id !~ /\d+/;
+
+return {
+    'mode' => 'nak',
+    'data' => "device '$device_id' does not exist"
+    }
+    if not exists <power.cfg.devices>->{$device_id};
+
+delete <power.cfg.devices>->{$device_id};
+
+<[power.save_config]>;
+
+return { 'mode' => 'ack', 'data' => "device $device_id removed" }
+
+# ______________________________________________________________________________
+#\\N73UNFJKRKBNHP5M3G75YRF5EJD54ZQF2R3COCAI3WBVEF75IUWQXDB46VGEHLETAWWQFXR4NLQFE
+# \\ BCQZKURSQBQ6K7NVWDTZ4X5BJMFIDCRIE72J72N7VDGSZIICMWHF \\// C25519-BASE-32 //
+#  \\// GCICXO7PVZRYWBS5VYQDTHQLYI4PJU7GXTF5BE6NXD24XXXKMDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,36 @@
+# >:]
+
+# name = base.handler.ondemand_startup
+
+my $reply = shift;
+
+my $v_id = $reply->{'params'}->{'v_id'};
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    delete <agents.virtual>->{$v_id}->{'starting'};
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "ondemand agent startup failed ($reason)" );
+    while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
+        my $sid    = $element->{'source_id'};
+        my $cmd_id = $element->{'cmd_id'};
+        next if not exists $data{'session'}{$sid};
+        $data{'session'}{$sid}{'buffer'}{'output'}
+            .= $cmd_id . "NAK command unknown\n";
+    }
+} else {
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'nroot.notify_online',
+            'call_args' => { 'args' => <agents.virtual>->{$v_id}->{'name'} },
+            'reply'     => {
+                'handler' => 'base.agents.ondemand.handler.startup_reply',
+                'params'  => { 'v_id' => $v_id }
+            }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\ESZFRZ4J3RCWQW7LJLLS4GHTHIOSDEN44KILGYCUB7DWC7VVAGIIZCHHPWED3WJPKNW7UKZ3XBKQY
+# \\ BQWQFTRO4R7DR3JP53LKVLLKXOCUR2TOC3WFM3RPHX2QMEVKWJNH \\// C25519-BASE-32 //
+#  \\// ARQJZ6AFXJFKKDH3DRGH2IOB5JGC4MIPWPO7OS7KVLLNL6CAEBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

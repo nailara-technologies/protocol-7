@@ -1,0 +1,21 @@
+# >:]
+
+# name = ssh.enable_profile
+
+my $profile_name = shift // '';
+my $profile_data = <ssh.cfg.profiles>->{$profile_name};
+die "ssh profile '$profile_name' not defined!" if not defined $profile_data;
+
+<[base.log]>->( 1, "activating ssh profile '$profile_name'" );
+
+<ssh.status.profiles>->{$profile_name} = 'enabled';
+
+foreach my $link_name ( keys %{$profile_data} ) {
+    <[ssh.connection.start]>->( $profile_name, $link_name );
+}
+
+# ______________________________________________________________________________
+#\\RVNY3RH5TTXEJIUYP4C4UB43P5ZCL7BRSYOBWRMR2YL4VGDWIWSPWGCLX4FLMOPXJTHGJTTQL6MOM
+# \\ QZXTPQL5OGNGUTTH4N4DVKHQRTN5BJSINS5IR47DAZJEAJPYPWQ6 \\// C25519-BASE-32 //
+#  \\// 2HXABZT3EETOF4YQZBOYPJVSM6BHJD4K6JGA7YWFINGFD6JBKDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

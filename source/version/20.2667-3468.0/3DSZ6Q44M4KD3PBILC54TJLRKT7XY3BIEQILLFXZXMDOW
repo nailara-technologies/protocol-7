@@ -1,0 +1,96 @@
+# >:]
+
+# name  = base.swap_subs
+# descr = moves subroutines from one module namespace into another
+
+my $source_sub_prefix = shift;
+my $target_sub_prefix = shift;
+my $overwrite_policy  = shift // 'wipe';    # [wipe|overwrite|if_missing]
+
+my @sub_names     = keys %code;
+my $subs_matching = 0;
+map { $subs_matching++ if $_ =~ /^$source_sub_prefix\./ } @sub_names;
+if ( !$subs_matching ) {
+    <[base.log]>->(
+        2, "swap_subs skipped (no $source_sub_prefix subs present)"
+    );
+    return 0;
+}
+
+if ( $overwrite_policy eq 'wipe' ) {
+    map {
+        if ( $_ =~ /^$target_sub_prefix\./ ) {
+            delete $code{$_};
+            $data{'code'}{$_}{'status'} = 'wiped';
+        }
+    } @sub_names;
+    my $wipe_count = @sub_names - keys %code;
+    <[base.log]>->(
+        2, "wiped $wipe_count subs from '$target_sub_prefix' namespace"
+    ) if $wipe_count;
+}
+
+my $moved      = 0;
+my $logged_yet = 0;
+foreach my $sub_name ( keys %code ) {
+    ( my $new_sub = $sub_name )
+        =~ s/^($source_sub_prefix)\./$target_sub_prefix./;
+    if ( $new_sub ne $sub_name ) {
+        if ( $overwrite_policy eq 'if_missing' and exists $code{$new_sub} ) {
+            delete $code{$sub_name};
+            next;
+        }
+        if ( !$logged_yet ) {
+            <[base.log]>->(
+                2,
+                ": moving subroutines: $source_sub_prefix -> $target_sub_prefix"
+            );
+            ++$logged_yet;
+        }
+        $code{$new_sub} = $code{$sub_name};
+        delete $code{$sub_name};
+        $moved++;
+        if ( exists $data{'code'}{$sub_name} ) {
+            $data{'code'}{$sub_name}{'moved_to'} = $new_sub;
+        }
+    }
+}
+
+my $sub_list_ref = <[base.resolve_key]>->('base.init_modules.sub_list');
+if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
+    my $del_index = 0;
+    foreach my $sub_name ( @{$$sub_list_ref} ) {
+        next if not defined $sub_name;
+        if ( $sub_name =~ /^$target_sub_prefix(\.|$)/ ) {
+            delete $$sub_list_ref->[$del_index];
+        } else {
+            $sub_name =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/;
+        }
+        $del_index++;
+    }
+}
+
+map { <base.cmd>->{$_} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+    keys %{<base.cmd>}
+    if exists <base.cmd>;
+
+map { <base.cli>->{$_} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+    keys %{<base.cli>}
+    if exists <base.cli>;
+
+if ( !$moved ) {
+    <[base.log]>->(
+        2, "swap_subs: nothing done ($source_sub_prefix >> $target_sub_prefix)"
+    );
+} else {
+    <base.modules.internal_name>->{$target_sub_prefix} = $source_sub_prefix;
+    <base.modules.moved_to>->{$source_sub_prefix}      = $target_sub_prefix;
+    my $s = $moved == 1 ? '' : 's';
+    <[base.log]>->( 2, ": : done [ $moved sub$s ]" );
+}
+
+# ______________________________________________________________________________
+#\\EUBIY2MRRPREMSRSJA7IN5PPG7Y4HFSYZAGV2GBTLXWC6ODK2JKBSF46LECPXVAPMW33UKFZOGOS2
+# \\ NU7ZSJAH6Z6YU6LLKC4A7A5RCDU7HBF7NIHX5CNQZXJN4X7LMPCV \\// C25519-BASE-32 //
+#  \\// ERCU2C2WAQMXL3PNY6NVYTSGVEW2IPCXLESWE4BS3V3QY6OEGAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

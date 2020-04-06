@@ -1,0 +1,28 @@
+# >:]
+
+# name  = mpv.cmd.set_volume
+# param = <volume%>
+# descr = set playback volume [0-100%]
+
+my $volume = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected volume in percent' }
+    if !length($volume)
+    or $volume !~ /^\d+(\.\d+)?%?$/;
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = sprintf( "volume now %0.1f", $volume ) . '%';
+<mpv.success_reply_str> =~ s|\.0||;
+
+<mpv.current.volume_target> = <mpv.current.volume> = $volume;
+<mpv.audio_fade.last_set>   = $volume if defined <mpv.audio_fade.last_set>;
+
+<[mpv.send_command]>->( 'set_property', 'volume', sprintf( "%0.3f", $volume ) );
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\FSPYHGT67VCJRE7ZBEVN3D3RFJNMSGULZBTH4Z7DJP44JK4TDVSIF33KA6HFDHS3TH3TLQOAIRYCO
+# \\ 6Y4AHQPFHWYESL4WOHJHHPLREUOQ3SOGBQN3ISNXXDJTDD2H3653 \\// C25519-BASE-32 //
+#  \\// K7VA5V4M2CLROB2IQRNQWACH27GO4QEPYM3762LDDQ3ZNJRGQCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

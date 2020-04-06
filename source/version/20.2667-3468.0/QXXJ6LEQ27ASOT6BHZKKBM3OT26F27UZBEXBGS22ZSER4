@@ -1,0 +1,25 @@
+# >:]
+
+# name       = ssl.connect_handler
+
+if ( -S $_[0] ) {
+    if ( not $new_sock = $_[0]->accept() ) {
+        my $ssl_err = &IO::Socket::SSL::errstr();
+        $ssl_err =~ s/\n.+//mg;
+        <[base.log]>->( 0, "ssl.connect_handler: can not accept [$ssl_err]" );
+    } else {
+        <[base.s_write]>->( $new_sock, ">:]\n" );
+        $data{'handle'}{$new_sock}{'link'}       = 'ip.tcp';
+        $data{'handle'}{$new_sock}{'encryption'} = 'ssl';
+        return $new_sock;
+    }
+} else {
+    <[base.log]>->( 0, "ssl.connect_handler: no socket supplied" );
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\JAF2YYXU7663T7YBP3MEWUVP4PSMRDXBW42LRHRMFQKSRJIQ2TTNK5P2SVN5CDJ4JXSRI4DOBZQAK
+# \\ 3NLFOX55O56QUGDBBGXEBP4BXVJFB3FRNDFXDX4XQGV5UELMXI52 \\// C25519-BASE-32 //
+#  \\// QBO543BETCXTSEW3T7B6ZUVH7DPBET6HI7ERC3QPA7ZUZRJUOCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,77 @@
+# >:]
+
+# name = layout.calculate_coordinates
+
+my $descr       = shift;
+my $screen      = <x11.screen>;
+my $screen_lcfg = <layout.config.screen>;
+
+die "'\<x11.screen>' not defined"
+    if not defined $data{'x11'} or not defined <x11.screen>;
+map { die "screen $_ not defined" if not defined $screen->{$_} }
+    ( 'width', 'height', 'orientation' );
+
+### screen borders (underscan) ###
+
+my %screen_frame;
+my @border_names = ( 'left', 'top', 'right', 'bottom' );
+map { $screen_frame{$_} = 0 } @border_names;
+
+# LLL: fix load_section_config hash key recursion and adapt config loading!
+
+if ( exists $screen_lcfg->{'underscan'}
+    and $screen_lcfg->{'underscan'} =~ /^\d+$/ ) {
+    map { $screen_frame{$_} = $screen_lcfg->{'underscan'} } @border_names;
+}
+
+foreach my $border (@border_names) {
+    $screen_frame{$border} = $screen_lcfg->{"underscan.$border"}
+        if exists $screen_lcfg->{"underscan.$border"}
+        and $screen_lcfg->{"underscan.$border"} =~ /^\d+$/;
+}
+
+### window edge coordinate calculation ###
+my ( $screen_width, $screen_height )
+    = ( $screen->{'width'}, $screen->{'height'} );
+
+$screen_width  -= $screen_frame{'left'} + $screen_frame{'right'};
+$screen_height -= $screen_frame{'top'} + $screen_frame{'bottom'};
+
+my ( $width, $height ) = ( $screen_width, $screen_height );
+my ( $left, $top, $right, $bottom ) = ( 0, 0, $screen_width, $screen_height );
+
+if ( exists $descr->{'left'} ) {
+    $left = $descr->{'left'};
+    $left = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
+        if $left =~ /^(\d+(\.\d+)?)\%$/;
+}
+if ( exists $descr->{'top'} ) {
+    $top = $descr->{'top'};
+    $top = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
+        if $top =~ /^(\d+(\.\d+)?)\%$/;
+}
+if ( exists $descr->{'width'} ) {
+    $width = $descr->{'width'};
+    $width = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
+        if $width =~ /^(\d+(\.\d+)?)\%$/;
+    $right = $left + $width;
+}
+if ( exists $descr->{'height'} ) {
+    my $height = $descr->{'height'};
+    $height = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
+        if $height =~ /^(\d+(\.\d+)?)\%$/;
+    $bottom = $top + $height;
+}
+
+return {
+    'left'   => $left + $screen_frame{'left'},
+    'top'    => $top + $screen_frame{'top'},
+    'right'  => $right + $screen_frame{'left'},
+    'bottom' => $bottom + $screen_frame{'top'}
+};
+
+# ______________________________________________________________________________
+#\\3LP2CLRTNJEDYVXFACD2IVJ64XKQMX6EH4D7MIWDMNEZDMYXDXP4LMETJOQMNAD7G4QQDG2IHZTN6
+# \\ UHP6IZER27MJ6DARPCM7XUIPDSU4NJDLQMEDFIPK3NM3COMVNVML \\// C25519-BASE-32 //
+#  \\// 3CT75H2QP7FJBHY4IHYSV4MI3AAPMQRQZCI2HKLPH6KSIW4AICI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

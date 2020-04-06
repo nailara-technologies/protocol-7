@@ -1,0 +1,89 @@
+# >:]
+
+# name  = melt.handler.frame_count_reply
+# note = -0 is the last frame, not -1 ..
+
+my $out_file_path;    # /var/run/melt/...
+
+my $reply     = shift;
+my $params    = delete $reply->{'params'};
+my $frames    = $reply->{'call_args'}->{'args'};
+my $frame_num = $params->{'frame'};
+my $reply_id  = $params->{'reply_id'};
+my $vid_path  = $params->{'vid_path'};
+
+if ( !$frames ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nak',
+            'data' => "no frames counted in specified file!"
+        }
+    );
+} elsif ( $reply->{'cmd'} eq 'NAK' ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'nak', 'data' => "ffmpeg said '$frames'" } # msg!
+    );
+} elsif ( abs($frame_num) >= $frames ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nak',
+            'data' =>
+                sprintf( "requested frame out of range [0-%d]", --$frames )
+        }
+    );
+}
+
+my $neg_str = '';
+
+if ( $frame_num =~ /^\-/ ) {    # reversed [ -0 .. -<frames> ]
+    $neg_str = "[$frame_num] ";
+    $frame_num += --$frames;
+}
+
+while ( not defined $out_file_path or -f $out_file_path ) {
+    $out_file_path = join( '/', <melt.output_path>,
+        sprintf( "%#.0d.png", <[base.ntime]> ) );
+}
+
+my @options = (
+    $vid_path,        "in=$frame_num",
+    "out=$frame_num", 'repeat=1',
+    '-consumer',      "avformat:$out_file_path",
+    'f=apng',         'real_time=0',
+    'in=1'
+);
+
+<[base.log]>->( 2, "extracting frame $frame_num $neg_str: $vid_path .." );
+
+eval {
+    my $inh = '';
+    my $pid = open3( $inh, ">&NULL", ">&NULL", <melt.bin_path>, @options );
+    <[base.log]>->( 1, ": .. running melt ... pid = $pid" );
+    waitpid( $pid, 0 );
+};
+
+<[base.log]>->( 0, "melt exec not successful [ $@ ]" )
+    if $@ =~ s| at melt.+\n$||;
+
+if ( -f $out_file_path ) {
+    <[base.log]>->( 1, ": $out_file_path" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'ack', 'data' => $out_file_path }
+    );
+} else {
+    <[base.log]>->(
+        0, "<!> [frame $frame_num] extraction not successful [ $! ] : $vid_path"
+    );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nak',
+            'data' => "failed to extract [ frame $frame_num ]"
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\QEJRVYJ4DHV4J34WOMHVSGVFXJ6XWNXNOIBT6MPQQUPZBU2QKBRUHJD4QCATQAJKDIT5PJIMHKUZY
+# \\ 7VF34O2VBML6PA4VTKO4QJ4KZ6JPXKLGK4ZQJVW2JJ3QABR6F2SR \\// C25519-BASE-32 //
+#  \\// XJT5A6SISYR2VZEEHHVQIFENHKL3ROJ6MKOZSCIJX7ZBWDT6ACA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

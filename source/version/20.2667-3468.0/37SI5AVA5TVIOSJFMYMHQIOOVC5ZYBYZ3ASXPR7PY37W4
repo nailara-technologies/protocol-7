@@ -1,0 +1,23 @@
+# >:]
+
+# name  = events.cmd.get_playlist_exclusive
+# descr = show active exlusive playlist events
+
+my $reply_str = '';
+
+return {
+    'mode' => 'nak',
+    'data' => 'no exclusive playlist events are active'
+    }
+    if not defined <events.stack.exclusive>
+    or !keys %{<events.stack.exclusive>};
+
+map { $reply_str .= "$_\n" } keys %{<events.stack.exclusive>};
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\UH6B36LLHAXXITWG22MLBHGALADVWTUMAUGWBYY4Z5KXX6PRQC4HHSEPHYNAHYDY7SWRZKAWXMESG
+# \\ XVOGLM3KCXGXKXI54QT7NQYEPCBADILPNMTLUPRDMZPX22OFL3ZX \\// C25519-BASE-32 //
+#  \\// E7KUCFDQKDEB2HM435BIJMZEZH7UYPOPNWD2XJK4VZHDJJ5PWDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

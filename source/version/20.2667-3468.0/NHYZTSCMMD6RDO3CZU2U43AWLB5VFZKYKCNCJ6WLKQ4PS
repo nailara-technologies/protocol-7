@@ -1,0 +1,46 @@
+# >:]
+
+# name = xserver.scan_display_states
+
+my $connected = 0;
+<xserver.path.display_status> //= {};
+<xserver.display_connected>   //= {};
+
+my $first_name;
+my @disp_names;
+foreach my $disp_name ( keys %{<xserver.path.display_status>} ) {
+    my $file_path = <xserver.path.display_status>->{$disp_name};
+    chomp( my $status = ${ <[file.slurp]>->($file_path) } );
+    my $connected_state = $status eq 'connected' ? 1 : 0;
+    <xserver.display_connected>->{$disp_name} //= $connected_state;
+    if ( <xserver.display_connected>->{$disp_name} != $connected_state ) {
+
+        <[base.log]>->( 1, "display '$disp_name' is now $status" );
+        <xserver.display_connected>->{$disp_name} = $connected_state;
+        $first_name //= $disp_name if $connected_state;
+        push( @disp_names, $disp_name );
+    }
+    $connected++ if $status eq 'connected';
+}
+
+<xserver.display_connected>->{'any'} = $connected ? 1 : 0;
+
+if ( @disp_names and defined <xserver.display_status.handler> ) {
+    my $handler_name = <xserver.display_status.handler>;
+    <[base.log]>->( 2, "calling display_status handler '$handler_name'.." );
+    map { $code{$handler_name}->($_) if defined $code{$handler_name}; }
+        @disp_names;
+}
+
+if ( $connected and defined <xserver.wait_for_display.callback> ) {
+    my $callback_name = delete <xserver.wait_for_display.callback>;
+    delete <xserver.wait_for_display> if !keys %{<xserver.wait_for_display>};
+    <[base.log]>->( 2, "calling wait_for_display callback '$callback_name'.." );
+    $code{$callback_name}->($first_name) if defined $code{$callback_name};
+}
+
+# ______________________________________________________________________________
+#\\EMMKAV7O6XQYOS3HHZ7WYFYEHHVE7D5PCUH2CG22SUZJOOYFCKFLFM7R3DDPTLDU4URFB3CZZQHEQ
+# \\ WJWCY6TGAF6B75P7BYMKVZJHOESXCTZ33CWYAC6V7AYRTQHUA6RQ \\// C25519-BASE-32 //
+#  \\// ZYSS2WV33GSQYKN4MEFAN2CML6OQTZKPUDSSI5JVKMFMI5ZAIAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

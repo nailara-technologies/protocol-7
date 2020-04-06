@@ -1,0 +1,71 @@
+# >:]
+
+# name = system.process.init_code
+# todo = configurable blacklist!!!
+
+<[base.perlmod.autoload]>->('IPC::Open2');
+<[base.perlmod.autoload]>->('Proc::ProcessTable');
+<[base.perlmod.autoload]>->('Sys::Statistics::Linux');
+
+<system.statistics> = Sys::Statistics::Linux->new(    # LLL: use initfile option
+    sysinfo   => 0,
+    cpustats  => 1,
+    procstats => 0,
+    memstats  => 1,
+    pgswstats => 0,
+    netstats  => 0,
+    sockstats => 0,
+    diskstats => 0,
+    diskusage => 0,
+    loadavg   => 0,
+    filestats => 0,
+    processes => 0,
+);
+
+<system.statistics>->init;
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+<process.table.top>   //= {};
+<process.count>       //= 0;
+<process.top_min.mem> //= 1;
+<process.top_min.cpu> //= 1;
+<system.process.pt>   //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+<system.process.blacklist_match> = {};
+<system.blacklist.autokill> //= [
+    map {qr|$_|}
+        qw/
+        \.core$
+        \.root$
+        \.system$
+        kill\-child$
+        ^(auto)?ssh
+        ^\/sbin\/init(\s.+)$
+        ^\/lib\/systemd(\s.+)$
+        /
+];
+
+<list.top> = {
+    'var'  => 'data',
+    'key'  => 'process.table.top',
+    'mask' => '<key>:pid state start:running'
+        . ' pctcpu:%_CPU pctmem:%_MEM fname:process',
+    'align' => {
+        'pid'    => 'center-1',
+        'state'  => 'center-2',
+        'start'  => 'right-2',
+        'pctmem' => 'right-5',
+        'pctcpu' => 'right-5',
+    },
+    'filters' => { 'start' => 'base.parser.duration' },
+    'descr'   => 'top process table'
+};
+
+0;
+
+# ______________________________________________________________________________
+#\\6D4U7RGJ3AMPRXUZ2BMIQQPFE3OYNXSSVPGRV4EYMW6DUTN4B5PATKNVOXV4ZMWOECIP2P3JG5ZOM
+# \\ Z2JZ6VBPJDA3VXAQHP5XCIULYKSSOIER25WUSVUNJF5JBVEAKXU7 \\// C25519-BASE-32 //
+#  \\// VMW45DPJQ454OCCGBC7Q6SLLWALHIPGJ6CRQTSXAXHBD76MWEBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

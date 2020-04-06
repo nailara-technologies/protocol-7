@@ -1,0 +1,25 @@
+# >:]
+
+# name = base.reload_plugins
+# todo = implement unload mechanism
+
+my $success = 1;
+
+map { delete $data{'callbacks'}{'end_code'}->{$_} if $_ =~ /^plugin\./ }
+    @{ $data{'callbacks'}{'end_code'} }
+    if exists $data{'callbacks'}{'end_code'};
+
+my @loaded_plugins = sort { length $a <=> length $b }
+    sort keys %{ $data{'plugins'}{'status'} };
+
+my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@loaded_plugins);
+
+$success = 0 if $subs_failed;
+
+return $success;
+
+# ______________________________________________________________________________
+#\\RW6VKAVJO3QUAUTHUS5ZRNBYESXINOE6PBQBMVUL65PBZSFFNYEEGQJSUN2N42KIBPS56G2SDVTWG
+# \\ I6KWUSLQ6ICZ4H2VZNIFA2LFPSX2JM6XHUYUTWNS2TGDIKT3D22P \\// C25519-BASE-32 //
+#  \\// OI2O7TRMD7RSTIYJMVN5OBNM7IRVIIKPFDOWKVDZ6R4E3ER5KDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

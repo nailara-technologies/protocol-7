@@ -1,0 +1,52 @@
+# >:]
+
+# name  = base.cmd.time
+# param = [zone|date|unix[.<n>]]
+# descr = return time[zone], date or unixtime [%.0<n>f]
+
+my $param = $$call{'args'};
+
+if ( not defined $param ) {
+    return {
+        'mode' => 'ack',
+        'data' => <[base.parser.timestamp]>->('clock')
+    };
+} elsif ( $param eq 'date' ) {
+    return {
+        'mode' => 'ack',
+        'data' => <[base.parser.timestamp]>->('date')
+    };
+} elsif ( $param eq 'zone' ) {
+    return {
+        'mode' => 'ack',
+        'data' => <[base.timezone]>
+    };
+} elsif ( $param eq 'unix' ) {
+    return {
+        'mode' => 'ack',
+        'data' => time()
+    };
+} elsif ( $param =~ /^unix\.(\d+)$/ ) {    # LLL: consider access control?
+    my $float = $1;
+    my $limit = 22;
+    return {
+        'mode' => 'nak',
+        'data' => "current float precision limit is $limit"
+        }
+        if $float > $limit;
+    return {
+        'mode' => 'ack',
+        'data' => <[base.time]>->($float)
+    };
+} else {
+    return {
+        'mode' => 'nak',
+        'data' => "invalid parameter '$param'.. [date|unix[.<n>]]"
+    };
+}
+
+# ______________________________________________________________________________
+#\\3YENO7Q2LU5WEZNWO7QCG4S37FVW7VQCK5RRYNGHZO222KLXNCOCFQRE3TKIBMXT7KYSF7KLXDKJE
+# \\ KMQLIUFPDJX2KRQ46GLKGXMHQBJOY5FB4CMJE7OA3GCZUK45XWG6 \\// C25519-BASE-32 //
+#  \\// HD6BBRU5YU6RTML566PC4IINAZ424GYM3UNR73B5SAADL3G6ABI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,39 @@
+# >:]
+
+# name  = system.cmd.pid_autokill
+# descr = terminates process [by nroot agent or own kill]
+# param = <term_pid> [msg]
+
+my $request_str = $$call{'args'} // '';
+my $hostname    = <system.host.hostname>;
+( my $log_usr, my $process_id, my $log_message ) = split( / +/, $request_str );
+$log_usr =~ s|^$hostname.||;
+
+return {
+    'mode' => 'nak',
+    'data' => 'you need to supply a process id'
+    }
+    if !length($process_id);
+
+return {
+    'mode' => 'nak',
+    'data' => 'found no such process'
+    }
+    if not exists <process.table.top>->{$process_id};
+
+<[base.log]>->( 0, "<!> '$log_usr' requested autokill for pid $process_id .." );
+
+$log_message //= "terminating process [PID:$process_id] (requested)";
+
+<[system.process.autokill]>->( $process_id, $log_message );
+
+return {
+    'mode' => 'ack',
+    'data' => "terminating pid $process_id .. (if present)"
+    }
+
+# ______________________________________________________________________________
+#\\56R2XHVUM3OOPFQK2ACRF6SNIY2UHNMVJEIZGNXGDRW4XIVGEK4BWNE65GA3IYRV5OD3N65J7MERG
+# \\ MYNEYAC4WK3LXU5LCKB2T2ZZQ5NPENWFQ6NAHNUKB7U4FTVCW5KV \\// C25519-BASE-32 //
+#  \\// PZKTVCKOIQNC7PURLEYRPQTASTYQAW72RAPRWGLGWXDQ4O7PMCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

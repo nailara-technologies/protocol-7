@@ -1,0 +1,37 @@
+# >:]
+
+# name = io.unix.socket.init_code
+
+<[base.perlmod.autoload]>->('IPC::Open2');
+<[base.perlmod.autoload]>->('IO::Socket::UNIX');
+
+$data{'io'}{'type'}{'unix'} = {
+
+    'ref' => 'IO::Socket::UNIX',
+
+    'handler' => {
+
+        'out' => {
+            'open'  => 'io.unix.socket.out.open',
+            'close' => 'io.unix.socket.out.close',
+            'read'  => 'base.handler.read',
+            'write' => 'base.handler.write'
+        },
+
+        'in' => {
+            'open'    => 'io.unix.socket.in.open',
+            'close'   => 'io.unix.socket.in.close',
+            'connect' => 'io.unix.socket.in.connect',
+            'read'    => 'base.handler.read',
+            'write'   => 'base.handler.write'
+        }
+    }
+};
+
+return 0;
+
+# ______________________________________________________________________________
+#\\2GELGGQFT5EOGOENITU4WCAY6NSSXDABVQY2HAX7TK6KGWJQ5SM7AWOUVHRAXGFZTFTWGTTD7S6LY
+# \\ LGWCK5FOF3PAPUOXEPB4LZN2AWCWYURNDTBBNMFZWJIT4QPFFCLM \\// C25519-BASE-32 //
+#  \\// QAU2CK75FHRKSQXOGMY4NHFNKPL6KNBI4C4THHMHW4WOSR3MCDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

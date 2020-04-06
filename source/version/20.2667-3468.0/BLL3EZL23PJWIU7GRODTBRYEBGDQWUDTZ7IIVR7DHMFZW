@@ -1,0 +1,26 @@
+# >:]
+
+# name  = nroot.agent.setup.add
+# descr = store a new agent setup and return its id
+
+my $agent_details = shift;
+die 'nroot.agent.setup.add: expected a hash reference!'
+    if ref($agent_details) ne 'HASH';
+
+my $agent_name = $agent_details->{'name'};
+die "nroot.agent.setup.add: 'name' parameter required (at least)"
+    if not defined $agent_name or !length $agent_name;
+
+$agent_details->{'type'} //= 'local';
+
+my $agent_id = <[base.gen_id]>->(<nroot.agent.setup>);
+
+<nroot.agent.setup>->{$agent_id} = $agent_details;
+
+return $agent_id;
+
+# ______________________________________________________________________________
+#\\GS5V2WCOKION5KOJ3AHJDXZKDUY6FW4CVBTZVCUILBBFZTKKO2HU7IOJSXLQTL24OGICYPF2KFWKY
+# \\ QJ64JYLMCJHOFPYTRKOZNPFFYYIEYZ7645PCSVJ3B7JP6C33DZHP \\// C25519-BASE-32 //
+#  \\// LSZK5Y4HAFXTUN2X3YHCGU5AZE3TQQXPUAHYYOJ4XF7N3UFEMAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

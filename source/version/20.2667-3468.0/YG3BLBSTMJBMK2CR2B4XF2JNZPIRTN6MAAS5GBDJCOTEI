@@ -1,0 +1,127 @@
+# >:]
+
+# name = weather.parent.handler.update_forecast_reply
+
+<weather.update_fail_count.forecast> //= 0;
+<weather.update_interval.forecast>   //= 15;    # minutes
+my $retry_delay_cached = 13;                    # seconds
+my $retry_delay_nodata = 7;                     # seconds
+
+my $reply      = shift;
+my $station_id = $reply->{'params'}->{'station_id'};
+my $type       = $reply->{'params'}->{'type'};
+
+#my $city         = $reply->{'params'}->{'city'};
+my $log_level = 0;
+
+my $data_str;
+my $status_code;
+my $forecast_data;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $err_reason = $reply->{'call_args'}->{'args'};
+    if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
+        $log_level++;
+        $retry_delay_cached += 113 + int( rand(237) );
+    }
+    <[base.log]>->(
+        $log_level, "unable to retrieve forecast weather data [$err_reason]"
+    );
+    $status_code = $1 if $err_reason =~ /^(\d+)/;
+} else {
+    $data_str = $reply->{'data'};
+    $data_str =~ s|\n$||;
+    ($forecast_data) = thaw($data_str);
+}
+
+<weather.timer.forecast>->cancel if exists <weather.timer.forecast>;
+
+my $interval_seconds = <weather.update_interval.forecast> * 60;
+my $update_interval
+    = $interval_seconds + sprintf( "%.0f", rand($interval_seconds) );
+
+if (    defined $forecast_data
+    and exists $forecast_data->{'cod'}
+    and $forecast_data->{'cod'} eq '200' ) {
+    <weather.update_fail_count.forecast> = 0;
+    <[weather.parent.cache.write_data]>->( $type, $station_id, $data_str );
+    <[weather.parent.extract_forecast]>->( $type, $station_id, $forecast_data );
+    my $update_minutes = sprintf( "%0.1f", $update_interval / 60 );
+    <[base.log]>->(
+        2, "next 'forecast' data update in $update_minutes minutes.."
+    );
+} else {
+    my $status_str = defined $status_code ? " ($status_code)" : '';
+    $status_str = " (city not found)"
+        if defined $status_code and $status_code eq '404';
+
+    if (    exists <weather.data>->{$station_id}
+        and exists <weather.data>->{$station_id}->{'forecast'}
+        and defined <weather.data>->{$station_id}->{'forecast'}->{'data_time'} )
+    {
+        my $data_age
+            = time - <weather.data>->{$station_id}->{'forecast'}->{'data_time'};
+
+        $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.8;
+
+        <[base.log]>->(
+            $log_level, "unable to obtain forecast weather data.." . $status_str
+        );
+
+        my $age_str
+            = $data_age > 3600
+            ? sprintf( "%0.1f hours",   $data_age / 3600 )
+            : sprintf( "%0.1f minutes", $data_age / 60 );
+        $age_str =~ s|\.0 | |;
+        $age_str =~ s| (1 \w+)s | $1 |;
+        <[base.log]>->( 0, "keeping cached data ( $age_str old )" );
+        $update_interval
+            = $retry_delay_cached
+            + sprintf( "%.1f", rand( $retry_delay_cached / 2 ) );
+        <[base.log]>->(
+            1, "next 'forecast' attempt in $update_interval seconds.."
+        );
+    } else {
+
+        # LLL: write n/a pages!
+
+        my $log_level = <weather.update_fail_count.forecast> ? 1 : 0;
+
+        <[base.log]>->(
+            $log_level, "unable to obtain forecast weather data.." . $status_str
+        );
+
+        <weather.update_fail_count.forecast>++;
+
+        $update_interval
+            = $retry_delay_nodata
+            + sprintf( "%.1f", rand( $retry_delay_nodata / 2 ) );
+        <[base.log]>->(
+            1, "retrying 'forecast' query in $update_interval seconds.."
+        );
+    }
+}
+
+my $midnight = <[weather.base.tomorrow_unix]>;
+if ( time + $update_interval > $midnight ) {
+    $update_interval = ( $midnight - time );
+    my $update_minutes = sprintf( "%0.1f", $update_interval / 60 );
+    <[base.log]>->(
+        1,
+        "..shortened 'forecast' delay "
+            . "to $update_minutes minutes! (midnight)"
+    );
+}
+
+<weather.timer.forecast> = <[event.add_timer]>->(
+    {   'after'   => $update_interval,
+        'handler' => 'weather.parent.handler.update_timer',
+        'data'    => { 'type' => 'forecast', 'station_id' => $station_id }
+    }
+);
+
+# ______________________________________________________________________________
+#\\EGB2OHTITYTNV5VTV34PKGAJLP2KKFRPCPZODHZ5TNEJNF3IOBLDGGJUHFFC6VJGJUGHCTFS53FH4
+# \\ ZDEYQQUTP4KWA7Q44UOIHY3WTP5YP3R3SZNPS3ETJEZVCFFYCDOD \\// C25519-BASE-32 //
+#  \\// KHROSYX5FERGJLOGIX2PQOP2EAAN4Q4ELLAKHVYR5WYOFY6BSCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

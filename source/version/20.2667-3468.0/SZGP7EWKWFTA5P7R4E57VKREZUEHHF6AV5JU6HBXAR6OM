@@ -1,0 +1,114 @@
+# >:]
+
+# name  = nroot.handler.sig_chld
+
+<[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
+local ( $!, $? );
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
+
+    my $instance_id;
+    my $instance;
+    my $agent_name;
+    my $agent_subname;
+
+    if ( my $child = <nroot.child>->{$pid} ) {
+        $instance_id   = $child->{'instance_id'};
+        $instance      = <nroot.agent.instance>->{$instance_id};
+        $agent_name    = $instance->{'agent_name'};
+        $agent_subname = $instance->{'subname'};
+    }
+
+    # determine exit status
+    my $log_level = 2;
+    my $e_val     = $? >> 8;
+    my $e_sig     = $? & 127;
+    my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
+    $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
+    my $e_dmp = $? & 128 ? ' [ with core dump ]' : '';
+    $log_level = 1 if $e_val;
+    $log_level = 0 if $? & 128;
+    my $agent_str = defined $agent_name ? "< $agent_name > " : '';
+    <[base.log]>->(
+        $log_level,
+        $agent_str
+            . "child pid=$pid terminated"
+            . " ( exit code $e_val$e_sig_str )$e_dmp"
+    );
+
+    <[nroot.cancel_status_timer]>->($instance_id) if defined $instance_id;
+
+    <[nroot.terminate_process]>->($pid);    # <- cleans up children too..,
+
+    <[nroot.cleanup_temp_paths]>->( $pid, $instance_id );
+
+    delete <nroot.process.instance_cache>->{$pid};
+    delete <nroot.process.instance_cache>
+        if !keys %{<nroot.process.instance_cache>};
+
+    if ( my $child = <nroot.child>->{$pid} ) {
+
+        <[base.log]>->( 2, ": was instance $instance_id" );
+
+        delete <nroot.child>->{$pid};
+        delete $instance->{'restart_pids'}->{$pid}
+            if exists $instance->{'restart_pids'};
+
+        my $old_status = $instance->{'status'} || 'undefined';
+
+        <[base.log]>->( 2, ": had status : '$old_status'" );
+
+        ## record browser segfaults (for crash mitigation) ##
+        if ( $e_sig == 11 and $agent_name eq 'browser' ) {
+            my $browser_uname = 'nobody';    # LLL: determine automatically ..,
+            my $subname_b32
+                = ( defined $agent_subname and length($agent_subname) )
+                ? '.' . encode_b32r($agent_subname)
+                : '';
+            my $file_name
+                = "/tmp/.nailara.browser.crash_pid$subname_b32";    # <<< ! >>>
+            <[file.put]>->( $file_name, "$pid\n" ) or warn("$file_name: $!");
+            chmod( 0644, $file_name ) or warn("$file_name: $!");
+            my @pwn = getpwnam($browser_uname);
+            chown( $pwn[2], $pwn[3], $file_name ) or warn("$file_name: $!");
+        }
+
+        my $next_status = (
+                   $old_status eq 'online'
+                or $old_status eq 'starting'
+                or $old_status eq 'error'
+        ) ? 'error' : 'offline';
+
+        $next_status = 'restart' if $old_status eq 'restart';
+
+        if ( $old_status eq 'online' and defined <nroot.ondemand_agents> ) {
+            map { $next_status = 'offline' if $_ eq $agent_name }
+                @{<nroot.ondemand_agents>};
+        }
+
+        if ( <[nroot.instance_pid_count]>->($instance_id) ) {
+            <[agent.change_status]>->( $instance_id, 'delayed' )
+                if $old_status eq 'restart';
+            $instance->{'pid_check_timer'} = <[event.add_timer]>->(
+                {   'after'    => 0.07,
+                    'interval' => '0.1',
+                    'handler'  => 'nroot.handler.children_left',
+                    'data'     => {
+                        'instance_id' => $instance_id,
+                        'next_status' => $next_status
+                    }
+                }
+            );
+        } else {
+            <[agent.change_status]>->( $instance_id, $next_status )
+                if $old_status ne $next_status;
+            <[nroot.init_respawn_timer]>->($instance_id)
+                if $next_status ne 'offline' and $next_status ne 'shutdown';
+        }
+    }
+}
+
+# ______________________________________________________________________________
+#\\6NU32IV6U6CJO7WDJ5RFMFHX3BMLUQNCK37ZFM4BQBUB5I45CHQ37YRQOYWCKXVX67UF4YK275DOC
+# \\ RHMYWQ5FXAWPCN6UDMYRDILNJXVDX4YD7MT372B3ETYVVX2E3GUX \\// C25519-BASE-32 //
+#  \\// YME56V7TTR7GTDUD5YUDFAEEBELK6HFMSS572RV5POAQKDXEAAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

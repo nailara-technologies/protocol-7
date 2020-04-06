@@ -1,0 +1,58 @@
+# >:]
+
+# name = httpd.serve_file
+
+my $id;
+my $params;
+my $file_path;
+if ( ref( $_[0] ) eq 'HASH' ) {
+    $params    = shift;
+    $id        = $params->{'sid'};
+    $file_path = $params->{'path'};
+} else {
+    $id        = shift;
+    $file_path = shift;
+}
+my $session         = $data{'session'}{$id};
+my $response_params = $session->{'response'}->{'params'};
+my $file_stat
+    = ( defined $params and defined $params->{'stat'} and ref($params) )
+    ? $params->{'stat'}
+    : File::stat::stat($file_path);
+
+my $content_size = $file_stat->size;
+my $content_date = time2str( $file_stat->mtime );
+my $server_date  = time2str(time);
+
+my $content_type = 'text/plain';
+
+if ( $file_path =~ /\.htm(l)?$/i ) {
+    $content_type = 'text/html';
+} else {
+    $content_type = mimetype($file_path);
+}
+
+open( my $content_fh, '< :raw', $file_path )
+    or warn "<!> $file_path: $!";    # LLL: error handling..,
+local $/ = undef;
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => $content_type,
+        'Last-Modified'  => $content_date,
+        'Content-Length' => $content_size,
+        'Connection'     => $session->{'http'}->{'close'}
+        ? 'close'
+        : 'keep-alive',
+        'Accept-Ranges' => 'bytes',
+        %{$response_params}
+    }
+) . <$content_fh>;
+close($content_fh);
+
+return $session->{'http'}->{'close'} ? 2 : 0;
+
+# ______________________________________________________________________________
+#\\GHOEIEHWX3G37LXUY37YJE4QWDCVAB6VY3ZTJEBXNYZOHTIMEZFB5T5DYIJKWPRCBJDSQU7CQF7HA
+# \\ 4KGLMQMREXTK6BTF2PBVKWIKQASSTZL35JKJR2UFLE7RGHQDE3K5 \\// C25519-BASE-32 //
+#  \\// L3654C2GN4YIGWQ63AGH37XFX6UGLPHBDKMPYPEZOBQJDRC7UBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

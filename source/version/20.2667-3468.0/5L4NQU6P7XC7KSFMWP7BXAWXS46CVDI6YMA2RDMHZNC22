@@ -1,0 +1,90 @@
+# >:]
+
+# name = download.init_code
+# todo = clean empty sub dirs
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+
+package Download::UserAgent;
+
+<[base.perlmod.autoload]>->('IO::Scalar');
+<[base.perlmod.autoload]>->('Config::Hosts');
+<[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
+
+use parent qw| LWPx::ParanoidAgent |;
+
+our $etc_hosts = Config::Hosts->new();
+
+sub read_hosts {
+    my ( $self, $hosts_file ) = @_;
+    $hosts_file //= '/etc/hosts';
+    <[base.log]>->( 1, "reading '$hosts_file' file.." );
+
+    my $stderr_fhcopy = *STDERR;
+    my $stderr_buffer = '';
+    tie *STDERR, 'IO::Scalar', \$stderr_buffer;
+    eval { $etc_hosts->read_hosts($hosts_file) };
+    untie *STDERR;
+    *STDERR = $stderr_fhcopy;
+    if ($@) {
+        ( my $reason_str = $@ ) =~ s/\n/ /g;
+        $reason_str =~ s|( Bailing out)?[ \.]+$||;
+        <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
+        $etc_hosts = undef;
+    }
+    map { <[base.log]>->( 0, "[ $hosts_file ] $_" ) } split /\n/,
+        $stderr_buffer;
+}
+
+sub _resolve {
+    my ( $self, $host, $request, $timeout, $depth ) = @_;
+
+    <[base.log]>->( 2, "resolving host '$host'.." );
+
+    ## /etc/hosts ##
+    if ( defined $etc_hosts ) {
+        my $local_result;
+        $local_result = $etc_hosts->query_host($host);
+        if ( defined $local_result and defined $local_result->{'ip'} ) {
+            my $ip_addr = $local_result->{'ip'};
+            <[base.log]>->( 2, ": found local entry '$ip_addr'" );
+            return $ip_addr;
+        }
+    }
+
+    ## DNS Resolver ##
+    return $self->SUPER::_resolve( $host, $request, $timeout, $depth );
+}
+
+package main;
+
+my $download_path = <download.cfg.download_path>;
+
+<download.cfg.http.query_etc_hosts> //= 1;
+<download.cfg.http.request_timeout> //= 10;
+<download.cfg.http.user_agent>      //= '';
+
+<download.obj.ua> = Download::UserAgent->new();
+<download.obj.ua>->read_hosts() if <download.cfg.http.query_etc_hosts>;
+
+<download.obj.ua>->whitelisted_hosts( sub { return 1 } );
+<download.obj.ua>->agent(<download.cfg.http.user_agent>);
+<download.obj.ua>->protocols_allowed( [ 'ftp', 'http', 'https' ] );
+<download.obj.ua>->timeout(<download.cfg.http.request_timeout>);
+
+if ( !-d $download_path ) {
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+    <[base.log]>->( 1, "creating download directory '$download_path'.." );
+    make_path( $download_path,
+        { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+        or warn "unable to create download directory '$download_path' [$!]";
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\C7IWLDW3HRIQMYPGTP2V4MIBNBLELVQ7BHYCTMI4H5UAOGXDOXLFTOGXCKALAICKXMYHP3AOWBFZ2
+# \\ 5ZB46N5GTIR3YURM6IQCYKST4VTC5F6IAVAK23C3FVDXWYOKXEUE \\// C25519-BASE-32 //
+#  \\// KLO3KUW4H67SLLRK7UZHHXHSMVKH6TITBEQ6WJXKA7FHEK4FIBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

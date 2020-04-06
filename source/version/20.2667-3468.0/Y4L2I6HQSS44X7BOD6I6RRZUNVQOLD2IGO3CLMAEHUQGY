@@ -1,0 +1,34 @@
+# >:]
+
+# name  = xserver.cmd.show_size_list
+# descr = show available and selected screen size(s)
+
+<xserver.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+
+my %screen_info = ( <xserver.x11>->RRGetScreenInfo( <xserver.x11>->root ) );
+
+return {
+    'mode' => 'nak',
+    'data' => 'no available sizes being reported (RANDR)'
+    }
+    if !@{ $screen_info{'sizes'} };
+
+my $current_size_index = $screen_info{'size'};
+
+my $reply_str  = '';
+my $size_index = 0;
+
+map {
+    my $marker_l = $size_index++ == $current_size_index ? '-->' : '   ';
+    my $marker_r = $marker_l =~ /\S/ ? ' <--' : '';
+    $reply_str
+        .= sprintf( " %s %d x %d%s\n", $marker_l, $_->[0], $_->[1], $marker_r )
+} @{ $screen_info{'sizes'} };
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\IXQGDEJWWNRCLUMFHWURVNL3OKBHY5HWDTOC6K2CSWB7SILNXWRZZ7PK3YIYC562N7EXZBLMVZSYO
+# \\ OC6KW5KXQT5WOWMCWCQEJT7RJRPURVMEMD53K6PUICTTLDFE5OVJ \\// C25519-BASE-32 //
+#  \\// IKK6NPH3MAXGGWI6645FYCIOMTI25MRFGFOQ7YORY7IBV3KIWDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,23 @@
+# >:]
+
+# name  = base.enable_list
+# descr = hide specified lists from 'list' command
+
+my @params = @_;
+die "list names expected!" if !@params;
+$data{'lists_hidden'} //= {};
+
+my @matches;
+
+map { push( @matches, $_ ) if delete $data{'lists_hidden'}{$_} } @params;
+
+return <[base.log]>->( 0, "no matching list to [re]enable.." ) if !@matches;
+
+my $s = @matches > 1 ? 's:' : '';
+<[base.log]>->( 2, "enabled list$s " . join( ', ', @matches ) . ' ..' );
+
+# ______________________________________________________________________________
+#\\POTWYXN6P2RXC4W5IBGURE3HKWIWJD7QZAQYBG66DHFWVUXYHNPXTH42PGY3LUH3P2YALCBF6ZBQC
+# \\ 7J4V3UVPEHLF4EXDCVDNAOGSU2T2Z7QD2FBVLYX44Y32FPTBXR3R \\// C25519-BASE-32 //
+#  \\// Z7EHWJ5OTPKDTE4IBYDZMQW2NB62QLXYWIFUCVFXSCD6GEMTWAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,42 @@
+# >:]
+
+# name  = mpv.cmd.seek
+# param = [-+]value[%]
+# descr = adjust playback position
+
+my $seek_mode  = 'absolute';
+my $seek_value = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'expected seek value' }
+    if not defined $seek_value or !length($seek_value);
+return { 'mode' => 'nak', 'data' => 'invalid seek value' }
+    if $seek_value !~ /^[\-\+]?\d+(\.\d{1,5})?%?$/;
+return {
+    'mode' => 'nak',
+    'data' => 'percentage value not allowed in relative mode'
+    }
+    if $seek_value =~ /^[\-\+]\d+(\.\d+)?%$/;
+
+$seek_mode = 'relative'
+    if $seek_value =~ s|^\+|| or $seek_value =~ /^\-\d+/;
+
+$seek_mode = 'absolute-percent' if $seek_value =~ s|%$||;
+
+return {
+    'mode' => 'nak',
+    'data' => 'valid percentages are between 0 and 100'
+    }
+    if $seek_mode eq 'absolute-percent' and $seek_value > 100;
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'changing playback position';
+
+<[mpv.send_command]>->( 'seek', $seek_value, $seek_mode, 'exact' );
+
+return { 'mode' => 'deferred' }
+
+# ______________________________________________________________________________
+#\\DVLGJNN6GUCJYMDX2VP6SDWFGUHM2RCUFDSKQNN4RSJGKGIQD5Q3QR2HJAJIQ4SYCXVOCKLW322EC
+# \\ MJJYRHSCLCC2BPIJTE3AQO7I7NFBZWAVH3REWD6O5MEDM6J54AXK \\// C25519-BASE-32 //
+#  \\// OTVPTPGUHVGSSLFCJHJRQB5SB2ADOEJNHBYTOBUWFF2HR7CR2DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

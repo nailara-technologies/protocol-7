@@ -1,0 +1,48 @@
+# >:]
+
+# name  = base.agents.ondemand.handler.startup_reply
+# descr = handles 'nroot.notify_online' command replies
+
+my $reply = shift;
+
+my $v_id       = $reply->{'params'}->{'v_id'};
+my $agent_name = <agents.virtual>->{$v_id}->{'name'};
+delete <agents.virtual>->{$v_id}->{'starting'};
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->(
+        0, "on demand startup of agent '$agent_name' failed [$reason]"
+    );
+    while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
+        my $sid    = $element->{'source_id'};
+        my $cmd_id = $element->{'cmd_id'};
+        next if not exists $data{'session'}{$sid};
+        $data{'session'}{$sid}{'buffer'}{'output'}
+            .= $cmd_id . "NAK command unknown\n";
+    }
+} else {
+    <[base.log]>->( 1, "ondemand agent '$agent_name' is now present." );
+    while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
+        my $sid = $element->{'source_id'};
+        next if not exists $data{'session'}{$sid};
+        my $cmd_id = $element->{'cmd_id'};
+        my $s_name
+            = defined $element->{'cmd_subname'}
+            ? sprintf( "[%s]", $element->{'cmd_subname'} )
+            : '';
+
+        my $output_str = "$cmd_id$agent_name$s_name." . $element->{'cmd_str'};
+        $output_str .= ' ' . $element->{'cmd_args'}
+            if defined $element->{'cmd_args'};
+        $output_str .= "\n";    # LLL: add multiline command parameters..
+
+        $data{'session'}{$sid}{'buffer'}{'input'} .= $output_str;
+    }
+}
+
+# ______________________________________________________________________________
+#\\N47Z6GOVPUKUE6HXVHVLZ74XKK76WY5OPZMQBAZ63H5SM6YO4F54DOFQQPPT7RH2JP44545WHXIHA
+# \\ CA7L2GVTB7435AMMHWMROD6G4M4G77SML3XJB5YEKND6KGQWNG2S \\// C25519-BASE-32 //
+#  \\// ZM4VJM4PA7YOQI5HSATJJ2WIT5C6UDAUBNNHO5ZYTT5BAYESIAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,23 @@
+# >:]
+
+# name  = ticker-sdl.parent.handler.cmd_read_file
+# descr = handle read_file responses from ticker child
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'ACK' ) {    # success
+    <ticker-sdl.request_pending.read_file> = 0;
+} else {
+    my $reason_txt = $reply->{'call_args'}->{'args'};
+    <[base.log]>->(
+        0, "child.read_file failed with '$reason_txt', shutting down!"
+    );
+    kill( 9, <ticker-sdl.child.pid> ) if defined <ticker-sdl.child.pid>;
+    exit(2);
+}
+
+# ______________________________________________________________________________
+#\\GEKPFH5B42V6NLQH7NIKAMBUQPHYANLM6LHXYZIAC2V2EA2EF3LZWBGUK32FJ4TIO23OGZ3FYKYYG
+# \\ UG5C626AFJ4DWQXBSHUBKG2KHKFQQ4F2TK7O7YYOY6PJ3U5ACEBL \\// C25519-BASE-32 //
+#  \\// IFBXHNVELEBG3DZM4NAXWJOJJMERDLPRWLUN46VUCOOVZCW2GBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

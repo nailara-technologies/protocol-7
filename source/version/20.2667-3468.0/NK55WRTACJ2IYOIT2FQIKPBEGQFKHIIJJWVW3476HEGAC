@@ -1,0 +1,31 @@
+# >:]
+
+# name = pong-game.init_code
+
+<[base.perlmod.autoload]>->('IPC::Open3');
+
+<pong-game.cfg.bin_path> //= '/usr/local/bin/pong-game';
+<pong-game.cfg.res_path> //= '/usr/local/share/pong-game';
+
+if ( !-x <pong-game.cfg.bin_path> ) {
+    <[base.log]>->(
+        0, sprintf("pong game binary not found at '%s', aborting..."),
+        <pong-game.cfg.bin_path>
+    );
+    exit(1);
+} elsif ( !-d <pong-game.cfg.res_path> ) {
+    <[base.log]>->(
+        0,
+        sprintf( "pong game resource path not found [%s], aborting...",
+            <pong-game.cfg.res_path> )
+    );
+    exit(1);
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\OT2WWSKV64FTESWJTWIQZOSXF6FLKBKVWJR5SIUD5NHC3XTHH6MEVDR5CNM3UF56M6Y6YWDYTQH76
+# \\ QMY7ZKABQDN7IT2OJYRIIE7NIXF6PRKH4LUHGWPGY5VB54QRHXGR \\// C25519-BASE-32 //
+#  \\// QV6JSFZY7SROLLG4NQ4YV2RNSG6DWQ2GHLPLX657JRTTC76QCAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,20 @@
+# >:]
+
+# name = browser.disable_proxy
+
+my $log_level = shift // 1;
+
+if (<browser.init_proxy>) {
+
+    my $session = Gtk3::WebKit2::get_default_session();
+    $session->set( 'proxy-uri' => undef );
+    <browser.init_proxy> = 0;
+
+    <[base.log]>->( $log_level, "http proxy disabled" );
+}
+
+# ______________________________________________________________________________
+#\\WB5NYIAP5CRRQ7NFNZUAW6LUP7GJJZGKEQ6HDHPF36SXMK3NDU42KYYLX2LTFSCLTNB6CZEAFIZOI
+# \\ XRAFXSLFKWW2AZTT6AM2J2SWAFQYB7IUTKBK75ZGWURGBXCTIRVY \\// C25519-BASE-32 //
+#  \\// QDYCOXDYGSSA4NF2S7IX3C4PDK7MEITRHECB6L7GPCSEIVB7MDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

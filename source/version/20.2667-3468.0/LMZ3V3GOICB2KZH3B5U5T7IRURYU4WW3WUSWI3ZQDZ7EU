@@ -1,0 +1,30 @@
+# >:]
+
+# name = ssh.load_config
+
+my $config_name = shift // <ssh.config_name>;
+die "no ssh config name supplied or configured"
+    if not defined $config_name or !length($config_name);
+
+my $config_filename = "agents/ssh/link-setup.$config_name";
+
+my $config_file_path = join( '/', <system.conf_path>, $config_filename );
+die "ssh config '$config_name' not found in agents/ssh/...\n"
+    if !-f $config_file_path;
+
+<[base.log]>->( 1, "loading ssh profile configuration '$config_name'" );
+my $config_data = <[base.load_section_config]>->($config_filename);
+
+map { <ssh.status.profiles>->{$_} //= 'disabled' }
+    keys %{ $config_data->{'profiles'} };
+
+<[base.log]>->( 0, "unable to load ssh '$config_name' config!" )
+    if not defined $config_data
+    or !keys %{$config_data};
+return $config_data;
+
+# ______________________________________________________________________________
+#\\W7KCPUMW55JJTNFNZD6IQIUBSFOGCQQGWUI2SGVOIHDB7OMO4RFZXSMLSWJL3JFSPJOEGNSHAQRRW
+# \\ ZJTPXJVT2ZKC335H7TKLUALMK3FWKJD6UETKX3JGOR7G26TNASW4 \\// C25519-BASE-32 //
+#  \\// NTBSWHG765DRVLTEKG7NK7RGPLYQ7UMQYFYPRG7KKTPA25WRKCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

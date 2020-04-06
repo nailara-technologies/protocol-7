@@ -1,0 +1,63 @@
+# >:]
+
+# name = base.check_dependency_dirs
+
+my $user     = shift // <system.privs.user>;
+my $agent    = <system.agent.name>;
+my $cfg_path = <system.conf_path>;
+
+my ( undef, undef, $uid, $gid ) = getpwnam($user)
+    or die "user '$user' not in passwd file";
+
+my @sub_dirs = qw|
+    os-dep
+    os-dep/binary
+    os-dep/debian
+    pm-dep
+    source
+    |;
+
+my $dep_dir = <[base.get_path.agent_cfg]>;
+
+if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
+    and -d $dep_dir
+    and -w $dep_dir
+    and opendir( my $dir_fh, $dep_dir ) ) {
+    my @dir_names = grep { !/^\,/ } readdir($dir_fh);
+    close($dir_fh);
+
+    my $src_stat = File::stat::stat($dep_dir);
+
+    foreach my $sub_dir (@sub_dirs) {
+        my $dir_path = "$dep_dir/$sub_dir";
+        ## create ##
+        if ( !-d $dir_path ) {
+            mkdir($dir_path)
+                or warn "mkdir($dir_path) : $!";
+        }
+        next if !-d $dir_path;
+
+        my $dir_stat = File::stat::stat($dir_path);
+
+        ## chmod ##
+        chmod( 0775, $dir_path ) if $dir_stat->mode != 0755;
+        if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
+            ## chown ##
+            chown( $src_stat->uid, $gid, $dir_path )
+                or warn "$dir_path : $!";
+        }
+        ## placeholder ##
+        my $placeholder_path = "$dir_path/.placeholder";
+        if ( !-e $placeholder_path ) {
+            open( my $fh, '>', $placeholder_path ) or next;
+            close($fh);
+        }
+        chown($placeholder_path);
+    }
+}
+
+# ______________________________________________________________________________
+#\\4PLL4QFX6DA5VX5F5OIIB7ZRBIOMWHOERZ52XDZVOSV5MAJV2GXYALNXLAMGTGOEYEOQBL4MJPFFG
+# \\ MDQNCZI34PIROWG2W2TDJGKNCB44JTNWXOC2NNDQOJDGREOI5KR7 \\// C25519-BASE-32 //
+#  \\// 6YFXU6LEL7ZJKY3MTZNFC6K4B2OKVYUJAIQ5PU4ESLAZFNOJ4CA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,65 @@
+# >:]
+
+# name  = keys.cli.remove
+# param = <name>
+# descr = delete the C25519 key with the specified name
+
+my $key_name = $$call{'args'};
+
+return print "\n  [!] expected <name> parameter [!]\n\n"
+    if not defined $key_name;
+
+my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
+
+my $key_dir = $key_vars->{'key_dir'};
+my $key_usr = $key_vars->{'usr_name'};
+
+my $shred_bin = <keys.bin_path.shred>;
+
+opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
+my @key_files = grep {/[^\.].*\.C25519_b32(\.pub)?$/} sort readdir($dir_fh)
+    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
+closedir($dir_fh);
+
+return warn "no key files found [$key_dir]" if !@key_files;
+
+my $match_re = qr/^(\Q$key_name\E\.C25519_b32(\.pub)?)$/;
+
+my $space_len = 0;
+my $key_found = 0;
+map {
+    $key_found = 1          if $_ =~ $match_re;
+    $space_len = length($1) if length($1) > $space_len;
+    my $k_path = "$key_dir/$1";
+    return print STDERR "\n [!] no write access to '$k_path' [!]\n\n"
+        if $1 =~ $match_re and !-w $k_path;
+} @key_files;
+return print "\n  [!] specified key \"$key_name\" not found [!]\n\n"
+    if not $key_found;
+
+my $del_count = 0;
+
+chdir($key_dir) or die "[!] chdir( $key_dir ) : $!";
+
+print "\n::\n";
+
+my $len = 0;
+foreach my $file_name (@key_files) {
+    next if $file_name !~ $match_re;
+    printf( " : purging '%s'\n", $file_name );
+    system( $shred_bin, '-fzu', $file_name )
+        if length($shred_bin)
+        and -x $shred_bin;
+    return print STDERR "\n unlink failed : $!\n\n"
+        unless unlink($file_name)
+        or !-f $file_name;
+    $del_count++;
+}
+my $s = $del_count == 1 ? '' : 's';
+print " :\n :: [ removed $del_count key file$s ]\n\n";
+
+# ______________________________________________________________________________
+#\\45BY63MPWJFAP7YL2AKUYKGVNFB6CBU7ACCT33UQRUNQJAJAPS3CXLVIEXMBYYZYETGTOBDT7Y3JQ
+# \\ IRO4NETYXCDBV55VNCHK2TW4M3LR43XQ6OYVOXU2QERSQHNHWVRW \\// C25519-BASE-32 //
+#  \\// WH73M6RERNHJRD6GZI4QGT2JS6SG4O376JAK6QL7ZZYLZY7IMAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

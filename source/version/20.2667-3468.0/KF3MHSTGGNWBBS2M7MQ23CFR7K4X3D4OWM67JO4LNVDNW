@@ -1,0 +1,41 @@
+# >:]
+
+# name  = nroot.agent.instance.cmd.change-status
+# param = <id> <status>
+# descr = manually change instance status (debugging)
+
+my ( $instance_id, $new_status ) = split( / +/, $$call{'args'} );
+$instance_id //= '';
+$new_status  //= '';
+$new_status =~ s/ +$//;
+my $options = 'online|extbin|queued|depending|error|offline';
+my $error_msg;
+$error_msg = 'no instance id specified' if !length($instance_id);
+$error_msg = 'instance id is not numerical'
+    if not defined $error_msg and $instance_id !~ /^\d+$/;
+$error_msg = 'no new status string submitted'
+    if not defined $error_msg and !length($new_status);
+$error_msg = "status '$new_status' invalid [$options]"
+    if not defined $error_msg
+    and $new_status !~ /^($options)$/;
+$error_msg = "instance $instance_id does not exist"
+    if not defined $error_msg
+    and not exists <nroot.agent.instance>->{$instance_id};
+$error_msg = "instance $instance_id already has status '$new_status'"
+    if not defined $error_msg
+    and <nroot.agent.instance>->{$instance_id}->{'status'} eq $new_status;
+
+return { 'mode' => 'nak', 'data' => $error_msg } if defined $error_msg;
+
+<[nroot.handler.agent_status]>->( $instance_id, $new_status );
+
+return {
+    'mode' => 'ack',
+    'data' => "changed status of instance $instance_id to '$new_status'"
+};
+
+# ______________________________________________________________________________
+#\\BRBQNGF36IPPSYNBN7BO732XQPL35IWFQIDL7KQL22YEYVTOFRHRQZ7G4WMJC55E55ELZIHGVRIAM
+# \\ PSJJ2HETFD3MDRVRHW457DV3EZZPCTV22EI6IKKLXXLUNV4QKLCW \\// C25519-BASE-32 //
+#  \\// P6XPUAYG2MEDTER3Z3YXDUZOUJ2BRB2K3O7Y5ZBOFTYQBKKJ4CI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

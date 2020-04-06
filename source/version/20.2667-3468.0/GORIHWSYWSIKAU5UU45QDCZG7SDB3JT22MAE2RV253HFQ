@@ -1,0 +1,28 @@
+# >:]
+
+# name = mpv.callback.fade_in
+
+my $target_geometry = <mpv.geometry>;
+
+<[base.x11.set_window_opacity]>->( <x11.id>, 0 );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.xserver.set_geometry',
+        'call_args' => { 'args' => join( ' ', <x11.id>, $target_geometry ) }
+    }
+);
+<mpv.opacity> = 0;
+Event->idle(
+    cb => sub {
+        <mpv.opacity>++;
+        return 0 if <mpv.opacity> > 100;
+        <[base.x11.set_window_opacity]>->( <x11.id>, <mpv.opacity> );
+        return 1;
+    },
+    repeat => 1
+);
+
+# ______________________________________________________________________________
+#\\G247ZBHPKDE3ARXJYU5TQXZL3SBBRYW2VT6DSQMFPMTLZ2ZKCYDCCQIKZIO5CCFVDWHEMQ62JT32I
+# \\ JQQ2A333CKBXMV3XLGXAQIUPLVFHFVLXHWRQKUB6KLE6V47OD2K4 \\// C25519-BASE-32 //
+#  \\// VDKIALMAHEFCOBH7VTSDWYTDUYFZDGYK7NBRIUDX4Q2FUNHDOCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

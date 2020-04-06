@@ -1,0 +1,53 @@
+# >:]
+
+# name  = dbus.handler.daemon_output
+# descr = reads output from dbus process
+
+<nroot.patterns.agent_output> //= {};
+
+my $event   = shift->w;
+my $read_fh = $event->fd;
+my $server  = $event->data;
+my $bin     = $server->{'bin'};
+my $pid     = $server->{'pid'};
+
+<dbus.output_buffer> //= '';
+
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'dbus'}{'output_buffer'},
+    4096,     length(<dbus.output_buffer>)
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "$bin [PID:$pid] output filehandle closed." );
+    kill( 9, $pid );                                  # to make sure
+    my $err_str
+        = defined <dbus.first_error>
+        ? ': "' . <dbus.first_error> . '"'
+        : ' unexpectedly! (reason unknown)';
+    <[base.log]>->( 0, "$bin died" . $err_str );
+    <[base.log]>->( 1, "done." );
+    exit(2);
+}
+
+while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    $output_line =~ s/\r//sg;
+    if ( $output_line =~ /^(unix:abstract=([^\n,]+),[^\n]+)$/ ) {
+        <dbus.socket_addr> = $1;
+        <dbus.socket_path> = $2;
+        my $privs_user = <dbus.privs_user>;
+        <[base.log]>->( 1, ": socket path : $2 [owner:'$privs_user']" );
+        <[base.async.get_session_id]>;
+    } else {
+        my $log_level = $output_line =~ /ctivat(ing|ed) service/ ? 2 : 0;
+        <[base.log]>->( $log_level, "< $bin > " . $output_line );
+    }
+}
+
+# ______________________________________________________________________________
+#\\SRLVWRFP4MATVXHUCRI7BFTOJZ4VDR4YAUUDX35CROXWYTVTQAJUIT3XAGLX22QGOOO4B2INSSOEQ
+# \\ OY22Y6P2HKWKDFWMH44JHFF65MOJVAROBJSYZN3RF4V6WELP4UUQ \\// C25519-BASE-32 //
+#  \\// WY6ED7RTWWJYG4LKFQ7XEOLJS2N5QCNJSOPHORWBJXO3IOGIQBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,46 @@
+# >:]
+
+# name  = layout.cmd.gpu_load_alert
+# param = <secs> <percent>
+# descr = activate GPU load countermeasures
+# todo  = ask browser and ticker agent to slow down ...
+
+return { 'mode' => 'nak', 'data' => 'expected <secs> <percent> parameters' }
+    if not defined $$call{'args'}
+    or $$call{'args'} !~ /^\d+ +\d+(\.\d+)?$/;
+
+my ( $sec, $percent ) = split( / +/, $$call{'args'}, 2 );
+my $perc_str = sprintf( "%.2f", $percent );
+<[base.log]>->( 1, "<!> received GPU load alert [ ${sec}s at $perc_str% ]" );
+
+my $restart_delay = 0;
+<layout.counter.gpu_alerts> //= 0;
+if ( !<layout.counter.gpu_alerts> ) {
+    my $warn_txt = "'GPU Load Alert' 'activating countermeasures...'";
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.notify.warn",
+            'call_args' => { 'args' => $warn_txt }
+        }
+    );
+    $restart_delay = 3;
+}
+<layout.counter.gpu_alerts>++;
+
+<[layout.gpu_alerts.enable_auto_speed]>;
+
+<[event.add_timer]>->(
+    {   'after'   => $restart_delay,
+        'handler' => 'layout.impressive.increase_light_mode'
+    }
+);
+
+return {
+    'mode' => 'ack',
+    'data' => 'countermeasures activated'
+    }
+
+# ______________________________________________________________________________
+#\\ZN3S6L2WNU372UMTMJCZBMK3NWKVTQJGZEJBLUHN6B7QOTAVEBN6MAEXWYENCBMN255AO6G6QECUW
+# \\ D2TABEIGZI6CN72B3E3JP2JRJBBM6QIJMEUJI7JNDMYBJLHJFCXX \\// C25519-BASE-32 //
+#  \\// TYG7VPJ2A4CGGARXBPGLEAFHZIBPJ4EWS5S57OIEP2K5L4U5YCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

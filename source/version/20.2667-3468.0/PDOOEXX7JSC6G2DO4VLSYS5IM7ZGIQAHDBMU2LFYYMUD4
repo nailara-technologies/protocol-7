@@ -1,0 +1,36 @@
+# >:]
+
+# name  = nroot.agent.cmd.pid-instance
+# param = <pid>
+# descr = return instance id for a given process IDs
+
+my $process_id = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => "expected numerical PID parameter"
+    }
+    if not defined $process_id or $process_id !~ /^\d+$/;
+
+my $match_iid;
+foreach my $i_id ( keys %{<nroot.agent.instance>} ) {
+    my $parent_pid = <nroot.agent.instance>->{$i_id}->{'process'}{'id'};
+    if ( $process_id == $parent_pid ) {
+        $match_iid = $i_id;
+        last;
+    } else {
+        map {
+            if ( $_ == $process_id ) { $match_iid = $i_id; last }
+        } @{ <[nroot.sub-process.get_children]>->($parent_pid) };
+    }
+}
+
+return { 'mode' => 'ack', 'data' => $match_iid } if defined $match_iid;  # match
+
+return { 'mode' => 'nak', 'data' => "found no matching instance" };   # no match
+
+# ______________________________________________________________________________
+#\\HFGE3ANNDZ7SJNU3CCQ7HMZYJJK2QJ2Y677IXZNUCIQTXNYKXPPTNUZMQQ5P3MUA2BC25FIMS3TE6
+# \\ BPO5WG3KPBFN45ZI5EMJM5PGK3DEN5I7H65FZZVS43EM23XKG5CD \\// C25519-BASE-32 //
+#  \\// 556BS6PXADUP2D243Y2Y2Y2ULC2R2OOTZ6TA7N3UMKMTQFNNYBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

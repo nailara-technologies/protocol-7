@@ -1,0 +1,28 @@
+# >:]
+
+# name = mlist.load_file
+
+<mlist.load_file.path> = my $file_path = shift;
+
+die "expected playlist file path"
+    if not defined $file_path or !length($file_path);
+( my $file_name = $file_path ) =~ s|^.*/||;
+
+if ( !-f $file_path ) {
+    <[base.log]>->( 0, "playlist file '$file_path' not found!" );
+    return -1;
+}
+
+if ( defined <mlist.b32id_src_str> ) {
+    <[mlist.check_exclusive]>;
+} else {
+    <[mlist.callback.load_file]>->($file_path);
+}
+
+return 0
+
+# ______________________________________________________________________________
+#\\TLYE5W2QCBTE72P4R5HZEBA6GQ4YQMI73THJ4X7RR4C54MGH3PRVGLDH33ME2YYHIB7M4E3QOL4TO
+# \\ ZNWTLRNVZBD7EQ4OAU2JBVVCILBTMX6WIGV4WVWRGA7CU627KMGU \\// C25519-BASE-32 //
+#  \\// EAV6VDJHNUS7T6QOXW26HN5VEYNNWVJWH4HLFBPF7ZIEVNAN4CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

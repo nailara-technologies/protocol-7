@@ -1,0 +1,23 @@
+# >:]
+
+# name  = mpv.cmd.add_file
+# param = <file|url>
+# descr = add a file to current playlist (starts playback)
+
+my $file = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'expected path or url' }
+    if not defined $file or !length($file);
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'added to playlist';
+
+<[mpv.send_command]>->( 'loadfile', $file, 'append-play' );
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\FZBGORIQVXEMHSHIDC42ZP42VPARE5OLKJK44RMDBRAFMKUIUOH45OQGDFRTZFZCESRSB2FARN6DW
+# \\ NLXEEY2MILQI5USC4ULFPG7SHD4PW7A7UZHROGBWTKIXLCCN4VR4 \\// C25519-BASE-32 //
+#  \\// 4DFX3QNFEHAC6LYJQTIGPN3757ZJ54HCSMW7POYY2GWV42GEUCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

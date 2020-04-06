@@ -1,0 +1,39 @@
+# >:]
+
+# name  = browser.cmd.resume
+# descr = 'unpause' slideshow
+
+return { 'mode' => 'nak', 'data' => 'slideshow was not paused' }
+    if !<browser.slideshow.paused>;
+
+<browser.slideshow.paused> = 0;
+
+my @url_list = @{<browser.url.list>};
+
+if ( !@url_list ) {
+    <browser.slideshow.running> = 0;
+    return { 'mode' => 'nak', 'data' => 'url list is empty' };
+}
+<browser.slideshow.url_index> = 0
+    if <browser.slideshow.url_index> >= @url_list;
+
+my $looped = 0;
+while ( $looped < 2 and $url_list[<browser.slideshow.url_index>] eq '[PAUSE]' )
+{
+    <browser.slideshow.url_index>++;
+    if ( <browser.slideshow.url_index> >= @url_list ) {
+        <browser.slideshow.url_index> = 0;
+        $looped++;
+    }
+}
+
+<browser.slideshow.status> = 'load';
+<[browser.handler.slideshow]>;
+
+return { 'mode' => 'ack', 'data' => 'resumed slideshow' }
+
+# ______________________________________________________________________________
+#\\BMLOFHCY7RAK3XAHBFMT27UUECXJQPPDXVVAOXYYCCGNTM3BXCG7J5EQ3ZM3QN5OZ4WO7TZBW26FC
+# \\ 25EX6CXZLKMSUDI7DYJN6SQDVOS4IOAPL2P5DJOZVI7TQYUV3VEO \\// C25519-BASE-32 //
+#  \\// 63UKWVWNE6MFODZV5GYUKDE3OM7Z6FNFJ6POZNHWDQHCXNXKMCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

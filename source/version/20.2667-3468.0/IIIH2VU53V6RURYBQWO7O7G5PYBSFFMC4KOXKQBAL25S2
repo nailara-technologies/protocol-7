@@ -1,0 +1,32 @@
+# >:]
+
+# name = pdf.html.base.get_page_size
+
+my $pdf_file = shift;
+my $page_num = shift // 0;
+my ( $width, $height );
+
+if ( !-f $pdf_file ) {
+    <[base.log]>->( 0, "pdf file '$pdf_file' does not exist" );
+    return undef;
+}
+
+my $pdf    = Poppler::Document->new_from_file("file://$pdf_file");
+my $page   = $pdf->get_page($page_num);
+my @result = $page->get_size;
+if ( @result == 2 ) {    # new Poppler Module API
+    ( $width, $height ) = @result;
+} else {                 # old API (NOT backwards compatible [broken!])
+    my $dimension = shift @result;
+    ( $width, $height ) = ( $dimension->get_width, $dimension->get_height );
+}
+
+<[base.log]>->( 2, "source page #$page_num size ${width}x$height" );
+
+return ( $width, $height );
+
+# ______________________________________________________________________________
+#\\AXZLAI3Y7HEJBOWKI3N2AU7DBHDCRFX3O576X7HGUVTGHVBSM3KB25PM5R7R3RYHKHLHXV2F6UAP4
+# \\ F3YBOQHWWPUKRZV3X4T3GDXAVLGRAHMS4MLODPITW7IDNZIA5T2S \\// C25519-BASE-32 //
+#  \\// SXL3LOFD4VVE5OJUNLZXUNPUUPL2YZKMVSSOYQOWI3AASD672BY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

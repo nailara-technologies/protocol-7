@@ -1,0 +1,162 @@
+# >:]
+
+# name = pdf.html.child.handler.conversion
+
+my @dir_names = sort keys %{<pdf.html.conversions>};
+
+if ( !@dir_names ) {
+    <pdf.html.event.idle>->cancel;
+    delete <pdf.html.event.idle>;
+    return;
+}
+
+my $current_key = $dir_names[ rand @dir_names ];
+my $conversion  = <pdf.html.conversions>->{$current_key};
+
+my $pdf_location = $conversion->{'pdf_file'};
+
+if ( $pdf_location =~ m|^https?://| ) {
+    <[base.log]>->( 2, "downloading '$pdf_location'..." );
+    $pdf_location = <[pdf.html.base.download_file]>->($pdf_location);
+    if ( not defined $pdf_location ) {
+        foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => 'nak',
+                    'data' => "could not download '$pdf_location'!"
+                }
+            );
+            delete <pdf.html.conversions>->{$current_key};
+        }
+    } else {
+        $conversion->{'pdf_file'} = $pdf_location;
+    }
+
+    # LLL: cleanup
+}
+
+if ( not exists $conversion->{'pages'} ) {
+    my $pdf_location = $conversion->{'pdf_file'};
+    my $page_count   = <[pdf.html.base.get_page_count]>->($pdf_location);
+    <[base.log]>->( 2, "converting '$pdf_location' [$page_count pages] .." );
+    $conversion->{'pages'} = $page_count;
+}
+
+my $err_status;
+my $page_count = $conversion->{'pages'};
+
+my $index = $conversion->{'current_page'}++;
+
+my ( $page_width, $page_height )
+    = <[pdf.html.base.get_page_size]>->( $pdf_location, $index )
+    if not exists $conversion->{'height'};
+
+my $target_width = $conversion->{'width'};
+
+$err_status = 'target_width not defined' if not defined $target_width;
+$err_status = 'page_width not defined'   if not defined $page_width;
+$err_status = 'page_height not defined'  if not defined $page_height;
+
+goto error if defined $err_status;
+
+my $target_height
+    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width );
+
+<[base.log]>->( 2, "target page #$index size ${target_width}x$target_height" );
+
+$conversion->{'skip_hash'}
+    = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height )
+    if not exists $conversion->{'skip_hash'};
+
+my $skip_hash = $conversion->{'skip_hash'};
+
+my $white = Graphics::Magick->new();
+$white->Set( size => join( 'x', $target_width, $target_height ) );
+$white->ReadImage('xc:white');
+
+my $image = Graphics::Magick->new( density => '600' );
+
+$err_status = $image->Read("$pdf_location\[$index\]");
+goto error if "$err_status";
+
+$err_status = $image->Resize(
+    width  => $target_width,
+    height => $target_height,
+    blur   => 0.57,
+    filter => 'Cubic'
+);
+goto error if "$err_status";
+
+my $img_index = sprintf( "%0" . length($page_count) . "d",
+    $conversion->{'current_page'} );
+my $image_name  = "page.$img_index.png";
+my $output_file = $conversion->{'html_path'} . '/' . $image_name;
+
+$err_status = $image->Signature();
+goto error if "$err_status";
+
+if ( $image->Get('signature') ne $skip_hash ) {
+    <[base.log]>->( 2, "writing image file '$image_name'" );
+    $err_status = $image->Write("png24:$output_file");
+    goto error if "$err_status";
+    push( @{ $conversion->{'image_names'} }, $image_name );
+} else {
+    <[base.log]>->( 2, "skipped image file '$image_name' (white page)" );
+}
+
+my $percent
+    = sprintf( "%.1f", ( 100 / $page_count ) * $conversion->{'current_page'} );
+<[pdf.html.base.write_stub_page]>->( $conversion->{'html_path'}, $percent );
+
+if ( $conversion->{'current_page'} == $page_count ) {
+    my $html_file = $conversion->{'html_path'} . '/pdf.html';
+
+    <[pdf.html.base.write_pdf_html]>->(
+        $conversion->{'html_path'},
+        $conversion->{'image_names'}
+    );
+
+    my $touch_file = $conversion->{'html_path'} . '/.complete';
+    open( my $touch_fh, ">$touch_file" ) or die "$touch_file: $!";
+    close($touch_fh);
+
+    <[base.log]>->(
+        2, "conversion of '" . $conversion->{'pdf_file'} . "' completed"
+    );
+
+    while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'ack',
+                'data' => "conversion complete"
+            }
+        );
+        delete <pdf.html.conversions>->{$current_key};
+    }
+}
+
+return;
+
+error:
+
+$index++;
+my $err_msg = "error during conversion of PDF page #$index [$err_status`]";
+<[base.log]>->( 0, $err_msg );
+foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'nak',
+            'data' => $err_msg
+        }
+    );
+    delete <pdf.html.conversions>->{$current_key};
+}
+
+<[pdf.html.base.write_error_page]>->( $conversion->{'html_path'} );
+return;
+
+# ______________________________________________________________________________
+#\\S6LAJAXYMMQLOVVMFFTHFUW3E463NV3SVX5STRH6W5SNF7EX35DABWUP3HDT4E4PU7ZIG6NLL7ECQ
+# \\ 5UXUZCBNAUQR4AQI5DFSFT2NKWJE5S253G5DIXDBE4ZSC7PN325Q \\// C25519-BASE-32 //
+#  \\// QJ7KQZGKXEQMQAEW2TBKWNNFSDUA5K47EBPVO42NCH2P2LO5QDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,37 @@
+# >:]
+
+# name = media.self_restart
+
+my $sname_str
+    = defined <system.agent.subname>
+    ? '[' . <system.agent.subname> . ']'
+    : '';
+
+if (<media.cfg.can_self_restart>) {
+    <[base.log]>->( 1, ": : agent restart.. (media$sname_str)" );
+} else {
+    <[base.log]>->( 0, ": . <!> self restart is disabled <!>" );
+    return 0;
+}
+
+Event->unloop_all();    # making sure log messages make it..
+
+$SIG{'CHLD'} = 'IGNORE';
+
+# LLL: temporary quickfix for leftover mpv process
+map { kill( 'TERM', $_ ) if $_ =~ /^\d+$/ } keys %{<media.running>};
+<[base.sleep]>->(0.42);
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.nroot.restart',
+        'call_args' => { 'args' => 'media' . $sname_str },
+    }
+);
+
+return 1;
+
+# ______________________________________________________________________________
+#\\R22L6UFA5VGC25TTAL6V7SKYBZB54EI6TQT2BLWMYYLLUYB6HCQC6PIIFKEE2LGWHYYZRMVWC4YJ4
+# \\ 6J7QTAKKJST357CBBEXT6VRGRNWCU5TKQG2QJL6LA46AWFJQO2O4 \\// C25519-BASE-32 //
+#  \\// ZLV2EG2HERQUPKMFY7ZD2XK3DGOY3JM353M4AT42FA4C3GE4QDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

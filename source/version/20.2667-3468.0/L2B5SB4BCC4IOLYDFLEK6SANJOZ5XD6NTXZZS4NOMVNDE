@@ -1,0 +1,62 @@
+# >:]
+
+# name = rss.ticker.init_code
+
+<rss.data.tmp_path>                  //= '/tmp';
+<rss.ticker.txt_data_path>           //= '/tmp/rssdata/ticker-content.txt';
+<rss.ticker.item_seperator>          //= '.:.';
+<rss.ticker.trailing_seperator>      //= 0;
+<rss.ticker.request_timeout>         //= 5;
+<rss.ticker.fail_retry_min_interval> //= 0.42;
+<rss.ticker.fail_retry_max_interval> //= sprintf( "%.0f", 30 + rand(3) );
+
+$ENV{'TIMINGBOTPATH'} = <rss.data.tmp_path>;
+die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
+    if !-d <rss.data.tmp_path>;
+
+<[base.perlmod.autoload]>->('XML::Feed');
+<[base.perlmod.autoload]>->('File::Copy');
+<[base.perlmod.autoload]>->('XML::RSS::TimingBot');
+
+( my $db_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
+if ( -d $db_dir ) {
+    <[base.log]>->( 1, ": removing rss database directory '$db_dir'" );
+    qx(rm -rf -- $db_dir);
+}
+
+<rss.browser> = XML::RSS::TimingBot->new;
+push(
+    @LWP::Protocol::http::EXTRA_SOCK_OPTS,
+    PeerHTTPVersion => "1.1",
+    SendTE          => 0
+);
+<rss.browser>->timeout(<rss.ticker.request_timeout>);
+<rss.browser>->default_headers->header(
+    'User-Agent' =>
+        'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0',
+    'Accept' =>
+        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language' => 'en-US,en;q=0.5',
+    'Connection'      => 'keep-alive'
+);
+
+my @rss_urls;
+<rss.ticker.url_hash> //= <[digest.sha.1]>->('');
+if ( defined <rss.ticker.content_url> ) {
+    if ( ref(<rss.ticker.content_url>) ne 'HASH' ) {
+        @rss_urls = (<rss.ticker.content_url>);
+    } else {
+        @rss_urls = map { <rss.ticker.content_url>->{$_} }
+            keys %{<rss.ticker.content_url>};
+    }
+    <rss.ticker.url_hash>
+        = <[digest.sha.1]>->( join( '', map {"$_\n"} @rss_urls ) );
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\Y6FRVYSIWHVOMF4W7ACVKTWFATWNFBGURTNOZIZEX7MWNUDCKXGGYROMXPELPXHD3LYBW4BOQQX2C
+# \\ QZKIQ2AU2VBQHBNV4PGBIN5DJV4RXPWLWVJBZZ36Q575TR36W3WQ \\// C25519-BASE-32 //
+#  \\// EB7VYFIV4WSBCFWSZZMGGVBN7WKSQXFVAG2SMP4ZGFSEBKOKEAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

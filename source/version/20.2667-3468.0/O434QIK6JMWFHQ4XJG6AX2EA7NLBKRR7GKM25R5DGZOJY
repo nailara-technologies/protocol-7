@@ -1,0 +1,33 @@
+# >:]
+
+# name = rss.ticker.fetch_content
+
+my $update_commands = shift->w->data;
+my $rss_url         = <rss.ticker.content_url>;
+if ( not defined $rss_url or !length($rss_url) ) {
+    <[rss.ticker.warn_urls_undefined]>;
+} else {
+    my $got_updates = 0;
+    <rss.ticker.warned_undefined.urls> = 0;
+    eval {
+        if ( ref($rss_url) eq 'HASH' ) {
+            $got_updates = <[rss.ticker.fetch.multiple]>->($rss_url);
+        } else {
+            $got_updates = <[rss.ticker.fetch.single]>->($rss_url);
+        }
+    };
+    if ($@) {
+        <[base.log]>->( 0, "fetch_content: $@" );
+        <[base.log]>
+            ->( 0, "shutting down " . <system.agent.name> . " agent.." );
+        exit(1);    # LLL: reconsider shutdown?
+    }
+
+    <[rss.ticker.send_update]>->($update_commands) if $got_updates;
+}
+
+# ______________________________________________________________________________
+#\\4AXWIOCVGQA4FHKNABHP2DKAO3CIJFVIJRKEL65KQSJGAKBKLJMA5GCPE3UTQ4VLZ6BULG5G6L27Q
+# \\ AXTYGD4XOBBMMYNETVMZPQZPXE5JMX3CMN2BIJYPCZFLHNCNZEIN \\// C25519-BASE-32 //
+#  \\// GFA6VC3LJ647IGI3GSI5SQJVZRNREMSP25B2YLHOU7SFRELLKBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

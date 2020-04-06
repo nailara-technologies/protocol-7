@@ -1,0 +1,63 @@
+# >:]
+
+# name  = btrx.cmd.currencies
+# descr = return list of (active) currencies
+
+my $hide_inactive   = 1;
+my $hide_restricted = 1;
+
+my @currency_data;
+my $err_msg;
+{
+    local $SIG{__WARN__} = undef;
+    local *STDERR;
+    open( STDERR, '>', \$err_msg );
+    @currency_data = ( <btrx.api.pub>->getcurrencies() );
+}
+
+#  {
+#    'CurrencyLong' => 'HempCoin',
+#    'Notice' => undef,
+#    'MinConfirmation' => 14,
+#    'TxFee' => '0.2',
+#    'IsActive' => $VAR1->[0]{'IsActive'},
+#    'Currency' => 'THC',
+#    'IsRestricted' => $VAR1->[0]{'IsRestricted'},
+#    'CoinType' => 'BITCOIN',
+#    'BaseAddress' => 'HCt5LgCkUX39ekrQdEHaN8Rp5AHZP3MKTj'
+#  },
+
+if ( !@currency_data ) {
+    $err_msg //= 'no data';
+    $err_msg =~ s/ at \S+ line \d+\.|\n$//g;
+    $err_msg =~ s|\n| / |g;
+    my $log_msg = "API request failed ['$err_msg']";
+    <[base.log]>->( 0, 'currencies: ' . $log_msg );
+    return {
+        'mode' => 'nak',
+        'data' => $log_msg
+    };
+}
+
+my @currencies;
+
+foreach
+    my $cur ( sort { $a->{'Currency'} cmp $b->{'Currency'} } @currency_data ) {
+    push( @currencies,
+        sprintf( "%-8s %s\n", $cur->{'Currency'}, $cur->{'CurrencyLong'} ) )
+        if ( !$hide_inactive
+        or $cur->{'IsActive'} )
+        and ( !$hide_restricted
+        or !$cur->{'IsRestricted'} );
+}
+
+return {
+    'mode' => 'data',
+    'data' => join( '', @currencies )
+};
+
+# ______________________________________________________________________________
+#\\POVRHQIR6EGLDV77XIQ5TJIIQUHBMS7R7NQ67APPWTE4HGOI7VS2GPYREAHYXFB2EVAHNXNW6PA4Y
+# \\ RMQULGAHUW2C44QSMTOISHNDIPA2BIPX3ALOMRSFHZA4RAIZ3OUR \\// C25519-BASE-32 //
+#  \\// FNDVPMPDBIEANFDFVZJB2J334VDHAZOGXKWGZC2YNDHMQTT7ICA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

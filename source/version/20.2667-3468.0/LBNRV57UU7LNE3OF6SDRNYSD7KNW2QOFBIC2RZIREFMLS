@@ -1,0 +1,55 @@
+# >:]
+
+# name  = ticker-gtk.parse_text
+
+die "FATAL: invalid font size '0' <<< aborting >>>" if !<ticker-gtk.font.size>;
+
+my $scroll_text = shift;
+my $chars       = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
+my $surface     = Cairo::ImageSurface->create( 'argb32', 1, 1 );
+my $context     = Cairo::Context->create($surface);
+my $bytes       = length($scroll_text);
+
+my $parse_start = <[base.time]>->(3);
+
+$context->set_font_face(<ticker-gtk.font.face>);
+$context->set_font_size(<ticker-gtk.font.size>);
+
+my $total_width = $context->text_extents($scroll_text)->{'x_advance'};
+my $txt_width   = { ' ' => $context->text_extents(' ')->{'x_advance'} };
+
+my @txt_sequence;
+while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
+    my $string = $1;
+    push( @txt_sequence, $string );
+    next if exists $txt_width->{$string};
+    $txt_width->{$string} = $context->text_extents($string)->{'x_advance'};
+}
+
+my $parse_time = sprintf( "%.3f", <[base.time]>->(3) - $parse_start );
+
+my $txt_map = {
+    'sequence'    => \@txt_sequence,
+    'sizes'       => $txt_width,
+    'total_width' => $total_width,
+    'space_width' => $txt_width->{' '}
+};
+
+if ( not defined <ticker-gtk.content.current.txt_map> ) {
+    <ticker-gtk.content.current.txt_map> = $txt_map;
+    <[base.log]>->( 2, "$bytes bytes of content parsed into 'current' slot.," );
+} else {
+    <ticker-gtk.content.queued.txt_map> = $txt_map;                # ++
+    <ticker-gtk.switch_at_seq>          = <ticker-gtk.draw_seq>;
+    <[base.log]>->( 2, "$bytes bytes of content parsed into 'queued' slot..," );
+}
+
+<[base.log]>->( 2, ": parse time = $parse_time seconds." );
+
+<ticker-gtk.last_substr> = [];
+
+# ______________________________________________________________________________
+#\\MJYL6J3PSYWLT6NJD2ZRE5PKLW3NTFX3AT7BJ5GXNC324RTDR4KNSPBS5BSUGLWXOI2I4ACLDSPQW
+# \\ AXANM77DYEZ6BDXW6XK6W76VNTRWSNVSA4WR3TIIB3QY2QWG65QE \\// C25519-BASE-32 //
+#  \\// RAADID34FWZ2MMSD6JIN3W46OVL4YMSNOQ4WMQTIBHFS2U2XODA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,83 @@
+# >:]
+
+# name = events.set_up_timers
+
+my $mode = shift // '';    # [recalc]
+die "invalid mode '$mode'" if length($mode) and $mode ne 'recalc';
+
+<events.timers>         //= {};
+<events.unix.timetable> //= {};
+
+map {
+    if ( exists <event.timers>->{$_} ) {
+
+        # LLL: trigger 'end' handler ...
+        <event.timers>->{$_}->cancel if <event.timers>->{$_}->is_active;
+        delete <event.timers>->{$_};
+        <[base.log]>->( 0, "cancelled timer for event $_ (no longer defined)" );
+    }
+} keys %{<events.unix.timetable>};
+
+my $current_time = <[base.time]>->(2);
+
+foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
+    my $u_event = <events.unix.timetable>->{$ev_id};
+
+    # print STDERR "[U] = " . Dumper($u_event);
+
+    my $t_event = <events.timetable>->{$ev_id};
+    my $e_start
+        = defined $u_event->{'at'} ? $u_event->{'at'} : $u_event->{'start'};
+    if ( not defined $e_start ) {
+        warn "[$t_event->{name}] no start time defined, skipping event..";
+        next;
+    }
+    my $event_in = sprintf( "%.1f", $e_start - $current_time );
+
+    my @timer_types = defined $u_event->{'at'} ? ('at') : ( 'start', 'end' );
+
+    <[base.log]>->(
+        2, "[timer setup] event $ev_id (..in $event_in seconds..) [$e_start]"
+    );
+    <events.timers>->{$ev_id} = {};
+    my $all_in_past = 1;
+    map { $all_in_past = 0 if $u_event->{$_} >= $current_time } @timer_types;
+    map {
+        my $action_type = <events.setup>->{$ev_id}->{'action'}->{'type'};
+        <events.timers>->{$ev_id}->{$_} = <[event.add_timer]>->(
+            {   'at'      => $u_event->{$_},
+                'handler' => 'events.handler.event_triggered',
+                'data'    => {
+                    'type' => $_,
+                    'id'   => $ev_id,
+                    'name' => $t_event->{'name'}
+                }
+            }
+            )
+            if ( $mode ne 'recalc' or $action_type !~ /^(layout|playlist)_/ )
+            or (
+            !$all_in_past
+            and (  $_ ne 'start'
+                or $mode ne 'recalc'
+                or $u_event->{$_} >= $current_time )
+            );
+
+        #        if $_ ne 'start' and $u_event->{$_} >= $current_time
+        #        or $mode ne 'recalc' and $action_type !~ /^(layout|playlist)_/;
+
+        if ( $action_type =~ /^playlist_/ ) {
+            my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'} //= '';
+            if ( !length($b32id) ) {
+                warn "playlist entry 'b32id' not defined in event '$ev_id'";
+            } else {
+                <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
+            }
+        }
+    } @timer_types;
+}
+
+# ______________________________________________________________________________
+#\\UVWTAWJPS2LDTRJDCTO6IJLZNEFHMAPMBHIXQMIVJ47IR7RUMUMQGH3QWMNIC6PJDVZXAET5N52PG
+# \\ H7CLA2KRUBMV477LPPKAXYEX6362ICPCOQ5DLH5BXKPKIIGS5MR5 \\// C25519-BASE-32 //
+#  \\// KJRYIMQRT2B7W67A6UILNNK4ENF3MK22BPESH227KQIY4BC7GCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

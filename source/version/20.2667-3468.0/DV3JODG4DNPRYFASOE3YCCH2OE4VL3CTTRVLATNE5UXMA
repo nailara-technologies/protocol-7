@@ -1,0 +1,25 @@
+# >:]
+
+# name  = source.cmd.get-code
+# descr = return specified source code subroutine
+
+my $code_name = $$call{'args'};
+my $src_path  = File::Spec->catfile( <source.code_path>, $code_name );
+
+return { 'mode' => 'nak', 'data' => 'requested code name is not valid' }
+    if !<[source.valid_src_name]>->($code_name);
+return { 'mode' => 'nak', 'data' => 'code file not found' } if !-f $src_path;
+
+<[file.slurp]>->( $src_path, \my $src_str );
+return { 'mode' => 'nak', 'data' => 'failed to read code file' }
+    if not defined $src_path;
+return { 'mode' => 'nak', 'data' => 'requested code file is not valid' }
+    if substr( $src_str, 0, 7 ) ne "# >:]\n\n";
+
+return { 'mode' => 'data', 'data' => $src_str }
+
+# ______________________________________________________________________________
+#\\4UDH7AF367AYJIULA42RSMAG7KGZANBDE4Z7FNEYWG7PHLJ65DVRP7IHWLC2H4E4KC5SCVFNJD74I
+# \\ XL2NFTHRXV4LRTQXY5XYNUH4AJOZLI4PNCDCS2J64Y737CGDWZIJ \\// C25519-BASE-32 //
+#  \\// 6YO47SDJQO5WPG2Z5LGZ6JBNBE3OQPOGI3K6YXGGDSQEZQWXUDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

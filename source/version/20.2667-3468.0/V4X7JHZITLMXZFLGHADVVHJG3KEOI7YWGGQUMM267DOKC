@@ -1,0 +1,18 @@
+# >:]
+
+# name  = power.cmd.get_device_ids
+# descr = return ids of configured devices
+
+<power.cfg.devices> //= {};
+
+my $reply_str = '';
+
+map { $reply_str .= "$_\n" } sort { $a <=> $b } keys %{<power.cfg.devices>};
+
+return { 'mode' => 'data', 'data' => $reply_str };
+
+# ______________________________________________________________________________
+#\\RYWXN5GXRMITMZGL6ADLOOTBRQR47LLHXOTVM6BXL5EFYWK42TLNYSJ4TE45OUKH2H2ZBUQ6UFJYM
+# \\ KW7F5PUWNNG4BJF5KVCCKIFOLV4OSG7L2K66XHDLYDMLN7JAOG2J \\// C25519-BASE-32 //
+#  \\// 7RMG5TG7ZKKORL6TQKK2Z57VP5LR4YVKKC64O73TEPBA7QQFQCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,17 @@
+# >:]
+
+# name  = mpv.cmd.version
+# descr = return mpv player version
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.version' } );
+<[mpv.send_command]>->( 'get_property_string', 'mpv-version' );
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\LGRC7BOHIDKQUKOIRES34MLWCV6NU6B4DUVSQ46EEKNJUXKZ3DK7MZIWCJN6FHR6HN425AOOJPYOM
+# \\ GGXY4ZJ73NKI2IPV72DPJ6E6R4HFKQELUFMFHK55GR33NSN3CRIW \\// C25519-BASE-32 //
+#  \\// YZE2D3UZNO2XB6A6SXUFWXBYMZ3HMOR5F64XVYEB3WHGZVRBUAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

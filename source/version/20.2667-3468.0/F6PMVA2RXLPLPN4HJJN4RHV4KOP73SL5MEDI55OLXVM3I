@@ -1,0 +1,56 @@
+# >:]
+
+# name  = jobqueue.move_job
+# descr = moves a job from one queue to another
+
+my ( $job_id, $target_queue ) = @_;
+my $jobs     = <jobqueue.joblist.by_id>;
+my $job_list = <jobqueue.joblist>;
+
+die "no job id specified!"       if not defined $job_id;
+die "no target queue specified!" if not defined $target_queue;
+die "a queue named '$target_queue' does not exist"
+    if not exists $job_list->{$target_queue};
+
+if ( not exists $jobs->{$job_id} ) {
+    <[base.log]>->(
+        1, "jobqueue.move_job: a job with id '$job_id' does not exist!"
+    );
+    return;
+}
+
+my $prio         = $jobs->{$job_id}->{'priority'};
+my $source_queue = $jobs->{$job_id}->{'status'};
+
+return if $source_queue eq $target_queue;    # LLL: warn?
+
+<[base.log]>->(
+    2,
+    sprintf(
+        "moving job %d [ '%s' -> '%s' ]",
+        $job_id, $source_queue, $target_queue
+    )
+);
+
+my $sq = $job_list->{$source_queue};
+my $tq = $job_list->{$target_queue};
+
+push( @{ $tq->{'by_priority'}->{$prio} }, $job_id );
+push( @{ $tq->{'by_timestamp'} },         $job_id );
+
+foreach my $s_queue ( $sq->{'by_priority'}->{$prio}, $sq->{'by_timestamp'} ) {
+    my $del_index = 0;
+    map { splice( @$s_queue, $del_index, 1 ) if $_ == $job_id; $del_index++ }
+        @$s_queue;
+}
+
+$job_list->{'count'}->{$source_queue}--;
+$job_list->{'count'}->{$target_queue}++;
+$jobs->{$job_id}->{'tstamp'}{$target_queue} = <[base.time]>->(4);
+$jobs->{$job_id}->{'status'} = $target_queue;
+
+# ______________________________________________________________________________
+#\\QAT2TPZAUET7RKZLPEHR2TEQ5T6UEKP2Z2J63OZPBAZUPORPNQBC7IE4HGC6JENJOMHFUPIB6LFD2
+# \\ B5HJ7EGJDO75UP56YFOPXUCG4ZST5JUG4J45MKLSQMORBQTMOY75 \\// C25519-BASE-32 //
+#  \\// S6LQ6EHKS5ENVKWK3URFDSWUUXGWGFNNUSNYKWY6HWT6RUBZEBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

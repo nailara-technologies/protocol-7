@@ -1,0 +1,50 @@
+# >:]
+
+# name = base.x11.get_display
+
+my ($local_sid) = keys( %{<user.core.session>} );
+
+<[base.log]>->( 2, "requesting display name from xserver agent.." );
+
+$data{'route'} //= {};
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)xserver.get_display\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle exception" if not defined $reply_string;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+    <x11.display> = $1;
+    <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
+    return <x11.display>;
+} elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
+    <x11.display> //= ':0.0';
+    <[base.log]>->(
+        1,
+        "no xserver agent found, using default display [" . <x11.display> . "]"
+    );
+    return <x11.display>;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply from xserver agent)"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\7WEE6GARMVVZQG66AWZAVK5FY56YSURG6DUD77YGUFBEU56L3ZADK7W7PAFZEWSLJLYYIXPWRYLW6
+# \\ I42ZHIJNMAOCJEZQZII77ELBHCOQ62CWQJMROUP46WZGEZWG7K5G \\// C25519-BASE-32 //
+#  \\// F7RKRMRRSQB4UAFEG5CFBAXTCWBQYZDVEUF77RRPXXAWZPXZAAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

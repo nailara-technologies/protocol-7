@@ -1,0 +1,72 @@
+# >:]
+
+# name = nroot.compile_bin_nlr
+
+my $gcc_bin      = <nroot.gcc_bin>;
+my $gcc_timeout  = <nroot.gcc_timeout> || 7;
+my $nlr_src_path = join( '/', <system.root_path>, <system.nlr_src_path> );
+my $nlr_bin_path = <nroot.cfg.nlr_bin_path>;
+die "<< 'gcc' binary not found >>"          if !-x $gcc_bin;
+die "source file '$nlr_src_path' not found" if !-f $nlr_src_path;
+
+( my $src_name = $nlr_src_path ) =~ s|^.+./||;
+
+<[base.log]>->( 0, ":. compiling '$src_name' source onto '$nlr_bin_path'..," );
+
+## reading source., ##
+<[file.slurp]>->( $nlr_src_path, \my $nlr_src_str )
+    or die "unable to compile '$src_name' << ! >>";
+
+my $nlr_checksum = delete <nroot.checksum.nlr_source>
+    // <[digest.bmw.filesum]>->( 224, $nlr_src_path );
+$nlr_src_str =~ s|\[BMW_FILE_DIGEST\]|$nlr_checksum|g;
+
+my $tmp_bin    = "$nlr_bin_path.$nlr_checksum";
+my @gcc_params = ( '-x', 'c', '-o', $tmp_bin, '-' );
+
+unlink($tmp_bin) or die "< unlink > $tmp_bin [ $! ]" if -f $tmp_bin;
+
+## compiling.., ###
+my $gcc_in_fh  = IO::Handle->new();
+my $gcc_err_fh = IO::Handle->new();
+my $gcc_pid    = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
+    or die "<< ! >> compilation failed [ $! ] << ! >>\n";
+print {$gcc_in_fh} $nlr_src_str if $gcc_in_fh->opened;
+close($gcc_in_fh) if $gcc_in_fh->opened;
+
+## timeout., ###
+if ( defined $gcc_pid ) {
+    local $SIG{'ALRM'} = sub {
+        warn "'nlr' compilation timed out after $gcc_timeout seconds.";
+        kill( 9, $gcc_pid );
+    };
+    alarm($gcc_timeout);
+    waitpid( $gcc_pid, 0 );
+    alarm(0);
+}
+
+## verify.., ##
+if ( -f $tmp_bin ) {
+    close($gcc_err_fh) if $gcc_err_fh->opened;
+    rename( $tmp_bin, $nlr_bin_path )
+        or die "< rename > $tmp_bin --> $nlr_bin_path [$!]";
+    chmod( 0755, $nlr_bin_path ) or die "< chmod > $nlr_bin_path [ $! ]";
+    <[base.log]>->( 1, ":: :. successfully installed to '$nlr_bin_path'. =)" )
+        and return 1
+        if <[nroot.bin_nlr_is_current]>->(2); # <-- silent checksum verification
+} else {
+    ( my $err_str = join( '', $gcc_err_fh->getlines ) )
+        =~ s{gcc: (fatal )?error: |\n+}{ }g;
+    $err_str =~ s|  +| \\ |g;
+    $err_str =~ s{^ \\|\\? +$}{}g;
+    $err_str = join( ' ', '', @gcc_params ) if !length($err_str);
+    $err_str =~ s{^ +| +$}{}g;
+    <[base.log]>->( 0, ":: : no success. << $gcc_bin $err_str >>" );
+}
+return 0;
+
+# ______________________________________________________________________________
+#\\37AXX5HU7E32YMYBFV7LVZJ5OGJ5EV3G5CGMGR6WBDGSDUYN2STYNSLWMV4FIQMTOY6WQPDOCZCNE
+# \\ B5MFN6VSKFJDIXW2TY7XQL5XJ7OONSEKKV76AAFQPN2WDOB46HZ7 \\// C25519-BASE-32 //
+#  \\// VILRPOXCN2OWQVNAQ4U7FJEIHKTDD7UHY2D7XAKV456DXZRDOAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

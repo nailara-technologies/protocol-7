@@ -1,0 +1,64 @@
+# >:]
+
+# name  = source.cmd.get-code-signed
+# descr = return specified source code subroutine
+
+my $code_name = $$call{'args'};
+my $code_dir  = $code_name !~ m|/| ? <source.code_path> : <system.root_path>;
+my $src_path  = File::Spec->catfile( $code_dir, $code_name );
+
+# <<< ! >>> compare abs path here..,
+my $bit_size = <source.chksum_bitsize>;
+
+return { 'mode' => 'nak', 'data' => 'requested code name is not valid' }
+    if !<[source.valid_src_name]>->($code_name);
+return { 'mode' => 'nak', 'data' => 'code file not found' } if !-f $src_path;
+
+<[file.slurp]>->( $src_path, \my $src_str );
+return { 'mode' => 'nak', 'data' => 'failed to read code file' }
+    if not defined $src_path;
+## checking source header ##
+return { 'mode' => 'nak', 'data' => 'requested code file has no valid header' }
+    if $code_dir =~ m|/src$| and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
+
+## strip footer ________
+my $footer_start = '# ';
+$footer_start = '_' x 78;
+
+$src_str .= "\n" if $src_str !~ m|\#   `+$|;
+
+my $footer_data       = <[source.extract_sig_body]>->( \$src_str, 'strip' );
+my $present_signature = delete $footer_data->{'signature'};
+
+## verification // ammense ## ( no data optional ]
+
+my $packet_data = <[source.fill_source_template]>->($footer_data);
+
+if ( not defined $present_signature
+    or $present_signature ne $packet_data->{'signature'} ) {
+    if ( not defined $packet_data->{'signature'} ) {
+        <[base.log]>->( 2, ':*: was not signed yet ..,' );
+    } else {
+        <[base.log]>->( 2, ':*: body data checksum has changed ..,' );
+    }
+    $src_str .= $packet_data->{'source-footer'};
+    <[base.log]>->( 2, ': :' );
+    <[base.log]>->( 2, ':*: [ signed BMW checksum ]' );
+    <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'signature'} ) );
+    <[base.log]>->( 2, ': :' );
+    <[base.log]>->( 2, ':*: [ BMW data checksum ] < now >' );
+    <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'data-chksum'} ) );
+} else {
+    <[base.log]>->( 1, ':*: blue midnight wish C25519 signature still valid.' );
+}
+
+return {
+    'mode' => 'data',
+    'data' => $src_str
+    }
+
+# ______________________________________________________________________________
+#\\NUTO4BY4VSACZTQA24VV2ZK2ULSD2XTPP4SGVD33OECKNZ3RDWS3OUMWIVLVQE4OAX4366HP4QJK4
+# \\ X7LS2K4CNTGC4ZIU3XQ7DFQJSTMXCGBTRR6JIESDSAYPZVLYOPT3 \\// C25519-BASE-32 //
+#  \\// 7F7UZXQVQOXML2ZHN37PXBIHWS4GLH5QYJIJKFXY33L2AJKE4BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

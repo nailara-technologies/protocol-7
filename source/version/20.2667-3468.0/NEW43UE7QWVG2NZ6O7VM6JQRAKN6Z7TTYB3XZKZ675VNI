@@ -1,0 +1,44 @@
+# >:]
+
+# name = base.parser.align
+
+my ( $mode, $string, $field_len ) = ( shift // '', shift, shift );
+
+$string //= '';
+
+if ( $mode !~ /^(left|center|right)([-\+]\d+)?$/ ) {
+    <[base.log]>->(
+        0, "base.parser.align: invalid alignment mode '$mode' requested"
+    );
+    $mode = 'left';
+}
+my $offset = $2;
+$string =~ s#^ +| +$##g;
+$field_len = length($string) if not defined $field_len or $field_len <= 0;
+if ( $mode =~ /^left/ ) {
+    my $l_str = '';
+    if ( defined $offset ) {
+        $offset =~ s/^\D//;
+        $l_str = ' ' x $offset;
+    }
+    return pack( "A$field_len", $l_str . $string );
+} elsif ( $mode =~ /^right/ ) {
+    if ( defined $offset ) {
+        $offset =~ s/^\D//;
+        $string .= ' ' x $offset;
+    }
+    return sprintf( "%${field_len}s", $string );
+} elsif ( $mode =~ /^center/ ) {
+    my $spaces = $field_len - length($string);
+    my $s_left = int( $spaces / 2 );
+    $s_left += $offset if defined $offset;
+    $s_left = 0       if $s_left < 0;
+    $s_left = $spaces if $s_left > $spaces;
+    return pack( "A$field_len", join( '', ' ' x $s_left, $string ) );
+}
+
+# ______________________________________________________________________________
+#\\33R4YCR47V2CK7KMC7VXHLVUXRYF54KFUD52BGXTJ2ISNLRQ5U6W3S6SU32ODWRVFN2AIOJOJ6L2G
+# \\ OYDIEPJ4MQLLHRNNXSOSZ3I7MJHT2OM6Z7IEIEYJB56WGF2X5EQ5 \\// C25519-BASE-32 //
+#  \\// HLZU4QOCPPAGIFA7HZBZ6VMN5CM43VHECIGH4QM7K6RUZ6ZGGBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,32 @@
+# >:]
+
+# name  = layout.gpu_alerts.enable_auto_speed
+# descr = send 'slow_down' command to browser agents ([GPU/CPU] load reduction)
+
+my $agents_present //= {};
+foreach my $agent_name ( keys %{<layout.subconfig>} ) {
+    next if $agent_name !~ /^(browser|media|ticker-gtk)/;
+    if ( not defined <layout.subconfig>->{$agent_name}->{'auto_speed'}
+        or !<layout.subconfig>->{$agent_name}->{'auto_speed'} ) {
+
+        next if $agent_name !~ /ticker/ and <layout.counter.gpu_alerts> < 2;
+
+        <[base.log]>->( 1, "activating auto_speed mode for '$agent_name'" );
+        <layout.subconfig>->{$agent_name}->{'auto_speed'} = 1;
+
+        ( my $route = $agent_name ) =~ s|\[.+$||;
+
+        $agents_present->{$route} //= 1;
+    }
+}
+
+map {
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.$_.slow_down" } ) # making sure they got it ...
+} sort keys %{$agents_present};
+
+# ______________________________________________________________________________
+#\\CESJJKAVGC5IPY3Q46IS7PTX54HYLQXSVTRENZL7SK6PZGAWBCN6ZVZGZQNODIM3TPMTZFT5K3CYS
+# \\ 3IRMRR2WWXYTBNABAED3FEC4NIW3CPUDSWNEO6XHOZCQ6POMFIYP \\// C25519-BASE-32 //
+#  \\// 6G6DUKO6DNRSTR6DMDFLV3RPBI3SS2XNF5ABJHJN4ZACTFFVQDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

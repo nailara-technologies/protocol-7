@@ -1,0 +1,68 @@
+# >:]
+
+# name  = base.log
+# descr = generate a log entry
+# args  = log_level log_msg [log_buffer]
+
+my ( $log_level, $log_msg, $log_buffer )
+    = ( $_[0] || 0, $_[1] // '', $_[2] // '' );
+
+$log_level = 0 if $log_level !~ /^\d+$/;
+
+<system.verbosity>          //= 0;
+<system.internal_verbosity> //= 0;
+
+return
+    if $log_level > <system.verbosity>
+    and $log_level > <system.internal_verbosity>;
+
+$log_buffer = 'agent' if !length($log_buffer);
+
+$log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
+
+$log_msg =~ s/\r/\\r/g;
+$log_msg =~ s/\n/\\n/g;
+$log_msg =~ s/\0/\\0/g;
+$log_msg =~ s/\e/\\e/g;
+
+# prevent deep recursions in error log system:
+my $fatal_exit
+    = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, ) ? 1 : 0;
+
+$log_msg = "call to unknown subroutine while executing '$1'!"
+    if $log_msg
+    =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
+
+my $dots = <log.dots> //= '.';
+my $agent_prefix
+    = sprintf( ":.%s%s%s.:", <system.node.name>, $dots, <system.agent.name> );
+
+my $log_str;
+if ( $log_level > 0 ) {
+    $log_str = "$agent_prefix $log_msg";
+} else {
+    $log_str = "$agent_prefix $ANSI{bold}$ANSI{yelblue}$log_msg$ANSI{normal}";
+}
+
+if ($fatal_exit) {
+    say STDERR $log_str, "$agent_prefix << EMERGENCY SHUTDOWN >> ",
+        " [ anticipated deep recursion in log system ]";
+    exit 2;
+}
+
+# write to 'agent' log buffer
+<[base.buffer.add_line]>->(
+    $log_buffer, join( ' ', <[base.ntime]>->(3), $log_level, $log_msg )
+) if $log_level <= <system.internal_verbosity>;
+
+# print to console
+utf8::decode($log_str)
+    and say $log_str
+    if fileno(STDOUT)
+    and $log_level <= <system.verbosity>;
+
+# ______________________________________________________________________________
+#\\EPRPYUTQBURADGHSMMBRA45YSZW7RJLRTA6WYFDCDEXHG74ZVZPYLOKY2LWDZEFHOZAPSL2P4EFGC
+# \\ BNIUKLGC3CIWVRATLZVYMNWJH74E26SDDULVBZ2A7T62Q5YCWGA4 \\// C25519-BASE-32 //
+#  \\// 6RRTSP7HDFFSDXVWSZA4OHTLNEVJFUVUPSWN37QWAYDH2YUWUCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

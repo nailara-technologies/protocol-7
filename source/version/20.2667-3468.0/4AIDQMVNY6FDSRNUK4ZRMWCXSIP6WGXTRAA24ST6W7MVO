@@ -1,0 +1,56 @@
+# >:]
+
+# name  = history.cmd.file-sizes
+# descr = nailara log file size summary table
+
+my $hostname  = <system.host.hostname>;
+my $reply_str = sprintf( "..%11s\n", '..' );
+return { 'mode' => 'nak', 'data' => 'nailara log directory not found' }
+    if !-d <log.nailara_log.path>;
+my %file_size_str;
+my %file_size_raw;
+my %file_size_uval;
+my %unit_value = (
+    'T' => 1024**4,
+    'G' => 1024**3,
+    'M' => 1024**2,
+    'K' => 1024
+);
+my $total = 0;
+map {
+
+    ( my $file_name = $_ ) =~ s|^.+\/||;
+    $total += $file_size_raw{$file_name} = File::stat::stat($_)->size;
+    $file_size_str{$file_name}
+        = <[base.parser.human.fsize_fixed]>->( $file_size_raw{$file_name} );
+    $file_size_uval{$file_name}
+        = $file_size_str{$file_name} =~ /^(.+)(\D)$/
+        ? $1 * $unit_value{$2}
+        : $file_size_str{$file_name};
+
+} grep {/\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/}
+    @{ <[file.all_files]>->(<log.nailara_log.path>) };
+
+foreach my $file_name (
+    sort {
+        sprintf( "%.1f", $file_size_uval{$a} ) <=>
+            sprintf( "%.1f", $file_size_uval{$b} )
+    }
+    sort { "$a" cmp "$b" } keys %file_size_str
+) {
+    $reply_str
+        .= sprintf( ":  %-7s  :  $file_name\n", $file_size_str{$file_name} );
+}
+
+my $l = abs( length(<system.host.hostname>) - 4 );
+my $x = '-' x $l;
+$reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
+    <[base.parser.human.fsize_fixed]>->($total) );
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\N6CSEGMAQROTSTDTVXSQ73NB3GQHPXG2MGJXFCKT3RYCBZ3BOTFCM6CPEVUTGDQZCFUQ73EMDQWWI
+# \\ SX6T4BH5QV3WYODJ653E6WQDRYMMU6PXWXW36GHVOE4O7W66DESW \\// C25519-BASE-32 //
+#  \\// INLCKEM67GJEKXP67CDNN55WUJ7WCH77U35CCIZJXYO23BSHSBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

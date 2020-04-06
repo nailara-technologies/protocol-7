@@ -1,0 +1,24 @@
+# >:]
+
+# name = pdf.html.base.write_error_page
+
+my $target_html_path = shift;
+
+make_path($target_html_path) if !-d $target_html_path;
+
+my $error_template_file = <pdf.html.fail_template>;
+my $target_file         = "$target_html_path/pdf.html";
+my $temp_file           = "$target_file.NEW";
+
+my $fail_page_ref = <[file.slurp]>->($error_template_file);
+$$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.conversion_failed>|sg;
+
+<[file.put]>->( $temp_file, $fail_page_ref );
+
+rename( $temp_file, $target_file ) or die "$temp_file -> $target_file: $!";
+
+# ______________________________________________________________________________
+#\\RANLIPL2SSLOZWPVLSN6NAVBALCNE5GUWQ3UUIZYP7ZVXTDR6MITMH7YRZWNM4EDIU7PRW2BIICMO
+# \\ OY4CPOY723MIGQ5QJD36GXEWXXBOQVYTE7JJMQN3PXY6LAULTSDL \\// C25519-BASE-32 //
+#  \\// TKP2WDDVKQHBMIMRMLU3XC6XQMGLISACCIB3UKSHW2VSFXWWWAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
