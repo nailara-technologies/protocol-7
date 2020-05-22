@@ -25,7 +25,7 @@ if ( $type eq 'hours' ) {
     while ( my $element = shift @{ $weather_data->{'list'} } ) {
 
         if ( !keys %{$element} ) {
-            <[base.log]>->( 0, "'hours' forecast list is empty, skipping!" );
+            <[base.log]>->( 0, "'hours' forecast list is empty, skipping.," );
             next;
         }
 
@@ -133,11 +133,11 @@ if ( $type eq 'hours' ) {
 <weather.data>->{$station_id}->{'forecast'}->{$type} = $forecast_ref;
 <weather.data>->{$station_id}->{'forecast'}->{'today'} = $forecast_ref_today;
 
-<[base.log]>->( 2, "writing html pages.. [got new 'forecast' data]" );
+<[base.log]>->( 2, "writing html pages.. [ got new 'forecast' data ]" );
 <[weather.parent.write_pages]>->($station_id);
 
 # ______________________________________________________________________________
-#\\CNGQUONJOK3X34NKJYYJYBQ3YELG5GI7RRZTBD5IPK7VOX2766KMK4QZQJGODEPHCFBEVGXEFTN24
-# \\ JUAU7YTN52VRVBBOZ2PYV7CBN4I4LPVJTS2L3OIXZCDLHAI557NI \\// C25519-BASE-32 //
-#  \\// RBVDD6ME75MR5LCANTMSPZAXVQPPFKMU3YATO5FEYEO2LM2XWAY \\ CODE SIGNATURE \\
+#\\PPM3II6SLPGKJ5N3K2YL2GATGTJUX6RNQCFWIHGG5UIKAVKLJQWMF7WU7BKYKZYU4XPJK7Y2VFRQC
+# \\ D5Y4WEIELYYPV5NBNM3RNO5FDICHTUPAM3WDHRSQLVX5EC37PDZC \\// C25519-BASE-32 //
+#  \\// YS7ZNBA35SZX6UK47KFU5QNNI3QLONTG34HIW2KOWCJFYM54CAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
