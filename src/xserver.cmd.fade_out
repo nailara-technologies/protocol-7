@@ -9,14 +9,14 @@ my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
 
 ( $duration, my $fade_limit ) = split( /:/, $duration );
 
-return { 'mode' => 'nak', 'data' => 'fade out duration in seconds expected!' }
+return { 'mode' => 'nak', 'data' => 'fade out duration in seconds expected' }
     if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
-return { 'mode' => 'nak', 'data' => 'window <id(s)> required!' }
+return { 'mode' => 'nak', 'data' => 'window <id(s)> required' }
     if !@window_ids;
 map {
     return {
         'mode' => 'nak',
-        'data' => 'invalid window id syntax ( must be numerical)'
+        'data' => 'invalid window id syntax [ not numerical ]'
         }
         if $_ !~ /^\d+$/
 } @window_ids;
@@ -32,7 +32,7 @@ my %all_windows = map { $_->id => 1 } @{ $xtops->sorted };
 map { delete $fade_windows{$_} if not exists $all_windows{$_} }
     keys %fade_windows;
 
-return { 'mode' => 'nak', 'data' => 'no such window(s)' }
+return { 'mode' => 'nak', 'data' => 'no such window[s]' }
     if !keys(%fade_windows);
 
 map {
@@ -66,7 +66,7 @@ my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\ZLIY6EYPZXDYPUNMDFL4ROJMJNRUQ4MEMGKY55NEE4SFXO7EAOYIPKD3JO7SHF63NRUUX7YGXIM7Q
-# \\ 3RN6KQEFXELMIA6SIUFV6RD6DZ2DKPSRT34U3BX6YX7AEN5HW5VX \\// C25519-BASE-32 //
-#  \\// 7KXGOTDHEFYWFP4UAFF6VTVHFSMWL3IDTAVTIICBFVURRWP5OBA \\ CODE SIGNATURE \\
+#\\2HANSMRJK6EZRC677UKAZE4JNP2JSGT2LIJ2MFUIAP6R3MR3HFAZTADYRM54TX2K6PGXGOIHRQ22Y
+# \\ DEODCPP4WOKV2C5GL2DW4MPDMIWXEBNAWXYUDIDIS7Q5UGI4FRUT \\// C25519-BASE-32 //
+#  \\// VIAMJQVYECIVB45UZGXNZMEASIVCNKVUBA2V5E4FZRHUPDHYKDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
