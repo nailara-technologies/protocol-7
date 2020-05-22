@@ -102,9 +102,12 @@ if ( defined $http_host and defined $link_target ) {
         return <[httpd.process_template]>->( $id, $file_path );
     }
 
-    $path_md5 = <[digest.md5.hex]>->($file_path);    # LLL: change to bmw.b32..,
+    my $file_etag = <[digest.elf.b32]>
 
-    if ( -f $file_path and !-r $file_path ) {   # LLL: cfg + deal with symlinks.
+        $path_md5
+        = <[digest.md5.hex]>->($file_path);    # LLL: change to bmw.b32..,
+
+    if ( -f $file_path and !-r $file_path ) {  # LLL: cfg + deal with symlinks.
         <[base.log]>->(
             0,
             "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
@@ -120,9 +123,8 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        # LLL: make inode inclusion configurable:
-        my $file_etag = <[digest.md5.b64u]>
-            ->("$content_inode-$content_size-$content_date-$file_path");
+        my $file_etag = <[digest.elf.b32]>
+            ->("$content_size $content_inode_$content_date $file_path");
         $response->{'params'}->{'ETag'} = $file_etag;
 
         my $meta = <http.meta_cache> //= {};
@@ -194,6 +196,10 @@ if ( defined $http_host and defined $link_target ) {
             %{ $response->{'params'} }
         };
 
+        $file_etag = <[digest.elf.b32]>
+            ->("$content_size $content_inode_$content_date $file_path");
+        $response->{'params'}->{'ETag'} = $file_etag;
+
         if ( $reply_code != 200 ) {    # <- 304 Not Modified
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header );
@@ -226,7 +232,7 @@ return <[httpd.error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\4IESF5JHPILPLFZMR3RXEAUYHMQ7MA3UJMFREOFQBMRWIIUPPNSWOU26GEJJBZE5CEWIARS4BTAPW
-# \\ SX2CXVMWENLC77JZMZVFKRZARPHJVMDYPDDO2V5WBALWGXIEI7FH \\// C25519-BASE-32 //
-#  \\// 7BJURSRROFK76YDJ4P5GCQD2YPFBOWHUU5B3CEIISJEHR5BOEAQ \\ CODE SIGNATURE \\
+#\\N4DT4VDN2KZA7YJXH3XBZ5BW34B4SZAP4NTKMFJN5WTP67SGLZT72W2ZDZZJP6ITBPJCQD3PLHWO2
+# \\ FGATVSCWWRJFKVJKGQ6LINP35CPEVI5YQQUYVUNSZSBDKFFYJAYD \\// C25519-BASE-32 //
+#  \\// RMBXDBJJNIHZGNJL4P42WWPUTX2LRF7BGOQ7HU2JKZI3BJ5AKBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
