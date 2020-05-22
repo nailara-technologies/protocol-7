@@ -36,7 +36,7 @@ my $version_base = gen_ver_string( $commit_count + 1 - $reset );
 my $minor        = $down ? -1 : 1;
 my $new_minor    = 0;
 
-if ( $old_version =~ /^(.+)\.(\d+)$/ ) {
+if ( $old_version =~ m|^(.+)\.(\d+)$| ) {
     my $old_base  = $1;
     my $old_minor = $2;
 
@@ -67,9 +67,12 @@ $git->add($version_file);
 {
     local $/ = undef;
     open( my $md_fh, '<' . $readme_md ) or die "$readme_md : $!\n";
-    my $md_str = <$md_fh>;
+    my $md_copy = my $md_str = <$md_fh>;
     close($md_fh);
-    if ( $md_str =~ s|\Q$old_version\E|$version_string|g ) {
+    if ( $md_str !~ s|\Q$old_version\E|$version_string|g ) {
+        $md_str !~ s|: \d\d\.\d\d\d\d\-\d\d\d\d\.\d+ |: $version_string |g
+    }
+    if ( $md_str ne $md_copy ) {
         open( $md_fh, '>' . $readme_md ) or die " -> $readme_md : $!\n";
         print {$md_fh} $md_str;
         close($md_fh);
@@ -92,7 +95,7 @@ sub get_old_version {
     local $/ = undef;
     return '' if !-f $version_file;
     open( my $fh, $version_file ) or die "$version_file : $!\n";
-    ( my $old_version = <$fh> ) =~ s/\s//g;
+    ( my $old_version = <$fh> ) =~ s|\n+.+$||sg;
     close($fh);
     return $old_version;
 }
