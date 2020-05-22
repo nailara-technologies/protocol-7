@@ -39,7 +39,7 @@ my $request = $session->{'http'}->{'request'};
 
 return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
 
-$session->{'http'}->{'request'}->{'data'} = $1;
+$session->{'http'}->{'request'}->{'data'} = $1 // '';
 
 my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'data'} );
 
@@ -52,11 +52,11 @@ $h_req->decode;
 my $r_key;
 if ( not defined $h_req->method ) { $r_key = 'METHOD' }
 elsif ( not defined $h_req->uri
-    and $h_req->method =~ /^(GET|HEAD|POST|PUT|DELETE)$/ ) {
+    and $h_req->method =~ m,^(GET|HEAD|POST|PUT|DELETE)$, ) {
     $r_key = 'URI';
 }
 if ( defined $r_key ) {
-    <[base.log]>->( 0, "[$id] malfomed request (request $r_key undefined)" );
+    <[base.log]>->( 0, "[$id] malfomed request [ request $r_key undefined ]" );
     $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 400 );
     return 2;    # Bad Request
 }
@@ -92,8 +92,7 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
     } else {
         <[base.log]>->(
             0,
-            "[$id] http [$request->{method}] handler defined,"
-                . " but callback missing!"
+            "[$id] http [$request->{method}] handler defined, callback missing"
         );
         $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $id, 500 );
         return 2;    # Internal Server Error
@@ -108,7 +107,7 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
 return 2;
 
 # ______________________________________________________________________________
-#\\B4QMZBFTHSNUMARAJXVWO63ZM6FGO5HRT5GDDZHOITRV7NUTWIJRYL62V5RU5ZK44U6YJLISIMBNY
-# \\ CZWXTCY5SHZFGWITU5LOL32WZPTL76P42WTNP2B3PBW2QCFYQ7VP \\// C25519-BASE-32 //
-#  \\// QPZUXHULRGJNQUPSDZYHHCIPCS3XTL2YX4FYD6RZRAWBWYN5UAQ \\ CODE SIGNATURE \\
+#\\ZVHECTI3VANCIFX3F2SX74PG4OXRMUIAHABBTFTFEG5MYSQWTHTPBKZFMYDGOE6WI4J7YYBSOROZY
+# \\ SD6MRIRUMC6PMC7UH4L37OPYPWJO6ZIQ2AIFHLJ7DPH576PTFG6D \\// C25519-BASE-32 //
+#  \\// KZFJCXPAGQP2KAOYI3M6XSSMYRPHTAIAUY2H3J3METWKBNHKYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
