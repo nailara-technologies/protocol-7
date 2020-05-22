@@ -65,8 +65,7 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        # LLL: change etag encoding to bmw.b32.,
-        my $file_etag = <[digest.md5.b64u]>
+        my $file_etag = <[digest.elf.b32]>
             ->("$content_inode-$content_size-$content_date-$file_path");
         $response->{'params'}->{'ETag'} = $file_etag;
 
@@ -124,7 +123,7 @@ return <[httpd.error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\AF2CDMP7727KMGZJDB7C2YZ2E72JBVF6OPCRLQZVRUT2SWSGDJ4FQMA34HZNVFEKPIFCCUYN2IXLM
-# \\ UWUMZ62OO4TMXDR2WIV75V5QWAMVBLSFNVNTKSOFPL534YI3QQFY \\// C25519-BASE-32 //
-#  \\// F5LM7R7BZU7ZIFAJUCDGVCLC6H4WUUAV6KZ7MJQC35X775XRWDQ \\ CODE SIGNATURE \\
+#\\LXWOHKZVWXHGYELZT7DEIJ2PGV3UFNOGXK55PE7F6K42YKFR6AGTIZNCHK7ZK6OM6Q6OGCSK5YPLK
+# \\ ND4BI4IP5N4R63A3AJ6P3DTPZAUKFQHJ6EY2G42CYWXIPAJX6MNE \\// C25519-BASE-32 //
+#  \\// RKK6E26HQHWX7CQWX6ZMR5T4GHUJSMNUNFMLKO4MQEVUUZ4KQAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
