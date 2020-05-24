@@ -1,0 +1,20 @@
+
+.:[ crypto currency trading agent ]:.
+
+buffer.system.log_cmd = history.append
+
+[load_config_file:'shared-params']
+
+modules.load        = net io.ip auth tradix debug
+
+access.cmd.usr.core = verify-instance help heart reload *
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[base.set_privs:'nailara']
+
+[net.connect_to_core:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]
