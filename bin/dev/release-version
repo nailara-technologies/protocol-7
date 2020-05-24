@@ -20,7 +20,7 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
     local $| = 1;
     local $/ = undef;
     if ( open( my $v_fh, '<' . $version_file ) ) {
-        ( my $raw_str = <$v_fh> ) =~ s|\s+||g;
+        ( my $raw_str = <$v_fh> ) =~ s|\s.+$||sg;
         ( my $year_float, my $commit ) = split( /-/, $raw_str, 2 );
         ( my $release_version
                 = sprintf( "%.3f", ( $commit * $year_float ) / $version_seed ) )
