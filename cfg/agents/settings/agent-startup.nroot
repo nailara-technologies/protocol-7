@@ -1,0 +1,20 @@
+# >:]
+
+# name  = agent-startup.nroot
+# descr = 'settings' agent startup configuration used by 'nroot' agent
+
+dependencies = core
+max_concurrency    = 1
+spawn.on-demand    = 1
+respawn.disabled   = 1
+heartbeat.disabled = 1
+
+: nroot-init :
+  start_mode = stdin-agent
+  core.key = [base.rnd_chars_anum:42]
+  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+: agent-init :
+  [base.auth.set_agent_key:'<{core.key}>']
+  [base.agents.set_ondemand_timeout:147]
+
