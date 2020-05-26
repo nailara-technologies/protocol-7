@@ -30,16 +30,16 @@ layout.mapped_subcfg.media      = adblock noscript scroll_speed auto_speed
 layout.mapped_subcfg.browser    = adblock noscript scroll_speed auto_speed
 layout.mapped_subcfg.impressive = light_mode
 
-layout.config.ticker_agent_type = gtk # [gtk|sdl]
+layout.settings.ticker_agent_type = gtk # [gtk|sdl]
 
-modules.preload = layout.config config.json
+modules.preload = layout.settings settings.json
 [load_modules:<modules.preload>]
 [init_modules]
 
-[config.json.import_file:'layout.config.json']
-[config.json.import_file:'layout.layout.json']
+[settings.json.import_file:'layout.settings.json']
+[settings.json.import_file:'layout.layout.json']
 
-modules.load = auth net io.ip digest.sha layout config.json
+modules.load = auth net io.ip digest.sha layout settings.json
 [load_modules:<modules.load>]
 [init_modules]
 

@@ -60,14 +60,14 @@ browser.loading_page   = '<browser.templates_path>/loading.html'
 browser.error_page     = '<system.root_path>/data/html/failed_to_load.html'
 browser.load_icon_page = '<system.root_path>/data/html/loading_animation.html'
 
-[load_modules:'config.json browser.config']
+[load_modules:'settings.json browser.settings']
 [init_modules]
 
 
 system.privs.create_temp_home = 1   # allow temporary 'nobody' home dir creation
-[browser.config.set_privs:'nobody'] # <-- switches only when not a media-child.,
+[browser.settings.set_privs:'nobody'] # <-- only when not runinng as media-child
 
-[config.json.import_file:'browser.config.json']
+[settings.json.import_file:'browser.settings.json']
 
 browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector [for debugging]
 
