@@ -1,0 +1,50 @@
+# >:]
+
+# name  = settings.cmd.export-config
+# param = <agent> [type]
+# descr = export agent config to disk (.json file)
+
+return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
+    if not defined <settings.json.export_allowed>
+    or !<settings.json.export_allowed>;
+
+my ( $agent_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
+return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
+    if not defined $agent_name;
+$config_type //= 'config';    # default
+
+return { 'mode' => 'nak', 'data' => 'invalid agent name syntax' }
+    if $agent_name !~ <regex.base.usr>;
+
+<[settings.chk_profile_dir]>;
+
+my $type_args = {};
+$type_args = { 'args' => $config_type } if defined $config_type;
+
+return { 'mode' => 'nak', 'data' => 'invalid config type syntax!' }
+    if $config_type !~ /^\w+$/;
+
+my $cmd_path = "core.$agent_name.get-config";
+$cmd_path = "core.get-config" if $agent_name eq 'core';
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $cmd_path,
+        'call_args' => $type_args,
+        'reply'     => {
+            'handler' => 'settings.handler.export_reply',
+            'params'  => {
+                'agent_name'  => $agent_name,
+                'config_type' => $config_type,
+                'reply_id'    => $$call{'reply_id'}
+            }
+        }
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\KBYJHDCOWZW5HVDMX2GEP2MP2VVRCYHSE5NV5KXWHIHNFYIO5SQ4WOWRBFBGHF7M62W4HBSLDJOTA
+# \\ 6FHYTW73ZV33ASBPLVGSG5IKMMZP7YC7EQZ5X4V6ULVF64OZRHVM \\// C25519-BASE-32 //
+#  \\// CND537FFU22GQQOBPYDKJNOMR2LK6D5GYTJVBVWHW27Y5KHAMCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

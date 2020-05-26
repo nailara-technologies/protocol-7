@@ -1,0 +1,47 @@
+# >:]
+
+# name = settings.json.init_code
+
+<[base.perlmod.autoload]>->('JSON::XS');
+<[base.perlmod.load]>->( 'Clone',               'clone' );
+<[base.perlmod.load]>->( 'File::Path',          'make_path' );
+<[base.perlmod.load]>->( 'Hash::Flatten',       'flatten' );
+<[base.perlmod.load]>->( 'Hash::Merge::Simple', 'merge' );
+
+<json.parser> = JSON::XS->new();
+<json.parser>->convert_blessed(1);
+<json.parser>->allow_nonref(1);
+<json.parser>->canonical(1);
+<json.parser>->relaxed(1);
+<json.parser>->pretty(1);
+<json.parser>->utf8(1);
+
+<settings.json.export_allowed> //= 1;
+<settings.json.export_dir>     //= <system.local_config_dir> . '/export';
+
+<settings.json.import_allowed> //= 1;
+<settings.json.import_dir>     //= <system.local_config_dir> . '/import';
+
+return 0 if <system.agent.name> ne 'config';
+
+my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+    or die "user '" . <system.privs.user> . "' not in passwd file";
+
+foreach my $mode ( 'export', 'import' ) {
+    my $dir_path = <settings.json>->{"${mode}_dir"};
+    if ( <settings.json>->{"${mode}_allowed"}
+        and !-d $dir_path ) {
+        <[base.log]>->( 1, "creating config $mode directory '$dir_path'.." );
+        make_path( $dir_path,
+            { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+            or warn "unable to create directory '$dir_path' [$!]";
+    }
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\H2VIFXIXSOEDOTMXE37U5QZBK3E37DY4RFONTBLZ3P3MZHLUY4KIFL53EH7BNAUE3B3ABYSYUCJEA
+# \\ 2NH25NEW3FB6RT6AP5ZKLDXBTC5HZDPGPFELYYKUS4OIYZNU3PXG \\// C25519-BASE-32 //
+#  \\// NES37XDOHHLGBB6XTMJOPS5F3A7WWU3RCXITBR5XF6DYH3AIIAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

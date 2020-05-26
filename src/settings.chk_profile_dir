@@ -1,0 +1,26 @@
+# >:]
+
+# name  = settings.chk_profile_dir
+
+my $root_path = <system.root_path>;
+my $chk_path  = <config.profile_dir>;
+
+die "<config.profile_dir> is not defined" if not defined $chk_path;
+
+if ( !-d $chk_path ) {
+    ( my $path_rel = $chk_path ) =~ s|^$root_path|.|;
+
+    <[base.log]>->( 1, "<< creating profile directory ['$path_rel'] >>" );
+
+    ## changing to parent directory ownership ##
+    my $cfg_stat = File::stat::stat(<system.conf_path>);
+    make_path( $chk_path,
+        { 'mode' => 0750, 'uid' => $cfg_stat->uid, 'group' => $cfg_stat->gid } )
+        or warn "unable to create profile directory '$chk_path' [ $! ]";
+}
+
+# ______________________________________________________________________________
+#\\XK5VD32UHRH4FJ4XORTEPVQGLHTQXROTRUEDGYTRZ3TSUXSQVGRQZG4PSCC5VBKJUEIYTYD66CQHA
+# \\ U4WLVGGOSY5C5IOFZ2ZXYUODE6UYWVXMYSWXMC4SMA3SW3UDOD5F \\// C25519-BASE-32 //
+#  \\// NTORXAZ4TNPPLEYZD5ZZN3SUJNMW3XLAOORTFVIV3Q4NFY4I4CY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

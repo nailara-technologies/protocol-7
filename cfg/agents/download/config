@@ -9,13 +9,13 @@ access.cmd.usr.core = verify-instance heart help reload get_file \
 download.cfg.http.query_etc_hosts = 1 # <- resolver config
 download.cfg.download_path        = /data/nailara/download
 
-modules.preload = download.config config.json
+modules.preload = download.settings settings.json
 [load_modules:<modules.preload>]
 [init_modules]
 
-[config.json.import_file:'download.config.json']
+[settings.json.import_file:'download.settings.json']
 
-modules.load = auth net io.ip download config.json digest.md5
+modules.load = auth net io.ip download settings.json digest.md5
 [load_modules:<modules.load>]
 [init_modules]
 
