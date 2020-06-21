@@ -1,0 +1,37 @@
+# >:]
+
+# name = pcycle.handler.toggle
+
+my $e = shift;
+$e->w->cancel if defined $e;
+
+my $current_mode = <pcycle.state.switch> // 'off';
+my $next_mode    = $current_mode eq 'on' ? 'off' : 'on';
+
+again:
+my $delta_t = sprintf(
+    "%.1f",
+    <pcycle.cfg.time>->{$next_mode}->{'min'} + rand(
+        rand(
+                  <pcycle.cfg.time>->{$next_mode}->{'max'}
+                - <pcycle.cfg.time>->{$next_mode}->{'min'}
+        )
+    )
+);
+goto again
+    if $delta_t > ( <pcycle.cfg.time>->{$next_mode}->{'max'} / 2 )
+    and rand(1) % 1;
+
+<[base.log]>->( 2, "fan now $next_mode for the next $delta_t seconds .." );
+
+<[event.add_timer]>
+    ->( { 'after' => $delta_t, 'handler' => 'pcycle.handler.toggle' } );
+
+<[pcycle.switch]>->($next_mode);
+
+
+# ______________________________________________________________________________
+#\\BFSCU3JNJ65XNZADDDDEXVW74XJUPZDQLF66Z4SGY56XISYT2SX2UCFJ4GVYI4FKUVCDYCQLFSDZ6
+# \\ DEFLASKZTBSAAFA3VKG7Z2E4FYPAVT5RF3OCJK7OUQFOK5PLZTII \\// C25519-BASE-32 //
+#  \\// KARE6X5BWAYRQOYLAJQQJLNEE7QWKGTNOKPN653VP4DYMOJPODQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
