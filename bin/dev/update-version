@@ -70,7 +70,7 @@ $git->add($version_file);
     my $md_copy = my $md_str = <$md_fh>;
     close($md_fh);
     if ( $md_str !~ s|\Q$old_version\E|$version_string|g ) {
-        $md_str !~ s|: \d\d\.\d\d\d\d\-\d\d\d\d\.\d+ |: $version_string |g
+        $md_str =~ s|: \d\d\.\d\d\d\d\-\d\d\d\d\.\d+ |: $version_string |g
     }
     if ( $md_str ne $md_copy ) {
         open( $md_fh, '>' . $readme_md ) or die " -> $readme_md : $!\n";
