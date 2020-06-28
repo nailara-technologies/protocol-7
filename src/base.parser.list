@@ -2,11 +2,11 @@
 
 # name  = base.parser.list
 # descr = returns a parsed list table according to supplied specification mask
-# todo  = fix alignment (width) bug! (<key>:foo and foo:bar cases)
+# todo  = fix alignment [width] bug. [<key>:ex0 and ex0:ex1 cases]
 #         :     apparenly accumulative offset as result of 'align'
 
-(   my $h_name, my $h_key, my $sub_key, my $display_keys,
-    my $align, my $defaults, my $filters, my $sort_key
+(   my $h_name, my $h_key,    my $sub_key, my $display_keys,
+    my $align,  my $defaults, my $filters, my $sort_key
     )
     = map { $_[0]->{$_} }
     qw|
@@ -81,14 +81,14 @@ my $sub_line  .= '-' x $table_width;
 $table_string .= "\n$sub_line\n";
 
 my @sorted_keys;
-@sorted_keys = sort { length $a <=> length $b } sort keys( %{$data_ref} );
+@sorted_keys = sort { length $b <=> length $a } sort keys( %{$data_ref} );
 
 # .: custom sorting :.
 
 if ( defined $sort_key ) {
-    my $sort_type = $sort_key =~ s/^([^:]+):// ? $1 : 'alpha_len';  # <- default
+    my $sort_type = $sort_key =~ s/^([^:]+):// ? $1 : 'reverse-len-alpha';
 
-    if ( $sort_type eq 'alpha_len' ) {
+    if ( $sort_type eq 'alpha-len' ) {
         eval {
             @sorted_keys = sort {
                 length $data_ref->{$a}->{$sort_key} <=>
@@ -113,11 +113,9 @@ if ( defined $sort_key ) {
                 }
                 keys %{$data_ref};
         };
-    } elsif ( $sort_type eq 'reverse-len_alpha' ) {
+    } elsif ( $sort_type eq 'reverse-len-alpha' ) { #  <--[ base sorting order ]
         eval {
             @sorted_keys = sort {
-                warn
-                    "yo[ $data_ref->{$a}->{$sort_key} <-> $data_ref->{$b}->{$sort_key} ]";
                 length $data_ref->{$b}->{$sort_key} <=>
                     length $data_ref->{$a}->{$sort_key}
                 }
@@ -169,7 +167,7 @@ $table_string .= "\n";
 return $table_string;
 
 # ______________________________________________________________________________
-#\\STSLK24MFJK5YT6N7CT2SDVZCUH6HHKYBYYKMBQT73SX43PNQ7DIMNYU2U5MJS52NZC4QYP4A7HSA
-# \\ O22MFFOGTOZQFDKNOIUNAPQKSHBS4VQOI5KYKTCYRJ6MA7FJFJY3 \\// C25519-BASE-32 //
-#  \\// QYQIC6NHXQN45FHFQJPETJ3VF6RJI4G3SNX32TWNJ4G2KVQE6BQ \\ CODE SIGNATURE \\
+#\\NTKJ4VN7QWMSUBHOKOL3LCP2AFNC7WM3BCVRNMSMURRXECH6UP57J57A6ZAYRQSNO2MEL7A3ZAR6I
+# \\ Y77ESB4BMNRGI6TKYJU4MT2QJDQBCNAWTVOXVU4CZFTE633JWLDL \\// C25519-BASE-32 //
+#  \\// VCMNHNO2IYCEIHOYEMELQ5C5WJKUP76ENOSEL55FPJBLW656SAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
