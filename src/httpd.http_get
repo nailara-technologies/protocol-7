@@ -55,9 +55,6 @@ if ( exists $headers->{'range'} ) {    # print Dumper( $headers->{'range'} );
 }
 
 my $file_path;
-my $path_md5;
-
-# ...
 
 if ( defined $http_host and defined $link_target ) {
     <[base.log]>->(
@@ -102,12 +99,7 @@ if ( defined $http_host and defined $link_target ) {
         return <[httpd.process_template]>->( $id, $file_path );
     }
 
-    my $file_etag = <[digest.elf.b32]>
-
-        $path_md5
-        = <[digest.md5.hex]>->($file_path);    # LLL: change to bmw.b32..,
-
-    if ( -f $file_path and !-r $file_path ) {  # LLL: cfg + deal with symlinks.
+    if ( -f $file_path and !-r $file_path ) {   # LLL: cfg + deal with symlinks.
         <[base.log]>->(
             0,
             "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
@@ -123,33 +115,41 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        my $file_etag = <[digest.elf.b32]>
-            ->("$content_size $content_inode_$content_date $file_path");
-        $response->{'params'}->{'ETag'} = $file_etag;
+        my $path_etag = <[digest.elf.b32]>
+            ->("$content_inode.$content_size.$content_date.$file_path");
+        $response->{'params'}->{'ETag'} = $path_etag;
 
+        ## caching meta data ..,
         my $meta = <http.meta_cache> //= {};
-        $meta->{'etags'}->{$path_md5} //= $file_etag;
-        delete $meta->{$file_etag}
-            and $meta->{'etags'}->{$path_md5} = $file_etag
-            if $meta->{'etags'}->{$path_md5} ne $file_etag;
-        $meta->{$file_etag}->{'types'} //= mimetype($file_path);
-        $meta->{$file_etag}->{'times'} //= <[base.time]>->(4);
 
-        my $content_type = $meta->{$file_etag}->{'types'};
+        foreach my $check_etag ( keys %{$meta} ) { # use timer once too many ..,
+            delete $meta->{$check_etag}
+                if <[base.time]>->(4) - $meta->{$check_etag}->{'cached_since'}
+                > 777;
+        }
 
-        my $reply_code = 200;
+        $meta->{$path_etag} //= {
+            'cached_since' => <[base.time]>->(4),
+            'content_type' => mimetype($file_path)
+        };
+
+        my $content_type = $meta->{$path_etag}->{'content_type'};
+
+        ##
+
+        my $reply_code = 200;    # =)
 
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
             $response->{'params'}->{'ETag'} ) {
-            <[base.log]>->( 1, "[if-none-match] returning 304 [$file_etag]" );
+            <[base.log]>->( 1, "[if-none-match] returning 304 [$path_etag]" );
             $reply_code = 304;    # Not Modified
 
         } elsif ( defined $request->{'headers'}->{'if-modified-since'}
             and $request->{'headers'}->{'if-modified-since'} eq $content_date )
         {
             <[base.log]>->(
-                1, "[if-modified-since] returning 304 [$file_etag]"
+                1, "[if-modified-since] returning 304 [$path_etag]"
             );
             $reply_code = 304;    # Not Modified
         }
@@ -196,9 +196,9 @@ if ( defined $http_host and defined $link_target ) {
             %{ $response->{'params'} }
         };
 
-        $file_etag = <[digest.elf.b32]>
-            ->("$content_size $content_inode_$content_date $file_path");
-        $response->{'params'}->{'ETag'} = $file_etag;
+        $path_etag = <[digest.elf.b32]>
+            ->("$content_inode.$content_size.$content_date.$file_path");
+        $response->{'params'}->{'ETag'} = $path_etag;
 
         if ( $reply_code != 200 ) {    # <- 304 Not Modified
             $session->{'buffer'}->{'output'}
@@ -232,7 +232,7 @@ return <[httpd.error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\N4DT4VDN2KZA7YJXH3XBZ5BW34B4SZAP4NTKMFJN5WTP67SGLZT72W2ZDZZJP6ITBPJCQD3PLHWO2
-# \\ FGATVSCWWRJFKVJKGQ6LINP35CPEVI5YQQUYVUNSZSBDKFFYJAYD \\// C25519-BASE-32 //
-#  \\// RMBXDBJJNIHZGNJL4P42WWPUTX2LRF7BGOQ7HU2JKZI3BJ5AKBY \\ CODE SIGNATURE \\
+#\\QVDGF6QIJEKY5DWBH3M3FYTONB2W7HB4QA6OS6TRFPZGKH3YYBPEUEWVGZY2CMUQ36KNIRCL2JDVA
+# \\ 4MRG6SGZJU4LXPQEKVU4EX3QW5O5LC3IEUAHRYT565ZESSL5WKMW \\// C25519-BASE-32 //
+#  \\// 73ZVOHI6LXRUMZK2P34KFSCNWWJIAIBU35CV5ZCGGLUX7FO2IDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
