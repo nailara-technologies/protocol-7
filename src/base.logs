@@ -2,16 +2,17 @@
 
 # name = base.logs
 # desc = sprintf <[base.log]> wrapper subroutine
-return warn "insufficient parameters" if @_ < 2;
 
 if ( length( $_[0] ) > 1 or $_[0] !~ /^\d$/ ) { # <- level=1 if param is omitted
     <[base.log]>->( 1, sprintf( shift, @_ ) );
+} elsif ( @_ < 2 ) {
+    return warn "insufficient parameters";
 } else {
     <[base.log]>->( shift, sprintf( shift, @_ ) ); # <- <level> <sprintf_params>
 }
 
 # ______________________________________________________________________________
-#\\TQVM6PI2OMTXVSBNL4XUWXWG6XZLIUHNGP32DNJIE3A3ZEMKWIGVIXK6UFHNCLT42QX3VET77Y2OW
-# \\ RGZDZ7MZJ5U74RSLH4DOEVCQ4F4PK4X54URFZJEWL46V2H7JG3WU \\// C25519-BASE-32 //
-#  \\// DRQ6IO7JRCAIGL6SULHA7ELPOQJAIFEWO54TPYZPZZVSZX3XGAY \\ CODE SIGNATURE \\
+#\\HJ7JP4U2QAERSR3P6TNN3AMIX3MP3A54XO3RUAVDDZ3FDZ5NLI7HIEJSFXQ6NDURVCH3RL4WMMKY6
+# \\ MAJU56DXENYNAO6OCNGG5I7TT4UB7LJKLRKD4RF5A2YNUIYCBFYJ \\// C25519-BASE-32 //
+#  \\// MG7YMAKUFJQQHPL3JP625LTGQJTLIWXVF5KDAEXDEBJ53VRPUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
