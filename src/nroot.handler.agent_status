@@ -7,9 +7,7 @@ die "no instance id specified" if not defined $instance_id;
 die "no status submitted"      if not defined $status;
 if ( $status eq 'shutdown'
     and not exists <nroot.agent.instance>->{$instance_id} ) {
-    <[base.log]>->(
-        2, "instance $instance_id already gone, skipping status change.,"
-    );
+    <[base.log]>->( 2, "instance $instance_id is not present [ status-skip ]" );
     return;
 }
 return <[base.log]>->(
@@ -197,13 +195,14 @@ my @check_keys
     )
     : ( $agent_name, $instance_id );
 foreach my $name_or_id (@check_keys) {
+    my $name_str = $name_or_id =~ /^\d+$/ ? $name_or_id : "'$name_or_id'";
     if ( exists <nroot.agent.notify_offline>->{$name_or_id}
         and $status eq 'shutdown' ) {
         map {
             <[base.callback.cmd_reply]>->(
                 $_,
                 {   'mode' => 'ack',
-                    'data' => "instance $name_or_id has been shut down"
+                    'data' => "instance $name_str is terminated"
                 }
             );
         } @{ <nroot.agent.notify_offline>->{$name_or_id} };
@@ -215,7 +214,7 @@ foreach my $name_or_id (@check_keys) {
                 <[base.callback.cmd_reply]>->(
                     $_,
                     {   'mode' => 'nak',
-                        'data' => "instance $name_or_id has been shut down"
+                        'data' => "instance $name_str is terminated"
                     }
                 );
             } @{ <nroot.agent.notify_online>->{$name_or_id} };
@@ -236,13 +235,13 @@ foreach my $name_or_id (@check_keys) {
 
                 if ( $status eq 'online' ) {
                     $startup_reply_msg
-                        = "$what '$name_or_id' now online! ["
-                        . $instance->{'core_sid'} . "]";
+                        = sprintf( "$what '$name_or_id' is online [%d]",
+                        $instance->{'core_sid'} );
                 } elsif ( $status eq 'extbin' ) {
                     $what =~ s|^agent|external program|;
                     $startup_reply_msg
-                        = "$what '$name_or_id' now running! [PID="
-                        . $instance->{'process'}->{'id'} . "]";
+                        = sprintf( "$what '$name_or_id' is running [PID=%d]",
+                        $instance->{'process'}->{'id'} );
                 }
 
                 <[base.callback.cmd_reply]>->(
@@ -257,7 +256,7 @@ foreach my $name_or_id (@check_keys) {
     }
 }
 
-# delayed respawning on startup error (..slowing down with errors..)
+# delayed respawning on startup error [ .. slowing down with errors .., ]
 <[nroot.init_respawn_timer]>->($instance_id)
     if defined $target_queue
     and $target_queue eq 'queued'
@@ -287,7 +286,7 @@ if ( $status eq 'shutdown'
     $status = 'shutdown' if $status ne 'shutdown';
     delete <nroot.agent.instance>->{$instance_id};
     delete <agent.instance.shutdown>->{$instance_id};
-    <[base.log]>->( 2, "instance $instance_id has been shut down." );
+    <[base.log]>->( 2, "instance $instance_id terminated ['shutdown']" );
 }
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
@@ -348,7 +347,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\34BEDT5FVSEU3GJAKFWEZQ6HFVAVQGCAXN2LSY5VVX2QWLQDBZJZM42U2OQV4F5YZJMRDE5ZTAWEK
-# \\ TRE5BRQEW76I4QRAHXXQ3TW334Q7MW67Y7T3T4LSFTFFPWS2GOHN \\// C25519-BASE-32 //
-#  \\// NGDXQWCZGFLB6XFX5643TUHNC46NLUTOISIBVEASVIVBDPYF2DQ \\ CODE SIGNATURE \\
+#\\SIM77RQ4DHOKYELYHUHD5ZXYHUKHW6AZFW3VJQJ6GGWKFMSQ6VZ4GTQBWIKI552IYPI6T6D265YII
+# \\ 5QA7XHQ77G3ZE4JIP2KWMK3KGTX77XAO2O3QPBKEDIVRJNQ3O7TL \\// C25519-BASE-32 //
+#  \\// NWWM5FBJ6MXWKV44CXWRCLAMAZNWPI5SCXBFVBSMHKLJJKNOQDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
