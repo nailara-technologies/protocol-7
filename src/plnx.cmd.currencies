@@ -1,10 +1,13 @@
 # >:]
 
 # name  = plnx.cmd.currencies
-# descr = return list of (active) currencies
+# param = [pattern]
+# descr = return list of traded currencies
 
 my $api_command   = 'getCurrencies';
 my $hide_disabled = 1;
+
+my $pattern = $$call{'args'};
 
 <plnx.api.pub>->{'msg'} = 'no data';
 my $currency_list = <plnx.api.pub>->api_public('returnCurrencies');
@@ -34,6 +37,10 @@ my @currencies;
 
 foreach my $key_name ( sort( keys( %{$currency_list} ) ) ) {
     my $cur_data = $currency_list->{$key_name};
+    next
+        if defined $pattern
+        and $key_name !~ m{\Q$pattern\E}i
+        and $cur_data->{'name'} !~ m{\Q$pattern\E}i;
     push( @currencies, sprintf( "%-8s %s\n", $key_name, $cur_data->{'name'} ) )
         if !$hide_disabled
         or (!$cur_data->{'delisted'}
@@ -47,7 +54,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\OUV74E5X4UK25JXUB4KPVBQD3ZZK7DWRIW3QZ7JCZRKKNQZ26AJHEMGVQH6OLXDGXPX7EIY3V72IC
-# \\ BFBPKSKZYNEN67NMDJG7VV5LF5YCUYSAWUW5X2U7N4MYPCTTPCLL \\// C25519-BASE-32 //
-#  \\// HJ5KSYKS2XN2GICVEU2AMFMODGRQBJFQIB3FFBJQ4WKEXPXPMAQ \\ CODE SIGNATURE \\
+#\\JO6HFAUZ7CGBYGOGBG5JKVN2F5B23GIFIEJWCGJJ2CDUZHRBGTKWPLCRXUHWRYWBC3SJXLNCUBF5I
+# \\ B4HA4ZHVPV3TH6LYAVFO6NENEJAG4PYYANKMZG2QJ6VYURLSXYLS \\// C25519-BASE-32 //
+#  \\// RAEH36XQM35WYX6PHUZ4DKHYQWLAJTC4BXGHYCCV55XF2EBKUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
