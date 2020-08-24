@@ -427,8 +427,6 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 if ( $$call_args{'args'} =~ m|^open( (\d+))?$| ) {
                     my $open_size = $2 || 0;
 
-
-
                     warn "[ STRM REPLY ] open size : $open_size";
 
                 } elsif ( $$call_args{'args'} =~ m|^\d+$| ) {
@@ -481,7 +479,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
-    $$output .= $_cmd_id . "NAK invalid reply type [ protocol mismatch ]\n";
+    $$output .= $_cmd_id . "NAK protocol mismatch [ 'invalid reply type' ]\n";
 } elsif ( exists <access.cmd.regex.usr>->{$usr}
     and $cmd_usr_str =~ <access.cmd.regex.usr>->{$usr}
     or exists <access.cmd.regex.usr>->{'*'}
@@ -874,7 +872,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\B7ORJBZ6UMI7J5JJOUJMBZXFBM6BHKQUTFS734HNLXGFDM7FZQVKYVKT3M4VZGXCDPDIGKZZHVWRW
-# \\ VC57JOZEEWSAMZD3EEUIJEW4V6JZSM6NCCRNKRPA46DBUNC2UZST \\// C25519-BASE-32 //
-#  \\// U2HIKBHHTDLHQQBKGO67QYO56HLO637SY6XAJOF6SN742FSYCAI \\ CODE SIGNATURE \\
+#\\VGZI7JGJLIJQ5OPGWETG2SE7RCETSMFBSWO3SOGPO7HL57KTFVY6N5FRBYZM5LUIQUX6MZFUBFPFE
+# \\ 3AGVLTTK7DFWAYETYKFQGHT24TEJPTSHFBYXCIX2IXCNXVJDYAAE \\// C25519-BASE-32 //
+#  \\// ZBSDAUJ7QWXGMZ3ICZJUUJPXOGHTQKRIFEDVPQVBYIE5LWGUWAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
