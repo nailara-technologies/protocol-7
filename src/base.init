@@ -34,7 +34,8 @@ my $agent_cfg_path = <[base.get_path.agent_cfg]>->(<system.agent.name>);
 if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
     my $agent_name = <system.agent.name>;
     local <system.agent.name> = 'error';    # <- changed agent name to 'error'
-    return <[log.error]>->("<<!>> no such agent ('$agent_name') <<!>>");
+    return
+        <[log.error]>->("<<!>> no such program or agent ('$agent_name') <<!>>");
 }
 
 <system.path.rel.cur_agent_cfg> = $agent_cfg_path;
@@ -47,7 +48,7 @@ if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
     or <[log.error]>->("startup of agent '<system.agent.name>' not successful");
 
 # ______________________________________________________________________________
-#\\6OG3KATHPUYOUPHFQLV2ISSQLCE6XMBTQRVZSJPFM6CPAJNM3T6O6KBJMLASIYYYG6RXNJUYOZAA6
-# \\ SM744ZJII2O3JIE5327MXWP3HSNRAW2ZE7DZK7ABAIH7ND6ZL7MH \\// C25519-BASE-32 //
-#  \\// YPUXGIMBIIDEKVI5SDWL4JHKXXL5PU7ALZRNHQ5ANEL4TFB5ACA \\ CODE SIGNATURE \\
+#\\CSB3GN72SZJDHTUHOHZYZXQJ7LXQNGDVMYRHPL7V5OMO72AODPGFOCR57HW4GQYDRO22FMEUM4X3G
+# \\ 736Z3P5DQTHL2DA47MVLXTCALO6DUTO3TZIHVZSUPPMI6SYSF2U5 \\// C25519-BASE-32 //
+#  \\// O6GVJXIBQ3T43JEWA5Z3RDP2OGZBKRQQW36JWCFUR7EDL5EJABI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
