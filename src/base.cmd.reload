@@ -2,8 +2,7 @@
 
 # name  = base.cmd.reload
 # param = [keyword]
-# descr = reload and reinit source code or config
-
+# descr = reload or reinit config and source code
 my @keywords = qw| config  source  plugins  init  all |;
 
 my $arg = $$call{'args'} // 'all';
@@ -13,8 +12,9 @@ my ( $success, $output ) = ( 0, '' );
 
 <base.debug.keep_on_reload> //= 0;    # <- [persistence] override : cfg/defaults
 
-my $s = '   ';
-$$reply{'data'} = "::\n";
+my $s = '       ';
+$$reply{'data'} = ":\n\n\n\n::   :\n\n";    # <-- header
+my $reply_footer  = "\n::   :\n\n\n\n:\n";  # <-- footer
 my $keyword_match = 0;
 
 if ( $arg eq 'config' or $arg eq 'all' ) {
@@ -124,10 +124,10 @@ if ($success) {
     <[base.log]>->( 0, "[$id] reloading $arg was not successful `:|" );
 }
 $$reply{'mode'} = 'data';
-$$reply{'data'} .= "::\n";
+$$reply{'data'} .= $reply_footer;
 
 # ______________________________________________________________________________
-#\\HO3DARTMQRSTVWVXRWANK4EDEU7OES2PLL7PB2EX2YGCVGPPIULOYCAQHGUUAXEIEKPVNQNBMKELM
-# \\ DGSIKWVPIEOAKHAX5D5LVC7SFPKJNH4DK4XB6ENZE5JX3HHC7YTV \\// C25519-BASE-32 //
-#  \\// 46LNHN6KKRTMAVLSR73JVBRHYFFNN7NSHHMBMTOR5XQ53Z5VMCY \\ CODE SIGNATURE \\
+#\\WY7LB5MCXUQWT3L3YIJ454JZZUDRPTEKKVIOMI2ZAZ4GK2D4DM2XTLVNGV6KUTJRM45YN2USZVFGQ
+# \\ 325Q7PYSZCVASISB4TMUWGGVVUIHZIKYGR6PWZ35R6NIMTHD4UYE \\// C25519-BASE-32 //
+#  \\// GISANXUCPRZDXIH6BPZUTGMZTI37Z3HEYWTU36CFP6MXBRSVOAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
