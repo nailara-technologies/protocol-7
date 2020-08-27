@@ -45,13 +45,13 @@ if ( $0 =~ /^.*nailara\./ ) {
 if ( defined $agentname and $agentname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
         $data{'startup'}{'init_code'} = [];
-        $code{'log.noerr'}->('> awaiting stdin init-code');
+        $code{'log.noerr'}->('< awaiting stdin init-code');
         while (<STDIN>) {
             push( @{ $data{'startup'}{'init_code'} }, $_ );
         }
         my $lines = @{ $data{'startup'}{'init_code'} };
         my $s     = $lines != 1 ? 's' : '';
-        $code{'log.noerr'}->("< read $lines line$s of init-code");
+        $code{'log.noerr'}->("> read $lines line$s of init-code");
     }
     $code{'base.init'}->( $data{'system'}{'node'}{'name'} . '.' . $agentname );
 } else {
@@ -1135,7 +1135,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\B6RQTSACBFBYKQEGXW4CS45BSMQGL63I5EZCRLXTBQJ42DWTR2ZEXPXJFUUN4ERLUETD4E2HOVBQ6
-# \\ G5U5GKWV5QZXCIMJKFOKRYJWIE5MW2YA2SNULQZENRUDVXRCTX6J \\// C25519-BASE-32 //
-#  \\// 6FYLK4PCDDUYEUITLOVFWSK2JPPV6PZVNSR34SSHB5XNEE5TYAI \\ CODE SIGNATURE \\
+#\\H7GCNOGP66IL53WXTLGS5A3YGXSGOO75FHXPDHDXGPEEHSOLHXUN32PULXNZAPCINK3QEAEULRCK2
+# \\ CSUVKA7KVE2P2GRKUCW7EOIDP3DWTJEXCOEXNSSAXHNM6REJA6M2 \\// C25519-BASE-32 //
+#  \\// R22FRJKPOOEJKSPJVXUHTRSHN7G6LIIHGLYMPHDXFJEXAHAGQAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
