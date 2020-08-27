@@ -1,14 +1,14 @@
 # >:]
 
 # name  = plnx.cmd.get_ticker
-# param = <cur_pair|'all'>
+# param = <pair|pattern|'all'>
 # descr = return current ticker data
 
 my $cur_pair = uc( $$call{'args'} // '' );
 
 return {
     'mode' => 'nak',
-    'data' => 'expected currency pair parameter'
+    'data' => 'expected <market_pair|pattern|\'all\'>'
     }
     if !length($cur_pair);
 
@@ -18,15 +18,11 @@ my $top = $cur_pair =~ s/^TOP-(\d+)$// ? $1 : keys( %{$ticker_data} );
 $cur_pair = 'ALL' if defined $top and $top != keys( %{$ticker_data} );
 return {
     'mode' => 'nak',
-    'data' => 'top-0 is invalid (waste of bandwitdh)'
+    'data' => 'top-0 is not valid'
     }
     if $cur_pair eq 'ALL' and !$top;
 
-return {
-    'mode' => 'nak',
-    'data' => "invalid currency pair (see 'currencies' cmd for list)"
-    }
-    if $cur_pair ne 'ALL' and not exists $ticker_data->{$cur_pair};
+my $match_count = 0;
 
 my $reply_str = "\n";
 
@@ -40,13 +36,18 @@ foreach my $cur_key (
     next
         if $cur_pair eq 'ALL'
         and <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
-    next
-        if $cur_pair ne 'ALL' and $cur_key ne $cur_pair
-        or $cur_pair eq 'ALL' and $top < 0;
+
+    if ( $cur_pair ne 'ALL' and not exists <plnx.ticker_current>->{$cur_pair} )
+    {    # partial match \ search pattern
+        next if $cur_key !~ m|\Q$cur_pair\E|i;
+    } else {
+        next if $cur_pair ne 'ALL' and $cur_key ne $cur_pair;
+    }
+    $match_count++;
     delete <plnx.ticker_current>->{$cur_key};
     return {
         'mode' => 'nak',
-        'data' => 'currency pair is frozen!'
+        'data' => 'currency pair is frozen'
         }
         if <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
 
@@ -66,10 +67,17 @@ foreach my $cur_key (
     $reply_str .= "\n";
 }
 
+return {
+    'mode' => 'nak',
+    'data' => "currency pair not recognized "
+        . "[ use 'all' or a pattern to search ]"
+    }
+    if !$match_count;
+
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\4WJF7H55ZCA45U27JOHXVFNLTJD2ZMCQN43OBMANRTEQCLRDNPC3PEILIZSA5CMCTPLPIY6IG3ULG
-# \\ 37U3WYNBFWML2NW7IHF6KV2QSXK5E4VWRE5EV7VYYDQBBRHNQRVI \\// C25519-BASE-32 //
-#  \\// 6M5SMHXLIJK7SATS4PFO4QV4DFGJ52YGXKXTCZHJY3SYN66ESAY \\ CODE SIGNATURE \\
+#\\U6HML6GCR2EOCLMSOF7UHADY6RQEJ7C6HJEEI66F7S3OXION272AXFJYSGGPOGL6QVP7PHLIACMK4
+# \\ NZDUC36LXL7464MEKDB5MWE6FGYDSCII7PQ333SVHJZ4345QH63T \\// C25519-BASE-32 //
+#  \\// KEVON7OAVJEWMSBPWPWOWH2LPDSI56JZUXDWMV2O4BIH3YD5EBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
