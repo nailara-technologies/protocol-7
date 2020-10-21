@@ -26,8 +26,7 @@ apt-get install xvfb cpanminus libevent-perl libio-aio-perl \
 # installs the rest from cpan
 $BIN_PATH/perlmod_test_fail_overrides.sh # (temporary) test fail override(s)!
 cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
-        POSIX::1003 XML::RSS::TimingBot File::MimeInfo::Magic \
-        Config::Hosts HTTP::Soup Mediainfo Poppler Device::Gembird \
-        Imager::Screenshot
+        XML::RSS::TimingBot File::MimeInfo::Magic Config::Hosts \
+        HTTP::Soup Mediainfo Poppler Device::Gembird Imager::Screenshot
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit2

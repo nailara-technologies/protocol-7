@@ -12,7 +12,8 @@ use Term::ReadPassword;
 use Time::HiRes 'sleep';
 use Digest::Elf qw| elf |;
 use Crypt::Misc qw| encode_b32r |;
-use POSIX::1003::Proc qw| WNOHANG waitpid |;
+use POSIX qw| sys_wait_h WNOHANG |;
+
 use POSIX::SigAction;
 use POSIX::SigSet;
 
@@ -45,7 +46,7 @@ my $stdout_pid;
 my $parent_pid = $$;
 
 $SIG{'CHLD'} = sub {
-    $0 .= "[disconnected]" if waitpid( -1, WNOHANG ) == $stdout_pid;
+    $0 .= "[disconnected]" if waitpid( -1, WNOHANG() ) == $stdout_pid;
 };
 
 my @args;
@@ -419,7 +420,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\QZHUBTVW6ND7FNH4VDNOZNLWF6FUDYBF6XBV7H6HF6FXHIHPTU6EGBIA6MCNAEGH77YC3VDJQWLZW
-# \\ CGC74IFEDDH42WABG64IME5MGWMUEENYA3ZNEYMH2A4SIK23HPV4 \\// C25519-BASE-32 //
-#  \\// WUJMD2SNK76PC6I5GTAW7EAP6Q2ADWJWPABF5N3BRRDI3QXICBQ \\ CODE SIGNATURE \\
+#\\DWXCIRPEBPMIOWKAQKQKP3HHI344I3IQW22T7M3SV7FAMDFTNRNBL7OIPI2ONY4GS6L4DVMIQ72L4
+# \\ KXZFNARG4Q57M5UYRZ4OSOQSEOTUTHP7PANRO6M6FPKTLMSDEIBJ \\// C25519-BASE-32 //
+#  \\// FWFGMO344HGNM6AB3TR5WYCAIIEWU2PFWP3SMYI3HRRAO46QWAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -13,14 +13,14 @@ use warnings 'once';
 
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('IO::AIO');
-<[base.perlmod.load]>->( 'Time::Local',        'timegm_nocheck' );
-<[base.perlmod.load]>->( 'POSIX::1003::Time',  'strftime' );
-<[base.perlmod.load]>->( 'POSIX::1003::Limit', ':rlimit' );
+<[base.perlmod.load]>->( 'Time::Local',   'timegm_nocheck' );
+<[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
+<[base.perlmod.load]>->(
+    'POSIX', qw | strftime uname getcwd setsid sys_wait_h |
+);
+
 <[base.perlmod.load]>->(
     'Crypt::PRNG::Fortuna', qw | random_string random_string_from |
-);
-<[base.perlmod.load]>->(
-    'POSIX::1003::Proc', qw| WNOHANG waitpid setsid getcwd |
 );
 
 # init some vars
@@ -47,17 +47,14 @@ $data{'system'}{'process_start'} = {
     if not exists $data{'system'}{'process_start'};
 
 # maximizing open files limit
-
-my ( $of_cur, $of_max, $rl_success ) = getrlimit('RLIMIT_NOFILE');
-if ( !$rl_success ) {
-    warn "getrlimit('RLIMIT_NOFILE') failed [$!]";
-} elsif ( $of_cur != $of_max ) {
+my ( $of_cur, $of_max ) = getrlimit( BSD::Resource::RLIMIT_NOFILE() );
+if ( $of_cur != $of_max ) {
     <[base.log]>->( 2, ": open files limit increased [$of_cur->$of_max]" );
-    setrlimit( 'RLIMIT_NOFILE', $of_max, $of_max )
+    setrlimit( BSD::Resource::RLIMIT_NOFILE(), $of_max, $of_max )
         or warn "setrlimit <$of_max> failed [$!]";
 }
-( $data{'system'}{'limits'}{'ofile'} ) = getrlimit('RLIMIT_NOFILE')
-    if $rl_success;
+$data{'system'}{'limits'}{'ofile'}
+    = [ getrlimit( BSD::Resource::RLIMIT_NOFILE() ) ]->[1];
 
 $data{'system'}{'host'} = {
     'os'       => { 'name' => $^O },
@@ -214,7 +211,7 @@ if (    exists $data{'setup'}
 return 0;
 
 # ______________________________________________________________________________
-#\\BESNW3M2B3WFQARPWH6U7ZCU4NGXZPAJEJ7KWSYUZIT3G3CCLQGOXXFEMBTYRWQBZUR2AQWJABFSQ
-# \\ XA54D6FZ4Z3KBKHK4BGIFW24N7REZBFEBZV2HPFTDUKT5M3QHR6V \\// C25519-BASE-32 //
-#  \\// 5UAW4BFHQB3SSBBD752CTU3EKYJ7XRW55TN7XSGLEIRNND7YQAY \\ CODE SIGNATURE \\
+#\\PVPUT3IOW2OSLO4VNMX62L7E5QAYQQ6THXJJ4VO4PQ2KLM3QTUMMCOJYAETR4AC4INMA2U5HMMKGS
+# \\ EC7X3JWQQSLTENWQGYWBHOHFWN4ACCQWUJC7DMCUMOJ4V4EE2LJU \\// C25519-BASE-32 //
+#  \\// 2OT6N3KBC2GTNF6CSR6YS56WMH55DJ2BSF5SWICWMHCLY74OACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
