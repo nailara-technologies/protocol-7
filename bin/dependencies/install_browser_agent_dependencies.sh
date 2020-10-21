@@ -25,7 +25,6 @@ cpanm Crypt::Ed25519 Digest::Skein Glib::Event
 cpanm $NAILARA_ROOT/lib/pm-src/crypt-curve25519  # until fmul issue fixed upstr.
 cd $NAILARA_ROOT && git clean -fxd $NAILARA_ROOT/lib/pm-src
 
-cpanm --force POSIX::1003      # <- temporary <!> ( localtime test fails .. )
 cpanm --force XML::RSS::Timing # <- temporary forced [date_conv test fails] <!>
 
 #>-- HTTP::Soup
