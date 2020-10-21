@@ -31,6 +31,4 @@ cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite \
 cpanm $NAILARA_ROOT/lib/pm-src/crypt-curve25519  # until fmul issue fixed upstr.
 cd $NAILARA_ROOT && git clean -fxd $NAILARA_ROOT/lib/pm-src
 
-cpanm --force POSIX::1003 # <- temporary forced (localtime test fails) <<!>>
-
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
