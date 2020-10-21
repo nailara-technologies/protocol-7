@@ -15,20 +15,26 @@ my ( $module_name, @export ) = @_;
 eval { autoload( $module_name, @export ) };
 return 1 if !$@;
 
-# failed #
+# load error #
 <base.perlmod.loaded>->{$module_name} = 0;
+
+( my $reason = $@ ) =~ s| at .+$||sg;
+
 if ( !<base.perlmod.auto_install> ) {
     <[base.log]>->(
-        0,
-        "<<!>> failed load perl module '$module_name',"
-            . " auto_install is disabled <<!>>"
+        0, "<<!>> error while loading perl module '$module_name' <<!>>"
+    );
+    <[base.log]>->( 2, "  : [ ' $reason ' ]" );
+    <[base.log]>->(
+        2, "  :. << module auto_install is not enabled, doing nothing >>"
     );
     return 0;
 }
 
 <[base.log]>->(
-    2, ": <!> loading of '$module_name' failed but auto_install is enabled.."
+    2, ": <!> error while loading '$module_name' [ auto_install enabled ]..,"
 );
+<[base.log]>->( 2, ":. [ ' $reason ' ]" );
 
 # auto install #
 <[base.perlmod.install]>->($module_name);
@@ -38,7 +44,7 @@ die "<<!>> unable to automatically install perl module '$module_name' <<!>>\n"
     if $@;
 
 # ______________________________________________________________________________
-#\\YVPJMTQDB5RSDAZRF5YDODCIJRWMZNQ3UK7Y2WITSUD7WEQAYE6HDS4EMXE2P3IO77GW2NG7JJMR2
-# \\ TSURMKK5PLNP7SF3NYZV2B5OKXKAODCXPVUHWIXKZKWLODHHAKKX \\// C25519-BASE-32 //
-#  \\// VBOA6AAXWNKCE2F6SJPIPQDL22WRE7XZW7ZX3HGPODIPFSTDEBQ \\ CODE SIGNATURE \\
+#\\6P4Z6UNMOMEPOEZ2WUYGVRA4AEWTXZRELKGDL44WC7XO6VAM4DWJJF6IJ4R6VF5TBPIPU3KZ56I2G
+# \\ JD5576VUIEAVD4LBSNQ6IGX5WSGHDUCDDP3H6ZFOR5YU7RV3Q6NW \\// C25519-BASE-32 //
+#  \\// 66O3FIBRNQWXJ3VYJ5MEK2ZNKQYP2MA4V2USKYNY5VWVEP4C6CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
