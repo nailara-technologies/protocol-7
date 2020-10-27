@@ -1,17 +1,30 @@
 # >:]
 
 # name  = core.cmd.ntime-b32
+# param = [precision|unix]
 # descr = return nailara network time in base32
 
-my $param = $$call{'args'} // '';
+my $parameter = $$call{'args'} // 0;
+
+return {
+    'mode' => 'nak',
+    'data' => 'precision\time parameter not valid [ integer or float expected ]'
+    }
+    if $parameter !~ /^\d+(\.\d+)?$/;
+
+my $fp_time = $parameter =~ s|(\.\d+)$|| ? $1 : undef;
+
+my $nt = <[base.ntime]>->($parameter);    # <-- precision or unix time
+
+$nt .= $fp_time if defined $fp_time;
 
 return {
     'mode' => 'ack',
-    'data' => encode_b32r( pack( 'w', <[base.ntime]> ) )
+    'data' => encode_b32r( pack( 'w*', split /\./, $nt ) )
 };
 
 # ______________________________________________________________________________
-#\\KZHG6EKMAFZ35JBJSLF2SVNOU4MAHFLF6TRPNGOBY2DW32E5FQ33ZCXKKSPA3ZEBQOOTCQ2J3CRRG
-# \\ YDXPOG7SMDYAIN5L5P6EWVU4TA5HPT2J6G3UFKBSAN753P6LFWFV \\// C25519-BASE-32 //
-#  \\// 2YW3QDNRXKCLF6LICJFORMPDSOSF7PHGEOETUK6CORPOCYNCMAQ \\ CODE SIGNATURE \\
+#\\OPDLHOE37ZDFOXWHXA2MHT7EYXUX7QIKSRBRNXFZFRCXWVKQAWHX2UWYV7NVNFILNG5TWHYTKGSOQ
+# \\ CTHG3TPLCJWAH6D3DBCKYT2MEWFPROJUGTONAG7JDDUL2ZWKXT3L \\// C25519-BASE-32 //
+#  \\// 7PN5TOP2UFJMXRHLOV2L4CPK465UAAHEMXD3ZUJEPEWZM2NHCBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
