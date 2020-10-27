@@ -6,14 +6,18 @@
 
 my $unix_time = $$call{'args'} // time();
 
-my $utime_decoded;
+my $ntime_decoded;
 my $utime_copy = $unix_time;
-eval { $utime_decoded = decode_b32r($unix_time) }
+
+## ntime base32 case ##
+eval { $ntime_decoded = decode_b32r($unix_time) }
     if $unix_time =~ m|[A-Z]|
-    and length($unix_time) == 10;
-$unix_time = unpack( 'w', $utime_decoded )
-    if defined $utime_decoded;
-$unix_time = $utime_copy    # <<[?]>> deal with rare false positives <<[?]>>
+    and length($unix_time) >= 10;
+
+$unix_time = join( '.', unpack( 'w*', $ntime_decoded ) ) ## needs error handling
+    if defined $ntime_decoded; ## <-- contains network time [arbitary precision]
+
+$unix_time = $utime_copy       # <<[?]>> deal with false positives <<[?]>>
     if $$call{'args'} =~ m|[A-Z]| and ( not defined $unix_time or $@ );
 
 return {
@@ -23,9 +27,11 @@ return {
     if $@
     or not defined $unix_time
     or $unix_time !~ /^\d{1,17}(\.\d{1,20})?$/;
-$unix_time = int($unix_time) if $unix_time =~ /\./;
 
-$unix_time = <[base.n2u_time]>->($unix_time) if length($unix_time) >= 13; # <-nt
+$unix_time = <[base.n2u_time]>->($unix_time)
+    if length( int($unix_time) ) >= 13;    # <-- nailara network time
+
+my $subseconds = $unix_time =~ s|(\.\d+)$|| ? $1 : undef;
 
 return {
     'mode' => 'nak',
@@ -34,6 +40,10 @@ return {
     if $unix_time > 67767976233316804;
 
 my $ltime_str = scalar localtime $unix_time;
+
+$ltime_str =~ s| (\d\d:\d\d:\d\d) (\d{4})$| $2 $1|; # swapping time with year ##
+
+$ltime_str .= " [ +0${subseconds} ]" if defined $subseconds;
 
 return {
     'mode' => 'nak',
@@ -47,7 +57,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\ATTJKMN6WBKNOUWZWTRPE6DP7YGXXRNJZKBUUBJFFOTBKS66W6OR6ZV3JYHBW7TQRC3OJ57ZXL2HY
-# \\ RIQMJ74RJAHXEIC467JSRB3WDCBG6N7K3MMO4QIM27LPF3PCDMQB \\// C25519-BASE-32 //
-#  \\// QGY6YVDGWY7EBUR25LZOLPYSA65IQRINRD4TTELVVDFWNGH3UBY \\ CODE SIGNATURE \\
+#\\NRG2QFKT54TQQQNOPOMJ7YHAXN66F4JWSTBD6RXXVMOZSYXCTXRU3YX4KR3MQCFBHRFZVU3GPF5RO
+# \\ IHWEDMCW6KJSUXR5XE7ITVQCD5J4ONAAYBZRYT7AJBTAQKFRW6CU \\// C25519-BASE-32 //
+#  \\// IYSHV6TLXJHAJ6KX2YK6SHCJIGFJLTVOULUPCH3PK3ZLAJ5Z4DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
