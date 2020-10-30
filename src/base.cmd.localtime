@@ -14,10 +14,13 @@ eval { $ntime_decoded = decode_b32r($unix_time) }
     if $unix_time =~ m|[A-Z]|
     and length($unix_time) >= 10;
 
-$unix_time = join( '.', unpack( 'w*', $ntime_decoded ) ) ## needs error handling
-    if defined $ntime_decoded; ## <-- contains network time [arbitary precision]
+if ( defined $ntime_decoded ) { ## contains network time with arbitary precision
+    my @nt_val = unpack( 'w*', $ntime_decoded );
+    $nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
+    $unix_time = join( '.', @nt_val )        ## needs error handling
+}
 
-$unix_time = $utime_copy       # <<[?]>> deal with false positives <<[?]>>
+$unix_time = $utime_copy    # <<[?]>> deal with false positives <<[?]>>
     if $$call{'args'} =~ m|[A-Z]| and ( not defined $unix_time or $@ );
 
 return {
@@ -57,7 +60,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\NRG2QFKT54TQQQNOPOMJ7YHAXN66F4JWSTBD6RXXVMOZSYXCTXRU3YX4KR3MQCFBHRFZVU3GPF5RO
-# \\ IHWEDMCW6KJSUXR5XE7ITVQCD5J4ONAAYBZRYT7AJBTAQKFRW6CU \\// C25519-BASE-32 //
-#  \\// IYSHV6TLXJHAJ6KX2YK6SHCJIGFJLTVOULUPCH3PK3ZLAJ5Z4DY \\ CODE SIGNATURE \\
+#\\6ZIRSMODUSQ62FA3SBVQAQE6OA5AHGL2SOOYGOHOUGTY3I55ATNOIANXXUZAXEU43MGLXWTRAS3YC
+# \\ SPJGHUJA624HHMMVOXS3Z5JTAQZCMRENAPBMZVQNFSJ3L4K4HVA7 \\// C25519-BASE-32 //
+#  \\// H6XVPDFVKIVRMB6EZ2KKWMDPGHF5XLLT3ZXWB5JHC2GF6EEMODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
