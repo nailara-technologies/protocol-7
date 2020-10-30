@@ -12,11 +12,9 @@ return {
     }
     if $parameter !~ /^\d+(\.\d+)?$/;
 
-my $fp_time = $parameter =~ s|(\.\d+)$|| ? $1 : undef;
-
 my $nt = <[base.ntime]>->($parameter);    # <-- precision or unix time
 
-$nt .= $fp_time if defined $fp_time;
+$nt =~ s|\.(\d+)$|.7$1|;  ## <-- special encoding to keep 0 prefixes in unpack()
 
 return {
     'mode' => 'ack',
@@ -24,7 +22,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\OPDLHOE37ZDFOXWHXA2MHT7EYXUX7QIKSRBRNXFZFRCXWVKQAWHX2UWYV7NVNFILNG5TWHYTKGSOQ
-# \\ CTHG3TPLCJWAH6D3DBCKYT2MEWFPROJUGTONAG7JDDUL2ZWKXT3L \\// C25519-BASE-32 //
-#  \\// 7PN5TOP2UFJMXRHLOV2L4CPK465UAAHEMXD3ZUJEPEWZM2NHCBI \\ CODE SIGNATURE \\
+#\\SFT47JHMPZTJIPAYGYQT3CICFOLEX6Y5SFAISRP6KT7447R5Z4SFCSTN4CHLVR2Y5JH43FZCPRBAA
+# \\ 7UDFJHPCE4GSTL7ESCQT2PYHSRSABIUECJBFUA66JLEHZJKGFICH \\// C25519-BASE-32 //
+#  \\// 65QW32XYDSQESB7BVBFRZLNDKEFZZW42M53BXRP23QJAWGPD2BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
