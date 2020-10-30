@@ -125,7 +125,7 @@ sub prepare_subs {
     $code{'base.init_exec'} = sub {
 
         use utf8;
-        use constant 'τ'  => 6.28318530717958647692;
+        use constant 'τ'   => 6.28318530717958647692;
         use constant 'tau' => 'τ';
 
         use File::Spec::Functions;
@@ -139,8 +139,8 @@ sub prepare_subs {
         $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
         my $apparent_exec = File::Spec->rel2abs( canonpath($0) ); # is a symlink
-        my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
-        my $bin_path    = [ File::Spec->splitpath($apparent_exec) ]->[1];
+        my $actual_exec   = abs_path( catfile( $RealBin, $RealScript ) );
+        my $bin_path      = [ File::Spec->splitpath($apparent_exec) ]->[1];
         $data{'system'}{'start'}{'exec_name'} = $apparent_exec;
         $data{'system'}{'start'}{'true_exec'} = $actual_exec;
         $data{'system'}{'root_path'} = abs_path( catdir( $bin_path, updir() ) );
@@ -349,8 +349,8 @@ sub prepare_subs {
             or not defined $len_param
             or $len_param =~ m|^\d+$| and $len_param < 5;
         my $by_reference = ref($str_param) eq 'SCALAR' ? 1 : 0;
-        my $str_ref = $by_reference ? $str_param : \$str_param;
-        my $str_len = length($$str_ref);
+        my $str_ref      = $by_reference ? $str_param      : \$str_param;
+        my $str_len      = length($$str_ref);
         return 0          if $by_reference and $str_len <= $len_param;
         return $str_param if $str_len <= $len_param;
         my $start_pos = int( $len_param / 2 ) - 1;
@@ -395,7 +395,7 @@ sub prepare_subs {
             my $abs_url = join( '/', $http_base_url, $file_name );
             $abs_url =~ s|//$file_name$|/$file_name|;
             my $h_res;
-            my $retries      = $data{'system'}{'http_retries_total'} //= 0;
+            my $retries = $data{'system'}{'http_retries_total'} //= 0;
             my $retries_left = $http_retries;
             while ( $retries_left-- ) {
                 my $r = $retries ? "[$retries\\$http_retries]" : '';
@@ -642,11 +642,11 @@ sub prepare_subs {
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
                             |\$code{'$1'}->(|sgxo;
 
-                   # warn: this parser currently doesn't respect quoted strings
-                   #       escape like \<[sub.name]> <-- this to avoid a match!
-                   #
-                   # note: a generic quoted string match would be :  ##########
-                   # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
+                    # warn: this parser currently doesn't respect quoted strings
+                    #       escape like \<[sub.name]> <-- this to avoid a match!
+                    #
+                    # note: a generic quoted string match would be :  ##########
+                    # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
 
                     # <[sub_name]>  -->  $code{'sub_name'}->()
                     $data{'code'}{$file_name}{'source'}
@@ -895,14 +895,34 @@ sub prepare_subs {
             my $seperator_len
                 = 18 + length( $data{'system'}{'agent'}{'name'} );
             map { $code{'base.buffer.add_line'}->( 'agent', $_ ) } (
-                join( ' ', $code{'base.ntime'}->(3), 1, '_' x $seperator_len ),
-                $code{'base.ntime'}->(3)
+                join( ' ',
+                    $code{'base.log_timestamp'}->(), 1,
+                    '_' x $seperator_len ),
+                $code{'base.log_timestamp'}->()
                     . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
-                $code{'base.ntime'}->(3)
+                $code{'base.log_timestamp'}->()
                     . " 1 VERSION '$data{nailara}{source_version}'"
             );
         }
         return ( $ok_count, $err_count );
+    };
+
+    $code{'base.log_timestamp'} = sub {
+        my $ntime_value = $code{'base.ntime'}->(3);    # <-- make configurable
+
+        # printf "\n < %s >\n\n", $ntime_value;
+
+        my $load_errors = $data{'modules'}{'startup_error'} //= {};
+        $load_errors->{'base32'} //= 0;
+        if ( !$load_errors->{'base32'} and not defined &encode_b32r ) {
+            eval { use Crypt::Misc 'encode_b32r' };
+            $load_errors->{'base32'} = 1 if $@ or not defined &encode_b32r;
+        } elsif ( defined &encode_b32r ) {
+            my @nt = split( /\./, $ntime_value );
+            $nt[1] = '7' . $nt[1] if scalar @nt == 2; # <-- 7 catches prefixed 0
+            return encode_b32r( pack( 'w*', @nt ) );
+        }
+        return $ntime_value;
     };
 
     $code{'base.collect_sub_stats'} = sub {
@@ -1024,7 +1044,7 @@ sub prepare_subs {
                     $s_len //= 0;
                     my $spaces  = ' ' x $s_len;
                     my $msg_str = $_ . $spaces;
-                    my $n_n     = $data{'system'}{'node'}{'name'} // '';
+                    my $n_n     = $data{'system'}{'node'}{'name'}  // '';
                     my $a_n     = $data{'system'}{'agent'}{'name'} // '';
                     say ':.', $n_n, $dot, $a_n, '.', $ANSI{'bold'} // '',
                         $msg_str,
@@ -1135,7 +1155,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\H7GCNOGP66IL53WXTLGS5A3YGXSGOO75FHXPDHDXGPEEHSOLHXUN32PULXNZAPCINK3QEAEULRCK2
-# \\ CSUVKA7KVE2P2GRKUCW7EOIDP3DWTJEXCOEXNSSAXHNM6REJA6M2 \\// C25519-BASE-32 //
-#  \\// R22FRJKPOOEJKSPJVXUHTRSHN7G6LIIHGLYMPHDXFJEXAHAGQAQ \\ CODE SIGNATURE \\
+#\\V5NZFHMYUNRKXBA7PK2RUNQDBRC4MGFQF6P6FOIOXXTRB4NLVAARETVP3EREVNDUOVLQF6BXGFLG6
+# \\ 6TLUJGU54GYGJXVBO6V6SGAFEZ7BF3XWKGLQ2RYP4QBZYRLAOCMP \\// C25519-BASE-32 //
+#  \\// 5LVVXDB3P5BTFPECZV5ADROSCRLFLMCBUUIHETJYIMBEINZ5UAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
