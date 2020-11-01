@@ -383,7 +383,7 @@ sub prepare_subs {
             if $@;
         $data{'system'}{'http_reqs'}++;
         my $file_name = shift // '';
-        my $base_urls = shift // ['http://src.nailara.net/'];
+        my $base_urls = shift // ['https://nailara.network/sourcecode/'];
         warn "expected http file name" and return undef
             if !length($file_name);
         warn "expected array ref to base urls" and return undef
@@ -529,7 +529,7 @@ sub prepare_subs {
         my @http_src_base_urls
             = ref($base_url_aref) eq 'ARRAY'
             ? @{$base_url_aref}
-            : qw| http://src.nailara.net/ http://src.v7.ax/nailara/ |;
+            : qw| http://nailara.network/sourcecode http://src.v7.ax/nailara/ |;
 
         my $src_from_http = (
             ( $data{'system'}{'use_http_source'} // 0 )
@@ -1155,7 +1155,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\V5NZFHMYUNRKXBA7PK2RUNQDBRC4MGFQF6P6FOIOXXTRB4NLVAARETVP3EREVNDUOVLQF6BXGFLG6
-# \\ 6TLUJGU54GYGJXVBO6V6SGAFEZ7BF3XWKGLQ2RYP4QBZYRLAOCMP \\// C25519-BASE-32 //
-#  \\// 5LVVXDB3P5BTFPECZV5ADROSCRLFLMCBUUIHETJYIMBEINZ5UAA \\ CODE SIGNATURE \\
+#\\RNCBVIZY6DNLPW6U5GNLWZFUJ6VM7J2D2MLEHACOMOZ6YDM3YU43YYXW6E6BIC5NVBPZDKD3AFFDS
+# \\ KFGUNSEVYV3I6JFAEBYFIU6ZEUINMLFXZSALY5VHB2JCO35UJCU7 \\// C25519-BASE-32 //
+#  \\// ETM75K4TXUVYZMDQCXGHVBSOHMRDAZ3DCTYKERHNM7CN5QNYOCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
