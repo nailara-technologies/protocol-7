@@ -28,7 +28,7 @@ my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "$command_route.heart",
-        'call_args' => { 'args' => 'notime', 'session_id' => $root_sid },
+        'call_args' => { 'args' => 'notime' },
         'reply'     => {
             'handler' => 'nroot.handler.status_timer_response',
             'params'  => { 'instance_id' => $instance_id }
@@ -40,7 +40,7 @@ delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 # ______________________________________________________________________________
-#\\4NCBR3VZK7N626L6HDL6OCY33EFPE7LZBPQEA3MQ2SV66MWPAPIKCWK2OSNP3NCZPJCLUVQGMFMQ4
-# \\ FR6X4KJXYXAZCKN5IVXJ4RHWZVDAKRPFLIEZGAWZSI4N3BD7QS2S \\// C25519-BASE-32 //
-#  \\// 7IF2OO4FCLNB2KMZLVEC6W3DPSRO4CFDZEAQE3IE7D5Z44ZCSAA \\ CODE SIGNATURE \\
+#\\WKD2QBA5YCWF2TQLG6XFBGGLTGPUL55UC6ND5JQFGKS3Q64AJ6YVGY2OGRWL4Q6LLACSJKXO4EBKA
+# \\ PHNT732GTYKHWVZDBO2BW3CIELAZHNFIENEUP4MQPYRXPDXQJGQM \\// C25519-BASE-32 //
+#  \\// SCXHBAL2KWC75KSXA57TCQUOJTSINDNAFCQWY37DXMJEHWQ6CAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

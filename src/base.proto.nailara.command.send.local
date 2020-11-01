@@ -11,31 +11,15 @@ die "'command' parameter expected" if not defined $cmd;
 
 return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
 
-if ( not defined $$call_args{'session_id'} and $cmd =~ /^([^\.]+)\./ ) {
-    my $target_usr = $1;
-    if ( keys( %{ $data{'user'}{$target_usr}{'session'} } ) == 1 ) {
-        ( $$call_args{'session_id'} )
-            = keys %{ $data{'user'}{$target_usr}{'session'} };
-    } elsif ( exists $data{'session'}{$target_usr} ) { # [numerical (sid) route]
-        $$call_args{'session_id'} = $target_usr;
-    } else {
-        foreach my $_sid ( keys %{ $data{'user'}{$target_usr}{'session'} } ) {
-            $$call_args{'session_id'} = $_sid
-                if $data{'session'}{$_sid}{'user'} eq $target_usr;
-        }
-    }
-}
-return -1 if not defined $$call_args{'session_id'};
+if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
-my $cmd_id        = <[base.gen_id]>->( $data{'route'} );
-my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
-my $reply_params  = ${ $_[0] }{'reply'}{'params'};
-
-if ( $cmd =~ s/^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$/$2/go ) {
+    my $cmd_id        = <[base.gen_id]>->( $data{'route'} );
+    my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
+    my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
     my $target_name = $1;
 
-    #LLL: needs error handling on unknown target!
+    #LLL: needs error handling on unknown target !!!
 
     # send to all clients with that session id (or username [group mode])
     my @send_sids;
@@ -76,7 +60,7 @@ if ( $cmd =~ s/^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$/$2/go ) {
         $src_name .= '[' . <system.agent.subname> . ']'
             if exists <system.agent.subname>;
 
-        # LLL: implement (debug) watch and filter patterns for command logging
+        # LLL: implement [ debug ] watch and filter patterns for command logging
         if (   <system.verbosity> >= 2
             or <system.internal_verbosity> >= 2 ) {
             <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" )
@@ -136,7 +120,7 @@ if ( $cmd =~ s/^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$/$2/go ) {
 }
 
 # ______________________________________________________________________________
-#\\V3HAU4B2RSGGLALY4SPPPA4CGCNS4DB35ISARAAXF5RHZFEGIA6OBW3PQACQKVZB3W4ILD7J42O4I
-# \\ WBPZRQFLZM6HMEQQ336QY2CRWAIKVJDA6RFCWBWMV5F6E2LGJBLS \\// C25519-BASE-32 //
-#  \\// YSXU2DNXV2JF5VCPYZQC2QSPSFX3EZKMUGHNJXYQXXXDRJF76DQ \\ CODE SIGNATURE \\
+#\\RXWNEBBEJBNJMVOP536IWGK62K7VE7GO4SQ6HMOJGSM64NVFZJR7BKPRVHLIQR4HJLQ2NC2REXOYA
+# \\ ONTFRZCQ3TQLBFOBD6VQEQDNMQGFOSHXMKU2TXDI74PUS3M65SR6 \\// C25519-BASE-32 //
+#  \\// PAWZLKA7M7EWIIE52YZTPGSN6A4TD56AUUQRLAFO6FKOYIGJMCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

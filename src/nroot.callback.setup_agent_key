@@ -6,18 +6,15 @@ my ( $instance_id, $agent_name, $agent_key ) = @_;
 
 my $instance_data = <nroot.agent.instance>->{$instance_id};
 
-# take first one ( for now! )
+# take first one [ for now ]
 my ($root_sid) = keys %{ $data{'session'} };
 die "no valid session defined yet [ can not determine root_sid ]"
     if not defined $root_sid;
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "$root_sid.session-key",
-        'call_args' => {
-            'session_id' => $root_sid,
-            'args'       => "$agent_name $agent_key"
-        },
-        'reply' => {
+        'call_args' => { 'args' => "$agent_name $agent_key" },
+        'reply'     => {
             'handler' => 'dev.null',
             'params'  => {}
         }
@@ -25,7 +22,7 @@ die "no valid session defined yet [ can not determine root_sid ]"
 );
 
 # ______________________________________________________________________________
-#\\FEKXIQZGGVDJZGL2JWLF43V6OXDJJOYYHQI3GWYIDFWAUOCVW244UUTE5KNJK5HKIBOAAQUBBVN6W
-# \\ REI6PKDBVSQGMETDEBTIDV6XMGKGPH5IPRWRB2CV5FYT2P4ZIEXX \\// C25519-BASE-32 //
-#  \\// 7P2QYN23BJSQKWESHY7NPMU3BI7VGGRWKZEVXCOB524TNRPEABI \\ CODE SIGNATURE \\
+#\\IJOQOXFTE6Q652JJEVXZ76MEQ63JS6DJXBIJKVSZOT4MSOYTHPOTUNMKRWSICABDP45H7JMXEMWZY
+# \\ D6UFB7K7KQWX7NZ7QSQPOEPULBJEYUPIIFX2PF4IP5XL65J3YDQF \\// C25519-BASE-32 //
+#  \\// MK4KNYT2ZPVX5PSU54L23JY4JWEINLOI6PDHHMMPDVEWWGSDEAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
