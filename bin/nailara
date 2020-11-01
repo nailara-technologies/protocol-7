@@ -374,6 +374,13 @@ sub prepare_subs {
     };
 
     $code{'base.httpc.remote_file'} = sub {
+
+        $data{'base'}{'warned'}{'http_src_deactivated'} //= 0;
+        warn "source loading over http has been temporarely deactivated"
+            if !$data{'base'}{'warned'}{'http_src_deactivated'}++;
+
+        return undef;    ## feature temporarely deactivated ##
+
         return undef if !( $data{'system'}{'use_http_source'} // 1 );
         my $http_retries = $data{'system'}{'http_src_retries'} // 4;
         eval { use HTTP::Tiny }             if !$data{'system'}{'http_reqs'};
@@ -1155,7 +1162,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\RNCBVIZY6DNLPW6U5GNLWZFUJ6VM7J2D2MLEHACOMOZ6YDM3YU43YYXW6E6BIC5NVBPZDKD3AFFDS
-# \\ KFGUNSEVYV3I6JFAEBYFIU6ZEUINMLFXZSALY5VHB2JCO35UJCU7 \\// C25519-BASE-32 //
-#  \\// ETM75K4TXUVYZMDQCXGHVBSOHMRDAZ3DCTYKERHNM7CN5QNYOCI \\ CODE SIGNATURE \\
+#\\UJOU2FINBOECDB2P5CSS4DQFFW3A2JAHU47RJ6DVB2JZL5762Y6WG6QRTYPVET3EZQPEO55QU4G7U
+# \\ ET4VB5O2BGH7GQCPEZHRIILUPJDKSG2K2PE23Y2UEBJNBYWAWF5C \\// C25519-BASE-32 //
+#  \\// HQCPYD3JBRQKENGO366RXU5Y6G4OSZ6A3ZUUSTUYVILDADN72DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
