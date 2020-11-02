@@ -110,6 +110,38 @@ sub prepare_subs {
         return sprintf( "%.${precision}f", ( $cur_time - $ntime ) * 4200 );
     };
 
+    $code{'base.ntime.b32'} = sub {
+        my $ntime_value = $code{'base.ntime'}->(shift);  # <-- precision \ utime
+        my @nt          = split( /\./, $ntime_value );
+        $nt[1] = '7' . $nt[1] if scalar @nt == 2;    # <-- 7 catches prefixed 0
+        return encode_b32r( pack( 'w*', @nt ) );
+    };
+
+    $code{'base.load_b32_encoder'} = sub {
+        if (    not defined &encode_b32r
+            and not defined $data{'modules'}{'startup_error'}{'base32'} ) {
+            eval { use Crypt::Misc qw| encode_b32r | };
+            if ( $@ or not defined &encode_b32r ) {
+                $data{'modules'}{'startup_error'}{'base32'} = 1;
+                return 0;                            # module not found ##
+            } else {
+                return 1;                            ## loading successful ##
+            }
+        } else {
+            return 1;    ## function already present ##
+        }
+    };
+
+    $code{'base.anum_log_time'} = sub {
+        my $nt_param = shift // 3; # <-- LLL: make configurable, precision\utime
+        if ( &{ $code{'base.load_b32_encoder'} } ) {
+            return $code{'base.ntime.b32'}->($nt_param);
+        } else {
+            my $ntime_value = $code{'base.ntime'}->($nt_param);
+            return $ntime_value;
+        }
+    };
+
     $code{'base.log_prefix_width'} = sub {
         ( my $agent_name, my $agent_subname ) = @_;
         $agent_name //= $data{'system'}{'agent'}{'name'};
@@ -157,14 +189,12 @@ sub prepare_subs {
         my $ver_str = $data{'nailara'}{'source_version'} = 'unknown';
         my $version_file
             = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
-
         if ( -e $version_file and open( my $ver_fh, '<' . $version_file ) ) {
             ( $data{'nailara'}{'source_version'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
         }
-        my $release_file
-            = catfile( $data{'system'}{'conf_path'},
+        my $release_file = catfile( $data{'system'}{'conf_path'},
             'nailara.release_version' );
         if ( -e $release_file and open( my $ver_fh, '<' . $release_file ) ) {
             ( $data{'nailara'}{'release_version'} = $ver_str = <$ver_fh> )
@@ -211,10 +241,9 @@ sub prepare_subs {
                 $code{'log.error'}->('<< in cli mode >>');
             }
             if ( $arg eq '-na' ) { $data{'system'}{'ansi_color'} = 0 }
-            if ( $arg eq '-nb' ) { $data{'system'}{'start'}{'showbanner'} = 0 }
-            if ( $arg =~ /^-N(.+)$/ ) {
-                $data{'system'}{'agent'}{'name'} = $1;
-            } elsif ($stdin_mode) {
+            if ( $arg eq '-nb' ) { $data{'system'}{'start'}{'showbanner'} = 0; }
+            if ( $arg =~ /^-N(.+)$/ ) { $data{'system'}{'agent'}{'name'} = $1; }
+            elsif ($stdin_mode) {
                 $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
             if ( $arg =~ /^-lpw=(\d{1,2})$/ ) {    # <- used by 'nroot' agent
@@ -474,9 +503,10 @@ sub prepare_subs {
         my $chk_path = shift // '';
         my $d_aref   = shift // [qw| ext/ / |];
         my $base_dir = shift // $data{'system'}{'root_path'} // '';
-        die "no base_dir defined"                   if !length($base_dir);
-        die "chk_path argument expected"            if !length($chk_path);
-        die "expected array ref as second argument" if ref($d_aref) ne 'ARRAY';
+        die "no base_dir defined"        if !length($base_dir);
+        die "chk_path argument expected" if !length($chk_path);
+        die "expected array ref as second argument"
+            if ref($d_aref) ne 'ARRAY';
 
         if ( $data{'system'}{'use_http_source'} ) {
             return $chk_path
@@ -903,33 +933,15 @@ sub prepare_subs {
                 = 18 + length( $data{'system'}{'agent'}{'name'} );
             map { $code{'base.buffer.add_line'}->( 'agent', $_ ) } (
                 join( ' ',
-                    $code{'base.log_timestamp'}->(), 1,
+                    $code{'base.anum_log_time'}->(), 1,
                     '_' x $seperator_len ),
-                $code{'base.log_timestamp'}->()
+                $code{'base.anum_log_time'}->()
                     . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
-                $code{'base.log_timestamp'}->()
+                $code{'base.anum_log_time'}->()
                     . " 1 VERSION '$data{nailara}{source_version}'"
             );
         }
         return ( $ok_count, $err_count );
-    };
-
-    $code{'base.log_timestamp'} = sub {
-        my $ntime_value = $code{'base.ntime'}->(3);    # <-- make configurable
-
-        # printf "\n < %s >\n\n", $ntime_value;
-
-        my $load_errors = $data{'modules'}{'startup_error'} //= {};
-        $load_errors->{'base32'} //= 0;
-        if ( !$load_errors->{'base32'} and not defined &encode_b32r ) {
-            eval { use Crypt::Misc 'encode_b32r' };
-            $load_errors->{'base32'} = 1 if $@ or not defined &encode_b32r;
-        } elsif ( defined &encode_b32r ) {
-            my @nt = split( /\./, $ntime_value );
-            $nt[1] = '7' . $nt[1] if scalar @nt == 2; # <-- 7 catches prefixed 0
-            return encode_b32r( pack( 'w*', @nt ) );
-        }
-        return $ntime_value;
     };
 
     $code{'base.collect_sub_stats'} = sub {
@@ -1162,7 +1174,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\UJOU2FINBOECDB2P5CSS4DQFFW3A2JAHU47RJ6DVB2JZL5762Y6WG6QRTYPVET3EZQPEO55QU4G7U
-# \\ ET4VB5O2BGH7GQCPEZHRIILUPJDKSG2K2PE23Y2UEBJNBYWAWF5C \\// C25519-BASE-32 //
-#  \\// HQCPYD3JBRQKENGO366RXU5Y6G4OSZ6A3ZUUSTUYVILDADN72DQ \\ CODE SIGNATURE \\
+#\\WE5WYQ2RYU72U2ISAZK2UCHHCFUVXPCJTMCSPN5HMNZSVF6HAJIO6L6IL4HTCSGTOJMWJOS73MS7I
+# \\ WDNLWV6OWB2ZLGJOJKV4TAPLMN2PY5PAHWNC6VPUTSB77C3EXQKC \\// C25519-BASE-32 //
+#  \\// MYL7MWT26GGKPH5Z6RRHK7GNVFOHC4WPU6X4XRIXMMLVRGUXCBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
