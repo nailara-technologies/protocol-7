@@ -3,7 +3,7 @@
 # name  = history.cmd.append
 # param = <log-data>
 # descr = write a log message to the addressed log file
-# todo  = implement buffered write [ instead of line by line ]
+# todo  = buffered write [ instead of line by line ], cleanup log time handling
 
 my ($node_agent, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
@@ -45,28 +45,33 @@ if ( defined $err_msg ) {
 
 # note : log_time is accepted in unix or nailara network time : ntime == default
 
-my $default_mode = 'ntime';
+my $default_mode = 'ntime-b32';
 <log.timestamp_mode> //= $default_mode;
 
 my $log_file = "$node_agent.$buffer_name";
 
 ## input ##
 
-if ( <log.timestamp_mode> !~ /^localtime|ntime|unix/ ) {
+if ( <log.timestamp_mode> !~ /^localtime|ntime-b32|ntime-num|unix/ ) {
     <[base.log]>->(
         0, "invalid timestamp mode '" . <log.timestamp_mode> . "' configured"
     );
-    <[base.log]>->( 1, "setting timestamp mode '$default_mode' [fallback]" );
+    <[base.log]>->( 1, "setting timestamp mode '$default_mode' [ fallback ]" );
     <log.timestamp_mode> = $default_mode;
-} elsif ( $log_time !~ /^(\d{1,17})(\.\d+)?/ ) { # invalid time value -> current
-    $log_time = <[base.ntime]>;                  # TODO: deliver warning _once_!
-} elsif ( length($1) < 13 ) {                    # unix time input value
+} elsif ( $log_time !~ m|^[A-Z0-9]+$| and $log_time !~ m|^(\d{1,17})(\.\d+)?| )
+{    # invalid time value -> setting to current
+    $log_time = <[base.ntime]>;    # TODO: deliver warning _once_!
+} elsif ( defined $1 and length($1) < 13 ) {    # unix time input value
     $log_time = <[base.ntime]>->($log_time);
 }
 
 ## output ##
 
-if ( <log.timestamp_mode> eq 'unix' ) {          # output in unix time
+if ( <log.timestamp_mode> eq 'ntime-b32' ) {    # alphanumeric network time
+
+    $log_time = <[base.ntime.b32]>->($log_time) if $log_time !~ m|[A-Z]|;
+
+} elsif ( <log.timestamp_mode> eq 'unix' ) {    # output in unix time
 
     $log_time = <[base.n2u_time]>->( $log_time, 5 );
 
@@ -78,7 +83,7 @@ if ( <log.timestamp_mode> eq 'unix' ) {          # output in unix time
     ) =~ s' '|';
 }
 
-my $write_line = sprintf( "%s %7s %d %s\n",
+my $write_line = sprintf( "%s %07d %d %s\n",
     $log_time, $instance_id, $log_level, $log_message );
 
 my $msg_len = length($write_line);
@@ -92,7 +97,7 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 return { 'mode' => 'nak', 'data' => $err_msg };
 
 # ______________________________________________________________________________
-#\\SY6CVXG2MEBTV2Z3P7IRYTUQKD2YV4WRGR5R7GPGP2F6B7K3X2O3FTHHN22BA7UX6MZ5QDPCYURDG
-# \\ IRFSKJL3HMHMJOUDY742UBV2SHMGQ4VEF5HGCSVUXH5RA425S4GA \\// C25519-BASE-32 //
-#  \\// 5QS6UT6FTHP2OTC2RX444GWLKEIEZZBCCC6BC3VDWACW36QOMCI \\ CODE SIGNATURE \\
+#\\CKWXPXTAKK3FUHPYCZJHVUECGVVFZPHV27X3TCHMZX5JPXADYUHV5R7VOHEZZ53C2JY5CQN4B2PNU
+# \\ 2WKSZ6WYRSKIGMZNG67MKPHIE2YSGWZMS5J27JRTX4IQZ7CRQBTB \\// C25519-BASE-32 //
+#  \\// U3MR4ZR54OSEJPVTFTA7JVSKEX4FYLU54HBI2DUOJIMMEUERIBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
