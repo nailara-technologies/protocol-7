@@ -499,7 +499,7 @@ sub prepare_subs {
         $| = 0;
     };
 
-    $code{'base.chk_nlr_path'} = sub {    ## todo : reduce calls \ exposure .,
+    $code{'base.chk_nlr_path'} = sub { ## LLL: todo : reduce calls \ exposure .,
         my $chk_path = shift // '';
         my $d_aref   = shift // [qw| ext/ / |];
         my $base_dir = shift // $data{'system'}{'root_path'} // '';
@@ -523,9 +523,11 @@ sub prepare_subs {
             ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
             return $path_str if defined $f_path and -r $f_path;
         }
+        $data{'modules'}{'warned'}{$f_path} //= {}; # <-- LLL: clean up later..,
         my $reason
             = ( -l $f_path and !-r readlink($f_path) ) ? 'readable' : 'found';
-        warn "<< nailara source not $reason : '$chk_path' >> <{C1}>";
+        warn "<< source not $reason : '$chk_path' >> <{C1}>"
+            if !$data{'modules'}{'warned'}{$f_path}++;
         return undef;
     };
 
@@ -1174,7 +1176,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\WE5WYQ2RYU72U2ISAZK2UCHHCFUVXPCJTMCSPN5HMNZSVF6HAJIO6L6IL4HTCSGTOJMWJOS73MS7I
-# \\ WDNLWV6OWB2ZLGJOJKV4TAPLMN2PY5PAHWNC6VPUTSB77C3EXQKC \\// C25519-BASE-32 //
-#  \\// MYL7MWT26GGKPH5Z6RRHK7GNVFOHC4WPU6X4XRIXMMLVRGUXCBQ \\ CODE SIGNATURE \\
+#\\TFTH3QGLWEVN6VOCQZ4VWL6XWJ373CZJGSSZZLRALQUNVXVZ4Y65YPVJDZ24Z5DLOSACXDEMVQBW4
+# \\ HYW3IT63L3WTKVJRV54QZSDBBOJRIC4WZZCZYVQERXVXO7YWCF5N \\// C25519-BASE-32 //
+#  \\// M3D5EXA256NQ6RODP2JCHTB6OOOUZQV6MHKS6ZLLU4Q5I2UNEBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
