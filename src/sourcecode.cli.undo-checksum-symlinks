@@ -1,0 +1,208 @@
+# >:]
+
+# name  = sourcecode.cli.undo-checksum-symlinks
+# descr = undo checksum based symlinks in ./src dir
+
+my $err_count = 0;
+my $max_links = 7;
+
+my $source_version  = <nailara.source_version>;
+my $release_version = <nailara.release_version>;
+
+# my @copy_sources = (<system.code_path>);    # <-- change to previous version..,
+
+my $project_root = <system.root_path>;
+my $source_root  = <source.path.source>;
+my $version_root = catfile( <source.path.source>, 'version' );
+
+my @copy_sources;
+map {
+    my $source_path = catfile( $project_root, $_ );
+    die "source path $source_path does not exist" if !-d $source_path;
+    push( @copy_sources, $_ );
+} qw| bin cfg src |;
+
+my %symlink_errors
+    = <[file.broken_links]>
+    ->( map { my $source_path = catfile( $project_root, $_ ) } @copy_sources );
+
+if (%symlink_errors) {
+    <[base.log]>->( 0, ".:[ encountered symlink errors ]:." );
+    <[base.log]>->( 0, ":" );
+    foreach my $k ( keys %symlink_errors ) {
+        map { <[base.log]>->( 0, sprintf( ": %s [ %s ]", $_, $k ) ); } (
+            ref( $symlink_errors{$k} ) eq 'ARRAY'
+            ? @{ $symlink_errors{$k} }
+            : $symlink_errors{$k} . '.'
+        );
+    }
+    $err_count += keys %symlink_errors;
+
+    # <[base.exit]>->(1);
+}
+
+<[base.log]>->( 1, ".:[ RESTORING SOURCECODE FILES ]:." );
+<[base.log]>->( 1, ": verifying directory structure..," );
+die "directory '$source_root' not found" if !-d $source_root;
+if ( !-w $source_root ) {
+    <[base.log]>->( 0, "<<< write permission missing for '$version_root' >>>" );
+    <[base.exit]>->(1);
+}
+my $dir_fh;
+if ( !opendir( $dir_fh, $version_root ) ) {
+    <[base.log]>->( 0, "can not open directory '$version_root' [ $! ]" );
+    <[base.exit]>->(2);
+}
+
+my %vers_dirs = map { $_ => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
+closedir($dir_fh);
+
+my $target_path = catfile( $version_root, $source_version );
+
+if ( not exists $vers_dirs{$source_version} ) {
+    <[base.log]>
+        ->( 1, ": :. creating source version path [ $source_version ]" );
+    <[file.make_path]>->( $target_path, 0755 )
+        or die "cannot create directory '$source_version' [ $! ]";
+    my $path_descr_str = <sourcecode.path_desc.version>;
+    <[file.put]>
+        ->( catfile( $target_path, '.path-desc' ), "$path_descr_str\n" );
+}
+
+my $file_count     = 0;
+my $checksum_table = {};
+my $source_paths   = {};
+foreach my $directory (@copy_sources) {
+    my $src_path  = catfile( $project_root, $directory );
+    my $checksums = <[source.acquire_checksums]>->( $src_path, 224 );
+    map {
+        my $rel_path     = catfile( $directory, $_ );
+        my $checksum_b32 = delete $checksums->{$_};
+        $source_paths->{$rel_path} = $checksum_b32;
+        push(
+            @{ $checksum_table->{$checksum_b32} },
+            $source_paths->{$rel_path}
+        );
+        $file_count++;
+    } keys %{$checksums};
+    $directory =~ s|^.*/||g;    # keeping last path element
+    delete <source.checksums>->{$directory};
+}
+my $count_delta  = $file_count - keys( %{$checksum_table} );
+my $count_unique = $file_count - $count_delta;
+
+<[base.log]>->( 1, ": checking $count_unique of $file_count source files.," );
+<[base.log]>->( 2, ": : [ duplicate code files : $count_delta ]" )
+    if $count_delta;
+
+$file_count = 0;
+my $link_count    = 0;
+my $count_missing = 0;
+my @restore_links;
+foreach my $src_file_rel (
+    sort { length($a) <=> length($b) }
+    sort keys %{$source_paths}
+) {
+    my $file_checksum   = $source_paths->{$src_file_rel};
+    my $src_file_path   = catfile( $project_root, $src_file_rel );
+    my $dst_file_path   = abs_path( catfile( $target_path, $file_checksum ) );
+    my $file_rel_substr = $src_file_rel;
+    <[base.parser.ellipse_center]>->( \$file_rel_substr, 37 );
+
+    if ( -l $src_file_path and -e abs_path($dst_file_path) ) {
+        <[base.log]>->( 2, ":: is-link : '$file_rel_substr' .," );
+
+        push( @restore_links, { $src_file_path => abs_path($dst_file_path) } );
+
+        $link_count++;
+    } elsif ( -l $src_file_path ) {
+        $err_count++;
+        <[base.log]>->(
+            0, ":: symlink destination missing : '$dst_file_path' .,"
+        );
+        <[base.parser.ellipse_center]>->( \$src_file_path, 41 );
+        map { <[base.log]>->( 0, $_ ) }
+            ( ':', ":. source : '$src_file_path'", ':' );
+    }
+
+    $file_count++;
+}
+my $percent_val = $link_count * 100 / $file_count;
+
+<[base.log]>->(
+    1,
+    sprintf(
+        "::. symlinked source files : %d : [ %.2f percent ] .,",
+        $link_count, $percent_val
+    )
+);
+
+my %cli_args    = map { $_ => 1 } split / +/, $data{'system'}{'args'};
+my $apply_force = not exists $cli_args{'-force'} ? 0 : 1;
+
+if ($err_count) {
+    if ( not $apply_force ) {
+        <[base.log]>->(
+            0,
+            sprintf( "::[ <!> ]::. restoring aborted .: [ errors : %d ]",
+                $err_count )
+        );
+        <[base.log]>->(
+            0, '::[ use \'-force\' to ignore errors and continue ]'
+        );
+    } else {
+        my $s = $err_count == 1 ? '' : 's';
+        <[base.log]>->( 0, ':' );
+        <[base.log]>->(
+            0,
+            sprintf( "::[ '-force' was used to ignore %d error$s ]::[ <<!>> ]",
+                $err_count )
+        );
+    }
+}
+
+if ( !@restore_links ) {
+    <[base.exit]>->( ":. nothing to to [ no symlinks ].", !$err_count ? 1 : 0 );
+}
+
+my $restore_count = 0;
+if ( !$err_count or $apply_force ) {
+    my $s = scalar @restore_links > 1 ? 's' : '';
+    <[base.log]>->(
+        1,
+        sprintf( ":: restoring source from symlink target$s [ %d to go ]",
+            scalar @restore_links )
+    );
+    foreach my $ref (@restore_links) {
+        my ( $r_to, $r_from ) = each %{$ref};
+
+        my $src_stat = File::stat::stat( abs_path($r_from) );
+
+        my $r_from_str = $r_from;
+        my $r_to_str   = $r_to;
+
+        <[base.parser.ellipse_center]>->( \$r_to_str,   44 );
+        <[base.parser.ellipse_center]>->( \$r_from_str, 44 );
+
+        <[base.log]>->( 2, ':' );
+        <[base.log]>->( 1, ":[copy]: '$r_to_str'" );
+        <[base.log]>->( 2, ":[from]: '$r_from_str'" );
+
+        unlink($r_to) or warn "[unlink] $! ['$r_to']";    ## removing first
+        File::Copy::syscopy( $r_from, $r_to )
+            or <[base.log]>->( 0, "<< copy >> '$r_from' -> '$r_to' [ $! ]" );
+        if ( -f $r_to ) {
+            chmod( $src_stat->mode, $r_to ) or warn "[chmod] $! ['$r_to']";
+            $restore_count++;
+        }
+    }
+    <[base.log]>->( 1, ':' );
+    <[base.log]>->( 1, "::[ $restore_count source files restored =) ]" );
+    <[base.log]>->( 1, ':' );
+}
+
+# ______________________________________________________________________________
+#\\74G4PLP7Q2GJHPYK54IXVUGT6PVJRAYGO5ZG3HAHP4IT6L5FNI7QH3VEEV6BNKKGD4CEA4XFP6CS4
+# \\ WGCNIMZEKMISP3CNYCFAMEY7IY2A3CYP5LVPZOD2AZUD7GMOIJZ4 \\// C25519-BASE-32 //
+#  \\// KBYDYAUAS33AP6B4WYVYDVSZII5XD2SHRJLODRKMIBOXYDFCACY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
