@@ -1,0 +1,57 @@
+# >:]
+
+# name  = base.file.broken_links
+
+my @error_list;
+my @check_dirs = @_;
+die 'expected path name parameter[s]' if !@check_dirs;
+
+foreach my $check_path (@check_dirs) {
+    my $pth_str = $check_path;
+    <[base.parser.ellipse_center]>->( \$pth_str, 17 );
+    <[base.log]>->( 2, "checking symlink resolution [ '$pth_str' ] .," );
+    if ( !-d $check_path or !-r $check_path ) {
+        my $reason_str
+            = -d $check_path ? 'unaccessable directory' : 'directory missing';
+        <[base.log]>->( 0, ":. $reason_str : '$check_path' :" );
+        warn '[ aborting symlink scan ] <{C1}>';
+        push( @error_list, ( $reason_str => [$check_path] ) );
+    }
+
+    map { <[base.log]>->( 2, $_ ) } ( ':', "::[ $check_path ]", ':' );
+
+    <[file.all_links]>->( $check_path, \my %all_links );
+
+    my $err_reason = 'missing link target';
+    foreach
+        my $lnk_src ( sort { length $b <=> length $a } sort keys %all_links ) {
+        my $lnk_dst = $all_links{$lnk_src};
+
+        chdir($check_path) or warn "cwd : $! [ '$check_path' ]";
+
+        my $cwd_restored = Cwd::cwd();
+        my $abs_dst_path = abs_path($lnk_dst); # does implicit symlink resolving
+        chdir($cwd_restored);
+
+        if ( !length($abs_dst_path) or !-e $abs_dst_path ) {    # missing target
+
+            <[base.log]>->( 0, ": [ missing ] '$lnk_dst' <-- '$lnk_src'" );
+            <[base.log]>->( 2, ": ::[ $abs_dst_path ]" );
+
+            push( @error_list, ( $err_reason => "'$lnk_dst' <-- '$lnk_src'" ) );
+        } else {                                                # target exists
+            <[base.parser.ellipse_center]>->( \$lnk_dst, 17 );
+            <[base.parser.ellipse_center]>->( \$lnk_src, 14 );
+            <[base.log]>->( 2, ": [ resolved ] '$lnk_dst' <-- '$lnk_src'" );
+        }
+    }
+    <[base.log]>->( 2, ":" );
+}
+
+return @error_list;
+
+# ______________________________________________________________________________
+#\\CSJGPJ5OQNG2UE3KLZQ73E6IP4C5HXLKBAOHRGEGMRB2HDVYER7W466RNZ62ZSHNJMU7ZCUOWTPLI
+# \\ WNTNLW443B2MKL7RP4Z5OCMBPMWXM2YS3LXBH2CRPLSGPPNGMBSL \\// C25519-BASE-32 //
+#  \\// HNZVX24ZKNTHZECO4UK2TWE2Z6MIL2PWRU5VGEHCDS74QXZ2ODA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
