@@ -6,15 +6,16 @@
 my $source_version  = <nailara.source_version>;
 my $release_version = <nailara.release_version>;
 
-# my @copy_sources = (<system.code_path>);    # <-- change to previous version..,
+# my @copy_sources = (<system.code_path>);   # <-- change to previous version..,
 
-my $project_root = <system.root_path>;
-my $source_root  = <source.path.source>;
-my $version_root = catfile( <source.path.source>, 'version' );
+my $path         = <sourcecode.path>;
+my $work_tree    = $path->{'work_tree'};
+my $source_root  = $path->{'source_dir'};
+my $version_root = $path->{'version_root'};
 
 my @copy_sources;
 map {
-    my $source_path = catfile( $project_root, $_ );
+    my $source_path = catfile( $work_tree, $_ );
     die "source path $source_path does not exist" if !-d $source_path;
     push( @copy_sources, $_ );
 } qw| bin cfg src |;
@@ -50,7 +51,7 @@ my $file_count     = 0;
 my $checksum_table = {};
 my $source_paths   = {};
 foreach my $directory (@copy_sources) {
-    my $src_path  = catfile( $project_root, $directory );
+    my $src_path  = catfile( $work_tree, $directory );
     my $checksums = <[source.acquire_checksums]>->( $src_path, 224 );
     map {
         my $rel_path     = catfile( $directory, $_ );
@@ -78,7 +79,7 @@ foreach my $src_file_rel (
     sort keys %{$source_paths}
 ) {
     my $file_checksum   = $source_paths->{$src_file_rel};
-    my $src_file_path   = catfile( $project_root, $src_file_rel );
+    my $src_file_path   = catfile( $work_tree, $src_file_rel );
     my $dst_file_path   = abs_path( catfile( $target_path, $file_checksum ) );
     my $file_rel_substr = $src_file_rel;
     <[base.parser.ellipse_center]>->( \$file_rel_substr, 37 );
@@ -103,7 +104,7 @@ foreach my $src_file_rel (
 my $s = $file_count == 1 ? '' : 's';
 <[base.log]>->( 1, ": : $file_count file$s copied to '$source_version'.," );
 $s = $skip_count == 1 ? '' : 's';
-<[base.log]>->( 1, ": : : $skip_count file$s existed and skipped" )
+<[base.log]>->( 1, ": : : skipped $skip_count already existing file$s.," )
     if $skip_count;
 <[base.log]>->( 1, ": : comparing source and destination.," );
 
@@ -120,7 +121,7 @@ foreach my $chk_path (
 }
 
 if ( $target_count and $target_count >= $count_unique ) {
-    <[base.log]>->( 1, ": : all $target_count files match checksum., =)" );
+    <[base.log]>->( 1, ": : all $target_count code checksums match., =)" );
 } else {
     <[base.log]>->(
         0, ": : copy procedure incomplete., [$copy_success\\$count_unique]"
@@ -129,14 +130,14 @@ if ( $target_count and $target_count >= $count_unique ) {
     <[base.exit]>->(1);
 }
 
-<[base.log]>->( 1, ": replacing source files with links..," );
+<[base.log]>->( 1, ": replacing source files with symlinks" );
 my $link_count = 0;
 foreach my $src_file_rel (
     sort { length($b) <=> length($a) }
     sort keys %{$source_paths}
 ) {
     my $file_checksum  = $source_paths->{$src_file_rel};
-    my $src_file_path  = catfile( $project_root, $src_file_rel );
+    my $src_file_path  = catfile( $work_tree, $src_file_rel );
     my $dst_file_path  = catfile( $target_path, $file_checksum );
     my $src_file_dir   = [ File::Spec->splitpath($src_file_path) ]->[1];
     my $src_file_name  = [ File::Spec->splitpath($src_file_path) ]->[2];
@@ -151,9 +152,8 @@ foreach my $src_file_rel (
         or die "< error > $link_str [ $! ]";
 }
 
-
 # ______________________________________________________________________________
-#\\AD54AWMI4CH6FSHOEDG2GBUURROF54Z5ANTXAOYEECBQVFC6RRY25ZW5JQYLXCXDNNP7X7562SG3A
-# \\ 6TUOUCMBCBFIJ6KWPE2RQ4KRAYFB7TEHKLN7WLX6BQC2XBRE6NSR \\// C25519-BASE-32 //
-#  \\// L7RJ7OD2BP5UL2VMM2OEWBVIHO3CYKUUZ7QQCXMR4VJ4T5Y2UAQ \\ CODE SIGNATURE \\
+#\\7Y5KMHMZAII6Z4VN7FA25AODXDRACVRGBJJQTP45MLHDKKT6HOOQUZGCZN6IEH64COO5RCXGQG6EG
+# \\ DFFSU4OFT25AMLES3BGEUSSDK4G7WKUB3NCUMU2MYN6SDEJIAF2Q \\// C25519-BASE-32 //
+#  \\// UWEA7DFNTPL6W4PKSDRSWZHN3P3STTCUNEKLB4LR63YT57SDWBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

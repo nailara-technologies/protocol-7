@@ -4,8 +4,9 @@
 # descr = return specified source code subroutine
 
 my $code_name = $$call{'args'};
-my $code_dir  = $code_name !~ m|/| ? <source.code_path> : <system.root_path>;
-my $src_path  = File::Spec->catfile( $code_dir, $code_name );
+my $code_dir  = <source.code_path>;
+$code_dir = <source.path.work_tree> if $code_name =~ m|/|;
+my $src_path = File::Spec->catfile( $code_dir, $code_name );
 
 # <<< ! >>> compare abs path here..,
 my $bit_size = <source.chksum_bitsize>;
@@ -58,7 +59,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\NUTO4BY4VSACZTQA24VV2ZK2ULSD2XTPP4SGVD33OECKNZ3RDWS3OUMWIVLVQE4OAX4366HP4QJK4
-# \\ X7LS2K4CNTGC4ZIU3XQ7DFQJSTMXCGBTRR6JIESDSAYPZVLYOPT3 \\// C25519-BASE-32 //
-#  \\// 7F7UZXQVQOXML2ZHN37PXBIHWS4GLH5QYJIJKFXY33L2AJKE4BI \\ CODE SIGNATURE \\
+#\\S4SLFED2VU6ZADZX32N7KF6EUB3Y44LR3CZF5OLIYGHD3R7ZRWTSVSQICLI6T3RTJUZRB2QSO5XG2
+# \\ RF5EWOWNE6CN2JN5K6ZNTQTVKNH3N57MZOJCTXUWXXCJDVC3K7HF \\// C25519-BASE-32 //
+#  \\// ESIX7KTMQGNE6TUPIFUAMJK2E37VVBMLOW6PRGUFYTC33EKU6AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

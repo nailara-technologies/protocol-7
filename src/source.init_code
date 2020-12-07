@@ -2,13 +2,23 @@
 
 # name  = source.init_code
 
-<source.checksums> //= {};
-
+<source.checksums>      //= {};
 <source.chksum_bitsize> //= 384;
-<source.code_path>      //= <system.code_path>;    # <-- old path [gone soon]
-<source.path.source>   //= <system.root_path> . '/source';
-<source.path.n-files>  //= <source.path.source> . '/files';
-<source.sign_template> //= '';
+<source.sign_template>  //= '';
+
+<source.path.work_tree>
+    //= <system.root_path>;    ## overridden in sourcecode.init_code
+
+if ( <source.path.work_tree> ne <system.root_path> ) {
+    my $work_tree = <source.path.work_tree>;
+    my $root_path = <system.root_path>;
+    ( my $code_path = <system.code_path> ) =~ s|^$root_path|$work_tree|;
+    <source.code_path> = $code_path;    # <-- now overridden
+}
+
+<source.code_path>       //= <system.code_path>;    # <-- old path [gone soon]
+<source.path.source_dir> //= <source.path.work_tree> . '/source';
+<source.path.n-files>    //= <source.path.source_dir> . '/files';
 
 my $sig_key_name = <source.C25519.signature_key_name> //= 'nailara.source';
 
@@ -28,7 +38,7 @@ EOT
 0;
 
 # ______________________________________________________________________________
-#\\E7QI22FB4F2IC353AQKUVD5U3GL43W7XDUZ6VOD54KIMO3GD5BLARHOGA2A5YZXDOJNE4PD2EDWZG
-# \\ LAKJH7GCE7GCJG5NM5F2YAA5YNEK44KW6SV5IS5HI4WOREVK5COM \\// C25519-BASE-32 //
-#  \\// Z76CT7T6BLZYUXEZFCIU7QIH2XWEMPIHWZFNR2FVH5H4OEUBACA \\ CODE SIGNATURE \\
+#\\EVXCSLY5NFPTWD5YTVOU6COLKH65KRNOPBJYHH7UU57YKIMIYK5YZOVHJPTHVCPINKROUNNHPSDQG
+# \\ VSVZ4YNSCXA3T5NGRGYQGOZJZSBMC4M4EJEBWC73FHCBVONEHDKQ \\// C25519-BASE-32 //
+#  \\// HKKRFKXH4OVCVV4PZUVBT3I265JLNXBZKHLWBVER6XYVYHNGYDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

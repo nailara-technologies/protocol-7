@@ -22,16 +22,16 @@ foreach my $check_path (@check_dirs) {
 
     <[file.all_links]>->( $check_path, \my %all_links );
 
+    my $previous_cwd = Cwd::cwd();
+    chdir($check_path) or warn "cwd : $! [ '$check_path' ]";
+
     my $err_reason = 'missing link target';
+
     foreach
         my $lnk_src ( sort { length $b <=> length $a } sort keys %all_links ) {
         my $lnk_dst = $all_links{$lnk_src};
 
-        chdir($check_path) or warn "cwd : $! [ '$check_path' ]";
-
-        my $cwd_restored = Cwd::cwd();
         my $abs_dst_path = abs_path($lnk_dst); # does implicit symlink resolving
-        chdir($cwd_restored);
 
         if ( !length($abs_dst_path) or !-e $abs_dst_path ) {    # missing target
 
@@ -45,13 +45,14 @@ foreach my $check_path (@check_dirs) {
             <[base.log]>->( 2, ": [ resolved ] '$lnk_dst' <-- '$lnk_src'" );
         }
     }
+    chdir($previous_cwd) or die "[ chdir ] $! [ $previous_cwd ]";
     <[base.log]>->( 2, ":" );
 }
 
 return @error_list;
 
 # ______________________________________________________________________________
-#\\CSJGPJ5OQNG2UE3KLZQ73E6IP4C5HXLKBAOHRGEGMRB2HDVYER7W466RNZ62ZSHNJMU7ZCUOWTPLI
-# \\ WNTNLW443B2MKL7RP4Z5OCMBPMWXM2YS3LXBH2CRPLSGPPNGMBSL \\// C25519-BASE-32 //
-#  \\// HNZVX24ZKNTHZECO4UK2TWE2Z6MIL2PWRU5VGEHCDS74QXZ2ODA \\ CODE SIGNATURE \\
+#\\6HEEETSXLB4MJGSZRAI3YRBZGNHBW4ZAI75NRRQGZI5QYTJMS4OKPBFOOJDSGZOVFFUG62FW6OEVM
+# \\ K6SH5CGKXX4DGK7IUB3WZEEBMSS26N5TGGA2YIL5IR7GJFPGGBDW \\// C25519-BASE-32 //
+#  \\// WHEQBO6HWPCEEFBVDEFJXYJFVCNE5QXHOW3PMBHWTT57RC57OCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
