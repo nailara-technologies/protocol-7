@@ -8,13 +8,15 @@ my $release_version = <nailara.release_version>;
 
 # my @copy_sources = (<system.code_path>);   # <-- use previous version path ..,
 
-my $project_root = <system.root_path>;
-my $source_root  = <source.path.source>;
-my $version_root = catfile( <source.path.source>, 'version' );
+my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+
+my $work_tree    = $paths->{'work_tree'};
+my $source_root  = $paths->{'source_subdir'};
+my $version_root = $paths->{'version_root'};
 
 my @copy_sources;
 map {
-    my $source_path = catfile( $project_root, $_ );
+    my $source_path = catfile( $work_tree, $_ );
     die "source path $source_path does not exist" if !-d $source_path;
     if ( !-w $source_path ) {
         <[base.log]>->(
@@ -30,7 +32,7 @@ map {
 my @source_paths;
 
 foreach my $directory (@copy_sources) {
-    my $src_path = catfile( $project_root, $directory );
+    my $src_path = catfile( $work_tree, $directory );
     <[file.all_files]>->( $src_path, \@source_paths );
 }
 my $file_count = scalar @source_paths;
@@ -39,7 +41,7 @@ map { die "source file $_ is not writable" if !-w $_ } @source_paths;
 
 <[base.log]>->( 1, "* updating $file_count source file signatures..," );
 foreach my $path_abs ( grep { !/\/\./ } @source_paths ) {
-    ( my $path_rel = $path_abs ) =~ s|^$project_root/?||;
+    ( my $path_rel = $path_abs ) =~ s|^$work_tree/?||;
     my $code_data_ref = <[source.cmd.get-code-signed]>->($path_rel);
     die "failed to create signature for \"$path_rel\""
         if $code_data_ref->{'mode'} ne 'data'
@@ -52,7 +54,7 @@ foreach my $path_abs ( grep { !/\/\./ } @source_paths ) {
 <[base.log]>->( 1, ": : success =)" ) if !$file_count;    # log files changed..,
 
 # ______________________________________________________________________________
-#\\H4YBIJQKHOKWP4RI3OGL5EWG7NUJ72I2SKZBS44HQ6H54YISMNYJT3LD5GXRHTXEZQ7N2VIU6G3YE
-# \\ Y4NEJ7XKMBZO7GPSYJF625WHPQHXEGZB6G7EWWQZN6IMWGXIGE5A \\// C25519-BASE-32 //
-#  \\// SPCWHSLA5VSEVFNQHERM56UKXGN42FJZNWZP6EIKD7W2VKRVOAQ \\ CODE SIGNATURE \\
+#\\JEAR7ITCHN7PXPXR3K2HW5BPRGW56DD5IJFOA5KYJBDYSGUKBH5QIABX7WBS6RVBM62KX4XUXLNSE
+# \\ C3DDREN7TVEDCT7OXBABW7H4OGMF43YBFGPPTGLFTE42ZSPUYOEG \\// C25519-BASE-32 //
+#  \\// SUJJQQMFQ5S33YPDWWCQKQS4VKNFEKSFPTTFETCG52IARQ34OAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
