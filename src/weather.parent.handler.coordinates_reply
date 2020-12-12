@@ -91,7 +91,8 @@ if ( defined $station_id ) {
     map { $url_list_str .= "$_\n" }
         <[weather.parent.get_url_list]>->($station_id);
     if ( !-f $city_file ) {
-        <[base.log]>->( 1, "storing current city setup to disk cache.." );
+        <[base.log]>->( 1, "writing location '$city' to disk cache.," );
+
         <[file.put]>->( $city_file, time() . " $city\n" );
     }
     <[weather.parent.write_pages]>->($station_id) if $custom_zoom;
@@ -108,9 +109,8 @@ if ( defined $station_id ) {
     return { 'mode' => 'deferred' };
 }
 
-
 # ______________________________________________________________________________
-#\\NBIP6IF4VBU2INUDXVFEMRWMEIWEXDIVNAYG5WZL52SAP62N4DVHVSI23RVOYYOYQXWGXKEZ24YUM
-# \\ H75TFB4Z2CM3PFR6HWTYQQC3FTQZ7U7NGBT77GZXUER7L6TPTQLZ \\// C25519-BASE-32 //
-#  \\// 4MOLNGTA7Y5R75O2KK4DK3RFESJ2YVDUWV4GECKJXOTJTHPRYBQ \\ CODE SIGNATURE \\
+#\\GB7IWSWTMAPK3G77K43D2SIA7EOR7YMS2MVBYC4SZFLLJ7WSGCALQ7CAUYMOJGGNAB635BP7FGM74
+# \\ T2K2XJIX6RQOGEWFVZERAOPVUVOVTKJS5OKIZZFAJL4SJOXHDNUI \\// C25519-BASE-32 //
+#  \\// GYYDTQWCXWAFYXE4S42BIB77AWYRWVNLXPGA7AFGYJKHWKXNIAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

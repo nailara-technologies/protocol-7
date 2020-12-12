@@ -4,7 +4,7 @@
 
 my $city      = shift;
 my $cache_dir = <weather.cache_dir>;
-die "expected city parameter" if not defined $city or !length($city);
+die "expected city parameter"          if not defined $city or !length($city);
 die "cache dir '$cache_dir' not found" if !-d $cache_dir;
 my $city_file = "$cache_dir/city.current";
 
@@ -12,7 +12,8 @@ my $city_file = "$cache_dir/city.current";
 
 <weather.cfg.city> = $city;
 
-<[base.log]>->( 1, "writing current city setup to disk cache.." );
+<[base.log]>->( 1, "writing location '$city' to disk cache.," );
+
 <[file.put]>->( $city_file, time() . " $city\n" );
 
 if ( defined <weather.station_id> ) {    # cached id found
@@ -44,7 +45,7 @@ if ( defined <weather.station_id> ) {    # cached id found
 }
 
 # ______________________________________________________________________________
-#\\GFWAURKIGXLGQBJR5Q2WEKM2SSUIOOLC2VCB4W6H4ENGM2SDQZOAQ6LVIGY5FB7AAL7FRJMWK3HP2
-# \\ XMCWF5G67X5QRKHI7L6UFZTX5IKWPNT7T7FOCMCMDEUIG45RXDD7 \\// C25519-BASE-32 //
-#  \\// N5HOULOR72DP6TZAV27M5AUW446J3NO6BY7NZXZ7LM7RN5YHMBA \\ CODE SIGNATURE \\
+#\\WC72I4LQEYOLPVTI6RJJW6EOZMGYKENXNYOW4XC7MQ7OOFLHHUYELPNAIR3OX7C7EV55ESTGNKT4M
+# \\ XRTBFIQVLPIKYNN4V3IFO3ST5UPE5GKSH6R4QTJ5L45USLKHCX5Z \\// C25519-BASE-32 //
+#  \\// XM2RJOSQQQVDKQTOA6LUTLVKQBWVYXB3OEPIAAQDWZX26AVHWDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
