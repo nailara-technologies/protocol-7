@@ -66,13 +66,12 @@ foreach my $page_name (@page_list) {
     foreach my $sname ( split( /\./, $1 ) ) {
         if ( not exists $snipplet_names{$sname} ) {
             <[base.log]>->(
-                0, "<!>write_pages: html snipplet '$sname' does not exist!"
+                0, "[ write_pages ] html snipplet '$sname' not defined."
             );
             next;
         }
-        my $snipplet_ref
-            = <[file.slurp]>->("$current_template_dir/content.$sname.part");
-        $content_str .= $$snipplet_ref;
+        my $template_path = "$current_template_dir/content.$sname.part";
+        $content_str .= ${ <[file.slurp]>->($template_path) };
     }
     my $html_str = $$html_body_ref;
 
@@ -294,7 +293,7 @@ foreach my $page_name (@page_list) {
 }
 
 # ______________________________________________________________________________
-#\\SI45H5HR3KCLVLRR47IXM6NEZLZBA43JF6BJUTBPKBVRAKT2YHWLHL24EDPOGURE3R7TY5Q7IYUXM
-# \\ G2U3ET6CINADZCYRW75O53IAYAMSQWS2SDKBUSVFPCWLX4MAVHRD \\// C25519-BASE-32 //
-#  \\// 5SSN7XOHU2DP7ZY2SAA6QSRTPIU5CIVYUHMF6HRFYCBKSSGDMAA \\ CODE SIGNATURE \\
+#\\6P3RG6APE2QRLJE23YNVFGR7F7YVO67S3OR3NSDBNXBC2TQ6MO34OFAXAXO7PFAFBWNCCMS2IOAEE
+# \\ BMS57N6MP2MBHBJZZ6NARPWFSHZ6B7SMUXVNFFQCDL637V5HDKQ3 \\// C25519-BASE-32 //
+#  \\// ZAKAO4DFSLGYANPZKPYH6JFUDQ323ROMWWC4CMYVVCUSO4SJMCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

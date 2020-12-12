@@ -20,12 +20,12 @@ my $forecast_data;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
-    if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
+    if ( $err_reason eq 'query failed < location not found >' ) { # rate limit.?
         $log_level++;
         $retry_delay_cached += 113 + int( rand(237) );
     }
     <[base.log]>->(
-        $log_level, "unable to retrieve forecast weather data [$err_reason]"
+        $log_level, "cannot retrieve forecast data [ $err_reason ]"
     );
     $status_code = $1 if $err_reason =~ /^(\d+)/;
 } else {
@@ -51,8 +51,8 @@ if (    defined $forecast_data
         2, "next 'forecast' data update in $update_minutes minutes.."
     );
 } else {
-    my $status_str = defined $status_code ? " ($status_code)" : '';
-    $status_str = " (city not found)"
+    my $status_str = defined $status_code ? " < $status_code >" : '';
+    $status_str = " [ location not found ]"
         if defined $status_code and $status_code eq '404';
 
     if (    exists <weather.data>->{$station_id}
@@ -65,7 +65,7 @@ if (    defined $forecast_data
         $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.8;
 
         <[base.log]>->(
-            $log_level, "unable to obtain forecast weather data.." . $status_str
+            $log_level, "unable to obtain forecast data.," . $status_str
         );
 
         my $age_str
@@ -74,12 +74,12 @@ if (    defined $forecast_data
             : sprintf( "%0.1f minutes", $data_age / 60 );
         $age_str =~ s|\.0 | |;
         $age_str =~ s| (1 \w+)s | $1 |;
-        <[base.log]>->( 0, "keeping cached data ( $age_str old )" );
+        <[base.log]>->( 0, "keeping cached data [ $age_str old ]" );
         $update_interval
             = $retry_delay_cached
             + sprintf( "%.1f", rand( $retry_delay_cached / 2 ) );
         <[base.log]>->(
-            1, "next 'forecast' attempt in $update_interval seconds.."
+            1, "next 'forecast' attempt in $update_interval seconds.,"
         );
     } else {
 
@@ -88,7 +88,7 @@ if (    defined $forecast_data
         my $log_level = <weather.update_fail_count.forecast> ? 1 : 0;
 
         <[base.log]>->(
-            $log_level, "unable to obtain forecast weather data.." . $status_str
+            $log_level, "cannot obtain forecast  data.," . $status_str
         );
 
         <weather.update_fail_count.forecast>++;
@@ -97,7 +97,7 @@ if (    defined $forecast_data
             = $retry_delay_nodata
             + sprintf( "%.1f", rand( $retry_delay_nodata / 2 ) );
         <[base.log]>->(
-            1, "retrying 'forecast' query in $update_interval seconds.."
+            1, "retrying 'forecast' query in $update_interval seconds.,"
         );
     }
 }
@@ -109,7 +109,7 @@ if ( time + $update_interval > $midnight ) {
     <[base.log]>->(
         1,
         "..shortened 'forecast' delay "
-            . "to $update_minutes minutes! (midnight)"
+            . "to $update_minutes minutes [ midnight ]"
     );
 }
 
@@ -121,7 +121,7 @@ if ( time + $update_interval > $midnight ) {
 );
 
 # ______________________________________________________________________________
-#\\EGB2OHTITYTNV5VTV34PKGAJLP2KKFRPCPZODHZ5TNEJNF3IOBLDGGJUHFFC6VJGJUGHCTFS53FH4
-# \\ ZDEYQQUTP4KWA7Q44UOIHY3WTP5YP3R3SZNPS3ETJEZVCFFYCDOD \\// C25519-BASE-32 //
-#  \\// KHROSYX5FERGJLOGIX2PQOP2EAAN4Q4ELLAKHVYR5WYOFY6BSCI \\ CODE SIGNATURE \\
+#\\53ZULSIH3NBWTPJSMUIUJWJZFAO3G4E6JEBCME76Q23AKB6J7BJGVUVIFTKQHL2VGXWBUDL67SDBE
+# \\ M2FU3X4VZZ5VU4OCHJ2T2N5ZDSFERYD4RDXCFYHZHVYLK7UQ3UJA \\// C25519-BASE-32 //
+#  \\// W2TR34DLLN64ZNDVDFCJNU54ENQBJZOW4OK3KW3KAXNNXXHRGDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
