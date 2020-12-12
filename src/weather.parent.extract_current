@@ -10,11 +10,12 @@ die "expected 'current' weather data"
     if not defined $weather_data
     or ref($weather_data) ne 'HASH';
 
-## compensating for changed city name (,appears to be 'region' name string now!)
+## compensating for changed 'city' keyword name [ is 'region' meanwhile ] <--LLL
 my $cfg_city = <weather.cfg.city>;
+
 <weather.data>->{$station_id}->{'region'} = '';
 <weather.data>->{$station_id}->{'city'}   = $cfg_city;
-if ( $weather_data->{'name'} =~ /^$cfg_city/i ) {
+if ( $weather_data->{'name'} =~ m|^$cfg_city|i ) {
     <weather.data>->{$station_id}->{'city'} = $weather_data->{'name'};
 } else {
     <weather.data>->{$station_id}->{'region'}
@@ -68,7 +69,7 @@ foreach my $key ( 'clouds', 'humidity' ) {
 <[weather.parent.write_pages]>->($station_id);
 
 # ______________________________________________________________________________
-#\\BKIOCJIHD6FJPXY2TODVQV27B6T44Y5347CKY64LLN5YOIAV3LRRVB23R67AYJKL7KH5SU3CBFPX6
-# \\ 5CA4AVQ5IFBQPYI5VGKX6E4LSUITJT5WTNWHVLEVMUKNYXIJLNJZ \\// C25519-BASE-32 //
-#  \\// CK2S34L2GZXCZ5EINTJV7V5QP6VDC744MXBM3LS3IBE7ZMCHGDY \\ CODE SIGNATURE \\
+#\\TKWFXG2CMYVWLEILXSZSOIQEXRBDFM7KDS4PNTRSJUZTM5KNOLAILVJX7SNO2ROOUWVIBH3LEROT6
+# \\ KBEXTZ63BS7NLPWVJLH3T6TIUG2YZGEEHZWBXVDSLXOZWC6SGFHA \\// C25519-BASE-32 //
+#  \\// JBL5VUACMQRBXEAJ3A4YYGPZYYXVXJSSDEKVOKZQCXNI4BULWCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
