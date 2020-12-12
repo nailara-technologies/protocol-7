@@ -43,8 +43,8 @@ $count -= 2 if $type eq 'days';
 my ( $status_code, $json_data )
     = <[weather.child.query_api]>->("$q_str?$params");
 
-my $status_str = length( $status_code // '' ) ? " ($status_code)" : '';
-$status_str = " (city not found)" if $status_code eq '404';
+my $status_str = length( $status_code // '' ) ? " < $status_code >" : '';
+$status_str = " [ location not found ]" if $status_code eq '404';
 
 return {
     'mode' => 'nak',
@@ -91,7 +91,7 @@ if (    exists $json_data->{'list'}
     and exists $json_data->{'cnt'}
     and $json_data->{'cnt'} > $count ) {
     <[base.log]>->(
-        2, "trimming down '$type'-response element count to $count.."
+        2, "trimming down '$type'-response element count to $count .,"
     );
     while ( defined $json_data->{'cnt'} and $json_data->{'cnt'}-- > $count ) {
         pop( @{ $json_data->{'list'} } );
@@ -104,7 +104,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\FQUHVHWNHTCTBSNDJPVWQEU5C5HP4ACFMIL7XWO7SJ3VN6NZDVVIADFDFMRFXLC6X6QS65LVHBCGS
-# \\ AFJU5ZU5NDP6HF3UE7XCQLKL3WGL3VEQPSMCUE6JLG5EIBQPEX2I \\// C25519-BASE-32 //
-#  \\// EKQRDNZC4DNMUKX4T3B4UHY7LVESKS6UOBC6HVSKC42BR3HUGDI \\ CODE SIGNATURE \\
+#\\XXVBQXLTHSXI2P373I4DAKYYFYQRZXWNY6TYFY2GFUEP5WG7DRTVC6LE4ANFQRTDFA5QVRN2TAJGW
+# \\ NF3B3G6A6DUAU2SGKMBAQZNU6EMUDPCIHO32VJ4AXXKYFOD6IAUU \\// C25519-BASE-32 //
+#  \\// 7QKSJSO22L5ALEZ6W53ZKQWVTI3472OBKJGZ4OSFUIKZ4K7EYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
