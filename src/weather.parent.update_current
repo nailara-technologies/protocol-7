@@ -22,7 +22,7 @@ if (   not exists <weather.data>->{$station_id}
 
 <[base.log]>->( 2, "<$station_id> updating current weather data.." );
 <[base.proto.nailara.command.send.local]>->(
-    {   'command'   => "child.request_data",
+    {   'command'   => "child.request-data",
         'call_args' => { 'args' => "$station_id current" },
         'reply'     => {
             'handler' => 'weather.parent.handler.update_current_reply',
@@ -32,7 +32,7 @@ if (   not exists <weather.data>->{$station_id}
 );
 
 # ______________________________________________________________________________
-#\\C2FSRHZ64G3DP7OEUUQK2HON5XQJF3VBQTZOO3YNUZJCSHLNRQH2Q2ERRIARYRALHIFFI3L44U5T2
-# \\ 3JMA7FXTLQL6QK5D2T23QMFEFXH2TXWEO4H2GUNNAZIJC624KPMO \\// C25519-BASE-32 //
-#  \\// ZJN2B5QP6IIF6JTJOABMSS7LAADEN3RQEDIJSV3IVJSXU2LTGBY \\ CODE SIGNATURE \\
+#\\T6BA5W5NG5W44NPNR4GPKBJHJNWIMEJKZ5CUBVLFS2NEXLDXQ4AQ2BVEAVZDA7YHY7KWW47EBBMZA
+# \\ 2E2HF7IPHLSJHQU2ZTMVZJY57W7ZSZIODT2EG6YJUIUIBAA7YDNW \\// C25519-BASE-32 //
+#  \\// AWNBZMDICOP5ISWWHDLZGBHYK3E7SRXMIMPASULCYX35E4VRACY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

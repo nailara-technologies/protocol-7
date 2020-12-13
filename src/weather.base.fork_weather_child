@@ -67,9 +67,9 @@ if ( !<weather.child.pid> ) {    ## child ##
     my $city_file = "$cache_dir/city.current";
     if ( -f $city_file ) {
         <[base.log]>->( 1, "found saved location setup in cache.." );
-        my $city_sref = <[file.slurp]>->($city_file);
+        <[file.slurp]>->( $city_file, \my $city_str );
         my ( $timestamp, $loaded_city ) = ( $1, $2 )
-            if $$city_sref =~ m|^(\d+)\s+(.+)$|;
+            if $city_str =~ m|^(\d+)\s+(.+)$|;
         if ( defined $loaded_city ) {
             <[base.log]>->( 1, "<*> restoring location '$loaded_city'" );
             <weather.cfg.city> = $loaded_city;
@@ -94,7 +94,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\HVI3J4UB2EUGGXOIHAH4PQQ5VHK7XMLOQEMATOFRQM5VDXAXTUQW6FEY2FX7DVEFCBN4GQUJRAXZM
-# \\ J6CQPT7UFS355LWSEOMIHS75UHA3VKQ3MVYO2Z7GZAXJE7CIHILN \\// C25519-BASE-32 //
-#  \\// 657M6WCLOGQNXYLJAT3D6MAJ75IWX6SX3VFCO5CF5XU3VZ2GADI \\ CODE SIGNATURE \\
+#\\25DRD3FOIMUZTJCQJHFWEL2A7WN7B5ZT6KNUJNVSEVY33KF2G7GGYDZ4SWGGYZYQLVODUSLTO6MZM
+# \\ SPPIUIDYQTV7HOXU7W7YHQTGIFCQHUI4KPQBUWVBQUIH5YEEJMFH \\// C25519-BASE-32 //
+#  \\// NSXHHJ4X6SA2XTMHVF5PYZRM7PSPPX63HSK3XGUES77ZTAGWMCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
