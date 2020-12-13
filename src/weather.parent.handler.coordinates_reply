@@ -9,7 +9,7 @@ my $zoom;
 my $tile_zoom;
 my $tile_width;
 my $tile_height;
-my $reply_id       = shift @{<weather.get_urls.reply_ids>};
+my $reply_id       = shift @{<weather.get-urls.reply_ids>};
 my $city           = $reply->{'params'}->{'city'};
 my $tile_name      = $reply->{'params'}->{'tile_name'};
 my $cache_dir      = <weather.cache_dir>;
@@ -104,13 +104,13 @@ if ( defined $station_id ) {
         }
     );
 } else {
-    push( @{<weather.get_urls.reply_ids>}, $reply_id );
+    push( @{<weather.get-urls.reply_ids>}, $reply_id );
     <[weather.parent.set_city]>->($city);
     return { 'mode' => 'deferred' };
 }
 
 # ______________________________________________________________________________
-#\\GB7IWSWTMAPK3G77K43D2SIA7EOR7YMS2MVBYC4SZFLLJ7WSGCALQ7CAUYMOJGGNAB635BP7FGM74
-# \\ T2K2XJIX6RQOGEWFVZERAOPVUVOVTKJS5OKIZZFAJL4SJOXHDNUI \\// C25519-BASE-32 //
-#  \\// GYYDTQWCXWAFYXE4S42BIB77AWYRWVNLXPGA7AFGYJKHWKXNIAA \\ CODE SIGNATURE \\
+#\\ERTQE2MNLUEXH4OPTMBNBBVQZEQELT7HO5SMEK7MT7PZCP3IOMA3XUGSRAGYVOAGD42NNH75X427C
+# \\ MLQR6AXKJGXMAEJSE7VMML7AP64EKYJOSZMDAEO6BK3O3OTC6VQB \\// C25519-BASE-32 //
+#  \\// Y7VVUQQBYOOQNTAQAAG7DEGM5CDF5GXU6TWOGNS46LVMXEPUUAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
