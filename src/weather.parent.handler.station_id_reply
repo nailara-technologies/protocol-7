@@ -24,14 +24,14 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     unlink($location_file) or warn "cannot remove $location_file [ $! ]";
     ##
 
-    foreach my $reply_id ( @{<weather.get_urls.reply_ids>} ) {
+    foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => 'nak',
                 'data' => 'unable to get station id'
             }
         );
-        delete <weather.get_urls.reply_ids>;
+        delete <weather.get-urls.reply_ids>;
     }
     $shutdown = 1;
 
@@ -64,25 +64,25 @@ if ( !<weather.agent.initialized> ) {
     <weather.agent.initialized> = 1;
 }
 
-if (    defined <weather.get_urls.reply_ids>
-    and ref(<weather.get_urls.reply_ids>) eq 'ARRAY'
-    and @{<weather.get_urls.reply_ids>} ) {
+if (    defined <weather.get-urls.reply_ids>
+    and ref(<weather.get-urls.reply_ids>) eq 'ARRAY'
+    and @{<weather.get-urls.reply_ids>} ) {
     my $url_list_str;
     map { $url_list_str .= "$_\n" }
         <[weather.parent.get_url_list]>->($station_id);
-    foreach my $reply_id ( @{<weather.get_urls.reply_ids>} ) {
+    foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => 'data',
                 'data' => $url_list_str
             }
         );
-        delete <weather.get_urls.reply_ids>;
+        delete <weather.get-urls.reply_ids>;
     }
 }
 
 # ______________________________________________________________________________
-#\\HCI2AY4VDKOFAW4NXPADSI4Z5ZH2VAJWPGGQLJMMQN7SVBZQR32VCYW3Y3J4JXAP7E7A56YLHFDNQ
-# \\ 3J4DX3ILBK4PKDIJ4M6N2WN2B6C673WNFLZTCXPT2WE2UP3HVCH4 \\// C25519-BASE-32 //
-#  \\// MZUQ7YIOD5SAT53M7MSLC36BTMXXPUJ5AZ6I4KWSLU7BEJIYMCA \\ CODE SIGNATURE \\
+#\\YE4XBGTUTBKH7BGC2TNLMCTAW6PUCPNG2BTRUONIP7IENW4SBERMFMMSSTH3QXJJMCLCJZNME6CXM
+# \\ ZP4CJB7IYMCVOOJOEBZBQOHMMRTA7PFNQQH726JKLSH2KVTBEI6K \\// C25519-BASE-32 //
+#  \\// ZS4SNFBMF2J4E4JMC6346V7JVHWFCABLNZOZK7UHAHUN7GCTYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
