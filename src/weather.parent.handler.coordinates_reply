@@ -93,7 +93,7 @@ if ( defined $station_id ) {
     if ( !-f $city_file ) {
         <[base.log]>->( 1, "writing location '$city' to disk cache.," );
 
-        <[file.put]>->( $city_file, time() . " $city\n" );
+        <[file.put_bin]>->( $city_file, time() . " $city\n" ); # utf8 content ##
     }
     <[weather.parent.write_pages]>->($station_id) if $custom_zoom;
 
@@ -110,7 +110,7 @@ if ( defined $station_id ) {
 }
 
 # ______________________________________________________________________________
-#\\ERTQE2MNLUEXH4OPTMBNBBVQZEQELT7HO5SMEK7MT7PZCP3IOMA3XUGSRAGYVOAGD42NNH75X427C
-# \\ MLQR6AXKJGXMAEJSE7VMML7AP64EKYJOSZMDAEO6BK3O3OTC6VQB \\// C25519-BASE-32 //
-#  \\// Y7VVUQQBYOOQNTAQAAG7DEGM5CDF5GXU6TWOGNS46LVMXEPUUAY \\ CODE SIGNATURE \\
+#\\33GNVDBKER7C2DRVEGLOACLBFCQEGSKM7P7OREVVX3NSXLKN4G7R2RFNEGER7RL3C6FE3OO7VZGJW
+# \\ GV3M3X65E2OG3HUGRQCDBWUHD2EKMDOZLSCCZOFAB535ZC54UU6W \\// C25519-BASE-32 //
+#  \\// O3VKUJMLNIKG4GHDC2M6NKCALCEIXHFMHCOMNEVYQZIZJEGDWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
