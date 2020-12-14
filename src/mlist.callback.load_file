@@ -27,7 +27,7 @@ if ( exists <mlist.mime_type.retry_timer> ) {
 
 my @lines;
 my @file_names;
-<[file.slurp]>->( $file_path, \@lines );
+<[file.slurp]>->( $file_path, \@lines, ':raw' ); ## reads encoded utf8 content #
 
 map {
     $_ =~ s/^\s+|\s+$//g;
@@ -100,12 +100,11 @@ foreach my $file (@file_names) {
     my $b32id
         = <[digest.crc.b32]>->( ++$b32_index{$parsed_line}, $parsed_line );
 
-    <mlist.b32id_src_str>->{$b32id}
-        = $parsed_line;    # LLL: cleanup + collisions
+    <mlist.b32id_src_str>->{$b32id} = $parsed_line;  # LLL: cleanup + collisions
 
-    $agent_subname = $1        if $file =~ s|^([^\:]+): +||;
-    $type          = $1        if $file =~ s| +\(([^\)]+)\)$||;
-    $type          = 'unknown' if $type eq 'url';
+    $agent_subname = $1 if $file =~ s|^([^\:]+): +||;
+    $type          = $1 if $file =~ s| +\(([^\)]+)\)$||;
+    $type = 'unknown' if $type eq 'url';
     <mlist.agent_subnames>->{$file_index}->{$agent_subname} = 1
         if defined $agent_subname;
 
@@ -241,7 +240,7 @@ if ( <mlist.had_network_errors> and !<mlist.network_errors> ) {
 }
 
 # ______________________________________________________________________________
-#\\2XEJVJ4GPBD3743XRXW2Q2YRY3U5DYPG5OSL2DTOKDCSQ7YU5B766K27TJUU5V4VHWQQSSKJR2PLI
-# \\ 56YMO6BBTQO6WKPKD7R7M3MTHN32PQC3LM6E72CGG23R5FV2X2UO \\// C25519-BASE-32 //
-#  \\// YHLNHMXUT6LHIFGYORC6LS2FKKEWBHVNI6NX2MFBNO2XHVLSACA \\ CODE SIGNATURE \\
+#\\UFZW3FLGRECL6STLSJNK4ZZVVPC57L3O7NGP2P73NZJIOOHZQPHKJPXREUPZ47RN75B3ZAT2GPIV2
+# \\ 2XEF3TPZRRWHI2IV6DHDUHDQPFPZP7WRQ3I2JUF2ZO6AXL4BOPCL \\// C25519-BASE-32 //
+#  \\// IDES724B4T3QFPBR2JELO2WGH6MUFBIDUBCF5PFJKLE6OI4PYAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
