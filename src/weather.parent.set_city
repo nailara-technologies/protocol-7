@@ -14,15 +14,15 @@ my $city_file = "$cache_dir/city.current";
 
 <[base.log]>->( 1, "writing location '$city' to disk cache.," );
 
-<[file.put]>->( $city_file, time() . " $city\n" );
+<[file.put_bin]>->( $city_file, time() . " $city\n" ); # encod. utf8 passthrough
 
-if ( defined <weather.station_id> ) {    # cached id found
+if ( defined <weather.station_id> ) {    # cached station id present
     <[weather.parent.populate_html_dir]>->(<weather.station_id>);
     <[weather.parent.update_current]>->(<weather.station_id>);
     <[weather.parent.update_forecast]>->(<weather.station_id>);
 
     if ( !<weather.agent.initialized> ) {
-        <[base.async.get_session_id]>;    # change agent status to 'online'
+        <[base.async.get_session_id]>; # <-- changing agent status to 'online'.,
         <weather.agent.initialized> = 1;
     }
 
@@ -45,7 +45,7 @@ if ( defined <weather.station_id> ) {    # cached id found
 }
 
 # ______________________________________________________________________________
-#\\6A3WC5TR5NHOIAN4BJ3WXWFKNPAWISLWTVOTZH2HBLOKO3GGF4E4NB6PILIB7V3UN225VUZHWGQQG
-# \\ GSYAN5GRKLFDKYJIITMVWRRTDIBE6RYSJ3FVSU3JW2LSHU7TEHQS \\// C25519-BASE-32 //
-#  \\// PDRLNJV4KYNY3E4XB3O3X77LIVANYA2EOOBOR3MPNBVTNXVPIAA \\ CODE SIGNATURE \\
+#\\WV3MHQRQOX45PAISQPO52RRGRVRWF6PEJ4OL5CHJMD7SAIBIKH5NVXFFB3JGK5V7FW5HM3OGHP672
+# \\ MKA4DCC5AK4Q2G6JKWAHO6VBPW7C76YLC3PWWGXM7LF7LNLWLGJC \\// C25519-BASE-32 //
+#  \\// LAXJXZEMLOKLTO3Z763WEMA6YTQMOKZKFIQUPQ6Y2ZNMDXEJUCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
