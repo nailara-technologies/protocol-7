@@ -1,5 +1,6 @@
 # >:]
 
+# name  = weather.child.cmd.request-data
 # param = <id> <cur|hrs|days>
 # descr = return weather data for num. station id
 
@@ -29,7 +30,7 @@ return {
     'mode' => 'nak',
     'data' => "invalid type parameter [current|hours|days]"
     }
-    if $type !~ /^(current|hours|days)$/;
+    if $type !~ m{^(current|hours|days)$};
 
 my $count;
 my $q_str = $type eq 'hours' ? 'forecast' : 'forecast/daily';
@@ -44,11 +45,11 @@ my ( $status_code, $json_data )
     = <[weather.child.query_api]>->("$q_str?$params");
 
 my $status_str = length( $status_code // '' ) ? " < $status_code >" : '';
-$status_str = " [ location not found ]" if $status_code eq '404';
+$status_str = " [ unknown location ]" if $status_code eq '404';
 
 return {
     'mode' => 'nak',
-    'data' => "query failed" . $status_str
+    'data' => 'query failed' . $status_str
     }
     if not defined $json_data;
 
@@ -104,7 +105,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\XXVBQXLTHSXI2P373I4DAKYYFYQRZXWNY6TYFY2GFUEP5WG7DRTVC6LE4ANFQRTDFA5QVRN2TAJGW
-# \\ NF3B3G6A6DUAU2SGKMBAQZNU6EMUDPCIHO32VJ4AXXKYFOD6IAUU \\// C25519-BASE-32 //
-#  \\// 7QKSJSO22L5ALEZ6W53ZKQWVTI3472OBKJGZ4OSFUIKZ4K7EYCQ \\ CODE SIGNATURE \\
+#\\SCSBW62T6BJQOE2JJXYBJQWWH4DVMCBIOOVGJQOKJVEDJJ2ZJWM7YBZE4QG2AUG4JLBAOQ3JQILD2
+# \\ WJIEGXSTZE4O7ZCRBIFZSUTC2X2TR3THN7AFZCO5OHKOFKMZE5NE \\// C25519-BASE-32 //
+#  \\// 2DW2VLJJQGKLGQYVHUDNRR3ANOYUFD2ROMFRPAQRG5GUYDRAGAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -9,7 +9,7 @@ my $locale_data = {};
 
 <[base.log]>->( 1, ": loading '$filename'" );
 
-<[file.slurp]>->( $file_path, \my @lines, ':raw' );    # <- file is UTF-8
+<[file.slurp]>->( $file_path, \my @lines );   # <-- utf8 content [ global open ]
 
 my $entries = 0;
 
@@ -21,7 +21,6 @@ map {
     $_ =~ s/^\n|\n$//mg;
     if ( length($_) and $_ =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
         $locale_data->{$1} = $2;
-        utf8::decode( $locale_data->{$1} );
         $entries++;
     } elsif ( length($_) ) {
         warn("syntax error in locale file '$filename' [$_]");
@@ -33,7 +32,7 @@ my $s = $entries == 1 ? 'y' : 'ies';
 return $locale_data;
 
 # ______________________________________________________________________________
-#\\M4XZBXPEZZ35YPCJHTV5O25533BKVO3IRB4TR2T4FOB6N67ZIZE52G2CSFT72HVIXXUXSB2KKIB3S
-# \\ ZONCCZ54EBQXRRBSJCQGCYXOSYZM5QNHPVVY3N24ZS5AJ2P5IKSW \\// C25519-BASE-32 //
-#  \\// ASZYJ7RGGGFOSEA7CHYZIKBC23YJ4W2XVEJSYROJT5YVYA2ASAY \\ CODE SIGNATURE \\
+#\\LZW2EBJ4AAVDG5FGCNVVUODZCBFRC6G4E62C4FFQP2HC6P46HLOJL76HL7GQE7BQWX4CHVLF3UBR4
+# \\ ZXCKG55OFZLBT5PRUSRS3DFYTHWQ2LSEW6WGWWKRQQCDBSRXA5TI \\// C25519-BASE-32 //
+#  \\// JBIPRC6KMAUUUXAZ6S6VFUBKIOJA4YMSR46JS4TQW3ZH4EF7CBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
