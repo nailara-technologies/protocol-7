@@ -16,14 +16,14 @@ return {
     'mode' => 'nak',
     'data' => "invalid type parameter [current|hours|days]"
     }
-    if $type !~ /^(current|hours|days)$/;
+    if $type !~ m{^(current|hours|days)$};
 
-die "expected (valid) station_id parameter"
+die "expected [valid] station_id parameter"
     if not defined $station_id
     or !length($station_id)
-    or $station_id !~ /^([\w\d]+)$/;
+    or $station_id !~ m{^([\w\d]+)$};
 
-<[base.log]>->( 2, "checking '$type'-cache for '$station_id'.." );
+<[base.log]>->( 2, "checking '$type'-cache for '$station_id'.," );
 
 my $file_path = "$cache_dir/$station_id.$type";
 
@@ -32,10 +32,10 @@ if ( !-f $file_path ) {
     return undef;
 }
 
-my $content_ref = <[file.slurp]>->($file_path);
+<[file.slurp]>->( $file_path, \my $content_str ); # utf8 content [ global open ]
 
 my ( $timestamp, $data_str );
-if ( $$content_ref =~ /^(\d+)\n(.+)\n$/ ) {
+if ( $content_str =~ m{^(\d+)\n(.+)\n$} ) {
     ( $timestamp, $data_str ) = ( $1, $2 );
 } else {
     <[base.log]>->( 0, "syntax error in cache file '$file_path'" );
@@ -54,20 +54,20 @@ $age_str =~ s| (1 \w+)s | $1 |;
 
 if ( $data_age >= $max_age ) {
     <[base.log]>->(
-        1, "'$type' data cache timed out ($age_str old), purging.."
+        1, "'$type' data cache timed out [ $age_str old ], purging .,"
     );
     unlink($file_path) or die "unlink($file_path): $!";
     delete <weather.data>->{$station_id};
 
-    # LLL: write loading pages...
+    # LLL: write loading pages..,
     return undef;
 } else {
-    <[base.log]>->( 2, "found '$type' weather data in cache ($age_str old)" );
+    <[base.log]>->( 2, "found '$type' weather data in cache [ $age_str old ]" );
     return $cached_data;
 }
 
 # ______________________________________________________________________________
-#\\3AGL3OX6HLCLRFAROP3TOIC2VRM3HLUOR564HR4C3KZARS3G3ASBYNLL7WM2Z3AOX6L7CTK6VBACY
-# \\ 52KBCUBVRPYF62KAJLHTORISYCGWLYIJQGGT4UWQR3EHPZIZG35T \\// C25519-BASE-32 //
-#  \\// H35PLLEZKWECNCUI3225JEBBRIXVJAAEOZGQ3SI4XKVKJDEEABY \\ CODE SIGNATURE \\
+#\\KKFGQC452IHI6MWKPKKSOQGE6JT7JMAY5L2COFTJZ77BBXS6TG62LU5UN6IYJLOU3DFXVBBTU3QY6
+# \\ AKXVUY2G7ITN56PG6MIFTDYMA67UPNGMLVOTHTNMGAYCA7MEGMHE \\// C25519-BASE-32 //
+#  \\// PXIRXPE3KJMODAED34S62II6XEB7DHW7JKTHP2ER2XGGVDTISBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

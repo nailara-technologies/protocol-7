@@ -67,15 +67,19 @@ if ( !<weather.child.pid> ) {    ## child ##
     my $city_file = "$cache_dir/city.current";
     if ( -f $city_file ) {
         <[base.log]>->( 1, "found saved location setup in cache.." );
-        <[file.slurp]>->( $city_file, \my $city_str, ':raw' ); # utf8 content ##
-        my ( $timestamp, $loaded_city ) = ( $1, $2 )
-            if $city_str =~ m|^(\d+)\s+(.+)$|;
-        if ( defined $loaded_city ) {
-            <[base.log]>->( 1, "<*> restoring location '$loaded_city'" );
-            <weather.cfg.city> = $loaded_city;
+        <[file.slurp]>->( $city_file, \my $stid_loc_str, ':raw' ); # has utf8 ##
+
+        my ( $timestamp, $loaded_location );
+
+        if ( defined $stid_loc_str and $stid_loc_str =~ m|^(\d+)\s+(.+)$| ) {
+
+            ( $timestamp, $loaded_location ) = ( $1, $2 );
+
+            <[base.log]>->( 1, "<*> restoring location '$loaded_location'" );
+            <weather.cfg.city> = $loaded_location;
         } else {
             <[base.log]>->(
-                0, "<!> syntax error in city cache file, purging.., <!>"
+                0, "<!> syntax error in location cache file, purging.., <!>"
             );
             unlink($city_file) or warn "unlink failed: $!";
         }
@@ -94,7 +98,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\3NODFOGPT6BEKQZA43MRSDJ7TECGSX2XWA4FD545BM23XJFS57KXQFCC7RUMQYVTGPALMO4X2GYUO
-# \\ YUQ33YFTZSEO54FVQOUF6VJ7RH6OG2UMFFOYBVR7UMAU343JCR4I \\// C25519-BASE-32 //
-#  \\// MA5OI5QI4U2WMU3G4I7PE42ASN2ENZLNNYJROZTCYULX4JQNMCA \\ CODE SIGNATURE \\
+#\\MZRUL2N57BF2EHBE2YUMACNQ5Y45OX2UPR5I4D5QHDFMATG2LY6DIS7HGYMHO5UX5E4NM7HOBT4BK
+# \\ MNAGOHAGTQKFK6TUOWIH45UOZS6B6PQPKKD5B6JGFBVQHRKJ2V65 \\// C25519-BASE-32 //
+#  \\// U5MYH4XWT2AVL6HGRL2IHOUGYWTXPNMAHAFBTJNDXIK63QT5YCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
