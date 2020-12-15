@@ -4,7 +4,7 @@
 
 my $station_id = shift;
 die "expected (valid) station id parameter"
-    if not defined $station_id or $station_id !~ /^\d+$/;
+    if not defined $station_id or $station_id !~ m{^\d+$};
 my $cache_dir            = <weather.cache_dir> . '/html';
 my $html_dir             = "$cache_dir/$station_id";
 my @page_list            = <[weather.parent.page_list]>;
@@ -18,18 +18,18 @@ if ( !-d $html_dir ) {
 
 die "html template '$body_template' does not exist" if !-f $body_template;
 
-my $html_body_ref = <[file.slurp]>->($body_template);
-die "unable to load html template '$body_template'"
-    if not defined $html_body_ref;
+<[file.slurp]>->( $body_template, \my $body_html, ':raw' );
+die "unable to load html body template '$body_template'"
+    if not defined $body_html;
 
-$$html_body_ref =~ s|\[TXT:source\]|<locales.string.tmpl.source>|g;
+$body_html =~ s|\[TXT:source\]|<locales.string.tmpl.source>|g;
 
 my $data_ref    = <weather.data>->{$station_id};
 my $current_ref = $data_ref->{'current'};
 my $today_ref   = $data_ref->{'forecast'}->{'today'};
 
 if ( not defined $current_ref or not exists $current_ref->{'temp'} ) {
-    <[base.log]>->( 0, "expected weather data not present, aborting write.." );
+    <[base.log]>->( 0, "expected weather data not present, aborting write.," );
     return;
 }
 
@@ -51,10 +51,10 @@ $icon_path = <weather.icons>->{ $current_ref->{'icon'} }
 
 $icon_path =~ s|^.*/|./images/|;
 
-my %snipplet_names;
+my %template_names;
 opendir( my $dir_fh, $current_template_dir )
     or die "opendir($current_template_dir): $!";
-map { $snipplet_names{$1} = 1 if $_ =~ /^content\.(.+)\.part$/ }
+map { $template_names{$1} = 1 if $_ =~ m{^content\.(.+)\.part$} }
     readdir($dir_fh);
 closedir($dir_fh);
 
@@ -62,18 +62,19 @@ closedir($dir_fh);
 
 foreach my $page_name (@page_list) {
     my $content_str = '';
-    next if $page_name !~ /^current\.(.+)$/;
+    next if $page_name !~ m{^current\.(.+)$};
     foreach my $sname ( split( /\./, $1 ) ) {
-        if ( not exists $snipplet_names{$sname} ) {
+        if ( not exists $template_names{$sname} ) {
             <[base.log]>->(
-                0, "[ write_pages ] html snipplet '$sname' not defined."
+                0, "[ write_pages ] html template '$sname' not defined."
             );
             next;
         }
         my $template_path = "$current_template_dir/content.$sname.part";
-        $content_str .= ${ <[file.slurp]>->($template_path) };
+
+        $content_str .= ${ <[file.slurp]>->( $template_path,, ':raw' ) };
     }
-    my $html_str = $$html_body_ref;
+    my $html_str = $body_html;
 
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
 
@@ -94,14 +95,14 @@ foreach my $page_name (@page_list) {
 
     my %temps = map { $_ => 'n/a' } ( 'morn', 'day', 'eve', 'night' );
 
-    if (    exists $snipplet_names{'today'}
+    if (    exists $template_names{'today'}
         and defined $today_ref
         and ref($today_ref) eq 'HASH'
         and exists $today_ref->{'temp'} ) {
         %temps = map { $_ => sprintf( "%.1f", $today_ref->{'temp'}->{$_} ) }
             ( 'morn', 'day', 'eve', 'night' );
 
-        my $icon_num = $1 if $current_ref->{'icon'} =~ /^(\d+)/;
+        my $icon_num = $1 if $current_ref->{'icon'} =~ m{^(\d+)};
         $icon_day   = <weather.icons>->{"${icon_num}d"};
         $icon_night = <weather.icons>->{"${icon_num}n"};
     }
@@ -137,47 +138,50 @@ foreach my $page_name (@page_list) {
 foreach my $page_name (@page_list) {
     my $content_str = '';
     next
-        if $page_name !~ /^forecast_hours\.(.+)$/
+        if $page_name !~ m{^forecast_hours\.(.+)$}
         or not exists $data_ref->{'forecast'}->{'hours'};
 
     my @timestamps
         = sort { $a <=> $b } keys %{ $data_ref->{'forecast'}->{'hours'} };
 
     foreach my $sname ( split( /\./, $1 ) ) {
-        my $snipplet_index;
-        $snipplet_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
-        if ( not exists $snipplet_names{$sname} ) {
+        my $template_index;
+        $template_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
+        if ( not exists $template_names{$sname} ) {
             <[base.log]>->(
-                0, "<!>write_pages: html snipplet '$sname' does not exist!"
+                0, "<!>write_pages: html template '$sname' does not exist!"
             );
             next;
         }
-        my $snipplet_ref
-            = <[file.slurp]>->("$current_template_dir/content.$sname.part");
+        <[file.slurp]>->(
+            "$current_template_dir/content.$sname.part",
+            \my $part_template, ':raw'
+        );
 
-        if ($snipplet_index) {
+        if ($template_index) {
             my $index = $1 - 1;
             if ( not exists $timestamps[$index] ) {
                 <[base.log]>->(
-                    2, "'hours' forecast data with index $index not found.."
+                    2, "'hours' forecast data with index $index not found.,"
                 );
-                $snipplet_ref
-                    = <[file.slurp]>
-                    ->("$current_template_dir/content.fail.part");
+                <[file.slurp]>->(
+                    "$current_template_dir/content.fail.part",
+                    \$part_template, ':raw'
+                );
                 my $fail_icon = <weather.icons>->{'not_available'};
-                $$snipplet_ref =~ s|\[ICON\]|$fail_icon|g;
-                $content_str .= $$snipplet_ref;
+                $part_template =~ s|\[ICON\]|$fail_icon|g;
+                $content_str .= $part_template;
                 next;
             }
             my $ts          = $timestamps[$index];
             my $hr_data_ref = $data_ref->{'forecast'}->{'hours'}->{$ts};
 
             my $hours_temp = sprintf( "%.1f", $hr_data_ref->{'temp'} );
-            $$snipplet_ref =~ s|\[TIME\]|$hr_data_ref->{time}|g;
-            $$snipplet_ref =~ s|\[DESCR\]|$hr_data_ref->{descr}|g;
-            $$snipplet_ref =~ s|\[TEMP\]|$hours_temp|g;
-            $$snipplet_ref =~ s|\[HUMIDITY\]|$hr_data_ref->{humidity}|g;
-            $$snipplet_ref
+            $part_template =~ s|\[TIME\]|$hr_data_ref->{time}|g;
+            $part_template =~ s|\[DESCR\]|$hr_data_ref->{descr}|g;
+            $part_template =~ s|\[TEMP\]|$hours_temp|g;
+            $part_template =~ s|\[HUMIDITY\]|$hr_data_ref->{humidity}|g;
+            $part_template
                 =~ s|\[WIND_DESCR\]|$hr_data_ref->{'wind'}->{'descr'}|g;
 
             my $icon_path = <weather.icons>->{ $hr_data_ref->{'code'} . '.'
@@ -185,13 +189,13 @@ foreach my $page_name (@page_list) {
             $icon_path = <weather.icons>->{ $hr_data_ref->{'icon'} }
                 if not defined $icon_path;
             $icon_path     =~ s|^.*/|./images/|;
-            $$snipplet_ref =~ s|\[ICON\]|$icon_path|g;
+            $part_template =~ s|\[ICON\]|$icon_path|g;
 
         }
 
-        $content_str .= $$snipplet_ref;
+        $content_str .= $part_template;
     }
-    my $html_str = $$html_body_ref;
+    my $html_str = $body_html;
 
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
 
@@ -217,47 +221,51 @@ foreach my $page_name (@page_list) {
 foreach my $page_name (@page_list) {
     my $content_str = '';
     next
-        if $page_name !~ /^forecast_days\.(.+)$/
+        if $page_name !~ m{^forecast_days\.(.+)$}
         or not exists $data_ref->{'forecast'}->{'days'};
 
     my @timestamps
         = sort { $a <=> $b } keys %{ $data_ref->{'forecast'}->{'days'} };
 
     foreach my $sname ( split( /\./, $1 ) ) {
-        my $snipplet_index;
-        $snipplet_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
-        if ( not exists $snipplet_names{$sname} ) {
+        my $template_index;
+        $template_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
+        if ( not exists $template_names{$sname} ) {
             <[base.log]>->(
-                0, "<!>write_pages: html snipplet '$sname' does not exist!"
+                0, "[ write_pages ] html template '$sname' does not exist."
             );
             next;
         }
-        my $snipplet_ref
-            = <[file.slurp]>->("$current_template_dir/content.$sname.part");
 
-        if ($snipplet_index) {
+        <[file.slurp]>->(
+            "$current_template_dir/content.$sname.part",
+            \my $part_template, ':raw'
+        );
+
+        if ($template_index) {
             my $index = $1 - 1;
             if ( not exists $timestamps[$index] ) {
                 <[base.log]>->(
-                    2, "'days' forecast data with index $index not found.."
+                    2, "'days' forecast data with index $index not found.,"
                 );
-                $snipplet_ref
-                    = <[file.slurp]>
-                    ->("$current_template_dir/content.fail.part");
+                <[file.slurp]>->(
+                    "$current_template_dir/content.fail.part",
+                    \$part_template, ':raw'
+                );
                 my $fail_icon = <weather.icons>->{'not_available'};
-                $$snipplet_ref =~ s|\[ICON\]|$fail_icon|g;
-                $content_str .= $$snipplet_ref;
+                $part_template =~ s|\[ICON\]|$fail_icon|g;
+                $content_str .= $part_template;
                 next;
             }
             my $ts           = $timestamps[$index];
             my $day_data_ref = $data_ref->{'forecast'}->{'days'}->{$ts};
 
             my $day_temp = sprintf( "%.1f", $day_data_ref->{'temp'}->{'day'} );
-            $$snipplet_ref =~ s|\[DAY\]|$day_data_ref->{day}|g;
-            $$snipplet_ref =~ s|\[DESCR\]|$day_data_ref->{descr}|g;
-            $$snipplet_ref =~ s|\[TEMP\]|$day_temp|g;
-            $$snipplet_ref =~ s|\[CLOUDS\]|$day_data_ref->{clouds}|g;
-            $$snipplet_ref
+            $part_template =~ s|\[DAY\]|$day_data_ref->{day}|g;
+            $part_template =~ s|\[DESCR\]|$day_data_ref->{descr}|g;
+            $part_template =~ s|\[TEMP\]|$day_temp|g;
+            $part_template =~ s|\[CLOUDS\]|$day_data_ref->{clouds}|g;
+            $part_template
                 =~ s|\[WIND_DESCR\]|$day_data_ref->{'wind'}->{'descr'}|g;
 
             my $icon_path = <weather.icons>->{ $day_data_ref->{'code'} . '.'
@@ -265,13 +273,12 @@ foreach my $page_name (@page_list) {
             $icon_path = <weather.icons>->{ $day_data_ref->{'icon'} }
                 if not defined $icon_path;
             $icon_path     =~ s|^.*/|./images/|;
-            $$snipplet_ref =~ s|\[ICON\]|$icon_path|g;
+            $part_template =~ s|\[ICON\]|$icon_path|g;
 
         }
-
-        $content_str .= $$snipplet_ref;
+        $content_str .= $part_template;
     }
-    my $html_str = $$html_body_ref;
+    my $html_str = $body_html;
 
     $html_str =~ s|\[MAIN_CONTENT\]|$content_str|;
 
@@ -285,7 +292,7 @@ foreach my $page_name (@page_list) {
     $html_str =~ s|\[ICON\]|$icon_path|g;
     $html_str =~ s|\[DESCR\]|$current_ref->{descr}|g;
 
-    # ...
+    # ..,
 
     <[weather.parent.apply_zoom]>->( \$html_str );
 
@@ -293,7 +300,7 @@ foreach my $page_name (@page_list) {
 }
 
 # ______________________________________________________________________________
-#\\6P3RG6APE2QRLJE23YNVFGR7F7YVO67S3OR3NSDBNXBC2TQ6MO34OFAXAXO7PFAFBWNCCMS2IOAEE
-# \\ BMS57N6MP2MBHBJZZ6NARPWFSHZ6B7SMUXVNFFQCDL637V5HDKQ3 \\// C25519-BASE-32 //
-#  \\// ZAKAO4DFSLGYANPZKPYH6JFUDQ323ROMWWC4CMYVVCUSO4SJMCQ \\ CODE SIGNATURE \\
+#\\C6M6YNYLOFM4IMDYLP4E24XOJCH44OPDMDIFLP2HYDN5AAMQF53WHS4FLQ6X67L3C7ANGRSKYZRVC
+# \\ ZXLWMK2TIAEJ5P7ZHDE6TNGTDOJQADVSCPN4K5JVFQ4VIFOZKZJ2 \\// C25519-BASE-32 //
+#  \\// 3TERC4SEEJTDAUCYXAQK5ATVMW5CJGLWYMZNFQK665BBOHFMAAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
