@@ -23,12 +23,12 @@ my $interval_seconds = <weather.update_interval.current> * 60;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
-    if ( $err_reason eq 'query failed (city not found)' ) { # evtl. API overload
+    if ( $err_reason eq 'query failed [ unknown location ]' ) {   # rate limit.?
         $log_level++;
         $interval_seconds += 113 + int( rand(237) );
     }
     <[base.log]>->(
-        $log_level, "unable to retrieve current weather data [$err_reason]"
+        $log_level, "cannot retrieve 'current' data < $err_reason >"
     );
     $status_code = $1 if $err_reason =~ /^(\d+)/;
 } else {
@@ -64,7 +64,7 @@ if (    defined $current_data
         $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.7;
 
         <[base.log]>->(
-            $log_level, "unable to obtain current weather data.." . $status_str
+            $log_level, "unable to obtain current weather data.," . $status_str
         );
 
         my $age_str
@@ -73,12 +73,12 @@ if (    defined $current_data
             : sprintf( "%0.1f minutes", $data_age / 60 );
         $age_str =~ s|\.0 | |;
         $age_str =~ s| (1 \w+)s | $1 |;
-        <[base.log]>->( $log_level, "keeping cached data ( $age_str old )" );
+        <[base.log]>->( $log_level, "keeping cached data [ $age_str old ]" );
         $update_interval
             = $retry_delay_cached
             + sprintf( "%.1f", rand( $retry_delay_cached / 2 ) );
         <[base.log]>->(
-            1, "next 'current' attempt in $update_interval seconds.."
+            1, "next 'current' attempt in $update_interval seconds.,"
         );
     } else {
 
@@ -108,7 +108,7 @@ if ( time + $update_interval > $midnight ) {
     <[base.log]>->(
         1,
         "..shortened 'current' delay "
-            . "to $update_minutes minutes! (midnight)"
+            . "to $update_minutes minutes [ midnight ["
     );
 }
 
@@ -120,7 +120,7 @@ if ( time + $update_interval > $midnight ) {
 );
 
 # ______________________________________________________________________________
-#\\BJM6ETHJFLSIRXBEGDWTRCUJPCF46IV7PHD5IJJANKEX623TK5LKV2MOGXSV4K66P52OORGBFHUZU
-# \\ TPXPEUAWQE3OVA7UHF5ELEUBX37ENKIJM2DWIPPEHCR3IU5QSA3N \\// C25519-BASE-32 //
-#  \\// YGO7C5IETDYKPOEVHKD5QVBXHZMVPRQPNJ37MKQOURJDMDQX4CQ \\ CODE SIGNATURE \\
+#\\DV5A5K4W7S32MEKM3EOVGAZDPCWFCH5PGL4MZDLZIOMEMYXRXBQ7HRF45ZX53VLPDVJ5T3VBK36CO
+# \\ FDWLIGFVPQJHINH5XUEJWQXEJCZJK5OZ2ET5IFNJJI6FJYHM4RXW \\// C25519-BASE-32 //
+#  \\// ZSVBTKR2WNC7WADSGXRTNMFU4AWIN3B4JI2DUA7KG5RSP5RM2DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

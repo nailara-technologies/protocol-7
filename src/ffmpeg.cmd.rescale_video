@@ -58,7 +58,11 @@ if ( defined $target_path ) {
 }
 
 if ( !-d $output_path ) {
-    make_path($output_path) or die "make_path($output_path): $!";
+
+    #    make_path($output_path) or die "make_path($output_path): $!";
+    make_path( $output_path, { chmod => 0777 } )
+        or die "make_path($output_path): $!";    ## <<< ! >>> ## chmod ###
+
 }
 
 my $partial_output_file = "$output_path/$box_size...converting...$format";
@@ -120,12 +124,12 @@ if ( !-f $output_file ) {
 }
 unlink($error_log_file) if -f $error_log_file;
 
-<[base.log]>->( 1, ": done. (success)" );
+<[base.log]>->( 1, ": done. [ success ]" );
 
 return { 'mode' => 'ack', 'data' => $output_file }
 
 # ______________________________________________________________________________
-#\\7ZMVKKAP6W532EZV5S52XGQF6F4INWPC6MDLAHQ3WCIZ6YK5KNZOLJWPCJ23GFSZEZ56WV7PBCG52
-# \\ XAWWNANRPSAD6GQU6W3KBKCK46IRQYCRWPYVHP4TR5XPFYJPU24Y \\// C25519-BASE-32 //
-#  \\// NXLY4JJVEJCUKIQ42XPIYBMTR2T3IVOD74NPVOJ6EHTWGAMECAA \\ CODE SIGNATURE \\
+#\\4JKZJWTIQYH3BLK2THZLXMEPOTBIYQVULPHOUOLHBWS3VIEDWPUY5JZ7POZNVMODUZSPXYBJIHII6
+# \\ DXQUHY7DGHDCTRCARZ6Z6STKGXZQTW5FIJBGJOPL52XYPRZYD7RF \\// C25519-BASE-32 //
+#  \\// VB4JPLFHDIF676GJUUC2YFFXHD76ZZBXJT6XXZWXB5JL6JPH2AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

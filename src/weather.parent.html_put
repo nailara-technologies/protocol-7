@@ -8,12 +8,12 @@ my $temp_file = $file_path . '.NEW';
 
 <[base.log]>->( 2, ": $page_name.html" );
 
-<[file.put_bin]>->( $temp_file, $$html_ref ); ## <-- utf8 content passthrough ##
+<[file.put]>->( $temp_file, $$html_ref );    ## <-- utf8 content [ global open ]
 
 rename( $temp_file, $file_path ) or die "$temp_file -> $file_path: $!";
 
 # ______________________________________________________________________________
-#\\ZPKO7IBKULC5ZYRQKG53W4WLENR4DAAQ4TGOEKQPAZ2YN3SFOZIKAOX4KDXGOE6RAHHI7XAWIKWRM
-# \\ JD3WS3C6AXTD6GJWCIAJZ3YC5CZOVCZO2BEEPEWHOEFGDK5N7K4Q \\// C25519-BASE-32 //
-#  \\// YNQG7TQKI4ID3Y5GNYJZMOITQPMIAZQNG4RZ7XVR4ARHLSSFCBQ \\ CODE SIGNATURE \\
+#\\TNPNRNBXGVCMU7G6GLY3NZJ72LW7RRLADPPQB2C35P2JLUPPVQAYA5XI6IQL3IVHIO2OJN3LMVUEY
+# \\ MFKY5M6H7B7FQUZLBXNORVK4S6575VQAIIFKRNVUE3YF2EDG4WVE \\// C25519-BASE-32 //
+#  \\// NRDNUAH5M7ABYZAVNWAULZIE4H6IQOLGGZAXW6Z6NRAFAZW62BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

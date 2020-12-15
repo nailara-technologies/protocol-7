@@ -14,7 +14,7 @@ if (   not exists <weather.data>->{$station_id}
         my $forecast_data
             = <[weather.parent.cache.read_cache_data]>->( $type, $station_id );
         if ( defined $forecast_data ) {
-            <[base.log]>->( 1, "found cached '$type'-forecast data.." );
+            <[base.log]>->( 1, "found cached '$type'-forecast data.," );
             <[weather.parent.extract_forecast]>->(
                 $type, $station_id, $forecast_data
             );
@@ -22,7 +22,7 @@ if (   not exists <weather.data>->{$station_id}
     }
 }
 
-<[base.log]>->( 2, "<$station_id> updating forecast weather data.." );
+<[base.log]>->( 2, "<$station_id> updating forecast weather data.," );
 foreach my $type ( 'hours', 'days' ) {
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "child.request-data",
@@ -36,7 +36,7 @@ foreach my $type ( 'hours', 'days' ) {
 }
 
 # ______________________________________________________________________________
-#\\ZOLRIPWTGT5FUJ7PRTAZTJGHF77533Q4HWH2ZKJP3X5TGQA4Q7HLAGIR4BZBYEBOS6S326OBB6SOW
-# \\ ZCTQJUMO7ZDU646WLUIEBSGIPV45YSWF3CIHDULOUYCAIXGLZF6L \\// C25519-BASE-32 //
-#  \\// QQOGPXJO3SC3LZLDU2T6BFVB45KQDPKCVSCFVKS6GSMOZLFYSDA \\ CODE SIGNATURE \\
+#\\IBIEAJQFJZN5V3KYCBX2MUCFJEL5IFLGW4QDPYUXWSP6UKKGY56DQQZPSIAWCBF2RSICGT6HJGYD2
+# \\ A3K55OQ4Z2GC4U5TJVQYEA6LD2NKBNCB6BHTKK3GWRJD65EGFTNS \\// C25519-BASE-32 //
+#  \\// QGFOFZO3LJSBYHZ4TGSLD4YBOQRYGGLJDZVY56VQNTNVGE2Q6AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
