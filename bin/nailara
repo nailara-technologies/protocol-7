@@ -102,8 +102,10 @@ sub prepare_subs {
         my $param = shift // 0;
         my $ntime = $data{'base'}{'ntime_ustart'} //= 1023228000;
         my ( $cur_time, $precision ) = ( undef, 0 );
-        if ( length($param) >= 9 ) { $cur_time = $param }    # <- < unix time >
-        else {
+        if ( length($param) >= 9 ) {    # < unix time + inherited precision >
+            $cur_time  = $param;
+            $precision = length($1) if $cur_time =~ m{\.(\d+)$};
+        } else {
             $precision = $param > 11 ? 11 : $param;
             $cur_time  = $code{'base.time'}->( 2 + $precision );
         }
@@ -1178,7 +1180,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\TIQ3D6M6K42OEY2GRQFBOJO4ZWXTBH7EGNDRSVT6IVDQXRQRC3XJDZDXDXLNDO5TCZ3Q76EEQONK2
-# \\ ATYV6UJUINDC73F5MAPMGJYI4IHMS7NJKMGLLGNM4MBEHO25BYOC \\// C25519-BASE-32 //
-#  \\// P2Z2IL34LIG2FUFUCU5ZTPCMEAOY2IMQ4XJIXO3AE6AQ5NM34CY \\ CODE SIGNATURE \\
+#\\HZJXS6PBP37BTXWJ7MJVECYV4AVIP4ID6WOAHB7LKKUIAPC4PPJZ4G3L2MD345KDIDTFGMLKF2LCS
+# \\ XCEF37VGOC2B6ACPBKOZ47MFXWONT6GLGUVL3Q3GF3Q4M7QLPLFY \\// C25519-BASE-32 //
+#  \\// 7TNTN2BWWITMTDQTTRKMG7NI3GHFDXKWBX4XDR7D4TU4NPBWYCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
