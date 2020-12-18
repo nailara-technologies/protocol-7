@@ -170,13 +170,13 @@ sub prepare_subs {
 
         $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
-        my $apparent_exec = File::Spec->rel2abs( canonpath($0) ); # is a symlink
-        my $actual_exec   = abs_path( catfile( $RealBin, $RealScript ) );
-        my $bin_path      = [ File::Spec->splitpath($actual_exec) ]->[1];
-        $data{'system'}{'start'}{'exec_name'} = $apparent_exec;
+        my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
+        my $bin_path    = [ File::Spec->splitpath($actual_exec) ]->[1];
         $data{'system'}{'start'}{'true_exec'} = $actual_exec;
+        $data{'system'}{'start'}{'exec_name'}
+            = File::Spec->rel2abs( canonpath($0) );    # apparent exec [symlink]
         $data{'system'}{'root_path'} = abs_path( catdir( $bin_path, updir() ) );
-        $data{'system'}{'perl_version'} = $];                     # < v5.6
+        $data{'system'}{'perl_version'} = $];          # < v5.6
         $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
         $data{'system'}{'perl_unicode'} = ${^UNICODE};
         my $root_path = $data{'system'}{'root_path'};
@@ -377,15 +377,18 @@ sub prepare_subs {
             if not defined $str_param
             or not defined $len_param
             or $len_param =~ m|^\d+$| and $len_param < 5;
+
         my $by_reference = ref($str_param) eq 'SCALAR' ? 1 : 0;
-        my $str_ref      = $by_reference ? $str_param      : \$str_param;
-        my $str_len      = length($$str_ref);
-        return 0          if $by_reference and $str_len <= $len_param;
-        return $str_param if $str_len <= $len_param;
+        my $str_ref   = $by_reference ? $str_param : \$str_param;
+        my $str_len   = length($$str_ref);
         my $start_pos = int( $len_param / 2 ) - 1;
         my $chars_cut = $str_len - $len_param + 3;
-        substr( $$str_ref, $start_pos, $chars_cut, '.,.' );
+
+        return 0          if $by_reference and $str_len <= $len_param;
+        return $str_param if $str_len <= $len_param;
         return $str_len - $len_param if $by_reference;
+
+        substr( $$str_ref, $start_pos, $chars_cut, '.,.' );
         return $$str_ref;
     };
     $code{'base.code.file_list'} = sub {
@@ -431,7 +434,7 @@ sub prepare_subs {
             my $abs_url = join( '/', $http_base_url, $file_name );
             $abs_url =~ s|//$file_name$|/$file_name|;
             my $h_res;
-            my $retries = $data{'system'}{'http_retries_total'} //= 0;
+            my $retries      = $data{'system'}{'http_retries_total'} //= 0;
             my $retries_left = $http_retries;
             while ( $retries_left-- ) {
                 my $r = $retries ? "[$retries\\$http_retries]" : '';
@@ -1059,17 +1062,16 @@ sub prepare_subs {
                 : '.';
             map {
                 if ( defined $_ ) {
-                    my $s_len;
-                    $s_len = $code{'base.log_hook'}->()
-                        if defined $code{'base.log_hook'};
-                    $s_len //= 0;
+                    my $n_n = $data{'system'}{'node'}{'name'}  // '';
+                    my $a_n = $data{'system'}{'agent'}{'name'} // '';
+                    my $s_len
+                        = defined $code{'base.log_hook'}
+                        ? $code{'base.log_hook'}->()
+                        : 0;
                     my $spaces  = ' ' x $s_len;
                     my $msg_str = $_ . $spaces;
-                    my $n_n     = $data{'system'}{'node'}{'name'}  // '';
-                    my $a_n     = $data{'system'}{'agent'}{'name'} // '';
                     say ':.', $n_n, $dot, $a_n, '.', $ANSI{'bold'} // '',
-                        $msg_str,
-                        $ANSI{'normal'} // '';
+                        $msg_str, $ANSI{'normal'} // '';
                 } else {
                     warn '<< error message undefined >> <{C1}>';
                 }
@@ -1176,7 +1178,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\U2GJ7F437GXNCPODEWMWRYDT4CKDWREODOKXHJP6EAFKZVYB7LUQRY6OFR25BQRJ4A6ANFUEAQ2VA
-# \\ YSZVYDZBRMQ3GA6VXEO24CYXKNDATF7OQ577BH6VN6QKVD4ULPPZ \\// C25519-BASE-32 //
-#  \\// UIDYKFRUPELYLXQZWFZUNR2YJ3I5RKJDOCSYO6EMM6JWOKQVYDI \\ CODE SIGNATURE \\
+#\\TIQ3D6M6K42OEY2GRQFBOJO4ZWXTBH7EGNDRSVT6IVDQXRQRC3XJDZDXDXLNDO5TCZ3Q76EEQONK2
+# \\ ATYV6UJUINDC73F5MAPMGJYI4IHMS7NJKMGLLGNM4MBEHO25BYOC \\// C25519-BASE-32 //
+#  \\// P2Z2IL34LIG2FUFUCU5ZTPCMEAOY2IMQ4XJIXO3AE6AQ5NM34CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
