@@ -6,7 +6,8 @@ my $id        = shift;
 my $session   = $data{'session'}{$id};
 my $http_host = <[httpd.determine_host]>->($id);
 
-return <[httpd.error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
+return <[httpd.send_error_page]>->( $id, 400 ) if not defined $http_host;
+######                            [ bad req. ]
 
 $session->{'http_host'} = $http_host;
 
@@ -27,8 +28,7 @@ if (    $link_target =~ /^\d{3}$/
         <[base.log]>->(
             1, "[$id] status '$link_target' for requested host '$req_host'"
         );
-        $session->{'buffer'}->{'output'}
-            .= <[httpd.error_page]>->( $id, $link_target );
+        <[httpd.send_error_page]>->( $id, $link_target );
         $session->{'flush_shutdown'} = 1;
     } else {
         <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
@@ -49,7 +49,7 @@ if ( exists $headers->{'range'} ) {    # print Dumper( $headers->{'range'} );
     }
     $bad_req = 1 if $headers->{'range'} !~ s|^bytes=||;
     my $range_reg = qr/(\d+-\d+|-\d+|\d+-)/;
-    return <[httpd.error_page]>->( $id, 400 )    # Bad Request
+    return <[httpd.send_error_page]>->( $id, 400 )    # <-- Bad Request
         if $bad_req
         or $headers->{'range'} !~ /^$range_reg(,$range_reg)*$/;
 }
@@ -72,7 +72,7 @@ if ( defined $http_host and defined $link_target ) {
     $file_path = join( '', $base_dir, $uri_obj->path );
     $file_path =~ s|/$||;
 
-    return <[httpd.error_page]>->( $id, 404 )
+    return <[httpd.send_error_page]>->( $id, 404 )
         if $file_path =~ /\.tmpl$/ and -f $file_path; # *.tmpl files are masked.
 
     if ( -d $file_path ) {
@@ -104,7 +104,7 @@ if ( defined $http_host and defined $link_target ) {
             0,
             "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
         );
-        return <[httpd.error_page]>->( $id, 403 );   # Permission Denied (by FS)
+        return <[httpd.send_error_page]>->( $id, 403 ); # Permission Denied [FS]
     } elsif ( -f $file_path ) {
 
         $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
@@ -161,17 +161,17 @@ if ( defined $http_host and defined $link_target ) {
         $response->{'params'}->{'Content-Range'} = "bytes */$content_size";
         foreach my $range_str ( split /,/, $headers->{'range'} ) {
             my ( $start, $end );
-            ( $start, $end ) = ( $1, $2 ) if $range_str =~ /^(\d+)-(\d+)$/;
-            ( $start, $end ) = ( 0, $1 ) if $range_str =~ /^-(\d+)$/;
+            ( $start, $end ) = ( $1, $2 ) if $range_str =~ m,^(\d+)-(\d+)$,;
+            ( $start, $end ) = ( 0, $1 ) if $range_str =~ m,^-(\d+)$,;
             ( $start, $end ) = ( $1, $content_size - 1 )
                 if $range_str =~ /^(\d+)-$/;
-            return <[httpd.error_page]>->( $id, 416 )    # Range Not Satisfiable
+            ## Range Not Satisfiable ##
+            return <[httpd.send_error_page]>->( $id, 416 )
                 if $start >= $content_size
                 or $end >= $content_size
                 or $end < $start;
-            map {    # check for overlapping ranges
-                return
-                    <[httpd.error_page]>->( $id, 416 )   # Range Not Satisfiable
+            map {    # check for overlapping ranges [ Range Not Satisfiable ]
+                return <[httpd.send_error_page]>->( $id, 416 )
                     if ($start >= $_->{'start'}
                     and $start <= $_->{'end'} )
                     or ($end >= $_->{'start'}
@@ -214,7 +214,7 @@ if ( defined $http_host and defined $link_target ) {
                 . <$content_fh>;
             close($content_fh);
             return $session->{'http'}->{'close'} ? 2 : 0;
-        } else {    # 'larger' file, transfer in pieces..
+        } else {    # 'larger' file, transfer in pieces.,
             return <[httpd.download_init]>->(
                 {   'sid'    => $id,
                     'path'   => $file_path,
@@ -224,15 +224,15 @@ if ( defined $http_host and defined $link_target ) {
         }
     }
 } else {
-    return <[httpd.error_page]>->( $id, 400 );    # Bad Request
+    return <[httpd.send_error_page]>->( $id, 400 );    # Bad Request
 }
 
-return <[httpd.error_page]>->( $id, 404 )         # Not Found
+return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path
     or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\QVDGF6QIJEKY5DWBH3M3FYTONB2W7HB4QA6OS6TRFPZGKH3YYBPEUEWVGZY2CMUQ36KNIRCL2JDVA
-# \\ 4MRG6SGZJU4LXPQEKVU4EX3QW5O5LC3IEUAHRYT565ZESSL5WKMW \\// C25519-BASE-32 //
-#  \\// 73ZVOHI6LXRUMZK2P34KFSCNWWJIAIBU35CV5ZCGGLUX7FO2IDY \\ CODE SIGNATURE \\
+#\\DVTQMI2VTK7LLVV7QXCT2QV4YMKO77ZV6HNLF4NNKPFE4KSNKTGVK7XAKM5ZHNHS3IHIOPJ6YK6D4
+# \\ P4CMRPNWAPKFL6X42GVCKCZVNTF3WAOSAATRE3PGK3ITDRQQCY5E \\// C25519-BASE-32 //
+#  \\// O2QPO4DCURPBKMB2ZOU7NPKWMPF7C64BDJP3LTEI7R35ADHOOAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

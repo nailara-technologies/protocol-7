@@ -10,7 +10,7 @@ my $headers   = $request->{'headers'};
 my $req_host  = $session->{'http'}{'request'}{'host'};
 my $http_host = <[httpd.determine_host]>->($id);
 
-return <[httpd.error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
+return <[httpd.send_error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
 
 my $http_uri    = $session->{'http'}{'request'}{'uri'};
 my $link_target = <httpd.cfg.hostnames>->{$http_host}
@@ -26,10 +26,10 @@ if (    $link_target =~ /^\d{3}$/
             1, "[$id] status '$link_target' for requested host '$req_host'"
         );
         $session->{'buffer'}->{'output'}
-            .= <[httpd.error_page]>->( $id, $link_target );
+            .= <[httpd.send_error_page]>->( $id, $link_target );
         $session->{'flush_shutdown'} = 1;
     } else {
-        <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
+        <[base.log]>->( 1, "[$id] <000> dropping host request '$req_host'" );
         $session->{'close'} = 1;
     }
     return 2;
@@ -115,14 +115,14 @@ if ( defined $http_host and defined $link_target ) {
         return $session->{'http'}->{'close'} ? 2 : 0;
     }
 } else {
-    return <[httpd.error_page]>->( $id, 400 );    # Bad Request
+    return <[httpd.send_error_page]>->( $id, 400 );    # Bad Request
 }
 
-return <[httpd.error_page]>->( $id, 404 )         # Not Found
+return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\LYNZQF5K7TOU4I5I4PGWEZGFK3M6HCZWSNYROCQWBEFITKDVOYIPKIREZJKOHYOEVJRKVVAE2W3AK
-# \\ AXWYHKKTIKXE5QDZYGMAEIDDESCMENSSLYQCYNPMQQGH7EABWCNI \\// C25519-BASE-32 //
-#  \\// 4RLTYLHNNYCPQW26KKQCB2IMLNKOP5UOQZGHD22Q5R7RACCQCBI \\ CODE SIGNATURE \\
+#\\ALBMBSAWVF5LHOXKKJLPALKSEIRUTVPI33PTPYMGH6SZDN4STXRLGTRU2IRKR3AAFOCHMH6HPACOU
+# \\ 4DMUO2IS4HARZTJ2ZZGT52PSWCCIQWEGCNRSXVHIUFEK2O5ZQ2DJ \\// C25519-BASE-32 //
+#  \\// ULVFO5VAS5FIRLQFE4Y63RF2RDD5UYQFTRSXJR7IDQO7UREM2BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

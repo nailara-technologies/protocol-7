@@ -1,17 +1,17 @@
 # >:]
 
-# name = httpd.error_page
+# name = httpd.send_error_page
 
-die "insufficient arguments! expected <session_id>,<error_code>" if @_ != 2;
+die "not enough arguments, expected <session_id>,<error_code>" if @_ != 2;
 
 my ( $id, $error_code ) = @_;
 
 if ( not exists <proto.http.status_codes>->{$error_code} ) {
-    <[base.log]>->( 0, "[$id] error code $error_code not defined!" );
+    <[base.log]>->( 0, "[$id] error code $error_code not defined" );
     $error_code = 500;
 }
 
-return <[httpd.return_raw_html]>->(
+return <[httpd.send_raw_html]>->(
     $id,
     $error_code,
     sprintf(
@@ -21,7 +21,7 @@ return <[httpd.return_raw_html]>->(
 );
 
 # ______________________________________________________________________________
-#\\BNEL6DRGYLQZE6FGRC523Q6IZJQVSDM5CD6Q56IFAMCR3TQ2FC5IZ27YSMYUAK6MT7XV2LGGQ4752
-# \\ YUMIIF5ALY3H6LGCHRVK4AAS4CHZCAPRJ2J7CO5QWBWUU6RZBENX \\// C25519-BASE-32 //
-#  \\// 64GHRG6RONI7DHNHMPPMSB475MUJVWAFPH7GKF5W2J2STFHQAAY \\ CODE SIGNATURE \\
+#\\TVTNG3OY372RXUI55YZVGOMTCRNMOU2JJTG73DENCBN6Z3SK23E6V6WZTMXLUHLLOTQPVWD34MIYG
+# \\ T77EMXLCFNOGXBLMRB2UTIT7ZXNUXWFNQDLFKQTOVHSH43L7OIDX \\// C25519-BASE-32 //
+#  \\// JQ3HVHLHRMYFU3SUNXFPWBCEY3XUHKPR4VQ3RKMUEFAQB26AADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -41,15 +41,14 @@ if ( exists $request->{'range'} ) {
         my $start = $ranges[0]->{'start'};
         my $end   = $ranges[0]->{'end'};
         sysseek( $content_fh, $start, 0 ) if $start;
-        $response->{'params'}->{'Content-Range'}
-            = "bytes $start-$end/$content_size";
-        $content_size = 1 + $end - $start;
+        $header->{'Content-Range'}  = "bytes $start-$end/$content_size";
+        $header->{'Content-Length'} = $content_size = 1 + $end - $start;
     } else {
         <[base.log]>->(    # LLL: implement multipart byte ranges..,
             0, "[$id] multiple range segments requested [ Not Implemented ]"
         );
         close($content_fh);
-        return <[httpd.error_page]>->( $id, 501 );
+        return <[httpd.send_error_page]>->( $id, 501 );
     }
 }
 
@@ -80,7 +79,7 @@ $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
         'prio'       => 4,
         'timeout'    => <httpd.timeout> * 3,
         'timeout_cb' => sub {
-            <[base.log]>->( 1, "[$id] file download timed out!" );
+            <[base.log]>->( 1, "[$id] file download timed out.," );
             $data{'session'}{$id}{'shutdown'} = 1;
         },
         'data' => { 'id' => $id }
@@ -92,7 +91,7 @@ $session->{'watcher'}->{'download_handler'}->now;
 return 0;
 
 # ______________________________________________________________________________
-#\\IJCXO2RJFZFBMD4PTMS23HCCYISRY7YEY4HVQKALW4IOLDJ6N6TAK74K2LGHFGPZHCEGORGT2WNJQ
-# \\ OFZTDEH3UNPYRQOZJPCCEOT3SLXJJ52LCCQLEOHJQGNHJVKLTVIV \\// C25519-BASE-32 //
-#  \\// NCDEJSE366PEK3MUCXUK7TSVVUZMV6CUIB43WWNPIWOQIH66KBA \\ CODE SIGNATURE \\
+#\\PL7EQO5TIGLIR3AOQJKQIGCLHLAFV4EFE75OZC444KUTHBCPANRCIAJIJ56WQJ3EJP4LAGWGR24MW
+# \\ MSMP5I3SEPTDLS5VRXXVCTJTZGXFXM3JVQMNQ4PDSZGBJWUYSOSQ \\// C25519-BASE-32 //
+#  \\// G5GJTG4AZ5OU5S64JTBS62HWWP672US5KBPO4TMHAO5WZP6Z2DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
