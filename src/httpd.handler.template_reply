@@ -11,8 +11,8 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 
     if ( $args_str =~ /^\d\d\d$/ ) {
         $session->{'buffer'}->{'output'}
-            .= <[httpd.error_page]>->( $sid, $args_str )
-            if $args_str > 0;    # 000 == drop connection, without any reply!
+            .= <[httpd.send_error_page]>->( $sid, $args_str )
+            if $args_str > 0;    # 000 == drop connection, no reply
         delete $session->{'content'};
         $session->{'flush_shutdown'} = 1;
         return;
@@ -26,7 +26,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 my $content_part = $reply->{'params'}->{'part'};
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
-    $session->{'buffer'}->{'output'} .= <[httpd.error_page]>->( $sid, 500 );
+    <[httpd.send_error_page]>->( $sid, 500 );
     delete $session->{'content'};
     $session->{'flush_shutdown'} = 1;
     return;
@@ -45,7 +45,7 @@ map { $cmd_count++ if defined $_->{'command'} }
     @{ $session->{'content'}->{'sequence'} };
 
 if ($cmd_count) {
-    <[base.log]>->( 1, "['$done_cmd'] segment complete, $cmd_count to go..." );
+    <[base.log]>->( 1, "['$done_cmd'] segment complete, $cmd_count to go..," );
 } else {
 
     my $content_length = 0;
@@ -74,7 +74,7 @@ if ($cmd_count) {
 }
 
 # ______________________________________________________________________________
-#\\MLXSI5OSMKNLNFOD7PCJOOJBJ7GIG6L63G5W5HEZV5NLEXFTSVUV4VOJZ3MRT6VBGB7NXZBKRPQOC
-# \\ ME7CLOFYKESSAIJLN54O4UZHRLVTTOGWYG4BT6OVRYKRZ7E6M3JA \\// C25519-BASE-32 //
-#  \\// QEV6OJKBAW6U22SIUMX5MLPOC5V3I7K65RAV6BXM5VW24BKQABY \\ CODE SIGNATURE \\
+#\\NXX665BC7LUHUNDFWRU4SHAQFRXES4PHXK7DRCETTCNTFAVQXYNVQKFP2CED2EJ2YN7EFR5AEPLGK
+# \\ FKKJ2AOL36JBZSHR5P7UPUK7PHJT45I7S6JWPQTHZEOL2MCCBVVV \\// C25519-BASE-32 //
+#  \\// NUG62MDVNA3NJXJAQLS7ZG7GC24JMXXO5OYGYU7K5DEUZ7ASUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
