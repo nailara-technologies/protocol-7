@@ -2,7 +2,9 @@
 
 # name = httpd.http_head
 
-my $id        = shift;
+my $id         = shift;
+my $reply_code = shift // 200;    # [204|200]
+
 my $session   = $data{'session'}{$id};
 my $request   = $session->{'http'}->{'request'};
 my $response  = $session->{'response'};
@@ -10,7 +12,10 @@ my $headers   = $request->{'headers'};
 my $req_host  = $session->{'http'}{'request'}{'host'};
 my $http_host = <[httpd.determine_host]>->($id);
 
-return <[httpd.send_error_page]>->( $id, 400 ) if not defined $http_host;  # bad req.
+if ( not defined $http_host ) {    ##   bad request
+    map { delete $response->{'params'}->{$_} } qw | Allow |;    # <-- expand ..,
+    return <[httpd.send_error_page]>->( $id, 400 );
+}
 
 my $http_uri    = $session->{'http'}{'request'}{'uri'};
 my $link_target = <httpd.cfg.hostnames>->{$http_host}
@@ -18,7 +23,7 @@ my $link_target = <httpd.cfg.hostnames>->{$http_host}
 
 if (    $link_target =~ /^\d{3}$/
     and -l <httpd.site_dir> . '/' . $http_host
-    and !-e <httpd.site_dir> . '/' . $link_target ) {    # special codes
+    and !-e <httpd.site_dir> . '/' . $link_target ) {    ## special codes ###
 
     $session->{'watcher'}->{'input_handler'}->cancel;
     if ( $link_target ne '000' ) {    # n > 000 == HTTP error codes
@@ -53,6 +58,29 @@ if ( defined $http_host and defined $link_target ) {
 
     if ( -f $file_path ) {
 
+        ## 204 ## [ OPTIONS, .., ] ##
+
+        if ( $reply_code == 204 ) {
+
+            my $method = $request->{'method'};
+
+            <[base.log]>->( 1, "[$method] returning 204 \\ no content" );
+
+            $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+                $reply_code,
+                {     'Connection' => $session->{'http'}->{'close'}
+                    ? 'close'
+                    : 'keep-alive',
+                    %{ $response->{'params'} }
+                }
+            );
+
+            return $session->{'http'}->{'close'} ? 2 : 0;
+
+        }
+
+        ## 200 ## [ HEAD ] ##
+
         $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
 
         my $file_stat     = File::stat::stat($file_path);
@@ -80,10 +108,6 @@ if ( defined $http_host and defined $link_target ) {
         };
 
         my $content_type = $meta->{$path_etag}->{'content_type'};
-
-        ##
-
-        my $reply_code = 200;    # =)
 
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
@@ -122,7 +146,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\ALBMBSAWVF5LHOXKKJLPALKSEIRUTVPI33PTPYMGH6SZDN4STXRLGTRU2IRKR3AAFOCHMH6HPACOU
-# \\ 4DMUO2IS4HARZTJ2ZZGT52PSWCCIQWEGCNRSXVHIUFEK2O5ZQ2DJ \\// C25519-BASE-32 //
-#  \\// ULVFO5VAS5FIRLQFE4Y63RF2RDD5UYQFTRSXJR7IDQO7UREM2BI \\ CODE SIGNATURE \\
+#\\LKEINY7TBRA6SADMTKV4PSU6EIDGWO2POJT7V56WRAYDIVOG7CPSFWFFCYPKZJPHQD3N2FIAOHETW
+# \\ FJIEUQPQUYDRXBKJ455DCXX4IDCUT6RVLWFIQAPMGYAH5K3RDMF2 \\// C25519-BASE-32 //
+#  \\// M53MVPJROBKPSTTQ2PY7JQCIRNOEGOU3I7FGTGY5WPBKCD562BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
