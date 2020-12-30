@@ -50,7 +50,7 @@ $new_minor = 1 if $amend and !$new_minor;
 
 my $version_string = gen_ver_string( $commit_count + 1 - $reset, $new_minor );
 
-## no a longer release version (modified)
+## no a longer release version [modified]
 $git->add($r_vers_file)
     if !$amend
     and $version_string ne $old_version
@@ -70,7 +70,7 @@ $git->add($version_file);
     my $md_copy = my $md_str = <$md_fh>;
     close($md_fh);
     if ( $md_str !~ s|\Q$old_version\E|$version_string|g ) {
-        $md_str =~ s|: \d\d\.\d\d\d\d\-\d\d\d\d\.\d+ |: $version_string |g
+        $md_str =~ s|: \d\d\.\d\d\d\d\-\d\d\d\d\.\d+ |: $version_string |g;
     }
     if ( $md_str ne $md_copy ) {
         open( $md_fh, '>' . $readme_md ) or die " -> $readme_md : $!\n";
@@ -103,13 +103,12 @@ sub get_old_version {
 sub year_float {
     my $time  = shift // time;
     my $float = shift // 4;
-    my @time  = gmtime;
+    my @time  = gmtime($time);
     my $year  = 1900 + $time[5];
-    my $days = is_leap_year($year) ? 365 : 364;
-    my $yday = $time[7]
-        + 1 / 24 * ( $time[2] + 1 / 60 * $time[1] + 1 / 3600 * $time[0] );
-    return
-        sprintf( "%.0${float}f", $year % 100 + ( 1 / $days ) * ( 1 + $yday ) );
+    my $days = is_leap_year($year) ? 366 : 365;    ## + 1 because fractional ##
+    my $yday = $time[7] + $time % 86400 / 86400;
+
+    return sprintf( "%.0${float}f", $year % 100 + $yday / ( $days + 1 ) );
 }
 
 sub is_leap_year {

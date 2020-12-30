@@ -2,17 +2,17 @@
 
 # name = base.time.year_utc_float
 
+my $time  = shift // time;
 my $float = shift // 4;
-my @time  = gmtime;
+my @time  = gmtime($time);
 my $year  = 1900 + $time[5];
-my $days  = <[base.time.is_leap_year]>->($year) ? 365 : 364;
-my $yday  = $time[7]
-    + 1 / 24 * ( $time[2] + 1 / 60 * $time[1] + 1 / 3600 * $time[0] );
+my $days = is_leap_year($year) ? 366 : 365;    ## + 1 because fractional ##
+my $yday = $time[7] + $time % 86400 / 86400;
 
-return sprintf( "%.0${float}f", $year % 100 + ( 1 / $days ) * ( 1 + $yday ) );
+return sprintf( "%.0${float}f", $year % 100 + $yday / ( $days + 1 ) );
 
 # ______________________________________________________________________________
-#\\W2ZS4MXPJPX54YAVESADFT7RNI5OKKPBCBGWCIGT5E5P6RNRZDTLAIMO46BXLCRK2XI22FDMWZNYK
-# \\ XCNAZK3A2ZGWGQZDKFIA7UH6IZRWY727EKFEV5ERXVGX22S7WLWR \\// C25519-BASE-32 //
-#  \\// UZMCQ6QAKARWSFA6ND262NZ57VYRXOKHW6K2XHEVNZQYSWVLIAA \\ CODE SIGNATURE \\
+#\\NXN2BBDGFDSXYZHNZJF6RY5LINVZXNMHNFY5TAK7ER3QFRLYDOUABKIN7OD3B76EPINVUKHVNGA7K
+# \\ 7Z4O6T46QDCB4A33IPEJAIJQUJN74WMDE7XUUVUCF3O3YVSHPH4M \\// C25519-BASE-32 //
+#  \\// NVE3N2NSD5HEHK2YDHRG7A2JDEQ2ATVKVVCSWNKUTY6XPVFJSCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
