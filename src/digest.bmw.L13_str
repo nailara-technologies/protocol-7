@@ -1,0 +1,20 @@
+# >:]
+
+# name  = digest.bmw.L13_str
+# descr = returns 13 character string [ '*' XOR with eight BMW digest segments ]
+
+die 'expected data parameter' if not defined $_[0];
+
+my $bmwsum   = <[digest.bmw.ctx]>->(512);
+my $entropy  = '*' x 8;
+my $template = 'A8' x 8;
+
+map { $entropy ^= $_ } unpack( $template, $bmwsum->add( shift // '' )->digest );
+
+return encode_b32r($entropy);
+
+# ______________________________________________________________________________
+#\\H7B7IS2R2SX3BTIK5WXJQI2SSMXKP5FAXG4L2YK6OFEMNB6VZNNYG4KBXGSVNIQ3XK3ZKPOD35XQO
+# \\ DA3EZZVLI7XXFU3AJ6W74L7OJABAOT3OJFERKEWD2QJWBHG3MQ6U \\// C25519-BASE-32 //
+#  \\// YCBWVL2GENAQM2UPWPZFADOMAZIY5V4RXRBHHNJ47WPDC7FWUDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
