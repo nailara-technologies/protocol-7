@@ -6,6 +6,8 @@ my $id        = shift;
 my $session   = $data{'session'}{$id};
 my $http_host = <[httpd.determine_host]>->($id);
 
+my $allow_overlap = <httpd.cfg.allow_range_overlap> // 0;
+
 return <[httpd.send_error_page]>->( $id, 400 ) if not defined $http_host;
 ######                            [ bad req. ]
 
@@ -39,7 +41,7 @@ if (    $link_target =~ /^\d{3}$/
 
 $session->{'http'}{'request'}{'matched_host'} = $http_host;
 
-if ( exists $headers->{'range'} ) {    # print Dumper( $headers->{'range'} );
+if ( exists $headers->{'range'} ) {
     my $bad_req = 0;
     my $max_len = 1024;
     if ( length( $headers->{'range'} ) > $max_len ) {
@@ -48,7 +50,7 @@ if ( exists $headers->{'range'} ) {    # print Dumper( $headers->{'range'} );
         $headers->{'range'} =~ s| +||g;
     }
     $bad_req = 1 if $headers->{'range'} !~ s|^bytes=||;
-    my $range_reg = qr/(\d+-\d+|-\d+|\d+-)/;
+    my $range_reg = qr{(\d+-\d+|-\d+|\d+-\*?)};
     return <[httpd.send_error_page]>->( $id, 400 )    # <-- Bad Request
         if $bad_req
         or $headers->{'range'} !~ /^$range_reg(,$range_reg)*$/;
@@ -82,7 +84,7 @@ if ( defined $http_host and defined $link_target ) {
         $file_path .= '.tmpl';
     } elsif ( $file_path =~ /\// ) {
         my $real_path = $file_path;
-        while ( $real_path =~ s/\/+[^\/]*$// ) {
+        while ( $real_path =~ s|\/+[^\/]*$|| ) {
             if ( -d $real_path and -f "$real_path/index.tmpl" ) {
                 $file_path = "$real_path/index.tmpl";
                 last;
@@ -159,31 +161,36 @@ if ( defined $http_host and defined $link_target ) {
             if not exists $headers->{'range'}
             or not defined $headers->{'range'};
         $response->{'params'}->{'Content-Range'} = "bytes */$content_size";
+
         foreach my $range_str ( split /,/, $headers->{'range'} ) {
-            my ( $start, $end );
-            ( $start, $end ) = ( $1, $2 ) if $range_str =~ m,^(\d+)-(\d+)$,;
-            ( $start, $end ) = ( 0, $1 ) if $range_str =~ m,^-(\d+)$,;
+            my ( $start, $end );    ### regular byte range [ <start>-<end> ] ###
+            ( $start, $end ) = ( $1, $2 ) if $range_str =~ m{^(\d+)-(\d+)$};
+
+            ( $start, $end ) = ( $content_size - $1, $content_size - 1 )
+                if $range_str =~ m{^-(\d+)$};    ## <-- byte[s] from file end..,
+
             ( $start, $end ) = ( $1, $content_size - 1 )
-                if $range_str =~ /^(\d+)-$/;
-            ## Range Not Satisfiable ##
+                if $range_str =~ m{^(\d+)-\*?$};    ## <--  ..,to rest of file.
+
+            ## 416 ## Range Not Satisfiable ##
             return <[httpd.send_error_page]>->( $id, 416 )
                 if $start >= $content_size
                 or $end >= $content_size
                 or $end < $start;
-            map {    # check for overlapping ranges [ Range Not Satisfiable ]
+
+            map {                                   ## overlapping ranges? ##
                 return <[httpd.send_error_page]>->( $id, 416 )
                     if ($start >= $_->{'start'}
                     and $start <= $_->{'end'} )
                     or ($end >= $_->{'start'}
                     and $end <= $_->{'end'} )
-            } @byte_ranges;
+            } @byte_ranges if not $allow_overlap;
+
             push( @byte_ranges, { 'start' => $start, 'end' => $end } );
         }
         delete $response->{'params'}->{'Content-Range'};
         $request->{'range'} = \@byte_ranges if @byte_ranges;
     skip_range:
-
-        # print "\n range : " . Dumper( $request->{'range'} );
 
         my $reply_header = {
             'Content-Type'   => $content_type,
@@ -232,7 +239,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\DVTQMI2VTK7LLVV7QXCT2QV4YMKO77ZV6HNLF4NNKPFE4KSNKTGVK7XAKM5ZHNHS3IHIOPJ6YK6D4
-# \\ P4CMRPNWAPKFL6X42GVCKCZVNTF3WAOSAATRE3PGK3ITDRQQCY5E \\// C25519-BASE-32 //
-#  \\// O2QPO4DCURPBKMB2ZOU7NPKWMPF7C64BDJP3LTEI7R35ADHOOAI \\ CODE SIGNATURE \\
+#\\L6TSBWTAEDIV6J7HPYHAF76G5PIHVTWFOV4B4YQEWJG7QBTSWMPQG5SMEIRKBBPWVNAY7V2CIUEDA
+# \\ HMLUPWYC7YEMERYYCSJTM3UFRXXDXK36VHB6KN7QZZSKI3SKSPZD \\// C25519-BASE-32 //
+#  \\// FGZGAOF7Z7O2LZBSXZJPH4NGCBMJXU332XS4HSSLFSA5VSGIUDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

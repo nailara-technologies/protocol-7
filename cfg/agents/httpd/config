@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-modules.load         =  auth net io.ip digest.elf httpd
+modules.load         =  auth net io.ip digest.elf digest.bmw httpd
 
 net.http.addr        =  0:0:0:0:0:0:0:0
 net.http.port        =  80
@@ -25,6 +25,8 @@ httpd.upload_dir  = /var/tmp/httpd/uploads
 
 httpd.cfg.external_sitedirs = 1 # allow site_dir links to point outs. httpd dir?
 httpd.cfg.uploads_enabled   = 1 # files need to be explicitly announced to agent
+
+httpd.cfg.allow_range_overlap = 1 # allow overlapping range request? [same data]
 
 max.connections     =  1024
 httpd.timeout       =  23

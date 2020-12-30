@@ -29,26 +29,51 @@ my $content_type = $header->{'Content-Type'} // mimetype($file_path);
 
 my $content_fh;
 if ( not open( $content_fh, '< :raw', $file_path ) ) {
-    warn "<!> $file_path: $!";    # LLL: error handling..,
+    warn "<!> $file_path: $!";    # LLL: improve error handling..,
+    <[httpd.send_error_page]>->( $id, 500 );
     return 2;
 }
 
-my $status_code = 200;
+my $status_code = 200;    ## <-- regular transfer [ full file as one ] ##
+
+my @ranges;
+my $boundary;
 if ( exists $request->{'range'} ) {
-    my @ranges = @{ $request->{'range'} };
-    $status_code = 206;
-    if ( @ranges == 1 ) {
-        my $start = $ranges[0]->{'start'};
-        my $end   = $ranges[0]->{'end'};
-        sysseek( $content_fh, $start, 0 ) if $start;
-        $header->{'Content-Range'}  = "bytes $start-$end/$content_size";
-        $header->{'Content-Length'} = $content_size = 1 + $end - $start;
-    } else {
-        <[base.log]>->(    # LLL: implement multipart byte ranges..,
-            0, "[$id] multiple range segments requested [ Not Implemented ]"
-        );
-        close($content_fh);
-        return <[httpd.send_error_page]>->( $id, 501 );
+    my $file_size = $content_size;
+    $status_code  = 206;
+    $content_size = 0;
+    @ranges       = @{ $request->{'range'} };
+    map {
+        $content_size += $_->{'part_size'}
+            = 1 + ( $_->{'end'} - $_->{'start'} );
+    } @ranges;
+    my $end   = $ranges[0]->{'end'};
+    my $start = $ranges[0]->{'start'};
+    sysseek( $content_fh, $ranges[0]->{'start'}, 0 ) if $start > 0;
+
+    if ( @ranges == 1 ) {    ## byteranges ##
+        $header->{'Content-Range'}  = "bytes $start-$end/$file_size";
+        $header->{'Content-Length'} = $content_size = $ranges[0]->{'part_size'};
+
+    } else {                 ## multipart byteranges ##
+
+        my $h_str = join( '|', map { $_, $header->{$_} } sort keys %{$header} );
+        $boundary = <[digest.bmw.L13_str]>->($h_str);
+        $header->{'Content-Type'} = "multipart/byteranges; boundary=$boundary";
+
+        my $part_id = 0;
+        map {
+            $end   = $ranges[$part_id]->{'end'};
+            $start = $ranges[$part_id]->{'start'};
+            my $part_header = $part_id++ ? "\n" : '';
+            $part_header .= "--$boundary\nContent-Type: $content_type\n"
+                . "Content-Range: bytes $start-$end/$file_size\n\n";
+            $_->{'part_header'} = $part_header;
+            $_->{'part_size'}   = 1 + ( $end - $start );
+            $content_size += length($part_header);
+        } @ranges;
+
+        $header->{'Content-Length'} = $content_size += 6 + length($boundary);
     }
 }
 
@@ -57,7 +82,7 @@ if ( exists $request->{'range'} ) {
 );
 
 if ( $session->{'http'}->{'close'} ) {
-    $session->{'watcher'}->{'input_handler'}->cancel;
+    $session->{'watcher'}->{'input_handler'}->cancel; ## no more input expected.
 } else {
     $session->{'watcher'}->{'input_handler'}->timeout(undef);
 }
@@ -65,10 +90,27 @@ if ( $session->{'http'}->{'close'} ) {
 $session->{'buffer'}->{'output'}
     .= <[httpd.new_header]>->( $status_code, $header );
 
+my $total_bytes_remaining = $content_size;
+
+if ( @ranges > 1 ) {    ## <-- multipart byteranges ##
+    my $first_part_header = $ranges[0]->{'part_header'};
+    $session->{'buffer'}->{'output'} .= $first_part_header;
+    $total_bytes_remaining -= length($first_part_header);
+}
+
 $session->{'download'} = {
-    'content_fh'  => $content_fh,
-    'bytes_to_go' => $content_size,
+    'ranges'                => \@ranges,
+    'part_id'               => 0,
+    'part_pos'              => 0,
+    'part_count'            => scalar @ranges,
+    'content_fh'            => $content_fh,
+    'total_bytes_remaining' => $total_bytes_remaining,
 };
+
+if ( defined $boundary ) {    ## <-- byteranges request ##
+    $session->{'download'}->{'c-type'}   = $content_type;
+    $session->{'download'}->{'boundary'} = $boundary;
+}
 
 <[httpd.update_download_count]>;
 
@@ -91,7 +133,7 @@ $session->{'watcher'}->{'download_handler'}->now;
 return 0;
 
 # ______________________________________________________________________________
-#\\PL7EQO5TIGLIR3AOQJKQIGCLHLAFV4EFE75OZC444KUTHBCPANRCIAJIJ56WQJ3EJP4LAGWGR24MW
-# \\ MSMP5I3SEPTDLS5VRXXVCTJTZGXFXM3JVQMNQ4PDSZGBJWUYSOSQ \\// C25519-BASE-32 //
-#  \\// G5GJTG4AZ5OU5S64JTBS62HWWP672US5KBPO4TMHAO5WZP6Z2DA \\ CODE SIGNATURE \\
+#\\AF7J56KO6BGJQDE2DDKSAKNUAT3QDG6YQGRIANO5UBCSUTAKE3XQ7GXIALGYIOEUPV3DETKAMKLYQ
+# \\ V54TGQLUGK77ROPZQIF5J7A2LTE6BLYAGPS22YV5RGOKVB4FM4DC \\// C25519-BASE-32 //
+#  \\// MWB6N6WA52TZT2SG3VTBVNMMG62BMC66DPPHX5K26AVW7I34ODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
