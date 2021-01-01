@@ -17,15 +17,17 @@ $max_buf_size = <httpd.downloads.max_buffer_size>
 
 my $read_size = $max_buf_size - length( $session->{'buffer'}->{'output'} );
 
-my $content_fh = $download->{'content_fh'} // 'UNDEF';
+return 1 if !$read_size;    ## <-- output buffer full ##
+
+my $content_fh = $download->{'content_fh'};
 my $part_count = $download->{'part_count'};
 my $part_id    = $download->{'part_id'};
 my $ranges     = $download->{'ranges'};
 
 warn "[$id] content filehandle already closed" and goto ABORT_DOWNLOAD
-    if !fileno($content_fh);
+    if !fileno( $content_fh // '' );
 
-if ($part_count) {    ## one or more byteranges ##
+if ($part_count) {          ## one or more byteranges ##
     my $part_size_remaining
         = $ranges->[$part_id]->{'part_size'} - $download->{'part_pos'};
     $read_size = $part_size_remaining if $part_size_remaining < $read_size;
@@ -40,7 +42,8 @@ if ( $read_size <= 0 ) {
         $download->{'part_id'} = ++$part_id;
         <[base.log]>->( 1, "[$id] part $part_id of $part_count transferred.," );
         sysseek( $download->{'content_fh'}, $ranges->[$part_id]->{'start'}, 0 );
-        $read_size = $ranges->[$part_id]->{'part_size'};
+        $read_size = $ranges->[$part_id]->{'part_size'}
+            if $ranges->[$part_id]->{'part_size'} < $read_size;
         my $part_header = $ranges->[$part_id]->{'part_header'};
         $download->{'total_bytes_remaining'} -= length($part_header);
         $session->{'buffer'}->{'output'} .= $part_header;
@@ -99,7 +102,7 @@ $watcher->stop;
 return 0;
 
 # ______________________________________________________________________________
-#\\V2JEQKZWBY7W7HZ5YF2O3QYADJKQI7M467SRJT6ZTKMUJNU6TKVTRU3F42UMEWXJW4PZSU7RTX7PW
-# \\ RTHDEKDBTCL2EAG35GT52WKH22WN623M4QWM5AGNWO4BI7EUSJXU \\// C25519-BASE-32 //
-#  \\// K7PMFDHWVDDNIL52EBAGURXW5AEN47KMC46C6HHKIHOHD6SFEDA \\ CODE SIGNATURE \\
+#\\OXJLRW6NLSVWYPS5R3EVH6XPASCZ54Y2H4YFA3MRJJL23W4HUK5IYR2WYGRMATHTKVAJSE6VSD7EE
+# \\ H7GVZKO2YUNREFPTFSPNTMEPOOQW4OD7DF3J7VBDHMGMJ3FXBYJB \\// C25519-BASE-32 //
+#  \\// 7EFZGU3KYDHHDLZ2UFHXD5MJTF2HA2JXJWKTH4LNPPVDVGXXAAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
