@@ -12,8 +12,9 @@ my $ev_desc = $watcher->desc // 'not named';
 
 $err_str =~ s| at (\S+) line (\d+).*\n$||;
 my $file = $1;
-my $line = $2;
-
+my $line = $2 // '';
+$err_str =~ s|^(.)|lc($1)|e;
+$err_str =~ s|can\'t|cannot|g;
 $err_str .= " < $@ >" if $@;
 
 <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" );
@@ -35,7 +36,7 @@ foreach my $akey (@attr_names) {
 }
 
 # ______________________________________________________________________________
-#\\HUR757GH53AMATAVFTVBRSUEODBSW2GAIHZIHV6STEVVTWLFSZWONWESEY7LTCZNUI5YCYE5TRKDU
-# \\ OOBW4KTJ5SIFKOLPQOHEUZKACQI3KU5NJSEQCW7VTVCEP4AIYCKE \\// C25519-BASE-32 //
-#  \\// Y2BEVORL4CK3EWYUWIBNFAHMXBMA27WPRQ3K7FL7FZDOF5KK6CI \\ CODE SIGNATURE \\
+#\\A7BE35RO7ZXPFZKNDM5D4H5FPC2DXPCC2NQVFU7PZPZNC6WLWZFKQKKJ5PIF3CZO2UDP2ZQYWHMM4
+# \\ L3JDI5ANCY5IPRZBWGM3MY7B65KQOIQBUULB7PNMPGQ32F7JMFZE \\// C25519-BASE-32 //
+#  \\// NXFM3CER2P7HDPCBHSGXL65KIWQUEF3VEE5BHIAPI4YCTQ35YDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
