@@ -8,16 +8,16 @@ my $key_name = <crypt.C25519.key_vars.key_name>;
 return { 'mode' => 'nak', 'data' => 'C25519 key name is not defined' }
     if not defined $key_name;
 return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
-    if not defined $KEYS{'C25519'}{$key_name}{'pub'};
+    if not defined $KEYS{'C25519'}{$key_name}{'public'};
 
 return {
     'mode' => 'ack',
     'data' => sprintf( "[%s] %s",
-        $key_name, encode_b32r( $KEYS{'C25519'}{$key_name}{'pub'} ) )
+        $key_name, encode_b32r( $KEYS{'C25519'}{$key_name}{'public'} ) )
 };
 
 # ______________________________________________________________________________
-#\\CLHAAUOFMK7MKIJ6UH4HMK77SIYQQNGUEU2WDHE5DC5FUMJN527FJSVGKYCAR3JZL46BHJLMAHKSE
-# \\ SFHET3HLCHIHBQ3YH7VRKWB3ZKOPKC4IUZG44VACDDEHCDXVYSDY \\// C25519-BASE-32 //
-#  \\// JS3JEAKSJ7PNUYAO25R7YJY5767IAYSOZ5FJWAQGAVWDO27XQDQ \\ CODE SIGNATURE \\
+#\\BZA3P7VDDYSJJXRZ2REQ3IBOAQM2JU5D7O3X7XALSLBWOPSUNZDTIM7UL4MGNE2EYTKHPHB2CDV6S
+# \\ Z2MICUPF4KZXAVUVD2DNHWQMJRECBYUU36ZVGFEOPQN7JJR6WGBZ \\// C25519-BASE-32 //
+#  \\// ZP4HEM3PGK4NUMACUHWFBMYZINBZPWG6KDNBZG6ANOCNPQ7SWAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -11,28 +11,29 @@ return print "\n  [!] expected <name> parameter [!]\n\n"
 
 my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
 
+my $re_secret = <keys.regex.key_file.secret>;
+my $re_public = <keys.regex.key_file.public>;
+my $re_kfiles = <keys.regex.key_files>;
+
 my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
-opendir( my $dir_fh, $key_dir ) or return print STDERR "\n [!] $key_dir : $!\n";
-my @key_files = grep {/[^\.].*\.C25519_b32(\.pub)?$/} sort readdir($dir_fh)
+opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $!\n";
+my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
 
 return warn "no key files found [$key_dir]" if !@key_files;
 
-my $match_re = qr/^(\Q$key_name\E\.C25519_b32(\.pub)?)$/;
+my $match_re = qr|^(\Q$key_name\E\.$re_kfiles)$|;
 
-my $space_len = 0;
 my $key_found = 0;
 map {
-    $key_found = 1          if $_ =~ $match_re;
-    $space_len = length($1) if length($1) > $space_len;
-    my $k_path = "$key_dir/$1";
-    return print STDERR "\n [!] no write access to '$k_path' [!]\n\n"
-        if $1 =~ $match_re and !-w $k_path;
+    $key_found = 1 if $_ =~ $match_re;
+    my $k_path = "$key_dir/$_";
+    return print "\n [!] no write access to '$k_path' [!]\n\n" if !-w $k_path;
 } @key_files;
 return print "\n  [!] specified key \"$key_name\" not found [!]\n\n"
     if not $key_found;
@@ -50,7 +51,7 @@ foreach my $file_name (@key_files) {
     system( $shred_bin, '-fzu', $file_name )
         if length($shred_bin)
         and -x $shred_bin;
-    return print STDERR "\n unlink failed : $!\n\n"
+    return print "\n unlink failed : $!\n\n"
         unless unlink($file_name)
         or !-f $file_name;
     $del_count++;
@@ -59,7 +60,7 @@ my $s = $del_count == 1 ? '' : 's';
 print " :\n :: [ removed $del_count key file$s ]\n\n";
 
 # ______________________________________________________________________________
-#\\45BY63MPWJFAP7YL2AKUYKGVNFB6CBU7ACCT33UQRUNQJAJAPS3CXLVIEXMBYYZYETGTOBDT7Y3JQ
-# \\ IRO4NETYXCDBV55VNCHK2TW4M3LR43XQ6OYVOXU2QERSQHNHWVRW \\// C25519-BASE-32 //
-#  \\// WH73M6RERNHJRD6GZI4QGT2JS6SG4O376JAK6QL7ZZYLZY7IMAI \\ CODE SIGNATURE \\
+#\\MU2JVYI3WWZGANDN6YXVRCR7B7KCXV357FDLDH3B2GKW5JEC4KQ73GFVPQSZSQ3SJ6BGYZQS72HOU
+# \\ BHNRT6F2FWIXBVB5JHBUZDGZFRFAIBMAALD6P7RGVNF67P7QQKCU \\// C25519-BASE-32 //
+#  \\// AYU26XMXQG24WB6BLBHKBYMFH7GB2MS2MNETD53K6NGLG4RYYCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

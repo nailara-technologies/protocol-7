@@ -2,7 +2,7 @@
 
 # name = crypt.C25519.write_keys
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);   # <-- <key_name> [optional]
 
 my $uid          = $key_vars->{'uid'};
 my $gid          = $key_vars->{'gid'};
@@ -11,19 +11,19 @@ my $usr_hdir     = $key_vars->{'usr_home'};
 my $key_name     = $key_vars->{'key_name'};
 my $key_basepath = $key_vars->{'key_basepath'};
 
-foreach my $type ( 'priv', 'pub' ) {
-    my $file_name = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
+foreach my $type ( 'secret', 'public' ) {
+    my $file_name = join( '.', $key_basepath, $type );
     next if not -f $file_name;
-    $file_name =~ s|^$usr_hdir||;
-    <[base.log]>->( 0, "<<!>> key '$file_name' exists..," );
+    $file_name =~ s|^.*\/||;
+    <[base.log]>->( 0, "<<!>> key file '$file_name' exists .," );
     <[base.log]>->( 0, "  :.  not overwriting .," );
     return 0;
 }
-foreach my $type ( 'priv', 'pub' ) {
-    my $file_name = $type eq 'pub' ? "$key_basepath.pub" : $key_basepath;
+foreach my $type ( 'secret', 'public' ) {
+    my $file_name = join( '.', $key_basepath, $type );
 
     open( my $key_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
-    if ( $type eq 'pub' ) {
+    if ( $type eq 'public' ) {
         chmod( 0644, "$file_name.$$" ) or die "chmod: $!";
     } else {
         chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
@@ -32,14 +32,14 @@ foreach my $type ( 'priv', 'pub' ) {
     printf( {$key_fh} "%s\n", $key_str_b32 );
     close($key_fh);
     rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
-    chown( $uid, $gid, $file_name ) or warn "$file_name: $!";
+    chown( $uid, $gid, $file_name )       or warn "$file_name: $!";
 
     <[base.log]>->( 1, ": $file_name" );
 }
 return 1;
 
 # ______________________________________________________________________________
-#\\B5QO6R5675WHM5FLONZLFERP3AADDCIAU7GYATHQP6PNJ7DFXJLLH2VPAX3MTX66GOFL43OUWMHUI
-# \\ 7HRLPAZIJHNY3ORMYEMWFOCGWVAJMSRSHAJFMX36FFWGEKOA265Y \\// C25519-BASE-32 //
-#  \\// WIAGRASYHQEC5L5RNIPKHZSBQY44X5F5LMBCZUSRONOPQDYNUCY \\ CODE SIGNATURE \\
+#\\YPJCUK3CCVDHAASAPWZQS35G3UL22GNSJIW6Q4QL3TVYAOL5B6FXDQP4WPNTRQIPSIIPW7L4NSRUM
+# \\ 4ECYPKOGF2JP2BST3NYLDLUEOJQW43DERXBYMZOKTJEJAPQ73K47 \\// C25519-BASE-32 //
+#  \\// U2QBTVVE5CLZ6W2QI6YA47F7HRYG3GAPFDBTWBTQ5GD5M2H3IBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
