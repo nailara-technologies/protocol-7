@@ -3,10 +3,21 @@
 # name = crypt.C25519.key_vars
 
 my $key_name = shift;
-my $cur_usr  = $ENV{'USER'} // getpwuid($>);
-my $key_usr  = <crypt.C25519.key_usr> // <system.privs.user> // $cur_usr;
+
+return <crypt.C25519.key_vars>
+    if defined <crypt.C25519.key_vars>
+    and (
+    not defined $key_name
+    or ( defined <crypt.C25519.base_key_name>
+        and $key_name eq <crypt.C25519.base_key_name> )
+    );
+
+my $cur_usr = $ENV{'USER'} // getpwuid($>);
+my $key_usr = <crypt.C25519.key_usr> // <system.privs.user> // $cur_usr;
 
 $key_usr = $cur_usr if $cur_usr ne 'root' and $cur_usr ne $ENV{'USER'};
+
+( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 
 if ( defined $key_name ) {
     <crypt.C25519.base_key_name> = $key_name;
@@ -16,9 +27,16 @@ if ( defined $key_name ) {
 my $home_dir = <crypt.C25519.key_usr_home> //= <[base.get_homedir]>->($key_usr);
 my $key_dir  = <crypt.C25519.key_dir>      //= "$home_dir/.n/user-keys";
 
-my $key_basepath = "$key_dir/$key_name.C25519_b32";
+my $key_file_ext;
+my $key_filename;
+my $C25519_keyid = 'C25519.B32';
+my $key_basepath = "$key_dir/$key_name.";
 
-( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
+map { $key_file_ext->{$_} = "$C25519_keyid.$_" } qw| secret public |;
+map { $key_filename->{$_} = $key_basepath . $key_file_ext->{$_} }
+    keys %{$key_file_ext};
+
+$key_basepath .= $C25519_keyid;
 
 return <crypt.C25519.key_vars> = {
     'uid'          => $uid,
@@ -28,10 +46,12 @@ return <crypt.C25519.key_vars> = {
     'key_dir'      => $key_dir,
     'key_name'     => $key_name,
     'key_basepath' => $key_basepath,
+    'key_file_ext' => $key_file_ext,
+    'key_filename' => $key_filename
 };
 
 # ______________________________________________________________________________
-#\\MQEVXRI5XC7RIHRYMLJRCRVV7HU6KFAWWUNVKABRS6SGNBKFO7YJEJDZ646PZIUDHKWUXETTCQHBM
-# \\ 4CYHLN7N6JEPVZKVRNXEUKYATTNCZ5RFRUFQ6TAVVXZD33GKFDLL \\// C25519-BASE-32 //
-#  \\// VY63DJ3MEZ3KAZGOLGQF5CU2GF7CZOVYR5S53IZRYPUCGUAJQDI \\ CODE SIGNATURE \\
+#\\TOYEIZWPGQ5MHAUUXMHGISSUX5ZHL3KHW4YFI5X6SYHDFSGESH73AZ2YR4HECJYTS5KL5KQO4CD5O
+# \\ 4SNI75W2IK2LTFILQ22DAN4ENQ432TMCWSBC462PJ5QLOCFREADZ \\// C25519-BASE-32 //
+#  \\// DH2FPDOYYYUEWQVKYTABLVJUCMVM3N5IBH5UJRGT4BXGCOL34DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

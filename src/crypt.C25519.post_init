@@ -4,7 +4,7 @@
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
 if ( not <crypt.C25519.auto_load_keys> //= 1 ) {
-    <[base.log]>->( 2, ": autoload disabled, skipped key loading." );
+    <[base.log]>->( 2, ": autoload disabled, skipped key loading.," );
     <crypt.C25519.initialized>++;
     return 0;
 }
@@ -18,24 +18,28 @@ my $key_name     = $key_vars->{'key_name'};
 my $home_dir     = $key_vars->{'usr_home'};
 my $key_usr      = $key_vars->{'usr_name'};
 my $key_basepath = $key_vars->{'key_basepath'};
+my $key_filename = $key_vars->{'key_filename'};
 
 if ( not defined $home_dir or !-r $home_dir ) {
     if ( !<base.parser.config.reloading> ) {
         <[base.log]>->( 0, "<!> no homedir access [ user '$key_usr' ]" );
         <[base.log]>->( 0, " :. skipping C25519 key initialization" );
     } else {
-        <[base.log]>->( 1, ": skipped key reload.. [homedir]" );
+        <[base.log]>->( 1, ": skipped key reload., [homedir]" );
     }
-    return 0;    # still valid state!
+    return 0;    # state still valid
 }
 
-return -1 if not <[crypt.C25519.chk_key_dir]>;    # <- creates if missing ...
+return -1 if not <[crypt.C25519.chk_key_dir]>;    # <-- creates if missing ..,
 
-<[crypt.C25519.convert_keys_to_b32]>;
+<[crypt.C25519.auto_convert]>->($key_dir);  ## <-- [ update filename structure ]
 
-if ( !-f $key_basepath and !-f "$key_basepath.pub" and -w $key_dir ) {
+my $secret_key_file = $key_filename->{'secret'};
+my $public_key_file = $key_filename->{'public'};
+
+if ( !-f $secret_key_file and !-f $public_key_file and -w $key_dir ) {
     <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
-    my %key_b32 = ( 'priv' => '', 'pub' => '' );
+    my %key_b32 = ( 'secret' => '', 'public' => '' );
     if (<[crypt.C25519.gen_keys]>) {
         <[crypt.C25519.write_keys]>;
     }
@@ -49,7 +53,7 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
     if (/([^\/]+\.(rkp|sig)\.(.+))$/) {
         my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
         <[base.log]>->( 1, ": : $type : '$fname'" );
-        $type = 'pub' if $type eq 'rkp';    # <- [root-key-pub]
+        $type = 'public' if $type eq 'rkp';    # <- [root-key-pub]
         chomp( $KEYS{'C25519'}{$key_name}{'root'}{$rkname}{$type}
                 = ${ <[file.slurp]>->($_) } );
     }
@@ -60,7 +64,7 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
 0;
 
 # ______________________________________________________________________________
-#\\KNSB5ISM4H5ZBPU2A7SNVYCGHBCHNQRDZLSKHOYATRSS6UK3MZ77LEV6TTV5Q3X7KHA7TQV4IEK3G
-# \\ SZN4IQDOBJHNNOHXJHDS445YNJHGT3CRKJZCQBGL7Y2YM54RNGK6 \\// C25519-BASE-32 //
-#  \\// QX5IRL6XJV2CTB5G3675YP3XONDJIDL45D2PYQW5FLD544AS4BY \\ CODE SIGNATURE \\
+#\\OGLUAXVCLOJVWVSL7AILMINZT26XSK5XXU75MU2USKHSB77HBEI6SG7MC54N3L4BMBCMLLRY3A35I
+# \\ GGTAUTXDMAWGV7PFNLTEYSJKEWQ4D3D377QVDE6SG7IKYJG2X47T \\// C25519-BASE-32 //
+#  \\// CWUYLWAASI5R4XXTDEXM5WJLN3MJI247GLNZXBOE7XMBTMTZMAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
