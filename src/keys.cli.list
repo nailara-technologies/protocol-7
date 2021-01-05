@@ -9,9 +9,13 @@ my $key_vars = <[crypt.C25519.key_vars]>;
 my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
 
+my $key_re_secret = <keys.regex.key_file.secret>;
+my $key_re_public = <keys.regex.key_file.public>;
+
 opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
-my @key_files = grep {/[^\.].*\.C25519_b32(\.pub)?$/} sort readdir($dir_fh)
-    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
+my @key_files
+    = grep {m{$key_re_secret|$key_re_public}} reverse sort readdir($dir_fh)
+    or <[base.log]>->( 0, "unix user '$key_usr' has no C25519 key files" );
 closedir($dir_fh);
 
 return if !@key_files;    # <- no keys, skipping further output!
@@ -20,9 +24,10 @@ my %key_names;
 my $max_nlen = 0;
 
 map {
-    $key_names{$_} = "'$1'" if $_ =~ /^(.+)\.C25519_b32(\.pub)?$/;
+    $key_names{$_} = "'$1'" if $_ =~ m{$key_re_secret};
+    my $spaces = ' ' x length($1);
+    $key_names{$_} = " $spaces " if $_ =~ m{$key_re_public};
     my $l = length( $key_names{$_} );
-    $key_names{$_} =~ s|.| |g if defined $2;
     $max_nlen = $l if $l > $max_nlen
 } @key_files;
 
@@ -34,7 +39,7 @@ print "\n :: keys for user $key_usr :.\n :\n",
     "::\n\n";
 
 # ______________________________________________________________________________
-#\\YSVFSYJLQGAAFOZLNJ6NYF5YTYOLXMQMI4ZACQKX5WCI7FGTHZVCO5UU6MD5J6RLWERFQITN5HBZI
-# \\ LJIQN72YXCS4LYEXJS45VD7NWYWRZMC4Q33JGSZFH4EG5P6HDMVV \\// C25519-BASE-32 //
-#  \\// REM74QFJP2DZKT3Q2PFMF4SZVENUXZQJOLWMJ6LWNKSPX7RU2AQ \\ CODE SIGNATURE \\
+#\\ZNT4GI3TLAZGSCVELCYUYWKLD2SALTB5WBWDE7YP44WWM4QZYMTU5NDQMXMV6UTZUOXDXSJH3VQGQ
+# \\ I4MUHKSVY6P44UHBA6YCL5QMOJUKR7D2TDW3SOWJB7I3OXIZZSPG \\// C25519-BASE-32 //
+#  \\// XMDJC2ZXU26D3EPT2AE7VIE44EXTE2H5JIJXBF6DXOI3X7RL4DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

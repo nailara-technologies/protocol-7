@@ -32,7 +32,7 @@ while ( $packet_buffer =~ s|^([^:\s]+):(\S+)\n|| ) {
     next if not defined $KEYS{'C25519'}{$key_name}{'root'}{$root_name};
     return <[base.log]>->( 2, ": '$root_name' root key signature [ERROR]" )
         if not Crypt::Ed25519::verify( "$peer_pub\n",
-        decode_b32r( $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'pub'} ),
+        decode_b32r( $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'public'} ),
         decode_b32r($root_sig) );
     $keys_matched++;
 }
@@ -52,7 +52,7 @@ return <[base.log]>->( 0, ": packet signature verification [ERROR]" )
 print " \--< peer: $peer_pub >--\n<--payload-->\n$packet_buffer<-/payload-->\n";
 
 # ______________________________________________________________________________
-#\\5GJH2H6KCPAC6DA4OSHMZQN7S4P43YYASRNDQPZMX3NZ2FTA6I2CXOCBPV7GOPPTFKZEGPTJHXL3E
-# \\ V2PN34PMP7YT2KLP4QSQF7INACU42SI32GPATTINTK3D4KNW3VCC \\// C25519-BASE-32 //
-#  \\// KHPKJYTYRVLP7RRJCW4BCYWNLY2LEXVJD7QXQSLKN5A4GJ5HOAQ \\ CODE SIGNATURE \\
+#\\I2PX27U4EKI3UGCG7UXSCMYW4UBUDUAKWRFZA6AUHTZP3T2RGUJGIQ36USYRMZEERKZVC244TIA3I
+# \\ YXD5BOCJ7GFT4XP3SLCEZAPNF5S3HXGG7L47DIENLGJJ4HTZ7YHA \\// C25519-BASE-32 //
+#  \\// GLJS3DMBBXDRTBP7HVUW3QBZJYFTKOVSTKZVBB3L64S37CWSWAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
