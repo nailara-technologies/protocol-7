@@ -14,8 +14,8 @@ return {
 
 $data{'session'}{$id}{'shutdown'} = 1;
 
-my $reason_str     = $$call{'args'} || 'exit';
 my $reason_max_len = 42;
+my $reason_str     = defined $$call{'args'} ? "'$$call{args}'" : ' exit ';
 my $replace_str    = '..';
 substr(
     $reason_str,
@@ -23,19 +23,18 @@ substr(
     length($reason_str) - ( $reason_max_len - length($replace_str) ), '..'
 ) if length($reason_str) > $reason_max_len;
 
-<[base.log]>->( 1, "[$id] session shutdown requested (\"$reason_str\")" );
+<[base.log]>->( 1, "[$id] session shutdown requested [$reason_str]" );
 
 my $night_hour = [localtime]->[2];
 $reply = {
     'mode' => 'term',
-    'data' => (
-               $night_hour > 18
-            or $night_hour < 5
-    ) ? 'have a spacy night! >:]' : 'have a nice day! >:]'
+    'data' => ( $night_hour > 18 or $night_hour < 5 )
+    ? '.have a spacy night., >:]'
+    : '.have a nice day., >:]'
     }
 
 # ______________________________________________________________________________
-#\\NCBFZKN2HVCICB4CWDWTPL5YW5BIKTBV5K6EE2P7X5DUOSMLOPJBDALTQJCPJNALQ3US22H2DSBYM
-# \\ KOEPA2XO454ESD4SDUH6HOXT5I4FPQQFRXX6BGZ7GXAZNTYQFG5I \\// C25519-BASE-32 //
-#  \\// IQOY6TFN4JNJAGHQIL3AJRHFXTOE4RZUVLYYDHN3PRMOO7VYWCA \\ CODE SIGNATURE \\
+#\\QJ52J5XTVCU7UAYSNZ7DDVE2WTGMAN3FIRSPMHL4WWW5RT5YS6WD2KDPCNBEQPOGWF25F4L6GQ2YU
+# \\ 6XDRITQKPLQZRKKNHST37SWEMTDAZTBEVILL5IHAXXYN6XHCBX53 \\// C25519-BASE-32 //
+#  \\// RDWHR6J634OADVES3DBZBUTDIUBI7MNIYBWYDAPF6LAKHTPUADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
