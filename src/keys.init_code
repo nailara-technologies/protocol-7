@@ -6,13 +6,25 @@
 ## C25519 key path owner can be overridden with USER environment variable.., ##
 <system.privs.user> = $ENV{'USER'} // getpwuid($>) // $ENV{'LOGNAME'};
 
-<keys.regex.key_name> = qr|^[0-9a-zA-Z\._\-]+$|;
+my $C25519_id = 'C25519.B32';
+my @key_types = qw| secret public |;
+( my $key_re_tmpl = $C25519_id ) =~ s|\.|\.|g;
+my $re_keyfiles = sprintf( "%s.(%s)", $key_re_tmpl, join( '|', @key_types ) );
+my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
+<keys.regex> = {
+    'key_name' => qr|^$name_regex$|,
+    'key_file' =>
+        { map { $_ => qr|^($name_regex)\.$key_re_tmpl\.$_$| } @key_types },
+    'key_files' => qr|$re_keyfiles|
+};
+map { <keys.file_suffix>->{$_} = ".$C25519_id.$_" } @key_types;
+
 <keys.bin_path.shred> = <[base.required_bin_path]>->('shred');
 
 0;
 
 # ______________________________________________________________________________
-#\\K5BXGYXI63QW655VE7TKUMSFSR4XJPFWFYBU7UERFUVH5GG5MVKNKRTVDCVPKJODE5SJ7VBDNWEFO
-# \\ 7RPEMOBRJJHDFXWRX3JVWUOQPKRCPEROSR5YPNW4G4JSENOOGFWC \\// C25519-BASE-32 //
-#  \\// 2IYEAAXW3XFCTPQ26PNPNKK4BFPXWZ3AAKHRZJNUN7XKCJSKSAA \\ CODE SIGNATURE \\
+#\\GTXZUXBDYC3OH3WJMDNMHNLGFONL4GHANY32FFANHUNYQAPX5FV7LSGASAXHY7S4L2N2WMX7HN2O6
+# \\ PBFBVONVRSF5IRFX7GKCNASB6QARUP26KERYCPSEIGRHCT4STQTW \\// C25519-BASE-32 //
+#  \\// A4PJ3ZOS44EOSF7UNZPGJUOR4JPNAVMLBZYVBZOILEGF6JEQ4CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

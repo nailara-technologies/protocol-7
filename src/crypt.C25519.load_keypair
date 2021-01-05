@@ -2,52 +2,41 @@
 
 # name = crypt.C25519.load_keypair
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift);    # <- [key_name] (optional)
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);   # <-- <key_name> [optional]
 
 my $key_dir      = $key_vars->{'key_dir'};
 my $key_usr      = $key_vars->{'usr_name'};
 my $key_name     = $key_vars->{'key_name'};
-my $key_basepath = $key_vars->{'key_basepath'};
+my $key_filename = $key_vars->{'key_filename'};
 
-my $pubkey_file = "$key_basepath.pub";
+my $secret_key_file = $key_filename->{'secret'};
+my $public_key_file = $key_filename->{'public'};
 
 use Crypt::Misc 'decode_b32r';
 
-if ( -r $key_basepath and -r $pubkey_file ) {
+if ( -r $secret_key_file and -r $public_key_file ) {
     my $u_str = $key_name =~ /^$key_usr(?:\..+)$/ ? '' : " [usr:$key_usr]";
     <[base.log]>->( 1, ":. C25519-key .:. '$key_name'$u_str" );
 
-    chomp( my $privkey_data_encoded = ${ <[file.slurp]>->($key_basepath) } );
-    chomp( my $pubkey_data_encoded  = ${ <[file.slurp]>->($pubkey_file) } );
+    chomp( my $encoded_secret_key = ${ <[file.slurp]>->($secret_key_file) } );
+    chomp( my $encoded_public_key = ${ <[file.slurp]>->($public_key_file) } );
 
-    if ( !length($privkey_data_encoded) or !length($pubkey_data_encoded) ) {
+    if ( !length($encoded_secret_key) or !length($encoded_public_key) ) {
         <[base.log]>->( 0, "unable to load '$key_name' key data .," );
         return 0;
     }
 
-    ## decode ##
-    my $enc_type;
-    if ( $key_basepath =~ /\.C25519_b64u$/ ) {    # base64
-        $enc_type                          = 'base64';
-        $KEYS{'C25519'}{$key_name}{'priv'} = decode_b64u($privkey_data_encoded);
-        $KEYS{'C25519'}{$key_name}{'pub'}  = decode_b64u($pubkey_data_encoded);
-
-    } elsif ( $key_basepath =~ /\.C25519_b32$/ ) {    # base32
-        $enc_type                          = 'base32';
-        $KEYS{'C25519'}{$key_name}{'priv'} = decode_b32r($privkey_data_encoded);
-        $KEYS{'C25519'}{$key_name}{'pub'}  = decode_b32r($pubkey_data_encoded);
-    } else {
-        <[base.log]>->( 0, "unrecognized key encoding.., loading aborted." );
-        return 0;
-    }
+    ## decode [ base 32 ] ##
+    $KEYS{'C25519'}{$key_name}{'secret'} = decode_b32r($encoded_secret_key);
+    $KEYS{'C25519'}{$key_name}{'public'} = decode_b32r($encoded_public_key);
 
     map {
-        <[base.log]>->( 0, "$enc_type decoding failed [ $_ key ]" )
+        <[base.log]>->( 0, "BASE32 decoding failed [ $_ key ]" )
             if not defined $KEYS{'C25519'}{$key_name}{$_}
-    } qw| priv pub |;
+    } qw| secret public |;
 
-    if (   not defined $KEYS{'C25519'}{$key_name}{'pub'}
-        or not defined $KEYS{'C25519'}{$key_name}{'priv'} ) {
+    if (   not defined $KEYS{'C25519'}{$key_name}{'public'}
+        or not defined $KEYS{'C25519'}{$key_name}{'secret'} ) {
         <[base.log]>->( 0, "failed to load key '$key_name'" );
         return 0;
     }
@@ -60,7 +49,7 @@ if ( -r $key_basepath and -r $pubkey_file ) {
 }
 
 # ______________________________________________________________________________
-#\\7EWURUBL7EGDSCIUDWYFBMBM4KL4V2U25NJP7565LEWYOM3WCZFYYDZYVSENAZ7A23KI5YYNIZCAU
-# \\ NB3VVNATUAZPCSSV2E5MQZPS6IP6IQZ4NMEVXIM43V6DEQYNLKJC \\// C25519-BASE-32 //
-#  \\// DWPKXDIXJRESMORKYTWD3BQLNGHHU2VSLOTHPUT2XPJYUQO6SBA \\ CODE SIGNATURE \\
+#\\CRVDSK4TTKJBE74THLF6CJERQWY3VDQUIIE7P6AZ3CALNR2OZO67VV7FUGV54JP6W7EVASTAPXQZS
+# \\ L4FREW4NTRHKNSUPGPYQVBYROLOLTV7CAJA6LA7P7N2W3EVPMGK2 \\// C25519-BASE-32 //
+#  \\// 3QW32OIQAFETMGXYORP6Q5EBSQOAE7H2MONUZ6LI5FIZVBLZ6DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
