@@ -786,7 +786,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                         . " -> $target_name > $cmd [ mode $command_mode ]"
                     )
                     if ( $target_name ne 'history'
-                    or $cmd ne 'msg'
+                    or $cmd ne 'append'
                     or !<debug.skip_log_msg> )
                     and ( $cmd ne 'history.append'
                     or !<debug.skip_log_msg> )
@@ -872,7 +872,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\VGZI7JGJLIJQ5OPGWETG2SE7RCETSMFBSWO3SOGPO7HL57KTFVY6N5FRBYZM5LUIQUX6MZFUBFPFE
-# \\ 3AGVLTTK7DFWAYETYKFQGHT24TEJPTSHFBYXCIX2IXCNXVJDYAAE \\// C25519-BASE-32 //
-#  \\// ZBSDAUJ7QWXGMZ3ICZJUUJPXOGHTQKRIFEDVPQVBYIE5LWGUWAY \\ CODE SIGNATURE \\
+#\\HCOGATDS5GITLZMDTTRHUFKBQFYEUPV4OSAVI63XSU3AJ4GTYXJACTDSAN2WYDFCW2OZ6CWN2CBIY
+# \\ MJLJLXFBLDXNDTIWOUZBT7PMDNACYE6XIOTI4OMYG5W4ZR7J4LWQ \\// C25519-BASE-32 //
+#  \\// OMC2JE73CTCU6IHUKI3T2MJ7X5IBFCCB4HFY6V5YZHQEW4UKGAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
