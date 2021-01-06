@@ -15,7 +15,7 @@ my $public_key_file = $key_filename->{'public'};
 use Crypt::Misc 'decode_b32r';
 
 if ( -r $secret_key_file and -r $public_key_file ) {
-    my $u_str = $key_name =~ /^$key_usr(?:\..+)$/ ? '' : " [usr:$key_usr]";
+    my $u_str = $key_name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
     <[base.log]>->( 1, ":. C25519-key .:. '$key_name'$u_str" );
 
     chomp( my $encoded_secret_key = ${ <[file.slurp]>->($secret_key_file) } );
@@ -43,13 +43,16 @@ if ( -r $secret_key_file and -r $public_key_file ) {
 
     return 1;
 } else {
+    delete $KEYS{'C25519'}{$key_name};
+    delete $KEYS{'C25519'} if !keys %{ $KEYS{'C25519'} };
     <[base.log]>->( 0, "'$key_name' key pair not found or unreadable..," );
     <[base.log]>->( 0, " ::[ expected in : '$key_dir' ]::" );
+
     return 0;
 }
 
 # ______________________________________________________________________________
-#\\CRVDSK4TTKJBE74THLF6CJERQWY3VDQUIIE7P6AZ3CALNR2OZO67VV7FUGV54JP6W7EVASTAPXQZS
-# \\ L4FREW4NTRHKNSUPGPYQVBYROLOLTV7CAJA6LA7P7N2W3EVPMGK2 \\// C25519-BASE-32 //
-#  \\// 3QW32OIQAFETMGXYORP6Q5EBSQOAE7H2MONUZ6LI5FIZVBLZ6DY \\ CODE SIGNATURE \\
+#\\26LXUHJNCVNENQ6XHWAKLR2TVE2WX7T3RGPA6T6AFT7OISMJAQODCIFNPJZFZ2RHMI5RJ5QZ5QFIO
+# \\ XQHFAWTJAD7IWSDR3QH2IMLOSPSUDJVLZP7M5U3ZS2WSCMKWATO5 \\// C25519-BASE-32 //
+#  \\// YCPPNS6OAZVWAXGNRWUPAKZ2TSQVWGMCPAZYHVFOIKEW7G4GCAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
