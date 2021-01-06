@@ -1,0 +1,31 @@
+# >:]
+
+# name  = crypt.C25519.cmd.clear-agent-key
+# descr = erase C25519 agent key from memory [secure]
+
+my $key_name = <crypt.C25519.key_vars.key_name>;
+
+return { 'mode' => 'nak', 'data' => 'C25519 key name is not defined' }
+    if not defined $key_name;
+return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
+    if not defined $KEYS{'C25519'}{$key_name}{'public'};
+
+my $usr_key = $KEYS{'C25519'}{$key_name};
+
+map {
+    my $k_len = length( $usr_key->{$_} );
+    substr( $usr_key->{$_}, 0, $k_len, <[crypt.random.bytes]>->($k_len) );
+    undef $usr_key->{$_};
+} keys %{$usr_key};
+
+undef $usr_key;
+delete $KEYS{'C25519'}{$key_name};
+delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
+
+return { 'mode' => 'ack', 'data' => "deleted '$key_name' key from memory" }
+
+# ______________________________________________________________________________
+#\\6L5S67O6SH6OIUVYEPBADMKS5MEOZUAOSO5QFTOUR7C7DRMETI7GPWT6P7KQGYXCRSFTPU7UHNU6Y
+# \\ UWSBKCH64IWJVXDYROZ5EDRGK2AJG2DBTZWIVWM7LUZSEPXSZQC7 \\// C25519-BASE-32 //
+#  \\// PG6FZ775U6MVAS5YQ4OUTECH5I26OO6SYZLQK6APKI2QO3DIOBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
