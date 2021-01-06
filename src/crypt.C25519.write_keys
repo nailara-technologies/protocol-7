@@ -21,25 +21,25 @@ foreach my $type ( 'secret', 'public' ) {
 }
 foreach my $type ( 'secret', 'public' ) {
     my $file_name = join( '.', $key_basepath, $type );
-
-    open( my $key_fh, '>>', "$file_name.$$" ) or die "$file_name.$$: $!";
+    my $tmp_fname = join( '.', $file_name,    $$, <[base.ntime.b32]> );
+    open( my $key_fh, '>', "$tmp_fname" ) or die "[ $tmp_fname ] $!";
     if ( $type eq 'public' ) {
-        chmod( 0640, "$file_name.$$" ) or die "chmod: $!";
+        chmod( 0640, "$tmp_fname" ) or die "[chmod] $!";
     } else {
-        chmod( 0600, "$file_name.$$" ) or die "chmod: $!";
+        chmod( 0600, "$tmp_fname" ) or die "[chmod] $!";
     }
     my $key_str_b32 = encode_b32r( $KEYS{'C25519'}{$key_name}{$type} );
     printf( {$key_fh} "%s\n", $key_str_b32 );
     close($key_fh);
-    rename( "$file_name.$$", $file_name ) or die "$file_name: $!";
-    chown( $uid, $gid, $file_name )       or warn "$file_name: $!";
+    rename( "$tmp_fname", $file_name ) or die "[ $file_name ] $!";
+    chown( $uid, $gid, $file_name )    or warn "[ $file_name ] $!";
 
     <[base.log]>->( 1, ": $file_name" );
 }
 return 1;
 
 # ______________________________________________________________________________
-#\\X75RRGVJABCCWSKYHQSKXNFMQSEMFHSHAXEYNKNKZMN4DPIU5GXZQXB5LAVK66UT4PLXMYJLGVUCS
-# \\ WACHEPXYX44MWDYHZ634YNEPYSRZ6Q4NLY3Y2XM6TWKBK5PMQT4P \\// C25519-BASE-32 //
-#  \\// HDAOJGZZGTEGELIWP6AHTLZTEWKIJ4IIBEYZXAIRHJCLGZYO2AA \\ CODE SIGNATURE \\
+#\\RAXCGVN33YLLIWCITRHCX7IZCXJ3FMME4LDF63PKRC6YGOI5YZU3QEUJNOXD6OYI4RKZUL6KJIEAE
+# \\ E7ZLV43ZONIHVLYCQDDTLGDFXH4RSVJ3UOIWASS7YOX3TYV7MOE3 \\// C25519-BASE-32 //
+#  \\// 3TNH7ZGGYZYCY2MV7WBO74NILSOVYRLINI7LVQORWQ6SSNAVEBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
