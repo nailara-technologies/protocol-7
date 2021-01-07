@@ -6,6 +6,7 @@
 return {
     'cmd_id'     => qr|\d{2,15}|o,                   # a valid command(route) id
     'sid'        => qr|\d{3,17}|o,                   # a valid session id
+    'base_32'    => qr|^[A-Z2-7]+$|o,                # RFC 4648 BASE32 alphabet
     'authmethod' => qr|[0-9A-Za-z\-_]{1,18}|o,       # auth method name string
     'usr'        => qr|[a-z][0-9a-zA-Z\-_]{1,16}|o,  # a valid username string
     'subname'    => qr|[0-9a-zA-Z\-\+\.:_]{1,17}|o,  # [<subname>] string ...
@@ -16,7 +17,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\S4GIXRWDXNZ4HUTRCXKG4YIXWKVVBV44IYHRM6TE22XZQTOFH4IWWW5WEAS2UC3RXTGF725JCMX52
-# \\ 52EKL6GBWTVCWY3WIPLWQVOIM2ADAMLYXZVLCP7XUTW5WJ5DP6OP \\// C25519-BASE-32 //
-#  \\// FLVCBSIBWUEJ4XCEQUKT5MDMRMY2OCQJP3IPUSRRUCAWNLYDUAA \\ CODE SIGNATURE \\
+#\\U4OX6YEE4M7LMTG665E7EWP2A2RJUGIIPAWQQR5KMKS6T6LVBIIYI35FZ4YY6ZO242MVOI2PW5H5C
+# \\ EXSSDKT4SRAVVFJQL55DQEPQ56GNYQSAMSCTSFZKBYADPPPRDFOC \\// C25519-BASE-32 //
+#  \\// N56XJGLZJTUQ7GCQOGH65UFZSCKK4BVJVHDII6RMU77WPHLTABQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
