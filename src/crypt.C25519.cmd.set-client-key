@@ -8,27 +8,37 @@ my $params  = shift;
 my $key_str = $params->{'args'};
 my $sid     = $params->{'session_id'};
 my $session = $data{'session'}{$sid};
+my $base_re = <regex.base.base_32>;
 
 return {
     'mode' => 'nak',
-    'data' => "expected your [ base32 encoded ] C25519 public key"
+    'data' => "expected [ RFC 4648 base32 encoded ] C25519 public key"
     }
     if not defined $key_str
-    or length($key_str) != 43
-    or $key_str !~ /^[a-z0-9\-_]+$/i;
+    or length($key_str) != 52
+    or $key_str !~ $base_re;
 
 $session->{'client_key'} = decode_b32r($key_str);
 
-my $base_time   = <[base.time]>->(4);
-my $key_sig_str = <[crypt.C25519.sign_data]>->( \"$base_time$key_str" );
+if ( length( $session->{'client_key'} // '' ) != 32 ) {
+    delete $session->{'client_key'};
+    return {
+        'mode' => 'nak',
+        'data' => "decoding not successful [ BASE32 expected ]"
+            . length( $session->{'client_key'} // '' )
+    };
+}
+
+my $base_ntime  = <[base.ntime.b32]>->(3);
+my $key_sig_str = <[crypt.C25519.sign_data]>->( \"[$base_ntime|$key_str]" );
 
 return {
     'mode' => 'ack',
-    'data' => join( '|', $base_time, encode_b32r($key_sig_str) )
+    'data' => '[' . join( '|', $base_ntime, encode_b32r($key_sig_str) ) . ']'
 };
 
 # ______________________________________________________________________________
-#\\WRYXPBBT3VKOLLNS6AAEDSFIEIOYIC4PDKTKPXRGXGPJU7UYAKYXOQKKUXMZYWM524HFP7ZTLU7JY
-# \\ NRUNMWFK4KTJVGDMQVHS2C7CSW7GVD3C7M256GPR35CNEZRFCGEK \\// C25519-BASE-32 //
-#  \\// HSZLHWP2LKGBTQDMFR753X6KK4TZV3GWHLHRYE4P4ZAIEB6JQAQ \\ CODE SIGNATURE \\
+#\\2UWYESCRLHXZCJKTWKMU2FKTPEKEJQWSXSKHFNL7BYTQTLOIPJLYKXT77L4SYYCBWVQP4IWGL7ZVC
+# \\ BEXJXQP5N53X3RX77UVJUJ35WAGJYEDK4O5BHCOMM65BQN2UK2YH \\// C25519-BASE-32 //
+#  \\// XWLJLHMOR4NRQ4OOFMNGL5NT4RXZKHHTXH5KCLBFQAJIB2LJYBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
