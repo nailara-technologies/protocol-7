@@ -4,7 +4,7 @@
 # descr = executes 'pre_init', 'init_code' and 'post_init' routines
 # todo  = track moved namespaces for agument list as well
 
-my @module_names = map { split / +/, $_ } @_;
+my @module_names = map { split m| +|, $_ } @_;
 
 my %skip_list;
 my $success = 1;
@@ -17,29 +17,29 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
             push(
                 @{<base.init_modules.sub_list>},
                 sort     { length($a) <=> length($b) }
-                    grep {/^\Q$name_pattern\E(\..+)?$/} sort( keys(%code) )
+                    grep {m|^\Q$name_pattern\E(\..+)?$|} sort( keys(%code) )
             );
         }
     } else {
         @{<base.init_modules.sub_list>} = sort { length($a) <=> length($b) }
-            grep {/^base\./} sort( keys(%code) );
+            grep {m|^base\.|} sort( keys(%code) );
         push(
             @{<base.init_modules.sub_list>},
             sort     { length($a) <=> length($b) }
-                grep { !/^base\./ } sort( keys(%code) )
+                grep { !m|^base\.| } sort( keys(%code) )
         );
     }
     foreach my $sub_name ( @{<base.init_modules.sub_list>} ) {
         next if not defined $sub_name or exists $skip_list{$sub_name};
-        if ( $sub_name =~ /^(.+)\.$init_mode$/ ) {
+        if ( $sub_name =~ m|^(.+)\.$init_mode$| ) {
             my $module_name = $1;
             my $real_m_name = $module_name;
             $real_m_name = <base.modules.internal_name>->{$module_name}
                 if exists <base.modules.internal_name>
                 and exists <base.modules.internal_name>->{$module_name};
-            ( my $init_txt = $init_mode ) =~ s/_/-/g;
-            $init_txt =~ s/-code//;
-            <[base.log]>->( 2, "running '$module_name' $init_txt code.." );
+            ( my $init_txt = $init_mode ) =~ s|_|-|g;
+            $init_txt =~ s|-code||;
+            <[base.log]>->( 2, "running '$module_name' $init_txt code.," );
             my $reinit = 0;
 
             if (not exists
@@ -54,7 +54,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                     if exists <base.modules.moved_to>
                     and exists <base.modules.moved_to>->{$module_name};
 
-                # LLL: later also include module version(s) in argument list...
+                # LLL: later also include module version[s] in argument list..,
                 my $return_code = $code{$sub_name}->( $reinit, $real_m_name );
 
                 if ( not defined $return_code or $return_code ne '0' ) {
@@ -81,7 +81,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                 <[base.log]>->(
                     0,
                     ": module '$module_name' init not successful"
-                        . " ( $sub_name vanished or broken )"
+                        . " [ $sub_name vanished or broken ]"
                 );
             }
         }
@@ -91,7 +91,7 @@ undef <base.init_modules>;
 return $success;
 
 # ______________________________________________________________________________
-#\\FA5GQZAZX3SAQNYKO3SOJRIFXC2GOEF3T7NV3AAGOJTJYDBYBGRVWRFSARD7Y46F3WQHDBRQGPR66
-# \\ FI5QEYRFSV5XJ6422NYITQ3KSNL35ZRIHIWOGLR5AQG4473SCIIB \\// C25519-BASE-32 //
-#  \\// OFZZN24XPYRD7TDE7AEKELW2HR7UWLWFNCVUBXIE32U2BVFSWDI \\ CODE SIGNATURE \\
+#\\VVNSYZCVRXOBUL3E5EKCG42AEVQWNX2ARY7DNCZZXWBTFFJFJKD6G7TVI2WOUZTEVYYOXHVXHQSJC
+# \\ 3RMQ6FSM3FY2SYH2VINJ2B3SQZN3SNE25LV2AS66E4MP6VWGN4YV \\// C25519-BASE-32 //
+#  \\// TDCHCZJT2ZVVPSIMSAHB7LNXGUUILILWZMBPPPWLCQSVSHEGADY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
