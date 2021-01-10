@@ -18,12 +18,12 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
         return ( 0, $1 );
     } else {
         $$output .= "NOPE >:|\n";
-        <[base.log]>->( 0, "[$id] [auth pwd] access denied to user '$1'" );
+        <[base.log]>->( 0, "[$id] [ auth pwd ] access denied to user '$1'" );
         return 2;
     }
 } elsif ( $$input =~ /\n/ ) {
     $$output .= ">:[\a\n";
-    <[base.log]>->( 0, "[$id] authentication protocol mismatch [pwd] >:[" );
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ pwd ] >:[" );
 } else {
     return 1;
 }
@@ -31,7 +31,7 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
 return 2;
 
 # ______________________________________________________________________________
-#\\MBBUCHFPXVL353VLJE3UGY2WSIQAP7JQ644AHBEVYHW2GNDSNXMKVARPK5TBFA2LRJCJ35HPZHLM6
-# \\ MKCJYU6QUVQWAVKAVDX6A4Q2CFGN3QYXO6UICLNLM3IBJJ6IAZJW \\// C25519-BASE-32 //
-#  \\// SETKOJBT7X5QCRA4VZ747BSQ6WXO34CZJC5TQSRXZ2GAFG644BI \\ CODE SIGNATURE \\
+#\\W7RH7J2DZY7S26RAXAHIKWZNBIHRZ5SV3IKIMWP2ZO2E2GMXUSAAXE2JEFASXSP4B5NYI56FOQIBC
+# \\ I7W22I2O2CL6UYDVX6UAIX2DLL37NJ4Q4XZIIU6JFYQ63T4KR7KB \\// C25519-BASE-32 //
+#  \\// ZDFDQ3OOWO6UNLWRJS7PEC5L37W2XEBLX2STSO3QJ6F2HG5RADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -60,12 +60,19 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
     }
 }
 
+if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) # <<< ! >>>
+{
+    my $s_key_name = <system.agent.name>;
+    <[crypt.C25519.generate_session_keypair]>
+        if not defined $KEYS{'C25519'}{'session'}{$s_key_name};
+}
+
 <crypt.C25519.initialized>++;
 
 0;
 
 # ______________________________________________________________________________
-#\\TOL7LO5YLIDV6UBAXLTSY2RBUZL6XZQPCPFC44KHWPKIIBQPJUWMUSYKKATT3R4SK4DMDKSSM6MRI
-# \\ Y34B7KBAXRKEYMSMTWKZYG7YUG2CQEK6DM4HKCDIVDEGKQDTVMFQ \\// C25519-BASE-32 //
-#  \\// U6QVTCEH2MSMC2EY2VRC55HA6AXCAOY7BBUHVJA3EN4QCWR2GDA \\ CODE SIGNATURE \\
+#\\NNNQFEXFSGPNIDJWTB7GJKFO4HRTVB2I3OKJMCOFRCTASNMUJZFRFBITTFWG7S6WRMEZ477PVORAM
+# \\ F6PWWIRBAOWN7JYODBTO23OH2UEKJSOZWXOMZZ6Q7KYVZDAYKBJJ \\// C25519-BASE-32 //
+#  \\// ZSY5F6QPVRX7JFQCSCIP26IZRETQXHMKKE7IF4JENCZNZ42PKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
