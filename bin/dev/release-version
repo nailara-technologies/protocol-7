@@ -6,10 +6,15 @@ use File::Spec;
 use Cwd 'abs_path';
 use FindBin qw($RealBin);
 
+my $release_version;
 my $version_seed = 42513;
 
 my $mode = ( @ARGV and $ARGV[0] eq '-m' ) ? 'msg_str' : 'rel_ver';
 if ( @ARGV and $ARGV[0] eq '-s' ) { $mode = 'set_tag'; shift @ARGV }
+
+if ( $mode eq 'set_tag' and @ARGV and $ARGV[0] =~ m|^v?(\d+\.\d+\.\d+)$| ) {
+    $release_version = $1 and shift @ARGV;    ## <-- setting custom version ##
+}
 
 my $u = File::Spec->updir;
 my $root_path
@@ -22,9 +27,12 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
     if ( open( my $v_fh, '<' . $version_file ) ) {
         ( my $raw_str = <$v_fh> ) =~ s|\s.+$||sg;
         ( my $year_float, my $commit ) = split( /-/, $raw_str, 2 );
-        ( my $release_version
-                = sprintf( "%.3f", ( $commit * $year_float ) / $version_seed ) )
-            =~ s|(\d)$|\.$1|;
+        if ( not defined $release_version ) {
+            (   $release_version = sprintf(
+                    "%.3f", ( $commit * $year_float ) / $version_seed
+                )
+            ) =~ s|(\d)$|\.$1|;
+        }
         my $tag_msg
             = sprintf(
             "<< release \\\\// nailara-v%s || source code \\\\// %s >>",
