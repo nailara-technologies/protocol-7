@@ -3,29 +3,49 @@
 # name  = crypt.C25519.cmd.clear-agent-key
 # descr = erase C25519 agent key from memory [secure]
 
-my $key_name = <crypt.C25519.key_vars.key_name>;
+my $key_name   = <crypt.C25519.key_vars.key_name>;
+my $s_key_name = <system.agent.name>;
+my $id         = $$call{'session_id'};
 
 return { 'mode' => 'nak', 'data' => 'C25519 key name is not defined' }
     if not defined $key_name;
 return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
     if not defined $KEYS{'C25519'}{$key_name}{'public'};
 
-my $usr_key = $KEYS{'C25519'}{$key_name};
+<[base.log]>->( 0, "[$id] flushing C25519 key '$key_name'., [ requested ]" );
 
+my $usr_key = $KEYS{'C25519'}{$key_name};
 map {
     my $k_len = length( $usr_key->{$_} );
     substr( $usr_key->{$_}, 0, $k_len, <[crypt.random.bytes]>->($k_len) );
     undef $usr_key->{$_};
 } keys %{$usr_key};
-
 undef $usr_key;
 delete $KEYS{'C25519'}{$key_name};
+
+### deleting session key if present ###
+if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
+    <[base.log]>->(
+        1, "[$id] :. erasing session key '$s_key_name'., [ from memory ]"
+    );
+    my $s_key = $KEYS{'C25519'}{'session'}{$s_key_name};
+    map {
+        my $k_len = length( $s_key->{$_} );
+        substr( $s_key->{$_}, 0, $k_len, <[crypt.random.bytes]>->($k_len) );
+        undef $s_key->{$_};
+    } keys %{$s_key};
+    undef $s_key;
+    delete $KEYS{'C25519'}{'session'}{$s_key_name};
+    delete $KEYS{'C25519'}{'session'}
+        if !keys( %{ $KEYS{'C25519'}{'session'} } );
+}
+
 delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
 
 return { 'mode' => 'ack', 'data' => "deleted '$key_name' key from memory" }
 
 # ______________________________________________________________________________
-#\\6L5S67O6SH6OIUVYEPBADMKS5MEOZUAOSO5QFTOUR7C7DRMETI7GPWT6P7KQGYXCRSFTPU7UHNU6Y
-# \\ UWSBKCH64IWJVXDYROZ5EDRGK2AJG2DBTZWIVWM7LUZSEPXSZQC7 \\// C25519-BASE-32 //
-#  \\// PG6FZ775U6MVAS5YQ4OUTECH5I26OO6SYZLQK6APKI2QO3DIOBI \\ CODE SIGNATURE \\
+#\\MVQHYCN7ZZYP3P4MMPU76D3ZXJYZ4NUEOGH2YBYZTMA2QITRPRVE2LXEFZ4IFXGIL5K6CVM7YDFL2
+# \\ 64JXLAQFLC66KCEK43E4FDCQ5THM3QLLR3XXNA6GMJ22UOISMYJ2 \\// C25519-BASE-32 //
+#  \\// NNS2NBUXEN35VICV75FALXTMWDUO5LLDPBGT6Y7PRV6QQE6U4CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

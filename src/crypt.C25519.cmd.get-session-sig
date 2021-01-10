@@ -1,0 +1,20 @@
+# >:]
+
+# name  = crypt.C25519.cmd.get-session-sig
+# descr = return C25519 public session key signature
+
+my $key_name = <system.agent.name>;
+
+return { 'mode' => 'nak', 'data' => "no session key '$key_name' available" }
+    if not defined $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'};
+
+return {
+    'mode' => 'ack',
+    'data' => $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'}
+};
+
+# ______________________________________________________________________________
+#\\S42D5TLO7NFK3LVPGSM7BFBPM3SOYE6DOT7TGHSLOAK3VPWKX6XE4CQLZSZFSDKEPDDC2NFBN5E7O
+# \\ EVPDMZVZYSP4PDDYDAIVPBPXFMADQGSUIVX5LXKRPB2CJQFK3GIX \\// C25519-BASE-32 //
+#  \\// HVF26AS5A64YROZHVUWN4GFW2G2ZY2VOUATBMPXII3ISXTL6ICI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
