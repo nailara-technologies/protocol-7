@@ -39,7 +39,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             if not defined $session
             or $session->{'mode'} ne 'client'
             or $session->{'user'} eq <base.session.uname_server>
-            or exists $session->{'authenticated'}
+            or $session->{'user'} eq <base.session.uname_client>
+            or defined $session->{'authenticated'}
             and $session->{'authenticated'} ne 'yes';
 
         # setup route
@@ -120,7 +121,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 # ______________________________________________________________________________
-#\\AIHRO5MU7444XM3GLAPPAW5ETRTX27YQGCAOEFLSPBAMD3LU7P54GHHHCHQDESYHSJXRZPZXNNX44
-# \\ G7XVGYCSB7CF7GALRSWUGBCADZ3U6RWQJVLD6HGAARVRDRDYKZIO \\// C25519-BASE-32 //
-#  \\// J4Z7DSSF7MSZXFRCHANI2KI7G2QUE4ABEMZXA24XBHXIEXC3ADY \\ CODE SIGNATURE \\
+#\\QA7KAGJGVMYH3SSO5RVLZHCOXAXTNVOJ22ARMH2L22LATCTTJWMP5KDKII6IXIYMIPKECQY6DAFBE
+# \\ UZ3SQOGJZQKZG2MSXBJTDBQBLB5XRMKHMEHCKDVGAVFRGKLWGJSN \\// C25519-BASE-32 //
+#  \\// LUFV3ZGDKVTSNLB7AMFYOWNA4KQRPUTGPVMYJA7OE27T6ZTIMBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
