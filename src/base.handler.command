@@ -759,8 +759,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         foreach my $target_sid (@send_sids) {
 
             my $target_session = $data{'session'}{$target_sid};
-            if ( $target_session->{'user'} eq <base.session.uname_server>
-                or exists $target_session->{'authenticated'}
+            if (   $target_session->{'user'} eq <base.session.uname_server>
+                or $target_session->{'user'} eq <base.session.uname_client>
+                or defined $target_session->{'authenticated'}
                 and $target_session->{'authenticated'} ne 'yes' ) {
                 $targets_denied++;
                 next;    # skip unauthorized connections
@@ -872,7 +873,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\HCOGATDS5GITLZMDTTRHUFKBQFYEUPV4OSAVI63XSU3AJ4GTYXJACTDSAN2WYDFCW2OZ6CWN2CBIY
-# \\ MJLJLXFBLDXNDTIWOUZBT7PMDNACYE6XIOTI4OMYG5W4ZR7J4LWQ \\// C25519-BASE-32 //
-#  \\// OMC2JE73CTCU6IHUKI3T2MJ7X5IBFCCB4HFY6V5YZHQEW4UKGAY \\ CODE SIGNATURE \\
+#\\ACRT6P5Z25P3ZGAXZ5HKW66HGMEQHMCE43H4VCQJFB4DDTLUGTJKRKV7RVGNX4EV7O45I5CIDT7KK
+# \\ A35BECZFM7W665TI4OXD523V6FG5ESS5YYU4JLOMMJFTIWWPPBC7 \\// C25519-BASE-32 //
+#  \\// VT6H5LO7DUBX7SNHG2WS33NBZXNW5WVL76GTKTNEIVYK4PM56CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

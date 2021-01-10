@@ -18,7 +18,7 @@ if ( not defined $fd ) {
     return -1;
 }
 
-if ( defined $name and $name !~ /^$re->{usr}$/ ) {
+if ( defined $name and $name !~ m|^$re->{usr}$| ) {
     <[base.log]>->(
         0, "< base.session.init > value '$name' for parameter name is not valid"
     );
@@ -26,7 +26,10 @@ if ( defined $name and $name !~ /^$re->{usr}$/ ) {
     return -1;
 }
 
-$name //= <base.session.uname_server>;
+$name //=
+    $mode eq 'server'
+    ? <base.session.uname_server>
+    : <base.session.uname_client>;
 
 if ( not defined $data{'proto'}{$proto} ) {
     <[base.log]>->( 0, "< base.session.init > unknown protocol '$proto'" );
@@ -121,13 +124,17 @@ if ( $mode eq 'server' ) {
 } else {
 
     my @timeout
-        = ( $proto ne 'nailara' or $name ne <base.session.uname_server> )
+        = (
+               $proto ne 'nailara'
+            or $name ne <base.session.uname_server>
+            and $name ne <base.session.uname_client>
+        )
         ? ()
         : (
-        # set up auth. (input) timeout for nailara protocol sessions
+        # set up auth. [input] timeout for nailara protocol sessions
         'timeout'    => <net.auth.timeout> || 13,
         'timeout_cb' => sub {
-            <[base.log]>->( 1, "[$id] authentication timeout.." );
+            <[base.log]>->( 1, "[$id] authentication timeout.," );
             $data{'session'}{$id}{'buffer'}{'output'} .= ">:|\n";
             $data{'session'}{$id}{'shutdown'} = 1;
         }
@@ -139,7 +146,7 @@ if ( $mode eq 'server' ) {
         @timeout = (
             'timeout'    => <httpd.timeout> || 13,
             'timeout_cb' => sub {
-                <[base.log]>->( 1, "[$id] .. http timeout .." );
+                <[base.log]>->( 1, "[$id] .. http timeout .," );
                 $data{'session'}{$id}{'shutdown'} = 1;
             }
         );
@@ -154,7 +161,7 @@ if ( $mode eq 'server' ) {
                     1,
                     "[$id] input timeout after "
                         . <net.input_timeout>
-                        . " seconds!"
+                        . " seconds."
                 );
                 $data{'session'}{$id}{'shutdown'} = 1;
             }
@@ -176,7 +183,7 @@ if ( $mode eq 'server' ) {
 return $id;
 
 # ______________________________________________________________________________
-#\\R3MQEY5X7UN3KYYQLS2CKEK5WKJBGKFX5NRKX4D3TXQFWDKLQVRKNETBYJAYLKOAYJWAR3RWNT2PS
-# \\ GEEZKQKLXRBTZ4TYW3BFMUCEK22WCXUFHLKVCPFF54X4M5HC3ZJ4 \\// C25519-BASE-32 //
-#  \\// ZGVTVZFNNLI3XFV3JLMHUKWG6N7HPEKZE7NKV4QJCTT76PBYECA \\ CODE SIGNATURE \\
+#\\ZY5TT4XW2TJSSNDTJBL2UDPFUCJ7GXVBELRLVKGYSKSKCNU6GYJXK54A24OVLJ4TI2GWIEQQLQLAS
+# \\ WDKLP4DAVA43CNH6C2G3LQGEJBLEFDOLPH2VKS4JIX5LQPAFNKNL \\// C25519-BASE-32 //
+#  \\// 6GKKR7BYRUXE6A32DRHUKQDZAGNLGQYBLOYQN4CWB4I2IBGBUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
