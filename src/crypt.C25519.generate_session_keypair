@@ -1,0 +1,34 @@
+# >:]
+
+# name  = crypt.C25519.generate_session_keypair
+
+my $key_name = shift // <system.agent.name>;
+
+my $key_name_str = "'$key_name'";
+$key_name_str .= '-agent' if $key_name eq <system.agent.name>;
+
+## regenerate? <-- log level 2 [ less noise on timer interval ]
+my $log_level = defined $KEYS{'C25519'}{'session'}{$key_name} ? 2 : 1;
+
+<[base.log]>->( $log_level, "..generating $key_name_str session keypair..," );
+
+my ( $public_key, $secret_key ) = Crypt::Ed25519::generate_keypair();
+
+my $creation_ntime = <[base.ntime.b32]>->(3);
+my $key_sig = <[crypt.C25519.sign_data]>->( \"[$creation_ntime|$public_key]" );
+
+return $KEYS{'C25519'}{'session'}{$key_name} = {
+    'name'      => $key_name,
+    'public'    => $public_key,
+    'secret'    => $secret_key,
+    'created'   => $creation_ntime,
+    'signature' => $key_sig,
+    'key-reply' => encode_b32r($public_key),
+    'sig-reply' => sprintf( "[%s|%s]", $creation_ntime, encode_b32r($key_sig) )
+};
+
+# ______________________________________________________________________________
+#\\U65KXTEUAHD3JJZMONAQKB7Y7C3XZ3CCL2KJUWQHJILH2IOTRTE2T6KNN32XNPEPYM4HTYG2YSJBG
+# \\ M7NS46IRLMG4Z3V6A6NWNFVYKOFBFANVPXFVRTYVO5NRDGYKZZNE \\// C25519-BASE-32 //
+#  \\// QX24OG3CFNIFSI5D2KORKYCQHYP4IHZPYXJY44TLOOXZKPS7KAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
