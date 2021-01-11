@@ -21,7 +21,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[mpv.send_command]>->('stop');
     <[base.proto.nailara.command.send.local]>
         ->( { 'command' => "core.report_paused" } )
-        if <system.agent.mode> eq 'media-child';
+        if <system.agent.mode> eq 'universal-child';
     return;
 }
 
@@ -86,7 +86,7 @@ map {
     <[mpv.send_command]>->( 'loadfile', $_, 'append-play' );
 } @append_files;
 
-if ( <system.agent.mode> eq 'media-child' ) {
+if ( <system.agent.mode> eq 'universal-child' ) {
     <mpv.playlist_was_empty> //= 0;
     <mpv.startup.child_init> //= 1;
     if ( <mpv.startup.child_init> or <mpv.playlist_was_empty> ) {
@@ -101,7 +101,7 @@ if ( <system.agent.mode> eq 'media-child' ) {
 }
 
 # ______________________________________________________________________________
-#\\VE53LOQG65K3XFK6STEPFKW53JT5SHP3ALATHIBBIK4M4LE5JOEKFDLEZ5NGE5TCEKJ6T3LZBPZQY
-# \\ 7GDPL76B2HJ3XXZVCQ3IUJM3VL62ERHCN2SKZCALWOSO4FI5RLM2 \\// C25519-BASE-32 //
-#  \\// ESDUGZXCN7EZMWG7IO5NMETARPKFIWS6UJ4P7OIMRE6Q3CGUEAI \\ CODE SIGNATURE \\
+#\\Q3VLDTGG24T3EYBUPIJA6554C27NCLZOUQHXBDRFKCVVNROZ4IMVMMHP6PA7VDZNGP6RJZHSIZ3XM
+# \\ RJCOHKSUVXQY7NCJIVEOYOXPWHLLYLBJ6D5563GJG3HUS5VYYG35 \\// C25519-BASE-32 //
+#  \\// F7XQ4ORA6NT5RLFAKG35HCKPSDPKP6R4HP7P325KB7QO7WMCUDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

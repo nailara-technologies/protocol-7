@@ -1,0 +1,21 @@
+# >:]
+
+# name  = universal.cmd.dump_state
+# descr = dump current agent state [new version]
+
+my $dump_key = 'universal.state';
+
+return {
+    'mode' => 'data',
+    'data' => "\n  .:[ '$dump_key' ]:.\n:`\n"
+        . join( '',
+        map {": $_\n"}
+            split( /\n/, <[base.dump_data]>->( undef, undef, $dump_key ) ) )
+        . ":.\n\n"
+};
+
+# ______________________________________________________________________________
+#\\PVKRHFMJ6UX62VZFKR6BWU62Z7EI6IGPFECUP7GVYKQAWV3BSGUCZ5CPEVHDMNWDCAJSRX37WMA36
+# \\ 2243B4HWC7IL7NHFWEZAWTCPP47EY6FJBYB7JLCKMT2FKMCX7NWS \\// C25519-BASE-32 //
+#  \\// OQRICFKXSXXRI7QQ56B4CLLSGJ5YEOU7PJWJL3IVA3LJ3GEQ2DI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

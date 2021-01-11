@@ -1,0 +1,30 @@
+# >:]
+
+# name = universal.handler.image2html_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "<!> unable to convert extracted vid frame [$reason]" );
+    <universal.cfg.fade_on_switch> = 0;
+    <[base.log]>->(
+        0, " :. disabled fade_on_switch [extraction not successful]"
+    );
+    <[universal.startup_sub_agents]>;
+} else {
+
+    my $frame_html_path = $reply->{'call_args'}->{'args'};
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "browser.fg_insert",
+            'call_args' => { 'args' => $frame_html_path }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\FTYU7P6O225R3VDMUNBOVI4ZPA5QZHFDTBJGXTVURI735R5O3VKYORZFKGTNXX52LSJ6HIIG3EAQK
+# \\ PYYSBJNSCRF4KADMDW3LPYS7QF7IO4KKGRKJXCTIEE7L2YY25U3D \\// C25519-BASE-32 //
+#  \\// MI6FSKWZRYUYTU6N2VC7P4FQMKRJU37NGQIWWI7TVDQ74QYMMAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

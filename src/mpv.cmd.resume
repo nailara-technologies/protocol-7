@@ -3,15 +3,16 @@
 # name  = mpv.cmd.resume
 # descr = resume playback
 
-<mpv.media_child_resume> //= 0;
-if ( <system.agent.mode> eq 'media-child' and <mpv.media_child_resume> ) {
+<mpv.universal_child_resume> //= 0;
+if ( <system.agent.mode> eq 'universal-child' and <mpv.universal_child_resume> )
+{
     <mpv.timer.resume_timeout> = <[event.add_timer]>->(
         {   'after'   => <mpv.resume_timeout>,
             'handler' => 'mpv.handler.resume_timeout',
         }
     );
 }
-delete <mpv.media_child_resume>;
+delete <mpv.universal_child_resume>;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.cmd_prop.pause' } );
@@ -21,7 +22,7 @@ push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.cmd_prop.pause' } );
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\DOGUN6YU3BPZTLZUVQDPIO5YXED43P2I3K4VQMLD3XTK3XY46WU2U73M43WZGLLDYVZJCLZXDBSDY
-# \\ K2F7G76V6SIXXGTVPDF2GYXI3DWMLC3HWF6LHTW2YJCBGM4P2FW2 \\// C25519-BASE-32 //
-#  \\// LIA6NLWT5T42OP45SAPUL77YZCJWNL2CK47JCOJKJZGKSJ6LECY \\ CODE SIGNATURE \\
+#\\QX4WV7OYMDVC5QO3MFW5S2JCMDZXHRC62HWZMGKDAUDFIXHU6OBVTAV4YOWNEUBEEUQ7UMR5G4DDY
+# \\ PN6U3DP4DXMODBL6IFXQ7Q52FDSP3FN5GVV65KXEU72NFJMDKGSY \\// C25519-BASE-32 //
+#  \\// 3QMAGC5VWWH3NJUHUSSOBAXU6M4TSYKVG63M6Z6WUNZ6TFIEQDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
