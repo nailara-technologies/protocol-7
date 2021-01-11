@@ -10,8 +10,8 @@ foreach my $err_line ( map { $_->getlines } @err_fds ) {
     next if !length($err_line);
     if ( $err_line =~ m|^Error parsing option (.+)(?:-option)? \((.+)\)$| ) {
         <[base.log]>->( 0, "<< ! >> parser error on option '$1' [ $2 ].," );
-    } elsif (
-        $err_line =~ m|^Setting commandline option (-+.*(?:-option)?.+) failed.| ) {
+    } elsif ( $err_line
+        =~ m|^Setting commandline option (-+.*(?:-option)?.+) failed.| ) {
         <[base.log]>->( 0, "   : :. setting option '$1' unsuccessful ..," );
     } elsif ( $err_line =~ m|^Exiting... \((.+)\)| ) {
         my $reason = lc($1);
@@ -22,7 +22,7 @@ foreach my $err_line ( map { $_->getlines } @err_fds ) {
 }
 
 # ______________________________________________________________________________
-#\\6YLX4YGWQYA3GJYHMWU5GBEFMU3TRHOW2RZIMSURIIEJEZGC2HSQFFKKHDQ2EIFBVRW6M7A2M5GGC
-# \\ NINB4KZ7OSCUFEFN6I56OYMCBF5ZLWORY3IREPQEKAHVC6G7UZCT \\// C25519-BASE-32 //
-#  \\// SVZ2KZ4O476VW5WZBGBHWSBKPY7NRCHP3WQZLLY624YWSLXZWAY \\ CODE SIGNATURE \\
+#\\4BATH7BP3HE36QSORCGEBKGIO4EZ6BG7PB4YJFIFZZLKTE7UMYKQHF5VLXNVKFHLUNAG3UB6VJG2O
+# \\ 62YQHSXCU6FIMUAKRQIVS223EKZYO7GYQGUKCONQVGKB2GM7JW3W \\// C25519-BASE-32 //
+#  \\// 5RYKYAERP7PPDYTCLGO4JEIIASZCIYYI4GYYX7HHHXY35CGLQCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

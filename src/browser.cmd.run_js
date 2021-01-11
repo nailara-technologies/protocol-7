@@ -44,11 +44,11 @@ $view->run_javascript(
 
         my $re_mode = $ex_str =~ /^[^:]*Error[^:]*:/ ? 'nak' : 'ack';
         $re_mode = 'data' if $ex_str =~ /\n/;
-        $ex_str  = '<!> "throw" already being prepended internally <!>'
+        $ex_str = '<!> "throw" already being prepended internally <!>'
             if $ex_str eq "SyntaxError: Unexpected keyword 'throw'";
 
         <[base.log]>->(
-            0, sprintf "<!JSerr!> [%s] %s",
+            0,              sprintf "<!JSerr!> [%s] %s",
             $self->get_uri, $ex_str
         ) if $re_mode eq 'nak';    # <- has JS err!
 
@@ -66,7 +66,7 @@ $view->run_javascript(
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\F5JS722RE4YLYEEALWQ4D65U5MAUUOO2UTFXU3L7XCY6X4JHYNX5UV2XRD2642667F4B7HGOQFBJO
-# \\ WII2OIBK5KIF3OQKJKVRKQNLBKOIUVLFCHJUCUC4MMBXLELFBR4D \\// C25519-BASE-32 //
-#  \\// ST22F35TUWDXHMNXBPJFBBCD2ZNLZ7HM5VZ5VDF3MDK4RUWT2BY \\ CODE SIGNATURE \\
+#\\OBY62XNJONWL5GOIN47TLRUAM7EUOLC57COHEDIV5PO2SYNPCAFGF6UNWXQJNFFZDA6GREDIHKWG6
+# \\ Q5IDJLHPGXJZRXUONX737H3WF5ZKYN4JSXFURU64VSF3HENFPGRW \\// C25519-BASE-32 //
+#  \\// WRKQ6TB57VPH6Z4CMIBCIL6BPNCEDZ7DNAQW3PNB3CBXK6A46CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
