@@ -16,7 +16,8 @@ my $instance = <nroot.agent.instance>->{$instance_id};
     if delete $instance->{'paused_status_timer'};
 
 my $parent_pid = <nroot.agent.instance>->{$instance_id}->{'process'}{'id'};
-my @pids = ( $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
+my @pids
+    = ( $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
 
 my $count = kill 'CONT', @pids;
 
@@ -28,7 +29,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\KCAXBGN6UZQB2OINXCO7GJSJZQE3AFD5FJYLMLUGVXRWHKR4WGJZQUF22EBXHPOBZYMC7NN3ZLVUE
-# \\ DJYXYNXI2RATLUC6H3XEKHPSX2MJCT6J5MIPAQ452BLF333PDN6S \\// C25519-BASE-32 //
-#  \\// 4JNHNBCYMEMG5OF3YPXB6SJHIEFVD6IPWKLF4Z45TS5AFPKFWBQ \\ CODE SIGNATURE \\
+#\\G6DAU3FC72GJXMIRBOBS3DTCZUHDDEIFPML3RSFJ674AJUGWJSLZ7FAP2IT6LPCM3IN2T3RAFFYCK
+# \\ EF7BOYMLO4AFM77APCES3MSSI527CSIDXDIPCRZWBNNQVWRQH5VD \\// C25519-BASE-32 //
+#  \\// MSZE6TXUFRSY2544JLG3G3BAQZ72PFTDSFWKOAM5BDFD4YB3WDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

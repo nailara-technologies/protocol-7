@@ -13,7 +13,8 @@ my $abort_timeout = 2;
 
 my %wait_pids = map { $_ => 1 } keys %{<nroot.child>};
 foreach my $p_pid ( keys %{<nroot.child>} ) {
-    map { $wait_pids{$_} = 1 } @{ <[nroot.sub-process.get_children]>->($p_pid) };
+    map { $wait_pids{$_} = 1 }
+        @{ <[nroot.sub-process.get_children]>->($p_pid) };
     <nroot.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # just in case
 }
 
@@ -121,7 +122,7 @@ map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_ ) }
 exit($exit_code);
 
 # ______________________________________________________________________________
-#\\VCQNB7ZTSV6YAST2W7ROOMZ45N2WWR5AZDALAE4WSSM3GHAE2Q3T2BG33Y4ZP6YLUPJWU5JBITOVE
-# \\ KIONF3X2YJIK4HBB2A4BKYK6XNQ6UKLQPT5DQH6L4BIVY7AAG7S2 \\// C25519-BASE-32 //
-#  \\// KGYWFAYARACK7GUX4R2HZMG3YMKCM6CNYKQUPU3LD6UHIWPX4DY \\ CODE SIGNATURE \\
+#\\NBVGRFY7MLNNVGJH64KCCNBFDIBH54RU75WFEH4WIM5QPZ3BNU5KCZUBKAZL4HKY3X7KEO5AHIBUQ
+# \\ TPA4NWVQNQYGZ7GT5WCW7CGZSBXJQK5GDBI5HHGBLRR3EY73QD3O \\// C25519-BASE-32 //
+#  \\// DJ2JZXVBRHHJJTD2PP2GVDOHOOMDCVOCTCPLWKZTHN3TLFBCYBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

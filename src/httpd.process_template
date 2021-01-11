@@ -7,7 +7,7 @@ my $template_path = shift // '';
 die "expected valid session id" if not defined $data{'session'}{$session_id};
 my $session = $data{'session'}{$session_id};
 die "expected template file path argument" if !length($template_path);
-die "template file not found" if !-f $template_path;
+die "template file not found"              if !-f $template_path;
 my $response_params = $session->{'response'}->{'params'};
 my $content_date    = time2str( int( $session->{'start_time'} ) );
 my $content_type    = 'text/plain';
@@ -51,7 +51,7 @@ while ( length( ${$tmpl_ref} ) ) {
 
         ( my $cmd_str, my $params_str ) = split( /:/, $cmd_param_str, 2 );
 
-        push( @{$r_seq}, { 'data' => \$output } );
+        push( @{$r_seq}, { 'data'    => \$output } );
         push( @{$r_seq}, { 'command' => $cmd_str, 'params' => $params_str } );
         $tmpl_ref = $session->{'buffer'}->{'template'} = \$remaining;
 
@@ -143,7 +143,7 @@ if ( !$cmd_count ) {    # request / content complete :
 }
 
 # ______________________________________________________________________________
-#\\RA6LO2JMU6OQDOV6PD4SVUTE3PLNMTU3CAHVCYFWTFVPVAUH2OAYZ7WTAGP4JZ53BWTSISKK2R622
-# \\ LK67OOZGCO4TIAYHY4O57WIGERQHO6W7LID5P4VTLKJIBLN6ED3H \\// C25519-BASE-32 //
-#  \\// IJIG6MPVIQQY4M3QLYLETHLVZSSMMMUPYROZWO4O5VOXYRNBUCA \\ CODE SIGNATURE \\
+#\\FGXMBKI64GZU7PTJD5N4YCD65PYENEOBO3QXEZUECJ4UNM6ZISWKTHCHMHQGRFKBUT2FTR4Q63QLU
+# \\ 3YAA3MU4UGAQXR6MTPOLD7IGXVFOOLVTKLC7X7B2HVK2W6P76YJL \\// C25519-BASE-32 //
+#  \\// S54ZLFWZ53J2ONHOXXM3LFV7HGSFY6ESQU7EQR266GTIWQXC2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

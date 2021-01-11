@@ -5,7 +5,7 @@
 my $target   = shift;                # optional target directory
 my $template = shift // 'X' x 13;    # temp dir name template [optional]
 die "target directory does not exist" if !-d $target;
-die "invalid template syntax" if $template =~ m|\./|;
+die "invalid template syntax"         if $template =~ m|\./|;
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | )
     if not exists &{'make_path'};
@@ -46,7 +46,7 @@ make_path( $tmp_dir_path, { 'mode' => 0750 } )
 return $tmp_dir_path;
 
 # ______________________________________________________________________________
-#\\TS25ZI4LYMYT4NVL6YQ4OZVANVIV3O2N6ZHN45FVO6UFBX3UTHWWDWM4KEVQQBGLPEIPE5PFYPAAQ
-# \\ 4TCG63RPSPVT4RJFRYIZJWOMMZBPBXZREZVIAHRXGCWTXLC4FQFM \\// C25519-BASE-32 //
-#  \\// TS7LYYPKGNPOQZH43RJMZEJWFP2ZCYN7XIGUM5AWPW4WR7YYQCI \\ CODE SIGNATURE \\
+#\\OUJHC4AEJVUZBIKDGUEIUXDQ45XVFXYCQUQ7BPUNL23SQGB3OSN5WXSRTNT3LFZSILGUNAVIFOUXY
+# \\ 4RT5CH2HEEVS3W6433T3FMD3GT6KUEGVKLZXPHH2TMIBRBQFSD2O \\// C25519-BASE-32 //
+#  \\// GUGGHIYOL64UA76422L6X37W5KW7QQA6G27PGXMXOK3DFYHX6AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
