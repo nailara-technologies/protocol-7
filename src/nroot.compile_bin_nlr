@@ -32,7 +32,7 @@ my $gcc_err_fh = IO::Handle->new();
 my $gcc_pid    = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
     or die "<< ! >> compilation failed [ $! ] << ! >>\n";
 print {$gcc_in_fh} $nlr_src_str if $gcc_in_fh->opened;
-close($gcc_in_fh) if $gcc_in_fh->opened;
+close($gcc_in_fh)               if $gcc_in_fh->opened;
 
 ## timeout., ###
 if ( defined $gcc_pid ) {
@@ -66,7 +66,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\37AXX5HU7E32YMYBFV7LVZJ5OGJ5EV3G5CGMGR6WBDGSDUYN2STYNSLWMV4FIQMTOY6WQPDOCZCNE
-# \\ B5MFN6VSKFJDIXW2TY7XQL5XJ7OONSEKKV76AAFQPN2WDOB46HZ7 \\// C25519-BASE-32 //
-#  \\// VILRPOXCN2OWQVNAQ4U7FJEIHKTDD7UHY2D7XAKV456DXZRDOAQ \\ CODE SIGNATURE \\
+#\\TAITWZ2PQPSTBAGPAZ5TQ5BC2AMKWKTGRT7RS7AZKYARE5VMCGRSNLWQDHL6NRJ2BUDKDX276NFFK
+# \\ H3NSWDUVLT7EO4XJMPXXOXHTJFOQTKWNO6VLO55JBCBWG4NARY3Q \\// C25519-BASE-32 //
+#  \\// D6777FHL64ZUP2DF4ITTZZYYZOHYQE6DORQJKERZUML2GEDUECQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

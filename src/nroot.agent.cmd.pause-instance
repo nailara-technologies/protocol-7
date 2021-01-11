@@ -17,7 +17,8 @@ $instance->{'paused_status_timer'}
     = <[nroot.cancel_status_timer]>->($instance_id);
 
 my $parent_pid = <nroot.agent.instance>->{$instance_id}->{'process'}{'id'};
-my @pids = ( $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
+my @pids
+    = ( $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
 
 my $count = kill 'STOP', @pids;
 
@@ -28,9 +29,8 @@ return {
     'data' => "$count process$es paused (SIGSTOP)"
 };
 
-
 # ______________________________________________________________________________
-#\\3LNBURFQUGUFYPF4AYKHIOE4IAKUBEY2EGADSD6ZURAEKYIKLRXVEQDJXAATYQNG56VSPWMTEDIWM
-# \\ BGFBOKNLZGYELVONKQZUGKH62TUXUB574VMX5XHB7CB34L3CIYSP \\// C25519-BASE-32 //
-#  \\// 2SH66QLU4YBSYT2I4AG3YFDSIVCUECZRGKFE4GVOLJCMXWBHCDI \\ CODE SIGNATURE \\
+#\\NFCHOUYEBE5NLPPSAOLQZ4TNNYJTRJIVNNPZLC3AJDNHQ5E7OOQ7JVV4VEY3WOFWKRJDSDRXUCGVA
+# \\ OEDTLRTJIOFLSOXWS5BD4YRJZUJRKPABPR5XSYWKIGAWEZCFDGKV \\// C25519-BASE-32 //
+#  \\// F5THBTZP6EGPEQQMQGY4HOWDMZWOIGMEFF7N6OMURJAICYI7IBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
