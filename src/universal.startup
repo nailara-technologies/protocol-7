@@ -1,0 +1,49 @@
+# >:]
+
+# name = universal.startup
+
+my @content_types = keys %{<universal.content.agent_map>};
+<[universal.get_playlist]>->(@content_types);
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+( <x11.width>, <x11.height> ) = (
+    <x11.coordinates.right> - <x11.coordinates.left>,
+    <x11.coordinates.bottom> - <x11.coordinates.top>
+);
+
+<[base.log]>->(
+    2,
+    sprintf(
+        "calculated window dimensions %s x %s", <x11.width>, <x11.height>
+    )
+);
+
+<[base.log]>->( 1, "starting loadsplash agent.." );
+
+# LLL: need startup timeout..
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.nroot.notify_online",
+        'call_args' => { 'args' => <universal.lsp_name> },
+        'reply'     => { 'handler' => 'universal.handler.loadsplash_started' }
+    }
+);
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.nroot.start_once",
+        'call_args' => { 'args' => <universal.lsp_name> }
+    }
+);
+
+undef %SIG;
+$SIG{'INT'} = $SIG{'TERM'} = sub {
+    undef %SIG;
+    <[universal.stop_loadsplash]>;
+};
+
+# ______________________________________________________________________________
+#\\XVLRY4EYHFQ4ABCJGMYSGHLRG3NU76QJV6Y7JO4D45GAQQMCQBZ5O3SHBL5K6OWREXTV5JSL3W2PY
+# \\ JWVWP44V6SG5JXTFQF6SNVSCUOREXMUQBYS4RFHLPV5A6MFLPDMB \\// C25519-BASE-32 //
+#  \\// Z3VZ4NMO3HQ7G5GAEAZDGS3JYL4WX7JMB7TEYJC7LRHX4FP5IAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

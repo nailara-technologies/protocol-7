@@ -1,0 +1,29 @@
+# >:]
+
+# name = universal.handler.resume_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $agent_name = $params->{'agent'};
+
+if ( exists <universal.timer.switch_timeout> ) {
+    <universal.timer.switch_timeout>->cancel;
+    delete <universal.timer.switch_timeout>;
+}
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>
+        ->( 0, "resume command failed [agent '$agent_name'] ($reason)" );
+    <[base.log]>->( 0, ": attempting recovery through restart.." );
+    <[universal.self_restart]>;
+} else {
+    <[base.log]>->( 2, "agent '$agent_name' resume command successful!" );
+    <universal.child>->{$agent_name}->{'paused'} = 0;
+}
+
+# ______________________________________________________________________________
+#\\LLRI3PNCOJQF7QDJU623UNGMJPE4KA4JOQICCF7TWBFGWY4MF6EPDMJYE3O7ABZVUOFX3HPHI6BFW
+# \\ KWUGLMJ7Q7Q35IOQOA5EG55VOJE4J3GIFATFFXX55DP3SJTQNR7W \\// C25519-BASE-32 //
+#  \\// X4ENTZVSH4LAXSEULMAHS3VLKIC6DXPDGTG4RJSCPOYJZIXWSBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

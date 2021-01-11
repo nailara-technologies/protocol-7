@@ -1,0 +1,42 @@
+# >:]
+
+# name  = universal.cmd.slow_down
+# param = [target_%]
+# descr = trigger slowing down [load red.]
+
+my $percent = $$call{'args'};
+$percent =~ s|%$|| if defined $percent;
+return { 'mode' => 'nak', 'data' => 'expected percent value [0..100]' }
+    if length($percent)
+    and ( $percent !~ /^\d+$/ or $percent > 100 );
+
+my $param_str = defined $percent ? " [$percent%]" : '';
+<[base.log]>->( 1, "<i> received slow_down command" . $param_str );
+
+if (<universal.cfg.autospeed_notrans>) {
+    <universal.cfg.fade_on_switch> = 0;
+    <[base.log]>->( 1, " : mpv / browser fading transition disabled" );
+}
+
+my $cmd_params = { 'command' => "browser.slow_down" };
+$cmd_params->{'call_args'}->{'args'} = $percent if defined $percent;
+
+<[base.log]>->( 1, " : relaying slow_down command to browser child ..." );
+<[base.proto.nailara.command.send.local]>->($cmd_params);
+
+if ( defined $percent ) {
+    <universal.auto_speed_mode>         = 0;
+    <universal.slowdown.percent_target> = $percent;
+    <universal.slowdown.percent_target> //= 0;
+    return { 'mode' => 'ack', 'data' => "slow down target set to ${percent}%" };
+} else {
+    undef <universal.slowdown.percent_target>;
+    <universal.auto_speed_mode> = 1;
+    return { 'mode' => 'ack', 'data' => "slow down mode 'auto' activated" };
+}
+
+# ______________________________________________________________________________
+#\\ZEXJS4QVV75ME33YKCGMDPPOLIWX6WMZOREZ3TEELVONH2VRDAFK34NQDYMJCHJGHXBJEQE3CPO6E
+# \\ 2MOP364H4DHH2272PPC7722FVEKY6H534EYZFK2SOZ5DQE4OXFRX \\// C25519-BASE-32 //
+#  \\// H2WJ2RC37JCUIZ7CGA7AV5RNASH257KMAF552LNG546Y6H254DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

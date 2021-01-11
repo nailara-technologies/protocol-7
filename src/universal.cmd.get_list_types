@@ -1,0 +1,26 @@
+# >:]
+
+# name  = universal.cmd.get_list_types
+# descr = return url list and content types
+
+my $session_id = $call->{'session_id'};
+my $agent_name = $data{'session'}{$session_id}{'user'};
+
+if ( not exists <universal.playlist.agent>->{$agent_name} ) {
+    <[base.log]>
+        ->( 2, "no playlist available for agent or user '$agent_name'" );
+    return { 'mode' => 'data', 'data' => '' };
+} else {
+    return {
+        'mode' => 'data',
+        'data' => join( '',
+            map { <universal.playlist.types>->{$_} . " $_\n" }
+                @{ <universal.playlist.agent>->{$agent_name} } )
+    };
+}
+
+# ______________________________________________________________________________
+#\\SRFGD2RPWUEFWBMBUMY4O4TMK4TXVEANPBSPBXSBJN56H5TH3HLEVXK6IPGN2JLNVTWU36I36ASV6
+# \\ VADKP4ALBEIKDKLSDS2SZRQUHUMFYPTXMZQFJOTL6WN5Y3LMLFEB \\// C25519-BASE-32 //
+#  \\// OMHW65LJFDXKJCRFRPUMJLJHSHPUTD4IWBEWJLENNKP4OMNVIBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

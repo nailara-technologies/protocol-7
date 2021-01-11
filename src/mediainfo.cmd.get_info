@@ -4,10 +4,10 @@
 # param = <file> [info_keys]
 # descr = return information about audio or video files
 
-return { 'mode' => 'nak', 'data' => 'expected path to media file' }
+return { 'mode' => 'nak', 'data' => 'expected path to content file' }
     if !length( $$call{'args'} );
 
-my ( $file_path, @info_keys ) = split( / +/, $$call{'args'} );
+my ( $file_path, @info_keys ) = split( m| +|, $$call{'args'} );
 
 return { 'mode' => 'nak', 'data' => 'file not found' }
     if !-f $file_path;
@@ -23,7 +23,7 @@ map { $key_max_len = length($_) if length($_) > $key_max_len } @info_keys;
 foreach my $i_key (@info_keys) {
     return {
         'mode' => 'nak',
-        'data' => "didn't find media info key '$i_key'"
+        'data' => "mediainfo property key not found ['$i_key']"
         }
         if not exists $file_info->{$i_key};
 
@@ -34,7 +34,7 @@ foreach my $i_key (@info_keys) {
 return { 'mode' => 'data', 'data' => $info_reply };
 
 # ______________________________________________________________________________
-#\\TVLAEXE5RNBLC6BNFFBBHFLBYTDWLKH5MPL7QFE7PYGWRHDLZEOB4TO5G3GYFKXA7XKTFFJ7BTAHW
-# \\ TVIKRZTSZRUVI7VNVSDJ2WSXQH7RUYF436YYPG4DSFJBDOYG2HP5 \\// C25519-BASE-32 //
-#  \\// OMCCPQVF6GKOF6Y7LMMF5UIVGDYDETJ4A5RFEEZM5OO677PG4AI \\ CODE SIGNATURE \\
+#\\VMRFYKAQMBUTQ4EERNRVU24QHTWFPBR5IRVJVPJYEQZBGSASHJTMMR2DASBR2PC5QV5QDFWZF4PSI
+# \\ CHUAKXT77CDA7T4IVT6TOIXGIGZT6WPGOIRNGHNDBBAUDZTKCLEZ \\// C25519-BASE-32 //
+#  \\// IXSDTNBQ2MBPSOCBUIFTLYYHYTUM3XFT5Z3U6GY6U2WGVANLMBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,25 @@
+# >:]
+
+# name  = universal.cmd.get_list
+# descr = return url list for child
+
+my $session_id = $call->{'session_id'};
+my $agent_name = $data{'session'}{$session_id}{'user'};
+
+if ( not exists <universal.playlist.agent>->{$agent_name} ) {
+    <[base.log]>
+        ->( 2, "no playlist available for agent or user '$agent_name'" );
+    return { 'mode' => 'data', 'data' => '' };
+} else {
+    return {
+        'mode' => 'data',
+        'data' => join( '',
+            map {"$_\n"} @{ <universal.playlist.agent>->{$agent_name} } )
+    };
+}
+
+# ______________________________________________________________________________
+#\\2PB7RW25EKOFED4ROOJ3V5Y74DYR5KR4QJMCEEC4NGXUPYGZJPIUZFUTHJ7NP65RWCPEPFRHI7QLY
+# \\ JJCTDGRW6IZZ2QRCUBPSKR4SZUJAHCJ2YZUXUOC455MXDSV5UUHV \\// C25519-BASE-32 //
+#  \\// F7DQCXR7H4Q4K6VBBLKXC6IFLT6UKUVLEOEW2LFSH6GLGA5D4AA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

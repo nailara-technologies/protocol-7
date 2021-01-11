@@ -11,7 +11,7 @@ return delete <mpv.current> if not defined $path;
 <mpv.log_played> //= 0;
 <mpv.current.path> = $path;
 
-if ( <system.agent.mode> eq 'media-child' and $path eq '[PAUSE]' ) {
+if ( <system.agent.mode> eq 'universal-child' and $path eq '[PAUSE]' ) {
     <[base.log]>->( 2, '[PAUSE] keyword encountered, queuing up next file...' );
     <mpv.pause_next> = 1;
 } elsif ( exists <mpv.file_map.rescaled.source>->{$path} and !-f $path ) {
@@ -21,12 +21,12 @@ if ( <system.agent.mode> eq 'media-child' and $path eq '[PAUSE]' ) {
     if ( !-d $base_path and !-r "$base_path/.." ) {
         <[base.log]>->(
             0,
-            " :  entire reencoded media dir is gone,"
-                . " shutting down! [permissions]"
+            " : reencoded content directory is gone,"
+                . " shutting down., [ permissions ]"
         );
         exit(1);
     } else {
-        <[base.log]>->( 1, " :. will try to reencode..." );
+        <[base.log]>->( 1, " :. will try to reencode..," );
         delete <mpv.playlist_sha1>;
         <[mpv.cmd.playlist_update]>;
     }
@@ -42,7 +42,7 @@ if ( <system.agent.mode> eq 'media-child' and $path eq '[PAUSE]' ) {
 }
 
 # ______________________________________________________________________________
-#\\PV5EDZLZS3R2KEIEBDNKESGTOG4IKUTXH2PZMRLDXCIOOODDRPNJQQVV23HHW34VH7N2UFMVI3CDA
-# \\ DDKVDIFHPPU2ZFE6LM5WL77IYBOOF4VD4D75HH5IBN2ZQC235MCO \\// C25519-BASE-32 //
-#  \\// QY5OJ5MNFABYNV2PGYH447OM7OS6EDRRIGHGTUZW6LXK3D7TMCA \\ CODE SIGNATURE \\
+#\\UMX2HWAW24245XJPIY2URGE4E6UKN2VBLO5RUVPUHL2JVZJHA7QJSMVHMDJIBAFWH7UEQZ7OOEMAS
+# \\ ET2CAEH5HHMPGJ6OPESXCY2MUOODY52H66OCQ32VAEWWV4AH2COY \\// C25519-BASE-32 //
+#  \\// SBBVI4B7P25E3ODPCTU6C2F3BEU5QXEXUJT2RVW55BHKGZ542CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
