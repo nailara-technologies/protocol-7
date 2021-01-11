@@ -1,0 +1,60 @@
+# >:]
+
+# name = universal.init_code
+
+<[base.perlmod.load]>->('IPC::Open2');
+<[base.perlmod.load]>->( 'File::Copy',  qw| move | );
+<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+## tracking state ##
+<universal.state> //= {
+    'playlist' => { 'entries' => 0, 'last_request' => 0, 'last_success' => 0 },
+    'agents'   => {
+        'start_time'    => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+        'init_reported' => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+    },
+    'windows' => {
+        'raised' => 'none',
+        'xids'   => { 'mpv' => undef, 'browser' => undef, }
+    }
+};
+##
+
+<universal.vid_frame_dir> //= '/tmp/.video_frames';
+
+$SIG{'CHLD'} = $code{'universal.handler.sig_chld'};
+
+<universal.lsp_name>
+    = defined <system.agent.subname>
+    ? 'loadsplash[' . <system.agent.subname> . ']'
+    : 'loadsplash[' . $$ . ']';
+
+my @dis_cmds = @{ $data{'disabled_commands'} };
+$data{'disabled_commands'} = [];
+map { push( @{ $data{'disabled_commands'} }, $_ ) if $_ ne 'whoami' } @dis_cmds;
+$data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
+
+<universal.cmdline_mods> = { 'browser' => 'Gtk3 Glib::Event Gtk3::WebKit2' };
+
+<[universal.reroute_commands]>;
+
+<universal.agents_started>  //= 0;
+<universal.switch_timeout>  //= 7;   # restart agent after 7 secs resume timeout
+<universal.children_ready>  //= 0;
+<universal.declared_online> //= 0;
+<universal.loadsplash_timeout>    //= 17;
+<universal.playlist_was_empty>    //= 0;
+<universal.cfg.autospeed_notrans> //= 1;
+<universal.cfg.can_self_restart>  //= 1;
+
+<[base.log]>->( 1, "[ self-restart is disabled ]  << ! >>" )
+    if !<universal.cfg.can_self_restart>;
+
+0;
+
+# ______________________________________________________________________________
+#\\LDNNJJ7IKTZDZUPL5LZLWTAQYFM4Q43DAXT65GOMYHC7MXTD4T47ODDAHYTXGQ43AFCSGHKTDOMAU
+# \\ TS2HPR5TWO6BVOTEQEJZVKJAVR56UNCK56OZXAPSF2RJOBUALCZM \\// C25519-BASE-32 //
+#  \\// BEYNNBRD3R5MBT4Z5KSXBHTHKAMSVZHULSOMQ53NK2YGCRYG6AA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

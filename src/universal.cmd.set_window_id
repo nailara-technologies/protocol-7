@@ -1,0 +1,24 @@
+# >:]
+
+# name  = universal.cmd.set_window_id
+# param = <id> [tilename]
+# descr = report x11 window id for current agent
+
+my $session_id = $call->{'session_id'};
+my $agent_name = $data{'session'}{$session_id}{'user'};
+( my $window_id = $call->{'args'} ) =~ s| .+$||;
+
+<[base.log]>->( 1, "received window id for $agent_name-child [$window_id]" );
+
+<universal.child>->{$agent_name}->{'window_id'} = $window_id;
+
+return {
+    'mode' => 'ack',
+    'data' => 'assigned'
+    }
+
+# ______________________________________________________________________________
+#\\GRBKC34LHHWFMNDDQBWVTMGGAYM736CWPGJ6G3R3IRW6M3VNHMNTC3CHI2ZNFHWSHFW2Z4AFAJ3OA
+# \\ FI54TPFKPQ26YQKMOQY3RBCAUJUELPCG3LUS47DZHV4PC2UZRONW \\// C25519-BASE-32 //
+#  \\// N47H2JBG45QTNJB5OFXB4L6MX5VKKGLQKRERANM3YXQX4OJX4DI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,32 @@
+# >:]
+
+# name = universal.handler.mpv_idle_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $agent_name = $params->{'agent'};
+my $reply_str  = $reply->{'call_args'}->{'args'};
+
+delete <universal.timer.mpv_idle_timer>;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <[base.log]>->( 0, "[!] 'mpv.is_idle' command failed ($reply_str)" );
+} else {
+    if ( $reply_str eq 'no' ) {
+        <[base.log]>->( 2, "[success] mpv is playing (switch performed)" );
+        return;
+    } else {
+        <[base.log]>->(
+            0, "<!> mpv is still idle ( resume failed [$reply_str] ) <!>"
+        );
+    }
+}
+
+<[base.log]>->( 0, " :. recovery initiated (agent restart)..." );
+<[universal.self_restart]>;
+
+# ______________________________________________________________________________
+#\\JMPK2LNWWEUSU4KRFVND25NGWIZ5LEFOE2MMDXQZ6U2F6HZJKOPZ6IVVCJ53OSN6Z2KEQCMSG75UM
+# \\ 4VNMPWRTKPTW47GXMCT7PK76BONCEWSL45JPJQWFYVH7XZRZBZ6D \\// C25519-BASE-32 //
+#  \\// VBDEINHD6P7UF6PRBEHU76OM55SKZD5C4X54I5DMNHMMQ5DVGDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -62,7 +62,9 @@ my $sn_str
     = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
 
 <browser.window.title_str>
-    = <system.agent.mode> eq 'media-child' ? 'media.browser' : 'browser';
+    = <system.agent.mode> eq 'universal-child'
+    ? 'universal.browser'
+    : 'browser';
 <browser.window.title_str> .= $sn_str;
 <browser.window.title_str> .= "-$$" if !length($sn_str);
 
@@ -126,7 +128,7 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";
 0;
 
 # ______________________________________________________________________________
-#\\ICQJNEVF2LHNFQODCZTHIYF4QF6HUM2TSCSKR7UPSUA73R422YRZ7YXQPBDRI7B64BZVHI4AYV7Y6
-# \\ OKQAVCXOEHN4P2K3B4GOLKQ2PFPYSGXBQNAIBEI24KRPTSO6S3T6 \\// C25519-BASE-32 //
-#  \\// UI234D5IZZPGBAPHRCNDGPENE7WTZEL2ROQ5WGTRMHKMNBY2QDY \\ CODE SIGNATURE \\
+#\\3254H7PCLXJZHUZPJFARRGVMUCFTYEJVO3HSML4P7JWGUC3KE2TDLHJXAWQMZRDL2HK7ISLZAG6F6
+# \\ 7WM4FDRZQMSRHECCQMXNWFFFXT35SMSMRHWNGJL4JSNG5EUBZJ4V \\// C25519-BASE-32 //
+#  \\// PWSBOLT545MHRXGGSDLCY6WURJ4XGMJLGEYNQ34XGKAUWDBDYCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,23 @@
+# >:]
+
+# name = universal.lower_except
+
+my $agent_name = shift;
+die "agent name expected" if not defined $agent_name;
+
+foreach my $lower_agent ( keys %{<universal.child>} ) {
+    next if $lower_agent eq $agent_name;
+    my $lower_wid = <universal.child>->{$lower_agent}->{'window_id'};
+    <[base.log]>->( 2, ": lowering '$lower_agent' window ($lower_wid)" );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.xserver.lower_window",
+            'call_args' => { 'args' => $lower_wid }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\X3QMVURP5JYGS36YS4N4V5GB35N3R6Z6CHZWGQ7IOJT5D724SEDC6MUGWWDVUII7SIJQQ6ZVSNFZW
+# \\ J3DSCGLOFIEQMKX7XEVZGWIB4IAWBZ4OO3E5QSF2MSURKPMBZEVI \\// C25519-BASE-32 //
+#  \\// MWCW2QONM7BAZJ5BUS5YIDH3YCLMQ4XFIKHP6MGHHWVE3UDACDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

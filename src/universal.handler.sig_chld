@@ -1,0 +1,61 @@
+# >:]
+
+# name = universal.handler.sig_chld
+
+my @names;
+my $child_pid;
+do {
+    $child_pid = waitpid( -1, WNOHANG() );
+    my $e_val = $? >> 8;
+    my $e_sig = $? & 127;
+    if ( exists <universal.running>->{$child_pid} ) {
+        my $child_name = <universal.running>->{$child_pid};
+        push( @names, "'$child_name'" );
+        delete <universal.running>->{$child_pid};
+        delete <universal.running>->{$child_name};
+        <[base.log]>->(
+            0,
+            "<!> SEGMENTATION FAULT <!> sub-agent"
+                . " '$child_name' [ PID $child_pid ]"
+        ) if $e_sig == 11;
+
+        ## record browser segfaults (for crash mitigation) ##
+        if ( $e_sig == 11 and $child_name eq 'browser' ) {
+            my $agent_subname = <system.agent.subname>;
+            my $subname_b32
+                = ( defined $agent_subname and length($agent_subname) )
+                ? '.' . encode_b32r($agent_subname)
+                : '';
+            my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
+            <[file.put]>->( $file_name, "$child_pid\n" )
+                or warn("$file_name: $!");
+            chmod( 0644, $file_name ) or warn("$file_name: $!");
+        }
+
+    } elsif ($child_pid) {
+        push( @names, $child_pid );
+        <[base.log]>->( 0, "<!> SEGMENTATION FAULT <!> [ PID $child_pid ]" )
+            if $e_sig == 11;
+    }
+} while $child_pid > 0;
+<[base.log]>->(
+    0,
+    "[!] universal-child "
+        . join( ' and ', @names )
+        . " crashed unexpectedly! restarting..."
+);
+<universal.restarting_agent> //= 0;
+<[event.add_timer]>->(
+    {   'after'   => 0.42,
+        'handler' => 'universal.self_restart'
+    }
+) if !<universal.restarting_agent>;
+<universal.restarting_agent> = 1;
+$SIG{'CHLD'} = 'IGNORE';
+map { kill( 15, $_ ) if $_ =~ /^\d+$/ } keys %{<universal.running>};
+
+# ______________________________________________________________________________
+#\\OOHDYDTSDNJA5YSE5Y6QAPYE7DGDKCQVTR64QAK6PQ7HLY5TAVX6VLPT3BGL5CBMDXANWY4TGIHOS
+# \\ XGUQIQGVDZTKIE5VE5WDGFEQGQNLVU2XX2UO5DJ3HSNXZEECOFAF \\// C25519-BASE-32 //
+#  \\// JOX6KVCVFHZ3AECTCQWYWYJXANRYMLWFVNZGCH23Z26ST6ZH2AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

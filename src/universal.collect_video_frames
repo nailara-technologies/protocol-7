@@ -1,0 +1,60 @@
+# >:]
+
+# name = universal.collect_video_frames
+
+my $video_frame_dir = <universal.vid_frame_dir>;
+
+<universal.video_frames_complete> = 0;
+<universal.video_frames>          = {};
+<universal.frames_to_go>          = {};
+<universal.sequence.frame_pos>    = {};
+<universal.sequence.frame_path>   = {};
+
+my $video_path;
+my $sequence_pos = 0;
+foreach my $playlist_entry ( @{ <universal.playlist.agent>->{'mpv'} } ) {
+    if ( defined $video_path and $playlist_entry eq '[PAUSE]' ) {
+        my $id = <[base.gen_id]>->(<universal.frames_to_go>);
+        <universal.frames_to_go>->{$id}       = $video_path;
+        <universal.sequence.frame_pos>->{$id} = $sequence_pos;
+        $sequence_pos++;
+    } else {
+        $video_path = $playlist_entry;
+    }
+}
+
+foreach my $frame_id ( keys %{<universal.frames_to_go>} ) {
+    my $vid_file_path = <universal.frames_to_go>->{$frame_id};
+    my $path_digest   = <[digest.elf]>->($vid_file_path);
+    my $frame_path    = "$video_frame_dir/$path_digest.png";
+    <universal.video_frames>->{$vid_file_path} = $frame_path;
+    my $pos = <universal.sequence.frame_pos>->{$frame_id};
+    <universal.sequence.frame_path>->{$pos} = $frame_path;
+    next if !-f $frame_path;
+    delete <universal.frames_to_go>->{$frame_id};
+}
+delete <universal.sequence.frame_pos>;
+
+my $count = keys %{<universal.frames_to_go>};
+
+if ( !$count ) {    # frames already complete
+    <[universal.startup_sub_agents]>;
+} else {
+    <[base.log]>->( 1, "extracting video frames ($count to go..)" );
+    my ( $frame_id, $vid_file_path ) = each %{<universal.frames_to_go>};
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.melt.extract_frame",
+            'call_args' => { 'args' => "-0 $vid_file_path" },
+            'reply'     => {
+                'handler' => 'universal.handler.extract_frame_reply',
+                'params'  => { 'frame_id' => $frame_id }
+            }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\ADHRGVUEN2DNUGKWVPLJHJODMTIA6WUF5UK3O3F7WXDYG4HX4OEDVAETF4NZYPU4QGTFNR6ERJSSK
+# \\ UQRRZJMY2NH2UIBUBHCLP236M7V6ECUBN47A4GPAQQZRP27U5XX5 \\// C25519-BASE-32 //
+#  \\// IRYCGBRULSXCDH7Z4QZA4YMVHWWECNNTTG433X4DUXHZTHE4WCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

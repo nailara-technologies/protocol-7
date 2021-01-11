@@ -1,0 +1,64 @@
+# >:]
+
+# name = universal.handler.extract_frame_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "<!> unable to extract video frame [$reason]" );
+    <universal.cfg.fade_on_switch> = 0;
+    <[base.log]>->( 0, " :. fade_on_switch disabled ... :/" );
+
+    <[universal.startup_sub_agents]>;
+}
+
+my $frame_id       = $reply->{'params'}->{'frame_id'};
+my $frame_src_path = $reply->{'call_args'}->{'args'};
+my $vid_file_path  = delete <universal.frames_to_go>->{$frame_id};
+
+my $vid_frame_dir     = <universal.vid_frame_dir>;
+my $path_digest       = <[digest.elf]>->($vid_file_path);
+my $frame_target_path = "$vid_frame_dir/$path_digest.png";
+
+( my $output_path = $frame_target_path ) =~ s|/[^\/]+$||;
+
+if ( !-d $output_path ) {
+    <[base.log]>->( 1, ": : creating '$output_path'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
+        or die "user '" . <system.privs.user> . "' not in passwd file";
+
+    make_path( $output_path, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
+        or die " make_path: $! ";
+}
+
+if ( !-f $frame_src_path ) {
+    warn "source image not found : $frame_src_path";
+} else {
+    move( $frame_src_path, $frame_target_path ) or warn $!;
+}
+
+# todo: create error image or pixel..
+<universal.video_frames>->{$vid_file_path} = $frame_target_path;
+
+if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
+    <[base.log]>->( 1, ": video frame extraction complete" );
+    <[universal.startup_sub_agents]>;
+} else {                                      # more to extract
+    my ( $frame_id, $next_vid_path ) = each %{<universal.frames_to_go>};
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.melt.extract_frame",
+            'call_args' => { 'args' => "-0 $next_vid_path" },
+            'reply'     => {
+                'handler' => 'universal.handler.extract_frame_reply',
+                'params'  => { 'frame_id' => $frame_id }
+            }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\5EASU2SYS2Q2CW6UGH24WBC27Q6UF44N7ZOBOXN4YAMCIVW77B3BN24D7FUO4HZZFVVWIDC3DV232
+# \\ CS6PH637TYLOQW2D4UH6R5IW5GN4NHWD3S4D23SPRHTURHF6IFCT \\// C25519-BASE-32 //
+#  \\// S6DZ7AT2FADY2LWWCIDKXH6VSSYZ6DLYOFCDSGZMGU6OHF67CDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

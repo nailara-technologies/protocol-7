@@ -1,0 +1,34 @@
+# >:]
+
+# name = universal.get_playlist
+
+my @file_types = @_;
+
+<[base.log]>->( 1, "requesting entries from playlist agent .." );
+
+my $sub_name = '[' . <system.agent.subname> . ']'
+    if defined <system.agent.subname>
+    and length(<system.agent.subname>);
+
+my @args;
+if (@file_types) {
+    my $args_str = join( ' ', @file_types );
+    $args_str .= ' ' . $sub_name if defined $sub_name;
+    @args = ( 'args' => $args_str );
+}
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.mlist.get_list_types',
+        'call_args' => {@args},
+        'reply'     => {
+            'handler' => 'universal.handler.get_list_reply',
+            'params'  => {}
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\SHA7AXG66O5G766OLZZP7UNOPYBRVRQFO55K43HTHXK5JVUSICDRNZJCFQTABVOLJJ5GGXJKSAB6Y
+# \\ 7KKANXHVYYANLXYEIFLJBQNQTXGKB7PYR32EHJAMN5YPITDJM2RZ \\// C25519-BASE-32 //
+#  \\// 3UKY22LDSVEKKV43O6BK3XQD7XCJSBHSSBV5EZLAYZV2GNBWYAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
