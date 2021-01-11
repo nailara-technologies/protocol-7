@@ -4,16 +4,16 @@
 
 my $params = shift;
 
-if ( <system.agent.mode> eq 'media-child' and <mpv.pause_next> ) {
-    <mpv.pause_next>         = 0;
-    <mpv.media_child_resume> = 1;
-    <[base.log]>->( 2, "playback paused, reporting back to media agent.." );
+if ( <system.agent.mode> eq 'universal-child' and <mpv.pause_next> ) {
+    <mpv.pause_next>             = 0;
+    <mpv.universal_child_resume> = 1;
+    <[base.log]>->( 2, "playback paused, reporting back to universal agent.," );
     <[base.proto.nailara.command.send.local]>
         ->( { 'command' => "core.report_paused" } );
 }
 
 # ______________________________________________________________________________
-#\\VEFMCC77CXM4QEXZCJRACZHSQVGKJ2KKLVLJG4XFTDYDWBDPVFM3UJ3EJNSIQV5XOGWWG36YIJ52A
-# \\ U46ATVWHLXRIZGBZLXZUA5B5LQP4GIAOSPPXRXRTCHYBEPZNMK3C \\// C25519-BASE-32 //
-#  \\// HZKMJL767OFQOUNU2ZJZKNIXL3R6QV6XHB7ZI2YW2QH2KJS2EDQ \\ CODE SIGNATURE \\
+#\\L6FJV6X6SSCK7JFUWLUR3ILVCK6XGMTMDPHJNGBDATPXO7RPISIJYTOGXA6RAQEUZXMAPP5ORYL6A
+# \\ IIYI576KFQ4OMQS7CNY22LMGRNIS7B4WU3STK3E2ITC5PUHNZF64 \\// C25519-BASE-32 //
+#  \\// 6ZFQDAXDDLHN5KF6EMYNGKQEIJJGA43EV3UERCBPYUCSKHYYABA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

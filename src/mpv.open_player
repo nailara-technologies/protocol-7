@@ -47,8 +47,8 @@ if ( !<mpv.audio_only> ) {
             <mpv.fade_in> = 0;
         }
     }
-    if ( <system.agent.mode> eq 'media-child' and <mpv.fade_in> ) {
-        <[base.log]>->( 1, " : disabled 'fade_in' (media-child).." );
+    if ( <system.agent.mode> eq 'universal-child' and <mpv.fade_in> ) {
+        <[base.log]>->( 1, " : disabled 'fade_in' (universal-child).." );
         <mpv.fade_in> = 0;
     }
 
@@ -106,7 +106,8 @@ my @mpv_params = split( / +/, $mpv_params );
 my $mpv_title_str = <mpv.agent_title>;
 $mpv_title_str .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
-$mpv_title_str .= ' ( ${?media-title:${media-title}}${!media-title:no file} )';
+$mpv_title_str
+    .= ' ( ${?universal-title:${universal-title}}${!universal-title:no file} )';
 
 push( @mpv_params, "--title='$mpv_title_str'" );
 <mpv.started_with_params> = join( ' ', @mpv_params );
@@ -194,7 +195,7 @@ close( delete(<mpv.fh.stdin>) );    # input fd not required
 <[base.log]>->( 1, "player startup successful.." );
 
 # ______________________________________________________________________________
-#\\QWTUW6GLMBDJUBAWEENSDAB6XGHHB7NC7VZROSPTQOYKSKCNQDFQSWXVCMJ3NEWZXQ7SBU4ZOVTYU
-# \\ OQQZO7NQT4XLADNDZSUWZP3QGPMSZTLZHD2SHVKUSZKTOPKQCEVJ \\// C25519-BASE-32 //
-#  \\// ORSWY4BNIIGU4YW73NOQOI23JLCMKJPPSDNACRVF2VZC6H22OAQ \\ CODE SIGNATURE \\
+#\\DSFFRP7ODRXU5MJAN6ERV42FDAYMUBPPZG5SWFFOWL3NQUVZPSOZUYYAHGMFWO7JZP5IA2BKU7WXQ
+# \\ BU3RS7VRWPWY7IINXETPGHIVXINRVKB6NIU5FETZIGGSH5T4XHSN \\// C25519-BASE-32 //
+#  \\// F6RDH7DGR7F37BPF2IXFJBMR5PS5EZE7CLPBI5JIP3CM4PJR2DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

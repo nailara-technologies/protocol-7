@@ -1,0 +1,29 @@
+# >:]
+
+# name = universal.pre_init
+
+<universal.content.agent_map> = {
+    'video' => 'mpv',
+    'html'  => 'browser',
+    'pdf'   => 'browser',
+    'image' => 'browser'
+};
+
+<access.cmd.usr.core> = '*';
+
+my %display_agents;
+map { $display_agents{$_} = 1 } values %{<universal.content.agent_map>};
+<universal.display_agents> = [ sort keys %display_agents ];
+foreach my $agent_name ( keys(%display_agents) ) {
+    <universal.child>->{$agent_name} = {};
+    <access.cmd.usr.core> .= ' ' . $agent_name . '.*';
+    <access.cmd.usr>->{$agent_name} = '**';
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\XBVTNDGEAPFUNKKJA4SSBKFDHTZJYDLKH7EAMIEMW6KHD3H7M7TZZVJZFLSFG6HYP5SQ3WGWVOLOM
+# \\ IZS46ILVP57GDHXZDKL2AUPRMKH6EYTHXAUVMNR2JHA6XLYVMSFR \\// C25519-BASE-32 //
+#  \\// WWSGOXDWGVFMGKDKT5SM4RV276JD5FZNFFJUVUQG2W24O7BI4DY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

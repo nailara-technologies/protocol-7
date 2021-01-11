@@ -31,9 +31,10 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         }
     );
 
-    if ( <system.agent.mode> eq 'media-child'
+    if ( <system.agent.mode> eq 'universal-child'
         and !<browser.slideshow.iteration> ) {
-        <browser.slideshow.iteration> = 1;    # reporting media-child as 'ready'
+        <browser.slideshow.iteration>
+            = 1;    # reporting universal-child as 'ready'
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => "core.report_paused" } );
     }
@@ -110,7 +111,7 @@ foreach my $entry (@url_list) {
 my $pause_cnt = 0;
 my $url_count = scalar @{<browser.url.list>};
 map {
-    $pause_cnt++ if $_ eq '[PAUSE]';    # media-child
+    $pause_cnt++ if $_ eq '[PAUSE]';    # universal-child
 
     if ( <browser.min_zoom> <=> 1
         and index( $_, '/var/cache/weather/html/', 0 ) > -1 ) {    # weather
@@ -130,7 +131,7 @@ if (@{<browser.url.list>}
 }
 
 # ______________________________________________________________________________
-#\\IFVPOLPJIFEYKNBIHTEML6HTG5YKEZAMKQQFCOQSXEFK3C34VAZ6PDNMYOYQ3NTL6LLKFPIF7NBYU
-# \\ SMUAR4CAYX52NXP2UPX7FOVUBNVOMZYZOXHEYXMUTPDB6MZOC5SM \\// C25519-BASE-32 //
-#  \\// VSUDQBUOSVKKUTXXTIZSLIV32FJGSMFQ3JINE57MM5YEJBKUABY \\ CODE SIGNATURE \\
+#\\ZEMNYXD7D4FUEAEX36JXD2L3VMEKBSPFMSV7BJY6CAUBX5RWWR5BZBSLJS5RVGOC5JDYJJZ77VNMY
+# \\ P2GB6W6L3FOTK5OJISOKDQKHJOLZL6NAKT767MDC5VC5NVSUOIDW \\// C25519-BASE-32 //
+#  \\// ZIKD3P33KFB5IC5PMFZWC6VY5VIFH5DPYXV57STGXIVIT3SNUBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

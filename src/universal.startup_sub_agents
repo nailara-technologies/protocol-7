@@ -1,0 +1,33 @@
+# >:]
+
+# name = universal.startup_sub_agents
+
+return if <universal.agents_started>;
+
+<[base.log]>->( 1, "starting display [sub]agents..." );
+
+my %display_agents;
+map { $display_agents{$_} = 1 } values %{<universal.content.agent_map>};
+foreach my $agent_name ( keys(%display_agents) ) {
+    $data{'auth'}{'setup'}{'usr'}{$agent_name}
+        //= ':unix:' . <system.privs.user>;
+    <universal.child>->{$agent_name}->{'status'} = 'starting';
+    if ( !<[universal.start_agent]>->($agent_name) ) {
+        <[base.log]>->(
+            0, "<!> unable to start '$agent_name', shutting down..,"
+        );
+        exit(2);
+    }
+    <universal.agents_started>++;
+}
+
+if ( !<universal.declared_online> ) {
+    <universal.declared_online>++;
+    <[base.async.get_session_id]>;    # 'universal' agent status -> 'online'
+}
+
+# ______________________________________________________________________________
+#\\JD635DOET2I2PRVLFPKT4ZXDUCYIL7VSXMF4CEW6GQR3KFKZDBWMIX6PJHR6VHW47ZZ3ISXROSAKM
+# \\ JJSGLBGTQVGD2Q3J5GAHUYUXPXUVXQ7J7KF2MXRN7POQYQKAFH3J \\// C25519-BASE-32 //
+#  \\// GNGC26ODWZNOT3C7Y4VJLDG2FHNYBVI3GLGBG6LF4OQ545ALWCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

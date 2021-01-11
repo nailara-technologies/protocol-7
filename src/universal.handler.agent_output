@@ -1,0 +1,34 @@
+# >:]
+
+# name  = universal.handler.agent_output
+
+my $event      = shift->w;
+my $read_fh    = $event->fd;
+my $agent_name = $event->data;
+my $self_name  = <system.agent.name>;
+
+<universal.agent.output_buffer>->{$agent_name} //= '';
+
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'universal'}{'agent.output_buffer'}{$agent_name},
+    4096,     length( <universal.agent.output_buffer>->{$agent_name} )
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "( $agent_name ) output pipe closed." );
+    undef <universal.agent.output_buffer>->{$agent_name};
+    return;
+}
+
+while ( <universal.agent.output_buffer>->{$agent_name} =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $1;
+    $output_line =~ s/^(.+?)(\.$agent_name )/$1.$self_name$2/;
+    print $output_line . "\n";
+}
+
+# ______________________________________________________________________________
+#\\3BGFNOBIUOQBNUHQUY3FYZCYQ5S4QDUMI4IPAKFEF6YUXWQX4E5O55PV3DQN3SF7RCTAQFLVEZWVI
+# \\ PYYV746FN47ZKD57RGHHCPEDA7X5SNOTF7WHT7NCKFD5RDOSR7N7 \\// C25519-BASE-32 //
+#  \\// QDPT5C7HGBFDMTSEZCTI6GRIZQETJURGHKMNHZ5WGGGXZTCYCBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

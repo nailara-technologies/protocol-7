@@ -3,7 +3,7 @@
 # name = mpv.init_code
 
 <[base.perlmod.autoload]>->('JSON::XS');
-<[base.perlmod.autoload]>->('IPC::Open3', qw | open3 | );
+<[base.perlmod.autoload]>->( 'IPC::Open3', qw | open3 | );
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
@@ -40,7 +40,9 @@ die "[!] mpv binary not found, aborting startup..."
 <mpv.fade_start_geom>    //= '1x1--0--0';
 <system.agent.mode>      //= 'stand-alone';
 <mpv.agent_title>
-    = <system.agent.mode> eq 'media-child' ? 'media.mpv' : <system.agent.name>;
+    = <system.agent.mode> eq 'universal-child'
+    ? 'universal.mpv'
+    : <system.agent.name>;
 <mpv.current.load_iteration> //= 0;
 <mpv.cleanup_rescaled_after> //= 0;    # <- 0 [days] means no cleanup (disabled)
 <mpv.cleanup_check_delay>    //= 42 + int( rand(237) );       # first file check
@@ -70,7 +72,7 @@ if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
 0;
 
 # ______________________________________________________________________________
-#\\CNTRTBIFXSD2MJ5U77U6UH77GRFCV4VKTBOY7EW4JPHIAESMOTUYPIAFNTA233MSUX7MZDODPSDWS
-# \\ 6LEU3BVMASZ2JDPQGJWWD7564CL7OKWP6XYQAFDRPRJ4WGNNZBKT \\// C25519-BASE-32 //
-#  \\// FYQIJPHLOVJUCQOGSWDBPLTL6ADTVV663MJXSTR7AWEXUYJ34DA \\ CODE SIGNATURE \\
+#\\V23NO76EMJYNSEDP2GHOVLNLCPM5IB2L6RSQZQCPLX7HDOMWFRQBC6AAXJXVQG63T7IVOGI2F72FE
+# \\ 6UHCZYPOJJMOF4EIPHAF5E6AABB7B3WIEM2PHMWIDXTTFNP56C6L \\// C25519-BASE-32 //
+#  \\// KYNROEVAMTYCCGOLPBJ4427SAICBUYMEJZRESZ3NTHMSARIPWCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
