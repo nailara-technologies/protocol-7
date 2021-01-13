@@ -3,15 +3,22 @@
 # name  = xserver.cmd.screen_size_ranges
 # descr = return available screen size range
 
-my @range = <xserver.x11>->RRGetScreenSizeRange( <xserver.x11>->root );
+my @range;
+if ( !<xserver.has_randr> ) {
+    my @current_size
+        = ( <xserver.x11>->width_in_pixels, <xserver.x11>->height_in_pixels );
+    @range = ( @current_size, @current_size );
+} else {
+    @range = <xserver.x11>->RRGetScreenSizeRange( <xserver.x11>->root );
+}
 
 return {
     'mode' => 'ack',
-    'data' => sprintf( "min: %dx%d max: %dx%d", @range )
+    'data' => sprintf( "< %dx%d > .., < %dx%d >", @range )
     }
 
 # ______________________________________________________________________________
-#\\IANWVWW767YKKTWJHDLYJHEGT5QLZQLMQ4BQLCOKGIA36ZTQ2FHPOGO7GLR47CF7C23RDY7LSCUU2
-# \\ FBKGHXHQYN5ZTPW2JFTDUQJLVV6YD2E3KBLIE75XNSMV5CWJDA5R \\// C25519-BASE-32 //
-#  \\// EN3MXEDEBOXKT7QCOGXTCI7JFUMQJU5NXUVHYHXVFKIKWXQN2CI \\ CODE SIGNATURE \\
+#\\ERKFN23ZRQCARJPYY23YGXN2AQ3KRJC3IX6RCQOUKJZNKOW3DPR3JJK5EUZUCAVLK5FNIHYQPMJLI
+# \\ 74ZSBG6DYNCBRGZOMFAHLGT5Z6Q6SUXZFU2URK5O3S22PXDDZ6XL \\// C25519-BASE-32 //
+#  \\// YXKG2VDTQW3WV3XLVUXCZTGW5RIQJNL2YX7VPQMXIXIWJHW7CCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
