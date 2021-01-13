@@ -105,7 +105,7 @@ if ( $mode ne 'host' ) {
         }
     );
 } else {
-    $bin_name = '(host) x11';
+    $bin_name = '[host] x11';
     <xserver.connect_timeout> = 15 if <xserver.connect_timeout> < 15;
     <[base.log]>->( 1, "running in host mode [ using existing X11-server ]" );
 }
@@ -117,24 +117,31 @@ my $bin_name_lc = lc($bin_name);
 
 <[xserver.connect_x11]>;
 
-<[base.log]>->( 1, ": : link to '$bin_name_lc' established [responsive]" );
+<[base.log]>->( 1, ": : link to '$bin_name_lc' established [ responsive ]" );
 
 <xserver.x11>->{'error_handler'} = sub {
-    my ( $self, $err_data ) = @_;
-    chomp( my $err_str = $self->format_error_msg($err_data) );
+    ( my $self, my $err_data ) = @_;
+    chomp( my $err_str = $self->format_error_msg( $err_data // '' ) );
     $err_str =~ s|\s*\n+\s*| <!> |g;
+    $err_str = 'unknown protocol error [ X-server crashed ? ]'
+        if !length($err_data);
     warn( $err_str, '<{C7}>' );
 };
 
 ## extensions ##
 
-# <[base.log]>->( 1, ": initializing extensions ..." );
+# <[base.log]>->( 1, ": initializing extensions ..," );
 # <xserver.x11>->init_extensions;
 # print STDERR Dumper( keys( %{ <xserver.x11>->{'ext'} } ) );
 
-<xserver.x11>->init_extension('RANDR')
-    or die "[!] unable to initialize RANDR extension <!>\n";
-<xserver.x11>->RRQueryVersion( 1, 0 );
+if ( <xserver.x11>->init_extension('RANDR') ) {
+    <[base.log]>->( 1, ": : RANDR support present =)" );
+    <xserver.x11>->RRQueryVersion( 1, 0 );
+    <xserver.has_randr> = 1;
+} else {
+    <[base.log]>->( 1, ": : no RANDR support :|" );
+    <xserver.has_randr> = 0;
+}
 
 if ( <xserver.x11>->init_extension('DPMS') and <xserver.x11>->DPMSCapable ) {
     <[base.log]>->( 1, ": : DPMS is supported =)" );
@@ -154,7 +161,7 @@ if ( <xserver.x11>->init_extension('Composite') ) {
 
 }
 
-## display connected? ##
+## display connected ? ##
 
 <xserver.display_connected.any> //= 1;
 
@@ -172,10 +179,10 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
             'handler'  => 'xserver.handler.poll_size_list'
         }
     );
-    <[base.log]>->( 0, "    : waiting for a display to restart xserver!" );
+    <[base.log]>->( 0, "    : waiting for a display to restart xserver.," );
 
     if ( defined <xserver.host_mode.min_size>
-        and <xserver.host_mode.min_size> =~ /^\d+x\d+$/ ) {
+        and <xserver.host_mode.min_size> =~ m|^\d+x\d+$| ) {
         <[base.log]>->(
             0, "    : setting min_size [" . <xserver.host_mode.min_size> . "]"
         );
@@ -189,7 +196,8 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
     my @max_size = <[xserver.max_screen_size]>;
 
     # LLL: make configurable..!
-    if (    defined <xserver.video_driver>
+    if (    <xserver.has_randr>
+        and defined <xserver.video_driver>
         and <xserver.video_driver> ne 'qxl'
         and (  $max_size[0] > <xserver.x11>->width_in_pixels
             or $max_size[1] > <xserver.x11>->height_in_pixels )
@@ -209,20 +217,24 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
     }
 }
 
+if (<xserver.has_randr>) {
+
 ## orientation ##
 
-<[xserver.cmd.rotate_screen]>->( { 'args' => <xserver.orientation> } )
-    if !<xserver.keep_unchanged>;
+    <[xserver.cmd.rotate_screen]>->( { 'args' => <xserver.orientation> } )
+        if not <xserver.keep_unchanged>;
 
 ## custom xrandr ##
 
-map {
-    system( '/usr/bin/xrandr', split( / +/, <xserver.custom_xrandr>->{$_} ) )
-    }
-    sort { $a <=> $b } keys %{<xserver.custom_xrandr>}
-    if <xserver.mode> eq 'xorg'
-    and defined <xserver.custom_xrandr>
-    and ref(<xserver.custom_xrandr>) eq 'HASH';
+    map {
+        system( '/usr/bin/xrandr',
+            split( / +/, <xserver.custom_xrandr>->{$_} ) )
+        }
+        sort { $a <=> $b } keys %{<xserver.custom_xrandr>}
+        if <xserver.mode> eq 'xorg'
+        and defined <xserver.custom_xrandr>
+        and ref(<xserver.custom_xrandr>) eq 'HASH';
+}
 
 ## keyboard ##
 
@@ -261,7 +273,7 @@ if (    <xserver.has_dpms>
     <xserver.x11>->SetScreenSaver( 0, 0, 1, 0 );
 }
 
-## GPU load statistics (intel only) ##
+## GPU load statistics [intel only] ##
 <xserver.collect_intel_gpu_stats> //= 0;
 <xserver.collect_gpu_stats_on_4K> //= 0;
 <[xserver.start_gpu_top]> if <xserver.video_driver> =~ /^i/i    # i9xx <?>
@@ -316,7 +328,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\WIHD43OP4EOUBGIXNGN3OYEIR3YIM7BTTKJA462YB6MLVBSRLVZZTRLOMUQSP2RH6WTQFJX4LZH6C
-# \\ WFDB5RYZTPLOK66GT4TNB36ZXAX37ESMH6AMJPUQ5FKNZSUMOTLJ \\// C25519-BASE-32 //
-#  \\// EYRKAPRDVZVXBBM4AHTCOUTKHBA4VVT3UCHXNCZYN5FIPKHKCAQ \\ CODE SIGNATURE \\
+#\\PJFNIQSKO6JIKTWAWK3QGAR7E6357S7B7CITOMEHRHZDPZ3MJAUUGRWZHNOZQQBPE2LGQDNCETPVA
+# \\ U4VH74BEJ2NXNH6EHBJR2UWSDBHPB5MFGFXP3GDLPQF3QXXKQO3S \\// C25519-BASE-32 //
+#  \\// T4WA52AFH6IW3ZFJ4SFC3O6XFZFGC7E3J2DZ4XD4UELBUFATYCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
