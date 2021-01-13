@@ -186,7 +186,8 @@ sub prepare_subs {
         $data{'system'}{'conf_path'} = catdir( $root_path, 'cfg' );
         $data{'system'}{'lmod_path'} = catdir( $root_path, 'lib', 'pm' );
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
-        $data{'base'}{'httpc'}{'last_mlen'} //= 80;
+        $data{'base'}{'httpc'}{'last_mlen'}  //= 80;
+        $data{'buffer'}{'agent'}{'max_size'} //= 64 * 1024;    # 64K log-buffer
 
         my $ver_str = $data{'nailara'}{'source_version'} = 'unknown';
         my $version_file
@@ -1183,7 +1184,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\4Q75XU4SZS4WRTYVFQIFAAP2U63AMIAEHJAO4TZMH2XC4OOCZOTOKBEZ4DN67D5VGD6PMWQ4KGSJW
-# \\ ODCXIMPWSZQ52TO64R635BEB2BRAVZLI6ZBIM4MZW22NWTXAGUUW \\// C25519-BASE-32 //
-#  \\// QBBMFB2G4JNQV2D77JWXXLM2YLMX2MTRKI3UTJVJQCUXT3HMMBA \\ CODE SIGNATURE \\
+#\\X43R6ZQ3HDW2NCSJGNXIYDYYDY5XZI25FYURFQQ37ROXKZLTMZYSKZ5PLCI7FBMO7ITGTVXV5OP2Q
+# \\ HOJSNSU3N2EIW7G6ML4532TB3V67U77KB65BSXE7N4HO2FU4VQOO \\// C25519-BASE-32 //
+#  \\// JC6NR5ZPG46Z5PDJPF4DPNCA6FW2GHRHNBIXQRVYIY6FVMIUQAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

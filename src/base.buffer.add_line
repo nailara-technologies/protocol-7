@@ -27,9 +27,8 @@ if ( $name eq '' ) {
 }
 
 if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {  ## buf-size ##
-    my $default_size  = 128000;                     # <-- internal default
-    my $default_found = exists <default.max_size>
-        and exists <default.max_size.log_buffers> ? 1 : 0;
+    my $default_size = 128000;    # <-- internal default
+    my $default_found = defined <default.max_size.log_buffers> ? 1 : 0;
     $default_size = <default.max_size.log_buffers> if $default_found;
     my $min_size_error = 0;
     if ( defined $buffer_size and $buffer_size < $min_bufsize ) {
@@ -102,7 +101,7 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 }
 
 # ______________________________________________________________________________
-#\\SUTCZQ2ITOWEOCSDYZ3GHDGCDODVU7EZ632MVIJZZA4S5QVDHLN2T7SNWABPGV2MAAUPS454FICRK
-# \\ HUBJ76OHOBT7GOVJARZSUKGF2A7GGTO6PEOHU646WBYDIR2OYB6I \\// C25519-BASE-32 //
-#  \\// AC5BLBTIP2N2NJPRFV6LFA62GIPGSBMOSFTT6SFSPXJEUMYKYBY \\ CODE SIGNATURE \\
+#\\O6KJET6EZAPPPYRZVHE4MAH35IIVJ7ZB2I2EQVQMX377M53SPWUTUHQQ7T4SYEDIJI2CHFG5KUT3W
+# \\ POOS6F5CMX4F7Y5Y4CNEG6TV73RJ2HX32SHN3U6WJZEGBKDYP3D4 \\// C25519-BASE-32 //
+#  \\// GK6OZ73VGQDY7FEZTX4RRSNDG3KXWBJDVVJRX45C6VKWACRWODA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
