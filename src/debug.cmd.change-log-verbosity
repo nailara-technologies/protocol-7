@@ -15,10 +15,10 @@ return {
     or $llvl !~ /^\d+$/;
 
 return { 'mode' => 'nak', 'data' => sprintf( "already at '%s'", $llvl // '' ) }
-    if $llvl == <system.verbosity>;
+    if $llvl == <system.verbosity.console>;
 
-<system.verbosity>          = $llvl;
-<system.internal_verbosity> = $llvl;
+<system.verbosity.console>      = $llvl;
+<system.verbosity.agent_buffer> = $llvl;
 
 my $usr = $data{'session'}{$usr_sid}{'user'};
 
@@ -27,7 +27,7 @@ my $usr = $data{'session'}{$usr_sid}{'user'};
 return { 'mode' => 'ack', 'data' => "verbosity = $llvl" }
 
 # ______________________________________________________________________________
-#\\PUUQF7LX2JSWFM3IQVYLCNA4UNKOZMPE2D3RN42X24SFKRRKEAUGRNJJYCTN2BJTV6YMGQI2RXOL6
-# \\ 35YHGBWJMU43TLBZNAWVZSL4D7RFFS7YORYYBYIPIWJBLI45T6QB \\// C25519-BASE-32 //
-#  \\// UMWZR73EI7IW2RKPTP3UQSLYGNTA4JDVI3U3NKAEPUDPH4NX2BY \\ CODE SIGNATURE \\
+#\\JWEXFFEDOXGMY4WKMACGR5MKJQPQAGNAM525QNB2PDRQ2OUJLETX7H24L7Z3AAQA5NAYECLVU2OUM
+# \\ XL44LWXNCHNSDTK3N7LVYBJVNROVZVJPANWMUPQUMFXTJDGPWGWX \\// C25519-BASE-32 //
+#  \\// YEDJGOOS4F6OQDBJRWWYWR4LQ6TM3ROSEKPKHWHEQINNDO4BSDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -7,23 +7,25 @@
 my ( $log_level, $log_msg, $log_buffer )
     = ( $_[0] || 0, $_[1] // '', $_[2] // '' );
 
-$log_level = 0 if $log_level !~ /^\d+$/;
+$log_level = 0 if $log_level !~ m|^\d+$|;
 
-<system.verbosity>          //= 0;
-<system.internal_verbosity> //= 0;
+<system.verbosity.console>       //= 0;
+<system.verbosity.agent_buffer>  //= 1;
+<system.verbosity.agent_logfile> //= 0;
 
 return
-    if $log_level > <system.verbosity>
-    and $log_level > <system.internal_verbosity>;
+        if $log_level > <system.verbosity.console>
+    and $log_level > <system.verbosity.agent_buffer>
+    and $log_level > <system.verbosity.agent_logfile>;
 
 $log_buffer = 'agent' if !length($log_buffer);
 
 $log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
 
-$log_msg =~ s/\r/\\r/g;
-$log_msg =~ s/\n/\\n/g;
-$log_msg =~ s/\0/\\0/g;
-$log_msg =~ s/\e/\\e/g;
+$log_msg =~ s|\r|\\r|g;
+$log_msg =~ s|\n|\\n|g;
+$log_msg =~ s|\0|\\0|g;
+$log_msg =~ s|\e|\\e|g;
 
 # prevent deep recursions in error log system:
 my $fatal_exit
@@ -54,17 +56,19 @@ my $time_stamp = $code{'base.anum_log_time'}->();
 
 # write to 'agent' log buffer
 <[base.buffer.add_line]>->(
-    $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg )
-) if $log_level <= <system.internal_verbosity>;
+    $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+    )
+    if $log_level <= <system.verbosity.agent_buffer>
+    or $log_level <= <system.verbosity.agent_logfile>;
 
 # print to console
 utf8::decode($log_str)
     and say $log_str
     if fileno(STDOUT)
-    and $log_level <= <system.verbosity>;
+    and $log_level <= <system.verbosity.console>;
 
 # ______________________________________________________________________________
-#\\JH4NQEXMHUNCCW7SNFQYRIFMANYUVBIRCVPKLTTUJXZ23EIDKMIYJLVWPDEWYCRHXO5XPNWUFWYM6
-# \\ G6OW3GYSFVXP3B5JUGWN7BA27YFIVJHDVAHCYFBJ6A4PZFRXA5ET \\// C25519-BASE-32 //
-#  \\// AWG3INQVMMZD5X2LMCHIVCSDE43VYU3JD47QC6R62ZUKGQ53EBY \\ CODE SIGNATURE \\
+#\\OPSLA6PQCJWKMEQBYLMRDRMQ6DQP3LGL5CN436FGTAO47WWIKHE77NCRDCCI6TNO6V3RESTINLATG
+# \\ MTJB6WU7NYY7M2A62TOGP2CRCINTUKIVV4BOYBYX5RAR5K4CXZ6U \\// C25519-BASE-32 //
+#  \\// BYUDIMLX6SI3T6FPHGP4UYZYHID3P7JS246EL3IN5BREAKQXEAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

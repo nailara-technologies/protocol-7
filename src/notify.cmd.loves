@@ -45,7 +45,8 @@ map {
 } ( $title, $body );
 
 if ( defined $title or @matches ) {
-    my $msg_str = <system.verbosity> >= 3 ? " ['$$call{args}']" : ' ...';
+    my $msg_str
+        = <system.verbosity.console> >= 3 ? " ['$$call{args}']" : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     my @msg = $title;
     push( @msg, $body ) if defined $body;
@@ -71,7 +72,7 @@ if ( defined $title or @matches ) {
 }
 
 # ______________________________________________________________________________
-#\\RMI6ZMZFFW76MYRQBVARATHKWKTJ4LTQUMYKGYJLU7BPJ5SHM3SD45YLZYVXMVJFTWQK2CQDNY7Q6
-# \\ YN33R6AJZLNB5U4EWPVEQ6NLWVZVXUDMOSBXHPWVWTMMCI5V24GV \\// C25519-BASE-32 //
-#  \\// Y37TO5PFC5S7WBT3GW2N3YYSUG2LZG4MLK2N2UDBMJ75KSY4ADQ \\ CODE SIGNATURE \\
+#\\4OBV7ESTXK37SKCMFQLRI57W5WLO6HS5LDBMKZCFBFXJZNWT6W3YZAGUL26CMEVXLJMIEO3T5WCG4
+# \\ FMUQOZBDZYSTJBGWMFZZQM4DPSXMKWKBMXOOVK4WAFG4LOQH4UUC \\// C25519-BASE-32 //
+#  \\// NE3V3QGGQTRVVKSTQDCTRMXQORB6ECTWYXDPYPTJZRJKHUS3EBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

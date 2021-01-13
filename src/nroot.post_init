@@ -35,7 +35,7 @@ my ( $added_all_ref, $removed_all_ref )
 
 if (    exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
-    and <system.verbosity> > 1 ) {
+    and <system.verbosity.console> > 1 ) {
     ( my $debug_str = Dumper(<nroot.spawn_config.agents.config>) )
         =~ s/^.{7}|;$/  /mg;
     print "\n < nroot.spawn_config.agents.config >\n\n$debug_str\n";
@@ -52,12 +52,12 @@ map { <[nroot.autostart_agents]>->($_) if !<[nroot.spawn_count]>->($_) }
 print Dumper( $data{'jobqueue'} )
     if exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
-    and <system.verbosity> > 2;
+    and <system.verbosity.console> > 2;
 
 0;
 
 # ______________________________________________________________________________
-#\\MGDU4BDEG56WDSUOR262VHACTOOVH2KJ53URNKIPFLYOJXKJM2YSZDIEJ2SYCXCRO5X4GMGJT53M4
-# \\ NKXRG5JUFN5J3PY5YYQTBAVQKJH7EBHQYCBCGHSVYD7ZHF6S7EFH \\// C25519-BASE-32 //
-#  \\// HX33OXH5P6T45DARTKIWGA3622BFE7I7ZCQ6BLWIDCPDIMPN2BA \\ CODE SIGNATURE \\
+#\\RRXDMY7SYFT2BHLWYP5KRP4UFAFAN7ZLIYFRWW4EIV3QROG3UAB2LOTLVEJDDWQS3VYFJYT7K2ZXY
+# \\ IPFVW6W2WVQ2HZTTX7FRUKTSD5YGLBF5WFOAPMW4ABWQTMPXPVWV \\// C25519-BASE-32 //
+#  \\// UTII2LCHBDXACCBZEDG545HICAZTYSJTR2LAZXKAT6F36TYSADY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

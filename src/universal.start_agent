@@ -10,7 +10,8 @@ my $perl_bin_path = <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 <universal.running> //= {};
 my @exec_args = ( '-nb', '-stdin' );
 
-my $agent_verbosity = <system.verbosity> || 1; # -v is minimum (agent patterns!)
+my $agent_verbosity
+    = <system.verbosity.console> || 1;    # -v is minimum (agent patterns!)
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
 my $agent_sn_str
@@ -80,7 +81,7 @@ close($in_fh);
 return 1;
 
 # ______________________________________________________________________________
-#\\LRE22G3KDAFZRLW7BXCSUF4SSC34BYALTNU3VP4YLQFL6M4HLCQJOP5KXQURCFKTIF55MIGYSFC5Y
-# \\ TW7PTNDIYJJT3QTYWGW2B2SBZZKOFVSUFVNCCYVD5XQN6QTO4HIB \\// C25519-BASE-32 //
-#  \\// YKG7WVXVQWN7BNUQL5HA5QC35MIIZD2YUUTBELUIQIDXDKTSQDQ \\ CODE SIGNATURE \\
+#\\3465YDS5T4EXQA57BEXAXKZRY6QQZJNCB3HBVOY4UYOQAZZHRJYPINL2KG7DRCJSHV3576PHJZIVS
+# \\ C5VCFKL7BB52KYNUPHEMDEELS6PSEDVUZHNKHDM36DS662S6LH7T \\// C25519-BASE-32 //
+#  \\// FI2HRFJ3V7IOXAXXTQRA7O2OSZ6X76IEU7B7VCTPFGERI3UVSDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

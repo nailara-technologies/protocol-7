@@ -7,7 +7,7 @@
 
 my ($node_agent, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
-) = split( / /, $_[0]->{'args'}, 6 );
+) = split( m| |, $_[0]->{'args'}, 6 );
 
 $log_level //= 0;
 
@@ -34,7 +34,8 @@ if ( defined $err_msg ) {
     );
     <[base.log]>->( 1, "< request > [ '$_[0]->{'args'}' ]" );
 
-    if ( $data{'system'}{'verbosity'} and !<history.disable_err_log_dump> ) {
+    if ( $data{'system'}{'verbosity'}{'console'}
+        and !<history.disable_err_log_dump> ) {
         my $show_line = $$call{'args'};
         <[base.parser.ellipse_center]>->( \$show_line, 74 );
         my $s = ' ' x 76;
@@ -97,7 +98,7 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 return { 'mode' => 'nak', 'data' => $err_msg };
 
 # ______________________________________________________________________________
-#\\CKWXPXTAKK3FUHPYCZJHVUECGVVFZPHV27X3TCHMZX5JPXADYUHV5R7VOHEZZ53C2JY5CQN4B2PNU
-# \\ 2WKSZ6WYRSKIGMZNG67MKPHIE2YSGWZMS5J27JRTX4IQZ7CRQBTB \\// C25519-BASE-32 //
-#  \\// U3MR4ZR54OSEJPVTFTA7JVSKEX4FYLU54HBI2DUOJIMMEUERIBA \\ CODE SIGNATURE \\
+#\\HGWP7V4OVQEMSZ22C4ODGM76SOFKQNHOXVJSZTIP3TOFALKBX2UHC6XMR37UECIFGQLJIRWJT5DGA
+# \\ SYUGPS6F3CGB2YQIDUHHSI3XY5EL7LYBPR36N7SN22LVWAO2DT2E \\// C25519-BASE-32 //
+#  \\// DSIT3LKRI33ESV2GBG7MFFIGDA4CXIZTZ26VVKWTWYT5ED7HODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
