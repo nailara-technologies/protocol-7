@@ -19,7 +19,8 @@ $err_str .= " < $@ >" if $@;
 
 <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" );
 
-return if <system.verbosity> < 2 and <system.internal_verbosity> < 2;
+return
+    if <system.verbosity.console> < 2 and <system.verbosity.agent_buffer> < 2;
 
 my @attr_names = sort { length($a) <=> length($b) } sort $watcher->attributes;
 
@@ -36,7 +37,7 @@ foreach my $akey (@attr_names) {
 }
 
 # ______________________________________________________________________________
-#\\A7BE35RO7ZXPFZKNDM5D4H5FPC2DXPCC2NQVFU7PZPZNC6WLWZFKQKKJ5PIF3CZO2UDP2ZQYWHMM4
-# \\ L3JDI5ANCY5IPRZBWGM3MY7B65KQOIQBUULB7PNMPGQ32F7JMFZE \\// C25519-BASE-32 //
-#  \\// NXFM3CER2P7HDPCBHSGXL65KIWQUEF3VEE5BHIAPI4YCTQ35YDQ \\ CODE SIGNATURE \\
+#\\AILMGQ6YRMECYADRTO4P62YMNHHOIODDL7LQNMTSZODLAKTPZ7URNUVH72EU2N7LDK3DMSORMN4KY
+# \\ JKWYDM5YI7N5LLKUFSVKUESZTX7GB2V3SWOPJTZWJSWDIAEU37PJ \\// C25519-BASE-32 //
+#  \\// CHCXYHFLDW6PCA7CFG4LIDNN7OYYA4ZNH4XWJE3LF3LCGYVQQCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

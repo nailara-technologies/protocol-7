@@ -779,8 +779,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-            if (   <system.verbosity> >= 2
-                or <system.internal_verbosity> >= 2 ) {
+            if (   <system.verbosity.console> >= 2
+                or <system.verbosity.agent_buffer> >= 2 ) {
                 <[base.log]>->(
                     2,
                     "[$id] $data{'session'}{$id}{'user'}"
@@ -795,8 +795,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     or $cmd ne 'heart'
                     or !<debug.skip_nroot_heartbeat> );
             }
-            if (   <system.verbosity> >= 3 and defined $$call_args{'args'}
-                or <system.internal_verbosity> >= 3
+            if ( <system.verbosity.console> >= 3 and defined $$call_args{'args'}
+                or <system.verbosity.agent_buffer> >= 3
                 and defined $$call_args{'args'} ) {
                 ( my $args_str = $$call_args{'args'} ) =~ s|"|\"|g;
                 <[base.log]>->( 3, "[$id] : args ( \"$args_str\" )" );
@@ -873,7 +873,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\ACRT6P5Z25P3ZGAXZ5HKW66HGMEQHMCE43H4VCQJFB4DDTLUGTJKRKV7RVGNX4EV7O45I5CIDT7KK
-# \\ A35BECZFM7W665TI4OXD523V6FG5ESS5YYU4JLOMMJFTIWWPPBC7 \\// C25519-BASE-32 //
-#  \\// VT6H5LO7DUBX7SNHG2WS33NBZXNW5WVL76GTKTNEIVYK4PM56CQ \\ CODE SIGNATURE \\
+#\\KCCMAQHMIAXVBRIR6WEGBIQAEKJRN5R2NDU5O2MGEBVEIUNNJP4NTJBQWVBHNYDVO5HXDRZMOEJD6
+# \\ 7RVGAC2QADJWXQ7TIIA7VOA52A6G3YL5C73BHHBN2EEM6IGJIDPB \\// C25519-BASE-32 //
+#  \\// Y3ISKVZGNV3CJHZ4IZFYTWUU4EBDD4ULVR34HMGBKJDR5TYMMDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
