@@ -21,7 +21,7 @@ if ( !@urls ) {
     return;
 }
 <rss.ticker.warned_undefined.urls> = 0;
-<[base.log]>->( 2, "checking RSS feeds for new data..." );
+<[base.log]>->( 2, "checking RSS feeds for new data..," );
 
 my %failed;
 my $got_updates = 0;
@@ -31,7 +31,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
     my $response = <rss.browser>->get($rss_url);
     if ( $response->code == 200 ) {
         <rss.ticker.fail_warned> = 0;
-        <[base.log]>->( 2, ": got fresh RSS content..." );
+        <[base.log]>->( 2, ": got fresh RSS content.," );
 
         my $response_content
             = $response->decoded_content( 'charset' => 'none' );
@@ -56,12 +56,12 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $url_hash = <[digest.sha.1]>->($rss_url);
         if ( !-d $data_dir ) {
             mkdir($data_dir)
-                or die "can't create rss data dir '$data_dir'! [$!]";
+                or die "can't create rss data dir '$data_dir' [ $! ]";
             chmod( 0700, $data_dir );
         }
         my $url_data_file .= "$data_dir/$url_hash.txt";
         open( my $txt_fh, '>' . $url_data_file )
-            or die "can't write to feed data file [$!]";
+            or die "can't write to feed data file [ $! ]";
         {
             print {$txt_fh} join( "\n", @txt_data ) . "\n";
         }
@@ -95,7 +95,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 
     if ( !-f $url_data_file ) {
         <[base.log]>->(
-            0, "no cached version of feed #$index present.. skipping.."
+            0, "no cached version of feed #$index present., skipping..,"
         );
         next;
     }
@@ -106,7 +106,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
         if ( $file_age >= <rss.ticker.cache_timeout> ) {
             <[base.log]>->(
                 0,
-                "cached version of feed #$index has timed out ($file_age hours)"
+                "cached version of feed #$index has timed out [$file_age hours]"
             );
             unlink($url_data_file);
             next;
@@ -126,7 +126,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 
 if ( !$feed_data_count ) {
     <[base.log]>->(
-        0, "<!> WARNING: no feed data available, ticker file empty!"
+        0, "<!> WARNING: no feed data available, ticker file empty.,"
     );
     <rss.ticker.fail_retry_interval> //= <rss.ticker.fail_retry_min_interval>;
     <rss.ticker.update_timer>->cancel;
@@ -146,7 +146,7 @@ if ( !$feed_data_count ) {
 }
 
 open( my $txt_fh, '>', $output_file . '.NEW' )
-    or die "can't write to ticker data file '$output_file.NEW' [$!]";
+    or die "can't write to ticker data file '$output_file.NEW' [ $! ]";
 my @output_data;
 if ( $join_type eq 'mixed' ) {
     while ( keys(%txt_data) ) {
@@ -167,7 +167,7 @@ if ( $join_type eq 'mixed' ) {
     print {$txt_fh} @output_data;
 } else {
     <[base.log]>->(
-        0, "unknown join type '$join_type' [expected 'mixed' or 'seperate']"
+        0, "unknown join type '$join_type' [ expected 'mixed' or 'seperate' ]"
     );
     close($txt_fh);
     unlink($output_file);
@@ -180,7 +180,7 @@ move( $output_file . '.NEW', $output_file )
 return 1;
 
 # ______________________________________________________________________________
-#\\FMBK7S345W4CLXJXRMN3QU7NQ6PPNF4U245PYWRIL5GSKYYOF7J5Q75V35DRTHIUGTYD4AMN4ZBIM
-# \\ ROGSAQVAYZT6ZXBMBFEYG6FGEQK3FMSD2I4CTM7SA2AJQCG7AV4H \\// C25519-BASE-32 //
-#  \\// 6MRM5XP7CPUNEKXWI45W7L4W7JG4ETTVBYGJL7TVMBFKEDZNYCY \\ CODE SIGNATURE \\
+#\\ZSEGSNBGCEGF5L3F5XM3S3Q62VDQIOMTGIAZJ5Y3S4YQXBFU43NM73TJYB4YHPIVTBTMZR64MQFNU
+# \\ OASJPRMHMAPP6LGYMCB5J2GUVS5PAUK5MCVQAH3X6G6RKXVTZBSP \\// C25519-BASE-32 //
+#  \\// P5XZDK2QOJ277ZWYCQF5V65DWENCXZ7SECCAJRZA44VCB75O4DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

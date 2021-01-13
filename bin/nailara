@@ -222,16 +222,16 @@ sub prepare_subs {
         #	( $data{'system'}{'node'}{'name'},
         #          $data{'system'}{'agent'}{'name'} ) = split ( /\./, $_[0] );
 
-        $data{'system'}{'verbosity'}           = 0;
-        $data{'system'}{'ansi_color'}          = 1;
-        $data{'system'}{'start'}{'showbanner'} = 1;
+        $data{'system'}{'verbosity'}{'console'} = 0;
+        $data{'system'}{'ansi_color'}           = 1;
+        $data{'system'}{'start'}{'showbanner'}  = 1;
 
         my $stdin_mode = 1;
         $data{'system'}{'cli-mode'} //= 0;
         foreach my $arg (@ARGV) {
             $stdin_mode = 0 if $arg =~ /^[^\-]/;
             if ( $arg =~ /^-(v+)$/ ) {
-                $data{'system'}{'verbosity'} = length($1);
+                $data{'system'}{'verbosity'}{'console'} = length($1);
             }
             if ( $arg eq '-d' ) { $data{'system'}{'daemon_mode'} = 1 }
             if ( $arg eq '-stdin' ) {
@@ -292,7 +292,7 @@ sub prepare_subs {
             $data{'history'}{'dots'} = '.' x $dot_cnt;
         }
 
-        if (   $data{'system'}{'verbosity'}
+        if (   $data{'system'}{'verbosity'}{'console'}
             && $data{'system'}{'start'}{'showbanner'} ) {
             say ".\n.";
             &{ $code{'base.banner'} };
@@ -461,7 +461,8 @@ sub prepare_subs {
                 $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 13;
                 my $s     = ' ' x $last_len;
                 my $m_str = "\r$s\r: $msg_url.,";
-                print "\r$m_str\r" if $data{'system'}{'verbosity'} == 1;
+                print "\r$m_str\r"
+                    if $data{'system'}{'verbosity'}{'console'} == 1;
                 $code{'log.debug'}->(":$r: $msg_url")
                     if $retries_left != $retries;
                 my $h_obj = $data{'base'}{'httpc'}{'obj'}
@@ -704,7 +705,8 @@ sub prepare_subs {
                             |my $k="\$data{'$1'}";$k=~s/\./'}{'/g;$k|gexo;
                     $/ = "\n";
                     if (length( $data{'code'}{$file_name}{'source'} )
-                        > $orig_len and $data{'system'}{'verbosity'} > 3 ) {
+                        > $orig_len
+                        and $data{'system'}{'verbosity'}{'console'} > 3 ) {
                         $code{'log.error'}->( "\n\n .: $file_name :.\n\n"
                                 . $data{'code'}{$file_name}{'source'} );
 
@@ -716,7 +718,7 @@ sub prepare_subs {
                     $code{'log.error'}->("[invalid/remove.,] $file_name");
                 }
             }
-            if (    $data{'system'}{'verbosity'} == 1
+            if (    $data{'system'}{'verbosity'}{'console'} == 1
                 and $data{'system'}{'use_http_source'}
                 and exists $data{'base'}{'httpc'}{'last_mlen'} ) {
                 my $last_mlen = delete $data{'base'}{'httpc'}{'last_mlen'};
@@ -819,7 +821,7 @@ sub prepare_subs {
                     . $code_footer;
             }
 
-            if ( $data{'system'}{'verbosity'} > 2 ) {
+            if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
                 $sub_code
                     = 'sub {'
@@ -956,7 +958,7 @@ sub prepare_subs {
     };
 
     $code{'base.debug_sub'} = sub {
-        return if $data{'system'}{'verbosity'} < 2;
+        return if $data{'system'}{'verbosity'}{'console'} < 2;
         my $sub_name = shift(@_);
         $code{'base.collect_sub_stats'}->($sub_name);
         my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
@@ -1023,7 +1025,7 @@ sub prepare_subs {
 
     $code{'base.log_hook'} = sub {
         return;
-        if ( $data{'system'}{'verbosity'}
+        if ( $data{'system'}{'verbosity'}{'console'}
             and my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
             my $spaces = ' ' x $last_len;
             $| = 1;
@@ -1041,7 +1043,7 @@ sub prepare_subs {
         my $spaces = ' ' x $s_len;
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
-        } elsif ( $data{'system'}{'verbosity'} ) {
+        } elsif ( $data{'system'}{'verbosity'}{'console'} ) {
             my $dot
                 = defined $data{'history'}{'dots'}
                 ? $data{'history'}{'dots'}
@@ -1084,7 +1086,7 @@ sub prepare_subs {
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 2, $_ ) } @_;
-        } elsif ( $data{'system'}{'verbosity'} > 1 ) {
+        } elsif ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
             my $s_len;
             $s_len = $code{'base.log_hook'}->()
                 if defined $code{'base.log_hook'};
@@ -1181,7 +1183,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\Y6FZ5YJGBJZGBIQWU2HVYWHGFGPXKK6ZVQC7XALHCGPNDKW5WIWYUZRW2EXTVVAZOZAB7KOR2BWEY
-# \\ ACXOBCWDO4CVNYHPIDWZKGVA4EAS4V466NNQYJ7MCWOAKOFIEYZT \\// C25519-BASE-32 //
-#  \\// ZJMKJ6F64LGH6GFJDDA7BUGYRJUJVTZFGYYDIRICQWK246DIIAI \\ CODE SIGNATURE \\
+#\\4Q75XU4SZS4WRTYVFQIFAAP2U63AMIAEHJAO4TZMH2XC4OOCZOTOKBEZ4DN67D5VGD6PMWQ4KGSJW
+# \\ ODCXIMPWSZQ52TO64R635BEB2BRAVZLI6ZBIM4MZW22NWTXAGUUW \\// C25519-BASE-32 //
+#  \\// QBBMFB2G4JNQV2D77JWXXLM2YLMX2MTRKI3UTJVJQCUXT3HMMBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -31,7 +31,7 @@ my $reason_txt = length($reason) ? " ( $reason )" : '';
 <[base.log]>->( $log_level, "nroot agent shutdown" . $reason_txt );
 
 <[base.log]>->( 1, ": terminating child$ren :." )
-    if $child_count and <system.verbosity> == 1;
+    if $child_count and <system.verbosity.console> == 1;
 
 foreach my $pid (
     sort {
@@ -122,7 +122,7 @@ map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_ ) }
 exit($exit_code);
 
 # ______________________________________________________________________________
-#\\NBVGRFY7MLNNVGJH64KCCNBFDIBH54RU75WFEH4WIM5QPZ3BNU5KCZUBKAZL4HKY3X7KEO5AHIBUQ
-# \\ TPA4NWVQNQYGZ7GT5WCW7CGZSBXJQK5GDBI5HHGBLRR3EY73QD3O \\// C25519-BASE-32 //
-#  \\// DJ2JZXVBRHHJJTD2PP2GVDOHOOMDCVOCTCPLWKZTHN3TLFBCYBY \\ CODE SIGNATURE \\
+#\\ZTD6XPUDVGNYPXR6TSB2GWETZLGN2ZHKIOJCCVIWMQ27VUN66PUQP7BDDP577G6DBE3KMLNEKLLM2
+# \\ OHM5WQNH576CIUQNOLTURDORHADCNXYYHEYQULAJ6XYPE76OIJD2 \\// C25519-BASE-32 //
+#  \\// PJZMRUA2WHF6U3PPRTTSFVU64QVPMCJOPWBZORKHDMJYREOEMBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

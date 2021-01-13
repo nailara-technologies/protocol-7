@@ -62,8 +62,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             if exists <system.agent.subname>;
 
         # LLL: implement [ debug ] watch and filter patterns for command logging
-        if (   <system.verbosity> >= 2
-            or <system.internal_verbosity> >= 2 ) {
+        if (   <system.verbosity.console> >= 2
+            or <system.verbosity.agent_buffer> >= 2 ) {
             <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" )
                 if ( $src_name ne 'core'
                 or $target_name ne 'history'
@@ -121,7 +121,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 # ______________________________________________________________________________
-#\\QA7KAGJGVMYH3SSO5RVLZHCOXAXTNVOJ22ARMH2L22LATCTTJWMP5KDKII6IXIYMIPKECQY6DAFBE
-# \\ UZ3SQOGJZQKZG2MSXBJTDBQBLB5XRMKHMEHCKDVGAVFRGKLWGJSN \\// C25519-BASE-32 //
-#  \\// LUFV3ZGDKVTSNLB7AMFYOWNA4KQRPUTGPVMYJA7OE27T6ZTIMBA \\ CODE SIGNATURE \\
+#\\ISHI6IHTAGP7K6THIZPWAGYUYDY3F73V7GVZJD2574JU7F2I4UVXXOQHBQD4IGA4QVN23A42G3P7W
+# \\ JKA7P4PMYZP425TPEG3ZACRSN3FCHOGUS2CC6KQNMYA2AU5GJVBO \\// C25519-BASE-32 //
+#  \\// 34OJUP4OH4CINBSYDZZ5RH3LEAOILBSFMOETIDBKUKQYUFRCQAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
