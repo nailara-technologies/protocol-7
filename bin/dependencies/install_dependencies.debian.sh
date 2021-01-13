@@ -21,4 +21,4 @@ cpanm --force XML::RSS::Timing  # <-- temporary forced [ date_conv test fails ]
 cpanm --force XML::RSS::TimingBot  # <-- evaluate if above module still required
 
 # optional [i.e. not on raspbian]
-apt-get -y install intel-gpu-tools 2>/dev/null
+apt-get -y install intel-gpu-tools firmware-misc-nonfree 2>/dev/null
