@@ -6,7 +6,7 @@ my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
 <jobqueue.counter.last> //= {};
 <jobqueue.counter.last>->{$queue_name} //= 0;
 
-if ( <system.verbosity> > 1 or <system.internal_verbosity> > 1 ) {
+if ( <system.verbosity.console> > 1 or <system.verbosity.agent_buffer> > 1 ) {
     <[base.log]>->(
         2,
         sprintf(
@@ -35,7 +35,7 @@ if ( $queue_name eq 'queued' ) {
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\QHFHTM76OYSVBBBVDNG2JUE5YM3G3PF4M5HPJIEKTSJL4YRUL3VULTDBGMG5QNOJICFBRKMLVLW4O
-# \\ DJPGO6TH3HRELRXGMERYN5KIS4BNWSOU5PBPX7SVNDKQJGFHLNOF \\// C25519-BASE-32 //
-#  \\// 6AKT2DZCMYRWVBLKPU7MNXHEP4QYG4SLFIBVL6PO4TALD4ZVEDA \\ CODE SIGNATURE \\
+#\\KO4HZI5V4DCLLKPJ6EPFIPNLN6OT36KHZNE5CQTOLKYPSGTLVNTDBPATHBYF5SCGHAJIIHMCYRW3W
+# \\ 26JZO2TS4VMUFWY6GE56HG6VDELI5LTEOO6WRS2Q2MWBS43ZZHEK \\// C25519-BASE-32 //
+#  \\// 3DVIIASLXDD2ES43J6E7YX6VDK5YMOQCCCQ7BHYLNU53YGRDGDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

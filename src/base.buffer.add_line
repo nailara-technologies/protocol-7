@@ -3,15 +3,17 @@
 # name  = base.buffer.add_line
 # descr = write log messages to buffer and screen
 
-my $name        = $_[0];
-my $log_message = $_[1];    #   <--   <t-stmp>  <lvl>  <msg>
+my $name          = shift;
+my $log_message   = shift; #  <--  <t-stmp>  <lvl>  <msg>
+my $log_cmd_level = shift; #  <--  [lvl]  <-- optional log level [ for log_cmd ]
+
 my $min_bufsize = 10000;
 my $buffer_size = $data{'buffer'}{$name}{'max_size'};
-$log_message = $_[2] if defined $_[2] and $_[1] == -1; # LLL: explain \ redefine
-$log_message =~ s/^\s+|\s+$//;
-$log_message =~ s/\n/\\n/g;
-$log_message =~ s/\r/\\r/g;
-$log_message =~ s/\0/\\0/g;
+
+$log_message =~ s|^\s+|\s+$/|;
+$log_message =~ s|\n|\\n|g;
+$log_message =~ s|\r|\\r|g;
+$log_message =~ s|\0|\\0|g;
 
 my $message_len = length($log_message);
 
@@ -19,7 +21,7 @@ if ( $name eq '' ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
     warn 'expected buffer name <{C1}>';
     return -1;
-} elsif ( $name !~ /^[\w\-]+$/ or length($name) > 23 ) {
+} elsif ( $name !~ m|^[\w\-]+$| or length($name) > 23 ) {
     warn 'invalid buffer name specified <{C1}>';
     return -1;
 }
@@ -84,8 +86,13 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     }
 }
 
-if ( exists $data{'buffer'}{$name}{'log_cmd'}
-    and $data{'buffer'}{$name}{'log_cmd'} ne '' ) {
+if (    defined $data{'buffer'}{$name}{'log_cmd'}
+    and $data{'buffer'}{$name}{'log_cmd'} ne ''
+    and (  $name ne 'agent'
+        or not defined $log_cmd_level
+        or not defined <system.verbosity.agent_logfile>
+        or $log_cmd_level <= <system.verbosity.agent_logfile> )
+) {
     my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
     <[base.log.send_buffer_line]>->( $name, $buffer_index )
         if not exists $data{'history'}
@@ -95,7 +102,7 @@ if ( exists $data{'buffer'}{$name}{'log_cmd'}
 }
 
 # ______________________________________________________________________________
-#\\OUUPVNBVIH73MEEECAIMLL7RPGXVZS7JHL4YN34VNNZK7G6NF7PONPUE6SMLJ7HZ5UZEOJMO53UWU
-# \\ 67KVC3Q47AWZQG2GDJCEO72ETUVWLEVCKVKTPWH6HBNIBRB7PKBC \\// C25519-BASE-32 //
-#  \\// B6SWSR77TOU76SA5LYAX2UEJMTPM56VKCVAPHO64LBG5HEYFKCA \\ CODE SIGNATURE \\
+#\\SUTCZQ2ITOWEOCSDYZ3GHDGCDODVU7EZ632MVIJZZA4S5QVDHLN2T7SNWABPGV2MAAUPS454FICRK
+# \\ HUBJ76OHOBT7GOVJARZSUKGF2A7GGTO6PEOHU646WBYDIR2OYB6I \\// C25519-BASE-32 //
+#  \\// AC5BLBTIP2N2NJPRFV6LFA62GIPGSBMOSFTT6SFSPXJEUMYKYBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

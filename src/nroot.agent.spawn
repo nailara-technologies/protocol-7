@@ -155,7 +155,8 @@ my $apw_href = <nroot.agent.prefix_width> //= {};
 push( @exec_args, '-lpw=' . $apw_href->{$agent_name} )
     if defined $apw_href->{$agent_name};
 
-my $agent_verbosity = <system.verbosity> || 1; # -v is min. [a. output patterns]
+my $agent_verbosity
+    = <system.verbosity.console> || 1;    # -v is min. [a. output patterns]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
 <[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..," );
@@ -241,7 +242,7 @@ close($in_fh);    # no more use for agent stdin handle (for now)
 <[base.log]>->( 1, "agent '$agent_sn_str' spawned [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\H37HQUWY2RX7CXDN3M2JQCIWAYEQAS7L2SZ422NPVSOAADBZTE7ZRBXNAVZUTFQD6JDQQRU7ZWXJC
-# \\ 74VXWUTDBE6PIRUJ2XKP4YB6AUHIGF36ZHEQJTIEKL2NVJ7TUQKQ \\// C25519-BASE-32 //
-#  \\// GOHNKXHF4BIB4RNDUTQRLKRRPESEYROMVXHUXOMVZYRZA7QU2BA \\ CODE SIGNATURE \\
+#\\JDOFBDRFOCXQUYDKB37XTFUDKJQS2EOTNQL5ELFGQPNUYJNDEOLLMVPMHIFNH4JTICZCHPJ6R2MI4
+# \\ X7IZVER27FVNQYSLZ6ANHUP4WAPG7YZ6WUSZLTJKKJF5DZVN54CW \\// C25519-BASE-32 //
+#  \\// KDRTUGQ4CQADDEDS7BOUYH3R2TSNELR4TLCESGYVQM34KPRRSDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
