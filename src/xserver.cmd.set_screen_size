@@ -2,26 +2,26 @@
 
 # name  = xserver.cmd.set_screen_size
 # param = <W><x| ><H>
-# descr = set new xserver screen size (if possible)
-# todo  = restart xephyr process on size change request (if in xephyr mode)
+# descr = set new xserver screen size [ when possible ]
+# todo  = restart xephyr process on size change request [ in xephyr mode, .., ]
 
 my $X = <xserver.x11>;
-my ( $width, $height ) = split( /\D+/, shift->{'args'} );
+my ( $width, $height ) = split( m|\D+|, shift->{'args'} );
 
 return {
     'mode' => 'nak',
     'data' => 'screen size expected [<width>x<height>]'
     }
     if not defined $width
-    or $width !~ /^\d+$/
+    or $width !~ m|^\d+$|
     or not defined $height
-    or $height !~ /^\d+$/;
+    or $height !~ m|^\d+$|;
 
 ## current size ##
 
-$X->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+$X->choose_screen(0);    # LLL: no support for multiple screens yet ..,
 
-# LLL: check ranges in advance...
+# LLL: check ranges in advance..,
 # print STDERR Dumper( $X->RRGetScreenSizeRange( <xserver.x11>->root ) );
 
 my %screen_geom = $X->GetGeometry( <xserver.x11>->root );
@@ -31,23 +31,33 @@ my ( $current_width, $current_height )
 
 return {
     'mode' => 'nak',
-    'data' => "requested size identical to current one!"
+    'data' => 'requested size identical to current one'
     }
     if $width == $current_width and $height == $current_height;
 
+if ( !<xserver.has_randr> ) {
+    <[base.log]>->(
+        1, "<!> skipping change request [ $width x $height ] no RANDR <!>"
+    );
+    return {
+        'mode' => 'nak',
+        'data' => 'unable to set screen size [ out of range ]'
+    };
+}
+
 <[base.log]>->(
     0,
-    "<!> changing screen size: ${current_width}x${current_height}"
-        . " -> ${width}x${height}"
+    "<!> changing screen size : ${current_width}x${current_height}"
+        . " --> ${width}x${height}"
 );
 
 $X->RRSetScreenSize( $X->root, $width, $height, $X->width_in_millimeters,
     $X->height_in_millimeters );
 
-# checking for errors... ;/
+# checking for errors.., ;/
 eval '$X->RRGetScreenInfo( $X->root )';
 if ($@) {
-    my $err_msg = 'unable to set screen size ( out of range )';
+    my $err_msg = 'unable to set screen size [ out of range ]';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
         'mode' => 'nak',
@@ -71,7 +81,7 @@ if (   $screen_geom{'width'} != $current_width
         'data' => "screen size is now $screen_geom{width}x$screen_geom{height}"
     };
 } else {
-    my $err_msg = 'unable to set screen size ( remained unchanged )';
+    my $err_msg = 'unable to set screen size [ remained unchanged ]';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
         'mode' => 'nak',
@@ -80,7 +90,7 @@ if (   $screen_geom{'width'} != $current_width
 }
 
 # ______________________________________________________________________________
-#\\AP4WTS6Y44BWCZOD6LKJAFUATLDFGTFA4BRWUCCP4F23IZ6WJNDLUAQ47OZFGHH76EWM6GKJSQIPK
-# \\ Z6KD2IXS73UCEMN542XYLYJJTW5CPWDXURH7AZTL3VOP6NLGLOEG \\// C25519-BASE-32 //
-#  \\// JHIRXBTILVIHOAA5OM2JRSTBUQLYHE5WVR5ASX2TAE4X6O2CGCA \\ CODE SIGNATURE \\
+#\\KOIR4SGC2JZEYPMXD5UDSJWWEOAMXHZCSBHWRHWEEYRE55PCXRJUNAQOCH6Y273MSLCAL5HIXQDSW
+# \\ BFWLCRFGQLP5SQJNC4LMWW27JFOVKBTWJIPSCGXPIV25D7HAMTBU \\// C25519-BASE-32 //
+#  \\// RTMVRRYGD75AKW6FYF34XEIO324E5OPUJYRWAQNBIB55S65JGCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
