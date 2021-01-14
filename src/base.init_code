@@ -143,7 +143,6 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
             ntime
             last-sid
             localtime
-            is-online
             ondemand-agent
             session-key
             term-all
@@ -155,8 +154,10 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
     <base.help.cmd.source-age.descr> =~ s|\[year\]||;
 
     if ( <system.agent.name> ne 'universal' ) {
-        <[base.disable_command]>->(qw| whoami |);
         <[base.hide_list]>->(qw| sessions |);
+        <[base.disable_command]>->(qw| whoami |);
+        <[base.disable_command]>->(qw| present |)
+            if <system.agent.name> ne 'weather'; # LLL: needs 'has_clients' flag
     }
 
     <[base.hide_list]>->(qw| users |);
@@ -212,7 +213,7 @@ if (    exists $data{'setup'}
 return 0;
 
 # ______________________________________________________________________________
-#\\SW43WDRJT4NVQYHLWROAA7PHSPZ65O7AGFBEKB3UAW7DROPCG2FC5KLSZN7ASFTE2SI7IWCI5ZB3G
-# \\ FKUXAG5OAA7OJHNSPLW7OQNTM7ZEHB4KYYHCNFHK24CTIYICFZ5B \\// C25519-BASE-32 //
-#  \\// WFRRQ77C27N2RLC64YCGW3CL2I4NTS2KONYO6DM3DZAJ2SQ6OAA \\ CODE SIGNATURE \\
+#\\KELNAEXAMKGUBSNJNHVJBX5MM2T26N5465ZRUQUNDBOYANTDE56QGXDF7Q7LMDRNALXTJU7T7AM3G
+# \\ WO5TOXCFJQAA3HH7IV3BYKNYLYL4GSQAIDUTHWHJQHSJ5IUM6TPN \\// C25519-BASE-32 //
+#  \\// 3U6Z3QUPZONT63YJATYAEEGZJEIWT7CZL2FKPM4WR7UK3EXXAAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
