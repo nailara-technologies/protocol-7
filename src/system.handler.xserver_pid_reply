@@ -4,14 +4,14 @@
 
 my $reply = shift;
 
-if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ /^\d+$/ ) {
+if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ m|^\d+$| ) {
     my $reason = 'unable to obtain Xorg PID';
     $reason = "xserver agent is not in 'xorg' mode"
-        if $reply->{'call_args'}->{'args'} =~ /not xorg/;
+        if $reply->{'call_args'}->{'args'} =~ m|not xorg|;
     <[base.callback.cmd_reply]>->(
         <system.gfx_reload.reply_id>,
         {   'mode' => 'nak',
-            'data' => "$reason, aborted!"
+            'data' => "$reason, aborted."
         }
     );
     delete <system.gfx_reload>;
@@ -37,7 +37,7 @@ if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ /^\d+$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\CD5GN53347DKVSIQGERKC2M67NSL34WK6KTPULSN37MF4JX6KO3YFXGMAHDG52O3QIM6Y6ALQIMHA
-# \\ DBDEZCGUFPYIVFPYLY4PKARV2GH53EJG2F5WVAZB7GK3JRXVS3AC \\// C25519-BASE-32 //
-#  \\// 5KIHAF4WODDKWMR6IUOOY7GX7W6USW3QRVHBDJG46VQTNQA2ODQ \\ CODE SIGNATURE \\
+#\\Q7HUBQOTPLFALIANZU6GJXDKOLBDW7UKU7XXXOBX3JEJ2NS7MRFAHCSR2Y3GIXOST5YIYSXA2T2R2
+# \\ FMGH3WMSIQLAPEGK5YFLCPIZSR6UH77NXFQ36SCFIGP5GEGRMPJW \\// C25519-BASE-32 //
+#  \\// FD47QXOLUINVUTJO3BFZEXZTXUJLE3DB5NMTO2AEGE65F3BZ4DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
