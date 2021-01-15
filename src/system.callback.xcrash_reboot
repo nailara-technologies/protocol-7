@@ -1,0 +1,20 @@
+# >:]
+
+# name  = system.callback.xcrash_reboot
+
+my $admin_abort = <system.xserver_crash.admin_reboot_abort> //= 0;
+
+return
+    <[base.log]>->( 0, '<< ! >> automated host reboot aborted ., =) << ! >>' )
+    if $admin_abort;
+
+<[base.log]>->( 1, ":.. sending reboot request to 'nroot' agent .," );
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => 'core.nroot.host-reboot' } );
+
+# ______________________________________________________________________________
+#\\33UF2SMFIYRQLDY4HU3STUVFIEJFV3FYGPCH65VGEUWDBTXXKTAP4QRHINLOBAF6HCXAQMPQVTIV4
+# \\ FERYGRVCJVU46CD4WSHQQMON6EWPQ4ACOUM7ZPHX2TSMCAF2CBTK \\// C25519-BASE-32 //
+#  \\// VG53ABEDDKJ5OVDKADA2MJEAD76LCFWZKWD232L7IYM3BW4TKAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

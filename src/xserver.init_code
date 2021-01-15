@@ -2,12 +2,12 @@
 
 # name = xserver.init_code
 
+<[base.perlmod.autoload]>->('IPC::Open3');
+<[base.perlmod.autoload]>->('Linux::Inotify2');
 <[base.perlmod.autoload]>->('X11::Protocol');
 <[base.perlmod.autoload]>->('X11::Keyboard');
 <[base.perlmod.autoload]>->('X11::Protocol::WM');
 <[base.perlmod.autoload]>->('X11::Protocol::XSetRoot');
-<[base.perlmod.autoload]>->('Linux::Inotify2');
-<[base.perlmod.autoload]>->('IPC::Open3');
 <[base.perlmod.autoload]>->('X11::Tops');
 
 my $modes_re = <xserver.modes_re> = qr,^(host|xnest|nxagent|xorg|xephyr|xvfb)$,;
@@ -59,7 +59,7 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 <xserver.disable_glamor> //= 0;
 
 <xserver.bg_color> //= '000000';
-<xserver.bg_color> =~ s/^#?([0-9a-f]{6})$/#$1/i;
+<xserver.bg_color> =~ s|^#?([0-9a-f]{6})$|#$1|i;
 
 <xserver.keybd.grab_all_keys> //= 'no';
 <xserver.max_intel_gpu_freq>  //= 'no';
@@ -67,8 +67,8 @@ if ( <xserver.mode> eq 'auto-xephyr' ) {
 <xserver.collect_intel_gpu_stats> //= 0;
 
 if (    <xserver.mode> eq 'xorg'
-    and <xserver.max_intel_gpu_freq> =~ /^(yes|1)$/
-    and <xserver.video_driver> =~ /^i\d\d\d$/ ) {
+    and <xserver.max_intel_gpu_freq> =~ m{^(yes|1)$}
+    and <xserver.video_driver> =~ m|^i\d\d\d$| ) {
     my $freq_bin_path = <xserver.bin_path.intel_gpu_frequency>;
     if ( !length($freq_bin_path) or !-x $freq_bin_path ) {
         <[base.log]>->(
@@ -77,8 +77,8 @@ if (    <xserver.mode> eq 'xorg'
                 . " intel_gpu_frequency binary not found.."
         );
     } else {
-        my $freq_output = qx($freq_bin_path -g);
-        if ( $freq_output =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s ) {
+        my $freq_output = qx| $freq_bin_path -g |;
+        if ( $freq_output =~ m|^cur: ([^\n]+)\n.+max: ([^\n]+)\n$|s ) {
             my ( $cur_freq, $max_freq ) = ( $1, $2 );
             if ( $cur_freq ne $max_freq ) {
                 <[base.log]>->(
@@ -86,10 +86,10 @@ if (    <xserver.mode> eq 'xorg'
                     "<!> maximizing GPU frequency [ $cur_freq --> $max_freq ]"
                 );
 
-                qx($freq_bin_path -m);    # <- max
+                qx| $freq_bin_path -m |;    # <- max
 
-                if ( qx($freq_bin_path -g)
-                    =~ /^cur: ([^\n]+)\n.+max: ([^\n]+)\n$/s ) {
+                if ( qx| $freq_bin_path -g |
+                    =~ m|^cur: ([^\n]+)\n.+max: ([^\n]+)\n$|s ) {
                     ( $cur_freq, $max_freq ) = ( $1, $2 );
                     <[base.log]>->(
                         0,
@@ -105,7 +105,7 @@ if (    <xserver.mode> eq 'xorg'
 0;
 
 # ______________________________________________________________________________
-#\\3AMHI3X2AXX3EYGFGPOHOINPIPKCR43FLG6HNZKN5RE3FAQD3W4VM3OTRXVYHUK76443EGMCN6Y4S
-# \\ CMAZP7RQBSSVCO354VY4GGTZOZVDG5UJ6RWSANILNIZXY4SHWUIK \\// C25519-BASE-32 //
-#  \\// ZG6OPMDVVHLAGR5G5PR3GDGJSZQKWDY6YEVTSY6AERI3VBW5KCA \\ CODE SIGNATURE \\
+#\\D3KQQFICBK32OK3FZR5THUNZJOMBCTDD3Y56HIMEKIXO6BAETQ3T3CX6P3HWBJWMXDTKFQ7BU76HQ
+# \\ DBLJLLEVVVQOJT7PKZBJS4WNAXUQSHGIP6SHBRWI5F3KGIICST7Y \\// C25519-BASE-32 //
+#  \\// GXEEF7DL64JKPIAB2FUJPZHJJIYUY3AFJCEJOCNOBGK4YJEDYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

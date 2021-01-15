@@ -24,8 +24,9 @@
 
 <system.statistics>->init;
 
-<[event.add_signal]>
-    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+## LLL: WHY WAS THIS REQUIRED? ###
+# <[event.add_signal]>
+#   ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
 
 <process.table.top>   //= {};
 <process.count>       //= 0;
@@ -35,7 +36,7 @@
 <system.process.blacklist_match> = {};
 <system.blacklist.autokill> //= [
     map {qr|$_|}
-        qw/
+        qw|
         \.core$
         \.root$
         \.system$
@@ -43,7 +44,7 @@
         ^(auto)?ssh
         ^\/sbin\/init(\s.+)$
         ^\/lib\/systemd(\s.+)$
-        /
+        |
 ];
 
 <list.top> = {
@@ -65,7 +66,7 @@
 0;
 
 # ______________________________________________________________________________
-#\\6D4U7RGJ3AMPRXUZ2BMIQQPFE3OYNXSSVPGRV4EYMW6DUTN4B5PATKNVOXV4ZMWOECIP2P3JG5ZOM
-# \\ Z2JZ6VBPJDA3VXAQHP5XCIULYKSSOIER25WUSVUNJF5JBVEAKXU7 \\// C25519-BASE-32 //
-#  \\// VMW45DPJQ454OCCGBC7Q6SLLWALHIPGJ6CRQTSXAXHBD76MWEBA \\ CODE SIGNATURE \\
+#\\7N4TIZWLTGM4MNFG7IA24N2XC2KQGJZIW6CMHJDIBXM3T54FXICHDBKHYDLFAEGIMQN52REB2KOI6
+# \\ QTTCOMSJA76WHH6W3R6VDNHHZ7VJUSQW72BA2Y36HUOPIFAADCCS \\// C25519-BASE-32 //
+#  \\// JGJSDUNMYRHEOKEDRRHFXKM7GJEOF3VGVJLDD6YHB4AP7CJ2CDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
