@@ -1,0 +1,45 @@
+# >:]
+
+# name  = system.admin_reboot_warning
+# descr = sends out reboot warning if an administrator is logged in \ present
+
+my $reboot_delay_seconds = shift // 13;
+my $regular_reboot_delay = <system.xserver_crash.reboot_delay_secs>;
+
+my $who_bin_path  = <[file.which]>->('who');
+my $wall_bin_path = <[file.which]>->('wall');
+
+if ( !length($wall_bin_path) ) {
+    $reboot_delay_seconds = 0;
+    warn "'wall' binary not found, skipping admin reboot delay ..,";
+} else {
+    if ( length($who_bin_path) and !length(qx| $who_bin_path -lu |) ) {
+        $reboot_delay_seconds = 0;             ## <-- no admin present ###
+        <[base.log]>->( 2, ': no admin present - reboot imminent .,' );
+    } else {
+        if ( !length($who_bin_path) ) {
+            warn "'who' binary not found, warning and waiting regardless.,";
+        } else {
+            <[base.log]>->(
+                0, 'system-admin is present << ! >> delaying host reboot ..,'
+            );
+        }
+        <[base.log]>->(
+            1, ":.. sending 'wall' message [ host reboot warning ]"
+        );
+        my $warn_secs = $regular_reboot_delay + $reboot_delay_seconds;
+        system( $wall_bin_path,
+            "\n\n  <<< REBOOTING SYSTEM IN $warn_secs SECONDS [ xorg crashed ]"
+                . " >>>\n\n\n\r   < [ TO ABORT REBOOT "
+                . "RUN 'nlr system.abort-reboot' ] >\n\n" );
+    }
+}
+
+## additional reboot delay when admin is present ###
+return $regular_reboot_delay + $reboot_delay_seconds;
+
+# ______________________________________________________________________________
+#\\DF6DIYSUXO2EFCISRFWEBLYEWGMXWVLE6HRWRQKZPCPRFW45Z7HYE22CJ3K7VZGUWY62A2IYO35L6
+# \\ SVISOPWH54KMLI7U3C75VZU326VVLWC266WXZYG3YKRMLU7XQ547 \\// C25519-BASE-32 //
+#  \\// N3EG2FA5VUABKMAQNO46YOXRPNJZJF34EPGJX6Q45BB6W6OCOAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
