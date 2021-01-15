@@ -4,16 +4,30 @@
 # param = [err_msg]
 # descr = x-server crash mitigation [ host reboot ]
 
-my $err_msg = $$call{'args'} // '';
+( my $core_user, my $err_msg ) = split( m| +|, $$call{'args'}, 2 );
 
-## issue wall message, and abortably reboot host system. ##
+my $xorg_usr = 'xserver';
+my $hostname = <system.host.hostname>;
+return {
+    'mode' => 'ack',
+    'data' => "only 'xserver' agent can invoke this command."
+    }
+    if $core_user ne "$hostname.$xorg_usr";
 
-<[base.log]>->( 1, "<!> xserver error handler called.., <!>" );
+<[base.log]>->( 0, "<!> xserver protocol error : '$err_msg' <!>" );
 
-return { 'mode' => 'nak', 'data' => 'not implemented yet' }
+my $reply_message = 'acknowledged, ';
+my $does_reboot   = <[system.xcrash_hostreboot_check]>;
+
+$reply_message
+    = $does_reboot
+    ? 'host system reboot imminent'
+    : 'xserver error logged [ not rebooting ]';
+
+return { 'mode' => 'ack', 'data' => $reply_message }
 
 # ______________________________________________________________________________
-#\\NXKXGILXMRP6J76IRPEGXNTBFRSANEXQPUUDHQWU22ZGOGRY3JEJK772OQEN7FUSDOEZVEY2NU6AW
-# \\ PWIK2IDKJU3R2BWC7GMRNTWAHEJZ52CMK2C2YXJWNRRZ6ZNAF6BI \\// C25519-BASE-32 //
-#  \\// YGSI56MSWUPZUDPV3WUPT6H65J7D4ZDJIMX7TV3BAXJH5ELYCAI \\ CODE SIGNATURE \\
+#\\EY3JMSDIELESH33EWU2LET2QEH5AUZUCTQZH4OGD7NZTT2NKOQNYA76SJFEJ6YHQWY43QSZF2N7S2
+# \\ RMNWOIRJXTLIMPMNWCJHNULGWVN44WTNX2YJ75LCYTAICZSGFIPU \\// C25519-BASE-32 //
+#  \\// DT6NAHMB3SJO5YYDCQLKOHHCGJ4HMNXHXCIIAZVEHJFR4ASZAAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

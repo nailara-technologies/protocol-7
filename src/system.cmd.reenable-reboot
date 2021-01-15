@@ -1,0 +1,31 @@
+# >:]
+
+# name  = system.cmd.reenable-reboot
+
+( my $core_user, undef ) = split( m| +|, $$call{'args'}, 2 );
+my $hostname = <system.host.hostname>;
+my $uname_re = <regex.base.usr>;
+
+if ( $core_user =~ m|^$hostname.($uname_re)$| ) { $core_user = $1 }
+else {
+    return {
+        'mode' => 'ack',
+        'data' => "only '$hostname' users can invoke this command."
+    };
+}
+
+<system.xserver_crash.perform_host_reboot> = 1;
+<system.xserver_crash.admin_reboot_abort>  = 0;
+
+my $reply_message = "automatic 'xcrash' reboot [re]enabled.";
+my $log_message   = "$reply_message [ by '$core_user' ]";
+
+<[base.log]>->( 0, $log_message );
+
+return { 'mode' => 'ack', 'data' => $reply_message };
+
+# ______________________________________________________________________________
+#\\S5QTKUJZDXCU6YTVAU26X5C2Z3SOUSUG3EUDWBYSR6WAROV4TYZ2WTT7UBSHLVYKHNDOG7YVWDRCG
+# \\ 2ROUIGSMNSV2RCBJFEG5W7WKM7QWAYPBFNDJNVIEYJHYKWQIJXJR \\// C25519-BASE-32 //
+#  \\// SH2E56NBZSTTOUAWI7JQZT4ONDHMPLZ6EQALZ4IODIM364M66AI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

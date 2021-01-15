@@ -9,16 +9,15 @@ my $log_msg_str = $response->{'params'}->{'log_message'};
 
 return warn "received instance id is not numerical"
     if $response->{'cmd'} eq 'ACK'
-    and $cmd_rep_str !~ /^\d+$/;
+    and $cmd_rep_str !~ m|^\d+$|;
 
-if ( $response->{'cmd'} eq 'ACK' ) {                  # restart by root
+if ( $response->{'cmd'} eq 'ACK' ) {                  # restart by 'nroot' agent
     my $instance_id = $cmd_rep_str;
     <[base.log]>->( 0, " : asking 'nroot' to restart instance $instance_id" );
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.nroot.restart",
-            'call_args' => { 'args' => $instance_id },
-            'reply'     => { 'handler' => 'dev.null' }
+        {   'command'   => 'core.nroot.restart',
+            'call_args' => { 'args' => $instance_id }
         }
     );
 } elsif ( $cmd_rep_str eq 'found no matching instance' ) {    # kill allowed
@@ -26,12 +25,12 @@ if ( $response->{'cmd'} eq 'ACK' ) {                  # restart by root
 
     <[system.process.callback.send_kill]>->( $process_id, $log_msg_str );
 
-} else {    # unclear -> warn (no nroot agent access?)
+} else {    # unclear -> warn [ no nroot agent access ? ]
     return warn "aborted autokill for pid $process_id [no nroot agent access?]";
 }
 
 # ______________________________________________________________________________
-#\\SHJUBK7SI2CFCUP5772JF3T6POGK3ZNUXWWH3RNFL4Z7Q4TO4QK6QWEKSTLCUX4Q24IAAACTZX5BC
-# \\ CJZ43LHPBPR6WO5HN6JAPFSNHJ337DJNLVJVJS77K6LQELCFQCFT \\// C25519-BASE-32 //
-#  \\// 4T4KS2ATHUVTPZG2ZUTFFFO7EJBQV33OJHV4RDBV2IS2KEKAAAI \\ CODE SIGNATURE \\
+#\\ZQ5NADIGPFQ52ZDHDE3WAXQP7NPQ2OHBILNPW3PBUKLDHS3265LNE3BWFXOZTWT6FYVMRQ67QLFQO
+# \\ WTV2J53DB3WL7REHXYQFBO6K5OCUPLJ3H67HK2QGL5RMADNXTFD7 \\// C25519-BASE-32 //
+#  \\// FJWNA2WUWFFMDHKMRZIIGBGGPVHJ4XAHASPGAWHO42TO6QQOUAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

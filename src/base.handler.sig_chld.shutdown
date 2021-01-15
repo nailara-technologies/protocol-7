@@ -11,7 +11,7 @@ while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
     my $e_val = $? >> 8;
     my $e_sig = $? & 127;
     $e_sig = $e_sig ? ", signal $e_sig" : '';
-    my $e_dmp     = $? & 128 ? ' < with a core dump! >' : '';
+    my $e_dmp     = $? & 128 ? ' < with a core dump. >' : '';
     my $log_level = 2;
     $log_level = 1 if $e_val;
     $log_level = 0 if $? & 128;
@@ -26,13 +26,13 @@ while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
     $died_pid{$pid} = 1;
 }
 
-<[base.log]>->( 0, ": shutting down " . <system.agent.name> . " agent ..." );
+<[base.log]>->( 0, ": shutting down " . <system.agent.name> . " agent ..," );
 
 <[base.log]>->( 1, ": done." );
 exit(0);
 
 # ______________________________________________________________________________
-#\\4554T7QA5ORPFQ3PV5JIXS2YNP5YZD2VGKFBAQ6ORYBZ2X2FJ6VRJERNNHZ2G6N6TOZXVSZZVP2N4
-# \\ FXH44M7XP6EN6MHHYMMYAYLVAQ4YQ47R63GRIRVJJLJI5U2ASHG6 \\// C25519-BASE-32 //
-#  \\// W7KT2ML54M6ALH34M7KDSES2MN4IFFGFRJPZRCSS4XSRSD7SACA \\ CODE SIGNATURE \\
+#\\5PA3P6NISL3TKONEG4YDVIW2IHJRIQTQULFE4DKXQSXZXAD3D42525DNCFN3T37SZBCAWZ7DTBWPC
+# \\ VMMUOWNJFCYTQT7U24F2FFVFGS36RAZNKZ53DXKTZZR7YXJO6PYW \\// C25519-BASE-32 //
+#  \\// 4EUGICFR6HN7F3G2YQRAUELUW7K7H7H4M2NSDDMIVIXRSQLFWBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

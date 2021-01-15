@@ -1,0 +1,44 @@
+# >:]
+
+# name  = system.cmd.abort-reboot
+# descr = abort or disable automatic [xcrash] reboot
+
+( my $core_user, undef ) = split( m| +|, $$call{'args'}, 2 );
+my $hostname = <system.host.hostname>;
+my $uname_re = <regex.base.usr>;
+
+if ( $core_user =~ m|^$hostname.($uname_re)$| ) { $core_user = $1 }
+else {
+    return {
+        'mode' => 'ack',
+        'data' => "only '$hostname' users can invoke this command."
+    };
+}
+
+my $reply_message = 'scheduled host reboot aborted ., =)';
+my $log_message   = "$reply_message [ by '$core_user' ]";
+
+<system.xserver_crash.admin_reboot_abort> = 1;
+
+if ( defined <system.timer.host_reboot> ) {
+    my $reboot_timer = <system.timer.host_reboot>;
+    $reboot_timer->cancel if $reboot_timer->is_active;
+    delete <system.timer.host_reboot>;
+    delete <system.timer> if !keys( %{<system.timer>} );
+} else {
+    $reply_message
+        = "automatic 'xcrash' reboot deactivated, call"
+        . " 'system.reenable-reboot' to reactivate.";
+    ( $log_message = $reply_message ) =~ s|,.+$|. [ by '$core_user' ]|;
+    <system.xserver_crash.perform_host_reboot> = 0;
+}
+
+<[base.log]>->( 0, $log_message );
+
+return { 'mode' => 'ack', 'data' => $reply_message }
+
+# ______________________________________________________________________________
+#\\63A3UMVDQV4Y6FABRHJ3R47HTBN4EKA2RZJ6QXF2IHLEVVM55ZPTEAXUXOWVLMW45ZXPDU54IQXV2
+# \\ UERSVA4NBFMORGD2SLO6XU53NSNOW2MOTZGO7P224KJAYQNCOE3E \\// C25519-BASE-32 //
+#  \\// AKHQXQ7G3FJSDHEP3TQYU322BYT3E2DNKZLYWE27OGEYDB5XSDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
