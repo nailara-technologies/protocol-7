@@ -1149,7 +1149,7 @@ sub prepare_subs {
                 $line = $data{'base'}{'eval_error'}{'line'}
                     //= [ caller($l) ]->[2];
             }
-
+            $filename =~ s|^/usr/share/perl5/||; ## shorten path for .pm modules
             my $caller_str = "[ $filename, $line ]";
             $caller_str = "[ ... caller level $level too high .., ]"
                 if !length( $filename . $line );
@@ -1184,7 +1184,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\X43R6ZQ3HDW2NCSJGNXIYDYYDY5XZI25FYURFQQ37ROXKZLTMZYSKZ5PLCI7FBMO7ITGTVXV5OP2Q
-# \\ HOJSNSU3N2EIW7G6ML4532TB3V67U77KB65BSXE7N4HO2FU4VQOO \\// C25519-BASE-32 //
-#  \\// JC6NR5ZPG46Z5PDJPF4DPNCA6FW2GHRHNBIXQRVYIY6FVMIUQAQ \\ CODE SIGNATURE \\
+#\\FBA22A4Q4YRIVRPAQF6B3NXWOKBCI55GLHJW6LLBCSXWKK4RUQ6LWZVOIHAJXWROUHHF2BKBAXURU
+# \\ GQ3CKIDTMSLQJQFVTYRONC7AXQYHCKTRTA4P5D2DPEW5EL2IWEVT \\// C25519-BASE-32 //
+#  \\// VP3WEG6ZVYOYRM3ZDMLR3EPJ372SJLI6QXHPEMCVMKTFDL72ODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
