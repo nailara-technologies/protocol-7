@@ -4,20 +4,23 @@
 # param = ['date']
 # descr = installed nailara 'protocol-7' code age
 # additional param = [year_float]
+# todo = create and process ntime timestamp for abolute precision
 
 my $param_str = shift->{'args'} // '';
 my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
 
-my $year_float = 2000 + $1 if <nailara.source_version> =~ /^(\d+(\.\d+)?)\-/;
+my $current_time = time;
+my $c_year_float = <[base.time.year_utc_float]>->($current_time);
+my $s_year_float = $1 if <nailara.source_version> =~ m|^(\d+(\.\d+)?)\-|;
 
 if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
-    and length($param_str) ) {    # <- no second param for non-core type agents!
+    and length($param_str) ) {   # <-- no second param for non-core type agents.
     return {
         'mode' => 'nak',
         'data' => "ask a 'core'-type agent for custom values"
     };
-} elsif ( $param_str =~ /^(\d{1,5}+(\.\d{1,5})?)\-?/ ) {
-    $year_float = 2000 + $1;
+} elsif ( $param_str =~ m|^(\d{1,5}+(\.\d{1,5})?)\-?| ) {
+    $s_year_float = $1;
 } elsif ( length($param_str) ) {
     return {
         'mode' => 'nak',
@@ -25,24 +28,26 @@ if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
     };
 }
 
-my $year_int  = int($year_float);
-my $ydays     = <[base.time.is_leap_year]>->($year_int) ? 365 : 364;
-my $day_float = sprintf( "%.5f", $ydays * ( $year_float - $year_int ) );
-my $vers_unix = timegm_nocheck( 0, 0, 0, $day_float, 0, $year_int );
+my $year_delta  = sprintf( "%.4f", $c_year_float - $s_year_float );
+my $year_int    = int( 2000 + $s_year_float );
+my $ydays       = <[base.time.is_leap_year]>->($year_int) ? 366 : 365;
+my $source_yday = 1 + ( $s_year_float * $ydays - int($s_year_float) * $ydays );
+my $delta_secs  = $ydays * $year_delta * 86400;
 
-return {
-    'mode' => 'ack',
-    'data' => <[base.parser.timestamp]>->($vers_unix)
-    }
-    if $date_mode;
+my $src_unix = timegm( 0, 0, 0, $source_yday, 0, $year_int ) + $delta_secs / 2;
+$src_unix += 3600;
 
-return {
-    'mode' => 'ack',
-    'data' => <[base.parser.duration]>->($vers_unix)
-    }
+( my $date_stamp   = <[base.parser.timestamp]>->($src_unix) ) =~ s|:\d\d$||;
+( my $duration_str = <[base.parser.duration]>->($src_unix) )  =~ s|^0s$|0m|;
+
+my $e_str = ' [ estimated ]';
+
+return { 'mode' => 'ack', 'data' => $date_stamp . $e_str } if $date_mode;
+
+return { 'mode' => 'ack', 'data' => $duration_str . $e_str }
 
 # ______________________________________________________________________________
-#\\MDLS7MNSLXHBK532VBBVL5SJMQTRCFLPS2OVO56BKSES5OKF5AHISVLRAZ4VARY27RQGYZ4XYGI5W
-# \\ IQLMQNSL5RR5KCAS3W5UZ5MC22IAAXQ3MSEP2REI7VRXVHD5APLT \\// C25519-BASE-32 //
-#  \\// VAWGHIC65HFT7AF4UX2VVHZR3MKQPEELJVEARH6MHYXWBIAZ2AQ \\ CODE SIGNATURE \\
+#\\3MDAN55JMJFUEGIQKOYSWIZTOFMYZD2OUVFDV5I2Y4FQXCYHQHRL5HOW7AE3IKIKDWR3W6IWBITJ4
+# \\ VMKE4O3YBGPDMNATFHBQ7MDDOGZDMIDQUHVI7LXL7R33MUCG6SPK \\// C25519-BASE-32 //
+#  \\// QQHYDNTQNBO5WYFOSZFXX6EKYAFZFLBCTLDIK7XYMCC6NBAO2BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
