@@ -41,7 +41,7 @@ if ( $old_version =~ m|^(.+)\.(\d+)$| ) {
     my $old_minor = $2;
 
     $minor = 0 if $minor < 0 and !$old_minor;
-    map { $_ =~ s/^[^-]+-// } ( $old_base, $version_base );
+    map { $_ =~ s|^[^-]+-|| } ( $old_base, $version_base );
     $new_minor = $old_minor + $minor if $amend;
 }
 
