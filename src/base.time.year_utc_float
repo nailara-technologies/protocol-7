@@ -6,13 +6,13 @@ my $time  = shift // time;
 my $float = shift // 4;
 my @time  = gmtime($time);
 my $year  = 1900 + $time[5];
-my $days = is_leap_year($year) ? 366 : 365;    ## + 1 because fractional ##
+my $days = <[base.time.is_leap_year]>->($year) ? 366 : 365; # + 1 [fractional] #
 my $yday = $time[7] + $time % 86400 / 86400;
 
 return sprintf( "%.0${float}f", $year % 100 + $yday / ( $days + 1 ) );
 
 # ______________________________________________________________________________
-#\\NXN2BBDGFDSXYZHNZJF6RY5LINVZXNMHNFY5TAK7ER3QFRLYDOUABKIN7OD3B76EPINVUKHVNGA7K
-# \\ 7Z4O6T46QDCB4A33IPEJAIJQUJN74WMDE7XUUVUCF3O3YVSHPH4M \\// C25519-BASE-32 //
-#  \\// NVE3N2NSD5HEHK2YDHRG7A2JDEQ2ATVKVVCSWNKUTY6XPVFJSCY \\ CODE SIGNATURE \\
+#\\RSYG6XQIZN7XZBALYWWPOVUZHS2B3GSSAMHJ7WOBTKR7TI6KGIQ3JKSV2PXZ7HZ7W356SFIKM4SUE
+# \\ WQRZOXN2F3UV4SXN6VJPRXSS2G2RO2HNTH5PK6XEMQFATTNBLHDS \\// C25519-BASE-32 //
+#  \\// GWUJHX4F5FATIBUX7RGECOTCIRWZIXYL3F4KVCPRXJ2KMPOYYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
