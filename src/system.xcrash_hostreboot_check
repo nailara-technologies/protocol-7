@@ -1,0 +1,50 @@
+# >:]
+
+# name  = system.xcrash_hostreboot_check
+
+my $crash_reboot = <system.xserver_crash.perform_host_reboot> //= 0;
+my $admin_delay  = <system.xserver_crash.reboot_admin_delay>  //= 13;
+my $reboot_delay = <system.xserver_crash.reboot_delay_secs>   //= 7;
+
+<system.xserver_crash.admin_reboot_abort> = 0; # flush previous abort commands #
+
+return 0 if $crash_reboot !~ m,^(yes|1)$,;   ## <-- no system reboot enabled ###
+
+my $reboot_condition_error;
+if ( not defined <system.xserver_crash.reboot_condition>
+    or <system.xserver_crash.reboot_condition> !~ m|^hostname-pattern:(.+)$| ) {
+    $reboot_condition_error
+        = "requires valid reboot condition setup : '[hostname-pattern:..,]'";
+    warn <system.xserver_crash.reboot_condition>;
+} else {
+    my $host_regex;
+    my $host_regex_str = $1;
+    eval { $host_regex = qr{$host_regex_str} };
+    if ( not defined $host_regex ) {
+        $reboot_condition_error = $@ if $@;
+        $reboot_condition_error //= 'regex error in reboot condition setup';
+    } elsif ( <system.host.hostname> !~ $host_regex ) {
+        $reboot_condition_error
+            = "reboot condition hostname not matching, skipped..,";
+    }
+}
+
+<[base.log]>->( 0, "<<< $reboot_condition_error >>>" ) and return 0
+    if defined $reboot_condition_error;    ## <-- no system reboot.., ###
+
+my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
+<[base.log]>->( 0, "<<< HOST SYSTEM REBOOT IN $total_delay SECONDS >>>" );
+
+<system.timer.host_reboot> = <[event.add_timer]>->(
+    {   'after'   => $reboot_delay,
+        'handler' => 'system.callback.xcrash_reboot'
+    }
+);
+
+return 1;                                  ## <-- reboot is scheduled ###
+
+# ______________________________________________________________________________
+#\\HEJWGBBTUPW7QYJD3M23HO3KTFBDIZK4I4BNHG3OFEY6PFGORQDRKCZ2DCPR3GRH3O37DXRTHUCF6
+# \\ D4KC5ELNAUBCAZR4V35SXQXSJXZEPASTFOIRIIY6RSAW3Y43ARSE \\// C25519-BASE-32 //
+#  \\// IUCMBXAE7WGHYID7QYHBLQ57WDQODOC7N3BIJQCHAFKYF62OMDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

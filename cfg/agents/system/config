@@ -6,6 +6,7 @@
 access.cmd.usr.core = help heart name reload verify-instance list show-buffer \
                       top cpu-load mem-used reload_gfx_module pid_autokill \
                       cur-pid report-xserver-error \
+                      abort-reboot reenable-reboot \
                       keep-debug-loaded dump get set
 
 system.cleanup_on_startup = 1  # [ .., perform cleanup tasks from list in ]
@@ -30,10 +31,10 @@ mem.kill_min = 11 # % (memory usage before mem-alert based auto-kill is allowed)
 
 ### [ 'xserver' agent can notify on fatal protocol errors for mitigation ] ##
 ##
-#system.xserver_crash.perform_host_reboot = yes
-#system.xserver_crash.reboot_delay_secs = 7
-#system.xserver_crash.reboot_condition = [hostname-regex:^dashboard-system-\d+$]
- ##
+# system.xserver_crash.perform_host_reboot = yes
+# system.xserver_crash.reboot_delay_secs = 7
+# system.xserver_crash.reboot_condition = 'hostname-pattern:^some-hostname-\d+$'
+##
 ###
 
 modules.load = auth net io.ip system
