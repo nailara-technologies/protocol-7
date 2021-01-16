@@ -14,7 +14,7 @@ foreach my $agent_name (@_) {
     while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
         my $job_id = <[jobqueue.add_job]>->(
             {   'object_id'       => $obj_id,
-                'job_callback'    => 'agent.spawn',
+                'job_callback'    => 'agent.start',
                 'callback_params' => $agent_name,
                 'target_queue'    => $target_queue
             }
@@ -24,7 +24,7 @@ foreach my $agent_name (@_) {
 }
 
 # ______________________________________________________________________________
-#\\73ATEU7GWOVJHJQRGZHX3TUFN47AMS5YBWCMVAUSFTRMMR6AVLS4GTTUSR5ZIQJQUZJHC55FCCH36
-# \\ 5T5MCYTM2U747M52FC2TMBTMRW6CDX77EG6BUXVWTWUF2C3T3XAR \\// C25519-BASE-32 //
-#  \\// F46DBQ5ZVFIHLSKIRLR4DFFARL5DSL4JBOTGP7CZXIBVLUVFWAA \\ CODE SIGNATURE \\
+#\\WZLP5FN7XXWGZSXY5W3FOIBQYBSOTEPKF2MSGJEORD35QP4BOK73LUQJZPAZMQMAJGKV326EE6XFI
+# \\ SXAKXMZ544XMRUDUIP6LB6AOOIHDVYZRYDPDBCL6R5XKK6JXFWHH \\// C25519-BASE-32 //
+#  \\// Q4HGTW7YUN23XKGSSN3B3JKH4VNREXQUD77NCVWOYP2RE6UZ6CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
