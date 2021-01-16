@@ -12,7 +12,7 @@ $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 
 foreach my $job_id ( @{<jobqueue.joblist.depending.by_timestamp>} ) {
     my $job = <jobqueue.joblist.by_id>->{$job_id};
-    next if $job->{'name'} ne 'agent.spawn';
+    next if $job->{'name'} ne 'agent.start';
     my $job_agent_subname;
     my $job_agent_name = $job->{'callback_params'};
     $job_agent_subname = $1 if $job_agent_name =~ s|\[([^\]]+)\]$||;
@@ -26,7 +26,7 @@ foreach my $job_id ( @{<jobqueue.joblist.depending.by_timestamp>} ) {
 return $spawn_count;
 
 # ______________________________________________________________________________
-#\\QT62HYUEUBCNSSWLLTH65PVRGCZ5UI7MNLJ6YQGFHWRULMDSRFZVBRXDJOOUFREN7MCB24K7BAAIA
-# \\ Q4D5ZCSHYENMVX22CIEYWYSOHNXZIKWTTKZIIVLXAG7J4GRR4EPC \\// C25519-BASE-32 //
-#  \\// QOOHHQPMQ53AFDTEC4RHVCNDAWA2MOGDTHEJS72NMTSNQIFLQBQ \\ CODE SIGNATURE \\
+#\\TWNOBQDKVHALWV4APVEILZ77NKGEQ73MQ7AJJOAMWV65JQATXQISORCRKTMTPJ5YRIXQXHVB7BC34
+# \\ WWKBXAWETJ2V55ZJODIEMOLUA572FERE3WAB4NOUY7S74PIU4E7V \\// C25519-BASE-32 //
+#  \\// AHR7TUGDJTRZLDENNADC3AB6QX6Q3HZASFLEWZYQA5DT272CUBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
