@@ -5,11 +5,11 @@
 my $instance_id = shift->w->data;
 my $instance    = <nroot.agent.instance>->{$instance_id};
 $instance->{'heartbeat'}->{'errors'} //= 0;
-my $globals      = <nroot.spawn_config.globals> || {};
+my $globals      = <nroot.start_setup.globals> || {};
 my $agent_name   = $instance->{'agent_name'};
 my $root_sid     = $instance->{'root_sid'};
 my $core_sid     = $instance->{'core_sid'};
-my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
+my $agent_config = <nroot.start_setup.agents.config>->{$agent_name};
 my $timeout_secs
     = $agent_config->{'heartbeat'}->{'timeout'}
     || $globals->{'heartbeat'}->{'timeout'}
@@ -40,7 +40,7 @@ delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 # ______________________________________________________________________________
-#\\WKD2QBA5YCWF2TQLG6XFBGGLTGPUL55UC6ND5JQFGKS3Q64AJ6YVGY2OGRWL4Q6LLACSJKXO4EBKA
-# \\ PHNT732GTYKHWVZDBO2BW3CIELAZHNFIENEUP4MQPYRXPDXQJGQM \\// C25519-BASE-32 //
-#  \\// SCXHBAL2KWC75KSXA57TCQUOJTSINDNAFCQWY37DXMJEHWQ6CAI \\ CODE SIGNATURE \\
+#\\XANH4ZXLFXXPHT2YAAQ7MCOGQCYFBO64DUA3VNIR7TGH6M3NJUYG4IIVNZ7MFAMWDEBNBDM73VZHG
+# \\ YDAKYX25B5ZKSTQ26Q4FCJJMOYFA3LRC57GPMQYQJ3KOASVXSG2K \\// C25519-BASE-32 //
+#  \\// 5ET73P4XJZOTX2CS32TZ33WVS5FMFO5U5HSJLO2565FOQL2JQDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
