@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Math::BigFloat;
+use Digest::Elf qw| elf |;
+
+my %ANSI = (
+    'str'     => "\c[[1m",
+    'reset'   => "\c[[m",
+    'match_y' => "\c[[34m",
+    'match_n' => "\c[[33m",
+    'color_y' => "\c[[6m\c[[34m",
+    'color_n' => "\c[[6m\c[[1m",
+);
+
+Math::BigFloat->round_mode('trunc');
+
+my $check_string = join( ' ', @ARGV );
+my $elf_checksum = elf($check_string);
+
+my $un_harmonic = '230769';
+my $harmony     = join( '', map {ord} qw| T = 5 | );
+my $calc        = Math::BigFloat->new($elf_checksum);
+my $calc_str    = $calc->bdiv( 13, 20 );
+
+my $line_str = "\n < $calc_str > ";
+my $dot_pos  = index( $line_str, '.' ) - 1;
+$dot_pos = length($calc_str) if $dot_pos < -1;
+my $space = ' ' x $dot_pos;
+
+$line_str =~ s{($harmony)}{$ANSI{'match_y'}$1$ANSI{'reset'}}
+    or $line_str =~ s{($un_harmonic)}{$ANSI{'match_n'}$1$ANSI{'reset'}};
+
+$calc_str =~ s|^\d+\.||;
+
+my $result = '< ? >';
+if ( $calc_str =~ m|$harmony| or $calc_str =~ m|^0+$| ) {
+    $result = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
+} elsif ( $calc_str =~ m|$un_harmonic| ) {
+    $result = ">:|  [ $ANSI{'color_n'}not$ANSI{'reset'} harmonic. ]";
+}
+
+print "\n$space'$ANSI{'str'}$check_string$ANSI{'reset'}'  ==="
+    . "  $result\n$line_str\n\n";
+
+# ______________________________________________________________________________
+#\\7UG2PSHTQXUKX4FHWBJ6TUASUHA7XQBNPR4Z5VMW3HAANTZZJ5TUW2YVO5KHA3UYCJP6IDJHZRY62
+# \\ 36IEZJ3VMHXDQ2DEEOAWO4ADD4AHAPZZUMGBMOZFW2TNVL4BUVNG \\// C25519-BASE-32 //
+#  \\// YWKKL4HXAIFQVYAFAX52NLXOPNRZ7CAXOX4LX2Y77MKAC76GECI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
