@@ -5,11 +5,11 @@
 my ( $instance_id, $after, $interval ) = @_;
 die "no instance id specified" if not defined $instance_id;
 
-my $globals      = <nroot.spawn_config.globals> || {};
+my $globals      = <nroot.start_setup.globals> || {};
 my $instance     = <nroot.agent.instance>->{$instance_id};
 my $agent_id     = $instance->{'agent_id'};
 my $agent_name   = <nroot.agent.setup>->{$agent_id}->{'name'};
-my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
+my $agent_config = <nroot.start_setup.agents.config>->{$agent_name};
 
 my $status_timer_delay
     = $after // $agent_config->{'heartbeat'}->{'after'}
@@ -27,9 +27,9 @@ my $status_timer_interval
         . "[${status_timer_delay}s,int=$status_timer_interval]"
 );
 
-delete $agent_config->{'respawn'}   if !keys %{ $agent_config->{'respawn'} };
+delete $agent_config->{'restart'}   if !keys %{ $agent_config->{'restart'} };
 delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
-delete $globals->{'respawn'}        if !keys %{ $globals->{'respawn'} };
+delete $globals->{'restart'}        if !keys %{ $globals->{'restart'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 $instance->{'heartbeat'} //= {};
@@ -46,7 +46,7 @@ $instance->{'status_timer'} = <[event.add_timer]>->(
 );
 
 # ______________________________________________________________________________
-#\\2XCL6QU6KH4E2T44WDLDOXP6VBPUCHEHXP3EVR6ELKCXIP5ZALKN34HAEWAHXQ5RUZIF3JKLMP5QQ
-# \\ 3GARYQENLCDM3BRW3TRVXKXOWPMY4DKESDKXCDLQ7XLD7XTKIHMJ \\// C25519-BASE-32 //
-#  \\// EU24MMI5U4AC4GAMLS3GBEVAK5L42T7IIZ5PNPTCK5BUCJJUAAI \\ CODE SIGNATURE \\
+#\\TGZGEJG46PTJBAAKQFUAIZ46VXK3HSDTZXILZ3C3LSQBPWS5A4MYQHGHBEEMV35METTPUPXBBB6SQ
+# \\ 5XXU2NCNMAMRAJGF2IWBMKTK3573SEMHNILKUUEJUXP2L757DJSL \\// C25519-BASE-32 //
+#  \\// MXD2QJMTWYKAW7JLN4JTBVJJREFELXR2GWEG525BXL72IUZGADI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

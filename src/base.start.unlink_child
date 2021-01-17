@@ -1,11 +1,11 @@
 # >:]
 
-# name = base.spawn.unlink_child
+# name = base.start.unlink_child
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
-    <[base.log]>->( 1, "..spawning unlink child..," );
+    <[base.log]>->( 1, "..starting unlink child..," );
     my $child_code
         = 'map {$SIG{$_}="IGNORE"} ("INT","TERM","QUIT");'
         . ' $0 = "'
@@ -15,14 +15,14 @@ if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
     <process.unlink_child.pid>
         = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
         '-e', $child_code )
-        || die "unable to spawn perl unlink child process [$!]";
+        || die "unable to start perl unlink child process [$!]";
     <[base.log]>->(
-        2, ": spawned unlink child [pid=" . <process.unlink_child.pid> . "]"
+        2, ": started unlink child [pid=" . <process.unlink_child.pid> . "]"
     );
 }
 
 # ______________________________________________________________________________
-#\\NI4E3C5VF6HAU6MFH7MSGRPIY3E5I3HEOZZ5EL4LSESUFW67NSJSG3TJKCGBGSBTGDEEPKQ54D2SU
-# \\ PUPJL3LUJLIVZB4I6E4COB65IFHPNOIW54TFETOAWU7WZVYEKZEE \\// C25519-BASE-32 //
-#  \\// BD6FR3MDN3U3HOUHAUXRT7J4544MTH7FWPSSQCZBXTNZXCVVMBQ \\ CODE SIGNATURE \\
+#\\BTSRC64Z4B3ACGZWENZF2IX27MWWBBOEEZ7LAHI6G5AAHEYXPYFDVYFXYHXV35LGVFGALBPCWKP6Y
+# \\ FW6KN4BKPFCZBSA74MKADL42YISMLFM5CDNSJJREHCRBPHH42TZV \\// C25519-BASE-32 //
+#  \\// YPIUUQ6A3J33A3JURCGOEUVGSQXEHTZZDVWQGG4RCMURBGUQWAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

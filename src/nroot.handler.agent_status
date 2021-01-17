@@ -17,7 +17,7 @@ return <[base.log]>->(
     if not exists <nroot.agent.instance>
     or not exists <nroot.agent.instance>->{$instance_id};
 
-my $globals  = <nroot.spawn_config.globals> || {};
+my $globals  = <nroot.start_setup.globals> || {};
 my $instance = <nroot.agent.instance>->{$instance_id};
 
 my $old_status   = $instance->{'status'} // $status;
@@ -25,22 +25,22 @@ my $agent_id     = $instance->{'agent_id'};
 my $object_id    = <[agent.get_object_id]>->($agent_id);
 my $agent_name   = <nroot.agent.setup>->{$agent_id}->{'name'};
 my $job_id       = $instance->{'job_id'};
-my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
+my $agent_config = <nroot.start_setup.agents.config>->{$agent_name};
 
 # some cleanup
-delete $agent_config->{'respawn'}   if !keys %{ $agent_config->{'respawn'} };
+delete $agent_config->{'restart'}   if !keys %{ $agent_config->{'restart'} };
 delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
-delete $globals->{'respawn'}        if !keys %{ $globals->{'respawn'} };
+delete $globals->{'restart'}        if !keys %{ $globals->{'restart'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 # initialize timer defaults
-$instance->{'respawn_delay'}
-    //= $agent_config->{'respawn'}->{'min_delay'}
-    || $globals->{'respawn'}->{'min_delay'}
-    || 0.05;    # <-- minimum respawn delay default (in seconds)
-my $max_respawn_delay
-    = $agent_config->{'respawn'}->{'max_delay'}
-    || $globals->{'respawn'}->{'max_delay'}
+$instance->{'restart_delay'}
+    //= $agent_config->{'restart'}->{'min_delay'}
+    || $globals->{'restart'}->{'min_delay'}
+    || 0.05;    # <-- minimum restart delay default (in seconds)
+my $max_restart_delay
+    = $agent_config->{'restart'}->{'max_delay'}
+    || $globals->{'restart'}->{'max_delay'}
     || 300;     # <-- 5 minutes (internal default)
 my $status_timer_delay
     = $agent_config->{'heartbeat'}->{'after'}
@@ -85,7 +85,7 @@ delete $instance->{'core_sid'}
     and ( $old_status eq 'online' or $old_status eq 'extbin' );
 
 # 'nroot-post-init' code
-my $init_code = <nroot.spawn_config.agents.startup.init_code>->{$agent_name};
+my $init_code = <nroot.start_setup.agents.startup.init_code>->{$agent_name};
 if ( ( $status eq 'online' or $status eq 'extbin' )
     and exists $init_code->{'nroot-post-init'} ) {
     <[base.log]>->( 2, "'$agent_name'-agent post-init-code.." );
@@ -133,22 +133,22 @@ if (    $status ne 'starting'
 }
 
 if ( $old_status ne 'error' and $status eq 'error' ) {
-    $instance->{'respawn_delay'}
-        = sprintf( "%.2f", $instance->{'respawn_delay'} * 1.2 );
-    $instance->{'respawn_delay'}
-        = sprintf( "%.1f", $instance->{'respawn_delay'} )
-        if $instance->{'respawn_delay'} > 10;
-    $instance->{'respawn_delay'}
-        = sprintf( "%.0f", $instance->{'respawn_delay'} )
-        if $instance->{'respawn_delay'} > 20;
+    $instance->{'restart_delay'}
+        = sprintf( "%.2f", $instance->{'restart_delay'} * 1.2 );
+    $instance->{'restart_delay'}
+        = sprintf( "%.1f", $instance->{'restart_delay'} )
+        if $instance->{'restart_delay'} > 10;
+    $instance->{'restart_delay'}
+        = sprintf( "%.0f", $instance->{'restart_delay'} )
+        if $instance->{'restart_delay'} > 20;
 }
-$instance->{'respawn_delay'} = $max_respawn_delay
-    if $instance->{'respawn_delay'} > $max_respawn_delay;
+$instance->{'restart_delay'} = $max_restart_delay
+    if $instance->{'restart_delay'} > $max_restart_delay;
 if (    $status ne 'online'
     and $status ne 'extbin'
-    and exists $instance->{'timer'}->{'reset_respawn_delay'} ) {
-    $instance->{'timer'}->{'reset_respawn_delay'}->cancel;
-    delete $instance->{'timer'}->{'reset_respawn_delay'};
+    and exists $instance->{'timer'}->{'reset_restart_delay'} ) {
+    $instance->{'timer'}->{'reset_restart_delay'}->cancel;
+    delete $instance->{'timer'}->{'reset_restart_delay'};
 }
 
 # instance startup error hooks
@@ -167,9 +167,9 @@ if (    $old_status ne 'online'
 }
 
 if (    $status eq 'offline'
-    and defined $agent_config->{'respawn'}->{'disabled'}
-    and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
-    <[base.log]>->( 1, ": no auto-respawn for instance $instance_id" );
+    and defined $agent_config->{'restart'}->{'disabled'}
+    and $agent_config->{'restart'}->{'disabled'} == 1 ) {
+    <[base.log]>->( 1, ": no auto-restart for instance $instance_id" );
     <[agent.cmd.stop]>->( { 'args' => $instance_id, 'mode' => 'implicit' } );
     return;
 }
@@ -220,8 +220,8 @@ foreach my $name_or_id (@check_keys) {
             } @{ <nroot.agent.notify_online>->{$name_or_id} };
         } elsif ( $status =~ /^(online|extbin|error)$/
             or $status eq 'offline'
-            and defined $agent_config->{'respawn'}->{'disabled'}
-            and $agent_config->{'respawn'}->{'disabled'} == 1 ) {
+            and defined $agent_config->{'restart'}->{'disabled'}
+            and $agent_config->{'restart'}->{'disabled'} == 1 ) {
             while ( my $reply_id
                 = shift @{ <nroot.agent.notify_online>->{$name_or_id} } ) {
                 my $startup_reply_mode
@@ -256,8 +256,8 @@ foreach my $name_or_id (@check_keys) {
     }
 }
 
-# delayed respawning on startup error [ .. slowing down with errors .., ]
-<[nroot.init_respawn_timer]>->($instance_id)
+# delayed restarting on startup error [ .. slowing down with errors .., ]
+<[nroot.init_restart_timer]>->($instance_id)
     if defined $target_queue
     and $target_queue eq 'queued'
     and !<[nroot.instance_pid_count]>->($instance_id);
@@ -291,10 +291,10 @@ if ( $status eq 'shutdown'
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
-    $instance->{'timer'}->{'reset_respawn_delay'} = <[event.add_timer]>->(
+    $instance->{'timer'}->{'reset_restart_delay'} = <[event.add_timer]>->(
         {   'repeat'  => 0,
             'after'   => 4.2,
-            'handler' => 'nroot.handler.reset_respawn_delay',
+            'handler' => 'nroot.handler.reset_restart_delay',
             'data'    => $instance_id
         }
     );
@@ -347,7 +347,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\SIM77RQ4DHOKYELYHUHD5ZXYHUKHW6AZFW3VJQJ6GGWKFMSQ6VZ4GTQBWIKI552IYPI6T6D265YII
-# \\ 5QA7XHQ77G3ZE4JIP2KWMK3KGTX77XAO2O3QPBKEDIVRJNQ3O7TL \\// C25519-BASE-32 //
-#  \\// NWWM5FBJ6MXWKV44CXWRCLAMAZNWPI5SCXBFVBSMHKLJJKNOQDA \\ CODE SIGNATURE \\
+#\\QXCDXXEB6ZIAEKUDJINCTO773TZPZKDX7TYYZQHULWICDHFF7T7JNIWNC47GWMEBANZOEJB5BYGS6
+# \\ 5VVSFVVOOQHO24T5JNEX2G27NH4ON7LRD35EZQKDPVURGXKV7GHZ \\// C25519-BASE-32 //
+#  \\// 7NDFGQ2552RG72PKQ5OSU5NKZF67MSEXPAZ2WHHYKZFYLHPLOAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
