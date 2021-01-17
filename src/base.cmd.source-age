@@ -11,7 +11,7 @@ my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
 
 my $current_time = time;
 my $c_year_float = <[base.time.year_utc_float]>->($current_time);
-my $s_year_float = $1 if <nailara.source_version> =~ m|^(\d+(\.\d+)?)\-|;
+my $s_year_float = $1 if <protocol-7.source-version> =~ m|^(\d+(\.\d+)?)\-|;
 
 if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
     and length($param_str) ) {   # <-- no second param for non-core type agents.
@@ -24,7 +24,7 @@ if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
 } elsif ( length($param_str) ) {
     return {
         'mode' => 'nak',
-        'data' => "invalid version timestamp syntax [ see 'source_version' ]"
+        'data' => "invalid version timestamp syntax [ see 'source-version' ]"
     };
 }
 
@@ -47,7 +47,7 @@ return { 'mode' => 'ack', 'data' => $date_stamp . $e_str } if $date_mode;
 return { 'mode' => 'ack', 'data' => $duration_str . $e_str }
 
 # ______________________________________________________________________________
-#\\3MDAN55JMJFUEGIQKOYSWIZTOFMYZD2OUVFDV5I2Y4FQXCYHQHRL5HOW7AE3IKIKDWR3W6IWBITJ4
-# \\ VMKE4O3YBGPDMNATFHBQ7MDDOGZDMIDQUHVI7LXL7R33MUCG6SPK \\// C25519-BASE-32 //
-#  \\// QQHYDNTQNBO5WYFOSZFXX6EKYAFZFLBCTLDIK7XYMCC6NBAO2BA \\ CODE SIGNATURE \\
+#\\RYKZJIIIZJRLUQJBYRP64X5DSIW35QZHLBVVYCMSIXDNINRR7LY4WF5JMVXRGMQH2LD2NDKSYQPWQ
+# \\ RW3ZNFFB5EEGRY66LLUYPFXR5ISPY76QYR72LJLST5XWIMI4US7L \\// C25519-BASE-32 //
+#  \\// M63W2WIRFNPC6RGRJKDYSC2NDEM5TJQYUMO7ADBPLNRQTJ634BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

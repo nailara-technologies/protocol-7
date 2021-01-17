@@ -29,9 +29,9 @@ $code{'base.load_code'}->('base');
 
 my $agentname;
 
-if ( $0 =~ m|^.*nailara\.| ) {
+if ( $0 =~ m|^.*protocol-7\.| ) {
     $agentname = lc($0);
-    $agentname =~ s|^.*nailara\.||g;
+    $agentname =~ s|^.*protocol-7\.||g;
 } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
     $agentname = $1;
     shift(@ARGV);
@@ -58,7 +58,7 @@ if ( defined $agentname and $agentname ne '' ) {
     if ( !@ARGV or not defined $data{'system'}{'agent'}{'name'} ) {
         $data{'system'}{'agent'}{'name'} = '<stdin>';
     }
-    $0 = "nailara.$data{'system'}{'agent'}{'name'}";
+    $0 = "protocol-7.$data{'system'}{'agent'}{'name'}";
     $/ = "\n";
 
     my @agent_code = <STDIN>;
@@ -189,25 +189,26 @@ sub prepare_subs {
         $data{'base'}{'httpc'}{'last_mlen'}  //= 80;
         $data{'buffer'}{'agent'}{'max_size'} //= 64 * 1024;    # 64K log-buffer
 
-        my $ver_str = $data{'nailara'}{'source_version'} = 'unknown';
+        my $ver_str = $data{'protocol-7'}{'source-version'} = 'unknown';
         my $version_file
-            = catfile( $data{'system'}{'conf_path'}, 'nailara.source_version' );
+            = catfile( $data{'system'}{'conf_path'},
+            'protocol-7.source-version' );
         if ( -e $version_file and open( my $ver_fh, '<' . $version_file ) ) {
-            ( $data{'nailara'}{'source_version'} = $ver_str = <$ver_fh> )
+            ( $data{'protocol-7'}{'source-version'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
         }
         my $release_file = catfile( $data{'system'}{'conf_path'},
-            'nailara.release_version' );
+            'protocol-7.release-version' );
         if ( -e $release_file and open( my $ver_fh, '<' . $release_file ) ) {
-            ( $data{'nailara'}{'release_version'} = $ver_str = <$ver_fh> )
+            ( $data{'protocol-7'}{'release-version'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
         }
-        if ( $0 =~ m|^.*nailara\.| ) {
+        if ( $0 =~ m|^.*protocol-7\.| ) {
             $data{'system'}{'agent'}{'initialized'} = 0;
             $data{'system'}{'agent'}{'name'}        = lc($0);
-            $data{'system'}{'agent'}{'name'} =~ s,^.*nailara\.|[\. ]$,,g;
+            $data{'system'}{'agent'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
         } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
             my $agent_name = $1;
             $data{'system'}{'agent'}{'subname'} = $1
@@ -262,7 +263,7 @@ sub prepare_subs {
         }
         $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
             if $stdin_mode;
-        $data{'system'}{'node'}{'name'} = hostname() // 'nailara';
+        $data{'system'}{'node'}{'name'} = hostname() // 'protocol-7';
         $data{'system'}{'node'}{'name'} =~ s|\..+$||;
 
         if ( $data{'system'}{'ansi_color'} ) {
@@ -302,7 +303,7 @@ sub prepare_subs {
 
     $code{'base.banner'} = sub {
         my $version_str = sprintf( " \\ protocol-seven version \\ %s \\",
-            $data{'nailara'}{'source_version'} );
+            $data{'protocol-7'}{'source-version'} );
         local $/ = undef;
         open( my $banner_fh,
             catfile( $data{'system'}{'conf_path'}, '.banner' ) )
@@ -948,7 +949,7 @@ sub prepare_subs {
                 $code{'base.anum_log_time'}->()
                     . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
                 $code{'base.anum_log_time'}->()
-                    . " 1 VERSION '$data{nailara}{source_version}'"
+                    . " 1 VERSION '$data{'protocol-7'}{'source-version'}'"
             );
         }
         return ( $ok_count, $err_count );
@@ -1120,7 +1121,7 @@ sub prepare_subs {
             if ( $err[0] =~ m|^Deep recursion | ) {
                 no warnings 'recursion';    # no follow-ups
                 my $msg = join( ' ', '<< FATAL >>', @err );
-                undef $code{'base.log'} if $err[0] =~ m{$0|nailara};
+                undef $code{'base.log'} if $err[0] =~ m{$0|protocol-7};
                 $code{'log.error'}->($msg);
                 exit(2);
             }
@@ -1184,7 +1185,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\L7BUOUWLIFIJTFN6OMD2NUWBLCWJGDKEBMMPCLLPAEPTUAIKVOFEVAAE22PTYATZUGOULYHX6RUYW
-# \\ EKZOA7XR4YIMLKX6ONFLI7UDIDFP5ICETIXJOVQUAXAVHL4O7IEU \\// C25519-BASE-32 //
-#  \\// 4X33XUJ753AZAUAHSDQEAMWVB27VC3MK26NBQWWJZZ3MMNLLIBA \\ CODE SIGNATURE \\
+#\\MCX47LCE72Q5BGMG6KDE55Z6VSLRQ4UCSBGYZDIZME5SPR3THKT3STXKBHWHGOJ22OONR6HHIGHXI
+# \\ IJQS4NYPIG4367XRBAJMEAFCK65LWJCPAG4JPSVKL4VAZF5FFR2F \\// C25519-BASE-32 //
+#  \\// HYYTH7NTOH4KH5ADYLZPIJXSEFSYUH3DEHGLWOIECQU2YSWTWCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
