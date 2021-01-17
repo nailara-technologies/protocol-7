@@ -1,12 +1,12 @@
 # >:]
 
-# name = system.process.post_init
+# name  = system.process.post_init
 
 <process.poll.interval> //= 7;
 <system.path.perl_bin>  //= <[base.get_path.perl_exec]>;
 
 if ( not exists <process.kill_child.w_fh> ) {
-    <[base.log]>->( 1, "spawning kill child..." );
+    <[base.log]>->( 1, "starting kill child..," );
     my $child_code
         = '$0 = "'
         . <system.agent.name>
@@ -15,7 +15,7 @@ if ( not exists <process.kill_child.w_fh> ) {
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
         <system.path.perl_bin>, '-e', $child_code )
-        || die "unable to spawn perl kill child process [$!]";
+        || die "unable to start perl kill child process [$!]";
 
     <[base.log]>->(
         1, ": child process started [pid=" . <process.kill_child.pid> . "]"
@@ -34,7 +34,7 @@ if ( not exists <process.kill_child.w_fh> ) {
 0;
 
 # ______________________________________________________________________________
-#\\RAWWFYBKR5D4UJIKAFO4CZ6DLT2TUJYLRMZGGRSIAH5TRQENFQ65N5NDSCNQ2XUDXFEJ6F2IOU37Y
-# \\ E2L6IINNOTETC24PIQ6IJ5YL6ZSOE4OQ66GAOCZMDICQINGC6XOE \\// C25519-BASE-32 //
-#  \\// AHFWQJ7IYGHOTHWRBKSDV2HMLQVRA63BKMR66MK23X74GOBEWAQ \\ CODE SIGNATURE \\
+#\\YSZO3BVH3ZY7ADCUZ72WXIVFNQOSOLPZMQDYKVRTIXFH6TIICPD6J3RG6C3RB5IOPZOPF3YJEN5YO
+# \\ PZLHB7ZMFIM6RYXXA7GGX7UFXBC66BBLZLGT37TDGJFDEN5YSHNB \\// C25519-BASE-32 //
+#  \\// CGRSRSR4Q4GHIQJG5PY2WT7FPREB7JHAJ4K6XZTIUVJQZDIW6BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

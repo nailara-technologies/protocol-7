@@ -1,9 +1,7 @@
 # >:]
 
-# name  = spawn-config.example
-# descr = defines minimal example ['nroot'] agent startup configuration
-# note  = ... most of what was here is now in the agent subdirectories ...
-
+# name  = start-setup.basic
+# descr = defines a basic ['nroot'] agent startup configuration
 
 .: globals :.
 
@@ -13,15 +11,14 @@
 
 .: agents :.
 
-
 #
-## config data being imported from 'agents/<agent_name>/agent-startup.nroot' ###
+## specific configuration imported : agents/<agent_name>/agent-startup.nroot ###
 #
 
   - dist-upgrade
 
       max_concurrency     = 1
-      respawn.disabled    = 1
+      restart.disabled    = 1
       heartbeat.disabled  = 1
 
       : nroot-init :

@@ -1,44 +1,44 @@
 # >:]
 
-# name = nroot.init_spawn_config
+# name = nroot.init_start_setup
 
-my $spawn_config_data = shift // [];
+my $start_setup_data = shift // [];
 
 <[base.execute_agent_code]>->(
     <[base.parser.config]>->(
-        shift( @{$spawn_config_data} )->{'globals'},
-        qw( <nroot.spawn_config.globals> )
+        shift( @{$start_setup_data} )->{'globals'},
+        qw( <nroot.start_setup.globals> )
     )
 );
 
 my $agents_init_code;
 while ( not defined $agents_init_code ) {    # skip other sections
-    $agents_init_code = shift( @{$spawn_config_data} )->{'agents'};
+    $agents_init_code = shift( @{$start_setup_data} )->{'agents'};
 }
 
-<nroot.spawn_config.agents.startup.init_code> //= {};
-<nroot.spawn_config.agents.startup.spawn_order> = [];
+<nroot.start_setup.agents.startup.init_code> //= {};
+<nroot.start_setup.agents.startup.start_order> = [];
 
 foreach my $agent_element ( @{$agents_init_code} ) {
 
     if ( ref($agent_element) ne 'HASH' ) {
         <[base.log]>->(
             0,
-            ": : spawn cfg syntax error: '$agent_element'"
+            ": : start cfg syntax error: '$agent_element'"
                 . " ( expected \" - <agent_name>\" )"
         );
         next;
     }
 
     my ( $agent_name, $agent_init_code ) = each %{$agent_element};
-    push( @{<nroot.spawn_config.agents.startup.spawn_order>}, $agent_name )
+    push( @{<nroot.start_setup.agents.startup.start_order>}, $agent_name )
         if <[agent.is_enabled]>->($agent_name);
     my @config_code;
     foreach my $config_element ( @{$agent_init_code} ) {
 
         if ( ref($config_element) eq 'HASH' ) {    # : init code section :
             my ( $init_keyword, $init_code ) = each %{$config_element};
-            <nroot.spawn_config.agents.startup.init_code>
+            <nroot.start_setup.agents.startup.init_code>
                 ->{$agent_name}->{$init_keyword} = $init_code;
         } else {
             push( @config_code, $config_element );    # (agent) config section
@@ -47,14 +47,14 @@ foreach my $agent_element ( @{$agents_init_code} ) {
     <[base.execute_agent_code]>->(
         <[base.parser.config]>->(
             \@config_code,
-            qw(<nroot.spawn_config.agents.config>) . "{'$agent_name'}"
+            qw| <nroot.start_setup.agents.config> | . "{'$agent_name'}"
         )
     );
-    <nroot.spawn_config.agents.config>->{$agent_name} //= {};
+    <nroot.start_setup.agents.config>->{$agent_name} //= {};
 }
 
 # ______________________________________________________________________________
-#\\TNNXWPT7X3JLTGW3RZIJKTKBHZPPOZT7AXK2QOIW2AELREGDOVWPOQIO3G7Y4OOVDI2ZSQWUMYHUG
-# \\ BTYK2BHN56SWCKDEIUMNB4OSE4FPUOSGTR75Y7VDPHHG5GAZGDEA \\// C25519-BASE-32 //
-#  \\// HFJX7AZUS5STUI7OC76PRAQDZBMHH7JAMB2J6OC77AVIWB5ZMAA \\ CODE SIGNATURE \\
+#\\NOOICJUXB2VCMO5Y3SOJTYF7YDE3ZJTLM75UYMYPUR5LQ6TGEA5FM5AGT6PA7OUUCEPHZAGTRREVA
+# \\ 7S2OQFLYUI35YOSSR2NKEXGL463EKJOSSEXYP7JEJFAAPPSUJ7TL \\// C25519-BASE-32 //
+#  \\// 7URHPOOC2T3BZCDGNU5ZKHSHVJAXMRMI5PRCZ2FI5GWOUYC34CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,7 +1,7 @@
 # >:]
 
 # name = nroot.agent.start
-# descr = spawn nailara agent and add it to process maintenance table
+# descr = start nailara agent and add it to process maintenance table
 
 my $job_id     = $_[0]->{'job_id'};
 my $agent_name = $_[0]->{'params'};
@@ -11,7 +11,7 @@ my $agent_subname;
 $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
 die "no agent name supplied" if not defined $agent_name;
-my $init_code = <nroot.spawn_config.agents.startup.init_code>->{$agent_name};
+my $init_code = <nroot.start_setup.agents.startup.init_code>->{$agent_name};
 my $instances = <nroot.agent.instance>;
 my $agent_id  = <[agent.get_id]>->($agent_name);
 
@@ -40,7 +40,7 @@ my $namespace_str
     = "\$data{'nroot'}{'agent'}{'instance'}{$instance_id}{'init_data'}";
 if ( exists $init_code->{'nroot-init'} ) {
     <[base.log]>->(
-        2, "executing spawn init-code for instance $instance_id [$agent_name]"
+        2, "executing start init-code for instance $instance_id [$agent_name]"
     );
     my @root_init_code = <[base.parser.config]>
         ->( $init_code->{'nroot-init'}, $namespace_str );
@@ -159,7 +159,7 @@ my $agent_verbosity
     = <system.verbosity.console> || 1;    # -v is min. [a. output patterns]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, "spawning of agent '$agent_sn_str' initiated ..," );
+<[base.log]>->( 1, "starting of agent '$agent_sn_str' initiated ..," );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
@@ -190,7 +190,7 @@ if ( not defined $pid or $@ ) {
     <[base.log]>->(
         0,
         join( '',
-            "unable to spawn agent '$agent_name'",
+            "unable to start agent '$agent_name'",
             $err_reason, " [ $err_msg ]" )
     );
     <[agent.change_status]>->( $instance_id, 'error' );
@@ -239,10 +239,10 @@ if ($stdin_mode) {
 }
 close($in_fh);    # no more use for agent stdin handle (for now)
 
-<[base.log]>->( 1, "agent '$agent_sn_str' spawned [ pid : $pid ]" );
+<[base.log]>->( 1, "agent '$agent_sn_str' started [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\4NE2UMG5AUADJT2TOK4B5Q7SP2LNFAXJSC4J2S54H2EHIXRPQ2TT4WEDLFPNZW457RS2HQR54LN5G
-# \\ BJCETJYWNH57F5OPKRJKFAKA6VGFFNSG6KQ2RZHOKBBJS4Z7H6V5 \\// C25519-BASE-32 //
-#  \\// RBWX5OVXCZJJQWP4VD3QBLAROXCZJGCEYDF3JJ362CEUUEDLCBQ \\ CODE SIGNATURE \\
+#\\UBJWFC4AFPECQW53WNKKGZOTDTWH3AVXUFFOKOMXFLB5OYP6TILR53QRSXCHSW7GT6JMYAAHFBVVA
+# \\ HNNLT6BGXMBOD4XIQTXHA2DI6JP2JE55NY53J3A47UQ3OE5UY2AB \\// C25519-BASE-32 //
+#  \\// IWI6CDOBGA2TT3UDKTHSJDUBFIURKRQVFS2KQ2I6DOUPUTPUGDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

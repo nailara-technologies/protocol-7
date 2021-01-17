@@ -2,7 +2,7 @@
 
 # name  = nroot.agent.cmd.start
 # param = <agent-id|name>
-# descr = spawn a new agent instance
+# descr = start a new agent instance
 
 my $agent_id;
 my $agent_name;
@@ -48,10 +48,10 @@ if ( $$call{'args'} =~ /^\d+$/ ) {
     }
 }
 
-my $agent_config = <nroot.spawn_config.agents.config>->{$agent_name};
+my $agent_config = <nroot.start_setup.agents.config>->{$agent_name};
 return {
     'mode' => 'nak',
-    'data' => "spawn config contains no agent named '$agent_name'"
+    'data' => "start setup contains no agent named '$agent_name'"
     }
     if not defined $agent_config;
 
@@ -67,15 +67,15 @@ return {
     }
     if $once
     and ( defined $agent_subname
-    and <[nroot.spawn_count]>->( $agent_name . "[$agent_subname]" )
-    or not defined $agent_subname and <[nroot.spawn_count]>->($agent_name) );
+    and <[nroot.start_count]>->( $agent_name . "[$agent_subname]" )
+    or not defined $agent_subname and <[nroot.start_count]>->($agent_name) );
 
 return {
     'mode' => 'nak',
     'data' => "reached configured maximum concurrency for agent '$agent_name'"
     }
     if exists $agent_config->{'max_concurrency'}
-    and <[nroot.spawn_count]>->($agent_name)
+    and <[nroot.start_count]>->($agent_name)
     >= $agent_config->{'max_concurrency'};
 
 if ( defined $agent_subname
@@ -84,7 +84,7 @@ if ( defined $agent_subname
         'mode' => 'nak',
         'data' => "maximum concurrency reached for $agent_name\[$agent_subname]"
         }
-        if <[nroot.spawn_count]>->( $agent_name . "[$agent_subname]" )
+        if <[nroot.start_count]>->( $agent_name . "[$agent_subname]" )
         >= $agent_config->{'max_subname_concurrency'};
 }
 
@@ -97,7 +97,7 @@ return {
 
 delete <nroot.agent.manually_stopped>->{$agent_name} if $start_mode eq 'manual';
 
-<[base.log]>->( 1, "spawning agent '$agent_name' .," ) if !$recursion;
+<[base.log]>->( 1, "starting agent '$agent_name' .," ) if !$recursion;
 
 my $dep_str      = <[agent.get_dependencies]>->($agent_name);
 my @dependencies = defined $dep_str ? split( / +/, $dep_str ) : ();
@@ -119,9 +119,9 @@ foreach my $dep_name (@dependencies) {
         $start_name_str .= "[$agent_subname]"
             if defined $agent_subname
             and defined
-            <nroot.spawn_config.agents.config>->{$dep_name}->{'inherit_subname'}
-            and <nroot.spawn_config.agents.config>
-            ->{$dep_name}->{'inherit_subname'};
+            <nroot.start_setup.agents.config>->{$dep_name}->{'inherit_subname'}
+            and
+            <nroot.start_setup.agents.config>->{$dep_name}->{'inherit_subname'};
 
         my $reply = <[agent.cmd.start_once]>
             ->( { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
@@ -133,7 +133,7 @@ foreach my $dep_name (@dependencies) {
         if not exists <nroot.agent.autostart>->{$dep_name};
 }
 
-<nroot.spawn_config.globals.agents.enabled> .= ' ' . $agent_name
+<nroot.start_setup.globals.agents.enabled> .= ' ' . $agent_name
     if !<[agent.is_enabled]>->($agent_name);
 
 if ( not defined $agent_id ) {
@@ -162,7 +162,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\AP7LXGJBHNJJNLK2ZB2QWWJ43EWSOBZ3BQDTEZITMCVM63T7DULU3UWR4MKY5EX2GVSEQ4CS2PJAK
-# \\ NYVX5GT2X2IVINS7KLO3LQ7BGKSOILUDCKQ6YD4BRKE5JN4HW5WN \\// C25519-BASE-32 //
-#  \\// XYOVXYZ7YMHUDKB3WYWX2NODWAZVX5HCAJU6G4NITNHRKF4SECY \\ CODE SIGNATURE \\
+#\\IBUX7TVTFKLQV3OV6R3LUGVXD5W44RYJCY32JUDLT4IPU3KMO2L7NF5CFSNSZDZFZ7EIO6HRB2K5Q
+# \\ O3MFTI45KGCCLY63WT6TS7RVMTRDDEHKGB443YWJAPTGHFCDCEST \\// C25519-BASE-32 //
+#  \\// HTNPETQNESB6PNGHR4QKBDK2I4SUYLNXY7J44DATOJ752YNO6CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -17,7 +17,7 @@
 
 <nroot.agent.notify_online>    //= {};
 <nroot.agent.manually_stopped> //= {};
-<nroot.cfg_data.spawn_config>  //= [];
+<nroot.cfg_data.start_setup>   //= [];
 
 <nroot.host-reboot.enabled>        //= 1;
 <nroot.host-reboot.term_delay>     //= 1.3787;
@@ -42,9 +42,9 @@ if ( !-x <nroot.gcc_bin> ) {
     <nroot.gcc_bin> = undef;
     <[base.log]>->( 0, "<!> 'gcc' binary not found <!>" )
         if defined <nroot.cfg.install_bin_nlr>
-        and <nroot.cfg.install_bin_nlr> =~ /^(1|yes)$/;
+        and <nroot.cfg.install_bin_nlr> =~ m{^(1|yes)$};
 } elsif ( defined <nroot.cfg.install_bin_nlr>
-    and <nroot.cfg.install_bin_nlr> =~ /^(1|yes)$/
+    and <nroot.cfg.install_bin_nlr> =~ m{^(1|yes)$}
     and not <[nroot.bin_nlr_is_current]> ) {
     <[nroot.compile_bin_nlr]>;
 }
@@ -62,17 +62,17 @@ if ( !-x <nroot.rmmod_bin> ) {
 }
 
 # single named file based startup configuration ##
-<[nroot.load_spawn_config]>->(<load.spawn_config>)
-    if defined <load.spawn_config>;
+<[nroot.load_start_setup]>->(<load.start_setup>)
+    if defined <load.start_setup>;
 
 ## agent dir based startup configs #
 <[nroot.load_agent_startup_cfgs]>;
 
 # json based configuration import ##
-<[settings.json.import_file]>->('nroot.spawn_config.json');
+<[settings.json.import_file]>->('nroot.start_setup.json');
 
-map { <[nroot.init_spawn_config]>->($_) }
-    @{ clone(<nroot.cfg_data.spawn_config>) };
+map { <[nroot.init_start_setup]>->($_) }
+    @{ clone(<nroot.cfg_data.start_setup>) };
 
 if (    exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
@@ -81,9 +81,8 @@ if (    exists <system.subs_loaded.debug>
     <[base.perlmod.autoload]>->('Data::Dumper');
     $Data::Dumper::Sortkeys = 1;
 
-    ( my $debug_str = Dumper(<nroot.spawn_config.globals>) )
-        =~ s/^.{7}|;$/  /mg;
-    print "\n < nroot.spawn_config.globals >\n\n$debug_str\n";
+    ( my $debug_str = Dumper(<nroot.start_setup.globals>) ) =~ s,^.{7}|;$,  ,mg;
+    print "\n < nroot.start_setup.globals >\n\n$debug_str\n";
 }
 
 <[event.add_signal]>
@@ -182,7 +181,7 @@ delete <list.users>;
 return 0;
 
 # ______________________________________________________________________________
-#\\W75QNUAFPJ2OLZZDNHSI5SI3SYG2ENMB5ABTXNAIBMTXMH7NPNSF3HGA3FW6AJOAYYVZGWJH7DGUM
-# \\ YXBZT6SSJPALT3O67RUMEGUPJ5P7WGFDPJEUEDXKBWXHMUZOPING \\// C25519-BASE-32 //
-#  \\// I2VPDGRN3Z3BDHLIKAFT4X5MMUJSAP52ZMINURQCQG2JM7ZPMCQ \\ CODE SIGNATURE \\
+#\\3XAF5U5X4LECEL5CN3MJA7T7MGVUSHMOSFWTHBN5SP2EWKWHYJ6VNR6EUV2WUM2633ZUQCC4S6PZY
+# \\ HW4SYBHTPS5BKSSCUJCKFZUR5BAQBZIEUIWQLN4YVITDXKCRFP6D \\// C25519-BASE-32 //
+#  \\// PGAII2HXAHNAV3HJP5O3W4XZN43ZXUE55WAFAAMYHN6YWHKQGDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

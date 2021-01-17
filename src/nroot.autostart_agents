@@ -4,12 +4,12 @@
 # descr = initialize agents for automatic / immediate startup
 
 foreach my $agent_name (@_) {
-    my $agent_config   = <nroot.spawn_config.agents.config>->{$agent_name};
+    my $agent_config   = <nroot.start_setup.agents.config>->{$agent_name};
     my $agent_id       = <[agent.get_id]>->($agent_name);
     my $obj_id         = <[agent.get_object_id]>->($agent_id);
     my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
-    my $instance_count = $agent_config->{'spawn'}->{'instances'} || 1;
-    delete $agent_config->{'spawn'} if !keys %{ $agent_config->{'spawn'} };
+    my $instance_count = $agent_config->{'start'}->{'instances'} || 1;
+    delete $agent_config->{'start'} if !keys %{ $agent_config->{'start'} };
 
     while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
         my $job_id = <[jobqueue.add_job]>->(
@@ -24,7 +24,7 @@ foreach my $agent_name (@_) {
 }
 
 # ______________________________________________________________________________
-#\\WZLP5FN7XXWGZSXY5W3FOIBQYBSOTEPKF2MSGJEORD35QP4BOK73LUQJZPAZMQMAJGKV326EE6XFI
-# \\ SXAKXMZ544XMRUDUIP6LB6AOOIHDVYZRYDPDBCL6R5XKK6JXFWHH \\// C25519-BASE-32 //
-#  \\// Q4HGTW7YUN23XKGSSN3B3JKH4VNREXQUD77NCVWOYP2RE6UZ6CY \\ CODE SIGNATURE \\
+#\\35BVCMZZIG773GHWODSRBBZ3CS67CIVE7Z7AO3NROCYJN52DCEPO7S2L2UIDP55LLAU42L43ZOBFS
+# \\ NZWPBJM7MEIF6D66UUOSO7R575AOKAVYKGH6X7LXOCFO6DSZCOHQ \\// C25519-BASE-32 //
+#  \\// 6UDKWZWUWUBNBIAVMJ54ELAEIMEPCMR56A5ZAQUEXFTJOI3A6BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

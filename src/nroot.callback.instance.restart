@@ -1,19 +1,19 @@
 # >:]
 
-# name = nroot.callback.instance.respawn
+# name = nroot.callback.instance.restart
 
 my $instance_id = shift->w->data;
 
 if ( not exists <nroot.agent.instance>->{$instance_id} ) {
     <[base.log]>->(
-        2, "instance $instance_id no longer exists, aborting respawn callback!"
+        2, "instance $instance_id no longer exists, aborting restart callback!"
     );
     return;
 }
 
 my $instance = <nroot.agent.instance>->{$instance_id};
-$instance->{'respawn_timer'}->cancel;
-delete $instance->{'respawn_timer'};
+$instance->{'restart_timer'}->cancel;
+delete $instance->{'restart_timer'};
 delete $instance->{'core_sid'};
 
 return
@@ -23,7 +23,7 @@ return
 <[jobqueue.move_job]>->( $instance->{'job_id'}, 'queued' );
 
 # ______________________________________________________________________________
-#\\XRWKEIJUQJZDG4QSCXPBMKFQYCEHD5HEMHIULVRDX3KD5D4Z5RHM5FBW3JH3CJEF3MKGPW6FWKU5S
-# \\ 676R7VPGMGX2XUDJWERGYA6VSZN54YKCXNEKMG3OMEP5GHPF4XXG \\// C25519-BASE-32 //
-#  \\// EKBO7B2JM7TANQBWKE6YVEF2VODGD47BS6MHZEO5T3VV6NBPKAI \\ CODE SIGNATURE \\
+#\\DVA75JTFZXSPIBUODP2CYTREQDMN5LAHWXUC7WZJA4NEVFS64QZQ7Q3OBLCRUCKYJOK5E4IXMNB5U
+# \\ W65T5EVVEYEWEZMHZGXSTQCL2CKYJOW42BR7Y6KXHW2YBFZCRNDF \\// C25519-BASE-32 //
+#  \\// LVBUSIDD7LFBZVH77GNTGTAQ6AKYTEDBCFWP2UKSPHAXPEUUYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
