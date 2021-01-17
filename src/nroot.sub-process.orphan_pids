@@ -22,12 +22,15 @@ map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
         and $_->pid != $$     # and is not this process [nroot]
         and not exists $own_children{ $_->pid }
         and ( not defined $_->exec
-        or $_->exec ne '/usr/bin/dbus-launch' )  # <- whitelist / LLL: -> config
+        or $_->exec ne '/usr/bin/dbus-launch' )  # <-- whitelist :. config [LLL]
     } @{ $proc_table->table };
 
 map {
-    my $name_str = length( $orphans{$_} ) ? " '$orphans{$_}'" : '';
-    $name_str =~ s|^.+/|| if length($name_str);
+    my $name_str = '';
+    if ( length( $orphans{$_} ) ) {
+        $orphans{$_} =~ s|^.+/||;
+        $name_str = " '$orphans{$_}'";
+    }
     <[base.log]>->( 1, ": found orphan process [$_]" . $name_str )
     }
     sort keys %orphans;
@@ -35,7 +38,7 @@ map {
 return sort keys %orphans;
 
 # ______________________________________________________________________________
-#\\FU7MKUPQAL3NC4DC2RN3BKOTNVZZOBQKLOFZWG357ZTITY5C33HJREROM2UKPZP3YD332LO6PNTSM
-# \\ YI32OVFE5X6KWGCDJYW7JBBFL5JKF5OBGLCVBRQXOKWYWYKJB3PQ \\// C25519-BASE-32 //
-#  \\// NAVAUKLBG6VP3YQTR5AJUQWVHAKCWC7C6HGRNO4YIBJXNVHJ4DI \\ CODE SIGNATURE \\
+#\\KAIENM7NGRPPWCSGXRRIOV73JGPRXLVC7GLUGA2VYKQMBA4SV3G3F3RTKKE7V3G3DNNSG5JAUZBP6
+# \\ LTOE5AYW6NT4WDRQURHGLRPYA3JLU3SHEGZZ7C2VE7FXAZLWEXTY \\// C25519-BASE-32 //
+#  \\// J2G3N62M43ZIMYRYPAEPTKMHNNGC2USUZIKW4S5EP5NX6LJQIDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
