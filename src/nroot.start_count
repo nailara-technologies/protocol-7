@@ -1,12 +1,12 @@
 # >:]
 
-# name = nroot.spawn_count
+# name = nroot.start_count
 
 my $agent_subname;
-my $spawn_count = 0;
+my $start_count = 0;
 my $agent_name  = shift;
 
-$spawn_count += <[nroot.instance_count]>->($agent_name);
+$start_count += <[nroot.instance_count]>->($agent_name);
 
 $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 
@@ -17,16 +17,16 @@ foreach my $job_id ( @{<jobqueue.joblist.depending.by_timestamp>} ) {
     my $job_agent_name = $job->{'callback_params'};
     $job_agent_subname = $1 if $job_agent_name =~ s|\[([^\]]+)\]$||;
 
-    $spawn_count++
+    $start_count++
         if $job_agent_name eq $agent_name
         and
         ( not defined $agent_subname or $agent_subname eq $job_agent_subname );
 }
 
-return $spawn_count;
+return $start_count;
 
 # ______________________________________________________________________________
-#\\TWNOBQDKVHALWV4APVEILZ77NKGEQ73MQ7AJJOAMWV65JQATXQISORCRKTMTPJ5YRIXQXHVB7BC34
-# \\ WWKBXAWETJ2V55ZJODIEMOLUA572FERE3WAB4NOUY7S74PIU4E7V \\// C25519-BASE-32 //
-#  \\// AHR7TUGDJTRZLDENNADC3AB6QX6Q3HZASFLEWZYQA5DT272CUBI \\ CODE SIGNATURE \\
+#\\UCSG6VSE7UZODDME5MV2LKMBNAOSWSB7J5WG23HGVF5HE54AQV5564O4Q6FPNUBGBCJISOB3JZ2QC
+# \\ 5M44I6TEHGXEEIJM2SFDJKK3UGCVMR2UR6APE2HXCKNDMKQ7PPNL \\// C25519-BASE-32 //
+#  \\// G7YWHC6JT7UDVZZILK4ZHFQVHLMQKJBG4SE7S65RZCGST3O66CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

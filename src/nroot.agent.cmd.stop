@@ -79,9 +79,9 @@ foreach my $name ( keys %shutdown_names ) {
 
         my %agent_list;
         map { $agent_list{$_} = 1 } split / +/,
-            <nroot.spawn_config.globals.agents.enabled>;
+            <nroot.start_setup.globals.agents.enabled>;
         delete $agent_list{$name};
-        <nroot.spawn_config.globals.agents.enabled>
+        <nroot.start_setup.globals.agents.enabled>
             = join( ' ', keys %agent_list );
 
         <nroot.agent.manually_stopped>->{$name} = <[base.time]>->(4)
@@ -130,7 +130,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\5HMUQCSIYO4EUVSRPBL32JDIIVIKVQITU5M6H4Y6N2627HJ4HR4LGM6SK5BJNA7VPS77Z5Y747PWK
-# \\ OZRTINQOXLWIJDKLTP2B4TTEA42ZPR4LBUTRD545JJ246PZ2FRXH \\// C25519-BASE-32 //
-#  \\// 4RBKQC2UUOXV6CVMCB2RFGINAN4YTWLZ4UZHVFU3MPNWVQROYAI \\ CODE SIGNATURE \\
+#\\FLJV3NP2O5SUGE3IZBVWRP6ZJYBIISJR7V7MXFDQNCAS6SH6ESMHQA27SRWJ2HKQLTEE2PBMU5MF2
+# \\ KM454FWZRDQWZN4IDNLQNHB2JB4OBJPL4U46TJGXYJAVHVI6DOS7 \\// C25519-BASE-32 //
+#  \\// MJHZSPNSLEUPRDYX6KR4WRVCIDMIOQ6WS3R33X2WEZFCNAMYEAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

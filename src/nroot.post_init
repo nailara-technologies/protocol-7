@@ -7,8 +7,8 @@ my $module_reinitialization = shift;
 
 <[nroot.cleanup_temp_files]> if not $module_reinitialization;
 
-my @all_agents   = keys %{<nroot.spawn_config.agents.config>};
-my @start_agents = @{<nroot.spawn_config.agents.startup.spawn_order>};
+my @all_agents   = keys %{<nroot.start_setup.agents.config>};
+my @start_agents = @{<nroot.start_setup.agents.startup.start_order>};
 
 my $prev_all   = <nroot.init_state.all_agents>   //= [];
 my $prev_start = <nroot.init_state.start_agents> //= [];
@@ -18,7 +18,7 @@ my $prev_start = <nroot.init_state.start_agents> //= [];
 
 my @found_agents = <[nroot.available_agents]>;
 
-(   <nroot.agents.found_types.no_spawn_cfg> = [],
+(   <nroot.agents.found_types.no_start_cfg> = [],
     <nroot.agents.found_types.no_cfg_file> = []
 ) = <[base.diff_array]>->( \@all_agents, \@found_agents );
 
@@ -36,9 +36,9 @@ my ( $added_all_ref, $removed_all_ref )
 if (    exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
     and <system.verbosity.console> > 1 ) {
-    ( my $debug_str = Dumper(<nroot.spawn_config.agents.config>) )
+    ( my $debug_str = Dumper(<nroot.start_setup.agents.config>) )
         =~ s/^.{7}|;$/  /mg;
-    print "\n < nroot.spawn_config.agents.config >\n\n$debug_str\n";
+    print "\n < nroot.start_setup.agents.config >\n\n$debug_str\n";
 }
 
 if ( @{$added_all_ref} ) {
@@ -46,7 +46,7 @@ if ( @{$added_all_ref} ) {
     <[nroot.set_up_ondemand_agents]>->( @{$added_all_ref} );
 }
 
-map { <[nroot.autostart_agents]>->($_) if !<[nroot.spawn_count]>->($_) }
+map { <[nroot.autostart_agents]>->($_) if !<[nroot.start_count]>->($_) }
     @{$added_start_ref};
 
 print Dumper( $data{'jobqueue'} )
@@ -57,7 +57,7 @@ print Dumper( $data{'jobqueue'} )
 0;
 
 # ______________________________________________________________________________
-#\\RRXDMY7SYFT2BHLWYP5KRP4UFAFAN7ZLIYFRWW4EIV3QROG3UAB2LOTLVEJDDWQS3VYFJYT7K2ZXY
-# \\ IPFVW6W2WVQ2HZTTX7FRUKTSD5YGLBF5WFOAPMW4ABWQTMPXPVWV \\// C25519-BASE-32 //
-#  \\// UTII2LCHBDXACCBZEDG545HICAZTYSJTR2LAZXKAT6F36TYSADY \\ CODE SIGNATURE \\
+#\\NEQDQBUN2YMLBQ4Y2GOUFUTX6NDBLMZ4F4IVAXMNVUDLYDWEOQGLGQNFUF6VGCCV2N5YJZJBMSG2Y
+# \\ M3VXUOSNDPOTYHQZA7E6XK7BS5IA2IFTBACNQ73T2IHBBL4KDTW6 \\// C25519-BASE-32 //
+#  \\// ZE4JJEUESDD5EZTJMH3LHQFR6Q42WDPEFR7CPGBIRDH2R6T64CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

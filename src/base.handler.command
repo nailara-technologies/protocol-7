@@ -684,18 +684,18 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 if ( not exists <agents.virtual>->{$v_id}->{'starting'} ) {
                     <agents.virtual>->{$v_id}->{'starting'} = 1;
 
-                    my $spawn_name = <agents.virtual>->{$v_id}->{'name'};
+                    my $start_name = <agents.virtual>->{$v_id}->{'name'};
 
                     # TODO: subname behaviour needs refinement / configuration!
-                    $spawn_name .= "[$target_subname]"
+                    $start_name .= "[$target_subname]"
                         if defined $target_subname;
 
                     <[base.log]>->(
-                        1, "ondemand agent '$spawn_name' requested ..,"
+                        1, "ondemand agent '$start_name' requested ..,"
                     );
                     <[base.proto.nailara.command.send.local]>->(
                         {   'command'   => $target_command,
-                            'call_args' => { 'args' => $spawn_name },
+                            'call_args' => { 'args' => $start_name },
                             'reply'     => {
                                 'handler' => 'base.handler.ondemand_startup',
                                 'params'  => { 'v_id' => $v_id }
@@ -873,7 +873,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\KCCMAQHMIAXVBRIR6WEGBIQAEKJRN5R2NDU5O2MGEBVEIUNNJP4NTJBQWVBHNYDVO5HXDRZMOEJD6
-# \\ 7RVGAC2QADJWXQ7TIIA7VOA52A6G3YL5C73BHHBN2EEM6IGJIDPB \\// C25519-BASE-32 //
-#  \\// Y3ISKVZGNV3CJHZ4IZFYTWUU4EBDD4ULVR34HMGBKJDR5TYMMDA \\ CODE SIGNATURE \\
+#\\DMJ4OSND7CG55WSHU3OUT2WEKFCYVEGFM65YS7HJRLPO3ZXRKS2TNCHJWYFKMGYRKZFBPXCJREHQY
+# \\ 6BSVK43WEOGND542JK3MS3FUEKKPHGX5U7YWPKMNYVVCLP6WQ6VL \\// C25519-BASE-32 //
+#  \\// IH2IXM3FVUA7RS4BRTA5G5EOOSOLBNCAPORFYPNN5RCXOBFS2AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -3,7 +3,7 @@
 # name = nroot.agent.instance.restart
 
 my $instance_id = shift;
-my $globals     = <nroot.spawn_config.globals> || {};
+my $globals     = <nroot.start_setup.globals> || {};
 my $instance    = <nroot.agent.instance>->{$instance_id};
 my $agent_name  = $instance->{'agent_name'};
 my $job_id      = $instance->{'job_id'};
@@ -20,7 +20,7 @@ my @children
 <[nroot.cancel_status_timer]>->($instance_id);
 
 delete <callback.session.closing_last> if $instance->{'is_core'};
-delete $instance->{'respawn_delay'};    # reset
+delete $instance->{'restart_delay'};    # reset
 
 my $restart_timeout
     = defined <sigterm.timeout>
@@ -55,7 +55,7 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
 <[nroot.terminate_process]>->($parent_pid) if defined $parent_pid;
 
 # ______________________________________________________________________________
-#\\BHR5OZWLXM7WM2KHETC4LN56EAPRRWOWXIVLCNQLXUO7LNWV4E4CH6LHFBGKHF4CNX72RVFD7HKCU
-# \\ UY3U64YH3D624DU6REDMBNQRTXM7T4EWM2JF7D5ZBXA7P7RMFGS2 \\// C25519-BASE-32 //
-#  \\// KWD4KCLRJHWY5AS2IUXGUN22UFZHXSI65RHFI3WBV7J5JBAGKAQ \\ CODE SIGNATURE \\
+#\\PR44JDUF3MF6SEOFVW3ZTQ25XKS5L4EIBEZZX4NRLPA2PAN62A65TSZ33S5OLNMXPW7VL56VNLBI2
+# \\ KAL6WMCG7V2P4BR6N4JUYGE22MUBFFDTG5TZJ7AAP2WFASP6V5SA \\// C25519-BASE-32 //
+#  \\// WANLPBD5CJVDY6R4HHNOC7TMAO4TO4OBH3NA2Q26TERN7YYBADA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -7,7 +7,7 @@ my $agent_name = shift;
 die "nroot.agent.is_enabled: no agent name specified"
     if not defined $agent_name;
 
-my $config_href = <nroot.spawn_config.globals.agents>;
+my $config_href = <nroot.start_setup.globals.agents>;
 
 # checking config syntax
 foreach my $check_key ( 'enabled', 'disabled' ) {
@@ -17,7 +17,7 @@ foreach my $check_key ( 'enabled', 'disabled' ) {
     {
         <[base.log]>->(
             0,
-            "spawn config syntax error: agents.$check_key = '"
+            "start setup syntax error: agents.$check_key = '"
                 . $config_href->{$check_key}
                 . "' <- expecting valid agent name(s)"
         );
@@ -42,7 +42,7 @@ map { return 1 if $_ eq $agent_name } split( /\s+/, $config_href->{'enabled'} );
 return 0;
 
 # ______________________________________________________________________________
-#\\NWU5L6QZYMFU4LVOV42CBMDUV4JGRD3G747JEBAY6LV645YQYIBKTDFCJTW7A5SWHQN6LQ5RHGZJ6
-# \\ GUTAV3Y3A2CIB7PAKZ3OHHUPG4KAEFBOMPS7SX7XPJ67Z2MGVMPU \\// C25519-BASE-32 //
-#  \\// XS5LPFAXUMXDGEZQ3VKS2XFTURP6KDBEQ4EQCWIIOCTPOIMZKDQ \\ CODE SIGNATURE \\
+#\\54QRF3EUVMMC2FJV5VRDIKYL2M5QM2O36HCVKHIPMF5PDW6XYWKANOCFG5DQKQ2GPK7MNK24IBTFS
+# \\ TA6UU4CGLJPSIHO4JYHBKBPRIYBHHUZFG73FW2D2A3BEVE76SNLO \\// C25519-BASE-32 //
+#  \\// YAIW6C5CHCHY7VJE2K3LYUYXEIHRYW5PJP24JEDYX5NKYDTQMBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
