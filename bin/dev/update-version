@@ -23,8 +23,8 @@ my $u = File::Spec->updir;
 my $root_path
     = abs_path( File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
 my $cfg_path = File::Spec->catdir( $root_path, 'cfg' );
-our $version_file = File::Spec->catfile( $cfg_path, 'nailara.source_version' );
-our $r_vers_file  = File::Spec->catfile( $cfg_path, 'nailara.release_version' );
+our $v_file    = File::Spec->catfile( $cfg_path, 'protocol-7.source-version' );
+our $rl_v_file = File::Spec->catfile( $cfg_path, 'protocol-7.release-version' );
 my $readme_md    = File::Spec->catfile( $root_path, 'README.md' );
 my $old_version  = get_old_version();
 my $git          = Git::Wrapper->new($root_path);
@@ -50,18 +50,18 @@ $new_minor = 1 if $amend and !$new_minor;
 
 my $version_string = gen_ver_string( $commit_count + 1 - $reset, $new_minor );
 
-## no a longer release version [modified]
-$git->add($r_vers_file)
+## no a longer release version [ modified ]
+$git->add($rl_v_file)
     if !$amend
     and $version_string ne $old_version
-    and -f $r_vers_file
-    and $git->ls_files('cfg/nailara.release_version');
+    and -f $rl_v_file
+    and $git->ls_files('cfg/protocol-7.release-version');
 
-## ./cfg/nailara.source_version ##
-open( my $ver_fh, '>' . $version_file ) or die " -> $version_file : $!\n";
+## ./cfg/protocol-7.source-version ##
+open( my $ver_fh, '>' . $v_file ) or die " -> $v_file : $!\n";
 print {$ver_fh} "$version_string\n";
 close($ver_fh);
-$git->add($version_file);
+$git->add($v_file);
 
 ## ./README.md ##
 {
@@ -93,8 +93,8 @@ sub gen_ver_string {
 
 sub get_old_version {
     local $/ = undef;
-    return '' if !-f $version_file;
-    open( my $fh, $version_file ) or die "$version_file : $!\n";
+    return '' if !-f $v_file;
+    open( my $fh, $v_file ) or die "$v_file : $!\n";
     ( my $old_version = <$fh> ) =~ s|\n+.+$||sg;
     close($fh);
     return $old_version;

@@ -5,10 +5,10 @@ bin_path=`dirname $script_path` # ./bin/dependencies/
 NAILARA_ROOT=`realpath $bin_path/../..`
 
 useradd -m -r nailara
-ln -v -f -s $NAILARA_ROOT/bin/nailara /usr/local/bin/nailara
+ln -v -f -s $NAILARA_ROOT/bin/protocol-7 /usr/local/bin/protocol-7
 ln -v -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
-cp -v $NAILARA_ROOT/lib/systemd/system/nailara.service /lib/systemd/system/
+cp -v $NAILARA_ROOT/lib/systemd/system/protocol-7.service /lib/systemd/system/
 
 # dependencies for 'nroot','core','config', 'events' agents + nshell
 
