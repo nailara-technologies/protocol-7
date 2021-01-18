@@ -1,7 +1,7 @@
 # >:]
 
-# name  = base.cli.help
-# descr = list [these] cli commands and parameters
+# name  = base.console.help
+# descr = list [these] console commands and parameters
 
 my $help_param = shift;
 
@@ -13,15 +13,15 @@ if ( defined $help_param ) {
 }
 
 my $title_str = "'" . <system.agent.name> . '\'-agent commands';
-my @commands  = sort keys %{ $data{'base'}{'cli'} };
-( my $t_ref ) = <[base.parser.help_list]>->( \@commands, 'cli' );
+my @commands  = sort keys %{ $data{'base'}{'console'} };
+( my $t_ref ) = <[base.parser.help_list]>->( \@commands, 'console' );
 
 print <[base.parser.txt_box]>->( $t_ref, $title_str );
 
 0;
 
 # ______________________________________________________________________________
-#\\QVQ3Q4XPC5NJCVHLQJC6NLQSSXPAKSPESSQ6RLAZFC4BWYUBF3KAN6PUHMNMM33ALZ2AUW6QPBMPW
-# \\ EES3ERWJ2YKLBWT4S3JMPCQGGR7R2EPLUMWC2R4QRVEVRSJXOW6Q \\// C25519-BASE-32 //
-#  \\// M7OLI62WVZVYMX5CBO54WI2JQQSE6X2ZABPNVE676Q7LPPFJQAI \\ CODE SIGNATURE \\
+#\\67REI5FI7FZ6LALOKR52EH426GX5IH73CJRYHGCWSIPHGRU43MSLG2P62HCIUZUBGNDEAGKRAFNO4
+# \\ TFSCFDSUXSTYGEF5Y2Q6L3T3PVTI35IDAJRG6LRUVMBIZMFJLMVS \\// C25519-BASE-32 //
+#  \\// ILM3OBVS6YJWTOTY2F7PGNU3R6IFQ2H2ILQP2HSGGYNXUBF26BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,22 @@
+# >:]
+
+# name  = base.call.console_command
+# descr = executes specified console command or base.console.help if no params given
+
+( my $console_cmd, my $console_params ) = split( m| +|, shift, 2 );
+
+$console_cmd //= 'help';
+
+if ( not exists $data{'base'}{'console'}{$console_cmd} ) {
+    print "\n  << command '$console_cmd' not found"
+        . " [ 'help' for list ] >>\n\n";
+    return;
+}
+
+$code{ $data{'base'}{'console'}{$console_cmd} }->($console_params);
+
+# ______________________________________________________________________________
+#\\AL7I4QFJ32DOM3UHMG47HAT5YDJVQK67MPAIFVD4RTBDAC3MINR3SSLV7JHTQ6NJCTFDCHRWAHUSO
+# \\ 4RNXQ4WJ57NONHG7NXSQY4GIBDCHUKE7XXXRHE5NTUTUH4MIFS74 \\// C25519-BASE-32 //
+#  \\// AOUYVG5VUIXZMOESTPQEYD7ASGHIUI6YZU4PIAQPJHFL43YJ6AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
