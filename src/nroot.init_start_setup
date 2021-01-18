@@ -36,12 +36,12 @@ foreach my $agent_element ( @{$agents_init_code} ) {
     my @config_code;
     foreach my $config_element ( @{$agent_init_code} ) {
 
-        if ( ref($config_element) eq 'HASH' ) {    # : init code section :
+        if ( ref($config_element) eq 'HASH' ) {   ## ': agent-init :' section ##
             my ( $init_keyword, $init_code ) = each %{$config_element};
             <nroot.start_setup.agents.startup.init_code>
                 ->{$agent_name}->{$init_keyword} = $init_code;
         } else {
-            push( @config_code, $config_element );    # (agent) config section
+            push( @config_code, $config_element );    # [agent] config section
         }
     }
     <[base.execute_agent_code]>->(
@@ -50,11 +50,21 @@ foreach my $agent_element ( @{$agents_init_code} ) {
             qw| <nroot.start_setup.agents.config> | . "{'$agent_name'}"
         )
     );
-    <nroot.start_setup.agents.config>->{$agent_name} //= {};
+
+    ## 'start-setup' values [ from agent config section ] ##
+    my $start_setup = <nroot.start_setup.agents.config>->{$agent_name} //= {};
+    if ( defined $start_setup->{'agent-start'}
+        and ref( $start_setup->{'agent-start'} ) eq 'HASH' ) {
+        $start_setup = $start_setup->{'agent-start'};
+        <nroot.start_setup.agents.startup.timeout>->{$agent_name}
+            = $start_setup->{'timeout'}
+            if defined $start_setup->{'timeout'}
+            and $start_setup->{'timeout'} =~ m|^\d+(\.\d+)?$|;
+    }
 }
 
 # ______________________________________________________________________________
-#\\NOOICJUXB2VCMO5Y3SOJTYF7YDE3ZJTLM75UYMYPUR5LQ6TGEA5FM5AGT6PA7OUUCEPHZAGTRREVA
-# \\ 7S2OQFLYUI35YOSSR2NKEXGL463EKJOSSEXYP7JEJFAAPPSUJ7TL \\// C25519-BASE-32 //
-#  \\// 7URHPOOC2T3BZCDGNU5ZKHSHVJAXMRMI5PRCZ2FI5GWOUYC34CI \\ CODE SIGNATURE \\
+#\\S3VZ2XGGJ7FKZJ24VMBKVOR3QLURNRHVFBPVZ4HXDMRUDBFII3Z6SIYCBYTBU2NWQRYUELZ4OMWBW
+# \\ DBWZA2E24KGOQ2OMI5KQT53JF4RO3W62Z5AFUONTWIBE37CPSLNV \\// C25519-BASE-32 //
+#  \\// VDYSF6WYBKZCSJ54P4FLZ37NK2WADDJZDR532QUFO4QJI6CCCDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
