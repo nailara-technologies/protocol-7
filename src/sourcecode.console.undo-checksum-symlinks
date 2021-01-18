@@ -1,6 +1,6 @@
 # >:]
 
-# name  = sourcecode.cli.undo-checksum-symlinks
+# name  = sourcecode.console.undo-checksum-symlinks
 # descr = undo checksum based symlinks in ./src dir
 
 my $err_count = 0;
@@ -131,8 +131,8 @@ my $percent_val = !$file_count ? 0 : $link_count * 100 / $file_count;
     )
 );
 
-my %cli_args    = map { $_ => 1 } split / +/, $data{'system'}{'args'};
-my $apply_force = not exists $cli_args{'-force'} ? 0 : 1;
+my %console_args = map { $_ => 1 } split / +/, $data{'system'}{'args'};
+my $apply_force  = not exists $console_args{'-force'} ? 0 : 1;
 
 if ($err_count) {
     if ( not $apply_force ) {
@@ -200,7 +200,7 @@ if ( !$err_count or $apply_force ) {
 }
 
 # ______________________________________________________________________________
-#\\OP7CGRSHDTEZRECBKMLAMH7DQYWBXPE73AC3NUBIBMPOFH76W2FETKXCYNU7IUSZ55E3CQC65VJYW
-# \\ 2RQ7FY554OZFSPSMVUZ5KP327XLV7VV5HYHMHP3X46FDMEHGPET6 \\// C25519-BASE-32 //
-#  \\// VMAXWLAOB2O3XM62NGU7KN4CT6ODB5CTWKRPSEB44S6CR56Z2AI \\ CODE SIGNATURE \\
+#\\U2ALK4YYDURJBVAC6F7T6R3TD3NCM3BH4OCVRJQZ3G5RDEXZYHSZ5KWKDBPXOZX76SWAZW54DK6UW
+# \\ NGDKVBD65OMKOLK4RRGNL4NSI3CB57IHP2Q54BB4YVIZJ2XXDNK2 \\// C25519-BASE-32 //
+#  \\// 6CQV72FOHSEWMGVETRTZVL3RZLCJTRHSSGERAC3TLH6ABJLZWBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
