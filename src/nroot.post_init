@@ -7,14 +7,15 @@ my $module_reinitialization = shift;
 
 <[nroot.cleanup_temp_files]> if not $module_reinitialization;
 
-my @all_agents   = keys %{<nroot.start_setup.agents.config>};
+my $agent_config = <nroot.start_setup.agents.config> // {};
+my @all_agents   = keys %{$agent_config};
 my @start_agents = @{<nroot.start_setup.agents.startup.start_order>};
 
 my $prev_all   = <nroot.init_state.all_agents>   //= [];
 my $prev_start = <nroot.init_state.start_agents> //= [];
 
 # locate agent config files / extract descriptions
-<nroot.agents.available> = {};    # <- reset on reload!
+<nroot.agents.available> = {};    # <- reset on reload!!!
 
 my @found_agents = <[nroot.available_agents]>;
 
@@ -33,17 +34,18 @@ my ( $added_all_ref, $removed_all_ref )
 
 <[nroot.calc_prefix_lengths]>->(@start_agents);
 
-if (    exists <system.subs_loaded.debug>
-    and <system.subs_loaded.debug> > 1
-    and <system.verbosity.console> > 1 ) {
-    ( my $debug_str = Dumper(<nroot.start_setup.agents.config>) )
-        =~ s/^.{7}|;$/  /mg;
-    print "\n < nroot.start_setup.agents.config >\n\n$debug_str\n";
-}
-
 if ( @{$added_all_ref} ) {
     <[nroot.set_up_agent_dependencies]>->( @{$added_all_ref} );
     <[nroot.set_up_ondemand_agents]>->( @{$added_all_ref} );
+}
+
+map { <[base.clean_hashref]>->( $agent_config->{$_} ) } @all_agents;
+
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 1 ) {
+    ( my $debug_str = Dumper($agent_config) ) =~ s{^.{7}|;$}{  }mg;
+    print "\n < nroot.start_setup.agents.config >\n\n$debug_str\n";
 }
 
 map { <[nroot.autostart_agents]>->($_) if !<[nroot.start_count]>->($_) }
@@ -57,7 +59,7 @@ print Dumper( $data{'jobqueue'} )
 0;
 
 # ______________________________________________________________________________
-#\\NEQDQBUN2YMLBQ4Y2GOUFUTX6NDBLMZ4F4IVAXMNVUDLYDWEOQGLGQNFUF6VGCCV2N5YJZJBMSG2Y
-# \\ M3VXUOSNDPOTYHQZA7E6XK7BS5IA2IFTBACNQ73T2IHBBL4KDTW6 \\// C25519-BASE-32 //
-#  \\// ZE4JJEUESDD5EZTJMH3LHQFR6Q42WDPEFR7CPGBIRDH2R6T64CI \\ CODE SIGNATURE \\
+#\\SYRPWKWLOT6VC45SQRLYA3OYV2B3LTT4AUSD7ZC4KM7DVL657U7I63SSVFHRSAMWKAPSFQMVMIRZ2
+# \\ NRRBTDDYVH344LBUK43FJECKFDIMKCG3ZNKYBFFKPPIORLEETMGU \\// C25519-BASE-32 //
+#  \\// RDGRBWMCKYZAKJ4B6YZRSRE2MMPFQV2G5APS4AHKWWVJHOLSCAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
