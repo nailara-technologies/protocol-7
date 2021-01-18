@@ -1,6 +1,6 @@
 # >:]
 
-# name  = base.cmd.help
+# name  = base.cmd.commands
 # param = [keyword]
 # descr = print available commands + descriptions
 
@@ -13,8 +13,8 @@ my $max_len    = 0;
 my @commands   = ();
 my @dbg_cmds;
 
-<base.help.is_debug> //= {};
-map { $_ =~ s|^debug\.cmd\.||; <base.help.is_debug>->{$_} //= 1 }
+<base.commands.is_debug> //= {};
+map { $_ =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$_} //= 1 }
     grep {/^debug.*\.cmd\./} keys %code;
 
 # getting a list of all commands the user [ who sent the request ] has access to
@@ -35,10 +35,10 @@ foreach
         next
             if defined $keyword
             and $cmd !~ /\Q$keyword\E/i
-            and <base.help.cmd>->{$cmd}->{'descr'} !~ /\Q$keyword\E/i;
+            and <base.commands.cmd>->{$cmd}->{'descr'} !~ /\Q$keyword\E/i;
 
         if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
-        my $is_debug_command = <base.help.is_debug>->{$cmd} //= 0;
+        my $is_debug_command = <base.commands.is_debug>->{$cmd} //= 0;
         if   ($is_debug_command) { push( @dbg_cmds, $cmd ) }
         else                     { push( @commands, $cmd ) }
     }
@@ -54,14 +54,14 @@ return {
 
 $$reply{'data'} = sprintf( "%78s\n\n",
     sprintf( "%-43s", ".: '$agent_name' agent commands :." ) );
-( my $h_str, my $h_len ) = <[base.parser.help_list]>->( \@commands, 'cmd', );
+( my $h_str, my $h_len ) = <[base.parser.command_list]>->( \@commands, 'cmd', );
 $$reply{'data'} .= $$h_str;
 
 if (@dbg_cmds) {
     $$reply{'data'} .= sprintf( "\n %77s\n\n",
         sprintf( "%-43s", ".: debug commands in '$agent_name' :." ) );
     ( $h_str, undef )
-        = ( <[base.parser.help_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
+        = ( <[base.parser.command_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
     $$reply{'data'} .= $$h_str;
 }
 
@@ -69,7 +69,7 @@ $$reply{'data'} .= "\n";
 $$reply{'mode'} = 'data';
 
 # ______________________________________________________________________________
-#\\QCG2BAVMIPFBTCCASNGPHTXVI5HUENSKYKFV7GF3DO56URY2YSNGX346VNOBLJWYBH2F34D7WBCUQ
-# \\ OCSPCPQTNJNB6RFKBB3Z5MC4JHQTR3KCAHU4GCHLZHI5EDQTSPO5 \\// C25519-BASE-32 //
-#  \\// MEOC7C5G46APUEAVPOMSRYOLMZQQ4J7K3KQLWASAFHYCYIO4UCA \\ CODE SIGNATURE \\
+#\\HFGHDAIEECFGYSMUOCF6MMNOQXGI2XNYXNNSFUKBEE5I6DIC7JY474DYVFASIR3V2JZ5OECHOGX5S
+# \\ JBPLPXKEWTORZ5KRNHX3TZK64MXTILWH3K57GQVNCKSXUPRS6AK4 \\// C25519-BASE-32 //
+#  \\// UCQAGVDIKCDJCLNJX7C6ZRW47SH4ZJWWMYCJMEHW7KLUO3IF2AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
