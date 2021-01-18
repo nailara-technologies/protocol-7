@@ -17,15 +17,15 @@ my @instance_ids;
 my $failed_name;
 my $not_found   = 0;
 my $setup_found = 0;
-foreach my $param_str ( split / +/, $params ) {
-    if ( $param_str =~ /^\d+$/ ) {    # instance id
+foreach my $param_str ( split m| +|, $params ) {
+    if ( $param_str =~ m|^\d+$| ) {    # instance id
         return {
             'mode' => 'nak',
             'data' => "unknown agent instance '$param_str' [see 'list agents']"
             }
             if not exists <nroot.agent.instance>->{$param_str};
         push( @instance_ids, $param_str );
-    } else {                          # agent name [ LLL: validate syntax ]
+    } else {                           # agent name [ LLL: validate syntax ]
         my $agent_name = $param_str;
         my $agent_subname;
         $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
@@ -78,7 +78,7 @@ foreach my $name ( keys %shutdown_names ) {
     if ( !$instances_remaining ) {
 
         my %agent_list;
-        map { $agent_list{$_} = 1 } split / +/,
+        map { $agent_list{$_} = 1 } split m| +|,
             <nroot.start_setup.globals.agents.enabled>;
         delete $agent_list{$name};
         <nroot.start_setup.globals.agents.enabled>
@@ -123,6 +123,20 @@ return {
 if ($count) {
     return { 'mode' => 'ack', 'data' => $msg_str };
 } else {
+    ## clean up orphaned start jobs ###
+    foreach my $param_str ( split m| +|, $params ) {
+        my $job_attr = { 'job_callback' => 'agent.start' };
+        if ( $param_str =~ m|^\d+$| ) {
+            $job_attr->{'instance_id'} = $param_str;
+        } else {
+            $job_attr->{'callback_params'} = $param_str;
+        }
+        map {
+                    <[jobqueue.remove_job]>->($_)
+                and <[base.log]>->( 0, "removed orphaned start job [$_] " )
+        } <[jobqueue.find_jobs]>->($job_attr);
+    }
+    ##
     return {
         'mode' => 'nak',
         'data' => 'there is no agent matching agent running'
@@ -130,7 +144,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\FLJV3NP2O5SUGE3IZBVWRP6ZJYBIISJR7V7MXFDQNCAS6SH6ESMHQA27SRWJ2HKQLTEE2PBMU5MF2
-# \\ KM454FWZRDQWZN4IDNLQNHB2JB4OBJPL4U46TJGXYJAVHVI6DOS7 \\// C25519-BASE-32 //
-#  \\// MJHZSPNSLEUPRDYX6KR4WRVCIDMIOQ6WS3R33X2WEZFCNAMYEAQ \\ CODE SIGNATURE \\
+#\\3THPMRUSO4PAFA5XFQJIICWDNXHUZN5LUXF75CO3JK2GRI55QZWOXK5GFNNPE6UH7DUXEG6SSWRYC
+# \\ 45ACC4GWXUBFP5XALGEVFFS4LB5EMJJBZVPAIBEIYTBCWLAXIBXT \\// C25519-BASE-32 //
+#  \\// WE6W47C5NWC7NBKEVB62PR2LK736YGKXL44G2EVRIMSUK3KAMCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
