@@ -1,9 +1,9 @@
 # >:]
 
-# name     = base.parser.help_list
+# name     = base.parser.command_list
 # args     = <cmd_aref>, [section_name]
 # return   = plain(formatted client list)
-# descr    = format command list with descriptions (help text)
+# descr    = format command list with short descriptions
 
 my $cmd_aref  = shift;
 my $section   = shift // 'cmd';    # [cmd|console]
@@ -19,8 +19,8 @@ map {
         warn $cli . " cmd '$_' does not exist! <{C1}>";
     } else {
         my $cmd_str = $_;
-        if ( exists $data{'base'}{'help'}{$section}{$_}{'param'} ) {
-            my $param_str = $data{'base'}{'help'}{$section}{$_}{'param'};
+        if ( exists $data{'base'}{'commands'}{$section}{$_}{'param'} ) {
+            my $param_str = $data{'base'}{'commands'}{$section}{$_}{'param'};
             $cmd_str .= ' ' . $param_str;
             $param{$_} = $param_str;
         }
@@ -34,8 +34,8 @@ foreach my $cmd (@commands) {
     my $cmd_descr;
     my $call_cmd = $data{'base'}{$section}{$cmd};
     if ( exists $code{$call_cmd} and defined &{ $code{$call_cmd} } ) {
-        if ( defined $data{'base'}{'help'}{$section}{$cmd} ) {
-            $cmd_descr = $data{'base'}{'help'}{$section}{$cmd}{'descr'};
+        if ( defined $data{'base'}{'commands'}{$section}{$cmd} ) {
+            $cmd_descr = $data{'base'}{'commands'}{$section}{$cmd}{'descr'};
         }
         $cmd_descr = 'n/a' if not defined $cmd_descr or $cmd_descr eq '';
     } else {
@@ -49,7 +49,7 @@ foreach my $cmd (@commands) {
 return ( \$reply_str, $max_len );
 
 # ______________________________________________________________________________
-#\\43A3GAHRKGDTVYL6GVKVQOXRBQY2FIHDLBRW2H6KIE72SDON5MYUAC6K755EGU3HLCH3OBST7MC5U
-# \\ HDUSKHLVUGVPK2ALTO3MFTGCV3BGZNGVQNLMCLKBE55MVGZ5BZWJ \\// C25519-BASE-32 //
-#  \\// G7J7TFX6XTJSGH675X2KPTHISS5EFO47HAIU2OY2SWDWADLEKBQ \\ CODE SIGNATURE \\
+#\\5TQF3OW5GHFHWPW7523WLZI7W2FMJH47YXKVKZ4NJMGFIWVOLLQS5HTNYNW7YERLHNAR4JIHF64MU
+# \\ HYW3GMDRUCRCH37Y4LS7YCERDLZVJCYOMMMV53XVNLRFBO7ZFUA7 \\// C25519-BASE-32 //
+#  \\// OX2QUO2BWQHZ6TG3UAY57QD3Y3HPESSDPR7QAQ4GH3NDJNMYOBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

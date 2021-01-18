@@ -369,7 +369,7 @@ sub prepare_subs {
             grep {m|^$code_name(\..+)?$|} keys %code;
         map {
             delete $data{'base'}{'cmd'}{$_};
-            delete $data{'base'}{'help'}{'cmd'}{$_};
+            delete $data{'base'}{'commands'}{'cmd'}{$_};
         } @agent_commands;
         return $purge_count;
     };
@@ -902,20 +902,20 @@ sub prepare_subs {
                 my $command = $2;
                 if ( $data{'code'}{$sub_name}{'status'} eq 'no-err' ) {
                     if ( $sub_code =~ m|#\s*param\s*=\s*(.+)| ) {
-                        $data{'base'}{'help'}{$section}{$command}{'param'}
+                        $data{'base'}{'commands'}{$section}{$command}{'param'}
                             = $1;
                     }
                     if ( $sub_code =~ m|#\s*descr\s*=\s*(.+)| ) {
-                        $data{'base'}{'help'}{$section}{$command}{'descr'}
+                        $data{'base'}{'commands'}{$section}{$command}{'descr'}
                             = $1;
                     } else {
-                        $data{'base'}{'help'}{$section}{$command}{'descr'}
+                        $data{'base'}{'commands'}{$section}{$command}{'descr'}
                             = '<<< \'descr\' header key not defined >>>';
                     }
                 } else {
                     $data{'base'}{'modules'}{'load_errors'}++;
                     $code{'log.error'}->("!> broken command : $2");
-                    $data{'base'}{'help'}{$section}{$command}{'descr'}
+                    $data{'base'}{'commands'}{$section}{$command}{'descr'}
                         = '<<< command did not compile properly >>>';
                 }
             }
@@ -1186,7 +1186,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\PK3DMFQT4SHTSSLQH35J464JYKKMHDNSLP4RYXFHR5LJPCTZKFRWCKFRZEHSILCIS6DNIRYE2LRT4
-# \\ 3DVLY6AUSFV5OWOMSKMDJYU6INMEY6ROVK6SDO2HWYASZEUVMVVL \\// C25519-BASE-32 //
-#  \\// HYDIFJH74X6SNAKXVKWH6USQY5OG42MMQUPHHDTUHNSPZRBREBQ \\ CODE SIGNATURE \\
+#\\JMCV2ZV32DIQIIQ72KCCIIENCDXPCBTAQ7UR3MJCRJN4RCHJ5V6RKL2XQP2JVD3ACBWAXAYRY46LU
+# \\ GCU5ACRMAV22TIY2QDZAUFIOQNVVULPMSG2ORTRUSRR6OCZA3RYW \\// C25519-BASE-32 //
+#  \\// RTP6YCFSTF43EBJOETXFF66NDNV6W3S7LNQ2MSI7YKWMXDP7ADY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
