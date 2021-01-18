@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.clean_hashref
+
+my $hash_ref = shift // '';
+return warn "expected hash reference <{C0}>" if ref($hash_ref) ne 'HASH';
+
+map {
+    delete $hash_ref->{$_}
+        if ref( $hash_ref->{$_} ) eq 'HASH'
+        and not keys( %{ $hash_ref->{$_} } )
+    }
+    keys %{$hash_ref};
+
+return scalar keys %{$hash_ref};
+
+# ______________________________________________________________________________
+#\\TIIJZI7THEBOBOQCWRQNQL4KNWIXQYRUQZDZYDWXICQNCILXGOK6ODU7KW75EBMPETS2VZVCZ6N7U
+# \\ 5FMNYMESDB5JZBERSVFKDLBIL56L2WWA737YS4QB25GW4P2VXXPV \\// C25519-BASE-32 //
+#  \\// AS3LK2U3E2B3ZVMIL3FS5GEHBRW26GLWBMA6ZZ2YALXIGMGR4AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
