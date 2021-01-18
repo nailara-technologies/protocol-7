@@ -39,7 +39,7 @@ if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies..
 
 $_[0]->w->stop;
 
-# cancel ondemand timeout (reinstalled in idle watcher)
+# cancel ondemand timeout [ reinstalled in idle watcher ]
 if ( exists <base.timer.ondemand_timeout> ) {
     <base.timer.ondemand_timeout>->cancel;
     delete <base.timer.ondemand_timeout>;
@@ -54,7 +54,7 @@ my @args;
 my $command_mode = 0;
 my $call_args    = {};
 
-# check cmd_id regex (for numbers or valid length)
+# check cmd_id regex [ for numbers or valid length ]
 if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $$input !~ m|^\(($re->{cmd_id})\)| ) {
     my $cmd_id = $1 // '';
@@ -66,10 +66,10 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
 
 # check for multiple line commands
 
-if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
+if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
 {
     $cmd = $1;
-    if ( $$input =~ s/^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n//o ) {
+    if ( $$input =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
 
         # core agent 'select' command [ base path prefix handling ]
         $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
@@ -83,7 +83,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
 
         my $header = 1;
 
-        while ( $$input =~ s/^(.*)\n// ) {
+        while ( $$input =~ s|^(.*)\n|| ) {
 
             my $arg = $1 // '';
 
@@ -93,7 +93,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
 
                 if ( $header and $arg ne '' ) {
 
-                    if ( $arg =~ /^([\w\.]+)[ \t]*[=:][ \t]*(.*)$/ ) {
+                    if ( $arg =~ m|^([\w\.]+)[ \t]*[=:][ \t]*(.*)$| ) {
                         my ( $key, $val ) = ( $1, $2 );
 
                         $$call_args{'param'}{$key} = $val;
@@ -107,7 +107,7 @@ if ($$input =~ m/^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n/o )
                             1, "[$id] invalid command parameter format"
                         );
                         $$output .= $_cmd_id
-                            . "NAK invalid command parameter format\n";   # FIX!
+                            . "NAK invalid command parameter format\n"; # FIX!!!
                         $_[0]->w->start;
                         return 1;
                     }
@@ -135,7 +135,7 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n/o ) {
 
 # incomplete DATA reply   LLL: switch to stream type transfer!!!
 
-elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *DATA +(\d+)\n)/o
+elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *DATA +(\d+)\n),o
     and length($$input) < ( $3 + length($1) ) ) {
 
     $_[0]->w->start;
@@ -144,7 +144,7 @@ elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *DATA +(\d+)\n)/o
 
 # single command line
 
-elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n//o ) {
+elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
 
     $_[0]->w->start;
 
@@ -175,7 +175,7 @@ elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
 
 # empty command line
 
-elsif ( $$input =~ s/^$// ) { $_[0]->w->start; return 0 }
+elsif ( $$input =~ s|^$|| ) { $_[0]->w->start; return 0 }
 
 # incomplete command line
 
@@ -187,7 +187,7 @@ $_[0]->w->start;
 
 # extract command id
 
-if ( $cmd =~ s/^\(($re->{cmd_id})\) *//o ) { $cmd_id = $1 }
+if ( $cmd =~ s|^\(($re->{cmd_id})\) *||o ) { $cmd_id = $1 }
 
 $$call_args{'command_id'} = $cmd_id;
 $$call_args{'session_id'} = $id;
@@ -205,8 +205,8 @@ if ( defined <core.reroute> ) {
             ? <core.reroute.pattern.usr>
             : '';
 
-        my $rre_m = qr/$rre_pattern_match/;
-        my $rre_u = qr/$rre_pattern_usr/;
+        my $rre_m = qr|$rre_pattern_match|;
+        my $rre_u = qr|$rre_pattern_usr|;
         $cmd =~ s|$rre_m|$rre_pattern_replace| if $usr =~ $rre_pattern_usr;
     }
     $cmd = <core.reroute.command>->{$cmd}
@@ -235,9 +235,9 @@ if ( defined $alias_to and length($alias_to) ) {
         'SOURCE_AGENT' => <system.node.name> . '.' . $usr,
         'SOURCE_SID'   => $id
     };
-    map { $cmd =~ s/$_/$args_map->{$_}/g } keys %{$args_map};
+    map { $cmd =~ s|$_|$args_map->{$_}|g } keys %{$args_map};
 
-    if ( $cmd =~ s/^([^ ]+) +([^\n]+)$/$1/ ) {
+    if ( $cmd =~ s|^([^ ]+) +([^\n]+)$|$1| ) {
         if ( defined $$call_args{'args'} ) {
             $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} );
         } else {
@@ -255,11 +255,11 @@ my $valid_answer = 0;
 my ( $_m1, $_m2 );
 my $cmd_usr_str = $cmd; # used for access checking (relevant with <sid>.<cmd>'s)
 $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
-    if $cmd =~ /^($re->{sid})(\..+)$/
+    if $cmd =~ m|^($re->{sid})(\..+)$|
     and $_m1 = $1
     and $_m2 = $2
     and exists $data{'session'}{$_m1}
-    and $data{'session'}{$_m1}{'user'} =~ /^$re->{usr}$/;
+    and $data{'session'}{$_m1}{'user'} =~ m|^$re->{usr}$|;
 
 if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
@@ -305,7 +305,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 } elsif ( exists $data{'session'}{ $$route{'source'}{'sid'} } )
                 {
 
-                    # was filter hook applied? if so call reply handler
+                    # was filter hook applied ? if so call reply handler..,
                     $route->{'hook_data'}->{'handler'}->(
                         {   'mode' => $cmd,
                             'args' => \$$call_args{'args'},
@@ -319,7 +319,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                         {'output'}
                         .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
-                } else {    # should never come here [SID gone!]
+                } else {    # should never come here [ SID gone. ]
                     <[base.log]>->(
                         0,
                         sprintf(
@@ -352,7 +352,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 $valid_answer = 1;
             } elsif ( $cmd eq 'DATA' ) {
-                if ( $$call_args{'args'} =~ /^\d+$/ ) {
+                if ( $$call_args{'args'} =~ m|^\d+$| ) {
                     my $msg_len = $$call_args{'args'};
 
                     if ( length($$input) >= $msg_len ) {
@@ -440,7 +440,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 ####
             } else {
                 <[base.log]>->(
-                    1, "[$id] called unimplemented answer type [$cmd]"
+                    1, "[$id] called unimplemented answer type ['$cmd']"
                 );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
                 return 1;
@@ -457,7 +457,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             $ignore_log_level, "[$id] $cmd-reply to unknown route id, ignored."
         );
         if (    $cmd eq 'DATA'
-            and $call_args->{'args'} =~ /^\d+$/
+            and $call_args->{'args'} =~ m|^\d+$|
             and my $ignore_bytes = $call_args->{'args'} ) {
             if ( length($$input) >= $ignore_bytes ) {
                 substr( $$input, 0, $ignore_bytes, '' );
@@ -487,13 +487,13 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     # local command
 
-    if ( $cmd =~ /^$re->{cmd}$/ ) {
+    if ( $cmd =~ m|^$re->{cmd}$| ) {
 
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
-                # prepare reply id (used in mode 'deferred')
+                # prepare reply id [ used in mode 'deferred' ]
 
                 <base.cmd_reply> //= {};
                 my $reply_id = <[base.gen_id]>->(<base.cmd_reply>);
@@ -520,13 +520,13 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     }
                 }
 
-                # replying later...
+                # deferred reply..,
 
                 if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' ) {
 
                     <[base.log]>->( 2, "setting up reply for id $reply_id" );
 
-                    # LLL: set up reply timeout?
+                    # LLL: set up reply timeout ?
                     return 0;
                 }
                 delete <base.cmd_reply>->{$reply_id};
@@ -559,8 +559,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 # check answer mode
 
-                if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
-                    $$reply{'data'} =~ s/\n/\\n/go;
+                if ( $$reply{'mode'} =~ m,^(ACK|NAK|WAIT)$,io ) {
+                    $$reply{'data'} =~ s|\n|\\n|go;
                     $$output
                         .= $_cmd_id
                         . uc( $$reply{'mode'} ) . ' '
@@ -575,7 +575,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 return 0;
             } else {
                 <[base.log]>->(
-                    1, "[$id] command '$cmd' is configured but not defined!"
+                    1, "[$id] command '$cmd' configured but not defined"
                 );
             }
         } else {
@@ -589,9 +589,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     # tree upwards
 
-    elsif ( $cmd =~ /^\.\.([^\.]+)\.(.+)$/ ) {
+    elsif ( $cmd =~ m|^\.\.([^\.]+)\.(.+)$| ) {
 
-        #        not working yet..
+        #        not working yet..,
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
 
@@ -608,16 +608,16 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     # absolute address notation
 
-    elsif ( $cmd =~ /^\^(\w+)\.([^\.]+)$/ ) {  # LLL: regex invalid: <only host>
+    elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| ) { # LLL: regex invalid: <only host>
         my $network_name = $1;
         my $node_name    = $1;
 
-        # ^ not yet implemented [ route discovery feature., ]
+        # ^ not yet implemented [ route discovery feature.., ]
 
     } elsif (
-        $cmd =~ s/^($re->{sid}|$re->{usr}|$re->{usr_sub})\.
+        $cmd =~ s,^($re->{sid}|$re->{usr}|$re->{usr_sub})\.
                     ((($re->{sid}|$re->{usr}|$re->{usr_sub})\.)*
-                    $re->{cmd})$/$2/gxo
+                    $re->{cmd})$,$2,gxo
     ) {
         my $target_name = $1;                  # usr|sid
         my $command_str = $2;                  # [ deeper targets + ] command
@@ -626,7 +626,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         my @send_sids;
 
-        if ( $target_name =~ /^$re->{sid}$/ ) {   ## <session_id>.<command> mode
+        if ( $target_name =~ m|^$re->{sid}$| ) {  ## <session_id>.<command> mode
             my $target_sid = $target_name;
             if ( exists $data{'session'}{$target_sid}
                 and $data{'session'}{$target_sid}{'mode'} eq 'client' ) {
@@ -638,7 +638,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 or
                 defined $data{'user'}{$target_name}{'subname'}{$target_subname}
             )
-            ) {                                   ## is online / present
+            ) {                                   ## [ online \ present ]
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 next if $data{'session'}{$target_sid}{'mode'} ne 'client';
@@ -657,19 +657,19 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             my $target_user    = 'nroot';
             my $target_command = <agents.virtual>->{$v_id}->{'target_command'};
             if ( defined $target_command
-                and $target_command =~ /^([^\.]+)\.[^\.]+$/ ) {
+                and $target_command =~ m|^([^\.]+)\.[^\.]+$| ) {
                 $target_user = $1;
             } elsif ( defined $target_command ) {
                 undef $target_user;
             }
 
-            # LLL: deal with multi-line commands.., [command_mode 2]
+            # LLL: deal with multi-line commands.., [ command_mode 2 ]
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
                 $target_command //= 'nroot.start_once';
 
-                # ...
+                # ..,
 
                 push(
                     @{ <agents.virtual>->{$v_id}->{'queue'} },
@@ -686,7 +686,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                     my $start_name = <agents.virtual>->{$v_id}->{'name'};
 
-                    # TODO: subname behaviour needs refinement / configuration!
+                    # [LLL] subname behaviour needs refinement \ configuration.,
                     $start_name .= "[$target_subname]"
                         if defined $target_subname;
 
@@ -873,7 +873,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\DMJ4OSND7CG55WSHU3OUT2WEKFCYVEGFM65YS7HJRLPO3ZXRKS2TNCHJWYFKMGYRKZFBPXCJREHQY
-# \\ 6BSVK43WEOGND542JK3MS3FUEKKPHGX5U7YWPKMNYVVCLP6WQ6VL \\// C25519-BASE-32 //
-#  \\// IH2IXM3FVUA7RS4BRTA5G5EOOSOLBNCAPORFYPNN5RCXOBFS2AY \\ CODE SIGNATURE \\
+#\\CYNK6DFL4JDL4AJR6BJ2D5LPXEDOF6MO3HY7TDAFOGZ4LFEOAQYU7JXE5WFPFPENQ2KYTXFXZJZLE
+# \\ KN4WEHSCCE4QE6JIAV4EIM5JFFGQNR2F3GDFXRA6DPALY5HHFWZD \\// C25519-BASE-32 //
+#  \\// XW5IMSW34C5XVOIKUEK3QMTJSKYFGM634BTBRSL5MTGR75EQGBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
