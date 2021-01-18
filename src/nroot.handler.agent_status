@@ -37,15 +37,15 @@ delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 $instance->{'restart_delay'}
     //= $agent_config->{'restart'}->{'min_delay'}
     || $globals->{'restart'}->{'min_delay'}
-    || 0.05;    # <-- minimum restart delay default (in seconds)
+    || 0.05;    # <-- minimum restart delay default [ in seconds ]
 my $max_restart_delay
     = $agent_config->{'restart'}->{'max_delay'}
     || $globals->{'restart'}->{'max_delay'}
-    || 300;     # <-- 5 minutes (internal default)
+    || 300;     # <-- 5 minutes [ internal default ]
 my $status_timer_delay
     = $agent_config->{'heartbeat'}->{'after'}
     || $globals->{'heartbeat'}->{'after'}
-    || 2;       # <-- (initial) heartbeat delay default
+    || 2;       # <-- [initial] heartbeat delay default
 my $status_timer_interval
     = $agent_config->{'heartbeat'}->{'interval'}
     || $globals->{'heartbeat'}->{'interval'}
@@ -73,9 +73,9 @@ if ( exists $instance->{'pid_check_timer'} and $status ne 'delayed' ) {
     delete $instance->{'pid_check_timer'};
 }
 
-# prevent undesired core shutdown (session.check.last)
+# prevent undesired core shutdown [ 'session.check.last' ]
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
-    <[base.log]>->( 0, "removing session.closing_last callback.." );
+    <[base.log]>->( 0, "removing session.closing_last callback.," );
     delete <callback.session.closing_last>;
 }
 
@@ -291,6 +291,12 @@ if ( $status eq 'shutdown'
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
+    if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
+        $instance->{'timer'}->{'startup-timeout'}->cancel
+            if $instance->{'timer'}->{'startup-timeout'}->is_active;
+        delete $instance->{'timer'}->{'startup-timeout'};
+    }
+
     $instance->{'timer'}->{'reset_restart_delay'} = <[event.add_timer]>->(
         {   'repeat'  => 0,
             'after'   => 4.2,
@@ -305,8 +311,8 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
             2, "setting up heartbeat response timer < instance $instance_id >"
         );
 
-        <[nroot.cancel_status_timer]>->($instance_id);
-        <[nroot.enable_status_timer]>->($instance_id);
+        <[nroot.stop_heartbeat_timer]>->($instance_id);
+        <[nroot.enable_heartbeat_timer]>->($instance_id);
 
     } else {
         <[base.log]>->(
@@ -330,7 +336,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
         );
     }
 
-    # start next delayed agent of the same name ...
+    # start next delayed agent of the same name ..,
     foreach my $id ( @{ <[agent.instance.get_ids]>->($agent_id) } ) {
         next
             if $id == $instance_id
@@ -342,12 +348,12 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
     }
 }
 
-<[nroot.cancel_status_timer]>->($instance_id) if $status ne 'online';
+<[nroot.stop_heartbeat_timer]>->($instance_id) if $status ne 'online';
 
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\QXCDXXEB6ZIAEKUDJINCTO773TZPZKDX7TYYZQHULWICDHFF7T7JNIWNC47GWMEBANZOEJB5BYGS6
-# \\ 5VVSFVVOOQHO24T5JNEX2G27NH4ON7LRD35EZQKDPVURGXKV7GHZ \\// C25519-BASE-32 //
-#  \\// 7NDFGQ2552RG72PKQ5OSU5NKZF67MSEXPAZ2WHHYKZFYLHPLOAI \\ CODE SIGNATURE \\
+#\\4DCKCAS7IZURSZYVXJODMMQFLSHHTND6WSHTKOH4IBYQCCWIHXB7CGYADS37I6HDQLFVRCBL7X4SO
+# \\ 2ZLF5XULO24D7KPY5YNN23DJ5KQLB2JHJVVNGAELNJEZ3CHHKDB6 \\// C25519-BASE-32 //
+#  \\// B7SRMHB3HEOEWA42ZAXBO2JV7YKMFTXTYZFAEAFNYMPWAGGCYDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

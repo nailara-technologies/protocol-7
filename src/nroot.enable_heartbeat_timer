@@ -1,6 +1,6 @@
 # >:]
 
-# name = nroot.enable_status_timer
+# name = nroot.enable_heartbeat_timer
 
 my ( $instance_id, $after, $interval ) = @_;
 die "no instance id specified" if not defined $instance_id;
@@ -14,12 +14,12 @@ my $agent_config = <nroot.start_setup.agents.config>->{$agent_name};
 my $status_timer_delay
     = $after // $agent_config->{'heartbeat'}->{'after'}
     // $globals->{'heartbeat'}->{'after'}
-    // 2;    # <- (initial) heartbeat delay default
+    // 2.1;    # <- [ initial ] heartbeat delay [ when not configured ]
 
 my $status_timer_interval
     = $interval // $agent_config->{'heartbeat'}->{'interval'}
     // $globals->{'heartbeat'}->{'interval'}
-    // 5;    # <- heartbeat interval default
+    // 5.7;    # <- heartbeat interval [ when not configured ]
 
 <[base.log]>->(
     2,
@@ -27,26 +27,24 @@ my $status_timer_interval
         . "[${status_timer_delay}s,int=$status_timer_interval]"
 );
 
-delete $agent_config->{'restart'}   if !keys %{ $agent_config->{'restart'} };
-delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
-delete $globals->{'restart'}        if !keys %{ $globals->{'restart'} };
-delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
+<[base.clean_hashref]>->($globals);
+<[base.clean_hashref]>->($agent_config);
 
-$instance->{'heartbeat'} //= {};
-$instance->{'heartbeat'}->{'retry_timeout'}
-    //= 2;    # setting short heartbeat timeout
+$instance->{'heartbeat'}                    //= {};
+$instance->{'heartbeat'}->{'retry_count'}   //= 2;
+$instance->{'heartbeat'}->{'retry_timeout'} //= 2.1;    ## decreased timeout ##
 
-# set up new status timer..
-$instance->{'status_timer'} = <[event.add_timer]>->(
+# set up new status timer..,
+$instance->{'timer'}->{'heartbeat-status'} = <[event.add_timer]>->(
     {   'after'    => $status_timer_delay,
-        'interval' => $status_timer_interval + sprintf( "%.3f", rand(2) ),
-        'handler'  => 'nroot.handler.status_timer',
+        'interval' => $status_timer_interval + sprintf( "%.3f", rand(1.2) ),
+        'handler'  => 'nroot.handler.heartbeat_timer',
         'data'     => $instance_id
     }
 );
 
 # ______________________________________________________________________________
-#\\TGZGEJG46PTJBAAKQFUAIZ46VXK3HSDTZXILZ3C3LSQBPWS5A4MYQHGHBEEMV35METTPUPXBBB6SQ
-# \\ 5XXU2NCNMAMRAJGF2IWBMKTK3573SEMHNILKUUEJUXP2L757DJSL \\// C25519-BASE-32 //
-#  \\// MXD2QJMTWYKAW7JLN4JTBVJJREFELXR2GWEG525BXL72IUZGADI \\ CODE SIGNATURE \\
+#\\QSPWY5LP63A75QV3DMYI4COTL4JF3SOG73S7XTUOVNSUNKQPDNZICMVYY4MZPNGKZGY5LMUTJTRPG
+# \\ NWXP4XXLATMJTWS4CYHF63427MPUZ7IFGGNMIQGB3RWSHJHTBWV5 \\// C25519-BASE-32 //
+#  \\// A5THIE225GM7LHEBNI2JLD4E5I4FAA2HIZJ2UU56VRVS2EVYGDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

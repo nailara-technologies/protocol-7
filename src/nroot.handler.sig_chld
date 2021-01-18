@@ -35,7 +35,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             . " ( exit code $e_val$e_sig_str )$e_dmp"
     );
 
-    <[nroot.cancel_status_timer]>->($instance_id) if defined $instance_id;
+    <[nroot.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
 
     <[nroot.terminate_process]>->($pid);    # <- cleans up children too..,
 
@@ -108,7 +108,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 # ______________________________________________________________________________
-#\\BKPCEJBGFBO5QZGCUHOBU35FEHRAB6WULYLCJ264AFEG7VVYNIXPCYLWXGSBRJHMT6CNJICQMHGDW
-# \\ JC4S3KTZWRV4FTDV555XXARLLQL3PXSXRS4OIDJVZA6Y645W7ZPM \\// C25519-BASE-32 //
-#  \\// Z2PSMF2IMJH7DIZ5LAHFWGSUFAWFZXXD4BF5IZRKOSUJGSSG2AY \\ CODE SIGNATURE \\
+#\\EEE7XSPKL26ZQEJC6GLZZUBDZTMMNN5LZDJILCKJNRT5KDZYA5SXLMV7EC32AMHFHGYIFOU4BSAXE
+# \\ WQZZYXDRIBM6ZQPHUJP2L3TNXN7J3UYZYDZKCKKEKHMSYKRTTAQ6 \\// C25519-BASE-32 //
+#  \\// LSS6HSLQLEF462TVO4M7W6ZFTZOYXFTAX6GYYYH27ZXY4PJPODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

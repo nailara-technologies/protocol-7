@@ -17,9 +17,9 @@ my @children
 <[base.log]>->( 2, ": <<< parent_pid not defined >>> [ race condition ]" )
     if not defined $parent_pid;
 
-<[nroot.cancel_status_timer]>->($instance_id);
+<[nroot.stop_heartbeat_timer]>->($instance_id);
 
-delete <callback.session.closing_last> if $instance->{'is_core'};
+delete <callback.session.closing_last> if $instance->{'is-core'};
 delete $instance->{'restart_delay'};    # reset
 
 my $restart_timeout
@@ -55,7 +55,7 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
 <[nroot.terminate_process]>->($parent_pid) if defined $parent_pid;
 
 # ______________________________________________________________________________
-#\\A5RHAC2GDD54R7LZWNVS6TQAAOU37G5A3U7TGSUSD2ODMRGLHOU4Y7F72B5QI3BF4LRKYSTNMAH5S
-# \\ CF35YQD6BV35DZ3X2VKJFLXE2PFIIQZ7BUXQ6LSRUPRMKMNPV7UP \\// C25519-BASE-32 //
-#  \\// 47SBLXADNSU6A63OOK7EEBC7RKJWICSBWVUXQ34HIJZ6TQPHQDY \\ CODE SIGNATURE \\
+#\\ACZE4HELL4X7R6M3BXARZ2L5CBENG42WFP23DRZ5WL4TX4QTWPPCDBHJ7DRIRN35FFZ2GXFVICZQS
+# \\ PL3C6R44UOE56LTYFKXRSYXXZGLSBB2KX72P4T2JOPV4TTQEE6YN \\// C25519-BASE-32 //
+#  \\// VZWNFAF7EVNG6R7L6SQLKYWAM6AFJ3FCFQEGZRIYHFPGZKSLOAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,11 +1,20 @@
 # >:]
 
-# name = nroot.handler.status_timer
+# name = nroot.handler.heartbeat_timer
 
-my $instance_id = shift->w->data;
-my $instance    = <nroot.agent.instance>->{$instance_id};
+my $watcher     = shift->w;
+my $instance_id = $watcher->data;
+
+if ( not defined <nroot.agent.instance>->{$instance_id} ) {
+    $watcher->cancel if $watcher->is_active;
+    <[base.log]>->(
+        0, "[$instance_id] instance gone - stopping status-timer .,"
+    );
+}
+
+my $instance = <nroot.agent.instance>->{$instance_id};
 $instance->{'heartbeat'}->{'errors'} //= 0;
-my $globals      = <nroot.start_setup.globals> || {};
+my $globals      = <nroot.start_setup.globals> // {};
 my $agent_name   = $instance->{'agent_name'};
 my $root_sid     = $instance->{'root_sid'};
 my $core_sid     = $instance->{'core_sid'};
@@ -15,14 +24,14 @@ my $timeout_secs
     || $globals->{'heartbeat'}->{'timeout'}
     || 13;    # <-- internal timeout default
 
-$instance->{'timeout_timer'} = <[event.add_timer]>->(
+$instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
     {   'after'   => $timeout_secs,
-        'handler' => 'nroot.handler.status_response_timeout',
+        'handler' => 'nroot.handler.heartbeat_response_timeout',
         'data'    => $instance_id
     }
     )
-    if not defined $instance->{'timeout_timer'}
-    or !$instance->{'timeout_timer'}->is_active;
+    if not defined $instance->{'timer'}->{'heartbeat-timeout'}
+    or !$instance->{'timer'}->{'heartbeat-timeout'}->is_active;
 
 my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
 
@@ -30,7 +39,7 @@ my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
     {   'command'   => "$command_route.heart",
         'call_args' => { 'args' => 'notime' },
         'reply'     => {
-            'handler' => 'nroot.handler.status_timer_response',
+            'handler' => 'nroot.handler.heartbeat_timer_response',
             'params'  => { 'instance_id' => $instance_id }
         }
     }
@@ -40,7 +49,7 @@ delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 # ______________________________________________________________________________
-#\\XANH4ZXLFXXPHT2YAAQ7MCOGQCYFBO64DUA3VNIR7TGH6M3NJUYG4IIVNZ7MFAMWDEBNBDM73VZHG
-# \\ YDAKYX25B5ZKSTQ26Q4FCJJMOYFA3LRC57GPMQYQJ3KOASVXSG2K \\// C25519-BASE-32 //
-#  \\// 5ET73P4XJZOTX2CS32TZ33WVS5FMFO5U5HSJLO2565FOQL2JQDI \\ CODE SIGNATURE \\
+#\\5AMU63THBOWW7GC5KTEIFI624FEPPGINMDRTTSHWB47R3JPVKOHEUYSO6ZWUR5J7U5KK4OJNE5RH4
+# \\ XU44LYXJP4OY3OC44MHZXR6H6NW7ZDRRGMMGA4MKYLY3ZNSMTVAY \\// C25519-BASE-32 //
+#  \\// FI6WO7INQ6FUIQHWM76R2AS6Q43VQPG5K7IFG4JNVWPYN7MDSCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
