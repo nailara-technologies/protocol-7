@@ -1,0 +1,34 @@
+# >:]
+
+# name = nroot.cancel_instance_timers
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <nroot.agent.instance>->{$instance_id};
+
+return undef if not defined $instance;
+
+my $instance_timers = $instance->{'timer'} // {};
+
+my $cancelled = 0;
+
+foreach my $timer_name ( keys( %{$instance_timers} ) ) {
+    if ( $instance_timers->{$timer_name}->is_active ) {
+        $instance_timers->{$timer_name}->cancel;
+        $cancelled++;
+        <[base.log]>->(
+            2, ": cancelled instance $instance_id '$timer_name' timer"
+        );
+    }
+    delete $instance_timers->{$timer_name};
+}
+undef $instance_timers;
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+return $cancelled;
+
+# ______________________________________________________________________________
+#\\HLRLU4LHRFXDVIFPFUEZLIH5N7GT4RBGBEN4NCYENQDBBCAH4UCNY6X6ZMSEQQRQZZFJ3X7Y4IWCM
+# \\ 2IQO75MR5OSFJY342LMVEXGZYP4KEWFHSZ2XTM6IWFJ6XYDCAQWQ \\// C25519-BASE-32 //
+#  \\// CWOVWVG3T33ILITMBMUYG6L5XOQNVQTMSARXMK26ZSSBCYPGCAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
