@@ -1,6 +1,7 @@
 # >:]
 
-# name = base.handler.ondemand_startup
+# name  = base.handler.ondemand_startup
+# param = error reason [ NAK reply ]
 
 my $reply = shift;
 
@@ -9,7 +10,7 @@ my $v_id = $reply->{'params'}->{'v_id'};
 if ( $reply->{'cmd'} eq 'NAK' ) {
     delete <agents.virtual>->{$v_id}->{'starting'};
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "ondemand agent startup failed ($reason)" );
+    <[base.log]>->( 0, "ondemand agent startup error [ $reason ]" );
     while ( my $element = shift @{ <agents.virtual>->{$v_id}->{'queue'} } ) {
         my $sid    = $element->{'source_id'};
         my $cmd_id = $element->{'cmd_id'};
@@ -30,7 +31,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 # ______________________________________________________________________________
-#\\ESZFRZ4J3RCWQW7LJLLS4GHTHIOSDEN44KILGYCUB7DWC7VVAGIIZCHHPWED3WJPKNW7UKZ3XBKQY
-# \\ BQWQFTRO4R7DR3JP53LKVLLKXOCUR2TOC3WFM3RPHX2QMEVKWJNH \\// C25519-BASE-32 //
-#  \\// ARQJZ6AFXJFKKDH3DRGH2IOB5JGC4MIPWPO7OS7KVLLNL6CAEBQ \\ CODE SIGNATURE \\
+#\\VG2KVPT334US77SAV3EGGJHTXJ462ZF7YGVODSG6R52VJDAGU3I3OLZBFRQWE6YQXAHVK22WQHV7C
+# \\ RJWKJFYHOYD45GMK7CIILEU4ZOIBBZVXOFRXKTI3MJ44T4EVVQDO \\// C25519-BASE-32 //
+#  \\// CJFP3P3NUYQUV6GO2DM4V46NLBUSJXC7FBD6WPLEIIVV2IDQKCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
