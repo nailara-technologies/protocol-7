@@ -1,0 +1,35 @@
+# >:]
+
+# name = nroot.handler.startup-timeout
+
+my $watcher     = shift->w;
+my $params      = $watcher->data;
+my $timeout     = $params->{'timeout'};
+my $instance_id = $params->{'instance_id'};
+my $instance    = <nroot.agent.instance>->{$instance_id};
+my $agent_name  = $instance->{'agent_name'};
+
+$watcher->cancel if $watcher->is_active;
+
+if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
+    delete $instance->{'timer'}->{'startup-timeout'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+if ( defined $instance->{'status'}
+    and $instance->{'status'} eq 'starting' ) {
+    <[base.log]>->(
+        0,
+        sprintf(
+            "instance %d ['%s'] start timed out after %.1fs",
+            $instance_id, $agent_name, $timeout
+        )
+    );
+    <[agent.change_status]>->( $instance_id, 'error' );
+}
+
+# ______________________________________________________________________________
+#\\K66VLMIKWCQOTB4DHR66ODTSV64XQBJCBAZV4IG3ND54LLDSO6OBLCP22ZJBPCEV5OM4RILW2PHGE
+# \\ OIGUDDWT7T2JBPBWYWKDRQOICZF2YGEWP6BGI45HFZZW65XZ474W \\// C25519-BASE-32 //
+#  \\// 2Y52TJCMNTUYU4WOT4B5WTY76SKU7VYNRHRKGVLAL2OO4BZQWAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
