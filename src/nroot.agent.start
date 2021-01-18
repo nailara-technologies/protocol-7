@@ -11,6 +11,7 @@ my $agent_subname;
 $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
 die "no agent name supplied" if not defined $agent_name;
+my $globals   = <nroot.start_setup.globals> // {};
 my $init_code = <nroot.start_setup.agents.startup.init_code>->{$agent_name};
 my $instances = <nroot.agent.instance>;
 my $agent_id  = <[agent.get_id]>->($agent_name);
@@ -18,8 +19,11 @@ my $agent_id  = <[agent.get_id]>->($agent_name);
 # reuse instance id or create new one if none exists
 my $instance_id = <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'};
 $instance_id //= <[agent.instance.add]>->($agent_id);
+
+my $instance = $instances->{$instance_id};
+
 <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
-$instances->{$instance_id}->{'job_id'} = $job_id;
+$instance->{'job_id'} = $job_id;
 
 my $starting = 0;    # check status of agents with same name ..,
 map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
@@ -31,8 +35,31 @@ if ($starting) {     # delay agent startup until previous one is online ..,
     return;
 }
 
-# initialize agent instance startup ...
+# initialize agent instance startup ..,
 <[agent.change_status]>->( $instance_id, 'starting' );
+
+### [ startup timeout ]
+my $startup_timeout = <nroot.start_setup.agents.startup.timeout>->{$agent_name}
+    // $globals->{'startup'}->{'timeout'} // 47;
+<[base.log]>->(
+    2,
+    sprintf(
+        "instance %d ['%s'] start timeout = %.1fs",
+        $instance_id, $agent_name, $startup_timeout
+    )
+);
+if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
+    $instance->{'timer'}->{'startup-timeout'}->cancel
+        if $instance->{'timer'}->{'startup-timeout'}->is_active();
+}
+$instance->{'timer'}->{'startup-timeout'} = <[event.add_timer]>->(
+    {   'after'   => $startup_timeout,
+        'handler' => 'nroot.handler.startup-timeout',
+        'data' =>
+            { 'instance_id' => $instance_id, 'timeout' => $startup_timeout }
+    }
+);
+###
 
 # execute nroot-init code
 my $init_result_data = {};
@@ -45,11 +72,11 @@ if ( exists $init_code->{'nroot-init'} ) {
     my @root_init_code = <[base.parser.config]>
         ->( $init_code->{'nroot-init'}, $namespace_str );
     map {
-        $_ =~ s/<instance_id>/$instance_id/g;
-        $_ =~ s/<agent_name>/$agent_name/g
+        $_ =~ s|<instance_id>|$instance_id|g;
+        $_ =~ s|<agent_name>|$agent_name|g
     } @root_init_code;
     my $success = <[base.execute_agent_code]>->(@root_init_code);
-    $init_result_data = $instances->{$instance_id}->{'init_data'};
+    $init_result_data = $instance->{'init_data'};
 
     if ( !$success ) {
         <[base.log]>->(
@@ -65,12 +92,12 @@ my $agent_sn_str
 
 my ( $pid, $out_fh, $in_fh );
 
-$instances->{$instance_id}->{'external'} = 0;
+$instance->{'external'} = 0;
 
 if ( exists $init_result_data->{'start_mode'}
     and $init_result_data->{'start_mode'} eq 'exec-external' ) {
 
-    $instances->{$instance_id}->{'external'} = 1;
+    $instance->{'external'} = 1;
 
     my $exec_bin = $init_result_data->{'exec_bin'};
     my $prog_usr = $init_result_data->{'exec_usr'};
@@ -81,7 +108,7 @@ if ( exists $init_result_data->{'start_mode'}
         } else {
             <[base.log]>->(
                 0,
-                "exec_usr for '$agent_name' (\<x11.user>) is "
+                "exec_usr for '$agent_name' [\<x11.user>] is "
                     . "not defined - ERROR"
             );
             <[agent.change_status]>->( $instance_id, 'error' );
@@ -89,22 +116,22 @@ if ( exists $init_result_data->{'start_mode'}
         }
     }
 
-    ## local ./bin/ path ## ( no /-es in exec_bin param )
+    ## local ./bin/ path ## [ no /-es in exec_bin param ]
     map {
         $exec_bin = <system.root_path> . $_ . $exec_bin
             if $exec_bin !~ m|/| and -x <system.root_path> . $_ . $exec_bin;
     } qw| /bin/ /bin/dependencies/ |;
 
     if ( not defined $exec_bin or not defined $prog_usr ) {
-        my $reason = "expected program name (exec_bin) in '$agent_name' setup";
+        my $reason = "expected program name [exec_bin] in '$agent_name' setup";
         $reason = "expected 'exec_usr' for '$agent_name' to be defined"
             if defined $exec_bin and not defined $prog_usr;
-        <[base.log]>->( 0, "$reason - ABORTED!" );
+        <[base.log]>->( 0, "$reason - ABORTED.," );
         <[agent.change_status]>->( $instance_id, 'error' );
         <[agent.cmd.stop]>
             ->( { 'args' => $instance_id, 'mode' => 'implicit' } );
         return undef;
-    } elsif ( $exec_bin =~ /\s/ or !-x $exec_bin ) {
+    } elsif ( $exec_bin =~ m|\s| or !-x $exec_bin ) {
         <[base.log]>->(
             0,
             "'$agent_name' exec_bin '$exec_bin' not a valid executable - ERROR"
@@ -121,7 +148,7 @@ if ( exists $init_result_data->{'start_mode'}
         }
         map { $privs->{$_} =~ s|'||g } keys %{$privs};    # LLL: abort on match?
 
-        # LLL: implement exec_args...
+        # LLL: implement exec_args..,
         my $prepare_code = '%ENV=(); ';
         my $display      = <x11.display>;
         $prepare_code .= "\$ENV{'DISPLAY'}='$display'; "
@@ -156,7 +183,7 @@ push( @exec_args, '-lpw=' . $apw_href->{$agent_name} )
     if defined $apw_href->{$agent_name};
 
 my $agent_verbosity
-    = <system.verbosity.console> || 1;    # -v is min. [a. output patterns]
+    = <system.verbosity.console> || 1;    # -v is min. [ agent output patterns ]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
 <[base.log]>->( 1, "starting of agent '$agent_sn_str' initiated ..," );
@@ -164,7 +191,7 @@ push( @exec_args, '-' . 'v' x $agent_verbosity );
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
     ? map {"-M$_"}
-    split( / +/, $init_result_data->{'command_line_modules'} )
+    split( m| +|, $init_result_data->{'command_line_modules'} )
     : ();
 
 if (@cmd_line_mods) {
@@ -186,7 +213,7 @@ exec_skip:
 
 if ( not defined $pid or $@ ) {
     ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
-    my $err_reason = ( defined $! and length($!) ) ? " ('$!')" : '';
+    my $err_reason = ( defined $! and length($!) ) ? " ['$!']" : '';
     <[base.log]>->(
         0,
         join( '',
@@ -208,21 +235,20 @@ if ( not defined $pid or $@ ) {
     $pid, { 'instance_id' => $instance_id, 'start_time' => <[base.time]>->(4) }
 );
 
-$instances->{$instance_id}->{'process'} = { 'id' => $pid, };    # ...
-$instances->{$instance_id}->{'subname'} = $agent_subname
-    if defined $agent_subname;
+$instance->{'process'} = { 'id' => $pid, };                          # ..,
+$instance->{'subname'} = $agent_subname if defined $agent_subname;
 
 <[agent.change_status]>->( $instance_id, "extbin" )
     if defined $init_result_data->{'start_mode'}
     and $init_result_data->{'start_mode'} eq 'exec-external';
 
-# push init code to agent <stdin> if in 'stdin' mode..
+# push init code to agent <stdin> if in 'stdin' mode.,
 if ($stdin_mode) {
     <[base.log]>->( 1, ": pushing startup init-code < agent '$agent_name' >" );
     foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
         my $code_line = $_line;    # <- keeping copy
-             # <{foo.bar}> (agent instance namespace) variable fetching syntax
-        while ( $code_line =~ /<\{([^\}]+)\}>/ ) {
+             # <{foo.bar}> [agent instance namespace] variable fetching syntax
+        while ( $code_line =~ m|<\{([^\}]+)\}>| ) {
             ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
             my $var_value;
             eval "\$var_value = $namespace_str$var_str";
@@ -237,12 +263,12 @@ if ($stdin_mode) {
         print {$in_fh} "$code_line\n";
     }
 }
-close($in_fh);    # no more use for agent stdin handle (for now)
+close($in_fh);    # <-- no further use for agent stdin handle [ for now ]
 
 <[base.log]>->( 1, "agent '$agent_sn_str' started [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\UBJWFC4AFPECQW53WNKKGZOTDTWH3AVXUFFOKOMXFLB5OYP6TILR53QRSXCHSW7GT6JMYAAHFBVVA
-# \\ HNNLT6BGXMBOD4XIQTXHA2DI6JP2JE55NY53J3A47UQ3OE5UY2AB \\// C25519-BASE-32 //
-#  \\// IWI6CDOBGA2TT3UDKTHSJDUBFIURKRQVFS2KQ2I6DOUPUTPUGDI \\ CODE SIGNATURE \\
+#\\RMUZ4KM7LVRRHMJCGTR2HCVHCCZ76PR37PWZEUGRVMBHKBFDTGYAJPSOD5W6JIZPG2LQ7GHQDLKCA
+# \\ OOGQAM3LC7ETEJN47OYHDOU2VPFII27UUE4E527GMC2QYLAPG4XU \\// C25519-BASE-32 //
+#  \\// HXGOFIZ7JQXT67TOOAB25KXD6DLZYZJ7NQMHK7SPHET73FBLWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

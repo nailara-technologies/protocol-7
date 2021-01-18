@@ -5,7 +5,9 @@
 
 dependencies   = core
 max_concurrency   = 1
-heartbeat.timeout = 9
+heartbeat.timeout = 13
+restart.min_delay = 0.7
+agent-start.timeout = 7
 
 : nroot-init :
   start_mode = stdin-agent
@@ -18,3 +20,6 @@ heartbeat.timeout = 9
 : nroot-post-init :
   [nroot.callback.get_x11_display]
   status.post-init = 1
+
+: startup-error :
+  [nroot.callback.xorg-error-handler]
