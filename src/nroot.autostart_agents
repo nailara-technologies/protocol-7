@@ -9,7 +9,6 @@ foreach my $agent_name (@_) {
     my $obj_id         = <[agent.get_object_id]>->($agent_id);
     my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
     my $instance_count = $agent_config->{'start'}->{'instances'} || 1;
-    delete $agent_config->{'start'} if !keys %{ $agent_config->{'start'} };
 
     while ( <[agent.is_enabled]>->($agent_name) and $instance_count-- ) {
         my $job_id = <[jobqueue.add_job]>->(
@@ -24,7 +23,7 @@ foreach my $agent_name (@_) {
 }
 
 # ______________________________________________________________________________
-#\\35BVCMZZIG773GHWODSRBBZ3CS67CIVE7Z7AO3NROCYJN52DCEPO7S2L2UIDP55LLAU42L43ZOBFS
-# \\ NZWPBJM7MEIF6D66UUOSO7R575AOKAVYKGH6X7LXOCFO6DSZCOHQ \\// C25519-BASE-32 //
-#  \\// 6UDKWZWUWUBNBIAVMJ54ELAEIMEPCMR56A5ZAQUEXFTJOI3A6BA \\ CODE SIGNATURE \\
+#\\XYQD7DO6TIN5ML4RGQAL4ZA6UJXPNKJZM42FLIDKHBUPP7N5FKHGSWTXSOHFQIRKFTSAB7PXJJPCG
+# \\ OB2IGCYEX6FQVMDK2PQ3SU3FFCYZ57KO3LYXN5L4ILUG733NV2T2 \\// C25519-BASE-32 //
+#  \\// MASJ247L5HT2LSBHVR3DDK2WQ6JPDXNTSY6W2NHCTA3MGPN7EAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
