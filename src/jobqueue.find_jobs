@@ -1,0 +1,29 @@
+# >:]
+
+# name = jobqueue.find_jobs
+
+my $job_attributes = shift // {};
+my $jobs_by_id     = <jobqueue.joblist.by_id>;
+die "expected job attributes [ href ]" if not keys( %{$job_attributes} );
+
+my @matched_ids;
+
+foreach my $job_id ( keys( %{$jobs_by_id} ) ) {
+    my $check_job = $jobs_by_id->{$job_id};
+    map {
+        next
+            if defined $check_job->{$_}
+            and defined $job_attributes->{$_}
+            and $check_job->{$_} ne $job_attributes->{$_}
+        }
+        keys( %{$job_attributes} );
+    push( @matched_ids, $job_id );
+}
+
+return @matched_ids;
+
+# ______________________________________________________________________________
+#\\37GEPIKX7JE27IUANSHRXSC7HO36EO4JOEDKWPTGYT3ZYKPTX52WL6JX4FDFXG4BWR4ORK2JET57E
+# \\ ICOSU2DMDSOEIGYR7CXWKBS7ULA3J26RNUHGZXMIGYCYGHYBNIJW \\// C25519-BASE-32 //
+#  \\// V7W3QMWL7ETU4DNH7DZD56NYGMMT6JNSFVEBOCEVQY7KKCK5YDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
