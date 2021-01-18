@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# :: ncode :: developement tool for parsing [perl/nailara] source code
+# :: ncode :: developement tool for parsing [perl\protocol-7] source code
 
 BEGIN { $ENV{'PERL_RL'} = 'Perl' }
 
@@ -16,7 +16,7 @@ my @params   = @ARGV;
 my $USE_ANSI = 1;
 
 my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
-$root_path =~ s/\/[^\/]+\/[^\/]+$//;    # relative to ./bin/ path (parent)
+$root_path =~ s|\/[^\/]+\/[^\/]+$||;    # relative to ./bin/ path [parent]
 
 my $term = new Term::ReadLine 'ncode';
 $term->ornaments('0,0,md,me');
@@ -61,11 +61,11 @@ my %commands = (
     'restore-backup' => \&cmd_restore_backup,
     'undo'           => \&cmd_undo,
     'undo-move'      => \&cmd_undo_move,
-    'help'           => \&cmd_help
+    'description'    => \&cmd_description
 );
 
 if ( !@params and $cmd ne 'list_targets' ) {
-    &cmd_help;
+    &cmd_description;
     exit;
 }
 
@@ -78,7 +78,7 @@ if ( not defined $commands{$cmd} ) {
         . " a command '$cmd' does not exist"
         . ansi('red') . " ::\n"
         . ansi('reset') . "\n";
-    &cmd_help;
+    &cmd_description;
     exit;
 }
 
@@ -98,19 +98,20 @@ exit;
 
 # ::: parser commands :::
 
-# :: cmd_help :: display help text [for a given command or lists all commands]
+# :: cmd_description :: display description text ..,
+#                                         [ given command or full command list ]
 
-sub cmd_help {
+sub cmd_description {
 
     my $command = shift;
     my @params  = @_;
 
-    if ( defined $command and $command eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $command and $command eq 'description_txt' ) {
+        return description_txt(
             '[command]', '
 
-     help ................... list available commands
-     help <command> ......... show command description
+     description ................... list available commands
+     description <command> ......... show command description
 
               ', ( $command, @params )
         );
@@ -127,21 +128,25 @@ sub cmd_help {
         }
 
         foreach my $cmd ( sort( keys(%commands) ) ) {
-            my $help_txt = 'not defined';
+            my $description_txt = 'not defined';
 
             if ( defined &{ $commands{$cmd} } ) {
-                $help_txt = &{ $commands{$cmd} }( 'help_txt', 'params' );
+                $description_txt
+                    = &{ $commands{$cmd} }( 'description_txt', 'params' );
 
-                $help_txt = '( alias to command below.. )' if length($cmd) <= 3;
+                $description_txt = '( alias to command below.. )'
+                    if length($cmd) <= 3;
 
             } else {
-                $help_txt
+                $description_txt
                     = ansi('blue') . "not yet implemented" . ansi('reset');
             }
 
             my $line_len = $max_len + 2 - length($cmd);
 
-            if ( $cmd eq 'help' and defined $ARGV[0] and $ARGV[0] eq 'help' ) {
+            if (    $cmd eq 'description'
+                and defined $ARGV[0]
+                and $ARGV[0] eq 'description' ) {
                 $cmd = ansi('bold') . $cmd;
             }
 
@@ -151,17 +156,20 @@ sub cmd_help {
                 . ansi('reset')
                 . '_' x $line_len
                 . ansi('reset') . ' '
-                . $help_txt
+                . $description_txt
                 . ansi('reset') . "\n";
         }
         print ansi('reset') . ':' . ansi('reset') . "\n\n";
     } elsif ( defined &{ $commands{$command} } ) {
-        my $params_txt       = &{ $commands{$command} }( 'help_txt', 'params' );
-        my $description_text = &{ $commands{$command} }( 'help_txt', 'text' );
+        my $params_txt
+            = &{ $commands{$command} }( 'description_txt', 'params' );
+        my $description_text
+            = &{ $commands{$command} }( 'description_txt', 'text' );
 
         print ansi('reset')
             . "  :\n  : : "
-            . ansi('cyan') . 'code '
+            . ansi('cyan')
+            . 'ncode '
             . ansi('cyan bold')
             . $command . ' '
             . ansi('reset')
@@ -186,8 +194,8 @@ sub cmd_list_targets {
 
     my @params = @_;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             '(none) \\\\\\ lists code targets and their paths', '
 
   this command will list all configured code targets and their paths
@@ -220,8 +228,8 @@ sub cmd_list_psubs {
 
     my @params = @_;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             '<target> [pattern(s)]', '
 
 <target> [pattern] ..... displays the list of defined subroutines
@@ -266,8 +274,8 @@ sub cmd_list_psubs {
 sub cmd_show_psub {
     my @params = @_;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             '<target> [subroutine_name(s)]', '
 
 <target> [sub_name] .... display source code of specified subroutine
@@ -303,8 +311,8 @@ sub cmd_show_psub {
 sub cmd_replace {
     my @params = @_;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             '[target] [search_pattern] [replace_pattern]', '
 
 <target> [search] [replace] ..... regular expression replace operation
@@ -418,8 +426,8 @@ sub cmd_replace {
 sub cmd_parse_headers {
     my @params = @_;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             "[target] \\\\\\ 'src' being the default", '
 
 <target>  ..... repairs \'name\' header params of files in given code target
@@ -520,8 +528,8 @@ sub cmd_search {
     my @params = @_;
     my $search_pattern;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             '[target] [pattern(s)]', '
 
 <target> [pattern] ..... regexp search on all <target> files
@@ -608,13 +616,14 @@ sub cmd_search {
     print ansi('blue dark') . ":\n" . ansi('reset') . "\n";
 }
 
-# :: cmd_move_psubs :: moves subroutine[s] from one module to another [adjusts calls]
+# :: cmd_move_psubs :: moves subroutine[s] from one module to another
+#                                                 [ adjusts sub calls ]
 
 sub cmd_move_psubs {
     my @params = @_;
 
-    if ( defined $params[0] and $params[0] eq 'help_txt' ) {
-        return help_txt(
+    if ( defined $params[0] and $params[0] eq 'description_txt' ) {
+        return description_txt(
             '<code_target> [source_sub] [target_sub]', '
 
 <target> [source_sub[s]] [target_sub] .... moves one or more subroutines
@@ -697,18 +706,18 @@ sub cmd_move_psubs {
 
 # ::: additional subroutines :::
 
-# :: help_txt :: defines help text and short description
-#                returns corresponding text if first parameter equals 'help'
-sub help_txt {
+# :: description_txt :: defines description text and short description
+#                returns corresponding text if first parameter equals 'description'
+sub description_txt {
     my ( $params_txt, $description_text, @call_params ) = (@_);
 
-    my ( $cmd, $help_type ) = (@call_params);
+    my ( $cmd, $description_type ) = (@call_params);
 
-    if ( defined $cmd and $cmd eq 'help_txt' ) {
-        if ( $help_type eq 'params' ) {
+    if ( defined $cmd and $cmd eq 'description_txt' ) {
+        if ( $description_type eq 'params' ) {
             $params_txt =~ s/(\w+)/&ansi('cyan').$1.&ansi('reset')/ge;
             return $params_txt;
-        } elsif ( $help_type eq 'text' ) {
+        } elsif ( $description_type eq 'text' ) {
             $description_text =~ s/^\n+/\n/gms;
             $description_text =~ s/^\s*\n+$//gms;
             if ( $description_text !~ /^\s+$/ ) {
@@ -717,7 +726,7 @@ sub help_txt {
             return $description_text;
         }
     }
-    return "[$cmd] [$help_type]";
+    return "[$cmd] [$description_type]";
 }
 
 # :: warn_apply :: warns before applying changes to disk [ <anykey> == abort ]
@@ -987,7 +996,7 @@ sub restore_backup {
 
 }
 
-# :: check_target_files :: necessary target file checks before restoring backup data
+# :: check_target_files :: performs target file checks before restoring backups
 
 sub check_target_files {    # LLL: incomplete
     my ( $source_data, $meta_data ) = (@_);
@@ -1027,7 +1036,7 @@ sub check_target_files {    # LLL: incomplete
     }
 }
 
-# :: load_metadata :: loads the backup metadata and returns a hash reference to it
+# :: load_metadata :: loads the backup metadata and returns hash reference to it
 
 sub load_metadata {
     my $file_name         = shift;
@@ -1090,7 +1099,7 @@ sub load_metadata {
     return \%meta_data;
 }
 
-# :: save_metadata :: creates a file with the backup metadata for use in restore operation
+# :: save_metadata :: creates a file with backup metadata for use in restore op.
 
 sub save_metadata {
     my $file_name = shift;
@@ -1314,8 +1323,8 @@ sub create_dir {
     }
 
     if ( !-d $parent_dir ) {
-        die
-            ":: create_dir() : parent directory '$parent_dir' does not exist :: ";
+        die ":: create_dir() : parent directory "
+            . "'$parent_dir' does not exist :: ";
     }
 
     if ( !-d $full_path ) {
@@ -1506,7 +1515,8 @@ sub overwrite_source_files {
     save_source( $source_code, $PATH->{'root'} . '/' );
 }
 
-# :: show_perl_sub :: returns the source code of a certain subroutine [TODO: rewrite parsing!]
+# :: show_perl_sub :: returns the source code of a certain subroutine
+#                    [ LLL : rewrite parsing., ]
 
 sub show_perl_sub {
     my $source    = shift;
@@ -1811,7 +1821,7 @@ sub insert_sub {
     }
 }
 
-# :: adjust_subroutine_calls :: fixes calls after moving of subs between packages
+# :: adjust_subroutine_calls :: fix calls after moving of subs between packages
 
 sub adjust_subroutine_calls {
     my $work_source         = shift;
@@ -1943,7 +1953,7 @@ sub replace_all {
     return ( $changed_source, $changed );
 }
 
-# :: pattern_invalid :: returns true if regexp pattern contains illegal characters
+# :: pattern_invalid :: return true if regex pattern contains illegal characters
 
 sub pattern_invalid {
     my $pattern_type   = shift;
@@ -1975,7 +1985,8 @@ sub pattern_invalid {
     if ( $_tmp_pattern =~ /(\$\w+)/ ) {
         my $var_name = $1;
         print " : error in regular expression : "
-            . "$pattern_type pattern contains an illegal variable ($var_name).\n";
+            . "$pattern_type pattern contains "
+            . "an illegal variable ($var_name).\n";
         return 1;
     }
     if ( $_tmp_pattern =~ /\$/ ) {
@@ -1988,7 +1999,7 @@ sub pattern_invalid {
     return 0;    # not invalid
 }
 
-# :: pattern_test_ok :: checks the regular expression pattern in %regexp via eval
+# :: pattern_test_ok :: check the regular expression pattern in %regexp via eval
 
 sub pattern_test_ok {
     my %regexp = %{ $_[0] };
@@ -2012,7 +2023,7 @@ sub pattern_test_ok {
     }
 }
 
-# :: create_regexp :: creates an regular expression string from submitted %regexp hash
+# :: create_regexp :: create reg. expression string from submitted %regexp hash
 
 sub create_regexp {
     my %regexp         = %{ $_[0] };
@@ -2020,7 +2031,8 @@ sub create_regexp {
     return $regexp_pattern;
 }
 
-# :: user_confirmed :: asks the user a question, answers: <y/n>, returns true on 'y'
+# :: user_confirmed :: asks the user a question
+#                    [ answers: <y/n>, returns true on 'y' ]
 
 sub user_confirmed {
     my $question = shift;
@@ -2195,7 +2207,7 @@ sub ansi {
     return color $requested_color;
 }
 
-# :: print_usage :: displays usage / help header
+# :: print_usage :: displays usage / description header
 
 sub print_usage {
     my $usage_txt = "ncode <command> [parameters]\n";
@@ -2204,7 +2216,7 @@ sub print_usage {
 }
 
 # ______________________________________________________________________________
-#\\HTUCT3FI2SESM4ONYB6FZBD3FPW63RP65FUTBA2GWJSZMXU6UEAOMYMXQLTQCSNXNO6CTEWGMF2VQ
-# \\ HB4LRKSQVQZWKCKM5QOFYKBL5LUVIOLETV5ENRMELORI76XYFMRH \\// C25519-BASE-32 //
-#  \\// 6VPZGZB36XFPY7DRCEROKEJTNVIV6GTJAFYTS5D2T4ZO32FFQBY \\ CODE SIGNATURE \\
+#\\SPIPHK2NOJ6GDN3L5QMJIWAEOVI4J4LQLC5Z6J43WP3QJTC7TQOF4QXC6RDEIW4A2B4O2FFHD4VGU
+# \\ 3UELZLCDT5V2KGICNRRTTJ6SJPWWMHRZRRGWUQFA3EXESHEOQGUQ \\// C25519-BASE-32 //
+#  \\// LI3AF53T3PBEF7EQC3KX6MZM26P4HN5P4VVHOEMXTI43YIWMKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

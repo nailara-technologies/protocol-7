@@ -1,0 +1,28 @@
+# >:]
+
+# name  = base.console.commands
+# descr = list [these] console commands and parameters
+
+my $description_parameter = shift;
+
+if ( defined $description_parameter ) {
+    print <[base.parser.txt_box]>->(
+        'command specific description is not implemented yet.',
+        $description_parameter
+    );
+    return;
+}
+
+my $title_str = "'" . <system.agent.name> . '\'-agent commands';
+my @commands  = sort keys %{ $data{'base'}{'console'} };
+( my $t_ref ) = <[base.parser.command_list]>->( \@commands, 'console' );
+
+print <[base.parser.txt_box]>->( $t_ref, $title_str );
+
+0;
+
+# ______________________________________________________________________________
+#\\QVIMJQKDDSQENKN5IFYQXJAAEG5X6SBZZW65QNGBLDRMCRCZBSGV6HZXNYLASVKY7AUCAPX7EZ7ZO
+# \\ 4NKGAOP7PFM66TKEUPIPYONHTINGUG3Y7IBJHSXFV5V4SY6T5AUM \\// C25519-BASE-32 //
+#  \\// SG77ZUMY4XYGMCVC6O4HIXWGELZER55AFEQO2QMFL47TSJKI2AI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
