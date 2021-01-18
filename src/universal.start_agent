@@ -50,7 +50,7 @@ eval {
 
 if ( not defined $pid or $@ ) {
     ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
-    my $err_reason = ( defined $! and length($!) ) ? " ('$!')" : '';
+    my $err_reason = ( defined $! and length($!) ) ? " ['$!']" : '';
     <[base.log]>->(
         0,
         join( '',
@@ -65,7 +65,7 @@ if ( not defined $pid or $@ ) {
 
 push( @{<system.kill_list>}, $pid );
 
-<[base.log]>->( 1, ": agent ('$agent_sn_str') pid = $pid" );
+<[base.log]>->( 1, ": agent <'$agent_sn_str'> pid = $pid" );
 
 print {$in_fh} "system.agent.mode=universal-child\n";
 print {$in_fh} "unix.path=/tmp/.n/s/" . <unix.agent.path> . "\n";
@@ -81,7 +81,7 @@ close($in_fh);
 return 1;
 
 # ______________________________________________________________________________
-#\\D3UXFE65SWHVSYGEQ2HCZ5PYAOB7Y7KQQJBZXCFXB4KFW72ZPY5LL7LCZDEILQZ2OECWUJGMYDXUG
-# \\ Y7IJVLMNDHUF7WCHVZQIRQRW2ZZ7ZEPDNCU6BKIRMQVUZELEAJZI \\// C25519-BASE-32 //
-#  \\// 6XQWW3BVCWHU5RKTKAVXABEULZI7QU6S2ZNHXDUVP26EFKYJ6DQ \\ CODE SIGNATURE \\
+#\\MMAKVASQNS6MK5XYON7LL2VTL5K3GDQOPR5FNY32SFRMBVE5OGYB7J6AHV3Q6MZWPIYPF6JJ3BHNI
+# \\ FOBK5MRIU3JURZYLXW2ZIJBNA3UAIEQJQY4RCY6GQZWYZK3IKQQ2 \\// C25519-BASE-32 //
+#  \\// J5RVUAX4ON5HAIZDHWBHY2WJU3UJPWKWAT5DXBOESHB5DRSHWBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
