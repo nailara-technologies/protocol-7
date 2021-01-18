@@ -2,21 +2,22 @@
 
 # name = base.exit
 
-my $exit_code = 0;
-$exit_code = shift if @_ and $_[0] =~ /^\d+$/;
+my $exit_code = ( scalar @_ and $_[0] =~ m|^\d+$| ) ? shift : 0;
+
 my $exit_msg  = shift;
 my $log_level = shift;
-$exit_msg  //= "exit($exit_code) called.";
+
+$exit_msg  //= ".. exit [ $exit_code ] called .,";
 $log_level //= 1;
 
 <[base.log]>->( $log_level, $exit_msg );
 
-Event->unloop_all() if defined &Event::unloop_all;
+# Event->unloop_all() if defined &Event::unloop_all;
 
-exit($exit_code);
+CORE::exit($exit_code);
 
 # ______________________________________________________________________________
-#\\YATWQQ5VY3PXRVCD4ICWOPJKW475KX7BUQEWWJCLNZWEALYZTT6WKTDYOU23JZWM3NEOIJV3AP5I4
-# \\ M22KG5XEKXAT3KSXLX3GC5NM4LJTT6MIKZR3KD5VXA4FFXUNS37Z \\// C25519-BASE-32 //
-#  \\// QI4BRAIY4XHIYEC5EV2IZ5VSYK2FGHCYDDRHQP2LCCVSE4DMQAQ \\ CODE SIGNATURE \\
+#\\SRFHZ2YFGSEHY3WEC5AAQ6SZTQQ3LEK24FDJ7TGEBU43SCTHQXSBXY36EOW3SEVIMAEYESNDQLY56
+# \\ 7LEZHBC2WYJHHBDVZPSY4WPV335Q46IXSSAFU5CY2MXZNSESD2MW \\// C25519-BASE-32 //
+#  \\// JWJGXRFP5KFJ7A374TW3ICGNQE2CBGSMOXGSHP4NP37OZFXCCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
