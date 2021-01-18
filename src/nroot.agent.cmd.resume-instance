@@ -12,7 +12,7 @@ return { 'mode' => 'nak', 'data' => "instance not found!" }
     if not exists <nroot.agent.instance>->{$instance_id};
 my $instance = <nroot.agent.instance>->{$instance_id};
 
-<[nroot.enable_status_timer]>->($instance_id)
+<[nroot.enable_heartbeat_timer]>->($instance_id)
     if delete $instance->{'paused_status_timer'};
 
 my $parent_pid = <nroot.agent.instance>->{$instance_id}->{'process'}{'id'};
@@ -29,7 +29,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\G6DAU3FC72GJXMIRBOBS3DTCZUHDDEIFPML3RSFJ674AJUGWJSLZ7FAP2IT6LPCM3IN2T3RAFFYCK
-# \\ EF7BOYMLO4AFM77APCES3MSSI527CSIDXDIPCRZWBNNQVWRQH5VD \\// C25519-BASE-32 //
-#  \\// MSZE6TXUFRSY2544JLG3G3BAQZ72PFTDSFWKOAM5BDFD4YB3WDY \\ CODE SIGNATURE \\
+#\\WZOXC5FSLVKAEERL5JI7PHSVJ5MXICIADKV4EOWUOSUKZ7A33NJH5TY74RCPOSY53LKYI3IZZB7C2
+# \\ KASVCZPSFHSHHRYANPK2XZZTSCYUFALW2JVRH7NH5FT7DQPBWVDM \\// C25519-BASE-32 //
+#  \\// SKZWHW5IIPINY7BTGAKNT445HVS3OYUYNWYGDSR3WV5J3ZE2CDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

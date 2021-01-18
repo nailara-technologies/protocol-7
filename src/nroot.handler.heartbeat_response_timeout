@@ -1,0 +1,60 @@
+# >:]
+
+# name = nroot.handler.heartbeat_response_timeout
+
+my $instance_id   = shift->w->data;
+my $instance      = <nroot.agent.instance>->{$instance_id};
+my $agent_name    = $instance->{'agent_name'};
+my $agent_status  = $instance->{'status'};
+my $is_core_agent = $instance->{'is-core'};
+my $error_count   = $instance->{'heartbeat'}->{'errors'}++;
+my $retry_count   = $instance->{'heartbeat'}->{'retry_count'}-- || 0;
+my $retry_timeout = $instance->{'heartbeat'}->{'retry_count'} //= 2.1;
+my $dots          = '.' x ( $error_count + 1 );
+my $retry_str     = $retry_count ? " [retrying$dots,]" : '';
+<[base.log]>->(
+    0,
+    "instance $instance_id ['$agent_name']"
+        . " 'heart'-response [ TIMEOUT ]$retry_str"
+);
+
+if ( !$retry_count ) {    # [ no further retries ]
+    if ($is_core_agent) {
+        if ( $agent_status eq 'error' ) {   #   <--  was already not successful.
+            <callback.session.closing_last> = {
+                'name'   => 'nroot.teardown',
+                'params' => ['fatal core agent error']
+            };
+            <[base.session.check_remaining]>;
+        } else {
+            delete <callback.session.closing_last>;    # allowing safe restart #
+            <[agent.change_status]>->( $instance_id, 'error' );
+        }
+    } else {
+        <[agent.change_status]>->( $instance_id, 'error' );
+    }
+} else {
+    $instance->{'timer'}->{'heartbeat-timeout'}->cancel
+        if defined $instance->{'timer'}->{'heartbeat-timeout'}
+        and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+
+    ## decreasing heartbeat timeout .,
+    $retry_timeout = sprintf( "%.3f", $retry_timeout / 2 );
+    $retry_timeout = 0.7 if $retry_timeout < 0.7;
+    $instance->{'heartbeat'}->{'retry_timeout'} = $retry_timeout;
+    ####
+    $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+        {   'after'   => $instance->{'heartbeat'}->{'retry_timeout'},
+            'handler' => 'nroot.handler.heartbeat_response_timeout',
+            'data'    => $instance_id
+        }
+    );
+    <[nroot.stop_heartbeat_timer]>->($instance_id);
+    <[nroot.enable_heartbeat_timer]>->( $instance_id, 0 ); # <- retrying now [0]
+}
+
+# ______________________________________________________________________________
+#\\2NJGRGCEL2Y5DHZ7PVNKS4XYMY3NQ35W3SKQALF4S3G4X57DDFLNKAOHHR4WCFSIOF2EZSL3WVQHE
+# \\ 77AH22HMAKAW5RZ54PAZZKMHFHVCAXEBJDRW7RE54GDGVKTOZQ5N \\// C25519-BASE-32 //
+#  \\// J6R5SC6QFDN7PELII4ERQG6IMRKWJJTQG7L2BPLDNTHWBDJ5GBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
