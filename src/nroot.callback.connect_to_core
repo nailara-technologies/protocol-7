@@ -22,7 +22,7 @@ return 0 if not defined $c_fh;
 my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
 <[base.log]>->( 1, "auth. to core successful [ session $session_id ]" );
 <nroot.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
-<nroot.agent.instance>->{$instance_id}->{'is_core'}  = 1;
+<nroot.agent.instance>->{$instance_id}->{'is-core'}  = 1;
 
 <callback.session.closing_last> = {
     'name'   => 'agent.change_status',
@@ -40,7 +40,7 @@ my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
 return 1;
 
 # ______________________________________________________________________________
-#\\WWNU77EBBDMUVKQIOGXZS42KSAQWLI7V6KXW36N6DXN73DB3345BU5ZJUTLFVRMVEYNWWJ5IV3CTG
-# \\ 5SMVZY2LVQUQFWX53PE2QJUD2ZNST3UJL2FYTYXCH7UYMKYMVH56 \\// C25519-BASE-32 //
-#  \\// TGY5ZMY3EKUVRUODQBHT6MRRDBQOKVT5GDAK4C5VBZXFANSBABQ \\ CODE SIGNATURE \\
+#\\4SU37PCULKTLUFMLEIUYNBWUGYAT5PEOTNGT3JHJPGLRBQH7WVSMTYJ3PDLN5PJLGFVHRMCILU4QK
+# \\ Z3M4MUBI6PPDBTUWMUSVXROCIICR6UWCSY4UUAJ7YW4SOSHCROUM \\// C25519-BASE-32 //
+#  \\// OHZ737DAYPKWKCTP2XG32XKQWQRD7BGTYJT6MVNNNLSWAKFDGBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
