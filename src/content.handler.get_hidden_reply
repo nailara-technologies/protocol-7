@@ -1,0 +1,28 @@
+# >:]
+
+# name = content.handler.get_hidden_reply
+
+my @hidden_b32ids;
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
+    chomp( $reply->{'data'} );
+    @hidden_b32ids = split( /\n+/, $reply->{'data'} );
+}
+
+<content.hidden_b32id> = \@hidden_b32ids;
+<content.agent_online> //= 0;
+
+if ( !<content.agent_online> ) {
+    <[base.get_session_id]>;
+    <content.agent_online> = 1;
+    <[content.check_queued]>;
+}
+
+<[content.callback.load_file]>;
+
+# ______________________________________________________________________________
+#\\P2WYTMSGCD25NMMURUQQ2643VOCLFIQPQLODKBBDOVEF22LFPHTW34ZS6WRTGXG3OD657V52B3XQA
+# \\ 23D63HLIQSNU3AQDCSVRPX7GBAW7IPWBVCOEXYQJNT6CIS5UUYOH \\// C25519-BASE-32 //
+#  \\// JHQ34HNQJAQHNFROFP3PYA7JKHABNR4XHUBJL7ALVT3FXAWDGBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
