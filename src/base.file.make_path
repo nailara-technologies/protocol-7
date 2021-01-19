@@ -16,7 +16,7 @@ $path =~ s|/$||;
 die "invalid path '$path'" if $path !~ m|^/[^/]+|;
 
 if ( -d $path ) {
-    <[base.log]>->( 2, ":. directory present., =) .: ['$path']" );
+    <[base.log]>->( 2, ":. present =) .: ['$path']" );
     return $path;
 }
 
@@ -30,7 +30,7 @@ if ( defined $owner ) {
 my $install_root = <system.root_path>;
 ( my $report_path = $path ) =~ s|^$install_root/?||;
 
-<[base.log]>->( 1, ":. creating directory .: ['$report_path']" );
+<[base.log]>->( 2, ":. creating.. .: ['$report_path']" );
 
 my $current_path = '';
 foreach my $_dir ( split m|/|, $path ) {
@@ -48,7 +48,7 @@ foreach my $_dir ( split m|/|, $path ) {
 return $path;
 
 # ______________________________________________________________________________
-#\\USV3QREPX22NEVIOEKRCGXXPL3EIUYJYRRI7NQWITCCP2CMIQGHEIBTGUZ4OSSZTF2H4ZWLYXAC4W
-# \\ 3QL3AYB7A6KGMFVFGVWJFW6G3SQBH7HHRZEQBXE7R5M4SLIOHC5I \\// C25519-BASE-32 //
-#  \\// EGGOEWY4GIIEYDFDO3NE6QW7SG3IWATEUBFCCCO3ZULN2BN2AAI \\ CODE SIGNATURE \\
+#\\QE4X756XO6JFIZ53QVQNUC4LHU5HPDR6BZQSFPNZW6R2FELTFWLVWTB26IHSOV25JK5NAIVVOHGMM
+# \\ V4BIKYILTNAFVDAVARAUSXFFVZRTM2NWEIOXGABYWZ4NL2Z33EMD \\// C25519-BASE-32 //
+#  \\// RQU3EO7NK7VKXZ7F23WBWGHP32RI644PH4H34OTS7IERJFHRMBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
