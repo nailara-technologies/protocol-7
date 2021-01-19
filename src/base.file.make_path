@@ -3,41 +3,52 @@
 # name  = base.file.make_path
 # descr = recursively create a directory path
 
-my ( $path, $mode ) = @_;
+my ( $path, $mode, $owner ) = @_;
 $mode //= 0700;    # <- strict default
-$mode = oct($mode) if $mode =~ /^0/;
+$mode = oct($mode) if $mode =~ m|^0|;
 die "expected absolute path [ to create ]"
-    if not defined $path or $path !~ m,^/[^/]+,;
+    if not defined $path or $path !~ m|^/[^/]+|;
 
-$path =~ s,/[^/]+/\.\./,,g;
+$path =~ s|/[^/]+/\.\./||g;
 $path =~ s|//|/|g;
-$path =~ s,/$,,;
+$path =~ s|/$||;
 
-die "invalid path '$path'" if $path !~ m,^/[^/]+,;
+die "invalid path '$path'" if $path !~ m|^/[^/]+|;
 
 if ( -d $path ) {
-    <[base.log]>->( 2, "..directory '$path' exists.." );
+    <[base.log]>->( 2, ":. directory present., =) .: ['$path']" );
     return $path;
+}
+
+my ( $uid, $gid );
+if ( defined $owner ) {
+    die "invalid username '$owner'" if $owner !~ <regex.base.usr>;
+    ( undef, undef, $uid, $gid ) = getpwnam($owner)
+        or die "owner $owner not in passwd file";
 }
 
 my $install_root = <system.root_path>;
 ( my $report_path = $path ) =~ s|^$install_root/?||;
 
-<[base.log]>->( 1, "< new path > creating '$report_path'" );
+<[base.log]>->( 1, ":. creating directory .: ['$report_path']" );
 
 my $current_path = '';
-foreach my $_dir ( split /\//, $path ) {
+foreach my $_dir ( split m|/|, $path ) {
     next if !length($_dir);
     $current_path .= '/' . $_dir;
     next if -d $current_path;
 
     mkdir( $current_path, $mode ) or die " mkdir '$current_path' : [ $! ]";
+    if ( defined $owner ) {
+        chown( $uid, $gid, $current_path )
+            or die " chown [$uid:$gid] '$current_path' : [ $! ]";
+    }
 }
 
 return $path;
 
 # ______________________________________________________________________________
-#\\O5U3KJP35OLZL6VEFDCEHSRDTQKINGHOJFKOCBWMFCX2MN4RMN252C3RTNKENDHFJHMAQZQ75OFWS
-# \\ EBBSNDFDD2U5GE4J7GVYCJD3X7GWXID7Y2DI47QZ7XPNSCYCVXVS \\// C25519-BASE-32 //
-#  \\// QUYZRK46MIIRXDTXY76ZD64VJZT6ZKD62KHRR6UQ7NCBEXTYWDQ \\ CODE SIGNATURE \\
+#\\USV3QREPX22NEVIOEKRCGXXPL3EIUYJYRRI7NQWITCCP2CMIQGHEIBTGUZ4OSSZTF2H4ZWLYXAC4W
+# \\ 3QL3AYB7A6KGMFVFGVWJFW6G3SQBH7HHRZEQBXE7R5M4SLIOHC5I \\// C25519-BASE-32 //
+#  \\// EGGOEWY4GIIEYDFDO3NE6QW7SG3IWATEUBFCCCO3ZULN2BN2AAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
