@@ -1,0 +1,82 @@
+# >:]
+
+# name  = set-up.cmd.create-profile
+# param = <name>
+# descr = export a config profile from import dir
+
+my $profile_name = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
+    if !length($profile_name);
+return { 'mode' => 'nak', 'data' => 'invalid profile name!' }
+    if $profile_name !~ /^[\w\-_\.]+$/;
+
+<[set-up.chk_profile_dir]>;
+
+my $import_dir   = <set-up.json.import_dir>;
+my $profile_dir  = <set-up.profile_dir>;
+my $profile_json = "$profile_name.json";
+my $profile_file = "$profile_dir/$profile_name.json";
+
+my $dir_fh;
+if ( !opendir( $dir_fh, $import_dir ) ) {
+    my $err_msg = "unable to open config import directory [$!]";
+    <[base.log]>->( 0, $err_msg );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+my @import_files = grep {/\.json$/} readdir($dir_fh);
+closedir($dir_fh);
+
+my $import_data;
+
+$@ = undef;
+foreach my $file_name (@import_files) {
+    my $file_data;
+    my $file_path = "$import_dir/$file_name";
+    my $file_json = <[file.slurp]>->($file_path);
+    eval '$file_data = $data{json}{parser}->decode($$file_json)';
+    ( my $err_msg = $@ ) =~ s| at \(.+\n$|| if defined $@;
+    if ( defined $err_msg and length($err_msg) ) {
+        $err_msg = "reading json import file '$file_name' failed: $err_msg";
+        <[base.log]>->( 0, $err_msg );
+        return { 'mode' => 'nak', 'data' => $err_msg };
+    }
+    $import_data->{$file_name}
+        = merge( $import_data->{$file_name}, $file_data );
+}
+
+if ( -f $profile_file ) {
+    <[base.log]>->( 0, "overwriting existing profile file '$profile_json'" );
+} else {
+    <[base.log]>->( 1, "creating new config profile file ['$profile_json']" );
+}
+
+my $out_fh;
+if ( !open( $out_fh, ">$profile_file" ) ) {
+    my $err_msg = "unable to open/create output file [$profile_file]";
+    <[base.log]>->( 0, $err_msg );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+
+my $export_data = <json.parser>->encode($import_data);
+my $file_header
+    = "# >:]\n\n# config_profile : $profile_json\n# export_created : "
+    . <[base.parser.timestamp]>->('timestamp') . ' '
+    . <system.host.timezone>
+    . "\n# json_data_sha1 : "
+    . sha1_hex($export_data) . "\n";
+my $profile_raw = join( "\n", $file_header, $export_data );
+
+print {$out_fh} $profile_raw;
+my $bytes = length($profile_raw);
+close($out_fh);
+
+return {
+    'mode' => 'ack',
+    'data' => "profile_file '$profile_json' written ($bytes bytes)"
+};
+
+# ______________________________________________________________________________
+#\\PFYQCNMVQSWGX7VXIDUOMISVL53YH4CCPPNO5F2KWWDS5KZJ5WFOI6INAQAHW4X2RZSW7XQ4EBTVI
+# \\ HGU2E23VPMGV26AEVNSEZWEDRXJY4QTXJZY2AKU7FHYBDX4446B4 \\// C25519-BASE-32 //
+#  \\// G7MWP3QC3MIJWB3YG3FSRKVOYLXNKLCXJPOVEAHDASR3CE7QCAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,36 @@
+# >:]
+
+# name  = set-up.cmd.list-exportable
+# param = <agent>
+# descr = list exportable configs
+
+my $agent_name = $$call{'args'};
+return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
+    if not defined $agent_name;
+
+return { 'mode' => 'nak', 'data' => 'invalid agent name syntax!' }
+    if $agent_name !~ <regex.base.usr>;
+
+my $cmd_path = "core.$agent_name.get-config-names";
+$cmd_path = "core.get-config-names" if $agent_name eq 'core';
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => $cmd_path,
+        'call_args' => {},
+        'reply'     => {
+            'handler' => 'set-up.handler.agent_reply',
+            'params'  => {
+                'agent_name' => $agent_name,
+                'reply_id'   => $$call{'reply_id'}
+            }
+        }
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\PRFBFWC5CGCBQFKTDJFQCUCEDF25CJXKC3CXXRAQ32PEBOLGUUOB3QKPLPNW7JDHGCM5MRYL3QBVI
+# \\ H2LMP63F6OFRNJEXCEFH5QWGHJ4EAGCW6HF6XYAGYHV7JIDHUHPK \\// C25519-BASE-32 //
+#  \\// HSXK5GPABUBC3HC5VZHM3C7FU45ESCWF4Q7DMWPISZPQO5OAIBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -12,12 +12,12 @@ access.cmd.usr.core = commands heart reload verify-instance list * *.*
 #ssh.config_name = example       #  <- './cfg/agents/ssh/link-setup.example'
 #ssh.autostart_profiles = test
 
-modules.preload = settings.json ssh.settings
+modules.preload = set-up.json ssh.set-up
 [load_modules:<modules.preload>]
 [init_modules]
 
-[settings.json.import_file:'ssh.link_setup.json']
-[settings.json.import_file:'ssh.settings.json']
+[set-up.json.import_file:'ssh.link_setup.json']
+[set-up.json.import_file:'ssh.set-up.json']
 
 modules.load = auth net io.ip ssh
 [load_modules:<modules.load>]

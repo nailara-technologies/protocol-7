@@ -22,14 +22,14 @@ rss.ticker.request_timeout = 5   # seconds
 
 rss.ticker.trailing_seperator = 0
 
-modules.preload = rss-ticker.settings settings.json
+modules.preload = rss-ticker.set-up set-up.json
 [load_modules:<modules.preload>]
 [init_modules]
 
-[settings.json.import_file:'rss-ticker.settings.json']
-[settings.json.import_file:'rss-ticker.content.json']
+[set-up.json.import_file:'rss-ticker.set-up.json']
+[set-up.json.import_file:'rss-ticker.content.json']
 
-modules.load = auth net io.ip digest rss.ticker settings.json
+modules.load = auth net io.ip digest rss.ticker set-up.json
 [load_modules:<modules.load>]
 [init_modules]
 

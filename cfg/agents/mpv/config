@@ -20,7 +20,7 @@ access.cmd.usr.core = name commands heart subname reload verify-instance play \
                       start_autoskip stop_autoskip autoskip_interval loop pos \
                       current-hwdec current-vo current-ao drop_buffers fade # *
 
-modules.load = auth net io.ip io.unix settings.json digest mpv
+modules.load = auth net io.ip io.unix set-up.json digest mpv
 [load_modules:<modules.load>]
 
 
@@ -76,7 +76,7 @@ mpv.audio_params = -vo null --idle=yes <mpv.loop_plist_param> \
 mpv.geometry = [base.x11.get_geometry]
 mpv.coordinates = [base.x11.get_coordinates]
 
-[settings.json.import_file:'mpv.settings.json'] # ..from /etc/nailara/import/..,
+[set-up.json.import_file:'mpv.set-up.json'] # ..from /etc/nailara/import/..,
 
 [mpv.open_player]
 # [base.x11.keep_below:<x11.id>]
