@@ -1,9 +1,9 @@
 # >:]
 
-# name = mlist.callback.load_file
+# name = content.callback.load_file
 
-my $file_path    = shift // <mlist.load_file.path>;
-my $check_types  = <mlist.http.check_content_types>;
+my $file_path    = shift // <content.load_file.path>;
+my $check_types  = <content.http.check_content_types>;
 my $check_logged = 0;
 
 die "expected playlist file path"
@@ -16,12 +16,12 @@ die "expected playlist file path"
 
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
-if ( exists <mlist.mime_type.retry_timer> ) {
+if ( exists <content.mime_type.retry_timer> ) {
     map {
-        <mlist.mime_type.retry_timer>->{$_}->cancel
-            if <mlist.mime_type.retry_timer>->{$_}->is_active
-    } keys %{<mlist.mime_type.retry_timer>};
-    delete <mlist.mime_type.retry_timer>;
+        <content.mime_type.retry_timer>->{$_}->cancel
+            if <content.mime_type.retry_timer>->{$_}->is_active
+    } keys %{<content.mime_type.retry_timer>};
+    delete <content.mime_type.retry_timer>;
 }
 
 my @lines;
@@ -60,26 +60,26 @@ if ( -f $tiles_visible_file ) {
     <[base.log]>->( 2, ": no filter file ('$tiles_visible_file') present .." );
 }
 
-<mlist.file_list>     = [];
-<mlist.b32id_src_str> = {};
-<mlist.file_types>    = {};
-<mlist.type_cache> //= {};
-<mlist.file_types>     = {};
-<mlist.agent_subnames> = {};
-<mlist.items_queued>   = 0;
-<mlist.network_errors> = 0;
-<mlist.had_network_errors>      //= 0;
-<mlist.cfg.cache_content_types> //= 0;
+<content.file_list>     = [];
+<content.b32id_src_str> = {};
+<content.file_types>    = {};
+<content.type_cache> //= {};
+<content.file_types>     = {};
+<content.agent_subnames> = {};
+<content.items_queued>   = 0;
+<content.network_errors> = 0;
+<content.had_network_errors>      //= 0;
+<content.cfg.cache_content_types> //= 0;
 
 if ( !@file_names ) {
-    <mlist.type_cache> = {};
+    <content.type_cache> = {};
     <[base.log]>->( 0, "no files in playlist!" );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "core.nroot.restart",
             'call_args' => { 'args' => <update.restart_on_empty> }
         }
     ) if defined <update.restart_on_empty>;
-    <[mlist.update.send_notifications]>;
+    <[content.update.send_notifications]>;
     return 0;
 } else {
 
@@ -99,18 +99,19 @@ foreach my $file (@file_names) {
     my $b32id
         = <[digest.crc.b32]>->( ++$b32_index{$parsed_line}, $parsed_line );
 
-    <mlist.b32id_src_str>->{$b32id} = $parsed_line;  # LLL: cleanup + collisions
+    <content.b32id_src_str>->{$b32id}
+        = $parsed_line;    # LLL: cleanup + collisions
 
     $agent_subname = $1 if $file =~ s|^([^\:]+): +||;
     $type          = $1 if $file =~ s| +\(([^\)]+)\)$||;
     $type = 'unknown' if $type eq 'url';
-    <mlist.agent_subnames>->{$file_index}->{$agent_subname} = 1
+    <content.agent_subnames>->{$file_index}->{$agent_subname} = 1
         if defined $agent_subname;
 
     ### URL flags ###
-    <mlist.cfg.allow_url_flag_syntax> //= 0;
+    <content.cfg.allow_url_flag_syntax> //= 0;
     my $flag_str;
-    if ( <mlist.cfg.allow_url_flag_syntax>
+    if ( <content.cfg.allow_url_flag_syntax>
         and $file =~ s/#\[([A-Z0-9_\.\|=]+)\]#$// ) {
         $flag_str = lc($1);
     }
@@ -119,8 +120,8 @@ foreach my $file (@file_names) {
     ### LLL: weather agent test hack ###
     if ( $file =~ /^\[weather:(.+)\]$/ ) {
 
-        if ( not exists <mlist.agent_online> or !<mlist.agent_online> ) {
-            <mlist.items_queued>++;
+        if ( not exists <content.agent_online> or !<content.agent_online> ) {
+            <content.items_queued>++;
             $type = ':queued:';
         } else {
             ( my $city_str = $1 ) =~ s|\[.*$||g;
@@ -130,7 +131,7 @@ foreach my $file (@file_names) {
                 {   'command'   => "core.weather.get-urls",
                     'call_args' => { 'args' => $city_str },
                     'reply'     => {
-                        'handler' => 'mlist.handler.weather_urls_reply',
+                        'handler' => 'content.handler.weather_urls_reply',
                         'params'  => {
                             'city'    => $city,
                             'subname' => $agent_subname
@@ -148,9 +149,9 @@ foreach my $file (@file_names) {
         $type = mimetype($file);
     } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
         if (    $check_types
-            and <mlist.cfg.cache_content_types>
-            and defined <mlist.type_cache>->{$file} ) {
-            $type = <mlist.type_cache>->{$file};
+            and <content.cfg.cache_content_types>
+            and defined <content.type_cache>->{$file} ) {
+            $type = <content.type_cache>->{$file};
             <[base.log]>->(
                 2, "using cached file type '$type' [entry #$file_index]"
             );
@@ -160,15 +161,15 @@ foreach my $file (@file_names) {
                 <[base.log]>->( 1, ': checking http content types ...' );
                 $check_logged = 1;
             }
-            <mlist.mime_type.retry_timer>->{$file} = <[event.add_timer]>->(
+            <content.mime_type.retry_timer>->{$file} = <[event.add_timer]>->(
                 {   'after'   => 0,
-                    'handler' => 'mlist.callback.check_mimetype',
+                    'handler' => 'content.callback.check_mimetype',
                     'data'    => {
                         'check_url'   => $file,
-                        'retry_delay' => <mlist.mime_retry.start_delay>
+                        'retry_delay' => <content.mime_retry.start_delay>
                     }
                 }
-            ) if not exists <mlist.mime_type.retry_timer>->{$file};
+            ) if not exists <content.mime_type.retry_timer>->{$file};
             $type = ':waiting:';
         } else {
             $type = 'html';
@@ -193,29 +194,29 @@ foreach my $file (@file_names) {
     if (    $file !~ /^\w+:\/\//
         and $file !~ /^\[.+\]$/
         and ( !-e $file or !-r $file ) ) {
-        delete <mlist.agent_subnames>->{ $file_index-- };
+        delete <content.agent_subnames>->{ $file_index-- };
         my $reason_str = !-r $file ? "denied access" : "not found";
         $reason_str .= " ($type)" if $type ne 'unknown';
         <[base.log]>->( 0, ": $reason_str : '$file'" )
-            if not exists <mlist.file_error_logged>->{$file};
-        <mlist.file_error_logged>->{$file} //= 1;
+            if not exists <content.file_error_logged>->{$file};
+        <content.file_error_logged>->{$file} //= 1;
         next;
     }
 
-    push( @{<mlist.file_list>}, $file );
+    push( @{<content.file_list>}, $file );
 
-    delete <mlist.file_error_logged>->{$file}
-        if exists <mlist.file_error_logged>->{$file};
+    delete <content.file_error_logged>->{$file}
+        if exists <content.file_error_logged>->{$file};
 
-    <mlist.file_types>->{$file} //= $type;
-    <mlist.type_cache>->{$file} = $type
-        if !<mlist.cfg.cache_content_types> or $type !~ /^:[^:]+:$/;
+    <content.file_types>->{$file} //= $type;
+    <content.type_cache>->{$file} = $type
+        if !<content.cfg.cache_content_types> or $type !~ /^:[^:]+:$/;
 
     ### URL flags ###
     if ( defined $flag_str ) {
         foreach my $flag_sub_str ( split /\|/, $flag_str ) {
             my ( $flag_name, $flag_param ) = split( /=/, $flag_sub_str );
-            if ( not exists <mlist.url_flags>->{$flag_name} ) {
+            if ( not exists <content.url_flags>->{$flag_name} ) {
                 <[base.log]>->(
                     1, "<::> invalid flag '$flag_name' requested! [$file]"
                 );
@@ -225,21 +226,21 @@ foreach my $file (@file_names) {
         my $s = $flag_str =~ s/\|/,/g ? 's' : '';
         <[base.log]>->( 1, "<::> setting url flag$s for '$file'.." );
         my $flag_reply
-            = <[mlist.cmd.set_flags]>
+            = <[content.cmd.set_flags]>
             ->( { 'args' => join( ' ', $flag_str, $file ) } );
         <[base.log]>->( 0, "<!> flag error on '$file' [$flag_reply->{data}]" )
             if $flag_reply->{'mode'} ne 'ack';
     }
 }
 
-if ( <mlist.had_network_errors> and !<mlist.network_errors> ) {
-    <mlist.had_network_errors> = 0;
-    delete <mlist.retry_delay>;
+if ( <content.had_network_errors> and !<content.network_errors> ) {
+    <content.had_network_errors> = 0;
+    delete <content.retry_delay>;
     <[base.log]>->( 1, ": all network errors resolved! =)" );
 }
 
 # ______________________________________________________________________________
-#\\SH4U6LTYUXYJCUXSV25R2GNFLLGU3273HJ7BSBXOW5S7KSUV4PH53V7RGASFOIFHCJ26LT4LPUBHS
-# \\ HWDILXC2EJ7YRA7XV32WVZ4BP2AJDXT7CPRP4CY2OQGLOJJ5OOSQ \\// C25519-BASE-32 //
-#  \\// RDQUYZUJL242CJLWNUWWLIYAFQSFQRIJ3FOJPLILTUU72NTASCA \\ CODE SIGNATURE \\
+#\\ZCWTAMRRMYYUYZDAIO64JDPN3EYHGKZNXOZPT2XGQ3GH5RWJLOCLO5PZX4JI76IJVOXNTWDTFOTQM
+# \\ GSE7GY7A4VBPNKQE3CHMMZQ4GKG5DL6LDCFJBMWSSG67HCC4KPGY \\// C25519-BASE-32 //
+#  \\// SSTXNA73KHTJYY6KADLMDTUVQBCQIAIDWIC3FTXLEHOCK2HSGAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

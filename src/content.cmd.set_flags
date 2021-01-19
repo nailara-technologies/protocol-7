@@ -1,6 +1,6 @@
 # >:]
 
-# name  = mlist.cmd.set_flags
+# name  = content.cmd.set_flags
 # param = <flags> <url>
 # descr = set url flags for given playlist url
 
@@ -14,9 +14,9 @@ map {
         'mode' => 'nak',
         'data' => "invalid url flag name '$flag_name'"
             . " .. comma seperated .. < "
-            . join( ' | ', sort keys( %{<mlist.url_flags>} ) ) . ' >'
+            . join( ' | ', sort keys( %{<content.url_flags>} ) ) . ' >'
         }
-        if not exists <mlist.url_flags>->{$flag_name}
+        if not exists <content.url_flags>->{$flag_name}
 } split( /,/, $flag_str );
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $_ );
@@ -29,18 +29,18 @@ map {
 } split( /,/, $flag_str );
 
 my $match = 0;
-map { $match++ if $_ eq $url; } @{<mlist.file_list>};
+map { $match++ if $_ eq $url; } @{<content.file_list>};
 
 return { 'mode' => 'nak', 'data' => 'no match in playlist!' } if !$match;
 
-my $un = <mlist.file_types>->{$url} =~ /:/ ? '(un)' : '';
+my $un = <content.file_types>->{$url} =~ /:/ ? '(un)' : '';
 return {
     'mode' => 'nak',
     'data' => "not allowed for ${un}determined content type!"
     }
-    if <mlist.http.check_content_types>
-    and defined <mlist.file_types>->{$url}
-    and <mlist.file_types>->{$url} ne 'html'
+    if <content.http.check_content_types>
+    and defined <content.file_types>->{$url}
+    and <content.file_types>->{$url} ne 'html'
     and $url !~ m{^https?://}    # likely html?
     and $url !~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$};
 
@@ -60,21 +60,21 @@ map {
 
 my $s = $flag_str =~ /,/ ? 's' : '';
 <[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
-map { delete <mlist.url_flags>->{$_}->{$url} } keys %{<mlist.url_flags>};
+map { delete <content.url_flags>->{$_}->{$url} } keys %{<content.url_flags>};
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $_ );
     $flag_param //= 1;
-    <mlist.url_flags>->{$flag_name}->{$url} = $flag_param
+    <content.url_flags>->{$flag_name}->{$url} = $flag_param
 } split( /,/, $flag_str );
 
-<[mlist.update.send_notifications]>;
+<[content.update.send_notifications]>;
 
 my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 
 return { 'mode' => 'ack', 'data' => $msgstr };
 
 # ______________________________________________________________________________
-#\\HPQ6BPTMSTXRBGOWMITEUIJJ7623SMGJJVSAM7HHFDMQ5VBJZXJL33NT4DDFIZZFMY56JVBTY7HW2
-# \\ YOQJGXKEUW6I2HGH7JQAZJKJDHBFRHDJ6XRAJXIFEZOG2725FL5R \\// C25519-BASE-32 //
-#  \\// ABNOJMXQOPXCJURO53D4SFKX775MV4PQWPZR3YO5TLVKQ6HVUBY \\ CODE SIGNATURE \\
+#\\7SBLD6CGYUFSMHKSKYKRNBODUQR245HFR3Y7C4NFSQR263NGLUHZRZYHYP5NGKD77GNY2LE63PBGW
+# \\ X3NSIKVN3OETJGSPEUKENOOUY2WJSOI6X3MUAVODJ2E3H2JXKVDB \\// C25519-BASE-32 //
+#  \\// UGZZET25XYMBOUK3JEMXWMH5BARZYZYPWJTAXBODJ32IHGG6GDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

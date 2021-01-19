@@ -1,6 +1,6 @@
 # >:]
 
-# name  = mlist.update.send_notifications
+# name  = content.update.send_notifications
 
 my $update_cmd = shift // 'playlist_update';
 
@@ -12,20 +12,20 @@ map {
     $count++;
 } split( / +/, <update.notify_agents> );
 
-if (<mlist.content_changed>) {
+if (<content.content_changed>) {
     <[base.proto.nailara.command.send.local]>->(
         {   'command' => "core.notify.msg_reload",
             'call_args' =>
                 { 'args' => "'" . <locales.string.playlist_updated> . "'" }
         }
-    ) if <mlist.cfg.change_notifications>;
-    <mlist.content_changed> = 0;
+    ) if <content.cfg.change_notifications>;
+    <content.content_changed> = 0;
 }
 
 return $count;
 
 # ______________________________________________________________________________
-#\\UOSMXPD4MURCK3LVTRFD27J4T44ZN6OM534JV6MQSJBECTFWKD6V7FWJWFN2NEEPWK5WH6IZKRJLA
-# \\ NOTU5GRQC76D5TSLGGW2CUA3XY7FZIAR572JGMJKMENGDEMF6MFR \\// C25519-BASE-32 //
-#  \\// B2D5KXJ5RXUE47HJYS7BGK3XR2VNPOQDT3J4BFOOVNKVNRETSCA \\ CODE SIGNATURE \\
+#\\GIHFSFKA7IBZJATI3HUCQSLRNY2IK22EV2FIGV3ZYYNLTWVBEB74KT3PQ3P4OD7TQ6ITKVYSPWEUW
+# \\ RDNGTW7IVFZ77LTM7Q5XELNCRS6TTRVIY52P7LBILMQYWAIMPBL7 \\// C25519-BASE-32 //
+#  \\// ZBR2CLWVMGELT7DO7HSA3ZB2Y3TLYJJSR63NYPNMA2XWR3CMMDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

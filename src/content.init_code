@@ -1,0 +1,35 @@
+# >:]
+
+# name = content.init_code
+
+<[base.perlmod.autoload]>->('File::MimeInfo::Magic');
+
+<content.file_list>  //= [];
+<content.file_types> //= {};
+<content.type_cache> //= {};
+<content.url_flags>  //= {};
+
+map { <content.url_flags>->{$_} //= {} }
+    ( 'delay', 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
+
+<content.network_errors>  //= 0;
+<content.content_changed> //= 0;
+<content.file_error_logged> = {};
+
+<content.mime_retry.start_delay> = 1;     # start delay in seconds [increases]
+<content.mime_retry.max_delay>   = 30;    # upper mimtype check retry delay
+
+<content.http.check_content_types> //= 1;
+<content.http.url_types_max_retry> //= 0;   # 0 = never give up, <n> = max retry
+<content.cfg.change_notifications> //= 0;
+
+<[base.log]>->( 1, "<i> URL flag syntax is enabled..." )
+    if <content.cfg.disable_url_flag_syntax> //= 0;
+
+0;
+
+# ______________________________________________________________________________
+#\\3CP3DMWZSHDYM6BJNXNT5MG6C6OJQTFJBHB4NJDXNWRHMMMTUIMKX3RTI5GHF6DJ7BVZKMYHUR6HM
+# \\ GJJMLGML5KRW5XQVZGHCV3DME3SDZCL45EYTT65ERYFK5KGNR7IB \\// C25519-BASE-32 //
+#  \\// HIQPWPMUM3MURKWOLNPJJFEEW767I75FZHVP4EIULZHNRIVEKBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

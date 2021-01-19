@@ -1,18 +1,18 @@
 # >:]
 
-# name = mlist.http.get_mime_type
+# name = content.http.get_mime_type
 # todo = cache content types + make async -> 'download'-agent
 
 my $url = shift;
 my $content_type;
 
-<mlist.http.request_timeout> //= 3;
+<content.http.request_timeout> //= 3;
 
 my $uagent = LWPx::ParanoidAgent->new;
 
 $uagent->whitelisted_hosts( sub { return 1 } );
 $uagent->protocols_allowed( [ 'http', 'https' ] );
-$uagent->timeout(<mlist.http.request_timeout>);
+$uagent->timeout(<content.http.request_timeout>);
 $uagent->agent("Mozilla/5.0");
 $uagent->cookie_jar( {} );
 
@@ -44,7 +44,7 @@ if ( $response->is_success ) {
 return $content_type;
 
 # ______________________________________________________________________________
-#\\553TMD44SPAKSLSOPNJCXX2UDCGONIUOWCE5HLPMUON4HYFKH4VEFVYXMBC36WF652NBZWU7R7CZE
-# \\ G4HV336WNXYLZGFYH4OVNFVONSHDYVGRRN6M3OO4KSWAUW4IPR4V \\// C25519-BASE-32 //
-#  \\// FDBTKFZ73EPAOVVUVTWWFGL46FKHERMMDNATWVP4HJEPAGX5YBY \\ CODE SIGNATURE \\
+#\\NORA66FCOX6DK6WKA7FXYJ4N6Q3NIBIXF4FDUVSJWSAOD2IICSCURKWPTI3A5PC2CS372PKWVSWE6
+# \\ DHE4YMWMABHC62PFOKUZH55STZOECRLD2RY7YD2PE72ODYD4BJVG \\// C25519-BASE-32 //
+#  \\// YKJLHA3ENLE2TB6MJR2LZRKHYZPEQQG77LOJZ4DGPTBFM6MOMCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
