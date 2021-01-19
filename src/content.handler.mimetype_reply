@@ -1,6 +1,6 @@
 # >:]
 
-# name = mlist.handler.mimetype_reply
+# name = content.handler.mimetype_reply
 
 my $reply       = shift;
 my $url         = $reply->{'params'}->{'check_url'};
@@ -8,44 +8,44 @@ my $retry_delay = $reply->{'params'}->{'retry_delay'};
 my $reply_str   = $reply->{'call_args'}->{'args'};
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
-    <mlist.types_retry_count>->{$url} //= 0;
+    <content.types_retry_count>->{$url} //= 0;
 
-    if (    <mlist.http.url_types_max_retry>
+    if (    <content.http.url_types_max_retry>
         and $url =~ m{^https?://}
         and $url =~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$}
-        and ++<mlist.types_retry_count>->{$url}
-        >= <mlist.http.url_types_max_retry> ) {
+        and ++<content.types_retry_count>->{$url}
+        >= <content.http.url_types_max_retry> ) {
 
         # gave up and guessed as 'likely html' (let the browser deal with it...)
         <[base.log]>->(
             0,
             sprintf( "giving up mime type check for '$url' after %d retries!",
-                <mlist.types_retry_count>->{$url} - 1 )
+                <content.types_retry_count>->{$url} - 1 )
         );
         $reply_str = 'html';
         goto giving_up;
     }
 
-    my $log_level = <mlist.types_retry_count>->{$url} == 1 ? 0 : 2;
+    my $log_level = <content.types_retry_count>->{$url} == 1 ? 0 : 2;
     <[base.log]>->(
         $log_level,
         "<!> unable to resolve mimetype for '$url' [$reply_str]"
             . ' ...retrying automatically...'
     );
-    if ( not defined <mlist.file_types>->{$url}
-        or <mlist.file_types>->{$url} ne 'network_error' ) {
-        <mlist.had_network_errors>++;
-        <mlist.network_errors>++;
+    if ( not defined <content.file_types>->{$url}
+        or <content.file_types>->{$url} ne 'network_error' ) {
+        <content.had_network_errors>++;
+        <content.network_errors>++;
     }
-    <mlist.file_types>->{$url} = 'network_error';
+    <content.file_types>->{$url} = 'network_error';
 
     my $next_delay = sprintf( "%.2f", ( $retry_delay * 1.2 ) + rand(2) );
-    $next_delay = <mlist.mime_retry.max_delay>
-        if $next_delay > <mlist.mime_retry.max_delay>;
+    $next_delay = <content.mime_retry.max_delay>
+        if $next_delay > <content.mime_retry.max_delay>;
 
-    <mlist.mime_type.retry_timer>->{$url} = <[event.add_timer]>->(
+    <content.mime_type.retry_timer>->{$url} = <[event.add_timer]>->(
         {   'after'   => $retry_delay,
-            'handler' => 'mlist.callback.check_mimetype',
+            'handler' => 'content.callback.check_mimetype',
             'data'    => {
                 'check_url'   => $url,
                 'retry_delay' => $next_delay
@@ -54,12 +54,12 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     );
     return;
 giving_up:
-    <mlist.mime_type.retry_timer>->{$url}->cancel
-        if exists <mlist.mime_type.retry_timer>->{$url};
-    delete <mlist.mime_type.retry_timer>->{$url};
+    <content.mime_type.retry_timer>->{$url}->cancel
+        if exists <content.mime_type.retry_timer>->{$url};
+    delete <content.mime_type.retry_timer>->{$url};
 }
 
-delete <mlist.types_retry_count>->{$url};
+delete <content.types_retry_count>->{$url};
 
 my $type = $reply_str;
 
@@ -77,13 +77,13 @@ if ( $type eq 'unknown' ) {
     <[base.log]>->( 2, "updating file type [$type] $url" );
 }
 
-<mlist.file_types>->{$url} = $type;
-<mlist.type_cache>->{$url} = $type if <mlist.cfg.cache_content_types>;
+<content.file_types>->{$url} = $type;
+<content.type_cache>->{$url} = $type if <content.cfg.cache_content_types>;
 
-<[mlist.update.send_notifications]>;
+<[content.update.send_notifications]>;
 
 # ______________________________________________________________________________
-#\\QFWDBZJUH25Q7EENMOFXSCD6CT66N5GGLO2FGMHSYNEFRSNNPKNDRCU24A66ETJOWBMBL5EFDHRBA
-# \\ RE4M4MMSUWSUBFLUUMP2ZAB2OP6TMBKMRD3RGH63ODOG2K3435KK \\// C25519-BASE-32 //
-#  \\// YN6GQQEGHKSVOEUY2OYGXNBITVIPVBO6CP6GDKAVEUCQFHQ6UDQ \\ CODE SIGNATURE \\
+#\\Y35N2ZKQBRFHFCEJQZ6IDUMLY6NYJOWWRPXC7ZEVICDOTXV5FP6KSNMU26XROJ4YSCADICR5HW2G2
+# \\ 7M27C3ZCKZSG5YKFOWZJXJIN2VM5LDWEQCJCMJIROLS3GYOLCID2 \\// C25519-BASE-32 //
+#  \\// IW5CCGUOVNQSUWVYXZBDGARXELL5HIP54K3O7KJP3RUITBGAWCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

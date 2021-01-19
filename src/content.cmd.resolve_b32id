@@ -1,6 +1,6 @@
 # >:]
 
-# name  = mlist.cmd.resolve_b32id
+# name  = content.cmd.resolve_b32id
 # param = <b32id>
 # descr = return parsed playlist entry for given b32id
 
@@ -10,12 +10,12 @@ return { 'mode' => 'nak', 'data' => 'valid <b32id> expected!' }
     or $b32id !~ m|^\w{5,23}$|;
 
 return { 'mode' => 'nak', 'data' => 'no matching playlist entry found!' }
-    if not defined <mlist.b32id_src_str>->{$b32id};
+    if not defined <content.b32id_src_str>->{$b32id};
 
-return { 'mode' => 'ack', 'data' => <mlist.b32id_src_str>->{$b32id} };
+return { 'mode' => 'ack', 'data' => <content.b32id_src_str>->{$b32id} };
 
 # ______________________________________________________________________________
-#\\CLNKOWK6ZAKWNZ76K45N62Q2OISN3WQ4KUSRTKQYDBJY2T2D5TJEUHD6YGEHMNCY2TNFE7H2PVZTK
-# \\ CEL3V3J3AI5XU6YOQMEZVD6F3NV335FDCAFMONEQADEPYSS3H3CD \\// C25519-BASE-32 //
-#  \\// LDEPN7ZQVAC5EZPBXCLLOBARTPOXXYKKXQMDODOE7IBDJQPYWDA \\ CODE SIGNATURE \\
+#\\Q6LHBRQ7KBMUZRNX4B5O24XZMBIEUB5RD4CZ6KPE5ZIERRVRO7SWLIZUYPVPNB2GB3QDOREIJJXCS
+# \\ HCROLVBWOCGOUBPS3P4ZNUT3EIGJXEZ3LFQ7ZR37PBXZG6PERYU2 \\// C25519-BASE-32 //
+#  \\// BNEU232I3BYCGRCTDPUXR7BCYE6E4EVSN5J3ERHU4JSYNM7XMDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

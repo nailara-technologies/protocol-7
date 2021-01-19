@@ -1,0 +1,27 @@
+# >:]
+
+# name = content.load_file
+
+<content.load_file.path> = my $file_path = shift;
+
+die "expected playlist file path"
+    if not defined $file_path or !length($file_path);
+( my $file_name = $file_path ) =~ s|^.*/||;
+
+<[base.log]>->( 1, ": <<< playlist '$file_path' not found >>>" )
+    and return -1
+    if !-f $file_path;
+
+if ( defined <content.b32id_src_str> ) {
+    <[content.check_exclusive]>;
+} else {
+    <[content.callback.load_file]>->($file_path);
+}
+
+return 0
+
+# ______________________________________________________________________________
+#\\GWHHWD7J67V2O6I2RBHUOI24SUVIPR47MKIJHDDX5ZXXSDT6ZVO2LDHPZKJR5K625Y7KZOCYIUW5A
+# \\ CNYHQTFMHNOSMAPSEAPUJDCAJY52IU4R2RANRW2YFLDPY2WC3XLP \\// C25519-BASE-32 //
+#  \\// 4IWX2BBZCDLZWHEIPAZS5PO7BWCPJQK6T7PQF5WYRIW5D54JYCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
