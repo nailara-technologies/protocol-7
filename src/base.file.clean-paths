@@ -1,0 +1,40 @@
+# >:]
+
+# name  = base.file.clean-paths
+# descr = recursive removal of empty directories
+
+my $parent_path = shift;
+
+die "expected directory path parameter" if not defined $parent_path;
+
+my $err_str;
+$err_str = 'parent directory absent' if !-e $parent_path;
+$err_str = 'not a directory'         if !-d $parent_path;
+
+return <[base.log]>->( 2, "<clean-paths> $err_str ['$parent_path']" )
+    if defined $err_str;
+
+my @dirs_found  = ( @{ <[file.all_dirs]>->($parent_path) } );
+my $skip_parent = 0;
+
+foreach my $chk_dir ( sort { length $b <=> length $a } sort @dirs_found ) {
+    if ( scalar( @{ <[file.get-non-dirs]>->($chk_dir) } ) == 0 ) {
+        <[base.log]>->( 2, ":. clean. dir .: ['$chk_dir']" );
+        rmdir($chk_dir) or warn "<rmdir> '$chk_dir' [$!] <{C1}>";
+    } else {
+        $skip_parent = 1;
+    }
+}
+
+if ( not $skip_parent ) {
+    <[base.log]>->( 2, ":. clean. dir .: ['$parent_path']" );
+    rmdir($parent_path) or warn "<rmdir> '$parent_path' [$!] <{C1}>";
+}
+
+return $skip_parent ? 0 : 1;    ## all gone? ##
+
+# ______________________________________________________________________________
+#\\UBUZ54JCODDOY5QDCKCXEVLVGDJH5LGUA7CPLGDJTPNOXWPOE2ZPGNIP3BDZU4VXMESV4UVTMXLPU
+# \\ BH2H32PW7YAXCNPB26RVSN35YY5N6R3YDP3KOGPJRHSAQX4PZH7Y \\// C25519-BASE-32 //
+#  \\// L7KKWMJJ7GYBPR3STRKARHOEH6GR4N2KVM2HOGZMBAVG7YPL2BA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
