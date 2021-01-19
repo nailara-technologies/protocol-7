@@ -5,18 +5,18 @@
 
 access.cmd.usr.core = verify-instance heart commands reload * # <- LLL
 
-modules.preload = power.settings settings.json
+modules.preload = power.set-up set-up.json
 [load_modules:<modules.preload>]
 [init_modules]
-[settings.json.import_file:'power.settings.json']
+[set-up.json.import_file:'power.set-up.json']
 
 power.config_dir  = /etc/nailara/nailara.power
-power.config_file = settings.json
+power.config_file = set-up.json
 power.state_file  = states.json
 
 # power.cfg. =
 
-modules.load = auth net io.ip power settings.json
+modules.load = auth net io.ip power set-up.json
 
 [load_modules:<modules.load>]
 [init_modules]

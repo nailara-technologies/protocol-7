@@ -58,9 +58,9 @@ if ( !-f $cfg_full_path ) {
     $config_data = <[base.load_section_config]>->($config_filename);
 }
 
-<[base.init_modules]>->('settings.json');
+<[base.init_modules]>->('set-up.json');
 
-<[settings.json.import_file]>->('events.settings.json');
+<[set-up.json.import_file]>->('events.set-up.json');
 $config_data = merge( $config_data, <import.playlist> );
 $config_data = merge( $config_data, <import.layout> );
 
@@ -147,7 +147,7 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 0;
 
 # ______________________________________________________________________________
-#\\5E2BYQFHSH3FWS6MFX6RSG6WBM4ZC36OJ5DNRUUQB3XVYRKRNIDGC6TYZNLK65VOV4OQRQR5VJ3PI
-# \\ LI352PD2L3M5WEV4R6FCPEWNPYZGRCGPE5R6UBOPOTTACRC4NAN2 \\// C25519-BASE-32 //
-#  \\// EYEIJAFU627M2SI2WEDVE5ZMY2JFFS2GU3XTHYUSHSDPEYTY4DA \\ CODE SIGNATURE \\
+#\\RS47TRIBTKFD4ECUI3437IYBFMVXYUNCCA7GMR23VHRVTJBLNFCNEKLF4AUBLHXUOTZ4P4NMTRNUO
+# \\ D6M3MQ5V53AOQ56IVO626EK6LBCOVGJDJ6JM4ZJKCOHEVQSW5KDX \\// C25519-BASE-32 //
+#  \\// WFKZQLSMECN3WPZXX2LM27RPA7VH2AQW5MGRH3TAYSFHSNQRIDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
