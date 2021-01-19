@@ -24,24 +24,17 @@
 
 return 0 if <system.agent.name> ne 'set-up';
 
-my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-    or die "user '" . <system.privs.user> . "' not in passwd file";
-
 foreach my $mode ( 'export', 'import' ) {
-    my $dir_path = <set-up.json>->{"${mode}_dir"};
-    if ( <set-up.json>->{"${mode}_allowed"}
-        and !-d $dir_path ) {
-        <[base.log]>->( 1, "creating config $mode directory '$dir_path'.." );
-        make_path( $dir_path,
-            { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-            or warn "unable to create directory '$dir_path' [$!]";
-    }
+    <[file.make_path]>->(
+        <set-up.json>->{"${mode}_dir"},
+        0750, <system.privs.user>
+    ) if <set-up.json>->{"${mode}_allowed"};
 }
 
 0;
 
 # ______________________________________________________________________________
-#\\7PWOFG42MLIWWKQQJLQW5NKNYUZ7PKXHZXOZYIVAGQDOPZY6TI54Q6DT3IKBDFQ5D62WPLHUQSJNE
-# \\ 47IQI64PO2WSIR5O7MNNM3PSK5NNKRFQURAGSVCE3DCATBAOKF6F \\// C25519-BASE-32 //
-#  \\// PYPZQ64YUG5VC4WY4YS5QIDY2TAP4TLG5U5IKX3E6AGBGFK3YAI \\ CODE SIGNATURE \\
+#\\Q5UIPE77QTNMDJZC2NPYY2G2AT7OWWA36CXY55NKJSXWMTTLAF2MGGRXB4FYWOZDAOWC7W7KA5ERC
+# \\ G5DESAZAOIQQOJ3D6ZLFROQVQHH2LVZGHYYOI7YU3EHJZZ7OH47Q \\// C25519-BASE-32 //
+#  \\// KECDTKSKNEPDD7AN7PYHC6S3XMAJ2JDPNDZRFAJ2R7FPD3KR6BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
