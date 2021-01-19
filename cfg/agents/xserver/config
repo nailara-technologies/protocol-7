@@ -53,7 +53,7 @@ xserver.disable_blanking = yes
 xserver.hide_mouse_cursor = yes
 xserver.max_intel_gpu_freq = no
 xserver.keybd.grab_all_keys = no  # block xserver clients from getting key input
-xserver.host_mode_unchanged = yes # don't touch screen settings in host mode!
+xserver.host_mode_unchanged = yes # don't touch screen set-up in host mode!
 
 xserver.collect_intel_gpu_stats = 0  # using 'intel_gpu_top'
 xserver.collect_gpu_stats_on_4K = 1  #  if >= 4K resolution
@@ -75,11 +75,11 @@ access.cmd.usr.core = commands message heart reload verify-instance get_xauth_da
                       set_opacity get_opacity get_gpu_load * # LLL
 
 
-modules.preload = xserver.settings settings.json
+modules.preload = xserver.set-up set-up.json
 [load_modules:<modules.preload>]
 [init_modules]
 
-[settings.json.import_file:'xserver.settings.json']
+[set-up.json.import_file:'xserver.set-up.json']
 
 modules.load = auth net io.ip xserver
 [load_modules:<modules.load>]

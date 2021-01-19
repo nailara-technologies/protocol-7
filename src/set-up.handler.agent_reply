@@ -1,0 +1,31 @@
+# >:]
+
+# name = set-up.handler.agent_reply
+
+my $reply      = shift;
+my $reply_id   = $reply->{'params'}->{'reply_id'};
+my $agent_name = $reply->{'params'}->{'agent_name'};
+
+my $mode      = 'nak';
+my $reply_str = $reply->{'call_args'}->{'args'};
+
+if (    $reply->{'cmd'} eq 'NAK'
+    and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
+    $reply_str
+        = $agent_name eq 'core'
+        ? "reply refused by 'core' agent"
+        : "agent '$agent_name' not online or refusing reply";
+} elsif ( $reply->{'cmd'} eq 'DATA' ) {
+    $mode      = 'data';
+    $reply_str = $reply->{'data'};
+}
+
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => $mode, 'data' => $reply_str }
+);
+
+# ______________________________________________________________________________
+#\\BBLB6MSNWDKPYJLZY6R5AMOOPACQPSVI6YVWR33H6KQXBCYXQCKNDI4ZPVFFNVXVVXWMJBM33QCVK
+# \\ IZJOVHHL4ZUIGOHTAFP77SKC4DLSHDZ4R5BJYEQEFU26PYXMYS32 \\// C25519-BASE-32 //
+#  \\// ROCWTFP7IAXZPFMHDIGSL7E5D56RI4VEHYUVCZY4IA7OV7W4MAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

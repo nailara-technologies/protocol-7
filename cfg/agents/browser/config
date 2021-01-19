@@ -11,7 +11,7 @@ browser.cfg.proxy_addr = 127.0.0.1
 browser.cfg.proxy_port = 8118
 browser.cfg.use_proxy = no # <yes|no|auto>
 
-browser.slideshow.autostart  = 1
+browser.slideshow.autostart  = 0
 browser.slideshow.min_delay  = 7 # min duration before page change
 browser.slideshow.swap_delay = 2 # min delay before page change after scrolling
 browser.slideshow.err_delay  = 2 # error page duration
@@ -61,14 +61,14 @@ browser.loading_page   = '<browser.templates_path>/loading.html'
 browser.error_page     = '<system.root_path>/data/html/failed_to_load.html'
 browser.load_icon_page = '<system.root_path>/data/html/loading_animation.html'
 
-[load_modules:'settings.json browser.settings']
+[load_modules:'set-up.json browser.set-up']
 [init_modules]
 
 
 system.privs.create_temp_home = 1   # allow temporary 'nobody' home dir creation
-[browser.settings.set_privs:'nobody'] # <-- only when not runinng as universal-child
+[browser.set-up.set_privs:'nobody'] # <-- only when not runinng as universal-child
 
-[settings.json.import_file:'browser.settings.json']
+[set-up.json.import_file:'browser.set-up.json']
 
 browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector [for debugging]
 

@@ -1,0 +1,55 @@
+# >:]
+
+# name  = set-up.cmd.install-profile
+# param = <name>
+# descr = install config profile to import directory
+
+my $profile_name = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
+    if !length($profile_name);
+return { 'mode' => 'nak', 'data' => 'invalid profile name!' }
+    if $profile_name !~ /^[\w\-_\.]+$/;
+
+my $import_dir   = <set-up.json.import_dir>;
+my $profile_dir  = <set-up.profile_dir>;
+my $profile_file = "$profile_dir/$profile_name.json";
+
+return { 'mode' => 'nak', 'data' => 'specified profile not found!' }
+    if !-f $profile_file;
+
+<[base.log]>->( 1, "installing config profile '$profile_name'..." );
+
+my $profile_json = <[file.slurp]>->($profile_file);
+
+# LLL: check json sha checksum!
+
+my $import_data  = <json.parser>->decode($$profile_json);
+my @config_files = keys %$import_data;
+
+my $file_count = 0;
+
+foreach my $file_name (@config_files) {
+    my $file_path     = "$import_dir/$file_name";
+    my $settings_json = <json.parser>->encode( $import_data->{$file_name} );
+    if ( -f $file_path ) {
+        <[base.log]>->( 0, ": overwriting config file '$file_name'" );
+    } else {
+        <[base.log]>->( 1, ": exporting to config '$file_name' .." );
+    }
+    <[file.put]>->( $file_path, $settings_json );
+    $file_count++;
+}
+
+return {
+    'mode' => 'ack',
+    'data' => "$file_count config files installed to import dir"
+    }
+    if $file_count;
+
+return { 'mode' => 'nak', 'data' => 'no config files installed!' }
+
+# ______________________________________________________________________________
+#\\Q6FJHBYXTKUOLU7QCX5F4QCTFSQG2FVZERB3ACZPIPYK4UULO3YULLTBUPJBD3ZXGPPSUVOO2HXGQ
+# \\ HPPPCI5QAVZWQMMVOYXH5I3AASP5ID45V37AFS65D2QHNU3MX5TZ \\// C25519-BASE-32 //
+#  \\// ZEQSFM2YGRNNAFVHBJ73VJT3ASEOO5TEV3MX3W5YKOQR4HCKKDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
