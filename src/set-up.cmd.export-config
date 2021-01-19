@@ -11,7 +11,7 @@ return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
 my ( $agent_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
 return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
     if not defined $agent_name;
-$config_type //= 'config';    # default
+$config_type //= 'set-up';    # default
 
 return { 'mode' => 'nak', 'data' => 'invalid agent name syntax' }
     if $agent_name !~ <regex.base.usr>;
@@ -44,7 +44,7 @@ $cmd_path = "core.get-config" if $agent_name eq 'core';
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\BAHNU3ZWWYB73JON6R75R3GD2LTSQDX7R5KWAV567F3KV4EQAC7IM3YD4UJUW6DBCWMUOXP2II44E
-# \\ 5JJZDGHJD6JXQBRGFO24UQVAS4GVWGLAKOMHM3IH64PM2G3L2FQE \\// C25519-BASE-32 //
-#  \\// V6SGTLL2BUQWJICE2EWUE7YHRUQBEGNT32PFTAGJZX2263K3WAQ \\ CODE SIGNATURE \\
+#\\W6DID4EYBGNMCXHSTIKLIK26SBFS6NXCGCSKE3KJ5CD6AX5QIMRSA34XLN6E22F2D5LDPY3EXLG72
+# \\ 3XTTWY473ZPBYUBOGOJZHPHI6YEK6URIMDWSF263LHHAN3DBVDQP \\// C25519-BASE-32 //
+#  \\// DDG5CKEMIPU5PI7B3QW3T2SVNH3OM66MYZAZZQQNVYNPQFVNQAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
