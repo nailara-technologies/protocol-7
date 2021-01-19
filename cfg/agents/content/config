@@ -1,0 +1,32 @@
+
+ .:[ nailara 'content' management agent ]:.
+
+[load_config_file:'shared-params']
+[set_privs:<system.privs.user>]
+
+access.cmd.usr.core = commands heart reload verify-instance list * *.*
+
+content.http.check_content_types = 1
+content.http.url_types_max_retry = 0  # <- for url types 'likely' being "html"
+content.cfg.change_notifications = 0
+content.cfg.allow_url_flag_syntax= 1
+content.cfg.cache_content_types  = 1
+
+update.notify_agents = universal mpv browser impressive webcam
+#update.restart_on_empty = rss-ticker ticker-sdl weather
+
+modules.load = auth net io.ip set-up.json digest.sha digest.crc content
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_core:'ip.tcp']
+
+content.file_name = '<system.conf_path>/agents/content/example-playlist'
+
+[set-up.json.import_file:'content.set-up.json']
+
+[content.load_file:<content.file_name>]
+
+[content.update_hidden]
+
+[event.loop]

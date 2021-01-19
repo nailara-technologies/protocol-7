@@ -1,23 +1,23 @@
 # >:]
 
-# name  = mlist.cmd.entries_withheld
+# name  = content.cmd.entries_withheld
 # param = [subname]
 # descr = query how many withheld playlist entries exist
 
 my %file_types;
-my $type_list = <mlist.file_types>;
+my $type_list = <content.file_types>;
 my $param     = $$call{'args'} // '';
 my $subname   = length($param) ? $param : undef;
 
 my $entries_withheld = 0;
 
 my $index = -1;
-foreach my $file ( @{<mlist.file_list>} ) {
+foreach my $file ( @{<content.file_list>} ) {
     $index++;
     next
         if defined $subname
-        and exists <mlist.agent_subnames>->{$index}
-        and not exists <mlist.agent_subnames>->{$index}->{$subname};
+        and exists <content.agent_subnames>->{$index}
+        and not exists <content.agent_subnames>->{$index}->{$subname};
 
     $entries_withheld++ if $type_list->{$file} eq 'network_error';
 }
@@ -25,7 +25,7 @@ foreach my $file ( @{<mlist.file_list>} ) {
 return { 'mode' => 'ack', 'data' => $entries_withheld }
 
 # ______________________________________________________________________________
-#\\YHFOBV42J4TD37V2WKDXF6H4PHP74B7OQMAFXNYRX4NXGCRIZG7YV67DGNO4KMLOHATHEAVFKCQTW
-# \\ WZMW4XJ3TASTMWUGZZZT5TR6L66HBUXI2JZNDFGIFO2YLGNLLIUQ \\// C25519-BASE-32 //
-#  \\// GTBHUKKLIOU5XQO2JYPK4B5GLYDGSAPDQTQZAQ6Q33FWKNFHSBQ \\ CODE SIGNATURE \\
+#\\N6GWTJPZDSKPF36BTAA32IR26HLUDNYAVZYMONOU7UNISKDHYAMGWNLJCCL534S5MBKXQWG3B6HZM
+# \\ KLGBYATLVWHLNTT2O6FGVUYMJEBHYCUUNL64NVMVE267ZGXDZ3VL \\// C25519-BASE-32 //
+#  \\// WQSEGNBCXREBC3GQPQ7M4BVSZINWVHN43JERJU5BLRV5TQMNOCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

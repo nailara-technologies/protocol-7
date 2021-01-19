@@ -1,0 +1,28 @@
+# >:]
+
+# name = content.handler.get_exclusive_reply
+
+my @exclusive_b32ids;
+my $reply = shift;
+
+<content.exclusive_b32id> = {};
+
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
+    chomp( $reply->{'data'} );
+    @exclusive_b32ids = split( /\n+/, $reply->{'data'} );
+    map {
+        if ( <content.b32id_src_str>->{$_} =~ /^([^:]+):/ ) {
+            my $tile_name = $1;    # LLL: handle no tilename case? (global ex.)
+            <content.exclusive_b32id>->{$tile_name} //= [];
+            push( @{ <content.exclusive_b32id>->{$tile_name} }, $_ );
+        }
+    } @exclusive_b32ids;
+}
+
+<[content.update_hidden]>;
+
+# ______________________________________________________________________________
+#\\EDMW3FX5HBXEWQYL3ACHO5DEMXQESYPBJFFUZD2L4F2B6JF37BOXBJAYSR2CZGP6SDZQIBUEIRRYA
+# \\ 4R2XD6VPH5J6IY6K4VPD7FZXIVKSIRD3OC5VI36UFQUQYSAEPAUY \\// C25519-BASE-32 //
+#  \\// XVZ6TC2GVR2I6LYWSBMZDAODPNVXXMJ7DPK4PYMCUZVOEEIJMDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

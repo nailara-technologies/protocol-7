@@ -1,6 +1,6 @@
 # >:]
 
-# name  = mlist.cmd.clear_flags
+# name  = content.cmd.clear_flags
 # param = <url>
 # descr = clear url flags for given playlist url
 
@@ -10,18 +10,18 @@ return { 'mode' => 'nak', 'data' => 'URL expected!' }
     or $url !~ m|^https?://|;
 
 my $match = 0;
-map { $match++ if $_ eq $url; } @{<mlist.file_list>};
+map { $match++ if $_ eq $url; } @{<content.file_list>};
 
 return { 'mode' => 'nak', 'data' => 'no such url in playlist!' } if !$match;
 
 my $clear_count;
-map { $clear_count++ if delete <mlist.url_flags>->{$_}->{$url} }
-    keys %{<mlist.url_flags>};
+map { $clear_count++ if delete <content.url_flags>->{$_}->{$url} }
+    keys %{<content.url_flags>};
 
 return { 'mode' => 'nak', 'data' => 'no flags were set for given url!' }
     if !$clear_count;
 
-<[mlist.update.send_notifications]>;
+<[content.update.send_notifications]>;
 
 my $s = $clear_count > 1 ? 's' : '';
 
@@ -30,7 +30,7 @@ my $s = $clear_count > 1 ? 's' : '';
 return { 'mode' => 'ack', 'data' => "url flag$s cleared" };
 
 # ______________________________________________________________________________
-#\\LQN4ULMKP7CKEQCTUMGNIZPWXV5KMUIDJQK4B7RMSONU52IRKLY525S54DIKMTT6OINBWPPQ6VKM2
-# \\ 6MYVUQVUWUXZHXIMSZRCVF47ZJCQFRQJ7T4OL7WBRZ3OSEW6OQTR \\// C25519-BASE-32 //
-#  \\// A5JNUMWE5AKBZFCHMI35DCXTZ7VXJKVISY2WVGB7FTRDUEIQMCI \\ CODE SIGNATURE \\
+#\\6XZJQK4EJTOPCYF33IXWZK6GYMLHFRGIYY63RSHSAQRDU3LEOYAMPW3O2WMLHUESPMA7EFJTH2AEK
+# \\ 3CE7Z4PGRQHRVWEDVMY7WIHQJGQQSUCPVJAKA2ODWEZ6W2NSIHPA \\// C25519-BASE-32 //
+#  \\// RVHF3TSI3O6VNRE2H6PJI6WPYY2Y4GA34GRISNPPADGJ5DPB4AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,19 @@
+# >:]
+
+# name = content.check_changes
+
+my $file_name = shift;
+return if !-f $file_name;
+
+my $playlist_sha1 = <[digest.sha.file_hex]>->($file_name);
+
+<content.content_changed>++
+    if defined <content.sha1> and $playlist_sha1 ne <content.sha1>;
+
+<content.sha1> = $playlist_sha1;
+
+# ______________________________________________________________________________
+#\\NBD326SS22ENZ4AL6ULTMN3YHG5BTN55XL7Y7EUYHLBY2MEOLK6E64UQ7TI7KW4GKF2TVI2RSX4G2
+# \\ EYZSAWQPANCVUP4SBUHNTQ2XAH5KFBKSUOGCE5RFJSBDHTYLNSK6 \\// C25519-BASE-32 //
+#  \\// NI2ESYOWUBBC2DSUPR4YWPYX7SFR6KFNC7BHNLLV2T7MCCOAKBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
