@@ -8,10 +8,9 @@ die "expected playlist file path"
     if not defined $file_path or !length($file_path);
 ( my $file_name = $file_path ) =~ s|^.*/||;
 
-if ( !-f $file_path ) {
-    <[base.log]>->( 0, "playlist file '$file_path' not found!" );
-    return -1;
-}
+<[base.log]>->( 1, ": <<< playlist '$file_path' not found >>>" )
+    and return -1
+    if !-f $file_path;
 
 if ( defined <mlist.b32id_src_str> ) {
     <[mlist.check_exclusive]>;
@@ -22,7 +21,7 @@ if ( defined <mlist.b32id_src_str> ) {
 return 0
 
 # ______________________________________________________________________________
-#\\TLYE5W2QCBTE72P4R5HZEBA6GQ4YQMI73THJ4X7RR4C54MGH3PRVGLDH33ME2YYHIB7M4E3QOL4TO
-# \\ ZNWTLRNVZBD7EQ4OAU2JBVVCILBTMX6WIGV4WVWRGA7CU627KMGU \\// C25519-BASE-32 //
-#  \\// EAV6VDJHNUS7T6QOXW26HN5VEYNNWVJWH4HLFBPF7ZIEVNAN4CQ \\ CODE SIGNATURE \\
+#\\DZKOFNQTYLE7OWZCKKAUCAFCH7U4GOBHWTFPT7K2EZFY4FOP6SJY6EPD6ANNHJ3424UXNSSJK2IJS
+# \\ 35E27Y6Q7LM3AXL7YGW7CFJLR3CK5CB5N5C7P6RAFIJ33ZMT5W5R \\// C25519-BASE-32 //
+#  \\// WIK4MO2QGMCGZYFYITXGA5P3G53RLRRKARF4Y3CDBLL5V4LOICY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
