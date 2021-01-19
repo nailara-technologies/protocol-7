@@ -1,20 +1,28 @@
 # >:]
 
 # name  = core.cmd.clear-cons
-# descr = clear 'core'-agent [stdout] console output
+# descr = clear 'core' agent [stdout] console output
 
-my $host_str  = sprintf "nailara console '%s'", <system.host.hostname>;
-my $clear_msg = 'console cleared';
+my $clear_reply = 'console cleared';
+my $header_text = 'protocol 7 console';
+
 if (<system.ansi_color>) {
-    printf "\e[H\e[2J\e[34m\n .:[\e[39m %s \e[34m]:.\c[[m\n\n", $host_str;
+    my $col_blue  = "\e[34m";
+    my $col_reset = "\e[39m";
+    my $quote_str = "$col_blue'$col_reset";
+    my $host_str  = sprintf( "%s%s%s protocol 7 console",
+        $quote_str, <system.host.hostname>, $quote_str );
+    printf( "\e[H\e[2J%s\n .:[%s %s %s]:.\c[[m\n\n",
+        $col_blue, $col_reset, $host_str, $col_blue );
 } else {
-    printf "\n .:[ %s ]:.\n\n", $host_str;
-    $clear_msg = "wrote hostname marker only [ active '-na' option ]";
+    my $host_str = sprintf( "%s %s", <system.host.hostname>, $header_text );
+    printf( "\n .:[ %s ]:.\n\n", $host_str );
+    $clear_reply = "wrote hostname marker only [ active '-na' option ]";
 }
-return { 'mode' => 'ack', 'data' => $clear_msg };
+return { 'mode' => 'ack', 'data' => $clear_reply };
 
 # ______________________________________________________________________________
-#\\YVQGYE5VD5WNIC6MBLCTXQFLIET5G22S6EN5MO3PBVUBRZEX54VXKD6HKSG3CFYIUCCQIBQQ6G3F2
-# \\ M5TXPPSSFLGRF74VSHGADZCRAWCJDHLBK22NDQNQEBELBEZG4RAV \\// C25519-BASE-32 //
-#  \\// UGORQTSRWLEYKRHBIOU4QOI5XCUBC7PKCDOBNSFNOU3XDKO42CY \\ CODE SIGNATURE \\
+#\\LU5XPTRBLBABASY36NRSRGXMV6ZDPBCIAYDD4PLBDLNT7R6ANNHTNQY5TTRM7RG2FHJGYZRSMVETY
+# \\ LKF36TR5XU5DF3T7TM3RC2BMW6BLVUVFNY7FQRDZ3SZUFZQ7IKYC \\// C25519-BASE-32 //
+#  \\// JNGLGVHKQRVKPRJAPH6FQBQ7QK3TVY432CFASSLFHGVNDOXEOBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
