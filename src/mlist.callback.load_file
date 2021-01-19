@@ -10,10 +10,9 @@ die "expected playlist file path"
     if not defined $file_path or !length($file_path);
 ( my $file_name = $file_path ) =~ s|^.*/||;
 
-if ( !-f $file_path ) {
-    <[base.log]>->( 0, "playlist file '$file_path' not found!" );
-    return -1;
-}
+<[base.log]>->( 1, ": <<< playlist '$file_path' not found >>>" )
+    and return -1
+    if !-f $file_path;
 
 <[base.log]>->( 1, "loading playlist file '$file_name'" );
 
@@ -240,7 +239,7 @@ if ( <mlist.had_network_errors> and !<mlist.network_errors> ) {
 }
 
 # ______________________________________________________________________________
-#\\UFZW3FLGRECL6STLSJNK4ZZVVPC57L3O7NGP2P73NZJIOOHZQPHKJPXREUPZ47RN75B3ZAT2GPIV2
-# \\ 2XEF3TPZRRWHI2IV6DHDUHDQPFPZP7WRQ3I2JUF2ZO6AXL4BOPCL \\// C25519-BASE-32 //
-#  \\// IDES724B4T3QFPBR2JELO2WGH6MUFBIDUBCF5PFJKLE6OI4PYAQ \\ CODE SIGNATURE \\
+#\\SH4U6LTYUXYJCUXSV25R2GNFLLGU3273HJ7BSBXOW5S7KSUV4PH53V7RGASFOIFHCJ26LT4LPUBHS
+# \\ HWDILXC2EJ7YRA7XV32WVZ4BP2AJDXT7CPRP4CY2OQGLOJJ5OOSQ \\// C25519-BASE-32 //
+#  \\// RDQUYZUJL242CJLWNUWWLIYAFQSFQRIJ3FOJPLILTUU72NTASCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
