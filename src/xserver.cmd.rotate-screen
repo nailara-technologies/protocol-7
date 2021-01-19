@@ -1,6 +1,6 @@
 # >:]
 
-# name  = xserver.cmd.rotate_screen
+# name  = xserver.cmd.rotate-screen
 # descr = rotate the screen to specified mode
 # param = <mode>
 
@@ -23,8 +23,18 @@ $mode = 8 if $param eq 'right';
 
 if ( not defined $mode ) {
     my $err_msg = "invalid mode '$param$mirror'";
-    <[base.log]>->( 0, "<!> rotate_screen: $err_msg <!>" );
+    <[base.log]>->( 0, "<!> rotate-screen: $err_msg <!>" );
     return { 'mode' => 'nak', 'data' => $err_msg };
+}
+
+if ( !<xserver.has_randr> ) {
+    <[base.log]>->(
+        1, "<!> skipping rotate ['$param'] request [ no RANDR ] <!>"
+    );
+    return {
+        'mode' => 'nak',
+        'data' => 'not able to rotate screen [ missing RANDR support ]'
+    };
 }
 
 $mode += 16 if $mirror eq 'x';
@@ -65,7 +75,7 @@ $mode     -= 16 while $mode > 16;
 return { 'mode' => 'ack', 'data' => 'screen rotated' }
 
 # ______________________________________________________________________________
-#\\DD4LYZ3DRSTAU3CVPL4DBPHJAJNBQSBNPVC57KY4JLICR5SF7XW7HDB2MLLCRC6MMKHT4KYNRKYCE
-# \\ QHVUI7G53NIXMNBRNC667SYEOCIQWXJT5CUJI6JJRM4AGP4BDQ7R \\// C25519-BASE-32 //
-#  \\// RETJ7V3JVFCJA3I23RGGZ225YRKLIFWQ4IHEDCLZNQYRFZ2ZWDY \\ CODE SIGNATURE \\
+#\\JKSU7XMFWHA3HUAREJA43MIPUPHUA6YS3SEATGEDFJOXWSYKIUIOZVBFIFEESY7BJQOAKHNUH67P4
+# \\ IMA5AC4DN2SYWTCEOBD7PVVIT3IYRN2XZ363P32CBGIPGRDX4A67 \\// C25519-BASE-32 //
+#  \\// CQHZXGSDQXJOBI7UU3ZQYOCLYFOKVUZJSDFM6LHLOB6I3PGJQBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
