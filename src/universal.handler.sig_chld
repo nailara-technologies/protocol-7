@@ -15,11 +15,10 @@ do {
         delete <universal.running>->{$child_name};
         <[base.log]>->(
             0,
-            "<!> SEGMENTATION FAULT <!> sub-agent"
-                . " '$child_name' [ PID $child_pid ]"
+            "<< SEGMENTATION FAULT >> \\ agent '$child_name' [ PID $child_pid ]"
         ) if $e_sig == 11;
 
-        ## record browser segfaults (for crash mitigation) ##
+        ## record browser segfault [ crash mitigation ] ##
         if ( $e_sig == 11 and $child_name eq 'browser' ) {
             my $agent_subname = <system.agent.subname>;
             my $subname_b32
@@ -34,15 +33,14 @@ do {
 
     } elsif ($child_pid) {
         push( @names, $child_pid );
-        <[base.log]>->( 0, "<!> SEGMENTATION FAULT <!> [ PID $child_pid ]" )
+        <[base.log]>->( 0, "<< SEGMENTATION FAULT >> [ PID $child_pid ]" )
             if $e_sig == 11;
     }
 } while $child_pid > 0;
 <[base.log]>->(
     0,
-    "[!] universal-child "
-        . join( ' and ', @names )
-        . " crashed unexpectedly! restarting..."
+    sprintf( "<< universal-child %s crashed, restarting.., >>",
+        join( ' and ', @names ) )
 );
 <universal.restarting_agent> //= 0;
 <[event.add_timer]>->(
@@ -52,7 +50,7 @@ do {
 ) if !<universal.restarting_agent>;
 <universal.restarting_agent> = 1;
 $SIG{'CHLD'} = 'IGNORE';
-map { kill( 15, $_ ) if $_ =~ /^\d+$/ } keys %{<universal.running>};
+map { kill( 15, $_ ) if $_ =~ m|^\d+$| } keys %{<universal.running>};
 
 # ______________________________________________________________________________
 #\\OOHDYDTSDNJA5YSE5Y6QAPYE7DGDKCQVTR64QAK6PQ7HLY5TAVX6VLPT3BGL5CBMDXANWY4TGIHOS
