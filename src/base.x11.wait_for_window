@@ -48,7 +48,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+)\n$/ and <x11.id> = $1 ) {
 } else {
     <[base.log]>->(
         0,
-        "protocol mismatch (unexpected reply from xserver agent)"
+        "not expected xserver reply"
             . " ['$reply_string' ] "
     );
     return undef;

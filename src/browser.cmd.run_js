@@ -21,18 +21,18 @@ return { 'mode' => 'nak', 'data' => 'expected javascript command string' }
 
 <[base.log]>->( 2, "[$view_uri] running javascript : '$js_string'" );
 
-$js_string = "throw $js_string";    # see below comment for why ...
+$js_string = "throw $js_string";    # see comment below for reason ..,
 
 $view->run_javascript(
-    $js_string,    # <- raw javascript
-    undef,         # <- GCancellable
-    sub {          # <- : TODO : create external (reloadable) handler... <<!>>
+    $js_string,    # <-- raw javascript
+    undef,         # <-- GCancellable
+    sub {          # <-- :[LLL]: create external (reloadable) handler... <<!>>
         my $self   = shift;    # <- WebView
         my $result = shift;    # <- WebKitJavascriptResult
         my $rep_id = shift;    # <- nailara internal reply id
         my $s_res  = '';
 
-        ## [ was unable to access value, so using exception / throw to get it! ]
+        ## [ was unable to access value, so using exception \ throw to get it. ]
         #
         #         my $s_val = $s_res->get_js_value();
         #         my $s_con = $s_val->get_property('context');
@@ -50,7 +50,7 @@ $view->run_javascript(
         <[base.log]>->(
             0,              sprintf "<!JSerr!> [%s] %s",
             $self->get_uri, $ex_str
-        ) if $re_mode eq 'nak';    # <- has JS err!
+        ) if $re_mode eq 'nak';    # <- has JS error..,
 
         <[base.callback.cmd_reply]>->(
             $rep_id,

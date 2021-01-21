@@ -8,11 +8,11 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 my $openbox_rc_path = <system.conf_path> . '/agents/' . <system.agent.name>;
 
-<[base.log]>->( 1, "starting openbox with $cfg_name-config..." );
+<[base.log]>->( 1, "starting openbox with $cfg_name-config.," );
 my $cfg_path = $openbox_rc_path . '/openbox.' . $cfg_name . '.xml';
 if ( !-f $cfg_path ) {
-    <[base.log]>->( 0, "openbox config file '$cfg_path' not found!" );
-    <[base.log]>->( 1, " : aborting agent startup .." );
+    <[base.log]>->( 0, "openbox config file '$cfg_path' not found." );
+    <[base.log]>->( 1, " : aborting agent startup .," );
     exit(1);
 }
 
