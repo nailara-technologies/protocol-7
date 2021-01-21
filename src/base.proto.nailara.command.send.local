@@ -23,7 +23,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
     # send to all clients with that session id (or username [group mode])
     my @send_sids;
-    my $target_sid = $target_name =~ /^\d+$/ ? $target_name : undef;
+    my $target_sid = $target_name =~ m|^\d+$| ? $target_name : undef;
     if ( defined $target_sid
         and exists $data{'session'}{$target_sid} ) {    # sid mode
         @send_sids = ($target_sid);
@@ -35,7 +35,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         my $session;
         $session = $data{'session'}{$target_sid}
             if exists $data{'session'}{$target_sid};
-        next    # skip unauthorized connections / modes
+        next    # skip unauthorized connections \ modes
             if not defined $session
             or $session->{'mode'} ne 'client'
             or $session->{'user'} eq <base.session.uname_server>
@@ -77,7 +77,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
                 or !<debug.skip_nroot_heartbeat> );
         }
 
-        $target_cmd_id =~ s/^(\d+)$/($1)/;
+        $target_cmd_id =~ s|^(\d+)$|($1)|;
 
         #            if ( $command_mode == 1 )    # single line command mode
         #            {
