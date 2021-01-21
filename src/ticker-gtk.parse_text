@@ -2,7 +2,7 @@
 
 # name  = ticker-gtk.parse_text
 
-die "FATAL: invalid font size '0' <<< aborting >>>" if !<ticker-gtk.font.size>;
+die "font size '0' is not valid <<< aborting >>>" if !<ticker-gtk.font.size>;
 
 my $scroll_text = shift;
 my $chars       = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
@@ -19,7 +19,7 @@ my $total_width = $context->text_extents($scroll_text)->{'x_advance'};
 my $txt_width   = { ' ' => $context->text_extents(' ')->{'x_advance'} };
 
 my @txt_sequence;
-while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
+while ( $scroll_text =~ s,^([\s\^]|[$chars]+|[^$chars\s\^]{1,42}),, ) {
     my $string = $1;
     push( @txt_sequence, $string );
     next if exists $txt_width->{$string};
