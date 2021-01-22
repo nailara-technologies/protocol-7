@@ -31,13 +31,13 @@ while ( !$matched_reply ) {
     die "core handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} ) {
     <x11.coordinates>
         = { 'left' => $1, 'top' => $2, 'right' => $3, 'bottom' => $4 };
     <[base.log]>->( 1, "received window coordinates.. [$1,$2,$3,$4]" );
@@ -53,7 +53,7 @@ $err_msg = ': coordinates undefined'
 
 <[base.log]>->( 1, $err_msg );
 
-# use full X server geometry as window geometry...
+# use full X server geometry as window geometry..,
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
 <[net.out]>->( $core_fh, "($cmd_id)${cmd_path}xserver.get_screen_size\n" );
 
@@ -63,13 +63,13 @@ while ( !$matched_reply ) {
     die "core handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
     <[base.log]>->( 1, "using x11 root window coordinates [0,0,$1,$2]" );
     <x11.coordinates>
         = { 'left' => 0, 'top' => 0, 'right' => $1, 'bottom' => $2 };
@@ -81,7 +81,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\NWUMTPHYPIR5CRK7GKSLR43JCPYYEKBKPXIJ6TFAR5FALODFOVUU5VAANXB4NOMBWOV7DAEAJTU7Q
-# \\ 4AVUYJ6JQ4DGXIK7AT3MEIWCGOKPOG3Q2Q7RUESNTOOD5BYB2ASF \\// C25519-BASE-32 //
-#  \\// BOHWMSUBMQDF6W6554AW2O7IEJSZ463VNEHWJ2KFC2IINSN2WDY \\ CODE SIGNATURE \\
+#\\YMK6LD3SB7F3ZZG7NO74SDSXU3SSUQMN4FSBQ2ACEE5V5R3XIS5G3DX6G2NUO4NUNPDZIOO7ECRZU
+# \\ 6R2H4TVL2AEF3UMHXO63QW5JGKMZSV5XRMTL2LHLOYELRVBVFQZL \\// C25519-BASE-32 //
+#  \\// F4TJAG2RU6P4OWSDITLCQVSJ5CRZ72EOOSZPR5TUCYL4OWI7IBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
