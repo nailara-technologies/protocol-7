@@ -25,18 +25,18 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-<x11.layout.layer> = $1 if $reply_string =~ /^\($cmd_id\)ACK (\d+)\n$/;
+<x11.layout.layer> = $1 if $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$};
 <[base.log]>->( 2, "layout layer for '$name_str' = " . <x11.layout.layer> )
     if defined <x11.layout.layer>;
 
 # ______________________________________________________________________________
-#\\52HADB3ENJLE42GAOJONWD6GP4CIU7POU2ROYTLZXIFGEAJAIXZIPTYW27OU3GTBPCZRLOKSVIAWE
-# \\ QYGHJUB23ZQHBVYM4GE23Y6OVIXCKULMCEGPSX32LN32PTCLZRJ4 \\// C25519-BASE-32 //
-#  \\// IYURNP5USLZBTDWH6YTRKPH4UGXJLDJU5QY7HEZCDMPCSJMKABI \\ CODE SIGNATURE \\
+#\\USMBCKHMYNBLZXIWI7YXNCB2YVOSWAGNVG5MCADZ3SUMKK2AC5DAHNXH5R5MHE7RMRKDVDTR272UW
+# \\ UNLFK3QWFKBBQMKE3LZZQSH3RP42MKKIJNAGC2Y3NY5TIQFT2VPK \\// C25519-BASE-32 //
+#  \\// CK34OICQ5TWKMER767NCATCIYY3JRU5XVO3MOPIHCFHJJZN2ICY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

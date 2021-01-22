@@ -4,7 +4,7 @@
 
 my ($local_sid) = keys( %{<user.core.session>} );
 
-<[base.log]>->( 2, "requesting video driver name from xserver agent.." );
+<[base.log]>->( 2, "requesting video driver name from xserver agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -15,27 +15,23 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     <x11.driver> = $1;
     <[base.log]>->( 1, "received video driver name [" . <x11.driver> . "]" );
     return <x11.driver>;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\TUBGILQ5LD6PKWOGO3MP6TCKQ6HDR3IDR4KFQXJNDAJ7FQ5NM2LFT3MVMOKSR5Z7GVGWRMKIGVOCM
-# \\ ORB3P65BCMVRY3RU6QQUZQ3DGD7SSVVCUA2CHSOTQPJ27KZVIDZM \\// C25519-BASE-32 //
-#  \\// TRWP7TWLT56GVIBCPJHUIA67PPQIWG772KA7FCZ2MEB4Q7Y56CA \\ CODE SIGNATURE \\
+#\\6RNWQT7ED6SH5O25TLOJ7J2B2TFT2L2YQ5I3CPBYG357VCCYTFTXKUV3UXDTLNEZLOEPDGLDB37QA
+# \\ AKQP2UKYCNUGJFQURGHHL6UFZ3WI43VLNAI5PPTLRGQKEK5OGRC3 \\// C25519-BASE-32 //
+#  \\// Z3PW5GVBKO7CZUIZOY2DIGX3OKQSW4NVF4FCGN7OJAQKB6JT6BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

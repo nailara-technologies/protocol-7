@@ -27,13 +27,13 @@ while ( !$matched_reply ) {
         );
         exit(1);
     }
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$} ) {
     my ( $agent_name, $core_session_id ) = ( $1, $2 );
     if ( $agent_name ne <system.agent.name> ) {
         <[base.log]>->( 0, "received agent name does not match internal one!" );
@@ -53,7 +53,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\LIBUKNR3W7MOSISIXO2VPIN3VHC5K7EHNBSSUJUDV4MVVAJJ6IX4CC3OV3AFHFK23RS2BNKJRMLS4
-# \\ 66MCK22C5R5CHJM7WDN7AVGGKITCJKBSOZWK3BJO5NLH3PAKHLNZ \\// C25519-BASE-32 //
-#  \\// HB6ARLCEGIRBB2GGXZA2WA57363SSIKVPFEWWADW7QUPEHF6IDQ \\ CODE SIGNATURE \\
+#\\SJHEPM7CBLU2EYCPHQBCIRUMMB5VP6HN3PY2KZC3NI5W42QEH6RSHDCARGBK2VKAF4VHFMTEVXT5K
+# \\ NDPJ5EMEESSXECIM4OI7XYIT3XVBR7EOSJYY2TYFPXD72JLIIYOX \\// C25519-BASE-32 //
+#  \\// FVL3WANKFL3IAOLWVLHCMK7OQYSHKIBXVMBLS2L5N3POZQGG4AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

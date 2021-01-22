@@ -22,27 +22,23 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     <x11.display> = $1;
     <[base.log]>->( 2, ": ok, gravity applied." );
     return 1;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return 0;
 }
 
 # ______________________________________________________________________________
-#\\4HLC3DTTXSTYH3Z7UY2OJH3TDKAPG2WOSUBQASPWLHHOUGVUFXVRT6PZZMWEMXTGWUWTO7C3QXQMQ
-# \\ 2WIEDILZ6UQ42GQ2CHWA5QR54XPRWYO5GRI3PZPQL6EUJ66QLPAT \\// C25519-BASE-32 //
-#  \\// 6RFDXXZHNFCZTNTKMR7BHXVDOSSSRHODRRTXPUS5XLJQYVC4YCY \\ CODE SIGNATURE \\
+#\\YXBYR3SQ2SU2B2K4EU7F6FOVCJ6SOFGFP5GSKLEBHRBKZ4OJNGD2KRE7NJC3BKB5NDYBEGN43LJ5G
+# \\ HWZZ6Y4EKLTMZCIXK2PSDNYWC7TWJ4SQQMLHACSBQLHFG34SCKW6 \\// C25519-BASE-32 //
+#  \\// FQCCMVUIWUNEZNEIE43BFWX7KQFETSTG247CUYMDW6USZDEQWAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

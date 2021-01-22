@@ -4,7 +4,7 @@
 
 my ($local_sid) = keys( %{<user.core.session>} );
 
-<[base.log]>->( 2, "requesting screen orientation from xserver agent.." );
+<[base.log]>->( 2, "requesting screen orientation from xserver agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -15,27 +15,23 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     <x11.screen.orientation> = $1;
     <[base.log]>->( 1, "received X screen orientation [$1]" );
     return <x11.orientation>;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\4X2RHGXOYNIIZOMY54LA3UA35RVUQ7VS6X4SK37XREUTLJITRZA2G3ZKEOHNL4M54DNPODR6DUUMU
-# \\ BO2CYQCLQHCOE2QO75YFL2EAR3IQR5OPDEIBHSW5NX5BZLAH2GU4 \\// C25519-BASE-32 //
-#  \\// IN3RW7TLVAXIUQHV4BVIGW6JZYIXFBRD2W3V6IUESRKIJNAWWAI \\ CODE SIGNATURE \\
+#\\NVUJINKWR3WBANSFUKZG6ZB2ZV2KCPOU22STF7BEZZKLAU5EH3JHU5C5HGXHHYG5B35WWPCFNXAM6
+# \\ 77MYJYJL7PPGP6YYYQ4OFUR4DSIC5JPU7E74GHXXVTLIJKSSHS6D \\// C25519-BASE-32 //
+#  \\// 23VHWPQS4YCBW5H5AYBYSWCGWNMEP44XI77CWUEUL52EHJSQUDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

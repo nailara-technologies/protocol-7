@@ -4,7 +4,7 @@
 
 my ($local_sid) = keys( %{<user.core.session>} );
 
-<[base.log]>->( 1, "querying background color from xserver agent .." );
+<[base.log]>->( 1, "querying background color from xserver agent .," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -15,27 +15,23 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     <x11.bg_color> = $1;
     <[base.log]>->( 1, ": received bg_color = " . <x11.bg_color> . "" );
     return <x11.bg_color>;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\DA3SSKG2MQB4WLEVYPV6LY3PRQM2DIJC5AZBAQHTJ6LGEZ4ISIDRB3VTFM443T7PRS36KQQDGLLBK
-# \\ 3SDG25M22ZIXKF5A367QFHIQLB6KENZ3Y2KHCQYBR6LYKELFBUQN \\// C25519-BASE-32 //
-#  \\// 4VSLYJ3SGLG4H5CDVZUFR6JQU4UCMCXRONLFZ7HSOS4KFJ3RADQ \\ CODE SIGNATURE \\
+#\\MOXY5SSN3SIE3UZU56FPACO4FIXORSYKJHRSHFCWIX5G3PZQPFH7L47SZX6GHUEPEUHOEFDCB4Y3Y
+# \\ 7VUUVN4DI2ZWFLMJ32CDGHZJTMGH2MHFKQTHDGA3HO7EZDZIZHKZ \\// C25519-BASE-32 //
+#  \\// BZDEAGHATBK5YO5T2K7IOALUYSHHA4XTJJSSO7IMHO77GPGH4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

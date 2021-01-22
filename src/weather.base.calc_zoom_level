@@ -39,13 +39,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$}) {
     <x11.screen_width>  = $1;
     <x11.screen_height> = $2;
     <[base.log]>->(
@@ -77,18 +77,14 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     );
     return <weather.zoom_level>;
 } elsif ( $reply_string =~ /NAK command unknown$/ ) {
-    <[base.log]>->( 1, 'xserver agent unreachable (running?)' );
+    <[base.log]>->( 1, 'xserver agent unreachable [running?]' );
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\6BQ4I4Y6TO6JSWKCEGOKNDO2USXJRIXYNWIUTRLW727Z7VPGZTB3LUMCEXRTV2UDWAPTZOKNMBUFI
-# \\ CSHLLXGOLPBNHNMK6T7CSUPD53DIDLIDM3VMHZR23KGZ2UAVYEZ6 \\// C25519-BASE-32 //
-#  \\// CWLLIV3DG3EF6XCKKFTP4LNPLJIQK6XDHXP6IHJESDUFTJ5TEBQ \\ CODE SIGNATURE \\
+#\\IERRNAZRV5XMA26LKXDQ3SABEWP5CM5RHFQA6WUCVPQY5AYNCUOBNNA6RHK7S5YUQA4W4ZS64ODVS
+# \\ RYNTSSUMDAHE3FJZ6F5MDMFF3KNTUOLWN5TVM56MXWEH2JAMITTD \\// C25519-BASE-32 //
+#  \\// NZGVBVEDC5YRZ54V33Q67LZKVTNB47GHBR2NLHTUGX2ZCUSEADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

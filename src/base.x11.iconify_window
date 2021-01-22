@@ -10,7 +10,7 @@ $cmd_path .= '.' if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 1, "iconifying window '$id'.." );
+<[base.log]>->( 1, "iconifying window '$id'.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -22,21 +22,21 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     die "core handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
 if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
-    <[base.log]>->( 0, "iconify_window command failed with '$1'.." );
+    <[base.log]>->( 0, "iconify_window command failed with '$1'.," );
     return 0;
 } else {
     return 1;
 }
 
 # ______________________________________________________________________________
-#\\VUJBEX6AUNDLAXSO2B6AULELWGSY2T7FF46TXPCKFPHCH4KW7VE554XPC7GDLFKRZ7VJ44FPTLDCW
-# \\ SIUPOWROJIL6ZVDIBFAMJH34THTB5DZ6WZKRCJSTL6SVELSWYHYS \\// C25519-BASE-32 //
-#  \\// TVWETNR2QFBQECJDWOU5O6RB35Y3X3ZZ4YXWU2FR24WIME6DSBY \\ CODE SIGNATURE \\
+#\\3EALOWGAPE4CHFZVP57LIL6PWCR7QLQKXG57E5S34PL3IU67TE3WXKHHPPM6NEVB3ICOFE76GPQ2K
+# \\ TNALLK7KD6CASIMF5MKOWMWIBMKBULHLHT2FV4MEUA72F5FITS5U \\// C25519-BASE-32 //
+#  \\// W3APOIC223GFCHMDQZRJB7SYA4OGFVE57EESJ22KZ7LXZBSPQAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
