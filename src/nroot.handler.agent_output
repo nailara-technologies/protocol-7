@@ -18,13 +18,17 @@ my $agent_instance = <nroot.agent.instance>->{$instance_id};
 my $agent_id       = $agent_instance->{'agent_id'};
 my $agent_name     = <nroot.agent.setup>->{$agent_id}->{'name'};
 
+<[base.log]>->( 2, "instance $instance_id : agent name not defined." )
+    and return
+    if not defined $agent_name;
+
 $agent_instance->{'output_buffer'} //= '';
 
 my $read_bytes = <[base.s_read]>->(
     $read_fh, \$agent_instance->{'output_buffer'},
     4096,     length( $agent_instance->{'output_buffer'} )
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # [ filehandle exception ]
     $event->cancel;
     my $process = $agent_instance->{'process'};
     close($read_fh);
@@ -60,7 +64,8 @@ if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
 my @matched_names;
 my $patterns_output = <nroot.patterns.agent_output>;
 foreach my $a_name ( keys %{$patterns_output} ) {
-    if ( $a_name =~ /\*/ ) {    # wildcard match
+
+    if ( $a_name =~ m|\*| ) {    # wildcard match
         my $inverse_match = 0;
         my $name_pattern  = $a_name;
         $inverse_match = 1 if $name_pattern =~ s|^\!||;
@@ -68,13 +73,13 @@ foreach my $a_name ( keys %{$patterns_output} ) {
         $name_pattern =~ s|\*\*|*|g;
         $name_pattern =~ s|\*|\.*|g;
         push( @matched_names, $a_name )
-            if $agent_name =~ /^$name_pattern$/
-            or $inverse_match and $agent_name !~ /^$name_pattern$/;
+            if $agent_name =~ m|^$name_pattern$|
+            or $inverse_match and $agent_name !~ m|^$name_pattern$|;
         next;
     }
     push( @matched_names, $a_name )
-        if $a_name eq $agent_name                       # agent name matches
-        or $a_name =~ /^\!(.+)$/ and $1 ne $agent_name; # inverse match [!agent]
+        if $a_name eq $agent_name                           # agent name matches
+        or $a_name =~ m|^\!(.+)$| and $1 ne $agent_name;    # inverse match
 }
 
 while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
@@ -83,9 +88,9 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     utf8::decode($output_line);
 
     print $output_line. "\n"
-        if <system.verbosity.console> or $output_line =~ /\Q$ANSI{bold}/;
+        if <system.verbosity.console> or $output_line =~ m|\Q$ANSI{bold}|;
     if (@matched_names) {    # matching pattern name exists
-        $output_line =~ s/^:(\.[^\.]+)?\.+$agent_name\.+: //;
+        $output_line =~ s|^:(\.[^\.]+)?\.+$agent_name\.+: ||;
         foreach my $pattern_name (@matched_names) {
             foreach my $pattern (
                 keys %{ <nroot.patterns.agent_output>->{$pattern_name} } ) {
@@ -103,7 +108,7 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
 }
 
 # ______________________________________________________________________________
-#\\3PJTYVCG5CNGNB3IURVWEORPJDBVFLGS7CEJLATFX6HZ5DAVZRJOTDOVAUDNL2Q2NZUV5LVRLVDFW
-# \\ OTUN7Q7ZZ7RQZGALODU27EMPLASPPHAUBFICP4ZPSXH6AGQ2TCWN \\// C25519-BASE-32 //
-#  \\// RBVG7HAWT3CBHDIW7IAUKBL5MX22S6V7EYFARS2G5YD3KR5FGBA \\ CODE SIGNATURE \\
+#\\JSKUNKJEDKNTQT3UR4WZUMJFOUF32JPY6X4X5W3MX7QM4SAZHYZDAHSNGKEENEIANGLOGAK6BLXQS
+# \\ WSI6CTL7BLSRBQP7FSXSJO32HH5JQPYDROTFYU66MG5SNPZ6JVMS \\// C25519-BASE-32 //
+#  \\// GCPTG2ORMPAJYTNOMUW4D2OQA73YKQQF3L3D62PK573YMHLIWAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
