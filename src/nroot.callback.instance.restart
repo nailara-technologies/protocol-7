@@ -6,7 +6,7 @@ my $instance_id = shift->w->data;
 
 if ( not exists <nroot.agent.instance>->{$instance_id} ) {
     <[base.log]>->(
-        2, "instance $instance_id no longer exists, aborting restart callback!"
+        2, "instance $instance_id no longer exists, aborting restart callback."
     );
     return;
 }
@@ -18,12 +18,13 @@ delete $instance->{'core_sid'};
 
 return
     if defined <agent.instance.shutdown>
-    and defined <agent.instance.shutdown>->{$instance_id};
+    and defined <agent.instance.shutdown>->{$instance_id}
+    or not defined $instance->{'job_id'};
 
 <[jobqueue.move_job]>->( $instance->{'job_id'}, 'queued' );
 
 # ______________________________________________________________________________
-#\\M4JXXELS7B3K2KQEM6YZKRVXEJ7USJMYEEB4Y5FJLTDHRSILC3AQ2MVY5Y55JCPLDYVGTIWUKJS5K
-# \\ XFRXRRSJ36JJQ3U2MN2ZNK742LC4YVYJSVGG5BM35HT2BKZTBI7H \\// C25519-BASE-32 //
-#  \\// KLYDWVDY3FAHIOQU7FRPDZ6U3UMXDG3I4IR64DDZIAPU5U5AUAQ \\ CODE SIGNATURE \\
+#\\VFSKPE6HJGPFPCIF64MSTN7DDOAZJOBRV6QHM6ZYMMWDH6JZE3A2R7N4P5EIRI33SUDJEFDLOZOZU
+# \\ HLTTDXAOYAU5YQTFU2IAYWUXV2ZWLUN3PSAA3MU2PIWC4LQX44GU \\// C25519-BASE-32 //
+#  \\// CZAP2T3DREB4Y7INYKLBTER5IKA2WDLEQO2UQ4WHLB2RZBUGSDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

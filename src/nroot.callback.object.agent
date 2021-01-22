@@ -7,7 +7,7 @@ return undef if not exists <dependency.object>->{$object_id};
 my $object_type = <dependency.object>->{$object_id}->{'type'};
 if ( $object_type ne 'agent' ) {
     <[base.log]>->(
-        0, "object $object_id is not of type agent but '$object_type'!"
+        0, "object $object_id is of type '$object_type' and not 'agent'."
     );
     return undef;
 }
@@ -16,14 +16,16 @@ return undef if not exists <nroot.agent.setup>->{$agent_id};
 
 foreach my $id ( keys %{<nroot.agent.instance>} ) {
     return 1
-        if <nroot.agent.instance>->{$id}->{'agent_id'} == $agent_id
+        if defined <nroot.agent.instance>->{$id}->{'agent_id'}
+        and defined <nroot.agent.instance>->{$id}->{'status'}
+        and <nroot.agent.instance>->{$id}->{'agent_id'} == $agent_id
         and ( <nroot.agent.instance>->{$id}->{'status'} eq 'online'
         or <nroot.agent.instance>->{$id}->{'status'} eq 'extbin' );
 }
 return 0;    # not online
 
 # ______________________________________________________________________________
-#\\NXWEMNIMIHQCI3TEM4DIGQSZWQFMB4AUEAGVDBG7GRKGAZX3QEWQJZDS5IFD46B27WBYXLHSYSO3E
-# \\ I65G6P4L73RSILNCD22GRRSHCBIYNXFZNGO6JMNYATCULBRHQQME \\// C25519-BASE-32 //
-#  \\// ZXQZ4CNGNNXBCIE2LOBFBYVJZOTIJW4D26TKHBTTUNDX6J3TYBY \\ CODE SIGNATURE \\
+#\\XDXEMYISPUH2JNRV2EEQDM2GICTS3OZGP6XGPGTXY2VY26VNG4JC3OBVWYMS5I2S66VHE6KDN24BE
+# \\ A4K4ZJP5VZCMYUDIY23WTSYDWTGQB723NWRTSK5HBJDD6A5R4UVK \\// C25519-BASE-32 //
+#  \\// 6BBGQTDXJ25F7TL6TFZUHA32ACEHI6BAEZJWFOQTZL2KIRSXUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

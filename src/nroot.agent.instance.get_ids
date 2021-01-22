@@ -5,13 +5,14 @@
 
 my $agent_id     = shift;
 my $instance_ids = [];
-die 'expected agent id' if not defined $agent_id or $agent_id !~ /^\d+$/;
+die 'expected agent id' if not defined $agent_id or $agent_id !~ m|^\d+$|;
 
 foreach my $id (
     sort {
         <nroot.agent.instance>->{$a}->{'created'} <=>
             <nroot.agent.instance>->{$b}->{'created'}
-    } keys %{<nroot.agent.instance>}
+    } grep { defined <nroot.agent.instance>->{$_}->{'created'} }
+    keys %{<nroot.agent.instance>}
 ) {
     push( @{$instance_ids}, $id )
         if <nroot.agent.instance>->{$id}->{'agent_id'} == $agent_id;
@@ -20,7 +21,7 @@ foreach my $id (
 return $instance_ids;
 
 # ______________________________________________________________________________
-#\\ZKHEUXHOGCYFVQS4UGXGVVQ7CPECNJHQXHV4L47JSZZYQHCOLB73DIW5SKPBOZS7PRBN5IWDSHAPA
-# \\ TNOJLSNYW3PHQRIJK63S23HVIH6K4ZTY4I5FIMPOCIMBSXQYNKZG \\// C25519-BASE-32 //
-#  \\// D5QCGE5DDN4NFXKQZNA5WLWSRPZAYV3BERKG4VH4WGI4PP656CI \\ CODE SIGNATURE \\
+#\\HJNTSNXBLGALWCYS3SPALMSZWD5TV2KGFAXXVS25ODY726W65MKEVJTYVVYUHTHUVSXWVGAMHJH6K
+# \\ F5A6SOOZUS3UPHCRYW5R7PT4XY6YPE2IPIGOTAQB7GZUQQCX6ZP2 \\// C25519-BASE-32 //
+#  \\// E2PHRXBFI7AILOJTJZLAL5JLEIDOTVX4N3P332ZRN4NCDNN4OAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
