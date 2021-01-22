@@ -25,13 +25,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
     <x11.screen_width>  = $1;
     <x11.screen_height> = $2;
     my $base_width = 1920;
@@ -53,16 +53,12 @@ if ( $reply_string =~ /^\($cmd_id\)ACK (\d+) (\d+)\n$/ ) {
     );
     return <browser.zoom_level>;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\ODORHEQ7AM57M75ACARFNAX67ESZ3U4QSNHSN2ZAMVV56P6HCXQQ2SZENE2ZHJSCDZDPU7V6K2AFS
-# \\ 5ULQY6KD45DSNPETG6OXY2VEB5WPIPQ4L263XHYBS7F3UROLPM2W \\// C25519-BASE-32 //
-#  \\// PKNAEFGULLBGOH7BNHODCPLQPRP3WJ4YPWECBHV6FS6EVR4HUAI \\ CODE SIGNATURE \\
+#\\T4DBZGTFKDBIMPOJOHB4SJCYZ7YFQITX6VYWPJBKMRCD3P2LMFFAEW2MYZ3QQGR7TOPDAXANQ7Z3Y
+# \\ F4ZWGYV4BFR522WFAXF4FJLP74VNDM6N7ENVKTFKRPAIEHCUWO44 \\// C25519-BASE-32 //
+#  \\// VXASXCRX25EVZBNCVGDSLLHJTKN3F5VFXZPQLX7SRZZ5BY7OICI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

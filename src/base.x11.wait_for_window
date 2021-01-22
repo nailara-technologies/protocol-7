@@ -33,29 +33,25 @@ while ( !$matched_reply ) {
     die "<<<!>>> core handle exception <<<!>>>"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK (\d+)\n$/ and <x11.id> = $1 ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$} and <x11.id> = $1 ) {
     <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
     return <x11.id>;
-} elsif ( $reply_string =~ /^\($cmd_id\)NAK window startup timed out!\n$/ ) {
+} elsif ( $reply_string =~ m|^\($cmd_id\)NAK window startup timed out| ) {
     <[base.log]>->( 0, ": window startup timed out after $timeout seconds..," );
     return undef;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string' ] "
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string' ] " );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\7XAUXFSW6Z4BPGJ5IC4CPJYUV2YEQ3D2H4H2ANI525SMGLMEARENBO42GFQDWVE4ACIRFQLI7XDQE
-# \\ QXVZE7TUKJ5HE3LSKW2ARZICSI4ZT6OFN2V3HMBGHO4JG6IXPWK6 \\// C25519-BASE-32 //
-#  \\// YZATR64VCV3ZQSY4BSHZWFQJQLDZEYA56GCR3RPDWTALYXA76AI \\ CODE SIGNATURE \\
+#\\OJU5ZT45TDHKTJQ2RZQEHX2F5VVQGZPHKCMTHUILUKSYZEXLB37YF3NPLFEBLZIM32AGDUNUNMPO2
+# \\ 3QFB4ZAII7HIWSATDI3XAWJCJE4SA6WOP4FZY2UV3EG57UJSTXCE \\// C25519-BASE-32 //
+#  \\// CIXEOP62TTTCID5DRFMY6XSFGWJW6QVAGXI3CRH3INTH4ZYUUBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

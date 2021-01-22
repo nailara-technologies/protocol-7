@@ -4,7 +4,7 @@
 
 my ($local_sid) = keys( %{<user.core.session>} );
 
-<[base.log]>->( 1, "requesting socket address from dbus agent.." );
+<[base.log]>->( 1, "requesting socket address from dbus agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -15,13 +15,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     ( my $path_str = <x11.dbus_addr> = $1 ) =~ s/^[^=]+=|,.+$//g;
     <[base.log]>->( 1, "received dbus socket address ['$path_str']" );
     $ENV{'DBUS_SESSION_BUS_ADDRESS'} = <x11.dbus_addr>;
@@ -35,7 +35,7 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\RN32CRPQK2JUHCGCRL4LCKROXGBKCBN2ADAJHMRFJ5N7AUB3EH3IAM7JUFR6RRUXM2XVWUX254UCE
-# \\ PGHPKI5KF24PK2I2Z4E2TDSSZ4PF4ORBAF6UP35JVZSAOJ6QUQ3Y \\// C25519-BASE-32 //
-#  \\// YN35OXUMQ4BIYIMHCM4P2FAMU4CXSW3MAJX2DY2DKXKUPBROCDY \\ CODE SIGNATURE \\
+#\\BA6QJ5XZ7AJP4N3VNK5GR4CZNBCIMGWNUGTS4AAZLM6Q35SNXSD4QJ4JXTQZIBGOLFRBZ7TDBXSFQ
+# \\ OXIQL65AFZ7JADPW2K73T4XVIYGA4HDMG6DHJ2OF6BULMZT2WXV3 \\// C25519-BASE-32 //
+#  \\// MW7FD7LAQQFKWQOSG4HPPAEA2SQRDV37S55PJIZYPRKGT6QXCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

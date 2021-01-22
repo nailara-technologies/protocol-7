@@ -4,7 +4,7 @@
 
 my ($local_sid) = keys( %{<user.core.session>} );
 
-<[base.log]>->( 2, "requesting display name from xserver agent.." );
+<[base.log]>->( 2, "requesting display name from xserver agent.," );
 
 $data{'route'} //= {};
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
@@ -17,13 +17,13 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     die "core handle exception" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     <x11.display> = $1;
     <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
     return <x11.display>;
@@ -35,16 +35,12 @@ if ( $reply_string =~ /^\($cmd_id\)ACK ([^\n]+)\n$/ ) {
     );
     return <x11.display>;
 } else {
-    <[base.log]>->(
-        0,
-        "not expected xserver reply"
-            . " ['$reply_string']"
-    );
+    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\7WEE6GARMVVZQG66AWZAVK5FY56YSURG6DUD77YGUFBEU56L3ZADK7W7PAFZEWSLJLYYIXPWRYLW6
-# \\ I42ZHIJNMAOCJEZQZII77ELBHCOQ62CWQJMROUP46WZGEZWG7K5G \\// C25519-BASE-32 //
-#  \\// F7RKRMRRSQB4UAFEG5CFBAXTCWBQYZDVEUF77RRPXXAWZPXZAAQ \\ CODE SIGNATURE \\
+#\\IUHEZRSHIGJSCNJGM36QZOXMAGR5XZV3EC2RRRXGXMI5QDAWF5AS3PUUOSOYER7SBBSZS3O5BVB2Y
+# \\ SAFF6QMZAFM7LQZ5ZAAKO44P526HHVHDEVKFN5BHDAXO4TQIO7R2 \\// C25519-BASE-32 //
+#  \\// IMLKW635YYKJ7PANLFNWCKAGBXXSXXPBABONRFALJFV4GREJ2AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

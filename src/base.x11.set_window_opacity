@@ -1,7 +1,7 @@
 # >:]
 
 # name = base.x11.set_window_opacity
-# todo = cleanup for consistency ...
+# todo = cleanup for consistency ..,
 
 my $id        = shift;
 my $opacity   = shift;
@@ -39,22 +39,22 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
-    die "core handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(ACK|NAK) /;
+    die "core handle had an exception" if not defined $reply_string;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
 if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
-    <[base.log]>->( 0, "set_opacity command failed with '$1'.." );
+    <[base.log]>->( 0, "set_opacity command failed with '$1'.," );
     return 0;
 } else {
     return 1;
 }
 
 # ______________________________________________________________________________
-#\\D5W3SGH2RL6M4QSAIHBLRMKYTFWKG5CGM3TB37NPID7R6PZ3NNIDJ2ADPEFVP672WMDGIKOXO6UJY
-# \\ 5CCGAUVGOZD26MXRFAJ2SJSOFQ3NZER4SFM4PDGOHGGVLPBHMQCY \\// C25519-BASE-32 //
-#  \\// JVHI4EU45KJLTTQRMXQF3ZGYQO7TKMK4CYMMA5JHVL6CCPQ3SAI \\ CODE SIGNATURE \\
+#\\YYJHEEZFMTHE2ZZ22VX5YEWLVVN6IRQMUGT5Y4EYNXWXQKLAIVUZDXDTHV4TXGDXNRGEE2WTUVHAE
+# \\ CJDJKOADN5JG7BPUYANA4HIIIX3APSJJNMQJWPQ4VVPR2P2UJDRD \\// C25519-BASE-32 //
+#  \\// 5CM3HFUJ4YHCDSLMK7MBXNRSIETMR74MRNTPCPCNQMPQX73FWBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
