@@ -8,7 +8,8 @@ my $watcher = $event->w;
 
 return if $err_str eq '?';    # <-- WEIIIRD and redundant
 
-my $ev_desc = $watcher->desc // 'not named';
+my $ev_desc = 'not named';
+$ev_desc = $watcher->desc if $event and $watcher;
 
 $err_str =~ s| at (\S+) line (\d+).*\n$||;
 my $file = $1;
@@ -20,7 +21,8 @@ $err_str .= " < $@ >" if $@;
 <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" );
 
 return
-    if <system.verbosity.console> < 2 and <system.verbosity.agent_buffer> < 2;
+    if not $watcher
+    or <system.verbosity.console> < 2 and <system.verbosity.agent_buffer> < 2;
 
 my @attr_names = sort { length($a) <=> length($b) } sort $watcher->attributes;
 
@@ -37,7 +39,7 @@ foreach my $akey (@attr_names) {
 }
 
 # ______________________________________________________________________________
-#\\AILMGQ6YRMECYADRTO4P62YMNHHOIODDL7LQNMTSZODLAKTPZ7URNUVH72EU2N7LDK3DMSORMN4KY
-# \\ JKWYDM5YI7N5LLKUFSVKUESZTX7GB2V3SWOPJTZWJSWDIAEU37PJ \\// C25519-BASE-32 //
-#  \\// CHCXYHFLDW6PCA7CFG4LIDNN7OYYA4ZNH4XWJE3LF3LCGYVQQCQ \\ CODE SIGNATURE \\
+#\\P4EROPTKQ4JDGT6KD5BANF3M7TGW5MKFQBDNASNFBO3BX7IQQMHZVJSCPYOEM63UQN5OL4GW4AMPE
+# \\ BZAZAKRIRAYWM3R6BXFSZUWI2S3JTVAWVYWQMB4K65BCNQJCH3DG \\// C25519-BASE-32 //
+#  \\// 5VHCFNG2ZEPAL7MJR3VG3T6BUJGHQ3L5OGZVBKTS3MJTYUDUABI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

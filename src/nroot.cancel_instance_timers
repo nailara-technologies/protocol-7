@@ -13,11 +13,12 @@ my $instance_timers = $instance->{'timer'} // {};
 my $cancelled = 0;
 
 foreach my $timer_name ( keys( %{$instance_timers} ) ) {
-    if ( $instance_timers->{$timer_name}->is_active ) {
+    if ( ref( $instance_timers->{$timer_name} ) eq 'Event::timer'
+        and $instance_timers->{$timer_name}->is_active ) {
         $instance_timers->{$timer_name}->cancel;
         $cancelled++;
         <[base.log]>->(
-            2, ": cancelled instance $instance_id '$timer_name' timer"
+            2, ": stopped instance $instance_id '$timer_name' timer"
         );
     }
     delete $instance_timers->{$timer_name};
@@ -28,7 +29,7 @@ delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
 return $cancelled;
 
 # ______________________________________________________________________________
-#\\HLRLU4LHRFXDVIFPFUEZLIH5N7GT4RBGBEN4NCYENQDBBCAH4UCNY6X6ZMSEQQRQZZFJ3X7Y4IWCM
-# \\ 2IQO75MR5OSFJY342LMVEXGZYP4KEWFHSZ2XTM6IWFJ6XYDCAQWQ \\// C25519-BASE-32 //
-#  \\// CWOVWVG3T33ILITMBMUYG6L5XOQNVQTMSARXMK26ZSSBCYPGCAQ \\ CODE SIGNATURE \\
+#\\O6MKBTDCK5AA2OKIP76U53NERDBKFVZQU4BTD2SMWPZZSHTW6RKNSFWMGTFEFHP4TEKZWAKD27RTU
+# \\ AR5SOWTDSBAWKMNLA6JMPMUAZJHJF7TTQMN33ZYUJZID3YRTUIT3 \\// C25519-BASE-32 //
+#  \\// KQPJKV3TNG6GGRU4NSMDKATD7IUBSYGBPARYBBROXWNBU2JHYCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
