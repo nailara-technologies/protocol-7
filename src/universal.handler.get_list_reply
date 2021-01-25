@@ -11,7 +11,7 @@ my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     <[base.log]>->( 0, ": unable to fetch playlist." );
-    <[universal.stop_loadsplash]> if <universal.loadsplash_running>;
+    <[universal.stop_start-anim]> if <universal.start-anim_running>;
     return;
 }
 
@@ -76,7 +76,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             );
         }
 
-        <[universal.stop_loadsplash]> if <universal.loadsplash_running>;
+        <[universal.stop_start-anim]> if <universal.start-anim_running>;
 
         <universal.playlist.files> = [];
         map { <universal.playlist.agent>->{$_} = [] }
@@ -190,7 +190,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 }
 
 # ______________________________________________________________________________
-#\\SA2JV2NHDYUIY2UQJHAXXG2HHJSJXKFCEVMOP2WHX3IS5DOJAABBK7UFSXDEWG4SMK7SLMEIENFM6
-# \\ TMSZWBC2IRCVHLAF7REHIQ6IU7QKHJ5XFZTNSH6GIHY6G6SPDUSI \\// C25519-BASE-32 //
-#  \\// IDYIYEROOWH6XQUG4VIVLVQPAOZCZ3EP5PL4PIAKZDE5Y3VXWBY \\ CODE SIGNATURE \\
+#\\4VBSCBZIKELRSSVEPND3OACW7PLF44PFFZW47CBJZO5OONQIWU7KWUXAKTSZ7WXZHHIGP2DBR4CBE
+# \\ XV5GJEFWBL7GRZXTOJ5YH3W3VO3CJP4DB7B5IBFQRLOSAN3GWDKB \\// C25519-BASE-32 //
+#  \\// NHEIEUNIJLR2K23YCRP4NMSAZIKTHRVUOW5LOFF6A7XLJSGGMBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

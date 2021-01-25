@@ -19,14 +19,14 @@ $ENV{'DISPLAY'} = <x11.display>;
     )
 );
 
-<[base.log]>->( 1, "starting loadsplash agent.." );
+<[base.log]>->( 1, "starting start-anim agent..," );
 
-# LLL: need startup timeout..
+# LLL: need startup timeout., [ beyond 'nroot' agent implementation ]
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => "core.nroot.notify_online",
         'call_args' => { 'args' => <universal.lsp_name> },
-        'reply'     => { 'handler' => 'universal.handler.loadsplash_started' }
+        'reply'     => { 'handler' => 'universal.handler.start-anim_started' }
     }
 );
 
@@ -39,11 +39,11 @@ $ENV{'DISPLAY'} = <x11.display>;
 undef %SIG;
 $SIG{'INT'} = $SIG{'TERM'} = sub {
     undef %SIG;
-    <[universal.stop_loadsplash]>;
+    <[universal.stop_start-anim]>;
 };
 
 # ______________________________________________________________________________
-#\\XVLRY4EYHFQ4ABCJGMYSGHLRG3NU76QJV6Y7JO4D45GAQQMCQBZ5O3SHBL5K6OWREXTV5JSL3W2PY
-# \\ JWVWP44V6SG5JXTFQF6SNVSCUOREXMUQBYS4RFHLPV5A6MFLPDMB \\// C25519-BASE-32 //
-#  \\// Z3VZ4NMO3HQ7G5GAEAZDGS3JYL4WX7JMB7TEYJC7LRHX4FP5IAA \\ CODE SIGNATURE \\
+#\\SZC25HSGD2JIGRVTX5YMHGIYXSHTDB2FLOLT2DFI4XBHOJ4KVNIPA2VLUQWEC5TK2MRO4U4HMQEOQ
+# \\ UMHKCMS6OZAGL32KU6FEP4G37F6ZEVPFCBKQD6OEJCZZM424SHRO \\// C25519-BASE-32 //
+#  \\// 6VZ37NOLHEBC5RPUEYCLNUSGU7Y4RLZPYKSRN5ARBT3ES2PH4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

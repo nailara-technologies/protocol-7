@@ -1,0 +1,26 @@
+# >:]
+
+# name = universal.handler.start-anim_started
+
+my $reply = shift;
+
+my @content_types = keys %{<universal.content.agent_map>};
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    if (<universal.children_ready>) {
+        <[universal.stop_start-anim]>;
+    } else {
+        <universal.start-anim_running> = 1;
+    }
+} else {
+    <[base.log]>->( 0, "<!> unable to start start-anim agent.." );
+    <universal.start-anim_running> = 0;
+}
+
+<[universal.get_playlist]>->(@content_types);
+
+# ______________________________________________________________________________
+#\\FUFYUULZQAXPC4V7EDY5ON2MUHEUZYRMZHTLP7GIMIIOMAQ4DNHXTWPSW6JHVDM6QJC7YYBUJYJT2
+# \\ 75BSZDHMSQLDDKVVAOQKLKZFH2SNAFZ7MIHZCL7TEA472PWAIGVU \\// C25519-BASE-32 //
+#  \\// 5SHQKRRQ43LJYBOCW4E2NDGSFGK5MCCICMELG7Y6ZYLAORTISCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
