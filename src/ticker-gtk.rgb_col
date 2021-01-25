@@ -4,7 +4,7 @@
 
 my $color_hex_str = shift;
 return undef if not defined $color_hex_str;
-if ( $color_hex_str !~ /^\#?[0-9a-f]{6}$/i ) {
+if ( $color_hex_str !~ m|^\#?[0-9a-f]{6}$|i ) {
     <[base.log]>->( 0, "invalid color string syntax '$color_hex_str'" );
     return undef;
 }
@@ -19,7 +19,7 @@ my @rgb_col = map { sprintf( "%.3f", hex($_) / 255 ) } (    # [0..1]
 return \@rgb_col;
 
 # ______________________________________________________________________________
-#\\RJXMO222PTMI7ZNYSFECOM2SVESTD7W5PXFVX2O2PEP4XGI4YDTBB42EDKKRQV6LS3CAJRNFXLJPS
-# \\ FFHY7BMH2RZ5S6YW5KU2C6JYIZFUZFQ3TALBEHRHXRZEDRIA3MVS \\// C25519-BASE-32 //
-#  \\// 2L6TAECBRWU2LLBYAEOYRJNWBQZSE4DUPLQLFUUYKGRG5G7GMBY \\ CODE SIGNATURE \\
+#\\I6HKRMBVV7XCLVL2WHTVBX7ZNAY6EYATOCMQDKGUPJFSC7F4IDAPE6PVZBIROFAPJPAEEJGYD54OK
+# \\ KQFLQB66UVY4NBAEFO3ZJW6W4APJSIJ5RONMCOU5DPGTPEWALXE6 \\// C25519-BASE-32 //
+#  \\// ZPMRIF6GNCISXUQOEEH3IT4OONKJ54Q7D4HPK3ECCIX2NOT4OAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
