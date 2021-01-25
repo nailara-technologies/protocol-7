@@ -1,0 +1,32 @@
+# >:]
+
+# name  = xserver.get_window_ids
+
+my $X       = <xserver.x11>;
+my $display = <xserver.xlib.display>;
+my $root    = <xserver.x11>->root;
+
+my $client_list
+    = $X->InternAtom( '_NET_CLIENT_LIST', 1 );    ##  <-- caching.., [LLL]
+my $wmname    = $X->atom( 'WM_NAME', 1 );
+my $type_utf8 = $X->InternAtom( 'UTF8_STRING', 1 );
+
+my @window_ids;
+eval {
+    my ( $value, $type, $format, $bytes_after )
+        = $X->GetProperty( $root, $client_list, 'AnyPropertyType', 0, -1, 0 );
+    @window_ids = unpack( 'L*', $value );
+};
+
+if ($@) {
+    ( my $err_str = $@ ) =~ s| at .+$||;
+    warn ' < get_window_ids > '.$err_str;
+}
+
+return @window_ids;
+
+# ______________________________________________________________________________
+#\\5CVDEKXCKSING44KQOAATCTT2VEBNJRO5PE3H6DYTF5A2WDVQBKWAO6THOQQZIDL77A4QMKG6YINQ
+# \\ G3HUL54XS5OVWE7YQNJTRM6LHB276VFFDPXDYH4W2QVBMFMA4WRI \\// C25519-BASE-32 //
+#  \\// O5MA4LSAL3JJSZ5MQVRBCL5H22NXZQDTQNSA2NQMB6KCQOZ6UBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

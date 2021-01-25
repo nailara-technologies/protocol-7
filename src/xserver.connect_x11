@@ -11,16 +11,20 @@ my $host_mode_warned = 0;
 
 my $mode = <xserver.mode>;
 
+$ENV{'DISPLAY'} = <xserver.display>->{$mode};
+
 host_retry:
 while ( !$ok and $attempts-- ) {
-    eval '$data{xserver}{x11} = X11::Protocol->new(\''
-        . <xserver.display>->{$mode}
-        . '\'); $ENV{DISPLAY}="'
-        . <xserver.display>->{$mode}
-        . '"; $data{xserver}{x11_tops} = X11::Tops->new($data{xserver}{x11})';
+    eval {
+        <xserver.x11> = X11::Protocol->new( <xserver.display>->{$mode} );
+
+        <xserver.x11_tops> = X11::Tops->new( <xserver.display>->{$mode} );
+        <xserver.x11_tops>->update;
+    };
     $ok = 1 if !$@;
     <[base.sleep]>->($retry_delay) if !$ok;
 }
+
 if ( !$ok and <xserver.mode> eq 'host' ) {
     if ( !$host_mode_warned ) {
         <[base.log]>->(
@@ -50,7 +54,7 @@ if ( !$ok ) {
 }
 
 # ______________________________________________________________________________
-#\\MBXMTJMDYNNB5R6VV3ROHGXNSVZUJDCVVSF3AHWWDGUMJQ53PL6QEQ32Z5BLWSHNHWNSAVVK3GD6A
-# \\ XKA4IBAMFVBZWVVV4L6A5KZRAMPLD5MFM7APCZWIQY5XVMM2LCEZ \\// C25519-BASE-32 //
-#  \\// N7VBMS6CSVNN6MGUF4NSVWDYHCHGW6GPLD5FDLCFLS6K5HZ6CBQ \\ CODE SIGNATURE \\
+#\\GPPJZ4FET7EYAEFLDYLLHA6TXAFVRF5GJADMAYDQ5Z4IMFRW7ENX2NTDOKNDMIP6YN22SQM46TTIU
+# \\ 7K7EX6ZJDZEFH3KGMRBWBU4SLXQKP5QXWSAE4DCWLPRU3NJB7PSW \\// C25519-BASE-32 //
+#  \\// 3Q3FQQNDVPC23NYI2HGENBPEOYEH2FQ7ZIHLB5D2OHWYCAH3OAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
