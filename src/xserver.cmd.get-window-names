@@ -4,15 +4,15 @@
 # descr = return list of window ids and titles
 
 my $reply_str = '';
-foreach my $root_id (<[xserver.get_window_ids]>) {
-    my $title = <[xserver.get_window_title]>->($root_id);
-    $reply_str .= "$title\n";
+foreach my $window_id (<[xserver.get_window_ids]>) {
+    my $title = <[xserver.get_window_title]>->($window_id);
+    $reply_str .= "$window_id $title\n";
 }
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\6NZ3Y6UD25W7IKHXQQCHS6YSXRDEGNNBLXXEZ53PYJIZ3UYPS5BRXB5PMTFL2FYK7PNPC5A7U24YA
-# \\ 7UZ6TXRODCJUEFN4QLN2DN6WJZCBGQFAQKFWBLK5ESPJHP5C4CEJ \\// C25519-BASE-32 //
-#  \\// NJDWI43EOXLTETHH5RGCZDPFHFYEPQRDLRGZYYSQX3ARIYTGYDI \\ CODE SIGNATURE \\
+#\\UBGOTQ73IXF7PSFB7ULVHP6TUS2PTJKBTS6BZVO6ZU3DB4WLFM5BICNYKITV44PCE6GPZKRXPK6CK
+# \\ 3IL3QLMZQBHG47VN3GEBGQ3O4HQ5BH2SACZLL237RRTITRJSIV3R \\// C25519-BASE-32 //
+#  \\// QLRZWJUSBUUX77CQEPGF2YTFU47PN22DWXWAMGNF7LBEVSWGKDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
