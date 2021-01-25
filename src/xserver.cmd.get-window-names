@@ -1,0 +1,18 @@
+# >:]
+
+# name  = xserver.cmd.get-window-names
+# descr = return list of window ids and titles
+
+my $reply_str = '';
+foreach my $root_id (<[xserver.get_window_ids]>) {
+    my $title = <[xserver.get_window_title]>->($root_id);
+    $reply_str .= "$title\n";
+}
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\6NZ3Y6UD25W7IKHXQQCHS6YSXRDEGNNBLXXEZ53PYJIZ3UYPS5BRXB5PMTFL2FYK7PNPC5A7U24YA
+# \\ 7UZ6TXRODCJUEFN4QLN2DN6WJZCBGQFAQKFWBLK5ESPJHP5C4CEJ \\// C25519-BASE-32 //
+#  \\// NJDWI43EOXLTETHH5RGCZDPFHFYEPQRDLRGZYYSQX3ARIYTGYDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

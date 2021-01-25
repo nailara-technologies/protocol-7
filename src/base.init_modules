@@ -55,9 +55,11 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                     and exists <base.modules.moved_to>->{$module_name};
 
                 # LLL: later also include module version[s] in argument list..,
-                my $return_code = $code{$sub_name}->( $reinit, $real_m_name );
-
-                if ( not defined $return_code or $return_code ne '0' ) {
+                my $return_code;
+                eval {
+                    $return_code = $code{$sub_name}->( $reinit, $real_m_name );
+                };
+                if ( $@ or not defined $return_code or $return_code ne '0' ) {
                     $success = 0;
                     <[base.log]>->(
                         0,
@@ -91,7 +93,7 @@ undef <base.init_modules>;
 return $success;
 
 # ______________________________________________________________________________
-#\\VVNSYZCVRXOBUL3E5EKCG42AEVQWNX2ARY7DNCZZXWBTFFJFJKD6G7TVI2WOUZTEVYYOXHVXHQSJC
-# \\ 3RMQ6FSM3FY2SYH2VINJ2B3SQZN3SNE25LV2AS66E4MP6VWGN4YV \\// C25519-BASE-32 //
-#  \\// TDCHCZJT2ZVVPSIMSAHB7LNXGUUILILWZMBPPPWLCQSVSHEGADY \\ CODE SIGNATURE \\
+#\\R4H4DVZZYEQNHNGZL6DN4UXJFS6GZYUMSYO223YRMJZGSYHNSFZOFB2F5ZMYRELWKERNBTZN363BE
+# \\ J7V5SEI2N26G65B4AYMROFK5KJ6P76YQ4S4OYHOK7KTGFXSL3D3G \\// C25519-BASE-32 //
+#  \\// B4YM3UDHIJPXDUD4ZSCC4NZJQQ7LWJC32V7B7QMIQGKTPCTJIBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

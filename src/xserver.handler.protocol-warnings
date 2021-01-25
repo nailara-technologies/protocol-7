@@ -1,0 +1,20 @@
+# >:]
+
+# name  = xserver.handler.protocol-warnings
+
+my ( $msg_str, $caller, @caller_details ) = @_;
+
+if ( $caller eq 'X11/Protocol.pm:75' ) {  ## specific case ## REBOOT SYSTEM ? ##
+    use Data::Dumper 'Dumper';
+    warn '< protocol-warning > <{C1}>';
+    <[file.put]>->('/tmp/another.asc', Dumper( $data{'xserver'} ) );
+    return 0;    # <-- do not output using 'base.sig_warn'
+} else {         ## unknown ##
+    return 1     # <-- handle as regular warning
+}
+
+# ______________________________________________________________________________
+#\\OXCBEDTFFPPV5SVCANZB5MROF7UJQTYTY7XQFBXUDYVTBNA227R3PC26IRRGMY6CCLNJNUJO4ED2C
+# \\ 3PHZEJJ6DA4S7SP4QN4HOCRYFAQY3KDVHKSRIDY2JJIB4ZQTTYL3 \\// C25519-BASE-32 //
+#  \\// BEYCYC6VOKSVCVO5KUWUFSZMSYI4M7UIKLOTWN5XTAFOJILKYDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
