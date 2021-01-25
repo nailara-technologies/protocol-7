@@ -40,10 +40,13 @@ if ( defined $@ and $@ =~ m|^Protocol error: bad 3 \(Window\);| ) {
     warn $@;
 }
 
-return "'$window_title'" // '';
+$window_title = <[base.utf8.sanitize]>->( $window_title // '' );
+$window_title =~ s{^'|'$}{}g;
+
+return length($window_title) ? $window_title : "''"; ## <-- quotes when empty..,
 
 # ______________________________________________________________________________
-#\\IJ7HH22KO5S254DEE3AIXG4BE7F2PDMVHIABUZWATCXVMXHQSYUZNTAKULJ7RCL4HRP46XZKJYDHQ
-# \\ 2MF3ARJQADXXYH5OQF6Q3M2EGDXA54JA3FFVTWXPOCKHEMQCVFM4 \\// C25519-BASE-32 //
-#  \\// RYHFDA4DNJVZHRXZPSKLP6GZAQ6ATRFUSK3XBIDXB6SAX5RU6CY \\ CODE SIGNATURE \\
+#\\XU2OFN3YQ6PYJ74YRFGIFFC37AZICYI7VBZBX6NFGUZES3SNTE7FTQUHMC4EBOPZ2GERUTXTPH6GC
+# \\ FQFZXOVYNCNJHSFXZHN2YYUNBNKWLBFMSUMHAGFNMRAFRHHDZGMY \\// C25519-BASE-32 //
+#  \\// YDK7CZBWTCN4XHZ6HHUY2KCBZ7PGPSEGPBDEQTUP2EDSB55PWCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

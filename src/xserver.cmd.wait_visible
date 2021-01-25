@@ -12,20 +12,17 @@ return { 'mode' => 'nak', 'data' => 'expected numerical timeout argument' }
 return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
-my $xtops = <xserver.x11_tops>;
+$title_pattern =~ s{^['"]|["']$}{}g;    ## <-- quotes allowed but ignored
 
-# <[xserver.update-xtops]>;
+foreach my $window_id (<[xserver.get_window_ids]>) {
+    my $window_title = <[xserver.get_window_title]>->($window_id);
+    return { 'mode' => 'ack', 'data' => $window_id }
+        if $window_title =~ $title_pattern;
+}
 
 # <[xserver.process-x11-error]>->( $@, caller )
 #     and return { 'mode' => 'nak', 'data' => 'cannot get window list' }
 #     if $@;
-
-
-foreach my $window_id (<[xserver.get_window_ids]>) {
-    my $window_title = <[xserver.get_window_title]>->($window_id);
-        return { 'mode' => 'ack', 'data' => $window_id }
-        if $window_title =~ $title_pattern;
-}
 
 my $req_id = <[base.gen_id]>->( <xserver.waiting> //= {} );
 
@@ -61,7 +58,7 @@ push(
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\H7SQGX4GHGEB3BS7RT52HV3GJ5ZTZOVYY3NHAFW4GF4AYFISLG3NCBNBUZLNCLUQTIDTYLE5WXSAE
-# \\ W5TZ6U3RL3V4PFSG5FCNDU2WKVNRDOPC22XF3RCYB2UOTE27LCG3 \\// C25519-BASE-32 //
-#  \\// EZKFNFTAFJ2JVAOJ4XE45CPYJJDELVELMOHLCRNTDBQNM42AGDQ \\ CODE SIGNATURE \\
+#\\QVLTRSMI4RZ4GDFZS377DFKD5DFFMYXDF5DVPONPQF5VBKZ2POZX3OOOSPJHQ5I7IPADUBOD3JNY4
+# \\ OXCRVZU3GZ67HKNVKYB6WEVOQHJBE34HEVHJRYUG3D7QP4437KJS \\// C25519-BASE-32 //
+#  \\// QIUEYXOQXY24K3FLJEGPOIRKMA6PTVF6AW4ESANSSOJLAL2GUBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
