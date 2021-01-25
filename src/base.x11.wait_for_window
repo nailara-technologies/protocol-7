@@ -40,10 +40,10 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$} and <x11.id> = $1 ) {
-    <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
+    <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.," );
     return <x11.id>;
 } elsif ( $reply_string =~ m|^\($cmd_id\)NAK window startup timed out| ) {
-    <[base.log]>->( 0, ": window startup timed out after $timeout seconds..," );
+    <[base.log]>->( 0, ": window startup timed out after $timeout seconds.," );
     return undef;
 } else {
     <[base.log]>->( 0, "not expected xserver reply ['$reply_string' ] " );
@@ -51,7 +51,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$} and <x11.id> = $1 ) {
 }
 
 # ______________________________________________________________________________
-#\\OJU5ZT45TDHKTJQ2RZQEHX2F5VVQGZPHKCMTHUILUKSYZEXLB37YF3NPLFEBLZIM32AGDUNUNMPO2
-# \\ 3QFB4ZAII7HIWSATDI3XAWJCJE4SA6WOP4FZY2UV3EG57UJSTXCE \\// C25519-BASE-32 //
-#  \\// CIXEOP62TTTCID5DRFMY6XSFGWJW6QVAGXI3CRH3INTH4ZYUUBI \\ CODE SIGNATURE \\
+#\\II5W3SDCUQTP7OKEQBSHKSKFCF5AIBTAYYLHHAJLPG5H3IVVL5DA6N4TYYJVVVNEJM7NLBN2W2RF6
+# \\ OLABD5XQFI6OIUFFASHT4DTCDH2BUJCMFT5HKOFIZILXMO7VSF4D \\// C25519-BASE-32 //
+#  \\// N4U5C2XB6PLQ7U57GFEEMFUYF3IDJBIY5OEVLHDS3K3DWTR5OAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

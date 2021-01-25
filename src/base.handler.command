@@ -5,7 +5,7 @@
 # comment = currently nailara protocol specific -> move to proto.nailara
 #           and replace with a generic version ..
 #           needs rewrite
-# TODO = reduce memory usage during compilation! ( ~ 3MB just for this sub !! )
+# TODO = reduce memory usage during compilation! ( ~ 3MB just for this sub !!! )
 
 my $id = $_[0]->w->data;
 
@@ -20,7 +20,7 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 # regex cache
 my $re = $data{'regex'}{'base'};
 
-if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies..
+if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies.,
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
         <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore]bytes.," );
         if ( length($$input) >= $ignore_bytes ) {
@@ -558,7 +558,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     $$reply{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
                     <[base.log]>->(
-                        0, "[$id] cmd ['$cmd'] err [ href expected ]"
+                        0, "[$id] cmd ['$cmd'] <-- [ hashref expected ]"
                     );
                 } elsif (
                     $$reply{'mode'} ne 'data'
@@ -892,7 +892,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\DS2JLJAR24XELW4L6RIWT4YMKVFGCSSB2TISVAROC755OISJRZJEYVXVRSTV4YVXTDXLFEBQLNTC4
-# \\ OBNX6E6GCRXDWT6DALI5ES55D4MGCAH3Z6UTZMVVL3FCWM45XBCZ \\// C25519-BASE-32 //
-#  \\// 6DKEMT3WFE45RUDTAHOEKDQQK5MSXIOWSGHKN4TJPXZ2LUW7UCI \\ CODE SIGNATURE \\
+#\\NG3LK7ABWMMTNZFXX2MGFOXXWPXTE7UZB7P65ZEMWAIS5ZRWK3EGQML672K6AVKHDZRNBFVGKU2QG
+# \\ UU3IGNVDU644S24R3ARLTYIHPJTY2PEAMCCVM4J3GXENV4PLQBHN \\// C25519-BASE-32 //
+#  \\// KTBVQSBW5BPZWIOV3XDDGKTEF7VYOU364JHLCN74I2E7T2SVSBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

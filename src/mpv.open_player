@@ -3,7 +3,7 @@
 # name = mpv.open_player
 
 $SIG{'PIPE'} = sub {
-    <[base.log]>->( 0, "SIGPIPE received! shutting down..," );
+    <[base.log]>->( 0, "SIGPIPE received, shutting down..," );
     exit(2);
 };
 
@@ -37,18 +37,18 @@ if ( !<mpv.audio_only> ) {
     }
 
     if ( not defined <mpv.geometry> or exists <x11.geometry_was_undefined> ) {
-        <[base.log]>->( 1, "<!> geometry was undefined..." );
+        <[base.log]>->( 1, "<!> geometry was undefined..," );
         if (<mpv.autoresize>) {
-            <[base.log]>->( 1, " : disabled 'autoresize' function.." );
+            <[base.log]>->( 1, " : disabled 'autoresize' function.," );
             <mpv.autoresize> = 0;
         }
         if ( <mpv.fade_in> and <mpv.auto_fs> ) {
-            <[base.log]>->( 1, " : disabled 'fade_in' (auto_fs active).." );
+            <[base.log]>->( 1, " : disabled 'fade_in' (auto_fs active).," );
             <mpv.fade_in> = 0;
         }
     }
     if ( <system.agent.mode> eq 'universal-child' and <mpv.fade_in> ) {
-        <[base.log]>->( 1, " : disabled 'fade_in' (universal-child).." );
+        <[base.log]>->( 1, " : disabled 'fade_in' (universal-child).," );
         <mpv.fade_in> = 0;
     }
 
@@ -66,10 +66,10 @@ if ( !<mpv.audio_only> ) {
         and <mpv.auto_fs> ) {
         $mpv_params .= ' -fs';
         if (<mpv.autoresize>) {
-            <[base.log]>->( 1, " : disabled 'autoresize' function.." );
+            <[base.log]>->( 1, " : disabled 'autoresize' function.," );
             <mpv.autoresize> = 0;
         }
-        <[base.log]>->( 1, " : fullscreen mode is enabled [auto_fs].." );
+        <[base.log]>->( 1, " : fullscreen mode is enabled [auto_fs].," );
         <mpv.current.window_width>  = <x11.coordinates.right>;
         <mpv.current.window_height> = <x11.coordinates.bottom>;
         <mpv.current.box_width>     = <x11.coordinates.right>; # LLL: check, fix
@@ -192,10 +192,10 @@ close( delete(<mpv.fh.stdin>) );    # input fd not required
     }
 );
 
-<[base.log]>->( 1, "player startup successful.." );
+<[base.log]>->( 1, "player startup successful., =)" );
 
 # ______________________________________________________________________________
-#\\FUURQHMZOJIY4H5IUYF5DZCVYSMJU4XQC6LYBT5WHZFX2VMIQY2KDKV4J5C6TMP3LFGLHWNAYY5R4
-# \\ BOSZ3E7PJCXYTGKO2BYYWHJLDKEEBU5WFMRU46LO7JCPVGRWQHM4 \\// C25519-BASE-32 //
-#  \\// U6LUENIK2OX74XEO4ECXCMVGCMCBHRS2X5N6XC4YWNYTMAP7MBA \\ CODE SIGNATURE \\
+#\\TEGKJS6KB7DBLMSWZZQ5JBJZVLAZ7SW3XVDWMZFORVOYGWCCHFZINUXZLARD6AFJI3UQVQXRRSYIQ
+# \\ J5GYPY7GUYEJJLAKRMBIVAVWSEUIUCUKDQ47MFAWAA5KKY74VHNY \\// C25519-BASE-32 //
+#  \\// RL4TQRSIXA54ZZCTTDHDY5WVKUQ2BVAQ5PEZWTLNQ2NPFKJQIBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

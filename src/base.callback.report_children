@@ -10,7 +10,7 @@ my $route_str = <system.net.core_route> // 'core';
 $route_str .= '.' if length($route_str);
 
 map {
-    <[base.log]>->( 1, "reporting new child process [PID:$_].." );
+    <[base.log]>->( 1, "reporting child process [PID:$_] to 'nroot'..," );
     <[base.proto.nailara.command.send.local]>->(
         {   'command'   => "${route_str}nroot.register_child",
             'call_args' => { 'args' => $_ }
@@ -19,7 +19,7 @@ map {
 } @{<system.report_children>};
 
 # ______________________________________________________________________________
-#\\27ZIRX4DHTPUA5RDRZOFHGPJ2PU7Y2REJM3URYC27UHDHIIASOJPBT7SJ7LBTAGZXVK73RHALILQ6
-# \\ BZ2HXYW5Z7DX372UWITHVLMG3M6QAYGBSO26UO44HK7CMV2HATMH \\// C25519-BASE-32 //
-#  \\// 5S3PM7HWVE2TSLXH63PLVXOKDHRGFGEFOJBKK2YCWZUIY7Q5UDA \\ CODE SIGNATURE \\
+#\\XE4HV5TZR344U5WAVL3DDIVERDOD6QCX37GVYKXMUUDHXBZ4ZHDRAVKLUWBFNRZD2K76MJ2M6MPJE
+# \\ W4RPKZ2VZP5CWCD7I6ST3KXGH4QFXWPCIFD6TZFRCZOM5YZ55GGT \\// C25519-BASE-32 //
+#  \\// CREICKMQXNBSFR6HEHW2HS6JCEDLMSFH2MSW7533OPRGUF4XQAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
