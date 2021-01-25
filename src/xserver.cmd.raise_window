@@ -12,7 +12,7 @@ return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <xserver.x11_tops>;
-$xtops->update;
+<[xserver.update-xtops]>;
 
 my $window;
 for my $w ( @{ $xtops->sorted } ) {
@@ -25,12 +25,12 @@ for my $w ( @{ $xtops->sorted } ) {
 return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 $window->raise;
-$xtops->update;
+<[xserver.update-xtops]>;
 
 return { 'mode' => 'ack', 'data' => 'raised to top' };
 
 # ______________________________________________________________________________
-#\\KWZXX7IW55VIIC6XWSKYAH4YSOK72MWGW55AQK2BCXSMS6TO6URLW74WXBJEFVUOVTKBVE34H2FX2
-# \\ BP5RHJFKDEZYN6AHP2KI72UUHCUGINFBL2RPTMD3NJH62BIBJADF \\// C25519-BASE-32 //
-#  \\// DRLIP554IDTIHEZ2ANQLCKAEQSMDP6ACUV7TNCQGOQAADOUPECY \\ CODE SIGNATURE \\
+#\\ONVXDDMNYMG2AUEMQMENNFHBOFOB3YLA6LNIWZDSUW2AD7J4CPL2BLMAYMIUBP7AHAMUQ4XSK7Z4C
+# \\ X57KR5XIVJOZSU6QF4TQQCGVPGDTPIHLUS2MA7FCK7JIM4A6FDTM \\// C25519-BASE-32 //
+#  \\// QNMZYDOOK222XNDA4OPFZ7ZUOK2WIVPJJHWLDK7M4EYJQI6WOAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
