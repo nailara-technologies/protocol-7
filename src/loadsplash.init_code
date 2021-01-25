@@ -13,10 +13,20 @@ open STDERR, '>>/dev/null' or warn "/dev/null: $!";  # silencing X11 shutdown ;/
 <loadsplash.min_startup_delay> //= 0.42;
 <loadsplash.min_startup_time>  //= <[base.time]>->(4);
 
+<loadsplash.bg-color> = 'white';
+if ( defined <loadsplash.cfg.bg_col> ) {
+    if ( <loadsplash.cfg.bg_col> =~ m|^#?\d+$| ) {    ## #RRGGBB ###
+        ( <loadsplash.bg-color> = <loadsplash.cfg.bg_col> ) =~ s|^#||;
+        <loadsplash.bg-color> = '#' . <loadsplash.bg-color>;
+    } else {
+        <loadsplash.bg-color> = <loadsplash.cfg.bg_col>    ## color name ##
+    }
+}
+
 0;
 
 # ______________________________________________________________________________
-#\\IPUXJTXFF44QRGRQKZXUCE44X4A6EXNWNTKBDYOUXVCMPVN3DAM6E6KE2YIZKD3C6FYL2LPTCAQUE
-# \\ C77EU3D2LLHGH4P7V2MLFP3APUUHET2KZOLRDZTHXAP555JTJ6U7 \\// C25519-BASE-32 //
-#  \\// 2I56Y7YD4IT43RNUSS6BRAJBVUEQV6NYGN7KZQ3TALQHML2JMCY \\ CODE SIGNATURE \\
+#\\U5CE4CFEH5OT34SHBW5JWTVFFB7DXT66AMZVSHJ6EPTSB65ZWAZMMFERGJUV33P5OESLJGCRBVTZI
+# \\ VAHBEDUSE4B6ZYSXN5AR5RLLNPO4KEXUBI5SFZSJL2OGQWKF46B4 \\// C25519-BASE-32 //
+#  \\// 37TKLEPPKR4LVPKNH6ISGCEIF77HKUA7NE6EMXX5VVTQ6IFHKBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

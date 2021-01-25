@@ -46,7 +46,8 @@ if (<loadsplash.composited>) {
 }
 
 my $css_prov = Gtk3::CssProvider->new();
-$css_prov->load_from_data('* { background-color: white }');
+my $bg_col   = <loadsplash.bg-color>;
+$css_prov->load_from_data("* { background-color: $bg_col }");
 Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 
 my $pixbuf = Gtk3::Gdk::PixbufAnimation->new_from_file(<loadsplash.image_path>);
@@ -87,7 +88,7 @@ $SIG{'TERM'} = sub {
 Gtk3->main;
 
 # ______________________________________________________________________________
-#\\JLAJVZKP25YISWO35L6DTJB5LTBACIOXJNT6LZ75CZWHOAURUMI4QV3T6OWOWGW63UERTKJQASEHQ
-# \\ PY43RTYLOMX3QQLWBMR5LSQPIDFK2TFQ3TTL2Q2OMIIMBYWIDG2S \\// C25519-BASE-32 //
-#  \\// OA2HJA4ZQVHEURUTAUHIYMB47U4AVZ4PGQQGYV54RMC2WBAIMDI \\ CODE SIGNATURE \\
+#\\EUCGUBKGSSUUV5HAIDNAGSKMA77Y2U4XL3UEIC5AS4HWVMMSECNBOMBPGWHXVVAXF4OUUMY2TNSAI
+# \\ RWB26JHX5CGSMHEKCYUGHKM7AOZFO7G4VLPOGXDQCD6JNFKN64PD \\// C25519-BASE-32 //
+#  \\// JQWGF4WK63LBCLRR5XOMJPZTDNNCXUNSPJKUPHRD5VWWTQV2GCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

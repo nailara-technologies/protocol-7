@@ -1,16 +1,16 @@
 
- .:[ rudimentary 'loading' animation agent ]:.
+ .:[ simple 'loading' animation agent ]:.
 
 [load_config_file:'shared-params']
 
 [set_privs:'nobody']
 
-access.cmd.usr.core = commands heart verify-instance
+access.cmd.usr.core = commands heart verify-instance cur-pid
 
 loadsplash.do_fade_in        = 0    # <-- fade-in meanwhile handled by compton.,
 loadsplash.min_startup_delay = 0.42
 
-modules.load = auth net io.ip loadsplash
+modules.load = auth net io.ip
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -18,5 +18,9 @@ modules.load = auth net io.ip loadsplash
 
 [base.x11.get_display]
 [base.x11.get_coordinates:undef,undef,''] #  <--  request for only ['tile-name']
+
+[load_modules:'loadsplash']
+loadsplash.cfg.bg_col = [base.x11.get_bg_color] # <-- [#RRGGBB|<color_name>]
+[init_modules:'loadsplash']
 
 [loadsplash.open_window]
