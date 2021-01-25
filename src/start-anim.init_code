@@ -1,0 +1,32 @@
+# >:]
+
+# name = start-anim.init_code
+
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Glib::Event');
+
+open STDERR, '>>/dev/null' or warn "/dev/null: $!";  # silencing X11 shutdown ;/
+
+<start-anim.image_path> = <system.root_path> . '/data/gfx/anim/busy.2K.gif'; #4K
+
+<start-anim.do_fade_in>        //= 1;
+<start-anim.min_startup_delay> //= 0.42;
+<start-anim.min_startup_time>  //= <[base.time]>->(4);
+
+<start-anim.bg-color> = 'white';
+if ( defined <start-anim.cfg.bg_col> ) {
+    if ( <start-anim.cfg.bg_col> =~ m|^#?\d+$| ) {    ## #RRGGBB ###
+        ( <start-anim.bg-color> = <start-anim.cfg.bg_col> ) =~ s|^#||;
+        <start-anim.bg-color> = '#' . <start-anim.bg-color>;
+    } else {
+        <start-anim.bg-color> = <start-anim.cfg.bg_col>    ## color name ##
+    }
+}
+
+0;
+
+# ______________________________________________________________________________
+#\\KOT7FJCAELAT7PSBS2BFMLE5LBARKP3IX27HWTRTQA25IW7AXVHJWJK37PHTW4E67SQQIELRFU7PG
+# \\ U2PXGA52FP3XZD7LKDKU2PK7QHGIANIGR2AXBO7ANXQT6O6W4CFS \\// C25519-BASE-32 //
+#  \\// CG6XCFGHLRVSSCVY6YPGUS6HPPF64CKT2FJXXC7H26IK4OLYKCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
