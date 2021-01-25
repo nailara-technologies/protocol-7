@@ -113,11 +113,10 @@ if ( $mode ne 'host' ) {
 <xserver.x11_bin_name> = $bin_name;
 my $bin_name_lc = lc($bin_name);
 
-<[base.logs]>->( ": connecting to X display [%s]", <xserver.display>->{$mode} );
+## registering custom error handlers ###
 
-<[xserver.connect_x11]>;
-
-<[base.log]>->( 1, ": : link to '$bin_name_lc' established [ responsive ]" );
+$data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
+    = 'xserver.handler.protocol-warnings'; ## $self->{'connection'}->get(@_); ##
 
 <xserver.x11>->{'error_handler'} = sub {
     ( my $self, my $err_data ) = @_;
@@ -126,9 +125,16 @@ my $bin_name_lc = lc($bin_name);
     $err_str = 'unknown protocol error [ X-server crashed ? ]'
         if !length($err_data);
     warn( join( ' ', '[protocol-error]', $err_str ), '<{C7}>' );
-
-    <[xserver.error_handler]>->($err_str);
+    ## reconnect here, if not successful call: ## [ LLL ]
+    #  <[xserver.error_handler]>->($err_str);
 };
+##
+
+<[base.logs]>->( ": connecting to X display [%s]", <xserver.display>->{$mode} );
+
+<[xserver.connect_x11]>;
+
+<[base.log]>->( 1, ": : link to '$bin_name_lc' established [ responsive ]" );
 
 ## extensions ##
 
@@ -174,14 +180,14 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
     <xserver.wait_for_display.callback> = 'xserver.callback.display_connected';
     <[base.log]>->( 0, "<!> display is off / not connected <!>" );
 
-    # polling for screen sizes, otherwise drm display status never gets updated!
+    # polling for screen sizes, otherwise drm display status never gets updated.
     <xserver.timer.wait_for_display> = <[event.add_timer]>->(
-        {   'after'    => 1,
-            'interval' => 1,
+        {   'after'    => 0.13,
+            'interval' => 0.7,
             'handler'  => 'xserver.handler.poll_size_list'
         }
     );
-    <[base.log]>->( 0, "    : waiting for a display to restart xserver.," );
+    <[base.log]>->( 0, "    : waiting for a display to restart xserver..," );
 
     if ( defined <xserver.host_mode.min_size>
         and <xserver.host_mode.min_size> =~ m|^\d+x\d+$| ) {
@@ -197,7 +203,7 @@ if ( <xserver.mode> eq 'xorg' and !<xserver.display_connected.any> ) {
 
     my @max_size = <[xserver.max_screen_size]>;
 
-    # LLL: make configurable..!
+    # LLL: make configurable..,
     if (    <xserver.has_randr>
         and defined <xserver.video_driver>
         and <xserver.video_driver> ne 'qxl'
@@ -230,7 +236,7 @@ if (<xserver.has_randr>) {
 
     map {
         system( '/usr/bin/xrandr',
-            split( / +/, <xserver.custom_xrandr>->{$_} ) )
+            split( m| +|, <xserver.custom_xrandr>->{$_} ) )
         }
         sort { $a <=> $b } keys %{<xserver.custom_xrandr>}
         if <xserver.mode> eq 'xorg'
@@ -330,7 +336,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\MTZ3EBUW4KIDBDMTOSBNBJIRFDEVHMY6FJROKHLL6QUWXILNLPS2CPZ6TMIAIGCZID676S3EMJ4IM
-# \\ 52UO3FP3JGG4C6ROGHI6OV4NDYVSS4NZ4NBEUJ6ZRGA5XNZ5Y4C4 \\// C25519-BASE-32 //
-#  \\// LHD4GNB3F32IIYLC3N4WYEQPTCAMWAWMBIGMNYQ5Z4RDAYH2EDI \\ CODE SIGNATURE \\
+#\\7FH6GMFYZWZ5X2UCN2HOUIRV446JWBAS2QHSVPP3N65JCBJGNMU3BGX3MSI5NR76AVXJVSXZJHKQI
+# \\ HUREADSPBSLFD72IDFS4IMIKOHG5TCN3TWV4CRKPKMEPXTNPYE4T \\// C25519-BASE-32 //
+#  \\// 727IY4YC6M6Y4UIVS7E3DQT6VQ4F56YKZ6UVZXYC2E2QT7RF2DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

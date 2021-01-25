@@ -5,30 +5,35 @@
 # descr = wait until matching window is visible
 # todo  = combine poll timer for all requested windows
 
-my ( $timeout, $title_pattern ) = split( / +/, $$call{'args'}, 2 );
+my ( $timeout, $title_pattern ) = split( m| +|, $$call{'args'}, 2 );
 
 return { 'mode' => 'nak', 'data' => 'expected numerical timeout argument' }
-    if not defined $timeout or $timeout !~ /^\d+(\.\d+)?$/;
+    if not defined $timeout or $timeout !~ m|^\d+(\.\d+)?$|;
 return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
 my $xtops = <xserver.x11_tops>;
-$xtops->update;
 
-for my $window ( values %{ $xtops->byid } ) {
-    return { 'mode' => 'ack', 'data' => $window->id }
-        if $window->title =~ $title_pattern;
+# <[xserver.update-xtops]>;
+
+# <[xserver.process-x11-error]>->( $@, caller )
+#     and return { 'mode' => 'nak', 'data' => 'cannot get window list' }
+#     if $@;
+
+
+foreach my $window_id (<[xserver.get_window_ids]>) {
+    my $window_title = <[xserver.get_window_title]>->($window_id);
+        return { 'mode' => 'ack', 'data' => $window_id }
+        if $window_title =~ $title_pattern;
 }
 
-my $poll_delay = 0.13;
-
-my $req_id = <[base.gen_id]>->(<xserver.waiting>);
+my $req_id = <[base.gen_id]>->( <xserver.waiting> //= {} );
 
 my @timers = (
     'poll' => <[event.add_timer]>->(
-        {   'after'    => 0,
+        {   'after'    => sprintf( "%.4f", rand(0.013) ),
             'prio'     => 4,
-            'interval' => $poll_delay,
+            'interval' => sprintf( "%.4f", rand(0.0113) ),
             'handler'  => 'xserver.handler.wait_visible',
             'data'     => $req_id
         }
@@ -49,14 +54,14 @@ push(
 
 <xserver.waiting>->{$req_id} = {
     'reply_id' => $$call{'reply_id'},
-    'pattern'  => qr/$title_pattern/,
+    'pattern'  => qr|$title_pattern|,
     'timer'    => {@timers}
 };
 
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\AYIOQYIDR4DGNKGCWLOAMR2CGEGYPI6QBAETXK7WPEBBLAUGU5WBN7FGFVVR2PUKR3LIURDQSTV7O
-# \\ U3J24ZZJDQCXDFC3ISQCGIHJ4LXJJEVJEMNUBLPZTJVYBS4L3PX3 \\// C25519-BASE-32 //
-#  \\// 5LXP2RXIPANUNTNEE2JVDBEJP26T6J4UFMOPQY6XF22GJN65OBQ \\ CODE SIGNATURE \\
+#\\H7SQGX4GHGEB3BS7RT52HV3GJ5ZTZOVYY3NHAFW4GF4AYFISLG3NCBNBUZLNCLUQTIDTYLE5WXSAE
+# \\ W5TZ6U3RL3V4PFSG5FCNDU2WKVNRDOPC22XF3RCYB2UOTE27LCG3 \\// C25519-BASE-32 //
+#  \\// EZKFNFTAFJ2JVAOJ4XE45CPYJJDELVELMOHLCRNTDBQNM42AGDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

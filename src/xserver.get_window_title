@@ -1,0 +1,49 @@
+# >:]
+
+# name  = xserver.get_window_title
+
+my $window_id = shift;
+
+return undef if not defined $window_id or $window_id !~ m|^\d{1,13}$|;
+
+my $window_title;
+eval {
+    my ($wmstate);
+    while ( not defined $wmstate ) {
+        ($wmstate)
+            = <xserver.x11>
+            ->GetProperty( $window_id, <xserver.x11>->atom('WM_NAME'),
+            'AnyPropertyType', 0, ~0, 0 );
+        last if $wmstate;    ## <-- top-level window ##
+        my ( undef, $parent ) = <xserver.x11>->QueryTree($window_id);
+        $window_id = $parent;
+    }
+    ($window_title) = <xserver.x11>->GetProperty(
+        $window_id,
+        <xserver.x11>->atom('_NET_WM_NAME'),
+        <xserver.x11>->atom('UTF8_STRING'),
+        0, ~0, 0
+    );
+    if ( not defined $window_title ) {
+        ($window_title) = <xserver.x11>->GetProperty(
+            $window_id,
+            <xserver.x11>->atom('WM_NAME'),
+            <xserver.x11>->atom('STRING'),
+            0, ~0, 0
+        );
+    }
+};
+
+if ( defined $@ and $@ =~ m|^Protocol error: bad 3 \(Window\);| ) {
+    return undef;
+} elsif ($@) {
+    warn $@;
+}
+
+return "'$window_title'" // '';
+
+# ______________________________________________________________________________
+#\\IJ7HH22KO5S254DEE3AIXG4BE7F2PDMVHIABUZWATCXVMXHQSYUZNTAKULJ7RCL4HRP46XZKJYDHQ
+# \\ 2MF3ARJQADXXYH5OQF6Q3M2EGDXA54JA3FFVTWXPOCKHEMQCVFM4 \\// C25519-BASE-32 //
+#  \\// RYHFDA4DNJVZHRXZPSKLP6GZAQ6ATRFUSK3XBIDXB6SAX5RU6CY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

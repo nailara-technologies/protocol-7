@@ -1,0 +1,32 @@
+# >:]
+
+# name  = xserver.update-xtops
+
+my $xtops        = <xserver.x11_tops>;
+my $current_time = <[base.time]>->(4);
+my $min_delay    = sprintf( "%.4f", 0.07 + rand(0.13) );
+
+<xserver.xtops-update> //= 0;
+
+my $delta_t = $current_time - <xserver.xtops-update>;
+
+if ( $delta_t >= $min_delay ) {
+    <xserver.xtops-update> = $current_time;
+    eval { $xtops->update_ids };
+} else {
+    <xserver.timer.update-xtops>->cancel
+        if defined <xserver.timer.update-xtops>
+        and <xserver.timer.update-xtops>->is_active;
+    <xserver.timer.update-xtops> = <[event.add_timer]>->(
+        {   'handler' => 'xserver.update-xtops',
+            'after'   => $delta_t + 0.07,
+            'repeat'  => 0
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\ZHGOKAP6GQHUF7VDN2JUK3EFDM5Q6NXMB334JW7NT5IC33QV5DOSZAACO4ACXPKUIRMQJMFGHFD2Q
+# \\ DVFSOQY3VGPOQEF6OAGLZWJDGWJ5CJM2U2F2QBNNXPWHGPEVVABX \\// C25519-BASE-32 //
+#  \\// LH6APHS7DBVJAT74LM4OT2H3ENXOFSNL7KOWSBEAK6WRMG27SAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
