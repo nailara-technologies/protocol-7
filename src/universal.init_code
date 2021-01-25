@@ -11,8 +11,8 @@
 <universal.state> //= {
     'playlist' => { 'entries' => 0, 'last_request' => 0, 'last_success' => 0 },
     'agents'   => {
-        'start_time'    => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
-        'init_reported' => { 'loadsplash' => 0, 'browser' => 0, 'mpv' => 0, },
+        'start_time'    => { 'start-anim' => 0, 'browser' => 0, 'mpv' => 0, },
+        'init_reported' => { 'start-anim' => 0, 'browser' => 0, 'mpv' => 0, },
     },
     'windows' => {
         'raised' => 'none',
@@ -27,8 +27,8 @@ $SIG{'CHLD'} = $code{'universal.handler.sig_chld'};
 
 <universal.lsp_name>
     = defined <system.agent.subname>
-    ? 'loadsplash[' . <system.agent.subname> . ']'
-    : 'loadsplash[' . $$ . ']';
+    ? 'start-anim[' . <system.agent.subname> . ']'
+    : 'start-anim[' . $$ . ']';
 
 my @dis_cmds = @{ $data{'disabled_commands'} };
 $data{'disabled_commands'} = [];
@@ -43,7 +43,7 @@ $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 <universal.switch_timeout>  //= 7;   # restart agent after 7 secs resume timeout
 <universal.children_ready>  //= 0;
 <universal.declared_online> //= 0;
-<universal.loadsplash_timeout>    //= 17;
+<universal.start-anim_timeout>    //= 17;
 <universal.playlist_was_empty>    //= 0;
 <universal.cfg.autospeed_notrans> //= 1;
 <universal.cfg.can_self_restart>  //= 1;
@@ -54,7 +54,7 @@ $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 0;
 
 # ______________________________________________________________________________
-#\\LDNNJJ7IKTZDZUPL5LZLWTAQYFM4Q43DAXT65GOMYHC7MXTD4T47ODDAHYTXGQ43AFCSGHKTDOMAU
-# \\ TS2HPR5TWO6BVOTEQEJZVKJAVR56UNCK56OZXAPSF2RJOBUALCZM \\// C25519-BASE-32 //
-#  \\// BEYNNBRD3R5MBT4Z5KSXBHTHKAMSVZHULSOMQ53NK2YGCRYG6AA \\ CODE SIGNATURE \\
+#\\RA2NKDXPELZBGLKWFTU2U3QLRNZLBYWKVCLZGVRTRGYPRFRA5X42T7ZEAVSTJKXHFIRBR3AWJ5IAE
+# \\ LWBZQQU3X2TSXOUDBCEHWAAMKGCZBSISPYAH6JVQXMSFWAJOBKY7 \\// C25519-BASE-32 //
+#  \\// PDJR5EUIDU6SUTT7PDOF7SEL3V7VPIAEM5AUVHVOMEXB7ANGIBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

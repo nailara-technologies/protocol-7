@@ -1,0 +1,25 @@
+# >:]
+
+# name = universal.handler.start-anim_timeout
+
+my $params       = shift->w->data;
+my $agent_name   = $params->{'agent'};
+my $timeout_secs = <universal.start-anim_timeout>;
+
+return if !<universal.start-anim_running>;
+
+<[base.log]>->(
+    0, "start-anim timeout [${timeout_secs}s] [ stopping 'start-anim' agent ]"
+);
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.nroot.stop_implicit",
+        'call_args' => { 'args' => <universal.lsp_name> }
+    }
+);
+
+# ______________________________________________________________________________
+#\\EVEVF5CUYUNZ2O437FGUXJYVOMCAJNSJOMEHRU4Y7IBXHVJTRJFAWR5JDG3YRUL4UF6VYJQ5EG72I
+# \\ 27SMCLI5WLGHNS2Y7M45WZEJMDUK43MQKNXDVSP7JZCLTNGT4SWQ \\// C25519-BASE-32 //
+#  \\// 2AH7Z6XJ6BY4YGSJM4L3PJO4HWA7KO4ZZGDQO7VQB4ODNTKUUCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

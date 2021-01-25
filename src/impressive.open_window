@@ -171,29 +171,29 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     <[base.x11.assign_window]>->(<x11.id>);
 }
 
-<impressive.timer.stop_loadsplash>->cancel
-    if defined <impressive.timer.stop_loadsplash>
-    and <impressive.timer.stop_loadsplash>->is_active;
+<impressive.timer.stop_start-anim>->cancel
+    if defined <impressive.timer.stop_start-anim>
+    and <impressive.timer.stop_start-anim>->is_active;
 
-if (    <impressive.cfg.use_loadsplash>
+if (    <impressive.cfg.use_start-anim>
     and <impressive.parser.init_tag_failed> ) {
-    <impressive.timer.stop_loadsplash> = <[event.add_timer]>->(
+    <impressive.timer.stop_start-anim> = <[event.add_timer]>->(
         {   'after'   => 7.7,
-            'handler' => 'impressive.callback.stop_loadsplash' # failsafe only #
+            'handler' => 'impressive.callback.stop_start-anim' # failsafe only #
         }
     );
-} elsif ( <impressive.cfg.use_loadsplash>
-    and defined <impressive.cfg.loadsplash_timeout>
-    and <impressive.cfg.loadsplash_timeout> =~ /^\d+(\.\d+)?$/ ) {
-    <impressive.timer.stop_loadsplash> = <[event.add_timer]>->(
-        {   'after'   => <impressive.cfg.loadsplash_timeout>,
-            'handler' => 'impressive.callback.stop_loadsplash'
+} elsif ( <impressive.cfg.use_start-anim>
+    and defined <impressive.cfg.start-anim_timeout>
+    and <impressive.cfg.start-anim_timeout> =~ /^\d+(\.\d+)?$/ ) {
+    <impressive.timer.stop_start-anim> = <[event.add_timer]>->(
+        {   'after'   => <impressive.cfg.start-anim_timeout>,
+            'handler' => 'impressive.callback.stop_start-anim'
         }
     );
 }
 
 # ______________________________________________________________________________
-#\\624ZEQM4TGZQNUTK6APPEA4LDWMZGPZWNKCTYKHJCM2OUNZV4MEOXENE7SFVRM2FAADBENN2NF43M
-# \\ 3OHQWNJILWRJAGA44EBMS2NM26PZM7QUN2GJA4TAWIV5DHKA5WH4 \\// C25519-BASE-32 //
-#  \\// DQA27PE5XRWOI5ZAH3CFQ4WNLVSE7T5IZA7EUFVZEELTFLUVSDI \\ CODE SIGNATURE \\
+#\\RZJE55VVHVTIHVLSMOSZKTG3IYJF4Z5QGQGVJESJ3CQESIJLYUWI3BPOVNKQMTSKLDUQBUTGNLICA
+# \\ S7TS44KL7F7AXTLWZGCSWWSOALYB3RQ5UYYPFXSZWUHYOXEG5SDM \\// C25519-BASE-32 //
+#  \\// H3OUB2BCGPBP35HB4545TT3G3KR63V7LFG4JUK4CQXJ2N4LO6BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

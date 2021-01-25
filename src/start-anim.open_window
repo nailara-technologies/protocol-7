@@ -1,6 +1,6 @@
 # >:]
 
-# name = loadsplash.open_window
+# name = start-anim.open_window
 
 $ENV{'DISPLAY'} = <x11.display>;
 
@@ -10,10 +10,10 @@ my $window_height = $coords->{'bottom'} - $coords->{'top'};
 
 Gtk3->init;
 
-<loadsplash.window> = my $window = Gtk3::Window->new('toplevel');
+<start-anim.window> = my $window = Gtk3::Window->new('toplevel');
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 
-<loadsplash.composited> = $window->is_composited ? 1 : 0;
+<start-anim.composited> = $window->is_composited ? 1 : 0;
 
 my $screen = $window->get_screen();
 
@@ -23,72 +23,72 @@ $window->set_decorated(0);
 $window->set_resizable(0);
 $window->set_keep_above(1);
 
-<loadsplash.window_title> = 'loadsplash';
-<loadsplash.window_title> .=
+<start-anim.window_title> = 'start-anim';
+<start-anim.window_title> .=
     defined <system.agent.subname>
     ? sprintf( "[%s]", <system.agent.subname> )
     : $$;
-$window->set_title(<loadsplash.window_title>);
+$window->set_title(<start-anim.window_title>);
 
 $window->set_default_size( 1, 1 );
 
-<loadsplash.init_mode> = 1;
-( <loadsplash.width>, <loadsplash.height> ) = ( $window_width, $window_height );
+<start-anim.init_mode> = 1;
+( <start-anim.width>, <start-anim.height> ) = ( $window_width, $window_height );
 
-<loadsplash.image_path> =~ s|2K.gif$|4K.gif| if $screen->get_width() >= 3840;
+<start-anim.image_path> =~ s|2K.gif$|4K.gif| if $screen->get_width() >= 3840;
 
-if (<loadsplash.composited>) {
-    <loadsplash.comp_at_startup> = 1;
+if (<start-anim.composited>) {
+    <start-anim.comp_at_startup> = 1;
     $window->set_visual( $screen->get_rgba_visual() );
-    $window->set_opacity( 1 + int( <loadsplash.do_fade_in> > 0 ) );
+    $window->set_opacity( 1 + int( <start-anim.do_fade_in> > 0 ) );
 } else {
     $window->set_visual( $screen->get_system_visual() );
 }
 
 my $css_prov = Gtk3::CssProvider->new();
-my $bg_col   = <loadsplash.bg-color>;
+my $bg_col   = <start-anim.bg-color>;
 $css_prov->load_from_data("* { background-color: $bg_col }");
 Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 
-my $pixbuf = Gtk3::Gdk::PixbufAnimation->new_from_file(<loadsplash.image_path>);
+my $pixbuf = Gtk3::Gdk::PixbufAnimation->new_from_file(<start-anim.image_path>);
 my $img_anim = Gtk3::Image->new_from_animation($pixbuf);
 
 my $img_width  = $pixbuf->get_width;
 my $img_height = $pixbuf->get_height;
 
-<loadsplash.draw_signal> = <loadsplash.window>
-    ->signal_connect( draw => $code{'loadsplash.handler.draw'} );
+<start-anim.draw_signal> = <start-anim.window>
+    ->signal_connect( draw => $code{'start-anim.handler.draw'} );
 
-<loadsplash.image> = $img_anim;
+<start-anim.image> = $img_anim;
 
 my $layout = Gtk3::Layout->new();
 
 my $pos_x = -1 * sprintf( "%.0f", ( $img_width - $window_width ) / 2 );
 my $pos_y = -1 * sprintf( "%.0f", ( $img_height - $window_height ) / 2 );
 
-$layout->put( <loadsplash.image>, $pos_x, $pos_y );
+$layout->put( <start-anim.image>, $pos_x, $pos_y );
 
 $window->add($layout);
 
 $window->show_all;
 
 <[event.add_timer]>->(
-    {   'after'   => <loadsplash.min_startup_delay>,
-        'handler' => 'loadsplash.wait_for_window'
+    {   'after'   => <start-anim.min_startup_delay>,
+        'handler' => 'start-anim.wait_for_window'
     }
 );
 
 $SIG{'TERM'} = sub {
-    <loadsplash.fading_out> //= 0;
-    return if <loadsplash.fading_out>;
-    <loadsplash.fade_mode>  = 'out';
-    <loadsplash.fading_out> = 1;
+    <start-anim.fading_out> //= 0;
+    return if <start-anim.fading_out>;
+    <start-anim.fade_mode>  = 'out';
+    <start-anim.fading_out> = 1;
 };
 
 Gtk3->main;
 
 # ______________________________________________________________________________
-#\\EUCGUBKGSSUUV5HAIDNAGSKMA77Y2U4XL3UEIC5AS4HWVMMSECNBOMBPGWHXVVAXF4OUUMY2TNSAI
-# \\ RWB26JHX5CGSMHEKCYUGHKM7AOZFO7G4VLPOGXDQCD6JNFKN64PD \\// C25519-BASE-32 //
-#  \\// JQWGF4WK63LBCLRR5XOMJPZTDNNCXUNSPJKUPHRD5VWWTQV2GCA \\ CODE SIGNATURE \\
+#\\64XG55PE4BLETJX2KP67ATYDXOLGNGTPHHNCQR5PAOWFREYWT57ARNYJPNUYFTMWAY6BZ43QKVIVC
+# \\ D3QKCP5AC76253BP4BTVA4F7JBMZPTK2QP6BLZU3XARVDJ37FTRO \\// C25519-BASE-32 //
+#  \\// PKGMKFXYYY3P66XUCMMILVQDPAOLICCY3TS3LS7M5L4ORRGXKCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
