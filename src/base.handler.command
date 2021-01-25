@@ -514,9 +514,28 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                         $err_str =~ s| at (\S+) line (\d+).*\n$||;
                         my $file = $1;
                         my $line = $2;
-                        <[base.log]>->(
-                            0, "[$id] <<< $err_str >>> [ $file, $line ]"
-                        );
+                        $file =~ s|^/usr/share/perl5/||; ## shorten path for .pm
+                        my $log_error = 1;
+                        ## alternative handler registered for filename:line ? ##
+                        my $match_param = "$file:$line";  #  <-- expand. [ LLL ]
+                        my $warn_handlers = <base.warn-match-handler> // {};
+                        if ( defined $warn_handlers->{$match_param} ) {
+                            my $cb_name = $warn_handlers->{$match_param};
+                            $log_error
+                                = $code{$cb_name}
+                                ->( $err_str, $match_param, $call_args )
+                                if defined $code{$cb_name};
+                        }
+                        ##
+                        if ($log_error) {
+                            <[base.log]>->(
+                                0, "[$id] <<< $err_str >>> [ $file, $line ]"
+                            );
+                            my $params = $call_args->{'args'} // '';
+                            my $msg    = "[$id]  \\\\\\ <$cmd>";
+                            $msg .= " [ '$params' ]" if length($params);
+                            <[base.log]>->( 0, $msg );
+                        }
                     }
                 }
 
@@ -873,7 +892,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\CYNK6DFL4JDL4AJR6BJ2D5LPXEDOF6MO3HY7TDAFOGZ4LFEOAQYU7JXE5WFPFPENQ2KYTXFXZJZLE
-# \\ KN4WEHSCCE4QE6JIAV4EIM5JFFGQNR2F3GDFXRA6DPALY5HHFWZD \\// C25519-BASE-32 //
-#  \\// XW5IMSW34C5XVOIKUEK3QMTJSKYFGM634BTBRSL5MTGR75EQGBY \\ CODE SIGNATURE \\
+#\\DS2JLJAR24XELW4L6RIWT4YMKVFGCSSB2TISVAROC755OISJRZJEYVXVRSTV4YVXTDXLFEBQLNTC4
+# \\ OBNX6E6GCRXDWT6DALI5ES55D4MGCAH3Z6UTZMVVL3FCWM45XBCZ \\// C25519-BASE-32 //
+#  \\// 6DKEMT3WFE45RUDTAHOEKDQQK5MSXIOWSGHKN4TJPXZ2LUW7UCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
