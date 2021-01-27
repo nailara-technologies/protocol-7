@@ -14,6 +14,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <mpv.playlist_sha1> = '';
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
     <mpv.playlist_was_empty> = 1;
@@ -25,7 +26,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     return;
 }
 
-my @update_files = split( "\n", $reply->{'data'} );
+my @update_files = split( m|\n|, $reply->{'data'} );
 
 my $playlist_changed = 0;
 my $playlist_sha1    = <[digest.sha.1]>->( join( ' ', @update_files ) );
@@ -56,7 +57,7 @@ if (<mpv.autorescale>) {
     }
 }
 
-return <[base.log]>->( 1, ": playlist not changed, doing nothing.." )
+return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
     if $playlist_sha1 eq <mpv.playlist_sha1> and !$playlist_changed;
 <mpv.playlist_sha1> = $playlist_sha1;
 
@@ -101,7 +102,7 @@ if ( <system.agent.mode> eq 'universal-child' ) {
 }
 
 # ______________________________________________________________________________
-#\\Y4J7A4XGATNZGF7BT6UX3TISIURYWXRAKFNG7NXNS62IVGRDWI44KZZE3RJZN4AP4K5RQBRSHAJLY
-# \\ B434HTBP6O4D7E5J3CBE54ICDRKII7QGHNXKIF5MJ2BV4PZPDFJP \\// C25519-BASE-32 //
-#  \\// N3DVFFNWHUP2SPF26MOJMIEKL4KGNO5CMKEMO65LXRISX53PWCI \\ CODE SIGNATURE \\
+#\\AQ36J44CNBCIBUQVSSUACVOQB322Y5IKVF42JQSHEP2LMOB5KVTKTTFPFAIAD6M7VEYRY25RTXTVG
+# \\ 4XLH5LRWDNBILC4EAES57RLSYYUF76IXZAZEXM4IIXP43ARXA5HE \\// C25519-BASE-32 //
+#  \\// ACIWZHXV7OFR4PUPSBA23E6JFNMVK2MHKJ4X2N6QWBBXEIE4YCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
