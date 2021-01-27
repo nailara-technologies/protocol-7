@@ -1,0 +1,37 @@
+# >:]
+
+# name  = content.cmd.add-entry
+# param = <path|url>
+# descr = append content list entry
+
+my $s_id  = $call->{'session_id'};
+my $entry = $call->{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected content entry parameter' }
+    if not length($entry);
+
+if (    $entry !~ m|^(\w+)://|
+    and $entry !~ m|^\[.+\]$|
+    and ( !-e $entry or !-r $entry ) ) {
+    my $reason_str = !-r $entry ? "denied access" : "not found";
+    return { 'mode' => 'nak', 'data' => "cannot add entry [ $reason_str ]" };
+}
+
+<[base.log]>->( 1, "[$s_id] adding list entry.," );
+
+push( @{ <content.file_list> //= [] }, $entry );
+
+<[event.add_timer]>->(
+    {   'after'   => 0.07,
+        'repeat'  => 0,
+        'handler' => 'content.process_playlist_entries'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'appending entry' }
+
+# ______________________________________________________________________________
+#\\J7Q6UAUYWJLUHEQMPW5TPXE3XLSATO3CVDMF62ZLCFEFVWDK2R5UALCA24RKRP54AJTAIUEZKBHPC
+# \\ QWQMVBUKJTTF3SCCWCS6SJ7JBRV45N7ZF32TE7G7ATUIZWHYMF4Y \\// C25519-BASE-32 //
+#  \\// 5VS4CTNBQ52VXLCI7CGB3BHXT5WSU5V4CRDIE7AKNWNYKWOEKCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
