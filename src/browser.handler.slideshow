@@ -12,7 +12,7 @@ my @url_list = @{<browser.url.list>};
 
 if ( not exists <browser.url.list> or !@url_list ) {
     <browser.slideshow.running> = 0;
-    <[base.log]>->( 1, "slideshow stopped [url list empty]" );
+    <[base.log]>->( 1, "slideshow stopped [ url list empty ]" );
     return;
 }
 
@@ -23,7 +23,7 @@ if ( <browser.slideshow.status> eq 'load' ) {
     if ( not defined $load_url ) {
         <[base.log]>->(
             0,
-            sprintf( "slideshow url #%d is undefined, skipping..",
+            sprintf( "slideshow url #%d is undefined, skipping.,",
                 <browser.slideshow.url_index> )
         );
         <browser.timer.slideshow> = <[event.add_timer]>->(
@@ -108,12 +108,12 @@ if ( <browser.slideshow.status> eq 'load' ) {
         );
     } else {
         <browser.slideshow.running> = 0;
-        <[base.log]>->( 1, "slideshow stopped [no_switch is enabled]" );
+        <[base.log]>->( 1, "slideshow stopped [ no_switch is enabled ]" );
     }
 }
 
 # ______________________________________________________________________________
-#\\MNXNNUGMMKQAJGOUJYBFKWZW64ND57PRWE2BVVGY6JQGZVTOTF4KFMCYYVTK656DNWXK6OPOZYPFO
-# \\ 537M2XG4JNKUPORCYW7BZIGRJT4T54AMJPN2VG6JUTPERT2TRQSY \\// C25519-BASE-32 //
-#  \\// P36H363BNRCYI2PEY22UFVD3Z4X7IEIJ6N4AMVZC4HCON3DVMDI \\ CODE SIGNATURE \\
+#\\57IFJPD4NI3EYOCRRU4ZOHKB4EMK56HJ4KZRRKB5GXJHF5CASKGDCP2N4PMJSTYJKGHSG75BQVKO2
+# \\ NE5HSSQKMSOLHFK6HHSGA7DZG2RJHYIEZCLXPDMIFX6SSBOP7Z4E \\// C25519-BASE-32 //
+#  \\// PZEMGBV3KUIDNEE3WPZT2WPC5RFHGG4LGSKA5ZXN65QWFE226CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

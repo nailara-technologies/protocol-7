@@ -15,15 +15,15 @@ if ( $reply->{'cmd'} ne 'ACK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>
         ->( 0, "resume command failed [agent '$agent_name'] ($reason)" );
-    <[base.log]>->( 0, ": attempting recovery through restart.." );
+    <[base.log]>->( 0, ": attempting recovery through restart.," );
     <[universal.self_restart]>;
 } else {
-    <[base.log]>->( 2, "agent '$agent_name' resume command successful!" );
+    <[base.log]>->( 2, "agent '$agent_name' resume command successful." );
     <universal.child>->{$agent_name}->{'paused'} = 0;
 }
 
 # ______________________________________________________________________________
-#\\LLRI3PNCOJQF7QDJU623UNGMJPE4KA4JOQICCF7TWBFGWY4MF6EPDMJYE3O7ABZVUOFX3HPHI6BFW
-# \\ KWUGLMJ7Q7Q35IOQOA5EG55VOJE4J3GIFATFFXX55DP3SJTQNR7W \\// C25519-BASE-32 //
-#  \\// X4ENTZVSH4LAXSEULMAHS3VLKIC6DXPDGTG4RJSCPOYJZIXWSBI \\ CODE SIGNATURE \\
+#\\BLAAF2URRLQLYJOZK5SAHA3ZBJ4GY3V6WJEYYN2MNH3UJ5AUJN23S374XGPM5ETKJTB2KQN5UCU7E
+# \\ EUR4BUMZ33ULRXWXXGZ44UBZZGS564V46EG7EUWTROYFXUGCKWMH \\// C25519-BASE-32 //
+#  \\// MSJDFZJVOKGXCN37UPSNF76OA4TXB2XFICORQSWQYTEO53LG4DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
