@@ -1,0 +1,240 @@
+# >:]
+
+# name  = content.process_playlist_entries
+
+my @lines
+    = ( @_ and ref( $_[0] ) ne 'Event::timer' )
+    ? @{ <content.file_list> //= [] }
+    : @_;
+
+my @file_names;
+map {
+    $_ =~ s/^\s+|\s+$//g;
+    $_ =~ s|^ *#[^\n]*$||mg;
+    $_ =~ s| +#[^\n]*$||mg;
+    $_ =~ s|\n\n|\n|sg;
+    $_ =~ s/^\n|\n$//mg;
+    push( @file_names, $_ ) if length($_);
+} @lines;
+
+my $file_path    = <content.load_file.path>;
+my $check_types  = <content.http.check_content_types>;
+my $check_logged = 0;
+
+if ( exists <content.mime_type.retry_timer> ) {
+    map {
+        <content.mime_type.retry_timer>->{$_}->cancel
+            if <content.mime_type.retry_timer>->{$_}->is_active
+    } keys %{<content.mime_type.retry_timer>};
+    delete <content.mime_type.retry_timer>;
+}
+
+my $tiles_visible_file = "$file_path.tiles_visible";
+if ( -f $tiles_visible_file ) {
+    if ( open( my $tilesv_fh, $tiles_visible_file ) ) {
+        $tiles_visible_file =~ s|^.+/||;
+        <[base.log]>->( 1, ": applying filter file '$tiles_visible_file'.," );
+        my @filtered_list;
+        my %visible_tiles;
+        map { chomp($_); $visible_tiles{$_} = 1 } split m| *, *|, <$tilesv_fh>;
+        map {
+            push( @filtered_list, $_ )
+                if $_ =~ m|^([^:]+):|
+                and exists $visible_tiles{$1}
+        } @file_names;
+        my $skipped = @file_names - @filtered_list;
+        $skipped = 'no' if $skipped == 0;
+        <[base.log]>->( 1, ": : $skipped entries skipped" );
+        @file_names = @filtered_list;
+        close($tilesv_fh) or warn $!;
+    }
+} else {
+    <[base.log]>->( 2, ": no filter file ('$tiles_visible_file') present .," );
+}
+
+<content.file_list>     = [];
+<content.b32id_src_str> = {};
+<content.file_types>    = {};
+<content.type_cache> //= {};
+<content.file_types>     = {};
+<content.agent_subnames> = {};
+<content.items_queued>   = 0;
+<content.network_errors> = 0;
+<content.had_network_errors>      //= 0;
+<content.cfg.cache_content_types> //= 0;
+
+if ( !@file_names ) {
+    <content.type_cache> = {};
+    <[base.log]>->( 0, "no files in playlist." );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.restart",
+            'call_args' => { 'args' => <update.restart_on_empty> }
+        }
+    ) if defined <update.restart_on_empty>;
+    <[content.update.send_notifications]>;
+    return 0;
+} else {
+
+    # LLL: need file type cache auto cleanup + delay and combine update requests
+}
+
+my %b32_index;
+my $file_index = -1;
+foreach my $file (@file_names) {
+    $file_index++;
+    my $agent_subname;
+    my $type = 'unknown';
+
+    ( my $parsed_line = $file ) =~ s|^([^:]+:) |$1|;
+    $parsed_line =~ s| \([^\)]+\)$||;
+
+    my $b32id
+        = <[digest.crc.b32]>->( ++$b32_index{$parsed_line}, $parsed_line );
+
+    <content.b32id_src_str>->{$b32id}
+        = $parsed_line;    # LLL: cleanup + collisions
+
+    $agent_subname = $1 if $file =~ s|^([^\:]+): +||;
+    $type          = $1 if $file =~ s| +\(([^\)]+)\)$||;
+    $type = 'unknown' if $type eq 'url';
+    <content.agent_subnames>->{$file_index}->{$agent_subname} = 1
+        if defined $agent_subname;
+
+    ### URL flags ###
+    <content.cfg.allow_url_flag_syntax> //= 0;
+    my $flag_str;
+    if ( <content.cfg.allow_url_flag_syntax>
+        and $file =~ s{#\[([A-Z0-9_\.\|=]+)\]#$}{} ) {
+        $flag_str = lc($1);
+    }
+    $file =~ s|#\[[^\]]+\]#||g;    # cleanup
+
+    ### LLL: weather agent test hack ###
+    if ( $file =~ m|^\[weather:(.+)\]$| ) {
+
+        if ( not exists <content.agent_online> or !<content.agent_online> ) {
+            <content.items_queued>++;
+            $type = ':queued:';
+        } else {
+            ( my $city_str = $1 ) =~ s|\[.*$||g;
+            my $city = $city_str;
+            $city_str .= " [$agent_subname]" if defined $agent_subname;
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => "core.weather.get-urls",
+                    'call_args' => { 'args' => $city_str },
+                    'reply'     => {
+                        'handler' => 'content.handler.weather_urls_reply',
+                        'params'  => {
+                            'city'    => $city,
+                            'subname' => $agent_subname
+                        }
+                    }
+                }
+            );
+            $type = ':waiting:';
+        }
+    }
+
+    ####################################
+
+    if ( $type eq 'unknown' and -f $file ) {
+        $type = mimetype($file);
+    } elsif ( $type eq 'unknown' and $file =~ m|^https?://| ) {
+        if (    $check_types
+            and <content.cfg.cache_content_types>
+            and defined <content.type_cache>->{$file} ) {
+            $type = <content.type_cache>->{$file};
+            <[base.log]>->(
+                2, "using cached file type '$type' [entry #$file_index]"
+            );
+        } elsif ($check_types) {
+
+            if ( !$check_logged ) {
+                <[base.log]>->( 1, ': checking http content types ..,' );
+                $check_logged = 1;
+            }
+            <content.mime_type.retry_timer>->{$file} = <[event.add_timer]>->(
+                {   'after'   => 0,
+                    'handler' => 'content.callback.check_mimetype',
+                    'data'    => {
+                        'check_url'   => $file,
+                        'retry_delay' => <content.mime_retry.start_delay>
+                    }
+                }
+            ) if not exists <content.mime_type.retry_timer>->{$file};
+            $type = ':waiting:';
+        } else {
+            $type = 'html';
+        }
+    } elsif ( $file =~ m|^udp://| ) { # LLL: temporary hack for mcast live video
+        $type = 'video';
+    } elsif ( $file =~ m|^rt[sm]p://| ) {    # video
+        $type = 'video';
+    } elsif ( $type eq 'unknown' and -f $file ) {
+        <[base.log]>->( 0, "unable to determine type of local file '$file'." );
+        next;
+    }
+
+    $type =~ s|^video/.*$|video|;
+    $type =~ s|^audio/.*$|audio|;
+    $type =~ s|^image/.*$|image|;
+    $type =~ s|^.*application.*/||;
+    $type =~ s|^text/||;
+    $type =~ s|;.*$||g;
+    $type =~ s| +|_|g;
+
+    if (    $file !~ m|^(\w+)://|
+        and $file !~ m|^\[.+\]$|
+        and ( !-e $file or !-r $file ) ) {
+        delete <content.agent_subnames>->{ $file_index-- };
+        my $reason_str = !-r $file ? "denied access" : "not found";
+        $reason_str .= " ($type)" if $type ne 'unknown';
+        <[base.log]>->( 0, ": $reason_str : '$file'" )
+            if not exists <content.file_error_logged>->{$file};
+        <content.file_error_logged>->{$file} //= 1;
+        next;
+    }
+
+    push( @{<content.file_list>}, $file );
+
+    delete <content.file_error_logged>->{$file}
+        if exists <content.file_error_logged>->{$file};
+
+    <content.file_types>->{$file} //= $type;
+    <content.type_cache>->{$file} = $type
+        if !<content.cfg.cache_content_types> or $type !~ m|^:[^:]+:$|;
+
+    ### URL flags ###
+    if ( defined $flag_str ) {
+        foreach my $flag_sub_str ( split m,\|,, $flag_str ) {
+            my ( $flag_name, $flag_param ) = split( m|=|, $flag_sub_str );
+            if ( not exists <content.url_flags>->{$flag_name} ) {
+                <[base.log]>->(
+                    1, "<::> invalid flag '$flag_name' requested [ $file ]"
+                );
+                next;
+            }
+        }
+        my $s = $flag_str =~ s/\|/,/g ? 's' : '';
+        <[base.log]>->( 1, "<::> setting url flag$s for '$file'.." );
+        my $flag_reply
+            = <[content.cmd.set_flags]>
+            ->( { 'args' => join( ' ', $flag_str, $file ) } );
+        <[base.log]>->( 0, "<!> flag error on '$file' [$flag_reply->{data}]" )
+            if $flag_reply->{'mode'} ne 'ack';
+    }
+}
+
+if ( <content.had_network_errors> and !<content.network_errors> ) {
+    <content.had_network_errors> = 0;
+    delete <content.retry_delay>;
+    <[base.log]>->( 1, ": all network errors resolved. =)" );
+}
+
+<[content.update.send_notifications]>;  ##  <-- check if required [yet].., [LLL]
+
+# ______________________________________________________________________________
+#\\4WY6T5ETEDZR6WJGCRHFE7NVPFV6R2U3GHMJIG3Y5U7YLIQQQRVJ6NJAFLWBRECYRRNWOJXMK2VOG
+# \\ 4BOG7KUJ3RR37QM7EP4DJHMDQ4KCIPPIGCCSN52DKMPU62QGI2IK \\// C25519-BASE-32 //
+#  \\// RDJDPDX7CHHM7H564XGKVVQZUGKMVM5UNJK2IUMRWXTE2HT2CDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
