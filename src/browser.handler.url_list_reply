@@ -20,7 +20,7 @@ if ( defined <browser.url_list.sha1>
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <[base.log]>->( 1, "received empty url list!" );
+    <[base.log]>->( 1, 'received empty url list.' );
     @{<browser.url.list>} = ();
     <browser.slideshow.running> = 0;
     <[browser.clear_views]>;
@@ -33,8 +33,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 
     if ( <system.agent.mode> eq 'universal-child'
         and !<browser.slideshow.iteration> ) {
-        <browser.slideshow.iteration>
-            = 1;    # reporting universal-child as 'ready'
+        <browser.slideshow.iteration> = 1;  ## reporting universal-child 'ready'
         <[base.proto.nailara.command.send.local]>
             ->( { 'command' => "core.report_paused" } );
     }
@@ -131,7 +130,7 @@ if (@{<browser.url.list>}
 }
 
 # ______________________________________________________________________________
-#\\ZEMNYXD7D4FUEAEX36JXD2L3VMEKBSPFMSV7BJY6CAUBX5RWWR5BZBSLJS5RVGOC5JDYJJZ77VNMY
-# \\ P2GB6W6L3FOTK5OJISOKDQKHJOLZL6NAKT767MDC5VC5NVSUOIDW \\// C25519-BASE-32 //
-#  \\// ZIKD3P33KFB5IC5PMFZWC6VY5VIFH5DPYXV57STGXIVIT3SNUBQ \\ CODE SIGNATURE \\
+#\\LU76L3MUPMNNYXWADHD4VEQMBB4L65D3BDRLBSNL4JCWEST5NAJ2AVVT7LLIWAT3JAERHYPYGUO6U
+# \\ YIERYNDH6GQMP5N2A6DZWYOYFDB7JMLEFEMNBUHIUYZM67FA22MY \\// C25519-BASE-32 //
+#  \\// 6K5GHQGQ5XTCK65ZPC5JCVJ2PHYSS5L22QQXAHP7JXJTJOEYOCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

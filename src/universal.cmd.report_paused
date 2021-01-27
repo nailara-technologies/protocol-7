@@ -16,7 +16,7 @@ my $switch_agent
 
 if ( <universal.child>->{$agent_name}->{'paused'} ) {
     <[base.log]>
-        ->( 2, "'$agent_name' already paused, ignoring pause-report.." );
+        ->( 2, "'$agent_name' already paused, ignoring pause-report.," );
     return {
         'mode' => 'nak',
         'data' => 'already paused'
@@ -41,7 +41,7 @@ map {
     keys %{<universal.child>};
 
 if ( <universal.children_ready> and $was_starting ) {
-    <[base.log]>->( 1, "agent children are now online! =)" );
+    <[base.log]>->( 1, "universal agent children online. =)" );
     <[base.x11.assign_window]>->(
         join( ',',
             map { <universal.child>->{$_}->{'window_id'} }
@@ -53,7 +53,7 @@ if (<universal.children_ready>) {
     if ( defined $switch_agent ) {
         <[universal.switch_child]>->($switch_agent)
             if @{<universal.playlist.files>};
-    } elsif (<universal.start-anim_running>) {    # (empty playlist case)
+    } elsif (<universal.start-anim_running>) {    # [ empty playlist case ]
         <universal.playlist_was_empty> = 1;
         <[universal.stop_start-anim]>;
     }
@@ -71,7 +71,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\NB6P3BV67JNJ2FMY6Q5NWSKTIN7B7DSHHWMQ5H75LZOW6M6VG5EU2EOKHD4IRMK2T7WPMCZBCV7Z2
-# \\ D4LUDEIEEIUOKO6VPYSIHFQTOML22DEVPFKQFLDE7LEHIGZBEUML \\// C25519-BASE-32 //
-#  \\// PIMU7WAAPCGLOS5C36LKYRXTO62WUFVSTYA362Z7S7U4FLHDUDY \\ CODE SIGNATURE \\
+#\\VHCTF2C4QCCBCAOHZH2ZK7YJNBJ47G5AQED5DG7M772QUQ4VC3WCFQIGJDH52UCPYZODEWKEJ3EDM
+# \\ PYX46SU2BLGC2G6EXLFPZ2A64U5JYHGFK3POYI5LSGKRTP45JYLK \\// C25519-BASE-32 //
+#  \\// E6Y6AJKCEXPULGVFN4JK66O5ENMZ2Z6AVHSPLA27S6SBL4FUCAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
