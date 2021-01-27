@@ -1,0 +1,25 @@
+# >:]
+
+# name  = content.cmd.clear-entries
+# descr = empty content list and update clients
+
+my $s_id = $call->{'session_id'};
+
+<content.file_list> = [];
+
+<[base.log]>->( 1, "[$s_id] content list cleared.," );
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'repeat'  => 0,
+        'handler' => 'content.process_playlist_entries'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'content list cleared' }
+
+# ______________________________________________________________________________
+#\\KBVHIACBTRZTQ7FROSJ2W7PX6XFNPJFSM467ZPPJ2CCX6453CIJYSZMY2I5HSBKUQPUMJY57ILJBA
+# \\ R4B5V3SE73D7LUKGTOLLVYSURHRPXM6MQBC4ZJNTU4TQQY5CJ5LR \\// C25519-BASE-32 //
+#  \\// L2MC75TYY2VXEMLSB6LVSQN75QI2B7MWVYM47BULMGJTP3XG4BQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
