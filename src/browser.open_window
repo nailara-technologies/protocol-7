@@ -82,7 +82,10 @@ $window->add($overlay);
 
 $window->show_all();
 
-$window->iconify() if <system.agent.mode> eq 'universal-child';
+if ( <system.agent.mode> eq 'universal-child' ) {
+    <browser.slideshow.autostart> = 1;    ## <-- auto-enable slideshow mode ##
+    $window->iconify();
+}
 
 Glib::Idle->add(
     sub {
@@ -154,7 +157,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 # ______________________________________________________________________________
-#\\EGT6777CMLVSMUJEDX56QLV6XJVL7U7DZBY2J6DLPWJC53AOOGZT3LH56RG35L3FUC7NDSDZSVGMU
-# \\ HE463DUXWLRTHGVBSWTPFNN5IXEUUVOY6BAGW3IN6SJ3HX3YGF23 \\// C25519-BASE-32 //
-#  \\// ZAF3JMXQGN2CQ6KXTTYHTHO3MRYQERKSNU44EGL24TU5D7MMKCA \\ CODE SIGNATURE \\
+#\\NDHOP4DDGVKZY6BSPATRNYVRRBO5DZGMKYSJEDO44OMPQGUPC7FZ4HVTQNKYPQN5GOZSOO6OSSOM2
+# \\ T32TTSRHY7CVX25FC5B3MQRYXFQVWCXFPCKKUB2RNCXEF77EFYUF \\// C25519-BASE-32 //
+#  \\// VWAKLOUFWSBZLLX3QOHY7PRTLIYJQJZGU6DK3WJ3DNCRGYEXMBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
