@@ -12,10 +12,16 @@ return { 'mode' => 'nak', 'data' => 'expected numerical timeout argument' }
 return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
-$title_pattern =~ s{^['"]|["']$}{}g;    ## <-- quotes allowed but ignored
+$title_pattern =~ s{^['"]|\\|["']$}{}g;    ## <-- removing quotes and \-es ##
+
+my $start_match = $title_pattern =~ s|^(\^)||g ? $1 : '';
+my $end_match   = $title_pattern =~ s|(\$)$||g ? $1 : '';
+
+$title_pattern = qr|$start_match\Q$title_pattern\E$end_match|;
 
 foreach my $window_id (<[xserver.get_window_ids]>) {
     my $window_title = <[xserver.get_window_title]>->($window_id);
+
     return { 'mode' => 'ack', 'data' => $window_id }
         if $window_title =~ $title_pattern;
 }
@@ -28,9 +34,9 @@ my $req_id = <[base.gen_id]>->( <xserver.waiting> //= {} );
 
 my @timers = (
     'poll' => <[event.add_timer]>->(
-        {   'after'    => sprintf( "%.4f", rand(0.013) ),
+        {   'after'    => sprintf( "%.4f", rand(0.07) ),
             'prio'     => 4,
-            'interval' => sprintf( "%.4f", rand(0.0113) ),
+            'interval' => sprintf( "%.4f", rand(0.13) ),
             'handler'  => 'xserver.handler.wait_visible',
             'data'     => $req_id
         }
@@ -51,14 +57,14 @@ push(
 
 <xserver.waiting>->{$req_id} = {
     'reply_id' => $$call{'reply_id'},
-    'pattern'  => qr|$title_pattern|,
+    'pattern'  => $title_pattern,
     'timer'    => {@timers}
 };
 
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\QVLTRSMI4RZ4GDFZS377DFKD5DFFMYXDF5DVPONPQF5VBKZ2POZX3OOOSPJHQ5I7IPADUBOD3JNY4
-# \\ OXCRVZU3GZ67HKNVKYB6WEVOQHJBE34HEVHJRYUG3D7QP4437KJS \\// C25519-BASE-32 //
-#  \\// QIUEYXOQXY24K3FLJEGPOIRKMA6PTVF6AW4ESANSSOJLAL2GUBQ \\ CODE SIGNATURE \\
+#\\MAGKK2CEVSPXIBH3ULOIE2A4HVRAIYME3FWYKZ7MICN2DKCNUJRGBWOTMWNY2ENKCP7IG7PKSGSRO
+# \\ LUK3YKMIFMWIRNQFY4TPYS7RQGZ6Z6AAS6TA2WVZ4TEML2G7UXXB \\// C25519-BASE-32 //
+#  \\// EPWAHPGYPCVKKGKC7VCURDTJ5YHMJIIVCSBZ4MRMGRSQ5WXLQDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
