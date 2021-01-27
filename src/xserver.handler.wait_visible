@@ -15,12 +15,9 @@ if ( not defined $title_pattern ) {
     return;
 }
 
-$watcher->interval( sprintf( "%.4f", $watcher->interval() * 1.13 ) );
-
-# <[xserver.update-xtops]>;
+$watcher->interval( sprintf( "%.4f", $watcher->interval() * 1.07 ) );
 
 my $match_id;
-
 foreach my $window_id (<[xserver.get_window_ids]>) {
     my $window_title = <[xserver.get_window_title]>->($window_id);
     if ( not defined $window_title ) {
@@ -28,7 +25,7 @@ foreach my $window_id (<[xserver.get_window_ids]>) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => 'nak',
-                'data' => "window disappeared"
+                'data' => 'window disappeared'
             }
         );
         delete <xserver.waiting>->{$id};
@@ -36,8 +33,6 @@ foreach my $window_id (<[xserver.get_window_ids]>) {
     }
     $match_id = $window_id and last if $window_title =~ $title_pattern;
 }
-
-warn $match_id if defined $match_id;
 
 #  if ($@) {
 #      <[xserver.cancel_wait_visible_timers]>->($wait_req);
@@ -69,7 +64,7 @@ if ( length( $match_id // '' ) ) {
 }
 
 # ______________________________________________________________________________
-#\\QIHUFD6ZCP3HBCD62JIXTQSS33QRHJOZTQ7ZKWIWKVXJME5YZVRVYXASFAIBI2YDPCF5BAC2JHDPU
-# \\ 5G7HA4ZVAUORLWFXAC4YASHPZOYSROHUPET2Q4ETZ7NTYGOH6O3P \\// C25519-BASE-32 //
-#  \\// 7SP7WOEC7CBVXVEBZLYAXPRYFIJV4R2H3NXET2LMGSHNN3KDCDA \\ CODE SIGNATURE \\
+#\\FG5C4M4UTRDAIZRLLHGTTVYJRX3ETZPPWOQURHB4GTDQDR45HAAR6ZNG2QBHZMXU3P3PDY5OVBWII
+# \\ K55Q7HNBOY6KBODFS5UDC4UQJ2HM5I423KJHUL3NDYI6J3UZDRWP \\// C25519-BASE-32 //
+#  \\// Q4IKS2HIDQSOUBOAFLK2YTFPGBRQNQYNBBU3I6AJXIS3E7Y7ABA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
