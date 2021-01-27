@@ -14,7 +14,7 @@ my $file_types_str = $$call{'args'} // '';
 
 $subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
 
-map { $file_types{$_} = 1 } split / +/, $file_types_str;
+map { $file_types{$_} = 1 } split m| +|, $file_types_str;
 
 my %b32_index;
 my $index = -1;
@@ -23,7 +23,8 @@ foreach my $file ( @{<content.file_list>} ) {
     next
         if defined $subname
         and exists <content.agent_subnames>->{$index}
-        and not exists <content.agent_subnames>->{$index}->{$subname};
+        and ( keys %{ <content.agent_subnames>->{$index} }
+        and not exists <content.agent_subnames>->{$index}->{$subname} );
 
     my $sn_line_str
         = ( exists <content.agent_subnames>->{$index}
@@ -40,7 +41,7 @@ foreach my $file ( @{<content.file_list>} ) {
         map {
             next
                 if $_ eq $entry_tile
-                and not grep {/^$b32id_str$/}
+                and not grep {m|^$b32id_str$|}
                 @{ <content.exclusive_b32id>->{$_} }
         } keys %{<content.exclusive_b32id>};
     }
@@ -74,7 +75,7 @@ foreach my $file ( @{<content.file_list>} ) {
 return { 'mode' => 'data', 'data' => $reply_string }
 
 # ______________________________________________________________________________
-#\\FE4TKD6JKCRAPEMDISNVIAVYAAXMBTJRMF2VNGB3Q2RZNTKS5SWEJZQUF65APR3EU6LOXZXYMZ6PM
-# \\ KSNEYNAIZSG2XWJ57VWQKKK6LEWZ7AHZOPIVPW3S6YJMWDJSAZFJ \\// C25519-BASE-32 //
-#  \\// RTLOWV7U7OGOTBFBAGGYTJF2DGJQ2XH4BFJSON65ZRWPZBWQ2DA \\ CODE SIGNATURE \\
+#\\KPS7JZJHNQOULCEAKBV6CCGJHNSPVAAB6GQTCGDQXNQZQIIP5WO2S2BGGDFCJ3KGPKB7SYTEUJ35K
+# \\ NMTONM5TH3KNILFV72EXN374NIBH7FMHXM4G6WG52LQOB23HAUFA \\// C25519-BASE-32 //
+#  \\// VJ35EA6QBOJ5KNPM2CVIKD7EHQFUACWSDMCGAEXYWBXJVSGDACY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
