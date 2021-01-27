@@ -18,7 +18,6 @@ impressive.path.impressive_tmp = /tmp/.impressive
 impressive.cfg.autoinstall_impressive_py = 1 # -> /usr/local/impressive/bin/...
 
 impressive.cfg.transition_delay    = 7
-impressive.cfg.background_color   = 'FFFFFF'
 impressive.cfg.black_on_fullscreen = 1
 impressive.cfg.start-anim_timeout = 11
 
@@ -30,8 +29,9 @@ modules.load = auth net digest.sha io.ip impressive
 [init_modules]
 
 [set_privs:<system.privs.user>]
-
 [net.connect_to_core:'ip.tcp']
+
+impressive.cfg.background_color = [base.x11.get_bg_color]  ##   <--  [ #RRGGBB ]
 
 [base.x11.get_display]
 [base.x11.get_geometry]
