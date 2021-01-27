@@ -23,12 +23,9 @@ $window->set_decorated(0);
 $window->set_resizable(0);
 $window->set_keep_above(1);
 
-<start-anim.window_title> = 'start-anim';
-<start-anim.window_title> .=
-    defined <system.agent.subname>
-    ? sprintf( "[%s]", <system.agent.subname> )
-    : $$;
-$window->set_title(<start-anim.window_title>);
+$window->set_title( <start-anim.window_title>
+        = sprintf( "%s[%s]", <system.agent.name>, <system.agent.subname> // $$ )
+);
 
 $window->set_default_size( 1, 1 );
 
@@ -88,7 +85,7 @@ $SIG{'TERM'} = sub {
 Gtk3->main;
 
 # ______________________________________________________________________________
-#\\64XG55PE4BLETJX2KP67ATYDXOLGNGTPHHNCQR5PAOWFREYWT57ARNYJPNUYFTMWAY6BZ43QKVIVC
-# \\ D3QKCP5AC76253BP4BTVA4F7JBMZPTK2QP6BLZU3XARVDJ37FTRO \\// C25519-BASE-32 //
-#  \\// PKGMKFXYYY3P66XUCMMILVQDPAOLICCY3TS3LS7M5L4ORRGXKCI \\ CODE SIGNATURE \\
+#\\CXTBFQR66RTANNNLLYR7W32GZILGDT32WE7HC63A3GJLX7IUWVC7BCDCJJ7UPUEFRVKQ55KDD3MS2
+# \\ 4SWFB3HEYRJWAYZRAZWCAOQM2B36XAW4TRGTDGJDJFM7RSSIDXMH \\// C25519-BASE-32 //
+#  \\// RFX4RGNK53C2EGVG3NB3T7TE33NGB5KJJZOZDG36ZAGLHMWMSCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
