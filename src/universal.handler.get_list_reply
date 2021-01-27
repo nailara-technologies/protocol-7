@@ -10,7 +10,7 @@ my $reply = shift;
 <universal.cfg.fade_on_switch>    //= 0;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
-    <[base.log]>->( 0, ": unable to fetch playlist." );
+    <[base.log]>->( 0, ": unable to fetch playlist.," );
     <[universal.stop_start-anim]> if <universal.start-anim_running>;
     return;
 }
@@ -102,7 +102,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     return;
 }
 
-return <[base.log]>->( 1, ": playlist not changed, nothing to do.," )
+return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
     if $playlist_sha1 eq <universal.playlist_sha1>;
 <universal.playlist_sha1> = $playlist_sha1;
 
@@ -190,7 +190,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 }
 
 # ______________________________________________________________________________
-#\\4VBSCBZIKELRSSVEPND3OACW7PLF44PFFZW47CBJZO5OONQIWU7KWUXAKTSZ7WXZHHIGP2DBR4CBE
-# \\ XV5GJEFWBL7GRZXTOJ5YH3W3VO3CJP4DB7B5IBFQRLOSAN3GWDKB \\// C25519-BASE-32 //
-#  \\// NHEIEUNIJLR2K23YCRP4NMSAZIKTHRVUOW5LOFF6A7XLJSGGMBA \\ CODE SIGNATURE \\
+#\\S4RJCXBEFZKN4B2LAQFIIOZ4JJBMH5IMJQKWEGL6MZ437R2XPIYRIRN6HVDFVEGKMBEWKUBMJJBBY
+# \\ 4DEF6K7CYNF6VUAMFOX4NQZQR4OBTAOO7NQGQEPYZWE3G4F6Q2TV \\// C25519-BASE-32 //
+#  \\// UP7XKRHJQMNI7DLBZ4BH2K6YCHAZXVU6LHMEN37NVFUU6PGDUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
