@@ -31,6 +31,14 @@ my $was_starting = 0;
 if ( <universal.child>->{$agent_name}->{'status'} eq 'starting' ) {
     <universal.child>->{$agent_name}->{'status'} = 'ready';
     $was_starting = 1;
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command' => "$agent_name.cur-pid",
+            'reply'   => {
+                'handler' => 'universal.handler.cur-pid_reply',
+                'params'  => { 'agent' => $agent_name }
+            },
+        }
+    );
 }
 
 <universal.children_ready> = 1;
@@ -71,7 +79,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\VHCTF2C4QCCBCAOHZH2ZK7YJNBJ47G5AQED5DG7M772QUQ4VC3WCFQIGJDH52UCPYZODEWKEJ3EDM
-# \\ PYX46SU2BLGC2G6EXLFPZ2A64U5JYHGFK3POYI5LSGKRTP45JYLK \\// C25519-BASE-32 //
-#  \\// E6Y6AJKCEXPULGVFN4JK66O5ENMZ2Z6AVHSPLA27S6SBL4FUCAY \\ CODE SIGNATURE \\
+#\\2LKYALFBO6NWIGIR33IDS6B6YVAJVDGRQGORQ4VTRJ4PHRPSCHGJSNXFPQEMDNQSMPSCXRPWMV5OS
+# \\ LFVGBM6YZUCWPEFWIAOLLEJAVBVJE4FXHT7CJ4HXDPD5W7HAUQCP \\// C25519-BASE-32 //
+#  \\// VCEZSXXYKMN4PH6QFOTTIMGUR4BAC2NF2OUPCBQZMDDISEVYYDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -10,10 +10,10 @@ my $reply_str  = $reply->{'call_args'}->{'args'};
 delete <universal.timer.mpv_idle_timer>;
 
 if ( $reply->{'cmd'} ne 'ACK' ) {
-    <[base.log]>->( 0, "[!] 'mpv.is_idle' command failed ($reply_str)" );
+    <[base.log]>->( 0, "[!] 'mpv.is_idle' command failed [ $reply_str ]" );
 } else {
     if ( $reply_str eq 'no' ) {
-        <[base.log]>->( 2, "[success] mpv is playing (switch performed)" );
+        <[base.log]>->( 2, "[success] mpv is playing [ switch performed ]" );
         return;
     } else {
         <[base.log]>->(
@@ -22,11 +22,11 @@ if ( $reply->{'cmd'} ne 'ACK' ) {
     }
 }
 
-<[base.log]>->( 0, " :. recovery initiated (agent restart)..." );
+<[base.log]>->( 0, " :. recovery initiated [ agent self-restart ] << ! >>" );
 <[universal.self_restart]>;
 
 # ______________________________________________________________________________
-#\\JMPK2LNWWEUSU4KRFVND25NGWIZ5LEFOE2MMDXQZ6U2F6HZJKOPZ6IVVCJ53OSN6Z2KEQCMSG75UM
-# \\ 4VNMPWRTKPTW47GXMCT7PK76BONCEWSL45JPJQWFYVH7XZRZBZ6D \\// C25519-BASE-32 //
-#  \\// VBDEINHD6P7UF6PRBEHU76OM55SKZD5C4X54I5DMNHMMQ5DVGDI \\ CODE SIGNATURE \\
+#\\YQO373D3F6XHPV434YQC7UGUWHNBQWNSWJQG6XCHPQKEH76DEYAT5IQIIKPWX53QYUCOR5WOLOQAC
+# \\ L7BUH6H54ZW4Q5AROXIKATYURC5BHUH4ZLQP4KXFGPEJV5AH3EZD \\// C25519-BASE-32 //
+#  \\// YZEULHLQNDFBLBCPZD3JOHEKWPSTUAK5E6COZZUHFIOQR3Y5IDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
