@@ -14,7 +14,7 @@ my ( $size_x, $size_y, $pos_x, $pos_y )
 
 Gtk3->init;
 
-<[base.log]>->( 1, "window initializaion..," );
+<[base.log]>->( 1, "window initializaion .," );
 
 my $window = Gtk3::Window->new('toplevel');
 
@@ -83,6 +83,9 @@ $window->add($overlay);
 $window->show_all();
 
 if ( <system.agent.mode> eq 'universal-child' ) {
+    <[base.log]>->(
+        1, "<<< setting slideshow.autostart = 1 ['universal-child' mode] >>>"
+    ) if !( <browser.slideshow.autostart> //= 0 );
     <browser.slideshow.autostart> = 1;    ## <-- auto-enable slideshow mode ##
     $window->iconify();
 }
@@ -153,7 +156,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 # ______________________________________________________________________________
-#\\UJYZWXD5JQ7RAQBCVVANM65RW77RPUF3IOUZBVB3WDUV5MO7GTLHG6ZYLSHNF3HUWHF2HE63EOMPM
-# \\ 5F5N3PU6UCQFHJVRD2VXXCL4XTHNJY3VFX5YUIRHCI52FKXMVBER \\// C25519-BASE-32 //
-#  \\// T765ULPW6VVG6IAMXSMJMMKQNPVODTZVHAQVFQBDE6JVJBEM4AA \\ CODE SIGNATURE \\
+#\\JGCVMOI47N5SSJHJIEF6VQM5Z5QHFG7R5QI3PWL5WNU7M5O4DBDBIRPLAQAAM3PQJLANCJN3LJFRO
+# \\ FTYXKF7U6MSKIPHDZRYTY3ASBF3O4OOWQWAPAHHPT3F7GHANB3UI \\// C25519-BASE-32 //
+#  \\// OV334M6MPU2DUGF4JE272OOG6JH6SX2CUAOBQXE3ZPORAOSTKCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
