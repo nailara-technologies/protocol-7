@@ -9,7 +9,7 @@ my $settings        = $view->get_settings();
 my $view_uri        = $view->get_uri();
 my $js_string       = shift // '';
 my $result_callback = shift // sub { warn "[js_call] invoked empty callback!" };
-my $re_cb_params    = shift;           # no params (default) undef
+my $re_cb_params    = shift;           # no params [default] undef
 my $caller_sub_name = [caller]->[1];
 
 return warn "<<!>> javascript execution is disabled <<!>>"
@@ -17,10 +17,10 @@ return warn "<<!>> javascript execution is disabled <<!>>"
 return warn 'expected javascript command string' if !length($js_string);
 
 if ( $caller_sub_name eq 'browser.callback.scroll_start_js_exec' ) {
-    <[base.log]>->( 2, ".. checking if scrollable ..." );
+    <[base.log]>->( 2, ".. checking if scrollable ..," );
 } elsif ( $caller_sub_name eq 'browser.handler.auto_scroll' ) {
 
-    # LLL: log periodically the current scroll progress percentage ...
+    # LLL: log periodically the current scroll progress percentage ..,
 
 } else {
     <[base.log]>->( 2, "<js_call> [$view_uri] : '$js_string'" );
@@ -43,7 +43,7 @@ $view->run_javascript(
         ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
         $ex_str =~ s|^[^ ]+ ||;
 
-        my $has_err = $ex_str =~ /^[^:]*Error[^:]*:/ ? 1 : 0;
+        my $has_err = $ex_str =~ m|^[^:]*Error[^:]*:| ? 1 : 0;
 
         <[base.log]>->(
             0,              sprintf "<!JSerr!> [%s] %s",
@@ -59,7 +59,7 @@ $view->run_javascript(
 );
 
 # ______________________________________________________________________________
-#\\PBCW3PA3WNZL73N7WH5NKILFHXYGUDTI3SC6TOKCOMHTXPLKFCOOML3GMSYBI7NDAANCH4VOGQ4MU
-# \\ HXOCSRXBFSXDO2AC35QP4G27XVJQGFAEI3LBU4SRWTHIM3T2DHUQ \\// C25519-BASE-32 //
-#  \\// GIR45KUJDDGM5DNVIAK3NFRJS7P3CM7VQB7VY6DURITJPRGNUCQ \\ CODE SIGNATURE \\
+#\\L7BWSEKW44NTZEJI3IBOSPRPLULZYPCVE3WKJX3XBMP6TTHXTCI5UD4VPZ7MSONNUDHS2VLLRBSBI
+# \\ JYEOFZDFSLBVSFCTOT7SPRHX2GV2SEGM6GVN7GV4HPXPH74TLVBS \\// C25519-BASE-32 //
+#  \\// ABXQGIP7WYKUR6XNJ6TH2ACTNMCWAOKJS6RV5YPSVEPYZ5FJKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -9,7 +9,7 @@ my $view     = <browser.current_view>;
 my $uri      = <browser.load_uri>;
 my $loglevel = <browser.url_flag_loglevel>;
 
-<[base.log]>->( 2, "<!> skipped URL flags processing... [TMP DISABLED]" );
+<[base.log]>->( 2, "<!> skipped URL flags processing.., [ TMP DISABLED ]" );
 return;    # NEEDS SIGNAL / SETTINGS FIXING AFTER WEBKIT2 PORT, some impossible!
 
 map { <browser.url_active>->{$_} //= 0 }
@@ -24,21 +24,17 @@ map { <browser.url_active>->{$_} //= 0 }
 # clear temp. js disabled #
 if ( <browser.scroll.fail.js_disabled> or <browser.url_active.nojs> ) {
 
-    map {    # LLL: make reenabling view-based
-        my $view_index = <browser.overlay.index>->{$_};
-        my $settings   = <browser.gtk_obj.view>->{$view_index}->get_settings;
-        $settings->set_enable_javascript(1);
-        <browser.gtk_obj.view>->{$view_index}->set_settings($settings);
-    } ( 'fg', 'bg' );
+    # LLL: make reenabling view-based
+    <[browser.ensable_javascript]>;
 
     if ( !<browser.slideshow.no_scroll> and <browser.cfg.javascript_enabled> ) {
         if ( delete <browser.scroll.fail.js_disabled> ) {
-            <[base.log]>->( 0, "autoscroll stopped ..javascript reenabled!" );
+            <[base.log]>->( 0, "autoscroll stopped ..javascript reenabled." );
         }
     }
     if ( <browser.url_active.nojs> and <browser.cfg.javascript_enabled> ) {
         delete <browser.url_active.nojs>;
-        <[base.log]>->( $loglevel, "..javascript reenabled!" );
+        <[base.log]>->( $loglevel, "..javascript reenabled." );
     }
 }
 
@@ -46,7 +42,7 @@ if ( <browser.scroll.fail.js_disabled> or <browser.url_active.nojs> ) {
 if ( <browser.url_active.adblock> and not exists $flags->{'adblock'} ) {
     <[browser.disable_proxy]>->(2);
     delete <browser.url_active.adblock>;
-    <[base.log]>->( $loglevel, ": adblock disabled!" );
+    <[base.log]>->( $loglevel, ": adblock disabled." );
 }
 
 # clear blkext #
@@ -55,7 +51,7 @@ if ( defined <browser.signal_id.request_starting>->{$view} ) {
         delete <browser.signal_id.request_starting>->{$view} );
     delete <browser.signal_id.request_starting>
         if !keys %{<browser.signal_id.request_starting>};
-    <[base.log]>->( $loglevel, ": blkext disabled!" );
+    <[base.log]>->( $loglevel, ": blkext disabled." );
 
 }
 
@@ -64,11 +60,20 @@ if ( defined <browser.signal_id.request_starting>->{$view} ) {
 ## NOJS ##
 
 if ( exists $flags->{'nojs'} and <browser.cfg.javascript_enabled> ) {
-    my $settings = $view->get_settings;
-    $settings->set_enable_javascript(0);
-    $view->set_settings($settings);
-    <browser.url_active.nojs> = 1;
-    <[base.log]>->( $loglevel, ": JS disabled! ( nojs flag '$uri' )" );
+
+    if ( <browser.slideshow.no_scroll>
+        or !<browser.slideshow.autostart> and !<browser.slideshow.running> ) {
+        my $settings = $view->get_settings;
+        $settings->set_enable_javascript(0);
+        $view->set_settings($settings);
+        <browser.url_active.nojs> = 1;
+        <[base.log]>->( $loglevel, ": JS disabled. [ nojs flag '$uri' ]" );
+
+    } else { ### current autoscroll implementation requires javascript ### [LLL]
+        <[base.log]>->( $loglevel, ": nojs flag conflicts with autoscroll" );
+        <[base.log]>->( $loglevel, ": :. <<< skipping 'nojs' flag >>>" );
+    }
+
 }
 
 ## ADBLOCK ##
@@ -76,7 +81,7 @@ if ( exists $flags->{'nojs'} and <browser.cfg.javascript_enabled> ) {
 if ( exists $flags->{'adblock'} and !<browser.init_proxy> ) {
     <[browser.proxy_setup]>->( 'auto', 2 );
     <browser.url_active.adblock> = 1;
-    <[base.log]>->( $loglevel, ": adblock enabled! ( adblock flag '$uri' )" );
+    <[base.log]>->( $loglevel, ": adblock enabled. [ adblock flag '$uri' ]" );
 }
 
 ## BLKEXT ##
@@ -85,11 +90,11 @@ if ( exists $flags->{'blkext'} ) {
     <browser.signal_id.request_starting>->{$view}
         = $view->signal_connect( 'resource-request-starting' =>
             $code{'browser.handler.request_starting_signal'} );
-    <[base.log]>->( $loglevel, ": blocking external! ( blkext flag '$uri' )" );
+    <[base.log]>->( $loglevel, ": blocking external. [ blkext flag '$uri' ]" );
 }
 
 # ______________________________________________________________________________
-#\\3ICPRMJUN4KLN3AXK6UNMF7IYQCRRE6RES2V4KW2YJY56LTEGSZ7SZYXHYZUUONYNS37BP6H5ECSO
-# \\ E7WA2RNMDXKH2BERBSGU4IV3FN42NBDR7VOA4M37LCLUYVQR5EY7 \\// C25519-BASE-32 //
-#  \\// YM732OUSQVNG52XHLHJHYIQ5XYOS34ISZNQKIZP65G4C3A5KODQ \\ CODE SIGNATURE \\
+#\\FF6INQ7EYCGWA5YSFR5ENSHWVIXU2XTGTIEZ656TGUUO5THVDYZWFGIMICVFGO4RIV2ILAM4QFLSY
+# \\ BCJZ7EX4NQ4Z5ATLTGDR5D7L7ZPY7HRXY3NLJROEPZFL7UQXDBRP \\// C25519-BASE-32 //
+#  \\// 74AIWPQSDREKYYVSF7UZDMJPBUGYQJWV4DQUTOZCIQHQGAB6YCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
