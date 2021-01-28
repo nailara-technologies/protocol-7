@@ -2,18 +2,21 @@
 
 # name  = content.process_playlist_entries
 
+my $data_source = ref( $_[0] // '' ) eq 'Event::Event' ? 'manual' : 'file';
+
 my @lines
-    = ( @_ and ref( $_[0] ) ne 'Event::timer' )
+    = $data_source ne 'file'
     ? @{ <content.file_list> //= [] }
     : @_;
 
 my @file_names;
 map {
-    $_ =~ s/^\s+|\s+$//g;
+    $_ =~ s{^\s+|\s+$}{}g;
     $_ =~ s|^ *#[^\n]*$||mg;
     $_ =~ s| +#[^\n]*$||mg;
     $_ =~ s|\n\n|\n|sg;
-    $_ =~ s/^\n|\n$//mg;
+    $_ =~ s{^\n|\n$}{}mg;
+    $_ =~ s|^file://||mg;
     push( @file_names, $_ ) if length($_);
 } @lines;
 
@@ -30,7 +33,7 @@ if ( exists <content.mime_type.retry_timer> ) {
 }
 
 my $tiles_visible_file = "$file_path.tiles_visible";
-if ( -f $tiles_visible_file ) {
+if ( $data_source eq 'file' and -f $tiles_visible_file ) {
     if ( open( my $tilesv_fh, $tiles_visible_file ) ) {
         $tiles_visible_file =~ s|^.+/||;
         <[base.log]>->( 1, ": applying filter file '$tiles_visible_file'.," );
@@ -48,8 +51,12 @@ if ( -f $tiles_visible_file ) {
         @file_names = @filtered_list;
         close($tilesv_fh) or warn $!;
     }
+} elsif ( -f $tiles_visible_file ) {
+    <[base.log]>->(
+        2, ": filter file ['$tiles_visible_file'] skipped [ manual mode ].,"
+    );
 } else {
-    <[base.log]>->( 2, ": no filter file ('$tiles_visible_file') present .," );
+    <[base.log]>->( 2, ": no filter file ['$tiles_visible_file'] present .," );
 }
 
 <content.file_list>     = [];
@@ -215,7 +222,7 @@ foreach my $file (@file_names) {
                 next;
             }
         }
-        my $s = $flag_str =~ s/\|/,/g ? 's' : '';
+        my $s = $flag_str =~ s{\|}{,}g ? 's' : '';
         <[base.log]>->( 1, "<::> setting url flag$s for '$file'.." );
         my $flag_reply
             = <[content.cmd.set_flags]>
@@ -234,7 +241,7 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
 <[content.update.send_notifications]>;  ##  <-- check if required [yet].., [LLL]
 
 # ______________________________________________________________________________
-#\\4WY6T5ETEDZR6WJGCRHFE7NVPFV6R2U3GHMJIG3Y5U7YLIQQQRVJ6NJAFLWBRECYRRNWOJXMK2VOG
-# \\ 4BOG7KUJ3RR37QM7EP4DJHMDQ4KCIPPIGCCSN52DKMPU62QGI2IK \\// C25519-BASE-32 //
-#  \\// RDJDPDX7CHHM7H564XGKVVQZUGKMVM5UNJK2IUMRWXTE2HT2CDQ \\ CODE SIGNATURE \\
+#\\FUEVXZZLIX5G5TOT7LJLKVLWAPXXDA6ET23Y6BKNSJQ7VR2IXFGFXTE3BFIJMVQXYAE3SZWUGZQFW
+# \\ NPFXYU2HONWOHRUORGIMBB7H24G4AYP5TPGGU42EJAADTO6BTJUU \\// C25519-BASE-32 //
+#  \\// K4DBMPY5GIQMCVEFCGRF3SKL6WP7LVP3NMGP33L56A3TIHBYGDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
