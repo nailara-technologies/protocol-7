@@ -4,43 +4,32 @@
 # param = <w_id> <opacity>
 # descr = set window opacity in percent [0..100]
 
-my $X = <xserver.x11>;
-my ( $window_id, $opacity ) = split( / +/, $$call{'args'} );
+my ( $window_id, $opacity ) = split( m| +|, $$call{'args'} );
 
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 return { 'mode' => 'nak', 'data' => 'window <opacity> required' }
     if not defined $opacity;
 return { 'mode' => 'nak', 'data' => 'invalid window <opacity> [0..100]' }
-    if $opacity !~ /^\d+$/ or $opacity > 100;
+    if $opacity !~ m|^\d+$| or $opacity > 100;
 
-my $xtops = <xserver.x11_tops>;
-<[xserver.update-xtops]>;
-
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $window_id ) {
-        $window = $w;
-        last;
-    }
-}
-
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[xserver.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
 
 my $result = <[xserver.set_window_opacity]>->( $window_id, $opacity / 100 );
 
 <[base.log]>->(
-    0, "error during set_opacity($opacity) for window $window_id [closed?]"
+    0, "error during set_opacity [ $opacity ] for window $window_id [ closed? ]"
 ) if not defined $result;
 
 return { 'mode' => 'ack', 'data' => "set opacity to $opacity%" };
 
 # ______________________________________________________________________________
-#\\GT747A3VQR76HY43TJLYPZEDXYHEEYG37KAV54SBI65T5NSJIJC4TENFG7M6IRUFXROL7R53PPDIO
-# \\ MRXNTTO5ID5JE6GIJ3A4OZ6YAEOX4BJY42MN3ENIHE5ZE3ADUFQ5 \\// C25519-BASE-32 //
-#  \\// CSBJ3YSRGUXF2JFLXHWLL2WFFIR3THXPL5K2N2I44G4P5LEJWAA \\ CODE SIGNATURE \\
+#\\OT6OFYOLUFDWBWAAR36FFXIIIUWCIH7OI6P6RXVRZYLCX25T3UIJDXDXIRUPK4HKZYECFCHYQA4NU
+# \\ MFTWDN7IFHFKAVQYJYVSKUDTXXFS4JCZE7KIHSO5PR3NTSFNITYK \\// C25519-BASE-32 //
+#  \\// BGUPEJ2HDJVXYJ7QMODCMT3FWYYY5YTV252PKRFMKLFW77IHIDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

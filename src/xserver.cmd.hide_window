@@ -2,7 +2,7 @@
 
 # name  = xserver.cmd.hide_window
 # param = <w_id>
-# descr = hide the window with the specified id
+# descr = hide specified window
 
 my $X         = <xserver.x11>;
 my $window_id = $$call{'args'};
@@ -10,25 +10,14 @@ my $window_id = $$call{'args'};
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 
-my $xtops = <xserver.x11_tops>;
-<[xserver.update-xtops]>;
-
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $window_id ) {
-        $window = $w;
-        last;
-    }
-}
-
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[xserver.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "hiding window $window_id" );
-
 eval {
-    for ( 1 .. 2 ) {    # <- workaround (ignored state requests)
+    for ( 0 .. 1 ) {    # <- workaround [ ignored state requests ]
         X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'add',
             'HIDDEN' );
     }
@@ -38,7 +27,7 @@ return { 'mode' => 'ack', 'data' => "unable to set 'hidden' state" } if $@;
 return { 'mode' => 'ack', 'data' => "set window state 'hidden'" };
 
 # ______________________________________________________________________________
-#\\A45NOXLN54GN6TPM6FHSU5KLEOOWAH5BJB4MSDCN6GZ34RYNTGWFU6NKAKG2523DAGXW4AE3GGHMY
-# \\ CFWJLDWTIGPURHIBVENGEPQ5TDJTIHWUZRGT75CZKKOJOKRXT2OK \\// C25519-BASE-32 //
-#  \\// DWVEVN22ARWEZ2UCJ42XQHVGVLT3CKQATUZNXPXSQ5X6CEPAKCQ \\ CODE SIGNATURE \\
+#\\WBIZMODXSDTMHSYNQPK7AASEEUF7BSOHYCETKXLKO3XJPHN4R2EGCT7T4LG3GVXMKPIPTNBMZMQOO
+# \\ ES73YQPOO3ZV7MY76FS7UOLN4RHFRYU6ESVIEEIKUXOS2O2M4IJK \\// C25519-BASE-32 //
+#  \\// JEBJZV3HUWVV5TO5J4Z47S73DPSCZMAAUPOCF3HRODQNBLYR2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
