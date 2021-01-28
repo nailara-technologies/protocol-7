@@ -2,16 +2,21 @@
 
 # name = universal.callback.mpv_idle_check
 
-<[base.log]>->( 2, "checking if mpv really resumed playback.." );
+my $child_name = 'mpv';
+
+<[base.log]>->( 2, "checking if $child_name really resumed playback.," );
 
 <[base.proto.nailara.command.send.local]>->(
     {   'command' => 'mpv.is_idle',
-        'reply'   => { 'handler' => 'universal.handler.mpv_idle_reply' }
+        'reply'   => {
+            'handler' => 'universal.handler.mpv_idle_reply',
+            'params'  => { 'agent' => $child_name }
+        }
     }
 );
 
 # ______________________________________________________________________________
-#\\ZWPIQOTPUVT3JKL3TW77CQNIZS3FCN52GQED327YHVTKKXJBKK7C3AVBPPZVAEI4XMGBZGZXQ2HFC
-# \\ GKTTN7OEKXLS4PTHYJSMTVIJFCWWLRZ7AZ5HRVSM3YZ7UHFK54ZK \\// C25519-BASE-32 //
-#  \\// 2FA7RUXGRW4BGFMLIN6I7PGAFCDUFPBJMPF3FPMTT2TLCQQ4GCY \\ CODE SIGNATURE \\
+#\\L7LA65FM3O2QFLOL57U6K2HYJKXY7U4YXHBVSVPDFV6IOANDJ7QPXQNMSA3GWTUAKHNKOUPNR25VE
+# \\ WUX7FWTX4N6FM53KNHU3F4VZC6QCFTMPO6D7Q7WQIVY2PKKUNMBB \\// C25519-BASE-32 //
+#  \\// YDJRBJQRG32XQVG45SCB3ZSUJCJX5HLKFNSY6IFSXEXS6LC6CCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
