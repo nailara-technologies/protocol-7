@@ -7,7 +7,7 @@ my $id = shift;
 my $user     = shift // 'core';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 1, "raising window '$id'.." );
@@ -28,7 +28,7 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)NAK (.+)$| ) {
     <[base.log]>->( 0, "raise_window command failed with '$1'.." );
     return 0;
 } else {
@@ -36,7 +36,7 @@ if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\VVPSDPOKEDNU2ZDHB6S7MFIOBNPGUVQHSG5A4N5H7URXRUF5O4C6L2RAP7GVIQ777QLEV3WMNR5BM
-# \\ GTNYAVYZ2N33SJKTHKISTTTANGWMFHY4AYMBY5UD6D3BGFDUIZCJ \\// C25519-BASE-32 //
-#  \\// Q5Z7CUQ4T5CXVER5CMWYLWAHDVZEVQV6NNQDKNMCGBMYM2K3KCA \\ CODE SIGNATURE \\
+#\\YUS24HS3PROBKZBJNQ563T437Z3IJOTWSQVLIWDMPWPKX2H6R3EBC7TAG2VP2ZFMSSEV3O6R5XV3G
+# \\ AGQBTDOORNIL73VGNKF3HFTYVNIZ5FPQ3PMIFWB5672HGMTAFDX3 \\// C25519-BASE-32 //
+#  \\// SYZITIJCWFQ5LOJTHIDI5HYOMYJYX5Q5GWI4N67E2HIBI2UUMDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
