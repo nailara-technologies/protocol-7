@@ -44,15 +44,15 @@ browser.cfg.scroll_speed = 5  # [1..10] ( 1 == 6 px/s ... 10 ~~ 60 px/s [max] )
 
 browser.cfg.gpu_load_secs = 15 # s <- requested/watched load statistics interval
 browser.cfg.max_gpu_load  = 67 # % <- matching GPU load limit in auto-speed mode
-                               #      ( send 'slow_down' command to activate.. )
+                               #      ( send 'slow_down' command to activate., )
 
-browser.zoom_level = 1.0    # default zoom factor  [ 1.0 == 100% ]
-browser.zoom_text_only = 0  # set to 0 to enable full_content_zoom
+browser.zoom_level = 1.0    # default zoom factor [ 1.0 == 100% ]
+browser.zoom_text_only = 0  # set to 1 to enable 'zoom_text_only'
 
 browser.auto_zoom = 1   # recalculate zoom factor based on current screen size
 browser.min_zoom  = 0.7 # lower zoom factor limit for automatic recalculation
 browser.adjust_scroll_delay = 1 # if true will adjust scroll delay with autozoom
-browser.skip_content_zoom_path = /var/cache/ # no full_content_zoom if matching
+browser.keep_text_zoom_path = /var/cache/ # apply 'zoom_text_only' if matches..,
 
 access.cmd.usr.core = commands heart reload verify-instance * *.*
 

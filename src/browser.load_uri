@@ -7,7 +7,7 @@ return if defined <browser.shutdown> and <browser.shutdown>;
 my $load_uri = shift;
 
 if ( not defined $load_uri or !length($load_uri) ) {
-    <[base.log]>->( 0, "load_uri: uri parameter required!" );
+    <[base.log]>->( 0, "load_uri: uri parameter required." );
     return;
 }
 
@@ -36,40 +36,38 @@ my $fg_resource = $fg_view->get_main_resource;
 
 if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
     map {
-        my ( $flag_name, $flag_param ) = split( /=/, $_ );
+        my ( $flag_name, $flag_param ) = split( m|=|, $_ );
         $flag_param //= 1;
         <browser.url_flags>->{ lc($flag_name) } = $flag_param
-    } split( /\|/, $1 );
+    } split( m{\|}, $1 );
 }
 
 <browser.slideshow.temp_delay> = <browser.url_flags.delay>
     if defined <browser.url_flags.delay>
-    and <browser.url_flags.delay> =~ /^\d+(\.\d+)?$/;
+    and <browser.url_flags.delay> =~ m|^\d+(\.\d+)?$|;
 
 <[base.log]>->(
     2,
-    "(i) slideshow delay is " . <browser.slideshow.temp_delay> . " seconds.."
+    "(i) slideshow delay is " . <browser.slideshow.temp_delay> . " seconds.,"
 ) if defined <browser.slideshow.temp_delay>;
 
 <browser.load_uri> = $load_uri;
 
 <[browser.process_url_flags]>;
 
-<[base.log]>->( 2, ":. loading uri '$load_uri'.." );
+<[base.log]>->( 2, ":. loading uri '$load_uri'.," );
 
 <browser.time.load_start> = <[base.time]>->(3);
 
-if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
-{
+if ( defined <browser.keep_text_zoom_path> ) {
     my $settings     = $bg_view->get_settings;
-    my $skip_pattern = qr{^file://<browser.skip_content_zoom_path>};
+    my $skip_pattern = qr{^file://<browser.keep_text_zoom_path>};
     if ( $load_uri =~ $skip_pattern ) {
         $settings->set_zoom_text_only(1);
-        $bg_view->set_settings($settings);
     } else {
-        $settings->set_zoom_text_only(0);
-        $bg_view->set_settings($settings);
+        $settings->set_zoom_text_only( <browser.zoom_text_only> ? 1 : 0 );
     }
+    $bg_view->set_settings($settings);
 }
 
 <[browser.disconnect_signal.received_data]>;
@@ -86,7 +84,7 @@ if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
 
 <browser.signal_id.load_failed> = $bg_view->signal_connect(
     'load-failed' => sub {
-        $code{'browser.handler.signal.load_failed'}->(@_)  # <- reloadable code!
+        $code{'browser.handler.signal.load_failed'}->(@_) # <-- reloadable code.
     }
 );
 
@@ -106,7 +104,7 @@ $bg_view->load_uri($load_uri);
 return 0;
 
 # ______________________________________________________________________________
-#\\PXGI5JGY6YG7QCC4BGA5XM5B7PELTL3UBX5IBL6TYDFXGKRCO6SLWLSBHJI6YMG6MA36HM6PPTJIO
-# \\ JQPF4W2QFUU463VXYXHKGOAPPEDHT3V5VOUPDGOLR3FHXGCPN22L \\// C25519-BASE-32 //
-#  \\// ZWHT5JHT3CGVHUACGTYSZMOKCSAQRYAZGCZWK54AXFJTO2Y52CA \\ CODE SIGNATURE \\
+#\\6QRA32VUDI5S57O445JXT5GDCKMEIUJLCJB4C642M7EFXSI5W36YQXEWQNE3AABLVYLJ3VXYOCFT4
+# \\ ZVCZVNPRYSHTH346XXNEUZG6T7IY6RWSORN7ZH5CVXHH6QQAUQBR \\// C25519-BASE-32 //
+#  \\// DLFRY4TPY4WK5XGCL7QQX2YHCNCS7E4PHAY36LX52UWR7UG2KAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -122,11 +122,14 @@ if ( $user_scrolling and <browser.cfg.allow_scrollbars> ) {
 }
 
 # blocking website from overriding scrollbar policy
-# $view->get_main_resource->signal_connect('scrollbars-policy-changed', => sub { return 1 } );
+# $view->get_main_resource->signal_connect('scrollbars-policy-changed',
+#                                                    => sub { return 1 } );
 
 $view->set_zoom_level( <browser.zoom_level> * <browser.zoom_factor> );
 
-# $view->set_full_content_zoom( <browser.zoom_text_only> ? 0 : 1 );
+my $settings = $view->get_settings;
+$settings->set_zoom_text_only( <browser.zoom_text_only> ? 1 : 0 );
+$view->set_settings($settings);
 
 $view->set_editable(0);
 
@@ -158,7 +161,7 @@ $overlay->add_overlay($scrolled_window);
 <browser.gtk_obj.view>->{$id}            = $view;
 
 # ______________________________________________________________________________
-#\\STU2G7KZDC7LYDYJLEJFOE52FTODOK3INGR7BULIQOBIPE2ZOA4RPOIO37TSGQFXMVVXC7CGCKXIO
-# \\ JENAG5YJCPSLLBJXH4X64ZO7DTZJM5G4YI53OEBYA5FHMXFMNZZ3 \\// C25519-BASE-32 //
-#  \\// FAE7TNP5PCTXOANZED665WR6KEPO2U37T3PYYYTKPGZOTWZUACA \\ CODE SIGNATURE \\
+#\\MX5ANEH65EB7XEYCAVCFAUJRS74CGXTWOGMAVYNAWHT6B7X63FBVKHCTKD6LU46XUW4S6EAJBDDWY
+# \\ ASNP6FCHLXFIAFT37YNOLIO35DIU3BK4GSJT2E3PTJAP3B27W2MX \\// C25519-BASE-32 //
+#  \\// MKKB7ZKBV7PA7UP7BDH3EMIXPCM3VUFAZBZ5PTM2FU6MDIQTIAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
