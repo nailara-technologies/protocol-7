@@ -2,35 +2,26 @@
 
 # name  = xserver.cmd.lower_window
 # param = <w_id>
-# descr = lower (to bottom) the specified window
+# descr = lower specified window to bottom
 
 my $window_id = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 
-my $xtops = <xserver.x11_tops>;
-<[xserver.update-xtops]>;
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[xserver.window_id_found]>->($window_id);
 
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $window_id ) {
-        $window = $w;
-        last;
-    }
-}
+<xserver.x11>->ConfigureWindow( $window_id, stack_mode => 'Below' );
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
-
-$window->lower;
-<[xserver.update-xtops]>;
+<[xserver.get_window_ids]>;    ## <-- update to visualize action ##
 
 return { 'mode' => 'ack', 'data' => 'lowered to bottom' };
 
 # ______________________________________________________________________________
-#\\DRW4OJV3EKKPGMG7RWYDN2UCVLPUVFY4YI2Q2I6BMTT5SLAWT4DRQZJYVKCQAGQEQWL3ZXG5Z5TSI
-# \\ UMA4DRCPSBJ7VORP6VB23FTLADQRLDKWRR3R7V26TH2QB5TYVDDQ \\// C25519-BASE-32 //
-#  \\// SSY7HGISLHUGP5GRSSCFDKYWJVXALC7JFIAXLVBULJ2KABZREBA \\ CODE SIGNATURE \\
+#\\3BMBZPRM5HADHUTBO24SU3TQ5V2OVQVNSJHLJHKLHNLY42YSJPJ7Y3S452VT3DTETLT3R7DB7M6B4
+# \\ 2VWHJLTAOAVGYFWDZCC3PKJP7LSIU3VITNSIQ5MGMBPQSYEZBMRQ \\// C25519-BASE-32 //
+#  \\// RKH77SL557RUPSJHQM322FNNZJ2I772MNQZI5CELJYLV6KTM6AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
