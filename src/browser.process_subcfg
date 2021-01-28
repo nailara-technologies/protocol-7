@@ -16,12 +16,19 @@ if ( <browser.subcfg>->{'adblock'} ) {
 }
 
 if ( <browser.subcfg>->{'noscript'} ) {
-    <browser.cfg.javascript_enabled> = 0;
-    <[base.log]>->( 1, ": noscript enabled : [javascript:off]" );
+
+    if ( <browser.slideshow.no_scroll>
+        or !<browser.slideshow.autostart> and !<browser.slideshow.running> ) {
+        <browser.cfg.javascript_enabled> = 0;
+        <[base.log]>->( 1, ": noscript enabled : [javascript:off]" );
+    } else { ### current autoscroll implementation requires javascript ### [LLL]
+        <[base.log]>->( 1, ": noscript enabled but conflicts with autoscroll" );
+        <[base.log]>->( 1, ": :. <<< skipping 'noscript' tile setting >>>" );
+    }
 }
 
 if (    defined <browser.subcfg.scroll_speed>
-    and <browser.subcfg.scroll_speed> =~ /^\d+$/
+    and <browser.subcfg.scroll_speed> =~ m|^\d+$|
     and <browser.subcfg.scroll_speed> >= 1
     and <browser.subcfg.scroll_speed> <= 10 ) {
     <browser.cfg.scroll_speed> = <browser.subcfg.scroll_speed>;
@@ -29,7 +36,7 @@ if (    defined <browser.subcfg.scroll_speed>
     <[base.log]>->(
         1,
         sprintf(
-            ": cfg scroll speed : %2s  ( %s FPS )",
+            ": cfg scroll speed : %2s  [ %s FPS ]",
             <browser.cfg.scroll_speed>, <browser.autoscroll.fps>
         )
     );
@@ -49,7 +56,7 @@ if ( <browser.subcfg>->{'auto_speed'} ) {
 }
 
 # ______________________________________________________________________________
-#\\I2RVMLOLOUFXJAOC2IYYVT6UBZM5ZWZT3UHKYAHMOKTN6ZHW44YDQEKQUOJTEFOKCCKZQX3KJM5KM
-# \\ ACG6TAWD6D7WZ7SAIPDNFHYZX2DL6VP5CFSASAG2PKMKZWFJ5JDL \\// C25519-BASE-32 //
-#  \\// K2KPQSXNH64K5ZBK5YGE57JVVWVM2RNQ7FY34DWDTZFAISJGICA \\ CODE SIGNATURE \\
+#\\UHNRPI6MK6MPJXCID5DPMHNFVOJYRJXP4YXIXR7ZX7CFEVZX73IMJZKQZMTTI3TWCVCMONVZTWQKY
+# \\ D3UZ6IHMEEX6JYDKOSDYT6RKCBPT3SHPKJH4DTRKWITYYTNLBENA \\// C25519-BASE-32 //
+#  \\// VJZUIDP6VRC7FH3SKGRY35QUETMRKOML7SUW5ZIKDEL255VE4CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
