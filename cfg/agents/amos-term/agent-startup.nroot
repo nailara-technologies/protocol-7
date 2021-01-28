@@ -1,0 +1,15 @@
+# >:]
+
+# name  = agent-startup.nroot
+# descr = 'amos-term' agent startup configuration used by 'nroot' agent
+
+dependencies  = core
+
+: nroot-init :
+  start_mode = stdin-agent
+  core.key = [base.rnd_chars_anum:42]
+  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+: agent-init :
+  [base.auth.set_agent_key:'<{core.key}>']
+  [base.agents.set_ondemand_timeout:13]
