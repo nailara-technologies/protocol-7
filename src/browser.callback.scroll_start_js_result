@@ -12,8 +12,8 @@ my $window    = <browser.gtk_obj.window>;
 <window.scrolling> //= 0;
 <window.scroll.reply_id> = $reply_id;
 
-warn "result string not as expected [$js_result], can not scroll!"
-    if $js_result !~ /^(\-?\d+):(\d+)/;
+warn "result string not as expected [$js_result], can not scroll."
+    if $js_result !~ m|^(\-?\d+):(\d+)|;
 
 <window.scroll.max> = $1 // 0;
 <window.scroll.pos> = $2 // 0;
@@ -24,17 +24,17 @@ if ( <window.scroll.pos> >= <window.scroll.max> ) {
         $reply_id, { 'mode' => 'ack', 'data' => 'already at end of page' }
     ) if defined $reply_id;
 
-    <[base.log]>->( 2, ": skipping auto-scroll [end of page]" );
+    <[base.log]>->( 2, ": skipping auto-scroll [ end of page ]" );
     <[browser.callback.load_finished]>->('no_scroll')
         if $call_sub eq 'browser.callback.load_finished';
     return;
 
 } else {
     my $pixels = <window.scroll.max> - <window.scroll.pos>;
-    <[base.log]>->( 2, ": starting auto-scrolling... [ $pixels pixels ]" );
+    <[base.log]>->( 2, ": starting auto-scrolling.., [ $pixels pixels ]" );
 }
 
-<browser.timer.slideshow>->cancel if exists <browser.timer.slideshow>; # <- chk!
+<browser.timer.slideshow>->cancel if exists <browser.timer.slideshow>; # <- chk.
 
 <browser.signal_id.auto_scroll>
     = $window->signal_connect( draw => $code{'browser.handler.auto_scroll'} );
@@ -43,7 +43,7 @@ $window->queue_draw();
 <window.scrolling> = 1;
 
 # ______________________________________________________________________________
-#\\YI3H6GTZQ4OJO7I6EISH4ZPSJG2FYU2RVAE7XMZQCVOFNP33I5KGD5DW2P6OAHWJL4UYU2F3UPZGM
-# \\ TQ4IX4Y24OQ6FYPTNO64B7LS4RP4LPGWVB6VBAYIIEB66BMUVOAY \\// C25519-BASE-32 //
-#  \\// TWVO7LDBMFFHY6RV4RXG2K3Z6DCPKVKG5NLVHAPSNZBN5TVI6DI \\ CODE SIGNATURE \\
+#\\XC7OIYVCV4ONEJHGP73P4M3OZV5KXQUIIMDA3W6W3DU6MKUKHFSKTQXNCCYAERSE342QNVWIE5RDE
+# \\ EKSTAQE7WDW275EXPJN5UYODLGJKHHLJME3HCBIQJ6XKXWCUZAMD \\// C25519-BASE-32 //
+#  \\// DOMUG4BCVB5EWPAR4HIFQW2R7UE7AA6DQMM25I4XGBAWMJLZYBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
