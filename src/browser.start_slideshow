@@ -4,22 +4,30 @@
 
 <browser.url.list> //= [];
 
-<browser.slideshow.min_delay> //= 7;
-
+my $min_delay = <browser.slideshow.min_delay> //= 7;
 my $url_ref   = <browser.url.list>;
 my $url_count = scalar @{$url_ref};
 
-<[base.log]>->( 0, 'start_slideshow: slideshow is already running!' )
+return <[base.log]>->( 0, 'start_slideshow: slideshow is already running.' )
     if <browser.slideshow.running>;
-
-<[base.log]>->( 0, 'start_slideshow: url list is emtpy, slideshow aborted!' )
+return
+    <[base.log]>->( 0, 'start_slideshow: emtpy url list, slideshow aborted.' )
     if !$url_count;
+
+<[base.log]>->( 2, ": :. slideshow min-delay = $min_delay seconds .," );
+
+## current autoscroll implementation requires javascript enabled ### [LLL]
+if ( !<browser.cfg.javascript_enabled> and !<browser.slideshow.no_scroll> ) {
+    <[base.log]>->( 0, "enabling javascript [ required by autoscroll ]" );
+    <[browser.enable_javascript]>;
+}
+##
 
 <browser.slideshow.running> = 1;
 <[browser.handler.slideshow]>;
 
 # ______________________________________________________________________________
-#\\WSPGJ5CUBKZKGNCUELM745Z274BHTJC2TJNP6ES73QKONEWSWDNVFMREXV47G43GT7N6LTI7S4TCW
-# \\ VIQ2UO74FH2WX4VURZGNLTSVGM6JN7VDMUUVASBFXJ25DUZUN4TS \\// C25519-BASE-32 //
-#  \\// XYHAH2TB3BMMXDV3KSXCPNQQ4YEE6QHJPIM75MDRNAEE7UDSWCA \\ CODE SIGNATURE \\
+#\\2TQSVBQFATNY5M2BOZJ5EHQDETJI4TVDFATNLAWEMMDRGIWOOYXSVTSHI5KFDUXKWMSU6EDJLPUDQ
+# \\ SBCEJYBHTFU6VA5IHD2M6QUW5UOL4LUCKTBMYAXPGNARDYOSY7UR \\// C25519-BASE-32 //
+#  \\// HEQTNIDRY677HDT4D4JQQEOMK3CMDJSCMLZZVTMIOYK6J22K4DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

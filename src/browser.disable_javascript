@@ -1,0 +1,26 @@
+# >:]
+
+# name  = browser.disable_javascript
+
+my $expected_count = scalar keys %{<browser.gtk_obj.view>};
+
+map {
+    my $view     = <browser.gtk_obj.view>->{$_};
+    my $settings = $view->get_settings;
+
+    $expected_count -= $settings->get_enable_javascript();
+
+    $settings->set_enable_javascript(0);
+
+    $view->set_settings($settings);
+} keys %{<browser.gtk_obj.view>};
+
+<browser.cfg.javascript_enabled> = 0;
+
+return $expected_count ? 0 : 1;
+
+# ______________________________________________________________________________
+#\\D5FY5JCYC464ASQ6I3IMKUDA2VNUVQLYHCMC7HV4A5XC3I6PYJ4EB2O3NZD5BU7LOMPIMAVVZLWRC
+# \\ USDGMGKC4VSDHPSL5AQXTBLGEKJALQ7EVLGKR2763D2K5FB3E26T \\// C25519-BASE-32 //
+#  \\// PNP67IJ23O2KIGSI75YDV37F4DDDD2E4YIWV26DNRLLSOSOTUDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
