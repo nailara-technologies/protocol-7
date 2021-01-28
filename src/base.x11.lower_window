@@ -7,10 +7,10 @@ my $id = shift;
 my $user     = shift // 'core';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 1, "lowering window '$id'.." );
+<[base.log]>->( 1, "lowering window '$id'.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -28,15 +28,15 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
-    <[base.log]>->( 0, "lower_window command failed with '$1'.." );
+if ( $reply_string =~ m|^\($cmd_id\)NAK (.+)$| ) {
+    <[base.log]>->( 0, "lower_window command failed with '$1'.," );
     return 0;
 } else {
     return 1;
 }
 
 # ______________________________________________________________________________
-#\\PE3TJDZHU7JJWZDPVKQPVKJWWCKATOTMZHEHA6AMGQUQMXO64XCSERE3WII2CBUF5LO6ISSUPOJOA
-# \\ CUI4EQVKHNSJFN6OIUW4D52W4OUMOPLFXCY4X6KPXASM4ENN2OO4 \\// C25519-BASE-32 //
-#  \\// JYMXVH3MPIXKI4VGQTNCJ72OJFEOHZ7TBTO76OG4QZVWACR4QDA \\ CODE SIGNATURE \\
+#\\SNFTP5L5WM4X4M6B4CGIPUSYHPGAYYGBPHYMKDBUMATCWIMNRQCISD7QQXTBWECDMACDT7ZD4FI2C
+# \\ BS6VFP2HHSELHDR6LGCGSLFXXSQ4TM4T536T2LMDOOSTTVQI5CUM \\// C25519-BASE-32 //
+#  \\// ZO4EV5N7FAT33YR3ZSNOFOKB46H57E4F5LABMOLG7NLWR22F6BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
