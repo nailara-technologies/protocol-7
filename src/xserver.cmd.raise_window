@@ -2,35 +2,28 @@
 
 # name  = xserver.cmd.raise_window
 # param = <w_id>
-# descr = raise (to top) the specified window
+# descr = raise specified window to top
 
+my $X         = <xserver.x11>;
 my $window_id = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 
-my $xtops = <xserver.x11_tops>;
-<[xserver.update-xtops]>;
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[xserver.window_id_found]>->($window_id);
 
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $window_id ) {
-        $window = $w;
-        last;
-    }
-}
+$X->MapWindow($window_id);
+$X->ConfigureWindow( $window_id, stack_mode => 'Above' );
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
-
-$window->raise;
-<[xserver.update-xtops]>;
+<[xserver.get_window_ids]>;    ## <-- update to visualize action ##
 
 return { 'mode' => 'ack', 'data' => 'raised to top' };
 
 # ______________________________________________________________________________
-#\\ONVXDDMNYMG2AUEMQMENNFHBOFOB3YLA6LNIWZDSUW2AD7J4CPL2BLMAYMIUBP7AHAMUQ4XSK7Z4C
-# \\ X57KR5XIVJOZSU6QF4TQQCGVPGDTPIHLUS2MA7FCK7JIM4A6FDTM \\// C25519-BASE-32 //
-#  \\// QNMZYDOOK222XNDA4OPFZ7ZUOK2WIVPJJHWLDK7M4EYJQI6WOAI \\ CODE SIGNATURE \\
+#\\AMCC7YNVWJILOXVIH7CIRUWBMBG6EZVJMX2GTQO3MPA2EOUDC4R4V2XIWKJI744AULJTJCRJUJCA4
+# \\ 2JFFEQAEUOFR2XPKHMGAUE2LBWXAPAKISOTSOG673T4L7FSRM7MA \\// C25519-BASE-32 //
+#  \\// UWSZXBRYR2ZCNKEJ5EMB4RUKPGNRSIMYKSTUWJUY5GFSVBAHCCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
