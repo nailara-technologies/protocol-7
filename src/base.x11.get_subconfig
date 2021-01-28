@@ -50,7 +50,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
         $subcfg_data->{$c_key} = $c_val;
     }
     <[base.log]>->(
-        1, "received layout subconfig for '$name_str' ($bytes_total bytes)"
+        1, "received layout subconfig for '$name_str' [$bytes_total bytes]"
     );
     return $subcfg_data;
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK no config for agent '([^ ]+)'/ ) {
@@ -58,7 +58,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
     return undef;
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
     <[base.log]>->(
-        1, ": << get_subconfig not successful >> for '$name_str' [NAK]"
+        1, ": << get_subconfig unsuccessful [NAK] >> for '$name_str'"
     );
     return undef;
 } else {
@@ -71,7 +71,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\3YY7RGJ4EZG2SIHJXQOFETLKWNHB6MOHMYZAOUNDFWBM2V6JUBFVP6LLHUDPQEESTCJIRV5T5RYQE
-# \\ JZM6M7UR6H6CKS7J6BSWXJEOP6N2DOAFAK7MRJONI2NJQ7YFQYUQ \\// C25519-BASE-32 //
-#  \\// GOLLJXRMQWLVQSPBGEWXAHLD36FKI5J34DAHCZQHVQQZN4CJ2AA \\ CODE SIGNATURE \\
+#\\T5YQGZOSQAWS4JV36WZIPE5GLWPDCJAOVT5LAK6F2UYTEBS2YUS7LFIQIWGKEPDOKIR7S5RDGRWZW
+# \\ VNDAD4EUJDJFEIJZS7HHCUTUVFMJC4GQEQGGW4ASN4G7DPCKKP4G \\// C25519-BASE-32 //
+#  \\// CCDBXLHB4SFUHPTTKGMCLOFJJDKVNYAVNABJLA5QK4E6KHI54DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
