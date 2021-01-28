@@ -1023,7 +1023,7 @@ sub prepare_subs {
             " : $sub_name ( $param_list )"
             if $sub_name ne 'base.log'
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'agent' )
-            and $sub_name ne 'base.dump_data';    # skipping too much output...
+            and $sub_name ne 'base.dump_data';    # skipping too much output..,
     };
 
     $code{'base.log_hook'} = sub {
@@ -1126,7 +1126,8 @@ sub prepare_subs {
                 $code{'log.error'}->($msg);
                 exit(2);
             }
-            my ( $package, $filename, $line, $subroutine ) = caller;
+            my @caller = caller;
+            my ( $package, $filename, $line, $subroutine ) = @caller;
             if ( defined $data{'sig_warn_blacklist'} ) { # LLL: <- use an array.
                 return
                     if defined $data{'sig_warn_blacklist'}{'package'}
@@ -1139,8 +1140,10 @@ sub prepare_subs {
                 $_ =~ s| at $filename line $line[\.,].*$||;
                 $level = $1 || 1 if $_ =~ s| *<\{C(\d{1,3})?\}>$||
             } @err;
-            ( $package, $filename, $line, $subroutine ) = caller($level)
-                if $level;    # <- log parent caller instead ('<{C[level]}>')
+            if ($level) {    # <- log parent caller instead ('<{C[level]}>')
+                @caller = caller($level);
+                ( $package, $filename, $line, $subroutine ) = @caller;
+            }
 
             # special exception for agent code evaluation
             if ( abs_path($filename) eq
@@ -1156,8 +1159,21 @@ sub prepare_subs {
             my $caller_str = "[ $filename, $line ]";
             $caller_str = "[ ... caller level $level too high .., ]"
                 if !length( $filename . $line );
+            my $log_warning = 1;
+            ## alternative handlers registered for filename:line ? ##
+            my $match_param = "$filename:$line";    # <-- expand .., [LLL]
+            if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
+                my $cb_name
+                    = $data{'base'}{'warn-match-handler'}{$match_param};
+                ( my $msg_str = join( ' ', @err ) ) =~ s{^\s+|\s+$}{}g;
+                $log_warning
+                    = $code{$cb_name}->( $msg_str, $match_param, @caller )
+                    if defined $code{$cb_name};
+            }
+            ##
             push( @err, $caller_str );
-            $code{'log.error'}->( join( ' ', '<< warn >>', @err ) );
+            $code{'log.error'}->( join( ' ', '<< warn >>', @err ) )
+                if $log_warning;
         }
     };
 
@@ -1186,8 +1202,9 @@ END {
     $code{'base.handler.end_code'}->();
 }
 
+
 # ______________________________________________________________________________
-#\\K7P73KPKC36JNVWJMXN5LXDX2JP3NKXBSTITS2CLRFXSOI7TYDSSWMQIDPF4CGUNLQMBWCRUCRATS
-# \\ BWFFMYHCVAK2XQMFZG7QJDDRUGBYQNWQNT7R4FIKW4E43QCGO7IC \\// C25519-BASE-32 //
-#  \\// 27ANCMO6SFCMNO224DSPDMG62V7EUSB3LV2VCQ3P4EJXDIUDIAI \\ CODE SIGNATURE \\
+#\\ADNQ5E4AHSSJORXOVZ64MEPHRKKAR5O3AGGDJHFFURBTOGDNCZRUN3G2JIYLBJ2O3IN6M4SXPJ6NS
+# \\ VZQRRVTUSUC3YTHEZ342C6GBMFDUBTJ7BESQDTPVZ3XT7DUMHQ3U \\// C25519-BASE-32 //
+#  \\// PRXCXDLBLVM5ZQO2FTDVDUTP22GQDR53TY7X23CVDA6E2WFO6CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
