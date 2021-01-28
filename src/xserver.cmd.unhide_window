@@ -2,7 +2,7 @@
 
 # name  = xserver.cmd.unhide_window
 # param = <w_id>
-# descr = unhide the window with the specified id
+# descr = unhide specified window
 
 my $X         = <xserver.x11>;
 my $window_id = $$call{'args'};
@@ -10,35 +10,24 @@ my $window_id = $$call{'args'};
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 
-my $xtops = <xserver.x11_tops>;
-<[xserver.update-xtops]>;
-
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $window_id ) {
-        $window = $w;
-        last;
-    }
-}
-
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[xserver.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "unhiding window $window_id" );
 eval {
-    X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove',
-        'HIDDEN' );
-    X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove',
-        'HIDDEN' );
+    for ( 0 .. 1 ) {    # <- workaround [ ignored state requests ]
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove',
+            'HIDDEN' );
+    }
 };
 
-return { 'mode' => 'nak', 'data' => "unable to remove 'hidden' state" }
-    if $@;
+return { 'mode' => 'nak', 'data' => "unable to remove 'hidden' state" } if $@;
 return { 'mode' => 'ack', 'data' => "removed 'hidden' window state" };
 
 # ______________________________________________________________________________
-#\\T7DOSV32NZOATRPANJQC3TZRFCBOJOMUKLKTMPR3EBTZRA25ANXKKKDAB63SX5UAQY2NXPHB7KC6M
-# \\ DWXQPSUW2KJY5MKQLI5OWDKFD26Q4CVIVNVQ77W74RL6WIJUNQVP \\// C25519-BASE-32 //
-#  \\// DTTMGMQPT4HL6LC74RFVAVREVDQSUQLNK77GCN35DZ54MQYEEBQ \\ CODE SIGNATURE \\
+#\\IBSLCGTRVR3RENHVT72WCXQQGNXYZC5SX2ZNEJQVN3QXJG4R5DG2B2723FAFQCM6DHALB4GREVOB4
+# \\ MSWRP5ONLGPOZ4DMZAFLJ3QRIKO6QQCRIPBVPQY4YNSQZ4VFUUSD \\// C25519-BASE-32 //
+#  \\// MW2ZVQRXCKWKTPMUKU2NXEJV7OUCD6CHFV6HVKX35GENM53SCAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
