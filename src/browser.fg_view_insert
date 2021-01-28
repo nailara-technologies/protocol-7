@@ -7,7 +7,7 @@ return if defined <browser.shutdown> and <browser.shutdown>;
 
 my $load_uri = shift;
 
-die 'uri parameter expected!' if not defined $load_uri or !length($load_uri);
+die 'uri parameter expected.' if not defined $load_uri or !length($load_uri);
 
 <window.scroll.stop> = 1 if <window.scrolling>;
 
@@ -21,25 +21,22 @@ my $view     = <browser.gtk_obj.view>->{$fg_index};
 <browser.url_flags>    = {};
 
 if ( $load_uri =~ s|#\[([\w+\_\|]+)\]#$|| ) {
-    map { <browser.url_flags>->{ lc($_) } = 1 } split( /\|/, $1 );
+    map { <browser.url_flags>->{ lc($_) } = 1 } split( m{\|}, $1 );
 }
 
 <[browser.process_url_flags]>;
 
 <[base.log]>->( 2, "loading uri '$load_uri' to front view.." );
 
-if ( not <browser.zoom_text_only> and defined <browser.skip_content_zoom_path> )
-{
-    my $skip_pattern = qr{^file://<browser.skip_content_zoom_path>};
-    if ( $load_uri =~ $skip_pattern ) {
-
-        # $view->set_full_content_zoom(0);
-
+if ( not <browser.zoom_text_only> and defined <browser.keep_text_zoom_path> ) {
+    my $keep_pattern = qr{^file://<browser.keep_text_zoom_path>};
+    my $settings     = $view->get_settings;
+    if ( $load_uri =~ $keep_pattern ) {
+        $settings->set_zoom_text_only(1);
     } else {
-
-        # $view->set_full_content_zoom(1);
-
+        $settings->set_zoom_text_only( <browser.zoom_text_only> ? 1 : 0 );
     }
+    $view->set_settings($settings);
 }
 
 # store current url in /tmp in case browser engine segfaults
@@ -51,7 +48,7 @@ my $file_content = "current_url : $load_uri\nurl_flags   : "
 $view->load_uri($load_uri);
 
 # ______________________________________________________________________________
-#\\WVIACB4MVDAXFL6IV4S7SS53XOHILFWQASWEKVUJOTI7CIRCP3ELKPSQBCPZJAF3JTSRGXDZRSMXK
-# \\ FUM7GJF5PLMKIEK5GHBDRBZME3EXRQ5GWX7M3O7LBRLKJXD7O25M \\// C25519-BASE-32 //
-#  \\// MFX5FTVBCHFGAF37H5YZRLZLTA2B2AW7CLRMAMQN2QQ46SJEQAA \\ CODE SIGNATURE \\
+#\\QSZCDW4KBKS3KZLGTP6W5G4CKHGN6PA6JKV7K5VXF2MQVANDPNWM3YQCYBKHOUPU5L2B23VB3I3GQ
+# \\ PMV7UZ23WRA5OZOM3ZN3OJRPCZTYLSBLUAHK6PMCKPM3HCB6M6BZ \\// C25519-BASE-32 //
+#  \\// FCSK7TXGVZP6ZFHOLP6OXX5OFCVHJFW5AJD3UFRSEG5ACQLISAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
