@@ -18,10 +18,26 @@ $err_str =~ s|^(.)|lc($1)|e;
 $err_str =~ s|can\'t|cannot|g;
 $err_str .= " < $@ >" if $@;
 
-<[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" );
+$file =~ s|^/usr/share/perl5/||;    ##  <--  shortening path for .pm modules ##
+
+my $log_warning = 1;
+## alternative handlers registered for filename:line ? ##
+my $match_param = "$file:$line";    # <-- expand .., [LLL]
+if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
+    my $cb_name
+        = $data{'base'}{'warn-match-handler'}{$match_param};
+    $err_str =~ s{^\s+|\s+$}{}g;
+    $log_warning = $code{$cb_name}->( $err_str, $match_param, caller )
+        if defined $code{$cb_name};
+}
+##
+
+<[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
+    if $log_warning;
 
 return
-    if not $watcher
+       if not $watcher
+    or !$log_warning
     or <system.verbosity.console> < 2 and <system.verbosity.agent_buffer> < 2;
 
 my @attr_names = sort { length($a) <=> length($b) } sort $watcher->attributes;
@@ -39,7 +55,7 @@ foreach my $akey (@attr_names) {
 }
 
 # ______________________________________________________________________________
-#\\P4EROPTKQ4JDGT6KD5BANF3M7TGW5MKFQBDNASNFBO3BX7IQQMHZVJSCPYOEM63UQN5OL4GW4AMPE
-# \\ BZAZAKRIRAYWM3R6BXFSZUWI2S3JTVAWVYWQMB4K65BCNQJCH3DG \\// C25519-BASE-32 //
-#  \\// 5VHCFNG2ZEPAL7MJR3VG3T6BUJGHQ3L5OGZVBKTS3MJTYUDUABI \\ CODE SIGNATURE \\
+#\\5VSS3MVYY54ZZ4ZN46K4WCWWMOS6LPPG4KQHB5OZVLAFY7Q4TYTJWETSCQ2KGBH5HT5G74F2P7EE6
+# \\ FZRGTYKFP6YRLDDDB4BAX7AZSIWOQAB36SSVYCPP5ZHVBZIV3VSJ \\// C25519-BASE-32 //
+#  \\// YO2E652CEPX4MFQXSSCRVVQLCQFNXMTTBYOPHNWHRK5QEWPNWBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
