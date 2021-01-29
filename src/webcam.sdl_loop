@@ -119,7 +119,7 @@ while (1) {
     if ( length(<webcam.image_url>) and $response->is_success and !$timed_out )
     {
 
-        <[base.log]>->( 0, ": webcam is reachable again!" ) if $warned_cam;
+        <[base.log]>->( 0, ": camera access restored. =)" ) if $warned_cam;
         $warned_cam      = 0;
         $image_data      = $response->content;
         $last_image_date = $response->{'_headers'}->{'last-modified'};
@@ -151,7 +151,7 @@ while (1) {
             = !length(<webcam.image_url>)
             ? 'no cam url defined'
             : $response->status_line;
-        my $err_msg = "download error [$status_str]";
+        my $err_msg = "download error [ $status_str ]";
         if ( !$warned_cam ) {
             <[base.log]>->( 0, $err_msg );
 
@@ -211,7 +211,7 @@ sub loop_wait {    # processing network event while waiting
 }
 
 # ______________________________________________________________________________
-#\\PGBOZLZMZYI5UXGIMIALKC6N2B7XGGMRBMBCBLZ5D2MXIKHYVTUPWWEUWK2WZVCLLO4PMDN6X24LA
-# \\ GR2JXH2BKZOPDZYQBABNR7MNHBIEAMFTS4LCM2QATQCR54KB3SXZ \\// C25519-BASE-32 //
-#  \\// UTYH3Z3DDUKP22BH4XARFZAMNOVCMJ5U3JTGJTKD7RC7DCGR4CI \\ CODE SIGNATURE \\
+#\\GJG3MMU27X6UKA4MZGL4HW6CU3K3OTBVTVX5U4N7U5SWANBLSNCPTWMZL4ZBHNTS7JZOF4RSMUAEE
+# \\ EYMIMKSRNMIS54POQTKGN25S4RUNI6TPXLXPQRPHAFEPNRZBOMAK \\// C25519-BASE-32 //
+#  \\// FBDULHFGSGO5JTQFQ2HZSSAW3AH6NRVCL4OTSGOLDBWFFTS4KCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

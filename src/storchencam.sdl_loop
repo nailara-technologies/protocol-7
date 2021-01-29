@@ -182,7 +182,7 @@ while (1) {
             = ( $time_offset * 999 )
             + ( $dl_time - str2time( $response->{'_headers'}->{'date'} ) );
         $time_offset /= 1000;
-        <[base.log]>->( 0, ": webcam is reachable again!" ) if $warned_cam;
+        <[base.log]>->( 0, ": camera access restored. =)" ) if $warned_cam;
         $warned_cam      = 0;
         $image_data      = $response->content;
         $last_image_date = $response->{'_headers'}->{'last-modified'};
@@ -280,7 +280,7 @@ while (1) {
             );
         }
     } else {
-        my $err_msg = 'download error [' . $response->status_line . ']';
+        my $err_msg = 'download error [ ' . $response->status_line . ' ]';
         if ( !$warned_cam ) {
             <[base.log]>->( 0, $err_msg );
             my $w_txt
@@ -362,7 +362,7 @@ sub mask_scan {
 }
 
 # ______________________________________________________________________________
-#\\TMBV2I7KWKGC55EK2ISYVTFXTU563LRKMIKMKUL2LIA2FDS7CYCLBEK7B2F7Q2RVRZMHNK4UME63Y
-# \\ NO75BVPEC66YVSCYB5EC4TCEHVPDTFOTCS4DF2PRNAF2U7GT2BXH \\// C25519-BASE-32 //
-#  \\// QQM36WHDUAF2JDGIDZGKWGUUZW7BEM7S4BC2O6OI5KPNUIZWCBQ \\ CODE SIGNATURE \\
+#\\XWZQDPIAKW5VLFG4PSWGKRUQIUYVHAOO5OHHQHY4ETDPNVL7GNTLVJGYXHUUR4BX4ZXLUOKXX7ITE
+# \\ 3A4K5V2NBZI3YGCW746BYALDWE3NVFONEGUG7YJA37RSLEO5NGLD \\// C25519-BASE-32 //
+#  \\// WPODSAFLMQF7CFW65Z52KUCD2WBLOHAQMNCCLUMUPWSWPFMNIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -17,16 +17,16 @@ my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'xserver'}{'output_buffer'},
     4096,     length(<xserver.output_buffer>)
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # [ filehandle exception ]
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "$bin-server [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );                                  # to make sure
+    <[base.log]>->( 1, "$bin-server [ PID $pid ] filehandle closed .," );
+    kill( 9, $pid );                                  ##  <--  making sure .,
     my $err_str
         = defined <xserver.first_error>
         ? ': "' . <xserver.first_error> . '"'
-        : ' unexpectedly! (reason unknown)';
-    <[base.log]>->( 0, "$bin-server died" . $err_str );
+        : ' unexpectedly. [ unknown reason ]';
+    <[base.log]>->( 0, "$bin-server shut down" . $err_str );
     <[base.log]>->( 1, "done." );
     exit(2);
 }
@@ -34,16 +34,16 @@ if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
 while ( <xserver.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
     <xserver.first_error> = $1
-        if $output_line =~ /\(EE\) +(.+)$/
+        if $output_line =~ m|\(EE\) +(.+)$|
         and not defined <xserver.first_error>;
-    $output_line =~ s/\r//sg;
+    $output_line =~ s|\r||sg;
     <[base.log]>->( 2, "< $bin > " . $output_line );
 
-    # LLL: kill server here?
+    # LLL: terminate server here ?
 }
 
 # ______________________________________________________________________________
-#\\RKHZGVRBNZL5C7HYELTG2H3I44WX75QFNXJQQ5EXB25GBWP4YZLHADIPTU2XOGK4H2OLDXGINXEDG
-# \\ 64T33WNWD7WXZCIG4WFCRTWXU7OJLNMI7JNVJQOIF3SQOVEMQTUO \\// C25519-BASE-32 //
-#  \\// 5WVTBS27QCV4MWFW7YYR3IJ2SVUSQ6K4MWJXPPU6LQYPQ6YS6CQ \\ CODE SIGNATURE \\
+#\\6IEFHUCZ6WMDE4TRH2ME4O2W5PBUHGJTEGE7LDCRYVTULHMMQU23N2WB4BY6I4ACWKLZSFJWCMV6Y
+# \\ OU52SHPVYNNXLKLJ3DVAQZXVA2X7SZRCFKHAESXKRR5IUUUFA4MK \\// C25519-BASE-32 //
+#  \\// KQ435AZSPPOU4K4OAUDHTN47WLILWJ5BMIHCNC4L4BVF37AOCAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
