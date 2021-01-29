@@ -132,8 +132,11 @@ if ($count) {
             $job_attr->{'callback_params'} = $param_str;
         }
         map {
-                    <[jobqueue.remove_job]>->($_)
-                and <[base.log]>->( 0, "removed orphaned start job [$_] " )
+            if ( my @removed_job = <[jobqueue.remove_job]>->($_) ) {
+                my $a_n = $removed_job[0]->{'callback_params'}; ## agent_name ##
+                <[base.log]>->( 0, "removed orphaned start job [$_]" );
+                <[base.log]>->( 0, ": agent : $a_n" );
+            }
         } <[jobqueue.find_jobs]>->($job_attr);
     }
     ##
@@ -144,7 +147,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\3THPMRUSO4PAFA5XFQJIICWDNXHUZN5LUXF75CO3JK2GRI55QZWOXK5GFNNPE6UH7DUXEG6SSWRYC
-# \\ 45ACC4GWXUBFP5XALGEVFFS4LB5EMJJBZVPAIBEIYTBCWLAXIBXT \\// C25519-BASE-32 //
-#  \\// WE6W47C5NWC7NBKEVB62PR2LK736YGKXL44G2EVRIMSUK3KAMCQ \\ CODE SIGNATURE \\
+#\\L5UUSPJTCNDPFVDMBK67JJNPV4YFDLFCBMERVOGON7DHY5GQPDJ5IX6HHFD6YUG7IIZR7ABKI54MA
+# \\ WFZUOTZB5EGAWWVAI573MLMQHEXWI5GKTP6WSAC6WNRIUUMEFIAW \\// C25519-BASE-32 //
+#  \\// OI3OOKC76QKLT4DOHF7X5KKZ7XFCFA2JIRFB2MUGK4FVQSXGSCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
