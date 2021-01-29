@@ -1,24 +1,25 @@
 # >:]
 
 # name  = xserver.cmd.get_window_count
+# param = [name_pattern]
 # descr = count currently open windows [no 'popups']
 
-my $title_pattern = $$call{'args'};
+my $title_pattern = $$call{'args'} // '';
 
-return scalar <[xserver.get_window_ids]> if !length( $title_pattern // '' );
+my @ids;
+if ( !length($title_pattern) ) {
+    @ids = <[xserver.get_window_ids]>;
+} else {
+    foreach my $window_id (<[xserver.get_window_ids]>) {
+        my $title_string = <[xserver.get_window_title]>->($window_id);
+        push( @ids, $window_id ) if $title_string =~ m|\Q$title_pattern\E|;
+    }
+}
 
-## implement match windows ##
-
-my $xtops = <xserver.x11_tops>;
-<[xserver.update-xtops]>;
-
-return {
-    'mode' => 'ack',
-    'data' => scalar keys %{ $xtops->byid }
-};
+return { 'mode' => 'ack', 'data' => scalar @ids };
 
 # ______________________________________________________________________________
-#\\GYTIQSKULAPMDJWF77VSFKNWVINYK4VLTCAYMA6UDYFW2QH5MSX36Q5MZBLIDICSLUFPZVO6FWAQM
-# \\ HPUW7COSXYSTKOPI6W6LGRFYX3QFJ5BY7XQZNEZWO6NGSCP3LJYG \\// C25519-BASE-32 //
-#  \\// 6BRIYGDKGPAHSAL73BDJLDFVOD6IJPFL6FJVHQA3UGYJKS2TICQ \\ CODE SIGNATURE \\
+#\\2PNAWZV57W444JRACDUECNWM6Q5EJMVQFP7O4ITMNU3HYUGPZSVMHHHDCU27X4YLJ3VV3QFISHWCM
+# \\ JYR23RIWF4APKFX7QCMYGMPR2RUZMGZIO4VBK3I4LCUQN3MZSA5L \\// C25519-BASE-32 //
+#  \\// DNKTPZMQSWVUW6VMZ3FGQ6WRFWQWRXNQHWWHQAE3GHZ6REV6OBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
