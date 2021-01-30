@@ -6,10 +6,12 @@ my $window_id = shift;
 
 return undef if not defined $window_id or $window_id !~ m|^\d{1,13}$|;
 
+my $retries = 24;
 my $window_title;
-eval {
-    my ($wmstate);
-    while ( not defined $wmstate ) {
+my $wmstate;
+my $err;
+while ( not defined $wmstate and not defined $err and !$retries-- ) {
+    eval {
         ($wmstate)
             = <xserver.x11>
             ->GetProperty( $window_id, <xserver.x11>->atom('WM_NAME'),
@@ -17,13 +19,21 @@ eval {
         last if $wmstate;    ## <-- top-level window ##
         my ( undef, $parent ) = <xserver.x11>->QueryTree($window_id);
         $window_id = $parent;
-    }
+    };
+    $err = $@ if $@;
+}
+
+eval {
     ($window_title) = <xserver.x11>->GetProperty(
         $window_id,
         <xserver.x11>->atom('_NET_WM_NAME'),
         <xserver.x11>->atom('UTF8_STRING'),
         0, ~0, 0
     );
+    $err = $@ if $@;
+} if not defined $err;
+
+eval {
     if ( not defined $window_title ) {
         ($window_title) = <xserver.x11>->GetProperty(
             $window_id,
@@ -32,12 +42,13 @@ eval {
             0, ~0, 0
         );
     }
-};
+} if not defined $err;
+$err = $@ if $@;
 
-if ( defined $@ and $@ =~ m|^Protocol error: bad 3 \(Window\);| ) {
+if ( defined $err and $err =~ m|^Protocol error: bad 3 \(Window\);| ) {
     return undef;
-} elsif ($@) {
-    warn $@;
+} elsif ( defined $err ) {
+    warn "<get_window_title> $err";
 }
 
 $window_title = <[base.utf8.sanitize]>->( $window_title // '' );
@@ -46,7 +57,7 @@ $window_title =~ s{^'|'$}{}g;
 return length($window_title) ? $window_title : "''"; ## <-- quotes when empty..,
 
 # ______________________________________________________________________________
-#\\XU2OFN3YQ6PYJ74YRFGIFFC37AZICYI7VBZBX6NFGUZES3SNTE7FTQUHMC4EBOPZ2GERUTXTPH6GC
-# \\ FQFZXOVYNCNJHSFXZHN2YYUNBNKWLBFMSUMHAGFNMRAFRHHDZGMY \\// C25519-BASE-32 //
-#  \\// YDK7CZBWTCN4XHZ6HHUY2KCBZ7PGPSEGPBDEQTUP2EDSB55PWCQ \\ CODE SIGNATURE \\
+#\\ITTMWXSSTLHEIJU2AIWLQ4OAIGIC2CNQPA54HJF7SQJK6SWIA2MJ376B7KE57V4LLYLNBPRYMD2AG
+# \\ KJTLGKRWE7UFQL2BAUBGF3GVZXIX6MNF547UN4QDALNGVPDT4Q6L \\// C25519-BASE-32 //
+#  \\// TW5UCD43K523MH2XRWHB5GIAYOQ4K3I7GXCKHKWFDJY7BUDKEAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
