@@ -1,0 +1,19 @@
+# >:]
+
+# name  = base.cfg_boolean
+
+my $option_value = shift // '';
+
+# [ '' | 'n' | 'no' | '0' ] ##                                         <--[ 0 ]
+return 0 if !length($option_value) or $option_value =~ m{^(0|no?)$};
+
+## [ 'y' | 'yes' | '1' ] ##                                            <--[ 1 ]
+return 1 if $option_value =~ m{^(y(es)?|1)$};
+
+warn "option '$option_value' not understood <{C1}>" and return undef;
+
+# ______________________________________________________________________________
+#\\3RFFTWHPB6IVPKQ4VALB66KL5XBN4GF2ZNG646PBVHWCZ65R6MM7VIXPAV2ZII5TGNOXBMYZU6DAW
+# \\ SYCJFLROU5V5UT5JICPYWUYLPHVWNO4A2LLSC4W75WDVAFJA4Q6C \\// C25519-BASE-32 //
+#  \\// ARXLXXMZRDLORP7IDN6SRL462WLN6HDW5TOM2VV246CVVJHB6CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
