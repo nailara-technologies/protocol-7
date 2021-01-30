@@ -25,8 +25,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 my $ren = $child_count == 1 ? ' process' : 'ren';
-$reason = "$child_count child$ren left" if !length($reason) and $child_count;
-my $reason_txt = length($reason) ? " ( $reason )" : '';
+$reason = ".. $child_count child$ren .." if !length($reason) and $child_count;
+my $reason_txt = length($reason) ? " [ $reason ]" : '';
 
 <[base.log]>->( $log_level, "nroot agent shutdown" . $reason_txt );
 
@@ -122,7 +122,7 @@ map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_ ) }
 exit($exit_code);
 
 # ______________________________________________________________________________
-#\\ZTD6XPUDVGNYPXR6TSB2GWETZLGN2ZHKIOJCCVIWMQ27VUN66PUQP7BDDP577G6DBE3KMLNEKLLM2
-# \\ OHM5WQNH576CIUQNOLTURDORHADCNXYYHEYQULAJ6XYPE76OIJD2 \\// C25519-BASE-32 //
-#  \\// PJZMRUA2WHF6U3PPRTTSFVU64QVPMCJOPWBZORKHDMJYREOEMBY \\ CODE SIGNATURE \\
+#\\6ZLUNFBSC74237LYL2I5MCVAJSZDWPMOQ6ZJAVHROVN7EZGKAEC2WPFO44UMKQRLW7BGULPQCNX5U
+# \\ F4N6HWVAK35MJVQ5D7CPW6O3SC4JYCQV6H3HGTIO2O6M437BUE5W \\// C25519-BASE-32 //
+#  \\// O2Y5ILPRM6T4PAEKPWUTHRHHZUEG4OKNEG6G3RQBR5ITRJKWMDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
