@@ -2,10 +2,12 @@
 
 # name = nroot.compile_bin_nlr
 
-my $gcc_bin      = <nroot.gcc_bin>;
-my $gcc_timeout  = <nroot.gcc_timeout> || 7;
-my $nlr_src_path = join( '/', <system.root_path>, <system.nlr_src_path> );
-my $nlr_bin_path = <nroot.cfg.nlr_bin_path>;
+my $gcc_bin        = <nroot.gcc_bin>;
+my $gcc_timeout    = <nroot.gcc_timeout> || 7;
+my $nlr_src_path   = join( '/', <system.root_path>, <system.nlr_src_path> );
+my $nlr_bin_path   = <nroot.cfg.nlr_bin_path>;
+my $strip_binpth   = <[file.which]>->(qw| strip |);
+my $compile_static = <[base.cfg_boolean]>->(<nroot.cfg.nlr_static>) // 1;
 die "<< 'gcc' binary not found >>"          if !-x $gcc_bin;
 die "source file '$nlr_src_path' not found" if !-f $nlr_src_path;
 
@@ -22,7 +24,8 @@ my $nlr_checksum = delete <nroot.checksum.nlr_source>
 $nlr_src_str =~ s|\[BMW_FILE_DIGEST\]|$nlr_checksum|g;
 
 my $tmp_bin    = "$nlr_bin_path.$nlr_checksum";
-my @gcc_params = ( '-x', 'c', '-o', $tmp_bin, '-' );
+my @gcc_params = $compile_static ? ('-static') : ();
+push( @gcc_params, qw| -O3 -x c -o |, $tmp_bin, '-' );
 
 unlink($tmp_bin) or die "< unlink > $tmp_bin [ $! ]" if -f $tmp_bin;
 
@@ -45,6 +48,8 @@ if ( defined $gcc_pid ) {
     alarm(0);
 }
 
+qx| $strip_binpth -R .comment $tmp_bin | if length($strip_binpth); # optional ##
+
 ## verify.., ##
 if ( -f $tmp_bin ) {
     close($gcc_err_fh) if $gcc_err_fh->opened;
@@ -66,7 +71,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\TAITWZ2PQPSTBAGPAZ5TQ5BC2AMKWKTGRT7RS7AZKYARE5VMCGRSNLWQDHL6NRJ2BUDKDX276NFFK
-# \\ H3NSWDUVLT7EO4XJMPXXOXHTJFOQTKWNO6VLO55JBCBWG4NARY3Q \\// C25519-BASE-32 //
-#  \\// D6777FHL64ZUP2DF4ITTZZYYZOHYQE6DORQJKERZUML2GEDUECQ \\ CODE SIGNATURE \\
+#\\HVVKY75FIMF6DT2NWYVH4URL7EMPVCGCEVLAIGUTEP4C4JIS3SZJ6LHPK3SWWGCRKLTJXNREO3EJG
+# \\ 3V5Q77JYLKBGCRDVNCYQFKOX4N4QTJM5VKDN7LJJYFEKYPRYRCMZ \\// C25519-BASE-32 //
+#  \\// SGPUXR5GQZB4LA4AUIXNYQM76Z4INWEHPE3Z6R35HYTVMISGWCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
