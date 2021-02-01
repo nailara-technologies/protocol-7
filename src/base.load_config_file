@@ -26,7 +26,7 @@ my $status = <[base.execute_agent_code]>->(
         <[base.get_file.aref]>->(
             join( '/', $data{'system'}{'conf_path'}, $cfg_name ),
             sub {
-                $cfg_name =~ s/^.+\///g;
+                $cfg_name =~ s|^.+/||g;
                 <[log.error]>->("unable to load '$cfg_name' config [$!]");
                 <base.modules.cfg_level>--;
                 return undef;
@@ -40,7 +40,7 @@ return 1 if <base.parser.config.errors>;
 return $status;
 
 # ______________________________________________________________________________
-#\\24WAMVVSIGUQKY4DFO3CBAAY2SEK2LMVROTRPUAWAO7GRALK4QGMDB54ULK24HZLDM7ZTC7NKLD74
-# \\ GKBHXCRQHA2THFKEZDQSLAF2QAHC7VZII4BJZZKQYV7VLH5SLFWA \\// C25519-BASE-32 //
-#  \\// DDILHY2HUDRZD736JRUNDD2KCWHETORXX52FC3S2AL4EBCMGGDI \\ CODE SIGNATURE \\
+#\\GOWEOYQN43HZLPI5LQU3I4YAWBESJPE5ECIG7XTPIHUQYEGMZ4L47ZPPMRU2SOFAIGG5LYHE3WAF2
+# \\ SLH44PGSNV6IC53C5P7IST37MQUZWXGNPLVFIALWBFENZBWFZAIL \\// C25519-BASE-32 //
+#  \\// 2WR2KBGE2KCGJUPRDN4DLABUN7P5A7JCUE5LXCXDR236PXLCWDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
