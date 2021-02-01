@@ -8,6 +8,9 @@ max_concurrency   = 1
 heartbeat.timeout = 13
 restart.min_delay = 0.7
 agent-start.timeout = 24
+## [ in case of immediate errors ]
+startup-error.retry-count   = 2
+startup-error.retry-min-delay = 5
 
 : nroot-init :
   start_mode = stdin-agent
@@ -22,4 +25,4 @@ agent-start.timeout = 24
   status.post-init = 1
 
 : startup-error :
-  [nroot.callback.xorg-error-handler]
+  [nroot.callback.xorg-error-handler:<instance_id>]

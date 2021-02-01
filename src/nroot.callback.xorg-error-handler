@@ -2,10 +2,39 @@
 
 # name  = nroot.callback.xorg-error-handler
 
-warn '[ xorg-error-handler ] called ..,'
+my $instance_id = shift;
+my $report_to   = 'system';
+my $instance    = <nroot.agent.instance>->{$instance_id};
+
+return warn 'expected instance id parameter' if not defined $instance_id;
+return warn "instance $instance_id is gone" if not defined $instance;
+
+my $agent_name    = $instance->{'agent_name'};
+my $prev_status   = $instance->{'prev-status'};
+my $prev_duration = $instance->{'prev-status-duration'};
+
+$prev_duration =~ s|(\d+)s|$1 seconds|;
+
+my $error_message = sprintf( "agent '%s' status '%s' --> 'error' after %s .,",
+    $agent_name, $prev_status, $prev_duration );
+
+<[base.log]>->( 0, "reporting '$agent_name' agent error to '$report_to'..," );
+<[base.log]>->(
+    1,
+    sprintf(
+        ": '%s' : status was '%s' for %s",
+        $agent_name, $prev_status, $prev_duration
+    )
+);
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.$report_to.report-xserver-error",
+        'call_args' => { 'args' => $error_message }
+    }
+);
 
 # ______________________________________________________________________________
-#\\GCWJLKWJBUKTA7AOSM6XWKCKMWW5REVZKCK6OCOJ37DUSAN3DBPYYH53LUVIRZ33DYAZ5G42JCGNW
-# \\ M3LIIWCFENG6B7HEDFOVSTP45V6FOEJE3QXOIWCMEIK2MEIX7NCQ \\// C25519-BASE-32 //
-#  \\// JPJFIZ4KGSYQFXTOYQ2WDQM5LPJ4B2FBM5Z37PZ7PN5M7G4VKBY \\ CODE SIGNATURE \\
+#\\O3ONQE4LGAKC263KX26SUVUJ43JFNYLCFNNDNUDSGRN5EFYM5Q3NQTE6275PFV7AIJGQKEJ7N34EU
+# \\ LZSOGVL35TMTHLNCAQ52AI6QHMGM7FPIYPTU67PI6YOOI7NXV47E \\// C25519-BASE-32 //
+#  \\// TVXYIMGMOAGSTV4STKRQI5LTQJXL6GXHMNT4MUJSVLVYLOPXSBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
