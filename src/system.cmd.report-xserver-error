@@ -6,18 +6,24 @@
 
 ( my $core_user, my $err_msg ) = split( m| +|, $$call{'args'}, 2 );
 
-my $xorg_usr = 'xserver';
-my $hostname = <system.host.hostname>;
+my $hostname      = <system.host.hostname>;
+my $admin_user    = <system.admin-user>;
+my $allowed_users = qr{$hostname.(nroot|xserver|$admin_user)};
 return {
     'mode' => 'ack',
-    'data' => "only 'xserver' agent can invoke this command."
+    'data' => "only 'xserver' and 'nroot' agent can invoke this command."
     }
-    if $core_user ne "$hostname.$xorg_usr";
+    if $core_user !~ $allowed_users;
 
-<[base.log]>->( 0, "<!> xserver protocol error : '$err_msg' <!>" );
+map { <[base.log]>->( 0, $_ ) } ( "<!> xserver protocol error <!>", ' :' );
+
+local $Text::Wrap::columns   = 50;
+local $Text::Wrap::separator = " '\n";
+( my $wrapped_err_msg = wrap( " :  ' ", " :  ' ", $err_msg ) ) =~ s|( ')?$| '|;
+map { <[base.log]>->( 0, $_ ) } ( split( m|\n+|, $wrapped_err_msg ), ' :' );
 
 my $reply_message = 'acknowledged, ';
-my $does_reboot   = <[system.xcrash_hostreboot_check]>;
+my $does_reboot   = <[system.xcrash_hostreboot_trigger]>;
 
 $reply_message
     = $does_reboot
@@ -27,7 +33,7 @@ $reply_message
 return { 'mode' => 'ack', 'data' => $reply_message }
 
 # ______________________________________________________________________________
-#\\EY3JMSDIELESH33EWU2LET2QEH5AUZUCTQZH4OGD7NZTT2NKOQNYA76SJFEJ6YHQWY43QSZF2N7S2
-# \\ RMNWOIRJXTLIMPMNWCJHNULGWVN44WTNX2YJ75LCYTAICZSGFIPU \\// C25519-BASE-32 //
-#  \\// DT6NAHMB3SJO5YYDCQLKOHHCGJ4HMNXHXCIIAZVEHJFR4ASZAAI \\ CODE SIGNATURE \\
+#\\XPSFNMZAPQX3PEMW2RURAPEASJ6CAFC25FYABVUKYX7NO4VCESFBXNOO2K6X6DIMQRRZTU4Z3R3RI
+# \\ AZPH5UHXXLOPO44K3XN4JABCNUSHLUSOTIK35MUOEN6UUDXZNR7V \\// C25519-BASE-32 //
+#  \\// ZSOJGIBX6BSIS2VKT6OTSXPK6B4E64QPIKIBTNX5OLRBZTP3WCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
