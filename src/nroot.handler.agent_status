@@ -54,11 +54,16 @@ return
     and defined $instance->{'status'}
     and $instance->{'status'} eq $status;
 
+## record previus status and duration ##
+$instance->{'prev-status'}          = $old_status;
+$instance->{'prev-status-duration'} = <[base.parser.duration]>
+    ->( <[base.n2u_time]>->( $instance->{'status-since'} ) );
+
 <nroot.agent.instance>->{$instance_id}->{'status-since'} = <[base.ntime]>->(3);
 
 $instance->{'heartbeat'} //= {};
 $instance->{'heartbeat'}->{'retry_timeout'}
-    //= 2;      # short timeout on heartbeat error
+    //= 2;    # short timeout on heartbeat error
 
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     $instance->{'timer'}->{'verify_instance'}->cancel;
@@ -119,11 +124,6 @@ $instance->{'status'} = $status;
     )
 );
 
-## record previus status and duration ##
-$instance->{'prev-status'}          = $instance->{'status'};
-$instance->{'prev-status-duration'} = <[base.parser.duration]>
-    ->( <[base.n2u_time]>->( $instance->{'status-since'} ) );
-
 # quickly terminate leftover processes
 if (    $status ne 'starting'
     and $status ne 'online'
@@ -177,7 +177,7 @@ if (    $old_status ne 'online'
             $_ =~ s|<agent_name>|$agent_name|g
         } @start_error_code;
         <[base.execute_agent_code]>
-            ->( <[base.parser.config]>->(\@start_error_code) );
+            ->( <[base.parser.config]>->( \@start_error_code ) );
         ##
     }
     ##
@@ -393,7 +393,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\CWPVZHLXBYSP467HIRXLEYLAZ6D3XAAZ4S767W3O3OV7EE2O3ND35EJEWHWC7AZ6CIEYWKOJ27H3K
-# \\ SPP5AZAHW3XSUHO66GY7FQMCUV2W6PCXOHT2664VVSWPHUM6YQOW \\// C25519-BASE-32 //
-#  \\// 3EZK4YGOCGQ6M4CEZUQO37GJMQ6UACIB2OTFIR6MWAWKZ347UDI \\ CODE SIGNATURE \\
+#\\2TOBVDRPH7ZJUD5RKO56MEAM7FRYGK36VCU7W7J5A3HSWJGOKC5JRQTI5V6CCERFNH33YR3RKE4SW
+# \\ BZK6RY5MRBAM2R3YRC24ZLRGBG6FWMSR5HE7BKBTRH3EK65VXQB5 \\// C25519-BASE-32 //
+#  \\// FOOBVUCL7ILSFIVHNLD4PE4S2YCTXZFBNSIGYHOKTQVJHVA2UCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
