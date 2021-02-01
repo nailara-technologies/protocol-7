@@ -21,10 +21,10 @@ my ( $section_ref, $sub_section_ref );
 my ( $section, $sub_section, $sub_sub_section, $data_ref );
 foreach my $line (@cfg_lines) {
     $line_num++;
-    $line =~ s/(#.*|[ \t]*)+$//g;
-    $line =~ s/^[ \t]+//;
+    $line =~ s{(#.*|[ \t]*)+$}{}g;
+    $line =~ s|^[ \t]+||;
     next if $line eq '';
-    if ( $line =~ /^\.: *([^:]*\S) *:\.$/ ) {
+    if ( $line =~ m|^\.: *([^:]*\S) *:\.$| ) {
         $section = $1;
         ( $sub_section, $sub_section_ref, $sub_sub_section )
             = ( undef, undef, undef );
@@ -35,7 +35,7 @@ foreach my $line (@cfg_lines) {
             $data_ref = <[base.code_section_ref]>->( $code_data, $section );
         }
         $section_ref = $data_ref;
-    } elsif ( $line =~ /^- *(.+)$/ ) {
+    } elsif ( $line =~ m|^- *(.+)$| ) {
         $sub_section     = $1;
         $sub_sub_section = undef;
         die "no parent section defined for sub-section '$sub_section' "
@@ -51,7 +51,7 @@ foreach my $line (@cfg_lines) {
             );
         }
         $sub_section_ref = $data_ref;
-    } elsif ( $line =~ /^: *([^:]*\S) *:$/ ) {
+    } elsif ( $line =~ m|^: *([^:]*\S) *:$| ) {
         $sub_sub_section = $1;
         die "parent section missing for sub-sub-section"
             . " '$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
@@ -76,7 +76,7 @@ foreach my $line (@cfg_lines) {
 return $code_data;
 
 # ______________________________________________________________________________
-#\\RMJK56JMG4XTVVUAK52CWEDWPDZXO7AW5Q3LAE4NW3NXC326VGCYK7I6UGGOURZC2EZP6FRST67VU
-# \\ NLCIG6AF4N2G34WBPORP3IBRGQ7WHXX45CS7KSZGMTF7J7QZRWWT \\// C25519-BASE-32 //
-#  \\// EBALXKZN6KJP7VVG23NMTHEPQ4QRZWTRC4MELOTUGQ3SL2FZUCA \\ CODE SIGNATURE \\
+#\\CRLY6MZJZYWWSJLFFWL4SSF6QZ3K6ENRQTBZEFXR2TKO4OZ4DE2MVOA3EEHCGALO65AAWMWFJJJSQ
+# \\ WQE37TSDCBJEHCVULBHP5IMPS3ZDSJM5RK7P5G4WHSD6JNBWJPSL \\// C25519-BASE-32 //
+#  \\// AXADWN6FG3DQZPMETIK2VPWG3LU2MOUUZHR7ZYEXQWTRIXNYKAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
