@@ -47,7 +47,12 @@ foreach my $param_str ( split m| +|, $params ) {
     }
 }
 
-map { <[agent.instance.stop]>->($_) } @instance_ids;
+map {
+    <[agent.instance.stop]>->($_);
+    ## clean-up., ##
+    delete <nroot.agent.instance>->{$_}->{'startup-error-retries'};
+    ##
+} @instance_ids;
 
 my $count   = scalar @instance_ids;
 my $s       = $count > 1 ? 's' : '';
@@ -147,7 +152,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\L5UUSPJTCNDPFVDMBK67JJNPV4YFDLFCBMERVOGON7DHY5GQPDJ5IX6HHFD6YUG7IIZR7ABKI54MA
-# \\ WFZUOTZB5EGAWWVAI573MLMQHEXWI5GKTP6WSAC6WNRIUUMEFIAW \\// C25519-BASE-32 //
-#  \\// OI3OOKC76QKLT4DOHF7X5KKZ7XFCFA2JIRFB2MUGK4FVQSXGSCY \\ CODE SIGNATURE \\
+#\\HCFS6IZTZCGIZIU3YUK5UX4PXDTPJY56HUSPJUSIJ4MO4KCJKCRJ7WQIV2D46I7TB4G2JB5MMGPWA
+# \\ HR3YDM7QH4KOAXIHUJH7ZHXZFDIVDEIIR33RSINHY3WF3T64UFGP \\// C25519-BASE-32 //
+#  \\// EY2FE5FXYM43KRZCTZLMWG4XRBU5BUFICJGAAO2QWVJXBC62KCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

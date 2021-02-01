@@ -91,7 +91,10 @@ if ( ( $status eq 'online' or $status eq 'extbin' )
         $init_code->{'nroot-post-init'},
         "\$data{'nroot'}{'agent'}{'instance'}{$instance_id}{'init_data'}"
     );
-    map { $_ =~ s|<instance_id>|$instance_id|g } @post_init_code;
+    map {
+        $_ =~ s|<instance_id>|$instance_id|g;
+        $_ =~ s|<agent_name>|$agent_name|g;
+    } @post_init_code;
     <[base.execute_agent_code]>->(@post_init_code);
 }
 if (    ( $status eq 'online' or $status eq 'extbin' )
@@ -116,6 +119,11 @@ $instance->{'status'} = $status;
     )
 );
 
+## record previus status and duration ##
+$instance->{'prev-status'}          = $instance->{'status'};
+$instance->{'prev-status-duration'} = <[base.parser.duration]>
+    ->( <[base.n2u_time]>->( $instance->{'status-since'} ) );
+
 # quickly terminate leftover processes
 if (    $status ne 'starting'
     and $status ne 'online'
@@ -126,7 +134,7 @@ if (    $status ne 'starting'
     map { <[nroot.terminate_process]>->($_) } (
         $instance->{'process'}->{'id'},
         <[nroot.instance_child_pids]>->($instance_id),
-        <[nroot.sub-process.orphan_pids]>    # LLL: <- make obsolete! (heavy)
+        <[nroot.sub-process.orphan_pids]>    # LLL: <- make obsolete. [ heavy ]
     );
 }
 
@@ -139,6 +147,9 @@ if ( $old_status ne 'error' and $status eq 'error' ) {
     $instance->{'restart_delay'}
         = sprintf( "%.0f", $instance->{'restart_delay'} )
         if $instance->{'restart_delay'} > 20;
+
+    # warn ' < restart-delay > ' . $instance->{'restart_delay'};
+    # warn " < old-status > $old_status [ $status ]";
 }
 $instance->{'restart_delay'} = $max_restart_delay
     if $instance->{'restart_delay'} > $max_restart_delay;
@@ -153,9 +164,37 @@ if (    $status ne 'online'
 if (    $old_status ne 'online'
     and $old_status ne 'extbin'
     and $status eq 'error' ) {
-    if ( exists $init_code->{'startup-error'} ) {
+    $instance->{'startup_error'} //= $agent_config->{'startup-error'}
+        if defined $agent_config->{'startup-error'};
+    my $start_err_cfg = $instance->{'startup_error'} // {};
+    ## : startup-error : section code ###
+    if (    exists $init_code->{'startup-error'}
+        and ref( $init_code->{'startup-error'} ) eq 'ARRAY'
+        and my @start_error_code = @{ $init_code->{'startup-error'} } ) {
+        ## : startup-error : agent code section :
+        map {
+            $_ =~ s|<instance_id>|$instance_id|g;
+            $_ =~ s|<agent_name>|$agent_name|g
+        } @start_error_code;
         <[base.execute_agent_code]>
-            ->( <[base.parser.config]>->( $init_code->{'startup-error'} ) );
+            ->( <[base.parser.config]>->(\@start_error_code) );
+        ##
+    }
+    ##
+    if ( not defined $instance->{'startup-error-retries'} ) {
+        $instance->{'startup-error-retries'} = $start_err_cfg->{'retry-count'}
+            // 0;
+        $instance->{'restart_delay'} = $start_err_cfg->{'retry-min-delay'}
+            if defined $start_err_cfg->{'retry-min-delay'};
+    }
+    if ( $instance->{'startup-error-retries'}-- ) {
+        <[base.log]>->(
+            1,
+            sprintf(
+                ": instance %d : startup-retries : %d :",
+                $instance_id, $instance->{'startup-error-retries'}
+            )
+        );
     } else {
         delete $instance->{'core_sid'};
         <[agent.change_status]>->( $instance_id, 'offline' )
@@ -164,7 +203,8 @@ if (    $old_status ne 'online'
     }
 }
 
-if (    $status eq 'offline' or $status eq 'error'
+if (   $status eq 'offline'
+    or $status eq 'error'
     and defined $agent_config->{'restart'}->{'disabled'}
     and $agent_config->{'restart'}->{'disabled'} == 1 ) {
     <[base.log]>->( 1, ": no auto-restart for instance $instance_id" );
@@ -289,6 +329,8 @@ if ( $status eq 'shutdown'
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
+    delete $instance->{'startup-error-retries'};            ## <-- if present ##
+
     if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
         $instance->{'timer'}->{'startup-timeout'}->cancel
             if $instance->{'timer'}->{'startup-timeout'}->is_active;
@@ -351,7 +393,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\5WVUFU5PLLCBVDRED5VVH62VO3SOCLBCQX3OPW5LJ4SQ3DKJBC4XX7A76JJECN4HDQYJEMGAM7XD6
-# \\ 6BB43SXGYAHDQMS23T4XLP7ERZN423GMWLKBK7H6WKIADFL6E2GK \\// C25519-BASE-32 //
-#  \\// IBVVK4YHPQBZ2NZZGTUFNMX2644IFIQX74G3ZIWLV7MZWNWMKAY \\ CODE SIGNATURE \\
+#\\CWPVZHLXBYSP467HIRXLEYLAZ6D3XAAZ4S767W3O3OV7EE2O3ND35EJEWHWC7AZ6CIEYWKOJ27H3K
+# \\ SPP5AZAHW3XSUHO66GY7FQMCUV2W6PCXOHT2664VVSWPHUM6YQOW \\// C25519-BASE-32 //
+#  \\// 3EZK4YGOCGQ6M4CEZUQO37GJMQ6UACIB2OTFIR6MWAWKZ347UDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
