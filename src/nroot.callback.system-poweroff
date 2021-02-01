@@ -3,34 +3,69 @@
 # name = nroot.callback.system-poweroff
 
 my $sysrq_file = '/proc/sysrq-trigger';
-my $sys_kernel = '/proc/sys/kernel/sysrq';
 
 my $poweroff_enabled = <system.system-poweroff.enabled>    //= 1;
 my $term_delay       = <system.system-poweroff.term-delay> //= 1.3787;
-
+my $poweroff_message = '<<< powering off host system >>>';
 return <[base.log]>->(
     0, "[ system.system-poweroff.enabled = 0  <- shutdown cancelled., ]"
 ) if !$poweroff_enabled;
 
-<[base.log]>->( 0, "[ '$sysrq_file' not found, shutdown cancelled., ]" )
-    if !-e $sysrq_file;
+#
+### [  alternative method  ] ### [  userspace commands  ]
+#
 
-<[file.put]>->( $sys_kernel, "1\n" ) if -e $sys_kernel;
+if ( !-e $sysrq_file ) {
+    <[base.log]>->(
+        0, "[ '$sysrq_file' not found, halting system using userspace., ]"
+    );
+    if ( my $sync_bin = <[file.which]>->('sync') ) {
+        <[base.log]>->( 0, '<< syncing disks >>' );
+        qx| $sync_bin |;
+    } else {
+        <[base.log]>->( 0, "'sync' binary not found in path.," );
+    }
+    if ( my $systemctl = <[file.which]>->('systemctl') ) {
+        <[base.log]>->( 0, $poweroff_message );
+        qx| $systemctl poweroff |;
+    } else {
+        my $poweroff_cmd
+            = -x '/sbin/poweroff'
+            ? '/sbin/poweroff'
+            : <[file.which]>->('poweroff');
+        if ( !-x $poweroff_cmd ) {
+            <[base.log]>->(
+                0, "neither systemctl nor 'poweroff' command found.,"
+            );
+            <[base.log]>->( 0, ':. unable to power off - do not know how .' );
+        } else {
+            <[base.log]>->( 0, $poweroff_message );
+            qx| $poweroff_cmd |;
+        }
+    }
+}
+
+#
+### [  regular method  ] ### [  /proc/sysrq-trigger  ]
+#
 
 map {
     open( my $sysrq_fh, ">$sysrq_file" ) or die "[ $sysrq_file : $! ]";
     print {$sysrq_fh} "$_\n";
-    if ( $_ eq 'e' ) {
+    if ( $_ eq 'e' ) {    # SIGTERM
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
         <[base.sleep]>->($term_delay);
-        print {$sysrq_fh} "i\n";
-        <[base.log]>->( 0, "<<< powering off host system >>>" );
+        print {$sysrq_fh} "i\n";    # SIGKILL
+        <[base.log]>->( 0, $poweroff_message );
     }
     close($sysrq_file)
 } ( 's', 's', 'u', 'e', 'o' );
 
+#
+##
+
 # ______________________________________________________________________________
-#\\EE2745ZWNYMGTZ2VAOF36JZAA6XMEI7UMNW3YINLRZIV5MPEKABZJQ5PRA2KOZ547TCEGJ62DEV4C
-# \\ CD2DD7FSECHA7FLS6QDEJTJVD2DJT4MAJET4VCASMMKVLQB73JBD \\// C25519-BASE-32 //
-#  \\// RZFML7RKY2VNKJKHXITZRXQKTXMHLJVPINCMQ5MNYQUTIWZQGDQ \\ CODE SIGNATURE \\
+#\\FHFIKAHYNCTDF5XHADMATZBJYCPJ6VG5OG2RI5OXUCUZCUDIKWOW64QQCWSL47PFEG674SJ5IFYDA
+# \\ P22YWX7STEZQIU4PAJBLOFDTAXW2LXDK54QG67WFHLUDQBBZZ7DS \\// C25519-BASE-32 //
+#  \\// JZROEAF5QX34K2UB7QOEGQTQQSAFX6J4PW2CEONRC4O5LLBFODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

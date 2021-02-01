@@ -3,34 +3,66 @@
 # name = nroot.callback.host-reboot
 
 my $sysrq_file = '/proc/sysrq-trigger';
-my $sys_kernel = '/proc/sys/kernel/sysrq';
 
 my $reboot_enabled = <system.host-reboot.enabled>   //= 1;
 my $term_delay     = <system.host-reboot.term_time> //= 1.3787;
+my $reboot_message = '<<< rebooting host system >>>';
 
 return <[base.log]>->(
     0, "[ system.host-reboot.enabled = 0  <- reboot cancelled., ]"
 ) if !$reboot_enabled;
 
-<[base.log]>->( 0, "[ '$sysrq_file' not found, reboot cancelled., ]" )
-    if !-e $sysrq_file;
+#
+### [  alternative method  ] ### [  userspace commands  ]
+#
 
-<[file.put]>->( $sys_kernel, "1\n" ) if -e $sys_kernel;
+if ( !-e $sysrq_file ) {
+    <[base.log]>->(
+        0, "[ '$sysrq_file' not found, rebooting using userspace., ]"
+    );
+    if ( my $sync_bin = <[file.which]>->('sync') ) {
+        <[base.log]>->( 0, '<< syncing disks >>' );
+        qx| $sync_bin |;
+    } else {
+        <[base.log]>->( 0, "'sync' binary not found in path.," );
+    }
+    if ( my $systemctl = <[file.which]>->('systemctl') ) {
+        <[base.log]>->( 0, $reboot_message );
+        qx| $systemctl reboot |;
+    } else {
+        my $reboot_cmd
+            = -x '/sbin/reboot' ? '/sbin/reboot' : <[file.which]>->('reboot');
+        if ( !-x $reboot_cmd ) {
+            <[base.log]>->( 0, 'neither systemctl nor reboot command found.,' );
+            <[base.log]>->( 0, ':. unable to reboot - do not know how .' );
+        } else {
+            <[base.log]>->( 0, $reboot_message );
+            qx| $reboot_cmd |;
+        }
+    }
+}
+
+#
+### [  regular method  ] ### [  /proc/sysrq-trigger  ]
+#
 
 map {
     open( my $sysrq_fh, ">$sysrq_file" ) or die "[ $sysrq_file : $! ]";
     print {$sysrq_fh} "$_\n";
-    if ( $_ eq 'e' ) {
+    if ( $_ eq 'e' ) {    # SIGTERM
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
         <[base.sleep]>->($term_delay);
-        print {$sysrq_fh} "i\n";
-        <[base.log]>->( 0, "<<< rebooting host system >>>" );
+        print {$sysrq_fh} "i\n";    # SIGKILL
+        <[base.log]>->( 0, $reboot_message );
     }
     close($sysrq_file)
 } ( 's', 's', 'u', 'e', 'b' );
 
+#
+##
+
 # ______________________________________________________________________________
-#\\IGHTO4ECVTMZLUBOLGSOSTAKIT5WBLQNHN7KPJ4T4TUCH64645W7XY7HSSPGS7I4CGE6QQQRKHD76
-# \\ RENGD3B2ANO37SLJ55QUJ7QNNH4SGP5T7EYWLITGTNP4E7AFSYRG \\// C25519-BASE-32 //
-#  \\// RQMOVQH5Z6DC553L62WOS2D463OGM3KQAC6TBBD57QLA4PKDGAQ \\ CODE SIGNATURE \\
+#\\2A3WGJGKW5R3IM2N6IWURXUNDCUZAITSBQVR5CJ4EVQEBWDBSAKQR775TPVP6TQCG677AOLVQLXNQ
+# \\ FLY4PZFOU5AGXK4VOJNUL4O4PXISM5QHBQUKFD46BS3SRYHMGONR \\// C25519-BASE-32 //
+#  \\// BKFSOPOFC2XYZYMWU6VUM5MX3D7JV4AADB4FOQK3AG4BOXPWIAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
