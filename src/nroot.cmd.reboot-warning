@@ -1,0 +1,48 @@
+# >:]
+
+# name  = nroot.cmd.reboot-warning
+# param = <delay> <reason>
+# descr = broadcast a reboot warning to all unix users
+
+( my $warn_seconds, my $reboot_reason )
+    = split( m| +|, $$call{'args'} // '', 2 );
+
+my $who_bin_path  = <[file.which]>->('who');
+my $wall_bin_path = <[file.which]>->('wall');
+
+return { mode => 'nak', 'data' => "numerical 'seconds' parameter expected" }
+    if !length( $warn_seconds // '' )
+    or $warn_seconds !~ m|^\d+$|;
+return { mode => 'nak', 'data' => "'reason' parameter expected" }
+    if !length( $reboot_reason // '' );
+return {
+    mode   => 'nak',
+    'data' => "'reason' parameter too long [ max. 32 characters ]"
+    }
+    if length( $reboot_reason // '' ) > 32;
+return {
+    mode   => 'nak',
+    'data' => "invalid character '$1' in 'reason' parameter"
+    }
+    if $reboot_reason =~ m|([^\s\d\w\-\+\'\"\.,_])|;
+return { mode => 'nak', 'data' => "'wall' binary not found" }
+    if !length($wall_bin_path);
+
+<[base.log]>->( 1, ":.. sending 'wall' message [ host reboot warning ]" );
+
+if (system( $wall_bin_path,
+        "\n\n  <<< REBOOTING SYSTEM IN $warn_seconds SECONDS [ $reboot_reason ]"
+            . " >>>\n\n\n\r   < [ TO ABORT REBOOT "
+            . "RUN 'nlr system.abort-reboot' ] >\n\n" ) != 0
+) {
+    my $err_msg = lc($!);
+    warn "$err_msg [ $wall_bin_path ]";
+    return { mode => 'nak', 'data' => "'wall' command error : $err_msg" };
+}
+return { mode => 'ack', 'data' => 'message sent to all terminals.' };
+
+# ______________________________________________________________________________
+#\\6PXTBS6N54ZQUWI3FLD4QP7IYX6MJYASNVXLRK66OJZBQGXMVRVHWRHC4DLFTBSMHCDVFW4A7ITZM
+# \\ 36WFP4UULHSDULTL6HRAV7NUOUPVBQW3XBHCTLQG4S2PSCMMC7A5 \\// C25519-BASE-32 //
+#  \\// 7LQFX5A7SCJQWPFWUF6JAQDQFEPR76RAUDNK3KTZWJB4DDB3MAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
