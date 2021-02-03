@@ -9,6 +9,21 @@ my ($node_agent, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
 ) = split( m| |, $_[0]->{'args'}, 6 );
 
+## preventing duplicate entries ##   <-- usecase needs repair [ nroot, verb.=0 ]
+<history.checksums> //= {};
+my $node_checksums = <history.checksums>->{$node_agent} //= {};
+$node_checksums->{$buffer_name} //= '';
+my $entry_checksum = <[digest.elf.b32]>->( $_[0]->{'args'} );
+if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
+    <[base.log]>->(
+        2, "rejected duplicate '$buffer_name' entry from '$node_agent'.,"
+    );
+    return { 'mode' => 'nak', 'data' => 'duplicate entry, dropped.' };
+} else {
+    $node_checksums->{$buffer_name} = $entry_checksum;
+}
+##
+
 $log_level //= 0;
 
 my $err_msg;
@@ -88,7 +103,7 @@ my $write_line = sprintf( "%s %07d %d %s\n",
     $log_time, $instance_id, $log_level, $log_message );
 
 my $msg_len = length($write_line);
-my ( $success, $err_msg ) = <[history.add_line]>->( $log_file, \$write_line );
+( my $success, $err_msg ) = <[history.add_line]>->( $log_file, \$write_line );
 
 # success
 return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
@@ -98,7 +113,7 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 return { 'mode' => 'nak', 'data' => $err_msg };
 
 # ______________________________________________________________________________
-#\\HGWP7V4OVQEMSZ22C4ODGM76SOFKQNHOXVJSZTIP3TOFALKBX2UHC6XMR37UECIFGQLJIRWJT5DGA
-# \\ SYUGPS6F3CGB2YQIDUHHSI3XY5EL7LYBPR36N7SN22LVWAO2DT2E \\// C25519-BASE-32 //
-#  \\// DSIT3LKRI33ESV2GBG7MFFIGDA4CXIZTZ26VVKWTWYT5ED7HODY \\ CODE SIGNATURE \\
+#\\FL3IOCJ6IMOU2S7LYS52IWI54U33UCLFTQMCIZF5ZJ4SZYBSQJGCJLKIO4RJJVGXHOZPKDK36SOO4
+# \\ T3HJXXF7HRHGTLTV7ZBFBRVSHBUNEAZTMD5PNFJNZMEFD4Z3IDVQ \\// C25519-BASE-32 //
+#  \\// GTKNVFDYD3PBORRK46ZGIZMJKZUBL53E42IOG4E5MNMY7XH4AAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
