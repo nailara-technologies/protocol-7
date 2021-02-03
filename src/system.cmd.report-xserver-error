@@ -17,9 +17,9 @@ return {
 
 map { <[base.log]>->( 0, $_ ) } ( "<!> xserver protocol error <!>", ' :' );
 
-local $Text::Wrap::columns   = 50;
-local $Text::Wrap::separator = " '\n";
-( my $wrapped_err_msg = wrap( " :  ' ", " :  ' ", $err_msg ) ) =~ s|( ')?$| '|;
+local $Text::Wrap::columns   = 57;
+local $Text::Wrap::separator = "\n";
+( my $wrapped_err_msg = wrap( ' :  ', ' :  ', $err_msg ) ) =~ s|( ')?$| '|;
 map { <[base.log]>->( 0, $_ ) } ( split( m|\n+|, $wrapped_err_msg ), ' :' );
 
 my $reply_message = 'acknowledged, ';
@@ -33,7 +33,7 @@ $reply_message
 return { 'mode' => 'ack', 'data' => $reply_message }
 
 # ______________________________________________________________________________
-#\\XPSFNMZAPQX3PEMW2RURAPEASJ6CAFC25FYABVUKYX7NO4VCESFBXNOO2K6X6DIMQRRZTU4Z3R3RI
-# \\ AZPH5UHXXLOPO44K3XN4JABCNUSHLUSOTIK35MUOEN6UUDXZNR7V \\// C25519-BASE-32 //
-#  \\// ZSOJGIBX6BSIS2VKT6OTSXPK6B4E64QPIKIBTNX5OLRBZTP3WCA \\ CODE SIGNATURE \\
+#\\IF5GFFOZ75HBQWY2W7P6JSXBBAXO2BIDDS6IJQXC3GDJQRNKZZVC4JNJ3PGNFYYZODAMCAKSC47XW
+# \\ AHKTRL3AYCPOTP3JQ5GQSJ7T4GTNFTF66GMDZ4EPMJZKM4RR3LGG \\// C25519-BASE-32 //
+#  \\// DYIO3XQICTBEXA7EFHGJDKXRGPEOQOZMS7DT5XEPUHWCJZZNIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
