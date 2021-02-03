@@ -842,10 +842,13 @@ sub prepare_subs {
             ## compiling subroutine ###
             ##                      ###
 
-            open( my $std_err, ">&", \*STDERR )
-                or warn "can not dup [STDERR]";
-            open STDERR, '>>/dev/null'
-                or warn "/dev/null: $!";    # <- silencing.,
+            open( my $std_err, ">&STDERR" )
+                or print "\n<< ! >> cannot clone STDERR [ $! ]\n\n";
+
+            close(STDERR);
+            ## silencing ##        <-- catch \ filter \ process warnings [ LLL ]
+            my $dev_null_path = File::Spec->devnull();
+            open STDERR, ">$dev_null_path" or print "$dev_null_path: $!\n";
 
             $src_bytes_total += length($sub_code);
             my $compilation_success
@@ -853,8 +856,10 @@ sub prepare_subs {
                     and ref( $code{$sub_name} ) eq 'CODE' )
                 ? 1
                 : 0;
-            open( STDERR, ">&$std_err" )
-                or warn "can not dup [OERR]";    # restore
+
+            close(STDERR);
+            open( STDERR, ">&", $std_err )
+                or print "\n<< ! >> cannot restore STDERR [ $! ]\n\n";
 
             if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
@@ -1202,9 +1207,8 @@ END {
     $code{'base.handler.end_code'}->();
 }
 
-
 # ______________________________________________________________________________
-#\\ADNQ5E4AHSSJORXOVZ64MEPHRKKAR5O3AGGDJHFFURBTOGDNCZRUN3G2JIYLBJ2O3IN6M4SXPJ6NS
-# \\ VZQRRVTUSUC3YTHEZ342C6GBMFDUBTJ7BESQDTPVZ3XT7DUMHQ3U \\// C25519-BASE-32 //
-#  \\// PRXCXDLBLVM5ZQO2FTDVDUTP22GQDR53TY7X23CVDA6E2WFO6CY \\ CODE SIGNATURE \\
+#\\DESRXTH5BOWHZLSE3YV6OVOIB2DTUND2IZTFM6RJGLDQAF34LNFGQRJYIRS6L43XO4XUEHQWIX3R6
+# \\ Z2S2QQHNT462MWZHEPA6MVYCXZRQ5BRNV7LFUIC457KNOQTQPV33 \\// C25519-BASE-32 //
+#  \\// PZ4ALPWAUXXMASIDKTV2FOMG6WEAOZZWM4WHFRTAYMQLYFVNOBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
