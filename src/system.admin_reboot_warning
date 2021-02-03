@@ -4,10 +4,9 @@
 # descr = sends out reboot warning if an administrator is logged in \ present
 
 my $reboot_delay_seconds = shift // 13;
-my $regular_reboot_delay = <system.xserver_crash.reboot_delay_secs>;
-
-my $who_bin_path  = <[file.which]>->('who');
-my $wall_bin_path = <[file.which]>->('wall');
+my $who_bin_path         = <[file.which]>->('who');
+my $wall_bin_path        = <[file.which]>->('wall');
+my $regular_reboot_delay = <system.xserver_crash.reboot_delay_secs> // 7;
 
 if ( !length($wall_bin_path) ) {
     $reboot_delay_seconds = 0;
@@ -28,10 +27,12 @@ if ( !length($wall_bin_path) ) {
             1, ":.. sending 'wall' message [ host reboot warning ]"
         );
         my $warn_secs = $regular_reboot_delay + $reboot_delay_seconds;
-        system( $wall_bin_path,
-            "\n\n  <<< REBOOTING SYSTEM IN $warn_secs SECONDS [ xorg crashed ]"
-                . " >>>\n\n\n\r   < [ TO ABORT REBOOT "
-                . "RUN 'nlr system.abort-reboot' ] >\n\n" );
+        <[base.log]>->( 2, ": asking 'nroot' to broadcast warning .," );
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => 'core.nroot.reboot-warning',
+                'call_args' => { 'args' => "$warn_secs xorg crashed" }
+            }
+        );
     }
 }
 
@@ -39,7 +40,7 @@ if ( !length($wall_bin_path) ) {
 return $regular_reboot_delay + $reboot_delay_seconds;
 
 # ______________________________________________________________________________
-#\\YPXDMJGJHDS2LCQG7OVYCWVDLTIM4ZYVVYCEJANOZ4GQW722FJP4VR54R5CD7DUCWURYOD7DT2IUC
-# \\ OOQ4KJHBR7W2YL6RL3EMP4564CM5OLYX5MRWJEDEM4BSUR3ENVYT \\// C25519-BASE-32 //
-#  \\// Q3FX5OGL5HT5TIFYWCZGPOMCNRXAY5X45TLYQHTHO5S4ADKZYCA \\ CODE SIGNATURE \\
+#\\CHGXPYKDIFHRFOUHARNV6EGKXRRNW4TPQPIA5WZSDX4XXVJ3ENPTDVKOB6CL52W56NQRSAQNCFXXC
+# \\ A3BJCWLJKY2W6RFVEXQI7AOBEHJK5YBS6PJFSBRGXF353KI4UEAM \\// C25519-BASE-32 //
+#  \\// 66LPYVB4IPEK3BCMXNBRNYPK4YLFCTG6TSD4CFY6KPKSZLNZKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
