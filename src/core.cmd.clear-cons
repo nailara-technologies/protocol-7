@@ -12,17 +12,17 @@ if (<system.ansi_color>) {
     my $quote_str = "$col_blue'$col_reset";
     my $host_str  = sprintf( "%s%s%s protocol 7 console",
         $quote_str, <system.host.hostname>, $quote_str );
-    printf( "\e[H\e[2J%s\n .:[%s %s %s]:.\c[[m\n\n",
+    printf( STDERR "\e[H\e[2J%s\n .:[%s %s %s]:.\c[[m\n\n",
         $col_blue, $col_reset, $host_str, $col_blue );
 } else {
     my $host_str = sprintf( "%s %s", <system.host.hostname>, $header_text );
-    printf( "\n .:[ %s ]:.\n\n", $host_str );
+    printf( STDERR "\n .:[ %s ]:.\n\n", $host_str );
     $clear_reply = "wrote hostname marker only [ active '-na' option ]";
 }
 return { 'mode' => 'ack', 'data' => $clear_reply };
 
 # ______________________________________________________________________________
-#\\LU5XPTRBLBABASY36NRSRGXMV6ZDPBCIAYDD4PLBDLNT7R6ANNHTNQY5TTRM7RG2FHJGYZRSMVETY
-# \\ LKF36TR5XU5DF3T7TM3RC2BMW6BLVUVFNY7FQRDZ3SZUFZQ7IKYC \\// C25519-BASE-32 //
-#  \\// JNGLGVHKQRVKPRJAPH6FQBQ7QK3TVY432CFASSLFHGVNDOXEOBI \\ CODE SIGNATURE \\
+#\\YBS3U3U73YTKLO3DOYB6HBAIPIPQS6YV352AZQU7ZCDYSXZSFE2AHAVHWG3UXBCZANTB3BQX6PODY
+# \\ XFTZD3FU6BM2T2BD57GB5GD56D6USXLKMWVIKYSG44XLJ2PGJOFV \\// C25519-BASE-32 //
+#  \\// CD5GQTRYFCPYYXQTN7XIVMZRGXQC3IHSBX3XAZUBORYKPBMGQAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
