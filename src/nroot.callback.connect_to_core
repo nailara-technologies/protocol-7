@@ -32,6 +32,7 @@ my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
 my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
 <[base.proto.nailara.command.send.local]>->(
     {   'command' => "$root_sid.set-initialized",
+        'reply'   => { 'handler' => 'nroot.handler.set_initialized_reply' },
         'call_args' => { 'args' => 0 }    # [ 0 == nroot-agent session (self) ]
     }
 );
@@ -40,7 +41,7 @@ my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
 return 1;
 
 # ______________________________________________________________________________
-#\\4SU37PCULKTLUFMLEIUYNBWUGYAT5PEOTNGT3JHJPGLRBQH7WVSMTYJ3PDLN5PJLGFVHRMCILU4QK
-# \\ Z3M4MUBI6PPDBTUWMUSVXROCIICR6UWCSY4UUAJ7YW4SOSHCROUM \\// C25519-BASE-32 //
-#  \\// OHZ737DAYPKWKCTP2XG32XKQWQRD7BGTYJT6MVNNNLSWAKFDGBI \\ CODE SIGNATURE \\
+#\\FJTQPSUBQZAGOTP3ZSFQVYVUGAWUIL3BHHHLXUIN6RWHVRYYGXYN3QU6XE5RTAXCRWCVQIGHZPVZ2
+# \\ Y6XMBYD3QXJNNKHE7I753AW7XYSKCUIP3B7B5DUT4UDGRQ5Z72JR \\// C25519-BASE-32 //
+#  \\// UJKSL5EQZUGLGDLHENPTXSZP5OT6SG7YY6KVR5H4ALBQMNETYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
