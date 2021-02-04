@@ -37,8 +37,8 @@ warn sprintf( "invalid code signature footer length [ %d != %d ]",
     and return $footer_data
     if $footer_length != length(<source.sign_template>);
 
-my $sig_checksum;
-my $signature_b32;
+my $signed_chksum;
+my $signature_B32;
 
 ### comparing footer structure with signature template #########################
 my $emptied_footer = join( "\n", $footer_start, $footer_body );
@@ -47,8 +47,8 @@ my $line_num       = 0;
 while (@subst_params) {
     my $pos = shift @subst_params;
     my $len = shift @subst_params;
-    $signature_b32 .= substr( $emptied_footer, $pos, $len, '_' x $len );
-    $sig_checksum = $signature_b32 and $signature_b32 = '' if !$line_num++;
+    $signature_B32 .= substr( $emptied_footer, $pos, $len, '_' x $len );
+    $signed_chksum = $signature_B32 and $signature_B32 = '' if 0 == $line_num++;
 }
 warn 'invalid signature footer structure [ template mismatch ]'
     and return $footer_data
@@ -56,8 +56,8 @@ warn 'invalid signature footer structure [ template mismatch ]'
 ################################################################################
 
 my @err_loc;
-push( @err_loc, 'bmw-chksum' ) if $sig_checksum  !~ m|^[0-9A-Z]+$|;
-push( @err_loc, 'c25519-b32' ) if $signature_b32 !~ m|^[0-9A-Z]+$|;
+push( @err_loc, 'bmw-chksum' ) if $signed_chksum !~ m|^[0-9A-Z]+$|;
+push( @err_loc, 'c25519-b32' ) if $signature_B32 !~ m|^[0-9A-Z]+$|;
 
 warn sprintf( "invalid characters in signature data [ %s ]",
     join( ' and ', @err_loc ) )
@@ -69,12 +69,13 @@ $footer_data->{'structure_valid'} = 1;
 $footer_data->{'data-type'} = 'CODE';   # [ other types soon : DATA, NCFG, .., ]
 $footer_data->{'checksum-type'}  = 'BMW-384-B32'; # only ones implemented so far
 $footer_data->{'signature-type'} = 'C25519-B32';  # <-- ########################
-$footer_data->{'signature'}      = $signature_b32;
+$footer_data->{'bmw-chksum'}     = $signed_chksum;
+$footer_data->{'signature'}      = $signature_B32;
 
 return $footer_data;
 
 # ______________________________________________________________________________
-#\\5ITWNEFI5CTAVOPSA3J5IQ4TG5B7QHV44VN2FKW2GMQHST35BVRUD5EUZBACIGTOPEI225X67SLBU
-# \\ MJC4JGOCREMHUG672MZIHXDFHJTG5K7Z43HXSVQFR7X7GMQDX3HH \\// C25519-BASE-32 //
-#  \\// SVOHNU7VIUG6UBP6YMFZHHMIMHAUCY65MWENUA47Q7VXXRKLACY \\ CODE SIGNATURE \\
+#\\ZOEEE2P3AJDWMQHDPWFYGEEL54BP6EPFUAJNI36R2HJRYG35QRRRGJ2S2JDK3LCWD7ZLRM3ETJWIW
+# \\ OKT5DOA5YMK6R4TRT6IKHMQYU2M7U5ODQIAM7AKA2C7KQRFEVLPJ \\// C25519-BASE-32 //
+#  \\// 4WCCEQIHATLO3AX3BGZN6ATQQJZD6Q7K7GUWUTHAUQ7LXSZKGCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

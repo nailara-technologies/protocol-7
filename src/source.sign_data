@@ -11,7 +11,11 @@ my $bit_size   = <source.chksum_bitsize>;
 my $chksum_b32 = shift // <[digest.bmw.strsum]>->( $bit_size, $$src_data_ref );
 my $data_len   = length($$src_data_ref);
 
-<[base.log]>->( 2, "signing $data_len bytes of data..," );
+<[base.log]>->(
+    2,
+    sprintf "::. signing %5s data bits .., [%03d]",
+    $data_len * 8, $data_len
+);
 
 return encode_b32r(
     <[crypt.C25519.sign_data]>->(
@@ -24,7 +28,7 @@ return encode_b32r(
 );
 
 # ______________________________________________________________________________
-#\\FDTGFZVMKRANKSDHMF2MNPMFQNAOH7RUYOGM7UGOEZHUN7O5OIMA6L5J235K7ZYY3BF2DNPUKUPDS
-# \\ VKPIPGRW7X77UNRFM2TNI2NAZIVA37WLIHALENFILZG4K3HVG7WQ \\// C25519-BASE-32 //
-#  \\// DOHDMNKMRNTKSHKLMP3PZS7UQ3RIEHKHE5CK6FVBZGLWSNFWYAQ \\ CODE SIGNATURE \\
+#\\FGZ2JW7CMGXDDXOP3SQ3UL77FK7LSXAS4MFZL4KOQ45FFYURBHK74LAZ43HAFNRPG4QNF7UVAWAI6
+# \\ VU3HZP35X74CDNKQSDICNOUTVQFTBHSNRMQ53P2J3XDJRKQ2O34S \\// C25519-BASE-32 //
+#  \\// MGCYGZXM27AE75WRQX4PCFIDW32AMXY22J6MPB4DUSLUDZU3ABY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
