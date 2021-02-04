@@ -3,12 +3,17 @@
 # name  = source.cmd.get-code-signed
 # descr = return specified source code subroutine
 
-my $code_name = $$call{'args'};
-my $code_dir  = <source.code_path>;
+my $code_name      = $$call{'args'};             ## [ LLL ] implement multiple ?
+my $skip_unchanged = $call->{'skip-valid'} // 0;
+
+return { 'mode' => 'ack', 'data' => 'still valid. =)' }
+    if $skip_unchanged and $code_name eq 'source.init_code';
+
+my $code_dir = <source.code_path>;
 $code_dir = <source.path.work_tree> if $code_name =~ m|/|;
 my $src_path = File::Spec->catfile( $code_dir, $code_name );
 
-# <<< ! >>> compare abs path here..,
+# <<< ! >>> compare abs path here ..,
 my $bit_size = <source.chksum_bitsize>;
 
 return { 'mode' => 'nak', 'data' => 'requested code name is not valid' }
@@ -22,44 +27,53 @@ return { 'mode' => 'nak', 'data' => 'failed to read code file' }
 return { 'mode' => 'nak', 'data' => 'requested code file has no valid header' }
     if $code_dir =~ m|/src$| and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
 
-## strip footer ________
-my $footer_start = '# ';
-$footer_start = '_' x 78;
-
-$src_str .= "\n" if $src_str !~ m|\#   `+$|;
-
 my $footer_data       = <[source.extract_sig_body]>->( \$src_str, 'strip' );
+my $present_checksum  = delete $footer_data->{'bmw-chksum'};
 my $present_signature = delete $footer_data->{'signature'};
 
-## verification // ammense ## ( no data optional ]
+## checksum and signature verification ##
 
-my $packet_data = <[source.fill_source_template]>->($footer_data);
+my $recalc_data = <[source.fill_source_template]>->($footer_data);
 
-if ( not defined $present_signature
-    or $present_signature ne $packet_data->{'signature'} ) {
-    if ( not defined $packet_data->{'signature'} ) {
+if (   not defined $present_checksum
+    or not defined $present_signature
+    or $present_signature ne $recalc_data->{'signature'} ) {
+    if ( not defined $present_signature ) {
+
         <[base.log]>->( 2, ':*: was not signed yet ..,' );
+        <[base.log]>->( 2, ': :' );
     } else {
+
         <[base.log]>->( 2, ':*: body data checksum has changed ..,' );
+        <[base.log]>->( 2, ': :' );
+        <[base.log]>->( 2, ':-: [ BMW data checksum ] < ..found >' );
+        <[base.log]>->( 2, sprintf( ": %s .,", $present_checksum ) );
+
     }
-    $src_str .= $packet_data->{'source-footer'};
+    $src_str .= $recalc_data->{'source-footer'};
+    <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
+    <[base.log]>->( 2, sprintf( ": %s .,", $recalc_data->{'data-chksum'} ) );
     <[base.log]>->( 2, ': :' );
-    <[base.log]>->( 2, ':*: [ signed BMW checksum ]' );
-    <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'signature'} ) );
-    <[base.log]>->( 2, ': :' );
-    <[base.log]>->( 2, ':*: [ BMW data checksum ] < now >' );
-    <[base.log]>->( 2, sprintf( ": %s .,", $packet_data->{'data-chksum'} ) );
+
+    if ( defined $present_signature ) {
+        <[base.log]>->( 2, ':+: [ previous signature ]' );
+        <[base.log]>->( 2, sprintf( ":.%s .,", $present_signature ) );
+    }
+    <[base.log]>->( 2, ':+: [ current checksum signature ]' );
+    <[base.log]>->( 2, sprintf( ":.%s .,", $recalc_data->{'signature'} ) );
+
 } else {
-    <[base.log]>->( 1, ':*: blue midnight wish C25519 signature still valid.' );
+    <[base.log]>->( 2, ':.: blue midnight wish C25519 signature valid. =)' );
+
+    ## [ SKIP UNCHANGED MODE ] ##
+    return { 'mode' => 'ack', 'data' => 'still valid. =)' } if $skip_unchanged;
+    ##
 }
 
-return {
-    'mode' => 'data',
-    'data' => $src_str
-    }
+return { 'mode' => 'data', 'data' => $src_str } ## <-- current \ updated source.
 
 # ______________________________________________________________________________
-#\\S4SLFED2VU6ZADZX32N7KF6EUB3Y44LR3CZF5OLIYGHD3R7ZRWTSVSQICLI6T3RTJUZRB2QSO5XG2
-# \\ RF5EWOWNE6CN2JN5K6ZNTQTVKNH3N57MZOJCTXUWXXCJDVC3K7HF \\// C25519-BASE-32 //
-#  \\// ESIX7KTMQGNE6TUPIFUAMJK2E37VVBMLOW6PRGUFYTC33EKU6AY \\ CODE SIGNATURE \\
+#\\W3L6B7UNTBCQOYP5J7SBRWNWMAF3KRV7C6QOQYBQANF3XMVHNDD7PTRZAHJHURJP3L5N3ALGRAJ24
+# \\ ARKV7UATVVP5YYJQ2UPBFDYWI3SVZODM5NWT6NEGMUXM26KPAGWE \\// C25519-BASE-32 //
+#  \\// HABC3QU3K6I7W4K3PU4U55GTCHQBIECLVXSSNFLBFZOERYTNMAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
