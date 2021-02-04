@@ -6,8 +6,8 @@ my $data_ref     = shift                  // {};
 my $params       = shift                  // {};
 my $template_str = <source.sign_template> // '';
 
-die "signature template not defined"              if !length($template_str);
-die "expected has reference to source parameters" if ref($params) ne 'HASH';
+die 'signature template not defined'              if !length($template_str);
+die 'expected has reference to source parameters' if ref($params) ne 'HASH';
 
 $data_ref->{'signature'} //= <[source.sign_data]>->(
     $data_ref->{'data-reference'},
@@ -33,7 +33,7 @@ my %variable_map = (
 );
 
 my $result_ref = {};
-my $signature_b32;
+my $signature_B32;
 foreach my $name ( keys %variable_map ) {
     my $str;
     while ( my $var_data = shift( @{ $variable_map{$name} } ) ) {
@@ -46,8 +46,8 @@ foreach my $name ( keys %variable_map ) {
         $str = $var_data->{'str'};
 
         substr( $template_str, $pos, $len, $str );
+        $result_ref->{$name} .= $str;
     }
-    $result_ref->{$name} = $str;
 }
 $result_ref->{'checksum-type'} = 'BMW-384-BASE-32';
 $result_ref->{'source-footer'} = $template_str;
@@ -55,7 +55,7 @@ $result_ref->{'source-footer'} = $template_str;
 return $result_ref;
 
 # ______________________________________________________________________________
-#\\PA4B3QESOFT2IQEO65LESB72IXTNCYNHF7K4LWJXHHCA6MZX64SRVXYYPNEXUFMNHY7KHEKQHSUHE
-# \\ 57PQWP43ASKJRPDYXP4EQOKJ2OTWQLBYEUGCFFN3RYBVALQVGZDZ \\// C25519-BASE-32 //
-#  \\// BHSJPLNUGJN3KCOYZN7IYVCDIJOBFYNLCBABP4OOIJMKHMSPGAA \\ CODE SIGNATURE \\
+#\\M43WGKF6BLKRSFLTTS65SGXIEBFGA4VITAZMDKZKRBQ6KK7MA5S7CFBO5J3IQKTAXJTMQFQBBYPEC
+# \\ LM2QYBFUVFSBTMKULADB4YHMWKT662P7HQ7D246QOMVNADHBT6OP \\// C25519-BASE-32 //
+#  \\// XBFPXFEKTP7YKMP45VRTMPS44DKRVGIUEOC4SHO7GPKFQY6GMCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
