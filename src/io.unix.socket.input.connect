@@ -1,6 +1,6 @@
 # >:]
 
-# name  = io.unix.socket.in.connect
+# name  = io.unix.socket.input.connect
 
 my $id = $_[0]->w->data;
 my $fd = $data{'session'}{$id}{'handle'};
@@ -21,16 +21,16 @@ if ( -S $fd ) {
         };
         return $new_sock;
     } else {
-        <[base.log]>->( 0, "io.unix.socket.in.connect: can not accept [$!]" );
+        <[base.log]>->( 0, "io.unix.socket.input.connect: can not accept [$!]" );
         return undef;
     }
 } else {
-    <[base.log]>->( 0, "io.unix.socket.in.connect: no valid socket supplied" );
+    <[base.log]>->( 0, "io.unix.socket.input.connect: no valid socket supplied" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\JCRPLRHQDP5USLFIHEUZ4ZJVG36PNOXL6EY4EV7HODWKRKWPHMCUKZWFYHZKMM364EKKZFXL6XLPS
-# \\ FG3CLZTUTLSXCQRZZMLGZM72WUVMGQ3FRHJUCSOP4X2HOSCN2TN2 \\// C25519-BASE-32 //
-#  \\// UTI7VWULY53M5JL3ASVWIFXHUMNOQWJYJZ64B7MZBQKBNCAWYDI \\ CODE SIGNATURE \\
+#\\74JD5MYGZD6RGP57LUOYH4GFHINCRWFPJ2ZSXYS3GNAISH74YGBMPJM6KGHGLVKXBWJOUDGHUGMYK
+# \\ GPMXAPMZALSF27O5V7QEXMF6FPXPFEW7FJ36XUAFGOCDOKZRG4D5 \\// C25519-BASE-32 //
+#  \\// STOLKTQCODXU6GRBKP36VBKPNKNZIY3XOSRCAGQ65733N3DV2BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

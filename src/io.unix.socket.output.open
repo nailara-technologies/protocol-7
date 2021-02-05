@@ -1,6 +1,6 @@
 # >:]
 
-# name = io.unix.socket.out.open
+# name = io.unix.socket.output.open
 
 my $socket_file = $_[0];
 
@@ -13,7 +13,7 @@ if ( !-S $socket_file ) {
 my $return_socket = IO::Socket::UNIX->new(
     Type => SOCK_STREAM(),
     Peer => $socket_file,
-) or <[base.log]>->( 0, "io.unix.socket.out.open: $!! ('$socket_file')" );
+) or <[base.log]>->( 0, "io.unix.socket.output.open: $!! ('$socket_file')" );
 
 if (    defined $return_socket
     and -S $return_socket
@@ -30,7 +30,7 @@ if (    defined $return_socket
 }
 
 # ______________________________________________________________________________
-#\\G4C3FEPVTRHHWJUVBOZBCRA2T6LVW5BNEKWFTCOBFL37J7F5UXE3CW6I5CNUXSZGDO3SG3X4NRSCK
-# \\ A4TVXQ4OOWPCNELDVTXMM7KGF4FVMKBY4KG6MX6PWO7HPYUG33TN \\// C25519-BASE-32 //
-#  \\// HBKFH5DEPWKHCKBOFNO5YPZV2WUYQTL75TY3ZFWO2GW7B57FKAA \\ CODE SIGNATURE \\
+#\\NAPJC5XIY5ZXVDAGFADFKWE2X7VNCH52U7QBYVM7DA6NQAAW27C33YPICXFGVJMBZFS7WGZ7CZW7W
+# \\ YUHKG6KGKHEJPYQFD5BZKANVUVKJ2S6X63Y4HBS6NWG5POOJOZQN \\// C25519-BASE-32 //
+#  \\// 4EOLGQ7YEBQV3TBBHRHKXXA6RUYMMMIEZKXVUWCPSKZWOU3GCDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

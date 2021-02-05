@@ -1,6 +1,6 @@
 # >:]
 
-# name  = io.unix.socket.in.open
+# name  = io.unix.socket.input.open
 
 my $socket_path  = shift;
 my $socket_umask = shift;
@@ -20,19 +20,19 @@ my $unix_sock = IO::Socket::UNIX->new(
     Type   => SOCK_STREAM(),
     Local  => $tmp_spath,
     Listen => SOMAXCONN(),
-) || die "io.unix.socket.in.open: socket: $!";
+) || die "io.unix.socket.input.open: socket: $!";
 
-rename( $tmp_spath, $socket_path ) or die "io.unix.socket.in.open: rename: $!";
+rename( $tmp_spath, $socket_path ) or die "io.unix.socket.input.open: rename: $!";
 
 push( @{<unix.socket_paths>}, $socket_path );
-chmod( $socket_umask, $socket_path ) or die "io.unix.socket.in.open: chmod: $!";
+chmod( $socket_umask, $socket_path ) or die "io.unix.socket.input.open: chmod: $!";
 
 <[base.log]>->( 1, "UNX server launched [unix:$socket_path]" );
 
 if ( defined $data{'handle'}{$unix_sock} ) {
     <[base.log]>->(
         0,
-        "io.unix.socket.in.open: handle '$unix_sock' "
+        "io.unix.socket.input.open: handle '$unix_sock' "
             . "was not cleaned up, doing now .."
     );
     delete $data{'handle'}{$unix_sock};
@@ -44,7 +44,7 @@ $data{'handle'}{$unix_sock}{'link'} = 'unix';
 return $unix_sock;
 
 # ______________________________________________________________________________
-#\\JAZUOTBJQV655T6TQD3MMXUUJNAP7DWTEAX6DSYYVE3W5MYHHSZYFM2F2VSDMKU5TWGLC3QU2YHT2
-# \\ M6NDTX4ZCOIKCCDZ2MVDLW4X5OQELLEBESJUFQY3HNKPZSYPVOXO \\// C25519-BASE-32 //
-#  \\// IXM7XXF7UVESMF2JI6B5M2E3P5HEFTWXMTVO2QZ2KIWAHTJNSDQ \\ CODE SIGNATURE \\
+#\\VEUBCEKOIYFLF57DFTNBSELQVFP5ZKL4N6TSE2KZPOPMMLXQDNHU7HDIVSG5SBWERNBHRFYDALMW2
+# \\ T4GXGTQS3B7FRPQHWTDPC6NOJXWAPEJ6ZFGBNODXUYLVCDOM5V5E \\// C25519-BASE-32 //
+#  \\// K6DPGDY7IUVYXSMSFFCEAR36OXVTD2QPFFMU4QYFWUSZNFSF4BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
