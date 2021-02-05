@@ -8,7 +8,7 @@ my $max_retries = 42;
 while ( $max_retries-- ) {
     last if -e $socket_path;
     <[base.sleep]>->(0.1);
-    <[base.log]>->( 2, ": waiting for $socket_path .." )
+    <[base.log]>->( 2, ": waiting for $socket_path .," )
         if !-e $socket_path;
 
     my $wait_res = waitpid( <mpv.pid>, WNOHANG() );
@@ -30,9 +30,9 @@ if ( not -e $socket_path ) {
     );
     <[mpv.callback.abort_startup]>;    # <-- exiting
 } else {
-    <[base.log]>->( 1, "opening unix domain socket '$socket_path'.." );
-    <mpv.socket> = <[base.open]>->( 'unix', 'out', $socket_path );
-    <[base.log]>->( 1, "unlinking socket $socket_path.." );
+    <[base.log]>->( 1, "opening unix domain socket '$socket_path'.," );
+    <mpv.socket> = <[base.open]>->( 'unix', 'output', $socket_path );
+    <[base.log]>->( 1, "unlinking socket $socket_path.," );
     unlink($socket_path) or warn("unlink($socket_path): $!");
 }
 
@@ -49,7 +49,7 @@ if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
 );
 
 # ______________________________________________________________________________
-#\\RVFYLZRWC74AGVLEFF7XJIXXVD6HDDRU3PZGSWMTTJ4XRYYSHPIT6IHOFUESREOBLM7FCMSWSA4KO
-# \\ 5QOFW5OYTTC47IBMM6IOXYYS26KXTVN45XMUAGWQGBKC5ZZRRRZT \\// C25519-BASE-32 //
-#  \\// O3WJKJBFKDKAKT2LKKKSJZODUFV6GKN3P3OGIYDCDEMJIX5YOBA \\ CODE SIGNATURE \\
+#\\Z23Y7UOWPMCSL74ZRB4O3Q4QX3PC6MXBRGLQLZSFKZUAUVN44CYFR7775CRQQZHUHNWXDBWHXZPGQ
+# \\ LMBHPUDX7QWZ3M4UNUSKPHDHSX4UXFQAULVB75YL2OXWEJLRYLFK \\// C25519-BASE-32 //
+#  \\// LUEVM5GSE76LV6BUIDQITYPJTMWKI443ZQDQRGTN26GVF5KTKDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

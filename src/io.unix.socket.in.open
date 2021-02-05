@@ -32,19 +32,19 @@ chmod( $socket_umask, $socket_path ) or die "io.unix.socket.in.open: chmod: $!";
 if ( defined $data{'handle'}{$unix_sock} ) {
     <[base.log]>->(
         0,
-        "io.ip.tcp.in.open: handle '$unix_sock' "
+        "io.unix.socket.in.open: handle '$unix_sock' "
             . "was not cleaned up, doing now .."
     );
     delete $data{'handle'}{$unix_sock};
 }
 
-$data{'handle'}{$unix_sock}{'mode'} = 'in';
+$data{'handle'}{$unix_sock}{'mode'} = 'input';
 $data{'handle'}{$unix_sock}{'link'} = 'unix';
 
 return $unix_sock;
 
 # ______________________________________________________________________________
-#\\7BZ4KCAS4HQO3BFJDVEBZATA3OHDGLQHZTQWYX3ZI2GVZ2JEN2YHK7VCIVGS6EGJ7Z7UWVLIUQDCI
-# \\ OL3GGAV4SZCXKQD35AFYGAZTRUF3E42DBK7CTTQBXM3YWYYZJM76 \\// C25519-BASE-32 //
-#  \\// EEBPXEW3MAU5RESBZV2D3REB3WJV2OIBEER6QQBEJYUFAMH6UDI \\ CODE SIGNATURE \\
+#\\JAZUOTBJQV655T6TQD3MMXUUJNAP7DWTEAX6DSYYVE3W5MYHHSZYFM2F2VSDMKU5TWGLC3QU2YHT2
+# \\ M6NDTX4ZCOIKCCDZ2MVDLW4X5OQELLEBESJUFQY3HNKPZSYPVOXO \\// C25519-BASE-32 //
+#  \\// IXM7XXF7UVESMF2JI6B5M2E3P5HEFTWXMTVO2QZ2KIWAHTJNSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

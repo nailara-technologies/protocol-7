@@ -9,7 +9,7 @@ if ( -S $fd ) {
     my $new_sock;
     if ( $new_sock = $fd->accept() ) {
         $data{'handle'}{$new_sock}{'link'} = 'unix';
-        $data{'handle'}{$new_sock}{'mode'} = 'in';
+        $data{'handle'}{$new_sock}{'mode'} = 'input';
         no strict;
         my @peercred = unpack( 'i*', $new_sock->sockopt( SO_PEERCRED() ) );
         die "[$id] SO_PEERCRED failed" if @peercred != 3;
@@ -30,7 +30,7 @@ if ( -S $fd ) {
 }
 
 # ______________________________________________________________________________
-#\\JJO6HO5FBMP7J2Z54LAFIZOSVFNGROZJF3HI54X3F52WVM774HPZORAXJ3Z4T2MP3QIMNPKZN23US
-# \\ XQBNTZ4GFRLJ2XNQRSYQW3BGFI526OVL3YJVOW7S2SPDHMHN2ESC \\// C25519-BASE-32 //
-#  \\// RFGRGMFGAYKNGIA5ETZLLWEWB5RFSWP4VI7R45HN6N4RP2AHICQ \\ CODE SIGNATURE \\
+#\\JCRPLRHQDP5USLFIHEUZ4ZJVG36PNOXL6EY4EV7HODWKRKWPHMCUKZWFYHZKMM364EKKZFXL6XLPS
+# \\ FG3CLZTUTLSXCQRZZMLGZM72WUVMGQ3FRHJUCSOP4X2HOSCN2TN2 \\// C25519-BASE-32 //
+#  \\// UTI7VWULY53M5JL3ASVWIFXHUMNOQWJYJZ64B7MZBQKBNCAWYDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

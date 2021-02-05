@@ -3,7 +3,7 @@
 # name = io.ip.tcp.init_code
 
 my $restore_pattern = <sig_warn_blacklist.pattern>;
-<sig_warn_blacklist.pattern> = qr/^(Constant s|S)ubroutine \S+ redefined /;
+<sig_warn_blacklist.pattern> = qr{^(Constant s|S)ubroutine \S+ redefined };
 
 <[base.perlmod.load]>->( 'IO::Socket::IP', qw| -register | );
 
@@ -15,14 +15,14 @@ $data{'io'}{'type'}{'ip.tcp'} = {
 
     'handler' => {
 
-        'out' => {
+        'output' => {
             'open'  => 'io.ip.tcp.out.open',
             'close' => 'io.ip.tcp.out.close',
             'read'  => 'base.handler.read',
             'write' => 'base.handler.write'
         },
 
-        'in' => {
+        'input' => {
             'open'    => 'io.ip.tcp.in.open',
             'close'   => 'io.ip.tcp.in.close',
             'connect' => 'io.ip.tcp.in.connect',
@@ -35,7 +35,7 @@ $data{'io'}{'type'}{'ip.tcp'} = {
 return 0;
 
 # ______________________________________________________________________________
-#\\N3MWN35F7P2AAJJXCZM5D5X2MV5C7ZGKJFLB6MSNGBNJMAO46VTNXTQXJWOQ56TCC3R5OAWRYIXFY
-# \\ OAB5YCMLB4FJZFKGMP3YG4EBZMJ3TMBZ6BPUYBMYWJYGTUSHXNKI \\// C25519-BASE-32 //
-#  \\// BBQURQTBDBX2JJ4E3B3QH3EABRSJRAEAGIVZR44SSVXWM3C4ABQ \\ CODE SIGNATURE \\
+#\\QMMZHCHOHBSBV3OCCXSYSMYP2PCQKELAXZUITPJDHMDNTWTCWOLUTAGDD334KSK2SBJ5ZXXLMUAJ2
+# \\ NFVQ5EUDVJMMDXVDUX7IV3G5XJYHOYTJWAXBJIZRJUVYSRJWQSEH \\// C25519-BASE-32 //
+#  \\// 7AGQC2SWWUE2YJ75HKDDYZJSGDLMENBMADBNTGYIH3NZUJCH2CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
