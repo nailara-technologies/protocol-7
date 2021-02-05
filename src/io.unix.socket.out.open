@@ -6,7 +6,7 @@ my $socket_file = $_[0];
 
 if ( !-S $socket_file ) {
     <[base.log]>
-        ->( 0, "[!] unix domain socket '$socket_file' does not exist!" );
+        ->( 0, "[!] unix domain socket '$socket_file' does not exist.," );
     return undef;
 }
 
@@ -21,7 +21,7 @@ if (    defined $return_socket
     <[base.log]>->( 1, "connected to unix socket [$socket_file]" );
 
     $data{'handle'}{$return_socket}{'link'} = 'unix';
-    $data{'handle'}{$return_socket}{'mode'} = 'out';
+    $data{'handle'}{$return_socket}{'mode'} = 'output';
 
     return $return_socket;
 } else {
@@ -30,7 +30,7 @@ if (    defined $return_socket
 }
 
 # ______________________________________________________________________________
-#\\ED5RJFUDKI5Q3UN3Z2MV7AVOGWHERZKHKFQZ5U5K4OGQEHQZLOMHH4DSMZPUYQXED5RVKYNRI3DU6
-# \\ HT4L4Z5WLRSQGU2CJOFJVV53QZOXVOV35ZMW2E2RLMYUFQ5XBCIB \\// C25519-BASE-32 //
-#  \\// 53FOEBULRWKXM6CNJSRDIBG5WYZ73ZI2GV75NYBU4NB4XZZGSAY \\ CODE SIGNATURE \\
+#\\G4C3FEPVTRHHWJUVBOZBCRA2T6LVW5BNEKWFTCOBFL37J7F5UXE3CW6I5CNUXSZGDO3SG3X4NRSCK
+# \\ A4TVXQ4OOWPCNELDVTXMM7KGF4FVMKBY4KG6MX6PWO7HPYUG33TN \\// C25519-BASE-32 //
+#  \\// HBKFH5DEPWKHCKBOFNO5YPZV2WUYQTL75TY3ZFWO2GW7B57FKAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -48,7 +48,8 @@ if ( !$connection->{'authorized'} ) {
         $connection->{'remote_user'} = $remote_user;
 
         # LLL: check status...
-        my $l_sock = <[base.open]>->( 'ip.tcp', 'out', $core_addr, $core_port );
+        my $l_sock
+            = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
         if ( not defined $l_sock or !$l_sock->connected ) {
             <[base.log]>->( 0, ": : tcp connection to local core failed!" );
             return <[ssh.connection.stop]>->($con_id);
@@ -114,7 +115,7 @@ if ( !$connection->{'authorized'} ) {
 }
 
 # ______________________________________________________________________________
-#\\7X5KBKK5K5UCCDA73TPXGJSS444FX5ENUKAO3GCZTHXIJUVPGLSSD23LPRZKR4XM6XKTNIROECDTM
-# \\ L3RWAKSATQSVSIKVNCMLZQQZYAH5PIDV4M4IOTPAK42BZJJWXLYC \\// C25519-BASE-32 //
-#  \\// YXNBLRK3INTEPLGOFLL5GVWTKPSJCMWWG6IM4ZKCHWZEU756ICI \\ CODE SIGNATURE \\
+#\\A3BOLN7VDMWJZKBZ5J7JTYRCB3JJ2P3UKXDSL5VOL7YDKQVJKOGGRNYRKW63N3GZYJRVDRLHZTWSS
+# \\ KQBIB7RC27LKSYDIJHHD5T5TFTZ6U7NL6NDT4OVDPB2RYNWTDN4I \\// C25519-BASE-32 //
+#  \\// V7NV4BOFMSO2QKI7TYUFVFTLPCESJ7UHGDXXOTFABZEPQTTN2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

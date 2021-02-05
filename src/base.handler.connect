@@ -26,18 +26,18 @@ if ( not defined $data{'handle'}{$fd_srv}{'proto'} ) {
         my $id = <[base.session.init]>->( $fd_client, $proto, $mode );
 
         # send server banner
-        if ( length($banner) and $mode eq 'in' ) {
+        if ( length($banner) and $mode eq 'input' ) {
             <[net.out]>->( $fd_client, $banner );
         }
         <[base.log]>->( 1, "[$id] establishing $proto protocol link" );
     } else {
-        <[base.log]>->( 1, "[$id] connection [already] closed.." );
+        <[base.log]>->( 1, "[$id] connection [ already ] closed.," );
         return undef;
     }
 }
 
 # ______________________________________________________________________________
-#\\K3RVGI5B3XM7VVD73XDPH2IL7LLSLKV4N65PJK3IIKWO4BBDK6FM3UFM2PGFRN5K6EZSMWDZZKKVM
-# \\ ZFNMMXUL3QLHEVYWPT6TBNPZ62675KI4WRTKXGFR3DWBUE5K3FDJ \\// C25519-BASE-32 //
-#  \\// 3CALP7E2THFNXAWFBIPIARYO4UJTKEVWDUQJ3CGX3LSCBL24WDI \\ CODE SIGNATURE \\
+#\\CMFLIPM6LRCPSWLSULEIQ7MUEJSZQANQ4GS4NUHFUCHLN677J5HMXUX4TKY5P63U6HEZDZBI47RM6
+# \\ UGM4GPITUDQAYLJAM6D53LCNZRDEMCATURHMSFTPRXBCWMWJ2OXQ \\// C25519-BASE-32 //
+#  \\// M6DH7ZOO6YC6R26DJENO4RGFMBS3KFH3GQXHJC7OM727K3GF4DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

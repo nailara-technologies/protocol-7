@@ -51,10 +51,10 @@ core.local = <nailara.net.int>
 # open local unix domain socket
 [file.make_path:'/tmp/.n/s',0777]
 unix.path = [digest.elf.b32:"<core.local.addr>:<core.local.port>"]
-unix.sock = [base.open:'unix','in',"/tmp/.n/s/<unix.path>"]
+unix.sock = [base.open:'unix','input',"/tmp/.n/s/<unix.path>"]
 
 # open ip.tcp socket
-tcp_ip.sock = [base.open:'ip.tcp','in',<core.local.addr>,<core.local.port>]
+tcp_ip.sock = [base.open:'ip.tcp','input',<core.local.addr>,<core.local.port>]
 
 # drop root priviledges
 [set_privs:'nailara']
