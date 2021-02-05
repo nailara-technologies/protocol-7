@@ -6,9 +6,11 @@ my @connection_types = @_;
 @connection_types = ('unix') if defined <unix.path>; # overriding (in -sic mode)
 
 my $core_sock;
-my $core_addr = <nailara.net.int.addr>;
-my $core_port = <nailara.net.int.port>;
-my $unix_path = defined <unix.path> ? <unix.path> : undef;
+my $core_addr     = <protocol-7.network.internal.addr>;
+my $core_port     = <protocol-7.network.internal.port>;
+my $unix_path     = defined <unix.path> ? <unix.path> : undef;
+my $agent_name    = <system.agent.name>;
+my $agent_subname = <system.agent.name>;
 
 foreach my $c_type (@connection_types) {
     <[base.log]>->( 1, "initiating core connection [$c_type].," );
@@ -17,7 +19,7 @@ foreach my $c_type (@connection_types) {
             if ( not defined $core_addr and defined $core_port ) {
                 <[base.log]>->(
                     0,
-                    'connect_to_core(unix): neither unix.path nor '
+                    'connect_to_core[unix]: neither unix.path nor '
                         . 'net.local.{addr,port} are defined, aborting.,'
                 );
                 exit(2);
@@ -32,23 +34,22 @@ foreach my $c_type (@connection_types) {
             <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.," );
             next;
         }
-        $core_sock = <[base.open]>->( 'unix', 'output', <unix.path> );
+        $core_sock = <[base.open]>->( 'unix', 'output', $unix_path );
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
-            $core_sock
-                = <[net.unix.authme]>->( $core_sock, <system.agent.name> );
+            $core_sock = <[net.unix.authme]>->( $core_sock, $agent_name );
         } else {
             $core_sock = undef;
         }
     } elsif ( $c_type eq 'ip.tcp' ) {
-        $core_sock = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
+        $core_sock
+            = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
-            my $auth_name = <system.agent.name>;
-            $auth_name .= '[' . <system.agent.subname> . ']'
-                if defined <system.agent.subname>;
+            my $auth_name = $agent_name;
+            $auth_name .= "[$agent_subname]" if defined $agent_subname;
             $core_sock = <[auth.agent.client]>->( $core_sock, $auth_name );
         } else {
             $core_sock = undef;
@@ -80,7 +81,7 @@ if ( not defined $core_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\NJHCRPQC33EYHPPNSF5GUKUEJRB2IU6NAIYSQOLLB3B4LGJSSYU3VYANOI2ZZ4VQ6FRLAD2OJI5CK
-# \\ NUTG6L54BGZGIUGQAXEOYACOEWBHUC5TGKVT5Z5AEHDXJFZ24BTO \\// C25519-BASE-32 //
-#  \\// J33XNRNFPVWKMOCHXVNI5CSWW5MTIDLILTXLH6RQWZJTSMPLQCI \\ CODE SIGNATURE \\
+#\\LRCIR4MQNZER7R6GEG4SW3ULAZMGICGBPZC3CPCJYYX6LM56RTN5LA5EB363JHA53RZQDTE4FIV54
+# \\ EPJ5XRS2R2YC5QKMZKCWYN4ZLLDOXGK6ZGWF6HVFUJID6CPEYHFF \\// C25519-BASE-32 //
+#  \\// 55OWETB5MI52HY4YMPMNYLOBZIIV7PUQ47EPZL3KTG34DSRU2DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

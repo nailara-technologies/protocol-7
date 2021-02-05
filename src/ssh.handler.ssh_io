@@ -5,8 +5,8 @@
 
 my $event = shift->w;
 
-my $core_addr = <nailara.net.int.addr>;
-my $core_port = <nailara.net.int.port>;
+my $core_addr = <protocol-7.network.internal.addr>;
+my $core_port = <protocol-7.network.internal.port>;
 
 my $read_fh      = $event->fd;
 my $con_id       = $event->data->{'con_id'};
@@ -37,21 +37,21 @@ if ( defined $bytes and $bytes ) {
 if ( !$connection->{'authorized'} ) {
     my $local_user  = $profile_data->{$link_name}->{'nailara.local.user'};
     my $remote_user = $profile_data->{$link_name}->{'nailara.remote.user'};
-    if ( $connection->{'buffer'} =~ s/^>:]\n// ) {
+    if ( $connection->{'buffer'} =~ s|^>:]\n|| ) {
         my $remote_pass = $profile_data->{$link_name}->{'nailara.remote.pass'};
         $channel->write("auth $remote_user $remote_pass\n");
-    } elsif ( $connection->{'buffer'} =~ s/^YEAH >:P\n// ) {
+    } elsif ( $connection->{'buffer'} =~ s|^YEAH >:P\n|| ) {
         $connection->{'authorized'} = 1;
         <[base.log]>->(
             1, ": : successful remote end nailara auth. [$remote_user]"
         );
         $connection->{'remote_user'} = $remote_user;
 
-        # LLL: check status...
+        # LLL: check status..,
         my $l_sock
             = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
         if ( not defined $l_sock or !$l_sock->connected ) {
-            <[base.log]>->( 0, ": : tcp connection to local core failed!" );
+            <[base.log]>->( 0, ": : tcp connection to local core failed." );
             return <[ssh.connection.stop]>->($con_id);
         }
         my $local_user = $profile_data->{$link_name}->{'nailara.local.user'};
@@ -79,23 +79,23 @@ if ( !$connection->{'authorized'} ) {
         );
         $connection->{'linked'} = 1;
 
-    } elsif ( $connection->{'buffer'} =~ s/^NOPE >:\|\n// ) {
+    } elsif ( $connection->{'buffer'} =~ s|^NOPE >:\|\n|| ) {
         <[base.log]>->( 0, ": : remote end nailara auth. was not successful" );
         <[ssh.connection.stop]>->($con_id);
-    } elsif ( $connection->{'buffer'} =~ s/^>:\|\n// ) {
+    } elsif ( $connection->{'buffer'} =~ s|^>:\|\n|| ) {
         <[base.log]>->( 0, ": : nailara authentication timeout on remote end" );
         <[ssh.connection.stop]>->($con_id);
     } else {
         <[base.log]>->(
-            0, ": : protocol mismatch on remote end nailara auth.!"
+            0, ": : protocol mismatch on remote end nailara auth.,"
         );
         <[ssh.connection.stop]>->($con_id);
     }
 } else {
     if (   !$connection->{'linked'}
-        and $connection->{'buffer'} =~ s/^\((\d+)\).+\n// ) {
+        and $connection->{'buffer'} =~ s|^\((\d+)\).+\n|| ) {
         my $cmd_id = $1;
-        $channel->write("($cmd_id)NAK link not initialized yet..\n");
+        $channel->write("($cmd_id)NAK link not initialized yet\n");
     } else {
         my $blen  = length( $connection->{'buffer'} );
         my $bytes = <[base.s_write]>->(
@@ -104,7 +104,7 @@ if ( !$connection->{'authorized'} ) {
         );
         if ( not defined $bytes ) {
             <[base.log]>->(
-                0, "local nailara link filehandle closed, connection shutdown.."
+                0, "local nailara link filehandle closed, connection shutdown.,"
             );
             <[ssh.connection.stop]>->($con_id);
         } else {
@@ -115,7 +115,7 @@ if ( !$connection->{'authorized'} ) {
 }
 
 # ______________________________________________________________________________
-#\\A3BOLN7VDMWJZKBZ5J7JTYRCB3JJ2P3UKXDSL5VOL7YDKQVJKOGGRNYRKW63N3GZYJRVDRLHZTWSS
-# \\ KQBIB7RC27LKSYDIJHHD5T5TFTZ6U7NL6NDT4OVDPB2RYNWTDN4I \\// C25519-BASE-32 //
-#  \\// V7NV4BOFMSO2QKI7TYUFVFTLPCESJ7UHGDXXOTFABZEPQTTN2CA \\ CODE SIGNATURE \\
+#\\6Q4SWC6MT7DE5VHGHK3AQ72YBMWP45TANNDPYND6WA74AZ2PUHBNHQKOM7UOMLVQ3LVROBZB34INO
+# \\ 5VR2R5MA5E2O47TCLYEOPCVSVLMLCWGLAG56MO6GNYTARRQEA3U7 \\// C25519-BASE-32 //
+#  \\// 2Z2B66WEUNOXSY5EWTA5DPPXTLPGYJ4RNSDJMKBL4YKU5B4X4DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
