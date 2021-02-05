@@ -10,12 +10,12 @@ if ( -S $fd ) {
         or <[base.log]>->( 0, "tcp.connect_handler: can not accept [$!]" );
     my ( $p_host, $p_port ) = ( $new_sock->peerhost(), $new_sock->peerport() );
 
-    return undef if not defined $p_host or not defined $p_port;  # <- closed (!)
+    return undef if not defined $p_host or not defined $p_port;  # <-- closed[!]
 
     my $v4_over_6 = $p_host =~ s|^::ffff:|| ? 1 : 0;
 
     $data{'handle'}{$new_sock} = {
-        'mode'       => 'in',
+        'mode'       => 'input',
         'encryption' => 'none',
         'link'       => 'ip.tcp',
         'peerhost'   => $p_host,
@@ -40,7 +40,7 @@ if ( -S $fd ) {
 }
 
 # ______________________________________________________________________________
-#\\YIICCIUY6IWIDT72NKHBUS7JYIGEMFHABEAR5XHZHZAQVQDWA5QWREVOOVMUXM53DZMRDQ62ZIJPQ
-# \\ 3EF5LQYU7GDZGAAFMFXJVKYE5X7L6SUYWIY3SWBIEBYJ2NSXLLKV \\// C25519-BASE-32 //
-#  \\// VKKFPGC3WPHXXMNRAZJLL3DMJCMT5NQYV7O6CGST6CUXLUH7EAA \\ CODE SIGNATURE \\
+#\\JTRDDG6GSVDURR7KD3IHQ2HRNR2WTM7NMWBXQ6GSRKSUV2PNGMIMXCWSPK2YLCYHPDO56HISADAKM
+# \\ EN2ZIL6FJMJ22VJI7AMQYCP4PSDHXFZUASKIWKMK3PTOXAIAJLWM \\// C25519-BASE-32 //
+#  \\// 5N73G425U223YIRCGWPAFEBBLLPCHEWRXXTJOPN4EDZVFLYIQBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

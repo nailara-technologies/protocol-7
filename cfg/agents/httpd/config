@@ -34,7 +34,7 @@ httpd.timeout       =  23
 
 [net.connect_to_core:'ip.tcp']
 
-httpd.sock = [base.open:'ip.tcp','in',<net.http.addr>,<net.http.port>]
+httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 [base.proto.bind:<httpd.sock>,'http','server']
 
 [set_privs:<httpd.system.user>]

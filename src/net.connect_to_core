@@ -32,7 +32,7 @@ foreach my $c_type (@connection_types) {
             <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.," );
             next;
         }
-        $core_sock = <[base.open]>->( 'unix', 'out', <unix.path> );
+        $core_sock = <[base.open]>->( 'unix', 'output', <unix.path> );
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
@@ -42,7 +42,7 @@ foreach my $c_type (@connection_types) {
             $core_sock = undef;
         }
     } elsif ( $c_type eq 'ip.tcp' ) {
-        $core_sock = <[base.open]>->( 'ip.tcp', 'out', $core_addr, $core_port );
+        $core_sock = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
         if (    defined $core_sock
             and -S $core_sock
             and $core_sock->connected ) {
@@ -80,7 +80,7 @@ if ( not defined $core_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\375CB5ANHZOU6344EBOOWJMB2XKTDZHZWW67MMYQZ6U5DOJCSIJ252GTGJC6HCTVHPHDQ65Q2ULLW
-# \\ XWDOJ4DT3RXTW4IUQVJWUBVLISTL32ZBQGJ23YJB2NFCIHTJNQ2C \\// C25519-BASE-32 //
-#  \\// USHSSMC3RU36VFX55PV4UCNN3ZFDD6O6TVROBECJ3P3PDG4AQDA \\ CODE SIGNATURE \\
+#\\NJHCRPQC33EYHPPNSF5GUKUEJRB2IU6NAIYSQOLLB3B4LGJSSYU3VYANOI2ZZ4VQ6FRLAD2OJI5CK
+# \\ NUTG6L54BGZGIUGQAXEOYACOEWBHUC5TGKVT5Z5AEHDXJFZ24BTO \\// C25519-BASE-32 //
+#  \\// J33XNRNFPVWKMOCHXVNI5CSWW5MTIDLILTXLH6RQWZJTSMPLQCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
