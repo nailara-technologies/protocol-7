@@ -33,7 +33,7 @@ if ( not defined <weather.browser_zoom> or !<weather.browser_zoom> ) {
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)xserver.get_screen_size\n" );
+<[net.out]>->( $core_fh, "($cmd_id)X-11.get_screen_size\n" );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -51,7 +51,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$}) {
     <[base.log]>->(
         1,
         sprintf(
-            ": received xserver screen size (%sx%s)",
+            ": received X-11 screen size (%sx%s)",
             <x11.screen_width>, <x11.screen_height>
         )
     );
@@ -77,14 +77,14 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$}) {
     );
     return <weather.zoom_level>;
 } elsif ( $reply_string =~ /NAK command unknown$/ ) {
-    <[base.log]>->( 1, 'xserver agent unreachable [running?]' );
+    <[base.log]>->( 1, 'X-11 agent unreachable [running?]' );
 } else {
-    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\IERRNAZRV5XMA26LKXDQ3SABEWP5CM5RHFQA6WUCVPQY5AYNCUOBNNA6RHK7S5YUQA4W4ZS64ODVS
-# \\ RYNTSSUMDAHE3FJZ6F5MDMFF3KNTUOLWN5TVM56MXWEH2JAMITTD \\// C25519-BASE-32 //
-#  \\// NZGVBVEDC5YRZ54V33Q67LZKVTNB47GHBR2NLHTUGX2ZCUSEADQ \\ CODE SIGNATURE \\
+#\\4QRKFAGYWKZ7HDHPWBZAHC7ERIDQNQGLQYVBZRWYT5T4P5Y5RX2WDKEMQIO4CUYXCQDWXTHJ4BNG6
+# \\ 7ZEVKEURM6QXZQDBISZIZ6AV5D4QC23P3VONC76HLTZLL5J5LLID \\// C25519-BASE-32 //
+#  \\// YOSLCF65HPRTRTETEZHRZKJCIJRJD4KIYJJIOTD4232FD4U6WBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

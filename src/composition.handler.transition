@@ -46,7 +46,7 @@ if ( not defined <composition.transition.status.waiting.stop>
             );
         } else {    ## window_id(s) (fade) ##
             <[base.proto.nailara.command.send.local]>->(
-                {   'command'   => "core.xserver.get_window_ids",
+                {   'command'   => "core.X-11.get_window_ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -103,7 +103,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         } else {
             my $window_ids = $core_reply->{'params'}->{'window_ids'};
             <[base.proto.nailara.command.send.local]>->(
-                {   'command'   => "core.xserver.fade_out",
+                {   'command'   => "core.X-11.fade_out",
                     'call_args' => {
                         'args' => join( ' ', $fade_out_duration, $window_ids )
                     },
@@ -281,7 +281,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 # ______________________________________________________________________________
-#\\SUPB3RAFKYRRGDRWYVQ4VGZIROHYYMKNVPNE2USC5IMLNPV7IF32X2SR4HVAPA4LZMRK5GSO76NNQ
-# \\ RKX6M22ZP32YJR3FQAM7RSPJKG444QP65THK2JFUK7KAO24XGXUE \\// C25519-BASE-32 //
-#  \\// C6LELNI7AP7LCPCSB3JX5OPJCZ3VZZSKB5Q5OICKMP7YRYYRAAQ \\ CODE SIGNATURE \\
+#\\KRY2DI2I5DSEFGRJA4MDF7HT4ZPDBK7E6HPIH6SSTBK7IIDPCT27UHTXJATGK2SB2U3NSCDUMFP74
+# \\ JDU7KAQNJYVNIOOBUGV4XBBUP37IIQA5PNTR2HLBBYSGBCXUQO4K \\// C25519-BASE-32 //
+#  \\// GNGTOXH26P3RFZ7UPAG2KT5VWRKWFZMUB7IF3CR2Z3PS2D6S6AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

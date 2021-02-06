@@ -1,0 +1,19 @@
+# >:]
+
+# name  = X-11.cmd.get_stack_order
+# descr = return the window stacking order (win ids)
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $reply_str = join( "\n", reverse( $xtops->stacking ) );
+$reply_str //= '';
+$reply_str .= "\n" if length($reply_str);
+
+return { 'mode' => 'data', 'data' => $reply_str };
+
+# ______________________________________________________________________________
+#\\3CX42C5PWN6DJAN2NYPNHJUEV4CBYBAVGD36LRFJDKI7RTHURBN6CBRINNIWRLIGSMSNKTK2DUSAG
+# \\ 6RZGS4PQWBZ6AV3WRMESGQCPA4N7HS64VW6VTJRCSGUEPPI2OQMC \\// C25519-BASE-32 //
+#  \\// ERLWRR6SEZYTGE73BDRLD47VALITL7J3HE7D4CQWONUWZU2JOBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

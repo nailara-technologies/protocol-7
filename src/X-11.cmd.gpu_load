@@ -1,0 +1,58 @@
+# >:]
+
+# name  = X-11.cmd.gpu_load
+# param = [interval_secs]
+# descr = return current gpu load statistics
+
+return { 'mode' => 'nak', 'data' => 'no statistics available' }
+    if not defined <X-11.gpu_top.stats.load_average>
+    or not defined <X-11.gpu_top.stats.secs>;
+
+if ( defined $$call{'args'} ) {
+    my $ivl  = $$call{'args'};
+    my %secs = map { $_ => 1 } @{<X-11.gpu_top.stats.secs>};
+    return {
+        'mode' => 'nak',
+        'data' => "no statistics for interval \"$ivl\" collected .. [ "
+            . join( ', ', @{<X-11.gpu_top.stats.secs>} ) . " ]"
+        }
+        if not exists $secs{$ivl};
+    if ( not defined <X-11.gpu_top.stats.load_average>->{$ivl} ) {
+        my $sample_count = keys %{<X-11.gpu_top.stats.sample>};
+        my $retry_in     = $ivl - $sample_count;
+        my $s            = $retry_in > 1 ? 's' : '';
+        $s .= ' ..' if $retry_in >= 5;
+        $s .= '.'   if $retry_in >= 15;
+        return {
+            'mode' => 'nak',
+            'data' => "please retry in $retry_in second$s"
+        };
+    }
+
+    return {
+        'mode' => 'ack',
+        'data' => <X-11.gpu_top.stats.load_average>->{$ivl}
+    };
+}
+
+my $stats_str = '';
+map {
+    my $value
+        = defined <X-11.gpu_top.stats.load_average>->{$_}
+        ? <X-11.gpu_top.stats.load_average>->{$_}
+        : '---';
+    if ( !length($stats_str) ) {
+        $stats_str .= "< $value% >  ";
+    } else {
+        $stats_str .= "[ ${_}s : $value ]  ";
+    }
+} @{<X-11.gpu_top.stats.secs>};
+$stats_str =~ s| +$||;
+
+return { 'mode' => 'ack', 'data' => $stats_str }
+
+# ______________________________________________________________________________
+#\\77Z7P4MFULNKDJ7ZKTDKCJLZUT7TN5DSUNQNEON7YPX4WZFUP57LRUEZFRPPIE77TTIVRFZ622H34
+# \\ LOUYK44B7AFT2D4ZZQUQQ6GAZBIXT5J4WENPDMU3QQIMHEVTQV2Z \\// C25519-BASE-32 //
+#  \\// 26UIEUSWMTYFRCWVMZCVXQWMBD4LUXMGOYA3E22WCBWSOHB7KDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

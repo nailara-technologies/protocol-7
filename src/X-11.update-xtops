@@ -1,0 +1,32 @@
+# >:]
+
+# name  = X-11.update-xtops
+
+my $xtops        = <X-11.x11_tops>;
+my $current_time = <[base.time]>->(4);
+my $min_delay    = sprintf( "%.4f", 0.07 + rand(0.13) );
+
+<X-11.xtops-update> //= 0;
+
+my $delta_t = $current_time - <X-11.xtops-update>;
+
+if ( $delta_t >= $min_delay ) {
+    <X-11.xtops-update> = $current_time;
+    eval { $xtops->update_ids };
+} else {
+    <X-11.timer.update-xtops>->cancel
+        if defined <X-11.timer.update-xtops>
+        and <X-11.timer.update-xtops>->is_active;
+    <X-11.timer.update-xtops> = <[event.add_timer]>->(
+        {   'handler' => 'X-11.update-xtops',
+            'after'   => $delta_t + 0.07,
+            'repeat'  => 0
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\HOWNTQX66V3LDVPIZ25B73GPEMUKKE7OAUEGQUZ4CHYLVKD6TFDU62TAYZKAUULEESQMTDWJCMA5S
+# \\ RI44CZYD77OOYNXWW65JHHP7ESFIAUHH5EEYP5J256NEKOILNVEB \\// C25519-BASE-32 //
+#  \\// NOOKDWT63EJEKNADVBIYU4TDT4HDHF2J4OJSEGZPIXBPUTWR6CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

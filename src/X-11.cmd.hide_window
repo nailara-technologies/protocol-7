@@ -1,0 +1,33 @@
+# >:]
+
+# name  = X-11.cmd.hide_window
+# param = <w_id>
+# descr = hide specified window
+
+my $X         = <X-11.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+<[base.log]>->( 2, "hiding window $window_id" );
+eval {
+    for ( 0 .. 1 ) {    # <- workaround [ ignored state requests ]
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'add',
+            'HIDDEN' );
+    }
+};
+
+return { 'mode' => 'ack', 'data' => "unable to set 'hidden' state" } if $@;
+return { 'mode' => 'ack', 'data' => "set window state 'hidden'" };
+
+# ______________________________________________________________________________
+#\\VKKQ2HO33IC6G4JQFXDGXYFBDTMXSRQ56PAKNKVCBDT2CFRUC72YEA3JB2BPJBOIP67FCQ2F247GI
+# \\ NSLPIPP6IOXHKDTZCBVX5O5ZFBESOP57ZZLMGE3RYLLCE3NHVYNQ \\// C25519-BASE-32 //
+#  \\// FXGAEAHDHHM7ZJDQPW7E7LR6QNSNTBCVSFFTCRMKNSYSQG5DQCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

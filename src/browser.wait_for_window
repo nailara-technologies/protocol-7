@@ -3,16 +3,16 @@
 # name = browser.wait_for_window
 
 ( my $wait_title_str = <browser.window.title_str> ) =~ s|([\[\]\.])|\\$1|g;
-unless ( <[base.x11.wait_for_window]>->( '^' . $wait_title_str ) ) {
+unless ( <[base.X-11..wait_for_window]>->( '^' . $wait_title_str ) ) {
     <[base.log]>->( 0, "[!] window unable to open, aborting agent startup.." );
     exit(2);
 }
 
-<[base.x11.assign_window]>;
+<[base.X-11..assign_window]>;
 <[base.async.get_session_id]>;
 
 # ______________________________________________________________________________
-#\\3DHNSOKUGM3R3J4AJ7LRGX3E24ANMCY3IDNABNWRJCIEQGPDAE4XVRPKM2ALFQRQPHAYKJ23GXI4M
-# \\ J2MGDDV2GPHQRCWGX4HSRQJDAKHLCYLVMBCFOC3EMHWFQE255XLO \\// C25519-BASE-32 //
-#  \\// SPA7S5MXCSZ7FGQMM2OCXVFZ34ZZDSFHRXZVM6SHWOQUX66NAAY \\ CODE SIGNATURE \\
+#\\5CPEQSF7SH3DEZMKJ4CUPWB7TMUCUDACYQJZ776P2CAWKDPTWEOGFGORO5FREJ2WRKRQDQE42PEOQ
+# \\ CYMZ3ICB56VC3CZLUZG3DD4ICUQRYC7MR6KELJ6P2BWLZROM437I \\// C25519-BASE-32 //
+#  \\// EGSXVWHIHTFL52GOOEFWJIF4PXQ7HZOD7IF62CUZGEWW2555ADI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -29,7 +29,7 @@ chdir(<pong-game.cfg.res_path>) or die $!;
 
 <[base.agents.report_child_pid]>->(<pong-game.pid>) if <pong-game.pid>;
 
-if ( not defined <[base.x11.wait_for_window]>->('pong-game')
+if ( not defined <[base.X-11..wait_for_window]>->('pong-game')
     or !<pong-game.pid> ) {
     <[base.log]>->( 0, "[!] unable to start pong-game [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
@@ -52,13 +52,13 @@ if ( not defined <[base.x11.wait_for_window]>->('pong-game')
         }
     );
 
-    <[base.x11.assign_window]>->(<x11.id>);
+    <[base.X-11..assign_window]>->(<x11.id>);
 }
 
 <[base.log]>->( 1, "startup complete." );
 
 # ______________________________________________________________________________
-#\\HF6XEMCSQCYU663SAN6JWMITBCBEXCPNIRB7WBIXFHJX3BUO5IZQNY2PFL3EW2LXBZZ7FLTHTPM2Q
-# \\ E33CBFFNKD2AFDZHFOA2URQWHHVNVEU2GWHA25M43BGPRTXTLZEX \\// C25519-BASE-32 //
-#  \\// HQUUF6QS3G4S7II3EXUOL7CPS3TTM63PDZMPVIT7HE2UAUTIGAA \\ CODE SIGNATURE \\
+#\\COX4DABIZB5HB5B7WF54EEXKSTLNXSD3WJVFZ5BE7BG6TN6FVOMJ4X6YDA44NCXXO32QPRNG6K2H2
+# \\ WY4IA7WZKP56JYTLUW2PRALSLONJZQR32MMCYRAPF2JFINHJX2VG \\// C25519-BASE-32 //
+#  \\// WDOGYOQ5QXPGN4O3GC4OTVXP6EFJXMQOYY7MW62JG6CAX4HY6CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,26 @@
+# >:]
+
+# name  = X-11.cmd.dpms_force_on
+# descr = force screen power on using DPMS
+
+return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+    if !<X-11.has_dpms>;
+
+my ( $power_level, $dpms_enabled ) = <X-11.x11>->DPMSInfo();
+
+return { 'mode' => 'ack', 'data' => "already in mode 'ON'" } if !$power_level;
+
+<X-11.x11>->DPMSEnable() if !$dpms_enabled;
+<X-11.x11>->DPMSInfo();
+<X-11.x11>->DPMSForceLevel(0);
+<X-11.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "DPMS manually forced ON" );
+
+return { 'mode' => 'ack', 'data' => 'dpms forced ON' };
+
+# ______________________________________________________________________________
+#\\QVE65P5HDFT76Z23QHBZXCPQBCSCKFLWV5HGAGUC2A3NXQWTVLFRP5QUIHEMT2X2MRL3BTHU47OCW
+# \\ XMUZLOTZ4RCLMVYP6PIUDKUFKXMZ7FN45TLDVAR4J4MQXDMSXRZC \\// C25519-BASE-32 //
+#  \\// ZBG6HORBTN7TDOKYNHGCJYPECSB7F4E443EJGF4DO4UVEL3MOBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

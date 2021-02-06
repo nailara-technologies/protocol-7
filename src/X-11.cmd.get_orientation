@@ -1,0 +1,19 @@
+# >:]
+
+# name  = X-11.cmd.get_orientation
+# descr = return X-11 screen orientation
+
+my $rotate = <X-11.orientation> // '';    # [left|right|normal|inverted]
+
+my $orientation = (
+           $rotate eq 'left'
+        or $rotate eq 'right'
+) ? 'portrait' : 'landscape';
+
+return { 'mode' => 'ack', 'data' => $orientation }
+
+# ______________________________________________________________________________
+#\\YQ36D22A7C2V3AQ2UZ5IQHT7Y5NPENHTTHXHL4VQ66GXRY7PSH4HLJN7WYTA5CT7UVZ55O4NKM5LE
+# \\ IGZC3BXS3G7KJFH24KV6MUE2OJXQCXDVLLT2LGMIPCWP5WK25TX6 \\// C25519-BASE-32 //
+#  \\// SEH3SXRMV6MM6PBELHQMZRLMFGMOXBV6M7YE4CVEEETC365WKCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

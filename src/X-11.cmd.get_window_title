@@ -1,0 +1,33 @@
+# >:]
+
+# name  = X-11.cmd.get_window_title
+# param = <w_id>
+# descr = resolve title string for given window id
+
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+
+return { 'mode' => 'ack', 'data' => $window->title };
+
+# ______________________________________________________________________________
+#\\YUV5WKV6IS6XX5KYUZ3ZEWI34TQMQGK72V2KHYATW2TUQSC3SFK5P2X3YN7WKQXGZB4RDAQKDL2G2
+# \\ J6IBSIT3S4H6MVMUHMBE2BUOFVR5AQB6R2T3NMN6OX5DBOC7FVNF \\// C25519-BASE-32 //
+#  \\// 6RV2VQGOTU5IVGGTUFLTP4X65N7ED4ZHIUHATYSBEBSUUX5UCBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

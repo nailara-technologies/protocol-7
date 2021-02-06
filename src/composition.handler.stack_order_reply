@@ -8,7 +8,7 @@ my $reply_id = delete $answer->{'params'};
 return <[base.callback.cmd_reply]>->(
     $reply_id,
     {   'mode' => 'nak',
-        'data' => "unexpected answer from (missing?) xserver agent!"
+        'data' => "unexpected answer from (missing?) X-11 agent!"
     }
 ) if defined $reply_id and $answer->{'cmd'} ne 'DATA';
 return <[base.callback.cmd_reply]>->(
@@ -66,7 +66,7 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
 } else {
     map {
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.xserver.lower_window",
+            {   'command'   => "core.X-11.lower_window",
                 'call_args' => { 'args' => $_ },
                 'reply'     => { 'handler' => 'dev.null' }
             }
@@ -82,7 +82,7 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
 ) if defined $reply_id;
 
 # ______________________________________________________________________________
-#\\3AY6TDWY4SUHKTD7VAWQGMWCG5V7BB4FJ5WDSPLAZHAZLCIZRONK233J6J6XUIRVN6O7HV75IQY2I
-# \\ MJKHBMVF2547YQJUACEHUG63H2543JAREQNGUTTNRKNCA7WBRE54 \\// C25519-BASE-32 //
-#  \\// P67G6WENYMG4H6XHH65YTPPNB53GY2QANS6TYPXNOOB4SN3KUDQ \\ CODE SIGNATURE \\
+#\\77W3WJLQAEDUTHK2YNW5V7TMDURJULCM2MH63P65SJ5ZMBFRLUTRLG26XE3FDPTJPGVJGBKK67EJQ
+# \\ MVMYNC4NXQNS75A65FOL5TQWJA7LL4ITYRSTKKDBEJWIX53HEYSD \\// C25519-BASE-32 //
+#  \\// 2OK2QJ5KEEQCRRO2O3QLA52Y4KJIYEPBZ6GNXB4L34DVTI3WWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

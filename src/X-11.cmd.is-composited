@@ -1,0 +1,19 @@
+# >:]
+
+# name  = X-11.cmd.is-composited
+# descr = return if running X-11 is composited
+
+my $composited = <X-11.is_composited>;
+
+<X-11.is_composited> = <X-11.x11>->init_extension('Composite') ? 1 : 0;
+
+# <X-11.x11>->CompositeRedirectWindow( $window, 'Automatic' ); # <- add cmd.,
+
+return { 'mode' => 'ack', 'data' => 'yes, is composited' } if $composited;
+return { 'mode' => 'nak', 'data' => 'no composite extension' };
+
+# ______________________________________________________________________________
+#\\Q3Z4TN5VHZE3Z5LJ7HMMK4N5PPJXRIL6I463YZWD26QIT2CHVF3UOMPFSIP7KTK3OST5XFHPS6Z5U
+# \\ 3OL46YL2DJ5BXN5WTKZ56UGKMQFV5GFV2Y7CTEQMHCC356VTQLKE \\// C25519-BASE-32 //
+#  \\// KOGN5YM76UM64V3IVZFX3KZOJ7A2SG6OE67W3OLL5WXQNCDIWBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

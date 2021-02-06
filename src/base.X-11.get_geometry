@@ -1,0 +1,86 @@
+# >:]
+
+# name = base.X-11..get_geometry
+
+my $user     = shift // 'core';
+my $cmd_path = shift // '';
+$cmd_path .= '.' if length($cmd_path);
+my $agent_subname = <system.agent.subname>;
+
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $sn_str
+    = defined $agent_subname
+    ? ' ' . <system.agent.name> . "[$agent_subname]"
+    : '';
+
+my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
+<[base.log]>->( 1, "requesting geometry$sn_log_str" );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->(
+    $core_fh, "($cmd_id)${cmd_path}composition.get_geometry$sn_str\n"
+);
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.geometry> = $1;
+    <[base.log]>->( 1, "received window geometry., [$1]" );
+    return <x11.geometry>;
+}
+
+# else [ no composition agent present or no geometry for agent configured ]
+my $err_msg = "unexpected reply from composition agent ['$reply_string']";
+
+$err_msg = ": << geometry undefined$sn_log_str >>"
+    if $reply_string =~ m|NAK no geometry|
+    or $reply_string =~ m|NAK command unknown|;
+
+<[base.log]>->( 1, $err_msg );
+
+# use full X server geometry as window geometry..,
+$cmd_id = <[base.gen_id]>->( $data{'route'} );
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}X-11.get_screen_size\n" );
+
+$matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    ( my $size_str = $1 ) =~ s| |x|;
+    <x11.geometry> = "$size_str+0+0";
+    <[base.log]>->( 1, "using X-11 screen size as geometry [$size_str]" );
+    <x11.geometry_was_undefined> = 1;
+    return <x11.geometry>;
+} else {
+    <[base.log]>->( 1, "[!] window geometry undefined [!]" );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\OPSTPWNQEFBTPJFCDF3EECJFN5C5FK7GH5T6GBHFZSI267CVMRU6HOR5IQNXDOUFJA5XWLMPHOXRO
+# \\ IWFYYAWK4G4I3F2VLFFP4DJERJGEJTBKLAOXLNDN4FKKTRNTT6L2 \\// C25519-BASE-32 //
+#  \\// YGXPSPUBAM6A4J3LOG6DE7NDLEDTJIHHYKXUKSK6YQGSIJXG2BA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,44 @@
+# >:]
+
+# name = base.X-11..set_gravity
+
+my $gravity = shift;
+$gravity //= '';
+die "invalid gravity keyword '$gravity' [left|right|top|bottom]"
+    if $gravity !~ /^(top|bottom|left|right)$/;
+my ($local_sid) = keys( %{<user.core.session>} );
+
+<[base.log]>->(
+    1, "setting gravity for window id " . <x11.id> . " to '$gravity'.."
+);
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->(
+    $core_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n"
+);
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.display> = $1;
+    <[base.log]>->( 2, ": ok, gravity applied." );
+    return 1;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return 0;
+}
+
+# ______________________________________________________________________________
+#\\ZV2TJ3IRDMOMAPBAC7AO65OFRLEEHB3VJ4L3NNP6G2CZ6UAU3ORVUTWV77XFLHJIVSK2H6THT5CE4
+# \\ 5WFZ2S3GJ6KR2MW5UASLLYW5COJC7LXMSKCALB62T6OJD2DWBFR5 \\// C25519-BASE-32 //
+#  \\// MRM7HF247W2IXDB5KFNLYTEMMQD6G5GIKXZKBV3F6LWMDNXYEDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
