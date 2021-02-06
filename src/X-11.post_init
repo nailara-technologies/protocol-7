@@ -9,8 +9,7 @@ my $modes_re = <X-11.modes_re>;
 
 if ( <X-11.mode> !~ $modes_re ) {
     <[base.log]>->(
-        0,
-        sprintf( "configured X-11 mode '%s' is not valid", <X-11.mode> )
+        0, sprintf( "configured X-11 mode '%s' is not valid", <X-11.mode> )
     );
     exit(1);
 }
@@ -116,7 +115,7 @@ my $bin_name_lc = lc($bin_name);
 ## registering custom error handlers ###
 
 $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
-    = 'X-11.handler.protocol-warnings'; ## $self->{'connection'}->get(@_); ##
+    = 'X-11.handler.protocol-warnings';    ## $self->{'connection'}->get(@_); ##
 
 <X-11.x11>->{'error_handler'} = sub {
     ( my $self, my $err_data ) = @_;
@@ -144,8 +143,15 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 
 if ( <X-11.x11>->init_extension('RANDR') ) {
     <[base.log]>->( 1, ": : RANDR support present =)" );
-    <X-11.x11>->RRQueryVersion( 1, 0 );
-    <X-11.has_randr> = 1;
+    eval { <X-11.x11>->RRQueryVersion( 1, 0 ); };
+    if ($@) {
+        <X-11.has_randr> = 0;
+        ( my $err_msg = $@ ) =~ s| at .+\n$||;
+        <[base.log]>->( 0, ': : : initialization error., RANDR disabled..,' );
+        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+    } else {
+        <X-11.has_randr> = 1;
+    }
 } else {
     <[base.log]>->( 1, ": : no RANDR support :|" );
     <X-11.has_randr> = 0;
@@ -210,9 +216,8 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
         and (  $max_size[0] > <X-11.x11>->width_in_pixels
             or $max_size[1] > <X-11.x11>->height_in_pixels )
     ) {
-        <[base.log]>->(
-            0, "<!> X-11 unable to select highest screen size <!>"
-        );
+        <[base.log]>
+            ->( 0, "<!> X-11 unable to select highest screen size <!>" );
         <[base.log]>->( 0, " :. mitigating.. [ reloading gfx kernel module ]" );
         <[event.add_timer]>->(
             {   'after'   => 0.13,
@@ -220,8 +225,7 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
             }
         );
     } else {
-        <X-11.display_status.handler>
-            = 'X-11.handler.display_power_state';
+        <X-11.display_status.handler> = 'X-11.handler.display_power_state';
     }
 }
 
@@ -235,8 +239,7 @@ if (<X-11.has_randr>) {
 ## custom xrandr ##
 
     map {
-        system( '/usr/bin/xrandr',
-            split( m| +|, <X-11.custom_xrandr>->{$_} ) )
+        system( '/usr/bin/xrandr', split( m| +|, <X-11.custom_xrandr>->{$_} ) )
         }
         sort { $a <=> $b } keys %{<X-11.custom_xrandr>}
         if <X-11.mode> eq 'xorg'
@@ -286,8 +289,7 @@ if (    <X-11.has_dpms>
 <X-11.collect_gpu_stats_on_4K> //= 0;
 <[X-11.start_gpu_top]> if <X-11.video_driver> =~ /^i/i    # i9xx <?>
     and ( <X-11.collect_intel_gpu_stats>
-    or <X-11.collect_gpu_stats_on_4K>
-    and <X-11.x11>->width_in_pixels >= 3840 );
+    or <X-11.collect_gpu_stats_on_4K> and <X-11.x11>->width_in_pixels >= 3840 );
 
 ## background image / color ##
 
@@ -336,7 +338,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\ZZKPQBRPFAO2PKT2C63CHWYWWK453TJFFNNSK6DQGV5EY2A3BKMZSNLNPMMWFFV5P3MCYVVGZ6TWI
-# \\ 2CEGOOHI7J3YM4TWBAAWSMIYCGMBDBMVLTFCHK3VND6DRJ4Q37CN \\// C25519-BASE-32 //
-#  \\// FNOEXHV4X5ODUSPASD7LFKGHZGY4Z7JYB74UENGN7MNNIABP4CQ \\ CODE SIGNATURE \\
+#\\7A537LMD5F4MKOXIKRXIEOTRKGU5A6PUOV3YNLNPVCOFXHLECYLLAKU4RY5CM7IPFDRDF25TP6AM4
+# \\ K2NW7Z4LXHCJY6NRGGD3CLP3NG22NQZMXWX4RHJ26OKPDIS62WIA \\// C25519-BASE-32 //
+#  \\// S3PEFQXSMWVCUDQQ2MHNZJTH3E4OANJEYDQB3XTPWH7C4WUX6AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
