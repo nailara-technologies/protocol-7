@@ -54,17 +54,17 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 
     my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
     <ticker-sdl.window_id>
-        = <[base.X-11..wait_for_window]>->( $title_pattern, 'parent', 'core' );
+        = <[base.X-11.wait_for_window]>->( $title_pattern, 'parent', 'core' );
     if ( not defined <ticker-sdl.window_id> ) {
         <[base.log]>->( 0, "agent startup error (ticker window did not open)" );
         exit(2);    # LLL: deal with parent? (test SIGCHLD handler!)
     } elsif (<ticker-sdl.cfg.assign_window>) {
-        <[base.X-11..assign_window]>->( <ticker-sdl.window_id>, 'parent' );
+        <[base.X-11.assign_window]>->( <ticker-sdl.window_id>, 'parent' );
     }
 
     if ( !<ticker-sdl.use_transparency> ) {
-        <[base.X-11..raise_window]>->( <ticker-sdl.window_id>, 'parent', 'core' );
-        <[base.X-11..keep_above]>->( <ticker-sdl.window_id>, 'parent', 'core' );
+        <[base.X-11.raise_window]>->( <ticker-sdl.window_id>, 'parent', 'core' );
+        <[base.X-11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'core' );
         <ticker-sdl.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
@@ -104,7 +104,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 }
 
 # ______________________________________________________________________________
-#\\Z3LG76UDWAWGPWROL3I67LQEVFG3SJCVN7OUXXWMQDTVOSQPH2P64QMZDZQXP2WGIGQGKEBL6WLBU
-# \\ YDBD2DBZQYU2LGAZULY6OKO5BIIEVWVOSNZ5QNII5QDN6SXPLKG3 \\// C25519-BASE-32 //
-#  \\// 3ZVZLQQBNSU3ZYKJKMNJE55NURDSJ5UFHTDYHBYBMFZ2JONXGBQ \\ CODE SIGNATURE \\
+#\\MFYSNMZLVO7MZN7ATWUXN6CJXFXBKZBP3WJ3TKIJMMXDQNCF4D3HNGWIQMYPGKZYNQ6VUGCDBHZPO
+# \\ CVDZCYM3OBA3DD5TWHYJ3WRCLERD7QKSFRHI2XU7MSEEB5NRG3Q4 \\// C25519-BASE-32 //
+#  \\// NK4SPQSSXZO5NDY4RVHHED7DFORX3LWBZTET5CCJGDDAQO3GOCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -132,11 +132,11 @@ SDL::Video::blit_surface(
 SDL::Video::flip($screen);
 
 my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
-if ( not defined <[base.X-11..wait_for_window]>->($title_pattern) ) {
+if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
     <[base.log]>->( 0, "agent startup error (sdl window did not open)" );
     exit(2);
 } else {
-    <[base.X-11..assign_window]>;
+    <[base.X-11.assign_window]>;
 }
 
 <[base.log]>->( 1, "entering webcam loop ..." );
@@ -362,7 +362,7 @@ sub mask_scan {
 }
 
 # ______________________________________________________________________________
-#\\EDXZX2AMQY52YCIV4C5GOHVLA2MWFMU7VN464IT44L3TIZDG35E3FYZ54XM3XPDPVME5JC2JSBSRA
-# \\ M7HCWXBSEF5WNOIICQQVBPR7GBTUTTPK37JWBYZB2TIBKGRDI7MO \\// C25519-BASE-32 //
-#  \\// SABMSB72JIVLEIOSPA23IZI3XY7PD6R4B3AHNUJMSDSCX35YMCY \\ CODE SIGNATURE \\
+#\\ZCPUY4X4L64RDSK5FY5VPPP225LMG2BQAPGIDQVORL5JRTQO6MFBK3NN2I4TPLAJMXWVLSF2RLG4K
+# \\ PVIR46EFMPVCBXUFFIWCCAGRVRPAJAH5PPRZDWUCVQ64HT556H3J \\// C25519-BASE-32 //
+#  \\// UGOJGAKIX2ZISRIWYCCGJTN54SYWDQ676XP53EDFZDPQGDMNUAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
