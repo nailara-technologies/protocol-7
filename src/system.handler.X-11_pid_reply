@@ -1,0 +1,43 @@
+# >:]
+
+# name = system.handler.X-11_pid_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ m|^\d+$| ) {
+    my $reason = 'unable to obtain Xorg PID';
+    $reason = "X-11 agent is not in 'xorg' mode"
+        if $reply->{'call_args'}->{'args'} =~ m|not xorg|;
+    <[base.callback.cmd_reply]>->(
+        <system.gfx_reload.reply_id>,
+        {   'mode' => 'nak',
+            'data' => "$reason, aborted."
+        }
+    );
+    delete <system.gfx_reload>;
+} else {
+    my $xorg_pid = $reply->{'call_args'}->{'args'};
+    <system.gfx_reload.xorg_pid> = $xorg_pid;
+
+    <system.process.wait_gone>->{$xorg_pid} = 'system.handler.X-11_stopped';
+
+    my $wait_gone_interval = 0.13;
+    <system.timer.wait_gone> = <[event.add_timer]>->(
+        {   'after'    => $wait_gone_interval,
+            'interval' => $wait_gone_interval,
+            'handler'  => 'system.process.handler.wait_gone'
+        }
+    );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.nroot.stop',
+            'call_args' => { 'args' => 'X-11' }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\DZ6J2ZPZZNIZLNHO6QHKMRLOAHS6NXN63G6CYXGDNH3ARUO22K264KDGYYHX6LS7GDVMMZI5YR6K6
+# \\ RCIKQTGIAV2WXO5PYB4VJAKEDUEJQORB6KUWRY63WGTNCEFRUSLM \\// C25519-BASE-32 //
+#  \\// T2BLGXULZXKE7T5EDJXGM2P4CRZONQ5O43ZO32YNH7G2SM4T6CA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

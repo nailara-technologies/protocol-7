@@ -1,0 +1,20 @@
+# >:]
+
+# name = X-11.move_pointer
+
+my %coords = ( 'x' => $_[0], 'y' => $_[1] );
+map {
+    die "expected $_ parameter"
+        if not defined $coords{$_}
+        or $coords{$_} !~ /^\d+$/
+} ( 'x', 'y' );
+
+my $root = <X-11.x11>->root;
+<X-11.x11>
+    ->WarpPointer( $root, $root, 0, 0, 0, 0, $coords{'x'}, $coords{'y'} );
+
+# ______________________________________________________________________________
+#\\SCQZ2AL34FYDE56YMEVWFDM6342DE5QXD7H5T4QRI2RDE4AHW4FHWQGCEFFI3LY2BYCE3QHOOP5H4
+# \\ SKPODN7BUEG6ZWF2R37BW3U5QIJEQT6C3Y3AFALN4CJEMW4XJ7WR \\// C25519-BASE-32 //
+#  \\// L3MVWJBE4BICT2DCYXZN6RM5WXNPOVU6PG7HSDAYIFJFEONMQBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

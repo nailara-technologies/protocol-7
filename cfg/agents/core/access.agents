@@ -8,22 +8,22 @@
                                      get-public-key set-client-key \
                                      get-session-key get-session-sig \
                                      source-version release-version \
-                                     xserver.get_display \
-                                     xserver.get_geometry \
+                                     X-11.get_display \
+                                     X-11.get_geometry \
                                      composition.get_geometry \
                                      composition.assign_window \
                                      composition.get_coordinates \
-                                     xserver.get_orientation \
-                                     xserver.get_screen_size \
-                                     xserver.get_stack_order
+                                     X-11.get_orientation \
+                                     X-11.get_screen_size \
+                                     X-11.get_stack_order
 
-              access.cmd.usr.mpv  =  nroot.start_once xserver.get_mode \
+              access.cmd.usr.mpv  =  nroot.start_once X-11.get_mode \
                                      content.get_list reenc-msg.refresh \
                                      reenc-msg.finished nroot.notify_online \
-                                     xserver.keep_below nroot.register_child \
-                                     xserver.set_opacity \
-                                     xserver.set_geometry \
-                                     xserver.wait_visible \
+                                     X-11.keep_below nroot.register_child \
+                                     X-11.set_opacity \
+                                     X-11.set_geometry \
+                                     X-11.wait_visible \
                                      ffmpeg[mpv].rescale_video
 
               access.cmd.usr.ssh  =  *.heart
@@ -34,25 +34,25 @@
 
             access.cmd.usr.nroot  =  heart *.heart session-key ondemand-agent \
                                      set-initialized *.verify-instance \
-                                     system.report-xserver-error
+                                     system.report-X-11-error
 
              access.cmd.usr.udev  =  notify.message
 
         access.cmd.usr.universal  =  nroot.restart nroot.start_once \
-                                     pdf2html.get_url xserver.bg_color \
-                                     xserver.get_mode xserver.gpu_load \
+                                     pdf2html.get_url X-11.bg_color \
+                                     X-11.get_mode X-11.gpu_load \
                                      content.get_list reenc-msg.refresh \
                                      image2html.get_url melt.extract_frame \
                                      content.set_flags reenc-msg.finished \
                                      nroot.notify_online nroot.stop_implicit \
-                                     xserver.keep_below xserver.hide_window \
-                                     xserver.set_opacity \
+                                     X-11.keep_below X-11.hide_window \
+                                     X-11.set_opacity \
                                      composition.get_subconfig \
-                                     xserver.lower_window \
-                                     xserver.raise_window \
-                                     xserver.set_geometry \
-                                     xserver.wait_visible \
-                                     xserver.unhide_window \
+                                     X-11.lower_window \
+                                     X-11.raise_window \
+                                     X-11.set_geometry \
+                                     X-11.wait_visible \
+                                     X-11.unhide_window \
                                      content.get_list_types \
                                      content.get_list_types \
                                      ffmpeg[mpv].rescale_video \
@@ -78,71 +78,71 @@
 
       access.cmd.usr.composition  =  nroot.start notify.warn nroot.restart \
                                      universal.slow_down content.update \
-                                     nroot.start_once xserver.bg_color \
-                                     xserver.fade_out browser.slow_down \
+                                     nroot.start_once X-11.bg_color \
+                                     X-11.fade_out browser.slow_down \
                                      content.get_list nroot.notify_online \
                                      nroot.stop_implicit nroot.notify_offline \
                                      ticker-gtk.slow_down \
-                                     xserver.lower_window \
+                                     X-11.lower_window \
                                      nroot.get_instance_ids \
-                                     xserver.get_window_ids \
-                                     xserver.get_stack_order \
+                                     X-11.get_window_ids \
+                                     X-11.get_stack_order \
                                      screenshot.get_region_color
 
            access.cmd.usr.notify  =  dbus.socket_address
 
-           access.cmd.usr.system  =  nroot.stop nroot.start xserver.get_driver \
+           access.cmd.usr.system  =  nroot.stop nroot.start X-11.get_driver \
                                      nroot.pid-instance nroot.notify_online \
                                      nroot.restart nroot.forced-mod-reload \
-                                     nroot.register_child xserver.get_xorg_pid \
+                                     nroot.register_child X-11.get_xorg_pid \
                                      nroot.reboot-warning nroot.host-reboot
 
-           access.cmd.usr.webcam  =  content.get_list xserver.wait_visible
+           access.cmd.usr.webcam  =  content.get_list X-11.wait_visible
 
-          access.cmd.usr.browser  =  pdf2html.get_url xserver.bg_color \
-                                     xserver.gpu_load image2html.get_url \
+          access.cmd.usr.browser  =  pdf2html.get_url X-11.bg_color \
+                                     X-11.gpu_load image2html.get_url \
                                      content.set_flags \
                                      composition.get_subconfig \
-                                     xserver.raise_window xserver.lower_window \
-                                     xserver.wait_visible \
+                                     X-11.raise_window X-11.lower_window \
+                                     X-11.wait_visible \
                                      content.get_list_types \
                                      content.entries_withheld \
                                      nroot.report-temp-path
 
-          access.cmd.usr.compton  =  xserver.get_mode xserver.get_driver
+          access.cmd.usr.compton  =  X-11.get_mode X-11.get_driver
 
           access.cmd.usr.pcycle   =  power.on power.off
 
           access.cmd.usr.openbox  =  nroot.register_child
 
-          access.cmd.usr.xserver  =  nroot.restart nroot.start_once \
+          access.cmd.usr.X-11  =  nroot.restart nroot.start_once \
                                      nroot.register_child \
                                      composition.gpu_load_alert \
                                      xpointer.blank_cursor \
                                      system.reload_gfx_module \
-                                     system.report-xserver-error
+                                     system.report-X-11-error
 
          access.cmd.usr.osd-logo  =  download.get_file nroot.stop_implicit \
-                                     colortoalpha.filter xserver.get_display
+                                     colortoalpha.filter X-11.get_display
 
-      access.cmd.usr.storchencam  =  xserver.wait_visible
+      access.cmd.usr.storchencam  =  X-11.wait_visible
 
-        access.cmd.usr.pong-game  =  xserver.wait_visible \
-                                     xserver.get_coordinates
+        access.cmd.usr.pong-game  =  X-11.wait_visible \
+                                     X-11.get_coordinates
 
         access.cmd.usr.power-x11  =  power.on power.off power.show_all
 
         access.cmd.usr.reenc-msg  =  nroot.stop_implicit
 
-       access.cmd.usr.image2html  =  xserver.bg_color
+       access.cmd.usr.image2html  =  X-11.bg_color
 
        access.cmd.usr.impressive  =  nroot.start_once content.get_list \
                                      nroot.notify_online nroot.stop_implicit \
-                                     nroot.register_child xserver.set_opacity \
-                                     xserver.raise_window xserver.wait_visible \
-                                     xserver.bg_color composition.get_subconfig
+                                     nroot.register_child X-11.set_opacity \
+                                     X-11.raise_window X-11.wait_visible \
+                                     X-11.bg_color composition.get_subconfig
 
-       access.cmd.usr.start-anim  =  xserver.wait_visible xserver.bg_color \
+       access.cmd.usr.start-anim  =  X-11.wait_visible X-11.bg_color \
                                      nroot.report-temp-path
 
        access.cmd.usr.notify-osd  =  dbus.socket_address
@@ -150,13 +150,13 @@
        access.cmd.usr.rss-ticker  =  content.get_list ticker-gtk.read_file \
                                      ticker-sdl.read_file
 
-       access.cmd.usr.ticker-gtk  =  composition.get-layer xserver.gpu_load \
+       access.cmd.usr.ticker-gtk  =  composition.get-layer X-11.gpu_load \
                                      nroot.notify_online \
                                      composition.get_subconfig \
                                      rss-ticker.resend_update
 
-       access.cmd.usr.ticker-sdl  =  nroot.notify_online xserver.keep_above \
-                                     xserver.set_gravity xserver.set_opacity \
-                                     xserver.raise_window \
-                                     xserver.wait_visible \
+       access.cmd.usr.ticker-sdl  =  nroot.notify_online X-11.keep_above \
+                                     X-11.set_gravity X-11.set_opacity \
+                                     X-11.raise_window \
+                                     X-11.wait_visible \
                                      rss-ticker.resend_update

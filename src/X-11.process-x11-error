@@ -1,0 +1,36 @@
+# >:]
+
+# name  = X-11.process-x11-error
+
+my $error_string = shift // 'x11-protocol error';
+my @caller_data  = @_ ? @_ : caller;
+
+$error_string =~ s| at (\S+) line (\d+).*\n$||;
+my ( $file_name, $line_number ) = ( $1, $2 );
+
+return warn "$error_string <{C1}>" if not defined $file_name;
+$file_name =~ s|^/usr/share/perl5/||;  ## shorten path string for .pm modules ##
+
+my $log_error = 1;
+## alternative handler registered for filename:line ? ##
+my $match_param   = "$file_name:$line_number";
+my $warn_handlers = $data{'base'}{'warn-match-handler'} // {};
+if ( defined $warn_handlers->{$match_param} ) {
+    my $cb_name = $warn_handlers->{$match_param};
+    $log_error = $code{$cb_name}->( $error_string, $match_param, @caller_data )
+        if defined $code{$cb_name};
+}
+##
+$log_error = 1;
+##
+if ($log_error) {
+    <[base.log]>->( 0, "<<< $error_string >>> [ $file_name, $line_number ]" );
+    my ( $package, $file_name, $line_number, $subroutine ) = @caller_data;
+    <[base.log]>->( 0, "  \\\\\\  < $file_name : $line_number >" ); ## caller ##
+}
+
+# ______________________________________________________________________________
+#\\UY5OM45J54QRZ3WSNUJJOT465H3W3N2ZM46PKXFAZEYW3B6SVWYE5243C6UAZ3DPCKY2D6LLC4VBM
+# \\ BW3NP5ZLSEQ62PZFWPJOLDAKATMYA2RRWXFMJ7LTZ55O5DHUP5WP \\// C25519-BASE-32 //
+#  \\// LEQ46FMGSIQZGP5AWIJB3LZRFKB5FWSBYJZFLI24KA3H7C7HUBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,18 @@
+# >:]
+
+# name  = X-11.cmd.get_screen_size
+# descr = return X-11 screen size in pixels
+
+<X-11.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+
+my %screen_geom = <X-11.x11>->GetGeometry( <X-11.x11>->root );
+
+my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
+
+return { 'mode' => 'ack', 'data' => "$width $height" }
+
+# ______________________________________________________________________________
+#\\CGZHHS4Q5WQUZ7J43KXY7DJXTIHO7VRHWLDOEDDAXTIWPLPCT5T5LXDF7GACDZ6R226BDT5ZU6EC4
+# \\ HPE5Q2MZ4ISL3QV7YY7MLQPMXAJQAYSIBEA6DYIXNVZE2X5S3T3S \\// C25519-BASE-32 //
+#  \\// 4AZ5OKVI6HUHLCQSOSXRYGJVD7DRZ6V4BRK5CH6VXKHGSKJDMAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

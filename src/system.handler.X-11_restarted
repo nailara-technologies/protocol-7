@@ -1,0 +1,31 @@
+# >:]
+
+# name = system.handler.X-11_restarted
+
+my $reply = shift;
+
+my $module_name = <system.gfx_reload.module_name>;
+
+my $reply_mode = 'ack';
+my $reply_data = "kernel module '$module_name' reloaded ... X-11 restarted";
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    $reply_mode = 'nak';
+    $reply_data = "module '$module_name' reloaded, X-11 restart failed ["
+        . $reply->{'call_args'}->{'args'} . "]";
+}
+
+<[base.callback.cmd_reply]>->(
+    <system.gfx_reload.reply_id>,
+    {   'mode' => $reply_mode,
+        'data' => $reply_data
+    }
+);
+
+delete <system.gfx_reload>;
+
+# ______________________________________________________________________________
+#\\CCFVLUAJEWCQMRUQDLAVUPGYYOPSHMN454LJ6OP6MMJPBA435LNHAYIUWV3JVOE7EAEYZC35RTIGA
+# \\ 5V746MJT6EC3Q4WUHVABEQV6YHL3HGTC45KK6CNAP55FM4P3J3RQ \\// C25519-BASE-32 //
+#  \\// 2VEZFZ7YOMMICFVS4TRW53FL7W2PXUXFX4X3AUBY5ATB3EOIICA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

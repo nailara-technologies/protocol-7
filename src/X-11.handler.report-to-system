@@ -1,0 +1,20 @@
+# >:]
+
+# name  = X-11.handler.report-to-system
+# todo  = reconnect X11::Protocol session, shutdown on failure ..,
+
+my $error_message = shift;
+
+<[base.log]>->( 1, 'reporting protocol error to system agent..,' );
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => 'core.system.report-X-11-error',
+        'call_args' => { 'args' => $error_message // '' }
+    }
+);
+
+# ______________________________________________________________________________
+#\\JQIANO5HKM664NN4CGNOJFTYGO3KF6NZU3O3ZPOTOFKF2SHTUQKXUROWZLR2WBVIQS4KPPLUJ3IAG
+# \\ WES3F35D2W63L7SEMZGVC2PLLZAXS6II6RZEN5NSNG472WV7PGQS \\// C25519-BASE-32 //
+#  \\// 57KYNYXX2NHNDXUMERZDP2NMFGZJIEYBZPFRZU62MPUQYOO36BA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,42 @@
+# >:]
+
+# name  = X-11.cmd.set_mouse_pos
+# param = <pos_x> <pos_y>
+# descr = move mouse pointer to given coordinates
+
+my $log_sid = $$call{'session_id'};
+my @params  = split( / +/, $$call{'args'} );
+my %coords  = ( 'x' => shift @params, 'y' => shift @params );
+map {
+    return { 'mode' => 'nak', 'data' => "expected $_ parameter" }
+        if not defined $coords{$_}
+        or $coords{$_} !~ /^\d+$/
+} ( 'x', 'y' );
+
+<[base.log]>->(
+    2,
+    "[$log_sid] hovering mouse pointer over position x=$coords{x}, y=$coords{y}"
+);
+
+<X-11.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+my %screen_geom = <X-11.x11>->GetGeometry( <X-11.x11>->root );
+my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
+
+return {
+    'mode' => 'nak',
+    'data' => "mouse position must be within screen dimensions!"
+        . " [${width}x$height]"
+    }
+    if $coords{'x'} > $width
+    or $coords{'y'} > $height;
+
+<[X-11.move_pointer]>->( $coords{'x'}, $coords{'y'} );
+<X-11.x11>->QueryPointer( <X-11.x11>->root );
+
+return { 'mode' => 'ack', 'data' => "mouse position set" }
+
+# ______________________________________________________________________________
+#\\A2CQ2SK4WE3WLS436FOQXG7WWMX7AA7DTX3DW7EDSIIXPOC6Y5IEJCJ3PZOBGNNRFPSHLJ2P6MFL6
+# \\ QEBEA7LLSDPVYVNRZX5VRDL2ADMOLP32D3J6Y4XPREHUUVW4XTSC \\// C25519-BASE-32 //
+#  \\// 2VSZW3BDNTHZ2SKLJG55U4FIN75UZMBYRYOQ77PVRSK2YUVAQDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

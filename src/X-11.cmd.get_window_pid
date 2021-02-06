@@ -1,0 +1,44 @@
+# >:]
+
+# name  = X-11.cmd.get_window_pid
+# param = <w_id>
+# descr = return process id for specified window id
+
+my $X         = <X-11.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+
+return {
+    'mode' => 'ack',
+    'data' => unpack(
+        "I*",
+        [   $X->GetProperty(
+                $window_id, $X->atom('_NET_WM_PID'),
+                'AnyPropertyType', 0, ~0, 0
+            )
+        ]->[0]
+    )
+};
+
+# ______________________________________________________________________________
+#\\TKOGN4D3W4T726PIVDLBAL3CVYPSP5FKS7E6LKMCOVJXK6CILCPR7MWURDY5HBQAW4SKYPN4QNAOO
+# \\ 5M3GTUNKTVYQGFFDPWZHPUPH3SK3I2UKUX4CROHOGSUJC7VHQCMU \\// C25519-BASE-32 //
+#  \\// SBFICUE4C3FYXLQRMGXKAAJQPDW6OGPLHZINZYXQ43D4ERDVMCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

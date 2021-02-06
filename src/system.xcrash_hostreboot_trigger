@@ -2,20 +2,20 @@
 
 # name  = system.xcrash_hostreboot_trigger
 
-my $crash_reboot = <system.xserver_crash.perform_host_reboot> //= 0;
-my $admin_delay  = <system.xserver_crash.reboot_admin_delay>  //= 13;
-my $reboot_delay = <system.xserver_crash.reboot_delay_secs>   //= 7;
+my $crash_reboot = <system.X-11_crash.perform_host_reboot> //= 0;
+my $admin_delay  = <system.X-11_crash.reboot_admin_delay>  //= 13;
+my $reboot_delay = <system.X-11_crash.reboot_delay_secs>   //= 7;
 
-<system.xserver_crash.admin_reboot_abort> = 0; # flush previous abort commands #
+<system.X-11_crash.admin_reboot_abort> = 0; # flush previous abort commands #
 
 return 0 if $crash_reboot !~ m,^(yes|1)$,;   ## <-- no system reboot enabled ###
 
 my $reboot_condition_error;
-if ( not defined <system.xserver_crash.reboot_condition>
-    or <system.xserver_crash.reboot_condition> !~ m|^hostname-pattern:(.+)$| ) {
+if ( not defined <system.X-11_crash.reboot_condition>
+    or <system.X-11_crash.reboot_condition> !~ m|^hostname-pattern:(.+)$| ) {
     $reboot_condition_error
         = "requires valid reboot condition setup : '[hostname-pattern:..,]'";
-    warn <system.xserver_crash.reboot_condition>;
+    warn <system.X-11_crash.reboot_condition>;
 } else {
     my $host_regex;
     my $host_regex_str = $1;
@@ -44,7 +44,7 @@ my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
 return 1;                                  ## <-- reboot is scheduled ###
 
 # ______________________________________________________________________________
-#\\EJVZS6Q5PI2VOOHDKOSRDLR3DKVED7LVMQKBL43Z2VDVBQBTHSGFA7PZUD6PX6C6RE3ZLGLJRONTS
-# \\ OHZEOI7QV6RJ46CFLY6IN5XP5ELYOXYEP3JMDBTJLDF6SYPUQ3QD \\// C25519-BASE-32 //
-#  \\// CEIBK3P62RJNBVAHOJQT2XKP7G6PIAFL5FSQRGR2YRYDZJGKMBQ \\ CODE SIGNATURE \\
+#\\DICKXPUQIYCJPOAQPQ4XRWWZJW4N34EE6CYBS4OKGWQE5IYAPPMEVKDJOC53R6D5NET7Q7JXQQV5S
+# \\ NQGKVE7AXAIRXAVH3EFFXVFDDDWC6Z6RI64SMGJCN3V37FS3USWQ \\// C25519-BASE-32 //
+#  \\// LS77QPI44PIJRVFN5ZU4SIIC7D7XOTVNJUESZL673TVXEZNRSCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

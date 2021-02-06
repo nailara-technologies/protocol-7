@@ -1,0 +1,24 @@
+# >:]
+
+# name  = X-11.cmd.screen_size_ranges
+# descr = return available screen size range
+
+my @range;
+if ( !<X-11.has_randr> ) {
+    my @current_size
+        = ( <X-11.x11>->width_in_pixels, <X-11.x11>->height_in_pixels );
+    @range = ( @current_size, @current_size );
+} else {
+    @range = <X-11.x11>->RRGetScreenSizeRange( <X-11.x11>->root );
+}
+
+return {
+    'mode' => 'ack',
+    'data' => sprintf( "< %dx%d > .., < %dx%d >", @range )
+    }
+
+# ______________________________________________________________________________
+#\\MA3J73CTZAKFYMNEKTYN3UOVYUCLWSHQNQQC6B4UDNJXGPHUSJ4Z5VTBLL3UHREDONGRTUNLD6M56
+# \\ 2IYNLIXRAZ23ES5NIGGXAYB7FIDUQQBI3EG7HHQICQPXCKMW7ZUO \\// C25519-BASE-32 //
+#  \\// YFQUZYHZEDWK44K2ZG7MUGX6IBDGBZTRCNVYIC22IEED3LZ24BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

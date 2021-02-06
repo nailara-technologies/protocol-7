@@ -1,0 +1,23 @@
+# >:]
+
+# name  = X-11.cmd.record_hotkey
+# param = <nailara_cmd_str>
+# descr = record a keypress to trigger given command
+
+my $re      = <regex.base>;
+my $command = $$call{'args'} // '';
+
+return { 'mode' => 'nak', 'data' => 'expected valid nailara command string' }
+    if $command !~ /^($re->{usr}\.)+$re->{cmd} ?/;
+
+<X-11.hotkeys.recording> = $command;
+
+push( @{<X-11.hotkeys.rec_reply_ids>}, $$call{'reply_id'} );
+
+return { 'mode' => 'deferred' }
+
+# ______________________________________________________________________________
+#\\5LAHAOQLUCL3R6W2IZHS3LKU3J4DR6GYP2U2GPTKSXAPW36HJ3EF4DC7L7K5NQ5HHYZWTDOI3RULW
+# \\ NWTED656EBLRTO3RVB6GN4ZMHSN26IF4YOX6LUWJ4B54VIIZJ2UW \\// C25519-BASE-32 //
+#  \\// RGBRCRHYGCAZCYSMFMLI567YTOYCZZ5MXUF4FCOYXQOWYHFXODI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,33 @@
+# >:]
+
+# name  = X-11.cmd.unhide_window
+# param = <w_id>
+# descr = unhide specified window
+
+my $X         = <X-11.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+<[base.log]>->( 2, "unhiding window $window_id" );
+eval {
+    for ( 0 .. 1 ) {    # <- workaround [ ignored state requests ]
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove',
+            'HIDDEN' );
+    }
+};
+
+return { 'mode' => 'nak', 'data' => "unable to remove 'hidden' state" } if $@;
+return { 'mode' => 'ack', 'data' => "removed 'hidden' window state" };
+
+# ______________________________________________________________________________
+#\\TQAVOVDCLW6Q3VRLHXFZXIEODUUP6XXSU7BGKFSMF3GIWO5WJDZ2HL3ZUPPHKCR2HF347ILIAHIZQ
+# \\ J3EYFSFUZPLG7HQTHH3ASEGYM7Z7B2BSSX6TKCIOJ23ALYMZUKAH \\// C25519-BASE-32 //
+#  \\// M5B5RQDQM3ADE3J2B6MIM56TBOROMRNIY2UIHVZPJQK6HC3YSCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

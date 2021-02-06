@@ -8,14 +8,14 @@ my $wait_title_str = <mpv.agent_title>;
 $wait_title_str .= '[' . <system.agent.subname> . ']'
     if exists <system.agent.subname> and length(<system.agent.subname>);
 $wait_title_str =~ s|([\[\]\.])|\\$1|g;
-if ( not defined <[base.x11.wait_for_window]>->($wait_title_str) ) {
+if ( not defined <[base.X-11..wait_for_window]>->($wait_title_str) ) {
     <[base.log]>->( 0, "<<<!>>> mpv window creation timed out <<<!>>>" );
     <[mpv.abort_startup]>;    # <-- exiting
 } else {
-    <[base.x11.assign_window]>->(<x11.id>);
+    <[base.X-11..assign_window]>->(<x11.id>);
     if ( <system.agent.mode> eq 'universal-child' ) {
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => "core.xserver.hide_window",
+            {   'command'   => "core.X-11.hide_window",
                 'call_args' => { 'args' => <x11.id> }
             }
         );
@@ -23,7 +23,7 @@ if ( not defined <[base.x11.wait_for_window]>->($wait_title_str) ) {
 }
 
 # ______________________________________________________________________________
-#\\UULDIAFKUMTN4W37PIS6HZODOBRKMX54HX7TLDJJRRULZESSPNX3U2L2THO25KR5SRXEJROEBSG26
-# \\ JVGMV4PO2RZ5QN3Q2SZ3A5SH5DMXGWDAZ5MRVQUYJRKUDTZ6KKXG \\// C25519-BASE-32 //
-#  \\// 6ABIWV6NPVMLUTIBSDN23BSIKZXQPTNLIFKOJC3E7MRSPKTC4DI \\ CODE SIGNATURE \\
+#\\MZVYRVBIEZDGIFNDXN6SWIOQ7BON4FCNF6QYLLIDQFPXUTRTFBAPI4WUPF54QRJ6YKDUVLEJW76O6
+# \\ CJUOAV55ZSH2TIJYOPZM6PEZDRFTR7QYLXRDUVJGSY2PUZJQCGCT \\// C25519-BASE-32 //
+#  \\// PTI3W4EXGGUL7ZWDIDUXPYYNDF3AF7N2XNQ34HKTTOCHGOBYAAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

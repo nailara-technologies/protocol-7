@@ -1,0 +1,46 @@
+# >:]
+
+# name  = X-11.cmd.mouse_over_coords
+# param = <p-x> <p-y>
+# descr = move mouse to new coorinates and back
+# todo  = LLL check / enforce screen boundaries
+
+my $log_sid = $$call{'session_id'};
+my @params  = split( / +/, $$call{'args'} );
+my %coords  = ( 'x' => shift @params, 'y' => shift @params );
+map {
+    return { 'mode' => 'nak', 'data' => "expected $_ parameter" }
+        if not defined $coords{$_}
+        or $coords{$_} !~ /^\d+$/
+} ( 'x', 'y' );
+
+<[base.log]>->(
+    2,
+    "[$log_sid] hovering mouse pointer over position x=$coords{x}, y=$coords{y}"
+);
+
+<X-11.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+my %screen_geom = <X-11.x11>->GetGeometry( <X-11.x11>->root );
+my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
+
+return {
+    'mode' => 'nak',
+    'data' => "mouse position must be within screen dimensions!"
+        . " [${width}x$height]"
+    }
+    if $coords{'x'} > $width
+    or $coords{'y'} > $height;
+
+my %p_old = <X-11.x11>->QueryPointer( <X-11.x11>->root );
+<[X-11.move_pointer]>->( $coords{'x'}, $coords{'y'} );
+<X-11.x11>->QueryPointer( <X-11.x11>->root );
+<[X-11.move_pointer]>->( $p_old{'root_x'}, $p_old{'root_y'} );
+<X-11.x11>->QueryPointer( <X-11.x11>->root );
+
+return { 'mode' => 'ack', 'data' => "hovered over specified position" }
+
+# ______________________________________________________________________________
+#\\OLH6LZNIMYC5XVUHKC3Y3E3UJEZ357PASRQ2Z6PXF4ST45AL4RFZVLWSSHDJRE6AF2URCPIZ7RE3I
+# \\ US6FMWLGEVKH26DSZQJ6UMIEMG32FFQBMDVFHN3PS4YGBD2Z3WOL \\// C25519-BASE-32 //
+#  \\// QHAITVJLKBBCG2MEJUQDCFXQEXL6U3PSKOOLFLQBEKFKNTLZQAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
