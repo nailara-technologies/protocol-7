@@ -1,6 +1,6 @@
 # >:]
 
-# name = webcam.sdl_loop
+# name = remote-cam.sdl_loop
 
 <[base.log]>->( 1, "initializing.." );
 
@@ -12,10 +12,10 @@ my $http = LWPx::ParanoidAgent->new();
 my $image_data;
 my $last_modified = '';
 
-$http->agent(<webcam.user_agent>);
+$http->agent(<remote-cam.user_agent>);
 $http->whitelisted_hosts( sub { return 1 } );
 $http->protocols_allowed( [ 'http', 'https' ] );
-$http->timeout(<webcam.http_timeout>);
+$http->timeout(<remote-cam.http_timeout>);
 
 my $font_path = <system.root_path> . '/data/ttf/droid/DroidSansMono.ttf';
 
@@ -44,7 +44,7 @@ my $font;
 my $err_font;
 my $err_color;
 my $font_color;
-my $font_size = <webcam.font_size>;
+my $font_size = <remote-cam.font_size>;
 my $bg_color  = SDL::Color->new( 0x13, 0x13, 0x13 );
 
 <[base.log]>->( 1, ": loading text font" );
@@ -52,7 +52,7 @@ $font = SDL::TTF::open_font( $font_path, $font_size );
 warn "unable to open font [" . SDL::get_error() . "]" if !$font;
 $font_color = SDL::Color->new( 0xAA, 0xAA, 0x00 );    # error message color
 
-<[base.log]>->( 1, ": opening webcam display screen" );
+<[base.log]>->( 1, ": opening remote-cam display screen" );
 
 my $screen = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
     SDL_DOUBLEBUF() | SDL_HWSURFACE() | SDL_HWACCEL() | SDL_NOFRAME()
@@ -73,7 +73,7 @@ if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
     <[base.X-11.assign_window]>;
 }
 
-<[base.log]>->( 1, "entering webcam loop ..." );
+<[base.log]>->( 1, "entering remote-cam loop ..." );
 
 # verify-instance reply
 loop_wait(0.888);
@@ -90,9 +90,9 @@ while (1) {
     $http->max_size(0);
     my $last_image_date;
 
-    unless ( length(<webcam.image_url>)
+    unless ( length(<remote-cam.image_url>)
         or not defined $last_image_date
-        or $response = $http->get(<webcam.image_url>)
+        or $response = $http->get(<remote-cam.image_url>)
         and $response->is_success
         and $last_image_date = $response->{'_headers'}->{'last-modified'}
         and $last_image_date ne $last_modified ) {
@@ -108,15 +108,15 @@ while (1) {
     my $timed_out = 0;
     {
         local $SIG{'ALRM'} = sub { $timed_out = 1 };
-        alarm( <webcam.http_timeout> + 1 );
+        alarm( <remote-cam.http_timeout> + 1 );
 
         # warn "< get >"; # LLL: needs automatically adjusted interval !!!
-        $response = $http->get(<webcam.image_url>)
-            if length(<webcam.image_url>);
+        $response = $http->get(<remote-cam.image_url>)
+            if length(<remote-cam.image_url>);
         alarm(0);
     }
 
-    if ( length(<webcam.image_url>) and $response->is_success and !$timed_out )
+    if ( length(<remote-cam.image_url>) and $response->is_success and !$timed_out )
     {
 
         <[base.log]>->( 0, ": camera access restored. =)" ) if $warned_cam;
@@ -148,7 +148,7 @@ while (1) {
 
     } else {    ## display error message in 'unreachable' case
         my $status_str
-            = !length(<webcam.image_url>)
+            = !length(<remote-cam.image_url>)
             ? 'no cam url defined'
             : $response->status_line;
         my $err_msg = "download error [ $status_str ]";
@@ -166,7 +166,7 @@ while (1) {
             # text shadow
             my $w_txt
                 = SDL::TTF::render_utf8_blended( $font,
-                '[ ' . <webcam.error_string> . ' ]', $bg_color );
+                '[ ' . <remote-cam.error_string> . ' ]', $bg_color );
             SDL::Video::blit_surface(
                 $w_txt,
                 SDL::Rect->new( 0, 0, $w_txt->w, $w_txt->h ),
@@ -181,7 +181,7 @@ while (1) {
             # foreground text
             $w_txt
                 = SDL::TTF::render_utf8_blended( $font,
-                '[ ' . <webcam.error_string> . ' ]', $font_color );
+                '[ ' . <remote-cam.error_string> . ' ]', $font_color );
             SDL::Video::blit_surface(
                 $w_txt,
                 SDL::Rect->new( 0, 0, $w_txt->w, $w_txt->h ),
@@ -211,7 +211,7 @@ sub loop_wait {    # processing network event while waiting
 }
 
 # ______________________________________________________________________________
-#\\G2ZIBA67ZHAYIKBGMWCVJAAV75TVUSFLKXCCCOVKZAWS7NQLJ6F2RK4JVT766AWLXOUVWNYXHJXNE
-# \\ OET7UPMKWUR3ITTROWABUVFJQHZDEGIFDEB2YXVVJYNT75UGOCTT \\// C25519-BASE-32 //
-#  \\// DMJKLV3ODIRZ5XHU2GGMBONTNBYULJZKMROEZPFAJ7DVT4CUYCQ \\ CODE SIGNATURE \\
+#\\CTKJKNDHMRSBPDRNFECYEAGVGP4TM22XRU3MYPN6ACG3JBUADJKZEJTIBOGG727IKC7C7ZVFHIT22
+# \\ O4UGE2URDWO3APLXLLCSYYTJSFYNCEUYSWNFLEZO3TH3PEAQK5VB \\// C25519-BASE-32 //
+#  \\// UEQIG4BAHUDBSY7J6KIU33OGGROAO36UCLI3NF5GD5OG2QSXWAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

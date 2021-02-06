@@ -1,10 +1,10 @@
 # >:]
 
-# name = webcam.handler.get_list_reply
+# name = remote-cam.handler.get_list_reply
 
 my $reply = shift;
 
-<webcam.playlist_sha1> //= '';
+<remote-cam.playlist_sha1> //= '';
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     <[base.log]>->( 0, ": unable to fetch playlist!" );
@@ -22,20 +22,20 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 my $playlist_changed = 0;
 
 return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
-    if defined <webcam.pid>
-    and $playlist_sha1 eq <webcam.playlist_sha1>
+    if defined <remote-cam.pid>
+    and $playlist_sha1 eq <remote-cam.playlist_sha1>
     and !$playlist_changed;
 
-<webcam.playlist_sha1>    = $playlist_sha1;
-<webcam.current_playlist> = \@file_list;
-(<webcam.image_url>) = @file_list;
+<remote-cam.playlist_sha1>    = $playlist_sha1;
+<remote-cam.current_playlist> = \@file_list;
+(<remote-cam.image_url>) = @file_list;
 
 warn "multiple url playlist entries currently not supported" if @file_list > 1;
 
-<[base.log]>->( 1, "[CAM_URL] " . <webcam.image_url> );
+<[base.log]>->( 1, "[CAM_URL] " . <remote-cam.image_url> );
 
 # ______________________________________________________________________________
-#\\SAPBNAYMD7HFKWOZR2H7EVKEVCQTBBIAORPL4SYSYMKCLHNCHOIPMYNPF2BGY3V347DAIPHUCKD5Y
-# \\ JN3MA62QPNDOTSNSLXUTWQLKKZBCD4AH46OQ54RLL2VRUSRL4Z6F \\// C25519-BASE-32 //
-#  \\// 64D3K7RK2APCLXYAHV3LFAQBOGG7WZRRXLEEK7Q5XB5K6Z64ACQ \\ CODE SIGNATURE \\
+#\\V7RJQP2EMZPVPUCUFYZEQFAQPQ77AJFEDE46XK3AQDQLP6PFEFQH33T4YBFB5SMA2GLZIVK2N27GI
+# \\ OVVKPNUAVWGJ4YQRQT7PJ7YVB463PSWXA72ZSLHRTSDS44PZAUIX \\// C25519-BASE-32 //
+#  \\// LVLRQ645QJL6K2YLA5UHHFSESXBG6NBFL2UDZMUI3ZLDPY342BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
