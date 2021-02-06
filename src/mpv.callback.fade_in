@@ -4,7 +4,7 @@
 
 my $target_geometry = <mpv.geometry>;
 
-<[base.X-11..set_window_opacity]>->( <x11.id>, 0 );
+<[base.X-11.set_window_opacity]>->( <x11.id>, 0 );
 <[base.proto.nailara.command.send.local]>->(
     {   'command'   => 'core.X-11.set_geometry',
         'call_args' => { 'args' => join( ' ', <x11.id>, $target_geometry ) }
@@ -15,14 +15,14 @@ Event->idle(
     cb => sub {
         <mpv.opacity>++;
         return 0 if <mpv.opacity> > 100;
-        <[base.X-11..set_window_opacity]>->( <x11.id>, <mpv.opacity> );
+        <[base.X-11.set_window_opacity]>->( <x11.id>, <mpv.opacity> );
         return 1;
     },
     repeat => 1
 );
 
 # ______________________________________________________________________________
-#\\RQG6HTURQJDRQFOLBW7BW2K3VR6RFSAFFW6J6S7HYXO7D2YFEHSAC7LBGNPHZYOEVLXDTAC2HA7L2
-# \\ IS7D6BSXOYITVK537ZXK6Z2WO2SYVSYFXE7BBCKECQ4XCOLDJZUJ \\// C25519-BASE-32 //
-#  \\// DNUGTEHXW6BQSGJZPAOSA6Z3XMGXVXUXLZY7NQXTM2IVNNZ4WDI \\ CODE SIGNATURE \\
+#\\56D5D7QYCAI4YZM5KRKYQYJ2RMZCMYY4ICFHLZ6R2U3W5TGJQ3DER7B4O2FUYW6RZBNJD5IMLBE6I
+# \\ MFA5B5VXN2CCGPSVYCAYWGDOJ5SKJM3I77T26I4VA3SQBKXTWUM4 \\// C25519-BASE-32 //
+#  \\// VQMQ5HJYBHWMUK36G6P5OOACDDYG7TO76CFDXIIDGQRAY4DN4DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
