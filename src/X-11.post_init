@@ -159,16 +159,33 @@ if ( <X-11.x11>->init_extension('RANDR') ) {
 
 if ( <X-11.x11>->init_extension('DPMS') and <X-11.x11>->DPMSCapable ) {
     <[base.log]>->( 1, ": : DPMS is supported =)" );
-    <X-11.x11>->DPMSGetVersion();
-    <X-11.has_dpms> = 1;
+    eval { <X-11.x11>->DPMSGetVersion(); };
+    if ($@) {
+        <X-11.has_dpms> = 0;
+        ( my $err_msg = $@ ) =~ s| at .+\n$||;
+        <[base.log]>->( 0, ': : : initialization error., DPMS disabled..,' );
+        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+    } else {
+        <X-11.has_dpms> = 1;
+    }
 } else {
     <[base.log]>->( 1, ": : DPMS not supported :|" );
     <X-11.has_dpms> = 0;
 }
 
 if ( <X-11.x11>->init_extension('Composite') ) {
-    <X-11.is_composited> = 1;
     <[base.log]>->( 1, ": : X-11 is composited =)" );
+    eval { <X-11.x11>->CompositeQueryVersion(); };
+    if ($@) {
+        <X-11.is_composited> = 0;
+        ( my $err_msg = $@ ) =~ s| at .+\n$||;
+        <[base.log]>->(
+            0, ': : : initialization error., Composite extension disabled..,'
+        );
+        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+    } else {
+        <X-11.is_composited> = 1;
+    }
 } else {
     <X-11.is_composited> = 0;
     <[base.log]>->( 1, ": : X-11 is not composited :|" );
@@ -338,7 +355,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\7A537LMD5F4MKOXIKRXIEOTRKGU5A6PUOV3YNLNPVCOFXHLECYLLAKU4RY5CM7IPFDRDF25TP6AM4
-# \\ K2NW7Z4LXHCJY6NRGGD3CLP3NG22NQZMXWX4RHJ26OKPDIS62WIA \\// C25519-BASE-32 //
-#  \\// S3PEFQXSMWVCUDQQ2MHNZJTH3E4OANJEYDQB3XTPWH7C4WUX6AQ \\ CODE SIGNATURE \\
+#\\QSK4ASOWJTJB45JJO6XBXJXJ234TQ6SMFPIH43G645GUEBDJ6WFIBOAWQV2NS7YYQW5XWMLVEHCQK
+# \\ CQ6KYALWDJ554MPXF6CTZUZTRQJERS3KIRRUM3RJTCPXAJMMBS37 \\// C25519-BASE-32 //
+#  \\// XHSTL3HSZTOKDZVZQDK2SYRWDEZPOKE73Y2WT2P2NCJC63TJCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
