@@ -1,0 +1,18 @@
+# >:]
+
+# name  = X-11.cmd.get-window-names
+# descr = return list of window ids and titles
+
+my $reply_str = '';
+foreach my $window_id (<[X-11.get_window_ids]>) {
+    my $title = <[X-11.get_window_title]>->($window_id);
+    $reply_str .= "$window_id $title\n";
+}
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\XFGCNNXDGRJ4RY7X22SFESV63MQ4MZY7OU3IDD2KZ7DIKP7KMWWWGUELH5BRKVZ3FNIDIW5EACUVU
+# \\ E5SNKEHB3HX47FRZIJIMWNDXUEW3TXHLZNJE7F7DKYXZIL3RGZ5J \\// C25519-BASE-32 //
+#  \\// KE6JLOZZ2J2SBDGREVRVQQPTUZGUBETMKC7ZWLZHNDTRRSNYCBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -18,7 +18,7 @@ else {
 my $reply_message = 'scheduled host reboot aborted ., =)';
 my $log_message   = "$reply_message [ by '$core_user' ]";
 
-<system.xserver_crash.admin_reboot_abort> = 1;
+<system.X-11_crash.admin_reboot_abort> = 1;
 
 if ( defined <system.timer.host_reboot> ) {
     my $reboot_timer = <system.timer.host_reboot>;
@@ -30,7 +30,7 @@ if ( defined <system.timer.host_reboot> ) {
         = "automatic 'xcrash' reboot deactivated, call"
         . " 'system.reenable-reboot' to reactivate.";
     ( $log_message = $reply_message ) =~ s|,.+$|. [ by '$core_user' ]|;
-    <system.xserver_crash.perform_host_reboot> = 0;
+    <system.X-11_crash.perform_host_reboot> = 0;
 }
 
 <[base.log]>->( 0, $log_message );
@@ -38,7 +38,7 @@ if ( defined <system.timer.host_reboot> ) {
 return { 'mode' => 'ack', 'data' => $reply_message }
 
 # ______________________________________________________________________________
-#\\63A3UMVDQV4Y6FABRHJ3R47HTBN4EKA2RZJ6QXF2IHLEVVM55ZPTEAXUXOWVLMW45ZXPDU54IQXV2
-# \\ UERSVA4NBFMORGD2SLO6XU53NSNOW2MOTZGO7P224KJAYQNCOE3E \\// C25519-BASE-32 //
-#  \\// AKHQXQ7G3FJSDHEP3TQYU322BYT3E2DNKZLYWE27OGEYDB5XSDQ \\ CODE SIGNATURE \\
+#\\SLXI32S7PPBRVMJJQWCDMFGCDAALCM35T7DOTTIQHMW23LRHDCJS6E7HIS3HOJZ773BHYO6B3YVTK
+# \\ JLQIKUSOSTR7VH32B2FFX2TZW7WLEOII5UTS5QOY35X3FR7SUUJC \\// C25519-BASE-32 //
+#  \\// N5NE5ZWIEOD7AR7XXVRHRMVDOK4IN3D3BC7Z4OFRHWY6OBJYGBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

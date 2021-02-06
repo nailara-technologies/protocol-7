@@ -1,0 +1,33 @@
+# >:]
+
+# name  = X-11.cmd.get_geometry
+# param = <w_id>
+# descr = return window position, width and height
+
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+
+return { 'mode' => 'ack', 'data' => join( ' ', $window->geometry ) };
+
+# ______________________________________________________________________________
+#\\SVBIYCOE7OZ2IFK4HBZ6TWAPYFFFX2OKH3XOLQXFDFFE27K2UBKIBLUSJIEKP26BMH6M7JLBER5DI
+# \\ EXIFFPFX2XH5PZPPOPIETDSFHYYOZ3LCCIZIXJAO35CNYDOGRIRQ \\// C25519-BASE-32 //
+#  \\// 5GY5BSF6H3E6CLQEM3XR7JOJYIWUJ5GYQ2G46KQVPCMCD7Q5MCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

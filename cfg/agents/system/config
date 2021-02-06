@@ -5,7 +5,7 @@
 
 access.cmd.usr.core = commands heart reload verify-instance list show-buffer \
                       top cpu-load mem-used reload_gfx_module pid_autokill \
-                      name cur-pid hostname report-xserver-error \
+                      name cur-pid hostname report-X-11-error \
                       abort-reboot reenable-reboot \
                       keep-debug-loaded dump get set
 
@@ -29,11 +29,11 @@ mem.kill_min = 11 # % (memory usage before mem-alert based auto-kill is allowed)
 #process.limits.httpd.action  = kill
 ##
 
-### [ 'xserver' agent can notify on fatal protocol errors for mitigation ] ##
+### [ 'X-11' agent can notify on fatal protocol errors for mitigation ] ##
 ##
-# system.xserver_crash.perform_host_reboot = yes
-# system.xserver_crash.reboot_delay_secs = 7
-# system.xserver_crash.reboot_condition = 'hostname-pattern:^some-hostname-\d+$'
+# system.X-11_crash.perform_host_reboot = yes
+# system.X-11_crash.reboot_delay_secs = 7
+# system.X-11_crash.reboot_condition = 'hostname-pattern:^some-hostname-\d+$'
 ##
 ###
 

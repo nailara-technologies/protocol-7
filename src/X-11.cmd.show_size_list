@@ -1,0 +1,47 @@
+# >:]
+
+# name  = X-11.cmd.show_size_list
+# descr = show available and selected screen size(s)
+
+my %screen_info;
+<X-11.x11>->choose_screen(0);    # LLL: <-- no multiple screens yet .,
+my @current_size
+    = ( <X-11.x11>->width_in_pixels, <X-11.x11>->height_in_pixels );
+
+if ( !<X-11.has_randr> ) {
+    $screen_info{'size'} = 0;
+    $screen_info{'sizes'}[0] = \@current_size;
+} else {
+    eval {
+        %screen_info
+            = ( <X-11.x11>->RRGetScreenInfo( <X-11.x11>->root ) );
+    };
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "no available sizes being reported [ RANDR ]"
+    }
+    if $@
+    or !keys(%screen_info)
+    or !@{ $screen_info{'sizes'} };
+
+my $current_size_index = $screen_info{'size'};
+
+my $reply_str  = '';
+my $size_index = 0;
+
+map {
+    my $marker_l = $size_index++ == $current_size_index ? '-->'  : '   ';
+    my $marker_r = $marker_l =~ m|\S|                   ? ' <--' : '';
+    $reply_str
+        .= sprintf( " %s %d x %d%s\n", $marker_l, $_->[0], $_->[1], $marker_r )
+} @{ $screen_info{'sizes'} };
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\SBOXFOBZETJDDBICXIYANX6ITX5HYA7SZYAXLUMECIERTQCXDKDAZHCHSYAUGERTMFEOKXGCEF6ME
+# \\ Y7LKQXBDKUDGU6ZTCXAMKHB5K36W5G3FNPBNVO2P6CNRQZ6MHCEW \\// C25519-BASE-32 //
+#  \\// DF6BZEVN4ZMDH6NQS4PILGCP2ZPHEHWB5RAZWK4RPXNBKWRICCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

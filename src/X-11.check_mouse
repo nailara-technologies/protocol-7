@@ -1,0 +1,27 @@
+# >:]
+
+# name = X-11.check_mouse
+
+if (    !<X-11.keep_unchanged>
+    and defined <X-11.hide_mouse_cursor>
+    and (  <X-11.hide_mouse_cursor> eq 'yes'
+        or <X-11.hide_mouse_cursor> eq '1' )
+) {
+    <[base.log]>->( 1, ": hiding mouse cursor..," );
+
+    # LLL: make configurable: ( moving mouse pointer to bottom-right )
+    my %pointer = <X-11.x11>->QueryPointer( <X-11.x11>->root );
+    <[X-11.move_pointer]>->(
+        <X-11.x11>->{'width_in_pixels'} - $pointer{'root_x'},
+        <X-11.x11>->{'height_in_pixels'} - $pointer{'root_y'}
+    );
+
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.xpointer.blank_cursor" } );
+}
+
+# ______________________________________________________________________________
+#\\CGE23GMG6WAD3DWI3APIIEHJN7WEPXBZBXU5UOFZHTETS3QTOQBMILI3FPWGGO5IDV6WII7PEK53G
+# \\ FPC6C3IIVN7M235S6QM2MBKC4BIRDCTZLRXJ3WQ7Q7ZQ53C2WKMO \\// C25519-BASE-32 //
+#  \\// J3UII5XFCTZL2BWSSYCQA45X76TDOEDH3RHWDZ76WEKG7IN5EAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

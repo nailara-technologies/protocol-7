@@ -1,0 +1,34 @@
+# >:]
+
+# name  = X-11.cmd.get_window_ids
+# param = <title_str>
+# descr = return win. ids of matching window titles
+
+my $title_pattern = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
+    if not defined $title_pattern or !length($title_pattern);
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my @window_ids;
+for my $win ( @{ $xtops->sorted } ) {
+    push( @window_ids, $win->id )
+        if index( $win->instance, $title_pattern ) != -1
+        or index( $win->title,    $title_pattern ) != -1;
+}
+
+return { 'mode' => 'nak', 'data' => 'no matching window captions!' }
+    if !@window_ids;
+
+return {
+    'mode' => 'ack',
+    'data' => join( ' ', @window_ids )
+};
+
+# ______________________________________________________________________________
+#\\LNADP42EGXBYHXFQICTHQGRUWSDEOA3EZKRTGUFSAGZULNE3AAD4DWTNCDIJBRPPBG22ZGVA4TH2I
+# \\ LQQVZISZ2XRK5J53J56CCSHPUHKHNPX22B7NIOBFKMH23PR5CPLN \\// C25519-BASE-32 //
+#  \\// 6BNQNLRXERWCKZLHTO75IQQHT6GWVD4VN5YMZA76NMLIE4RD4AA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,22 @@
+# >:]
+
+# name  = X-11.cancel_wait_visible_timers
+
+my $wait_req = shift;
+return if not defined $wait_req->{'timer'};
+
+map {
+    $wait_req->{'timer'}->{$_}->cancel
+        and delete $wait_req->{'timer'}->{$_}
+        if defined $wait_req->{'timer'}->{$_}
+        and $wait_req->{'timer'}->{$_}->is_active;
+
+} qw| timeout poll |;
+
+delete $wait_req->{'timer'};
+
+# ______________________________________________________________________________
+#\\TNTJYCL6QPGPUWOBGZUYJMQMSMEPPB5RYFIBP2QOB7OOY6ZN62CL75Z4TNA5PDCYFXNXBOKWBDGEW
+# \\ ANDMYODGUWFGVIBZZPUBFRVTGWMAQNSXZFNEXUJRIWEINZEB4MNF \\// C25519-BASE-32 //
+#  \\// WBY2H5XQ2KVXVHX74DZQIZZ45IED7LOOSGIVWZNLR6DY6UGXQAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,70 @@
+# >:]
+
+# name  = X-11.cmd.wait_visible
+# param = <timeout> <title>
+# descr = wait until matching window is visible
+# todo  = combine poll timer for all requested windows
+
+my ( $timeout, $title_pattern ) = split( m| +|, $$call{'args'}, 2 );
+
+return { 'mode' => 'nak', 'data' => 'expected numerical timeout argument' }
+    if not defined $timeout or $timeout !~ m|^\d+(\.\d+)?$|;
+return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
+    if not defined $title_pattern or !length($title_pattern);
+
+$title_pattern =~ s{^['"]|\\|["']$}{}g;    ## <-- removing quotes and \-es ##
+
+my $start_match = $title_pattern =~ s|^(\^)||g ? $1 : '';
+my $end_match   = $title_pattern =~ s|(\$)$||g ? $1 : '';
+
+$title_pattern = qr|$start_match\Q$title_pattern\E$end_match|;
+
+foreach my $window_id (<[X-11.get_window_ids]>) {
+    my $window_title = <[X-11.get_window_title]>->($window_id);
+
+    return { 'mode' => 'ack', 'data' => $window_id }
+        if $window_title =~ $title_pattern;
+}
+
+# <[X-11.process-x11-error]>->( $@, caller )
+#     and return { 'mode' => 'nak', 'data' => 'cannot get window list' }
+#     if $@;
+
+my $req_id = <[base.gen_id]>->( <X-11.waiting> //= {} );
+
+my @timers = (
+    'poll' => <[event.add_timer]>->(
+        {   'after'    => sprintf( "%.4f", rand(0.07) ),
+            'prio'     => 4,
+            'interval' => sprintf( "%.4f", rand(0.13) ),
+            'handler'  => 'X-11.handler.wait_visible',
+            'data'     => $req_id
+        }
+    )
+);
+push(
+    @timers,
+    (   'timeout' => <[event.add_timer]>->(
+            {   'after'   => $timeout,
+                'repeat'  => 0,
+                'prio'    => 2,
+                'handler' => 'X-11.handler.wait_visible_timeout',
+                'data'    => $req_id
+            }
+        )
+    )
+) if $timeout > 0;
+
+<X-11.waiting>->{$req_id} = {
+    'reply_id' => $$call{'reply_id'},
+    'pattern'  => $title_pattern,
+    'timer'    => {@timers}
+};
+
+return { 'mode' => 'deferred' }
+
+# ______________________________________________________________________________
+#\\66OZH5KYM2TEQ57IB5BNJVU2TDJNWR5VZW4KSRDHX4MYT3JCEIGNEYDKYCTYJMYBQ5PBMQV5I6XA2
+# \\ FM62PSL7IB5NSLQNWY3ZITRVE3DR47CTAC5DUKADAGL4P7MHKAH4 \\// C25519-BASE-32 //
+#  \\// HO56CV73RHU63AIR27OHHOOHGCGPX4UETRBDKDDZMBKFMUSD6AY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

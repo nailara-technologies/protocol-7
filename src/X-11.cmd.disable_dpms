@@ -1,0 +1,22 @@
+# >:]
+
+# name  = X-11.cmd.disable_dpms
+# descr = disable display power saving modes
+
+return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+    if !<X-11.has_dpms>;
+
+<X-11.x11>->DPMSSetTimeouts( 0, 0, 0 );
+<X-11.x11>->DPMSInfo();
+<X-11.x11>->DPMSDisable();
+<X-11.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "DPMS manually disabled" );
+
+return { 'mode' => 'ack', 'data' => 'DPMS now disabled' };
+
+# ______________________________________________________________________________
+#\\QABEONUVKMCI3NHFLEMPOCM57RJP5TG6YFBY7IHZYM45APLJF74IHQTRZSU2IPSCAWDOZJFMHA3DW
+# \\ 6ZUHBZFVHHZ4F2NGKEZOH6FAPLTZLF2WPV5QERSD57V4WAEKLU4E \\// C25519-BASE-32 //
+#  \\// PO3EYKAQJZ4LJIXGBBIAPVUHCE6QYVYIKFWJXDUC573JXO4EUBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

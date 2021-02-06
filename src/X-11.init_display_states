@@ -1,0 +1,56 @@
+# >:]
+
+# name = X-11.init_display_states
+
+my $drm_dir = '/sys/class/drm';
+
+if ( !-d $drm_dir ) {
+    <[base.log]>->( 0, "unable to access '$drm_dir' [ not found ]" );
+    return;
+}
+
+opendir( my $drm_dir_fh, $drm_dir ) or die "$drm_dir: $!";
+
+my $connected = 0;
+
+<X-11.path.display_status> = {};
+<X-11.display_connected> //= {};
+
+<[base.log]>->( 2, "scanning $drm_dir.," );
+
+foreach my $card_name ( readdir($drm_dir_fh) ) {
+    next if !-l "$drm_dir/$card_name" or $card_name !~ m|^card\d+$|;
+    <[base.log]>->( 2, ": $card_name" );
+    ( my $target_path = readlink("$drm_dir/$card_name") ) =~ s|^(../)+|/sys/|;
+    <[base.log]>->( 2, ": : $target_path" );
+
+    <base.obj.inotify>->watch( $target_path,
+        IN_ACCESS(), $code{'X-11.scan_display_states'} );
+
+    opendir( my $card_dir_fh, $target_path ) or die "$target_path: $!";
+    foreach my $disp_name ( readdir($card_dir_fh) ) {
+        next if !-d "$target_path/$disp_name" or $disp_name !~ /^$card_name/;
+        my $status_file = "$target_path/$disp_name/status";
+        die "display status file $status_file not found" if !-f $status_file;
+        chomp( my $status_content = ${ <[file.slurp]>->($status_file) } );
+
+        <X-11.display_connected>->{$disp_name}
+            = $status_content eq 'connected' ? 1 : 0;
+        my $d = $status_content eq 'connected' ? '.' : ' ';
+        <[base.log]>->( 2, ": : :$d$disp_name < $status_content >" );
+        $connected++ if $status_content eq 'connected';
+        <X-11.path.display_status>->{$disp_name} = $status_file;
+    }
+    closedir($card_dir_fh);
+}
+closedir($drm_dir_fh);
+
+<X-11.display_connected>->{'any'} = $connected ? 1 : 0;
+
+return $connected;
+
+# ______________________________________________________________________________
+#\\JUO7IEZTRKZSGMN3TWIMPXKRUGGJXJGH32E2G2K7QBBFOHQSXZYBSCGEGNQWCHXNGXCH3WQBU2OEM
+# \\ 3XU7TH2FK242DTRKSR44LBMPNM6Y47JRW7XZ6NQFNJMA66FIO2LP \\// C25519-BASE-32 //
+#  \\// BIXBJ35BYLLPQKI7KL7EUXWJGCAV2MHSXX2SBX7DZZIIDTBN4AY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

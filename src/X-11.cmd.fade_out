@@ -1,0 +1,72 @@
+# >:]
+
+# name  = X-11.cmd.fade_out
+# param = <time>[:%] <window(s)>
+# descr = fade out specified window(s) and reply
+
+my $X = <X-11.x11>;
+my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
+
+( $duration, my $fade_limit ) = split( /:/, $duration );
+
+return { 'mode' => 'nak', 'data' => 'fade out duration in seconds expected' }
+    if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
+return { 'mode' => 'nak', 'data' => 'window <id(s)> required' }
+    if !@window_ids;
+map {
+    return {
+        'mode' => 'nak',
+        'data' => 'invalid window id syntax [ not numerical ]'
+        }
+        if $_ !~ /^\d+$/
+} @window_ids;
+
+my $reply_id     = $$call{'reply_id'};
+my %fade_windows = map { $_ => 1 } @window_ids;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my %all_windows = map { $_->id => 1 } @{ $xtops->sorted };
+
+map { delete $fade_windows{$_} if not exists $all_windows{$_} }
+    keys %fade_windows;
+
+return { 'mode' => 'nak', 'data' => 'no such window[s]' }
+    if !keys(%fade_windows);
+
+map {
+    $fade_windows{$_} = <[X-11.get_window_opacity]>->($_);
+    delete $fade_windows{$_} if $fade_windows{$_} == 0
+    }
+    keys %fade_windows;
+
+return { 'mode' => 'ack', 'data' => 'fade out complete' }
+    if !keys %fade_windows;
+
+<X-11.fade_out> //= {};
+my $fade_id       = <[base.gen_id]>->(<X-11.fade_out>);
+my $fade_fps      = 30;
+my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
+<X-11.fade_out>->{$fade_id} = {
+    'fade_start' => <[base.time]>->(5),
+    'duration'   => $duration,
+    'windows'    => \%fade_windows,
+    'reply_id'   => $reply_id,
+    'fade_limit' => $fade_limit
+};
+<[event.add_timer]>->(
+    {   'after'    => $fade_interval,
+        'interval' => $fade_interval,
+        'handler'  => 'X-11.handler.fade_out_window',
+        'data'     => $fade_id
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\BI34DJTLH3YBWEDYRHTLHM5V55NS5EZ6I67OI7PASCQ2THW7HUDYF5EBTNRA6FZCPJXXTMYKH5Z5O
+# \\ X6KM4BYWHKW2ROLI4ILHNNYLDY7G5RVD765663YGMEERJIU2MQG3 \\// C25519-BASE-32 //
+#  \\// Z54ZR23BID3ZSSXIH6T7PHBIKT562E2S4J2SOFDK35LMRJDSIAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

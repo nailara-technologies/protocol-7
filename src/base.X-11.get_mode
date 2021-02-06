@@ -1,0 +1,37 @@
+# >:]
+
+# name = base.X-11..get_mode
+
+my ($local_sid) = keys( %{<user.core.session>} );
+
+<[base.log]>->( 2, "requesting mode name from X-11 agent.," );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)X-11.get_mode\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.mode> = $1;
+    <[base.log]>->( 1, "received X-11 mode name [" . <x11.mode> . "]" );
+    return <x11.mode>;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+# ______________________________________________________________________________
+#\\YNLCH32HBJMTTUNSDQIFKBAGV64QGV2HTPNL5LKVKKW77BQ44WWAAF4M5CSTG346J7RVS2QJAHXKM
+# \\ 25QFX4ZEI7BXETHIUBXHLUMH5S2WTXV4C66BKP4TX73PHTF6R7FN \\// C25519-BASE-32 //
+#  \\// EI4M4JQZ2S4UD6E2D3YZFAGPRGQGP4TGVABZ67MM7TRTFNTWMDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

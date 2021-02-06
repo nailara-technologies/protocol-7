@@ -1,0 +1,44 @@
+# >:]
+
+# name  = X-11.cmd.keep_below
+# param = <w_id>
+# descr = keep specified window mapped on bottom
+
+my $X         = <X-11.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+
+eval {
+    for ( 1 .. 2 ) {    # <- workaround (ignored state requests)
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, "remove",
+            "ABOVE" );
+        X11::Protocol::WM::change_net_wm_state( $X, $window_id, "add",
+            "BELOW" );
+    }
+};
+return { 'mode' => 'nak', 'data' => "unable to set window state 'below'" }
+    if $@;
+return { 'mode' => 'ack', 'data' => "set window state 'below'" };
+
+# ______________________________________________________________________________
+#\\SDRBPMIMZANHOXVH4ULM6WAB6MG5BAWXIFSIXMYV2AVF47D4EV4CRC5TI4V66B43BQ5NRBDRPOHES
+# \\ AENF52QLZJGTXHYTZBHHM5NAGIQCEOIXNSWNMRYILQ357UZB4SI3 \\// C25519-BASE-32 //
+#  \\// 3JZ3SMFX2JMDY2LIIOGCIDL3GTEYHHJZLBQLGSYHCS33KUJPKAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

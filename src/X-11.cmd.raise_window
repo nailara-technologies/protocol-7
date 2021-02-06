@@ -1,0 +1,29 @@
+# >:]
+
+# name  = X-11.cmd.raise_window
+# param = <w_id>
+# descr = raise specified window to top
+
+my $X         = <X-11.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+$X->MapWindow($window_id);
+$X->ConfigureWindow( $window_id, stack_mode => 'Above' );
+
+<[X-11.get_window_ids]>;    ## <-- update to visualize action ##
+
+return { 'mode' => 'ack', 'data' => 'raised to top' };
+
+# ______________________________________________________________________________
+#\\4KMO2NOUMRWFGPODANDXK5I2C56NU2MVGNWAEQZJQIBQHQVF2I5ENF6E74JMA6U25MBSTYRSDQSNU
+# \\ UPQ27L7SIU7I5I2BCYRFP4QVJMQGHLHT65YCO75NEFCHQWOCHAM6 \\// C25519-BASE-32 //
+#  \\// XDIFV3JJCBZHWY3ODGSSMLIVLY7B43JIRVZDBAT6ZTY23N7NIBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

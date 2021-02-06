@@ -1,0 +1,39 @@
+# >:]
+
+# name  = system.cmd.report-X-11-error
+# param = [err_msg]
+# descr = x-server crash mitigation [ host reboot ]
+
+( my $core_user, my $err_msg ) = split( m| +|, $$call{'args'}, 2 );
+
+my $hostname      = <system.host.hostname>;
+my $admin_user    = <system.admin-user>;
+my $allowed_users = qr{$hostname.(nroot|X-11|$admin_user)};
+return {
+    'mode' => 'ack',
+    'data' => "only 'X-11' and 'nroot' agent can invoke this command."
+    }
+    if $core_user !~ $allowed_users;
+
+map { <[base.log]>->( 0, $_ ) } ( "<!> X-11 protocol error <!>", ' :' );
+
+local $Text::Wrap::columns   = 57;
+local $Text::Wrap::separator = "\n";
+( my $wrapped_err_msg = wrap( ' :  ', ' :  ', $err_msg ) ) =~ s|( ')?$| '|;
+map { <[base.log]>->( 0, $_ ) } ( split( m|\n+|, $wrapped_err_msg ), ' :' );
+
+my $reply_message = 'acknowledged, ';
+my $does_reboot   = <[system.xcrash_hostreboot_trigger]>;
+
+$reply_message
+    = $does_reboot
+    ? 'host system reboot imminent'
+    : 'X-11 error logged [ not rebooting ]';
+
+return { 'mode' => 'ack', 'data' => $reply_message }
+
+# ______________________________________________________________________________
+#\\HUKDEFHT3IP4RWIXOH6K7BE2O3SAIL55ARWBRJW4KI45JDT3PWLNJ2PXWH7CSUSWX47ZTOTVDI542
+# \\ Y4SRTURTQLCMN5V2OOYW2WC4KB4IDGPZ7EPENDHUFPRXB37TLDO3 \\// C25519-BASE-32 //
+#  \\// LG46S32TOQVKXGPEQRGRDASLQMJWXCK2WIGB2T3Q6LCKZBIDCBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,40 @@
+# >:]
+
+# name = X-11.handler.fade_out_window
+
+my $watcher = shift->w;
+my $fade_id = $watcher->data;
+die "fade_id not defined" if not defined $fade_id;
+my $params = <X-11.fade_out>->{$fade_id};
+die "no parameters defined for fade_id $fade_id" if not defined $params;
+my $delta_t = sprintf( "%.5f", <[base.time]>->(5) - $params->{'fade_start'} );
+my $opacity_factor = sprintf( "%.5f", 1 - $delta_t / $params->{'duration'} );
+
+my $fade_limit = $params->{'fade_limit'} // 0;
+
+$opacity_factor = $fade_limit if $opacity_factor < $fade_limit;
+
+foreach my $window_id ( keys %{ $params->{'windows'} } ) {
+    my $start_opacity = $params->{'windows'}->{$window_id};
+    my $new_opacity   = sprintf( "%.5f", $start_opacity * $opacity_factor );
+    delete $params->{'windows'}->{$window_id}
+        if not defined
+        <[X-11.set_window_opacity]>->( $window_id, $new_opacity )
+        or $new_opacity == $fade_limit;
+}
+
+if ( !keys %{ $params->{'windows'} } ) {
+    <[base.callback.cmd_reply]>->(
+        $params->{'reply_id'},
+        {   'mode' => 'ack',
+            'data' => 'fade out complete'
+        }
+    );
+    $watcher->cancel;
+}
+
+# ______________________________________________________________________________
+#\\L4TU7BJX45O77Q65CMV25FQJYYG3WQJG4HTRJGRTX5IH65EZ57FZIGDOOPAYDUQMHXERUYNRJBFX4
+# \\ YXOHWL64IVNPCVPPPQ3AAEVXL2AXG22EWCWSYN4F43UM664XAVC2 \\// C25519-BASE-32 //
+#  \\// DNWFQZB7U7BK3PINZMXB5GXUL5LVTN2KCJORE6S6C25XXT5DIAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,140 @@
+# >:]
+
+# name  = X-11.handler.global_hotkeys
+
+my $watcher = shift->w;
+
+<X-11.hotkeys>            //= {};
+<X-11.hotkeys.configured> //= {};
+<X-11.hotkeys.triggered>  //= {};
+<X-11.hotkeys.last_key>   //= {};
+<X-11.loglevel.keys>      //= 2;
+
+my $qkmap = eval { <X-11.x11>->QueryKeymap };
+
+if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
+    <[base.log]>->(
+        0, "<!> X11 protocol mismatch during 'QueryKeymap' command <!>"
+    );
+    return;
+}
+
+my $dq_e = [ <X-11.x11>->dequeue_event ];
+
+if ( @{$dq_e} ) {
+    $watcher->now;             # <- again, there might be more events queued..
+} else {
+    return;                    # <- no, there weren't
+}
+
+my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
+
+my %event = @$dq_e;
+
+# print STDERR Dumper( \%event );
+
+my $event_type = $event{'name'} =~ /^Key(Press|Release)$/ ? lc($1) : undef;
+
+return if not defined $event_type;
+
+my $keycode     = $event{'detail'};
+my $mod_state   = $event{'state'};
+my $triggered   = <X-11.hotkeys.triggered>;
+my $is_modifier = exists <X-11.keycodes.modifiers>->{$keycode} ? 1 : 0;
+
+return if $is_modifier;    # <- modifier keys skipped ( for now )
+
+$triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
+$triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
+<X-11.hotkeys.last_key> = {
+    'keycode'    => $keycode,
+    'mod_state'  => $mod_state,
+    'event_type' => $event_type
+};
+
+my $mod_str
+    = $is_modifier
+    ? '  [' . <X-11.keycodes.modifiers>->{$keycode} . ']'
+    : '';
+
+<[base.log]>->(
+    <X-11.loglevel.keys>,
+    sprintf(
+        "<KEY> %-8s [ keycode  : %3s  ]  modifier : %d%s",
+        $event_type, $keycode, $mod_state, $mod_str
+    )
+);
+
+# LLL: process key ...
+
+<X-11.hotkeys.active> //= {};
+if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
+    my ( $command_str, $params_str )
+        = split( / +/, delete <X-11.hotkeys.recording>, 2 );
+    my $hotkey_id = <[base.gen_id]>->(<X-11.hotkeys.active>);
+
+    # LLL: filter duplicates
+
+    <X-11.hotkeys.active>->{$hotkey_id} = {
+        'keycode'   => $keycode,
+        'mod_state' => $mod_state,
+        'action'    => $command_str,
+        'params'    => $params_str // '',
+    };
+
+    <[base.log]>->( 1, "recorded '$command_str' hot key [key:$keycode] ..." );
+
+    foreach my $reply_id ( @{<X-11.hotkeys.rec_reply_ids>} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'ack',
+                'data' => "recorded as hotkey $hotkey_id"
+            }
+        );
+
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command'   => "core.notify.info",
+                'call_args' => { 'args' => "hotkey configured" }
+            }
+        );
+
+        delete <X-11.hotkeys.rec_reply_ids>;
+        delete <X-11.hotkeys.recording>;
+    }
+} elsif ( $event_type eq 'press' ) {
+
+    foreach my $h_id ( keys %{<X-11.hotkeys.active>} ) {
+        if (    <X-11.hotkeys.active>->{$h_id}->{'keycode'} == $keycode
+            and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state )
+        {
+            my $cmd_str = <X-11.hotkeys.active>->{$h_id}->{'action'};
+            <[base.log]>->( 1, "[HOTKEY] sending command '$cmd_str' .." );
+            my @params
+                = length( <X-11.hotkeys.active>->{$h_id}->{'params'} )
+                ? ( 'call_args' =>
+                    { 'args' => <X-11.hotkeys.active>->{$h_id}->{'params'} }
+                )
+                : ();
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command' => "core.$cmd_str",
+                    @params
+                }
+            );
+        }
+    }
+
+}
+
+if ($no_key_pressed) {
+
+    # LLL: process key ...
+
+    delete <X-11.hotkeys.last_key>;
+    delete <X-11.hotkeys.triggered>;
+}
+
+# ______________________________________________________________________________
+#\\P6E5NP3YNBFEGM3BTCBMUO4LGVT6RVOE3M6UJUCK6AJ4QBZ76USWHB3IDF6EM3P6YVWNBBNO3EFDS
+# \\ RZMI33QPEJDV3K7ZL5JIROWXP4CH24LRFBSYFPLPRU6ASEABSQJX \\// C25519-BASE-32 //
+#  \\// CT5IEIZ6LWMYZQ42EZCEVFH7PZRO6MVNTU6EU5TTY4GCXVUSEDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

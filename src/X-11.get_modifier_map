@@ -1,0 +1,52 @@
+# >:]
+
+# name = X-11.get_modifier_map
+
+my $mod_href = {};
+
+my @modifier_names = qw(
+    Shift_L
+    Shift_R
+    Caps_Lock
+    Shift_Lock
+    Control_L
+    Control_R
+    Alt_L
+    Alt_R
+    Meta_L
+    Meta_R
+    Super_L
+    Super_R
+    Hyper_L
+    Hyper_R
+);
+
+map {
+    my $kcode = <X-11.kbd>->KeysymToKeycode($_);
+    $mod_href->{$kcode} = $_ if defined $kcode;
+} @modifier_names;
+
+my @mod_cat_names = qw(
+    Shift
+    Lock
+    Control
+    Mod1
+    Mod2
+    Mod3
+    Mod4
+    Mod5
+);
+
+foreach my $kc_aref ( @{ [ <X-11.x11>->GetModifierMapping() ] } ) {
+    my $m_name = shift @mod_cat_names;
+    map { $mod_href->{$_} = $m_name if $_ and not defined $mod_href->{$_} }
+        @{$kc_aref};
+}
+
+return $mod_href;
+
+# ______________________________________________________________________________
+#\\UNBVJQIAZMX5P4S6YOR7OH4FZUDHQNAT6U5P6K5YSKDHPI4K5CBAHUARV35EX3F4RT6VDO6G4A6BU
+# \\ 66SB5CDVW5U3H32NHWTZSIJVL65O4G5PFXFN3YATIGU5CYCR6DPE \\// C25519-BASE-32 //
+#  \\// C2CNVWEDP4I4NNBM2KEVVHZRG7N2XQQDXVXNCB7VOUVX2IHNMCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

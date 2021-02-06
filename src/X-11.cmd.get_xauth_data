@@ -1,0 +1,21 @@
+# >:]
+
+# name  = X-11.cmd.get_xauth_data
+# descr = return authorization protocol name + data
+
+return { 'mode' => 'nak', 'data' => 'no authorization data has been set up!' }
+    if !length( <X-11.x11>->{'authorization_protocol_name'} )
+    or !length( <X-11.x11>->{'authorization_protocol_data'} );
+
+return {
+    'mode' => 'ack',
+    'data' => join( ' = ',
+        <X-11.x11>->{'authorization_protocol_name'},
+        unpack( "H*", <X-11.x11>->{'authorization_protocol_data'} ) )
+};
+
+# ______________________________________________________________________________
+#\\FOFVP5VMXBMCGKOJ4TSBHWF22JJLSQQ7FHKNZVSWZG5QRRR6BARQ23L3TVZ5B45HRRYQOJWCL3GIW
+# \\ EDAPP7X6CYDIIRS4JHOB7DIXJWAXBJSUGBFZHGPWZSAQIZ4JYUGC \\// C25519-BASE-32 //
+#  \\// 3BIWYIIGPIXJMMYJ2GEXO6T4TUYJX43LGMAYK3Q4L5NQMG75QBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

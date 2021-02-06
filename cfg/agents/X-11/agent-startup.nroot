@@ -1,0 +1,28 @@
+# >:]
+
+# name  = agent-startup.nroot
+# descr = 'X-11' agent startup configuration used by 'nroot' agent
+
+dependencies   = core
+max_concurrency   = 1
+heartbeat.timeout = 14
+restart.min_delay = 0.7
+agent-start.timeout = 24
+## [ in case of immediate errors ]
+startup-error.retry-count   = 2
+startup-error.retry-min-delay = 5
+
+: nroot-init :
+  start_mode = stdin-agent
+  core.key = [base.rnd_chars_anum:42]
+  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+
+: agent-init :
+  [base.auth.set_agent_key:'<{core.key}>']
+
+: nroot-post-init :
+  [nroot.callback.get_x11_display]
+  status.post-init = 1
+
+: startup-error :
+  [nroot.callback.xorg-error-handler:<instance_id>]
