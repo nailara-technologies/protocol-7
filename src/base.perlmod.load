@@ -5,7 +5,7 @@
 my ( $module_name, @export ) = @_;
 <base.perlmod.auto_install> //= 1;
 
-<[base.log]>->( 2, "loading perl module '$module_name'.." );
+<[base.log]>->( 2, "loading perl module '$module_name'.," );
 
 <[base.register_pm_deps]>->($module_name);
 
@@ -14,11 +14,20 @@ my ( $module_name, @export ) = @_;
 
 eval { load( $module_name, @export ) };
 return 1 if !$@;
+my $reason = $@;
+$reason =~ s| at .+$||sg;
+$reason =~ s| *\n.*$||s;
 
 # load error #
 <base.perlmod.loaded>->{$module_name} = 0;
 
-( my $reason = $@ ) =~ s| at .+$||sg;
+if ( $reason !~ m|^Can.t locate | ) {
+    <[base.log]>->(
+        0, "<<!>> error while loading perl module '$module_name' <<!>>"
+    );
+    <[base.log]>->( 0, "  : ' $reason '" );
+    return 0;
+}
 
 if ( !<base.perlmod.auto_install> ) {
     <[base.log]>->(
@@ -46,7 +55,7 @@ die "<<!>> unable to automatically install perl module '$module_name' <<!>>\n"
 return 1;
 
 # ______________________________________________________________________________
-#\\WZ5N7DQVSQT547QFSTXCULATJSVVAGL4I7WU3CUMHSGGZ5B6S3IH7JEROEVWBPS453PINZSZDINQ6
-# \\ 7EMX7BZ76RYPLUWYUGA4Z7MPHFSWL6QVRR46COMZEX45EXYO4D36 \\// C25519-BASE-32 //
-#  \\// LL6MIQX4FV4P7PPE433LSPZH7YVJQ4W6O6Q522ZT63XVHXX4SDI \\ CODE SIGNATURE \\
+#\\NHTFGR3PNR3EYZYOSFQVOC33GNSVLV6JJSXKRINJ6ZEI3NNCICWIVPSUQMIQJXZTTTVEKVVQSNLBW
+# \\ ZZAZSECDNXT5R725YEIMOMO33U5LQRCQOG44KCEVTQR2QEGAM6HE \\// C25519-BASE-32 //
+#  \\// BM36H3ZKUKJZX2UISQCNNCKDIEEXQTM3N5U4MNZNDE6DQABTGDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
