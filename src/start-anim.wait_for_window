@@ -3,14 +3,14 @@
 # name = start-anim.wait_for_window
 
 ( my $match_str = <start-anim.window_title> ) =~ s|([\[\]])|\\$1|g;
-unless ( <[base.X-11..wait_for_window]>->($match_str) ) {
+unless ( <[base.X-11.wait_for_window]>->($match_str) ) {
     <[base.log]>->( 0, "[!] window unable to open, aborting agent startup.." );
     exit(2);
 }
-<[base.X-11..assign_window]>;
+<[base.X-11.assign_window]>;
 
 # ______________________________________________________________________________
-#\\WRUUO6SBBJ2GAUGBYMNB2PD6GG3L3JQ7UQYRS7SSDMISKXBX2QT5CJMR73T4F5RHLL34Z3T2AFIPC
-# \\ E26XBCXNFRQQLOXIC2GOOJMH464MWSZHDNFYD32YFZZLXOQS2FZI \\// C25519-BASE-32 //
-#  \\// USBPGNIA2XPRPIBUMCBEK72L7OF6I7GEESRBYDGXIA4BB25PUAA \\ CODE SIGNATURE \\
+#\\JHNDGQBHNGGJKMZQQSQAQM2D5FMR2NQ5G7DY46AIY5DKITJDNZBNEV5ZIST6RJEIMI2J4Z666VQXE
+# \\ TFNAZBQZJFSHFFMQ4SNU4MZSNHFAVR3JRHPWC4QIBXKVSXJRA4VY \\// C25519-BASE-32 //
+#  \\// 7T6HX4VHH3PLEJAAZGA66QB2FX7G5CLIC24URWZAWES4G6PUMDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
