@@ -5,7 +5,7 @@
 my $current_res_w = 1280;
 my $current_res_h = 480;
 
-<[base.log]>->( 1, "initializing.." );
+<[base.log]>->( 1, "initializing..," );
 
 $ENV{'DISPLAY'}         = <x11.display>;
 $ENV{'SDL_AUDIODRIVER'} = 'disk';
@@ -133,13 +133,13 @@ SDL::Video::flip($screen);
 
 my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
 if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
-    <[base.log]>->( 0, "agent startup error (sdl window did not open)" );
+    <[base.log]>->( 0, "agent startup error [ sdl window did not open ]" );
     exit(2);
 } else {
     <[base.X-11.assign_window]>;
 }
 
-<[base.log]>->( 1, "entering webcam loop ..." );
+<[base.log]>->( 1, 'entering loop .,' );
 
 # verify-instance reply
 loop_wait(0.888);
@@ -362,7 +362,7 @@ sub mask_scan {
 }
 
 # ______________________________________________________________________________
-#\\ZCPUY4X4L64RDSK5FY5VPPP225LMG2BQAPGIDQVORL5JRTQO6MFBK3NN2I4TPLAJMXWVLSF2RLG4K
-# \\ PVIR46EFMPVCBXUFFIWCCAGRVRPAJAH5PPRZDWUCVQ64HT556H3J \\// C25519-BASE-32 //
-#  \\// UGOJGAKIX2ZISRIWYCCGJTN54SYWDQ676XP53EDFZDPQGDMNUAY \\ CODE SIGNATURE \\
+#\\FXKXTTBBHES7B6N6MZBZBBGMTFNGAFWTXAVYSZ64V7J4FBS4PPI24QRKEB3CFGZ542TNX4P73FBF4
+# \\ OFXIWWJXAKTJ2YSXLRTKXLYEJQJPS7OFQJUI6FYU7TWEMOB2RS7A \\// C25519-BASE-32 //
+#  \\// MUUPDN4FOGYRXWTW3A5THWWHEMI2SFN6WZHYE4HCKFULIVNZUCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
