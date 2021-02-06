@@ -1,0 +1,21 @@
+# >:]
+
+# name = composition.handler.bg_color_reply
+
+my $answer = shift;
+
+return warn "unexpected (NAK) reply from xserver agent!"
+    if $answer->{'cmd'} ne 'ACK';
+
+<composition.x11_bg_color> = $answer->{'call_args'}->{'args'};
+
+<[base.log]>->(
+    1,
+    " : received xserver background color '" . <composition.x11_bg_color> . "'"
+);
+
+# ______________________________________________________________________________
+#\\OAGOLANO7SY3RPBNNC772T52FUXWJ5DU5KYJQSOEAI7WIJF54CTC46HWH5AMN76CPT7OAXUJNFZZ6
+# \\ XTSDOCGI54V2T2M6AFFJO7M5M22VHD2WS5BUV3OSPH5SKUSHSVQY \\// C25519-BASE-32 //
+#  \\// AK2BD54YADLFIAZ4X3HK2BR2T6HRGOMW6M5TPUBECSFHXGGYEDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

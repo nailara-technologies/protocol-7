@@ -10,7 +10,8 @@ access.cmd.usr.core = commands heart verify-instance list show-buffer name reloa
 
                       # reload command currently disabled [ drops parent cmds ]
 
-access.cmd.usr.parent = commands reload show-buffer update_current update_forecast \
+access.cmd.usr.parent = commands reload show-buffer \
+                        update_current update_forecast \
                         * # <- LLL
 
 weather.api.key = '5659adaa37c4bd7ad94ac32f5a375fb2' # <- a working test API key
@@ -31,9 +32,9 @@ weather.browser_zoom  = 1  # auto zoom adjustment (same as in in browser agent)
 weather.min_zoom      = 0.7  # lower auto zoom level limit (must match browser)
 weather.zoom_text     = 0    # disabled to work with browser auto zoom function
 
-weather.tile_scale = 1  # autoscale to fit to weather tile size in layout config
+weather.tile_scale = 1   # autoscale to weather tile size in composition set up
 
-weather.current_cond_delay = 15 # display 'current' page longer ( 3 tile setup )
+weather.current_cond_delay = 15 # display 'current' page longer [ 3 tile setup ]
 
 ## tile setup html snipplets are ./data/html/templates/weather/content.*.part ##
 
@@ -73,8 +74,8 @@ weather.tile.setup.3 = current.city.conditions.today \
 
 weather.cache_dir = /var/cache/weather
 weather.cache_timeout = 3 # hours
-weather.update_interval.current  = 13 # mins [ + random(interval) ]
-weather.update_interval.forecast = 33 # mins [ + random(interval) ]
+weather.update_interval.current  = 13 # mins [ + random[interval] ]
+weather.update_interval.forecast = 33 # mins [ + random[interval] ]
 
 modules.load = auth net io.ip digest.sha weather.base
 [load_modules:<modules.load>]

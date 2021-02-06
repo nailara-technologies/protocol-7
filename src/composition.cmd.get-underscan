@@ -1,0 +1,18 @@
+# >:]
+
+# name  = composition.cmd.get-underscan
+# descr = show underscan values for current setup
+
+my @values;
+map {
+    push( @values, sprintf( "%s:%s", $1, <composition.setup.screen>->{$_} ) )
+        if $_ =~ /^underscan\.(\w+)/
+} reverse sort { $a cmp $b } keys %{<composition.setup.screen>};
+
+return { 'mode' => 'ack', 'data' => join( ' ', @values ) }
+
+# ______________________________________________________________________________
+#\\JDJKFTET4NXSWOHXVSLBXI3J2P2MMSSVKBIYKL5L66TTNE6XDQ7FIAEA2BBWEJ3ZMIFPUON7WL3FK
+# \\ N26Y5LO7UM7543INS3H3SKSD53TXUJ2Y275FWRHH642HOUCZWMBV \\// C25519-BASE-32 //
+#  \\// B5FXUN7MQKL4ZDQTOUCTTJJAAMSFDYYGLOMQURV3QHYK3LJ6QBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

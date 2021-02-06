@@ -1,0 +1,27 @@
+# >:]
+
+# name  = composition.stop_display_agents
+# descr = quick fix to avoid remaining x11 agents on composition agent restart
+
+if ( defined <composition.startup.stop_agents> ) {
+    <[base.log]>->( 1, "stopping display agents (if present)" );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.stop_implicit",
+            'call_args' => { 'args' => <composition.startup.stop_agents> }
+        }
+    );
+}
+if ( defined <composition.startup.restart_agents> ) {
+    <[base.log]>->( 1, "restarting display agents (if present)" );
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => "core.nroot.restart",
+            'call_args' => { 'args' => <composition.startup.restart_agents> }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\BEJ4AEZPAPWK4765ZME5ELIDBYFDHHQGTZXIFVPADEEODOUGRKTDLSHCISZWPDRDF5TNZNBE67WE4
+# \\ LWIDYXMQGDV5R5WOSV3DO22244GKRZBDYMWSDANUIQSJGEKFZOKS \\// C25519-BASE-32 //
+#  \\// L6A5JNBHFDBSVICMBIQKBAHFRRPE2FZKEQMK24D3BMBOJBZGCBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,45 @@
+# >:]
+
+# name  = composition.cmd.add_overlay
+# param = <tile_group_name[s]>
+# descr = overlay specified tile group on current
+
+my $overlay_str = $$call{'args'} // '';
+
+<composition.transition_queue> //= [];
+<composition.overlays.current> //= [];
+<composition.overlays.previous> = [ @{<composition.overlays.current>} ];
+
+return {
+    'mode' => 'nak',
+    'data' => "current composition is already '$overlay_str' - nothing to do !"
+    }
+    if $overlay_str eq <composition.current_tile_group>;
+
+my %new_overlays = map { $_ => 1 } split / +/, $overlay_str;
+my @new_overlays = sort keys %new_overlays;
+
+map {
+    return {
+        'mode' => 'nak',
+        'data' => "expected valid tile group name"
+        }
+        if not defined $_ or !length($_);
+    return {
+        'mode' => 'nak',
+        'data' => "composition \"$overlay_str\" not found!"
+        }
+        if not exists <composition.setup.tile-groups>->{$_};
+
+    push( @{<composition.overlays.current>}, $_ );
+} @new_overlays;
+
+my $merged_name = <[composition.merge_multiple]>->(@new_overlays);
+
+return <[composition.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
+
+# ______________________________________________________________________________
+#\\B4MQEQ7U4UDMPNRVMU3TJJT6RHIRUP3SKIJXY4TVAZENW5VZ54PJIL36DMC4G3OPIVVYHACOQURN6
+# \\ TESLGQBWA7SUUH6KVZCD7Y2U7MIAU36WK43JZ437PEFPTZKBIHFN \\// C25519-BASE-32 //
+#  \\// NLGSVGLFE2CXTH5QBZJ6BOPRDHJ5NVDZOTHWWRSJJV3TTSPR4BI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -29,8 +29,8 @@ if ( defined $ev_data->{'dep_id'}
 
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
-die "'layout_name' parameter is missing from '$action_type' setup"
-    if $action_type =~ /^layout_/ and not defined $action->{'layout_name'};
+die "'tile_group_name' parameter is missing from '$action_type' setup"
+    if $action_type =~ /^composition_/ and not defined $action->{'tile_group_name'};
 
 <events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
     = $action_type
@@ -102,25 +102,25 @@ if ( $action_type eq 'agent_running' ) {
             if !<events.stack.exclusive>->{$b32id};
     }
 
-} elsif ( $action_type eq 'layout_show' ) {    ### --- LAYOUT SHOW ---
-    my $l_name = $action->{'layout_name'};
-    <events.stack.layout.visibility>->{$l_name} //= 0;
+} elsif ( $action_type eq 'composition_show' ) {    ### --- COMPOSITION SHOW ---
+    my $l_name = $action->{'tile_group_name'};
+    <events.stack.composition.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
-    <events.stack.layout.visibility>->{$l_name} += $change;
+    <events.stack.composition.visibility>->{$l_name} += $change;
 
-} elsif ( $action_type eq 'layout_hide' ) {    ### --- LAYOUT HIDE ---
-    my $l_name = $action->{'layout_name'};
-    <events.stack.layout.visibility>->{$l_name} //= 0;
+} elsif ( $action_type eq 'composition_hide' ) {    ### --- COMPOSITION HIDE ---
+    my $l_name = $action->{'tile_group_name'};
+    <events.stack.composition.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
-    <events.stack.layout.visibility>->{$l_name} -= $change;
+    <events.stack.composition.visibility>->{$l_name} -= $change;
 } elsif ( $action_type eq 'overlay_show' ) {    ### --- OVERLAY SHOW ---
-    my $l_name = $action->{'layout_name'};
+    my $l_name = $action->{'tile_group_name'};
     <events.stack.overlay.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.overlay.visibility>->{$l_name} += $change;
 
 } elsif ( $action_type eq 'overlay_hide' ) {    ### --- OVERLAY HIDE ---
-    my $l_name = $action->{'layout_name'};
+    my $l_name = $action->{'tile_group_name'};
     <events.stack.overlay.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.overlay.visibility>->{$l_name} -= $change;
@@ -137,47 +137,47 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
     ->( { 'command' => "core.content.update" } )
     if index( $action_type, 'playlist_' ) == 0;
 
-<events.layout.cfg_directory> //= '/etc/nailara/nailara.layout';
+<events.composition.cfg_directory> //= '/etc/nailara/nailara.composition';
 
-if ( $action_type =~ /^layout_/ ) {
+if ( $action_type =~ /^composition_/ ) {
 
-    delete <events.stack.layout.visibility>->{ $action->{'layout_name'} }
-        if 0 == ( <events.stack.layout.visibility>->{ $action->{'layout_name'} }
+    delete <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
+        if 0 == ( <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
             // -1 );
 
-    my @layout_stack = sort {
-        <events.stack.layout.visibility>->{$a} <=>
-            <events.stack.layout.visibility>->{$b}
-    } keys %{<events.stack.layout.visibility>};
-    my $current_layout = pop @layout_stack;
+    my @composition_stack = sort {
+        <events.stack.composition.visibility>->{$a} <=>
+            <events.stack.composition.visibility>->{$b}
+    } keys %{<events.stack.composition.visibility>};
+    my $current_tile_group = pop @composition_stack;
     my $restore_config
-        = -d <events.layout.cfg_directory>
-        ? <events.layout.cfg_directory> . '/layout.current'
+        = -d <events.composition.cfg_directory>
+        ? <events.composition.cfg_directory> . '/composition.current'
         : undef;
 
-    if ( defined $current_layout
-        and <events.stack.layout.visibility>->{$current_layout} ) {
-        <[base.log]>->( 1, "writing 'layout.current' config.. [active event]" );
+    if ( defined $current_tile_group
+        and <events.stack.composition.visibility>->{$current_tile_group} ) {
+        <[base.log]>->( 1, "writing 'composition.current' config.. [active event]" );
         <[file.put]>->(
             $restore_config,
-            sprintf( "%.4f %s\n", <[base.time]>->(4), $current_layout )
+            sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => 'core.layout.switch_to',
-                'call_args' => { 'args' => $current_layout }
+            {   'command'   => 'core.composition.switch-tile-group',
+                'call_args' => { 'args' => $current_tile_group }
             }
         );
     } else {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
         <[base.proto.nailara.command.send.local]>
-            ->( { 'command' => 'core.layout.select_default' } );
+            ->( { 'command' => 'core.composition.reset-tile-group' } );
     }
 }
 
 if ( $action_type =~ /^overlay_(show|hide)$/ ) {
     my $show_hide    = $1;
-    my $overlay_name = $action->{'layout_name'};
+    my $overlay_name = $action->{'tile_group_name'};
     my $command_str  = (
                $show_hide eq 'show' and $ev_type eq 'end'
             or $show_hide eq 'hide' and $ev_type eq 'start'
@@ -186,14 +186,14 @@ if ( $action_type =~ /^overlay_(show|hide)$/ ) {
     if ( $command_str eq 'add'
         and <events.stack.overlay.visibility>->{$overlay_name} ) {
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => 'core.layout.add_overlay',
+            {   'command'   => 'core.composition.add_overlay',
                 'call_args' => { 'args' => $overlay_name }
             }
         );
     } elsif ( $command_str eq 'remove'
         and !<events.stack.overlay.visibility>->{$overlay_name} ) {
         <[base.proto.nailara.command.send.local]>->(
-            {   'command'   => 'core.layout.remove_overlay',
+            {   'command'   => 'core.composition.remove_overlay',
                 'call_args' => { 'args' => $overlay_name }
             }
         );
@@ -203,7 +203,7 @@ if ( $action_type =~ /^overlay_(show|hide)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\IXJNWADRI3UNZSC4M34ZKATLVHZHOGIAYTE4A253C7CMTJNZV5VU6TJBGXBDBFC2BBZPULHBKGT2A
-# \\ 5AAWHZZXFCUFO74Y7433YAMAQABAYSFG7TRHJQLHKWMYPPSLEV2K \\// C25519-BASE-32 //
-#  \\// J4LGAAE57THKU7BLBBCALX4BPS6JHLEL75HFOKGEKDMLVXYGEDQ \\ CODE SIGNATURE \\
+#\\PC5NHLV7H74K5ABFJKWVBTFTZY6HIYK7W6OLZOS7ITEF6LMX6MYHMSFYVEFQIDU6VVHY6ZJXNAVU6
+# \\ DSVQEEB55TFDWU3VGWKIYFKDCD2L3ZM73XAAKBX7KOLK7LYVQ5ZY \\// C25519-BASE-32 //
+#  \\// EWOXRE7IE2CCXR64Y2LFVR2ERLBUDLFKOP3VMNUHNH3R43L7UAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,60 @@
+
+ .:[ X-11 desktop 'composition' agent ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.core = commands heart reload verify-instance * # <- LLL
+
+## [ ./cfg/agents/composition/tile-group-setup.<name> ] ##
+composition.setup_file_name     = example
+composition.fallback_tile_group = web-browser
+
+composition.hash_file   = /etc/nailara/nailara.composition/composition_file.sha1
+composition.tiles_visible_file      = /etc/nailara/import/playlist.tiles_visible
+composition.restore_composition_enabled  = 1   # select last used cfg on startup
+composition.restore_composition_timeout  = 242 # seconds
+
+composition.watch_tiles.poll_tile_color  = 0     # [0|1]  monitor tile activity?
+composition.watch_tiles.comparison_mode  = bgcol # [bgcol|last]
+composition.watch_tiles.inactive_action  = restart # [warn|restart] timeout act.
+composition.watch_tiles.check_playlist   = 1 # <- skip restart on empty playlist
+composition.watch_tiles.poll_int_start   = 33 # start delay < first 'interval' >
+composition.watch_tiles.inactive_timeout = 127 # seconds
+
+composition.startup.stop_agents  = universal mpv browser ticker-gtk ticker-sdl \
+                                   impressive start-anim webcam storchencam \
+                                   rss-ticker webcam
+
+composition.startup.restart_agents   = dsys-update-check osd-logo # LLL rotate.,
+
+composition.mapped_subcfg.browser    = adblock noscript scroll_speed auto_speed
+composition.mapped_subcfg.universal  = adblock noscript scroll_speed auto_speed
+composition.mapped_subcfg.impressive = light_mode
+
+composition.set-up.ticker_agent_type = gtk # [gtk|sdl]
+
+modules.preload = composition.set-up set-up.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[set-up.json.import_file:'composition.set-up.json']
+[set-up.json.import_file:'composition.tile-groups.json']
+
+modules.load = auth net io.ip digest.sha composition set-up.json
+[load_modules:<modules.load>]
+[init_modules]
+
+[set_privs:<system.privs.user>]
+
+[net.connect_to_core:'ip.tcp']
+
+[base.x11.get_display]
+[base.x11.get_screen_size]
+[base.x11.get_orientation]
+[base.get_session_id]
+
+[composition.stop_display_agents]
+
+[composition.process-tile-group:<composition.fallback_tile_group>]
+
+[event.loop]

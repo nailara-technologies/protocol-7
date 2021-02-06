@@ -1,0 +1,21 @@
+# >:]
+
+# name = composition.sort_layers
+
+my $reply_id = shift;
+
+<[base.log]>->( 2, "requesting window stacking order.." );
+<[base.proto.nailara.command.send.local]>->(
+    {   'command' => "core.xserver.get_stack_order",
+        'reply'   => {
+            'params'  => $reply_id,
+            'handler' => 'composition.handler.stack_order_reply'
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\XKURSOQHF7BCPAKCXRN35YXEG5JPQPOKI5D62HWNS7ZVELWMJHHVITZBH4AR4FJJD6P6P6C65IGSQ
+# \\ MSPDUVF2Q4LN2D62XWQ4Z7R54VLWRWV7KILCSZDFCCV7LKHY4TJC \\// C25519-BASE-32 //
+#  \\// S5ZCD46AU34WH34GZOMKFT6Z4XPMCAURZUMEP2Q4EN6TVPVKYAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
