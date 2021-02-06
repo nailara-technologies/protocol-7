@@ -1,0 +1,34 @@
+# >:]
+
+# name = composition.handler.check_playlist_reply
+
+my $reply = shift // {};
+
+my $agent_name = $reply->{'params'}->{'agent_name'};
+my $tile_name  = $reply->{'params'}->{'tile_name'};
+
+warn "unexpected [NAK] reply from playlist agent" if $reply->{'cmd'} eq 'NAK';
+
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
+
+    <[base.log]>->(
+        0, " :  playlist for tile '$tile_name' is empty <-> skipping restart!"
+    );
+
+} else {
+
+    <[base.log]>->( 1, " : : tile '$tile_name' does have playlist entries!" );
+    <[base.log]>->( 0, " :  restarting agent '$agent_name' ..." );
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command'   => 'core.nroot.restart',
+            'call_args' => { 'args' => $agent_name }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\AEATPK7A3BMKUCGMVN3F5PEGBO3T77RZR6AZV3DDHSKM25NEH66ZUJVN2CVG6P5ZGAAE24FZU4ONU
+# \\ 5GGKMPCUKVQD6FIYMFH64TMQ2QDV5FEGEUUI3C4XASIXWH4LUG4O \\// C25519-BASE-32 //
+#  \\// 42ZQGDZVDEYHW7KVFR5NFSLJ47JYP7TSER55NDKEWQ2UT4FIODI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

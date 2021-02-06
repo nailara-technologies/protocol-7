@@ -21,8 +21,9 @@ my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
 <[base.log]>->( 1, "requesting coordinates$sn_log_str" );
 
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>
-    ->( $core_fh, "($cmd_id)${cmd_path}layout.get_coordinates$sn_str\n" );
+<[net.out]>->(
+    $core_fh, "($cmd_id)${cmd_path}composition.get_coordinates$sn_str\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
@@ -44,8 +45,8 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} ) {
     return [ $1, $2, $3, $4 ];
 }
 
-# else [no layout agent present or no coordinates for current agent configured]
-my $err_msg = "unexpected reply from layout agent ['$reply_string']";
+# else [ composition agent not present or no coordinates for current agent ]
+my $err_msg = "unexpected reply from composition agent ['$reply_string']";
 
 $err_msg = ': coordinates undefined'
     if $reply_string =~ /NAK no coordinates/
@@ -81,7 +82,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\YMK6LD3SB7F3ZZG7NO74SDSXU3SSUQMN4FSBQ2ACEE5V5R3XIS5G3DX6G2NUO4NUNPDZIOO7ECRZU
-# \\ 6R2H4TVL2AEF3UMHXO63QW5JGKMZSV5XRMTL2LHLOYELRVBVFQZL \\// C25519-BASE-32 //
-#  \\// F4TJAG2RU6P4OWSDITLCQVSJ5CRZ72EOOSZPR5TUCYL4OWI7IBA \\ CODE SIGNATURE \\
+#\\VT2D3V6645JTJVPPM2JPUDSEENDX3EQ5U3UZPIJ5Z6WJGC5RYDWCLIIM3CNAQPDQQ3RFUUJARTHPG
+# \\ NGKXFMGHP3AQ5ONE6JEXXS3TBVKD3CYM54RK6XHNDORYQP4QT3JI \\// C25519-BASE-32 //
+#  \\// 4C47NPLLIFNPLTL4TMRJBBHNQZC2VQTUCWA4GAFPVUZPKRDM2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

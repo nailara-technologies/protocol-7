@@ -1,0 +1,28 @@
+# >:]
+
+# name = composition.handler.get-tile-color_reply
+
+my $answer   = shift;
+my $reply_id = delete $answer->{'params'};
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'nak',
+        'data' => "unexpected (NAK) reply from screenshot agent!"
+    }
+) if $answer->{'cmd'} ne 'ACK';
+
+my $color_str = $answer->{'call_args'}->{'args'};
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'ack',
+        'data' => $color_str
+    }
+);
+
+# ______________________________________________________________________________
+#\\HHYZQAP5LWZ4NIKCTDQKQ2CLO54YAPGXMN4PIYIEH4XKDUUA34VSGLNI4ZBSF6VCLPLPNFG3SNYUG
+# \\ BSGNJNZIXTYGURE7KJROYM22GSN2UOIU3PEWEAO456F67UNVKYJN \\// C25519-BASE-32 //
+#  \\// IDE4AP7YGTJVIVFJWOFGMDMFA6LN3JXZZQDSG3JWSXTPRD4D6AI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

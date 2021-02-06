@@ -2,17 +2,17 @@
    .:[ local core agent command access permission setup ]:.
 
 
-                access.cmd.usr.*  =  exit commands heart time clear ntime since \
+                access.cmd.usr.*  =  exit commands heart time clear ntime \
                                      whoami history.append *.subname localtime \
-                                     present present-history \
+                                     present present-history since \
                                      get-public-key set-client-key \
                                      get-session-key get-session-sig \
                                      source-version release-version \
                                      xserver.get_display \
-                                     layout.get_geometry \
-                                     layout.assign_window \
                                      xserver.get_geometry \
-                                     layout.get_coordinates \
+                                     composition.get_geometry \
+                                     composition.assign_window \
+                                     composition.get_coordinates \
                                      xserver.get_orientation \
                                      xserver.get_screen_size \
                                      xserver.get_stack_order
@@ -47,7 +47,7 @@
                                      nroot.notify_online nroot.stop_implicit \
                                      xserver.keep_below xserver.hide_window \
                                      xserver.set_opacity \
-                                     layout.get_subconfig \
+                                     composition.get_subconfig \
                                      xserver.lower_window \
                                      xserver.raise_window \
                                      xserver.set_geometry \
@@ -64,10 +64,11 @@
           access.cmd.usr.set-up   =  get-config *.get-config *.get-config-names
 
            access.cmd.usr.events  =  content.update nroot.start_once \
-                                     layout.switch_to layout.add_overlay \
-                                     nroot.stop_implicit nroot.restart \
-                                     layout.remove_overlay \
-                                     layout.select_default
+                                     composition.add_overlay \
+                                     composition.remove_overlay \
+                                     composition.reset-tile-group \
+                                     composition.switch-tile-group \
+                                     nroot.stop_implicit nroot.restart
 
           access.cmd.usr.content  =  nroot.restart weather.get-urls \
                                      *.playlist_update notify.msg_reload \
@@ -75,7 +76,7 @@
                                      events.get_playlist_hidden \
                                      events.get_playlist_exclusive
 
-           access.cmd.usr.layout  =  nroot.start notify.warn nroot.restart \
+      access.cmd.usr.composition  =  nroot.start notify.warn nroot.restart \
                                      universal.slow_down content.update \
                                      nroot.start_once xserver.bg_color \
                                      xserver.fade_out browser.slow_down \
@@ -100,9 +101,11 @@
 
           access.cmd.usr.browser  =  pdf2html.get_url xserver.bg_color \
                                      xserver.gpu_load image2html.get_url \
-                                     content.set_flags layout.get_subconfig \
+                                     content.set_flags \
+                                     composition.get_subconfig \
                                      xserver.raise_window xserver.lower_window \
-                                     xserver.wait_visible content.get_list_types \
+                                     xserver.wait_visible \
+                                     content.get_list_types \
                                      content.entries_withheld \
                                      nroot.report-temp-path
 
@@ -114,7 +117,7 @@
 
           access.cmd.usr.xserver  =  nroot.restart nroot.start_once \
                                      nroot.register_child \
-                                     layout.gpu_load_alert \
+                                     composition.gpu_load_alert \
                                      xpointer.blank_cursor \
                                      system.reload_gfx_module \
                                      system.report-xserver-error
@@ -137,7 +140,7 @@
                                      nroot.notify_online nroot.stop_implicit \
                                      nroot.register_child xserver.set_opacity \
                                      xserver.raise_window xserver.wait_visible \
-                                     xserver.bg_color layout.get_subconfig
+                                     xserver.bg_color composition.get_subconfig
 
        access.cmd.usr.start-anim  =  xserver.wait_visible xserver.bg_color \
                                      nroot.report-temp-path
@@ -147,8 +150,9 @@
        access.cmd.usr.rss-ticker  =  content.get_list ticker-gtk.read_file \
                                      ticker-sdl.read_file
 
-       access.cmd.usr.ticker-gtk  =  layout.get_layer xserver.gpu_load \
-                                     nroot.notify_online layout.get_subconfig \
+       access.cmd.usr.ticker-gtk  =  composition.get-layer xserver.gpu_load \
+                                     nroot.notify_online \
+                                     composition.get_subconfig \
                                      rss-ticker.resend_update
 
        access.cmd.usr.ticker-sdl  =  nroot.notify_online xserver.keep_above \

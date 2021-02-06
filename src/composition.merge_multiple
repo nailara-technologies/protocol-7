@@ -1,0 +1,39 @@
+# >:]
+
+# name = composition.merge_multiple
+
+my @overlay_list = @_;
+
+if ( not defined <composition.current_tile_group> ) {
+    warn "composition.current_tile_group not defined, skipping merge..";
+    return undef;
+}
+
+( my $current_one = <composition.current_tile_group> ) =~ s|\+.*$||;
+
+my %uniq = map { $_ => 1 }
+    grep { length($_) and $_ ne $current_one }
+    @{<composition.overlays.current>};
+@{<composition.overlays.current>} = sort keys %uniq;
+
+my $merged_name = join( '+', $current_one, @{<composition.overlays.current>} );
+
+<[base.log]>->( 2, "creating merged [overlay] composition '$merged_name'" );
+
+<composition.setup.tile-groups>->{$merged_name}
+    = <composition.setup.tile-groups>->{$current_one};
+
+map {
+    <composition.setup.tile-groups>->{$merged_name} = merge(
+        <composition.setup.tile-groups>->{$merged_name},
+        <composition.setup.tile-groups>->{$_}
+    );
+} @overlay_list;
+
+return $merged_name;
+
+# ______________________________________________________________________________
+#\\LA5RMZGMAUQPLSVKHGJIR2JGF43T7DNEGHMN3T3KMPKNTMO4MGF2ULAV4W4X3AIOYASKIA5VO5EFS
+# \\ ALMR7UTA6OWBM7L5D4HEXBEQ7O3NFQDHQDDU6YM2INXMP44NCUNL \\// C25519-BASE-32 //
+#  \\// GU25I3QN53WWGQU4SWDFPB2FPH4ZJ75YBT4EOUO2EEYMRRJXADA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

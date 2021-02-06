@@ -1,0 +1,27 @@
+# >:]
+
+# name  = composition.impressive.increase_light_mode
+# descr = switch impressive into light_mode [1 and 2] ([GPU/CPU] load reduction)
+
+my @restart_agents;
+
+foreach my $agent_name ( keys %{<composition.subconfig>} ) {
+    next if $agent_name !~ /^impressive/;
+    my $lm = <composition.subconfig>->{$agent_name}->{'light_mode'} //= 0;
+    next if $lm >= 2;
+    $lm = ++<composition.subconfig>->{$agent_name}->{'light_mode'};
+    push( @restart_agents, $agent_name );
+    <[base.log]>->( 0, "switching $agent_name into light_mode $lm!" );
+}
+
+<[base.proto.nailara.command.send.local]>->(
+    {   'command'   => "core.nroot.restart",
+        'call_args' => { 'args' => join( ' ', @restart_agents ) }
+    }
+) if @restart_agents;
+
+# ______________________________________________________________________________
+#\\U27EKD43IJODOL7DTHQVIAIV33GDBKG237QIM2KLBK3YO25QAF6QEKVNE74I4H7BS6QZCEIQF7572
+# \\ YUNEIJ67WIOZB3CFKWOOVNLOXI4SA57LRGO7CWDENNPAPNAHTZP3 \\// C25519-BASE-32 //
+#  \\// Z34KSNMCQS5GTZTKKHGZ5COJXZAOW3RFELM44JRQKDZD6MNQSCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

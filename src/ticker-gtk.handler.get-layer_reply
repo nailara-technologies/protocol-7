@@ -1,0 +1,21 @@
+# >:]
+
+# name = ticker-gtk.handler.get-layer_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    <ticker-gtk.composition.layer> = $reply->{'call_args'}->{'args'};
+    if ( <ticker-gtk.composition.layer> == 100 ) {
+        <[base.log]>->( 1, "composition layer == 100 <!> (enabling 'force_above')" );
+        <ticker-gtk.window.force_above> = 1;
+    }
+}
+
+<[ticker-gtk.open_window]>;
+
+# ______________________________________________________________________________
+#\\WYCKXF73ZHK7NVVBSXLZUA3DLEHLMBKKCKFCZ6RX6PMEGQCFVVDQMD53MSVL2EXAOHYYYEYWIO5I4
+# \\ PAOEGBW63WTFGGWECTSSS5JGLAC2V57NO5UHFYFYCTPHCN2IEABY \\// C25519-BASE-32 //
+#  \\// KFFRTA6TZIUEMUICPXBSWASWY5Q6UAXE7RUZ753A3OBNAARYICI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
