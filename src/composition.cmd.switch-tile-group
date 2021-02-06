@@ -1,0 +1,50 @@
+# >:]
+
+# name  = composition.cmd.switch-tile-group
+# param = <name>
+# descr = switch to the specified tile-\window group
+# todo  = actually process the composition switch ['fallback_tile_group'.,]
+
+my $tile_group_name = $$call{'args'};
+
+<composition.transition_queue> //= [];
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected tile group name'
+    }
+    if not defined $tile_group_name or !length($tile_group_name);
+return {
+    'mode' => 'nak',
+    'data' => "composition \"$tile_group_name\" not found!"
+    }
+    if not exists <composition.setup.tile-groups>->{$tile_group_name};
+
+if (<composition.transition_in_progress>) {
+    push( @{<composition.transition_queue>}, $tile_group_name );
+    return {
+        'mode' => 'ack',
+        'data' => "transition queued..,"
+    };
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "composition '$tile_group_name' is already active."
+    }
+    if $tile_group_name eq <composition.current_tile_group>;
+
+<composition.transition_in_progress> = 1;
+
+<[composition.switch-tile-group]>->($tile_group_name);
+
+return {
+    'mode' => 'ack',
+    'data' => "switching to composition '$tile_group_name'"
+};
+
+# ______________________________________________________________________________
+#\\4VZVPG3AD75P5PGTJLBK2XVIRNI25PYHPXNY5YH4GBV4L4CUFJEKVD53UVXF3EDUSSHLLLYBKMBDA
+# \\ DC7IF6PKDOYXOW3QFHUI6WA7LMXKRXG4SMDHBFZA3WVIIIN4JCYJ \\// C25519-BASE-32 //
+#  \\// U3NYT6XW42V7JGQ6PPUPWVALFXLVZGQHTF63TUFNWEYBGHOB2AI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

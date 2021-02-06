@@ -1,0 +1,25 @@
+# >:]
+
+# name = composition.handler.sig_term
+
+return
+    if not defined <composition.current_tile_group>
+    or !length(<composition.current_tile_group>);
+
+my $cfg_file = <composition.cfg_directory> . '/composition.current';
+<[base.log]>->(
+    1, "storing current composition in 'composition.current' config.."
+);
+
+<[file.put]>->(
+    $cfg_file,
+    sprintf(
+        "%.4f %s\n", <[base.time]>->(4), <composition.current_tile_group>
+    )
+);
+
+# ______________________________________________________________________________
+#\\A56I3RAW3BCKLSLPWIEP6XQMGJMRRD77XASJEXR2JTOKHUOL3NKRZH77DHIDKW4ENCBTGUMBVQBTU
+# \\ 2EOY2N74NLY7UNMCB4RNMTD3FAUR7IBSIPBB6MDHDHD2GZHADJFL \\// C25519-BASE-32 //
+#  \\// W34YJGFWFLMUBCHMLJZPIAB5PVRCN2YESS64S3QBU5J357CV2AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,29 @@
+# >:]
+
+# name = composition.tile_activity.change_poll_timer
+
+my $tile_name  = shift;
+my $in_seconds = shift;
+
+<[base.log]>->(
+    2, "inactivity timer interval for '$tile_name' is now ${in_seconds}s"
+);
+
+<composition.timer.poll_tile_color>->{$tile_name}->cancel;
+<composition.timer.poll_tile_color>->{$tile_name} = <[event.add_timer]>->(
+    {   'after'    => $in_seconds,
+        'interval' => $in_seconds,
+        'repeat'   => 1,
+        'handler'  => 'composition.callback.poll_tile_color',
+        'data'     => {
+            'tile_name'        => $tile_name,
+            'current_interval' => $in_seconds
+        }
+    }
+);
+
+# ______________________________________________________________________________
+#\\3BVL5UWTCMSQP7AWMKVM7ZNQXN6DPEUY7Q35TYZO3VG252GEFHQEY74CFR2OJNQKYF6BW6J62QD2M
+# \\ LFMF4JADD3EH3UNTM3QZALAD4DMGTQUY2AZKWPXM5NX2AB6MKXV6 \\// C25519-BASE-32 //
+#  \\// KH34X53XECHXHDLMSKRK26HLYJZJEQ6CY7BEZX4AMHDSG3AIGDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

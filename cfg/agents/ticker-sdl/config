@@ -9,18 +9,18 @@ ticker-sdl.child.renice_fh = [base.start.renice_child]
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.core = commands heart reload verify-instance read_file pause resume \
-                      get_opacity list dump_buffer child.*
+access.cmd.usr.core = commands heart reload verify-instance read_file pause \
+                      resume get_opacity list dump_buffer child.*
 
 access.cmd.usr.parent = commands reload read_file dump_buffer
 
 access.cmd.usr.child  = core.xserver.wait_visible core.xserver.raise_window \
-                        core.layout.assign_window core.xserver.set_opacity \
                         core.xserver.keep_above core.whoami core.dump_buffer \
                         core.nroot.notify_online core.rss-ticker.resend_update \
-                        core.list
+                        core.composition.assign_window \
+                        core.xserver.set_opacity core.list
 
-#                known (expected) fonts:  DroidSans DroidSans-Bold DroidSansMono
+#                known [expected] fonts:  DroidSans DroidSans-Bold DroidSansMono
 #                                         DroidSerif-Bold DroidSerif-Regular
 ticker-sdl.font.name = DroidSerif-Bold
 

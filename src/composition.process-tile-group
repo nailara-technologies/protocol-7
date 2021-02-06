@@ -1,0 +1,258 @@
+# >:]
+
+# name = composition.process-tile-group
+
+my $tile_group_name = shift;
+return <[base.log]>->(
+    0, 'process-tile-group: expected tile group name parameter'
+) if not length( $tile_group_name // '' );
+
+return <[base.log]>->( 0, "no tile group '$tile_group_name' in set up.," )
+    if not exists <composition.setup.tile-groups>->{$tile_group_name};
+
+<[base.log]>->( 1, "processing tile group '$tile_group_name'.," );
+
+if ( defined <composition.setup.ticker_agent_type> ) {
+    my $ticker_type = <composition.setup.ticker_agent_type>;
+    foreach my $composition ( keys %{<composition.setup.tile-groups>} ) {
+        my $_composition_data = <composition.setup.tile-groups>->{$composition};
+
+        map {    # ticker-sdl probably won't work anymore until it was updated.,
+            if ( $_ =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
+                my $tile_name = $2 // '';
+
+                my $new_name = "ticker-$ticker_type$tile_name";
+                $_composition_data->{$new_name}
+                    = delete $_composition_data->{$_}
+                    if $new_name ne $_;
+
+                $_composition_data->{$new_name}->{'layer'} //= 100; # <- on top.
+            }
+
+            # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
+
+            $_composition_data->{$_}->{'layer'} //= 1000
+                if $composition =~ m|^overlay_|;
+
+        } keys %{ <composition.setup.tile-groups>->{$composition} };
+    }
+}
+
+my @remove_agents;
+my $previous_data;
+my $previous_composition = <composition.previous_composition>;
+my $composition_data     = <composition.setup.tile-groups>->{$tile_group_name};
+if ( defined $previous_composition ) {
+    if ( $previous_composition eq $tile_group_name ) {
+        <[base.log]>->(
+            0, "current and previous tile group identical, processing ended.,"
+        );
+        return 0;
+    }
+    $previous_data = <composition.setup.tile-groups>->{$previous_composition};
+    map { push( @remove_agents, $_ ) if not exists $composition_data->{$_} }
+        keys( %{$previous_data} );
+}
+
+<composition.transition.status> //= {};
+
+if (<composition.startup.initializing>) {
+    my $kill_count = 0;
+    foreach my $composition ( keys %{<composition.setup.tile-groups>} ) {
+        my $_composition_data = <composition.setup.tile-groups>->{$composition};
+        ###
+        foreach my $stop_agent (
+            keys %{ <composition.setup.tile-groups>->{$composition} } ) {
+            <composition.transition.status.agents.stop>->{$stop_agent}
+                = $previous_composition // $tile_group_name;
+        }
+        ###
+        map {
+            my $stop_agents
+                = exists $_composition_data->{$_}->{'stop_agents'}
+                ? join( ' ', $_composition_data->{$_}->{'stop_agents'}, $_ )
+                : $_;
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => 'core.nroot.stop_implicit',
+                    'call_args' => { 'args' => $stop_agents }
+                }
+            );
+            $kill_count++;
+        } keys %{ <composition.setup.tile-groups>->{$composition} };
+    }
+} else {
+    map {
+        <composition.transition.status.agents.stop>->{$_}
+            = $previous_composition // $tile_group_name;
+    } @remove_agents;
+}
+
+<composition.window_ids> //= {};
+<composition.coordinates> = {};
+<composition.subconfig>   = {};
+<composition.layers>      = {};
+<composition.tiles>       = {};
+
+foreach my $agent_name ( keys %{$composition_data} ) {
+
+    <composition.coordinates>->{$agent_name}
+        = <[composition.calculate_coordinates]>
+        ->( $composition_data->{$agent_name} );
+
+    <composition.layers>->{$agent_name}
+        = $composition_data->{$agent_name}->{'layer'}
+        if defined $composition_data->{$agent_name}->{'layer'}
+        and $composition_data->{$agent_name}->{'layer'} =~ m|^\-?\d+$|;
+    <composition.layers>->{$agent_name} //= 0;
+
+    <composition.subconfig>->{$agent_name} = {};
+    ( my $name_plain = $agent_name ) =~ s|\[.+$||;
+    if ( defined <composition.mapped_subcfg>->{$name_plain} ) {
+        my @scfg_keys
+            = split( m| +|, <composition.mapped_subcfg>->{$name_plain} );
+        foreach my $sc_key (@scfg_keys) {
+            <composition.subconfig>->{$agent_name}->{$sc_key}
+                = $composition_data->{$agent_name}->{$sc_key}
+                if defined $composition_data->{$agent_name}->{$sc_key};
+        }
+    }
+
+    next
+        if !<composition.startup.initializing>
+        and defined $previous_composition
+        and exists $previous_data->{$agent_name}
+        and cmpStr( $previous_data->{$agent_name},
+        $composition_data->{$agent_name} )
+        == 0;    # agent setup identical [ not touching running agent ]
+
+    <composition.window_ids>->{$agent_name} //= undef;
+    <composition.transition.status.agents.start>->{$agent_name}
+        = $tile_group_name;
+}
+
+map {
+    my $tile_name = '';
+    my $name_copy = my $agent_name = $_;
+    $tile_name = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
+    if ( length($tile_name) ) {
+        <composition.tiles>->{$tile_name}->{'agent'} = $agent_name;
+        my %pos_match;
+        my $pos_hint_str     = '';
+        my $coords           = <composition.coordinates>->{$name_copy};
+        my $border_tolerance = 2;
+        if (    $coords->{'left'} <= $border_tolerance
+            and $coords->{'top'} <= $border_tolerance
+            and $coords->{'right'} >= <x11.screen.width> - $border_tolerance
+            and $coords->{'bottom'} >= <x11.screen.height> - $border_tolerance )
+        {
+            $pos_hint_str = 'fullscreen';
+        } else {
+            foreach my $border_name ( keys %{$coords} ) {
+                my $coord_val = $coords->{$border_name};
+                my $h_w       = sprintf( "%.0f", <x11.screen.width> / 2 );
+                my $h_h       = sprintf( "%.0f", <x11.screen.height> / 2 );
+                $pos_match{$border_name} = 1
+                    if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
+                    or ( $border_name eq 'left'   and $coord_val < $h_w * 0.8 )
+                    or ( $border_name eq 'right'  and $coord_val > $h_w * 1.2 )
+                    or ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
+            }
+            if ( scalar keys(%pos_match) == 4 ) {
+                %pos_match = ( 'center' => 1 );
+            } elsif ( defined $pos_match{'top'}
+                and defined $pos_match{'bottom'} ) {
+                delete $pos_match{'top'};
+                delete $pos_match{'bottom'};
+            } elsif ( defined $pos_match{'left'}
+                and defined $pos_match{'right'} ) {
+                delete $pos_match{'left'};
+                delete $pos_match{'right'};
+            }
+            $pos_hint_str = join( '-', sort( keys(%pos_match) ) );
+        }
+        <composition.tiles>->{$tile_name}->{'pos_hint'} = $pos_hint_str;
+    }
+} keys %{ <composition.setup.tile-groups>->{$tile_group_name} };
+<list.tiles> = {
+    'var'      => 'data',
+    'key'      => 'composition.tiles',
+    'mask'     => '<key>:tile_name agent pos_hint',
+    'sort_key' => 'pos_hint',
+    'descr'    => sprintf( 'configured tiles in group "%s"', $tile_group_name )
+};
+
+if ( defined <composition.tiles_visible_file> ) {
+    ( my $parent_dir = <composition.tiles_visible_file> ) =~ s|/([^/]*)$||;
+    my $file_name = $1;
+    if ( !length($parent_dir)
+        or -d $parent_dir ) {
+        <[base.log]>->(
+            1,
+            sprintf( ":. writing to '%s'.,", <composition.tiles_visible_file> )
+        );
+        <[file.put]>->(
+            <composition.tiles_visible_file>,
+            join( ', ', sort keys %{<composition.tiles>} ) . "\n"
+        );
+    } else {
+        <[base.log]>->( 0, "<!> '$parent_dir' not found <!>" );
+        <[base.log]>->( 1, " : not creating '$file_name'" );
+    }
+}
+
+# [if enabled] monitor tile activity [by average color] restart agent on timeout
+#
+if (<composition.watch_tiles.poll_tile_color>) {
+
+    my $start_interval = <composition.watch_tiles.poll_int_start> //= 42; # def.
+
+    <[base.log]>->( 1, "<!> tile activity monitoring is enabled <!>" );
+
+    if (<composition.watch_tiles.comparison_mode>) {
+        <[base.log]>->(
+            1, " : fetching xserver background color., [ bgcol-mode ]"
+        );
+        <[base.proto.nailara.command.send.local]>->(
+            {   'command' => 'core.xserver.bg_color',
+                'reply' => { 'handler' => 'composition.handler.bg_color_reply' }
+            }
+        );
+    }
+
+    <[base.log]>->( 1, " : setting up \\ updating tile activity watchers.," );
+    my $timers = <composition.timer.poll_tile_color> //= {};
+    map { $timers->{$_}->cancel if $timers->{$_}->is_active } keys %{$timers};
+
+    foreach my $tile_name ( keys %{<composition.tiles>} ) {
+
+        my $interval_secs = sprintf( "%.2f",
+            $start_interval + rand( $start_interval * 0.1 ) );
+
+        $timers->{$tile_name} = <[event.add_timer]>->(
+            {   'after'    => $start_interval,
+                'interval' => $interval_secs,
+                'repeat'   => 1,
+                'handler'  => 'composition.callback.poll_tile_color',
+                'data'     => {
+                    'tile_name'        => $tile_name,
+                    'current_interval' => $interval_secs
+                }
+            }
+        );
+    }
+}
+#
+###
+
+<composition.startup.initializing> = 0;
+
+<[base.proto.nailara.command.send.local]>
+    ->( { 'command' => 'core.content.update' } );
+
+<[composition.handler.transition]>;
+
+# ______________________________________________________________________________
+#\\SXQCE5ANLLBVO4DJDBHUDUYBA2MZ6JNCPE65DC7ARVCFGBQXBDNYPMZ342PG7K4PQDG3DP2QZM75M
+# \\ JQJPHF2GHLW6O54OYYX5ZGEW7LUHF3YCIGEQKOFT2KI4QYBECZIC \\// C25519-BASE-32 //
+#  \\// RI6CE7XR3VYTDHKUR6C4APVIED5FQTG3UB745NI7NWP6URTCQBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,79 @@
+# >:]
+
+# name  = composition.cmd.remove_overlay
+# param = <tile-group[s]>
+# descr = remove previously added tile overlay
+
+my $overlay_str = $$call{'args'} // '';
+
+<composition.transition_queue> //= [];
+<composition.overlays.current> //= [];
+<composition.overlays.previous> = [ @{<composition.overlays.current>} ];
+
+return {
+    'mode' => 'nak',
+    'data' => 'no tile group overlay is active'
+    }
+    if !@{<composition.overlays.current>};
+map {
+    return {
+        'mode' => 'nak',
+        'data' => "tile group '$overlay_str' is not active"
+        }
+        if <composition.current_tile_group> !~ m|$_|;
+} split m| +|, $overlay_str;
+
+my %del_overlays = map { $_ => 1 } split m| +|, $overlay_str;
+my @del_overlays = sort keys %del_overlays;
+
+map {
+    return {
+        'mode' => 'nak',
+        'data' => 'expected tile group name'
+        }
+        if not defined $_ or !length($_);
+    return {
+        'mode' => 'nak',
+        'data' => "tile group \"$overlay_str\" not found"
+        }
+        if not exists <composition.setup.tile-groups>->{$_};
+    push( @{<composition.overlays.current>}, $_ );
+} @del_overlays;
+
+( my $current_one = <composition.current_tile_group> ) =~ s|\+.*$||;
+
+my $prev_count = scalar @{<composition.overlays.current>};
+
+my %active = map { $_ => 1 }
+    grep { length($_) and $_ ne $current_one }
+    @{<composition.overlays.current>};
+map { delete $active{$_} if exists $active{$_} } @del_overlays;
+@{<composition.overlays.current>} = sort keys %active;
+
+return {
+    'mode' => 'nak',
+    'data' => "no match for tile group '$overlay_str'"
+    }
+    if scalar @{<composition.overlays.current>} == $prev_count;
+
+my $merged_name = join( '+', $current_one, @{<composition.overlays.current>} );
+
+<[base.log]>->( 2, "creating merged [ overlay ] tile group '$merged_name'" );
+
+<composition.setup.tile-groups>->{$merged_name}
+    = <composition.setup.tile-groups>->{$current_one};
+
+map {
+    <composition.setup.tile-groups>->{$merged_name} = merge(
+        <composition.setup.tile-groups>->{$merged_name},
+        <composition.setup.tile-groups>->{$_}
+    );
+} @{<composition.overlays.current>};
+
+return <[composition.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
+
+# ______________________________________________________________________________
+#\\SFGNKEH3OINERJJVXSNDTRBC4BRO6KILPSLXGYJGLVQOKKIKDUHW6V2SUG47ZLQ5LKD366DYS2F7E
+# \\ MJFK5RAV5MU2WFB426TZYMBWTJYWVSA3HZTXUQV47WEUWR4JCDAV \\// C25519-BASE-32 //
+#  \\// W5TXOISYQ5SFGCLE72IQ6VMIPXFP7A6YR4IVEXRA5BERBK26OAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

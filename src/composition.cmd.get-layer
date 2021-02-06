@@ -1,0 +1,62 @@
+# >:]
+
+# name  = composition.cmd.get-layer
+# param = <tile|agent>
+# descr = return configured layer for tile or agent
+
+return { 'mode' => 'nak', 'data' => 'expected agent name' }
+    if not defined $$call{'args'}
+    or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
+
+my ( $source_agent, $agent_name ) = ( $1, $3 );
+$source_agent =~ s|^.+\.||g;
+$agent_name = $source_agent if not defined $agent_name;
+
+if ( $agent_name =~ /^\[([^\]]+)\]$/ ) {    # <- only subname given
+    my $subname = $1;
+    my %agent_names;
+    map { $agent_names{$_} = 1 if $_ =~ /\[$subname\]$/ }
+        keys %{<composition.layers>};
+    my $err_msg;
+    if ( !keys(%agent_names) ) {
+        $err_msg = "no agent matches subname '$subname'";
+    } elsif ( keys(%agent_names) > 1 ) {
+        $err_msg = 'multiple agents are matching, agent name required';
+    }
+    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+    ($agent_name) = keys(%agent_names);
+}
+
+if ( not exists <composition.layers>->{$agent_name} ) {
+    my $last_match;
+    my $match   = 0;
+    my $msg_str = "no set-upured layer found for agent '$agent_name'";
+    if ( $agent_name !~ /[\[\]]+/ ) {
+        map {
+            if ( $_ =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
+                $last_match = $_;
+                $match++;
+            }
+        } keys %{<composition.layers>};
+    }
+    $msg_str
+        = "multiple '$agent_name' instances defined, agent subname required!"
+        if $match > 1;
+    return {
+        'mode' => 'nak',
+        'data' => $msg_str
+        }
+        if $match != 1;
+    $agent_name = $last_match;
+}
+
+return {
+    'mode' => 'ack',
+    'data' => <composition.layers>->{$agent_name}
+    }
+
+# ______________________________________________________________________________
+#\\OUKQ7H5FOT4AILYWZNWQX2AOXRBWXL6UMNA3WNDFY6NVXVCEHA6T56OIOZIRDDRJZJPH5WXCFNKPC
+# \\ NTSM57KVANPAS2EWCZKG53HWVO5FLNZSR7KB3ZIK75QCZDJ5W67O \\// C25519-BASE-32 //
+#  \\// TWIJ2MZQLOPH6URNG3VKU5XNJH3DCRGZTTSSOIKR3IIM3A6GMAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

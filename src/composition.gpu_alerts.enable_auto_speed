@@ -1,0 +1,34 @@
+# >:]
+
+# name  = composition.gpu_alerts.enable_auto_speed
+# descr = send 'slow_down' command to browser agents ([GPU/CPU] load reduction)
+
+my $agents_present //= {};
+foreach my $agent_name ( keys %{<composition.subconfig>} ) {
+    next if $agent_name !~ m{^(browser|universal|ticker-gtk)};
+    if ( not defined <composition.subconfig>->{$agent_name}->{'auto_speed'}
+        or !<composition.subconfig>->{$agent_name}->{'auto_speed'} ) {
+
+        next
+            if $agent_name !~ m|ticker|
+            and <composition.counter.gpu_alerts> < 2;
+
+        <[base.log]>->( 1, "activating auto_speed mode for '$agent_name'" );
+        <composition.subconfig>->{$agent_name}->{'auto_speed'} = 1;
+
+        ( my $route = $agent_name ) =~ s|\[.+$||;
+
+        $agents_present->{$route} //= 1;
+    }
+}
+
+map {
+    <[base.proto.nailara.command.send.local]>
+        ->( { 'command' => "core.$_.slow_down" } ) # making sure they got it ..,
+} sort keys %{$agents_present};
+
+# ______________________________________________________________________________
+#\\XWSDYIT3NGZICSZUTFWW7YFMD4JJ2BHYLVQ4OVROWDABCPSQ4NWQA6F2USC4LO24YALTYYENA6C7M
+# \\ ZVPQMGQLQG5LGHJBGDTWILF4BFQ5EY4PKQK5BA56DHIDK2UUAKUG \\// C25519-BASE-32 //
+#  \\// DKRCJIQ2IAI2QZMQH7LPC6YHA4ANIXO2IMIJHYWMQHZKU6JPYDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
