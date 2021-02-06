@@ -1,0 +1,44 @@
+# >:]
+
+# name = base.x11.get-layer
+
+return
+    if defined <x11.composition.layer> and <x11.composition.layer> =~ m|^\d+$|;
+undef <x11.composition.layer> if defined <x11.composition.layer>;
+
+my ($local_sid) = keys( %{<user.core.session>} );
+
+my $agent_name
+    = ( defined <system.agent.mode>
+        and <system.agent.mode> eq 'universal-child' )
+    ? 'universal'
+    : <system.agent.name>;
+my $subname  = <system.agent.subname>;
+my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
+
+<[base.log]>->( 1, "requesting $name_str layer position" );
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $core_fh, "($cmd_id)composition.get-layer $name_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$core_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+<x11.composition.layer> = $1 if $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$};
+<[base.log]>->(
+    2, "composition layer for '$name_str' = " . <x11.composition.layer>
+) if defined <x11.composition.layer>;
+
+# ______________________________________________________________________________
+#\\2QD4NMUJST53DBBNKFYW27PYJBEGZUYM5SGPGZXVAPM6CI65G2QOY3AEDUMKL6LVQQILJ2NSGQIPG
+# \\ M5UD2IZUNLF4OETEHILWKADKZUHQLRAW5UBS7IENL5ZEJQMZYG7T \\// C25519-BASE-32 //
+#  \\// HFXSSNPAFEGVD772OXDPVSTCYCJGB4PTM62V2IH3W2HO3RFIKCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

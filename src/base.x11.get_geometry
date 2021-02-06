@@ -20,7 +20,9 @@ my $sn_log_str = length($sn_str) ? " for agent$sn_str" : '';
 <[base.log]>->( 1, "requesting geometry$sn_log_str" );
 
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}layout.get_geometry$sn_str\n" );
+<[net.out]>->(
+    $core_fh, "($cmd_id)${cmd_path}composition.get_geometry$sn_str\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
@@ -41,12 +43,12 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
     return <x11.geometry>;
 }
 
-# else [no layout agent present or no geometry for current agent configured]
-my $err_msg = "unexpected reply from layout agent ['$reply_string']";
+# else [ no composition agent present or no geometry for agent configured ]
+my $err_msg = "unexpected reply from composition agent ['$reply_string']";
 
 $err_msg = ": << geometry undefined$sn_log_str >>"
-    if $reply_string =~ /NAK no geometry/
-    or $reply_string =~ /NAK command unknown/;
+    if $reply_string =~ m|NAK no geometry|
+    or $reply_string =~ m|NAK command unknown|;
 
 <[base.log]>->( 1, $err_msg );
 
@@ -78,7 +80,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\GAOTIKGBHYYV7EP3IVSXLHJSHY6JCTDRH54BHGATUYGND6VMB63J26PCUHIBAM3DU4A75ZO7DSG24
-# \\ FHDPF4ZEACEQUOFRJHUUQDAE4TZGPTWG4AA4HM7LCTMLSMLEHZII \\// C25519-BASE-32 //
-#  \\// PENMS53LIMDMAD7MLJI4DYZTD4MLPBKVFGON4GZUIKXFMJUCMDA \\ CODE SIGNATURE \\
+#\\VPFCZLHZYWEXOG4L77LZOPLRKHBU4BUF37PA7GLKEK3CJJWJ5DQTHI3P4TGQTN66QWA6JEVPUV3TQ
+# \\ C4NJ7V75UZNG4DS3VXMX3PMHQTOMCNUJNYVJWXRRMPA2GBOCTQSR \\// C25519-BASE-32 //
+#  \\// KDLJ7AYJK757JYNOOCOFCXTWQIT2WJVNGAYXI6M7AXZYPRMAIBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

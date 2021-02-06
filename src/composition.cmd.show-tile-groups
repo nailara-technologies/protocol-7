@@ -1,0 +1,21 @@
+# >:]
+
+# name  = composition.cmd.show-tile-groups
+# descr = list available and active tile groups
+
+my $reply_str   = '';
+my @tile_groups = keys %{<composition.setup.tile-groups>};
+
+map {
+    my $marker_l = $_ eq <composition.current_tile_group> ? '-->'  : '   ';
+    my $marker_r = $marker_l =~ m|\S|                     ? ' <--' : '';
+    $reply_str .= sprintf( " %s %s%s\n", $marker_l, $_, $marker_r )
+} sort { length($a) <=> length($b) } sort { $a cmp $b } @tile_groups;
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+# ______________________________________________________________________________
+#\\XHRLJXYFKYC4GPSF7ZUWLVOFCFWLVTPC3SWGLLNZIZCLF5JN7Z32MO473ENWJRTWLKD4EEJRFPAHG
+# \\ URKXBCWCXW6V2X337KUE4WBHHUIYITSGN26SSOFCYJGOFMSDN6LQ \\// C25519-BASE-32 //
+#  \\// 5CBBVHDA4Z6HZTSTKEGLNU7TSFSQAHWVAT6LYPZCYOQK6O5W4AQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
