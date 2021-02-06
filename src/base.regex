@@ -4,20 +4,20 @@
 <[base.log]>->( 2, 'compiling base regex cache.,' );
 
 return {
-    'cmd_id'     => qr|\d{2,15}|o,                   # a valid command(route) id
-    'sid'        => qr|\d{3,17}|o,                   # a valid session id
+    'cmd_id'     => qr|\d{2,15}|o,                   # valid command [-route] id
+    'sid'        => qr|\d{3,17}|o,                   # numerical session id
     'base_32'    => qr|^[A-Z2-7]+$|o,                # RFC 4648 BASE32 alphabet
     'authmethod' => qr|[0-9A-Za-z\-_]{1,18}|o,       # auth method name string
-    'usr'        => qr|[a-z][0-9a-zA-Z\-_]{1,16}|o,  # a valid username string
-    'subname'    => qr|[0-9a-zA-Z\-\+\.:_]{1,17}|o,  # [<subname>] string ...
-    'usr_sub' => qr|[a-z][0-9a-zA-Z\-_]{1,16}\[[0-9a-zA-Z\-\._]{1,17}\]|o, # u+s
+    'usr'        => qr|[0-9a-zA-Z\-_]{1,17}|o,       # user \ agent name string
+    'subname'    => qr|[0-9a-zA-Z\-\+\.:_]{1,17}|o,  # '[<subname>]'-string
+    'usr_sub' => qr|[0-9a-zA-Z\-_]{1,17}\[[0-9a-zA-Z\-\._]{1,17}\]|o, # usr+snme
     'cmd'   => qr|[a-z][0-9a-zA-Z\-_]{1,22}|o,   # nailara command string syntax
-    'cmdp'  => qr|[a-z][0-9a-zA-Z\-_\.]{1,}|o,   # cmd path (cmd including '.'s)
-    'cmdrp' => qr|[0-9a-zA-Z\-_\[\]\.]{1,}|o,    # cmd path including (UC) reply
+    'cmdp'  => qr|[a-z][0-9a-zA-Z\-_\.]{1,}|o,   # cmd path [cmd including '.'s]
+    'cmdrp' => qr|[0-9a-zA-Z\-_\[\]\.]{1,}|o,    # cmd path including [UC] reply
 };
 
 # ______________________________________________________________________________
-#\\U4OX6YEE4M7LMTG665E7EWP2A2RJUGIIPAWQQR5KMKS6T6LVBIIYI35FZ4YY6ZO242MVOI2PW5H5C
-# \\ EXSSDKT4SRAVVFJQL55DQEPQ56GNYQSAMSCTSFZKBYADPPPRDFOC \\// C25519-BASE-32 //
-#  \\// N56XJGLZJTUQ7GCQOGH65UFZSCKK4BVJVHDII6RMU77WPHLTABQ \\ CODE SIGNATURE \\
+#\\JGJPE6MN4C2YJSBJCNTUAHDBC5FIKP3SSLJ2MPG6T7PCF7QOQPCBTIW4PLHCXHWAC3AAN6KDMMIBO
+# \\ TBTHFTV532JTMDA7HJRCIZ6YND6YU53Q2ELWLOBB4HJOL7QKDTAJ \\// C25519-BASE-32 //
+#  \\// UHCDQ5XO2W6ROW5THUGLH33KONSQ7K2IZNUYRZL6ORMKY6OM4CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
