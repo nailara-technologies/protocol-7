@@ -32,7 +32,7 @@ browser.cfg.javascript_enabled = 1  # <1|0>
 browser.cfg.plugins_enabled    = 0  # <0|1>
 browser.cfg.no_memory_cache    = 0  # <0|1>
 
-# browser.cfg.change_cursor = blank_cursor
+# browser.cfg.change_cursor = blank-cursor
 # browser.cfg.change_cursor = circle # custom mouse cursor for current X-server
 #                                    # [ comment out to disable custom cursor ]
 
@@ -78,10 +78,10 @@ modules.load = auth net io.ip io.unix digest.sha browser
 
 [net.connect_to_core:'ip.tcp']
 
-[base.X-11..get_display]
-browser.subcfg = [base.X-11..get_subconfig]
-browser.geometry = [base.X-11..get_geometry]
-browser.bg_color = [base.X-11..get_bg_color]  ##  <-- override for custom bg color
+[base.X-11.get_display]
+browser.subcfg = [base.X-11.get_subconfig]
+browser.geometry = [base.X-11.get_geometry]
+browser.bg_color = [base.X-11.get_bg_color]  ##  <-- override for custom bg color
 
 [browser.calc_zoom_level]
 [browser.process_subcfg]

@@ -66,11 +66,11 @@ SDL::Video::fill_rect( $screen,
 SDL::Video::flip($screen);
 
 my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
-if ( not defined <[base.X-11..wait_for_window]>->($title_pattern) ) {
+if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
     <[base.log]>->( 0, "agent startup error [ sdl window did not open ]" );
     exit(2);
 } else {
-    <[base.X-11..assign_window]>;
+    <[base.X-11.assign_window]>;
 }
 
 <[base.log]>->( 1, "entering webcam loop ..." );
@@ -211,7 +211,7 @@ sub loop_wait {    # processing network event while waiting
 }
 
 # ______________________________________________________________________________
-#\\MFKV7WADBBDNC2W5GIM3I5A7T44MFJO6FFE7QRCVW6D23UETQ4BPUS4YOSPXWT6WPONLJWCSOHJOW
-# \\ AD7Q7NO6324JBLBKANKUHWP664CSWZANUX3DN6CCW6Y4KZM5HNOD \\// C25519-BASE-32 //
-#  \\// NGBUBJ6ZUK23MAUFXKCO34DG5R3YI2P6IQ54E5C6I24IOY6Z4BA \\ CODE SIGNATURE \\
+#\\G2ZIBA67ZHAYIKBGMWCVJAAV75TVUSFLKXCCCOVKZAWS7NQLJ6F2RK4JVT766AWLXOUVWNYXHJXNE
+# \\ OET7UPMKWUR3ITTROWABUVFJQHZDEGIFDEB2YXVVJYNT75UGOCTT \\// C25519-BASE-32 //
+#  \\// DMJKLV3ODIRZ5XHU2GGMBONTNBYULJZKMROEZPFAJ7DVT4CUYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
