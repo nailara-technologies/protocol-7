@@ -1,0 +1,38 @@
+# >:]
+
+# name  = X-11.cmd.set_geometry
+# param = <win_id> <geom.>
+# descr = apply a given geometry to window
+
+my ( $id, $geometry ) = split( / +/, $$call{'args'}, 2 );
+
+return { 'mode' => 'nak', 'data' => 'required x11 window id and <geometry>' }
+    if not defined $id or not defined $geometry;
+return { 'mode' => 'nak', 'data' => 'invalid <id> syntax' }
+    if $id !~ /^\d+$/;
+return { 'mode' => 'nak', 'data' => 'invalid <geometry> syntax' }
+    if $geometry !~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+
+$window->move($geometry);
+<[X-11.update-xtops]>;
+
+return { 'mode' => 'ack', 'data' => 'window updated' };
+
+# ______________________________________________________________________________
+#\\N5SW2UZ5ADDVPCISSLMLMQWQFSPZYLYKLH25MNWDLXKXRMCBHGMMRBDSJIRBM4B3ERHFZLP73V3TC
+# \\ YH2AC3PSDMXX2BLBCWYVMJ5YRAENLQZWAVU342KTHZX4HGW7AQKD \\// C25519-BASE-32 //
+#  \\// PDP3ZGXPUUSJRCD35S2Q5GLEAOIZ7GLS6Q7UU4HMRAOXUHWUQAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

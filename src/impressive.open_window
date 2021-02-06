@@ -124,7 +124,7 @@ if ( opendir( my $tdir_fh, $temp_dir ) ) {
 
 ## wait for it ##
 
-if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
+if ( not defined <[base.X-11..wait_for_window]> or !<impressive.pid> ) {
     <[base.log]>->( 0, "[!] unable to start impressive [$!]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
@@ -135,7 +135,7 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     <impressive.exec_params> = join( ' ', @exec_params );
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.xserver.set_opacity",
+        {   'command'   => "core.X-11.set_opacity",
             'call_args' => { 'args' => <x11.id> . ' 0' }
         }
     );
@@ -164,11 +164,11 @@ if ( not defined <[base.x11.wait_for_window]> or !<impressive.pid> ) {
     );
 
     <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.xserver.raise_window",
+        {   'command'   => "core.X-11.raise_window",
             'call_args' => { 'args' => <x11.id> }
         }
     );
-    <[base.x11.assign_window]>->(<x11.id>);
+    <[base.X-11..assign_window]>->(<x11.id>);
 }
 
 <impressive.timer.stop_start-anim>->cancel
@@ -193,7 +193,7 @@ if (    <impressive.cfg.use_start-anim>
 }
 
 # ______________________________________________________________________________
-#\\RZJE55VVHVTIHVLSMOSZKTG3IYJF4Z5QGQGVJESJ3CQESIJLYUWI3BPOVNKQMTSKLDUQBUTGNLICA
-# \\ S7TS44KL7F7AXTLWZGCSWWSOALYB3RQ5UYYPFXSZWUHYOXEG5SDM \\// C25519-BASE-32 //
-#  \\// H3OUB2BCGPBP35HB4545TT3G3KR63V7LFG4JUK4CQXJ2N4LO6BA \\ CODE SIGNATURE \\
+#\\EHL5JRFGCI25SX3BRUMRFJEAVIF554FMYYQSHOU3TD52LDTR34KAQD7CHL4M2L35PW5XY3E32XWPQ
+# \\ HCWQW35JPQQQK6BXUHRIVOWGNHCR435SCJZVK473ZLIAEBGJB27P \\// C25519-BASE-32 //
+#  \\// 5LEHHAOLBREL7VML5SDDBA74LTC2S3BPLFNCVW3K4ODCXQ3DCDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

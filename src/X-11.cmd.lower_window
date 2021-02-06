@@ -1,0 +1,27 @@
+# >:]
+
+# name  = X-11.cmd.lower_window
+# param = <w_id>
+# descr = lower specified window to bottom
+
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+<X-11.x11>->ConfigureWindow( $window_id, stack_mode => 'Below' );
+
+<[X-11.get_window_ids]>;    ## <-- update to visualize action ##
+
+return { 'mode' => 'ack', 'data' => 'lowered to bottom' };
+
+# ______________________________________________________________________________
+#\\UUSWWAJVE3WEQDDVZZNUHSD3XA6ZI2YSC3FM6OGY77ESE6P3STIPKBF57SM7XIOVRSFSTMDZJ6HSO
+# \\ BB4DYGEOLARLIQ5QAIYZIJGYJ6INC4BL25HO24LTQJX255GOUWM7 \\// C25519-BASE-32 //
+#  \\// KYPSGITUTZV2YTJAXTBJLP2MQMOKCAFBYB744RLSBK2TRLLB2BA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

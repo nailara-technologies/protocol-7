@@ -1,0 +1,70 @@
+# >:]
+
+# name = X-11.handler.wait_visible
+
+my $watcher       = shift->w;
+my $id            = $watcher->data;
+my $xtops         = <X-11.x11_tops>;
+my $wait_req      = <X-11.waiting>->{$id};
+my $reply_id      = $wait_req->{'reply_id'};
+my $title_pattern = $wait_req->{'pattern'};
+
+if ( not defined $title_pattern ) {
+    warn "[$id] title pattern not defined";
+    <[X-11.cancel_wait_visible_timers]>->($wait_req);
+    return;
+}
+
+$watcher->interval( sprintf( "%.4f", $watcher->interval() * 1.07 ) );
+
+my $match_id;
+foreach my $window_id (<[X-11.get_window_ids]>) {
+    my $window_title = <[X-11.get_window_title]>->($window_id);
+    if ( not defined $window_title ) {
+        <[X-11.cancel_wait_visible_timers]>->($wait_req);
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'nak',
+                'data' => 'window disappeared'
+            }
+        );
+        delete <X-11.waiting>->{$id};
+        return 0;
+    }
+    $match_id = $window_id and last if $window_title =~ $title_pattern;
+}
+
+#  if ($@) {
+#      <[X-11.cancel_wait_visible_timers]>->($wait_req);
+#      <[base.callback.cmd_reply]>->(
+#          $reply_id,
+#          {   'mode' => 'nak',
+#              'data' => 'lost connection to x-server'
+#          }
+#      );
+#      delete <X-11.waiting>->{$id};
+#      ## <[X-11.process-x11-error]>->($@);
+#      return 0;
+#  }
+
+if ( length( $match_id // '' ) ) {
+
+    <[X-11.cancel_wait_visible_timers]>->($wait_req);
+
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'ack',
+            'data' => $match_id
+        }
+    );
+    delete <X-11.waiting>->{$id};
+    return 0;
+} else {
+    return 1;
+}
+
+# ______________________________________________________________________________
+#\\NYER5FJ4Z3UENELNLXMF3HKWL73L5GAA6DCSDJWSA2SGMWM5MPKIRSC33ZI7CKYROX537IJV3KILU
+# \\ PXMO3XHNQCE6IG34NJW53RUHCUJXNIOMR436F5IA2QOK7FBA7MZW \\// C25519-BASE-32 //
+#  \\// WNV22KM75YQYL3MJATL2RN5XSEMKNONKCZRFFMIDROBEGGEUACI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

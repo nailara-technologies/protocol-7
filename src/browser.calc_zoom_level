@@ -19,7 +19,7 @@ if ( not defined <browser.auto_zoom> or !<browser.auto_zoom> ) {
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)xserver.get_screen_size\n" );
+<[net.out]>->( $core_fh, "($cmd_id)X-11.get_screen_size\n" );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -53,12 +53,12 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
     );
     return <browser.zoom_level>;
 } else {
-    <[base.log]>->( 0, "not expected xserver reply ['$reply_string']" );
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\T4DBZGTFKDBIMPOJOHB4SJCYZ7YFQITX6VYWPJBKMRCD3P2LMFFAEW2MYZ3QQGR7TOPDAXANQ7Z3Y
-# \\ F4ZWGYV4BFR522WFAXF4FJLP74VNDM6N7ENVKTFKRPAIEHCUWO44 \\// C25519-BASE-32 //
-#  \\// VXASXCRX25EVZBNCVGDSLLHJTKN3F5VFXZPQLX7SRZZ5BY7OICI \\ CODE SIGNATURE \\
+#\\AEVZBT2SSNXJW4I4OEMEOEDCIZBQUEWMVJZTBOGXYCKMJDUSY5NNZQGHYUHBTAU5APLXLV5ZNDP44
+# \\ WSY3MMFGQZONBTWFGXP45LQYGNULCYZGLS743NHRU2F7K7TNXJF5 \\// C25519-BASE-32 //
+#  \\// OV4JJZ6S74YHDBNKMPJ7QY56WKXRBG6X266UQBNXMK6OCRJMEBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

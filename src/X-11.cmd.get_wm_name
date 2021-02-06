@@ -1,0 +1,41 @@
+# >:]
+
+# name  = X-11.cmd.get_wm_name
+# descr = return wm name if one is running
+
+my $X       = <X-11.x11>;
+my $wm_name = '';
+
+{
+    local $SIG{'__WARN__'} = sub { };
+    eval {
+        ( my $check_id ) = $X->GetProperty(
+            $X->root,
+            $X->atom('_NET_SUPPORTING_WM_CHECK'),
+            X11::AtomConstants::WINDOW(),
+            0, -1, 0
+        );
+        ($wm_name) = $X->GetProperty(
+            unpack( 'l', $check_id ),
+            $X->InternAtom('_NET_WM_NAME'),
+            $X->atom('UTF8_STRING'),
+            0, -1, 0
+        ) if length($check_id);
+    };
+}
+
+return length($wm_name)
+    ? {
+    'mode' => 'ack',
+    'data' => $wm_name
+    }
+    : {
+    'mode' => 'nak',
+    'data' => 'not available'
+    };
+
+# ______________________________________________________________________________
+#\\OZ7TFIFIXBZE3GP6NQJEHHTH44EAYSNTUSGP6O3SZVC5SGGCT2DYXUEUHKGSHE3RV3MKWG6EBQW6U
+# \\ WVXH3VRGEZDPPLMUY7QPOYOHEFLJBQPCK3LDKQVXBTCY74R2VMUI \\// C25519-BASE-32 //
+#  \\// C3IYT6YMDI445VJQBWQ3VGI2WMBLZF5EXQNHDIPKOLCXYXS4GBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

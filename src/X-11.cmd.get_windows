@@ -1,0 +1,30 @@
+# >:]
+
+# name  = X-11.cmd.get_windows
+# param = [title_str]
+# descr = return list of active windows
+
+my $title_pattern = $$call{'args'};
+
+<X-11.x11_tops>->update;
+
+my $reply_str;
+my @window_list;
+for my $win ( @{ <X-11.x11_tops>->sorted } ) {
+    my $window_title = <[base.utf8.sanitize]>->( $win->title // '' );
+    $reply_str .= join( ' ', $win->id, $window_title ) . "\n"
+        if not defined $title_pattern
+        or index( $win->instance, $title_pattern ) != -1
+        or index( $window_title,  $title_pattern ) != -1;
+}
+$reply_str //= '';
+return {
+    'mode' => 'data',
+    'data' => $reply_str
+};
+
+# ______________________________________________________________________________
+#\\PPDB7UTHLICQUCN3AWVQ3MNHNYOTXPUKM4KCYBAN3NGYOWN4CCETNI4BMU4DPQLQRGAFAOU3IHG3K
+# \\ B3L5KCP6LQWFV4ES7LQIQGBIA3KFQG75LXXPSVIGZVT3HCQOHHRQ \\// C25519-BASE-32 //
+#  \\// NPRVBA34EYRFVQFYKRP4KGFOPVNEIK5FKG4ROVVCUJNC7SHH2BY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

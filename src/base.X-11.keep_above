@@ -1,0 +1,43 @@
+# >:]
+
+# name = base.X-11..keep_above
+
+my $id = shift;
+
+my $user     = shift // 'core';
+my $cmd_path = shift // '';
+$cmd_path .= '.' if length($cmd_path);
+die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
+
+<[base.log]>->( 1, "setting window '$id' to state 'above'.." );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $core_fh = $data{'session'}{$local_sid}{'handle'};
+
+<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}X-11.keep_above $id\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$core_fh>;
+    die "core handle had an exception!" if not defined $reply_string;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
+    <[base.log]>->( 0, "keep_above command failed with '$1'.." );
+    return 0;
+} else {
+    return 1;
+}
+
+# ______________________________________________________________________________
+#\\RMVWV4KEWYMDC56A56V4GGAOSSFQDVGCP662GJKY6CJT45GTCJZ3GCQYYOQCYH2ZRNV3VUFQHJGYC
+# \\ GJZH52SYQXKTUU2W2WZPRPJGLQMYDIKPV3F3CGHWOVB4R5NEVK2L \\// C25519-BASE-32 //
+#  \\// DXGAN743KUWJEYNAYMI3KSTRTFY44XLXGBXLW5XIDWDDFJAVGAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,29 @@
+# >:]
+
+# name = system.handler.X-11_driver_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <[base.callback.cmd_reply]>->(
+        <system.gfx_reload.reply_id>,
+        {   'mode' => 'nak',
+            'data' => 'no X-11 agent running, aborted.'
+        }
+    );
+    delete <system.gfx_reload>;
+} else {
+    <system.gfx_reload.module_name> = $reply->{'call_args'}->{'args'};
+
+    <[base.proto.nailara.command.send.local]>->(
+        {   'command' => 'core.X-11.get_xorg_pid',
+            'reply'   => { 'handler' => 'system.handler.X-11_pid_reply' }
+        }
+    );
+}
+
+# ______________________________________________________________________________
+#\\UTSSGK4GDKPVQYPTIERKAQCRNUTLSGUA2IZHP4HJUQMUBSYK536XGNUECL5HX4U3RF6PYLXEJU3FS
+# \\ KT57GIZF52CC4VK3QGGPARFF23FWSGUV64U7P6RN7ZGHEGZ27GRP \\// C25519-BASE-32 //
+#  \\// LWKFGGORQHDR7KIQLKQTUEW6W4OYAKEYWXEWWF3NAXU5KKKNCBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

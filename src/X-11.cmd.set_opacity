@@ -1,0 +1,35 @@
+# >:]
+
+# name  = X-11.cmd.set_opacity
+# param = <w_id> <opacity>
+# descr = set window opacity in percent [0..100]
+
+my ( $window_id, $opacity ) = split( m| +|, $$call{'args'} );
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+return { 'mode' => 'nak', 'data' => 'window <opacity> required' }
+    if not defined $opacity;
+return { 'mode' => 'nak', 'data' => 'invalid window <opacity> [0..100]' }
+    if $opacity !~ m|^\d+$| or $opacity > 100;
+
+return { 'mode' => 'nak', 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+<[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
+
+my $result = <[X-11.set_window_opacity]>->( $window_id, $opacity / 100 );
+
+<[base.log]>->(
+    0, "error during set_opacity [ $opacity ] for window $window_id [ closed? ]"
+) if not defined $result;
+
+return { 'mode' => 'ack', 'data' => "set opacity to $opacity%" };
+
+# ______________________________________________________________________________
+#\\L3JLYJ6OF3I2RTC5ZW7I2V2IWRSNXQ3XDY3AULOYPHWEXFEOP7FCSCNLVWEYSGMFFUFQP4S2Z2HOC
+# \\ AZ47XSYWARKAPVVQOOM5YXGG42AYSKJBDFXXIXRXW7B56YAATHWW \\// C25519-BASE-32 //
+#  \\// QND3MUA6QJ6GFRDGWF55SF5EVFOEV5DR6DEF2HYI2SG7YL4NUBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

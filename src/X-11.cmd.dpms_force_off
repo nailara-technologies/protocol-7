@@ -1,0 +1,24 @@
+# >:]
+
+# name  = X-11.cmd.dpms_force_off
+# descr = power off the screen using DPMS
+
+return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+    if !<X-11.has_dpms>;
+
+<X-11.x11>->DPMSEnable();
+
+# <X-11.x11>->DPMSSetTimeouts( 600, 600, 600 );
+<X-11.x11>->DPMSInfo();
+<X-11.x11>->DPMSForceLevel(3);
+<X-11.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "display manually forced OFF, DPMS is enabled" );
+
+return { 'mode' => 'ack', 'data' => 'display forced OFF, DPMS is enabled' };
+
+# ______________________________________________________________________________
+#\\BVUEFKSQFQEC2M6IXVWHRNBPLMYFQYGIQGWQVMIZUFX4IXRAS6KIA5OUAL7QAQDF3DYPCVA3T5BBQ
+# \\ DGAWRLAQ347YYIRJB56YOJFLEJNFDS4BAXDTI64O57HHK5TJFLI5 \\// C25519-BASE-32 //
+#  \\// W75ASWCLNERKQJYSEY2OWI4LZDXH3UFXSHDWKLUV4RA4NGGOSCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

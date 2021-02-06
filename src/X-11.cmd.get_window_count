@@ -1,0 +1,25 @@
+# >:]
+
+# name  = X-11.cmd.get_window_count
+# param = [name_pattern]
+# descr = count currently open windows [no 'popups']
+
+my $title_pattern = $$call{'args'} // '';
+
+my @ids;
+if ( !length($title_pattern) ) {
+    @ids = <[X-11.get_window_ids]>;
+} else {
+    foreach my $window_id (<[X-11.get_window_ids]>) {
+        my $title_string = <[X-11.get_window_title]>->($window_id);
+        push( @ids, $window_id ) if $title_string =~ m|\Q$title_pattern\E|;
+    }
+}
+
+return { 'mode' => 'ack', 'data' => scalar @ids };
+
+# ______________________________________________________________________________
+#\\3SYOKMPBSQUZW6FOQZ3TWJX6NABP6FX4F4V4MPPF5G2ZL6UQUEWGTUUX5VHJ7HUTW63PMA3BZ6KP2
+# \\ BWCAUCC3EE42Q3CUIBQ2MZ572OR66523MT4UHDS7J7AOMH2THIOI \\// C25519-BASE-32 //
+#  \\// LJHFE5PRTZHWADMXDCLAS7TXLIDKAK6ON7XLG3DTLBRSTXQ7MAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,43 @@
+# >:]
+
+# name  = X-11.cmd.get_opacity
+# param = <w_id>
+# descr = return window opacity in percent [0..100]
+
+my $X         = <X-11.x11>;
+my $window_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <X-11.x11_tops>;
+<[X-11.update-xtops]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+
+my $result = <[X-11.get_window_opacity]>->($window_id);
+
+if ( not defined $result ) {
+    <[base.log]>->(
+        0, "error during get_opacity() command for window $window_id [closed?]"
+    );
+    return { 'mode' => 'nak', 'data' => 'window has been closed' };
+}
+
+return { 'mode' => 'ack', 'data' => sprintf( "%.3f%%", $result * 100 ) };
+
+# ______________________________________________________________________________
+#\\P3P2YXESEGYXJQ4YSM7N77UJOVI563O2UXWROOXAO4OACD5QACCIW5H4TVGNGXSCK4DABWN7DRNPM
+# \\ 7BDMAHBWQB5GUBM45CP5Q4PBHRC4ZNBMO3ERZ25JZREUNATYJUE4 \\// C25519-BASE-32 //
+#  \\// GWVW6HOL5WSKMV5OTFNTP3ISYSKG5VSBVHE72WUUUHJNRT3ZCDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

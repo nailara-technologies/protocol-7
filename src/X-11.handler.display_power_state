@@ -1,0 +1,50 @@
+# >:]
+
+# name = X-11.handler.display_power_state
+
+return
+    if defined <X-11.display_power_state>
+    and <X-11.display_power_state> == <X-11.display_connected.any>;
+
+<X-11.display_power_state> = <X-11.display_connected.any>;
+
+if ( !<X-11.display_power_state> ) {
+    <[base.log]>->( 0, "<(-)> display is now < OFF > / disconnected <(-)>" );
+} else {
+    <[base.log]>->( 0, "<(+)> display is now < ON > / connected <(+)>" );
+
+    ## verifying screen sizes ##
+    my $restarting = 0;
+    my @max_size   = <[X-11.max_screen_size]>;
+    if (   $max_size[0] != <X-11.x11>->width_in_pixels
+        or $max_size[1] != <X-11.x11>->height_in_pixels ) {
+        <[base.log]>->( 0, "<!> maximum screen size has changed <!>" );
+        if (<[X-11.cmd.set_screen_size]>->(
+                { 'args' => join( 'x', @max_size ) }
+            )->{'mode'} eq 'nak'
+        ) {
+            <[base.log]>->(
+                0, " <<< restarting X-11 .., [ unable to resize ] >>>"
+            );
+            $restarting = 1;
+            <[base.proto.nailara.command.send.local]>->(
+                {   'command'   => 'core.nroot.restart',
+                    'call_args' => { 'args' => <system.agent.name> }
+                }
+            );
+        } else { # LLL: stop GPU load monitoring if switched back from 4K to 2K.
+
+        }
+    }
+
+    if ( !$restarting ) {
+
+        # LLL: show optional splash screen ...
+    }
+}
+
+# ______________________________________________________________________________
+#\\XAQ5C4HHRZV5NXIXF5LHBND3FVL6NNNZP3GMENEL5NLYNHCXSHLLSMREGNAAG62AAL3AE2K2XBTPA
+# \\ 67E6SP7DJIE6O4YL3TJCUBDZGBDYH53LCRTSVDQU5LLCTIKWDDOC \\// C25519-BASE-32 //
+#  \\// NXOBNAWV4T2PSY3ADKDUTT2FZXJHPMJNKCI7YYEHFT7XJADBEAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

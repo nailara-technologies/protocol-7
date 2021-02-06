@@ -1,0 +1,27 @@
+# >:]
+
+# name = X-11.get_video_driver
+
+my $driver_name = 'unknown';
+my $lspci_bin   = <X-11.bin_path.lspci>;
+
+if ( !-x $lspci_bin ) {
+    <[base.log]>->(
+        0, "'lspci' binary not found., [ can't determine X11 driver name ]"
+    );
+} else {
+
+    my $lscpi_output = qx|$lspci_bin -k|;
+
+    $driver_name = $1
+        if $lscpi_output
+        =~ m|VGA compatible controller:.+?Kernel driver in use: ([^\n]+)|s;
+}
+
+return $driver_name;
+
+# ______________________________________________________________________________
+#\\CEOB5HWEV4U4S7QHVTWJIHBJXVBYAX2YYU2EIU3I7HSZ4DQMPDZ23JCKNX7WTSXFB5WTP2Q4PJCAY
+# \\ GHVK53HGIHPWQHVJDZMJRGIPNJPQD3O3R6Q7EDVEKB3URCPQIH53 \\// C25519-BASE-32 //
+#  \\// TBMPWJVYFLDA2IQLACU6H5UOM4DHSFHBQTSJQRPKHX2FXG3OMBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

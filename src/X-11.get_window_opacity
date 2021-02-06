@@ -1,0 +1,32 @@
+# >:]
+
+# name = X-11.get_window_opacity
+
+my $window_id = shift;
+die "numerical window id expected"
+    if not defined $window_id or $window_id !~ /^\d+$/;
+
+my $X = <X-11.x11>;
+
+<X-11.atom.opacity> //= $X->InternAtom( '_NET_WM_WINDOW_OPACITY', 0 );
+
+my $opacity = 1;
+{
+    local $SIG{'__DIE__'} = sub { $opacity = undef };
+    eval {
+        ( my $result )
+            = $X->GetProperty( $window_id, <X-11.atom.opacity>,
+            X11::AtomConstants::CARDINAL(),
+            0, 1, 0 );
+        $opacity = sprintf( "%.5f", unpack( 'I*', $result ) / 0xffffffff )
+            if length($result);
+    };
+}
+
+return $opacity;    # undef == window not found
+
+# ______________________________________________________________________________
+#\\RH4ZWUQGMD5TZIEYAHMHHQTVE245KZ556DV6YRA5O7YH22VK2UG65J5KQ2YBISB355ECKTEOIC42I
+# \\ 3RSEOYYM4WDA2TLLBKIBNBHRBXOECKAT3VEYMKFMVDR2PCT5AQBM \\// C25519-BASE-32 //
+#  \\// GWUNUMNHEJ3XSMXEYDKJ4CEFR3X6RKDHTZMBE2WSD4YEWVT44AY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

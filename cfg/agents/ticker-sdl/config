@@ -14,11 +14,11 @@ access.cmd.usr.core = commands heart reload verify-instance read_file pause \
 
 access.cmd.usr.parent = commands reload read_file dump_buffer
 
-access.cmd.usr.child  = core.xserver.wait_visible core.xserver.raise_window \
-                        core.xserver.keep_above core.whoami core.dump_buffer \
+access.cmd.usr.child  = core.X-11.wait_visible core.X-11.raise_window \
+                        core.X-11.keep_above core.whoami core.dump_buffer \
                         core.nroot.notify_online core.rss-ticker.resend_update \
                         core.composition.assign_window \
-                        core.xserver.set_opacity core.list
+                        core.X-11.set_opacity core.list
 
 #                known [expected] fonts:  DroidSans DroidSans-Bold DroidSansMono
 #                                         DroidSerif-Bold DroidSerif-Regular
@@ -46,8 +46,8 @@ modules.load = auth net io.ip ticker-sdl.base
 
 [net.connect_to_core:'ip.tcp']
 
-[base.x11.get_display]
-[base.x11.get_coordinates]
+[base.X-11..get_display]
+[base.X-11..get_coordinates]
 [ticker-sdl.base.fork_init]
 
 [event.loop]

@@ -1,0 +1,39 @@
+# >:]
+
+# name  = X-11.cmd.dpms_blanking
+# param = [timeout]
+# descr = enable screen blanking using DPMS
+
+return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+    if !<X-11.has_dpms>;
+
+my $param = shift;
+my $t_sec = 600;     # <- default [seconds]
+
+if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
+    $t_sec = $1;
+} elsif ( defined $param->{'args'} ) {
+    return {
+        'mode' => 'nak',
+        'data' => "parameter invalid (optional timeout in seconds)"
+    };
+}
+
+my ( $power_level, $dpms_enabled ) = <X-11.x11>->DPMSInfo();
+
+<X-11.x11>->DPMSEnable() if !$dpms_enabled;
+<X-11.x11>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+<X-11.x11>->DPMSInfo();
+
+<[base.log]>->( 1, "manually enabled DPMS blanking (${t_sec}s)" );
+
+return {
+    'mode' => 'ack',
+    'data' => "automatic display poweroff enabled [timeout=${t_sec}s]"
+};
+
+# ______________________________________________________________________________
+#\\LFSZHLQT5GDB3LOGOVLRB77IGXS2O6FOWDPC4DHX2G6IXI26ZFWEP3P3VF2644EHI6MKGXPWK4K7K
+# \\ ZRL7O3CMA6VMMZF7QLEHB6GA24HJGHYIWAK6LJ6FIU2WPMCYYRU3 \\// C25519-BASE-32 //
+#  \\// KK3OW446AY6RGENIRT7M7EBQCDVKTKQH57LTMYW5HRRWB7UL4DI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

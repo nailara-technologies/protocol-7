@@ -7,16 +7,16 @@ my ($root_sid) = keys %{ $data{'session'} };
 die "no valid session defined yet [ cannot determine root_sid ]"
     if not defined $root_sid;
 
-<[base.log]>->( 1, "requesting x11.display from xserver agent.," );
+<[base.log]>->( 1, "requesting x11.display from X-11 agent.," );
 
 <[base.proto.nailara.command.send.local]>->(
-    {   'command' => "$root_sid.xserver.get_display",
+    {   'command' => "$root_sid.X-11.get_display",
         'reply'   => { 'handler' => 'nroot.handler.get_display_reply' }
     }
 );
 
 # ______________________________________________________________________________
-#\\MAT2RUU23SLZPBLBWSLACXS3Z2MMCU4XILGY3P2UGTIPYW6T3JI7SKYR5MQENEMSO3XEBATJ7RFT2
-# \\ NU5QRRLHPDL3BOUED2T6QUWQ3C6W5UCGA54HO7XVWTQZGNGWEFF6 \\// C25519-BASE-32 //
-#  \\// F4M46YVMBRNRZKLRI5YNLNOXNXJKK3NF2M5TU22GRH4Y7HQRABY \\ CODE SIGNATURE \\
+#\\X234W2S5GRYOTP4ARDOULJYFT77MNOPBTWWUB2OC33H4MQ5UKB5QA5XJ6KGOFH7UYTCMNHH63RMKG
+# \\ JPXJYIOFQP7OSR4SJMH5CV6WQTCDHDS65YF44CHRTQX2JV57FOCV \\// C25519-BASE-32 //
+#  \\// JBETWY7MJFT2Y7OAJ3U5CVCUSDNB3ADQL2RZRVPUNV6AH7YO4AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

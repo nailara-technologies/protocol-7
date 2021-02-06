@@ -1,0 +1,19 @@
+# >:]
+
+# name  = X-11.cmd.get_params
+# descr = return the X-server's startup parameters
+
+if ( <X-11.mode> eq 'host' ) {
+    return {
+        'mode' => 'nak',
+        'data' => "X-11 parameters not available in 'host' mode"
+    };
+} else {
+    return { 'mode' => 'ack', 'data' => <X-11.params>->{<X-11.mode>} };
+}
+
+# ______________________________________________________________________________
+#\\62IRDS3YW3NFDDTLVBID6FLLLQMQFQBIQWWCYLDP2K7LPNUBQFHPKDXBB7FITSZQRECAP4RBT36OW
+# \\ 3NM5LLER7G5N47XXCNPSIILLKGIIREFG6UDSLX5TWITKTZMOSPVR \\// C25519-BASE-32 //
+#  \\// TVCSFWEVIQKHNFGZ5AQBCE6PLBGLMOTUHU3JBIOXHFIWW3H6KDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
