@@ -5,7 +5,9 @@ use strict;
 use warnings;
 
 BEGIN {
-    ( my $local_lib_path = $0 ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+    my $bin_path = $0;
+    while ( my $link_target = readlink($bin_path) ) { $bin_path = $link_target }
+    ( my $local_lib_path = $bin_path ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
@@ -125,12 +127,12 @@ sub prepare_subs {
             eval { use Crypt::Misc qw| encode_b32r | };
             if ( $@ or not defined &encode_b32r ) {
                 $data{'modules'}{'startup_error'}{'base32'} = 1;
-                return 0;                            # module not found ##
+                return 0;    # module not found ##
             } else {
-                return 1;                            ## loading successful ##
+                return 1;    ## loading successful ##
             }
         } else {
-            return 1;    ## function already present ##
+            return 1;        ## function already present ##
         }
     };
 
@@ -178,7 +180,7 @@ sub prepare_subs {
         $data{'system'}{'start'}{'exec_name'}
             = File::Spec->rel2abs( canonpath($0) );    # apparent exec [symlink]
         $data{'system'}{'root_path'} = abs_path( catdir( $bin_path, updir() ) );
-        $data{'system'}{'perl_version'} = $];          # < v5.6
+        $data{'system'}{'perl_version'} = $];                  # < v5.6
         $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
         $data{'system'}{'perl_unicode'} = ${^UNICODE};
         my $root_path = $data{'system'}{'root_path'};
@@ -383,10 +385,10 @@ sub prepare_subs {
             or $len_param =~ m|^\d+$| and $len_param < 5;
 
         my $by_reference = ref($str_param) eq 'SCALAR' ? 1 : 0;
-        my $str_ref   = $by_reference ? $str_param : \$str_param;
-        my $str_len   = length($$str_ref);
-        my $start_pos = int( $len_param / 2 ) - 1;
-        my $chars_cut = $str_len - $len_param + 3;
+        my $str_ref      = $by_reference ? $str_param      : \$str_param;
+        my $str_len      = length($$str_ref);
+        my $start_pos    = int( $len_param / 2 ) - 1;
+        my $chars_cut    = $str_len - $len_param + 3;
 
         return 0          if $by_reference and $str_len <= $len_param;
         return $str_param if $str_len <= $len_param;
@@ -1208,7 +1210,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\DESRXTH5BOWHZLSE3YV6OVOIB2DTUND2IZTFM6RJGLDQAF34LNFGQRJYIRS6L43XO4XUEHQWIX3R6
-# \\ Z2S2QQHNT462MWZHEPA6MVYCXZRQ5BRNV7LFUIC457KNOQTQPV33 \\// C25519-BASE-32 //
-#  \\// PZ4ALPWAUXXMASIDKTV2FOMG6WEAOZZWM4WHFRTAYMQLYFVNOBY \\ CODE SIGNATURE \\
+#\\NB6MPC7EUUYWTMVHTTEWWS4I6XSH33XVRB3IT3UGMWJYQAQ3LFBWZMRNHYA7OXUOW7M3YR3YSOVXG
+# \\ WN4K2B6ACQPGAI626SONBL3HNYH2POZHADCVLZ7MSY5GHNT4VKL2 \\// C25519-BASE-32 //
+#  \\// LIHKR4KHMU76WXRLSBJS7WY2HV2UJZFZNRVGVMADER7RH3BZCDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
