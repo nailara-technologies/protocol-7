@@ -11,7 +11,7 @@ return { 'mode' => 'nak', 'data' => 'x11 window id required' }
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
-my $xtops = <X-11.x11_tops>;
+my $xtops = <X-11.WM>;
 <[X-11.update-xtops]>;
 
 my $window;
@@ -24,12 +24,12 @@ for my $w ( @{ $xtops->sorted } ) {
 
 return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
-X11::Protocol::WM::iconify( <X-11.x11>, $window_id );
+X11::Protocol::WM::iconify( <X-11.obj>, $window_id );
 
 return { 'mode' => 'ack', 'data' => 'window iconified' };
 
 # ______________________________________________________________________________
-#\\4QHNTP2UV4722HULWA25PBLKWO7ASTDSMEFJBCIP4OCM5XVYPNJ2CVVUT5YCYKAPUWKKCHY5AKQ4I
-# \\ ZPZ3UXPP6J2VZRPHBCLR2I2N5GOYQ6FGPE3LKDOYFS5DJTQ3Y6AB \\// C25519-BASE-32 //
-#  \\// K6Y2EVXBMDIRLM4MKQON65SZPB4EBA7HFGFKXJYJQVXZGA6RACA \\ CODE SIGNATURE \\
+#\\UOHQ3DUV5DECOMGTQ5663OEWNWG3DYS53S4LRFKNOGKER5JE6KU5XEC54YQ7AZX7LB32FGURTHQCU
+# \\ VTBOCCWKASXPM2S2KNSZOQHF3HYCDQHV3RS2OK7MITXF7RJV7RFZ \\// C25519-BASE-32 //
+#  \\// J2WCE2IDJR77RGX3NWYTIXQPIVY3RRTXTAYL4WJUHS4OOWSLSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

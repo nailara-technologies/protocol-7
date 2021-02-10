@@ -16,8 +16,8 @@ if ( !<X-11.display_power_state> ) {
     ## verifying screen sizes ##
     my $restarting = 0;
     my @max_size   = <[X-11.max_screen_size]>;
-    if (   $max_size[0] != <X-11.x11>->width_in_pixels
-        or $max_size[1] != <X-11.x11>->height_in_pixels ) {
+    if (   $max_size[0] != <X-11.obj>->width_in_pixels
+        or $max_size[1] != <X-11.obj>->height_in_pixels ) {
         <[base.log]>->( 0, "<!> maximum screen size has changed <!>" );
         if (<[X-11.cmd.set_screen_size]>->(
                 { 'args' => join( 'x', @max_size ) }
@@ -44,7 +44,7 @@ if ( !<X-11.display_power_state> ) {
 }
 
 # ______________________________________________________________________________
-#\\XAQ5C4HHRZV5NXIXF5LHBND3FVL6NNNZP3GMENEL5NLYNHCXSHLLSMREGNAAG62AAL3AE2K2XBTPA
-# \\ 67E6SP7DJIE6O4YL3TJCUBDZGBDYH53LCRTSVDQU5LLCTIKWDDOC \\// C25519-BASE-32 //
-#  \\// NXOBNAWV4T2PSY3ADKDUTT2FZXJHPMJNKCI7YYEHFT7XJADBEAY \\ CODE SIGNATURE \\
+#\\46X7GEZKIPX2WAOY5NEF5NDF2AMDXGK4S4GALD7AENOPJLPZ5OG455OPUKV5FSWMDBDOFWXW6VZS6
+# \\ JE2PF56NPSL4KJIQNMUHHFQOMTKSCIO3YTF6D454ITBMIPS2M7DU \\// C25519-BASE-32 //
+#  \\// 3QKWT7SC5QBCETU74NQEE3525ZVQS6E3VZTSO74P7ILIPASACBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

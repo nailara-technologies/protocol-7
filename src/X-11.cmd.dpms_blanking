@@ -19,11 +19,11 @@ if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
     };
 }
 
-my ( $power_level, $dpms_enabled ) = <X-11.x11>->DPMSInfo();
+my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
-<X-11.x11>->DPMSEnable() if !$dpms_enabled;
-<X-11.x11>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
-<X-11.x11>->DPMSInfo();
+<X-11.obj>->DPMSEnable() if !$dpms_enabled;
+<X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+<X-11.obj>->DPMSInfo();
 
 <[base.log]>->( 1, "manually enabled DPMS blanking (${t_sec}s)" );
 
@@ -33,7 +33,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\LFSZHLQT5GDB3LOGOVLRB77IGXS2O6FOWDPC4DHX2G6IXI26ZFWEP3P3VF2644EHI6MKGXPWK4K7K
-# \\ ZRL7O3CMA6VMMZF7QLEHB6GA24HJGHYIWAK6LJ6FIU2WPMCYYRU3 \\// C25519-BASE-32 //
-#  \\// KK3OW446AY6RGENIRT7M7EBQCDVKTKQH57LTMYW5HRRWB7UL4DI \\ CODE SIGNATURE \\
+#\\MPJT7BW3YXDDKQU3CDFW5OKVQIG2EDXV3BR5JLKHVBZ56JVDRPI6UZV64GRCHDVY7NSJDTGIS4Q5K
+# \\ TTZAN7MVROSRNHOWJ3MQ67CK3VDGEPO5AKZULZMO2T4XGPP3TN6X \\// C25519-BASE-32 //
+#  \\// IFGDUETJUGYE6RDKNLHNY7F3XZE4AJMAQS56PZ7UPAYN3XZAQDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

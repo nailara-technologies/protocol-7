@@ -4,7 +4,7 @@
 # descr = rotate the screen to specified mode
 # param = <mode>
 
-my $X     = <X-11.x11>;
+my $X     = <X-11.obj>;
 my $param = shift->{'args'} // '';
 return {
     'mode' => 'nak',
@@ -40,7 +40,7 @@ if ( !<X-11.has_randr> ) {
 $mode += 16 if $mirror eq 'x';
 $mode += 32 if $mirror eq 'y';
 
-my %screen_info = ( <X-11.x11>->RRGetScreenInfo( <X-11.x11>->root ) );
+my %screen_info = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
 
 my $old_mode = $screen_info{'rotation'};
 return { 'mode' => 'nak', 'data' => "no changes" }
@@ -77,7 +77,7 @@ $mode     -= 16 while $mode > 16;
 return { 'mode' => 'ack', 'data' => 'screen rotated' }
 
 # ______________________________________________________________________________
-#\\RZHPZBAIP6PK2SBGIYPUDI5XZWNEAJYZ2JBRDXWLIMJLBYDZWVQDTEMB5ICKRSWKQE3UU6OJOESK6
-# \\ BEGHRA7KOKP2SSJJCCODLVNI6DN7BWTGKVYG6PUGKXU4BSFY5E2S \\// C25519-BASE-32 //
-#  \\// EJZJJNEW6IZDVH6ISKFFHP2477WLSV4ICXZRDHT6MAU7MBLYMAQ \\ CODE SIGNATURE \\
+#\\KFBJXCWXHTP4LL47VT2M76YJH3RGOBDXDFGFCNWKO3W6GHT37C3UAUDEALNLPIUMEZBOR2SJGCVXA
+# \\ C7PSVEEBFX5V5VSWBLZQAVDVOX6MUJ4GNAWI65Z5IHROQ7Z6HXAV \\// C25519-BASE-32 //
+#  \\// FMODHD3NHVIIVQU4MYFSTP4L6GOOZQMGJCWAIBDT2NPY4VSNMCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

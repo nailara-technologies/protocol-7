@@ -4,7 +4,7 @@
 # param = <time>[:%] <window(s)>
 # descr = fade out specified window(s) and reply
 
-my $X = <X-11.x11>;
+my $X = <X-11.obj>;
 my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
 
 ( $duration, my $fade_limit ) = split( /:/, $duration );
@@ -24,7 +24,7 @@ map {
 my $reply_id     = $$call{'reply_id'};
 my %fade_windows = map { $_ => 1 } @window_ids;
 
-my $xtops = <X-11.x11_tops>;
+my $xtops = <X-11.WM>;
 <[X-11.update-xtops]>;
 
 my %all_windows = map { $_->id => 1 } @{ $xtops->sorted };
@@ -66,7 +66,7 @@ my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\BI34DJTLH3YBWEDYRHTLHM5V55NS5EZ6I67OI7PASCQ2THW7HUDYF5EBTNRA6FZCPJXXTMYKH5Z5O
-# \\ X6KM4BYWHKW2ROLI4ILHNNYLDY7G5RVD765663YGMEERJIU2MQG3 \\// C25519-BASE-32 //
-#  \\// Z54ZR23BID3ZSSXIH6T7PHBIKT562E2S4J2SOFDK35LMRJDSIAA \\ CODE SIGNATURE \\
+#\\MNQDWQO3ALTBD6JCDNWEC4CECRQY2EDSTSPCAH2FKQAFDRZOJXA3N3MNRZEZ7OMCVITMM3UFMN3HW
+# \\ JYUECY3XJ6GG3W4HXGR62P77OLYQ6PD35KLB2WXL7OKIGBQCK2G2 \\// C25519-BASE-32 //
+#  \\// WZT3KQRMF4OATSP7TQWTY6RNBXZV7OESN63ITIR44WF5O5R7MCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

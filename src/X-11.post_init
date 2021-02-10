@@ -109,7 +109,7 @@ if ( $mode ne 'host' ) {
     <[base.log]>->( 1, "running in host mode [ using existing X11-server ]" );
 }
 
-<X-11.x11_bin_name> = $bin_name;
+<X-11.obj_bin_name> = $bin_name;
 my $bin_name_lc = lc($bin_name);
 
 ## registering custom error handlers ###
@@ -117,7 +117,7 @@ my $bin_name_lc = lc($bin_name);
 $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
     = 'X-11.handler.protocol-warnings';    ## $self->{'connection'}->get(@_); ##
 
-<X-11.x11>->{'error_handler'} = sub {
+<X-11.obj>->{'error_handler'} = sub {
     ( my $self, my $err_data ) = @_;
     chomp( my $err_str = $self->format_error_msg( $err_data // '' ) );
     $err_str =~ s|\s*\n+\s*| <!> |g;
@@ -140,8 +140,8 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 ## extensions ##
 
 # <[base.log]>->( 1, ": initializing extensions ..," );
-# <X-11.x11>->init_extensions;
-# print STDERR Dumper( keys( %{ <X-11.x11>->{'ext'} } ) );
+# <X-11.obj>->init_extensions;
+# print STDERR Dumper( keys( %{ <X-11.obj>->{'ext'} } ) );
 
 my $randr_expected = 1;
 my $randr_reason = ':|';
@@ -149,9 +149,9 @@ if ( <X-11.mode> =~ m{^(xephyr|nxagent)} ) {
     $randr_reason   = sprintf( "[ %s ]", <X-11.mode> );
 #    $randr_expected = 0;
 }
-if ( $randr_expected and <X-11.x11>->init_extension('RANDR') ) {
+if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
     <[base.log]>->( 1, ": : RANDR support present =)" );
-    eval { <X-11.x11>->RRQueryVersion( 1, 0 ); };
+    eval { <X-11.obj>->RRQueryVersion( 1, 0 ); };
     if ($@) {
         <X-11.has_randr> = 0;
         ( my $err_msg = $@ ) =~ s| at .+\n$||;
@@ -165,9 +165,9 @@ if ( $randr_expected and <X-11.x11>->init_extension('RANDR') ) {
     <X-11.has_randr> = 0;
 }
 
-if ( <X-11.x11>->init_extension('DPMS') and <X-11.x11>->DPMSCapable ) {
+if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
     <[base.log]>->( 1, ": : DPMS is supported =)" );
-    eval { <X-11.x11>->DPMSGetVersion(); };
+    eval { <X-11.obj>->DPMSGetVersion(); };
     if ($@) {
         <X-11.has_dpms> = 0;
         ( my $err_msg = $@ ) =~ s| at .+\n$||;
@@ -181,9 +181,9 @@ if ( <X-11.x11>->init_extension('DPMS') and <X-11.x11>->DPMSCapable ) {
     <X-11.has_dpms> = 0;
 }
 
-if ( <X-11.x11>->init_extension('Composite') ) {
+if ( <X-11.obj>->init_extension('Composite') ) {
     <[base.log]>->( 1, ": : X-11 is composited =)" );
-    eval { <X-11.x11>->CompositeQueryVersion(); };
+    eval { <X-11.obj>->CompositeQueryVersion(); };
     if ($@) {
         <X-11.is_composited> = 0;
         ( my $err_msg = $@ ) =~ s| at .+\n$||;
@@ -238,8 +238,8 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     if (    <X-11.has_randr>
         and defined <X-11.video_driver>
         and <X-11.video_driver> ne 'qxl'
-        and (  $max_size[0] > <X-11.x11>->width_in_pixels
-            or $max_size[1] > <X-11.x11>->height_in_pixels )
+        and (  $max_size[0] > <X-11.obj>->width_in_pixels
+            or $max_size[1] > <X-11.obj>->height_in_pixels )
     ) {
         <[base.log]>
             ->( 0, "<!> X-11 unable to select highest screen size <!>" );
@@ -274,16 +274,16 @@ if (<X-11.has_randr>) {
 
 ## keyboard ##
 
-<X-11.kbd> = X11::Keyboard->new(<X-11.x11>);
+<X-11.kbd> = X11::Keyboard->new(<X-11.obj>);
 
 <X-11.keycodes.modifiers> = <[X-11.get_modifier_map]>;
 
 #  my $any_key = <X-11.kbd>->KeysymToKeycode('AnyKey');
 #  my $any_mod = <X-11.kbd>->KeysymToKeycode('AnyModifier');
 
-<X-11.x11>->{'event_handler'} = 'queue';
+<X-11.obj>->{'event_handler'} = 'queue';
 <[event.add_io]>->(
-    {   'fd'      => <X-11.x11>->{'connection'}->fh,
+    {   'fd'      => <X-11.obj>->{'connection'}->fh,
         'handler' => 'X-11.handler.global_hotkeys'
     }
 );
@@ -305,8 +305,8 @@ if (    <X-11.has_dpms>
 ) {
     <[base.log]>->( 1, ": deactivating screen blanking ..," );
 
-    <X-11.x11>->DPMSDisable();
-    <X-11.x11>->SetScreenSaver( 0, 0, 1, 0 );
+    <X-11.obj>->DPMSDisable();
+    <X-11.obj>->SetScreenSaver( 0, 0, 1, 0 );
 }
 
 ## GPU load statistics [intel only] ##
@@ -314,7 +314,7 @@ if (    <X-11.has_dpms>
 <X-11.collect_gpu_stats_on_4K> //= 0;
 <[X-11.start_gpu_top]> if <X-11.video_driver> =~ /^i/i    # i9xx <?>
     and ( <X-11.collect_intel_gpu_stats>
-    or <X-11.collect_gpu_stats_on_4K> and <X-11.x11>->width_in_pixels >= 3840 );
+    or <X-11.collect_gpu_stats_on_4K> and <X-11.obj>->width_in_pixels >= 3840 );
 
 ## background image / color ##
 
@@ -363,7 +363,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\UUPZDLDDA2FPODNF3GCMJSHULORBVQBXT3VX2BYF4YP5PG44A26RQTUWY57MUESPDAIJGDINTR5FY
-# \\ HJFOHDLOKWQV7R275EVFLRPFDF7XYSTWULY6JZTUWYIKQM7D7URD \\// C25519-BASE-32 //
-#  \\// HCABOSPTHDTYJOSJYONDAE3HV2DEKPMU7CORZTZS5WF6ZZ3KSAA \\ CODE SIGNATURE \\
+#\\XBY7TVZ2UGXHIASRZGZQSCN6BCKX6WE2HOCQX7T3AIEWBWNZG4DYF3Q3IXUV7HJTGYPHVYBJUJGRS
+# \\ 5F3VF4F6YNAO4A6IVWCPM22HNNLPB2SP7O6XES4OGWP27CI3QZMD \\// C25519-BASE-32 //
+#  \\// RNO5JSV3EWTIJHPVJMU5FLA7NTDPBCMEWYAALLQQWKOULK4MCAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

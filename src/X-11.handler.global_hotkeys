@@ -10,7 +10,7 @@ my $watcher = shift->w;
 <X-11.hotkeys.last_key>   //= {};
 <X-11.loglevel.keys>      //= 2;
 
-my $qkmap = eval { <X-11.x11>->QueryKeymap };
+my $qkmap = eval { <X-11.obj>->QueryKeymap };
 
 if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
     <[base.log]>->(
@@ -19,7 +19,7 @@ if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
     return;
 }
 
-my $dq_e = [ <X-11.x11>->dequeue_event ];
+my $dq_e = [ <X-11.obj>->dequeue_event ];
 
 if ( @{$dq_e} ) {
     $watcher->now;             # <- again, there might be more events queued..
@@ -134,7 +134,7 @@ if ($no_key_pressed) {
 }
 
 # ______________________________________________________________________________
-#\\P6E5NP3YNBFEGM3BTCBMUO4LGVT6RVOE3M6UJUCK6AJ4QBZ76USWHB3IDF6EM3P6YVWNBBNO3EFDS
-# \\ RZMI33QPEJDV3K7ZL5JIROWXP4CH24LRFBSYFPLPRU6ASEABSQJX \\// C25519-BASE-32 //
-#  \\// CT5IEIZ6LWMYZQ42EZCEVFH7PZRO6MVNTU6EU5TTY4GCXVUSEDA \\ CODE SIGNATURE \\
+#\\RVM5BLWDMGT7HLIFDCGHVJC63PHCICL7XZMHJ2HK3JASNJUMGPWMDYAI73OLXRZYZVGVFVT77BHQ2
+# \\ NLEGAHTHI66LJBRL5QRVVTMKT7ZOECMYUHWMYRP34BXX25JDGNGF \\// C25519-BASE-32 //
+#  \\// DEBBWGBB25UBIGYYMJ2BESXPCMA7265VGG7WAWMBV27TQNE7AAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

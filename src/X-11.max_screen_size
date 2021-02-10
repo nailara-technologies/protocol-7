@@ -2,11 +2,11 @@
 
 # name  = X-11.max_screen_size
 
-<X-11.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+<X-11.obj>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
 
-my %screen_info = ( <X-11.x11>->RRGetScreenInfo( <X-11.x11>->root ) );
+my %screen_info = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
 
-return ( <X-11.x11>->width_in_pixels, <X-11.x11>->height_in_pixels )
+return ( <X-11.obj>->width_in_pixels, <X-11.obj>->height_in_pixels )
     if !@{ $screen_info{'sizes'} };
 
 my $highest = my $index = 0;
@@ -24,7 +24,7 @@ return (
     )
 
 # ______________________________________________________________________________
-#\\4FHNQTAQH3LAPXTKUFQLYBUBQJ7OSC3LE7LOKN6UYSNN2K4YTVW4CWW6QITMC64JKX3I7F36TWAJO
-# \\ 26IVXR22NYWLDIAKZFHYEOJCSRJZGBZ5IZH3WNNDRL3MRH6E4MP6 \\// C25519-BASE-32 //
-#  \\// BIISSAPI5XXRLRYHT62Z7N7YQL26CY4ZKJRQ65QIWH7ZED4BSCY \\ CODE SIGNATURE \\
+#\\GQ2DOQ6JJRSNUZFHILSS7FZJM7BZHPBYTJ7WDORX753JTBDFOMHNAUJK43N4JG3CXQKAIR5HFFY3K
+# \\ 2A7ODRTQ6TWP2J33WNXZOTLI4YWUJQMVFSSSPB2R75SUJFW6WFHA \\// C25519-BASE-32 //
+#  \\// YREN6TZBO657L4XQ2ITQ3Q4PKYI7COHNYVGVPU2ORAQ3ESYM2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

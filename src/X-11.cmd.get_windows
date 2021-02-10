@@ -6,11 +6,11 @@
 
 my $title_pattern = $$call{'args'};
 
-<X-11.x11_tops>->update;
+<X-11.WM>->update;
 
 my $reply_str;
 my @window_list;
-for my $win ( @{ <X-11.x11_tops>->sorted } ) {
+for my $win ( @{ <X-11.WM>->sorted } ) {
     my $window_title = <[base.utf8.sanitize]>->( $win->title // '' );
     $reply_str .= join( ' ', $win->id, $window_title ) . "\n"
         if not defined $title_pattern
@@ -24,7 +24,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\PPDB7UTHLICQUCN3AWVQ3MNHNYOTXPUKM4KCYBAN3NGYOWN4CCETNI4BMU4DPQLQRGAFAOU3IHG3K
-# \\ B3L5KCP6LQWFV4ES7LQIQGBIA3KFQG75LXXPSVIGZVT3HCQOHHRQ \\// C25519-BASE-32 //
-#  \\// NPRVBA34EYRFVQFYKRP4KGFOPVNEIK5FKG4ROVVCUJNC7SHH2BY \\ CODE SIGNATURE \\
+#\\C2PLEQ73SPQDMT35ZFEFSEUYZN2UUZD7WTL336UFIK3YZIBI33EXWJWE5W663XQT4ESZ7AL7HTOHE
+# \\ VNSVMONPLEMLXI5J2T22QZ3SNGUEI4CO5DS5BPW2EW42HBJ3AV7P \\// C25519-BASE-32 //
+#  \\// X5K6C22AQWQKOEW4PTLL2CAMWBFFTICGW3PXN7NOSNUTGROXWBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
