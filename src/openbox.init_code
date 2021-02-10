@@ -4,18 +4,19 @@
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path remove_tree | );
 
-$ENV{'HOME'} = '/tmp';
-chdir( $ENV{'HOME'} );
-my $home_path = $ENV{'HOME'} . '/.openbox-' . $$;
-$ENV{'HOME'} = $home_path;
-my $log_dir = "$home_path/.cache/openbox";
-make_path($log_dir)
-    or die "can't create directory '$home_path' [$!]";
+<openbox.tmp_dir_init> //= 0;
+if ( not <openbox.tmp_dir_init> ) {
+    my $home_path = $ENV{'HOME'} = '/tmp/.openbox-' . $$;
+    my $log_dir   = "$home_path/.cache/openbox";
+    make_path($log_dir) or die "cannot create directory '$log_dir' [ \l$! ]";
+    ### ..hiding log file after creation., [ will remain empty ] ###
+    map { remove_tree($_) if -d $_ and ( -o $_ or -w $_ ) }
+        glob('/tmp/.openbox-*');
+    <openbox.home_path>    = $home_path;
+    <openbox.log_file>     = "$log_dir/openbox.log";
+    <openbox.tmp_dir_init> = 1;
+}
 
-map { remove_tree($_) if -d $_ and ( -o $_ or -w $_ ) } glob('/tmp/.openbox-*');
-
-<openbox.home_path>            = $home_path;
-<openbox.log_file>             = "$log_dir/openbox.log";
 <openbox.patched_openbox_path> = '/usr/local/bin/openbox';
 <openbox.prefer_patched_openbox> //= 0;
 
@@ -23,7 +24,7 @@ map { remove_tree($_) if -d $_ and ( -o $_ or -w $_ ) } glob('/tmp/.openbox-*');
 
 if ( <openbox.prefer_patched_openbox> and -x <openbox.patched_openbox_path> ) {
     <openbox.bin_path> = <openbox.patched_openbox_path>;
-    <[base.log]>->( 1, "selected patched openbox version..." );
+    <[base.log]>->( 1, "selected patched openbox version..," );
 }
 
 die "[!] openbox binary not found [!]\n"
@@ -43,7 +44,7 @@ $SIG{'TERM'} = sub {
 0;
 
 # ______________________________________________________________________________
-#\\SBATHGUAM6BHKGBXUF4PHEPD3KA5J2LUKM6TH7GWAKNJRII45CZXGARGUW545XQNEAKLRKL3L5HVY
-# \\ SWZFEE4MCY6XSTKINBY7OOQYHOKZYY4R7TFP2YE26NK63V254NRG \\// C25519-BASE-32 //
-#  \\// BS6L7ZYITPIRRVHD5XZW5XTXNCEEGH4WATJ6P2KYSDFLROES2BY \\ CODE SIGNATURE \\
+#\\2UID3QLATHHP2N6BYETTCGUZ3YJGVIWG2GJIOT6GHOLPUULC4Y4ZFB2LTGBVDKBOF552CGWEYCCH2
+# \\ 2YNUWMNHAPRU4Y6O5CTIMBSH5XCBWZARCYCT2B6TGPCDUUF2LJW3 \\// C25519-BASE-32 //
+#  \\// 2THHDPT53NV43ENOMDDHQUFHJQAQZSS7I6POFERV4K5CZO456DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
