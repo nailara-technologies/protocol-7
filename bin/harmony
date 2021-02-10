@@ -34,9 +34,11 @@ $line_str =~ s{($harmony)}{$ANSI{'match_y'}$1$ANSI{'reset'}}
 
 $calc_str =~ s|^\d+\.||;
 
-my $result = '< ? >';
+my $return_code = 1;
+my $result      = '< ? >';
 if ( $calc_str =~ m|$harmony| or $calc_str =~ m|^0+$| ) {
-    $result = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
+    $result      = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
+    $return_code = 0;
 } elsif ( $calc_str =~ m|$un_harmonic| ) {
     $result = ">:|  [ $ANSI{'color_n'}not$ANSI{'reset'} harmonic. ]";
 }
@@ -44,8 +46,10 @@ if ( $calc_str =~ m|$harmony| or $calc_str =~ m|^0+$| ) {
 print "\n$space'$ANSI{'str'}$check_string$ANSI{'reset'}'  ==="
     . "  $result\n$line_str\n\n";
 
+exit($return_code);
+
 # ______________________________________________________________________________
-#\\7UG2PSHTQXUKX4FHWBJ6TUASUHA7XQBNPR4Z5VMW3HAANTZZJ5TUW2YVO5KHA3UYCJP6IDJHZRY62
-# \\ 36IEZJ3VMHXDQ2DEEOAWO4ADD4AHAPZZUMGBMOZFW2TNVL4BUVNG \\// C25519-BASE-32 //
-#  \\// YWKKL4HXAIFQVYAFAX52NLXOPNRZ7CAXOX4LX2Y77MKAC76GECI \\ CODE SIGNATURE \\
+#\\YZ2TYYTLGXX46P2KZTTEHHPRBVGW56ATZJQKBDIJB24F2FD7TYMHSSLVH2RVUI4HRHFPQOWW643B6
+# \\ T6SNUCNAZKLROR7NH6G5EQ42V5I2F7OBDP2ETGU2SYH33Y53DF42 \\// C25519-BASE-32 //
+#  \\// APO7R5BSTFVPBBHOS2D7TGFP724N7V3RZBO2EJLH26AB6YGRWDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
