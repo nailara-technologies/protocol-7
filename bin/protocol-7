@@ -21,10 +21,8 @@ our %data;
 our %KEYS;
 our %ANSI;
 
-$ENV{'PATH'}       = '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin';
-$ENV{'LC_NUMERIC'} = 'en_US.UTF-8';
-
 prepare_subs();
+
 &{ $code{'base.init_exec'} };
 
 $code{'base.load_code'}->('base');
@@ -83,8 +81,13 @@ exit;
 # :: initialization / basic subroutines ::
 
 sub prepare_subs {
+    $ENV{'PATH'} = '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin';
+    delete @ENV{qw| IFS CDPATH ENV BASH_ENV |};
+    $ENV{'LC_NUMERIC'} = 'en_US.UTF-8';
 
-    # install Time::HiRes versions of base.time and base.sleep [ if available ]
+    eval { use Text::Wrap qw| wrap | };    ## <-- used in 'base.load_code' ##
+
+    # installing 'Time::HiRes' versions of 'base.time' and 'base.sleep'
     my $th_ref
         = (
               eval 'use Time::HiRes; return [ '
@@ -223,8 +226,8 @@ sub prepare_subs {
             $data{'system'}{'agent'}{'name'} = '<init>';
         }
 
-        #	( $data{'system'}{'node'}{'name'},
-        #          $data{'system'}{'agent'}{'name'} ) = split ( m|\.|, $_[0] );
+        #   ( $data{'system'}{'node'}{'name'},
+        #    $data{'system'}{'agent'}{'name'} ) = split ( m|\.|, $_[0] ); #[LLL]
 
         $data{'system'}{'verbosity'}{'console'} = 0;
         $data{'system'}{'ansi_color'}           = 1;
@@ -414,7 +417,7 @@ sub prepare_subs {
     $code{'base.httpc.remote_file'} = sub {
 
         $data{'base'}{'warned'}{'http_src_deactivated'} //= 0;
-        warn "source loading over http has been temporarely deactivated"
+        warn 'source loading over http has been temporarely deactivated'
             if !$data{'base'}{'warned'}{'http_src_deactivated'}++;
 
         return undef;    ## feature temporarely deactivated ##
@@ -691,10 +694,10 @@ sub prepare_subs {
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
                             |\$code{'$1'}->(|sgxo;
 
-                    # warn: this parser currently doesn't respect quoted strings
-                    #       escape like \<[sub.name]> <-- this to avoid a match!
+                    # < ! > the parser currently does not respect quoted strings
+                    #       escape like \<[sub.name]> <-- this to avoid a match.
                     #
-                    # note: a generic quoted string match would be :  ##########
+                    # note: a generic quoted string match might be :  ##########
                     # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
 
                     # <[sub_name]>  -->  $code{'sub_name'}->()
@@ -748,7 +751,7 @@ sub prepare_subs {
         next   if !$mod_count;
         my $src_bytes_total = 0;
         $code{'log.debug'}->(": compiling ..,");
-        my ( $ok_count, $err_count ) = ( 0, 0 );
+        my ( $ok_count, $err_count, $warn_count ) = ( 0, 0, 0 );
 
         my %disabled_commands;
         map { $disabled_commands{$_} = 1 } @{ $data{'disabled_commands'} }
@@ -756,6 +759,7 @@ sub prepare_subs {
             and ref( $data{'disabled_commands'} ) eq 'ARRAY';
 
         foreach my $sub_name ( sort(@compile_them) ) {
+
             local $SIG{'__WARN__'} = 'IGNORE';
             local $SIG{'__DIE__'}  = 'IGNORE';
 
@@ -843,29 +847,54 @@ sub prepare_subs {
             ##                      ###
             ## compiling subroutine ###
             ##                      ###
-
-            open( my $std_err, ">&STDERR" )
+            my $stderr_fh;
+            open( $stderr_fh, ">&STDERR" )
                 or print "\n<< ! >> cannot clone STDERR [ $! ]\n\n";
-
             close(STDERR);
-            ## silencing ##        <-- catch \ filter \ process warnings [ LLL ]
-            my $dev_null_path = File::Spec->devnull();
-            open STDERR, ">$dev_null_path" or print "$dev_null_path: $!\n";
-
+            open STDERR, '>', \my $s_comp_stderr or print "stderr.redir: $!\n";
             $src_bytes_total += length($sub_code);
             my $compilation_success
                 = ( $code{$sub_name} = eval($sub_code)
                     and ref( $code{$sub_name} ) eq 'CODE' )
                 ? 1
                 : 0;
-
+            my $err_str = $@;
+            state $t_wrap //=
+                ( defined &wrap )
+                ? sub { return wrap( '', '    :  ', $_ ) }
+                : sub { return $_ };
+            map {
+                $_ =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg
+                    if defined $_;
+            } ( $err_str, $s_comp_stderr );
+            local $Text::Wrap::columns   = 57;
+            local $Text::Wrap::separator = "\n";
+            delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
+            my @compile_errors = (
+                '>', ".:[ $sub_name ]:.",
+                ':', ( map {": <<!>> \l$_"} split( m|\n+|, $err_str ) ), '='
+            );
+            push(
+                @compile_errors,
+                '>',
+                '  :: warning ::',
+                '  :',
+                map {
+                    ++$warn_count and push(
+                        @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
+                        "\l$_"
+                    );
+                    "  :. \l$_"
+                } split( m|\n+|, $s_comp_stderr ),
+                '='
+            ) if defined $s_comp_stderr;
             close(STDERR);
-            open( STDERR, ">&", $std_err )
+            open( STDERR, ">&", $stderr_fh )
                 or print "\n<< ! >> cannot restore STDERR [ $! ]\n\n";
-
             if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
-                $data{'code'}{$sub_name}{'status'} = 'no-err';
+                $data{'code'}{$sub_name}{'status'}
+                    = $warn_count ? 'warned' : 'no-error';
                 $ok_count++;
                 if (    $sub_name !~ m{\.(cmd|console)\.}
                     and $sub_name =~ m|\.end_code$| ) {
@@ -886,15 +915,8 @@ sub prepare_subs {
                 };
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'base'}{'modules'}{'load_errors'}++;
-                my $err_str = $@;
-                $err_str =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg;
-
-                my @compile_errors = (
-                    '>', ".:[ $sub_name ]:.",
-                    ':', ( map {": [!] $_"} split( m|\n+|, $err_str ) ), '-'
-                );
-
-                $code{'log.error'}->(@compile_errors);
+                $code{'log.error'}
+                    ->( map { split m|\n|, $t_wrap->($_) } @compile_errors );
                 map { $code{'base.buffer.add_line'}->( 'compile-errors', $_ ) }
                     @compile_errors;
 
@@ -903,11 +925,18 @@ sub prepare_subs {
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
                 $err_count++;
             }
+            if ( $compilation_success and $warn_count ) {
+                $code{'log.error'}
+                    ->( map { split m|\n|, $t_wrap->($_) } @compile_errors );
+                map { $code{'base.buffer.add_line'}->( 'compile-errors', $_ ) }
+                    @compile_errors;
+            }
+
             if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} )
             {    # command desciptions #
                 my $section = $1;
                 my $command = $2;
-                if ( $data{'code'}{$sub_name}{'status'} eq 'no-err' ) {
+                if ( $data{'code'}{$sub_name}{'status'} eq 'no-error' ) {
                     if ( $sub_code =~ m|#\s*param\s*=\s*(.+)| ) {
                         $data{'base'}{'commands'}{$section}{$command}{'param'}
                             = $1;
@@ -935,6 +964,10 @@ sub prepare_subs {
         if ($err_count) {
             $code{'log.error'}
                 ->(": success on $ok_count sub$s, $err_count broken., `:|");
+        } elsif ($warn_count) {
+            my $w = $warn_count == 1 ? '' : 's';
+            $code{'log.error'}
+                ->(": success on $ok_count sub$s, $warn_count warning$w :|");
         } else {
             $src_bytes_total = sprintf( "%.2f", $src_bytes_total / 1024 );
             $src_bytes_total =~ s|\.?0+$||;
@@ -1034,15 +1067,15 @@ sub prepare_subs {
     };
 
     $code{'base.log_hook'} = sub {
-        return;
-        if ( $data{'system'}{'verbosity'}{'console'}
-            and my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
+        return 0
+            if not defined $data{'base'}{'httpc'}{'last_mlen'}
+            or not $data{'system'}{'verbosity'}{'console'};
+        if ( my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
+            local $| = 1;
             my $spaces = ' ' x $last_len;
-            $| = 1;
-            print "\r$spaces|\r";
-            return $last_len;
+            print "\r$spaces\r" and return $last_len;
         }
-        return undef;
+        return 0;
     };
 
     $code{'log.noerr'} = sub {
@@ -1210,7 +1243,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\3YCQSDIJLH5PTQWBN5WRDDCQQOXQTZTFPXVDAGK6TR7SN6JI2MGD5Y2RSLZU3EVZU2AQFCBKPUHTO
-# \\ JXI74Z7QAJVIOLADGJYQZSMO4U4WYQBDSTUUF6R7K3XBDFZDOVPH \\// C25519-BASE-32 //
-#  \\// 3CVM6LMWFPXVCBCVNB37FI527KATPETFEYI5UVFD7YQBEDBKUBY \\ CODE SIGNATURE \\
+#\\N7AXWWX5VTNP2H63GKULK6S2KWNWUU4ORMTV5JTOMJBWSI26CMQPO5WDQ55FB3XT4OBOYGPQMZWJQ
+# \\ IJ6VTYDBL3ITYUMDLDSDN4MTNIT6QH3VVHZLXPYBZTW6GUWXPD2A \\// C25519-BASE-32 //
+#  \\// YM6ITD6TMZHJ3QRCM6J6INQGGKECC4E7UTKHTX3MMBWPBB5IICQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
