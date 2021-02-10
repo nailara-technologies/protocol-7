@@ -14,7 +14,7 @@ return { 'mode' => 'nak', 'data' => 'invalid <geometry> syntax' }
     if $geometry !~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
 
 my $xtops = <X-11.WM>;
-<[X-11.update-xtops]>;
+<[X-11.update_X11_WM]>;
 
 my $window;
 for my $w ( @{ $xtops->sorted } ) {
@@ -27,12 +27,12 @@ for my $w ( @{ $xtops->sorted } ) {
 return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 $window->move($geometry);
-<[X-11.update-xtops]>;
+<[X-11.update_X11_WM]>;
 
 return { 'mode' => 'ack', 'data' => 'window updated' };
 
 # ______________________________________________________________________________
-#\\BBYDNSBTLN2YA3OLWXRG4JN4GQJX3DJMDD2NU3SSDZHFPGISQEIGGIUCXPNCCYL3ZXIDCYSILRZB2
-# \\ AXXCGWCTUCK7MRGJ2QZW4RIL6BD4H7F65QRAD5CCHEFHAUK6MNRF \\// C25519-BASE-32 //
-#  \\// IFVZ5S6EDO6FQUGVAG74RU2N4YFEQLVHPHKZ7SZH4E2O24LQWCA \\ CODE SIGNATURE \\
+#\\UH2Y25WSRRDH5MT6VV7KJVQGIPGA5RAXEBOTFGANLCMQZBNJOOWLKOV5ZKG4P5UNSQ5PNPF43BNHO
+# \\ FWRWMDM6W65LL7TVFDX3AMHIAYLAQGXZHYEZEEGZEGNLMEIH3MVH \\// C25519-BASE-32 //
+#  \\// FDJN7UQIDU3Z5Q4BX5V22PXCB4XYYXUVU7ABMNOGGZIQIS4WYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
