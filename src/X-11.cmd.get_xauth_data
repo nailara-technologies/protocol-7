@@ -4,18 +4,18 @@
 # descr = return authorization protocol name + data
 
 return { 'mode' => 'nak', 'data' => 'no authorization data has been set up!' }
-    if !length( <X-11.x11>->{'authorization_protocol_name'} )
-    or !length( <X-11.x11>->{'authorization_protocol_data'} );
+    if !length( <X-11.obj>->{'authorization_protocol_name'} )
+    or !length( <X-11.obj>->{'authorization_protocol_data'} );
 
 return {
     'mode' => 'ack',
     'data' => join( ' = ',
-        <X-11.x11>->{'authorization_protocol_name'},
-        unpack( "H*", <X-11.x11>->{'authorization_protocol_data'} ) )
+        <X-11.obj>->{'authorization_protocol_name'},
+        unpack( "H*", <X-11.obj>->{'authorization_protocol_data'} ) )
 };
 
 # ______________________________________________________________________________
-#\\FOFVP5VMXBMCGKOJ4TSBHWF22JJLSQQ7FHKNZVSWZG5QRRR6BARQ23L3TVZ5B45HRRYQOJWCL3GIW
-# \\ EDAPP7X6CYDIIRS4JHOB7DIXJWAXBJSUGBFZHGPWZSAQIZ4JYUGC \\// C25519-BASE-32 //
-#  \\// 3BIWYIIGPIXJMMYJ2GEXO6T4TUYJX43LGMAYK3Q4L5NQMG75QBI \\ CODE SIGNATURE \\
+#\\4MRB45GDB4WA5VB6WK3BQSL47UPQSC6JRCXCKSB4FL3NTXM5QH75GI2HAYA5I5KLXCAFRIRIAJ4BA
+# \\ HYB7PG3BGE2SMV7RYI2VIS5XK3LOB4LCD3G4B352VIEJVXX26DTL \\// C25519-BASE-32 //
+#  \\// S6IS7O7M45ZMBGQEDXJDLMNLZ3EPS7PEDFDB3YDZBZULKHCKYDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

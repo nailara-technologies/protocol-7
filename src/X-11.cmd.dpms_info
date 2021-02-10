@@ -6,12 +6,12 @@
 return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
-my ( $power_level, $dpms_enabled ) = <X-11.x11>->DPMSInfo();
+my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
 my $dpms_str = $dpms_enabled ? 'active' : 'is disabled';
 $dpms_str = "DPMS is $dpms_str";
 
-my @t = <X-11.x11>->DPMSGetTimeouts();
+my @t = <X-11.obj>->DPMSGetTimeouts();
 if ( $t[0] == $t[1] and $t[1] == $t[2] ) {
     $dpms_str .= ', blanking off' if $t[0] == 0;
     $dpms_str .= ' [' . $t[0] . 's]';
@@ -25,7 +25,7 @@ $power_str = "power mode = $power_str";
 return { 'mode' => 'ack', 'data' => "$dpms_str, $power_str" }
 
 # ______________________________________________________________________________
-#\\AWEN4QVCEVSIJVFBTY67BI3FRZ6TQCS2HCFKG3VNVAGG7UE3DGYKWS3AN3D3WYEKFRIOXS5HGBOGY
-# \\ HZKIWHUVFBTQMBFA4U5Y3762H7Z2W5EYFE7SV7ISXV7NQYFY4H5W \\// C25519-BASE-32 //
-#  \\// MGMQXLBKE7KZSSEBZUPMQC2MH44FJOT5USROGF34SDJ6EW34SAQ \\ CODE SIGNATURE \\
+#\\XMWRTNA2BUYL2TEB64UZ5FZEBQ4DSCKECVSGU4BX3DEWCGP6XMJFVPCZA7NEFR55LWOBV2HU2WE5G
+# \\ 7BVTHCZOXAZBKGSPYNU7MIKNYGELREN7JAR4WREFUBXBB4NW5FX4 \\// C25519-BASE-32 //
+#  \\// JOXFTXFX36VIDF4FJKOVQHTMFVEQZ4YLNMBTLATO5S7ZN4ZJYDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

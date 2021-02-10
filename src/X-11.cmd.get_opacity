@@ -4,7 +4,7 @@
 # param = <w_id>
 # descr = return window opacity in percent [0..100]
 
-my $X         = <X-11.x11>;
+my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
@@ -12,7 +12,7 @@ return { 'mode' => 'nak', 'data' => 'x11 window id required' }
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
-my $xtops = <X-11.x11_tops>;
+my $xtops = <X-11.WM>;
 <[X-11.update-xtops]>;
 
 my $window;
@@ -37,7 +37,7 @@ if ( not defined $result ) {
 return { 'mode' => 'ack', 'data' => sprintf( "%.3f%%", $result * 100 ) };
 
 # ______________________________________________________________________________
-#\\P3P2YXESEGYXJQ4YSM7N77UJOVI563O2UXWROOXAO4OACD5QACCIW5H4TVGNGXSCK4DABWN7DRNPM
-# \\ 7BDMAHBWQB5GUBM45CP5Q4PBHRC4ZNBMO3ERZ25JZREUNATYJUE4 \\// C25519-BASE-32 //
-#  \\// GWVW6HOL5WSKMV5OTFNTP3ISYSKG5VSBVHE72WUUUHJNRT3ZCDQ \\ CODE SIGNATURE \\
+#\\YSU6BTL37UO42MYTJPKPX76S7PFH3A5VVIGGAVKBL6N7E4V4AIHTKKAGF3GGDSHHMLN5IIJREZDUI
+# \\ 4PHNRJIOQCMCIRCVPSHV4CEIP6FXPI3LGXJOAZGPD4MD64D2CSOF \\// C25519-BASE-32 //
+#  \\// QJY46KZVEJUYGT2FP36SWXNIF2SH2LWXAEDYHNPPKSHIUX5VIDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

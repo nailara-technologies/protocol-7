@@ -6,20 +6,20 @@
 return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
-my ( $power_level, $dpms_enabled ) = <X-11.x11>->DPMSInfo();
+my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
-<X-11.x11>->DPMSEnable() if !$dpms_enabled;
-<X-11.x11>->DPMSSetTimeouts( 0, 0, 0 );
-<X-11.x11>->DPMSDisable();
-<X-11.x11>->SetScreenSaver( 0, 0, 1, 0 );
-<X-11.x11>->DPMSInfo();
+<X-11.obj>->DPMSEnable() if !$dpms_enabled;
+<X-11.obj>->DPMSSetTimeouts( 0, 0, 0 );
+<X-11.obj>->DPMSDisable();
+<X-11.obj>->SetScreenSaver( 0, 0, 1, 0 );
+<X-11.obj>->DPMSInfo();
 
 <[base.log]>->( 1, "manually deactivated DPMS blanking (T=0s)" );
 
 return { 'mode' => 'ack', 'data' => "display blanking disabled" };
 
 # ______________________________________________________________________________
-#\\NHORCE2XDZ3RBDUOWTE6IKEYQPYR53M45GWYINGZZX4WISIQR7LR3S7VIMW2FG5G7PB5WLSNZIFTW
-# \\ N6RWK5R4Z3HGPL5X5I2YDFVHFKD53BW35QRBTEZ3IW6ZNJXMXIAJ \\// C25519-BASE-32 //
-#  \\// LF3P7JYRTTF5XJ2VQY56QXL3AG45AA5EVNURMQECTJCKLHNU6AQ \\ CODE SIGNATURE \\
+#\\5ONF5Q4F6BFNJ6KQX76H5VUSTJKGIHXPWFTALXEW7YIP7ZPEGB6TYC2LEUDEXZMMR3RJTLUR6MIHW
+# \\ 5EYQ76XUMXNWOJOLIQFOPP334ROGFU3HEH2SW3SP4FNNJWXQSMEO \\// C25519-BASE-32 //
+#  \\// WA4WVFR7IFFCUZTANQ6TSWECZUDCMOGK2HKZ6S7PYNV3RPEQSAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

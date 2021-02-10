@@ -13,21 +13,21 @@ my $err;
 while ( not defined $wmstate and not defined $err and !$retries-- ) {
     eval {
         ($wmstate)
-            = <X-11.x11>
-            ->GetProperty( $window_id, <X-11.x11>->atom('WM_NAME'),
+            = <X-11.obj>
+            ->GetProperty( $window_id, <X-11.obj>->atom('WM_NAME'),
             'AnyPropertyType', 0, ~0, 0 );
         last if $wmstate;    ## <-- top-level window ##
-        my ( undef, $parent ) = <X-11.x11>->QueryTree($window_id);
+        my ( undef, $parent ) = <X-11.obj>->QueryTree($window_id);
         $window_id = $parent;
     };
     $err = $@ if $@;
 }
 
 eval {
-    ($window_title) = <X-11.x11>->GetProperty(
+    ($window_title) = <X-11.obj>->GetProperty(
         $window_id,
-        <X-11.x11>->atom('_NET_WM_NAME'),
-        <X-11.x11>->atom('UTF8_STRING'),
+        <X-11.obj>->atom('_NET_WM_NAME'),
+        <X-11.obj>->atom('UTF8_STRING'),
         0, ~0, 0
     );
     $err = $@ if $@;
@@ -35,10 +35,10 @@ eval {
 
 eval {
     if ( not defined $window_title ) {
-        ($window_title) = <X-11.x11>->GetProperty(
+        ($window_title) = <X-11.obj>->GetProperty(
             $window_id,
-            <X-11.x11>->atom('WM_NAME'),
-            <X-11.x11>->atom('STRING'),
+            <X-11.obj>->atom('WM_NAME'),
+            <X-11.obj>->atom('STRING'),
             0, ~0, 0
         );
     }
@@ -57,7 +57,7 @@ $window_title =~ s{^'|'$}{}g;
 return length($window_title) ? $window_title : "''"; ## <-- quotes when empty..,
 
 # ______________________________________________________________________________
-#\\26YXZKPTEHLZUXG3AJMRCND6EDOPXDDHJVASGK3HCQKDP3B7QT4D4ACFNBSG2RTAAPERECWLTVAFM
-# \\ DNKRF4B2VK3KQSA5WVQUAWEMC6EOMEZFQ5ZNWOG65HVP7C4WOPVO \\// C25519-BASE-32 //
-#  \\// SMEHJOSWMM6NILVLTYLZYT2JSOJNVOCWMIKJVRYR3FAK2EXZ4CY \\ CODE SIGNATURE \\
+#\\WZL2F4BUF7HPQGTD5JIDURCDIUAFVQCVHFWNWB4HMOGVUETZKJTLTLNOLKFPDGAHADZQG2CIPDMT4
+# \\ SAFVCJKTGRBZDSHZWHZJHVSSPYVXF6GKIZHJNPPCAPWZ7QY3Q4UF \\// C25519-BASE-32 //
+#  \\// VEY25THGUOM7A7T2XYNI2DTL4PKC27CGBHHFVLIBNRCDNOEHIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
