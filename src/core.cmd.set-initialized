@@ -4,7 +4,7 @@
 # descr = set agent session to 'initialized' [0=='own']
 # param = <sid|0>
 
-my $sid = $$call{'args'} || $$call{'session_id'};  # 0 == self (current session)
+my $sid = $$call{'args'} || $$call{'session_id'};  # 0 == self [current session]
 
 return { 'mode' => 'nak', 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
@@ -18,12 +18,12 @@ return { 'mode' => 'nak', 'data' => 'was already initialized' }
 $data{'session'}{$sid}{'initialized'} = 1;
 
 my $agent_name = $data{'session'}{$sid}{'user'};
-<[base.log]>->( 1, "[$sid] $agent_name-agent marked as initialized" );
+<[base.log]>->( 1, "[$sid] agent '$agent_name' reported as initialized." );
 
 return { 'mode' => 'ack', 'data' => 'initialized' }
 
 # ______________________________________________________________________________
-#\\V63HZJMGBYACZY7H3ZSTNCEY3OET25E6WGX45LRPOKA47SYJTDX4H5YJPOSN5VOEYK4FVJ3PQ6CDS
-# \\ P6C2XG3SX2774UFQG7TRE33VXNIMWB7CA5TF5YOMZNDR65DYKI2Y \\// C25519-BASE-32 //
-#  \\// 3N5YWHB3SIJVOBQOG6XHHSICHRINZZFN56ANW6FYQFTYJLU5IBQ \\ CODE SIGNATURE \\
+#\\A5AQVNZYNZTA7DY7WXZRREQNHBESYZSDVMWXZF37UOYZWEW3DDZAT7NHVA3NHXRPVNCWXMON27MVW
+# \\ IREQGCOQCOWWS72IUN6RKCF36YK2GIIEUI36XRT64SECQW4PJLRZ \\// C25519-BASE-32 //
+#  \\// LTNHYOZDPBWUXE6IDELGKNCSDTH42KOYAXYVM3RWBVA2ZJ52GDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
