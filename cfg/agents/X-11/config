@@ -9,6 +9,7 @@ X-11.mode = auto-xephyr  # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb]
 X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
 
 X-11.display.xorg    = :0.0
+X-11.display.xvfb    = :7
 X-11.display.xephyr  = :7
 X-11.display.nxagent = :7
 
@@ -21,13 +22,13 @@ X-11.params.xorg    = -quiet
 # X-11.custom_xrandr.1 = --auto --output HDMI3 --pos 0x0 \
 #                           --mode 1280x1024 -r 75.02
 
-X-11.dev.dimensions = 917x517
+X-11.dev.dimensions = 912x513
 
 X-11.params.xnest   = -geometry <X-11.dev.dimensions>
 X-11.params.nxagent = -ac -geometry <X-11.dev.dimensions> \
-                              +extension Composite +extension GLX
-# LLL :                  ^^^ tie into access control mechanisms < ! >
-
+                           +extension Composite +extension GLX
+#                      ^^^ tie into access control mechanisms .,   [ LLL ]
+X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
 X-11.params.xephyr  = -screen <X-11.dev.dimensions>
 #                                         -glamor added ^, if not disabled below
 X-11.disable_glamor = 0
@@ -66,8 +67,8 @@ X-11.gpu_load.alert.30 = 75 # %
 
 X-11.gpu_load.send_alerts = composition # agents to receive 'gpu_load_alert' cmds
 
-access.cmd.usr.core = commands message heart reload verify-instance get_xauth_data \
-                      get_mode get_display get_params get_screen_size \
+access.cmd.usr.core = commands message heart reload verify-instance get_mode \
+                      get_xauth_data get_display get_params get_screen_size \
                       get_windows set_geometry raise_window lower_window \
                       get_geometry get_stack_order get_window_title \
                       set_gravity iconify_window get_orientation get_wm_name \
