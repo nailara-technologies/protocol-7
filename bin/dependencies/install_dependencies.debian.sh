@@ -22,3 +22,8 @@ cpanm --force XML::RSS::TimingBot  # <-- evaluate if above module still required
 
 # optional [i.e. not on raspbian]
 apt-get -y install intel-gpu-tools firmware-misc-nonfree 2>/dev/null
+# ______________________________________________________________________________
+#\\PRGF4AJOE54FCGVROQMOYS36ETHSTCVQJKKWJIUDTQJ74YEJWLJTMEGLOW5RRSYANGG6QDHHEYAYK
+# \\ EDSTPYFAN26NKQHE3SS32PPBKDRLU5BOQ4KNIPKX2NGS5U2PVJFS \\// C25519-BASE-32 //
+#  \\// 4OXSJTWGW4JKSP75F3CU246DDJZABYQGK2TIQBEYTSTJXQZXABI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
