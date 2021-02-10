@@ -14,7 +14,7 @@ if ( defined $key_str
     my $smiley;
     if ( <[base.s_read]>->( $filehandle, \$smiley, 4 ) > 0 ) {
         if ( $smiley =~ />:\]\n/ ) {
-            <[base.log]>->( 2, "[*] protocol banner detected.." );
+            <[base.log]>->( 2, "[*] protocol banner detected.," );
         } else {
             <[base.log]>->(
                 0, "[#] protocol mismatch [ no valid connection banner ]"
@@ -29,11 +29,11 @@ if ( defined $key_str
         <[base.log]>->( 0, "[X] connection lost :/" );
         return undef;
     } elsif ( $answer !~ /^ACK continue$/ ) {
-        <[base.log]>->( 0, "[#] protocol mismatch :(" );
+        <[base.log]>->( 0, "[#] protocol mismatch >:[" );
         return undef;
     }
 
-    <[base.log]>->( 2, "[<] authenticating as '$agent'.." );
+    <[base.log]>->( 2, "[<] authenticating as '$agent'.," );
     <[net.out]>->( $filehandle, "$agent $key_str\n" );
     delete $KEYS{'agent'}{'session_key'}
         if exists $KEYS{'agent'}{'session_key'};
@@ -65,7 +65,7 @@ if ( defined $key_str
 }
 
 # ______________________________________________________________________________
-#\\OX4GIWBV7MKKT6WZILSC47CQB7MBFIJJOH5772MGS46OKIOFSIED76VRO24HOIXURVBLHCL42JXCU
-# \\ UKK2BO3SZMZBBPF7QF4Z3DY7RXG2F3BINU6C2TN3MBMJRPQEWFV5 \\// C25519-BASE-32 //
-#  \\// BOFHNCEYIGINGWY56UIPBC6WOO4KJUCVACZUKCYZH6AVG45KYAA \\ CODE SIGNATURE \\
+#\\KBZGMCAO4CJSWQ5G62FHBE7PQEDMSIH7QJXFLJJ7XUS54OON4R2LPZVGK2HVD3RKMAWUYH5WPJ3DY
+# \\ LKN7KUQRUY6Z5H5D7DN3FUJD7WZNN6KSFP3DQFGGEG5JFJ4NVJWE \\// C25519-BASE-32 //
+#  \\// U4QSO7XDNCPBHUT2NKFAQIRNK3OI7MMYRPQ42HWORKRNBLVBGBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
