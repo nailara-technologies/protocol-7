@@ -298,20 +298,21 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     } else {
                         <[base.log]>->(
                             0,
-                            "[$id] called undefined reply handler ("
-                                . $$route{'reply'}{'handler'} . ")"
+                            "[$id] called undefined reply handler ["
+                                . $$route{'reply'}{'handler'} . "]"
                         );
                     }
                 } elsif ( exists $data{'session'}{ $$route{'source'}{'sid'} } )
                 {
-
-                    # was filter hook applied ? if so call reply handler..,
+                    ##  calling reply handler if a filter hook was applied., ###
                     $route->{'hook_data'}->{'handler'}->(
                         {   'mode' => $cmd,
                             'args' => \$$call_args{'args'},
                             'data' => $route->{'hook_data'}->{'data'}
                         }
-                    ) if defined $route->{'hook_data'};
+                        )
+                        if defined $route->{'hook_data'}
+                        and $cmd =~ $route->{'hook_data'}->{'mode'};
 
                     # route reply
                     $$call_args{'args'} //= 'UNDEFINED';
@@ -638,8 +639,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     ((($re->{sid}|$re->{usr}|$re->{usr_sub})\.)*
                     $re->{cmd})$,$2,gxo
     ) {
-        my $target_name = $1;                  # usr|sid
-        my $command_str = $2;                  # [ deeper targets + ] command
+        my $target_name = $1;    # usr|sid
+        my $command_str = $2;    # [ deeper targets + ] command
         my $target_subname
             = $target_name =~ s|\[($re->{subname})\]$|| ? $1 : undef;
 
@@ -761,7 +762,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             );
         }
 
-        return 1 if !@send_sids_left;
+        return 1                     if !@send_sids_left;
         @send_sids = @send_sids_left if @send_sids_left != @send_sids;
 
         # command [argument] filter hooks  ..,
@@ -773,7 +774,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             }
         );
 
-        # send to all clients with that username (group mode)
+        # send to all clients with that username [ group mode ]
         my $targets_denied = 0;
         foreach my $target_sid (@send_sids) {
 
@@ -840,7 +841,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 if ( defined $$call_args{'param'}
                     and ref( $$call_args{'param'} ) eq
-                    'HASH' )                  # prepare parameter header
+                    'HASH' )    # prepare parameter header
                 {
                     my ( $key, $val );
 
@@ -892,7 +893,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\NG3LK7ABWMMTNZFXX2MGFOXXWPXTE7UZB7P65ZEMWAIS5ZRWK3EGQML672K6AVKHDZRNBFVGKU2QG
-# \\ UU3IGNVDU644S24R3ARLTYIHPJTY2PEAMCCVM4J3GXENV4PLQBHN \\// C25519-BASE-32 //
-#  \\// KTBVQSBW5BPZWIOV3XDDGKTEF7VYOU364JHLCN74I2E7T2SVSBQ \\ CODE SIGNATURE \\
+#\\273PQXMIKVCXL33G7KSUKEVEU3NATZPALXBNBORK63QNJJPT6GE6K2DNYUGKMTBE37KNNXAYQ3IK2
+# \\ D5M5D6GCVBUTFTFIOVFL7MPA56EQLYLYYJ6UBWVPK2RDIK6GNUO6 \\// C25519-BASE-32 //
+#  \\// DDYNWE3UQC24RJRLYZC7QLNQMMVRLDUWHUUS3PAC5OTMZYH4UAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
