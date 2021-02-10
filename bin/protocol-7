@@ -861,7 +861,7 @@ sub prepare_subs {
             my $err_str = $@;
             state $t_wrap //=
                 ( defined &wrap )
-                ? sub { return wrap( '', '    :  ', $_ ) }
+                ? sub { return wrap( '', ':   :  ', $_ ) }
                 : sub { return $_ };
             map {
                 $_ =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg
@@ -871,8 +871,13 @@ sub prepare_subs {
             local $Text::Wrap::separator = "\n";
             delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
             my @compile_errors = (
-                '>', ".:[ $sub_name ]:.",
-                ':', ( map {": <<!>> \l$_"} split( m|\n+|, $err_str ) ), '='
+                '>',
+                ".:[ $sub_name ]:.",
+                ':',
+                (   map  { s|Can.t|cannot|g; s|"|'|g; ": <<!>> \l$_" }
+                    grep { !m|BEGIN not safe| } split( m|\n+|, $err_str )
+                ),
+                '='
             );
             push(
                 @compile_errors,
@@ -1243,7 +1248,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\N7AXWWX5VTNP2H63GKULK6S2KWNWUU4ORMTV5JTOMJBWSI26CMQPO5WDQ55FB3XT4OBOYGPQMZWJQ
-# \\ IJ6VTYDBL3ITYUMDLDSDN4MTNIT6QH3VVHZLXPYBZTW6GUWXPD2A \\// C25519-BASE-32 //
-#  \\// YM6ITD6TMZHJ3QRCM6J6INQGGKECC4E7UTKHTX3MMBWPBB5IICQ \\ CODE SIGNATURE \\
+#\\ZACZCNUEWEBRB5JHER347YFEGJNAI2B7SMGRXHSVBKCNTFGEIFS2AX5YJNGLJNJHLQTCSEXHOEN4Y
+# \\ I2WFTGYXNLPDGZCL3NM24UJAPPWUA3O76RTJKHYXKRBGODW4TB7F \\// C25519-BASE-32 //
+#  \\// QZVDS2TXYASQXFLCNZXKUTKK7LLIG3R2TSC465HROA7KS45UEBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
