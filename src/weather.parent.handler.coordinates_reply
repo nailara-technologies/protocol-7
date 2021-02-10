@@ -44,10 +44,10 @@ if ( $reply->{'cmd'} eq 'ACK' ) {
 }
 my $city_changed = 0;
 if (    defined $city
-    and defined <weather.cfg.city>
-    and $city ne <weather.cfg.city> ) {
+    and defined <weather.location>
+    and $city ne <weather.location> ) {
     $city_changed = 1;
-    delete <weather.cfg.city>;
+    delete <weather.location>;
     delete <weather.station_id>;
     delete <weather.cfg.station_id>;
     if ( -d $cache_dir ) {
@@ -56,8 +56,8 @@ if (    defined $city
         <[weather.base.check_dirs]>;
     }
 }
-$city //= <weather.cfg.city>;
-<weather.cfg.city> = $city;
+$city //= <weather.location>;
+<weather.location> = $city;
 
 my $custom_zoom = 0;
 $zoom = $1 if defined $city and $city =~ s/\s*:\s*zoom\s*=\s*([\d\.]+)$//;
@@ -110,7 +110,7 @@ if ( defined $station_id ) {
 }
 
 # ______________________________________________________________________________
-#\\C4FWUSNKAXZ3CDX343NHTLVCZAW4FIMONBHMZBY664IRCQY4I734TMQ6MQCAW5BXQXBCZB7FF322C
-# \\ 2PBZOYTHVZHLNLG6L5TPYX2HJYISIWHRYMAU62S3EDT4Y5N74KTF \\// C25519-BASE-32 //
-#  \\// MCMP7IHPYBOL56A4BXBJBFBPAJII7IR5SYZGZBOOY2CK6M7DSBY \\ CODE SIGNATURE \\
+#\\YEP5L7U7WMGRI5HKPB2UUUQ45FVNM7HTGFUZB775RJX3AKP3YEUBEWQ62TUJJ7TQMI3NIFSVDTOWE
+# \\ QTQXDWJDQ5P6CE6Z5GMF4SHBVLW7XZH3NYA22WWFYQSIO7PI4Z6Q \\// C25519-BASE-32 //
+#  \\// B35EFSP775LE2YFBUXWR4GC5RXZF5HRFVZ7HWH4AKRCH7JFW6DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

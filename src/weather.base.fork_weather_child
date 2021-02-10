@@ -76,7 +76,7 @@ if ( !<weather.child.pid> ) {    ## child ##
             ( $timestamp, $loaded_location ) = ( $1, $2 );
 
             <[base.log]>->( 1, "<*> restoring location '$loaded_location'" );
-            <weather.cfg.city> = $loaded_location;
+            <weather.location> = $loaded_location;
         } else {
             <[base.log]>->(
                 0, "<!> syntax error in location cache file, purging.., <!>"
@@ -85,8 +85,8 @@ if ( !<weather.child.pid> ) {    ## child ##
         }
     }
 
-    if ( defined <weather.cfg.city> and length(<weather.cfg.city>) ) {
-        <[weather.parent.set_city]>->(<weather.cfg.city>);
+    if ( defined <weather.location> and length(<weather.location>) ) {
+        <[weather.parent.set_city]>->(<weather.location>);
     } else {
         <[base.log]>->( 1, '<!> no city configured at startup <!>' );
         if ( !<weather.agent.initialized> ) {
@@ -98,7 +98,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\PWYI7MA63RDHKHR2RC4ABEDLKEEG2GUZLAR6R62ZNYWVJ6H4ENRZ7MBKD7RBOMERS2AOBYZO5SSJO
-# \\ JOMLWAKCTVJQ2C5TDET72I5OXVR2CDBST7QKTBMFRGZWUU4KAUGS \\// C25519-BASE-32 //
-#  \\// S7UWMKU7J3TU4KBFUBLSGSGMZD4ZSC3634QJLGPQVOJ7KW4JSBQ \\ CODE SIGNATURE \\
+#\\KLSVAX2H5KZ7Q6R3YIFNWGOCTWJCWQKDEZFZPYTZQBHOHOHKBMAI3VSLCATCIT7MAVSVMB5WB7YFU
+# \\ A2IQWSSU6TCX333G2FOU5KSGMLSDHJMPKGP4EY5QUYSN33A3X4GS \\// C25519-BASE-32 //
+#  \\// IC7EA3BPPPSHO4KOIZ6JE4ESD7F5N5Y5WVXEFU6DVYALCDOO6DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
