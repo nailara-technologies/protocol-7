@@ -22,8 +22,8 @@ if ( !-f $cfg_path ) {
         <openbox.bin_path>, "--sm-disable --config-file $cfg_path 2>&1 |" )
 );
 if ( !<child.openbox.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start openbox [$!]" );
-    <[base.log]>->( 1, " : aborting agent startup .." );
+    <[base.log]>->( 0, "<!> unable to start openbox [ \l$! ]" );
+    <[base.log]>->( 1, " : aborting agent startup .," );
     exit(1);
 } else {
     <[base.agents.report_child_pid]>->(<child.openbox.pid>);
@@ -31,7 +31,7 @@ if ( !<child.openbox.pid> ) {
 <[base.log]>->( 1, ": openbox started [pid=<child.openbox.pid>].," );
 <[base.log]>->( 2, ": : registering output handler..," );
 my $max_wait = 70;    # wait no longer than 7 seconds..
-<[base.log]>->( 1, "waiting for openbox log file creation.." );
+<[base.log]>->( 1, "waiting for openbox log file creation.," );
 while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }
 if ( -f <openbox.log_file> ) {
     <[event.add_timer]>
@@ -41,7 +41,7 @@ if ( -f <openbox.log_file> ) {
         0,
         "openbox log file '"
             . <openbox.log_file>
-            . "' did not appear in time, skipping tmp dir cleanup!"
+            . "' did not appear in time, skipping tmp dir cleanup.,"
     );
 }
 <[event.add_io]>->(
@@ -60,8 +60,11 @@ if ( -f <openbox.log_file> ) {
     }
 );
 
+<[event.once:0.07]>;
+
+
 # ______________________________________________________________________________
-#\\XRMXSBTAOB4IDCQGYEKSXTEBEXFQZYNDWXB3LTLB44V7HO6XT73T5CNEUAJZRWJKGVJDFVZRABIOE
-# \\ 6O2W6X7F5DGKBDXKXK3KYFIOMASDBUPNWK5FONC2ISQPD74PHDFE \\// C25519-BASE-32 //
-#  \\// DSQMG3RVXIEPYLCCSBTJPU6OBZVCTMLFO4RYX2R5FF3FA7IYQDI \\ CODE SIGNATURE \\
+#\\F44GB7PE3ZYSKFRRU7GMIHPPZDSH75INH72Y5JCBNWP56V266FR3BJJPA5PHWITSHLE2WLHO6J2MU
+# \\ NLAP7PKT2HQRG3B5JJ5NGBUJHVWKUYQ27Y6XBADCOBCYULWKI7JF \\// C25519-BASE-32 //
+#  \\// FCAZYKPPKSL3ZLEEI5AXSC7EDMG2VW7W72LJVI66EML7CUDOCBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
