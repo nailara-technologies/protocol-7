@@ -27,7 +27,7 @@ map {
     push( @copy_sources, $_ );
 } qw| bin cfg src |;
 
-<[base.log]>->( 1, ".:[ UPDATING SOURCE SIGNATURES ]:." );
+<[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
 my @source_paths;
 
@@ -58,17 +58,17 @@ foreach my $path_abs ( grep { !m|/\.| } @source_paths ) {
         or !length( $code_data_ref->{'data'} );
 
     <[base.log]>->( 1, ':.' );
-    <[base.log]>->( 1, ":::[ $path_rel ]:. * .:" );
+    <[base.log]>->( 1, ":::[ $path_rel ]:.<+>.::" );
     <[base.log]>->( 1, ':' );
 
     $file_count--;
     <[file.put]>->( $path_abs, $code_data_ref->{'data'} );
 }
 
-<[base.log]>->( 1, ": : success =)" ) if !$file_count;    # log files changed..,
+<[base.log]>->( 1, ': : success =)' ) if !$file_count;    # log files changed..,
 
 # ______________________________________________________________________________
-#\\4DYAQFIAN7Y3MRAN7LANZNYJ2ESAG7CUKAMIL5HQUATSUQUSNN3ASFOQGSPBYREABVM2SQMB6L6PM
-# \\ QRWQFXFLCCCSNGSRT5BAS2XIB6G55A5BTV5WSN6XVKMTPUW4J6YX \\// C25519-BASE-32 //
-#  \\// LB5UVDEEVOHLQ52KGBQFJNPVMKFYPLIWUKY76AWTGHFWBKC6SDQ \\ CODE SIGNATURE \\
+#\\2UFTOVQHKJVYCILJYVJ2NPETW7ZHDMMYZ6YQABZXY56YCTT5UZLJUWOJEXYZ4DSQKCLMG64RVEU44
+# \\ D2K33HIEH2ZZG3ADB3RJWYA6PQKDQYIZ3JDGIJKDRVYC4WZ3BYZN \\// C25519-BASE-32 //
+#  \\// XNLSCJIM6ARVKEM53PK5Y3BLF6QMBOJMHYZPOUBCMUNJ3YLGSBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
