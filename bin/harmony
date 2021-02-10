@@ -5,6 +5,8 @@ use warnings;
 use Math::BigFloat;
 use Digest::Elf qw| elf |;
 
+my $quiet = ( @ARGV > 1 and $ARGV[0] eq '-q' and shift @ARGV ) ? 1 : 0;
+
 my %ANSI = (
     'str'     => "\c[[1m",
     'reset'   => "\c[[m",
@@ -44,12 +46,12 @@ if ( $calc_str =~ m|$harmony| or $calc_str =~ m|^0+$| ) {
 }
 
 print "\n$space'$ANSI{'str'}$check_string$ANSI{'reset'}'  ==="
-    . "  $result\n$line_str\n\n";
+    . "  $result\n$line_str\n\n" if not $quiet;
 
 exit($return_code);
 
 # ______________________________________________________________________________
-#\\YZ2TYYTLGXX46P2KZTTEHHPRBVGW56ATZJQKBDIJB24F2FD7TYMHSSLVH2RVUI4HRHFPQOWW643B6
-# \\ T6SNUCNAZKLROR7NH6G5EQ42V5I2F7OBDP2ETGU2SYH33Y53DF42 \\// C25519-BASE-32 //
-#  \\// APO7R5BSTFVPBBHOS2D7TGFP724N7V3RZBO2EJLH26AB6YGRWDY \\ CODE SIGNATURE \\
+#\\FUEBX6DDQTZI57SWWMYRBVYHWJFJ5G32QKSLOYJHREFDJKKHCJZVT7PF4LW7XMJCLGZSTELGZC32E
+# \\ XGRK24Q6TVFPT6ZAMIJBTLPAODHBBXSSOB5DIJK3WAU3ROKRAWHY \\// C25519-BASE-32 //
+#  \\// Z3LLV23OEM3DKEVO75WCPB5QBBJ5QDDMWEHGEJCJA4K6QC6G2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
