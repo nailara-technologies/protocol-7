@@ -4,7 +4,7 @@
 # param = <w_id>
 # descr = keep specified window mapped on bottom
 
-my $X         = <X-11.x11>;
+my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
 return { 'mode' => 'nak', 'data' => 'x11 window id required' }
@@ -12,7 +12,7 @@ return { 'mode' => 'nak', 'data' => 'x11 window id required' }
 return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
-my $xtops = <X-11.x11_tops>;
+my $xtops = <X-11.WM>;
 <[X-11.update-xtops]>;
 
 my $window;
@@ -38,7 +38,7 @@ return { 'mode' => 'nak', 'data' => "unable to set window state 'below'" }
 return { 'mode' => 'ack', 'data' => "set window state 'below'" };
 
 # ______________________________________________________________________________
-#\\SDRBPMIMZANHOXVH4ULM6WAB6MG5BAWXIFSIXMYV2AVF47D4EV4CRC5TI4V66B43BQ5NRBDRPOHES
-# \\ AENF52QLZJGTXHYTZBHHM5NAGIQCEOIXNSWNMRYILQ357UZB4SI3 \\// C25519-BASE-32 //
-#  \\// 3JZ3SMFX2JMDY2LIIOGCIDL3GTEYHHJZLBQLGSYHCS33KUJPKAA \\ CODE SIGNATURE \\
+#\\5X2TE36GRAZWC7HTWZDXMJSN3WCR5LE7OMZFFPTYOKXXSL3WAN5IV7XBZ55KSQSUBYHJJSALVWPNO
+# \\ K4VOBU44X25HYGRZXL3VCBL23FNVH2G7QEKPFHANSNJPNJNW6UZQ \\// C25519-BASE-32 //
+#  \\// IZBT2H4J7AMTRMEYY2SS4JG46OXUHHTK26XMEV55CUHBA4HZYAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

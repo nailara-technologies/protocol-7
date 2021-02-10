@@ -5,7 +5,7 @@
 # descr = set new X-11 screen size [ when possible ]
 # todo  = restart xephyr process on size change request [ in xephyr mode, .., ]
 
-my $X = <X-11.x11>;
+my $X = <X-11.obj>;
 my ( $width, $height ) = split( m|\D+|, shift->{'args'} );
 
 return {
@@ -22,9 +22,9 @@ return {
 $X->choose_screen(0);    # LLL: no support for multiple screens yet .,
 
 # LLL: check ranges in advance..,
-# print STDERR Dumper( $X->RRGetScreenSizeRange( <X-11.x11>->root ) );
+# print STDERR Dumper( $X->RRGetScreenSizeRange( <X-11.obj>->root ) );
 
-my %screen_geom = $X->GetGeometry( <X-11.x11>->root );
+my %screen_geom = $X->GetGeometry( <X-11.obj>->root );
 
 my ( $current_width, $current_height )
     = ( $screen_geom{'width'}, $screen_geom{'height'} );
@@ -65,7 +65,7 @@ if ($@) {
     };
 }
 
-%screen_geom = $X->GetGeometry( <X-11.x11>->root );
+%screen_geom = $X->GetGeometry( <X-11.obj>->root );
 
 if (   $screen_geom{'width'} != $current_width
     or $screen_geom{'height'} != $current_height ) {
@@ -90,7 +90,7 @@ if (   $screen_geom{'width'} != $current_width
 }
 
 # ______________________________________________________________________________
-#\\J7GJODKI547WSN24W2SXHVFKKUWASPBIKVR3MEJSFWELAQ5WV62GXCECVQVWTIVIEPHLLBICZ57JM
-# \\ RXPG4ZE45FZFAKFGP4SAGKUYRQHOATQ52VC27SO7KNOZHHZPEEZL \\// C25519-BASE-32 //
-#  \\// DVVSYMQECC5FHRGIX7BJL7RRG5RCXP4S4W65KGCYNJVBWV3NKAA \\ CODE SIGNATURE \\
+#\\FH4WHJXDCKULNWE4WIYRXJRUKRZOUP6I3Q2PW4UZEOMSZOBUKL4ES3NBJEYAP2YRJTI554BS346Q4
+# \\ 6M76XPT2IXNFNCVMAQFQ2WXQESBGZX2FMNK5XRA5FRIYPLBCVWKN \\// C25519-BASE-32 //
+#  \\// AVKF52CF4S5VY6KZTBBUTJTSP22SUT2ZDEHBABDRPB552ZR7SAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

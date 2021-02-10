@@ -18,8 +18,8 @@ map {
     "[$log_sid] hovering mouse pointer over position x=$coords{x}, y=$coords{y}"
 );
 
-<X-11.x11>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
-my %screen_geom = <X-11.x11>->GetGeometry( <X-11.x11>->root );
+<X-11.obj>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
+my %screen_geom = <X-11.obj>->GetGeometry( <X-11.obj>->root );
 my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return {
@@ -31,12 +31,12 @@ return {
     or $coords{'y'} > $height;
 
 <[X-11.move_pointer]>->( $coords{'x'}, $coords{'y'} );
-<X-11.x11>->QueryPointer( <X-11.x11>->root );
+<X-11.obj>->QueryPointer( <X-11.obj>->root );
 
 return { 'mode' => 'ack', 'data' => "mouse position set" }
 
 # ______________________________________________________________________________
-#\\A2CQ2SK4WE3WLS436FOQXG7WWMX7AA7DTX3DW7EDSIIXPOC6Y5IEJCJ3PZOBGNNRFPSHLJ2P6MFL6
-# \\ QEBEA7LLSDPVYVNRZX5VRDL2ADMOLP32D3J6Y4XPREHUUVW4XTSC \\// C25519-BASE-32 //
-#  \\// 2VSZW3BDNTHZ2SKLJG55U4FIN75UZMBYRYOQ77PVRSK2YUVAQDQ \\ CODE SIGNATURE \\
+#\\N6YSHWUH5GSX4JVUIKBSQ6REOGAGV5BCABWLBH7WX4T634N7MZHAGUFAYVFQKQXLAJ3HEWLG6KRRU
+# \\ 33QAN6OIDS6LJPUJWYLYH6542AIGMHCVFZ47V47D43RVZMLHXOAI \\// C25519-BASE-32 //
+#  \\// LDPNYQGZTVZVQKUJYY24TNKBYHN67PERRWCLUYUX5QZ6A2SBOBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
