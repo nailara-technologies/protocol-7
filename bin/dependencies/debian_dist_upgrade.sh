@@ -36,3 +36,8 @@ rm -rf /var/cache/apt/mediainfo_tmp*
 rm -rf /root/.cpanm
 
 # dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
+# ______________________________________________________________________________
+#\\GFTLYACCDZJGEJUJXS6AKIILWLJBZ4CE3ASAK2H6J6O3U624HM7QB2PK2U44FG5EKFCE2BYQXK46I
+# \\ 75CROPF3SXIYYRA5EOYBQK4IGHM5MPVWO4MCA7HA65XGCUTCU6YO \\// C25519-BASE-32 //
+#  \\// B5AQSAAXSIKKPX6ZY5EZIVN5G3WD5XKBW4HZDVBDL5A4X6M5MCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
