@@ -3,14 +3,14 @@
 # name = net.connect_to_core
 
 my @connection_types = @_;
-@connection_types = ('unix') if defined <unix.path>; # overriding (in -sic mode)
+@connection_types = ('unix') if defined <unix.path>; # overriding [in -sic mode]
 
 my $core_sock;
 my $core_addr     = <protocol-7.network.internal.addr>;
 my $core_port     = <protocol-7.network.internal.port>;
 my $unix_path     = defined <unix.path> ? <unix.path> : undef;
 my $agent_name    = <system.agent.name>;
-my $agent_subname = <system.agent.name>;
+my $agent_subname = <system.agent.subname>;
 
 foreach my $c_type (@connection_types) {
     <[base.log]>->( 1, "initiating core connection [$c_type].," );
@@ -55,13 +55,13 @@ foreach my $c_type (@connection_types) {
             $core_sock = undef;
         }
     } elsif ( $c_type eq 'pipe' ) {
-        die "((( connection type 'pipe' not implemented yet )))";
+        die "<<< connection type 'pipe' not implemented yet >>>";
     } else {
         die "[!] unknown connection type '$c_type' requested [!]";
     }
 
     if ( defined $core_sock ) {
-        <[base.session.init]>->( $core_sock, 'nailara', 'client', 'core' );
+        <[base.session.init]>->( $core_sock, qw| nailara client core | );
 
         <system.timer>->{'send_reports'} = <[event.add_timer]>->(
             {   'repeat'  => 0,
@@ -81,7 +81,7 @@ if ( not defined $core_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\LRCIR4MQNZER7R6GEG4SW3ULAZMGICGBPZC3CPCJYYX6LM56RTN5LA5EB363JHA53RZQDTE4FIV54
-# \\ EPJ5XRS2R2YC5QKMZKCWYN4ZLLDOXGK6ZGWF6HVFUJID6CPEYHFF \\// C25519-BASE-32 //
-#  \\// 55OWETB5MI52HY4YMPMNYLOBZIIV7PUQ47EPZL3KTG34DSRU2DA \\ CODE SIGNATURE \\
+#\\UJJMHDQAWNCONO74CKHBXHHYV5QBLVJPVJOS2VVKYYUXYHUKD7XYQXN5ACYVNEMMJXT7F3FPA7DMG
+# \\ REDHPBG2ZFJMSSPAWKACJR7R4DZX6UKCBII2S37DILKC3WXJYY2J \\// C25519-BASE-32 //
+#  \\// 2QA2Z7TO6NPN7JLJZ27OBNGVUOLVK76BAYKKQOALRX2IBZ3Z2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

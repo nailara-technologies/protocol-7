@@ -19,7 +19,7 @@ $c_fh = <[auth.agent.client]>->( $c_fh, $authname, $core_key );
 #[ error \ <false> ]
 return 0 if not defined $c_fh;
 
-my $session_id = <[base.session.init]>->( $c_fh, 'nailara', 'client', 'core' );
+my $session_id = <[base.session.init]>->( $c_fh, qw| nailara client core | );
 <[base.log]>->( 1, "auth. to core successful [ session $session_id ]" );
 <nroot.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <nroot.agent.instance>->{$instance_id}->{'is-core'}  = 1;
@@ -41,7 +41,7 @@ my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
 return 1;
 
 # ______________________________________________________________________________
-#\\ZLK3GJWBVRBU4WCZODME37I4242FBWZDD2SUODBZRRDWTN6SXRYW5WKCBF4MXA432VYM3U4QI3RGE
-# \\ I3JKFVG7MSYL5X52COYMYMZPQGSXXJDYDFT6F3O6SKQYIZUEQUD7 \\// C25519-BASE-32 //
-#  \\// BG6LNDQOUPUA4BRTFW3LPS4BIVJZVY56WCPL4J3UG6GGPCYNUCQ \\ CODE SIGNATURE \\
+#\\RRGJ2QKPA4XMPQCZVIY7DUIV3V2JYIJK7OR3GDUZA73CKQKH243MF3VHXBUO3XYXC6VB2X2XOIPZW
+# \\ KYOMWWVVUGD22QF6LRQSIYJJZZJ66LKYGUFAUMTIDZNOBY52NV7P \\// C25519-BASE-32 //
+#  \\// IABUXBUNJTBV7SGUHZILDYG4EO34RSV3FN6YARIEH555EDKPQDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
