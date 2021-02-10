@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use v5.10;
+use strict;
+use warnings;
+
+$ENV{'DISPLAY'} //= ':0.0';
+
+( my $check_string = qx| xsel -o | ) =~ s'^\s+|\s+$''sg;
+
+exit(0) if not length $check_string;
+
+my $text_file = '/tmp/.osd_harmony.' . $$;
+my @aosd_opts
+    = ( qw| -p 1 -e 1 -o 2400 -y 17 -x 0 -n WhiteRabbit -i |, $text_file );
+
+my $msg;
+if ( system( '/usr/local/bin/harmony', '-q', $check_string ) == 0 ) {
+    $msg = "'$check_string'  IS  HARMONIC =)\n";
+    push( @aosd_opts, qw| -u 2400 -R #0069B7 | );
+} else {
+    $msg = "'$check_string'  is  _NOT_  harmonic  `:|\n";
+    push( @aosd_opts, qw| -u 1200 -R #7700CD | );
+}
+
+open( FILE, '>', $text_file ) or die "[ $text_file ] $!\n";
+print FILE $msg;
+close FILE;
+
+system( '/usr/bin/aosd_cat', @aosd_opts );
