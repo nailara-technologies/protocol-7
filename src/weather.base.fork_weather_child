@@ -8,7 +8,7 @@ use Socket;
 
 <weather.pipe> = { 'child' => {}, 'parent' => {} };
 
-<[base.log]>->( 1, "forking weather child.." );
+<[base.log]>->( 1, "forking weather child.," );
 
 <[base.enable_list]>->('sessions');
 
@@ -26,7 +26,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <weather.pipe.child> if exists <weather.pipe.child>;
 
-    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again..,
 
     <weather.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -66,7 +66,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     my $cache_dir = <weather.cache_dir>;
     my $city_file = "$cache_dir/city.current";
     if ( -f $city_file ) {
-        <[base.log]>->( 1, "found saved location setup in cache.." );
+        <[base.log]>->( 1, "found saved location setup in cache.," );
         <[file.slurp]>->( $city_file, \my $stid_loc_str, ':raw' ); # has utf8 ##
 
         my ( $timestamp, $loaded_location );
@@ -98,7 +98,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\UWYVHLCNJ6MM56S5MM6EAZMOXKT5SCMJI7EY6B475QG3BL2SC3QHEO7Z6DUMO6XBULSXCATKBMNR4
-# \\ T2QIIYLQO2XM7EQJMFEDCDE26CQPG7T6NXMP7OIJXJ33PEUI2YXV \\// C25519-BASE-32 //
-#  \\// UMMB3WZDH6A7XQCQJHTDHZZOQANZO6K6UE7GRP7DEMYZ2YANICY \\ CODE SIGNATURE \\
+#\\PWYI7MA63RDHKHR2RC4ABEDLKEEG2GUZLAR6R62ZNYWVJ6H4ENRZ7MBKD7RBOMERS2AOBYZO5SSJO
+# \\ JOMLWAKCTVJQ2C5TDET72I5OXVR2CDBST7QKTBMFRGZWUU4KAUGS \\// C25519-BASE-32 //
+#  \\// S7UWMKU7J3TU4KBFUBLSGSGMZD4ZSC3634QJLGPQVOJ7KW4JSBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
