@@ -45,3 +45,8 @@ perl -Mv5.13 -e \
 cpanm https://github.com/jheddings/bittrex.git
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
+# ______________________________________________________________________________
+#\\6SE7MUXOYBSVKCLADXVCC7XXIQUHF2OZLSV2EDUO2ACDB7FKGRHVWAT7HXMVAJOFIB2NEF7ZA3DU6
+# \\ ZGWW2P4NWPU7XOEMLAWRVNTKTEIZYE2TQNY4QV22VNUSHYIBSSTU \\// C25519-BASE-32 //
+#  \\// JP6YVDVSUGS3S3DMRBFGHKZ6E2PPAXBX72Y5CK6CE3Z64HGMOBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
