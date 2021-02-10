@@ -10,7 +10,7 @@ my $read_fh   = $event->fd;
 my $child     = $event->data;
 my $bin       = $child->{'bin'};
 my $pid       = $child->{'pid'};
-my $whitelist = $child->{'log_whitelist'} || [];
+my $whitelist = $child->{'log_whitelist'}     || [];
 my $xpatterns = $child->{'callback_patterns'} || {};
 
 <child.output_buffer> //= '';
@@ -50,22 +50,19 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
             last;
         }
     }
-    ## [ translating common messages ] ###
-    $output_line =~ s{^XIO:.+(unavailable|reset).+server."(\S+)".+}
-                     {x-server connection lost [ display $2 ]}xo;
-    $output_line =~ s{^.+after.\d+.requests.+remaining\.$}{}xo;
-    $output_line =~ s{Gdk-Message:[\s\d\.:]+(.+?):.+
-                      (unavailable|reset).+server.(\S+)\.}
-                     {'$1' x-server connection lost [ display $3 ]}xo;
-    $output_line =~ s{^X .+to.(\S+).broken.+$}
-                     {x-server connection lost [ display $1 ]}xo;
+    ## [ translating registered error message strings ] ###
+    map { $output_line = $_->($output_line) if ref($_) eq 'CODE' }
+        @{<base.message_parsers.child_output>}
+        if defined <base.message_parsers.child_output>
+        and ref(<base.message_parsers.child_output>) eq 'ARRAY';
     ##
+
     <[base.log]>->( $log_level, "< $bin > " . $output_line )
         if length $output_line;
 }
 
 # ______________________________________________________________________________
-#\\HIJMCMPJ6PS32N7SYUZNRD7TGVTYJZVV27WVUBDLSZG2Z43N5OAI2PJFLE3WGMTNXTF37DNOQWIE2
-# \\ 3C44QY5DFHO6D7EIU74IKJ4JOXBK3ZTJTK4NACULDOON6MX5YYT2 \\// C25519-BASE-32 //
-#  \\// BELQOE5IWCKVKAK3RDYFIRFDUOYHF2IQJWBIEPKTOSKV3DIIQAI \\ CODE SIGNATURE \\
+#\\ERSDDRZ2J27FXD2BXDKHU7VLJX3FM22OZUZENMM5OY54FB354AXVXIDBTWSCG4X6DER46MGR4DFLE
+# \\ 3S3WRWMXU5PU6FJI3MQADZIDJVYRQCX6AJ4LK3IYGX5FSO3AU33V \\// C25519-BASE-32 //
+#  \\// WV3CZW6TMZQ62KGPIVLMNL2GGNHA67TRYDZ72MSTNVJW5BAO6CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

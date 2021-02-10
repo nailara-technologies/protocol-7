@@ -1,0 +1,22 @@
+# >:]
+
+# name  = base.parser.xclient-errors
+# descr = reword common X-11 [dis]connection error messages
+
+my $out_line = shift;
+
+$out_line =~ s{^XIO:.+(unavailable|reset).+server."(\S+)".+}
+              {x-server connection lost [ display $2 ]}xo;
+$out_line =~ s{^.+after.\d+.requests.+remaining\.$}{}xo;
+$out_line =~ s{Gdk-Message:[\s\d\.:]+(.+?):.+
+               (unavailable|reset).+server.(\S+)\.}
+              {'$1' x-server connection lost [ display $3 ]}xo;
+$out_line =~ s{^X .+to.(\S+).broken.+$}
+              {x-server connection lost [ display $1 ]}xo;
+
+return $out_line;
+# ______________________________________________________________________________
+#\\FEDGZSYM4JIR3PKWLJFVJO6JVTNNO4WEIC6YQIPD3KPINBBTBSWONU6W5GG4CSW6BHGOAOVBAL2Y6
+# \\ HAMDRRAJEESZBUJJGUU6AC7OFOK3J6W76M7RCWI4466R4W3OMYKE \\// C25519-BASE-32 //
+#  \\// EMMVDUGLO5R67ZKU3G3CMOMOE3I3O3RNPO6PH665LET2VZVLUDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

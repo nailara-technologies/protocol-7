@@ -22,7 +22,19 @@ if ( not <openbox.tmp_dir_init> ) {
 
 <openbox.bin_path> = <[base.required_bin_path]>->('openbox');
 
-if ( <openbox.prefer_patched_openbox> and -x <openbox.patched_openbox_path> ) {
+<base.message_parsers.child_output> = [
+    $code{'base.parser.xclient-errors'},
+    sub {
+        my $msg = shift;
+        $msg =~ s|^Openbox-Message: ||;
+        $msg =~ s|^Failed.to.open.the.display.+
+                 |cannot open display ['$ENV{'DISPLAY'}']|x;
+        return $msg;
+    }
+];
+
+if ( <openbox.prefer_patched_openbox>
+    and -x <openbox.patched_openbox_path> ) {
     <openbox.bin_path> = <openbox.patched_openbox_path>;
     <[base.log]>->( 1, "selected patched openbox version..," );
 }
@@ -44,7 +56,7 @@ $SIG{'TERM'} = sub {
 0;
 
 # ______________________________________________________________________________
-#\\2UID3QLATHHP2N6BYETTCGUZ3YJGVIWG2GJIOT6GHOLPUULC4Y4ZFB2LTGBVDKBOF552CGWEYCCH2
-# \\ 2YNUWMNHAPRU4Y6O5CTIMBSH5XCBWZARCYCT2B6TGPCDUUF2LJW3 \\// C25519-BASE-32 //
-#  \\// 2THHDPT53NV43ENOMDDHQUFHJQAQZSS7I6POFERV4K5CZO456DI \\ CODE SIGNATURE \\
+#\\IDQ3TJOSON5IQGVLVKSBKRDPPVGAB6SXPLII2MZJSEZN3WLOF5MFDJIWES3QW24PLEVOEJWFHNW24
+# \\ GLTAP5CXXZIEOXCOW7ZAWGCJSLCG6Y5626YP42XBBXOYM4XR5SO3 \\// C25519-BASE-32 //
+#  \\// XSHQX5TKO56MZIGYF6F2KNAMTZLZD43R5BT4CHHJLHTNTCFYQDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
