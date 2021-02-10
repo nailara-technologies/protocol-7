@@ -1,31 +1,31 @@
 
-#   // <- original source: [cpan] X11::Tops [rev.3.25] written by Brian Keck
+#   // <-- original source: [cpan] X11::Tops [rev.3.25] written by Brian Keck
 #  //
-# // -> fixed line 101 + 103 [ // '' ] + minor cleanup
+# // --> fixed line 101 + 103 [ // '' ] + minor cleanup + renamed to X11::WM
 
-package X11::Tops;
+package X11::WM;
 
 use X11::Protocol;
 use Carp;
 use strict;
 use warnings;
 
-our $VERSION = 0.2;
+our $VERSION = 0.1;
 
 my @getpropconst = ( 'AnyPropertyType', 0, -1, 0 );
 
 sub new {
     my $X = shift;
     $X = X11::Protocol->new() unless ref $X;
-    my $xtops;
-    $xtops->{X}    = $X;
-    $xtops->{root} = $X->root;    # assumes only 1 screen
-    $xtops->{$_} = $X->InternAtom( $_, 0 ) for qw(
+    my $wm;
+    $wm->{X}    = $X;
+    $wm->{root} = $X->root;                         # assumes only 1 screen
+    $wm->{$_}   = $X->InternAtom( $_, 0 ) for qw(
         _NET_CLIENT_LIST
         _XCHAR_CHAR
         _XCHAR_COMMAND
     );
-    $xtops->{$_} = $X->atom($_) for qw(
+    $wm->{$_} = $X->atom($_) for qw(
         _WIN_CLIENT_LIST
         _NET_ACTIVE_WINDOW
         _NET_CLIENT_LIST_STACKING
@@ -36,18 +36,18 @@ sub new {
         WM_NORMAL_HINTS
         WM_SIZE_HINTS
     );
-    $xtops->{$_} || croak("failed to create atom $_") for qw(
+    $wm->{$_} || croak("failed to create atom $_") for qw(
         _XCHAR_CHAR
         _XCHAR_COMMAND
     );
-    bless $xtops;
+    bless $wm;
 }
 
 sub fetch_ids {
-    my $xtops            = shift;
-    my $X                = $xtops->{X};
-    my $root             = $xtops->{root};
-    my $_NET_CLIENT_LIST = $xtops->{_NET_CLIENT_LIST};
+    my $wm               = shift;
+    my $X                = $wm->{X};
+    my $root             = $wm->{root};
+    my $_NET_CLIENT_LIST = $wm->{_NET_CLIENT_LIST};
     my ( $value, $type, $format, $bytes_after )
         = $X->GetProperty( $root, $_NET_CLIENT_LIST, @getpropconst );
     my @ids = unpack( 'L*', $value );
@@ -55,89 +55,86 @@ sub fetch_ids {
 }
 
 sub update_ids {
-    my $xtops = shift;
-    my $ids   = $xtops->fetch_ids;
-    $xtops->{byid}{$_} = bless { xtops => $xtops, id => $_ }, 'X11::Top'
-        for @$ids;
-    $xtops;
+    my $wm  = shift;
+    my $ids = $wm->fetch_ids;
+    $wm->{byid}{$_} = bless { wm => $wm, id => $_ }, 'X11::WM::class' for @$ids;
+    $wm;
 }
 
 sub update_from_props {
-    my $xtops = shift;
-    $xtops->update_ids;
-    for my $xtop ( values %{ $xtops->{byid} } ) {
-        $xtop->class;
-        $xtop->char;
+    my $wm = shift;
+    $wm->update_ids;
+    for my $wm_c ( values %{ $wm->{byid} } ) {
+        $wm_c->class;
+        $wm_c->char;
     }
-    $xtops;
+    $wm;
 }
 
 sub update {
-    my $xtops   = shift;
+    my $wm      = shift;
     my @deleted = ();
-    my $newids  = $xtops->fetch_ids;
-    if ( $xtops->{byid} ) {
+    my $newids  = $wm->fetch_ids;
+    if ( $wm->{byid} ) {
         my %seen;
         for my $id (@$newids) {
-            $seen{$id} = 1;
-            $xtops->{byid}{$id} = bless { xtops => $xtops, id => $id },
-                'X11::Top'
-                unless $xtops->{byid}{$id};
+            $seen{$id}       = 1;
+            $wm->{byid}{$id} = bless { wm => $wm, id => $id }, 'X11::WM::class'
+                unless $wm->{byid}{$id};
         }
-        for my $id ( keys %{ $xtops->{byid} } ) {
-            push( @deleted, $xtops->{byid}{$id} ) unless $seen{$id};
+        for my $id ( keys %{ $wm->{byid} } ) {
+            push( @deleted, $wm->{byid}{$id} ) unless $seen{$id};
         }
-        for my $xtop (@deleted) {
-            delete $xtops->{byid}{ $xtop->{id} };
-            delete $xtops->{chars_in_use}{ $xtop->{char} };
+        for my $wm_c (@deleted) {
+            delete $wm->{byid}{ $wm_c->{id} };
+            delete $wm->{chars_in_use}{ $wm_c->{char} };
         }
     } else {
         for my $id (@$newids) {
-            $xtops->{byid}{$id} = bless { xtops => $xtops, id => $id },
-                'X11::Top';
+            $wm->{byid}{$id} = bless { wm => $wm, id => $id }, 'X11::WM::class';
         }
     }
-    for my $xtop ( values %{ $xtops->{byid} } ) {
-        $xtop->{instance} = $xtop->instance // ''
-            unless defined $xtop->{instance};
-        $xtop->{char} = $xtops->choosechar($xtop) // ''
-            unless defined $xtop->{char};
+    for my $wm_c ( values %{ $wm->{byid} } ) {
+        $wm_c->{instance} = $wm_c->instance // ''
+            unless defined $wm_c->{instance};
+        $wm_c->{char} = $wm->choosechar($wm_c) // ''
+            unless defined $wm_c->{char};
     }
-    $xtops->sort;
+    $wm->sort;
     @deleted;
 }
 
 sub byid {
-    my $xtops = shift;
-    $xtops->{byid};
+    my $wm = shift;
+    $wm->{byid};
 }
 
 # assume instances set
 
 sub choosechar {
-    my ( $xtops, $xtop ) = @_;
-    $xtops->{char} = sub { [ 'a' .. 'z', '0' .. '9' ] }
-        unless $xtops->{char};
-    my $instance = $xtop->{instance};
-    croak("\$xtop->{instance} not set for \$xtop->{id} = $xtop->{id}")
+    my ( $wm, $wm_c ) = @_;
+    $wm->{char} = sub { [ 'a' .. 'z', '0' .. '9' ] }
+        unless $wm->{char};
+    my $instance = $wm_c->{instance};
+    croak("\$wm_c->{instance} not set for \$wm_c->{id} = $wm_c->{id}")
         unless defined $instance;
-    my $char = &{ $xtops->{char} }($instance);
+    my $char = &{ $wm->{char} }($instance);
     if ( ref $char ) {
         for my $c (@$char) {
-            $char = $c, last unless $xtops->{chars_in_use}{$c};
+            $char = $c, last unless $wm->{chars_in_use}{$c};
         }
     }
     croak("no char matches instance '$instance'") unless defined $char;
-    $xtops->{chars_in_use}{$char} = 1;
-    $xtop->char($char);
+    $wm->{chars_in_use}{$char} = 1;
+    $wm_c->char($char);
     $char;
 }
 
 # assume chars chosen, as after update()
 
 sub sort {
-    my $xtops = shift;
-    my $order = $xtops->{order};    # hashref char->integer
+    my $wm    = shift;
+    my $order = $wm->{order};    # hashref char->integer
     my $max   = -1;
     if ($order) {
         for ( values %$order ) {
@@ -152,57 +149,57 @@ sub sort {
         next if defined $order->{$char};    # XXX: <- patch / hotfix!
         $order->{$char} = $max + 1 + $n;
     }
-    @{ $xtops->{sorted} }
+    @{ $wm->{sorted} }
         = sort { $order->{ $a->{char} } <=> $order->{ $b->{char} } }
-        values %{ $xtops->byid };
+        values %{ $wm->byid };
 }
 
 sub sorted {
-    my $xtops = shift;
-    $xtops->sort unless $xtops->{sorted};
-    $xtops->{sorted};
+    my $wm = shift;
+    $wm->sort unless $wm->{sorted};
+    $wm->{sorted};
 }
 
 # assume chars chosen, as after update()
 
 sub bychar {
-    my $xtops  = shift;
+    my $wm     = shift;
     my $bychar = {};
-    for my $xtop ( values %{ $xtops->byid } ) {
-        $bychar->{ $xtop->{char} } = $xtop;
+    for my $wm_c ( values %{ $wm->byid } ) {
+        $bychar->{ $wm_c->{char} } = $wm_c;
     }
     $bychar;
 }
 
 sub X {
-    my $xtops = shift;
-    $xtops->{X};
+    my $wm = shift;
+    $wm->{X};
 }
 
 sub match {
-    my ( $xtops, $prop, $regex ) = @_;
-    for my $xtop ( values %{ $xtops->{byid} } ) {
-        my $value = $xtop->{$prop};
-        $value = eval "\$xtop->$prop" unless defined $value;
-        return $xtop if $value =~ $regex;
+    my ( $wm, $prop, $regex ) = @_;
+    for my $wm_c ( values %{ $wm->{byid} } ) {
+        my $value = $wm_c->{$prop};
+        $value = eval "\$wm_c->$prop" unless defined $value;
+        return $wm_c if $value =~ $regex;
     }
 }
 
 for my $sub (qw(class instance title icon char)) {
     no strict 'refs';
     *$sub = sub {
-        my ( $xtops, $regex ) = @_;
-        $xtops->match( $sub, $regex );
-        }
+        my ( $wm, $regex ) = @_;
+        $wm->match( $sub, $regex );
+    }
 }
 
-# argument normally $xtops, but not used except to find this
+# argument normally $wm, but not used except to find this
 
 sub active {
-    my $xtops              = shift;
-    my $X                  = $xtops->{X};
-    my $root               = $xtops->{root};
-    my $_NET_ACTIVE_WINDOW = $xtops->{_NET_ACTIVE_WINDOW};
+    my $wm                 = shift;
+    my $X                  = $wm->{X};
+    my $root               = $wm->{root};
+    my $_NET_ACTIVE_WINDOW = $wm->{_NET_ACTIVE_WINDOW};
     my ( $value, $type, $format, $bytes_after )
         = $X->GetProperty( $root, $_NET_ACTIVE_WINDOW, @getpropconst );
     unpack( 'L*', $value );
@@ -210,13 +207,13 @@ sub active {
 
 # see raise & lower
 
-# argument normally $xtops, but not used except to find this
+# argument normally $wm, but not used except to find this
 
 sub stacking {
-    my $xtops                     = shift;
-    my $X                         = $xtops->{X};
-    my $root                      = $xtops->{root};
-    my $_NET_CLIENT_LIST_STACKING = $xtops->{_NET_CLIENT_LIST_STACKING};
+    my $wm                        = shift;
+    my $X                         = $wm->{X};
+    my $root                      = $wm->{root};
+    my $_NET_CLIENT_LIST_STACKING = $wm->{_NET_CLIENT_LIST_STACKING};
     my ( $value, $type, $format, $bytes_after )
         = $X->GetProperty( $root, $_NET_CLIENT_LIST_STACKING, @getpropconst );
     unpack( 'L*', $value );
@@ -247,91 +244,91 @@ sub Gravity {
             SouthWest
             South
             SouthEast
-            )
+        )
     )[$arg];
 }
 
-# also X11::Top method
+# also X11::WM::class method
 
 sub monitor_property_change {
-    my $xtops = shift;
-    my $X     = $xtops->{X};
-    my $id    = $xtops->{root};
+    my $wm = shift;
+    my $X  = $wm->{X};
+    my $id = $wm->{root};
     $X->ChangeWindowAttributes( $id,
         event_mask => $X->pack_event_mask('PropertyChange') );
 }
 
-package X11::Top;
+package X11::WM::class;
 
 sub id {
-    my $xtop = shift;
-    $xtop->{id};
+    my $wm_c = shift;
+    $wm_c->{id};
 }
 
 sub instance {
-    my $xtop     = shift;
-    my $xtops    = $xtop->{xtops};
-    my $X        = $xtops->{X};
-    my $WM_CLASS = $xtops->{WM_CLASS};
-    return $xtop->{instance} if defined $xtop->{instance};
+    my $wm_c     = shift;
+    my $wm       = $wm_c->{wm};
+    my $X        = $wm->{X};
+    my $WM_CLASS = $wm->{WM_CLASS};
+    return $wm_c->{instance} if defined $wm_c->{instance};
     my ( $value, $type, $format, $bytes_after )
-        = $X->GetProperty( $xtop->{id}, $WM_CLASS, @getpropconst );
+        = $X->GetProperty( $wm_c->{id}, $WM_CLASS, @getpropconst );
     my ( $instance, $class ) = split "\0", $value;
-    $xtop->{instance} = $instance;
-    $xtop->{class}    = $class;
+    $wm_c->{instance} = $instance;
+    $wm_c->{class}    = $class;
     $instance;
 }
 
 sub class {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    return $xtop->{class} if defined $xtop->{class};
-    my $X        = $xtops->{X};
-    my $WM_CLASS = $xtops->{WM_CLASS};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    return $wm_c->{class} if defined $wm_c->{class};
+    my $X        = $wm->{X};
+    my $WM_CLASS = $wm->{WM_CLASS};
     my ( $value, $type, $format, $bytes_after )
-        = $X->GetProperty( $xtop->{id}, $WM_CLASS, @getpropconst );
-    croak("failed to fetch WM_CLASS for window $xtop") unless $value;
+        = $X->GetProperty( $wm_c->{id}, $WM_CLASS, @getpropconst );
+    croak("failed to fetch WM_CLASS for window $wm_c") unless $value;
     my ( $instance, $class ) = split "\0", $value;
-    $xtop->{instance} = $instance;
-    $xtop->{class}    = $class;
+    $wm_c->{instance} = $instance;
+    $wm_c->{class}    = $class;
     $class;
 }
 
 sub title {
-    my $xtop    = shift;
-    my $xtops   = $xtop->{xtops};
-    my $X       = $xtops->{X};
-    my $WM_NAME = $xtops->{WM_NAME};
+    my $wm_c    = shift;
+    my $wm      = $wm_c->{wm};
+    my $X       = $wm->{X};
+    my $WM_NAME = $wm->{WM_NAME};
     my ( $value, $type, $format, $bytes_after )
-        = $X->GetProperty( $xtop->{id}, $WM_NAME, @getpropconst );
+        = $X->GetProperty( $wm_c->{id}, $WM_NAME, @getpropconst );
     $value;
 }
 
 sub icon {
-    my $xtop         = shift;
-    my $xtops        = $xtop->{xtops};
-    my $X            = $xtops->{X};
-    my $WM_ICON_NAME = $xtops->{WM_ICON_NAME};
+    my $wm_c         = shift;
+    my $wm           = $wm_c->{wm};
+    my $X            = $wm->{X};
+    my $WM_ICON_NAME = $wm->{WM_ICON_NAME};
     my ( $value, $type, $format, $bytes_after )
-        = $X->GetProperty( $xtop->{id}, $WM_ICON_NAME, @getpropconst );
+        = $X->GetProperty( $wm_c->{id}, $WM_ICON_NAME, @getpropconst );
     $value;
 }
 
 sub char {
-    my ( $xtop, $char ) = @_;
-    my $xtops       = $xtop->{xtops};
-    my $X           = $xtops->{X};
-    my $_XCHAR_CHAR = $xtops->{_XCHAR_CHAR};
+    my ( $wm_c, $char ) = @_;
+    my $wm          = $wm_c->{wm};
+    my $X           = $wm->{X};
+    my $_XCHAR_CHAR = $wm->{_XCHAR_CHAR};
     unless ( defined $char ) {
-        return $xtop->{char} if defined $xtop->{char};
+        return $wm_c->{char} if defined $wm_c->{char};
         my ( $value, $type, $format, $bytes_after )
-            = $X->GetProperty( $xtop->{id}, $_XCHAR_CHAR, @getpropconst );
-        return $xtop->{char} = $value;
+            = $X->GetProperty( $wm_c->{id}, $_XCHAR_CHAR, @getpropconst );
+        return $wm_c->{char} = $value;
     }
-    $xtop->{char} = $char;
-    my $STRING = $xtops->{STRING};
+    $wm_c->{char} = $char;
+    my $STRING = $wm->{STRING};
     $X->ChangeProperty(
-        $xtop->{id},     # window
+        $wm_c->{id},     # window
         $_XCHAR_CHAR,    # property
         $STRING,         # type
         8,               # format
@@ -341,18 +338,18 @@ sub char {
 }
 
 sub command {
-    my ( $xtop, $command ) = @_;
-    my $xtops          = $xtop->{xtops};
-    my $X              = $xtops->{X};
-    my $_XCHAR_COMMAND = $xtops->{_XCHAR_COMMAND};
-    my $STRING         = $xtops->{STRING};
+    my ( $wm_c, $command ) = @_;
+    my $wm             = $wm_c->{wm};
+    my $X              = $wm->{X};
+    my $_XCHAR_COMMAND = $wm->{_XCHAR_COMMAND};
+    my $STRING         = $wm->{STRING};
     unless ( defined $command ) {
         my ( $value, $type, $format, $bytes_after )
-            = $X->GetProperty( $xtop->{id}, $_XCHAR_COMMAND, @getpropconst );
+            = $X->GetProperty( $wm_c->{id}, $_XCHAR_COMMAND, @getpropconst );
         return $value;
     }
     $X->ChangeProperty(
-        $xtop->{id},        # window
+        $wm_c->{id},        # window
         $_XCHAR_COMMAND,    # property
         $STRING,            # type
         8,                  # format
@@ -361,21 +358,21 @@ sub command {
     );
 }
 
-# also X11::Tops method
+# also X11::WM method
 sub monitor_property_change {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->ChangeWindowAttributes( $id,
         event_mask => $X->pack_event_mask('PropertyChange') );
 }
 
 sub monitor_property_and_visibility_change {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->ChangeWindowAttributes( $id,
         event_mask =>
             $X->pack_event_mask( 'PropertyChange', 'VisibilityChange' ) );
@@ -383,40 +380,40 @@ sub monitor_property_and_visibility_change {
 
 # doesn't work with fvwm [+taskbar3] or twm [+taskbar4] ...
 sub monitor_property_and_structure_change {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->ChangeWindowAttributes( $id,
         event_mask =>
             $X->pack_event_mask( 'PropertyChange', 'SubstructureNotifyMask' ) );
 }
 
 sub attributes {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->GetWindowAttributes($id);    # %attributes
 }
 
 # see stacking
 
 sub raise {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->MapWindow($id);
     $X->ConfigureWindow( $id, stack_mode => 'Above' );
 }
 
-# if call $xtop->geometry then mouse & focus often don't move  ...
+# if call $wm_c->geometry then mouse & focus often don't move  ...
 sub raise_and_focus {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->MapWindow($id);
     $X->ConfigureWindow( $id, stack_mode => 'Above' );
     my %geometry = $X->GetGeometry($id);
@@ -427,19 +424,19 @@ sub raise_and_focus {
 }
 
 sub lower {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
     $X->ConfigureWindow( $id, stack_mode => 'Below' );
 }
 
 sub geometry {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $id    = $xtop->{id};
-    my %geom  = $X->GetGeometry($id);
+    my $wm_c = shift;
+    my $wm   = $wm_c->{wm};
+    my $X    = $wm->{X};
+    my $id   = $wm_c->{id};
+    my %geom = $X->GetGeometry($id);
     my ( $root2, $parent, @kids ) = $X->QueryTree($id);
     my ( $same_screen, $child, $x, $y )
         = $X->TranslateCoordinates( $parent, $root2, $geom{x}, $geom{y} );
@@ -447,10 +444,10 @@ sub geometry {
 }
 
 sub frame_geometry {
-    my $xtop  = shift;
-    my $xtops = $xtop->{xtops};
-    my $X     = $xtops->{X};
-    my $frame = $xtop->{id};
+    my $wm_c  = shift;
+    my $wm    = $wm_c->{wm};
+    my $X     = $wm->{X};
+    my $frame = $wm_c->{id};
     while (1) {
         my ( $root2, $parent, @kids ) = $X->QueryTree($frame);
         last if $parent == $root2;
@@ -482,23 +479,23 @@ my @wm_normal_hints_flags = (
     [qw(width_inc height_inc)],    # PResizeInc
     [   qw(min_aspect_num min_aspect_den
             max_aspect_num max_aspect_den)
-    ],                               # PAspect
-    [qw(base_width base_height)],    # PBaseSize
-    [qw(gravity)],                   # PWinGravity
+    ],                             # PAspect
+    [qw(base_width base_height)],  # PBaseSize
+    [qw(gravity)],                 # PWinGravity
 );
 
 sub wm_normal_hints {
-    my $xtop            = shift;
-    my $xtops           = $xtop->{xtops};
-    my $X               = $xtops->{X};
-    my $WM_NORMAL_HINTS = $xtops->{WM_NORMAL_HINTS};
-    my $WM_SIZE_HINTS   = $xtops->{WM_SIZE_HINTS};
+    my $wm_c            = shift;
+    my $wm              = $wm_c->{wm};
+    my $X               = $wm->{X};
+    my $WM_NORMAL_HINTS = $wm->{WM_NORMAL_HINTS};
+    my $WM_SIZE_HINTS   = $wm->{WM_SIZE_HINTS};
     my %wm_normal_hints = @_;
     if (%wm_normal_hints) {
         my $value
             = pack( 'L*', map { $wm_normal_hints{$_} || 0 } @wm_normal_hints );
         $X->ChangeProperty(
-            $xtop->{id},         # window
+            $wm_c->{id},         # window
             $WM_NORMAL_HINTS,    # property
             $WM_SIZE_HINTS,      # type
             32,                  # format
@@ -508,7 +505,7 @@ sub wm_normal_hints {
         return;
     }
     my ( $value, $type, $format, $bytes_after )
-        = $X->GetProperty( $xtop->{id}, $WM_NORMAL_HINTS, @getpropconst );
+        = $X->GetProperty( $wm_c->{id}, $WM_NORMAL_HINTS, @getpropconst );
     my %xxx;
     @xxx{@wm_normal_hints} = unpack( 'L*', $value );
     my $flags = $wm_normal_hints{flags} = $xxx{flags};
@@ -520,41 +517,41 @@ sub wm_normal_hints {
 }
 
 sub parse_geometry {
-    my ( $xtop, $geometry ) = @_;
-    my $X = $xtop->{xtops}{X};
+    my ( $wm_c, $geometry ) = @_;
+    my $X = $wm_c->{wm}{X};
     my ( $w, $h, $x, $y ) = $geometry =~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
     my $g;    # gravity
     my $screenwidth  = $X->width_in_pixels;
     my $screenheight = $X->height_in_pixels;
 
     if ( $w == 0 || $h == 0 || $x eq '00' || $y eq '00' ) {
-        my %xtop;
-        @xtop{qw(w h x y)} = $xtop->geometry;
-        $w = $xtop{w} if $w == 0;
-        $h = $xtop{h} if $h == 0;
-        $x = $xtop{x} if $x eq '00';
-        $y = $xtop{y} if $y eq '00';
+        my %wm_c;
+        @wm_c{qw(w h x y)} = $wm_c->geometry;
+        $w                 = $wm_c{w} if $w == 0;
+        $h                 = $wm_c{h} if $h == 0;
+        $x                 = $wm_c{x} if $x eq '00';
+        $y                 = $wm_c{y} if $y eq '00';
     }
 
     if ( my ($a) = $x =~ /^-\+?(-?\d+)/ ) {
         if ( my ($b) = $y =~ /^-\+?(-?\d+)/ ) {
-            $g = X11::Tops::SouthEast;
+            $g = X11::WM::SouthEast;
             $x = $screenwidth - $w - $a;
             $y = $screenheight - $h - $b;
         } else {
-            $g = X11::Tops::NorthEast;
+            $g = X11::WM::NorthEast;
             $x = $screenwidth - $w - $a;
             $y =~ s/^\+//;
             $y = 0 + $y;
         }
     } else {
         if ( my ($b) = $y =~ /^-\+?(-?\d+)/ ) {
-            $g = X11::Tops::SouthWest;
+            $g = X11::WM::SouthWest;
             $x =~ s/^\+//;
             $x = 0 + $x;
             $y = $screenheight - $h - $b;
         } else {
-            $g = X11::Tops::NorthWest;
+            $g = X11::WM::NorthWest;
             $x =~ s/^\+//;
             $y =~ s/^\+//;
             $x = 0 + $x;
@@ -565,31 +562,31 @@ sub parse_geometry {
 }
 
 sub requested_geometry {
-    my $xtop = shift;
+    my $wm_c = shift;
 
     my %geometry;
-    @geometry{qw(w h x y)} = $xtop->geometry;
+    @geometry{qw(w h x y)} = $wm_c->geometry;
 
     my %frame_geometry;
-    @frame_geometry{qw(w h x y)} = $xtop->frame_geometry;
+    @frame_geometry{qw(w h x y)} = $wm_c->frame_geometry;
 
-    my %wm_normal_hints = $xtop->wm_normal_hints;
+    my %wm_normal_hints = $wm_c->wm_normal_hints;
     my $gravity         = $wm_normal_hints{gravity};
 
     my $w = $geometry{w};
     my $h = $geometry{h};
 
     my $x
-        = $gravity == X11::Tops::NorthWest
-        || $gravity == X11::Tops::SouthWest ? $frame_geometry{x}
-        : $gravity == X11::Tops::NorthEast || $gravity == X11::Tops::SouthEast
+        = $gravity == X11::WM::NorthWest
+        || $gravity == X11::WM::SouthWest ? $frame_geometry{x}
+        : $gravity == X11::WM::NorthEast || $gravity == X11::WM::SouthEast
         ? $frame_geometry{x} - $frame_geometry{w} + $geometry{w}
         : croak("unknown gravity '$gravity'");
 
     my $y
-        = $gravity == X11::Tops::NorthWest
-        || $gravity == X11::Tops::NorthEast ? $frame_geometry{y}
-        : $gravity == X11::Tops::SouthEast || $gravity == X11::Tops::SouthWest
+        = $gravity == X11::WM::NorthWest
+        || $gravity == X11::WM::NorthEast ? $frame_geometry{y}
+        : $gravity == X11::WM::SouthEast || $gravity == X11::WM::SouthWest
         ? $frame_geometry{y} - $frame_geometry{h} + $geometry{h}
         : croak("unknown gravity '$gravity'");
 
@@ -599,21 +596,21 @@ sub requested_geometry {
 # +taskbar7
 
 sub move {
-    my ( $xtop, $geometry ) = @_;    # (src, dst)
-    my $X = $xtop->{xtops}{X};
+    my ( $wm_c, $geometry ) = @_;    # (src, dst)
+    my $X = $wm_c->{wm}{X};
 
-    my %src_wm_normal_hints = $xtop->wm_normal_hints;
+    my %src_wm_normal_hints = $wm_c->wm_normal_hints;
 
     my %dst;
-    @dst{qw(w h x y g)} = $xtop->parse_geometry($geometry);
+    @dst{qw(w h x y g)} = $wm_c->parse_geometry($geometry);
 
     my %dst_wm_normal_hints = %src_wm_normal_hints;
     $dst_wm_normal_hints{gravity} = $dst{g};
 
-    $xtop->wm_normal_hints(%dst_wm_normal_hints);
+    $wm_c->wm_normal_hints(%dst_wm_normal_hints);
 
     $X->ConfigureWindow(
-        $xtop->{id},
+        $wm_c->{id},
         width  => $dst{w},
         height => $dst{h},
         x      => $dst{x},
@@ -624,16 +621,16 @@ sub move {
 # +taskbar[78]
 
 sub expand {
-    my ( $xtop, $geometry ) = @_;    # (src, dst)
-    my $X11 = $xtop->{xtops}{X};
+    my ( $wm_c, $geometry ) = @_;    # (src, dst)
+    my $X11 = $wm_c->{wm}{X};
 
     my %src;
-    @src{qw(w h x y g)} = $xtop->requested_geometry;
+    @src{qw(w h x y g)} = $wm_c->requested_geometry;
     $src{X}             = $src{x} + $src{w};
     $src{Y}             = $src{y} + $src{h};
 
     my %dst;
-    @dst{qw(w h x y g)} = $xtop->parse_geometry($geometry);
+    @dst{qw(w h x y g)} = $wm_c->parse_geometry($geometry);
     $dst{X}             = $dst{x} + $dst{w};
     $dst{Y}             = $dst{y} + $dst{h};
 
@@ -644,7 +641,7 @@ sub expand {
     my $w = $X - $x;
     my $h = $Y - $y;
 
-    my %wm_normal_hints = $xtop->wm_normal_hints;
+    my %wm_normal_hints = $wm_c->wm_normal_hints;
     my %base;
     $base{w} = $wm_normal_hints{base_width};
     $base{h} = $wm_normal_hints{base_height};
@@ -656,7 +653,7 @@ sub expand {
         $h += ( $base{h} - $h ) % $inc{h};
     }
 
-    $wm_normal_hints{gravity}    = X11::Tops::NorthWest;
+    $wm_normal_hints{gravity}    = X11::WM::NorthWest;
     $wm_normal_hints{user_w}     = $w;
     $wm_normal_hints{user_h}     = $h;
     $wm_normal_hints{user_x}     = $x;
@@ -664,10 +661,10 @@ sub expand {
     $wm_normal_hints{max_width}  = $w;
     $wm_normal_hints{max_height} = $h;
 
-    $xtop->wm_normal_hints(%wm_normal_hints);
+    $wm_c->wm_normal_hints(%wm_normal_hints);
 
     $X11->ConfigureWindow(
-        $xtop->{id},
+        $wm_c->{id},
         width  => $w,
         height => $h,
         x      => $x,
