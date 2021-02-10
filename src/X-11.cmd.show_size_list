@@ -4,9 +4,9 @@
 # descr = show available and selected screen size(s)
 
 my %screen_info;
-<X-11.x11>->choose_screen(0);    # LLL: <-- no multiple screens yet .,
+<X-11.obj>->choose_screen(0);    # LLL: <-- no multiple screens yet .,
 my @current_size
-    = ( <X-11.x11>->width_in_pixels, <X-11.x11>->height_in_pixels );
+    = ( <X-11.obj>->width_in_pixels, <X-11.obj>->height_in_pixels );
 
 if ( !<X-11.has_randr> ) {
     $screen_info{'size'} = 0;
@@ -14,7 +14,7 @@ if ( !<X-11.has_randr> ) {
 } else {
     eval {
         %screen_info
-            = ( <X-11.x11>->RRGetScreenInfo( <X-11.x11>->root ) );
+            = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
     };
 }
 
@@ -41,7 +41,7 @@ map {
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\SBOXFOBZETJDDBICXIYANX6ITX5HYA7SZYAXLUMECIERTQCXDKDAZHCHSYAUGERTMFEOKXGCEF6ME
-# \\ Y7LKQXBDKUDGU6ZTCXAMKHB5K36W5G3FNPBNVO2P6CNRQZ6MHCEW \\// C25519-BASE-32 //
-#  \\// DF6BZEVN4ZMDH6NQS4PILGCP2ZPHEHWB5RAZWK4RPXNBKWRICCY \\ CODE SIGNATURE \\
+#\\SRIXFWGCN556WW3CY6DBR5GH3FA4ZURPQYHWNVXMKE5P453RNFV4RGYDOQ7PIPHZ2ADUPBZTFNZVK
+# \\ YE3IHLX2FQN3MJSV7FU7BAXEF6U2BXMGA6MNPTWIPX4TOJ6GN7NX \\// C25519-BASE-32 //
+#  \\// SYBROZZBADQD6VNEHMQMSRNDGOGIIEAJ26I2TFM63ZLYYQ5BSBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

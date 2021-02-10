@@ -4,7 +4,7 @@
 
 my $ok               = 0;
 my $attempts         = int( <X-11.connect_timeout> * 10 );
-my $bin_name         = <X-11.x11_bin_name>;
+my $bin_name         = <X-11.obj_bin_name>;
 my $retry_delay      = 0.1;
 my $max_retry_delay  = 2;
 my $host_mode_warned = 0;
@@ -16,10 +16,10 @@ $ENV{'DISPLAY'} = <X-11.display>->{$mode};
 host_retry:
 while ( !$ok and $attempts-- ) {
     eval {
-        <X-11.x11> = X11::Protocol->new( <X-11.display>->{$mode} );
+        <X-11.obj> = X11::Protocol->new( <X-11.display>->{$mode} );
 
-        <X-11.x11_tops> = X11::Tops->new( <X-11.display>->{$mode} );
-        <X-11.x11_tops>->update;
+        <X-11.WM> = X11::Tops->new( <X-11.display>->{$mode} );
+        <X-11.WM>->update;
     };
     $ok = 1 if !$@;
     <[base.sleep]>->($retry_delay) if !$ok;
@@ -54,7 +54,7 @@ if ( !$ok ) {
 }
 
 # ______________________________________________________________________________
-#\\DLQST4LIXDAYNO4QK74FPVHMIMGW3A424PNH64C3OTKJI7E5PTARYJAMRINTKWBJN2CIHHPGWFOAU
-# \\ 3RZLS3WGXGUQZBLDOVR3ITIWB36OIWV637NBVLKS7JGGM44OJU2V \\// C25519-BASE-32 //
-#  \\// XJZK2MUUVG6BUML7XBGNCCMLTQT7A6ASS43TBDPFJMSBAE53CCI \\ CODE SIGNATURE \\
+#\\2RCD7BL4Z7GPOD5PPEXSLRJ5CXIYYIFNRA2YP7N4N5PH3ISJSL2MUPRW2YHF7JPXG3MSCQU3QOKQI
+# \\ L7WXJBI4PQEUG5KCEQZIRTGHF3SM42UCNDJXKAQTHYPK5YCE2YMO \\// C25519-BASE-32 //
+#  \\// ESYXXGVVH5JDJZFDBTMUYAMM2EJTFCMDPZJJ26P2MUTKVJES2BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
