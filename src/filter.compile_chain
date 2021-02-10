@@ -37,7 +37,7 @@ $chain_code .= $closure;
 <[base.log]>->( 2, "chain[$id]code: '$chain_code'" );
 undef $!;
 $code{ 'filter.chain.' . $id } = eval($chain_code);
-if ( !$@ ) { $data{'code'}{'filter'}{$id}{'status'} = 'no-err'; return $id }
+if ( !$@ ) { $data{'code'}{'filter'}{$id}{'status'} = 'no-error'; return $id }
 else {
     <[base.log]>->( 0, "broken chain code [$id:$@]" );
     <[filter.del_chain]>->($id);
@@ -45,7 +45,7 @@ else {
 }
 
 # ______________________________________________________________________________
-#\\VS4NLCG6AFWZK3NPXB325NBF3BNWXQ4FNYHQ2R6AD5QMHVHAIQRWQMQMNLCJJ4SRLOFBZUJUOMT2A
-# \\ X7JM7CN46HPGNBVMK3WZCUUDGWJWQ7YVNOWEBTOLQG3ZLLXEI4UH \\// C25519-BASE-32 //
-#  \\// 2H4FJACT4IIITLUPCH2CPT2Y53UZMNZVXCOTUWTXJZE4HPBJABY \\ CODE SIGNATURE \\
+#\\DGBJ6DKM5VBAX64QBOZ572IR6SRENGH5WTJIGVGISGDTCC3CNDPSAASSND5RMMJZLD3YXJITWDTCY
+# \\ ENZIBLILNGAPQV4OSTZM2PF346JRI6AWCGCMMIDXA6TAW47J65B6 \\// C25519-BASE-32 //
+#  \\// JNRKKZUK7S3SAU4L3JYIHSYAOHGFWLO2AQQ7JU3MR2H2DX2JSAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
