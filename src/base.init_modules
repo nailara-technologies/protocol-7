@@ -60,11 +60,14 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                     $return_code = $code{$sub_name}->( $reinit, $real_m_name );
                 };
                 if ( $@ or not defined $return_code or $return_code ne '0' ) {
+                    ( my $err_msg = $@ )
+                        =~ s| at (\S+) line (\d+).*\n$| ' [ $1, line $2 ]|;
+                    <[base.log]>->( 0, ": ' $err_msg" ) if length $err_msg;
                     $success = 0;
                     <[base.log]>->(
                         0,
                         ": module '$module_name' init not successful"
-                            . " ( $init_mode != 0 )"
+                            . " [ $init_mode != 0 ]"
                     );
                 } else {
                     <base.modules.initialized>->{$real_m_name}->{$init_mode}++;
@@ -93,7 +96,7 @@ undef <base.init_modules>;
 return $success;
 
 # ______________________________________________________________________________
-#\\R4H4DVZZYEQNHNGZL6DN4UXJFS6GZYUMSYO223YRMJZGSYHNSFZOFB2F5ZMYRELWKERNBTZN363BE
-# \\ J7V5SEI2N26G65B4AYMROFK5KJ6P76YQ4S4OYHOK7KTGFXSL3D3G \\// C25519-BASE-32 //
-#  \\// B4YM3UDHIJPXDUD4ZSCC4NZJQQ7LWJC32V7B7QMIQGKTPCTJIBQ \\ CODE SIGNATURE \\
+#\\27VOP6U7OOXY7RAI562WTSBAMHKNGGG2ED4KYJUQBTIQGOCHJE4FQDF3EX6POBEUHI25I4ABI5DMY
+# \\ D5CS4EN2LR2RGWV7PU4ETBVABFU6NPPRCAJ5DZFOSPFUOJXXCMIC \\// C25519-BASE-32 //
+#  \\// J4A5UBKQRKCHWATID4O7GCBKEF5HOSH6VBTHKKK4BKIMGRGSIAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
