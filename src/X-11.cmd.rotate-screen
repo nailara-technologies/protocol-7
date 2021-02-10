@@ -13,7 +13,7 @@ return {
     }
     if !length($param);
 
-my $mirror = $param =~ s/-(x|y)$// ? $1 : '';
+my $mirror = $param =~ s{-(x|y)$}{} ? $1 : '';
 
 my $mode;
 $mode = 1 if $param =~ 'normal';
@@ -29,11 +29,11 @@ if ( not defined $mode ) {
 
 if ( !<X-11.has_randr> ) {
     <[base.log]>->(
-        1, "<!> skipping rotate ['$param'] request [ no RANDR ] <!>"
+        1, "<< skipping rotate ['$param'] request [ RANDR required ] >>"
     );
     return {
         'mode' => 'nak',
-        'data' => 'not able to rotate screen [ missing RANDR support ]'
+        'data' => 'cannot rotate screen [ RANDR required ]'
     };
 }
 
@@ -46,15 +46,17 @@ my $old_mode = $screen_info{'rotation'};
 return { 'mode' => 'nak', 'data' => "no changes" }
     if $mode eq $old_mode;
 $mirror = "-$mirror" if length($mirror);
-<[base.log]>->( 0, "<!> rotating screen to mode '$param$mirror' <!>" );
+<[base.log]>->( 0, "<< rotating screen to '$param$mirror'-mode >>" );
 
-eval '$X->RRSetScreenConfig( $X->root, $screen_info{time},'
-    . '$screen_info{config_time}, $screen_info{size},'
-    . '$mode, $screen_info{rate} )';
+eval {
+    $X->RRSetScreenConfig( $X->root, $screen_info{'time'},
+        $screen_info{'config_time'},
+        $screen_info{'size'}, $mode, $screen_info{'rate'} );
+};
 
 if ($@) {
     my $err_msg = 'unable to rotate screen';
-    <[base.log]>->( 0, " :. $err_msg!" );
+    <[base.log]>->( 0, " :. $err_msg .," );
     return { 'mode' => 'nak', 'data' => $err_msg };
 }
 
@@ -75,7 +77,7 @@ $mode     -= 16 while $mode > 16;
 return { 'mode' => 'ack', 'data' => 'screen rotated' }
 
 # ______________________________________________________________________________
-#\\PIKUEJFACMJPTUXBBIVN4IBRJ6DEQ5BYJRNT2LH6K2YNDW3TDS42VHQLEQNPTBOOF2HFDND7GOLQO
-# \\ DGQRVBH2LFZ23QOCGVFTGYJ7G4PPT5IMJS652R2OXLTSTD2Z4Z3I \\// C25519-BASE-32 //
-#  \\// LXWGIOOP5XBP23NKCOYMFLDRJN7TAJ5KBBJ5MFZ6TOQLPXVUCBI \\ CODE SIGNATURE \\
+#\\RZHPZBAIP6PK2SBGIYPUDI5XZWNEAJYZ2JBRDXWLIMJLBYDZWVQDTEMB5ICKRSWKQE3UU6OJOESK6
+# \\ BEGHRA7KOKP2SSJJCCODLVNI6DN7BWTGKVYG6PUGKXU4BSFY5E2S \\// C25519-BASE-32 //
+#  \\// EJZJJNEW6IZDVH6ISKFFHP2477WLSV4ICXZRDHT6MAU7MBLYMAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
