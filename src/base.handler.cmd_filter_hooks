@@ -13,9 +13,9 @@ my $cmd_hook = <base.filter_hooks.command>->{ $params->{'command'} };
 
 if (    ref($cmd_hook) eq 'HASH'
     and defined $cmd_hook->{'send'}
+    and defined $code{ $cmd_hook->{'send'} }
     and defined $cmd_hook->{'recv'}
-    and defined &{ $code{ $cmd_hook->{'send'} } }
-    and defined &{ $code{ $cmd_hook->{'recv'} } } ) {
+    and defined $code{ $cmd_hook->{'recv'} } ) {
 
     <[base.log]>->(
         2,
@@ -26,6 +26,7 @@ if (    ref($cmd_hook) eq 'HASH'
     );
 
     return {
+        'mode'    => $cmd_hook->{'mode'} //= qr|^ACK$|o,    ## <-- set-up ., ###
         'handler' => $code{ $cmd_hook->{'recv'} },
         'data'    => $code{ $cmd_hook->{'send'} }->(
             {   'target'  => $params->{'target'},
@@ -36,14 +37,26 @@ if (    ref($cmd_hook) eq 'HASH'
     };
 
 } else {
-    <[base.log]>->(
-        0, "[!] '$params->{command}' - command filter hook setup is broken [!]"
-    );
-    return undef;
+    map {
+        my $handler = $cmd_hook->{$_} // '';
+        if ( not defined $code{$handler} ) {
+            my $command = $params->{'command'};
+            <[base.log]>->(
+                0,
+                sprintf(
+                    "%s-[%s]-handler '%s' not defined. [ hook disabled ]",
+                    $command, $_, $handler
+                )
+            );
+            delete <base.filter_hooks.command>->{$command};
+            return undef;
+        }
+
+    } qw | send recv |;
 }
 
 # ______________________________________________________________________________
-#\\THPR65XAJXG73AHHH6CKYRI5JUQWGN4VZ3CIFQMVJ5EX4JWTAYXUYSK42HAI3MODTAHH3TTRNNWQG
-# \\ L4LUGM65F262MFYKGYZ5ZGF7IRGHM2X5EBG4RKWQ7LKNYNFUFZQV \\// C25519-BASE-32 //
-#  \\// 3LU3VTTDGN52MLWM4PNSTVCWEXYP7B7GLMALTU2NJ6TIGF65EBY \\ CODE SIGNATURE \\
+#\\25QYS67VB5K23XNC3PBWIS6BHGO45FM46TQ2OZKMM7GNZ3FPOYROMHJJKX2OOZ6HS6JTVFA3T3R46
+# \\ MLSMOGC77WG2VVDRP2B6FJKEE3A2XBTTU6J5232YEE2BLJCFYKHQ \\// C25519-BASE-32 //
+#  \\// MJSH4WMRGXEKRCE5KL5VIACHDQMCSLRRVU5XF6ZS772ZHFIBSDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
