@@ -2,12 +2,13 @@
 
 # name  = base.log
 # descr = generate a log entry
-# args  = log_level log_msg [log_buffer]
+# args  = log_level log_msg [log_buffer] [timestamp]
 
-my ( $log_level, $log_msg, $log_buffer )
-    = ( $_[0] || 0, $_[1] // '', $_[2] // '' );
+my ( $log_level, $log_msg, $log_buffer, $time_stamp )
+    = ( $_[0] || 0, $_[1] // '', $_[2] // '', $_[3] );
 
 $log_level = 0 if $log_level !~ m|^\d+$|;
+$time_stamp //= $code{'base.anum_log_time'}->();
 
 <system.verbosity.console>       //= 0;
 <system.verbosity.agent_buffer>  //= 1;
@@ -27,7 +28,7 @@ $log_msg =~ s|\n|\\n|g;
 $log_msg =~ s|\0|\\0|g;
 $log_msg =~ s|\e|\\e|g;
 
-# prevent deep recursions in error log system:
+## prevent deep recursions in error log system ###
 my $fatal_exit
     = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, ) ? 1 : 0;
 
@@ -52,8 +53,6 @@ if ($fatal_exit) {
     exit 2;
 }
 
-my $time_stamp = $code{'base.anum_log_time'}->();
-
 # write to 'agent' log buffer
 <[base.buffer.add_line]>->(
     $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
@@ -68,7 +67,7 @@ utf8::decode($log_str)
     and $log_level <= <system.verbosity.console>;
 
 # ______________________________________________________________________________
-#\\OPSLA6PQCJWKMEQBYLMRDRMQ6DQP3LGL5CN436FGTAO47WWIKHE77NCRDCCI6TNO6V3RESTINLATG
-# \\ MTJB6WU7NYY7M2A62TOGP2CRCINTUKIVV4BOYBYX5RAR5K4CXZ6U \\// C25519-BASE-32 //
-#  \\// BYUDIMLX6SI3T6FPHGP4UYZYHID3P7JS246EL3IN5BREAKQXEAQ \\ CODE SIGNATURE \\
+#\\UJIJE24256NJCOQWJURFUXT72PH2RTE6X7ATWIZABFVGDT2FOE42LCGRF24YPYL2OE2UYUFGWDWFS
+# \\ DVCQ4AZYU2R5AY4NLF66IJDASHQV4NX3RAXD3JTCXFEYKFSQJ7NN \\// C25519-BASE-32 //
+#  \\// QD4MUZHUIDQXC7DBDZDOVW3PXGIIJ2A4CHM4BBBWSDZBFVE4ACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
