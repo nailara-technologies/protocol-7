@@ -42,15 +42,15 @@ open( CONF, $DATA{'conf'}{'file'} )
     or die " ::\n :::[ can not open user config file ]\n\n";
 foreach my $line (<CONF>) {
     if ( $line =~ /^auth.setup.usr.([^=]+)=([^=]+)$/ ) {
-        my $usr = $1;
-        $usr =~ s/\s+|\t+//g;
+        my $user = $1;
+        $user =~ s/\s+|\t+//g;
         my $pwd = $2;
         $pwd =~ s/\s+|\t+//g;
 
-        if ( $usr eq $user and $user_exists == 0 ) {
+        if ( $user eq $user and $user_exists == 0 ) {
             $user_exists = 1;
             push( @user_config, "auth.setup.usr.$user\t = $pass\n" );
-        } elsif ( $usr ne $user ) {
+        } elsif ( $user ne $user ) {
             push( @user_config, $line );
         }
     } else {
@@ -71,7 +71,7 @@ close(CONF);
 print " ::\n :\n\n";
 
 # ______________________________________________________________________________
-#\\I3SEK4VGQAGUIEQ4NGDPL5EXOIMOOMKZJISYVZ75JYAIGBCRVFVSM67ULTX6ZOCL5BGSYXFZOADEO
-# \\ P6KAIGBM2ETKM3Z5TL5D4CI6GORJTKTDIEEYYCZ37GJ7SRPIQJAW \\// C25519-BASE-32 //
-#  \\// ZBS2CUCMEPTFBGMPXHJCSHILQWPBK247FD6IVPSU6VFHHAZGWBI \\ CODE SIGNATURE \\
+#\\VD6JZLZ3QZRKGMRZNMZJGS2SNFTPE6TXFHJLKZAT7HJUU5P7WUQ5DTJF6YYIYPSHZLZ6WFIPRJSO6
+# \\ LRXFQOQ62524PT3BTHJIOSLCS3WGQ4SJJQ67XAXAOU7NL7XV7D7U \\// C25519-BASE-32 //
+#  \\// V6VKX5OGFW7YQ54KSHBCY6OXRGDXE3UKTVOZZTHYQB4ANU7IUCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
