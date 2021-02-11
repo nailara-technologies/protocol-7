@@ -10,7 +10,7 @@ my $source_usr = $data{'session'}{$usr_sid}{'user'};
 
 return {
     'mode' => 'nak',
-    'data' => 'invalid parameter syntax for user/agent/sid!'
+    'data' => 'invalid parameter syntax for user \ agent \ sid ..,'
     }
     if $param  !~ <regex.base.usr>
     and $param !~ <regex.base.sid>
@@ -37,7 +37,7 @@ if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
         keys %{ $data{'session'} };
     return {
         'mode' => 'nak',
-        'data' => 'multiple $param found (not supported yet!)'
+        'data' => 'multiple parameters are not supported yet'
         }
         if $found > 1;
     $append_str = $match_sid;
@@ -48,12 +48,12 @@ if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
 
 return {
     'mode' => 'nak',
-    'data' => $param =~ /^\d+$/
+    'data' => $param =~ m|^\d+$|
     ? "there is no active session $param"
-    : "user '$target_usr' not online"
+    : "client named '$target_usr' not present"
     }
-    if !$found
-    or $target_usr !~ <access.cmd.regex.usr>->{$source_usr};
+    if not $found
+    or not <[base.has_access]>->( $source_usr, $target_usr );
 
 my @base_path
     = ( defined $data{'session'}{$usr_sid}{'base_path'}
@@ -73,7 +73,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\ZXFCKHZ6L5UHL6FFRI5GNKPQV44Z3V4SJHFZGFONZNARGDXCEKBLVR3HSGOYVNIVEYZBR6HI45VH2
-# \\ VQKH7VM3SUU5RYOMUAKMUZLW6SHOE2GOQOQ25H4IR7JNYFIRFHPP \\// C25519-BASE-32 //
-#  \\// L6CANXKAQKLOGOWQUH7DIUHYMVFRWHG2KL42DDV4VLEZSHBLMCI \\ CODE SIGNATURE \\
+#\\G73BX2JF4B7RKDFNSL6VQQDRFFMZHF7ZARFPMYYSZ57ZRHSYIN4DBEVNQYGTMBCOJQ7QJTPPWFSKO
+# \\ UWIYCKBA2NAUOG4LP7AOWHPS6ZLW5GD3UFFJBXCG45NAKGUWNLT6 \\// C25519-BASE-32 //
+#  \\// YTLLXW6YCKRACLIHYZWGFF2Y24PCU2DQHLZNRFRGPNFIFEPOYBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
