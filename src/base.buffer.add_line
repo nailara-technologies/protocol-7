@@ -6,8 +6,19 @@
 my $name          = shift;
 my $log_message   = shift; #  <--  <t-stmp>  <lvl>  <msg>
 my $log_cmd_level = shift; #  <--  [lvl]  <-- optional log level [ for log_cmd ]
+my $min_b_size    = 13542;
 
-my $min_bufsize = 10000;
+$code{'base.log'} //= sub { say "<<< $_[1] >>>" }; ##<--catch compilation errors
+
+if ( !length( $name // '' ) ) {
+    <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
+    warn 'expected buffer name <{C1}>';
+    return -1;
+} elsif ( $name !~ m|^[\w\-_]{1,24}$| ) {
+    warn 'invalid buffer name specified <{C1}>';
+    return -1;
+}
+
 my $buffer_size = $data{'buffer'}{$name}{'max_size'};
 
 $log_message =~ s{^\s+|\s+$}{};
@@ -17,22 +28,13 @@ $log_message =~ s|\0|\\0|g;
 
 my $message_len = length($log_message);
 
-if ( $name eq '' ) {
-    <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
-    warn 'expected buffer name <{C1}>';
-    return -1;
-} elsif ( $name !~ m|^[\w\-]+$| or length($name) > 23 ) {
-    warn 'invalid buffer name specified <{C1}>';
-    return -1;
-}
-
-if ( not defined $buffer_size or $buffer_size < $min_bufsize ) {  ## buf-size ##
-    my $default_size = 128000;    # <-- internal default
+if ( not defined $buffer_size or $buffer_size < $min_b_size ) {  # buffer size #
+    my $default_size  = 6557696;    # <-- 64K internal default
     my $default_found = defined <default.max_size.log_buffers> ? 1 : 0;
     $default_size = <default.max_size.log_buffers> if $default_found;
     my $min_size_error = 0;
-    if ( defined $buffer_size and $buffer_size < $min_bufsize ) {
-        $default_size   = $min_bufsize;
+    if ( defined $buffer_size and $buffer_size < $min_b_size ) {
+        $default_size   = $min_b_size;
         $min_size_error = 1;
     }
     my $size_str = $default_size;
@@ -75,7 +77,7 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     shift @{ $data{'buffer'}{$name}{'data'} };
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
     $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
-    $data{'buffer'}{$name}{'size'} -= ( $deleted_bytes + 1 );
+    $data{'buffer'}{$name}{'size'}                  -= ( $deleted_bytes + 1 );
     if (    exists <log.file>->{$name}
         and exists <log.file>->{$name}->{'start_index'} ) {
         <log.file>->{$name}->{'start_index'}--
@@ -101,7 +103,7 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 }
 
 # ______________________________________________________________________________
-#\\FCFQ6HAC6XQX2DVBVMI67YCG3MFGUA6PDHIGGOGO2DC7G6KW7X4B4N32S4AFWK6PDE34ZZ4GZK7GS
-# \\ 2JQ2S3DFBXJKTOU57AMGEPOUNRVSDY3QYYQ7ESFLCRHEVXJZXV5L \\// C25519-BASE-32 //
-#  \\// INJLNP6FGEA4VQOFQVOZV2MWTPDZVYOXFYKJWZFF6FMMHQ22ECQ \\ CODE SIGNATURE \\
+#\\FR4HYESBNXD5ZLTKL7LYOCPDFTRZPAQW2RUX3FSOZ6FSKRDPCVZ24COZ6PGQEOAQS2KVQVSC7QMOE
+# \\ A7OB4L2PKLLCJGA7SDCPMHRX37QCM4SQUSTAP22ZQMH2533IIGEQ \\// C25519-BASE-32 //
+#  \\// X34T74HHIGSIONMD7S5DOUVE6ES5GRUGMWKGGTFE2FWU73YWOAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

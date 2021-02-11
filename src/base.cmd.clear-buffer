@@ -17,18 +17,18 @@ return { 'mode' => 'nak', 'data' => 'no such buffer' }
 my $bytes = $data{'buffer'}{$name}{'size'};
 return { 'mode' => 'nak', 'data' => 'buffer was empty' } if !$bytes;
 
-<[base.log]>->( 1, "[$id] << clearing log buffer '$name' [ ${bytes} b ] >>" );
-
 undef @{ $data{'buffer'}{$name}{'data'} };
 $data{'buffer'}{$name}{'data'} = [];
 $data{'buffer'}{$name}{'size'} = 0;
 <log.file>->{$name}->{'next_index'}  = 0;
 <log.file>->{$name}->{'start_index'} = 0;
 
+<[base.log]>->( 1, "[$id] << cleared log buffer '$name' [ ${bytes} b ] >>" );
+
 return { 'mode' => 'ack', 'data' => "buffer '$name' cleared [ $bytes bytes ]" };
 
 # ______________________________________________________________________________
-#\\E5X2IKZHOO2S76LND6AWLQDETR3RS76LLYQVOHXCABT6E4RQUOVGGZG4IUKBTAAPFNF6LEJ4FK26A
-# \\ JK5GDF7YTRFWOPQNMXHXVW6DV22VMDVOKOVKIXWMWP33ICSEIIEV \\// C25519-BASE-32 //
-#  \\// ER2SH7DSLK6YGY6SOHLDTD7GIVPMLKJZIASHXUDNMLSG3JSRUAY \\ CODE SIGNATURE \\
+#\\FY66CL5RZ7WL5UQ4GGNNP33XN3GDCPO7JOUUNAGEZAYYVSQ3HTGYHZRCO7OES73FBK3I7GOE7BFMG
+# \\ T5WZ4PZORLCOSMOYL5RH3IEXQ6Z7763KUSOSLI46IBNHWKTJVAJR \\// C25519-BASE-32 //
+#  \\// BEAF4S44T34MLK6JGB54WJN2MZQD7RCTBX7IPXFTWLQ6BQEVUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

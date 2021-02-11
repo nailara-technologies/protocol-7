@@ -78,7 +78,7 @@ $code{'log.noerr'}->("done.");
 close;
 exit;
 
-# :: initialization / basic subroutines ::
+# :: definition of basic subroutines and agent initialization ::
 
 sub prepare_subs {
     $ENV{'PATH'} = '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin';
@@ -159,24 +159,26 @@ sub prepare_subs {
         return $lp_len;
     };
 
-    # basic subroutine definitions
+    ### basic subroutine definitions ###
 
     $code{'base.init_exec'} = sub {
 
+        ## first perl modules ##
         use utf8;
-        use constant 'τ'   => 6.28318530717958647692;
-        use constant 'tau' => 'τ';
-
         use File::Spec::Functions;
         use FindBin qw| $RealBin $RealScript |;
         use Cwd 'abs_path';
         use Sys::Hostname;
         use File::stat;
 
-        $SIG{'PIPE'} = 'IGNORE';
+        use constant 'τ'   => 6.28318530717958647692;
+        use constant 'tau' => 'τ';
 
+        $SIG{'PIPE'} = 'IGNORE';
+        ## overriding warn subroutine ###
         $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
+        ## early variable initialization ##
         my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
         my $bin_path    = [ File::Spec->splitpath($actual_exec) ]->[1];
         $data{'system'}{'start'}{'true_exec'} = $actual_exec;
@@ -193,7 +195,9 @@ sub prepare_subs {
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
         $data{'base'}{'httpc'}{'last_mlen'}  //= 80;
         $data{'buffer'}{'agent'}{'max_size'} //= 64 * 1024;    # 64K log-buffer
+        $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
 
+        ## source code version ##
         my $ver_str = $data{'protocol-7'}{'source-version'} = 'unknown';
         my $version_file
             = catfile( $data{'system'}{'conf_path'},
@@ -203,6 +207,7 @@ sub prepare_subs {
                 =~ s|\s||g;
             close($ver_fh);
         }
+        ## source code release version ##
         my $release_file = catfile( $data{'system'}{'conf_path'},
             'protocol-7.release-version' );
         if ( -e $release_file and open( my $ver_fh, '<' . $release_file ) ) {
@@ -210,6 +215,7 @@ sub prepare_subs {
                 =~ s|\s||g;
             close($ver_fh);
         }
+        ## determine agent name and subname ###
         if ( $0 =~ m|^.*protocol-7\.| ) {
             $data{'system'}{'agent'}{'initialized'} = 0;
             $data{'system'}{'agent'}{'name'}        = lc($0);
@@ -220,7 +226,6 @@ sub prepare_subs {
                 if $agent_name =~ s|\[([^\]]+)\]$||;
             $data{'system'}{'agent'}{'name'} = $agent_name;
         }
-
         if ( not defined $data{'system'}{'agent'}{'name'}
             or $data{'system'}{'agent'}{'name'} eq '' ) {
             $data{'system'}{'agent'}{'name'} = '<init>';
@@ -229,11 +234,16 @@ sub prepare_subs {
         #   ( $data{'system'}{'node'}{'name'},
         #    $data{'system'}{'agent'}{'name'} ) = split ( m|\.|, $_[0] ); #[LLL]
 
-        $data{'system'}{'verbosity'}{'console'} = 0;
-        $data{'system'}{'ansi_color'}           = 1;
-        $data{'system'}{'start'}{'showbanner'}  = 1;
+        ## early verbosity settings ###
+        $data{'system'}{'verbosity'}{'console'}       = 0;
+        $data{'system'}{'verbosity'}{'agent_buffer'}  = 1;
+        $data{'system'}{'verbosity'}{'agent_logfile'} = 0;
+
+        $data{'system'}{'ansi_color'} = 1;
+        $data{'system'}{'start'}{'showbanner'} = 1;
 
         my $stdin_mode = 1;
+        ## process command line arguments ###
         $data{'system'}{'console-mode'} //= 0;
         foreach my $arg (@ARGV) {
             $stdin_mode = 0 if $arg =~ m|^[^\-]|;
@@ -266,11 +276,13 @@ sub prepare_subs {
                 exit(0);
             }
         }
+        ### load agent code from stdin ###
         $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
             if $stdin_mode;
         $data{'system'}{'node'}{'name'} = hostname() // 'protocol-7';
         $data{'system'}{'node'}{'name'} =~ s|\..+$||;
 
+        ## defining console ansi colors ###
         if ( $data{'system'}{'ansi_color'} ) {
             %ANSI = (
                 'bold'      => "\c[[1m",
@@ -290,7 +302,7 @@ sub prepare_subs {
                 'cls'       => "\c[[H\c[[2J"
             );
         }
-
+        ## prepare agent name column width ###
         my $own_len = &{ $code{'base.log_prefix_width'} };
         if ( defined $data{'system'}{'start'}{'log_prefix_width'}
             and $own_len <= $data{'system'}{'start'}{'log_prefix_width'} ) {
@@ -298,12 +310,24 @@ sub prepare_subs {
                 = $data{'system'}{'start'}{'log_prefix_width'} - $own_len + 2;
             $data{'history'}{'dots'} = '.' x $dot_cnt;
         }
-
+        ## nailara start-up banner ##
         if (   $data{'system'}{'verbosity'}{'console'}
             && $data{'system'}{'start'}{'showbanner'} ) {
             say ".\n.";
             &{ $code{'base.banner'} };
         }
+        ## initializing early agent buffer capture ###
+        $data{'system'}{'start'}{'agent-buffer'} = [];
+        my $seperator_len = 18 + length( $data{'system'}{'agent'}{'name'} );
+        map { push( @{ $data{'system'}{'start'}{'agent-buffer'} }, $_ ) } (
+            join( ' ',
+                $code{'base.anum_log_time'}->(),
+                1, '_' x $seperator_len ),
+            $code{'base.anum_log_time'}->()
+                . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
+            $code{'base.anum_log_time'}->()
+                . " 1 VERSION '$data{'protocol-7'}{'source-version'}'"
+        );
     };
 
     $code{'base.banner'} = sub {
@@ -362,8 +386,10 @@ sub prepare_subs {
         my $purge_count = 0;
         my @agent_commands;
         map {
-            if ( $_ !~ m{\.(callback|handler)\.}
-                and not exists $data{'base'}{'core_subs'}{$_} ) {
+            if (    $_ !~ m{\.(callback|handler)\.}
+                and not exists $data{'base'}{'core_subs'}{$_}
+                and $_ ne 'base.log'
+                and $_ ne 'base.buffer.add_line' ) {
                 ++$purge_count
                     and $data{'code'}{$_}{'status'} = 'purged'
                     and eval { undef &{ delete $code{$_} } };
@@ -409,9 +435,19 @@ sub prepare_subs {
                     . " '$data{'system'}{'code_path'}' [$!]" );
             return undef;
         }
-        my @code_files = grep { !m|^\.| } readdir($codedir_fh);
+        my @subroutine_names = sort { length $a <=> length $b }
+            sort grep { !m|^\.| } readdir($codedir_fh);
         closedir($codedir_fh);
-        return @code_files;
+        return @subroutine_names;
+    };
+
+    $code{'base.code.sort_filter'} = sub {
+        my @subroutine_names = @_;
+        my %subroutines      = map { $_ => 0 } @subroutine_names;
+        my $occurrence       = 0;
+
+        #        map { say $_ } @subroutine_names;
+        return @subroutine_names;
     };
 
     $code{'base.httpc.remote_file'} = sub {
@@ -569,12 +605,12 @@ sub prepare_subs {
 
     $code{'base.load_code'} = sub {
         my ( $file, $code_name );
-        my @src_names = sort { length $a <=> length $b } sort @_;
+        my @module_names = sort { length $a <=> length $b } sort @_;
 
         $data{'callbacks'}{'end_code'} //= [];
 
         map { $code{'plugins.status'}->{$_}->{'load_errors'} = 0 }
-            grep {m|^plugin\.|} @src_names;
+            grep {m|^plugin\.|} @module_names;
 
         ## http source ### ..,/.v7/file-list
         my $base_url_aref = $data{'system'}{'http_src_base_urls'};
@@ -591,12 +627,12 @@ sub prepare_subs {
 
         $data{'system'}{'use_http_source'} = $src_from_http;
 
-        my $c_ref      = $data{'base'}{'source'}{'code_files'} // [];
-        my @code_files = @{$c_ref};
+        my $c_ref            = $data{'base'}{'source'}{'code_files'} // [];
+        my @subroutine_names = @{$c_ref};
 
         if ($src_from_http) {
             $code{'log.error'}->("<<< network source loading enabled >>>")
-                if !@code_files;
+                if !@subroutine_names;
             ##### remote source code access ###
             my $method = $1 if $http_src_base_urls[0] =~ m|^(\w+):|;
             $code{'log.debug'}->(": reading source file list over $method ..,");
@@ -605,11 +641,11 @@ sub prepare_subs {
                 ->( '.v7/file-list/base', \@http_src_base_urls );
             if ( defined $remote_data_str ) {
                 my $read_len = length($remote_data_str);
-                @code_files = split( m|\n|, $remote_data_str );
+                @subroutine_names = split( m|\n|, $remote_data_str );
                 $data{'base'}{'httpc'}{'remote_source'} = {};
                 map { $data{'base'}{'httpc'}{'remote_source'}->{"src/$_"} = 1 }
-                    @code_files;
-                $data{'base'}{'source'}{'code_files'} = \@code_files;
+                    @subroutine_names;
+                $data{'base'}{'source'}{'code_files'} = \@subroutine_names;
             } else {
                 $code{'log.error'}
                     ->(": no success reading remote source file list .,");
@@ -625,13 +661,13 @@ sub prepare_subs {
             ####
         } else {
             $code{'log.debug'}->(": reading source list from disk.,");
-            @code_files = $code{'base.code.file_list'}->();
-            my $file_cnt = scalar @code_files;
+            @subroutine_names = $code{'base.code.file_list'}->();
+            my $file_cnt = scalar @subroutine_names;
             $code{'log.debug'}->(": :. $file_cnt files. [src]");
         }
         $| = 1;
-        my @compile_them = ();
-        while ( $code_name = shift @src_names ) {
+        my @compile_order = ();
+        while ( $code_name = shift @module_names ) {
             my $src_str = $code_name =~ m|^(.+/)?plugin.| ? '' : ' source';
             $code{'log.noerr'}->(": loading$src_str '$code_name'");
 
@@ -649,7 +685,7 @@ sub prepare_subs {
                     if exists $data{'base'}{'modules'}{'moved_to'};
             }
 
-            foreach my $file_name (@code_files) {
+            foreach my $file_name (@subroutine_names) {
                 next if not defined $file_name or !length($file_name);
                 ## todo : reconcile with code_path ##
                 my $src_abs_path;
@@ -678,7 +714,7 @@ sub prepare_subs {
                             ->( $src_rel, \@http_src_base_urls );
                         ####
                     } else {
-                        ## loading code from disk [ including ext/ directory ]
+                        ## loading code from disk [ including ./ext directory ]
                         $code{'log.debug'}->(":[disk]: $src_rel .,");
                         open( my $src_fh, '<', $src_abs_path )
                             or die ":$src_abs_path : $!";
@@ -720,9 +756,9 @@ sub prepare_subs {
                         $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
                             if !length($src_str);    # <- is plugin..
                     }
-                    push( @compile_them, $file_name );
+                    push( @compile_order, $file_name );
                 } elsif ( $file_name =~ m|\.orig$| ) {
-                    $code{'log.error'}->("[invalid/remove.,] $file_name");
+                    $code{'log.error'}->("[invalid\\remove.,] $file_name");
                 }
             }
             if (    $data{'system'}{'verbosity'}{'console'} == 1
@@ -746,8 +782,8 @@ sub prepare_subs {
             }
             $last_code_count = $code_count;
         }
-        my $mod_count = scalar @compile_them;
-        return if !$mod_count and !@src_names;
+        my $mod_count = scalar @compile_order;
+        return if !$mod_count and !@module_names;
         next   if !$mod_count;
         my $src_bytes_total = 0;
         $code{'log.debug'}->(": compiling ..,");
@@ -758,7 +794,10 @@ sub prepare_subs {
             if exists $data{'disabled_commands'}
             and ref( $data{'disabled_commands'} ) eq 'ARRAY';
 
-        foreach my $sub_name ( sort(@compile_them) ) {
+        ## sort [ and filter ] in code occurence order ###
+        # @compile_order = $code{'base.code.sort_filter'}->(@compile_order);
+        ##
+        foreach my $sub_name (@compile_order) {
 
             local $SIG{'__WARN__'} = 'IGNORE';
             local $SIG{'__DIE__'}  = 'IGNORE';
@@ -955,7 +994,8 @@ sub prepare_subs {
                     }
                 } else {
                     $data{'base'}{'modules'}{'load_errors'}++;
-                    $code{'log.error'}->("!> broken command : $2");
+                    $code{'log.error'}
+                        ->( ':', "::[ broken agent command '$2' ]", ':' );
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
                         = '<<< command did not compile properly >>>';
                 }
@@ -983,32 +1023,17 @@ sub prepare_subs {
                 )
             );
         }
-        if ( defined $code{'base.buffer.add_line'}
-            and not defined $data{'buffer'}{'agent'} ) {
-            $data{'buffer'}{'agent'}{'max_size'} //= 131072;    # 128K
-            my $seperator_len
-                = 18 + length( $data{'system'}{'agent'}{'name'} );
-            map { $code{'base.buffer.add_line'}->( 'agent', $_ ) } (
-                join( ' ',
-                    $code{'base.anum_log_time'}->(), 1,
-                    '_' x $seperator_len ),
-                $code{'base.anum_log_time'}->()
-                    . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
-                $code{'base.anum_log_time'}->()
-                    . " 1 VERSION '$data{'protocol-7'}{'source-version'}'"
-            );
-        }
         return ( $ok_count, $err_count );
     };
 
-    $code{'base.collect_sub_stats'} = sub {
+    $code{'base.collect_sub_stats'} = sub {    ## [ LLL ] .. implement ., ###
         my $sub_name = shift;
     };
 
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'}{'console'} < 2;
         my $sub_name = shift(@_);
-        $code{'base.collect_sub_stats'}->($sub_name);
+        ## $code{'base.collect_sub_stats'}->($sub_name); # <-- replace touch_dir
         my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
         my @_p           = @_;
 
@@ -1063,15 +1088,34 @@ sub prepare_subs {
         }gxe
             if defined &{'encode_b32r'};
         ##
-
-        say ' . ', $data{'system'}{'agent'}{'name'},
-            " : $sub_name ( $param_list )"
+        say sprintf(
+            ' . %s : %s [ %s ]',
+            $data{'system'}{'agent'}{'name'},
+            $sub_name, $param_list
+            )
             if $sub_name ne 'base.log'
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'agent' )
             and $sub_name ne 'base.dump_data';    # skipping too much output..,
     };
 
     $code{'base.log_hook'} = sub {
+        ## flush early agent log buffer ###
+        if (    defined $data{'system'}{'start'}{'agent-buffer'}
+            and @{ $data{'system'}{'start'}{'agent-buffer'} }
+            and defined $code{'base.buffer.add_line'} ) {
+            my $buffer = $data{'system'}{'start'}{'agent-buffer'};
+            while ( my $log_line = shift( @{$buffer} ) ) {
+                my $log_level = $log_line =~ m|^\S+ (\-?\d+) | ? $1 : 0;
+                $code{'base.buffer.add_line'}
+                    ->( 'agent', $log_line, $log_level )
+                    if $log_level
+                    <= $data{'system'}{'verbosity'}{'agent_buffer'}
+                    or $log_level
+                    <= $data{'system'}{'verbosity'}{'agent_logfile'};
+            }
+            delete $data{'system'}{'start'}{'agent-buffer'};
+        }
+        ##
         return 0
             if not defined $data{'base'}{'httpc'}{'last_mlen'}
             or not $data{'system'}{'verbosity'}{'console'};
@@ -1091,21 +1135,30 @@ sub prepare_subs {
         my $spaces = ' ' x $s_len;
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $_ ) } @_;
-        } elsif ( $data{'system'}{'verbosity'}{'console'} ) {
-            my $dot
-                = defined $data{'history'}{'dots'}
-                ? $data{'history'}{'dots'}
-                : '.';
+        } else {
+            if ( $data{'system'}{'verbosity'}{'console'} ) {
+                my $dot
+                    = defined $data{'history'}{'dots'}
+                    ? $data{'history'}{'dots'}
+                    : '.';
+                map {
+                    say ':.', $data{'system'}{'node'}{'name'},
+                        $dot, $data{'system'}{'agent'}{'name'}, '.', $_, $spaces
+                } @_;
+            }
+            ## early start-up buffer ##
             map {
-                say ':.', $data{'system'}{'node'}{'name'},
-                    $dot, $data{'system'}{'agent'}{'name'}, '.', $_, $spaces
-            } @_;
+                push(
+                    @{ $data{'system'}{'start'}{'agent-buffer'} },
+                    join( ' ', $code{'base.anum_log_time'}->(), 1, $_ )
+                )
+            } @_ if $data{'system'}{'verbosity'}{'agent_buffer'};
         }
     };
 
     $code{'log.error'} = sub {
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-        if ( defined $code{'base.log'} ) {
+        if ( defined $code{'base.log'} and defined &{ $code{'base.log'} } ) {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
             my $dot
@@ -1128,27 +1181,44 @@ sub prepare_subs {
                     warn '<< error message undefined >> <{C1}>';
                 }
             } @_;
+            ## early start-up buffer ##
+            map {
+                push(
+                    @{ $data{'system'}{'start'}{'agent-buffer'} },
+                    join( ' ', $code{'base.anum_log_time'}->(), 0, $_ )
+                )
+            } @_;
         }
     };
+
     $code{'log.debug'} = sub {
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 2, $_ ) } @_;
-        } elsif ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
-            my $s_len;
-            $s_len = $code{'base.log_hook'}->()
-                if defined $code{'base.log_hook'};
-            $s_len //= 0;
-            my $spaces = ' ' x $s_len;
-            my $dot
-                = defined $data{'history'}{'dots'}
-                ? $data{'history'}{'dots'}
-                : '.';
+        } else {
+            if ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
+                my $s_len;
+                $s_len = $code{'base.log_hook'}->()
+                    if defined $code{'base.log_hook'};
+                $s_len //= 0;
+                my $spaces = ' ' x $s_len;
+                my $dot
+                    = defined $data{'history'}{'dots'}
+                    ? $data{'history'}{'dots'}
+                    : '.';
+                map {
+                    my $msg_str = $_ . $spaces;
+                    say ':.', $data{'system'}{'node'}{'name'},
+                        $dot, $data{'system'}{'agent'}{'name'}, '.', $msg_str
+                } @_;
+            }
+            ## early start-up buffer ##
             map {
-                my $msg_str = $_ . $spaces;
-                say ':.', $data{'system'}{'node'}{'name'},
-                    $dot, $data{'system'}{'agent'}{'name'}, '.', $msg_str
-            } @_;
+                push(
+                    @{ $data{'system'}{'start'}{'agent-buffer'} },
+                    join( ' ', $code{'base.anum_log_time'}->(), 2, $_ )
+                )
+            } @_ if $data{'system'}{'verbosity'}{'agent_buffer'} > 1;
         }
     };
 
@@ -1248,7 +1318,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\ZACZCNUEWEBRB5JHER347YFEGJNAI2B7SMGRXHSVBKCNTFGEIFS2AX5YJNGLJNJHLQTCSEXHOEN4Y
-# \\ I2WFTGYXNLPDGZCL3NM24UJAPPWUA3O76RTJKHYXKRBGODW4TB7F \\// C25519-BASE-32 //
-#  \\// QZVDS2TXYASQXFLCNZXKUTKK7LLIG3R2TSC465HROA7KS45UEBA \\ CODE SIGNATURE \\
+#\\OYAUXOAHJHUSZNXRXSV7VXVOSHO376PUG7IGBCFO3KV3U5AU6SF752V6D6PE5BKFSYOVIZ7EXHQ24
+# \\ KG2HNH5N5RWWEHSCVSFA7AZYSNV6BSOOLI4QN7EKG5QRVDYP27O6 \\// C25519-BASE-32 //
+#  \\// WMBNCTUZLWRLD2VNB4WQ4A5LA5VSE54NYFBHVAHYPVZMCXABKBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
