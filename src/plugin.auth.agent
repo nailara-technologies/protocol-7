@@ -20,26 +20,26 @@ if (   not %KEYS
 }
 
 if ( $$input =~ s/^($re->{usr}|$re->{usr_sub}) (\S+)\n// ) {
-    my ( $usr, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
+    my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
 
-    my $subname = $usr =~ s|\[($re->{subname})\]$|| ? $1 : '';
+    my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
 
-    if ( exists $KEYS{'auth'}{'agent'}->{$usr} ) {
+    if ( exists $KEYS{'auth'}{'agent'}->{$user} ) {
 
-        if ( $key_hash eq $KEYS{'auth'}{'agent'}{$usr} ) {
+        if ( $key_hash eq $KEYS{'auth'}{'agent'}{$user} ) {
 
             if ( length($subname) ) {
                 $data{'session'}{$id}{'subname'} = $subname;
-                $data{'user'}{$usr}{'subname'}{$subname}++;
+                $data{'user'}{$user}{'subname'}{$subname}++;
             }
 
-            delete $KEYS{'auth'}{'agent'}{$usr};
+            delete $KEYS{'auth'}{'agent'}{$user};
             $$output .= "YEAH >:P\n";
 
             #            <[net.update.client_conf]>->($id);
 
             <[base.log]>->( 1, "[$id] agent '$auth_name' session authorized." );
-            return ( 0, $usr );
+            return ( 0, $user );
         }
     } else {
         <[base.log]>->( 0, "[$id] '$auth_name' [agent] access denied" );
@@ -53,7 +53,7 @@ if ( $$input =~ s/^($re->{usr}|$re->{usr_sub}) (\S+)\n// ) {
 }
 
 # ______________________________________________________________________________
-#\\MBYA5YKM6LXFHQTACM2TH34BHRUCUENY4A7COGFQIRWGW27AFP74NXY54KHNUEHY4KDTNNDTSARCY
-# \\ 3NJOCJQSH5Y56LBAZYRPUDNWIU3JV73ZBB67KJAB3ZDO25N7QEA5 \\// C25519-BASE-32 //
-#  \\// W24EJ4223MPEL66THUQJVQYEAFBMPHNZF7JNAGEUASFNC3A4CDA \\ CODE SIGNATURE \\
+#\\IZKWYCRZ4XXQFLQ6JHTXMH7B6MEM6DXNG4GIDJ6JK6U4BORTUGM4KYCJMPHRQ4SIKNSYIX5N6IZ72
+# \\ 4HGTTJ5IJYNJTEA5XIYWIFR2THVEA5RTLP52VVOIQSYUOSQZ7XF6 \\// C25519-BASE-32 //
+#  \\// NWALQHBD4JOAQBF3MDI6AEQO7L7RXQM2OELETS7U3MGZHH7LKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

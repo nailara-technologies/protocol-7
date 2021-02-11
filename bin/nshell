@@ -143,7 +143,7 @@ sub calc_port {
     my $path_offset = shift;
     my $port_start  = 57;    # <- [ details : 'net.init_code', 'net.calc_port' ]
     my $port_end    = 1021;
-    my $port_delta = $port_end - $port_start;
+    my $port_delta  = $port_end - $port_start;
 
     my $n_port = $port_start + $path_offset % $port_delta;
 
@@ -198,8 +198,8 @@ sub shell_connect {
 }
 
 sub shell_auth {
-    my ( $fh, $usr, $pwd ) = @_;
-    s_write( $fh, "auth $usr $pwd\n" );
+    my ( $fh, $user, $pwd ) = @_;
+    s_write( $fh, "auth $user $pwd\n" );
     my $answer = <$fh>;
     die "\n  [!] connection was prematurely terminated [!]\n\n"
         if not defined $answer;
@@ -217,7 +217,7 @@ sub shell_auth {
 }
 
 sub unix_auth {
-    my ( $fh, $usr ) = @_;
+    my ( $fh, $user ) = @_;
     s_write( $fh, "select unix\n" );
     my $answer = <$fh>;
     die "\n  [!] connection was prematurely terminated [!]\n\n"
@@ -225,7 +225,7 @@ sub unix_auth {
     if ( $answer !~ /^ACK continue/ ) {
         die " :: unix auth not available ::\n\n";
     }
-    s_write( $fh, "auth $usr\n" );
+    s_write( $fh, "auth $user\n" );
     $answer = <$fh>;
     print "\n";
     if ( $answer =~ /YEAH/ ) {
@@ -389,8 +389,8 @@ sub rl_filename_list_lcl { #<- currently not working since Term::ReadLine switch
 }
 
 sub override_signals {
-    POSIX::sigaction( &POSIX::SIGINT, $sigaction, $old_int_handler );
-    POSIX::sigaction( &POSIX::SIGHUP, $sigaction );
+    POSIX::sigaction( &POSIX::SIGINT,  $sigaction, $old_int_handler );
+    POSIX::sigaction( &POSIX::SIGHUP,  $sigaction );
     POSIX::sigaction( &POSIX::SIGTERM, $sigaction );
     return $term_loop = 1;
 }
@@ -420,7 +420,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\7TN5U3GTHXAOVUEPAIUHKQSZW4JVZFEEOHQGBSYQH2ZE4ASWLMNUR6ASTY3HDRPF7LUTCY3MRNPAW
-# \\ UITNBDY3UTY6LG3QZDVTQGI3XS2K6Y37ZUBB3EHIOIQPSFZWTDK3 \\// C25519-BASE-32 //
-#  \\// 7LUOOVIGRHBERGCYMFMFZMHAAT44XHKIE52UYVNXR7RYDQRG6AI \\ CODE SIGNATURE \\
+#\\UKLQF4BANIDE4GL3NLNVUNSGEBRQI7BEH3J2JGEE2HMSPZT6ONAVFN7QPNDPOWZUXSZ4RSUIZTKFS
+# \\ RJJKDOBWBTK624BRASJTUX3LYUWXOCAD4V6F4MMV7OK7LT5R4QDL \\// C25519-BASE-32 //
+#  \\// 3N2WHXOEPSTRRZVE4YZTYMR7WNDEDCML5EENN57I4DHSOMDAEDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
