@@ -9,22 +9,22 @@ my $re_usr = <regex.base.usr>;
 if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     $$reply{'data'} = 'no username specified';
 } elsif ( $$call{'args'} =~ $re_usr ) {
-    my $usr = $$call{'args'};
+    my $user = $$call{'args'};
 
     return { 'mode' => 'nak', 'data' => 'seen no such client' }
-        if not exists $data{'user'}{$usr}
-        or (not exists $data{'user'}{$usr}{'last_seen'}
-        and not exists $data{'user'}{$usr}{'session'} );
+        if not exists $data{'user'}{$user}
+        or (not exists $data{'user'}{$user}{'last_seen'}
+        and not exists $data{'user'}{$user}{'session'} );
 
-    my $utime = $data{'user'}{$usr}{'last_seen'}
-        || $data{'user'}{$usr}{'connected_since'};
+    my $utime = $data{'user'}{$user}{'last_seen'}
+        || $data{'user'}{$user}{'connected_since'};
     my $mode = 'timestamp';
     $mode = 'clock'
         if <[base.parser.timestamp]>->( 'date', $utime ) eq
         <[base.parser.timestamp]>->('date');
 
-    if ( not exists $data{'user'}{$usr}{'last_seen'}
-        and exists $data{'user'}{$usr}{'session'} ) {
+    if ( not exists $data{'user'}{$user}{'last_seen'}
+        and exists $data{'user'}{$user}{'session'} ) {
         return {
             'mode' => 'ack',
             'data' => 'present since '
@@ -43,7 +43,7 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
 }
 
 # ______________________________________________________________________________
-#\\GAMRGKON5SULTVJNEHDVCTYZZ35GGIYIXAHYDWJBKQVWR5OM35DMAUVBSLFXUOLQXDJ4ZEN6LCKK2
-# \\ BK62M4Y4NPGFSZRLWJ4BF7J5N4DPH62AB7XOAOT4LVS757I3LDOI \\// C25519-BASE-32 //
-#  \\// LHQCKICAITGG6SGMZD5AXUU2XCMHWA7ES2AD67W6IMRPS7LI6DQ \\ CODE SIGNATURE \\
+#\\QMQGCXQBEFEFW77WGJ66TDCA57PMLEN3XRBT2GLVYMI6CVG5Y5F6QSFPOT6G253PREKBBBOSA2PTQ
+# \\ Y4SJNAE46J4EOSC26PYJ4FMJD65JFEHCUJQWXAP37EEUMYTVNSOC \\// C25519-BASE-32 //
+#  \\// 2XZI4I5O45WVQDOAGCTSGJQO6J2CHZVK4C4XJOYXG5M6JBDMUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

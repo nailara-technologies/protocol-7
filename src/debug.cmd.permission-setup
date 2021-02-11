@@ -34,7 +34,7 @@ $cmd_len += 15;
 my $max_width   = 77;
 my $match_count = 0;
 
-foreach my $usr (
+foreach my $user (
     sort { length <access.cmd.usr>->{$a} <=> length <access.cmd.usr>->{$b} }
     sort {
         split( / +/, <access.cmd.usr>->{$a} ) <=>
@@ -42,12 +42,12 @@ foreach my $usr (
     }
     sort { length $a <=> length $b } sort keys %{<access.cmd.usr>}
 ) {
-    next if $usr !~ $param_re and <access.cmd.usr>->{$usr} !~ $param_re;
+    next if $user !~ $param_re and <access.cmd.usr>->{$user} !~ $param_re;
     $match_count++;
     my @perms = sort { length $a <=> length $b } sort split / +/,
-        <access.cmd.usr>->{$usr};
+        <access.cmd.usr>->{$user};
 
-    my $new_line  = sprintf( "\n  %${cmd_len}s  =  ", "access.cmd.usr.$usr" );
+    my $new_line  = sprintf( "\n  %${cmd_len}s  =  ", "access.cmd.usr.$user" );
     my $first_len = length($new_line) - 1;
     my $subtract  = 0;
     while ( my $next_item = shift @perms ) {
@@ -76,7 +76,7 @@ return { 'mode' => 'nak', 'data' => "no match for '$param_str' pattern" }
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\VYM3EXLGJ5QEJFSA3K4WPE3QSOVS2OF7YSX7NWLZV76AEDILIRN3U6JGWI7QMK3BMYHYJ37LPVI4E
-# \\ G6XVHFSLOX34JELIWVDJCISCMDLFETQVJ5SRWFAXDCQWED3EIGFF \\// C25519-BASE-32 //
-#  \\// AYOZYSTJUBM3POKYNCWR2AC4LDEQLMVN3AZJ27UYTQUD6AZQUAI \\ CODE SIGNATURE \\
+#\\UNM5Q6V3O3PKXCVTD6FPAPWLA65IAX3CJVNCHDIK5YFPM6RYDAFFKZEVU4ODNPZMBAEL7PVSGSRGU
+# \\ E6T7MUBZINM7VBAZ7MSPK5BVQBRE6V44464AAMK6PH22P3TVS5RV \\// C25519-BASE-32 //
+#  \\// NTJYSYMHCLGMKN2NGYZB5CNJ7L4BT6LV24ENNO3CDWKM3LDRUDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

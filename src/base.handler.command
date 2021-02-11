@@ -9,7 +9,7 @@
 
 my $id = $_[0]->w->data;
 
-my $usr = $data{'session'}{$id}{'user'};
+my $user = $data{'session'}{$id}{'user'};
 
 my $cmd    = '';
 my $cmd_id = 0;
@@ -207,7 +207,7 @@ if ( defined <core.reroute> ) {
 
         my $rre_m = qr|$rre_pattern_match|;
         my $rre_u = qr|$rre_pattern_usr|;
-        $cmd =~ s|$rre_m|$rre_pattern_replace| if $usr =~ $rre_pattern_usr;
+        $cmd =~ s|$rre_m|$rre_pattern_replace| if $user =~ $rre_pattern_usr;
     }
     $cmd = <core.reroute.command>->{$cmd}
         if defined <core.reroute.command>
@@ -223,16 +223,16 @@ $alias_to = $data{'alias'}{$cmd}
     if exists $data{'alias'} and exists $data{'alias'}{$cmd};
 
 # per user alias
-$alias_to = $data{'user'}{$usr}{'alias'}{$cmd}
-    if exists $data{'user'}{$usr}{'alias'}
-    and exists $data{'user'}{$usr}{'alias'}{$cmd};
+$alias_to = $data{'user'}{$user}{'alias'}{$cmd}
+    if exists $data{'user'}{$user}{'alias'}
+    and exists $data{'user'}{$user}{'alias'}{$cmd};
 my $cmd_orig  = $cmd;
 my $args_orig = $$call_args{'args'};
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
     $cmd = $alias_to;
     my $args_map = {
-        'SOURCE_AGENT' => <system.node.name> . '.' . $usr,
+        'SOURCE_AGENT' => <system.node.name> . '.' . $user,
         'SOURCE_SID'   => $id
     };
     map { $cmd =~ s|$_|$args_map->{$_}|g } keys %{$args_map};
@@ -450,8 +450,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
     } else {
         my $ignore_log_level = 1;
         $ignore_log_level = 2
-            if exists <net.silent_ignore>->{$usr}
-            and <net.silent_ignore>->{$usr} == 1
+            if exists <net.silent_ignore>->{$user}
+            and <net.silent_ignore>->{$user} == 1
             or exists $data{'session'}{$id}{'silent_ignore'}
             and $data{'session'}{$id}{'silent_ignore'} == 1;
         <[base.log]>->(
@@ -481,8 +481,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
     $$output .= $_cmd_id . "NAK protocol mismatch [ 'invalid reply type' ]\n";
-} elsif ( exists <access.cmd.regex.usr>->{$usr}
-    and $cmd_usr_str =~ <access.cmd.regex.usr>->{$usr}
+} elsif ( exists <access.cmd.regex.usr>->{$user}
+    and $cmd_usr_str =~ <access.cmd.regex.usr>->{$user}
     or exists <access.cmd.regex.usr>->{'*'}
     and $cmd_usr_str =~ <access.cmd.regex.usr>->{'*'} ) {
 
@@ -745,7 +745,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 (   not defined <system.agent.mode>
                     or <system.agent.mode> ne 'core'
                 )
-                or $usr eq
+                or $user eq
                 'nroot'    # LLL: need better check if really nroot agent
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
@@ -811,7 +811,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     or !<debug.skip_log_msg> )
                     and ( $cmd ne 'history.append'
                     or !<debug.skip_log_msg> )
-                    and ( $usr ne 'nroot'
+                    and ( $user ne 'nroot'
                     or $cmd ne 'heart'
                     or !<debug.skip_nroot_heartbeat> );
             }
@@ -868,7 +868,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         if ( $targets_denied == @send_sids ) {    # nothing sent
             $$output .= $_cmd_id . "NAK command unknown\n";
             <[base.log]>->(
-                0, "[$id] blocked access [ usr:'$usr' cmd:'$target_name.$cmd' ]"
+                0,
+                "[$id] blocked access [ usr:'$user' cmd:'$target_name.$cmd' ]"
             );
             return 1;
         }
@@ -883,17 +884,17 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     # command unknown
     $$output .= $_cmd_id . "NAK command unknown\n";
-    <[base.log]>->( 1, "[$id] command unknown [ usr:'$usr' cmd:'$cmd' ]" );
+    <[base.log]>->( 1, "[$id] command unknown [ usr:'$user' cmd:'$cmd' ]" );
 } else {    # blocked access
     $$output .= $_cmd_id . "NAK command unknown\n";
-    <[base.log]>->( 0, "[$id] blocked access [ usr:'$usr' cmd:'$cmd' ]" );
+    <[base.log]>->( 0, "[$id] blocked access [ usr:'$user' cmd:'$cmd' ]" );
     return 1;
 }
 
 return 0;
 
 # ______________________________________________________________________________
-#\\273PQXMIKVCXL33G7KSUKEVEU3NATZPALXBNBORK63QNJJPT6GE6K2DNYUGKMTBE37KNNXAYQ3IK2
-# \\ D5M5D6GCVBUTFTFIOVFL7MPA56EQLYLYYJ6UBWVPK2RDIK6GNUO6 \\// C25519-BASE-32 //
-#  \\// DDYNWE3UQC24RJRLYZC7QLNQMMVRLDUWHUUS3PAC5OTMZYH4UAQ \\ CODE SIGNATURE \\
+#\\SGSLHCK76QD6D4C3WFHVR6RD33UFUVLRJBWGA26KDGEC6KTHRTV75WOOGUNSUNNIP4VY5G3ZZXI24
+# \\ 4UAFOI2XOW3FLMU2ZC6CANE2HIMD3FKZ5VFONB42FKFDOJDPNGQ3 \\// C25519-BASE-32 //
+#  \\// LQ6FQWM5I3UK353G2TORZ67A5FL6DMWDRKWECWODYUM2MIIFMBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

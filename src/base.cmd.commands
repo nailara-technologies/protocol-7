@@ -5,7 +5,7 @@
 # descr = print available commands + descriptions
 
 my $id      = $$call{'session_id'};
-my $usr     = $data{'session'}{$id}{'user'};
+my $user    = $data{'session'}{$id}{'user'};
 my $keyword = $$call{'args'};
 
 my $agent_name = <system.agent.name>;
@@ -22,8 +22,8 @@ map { $_ =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$_} //= 1 }
 foreach
     my $cmd ( sort { length($b) <=> length($a) } sort( keys( %{<base.cmd>} ) ) )
 {
-    if ( defined <access.cmd.regex.usr>->{$usr}
-        and $cmd =~ <access.cmd.regex.usr>->{$usr}
+    if ( defined <access.cmd.regex.usr>->{$user}
+        and $cmd =~ <access.cmd.regex.usr>->{$user}
         or defined <access.cmd.regex.usr>->{'*'}
         and $cmd =~ <access.cmd.regex.usr>->{'*'} ) {
 
@@ -69,7 +69,7 @@ $$reply{'data'} .= "\n";
 $$reply{'mode'} = 'data';
 
 # ______________________________________________________________________________
-#\\HFGHDAIEECFGYSMUOCF6MMNOQXGI2XNYXNNSFUKBEE5I6DIC7JY474DYVFASIR3V2JZ5OECHOGX5S
-# \\ JBPLPXKEWTORZ5KRNHX3TZK64MXTILWH3K57GQVNCKSXUPRS6AK4 \\// C25519-BASE-32 //
-#  \\// UCQAGVDIKCDJCLNJX7C6ZRW47SH4ZJWWMYCJMEHW7KLUO3IF2AY \\ CODE SIGNATURE \\
+#\\2A5LZTJOLLMCL5GTQDQTMLCN5FGPZ26UTPOGQU5FKIHEWLXZYHQ2WIZERTWZJ6MMITQYDWVUV5I5K
+# \\ E6WUXGUMXJ2DHD2CLVTKTD2B2UQONUP4664JFXUJX32YDGI4WVMY \\// C25519-BASE-32 //
+#  \\// EB7DJ3GNYTKRYGRXDUTCMCBDWNJJZ6QZRU5ZP2DTQO4LYCV6UCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
