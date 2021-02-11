@@ -481,10 +481,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
     $$output .= $_cmd_id . "NAK protocol mismatch [ 'invalid reply type' ]\n";
-} elsif ( exists <access.cmd.regex.usr>->{$user}
-    and $cmd_usr_str =~ <access.cmd.regex.usr>->{$user}
-    or exists <access.cmd.regex.usr>->{'*'}
-    and $cmd_usr_str =~ <access.cmd.regex.usr>->{'*'} ) {
+} elsif ( <[base.has_access]>->( $user, $cmd_usr_str ) ) {
 
     # local command
 
@@ -894,7 +891,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\SGSLHCK76QD6D4C3WFHVR6RD33UFUVLRJBWGA26KDGEC6KTHRTV75WOOGUNSUNNIP4VY5G3ZZXI24
-# \\ 4UAFOI2XOW3FLMU2ZC6CANE2HIMD3FKZ5VFONB42FKFDOJDPNGQ3 \\// C25519-BASE-32 //
-#  \\// LQ6FQWM5I3UK353G2TORZ67A5FL6DMWDRKWECWODYUM2MIIFMBI \\ CODE SIGNATURE \\
+#\\TBHKOOQKAJL2F3FV2TA6FRYGFUVKCP4NNQK2QERDMXIK2PLZDU7IGPTJQCPAMSM7EY64TDCAWBVKS
+# \\ ZOXVAS73GGXDOC3JLG55LGPUIA5XNI43XK2GHNHZ2GVLICWZF3UD \\// C25519-BASE-32 //
+#  \\// R6ZWBXFY5SBHJ7FSQY3YQR5ZFFMZ32BNBCL6B57RGER2NLJQMCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

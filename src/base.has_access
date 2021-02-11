@@ -1,0 +1,20 @@
+# >:]
+
+# name  = base.has_access
+# descr = verify if user has access to command
+
+my $user = shift;
+my $cmnd = shift;
+
+return 1    ## <-- has access ###
+    if defined <access.cmd.regex.usr>->{$user}
+    and $cmnd =~ <access.cmd.regex.usr>->{$user}
+    or defined <access.cmd.regex.usr>->{'*'}
+    and $cmnd =~ <access.cmd.regex.usr>->{'*'};
+
+return 0;    ## <-- no access ###
+# ______________________________________________________________________________
+#\\SMJ6ZY4TF2K4VF6OF2QSF65VFMJX6DEUI7TIK4CXZLTMHLOKF4JUV6JWUNZ3NR7CR3CJ7BDPNSKAS
+# \\ 3MVVO3TJYITVLOFJJ2A5LUHWEYKNU35FX34YPCRTMF67ETJ3KY5L \\// C25519-BASE-32 //
+#  \\// N7SDUUDDH2PXYQQJQZWHGV7R5UF3PEYHQNKG546WNVRVAIFVKDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
