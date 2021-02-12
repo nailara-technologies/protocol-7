@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.cmd.ntime-dec
+# param = [unix_t|fp-precision]
+# descr = decimal protocol-7 network time, unix|current
+
+my $param = $$call{'args'} // 0;
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected floating point precision or unix time-stamp'
+    }
+    if $param =~ m|\D|;
+
+return { 'mode' => 'ack', 'data' => <[base.ntime]>->($param) };
+
+# ______________________________________________________________________________
+#\\JY5EW4LPJNNQNDVMR4W25A5AZVG5HHZNAKBIWVMISXCWC6R64IFU2WNXS7L4DCMREXGJ7EPHI7UFQ
+# \\ MLIW24KUQANNJJPMM5RHWFMQFFTPH4F5CZFWKDJUSB342XIDG5SP \\// C25519-BASE-32 //
+#  \\// 7QHPVATJ6G42Y2TL7GX2LYUNBRPSTVIH2HI3WEFBTYIUU54IYCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
