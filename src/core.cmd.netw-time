@@ -1,0 +1,21 @@
+# >:]
+
+# name  = core.cmd.netw-time
+# param = [unix|precision]
+# descr = protocol-7 network time, BASE-32 encoded
+
+my $parameter = $$call{'args'} // 0;  #  <--  precision or given unix time value
+
+return {
+    'mode' => 'nak',
+    'data' => 'precision\time parameter not valid [ integer or float expected ]'
+    }
+    if $parameter !~ m|^\d+(\.\d+)?$|;
+
+return { 'mode' => 'ack', 'data' => <[base.ntime.b32]>->($parameter) };
+
+# ______________________________________________________________________________
+#\\UNWXHX77FIIAY6UJILXHDHBSYF3FQCYDY3H2LJEFOR4TAEAZGHZPDFIKY5PAB6OALCWJKF4IKLXDG
+# \\ 6JOHIA5ITQU6MXHQ3KBTCPT2F4QX6ZYCB7YXCNMJWTKVJWKAAQKV \\// C25519-BASE-32 //
+#  \\// UBACWAWLIHPTEWKPCJF5YONXKZ6DMNZEJDMV55QMFWSJMJE3UDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
