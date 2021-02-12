@@ -1,15 +1,15 @@
 # >:]
 
 # name  = debug.cmd.b32-ntime
-# descr = decode base32 + VAX encoded network time
+# descr = decode BASE-32 + VAX encoded network time
 
 my $param = $$call{'args'} // '';
 
 return {
     'mode' => 'nak',
-    'data' => 'expected base32 encoded [VAX little endian] network time code'
+    'data' => 'expected BASE-32 encoded [VAX little endian] network time code'
     }
-    if $param !~ /^[A-Z0-9]{1,22}$/;
+    if $param !~ m|^[A-Z0-9]{1,22}$|;
 
 my $decoded_vax;
 eval { $decoded_vax = decode_b32r($param) };
@@ -24,7 +24,7 @@ return {
 return { 'mode' => 'ack', 'data' => unpack( 'w', $decoded_vax ) };
 
 # ______________________________________________________________________________
-#\\XKSA2M55K7M75HZFIKCEHO6XFG5DDYTJRZYF3ZK77EOSHLZ2OL4BD7QVWCXSBOZFH6SP3AVWKXDTC
-# \\ 6ARZMRLSVXRYGR7WXKPPM6TXL6MA54IPVVTX3NUJBZKAX4JXN2RM \\// C25519-BASE-32 //
-#  \\// UQCH326BBGRTL2OLRI2AVEREANYQ6DB7PGYSYMH7RFCTMWUPSBQ \\ CODE SIGNATURE \\
+#\\EBSFRWBGKY43XU5BHQ2JO7T76XNBTAOUKIGC6E6WTZOTHJC2YJ7V7PNNTOIRUXTDCEAKAHIKR3BYQ
+# \\ 5ZOEETLY37PS7KGRVDTQOSGKO3XNWCAG5MDGNS4NWCVVWV47OE5Q \\// C25519-BASE-32 //
+#  \\// XWLM6FPNE5W2BY7LDYOMPRJR2ASAL3NG6AQKSDFDLHVTXKXGSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
