@@ -4,14 +4,14 @@
 
 my ( $type, $station_id, $weather_data ) = @_;
 
-die "forecast type parameter required [hours|days]"
+die 'forecast type parameter required [hours|days]'
     if not defined $type or !length($type);
-die "invalid type parameter [hours|days]" if $type !~ /^(hours|days)$/;
+die 'invalid type parameter [hours|days]' if $type !~ m{^(hours|days)$};
 
-die "expected (valid) station_id parameter"
+die 'expected [valid] station_id parameter'
     if not defined $station_id
     or !length($station_id)
-    or $station_id !~ /^([\w\d]+)$/;
+    or $station_id !~ m|^([\w\d]+)$|;
 
 die "expected 'forecast' weather data"
     if not defined $weather_data
@@ -109,13 +109,13 @@ if ( $type eq 'hours' ) {
         = <[weather.parent.wind.calculate_beaufort]>->( $element->{'speed'} );
 
     $forecast_ref_today = {
-        'timestamp' => $timestamp,
-        'expires'   => <[weather.base.tomorrow_unix]>,
-        'code'      => $element->{'weather'}->[0]->{'id'},
-        'icon'      => $element->{'weather'}->[0]->{'icon'},
-        'descr'     => $element->{'weather'}->[0]->{'description'},
-        'clouds'    => $element->{'clouds'},
-        'wind'      => {
+        'time-stamp' => $timestamp,
+        'expires'    => <[weather.base.tomorrow_unix]>,
+        'code'       => $element->{'weather'}->[0]->{'id'},
+        'icon'       => $element->{'weather'}->[0]->{'icon'},
+        'descr'      => $element->{'weather'}->[0]->{'description'},
+        'clouds'     => $element->{'clouds'},
+        'wind'       => {
             'direction' => $element->{'deg'},
             'speed'     => $element->{'speed'},
             'speed_kmh' => $km_h,
@@ -137,7 +137,7 @@ if ( $type eq 'hours' ) {
 <[weather.parent.write_pages]>->($station_id);
 
 # ______________________________________________________________________________
-#\\XIE6EMTDOHGF7HYHLTMQJ67JMTMMRWKWUIUN33P2J2N67ELRSNVNLJIHRBF2GPQLDJCTNNSCXMI56
-# \\ UUGJIO2MC5IVBAKS7EBOWDJ6QAJW37BHJ3ZKWFQNEW4VJDI5A7O2 \\// C25519-BASE-32 //
-#  \\// RVGWOQDYQRTFEO6H2GHYOCJPCKDUIRRNRNB3JUBPTOJXTJZMMDY \\ CODE SIGNATURE \\
+#\\DL26YQQESH2QJTNV2KAOLFFYUXFGYSQHJMZQJOLCLJCLNR4OOIBYBSXHXNSWQTNS7YEIEMRJBAWOQ
+# \\ O4OXCGS2TPKPIR4NIH6OXUGYDKRLLHG2JIY74AFWPP722WM5K6PP \\// C25519-BASE-32 //
+#  \\// 4C6U3FFW27UDWUKWC6SXY6SLJK35SC3K34ZG6SF4EJMK5IN6GAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
