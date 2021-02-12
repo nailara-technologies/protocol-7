@@ -1,17 +1,16 @@
 # >:]
 
 # name  = base.parser.timestamp
-# descr = returns diffenent timestamp strings for specified unix-/current time
-# note  = ntime values are also accepted ( length >= 13 )
+# descr = returns diffenent time-stamp strings for specified unix-\current time
+# note  = ntime values are also accepted [ length >= 13 ]
 
 my @result;
-my $mode = shift;             # [time|date]
-my $time = shift // time();
+my $mode = shift // 'time-stamp';    # [time|time-stamp|date]
+my $time = shift // time;
 
-if ( defined $mode and $mode =~ /^(\d+)(\.\d+)?$/ ) { $time = $1; undef $mode }
-undef $mode if defined $mode and $mode eq 'timestamp';
+if ( $mode =~ m|^(\d+)(\.\d+)?$| ) { $time = $1 and $mode = 'time-stamp' }
 
-$time = <[base.n2u_time]>->($time) if length($time) >= 13;    # network time
+$time = <[base.n2u_time]>->($time) if length($time) >= 13; # <-- network time ##
 
 my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
 
@@ -19,15 +18,15 @@ $year = sprintf( "%02d", $year + 1900 );
 $mon  = sprintf( "%02d", $mon + 1 );
 $mday = sprintf( "%02d", $mday );
 
-push( @result, "$year-$mon-$mday" ) if not defined $mode or $mode eq 'date';
+push( @result, "$year-$mon-$mday" ) if $mode eq 'time-stamp' or $mode eq 'date';
 
 push( @result, sprintf( "%02d:%02d:%02d", $hour, $min, $sec ) )
-    if not defined $mode or $mode eq 'time';
+    if $mode eq 'time-stamp' or $mode eq 'time';
 
 return join( ' ', @result );
 
 # ______________________________________________________________________________
-#\\6UIU7LERR64XIRH6MS22N6KXRLIIRMUGCLFLX4TUYY6UEZ3XWM3H23ZXAMWPYHTNO5SF24ITMRVZM
-# \\ DOOXVTN3KFDXIKWF3OSM6EYSTU3VOMK2ZFRDDOHT4QSNSMVP7CF4 \\// C25519-BASE-32 //
-#  \\// WLHA4O5OYO75GSN2NOBBCMM2KDA7GTQWJU3U2GHCX2CDGP4G4DI \\ CODE SIGNATURE \\
+#\\O4CA6F5DXVAYAUZI5AAWRA7YT7V35EDF2VABT6RKGEKUSGB5JNKU6A4ZWOP2WOBN5WOBIGS3BOQXW
+# \\ 7MHIUGIVGQU3IENVHZFFGUSS55OEBLWD526CCPWVN5EZH22AWK6F \\// C25519-BASE-32 //
+#  \\// HVNKTCQ26LWOLKVRBXUBK5JKVCPAGDS57HUNDTQA5FQC5F4P2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
