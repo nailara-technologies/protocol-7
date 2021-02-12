@@ -7,11 +7,11 @@ my $remove_count = 0;
 my $cache_dir     = <image2html.cache_dir>;
 my $cache_timeout = <image2html.cache_days> * 3600 * 24;
 
-<[base.log]>->( 1, "checking cache directory timestamps.," );
+<[base.log]>->( 1, 'checking cache directory time-stamps.,' );
 
 opendir( my $dir_fh, $cache_dir ) or die "$cache_dir: $!";
 foreach my $subdir ( readdir($dir_fh) ) {
-    next if $subdir =~ /^\./;
+    next if $subdir =~ m|^\.|;
     next if !-f "$cache_dir/$subdir/.last_used";
     my $timestamp = <[file.read_timestamp]>->("$cache_dir/$subdir/.last_used");
     my $remove_cache = not defined $timestamp ? 1 : 0;
@@ -23,7 +23,7 @@ foreach my $subdir ( readdir($dir_fh) ) {
 
     if ($remove_cache) {
         my $errors = [];
-        <[base.log]>->( 1, "cache directory '$subdir' expired, removing.." );
+        <[base.log]>->( 1, "cache directory '$subdir' expired, removing..," );
         remove_tree( "$cache_dir/$subdir", { error => \$errors } );
         for my $err (@$errors) {
             my ( $file, $message ) = %$err;
@@ -40,7 +40,7 @@ my $y = $remove_count == 1 ? 'y' : 'ies';
 <[base.log]>->( 1, ": $remove_count director$y removed." );
 
 # ______________________________________________________________________________
-#\\5CVID7UKDECIHCLVDESVTIYG5HE6O7PV2G67BKIZ3VC27IIJKAEP3OR6UNDZCLSYOHQPAMUEAQVD4
-# \\ 66XI7C3MIFF2EJ5UMKLYILFVNZZXNMQSI5UUQY5WURJPQPLP7I5R \\// C25519-BASE-32 //
-#  \\// CKETAYNSR5YQDJ76NU5JHXCEBQGCWHKPW5GIEZD53A6TSEEGUCY \\ CODE SIGNATURE \\
+#\\SQKVLNINYFJGS6XWOZXXVBBP4ZEKFIRNR3ZOFKT4RRUJMTPKHWHC2Z3KUDMD2KH4USOWZMCG6Y6D6
+# \\ SLUTLP7NHXSFPFYMG546NLMERFCGHVQSMK3V4OLGG7KC6V46QT2E \\// C25519-BASE-32 //
+#  \\// IZD6SN4CLGFRINKCCBHIF3E3FRLHAUKI4TRLSB7I3TZWMWNWOAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

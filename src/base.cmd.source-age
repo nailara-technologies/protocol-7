@@ -4,7 +4,7 @@
 # param = ['date']
 # descr = installed nailara 'protocol-7' code age
 # additional param = [year_float]
-# todo = create and process ntime timestamp for abolute precision
+# todo = create and process ntime time-stamp for abolute precision
 
 my $param_str = shift->{'args'} // '';
 my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
@@ -24,7 +24,7 @@ if ( ( not exists <system.agent.type> or <system.agent.type> ne 'core' )
 } elsif ( length($param_str) ) {
     return {
         'mode' => 'nak',
-        'data' => "invalid version timestamp syntax [ see 'source-version' ]"
+        'data' => "invalid version time-stamp syntax [ see 'source-version' ]"
     };
 }
 
@@ -47,7 +47,7 @@ return { 'mode' => 'ack', 'data' => $date_stamp . $e_str } if $date_mode;
 return { 'mode' => 'ack', 'data' => $duration_str . $e_str }
 
 # ______________________________________________________________________________
-#\\RYKZJIIIZJRLUQJBYRP64X5DSIW35QZHLBVVYCMSIXDNINRR7LY4WF5JMVXRGMQH2LD2NDKSYQPWQ
-# \\ RW3ZNFFB5EEGRY66LLUYPFXR5ISPY76QYR72LJLST5XWIMI4US7L \\// C25519-BASE-32 //
-#  \\// M63W2WIRFNPC6RGRJKDYSC2NDEM5TJQYUMO7ADBPLNRQTJ634BY \\ CODE SIGNATURE \\
+#\\4VQDSIKJSW6TTM7T4U2A4V7RDJ45FVFFQ27OZWOQPY5CJV2YO4KBH3A2FFXNTL2UMNAGCNT4UGZHI
+# \\ SLEN3CNJDPXXQSSBRPZCHQE54EF3S5HWHZ5DWULDQVD4YGRQGDZK \\// C25519-BASE-32 //
+#  \\// 5FADXIBGYI4KYIA3ZSI446S4ERDNGLDR6RHP5LBOLQAV34K4UCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

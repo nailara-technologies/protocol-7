@@ -10,7 +10,7 @@ my $location_name = $$call{'args'};
 
 my $use_first_match = <weather.cfg.first-location-match> //= 0;
 my $language_code   = <weather.cfg.language> // <system.language>;
-my $country_code = uc($language_code);    # <- LLL: coincidental only, geoloc?
+my $country_code    = uc($language_code);   # <- LLL: coincidental only, geoloc?
 
 return { 'mode' => 'nak', 'data' => 'expected location name parameter' }
     if not defined $location_name or !length($location_name);
@@ -53,7 +53,7 @@ foreach my $location_data ( @{ $json_response->{'list'} } ) {
             1, "found location '$match_name' [ station_id = $station_id ]"
         );
         <weather.cache_data>->{$station_id}
-            = { 'timestamp' => time, 'data' => $location_data };
+            = { 'time-stamp' => time, 'data' => $location_data };
         $matches++;
     }
     if ( $matches > 1 and !$use_first_match ) {
@@ -89,7 +89,7 @@ return {
 return { 'mode' => 'ack', 'data' => $station_id }
 
 # ______________________________________________________________________________
-#\\ZEWJG7QNU4MTD6YAN5BH4OWCYZ6JDGD2S2G5IIEDKO2FU3XMQ64OWITRSNXVDCWBXZATJH6YZZ54U
-# \\ XHLL36PLJ4UHL3W6FNNUGNGUPAD42DHUGUQRZAVOBO6XZNKHNXXW \\// C25519-BASE-32 //
-#  \\// N24Z3DCJ3TUCIMJ4AVDQ3XNEYB4Q23E26U4OKRY5IEMRHLYESBQ \\ CODE SIGNATURE \\
+#\\ER4IRA7KZBGUZUIBBAAYE63XPGYD7R525QWMVRMQ2GTHL2ZYSGG2AJB4PZY6PSLXGTL2P27ICZ5XK
+# \\ KO2XYLHIUIQDLINZFCQWVBNDV3XG6Y5DUJEWBSVVWOJ4UURX7TVW \\// C25519-BASE-32 //
+#  \\// 2NKDM33LSI3RRRW2B7M7DSXNODLCKBLW6JOEUQIQS6JOMEVXOCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
