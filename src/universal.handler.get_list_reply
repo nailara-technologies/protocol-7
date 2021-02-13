@@ -85,7 +85,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             my $hide_wid = <universal.child>->{$hide_agent}->{'window_id'};
             next if not defined $hide_wid;
             <[base.log]>->( 2, ": hiding '$hide_agent' [$hide_wid]" );
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "core.X-11.hide_window",
                     'call_args' => { 'args' => $hide_wid }
                 }
@@ -95,7 +95,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <universal.playlist_was_empty> = 1;
         <universal.playlist_sha1>      = $playlist_sha1;
         map {
-            <[base.proto.nailara.command.send.local]>
+            <[base.protocol-7.command.send.local]>
                 ->( { 'command' => "$_.playlist_update" } )
         } @{<universal.display_agents>};
     }
@@ -180,7 +180,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
         or !$switch_count )
 ) {
     map {
-        <[base.proto.nailara.command.send.local]>
+        <[base.protocol-7.command.send.local]>
             ->( { 'command' => "$_.playlist_update" } )
     } @{<universal.display_agents>};
 } elsif ( !<universal.cfg.fade_on_switch> ) {
@@ -190,7 +190,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 }
 
 # ______________________________________________________________________________
-#\\XVPI3EYMMTSOLIXJVJYPJZ3VCWQV4L7W3LCO7EVCN4A5CIDLYU3M6TJCRYBW72ODYGO5HTNHQFEF6
-# \\ 26ZOQFPVOEGD5J6O2GQKTLTL2BLIAQTWC3AASC7DHHNNN276CG4Z \\// C25519-BASE-32 //
-#  \\// LRC3ASYRTBVATGGY5HPR6MPC5JHZGLI4L74UWKFECDEQHYRBACY \\ CODE SIGNATURE \\
+#\\JSIGKEUZX4QV3T45OG2XUQGJB7HCAO4MQ5X33UF2UHYZQ4P6LT6WIWAAPDG7SIYJV6ZENLS2FW3CI
+# \\ IJRVLH4A2Y7KENS5452Z5TAB5HHJQC77DMNBFWKMJHGR6TN5WKRS \\// C25519-BASE-32 //
+#  \\// IG2X4K5PFHGFYWKIVIHAYYJGENVMGCFLXFPLMGZTBD5Z7ID6EDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -14,9 +14,8 @@ my ($local_sid) = keys( %{<user.core.session>} );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->(
-    $core_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n"
-);
+<[net.out]>
+    ->( $core_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n" );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -38,7 +37,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\XNUD6ZBTFGZCJMMRZD5XOIAVXUKU4FA4S3QGEYN4UU2OSSALO7DJRK576GV5CRNKKZDVGW4CAYNCS
-# \\ FCGYTFDE26CZMCHMIZ5AF65R4Z4P4JHEL3UGKBREGYZYR3HCD35N \\// C25519-BASE-32 //
-#  \\// YC7HFKSPT6PFLJN44ZJQB27YSHMJKOLVHEPI3ZXHVOZU4R5DSCI \\ CODE SIGNATURE \\
+#\\235XJP3WBW5SMVB32XVLSQA52PBO6Q4PGKGCHYJSC726IHJSFPR22S7VSRRHSQMGL5RRDRSSQTWW6
+# \\ T6P4RLY6FWB2MT6UO7HFBEXRPLWMU3KLBJFHC2Q6GCZNMV2H4OAH \\// C25519-BASE-32 //
+#  \\// UR4YIKOFRLD6LYX4FUJTV2VSVEABNJVCXAC2GK563DI4CRX5OCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

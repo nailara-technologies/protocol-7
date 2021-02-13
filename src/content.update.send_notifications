@@ -7,14 +7,14 @@ my $update_cmd = shift // 'playlist_update';
 my $count = 0;
 map {
     # LLL: check agent name syntax!
-    <[base.proto.nailara.command.send.local]>
+    <[base.protocol-7.command.send.local]>
         ->( { 'command' => "core.$_.$update_cmd" } );
     $count++;
 } split( / +/, <update.notify_agents> );
 
 if (<content.content_changed>) {
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command' => "core.notify.msg_reload",
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "core.notify.msg_reload",
             'call_args' =>
                 { 'args' => "'" . <locales.string.playlist_updated> . "'" }
         }
@@ -25,7 +25,7 @@ if (<content.content_changed>) {
 return $count;
 
 # ______________________________________________________________________________
-#\\GIHFSFKA7IBZJATI3HUCQSLRNY2IK22EV2FIGV3ZYYNLTWVBEB74KT3PQ3P4OD7TQ6ITKVYSPWEUW
-# \\ RDNGTW7IVFZ77LTM7Q5XELNCRS6TTRVIY52P7LBILMQYWAIMPBL7 \\// C25519-BASE-32 //
-#  \\// ZBR2CLWVMGELT7DO7HSA3ZB2Y3TLYJJSR63NYPNMA2XWR3CMMDA \\ CODE SIGNATURE \\
+#\\SESCDJ7JHS3373H43HSSNTHXGPONLE4NEKNO57B7TCUADOU7R2LVVIQEYOI3FUVPRTC4MMRGGCBLU
+# \\ JFDQV3TM6YU2DHPTVHSJJWTY6OIYBHKQA3K7DJ64LS6HXJ2356SF \\// C25519-BASE-32 //
+#  \\// ZVYAR5NZJD3PBK3TD6CDLU3QMRANIBD7HIRCJOBCJ6ILHOLIYCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

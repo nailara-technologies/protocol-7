@@ -5,27 +5,28 @@
 my $ondemand_agents = shift;
 $ondemand_agents //= <nroot.ondemand_agents>;
 
-die "expected array reference with agent names"
+## check previous post-init command status [ 'connect_to_core' ] ..,
+my $post_init_status = <nroot.current-init-data.status.post-init> // 0;
+return <[base.log]>->( 0, 'core authentication was not successful .,' )
+    if $post_init_status == 0;
+##
+return warn 'expected array reference with agent names'
     if not defined $ondemand_agents
     or ref($ondemand_agents) ne 'ARRAY';
 
-<[base.log]>->( 1, "registering ondemand agents at core .," )
+<[base.log]>->( 1, 'registering ondemand agents at core .,' )
     if @{$ondemand_agents};
 
 foreach my $agent_name ( @{$ondemand_agents} ) {
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command'   => "core.ondemand-agent",
-            'call_args' => { 'args' => "add $agent_name" },
-            'reply'     => {
-                'handler' => 'dev.null',
-                'params'  => {}
-            }
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'core.ondemand-agent',
+            'call_args' => { 'args' => "add $agent_name" }
         }
     );
 }
 
 # ______________________________________________________________________________
-#\\Q62TQZY4N3QQQUWGDCMHOV6TE7PEYJ5XLPITUYMQOKO74CKY4YUBH34JSQ7A557XN6OZCBBPDARRQ
-# \\ SCABLLHK5Q2MPGYGNZZPNDFDQFVAPUHQQ34UT7OGLLTLF7456PYK \\// C25519-BASE-32 //
-#  \\// PILDWOHOPWOJ3IVDRKMMGUZMH3U54TU4HFHZLF4FDLT5CPKLCBQ \\ CODE SIGNATURE \\
+#\\4TS3YLBXW73UN43NV6TTQ7CNEN2WYRQHVY4HEBCIZV2RHOLIGLF6226QYGPBMI465CJA5TSBDKGMU
+# \\ QA6545KFVHSLGLEHAR6UWHDHLOKFFMP5U6KMBEZPNGOC4JT5DCQ5 \\// C25519-BASE-32 //
+#  \\// ZRZ7GVZZVFECMPFLSWSUVTMW72OUHT2CKFAM42LSR43LSVSXCCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

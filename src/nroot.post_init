@@ -32,7 +32,9 @@ my ( $added_all_ref, $removed_all_ref )
 <nroot.init_state.all_agents>   = \@all_agents;
 <nroot.init_state.start_agents> = \@start_agents;
 
-<[nroot.calc_prefix_lengths]>->(@start_agents);
+# <[nroot.calc_prefix_lengths]>->(@start_agents); # <-- running, not start [LLL]
+
+<[nroot.calc_prefix_lengths]>->(qw| nroot core |);
 
 if ( @{$added_all_ref} ) {
     <[nroot.set_up_agent_dependencies]>->( @{$added_all_ref} );
@@ -59,7 +61,7 @@ print Dumper( $data{'jobqueue'} )
 0;
 
 # ______________________________________________________________________________
-#\\SYRPWKWLOT6VC45SQRLYA3OYV2B3LTT4AUSD7ZC4KM7DVL657U7I63SSVFHRSAMWKAPSFQMVMIRZ2
-# \\ NRRBTDDYVH344LBUK43FJECKFDIMKCG3ZNKYBFFKPPIORLEETMGU \\// C25519-BASE-32 //
-#  \\// RDGRBWMCKYZAKJ4B6YZRSRE2MMPFQV2G5APS4AHKWWVJHOLSCAY \\ CODE SIGNATURE \\
+#\\HXBCYPP7FNZTNYS7SDP2LWICZTYUODQ7PWRUAXTRHW532KW3MM7EIJXWKTYAKIZGNWUG4O36KIVOO
+# \\ OV5E6YYY2I4DW7NJ2M4J76GTAKBLMTCF5GMXXGPVVKUACFWAB2WY \\// C25519-BASE-32 //
+#  \\// UHFF3BJXT7WWRPF5C37QTY4HG6SL7WLDT2O4KSLX6HUUS5V7SCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

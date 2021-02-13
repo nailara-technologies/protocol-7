@@ -17,7 +17,7 @@ if ( my @start_cfgs = grep {m|/agent-startup.nroot$|}
 
     foreach my $cfg_path (@start_cfgs) {
         my $agent_name = $1 if $cfg_path =~ m|/agents/([^/]+)/[^/]+\.nroot$|;
-        next if not defined $agent_name;
+        next                if not defined $agent_name;
         <[base.log]>->( 2, ": :. including '$agent_name' agent startup" );
         my @ncfg_cfg_lines = ( " .: agents :.\n\n", "  - $agent_name\n\n" );
         <[file.slurp]>->( $cfg_path, \@ncfg_cfg_lines );
@@ -31,7 +31,7 @@ if ( my @start_cfgs = grep {m|/agent-startup.nroot$|}
 }
 
 # ______________________________________________________________________________
-#\\OSV7ZDYEFQHVBOA3BO6AS5XBCHWINPOLVWUPD3OWUKNZL37SWDYLF6MADRNJB3MXHW2EM7QDDME44
-# \\ RTO7RUCVEA7YDHQFQ2SAB7KHQ6YKRE6MN6QYLIEEHD25U2CNTZ75 \\// C25519-BASE-32 //
-#  \\// LZWIAYKWHC2QZ2TA2R3JWBQFSAJ5VHTLA72XDQRYVD4CGLECUAQ \\ CODE SIGNATURE \\
+#\\XXFXJ5PQ4T5X4CQ4A2ZQAH4S6V3V2BF36VHL3DJIEFN2H5EALC4PRLCW2JBBG7NT3DIVUI3K4VLMW
+# \\ IJYZAWEAW7KYAKFDTKFTAJNCTVWJYVTQEJ4Y4LZ5OLLXVVKL277I \\// C25519-BASE-32 //
+#  \\// VEMR6B6LWLBVXZCIH2RNFTXKXBQBO4I7S6LSAXXG6XEW47AVIDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

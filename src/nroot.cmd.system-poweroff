@@ -4,7 +4,7 @@
 # param = [nosync]
 # descr = force power off using sysrq-trigger [host]
 
-my $param            = $$call{'args'} // '';
+my $param = $$call{'args'} // '';
 my $poweroff_enabled = <nroot.system-poweroff.enabled> //= 1;
 
 return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
@@ -30,7 +30,7 @@ system('/bin/sync') if $param ne 'nosync';
 return { 'mode' => 'ack', 'data' => '<< powering off host system >>' }
 
 # ______________________________________________________________________________
-#\\FZQALEKYH2O6YNLUMBZVE2SC2J5Q6WVLK4TBAOHLTRS4YYVJR6AOWER5NQIPVRZOXG3DPYX2FRAPQ
-# \\ IUAKSA7YJZBKTSMC5J7COIG33EQZIJ5QEMKU5OPC2MQ5QLVKQA56 \\// C25519-BASE-32 //
-#  \\// VWXIZ22Z2ZJPLY6W3ED5FFSZLF2LLXZQM4XPXNCUVWPQRIHROBI \\ CODE SIGNATURE \\
+#\\YNENYTOTNZ6JKIOIIJBUIP35ISDPIQPVYVGZD4JHZRVOLXI6PMV4QRPQKKNIMFABFBZNVI7BAFG62
+# \\ MYPWUYJQUPUQVCTTCCFJDHLRFL462O3FTYHG6GXFVKM5EBU7OH3U \\// C25519-BASE-32 //
+#  \\// W36AEVXZ4LPGY22LYZRL4AHTU6233JC2ETAVEIG4ZPHIKDSIIAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

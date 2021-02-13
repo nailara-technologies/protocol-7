@@ -7,21 +7,21 @@ my $r_name
     ? 'reenc-msg[' . <system.agent.subname> . ']'
     : 'reenc-msg';
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "core.nroot.notify_online",
-        'call_args' => { 'args' => $r_name },
+        'call_args' => { 'args'    => $r_name },
         'reply'     => { 'handler' => 'mpv.handler.reenc_notify_reply' }
     }
 );
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "core.nroot.start_once",
         'call_args' => { 'args' => $r_name }
     }
 );
 
 # ______________________________________________________________________________
-#\\QANCO5Y6ZYAGSCBEMZ6XNBTRAGRFHPMPBWOCXHJYPRYKXBT4V4VPYLQTNHJJV4GC4FF5YXTIF4NYG
-# \\ LCNMWY2L5M2NDPSE3BQWR6UJCUING6BRCHQ34VFKIFB3Q5WS3PNQ \\// C25519-BASE-32 //
-#  \\// 3NK3V37VMRYJFE5NUFNGWJ4ITC5BNXH44I4JCFNCLE3THTNJ2DQ \\ CODE SIGNATURE \\
+#\\Z62UQGLNQCWYEXTZFH7L5NRMS2ZPYNHJQPDEBFWDHN7BENIBOXCREL4KUOHEVD7SGSASXXG43IVCK
+# \\ LQMTZAFXT72KEQSCKEHOPJFDZHYKTRUI67U5JRCVOGSVEHMA7VLH \\// C25519-BASE-32 //
+#  \\// 7OKTYX3A57P5MS7Y4IZB6HRSN75PX36PVIO7JUJ6SMQZVDENOBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

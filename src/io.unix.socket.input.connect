@@ -21,16 +21,19 @@ if ( -S $fd ) {
         };
         return $new_sock;
     } else {
-        <[base.log]>->( 0, "io.unix.socket.input.connect: can not accept [$!]" );
+        <[base.log]>
+            ->( 0, "io.unix.socket.input.connect: can not accept [$!]" );
         return undef;
     }
 } else {
-    <[base.log]>->( 0, "io.unix.socket.input.connect: no valid socket supplied" );
+    <[base.log]>->(
+        0, "io.unix.socket.input.connect: no valid socket supplied"
+    );
     return undef;
 }
 
 # ______________________________________________________________________________
-#\\74JD5MYGZD6RGP57LUOYH4GFHINCRWFPJ2ZSXYS3GNAISH74YGBMPJM6KGHGLVKXBWJOUDGHUGMYK
-# \\ GPMXAPMZALSF27O5V7QEXMF6FPXPFEW7FJ36XUAFGOCDOKZRG4D5 \\// C25519-BASE-32 //
-#  \\// STOLKTQCODXU6GRBKP36VBKPNKNZIY3XOSRCAGQ65733N3DV2BQ \\ CODE SIGNATURE \\
+#\\VU72ZSZI2474HXZ6P624YXCSZFB7X7XNXQIRX7UEWW2SYIA3PAWT7LD7NQ5H7QRA5NRBJN4RQIAEE
+# \\ K4N3GSP23FH66TAM7WUHAOHQY7A57DZC4A4UOZWWWGJIIV6WCLCS \\// C25519-BASE-32 //
+#  \\// IDYFWQ6C7HAOKQKGVV7AMWD5EAG6PT2YCCKSERTICTLHKNAOYDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

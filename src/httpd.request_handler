@@ -4,7 +4,7 @@
 
 my $id          = $_[0]->w->data;
 my $session     = $data{'session'}{$id};
-my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length> || 1024 * 7 );
+my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length>     || 1024 * 7 );
 my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 13 );
 
 if ( $session->{'buffer'}{'input'} =~ m,^[^\r\n]{$max_uri_len}, ) {
@@ -51,7 +51,7 @@ $h_req->decode;
 );
 
 my $r_key;
-if ( not defined $h_req->method ) { $r_key = 'METHOD' }
+if    ( not defined $h_req->method ) { $r_key = 'METHOD' }
 elsif ( not defined $h_req->uri
     and $h_req->method =~ m,^(GET|HEAD|POST|PUT|DELETE|OPTIONS)$, ) {
     $r_key = 'URI';
@@ -108,7 +108,7 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
 return 2;
 
 # ______________________________________________________________________________
-#\\4E6QF4BORRS3FGL3PA6UBG5RW25GRO2TRYY2J42N6DSFUQLMGY2JXPMM45VELMW4RQU6FX67YRIAE
-# \\ SJRHEI3MMNMJ5NLYVGVNRO6LVDCQ3SVGGQ4A47F4A6GJHJYJ2NNE \\// C25519-BASE-32 //
-#  \\// JAYKJACXZ6EK6TQOBRCW25CGFLFTOUAX6VGOYFECQH6DKMDMYAA \\ CODE SIGNATURE \\
+#\\7C4UTSW2LVC6XYVN7TRNDD2Z674XMPBSQNGUQUYAQWKNFMKOSWJZPWHSNEBUV4UKTASDRBKRGVMTQ
+# \\ NCPMTNS4PMT44PBLN3TYC3TVOBU3IVAFBFEML5XTIC3QHP2TFVYI \\// C25519-BASE-32 //
+#  \\// M5EFP23ICVDDH34CNKPZ3X7X6KZTUXHWQ7EEPEQYGYXGZHFCACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

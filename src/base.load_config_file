@@ -4,9 +4,9 @@
 
 my $cfg_name  = shift;
 my $cfg_level = <base.modules.cfg_level>++;
-my $max_level = <system.agent.initialized> ? 1 : 2;
-my $log_level = $cfg_level < 1 ? 1 : $max_level;
-my $l_str     = $cfg_level ? ': ' x $log_level : '';
+my $max_level = <system.agent.initialized> ? 1                 : 2;
+my $log_level = $cfg_level < 1             ? 1                 : $max_level;
+my $l_str     = $cfg_level                 ? ': ' x $log_level : '';
 <[base.log]>->( $log_level, $l_str . "loading config '$cfg_name'" );
 
 # store additional config filenames for later reload [rewrite when problematic]
@@ -40,7 +40,7 @@ return 1 if <base.parser.config.errors>;
 return $status;
 
 # ______________________________________________________________________________
-#\\GOWEOYQN43HZLPI5LQU3I4YAWBESJPE5ECIG7XTPIHUQYEGMZ4L47ZPPMRU2SOFAIGG5LYHE3WAF2
-# \\ SLH44PGSNV6IC53C5P7IST37MQUZWXGNPLVFIALWBFENZBWFZAIL \\// C25519-BASE-32 //
-#  \\// 2WR2KBGE2KCGJUPRDN4DLABUN7P5A7JCUE5LXCXDR236PXLCWDA \\ CODE SIGNATURE \\
+#\\ECRBTV3C345KBHF2PFAQEBXRGI2MA4ZMBCKJ2FE2SFKJQHYF57XYBTW5QY4PCZKPXVAYFWKNWAPMC
+# \\ 5CHD4H2G7QG56HM2MHKYSPM5T2W2Y43P3KTGBSPQ2CLN4UQFTFL2 \\// C25519-BASE-32 //
+#  \\// Q7MEDK7R4IHWD4ZKOLXQ5PI6EKBLXNNZBEAMDK66V3DHZXQSQDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

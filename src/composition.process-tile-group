@@ -72,7 +72,7 @@ if (<composition.startup.initializing>) {
                 = exists $_composition_data->{$_}->{'stop_agents'}
                 ? join( ' ', $_composition_data->{$_}->{'stop_agents'}, $_ )
                 : $_;
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'core.nroot.stop_implicit',
                     'call_args' => { 'args' => $stop_agents }
                 }
@@ -212,7 +212,7 @@ if (<composition.watch_tiles.poll_tile_color>) {
         <[base.log]>->(
             1, " : fetching X-11 background color., [ bgcol-mode ]"
         );
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command' => 'core.X-11.bg_color',
                 'reply' => { 'handler' => 'composition.handler.bg_color_reply' }
             }
@@ -246,13 +246,13 @@ if (<composition.watch_tiles.poll_tile_color>) {
 
 <composition.startup.initializing> = 0;
 
-<[base.proto.nailara.command.send.local]>
+<[base.protocol-7.command.send.local]>
     ->( { 'command' => 'core.content.update' } );
 
 <[composition.handler.transition]>;
 
 # ______________________________________________________________________________
-#\\7MRRHYZDJH3IYD3GNLOK7BAEK5UKPSS37SWTOMIKTO5GVYZ4K56MAZZVDGZWMLEIJ54BN55O4CCPM
-# \\ ITS3ORPW4B5XNGVI56MDDM4CVNJJEGV36T364MLDTTTSYDSPQGNO \\// C25519-BASE-32 //
-#  \\// LOQPG4KQP4QGVNCU4ACLH6DT4XD6PSZJKVQYJ4QJTMOBI2DUUAQ \\ CODE SIGNATURE \\
+#\\YVIZBQF6PVDMI5ETK5YTCABJKQ7LT6DN6YLWE5XKL35IG5V3TIQ3UZSEYYCMY7JNW6H423E3MB6G4
+# \\ UK334YC3SI6USNE5H4453XSTX6EUJKDCSAPYZ2XKOBYMGLLUTQRW \\// C25519-BASE-32 //
+#  \\// U5PHBLTJH6VY7B6AQHNJ7W2KXTCIY7KNZ3CYIQSWWUXKFDGJKCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

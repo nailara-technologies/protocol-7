@@ -15,7 +15,7 @@ if ( !length( $name // '' ) ) {
     warn 'expected buffer name <{C1}>';
     return -1;
 } elsif ( $name !~ m|^[\w\-_]{1,24}$| ) {
-    warn 'invalid buffer name specified <{C1}>';
+    warn "invalid buffer name '$name' specified <{C1}>";
     return -1;
 }
 
@@ -96,14 +96,15 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 ) {
     my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
     <[base.log.send_buffer_line]>->( $name, $buffer_index )
-        if not exists $data{'history'}
+        if defined $code{'base.log.send_buffer_line'}
+        and not exists $data{'history'}
         or not exists <log.file>
         or not exists <log.file>->{$name}
         or <log.file>->{$name}->{'complete'} == 1;
 }
 
 # ______________________________________________________________________________
-#\\FR4HYESBNXD5ZLTKL7LYOCPDFTRZPAQW2RUX3FSOZ6FSKRDPCVZ24COZ6PGQEOAQS2KVQVSC7QMOE
-# \\ A7OB4L2PKLLCJGA7SDCPMHRX37QCM4SQUSTAP22ZQMH2533IIGEQ \\// C25519-BASE-32 //
-#  \\// X34T74HHIGSIONMD7S5DOUVE6ES5GRUGMWKGGTFE2FWU73YWOAQ \\ CODE SIGNATURE \\
+#\\2ZQGOVLHNSJ7LGIZG7T6PJG5HUTW2AUYF3JTDEJD3FNXTC5PVIDI5OYAGWKDR444YBVFOMDBV2IEK
+# \\ YDPESY7YPMFGWBYUXUI5747JHS2JTESNXFSHH2SBR7JV35SF4O7G \\// C25519-BASE-32 //
+#  \\// ESELATRX6G3JFFPPKO64WYQZ6XV4MSUXPC7RPLU62IGSIZ43CBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

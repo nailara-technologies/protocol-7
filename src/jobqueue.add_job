@@ -8,7 +8,7 @@ die "no parameter supplied" if !@_ or not defined $_[0];
 my $max_jobs   = <jobqueue.max_jobs> || 42513;
 my $job_id     = <[base.gen_id]>->( <jobqueue.joblist.by_id>, $max_jobs );
 my $job_params = {};
-if ( ref( $_[0] ) eq 'HASH' ) { $job_params = shift }
+if    ( ref( $_[0] ) eq 'HASH' ) { $job_params = shift }
 elsif ( exists $code{ $_[0] } ) {
     $job_params = {
         'name'            => $_[0],
@@ -24,8 +24,8 @@ my $target_queue = $job_params->{'target_queue'} || 'queued';
 
 # LLL: tune defaults later
 my $job_data = {
-    'name'     => $job_params->{'name'}     || $job_params->{'job_callback'},
-    'priority' => $job_params->{'priority'} || 0,
+    'name'      => $job_params->{'name'}     || $job_params->{'job_callback'},
+    'priority'  => $job_params->{'priority'} || 0,
     'object_id' => $job_params->{'object_id'},
     'status'    => $target_queue,
     'tstamp'    => {
@@ -41,7 +41,7 @@ my $job_data = {
     # LLL: following features still need implementation...
     'repeat_count' => 0,
     'max_repeat'   => undef,
-    'repeat'       => $job_params->{'repeat'} || 'on_error',
+    'repeat'       => $job_params->{'repeat'}       || 'on_error',
     'repeat_delay' => $job_params->{'repeat_delay'} || 5,
 };
 
@@ -59,7 +59,7 @@ $joblist->{'count'}->{$target_queue}++;
 return $job_id;
 
 # ______________________________________________________________________________
-#\\EIQIOTBNNMF6XUZ3N2GIA4B2NPJ6HVDBIDIMB2PB5PXEHKCWVAXZOZCAVVR55XWP2EH3D6UPZPNK6
-# \\ EPPFEKVDU3O3NTGRUQQHGTTL7C3EGAETN4FLKR5IP6R55GDGF5QI \\// C25519-BASE-32 //
-#  \\// OS4OQE7FPSY4AATWGEE4QVRT5XWVD6I4N5JHVZ3L6CH522VLSAY \\ CODE SIGNATURE \\
+#\\2OZFLZ52YEKZFHXY4SVNGRJE42J3YCLU62ZHRLBURFNNW6TGEZA4GEAWKTRBIBGFMV4QDQRX4FWNI
+# \\ 2LDP2BYB6LUYCQ63S5QTRRLYL6LDYMJXJR2MNJZOMWVSOI4KG2PM \\// C25519-BASE-32 //
+#  \\// PLKIJVDBSPY776CJ745R6FMQQECTLZTLEXMBDN262CQC5WRLICQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

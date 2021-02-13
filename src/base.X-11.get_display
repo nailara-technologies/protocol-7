@@ -17,7 +17,7 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$core_fh>;
     die "core handle exception" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1          if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -30,8 +30,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 } elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
     <x11.display> //= ':0.0';
     <[base.log]>->(
-        1,
-        "no X-11 agent found, using default display [" . <x11.display> . "]"
+        1, "no X-11 agent found, using default display [" . <x11.display> . "]"
     );
     return <x11.display>;
 } else {
@@ -40,7 +39,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\S5U3S7BN5QFELTY6EHLVZ6NUCLLPZKKENQQLE55566RGVI2QMUBG4QO6KKQ6E7S474FFITPEVNY2C
-# \\ AGXQVCK5VMK25BR5Z4YI42MNDSOGNVDDX6L5U33ISBU4LHBTNMZE \\// C25519-BASE-32 //
-#  \\// IYLQLX3ZSTVFMSCEEANABONP3BRFIOC4BRU5T2QKVLUB3VYXEDQ \\ CODE SIGNATURE \\
+#\\ZHQJLPFEHVE27OLXSBWXEI6J7BWGO65DHDGCX4BMMDAYGMEVFHFGYQUFEGGHQ2XFIJ6OQDR7YXFF2
+# \\ NIZ63D73W3BLEWZNMJPTPA457RCYPKEEMFW27AXULBGQ644LVLDT \\// C25519-BASE-32 //
+#  \\// DXPYOD4Y2U5YR37MQKFPEUFZVEINVVTKFA3EJA4ESG2ICLZIIDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

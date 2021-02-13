@@ -5,14 +5,14 @@
 my $id     = $_[0]->w->data;
 my $fd_srv = $data{'session'}{$id}{'handle'};
 my $type   = $data{'handle'}{$fd_srv}{'link'};
-my $proto  = $data{'session'}{$id}{'proto'};
+my $proto  = $data{'session'}{$id}{'protocol'};
 my $state  = $data{'session'}{$id}{'state'};
 my $mode   = $data{'handle'}{$fd_srv}{'mode'};
 
 my $handler = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
-my $banner  = $data{'proto'}{$proto}{'connect'}{'banner'} // '';
+my $banner  = $data{'protocol'}{$proto}{'connect'}{'banner'} // '';
 
-if ( not defined $data{'handle'}{$fd_srv}{'proto'} ) {
+if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     <[base.log]>->(
         1, 'base.handler.connect: no protocol defined for submitted handle'
     );
@@ -37,7 +37,7 @@ if ( not defined $data{'handle'}{$fd_srv}{'proto'} ) {
 }
 
 # ______________________________________________________________________________
-#\\CMFLIPM6LRCPSWLSULEIQ7MUEJSZQANQ4GS4NUHFUCHLN677J5HMXUX4TKY5P63U6HEZDZBI47RM6
-# \\ UGM4GPITUDQAYLJAM6D53LCNZRDEMCATURHMSFTPRXBCWMWJ2OXQ \\// C25519-BASE-32 //
-#  \\// M6DH7ZOO6YC6R26DJENO4RGFMBS3KFH3GQXHJC7OM727K3GF4DA \\ CODE SIGNATURE \\
+#\\RKDBW6NBAGGZPB3MIS5RBP4O5AVCURYOQI5LZ5GZIGQVVCULPNS2GZZTISNQ7V3F5NWIN7Z24SUH2
+# \\ Y4HNHUGJ657P7R4UQGENAYALEYPPBGB2Q6Q6ZZXWAX764V7WRGWW \\// C25519-BASE-32 //
+#  \\// DX5PLPFE3ZFDWMVBDNF4J5YIRQJ4LIM3Q7VUM4KKEJ7XNJWGGAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

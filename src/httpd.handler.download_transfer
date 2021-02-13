@@ -27,7 +27,7 @@ my $ranges     = $download->{'ranges'};
 warn "[$id] content filehandle already closed" and goto ABORT_DOWNLOAD
     if !fileno( $content_fh // '' );
 
-if ($part_count) {          ## one or more byteranges ##
+if ($part_count) {    ## one or more byteranges ##
     my $part_size_remaining
         = $ranges->[$part_id]->{'part_size'} - $download->{'part_pos'};
     $read_size = $part_size_remaining if $part_size_remaining < $read_size;
@@ -52,7 +52,7 @@ if ( $read_size <= 0 ) {
         $multipart_footer = sprintf( "\n--%s--\n", $download->{'boundary'} )
             if 1 + $part_id == $part_count;    # <-- last multipart segment
 
-    } else {                                   ## transfer was complete ##
+    } else {    ## transfer was complete ##
         $watcher->stop;
         return 1;
     }
@@ -102,7 +102,7 @@ $watcher->stop;
 return 0;
 
 # ______________________________________________________________________________
-#\\OXJLRW6NLSVWYPS5R3EVH6XPASCZ54Y2H4YFA3MRJJL23W4HUK5IYR2WYGRMATHTKVAJSE6VSD7EE
-# \\ H7GVZKO2YUNREFPTFSPNTMEPOOQW4OD7DF3J7VBDHMGMJ3FXBYJB \\// C25519-BASE-32 //
-#  \\// 7EFZGU3KYDHHDLZ2UFHXD5MJTF2HA2JXJWKTH4LNPPVDVGXXAAY \\ CODE SIGNATURE \\
+#\\NTVZ6G5B3ZDOVPPWVIWE2SZEJCYPMVRPAXXTBWH6NC3XBGPKX4SEVYPNCZ2566QPPHB7I64YCZN6W
+# \\ 6D44KFAUXJXBMX4X3XUYNTLALRGXZS5HMGAH3AYBU2274WEOS63Z \\// C25519-BASE-32 //
+#  \\// 6O4CRMNCPTHME3P5BGIZIBEEEBJZC7JJWFXWKVYGP4NY6WTEKDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

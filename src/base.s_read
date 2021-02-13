@@ -4,6 +4,8 @@
 # desc = utf8 safe sysread replacement [ with optional fh_offset parameter ]
 # note = buffer parameter expects passing by reference
 
+warn 'filehandle not defined <{C1}>' and return undef if not defined $_[0];
+
 my $read_fh    = $_[0];
 my $buffer_ref = $_[1];
 my $read_len   = $_[2];
@@ -28,7 +30,7 @@ return undef if $b_read < 0;    # <- sysread() behaviour
 return $b_read;
 
 # ______________________________________________________________________________
-#\\DMFQ2OLMY76KUU3AASFAJEMFO2SQ46JWDBIE74OB5J3BHRBTI3CEFLOCBL5OX7DW2IR5BLUVNVQXY
-# \\ 7TV2EFRYVSYUANQ7H3BN4QQKRV3IY6N2UYM6QB3ZBX3BU2I5GZCN \\// C25519-BASE-32 //
-#  \\// WUDIM6I2VBFDDQNAJAFA7ZIN4RFAYW72PZCG4C5XTLKSAMMN6CQ \\ CODE SIGNATURE \\
+#\\7HR7L6AH7EUQBMD6RW43CBC4FRSXHLLPOQFDCUCUA2E6WL2GHHLTYLB6VL66H5JPMD5LD2W72K6US
+# \\ 3H4KD7LK4ZWUYBU35DOFBG6CGPFA4DWI7LRPTOZTN6H7ZF4AOVUO \\// C25519-BASE-32 //
+#  \\// YUBD2MXQS24CPBNESPWXEGHQ65TVRFKMMFXMVSXFVCJEXZSAOBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
