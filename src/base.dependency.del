@@ -6,14 +6,14 @@
 my $object_id  = shift // '';
 my $depends_on = shift // '';
 
-die "base.dependency.del: expecting two valid dependency-object ids"
+die 'base.dependency.del: expecting two valid dependency-object ids'
     if not exists <dependency.object>->{$object_id}
     or not exists <dependency.object>->{$depends_on};
 
 <dependency.chain>->{$object_id} //= [];
 my $chain_aref = <dependency.chain>->{$object_id};
 
-my @new_chain = grep { !/^$depends_on$/ } @{$chain_aref};
+my @new_chain = grep { !m|^$depends_on$| } @{$chain_aref};
 
 my $difference = @{$chain_aref} - @new_chain;
 
@@ -25,7 +25,7 @@ if ( !$difference ) {
 }
 
 # ______________________________________________________________________________
-#\\YAC5S7IOOHTZYHBYG6JC6AQL2M3C5PYYX5Y36XMH5UG5CIEMVSG6CSVOWJOPHULT5Z2257XE23C54
-# \\ VOXXGJF5DKEKTCNVD3YBF4MFLDDHHRYZICNBSG7PNKCLXU7YXJDL \\// C25519-BASE-32 //
-#  \\// 3X76BB53XPUYPXH5JD6GS4ODMNFSIWT5PIUHLQBKZF62ORXEACA \\ CODE SIGNATURE \\
+#\\MZ6UNZ7PJ6O7DWE5BBUDS54IOYIFVRLFJUDBMMORGZUQRBPCPALMHBEJEJI5CZCID2V5HRZTAJWDY
+# \\ KTMH2FNWFCY5Y2GON2J7BSPTYBCAYANSM6LBKH6PELNSN43TWM6S \\// C25519-BASE-32 //
+#  \\// 7MT5MBXMRNE5MDDVWKETDPYHAPY4DU6KVOV62LZ34NSLIHUICDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

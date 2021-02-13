@@ -4,13 +4,29 @@
 # descr = wrapper function for agent status change handler
 
 my ( $instance_id, $new_status ) = @_;
-die "no instance id specified"       if not defined $instance_id;
-die "no new status string submitted" if not defined $new_status;
+die 'no instance id specified'       if not defined $instance_id;
+die 'no new status string submitted' if not defined $new_status;
+
+my $agent_name = <nroot.agent.instance>->{$instance_id}->{'agent_name'};
+
+if ( defined $agent_name ) {
+    <nroot.online-agents> //= {};
+    my $online_count = scalar keys %{<nroot.online-agents>};
+    if ( $new_status eq 'online' ) {
+        <nroot.online-agents>->{$agent_name}++;
+    } elsif ( $new_status ne 'starting'
+        and exists <nroot.online-agents>->{$agent_name} ) {
+        delete <nroot.online-agents>->{$agent_name}
+            if --<nroot.online-agents>->{$agent_name} == 0;
+    }
+    <[nroot.calc_prefix_lengths]>->( keys %{<nroot.online-agents>} )
+        if $online_count != scalar keys %{<nroot.online-agents>};
+}
 
 <[nroot.handler.agent_status]>->( $instance_id, $new_status );
 
 # ______________________________________________________________________________
-#\\7OUTTLBRM6F3LJV46AWPAZQQWMYTQC2Q7W3JA5ND4K2AQ5VHD3WPRX5W3LUJ3UZKRJCADLOEV2OC4
-# \\ K67PHG7AZ3KDWANWH5BZAUF2GIL23E7Y3N5PWLW7DSAQPWMOU4SA \\// C25519-BASE-32 //
-#  \\// LUSLYIDF6XVX33QU7I5HQD575MTHV4DPTVSLKE2XF4SGU4XBGBI \\ CODE SIGNATURE \\
+#\\CLJJ2ZRPPQN65BWZ3U6PGWCMUMLLWSVZULZGFSQAOD4M2A3IUCNIBS6D75I2LE5EQBAHGDHSFTKSM
+# \\ 3NROL74M4ABAADIJTGAFGMBSL3VPQ5CLUJTOT67Z7GUJDU4BE3HE \\// C25519-BASE-32 //
+#  \\// CJTFIFKTPQISLKDHOZ5LSKEDLUKQX3DDYQ7DVM2IHHBB5XADKAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
