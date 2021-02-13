@@ -138,7 +138,7 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
     };
 } else {    # remove some commands for non-core type agents
     map { <[base.disable_command]>->($_) } (
-        qw/
+        qw|
             exit
             clear
             ntime
@@ -148,7 +148,7 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
             session-key
             term-all
             time
-            /
+            |
     );
 
     <base.commands.cmd.source-age.param> = "['date']"; # <-- disab. second param
@@ -207,11 +207,11 @@ if ( defined <setup.aliases> ) {
 ## setting up command [argument] filter hooks ##
 <base.filter_hooks.command.heart.send> = 'base.handler.heart';
 <base.filter_hooks.command.heart.recv> = 'base.handler.heart_ack_reply';
+## \ implement permission filter hooks [ LLL ]
 
 return 0;
-
 # ______________________________________________________________________________
-#\\XACANE7SSFXZQ2PFCL2Q2W7UYTHOJJM2YCUVEWQCWIFDB6LCXBDHWF5E7QJK5BVM26QKF3M65NQ7W
-# \\ 4A53V32AI7IMRJVZNBRWOIOVREQBV72MKQ6OBKQC5DMO6K5WI7QW \\// C25519-BASE-32 //
-#  \\// 7GY6BY3Q4DMCWDSMW6QM56BXNTF3PNJN6GQ5VWENCMPNBMT5ICA \\ CODE SIGNATURE \\
+#\\HORKMYLSDMZVP7HX53DZ4FJM6EUNPBZ2TFXD7PO3GIW3PSMV7LCBHO3VHQVWOX3PRIUDM6KYLKU46
+# \\ MHTLWMXNG7RSXYYPWLFTQ33QXS5CSQVB6AKOF6LV5CH7JPDQQMYV \\// C25519-BASE-32 //
+#  \\// 5B7KTSEKLPQME5BJV7AL5723NKMXEIQSKXWR6SLU7B3YTD5OEBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

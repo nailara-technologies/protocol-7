@@ -1,7 +1,7 @@
 # >:]
 
 # name  = base.session.init
-# descr = creates / initializes a new session
+# descr = creates and initializes a new session
 
 my ( $fd, $protocol, $mode, $name ) = @_;
 
@@ -12,10 +12,10 @@ my $re = $data{'regex'}{'base'};
 
 if ( not defined $fd ) {
     <[base.log]>->(
-        0, "< base.session.init > [undefined filehandle] can not create session"
+        0, '< base.session.init > [undefined filehandle] can not create session'
     );
     <[base.session.check_remaining]>;
-    return -1;
+    return undef;
 }
 
 if ( defined $name and $name !~ m|^$re->{usr}$| ) {
@@ -23,7 +23,7 @@ if ( defined $name and $name !~ m|^$re->{usr}$| ) {
         0, "< base.session.init > value '$name' for parameter name is not valid"
     );
     <[base.session.check_remaining]>;
-    return -1;
+    return undef;
 }
 
 $name //=
@@ -34,7 +34,7 @@ $name //=
 if ( not defined $data{'protocol'}{$protocol} ) {
     <[base.log]>->( 0, "< base.session.init > unknown protocol '$protocol'" );
     <[base.session.check_remaining]>;
-    return -1;
+    return undef;
 }
 
 my $initialized = $mode eq 'server' ? 1 : 0;
@@ -152,16 +152,15 @@ if ( $mode eq 'server' ) {
         );
     } elsif ( defined <net.input_timeout> ) {    # generic input timeout
         <[base.log]>->(
-            2, "setting up " . <net.input_timeout> . " seconds input timeout"
+            2, 'setting up ' . <net.input_timeout> . ' seconds input timeout'
         );
         @timeout = (
             'timeout'    => <net.input_timeout>,
             'timeout_cb' => sub {
                 <[base.log]>->(
                     1,
-                    "[$id] input timeout after "
-                        . <net.input_timeout>
-                        . " seconds."
+                    sprintf( "[$id] input timeout after %s seconds.",
+                        <net.input_timeout> )
                 );
                 $data{'session'}{$id}{'shutdown'} = 1;
             }
@@ -178,12 +177,15 @@ if ( $mode eq 'server' ) {
     );
 }
 
-<[base.session.init_state]>->( $id, 0 );
+if ( not <[base.session.init_state]>->( $id, 0 ) ) {
+    $data{'session'}{$id}{'shutdown'} = 1;
+    warn "cannot initialize $protocol protocol session $id";
+    return undef;
+}
 
 return $id;
-
 # ______________________________________________________________________________
-#\\BT3TO56C2ZHG6UL645CI4CZ57XNQRXXTZLKQBR54YFED4UH7O7H3ZGFRDAG6VADDN62AI6XSXBTNS
-# \\ RGFKUZAJLPXVANV32N4QENVMX2OFRXFQVN2VARYI5F77XN6PU5UK \\// C25519-BASE-32 //
-#  \\// HQTMILBPCHWJOZQBLYNETZCRZX62HAPIMR3FMIVTSWSA6RTZ6AA \\ CODE SIGNATURE \\
+#\\FJ7SJ6NEJZVMBWXCK22GKG325A732FWHKP77UEFHZGHYK645SHAFPB4E4FM7E5WGZI6V4ZHHO5NRG
+# \\ EMVZ2XASTIG37DKP7VGJ2AT6GKAZFKRQ6I33E5B4VJ76E7N4TJ3V \\// C25519-BASE-32 //
+#  \\// BFM6JOKSX2PACN52KSYFHA3XMOLYKZD3SQEFZXQIG7MBLMEHMCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

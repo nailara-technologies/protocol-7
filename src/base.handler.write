@@ -1,11 +1,11 @@
 # >:]
 
-# name       = base.handler.write
-# descr      = writes buffer content to client handle
+# name  = base.handler.write
+# descr = writes buffer content to client handle
 
 my $id;
-if   ( $_[0] =~ /^\d+/ ) { $id = $_[0] }
-else                     { $id = $_[0]->w->data }
+if   ( $_[0] =~ m|^\d+| ) { $id = $_[0] }
+else                      { $id = $_[0]->w->data }
 
 return <[base.session.check_remaining]> if not exists $data{'session'}{$id};
 
@@ -25,7 +25,7 @@ if ( fileno $session->{'handle'} ) {
             substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
             $_[0]->w->start;
 
-            # httpd agent (download in progress)
+            # httpd agent [ download in progress ]
             if ( defined $session->{'watcher'}->{'download_handler'}
                 and !$session->{'watcher'}->{'download_handler'}->is_running ) {
                 $session->{'watcher'}->{'download_handler'}->start;
@@ -57,7 +57,7 @@ $session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
 return 0;
 
 # ______________________________________________________________________________
-#\\7TZHYV2QCRYEYFKPO3L3AKJCQM5IOKQ6QHBJV7K7WBGUJVLSRBCNZ6C6URMV65FOD6D67AY5EHOVE
-# \\ OMGW2XS4J2ES23GNNCVWGLZ6QNYLVMVTK7CBFUT36GYN57TPNNAZ \\// C25519-BASE-32 //
-#  \\// PFGLAB3IG7EYSYYYU2XAANAD4JGQXFA3DYBTVJAU4IPP32T3OAQ \\ CODE SIGNATURE \\
+#\\NYXCWNXHEN5HSYP3WIZAJRTBCDCVNXEUSODS4GIYZON6AE7TDYVNCKJFGJ7ZCBH6PMPMCQKEMV2WE
+# \\ QBAPVF2JD3NTVXB7L5JQBUHIVSJQA6L5VOZUCVGUC7OGQQB5SS7R \\// C25519-BASE-32 //
+#  \\// XEYK6OS7SYV5RTL44Q3XZODFD7OUL5UMGN4JWP5CYPMSTH2CQCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
