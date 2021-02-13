@@ -410,7 +410,7 @@ sub prepare_subs {
 
                 push( @agent_commands, $1 ) if $_ =~ m|\.cmd\.(.+)$|;
                 --$purge_count              if $@;
-            } else {
+            } elsif ( not exists $data{'base'}{'core_subs'}{$_} ) {
                 $data{'code'}{$_}{'status'} = 'leftover'; ## kept \ essential ##
             }
             }
@@ -1334,7 +1334,10 @@ sub prepare_subs {
         }
     };
 
-    map { $data{'base'}{'core_subs'}{$_} = $code{$_} } keys %code;
+    map {
+        $data{'base'}{'core_subs'}{$_} = $code{$_};
+        $data{'code'}{$_}{'status'} = 'core-sub'
+    } keys %code;
 }
 
 END {
@@ -1342,7 +1345,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\4VNQ7PQWCT735GHNQHBWYNG5CCHIQYBRWAP2OWXVJUWSA5ZKT3AG3TKDYLB7Z7SCT75RBBHSUY4O6
-# \\ N33MHRVOJDDBVQL4TAAXGSOFU6YBASHSJZFEJ7ZWP2BOHBVXQKPI \\// C25519-BASE-32 //
-#  \\// OGLSUN3VENP4CPXDSGCAKLGC3V3CBZUS4FMOVUEREHL27DEYOBA \\ CODE SIGNATURE \\
+#\\O3VPRTVXY5SE4HPAKKYEXQXO5ZEIE2ILUDNSKBYIP56AR6Z2OMZ4F55ULAVT2YVRMRCDGZUIMZY46
+# \\ UB44DPD7QQQ3TLWEWKYNOAWJZVHLOXNQ6IDNO3VS5WDKQHFUDBWI \\// C25519-BASE-32 //
+#  \\// T2BWOY7CKYFPF7LFEEDHNE7YUM5FSCLDF2WR2SEHQEFEBG4J6DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,15 +1,15 @@
 # >:]
 
-# name  = debug.cmd.list-subs
+# name  = debug.cmd.core-subs
 # param = [pattern]
-# descr = list all matching agent subroutines
+# descr = matching list of 'core' subroutines
 
 my $pattern = $$call{'args'};
-my $coderef = \%code;
+my $coderef = <base.core_subs>;
 
 return {
     'mode' => 'data',
-    'data' => "\n### list of loaded agent subroutines ###\n\n"
+    'data' => "\n### list of loaded 'core' subroutines ###\n\n"
         . join( "\n", sort { length $b <=> length $a } sort keys %{$coderef} )
         . "\n\n"
     }
@@ -37,12 +37,12 @@ return {
 
 return {
     'mode' => 'data',
-    'data' => "\n# .: agent subroutines matching '$pattern' :.\n\n"
+    'data' => "\n# .: 'core' subroutines matching '$pattern' :.\n\n"
         . join( "\n", @sub_list ) . "\n\n"
     }
 
 # ______________________________________________________________________________
-#\\SXOXWUAXNFGWS7AEBSUIV65L667YZ3LCGMQPNC2JAKDCEW7BX42MPD6SSWE5VCGO2FPU5BCP6AJGG
-# \\ HEGETZMKTOHW2JJXJIKFGUCS2HY5UVOM5R37JH7RC6TZNFXI4OAV \\// C25519-BASE-32 //
-#  \\// ZTOQ73PAL5YANFULSTV4ZVRY6W5B6H7PR2DOQMGZAVASBWYMEBI \\ CODE SIGNATURE \\
+#\\LPEXVN7ASGLBMUJFAK3RQH55TQCHMPMGPHD62IOOIOZ2UAZP4E75546XZZY5R4AZ6M3LGS72RS44W
+# \\ 5Z2FCNANNFUZD7BUPG7VXTGDFBH2EESARTH5THGIECV6MIS2T3NK \\// C25519-BASE-32 //
+#  \\// J6AQWXD6CTZYWWSABVX23MLWOC3QRXQU4XFLEFQ77CC4ACGYICA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

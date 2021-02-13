@@ -2,7 +2,7 @@
 
 # name  = debug.cmd.del
 # param = <key>
-# descr = delete a %data key
+# descr = delete value from the 'data' hash
 
 my $del_key = $$call{'args'};
 my $cid     = $$call{'session_id'};
@@ -10,28 +10,28 @@ my $cid     = $$call{'session_id'};
 return { 'mode' => 'nak', 'data' => 'no key specified' }
     if not defined $del_key or !length($del_key);
 return { 'mode' => 'nak', 'data' => 'invalid key' }
-    if $del_key =~ /^\.|\.$/
-    or $del_key !~ /^[\w\d_\-\[\]\.']+$/
-    or $del_key =~ /~\0/;
+    if $del_key =~ m{^\.|\.$}
+    or $del_key !~ m|^[\w\d_\-\[\]\.']+$|
+    or $del_key =~ m|~\0|;
 my $_del_key = $del_key;
-$_del_key =~ s/'(([^']|\.)+)'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
-return { 'mode' => 'nak', 'data' => 'invalid key' } if $_del_key =~ /\'/;
+$_del_key =~ s{'(([^']|\.)+)'}{my$k=$1;$k=~s|\.|\0|g;$k}ge;
+return { 'mode' => 'nak', 'data' => 'invalid key' } if $_del_key =~ m|'|;
 
 my $del_key_ref = <[base.resolve_key]>->($del_key);
 if ( not defined $del_key_ref ) {
-    <[base.log]>->( 0, "[$cid] del: no such key ($del_key)" );
+    <[base.log]>->( 0, "[$cid] del: no such key ['$del_key']" );
     return { 'mode' => 'nak', 'data' => 'no such key' };
 }
 
 my $deleted    = 0;
 my $parent_ref = <[base.resolve_key_parent]>->($del_key);
 
-my @del_key_chain = split /\./, $_del_key;
-map { $_ =~ s/\0/./g } @del_key_chain;
+my @del_key_chain = split m|\.|, $_del_key;
+map { $_ =~ s|\0|.|g } @del_key_chain;
 
 while ( my $sub_key = pop(@del_key_chain) ) {
     $deleted++ if !$deleted and delete $parent_ref->{$sub_key};
-    $_del_key =~ s/\.\Q$sub_key\E$//;
+    $_del_key =~ s|\.\Q$sub_key\E$||;
     my $key_ref = <[base.resolve_key]>->($_del_key);
     $deleted++ if delete $$key_ref->{$sub_key};
     $deleted++
@@ -43,15 +43,15 @@ while ( my $sub_key = pop(@del_key_chain) ) {
 }
 
 if ($deleted) {
-    <[base.log]>->( 1, "[$cid] del: key \"$del_key\" deleted" );
+    <[base.log]>->( 1, "[$cid] del: key '$del_key' deleted" );
     return { 'mode' => 'ack', 'data' => 'deleted' };
 } else {
-    <[base.log]>->( 0, "[$cid] del: unable to delete key \"'$del_key\"" );
+    <[base.log]>->( 0, "[$cid] del: unable to delete key '$del_key'" );
     return { 'mode' => 'nak', 'data' => 'not successful' };
 }
 
 # ______________________________________________________________________________
-#\\H6ZKMRRZNRR5ATNKRL47ZIHTBA6YJWW2TGV2MQL2V6HEHPCNXO3N3ZF74YHGIRPT7FAR4R6OBQR56
-# \\ 2BFVNSJ3OMQDT467XTD5SQNJLFRROECB2E2EYDIVBZD74SGVXQIU \\// C25519-BASE-32 //
-#  \\// 7DQFBMHQBFU4VL3EGIWGNKDENDPYAP4SRAD7YEVA2EB7GDI3YBA \\ CODE SIGNATURE \\
+#\\LC3R7APOPBF246SBHY3D3FN4IQIEXNOLPUXTISY7CHFRQK4I52POKDESVZIIXFALVBZ5HJMIDMQ4C
+# \\ RS5JMR4CDXDWFPUXYBK6OTBUEZQRZ25I6DUYYDJYFVMUTIUPUVND \\// C25519-BASE-32 //
+#  \\// QKRMY4ZJHSYHZQNHUTFCPPZHQMOBKNS6XUTNLPXFASDFWB6XMCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

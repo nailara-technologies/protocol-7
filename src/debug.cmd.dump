@@ -2,14 +2,14 @@
 
 # name  = debug.cmd.dump
 # param = [key_pattern]
-# descr = dump internal program state
+# descr = internal program state from 'data'
 
 my $keyword = $$call{'args'} // '';
-if ( not eval {qr/$keyword/} ) {
-    ( my $regex_err = lc($@) ) =~ s/ in regex.+\n$//;
+if ( not eval {qr|$keyword|} ) {
+    ( my $regex_err = lc($@) ) =~ s| in regex.+\n$||;
     return {
         'mode' => 'nak',
-        'data' => "$regex_err in regex (invalid pattern)"
+        'data' => "$regex_err in regex [ invalid pattern ]"
     };
 }
 
@@ -19,7 +19,7 @@ $reply = {
 };
 
 # ______________________________________________________________________________
-#\\YF4A2BACKLUZTQKNLSBH2R3I7OJ6JMBAO6AD34JVJEYWGFYDX5BIGSWJ3EVYXRXTYGQZCMTWMC6KI
-# \\ L6J7UEQBVII6UGZNUPCXTX3PO4RGXXMSM7MR4AXUW27CTFZJKKN2 \\// C25519-BASE-32 //
-#  \\// 3DG56NB3BQ6PRAR2FN7DBTCM2FLMIWKJOMKJ7H4DKDSOIQMUUCI \\ CODE SIGNATURE \\
+#\\ZQABF6ISNTMIRNUXCOXQQK3M7JYISGKB34IDF5IJJBQZHQYWSJFMTEJ4XVBUDYZDCK7EDG4OXI4P6
+# \\ EIONWXDS5AOUVW4OE6TVDUIFBLHTQOB2Z2BMG6R5AGU4ORLDKTBP \\// C25519-BASE-32 //
+#  \\// OYHGOXZLCY3QAJKZMGWIYD26IJSSDXDO7JEPTK43ONWMXS6XGDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
