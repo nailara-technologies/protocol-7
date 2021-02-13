@@ -10,6 +10,7 @@ X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
 
 X-11.display.xorg    = :0.0
 X-11.display.xvfb    = :7
+X-11.display.xnest   = :7
 X-11.display.xephyr  = :7
 X-11.display.nxagent = :7
 
@@ -28,6 +29,7 @@ X-11.params.xnest   = -geometry <X-11.dev.dimensions>
 X-11.params.nxagent = -ac -geometry <X-11.dev.dimensions> \
                            +extension Composite +extension GLX
 #                      ^^^ tie into access control mechanisms .,   [ LLL ]
+X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
 X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
 X-11.params.xephyr  = -screen <X-11.dev.dimensions>
 #                                         -glamor added ^, if not disabled below
@@ -54,7 +56,7 @@ X-11.disable_blanking = yes
 X-11.hide_mouse_cursor = yes
 X-11.max_intel_gpu_freq = no
 X-11.keybd.grab_all_keys = no  # block X-11 clients from getting key input
-X-11.host_mode_unchanged = yes # don't touch screen set-up in host mode!
+X-11.host_mode_unchanged = yes # don't touch screen set-up in host mode..,
 
 X-11.collect_intel_gpu_stats = 0  # using 'intel_gpu_top'
 X-11.collect_gpu_stats_on_4K = 1  #  if >= 4K resolution
@@ -82,7 +84,7 @@ modules.preload = X-11.set-up set-up.json
 
 [set-up.json.import_file:'X-11.set-up.json']
 
-modules.load = auth net io.ip crypt.random X-11
+modules.load = auth net protocol io.ip crypt.random X-11 ## debug
 [load_modules:<modules.load>]
 [init_modules]
 

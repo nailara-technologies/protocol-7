@@ -8,9 +8,9 @@ my $session_count = 0;
 
 $session_count = scalar keys %{ $data{'session'} } if exists $data{'session'};
 if ($session_count) {
-    <[base.log]>->( 2, "$session_count sessions remaining.." );
+    <[base.log]>->( 2, "$session_count sessions remaining.," );
 } else {
-    <[base.log]>->( 1, "no remaining sessions.." );
+    <[base.log]>->( 2, "no remaining sessions.," );
 }
 
 if (    ( $session_count + $exit_count ) == 0
@@ -35,7 +35,7 @@ if (    ( $session_count + $exit_count ) == 0
     and <[agent.cmd.get_instance_ids]>->('core')->{'mode'} eq 'nak';
 
 # ______________________________________________________________________________
-#\\6QYOA4H5M2PH5C7OLKMAI3YKBTE3ER47A4FS7V4B3DH3Z5CJ5DUSZP5TFSZDTSIEIFXTMG7ZTE27G
-# \\ RGWRDUVCP3JRXW2KMHCG5THDWR7H5MWPPNNSFF7U57YDU4SWVUEZ \\// C25519-BASE-32 //
-#  \\// 7HZ7I7WYR6KW2Q2SPYJXF6ONRXOE4HB62GYFE5Y7JESJSSWEKAY \\ CODE SIGNATURE \\
+#\\AADEK7LR6W3RXWR5IVKPZE33AOHUWPP5PPZWE6YT6LAK7CMKYDV3E255AR77EZOJPLGTD6FK75WDW
+# \\ YEBDEWS4T5OQ2BD63NOJNAIADY6SPNUACDR2PQB7UVID5MNM2W65 \\// C25519-BASE-32 //
+#  \\// 4D4F56QVN2XUXWB64H6ESJVJMOVK2XFLLSSBRXIOZF7PJOMO6CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

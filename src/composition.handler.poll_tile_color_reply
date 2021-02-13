@@ -16,11 +16,11 @@ my $agent_name       = <composition.tiles>->{$tile_name}->{'agent'};
 my $last_color       = <composition.last_tile_color>->{$tile_name};
 my $timer            = <composition.timer.poll_tile_color>->{$tile_name};
 my $last_interval    = $answer->{'params'}->{'current_interval'};
-my $start_interval   = <composition.watch_tiles.poll_int_start> //= 42;
+my $start_interval   = <composition.watch_tiles.poll_int_start>   //= 42;
 my $trigger_value    = <composition.watch_tiles.poll_int_trigger> //= 1.2;
 my $inactive_timeout = <composition.watch_tiles.inactive_timeout> //= 300;
-my $inactive_action  = <composition.watch_tiles.inactive_action> //= 'warn';
-my $check_playlist   = <composition.watch_tiles.check_playlist> //= 1;
+my $inactive_action  = <composition.watch_tiles.inactive_action>  //= 'warn';
+my $check_playlist   = <composition.watch_tiles.check_playlist>   //= 1;
 
 <composition.tile_last_changed>->{$tile_name}    //= time;
 <composition.tile_alert_triggered>->{$tile_name} //= 0;
@@ -53,7 +53,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 
             <[base.log]>->( 1, " : checking playlist for tile '$tile_name'.." );
 
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'core.content.get_list',
                     'call_args' => { 'args' => "[$tile_name]" },
                     'reply'     => {
@@ -70,7 +70,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 
             <[base.log]>->( 0, " :  restarting agent '$agent_name_str' ..." );
 
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'core.nroot.restart',
                     'call_args' => { 'args' => $agent_name_str }
                 }
@@ -118,7 +118,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 <composition.last_tile_color>->{$tile_name} = $tile_color;
 
 # ______________________________________________________________________________
-#\\V4GPVFYK57YKTPMMNTSTYJ5TK5QNOIGWSP5GCOADT6RVTHYAL7DFZJS42CRTPFXK2A7ZPARZHD4YO
-# \\ 23K5D5ZX7TDLYP5EKTEJLMNVLKYVY2MWLHVVR56ITZFKAJJ4CSW3 \\// C25519-BASE-32 //
-#  \\// VDY5PFV3XOI37CEB7RJ2NJHDTF32NEPI2C6QLU2HYMCGZ6Z7YDA \\ CODE SIGNATURE \\
+#\\ZWFFAJAVQH6CTFVZGYMMHFEB5OYDK5HHEIPNAJTC25YEH2XO6I5F4IHWLOOTI2472KUODODSA3SP2
+# \\ OWADCQO4H4X6QDLHQDUP624K3IDHWR3UCHYJGEMRLYSJBENCD4GZ \\// C25519-BASE-32 //
+#  \\// UQVY2UFLSQSBINQ7Y62BZPSS3CHARPS2NXVIVM5EGDS45YU2EBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -21,7 +21,7 @@ access.cmd.usr.core = name commands heart subname reload verify-instance play \
                       current-hwdec current-vo current-ao drop_buffers fade \
                       cur-pid # *
 
-modules.load = auth net io.ip io.unix set-up.json digest mpv
+modules.load = auth net protocol io.ip io.unix set-up.json digest mpv
 [load_modules:<modules.load>]
 
 mpv.log_played = 0   # seperately log which files or urls have been played ..,
@@ -85,6 +85,6 @@ mpv.coordinates = [base.X-11.get_coordinates]
 
 [base.get_session_id]
 
-[mpv.get_playlist:<mpv.playlist_type>]
+[mpv.get_optional_playlist:<mpv.playlist_type>]
 
 [event.loop]

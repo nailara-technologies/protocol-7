@@ -16,20 +16,23 @@ system.verbosity.agent_buffer = 1
 [load_config_file:'agents/core/access.users']
 
 system.agent.type               =    core
-modules.load                    =    auth digest net io.ip io.unix \
-                                     core.cmd crypt.random crypt.C25519
+modules.load                    =    auth digest net protocol io.ip io.unix \
+                                     core.cmd crypt.random crypt.C25519 ## debug
 plugins.load                    =    plugin.auth
 auth.supported_methods          =    agent enc pwd unix
 # get.route                     =    files node_name.file :target:
 get.command                     =    files.get-data
 setup.aliases.source_agent_sid  =    history.append nroot.report-temp-path
-setup.aliases.source_agent      =    notify.message composition.get_coordinates \
-                                     composition.get_geometry nroot.teardown \
-                                     composition.assign_window system.pid_autokill \
+setup.aliases.source_agent      =    notify.message nroot.teardown \
+                                     system.abort-reboot system.pid_autokill \
+                                     system.reenable-reboot \
                                      system.report-X-11-error \
-                                     system.abort-reboot system.reenable-reboot
+                                     composition.get_geometry  \
+                                     composition.assign_window \
+                                     composition.get_coordinates
 
-net.auth.timeout = 13   # nailara protocol
+
+net.auth.timeout = 13   ## protocol-7 ##
 
 # loading additional (.json) configuration files from /etc/nailara/import/
 # modules.pre_load = core.set-up set-up.json
@@ -42,26 +45,26 @@ net.auth.timeout = 13   # nailara protocol
 [load_modules:<modules.load>]
 [init_modules] # LLL: fix redundant initializations: modules.pre_load
 
-# loading [authentication] plugins
+## loading [auth.] plugins ##
 [load_plugins:<plugins.load>]
 
-# calulated network addr/port
+## calculated network address \ port ##
 core.local = <protocol-7.network.internal>
 
-# open local unix domain socket
+## local unix domain socket ##
 [file.make_path:'/tmp/.n/s',0777]
 unix.path = [digest.elf.b32:"<core.local.addr>:<core.local.port>"]
 unix.sock = [base.open:'unix','input',"/tmp/.n/s/<unix.path>"]
 
-# open ip.tcp socket
+## ip.tcp socket ##
 tcp_ip.sock = [base.open:'ip.tcp','input',<core.local.addr>,<core.local.port>]
 
-# drop root priviledges
-[set_privs:'nailara']
+## bind protocol-7 to sockets ##
+[base.protocol.bind:<unix.sock>,'protocol-7']
+[base.protocol.bind:<tcp_ip.sock>,'protocol-7']
 
-# bind nailara protocol to socket
-[base.proto.bind:<unix.sock>,'nailara']
-[base.proto.bind:<tcp_ip.sock>,'nailara']
+# drop root priviledges [ now 'online' ]
+[set_privs:'nailara']
 
 # run agent
 [event.loop]

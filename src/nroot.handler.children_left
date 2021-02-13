@@ -24,7 +24,7 @@ foreach my $pid ( reverse sort keys %{<nroot.child>} ) {
     }
 }
 
-if ( !$child_count ) {      ## done waiting ##
+if ( !$child_count ) {    ## done waiting ##
     $watcher->cancel;
     <[agent.change_status]>->( $instance_id, $next_status );
     if ( $next_status eq 'offline' ) {
@@ -32,7 +32,7 @@ if ( !$child_count ) {      ## done waiting ##
         <[jobqueue.move_job]>->( $job_id, 'queued' );
         <[agent.change_status]>->( $instance_id, 'restart' );
     }
-} else {                    ## ..still waiting.. ##
+} else {    ## ..still waiting.. ##
     <[base.log]>->(
         2,
         "instance : $instance_id -< children left: $child_count >- ["
@@ -42,7 +42,7 @@ if ( !$child_count ) {      ## done waiting ##
 }
 
 # ______________________________________________________________________________
-#\\OB5XAPYJV4JK4HNEUQA7YPZYWAXUHVBUH2I4P7S2UIUX5TVPAQBEC25XOAMZRPTT3YLFADYP46BW2
-# \\ WGTAPNHF33MNT34LF6SCKZJMTGXANOBRPWVQI4674EFXAYSER4DH \\// C25519-BASE-32 //
-#  \\// PRI76ODENMAPWU5RBF7A7BCCZCP5XIJTAMHQO4XNXXRZI7YKKBQ \\ CODE SIGNATURE \\
+#\\EYKJYZXD5B6MTPMHRJ4W3W2BK7E5BMXZJNCH3BZQMNQEST2POYWSBCNWVZZA3EOCYU5C7X26MLK6Y
+# \\ CKDQCJ7YDAHRP3YBWXVW64YNTMCV7WHQDFZYVPNYVG542CB6QCLW \\// C25519-BASE-32 //
+#  \\// PFRI2WEL5KVEKCQJG3MV6HDBZXY35ANJ65IGMZSUMKSMUNZU6CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

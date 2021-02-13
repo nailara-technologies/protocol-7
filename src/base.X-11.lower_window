@@ -6,7 +6,7 @@ my $id = shift;
 
 my $user     = shift // 'core';
 my $cmd_path = shift // '';
-$cmd_path .= '.' if length($cmd_path);
+$cmd_path .= '.'                   if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
@@ -36,7 +36,7 @@ if ( $reply_string =~ m|^\($cmd_id\)NAK (.+)$| ) {
 }
 
 # ______________________________________________________________________________
-#\\S3UIX34MPCMJSVDCDEBAQCXXKAC3BKZMVO4RHOZ3P4MLJ5HH75ZI4LRCSKF4BTAOSR5OPQJKQVIHA
-# \\ 5P4WD52UKIHOUSJ4YUNY6D3T7UTZ3E3L3MRN6XNYWMETWVOYR66L \\// C25519-BASE-32 //
-#  \\// 4I2VHQSJDZ33D5JYEGXZ5Z2HWH4J7YILOXTPTMJUTVAZHJHICAQ \\ CODE SIGNATURE \\
+#\\2PQ5ZXETNQ4DFRXEDW3XJIEKNRTCR3X2US52AXIGUTWUWYYO4QV6OOSFMNLRCDA54E4Z3KA7DTJ3M
+# \\ ELAN6P7KEVYPYF7NVQ5GR4NOF252ALG3HEVLCCDBL7GZF3UFTPUC \\// C25519-BASE-32 //
+#  \\// 6VUIM4OYUQWW5DP5Z3HYOKITK2CTRLCPH43XTNNBX2FXSVIL2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -36,8 +36,9 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';
-    my $id = <[base.session.init]>
-        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+    my $id = <[base.session.init]>->(
+        $parent_pipe, 'protocol-7', 'client', 'parent'
+    );
 
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
@@ -54,7 +55,7 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 
     $data{'handle'}{$child_pipe}{'mode'} = 'out';
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| nailara client child | );
+        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.async.get_session_id]>;    # -> 'online'
@@ -62,7 +63,7 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\6QDIOV4INV7OQJT5GUSPAR24XAYQN3B6MILTSIZGQVMAV5TZK5OF7TVKFOOCCAJJCUTQOKFJEPTBW
-# \\ MRLADZMOKIMVM6K7EJHIOQDEZJI2LBVCTHBY45E5YYMHWDCJXMYF \\// C25519-BASE-32 //
-#  \\// XKDEE4NOXYSTUB2O62YFPJSDA7NIT2BXQAXTCZHHY4ONCC7Z2CA \\ CODE SIGNATURE \\
+#\\NCAVN4XF572X7YNTCNVA4PPZKQV7UZS55WHV2HDGXMSZJBK2E6JT5E3JOTSLU3MGECFC5FN5LH4LM
+# \\ CE2NSQWXTVMTWZKS2A57PTWE7ZZ6NEN7MEQPV5VJOSKFNCYNQPSB \\// C25519-BASE-32 //
+#  \\// HBKBAJZRPBNUG5TOIMVZPIOZERKXIUNIOKF3BZVLJCQ6FKC6CBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

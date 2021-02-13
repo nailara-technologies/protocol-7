@@ -6,11 +6,14 @@
 my $job_id     = $_[0]->{'job_id'};
 my $agent_name = $_[0]->{'params'};
 my $stdin_mode = 0;
-my @exec_args  = qw( -nb );
+my @exec_args  = qw| -nb |;
 my $agent_subname;
 $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
-my $nailara_bin = <system.start.exec_name>;    # use current interpreter path
-die "no agent name supplied" if not defined $agent_name;
+
+my $perl_bin            = <system.path.perl_bin>;
+my $bin_protocol_7_path = <system.start.exec_name>;
+
+die 'no agent name supplied' if not defined $agent_name;
 my $globals   = <nroot.start_setup.globals> // {};
 my $init_code = <nroot.start_setup.agents.startup.init_code>->{$agent_name};
 my $instances = <nroot.agent.instance>;
@@ -29,7 +32,7 @@ my $starting = 0;    # check status of agents with same name ..,
 map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
     @{ <[agent.instance.get_ids]>->($agent_id) };
 
-if ($starting) {     # delay agent startup until previous one is online ..,
+if ($starting) {    # delay agent startup until previous one is online ..,
     <[base.log]>->( 1, "delaying next '$agent_name' agent instance ..," );
     <[agent.change_status]>->( $instance_id, 'delayed' );
     return;
@@ -55,7 +58,7 @@ if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
 $instance->{'timer'}->{'startup-timeout'} = <[event.add_timer]>->(
     {   'after'   => $startup_timeout,
         'handler' => 'nroot.handler.startup-timeout',
-        'data' =>
+        'data'    =>
             { 'instance_id' => $instance_id, 'timeout' => $startup_timeout }
     }
 );
@@ -186,7 +189,8 @@ my $agent_verbosity
     = <system.verbosity.console> || 1;    # -v is min. [ agent output patterns ]
 push( @exec_args, '-' . 'v' x $agent_verbosity );
 
-<[base.log]>->( 1, "starting of agent '$agent_sn_str' initiated ..," );
+<[base.log]>->( 1, "starting of agent '$agent_sn_str' initiated .," );
+<[base.log]>->( 2, ": exec args : ' " . join( ' ', @exec_args ) . " '" );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
@@ -199,13 +203,14 @@ if (@cmd_line_mods) {
     push( @cmd_line_mods, "-C$_C" ) if defined $_C;
     eval {
         $pid
-            = open2( $out_fh, $in_fh, 'perl', @cmd_line_mods, $nailara_bin,
-            $agent_sn_str, @exec_args );
+            = open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
+            $bin_protocol_7_path, $agent_sn_str, @exec_args );
     };
 } else {
     eval {
         $pid
-            = open2( $out_fh, $in_fh, $nailara_bin, $agent_sn_str, @exec_args );
+            = open2( $out_fh, $in_fh, $bin_protocol_7_path, $agent_sn_str,
+            @exec_args );
     };
 }
 
@@ -247,7 +252,7 @@ if ($stdin_mode) {
     <[base.log]>->( 1, ": pushing startup init-code < agent '$agent_name' >" );
     foreach my $_line ( @{ $init_code->{'agent-init'} } ) {
         my $code_line = $_line;    # <- keeping copy
-             # <{foo.bar}> [agent instance namespace] variable fetching syntax
+            # <{foo.bar}> [agent instance namespace] variable fetching syntax
         while ( $code_line =~ m|<\{([^\}]+)\}>| ) {
             ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
             my $var_value;
@@ -268,7 +273,7 @@ close($in_fh);    # <-- no further use for agent stdin handle [ for now ]
 <[base.log]>->( 1, "agent '$agent_sn_str' started [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\RMUZ4KM7LVRRHMJCGTR2HCVHCCZ76PR37PWZEUGRVMBHKBFDTGYAJPSOD5W6JIZPG2LQ7GHQDLKCA
-# \\ OOGQAM3LC7ETEJN47OYHDOU2VPFII27UUE4E527GMC2QYLAPG4XU \\// C25519-BASE-32 //
-#  \\// HXGOFIZ7JQXT67TOOAB25KXD6DLZYZJ7NQMHK7SPHET73FBLWDQ \\ CODE SIGNATURE \\
+#\\DJDWWUXSJ232HANBEOIB26ORG2NY3VXXTREZVFTWPMR7Q5KHZC4AVX3O4PSUB4MEDF7NYZKAKZEK6
+# \\ KKZJ3Z5ULU4ZQOXWK6S4QEPC3WBVLC7O644PE763MWZTCEFOZPDZ \\// C25519-BASE-32 //
+#  \\// ZAAGF6RIDAIHKYUDPTQ66JZ4E6HABROWEQAKKPS6YLPDSC2SYDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

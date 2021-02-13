@@ -8,21 +8,21 @@ die "window id not defined"               if not defined $wid_str;
 die "invalid window id string '$wid_str'" if $wid_str !~ /^\d+(,\d+)*$/;
 my $tile_name = <system.agent.subname>;
 my $tile_str  = defined $tile_name ? " for '$tile_name'" : '';
-my $s         = $wid_str =~ /,/ ? 's' : '';
+my $s         = $wid_str =~ /,/    ? 's'                 : '';
 my $log_msg   = "reporting window id$s $wid_str$tile_str..";
 my @args      = $wid_str;
 push( @args, $tile_name ) if defined $tile_name;
-$route .= '.' if defined $route;
+$route .= '.'             if defined $route;
 $route //= '';
 <[base.log]>->( 1, $log_msg );
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => $route . "core.composition.assign_window",
         'call_args' => { 'args' => join( ' ', @args ) }
     }
 );
 
 # ______________________________________________________________________________
-#\\KB4FEVTAH4PUXATE7M5ZQ7WVCOYKRODH2SI5PGVEL4763CKE4QB7FKIH3AI3WC5AZD4GGZMY3YIXK
-# \\ OJQSOBF2PBK6ZRDJ2ZYBZNRFDZNT5RZSGNZXYGEMAPM2MLFRGMFU \\// C25519-BASE-32 //
-#  \\// KMNJHYCDCVDRILJWGKCXJGWDIOGZ55WVSZ2N3U4TTEWWLSKQUAY \\ CODE SIGNATURE \\
+#\\QPXC2VECBXMODBFOCDU5BXPOYNG2OKJOC7WAQW6FZYDJ56FVNJO7DHUXZDMROPLJDCT2VX7BHWUIU
+# \\ CVDGZA3AZUE32SKOCNOROMZ6XCVBAJWSWWR2Y2LDZ4ZYNWTUJTDY \\// C25519-BASE-32 //
+#  \\// IXRBMRG2ARSFJ6Z6CCUTGYUKODENVVKG4TDSAJLSKOUBWKWK2DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -7,7 +7,7 @@ $ENV{'DISPLAY'} = <x11.display>;
 my $message_str = <reenc-msg.display_txt>;
 
 my ( $width, $height );
-my ( $left, $top ) = ( 0, 0 );
+my ( $left,  $top ) = ( 0, 0 );
 if ( defined <x11.coordinates> ) {
     $left = <x11.coordinates>->{'left'};
     $top  = <x11.coordinates>->{'top'};
@@ -32,7 +32,7 @@ $window->move( $left, $top );
 $window->set_app_paintable('TRUE');
 
 $window->signal_connect( 'delete_event',   sub {exit} );
-$window->signal_connect( 'draw',           \&cairo_draw, $window );
+$window->signal_connect( 'draw',           \&cairo_draw,     $window );
 $window->signal_connect( 'screen_changed', \&screen_changed, $window );
 screen_changed($window);
 
@@ -82,7 +82,7 @@ sub screen_changed {
 }
 
 # ______________________________________________________________________________
-#\\FQEZIQ6MJ6F27B4QRMDSOIOXGKL7TEXKSRQS2JNQTI554Z2TDTCVZQYUTJHC73IH7BLCUPT7LRH4U
-# \\ D2NLUJVZLOR7NKCIKE4SMW3CSVWHTBLDY7EEETFU3PHYEBEHPM6W \\// C25519-BASE-32 //
-#  \\// GUASS2QYKJV4KOHGTB4IEDEC2HB3I4JY5PL6BSPUPEVN6QERSBA \\ CODE SIGNATURE \\
+#\\NOWXYRUI7OLDAEV52SXUB5DK6ETA2HMOBEW3PFYC5WGWP545B7ZXFHEBOGTLJWAMG7GNNX3NDTY66
+# \\ IHZAEJIGTAUEYCMDWAZBBIX3KPOILI3PL7NGGDJE3DFDRB745S7P \\// C25519-BASE-32 //
+#  \\// TOAKADTWEJSGVM3F5XEF3U2GOU3WA4J362LPCVWSCPSB72JE6CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

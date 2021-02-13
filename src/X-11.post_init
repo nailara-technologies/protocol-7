@@ -133,8 +133,6 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 
 <[X-11.connect_x11]>;
 
-
-
 <[base.log]>->( 1, ": : link to '$bin_name_lc' established [ responsive ]" );
 
 ## extensions ##
@@ -144,10 +142,11 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 # print STDERR Dumper( keys( %{ <X-11.obj>->{'ext'} } ) );
 
 my $randr_expected = 1;
-my $randr_reason = ':|';
+my $randr_reason   = ':|';
 if ( <X-11.mode> =~ m{^(xephyr|nxagent)} ) {
-    $randr_reason   = sprintf( "[ %s ]", <X-11.mode> );
-#    $randr_expected = 0;
+    $randr_reason = sprintf( "[ %s ]", <X-11.mode> );
+
+    #    $randr_expected = 0;
 }
 if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
     <[base.log]>->( 1, ": : RANDR support present =)" );
@@ -363,7 +362,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\XBY7TVZ2UGXHIASRZGZQSCN6BCKX6WE2HOCQX7T3AIEWBWNZG4DYF3Q3IXUV7HJTGYPHVYBJUJGRS
-# \\ 5F3VF4F6YNAO4A6IVWCPM22HNNLPB2SP7O6XES4OGWP27CI3QZMD \\// C25519-BASE-32 //
-#  \\// RNO5JSV3EWTIJHPVJMU5FLA7NTDPBCMEWYAALLQQWKOULK4MCAI \\ CODE SIGNATURE \\
+#\\IXRD4YHMVQAE7NLHXNGB5IIPX6RWFW5U36KTBGTM3UTD6JHOAI22H6HQY2D542NKLYVXXXSH3NE6K
+# \\ G4SL2KXOHUVHBXUJNZC5UK4ZQGPHWT3XKE6JGINFNSV6VA3QBG3Q \\// C25519-BASE-32 //
+#  \\// TUGHUMD75PZ4ZYJETSE3KW3CJO4J74C4ONT4T44SCXVEY7DCYDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

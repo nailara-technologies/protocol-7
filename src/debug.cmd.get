@@ -5,7 +5,7 @@
 # descr = returns internal data values
 # note  = todo: implement access control filter and root namespace
 
-my ( $cid, $requested_key ) = ( $_[0]->{'session_id'}, $_[0]->{'args'} );
+my ( $cid,    $requested_key ) = ( $_[0]->{'session_id'}, $_[0]->{'args'} );
 my ( $key_ok, $err_msg ) = <[base.validate.data_key_syntax]>->($requested_key);
 if ( !$key_ok ) {
     <[base.log]>->( 0, "[$cid] get: $err_msg" );
@@ -26,7 +26,7 @@ if ( $key_ref = <[base.resolve_key]>->($requested_key) and defined $key_ref ) {
 return { 'mode' => 'nak', 'data' => 'requested key not found' };
 
 # ______________________________________________________________________________
-#\\INPMSNFBJLTRLBFDRJGDSQSEKEGNFXIADBN2HBJ7R32WMM67ZBMLSZHNDFOKN6HTUEZBH57PSHWEA
-# \\ GAJREKKVWQ25ROWFCSD73AXEA2MTAUHZPKPIS3MXJAFPPGBU3KEK \\// C25519-BASE-32 //
-#  \\// G62RKSG2KEHYUHJ2SSXUDVR76FH5TYJH3ACJXTJFU2EIT6SE2CQ \\ CODE SIGNATURE \\
+#\\CGCBO5NDXBRZJQBHQTXNWZFNMC5JA62P5CPFD5EVMTF4TQNWPEVIORCPL4ZZG4UQQDFEPVNOITOFI
+# \\ BGSMQJNKR3HVTES2FFYD4YUXDOGLJATCPR7TDNKUYEYWDTRHVN4K \\// C25519-BASE-32 //
+#  \\// OMWY7EQ7WFHCEJ64JVEMPUKSQQSP4RFBR5NNTXD7BWVKZ6CHADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

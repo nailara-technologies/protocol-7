@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-modules.load         =  auth net io.ip digest.elf digest.bmw httpd
+modules.load         =  auth net protocol io.ip digest.elf digest.bmw httpd
 
 net.http.addr        =  0:0:0:0:0:0:0:0
 net.http.port        =  80
@@ -35,7 +35,7 @@ httpd.timeout       =  23
 [net.connect_to_core:'ip.tcp']
 
 httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
-[base.proto.bind:<httpd.sock>,'http','server']
+[base.protocol.bind:<httpd.sock>,'http','server']
 
 [set_privs:<httpd.system.user>]
 

@@ -1,0 +1,41 @@
+# >:]
+
+# name  = base.protocol.bind
+# args  = filehandle, protocol [, mode]
+# descr = bind a specific protocol to a socket / filehandle
+
+return warn 'expected protocol name parameter' if not defined $_[1];
+if ( not defined $_[0] or not defined $data{'protocol'}{ $_[1] } ) {
+    my $protocol_name = $_[1];
+    my $reason        = 'undefined filehandle';
+    $reason = 'unknown protocol'
+        if not defined $data{'protocol'}{$protocol_name};
+    <[base.log]>->( 0, "unable to bind protocol '$protocol_name' [ $reason ]" );
+    <[base.session.check_remaining]>;
+    return undef;
+}
+$data{'handle'}{ $_[0] }{'protocol'} = $_[1];
+my $mode = $_[2] || 'server';
+
+my $fd = eval { fileno( $_[0] ) };
+
+if ( $@ or not defined $fd ) {
+    my $ref_str = ref( $_[0] );
+    do { $@ =~ s|\n+| |g and $@ =~ s|\.? +$||g } if defined $@;
+    <[base.log]>->(
+        0, "<<!>> unable to bind protocol '$_[1]' to '$ref_str'-filehandle [$@]"
+    );
+    <[base.session.check_remaining]>;
+} else {
+    warn "file handle '$fd' does not have a real file descriptor" if $fd == -1;
+    <[base.log]>->(
+        2, "bound protocol '$_[1]' to handle '$_[0]' [ $mode mode ]"
+    );
+    my $id = <[base.session.init]>->( $_[0], $_[1], $mode );
+}
+
+# ______________________________________________________________________________
+#\\WLXTZJG3Q5XXXRO6SPVEFFDRU76QDW3I7OKHE5YSXJEC2KBMTQOJDQSWNWQ6EOBHRMW4QG7A544BC
+# \\ ILG5T7YKWXOTTWS6HAIKOJT2ZII22JDKA2NW4N2V7LQSQQHTES54 \\// C25519-BASE-32 //
+#  \\// Q7S2V7JSOLBKXNYU4SCHYL7YKXZMA2L2DVMA666Q54426LPBYAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

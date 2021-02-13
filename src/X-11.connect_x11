@@ -21,7 +21,7 @@ while ( !$ok and $attempts-- ) {
         <X-11.WM> = X11::WM->new( <X-11.display>->{$mode} );
         <X-11.WM>->update;
     };
-    $ok = 1 if !$@;
+    $ok = 1                        if !$@;
     <[base.sleep]>->($retry_delay) if !$ok;
 }
 
@@ -35,7 +35,7 @@ if ( !$ok and <X-11.mode> eq 'host' ) {
         );
         $host_mode_warned = 1;
     }
-    $retry_delay *= 2 if $retry_delay < $max_retry_delay;
+    $retry_delay *= 2               if $retry_delay < $max_retry_delay;
     $retry_delay = $max_retry_delay if $retry_delay > $max_retry_delay;
     goto host_retry;    # wait for X-server indefinetly (in host mode)
 }
@@ -54,7 +54,7 @@ if ( !$ok ) {
 }
 
 # ______________________________________________________________________________
-#\\Q7EVR54BQFKPBJCCHCFBLRX3WHZPR35SDR4JJS7WQZ5H2ARHJT5OQTAP5ET53WTURUPL6ECPU5STI
-# \\ XKBKX56YR7X376BTNRRDUS77CJGN6Q37JKU7C57VNKWVY4CS7CI2 \\// C25519-BASE-32 //
-#  \\// JB47G5KFBBAFAQZUXAPPTO4PV4J3KPV7GPJZ3XR246677SAESCY \\ CODE SIGNATURE \\
+#\\CF3TVT4NJ3MG7CPNE622IJR2KMMCXOQ4JCNOMJLL2VWAWM254KNDHWLYLY5JG52K5XJRWYUZOCFK2
+# \\ R24ATQAK66JIZBBAORYBRDBWJAQS7ZCIDEDSWXHRHDMLY3POAUF4 \\// C25519-BASE-32 //
+#  \\// BMAFKMQ5OXI4M2V6NR4OQVASZKZXXOJGJLBA5VO5B2PXRLSDMAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

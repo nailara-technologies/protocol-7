@@ -13,8 +13,7 @@ my $err;
 while ( not defined $wmstate and not defined $err and !$retries-- ) {
     eval {
         ($wmstate)
-            = <X-11.obj>
-            ->GetProperty( $window_id, <X-11.obj>->atom('WM_NAME'),
+            = <X-11.obj>->GetProperty( $window_id, <X-11.obj>->atom('WM_NAME'),
             'AnyPropertyType', 0, ~0, 0 );
         last if $wmstate;    ## <-- top-level window ##
         my ( undef, $parent ) = <X-11.obj>->QueryTree($window_id);
@@ -57,7 +56,7 @@ $window_title =~ s{^'|'$}{}g;
 return length($window_title) ? $window_title : "''"; ## <-- quotes when empty..,
 
 # ______________________________________________________________________________
-#\\WZL2F4BUF7HPQGTD5JIDURCDIUAFVQCVHFWNWB4HMOGVUETZKJTLTLNOLKFPDGAHADZQG2CIPDMT4
-# \\ SAFVCJKTGRBZDSHZWHZJHVSSPYVXF6GKIZHJNPPCAPWZ7QY3Q4UF \\// C25519-BASE-32 //
-#  \\// VEY25THGUOM7A7T2XYNI2DTL4PKC27CGBHHFVLIBNRCDNOEHIDY \\ CODE SIGNATURE \\
+#\\K6HHERSOL5XSCT2SEG656J7QNXWLSMXS6SRNRAHJG6CRLA7TJTP2MVDMBUG5ATNROPLS2QXBLJ6FW
+# \\ NJ3YLGPT7GRNKQD3ZLANRLOL42PGVCN7AUQLZJCOGHUKHUZGINWP \\// C25519-BASE-32 //
+#  \\// H6VGTKAVQU24FEXXZOYTKRQTZWCDLZKBYWJJW6R3MJOLDD3XYBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

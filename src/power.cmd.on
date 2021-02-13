@@ -28,8 +28,8 @@ my @states    = <[power.set_states]>->( $device_id, @set_states );
 my $new_state = $states[$index];
 
 if ( not defined $new_state ) {
-    <[base.proto.nailara.command.send.local]>->(
-        {   'command' => "core.power-x11.set_states",
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "core.power-x11.set_states",
             'call_args' =>
                 { 'args' => join( ' ', $device_id, @{<power.last_states>} ) }
         }
@@ -43,7 +43,7 @@ if ( $new_state ne '1' ) {
     return { 'mode' => 'NAK', 'data' => $err_msg };
 }
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "core.power-x11.set_states",
         'call_args' => { 'args' => join( ' ', $device_id, @states ) }
     }
@@ -52,7 +52,7 @@ if ( $new_state ne '1' ) {
 return { 'mode' => 'ACK', 'data' => "socket $sock_num switched ON" }
 
 # ______________________________________________________________________________
-#\\3M25ZGHULM2FIHCR7BLPHJIZDO3MML3AW4TZWCZ6KMGCKN7SDXENVDVUMZIKKY2CDJHECH35NTGAM
-# \\ QQRKHFLPXDQUG6BCIXRTLF5AL3F6FS656L3WU7GUOPXC7ZPGGMDW \\// C25519-BASE-32 //
-#  \\// C2BUX6BUSWRFN2K3SCQX56WDWVPL5BHWAZTU4UKRNRVXVZTJYCY \\ CODE SIGNATURE \\
+#\\VPNCPESPVQUPQ7BQC7TFOJKLBARBXECA7WXNLOHOD2EDLD3AZ7FABZPPZOCIYEO3X7LSU7ARKUTA2
+# \\ WBRZSOONFYET6O4B4NB4SDW3IQGH7T3J7TYDJEBUSPERJNIFJVQJ \\// C25519-BASE-32 //
+#  \\// U2EMRMHABZH3Z2VJUQJDCGMZUCO7WQCFJ3QHV7RC6U6ML72D4AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

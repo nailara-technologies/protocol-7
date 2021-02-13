@@ -13,7 +13,7 @@ use Socket;
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$!]";
+    || die "can't create socketpair. [$!]";
 map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
 
 <[event.add_signal]>
@@ -41,7 +41,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';
     my $id = <[base.session.init]>
-        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+        ->( $parent_pipe, qw| protocol-7 client parent | );
 
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
@@ -60,7 +60,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 
     $data{'handle'}{$child_pipe}{'mode'} = 'out';
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| nailara client child | );
+        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     my $cache_dir = <weather.cache_dir>;
@@ -98,7 +98,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\KLSVAX2H5KZ7Q6R3YIFNWGOCTWJCWQKDEZFZPYTZQBHOHOHKBMAI3VSLCATCIT7MAVSVMB5WB7YFU
-# \\ A2IQWSSU6TCX333G2FOU5KSGMLSDHJMPKGP4EY5QUYSN33A3X4GS \\// C25519-BASE-32 //
-#  \\// IC7EA3BPPPSHO4KOIZ6JE4ESD7F5N5Y5WVXEFU6DVYALCDOO6DA \\ CODE SIGNATURE \\
+#\\E4UNTOCGL5PU6XXVYA5PSMK74NRBEQXX5KMJNNMD5DEIJGB267UHHCWXRK7RFWUA7GYNGPCRFCMIC
+# \\ V5MIHIJJDEKSRZJVD44EGGHKOHBC7MRFT4KU7IXRODV2HK4APIF6 \\// C25519-BASE-32 //
+#  \\// GXGX3LTBS3NJSMFB6BYM73EIKISA65ESV3CRC4S66WKTUURGIBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
