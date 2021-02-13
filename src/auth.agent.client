@@ -16,7 +16,7 @@ if ( defined $key_str
     if ( $bytes_read > 0 ) {
         if ( $smiley eq ">:]\n" ) {
             <[base.log]>->( 2, '[*] protocol banner detected.,' );
-        } else {
+    } else {
             <[base.log]>->(
                 0, '[#] protocol mismatch [ no valid connection banner ]'
             ) and return undef;
@@ -30,14 +30,13 @@ if ( defined $key_str
     <[net.out]>->( $filehandle, "select agent\n" );
     chomp( my $answer = readline($filehandle) );
     if ( not defined $answer ) {
-        <[base.log]>->( 0, '[X] connection lost :/' ) and return undef;
+        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
     } elsif ( $answer ne 'ACK continue' ) {
-        <[base.log]>->( 0, '[#] protocol mismatch >:[ --->' . $answer )
+        <[base.log]>->( 0, '[#] protocol mismatch >:[' )
             and return undef;
     }
 
     <[base.log]>->( 2, "[<] authenticating as '$agent'.," );
-
     <[net.out]>->( $filehandle, "$agent $key_str\n" );
 
     if ( exists $KEYS{'agent'}{'session_key'} ) {    ## secure key erasure ##
@@ -69,9 +68,8 @@ if ( defined $key_str
     <[base.log]>->( 0, 'session_key not set, authentication not possible..,' );
     return undef;
 }
-
 # ______________________________________________________________________________
-#\\HOCY354AFEFWOXQ2L3YSDXJ27AWWSLZKD64O5RVYBXEHF4CDKSXEJPTGW3452RQGYLGHR367MBZH6
-# \\ DYFL33LFZHZWD33S5INQNYQUSXMSI6K2QZGAZNCAFM2DDD7A24YD \\// C25519-BASE-32 //
-#  \\// ECPW6X5TLIK7QJGR5PRUCWGA4XTBCFGR2E7WJ4VVEFHKIQUFKCQ \\ CODE SIGNATURE \\
+#\\XP362AZGFVM6A66ORADLB54DIJQ5W4LEQ2IJRXTWUVNU5IFTB5NOPOZNVEK5MUYFXBBAADKBUJM7E
+# \\ K7LAE2BL6LWATAALMJIB4PRI3B5CKPDAYOS3XSWRAHOTUAL3KLQV \\// C25519-BASE-32 //
+#  \\// DYQXSXVTAA4WCMHMYL5CBW7DKVPMOE2WWJRUKJVE6547JHOBKCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
