@@ -15,9 +15,9 @@ my $core_fh = <core.handle>;
 <[net.out]>->( $core_fh, "get $key_to_retrieve\n" );
 chomp( my $get_reply = <$core_fh> );
 
-if ( $get_reply =~ s/^ACK // ) {
+if ( $get_reply =~ s|^ACK || ) {
     return $get_reply;
-} elsif ( $get_reply =~ s/^NAK // ) {
+} elsif ( $get_reply =~ s|^NAK || ) {
     <[base.log]>->(
         0, "net.get: unable to get key '$key_to_retrieve' [$get_reply]"
     );
@@ -28,7 +28,7 @@ if ( $get_reply =~ s/^ACK // ) {
 }
 
 # ______________________________________________________________________________
-#\\SWD5EITNOD6UGAQMUUJ6GK54XJKXQXVJPKD756Y3CQSVMW7V363AFGVFQHMUUOVNBB3R5AZFTWYQ2
-# \\ GNGR73BFWJOVA4CYKTNLYDQDSZ6G53MYABOD2FNOAN2MNFHJ2KHE \\// C25519-BASE-32 //
-#  \\// VBOB6BSVQHYVPR76YDZA45FZQ7RLUWFWXIOMMCDXLCNJO6SH2DQ \\ CODE SIGNATURE \\
+#\\BX5T7GP55DMZ32TBIZTPCJMH3FTIJ2TVYDSNN3XFBUTKGOYSETOP2WTCKM5JBZLBDCSQHATORVVSK
+# \\ USF2EQHLQA4SAQH3KQP7CJUZGFFRQG6XJQSCR6UKMMBBLQKEBTSQ \\// C25519-BASE-32 //
+#  \\// W372HAYI6D3EXARYCLOQZST7LCNN2JG22RGPD4ARFHMO2KKQYDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
