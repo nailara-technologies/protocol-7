@@ -32,7 +32,7 @@ if ( not defined <composition.transition.status.waiting.stop>
                 = 1;
         }
         if ( !$fade ) {    ## instance_id (no_fade) ##
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "core.nroot.get_instance_ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
@@ -45,7 +45,7 @@ if ( not defined <composition.transition.status.waiting.stop>
                 }
             );
         } else {    ## window_id(s) (fade) ##
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "core.X-11.get_window_ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
@@ -78,7 +78,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         and $core_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
         my $instance_id = $core_reply->{'call_args'}->{'args'};
         ## notify_offline ##
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.nroot.notify_offline",
                 'call_args' => { 'args' => $instance_id },
                 'reply'     => {
@@ -95,14 +95,14 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
             <composition.transition.status.agents.fade_out>->{$agent}
             or <composition.transition.status.agents.fade_out>->{$agent} ne
             '1' ) {
-            <[base.proto.nailara.command.send.local]>->(    ## stop (no fade) ##
+            <[base.protocol-7.command.send.local]>->(    ## stop (no fade) ##
                 {   'command'   => "core.nroot.stop_implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
         } else {
             my $window_ids = $core_reply->{'params'}->{'window_ids'};
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "core.X-11.fade_out",
                     'call_args' => {
                         'args' => join( ' ', $fade_out_duration, $window_ids )
@@ -137,7 +137,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         ? $core_reply->{'call_args'}->{'args'}
         : 0;    # <- 0 == failed, fade will be skipped!
 
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.nroot.get_instance_ids",
             'call_args' => { 'args' => $agent },
             'reply'     => {
@@ -153,7 +153,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
 } elsif ( $event_type eq 'fade_out' ) {
     my $agent       = $core_reply->{'params'}->{'agent_name'};
     my $instance_id = $core_reply->{'params'}->{'instance_id'};
-    <[base.proto.nailara.command.send.local]>->(    ## stop (fading complete) ##
+    <[base.protocol-7.command.send.local]>->(    ## stop (fading complete) ##
         {   'command'   => "core.nroot.stop_implicit",
             'call_args' => { 'args' => $instance_id }
         }
@@ -172,7 +172,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     ( my $agent_stripped = $agent ) =~ s/\[.+$//;
     map {
         if ( exists <composition.transition.status.agents.concurrency>->{$_} ) {
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "core.nroot.start",
                     'call_args' => { 'args' => $_ },
                     'reply'     => {
@@ -205,7 +205,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     } else {
         ( my $job_id = $core_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
         ## notify_online ##
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.nroot.notify_online",
                 'call_args' => { 'args' => "job:$job_id" },
                 'reply'     => {
@@ -228,7 +228,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
 
     foreach my $agent (@start_agents) {
         ## start ##
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.nroot.start",
                 'call_args' => { 'args' => $agent },
                 'reply'     => {
@@ -281,7 +281,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 # ______________________________________________________________________________
-#\\KRY2DI2I5DSEFGRJA4MDF7HT4ZPDBK7E6HPIH6SSTBK7IIDPCT27UHTXJATGK2SB2U3NSCDUMFP74
-# \\ JDU7KAQNJYVNIOOBUGV4XBBUP37IIQA5PNTR2HLBBYSGBCXUQO4K \\// C25519-BASE-32 //
-#  \\// GNGTOXH26P3RFZ7UPAG2KT5VWRKWFZMUB7IF3CR2Z3PS2D6S6AI \\ CODE SIGNATURE \\
+#\\JH7MD5ZW665LBPVDHNGWX65XBZ4OCWUNPFURODSRD2NVOTRULTQ3I57OJJ6JCY4OJNOIIWRATBL5Y
+# \\ EHXYIGIGPDVMXQL44RRSUW34OAKE346LLMJPKJ25OR27QMM23IPE \\// C25519-BASE-32 //
+#  \\// Q4LMI3EWEEVK2CXKYFRVIP6OEII6WJRESICGGNVLL3FWGFVNSAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

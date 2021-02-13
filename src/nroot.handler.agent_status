@@ -3,8 +3,8 @@
 # name = nroot.handler.agent_status
 
 my ( $instance_id, $status ) = @_;
-die "no instance id specified" if not defined $instance_id;
-die "no status submitted"      if not defined $status;
+die 'no instance id specified' if not defined $instance_id;
+die 'no status submitted'      if not defined $status;
 if ( $status eq 'shutdown'
     and not exists <nroot.agent.instance>->{$instance_id} ) {
     <[base.log]>->( 2, "instance $instance_id is not present [ status-skip ]" );
@@ -92,6 +92,7 @@ my $init_code = <nroot.start_setup.agents.startup.init_code>->{$agent_name};
 if ( ( $status eq 'online' or $status eq 'extbin' )
     and exists $init_code->{'nroot-post-init'} ) {
     <[base.log]>->( 2, "'$agent_name'-agent post-init-code.," );
+    <nroot.current-init-data> = $instance->{'init_data'};
     my @post_init_code = <[base.parser.config]>->(
         $init_code->{'nroot-post-init'},
         "\$data{'nroot'}{'agent'}{'instance'}{$instance_id}{'init_data'}"
@@ -112,6 +113,7 @@ if (    ( $status eq 'online' or $status eq 'extbin' )
         $status = 'error';
     }
     <[base.log]>->( 2, "cleaning up instance $instance_id init_data" );
+    delete <nroot.current-init-data>;
     delete $instance->{'init_data'};
 }
 
@@ -369,7 +371,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
         and $status eq 'online' ) {
         my $root_sid = $instance->{'root_sid'};
         my $core_sid = $instance->{'core_sid'};
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "$root_sid.set-initialized",
                 'call_args' => { 'args' => $core_sid }
             }
@@ -393,7 +395,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\2TOBVDRPH7ZJUD5RKO56MEAM7FRYGK36VCU7W7J5A3HSWJGOKC5JRQTI5V6CCERFNH33YR3RKE4SW
-# \\ BZK6RY5MRBAM2R3YRC24ZLRGBG6FWMSR5HE7BKBTRH3EK65VXQB5 \\// C25519-BASE-32 //
-#  \\// FOOBVUCL7ILSFIVHNLD4PE4S2YCTXZFBNSIGYHOKTQVJHVA2UCY \\ CODE SIGNATURE \\
+#\\CVNI5ZAGFORWUEPR4L34YTDOJWVNI3NJHPTAP2TPLQKQWSZXXXGUWQV37Z5EEWBSQ6NOKG2KJC6E2
+# \\ TMCJFC4JRGTHYHM24FTHF3EG3R33ZLYSGIGXPMMOE2L72DFBE3LJ \\// C25519-BASE-32 //
+#  \\// OJPMY5EE3SKUN5VSY3RACELMTO7XVNHSTLOYXONH2KC4MEBTYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

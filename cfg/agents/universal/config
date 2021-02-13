@@ -16,7 +16,7 @@ access.cmd.usr.core    = commands heart reload verify-instance * # <- [ LLL ]
 access.cmd.usr.mpv     = whoami
 access.cmd.usr.browser = whoami
 
-modules.load = auth net io.ip io.unix plugin.auth digest universal
+modules.load = auth net protocol io.ip io.unix plugin.auth digest universal
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -30,7 +30,7 @@ unix.sock = [base.open:'unix','input',"/tmp/.n/s/<unix.agent.path>"]
 core.reroute.pattern.usr = ^(?!core)
 core.reroute.pattern.match = ^(?!composition\.|whoami)
 core.reroute.pattern.replace = core.
-[base.proto.bind:<unix.sock>,'nailara']
+[base.protocol.bind:<unix.sock>,'protocol-7']
 
 [net.connect_to_core:'ip.tcp']
 

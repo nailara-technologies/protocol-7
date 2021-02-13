@@ -10,8 +10,8 @@ if ( <system.agent.name> eq '<stdin>' ) {
     return;
 }
 
-my $filename    = shift;
-my $config_type = shift;    # <- optional (autodetect from filename if omitted)
+my $filename      = shift;
+my $config_type   = shift;   # <- optional (autodetect from filename if omitted)
 my $absolute_path = shift // 0;
 my $import_dir    = <set-up.json.import_dir>;
 my $agent_name    = <system.agent.name>;
@@ -110,7 +110,7 @@ foreach my $o_key (@overwrite_keys) {    # LLL: implement for key depth > 1
     $data{$o_key} = $import_data->{$o_key};
 }
 
-foreach my $m_key (@merge_keys) {        # LLL: implement for key depth > 1
+foreach my $m_key (@merge_keys) {    # LLL: implement for key depth > 1
     $data{$m_key} = merge( $data{$m_key}, $import_data->{$m_key} );
 }
 
@@ -130,7 +130,7 @@ foreach my $m_key (@merge_keys) {        # LLL: implement for key depth > 1
 #}
 
 # ______________________________________________________________________________
-#\\FY54757G3J3ZVQ5B7KOVGW6RPQT4OWPZLGPT4RA54WTDZPGWGPSYFQZCVWG2ALAAUMFSWHMNDBVL2
-# \\ FJPTOCDKEZKDNAEG6MMIPOYJOJGUVBKYKG7SJX2XQHHSF6AQQRMQ \\// C25519-BASE-32 //
-#  \\// KQGLR7DJWJ5EBRG4MZWFWKTHEGIO7O5XFWS5JCFVPORRTPHMGCQ \\ CODE SIGNATURE \\
+#\\7G7SB77JJWVQ6O4F2VY432AVRPM7QOJSG6DYSHPQDZOEK4RDNBTGHBH2XNSJPR2MLBUZVRNSDDIY6
+# \\ 74GXXMHAKJIL6FTGX7PB2F7DWKYLLWF4T4KAXI7HQNWPBL7SEAWZ \\// C25519-BASE-32 //
+#  \\// CS3HBYQGVPVQBABQRWWVGBHYFKI3XGRKIWPUNNIP3ZOBLSQ3WDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -32,7 +32,7 @@ if ( exists <system.config.reload_order> ) {
         map { $already_loaded = 1 if "$_" eq $config_name }
             @{<system.config.reload_order>};
         next if $already_loaded;    # ( nested load_config_file )
-             # resetting password hashes for auth.setup.usr.* files
+            # resetting password hashes for auth.setup.usr.* files
         <auth.setup.usr> = {} if $config_name =~ /^auth\.setup\.usr\..+/;
         $success = 0 if !<[base.load_config_file]>->($config_name);
     }
@@ -44,7 +44,7 @@ $success = 0
 return $success;
 
 # ______________________________________________________________________________
-#\\V34UWE6HCYSLDRPGSCZMQDOBZB5X67PIJYTSRSTK2XP4TCMFPRFQINT3ARJOS5CWPMUEMCDUY6J4Q
-# \\ 6WD5SMR6OLXKJC5NSNFWUB2DDMGQTAW552ZF4FOUWHFWBAKZVVJ6 \\// C25519-BASE-32 //
-#  \\// MIDGXH6BXGGQM4FO3P2XVC3OJ6LVESQFLSFZVWWKNG6XTKGGCAY \\ CODE SIGNATURE \\
+#\\ZKTHLN7LSZ546MPQJDYZVAG46XZURNNMCYSV6YZEIE6G3OSWDEXYZNRXQRLJGHWZZ4EOT34FS4HL6
+# \\ YYCI6ZC2ARIBLDTIZS624R6DLHG32FZL2SJW357B2USHKOGVW34F \\// C25519-BASE-32 //
+#  \\// C4HRESTV6R2U6BBHVG3GFLTLJC7XAI5H2EK6CMPIP2EINQFPIAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

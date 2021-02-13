@@ -44,9 +44,9 @@ if ( !-f $frame_src_path ) {
 if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
     <[base.log]>->( 1, ": video frame extraction complete" );
     <[universal.startup_sub_agents]>;
-} else {                                      # more to extract
+} else {    # more to extract
     my ( $frame_id, $next_vid_path ) = each %{<universal.frames_to_go>};
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.melt.extract_frame",
             'call_args' => { 'args' => "-0 $next_vid_path" },
             'reply'     => {
@@ -58,7 +58,7 @@ if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
 }
 
 # ______________________________________________________________________________
-#\\5EASU2SYS2Q2CW6UGH24WBC27Q6UF44N7ZOBOXN4YAMCIVW77B3BN24D7FUO4HZZFVVWIDC3DV232
-# \\ CS6PH637TYLOQW2D4UH6R5IW5GN4NHWD3S4D23SPRHTURHF6IFCT \\// C25519-BASE-32 //
-#  \\// S6DZ7AT2FADY2LWWCIDKXH6VSSYZ6DLYOFCDSGZMGU6OHF67CDI \\ CODE SIGNATURE \\
+#\\6IIH6HEPUBPUD32WUHDKHEBA3T2OSOZKUV5YNHLEFU5AIIEAB62BOXPWXDYU75DKSA3V7XCDHX6U6
+# \\ MXOAFAIXGNAJYYDOMFSMDQ53IB46AE5AEJFJMCAL3EFW2TZYUWTX \\// C25519-BASE-32 //
+#  \\// LUE4WUQIVI6FO4TXPMRQVGWZFBZY73TAWA7U6T67I3LVQOAG4CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -35,8 +35,10 @@ if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
 ## catching compilation errors ###
 $code{'base.log'} //= sub { say STDERR ' <<< ! >>> ' . $_[1] };
 
-<[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
-    if $log_warning;
+eval {
+    <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
+        if $log_warning;
+};
 
 return
        if not $watcher
@@ -49,7 +51,7 @@ my $lvl  = 2;
 my $mlen = 0;
 map { $mlen = length($_) if length($_) > $mlen } @attr_names;
 
-<[base.log]>->( $lvl, ".:[ event ]:." );
+eval { <[base.log]>->( $lvl, ".:[ event ]:." ); };
 
 foreach my $akey (@attr_names) {
     my $val = $watcher->$akey // '<undef>';
@@ -58,7 +60,7 @@ foreach my $akey (@attr_names) {
 }
 
 # ______________________________________________________________________________
-#\\NZRCP5OIEJTQ4IJU6ADVQJQE6ZE23ACKRTHTRJWEJZZVPZHMXQZXX5MB2ZD5HLC33K4PMC3LKEO7M
-# \\ 2N77MEMOQQYGBRN6QKLUYVOMXTD6HFWTTCJSDXO6YUM26AVS7YWH \\// C25519-BASE-32 //
-#  \\// OCVRTA6VDVPFKYVOGCEPB36XYB77MBVCHJHOCQWL3R3Z7YTTQCI \\ CODE SIGNATURE \\
+#\\5XWRMXJ4QSN6JFEGJ2SAXQAIWWXWU7OPGYKPNJUARQQZWS7REKSWB5QIZD66LMNURSY3OP56VJNTE
+# \\ ZWFW2IV7FHK7AOXCSOH6G3NCD5FUSX67P67ZHJIVHEJC3HUOSWDY \\// C25519-BASE-32 //
+#  \\// IAKF7LH47QLQF2D3YRI77IGWT2OLEYNOBFT74KI25MGXJYFBSCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

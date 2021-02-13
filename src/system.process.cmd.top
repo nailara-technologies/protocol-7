@@ -21,7 +21,7 @@ my $entries = 0;
 foreach my $pid (
     sort { $top->{$b}->{'pctcpu'} <=> $top->{$a}->{'pctcpu'} }
     sort { $top->{$b}->{'pctmem'} <=> $top->{$a}->{'pctmem'} }
-    sort { $top->{$b}->{'start'} <=> $top->{$a}->{'start'} }
+    sort { $top->{$b}->{'start'}  <=> $top->{$a}->{'start'} }
     keys %{$top}
 ) {
     next if defined $filter and $top->{$pid}->{'fname'} !~ $filter;
@@ -46,7 +46,7 @@ foreach my $pid (
 return { 'mode' => 'data', 'data' => $top_table_txt };
 
 # ______________________________________________________________________________
-#\\J6P7VPM4IQ2IFXY6BMUBET4OM4FOOJHIUFSA2KF4FWJOZJPFRYDO7BWZF72PB6SUA7VMDGEGFD2DO
-# \\ WKOKVA5NQYM6FSXQNCLSVGKFJTQ5C64P4SLTLPHRRTOZPMVDWYY3 \\// C25519-BASE-32 //
-#  \\// XSS7MQVONGHMTJYWIV4ER67D3I6PHSCRAYFMQGAVXTJC3HG3QDY \\ CODE SIGNATURE \\
+#\\N42UELYVUBXFQ7J3ZOM4RP2HWYWJZLFMNCZ2Q2MF2BMJOV2HZAUB4YNHBO6LITQ35K4NYAXSGJF42
+# \\ XZY5IVI47DBTSMPZUD2UURNZ2FCIRCGL4HYBGDE23BYTZRVV2WMN \\// C25519-BASE-32 //
+#  \\// NMYB77CTCX5KXGMWOOQR5MB2NABN4C4AI7WNYH5KESBPKQYWWCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

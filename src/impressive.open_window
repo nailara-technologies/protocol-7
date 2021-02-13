@@ -93,7 +93,7 @@ if ( @{<impressive.current_playlist>} > 1 ) {
         '--auto', $trans_delay, '--transtime', $rnd_trans, '--fade', '--wrap' );
 }
 push( @exec_params,
-    '--bind', 'clearall', '--mousedelay', '1', '--nologo', '--scale',
+    '--bind',   'clearall', '--mousedelay', '1', '--nologo', '--scale',
     '--cursor', <impressive.gfx.cursor_png>, @{<impressive.current_playlist>} );
 
 ## start up impressive window ##
@@ -134,7 +134,7 @@ if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
 
     <impressive.exec_params> = join( ' ', @exec_params );
 
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.X-11.set_opacity",
             'call_args' => { 'args' => <x11.id> . ' 0' }
         }
@@ -163,7 +163,7 @@ if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
         }
     );
 
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.X-11.raise_window",
             'call_args' => { 'args' => <x11.id> }
         }
@@ -193,7 +193,7 @@ if (    <impressive.cfg.use_start-anim>
 }
 
 # ______________________________________________________________________________
-#\\ZSEPO33ONGY7JAKFHKEBV2OEXFTTG6WYGIBBSDPE5NRZABXNRVZYWOGZ3Y6ZUL3M6NORFOJ7WMGMG
-# \\ 6G7GDYK6K4NJ4F6BLM6BYWKRBFC2EADCCR47L3I36BOHGG4HWJRK \\// C25519-BASE-32 //
-#  \\// ICK4ILECFPLMDA52VH6LXXF2PSCU5BCNPVBJ2FCXMIPDF4IBABI \\ CODE SIGNATURE \\
+#\\AWJ5S4POXB63EE3HA7BEFYPFWCJQSNW3XIOVFDJO7JAY66SY7VL36TOUDLWMNIO64RN7GUPN5DLPW
+# \\ SBEQ2ITNAHCLNMGRTJ4CK73DWRKNAOPAKX57MAP2ZVF4EB7M2IEM \\// C25519-BASE-32 //
+#  \\// NRKAHDVNKNC2DEDRBCK55YKEREADGR2KPK3KNWVKIQWQY446ECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

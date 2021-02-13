@@ -6,7 +6,7 @@
 my $reason    = shift // '';
 my $exit_code = length($reason) ? 1 : $?;
 my $log_level = length($reason) ? 0 : 1;
-my $t_res     = 3;                          # <- time delta float resolution
+my $t_res     = 3;    # <- time delta float resolution
 
 my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
 my $abort_timeout = 2;
@@ -122,7 +122,7 @@ map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_ ) }
 exit($exit_code);
 
 # ______________________________________________________________________________
-#\\6ZLUNFBSC74237LYL2I5MCVAJSZDWPMOQ6ZJAVHROVN7EZGKAEC2WPFO44UMKQRLW7BGULPQCNX5U
-# \\ F4N6HWVAK35MJVQ5D7CPW6O3SC4JYCQV6H3HGTIO2O6M437BUE5W \\// C25519-BASE-32 //
-#  \\// O2Y5ILPRM6T4PAEKPWUTHRHHZUEG4OKNEG6G3RQBR5ITRJKWMDY \\ CODE SIGNATURE \\
+#\\UC2GWCWHUG3HBWANL4NL767ARMX5SY3GBOPMU57CPOBDNFOPDPETZGR5N2OPPCJ3W7CTKQB4TE7W4
+# \\ 6UIRYXGXGWZMEKTCSD35XRAZLAN6RMDB2PNA6U4XLPYZSYMJLQN2 \\// C25519-BASE-32 //
+#  \\// Z5LUIZ3CCHZLUAG5XL4GJZ3J4IKSFEITX7BTBC7SFOH3S5CUOAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

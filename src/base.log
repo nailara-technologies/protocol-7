@@ -37,6 +37,7 @@ $log_msg = "call to unknown subroutine while executing '$1'!"
     =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
 
 my $dots = <log.dots> //= '.';
+
 my $agent_prefix
     = sprintf( ":.%s%s%s.:", <system.node.name>, $dots, <system.agent.name> );
 
@@ -54,11 +55,13 @@ if ($fatal_exit) {
 }
 
 # write to 'agent' log buffer
-<[base.buffer.add_line]>->(
-    $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
-    )
-    if $log_level <= <system.verbosity.agent_buffer>
-    or $log_level <= <system.verbosity.agent_logfile>;
+if ( defined $code{'base.buffer.add_line'} ) {
+    <[base.buffer.add_line]>->(
+        $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+        )
+        if $log_level <= <system.verbosity.agent_buffer>
+        or $log_level <= <system.verbosity.agent_logfile>;
+}
 
 # print to console
 utf8::decode($log_str)
@@ -67,7 +70,7 @@ utf8::decode($log_str)
     and $log_level <= <system.verbosity.console>;
 
 # ______________________________________________________________________________
-#\\5HTJLILH7LAXOMZDYSVFHLLSVGMT3APVIFN5KF5KMZOGFDY7KRBXMS26R7JXA2ICDNKDSJNQGZEWU
-# \\ SPWYHB6GQMEHADMVCXQNWWE3432HDKBROBRVA7W4ONHNNN57WC65 \\// C25519-BASE-32 //
-#  \\// RD5UEXJV4G6U7TD2RFXRAHP5G7HJFDKL7LN2X57GDLVIND3Y6AY \\ CODE SIGNATURE \\
+#\\5C3ANDCCKUR7V3BBGMHU6QAY5LTCSPG2L7IDMRP3FJZNWUWPVZOG5G5RZDEBHYBC7LK7AMG4ZQCY2
+# \\ RQBX6USO4YC37VCOHMW7OHII2FUFTYNZH3DUOIQMFRCXGBUT3XI3 \\// C25519-BASE-32 //
+#  \\// 5346WVAPKZOG356R6HJPO4GWH5ZZ4QF22K4NDEZ4JSDYVEC3UAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -10,7 +10,8 @@ if ( not defined $data{'session'}{ $_[0] } ) {
 
 my $session = $data{'session'}{ $_[0] };
 
-if ( not defined $data{'proto'}{ $session->{'proto'} }{'state'}{ $_[1] } ) {
+if ( not defined $data{'protocol'}{ $session->{'protocol'} }{'state'}{ $_[1] } )
+{
     <[base.log]>->( 0, "init_state: no such state '$_[1]'" );
     return 1;
 }
@@ -18,10 +19,11 @@ if ( not defined $data{'proto'}{ $session->{'proto'} }{'state'}{ $_[1] } ) {
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
 
 $session->{'input'}{'handler'}
-    = $data{'proto'}{ $session->{'proto'} }{'state'}{"$_[1]"}{$mode}{'handler'};
+    = $data{'protocol'}{ $session->{'protocol'} }{'state'}{"$_[1]"}{$mode}
+    {'handler'};
 
 #foreach my $mode (
-#    keys( %{ $data{'proto'}{ $session->{'proto'} }{'state'}{ $_[1] } } ) ) {
+#    keys( %{ $data{'protocol'}{ $session->{'protocol'} }{'state'}{ $_[1] } } ) ) {
 #
 #    print "setting up mode '$mode' id '$_[0]' state '$_[1]'\n";
 #
@@ -39,7 +41,7 @@ $session->{'input'}{'handler'}
 #    <[event.add_io]>->(
 #        {   'fd' => $session->{'handle'},
 #            'handler' =>
-#                $data{'proto'}{ $session->{'proto'} }{ $_[1] }{$mode}
+#                $data{'protocol'}{ $session->{'protocol'} }{ $_[1] }{$mode}
 #                {'handler'},
 #            'data' => {
 #                'session_id' => $_[0],
@@ -56,7 +58,7 @@ $session->{'input'}{'handler'}
 return 0;
 
 # ______________________________________________________________________________
-#\\K3OG2DBUGBRWDYYOS4O5FCRFQ6FNYQNRNNKYFTZX4SUAGV3WRUXZEDL7PBKGKMU3I3F7MO6TCJCGA
-# \\ AQS3WDFJAO2UPZQC76WFPIGIXUIJ4ANBNQFEPIO54A3HA3KD2LCM \\// C25519-BASE-32 //
-#  \\// SK4ZRGAAHA2F46L2GZVF2VNIV63NRZBZ6WR6GQYX2ZXQTWZACAY \\ CODE SIGNATURE \\
+#\\D3RX4T6FONDBCLBBWG4KVHELQJ37TNSFYGW5TDUGY5YPTTIVZLINUJWKKPF55Y7NUKEXVPW7ZQESU
+# \\ H7EPMUCMOHW7Q5RDYDV33QDLQG37DFIFVVAEGCNNKDM3NPRDATWE \\// C25519-BASE-32 //
+#  \\// WWY33N3EKFJ5QU2BVYCM5CUWRFUBKQRRKVEZTUO247ZD36KVUBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

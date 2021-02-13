@@ -1,7 +1,7 @@
 # >:]
 
 # name  = base.init_code
-# descr = initialize the base module
+# descr = initializing base module
 
 use Safe;
 use Module::Load;
@@ -23,7 +23,7 @@ use warnings 'once';
     'Crypt::PRNG::Fortuna', qw | random_string random_string_from |
 );
 
-# init some vars
+## init some variables ##
 
 <agent.shutdown> //= 0;
 
@@ -62,7 +62,7 @@ $data{'system'}{'host'} = {
     'timezone' => <[base.timezone]>
 };
 
-# LLL: todo: + uname -r, uname -m (?)
+# LLL: + uname -r, uname -m [?]
 
 # flush / init regex cache
 $data{'regex'} = { 'base' => <[base.regex]> };
@@ -86,7 +86,7 @@ $data{'list'} //= {};
     'var'      => 'data',
     'key'      => 'session',
     'sort_key' => 'num:start_time',
-    'mask'     => '<key>:usid proto link:type mode '
+    'mask'     => '<key>:usid protocol link:type mode '
         . 'user:uname start_time:since',
     'align' => {
         'user'       => 'center-2',
@@ -118,7 +118,7 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
     <[base.disable_command]>->('verify-instance');
     <agents.virtual> //= {};
     my $key_ref = \$data{'agents'}{'virtual'};
-    $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4097; # LLL: -> config..
+    $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4097; # LLL: -> config.,
     <list.virtual> = {
         'var'   => 'data',
         'key'   => 'agents.virtual',
@@ -169,16 +169,12 @@ map {
     my $uc_sig = uc($_);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
 
-    ## initializing signal handlers ##    [ <!> potential SIGCHLD problems <!> ]
+    ## initializing signal handlers ##     [ << potential SIGCHLD problems >> ]
     <base.watcher.signal>->{$_} = <[event.add_signal]>
         ->( { 'signal' => $uc_sig, 'handler' => 'base.sig_' . $_ } );
-} ( qw-
-        int   term  hup
-        chld  abrt  trap
-        usr1  usr2  -
-);
+} qw|  int  term  hup  chld  abrt  usr1  usr2  trap  |;
 
-# initialize session list
+## initializing session list ###
 
 if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
@@ -191,29 +187,30 @@ if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
 <[base.parser.access_conf]>;
 
-# command aliases with source agent name prefixes
-if (    exists $data{'setup'}
-    and exists <setup.aliases> ) {
+## command aliases with source agent name prefixes ###
+if ( defined <setup.aliases> ) {
     if ( defined <setup.aliases.source_agent> ) {
-        foreach my $alias_cmd ( split /\s+/, <setup.aliases.source_agent> ) {
+        foreach my $alias_cmd ( split( m|\s+|, <setup.aliases.source_agent> ) )
+        {
             $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_AGENT";
         }
     }
     map { $data{'alias'}{$_} = "$_ SOURCE_AGENT SOURCE_SID" }
-        split( /\s+/, <setup.aliases.source_agent_sid> )
+        split( m|\s+|, <setup.aliases.source_agent_sid> )
         if defined <setup.aliases.source_agent_sid>;
 }
 
-<base.callback_hooks.async_online> //= []; # <- called after receiving core sid.
+## called after receiving core session id ##
+<base.callback_hooks.async_online> //= [];
 
-# setting up command [argument] filter hooks
+## setting up command [argument] filter hooks ##
 <base.filter_hooks.command.heart.send> = 'base.handler.heart';
 <base.filter_hooks.command.heart.recv> = 'base.handler.heart_ack_reply';
 
 return 0;
 
 # ______________________________________________________________________________
-#\\YKMEW67ILCFOR7UGDR72I6XQ34VMNHFBJC2JGLUEBVYKKWLEYGVAQ5XQ4ZHQPGFJVMBPCGQTBT5VE
-# \\ 7VSLMQIBDSNRPJH73TP3MHUT6L3C3MLITDS4E5T74PVYID4QXIPA \\// C25519-BASE-32 //
-#  \\// KV3NFN4A5Y57VT5LUK6HM7BIWONHES2AKSKGGO3E3QATZZQMABI \\ CODE SIGNATURE \\
+#\\PJV5FNVZZBZZ2R3EPIOWBSQGCTMOG5OCP3WJZB6AXIC535ECXB37JHXVL5VF24TKCFWPSVI6EKYBW
+# \\ TPHE2SNC72BUV36DT26P7CH24NPJTG5BSTLXQYH5NIA3UNTZXS6V \\// C25519-BASE-32 //
+#  \\// 2ATN6JITBZDYBLROELPBKEQHSVTS2KOKVDHRSWYC5ZD4WGIW2BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

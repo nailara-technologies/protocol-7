@@ -19,16 +19,16 @@ my $lsp_name
     : 'start-anim';
 
 # LLL: needs X-11.fade_in command..
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "core.X-11.set_opacity",
         'call_args' => { 'args' => <x11.id> . ' 100' }
     }
 );
 
 if (<impressive.cfg.use_start-anim>) {
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.nroot.stop_implicit",
-            'call_args' => { 'args' => $lsp_name },
+            'call_args' => { 'args'    => $lsp_name },
             'reply'     => { 'handler' => 'impressive.handler.stop_lsp_reply' }
         }
     );
@@ -36,7 +36,7 @@ if (<impressive.cfg.use_start-anim>) {
 }
 
 # ______________________________________________________________________________
-#\\L6W4NSNQYM35L6A5R5FTGTTFSDBKHRH2M52RTFVNSMGVB6QPWVFGNNJFKLPXKJPP2HD3LJXYL2KMA
-# \\ OFJJINALCZUWET6XCKDOJXZ7A5ILWKBP7FKTCUPCEWBHGEQBZUBP \\// C25519-BASE-32 //
-#  \\// HFJ6LX6L27S2B7NUBDXUSFFPAXVCCMXMYHOSCIPYJQSFOXGLYBQ \\ CODE SIGNATURE \\
+#\\2QYHPGIG3BDPKBIS554OBGHIMDATAVHB7S5KUXHJZU67ASJ3ZLP7EVIAZNFMQN6J2HQEFE45YGLMY
+# \\ 5ZW4NCV7HQ2O3U5OWZ25TRBTCQWPMXWVJFQPIR76E362TN5MATLM \\// C25519-BASE-32 //
+#  \\// TAWJCRHQ5WPBYR6DIWINIMGKGKYHRDYKWSMFK2DGTHF2DKLISBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

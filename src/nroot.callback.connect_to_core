@@ -16,10 +16,20 @@ $authname = <system.agent.auth_name> if exists <system.agent.auth_name>;
 my $c_fh = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
 $c_fh = <[auth.agent.client]>->( $c_fh, $authname, $core_key );
 
+if ( exists $init_data->{'core'}->{'key'} ) {    ## secure key erasure ##
+    my $rand_len = length( $init_data->{'core'}->{'key'} );
+    substr( $init_data->{'core'}->{'key'},
+        0, $rand_len, <[base.rnd_chars]>->($rand_len) );
+    $init_data->{'core'}->{'key'}
+        .= <[base.rnd_chars]>->( 8 + int( rand(9) ) );
+    delete $init_data->{'core'}->{'key'};
+    delete $init_data->{'core'} if !keys %{ $init_data->{'core'} };
+}
+
 #[ error \ <false> ]
 return 0 if not defined $c_fh;
 
-my $session_id = <[base.session.init]>->( $c_fh, qw| nailara client core | );
+my $session_id = <[base.session.init]>->( $c_fh, qw| protocol-7 client core | );
 <[base.log]>->( 1, "auth. to core successful [ session $session_id ]" );
 <nroot.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <nroot.agent.instance>->{$instance_id}->{'is-core'}  = 1;
@@ -30,10 +40,10 @@ my $session_id = <[base.session.init]>->( $c_fh, qw| nailara client core | );
 };
 
 my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
-<[base.proto.nailara.command.send.local]>->(
-    {   'command' => "$root_sid.set-initialized",
-        'reply'   => { 'handler' => 'nroot.handler.set_initialized_reply' },
-        'call_args' => { 'args' => 0 }    # [ 0 == nroot-agent session [self] ]
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$root_sid.set-initialized",
+        'reply'     => { 'handler' => 'nroot.handler.set_initialized_reply' },
+        'call_args' => { 'args'    => 0 }  # [ 0 == nroot-agent session [self] ]
     }
 );
 
@@ -41,7 +51,7 @@ my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
 return 1;
 
 # ______________________________________________________________________________
-#\\RRGJ2QKPA4XMPQCZVIY7DUIV3V2JYIJK7OR3GDUZA73CKQKH243MF3VHXBUO3XYXC6VB2X2XOIPZW
-# \\ KYOMWWVVUGD22QF6LRQSIYJJZZJ66LKYGUFAUMTIDZNOBY52NV7P \\// C25519-BASE-32 //
-#  \\// IABUXBUNJTBV7SGUHZILDYG4EO34RSV3FN6YARIEH555EDKPQDI \\ CODE SIGNATURE \\
+#\\B4QP6GX5C7EFLGCUFWTXD4MAVTBHB2TCNJSLIFDCBZAIBJE6ZSVAHU5SUJVX3O4HA5YBPOIUHSFRK
+# \\ RLMSTDZBV44AL6HOE4SHT6OHYZBSVMYSIZIPZNGHTJXVTJB4Q7BK \\// C25519-BASE-32 //
+#  \\// DRNOYNPQ2HG2KD22DBPGSBJG7EIC4RSAMDMLCS6REBCI3TZJECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

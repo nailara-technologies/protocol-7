@@ -34,15 +34,16 @@ if ( !<image2html.child.pid> ) {    ## child ##
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';
-    my $id = <[base.session.init]>
-        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+    my $id = <[base.session.init]>->(
+        $parent_pipe, 'protocol-7', 'client', 'parent'
+    );
 
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.load_modules]>->('image2html.child');
     <[base.init_modules]>->('image2html.child');
 
-} else {                                              ## parent ##
+} else {    ## parent ##
     close($parent_pipe);
     delete <image2html.pipe.parent> if exists <image2html.pipe.parent>;
     <image2html.pipe.child> = $child_pipe;
@@ -52,7 +53,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
 
     $data{'handle'}{$child_pipe}{'mode'} = 'out';
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| nailara client child | );
+        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.async.get_session_id]>;    # -> 'online'
@@ -60,7 +61,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\XB22FA55ZNQ4I45B2Q67F6C5EYPZHRI3O4WR3T6VWJICHAD223JDOX2YKMJTJEQ6NQHWDMGYQVV5W
-# \\ YVLKE4JXELQXSEG4JAYKSHFG7PX4QKXCUTS7GV653NWKRWTITLJR \\// C25519-BASE-32 //
-#  \\// TGPJBFCASN76X446WJTZIIOXLYTSXG5VXUABT4YZEXACAWQOYBA \\ CODE SIGNATURE \\
+#\\Z3EQ3G5NM47NJSQDL6O5ASVYFJTPYLFN2ORKX6DN3HI4Z5CBFK2YJB7ODYTWQNDMJ4VPUEWSKNJCW
+# \\ OVULA3EJJEBV4FZJSASSIUKEPJ5ACHB3FEJMI2GIWMG7EJI2SKAO \\// C25519-BASE-32 //
+#  \\// EREOFYB2JBVOXOTBWFMA3VLCBRL2HPD2T65NO7FXPKHI3QWROCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

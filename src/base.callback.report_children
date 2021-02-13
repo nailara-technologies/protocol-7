@@ -11,7 +11,7 @@ $route_str .= '.' if length($route_str);
 
 map {
     <[base.log]>->( 1, "reporting child process [PID:$_] to 'nroot'" );
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "${route_str}nroot.register_child",
             'call_args' => { 'args' => $_ }
         }
@@ -19,7 +19,7 @@ map {
 } @{<system.report_children>};
 
 # ______________________________________________________________________________
-#\\OOCZHM6V2OFYWFABT7JVJ33QPFLZWQZVYYJXVZXL4GGW2BYO4CHM3F3UDNB6FMMIZX3MCUE22LFPU
-# \\ RW2DT4TUMLVN3OM2CX3CPLPADXMLVY35EOXQ3JMPLGJAZ27HX4KZ \\// C25519-BASE-32 //
-#  \\// F2P2OFC5VPOCP5CAUJIUY6B7OQ4ZB5TU66TQ7WRYWH3AT4TUWAY \\ CODE SIGNATURE \\
+#\\VQ5XIIPTBJ633GP2SBEFFRFFYK4MHXTACHQTBA5WRTXSG47WWPH73ZH7OS36HDZBQFPNZMF4WBSE2
+# \\ YAEFJD25YT645ELN6UHXRIRWD3NJXGVIIS32YKUKVSZ6O4T36W76 \\// C25519-BASE-32 //
+#  \\// LVZYKEYVJZYGCEFNMI3N7LO37IFBPBF4SQDU6RQLPDFDVBK62DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

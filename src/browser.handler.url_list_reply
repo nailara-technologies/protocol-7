@@ -34,7 +34,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     if ( <system.agent.mode> eq 'universal-child'
         and !<browser.slideshow.iteration> ) {
         <browser.slideshow.iteration> = 1;  ## reporting universal-child 'ready'
-        <[base.proto.nailara.command.send.local]>
+        <[base.protocol-7.command.send.local]>
             ->( { 'command' => "core.report_paused" } );
     }
     return;
@@ -76,7 +76,7 @@ my $index = 0;
 
 foreach my $entry (@url_list) {
     if ( $type_list{$entry} eq 'pdf' ) {
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.pdf2html.get_url",
                 'call_args' => { 'args' => "$entry $width" },
                 'reply'     => {
@@ -89,7 +89,7 @@ foreach my $entry (@url_list) {
             = '!' . <browser.url.list_reply>->[$index];
 
     } elsif ( $type_list{$entry} eq 'image' ) {
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.image2html.get_url",
                 'call_args' => { 'args' => "$entry $width $height" },
                 'reply'     => {
@@ -130,7 +130,7 @@ if (@{<browser.url.list>}
 }
 
 # ______________________________________________________________________________
-#\\LU76L3MUPMNNYXWADHD4VEQMBB4L65D3BDRLBSNL4JCWEST5NAJ2AVVT7LLIWAT3JAERHYPYGUO6U
-# \\ YIERYNDH6GQMP5N2A6DZWYOYFDB7JMLEFEMNBUHIUYZM67FA22MY \\// C25519-BASE-32 //
-#  \\// 6K5GHQGQ5XTCK65ZPC5JCVJ2PHYSS5L22QQXAHP7JXJTJOEYOCQ \\ CODE SIGNATURE \\
+#\\PR6FTJ2MK72IKUKSBQHXTKBHHXNWDVQMS4E4CRAVRMIRI3FQSL2O3KRMJA5EWUJEY6E2AD5T4HC46
+# \\ KOPS6ZSPHHL6IU2TDENCFEYJGBVUKK7N4YGFGB37FN7IOVYHKIEC \\// C25519-BASE-32 //
+#  \\// AVIJMARFCJQ3RAFWO2B2UX2U7C2V4SIB2WWBVE7YVDWRJ2ALMBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
