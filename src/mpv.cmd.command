@@ -11,7 +11,7 @@ return { 'mode' => 'nak', 'data' => 'expected mpv command' }
 return { 'mode' => 'nak', 'data' => 'requested command matches blacklist!' }
     if $cmd_str =~ m,^\!?(run|hook|subprocess),;
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>},     $$call{'reply_id'} );
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.command' } );
 
 if ( $cmd_str !~ s/^\!// ) {
@@ -23,7 +23,7 @@ if ( $cmd_str !~ s/^\!// ) {
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\URW2Y6HMBIYJ2NZMX5CQFTOUONN2CNAD2XWZSMWPDXTAK6B3KQDQ7CR4QGHIFISDBZ5GN7DOXTTHO
-# \\ TO4KS2YGCWIFHDTQWCQDG2TJ46DYEVXGIQGYXIXEL7GMNQW4GGL6 \\// C25519-BASE-32 //
-#  \\// XKOS5Y4WU2SAURF3RNPI7BRFILQMLFBWBYQR7AQUWHPPXWNZGAY \\ CODE SIGNATURE \\
+#\\U2V7PW6BAQ62J44ANRN4ALFV4K7DIV6ED7AE7YRPWNLLX5LWGXGBW3KCW2AMP6H5PP5KWXIUYUIL4
+# \\ HAE5ILNOWKYLOLZVUMQUG7DWTZPCA7J3PWHT56P7USSCXUQMPMQJ \\// C25519-BASE-32 //
+#  \\// DOT7LH74AWX2NN5F5CIZBVHIU6BDYL3FWTEIPLTOVIZCQQ4WQCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

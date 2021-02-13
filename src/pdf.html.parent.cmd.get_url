@@ -63,12 +63,12 @@ if ( !-d $html_path ) {
     make_path($html_path) or die "make_path($html_path): $!";
     <[pdf.html.base.write_stub_page]>->($html_path);
 
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "child.convert_pdf",
             'call_args' => { 'args' => "$pdf_location $target_width" },
             'reply'     => {
                 'handler' => 'pdf.html.parent.handler.convert_pdf_reply',
-                'params' =>
+                'params'  =>
                     { 'pdf_path' => $pdf_location, 'html_path' => $html_path }
             }
         }
@@ -80,7 +80,7 @@ if ( !-d $html_path ) {
 return { 'mode' => 'ack', 'data' => "file://$html_path/pdf.html" }
 
 # ______________________________________________________________________________
-#\\B7OCITJTZNEOEZXOULEOQ6JDSF7O2N7D3JYGRIDRG6UIW4ZZXYGTZJVMRWBJJPAZXH3WIYH3FACGK
-# \\ K2QBUGKDIFBVAA4GOGSIMBB6SJYH3BPSCPEHCK74MC2UXPUYZBUB \\// C25519-BASE-32 //
-#  \\// UOBLR63JTYL6DPU65MEITAUMC64444PFSZQ5TKIWEXZQM42MOBA \\ CODE SIGNATURE \\
+#\\H4LU6DFPYNQQURWSRU4ZVW75LIIVGRLZWRRB6ARA34ZBUSIKU7P3BCWES34KCEETVHZENK3WUIQLO
+# \\ EH5RB2GSMKQFUKPQFNKN4BEPMZEOUBIYJFQRARRM7QKDFRWNHKOC \\// C25519-BASE-32 //
+#  \\// 76PKNBKV3C3D7ZL6WGC72DNFIIPQTYXLPYKDM7YEFYLXHHCLCCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -11,7 +11,7 @@
 <[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b64u decode_b64u | );
 
-<proto.http.state> = {
+<protocol.http.state> = {
     '0' => {
         'input'  => { 'handler' => 'httpd.request_handler' },
         'output' => { 'handler' => 'base.handler.write' },
@@ -20,14 +20,14 @@
 
 <http.nailara_tun_uri> =~ s|/+$|| if defined <http.nailara_tun_uri>;
 
-<proto.http.connect.banner> = '';
+<protocol.http.connect.banner> = '';
 
-<proto.http.status_codes> = <[httpd.status_codes]>;
+<protocol.http.status_codes> = <[httpd.status_codes]>;
 
-<httpd.cfg.external_sitedirs>     //= 0;
-<httpd.cfg.uploads_enabled>       //= 0;
-<httpd.downloads.in_progress>     //= 0;
-<httpd.downloads.max_buffer_size> //= 128 * 1024;   # <- (session output buffer)
+<httpd.cfg.external_sitedirs>       //= 0;
+<httpd.cfg.uploads_enabled>         //= 0;
+<httpd.downloads.in_progress>       //= 0;
+<httpd.downloads.max_buffer_size>   //= 128 * 1024; # <- (session output buffer)
 <httpd.downloads.total_bufsize_max> //= 100 * <httpd.downloads.max_buffer_size>;
 
 # check user / group existence
@@ -70,7 +70,7 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
 0;
 
 # ______________________________________________________________________________
-#\\ASY6F2JRZ5EI3EAZ43BAFTF2IISQJHWTOZOV2HKS4ZUUGQKOLIBWN3DB52G25MBLQPJEN4IZKDSKA
-# \\ WFYM3CC7BHG4432DONA7A3PXSTL6SAPBYF73QQ2W6EWIEURGPB6X \\// C25519-BASE-32 //
-#  \\// PQ4J5465PZTALS4L3CND6OGGX3SND7CYJQ3SBSKM3U36IC7NYDI \\ CODE SIGNATURE \\
+#\\IDK5ZJKITNMU5MLUZ7VVYTNKOBA4V5A3YPTOBHMDGNCFPMINPKIYHYNDZVJWR5CVUS7I3Q4SEMG2I
+# \\ FTMPAIRLDLBL7BQWAXFQR7M7SLEFH4CJA3X3QAUI3B4YQPISU35C \\// C25519-BASE-32 //
+#  \\// LSIMCT5OA5MP6YWRO2EEYZVBMWABLQ6L2M62G73LRXK4BNK6EBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

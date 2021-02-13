@@ -1,6 +1,6 @@
 # >:]
 
-# name = base.proto.nailara.command.send.local
+# name = base.protocol-7.command.send.local
 
 my $cmd       = ${ $_[0] }{'command'};
 my $call_args = ${ $_[0] }{'call_args'};
@@ -19,15 +19,15 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
     my $target_name = $1;
 
-    #LLL: needs error handling on unknown target !!!
+    # [LLL] needs error handling on unknown target
 
-    # send to all clients with that session id (or username [group mode])
+    ## send to all clients with that session id or username [ in group mode ] ##
     my @send_sids;
     my $target_sid = $target_name =~ m|^\d+$| ? $target_name : undef;
     if ( defined $target_sid
-        and exists $data{'session'}{$target_sid} ) {    # sid mode
+        and exists $data{'session'}{$target_sid} ) {    ##[ session id mode ]##
         @send_sids = ($target_sid);
-    } elsif ( exists $data{'user'}{$target_name} ) {    # group mode
+    } elsif ( exists $data{'user'}{$target_name} ) {    ###[ group mode ]###
         @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
     }
     my $count = 0;
@@ -35,7 +35,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         my $session;
         $session = $data{'session'}{$target_sid}
             if exists $data{'session'}{$target_sid};
-        next    # skip unauthorized connections \ modes
+        next    ## skip unauthorized connections \ modes ##
             if not defined $session
             or $session->{'mode'} ne 'client'
             or $session->{'user'} eq <base.session.uname_server>
@@ -43,7 +43,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             or defined $session->{'authenticated'}
             and $session->{'authenticated'} ne 'yes';
 
-        # setup route
+        ## setting up route ##
 
         my $route = <[base.route.add]>->(
             {   'source' => { 'sid' => $target_sid, 'cmd_id' => $cmd_id },
@@ -61,7 +61,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         $src_name .= '[' . <system.agent.subname> . ']'
             if exists <system.agent.subname>;
 
-        # LLL: implement [ debug ] watch and filter patterns for command logging
+        # [LLL]  implement [debug] watch and filter patterns for command logging
         if (   <system.verbosity.console> >= 2
             or <system.verbosity.agent_buffer> >= 2 ) {
             <[base.log]>->( 2, "<CMD> $src_name -> $target_name > $cmd" )
@@ -89,7 +89,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
         $count++;
 
-        # TODO: setup timeout handler
+        ## [ LLL ] set up timeout handler ###
 
         #            }
         #            elsif ( $command_mode == 2 )    # multi line command mode
@@ -121,7 +121,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 # ______________________________________________________________________________
-#\\S7GSMED3J63SD7DVIFAYV3FVMOLKNL4NARMVDNOIUWDCF2LBGBJWEDH5XBY2ZX525D3RBHKIQDRAQ
-# \\ H2DDV5D3TIWIIM4JJIX45LVJWVIDDNYNGJU3TBAXHWIVKKXZCEKM \\// C25519-BASE-32 //
-#  \\// S3TSUBOK7UF22BUG54DS6CU3FTVFVWBS367E3WYXA6THPWLPQDA \\ CODE SIGNATURE \\
+#\\ZXDU5ZKPU5DEI3J5SC5OPGY5H52QCUL453HEKYCDF7FMC6KTIUVMA2N5N54CEOGK3OVPZYDQPDPFW
+# \\ VKZWWF2APMURTV36XHVTOWJONISZRGLBUYW5Z47HXSH72WGHTRE4 \\// C25519-BASE-32 //
+#  \\// A7C3TWHMXQJY7327O66CM6AL66RASHD7M3HW5KNU2OOXD76EUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

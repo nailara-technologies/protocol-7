@@ -2,12 +2,12 @@
 
 # name = system.cleanup.check_tasks
 
-return <[base.log]>->( 0, "skipping cleanup tasks.. [ path not found ]" )
+return <[base.log]>->( 0, 'skipping clean-up tasks., [ path not found ]' )
     if !-d <system.path.cleanup_files>;
 
-## configure
+## [LLL] configuration .,
 
-<[base.log]>->( 1, "checking cleanup tasks.." );
+<[base.log]>->( 1, 'checking clean-up tasks..,' );
 
 my $cleanup_path     = <system.path.cleanup_files>;
 my $current_version  = <protocol-7.source-version>;
@@ -70,11 +70,11 @@ if ($task_count) {
     my $log_level = $items_removed ? 1 : 2;
     <[base.log]>->( $log_level, ": paths removed : $items_removed" );
 } else {
-    <[base.log]>->( 2, ": no tasks found.." );
+    <[base.log]>->( 2, ": no tasks found.," );
 }
 
 # ______________________________________________________________________________
-#\\W7IRK6NP77LACLYEQQIIEJMLSFE5T4IMM3PVV7VEXR44ZIJMJ6EKTUVQQVVH5UBBZBVFLR42R3SLK
-# \\ AS2H7VHUJV6SPZSG46TBDKU35X43RHQAFWO25DJATYDIKVW35OHW \\// C25519-BASE-32 //
-#  \\// 4TIDXFW3US6UU64PFEQJFJO3HK227NG55HC42O7OG33DVCMUCDY \\ CODE SIGNATURE \\
+#\\KWVXICIE66PX3HRTVXSDEWAVWX5PDLYZT4EYAHMQULWMWVEAIW4PSLUHJXLMCWETI4U5LOXSAUHPQ
+# \\ K5XSLPEGVEAFFT2V4OIIJHLQDUDGVIUFTIAEZRAFRVHW4YZ6AJEW \\// C25519-BASE-32 //
+#  \\// 3LH5FKORAMMY27QZK32LK2ESLQKM3G7ZRJLXTODLRMFJNPPRGBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

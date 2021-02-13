@@ -24,7 +24,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     if ( not defined $KEYS{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
     {
         $$output .= "NAK not available `:|\a\n";
-        return 2;                      # <- terminate [ error state ]
+        return 2;    # <- terminate [ error state ]
 
     } elsif ( $cmd_type eq 'srv-key' ) {    ## returns current session p.key ##
         $$output .= sprintf( "ACK %s\n",
@@ -63,7 +63,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
 }
 
 # ______________________________________________________________________________
-#\\RXQ2DRENQPWQOY2ZJMB5SHSNSO6XC5WERTUECOQHHIR4RLFQ3OI7WQUWKILC3VCZAESK3GVF7ILX6
-# \\ HEQCD52J2BYHPFCG6QGS3FRLIDBXT3NRWV36SOXXRCCR22V3LADK \\// C25519-BASE-32 //
-#  \\// T6ZRZ3A55MFGKLT57MTG2XB6VWVUBVXJE6EYJXDLMOQ5JP5WYBQ \\ CODE SIGNATURE \\
+#\\ZHZXW2SPNTTST7U7AC7SWBZ7KGBDL6WDAP3NICOMMJMGYOISEVGUXQTLDKQ2YBYH65WAVK4JYFATS
+# \\ RHEOP3HB7UHOLXM3YCNR5TBJ7QRSFWYKWMUVHJPWBHJKPIB6B2XE \\// C25519-BASE-32 //
+#  \\// WDDFODBFHOON5I3WJAMB5PSINDYGU3NLCAS544DYFWR4VXZAKBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

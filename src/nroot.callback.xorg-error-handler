@@ -7,7 +7,7 @@ my $report_to   = 'system';
 my $instance    = <nroot.agent.instance>->{$instance_id};
 
 return warn 'expected instance id parameter' if not defined $instance_id;
-return warn "instance $instance_id is gone" if not defined $instance;
+return warn "instance $instance_id is gone"  if not defined $instance;
 
 my $agent_name    = $instance->{'agent_name'};
 my $prev_status   = $instance->{'prev-status'};
@@ -27,14 +27,14 @@ my $error_message = sprintf( "agent '%s' status '%s' --> 'error' after %s .,",
     )
 );
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "core.$report_to.report-X-11-error",
         'call_args' => { 'args' => $error_message }
     }
 );
 
 # ______________________________________________________________________________
-#\\ZY6W2BJZH5QQZ3MO5N7RYX3VBWSLRMBRY52OA34G3NL4KWQQ5GJG6B22JUPSC2LBWAASSRB6LUYE6
-# \\ VQGSAGDOVYFTVVA5J3AXGAHPWL6BBKAP2QLKLTR7CL76AZVLCJ6P \\// C25519-BASE-32 //
-#  \\// AFTDEI7HWN34BNMNIZJEYI33WHXIJAJ6X3JLNOEOGOPP3VZ3GAY \\ CODE SIGNATURE \\
+#\\H6EOMP6REXGEZ2ADLL3SEWBDM742VRIXXNAWJZRHPS2L3GSBB5436F7O7UIU3TOMCAVDCJTMRN6G6
+# \\ EAGVV7LXZQPWIEA6YSS7VO5GMTPTLPPQ76OT2QAKKXQKYABW6FJN \\// C25519-BASE-32 //
+#  \\// 6LLZDEA5P43MKOSCLLUMLGVZTVTGYAFJPNBE4ITPEBKMTL2WSCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -25,7 +25,7 @@ $file_path = readlink($file_path) if -l $file_path and -f $file_path;    ##
 
 my $file_stat    = File::stat::stat($file_path);
 my $content_size = $header->{'Content-Length'} // $file_stat->size;
-my $content_type = $header->{'Content-Type'} // mimetype($file_path);
+my $content_type = $header->{'Content-Type'}   // mimetype($file_path);
 
 my $content_fh;
 if ( not open( $content_fh, '< :raw', $file_path ) ) {
@@ -133,7 +133,7 @@ $session->{'watcher'}->{'download_handler'}->now;
 return 0;
 
 # ______________________________________________________________________________
-#\\AF7J56KO6BGJQDE2DDKSAKNUAT3QDG6YQGRIANO5UBCSUTAKE3XQ7GXIALGYIOEUPV3DETKAMKLYQ
-# \\ V54TGQLUGK77ROPZQIF5J7A2LTE6BLYAGPS22YV5RGOKVB4FM4DC \\// C25519-BASE-32 //
-#  \\// MWB6N6WA52TZT2SG3VTBVNMMG62BMC66DPPHX5K26AVW7I34ODY \\ CODE SIGNATURE \\
+#\\LDMAQYPEZDZ4HD5Q54DW7ZXNDUAZFMBF7FGE6QUN7LI3HR5RWSH5C6S5ZTMRUX3YIP542OI4XUW3O
+# \\ GCNX2Q2M56N6UUXELGTI4LFSORUAJKI4NQ7MS33K5IAE42MPSLMN \\// C25519-BASE-32 //
+#  \\// EUQZXUEUO5YGYWOQTRCFG2PI445ZPLLNMMIGPBE7P32WWDFVCDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

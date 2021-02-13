@@ -24,7 +24,7 @@ if (   not exists <weather.data>->{$station_id}
 
 <[base.log]>->( 2, "<$station_id> updating forecast weather data.," );
 foreach my $type ( 'hours', 'days' ) {
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "child.request-data",
             'call_args' => { 'args' => "$station_id $type" },
             'reply'     => {
@@ -36,7 +36,7 @@ foreach my $type ( 'hours', 'days' ) {
 }
 
 # ______________________________________________________________________________
-#\\IBIEAJQFJZN5V3KYCBX2MUCFJEL5IFLGW4QDPYUXWSP6UKKGY56DQQZPSIAWCBF2RSICGT6HJGYD2
-# \\ A3K55OQ4Z2GC4U5TJVQYEA6LD2NKBNCB6BHTKK3GWRJD65EGFTNS \\// C25519-BASE-32 //
-#  \\// QGFOFZO3LJSBYHZ4TGSLD4YBOQRYGGLJDZVY56VQNTNVGE2Q6AQ \\ CODE SIGNATURE \\
+#\\NB35NU4NO2UC2K4QIN3VJUYM3IVBAUOEG7IHLMMHRZGIERTWZDYFVB6UCERWNSGATI2VKWBGYYXS2
+# \\ C267PLEVXUQTB7CJBIUOZBXK5KN53ICQW55E5GSNHQONEZS7YTT5 \\// C25519-BASE-32 //
+#  \\// JNDL57EXGROFL7PPBHKDRYVO5B4AUJ5T24FP46SPQSSQIMME2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

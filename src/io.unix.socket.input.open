@@ -22,10 +22,12 @@ my $unix_sock = IO::Socket::UNIX->new(
     Listen => SOMAXCONN(),
 ) || die "io.unix.socket.input.open: socket: $!";
 
-rename( $tmp_spath, $socket_path ) or die "io.unix.socket.input.open: rename: $!";
+rename( $tmp_spath, $socket_path )
+    or die "io.unix.socket.input.open: rename: $!";
 
 push( @{<unix.socket_paths>}, $socket_path );
-chmod( $socket_umask, $socket_path ) or die "io.unix.socket.input.open: chmod: $!";
+chmod( $socket_umask, $socket_path )
+    or die "io.unix.socket.input.open: chmod: $!";
 
 <[base.log]>->( 1, "UNX server launched [unix:$socket_path]" );
 
@@ -44,7 +46,7 @@ $data{'handle'}{$unix_sock}{'link'} = 'unix';
 return $unix_sock;
 
 # ______________________________________________________________________________
-#\\VEUBCEKOIYFLF57DFTNBSELQVFP5ZKL4N6TSE2KZPOPMMLXQDNHU7HDIVSG5SBWERNBHRFYDALMW2
-# \\ T4GXGTQS3B7FRPQHWTDPC6NOJXWAPEJ6ZFGBNODXUYLVCDOM5V5E \\// C25519-BASE-32 //
-#  \\// K6DPGDY7IUVYXSMSFFCEAR36OXVTD2QPFFMU4QYFWUSZNFSF4BA \\ CODE SIGNATURE \\
+#\\SJWE43DWLE7MH7KFENNSNHUALGDW572OKFGYIRCA4ADHUUE5OTVWZQMEIQ4CJW6B5ZOT66XXKM3H2
+# \\ PSTIZ27HFYB3HQ5UVAAO5E62VWY4KVTHXBY4FMRHY2PPTFPO6OQL \\// C25519-BASE-32 //
+#  \\// CF7XXWAP3B3CDLWJKOVDLNMN7NA2H5JLA5YV5O6KKYVJ4B7YMCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

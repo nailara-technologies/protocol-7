@@ -2,7 +2,7 @@
 
 # name    = base.handler.command
 # descr   = handle commands and call their handlers
-# comment = currently nailara protocol specific -> move to proto.nailara
+# comment = currently protocol-7 specific -> move to protocol-7
 #           and replace with a generic version ..
 #           needs rewrite
 # TODO = reduce memory usage during compilation! ( ~ 3MB just for this sub !!! )
@@ -11,14 +11,20 @@ my $id = $_[0]->w->data;
 
 my $user = $data{'session'}{$id}{'user'};
 
-my $cmd    = '';
-my $cmd_id = 0;
+my $re = <regex.base>;    # <-- regex cache
+
+my $protocol_messages = <protocol.protocol-7.messages>;
+
+my $unkown_command  = $protocol_messages->{'unknown_command'};
+my $not_initialized = $protocol_messages->{'not_initialized'};
+my $no_permissions  = $protocol_messages->{'permission_message'};
+my $protocol_error  = $protocol_messages->{'protocol_error_message'};
 
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-# regex cache
-my $re = $data{'regex'}{'base'};
+my $cmd    = '';
+my $cmd_id = 0;
 
 if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies.,
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
@@ -45,10 +51,10 @@ if ( exists <base.timer.ondemand_timeout> ) {
     delete <base.timer.ondemand_timeout>;
 }
 
-# cleanup command line
+### cleaning up command line ###
 
-$$input =~ s/^\s+//;
-$$input =~ s/^([^\n]+?)[ \t]+\n/$1\n/;
+$$input =~ s|^\s+||;
+$$input =~ s|^([^\n]+?)[ \t]+\n|$1\n|;
 
 my @args;
 my $command_mode = 0;
@@ -64,7 +70,7 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     return 1;
 }
 
-# check for multiple line commands
+## checking for multiple line commands ###
 
 if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
 {
@@ -75,11 +81,11 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
         $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
             if defined $data{'session'}{$id}{'base_path'};
 
-        # read argument header
+        ## read argument header ##
 
         my $_cmd_id = '';
         $cmd_id = $1 if length($1);
-        $cmd_id = '' if $cmd_id =~ /^\(0+\)$/;
+        $cmd_id = '' if $cmd_id =~ m|^\(0+\)$|;
 
         my $header = 1;
 
@@ -89,7 +95,7 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
 
             if ( $arg ne '.' ) {
 
-                # ".\n" as 'end of parameters' terminator
+                ## '.\n' as 'end of parameters' terminator ##
 
                 if ( $header and $arg ne '' ) {
 
@@ -100,7 +106,7 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
 
                     }
 
-                    # protocol mismatch
+                    ### protocol error ###
 
                     else {
                         <[base.log]>->(
@@ -127,13 +133,13 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
 
 # incomplete multiple line command
 
-elsif ( $$input =~ /^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n/o ) {
+elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
 
     $_[0]->w->start;
     return 1;
 }
 
-# incomplete DATA reply   LLL: switch to stream type transfer!!!
+## incomplete DATA reply ## [LLL] switch to stream type transfer ..,
 
 elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *DATA +(\d+)\n),o
     and length($$input) < ( $3 + length($1) ) ) {
@@ -142,7 +148,7 @@ elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *DATA +(\d+)\n),o
     return 1;
 }
 
-# single command line
+### single command line ###
 
 elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
 
@@ -163,12 +169,12 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
     $command_mode = 1;
 }
 
-# protocol mismatch
+## protocol error ##
 
 elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
     <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
-    $$output .= $_cmd_id . "NAK protocol mismatch\n";
+    $$output .= $_cmd_id . "NAK $protocol_error\n";
     $_[0]->w->start;
     return 0;
 }
@@ -331,7 +337,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     );
                 }
 
-                # delete route
+                ### deleting route ###
                 if ( $cmd ne 'WAIT' ) {
                     my $src_sid    = $$route{'source'}{'sid'};
                     my $src_cmd_id = $$route{'source'}{'cmd_id'};
@@ -358,11 +364,11 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                     if ( length($$input) >= $msg_len ) {
 
-                        # cut out body data
+                        ## cut out body data ##
 
-                        my $raw_data = substr( $$input, 0, $msg_len, '' );
+                        my $data_reply = substr( $$input, 0, $msg_len, '' );
 
-                        # check if reply handler is set
+                        ## check if reply handler is set ##
 
                         if ( defined $$route{'reply'}{'handler'}
                             and $$route{'reply'}{'handler'} ne '' ) {
@@ -371,34 +377,34 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                                 defined &{ $code{ $$route{'reply'}{'handler'} }
                                 } ) {
 
-                                # call reply handler
+                                ## calling reply handler ##
 
                                 &{ $code{ $$route{'reply'}{'handler'} } }(
                                     {   'sid'       => $id,
                                         'cmd'       => $cmd,
                                         'call_args' => $call_args,
                                         'params' => $$route{'reply'}{'params'},
-                                        'data'   => $raw_data
+                                        'data'   => $data_reply
                                     }
                                 );
 
                             } else {
                                 <[base.log]>->(
                                     0,
-                                    "[$id] called undefined reply handler ("
-                                        . $$route{'reply'}{'handler'} . ")"
+                                    "[$id] called undefined reply handler ['"
+                                        . $$route{'reply'}{'handler'} . "']"
                                 );
                             }
                         } else {
 
-                            # send raw command to target
+                            ## sending DATA reply to target ##
 
                             $data{'session'}{ $$route{'source'}{'sid'} }
                                 {'buffer'}{'output'}
                                 .= $s_cmd_id
                                 . $cmd . ' '
                                 . $$call_args{'args'} . "\n"
-                                . $raw_data;
+                                . $data_reply;
                         }
 
                         # delete route
@@ -434,8 +440,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     my $msg_len = $$call_args{'args'};
                     if ( length($$input) >= $msg_len ) {
 
-                        # cut out body data
-                        my $raw_data = substr( $$input, 0, $msg_len, '' );
+                        ## cut out body data ##
+                        my $data_reply = substr( $$input, 0, $msg_len, '' );
                     }
                 }
                 ####
@@ -483,7 +489,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
     $$output .= $_cmd_id . "NAK protocol mismatch [ 'invalid reply type' ]\n";
 } elsif ( <[base.has_access]>->( $user, $cmd_usr_str ) ) {
 
-    # local command
+    ### local command ###
 
     if ( $cmd =~ m|^$re->{cmd}$| ) {
 
@@ -491,7 +497,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
-                # prepare reply id [ used in mode 'deferred' ]
+                ## prepare reply id [ used in 'deferred' mode ] ##
 
                 <base.cmd_reply> //= {};
                 my $reply_id = <[base.gen_id]>->(<base.cmd_reply>);
@@ -503,7 +509,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 };
                 $call_args->{'reply_id'} = $reply_id;
 
-                # calling command handler
+                ## calling command handler ##
                 my $reply;
                 {
                     local $@ = undef;
@@ -537,18 +543,18 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     }
                 }
 
-                # deferred reply..,
+                ### deferred reply., ###
 
                 if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' ) {
 
                     <[base.log]>->( 2, "setting up reply for id $reply_id" );
 
-                    # LLL: set up reply timeout ?
+                    # [LLL] set up reply timeout .,
                     return 0;
                 }
                 delete <base.cmd_reply>->{$reply_id};
 
-                # reply error check
+                ## reply error check ##
 
                 if ( ref($reply) ne 'HASH' ) {    # <-- catches undef
                     $reply          = {};
@@ -574,7 +580,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                         . ' [ details are logged ]';
                 }
 
-                # check answer mode
+                ## check answer mode ##
 
                 if ( $$reply{'mode'} =~ m,^(ACK|NAK|WAIT)$,io ) {
                     $$reply{'data'} =~ s|\n|\\n|go;
@@ -599,12 +605,12 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             <[base.log]>->( 1, "[$id] command unknown '$cmd'" );
         }
 
-        $$output .= $_cmd_id . "NAK command unknown\n";
+        $$output .= $_cmd_id . "NAK $unkown_command\n";
 
         return 1;
     }
 
-    # tree upwards
+    ## tree upwards., ##
 
     elsif ( $cmd =~ m|^\.\.([^\.]+)\.(.+)$| ) {
 
@@ -623,7 +629,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         return -1;
     }
 
-    # absolute address notation
+    ## absolute address notation ##
 
     elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| ) { # LLL: regex invalid: <only host>
         my $network_name = $1;
@@ -710,7 +716,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     <[base.log]>->(
                         1, "ondemand agent '$start_name' requested ..,"
                     );
-                    <[base.proto.nailara.command.send.local]>->(
+                    <[base.protocol-7.command.send.local]>->(
                         {   'command'   => $target_command,
                             'call_args' => { 'args' => $start_name },
                             'reply'     => {
@@ -727,7 +733,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         }
 
         if ( !@send_sids ) {
-            $$output .= $_cmd_id . "NAK command unknown\n";
+            $$output .= $_cmd_id . "NAK $unkown_command\n";
             my $l_lvl = $target_name eq 'history' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl,
@@ -742,16 +748,15 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 (   not defined <system.agent.mode>
                     or <system.agent.mode> ne 'core'
                 )
-                or $user eq
-                'nroot'    # LLL: need better check if really nroot agent
+                or $user eq 'nroot'  # [LLL] improve check if really nroot agent
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
                 push( @send_sids_left, $target_sid );
                 next;
             }
 
-            # if 'agent'-mode session and not initialized allowing replies only!
-            $$output .= $_cmd_id . "NAK not initialized yet\n";
+            # if 'agent'-mode session and not initialized allowing replies only.
+            $$output .= $_cmd_id . "NAK $not_initialized\n";
             <[base.log]>->(
                 0,
                 "[$id] unroutable command \"$command_str\" "
@@ -819,9 +824,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 <[base.log]>->( 3, "[$id] : args ( \"$args_str\" )" );
             }
 
-            $target_cmd_id =~ s/^($re->{cmd_id})$/($1)/;
+            $target_cmd_id =~ s|^($re->{cmd_id})$|($1)|;
 
-            if ( $command_mode == 1 )    # single line command mode
+            if ( $command_mode == 1 )    ## single line command mode ##
             {
                 my $args = '';
                 local $$call_args{'args'} = ''
@@ -830,15 +835,15 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 $data{'session'}{$target_sid}{'buffer'}{'output'}
                     .= $target_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
-                # TODO: setup timeout handler
+                # [LLL] set up timeout handler
 
-            } elsif ( $command_mode == 2 )    # multi line command mode
+            } elsif ( $command_mode == 2 )    ## multi line command mode ##
             {
                 my $header = '';
 
                 if ( defined $$call_args{'param'}
                     and ref( $$call_args{'param'} ) eq
-                    'HASH' )    # prepare parameter header
+                    'HASH' )    ## preparing parameter header ##
                 {
                     my ( $key, $val );
 
@@ -861,9 +866,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 }
             }
         }
-
-        if ( $targets_denied == @send_sids ) {    # nothing sent
-            $$output .= $_cmd_id . "NAK command unknown\n";
+        ## nothing was sent ##
+        if ( $targets_denied == @send_sids ) {
+            $$output .= $_cmd_id . "NAK $no_permissions\n";
             <[base.log]>->(
                 0,
                 "[$id] blocked access [ usr:'$user' cmd:'$target_name.$cmd' ]"
@@ -871,19 +876,20 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             return 1;
         }
 
-        # at least one target was valid
+        ## at least one target was valid ##
+
         return 0;
-    } else {    # invalid command syntax
-        $$output .= $_cmd_id . "NAK protocol mismatch\n";
+    } else {    ## command syntax not valid ##
+        $$output .= $_cmd_id . "NAK $protocol_error\n";
         <[base.log]>->( 1, "[$id] protocol mismatch ['$cmd']" );
         return 1;
     }
 
-    # command unknown
-    $$output .= $_cmd_id . "NAK command unknown\n";
+    ## command unknown ##
+    $$output .= $_cmd_id . "NAK $unkown_command\n";
     <[base.log]>->( 1, "[$id] command unknown [ usr:'$user' cmd:'$cmd' ]" );
-} else {    # blocked access
-    $$output .= $_cmd_id . "NAK command unknown\n";
+} else {    ## insufficient access permissions ##
+    $$output .= $_cmd_id . "NAK $no_permissions\n";
     <[base.log]>->( 0, "[$id] blocked access [ usr:'$user' cmd:'$cmd' ]" );
     return 1;
 }
@@ -891,7 +897,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\TBHKOOQKAJL2F3FV2TA6FRYGFUVKCP4NNQK2QERDMXIK2PLZDU7IGPTJQCPAMSM7EY64TDCAWBVKS
-# \\ ZOXVAS73GGXDOC3JLG55LGPUIA5XNI43XK2GHNHZ2GVLICWZF3UD \\// C25519-BASE-32 //
-#  \\// R6ZWBXFY5SBHJ7FSQY3YQR5ZFFMZ32BNBCL6B57RGER2NLJQMCA \\ CODE SIGNATURE \\
+#\\NJ3I3HG2QFY5RAPCXJ2UZTF5U76AJWV5PQXJD2MFYVPKCQGTD5N7RHB47GIKTVWIUDQY2ZRK3QOPS
+# \\ AF4LCQIKVVEB5BNKP5BQ7D3DPX7XMC6ORDWWTCIYTCIZ4C4BJPYF \\// C25519-BASE-32 //
+#  \\// IY74I4FN36U2LIPYYDYNR43GIKK5O4LZ2MJEETB6RUICAL3AADY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

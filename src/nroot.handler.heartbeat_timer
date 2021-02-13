@@ -35,7 +35,7 @@ $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
 
 my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "$command_route.heart",
         'call_args' => { 'args' => 'notime' },
         'reply'     => {
@@ -49,7 +49,7 @@ delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 # ______________________________________________________________________________
-#\\5AMU63THBOWW7GC5KTEIFI624FEPPGINMDRTTSHWB47R3JPVKOHEUYSO6ZWUR5J7U5KK4OJNE5RH4
-# \\ XU44LYXJP4OY3OC44MHZXR6H6NW7ZDRRGMMGA4MKYLY3ZNSMTVAY \\// C25519-BASE-32 //
-#  \\// FI6WO7INQ6FUIQHWM76R2AS6Q43VQPG5K7IFG4JNVWPYN7MDSCQ \\ CODE SIGNATURE \\
+#\\QUOJTNCLSU4W2LFW3RK54OX37O7O3ZFYISTERB7INTHUXSQY66O5TNHX7ZJOGUPE3LJD6GO4LAZXK
+# \\ A5TKPOKQPPXWETY7XDKJHFVWISHLQVAE5FW422SIGXWEWY53S6S2 \\// C25519-BASE-32 //
+#  \\// YO3XAGINHTRLZP3JJ4OJFY3QWIL37ST2VND4BJKHSFQEFSJ4ABQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

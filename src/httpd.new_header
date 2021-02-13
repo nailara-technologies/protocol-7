@@ -7,8 +7,8 @@ my $params = shift // {};
 
 $code = 500
     if not defined $code
-    or not exists <proto.http.status_codes>->{$code};
-my $status_str  = <proto.http.status_codes>->{$code};
+    or not exists <protocol.http.status_codes>->{$code};
+my $status_str  = <protocol.http.status_codes>->{$code};
 my $server_date = time2str(time);
 $params->{'Date'} = $server_date;
 
@@ -20,7 +20,7 @@ map { $header_str .= "$_: $params->{$_}\r\n" if defined $params->{$_} }
 return $header_str . "\r\n";
 
 # ______________________________________________________________________________
-#\\UGYOIY3NEND7WN2MLVV2YATT7DSVOOD7JDLRYWYFY4UWW4X3WLEF3ZFQIYW7SKE4LRG6QENCDQLAU
-# \\ HIURCCY2JDLG3CXCZMTFEYWVIQVXA74RDNRVHFYMXYZGBSXUFNTQ \\// C25519-BASE-32 //
-#  \\// 556LLGBYT2ULUML4OF4DV6AYHUYODUCB46PFE4NVPDE53PMLOCY \\ CODE SIGNATURE \\
+#\\X7C6AWO2SBEVDETP6VXQKP3OWZRSUYP6I3CCGCSJGU6NMHPUBFLMFB5P37634RXI4K536PE4PXO7O
+# \\ 3Q4G7A34YJ3ND3BK5FYBXBDH7CFGOO6QADVRGA3K3HHS4ER6CL4Q \\// C25519-BASE-32 //
+#  \\// L5Y3FTAIZMS2AXT2HN73B53GGIGCW7EHTXQ5DZUHVAGDCZPYEDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

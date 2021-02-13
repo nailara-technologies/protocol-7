@@ -30,7 +30,8 @@ if ( defined $ev_data->{'dep_id'}
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
 die "'tile_group_name' parameter is missing from '$action_type' setup"
-    if $action_type =~ /^composition_/ and not defined $action->{'tile_group_name'};
+    if $action_type =~ /^composition_/
+    and not defined $action->{'tile_group_name'};
 
 <events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
     = $action_type
@@ -46,7 +47,7 @@ if ( $action_type eq 'agent_running' ) {
     $command = 'start_once'    if $ev_type eq 'at';
     die "event $ev_id action command undefined" if not defined $command;
 
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => 'core.nroot.' . $command,
             'call_args' => { 'args' => $agent_name }
         }
@@ -68,7 +69,7 @@ if ( $action_type eq 'agent_running' ) {
 
     my $args_lstr = defined $args_str ? " ($args_str)" : '';
     <[base.log]>->( 1, "sending '$target_route' command" . $args_lstr );
-    <[base.proto.nailara.command.send.local]>->(
+    <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.$target_route",
             'call_args' => $args_ref
         }
@@ -133,7 +134,7 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
         ->( { 'at' => time + 1, 'handler' => 'events.recalc' } );
 }
 
-<[base.proto.nailara.command.send.local]>
+<[base.protocol-7.command.send.local]>
     ->( { 'command' => "core.content.update" } )
     if index( $action_type, 'playlist_' ) == 0;
 
@@ -141,8 +142,10 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
 
 if ( $action_type =~ /^composition_/ ) {
 
-    delete <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
-        if 0 == ( <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
+    delete
+        <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
+        if 0 == (
+        <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
             // -1 );
 
     my @composition_stack = sort {
@@ -157,12 +160,14 @@ if ( $action_type =~ /^composition_/ ) {
 
     if ( defined $current_tile_group
         and <events.stack.composition.visibility>->{$current_tile_group} ) {
-        <[base.log]>->( 1, "writing 'composition.current' config.. [active event]" );
+        <[base.log]>->(
+            1, "writing 'composition.current' config.. [active event]"
+        );
         <[file.put]>->(
             $restore_config,
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => 'core.composition.switch-tile-group',
                 'call_args' => { 'args' => $current_tile_group }
             }
@@ -170,7 +175,7 @@ if ( $action_type =~ /^composition_/ ) {
     } else {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
-        <[base.proto.nailara.command.send.local]>
+        <[base.protocol-7.command.send.local]>
             ->( { 'command' => 'core.composition.reset-tile-group' } );
     }
 }
@@ -185,14 +190,14 @@ if ( $action_type =~ /^overlay_(show|hide)$/ ) {
 
     if ( $command_str eq 'add'
         and <events.stack.overlay.visibility>->{$overlay_name} ) {
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => 'core.composition.add_overlay',
                 'call_args' => { 'args' => $overlay_name }
             }
         );
     } elsif ( $command_str eq 'remove'
         and !<events.stack.overlay.visibility>->{$overlay_name} ) {
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => 'core.composition.remove_overlay',
                 'call_args' => { 'args' => $overlay_name }
             }
@@ -203,7 +208,7 @@ if ( $action_type =~ /^overlay_(show|hide)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\PC5NHLV7H74K5ABFJKWVBTFTZY6HIYK7W6OLZOS7ITEF6LMX6MYHMSFYVEFQIDU6VVHY6ZJXNAVU6
-# \\ DSVQEEB55TFDWU3VGWKIYFKDCD2L3ZM73XAAKBX7KOLK7LYVQ5ZY \\// C25519-BASE-32 //
-#  \\// EWOXRE7IE2CCXR64Y2LFVR2ERLBUDLFKOP3VMNUHNH3R43L7UAI \\ CODE SIGNATURE \\
+#\\AMNE42ALLOEKRVCF5PKJO4KCKWT2J5VQOKLYFSUKKTJPKOX5TIDCLTKAGXIAKEBBV2YRB7Z3CGQNC
+# \\ JNR2SQSDFRI6R2CNQYL5S5NQFZ6HDZAXCBBA3MDVE7NFNQ7NJ75Q \\// C25519-BASE-32 //
+#  \\// O5XDQYDZTRVZY65HG5TW5ZSQYV7WAY6E3K4A4QJMNISO4YKTMDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

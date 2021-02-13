@@ -71,9 +71,9 @@ if ( $dev->{poller}->can_write(0.1) ) {
     $dev->{sock}->close();
 }
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "core.power-x11.set_states",
-        'call_args' => { 'args' => join( ' ', $device_id, @new_states ) },
+        'call_args' => { 'args'    => join( ' ', $device_id, @new_states ) },
         'reply'     => { 'handler' => 'dev.null' }
     }
 );
@@ -81,7 +81,7 @@ if ( $dev->{poller}->can_write(0.1) ) {
 return { 'mode' => 'ACK', 'data' => join( ' ', @new_states ) }
 
 # ______________________________________________________________________________
-#\\B5B4YPSXVG6A2XEAVK73J4JUAJKKBV7S6EUWAHBFWMTE7GI3K2ECLRJ7K6CY3KF7E6626DQ5J2Q56
-# \\ 4ZOKO5CRWQXBOSPUIJKKCO33NE5ZZ2KIE7IXWQJ6BSFW7BBL55HZ \\// C25519-BASE-32 //
-#  \\// SL7HRARRXMRX3CSJPAQLVMCKZOQOGX2CZMUZISTVM6NQLS4CUCQ \\ CODE SIGNATURE \\
+#\\3NLUCZCPXIM6YZRHPRPACUIOFUGSMRJYSTRLFCUR6JLFEZHJSBEX4LAN25FQNYBJDD5CZ2U6YF32Q
+# \\ ANXYDHG2YHCVZHUUHT4DKHMJJMWG7LMXW4ZU3TGO64MOJUFZO4IA \\// C25519-BASE-32 //
+#  \\// G5UJDTIRZDF5VVOIZN7YINO4NPZ5QZCH665USUD75UMJKLOZGBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

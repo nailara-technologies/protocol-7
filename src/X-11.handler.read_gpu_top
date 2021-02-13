@@ -101,8 +101,7 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
         and keys %{<X-11.gpu_load.alert>} ) {
         <X-11.gpu_load.last_alert>
             //= <[base.time]>->(2) - $alert_pause + $min_wait;
-        foreach
-            my $al_secs ( sort { $a <=> $b } keys %{<X-11.gpu_load.alert>} )
+        foreach my $al_secs ( sort { $a <=> $b } keys %{<X-11.gpu_load.alert>} )
         {
             next
                 if <[base.time]>->(2) - <X-11.gpu_load.last_alert>
@@ -120,7 +119,7 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
                 );
                 if ( defined <X-11.gpu_load.send_alerts> ) {
                     map {
-                        <[base.proto.nailara.command.send.local]>->(
+                        <[base.protocol-7.command.send.local]>->(
                             {   'command'   => "core.$_.gpu_load_alert",
                                 'call_args' => {
                                     'args' => join( ' ',
@@ -146,7 +145,7 @@ if ( defined <X-11.gpu_top.write_to_disk.path> ) {
 }
 
 # ______________________________________________________________________________
-#\\6BOAEJRLERI4FNW2MDKSCML524LA3CAYSDCDGZW3CTVMHBLD6UTYUSS5Q25SQDLW7CWYR3SU7K52K
-# \\ BF443QJ4NENSPTWMWKFV7QDP7JEEK6LNTTS6NAGNU6FDFAUV6P3G \\// C25519-BASE-32 //
-#  \\// B4OQ33YZHXKA33MXEMPFD2FVRQEI3LVYHFKTK5C2EPDFW6ZAUDY \\ CODE SIGNATURE \\
+#\\BKWDZ74T2SKNAO7TZ7OLABKNKKXTIMIJ4EMCPVXFFIG3V7OHS532RIRYM4ABOLBJ3SK2QV7INCU5W
+# \\ YE5UYUTVOMCTQOVB56NWGIZCNLIZRVWHY2BATUZFVRIOOSWLYL2K \\// C25519-BASE-32 //
+#  \\// 5VC5WH73QNXUGIBPYKBYGGIFLMUT2RZYJNACJZ22EN7A3N5AEDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

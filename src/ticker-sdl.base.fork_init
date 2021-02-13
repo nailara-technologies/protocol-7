@@ -38,9 +38,9 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     close(<ticker-sdl.child.renice_fh>);
     delete <ticker-sdl.child.renice_fh>;
 
-    my $id
-        = <[base.session.init]>
-        ->( $parent_pipe, 'nailara', 'client', 'parent' );
+    my $id = <[base.session.init]>->(
+        $parent_pipe, 'protocol-7', 'client', 'parent'
+    );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     ( my $session_id ) = keys( %{<user.core.session>} );
@@ -63,7 +63,8 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     }
 
     if ( !<ticker-sdl.use_transparency> ) {
-        <[base.X-11.raise_window]>->( <ticker-sdl.window_id>, 'parent', 'core' );
+        <[base.X-11.raise_window]>
+            ->( <ticker-sdl.window_id>, 'parent', 'core' );
         <[base.X-11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'core' );
         <ticker-sdl.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
@@ -82,7 +83,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
         }
     ) if <ticker-sdl.request_rss_updates>;
 
-} else {                                              # parent
+} else {    # parent
 
     close($parent_pipe);
     <ticker-sdl.pipe.child> = $child_pipe;
@@ -97,14 +98,14 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     delete <ticker-sdl.child.renice_fh>;
 
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| nailara client child | );
+        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.load_modules]>->('ticker-sdl.parent');
 }
 
 # ______________________________________________________________________________
-#\\RXAKGIUAFJXEGBH4RCARA7XCW2YUJDPCDPQML7NJYMR2NXKTQC7GNJGQPCRVZK32E5CMP2TV3PTBO
-# \\ MH4OASXHKLVLJ5Q4CIWQV22Q6BDYY34YHK4W5B6JLR5XTKEL37LJ \\// C25519-BASE-32 //
-#  \\// NAQ5JMVY4JGW7QJHOQOPMIZU2RUK3GJ4YYE6XOIYUNTY2IK76AA \\ CODE SIGNATURE \\
+#\\2QLXXB2RIEL4JHVCJQL3ZBLXWMVKLQBLZEJCYCG5Z6ZTUYFI3M73TOB4YJZPG4M756T555MZBQS42
+# \\ Q55KS27PJV2MTHYBPVGKJXGEQBJZXAVHMBP7E6TBOZDP5AQJSPRF \\// C25519-BASE-32 //
+#  \\// 767BSSOBNFPMEMFUZVLHPTRDLF6C3MVP7OC6336R25AR6CNX6AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -3,10 +3,10 @@
 # name  = base.session.init
 # descr = creates / initializes a new session
 
-my ( $fd, $proto, $mode, $name ) = @_;
+my ( $fd, $protocol, $mode, $name ) = @_;
 
-$proto //= 'nailara';
-$mode  //= 'client';
+$protocol //= 'protocol-7';
+$mode     //= 'client';
 
 my $re = $data{'regex'}{'base'};
 
@@ -31,8 +31,8 @@ $name //=
     ? <base.session.uname_server>
     : <base.session.uname_client>;
 
-if ( not defined $data{'proto'}{$proto} ) {
-    <[base.log]>->( 0, "< base.session.init > unknown protocol '$proto'" );
+if ( not defined $data{'protocol'}{$protocol} ) {
+    <[base.log]>->( 0, "< base.session.init > unknown protocol '$protocol'" );
     <[base.session.check_remaining]>;
     return -1;
 }
@@ -43,7 +43,7 @@ my $id = <[base.list.element.add]>->(
     {   'key_ref' => \$data{'session'},
         'val_ref' => \{
             'start_time'     => <[base.time]>->(5),
-            'proto'          => $proto,
+            'protocol'       => $protocol,
             'handle'         => $fd,
             'link'           => $data{'handle'}{$fd}{'link'},
             'mode'           => $mode,
@@ -125,13 +125,13 @@ if ( $mode eq 'server' ) {
 
     my @timeout
         = (
-               $proto ne 'nailara'
+               $protocol ne 'protocol-7'
             or $name ne <base.session.uname_server>
             and $name ne <base.session.uname_client>
         )
         ? ()
         : (
-        # set up auth. [input] timeout for nailara protocol sessions
+        # set up auth. [input] timeout for protocol-7 sessions
         'timeout'    => <net.auth.timeout> || 13,
         'timeout_cb' => sub {
             <[base.log]>->( 1, "[$id] authentication timeout.," );
@@ -140,7 +140,7 @@ if ( $mode eq 'server' ) {
         }
         );
 
-    if ( $proto eq 'http' and $name eq <base.session.uname_server> ) {
+    if ( $protocol eq 'http' and $name eq <base.session.uname_server> ) {
 
         # http[d] timeout
         @timeout = (
@@ -183,7 +183,7 @@ if ( $mode eq 'server' ) {
 return $id;
 
 # ______________________________________________________________________________
-#\\ZY5TT4XW2TJSSNDTJBL2UDPFUCJ7GXVBELRLVKGYSKSKCNU6GYJXK54A24OVLJ4TI2GWIEQQLQLAS
-# \\ WDKLP4DAVA43CNH6C2G3LQGEJBLEFDOLPH2VKS4JIX5LQPAFNKNL \\// C25519-BASE-32 //
-#  \\// 6GKKR7BYRUXE6A32DRHUKQDZAGNLGQYBLOYQN4CWB4I2IBGBUAQ \\ CODE SIGNATURE \\
+#\\BT3TO56C2ZHG6UL645CI4CZ57XNQRXXTZLKQBR54YFED4UH7O7H3ZGFRDAG6VADDN62AI6XSXBTNS
+# \\ RGFKUZAJLPXVANV32N4QENVMX2OFRXFQVN2VARYI5F77XN6PU5UK \\// C25519-BASE-32 //
+#  \\// HQTMILBPCHWJOZQBLYNETZCRZX62HAPIMR3FMIVTSWSA6RTZ6AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

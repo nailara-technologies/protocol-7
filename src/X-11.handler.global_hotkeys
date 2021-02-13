@@ -22,9 +22,9 @@ if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
 my $dq_e = [ <X-11.obj>->dequeue_event ];
 
 if ( @{$dq_e} ) {
-    $watcher->now;             # <- again, there might be more events queued..
+    $watcher->now;    # <- again, there might be more events queued..
 } else {
-    return;                    # <- no, there weren't
+    return;           # <- no, there weren't
 }
 
 my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
@@ -92,7 +92,7 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
             }
         );
 
-        <[base.proto.nailara.command.send.local]>->(
+        <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.notify.info",
                 'call_args' => { 'args' => "hotkey configured" }
             }
@@ -105,17 +105,15 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
 
     foreach my $h_id ( keys %{<X-11.hotkeys.active>} ) {
         if (    <X-11.hotkeys.active>->{$h_id}->{'keycode'} == $keycode
-            and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state )
-        {
+            and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state ) {
             my $cmd_str = <X-11.hotkeys.active>->{$h_id}->{'action'};
             <[base.log]>->( 1, "[HOTKEY] sending command '$cmd_str' .." );
             my @params
                 = length( <X-11.hotkeys.active>->{$h_id}->{'params'} )
                 ? ( 'call_args' =>
-                    { 'args' => <X-11.hotkeys.active>->{$h_id}->{'params'} }
-                )
+                    { 'args' => <X-11.hotkeys.active>->{$h_id}->{'params'} } )
                 : ();
-            <[base.proto.nailara.command.send.local]>->(
+            <[base.protocol-7.command.send.local]>->(
                 {   'command' => "core.$cmd_str",
                     @params
                 }
@@ -134,7 +132,7 @@ if ($no_key_pressed) {
 }
 
 # ______________________________________________________________________________
-#\\RVM5BLWDMGT7HLIFDCGHVJC63PHCICL7XZMHJ2HK3JASNJUMGPWMDYAI73OLXRZYZVGVFVT77BHQ2
-# \\ NLEGAHTHI66LJBRL5QRVVTMKT7ZOECMYUHWMYRP34BXX25JDGNGF \\// C25519-BASE-32 //
-#  \\// DEBBWGBB25UBIGYYMJ2BESXPCMA7265VGG7WAWMBV27TQNE7AAI \\ CODE SIGNATURE \\
+#\\4EBUPTQI3W3QCMRCNTWKL6NI4HHQOC4TTWNWQIDRKY5QX4FHSGHAGXH7JLVP3OAP5GVXOT5UWKXVE
+# \\ LI7RL5TG72XWCMMOWETL5QA2KZURJPABUDJSFSJIYH4LC5ZEGBAG \\// C25519-BASE-32 //
+#  \\// 44KWM36IXWPX6W6J5ADHP4IAFKI3B2BUP5QLKE4GR6TUAQIPODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

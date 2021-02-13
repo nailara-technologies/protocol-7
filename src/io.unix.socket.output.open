@@ -5,15 +5,17 @@
 my $socket_file = $_[0];
 
 if ( !-S $socket_file ) {
-    <[base.log]>
-        ->( 0, "[!] unix domain socket '$socket_file' does not exist.," );
+    <[base.log]>->(
+        0, "[!] unix domain socket '$socket_file' does not exist.,"
+    );
     return undef;
 }
 
 my $return_socket = IO::Socket::UNIX->new(
     Type => SOCK_STREAM(),
     Peer => $socket_file,
-) or <[base.log]>->( 0, "io.unix.socket.output.open: $!! ('$socket_file')" );
+    )
+    or <[base.log]>->( 0, "io.unix.socket.output.open: $!! ('$socket_file')" );
 
 if (    defined $return_socket
     and -S $return_socket
@@ -30,7 +32,7 @@ if (    defined $return_socket
 }
 
 # ______________________________________________________________________________
-#\\NAPJC5XIY5ZXVDAGFADFKWE2X7VNCH52U7QBYVM7DA6NQAAW27C33YPICXFGVJMBZFS7WGZ7CZW7W
-# \\ YUHKG6KGKHEJPYQFD5BZKANVUVKJ2S6X63Y4HBS6NWG5POOJOZQN \\// C25519-BASE-32 //
-#  \\// 4EOLGQ7YEBQV3TBBHRHKXXA6RUYMMMIEZKXVUWCPSKZWOU3GCDI \\ CODE SIGNATURE \\
+#\\2A2DWTBBYS5JY4XI5GVHAVGQOHEG6IDK6ZPEHXP2VXNDSSNJRM5LDMBQSEDQHBDCM6E4GQ3NUJUXU
+# \\ NHO44ZAC7CTELY4RSSUQ6JLZMSNT5OQDQFZ6PIYXRPCHGTK7YEGN \\// C25519-BASE-32 //
+#  \\// T6OTUB452JSRMYZRWLBGBATRYUPKISAGB7PENHV53SWVZOKR6AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

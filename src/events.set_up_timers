@@ -54,7 +54,8 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 }
             }
             )
-            if ( $mode ne 'recalc' or $action_type !~ /^(composition|playlist)_/ )
+            if ( $mode ne 'recalc'
+            or $action_type !~ /^(composition|playlist)_/ )
             or (
             !$all_in_past
             and (  $_ ne 'start'
@@ -62,8 +63,8 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 or $u_event->{$_} >= $current_time )
             );
 
-        #        if $_ ne 'start' and $u_event->{$_} >= $current_time
-        #        or $mode ne 'recalc' and $action_type !~ /^(composition|playlist)_/;
+   #        if $_ ne 'start' and $u_event->{$_} >= $current_time
+   #        or $mode ne 'recalc' and $action_type !~ /^(composition|playlist)_/;
 
         if ( $action_type =~ /^playlist_/ ) {
             my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'} //= '';
@@ -77,7 +78,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
 }
 
 # ______________________________________________________________________________
-#\\CBIQWREVR7KIQZYS5O2T55RZTKP6NAU4YQY45RVXZXOAFN7MLUQ6CQXWZO5IBNXFB2L2RYY7HYFH6
-# \\ 4EEZFYXR3WVGJZ2DWSNGYQI6BTNTVAZPJMDROTHQEBSZUFCBB42B \\// C25519-BASE-32 //
-#  \\// VYQPCLIVU3OCQEBMQDMICVO32XTOVZ56BNIHOLCDH3RNBMUIUBI \\ CODE SIGNATURE \\
+#\\KMBMOBPUMMOC5DZGKJLJK4NEM4M4U3TECI7VXGMWJVHE4V3KAMZ444TTU5XGXSCXWQSM6H44F5DKA
+# \\ AJF3MNYYIWL6G4Z6YRIJJN2HQP2H5BK62WGHNDUHHVMCSYADOWOR \\// C25519-BASE-32 //
+#  \\// 6MZ3Y2S6AQ2M7KYCQ4G6AE2JQFEJIHYKYBQBC22ZZAMZ75JNMDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

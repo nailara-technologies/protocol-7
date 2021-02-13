@@ -150,13 +150,10 @@ sub prepare_subs {
     };
 
     $code{'base.log_prefix_width'} = sub {
-        ( my $agent_name, my $agent_subname ) = @_;
-        $agent_name //= $data{'system'}{'agent'}{'name'};
-        $agent_subname = $data{'system'}{'agent'}{'subname'} if !@_;
-        my $lp_len = 4 + length( $data{'system'}{'node'}{'name'} )
-            + length($agent_name);
-        $lp_len += 2 + length($agent_subname) if defined $agent_subname;
-        return $lp_len;
+        my $agent_name = shift // $data{'system'}{'agent'}{'name'};
+        my $node_name  = $data{'system'}{'node'}{'name'};
+
+        return length("$node_name.$agent_name");
     };
 
     ### basic subroutine definitions ###
@@ -304,11 +301,14 @@ sub prepare_subs {
         }
         ## prepare agent name column width ###
         my $own_len = &{ $code{'base.log_prefix_width'} };
+
         if ( defined $data{'system'}{'start'}{'log_prefix_width'}
             and $own_len <= $data{'system'}{'start'}{'log_prefix_width'} ) {
+
             my $dot_cnt
-                = $data{'system'}{'start'}{'log_prefix_width'} - $own_len + 2;
-            $data{'history'}{'dots'} = '.' x $dot_cnt;
+                = $data{'system'}{'start'}{'log_prefix_width'} - $own_len + 1;
+
+            $data{'log'}{'dots'} = '.' x $dot_cnt;
         }
         ## nailara start-up banner ##
         if (   $data{'system'}{'verbosity'}{'console'}
@@ -381,7 +381,7 @@ sub prepare_subs {
         exit;
     };
 
-    $code{'base.purge_code'} = sub { # todo : create callback registry [to skip]
+    $code{'base.purge_code'} = sub { # [LLL] callback registry : skipping purge.
         my $code_name   = shift;
         my $purge_count = 0;
         my @agent_commands;
@@ -389,12 +389,29 @@ sub prepare_subs {
             if (    $_ !~ m{\.(callback|handler)\.}
                 and not exists $data{'base'}{'core_subs'}{$_}
                 and $_ ne 'base.log'
-                and $_ ne 'base.buffer.add_line' ) {
+                and $_ ne 'base.s_read'
+                and $_ ne 'base.gen_id'
+                and $_ ne 'base.sig_int'
+                and $_ ne 'base.s_write'
+                and $_ ne 'base.sig_warn'
+                and $_ ne 'base.route.add'
+                and $_ ne 'base.buffer.add_line'
+                and $_ ne 'base.list.element.add'
+                and $_ ne 'base.log.send_buffer_line'
+                and $_ ne 'base.log.handler.log_reply'
+                and $_ ne 'nroot.handler.agent_output'
+                and $_ ne 'base.protocol-7.command.send.local' ) {
                 ++$purge_count
                     and $data{'code'}{$_}{'status'} = 'purged'
-                    and eval { undef &{ delete $code{$_} } };
+                    and eval { undef &{ delete $code{$_} } }; # <--improve [LLL]
+
+#           #[ debug ]
+#           and $code{$_} = eval "sub { print STDERR \"\n MISSING '$_'\n\n\" }";
+
                 push( @agent_commands, $1 ) if $_ =~ m|\.cmd\.(.+)$|;
                 --$purge_count              if $@;
+            } else {
+                $data{'code'}{$_}{'status'} = 'leftover'; ## kept \ essential ##
             }
             }
             grep {m|^$code_name(\..+)?$|} keys %code;
@@ -933,8 +950,13 @@ sub prepare_subs {
                 '='
             ) if defined $s_comp_stderr;
             close(STDERR);
+
             open( STDERR, ">&", $stderr_fh )
                 or print "\n<< ! >> cannot restore STDERR [ $! ]\n\n";
+
+    #            my $dev_null_path = File::Spec->devnull();
+    #            open STDERR, ">$dev_null_path" or print "$dev_null_path: $!\n";
+
             if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'}
@@ -962,7 +984,8 @@ sub prepare_subs {
                 $code{'log.error'}
                     ->( map { split m|\n|, $t_wrap->($_) } @compile_errors );
                 map { $code{'base.buffer.add_line'}->( 'compile-errors', $_ ) }
-                    @compile_errors;
+                    @compile_errors
+                    if defined $code{'base.buffer.add_line'};
 
                 $err_str =~ s|\n| |sg;
                 $err_str =~ tr| ||s;
@@ -973,7 +996,8 @@ sub prepare_subs {
                 $code{'log.error'}
                     ->( map { split m|\n|, $t_wrap->($_) } @compile_errors );
                 map { $code{'base.buffer.add_line'}->( 'compile-errors', $_ ) }
-                    @compile_errors;
+                    @compile_errors
+                    if defined $code{'base.buffer.add_line'};
             }
 
             if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} )
@@ -1138,8 +1162,8 @@ sub prepare_subs {
         } else {
             if ( $data{'system'}{'verbosity'}{'console'} ) {
                 my $dot
-                    = defined $data{'history'}{'dots'}
-                    ? $data{'history'}{'dots'}
+                    = defined $data{'log'}{'dots'}
+                    ? $data{'log'}{'dots'}
                     : '.';
                 map {
                     say ':.', $data{'system'}{'node'}{'name'},
@@ -1162,8 +1186,8 @@ sub prepare_subs {
             map { $code{'base.log'}->( 0, $_ ) } @_;
         } else {
             my $dot
-                = defined $data{'history'}{'dots'}
-                ? $data{'history'}{'dots'}
+                = defined $data{'log'}{'dots'}
+                ? $data{'log'}{'dots'}
                 : '.';
             map {
                 if ( defined $_ ) {
@@ -1203,8 +1227,8 @@ sub prepare_subs {
                 $s_len //= 0;
                 my $spaces = ' ' x $s_len;
                 my $dot
-                    = defined $data{'history'}{'dots'}
-                    ? $data{'history'}{'dots'}
+                    = defined $data{'log'}{'dots'}
+                    ? $data{'log'}{'dots'}
                     : '.';
                 map {
                     my $msg_str = $_ . $spaces;
@@ -1318,7 +1342,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\OYAUXOAHJHUSZNXRXSV7VXVOSHO376PUG7IGBCFO3KV3U5AU6SF752V6D6PE5BKFSYOVIZ7EXHQ24
-# \\ KG2HNH5N5RWWEHSCVSFA7AZYSNV6BSOOLI4QN7EKG5QRVDYP27O6 \\// C25519-BASE-32 //
-#  \\// WMBNCTUZLWRLD2VNB4WQ4A5LA5VSE54NYFBHVAHYPVZMCXABKBQ \\ CODE SIGNATURE \\
+#\\4VNQ7PQWCT735GHNQHBWYNG5CCHIQYBRWAP2OWXVJUWSA5ZKT3AG3TKDYLB7Z7SCT75RBBHSUY4O6
+# \\ N33MHRVOJDDBVQL4TAAXGSOFU6YBASHSJZFEJ7ZWP2BOHBVXQKPI \\// C25519-BASE-32 //
+#  \\// OGLSUN3VENP4CPXDSGCAKLGC3V3CBZUS4FMOVUEREHL27DEYOBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

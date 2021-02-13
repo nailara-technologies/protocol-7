@@ -11,18 +11,14 @@ my ($root_sid) = keys %{ $data{'session'} };
 die "no valid session defined yet [ can not determine root_sid ]"
     if not defined $root_sid;
 
-<[base.proto.nailara.command.send.local]>->(
+<[base.protocol-7.command.send.local]>->(
     {   'command'   => "$root_sid.session-key",
-        'call_args' => { 'args' => "$agent_name $agent_key" },
-        'reply'     => {
-            'handler' => 'dev.null',
-            'params'  => {}
-        }
+        'call_args' => { 'args' => "$agent_name $agent_key" }
     }
 );
 
 # ______________________________________________________________________________
-#\\IJOQOXFTE6Q652JJEVXZ76MEQ63JS6DJXBIJKVSZOT4MSOYTHPOTUNMKRWSICABDP45H7JMXEMWZY
-# \\ D6UFB7K7KQWX7NZ7QSQPOEPULBJEYUPIIFX2PF4IP5XL65J3YDQF \\// C25519-BASE-32 //
-#  \\// MK4KNYT2ZPVX5PSU54L23JY4JWEINLOI6PDHHMMPDVEWWGSDEAQ \\ CODE SIGNATURE \\
+#\\3GPWUN562ODJ62HE3QWX5QIHPFNLYMDKCKWA2UKI65KFM52TDCB5CLPFKNCOBNRXWN3JVCIW46Z2W
+# \\ QQJGCQ4RM3DIGC72GFY3KBZLVD7FI4TLOZVFCV7ZPG6HMZ72QMIX \\// C25519-BASE-32 //
+#  \\// XPDC6PH4EW4UIJWXGIJYEDXUGWDLTNZIWFCXJRXW6FOZL5APGCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

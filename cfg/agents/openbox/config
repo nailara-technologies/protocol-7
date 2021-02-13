@@ -4,13 +4,13 @@
 [load_config_file:'shared-params']
 [load_config_file:'x11-vars']
 
-access.cmd.usr.core = commands heart version reload verify-instance cur-pid
+access.cmd.usr.core = commands heart version reload verify-instance cur-pid ## *
 
 openbox.config_name = minimal
 
 openbox.prefer_patched_openbox = 1 # see ./bin/openbox/..
 
-modules.load = auth net io.ip openbox
+modules.load = auth net protocol io.ip openbox
 [load_modules:<modules.load>]
 
 [set_privs:<x11.user>] # --> auto-discovery
@@ -20,7 +20,9 @@ modules.load = auth net io.ip openbox
 [net.connect_to_core:'ip.tcp']
 
 [base.X-11.get_display]
+
 [openbox.start_wm]
+
 [base.get_session_id]
 
 [event.loop]
