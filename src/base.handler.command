@@ -736,8 +736,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             $$output .= $_cmd_id . "NAK $unkown_command\n";
             my $l_lvl = $target_name eq 'history' ? 2 : 1;
             <[base.log]>->(
-                $l_lvl,
-                "[$id] offline : '$target_name' : '$command_str' unroutable"
+                $l_lvl, "[$id] offline : '$target_name' : '$command_str'"
             );
             return 1;
         }
@@ -897,7 +896,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\NJ3I3HG2QFY5RAPCXJ2UZTF5U76AJWV5PQXJD2MFYVPKCQGTD5N7RHB47GIKTVWIUDQY2ZRK3QOPS
-# \\ AF4LCQIKVVEB5BNKP5BQ7D3DPX7XMC6ORDWWTCIYTCIZ4C4BJPYF \\// C25519-BASE-32 //
-#  \\// IY74I4FN36U2LIPYYDYNR43GIKK5O4LZ2MJEETB6RUICAL3AADY \\ CODE SIGNATURE \\
+#\\JSEJS4EZO6LBYWFXKNVB44KNT65ZIBDKTLDFDEIO4J7EXTLMRYHU5P2URP3U765CVTNYSK5OYXICK
+# \\ QEVQPUYTYRE6ZALOQEXQ7JSL7UV2LKOUJT2UUJYN2QJEBN4MU5SK \\// C25519-BASE-32 //
+#  \\// RIDEUA4NSTGF5SBL7NPJNFZLFTHKOLG2LV6CQA6AUT7UU6QVMBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
