@@ -18,11 +18,8 @@ if (    ref($cmd_hook) eq 'HASH'
     and defined $code{ $cmd_hook->{'recv'} } ) {
 
     <[base.log]>->(
-        2,
-        sprintf(
-            "[%d] calling cmd filter hook '%s'",
-            $params->{'sid'}, $params->{'command'}
-        )
+        2,                sprintf "[%d] :.cmnd-filter-hook[%s]",
+        $params->{'sid'}, $params->{'command'}
     );
 
     return {
@@ -43,10 +40,8 @@ if (    ref($cmd_hook) eq 'HASH'
             my $command = $params->{'command'};
             <[base.log]>->(
                 0,
-                sprintf(
-                    "%s-[%s]-handler '%s' not defined. [ hook disabled ]",
-                    $command, $_, $handler
-                )
+                sprintf "%s-[%s]-handler '%s' not defined. [ hook disabled ]",
+                $command, $_, $handler
             );
             delete <base.filter_hooks.command>->{$command};
             return undef;
@@ -56,7 +51,7 @@ if (    ref($cmd_hook) eq 'HASH'
 }
 
 # ______________________________________________________________________________
-#\\25QYS67VB5K23XNC3PBWIS6BHGO45FM46TQ2OZKMM7GNZ3FPOYROMHJJKX2OOZ6HS6JTVFA3T3R46
-# \\ MLSMOGC77WG2VVDRP2B6FJKEE3A2XBTTU6J5232YEE2BLJCFYKHQ \\// C25519-BASE-32 //
-#  \\// MJSH4WMRGXEKRCE5KL5VIACHDQMCSLRRVU5XF6ZS772ZHFIBSDI \\ CODE SIGNATURE \\
+#\\ZLZ7ZJCFWLMUVOSW252I2R2JG4YBJCIK4NQZP5JNGW3SO24WTLLLXKOM5UJXGFDWREUNWSWLKC7WI
+# \\ ZMCL43P5PBEMFISRN5ZNEFYASZPWU3GNNVM66D6TJCUT5NYSOSWW \\// C25519-BASE-32 //
+#  \\// DDU2D46KRFGOZKMXCGGUAQSFPBCIOCMFHTFUCEKWZLJXPBJL4CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
