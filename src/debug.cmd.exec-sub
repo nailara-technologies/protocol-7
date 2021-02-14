@@ -2,19 +2,20 @@
 
 # name  = debug.cmd.exec-sub
 # param = <sub_name>
-# descr = run subroutine and return output
+# descr = run subroutine and return output [ developement acceleration only ]
 
-my $sub_name = $$call{'args'};
+my $support_params = 0; ## <-- keep this disabled for security reasons < ! > ###
+( my $sub_name, my @params ) = split( m| +|, $$call{'args'} ); # no quotes supp.
 
 return { 'mode' => 'nak', 'data' => 'expected subroutine name parameter' }
     if !length($sub_name);
 return { 'mode' => 'nak', 'data' => 'subroutine parameters are not supported' }
-    if $sub_name =~ m| |;
+    if @params and not $support_params;
+
 return { 'mode' => 'nak', 'data' => 'no such subroutine' }
     if not exists $code{$sub_name};
 
-my $sub_output;
-eval { $sub_output = $code{$sub_name}->() };
+my $sub_output = eval { $code{$sub_name}->(@params) };
 
 my $err_msg;
 $err_msg = 'errors during subroutine execution' if $@;
@@ -23,18 +24,12 @@ return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
 
 $sub_output =~ s|\n$|| if $sub_output =~ m|\n| <= 1;
 
-my $rep_mode
-    = $sub_output =~ /\n/
-    ? 'data'
-    : 'ack';
+my $rep_mode = $sub_output =~ m|\n| ? 'data' : 'ack';
 
-return {
-    'mode' => $rep_mode,
-    'data' => $sub_output
-};
+return { 'mode' => $rep_mode, 'data' => $sub_output };
 
 # ______________________________________________________________________________
-#\\IWOQJWYDZUZSA2IT6YH7NIBDOWFFSD232F7Y2Q6NSOLJWI2MIWXPGX3IMDSRQJXEC25DOFE67F2HE
-# \\ VAZ3DM5QB3QJJK66UZZSOIP3M4LSKWGIDOAOMZQAUF5O43OJOELN \\// C25519-BASE-32 //
-#  \\// HHIKS3ZT7QIMK6JI2DYBBY3IND36D4H4ZLFA4DW3TEMXPAXWGAY \\ CODE SIGNATURE \\
+#\\NBWT76RS3F2BDVEFZM3MGUCK72JKGVJFZYYGCANUD4NFBUWHE7NHHQ3HPSKFZGZTE3MP3M2ADAZY6
+# \\ WNSYV6DOL6TZVOLP7N4UP5YRP3CKQIHODONGW2VA6SIGALPHAJXA \\// C25519-BASE-32 //
+#  \\// 3TJNA4FVANMZ5XJEERTPAIHUWZ5JYKSQOIPFIY26VMVQABMMQAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
