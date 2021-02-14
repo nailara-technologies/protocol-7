@@ -1,11 +1,11 @@
 # >:]
 
 # name    = base.handler.command
-# descr   = handle commands and call their handlers
-# comment = currently protocol-7 specific -> move to protocol-7
-#           and replace with a generic version ..
-#           needs rewrite
-# TODO = reduce memory usage during compilation! ( ~ 3MB just for this sub !!! )
+# descr   = handling of protocol-7 syntax, calling command handlers
+# comment = protocol-7 specific --> move to 'protocol.protocol-7' namespace and
+#                                              replace with a generic version..,
+#                                                            [ needs rewrite. ]
+# [LLL] : reduce memory usage during compilation [ ..3MB for this subroutine., ]
 
 my $id = $_[0]->w->data;
 
@@ -28,7 +28,7 @@ my $cmd_id = 0;
 
 if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies.,
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
-        <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore]bytes.," );
+        <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore-]bytes.," );
         if ( length($$input) >= $ignore_bytes ) {
             substr( $$input, 0, $ignore_bytes, '' );
             delete $data{'session'}{'ignore_bytes'};
@@ -160,8 +160,8 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
     $cmd = 'unselect' if $cmd eq '../';    # 'unselect' alias "../" <!>
     $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
         if defined $data{'session'}{$id}{'base_path'}
-        and $cmd !~ /^(\($re->{cmd_id}\)|) *(unselect|basepath)$/
-        and $cmd !~ s/^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|)/$1$2/;
+        and $cmd !~ m,^(\($re->{cmd_id}\)|) *(unselect|basepath)$,
+        and $cmd !~ s,^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|),$1$2,;
 
     #       ^ commands prefixed with '..' mean "parent" to 'select'ed base_path!
     #         'unselect' and '../' are synonyms, they reset the base_path to ''!
@@ -171,7 +171,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
 
 ## protocol error ##
 
-elsif ( $$input =~ s/^((\($re->{cmd_id}\)|) *[^\n]+)\n//o ) {
+elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
     <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
     $$output .= $_cmd_id . "NAK $protocol_error\n";
@@ -281,7 +281,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
             }
 
-            if ( $cmd =~ m ,^(ACK|NAK|WAIT|GET|TERM)$, ) {
+            if ( $cmd =~ m,^(ACK|NAK|WAIT|GET|TERM)$, ) {
 
                 # check if reply handler is set
 
@@ -424,8 +424,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     } else {    # should never reach this point
                         <[base.log]>->(
                             1,
-                            "[$id] (DATA) buffer is missing data ( $msg_len <= "
-                                . $$call_args{'args'} . ")"
+                            "[$id] [DATA] buffer is missing data [ $msg_len <= "
+                                . $$call_args{'args'} . "]"
                         );
                     }
                 }
@@ -805,7 +805,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 <[base.log]>->(
                     2,
                     "[$id] $data{'session'}{$id}{'user'}"
-                        . " -> $target_name > $cmd [ mode $command_mode ]"
+                        . " ..:. $target_name ..:. $cmd [M=$command_mode]"
                     )
                     if ( $target_name ne 'history'
                     or $cmd ne 'append'
@@ -820,7 +820,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 or <system.verbosity.agent_buffer> >= 3
                 and defined $$call_args{'args'} ) {
                 ( my $args_str = $$call_args{'args'} ) =~ s|"|\"|g;
-                <[base.log]>->( 3, "[$id] : args ( \"$args_str\" )" );
+                <[base.log]>->( 3, "[$id] : args [' $args_str ']" );
             }
 
             $target_cmd_id =~ s|^($re->{cmd_id})$|($1)|;
@@ -896,7 +896,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\JSEJS4EZO6LBYWFXKNVB44KNT65ZIBDKTLDFDEIO4J7EXTLMRYHU5P2URP3U765CVTNYSK5OYXICK
-# \\ QEVQPUYTYRE6ZALOQEXQ7JSL7UV2LKOUJT2UUJYN2QJEBN4MU5SK \\// C25519-BASE-32 //
-#  \\// RIDEUA4NSTGF5SBL7NPJNFZLFTHKOLG2LV6CQA6AUT7UU6QVMBY \\ CODE SIGNATURE \\
+#\\QKYTOFD2ASDY2NTTFDSUZULVHMWRLLLIP7JKFMMIHXZEWV2NVEJ6VWTX7QS563FQO34IT7SIMSWKU
+# \\ XRXKL43VST5D2Z53MO23OLBSSWURJLDZXUKSSZDXSDTV4TFUQSFC \\// C25519-BASE-32 //
+#  \\// DJWK7PMZLYPTU43IIGYZAH7LDA45RUVFH5EBIUZIREAZYZZTWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
