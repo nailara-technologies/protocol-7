@@ -823,7 +823,8 @@ sub prepare_subs {
         next   if !$mod_count;
         my $src_bytes_total = 0;
         $code{'log.debug'}->(": compiling ..,");
-        my ( $ok_count, $err_count, $warn_count ) = ( 0, 0, 0 );
+        my ( $ok_count, $err_count, $warn_count, $warn_count_total )
+            = ( 0, 0, 0, 0 );
 
         my %disabled_commands;
         map { $disabled_commands{$ARG} = 1 } @{ $data{'disabled_commands'} }
@@ -939,11 +940,13 @@ sub prepare_subs {
                 ( defined &wrap )
                 ? sub { return wrap( '', ': ..  ', $ARG ) }
                 : sub { return $ARG };
-            map {
-                $ARG =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|smg
-                    if defined $ARG;
-            } ( $err_str, $s_comp_stderr );
-            local $Text::Wrap::columns   = 57;
+            $err_str =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|s
+                if defined $err_str;
+            $warn_count_total += $warn_count
+                = scalar $s_comp_stderr
+                =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|sg
+                if defined $s_comp_stderr;
+            +local $Text::Wrap::columns = 57;
             local $Text::Wrap::separator = "\n";
             delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
             my @compile_errors = (
@@ -954,14 +957,16 @@ sub prepare_subs {
                     grep { !m|BEGIN not safe| } split( m|\n+|, $err_str )
                 ),
                 '='
-            ) if length( $err_str // '' );
+                )
+                if length( $err_str // '' )
+                or defined $s_comp_stderr;
             push(
                 @compile_errors,
                 '>',
                 '  :: warning ::',
                 '  :',
                 (   map {
-                        ++$warn_count and push(
+                        push(
                             @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
                             "\l$ARG"
                         );
@@ -1015,6 +1020,7 @@ sub prepare_subs {
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
                 undef $s_comp_stderr;
                 undef $err_str;
+                $warn_count = 0;
                 $err_count++;
             }
             if ( $compilation_success and $warn_count ) {
@@ -1042,10 +1048,14 @@ sub prepare_subs {
                         $data{'base'}{'commands'}{$section}{$command}{'descr'}
                             = '<<< \'descr\' header key not defined >>>';
                     }
+
+                  # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
                 } else {
                     $data{'base'}{'modules'}{'load_errors'}++;
-                    $code{'log.error'}
-                        ->( ':', "::[ broken agent command '$2' ]", ':' );
+                    $code{'log.error'}->(
+                        ':', "::[ broken agent command '$2' ]",
+                        ':', @compile_errors
+                    );
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
                         = '<<< command did not compile properly >>>';
                 }
@@ -1058,14 +1068,14 @@ sub prepare_subs {
                 if not exists $code{$ARG}
             }
             keys %{ $data{'code'} };
-        my $s = $ok_count != 1 ? 's' : '';
+        my $s     = $ok_count != 1         ? 's' : '';
+        my $w     = $warn_count_total == 1 ? ''  : 's';
+        my $w_msg = !$warn_count_total ? '' : ", $warn_count_total warning$w";
         if ($err_count) {
-            $code{'log.error'}
-                ->(": success on $ok_count sub$s, $err_count broken., `:|");
-        } elsif ($warn_count) {
-            my $w = $warn_count == 1 ? '' : 's';
-            $code{'log.error'}
-                ->(": success on $ok_count sub$s, $warn_count warning$w :|");
+            $code{'log.error'}->(
+                ": success on $ok_count sub$s, $err_count broken$w_msg., `:|");
+        } elsif ($warn_count_total) {
+            $code{'log.error'}->(": success on $ok_count sub$s$w_msg :|");
         } else {
             $src_bytes_total = sprintf( "%.2f", $src_bytes_total / 1024 );
             $src_bytes_total =~ s|\.?0+$||;
@@ -1379,7 +1389,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\K6JRMX3X7G3LUBHOQEE4NI4LSI4AZ7AKQ24RC4K6JVEWS2PLHFP2AB75FWXPR5TVDQX3O3WAPKBAA
-# \\ GVZEHBKUXVPZAACKLQWKDDJJODXVGHSHD57ZV4RRYJE5JSNMDM3H \\// C25519-BASE-32 //
-#  \\// WDXWWJ6Q6TUCRSVWUMNWTGMP4JGTFXUVWNYC4ZEL6F7UOZGUQBA \\ CODE SIGNATURE \\
+#\\XQX4YTEFEEAZ3W7W74HYKNF2SGGLZA2HFYM5XNWXDOFSVFCNBN4UTDWCFF6N5PCICNDXM6QBYF6ZG
+# \\ RJXVN7NXLZBJA3WBTKCNM62PJJ4VMM2DYRARCLTIH46V3SN7JX33 \\// C25519-BASE-32 //
+#  \\// 656Z5SWEWM32L3WJSAYFCACNZSF7GS5XLJQDS2VTMBBDGD3AEDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
