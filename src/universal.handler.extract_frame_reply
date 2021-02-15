@@ -29,13 +29,13 @@ if ( !-d $output_path ) {
         or die "user '" . <system.privs.user> . "' not in passwd file";
 
     make_path( $output_path, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
-        or die " make_path: $! ";
+        or die " make_path: $OS_ERROR ";
 }
 
 if ( !-f $frame_src_path ) {
     warn "source image not found : $frame_src_path";
 } else {
-    move( $frame_src_path, $frame_target_path ) or warn $!;
+    move( $frame_src_path, $frame_target_path ) or warn $OS_ERROR;
 }
 
 # todo: create error image or pixel..
@@ -58,7 +58,7 @@ if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
 }
 
 # ______________________________________________________________________________
-#\\6IIH6HEPUBPUD32WUHDKHEBA3T2OSOZKUV5YNHLEFU5AIIEAB62BOXPWXDYU75DKSA3V7XCDHX6U6
-# \\ MXOAFAIXGNAJYYDOMFSMDQ53IB46AE5AEJFJMCAL3EFW2TZYUWTX \\// C25519-BASE-32 //
-#  \\// LUE4WUQIVI6FO4TXPMRQVGWZFBZY73TAWA7U6T67I3LVQOAG4CQ \\ CODE SIGNATURE \\
+#\\WWAB5NTFWD4T4GPVV5WKV57P6NHKT364FKRON2URT2HMJRU3TA2MSUSSMZUZ2FEHOVCI2QBVICUFW
+# \\ 3B73HGQGFV6EXRPJJH25JJDSYMKBBYZDSYB4FAR3EEP2VLZOKAE2 \\// C25519-BASE-32 //
+#  \\// CYGBKMWTMJI3JSMBL5P35DXO7A6WG53G2KL7PVN65CFVLI4RCBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

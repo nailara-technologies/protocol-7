@@ -33,8 +33,8 @@ if ( $file_path =~ /\.htm(l)?$/i ) {
 }
 
 open( my $content_fh, '< :raw', $file_path )
-    or warn "<!> $file_path: $!";    # LLL: error handling..,
-local $/ = undef;
+    or warn "<!> $file_path: $OS_ERROR";    # LLL: error handling..,
+local $RS = undef;
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
     200,
     {   'Content-Type'   => $content_type,
@@ -52,7 +52,7 @@ close($content_fh);
 return $session->{'http'}->{'close'} ? 2 : 0;
 
 # ______________________________________________________________________________
-#\\GHOEIEHWX3G37LXUY37YJE4QWDCVAB6VY3ZTJEBXNYZOHTIMEZFB5T5DYIJKWPRCBJDSQU7CQF7HA
-# \\ 4KGLMQMREXTK6BTF2PBVKWIKQASSTZL35JKJR2UFLE7RGHQDE3K5 \\// C25519-BASE-32 //
-#  \\// L3654C2GN4YIGWQ63AGH37XFX6UGLPHBDKMPYPEZOBQJDRC7UBA \\ CODE SIGNATURE \\
+#\\42LXKYYBZRSXSUYLYDRYT2MIT4SIXJRWW5UJTJCKYP3JDR5IYERFW2CTCL6E4WAJAQQT2VI5FO4YA
+# \\ BPRNZ6A4VCZDLTPWUVVPC6KEN6VLRSQWDPW36G6NTN3P4DIFD5UI \\// C25519-BASE-32 //
+#  \\// ALT4EX2JW3A43ZRNZYDTMEKSMBI46SFHUKOKGA3LUH2L3QVKOAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

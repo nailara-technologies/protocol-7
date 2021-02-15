@@ -8,7 +8,7 @@ if ( $_[0] =~ /~$/ ) {
     exit(1);
 }
 
-$0 = $_[0];
+$PROGRAM_NAME = $_[0];
 
 if ( $_[0] =~ /([^\.]+)\.([\w|\.]+)$/ ) {
     ( <system.node.name>, <system.agent.name> ) = ( $1, $2 );
@@ -24,9 +24,9 @@ if ( <system.startup_initcode> and @{<startup.init_code>} ) {
     delete $data{'startup'} if !keys( %{ $data{'startup'} } );
 }
 
-if ( !$success or $@ ) {
+if ( !$success or $EVAL_ERROR ) {
     <[base.log]>->( 0, "WARNING: startup init code contained errors!" );
-    undef $@;
+    undef $EVAL_ERROR;
 }
 
 my $agent_cfg_path = <[base.get_path.agent_cfg]>->(<system.agent.name>);
@@ -48,7 +48,7 @@ if ( !-e "<system.conf_path>/$agent_cfg_path" ) {
     or <[log.error]>->("startup of agent '<system.agent.name>' not successful");
 
 # ______________________________________________________________________________
-#\\CSB3GN72SZJDHTUHOHZYZXQJ7LXQNGDVMYRHPL7V5OMO72AODPGFOCR57HW4GQYDRO22FMEUM4X3G
-# \\ 736Z3P5DQTHL2DA47MVLXTCALO6DUTO3TZIHVZSUPPMI6SYSF2U5 \\// C25519-BASE-32 //
-#  \\// O6GVJXIBQ3T43JEWA5Z3RDP2OGZBKRQQW36JWCFUR7EDL5EJABI \\ CODE SIGNATURE \\
+#\\VPZAJNOCTIP4ZDBAFLDEICPVZXIRYLDY57I4YLZWWBMBNDYQR44M24B42ACVVF4GLSJFSVQ62WME4
+# \\ DPUMAC62ABGKOUOKYC3N7ADCMTHRQ2JQQJL4KICAITEZFPRDCPN7 \\// C25519-BASE-32 //
+#  \\// MXRZO7ULKWOM6XLUIOYGTUIQLNEZZYAIWZ7N2TFYIHXJU6OZ6DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

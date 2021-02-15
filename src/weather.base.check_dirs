@@ -10,21 +10,21 @@ my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
     make_path( $cache_dir, { mode => 0755, 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $!";
+        or die "make_path: $OS_ERROR";
 }
 
-chdir($cache_dir) or die "chdir($cache_dir): $!";
+chdir($cache_dir) or die "chdir($cache_dir): $OS_ERROR";
 
 foreach my $subdir ( 'station_ids', 'html', 'data' ) {
     my $subdir_path = "$cache_dir/$subdir";
     next if -d $subdir_path;
     my $mode = $subdir eq 'html' ? 0755 : 0750;
     make_path( $subdir_path, { mode => $mode, 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $!";
+        or die "make_path: $OS_ERROR";
 }
 
 # ______________________________________________________________________________
-#\\QNC5FGAQ2F62FZERAW72R7K4HR5DBKXEGCSLXLOPZFVPRIUH5D3EDU6H6O4BJSDK7CDVJDBX3Z6EW
-# \\ 6WZP42XBQELPLFWLKQVDXXF6MT3FI3MKSJ4J4HAGQV37ZGAAVLUL \\// C25519-BASE-32 //
-#  \\// KDBHAMS7RB7K2PFUVZIYRYXYWXTF364KOQTQKTCOS5TXYH7W4DY \\ CODE SIGNATURE \\
+#\\5X2LXD2TZWBR7U4VWR72WXEK7X3R6PZD2E4UUVBIDI7J6GZOQUUNICTGMVR46QUUHOUFCT6OZRO5S
+# \\ BRU4JU25I5P53HWPGZISR2DMQTCE4ZIO3OS6SUBXM4T33U6QZNP4 \\// C25519-BASE-32 //
+#  \\// 2A6NMQPWIJNSHXBNHZ5PUPP3D6R34QZIXWV6LLKRAUL6I4N4CAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

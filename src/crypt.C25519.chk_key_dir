@@ -14,9 +14,9 @@ if ( -w "$key_dir/.." or "$key_dir/../.." ) {
         eval {
             make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
         };
-        warn $@   if $@;
-        return -2 if !-d $key_dir;    # <- error state
-        return 1;                     # success [dir exists now]
+        warn $EVAL_ERROR if $EVAL_ERROR;
+        return -2        if !-d $key_dir;    # <- error state
+        return 1;                            # success [dir exists now]
     }
 } elsif ( !-r $key_dir or !-d $key_dir ) {
     my $perms     = -e $key_dir ? '' : ' (permissions)';
@@ -29,7 +29,7 @@ if ( -w "$key_dir/.." or "$key_dir/../.." ) {
 return 1          # <- success [true]
 
 # ______________________________________________________________________________
-#\\4RJ7YDVUNCDYZBMHKG4A2TYRPS4I3IDZ3RCDOZXZULPOXKZSO7H3NNAKJIELS4PBWC2I2QVCBULGK
-# \\ WB4FBSOOBC7O3HCNF3HAK5IU66RWI734ZOUMQJ6LRMVBFSTGSQUB \\// C25519-BASE-32 //
-#  \\// 5QSYSDTELA5U6QRU7OLURMWLTIWI6YBA2AVRGJTKOIKVABDOKCI \\ CODE SIGNATURE \\
+#\\WYUMXN7SNSMLAFH34P6UPXELSQ6S7EXGHIEOCY56NPK6REPTUAFVCRJTHHY7YOBC55VNHB5FSHZQO
+# \\ DOUOUZZK4Q7IJ4KLAETAPS6DWKCLXWA7ENEJDCN7E5UAU2FEA7DJ \\// C25519-BASE-32 //
+#  \\// OOJ6Q7ZHOLBBGRQGSSDQ4IYQYVVYSTRVBFU632L3MPF7F5Q62CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

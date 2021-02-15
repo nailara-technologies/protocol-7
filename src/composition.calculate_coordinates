@@ -8,20 +8,20 @@ my $screen_lcfg = <composition.setup.screen>;
 
 die "'\<x11.screen>' not defined"
     if not defined $data{'x11'} or not defined <x11.screen>;
-map { die "screen $_ not defined" if not defined $screen->{$_} }
+map { die "screen $ARG not defined" if not defined $screen->{$ARG} }
     ( 'width', 'height', 'orientation' );
 
 ### screen borders (underscan) ###
 
 my %screen_frame;
 my @border_names = ( 'left', 'top', 'right', 'bottom' );
-map { $screen_frame{$_} = 0 } @border_names;
+map { $screen_frame{$ARG} = 0 } @border_names;
 
 # LLL: fix load_section_config hash key recursion and adapt config loading!
 
 if ( exists $screen_lcfg->{'underscan'}
     and $screen_lcfg->{'underscan'} =~ /^\d+$/ ) {
-    map { $screen_frame{$_} = $screen_lcfg->{'underscan'} } @border_names;
+    map { $screen_frame{$ARG} = $screen_lcfg->{'underscan'} } @border_names;
 }
 
 foreach my $border (@border_names) {
@@ -71,7 +71,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\2QFOVTEFVKOYFYC5Q5X6JONAMCV3A67SHPRDQ57Y2FE5NYN4DQYSI6TWQEORRFVERJ2I44V2BNZLM
-# \\ MDQOCIBKLVXT6GOJ2VL7XV7MIOZ3DPVXKLNPFZK7ZQICK2MCPFCV \\// C25519-BASE-32 //
-#  \\// JBVM6DMYVF4VHAZ5B6M24FIGB7SHQJRB3R6V5DT6PJWL2UZSOBA \\ CODE SIGNATURE \\
+#\\IVESRALNQ6OLOEBKTPIG6K7IPEZJVT6DHI3JZJ44UTOWF7MTDLGNFYQECZDHEHFLXEP4KBOYEMM7A
+# \\ X7HVN2CF47DAGSEO2U2JKQML2BITR2NNH4KUIG6O2BA3L77VI6VZ \\// C25519-BASE-32 //
+#  \\// 4HMBZO4OZ5T7SXKDJO72QS5VKIFY3RZRBYB4CKW2Y7LRTCCQGDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

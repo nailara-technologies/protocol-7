@@ -19,8 +19,8 @@ my %unit_value = (
 my $total = 0;
 map {
 
-    ( my $file_name = $_ ) =~ s|^.+\/||;
-    $total += $file_size_raw{$file_name} = File::stat::stat($_)->size;
+    ( my $file_name = $ARG ) =~ s|^.+\/||;
+    $total += $file_size_raw{$file_name} = File::stat::stat($ARG)->size;
     $file_size_str{$file_name}
         = <[base.parser.human.fsize_fixed]>->( $file_size_raw{$file_name} );
     $file_size_uval{$file_name}
@@ -50,7 +50,7 @@ $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\N6CSEGMAQROTSTDTVXSQ73NB3GQHPXG2MGJXFCKT3RYCBZ3BOTFCM6CPEVUTGDQZCFUQ73EMDQWWI
-# \\ SX6T4BH5QV3WYODJ653E6WQDRYMMU6PXWXW36GHVOE4O7W66DESW \\// C25519-BASE-32 //
-#  \\// INLCKEM67GJEKXP67CDNN55WUJ7WCH77U35CCIZJXYO23BSHSBA \\ CODE SIGNATURE \\
+#\\Z6A6CWYAV3GLS5L7MS63VOXBIEK6CLBRXNSLMUGBOSE4YMGB67TDVCGCTSVZKJ4IIHRTUOBZEOXSO
+# \\ 4EB6JZKPT24XQYSYXTSRG7E3MACQZNKW3IB3NT2U7B4WRGBBFI36 \\// C25519-BASE-32 //
+#  \\// C2C7U7UBMFBRVFZ4OIMXXGNAGLOCGXABXCLIJJQQQG5JHLZAQBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

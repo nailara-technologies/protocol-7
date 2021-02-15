@@ -20,14 +20,16 @@ my $job_queue  = $job_list->{$queue_name};
 foreach my $del_queue ( $job_queue->{'by_priority'}->{$prio},
     $job_queue->{'by_timestamp'} ) {
     my $del_index = 0;
-    map { splice( @$del_queue, $del_index, 1 ) if $_ == $job_id; $del_index++ }
-        @$del_queue;
+    map {
+        splice( @$del_queue, $del_index, 1 ) if $ARG == $job_id;
+        $del_index++
+    } @$del_queue;
 }
 
 return ( delete $jobs->{$job_id} );
 
 # ______________________________________________________________________________
-#\\BOFICGWRR2PPP7O3DA2HRLJFRFIPITMN32A64MC3E332B6DS4NWNB7PQHFO6LHWNDE4DYRFMHDI6O
-# \\ 6LWWTEGXG54URPYW2IF4R5J5W2U75LFHCOH3JKX4US3KGD5LG2SW \\// C25519-BASE-32 //
-#  \\// SLQ2FBERVNVO6HB7QLGYGPAYEQPBGCQA73YJFBTC6KDTDYF3GDY \\ CODE SIGNATURE \\
+#\\KILPJIQNNMWMVBNRXP6ZB6IKKEZ6JGEBTCFSNTSIXZNTKTMP2XBLEEGC2EXQIWNCTL7UKMMHYPHUM
+# \\ 3LZWVVMUTZNFR5K7P7XADJGVZTJDXJOZNRABENIWS5LEEZ5IJRH3 \\// C25519-BASE-32 //
+#  \\// DCTZEYYFX66ELI3LEXIMMOIAYV53NWPUK262OPEY3GR7M2U4YBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -42,7 +42,8 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         # todo: create src tracking unload mechanism
         <[base.purge_code]>->('debug');
     } else {
-        my %mod = map { $_ => 1 } split / +/, <modules.load>; # <!> create iface
+        my %mod = map { $ARG => 1 } split / +/,
+            <modules.load>;    # <!> create iface
         if ( not exists $mod{'debug'} ) {
             <[base.log]>->( 1, "<< persistently enabling debug module >>" );
             $mod{'debug'} = 1;
@@ -51,7 +52,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         }
     }
 
-    map { delete $data{'base'}{$_} } ( 'cmd', 'console', 'overwritten' );
+    map { delete $data{'base'}{$ARG} } ( 'cmd', 'console', 'overwritten' );
     my $error = <[base.load_modules]>->("base $data{modules}{load}");
     if ( !$error and !<base.modules.load_errors> ) {
         $$reply{'data'} .= "$s reload source  [ success ]\n";
@@ -127,7 +128,7 @@ $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 # ______________________________________________________________________________
-#\\CKKASPVJVFLODNA3AZ5QWFQ64GZZXOWLTEVQTPB2EWFYHN2ZGQ5R5PLNNKZFZ2K2ADLXBYWIPKWVU
-# \\ VZK5ULJ2VPVBSW7RD6GQLG437DYS4ZF4V2QVNNOOSVSMFNE4SXPO \\// C25519-BASE-32 //
-#  \\// XWVNRYL27CG27EEEEZWN5QMYF3W5GR2P7QRKYT6MU46OGWJRMDA \\ CODE SIGNATURE \\
+#\\2BGLYJYDMZQDQLVGQQ4XCPMT3YAIVPJU5YPZRRIU7IEKNH3YV62RICI4VNGRAXAZ2BB4HPXSTDEU4
+# \\ XZTUIHDKU5EFVE6MMVUU4AKVQQXKATBV5GE67RWFEWAVGSREE3RU \\// C25519-BASE-32 //
+#  \\// UOVZ4SOBFVIN7FVB5OIHLBWDBWYHCUT5JOUWXQUJABFSXD5BCBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

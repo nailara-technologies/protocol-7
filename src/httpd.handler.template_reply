@@ -41,7 +41,7 @@ my $done_cmd = delete $content_part->{'command'};
 delete $content_part->{'params'};
 
 my $cmd_count = 0;
-map { $cmd_count++ if defined $_->{'command'} }
+map { $cmd_count++ if defined $ARG->{'command'} }
     @{ $session->{'content'}->{'sequence'} };
 
 if ($cmd_count) {
@@ -49,7 +49,7 @@ if ($cmd_count) {
 } else {
 
     my $content_length = 0;
-    map { $content_length += length( ${ $_->{'data'} } ) }
+    map { $content_length += length( ${ $ARG->{'data'} } ) }
         @{ $session->{'content'}->{'sequence'} };
 
     my $s = $cmd_count > 1 ? 's' : '';
@@ -68,13 +68,13 @@ if ($cmd_count) {
         }
         )
         . join( '',
-        map { ${ $_->{'data'} } } @{ $session->{'content'}->{'sequence'} } );
+        map { ${ $ARG->{'data'} } } @{ $session->{'content'}->{'sequence'} } );
     delete $session->{'content'};
     $session->{'flush_shutdown'} = 1;
 }
 
 # ______________________________________________________________________________
-#\\NXX665BC7LUHUNDFWRU4SHAQFRXES4PHXK7DRCETTCNTFAVQXYNVQKFP2CED2EJ2YN7EFR5AEPLGK
-# \\ FKKJ2AOL36JBZSHR5P7UPUK7PHJT45I7S6JWPQTHZEOL2MCCBVVV \\// C25519-BASE-32 //
-#  \\// NUG62MDVNA3NJXJAQLS7ZG7GC24JMXXO5OYGYU7K5DEUZ7ASUAQ \\ CODE SIGNATURE \\
+#\\Q4AKOLI3HDPXFJZ6MXXDRNBP6ORMLVFJXZYHO2A4YSMSOTZJFGE5MF4Z7BJK7D7XSUFO5NFVD2WOE
+# \\ ITN4PWIFK7QC5DKE45NA7P52JANXDPDBTP4JD6Z6FFA6PDTWEGKB \\// C25519-BASE-32 //
+#  \\// QLLK7WZ34VWUGRRWPNVHFE5YIV4OXBUYWVL4QAGENEX3MRQV4AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

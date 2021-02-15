@@ -25,7 +25,7 @@ return <[base.log]>->( 0, "<!> apparently no Intel GPU [intel_gpu_frequency]" )
     = open3( undef, my $out_fh, undef, "$gpu_top_bin -s $refresh_period -o -" );
 
 if ( !<X-11.gpu_top.pid> ) {
-    <[base.log]>->( 0, "<!> unable to open 'intel_gpu_top' pipe [$!]" );
+    <[base.log]>->( 0, "<!> unable to open 'intel_gpu_top' pipe [$OS_ERROR]" );
     return;
 }
 push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
@@ -40,7 +40,7 @@ push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
 );
 
 # ______________________________________________________________________________
-#\\GPYBSV2TZWZS6A67XPVY6VNTTWI4JI7WG7CWVB2RGEAL4GPSGZHY2WSHFEPUAL7LJVIZDKY3Y667E
-# \\ SZCF2EB4RBQEU5ESNM7AB7OFMCHB7XNFPKTUHBAMN2C5RSY6PNQC \\// C25519-BASE-32 //
-#  \\// 4642H3VEAPJW42WEVL2RIMS23LRFD26OUWL7I67G3Q7PSFFYECI \\ CODE SIGNATURE \\
+#\\QEH7A6PSI7OQLXZYW3MP3Z3XOZ6HMDUTZOOPDFLOXRKRJQQTVZVQUYDFUZWQRVGECIMGODDRV2LTC
+# \\ XOHIUNXAF4TYBXTAJTCW2MDBHQ3H3QCCRWA5EKDCFCAZFXX2GADD \\// C25519-BASE-32 //
+#  \\// PSKCXSRXBWKJL6EXDNEBDZYQCNXXWPVGIBHBOJU7GMGS6TXPKBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

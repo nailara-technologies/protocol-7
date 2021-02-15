@@ -25,7 +25,8 @@ return {
 
 my $reply_str;
 my $max_cmd_len = 0;
-map { $max_cmd_len = length($_) if length($_) > $max_cmd_len } @matching_agents;
+map { $max_cmd_len = length($ARG) if length($ARG) > $max_cmd_len }
+    @matching_agents;
 
 foreach my $agent_name ( sort @matching_agents ) {
     $reply_str .= sprintf( "  %-${max_cmd_len}s   #  %s\n",
@@ -35,7 +36,7 @@ foreach my $agent_name ( sort @matching_agents ) {
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\74PWMIQXUCKPOEQIJX3NYANDGEM64FGPWJGGAUQCM2UMLVWN5IOVTVIYLTXJ2VXXT5SJPJGI52BI6
-# \\ KAGJT44AMPAQZTPX44OVMAR4SJYECDIC45L2C5X5M7BVUXB7A4P7 \\// C25519-BASE-32 //
-#  \\// WUE4GZIO3XFDZEGLTO6CGGGJIOQ4PTTBQHPH7Q7YGNIQABZLWDY \\ CODE SIGNATURE \\
+#\\XGNPSP73VPCZ4M75EHC45CHEKOJWPG5H4G2G5SU6DK4MQRNEHDNRO67GVGP2KFO6Y5NTTH26BGDOA
+# \\ Y3VOCI2KZXZHPTA2CEPCMXWC2CADYFY6EEXDFR5GHV2NZC7Y6WE2 \\// C25519-BASE-32 //
+#  \\// EU7WQRITB26WO7VTWSM3ZM4RSJKV6IYIRY6MY7PWXLB2RWRWACQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

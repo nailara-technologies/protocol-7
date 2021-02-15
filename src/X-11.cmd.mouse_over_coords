@@ -9,9 +9,9 @@ my $log_sid = $$call{'session_id'};
 my @params  = split( / +/, $$call{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
-    return { 'mode' => 'nak', 'data' => "expected $_ parameter" }
-        if not defined $coords{$_}
-        or $coords{$_} !~ /^\d+$/
+    return { 'mode' => 'nak', 'data' => "expected $ARG parameter" }
+        if not defined $coords{$ARG}
+        or $coords{$ARG} !~ /^\d+$/
 } ( 'x', 'y' );
 
 <[base.log]>->(
@@ -40,7 +40,7 @@ my %p_old = <X-11.obj>->QueryPointer( <X-11.obj>->root );
 return { 'mode' => 'ack', 'data' => "hovered over specified position" }
 
 # ______________________________________________________________________________
-#\\EGV2I4H5O7ZSLTKER2RPQ2ATKRZRWC5LWWYWBPXYFB2TJ2UM24OPR6H6SQONEUNGOARZH22UNUDPO
-# \\ 73V3EVMGKCRKUF4YHZ2VEEDMUK5Q7OIT2RZPVUGWXCAOSTR7SZQX \\// C25519-BASE-32 //
-#  \\// 4F4AQW6RKUZHX6DMENUUG3JQKCMDY4JNT3LKFCCNUO7TZDY5UDI \\ CODE SIGNATURE \\
+#\\IY62AP5PQMYPMID4WI5Y6NIZZAK53PZLOTWQI2K4FUJ2P7UQ4MZDVWBHEC3FWCQOTG74QNTAXEBB4
+# \\ DK26CBXATJS3RPDWY2WMCK4L4EZLCT7VHKITQJ7IGR7ACFI3FWTJ \\// C25519-BASE-32 //
+#  \\// UNUJ5C4TQKSHT3N5BNWWD442PMJTIBUZDJLHJOFX6WAH2UUQYDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

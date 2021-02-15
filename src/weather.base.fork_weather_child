@@ -13,8 +13,9 @@ use Socket;
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair. [$!]";
-map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+    || die "can't create socketpair. [$OS_ERROR]";
+map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+    ( $child_pipe, $parent_pipe );
 
 <[event.add_signal]>
     ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
@@ -35,7 +36,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     my $subname = <system.agent.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
     <system.agent.subname> = 'child' . $sn_str;
-    $0 = <system.agent.name> . "[child$sn_str]";
+    $PROGRAM_NAME = <system.agent.name> . "[child$sn_str]";
 
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
@@ -81,7 +82,7 @@ if ( !<weather.child.pid> ) {    ## child ##
             <[base.log]>->(
                 0, "<!> syntax error in location cache file, purging.., <!>"
             );
-            unlink($city_file) or warn "unlink failed: $!";
+            unlink($city_file) or warn "unlink failed: $OS_ERROR";
         }
     }
 
@@ -98,7 +99,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\E4UNTOCGL5PU6XXVYA5PSMK74NRBEQXX5KMJNNMD5DEIJGB267UHHCWXRK7RFWUA7GYNGPCRFCMIC
-# \\ V5MIHIJJDEKSRZJVD44EGGHKOHBC7MRFT4KU7IXRODV2HK4APIF6 \\// C25519-BASE-32 //
-#  \\// GXGX3LTBS3NJSMFB6BYM73EIKISA65ESV3CRC4S66WKTUURGIBA \\ CODE SIGNATURE \\
+#\\YO5M4AUQLBYQ2GNGVAEJDKUCSEFDGFRBFSEP7IY5XBKQ3L77TGPQYQVYOOWCJV7VM6AME5MFMR3NG
+# \\ 3O45XNWWJJQHTDAJS2UD2NYR2KQTNRBQIKSY7CVJHRDSTBB5ZST4 \\// C25519-BASE-32 //
+#  \\// HDP7FUANX3Y4ZTCKVUOHTMRMAVGEUR425VP5KROWAUHGMUHI6BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

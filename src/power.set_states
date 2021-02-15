@@ -12,12 +12,12 @@ die "expected four socket state parameters" if @set_states != 4;
 my $dev = <[power.dev_obj]>->($device_id);
 
 map {
-    if ( defined $set_states[$_] and $set_states[$_] eq '1' ) {
-        $set_states[$_] = SOCK_ON;
-    } elsif ( defined $set_states[$_] and $set_states[$_] eq '0' ) {
-        $set_states[$_] = SOCK_OFF;
+    if ( defined $set_states[$ARG] and $set_states[$ARG] eq '1' ) {
+        $set_states[$ARG] = SOCK_ON;
+    } elsif ( defined $set_states[$ARG] and $set_states[$ARG] eq '0' ) {
+        $set_states[$ARG] = SOCK_OFF;
     } else {
-        $set_states[$_] = SOCK_SKIP;
+        $set_states[$ARG] = SOCK_SKIP;
     }
 } ( 0 .. 3 );
 
@@ -31,21 +31,21 @@ if ( not defined $dev or not defined $dev->{'poller'} ) {
 my @new_states;
 
 map {
-    if (defined $dev->{'stat'}->[$_]
-        and (  $dev->{'stat'}->[$_] == 17
-            or $dev->{'stat'}->[$_] == 18
-            or $dev->{'stat'}->[$_] == 65 )
+    if (defined $dev->{'stat'}->[$ARG]
+        and (  $dev->{'stat'}->[$ARG] == 17
+            or $dev->{'stat'}->[$ARG] == 18
+            or $dev->{'stat'}->[$ARG] == 65 )
     ) {
-        $new_states[$_] = '1';
+        $new_states[$ARG] = '1';
     } elsif (
-        defined $dev->{'stat'}->[$_]
-        and (  $dev->{'stat'}->[$_] == 33
-            or $dev->{'stat'}->[$_] == 34
-            or $dev->{'stat'}->[$_] == 130 )
+        defined $dev->{'stat'}->[$ARG]
+        and (  $dev->{'stat'}->[$ARG] == 33
+            or $dev->{'stat'}->[$ARG] == 34
+            or $dev->{'stat'}->[$ARG] == 130 )
     ) {
-        $new_states[$_] = '0';
+        $new_states[$ARG] = '0';
     } else {
-        $new_states[$_] = 'E';
+        $new_states[$ARG] = 'E';
     }
 } ( 0, 1, 2, 3 );
 
@@ -59,7 +59,7 @@ if ( $dev->{'poller'}->can_write(0.1) ) {
 return @new_states;
 
 # ______________________________________________________________________________
-#\\32TOGXMIBZGDQOUIGMLED62L3PTYA7YAB6P4GFUVB5THAWWQHYQHCNUIEZKKXBIRMNHRD2OI77FVK
-# \\ RFPRBV2RXEBSVGUQCONOSPYNOCOESNHMAGRK6VEOR5J4OGDK3ZHK \\// C25519-BASE-32 //
-#  \\// S5EG33UWJQ6Q7457SJKRUUYY5YIEEJPMCCTQIYWVOOMCJHCBUBY \\ CODE SIGNATURE \\
+#\\SK5MAQBIVKWQLGKP33UOS5J64ASHKCJT2HCK2AWRV4JJOFYAI3MYSLTZAFTPUTTZHG7RIDHSTDLPQ
+# \\ O4H76G72YP77JATZS2LYSXFX6DGKPVE63P2CGZRCOWL2RBXB2MMW \\// C25519-BASE-32 //
+#  \\// LYBDT45XUA762CODX3VBXB4EEYTV47FBEAQYF22GJ6DUBAAC6DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

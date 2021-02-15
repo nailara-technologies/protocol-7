@@ -7,10 +7,10 @@
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 eval 'use IPC::Open2';
-die $@ if $@;
+die $EVAL_ERROR if $EVAL_ERROR;
 
 my $child_code
-    = '$0 = "'
+    = '$PROGRAM_NAME = "'
     . <system.agent.name>
     . '-<root>-renice-child "; '
     . 'setpriority( 0, $1, $2 ) if <STDIN> =~ /^(\d+) (\-?\d+)$/';
@@ -20,7 +20,7 @@ $SIG{'CHLD'} = 'IGNORE';
 <process.renice_child.pid>
     = open2( <process.renice_child.r_fh>, <process.renice_child.w_fh>,
     <system.path.perl_bin>, '-e', $child_code )
-    || die "unable to start perl renice child process [$!]";
+    || die "unable to start perl renice child process [$OS_ERROR]";
 
 <[base.log]>->(
     1, ": child process started [pid=" . <process.renice_child.pid> . "]"
@@ -29,7 +29,7 @@ $SIG{'CHLD'} = 'IGNORE';
 return <process.renice_child.w_fh>;
 
 # ______________________________________________________________________________
-#\\2LFDYDDYIGB3ZKS6BEFOXDFI3CVGOZQ3TAPIUSUNUYJUE2KIDRGCPCD5GZV2AKQPWJHQJ2ZYIM5NK
-# \\ FQUJ2P7WITFNKBFIAWQ3HVH2GRSWGDV6QX2FS7C6CWJN3RPR2E7Y \\// C25519-BASE-32 //
-#  \\// 6R6L5OHPQHOB5KC3GM6MYIYFY5C2BRSUWPNFR3FFW4QBBOHQ6CI \\ CODE SIGNATURE \\
+#\\HDTZGBMVDKY654RH2Y2TNQ3KZMCFSHCBL6V2SO6EYHUB2M7LQBJ7UH6T2MVMBWMS25MUQNGSEMQZ4
+# \\ YJLGZLZRNG3NBZGXIEWCWLSMBHAQMAPUU6BMXFA7WN4ZGSGDIDJW \\// C25519-BASE-32 //
+#  \\// KKKT6YY6BW3YLT4JYYK45NXLEPCYNJVS5ZG24QMJ5XM7KEOY2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

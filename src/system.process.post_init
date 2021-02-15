@@ -8,14 +8,14 @@
 if ( not exists <process.kill_child.w_fh> ) {
     <[base.log]>->( 1, "starting kill child..," );
     my $child_code
-        = '$0 = "'
+        = '$PROGRAM_NAME = "'
         . <system.agent.name>
         . '-<root>-kill-child"; while(<STDIN>){ kill(9, $1) if /^(\d+)$/ }';
 
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
         <system.path.perl_bin>, '-e', $child_code )
-        || die "unable to start perl kill child process [$!]";
+        || die "unable to start perl kill child process [$OS_ERROR]";
 
     <[base.log]>->(
         1, ": child process started [pid=" . <process.kill_child.pid> . "]"
@@ -34,7 +34,7 @@ if ( not exists <process.kill_child.w_fh> ) {
 0;
 
 # ______________________________________________________________________________
-#\\YSZO3BVH3ZY7ADCUZ72WXIVFNQOSOLPZMQDYKVRTIXFH6TIICPD6J3RG6C3RB5IOPZOPF3YJEN5YO
-# \\ PZLHB7ZMFIM6RYXXA7GGX7UFXBC66BBLZLGT37TDGJFDEN5YSHNB \\// C25519-BASE-32 //
-#  \\// CGRSRSR4Q4GHIQJG5PY2WT7FPREB7JHAJ4K6XZTIUVJQZDIW6BY \\ CODE SIGNATURE \\
+#\\ALV32S2JXIV7WN4EPH272EBS66MJETPSQH4I5J4OB7KE35HGJEINN7YVQ6BRLWNTAOFCPAFXVZXBC
+# \\ 2XPDLE2TY7V6ER2DQCSK2R72ECRPTCFGAIGAEL6DLRJF2TA6E2RC \\// C25519-BASE-32 //
+#  \\// 466H4INL2AV6WCTNV4RTUQWGAAW5Q7EAFQTAB66QZVL3MIJK6DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

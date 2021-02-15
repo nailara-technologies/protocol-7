@@ -64,11 +64,11 @@ my $dfh = $data{'session'}{$id}{'handle'};
 close( $data{'session'}{$id}{'handle'} );
 
 # forced freeing of memory consumed by buffers((!))
-map { undef $data{'session'}{$id}{'buffer'}->{$_} }
+map { undef $data{'session'}{$id}{'buffer'}->{$ARG} }
     keys %{ $data{'session'}{$id}{'buffer'} };
 
-map { undef $data{'session'}{$id}->{$_} } keys %{ $data{'session'}{$id} };
-map { undef $data{'handle'}{$dfh}->{$_} } keys %{ $data{'handle'}{$dfh} };
+map { undef $data{'session'}{$id}->{$ARG} } keys %{ $data{'session'}{$id} };
+map { undef $data{'handle'}{$dfh}->{$ARG} } keys %{ $data{'handle'}{$dfh} };
 
 delete $data{'session'}{$id};
 delete $data{'handle'}{$dfh};
@@ -78,7 +78,7 @@ delete $data{'handle'}{$dfh};
 <[base.session.check_remaining]>;
 
 # ______________________________________________________________________________
-#\\BUCK6T5PEMNIRCEBEVE3DLQYAGTJNYLQUKN763SY67KZS7RNZH3TJE5ACPQDMJTHYJ7KPNBLJ7DO4
-# \\ PKM36ERZZ2NCGTE2UOFJ33HUQHCCXTONX76QWGSQCLPEVTO6ZX7F \\// C25519-BASE-32 //
-#  \\// WUKP3GGD4M56QPTKFHFFIMC4AEC7VSPCVNQJUCZ4URWENS3JOCY \\ CODE SIGNATURE \\
+#\\JM677SZNQX4CZVLKXG6Y3TQLZN6H5OWJUNQAW6YC2P5FTNVLLXKAGN6HWNKY4MBQ52FI3E7U5ZZ7Y
+# \\ WRUGSWIEL7WB7UF4RSSLP4RRPD4WFKK2RWWI676MNCB5BH5RRFQG \\// C25519-BASE-32 //
+#  \\// FFHY6ZVIA5I6VI5W2S7AXPAQEZIKQYN2H57772N5XDGUMNPDICA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

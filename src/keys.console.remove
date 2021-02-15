@@ -20,7 +20,7 @@ my $key_usr = $key_vars->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
-opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $!\n";
+opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $OS_ERROR\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
@@ -31,8 +31,8 @@ my $match_re = qr|^(\Q$key_name\E\.$re_kfiles)$|;
 
 my $key_found = 0;
 map {
-    $key_found = 1 if $_ =~ $match_re;
-    my $k_path = "$key_dir/$_";
+    $key_found = 1 if $ARG =~ $match_re;
+    my $k_path = "$key_dir/$ARG";
     return print "\n [!] no write access to '$k_path' [!]\n\n" if !-w $k_path;
 } @key_files;
 return print "\n  [!] specified key \"$key_name\" not found [!]\n\n"
@@ -40,7 +40,7 @@ return print "\n  [!] specified key \"$key_name\" not found [!]\n\n"
 
 my $del_count = 0;
 
-chdir($key_dir) or die "[!] chdir( $key_dir ) : $!";
+chdir($key_dir) or die "[!] chdir( $key_dir ) : $OS_ERROR";
 
 print "\n::\n";
 
@@ -51,7 +51,7 @@ foreach my $file_name (@key_files) {
     system( $shred_bin, '-fzu', $file_name )
         if length($shred_bin)
         and -x $shred_bin;
-    return print "\n unlink failed : $!\n\n"
+    return print "\n unlink failed : $OS_ERROR\n\n"
         unless unlink($file_name)
         or !-f $file_name;
     $del_count++;
@@ -60,7 +60,7 @@ my $s = $del_count == 1 ? '' : 's';
 print " :\n :: [ removed $del_count key file$s ]\n\n";
 
 # ______________________________________________________________________________
-#\\ABTX3XPNITZ4LIPVYZKPWDTVECX6R23AX3IEQ47JQMFCMRDLZT72BQ4IZ4FQRJNF3LSTRZQEMDVLY
-# \\ GDPW7VKK7FYRBMROJV2HUIIUCYAJ4KDSWRUIF6WLXNPXVBQOYADH \\// C25519-BASE-32 //
-#  \\// VNTJZCSC4SHCPD7EC3DQDLPL7KMCHQ36EQUBKWOH3C5EYC6MSCI \\ CODE SIGNATURE \\
+#\\RMBBQZLG4SQ2CY3IXE6JOIQLW5QFGJFDMNMMGUOWICBNAPVTBRDKJJYAOZODZ3J4DKC5VGDB4ZBAO
+# \\ T76OXQHBQ3PFFOLQ2LHRM73DBUADKD7QFH6TGPSQVCKG6TN2RO55 \\// C25519-BASE-32 //
+#  \\// C3TBHRXU2XT3WL72JN4AWLT3OA4WMVSRNDYXYGPNRSESSEDKGAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

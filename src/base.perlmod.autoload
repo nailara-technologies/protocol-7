@@ -13,8 +13,8 @@ my ( $module_name, @export ) = @_;
 <base.perlmod.loaded>->{$module_name} = 1;
 
 eval { autoload( $module_name, @export ) };
-return 1 if !$@;
-my $reason = $@;
+return 1 if !$EVAL_ERROR;
+my $reason = $EVAL_ERROR;
 $reason =~ s| at .+$||sg;
 $reason =~ s| *\n.*$||s;
 
@@ -50,10 +50,10 @@ if ( !<base.perlmod.auto_install> ) {
 
 eval { autoload( $module_name, @export ) };
 die "<<!>> unable to automatically install perl module '$module_name' <<!>>\n"
-    if $@;
+    if $EVAL_ERROR;
 
 # ______________________________________________________________________________
-#\\CYGUVXGIGB6A46RKWS4BV6ABSKBIM5BLYGLZ353O7QX377D44O6JLJLISYPR7Q6DQESSP5JRISWD2
-# \\ UXBOMTZSORZJJBDH274RSBW4XADQVXIMS7ZQNGBFQUL7HYRFVGEP \\// C25519-BASE-32 //
-#  \\// OXC4ZSERCLFTUOJSL6PPUY4M236EXGZVXBC24TUQ2TIG7WM4WAQ \\ CODE SIGNATURE \\
+#\\HVEK572US2OCHUMYWI4IB7LESZXEUMWIG6RTS7CPY6AA3UVOGNK2GQOIUIOPAELKOJSQNL22X4RIS
+# \\ S2MEQ4IQH4EXGDNA3RYRZPLKPVPWHYJXMFY7T6S6G2T3XV4HXRUT \\// C25519-BASE-32 //
+#  \\// OXKAMXOW642G3QUOKAXKDHZQGXKISTPZVXR26QC4HVBV2LKYQBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

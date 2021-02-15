@@ -34,8 +34,9 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
             my $d_str = -d $clean_path ? ' dir' : '';
             <[base.log]>->( 1, ": . removing$d_str path '$clean_path'.," );
             eval { remove_tree($clean_path) };
-            $@ = 'still exists' if not $@ and -e $clean_path;
-            warn "<remove_path> $clean_path [ $@ ]" if length( $@ // '' );
+            $EVAL_ERROR = 'still exists' if not $EVAL_ERROR and -e $clean_path;
+            warn "<remove_path> $clean_path [ $EVAL_ERROR ]"
+                if length( $EVAL_ERROR // '' );
         }
     }
 }
@@ -43,7 +44,7 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
 delete $instance->{'temp-path'};
 
 # ______________________________________________________________________________
-#\\LHWUWZ4VNIUVW37JKUJ5R5STQ4EINMCIQOUDNETUFCMHZZBDYVYYPUYK3SYTQI6Q3L24VKEHJQBH6
-# \\ 6M3WOOL67SX5UODQWZSK6DOCPMWCOFZKBTINM46K6E4LBHY7SS2F \\// C25519-BASE-32 //
-#  \\// OHXEBSGOKQ7YLBCTU3L3JV3DLUYKFD3PYTVJGBYPY4JFZROWQDI \\ CODE SIGNATURE \\
+#\\QWQT6WHLHTEIBS4UTMFFAI7QZOKKS5CQK2BHM55PPTE4DGV4XHJATK3D4IYN2GWVKURFMHRCRWFQQ
+# \\ XZKV5QN7BODWVPYSFR7SCYI2IKDHR3I7ZEY6WB7QD6LVTA5DI5KK \\// C25519-BASE-32 //
+#  \\// CD33QDBFZJTS5ZNOKBP5ROPHHY647HT6M3JXONSCXOHI3LIBQBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

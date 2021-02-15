@@ -3,7 +3,7 @@
 # name  = base.sig_int
 # descr = SIGINT interrupt handler
 
-$0 .= ' :. shutdown in progress.., please wait!';
+$PROGRAM_NAME .= ' :. shutdown in progress.., please wait!';
 <[base.log]>->( 0, '<< SIGINT >> terminating agents ..,' );
 
 #if ( <system.agent.type> eq 'nroot' or <system.agent.type> eq 'core' ) {
@@ -31,14 +31,14 @@ print "\n <!> DEBUG MODE: agent state:\n\n" . <[base.dump_data]> . "\n"
     if exists <system.agent.type> and <system.agent.type> eq 'nroot';
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
-    map { kill( 9, $_ ) } @{<system.kill_list>};
+    map { kill( 9, $ARG ) } @{<system.kill_list>};
 }
 
 <[base.log]>->( 1, ':. done' );
 exit(130);
 
 # ______________________________________________________________________________
-#\\63VXQJ7UHQFXWWABTXLJK77LULK3EYV2SVAJ7CUWKYZAR4QANNQDNYF5UEFJ3PO3CDE4TMRZEYNFE
-# \\ L43L5O7YDHQNTSQGS5ATXLZGS2HSQUFIRAESWSKORAG6TOFFGPXP \\// C25519-BASE-32 //
-#  \\// QZJMON3ITXITAA2YTRJS7E7SPYRNDDXSVMD77ZZZP33YPS63EBY \\ CODE SIGNATURE \\
+#\\YBF5AOFORNGSBDI5JUKUMW4CJPSRQAOQHUXT5HWAI4EXDTKOJVQGAZIMEB5Q64GH522VZWBLNM6Q2
+# \\ LHZ5WGWKLOH3PDBM2SMHMYKVPISLV6RCWVKRUO75FUMJKEYXW5EQ \\// C25519-BASE-32 //
+#  \\// C6M2BVW7ZDBCHGAZ5DM6FRDHIFUC7QMXCMWW2QSESZMXGP5TSCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

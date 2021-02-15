@@ -29,7 +29,7 @@
 
 <system.acfg_path> = <system.conf_path> . '/agents';
 
-map { <[base.disable_command]>->($_) } qw(
+map { <[base.disable_command]>->($ARG) } qw(
     verify-instance
     switch-user
     subname
@@ -74,7 +74,7 @@ if ( !-x <nroot.rmmod_bin> ) {
 # json based configuration import ##
 <[set-up.json.import_file]>->('nroot.start_setup.json');
 
-map { <[nroot.init_start_setup]>->($_) }
+map { <[nroot.init_start_setup]>->($ARG) }
     @{ clone(<nroot.cfg_data.start_setup>) };
 
 if (    exists <system.subs_loaded.debug>
@@ -184,7 +184,7 @@ delete <list.users>;
 return 0;
 
 # ______________________________________________________________________________
-#\\YKDEQVFNB3FB66LJQT5BNJJUAY5CNLAM6KZVPGLBDHEM7YFJ74GJXRVCKPBDLOB5AZDX6CHJ62NSO
-# \\ NXWOT7WWUZZAQ7VUDTMYMUGMZE7FBEXJEXKJFYTS4YSFGAXWEHVZ \\// C25519-BASE-32 //
-#  \\// 4BKXRF3R7Z727K2ACHGJ6DKFFIURJDOYAHT3X72FIQTVAUERCBY \\ CODE SIGNATURE \\
+#\\YAI33ORVT5RY2UQXWIMDH336F2MMJ5PVVJ7PDQJJWLPVJHWENRXP5BMYOFSLCMYA6XR57LUYBNSFA
+# \\ ZDZVGV4FUEXGDADULT53YHVY2WSXI3FE2X5HVIRDKQKRM6VXM26B \\// C25519-BASE-32 //
+#  \\// VJ5XKC44GGP5IFP5OCORSHJ5U73C7PLD3XDHS6W7XSCO7GRCIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

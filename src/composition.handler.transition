@@ -171,15 +171,16 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     <composition.transition.status.waiting.stop>--;
     ( my $agent_stripped = $agent ) =~ s/\[.+$//;
     map {
-        if ( exists <composition.transition.status.agents.concurrency>->{$_} ) {
+        if ( exists <composition.transition.status.agents.concurrency>->{$ARG} )
+        {
             <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "core.nroot.start",
-                    'call_args' => { 'args' => $_ },
+                    'call_args' => { 'args' => $ARG },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
                         'params'  => {
                             'event_type' => 'start',
-                            'agent_name' => $_
+                            'agent_name' => $ARG
                         }
                     }
                 }
@@ -246,7 +247,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
 
 if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
     my $still_waiting = 0;
-    map { $still_waiting += <composition.transition.status.waiting>->{$_} }
+    map { $still_waiting += <composition.transition.status.waiting>->{$ARG} }
         keys %{<composition.transition.status.waiting>};
     if ( !$still_waiting ) {                                ## all done! ##
         delete <composition.transition.status.waiting>;
@@ -281,7 +282,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 # ______________________________________________________________________________
-#\\JH7MD5ZW665LBPVDHNGWX65XBZ4OCWUNPFURODSRD2NVOTRULTQ3I57OJJ6JCY4OJNOIIWRATBL5Y
-# \\ EHXYIGIGPDVMXQL44RRSUW34OAKE346LLMJPKJ25OR27QMM23IPE \\// C25519-BASE-32 //
-#  \\// Q4LMI3EWEEVK2CXKYFRVIP6OEII6WJRESICGGNVLL3FWGFVNSAI \\ CODE SIGNATURE \\
+#\\JM6N75KJMO7YS2N7KJLC2YCSWQMAO45VU7LW4JOOMR6LCGU47S45IL7SZNS6E3CW6ILWAW3MJ3ADU
+# \\ 5DH77KWC7AQ663C3G4Q5R4H3K2HSZZZJMCWZN5ONZ3PTMB5AR4KV \\// C25519-BASE-32 //
+#  \\// 2E6DUNKFQYBVIGFYPSQDHQR62IWWR2IJRXGED2R7S3ZRN6Z2MDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -33,7 +33,7 @@ if ( not -e $socket_path ) {
     <[base.log]>->( 1, "opening unix domain socket '$socket_path'.," );
     <mpv.socket> = <[base.open]>->( 'unix', 'output', $socket_path );
     <[base.log]>->( 1, "unlinking socket $socket_path.," );
-    unlink($socket_path) or warn("unlink($socket_path): $!");
+    unlink($socket_path) or warn("unlink($socket_path): $OS_ERROR");
 }
 
 if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
@@ -49,7 +49,7 @@ if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
 );
 
 # ______________________________________________________________________________
-#\\Z23Y7UOWPMCSL74ZRB4O3Q4QX3PC6MXBRGLQLZSFKZUAUVN44CYFR7775CRQQZHUHNWXDBWHXZPGQ
-# \\ LMBHPUDX7QWZ3M4UNUSKPHDHSX4UXFQAULVB75YL2OXWEJLRYLFK \\// C25519-BASE-32 //
-#  \\// LUEVM5GSE76LV6BUIDQITYPJTMWKI443ZQDQRGTN26GVF5KTKDA \\ CODE SIGNATURE \\
+#\\5LBNZ74PRSBQYO3TOY4WQ6YGMNJH3YAWI56MBT53RNRICBLALHSIBABX74BQERC7RGTNEC3CDWAVA
+# \\ MVEEAE2LYAZIMULPK63LHSJQHKUBCLAWJDVOEGBHV5STVDMV43TY \\// C25519-BASE-32 //
+#  \\// VP2MCDH7HUWWJG3LSXUGWDH5YSUH5XYBBKRG7GYOU57WO7NYEBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

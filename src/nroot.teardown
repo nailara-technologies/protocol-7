@@ -4,16 +4,16 @@
 # descr = shut down nroot agent [with an optional error message]
 
 my $reason    = shift // '';
-my $exit_code = length($reason) ? 1 : $?;
+my $exit_code = length($reason) ? 1 : $CHILD_ERROR;
 my $log_level = length($reason) ? 0 : 1;
 my $t_res     = 3;    # <- time delta float resolution
 
 my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
 my $abort_timeout = 2;
 
-my %wait_pids = map { $_ => 1 } keys %{<nroot.child>};
+my %wait_pids = map { $ARG => 1 } keys %{<nroot.child>};
 foreach my $p_pid ( keys %{<nroot.child>} ) {
-    map { $wait_pids{$_} = 1 }
+    map { $wait_pids{$ARG} = 1 }
         @{ <[nroot.sub-process.get_children]>->($p_pid) };
     <nroot.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # just in case
 }
@@ -56,18 +56,18 @@ foreach my $pid (
         my $ren = scalar @children == 1 ? ' -- :' : 'ren :';
         <[base.log]>
             ->( 1, ": <TERM> `-- child$ren " . join( ', ', @children ) );
-        map { delete <nroot.child>->{$pid} if !kill( 15, $_ ) } @children;
+        map { delete <nroot.child>->{$pid} if !kill( 15, $ARG ) } @children;
     }
 }
 
-map { <[base.log]>->( 1, ": <TERM> orphan $_" ) if kill( 15, $_ ); }
+map { <[base.log]>->( 1, ": <TERM> orphan $ARG" ) if kill( 15, $ARG ); }
     <[nroot.sub-process.orphan_pids]>;
 
 while ( ( my $w_pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     delete <nroot.child>->{$w_pid};
 }
 
-my %children_left = map { $_ => 1 } keys %{<nroot.child>};
+my %children_left = map { $ARG => 1 } keys %{<nroot.child>};
 
 my $wait_start = <[base.time]>->($t_res);
 
@@ -115,14 +115,14 @@ while ( keys %children_left ) {
     <[base.sleep]>->(0.042);
 }
 
-map { <[base.log]>->( 1, ": <KILL> orphan $_" ); kill( 9, $_ ) }
+map { <[base.log]>->( 1, ": <KILL> orphan $ARG" ); kill( 9, $ARG ) }
     <[nroot.sub-process.orphan_pids]>;
 
 <[base.log]>->( 1, ':. done' );
 exit($exit_code);
 
 # ______________________________________________________________________________
-#\\UC2GWCWHUG3HBWANL4NL767ARMX5SY3GBOPMU57CPOBDNFOPDPETZGR5N2OPPCJ3W7CTKQB4TE7W4
-# \\ 6UIRYXGXGWZMEKTCSD35XRAZLAN6RMDB2PNA6U4XLPYZSYMJLQN2 \\// C25519-BASE-32 //
-#  \\// Z5LUIZ3CCHZLUAG5XL4GJZ3J4IKSFEITX7BTBC7SFOH3S5CUOAQ \\ CODE SIGNATURE \\
+#\\6USZCF4OR6CFNTURXYCO53546OLZH2H2DXGMFJ3EVSV4UR2DASTHHA7SNUXFKRZJMZH5FXQ4QGGNC
+# \\ 26HNEQ2Q2RLVUM7VZOFRM2NUAQ7IFBTFKYE6RHYUDDGDAOCX7WDC \\// C25519-BASE-32 //
+#  \\// FROKZ6RPIN4W4HPFHDO7S6O6CRM65J466KDLLMRQ7EBQORGD2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

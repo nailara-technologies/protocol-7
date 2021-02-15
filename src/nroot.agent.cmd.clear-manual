@@ -22,12 +22,12 @@ if ( !length($clear_agents) ) {
     map {
         return {
             'mode' => 'nak',
-            'data' => "no 'manually stopped' status exits for '$_', aborted!"
+            'data' => "no 'manually stopped' status exits for '$ARG', aborted!"
             }
-            if not exists <nroot.agent.manually_stopped>->{$_}
+            if not exists <nroot.agent.manually_stopped>->{$ARG}
     } split / +/, $clear_agents;
 
-    map { $cleared_count++ if delete <nroot.agent.manually_stopped>->{$_} }
+    map { $cleared_count++ if delete <nroot.agent.manually_stopped>->{$ARG} }
         split / +/, $clear_agents;
 }
 
@@ -39,7 +39,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\67QSKLDZKTVGAL3PQLXA77KL6PXJHSL77W3U52FHFQCJOB6EWGIUNNZJW27ZPIECBOJLFSOWBHCRI
-# \\ SY3QIWVUYD3ZLVOTKMNGQNFAK5TQVUI2FOQWBUUXQ75GGNXIJXOG \\// C25519-BASE-32 //
-#  \\// UGTGC4FUDLF2SBWKYK6CRKT6N4VF3D5H6Q3BMW4QKTKXK2BZAAY \\ CODE SIGNATURE \\
+#\\62RFTEMU2LZAB3SATKVBCFBPVMXLYRIFXVCWPGYTJQFDLP7MHOTRSOJIPROPETDN4AGBJK7XRWIPM
+# \\ 3XN2GA4KCW2HXNMXLYLVZ3GULC4ZYGW3GNCOEKYWUCXQ6TGKHGR7 \\// C25519-BASE-32 //
+#  \\// CYGDEHICF3QVVKPUY4Z6A4DQTBSU56R6O77257FQGARLI44K2AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

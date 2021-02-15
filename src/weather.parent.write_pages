@@ -53,8 +53,8 @@ $icon_path =~ s|^.*/|./images/|;
 
 my %template_names;
 opendir( my $dir_fh, $current_template_dir )
-    or die "opendir($current_template_dir): $!";
-map { $template_names{$1} = 1 if $_ =~ m{^content\.(.+)\.part$} }
+    or die "opendir($current_template_dir): $OS_ERROR";
+map { $template_names{$1} = 1 if $ARG =~ m{^content\.(.+)\.part$} }
     readdir($dir_fh);
 closedir($dir_fh);
 
@@ -93,13 +93,13 @@ foreach my $page_name (@page_list) {
     my $icon_day   = <weather.icons>->{'not_available'};
     my $icon_night = <weather.icons>->{'not_available'};
 
-    my %temps = map { $_ => 'n/a' } ( 'morn', 'day', 'eve', 'night' );
+    my %temps = map { $ARG => 'n/a' } ( 'morn', 'day', 'eve', 'night' );
 
     if (    exists $template_names{'today'}
         and defined $today_ref
         and ref($today_ref) eq 'HASH'
         and exists $today_ref->{'temp'} ) {
-        %temps = map { $_ => sprintf( "%.1f", $today_ref->{'temp'}->{$_} ) }
+        %temps = map { $ARG => sprintf( "%.1f", $today_ref->{'temp'}->{$ARG} ) }
             ( 'morn', 'day', 'eve', 'night' );
 
         my $icon_num = $1 if $current_ref->{'icon'} =~ m{^(\d+)};
@@ -300,7 +300,7 @@ foreach my $page_name (@page_list) {
 }
 
 # ______________________________________________________________________________
-#\\C6M6YNYLOFM4IMDYLP4E24XOJCH44OPDMDIFLP2HYDN5AAMQF53WHS4FLQ6X67L3C7ANGRSKYZRVC
-# \\ ZXLWMK2TIAEJ5P7ZHDE6TNGTDOJQADVSCPN4K5JVFQ4VIFOZKZJ2 \\// C25519-BASE-32 //
-#  \\// 3TERC4SEEJTDAUCYXAQK5ATVMW5CJGLWYMZNFQK665BBOHFMAAA \\ CODE SIGNATURE \\
+#\\HPAUQ3TSAQGKLH7FI2X5Z4OMMXCDXMG4RRDIYYN44XPIFKMUXMKZXUCPM2Y64W5V7JXJC3ODT6MES
+# \\ 6RYNFBFHN4XG2LNNZ3DKA477YPDSCBQWDHK5U4XTJFFWHCVYAVBT \\// C25519-BASE-32 //
+#  \\// GDWKXIEN65Q7PGEZLJBVVV4HASG2WFXTISKCBQ3PEM3C2IO36DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

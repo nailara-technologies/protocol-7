@@ -64,11 +64,11 @@ if ( !-f $cfg_full_path ) {
 $config_data = merge( $config_data, <import.playlist> );
 $config_data = merge( $config_data, <import.composition> );
 
-map { <events.enabled>->{$_} = 1 }
+map { <events.enabled>->{$ARG} = 1 }
     ( keys %{<import.playlist.events>}, keys %{<import.composition.events>} );
 
 my @enabled;
-map { <events.enabled>->{$_} = 1; push( @enabled, $_ ) }
+map { <events.enabled>->{$ARG} = 1; push( @enabled, $ARG ) }
     split( / +/, $config_data->{'events'}->{'enabled'} )
     if defined $config_data->{'events'}->{'enabled'};
 
@@ -105,15 +105,15 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
         @selected_days = sort split( / +/, $day_ref ) if ref($day_ref) eq '';
         foreach my $day_name (@selected_days) {
             map {
-                <events.setup>->{$ev_id}->{'days'}->{$_} = 1
-                    if $day_name =~ <events.day_regex>->{$_};
+                <events.setup>->{$ev_id}->{'days'}->{$ARG} = 1
+                    if $day_name =~ <events.day_regex>->{$ARG};
             } ( keys %{<events.day_regex>} );
         }
     }
     map {
         <[dependency.add]>->(
             <events.setup>->{$ev_id}->{'dep_id'},
-            <event.dep_id>->{$_}
+            <event.dep_id>->{$ARG}
         )
     } ( 'weekdays', 'date_frame' );
     if ( exists $config_data->{'timetable'}->{$event_name} ) {
@@ -147,7 +147,7 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 0;
 
 # ______________________________________________________________________________
-#\\GZDAH3FHT4B3KMGGIDLWY2IJU3IFE2WOCVCOZP2KKWLMGUXHPAXD55JABQWC7R3UXD7266NKU6DHK
-# \\ RJTRXWY52GR2SYPE2PDI4UWRGI7CAWNB5QBTLFRD7NFENBRFZC5G \\// C25519-BASE-32 //
-#  \\// LZ5NQ4TOBAGRKCLYJRRUS5VOXX27E5N5F54TO7WRNWNXFS3UOAQ \\ CODE SIGNATURE \\
+#\\CJ3VRB2EQN2EQH5RWYXMYJRVRSFOPC42Z36UE25KN3IN2YKBXQAQXPAUOYNZJTSVMDFJK73C5E7HW
+# \\ 66D6DB6QUM3RXQ4N7CCEANLKNOUBYHBKRMPMGBV37JUZ4KEDXJJC \\// C25519-BASE-32 //
+#  \\// DY2FT757DEGE2KRBE4L27OHN5I4I4RXLOHF4P7QRGLU54SRTOAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

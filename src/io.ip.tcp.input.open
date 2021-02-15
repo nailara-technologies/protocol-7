@@ -14,12 +14,12 @@ my $lsock = new IO::Socket::IP(
     ReuseAddr => 1,
     TimeOut   => 1,
     Blocking  => 0
-) or <[base.log]>->( 0, "unable to allocate $l_addr:$l_port [$!]" );
+) or <[base.log]>->( 0, "unable to allocate $l_addr:$l_port [$OS_ERROR]" );
 if ( not defined $lsock ) { return undef }
 else {
     $l_addr //= '<undefined>';
     $lsock->listen()
-        or <[base.log]>->( 0, "tcp.server: listen: $!" );
+        or <[base.log]>->( 0, "tcp.server: listen: $OS_ERROR" );
     <[base.log]>->( 1, "TCP server launched [$l_addr:$l_port]" );
 
     if ( defined $data{'handle'}{$lsock} ) {
@@ -38,7 +38,7 @@ else {
 }
 
 # ______________________________________________________________________________
-#\\FN6IXWYQFGUH7MH44HW5Y7NLAB7JHAQS7MASBAFYTSKAKQZI65FHVIPYGXZZUQYFSBNYGYY2TRQJ4
-# \\ 5YWVQQD4NHPDBW4HSZT7TXMPHGGBLWAEXDJG4UAQNW26DYUBDRAH \\// C25519-BASE-32 //
-#  \\// S673OL42GQYU7N5ZWWPQNRIJZEQBR5CRCVJ623CLSB7LEXLS6DQ \\ CODE SIGNATURE \\
+#\\JMZY4BT2V4IYLP5LFAYZ7EQLPTEUEHVPSI533PMLB73UHX2JPFZNSFW6T7EFQSDFT5X2EMF3LF7SS
+# \\ KYOGWHP7CC3BC4G7Q4NY5N44ABKBCZWUH3XE6OLYSRJZ52HN5J4I \\// C25519-BASE-32 //
+#  \\// KQJMUPVOZGEASAQBB6E4JHSMIXJ25UL5W2YWDSUV2DK4SM23QDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

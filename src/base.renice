@@ -10,15 +10,16 @@ die "base.renice: invalid pid '$rpid' given."      if $rpid !~ m|^\d+$|;
 
 <[base.log]>->( 1, "[ PID $rpid ] <-- set priority $prio" );
 
-undef $!;
+undef $OS_ERROR;
 $rpid = 0 if $rpid == $$;
 my $ret = setpriority( 0, $rpid, $prio );
-<[base.log]>->( 0, "setpriority $prio <-- [ $! ]" ) if length( $! // '' );
+<[base.log]>->( 0, "setpriority $prio <-- [ $OS_ERROR ]" )
+    if length( $OS_ERROR // '' );
 
 return $ret;
 
 # ______________________________________________________________________________
-#\\2T3FRZTTKEK4CDNYQOCNFWD52FIGKFRAX5MBLWCHFYH6RVX33O35IG6RKYN6XCXAT7XIYI5MGF2IA
-# \\ NMBHLDJ4ZAGFZEV2YCRHNXNP5JN7ELPP5XSSYLTK62P3RDVJJNYP \\// C25519-BASE-32 //
-#  \\// A4IHWXD7FPIZA4RPWHGUKLQ6WXTXEY34WJEAFPN44Q2MJNJAUDA \\ CODE SIGNATURE \\
+#\\VPJJYSIWJWRFKRIERQEJN66KEEB7WYW2C5L2QN2JK6C7FRKLZJ5M33AUPUUVKN6WYUBLSYNKAYCCO
+# \\ WUUUTHW5LUX3TFNPHEXIO32I3457EFQNNQ2WKHE25ABVA6KRK3UR \\// C25519-BASE-32 //
+#  \\// N63LARSITKTKQ6SBTDY65AOZUDRZ2TGSLL7NBDUASSPQMMC6ACQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

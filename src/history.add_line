@@ -32,7 +32,7 @@ if ( !-d $log_path ) {
         or return ( 0, "user '<log.nailara_log.user>' not in passwd file" );
     <log.nailara_log.path> =~ s|/+$||;
     chown( $uid, $gid, <log.nailara_log.path> )
-        or return ( 0, "chown(<log.nailara_log.path>): $!" );
+        or return ( 0, "chown(<log.nailara_log.path>): $OS_ERROR" );
     <log.files>->{$log_name} = { 'fh' => undef, 'locked' => 0 };
 }
 
@@ -41,9 +41,9 @@ my $log_fh;
 if ( !<log.files>->{$log_name}->{'locked'} ) {
     <[base.log]>->( 2, "opening log '$log_name'..," );
     open( $log_fh, ">>$log_path/$log_file" )
-        or return ( 0, "unable to open logfile [$!]" );
+        or return ( 0, "unable to open logfile [$OS_ERROR]" );
     flock( $log_fh, 2 )    # LOCK_EX
-        or return ( 0, "unable to lock logfile [$!]" );
+        or return ( 0, "unable to lock logfile [$OS_ERROR]" );
     <log.files>->{$log_name}->{'locked'} = 1;
     <log.files>->{$log_name}->{'fh'}     = $log_fh;
     <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(
@@ -64,7 +64,7 @@ print {$log_fh} $$log_msg_ref;
 return 1;
 
 # ______________________________________________________________________________
-#\\T46ZN2TXW726J7W4NKQVZJDLVRJ5GPJQZTLMXSY63NMJMXVH65O6V64F7MDEPRTI4JLSX343KAPFQ
-# \\ 3LT42TAQHMLMBAHLJ6IPJ6IIAJNIF5ZKZOEPYG23BMKBTTMB22LZ \\// C25519-BASE-32 //
-#  \\// CKSVIXYI7FRDOZAAV4PQGZI6RRBA5H7ZOYBOIFBB5AV36X3VEAI \\ CODE SIGNATURE \\
+#\\XTZCDVYNODDASZ6WSH34KXH2R4XHQJ3GMBKAICIQV52K5UGIUBHTHZ4Q2T63NEK7UUOGA33OLSLDA
+# \\ RZZBXPHVVDU7LSILESQNZ4TXLV6W7FFNCIN54GTYLE3K7RANAUJU \\// C25519-BASE-32 //
+#  \\// 4DJ2C2GUNEKRS2FKP5YGRPMCEIRRCG7D7UZ5G42IKHGNUPQ5WDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

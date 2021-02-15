@@ -4,8 +4,9 @@
 
 <crypt.C25519.initialized> //= 0;
 
-<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
-<[base.perlmod.load]>->( 'Crypt::Misc', map {"$_\_b32r"} qw| encode decode | );
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+<[base.perlmod.load]>
+    ->( 'Crypt::Misc', map {"$ARG\_b32r"} qw| encode decode | );
 <[base.perlmod.load]>->( 'Crypt::PRNG::Fortuna', qw| random_string_from | );
 
 <[base.perlmod.autoload]>->('Crypt::Ed25519');
@@ -16,7 +17,7 @@
 0;
 
 # ______________________________________________________________________________
-#\\4LQFA5RNNUPJB4Y2CWTGMVIV3NVWVRSO2O2JLSXFXH6RJEJA7X3233EMTXYOI7RYBJCOWBGMLK57W
-# \\ QWTY7UZWM5VWOISGHPVS652HP2VMGUUN5ODHLV3HMMAH4DKCQGTS \\// C25519-BASE-32 //
-#  \\// ONNTU65OFO6S763JXGAA3WXK52QST4SY74BGGIWCEJCPJ33HWAA \\ CODE SIGNATURE \\
+#\\AYB3UIY3BSS6FELHXKJAGNE3D36EUCWQVEE56FUJYQTMTUGXE3KQTNV66HSR2T3XY6UXMLS6YDACY
+# \\ 3PEKPYV3YD7ZQVL5N4W32DJCLSBMW3H7UVBMIOX2NRHBXHQVJX7D \\// C25519-BASE-32 //
+#  \\// H5ERI6DMHGPYM54HMBXN6I64FODKODOZGXTCZF33X5737O46WDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

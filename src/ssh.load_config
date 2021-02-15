@@ -15,7 +15,7 @@ die "ssh config '$config_name' not found in agents/ssh/...\n"
 <[base.log]>->( 1, "loading ssh profile configuration '$config_name'" );
 my $config_data = <[base.load_section_config]>->($config_filename);
 
-map { <ssh.status.profiles>->{$_} //= 'disabled' }
+map { <ssh.status.profiles>->{$ARG} //= 'disabled' }
     keys %{ $config_data->{'profiles'} };
 
 <[base.log]>->( 0, "unable to load ssh '$config_name' config!" )
@@ -24,7 +24,7 @@ map { <ssh.status.profiles>->{$_} //= 'disabled' }
 return $config_data;
 
 # ______________________________________________________________________________
-#\\W7KCPUMW55JJTNFNZD6IQIUBSFOGCQQGWUI2SGVOIHDB7OMO4RFZXSMLSWJL3JFSPJOEGNSHAQRRW
-# \\ ZJTPXJVT2ZKC335H7TKLUALMK3FWKJD6UETKX3JGOR7G26TNASW4 \\// C25519-BASE-32 //
-#  \\// NTBSWHG765DRVLTEKG7NK7RGPLYQ7UMQYFYPRG7KKTPA25WRKCI \\ CODE SIGNATURE \\
+#\\O2IMAQHIQFY7AWQIYNUTEV7C6G7UG5DTSEQUQ4F6CXNPMMKY2KARNIVWRBYI3IIHTCEKVWMD5HHYS
+# \\ JY5CXPK27PWVSTC7GFZQIDW5F42YDS3LO2QUAYKYCCDRJTEQVJFJ \\// C25519-BASE-32 //
+#  \\// JWBUWRRYJKN536POUB52YLDHC7URRMB5XOJLSJ2FSBV7RUMMECQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

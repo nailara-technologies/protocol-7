@@ -28,7 +28,7 @@ foreach my $disp_name ( keys %{<X-11.path.display_status>} ) {
 if ( @disp_names and defined <X-11.display_status.handler> ) {
     my $handler_name = <X-11.display_status.handler>;
     <[base.log]>->( 2, "calling display_status handler '$handler_name'.." );
-    map { $code{$handler_name}->($_) if defined $code{$handler_name}; }
+    map { $code{$handler_name}->($ARG) if defined $code{$handler_name}; }
         @disp_names;
 }
 
@@ -40,7 +40,7 @@ if ( $connected and defined <X-11.wait_for_display.callback> ) {
 }
 
 # ______________________________________________________________________________
-#\\7B6XIRSUBUKENISCYGCHXTG76UGNG222S4GAHITLEIGIIDFVBH4DPR3ZZNV2OKDSE5E34PFFLYZD2
-# \\ SZWOG76VO2XKRA4CXEYQ2WBDCWMVCUCAWQAUWSSSKFWP7XCPFUOI \\// C25519-BASE-32 //
-#  \\// GOZDJUIJZ74A5QDJXHUC5RC7Y75C7BEQYDNZXSB6DTGJNGODYDI \\ CODE SIGNATURE \\
+#\\SPGYLFXQIVOISY2GP75H4YXJB23SXMXQIEKY63VGVYY4DWJ6THGF2T42XCU6S5WEQSHYRMGIT6CMW
+# \\ QCAC67FMKC4PUKRRGURMFALI6HPCNYV4NM6XP4J4EXI2TITVXASH \\// C25519-BASE-32 //
+#  \\// VM43OM6VKZYKPIRRJQ47TZVSGT4754VTSWI6JPWXZOIDPN5V4AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

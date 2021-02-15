@@ -17,7 +17,8 @@ if ( not defined <discover.announce_msg_header> ) {
 
     map {
         <discover.announce_msg_header>
-            .= join( ':', $_, $KEYS{'C25519'}{$key_name}{'root'}{$_}{'sig'} )
+            .= join( ':', $ARG,
+            $KEYS{'C25519'}{$key_name}{'root'}{$ARG}{'sig'} )
             . "\n"
         }
         keys %{ $KEYS{'C25519'}{$key_name}{'root'} };
@@ -32,14 +33,14 @@ $packet_str .= encode_b32r( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 
 # print "---<sent>---\n$packet_str--</sent---\n";
 
-return { 'mode' => 'nak', 'data' => "unable to send: $!" }
+return { 'mode' => 'nak', 'data' => "unable to send: $OS_ERROR" }
     unless <discover.mcast.obj.sock>->mcast_send( $packet_str . "\n",
     join( ':', <discover.mcast.ip4_addr>, <discover.mcast.ip4_port> ) );
 
 return { 'mode' => 'ack', 'data' => 'message sent' };
 
 # ______________________________________________________________________________
-#\\RV7KYGZXZKAQODF5F3BTP5H53ZT53273VXGQU4LNEPXKHCFGGIW2IWHRGDV6GGZ2I7KCEGNQUQU5S
-# \\ SQNLBLQIZDO7AQL33PHUMB3HAOOSXS3YBMSQAE7L4UH5WHBK5JWL \\// C25519-BASE-32 //
-#  \\// HLWSC2H2PWMP6HZ6UREUL6QZTRAAN7ZGULOYR7GRSHTOG7H2AAA \\ CODE SIGNATURE \\
+#\\M4ETNJEH565VOJ56PUJNLLJZEU6X6N3TDZTAB3BMXA7UMIUOYR76F62L3FIF55DZBJYKP4Z2CEX2S
+# \\ Z2XREIBLOB4QWMNGSLQGIAVSEMBLIS4IOK3IZKZWQFCIC5PHDJKI \\// C25519-BASE-32 //
+#  \\// VYTRWRRJX57OB645NA7UIFLQETOMVKVK7PPFGWGTMTZL3GGGSBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

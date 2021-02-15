@@ -4,25 +4,25 @@
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
-if ( not exists <process.unlink_child.w_fh> and ( $> == 0 or $< == 0 ) ) {
+if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) ) {
     <[base.log]>->( 1, "..starting unlink child..," );
     my $child_code
-        = 'map {$SIG{$_}="IGNORE"} ("INT","TERM","QUIT");'
-        . ' $0 = "'
+        = 'map {$SIG{$ARG}="IGNORE"} ("INT","TERM","QUIT");'
+        . ' $PROGRAM_NAME = "'
         . <system.agent.name>
         . '-<root>-unlink-child ";'
         . ' foreach $f (<STDIN>){ chomp($f); unlink($f) }';
     <process.unlink_child.pid>
         = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
         '-e', $child_code )
-        || die "unable to start perl unlink child process [$!]";
+        || die "unable to start perl unlink child process [$OS_ERROR]";
     <[base.log]>->(
         2, ": started unlink child [pid=" . <process.unlink_child.pid> . "]"
     );
 }
 
 # ______________________________________________________________________________
-#\\BTSRC64Z4B3ACGZWENZF2IX27MWWBBOEEZ7LAHI6G5AAHEYXPYFDVYFXYHXV35LGVFGALBPCWKP6Y
-# \\ FW6KN4BKPFCZBSA74MKADL42YISMLFM5CDNSJJREHCRBPHH42TZV \\// C25519-BASE-32 //
-#  \\// YPIUUQ6A3J33A3JURCGOEUVGSQXEHTZZDVWQGG4RCMURBGUQWAQ \\ CODE SIGNATURE \\
+#\\U462UVYQ7WENYWP4LILEHOWY5IMGNVCJ5LK4PLQGUDKPQMBZPMJPHNUG43HXOX5O3CQZUGNGRMRLE
+# \\ UMLPKKORMIA2WGGCAVVZQNI6ABNDAUVE55R76FAUV7HK5D2I33EN \\// C25519-BASE-32 //
+#  \\// VOMRM4S44RVGWY673UYK6YH7EWMFQDTZBFVLSKO5JAJC7UAOQAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

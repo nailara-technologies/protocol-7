@@ -2,8 +2,8 @@
 
 # name = base.sig_term
 
-$0 .= ' :. shutdown in progress... please wait!';
-<[base.log]>->( 1, 'SIGTERM received. shutting down..,' );
+$PROGRAM_NAME .= ' :. shutdown in progress ., please wait .,';
+<[base.log]>->( 1, 'SIGTERM received. shutting down ..,' );
 
 # <[net.send_all]>->("close SIGTERM"); # see base.sig_int
 # $SIG{'ALRM'} = sub { <[base.log]>->( 1, 'done.'); exit(0); };
@@ -13,14 +13,14 @@ $0 .= ' :. shutdown in progress... please wait!';
     if exists <system.agent.type> and <system.agent.type> eq 'nroot';
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
-    map { kill( 9, $_ ) } @{<system.kill_list>};
+    map { kill( 9, $ARG ) } @{<system.kill_list>};
 }
 
 <[base.log]>->( 1, ':. done' );
 exit(0);
 
 # ______________________________________________________________________________
-#\\VFWXIIXXBDB7UMQAYC3H5U25ODR3K7YLDBTSDBAI3QCFUJ4E633EY6KTJT4O5CPQYTCHNVTX5273M
-# \\ 5OP6VIH4KGYKBXAHGFHM26K36XJPG4IHMSTBK2LIRN5Y3KB62JPU \\// C25519-BASE-32 //
-#  \\// LOKCZFWLMHO5BUU6H4BYMYTWMA4FJ23MOCPP74STG5Z34WNVWAI \\ CODE SIGNATURE \\
+#\\XGD4FY5VXHPJ6RJFIIJPWJ2L3CSW3LQKIRNGJ37JB42NSNHVHZJEA3MXT7PUS7LY2MNEYI6O7YOHQ
+# \\ VDFCOMXVG54GCCTJ7QFM5LEY6KRZDIBNDQCVEI3OK2ROMZDBN5YX \\// C25519-BASE-32 //
+#  \\// Z26W5ZKJNQ7HGT4NZOVGNTK2FPVKSTOAWNFZYQG2K5X7YRDJCAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

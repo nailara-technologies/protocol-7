@@ -7,12 +7,12 @@ use Module::Load;
 use Cwd 'abs_path';
 use FindBin qw($RealBin $RealScript);
 eval { load 'File::Which', 'which' };
-my $which_loaded = $@ ? 0 : 1;
+my $which_loaded = $EVAL_ERROR ? 0 : 1;
 
 ### wrapper code to load Gtk3 module at compile time ###
 
 BEGIN {
-    ( my $local_lib_path = $0 ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+    ( my $local_lib_path = $PROGRAM_NAME ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
@@ -24,23 +24,23 @@ my $exec_path = abs_path( File::Spec->catfile( $RealBin, $RealScript ) );
 my $bin_path  = abs_path($RealBin);
 ## [perl path] ##
 my $perl_path = '/usr/bin/perl';
-eval { $perl_path = which('perl') } if $which_loaded;
+eval { $perl_path = which('perl') }          if $which_loaded;
 die "<!> WEIIIRD <!> perl binary not found." if !-e $perl_path;
 my $nailara_path = File::Spec->catfile( $bin_path, 'nailara' );
 die "<!> '$nailara_path' : path not found." if !-f $nailara_path;
 
 ## agent name [ link derived ] ###
-if ( -l File::Spec->rel2abs($0) ) {
-    $agentname = lc($0);
+if ( -l File::Spec->rel2abs($PROGRAM_NAME) ) {
+    $agentname = lc($PROGRAM_NAME);
     $agentname =~ s/^.*nailara\.|[\. ]$//g;
     @call_args = ( $agentname, @ARGV );
 }
 $agentname //= 'nailara';
 exec( $perl_path, '-C31', '-MGtk3', $nailara_path, @call_args )
-    or die "failed to start $agentname agent: $!";
+    or die "failed to start $agentname agent: $OS_ERROR";
 
 # ______________________________________________________________________________
-#\\ITRAJLYO5L2SPWHV4RCUMJRX67XT34LA3ZRGDRKB2TBRT6Y5YXPSM4JMGD5IXCOW7YXG7DI6SKNMK
-# \\ LGI67JIP6EGQM42ODFEZLSV2PHWCNGNHDKICHBRFLNVMGHTCUMZ7 \\// C25519-BASE-32 //
-#  \\// M6HDOEAHRABSHCLJ5CRAVG6B72G5A4LC5ZZWM74P3TEETKT4EDI \\ CODE SIGNATURE \\
+#\\TXNJACBLKKFJFECEKHY6KJAFOJL6RKLA6FI2TIZ3WHGPBTXYMLDJ5GR25GG3WNUZRNJRJEPWPYOP2
+# \\ ZNERE53E43VMOK2YI3PX4GP6TW3LWL7JW7CQWWYY4FBVQVOW5OGI \\// C25519-BASE-32 //
+#  \\// BRFMLHJ7CJDWVHUUGFKBWEANOLZ6GN7UI5GWD234GTKUQIUPKCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

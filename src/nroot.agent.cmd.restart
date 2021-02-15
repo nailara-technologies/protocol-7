@@ -29,18 +29,18 @@ foreach my $param_str ( split m| +|, $params ) {
         if ( defined $agent_id ) { $setup_found++ }
         else { $not_found++; $unknown_name //= $param_str; next }
         map {
-            push( @instance_ids, $_ )
-                if <nroot.agent.instance>->{$_}->{'agent_id'} == $agent_id
+            push( @instance_ids, $ARG )
+                if <nroot.agent.instance>->{$ARG}->{'agent_id'} == $agent_id
                 and ( not defined $agent_subname
-                or defined <nroot.agent.instance>->{$_}->{'subname'}
-                and $agent_subname eq <nroot.agent.instance>->{$_}->{'subname'}
-                )
+                or defined <nroot.agent.instance>->{$ARG}->{'subname'}
+                and $agent_subname eq
+                <nroot.agent.instance>->{$ARG}->{'subname'} )
         } keys %{<nroot.agent.instance>};
     }
 }
 
 map {
-    my $agent_id           = <nroot.agent.instance>->{$_}->{'agent_id'};
+    my $agent_id           = <nroot.agent.instance>->{$ARG}->{'agent_id'};
     my $agent_name         = <nroot.agent.setup>->{$agent_id}->{'name'};
     my $agent_dependencies = <[agent.get_dependencies]>->($agent_name);
     goto skip_dependencies if not defined $agent_dependencies;
@@ -65,7 +65,7 @@ map {
 skip_dependencies:
 } @instance_ids;
 
-map { <[agent.instance.restart]>->($_) } @instance_ids;
+map { <[agent.instance.restart]>->($ARG) } @instance_ids;
 
 my $count   = scalar @instance_ids;
 my $s       = $count > 1 ? 's' : '';
@@ -87,7 +87,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\SFLN7ZFN4UIGWX4RXU7XWWYGSDQCPLSOBJ2K6QE7JLSRV33TIK777S6OTVF37VS4MHILAZXEAXGCU
-# \\ PKCWQR2S224XZR67FL2RY5BXOHZ7R7PRVCSM5X3SZ5RUCNXAGGDF \\// C25519-BASE-32 //
-#  \\// E5WEQXRK5KOVEKL4VGCIS2BR26EJGK3ZJFCA4UY7Z4MSFVIM6DQ \\ CODE SIGNATURE \\
+#\\AEYH54SLEGYVW2X4NI4E3W7G6JZEZFK7PRUU5E6AIJGRQ5AXERYRJJKOUXWBAJIU7B2AKRVN7544C
+# \\ TKESZTMNKLWVVA4RAIBZ3CRQROIRUWCY2HJJIY7HPIN4HTEPDOQS \\// C25519-BASE-32 //
+#  \\// 6HIDL3E7FDYTBSFVBOZ6FBHRJC6J76SBNUP6GL5F5TDGOFA6SAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -21,7 +21,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     my $cache_dir     = <weather.cache_dir>;
     my $location_file = "$cache_dir/city.current";
     <[base.log]>->( 1, "[error-cleanup] removing '$location_file'" );
-    unlink($location_file) or warn "cannot remove $location_file [ $! ]";
+    unlink($location_file) or warn "cannot remove $location_file [ $OS_ERROR ]";
     ##
 
     foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
@@ -68,7 +68,7 @@ if (    defined <weather.get-urls.reply_ids>
     and ref(<weather.get-urls.reply_ids>) eq 'ARRAY'
     and @{<weather.get-urls.reply_ids>} ) {
     my $url_list_str;
-    map { $url_list_str .= "$_\n" }
+    map { $url_list_str .= "$ARG\n" }
         <[weather.parent.get_url_list]>->($station_id);
     foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
@@ -82,7 +82,7 @@ if (    defined <weather.get-urls.reply_ids>
 }
 
 # ______________________________________________________________________________
-#\\6R6E6BFQOCQS3TF32SF3IJ7WYG6OZH2WEX4MGMQ4NO2OBO7EOIPPRRS2UJ23DL5GUTSDHBCCXMCT2
-# \\ DXST3VKVPTFUNKHYN4VCMXCEI22ARF6Y3KICDCR6G46NA4HQZSHN \\// C25519-BASE-32 //
-#  \\// BXSQHDFFAYMEWOEY6AWUQ7XILF3Y22QKOVQETGAMP65GRHRTIBA \\ CODE SIGNATURE \\
+#\\23GMRZNZWUWDALSP5TPYAFJZ7JVOGHH5BO5DELRAM37BIE75V2CCU2VSBEWTV77GZCWHLBEZSYQL4
+# \\ 4YTYDUGUEOFSALCOFW2BHZXOY2OWUUPI7TVA65XSGSXLKN6LGMBL \\// C25519-BASE-32 //
+#  \\// OMWXPKPHVCWL4DL7MW5UTLOBQZISXB4E33IZERCWSDFOCXBFWBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

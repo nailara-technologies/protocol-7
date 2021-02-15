@@ -20,12 +20,12 @@ my $subname_b32
 my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
 return if !-f $file_name;
 chomp( my $crash_pid = ${ <[file.slurp]>->($file_name) } );
-unlink($file_name) or warn("$file_name: $!");
+unlink($file_name) or warn("$file_name: $OS_ERROR");
 return if $crash_pid !~ /^\d+$/;
 $file_name = "/tmp/.nailara.browser.$crash_pid";
 return if !-f $file_name;
 my $file_content = ${ <[file.slurp]>->($file_name) };
-unlink($file_name) or warn("$file_name: $!");
+unlink($file_name) or warn("$file_name: $OS_ERROR");
 
 my $crash_url = $1 if $file_content =~ s|^current_url : ([^\n]+)\n||;
 my $url_flags = $1 if $file_content =~ s|^url_flags   : ([^\n]*)\n||;
@@ -65,7 +65,7 @@ my $s = $next_flags =~ /,/ ? 's' : '';
 );
 
 # ______________________________________________________________________________
-#\\ZES5RZKFGE7TEDH3FIZ4MDCQ4U4R2WUNGFDEM2QVNHHAO7UAB57ZPQLFDNBWEZH3R72MSXT2HZ6N6
-# \\ V7GGZHKXRFHDCMFJQOA3D5CBDPNMMI4V7PWHVAEABZ5UP6VM7RVO \\// C25519-BASE-32 //
-#  \\// QGS7CQW4ZWLS55HN7K22PQBH5NEMUQS7VXEONPFTOU3NPMGQODY \\ CODE SIGNATURE \\
+#\\NYROXDAKRUXAQKPA4QYYZTCYYWWTUQYXXVN4QNWHE2V6BBZQFFQLZ5FV7WAFUMKCQ2EXI6TAAAXWA
+# \\ FRA6NMWVGJU6U434AYTM4SMR7YLYCGMICOWDFUIPWC3CAXM7KTOQ \\// C25519-BASE-32 //
+#  \\// W5PBNN5VPWLHMP5JWRAGGVXSKYLJEKSTWPM7ASQUDLYF3KN4UAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

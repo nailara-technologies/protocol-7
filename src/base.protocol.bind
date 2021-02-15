@@ -19,11 +19,13 @@ my $mode = $_[2] || 'server';
 
 my $fd = eval { fileno( $_[0] ) };
 
-if ( $@ or not defined $fd ) {
+if ( $EVAL_ERROR or not defined $fd ) {
     my $ref_str = ref( $_[0] );
-    do { $@ =~ s|\n+| |g and $@ =~ s|\.? +$||g } if defined $@;
+    do { $EVAL_ERROR =~ s|\n+| |g and $EVAL_ERROR =~ s|\.? +$||g }
+        if defined $EVAL_ERROR;
     <[base.log]>->(
-        0, "<<!>> unable to bind protocol '$_[1]' to '$ref_str'-filehandle [$@]"
+        0,
+        "<<!>> unable to bind protocol '$_[1]' to '$ref_str'-filehandle [$EVAL_ERROR]"
     );
     <[base.session.check_remaining]>;
 } else {
@@ -35,7 +37,7 @@ if ( $@ or not defined $fd ) {
 }
 
 # ______________________________________________________________________________
-#\\WLXTZJG3Q5XXXRO6SPVEFFDRU76QDW3I7OKHE5YSXJEC2KBMTQOJDQSWNWQ6EOBHRMW4QG7A544BC
-# \\ ILG5T7YKWXOTTWS6HAIKOJT2ZII22JDKA2NW4N2V7LQSQQHTES54 \\// C25519-BASE-32 //
-#  \\// Q7S2V7JSOLBKXNYU4SCHYL7YKXZMA2L2DVMA666Q54426LPBYAA \\ CODE SIGNATURE \\
+#\\ZHPKACAMCBYTBW7XPPFXXEM45WGXTZULUL3JNH7LGBZDDV2BUI65L5VVNTB4HMWWM6TSZE23UP6FG
+# \\ I2JOAAQWLNUZ4O3LRL5UGOBWCSGYLUYWDI6NJFKMLZJDC24MGWMX \\// C25519-BASE-32 //
+#  \\// OPOQI7VQBJII3G42E2QSAPNETHPNIKGGQ57YBS3Q7A5G2WZIACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

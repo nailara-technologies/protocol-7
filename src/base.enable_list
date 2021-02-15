@@ -9,7 +9,7 @@ $data{'lists_hidden'} //= {};
 
 my @matches;
 
-map { push( @matches, $_ ) if delete $data{'lists_hidden'}{$_} } @params;
+map { push( @matches, $ARG ) if delete $data{'lists_hidden'}{$ARG} } @params;
 
 return <[base.log]>->( 0, "no matching list to [re]enable.." ) if !@matches;
 
@@ -17,7 +17,7 @@ my $s = @matches > 1 ? 's:' : '';
 <[base.log]>->( 2, "enabled list$s " . join( ', ', @matches ) . ' ..' );
 
 # ______________________________________________________________________________
-#\\POTWYXN6P2RXC4W5IBGURE3HKWIWJD7QZAQYBG66DHFWVUXYHNPXTH42PGY3LUH3P2YALCBF6ZBQC
-# \\ 7J4V3UVPEHLF4EXDCVDNAOGSU2T2Z7QD2FBVLYX44Y32FPTBXR3R \\// C25519-BASE-32 //
-#  \\// Z7EHWJ5OTPKDTE4IBYDZMQW2NB62QLXYWIFUCVFXSCD6GEMTWAY \\ CODE SIGNATURE \\
+#\\MYKPN3X7XYUPZPF7Q3DIZTX3KNRWBF2CHL4VSUV3RYA4OAM7C3GHZVDICE6SI2CHLVWBZX77Q2DM6
+# \\ YY34Z4RRKMJQURIK6UUT5XCXG4NWSD3SDVTPB5VRWJC2LTBGYGRS \\// C25519-BASE-32 //
+#  \\// GYMUOQGIHYYMZYKIYPF6LL5GUQI5QRPLK36URIZN5VQZP6CQQBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

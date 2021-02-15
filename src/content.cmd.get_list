@@ -14,7 +14,7 @@ my $file_types_str = $$call{'args'} // '';
 
 $subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
 
-map { $file_types{$_} = 1 } split m| +|, $file_types_str;
+map { $file_types{$ARG} = 1 } split m| +|, $file_types_str;
 
 my %b32_index;
 my $index = -1;
@@ -40,9 +40,9 @@ foreach my $file ( @{<content.file_list>} ) {
         ( my $entry_tile ) = ( keys %{ <content.agent_subnames>->{$index} } );
         map {
             next
-                if $_ eq $entry_tile
+                if $ARG eq $entry_tile
                 and not grep {m|^$b32id_str$|}
-                @{ <content.exclusive_b32id>->{$_} }
+                @{ <content.exclusive_b32id>->{$ARG} }
         } keys %{<content.exclusive_b32id>};
     }
 
@@ -50,10 +50,10 @@ foreach my $file ( @{<content.file_list>} ) {
 
     my @url_flags;
     map {
-        if ( exists <content.url_flags>->{$_}->{$file} ) {
-            my $flag_str = $_;
-            $flag_str .= '=' . <content.url_flags>->{$_}->{$file}
-                if $_ eq 'delay';
+        if ( exists <content.url_flags>->{$ARG}->{$file} ) {
+            my $flag_str = $ARG;
+            $flag_str .= '=' . <content.url_flags>->{$ARG}->{$file}
+                if $ARG eq 'delay';
             push( @url_flags, $flag_str );
         }
         }
@@ -73,7 +73,7 @@ foreach my $file ( @{<content.file_list>} ) {
 return { 'mode' => 'data', 'data' => $reply_string }
 
 # ______________________________________________________________________________
-#\\XGZ7JTDVPJMFB46VXI574UML2NCPBQZ74TDB37KSRFQ4V6SVOWFKE7S2QM6WUYSEVBZITCS4Y65FI
-# \\ 22ALP5IRBAKGHGMO2RY3BTVN4DQGQDM2P3IB74OPR665Z54I5XPA \\// C25519-BASE-32 //
-#  \\// H4G3JGUPDKRL2JDLJSWG7TUGITRK24WMYGTFIHF3TGXPO6VSECA \\ CODE SIGNATURE \\
+#\\HN2YNNDJAU2S7QX27SFCSA4QDTYMQABT47ZV435GBZMECVPG5ADHGUHIVSFUJZOZELUUW3D7G5UD6
+# \\ ZJKBTBP6WTOWJ7OBJV7ATM7JAFYET3A2H6SNJE3NAKDPRR33JOWR \\// C25519-BASE-32 //
+#  \\// 5Y5WJF3NPAOKQLB7HX6XNJZ3AUE4OFCCCXKMMUGZCBBCZ6364BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

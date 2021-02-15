@@ -72,12 +72,12 @@ if ( not defined $station_id and $query_str !~ m|\s*,\s*\u\w\w$| ) {
 
 if ( not defined $station_id ) {
     my $lpath = "/tmp/weather.replied-locations." . encode_b32r($location_name);
-    my @match_entries = map {"[ID=$_] $total_matches{$_}"} keys %total_matches;
-    my $matched_names_list
-        = join( '',
-        map {"$_\n"} sort { length $a <=> length $b } @match_entries );
+    my @match_entries
+        = map {"[ID=$ARG] $total_matches{$ARG}"} keys %total_matches;
+    my $matched_names_list = join( '',
+        map {"$ARG\n"} sort { length $a <=> length $b } @match_entries );
     eval { <[file.put]>->( $lpath, $matched_names_list ) };
-    <[base.log]>->( 0, "returned locations -> $lpath" ) if !$@;
+    <[base.log]>->( 0, "returned locations -> $lpath" ) if !$EVAL_ERROR;
 }
 return {
     'mode' => 'nak',
@@ -89,7 +89,7 @@ return {
 return { 'mode' => 'ack', 'data' => $station_id }
 
 # ______________________________________________________________________________
-#\\ER4IRA7KZBGUZUIBBAAYE63XPGYD7R525QWMVRMQ2GTHL2ZYSGG2AJB4PZY6PSLXGTL2P27ICZ5XK
-# \\ KO2XYLHIUIQDLINZFCQWVBNDV3XG6Y5DUJEWBSVVWOJ4UURX7TVW \\// C25519-BASE-32 //
-#  \\// 2NKDM33LSI3RRRW2B7M7DSXNODLCKBLW6JOEUQIQS6JOMEVXOCY \\ CODE SIGNATURE \\
+#\\ESZPLFILKMRKOH7CKQFF5Q57HT6CH2DMQSOIXE6PNN4EZWJK6SAGNVSHFWZL4UG2AUXVECJDAFFFO
+# \\ S6RLKJVDZL2QGMXV2C4G2RQTEXJ3HRMEFYZDTZGX6G6MYSKF253L \\// C25519-BASE-32 //
+#  \\// 5F2KMIGHH5ZUMKAAZ36KHFS5U3T4ZQEKNOQA64HQ7EMRL3UDYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

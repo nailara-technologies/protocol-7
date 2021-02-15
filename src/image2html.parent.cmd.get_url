@@ -58,12 +58,12 @@ if (    -d $html_path
 if ( !-d $html_path ) {
     <image2html.converting>->{$html_dir} = 1;
     <[base.log]>->( 2, "creating html dir '$html_dir'.." );
-    make_path($html_path) or die "make_path($html_path): $!";
+    make_path($html_path) or die "make_path($html_path): $OS_ERROR";
 
     <[base.log]>->( 2, "copying 'loading' icon to cache dir.." );
     my $loading_icon = <system.root_path> . '/data/gfx/anim/busy.2K.gif';
     die "can't find image '$loading_icon'" if !-f $loading_icon;
-    copy( $loading_icon, "$html_path/busy.2K.gif" ) or die "copy: $!";
+    copy( $loading_icon, "$html_path/busy.2K.gif" ) or die "copy: $OS_ERROR";
 
     <[image2html.base.write_stub_page]>->($html_path);
 
@@ -88,7 +88,7 @@ if ( !-d $html_path ) {
 return { 'mode' => 'ack', 'data' => "file://$html_path/image.html" }
 
 # ______________________________________________________________________________
-#\\SF55LFXOLIHCQLDHPX53FMGKDJ36PQCX6B2ZEXQHZYRD3OM7TUKBKWYXAGNJMBSCPTXBBFLGNJFYM
-# \\ JAZ4IIVFKEN3YWDYSVUIQKNLVESXH2RH3LLNAYZQ33565ZSH2O6P \\// C25519-BASE-32 //
-#  \\// RLBWGB2ASUQRARJPOZ3422LFVCERMU24PZ34GAP3NJXTZ3FG4DQ \\ CODE SIGNATURE \\
+#\\NOE2YR642PAOGFDVOHFD4CCH2XFZBQEW4OYPGWFUJ5BHHQSIQTHCPZCL7XTV7NM7O3QX3UIPHAS7Q
+# \\ OAHAMVZ2L35JEKOON4YBFFFJIU6XOX4LMFEL23JFERZS2Q7QPHSS \\// C25519-BASE-32 //
+#  \\// 2AO64SR4THKYEBNU4LBVHSUFGBYBZPG5NDB247CZ33BXSNX5QAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

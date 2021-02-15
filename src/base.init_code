@@ -38,11 +38,11 @@ $data{'debug'} //= {};
 $data{'system'}{'process_start'} = {
     'time'  => <[base.time]>->(5),
     'pid'   => $$,
-    'pname' => $0,
-    'uid'   => $<,
-    'euid'  => $>,
-    'gid'   => $(,
-    'egid'  => $)
+    'pname' => $PROGRAM_NAME,
+    'uid'   => $UID,
+    'euid'  => $EUID,
+    'gid'   => $GID,
+    'egid'  => $EGID
     }
     if not exists $data{'system'}{'process_start'};
 
@@ -51,7 +51,7 @@ my ( $of_cur, $of_max ) = getrlimit( BSD::Resource::RLIMIT_NOFILE() );
 if ( $of_cur != $of_max ) {
     <[base.log]>->( 2, ": open files limit increased [$of_cur->$of_max]" );
     setrlimit( BSD::Resource::RLIMIT_NOFILE(), $of_max, $of_max )
-        or warn "setrlimit <$of_max> failed [$!]";
+        or warn "setrlimit <$of_max> failed [$OS_ERROR]";
 }
 $data{'system'}{'limits'}{'ofile'}
     = [ getrlimit( BSD::Resource::RLIMIT_NOFILE() ) ]->[1];
@@ -137,7 +137,7 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
         'descr' => 'virtual agent list'
     };
 } else {    # remove some commands for non-core type agents
-    map { <[base.disable_command]>->($_) } (
+    map { <[base.disable_command]>->($ARG) } (
         qw|
             exit
             clear
@@ -165,14 +165,14 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
 }
 
 map {
-    <base.watcher.signal>->{$_}->cancel
-        if defined <base.watcher.signal>->{$_};
-    my $uc_sig = uc($_);
+    <base.watcher.signal>->{$ARG}->cancel
+        if defined <base.watcher.signal>->{$ARG};
+    my $uc_sig = uc($ARG);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
 
     ## initializing signal handlers ##     [ << potential SIGCHLD problems >> ]
-    <base.watcher.signal>->{$_} = <[event.add_signal]>
-        ->( { 'signal' => $uc_sig, 'handler' => 'base.sig_' . $_ } );
+    <base.watcher.signal>->{$ARG} = <[event.add_signal]>
+        ->( { 'signal' => $uc_sig, 'handler' => 'base.sig_' . $ARG } );
 } qw|  int  term  hup  chld  abrt  usr1  usr2  trap  |;
 
 ## initializing session list ###
@@ -196,7 +196,7 @@ if ( defined <setup.aliases> ) {
             $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_AGENT";
         }
     }
-    map { $data{'alias'}{$_} = "$_ SOURCE_AGENT SOURCE_SID" }
+    map { $data{'alias'}{$ARG} = "$ARG SOURCE_AGENT SOURCE_SID" }
         split( m|\s+|, <setup.aliases.source_agent_sid> )
         if defined <setup.aliases.source_agent_sid>;
 }
@@ -210,8 +210,9 @@ if ( defined <setup.aliases> ) {
 ## \ implement permission filter hooks [ LLL ]
 
 return 0;
+
 # ______________________________________________________________________________
-#\\HORKMYLSDMZVP7HX53DZ4FJM6EUNPBZ2TFXD7PO3GIW3PSMV7LCBHO3VHQVWOX3PRIUDM6KYLKU46
-# \\ MHTLWMXNG7RSXYYPWLFTQ33QXS5CSQVB6AKOF6LV5CH7JPDQQMYV \\// C25519-BASE-32 //
-#  \\// 5B7KTSEKLPQME5BJV7AL5723NKMXEIQSKXWR6SLU7B3YTD5OEBY \\ CODE SIGNATURE \\
+#\\LOIJACQUGSUCPMW6OUZV6LH7DEOFIPLCQIF4BDIQTVDQJSYIZOBVNREFK6EEXYEHAERJN25DQT644
+# \\ PODKLRIYP3GKVRHS5D4YFQYUKCOIMSLN6ASMRSTWYM2SL7MYBGZS \\// C25519-BASE-32 //
+#  \\// YBV4WM5TVEZ6ZYOOJSXACFLCYJEQ5Q5MLFS5BMWUGIKMCC6Z4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

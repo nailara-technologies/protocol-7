@@ -9,7 +9,7 @@ my @kill_list = @{ shift->w->data };
 );
 
 my @actually_killed;
-map { push( @actually_killed, $_ ) if kill( 9, $_ ) } @kill_list;
+map { push( @actually_killed, $ARG ) if kill( 9, $ARG ) } @kill_list;
 
 my $chld_str = scalar(@actually_killed) == 1 ? 'child' : 'children';
 
@@ -17,10 +17,10 @@ my $chld_str = scalar(@actually_killed) == 1 ? 'child' : 'children';
     1, sprintf( ": <KILL>ed $chld_str : %s", join( ', ', @actually_killed ) )
 ) if @actually_killed;
 
-map { delete <nroot.terminating.pid>->{$_} } @kill_list;
+map { delete <nroot.terminating.pid>->{$ARG} } @kill_list;
 
 # ______________________________________________________________________________
-#\\TD2YTXHYD6QEZUVGM2N5WRYS73NWWTU6W737KHLWAFYRQZQH7QJHJZGVNLI7YWFHH6APGRZZIJECC
-# \\ KDUJYHXPL5L6PHTXL6T333R34P4LVCHAXS47B2Y24BKA4WKZV5TJ \\// C25519-BASE-32 //
-#  \\// K3MBTMJZGDVXAHCPPCGOE6MFY4WB4GUQYDCFLQHYCCDNFTUO4BA \\ CODE SIGNATURE \\
+#\\4GTE4I355HCEY7CYTXQMVV6UFCSOPMKWLIZ6NE3ZLNEAK2OGTBOKUW3OPEAQKO4XYYOLZX2NE6FI6
+# \\ FITCZVCY6ITH4EHLNNMUM57MENQ2CEWK7YANWYJQXYBTLI326HBK \\// C25519-BASE-32 //
+#  \\// J6VVUUC6WNFGUZDRFVI6WRPL7Y2BD6WK5BJBPG2CHFB37H5J6DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

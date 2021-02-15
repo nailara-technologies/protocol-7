@@ -18,20 +18,20 @@ if ( defined <composition.setup.ticker_agent_type> ) {
         my $_composition_data = <composition.setup.tile-groups>->{$composition};
 
         map {    # ticker-sdl probably won't work anymore until it was updated.,
-            if ( $_ =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
+            if ( $ARG =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
                 my $tile_name = $2 // '';
 
                 my $new_name = "ticker-$ticker_type$tile_name";
                 $_composition_data->{$new_name}
-                    = delete $_composition_data->{$_}
-                    if $new_name ne $_;
+                    = delete $_composition_data->{$ARG}
+                    if $new_name ne $ARG;
 
                 $_composition_data->{$new_name}->{'layer'} //= 100; # <- on top.
             }
 
             # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
 
-            $_composition_data->{$_}->{'layer'} //= 1000
+            $_composition_data->{$ARG}->{'layer'} //= 1000
                 if $composition =~ m|^overlay_|;
 
         } keys %{ <composition.setup.tile-groups>->{$composition} };
@@ -50,7 +50,7 @@ if ( defined $previous_composition ) {
         return 0;
     }
     $previous_data = <composition.setup.tile-groups>->{$previous_composition};
-    map { push( @remove_agents, $_ ) if not exists $composition_data->{$_} }
+    map { push( @remove_agents, $ARG ) if not exists $composition_data->{$ARG} }
         keys( %{$previous_data} );
 }
 
@@ -69,9 +69,9 @@ if (<composition.startup.initializing>) {
         ###
         map {
             my $stop_agents
-                = exists $_composition_data->{$_}->{'stop_agents'}
-                ? join( ' ', $_composition_data->{$_}->{'stop_agents'}, $_ )
-                : $_;
+                = exists $_composition_data->{$ARG}->{'stop_agents'}
+                ? join( ' ', $_composition_data->{$ARG}->{'stop_agents'}, $ARG )
+                : $ARG;
             <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'core.nroot.stop_implicit',
                     'call_args' => { 'args' => $stop_agents }
@@ -82,7 +82,7 @@ if (<composition.startup.initializing>) {
     }
 } else {
     map {
-        <composition.transition.status.agents.stop>->{$_}
+        <composition.transition.status.agents.stop>->{$ARG}
             = $previous_composition // $tile_group_name;
     } @remove_agents;
 }
@@ -132,7 +132,7 @@ foreach my $agent_name ( keys %{$composition_data} ) {
 
 map {
     my $tile_name = '';
-    my $name_copy = my $agent_name = $_;
+    my $name_copy = my $agent_name = $ARG;
     $tile_name = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
     if ( length($tile_name) ) {
         <composition.tiles>->{$tile_name}->{'agent'} = $agent_name;
@@ -221,7 +221,8 @@ if (<composition.watch_tiles.poll_tile_color>) {
 
     <[base.log]>->( 1, " : setting up \\ updating tile activity watchers.," );
     my $timers = <composition.timer.poll_tile_color> //= {};
-    map { $timers->{$_}->cancel if $timers->{$_}->is_active } keys %{$timers};
+    map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
+        keys %{$timers};
 
     foreach my $tile_name ( keys %{<composition.tiles>} ) {
 
@@ -252,7 +253,7 @@ if (<composition.watch_tiles.poll_tile_color>) {
 <[composition.handler.transition]>;
 
 # ______________________________________________________________________________
-#\\YVIZBQF6PVDMI5ETK5YTCABJKQ7LT6DN6YLWE5XKL35IG5V3TIQ3UZSEYYCMY7JNW6H423E3MB6G4
-# \\ UK334YC3SI6USNE5H4453XSTX6EUJKDCSAPYZ2XKOBYMGLLUTQRW \\// C25519-BASE-32 //
-#  \\// U5PHBLTJH6VY7B6AQHNJ7W2KXTCIY7KNZ3CYIQSWWUXKFDGJKCA \\ CODE SIGNATURE \\
+#\\2ZHKALUOB4SDGIUWAALP2MWJTXKA4CGYWHC2AYRVVNRSU4YEI26WA45RGO3AFTMFMQVJTQQUNRCDW
+# \\ OEHIW7ECBWPIFVRXAEEH3PKBKLDNSAUC4C3GARDDLQUOAVJM7N3N \\// C25519-BASE-32 //
+#  \\// Q76CQIOORCNV4SO4P4FQODI4SBOJ5AKYSAZB7BHIJBI3V6VF4AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

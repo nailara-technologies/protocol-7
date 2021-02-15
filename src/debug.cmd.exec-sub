@@ -18,7 +18,7 @@ return { 'mode' => 'nak', 'data' => 'no such subroutine' }
 my $sub_output = eval { $code{$sub_name}->(@params) };
 
 my $err_msg;
-$err_msg = 'errors during subroutine execution' if $@;
+$err_msg = 'errors during subroutine execution' if $EVAL_ERROR;
 $err_msg = 'undefined subroutine output'        if not defined $sub_output;
 return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
 
@@ -29,7 +29,7 @@ my $rep_mode = $sub_output =~ m|\n| ? 'data' : 'ack';
 return { 'mode' => $rep_mode, 'data' => $sub_output };
 
 # ______________________________________________________________________________
-#\\NBWT76RS3F2BDVEFZM3MGUCK72JKGVJFZYYGCANUD4NFBUWHE7NHHQ3HPSKFZGZTE3MP3M2ADAZY6
-# \\ WNSYV6DOL6TZVOLP7N4UP5YRP3CKQIHODONGW2VA6SIGALPHAJXA \\// C25519-BASE-32 //
-#  \\// 3TJNA4FVANMZ5XJEERTPAIHUWZ5JYKSQOIPFIY26VMVQABMMQAQ \\ CODE SIGNATURE \\
+#\\FJZSAXNK2TUFA6O544CB2DYCWFTPPKPXUUS4BUQ2YPQFILDVNB6P7CHIPGNNFW3LKQZXRIDQPQOZA
+# \\ AP6GXB6ITLWPYIAJT2WW64SEDPM74TBFAK3GMLXWTGANPFRYOA3E \\// C25519-BASE-32 //
+#  \\// ZNKYPZRTWZFWMOQTHBUX46VQ5IQ4NONKV2CUP5L23OEJB665ACA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

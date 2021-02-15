@@ -23,11 +23,11 @@ my $modprobe_bin = <nroot.modprobe_bin>;
 
 my @restart_timers;
 map {
-    if ( defined <nroot.agent.instance>->{$_}->{'timeout_timer'}
-        and <nroot.agent.instance>->{$_}->{'timeout_timer'}->is_active ) {
+    if ( defined <nroot.agent.instance>->{$ARG}->{'timeout_timer'}
+        and <nroot.agent.instance>->{$ARG}->{'timeout_timer'}->is_active ) {
         push( @restart_timers,
-            <nroot.agent.instance>->{$_}->{'timeout_timer'} );
-        <nroot.agent.instance>->{$_}->{'timeout_timer'}->stop;
+            <nroot.agent.instance>->{$ARG}->{'timeout_timer'} );
+        <nroot.agent.instance>->{$ARG}->{'timeout_timer'}->stop;
     }
 } keys %{<nroot.agent.instance>};
 
@@ -63,12 +63,12 @@ if ( length($modprobe_output) ) {
 
 do_reply:
 
-map { $_->start } @restart_timers;
+map { $ARG->start } @restart_timers;
 
 return { 'mode' => $reply_mode, 'data' => $reply_data }
 
 # ______________________________________________________________________________
-#\\OI3E6KVSGG325JTDACKBXFTL3MZDIBR374QTKZK4X3IC53RVIE235L47QTHNU7V652KR4SGL74QOM
-# \\ G3CVVV7ZAHW4TDY66UWAWKO77RYEJ6EKVN5XTE4GNQXYBRJASDT4 \\// C25519-BASE-32 //
-#  \\// UMZZI5VALKQ5GIRJ6U2DJXFVZUXNEY337AD7DA5LN3SSTUDA2DI \\ CODE SIGNATURE \\
+#\\GLRI4MJLC6T5RFD2G32FC56N24FNRZARKKXHD6MZGFRB2GIACXDC6ILRKA3SNUIFOBREWTTCI6GAW
+# \\ BZY22PLSRG2HLNUJRIFEZTC6LFLWTGJUW7HEHU56X2GA64YB2Z3N \\// C25519-BASE-32 //
+#  \\// KTXBWB3SKSHYRDNWUW6WQXPP36BE3K2G4ANIMNI4MDIIFLVFCCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

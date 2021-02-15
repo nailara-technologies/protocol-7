@@ -19,8 +19,8 @@ return {
 if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
     my $instance_id;
     map {
-        $instance_id = $_
-            if <nroot.agent.instance>->{$_}->{'job_id'} == $job_id
+        $instance_id = $ARG
+            if <nroot.agent.instance>->{$ARG}->{'job_id'} == $job_id
     } keys %{<nroot.agent.instance>};
     if ( defined $instance_id ) {
         $query_param = $instance_id;
@@ -111,7 +111,7 @@ foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [+subname]
 return { 'mode' => 'nak', 'data' => 'not present' }
 
 # ______________________________________________________________________________
-#\\ESLZMFIYOGU3XIA7KHDF7E2BCU7BT4A4GDCN3LHKWKWEPAUQHHEHRQLNWOBMCECPWTW46RBCQSWII
-# \\ HV2ATORXRMX3237THEI627KDHVA7IU4X6UORMOHXTQDAPLGC2EAD \\// C25519-BASE-32 //
-#  \\// WI6OOATWZVOZSVP52NJCQU35Y7IHEC6HFJRGY5WEPMVILTUF4CI \\ CODE SIGNATURE \\
+#\\CMISU6PGJ434RWELFZHLR7NKBZ43OHZ74FC3FMWSL7J6IAKIHUGQY6RLIWXAWV6Y2PHQX3NMIUJTI
+# \\ ENDWZVNGCDPOYN3U2BXDX362BYGMF52N5D7OC4I7LL5D6Y6NZQEE \\// C25519-BASE-32 //
+#  \\// WAT2ZIGMPGCU6SJ6JLEUKK5NMGM5YK45BOSPCAANBBAJ3726SAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

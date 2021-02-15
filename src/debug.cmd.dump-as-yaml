@@ -7,7 +7,7 @@
 my $d_ref;
 my $keyword = $$call{'args'} // '';
 if ( length($keyword) and not eval {qr/$keyword/} ) {
-    ( my $regex_err = lc($@) ) =~ s/ in regex.+\n$//;
+    ( my $regex_err = lc($EVAL_ERROR) ) =~ s/ in regex.+\n$//;
     return {
         'mode' => 'nak',
         'data' => "$regex_err in regex [ invalid pattern n param ]"
@@ -30,7 +30,7 @@ $reply = {
 };
 
 # ______________________________________________________________________________
-#\\SRHJF7N6IY4FROJ6ZG264NSTZHN7S7HTXEAAIGRMCYL5AS7ICPDTPPQH75GPZBJYNSTJ72IOZDMXK
-# \\ HF6QNUS5FR7Q7ZQ32CGJYTQBWAIATRFJDK3TC6HZKYL4ZEN672BT \\// C25519-BASE-32 //
-#  \\// VPLKKJLJNV6ZUHJZCICAZE4AAFFYNHLTM24CFYABB3BFQAQA6BI \\ CODE SIGNATURE \\
+#\\IIRTUNEFEHLQSAVHWGAYPGSBBZX4D63SMURW5ZFGRNLIDO3FHDCBEHNJUVMXUXLSTKCWKFYQB6M3A
+# \\ RT6ARPTA44NFGA7WHYUEBCI5336ACXPLH3SLVCHLKVLKY5GOKRYW \\// C25519-BASE-32 //
+#  \\// 5Y74TFE5VTGIQVQYAM5CWPGCFRUXOJA4GMRVL6MRJJRHDUAWACY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

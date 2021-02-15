@@ -7,14 +7,14 @@ my $bmw = <[digest.bmw.ctx]>->(shift);
 die "expected file name parameter" if not my $fname = shift;
 die "file '$fname' not found" if !-f $fname;
 
-open( my $SUM_FD, '<' . $fname ) or die "<< $fname : $! >>";
+open( my $SUM_FD, '<' . $fname ) or die "<< $fname : $OS_ERROR >>";
 $bmw->addfile($SUM_FD);
 close($SUM_FD);
 
 return encode_b32r( $bmw->digest );
 
 # ______________________________________________________________________________
-#\\R3BTLQ3SXQEDH73BZOSFIV5L4CFTSDMMPVGDYICWKNQSKCDPSWIPU5MVOHNXANFFOFZDXHWNO76LC
-# \\ UF5WT4UY44OYQE7P2GTJN3ROPESQ546Z3GGUEQGV5OYCQG4VASU2 \\// C25519-BASE-32 //
-#  \\// OB26PMR6MWA3THBXX5CSFQGJUD2LJWUIU3ZW6L3KJY7IVGSMGBI \\ CODE SIGNATURE \\
+#\\K3K4DGTCHFNZ4XGTRG7YSZSIH33IGVORRHELCQ3CZ3AVCJQ4OICTH67QAZ42ESXE6JS7WXBA7VOZA
+# \\ MQ7SESK6EFGIFIYZZN4AIZCZ4PVNFPN4ODUAUWXYAETMG7TUKDQ6 \\// C25519-BASE-32 //
+#  \\// HCIT6S7Q6OXJC2PZOEWR6WYAUBKGUNFF5ROD34ZBK76FBKAA6CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

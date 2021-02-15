@@ -20,8 +20,8 @@ my ( $width, $height ) = ( $coords[2] - $coords[0], $coords[3] - $coords[1] );
 
 my %underscan;
 map {
-    $underscan{$1} = <composition.setup.screen>->{$_}
-        if $_ =~ /^underscan\.(\w+)/
+    $underscan{$1} = <composition.setup.screen>->{$ARG}
+        if $ARG =~ /^underscan\.(\w+)/
 } keys %{<composition.setup.screen>};
 
 my $x_total = <x11.screen.width> - $underscan{'left'} - $underscan{'right'};
@@ -40,7 +40,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\KWPD4SNZOHOC3TQDJLBMS477IN3JP6IDKPNTATBICEVNZKPWK63ZJV4OQM5I6S4E2TMBGP4BQRPAC
-# \\ ELSVIOX7KXBEVYY5VV2XL26GYDRNA2SLNXI36Z227HE4UYJP3OZK \\// C25519-BASE-32 //
-#  \\// FE6JDIQY3KR4LYAGDCW4IMU7NLF73JEGGZBFLHHYTV2T6J7PIDA \\ CODE SIGNATURE \\
+#\\RPHNWDKZTKLDBVGZLNELY5H4VMTHRDAYVYGBRDRD4IQYG7VY3MF64VNFJYLW42LTRBWHUSEIVBIUU
+# \\ F4KR6QFFQJI76V76JGYVDBXORBI32ZSLIVTTT363SQRBHLLFCGUN \\// C25519-BASE-32 //
+#  \\// RGGXGX25KGPRT46KKPYCVCZVKIF7OTR3EOOTNBOWHAMOET4P2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

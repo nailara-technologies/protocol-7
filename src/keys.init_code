@@ -4,7 +4,7 @@
 # todo = add native fallback method for empty environment case .,
 
 ## C25519 key path owner can be overridden with USER environment variable.., ##
-<system.privs.user> = $ENV{'USER'} // getpwuid($>) // $ENV{'LOGNAME'};
+<system.privs.user> = $ENV{'USER'} // getpwuid($EUID) // $ENV{'LOGNAME'};
 
 my $C25519_id = 'C25519.B32';
 my @key_types = qw| secret public |;
@@ -14,17 +14,17 @@ my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
 <keys.regex> = {
     'key_name' => qr|^$name_regex$|,
     'key_file' =>
-        { map { $_ => qr|^($name_regex)\.$key_re_tmpl\.$_$| } @key_types },
+        { map { $ARG => qr|^($name_regex)\.$key_re_tmpl\.$ARG$| } @key_types },
     'key_files' => qr|$re_keyfiles|
 };
-map { <keys.file_suffix>->{$_} = ".$C25519_id.$_" } @key_types;
+map { <keys.file_suffix>->{$ARG} = ".$C25519_id.$ARG" } @key_types;
 
 <keys.bin_path.shred> = <[base.required_bin_path]>->('shred');
 
 0;
 
 # ______________________________________________________________________________
-#\\GTXZUXBDYC3OH3WJMDNMHNLGFONL4GHANY32FFANHUNYQAPX5FV7LSGASAXHY7S4L2N2WMX7HN2O6
-# \\ PBFBVONVRSF5IRFX7GKCNASB6QARUP26KERYCPSEIGRHCT4STQTW \\// C25519-BASE-32 //
-#  \\// A4PJ3ZOS44EOSF7UNZPGJUOR4JPNAVMLBZYVBZOILEGF6JEQ4CY \\ CODE SIGNATURE \\
+#\\GBH7OJOYWNZWICSRK4DAWULKEEZQYFPC56VXQUVFASVUG4JAS3GYGE3HJ6MUI5RHPQCUD7K6KBXP6
+# \\ 3J4TPKQYCQESJ35VAQG54T4LWNJS3ZP5ZM4TPILKL5R6CNFQ7BM5 \\// C25519-BASE-32 //
+#  \\// OVEXYSIQRBIJIRWFJFEP444Q4BFF6N364W3H5XUVLBTHHYF7CBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

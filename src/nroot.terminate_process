@@ -13,7 +13,7 @@ $instance_id = <nroot.child>->{$kill_pid}->{'instance_id'}
 my @children = @{ <[nroot.sub-process.get_children]>->($kill_pid) };
 
 map {
-    <nroot.child>->{$_}->{'instance_id'} = $instance_id
+    <nroot.child>->{$ARG}->{'instance_id'} = $instance_id
         if defined $instance_id
 } @children;
 
@@ -23,7 +23,7 @@ map {
 my @kill_list = ($kill_pid);
 
 my @actually_killed;
-map { push( @actually_killed, $_ ) if kill( 'TERM', $_ ) } @children;
+map { push( @actually_killed, $ARG ) if kill( 'TERM', $ARG ) } @children;
 
 if (@actually_killed) {
     push( @kill_list, @actually_killed );
@@ -31,7 +31,7 @@ if (@actually_killed) {
     <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @actually_killed ) );
 }
 
-map { <nroot.terminating.pid>->{$_} = <[base.time]>->(3) } @kill_list;
+map { <nroot.terminating.pid>->{$ARG} = <[base.time]>->(3) } @kill_list;
 
 <[event.add_timer]>->(
     {   'after'   => <nroot.timeout.kill_list>,
@@ -41,7 +41,7 @@ map { <nroot.terminating.pid>->{$_} = <[base.time]>->(3) } @kill_list;
 ) if @kill_list;
 
 # ______________________________________________________________________________
-#\\TXRYRBKUFVC7ZO7EXSPMLEOTQUIOCVE4L4LQOJHEPHPUKN7H5NCPL4P4LTO2UOEFA4FEAYARV7XQ4
-# \\ QZUD5VAWSYTP5XQDEBAS5ERXRCF2QFRFKDXHNBASKH7Y2VEEBNFS \\// C25519-BASE-32 //
-#  \\// CONTQOUKSR5PNILJS5LKKEN5AXG4S7XBNDLJGM2NQF2LTWVA2AA \\ CODE SIGNATURE \\
+#\\G5OZYTMZQDOE6VO72ZJFDSYDO2YR4A2Z44BNFGBKFKZCGG3EEM2O5KW6DJ3UZOHL5FOD7ZGTNHLYG
+# \\ MPUUXSDFBAL74WUCPLJES4SBSNCBL7OLPOTA2ML2HNDWHZJWCVPI \\// C25519-BASE-32 //
+#  \\// E2QLE6GOF3M35RZQNV7WXMVU4WNIMUGBNBTKPUD2RDOURPSF6BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

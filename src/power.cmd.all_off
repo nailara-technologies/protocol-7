@@ -8,13 +8,13 @@
 return { 'mode' => 'nak', 'data' => 'no devices configured' }
     if !keys( %{<power.cfg.devices>} );
 
-map { <[power.cmd.set_states]>->( { 'args' => "$_ 0 0 0 0" } ) }
+map { <[power.cmd.set_states]>->( { 'args' => "$ARG 0 0 0 0" } ) }
     sort { $a <=> $b } keys %{<power.cfg.devices>};
 
 return { 'mode' => 'ack', 'data' => 'all power sockets switched OFF' };
 
 # ______________________________________________________________________________
-#\\7IHVAVDN36QULOVWWNX7FSKNFAAFWS7LN4M7ATJOM3VOAJFPJSJHINJHB4CKSAEKDAPUROYLGRRWI
-# \\ AYNJN3V772RKKUGQAG2HZ5A7JVPZ7HYNHMKFWDFOC4QQJAWFVUEG \\// C25519-BASE-32 //
-#  \\// YYWMGWHWEAMCSHGVGLMNFXYJPLHSUX527NMSUYIZNDCYXACL2BQ \\ CODE SIGNATURE \\
+#\\PMCQ5MBJNB4LRLT6PR2OUQKOL22OYLIVFUMBGBV3NKEXEGBQ3IIS4UUKCR2BMCVAR6XWK6GTX7ZLW
+# \\ ECETY6JKJKXVVWL6JLVBNSVGPVF6HGEH5IJSHS5IUW3E5MAZ5ZAF \\// C25519-BASE-32 //
+#  \\// B7VQVUODIUVQNMEWRMWF3WWLKONGAVRKU2NBAOBWUPOOW6KMMAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

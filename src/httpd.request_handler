@@ -70,7 +70,7 @@ $request->{'host'}   = lc( $h_req->header('host') )
 $session->{'http'}->{'close'}      = 1;
 $session->{'response'}->{'params'} = {};
 
-map { $request->{'headers'}->{ lc($_) } = $h_req->header($_) // '' }
+map { $request->{'headers'}->{ lc($ARG) } = $h_req->header($ARG) // '' }
     $h_req->header_field_names;
 
 ( $session->{'meta'}->{'request_path'} = $request->{'uri'} ) =~ s|[#\?].*$||;
@@ -108,7 +108,7 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
 return 2;
 
 # ______________________________________________________________________________
-#\\7C4UTSW2LVC6XYVN7TRNDD2Z674XMPBSQNGUQUYAQWKNFMKOSWJZPWHSNEBUV4UKTASDRBKRGVMTQ
-# \\ NCPMTNS4PMT44PBLN3TYC3TVOBU3IVAFBFEML5XTIC3QHP2TFVYI \\// C25519-BASE-32 //
-#  \\// M5EFP23ICVDDH34CNKPZ3X7X6KZTUXHWQ7EEPEQYGYXGZHFCACI \\ CODE SIGNATURE \\
+#\\MY4KOL7OCTNDGCB2TWCK437OKPUSAZLUFCHRYQZAJAPOXTMAQSKXOSZMUFNYJ5WXL2H3VWIZVOEVM
+# \\ 2EIYPJDZW53SKXL3ED7DLCAKYP6CW6OBFMFS3FTGVMWMU2UA4FWU \\// C25519-BASE-32 //
+#  \\// A5FBTPBRJFCMUT3DEOKG2YE2TMCKFA5SMRRMUBPGVFFY2WDLOAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

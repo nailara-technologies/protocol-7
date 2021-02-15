@@ -97,7 +97,8 @@ if ( defined $http_host and defined $link_target ) {
 
     if ( $file_path =~ /\.tmpl$/ and -f $file_path ) { # <- nailara web template
         $request->{'query'}
-            = { map { $_ => $uri_obj->query_param($_) } $uri_obj->query_param };
+            = { map { $ARG => $uri_obj->query_param($ARG) }
+                $uri_obj->query_param };
         return <[httpd.process_template]>->( $id, $file_path );
     }
 
@@ -180,10 +181,10 @@ if ( defined $http_host and defined $link_target ) {
 
             map {                                   ## overlapping ranges? ##
                 return <[httpd.send_error_page]>->( $id, 416 )
-                    if ($start >= $_->{'start'}
-                    and $start <= $_->{'end'} )
-                    or ($end >= $_->{'start'}
-                    and $end <= $_->{'end'} )
+                    if ($start >= $ARG->{'start'}
+                    and $start <= $ARG->{'end'} )
+                    or ($end >= $ARG->{'start'}
+                    and $end <= $ARG->{'end'} )
             } @byte_ranges if not $allow_overlap;
 
             push( @byte_ranges, { 'start' => $start, 'end' => $end } );
@@ -213,9 +214,10 @@ if ( defined $http_host and defined $link_target ) {
             return $session->{'http'}->{'close'} ? 2 : 0;
         } elsif ( $content_size <= 16 * 1024
             and not exists $request->{'range'} ) {  # <-- 'small' file, send now
-            local $/ = undef;
+            local $RS = undef;
             open( my $content_fh, '< :raw', $file_path )
-                or warn "<!> $file_path: $!";    # LLL: needs error handling..,
+                or warn
+                "<!> $file_path: $OS_ERROR";    # LLL: needs error handling..,
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header )
                 . <$content_fh>;
@@ -239,7 +241,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\L6TSBWTAEDIV6J7HPYHAF76G5PIHVTWFOV4B4YQEWJG7QBTSWMPQG5SMEIRKBBPWVNAY7V2CIUEDA
-# \\ HMLUPWYC7YEMERYYCSJTM3UFRXXDXK36VHB6KN7QZZSKI3SKSPZD \\// C25519-BASE-32 //
-#  \\// FGZGAOF7Z7O2LZBSXZJPH4NGCBMJXU332XS4HSSLFSA5VSGIUDA \\ CODE SIGNATURE \\
+#\\7CSPF2B5ZHTY35QB5SXHB4DBF3G6XIAA3DZ5IKVARSNZCCNL23VEEKCNMBOZT7XHR6OP5XUCUXD5U
+# \\ LNDMVXDV5XLCL6LZMVSCXV7LOWOZCSSPJZIV3QPA325YU7YCSBKI \\// C25519-BASE-32 //
+#  \\// RJJAVU6KHIQOJLM2MDEYLC2GI5EZ2GIWTM2R2W2O7JNQUYYVMDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

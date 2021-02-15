@@ -32,7 +32,8 @@ $SIG{'CHLD'} = $code{'universal.handler.sig_chld'};
 
 my @dis_cmds = @{ $data{'disabled_commands'} };
 $data{'disabled_commands'} = [];
-map { push( @{ $data{'disabled_commands'} }, $_ ) if $_ ne 'whoami' } @dis_cmds;
+map { push( @{ $data{'disabled_commands'} }, $ARG ) if $ARG ne 'whoami' }
+    @dis_cmds;
 $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 
 <universal.cmdline_mods> = { 'browser' => 'Gtk3 Glib::Event Gtk3::WebKit2' };
@@ -54,7 +55,7 @@ $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 0;
 
 # ______________________________________________________________________________
-#\\RA2NKDXPELZBGLKWFTU2U3QLRNZLBYWKVCLZGVRTRGYPRFRA5X42T7ZEAVSTJKXHFIRBR3AWJ5IAE
-# \\ LWBZQQU3X2TSXOUDBCEHWAAMKGCZBSISPYAH6JVQXMSFWAJOBKY7 \\// C25519-BASE-32 //
-#  \\// PDJR5EUIDU6SUTT7PDOF7SEL3V7VPIAEM5AUVHVOMEXB7ANGIBQ \\ CODE SIGNATURE \\
+#\\ZEOAQ4I2SYE56SJG5RE6XMEPREZHWVCLVBAZ7EEUZZLCZL5GRM6HE7RBYZM5QQFTIPQUOGEHXDJOY
+# \\ I3BLLEEEDFC4VQGEZFQMEI2RRXN2UNVI6V3R6TRZJIXZLJU4NLLU \\// C25519-BASE-32 //
+#  \\// HC4TTG5FLD3X72W2DT6BBIQHOSOJJCMTDVUTVBR6YAIJ2PXV6AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

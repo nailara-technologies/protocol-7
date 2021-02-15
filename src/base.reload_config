@@ -11,9 +11,10 @@ if ( exists <config.reload.cleanup_keys>
         if ( $key =~ /^[^\.][\w\.]*$/ ) {
             ( my $_key = $key ) =~ s|\.|'}{'|g;
             my $count = eval "delete \$data{'$_key'}";
-            if ($@) {
+            if ($EVAL_ERROR) {
                 <[base.log]>->(
-                    0, "cleanup_keys: error during cleanup of '$key' [$@]"
+                    0,
+                    "cleanup_keys: error during cleanup of '$key' [$EVAL_ERROR]"
                 );
             } elsif ($count) {
                 <[base.log]>->( 2, ": cleaned up config key '$key'" );
@@ -29,7 +30,7 @@ if ( exists <system.config.reload_order> ) {
     <system.config.reload_order> = [];
     foreach my $config_name (@reload_order) {
         my $already_loaded = 0;
-        map { $already_loaded = 1 if "$_" eq $config_name }
+        map { $already_loaded = 1 if "$ARG" eq $config_name }
             @{<system.config.reload_order>};
         next if $already_loaded;    # ( nested load_config_file )
             # resetting password hashes for auth.setup.usr.* files
@@ -44,7 +45,7 @@ $success = 0
 return $success;
 
 # ______________________________________________________________________________
-#\\ZKTHLN7LSZ546MPQJDYZVAG46XZURNNMCYSV6YZEIE6G3OSWDEXYZNRXQRLJGHWZZ4EOT34FS4HL6
-# \\ YYCI6ZC2ARIBLDTIZS624R6DLHG32FZL2SJW357B2USHKOGVW34F \\// C25519-BASE-32 //
-#  \\// C4HRESTV6R2U6BBHVG3GFLTLJC7XAI5H2EK6CMPIP2EINQFPIAY \\ CODE SIGNATURE \\
+#\\BJ5MWXWYBHCKXGJJT66GILLHQT3W6QG37XCBRLI43FF3Z22ATLRWCNSBQVM2JUQDXK7BI6OA5H5AU
+# \\ QYS6W7TTGIRC26MXZPEPLPXVW4RVKWWDN2ZUAPU3G2QVTY56ZKXH \\// C25519-BASE-32 //
+#  \\// BVVT7UJMTYGWNRQTIFQ4BRVYVSGJJXRFATDBTFKFAFOX3N2GQCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
