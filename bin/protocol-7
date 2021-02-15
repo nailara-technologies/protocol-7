@@ -5,17 +5,6 @@ use strict;
 use warnings;
 use English;
 
-BEGIN {
-    my $bin_path = $PROGRAM_NAME;
-    while ( my $link_target = readlink($bin_path) ) { $bin_path = $link_target }
-    ( my $local_lib_path = $bin_path ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
-    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
-}
-
-# somewhat reduntant with -C31 ... to be decided later [which to drop]..,
-use open ':encoding(UTF-8)';
-map { binmode( $ARG, ':encoding(UTF-8)' ) } ( *STDIN, *STDOUT, *STDERR );
-
 # globals
 our %code;
 our %data;
@@ -82,9 +71,33 @@ exit;
 # :: definition of basic subroutines and agent initialization ::
 
 sub prepare_subs {
+
+    ## SOME BASIC SECURITY HARDENING ##
+
     $ENV{'PATH'} = '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin';
     delete @ENV{qw| IFS CDPATH ENV BASH_ENV |};
     $ENV{'LC_NUMERIC'} = 'en_US.UTF-8';
+
+    BEGIN {
+        my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|; #[CHARACTER WHITELIST]
+
+        die "\n\n <<!>> invalid characters [ '$1' ] in program"
+            . " name '$PROGRAM_NAME' <<!>>\n\n\n"
+            if $PROGRAM_NAME =~ $char_map;
+        my $bin_path = $PROGRAM_NAME;
+        while ( my $link_target = readlink($bin_path) ) {
+            die "\n\n<<!>> invalid characters [ '$1' ] in program name"
+                . " link target '$link_target'\n\n\n"
+                if $link_target =~ $char_map;
+            $bin_path = $link_target;
+        }
+        ( my $local_lib_path = $bin_path ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+        unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    }
+
+    # somewhat reduntant with -C31 ... to be decided later [which to drop]..,
+    use open ':encoding(UTF-8)';
+    map { binmode( $ARG, ':encoding(UTF-8)' ) } ( *STDIN, *STDOUT, *STDERR );
 
     eval { use Text::Wrap qw| wrap | };    ## <-- used in 'base.load_code' ##
 
@@ -924,10 +937,10 @@ sub prepare_subs {
             my $err_str = $EVAL_ERROR;
             state $t_wrap //=
                 ( defined &wrap )
-                ? sub { return wrap( '', ':   :  ', $ARG ) }
+                ? sub { return wrap( '', ': ..  ', $ARG ) }
                 : sub { return $ARG };
             map {
-                $ARG =~ s| at $sub_name line (\d+)\.\n| ( line $1 )\n|sg
+                $ARG =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|smg
                     if defined $ARG;
             } ( $err_str, $s_comp_stderr );
             local $Text::Wrap::columns   = 57;
@@ -937,27 +950,26 @@ sub prepare_subs {
                 '>',
                 ".:[ $sub_name ]:.",
                 ':',
-                (   map  { s|Can.t|cannot|g; s|"|'|g; ": <<!>> \l$ARG" }
+                (   map  { s|Can.t|cannot|g; s|"|'|g; ": :  \l$ARG" }
                     grep { !m|BEGIN not safe| } split( m|\n+|, $err_str )
                 ),
                 '='
-            );
+            ) if length( $err_str // '' );
             push(
                 @compile_errors,
                 '>',
                 '  :: warning ::',
                 '  :',
-                map {
-                    ++$warn_count and push(
-                        @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
-                        "\l$ARG"
-                    );
-                    "  :. \l$ARG"
-                } split( m|\n+|, $s_comp_stderr ),
-                '='
+                (   map {
+                        ++$warn_count and push(
+                            @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
+                            "\l$ARG"
+                        );
+                        "  :: \l$ARG"
+                    } split( m|\n+|, $s_comp_stderr )
+                )
             ) if defined $s_comp_stderr;
             close(STDERR);
-
             open( STDERR, ">&", $stderr_fh )
                 or print "\n<< ! >> cannot restore STDERR [ $OS_ERROR ]\n\n";
 
@@ -975,15 +987,18 @@ sub prepare_subs {
                 }
             } else {
                 $code{$sub_name} = sub {
-                    {
-                        $code{'log.error'}
-                            ->("< ! > - [ broken cmd sub '$sub_name' called ]");
+                    if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) {
+                        $code{'log.error'}->(
+                            "<< ! >> called broken subroutine :. '$sub_name'");
+                        return undef;
+                    } else {
+                        $code{'log.error'}->(
+                            "<< ! >> broken command called .., ['$sub_name']");
                         return {
                             'mode' => 'nak',
-                            'data' =>
-                                "$1 command is broken <!> see startup log"
-                            }
-                            if $sub_name =~ m|\.cmd\.(.+)$|;
+                            'data' => "command '$sub_name' is broken.,"
+                                . " details in startup log.,"
+                        };
                     }
                 };
                 delete $data{'code'}{$sub_name}{'source'};
@@ -998,6 +1013,8 @@ sub prepare_subs {
                 $err_str =~ s|\n| |sg;
                 $err_str =~ tr| ||s;
                 $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
+                undef $s_comp_stderr;
+                undef $err_str;
                 $err_count++;
             }
             if ( $compilation_success and $warn_count ) {
@@ -1362,7 +1379,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\7OP7PSBMJWP46GUSI7XUBJOE6XH2SCD6XS63HYIU7BUTQR2VOJ4R6TVVZUW2IDCFQCGP7PWXMUNBS
-# \\ 74CNXFDRLSZFLCT6JRT7HMRGC4BVK75WRUVYU3GOEP7BKSX7235Y \\// C25519-BASE-32 //
-#  \\// LDQLZIHPDUYCZLZOG5L6RKSWBYZX7FVWNENL4JCXHHZ5LV4CICY \\ CODE SIGNATURE \\
+#\\K6JRMX3X7G3LUBHOQEE4NI4LSI4AZ7AKQ24RC4K6JVEWS2PLHFP2AB75FWXPR5TVDQX3O3WAPKBAA
+# \\ GVZEHBKUXVPZAACKLQWKDDJJODXVGHSHD57ZV4RRYJE5JSNMDM3H \\// C25519-BASE-32 //
+#  \\// WDXWWJ6Q6TUCRSVWUMNWTGMP4JGTFXUVWNYC4ZEL6F7UOZGUQBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
