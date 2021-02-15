@@ -34,20 +34,20 @@ my $ydays       = <[base.time.is_leap_year]>->($year_int) ? 366 : 365;
 my $source_yday = 1 + ( $s_year_float * $ydays - int($s_year_float) * $ydays );
 my $delta_secs  = $ydays * $year_delta * 86400;
 
-my $src_unix = timegm( 0, 0, 0, $source_yday, 0, $year_int ) + $delta_secs / 2;
-$src_unix += 3600;
+my $src_unix = timegm_nocheck( 0, 0, 0, $source_yday, 0, $year_int ) + 3600;
+
+$src_unix += $delta_secs / 2;
+my $e_str = ' [ estimated ]';
 
 ( my $date_stamp   = <[base.parser.timestamp]>->($src_unix) ) =~ s|:\d\d$||;
 ( my $duration_str = <[base.parser.duration]>->($src_unix) )  =~ s|^0s$|0m|;
-
-my $e_str = ' [ estimated ]';
 
 return { 'mode' => 'ack', 'data' => $date_stamp . $e_str } if $date_mode;
 
 return { 'mode' => 'ack', 'data' => $duration_str . $e_str }
 
 # ______________________________________________________________________________
-#\\4VQDSIKJSW6TTM7T4U2A4V7RDJ45FVFFQ27OZWOQPY5CJV2YO4KBH3A2FFXNTL2UMNAGCNT4UGZHI
-# \\ SLEN3CNJDPXXQSSBRPZCHQE54EF3S5HWHZ5DWULDQVD4YGRQGDZK \\// C25519-BASE-32 //
-#  \\// 5FADXIBGYI4KYIA3ZSI446S4ERDNGLDR6RHP5LBOLQAV34K4UCI \\ CODE SIGNATURE \\
+#\\IEFNWWRGZKVKFCYWIEFODLZX7UHQ3XHY2X45YMXNO6S7CNL73NSAJA7D6D5QKOUFTC35VRBSZKILG
+# \\ C7AX25Z3JFABZRG4BE7WZE7FR3ITDVCCBI72UUSCZJ5S4YPTUE4G \\// C25519-BASE-32 //
+#  \\// WLZNEPLKIMA5U5DUIDZLJNDAOJHHQQY6655UYPG2ARO45K3HECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
