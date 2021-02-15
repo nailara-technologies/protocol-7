@@ -3,62 +3,35 @@
 # name   = base.session.init_state
 # params = session_id, state
 
-if ( not defined $data{'session'}{ $_[0] } ) {
-    <[base.log]>->( 0, "init_state: no such session '$_[0]'" );
-    return 1;
-}
+( my $s_id, my $state_id ) = @_;
 
-my $session = $data{'session'}{ $_[0] };
+return ( warn "session '$s_id' does not exist <{C1}>" and 0 )
+    if not defined $data{'session'}{$s_id};
 
-if ( not defined $data{'protocol'}{ $session->{'protocol'} }{'state'}{ $_[1] } )
-{
-    <[base.log]>->( 0, "init_state: no such state '$_[1]'" );
-    return 1;
-}
+my $session = $data{'session'}->{$s_id};
+my $state   = $data{'protocol'}{ $session->{'protocol'} }{'state'}{$state_id};
+return ( warn "protocol state '$state_id' not defined <{C1}>" and 0 )
+    if not defined $state;
 
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
 
-$session->{'input'}{'handler'}
-    = $data{'protocol'}{ $session->{'protocol'} }{'state'}{"$_[1]"}{$mode}
-    {'handler'};
+if ( not defined $state ) {
+    warn "no $mode handler defined [ protocol state $state_id ] <{C1}>";
+    return 0;
+}
 
-#foreach my $mode (
-#    keys( %{ $data{'protocol'}{ $session->{'protocol'} }{'state'}{ $_[1] } } ) ) {
-#
-#    print "setting up mode '$mode' id '$_[0]' state '$_[1]'\n";
-#
-#    if ( not defined $code{ $session->{'state'}{ $_[1] }{$mode}{'handler'} } ) {
-#        <[base.log]>->(
-#            0,
-#            "[$_[0]] init_state: handler not defined (mode: '$mode' name: '"
-#                . $session->{'state'}{ $_[1] }{$mode}{'handler'} . "')"
-#        );
-#        return 1;
-#    }
-#
-#    print "DBG: $session->{'state'}{ $_[1] }{$mode}{'handler'}\n";
-#
-#    <[event.add_io]>->(
-#        {   'fd' => $session->{'handle'},
-#            'handler' =>
-#                $data{'protocol'}{ $session->{'protocol'} }{ $_[1] }{$mode}
-#                {'handler'},
-#            'data' => {
-#                'session_id' => $_[0],
-#                'state'      => $_[1],
-#                'mode'       => $mode,
-#                'timeout'    => 0,
-#                'repeat'     => 1
-#            },
-#            'desc' => "[$_[0]] " . $session->{'link'} . " " . $mode
-#        }
-#    );
-#}
+## setting protocol input handler ###
+$session->{'input'}->{'handler'} = $state->{$mode}->{'handler'};
+## [ LLL ] 'output' handler ?
 
-return 0;
+##[ POST AUTH HOOK CODE ]##
+
+####
+
+return 1;    ## <-- success ###
 
 # ______________________________________________________________________________
-#\\D3RX4T6FONDBCLBBWG4KVHELQJ37TNSFYGW5TDUGY5YPTTIVZLINUJWKKPF55Y7NUKEXVPW7ZQESU
-# \\ H7EPMUCMOHW7Q5RDYDV33QDLQG37DFIFVVAEGCNNKDM3NPRDATWE \\// C25519-BASE-32 //
-#  \\// WWY33N3EKFJ5QU2BVYCM5CUWRFUBKQRRKVEZTUO247ZD36KVUBY \\ CODE SIGNATURE \\
+#\\YG722O6WTWEGKAC4JYQ74GJKWJ7M3JN3NRSIZH2OU4GMXEGDMSAWPHQX5S2EWBLKEWUIGPBMXTPZ4
+# \\ T3PEWYECEQLOITLHITNSDJDGQ3GA66QJCHGWODRL7NNSDBKUMFLH \\// C25519-BASE-32 //
+#  \\// MMCI6WXIEIGJZESY3RI74D6RZT2SMD5C6S5EJQ44JTT4VRMUGBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
