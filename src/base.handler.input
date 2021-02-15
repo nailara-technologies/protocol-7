@@ -1,7 +1,7 @@
 # >:]
 
-# name       = base.handler.input
-# descr      = call input handler
+# name  = base.handler.input
+# descr = call input handler
 
 my $id = $_[0]->w->data;
 
@@ -9,10 +9,10 @@ if ( not defined $id or not exists $data{'session'}{$id} ) {
     my $id = '!' if not defined $id;
     $_[0]->w->cancel;
 
-    # call cleanup... (proto..)
+    # call cleanup.., [protocol.,]
     <[base.log]>->(
         0,
-        "[$id] session of input handler was already closed - watcher cancelled!"
+        "[$id] session of input handler was already closed, watcher stopped.,"
     );
     return undef;
 }
@@ -30,7 +30,7 @@ my $start_len = length( $data{'session'}{$id}{'buffer'}{'input'} );
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     my $ret_code = $code{$handler}->( $_[0] );
 
-    if ( defined $ret_code and $ret_code =~ /^\d+$/ and $ret_code == 2 ) {
+    if ( defined $ret_code and $ret_code =~ m|^\d+$| and $ret_code == 2 ) {
         $data{'session'}{$id}{'shutdown'} = 1;
     }
 } elsif ( defined $data{'session'}{$id} ) {
@@ -40,7 +40,7 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     $_[0]->w->start;
 
     <[base.log]>->(
-        0, "[$id] undefined input handler '$handler'. dropped buffer!"
+        0, "[$id] undefined input handler '$handler', dropped buffer.,"
     );
 
     if (   $data{'session'}{$id}{'mode'} eq 'client'
@@ -50,7 +50,7 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 }
 
 my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
-return $_[0]->w->cancel if not defined $len;    # <- buffer undef
+return $_[0]->w->cancel if not defined $len;    ## <-- buffer undefined ##
 
 if ( $len < $data{'size'}{'buffer'}{'input'}
     and !$data{'session'}{$id}{'shutdown'} ) {
@@ -66,7 +66,7 @@ if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
 
 if (    $len
     and $len != $start_len
-    and $data{'session'}{$id}{'buffer'}{'input'} =~ /\n/ ) {
+    and $data{'session'}{$id}{'buffer'}{'input'} =~ m|\n| ) {
     $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
 }
 
@@ -75,7 +75,7 @@ if (    $len
 # }
 
 # ______________________________________________________________________________
-#\\S7JZVX5SF3OCVS7XGZH4ZPOWPVG3VC5SODVYSVYKJFX4B5KUYHD4GLXPIM6ICO2SAI2TTGTMPVR5U
-# \\ QL3NSZ57ACRSJSNSQPVYIFAOEWKCPU3PG37JDFQRDUAI5DU2GXKN \\// C25519-BASE-32 //
-#  \\// GYGYSRI2OFELQYCGUON4N6EN7ECIJ2OHFUI5WIREYPFVLCIY2DA \\ CODE SIGNATURE \\
+#\\LZANBBK7VRFZTTMUP3WTKSE5ROBMLI4HZ3T2EKHOGWMS33GTFAE2KBBE7N7D4YZNB7JHDGWGNB2UW
+# \\ R3JXBP4INIGDGH4WKB6QM22IZKUQZHJS5ZNJOF5URRSKEQI4TTZA \\// C25519-BASE-32 //
+#  \\// WABD6ZL3NTGKYVSL76EKKW2DCOA5HXO3ISSCVQ24LYLXK7PKAAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
