@@ -11,13 +11,14 @@ use File::Spec;
 use IO::Select;
 use Term::ReadLine;
 use Term::ANSIColor;
-use Crypt::Digest::SHA1 qw(sha1_hex);
+use Digest::BMW qw| bmw_256 |;
+use Crypt::Misc qw| encode_b32r |;
 
 my @params   = @ARGV;
 my $USE_ANSI = 1;
 
 my $root_path = File::Spec->rel2abs( readlink($PROGRAM_NAME) // $PROGRAM_NAME );
-$root_path =~ s|\/[^\/]+\/[^\/]+$||;    # relative to ./bin/ path [parent]
+$root_path =~ s|\/[^\/]+\/[^\/]+$||;    # relative to ./bin/ path [ parent ]
 
 my $term = new Term::ReadLine 'ncode';
 $term->ornaments('0,0,md,me');
@@ -29,8 +30,8 @@ my $PATH = {
 
 my $cmd = shift(@params) // '';
 
-push( @params, '.' )   if $cmd =~ /^(s(earch)?|rep(lace)?)$/ and !@params;
-push( @params, 'src' ) if $cmd =~ /^parse(-headers)?$/       and !@params;
+push( @params, '.' )   if $cmd =~ m{^(s(earch)?|rep(lace)?)$} and !@params;
+push( @params, 'src' ) if $cmd =~ m{^parse(-headers)?$}       and !@params;
 
 my $target = $params[0];
 
@@ -39,7 +40,7 @@ $SIG{'INT'} = sub { print "\n\n"; &aborted; };
 # define target paths on which the code parser is supposed to work on
 
 my %targets = (
-    '.'      => Cwd::cwd(),                          # current path(!)
+    '.'      => Cwd::cwd(),                          # current path[!]
     'bin'    => $PATH->{'root'} . '/bin/',           # nailara executable code
     'src'    => $PATH->{'root'} . '/src/',           # the nailara module source
     'conf'   => $PATH->{'root'} . '/cfg/',           # nailara config files
@@ -85,7 +86,7 @@ if ( not defined $commands{$cmd} ) {
 
 # <target> = 'all' is an alias for all target paths combined
 if ( @params and $params[0] eq 'all' ) {
-    $params[0] = join( '+', grep { !/\./ } keys(%targets) );
+    $params[0] = join( '+', grep { !m|\.| } keys(%targets) );
 }
 
 # execute parser command callback if defined
@@ -263,7 +264,7 @@ sub cmd_list_psubs {
                                 ansi('bold yellow') );
                             print "\n: : " . $sub_name;
                         }
-                    }    # LLL: [todo] add 'no matches' message
+                    }    # [ LLL ] add 'no matches' message ..,
                 }
             }
             print "\n:\n\n";
@@ -557,36 +558,36 @@ sub cmd_search {
     foreach my $filename ( sort keys(%$source_data) ) {
         my $line_num = 0;
         if ( defined $source_data->{$filename} ) {
-            foreach my $source_line ( split( /\n/, $source_data->{$filename} ) )
+            foreach my $source_line ( split( "\n", $source_data->{$filename} ) )
             {
                 $line_num++;
                 my $file_changed = 0;
 
                 my $cut_path = $PATH->{'root'};
-                $filename =~ s/^$cut_path\///;
+                $filename =~ s|^$cut_path/||;
 
                 if ( defined $last_filename
                     and $last_filename ne $filename ) {
                     $file_changed = 1;
                 }
 
-                if ( $cmd =~ /^s(earch)?$/ ) {
+                if ( $cmd =~ m|^s(earch)?$| ) {
                     if ( lc($search_pattern) ne $search_pattern
-                        and $source_line =~ /$search_pattern/
+                        and $source_line =~ m{$search_pattern}
                         or lc($search_pattern) eq $search_pattern
-                        and $source_line =~ /$search_pattern/i ) {
+                        and $source_line =~ m{$search_pattern}i ) {
                         if ( $file_changed
                             or not defined $last_filename ) {
                             if ( lc($search_pattern) ne $search_pattern ) {
                                 print print "\n"
                                     . ansi('reset')
                                     . ansi('blue dark')
-                                    . "::: [ search =~ /$search_pattern/ ]";
+                                    . "::: [ search =~ m{$search_pattern} ]";
                             } else {
                                 print "\n"
                                     . ansi('reset')
                                     . ansi('blue dark')
-                                    . "::: [ search =~ /$search_pattern/i ]";
+                                    . "::: [ search =~ m{$search_pattern}i ]";
                             }
                             print ansi('reset')
                                 . ansi('dark') . ' :: '
@@ -650,8 +651,8 @@ sub cmd_move_psubs {
     }
     while (not defined $sub_destination
         or $sub_destination eq ''
-        or $sub_destination !~ /^[\w\_\:]+\:\:([\w\_]+)?$/ ) {
-        if ( $sub_destination !~ /^[\w\_\:]+\:\:([\w\_]+)?$/ ) {
+        or $sub_destination !~ m|^[\w\_\:]+\:\:([\w\_]+)?$| ) {
+        if ( $sub_destination !~ m|^[\w\_\:]+\:\:([\w\_]+)?$| ) {
             print "\n  :: invalid target package syntax - please retry ::\n";
         }
         $sub_destination = get_user_input('target package or subroutine');
@@ -750,7 +751,7 @@ sub warn_apply {
 
         print ansi('bold')
             . "\r.:  "
-            . ansi('yellow')
+            . ansi('green')
             . $msg
             . ansi('reset bold') . '  :. '
             . ansi('reset');
@@ -854,12 +855,12 @@ sub create_backup {
 
     $backup_metadata->{'backup'}{'time'} = time();
 
-    chomp( my $username = $ENV{'USER'} || qx(whoami) );
+    chomp( my $username = $ENV{'USER'} || qx| whoami | );
     if ( defined $username ) {
         $backup_metadata->{'backup'}{'created_by'} = $username;
     }
 
-    chomp( my $hostname = $ENV{'HOSTNAME'} || qx(hostname) );
+    chomp( my $hostname = $ENV{'HOSTNAME'} || qx| hostname | );
     if ( defined $hostname ) {
         $backup_metadata->{'backup'}{'created_on'} = $hostname;
     }
@@ -868,7 +869,7 @@ sub create_backup {
 
     # add checksums of modified source for target file checks during restore
     if ( ref($modified_source) eq 'HASH' ) {
-        $backup_metadata->{'original_sha1'}
+        $backup_metadata->{'original_bmw'}
             = create_checksums($backup_source);    # get checksum hashref
     }
 
@@ -876,7 +877,7 @@ sub create_backup {
 
     # add checksums of modified source for target file checks during restore
     if ( ref($modified_source) eq 'HASH' ) {
-        $backup_metadata->{'modified_sha1'}
+        $backup_metadata->{'modified_bmw'}
             = create_checksums($modified_source);    # get checksum hashref
     }
 
@@ -938,9 +939,9 @@ sub pack_backup {
     my $pack_dir    = $PATH->{'work'} . 'current_backup/';
 
     my $backup_file_short = $backup_file;
-    if ( defined $cut_path ) { $backup_file_short =~ s/^$cut_path// }
+    if ( defined $cut_path ) { $backup_file_short =~ s|^$cut_path|| }
 
-    $backup_file_short =~ s/\/([^\/]+)$/'\/'.&ansi('green').$1.&ansi('reset')/e;
+    $backup_file_short =~ s|/([^/]+)$| '/' .&ansi('green').$1.&ansi('reset') |e;
 
     print ":: creating backup archive file $backup_file_short ::\n\n";
 
@@ -950,14 +951,14 @@ sub pack_backup {
     chdir( $PATH->{'work'} )
         ;    # change back to a secure path as the dir will disappear
 
-    foreach my $tar_out_line ( split( /\n/, $pack_results ) ) {
-        if ( $tar_out_line =~ /^(\S+)\s(\S+)\s+(\S+)\s(\S+)\s(\S+)\s(.+)$/ ) {
+    foreach my $tar_out_line ( split( m|\n|, $pack_results ) ) {
+        if ( $tar_out_line =~ m|^(\S+)\s(\S+)\s+(\S+)\s(\S+)\s(\S+)\s(.+)$| ) {
             my ( $permissions, $owner, $size, $creation_date, $creation_time,
                 $filename )
                 = ( $1, $2, $3, $4, $5, $6 );
             my $owner_padding = 20 - length($owner);
-            $filename =~ s/([^\/]+)$/&ansi('green').$1.&ansi('reset')/e;
-            if ( $filename =~ /\/$/ ) { $size = '' }
+            $filename =~ s|([^/]+)$| &ansi('green'). $1 .&ansi('reset') |e;
+            if ( $filename =~ m|/$| ) { $size = '' }
 
             print ': '
                 . ansi('cyan')
@@ -1005,13 +1006,13 @@ sub check_target_files {    # LLL: incomplete
 
     print "\n :: checking target files ::\n\n";
 
-    if ( ref( $meta_data->{'sha1'} ) ne 'HASH' ) {
+    if ( ref( $meta_data->{'bmw'} ) ne 'HASH' ) {
         die " :: check_target_files() ::"
             . " no checksums found in backup meta data ::\n";
     }
 
-    foreach my $sha1_sum ( keys( %{ $meta_data->{'sha1'} } ) ) {
-        my $check_file = $meta_data->{'sha1'}{$sha1_sum};
+    foreach my $bmw_sum ( keys( %{ $meta_data->{'bmw'} } ) ) {
+        my $check_file = $meta_data->{'bmw'}{$bmw_sum};
 
         if ( !-f $check_file ) {
             if ( user_confirmed("target file '$check_file' is missing - abort?")
@@ -1021,12 +1022,12 @@ sub check_target_files {    # LLL: incomplete
         } else {
             open( my $CHK_FILE, '<' . $check_file )
                 or die " :: can not open target file '$check_file' : $! ::\n";
-            my $sha1 = Crypt::Digest::SHA1->new;
-            $sha1->addfile($CHK_FILE);
-            my $chk_sum = $sha1->hexdigest;
+            my $bmw = Crypt::Digest::BMW->new(256);
+            $bmw->addfile($CHK_FILE);
+            my $chk_sum = encode_b32r( $bmw->digest );
             close($CHK_FILE);
 
-            if ( $sha1_sum eq $chk_sum ) {
+            if ( $bmw_sum eq $chk_sum ) {
                 print "[MATCH] $check_file\n";    # debug output
             } else {
                 if ( user_confirmed("file '$check_file' has changed. abort?") )
@@ -1075,7 +1076,7 @@ sub load_metadata {
         foreach
             my $archive_content_file ( sort( split( /\n/, $archive_content ) ) )
         {
-            if ( $archive_content_file =~ /$metadata_filename$/ ) {
+            if ( $archive_content_file =~ m|$metadata_filename$| ) {
                 $metadata_filename = $archive_content_file;
                 last;
             }
@@ -1086,9 +1087,9 @@ sub load_metadata {
 
     foreach my $data_line (@metadata_file) {
         chomp($data_line);
-        if ( $data_line =~ /^([^\.]+)\s(.*)$/ ) {
+        if ( $data_line =~ m|^([^\.]+)\s(.*)$| ) {
             $meta_data{$1} = $2;
-        } elsif ( $data_line =~ /^([^\.]+)\.([^\.]+)\s(.*)$/ ) {
+        } elsif ( $data_line =~ m|^([^\.]+)\.([^\.]+)\s(.*)$| ) {
             $meta_data{$1}{$2} = $3;
         } else {
             die " :: invalid syntax in meta data file : '$data_line' ::\n";
@@ -1110,7 +1111,7 @@ sub save_metadata {
     my @file_data;
 
     if ( not defined $file_name or ref($meta_data) ne 'HASH' ) {
-        die ":: save_metadata() :: parameter error :: ";
+        die ':: save_metadata() :: parameter error :: ';
     }
     check_path($file_name);
     foreach my $first_key ( keys(%$meta_data) ) {
@@ -1118,8 +1119,8 @@ sub save_metadata {
         if ( ref( $meta_data->{$first_key} ) eq 'HASH' ) {
             foreach my $second_key ( keys( %{ $meta_data->{$first_key} } ) ) {
 
-                # swap key and value for SHA1 hashes
-                if ( $first_key =~ /sha1$/ ) {
+                # swap key and value for bmw hashes
+                if ( $first_key =~ m|bmw$| ) {
                     $file_key = $first_key . '.'
                         . $meta_data->{$first_key}{$second_key};
                     push( @file_data, "$file_key $second_key" . "\n" );
@@ -1141,9 +1142,9 @@ sub save_metadata {
             print {$META_FILE} sort(@file_data);
             close($META_FILE);
             my $file_name_short = $file_name;
-            if ( defined $cut_path ) { $file_name_short =~ s/^$cut_path// }
+            if ( defined $cut_path ) { $file_name_short =~ s|^$cut_path|| }
             $file_name_short
-                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+                =~ s|/([^/]+)$| '/' . &ansi('cyan'). $1 .&ansi('reset') |e;
 
             print ":: backup metadata saved to $file_name_short ::\n\n";
         } else {
@@ -1151,29 +1152,31 @@ sub save_metadata {
                 . "data file '$file_name' :: $! ::\n";
         }
     } else {
-        die " :: save_metadata() :: nothing to save :: ";
+        die ' :: save_metadata() :: nothing to save :: ';
     }
 }
 
-# :: create_checksums :: returns a hashref to sha1 checksums for given code
+# :: create_checksums :: returns a hashref to bmw checksums for given code
 
 sub create_checksums {
     my $source_code = shift;
     my %file_checksums;
     foreach my $file ( keys(%$source_code) ) {
         if ( defined $source_code->{$file} ) {
-            $file_checksums{$file} = sha1_hex( $source_code->{$file} );
+
+            $file_checksums{$file}
+                = encode_b32r( bmw_256( $source_code->{$file} ) );
 
             my $root_path         = $PATH->{'root'};
             my $relative_filename = $file;
-            $relative_filename =~ s/^$root_path\/?//;
+            $relative_filename =~ s|^$root_path/?||;
 
             $relative_filename
                 =~ s{/([^/]+)$}{ '/' .&ansi('cyan'). $1 .&ansi('reset') }e;
 
             print ': '
                 . ansi('cyan')
-                . uc( $file_checksums{$file} )
+                . $file_checksums{$file}
                 . ansi('reset')
                 . " : $relative_filename\n";
         }
@@ -2228,7 +2231,7 @@ sub print_usage {
 }
 
 # ______________________________________________________________________________
-#\\YYFR5NLEA3SG6X7RUIK47WZ6GLTLNJFOP4QS3N7I7BSKRVJFQOMCZ4RSZIWHJBJRTCRFT64JYMTNY
-# \\ 4D6TL7KXVMPBRFASSRQFBDRLYXI6NK6RC46C3AES5K453PHRKVMA \\// C25519-BASE-32 //
-#  \\// SASRHJDO2RNBG3SIZVKP2WVCBAL4RN2KAT4ZK2KI4QKEJG7YYCA \\ CODE SIGNATURE \\
+#\\ML7L5FZATOZEPDXR4FKTAYRQ36FLYFJNCKS4CS3P3KU3HJR5EVTM3V5TVX3GMT43NF3C3NEVDIENA
+# \\ 7AWKNOVUMQCG2P5KE232BRUIGTJUFHNJUACICNTGS26B5FK66K7K \\// C25519-BASE-32 //
+#  \\// MNCDOXEX6ZRUUCCRAGHOCKBABJB422NYTRPMZJQXSJP2SSHP2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
