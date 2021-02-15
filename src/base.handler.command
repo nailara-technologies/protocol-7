@@ -508,7 +508,6 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     'session_id' => $id
                 };
                 $call_args->{'reply_id'} = $reply_id;
-
                 ## calling command handler ##
                 my $reply;
                 {
@@ -569,11 +568,16 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     and ( not defined $$reply{'data'}
                         or !length( $$reply{'data'} ) )
                 ) {
+                    ( undef, my $file, my $line ) = ( caller(0) );
+                    my $source_str
+                        = $file eq 'base.handler.input'
+                        ? "'$cmd'"
+                        : "$file:$line";
                     <[base.log]>->(
                         0,
                         "[$id] empty "
                             . uc( $$reply{'mode'} )
-                            . '-reply attempted <<!>> [base.handler.command]'
+                            . "-reply attempted [$source_str]"
                     );
                     $$reply{'mode'} = 'nak';
                     $$reply{'data'} = 'error during command invocation'
@@ -896,7 +900,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\AJZB6U5S77V2A6YGLTTMLENYC7FQGW53DBTHTEASCF44MO7RH374MGFJQAAGVVU2UH7QQILKVYL3M
-# \\ 7DL6S4EN4N4D77TZ4OC2PJ74FY6YGDYDDA37VYZUYPELUMNRSQMK \\// C25519-BASE-32 //
-#  \\// UWXH4QCW2UCV7O5OSJHMM7ZE6SSO4OOOS2MYDXSIX7MVZNS4EAI \\ CODE SIGNATURE \\
+#\\3JADAGKOVGQJOKMT6XHXGECZ6N3JRFE5VY4IYEJ5ICREXKRB3YCG65ISV7ROEWPNZ2TCNHHI7BEPE
+# \\ I6PPAGUEVVR4LDDJCUAJIWHDLYEW2RCS2PF54GWBKN5VH342QJTN \\// C25519-BASE-32 //
+#  \\// 3R5TLJH46GSAOVOTOQJ6WJJQYQ52JJNZX7QNKTPLRVE7WWBDUBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
