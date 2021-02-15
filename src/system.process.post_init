@@ -5,12 +5,16 @@
 <process.poll.interval> //= 7;
 <system.path.perl_bin>  //= <[base.get_path.perl_exec]>;
 
+( my $agent_name = <system.agent.name> ) =~ s|[^_\.\-\w]+||g;
+
 if ( not exists <process.kill_child.w_fh> ) {
-    <[base.log]>->( 1, "starting kill child..," );
-    my $child_code
-        = '$PROGRAM_NAME = "'
-        . <system.agent.name>
-        . '-<root>-kill-child"; while(<STDIN>){ kill(9, $1) if /^(\d+)$/ }';
+    <[base.log]>->( 1, "starting 'kill' child..," );
+    my $child_code = <<~ "EOT";
+    use strict; use warnings; use English;
+    map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
+    \$PROGRAM_NAME = q|$agent_name-<root>-'kill'-child|;
+    while(<STDIN>){ kill(9, \$1) if m|^(\\d+)\$| }
+    EOT
 
     <process.kill_child.pid>
         = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
@@ -34,7 +38,7 @@ if ( not exists <process.kill_child.w_fh> ) {
 0;
 
 # ______________________________________________________________________________
-#\\ALV32S2JXIV7WN4EPH272EBS66MJETPSQH4I5J4OB7KE35HGJEINN7YVQ6BRLWNTAOFCPAFXVZXBC
-# \\ 2XPDLE2TY7V6ER2DQCSK2R72ECRPTCFGAIGAEL6DLRJF2TA6E2RC \\// C25519-BASE-32 //
-#  \\// 466H4INL2AV6WCTNV4RTUQWGAAW5Q7EAFQTAB66QZVL3MIJK6DI \\ CODE SIGNATURE \\
+#\\I4M5KODMVYB3JXSROOXDE7S6Y6GUCWWZ4IFDBWS6ABG4HIOVY4QP276XIQKURHKRWOXGS6YOHCZQW
+# \\ UNFXPJNGJK7DAVZLN6LYTHNNJ7ZH55MVMNBRTR3L5SLN7ETNQ3FS \\// C25519-BASE-32 //
+#  \\// ICOTSMTICTCWT4T6NJD4DQCPFDLJJTGFA7IKYAVSS2AACKNV6CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
