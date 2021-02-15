@@ -6,6 +6,7 @@ BEGIN { $ENV{'PERL_RL'} = 'Perl' }
 
 use strict;
 use warnings;
+use English;
 use File::Spec;
 use IO::Select;
 use Term::ReadLine;
@@ -15,7 +16,7 @@ use Crypt::Digest::SHA1 qw(sha1_hex);
 my @params   = @ARGV;
 my $USE_ANSI = 1;
 
-my $root_path = File::Spec->rel2abs( readlink($0) // $0 );
+my $root_path = File::Spec->rel2abs( readlink($PROGRAM_NAME) // $PROGRAM_NAME );
 $root_path =~ s|\/[^\/]+\/[^\/]+$||;    # relative to ./bin/ path [parent]
 
 my $term = new Term::ReadLine 'ncode';
@@ -257,7 +258,7 @@ sub cmd_list_psubs {
                 my @filter_patterns = @params;
                 foreach my $sub_name ( get_perl_subs($source) ) {
                     foreach my $pattern (@filter_patterns) {
-                        if ( $sub_name =~ /$pattern/i ) {
+                        if ( $sub_name =~ m{$pattern}i ) {
                             $sub_name = highlight( $sub_name, $pattern,
                                 ansi('bold yellow') );
                             print "\n: : " . $sub_name;
@@ -353,10 +354,10 @@ sub cmd_replace {
 
             while ( not defined $regexp{'search'}
                 or $regexp{'search'} eq '' ) {
-                $regexp{'search'} = get_user_input(' search (regexp) pattern');
+                $regexp{'search'} = get_user_input(' [ search ] pattern');
             }
             while ( not defined $regexp{'replace'} ) {
-                $regexp{'replace'} = get_user_input('replace [regexp] pattern');
+                $regexp{'replace'} = get_user_input('[ replace ] pattern');
             }
 
             $regexp{'options'} = 'g';    # default option is [g]lobal
@@ -364,14 +365,15 @@ sub cmd_replace {
             # activate different options with a replace
             # pattern beginning with '<regex_options>/'
 
-            if ( $regexp{'replace'} =~ s/^([e|g|s|m|i]+)\/// ) {
+            if ( $regexp{'replace'} =~ s,^([e|g|s|m|i]+)/,, ) {
                 $regexp{'options'} = $1;
             }
 
             my $regexp_pattern = create_regexp( \%regexp );
 
-            if ( user_confirmed("is the regexp pattern  $regexp_pattern  ok?") )
-            {
+            if (user_confirmed(
+                    "is the replacement pattern '$regexp_pattern' correct ?")
+            ) {
                 $ok = 1;
             } else {
                 %regexp = ();    # reset pattern
@@ -387,7 +389,7 @@ sub cmd_replace {
         preview( $original_source, $modified_source, $changes, \%regexp );
 
         # ask if we should apply the changes on the source
-        if ( user_confirmed('apply those changes to the source code?') ) {
+        if ( user_confirmed('apply these changes ?') ) {
 
             warn_apply();
 
@@ -489,7 +491,7 @@ sub cmd_parse_headers {
         preview( $original_source, $modified_source, $changes, \%regexp );
 
         # ask if we should apply the changes on the source
-        if ( user_confirmed('apply those changes to the source code?') ) {
+        if ( user_confirmed('apply these changes ?') ) {
 
             warn_apply();
 
@@ -677,7 +679,7 @@ sub cmd_move_psubs {
     preview( $original_source, $modified_source, 'kompare' );
 
     # ask if we should apply the changes on the source
-    if ( user_confirmed('apply those changes to the source code?') ) {
+    if ( user_confirmed('apply these changes ?') ) {
 
         warn_apply();
 
@@ -720,7 +722,7 @@ sub description_txt {
         } elsif ( $description_type eq 'text' ) {
             $description_text =~ s/^\n+/\n/gms;
             $description_text =~ s/^\s*\n+$//gms;
-            if ( $description_text !~ /^\s+$/ ) {
+            if ( $description_text !~ m|^\s+$| ) {
                 $description_text =~ s/^(.*)$/  :   $1/gm;
             }
             return $description_text;
@@ -740,15 +742,15 @@ sub warn_apply {
 
     my $msg;
     for ( 0 .. 6 ) {
-        if ( not defined $msg or $msg =~ /^\s+$/ ) {
+        if ( not defined $msg or $msg =~ m|^\s+$| ) {
             $msg = "A P P L Y I N G   C H A N G E S";
-        } elsif ( $msg !~ /^\s+$/ ) {
+        } elsif ( $msg !~ m|^\s+$| ) {
             $msg = ' ' x length($msg);
         }
 
         print ansi('bold')
             . "\r.:  "
-            . ansi('red')
+            . ansi('yellow')
             . $msg
             . ansi('reset bold') . '  :. '
             . ansi('reset');
@@ -772,8 +774,8 @@ sub warn_apply {
 
 sub aborted {
     print ansi('reset bold') . " .: "
-        . ansi('red')
-        . "A B O R T E D"
+        . ansi('green')
+        . ' a b o r t e d '
         . ansi('reset bold') . " :.\n"
         . ansi('reset')
         . " :\n ."
@@ -961,7 +963,7 @@ sub pack_backup {
                 . ansi('cyan')
                 . $creation_date
                 . ansi('reset') . ' '
-                . ansi('yellow')
+                . ansi('blue')
                 . $owner
                 . ' ' x $owner_padding
 
@@ -971,7 +973,7 @@ sub pack_backup {
                 . ansi('cyan')
                 . $creation_time
                 . ansi('reset') . ' '
-                . ansi('yellow')
+                . ansi('blue')
                 . $permissions
                 . ansi('reset') . '   '
                 . ansi('green')
@@ -1047,13 +1049,13 @@ sub load_metadata {
     my @metadata_file;
 
     my $file_name_short = $file_name;
-    if ( defined $cut_path ) { $file_name_short =~ s/^$cut_path// }
+    if ( defined $cut_path ) { $file_name_short =~ s{^$cut_path}{} }
 
-    $file_name_short =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+    $file_name_short =~ s{/([^/]+)$}{ '/' .&ansi('cyan'). $1 .&ansi('reset') }e;
 
     print "\n:: loading meta data from $file_name_short ::\n";
 
-    if ( $file_name =~ /$metadata_filename$/ ) {
+    if ( $file_name =~ m{$metadata_filename$} ) {
 
         if ( !-f $file_name ) {
             die " :: expected metadata file '$file_name' does not exist ::\n";
@@ -1065,8 +1067,8 @@ sub load_metadata {
         @metadata_file = <$META_FILE>;
         close($META_FILE);
 
-    } elsif ( $file_name =~ /backup\..+\.tar.gz$/ ) {
-        my $archive_content = qx(tar ztf $file_name);
+    } elsif ( $file_name =~ m{backup\..+\.tar.gz$} ) {
+        my $archive_content = qx| tar ztf $file_name |;
 
         # find the actual path of the metadata file in the archive
 
@@ -1078,8 +1080,8 @@ sub load_metadata {
                 last;
             }
         }
-        my $file_contents = qx(tar zxf $file_name $metadata_filename -O);
-        @metadata_file = split( /\n/, $file_contents );
+        my $file_contents = qx| tar zxf $file_name $metadata_filename -O |;
+        @metadata_file = split( m| \n |, $file_contents );
     }
 
     foreach my $data_line (@metadata_file) {
@@ -1167,11 +1169,11 @@ sub create_checksums {
             $relative_filename =~ s/^$root_path\/?//;
 
             $relative_filename
-                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+                =~ s{/([^/]+)$}{ '/' .&ansi('cyan'). $1 .&ansi('reset') }e;
 
             print ': '
                 . ansi('cyan')
-                . $file_checksums{$file}
+                . uc( $file_checksums{$file} )
                 . ansi('reset')
                 . " : $relative_filename\n";
         }
@@ -1239,19 +1241,19 @@ sub save_source {
 
             my $output_line
                 = ': '
-                . ansi('yellow')
+                . ansi('cyan')
                 . 'save file'
                 . ansi('reset') . ' :'
                 . ansi('green')
                 . sprintf( "% 6d", $bytes_written )
                 . ' bytes'
                 . ansi('reset') . ' : '
-                . ansi('reset')
+                . ansi('blue')
                 . $file
                 . ansi('reset') . "\n";
 
             $output_line
-                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+                =~ s/\/([^\/]+)$/'\/'.&ansi('cyan').$1.&ansi('reset')/e;
 
             print $output_line;
 
@@ -1286,7 +1288,7 @@ sub check_path {
             if ( mkdir($current_path) ) {
                 my $output_line
                     = ': '
-                    . ansi('yellow')
+                    . ansi('green')
                     . 'directory'
                     . ansi('reset')
                     . ' :     '
@@ -1296,7 +1298,7 @@ sub check_path {
                     . " : $current_path_short " . "\n";
 
                 $output_line
-                    =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+                    =~ s/\/([^\/]+)$/'\/'.&ansi('green').$1.&ansi('reset')/e;
                 print $output_line;
             } else {
                 die ":: failed to create directory '$current_path' : $! ::\n";
@@ -1344,7 +1346,7 @@ sub clean_dir {
     my $directory_path = shift;
 
     # remove trailing slash
-    $directory_path =~ s/\/$//;
+    $directory_path =~ s,/$,,;
 
     if ( defined $directory_path and -d $directory_path ) {
 
@@ -1352,17 +1354,17 @@ sub clean_dir {
         if ( !system( 'rm', '-rf', $directory_path ) ) {
             my $output_line
                 = ': '
-                . ansi('yellow')
+                . ansi('green')
                 . 'directory'
                 . ansi('reset')
                 . ' :     '
-                . ansi('red')
+                . ansi('green')
                 . 'removed'
                 . ansi('reset')
                 . " : $directory_path " . "\n";
 
             $output_line
-                =~ s/\/([^\/]+)$/'\/'.&ansi('yellow').$1.&ansi('reset')/e;
+                =~ s/\/([^\/]+)$/'\/'.&ansi('green').$1.&ansi('reset')/e;
             print $output_line;
             return 1;
         } else {
@@ -1372,7 +1374,7 @@ sub clean_dir {
     }
 }
 
-# :: tree :: returns a list of module files [with full path]
+# :: tree :: returns a list of module files [ with full path ]
 
 sub files {
     my @files;
@@ -1382,7 +1384,7 @@ sub files {
         opendir( my $dir_fh, $path ) or die "failed to open dir '$path': $!\n";
         foreach my $filename ( readdir($dir_fh) ) {
             next if $filename eq '.' or $filename eq '..';
-            ( $filename = "$path/$filename" ) =~ s|//|/|g;
+            ( $filename = "$path/$filename" ) =~ s,//,/,g;
             if ( $filename !~ /(\.bak|\.orig|\~)$/i ) {
                 chomp($filename);
                 push( @files, $filename );
@@ -1390,7 +1392,8 @@ sub files {
                 if ( $filename =~ m|cfg/agents/[^\/]+$| and -d $filename ) {
                     opendir( my $adir_fh, $filename )
                         or die "failed to open dir '$filename': $!\n";
-                    map { push( @files, $filename . "/$_" ) } readdir($adir_fh);
+                    map { push( @files, $filename . "/$ARG" ) }
+                        readdir($adir_fh);
                     closedir($adir_fh);
                 }
             }
@@ -1407,7 +1410,7 @@ sub new_path {
     my $source_hash = shift;
 
     my $root_path = $PATH->{'root'} . '/';
-    $root_path =~ s/\/\//\//g;
+    $root_path =~ s,//,/,g;
 
     my $result_hash = {};
 
@@ -1433,7 +1436,7 @@ sub get_user_input {
     my $prompt = shift;
     $| = 1;
     print "  :\n";
-    my $pattern = $term->readline("  : $prompt : ");
+    my $pattern = $term->readline("  :: $prompt :. ");
     $term->addhistory($pattern);
     print "  :\n\n";
     return $pattern;
@@ -1747,7 +1750,7 @@ sub cut_out_sub {
 
     if ( not defined $substitution ) {
         my $plain_subname = $sub_name;
-        $plain_subname =~ s/^.+\://;
+        $plain_subname =~ s|^.+\:||;
         $substitution = "# [ sub '$plain_subname' has been moved ]";
     }
 
@@ -1962,7 +1965,7 @@ sub pattern_invalid {
     my $_tmp_pattern = $regexp_pattern;
 
     # remove any escaped slashes
-    $_tmp_pattern =~ s/\\\///g;
+    $_tmp_pattern =~ s,\\/,,g;
 
     # check if there still are some slashes
     if ( $_tmp_pattern =~ /\// ) {
@@ -1972,24 +1975,24 @@ sub pattern_invalid {
     }
 
     # remove escaped and trailing '$' chars
-    $_tmp_pattern =~ s/\\\$|\$$//g;
+    $_tmp_pattern =~ s,\\\$|\$$,,g;
 
     if ( $pattern_type eq 'search' ) {
     } elsif ( $pattern_type eq 'replace' ) {
 
         # remove $1, $2 etc.. [as they are allowed]
-        $_tmp_pattern =~ s/\$\d+//g;
+        $_tmp_pattern =~ s,\$\d+,,g;
     } else {
         return 1;    # pattern type invalid
     }
-    if ( $_tmp_pattern =~ /(\$\w+)/ ) {
+    if ( $_tmp_pattern =~ m,(\$\w+), ) {
         my $var_name = $1;
         print " : error in regular expression : "
             . "$pattern_type pattern contains "
-            . "an illegal variable ($var_name).\n";
+            . "an illegal variable [ $var_name ].\n";
         return 1;
     }
-    if ( $_tmp_pattern =~ /\$/ ) {
+    if ( $_tmp_pattern =~ m,\$, ) {
         print " : error in regular expression : "
             . "$pattern_type pattern contains unescaped '$' characters.\n";
         return 1;
@@ -2027,33 +2030,41 @@ sub pattern_test_ok {
 
 sub create_regexp {
     my %regexp         = %{ $_[0] };
-    my $regexp_pattern = "s/$regexp{search}/$regexp{replace}/$regexp{options}";
+    my $regexp_pattern = "s{$regexp{search}}{$regexp{replace}}$regexp{options}";
     return $regexp_pattern;
 }
 
 # :: user_confirmed :: asks the user a question
-#                    [ answers: <y/n>, returns true on 'y' ]
+#                    [ answers: [y|n], returns true on 'y' ]
 
 sub user_confirmed {
     my $question = shift;
     my $q_len    = length($question);
 
-    $question =~ s/(\w{2,})/ansi('bold').$1.ansi('reset')/ge;
+    ## quoted part is green ##
+    $question =~ s|^([^']+)'(.+)'([^']+)$|
+                   $1 . ansi('green') . $2 . ansi('reset cyan') . $3
+                  |gxe;
+    ## final '?' blinks ., ##
+    $question =~ s|\?$| ansi('blink') . '?' . ansi('reset cyan') |ge;
 
     my $bold   = '';
     my $choice = '';
     while ( $choice ne 'y' and $choice ne 'n' ) {
 
         my $question_string
-            = "\r :: $question :: "
-            . ansi( $bold . 'red' ) . '['
-            . ansi( 'reset' . $bold ) . 'y'
-            . ansi('red') . '/'
-            . ansi( 'reset' . $bold ) . 'n'
-            . ansi('red') . ']'
-            . ansi('reset') . ' :. ';
+            = ansi('cyan')
+            . "\r :: $question :: "
+            . ansi( $bold . 'blue' ) . '['
+            . ansi( 'blink cyan' . $bold ) . 'y'
+            . ansi('reset blue') . '|'
+            . ansi( 'blink cyan' . $bold ) . 'n'
+            . ansi('reset blue') . ']'
+            . ansi('cyan') . ' :. '
+            . ansi('bold green');
         print $question_string;
         $choice = &get_character;
+        print ansi('reset');
         if ( $bold eq '' ) { $bold = ' bold ' }
     }
     my $space_len = $q_len + 20;
@@ -2123,10 +2134,10 @@ sub diff_less {
                 . $k_path{$_path_type}
                 . "' does not exist\n";
         }
-        $k_path{$_path_type} =~ s/^$cut_path//;
+        $k_path{$_path_type} =~ s|^$cut_path||;
     }
     chdir($cut_path);
-    print "\n :. creating diff preview ...\r";
+    print "\n :. creating diff preview ..,\r";
     if ( open( my $DIFF, "diff -u -r $k_path{'first'} $k_path{'second'} |" ) ) {
         my @diff_output = <$DIFF>;
         close($DIFF);
@@ -2136,30 +2147,31 @@ sub diff_less {
                 if ( $diff_line =~ s/^([<|-]{1})([^-]{1})/$2/ ) {
 
                     $diff_txt
-                        .= &ansi('bold red')
+                        .= &ansi('bold blue')
                         . $1
                         . &ansi('reset')
-                        . highlight(
-                        $diff_line,            $search_pattern,
-                        ansi('underline red'), ansi('reset')
-                        );
+                        . highlight( $diff_line, $search_pattern,
+                        ansi('reverse blink blue'),
+                        ansi('reset') );
                 } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
                     my $replace_highlight = $replace_pattern;
                     if ( $regexp->{'options'} =~ /e/ ) {
                         $replace_highlight = eval $replace_pattern;
                     }
                     $diff_txt
-                        .= &ansi('bold cyan')
+                        .= &ansi('cyan')
                         . $1
                         . ansi('reset')
-                        . highlight( $diff_line, $replace_highlight,
-                        ansi('underline cyan'), ansi('reset') );
+                        . highlight(
+                        $diff_line,        $replace_highlight,
+                        ansi('bold cyan'), ansi('reset')
+                        );
                 } elsif ( $diff_line =~ /^(diff |\+\+\+|\-\-\-|\@\@)/ ) {
                     if ( $diff_line =~ /^diff / ) {
 
                         # highlight file names
                         $diff_line
-                            =~ s/\/([^\/]+)\s*$/'\/'.&ansi('green').$1/ge;
+                            =~ s/\/([^\/]+)\s*$/'\/'.&ansi('bold cyan').$1/ge;
                     }
                     $diff_txt .= ansi('blue') . $diff_line . ansi('reset');
                 } else {
@@ -2216,7 +2228,7 @@ sub print_usage {
 }
 
 # ______________________________________________________________________________
-#\\LR5MQ2XH6B5C3OXG6AKNDTMNWGPCFY6TUPCXO6WEELXWDGZSS67AYJLVX4YZVS7A5GHUSQMC6GFH2
-# \\ CN6WXAYYPA62FWOSUF5EQHSE3UKMNJVYESUIKARWTDIA3ZYTXVXF \\// C25519-BASE-32 //
-#  \\// UMK2KAAITJN75H24X4ELUB7LSEXFYNE6XPIQK5TMJZFJ2RYCWCY \\ CODE SIGNATURE \\
+#\\YYFR5NLEA3SG6X7RUIK47WZ6GLTLNJFOP4QS3N7I7BSKRVJFQOMCZ4RSZIWHJBJRTCRFT64JYMTNY
+# \\ 4D6TL7KXVMPBRFASSRQFBDRLYXI6NK6RC46C3AES5K453PHRKVMA \\// C25519-BASE-32 //
+#  \\// SASRHJDO2RNBG3SIZVKP2WVCBAL4RN2KAT4ZK2KI4QKEJG7YYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
