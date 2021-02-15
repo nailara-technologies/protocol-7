@@ -9,12 +9,14 @@ die "invalid mode '$mode'" if length($mode) and $mode ne 'recalc';
 <events.unix.timetable> //= {};
 
 map {
-    if ( exists <event.timers>->{$_} ) {
+    if ( exists <event.timers>->{$ARG} ) {
 
         # LLL: trigger 'end' handler ...
-        <event.timers>->{$_}->cancel if <event.timers>->{$_}->is_active;
-        delete <event.timers>->{$_};
-        <[base.log]>->( 0, "cancelled timer for event $_ (no longer defined)" );
+        <event.timers>->{$ARG}->cancel if <event.timers>->{$ARG}->is_active;
+        delete <event.timers>->{$ARG};
+        <[base.log]>->(
+            0, "cancelled timer for event $ARG (no longer defined)"
+        );
     }
 } keys %{<events.unix.timetable>};
 
@@ -41,14 +43,14 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     );
     <events.timers>->{$ev_id} = {};
     my $all_in_past = 1;
-    map { $all_in_past = 0 if $u_event->{$_} >= $current_time } @timer_types;
+    map { $all_in_past = 0 if $u_event->{$ARG} >= $current_time } @timer_types;
     map {
         my $action_type = <events.setup>->{$ev_id}->{'action'}->{'type'};
-        <events.timers>->{$ev_id}->{$_} = <[event.add_timer]>->(
-            {   'at'      => $u_event->{$_},
+        <events.timers>->{$ev_id}->{$ARG} = <[event.add_timer]>->(
+            {   'at'      => $u_event->{$ARG},
                 'handler' => 'events.handler.event_triggered',
                 'data'    => {
-                    'type' => $_,
+                    'type' => $ARG,
                     'id'   => $ev_id,
                     'name' => $t_event->{'name'}
                 }
@@ -58,12 +60,12 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
             or $action_type !~ /^(composition|playlist)_/ )
             or (
             !$all_in_past
-            and (  $_ ne 'start'
+            and (  $ARG ne 'start'
                 or $mode ne 'recalc'
-                or $u_event->{$_} >= $current_time )
+                or $u_event->{$ARG} >= $current_time )
             );
 
-   #        if $_ ne 'start' and $u_event->{$_} >= $current_time
+   #        if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
    #        or $mode ne 'recalc' and $action_type !~ /^(composition|playlist)_/;
 
         if ( $action_type =~ /^playlist_/ ) {
@@ -78,7 +80,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
 }
 
 # ______________________________________________________________________________
-#\\KMBMOBPUMMOC5DZGKJLJK4NEM4M4U3TECI7VXGMWJVHE4V3KAMZ444TTU5XGXSCXWQSM6H44F5DKA
-# \\ AJF3MNYYIWL6G4Z6YRIJJN2HQP2H5BK62WGHNDUHHVMCSYADOWOR \\// C25519-BASE-32 //
-#  \\// 6MZ3Y2S6AQ2M7KYCQ4G6AE2JQFEJIHYKYBQBC22ZZAMZ75JNMDI \\ CODE SIGNATURE \\
+#\\V3JM2CLFJ37AJL6YHWBL3FDHGCTL635WTJUMXRZTXDCYFGA35KQQTXUKTYCVSUL26QSOVXSLEZ4HC
+# \\ UKOOBZYVP26Q4KUCTQSDWCUM54GMOGEYRTUWCUTVD4IRSAWSEZEJ \\// C25519-BASE-32 //
+#  \\// 7J4CNYB76R4EH762OALKKHHPQY5BOSH6D7EK2KW6TVYD4GDIGCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

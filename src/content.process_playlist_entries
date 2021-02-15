@@ -11,13 +11,13 @@ my @lines
 
 my @file_names;
 map {
-    $_ =~ s{^\s+|\s+$}{}g;
-    $_ =~ s|^ *#[^\n]*$||mg;
-    $_ =~ s| +#[^\n]*$||mg;
-    $_ =~ s|\n\n|\n|sg;
-    $_ =~ s{^\n|\n$}{}mg;
-    $_ =~ s|^file://||mg;
-    push( @file_names, $_ ) if length($_);
+    $ARG =~ s{^\s+|\s+$}{}g;
+    $ARG =~ s|^ *#[^\n]*$||mg;
+    $ARG =~ s| +#[^\n]*$||mg;
+    $ARG =~ s|\n\n|\n|sg;
+    $ARG =~ s{^\n|\n$}{}mg;
+    $ARG =~ s|^file://||mg;
+    push( @file_names, $ARG ) if length($ARG);
 } @lines;
 
 my $file_path    = <content.load_file.path>;
@@ -26,8 +26,8 @@ my $check_logged = 0;
 
 if ( exists <content.mime_type.retry_timer> ) {
     map {
-        <content.mime_type.retry_timer>->{$_}->cancel
-            if <content.mime_type.retry_timer>->{$_}->is_active
+        <content.mime_type.retry_timer>->{$ARG}->cancel
+            if <content.mime_type.retry_timer>->{$ARG}->is_active
     } keys %{<content.mime_type.retry_timer>};
     delete <content.mime_type.retry_timer>;
 }
@@ -39,17 +39,18 @@ if ( $data_source eq 'file' and -f $tiles_visible_file ) {
         <[base.log]>->( 1, ": applying filter file '$tiles_visible_file'.," );
         my @filtered_list;
         my %visible_tiles;
-        map { chomp($_); $visible_tiles{$_} = 1 } split m| *, *|, <$tilesv_fh>;
+        map { chomp($ARG); $visible_tiles{$ARG} = 1 } split m| *, *|,
+            <$tilesv_fh>;
         map {
-            push( @filtered_list, $_ )
-                if $_ =~ m|^([^:]+):|
+            push( @filtered_list, $ARG )
+                if $ARG =~ m|^([^:]+):|
                 and exists $visible_tiles{$1}
         } @file_names;
         my $skipped = @file_names - @filtered_list;
         $skipped = 'no' if $skipped == 0;
         <[base.log]>->( 1, ": : $skipped entries skipped" );
         @file_names = @filtered_list;
-        close($tilesv_fh) or warn $!;
+        close($tilesv_fh) or warn $OS_ERROR;
     }
 } elsif ( -f $tiles_visible_file ) {
     <[base.log]>->(
@@ -241,7 +242,7 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
 <[content.update.send_notifications]>;  ##  <-- check if required [yet].., [LLL]
 
 # ______________________________________________________________________________
-#\\RMGKCN4T5E6HC7CR32UUHCJRINYYRLPNH2G4XVMC4HQQVIJMS4DXWNOE5BD6ZEXBHWSUT7AFNYMXG
-# \\ KHYQTI2SDTLNMXS7F2QG3JZFODRNEPHUHSPCI4MX2BBPF6TS2T2Y \\// C25519-BASE-32 //
-#  \\// FNIOLPJO5OBPPBG2GBZDCTX3GWFK3UDPSTNNFU3N5LPMB4GTYAY \\ CODE SIGNATURE \\
+#\\5XD7FSUA7XTOYUKE6MCYT43Q3NNQ5FOWNO5W5WAOLE2CRG3CPRPJEQBJOU3SNWNLFEP4C2K6CP6WI
+# \\ ICRPE3I7UN7XRC2EW5GLRED2ABYPP6SXPGW7MW3DJ43RP5Q6KZD4 \\// C25519-BASE-32 //
+#  \\// ZFZK2K5KS5I7WSFDTS3ZNI5MTQN4CSCRIKFPBZXO3ELDWNJLIDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

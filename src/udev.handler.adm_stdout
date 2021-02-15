@@ -33,7 +33,7 @@ if ( not defined $bytes or !$bytes ) {
 while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     my $event_str = $1;
     my $adm_event = {};
-    map { $adm_event->{$1} = $2 if $_ =~ /^([A-Z_]+)=(.+)$/ }
+    map { $adm_event->{$1} = $2 if $ARG =~ /^([A-Z_]+)=(.+)$/ }
         split( /\n/, $event_str );
 
     #    print Dumper($adm_event);
@@ -44,8 +44,8 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
             my $match    = 0;
             my $no_match = 0;
             map {
-                if ( exists $adm_event->{$_}
-                    and $adm_event->{$_} eq $p->{$_} ) {
+                if ( exists $adm_event->{$ARG}
+                    and $adm_event->{$ARG} eq $p->{$ARG} ) {
                     $match++;
                 } else {
                     $no_match++;
@@ -98,7 +98,7 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
 }
 
 # ______________________________________________________________________________
-#\\B5OWO2DS44HOMHVNYULHJIBLD4PZDNWEIFOKUMU7TWXQRTEDEPXDRGXYXKHDOAFZ7XA4LI53I5FW2
-# \\ NKYGESBIP3XCITEMZXRI57WNJUC7OOUCIDCOTPBKAS4T5JT4RZGR \\// C25519-BASE-32 //
-#  \\// I3XNL7ILZYRBXLA2Z7W7IQPQVPMJOYOLUX3MUNNWOQBR3FQAQCA \\ CODE SIGNATURE \\
+#\\6F5OTTMRE4HS6SKQPRUPC72ZHGZJRHBOTSQW3HKJEV3TTP2UC35LIFOE4RGZUQMY5JB6HJQREQFYW
+# \\ IS5IH762ZCUACXIJBLMBBFEVU6CPGA7SFG73L3KCIAAJPQK3DP6F \\// C25519-BASE-32 //
+#  \\// 7JGVEVZJWBIIYHLTGC5W3YW7IDUQ6MR5XIXMYSJRIJSTSONTODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

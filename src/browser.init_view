@@ -12,7 +12,7 @@ my $filter_events = 1;
 ##  following signals/events need to be managed if usr interaction is desired ##
 ################################################################################
 
-%{<browser.blocked_signal_types>} = map { $_ => 1 } qw(
+%{<browser.blocked_signal_types>} = map { $ARG => 1 } qw(
     close
     print
     run-as-modal
@@ -32,7 +32,7 @@ my $filter_events = 1;
 ##
 #
 
-%{<browser.blocked_event_types>} = map { $_ => 1 } qw(
+%{<browser.blocked_event_types>} = map { $ARG => 1 } qw(
     scroll
     key-press
     key-release
@@ -76,7 +76,7 @@ $view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
 <browser.view_index>->{$view} = $id;
 
 map {    # filtering blocked signal types
-    $view->signal_connect( $_, sub { return 1 } )
+    $view->signal_connect( $ARG, sub { return 1 } )
 } keys %{<browser.blocked_signal_types>};
 
 $view->signal_connect( # filtering all events according to blocklist setup above
@@ -161,7 +161,7 @@ $overlay->add_overlay($scrolled_window);
 <browser.gtk_obj.view>->{$id}            = $view;
 
 # ______________________________________________________________________________
-#\\MX5ANEH65EB7XEYCAVCFAUJRS74CGXTWOGMAVYNAWHT6B7X63FBVKHCTKD6LU46XUW4S6EAJBDDWY
-# \\ ASNP6FCHLXFIAFT37YNOLIO35DIU3BK4GSJT2E3PTJAP3B27W2MX \\// C25519-BASE-32 //
-#  \\// MKKB7ZKBV7PA7UP7BDH3EMIXPCM3VUFAZBZ5PTM2FU6MDIQTIAA \\ CODE SIGNATURE \\
+#\\SXLNER6ROG3D4LH4BXVYUUMHR5QXI2ARTRHNHGR5IOOSZEKXVUZPCMQJLHUEXOJYQHE4XFS66542Y
+# \\ T33BG3VPCQMSJUQ6HFHGWLN25VMJULLMYW4IM7MXZU33IYRZODEN \\// C25519-BASE-32 //
+#  \\// WTSX5Y4B52G3TGV3FY5I7A34KN76DYLPXO4RJMDU6R5URXFESDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

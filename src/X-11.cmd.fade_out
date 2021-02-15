@@ -18,26 +18,26 @@ map {
         'mode' => 'nak',
         'data' => 'invalid window id syntax [ not numerical ]'
         }
-        if $_ !~ /^\d+$/
+        if $ARG !~ /^\d+$/
 } @window_ids;
 
 my $reply_id     = $$call{'reply_id'};
-my %fade_windows = map { $_ => 1 } @window_ids;
+my %fade_windows = map { $ARG => 1 } @window_ids;
 
 my $xtops = <X-11.WM>;
 <[X-11.update_X11_WM]>;
 
-my %all_windows = map { $_->id => 1 } @{ $xtops->sorted };
+my %all_windows = map { $ARG->id => 1 } @{ $xtops->sorted };
 
-map { delete $fade_windows{$_} if not exists $all_windows{$_} }
+map { delete $fade_windows{$ARG} if not exists $all_windows{$ARG} }
     keys %fade_windows;
 
 return { 'mode' => 'nak', 'data' => 'no such window[s]' }
     if !keys(%fade_windows);
 
 map {
-    $fade_windows{$_} = <[X-11.get_window_opacity]>->($_);
-    delete $fade_windows{$_} if $fade_windows{$_} == 0
+    $fade_windows{$ARG} = <[X-11.get_window_opacity]>->($ARG);
+    delete $fade_windows{$ARG} if $fade_windows{$ARG} == 0
     }
     keys %fade_windows;
 
@@ -66,7 +66,7 @@ my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\F5IYQD4H3LZIUEPSDWGRXHGSA244Q4ENRXFG7UNSFPMBHP5U6W5Q65PWQQAP7U6CCBHIN6CZ2KK64
-# \\ K5TKXGPHCRYEVSDAUMI3GDMAF47JXUFGLFJWBPZOT6DHUMWFL5CR \\// C25519-BASE-32 //
-#  \\// 7TFE5SRPX2NHPYZNVCL6W532VTJVV6JA4VXFBBPJ4V5IOIFKIBI \\ CODE SIGNATURE \\
+#\\4LPOJVOVLC4L34J2NFNRMHFCSJA67DY7TPKPSXP6J5MC6SNI7KQQCCE4GS6ZM426JGHN52BQLO33Q
+# \\ UPKUNTJNSJ4AILSDREZHYGBWG2TS7LUKQBDXCRL5V2BKKNFKNITW \\// C25519-BASE-32 //
+#  \\// NTAK772SERVRNWSJQTMKD2JU6I7SGNOIYAQUPLNQTMS4DHOX2CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

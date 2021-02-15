@@ -6,12 +6,13 @@
 my $selected_model = $$call{'args'};
 my $web_context    = <browser.gtk_obj.web_context>;
 my %cache_models
-    = map { $_ => 1 } ( 'web-browser', 'document-viewer', 'document-browser' );
+    = map { $ARG => 1 }
+    ( 'web-browser', 'document-viewer', 'document-browser' );
 
 return {
     'mode' => 'nak',
     'data' => sprintf( "use one of : %s",
-        join( ', ', map {"'$_'"} sort keys(%cache_models) ) )
+        join( ', ', map {"'$ARG'"} sort keys(%cache_models) ) )
     }
     unless exists $cache_models{$selected_model};
 
@@ -33,7 +34,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\FJUHRXMO6BYQSKVA3KCHXZXKK4CCISMH5AKEVBNN5A4WIPQVNQ2SBPGIB5YBW554CZ5EKPR3DSSGO
-# \\ CTG4OXKOE7GAN5LRNWKXN2MJTRR4KTYJIT2A3J55CI3YTB4UGSZN \\// C25519-BASE-32 //
-#  \\// QELYJMPA5XKLGM5ZDOIKE7CMLDOGN4NRXYETX3R537TNLUDIKAY \\ CODE SIGNATURE \\
+#\\XRWREYL3V5USZQVYFTVIOUS5TI6KT3HHU4RQUYBZI5TIO67P7Y5ZPGRS66RVKMW6XVQOARRRATREA
+# \\ VXUY74GVIJMB2WBVOLFEJNADJKDZEASIEXMPV35WZCX6AYM6KXMI \\// C25519-BASE-32 //
+#  \\// LQ36CQCLJFPN5ZWZF4TLOGYVPWJBVLEXF2AY7DBOCZEAQV746AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

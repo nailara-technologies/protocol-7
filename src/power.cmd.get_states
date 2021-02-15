@@ -31,16 +31,16 @@ my @states;
 # print STDERR Dumper( $dev->{'stat'} );
 
 map {
-    if (   $dev->{'stat'}->[$_] == 17
-        or $dev->{'stat'}->[$_] == 18
-        or $dev->{'stat'}->[$_] == 65 ) {
-        $states[$_] = '1';
-    } elsif ( $dev->{'stat'}->[$_] == 33
-        or $dev->{'stat'}->[$_] == 34
-        or $dev->{'stat'}->[$_] == 130 ) {
-        $states[$_] = '0';
+    if (   $dev->{'stat'}->[$ARG] == 17
+        or $dev->{'stat'}->[$ARG] == 18
+        or $dev->{'stat'}->[$ARG] == 65 ) {
+        $states[$ARG] = '1';
+    } elsif ( $dev->{'stat'}->[$ARG] == 33
+        or $dev->{'stat'}->[$ARG] == 34
+        or $dev->{'stat'}->[$ARG] == 130 ) {
+        $states[$ARG] = '0';
     } else {
-        $states[$_] = 'E';
+        $states[$ARG] = 'E';
     }
 } ( 0, 1, 2, 3 );
 
@@ -52,7 +52,7 @@ if ( $dev->{poller}->can_write(0.1) ) {
 return { 'mode' => 'ACK', 'data' => join( ' ', @states ) }
 
 # ______________________________________________________________________________
-#\\75EN52H3IKRXDCI73F6SWHHNHZBO5EBRL2XHNJBWJS5OFA32DPYQHZ5NV22LYAY6T7JYA7QDP3OOA
-# \\ G6DOVVGHKSVP2VYXNOAARMXGFJJLQRBT2QYF3L65DILAGVYT233D \\// C25519-BASE-32 //
-#  \\// XW7WUKEJHHVPONMHKSW3BYKPY6HS22EZKGJO5KB4Z73NXYOYECQ \\ CODE SIGNATURE \\
+#\\5RHMSAEE7MC2X4TJMPRY7CUXJC2WZTVLMU57AWXTO3FDAPHYGHQN7Z6UFOPYDS7E7JQCXOSQ5XB5O
+# \\ EEZWF44OY3DDMN5CVTH2HVBH2SM4KNHORL3P2CP6NAYF7U7EWN6E \\// C25519-BASE-32 //
+#  \\// IL262Y7IE76YOXBNZCZCA5SYIO5ONH3USLAXDL7J4X3XMONKEAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

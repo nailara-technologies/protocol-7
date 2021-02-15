@@ -12,7 +12,8 @@ my $l_str     = $cfg_level                 ? ': ' x $log_level : '';
 # store additional config filenames for later reload [rewrite when problematic]
 <system.config.reload_order> = [] if not exists <system.config.reload_order>;
 my $already_pushed = 0;
-map { $already_pushed = 1 if $_ eq $cfg_name } @{<system.config.reload_order>};
+map { $already_pushed = 1 if $ARG eq $cfg_name }
+    @{<system.config.reload_order>};
 push( @{<system.config.reload_order>}, $cfg_name )
     if $cfg_name ne <system.path.rel.cur_agent_cfg> and !$already_pushed;
 
@@ -27,7 +28,8 @@ my $status = <[base.execute_agent_code]>->(
             join( '/', $data{'system'}{'conf_path'}, $cfg_name ),
             sub {
                 $cfg_name =~ s|^.+/||g;
-                <[log.error]>->("unable to load '$cfg_name' config [$!]");
+                <[log.error]>
+                    ->("unable to load '$cfg_name' config [$OS_ERROR]");
                 <base.modules.cfg_level>--;
                 return undef;
             }
@@ -40,7 +42,7 @@ return 1 if <base.parser.config.errors>;
 return $status;
 
 # ______________________________________________________________________________
-#\\ECRBTV3C345KBHF2PFAQEBXRGI2MA4ZMBCKJ2FE2SFKJQHYF57XYBTW5QY4PCZKPXVAYFWKNWAPMC
-# \\ 5CHD4H2G7QG56HM2MHKYSPM5T2W2Y43P3KTGBSPQ2CLN4UQFTFL2 \\// C25519-BASE-32 //
-#  \\// Q7MEDK7R4IHWD4ZKOLXQ5PI6EKBLXNNZBEAMDK66V3DHZXQSQDY \\ CODE SIGNATURE \\
+#\\K2LGXWWQWDI63XCXEJSTH3JZ6U2RM42Y7L3PRRN7POGLBC67YMGZOVBKW7HU6EISMCAEKH367ULMW
+# \\ 745OO6QKJFHF43JUU37M7CNDMZUYVRLSPFGWFCAIXLJUS7OWMLBW \\// C25519-BASE-32 //
+#  \\// KCBGT7KHLWGSLUQ53DSDG25G6JGRJ7626SRKIJSYR5GSTB2IIDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

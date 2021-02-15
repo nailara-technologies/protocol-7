@@ -22,8 +22,8 @@ die "target directory does not exist"
 $target_dir //= '/tmp/.video_frames';    # <- default
 
 if ( !-d $target_dir ) {
-    make_path($target_dir)     or die "make_path($target_dir): $!";
-    chmod( 0755, $target_dir ) or die "chmod($target_dir) : $!";
+    make_path($target_dir)     or die "make_path($target_dir): $OS_ERROR";
+    chmod( 0755, $target_dir ) or die "chmod($target_dir) : $OS_ERROR";
 }
 
 $target_file //= md5_hex($video_path) . '.png';
@@ -31,7 +31,7 @@ $target_file //= md5_hex($video_path) . '.png';
 $target_path = join( '/', $target_dir, $target_file );
 
 if ( -f $target_path ) {
-    unlink($target_path) or die "unable to unlink($target_path): $!";
+    unlink($target_path) or die "unable to unlink($target_path): $OS_ERROR";
 }
 
 if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
@@ -45,7 +45,7 @@ if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
 return undef;
 
 # ______________________________________________________________________________
-#\\ANXTHMPXNXRHLLC3SNWNSBSIVFXLQYM4HORAIJKYIG4TDYB4PM726CYESGMSOABLFO2ZYRWSQXBJI
-# \\ P2TY23UE3WPUQQ6S3ZFIZAYNBLGEZW4AHYHQTJKMUSDUKU2FPAWI \\// C25519-BASE-32 //
-#  \\// 5X56KDSY5GWTXDXD2AMBMOFY6FNDGK57A2B6KAWLG25BCLUZUBY \\ CODE SIGNATURE \\
+#\\QXS4WLTVKYPXVH7R34D6DUUOV7GSH4SB7DB7RDMLEALOODWIBXUUVI3JMRUMYPVC6CX64CK2HRYSE
+# \\ GYRDEI44WPPHDM2PP2VJ64MXM277T6VGMT6REHGLHOL32OLI4MOQ \\// C25519-BASE-32 //
+#  \\// CUWPKN6Y77JOSCB7UHIAQVVP7JWQGE7NFFXDTYCYYGDDR5MU4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

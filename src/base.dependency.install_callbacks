@@ -20,13 +20,14 @@ foreach my $sub_name ( sort keys %code ) {
 <[base.log]>->( 0, ": no dependency object callbacks found for '$name_prefix'" )
     if !@callbacks;
 
-map { <[dependency.setup]>->( $_->[0], { 'callback' => $code{ $_->[1] } } ) }
-    @callbacks;
+map {
+    <[dependency.setup]>->( $ARG->[0], { 'callback' => $code{ $ARG->[1] } } )
+} @callbacks;
 
 return scalar @callbacks;
 
 # ______________________________________________________________________________
-#\\57N5ITSOH2XPAPB36LJ52GBTDXRJFCE32RRXNRM5NAM7IMM75PDKFK345PF7YKURGA3BNS37I5K7S
-# \\ FGOYDIHLZZXWA632JQAD7NRWFRL44ZGQEQGJIUW5QM3KQLRUUWOB \\// C25519-BASE-32 //
-#  \\// DDSR7CWXR6Q4VMOUZPXTG3SXPAIVHE36KURVJT4V654GX7DVEBQ \\ CODE SIGNATURE \\
+#\\K5OEBBTK3J5GMB3VGHVJLETYL4A44VG7FLZX7LZO5GNSPIEHNCTL5ATFRETVIOWPZ5RLV5376EFHE
+# \\ 6P2L5SZB7SHAI2QLXQHXW55KN7IEEDGADL4KOTFCW6QE2JV5DIW2 \\// C25519-BASE-32 //
+#  \\// ZDM3EWXY24VDM56QY2ZT4RCRJ4WMJMNJFNB7555KEQ4W7KDGQBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -10,7 +10,7 @@ $seperator //= "\n";
 $blocksize ||= 7777;
 
 open my $handle, '<:raw', $filename
-    or return warn "can not open '$filename' [ $! ]";
+    or return warn "can not open '$filename' [ $OS_ERROR ]";
 binmode $handle;
 my $lines = 0;
 $seperator =~ s/([\\{}])/\\$1/g;
@@ -32,13 +32,13 @@ eval qq[
     }
 ];
 
-die "can not sysread() from '$filename': $!" unless defined($status);
-close $handle or warn "can not close '$filename': $!";
+die "can not sysread() from '$filename': $OS_ERROR" unless defined($status);
+close $handle or warn "can not close '$filename': $OS_ERROR";
 
 return \%line_map;
 
 # ______________________________________________________________________________
-#\\WCHHR43YKKDCYZX5Q55XW7MA3NYQBVOS45AS62NAUBURKVDJP4UMJ2FQDXPEPR5DS5BLIDUUIN6W2
-# \\ WLQER5ZL7TVRNBEGCGTRCQYSSWPXG7LSZ3IF4CAUJV4EMKFGTAQ5 \\// C25519-BASE-32 //
-#  \\// YX7JE5BD5PP4L6WIFXEK7EJ5UMFEQ4FB3KPGU6UHFHPEXH7CEBQ \\ CODE SIGNATURE \\
+#\\ESVMN3ZOMZC2SP3NKJFCJ2FFPC5WORL6SUSRYQUQWOIFHILABUCFPOYJWQR5XOZD3Y7QKRO433QJK
+# \\ BHOV5462GFYCT7JFIEPUMSLUYRAAF7A6FOPCMTMVE5Y2HJAZCQGT \\// C25519-BASE-32 //
+#  \\// FALGGQA55HZCOAWDDFGHKFAMDSUICXWCRWZXN7VYRKW4NPR5SDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

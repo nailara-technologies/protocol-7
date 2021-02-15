@@ -28,11 +28,11 @@ if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
     $target_usr     = $1;
     $target_subname = $2;
     map {
-                $match_sid = $_
+                $match_sid = $ARG
             and $found++
-            if $data{'session'}{$_}{'user'} eq $target_usr
-            and defined $data{'session'}{$_}{'subname'}
-            and $data{'session'}{$_}{'subname'} eq $target_subname
+            if $data{'session'}{$ARG}{'user'} eq $target_usr
+            and defined $data{'session'}{$ARG}{'subname'}
+            and $data{'session'}{$ARG}{'subname'} eq $target_subname
         }
         keys %{ $data{'session'} };
     return {
@@ -42,7 +42,7 @@ if ( $param =~ /^$regex->{sid}$/ and exists $data{'session'}{$param} ) { # <sid>
         if $found > 1;
     $append_str = $match_sid;
 } else {    # <username>
-    map { $found++ if $data{'session'}{$_}{'user'} eq $param }
+    map { $found++ if $data{'session'}{$ARG}{'user'} eq $param }
         keys %{ $data{'session'} };
 }
 
@@ -73,7 +73,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\G73BX2JF4B7RKDFNSL6VQQDRFFMZHF7ZARFPMYYSZ57ZRHSYIN4DBEVNQYGTMBCOJQ7QJTPPWFSKO
-# \\ UWIYCKBA2NAUOG4LP7AOWHPS6ZLW5GD3UFFJBXCG45NAKGUWNLT6 \\// C25519-BASE-32 //
-#  \\// YTLLXW6YCKRACLIHYZWGFF2Y24PCU2DQHLZNRFRGPNFIFEPOYBI \\ CODE SIGNATURE \\
+#\\BUFEPOH7DFOYZT3XS35GHGM2QJQNYCH2US7LVRORAO7TD55IQZZYKWIPB2YQNTMYX5YO7PNCJSXUU
+# \\ D7SDX2JLSSVD55ASBMO7AEWMVR4UT52R5Y3THNG4ZQURXF4YH4VN \\// C25519-BASE-32 //
+#  \\// GRRZPTAKSBTD6LVFAAG4KS77KKXQXYS6VOYDOU3D4OQINZ6TYAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -18,18 +18,19 @@ my $html_ref = <[file.slurp]>->($html_template);
 die "unable to load html template '$html_template'" if not defined $html_ref;
 
 my $img_html_str;
-map { $img_html_str .= "<img src=\"./$_\"><br>\n" } @{$image_ref};
+map { $img_html_str .= "<img src=\"./$ARG\"><br>\n" } @{$image_ref};
 
 $$html_ref =~ s|\[PDF_IMAGES\]\n?|$img_html_str|sg;
 
-open( my $html_fh, ">$temp_file" ) or die "$temp_file: $!";
+open( my $html_fh, ">$temp_file" ) or die "$temp_file: $OS_ERROR";
 print {$html_fh} $$html_ref;
 close($html_fh);
 
-rename( $temp_file, $target_file ) or die "$temp_file -> $target_file: $!";
+rename( $temp_file, $target_file )
+    or die "$temp_file -> $target_file: $OS_ERROR";
 
 # ______________________________________________________________________________
-#\\BD563PJUTWXQICFGYSYSCCNSSW35A6LUY5W3DTY4JJ3IA3AVHHFET7XTCRY3R3FEFKAXWZEVVHTJW
-# \\ DOUCYC6FAYQEFIQCBIULWMDUDNFKFCA3I3XXO26O7PJMLJZ4ZPKD \\// C25519-BASE-32 //
-#  \\// HVEW4MA3MAQIYICU26LIUKI5D3Z3YWBUHPRCOQFADLU3QOLRWAQ \\ CODE SIGNATURE \\
+#\\7STPAUXCB4G774B2QBD2ANZ4RIEZGUIGEWYK3LFCHLWU7SKT6ZQP2VHIUMYWMZWKMOK7WRAOMJLIC
+# \\ 67DSPQ6PK7XTU7ZWQ7OLZGEDZWY6T7F6ZYXCXZWV4P5MRT6ACKIJ \\// C25519-BASE-32 //
+#  \\// WLQV3UPKUAUDQENGFJY56T7DBH3HF5WH62PXKZMMCEXGLICXOAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

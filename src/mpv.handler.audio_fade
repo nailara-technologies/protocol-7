@@ -40,11 +40,11 @@ if ( <mpv.volume.fade_factor> == 1 ) {
     $vol_str =~ s/\.00$//g;
     map {
         <[base.callback.cmd_reply]>->(
-            $_,
+            $ARG,
             {   'mode' => 'ack',
                 'data' => "volume fade complete [$vol_str%]"
             }
-        ) if defined $_;
+        ) if defined $ARG;
     } @{<mpv.audio_fade.reply_ids>};
     delete <mpv.audio_fade.reply_ids>;
     delete <mpv.audio_fade>;
@@ -52,7 +52,7 @@ if ( <mpv.volume.fade_factor> == 1 ) {
 }
 
 # ______________________________________________________________________________
-#\\72L4ICAUJOE3CYTBQ66FKWLZPOUUDRGBGPBPYGXA7ITUE7FNYDEBPWPFPL4ADQTWA324ZTMYYXTAY
-# \\ DO6M4C2BLO52BZYA43MZRLW644CMLPR3VR2NTPEIJICDKUTXACR7 \\// C25519-BASE-32 //
-#  \\// G3ELICTPQIN22LA5X6BOAT3JBSDUX5ENZ5JM5XGPAONZHTDZIAA \\ CODE SIGNATURE \\
+#\\GKFTLK7UV5FHTV3DYRXRXRAUFVRSPC77S7LUSGRZHSXLJCPCAT4TC4RQE4AP6RZWJ7IQ6SICANSFS
+# \\ SIXZPV7NLOMWVLKD2SOA23CFZISUE7OXJPNZJOASUCUW44RVGRTO \\// C25519-BASE-32 //
+#  \\// KBAIDNR5CIDFJY2ZW4KFDVIBTZBMUODYZXWTDY6C65XMDMZ7CCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

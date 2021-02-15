@@ -25,15 +25,15 @@ if ( !-r $file_name ) {
 my $response = "\n# .: $file_name :.\n\n# [line-num] [offset]\n\n";
 my $line_map = <[file.line_map]>->($file_name);
 map {
-    my $element = $line_map->{$_};
-    $response .= sprintf( " : %s :. %s\n", $_, $line_map->{$_} )
+    my $element = $line_map->{$ARG};
+    $response .= sprintf( " : %s :. %s\n", $ARG, $line_map->{$ARG} )
     }
     sort { $a <=> $b } keys %{$line_map};
 
 return { 'mode' => 'data', 'data' => $response . "\n" };
 
 # ______________________________________________________________________________
-#\\GLFTG4C7TSOTUX2B7NSRNCX4VKVNQTD7W2RQFR3AT5C23HRBIUICICBPCKDA43DI4WBBKSTZTVHHS
-# \\ YOC27VAMKSUS7BKUDCMDKNCP7LSOVCF6IJ6F3VCCSAH62MLNFR6N \\// C25519-BASE-32 //
-#  \\// 6J6HQM562UNRGRCNAJM2CFP4HV3QOHJ2JIF4NK3AMAGZHKNN2CA \\ CODE SIGNATURE \\
+#\\MGOA6553IS73X3LTXUW3JUCM7XXTEMK5GW7JUC3OBG6IA535ECWTEG2QIOIIN7P2TQD2BX46GOWF4
+# \\ XU6LR6IAPNTBN7BWCMOOOHLP7JOHDVEJL2T7KZFPFVNOWTPM6ZCQ \\// C25519-BASE-32 //
+#  \\// 5HGJSFFMNO2RGGLI652HZIJX5ZV5RXSDF2O6MBCEXX5K4OLGCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

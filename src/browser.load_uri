@@ -36,7 +36,7 @@ my $fg_resource = $fg_view->get_main_resource;
 
 if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
     map {
-        my ( $flag_name, $flag_param ) = split( m|=|, $_ );
+        my ( $flag_name, $flag_param ) = split( m|=|, $ARG );
         $flag_param //= 1;
         <browser.url_flags>->{ lc($flag_name) } = $flag_param
     } split( m{\|}, $1 );
@@ -96,7 +96,7 @@ if ( defined <browser.keep_text_zoom_path> ) {
 my $url_file     = '/tmp/.nailara.browser.' . $$;
 my $file_content = "current_url : $load_uri\nurl_flags   : "
     . join( ', ', sort keys %{<browser.url_flags>} ) . "\n";
-<[file.put]>->( $url_file, $file_content ) or warn "$url_file: $!";
+<[file.put]>->( $url_file, $file_content ) or warn "$url_file: $OS_ERROR";
 #
 
 $bg_view->load_uri($load_uri);
@@ -104,7 +104,7 @@ $bg_view->load_uri($load_uri);
 return 0;
 
 # ______________________________________________________________________________
-#\\6QRA32VUDI5S57O445JXT5GDCKMEIUJLCJB4C642M7EFXSI5W36YQXEWQNE3AABLVYLJ3VXYOCFT4
-# \\ ZVCZVNPRYSHTH346XXNEUZG6T7IY6RWSORN7ZH5CVXHH6QQAUQBR \\// C25519-BASE-32 //
-#  \\// DLFRY4TPY4WK5XGCL7QQX2YHCNCS7E4PHAY36LX52UWR7UG2KAY \\ CODE SIGNATURE \\
+#\\ZDFVYNGAC4BRNCAEORPXWW4DKHYGV6SUKFIULB2DZN7SCXSXPYBEWM555XU4QBRKMUBHZDXV53TXU
+# \\ QUQIVHXHYXBNSYKC2X3UK4UQ3FVR7W7HUM2IAA6GQIGNGFYBD2KX \\// C25519-BASE-32 //
+#  \\// KPTFCXCTINJS6C7BVZ4ASNRQTH43JDSKYOR4WY4BW6XKTVB3MCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -64,7 +64,8 @@ if (<browser.cfg.no_memory_cache>) {
 
 <browser.gtk_obj.web_context> = $web_context;
 
-map { <[browser.init_view]>->($_) } ( 1, 2 ); # will use initialized web context
+map { <[browser.init_view]>->($ARG) }
+    ( 1, 2 );    # will use initialized web context
 
 <browser.gtk_obj.overlay>
     ->reorder_overlay( <browser.gtk_obj.scrolled_window>->{2}, 0 );
@@ -105,7 +106,7 @@ Glib::Idle->add(
     }
 );
 
-map { <base.watcher.signal>->{$_}->cancel }
+map { <base.watcher.signal>->{$ARG}->cancel }
     grep ( !/hup/, keys %{<base.watcher.signal>} );
 
 undef %SIG;
@@ -118,7 +119,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     my $url_file = '/tmp/.nailara.browser.' . $$;
     unlink($url_file) if -f $url_file;    # clean shutdown
 
-    map { <browser.timer>->{$_}->cancel } keys %{<browser.timer>};
+    map { <browser.timer>->{$ARG}->cancel } keys %{<browser.timer>};
 
     <[base.log]>->( 1, "shutting down ..," );
 
@@ -132,8 +133,8 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     {
         local $SIG{'__WARN__'} = sub { };
         map {
-            <browser.gtk_obj.window>
-                ->signal_handler_disconnect( delete <browser.signal_id>->{$_} )
+            <browser.gtk_obj.window>->signal_handler_disconnect(
+                delete <browser.signal_id>->{$ARG} )
             }
             keys %{<browser.signal_id>};
     }
@@ -156,7 +157,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 # ______________________________________________________________________________
-#\\JGCVMOI47N5SSJHJIEF6VQM5Z5QHFG7R5QI3PWL5WNU7M5O4DBDBIRPLAQAAM3PQJLANCJN3LJFRO
-# \\ FTYXKF7U6MSKIPHDZRYTY3ASBF3O4OOWQWAPAHHPT3F7GHANB3UI \\// C25519-BASE-32 //
-#  \\// OV334M6MPU2DUGF4JE272OOG6JH6SX2CUAOBQXE3ZPORAOSTKCI \\ CODE SIGNATURE \\
+#\\7PWRZ7K7Z4BSY7UIBA3IUBISARO3NFQIG6EEUI3FCYSMJ2R4F5OJM6KYSMNCAEAMHQQJ4KOQVAW5C
+# \\ D57WSPYZKLUHZ6YOYHBWF4PE7RJW7NZ4NDEIAGZ7KY66QHDPAFNV \\// C25519-BASE-32 //
+#  \\// OWZXKYKXASVJ3BWZ7ULKQZZHJ4NBNTV3XFIOTPVGGK2C4XQXUCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

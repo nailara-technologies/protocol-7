@@ -20,7 +20,7 @@ if ( !-d $config_dir ) {
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
         or die "user '" . <system.privs.user> . "' not in passwd file";
     make_path( $config_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $!";
+        or die "make_path: $OS_ERROR";
 }
 
 <[power.load_config]> if -f join( '/', $config_dir, <power.config_file> );
@@ -49,7 +49,7 @@ if ( !-d $config_dir ) {
 0;
 
 # ______________________________________________________________________________
-#\\CLYREG4QMM2NK6AQHT54DQUIAGKVIIWC324KFPQGB64INJ6BVT4MPACQ6WZMB6Q3RHY7JWGXT6XWO
-# \\ RV247K2CR5ZPI5AGRU3MBB32ASND3SVRSQRYITVS5X2RSJBTDS2A \\// C25519-BASE-32 //
-#  \\// G4CF3PNCCI6SS3KO45E4M7A7NSLCPSJHOO74RQDU25B6KRPESCY \\ CODE SIGNATURE \\
+#\\OJHZY5Y35HCVMSL7MMLSTATP2S3QTRGX5ZELULN2NXIW6SLFKYBKESNVEFNZZALSJRBHC7V6HXV3G
+# \\ 7IZTPJDWHBZPDF6QFIWDQ7BTJ3I6L4V5UBCYIOIVRLH2QXUGEQ67 \\// C25519-BASE-32 //
+#  \\// 5F5A62VC2W6DFTXEWSVYCDWTVKZHJ3OI6FIEE3CRM6VKAS4GADI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

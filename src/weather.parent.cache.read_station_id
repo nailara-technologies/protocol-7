@@ -31,7 +31,7 @@ if ( $$content_ref =~ /^(\d+) ([\w\d]+)$/ ) {
 my $data_age = time - $timestamp;
 if ( $data_age >= $max_age ) {
     <[base.log]>->( 1, "cached station id has expired, removing cache file.." );
-    unlink($file_path) or die "unlink($file_path): $!";
+    unlink($file_path) or die "unlink($file_path): $OS_ERROR";
     return undef;
 } else {
     <[base.log]>->( 2, "retrieved station id $station_id from cache file" );
@@ -39,7 +39,7 @@ if ( $data_age >= $max_age ) {
 }
 
 # ______________________________________________________________________________
-#\\4OUF5Q3AFAEAQSRSMPZSNDMLLECCP2YW63WKYCBYG6V7NHMZXHF57XFFK4GLF7NNHHMZQ5HTXCWZU
-# \\ 2EFB6N37IYPLX4OY4TGBBLGDSOSHEEQZI4ZQLV2OKUDU6SQQPOXQ \\// C25519-BASE-32 //
-#  \\// BVD7F5RQ5IFVNQGWCFNIONP5TONBUR7D5UXYI4WEOQQNWRNVACA \\ CODE SIGNATURE \\
+#\\5RI7DTN32CDBTUH4ECJNJH4XCZUHDX4WDLR364XBT7VDEKGMZKBCL54Y6BOTQ63D46JFEY2UKICRI
+# \\ 73RXPWP2FJLE3TY3XPNK3XWU6AVQ754MEP2IF2EZUG2WD6SDSJXV \\// C25519-BASE-32 //
+#  \\// KAP7EX3JIRY2SSQM3A4WO4SSZUEXHJFUTL565XIHI7J3N2N5CBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

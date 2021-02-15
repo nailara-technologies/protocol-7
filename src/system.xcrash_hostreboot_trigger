@@ -21,7 +21,7 @@ if ( not defined <system.X-11_crash.reboot_condition>
     my $host_regex_str = $1;
     eval { $host_regex = qr{$host_regex_str} };
     if ( not defined $host_regex ) {
-        $reboot_condition_error = $@ if $@;
+        $reboot_condition_error = $EVAL_ERROR if $EVAL_ERROR;
         $reboot_condition_error //= 'regex error in reboot condition setup';
     } elsif ( <system.host.hostname> !~ $host_regex ) {
         $reboot_condition_error
@@ -44,7 +44,7 @@ my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
 return 1;                                  ## <-- reboot is scheduled ###
 
 # ______________________________________________________________________________
-#\\3JVM26VD5DU6MYTNOMGKCG5BRW52CYKZ6PS3BSJEKLXMY4OJ2HXU5NRNY5E5VMERGKBE6VSZTZZGC
-# \\ T3R2ZJNE5RJK3Y7C6AN3CNIKTPYO3H6RJGVLW5FUOEAVCX337GHN \\// C25519-BASE-32 //
-#  \\// NLI6OPAMT7IXA3GBCCUSNXMUSUXWKPXR4QNQRNPRQDUTSQV5MDI \\ CODE SIGNATURE \\
+#\\2IA3L6GEH3VQZLYGOGHFAK2S6RTKI5BTZ6BVDUGLNWNPRBBXXQME532IFRXEV77ELZJHWGDFCOPYO
+# \\ VZIM7RC75N3O6FWNFNT4VLFDZDZYE2CCZ5H2JMQYIR4VPAPKZQT6 \\// C25519-BASE-32 //
+#  \\// RJPSLK7GCHOPK7QFTX3QOQ5FHZZVIUKHBQ22EFCCQFJLSDSW2BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

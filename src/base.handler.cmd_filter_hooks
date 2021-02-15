@@ -35,13 +35,13 @@ if (    ref($cmd_hook) eq 'HASH'
 
 } else {
     map {
-        my $handler = $cmd_hook->{$_} // '';
+        my $handler = $cmd_hook->{$ARG} // '';
         if ( not defined $code{$handler} ) {
             my $command = $params->{'command'};
             <[base.log]>->(
                 0,
                 sprintf "%s-[%s]-handler '%s' not defined. [ hook disabled ]",
-                $command, $_, $handler
+                $command, $ARG, $handler
             );
             delete <base.filter_hooks.command>->{$command};
             return undef;
@@ -51,7 +51,7 @@ if (    ref($cmd_hook) eq 'HASH'
 }
 
 # ______________________________________________________________________________
-#\\ZLZ7ZJCFWLMUVOSW252I2R2JG4YBJCIK4NQZP5JNGW3SO24WTLLLXKOM5UJXGFDWREUNWSWLKC7WI
-# \\ ZMCL43P5PBEMFISRN5ZNEFYASZPWU3GNNVM66D6TJCUT5NYSOSWW \\// C25519-BASE-32 //
-#  \\// DDU2D46KRFGOZKMXCGGUAQSFPBCIOCMFHTFUCEKWZLJXPBJL4CQ \\ CODE SIGNATURE \\
+#\\C7KLEAEHL4YPDHKJQUDQHNKKPAYJBVORM7Q57PJKGND7B4VRDYTFIADR2HDZVKYXAWXCWXNGKB5QS
+# \\ 24Y4BHZCNMUFH6N5LUXV7MORIS557N3JVRDMX7OSK3XFPZ4UW5E4 \\// C25519-BASE-32 //
+#  \\// 52XTRXQ2QFYLMTZJJL5VICFZR5N6D3DYXQUSHX5VNLB4JPJCACQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

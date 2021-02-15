@@ -19,7 +19,7 @@ while ( not defined $wmstate and not defined $err and !$retries-- ) {
         my ( undef, $parent ) = <X-11.obj>->QueryTree($window_id);
         $window_id = $parent;
     };
-    $err = $@ if $@;
+    $err = $EVAL_ERROR if $EVAL_ERROR;
 }
 
 eval {
@@ -29,7 +29,7 @@ eval {
         <X-11.obj>->atom('UTF8_STRING'),
         0, ~0, 0
     );
-    $err = $@ if $@;
+    $err = $EVAL_ERROR if $EVAL_ERROR;
 } if not defined $err;
 
 eval {
@@ -42,7 +42,7 @@ eval {
         );
     }
 } if not defined $err;
-$err = $@ if $@;
+$err = $EVAL_ERROR if $EVAL_ERROR;
 
 if ( defined $err and $err =~ m|^Protocol error: bad 3 \(Window\);| ) {
     return undef;
@@ -56,7 +56,7 @@ $window_title =~ s{^'|'$}{}g;
 return length($window_title) ? $window_title : "''"; ## <-- quotes when empty..,
 
 # ______________________________________________________________________________
-#\\K6HHERSOL5XSCT2SEG656J7QNXWLSMXS6SRNRAHJG6CRLA7TJTP2MVDMBUG5ATNROPLS2QXBLJ6FW
-# \\ NJ3YLGPT7GRNKQD3ZLANRLOL42PGVCN7AUQLZJCOGHUKHUZGINWP \\// C25519-BASE-32 //
-#  \\// H6VGTKAVQU24FEXXZOYTKRQTZWCDLZKBYWJJW6R3MJOLDD3XYBQ \\ CODE SIGNATURE \\
+#\\OLWT343FCQH6ZYVFS2UDOJBQK4IIESWUWFWWBPUFY5UZAW64SMHMWJVEIG3PIHNU7DOSOJT2NUNDG
+# \\ 6XKVFVTHXY6VXRDUCANVYTNPLELO7MRWWUED2Z4HBN7GGGZAMRJZ \\// C25519-BASE-32 //
+#  \\// V2LIOPJP6C7FC32G325WE2VV2TMS476F36UULQ54LS63IQQ6MCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

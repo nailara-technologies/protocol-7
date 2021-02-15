@@ -35,14 +35,14 @@ if (system( $wall_bin_path,
             . " >>>\n\n\n\r   < [ TO ABORT REBOOT "
             . "RUN 'nlr system.abort-reboot' ] >\n\n" ) != 0
 ) {
-    my $err_msg = lc($!);
+    my $err_msg = lc($OS_ERROR);
     warn "$err_msg [ $wall_bin_path ]";
     return { mode => 'nak', 'data' => "'wall' command error : $err_msg" };
 }
 return { mode => 'ack', 'data' => 'message sent to all terminals.' };
 
 # ______________________________________________________________________________
-#\\6PXTBS6N54ZQUWI3FLD4QP7IYX6MJYASNVXLRK66OJZBQGXMVRVHWRHC4DLFTBSMHCDVFW4A7ITZM
-# \\ 36WFP4UULHSDULTL6HRAV7NUOUPVBQW3XBHCTLQG4S2PSCMMC7A5 \\// C25519-BASE-32 //
-#  \\// 7LQFX5A7SCJQWPFWUF6JAQDQFEPR76RAUDNK3KTZWJB4DDB3MAI \\ CODE SIGNATURE \\
+#\\GWDKNOZLLYRMVROK6PJ6O3TRESGA7JVYMKNEOLE2NDQ2PTKQCYXHETWIPLAUN5PILNIWXU6NNCWXQ
+# \\ FJV4DS2BP2CCSIGF22AGXCCQ7IO3Q4P2XICWUMOKYTBRVX4VQE6L \\// C25519-BASE-32 //
+#  \\// Y4CVUIJED25DQPFQ5IBCVUQL7GUPRL2ARJZQK65VM4JOB3HXAAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

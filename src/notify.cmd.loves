@@ -36,11 +36,11 @@ if ( !length($txt_param) and @matches ) {
 }
 
 map {
-    if (    defined $_
-        and length($_)
-        and ( !utf8::is_utf8($_) or !utf8::valid($_) ) ) {
-        utf8::decode($_);
-        utf8::downgrade($_);
+    if (    defined $ARG
+        and length($ARG)
+        and ( !utf8::is_utf8($ARG) or !utf8::valid($ARG) ) ) {
+        utf8::decode($ARG);
+        utf8::downgrade($ARG);
     }
 } ( $title, $body );
 
@@ -55,15 +55,15 @@ if ( defined $title or @matches ) {
         )
     ) {
         return { 'mode' => 'ack', 'data' => 'notification message sent' };
-    } elsif ( $? == -1 ) {
-        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };
+    } elsif ( $CHILD_ERROR == -1 ) {
+        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $OS_ERROR };
     } else {
         return {
             'mode' => 'nak',
             'data' => sprintf(
                 "notify-send exited with code %d%s",
-                ( $? >> 8 ),
-                defined $! && length($!) ? " [$!]" : ''
+                ( $CHILD_ERROR >> 8 ),
+                defined $OS_ERROR && length($OS_ERROR) ? " [$OS_ERROR]" : ''
             )
         };
     }
@@ -72,7 +72,7 @@ if ( defined $title or @matches ) {
 }
 
 # ______________________________________________________________________________
-#\\4OBV7ESTXK37SKCMFQLRI57W5WLO6HS5LDBMKZCFBFXJZNWT6W3YZAGUL26CMEVXLJMIEO3T5WCG4
-# \\ FMUQOZBDZYSTJBGWMFZZQM4DPSXMKWKBMXOOVK4WAFG4LOQH4UUC \\// C25519-BASE-32 //
-#  \\// NE3V3QGGQTRVVKSTQDCTRMXQORB6ECTWYXDPYPTJZRJKHUS3EBA \\ CODE SIGNATURE \\
+#\\YGRN5ILEQPQ2MFQVWHYCZGRBY7N2O5HWO36FOQ7OMGVSF662OK6VU7DJ6UCNLUCCNCLMFYAWITRPG
+# \\ G3SUVL7L7MPSSNMTDKL76VAP3V54E2IKKBVPMDKJX3XAME3L7J5W \\// C25519-BASE-32 //
+#  \\// 5VNP2MDJWA4U4X5FBGP5DQ3JAV6FJ2CEYCOF43AAIS2ALUXLKAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

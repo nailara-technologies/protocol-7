@@ -13,19 +13,19 @@ my @commands;
 my %param;
 
 map {
-    if ( not exists $data{'base'}{$section}{$_} ) {
+    if ( not exists $data{'base'}{$section}{$ARG} ) {
         my $cli = " $section";
         $cli = '' if $section eq 'cmd';
-        warn $cli . " cmd '$_' does not exist! <{C1}>";
+        warn $cli . " cmd '$ARG' does not exist! <{C1}>";
     } else {
-        my $cmd_str = $_;
-        if ( exists $data{'base'}{'commands'}{$section}{$_}{'param'} ) {
-            my $param_str = $data{'base'}{'commands'}{$section}{$_}{'param'};
+        my $cmd_str = $ARG;
+        if ( exists $data{'base'}{'commands'}{$section}{$ARG}{'param'} ) {
+            my $param_str = $data{'base'}{'commands'}{$section}{$ARG}{'param'};
             $cmd_str .= ' ' . $param_str;
-            $param{$_} = $param_str;
+            $param{$ARG} = $param_str;
         }
         $max_len = length($cmd_str) if length($cmd_str) > $max_len;
-        push( @commands, $_ );
+        push( @commands, $ARG );
     }
 } @$cmd_aref;
 $max_len += 2;
@@ -49,7 +49,7 @@ foreach my $cmd (@commands) {
 return ( \$reply_str, $max_len );
 
 # ______________________________________________________________________________
-#\\5TQF3OW5GHFHWPW7523WLZI7W2FMJH47YXKVKZ4NJMGFIWVOLLQS5HTNYNW7YERLHNAR4JIHF64MU
-# \\ HYW3GMDRUCRCH37Y4LS7YCERDLZVJCYOMMMV53XVNLRFBO7ZFUA7 \\// C25519-BASE-32 //
-#  \\// OX2QUO2BWQHZ6TG3UAY57QD3Y3HPESSDPR7QAQ4GH3NDJNMYOBA \\ CODE SIGNATURE \\
+#\\DB77TQQN6SZHX45YTFXMEJ4VU3LG5JLQB4XLTC27YQGKOZUJTQ4UE5TUDDJC77MNHOCWCH2HZV4YA
+# \\ DCUFLM333DNQXGRIZJPJXCYOAZDHXYVITTFCP22FJXPAUX2TZ3TN \\// C25519-BASE-32 //
+#  \\// KW7LZR3LFDJT2B375AEDLBQV2JUI4YZDCTBSRTXBJHGLCMUCIAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

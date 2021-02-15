@@ -67,7 +67,7 @@ die "incomplete config import definition in '$filename'"
     and !@overwrite_keys;
 
 my %key_count;
-map { $key_count{$_}++ } ( @overwrite_keys, @delete_keys, @merge_keys );
+map { $key_count{$ARG}++ } ( @overwrite_keys, @delete_keys, @merge_keys );
 foreach my $key_name ( keys %key_count ) {
     die "config import setup key collision for key '$key_name'"
         if $key_count{$key_name} > 1;
@@ -94,10 +94,10 @@ my $json_data;
 <[file.slurp]>->( $import_path, \$json_data );
 
 my $import_data;
-$@ = undef;
+$EVAL_ERROR = undef;
 my $err_msg;
 eval '$import_data = $data{json}{parser}->decode($json_data)';
-( $err_msg = $@ ) =~ s| at \(.+\n$|| if defined $@;
+( $err_msg = $EVAL_ERROR ) =~ s| at \(.+\n$|| if defined $EVAL_ERROR;
 die "json import of '$filename' failed: $err_msg"
     if defined $err_msg and length($err_msg);
 
@@ -130,7 +130,7 @@ foreach my $m_key (@merge_keys) {    # LLL: implement for key depth > 1
 #}
 
 # ______________________________________________________________________________
-#\\7G7SB77JJWVQ6O4F2VY432AVRPM7QOJSG6DYSHPQDZOEK4RDNBTGHBH2XNSJPR2MLBUZVRNSDDIY6
-# \\ 74GXXMHAKJIL6FTGX7PB2F7DWKYLLWF4T4KAXI7HQNWPBL7SEAWZ \\// C25519-BASE-32 //
-#  \\// CS3HBYQGVPVQBABQRWWVGBHYFKI3XGRKIWPUNNIP3ZOBLSQ3WDQ \\ CODE SIGNATURE \\
+#\\CWCV5JIQJECJKMZ5P7LBYLLYXW5LXWNRDJMAI4NFHBLYD5RMOYQYESBNTG6OZXL6D4F6FQOOUWQEC
+# \\ 4OVACOQ3L2TTITUVROV576LURMB7FOGJQEJR6GYK3XGV2RWG3LN2 \\// C25519-BASE-32 //
+#  \\// 7VK5AR5WS3XVBSTJS2ZRBG6VDYWTBAGAU7UPDQAIA7UVXVMHOBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

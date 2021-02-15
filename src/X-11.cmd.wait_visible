@@ -26,9 +26,9 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
         if $window_title =~ $title_pattern;
 }
 
-# <[X-11.process-x11-error]>->( $@, caller )
+# <[X-11.process-x11-error]>->( $EVAL_ERROR, caller )
 #     and return { 'mode' => 'nak', 'data' => 'cannot get window list' }
-#     if $@;
+#     if $EVAL_ERROR;
 
 my $req_id = <[base.gen_id]>->( <X-11.waiting> //= {} );
 
@@ -64,7 +64,7 @@ push(
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\66OZH5KYM2TEQ57IB5BNJVU2TDJNWR5VZW4KSRDHX4MYT3JCEIGNEYDKYCTYJMYBQ5PBMQV5I6XA2
-# \\ FM62PSL7IB5NSLQNWY3ZITRVE3DR47CTAC5DUKADAGL4P7MHKAH4 \\// C25519-BASE-32 //
-#  \\// HO56CV73RHU63AIR27OHHOOHGCGPX4UETRBDKDDZMBKFMUSD6AY \\ CODE SIGNATURE \\
+#\\34DSB4GXDI74ZJT7PWOVXCJO4IAPCQBWSV3JO4BMPSTSESGELEKZHEMZEN5GMCUS4B2QWK3XD74DI
+# \\ FTZEUUXYUKLCANPQYBBUXMDZWZHHLS2GSYRI7ZQGK6G3JABCSUGS \\// C25519-BASE-32 //
+#  \\// QYJPQXCT23PO4Y34JMQNUWG7YHQJRN5W7PR2RMKMLFXWUWSEYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

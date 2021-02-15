@@ -9,8 +9,8 @@ my $reply_id      = shift @{<mpv.reply_ids>};
 if ( length($playlist_json) ) {
     my $playlist_data = <mpv.json.parser>->decode($playlist_json);
     map {
-        $playlist_str .= exists $_->{'playing'} ? ':. ' : ':  ';
-        $playlist_str .= $_->{'filename'} . "\n"
+        $playlist_str .= exists $ARG->{'playing'} ? ':. ' : ':  ';
+        $playlist_str .= $ARG->{'filename'} . "\n"
     } @{$playlist_data};
 } else {
     <[base.log]>->(
@@ -26,7 +26,7 @@ if ( length($playlist_json) ) {
 );
 
 # ______________________________________________________________________________
-#\\TCQNTKCBOS6L4HVOOK2GUCLAQU5NCJUFYUAPHJQQ27P4FAOHK25GTMR4X27XWXDFP33UFHWFOJPWS
-# \\ APFIMOHENXPN5RALPPOF2EIXN5QNV3QQJRBS57QI3HY2GA5UFONF \\// C25519-BASE-32 //
-#  \\// ESWZVEIOMDFRLNVVX7BEOYSYOOTDTWF7W7LFMQCJ6JHBDT2GYBQ \\ CODE SIGNATURE \\
+#\\R2K3ZDGC3LKBJMKTJJXAA434GBOBBBKETJFW7EDJIK4XJDV2J5ZLILKWG3XM2G33IHNRRTMFUAMP6
+# \\ 7TGO4PVSTNHMJ7WAX7A7IPVD67ZXXVKFKU7ZJJD7WUGV5PJGYYV5 \\// C25519-BASE-32 //
+#  \\// 676UMXVRW7KOQMFP5KPI6NQ4K3MVHNBLIXUDETLMRTKY2XLOUCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

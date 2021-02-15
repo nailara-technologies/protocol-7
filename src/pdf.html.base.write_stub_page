@@ -26,14 +26,15 @@ if (    $percentage =~ /^\d+(\.\d{1,2})?$/
     <[base.log]>->( 0, "invalid percentage value '$percentage' [0-100]" );
 }
 
-open( my $html_fh, ">$temp_file" ) or die "$temp_file: $!";
+open( my $html_fh, ">$temp_file" ) or die "$temp_file: $OS_ERROR";
 print {$html_fh} $$html_ref;
 close($html_fh);
 
-rename( $temp_file, $target_file ) or die "$temp_file -> $target_file: $!";
+rename( $temp_file, $target_file )
+    or die "$temp_file -> $target_file: $OS_ERROR";
 
 # ______________________________________________________________________________
-#\\LV3PSOEBWR6YEOYWRFXTIJF7ICWPM3CHHBPA34WUL4LQHMHTURTSVBC2XCOYA6F2MAQZE5WKNAGAI
-# \\ QGK2USJL7ZY5OMTX7UND643F5IAWTT2OUHVTQK77ZIDMA74U3Z63 \\// C25519-BASE-32 //
-#  \\// RQ6A4XQIPTKAGYZKLLYA6ERJCA27WYRJM4AFYARJMNN52I346CY \\ CODE SIGNATURE \\
+#\\KIP5GUNYRPQC2LNQOEYFQTHMOSBNXGMUCBH4UHILIDGJ7JTOCEU5RNKXR3DXXPN4KXQR6HRFW7R7Y
+# \\ LBF364YOXHO6IGBP4A7OKNESW2N4XRUU7AT4NEVMBGPBUZOLK7QP \\// C25519-BASE-32 //
+#  \\// 7T3XXU2CZINJRID63PI75GW6DSZHLZ3G5ZALNJBKB3VNEJFNCBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

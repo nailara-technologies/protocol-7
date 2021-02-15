@@ -108,16 +108,17 @@ if (<impressive.pid>) {    # waiting for python interpreter to read $tmp_bin ..
     vec( $bits, fileno(<impressive.out_fh>), 1 ) = 1;
     select( $bits, undef, undef, undef );
 }
-unlink($tmp_bin) or warn "unable to delete '$tmp_bin' [$!]";
+unlink($tmp_bin) or warn "unable to delete '$tmp_bin' [$OS_ERROR]";
 
 if ( opendir( my $tdir_fh, $temp_dir ) ) {
     my @t_files = grep { !/^\./ } ( readdir($tdir_fh) );
     if ( !@t_files ) {
         <[base.log]>->( 1, "removing temp dir '$temp_dir'.." );
-        rmdir($temp_dir) or warn "unable to remove directory '$temp_dir': $!";
+        rmdir($temp_dir)
+            or warn "unable to remove directory '$temp_dir': $OS_ERROR";
     }
 } else {
-    warn "unable to open directory '$temp_dir': $!";
+    warn "unable to open directory '$temp_dir': $OS_ERROR";
 }
 
 <[base.agents.report_child_pid]>->(<impressive.pid>) if <impressive.pid>;
@@ -125,7 +126,7 @@ if ( opendir( my $tdir_fh, $temp_dir ) ) {
 ## wait for it ##
 
 if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start impressive [$!]" );
+    <[base.log]>->( 0, "[!] unable to start impressive [$OS_ERROR]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {
@@ -193,7 +194,7 @@ if (    <impressive.cfg.use_start-anim>
 }
 
 # ______________________________________________________________________________
-#\\AWJ5S4POXB63EE3HA7BEFYPFWCJQSNW3XIOVFDJO7JAY66SY7VL36TOUDLWMNIO64RN7GUPN5DLPW
-# \\ SBEQ2ITNAHCLNMGRTJ4CK73DWRKNAOPAKX57MAP2ZVF4EB7M2IEM \\// C25519-BASE-32 //
-#  \\// NRKAHDVNKNC2DEDRBCK55YKEREADGR2KPK3KNWVKIQWQY446ECI \\ CODE SIGNATURE \\
+#\\AHJV67SCDOGEEKSDJQJAQYKQ66HXKWZJRXXT4RTO5EPV3UJSXIGJAB6OKJBD6FJWL7EBLWCRRI4UM
+# \\ 6F2SMZ4POMDZYQURPWDGJBFXO6XAQO6YMSFPOWACXUOEIZPPPPIQ \\// C25519-BASE-32 //
+#  \\// QZ6P5HGPVHBPAD3GO6GAQL65AMV6NZT2L2CPQEFTLLSO3RZ4ADY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

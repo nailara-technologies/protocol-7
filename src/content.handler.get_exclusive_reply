@@ -11,10 +11,10 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
     chomp( $reply->{'data'} );
     @exclusive_b32ids = split( /\n+/, $reply->{'data'} );
     map {
-        if ( <content.b32id_src_str>->{$_} =~ /^([^:]+):/ ) {
+        if ( <content.b32id_src_str>->{$ARG} =~ /^([^:]+):/ ) {
             my $tile_name = $1;    # LLL: handle no tilename case? (global ex.)
             <content.exclusive_b32id>->{$tile_name} //= [];
-            push( @{ <content.exclusive_b32id>->{$tile_name} }, $_ );
+            push( @{ <content.exclusive_b32id>->{$tile_name} }, $ARG );
         }
     } @exclusive_b32ids;
 }
@@ -22,7 +22,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
 <[content.update_hidden]>;
 
 # ______________________________________________________________________________
-#\\EDMW3FX5HBXEWQYL3ACHO5DEMXQESYPBJFFUZD2L4F2B6JF37BOXBJAYSR2CZGP6SDZQIBUEIRRYA
-# \\ 4R2XD6VPH5J6IY6K4VPD7FZXIVKSIRD3OC5VI36UFQUQYSAEPAUY \\// C25519-BASE-32 //
-#  \\// XVZ6TC2GVR2I6LYWSBMZDAODPNVXXMJ7DPK4PYMCUZVOEEIJMDI \\ CODE SIGNATURE \\
+#\\E66R3PA25MHTF6I4JTJZZGEFOPEMSCVZD67F3FF757GXQZWRWXO7A7XUFZFQSFLND3H5W46YOCKEO
+# \\ WUQHFQL3P3LLKSOUY2KF5UNGT6CSXLL4AB46XYXSC2W6GGETPUO3 \\// C25519-BASE-32 //
+#  \\// PD6JF3MLRNLWQ3GVHNG4PVI2HYU44EC4JYE37I43DNBBUCZXABY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

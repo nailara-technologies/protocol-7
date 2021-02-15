@@ -24,11 +24,11 @@ my $skip_count = 0;
 map {
     return {
         'mode' => 'nak',
-        'data' => "invalid state \"$_\" requested! "
+        'data' => "invalid state \"$ARG\" requested! "
             . "( valid states are '0', '1' or '-' [skip] )"
         }
-        if $_ !~ /^(0|1|-)$/;
-    $skip_count++ if $_ eq '-';
+        if $ARG !~ /^(0|1|-)$/;
+    $skip_count++ if $ARG eq '-';
 } @state_param;
 
 return {
@@ -41,9 +41,9 @@ my $dev = <[power.dev_obj]>->($device_id);
 
 my @set_states;
 map {
-    if    ( $_ eq '1' ) { push( @set_states, SOCK_ON ) }
-    elsif ( $_ eq '0' ) { push( @set_states, SOCK_OFF ) }
-    else                { push( @set_states, SOCK_SKIP ) }
+    if    ( $ARG eq '1' ) { push( @set_states, SOCK_ON ) }
+    elsif ( $ARG eq '0' ) { push( @set_states, SOCK_OFF ) }
+    else                  { push( @set_states, SOCK_SKIP ) }
 } @state_param;
 
 $dev->_set_ctrl(@set_states);
@@ -53,16 +53,16 @@ my @new_states;
 # print Dumper( $dev->{'stat'} );
 
 map {
-    if (   $dev->{'stat'}->[$_] == 17
-        or $dev->{'stat'}->[$_] == 18
-        or $dev->{'stat'}->[$_] == 65 ) {
-        $new_states[$_] = '1';
-    } elsif ( $dev->{'stat'}->[$_] == 33
-        or $dev->{'stat'}->[$_] == 34
-        or $dev->{'stat'}->[$_] == 130 ) {
-        $new_states[$_] = '0';
+    if (   $dev->{'stat'}->[$ARG] == 17
+        or $dev->{'stat'}->[$ARG] == 18
+        or $dev->{'stat'}->[$ARG] == 65 ) {
+        $new_states[$ARG] = '1';
+    } elsif ( $dev->{'stat'}->[$ARG] == 33
+        or $dev->{'stat'}->[$ARG] == 34
+        or $dev->{'stat'}->[$ARG] == 130 ) {
+        $new_states[$ARG] = '0';
     } else {
-        $new_states[$_] = 'E';
+        $new_states[$ARG] = 'E';
     }
 } ( 0, 1, 2, 3 );
 
@@ -81,7 +81,7 @@ if ( $dev->{poller}->can_write(0.1) ) {
 return { 'mode' => 'ACK', 'data' => join( ' ', @new_states ) }
 
 # ______________________________________________________________________________
-#\\3NLUCZCPXIM6YZRHPRPACUIOFUGSMRJYSTRLFCUR6JLFEZHJSBEX4LAN25FQNYBJDD5CZ2U6YF32Q
-# \\ ANXYDHG2YHCVZHUUHT4DKHMJJMWG7LMXW4ZU3TGO64MOJUFZO4IA \\// C25519-BASE-32 //
-#  \\// G5UJDTIRZDF5VVOIZN7YINO4NPZ5QZCH665USUD75UMJKLOZGBQ \\ CODE SIGNATURE \\
+#\\EEVL63GDKL2KRC3OPANF2KXW6XV6MEVVC73A3CL47K4GPJGV26PFTCXTIC5QXVF4VCOALR6A6CJSQ
+# \\ 4DFOBPL5CACCESQSBNVAUZMVCQ62DNJ2Y42XTZ3KBHMZHDQZQS6O \\// C25519-BASE-32 //
+#  \\// TW4YDCVWZW2U2TZA5KODHAHSH54YWAHXOVUS6YGQSRSNDC4I6AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

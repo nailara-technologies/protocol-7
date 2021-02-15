@@ -23,14 +23,16 @@ if (    $reply->{'cmd'} eq 'NAK'
 } elsif ( $reply->{'cmd'} eq 'DATA' ) {
     $mode      = 'ack';
     $reply_str = "config written to export directory ('$export_file')";
-    undef $@;
+    undef $EVAL_ERROR;
     eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
-    if ( defined $@ and $@ ) {
-        $@ =~ s| at base.file.put.+\n$||;
-        <[base.log]>->( 0, "config export to '$export_file' failed. [$@]" );
-        $@ =~ s|^[^:]+: ||;
+    if ( defined $EVAL_ERROR and $EVAL_ERROR ) {
+        $EVAL_ERROR =~ s| at base.file.put.+\n$||;
+        <[base.log]>->(
+            0, "config export to '$export_file' failed. [$EVAL_ERROR]"
+        );
+        $EVAL_ERROR =~ s|^[^:]+: ||;
         $mode      = 'nak';
-        $reply_str = "config export failed [ write error: $@ ]";
+        $reply_str = "config export failed [ write error: $EVAL_ERROR ]";
     }
 }
 
@@ -39,7 +41,7 @@ if (    $reply->{'cmd'} eq 'NAK'
 );
 
 # ______________________________________________________________________________
-#\\PX5BL54MLKN2M333KJYPTOZ5O5HEKI6TA7ACTO76L5B75ZIDMD573IWESCGJURCICJR6EPOGPVF2S
-# \\ DPKWJBBXDWUWU26Q4GTUBIAK74H4SUISJ377RS5J5W5WLDVW5BLQ \\// C25519-BASE-32 //
-#  \\// TPW7IQNFXWH5GIIQVE7DFC22QW4EAOPKOAVNCVKS4MCLFDVS2CQ \\ CODE SIGNATURE \\
+#\\ZJHKL33A5VUA5WMWQDJDYNHYH4FBGYNQT5DHXK5IOKU77NGHUCGKSUCKZV7FWVMIZ6NKR66GTDAIQ
+# \\ AOT6IDK4PECSRLLHKVI22B56ZVYDUY3HH3YZUKIPPQP3QWIIANMZ \\// C25519-BASE-32 //
+#  \\// F2QH4UTOEIRI4JZU36D4RRFAP7B5VIILAWXAFS2CZZRAM6MPIAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -59,16 +59,17 @@ if ( defined $target_path ) {
 
 if ( !-d $output_path ) {
 
-    #    make_path($output_path) or die "make_path($output_path): $!";
+    #    make_path($output_path) or die "make_path($output_path): $OS_ERROR";
     make_path( $output_path, { chmod => 0777 } )
-        or die "make_path($output_path): $!";    ## <<< ! >>> ## chmod ###
+        or die "make_path($output_path): $OS_ERROR";   ## <<< ! >>> ## chmod ###
 
 }
 
 my $partial_output_file = "$output_path/$box_size...converting...$format";
 if ( -f $partial_output_file ) {
     <[base.log]>->( 0, ": found partial output file, cleaning up..." );
-    unlink($partial_output_file) or warn "unlink($partial_output_file): $!";
+    unlink($partial_output_file)
+        or warn "unlink($partial_output_file): $OS_ERROR";
 }
 unlink($partial_output_file);
 my $output_file = "$output_path/$box_size.$format";
@@ -96,9 +97,11 @@ goto new_log_name if -e $error_log_file;
 
 if ( !-f $output_file ) {
     local $ENV{'FFREPORT'} = "file=$error_log_file:level=16";
-    if ( system(@ffmpeg_params) != 0 or $? == -1 or $? & 127 ) {
+    if (   system(@ffmpeg_params) != 0
+        or $CHILD_ERROR == -1
+        or $CHILD_ERROR & 127 ) {
         unlink($partial_output_file) if -f $partial_output_file;
-        my $err_str = $!;
+        my $err_str = $OS_ERROR;
         if ( -f $error_log_file ) {
             my $log_content = <[file.slurp]>->($error_log_file);
             my @log_lines   = split( /\n/, $$log_content );
@@ -119,7 +122,7 @@ if ( !-f $output_file ) {
         };
     } else {
         rename( $partial_output_file, $output_file )
-            or warn "rename failed: $!";
+            or warn "rename failed: $OS_ERROR";
     }
 }
 unlink($error_log_file) if -f $error_log_file;
@@ -129,7 +132,7 @@ unlink($error_log_file) if -f $error_log_file;
 return { 'mode' => 'ack', 'data' => $output_file }
 
 # ______________________________________________________________________________
-#\\4JKZJWTIQYH3BLK2THZLXMEPOTBIYQVULPHOUOLHBWS3VIEDWPUY5JZ7POZNVMODUZSPXYBJIHII6
-# \\ DXQUHY7DGHDCTRCARZ6Z6STKGXZQTW5FIJBGJOPL52XYPRZYD7RF \\// C25519-BASE-32 //
-#  \\// VB4JPLFHDIF676GJUUC2YFFXHD76ZZBXJT6XXZWXB5JL6JPH2AY \\ CODE SIGNATURE \\
+#\\5SR36G7IKRGJYPT5ANSOHLAKOMIZNPDRVFBVW4PIRCJVPK54EB7ZA5H22KMGTRQGKHZH6QY67VHAE
+# \\ 5X35ANHJREGMOVRY4WTGLQGBET6M36GENSIFA6D4757WHNBV5UOF \\// C25519-BASE-32 //
+#  \\// 2C733SFHVDZJXUTB7MJNYGNTL5MXUKJE6F7PL2GAFM23MMNRYBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

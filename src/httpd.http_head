@@ -13,7 +13,7 @@ my $req_host  = $session->{'http'}{'request'}{'host'};
 my $http_host = <[httpd.determine_host]>->($id);
 
 if ( not defined $http_host ) {    ##   bad request
-    map { delete $response->{'params'}->{$_} } qw | Allow |;    # <-- expand ..,
+    map { delete $response->{'params'}->{$ARG} } qw | Allow |;  # <-- expand ..,
     return <[httpd.send_error_page]>->( $id, 400 );
 }
 
@@ -146,7 +146,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\LKEINY7TBRA6SADMTKV4PSU6EIDGWO2POJT7V56WRAYDIVOG7CPSFWFFCYPKZJPHQD3N2FIAOHETW
-# \\ FJIEUQPQUYDRXBKJ455DCXX4IDCUT6RVLWFIQAPMGYAH5K3RDMF2 \\// C25519-BASE-32 //
-#  \\// M53MVPJROBKPSTTQ2PY7JQCIRNOEGOU3I7FGTGY5WPBKCD562BI \\ CODE SIGNATURE \\
+#\\BWHKYBTLQW7ZNIOXVAE5AT6NZQFXZNYYELRFW7HIIP4QT4CKU5KFXSJCEI72Z44Q27TC4RH4745DG
+# \\ OV4WOKUBPQ2KB3TFK27FXT7B6D7AYKHBD5UA5GBSPEO4BKZKE6ML \\// C25519-BASE-32 //
+#  \\// AX3TQDXYIFALQUHVGO2TZ36Z4JLH5SNOZ7P5GLSOQUUT6HH4CAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

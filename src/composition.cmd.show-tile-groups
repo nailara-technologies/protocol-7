@@ -7,15 +7,15 @@ my $reply_str   = '';
 my @tile_groups = keys %{<composition.setup.tile-groups>};
 
 map {
-    my $marker_l = $_ eq <composition.current_tile_group> ? '-->'  : '   ';
-    my $marker_r = $marker_l =~ m|\S|                     ? ' <--' : '';
-    $reply_str .= sprintf( " %s %s%s\n", $marker_l, $_, $marker_r )
+    my $marker_l = $ARG eq <composition.current_tile_group> ? '-->'  : '   ';
+    my $marker_r = $marker_l =~ m|\S|                       ? ' <--' : '';
+    $reply_str .= sprintf( " %s %s%s\n", $marker_l, $ARG, $marker_r )
 } sort { length($a) <=> length($b) } sort { $a cmp $b } @tile_groups;
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\XHRLJXYFKYC4GPSF7ZUWLVOFCFWLVTPC3SWGLLNZIZCLF5JN7Z32MO473ENWJRTWLKD4EEJRFPAHG
-# \\ URKXBCWCXW6V2X337KUE4WBHHUIYITSGN26SSOFCYJGOFMSDN6LQ \\// C25519-BASE-32 //
-#  \\// 5CBBVHDA4Z6HZTSTKEGLNU7TSFSQAHWVAT6LYPZCYOQK6O5W4AQ \\ CODE SIGNATURE \\
+#\\EOXDWKAC6FZ4SWWRYEREBZ6OLFRENNE3UJ24ZFZKQGC7EYGOQORQMPGIPAOY266TKJCZWGEHUEALU
+# \\ UOMMCMZ4C4BPQF2V3LK5B5TU42HZTDV4HSX25RLTV5BKAHEDT6PY \\// C25519-BASE-32 //
+#  \\// U6O4YFFTCM7QBN5CXWL5AQMO6IY5EIIGWH4C6XPWC2RAO2VNSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

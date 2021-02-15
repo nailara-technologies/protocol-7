@@ -24,7 +24,7 @@ if ( not defined $target ) {   # creates an agent subdir if target not specified
             last;
         }
     }
-    die "no success creating temp dir '$first_dir' [ $! ]"
+    die "no success creating temp dir '$first_dir' [ $OS_ERROR ]"
         if not defined $first_dir;
     $target = $first_dir;
 }
@@ -39,14 +39,14 @@ while ( not defined $tmp_dir_path or -e $tmp_dir_path and $retries-- ) {
 }
 
 make_path( $tmp_dir_path, { 'mode' => 0750 } )
-    or die die "no success creating temp dir '$tmp_dir_path' [ $! ]";
+    or die die "no success creating temp dir '$tmp_dir_path' [ $OS_ERROR ]";
 
 <[base.log]>->( 2, ":. created temp dir '$tmp_dir_path'" );
 
 return $tmp_dir_path;
 
 # ______________________________________________________________________________
-#\\OUJHC4AEJVUZBIKDGUEIUXDQ45XVFXYCQUQ7BPUNL23SQGB3OSN5WXSRTNT3LFZSILGUNAVIFOUXY
-# \\ 4RT5CH2HEEVS3W6433T3FMD3GT6KUEGVKLZXPHH2TMIBRBQFSD2O \\// C25519-BASE-32 //
-#  \\// GUGGHIYOL64UA76422L6X37W5KW7QQA6G27PGXMXOK3DFYHX6AY \\ CODE SIGNATURE \\
+#\\LAZFUBS5ITPEG7MXHLKGD7MDSLDGV44JFLW3J6D3OVCYH3YRVVIUIVWFGEA76UR3OAAQZLYLTBQ2G
+# \\ XZCYRPJ74P2NHQFMPQYVJYLNXKD4XKE5MO4T3W3PMCEXKRVZ6YXP \\// C25519-BASE-32 //
+#  \\// MFKICU6KQTKCMNZJ52SHVVRLEHURCFBSU2FQL2LUHAL4NSDAICI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

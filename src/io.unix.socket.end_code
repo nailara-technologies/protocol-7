@@ -3,15 +3,15 @@
 # name = io.unix.socket.end_code
 
 if ( exists <process.unlink_child.w_fh> ) {
-    map { <process.unlink_child.w_fh>->print("$_\n") } @{<unix.socket_paths>}
+    map { <process.unlink_child.w_fh>->print("$ARG\n") } @{<unix.socket_paths>}
         if exists <unix.socket_paths>;
     <process.unlink_child.w_fh>->close;
 } else {
-    map { unlink($_) } @{<unix.socket_paths>} if exists <unix.socket_paths>;
+    map { unlink($ARG) } @{<unix.socket_paths>} if exists <unix.socket_paths>;
 }
 
 # ______________________________________________________________________________
-#\\I6E5NOZAEDDPM62EU6NHXDZAWCWYLFQ6QZTEHRSRFTUNMCE7Y7L7Z64LKPFQLZ3THWVU74JQW2YQO
-# \\ TMIV72SPO6COIITVL4FHC6EBD3PTOYXJIX33DZLBI7ZNA77XCBW4 \\// C25519-BASE-32 //
-#  \\// GCOLV2ZZ2LJDT2AEZSO7NXV3DCGTINWJVDPAXNP63KJYPAOTOCI \\ CODE SIGNATURE \\
+#\\X4MDLVYMGZ7JZ4QKZL6SWHYKGZHGIW4LB74KOZKP35QCKZLQUWHXVMCXSCIZ4VV2SG2JDTOKZBX4I
+# \\ MZNVP3T3PGUI6WK5KTG6YQRYVJURQSXFAF2YAE22UEHT4OQ3QEYE \\// C25519-BASE-32 //
+#  \\// H3L66CNERYDKRLKXVQUP747OTMPJJBPXPGTWQWJK2CGJIBT42BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

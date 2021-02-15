@@ -52,9 +52,9 @@ if ( not defined $err_reason ) {
     my @children = @{ <[nroot.sub-process.get_children]>->($p_pid) };
     my @i_pids   = @children ? ( $p_pid, @children ) : ($p_pid);
     map {
-        ( my $p_uid, my $p_gid ) = <[nroot.sub-process.get_uid]>->($_);
-        push( @{ $has_uid{$p_uid} }, $_ );
-        push( @{ $has_gid{$p_gid} }, $_ ) if defined $p_gid
+        ( my $p_uid, my $p_gid ) = <[nroot.sub-process.get_uid]>->($ARG);
+        push( @{ $has_uid{$p_uid} }, $ARG );
+        push( @{ $has_gid{$p_gid} }, $ARG ) if defined $p_gid
     } @i_pids;
     $err_reason = "could not map instance to user id" if !keys %has_uid;
 }
@@ -100,7 +100,7 @@ push(
 return { 'mode' => 'ack', 'data' => "registered '$temp_path'" };
 
 # ______________________________________________________________________________
-#\\ORAZGF4TJLHBWLZMFNH3YDDWFQ2S3F7WOM4WIZT2HMTHQAHIOBUKAXAHYHK6OUDBJSIBN42AWIWUY
-# \\ ZSOAU3IOPWBNIDOBAK6ACSXZD5MHOXDP6HBOUXEIP6DK4GAJVWVF \\// C25519-BASE-32 //
-#  \\// PHOVBSXVZ54C2NH7KFCBNLQ6RBNSEGCGPR7UIG5VZ2HS3ZA7SCQ \\ CODE SIGNATURE \\
+#\\YVKVOYTTFPEWRGETSSPXL7OIYDDQRJGAXGEFYHFZBFIQFZZGDER475IOHMBHJE43F32RPPWTULEU2
+# \\ TMYZ2MRNDWIZLW665HC6PMX7OXIO5LSXFKRKQQAZVXFKL4RVGUAG \\// C25519-BASE-32 //
+#  \\// 47RU7MYMP2IM53SJCOBVCY5EYIGTD2Q624IBMHVPJMSUXHTNECQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

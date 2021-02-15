@@ -23,7 +23,8 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 $title = $1 if $txt_param =~ s/^(\S+)\s+//;
 
-map { $_ =~ s|\\0||go } ( $title, $txt_param );  # <- prevents msg being cut off
+map { $ARG =~ s|\\0||go }
+    ( $title, $txt_param );    # <- prevents msg being cut off
 
 if ( defined $txt_param and $txt_param ne '' ) {
     my $msg_str = <system.verbosity.console> >= 3 ? " ['$txt_param']" : ' ...';
@@ -35,15 +36,15 @@ if ( defined $txt_param and $txt_param ne '' ) {
         )
     ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
-    } elsif ( $? == -1 ) {
-        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $! };
+    } elsif ( $CHILD_ERROR == -1 ) {
+        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $OS_ERROR };
     } else {
         return {
             'mode' => 'nak',
             'data' => sprintf(
                 "notify-send exited with code %d%s",
-                ( $? >> 8 ),
-                defined $! && length($!) ? " [$!]" : ''
+                ( $CHILD_ERROR >> 8 ),
+                defined $OS_ERROR && length($OS_ERROR) ? " [$OS_ERROR]" : ''
             )
         };
     }
@@ -52,7 +53,7 @@ if ( defined $txt_param and $txt_param ne '' ) {
 }
 
 # ______________________________________________________________________________
-#\\NBCTUN5HRWW2DQDFB74IRXTYJRTDUPTYZATC724A22KVF3V7CEIRJD3BTDW2EPOB3RHTECPLJMJDA
-# \\ W77ARSN7R3CM3TVJYLNK22V3JVYUCTPUW5M6G7AKY2VPIE2MCBMC \\// C25519-BASE-32 //
-#  \\// ZDDC6ZNSHIVYSRAICALZTQZRLC6XFA26T5WLFZCOPKMO4JQKGCQ \\ CODE SIGNATURE \\
+#\\UWJKUVZAIB4SJWDPUHRWL4LI3RM2MQGBTU7VZFSUYSSQ4TEYOZTXRTXQARKTRKVN4GVJ6PJT7XL5S
+# \\ GHTEDATTEBZS24SN4DRD4AMYMTZXNBWXL37F4GXTBMRYL57U6NEC \\// C25519-BASE-32 //
+#  \\// XQKYNTVVX4YVCGLPOBHZLPTAWTN2ERAH5QF6LBWPTL5GE3FISDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

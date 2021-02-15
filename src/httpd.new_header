@@ -14,13 +14,13 @@ $params->{'Date'} = $server_date;
 
 my $header_str = "HTTP/1.1 $code $status_str\r\n";
 
-map { $header_str .= "$_: $params->{$_}\r\n" if defined $params->{$_} }
+map { $header_str .= "$ARG: $params->{$ARG}\r\n" if defined $params->{$ARG} }
     sort { length($a) <=> length($b) } sort keys %{$params};
 
 return $header_str . "\r\n";
 
 # ______________________________________________________________________________
-#\\X7C6AWO2SBEVDETP6VXQKP3OWZRSUYP6I3CCGCSJGU6NMHPUBFLMFB5P37634RXI4K536PE4PXO7O
-# \\ 3Q4G7A34YJ3ND3BK5FYBXBDH7CFGOO6QADVRGA3K3HHS4ER6CL4Q \\// C25519-BASE-32 //
-#  \\// L5Y3FTAIZMS2AXT2HN73B53GGIGCW7EHTXQ5DZUHVAGDCZPYEDY \\ CODE SIGNATURE \\
+#\\GV545NVPWL5UELDM4RYLPRGDMCZKKWEFFOW3CVJSXPGJ6UVJRU5O7ZHW5HHWGHUFNMDYNYXLUTNG2
+# \\ Y3KC6WNM7ILEU72H2IIZR4ZZ7PDGFAJHA46SMF26AUNS6AQ7OTO5 \\// C25519-BASE-32 //
+#  \\// 3A3JJT7OVMZZWLCQHIU77WPMSCFRNTN4VUAF6AFIQ2BLAPM6MBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

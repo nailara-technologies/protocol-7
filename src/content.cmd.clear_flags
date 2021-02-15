@@ -10,12 +10,12 @@ return { 'mode' => 'nak', 'data' => 'URL expected!' }
     or $url !~ m|^https?://|;
 
 my $match = 0;
-map { $match++ if $_ eq $url; } @{<content.file_list>};
+map { $match++ if $ARG eq $url; } @{<content.file_list>};
 
 return { 'mode' => 'nak', 'data' => 'no such url in playlist!' } if !$match;
 
 my $clear_count;
-map { $clear_count++ if delete <content.url_flags>->{$_}->{$url} }
+map { $clear_count++ if delete <content.url_flags>->{$ARG}->{$url} }
     keys %{<content.url_flags>};
 
 return { 'mode' => 'nak', 'data' => 'no flags were set for given url!' }
@@ -30,7 +30,7 @@ my $s = $clear_count > 1 ? 's' : '';
 return { 'mode' => 'ack', 'data' => "url flag$s cleared" };
 
 # ______________________________________________________________________________
-#\\6XZJQK4EJTOPCYF33IXWZK6GYMLHFRGIYY63RSHSAQRDU3LEOYAMPW3O2WMLHUESPMA7EFJTH2AEK
-# \\ 3CE7Z4PGRQHRVWEDVMY7WIHQJGQQSUCPVJAKA2ODWEZ6W2NSIHPA \\// C25519-BASE-32 //
-#  \\// RVHF3TSI3O6VNRE2H6PJI6WPYY2Y4GA34GRISNPPADGJ5DPB4AI \\ CODE SIGNATURE \\
+#\\FCID5RKYREPCHVOT5E7ODN7GKKVLF44V6JFZMEJ2OOQOFATL6GNNMJ6OYCMZUYHYXS232JKP7L5PQ
+# \\ YUUA5SIJQYVECP33KUFFC2XP4ODMKZI5WLIDKEGY3ONHINI27JWG \\// C25519-BASE-32 //
+#  \\// ZRWDYBQGYVQJOPUHQX7B4QIWB76Q4S3D3C2XIS4M4MTFVRRYQCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

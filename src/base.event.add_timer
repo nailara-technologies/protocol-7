@@ -15,8 +15,10 @@ return undef
     and warn "base.event.add_timer: callback '$callback' does not exist <{C1}>";
 
 my @event_time;
-map { push( @event_time, ( $_ => ${ $_[0] }{$_} ) ) if defined ${ $_[0] }{$_} }
-    ( 'at', 'after' );
+map {
+    push( @event_time, ( $ARG => ${ $_[0] }{$ARG} ) )
+        if defined ${ $_[0] }{$ARG}
+} ( 'at', 'after' );
 
 my $repeat
     = ( defined ${ $_[0] }{'interval'} and ${ $_[0] }{'interval'} ) ? 1 : 0;
@@ -38,12 +40,12 @@ eval {
     );
 };
 
-warn "add_timer: $@ <{C}>" if $@ or not defined $timer;
+warn "add_timer: $EVAL_ERROR <{C}>" if $EVAL_ERROR or not defined $timer;
 
 return $timer;
 
 # ______________________________________________________________________________
-#\\ZCCK63RYOSIZUBFFC4QXNXFTP3EH2TKZ7YX4U63CF2HNDFTXBJF53YCL3IQFFUIGGEQKMI7WDPUWI
-# \\ VD5OKDT56PVLNRNBQX3K6JTBLXOGSKA7JREDGBXFI4Z7EG32FLCK \\// C25519-BASE-32 //
-#  \\// OP46FUIM5CK6OC4UUV6WEYFHXLN6QIBVPWHQIEPVRGVZT5BRKDI \\ CODE SIGNATURE \\
+#\\SS7TJ4H6QYNAC7KDS4HKEYYFKJBCZYJG3GCDTSZ4OJOXHIN7IDBPW4YYUDQA5QNMXNYR3IEPSXZIK
+# \\ 5RJ66J7J43ONZPV4AR5RPIRM4R2MXCCGSOGT5YD2B2O5R7Q4VRCC \\// C25519-BASE-32 //
+#  \\// ENORX4KQUE5QGYCZSJQUND36CT55U2P6LHT4SRRAE5KMSPC2WBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

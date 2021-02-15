@@ -25,7 +25,7 @@ if ( !-d $search_path ) {
 my $results = [];
 $results = $result_aref if defined $result_aref;    # (append mode)
 my @file_table = map {
-    my $key = $_ // '';
+    my $key = $ARG // '';
     $key =~ s/\./\\./g;
     $key =~ s/(\*\*|\*)/$1 eq '*' ? '[^\.]*' : '.*'/ge;
     qr/$key$/
@@ -43,7 +43,7 @@ return scalar @{$results} if defined $result_aref;    # (append mode)
 return @{$results};
 
 # ______________________________________________________________________________
-#\\O7L5KPPVBXWPYUNRO3NSNTNQ7DIBJXEE33OBBDMWYQYGEFNWZGH7N6EF66HNQ6DZLFPC2PANLUYO4
-# \\ PL6XWA2ZQQRCDONDFK4LILXRE7BH66VXLEJIRRONZ7K5Q5JUZ4Y4 \\// C25519-BASE-32 //
-#  \\// LT4SA4S2LLEQPTV5IMK4G4CHF5IXJHWU6G5F7QFK2DQC6MCB4DY \\ CODE SIGNATURE \\
+#\\UCDIDAJF6FKLJ3ZAOKH4RALHZOGTY5A6GDJATCTUAETCITBMHW6IVFUW7GIRVVOBYCCGWJJPZIJYI
+# \\ HK42YN2X6BNZYPWXUF45A55JHAXGGD2TCB26KRVUNK6QR3SRJ4OU \\// C25519-BASE-32 //
+#  \\// E7GI7REQJQAQ3KMMZFL7GGT3NZPRMLGWCSMO6EYA4WZQIUM2UAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

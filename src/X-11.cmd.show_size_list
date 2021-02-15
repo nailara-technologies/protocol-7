@@ -20,7 +20,7 @@ return {
     'mode' => 'nak',
     'data' => "no available sizes being reported [ RANDR ]"
     }
-    if $@
+    if $EVAL_ERROR
     or !keys(%screen_info)
     or !@{ $screen_info{'sizes'} };
 
@@ -33,13 +33,14 @@ map {
     my $marker_l = $size_index++ == $current_size_index ? '-->'  : '   ';
     my $marker_r = $marker_l =~ m|\S|                   ? ' <--' : '';
     $reply_str
-        .= sprintf( " %s %d x %d%s\n", $marker_l, $_->[0], $_->[1], $marker_r )
+        .= sprintf( " %s %d x %d%s\n", $marker_l, $ARG->[0], $ARG->[1],
+        $marker_r )
 } @{ $screen_info{'sizes'} };
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\MLO243KHL6Z33BUEXY7FIK2XZS26GZ2PDYHTQOZZN54FGFKXHGSHV7ITHHCCO7DXKQEJGURS2DEVI
-# \\ ZXUOD7VDECETSGQJTDW4F2J7V4NHKZAZ3DDXREMAASMUPC7HKWXX \\// C25519-BASE-32 //
-#  \\// ZFLKL77TFRACBAFM4ZVMUYGMXZHJKJ6OODHBWEC5VN36RV5ZUCY \\ CODE SIGNATURE \\
+#\\VRJFUQ6J6PCQL4I2Y55JOECH7TAUPN72EX3PSDKK4VRASERAAHTOI4AOATCON3OVSAIG2WC7EMX32
+# \\ ZK7DGHMYFFNW63AKE6QGBVP6USCM23OB7AHB2RXLYTUSVMCQCC5N \\// C25519-BASE-32 //
+#  \\// JDMFZZJYJN5IKH7PCYZIXV7RJTAU3UEOSBRTSOHNXL47QLPDCBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

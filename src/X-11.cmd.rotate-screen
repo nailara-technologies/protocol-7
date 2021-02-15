@@ -54,7 +54,7 @@ eval {
         $screen_info{'size'}, $mode, $screen_info{'rate'} );
 };
 
-if ($@) {
+if ($EVAL_ERROR) {
     my $err_msg = 'unable to rotate screen';
     <[base.log]>->( 0, " :. $err_msg .," );
     return { 'mode' => 'nak', 'data' => $err_msg };
@@ -77,7 +77,7 @@ $mode     -= 16 while $mode > 16;
 return { 'mode' => 'ack', 'data' => 'screen rotated' }
 
 # ______________________________________________________________________________
-#\\HWJGY47TIGPFRQQVW5RD2ACZYAPZQJXQ2IPOWUMHUFZ3NVZUSNF6F3PS35FHRHJDK24ZDHJQM2CJC
-# \\ S3TQCF2K6PV6U5MJSJZRIV4K6TIW3QRZTAEYA7BCR3RFV56WE37L \\// C25519-BASE-32 //
-#  \\// APQHNFZEZK5G52U3SBEP7NANQGPGELVUBEDVJ5FCHRDWDTR64AA \\ CODE SIGNATURE \\
+#\\XFULLTLNQMRW357DJPAY3CVY4SAKCQ33LBSNEMFZ3VI4NW6YFXHAG3J2VLXSFATJXPFPEK2WHOW4A
+# \\ K4BZJ4C4IETLJAFWDTIMIMQWNRZCFVRJA3N7TKSNSNSA2TCZW4OL \\// C25519-BASE-32 //
+#  \\// V443O66DJAYZPY24POGK7XCTK2FUCZY2AGQSSSLCUD5QPU46MDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

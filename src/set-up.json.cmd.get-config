@@ -55,16 +55,17 @@ foreach my $exclude_key (@exclude_list) {
             ->( { 'data_ref' => $data_copy, 'del_key' => $exclude_key } );
     } else {
         map {
-            <[base.del_key]>->( { 'data_ref' => $data_copy, 'del_key' => $_ } )
-                if $_ =~ /(?<!\\)\.$exclude_key$/
+            <[base.del_key]>
+                ->( { 'data_ref' => $data_copy, 'del_key' => $ARG } )
+                if $ARG =~ /(?<!\\)\.$exclude_key$/
         } keys %{ flatten($data_copy) };
     }
 }
 
-$@ = undef;
+$EVAL_ERROR = undef;
 my $err_msg;
 eval '$json_data = $data{json}{parser}->encode($data_copy)';
-( $err_msg = $@ ) =~ s|at \(.+\n$|| if defined $@;
+( $err_msg = $EVAL_ERROR ) =~ s|at \(.+\n$|| if defined $EVAL_ERROR;
 return { 'mode' => 'nak', 'data' => $err_msg }
     if defined $err_msg and length($err_msg);
 
@@ -74,7 +75,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\GCPEXNKLQVA7HMATLF7KSQKR5HG7JDFVJAJHGIXORORTC5ZWS4GN5P7EDSKV3SMBYLYZ6NAVY4HUO
-# \\ 7KFWK62GUWLTQD2NCFQX3BJJ26ZIIP3UCXGM5Z6K23O3EPLSY3K3 \\// C25519-BASE-32 //
-#  \\// MN3PUT6LY2VSKIM7DJBVQZJS353WZDI7LZOZZ5U6Z3YYHPW5YAI \\ CODE SIGNATURE \\
+#\\S5UAJ6TRZ6TPFGZRGEDD43PJ67YGVQZWT4UINGTOGXV7GB6XQZ3263RQHMQB5RY26HCPAMFGCRYZA
+# \\ 4M6NRWUV7OCCOH7TIFQHLB2OFLQCP2H6FJC32Q2VNUSEQAX5MZFX \\// C25519-BASE-32 //
+#  \\// QSG6POLJUSOHLTQ2ACCMXSTZEFKE26QZM2TCWELVIDPAE7S4CCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

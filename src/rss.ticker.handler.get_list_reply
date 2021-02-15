@@ -22,9 +22,9 @@ my $s = $url_count == 1 ? '' : 's';
 
 my $rss_index = 0;
 <rss.ticker.content_url> = {};
-map { <rss.ticker.content_url>->{ $rss_index++ } = $_ } @rss_urls;
+map { <rss.ticker.content_url>->{ $rss_index++ } = $ARG } @rss_urls;
 
-my $ticker_sha = <[digest.sha.1]>->( join( '', map {"$_\n"} @rss_urls ) );
+my $ticker_sha = <[digest.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
 <rss.ticker.url_hash> //= $ticker_sha;
 
 if ( $ticker_sha ne <rss.ticker.url_hash> ) {
@@ -34,7 +34,7 @@ if ( $ticker_sha ne <rss.ticker.url_hash> ) {
 }
 
 # ______________________________________________________________________________
-#\\SF3QBKHABCHHRP6CC55WNSGOHBBLKHDMGQSXGX35CTSFFMK3QBAJLNEQYZOXFHAC27WIY7Y5YV6HM
-# \\ XNYIDDOFVHW4EKTVTJJN7AKSSVI3QTF4FEAPPNJTAJGCKMGS6BID \\// C25519-BASE-32 //
-#  \\// XOMBTFZBKVH73RWP7TLKDVAR5JBUBL2EMILYDQI6CK6W7VODGCA \\ CODE SIGNATURE \\
+#\\I4WGZED47TVCEHTIWQYMDEOTYIF6P4HISTFYWLK2HEZYCT6FL3FIRYFK5SHQID77SODTXWSSOYUFW
+# \\ 6ZHDXCUHLWJDXKLHOC4G7FECZ4JYRAYMNGC67UGEKYUYWZWMXVXO \\// C25519-BASE-32 //
+#  \\// YL7UUC34IAX24GIJPD6IZXYX3NGI6KI5MP6KI4UHV2LN44KXSBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

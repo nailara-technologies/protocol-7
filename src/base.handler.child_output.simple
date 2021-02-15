@@ -51,7 +51,7 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
         }
     }
     ## [ translating registered error message strings ] ###
-    map { $output_line = $_->($output_line) if ref($_) eq 'CODE' }
+    map { $output_line = $ARG->($output_line) if ref($ARG) eq 'CODE' }
         @{<base.message_parsers.child_output>}
         if defined <base.message_parsers.child_output>
         and ref(<base.message_parsers.child_output>) eq 'ARRAY';
@@ -62,7 +62,7 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
 }
 
 # ______________________________________________________________________________
-#\\ERSDDRZ2J27FXD2BXDKHU7VLJX3FM22OZUZENMM5OY54FB354AXVXIDBTWSCG4X6DER46MGR4DFLE
-# \\ 3S3WRWMXU5PU6FJI3MQADZIDJVYRQCX6AJ4LK3IYGX5FSO3AU33V \\// C25519-BASE-32 //
-#  \\// WV3CZW6TMZQ62KGPIVLMNL2GGNHA67TRYDZ72MSTNVJW5BAO6CQ \\ CODE SIGNATURE \\
+#\\ZU55MDRZRSGRS6K7VS7PKIPWYS2MIY2GTGTICXFHQSCUK5TRDYJCBC5FMDGVOBUZHL6GLXFDDUWJ6
+# \\ 5KAQYBVTSQVDI5CRNMJREQNPQH7QLGVEAYTHUQRAWOEBLNPZULZX \\// C25519-BASE-32 //
+#  \\// LGV3JUMZ43CMHFYHQLVHYBQ442CTI2NTHE7BNJ542BKUASKDYAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

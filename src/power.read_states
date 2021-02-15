@@ -12,21 +12,21 @@ my $dev = <[power.dev_obj]>->($device_id);
 my @power_socket_states;
 
 map {
-    if (defined $dev->{'stat'}->[$_]
-        and (  $dev->{'stat'}->[$_] == 17
-            or $dev->{'stat'}->[$_] == 18
-            or $dev->{'stat'}->[$_] == 65 )
+    if (defined $dev->{'stat'}->[$ARG]
+        and (  $dev->{'stat'}->[$ARG] == 17
+            or $dev->{'stat'}->[$ARG] == 18
+            or $dev->{'stat'}->[$ARG] == 65 )
     ) {
-        $power_socket_states[$_] = '1';
+        $power_socket_states[$ARG] = '1';
     } elsif (
-        defined $dev->{'stat'}->[$_]
-        and (  $dev->{'stat'}->[$_] == 33
-            or $dev->{'stat'}->[$_] == 34
-            or $dev->{'stat'}->[$_] == 130 )
+        defined $dev->{'stat'}->[$ARG]
+        and (  $dev->{'stat'}->[$ARG] == 33
+            or $dev->{'stat'}->[$ARG] == 34
+            or $dev->{'stat'}->[$ARG] == 130 )
     ) {
-        $power_socket_states[$_] = '0';
+        $power_socket_states[$ARG] = '0';
     } else {
-        $power_socket_states[$_] = 'E';
+        $power_socket_states[$ARG] = 'E';
     }
 } ( 0, 1, 2, 3 );
 
@@ -40,7 +40,7 @@ if ( $dev->{poller}->can_write(0.1) ) {
 return @power_socket_states;
 
 # ______________________________________________________________________________
-#\\YW6PJGR7A7NXME654U3HFWVISLK4WARDJQEDVDLPKAAEEUKMRKFJS4JCXK7PXK6KWOMB3VJ3ZCDRO
-# \\ ZPJK4ET7NNMGKGEK6PW2CIKP7QCMDNWWVOGWWJXJYELBK2OPFL6B \\// C25519-BASE-32 //
-#  \\// B2PYVZBPYYV7VHW7OTBPECM5IUG7INJITDACX7JJTYVGE7GJSDQ \\ CODE SIGNATURE \\
+#\\XOD77BFA2HO73XC3RQY6ZCTJYIITQSXCNME4BKETX2MHGGKTS6OK3UMV6NNVYIRETNSK5UCWR2HYW
+# \\ DQSREJSINEVFLZFJH7Z6H4MI55BSZXKTZVCFSFFCVLIKP2JSBHMV \\// C25519-BASE-32 //
+#  \\// QRMVM74WMN52GFSIAFFU3OQDIXX4KBZ7ZYXESVZVPIV4R55O6AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

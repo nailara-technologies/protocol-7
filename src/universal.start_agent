@@ -23,7 +23,7 @@ my ( $pid, $out_fh, $in_fh );
 
 my @cmd_line_mods
     = exists <universal.cmdline_mods>->{$agent_name}
-    ? map {"-M$_"} split( / +/, <universal.cmdline_mods>->{$agent_name} )
+    ? map {"-M$ARG"} split( / +/, <universal.cmdline_mods>->{$agent_name} )
     : ();
 
 <[base.log]>->(
@@ -48,9 +48,10 @@ eval {
         $nailara_bin, $agent_sn_str, @exec_args );
 };
 
-if ( not defined $pid or $@ ) {
-    ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
-    my $err_reason = ( defined $! and length($!) ) ? " ['$!']" : '';
+if ( not defined $pid or $EVAL_ERROR ) {
+    ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason
+        = ( defined $OS_ERROR and length($OS_ERROR) ) ? " ['$OS_ERROR']" : '';
     <[base.log]>->(
         0,
         join( '',
@@ -81,7 +82,7 @@ close($in_fh);
 return 1;
 
 # ______________________________________________________________________________
-#\\MMAKVASQNS6MK5XYON7LL2VTL5K3GDQOPR5FNY32SFRMBVE5OGYB7J6AHV3Q6MZWPIYPF6JJ3BHNI
-# \\ FOBK5MRIU3JURZYLXW2ZIJBNA3UAIEQJQY4RCY6GQZWYZK3IKQQ2 \\// C25519-BASE-32 //
-#  \\// J5RVUAX4ON5HAIZDHWBHY2WJU3UJPWKWAT5DXBOESHB5DRSHWBA \\ CODE SIGNATURE \\
+#\\P4537F6Y576ZHXJ3S3DTG7NM2OVZCPU43ZMVSJYCJF23XYBKKEFPJAVXFSNRXOCMSRCY5VIEDI6UQ
+# \\ NAAC56ZU7WJU3MCG45O7S6VWSCVZF5PJS52BXIMJM66OY4EX46LH \\// C25519-BASE-32 //
+#  \\// LEBQUBPMRGZ3VCZU2P7HPKCBU6TKOZXHJS7EFVTIOR5Z6JTU4CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

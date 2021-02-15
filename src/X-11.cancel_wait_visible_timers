@@ -6,17 +6,17 @@ my $wait_req = shift;
 return if not defined $wait_req->{'timer'};
 
 map {
-    $wait_req->{'timer'}->{$_}->cancel
-        and delete $wait_req->{'timer'}->{$_}
-        if defined $wait_req->{'timer'}->{$_}
-        and $wait_req->{'timer'}->{$_}->is_active;
+    $wait_req->{'timer'}->{$ARG}->cancel
+        and delete $wait_req->{'timer'}->{$ARG}
+        if defined $wait_req->{'timer'}->{$ARG}
+        and $wait_req->{'timer'}->{$ARG}->is_active;
 
 } qw| timeout poll |;
 
 delete $wait_req->{'timer'};
 
 # ______________________________________________________________________________
-#\\TNTJYCL6QPGPUWOBGZUYJMQMSMEPPB5RYFIBP2QOB7OOY6ZN62CL75Z4TNA5PDCYFXNXBOKWBDGEW
-# \\ ANDMYODGUWFGVIBZZPUBFRVTGWMAQNSXZFNEXUJRIWEINZEB4MNF \\// C25519-BASE-32 //
-#  \\// WBY2H5XQ2KVXVHX74DZQIZZ45IED7LOOSGIVWZNLR6DY6UGXQAI \\ CODE SIGNATURE \\
+#\\FANTNHH5MTSZG2KHPZ35NALRG4SAWZFVIXJHJF367TMP2IU22GSDVPPB7ITWAPCJIDGANSFSBFLHO
+# \\ LVDULFZLMWX6JK3O6WSSFQQP44UBKK3L7GXDGZMSYZOXO66TPX5C \\// C25519-BASE-32 //
+#  \\// 4S3TQVLFX4IFM2V7RQ4L3Q6DLXB5JZTCPIYX5BVEXR3DMITCODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

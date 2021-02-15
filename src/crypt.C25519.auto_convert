@@ -14,7 +14,7 @@ my @key_files = grep {m{C25519_b32}} @{ <[file.all_files]>->($key_dir) };
     and return
     if !@key_files;
 
-map { <[base.log]>->( 0, $_ ) }
+map { <[base.log]>->( 0, $ARG ) }
     ( ':', ": [ auto_convert ] : .. renaming .. :.", ':' )
     if @key_files;
 
@@ -27,19 +27,19 @@ foreach my $source_path (@key_files) {
         <[base.log]>->( 0, ": [ file '$source_name' ]" );
         <[base.log]>->( 0, ":  '$target_name'.," );
         if ( -e $target_path ) {
-            map { <[base.log]>->( 0, $_ ) }
+            map { <[base.log]>->( 0, $ARG ) }
                 ( ':', "<< $source_name :: target path exists `:| >>" );
         } else {
             rename( $source_path, $target_path )
-                or map { <[base.log]>->( 0, $_ ) }
-                ( ':', "<< $source_name :: $! >>" );
+                or map { <[base.log]>->( 0, $ARG ) }
+                ( ':', "<< $source_name :: $OS_ERROR >>" );
         }
     }
     <[base.log]>->( 0, ":" );
 }
 
 # ______________________________________________________________________________
-#\\RMINPDQETVUW2D3QB6P4YYAJQQLMPTWUD5DRZEGR33PPARZUIB6RYANG5DGJ4BPK4YNGEIVRTXFLG
-# \\ FCUUDYF77OI63RXMTDVEU22MYLDO7JEJSQDTHATSJMG4ZDVQGZL4 \\// C25519-BASE-32 //
-#  \\// ZA73YQBIMV22SUM6GYJTXU3EGQNZT5NIUIJOL5CWCIA7ED564CA \\ CODE SIGNATURE \\
+#\\7HMXVWFBU7HFTKQTM2CA5TPR6CMNMWOJSUJ3TRK7WJHV2GPDXIFQDWOPAC64YGXSTULDWPVSF6LU4
+# \\ XMFOVX6T2G62ZPMIJFLXOTCZFCAFA32UZXNXQBPGN55Q3O53FCJL \\// C25519-BASE-32 //
+#  \\// SUKOTRL6XSJGRBMUQ6YOCOUZMNPNMWZZOJRIURZ2CJNGR3WDODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

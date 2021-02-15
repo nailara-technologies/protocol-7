@@ -17,18 +17,18 @@ if ( !length( $user // '' ) ) {
     my ( $name, $pwd, $uid, $gid, $quota, $comment, $gcos, $home_dir, $shell )
         = getpwnam($user);
 
-    my %_gid = map { $_ => 1 } split( / /, $( );
-    my %egid = map { $_ => 1 } split( / /, $) );
+    my %_gid = map { $ARG => 1 } split( / /, $GID );
+    my %egid = map { $ARG => 1 } split( / /, $EGID );
 
     if (    !$noop
         and defined $name
         and exists $_gid{$gid}
         and exists $egid{$gid}    # LLL: complete secondary group[s] setup..,
-        and $> == $uid and $< == $uid
+        and $EUID == $uid and $UID == $uid
     ) {
         <[base.log]>->( 1, "set_privs: already am '$user', doing nothing." );
         return -2;
-    } elsif ($<) {
+    } elsif ($UID) {
         <[base.log]>
             ->( 0, "can not change privs to user '$user' [ not root ]" );
         return -1;
@@ -42,7 +42,7 @@ if ( !length( $user // '' ) ) {
             my @rgids;
             while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
                 push( @rgids, $_gid )
-                    if ( grep( $_ eq $user, split( /\s+/, $_members ) ) );
+                    if ( grep( $ARG eq $user, split( /\s+/, $_members ) ) );
             }
 
             if ( !length( $home_dir // '' ) ) {
@@ -87,7 +87,7 @@ if ( !length( $user // '' ) ) {
                     $home_dir = <[base.temp_dir]>->( '/tmp/', $tdir_template );
                     if ( -d $home_dir ) {
                         chown( $uid, $gid, $home_dir )
-                            or warn "chown($uid,$gid,$home_dir): $!";
+                            or warn "chown($uid,$gid,$home_dir): $OS_ERROR";
                         <[base.log]>->(
                             1, ":: created temporary home directory"
                         );
@@ -111,16 +111,16 @@ if ( !length( $user // '' ) ) {
                 }
                 if $noop;
 
-            $) = join( ' ', $gid, @rgids );
-            $( = $gid;
-            $> = $uid;
-            $< = $uid;
+            $EGID = join( ' ', $gid, @rgids );
+            $GID  = $gid;
+            $EUID = $uid;
+            $UID  = $uid;
 
             $ENV{'USER'}            = $name;
             $ENV{'HOME'}            = $home_dir;
             $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
             $ENV{'NO_AT_BRIDGE'}    = 1;
-            chdir($home_dir) or warn "chdir( $home_dir ): $!\n";
+            chdir($home_dir) or warn "chdir( $home_dir ): $OS_ERROR\n";
 
             <[base.log]>->( 1, "changed priviledges to user '$user'" );
         }
@@ -128,7 +128,7 @@ if ( !length( $user // '' ) ) {
 }
 
 # ______________________________________________________________________________
-#\\ZSBZODE2AWGLC7UFJOJT64D7PCZJK47WHJN76KNZZCJDOAFIPKCTGTHHJPVCYRRHK6DGS3HZVL7QW
-# \\ IGOWKAZIQJ4OMKDW73B4NNSAOVWSYFDLZQNE3XPT2RSIVP7RSTCZ \\// C25519-BASE-32 //
-#  \\// 2GR5OS2MNXGY72R76LCULBEIXEDQCH7LAILDUZD2V336LQVH6AA \\ CODE SIGNATURE \\
+#\\MXD4PCXQMXIVVRZSO3NOT57VOBSVBTN7PQQERVOFNIVBXBSFI27GTB5RRLY6IIYN6T4IDANPSKQWY
+# \\ SKCGSJNEKDIBC5LIQWASPCNCBH77F2GQVRSJMAEBM4EKMTZ6L4Y4 \\// C25519-BASE-32 //
+#  \\// TREDRIU7KXE3MYJQ2DU65VXL5EH3YEPGC67BP5COUHRKX5HIKCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

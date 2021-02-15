@@ -9,14 +9,14 @@ die "base.dependency.add: expected valid dependency-object id"
 
 my %depending_objects;
 foreach my $id ( keys %{<dependency.chain>} ) {
-    map { $depending_objects{$id} = 1 if $_ == $object_id }
+    map { $depending_objects{$id} = 1 if $ARG == $object_id }
         @{ <dependency.chain>->{$id} };
 }
 
 return keys %depending_objects;
 
 # ______________________________________________________________________________
-#\\ZEG2OAWTRZCU35ZLASAYAICZ67IOPZQKC7UIIUOXNJRWURX44A4W3L5YOFKRIQMYXZEXJ4RNQ7WRA
-# \\ R5N7GU74DUNRUDPBOJJYULMLC2LGJ7UUKZVUZLYTJMYJ7VS77NGC \\// C25519-BASE-32 //
-#  \\// J4QBOSQGFI44AATV5WIHGL4WSKTGY4OTV6HF3GSMR5KWD3MZOAQ \\ CODE SIGNATURE \\
+#\\NEUPHE6JNLORHO4FCC5LE7MFGFGNTY2LVAAV455PNW5S4YXU6AVPCSTNNBVEVPVVCL5LMLZBATDGQ
+# \\ QLHMVZWNGBVM73ITGA5HURJ23FZPDZ3YN66I6FF4T667UGSYBRYH \\// C25519-BASE-32 //
+#  \\// W7BHHZU5O6SUGMHSVYNCXFPGUHFAAY4R5KNQP4DGWOYXRBG2CCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
