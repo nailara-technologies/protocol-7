@@ -2,18 +2,20 @@
 
 # name = base.start.renice_child
 
-<[base.log]>->( 1, "starting renice child..," );
+<[base.log]>->( 1, "starting 'renice' child..," );
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 eval 'use IPC::Open2';
 die $EVAL_ERROR if $EVAL_ERROR;
 
-my $child_code
-    = '$PROGRAM_NAME = "'
-    . <system.agent.name>
-    . '-<root>-renice-child "; '
-    . 'setpriority( 0, $1, $2 ) if <STDIN> =~ /^(\d+) (\-?\d+)$/';
+( my $agent_name = <system.agent.name> ) =~ s|[^_\.\-\w]+||g;
+my $child_code = << "EOT";
+use strict; use warnings; use English;
+map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
+\$PROGRAM_NAME = q|$agent_name-<root>-'renice'-child|;
+setpriority( 0, \$1, \$2 ) if <STDIN> =~ m|^(\\d+) (\\-?\\d+)\$|
+EOT
 
 $SIG{'CHLD'} = 'IGNORE';
 
@@ -29,7 +31,7 @@ $SIG{'CHLD'} = 'IGNORE';
 return <process.renice_child.w_fh>;
 
 # ______________________________________________________________________________
-#\\HDTZGBMVDKY654RH2Y2TNQ3KZMCFSHCBL6V2SO6EYHUB2M7LQBJ7UH6T2MVMBWMS25MUQNGSEMQZ4
-# \\ YJLGZLZRNG3NBZGXIEWCWLSMBHAQMAPUU6BMXFA7WN4ZGSGDIDJW \\// C25519-BASE-32 //
-#  \\// KKKT6YY6BW3YLT4JYYK45NXLEPCYNJVS5ZG24QMJ5XM7KEOY2AI \\ CODE SIGNATURE \\
+#\\6L47U7QFG5HICBWAZAZQAYUKMCJTEKMANZJWN6PSOWZFHZSKVPCBF7IRNPHC55NM22CS525NLZT3C
+# \\ SFWR3F7JPI7NCF5JVMRPJOHWAPHUZ3I57O6FHF6WAKJBUHKJS6BU \\// C25519-BASE-32 //
+#  \\// YWHZXZYLNXQ474X2QXX7LQUYNLNNAA75R2WI5LRLZY66I2GAQCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

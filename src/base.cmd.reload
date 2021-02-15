@@ -35,8 +35,8 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     <[base.log]>->( 1, "[$id] < reload source code >" );
 
     if ( !<base.debug.keep_on_reload>
-        and ( not defined <modules.load> or <modules.load> !~ /debug/ ) ) {
-        <[base.log]>->( 0, "[reload] .. removing debug module .." )
+        and ( not defined <modules.load> or <modules.load> !~ m|debug| ) ) {
+        <[base.log]>->( 0, "[reload] .. removing 'debug' module [mem] .," )
             if ref( $code{'debug.dump'} ) eq 'CODE';
 
         # todo: create src tracking unload mechanism
@@ -128,7 +128,7 @@ $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 # ______________________________________________________________________________
-#\\2BGLYJYDMZQDQLVGQQ4XCPMT3YAIVPJU5YPZRRIU7IEKNH3YV62RICI4VNGRAXAZ2BB4HPXSTDEU4
-# \\ XZTUIHDKU5EFVE6MMVUU4AKVQQXKATBV5GE67RWFEWAVGSREE3RU \\// C25519-BASE-32 //
-#  \\// UOVZ4SOBFVIN7FVB5OIHLBWDBWYHCUT5JOUWXQUJABFSXD5BCBI \\ CODE SIGNATURE \\
+#\\GY6BSQOOTGVTJJ2IOHSWBETD3GEI6TGTLVTU4QD7IS7H4UFYY5CSFE3HGZQDXKCT34WZXCWC7UUJ2
+# \\ Z3Q23VZGSNLWKLWHWYKJ7LYG6GKFBRNZEW7O6M2VPM337TQL3DVD \\// C25519-BASE-32 //
+#  \\// OZHWM23W2PIKXHERHA6OC7HDSNQWALVUOG3NHDZ2I7OTK6XEQAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
