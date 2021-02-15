@@ -9,7 +9,7 @@ my $overwrite_policy  = shift // 'wipe';    # [wipe|overwrite|if_missing]
 
 my @sub_names     = keys %code;
 my $subs_matching = 0;
-map { $subs_matching++ if $_ =~ /^$source_sub_prefix\./ } @sub_names;
+map { $subs_matching++ if $ARG =~ /^$source_sub_prefix\./ } @sub_names;
 if ( !$subs_matching ) {
     <[base.log]>->(
         2, "swap_subs skipped (no $source_sub_prefix subs present)"
@@ -19,9 +19,9 @@ if ( !$subs_matching ) {
 
 if ( $overwrite_policy eq 'wipe' ) {
     map {
-        if ( $_ =~ /^$target_sub_prefix\./ ) {
-            delete $code{$_};
-            $data{'code'}{$_}{'status'} = 'wiped';
+        if ( $ARG =~ /^$target_sub_prefix\./ ) {
+            delete $code{$ARG};
+            $data{'code'}{$ARG}{'status'} = 'wiped';
         }
     } @sub_names;
     my $wipe_count = @sub_names - keys %code;
@@ -70,11 +70,11 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
     }
 }
 
-map { <base.cmd>->{$_} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+map { <base.cmd>->{$ARG} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
     keys %{<base.cmd>}
     if exists <base.cmd>;
 
-map { <base.cli>->{$_} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+map { <base.cli>->{$ARG} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
     keys %{<base.cli>}
     if exists <base.cli>;
 
@@ -90,7 +90,7 @@ if ( !$moved ) {
 }
 
 # ______________________________________________________________________________
-#\\EUBIY2MRRPREMSRSJA7IN5PPG7Y4HFSYZAGV2GBTLXWC6ODK2JKBSF46LECPXVAPMW33UKFZOGOS2
-# \\ NU7ZSJAH6Z6YU6LLKC4A7A5RCDU7HBF7NIHX5CNQZXJN4X7LMPCV \\// C25519-BASE-32 //
-#  \\// ERCU2C2WAQMXL3PNY6NVYTSGVEW2IPCXLESWE4BS3V3QY6OEGAI \\ CODE SIGNATURE \\
+#\\MK26EKIWXCYPQA244FOHHNIJ5DBQIXR4K34M5H4HQNZM6S6BU4GDFE7Q2FLC2E2XGS5BF6XFDFMYY
+# \\ UFDFWXTB4WOUVZPR2COY7XGYRQMP3Z6QDFVEABVB3HWS67LMEY5B \\// C25519-BASE-32 //
+#  \\// KDRCWWYVDPUFGYHW2OGGIMKCYZJHLBAZOQRBI5EDR2D7L2SWGAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

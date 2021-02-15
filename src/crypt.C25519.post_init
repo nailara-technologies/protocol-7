@@ -56,7 +56,7 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
         <[base.log]>->( 1, ": : $type : '$fname'" );
         $type = 'public' if $type eq 'rkp';    # <- [root-key-pub]
         chomp( $KEYS{'C25519'}{$key_name}{'root'}{$rkname}{$type}
-                = ${ <[file.slurp]>->($_) } );
+                = ${ <[file.slurp]>->($ARG) } );
     }
 }
 
@@ -72,7 +72,7 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) # <<< ! >>>
 0;
 
 # ______________________________________________________________________________
-#\\NNNQFEXFSGPNIDJWTB7GJKFO4HRTVB2I3OKJMCOFRCTASNMUJZFRFBITTFWG7S6WRMEZ477PVORAM
-# \\ F6PWWIRBAOWN7JYODBTO23OH2UEKJSOZWXOMZZ6Q7KYVZDAYKBJJ \\// C25519-BASE-32 //
-#  \\// ZSY5F6QPVRX7JFQCSCIP26IZRETQXHMKKE7IF4JENCZNZ42PKAI \\ CODE SIGNATURE \\
+#\\GVJFMXWPZEXTCVV5CT7ZTH5F7BTUO64JZ63EG6XCLHB2QAAXSX2GPAKQGXETFB7HBYI6ZPS3BFUVG
+# \\ CORMV6ZRXSYGUJGOJHPF32Z2QRQXB4QLFYQZSWLJ5IQIJZRJXECG \\// C25519-BASE-32 //
+#  \\// 2N745AGUXHYDGYDAC567FJ3AYLXIFZ5IHHIYU6ZW3DDPKLBNOCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

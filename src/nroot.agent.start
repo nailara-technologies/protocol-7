@@ -29,7 +29,7 @@ my $instance = $instances->{$instance_id};
 $instance->{'job_id'} = $job_id;
 
 my $starting = 0;    # check status of agents with same name ..,
-map { $starting++ if $instances->{$_}->{'status'} eq 'starting' }
+map { $starting++ if $instances->{$ARG}->{'status'} eq 'starting' }
     @{ <[agent.instance.get_ids]>->($agent_id) };
 
 if ($starting) {    # delay agent startup until previous one is online ..,
@@ -75,8 +75,8 @@ if ( exists $init_code->{'nroot-init'} ) {
     my @root_init_code = <[base.parser.config]>
         ->( $init_code->{'nroot-init'}, $namespace_str );
     map {
-        $_ =~ s|<instance_id>|$instance_id|g;
-        $_ =~ s|<agent_name>|$agent_name|g
+        $ARG =~ s|<instance_id>|$instance_id|g;
+        $ARG =~ s|<agent_name>|$agent_name|g
     } @root_init_code;
     my $success = <[base.execute_agent_code]>->(@root_init_code);
     $init_result_data = $instance->{'init_data'};
@@ -121,8 +121,8 @@ if ( exists $init_result_data->{'start_mode'}
 
     ## local ./bin/ path ## [ no /-es in exec_bin param ]
     map {
-        $exec_bin = <system.root_path> . $_ . $exec_bin
-            if $exec_bin !~ m|/| and -x <system.root_path> . $_ . $exec_bin;
+        $exec_bin = <system.root_path> . $ARG . $exec_bin
+            if $exec_bin !~ m|/| and -x <system.root_path> . $ARG . $exec_bin;
     } qw| /bin/ /bin/dependencies/ |;
 
     if ( not defined $exec_bin or not defined $prog_usr ) {
@@ -149,7 +149,7 @@ if ( exists $init_result_data->{'start_mode'}
             <[agent.change_status]>->( $instance_id, 'error' );
             return undef;
         }
-        map { $privs->{$_} =~ s|'||g } keys %{$privs};    # LLL: abort on match?
+        map { $privs->{$ARG} =~ s|'||g } keys %{$privs};  # LLL: abort on match?
 
         # LLL: implement exec_args..,
         my $prepare_code = '%ENV=(); ';
@@ -157,8 +157,8 @@ if ( exists $init_result_data->{'start_mode'}
         $prepare_code .= "\$ENV{'DISPLAY'}='$display'; "
             if defined $display;
         $prepare_code
-            .= "\$)='$privs->{all_gids}'; \$(='$privs->{gid}'; "
-            . "\$>='$privs->{uid}'; \$<='$privs->{uid}'; "
+            .= "\$)='$privs->{all_gids}'; \$GID='$privs->{gid}'; "
+            . "\$EUID='$privs->{uid}'; \$UID='$privs->{uid}'; "
             . "\$ENV{'USER'}='$prog_usr'; "
             . "\$ENV{'HOME'}='$privs->{home}'; "
             . "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}'; "
@@ -194,7 +194,7 @@ push( @exec_args, '-' . 'v' x $agent_verbosity );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
-    ? map {"-M$_"}
+    ? map {"-M$ARG"}
     split( m| +|, $init_result_data->{'command_line_modules'} )
     : ();
 
@@ -216,9 +216,10 @@ if (@cmd_line_mods) {
 
 exec_skip:
 
-if ( not defined $pid or $@ ) {
-    ( my $err_msg = $@ ) =~ s,^open2: |\.?\n$,,g;
-    my $err_reason = ( defined $! and length($!) ) ? " ['$!']" : '';
+if ( not defined $pid or $EVAL_ERROR ) {
+    ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason
+        = ( defined $OS_ERROR and length($OS_ERROR) ) ? " ['$OS_ERROR']" : '';
     <[base.log]>->(
         0,
         join( '',
@@ -257,9 +258,10 @@ if ($stdin_mode) {
             ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
             my $var_value;
             eval "\$var_value = $namespace_str$var_str";
-            if ($@) {
-                $@ =~ s|\n| |g;
-                <[base.log]>->( 0, "[!] error in agent init-code: $@" );
+            if ($EVAL_ERROR) {
+                $EVAL_ERROR =~ s|\n| |g;
+                <[base.log]>
+                    ->( 0, "[!] error in agent init-code: $EVAL_ERROR" );
                 last;
             } else {
                 $code_line =~ s|<\{([^\}]+)\}>|$var_value|;
@@ -273,7 +275,7 @@ close($in_fh);    # <-- no further use for agent stdin handle [ for now ]
 <[base.log]>->( 1, "agent '$agent_sn_str' started [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\DJDWWUXSJ232HANBEOIB26ORG2NY3VXXTREZVFTWPMR7Q5KHZC4AVX3O4PSUB4MEDF7NYZKAKZEK6
-# \\ KKZJ3Z5ULU4ZQOXWK6S4QEPC3WBVLC7O644PE763MWZTCEFOZPDZ \\// C25519-BASE-32 //
-#  \\// ZAAGF6RIDAIHKYUDPTQ66JZ4E6HABROWEQAKKPS6YLPDSC2SYDA \\ CODE SIGNATURE \\
+#\\PBWM5AY5LORGZ7ZNAC5OWETMF4GAHDDJK57NFR7USKWY4C4MANIFW2ZSAIL6BECHXTSWZBNOFIGEG
+# \\ XVOSOCFT7XF3PZXZVJPMHGJVMGDPADPAMIHZZWEYOEBI5FB4B4SV \\// C25519-BASE-32 //
+#  \\// Y3MGTOOJPDIZTWC5AW7ICUTYAZIZL7LDN5JLOYKUZSVLO6MI6AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

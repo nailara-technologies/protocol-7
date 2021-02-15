@@ -10,10 +10,10 @@ my $log_dir_path = <log.nailara_log.path>;
 <[file.match_files]>->( \@result_names, $log_dir_path, "$system_name.**.log" );
 
 map {
-    $_ =~ s,^.*/$system_name\.|\.log$,,g;
-    $_ =~ s|\.| < |;
-    $_ .= ' >';
-    $_ =~ s{^(.*) (\< .* \>)$}{ sprintf "%13s  %s",$2, $1 }e;
+    $ARG =~ s,^.*/$system_name\.|\.log$,,g;
+    $ARG =~ s|\.| < |;
+    $ARG .= ' >';
+    $ARG =~ s{^(.*) (\< .* \>)$}{ sprintf "%13s  %s",$2, $1 }e;
 } @result_names;
 
 my $header = "\n# [ log name ][ agent ]\n\n";
@@ -21,12 +21,12 @@ my $header = "\n# [ log name ][ agent ]\n\n";
 return {
     'mode' => 'data',
     'data' => $header . join '',
-    map { sprintf "%-34s\n", $_ }
+    map { sprintf "%-34s\n", $ARG }
         sort( { length $a <=> length $b } sort(@result_names) ), "\n"
     }
 
 # ______________________________________________________________________________
-#\\7YLA5GBO5IPXZLWBAGHPS75DBG3HTVTZMAQOEIGIB5LEUETNAIKAOPAPR7GMURM2J5N6R6AZ6S5RC
-# \\ EQANAYNLTIZ5FJ4BWP3LF3WQOUYPTVK34CXKQUWDHMJCO4RDHRZB \\// C25519-BASE-32 //
-#  \\// DQLHRLOLSZRUJZCXBVWECDK7RBIQTW3USLQVIPRLEKCNFGCOAAI \\ CODE SIGNATURE \\
+#\\APEWQSNTKMAICJ4PXW27W5OOFAVDRX7TDEI4FN4CDBD6NRLRONUUVBXN3CXIZWO4BQWLOY2G6PXB6
+# \\ PGCN4KVKFI7KQCNYEIPMIFRCUFOQDDBAWLWOPCBJTSAXG3E57Z4V \\// C25519-BASE-32 //
+#  \\// JMPQ64ABBMESEHN3KBOOZMQ556XVVHOBOGAJG263RMHRIHJAADA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

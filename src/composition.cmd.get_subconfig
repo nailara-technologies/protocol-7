@@ -18,8 +18,8 @@ if ( not exists <composition.subconfig>->{$agent_name} ) {
     my $msg_str = "no set-up for agent '$agent_name'";
     if ( $agent_name !~ /[\[\]]+/ ) {
         map {
-            if ( $_ =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
-                $last_match = $_;
+            if ( $ARG =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
+                $last_match = $ARG;
                 $match++;
             }
         } keys %{<composition.subconfig>};
@@ -36,7 +36,7 @@ if ( not exists <composition.subconfig>->{$agent_name} ) {
 }
 
 my $max_len = 0;
-map { $max_len = length($_) if length($_) > $max_len }
+map { $max_len = length($ARG) if length($ARG) > $max_len }
     keys %{ <composition.subconfig>->{$agent_name} };
 
 return {
@@ -45,14 +45,14 @@ return {
         '',
         map {
             sprintf( "%-${max_len}s = %s\n",
-                $_, <composition.subconfig>->{$agent_name}->{$_} )
+                $ARG, <composition.subconfig>->{$agent_name}->{$ARG} )
             }
             sort keys %{ <composition.subconfig>->{$agent_name} }
     )
     }
 
 # ______________________________________________________________________________
-#\\EHEWHE5ABOGPCLMDDAP5MSNS7C3UYLJJCRWII4ZVW7TYLRCD3SJCGUEQUIS3GNVCS5W6NJN3TAGOQ
-# \\ QEARV3QBH66STHOVMHNGJC5N57QFJCSP7EDYXUSGBJCQMD5FTGGP \\// C25519-BASE-32 //
-#  \\// G3F26WYYFF6SWCIEV7ODUJLCFHKZTPQI4K3HK3PRL5TJN5NHMAI \\ CODE SIGNATURE \\
+#\\T2V2ZZ5W4AYLEVD73VOPMSUOSGYST53CG7CQNQCFNQFXUPD3J5THUUIOMB2YFHV4WM5YWUXXRD67U
+# \\ UBKM2TG4G2LRNNO4Z47OXPU7MLNXB2V6MGODH3MHIXV3CAH2L4QC \\// C25519-BASE-32 //
+#  \\// EJXWTK75AFPNFOH73RHC4XSALGNYVQ3A7G5APPNP6POXAXZIGDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

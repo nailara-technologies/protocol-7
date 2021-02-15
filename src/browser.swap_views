@@ -16,8 +16,8 @@ my $overlay  = <browser.gtk_obj.overlay>;
 if ( !<browser.cfg.use_transparency> ) {
 
     map {
-        <browser.gtk_obj.scrolled_window>->{$_}->set_opacity(1)
-            if <browser.gtk_obj.scrolled_window>->{$_}->get_opacity() != 1;
+        <browser.gtk_obj.scrolled_window>->{$ARG}->set_opacity(1)
+            if <browser.gtk_obj.scrolled_window>->{$ARG}->get_opacity() != 1;
     } ( $fg_index, $bg_index );
 
     $overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
@@ -53,7 +53,7 @@ $window->signal_handler_disconnect( delete <browser.signal_id.swap_views> )
     = $window->signal_connect( draw => $code{'browser.handler.swap_views'} );
 
 # ______________________________________________________________________________
-#\\VZOPQYVLFAE3VP2GR26JOCOEB3E3SOLLGWEZUJRG6EHMQJY6HFVCUIZGYNPPLCYW7OD5DOKMLWHO6
-# \\ GOAKUK54VH2TZNR5IBM3TW46DTNROEFOBSBDL7VNVOKDSO4IHYVF \\// C25519-BASE-32 //
-#  \\// WVSXU5TIOXHY6ZJXCHLBEKU3QOLZPV5ODMFS62VE3UHMIXG2MCY \\ CODE SIGNATURE \\
+#\\Q267CXPLSOEEXJXXGVONKZWJ32KWQCGA6PCAQAGTLORSKXEMTRSKXFJIS3IMBBVOR7AB2VSIHB4YW
+# \\ 5VZOEDCKGDHOYQMJNUGNSP3GFUPWK4HX2VFMR4NINCYDND7V4B44 \\// C25519-BASE-32 //
+#  \\// PCBXHJWBQ44XLXDCXW7DRLX3SCFLEEGJ5QITKUS3V54V4WAC4AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

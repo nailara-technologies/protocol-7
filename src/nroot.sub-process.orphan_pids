@@ -15,30 +15,34 @@ foreach my $i_id ( keys %{<nroot.agent.instance>} ) {
 }
 
 my %orphans;
-map { $orphans{ $_->pid } = $_->exec // $_->cmndline // '' if $_->pid > 2 }
+map {
+    $orphans{ $ARG->pid } = $ARG->exec // $ARG->cmndline // ''
+        if $ARG->pid > 2
+    }
     grep {
-    $_->ppid == 1             # parent is 'init' now
-        and $_->pgrp == $$    # process group was nroot agent
-        and $_->pid != $$     # and is not this process [nroot]
-        and not exists $own_children{ $_->pid }
-        and ( not defined $_->exec
-        or $_->exec ne '/usr/bin/dbus-launch' )  # <-- whitelist :. config [LLL]
+    $ARG->ppid == 1             # parent is 'init' now
+        and $ARG->pgrp == $$    # process group was nroot agent
+        and $ARG->pid != $$     # and is not this process [nroot]
+        and not exists $own_children{ $ARG->pid }
+        and ( not defined $ARG->exec
+        or $ARG->exec ne
+        '/usr/bin/dbus-launch' )    # <-- whitelist :. config [LLL]
     } @{ $proc_table->table };
 
 map {
     my $name_str = '';
-    if ( length( $orphans{$_} ) ) {
-        $orphans{$_} =~ s|^.+/||;
-        $name_str = " '$orphans{$_}'";
+    if ( length( $orphans{$ARG} ) ) {
+        $orphans{$ARG} =~ s|^.+/||;
+        $name_str = " '$orphans{$ARG}'";
     }
-    <[base.log]>->( 1, ": found orphan process [$_]" . $name_str )
+    <[base.log]>->( 1, ": found orphan process [$ARG]" . $name_str )
     }
     sort keys %orphans;
 
 return sort keys %orphans;
 
 # ______________________________________________________________________________
-#\\KAIENM7NGRPPWCSGXRRIOV73JGPRXLVC7GLUGA2VYKQMBA4SV3G3F3RTKKE7V3G3DNNSG5JAUZBP6
-# \\ LTOE5AYW6NT4WDRQURHGLRPYA3JLU3SHEGZZ7C2VE7FXAZLWEXTY \\// C25519-BASE-32 //
-#  \\// J2G3N62M43ZIMYRYPAEPTKMHNNGC2USUZIKW4S5EP5NX6LJQIDQ \\ CODE SIGNATURE \\
+#\\MLZ4MGCXFG4W4IEEP4AKBCTYJEFUJRMQTETYXTDJY3CYIKE3HVSYU3KWD7QJ6XOCYSSMORTPY2TWM
+# \\ V3CR5WN3VPB44H43TKCGCM7QGD4RX3DPP6435WGYSAAWICN7NJI2 \\// C25519-BASE-32 //
+#  \\// GKTTBSP7OZIZBO7LFK2QOFANQWQ43HTTTEFOH5FCVK2EAYXNECA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

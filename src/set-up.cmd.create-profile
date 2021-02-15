@@ -19,7 +19,7 @@ my $profile_file = "$profile_dir/$profile_name.json";
 
 my $dir_fh;
 if ( !opendir( $dir_fh, $import_dir ) ) {
-    my $err_msg = "unable to open config import directory [$!]";
+    my $err_msg = "unable to open config import directory [$OS_ERROR]";
     <[base.log]>->( 0, $err_msg );
     return { 'mode' => 'nak', 'data' => $err_msg };
 }
@@ -28,13 +28,13 @@ closedir($dir_fh);
 
 my $import_data;
 
-$@ = undef;
+$EVAL_ERROR = undef;
 foreach my $file_name (@import_files) {
     my $file_data;
     my $file_path = "$import_dir/$file_name";
     my $file_json = <[file.slurp]>->($file_path);
     eval '$file_data = $data{json}{parser}->decode($$file_json)';
-    ( my $err_msg = $@ ) =~ s| at \(.+\n$|| if defined $@;
+    ( my $err_msg = $EVAL_ERROR ) =~ s| at \(.+\n$|| if defined $EVAL_ERROR;
     if ( defined $err_msg and length($err_msg) ) {
         $err_msg = "reading json import file '$file_name' failed: $err_msg";
         <[base.log]>->( 0, $err_msg );
@@ -76,7 +76,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\IMRQOGXWEJLI66WTSEBHQFAGSTJW7XUYZZYITFCPT3KHZ4KZIAFLEL6RUPVZ4ZXJD3RZTGB42WM6K
-# \\ AFOJTK26RK3KOY2WFUUDWSPIGE5KQPUO2636N7PJDU7KI5EUT34W \\// C25519-BASE-32 //
-#  \\// 2H54ZSB2Y46AOJY4OYQIGTOMZM5HRZWA4XD35UJNJV5V755YIDY \\ CODE SIGNATURE \\
+#\\7JLA2BXXXLY2IDPVYFPO2KRD7RPBVT2BQX5QKO25OPWPXALF67WYSYLMG7APUG7SWJWA72CW5SRJQ
+# \\ VXQXYDKPCIDACR5IRPB6CTT5EMJ74SXWIV2GEDV367TDF5NELNV2 \\// C25519-BASE-32 //
+#  \\// COZAVHAFMJHO7HMCSDKVP23LETQLUZNAO7P5YMYHRE5UCW3QABY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -48,9 +48,9 @@ foreach my $param_str ( split m| +|, $params ) {
 }
 
 map {
-    <[agent.instance.stop]>->($_);
+    <[agent.instance.stop]>->($ARG);
     ## clean-up., ##
-    delete <nroot.agent.instance>->{$_}->{'startup-error-retries'};
+    delete <nroot.agent.instance>->{$ARG}->{'startup-error-retries'};
     ##
 } @instance_ids;
 
@@ -62,15 +62,15 @@ my %agent_names;
 map {
     my $agent_name
         = <nroot.agent.setup>
-        ->{ <nroot.agent.instance>->{$_}->{'agent_id'} }->{'name'};
+        ->{ <nroot.agent.instance>->{$ARG}->{'agent_id'} }->{'name'};
     $agent_names{$agent_name}++;
 } keys %{<nroot.agent.instance>};
 my %shutdown_names;
 map {
     my $agent_name
         = <nroot.agent.setup>
-        ->{ <nroot.agent.instance>->{$_}->{'agent_id'} }->{'name'};
-    <nroot.agent.instance>->{$_}->{'stopping'} = 1;
+        ->{ <nroot.agent.instance>->{$ARG}->{'agent_id'} }->{'name'};
+    <nroot.agent.instance>->{$ARG}->{'stopping'} = 1;
     $shutdown_names{$agent_name}++;
 } @instance_ids;
 foreach my $name ( keys %shutdown_names ) {
@@ -83,7 +83,7 @@ foreach my $name ( keys %shutdown_names ) {
     if ( !$instances_remaining ) {
 
         my %agent_list;
-        map { $agent_list{$_} = 1 } split m| +|,
+        map { $agent_list{$ARG} = 1 } split m| +|,
             <nroot.start_setup.globals.agents.enabled>;
         delete $agent_list{$name};
         <nroot.start_setup.globals.agents.enabled>
@@ -117,7 +117,7 @@ foreach my $name ( keys %shutdown_names ) {
     }
 }
 
-map { <[agent.change_status]>->( $_, 'shutdown' ) } @instance_ids;
+map { <[agent.change_status]>->( $ARG, 'shutdown' ) } @instance_ids;
 
 return {
     'mode' => 'nak',
@@ -137,9 +137,9 @@ if ($count) {
             $job_attr->{'callback_params'} = $param_str;
         }
         map {
-            if ( my @removed_job = <[jobqueue.remove_job]>->($_) ) {
+            if ( my @removed_job = <[jobqueue.remove_job]>->($ARG) ) {
                 my $a_n = $removed_job[0]->{'callback_params'}; ## agent_name ##
-                <[base.log]>->( 0, "removed orphaned start job [$_]" );
+                <[base.log]>->( 0, "removed orphaned start job [$ARG]" );
                 <[base.log]>->( 0, ": agent : $a_n" );
             }
         } <[jobqueue.find_jobs]>->($job_attr);
@@ -152,7 +152,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\HCFS6IZTZCGIZIU3YUK5UX4PXDTPJY56HUSPJUSIJ4MO4KCJKCRJ7WQIV2D46I7TB4G2JB5MMGPWA
-# \\ HR3YDM7QH4KOAXIHUJH7ZHXZFDIVDEIIR33RSINHY3WF3T64UFGP \\// C25519-BASE-32 //
-#  \\// EY2FE5FXYM43KRZCTZLMWG4XRBU5BUFICJGAAO2QWVJXBC62KCQ \\ CODE SIGNATURE \\
+#\\YPKGS45NL6CRM37E42SZTH2FIOMBP7ILWL6QRQ77VF5L2ZF6LYGUWSGRWJSF26TNPPYN435KBKPCS
+# \\ O7TNDKAYQBOBRKCRB577NCPGCFUU5X6NLIZUDDDYCDFNIZYHYAJ6 \\// C25519-BASE-32 //
+#  \\// XY5C5Q4UHLESDPOBG5IOB5LXQH7EEBQWF2SW62DE5RFCQDJTEDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

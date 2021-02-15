@@ -41,18 +41,18 @@ if ( $response->code == 200 ) {
 
     if ( !-d $data_dir ) {
         mkdir($data_dir)
-            or die "cannot create rss data dir '$data_dir'! [ $! ]";
+            or die "cannot create rss data dir '$data_dir'! [ $OS_ERROR ]";
         chmod( 0700, $data_dir );
     }
 
     open( my $txt_fh, '>', $output_file . '.NEW' )
-        or die "cannot write to TXT data file [ $! ]";
+        or die "cannot write to TXT data file [ $OS_ERROR ]";
     {
         print {$txt_fh} join( " $seperator ", @txt_data );
     }
     close($txt_fh);
     move( $output_file . '.NEW', $output_file )
-        or die "cannot move '$output_file.NEW' to '$output_file' [ $! ]";
+        or die "cannot move '$output_file.NEW' to '$output_file' [ $OS_ERROR ]";
     <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
     <rss.browser>->commit;
     return 1;
@@ -95,7 +95,7 @@ if ( $response->code == 200 ) {
     if ( $file_age >= <rss.ticker.cache_timeout> ) {
         <[base.log]>->( 0, "local feed data has expired [ $file_age hours ]" );
         open( my $txt_fh, '>' . $output_file )
-            or die "can't open text data file for writing [ $! ]";
+            or die "can't open text data file for writing [ $OS_ERROR ]";
         close($txt_fh);
         return 1;    # update with empty file
     } else {
@@ -105,7 +105,7 @@ if ( $response->code == 200 ) {
 }
 
 # ______________________________________________________________________________
-#\\ACTGVFNRCMXIQ5DMG64YAODJ2RKSH326DUHGYBCNK22RZ4NC2HSJVPYYWHFLVWZFYXF4TR4KE3RYY
-# \\ 3ZVJWTGXTT6ZGFQT2L4EESES67VYDDCMSEC3V446P765U6NL7MEQ \\// C25519-BASE-32 //
-#  \\// WUEY2KEK5GYFH6XRFZPD27VABKF4IGA6WQWGTF7MNWT2HQBXMCA \\ CODE SIGNATURE \\
+#\\DRTZTFS37ULBXWTWKRAAGEEUG5PO3MAMALRDLPPLMA5DZ3WDYLLPN5ZSUGPAIP4MVQFAYNR3LGVI2
+# \\ W3CK454TKUAQH5OM5PF5TYAUK7WGC72W4TAEHYBRHQVDAMRYF3GS \\// C25519-BASE-32 //
+#  \\// JBXJQ3TAY5DYZIKKYFMCK23WCHWPB74WL22OXMNLJHLJDLDHGAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

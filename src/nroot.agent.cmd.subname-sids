@@ -24,7 +24,10 @@ foreach my $instance_id ( keys %{<nroot.agent.instance>} ) {
 }
 
 if (@reply_list) {
-    return { 'mode' => 'data', 'data' => join( '', map {"$_\n"} @reply_list ) };
+    return {
+        'mode' => 'data',
+        'data' => join( '', map {"$ARG\n"} @reply_list )
+    };
 } else {
     return {
         'mode' => 'nak',
@@ -33,7 +36,7 @@ if (@reply_list) {
 }
 
 # ______________________________________________________________________________
-#\\L5INKUNQCCHYUG5BBSCCP72CMTDGK3KSPBLDXIGF7LF4WKGFHBZEAV4DD5SFXRXAUU4RNMOGVBWAM
-# \\ SCGE3L6W26GAMI24BFGXXZWLHTQIMEWZSSZCGVQMIHZPSZ2B4UND \\// C25519-BASE-32 //
-#  \\// 4OG3R7RMROUBPFALYXCU6R2AHCWUXO6NTAFPA2DPDEHNDEHOWDQ \\ CODE SIGNATURE \\
+#\\6QOM3ZEK6FKH2Z3LYTJCLFPRVS7HBMHGIWUUTZMKQ7TPXWPHYT4YWBXZUIHJYDT3Z33UIWIN5ML7Y
+# \\ WIAYZQZJ5FUE3YEX7FFEOCNFFMISN4B4C22HZMPJW3UXSJS3JBBI \\// C25519-BASE-32 //
+#  \\// J3CFCLZQODWM5IHYYLW26YCHBRKMLYEEFLA3OVP6XRQLO2RH2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

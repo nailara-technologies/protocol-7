@@ -16,7 +16,7 @@ my $file = $1;
 my $line = $2 // '';
 $err_str =~ s|^(.)|lc($1)|e;
 $err_str =~ s|can\'t|cannot|g;
-$err_str .= " < $@ >" if $@;
+$err_str .= " < $EVAL_ERROR >" if $EVAL_ERROR;
 
 $file =~ s|^/usr/share/perl5/||;    ##  <--  shortening path for .pm modules ##
 
@@ -49,7 +49,7 @@ my @attr_names = sort { length($a) <=> length($b) } sort $watcher->attributes;
 
 my $lvl  = 2;
 my $mlen = 0;
-map { $mlen = length($_) if length($_) > $mlen } @attr_names;
+map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
 
 eval { <[base.log]>->( $lvl, ".:[ event ]:." ); };
 
@@ -60,7 +60,7 @@ foreach my $akey (@attr_names) {
 }
 
 # ______________________________________________________________________________
-#\\5XWRMXJ4QSN6JFEGJ2SAXQAIWWXWU7OPGYKPNJUARQQZWS7REKSWB5QIZD66LMNURSY3OP56VJNTE
-# \\ ZWFW2IV7FHK7AOXCSOH6G3NCD5FUSX67P67ZHJIVHEJC3HUOSWDY \\// C25519-BASE-32 //
-#  \\// IAKF7LH47QLQF2D3YRI77IGWT2OLEYNOBFT74KI25MGXJYFBSCY \\ CODE SIGNATURE \\
+#\\UQQXK3TTZW7GUFSDLC377BZ4QJMGQHF5GCP3S5RLZI6WQ2O2D5ODG3UBOOLMN67E7ZIQ4T54GKMPE
+# \\ V7FCIWKWS3YCKUFZP47TEAGBHIC65DMU5PAZRURH5U3IVML3G6KE \\// C25519-BASE-32 //
+#  \\// 367TUKH42U2DC5X6WIQDEPDC2VI3L24EWM7IBXFBKO2FD5RRQBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

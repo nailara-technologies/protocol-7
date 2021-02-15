@@ -6,16 +6,16 @@ my $hash_ref = shift // '';
 return warn "expected hash reference <{C0}>" if ref($hash_ref) ne 'HASH';
 
 map {
-    delete $hash_ref->{$_}
-        if ref( $hash_ref->{$_} ) eq 'HASH'
-        and not keys( %{ $hash_ref->{$_} } )
+    delete $hash_ref->{$ARG}
+        if ref( $hash_ref->{$ARG} ) eq 'HASH'
+        and not keys( %{ $hash_ref->{$ARG} } )
     }
     keys %{$hash_ref};
 
 return scalar keys %{$hash_ref};
 
 # ______________________________________________________________________________
-#\\TIIJZI7THEBOBOQCWRQNQL4KNWIXQYRUQZDZYDWXICQNCILXGOK6ODU7KW75EBMPETS2VZVCZ6N7U
-# \\ 5FMNYMESDB5JZBERSVFKDLBIL56L2WWA737YS4QB25GW4P2VXXPV \\// C25519-BASE-32 //
-#  \\// AS3LK2U3E2B3ZVMIL3FS5GEHBRW26GLWBMA6ZZ2YALXIGMGR4AQ \\ CODE SIGNATURE \\
+#\\SZZFUDXYQY6C3JAUF2CJGMWM7DWVDCEO7O5WWN7R4ZEWMAH2BCIHJSPYCYIHBFMZWBNR7Q3PQ47ZU
+# \\ YFC63BEJCVEKQOUNT7ZIMONIWV6T4D3QAG757WE6HLMIVLCMDY3G \\// C25519-BASE-32 //
+#  \\// RGABJRCINPHPYZDJQQLACRWQYWPPPKRY6RAF3YWVNZAGBTO5QAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

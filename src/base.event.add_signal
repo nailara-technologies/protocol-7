@@ -21,9 +21,9 @@ eval {
     );
 };
 
-if ($@) {
+if ($EVAL_ERROR) {
     delete <watcher.signal>->{$signal};
-    ( my $reason = "$@" ) =~ s| at .+$|<{C}>|;
+    ( my $reason = "$EVAL_ERROR" ) =~ s| at .+$|<{C}>|;
     warn $reason;
     return undef;
 }
@@ -31,7 +31,7 @@ if ($@) {
 return <watcher.signal>->{$signal};
 
 # ______________________________________________________________________________
-#\\UI5RPHP6RM4EIPWHQI7LT6DGRFZUDB5H2MIXDAUCKT3SPDYMIMQIFTM35JTP74WQ27K3PJL3K6SE2
-# \\ 33D2QL4QZ7JQ4YLDONKUIQSAR6NBVFRG3GZ437MEZ7NUVAF43PEE \\// C25519-BASE-32 //
-#  \\// JMGAUNNYX5QBBXKSPIZ3XEGENC2QJOHZRT6ZR3MDTDLEZ4J7MCQ \\ CODE SIGNATURE \\
+#\\ZMJQ4I25UX267VTA72JMANALOE7MLA4YLCUYI626KWRSESGCZONV352VBSWQEPWUTT6ZH3F7MHQXO
+# \\ PXFBX7DCZLNBTIYSP6MAOY7ENWS7EASXOH7NJOMR7YVHF2SDXTYI \\// C25519-BASE-32 //
+#  \\// 7ILNTHBX64PRIWYEMFB23XP5QKSCSE3PRWY47YN6UPYFWZXRKCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

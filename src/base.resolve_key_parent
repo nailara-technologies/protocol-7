@@ -9,7 +9,7 @@ my $hash_ref = shift // *data{HASH};
 # allowing keys containing '.'s by single quoting them
 $key_str =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
 my @key_tree = split( /\./, $key_str );
-map { $_ =~ s/\0/./g } @key_tree;
+map { $ARG =~ s/\0/./g } @key_tree;
 while ( my $sub_key = shift @key_tree ) {
     if ( not defined ${$hash_ref}{$sub_key} ) { return undef }
     if ( @key_tree and ref( ${$hash_ref}{$sub_key} ) eq 'HASH' ) {
@@ -23,7 +23,7 @@ while ( my $sub_key = shift @key_tree ) {
 return undef;
 
 # ______________________________________________________________________________
-#\\D4SS7PPJIRKFMNLTWMHBNU5ZLZHNBKXIDHGA7E43IQPZI62Y3YT3UQNEJ6F4H3DICXGXB6N623O6K
-# \\ 2IDTED6AAJLKOSAWJ6JTLWPP374GUSOSBZKS5CCYAH7N7HYF4RLS \\// C25519-BASE-32 //
-#  \\// KFC4WJUQCZLILRXPZAYIPFM3CVIZI6FGNJZF2QQG7JJZMWRDUAI \\ CODE SIGNATURE \\
+#\\XQ74AVPEAMSGDFT7OIBXVYFDUSW7BAA6EZJ3NCWV7NZ4V4GOYABWWZNBEG4W43H57E4OGJTTAUW6O
+# \\ 3OJY4UHQ55PTPHS73T42IHM3BNVLRTGVI2IQQ6ZELT2FYLZJKT6X \\// C25519-BASE-32 //
+#  \\// BG3L7IKDIAENXYS67B6RZ2LARJUVV37SZ5KDDTDPCZDLWE5XABY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

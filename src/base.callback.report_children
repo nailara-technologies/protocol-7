@@ -10,16 +10,16 @@ my $route_str = <system.net.core_route> // 'core';
 $route_str .= '.' if length($route_str);
 
 map {
-    <[base.log]>->( 1, "reporting child process [PID:$_] to 'nroot'" );
+    <[base.log]>->( 1, "reporting child process [PID:$ARG] to 'nroot'" );
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => "${route_str}nroot.register_child",
-            'call_args' => { 'args' => $_ }
+            'call_args' => { 'args' => $ARG }
         }
     );
 } @{<system.report_children>};
 
 # ______________________________________________________________________________
-#\\VQ5XIIPTBJ633GP2SBEFFRFFYK4MHXTACHQTBA5WRTXSG47WWPH73ZH7OS36HDZBQFPNZMF4WBSE2
-# \\ YAEFJD25YT645ELN6UHXRIRWD3NJXGVIIS32YKUKVSZ6O4T36W76 \\// C25519-BASE-32 //
-#  \\// LVZYKEYVJZYGCEFNMI3N7LO37IFBPBF4SQDU6RQLPDFDVBK62DI \\ CODE SIGNATURE \\
+#\\OL76YS3WCR5RCLFSQWDEVCHDQRTKJ22GPYEJ7LMPLDBCIQIKIFH6XCLXOREUQJNTSZT3KGC5G6SME
+# \\ NTCBOHEO3WJUKWW5I4LQOO2NDE7J5AP7D4C7RPPUVKNSLMYZ4M2C \\// C25519-BASE-32 //
+#  \\// NZ46TYJ7ZH433WBQHRRFEWVNNEDGNYBSEKMAEUGRNLSA65QYWAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -16,7 +16,7 @@ my $version_root = $paths->{'version_root'};
 
 my @copy_sources;
 map {
-    my $source_path = catfile( $work_tree, $_ );
+    my $source_path = catfile( $work_tree, $ARG );
     die "source path $source_path does not exist" if !-d $source_path;
     if ( !-w $source_path ) {
         <[base.log]>->(
@@ -24,7 +24,7 @@ map {
         );
         <[base.exit]>->(1);
     }
-    push( @copy_sources, $_ );
+    push( @copy_sources, $ARG );
 } qw| bin bin/dev bin/dependencies cfg src |;
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
@@ -37,7 +37,7 @@ foreach my $directory (@copy_sources) {
 }
 my $file_count = scalar @source_paths;
 
-map { die "source file $_ is not writable" if !-w $_ } @source_paths;
+map { die "source file $ARG is not writable" if !-w $ARG } @source_paths;
 
 <[base.log]>->( 1, "* updating $file_count source file signatures..," );
 foreach my $path_abs ( grep { !m|/\.| } @source_paths ) {
@@ -68,7 +68,7 @@ foreach my $path_abs ( grep { !m|/\.| } @source_paths ) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;    # log files changed..,
 
 # ______________________________________________________________________________
-#\\7BO3YZAVUPU7OMD5TIIGLGB4DYQQYJDA5PCLATFW54WEOQFSZJFLBT463I67MPZOCSZLN7FVYUOEY
-# \\ MVGB6EWY6QEKP55IIJNTCRZWP4FYU45P3M65F63AEIVOWX6ZCQ2H \\// C25519-BASE-32 //
-#  \\// WLVVBXPYWMQ26SZ3HJBLEFZOO57R5KBXYPOKL5WPYTBNZWGQ2AQ \\ CODE SIGNATURE \\
+#\\CLE7NIBERKOEZ7MJCYUESYM3ARKGD65V5SYUUBMPLQEWXQFVINXLDZCXZA4TPY7NFL7ML6K2L6KH4
+# \\ RRLTF5EENBSU7JZAV7ZSDCFUR5FHNCS2GDKQKHOQ7Z4B7TVPK5XG \\// C25519-BASE-32 //
+#  \\// G4C32EABHQG2ST5CW2UPFLGEBRQ5YDIIBZISQG764DSFTVHCCDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

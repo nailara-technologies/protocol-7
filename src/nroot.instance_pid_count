@@ -10,19 +10,19 @@ my $parent_pid = $instance->{'process'}->{'id'};
 return 0 if not defined $parent_pid;
 
 my %check_pids = ( $parent_pid => 1 );
-map { $check_pids{$_} = 1 }
+map { $check_pids{$ARG} = 1 }
     ( @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
-map { $check_pids{$_} = 1 } keys %{ $instance->{'restart_pids'} }
+map { $check_pids{$ARG} = 1 } keys %{ $instance->{'restart_pids'} }
     if exists $instance->{'restart_pids'};
 
 my $processes_left = 0;
-map { $processes_left++ if <[nroot.sub-process.exists]>->($_) }
+map { $processes_left++ if <[nroot.sub-process.exists]>->($ARG) }
     reverse sort keys %check_pids;
 
 return $processes_left;
 
 # ______________________________________________________________________________
-#\\RQISVN3B7LNYJBZIQ66YIUQMRGQ7ZLB7SSXRIOAVY633DI277SWRNZFHDYAG6YEXA5HII63MMQRAE
-# \\ 5GARKZ6CZL7ETBDQ63VRFIRMP3KXLQSBK7CENSC36H3FQ5EOYKFF \\// C25519-BASE-32 //
-#  \\// 74IL7LREUMQ2ASI5LEBAOPZ3RIGH2IXNB7HQKOSRIZBUPJXXMAQ \\ CODE SIGNATURE \\
+#\\S5IV2NYNNZKJMXA62RZHWGYPWDLE2OTPOCCE3KFBQFV2OOUZNTRL3ZCBVWXJK5UXYQ67AX2OAPTG2
+# \\ SD2VZEJ5V6HDX5OB47V62KEQATMILYF45K3OWL7VROYYR7EV3PRI \\// C25519-BASE-32 //
+#  \\// OA5HVSILNVLSCIOGEVQHULYPZB4Q4GR4RG6MVLV7MPXROQ3UODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

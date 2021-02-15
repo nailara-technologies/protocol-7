@@ -15,7 +15,9 @@ my $return_socket = IO::Socket::UNIX->new(
     Type => SOCK_STREAM(),
     Peer => $socket_file,
     )
-    or <[base.log]>->( 0, "io.unix.socket.output.open: $!! ('$socket_file')" );
+    or <[base.log]>->(
+    0, "io.unix.socket.output.open: $OS_ERROR! ('$socket_file')"
+    );
 
 if (    defined $return_socket
     and -S $return_socket
@@ -27,12 +29,14 @@ if (    defined $return_socket
 
     return $return_socket;
 } else {
-    <[base.log]>->( 0, "[!] can't connect to unix socket [$socket_file]: $!" );
+    <[base.log]>->(
+        0, "[!] can't connect to unix socket [$socket_file]: $OS_ERROR"
+    );
     return 0;
 }
 
 # ______________________________________________________________________________
-#\\2A2DWTBBYS5JY4XI5GVHAVGQOHEG6IDK6ZPEHXP2VXNDSSNJRM5LDMBQSEDQHBDCM6E4GQ3NUJUXU
-# \\ NHO44ZAC7CTELY4RSSUQ6JLZMSNT5OQDQFZ6PIYXRPCHGTK7YEGN \\// C25519-BASE-32 //
-#  \\// T6OTUB452JSRMYZRWLBGBATRYUPKISAGB7PENHV53SWVZOKR6AI \\ CODE SIGNATURE \\
+#\\NK67ERHTO4KK5F7OFPRS5NX74QWVVIA73BOQF6KJVNXJMUW6VXJFXBMIVYYLZMGI4KX5AMNYSLAGK
+# \\ 6OW6QZKJ2LBN4JK3BMGKNVTVD7EUJMXB4PGIAYNM5HQUEN2BRTQE \\// C25519-BASE-32 //
+#  \\// DAJTT6CF4JXA4MAWDKFSMHGCABZPUPUI5BPVGTE6QDU2SL5HGCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

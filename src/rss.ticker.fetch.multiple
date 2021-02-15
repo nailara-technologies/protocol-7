@@ -15,7 +15,7 @@ my $seperator = <rss.ticker.item_seperator>;
 <rss.ticker.cache_timeout> //= 3;    # 3 hours default timeout for cached feeds
 
 my @urls;
-map { push( @urls, $rss_url_ref->{$_} ) } keys( %{$rss_url_ref} );
+map { push( @urls, $rss_url_ref->{$ARG} ) } keys( %{$rss_url_ref} );
 if ( !@urls ) {
     <[rss.ticker.warn_urls_undefined]>;
     return;
@@ -56,12 +56,12 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $url_hash = <[digest.sha.1]>->($rss_url);
         if ( !-d $data_dir ) {
             mkdir($data_dir)
-                or die "can't create rss data dir '$data_dir' [ $! ]";
+                or die "can't create rss data dir '$data_dir' [ $OS_ERROR ]";
             chmod( 0700, $data_dir );
         }
         my $url_data_file .= "$data_dir/$url_hash.txt";
         open( my $txt_fh, '>' . $url_data_file )
-            or die "can't write to feed data file [ $! ]";
+            or die "can't write to feed data file [ $OS_ERROR ]";
         {
             print {$txt_fh} join( "\n", @txt_data ) . "\n";
         }
@@ -118,7 +118,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
     }
 
     open( my $r_fh, '<' . $url_data_file )
-        or die "can't open feed data file '$url_data_file'! [$!]";
+        or die "can't open feed data file '$url_data_file'! [$OS_ERROR]";
     @{ $txt_data{$index} } = <$r_fh>;
     close($r_fh);
     $feed_data_count++;
@@ -146,7 +146,7 @@ if ( !$feed_data_count ) {
 }
 
 open( my $txt_fh, '>', $output_file . '.NEW' )
-    or die "can't write to ticker data file '$output_file.NEW' [ $! ]";
+    or die "can't write to ticker data file '$output_file.NEW' [ $OS_ERROR ]";
 my @output_data;
 if ( $join_type eq 'mixed' ) {
     while ( keys(%txt_data) ) {
@@ -175,12 +175,12 @@ if ( $join_type eq 'mixed' ) {
 }
 close($txt_fh);
 move( $output_file . '.NEW', $output_file )
-    or die "can't move '$output_file.NEW' to '$output_file' [$!]";
+    or die "can't move '$output_file.NEW' to '$output_file' [$OS_ERROR]";
 <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
 return 1;
 
 # ______________________________________________________________________________
-#\\KCJ7F27DFITJ7Y3RO4ROJFZSRRUV64TUZGXTWO7PBV6EYXE23BJQGYUREGBF3JOBZRRCKMXOHM6VS
-# \\ G4TKTPIM22C5G3QIVSWNTGEU55BIPOSHKMJJY3BP6XVH7IXYJ7FJ \\// C25519-BASE-32 //
-#  \\// KKC7KBOHKY3EUPQPFXBNSY3GEHIESRKLZNJXCIDW2QWXRKG62AI \\ CODE SIGNATURE \\
+#\\PEZABRHKMNR2Y7SSRNKDWGWRRQNF6JPU4432QIQEUFXRJVVONPFRO3BVCFRYIIQIFB2ITV6F6S7GM
+# \\ 2ZVEFJPUF2HYSTM37BGRDIM5HO6DPYXCE27MZVP3NRBANKK5KGGP \\// C25519-BASE-32 //
+#  \\// 6ELBGAZAHEYC5G3EV4DKQFK2R2DROZYT4OKKRCDCXWUL2T4AECA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

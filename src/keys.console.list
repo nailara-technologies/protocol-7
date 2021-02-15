@@ -12,7 +12,7 @@ my $key_usr = $key_vars->{'usr_name'};
 my $key_re_secret = <keys.regex.key_file.secret>;
 my $key_re_public = <keys.regex.key_file.public>;
 
-opendir( my $dir_fh, $key_dir ) or die "$key_dir: $!";
+opendir( my $dir_fh, $key_dir ) or die "$key_dir: $OS_ERROR";
 my @key_files
     = grep {m{$key_re_secret|$key_re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "unix user '$key_usr' has no C25519 key files" );
@@ -24,22 +24,22 @@ my %key_names;
 my $max_nlen = 0;
 
 map {
-    $key_names{$_} = "'$1'" if $_ =~ m{$key_re_secret};
+    $key_names{$ARG} = "'$1'" if $ARG =~ m{$key_re_secret};
     my $spaces = ' ' x length($1);
-    $key_names{$_} = " $spaces " if $_ =~ m{$key_re_public};
-    my $l = length( $key_names{$_} );
+    $key_names{$ARG} = " $spaces " if $ARG =~ m{$key_re_public};
+    my $l = length( $key_names{$ARG} );
     $max_nlen = $l if $l > $max_nlen
 } @key_files;
 
 <[base.log]>->( 1, "listing key files ['$key_dir']" );
 
 print "\n :: keys for user $key_usr :.\n :\n",
-    ( map { sprintf( " : %${max_nlen}s : %s\n", $key_names{$_}, $_ ) }
+    ( map { sprintf( " : %${max_nlen}s : %s\n", $key_names{$ARG}, $ARG ) }
         @key_files ),
     "::\n\n";
 
 # ______________________________________________________________________________
-#\\B6JQBEIPULIUU6ZYY4IUG5Q4L6YDZBWCH5VKFCW3ISALMQ6CBGPHGARUIF5IGW4ZPNOO3QAQAXIKQ
-# \\ H77SUMQCYW4YMWCOBLMBEKMFN32F6F5OMCSWIPEV2IS4IUJ3RXUO \\// C25519-BASE-32 //
-#  \\// SUBTPIGBEW3URTT37DLTDH5NZLICPQNALBTGKTKOZV6YDRS7KCI \\ CODE SIGNATURE \\
+#\\RERAR5WE7ASM4YCSKNBCLSCTWFNKLVHCALAJVPNWESOSC3SNJZN4ISBCN62GQYVXZJ54QXQVX7F2C
+# \\ 4HEQERJK3TKMYN4JGGM2GZZ6HNQEGEUKFMD6ZSNIAMVO35ZXW5JD \\// C25519-BASE-32 //
+#  \\// 6FT6P2K4JOLXCLXALD6SM4FNS3PP3223XLL7RPPKSG3WDREOICA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

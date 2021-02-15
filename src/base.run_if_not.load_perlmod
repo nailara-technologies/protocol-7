@@ -11,7 +11,7 @@ if ( $perl_module !~ /^(\w+|::)+$/ ) {
     return 3;
 }
 
-if ( eval "use $perl_module" or $@ or length($!) ) {
+if ( eval "use $perl_module" or $EVAL_ERROR or length($OS_ERROR) ) {
     return $code{$code_name}->(@params);
 } else {
     <[base.log]>->( 2, "loading '$perl_module' succeeded.." );
@@ -19,7 +19,7 @@ if ( eval "use $perl_module" or $@ or length($!) ) {
 }
 
 # ______________________________________________________________________________
-#\\YLNA2MIYTAZDYQP4CY5QEHPOGMA772SHGTED4O74EE5VNCXYAGKH6IIKF42EYXTKDXQDHOBTESSIY
-# \\ 2PJM3RCRTY7PALQMZ737MUE4KEQJKPD7NYJJHDVD3MJ67TTCQC2E \\// C25519-BASE-32 //
-#  \\// 4KN3WZ6TR7ZZVYV6NBP4EB7XTBSCWY5CXTAMNMJDAB3S5VZRMBY \\ CODE SIGNATURE \\
+#\\QLZPGSMCINLL7K5V3MCZDPF57MHCPJUXRIMGDDM7KBIATWDZPJPMGGACFWTEI7FMDXMTKAUN4INO6
+# \\ 4OZQM73ZDPSGUEP6JE57WYRK25FMH3PLBDWDPMQXCEZTGUCHF4PL \\// C25519-BASE-32 //
+#  \\// N5C6HL5BJYNJFABYUV72IRTWZD24PT7SMYJN2UOZCEFFCTOQ2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

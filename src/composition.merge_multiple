@@ -11,8 +11,8 @@ if ( not defined <composition.current_tile_group> ) {
 
 ( my $current_one = <composition.current_tile_group> ) =~ s|\+.*$||;
 
-my %uniq = map { $_ => 1 }
-    grep { length($_) and $_ ne $current_one }
+my %uniq = map { $ARG => 1 }
+    grep { length($ARG) and $ARG ne $current_one }
     @{<composition.overlays.current>};
 @{<composition.overlays.current>} = sort keys %uniq;
 
@@ -26,14 +26,14 @@ my $merged_name = join( '+', $current_one, @{<composition.overlays.current>} );
 map {
     <composition.setup.tile-groups>->{$merged_name} = merge(
         <composition.setup.tile-groups>->{$merged_name},
-        <composition.setup.tile-groups>->{$_}
+        <composition.setup.tile-groups>->{$ARG}
     );
 } @overlay_list;
 
 return $merged_name;
 
 # ______________________________________________________________________________
-#\\LA5RMZGMAUQPLSVKHGJIR2JGF43T7DNEGHMN3T3KMPKNTMO4MGF2ULAV4W4X3AIOYASKIA5VO5EFS
-# \\ ALMR7UTA6OWBM7L5D4HEXBEQ7O3NFQDHQDDU6YM2INXMP44NCUNL \\// C25519-BASE-32 //
-#  \\// GU25I3QN53WWGQU4SWDFPB2FPH4ZJ75YBT4EOUO2EEYMRRJXADA \\ CODE SIGNATURE \\
+#\\3BCUH5YJKPZ3DQS5BWTCL4FOJ3K2UWTC5PMWFQZ4XZVN2D2FSDWH4P2MHBUCX674MKOBFB2V4VXPS
+# \\ AVIAFVVRI4EHX4EREAM2EUJI6KIJFXLMKB7WUMWOXEEVGVK6IWYY \\// C25519-BASE-32 //
+#  \\// JKUW2HVCS3L3MZFL7UYPFO2XOJH25JUR42GP32GCW4CU75YR4BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

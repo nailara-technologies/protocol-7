@@ -33,7 +33,7 @@ if ( !-d $target_dir ) {
         or die "user '" . <system.privs.user> . "' not in passwd file";
     <[base.log]>->( 2, "creating target directory '$target_dir'.." );
     make_path( $target_dir, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-        or warn "unable to create target directory '$target_dir' [$!]";
+        or warn "unable to create target directory '$target_dir' [$OS_ERROR]";
 }
 
 unlink($file_path) if -f $file_path;
@@ -60,7 +60,7 @@ if ( not defined $response or !$response->is_success ) {
 ( my $filename = $response->filename // 'index.html' ) =~ s|^.*/||g;
 $filename =~ s| +|_|g;
 my $target_path = "$target_dir/$filename";
-rename( $file_path, $target_path ) or die "< rename > $!";
+rename( $file_path, $target_path ) or die "< rename > $OS_ERROR";
 
 my $bytes_downloaded = File::stat::stat($target_path)->size;
 <[base.log]>->( 1, "ok <$bytes_downloaded bytes> $url_md5u_hash" );
@@ -68,7 +68,7 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 return { 'mode' => 'ack', 'data' => $target_path };
 
 # ______________________________________________________________________________
-#\\MI7VGMQJLZXMAHZFMIXK4DU2INIIGFO4Y2GESP2QZRKZDDJPXSPV6GMFUY4HLSYCNDLAILQO6CYIG
-# \\ 4KXU2EV6O7PKZP2XT47JCSTW6BA343JWYAOR3HLZD22TXPUCTW5W \\// C25519-BASE-32 //
-#  \\// 52FU56IRBN2DSUGMDTH4UROXV7YTR3UMFFYCGVILZO44XAG5AAI \\ CODE SIGNATURE \\
+#\\RZLHDHEGB5OIS7MR3IZZEP2CKTRHTVLQJRKBKZIAOUKTPJE3P26OZVGB67GEEMBL3NHTK2HM2YNMS
+# \\ JAYFLDJEK43N6P6FPLHVKOQE4FL77MHEXFHA7FRIVT6YMFMWOE6Y \\// C25519-BASE-32 //
+#  \\// YU6PJ4IRZRMK3U2N2X5VWGHZO5WH2OXXU2GDFJCB5UBM4XHHEAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

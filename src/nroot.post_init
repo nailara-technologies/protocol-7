@@ -41,7 +41,7 @@ if ( @{$added_all_ref} ) {
     <[nroot.set_up_ondemand_agents]>->( @{$added_all_ref} );
 }
 
-map { <[base.clean_hashref]>->( $agent_config->{$_} ) } @all_agents;
+map { <[base.clean_hashref]>->( $agent_config->{$ARG} ) } @all_agents;
 
 if (    exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
@@ -50,7 +50,7 @@ if (    exists <system.subs_loaded.debug>
     print "\n < nroot.start_setup.agents.config >\n\n$debug_str\n";
 }
 
-map { <[nroot.autostart_agents]>->($_) if !<[nroot.start_count]>->($_) }
+map { <[nroot.autostart_agents]>->($ARG) if !<[nroot.start_count]>->($ARG) }
     @{$added_start_ref};
 
 print Dumper( $data{'jobqueue'} )
@@ -61,7 +61,7 @@ print Dumper( $data{'jobqueue'} )
 0;
 
 # ______________________________________________________________________________
-#\\HXBCYPP7FNZTNYS7SDP2LWICZTYUODQ7PWRUAXTRHW532KW3MM7EIJXWKTYAKIZGNWUG4O36KIVOO
-# \\ OV5E6YYY2I4DW7NJ2M4J76GTAKBLMTCF5GMXXGPVVKUACFWAB2WY \\// C25519-BASE-32 //
-#  \\// UHFF3BJXT7WWRPF5C37QTY4HG6SL7WLDT2O4KSLX6HUUS5V7SCI \\ CODE SIGNATURE \\
+#\\XGDYXKCUFCXKS4KENJHCCJZFFPR5D3KWV7V4P7G7RG2ZLHX7TUS4QF6USNZABGK6SCQLEEOWXCKRG
+# \\ 5Y6VZU5FHUIZWK2DEAI3ETEI5P7OBDAQSPBV65HSNVAB75TZ6LMF \\// C25519-BASE-32 //
+#  \\// 4TDVROPK5IDY76QMTSUYDG6QIHC6WD42WG63DI6QZCFWL2BDQDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

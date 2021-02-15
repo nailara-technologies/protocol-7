@@ -1,9 +1,10 @@
 #!/usr/bin/perl -C31
 
-use utf8;
 use strict;
-use IO::AIO;
 use warnings;
+use utf8;
+use English;
+use IO::AIO;
 use File::Spec;
 use IO::Socket;
 use IO::Socket::IP;
@@ -17,7 +18,7 @@ use POSIX qw| sys_wait_h WNOHANG |;
 use POSIX::SigAction;
 use POSIX::SigSet;
 
-my $lnk_path = File::Spec->rel2abs( File::Spec->canonpath($0) );
+my $lnk_path = File::Spec->rel2abs( File::Spec->canonpath($PROGRAM_NAME) );
 my $bin_path = $lnk_path;
 
 while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
@@ -32,11 +33,11 @@ my $nailara_port = calc_port($path_offset);
 
 ( my $hostname = qx(hostname) ) =~ s/(\..+|\n)$//g;
 
-$0 = 'nshell';
+$PROGRAM_NAME = 'nshell';
 
 $SIG{'PIPE'} = 'IGNORE';
 
-map { $SIG{$_} = \&parent_exit; } qw| TERM INT HUP |;
+map { $SIG{$ARG} = \&parent_exit; } qw| TERM INT HUP |;
 
 my $sigset          = POSIX::SigSet->new();
 my $sigaction       = POSIX::SigAction->new( \&readline_signals, $sigset, 0 );
@@ -46,7 +47,8 @@ my $stdout_pid;
 my $parent_pid = $$;
 
 $SIG{'CHLD'} = sub {
-    $0 .= "[disconnected]" if waitpid( -1, WNOHANG() ) == $stdout_pid;
+    $PROGRAM_NAME .= "[disconnected]"
+        if waitpid( -1, WNOHANG() ) == $stdout_pid;
 };
 
 my @args;
@@ -81,7 +83,7 @@ my $prompt = "\\ $hostname \\:[?]:, ";
 my $connect = 1;
 my $WARNED  = 0;
 
-$| = 0;
+$OUTPUT_AUTOFLUSH = 0;
 
 # clear();
 
@@ -106,7 +108,7 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        $0 = "nshell ( $core_addr : $core_port )";
+        $PROGRAM_NAME = "nshell ( $core_addr : $core_port )";
         if ( not defined $stored_cmd ) {
             clear();
             print "\e[1m\e[5m\e[34m\e-\e[0m\n";
@@ -175,7 +177,9 @@ sub shell_connect {
             $sock = IO::Socket::UNIX->new(
                 Type => SOCK_STREAM(),
                 Peer => $sock_path,
-            ) or warn "\n [!] failed to connect to unix:$sock_path [$!]\n";
+                )
+                or warn
+                "\n [!] failed to connect to unix:$sock_path [$OS_ERROR]\n";
         }
     }
     if ( not defined $sock ) {
@@ -184,7 +188,8 @@ sub shell_connect {
             PeerPort => $core_port,
             Proto    => 'tcp'
             )
-            or die "\n [!] failed to connect to $core_addr:$core_port [$!]\n\n";
+            or die
+            "\n [!] failed to connect to $core_addr:$core_port [$OS_ERROR]\n\n";
     } else {
         $link_type = 'unix';
     }
@@ -271,7 +276,7 @@ sub shell_loop {
     }
 
     map {
-        $SIG{$_} = sub { parent_exit( shift, $stdout_pid ) }
+        $SIG{$ARG} = sub { parent_exit( shift, $stdout_pid ) }
     } qw| TERM INT HUP |;
 
     $term->add_history('');
@@ -290,7 +295,7 @@ sub shell_loop {
             $last_line = $line;
 
             if ( $line =~ /^\. cd (.+)/ ) {
-                if ( !chdir($1) ) { print "cd: " . $! . "\n" }
+                if ( !chdir($1) ) { print "cd: " . $OS_ERROR . "\n" }
             } elsif ( $line =~ /^\. (.+)$/ ) {
                 $lines_up = 1;
                 no warnings;
@@ -298,7 +303,7 @@ sub shell_loop {
                     my $failed  = '';
                     my $err_msg = "exit code: $err";
                     if ( $err == -1 ) {
-                        $err_msg = $!;
+                        $err_msg = $OS_ERROR;
                         $failed  = ' failed - ! -';
                     }
                     print "\n - ! -$failed ( " . $err_msg . " )\n\n";
@@ -348,7 +353,7 @@ sub shell_loop {
 
 sub stdout_fork {
     close(STDIN);
-    $0 = "nshell ( stdout )";
+    $PROGRAM_NAME = "nshell ( stdout )";
     while ( my $out = <$shell_sock> ) {
         $out =~ s/\n$//;
         print "$out\n";
@@ -377,9 +382,9 @@ sub rl_filename_list_lcl { #<- currently not working since Term::ReadLine switch
 
     my @files = (<$text*>);
     foreach (@files) {
-        if ( -d $_ ) {
-            next if $pos == 0 and !-x $_;
-            $_ .= '/';
+        if ( -d $ARG ) {
+            next if $pos == 0 and !-x $ARG;
+            $ARG .= '/';
         }
     }
     no warnings 'once';
@@ -420,7 +425,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\UKLQF4BANIDE4GL3NLNVUNSGEBRQI7BEH3J2JGEE2HMSPZT6ONAVFN7QPNDPOWZUXSZ4RSUIZTKFS
-# \\ RJJKDOBWBTK624BRASJTUX3LYUWXOCAD4V6F4MMV7OK7LT5R4QDL \\// C25519-BASE-32 //
-#  \\// 3N2WHXOEPSTRRZVE4YZTYMR7WNDEDCML5EENN57I4DHSOMDAEDQ \\ CODE SIGNATURE \\
+#\\FJDLGDBU5OQWTGON2ZZAMBZSCEH3FULLNOEH4KCCSS4C2ORQFIECLKUJABHZCKHXVBYXGGEDEOSDQ
+# \\ S7LKXODCPAIDFUMAT33WSFCMP4VQMU2QP7PCX4UZAFCE27QS433O \\// C25519-BASE-32 //
+#  \\// JMQ5YIRS4ZJUSLI5KK7KAMG2442YIEMBVBU5HHSWF4RUH5XWWCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

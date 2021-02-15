@@ -17,7 +17,7 @@ my $re_secret = <keys.regex.key_file.secret>;
 my $re_public = <keys.regex.key_file.public>;
 my $re_kfiles = <keys.regex.key_files>;
 
-opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $!\n";
+opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $OS_ERROR\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
@@ -32,8 +32,8 @@ my $match_re = qr|^(\Q$ren_from\E\.$re_kfiles)$|;
 my $key_found = 0;
 my $space_len = abs( length($re_secret) - length($re_public) );
 map {
-    $key_found = 1 if $_ =~ $match_re;
-    my $k_path = "$key_dir/$_";
+    $key_found = 1 if $ARG =~ $match_re;
+    my $k_path = "$key_dir/$ARG";
     return print "\n [!] no write access to '$k_path' [!]\n\n" if !-w $k_path;
 } @key_files;
 return print "\n  [!] specified key \"$ren_from\" not found [!]\n\n"
@@ -41,7 +41,7 @@ return print "\n  [!] specified key \"$ren_from\" not found [!]\n\n"
 
 my $ren_count = 0;
 
-chdir($key_dir) or die "[!] chdir( $key_dir ) : $!";
+chdir($key_dir) or die "[!] chdir( $key_dir ) : $OS_ERROR";
 
 print "\n :\n";
 
@@ -50,7 +50,7 @@ foreach my $file_name (@key_files) {
     my $target_name = $file_name;
     next if $target_name !~ s|^$ren_from\.|$ren_to.|;
     printf( " : %-${space_len}s  ->  %s\n", $file_name, $target_name );
-    return print "\n rename failed : $!\n\n"
+    return print "\n rename failed : $OS_ERROR\n\n"
         unless rename( $file_name, $target_name );
     $ren_count++;
 }
@@ -58,7 +58,7 @@ my $s = $ren_count == 1 ? '' : 's';
 print " :\n :. [ renamed $ren_count file$s ]\n\n";
 
 # ______________________________________________________________________________
-#\\J7VPSUD36KG4PBCXOMU7TODD3THIXG2O4DKFY5E5SLWFHNGAQYQZAJNMQ34MR4RZFROS4XWRGGC2Y
-# \\ A3AW3PC5P77H2ACOBKKEFYJ3CNR4TH3BV54KYYDMXUL6JPTBLOLL \\// C25519-BASE-32 //
-#  \\// GXB6YXN7FIGM4AZ756LU6HUNQ2KYMKFIVLJQSRGMS2QK4PK5SBA \\ CODE SIGNATURE \\
+#\\EPCK43XEPRJ3SCXGDTBZJM2F6ZH3PJEOEYJB73D2KHXOZMUIP62BHWYDOQPSKH2ZE3T4D3LRJPQV4
+# \\ HK4LIAGX5J755WQG4X62SAHN2SN5FT5VRYKQSEHSND36PMKFT4LO \\// C25519-BASE-32 //
+#  \\// 6CGSSCKXIZWHDQMM6N7Z5K5JDBGNIV324JOWVUEN7HZWHNQLYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

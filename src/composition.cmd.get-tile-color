@@ -18,7 +18,7 @@ $agent_name = $source_agent if not defined $agent_name;
 if ( $agent_name =~ /^\[([^\]]+)\]$/ ) {    # <- only subname given
     my $subname = $1;
     my %agent_names;
-    map { $agent_names{$_} = 1 if $_ =~ /\[$subname\]$/ }
+    map { $agent_names{$ARG} = 1 if $ARG =~ /\[$subname\]$/ }
         keys %{<composition.coordinates>};
     my $err_msg;
     if ( !keys(%agent_names) ) {
@@ -36,8 +36,8 @@ if ( not exists <composition.coordinates>->{$agent_name} ) {
     my $msg_str = "no coordinates defined for agent '$agent_name'";
     if ( $agent_name !~ /[\[\]]+/ ) {
         map {
-            if ( $_ =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
-                $last_match = $_;
+            if ( $ARG =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
+                $last_match = $ARG;
                 $match++;
             }
         } keys %{<composition.coordinates>};
@@ -80,7 +80,7 @@ foreach my $border_name (@borders) {
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\6NBX6OR77P2V3D2DXNHNMI7TX5WNWFPBMD3MJTKX45VE3UZV4BI5BSG5IIQCQAPUWGUXSGPTDFNEG
-# \\ MFLIUL2XU7A7CXYKSAXWNN7J4U7FWNXPWOA67DWTWEZJV4KCNKBS \\// C25519-BASE-32 //
-#  \\// DMV3EOOZK7IATMQKRG2UH4W7ZRUDC47EWQIPNWYF6GDPCL7MUCY \\ CODE SIGNATURE \\
+#\\F5JYAP3WCGWLZJWNU2B7UIAIVPK4D36VRDICU7RNDGVRC2HTM5AXED52FNC3HYAQTGQ4QBUAKWKFA
+# \\ 7UB3DZZQKLQDUBUZFJ546HZTOGL2JD4EHUTNUR5MZNSH6UFZCZTM \\// C25519-BASE-32 //
+#  \\// QCEF4JYB7IVVYDXB6HWMWUTJEX3MJ3KY2IJHBZTZMUM3MVH6OAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

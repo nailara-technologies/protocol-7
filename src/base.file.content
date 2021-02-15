@@ -14,17 +14,17 @@ if ( !-f $filename ) {
 
 my $file_fh;
 if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
-    <[base.log]>->( 0, "file.content: unable to open '$filename' [$!]" );
+    <[base.log]>->( 0, "file.content: unable to open '$filename' [$OS_ERROR]" );
     return undef;
 }
 
 {
-    local $/ = undef;
+    local $RS = undef;
     return <$file_fh>;
 }
 
 # ______________________________________________________________________________
-#\\2FMGP6XJBVR3GENVMUCQVM2JHE62JFKJZWIO2YRQGAHZ2VGA2BYFPRBWIRW7D7EVPJTBVAHPM2MNM
-# \\ YAD4YBC5CBNHIQAO26PN24YHNL5HJU2RKN4AVJTT7AGZRC3SFUBF \\// C25519-BASE-32 //
-#  \\// YAUXZEJUF6DHUAA3JJIZJNPKD3VOACNKW2AHVIBJGWSW4G3OQBQ \\ CODE SIGNATURE \\
+#\\LSAETNZHI5JSZFD66O7FZHW5RATFC63CRGFXHZOEIO6MFDPCVYK5HPMEDGJCHKXPV4RPYAT3LH7RE
+# \\ POWXAJFOZ5TVAKICJMCOPNUYHS4LUJLJXUAOIAVPLMLZXBVE2DUI \\// C25519-BASE-32 //
+#  \\// TIU32ACZODXICARJAIXNNF6FQX6B46AT4UJSKGECJK423V7M4AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

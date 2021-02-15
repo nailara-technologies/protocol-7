@@ -62,8 +62,8 @@ eval {
     waitpid( $pid, 0 );
 };
 
-<[base.log]>->( 0, "melt exec not successful [ $@ ]" )
-    if $@ =~ s| at melt.+\n$||;
+<[base.log]>->( 0, "melt exec not successful [ $EVAL_ERROR ]" )
+    if $EVAL_ERROR =~ s| at melt.+\n$||;
 
 if ( -f $out_file_path ) {
     <[base.log]>->( 1, ": $out_file_path" );
@@ -72,7 +72,8 @@ if ( -f $out_file_path ) {
     );
 } else {
     <[base.log]>->(
-        0, "<!> [frame $frame_num] extraction not successful [ $! ] : $vid_path"
+        0,
+        "<!> [frame $frame_num] extraction not successful [ $OS_ERROR ] : $vid_path"
     );
     <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -83,7 +84,7 @@ if ( -f $out_file_path ) {
 }
 
 # ______________________________________________________________________________
-#\\QEJRVYJ4DHV4J34WOMHVSGVFXJ6XWNXNOIBT6MPQQUPZBU2QKBRUHJD4QCATQAJKDIT5PJIMHKUZY
-# \\ 7VF34O2VBML6PA4VTKO4QJ4KZ6JPXKLGK4ZQJVW2JJ3QABR6F2SR \\// C25519-BASE-32 //
-#  \\// XJT5A6SISYR2VZEEHHVQIFENHKL3ROJ6MKOZSCIJX7ZBWDT6ACA \\ CODE SIGNATURE \\
+#\\PSPEKE3MSYQ2EFTC2PFXQRQM2CWY567TQXXCBSOUOKCZ7CEUGSES62UHORYECWAJIWOVDS67BLYMA
+# \\ 4MRCGGNZE62Y3EMYMQZPRPXQYWNOJQMLZSMHHMZP7KJQOWLCY63U \\// C25519-BASE-32 //
+#  \\// F7XO7L2THUDGXPMDTVZKVELXKETPCILQSMZTPDKIDK7K7XE3OAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

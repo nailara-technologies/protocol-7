@@ -40,7 +40,7 @@ push( @{ $tq->{'by_timestamp'} },         $job_id );
 
 foreach my $s_queue ( $sq->{'by_priority'}->{$prio}, $sq->{'by_timestamp'} ) {
     my $del_index = 0;
-    map { splice( @$s_queue, $del_index, 1 ) if $_ == $job_id; $del_index++ }
+    map { splice( @$s_queue, $del_index, 1 ) if $ARG == $job_id; $del_index++ }
         @$s_queue;
 }
 
@@ -50,7 +50,7 @@ $jobs->{$job_id}->{'tstamp'}{$target_queue} = <[base.time]>->(4);
 $jobs->{$job_id}->{'status'} = $target_queue;
 
 # ______________________________________________________________________________
-#\\QAT2TPZAUET7RKZLPEHR2TEQ5T6UEKP2Z2J63OZPBAZUPORPNQBC7IE4HGC6JENJOMHFUPIB6LFD2
-# \\ B5HJ7EGJDO75UP56YFOPXUCG4ZST5JUG4J45MKLSQMORBQTMOY75 \\// C25519-BASE-32 //
-#  \\// S6LQ6EHKS5ENVKWK3URFDSWUUXGWGFNNUSNYKWY6HWT6RUBZEBY \\ CODE SIGNATURE \\
+#\\MQ5PUHUMP7VGAEFXYHY23BTWL5SIB2U27A3ZFPVH2VL6ARNHVDZCQPT6O6DCPJZBHT4ZMS7CFCFHQ
+# \\ UKLORZJE3JPLLFDQJM5BBLP64436X72OUW2RPD5F4IPH6NSFVFNI \\// C25519-BASE-32 //
+#  \\// GW4CJQAEUFYQY33XFGGAD4UFZMTIE2YF4GXSGK5KLCS7QHS2WAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

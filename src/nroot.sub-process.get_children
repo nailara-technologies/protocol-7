@@ -48,11 +48,12 @@ while ($found) {
 ### new method ### [ requires strict child registration ]
 my $instance_id;
 map {
-    $instance_id = $_
-        if $chk_pid == ( <nroot.agent.instance>->{$_}->{'process'}{'id'} // -1 )
+    $instance_id = $ARG
+        if $chk_pid
+        == ( <nroot.agent.instance>->{$ARG}->{'process'}{'id'} // -1 )
 } keys %{<nroot.agent.instance>};
 if ( defined $instance_id ) {
-    map { $children{$_} = 1 if <[nroot.sub-process.exists]>->($_) }
+    map { $children{$ARG} = 1 if <[nroot.sub-process.exists]>->($ARG) }
         ( <[nroot.instance_child_pids]>->($instance_id) );
 }
 ###
@@ -63,7 +64,7 @@ return [
 ];
 
 # ______________________________________________________________________________
-#\\RBJTSYGJWWQJN6UHX73CPGPYKT5JUKGUVA2HRBW5YDNMX5DGHMXXP6THMR2DNOLPHK3TSFMYFUB4A
-# \\ V3U25YQPYAMNOASBZ7MRN25FOUG25OEEYW2SVA4MUFEDBT6PSSLV \\// C25519-BASE-32 //
-#  \\// FWCHM2NNAEBU65DIIOQNEFKRMHOWHD57JPONLC7ZJ53QBOB7MCA \\ CODE SIGNATURE \\
+#\\GKLLLBWC7JT23XLVTTPHMR7NU4XNGHCVYRSOI354U5T4JQPULW5EJOHZJB7GPMGPCSEBW63M7XWXA
+# \\ IKPDYENSA5WHZS7EJF7PDFQZNKKMLQEDBOOENSNFTG7Q4UIXYT4S \\// C25519-BASE-32 //
+#  \\// T2EPCDBZ7YR7NJCUB2GELFK3AARRMXDB6Q6PAIZLJ3L4RURHQCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

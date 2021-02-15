@@ -20,7 +20,7 @@ foreach my $i_id ( keys %{<nroot.agent.instance>} ) {
         last;
     } else {
         map {
-            if ( $_ == $process_id ) { $match_iid = $i_id; last }
+            if ( $ARG == $process_id ) { $match_iid = $i_id; last }
         } @{ <[nroot.sub-process.get_children]>->($parent_pid) };
     }
 }
@@ -30,7 +30,7 @@ return { 'mode' => 'ack', 'data' => $match_iid } if defined $match_iid;  # match
 return { 'mode' => 'nak', 'data' => "found no matching instance" };   # no match
 
 # ______________________________________________________________________________
-#\\HFGE3ANNDZ7SJNU3CCQ7HMZYJJK2QJ2Y677IXZNUCIQTXNYKXPPTNUZMQQ5P3MUA2BC25FIMS3TE6
-# \\ BPO5WG3KPBFN45ZI5EMJM5PGK3DEN5I7H65FZZVS43EM23XKG5CD \\// C25519-BASE-32 //
-#  \\// 556BS6PXADUP2D243Y2Y2Y2ULC2R2OOTZ6TA7N3UMKMTQFNNYBQ \\ CODE SIGNATURE \\
+#\\OBJBSWUWKFNDBF2J2CWU7TS2AVBWOD3Z446E6APMYMWEUVUIWJ6DQBYBJM6PZ2XGUTTGADI5NQONQ
+# \\ LIDFWLP3V3SHIU2PT4UYDRYPNA24Y63NDSBD4NTQNMWBFZNUFRUB \\// C25519-BASE-32 //
+#  \\// EXLBFSOXNRUAL55GWKI2RRAG3BKLTZAPCBFDRANCOIIJEAV7QCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

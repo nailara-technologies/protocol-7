@@ -79,7 +79,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <[universal.stop_start-anim]> if <universal.start-anim_running>;
 
         <universal.playlist.files> = [];
-        map { <universal.playlist.agent>->{$_} = [] }
+        map { <universal.playlist.agent>->{$ARG} = [] }
             @{<universal.display_agents>};
         foreach my $hide_agent ( keys %{<universal.child>} ) {
             my $hide_wid = <universal.child>->{$hide_agent}->{'window_id'};
@@ -96,7 +96,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <universal.playlist_sha1>      = $playlist_sha1;
         map {
             <[base.protocol-7.command.send.local]>
-                ->( { 'command' => "$_.playlist_update" } )
+                ->( { 'command' => "$ARG.playlist_update" } )
         } @{<universal.display_agents>};
     }
     return;
@@ -114,7 +114,7 @@ my $last_type
 <universal.playlist.files> = \@file_list;
 <universal.playlist.types> = \%file_types;
 <universal.playlist.agent>
-    = { map { $_ => [] } @{<universal.display_agents>} };
+    = { map { $ARG => [] } @{<universal.display_agents>} };
 <universal.sequence.position>     = 0;
 <universal.sequence.switch_order> = [];
 
@@ -181,7 +181,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 ) {
     map {
         <[base.protocol-7.command.send.local]>
-            ->( { 'command' => "$_.playlist_update" } )
+            ->( { 'command' => "$ARG.playlist_update" } )
     } @{<universal.display_agents>};
 } elsif ( !<universal.cfg.fade_on_switch> ) {
     <[universal.startup_sub_agents]>;
@@ -190,7 +190,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 }
 
 # ______________________________________________________________________________
-#\\JSIGKEUZX4QV3T45OG2XUQGJB7HCAO4MQ5X33UF2UHYZQ4P6LT6WIWAAPDG7SIYJV6ZENLS2FW3CI
-# \\ IJRVLH4A2Y7KENS5452Z5TAB5HHJQC77DMNBFWKMJHGR6TN5WKRS \\// C25519-BASE-32 //
-#  \\// IG2X4K5PFHGFYWKIVIHAYYJGENVMGCFLXFPLMGZTBD5Z7ID6EDA \\ CODE SIGNATURE \\
+#\\YORJR4JKCFEBPVM5VJYDPSCBMZ54HJZTSCNWEDAJOWHGOX54AZFHP774DHMIYCMEXJ6PABIBAOV32
+# \\ PLHP65C3X2QYICOYMQ5KRJFCUVPB2KONNKV2G67I2TEIICQIORCO \\// C25519-BASE-32 //
+#  \\// H4UOP5FZY4QSEJAGG3VH6DX57TUVKGLC3AUJEOACEYD5T4IRECY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

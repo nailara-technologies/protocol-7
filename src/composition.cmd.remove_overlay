@@ -20,10 +20,10 @@ map {
         'mode' => 'nak',
         'data' => "tile group '$overlay_str' is not active"
         }
-        if <composition.current_tile_group> !~ m|$_|;
+        if <composition.current_tile_group> !~ m|$ARG|;
 } split m| +|, $overlay_str;
 
-my %del_overlays = map { $_ => 1 } split m| +|, $overlay_str;
+my %del_overlays = map { $ARG => 1 } split m| +|, $overlay_str;
 my @del_overlays = sort keys %del_overlays;
 
 map {
@@ -31,23 +31,23 @@ map {
         'mode' => 'nak',
         'data' => 'expected tile group name'
         }
-        if not defined $_ or !length($_);
+        if not defined $ARG or !length($ARG);
     return {
         'mode' => 'nak',
         'data' => "tile group \"$overlay_str\" not found"
         }
-        if not exists <composition.setup.tile-groups>->{$_};
-    push( @{<composition.overlays.current>}, $_ );
+        if not exists <composition.setup.tile-groups>->{$ARG};
+    push( @{<composition.overlays.current>}, $ARG );
 } @del_overlays;
 
 ( my $current_one = <composition.current_tile_group> ) =~ s|\+.*$||;
 
 my $prev_count = scalar @{<composition.overlays.current>};
 
-my %active = map { $_ => 1 }
-    grep { length($_) and $_ ne $current_one }
+my %active = map { $ARG => 1 }
+    grep { length($ARG) and $ARG ne $current_one }
     @{<composition.overlays.current>};
-map { delete $active{$_} if exists $active{$_} } @del_overlays;
+map { delete $active{$ARG} if exists $active{$ARG} } @del_overlays;
 @{<composition.overlays.current>} = sort keys %active;
 
 return {
@@ -66,14 +66,14 @@ my $merged_name = join( '+', $current_one, @{<composition.overlays.current>} );
 map {
     <composition.setup.tile-groups>->{$merged_name} = merge(
         <composition.setup.tile-groups>->{$merged_name},
-        <composition.setup.tile-groups>->{$_}
+        <composition.setup.tile-groups>->{$ARG}
     );
 } @{<composition.overlays.current>};
 
 return <[composition.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
 
 # ______________________________________________________________________________
-#\\SFGNKEH3OINERJJVXSNDTRBC4BRO6KILPSLXGYJGLVQOKKIKDUHW6V2SUG47ZLQ5LKD366DYS2F7E
-# \\ MJFK5RAV5MU2WFB426TZYMBWTJYWVSA3HZTXUQV47WEUWR4JCDAV \\// C25519-BASE-32 //
-#  \\// W5TXOISYQ5SFGCLE72IQ6VMIPXFP7A6YR4IVEXRA5BERBK26OAQ \\ CODE SIGNATURE \\
+#\\SSM5GVKMPVCR5J4DDWB6BC2IGKXTNQACUTFHNSD4ZY3ET2AKFDJU25YZSRX4AGBUHBV3RV5HZDR5Y
+# \\ NLZCSQKQ3EPR5VKEF3S745EJTW5I3YEWUQHEYNSJCQIVHHKXIPTK \\// C25519-BASE-32 //
+#  \\// GCLHGS7GIX7RXHGSC4ECSMTD6SKZEZTH5FWF3ZKPRHR7E6JWSDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

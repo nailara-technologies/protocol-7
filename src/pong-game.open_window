@@ -19,7 +19,7 @@ my @exec_params = ( $left, $top, $width, $height );
 
 $ENV{'DISPLAY'} = <x11.display>;
 
-chdir(<pong-game.cfg.res_path>) or die $!;
+chdir(<pong-game.cfg.res_path>) or die $OS_ERROR;
 
 <pong-game.pid> = open3(
     <pong-game.in_fh>,  <pong-game.out_fh>,
@@ -31,7 +31,7 @@ chdir(<pong-game.cfg.res_path>) or die $!;
 
 if ( not defined <[base.X-11.wait_for_window]>->('pong-game')
     or !<pong-game.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start pong-game [$!]" );
+    <[base.log]>->( 0, "[!] unable to start pong-game [$OS_ERROR]" );
     <[base.log]>->( 1, " : aborting agent startup .." );
     exit(1);
 } else {
@@ -58,7 +58,7 @@ if ( not defined <[base.X-11.wait_for_window]>->('pong-game')
 <[base.log]>->( 1, "startup complete." );
 
 # ______________________________________________________________________________
-#\\ZTQGUMBHD6J42XLEAZYINHPS3ZLDAC3ZVLF7TPEWWFOFOGOTTGCBHUJCPNMPSPMGDG75FBF3PSKKQ
-# \\ JT27YBFGSPQURF3YTGNAISFRT32UT45DL5Z6TOOY46YFH5JGGWP6 \\// C25519-BASE-32 //
-#  \\// EH4C26ENXX7KGODQH66FMMFRUG6ZTHDZOL4ZGO4WY4HWRXG2UAI \\ CODE SIGNATURE \\
+#\\43I7KYSP7ZD3FTCBA2DAPR3CXSOD75VVKUGPMHNQM3QQS7ZUKUM6KNYSSZZA4SZYSLQ2L3LR4C574
+# \\ JMXWB24E3CQ3A3MYKTSIPWJTISRL2K42SJEVN4R3HXUGPU4HABVJ \\// C25519-BASE-32 //
+#  \\// YXJ7MNQD2TSBQSE45VGXMSPUAV2IH5475CMY7LVFUH4BXSOHQAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

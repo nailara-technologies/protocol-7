@@ -62,14 +62,14 @@ my $sock = IO::Socket::IP->new(
 );
 
 if ( not $sock ) {
-    <[base.log]>->( 0, ": : tcp connection error [$!]" );
+    <[base.log]>->( 0, ": : tcp connection error [$OS_ERROR]" );
     goto error;
 }
 
 $sock->sockopt( SO_LINGER(), pack( 'SS', 0, 0 ) );
 
 if ( !$ssh->connect($sock) ) {
-    <[base.log]>->( 0, ": : ssh connection error [$!]" );
+    <[base.log]>->( 0, ": : ssh connection error [$OS_ERROR]" );
     $sock->shutdown('NOW') if $sock->connected;
     goto error;
 }
@@ -97,7 +97,7 @@ if ( $host_key ne $configured_hostkey ) {
 
 my $ssh_user = $link_setup->{'ssh.user'};
 
-my %auth_methods = map { $_ => 1 } $ssh->auth_list($ssh_user);
+my %auth_methods = map { $ARG => 1 } $ssh->auth_list($ssh_user);
 
 <[base.log]>->( 2, ": : password auth. is enabled..(!)" )
     if exists $auth_methods{'password'};
@@ -120,7 +120,7 @@ foreach my $key_type ( 'private', 'public' ) {
     my $key_file = $key_type eq 'private' ? $ssh_privkey : $ssh_pubkey;
     if ( !open( my $test_fh, '<' . $key_file ) ) {
         <[base.log]>->(
-            0, ": : SSH AUTH ERROR [ unable to open $key_type key: $! ]"
+            0, ": : SSH AUTH ERROR [ unable to open $key_type key: $OS_ERROR ]"
         );
         $ssh->disconnect;
         $sock->shutdown('NOW');
@@ -142,7 +142,7 @@ my $nailara_port = $link_setup->{'nailara.remote.port'};
 
 my $channel = $ssh->tcpip( $nailara_addr, $nailara_port );
 if ( not defined $channel ) {
-    <[base.log]>->( 0, ": : remote nailara connection error [$!]" );
+    <[base.log]>->( 0, ": : remote nailara connection error [$OS_ERROR]" );
     $ssh->disconnect;
     $sock->shutdown('NOW');
     goto error;
@@ -210,7 +210,7 @@ $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
 return 0;
 
 # ______________________________________________________________________________
-#\\6CV5A7Q54DZLVX6LPKJB6GQGUX7ORD3OZR5VJDIV7TF3A6UAC2JDY7RGZ7QP3KGFZDBM4G5W32PK2
-# \\ IU2FSV2DXB2XLMMTIZZ5ZOBED2WQS5QVRA2PNIFPVYODOCLNH7DH \\// C25519-BASE-32 //
-#  \\// V62UCJDE36BD5KZACJWEORO6QLHUMFVSSUNIQTCZORDG7NK2MDA \\ CODE SIGNATURE \\
+#\\GI73UIEPQMIAERQ2IQAGPQKZYE7JWID5C5WEDRIR35YS7WGODR2TRJYV2U7Q7CEJAMCMKAYSTPZMO
+# \\ KQ326IIRK6GVXFH24DPZMA5WQING2F2PYPKOFV52KBWYDRRU35VS \\// C25519-BASE-32 //
+#  \\// F2ZEX4LQAKJWKFNAH5DTX5KVIZ6LWB6DRYUCLVUBV675KFGEUCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

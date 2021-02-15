@@ -21,36 +21,38 @@ if ( !-d $cache_dir ) {
         or die "user '" . <system.privs.user> . "' not in passwd file";
     make_path( $cache_dir,
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $!";
+        or die "make_path: $OS_ERROR";
 } else {
     my $old_perms = <[base.file_perm]>->($cache_dir);
     if ( $old_perms ne $perms ) {
         <[base.log]>->(
             0, "<!> fixing cache dir permissions [ $old_perms -> $perms ]"
         );
-        chmod( oct($perms), $cache_dir ) or warn("chmod($cache_dir): $!");
+        chmod( oct($perms), $cache_dir )
+            or warn("chmod($cache_dir): $OS_ERROR");
     }
 }
 
 my $image_dir = "$cache_dir/gfx";
 if ( !-d $image_dir ) {
     <[base.log]>->( 1, ": creating 'gfx' directory.." );
-    make_path($image_dir) or die "make_path($image_dir): $!";
+    make_path($image_dir) or die "make_path($image_dir): $OS_ERROR";
 }
 my $loading_icon_source = <system.root_path> . '/data/gfx/anim/busy.2K.gif';
 my $loading_icon_target = "$image_dir/busy.2K.gif";
 if ( !-f $loading_icon_target ) {
     <[base.log]>->( 1, ": copying animated 'loading' image.." );
     copy( $loading_icon_source, $loading_icon_target )
-        or warn "copy('$loading_icon_source','$loading_icon_target'): $!";
+        or warn
+        "copy('$loading_icon_source','$loading_icon_target'): $OS_ERROR";
 }
 
-chdir($cache_dir) or die "chdir($cache_dir): $!";
+chdir($cache_dir) or die "chdir($cache_dir): $OS_ERROR";
 
 0;
 
 # ______________________________________________________________________________
-#\\N33PRIF4JYCNWWV4AN4XEFCWHTN6K6DMB6LAJ3Z23IMU7KMOEXXVFEJJ5T5AOVJ2XWTYW2RTZDJ2C
-# \\ NPBFN46OBLWMZ6HILRXHYERPPJ32P5ELFWJ2ET5V5OVVM7HK2VX2 \\// C25519-BASE-32 //
-#  \\// D5ZZG3K6RRLO6L5Q2WX4B3A6S4C2CYAPU3WIXTDUDTDNYZKGGAI \\ CODE SIGNATURE \\
+#\\MDX3RVNUR5PUR6MSSCHNNFCEBV4R2EQTCJXBPMOXENUXD4KLOYZTMOAK5BPAQ4UURU2WJ64XLKCL4
+# \\ II2RGR2CHMOKQNAH43VAKYZDZ3Y4UCYD52GWDLGXBOENHCJMRVWN \\// C25519-BASE-32 //
+#  \\// 6KYT3PZVZBOZQ2ZSQ7XO6P76RQVR24RVULPTQEECYECKW22BKCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -44,7 +44,7 @@ if ( <universal.child>->{$agent_name}->{'status'} eq 'starting' ) {
 <universal.children_ready> = 1;
 map {
     <universal.children_ready> = 0
-        if <universal.child>->{$_}->{'status'} ne 'ready'
+        if <universal.child>->{$ARG}->{'status'} ne 'ready'
     }
     keys %{<universal.child>};
 
@@ -52,7 +52,7 @@ if ( <universal.children_ready> and $was_starting ) {
     <[base.log]>->( 1, "universal agent children online. =)" );
     <[base.X-11.assign_window]>->(
         join( ',',
-            map { <universal.child>->{$_}->{'window_id'} }
+            map { <universal.child>->{$ARG}->{'window_id'} }
                 keys %{<universal.child>} )
     );
 }
@@ -79,7 +79,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\JOPW5J53Q6OBHW4V6RSNKMHDKRNEMCWVADXK7DX7UJBAQ7DTY56MGE2FZY4BJAU5DD3GKE3C5QTDE
-# \\ 3PGBPML2DT342D6U3A73OL6JYQLUTKCPKJOO42OUN66OQN4FE3VV \\// C25519-BASE-32 //
-#  \\// 7HFXX3HOSYV7UJ2SVFIJHIPWFFVZTPRNTBYM6WB37KVBSACYIBI \\ CODE SIGNATURE \\
+#\\3KAOKO5J4FQPCD3CDQYWF7KNZDRHCSTFB3GWO6DEVEFPFNTXSDQWLMXWPCLUPL22PDORRT2NTU34Q
+# \\ RW537ZEACLZJNGZ6SZANKZKCK5AKQC47HJ74KLKAAQ4K3VDF66MQ \\// C25519-BASE-32 //
+#  \\// ZZ2QBPHXVI4Y3DLB74G4GP4VB3ASDXKOWMEB3NXXE3RU4XE6GDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

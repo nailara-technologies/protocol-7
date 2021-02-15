@@ -20,7 +20,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
     if ( <crypt.C25519.root_key_url>
         =~ m{^https?://.+/C25519\.B32\.(.+)\.(secret|public)$} ) {
         $root_key_name = $1 // '';
-        my %root_key_url = mep { $_ => <crypt.C25519.root_key_url> . $_ }
+        my %root_key_url = mep { $ARG => <crypt.C25519.root_key_url> . $ARG }
         qw| secret public |;
 
         require LWP::UserAgent;    # use download agent later, needs blocking
@@ -31,7 +31,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
             <[base.log]>->( 1, ": downloading '$root_key_url{$type}'.." );
             my $response = $ua->get( $root_key_url{$type} );
             if ( not $response->is_success ) {
-                map { delete $root_key{$_} } ( 'secret', 'public' );
+                map { delete $root_key{$ARG} } ( 'secret', 'public' );
                 my $reason = $response->status_line;
                 <[base.log]>->(
                     0, "[!] download [ $root_key_url{$type} ] $reason [!]"
@@ -86,7 +86,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
     skip_sign:
         substr( $root_key{'secret'}, 0, $rk_priv_len,
             <[base.rnd_chars]>->($rk_priv_len) );
-        map { undef $root_key{$_} } ( 'secret', 'public' );
+        map { undef $root_key{$ARG} } ( 'secret', 'public' );
     } else {
         <[base.log]>->( 1, ": unrecognized root key url, skipped signing..," );
         return -1;
@@ -97,7 +97,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
 }
 
 # ______________________________________________________________________________
-#\\O6SSMDH7TBOJHX2VA2QC3CBYTYWNEKJ2VLNIMCWJXRQSST6FR5O37KOTRHZQ2KXLU6RRWO7OXOCAE
-# \\ Y3WVBLK3776YG74KJY23EQWAOEEPF4WJDXYIEIK3AHWQLP7V3DIY \\// C25519-BASE-32 //
-#  \\// TR2GZLCATZIFRXOHYVPAETUWK45IODMXK2UR7HISC7NC64SPKDQ \\ CODE SIGNATURE \\
+#\\GSTBLWM3ZUFUQJDXPQCIM7HBNO52W2NYJQYEYCUHLF77IAQLR6F55I7YKW6DOPVPZMHF5BYUTRRDS
+# \\ 6V6JNKQGFDUKRBOPGGO3DH2EPYQY2V4LLDV52P7F5L32JTUIDCBD \\// C25519-BASE-32 //
+#  \\// MPO5RRCSRB2DJOF4HCWVKLYVJDWQLVLY5L2KAXOMIPPYLX6J4AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

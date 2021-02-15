@@ -50,12 +50,12 @@ foreach my $conf_line ( @{$file_ref} ) {
             <[base.log]>->( 1, $cmd );
         }
         eval("$cmd");
-        if ($@) {
+        if ($EVAL_ERROR) {
             <base.parser.config.errors>++;
             <[base.log]>->(
-                0, "WARNING: ERROR DURING CONFIG PARSING: ($cmd) $!"
+                0, "WARNING: ERROR DURING CONFIG PARSING: ($cmd) $OS_ERROR"
             );
-            undef $@;
+            undef $EVAL_ERROR;
         } else {
             $entries++;
         }
@@ -64,7 +64,7 @@ foreach my $conf_line ( @{$file_ref} ) {
 return $entries;
 
 # ______________________________________________________________________________
-#\\WZV33A3KE4LOZELRUDR2CGQHQB76UXN7GTKB7OS3YETBULTDEDHVHDUTBQDCEEQPQYRYEHIKNUWMI
-# \\ J56Y4ECNOSORB4R3LWQV5DZFGUIBD4U6ILMGA4OFB2K7POVOCSJ3 \\// C25519-BASE-32 //
-#  \\// D4F4N2SJCTA6HVLMYP6QYZYS7V6FEPCQDFEHRIBQEBXJPWBUEBY \\ CODE SIGNATURE \\
+#\\PUYOWQLPD6WTWFY6DCYTLTVJHFBJIJ7O5QOE3GOU4FP2LIGQOZOESYUXFGOGRJ6CGTM45YFO53QAI
+# \\ MJ4DKXETJGBQQFTDRKVNI3LRSSNK24XUJNCXBIZ7WS3KJNRSOIFR \\// C25519-BASE-32 //
+#  \\// FWMTIPXZOFRVYJ2MIS37O2GM2MTC2GP2R6KDEN4YIXW45WUXODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

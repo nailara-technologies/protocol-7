@@ -14,16 +14,16 @@ my $locale_data = {};
 my $entries = 0;
 
 map {
-    $_ =~ s/^\s+|\s+$//g;
-    $_ =~ s|^ *#[^\n]*$||mg;
-    $_ =~ s| +#[^\n]*$||mg;
-    $_ =~ s|\n\n|\n|sg;
-    $_ =~ s/^\n|\n$//mg;
-    if ( length($_) and $_ =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
+    $ARG =~ s/^\s+|\s+$//g;
+    $ARG =~ s|^ *#[^\n]*$||mg;
+    $ARG =~ s| +#[^\n]*$||mg;
+    $ARG =~ s|\n\n|\n|sg;
+    $ARG =~ s/^\n|\n$//mg;
+    if ( length($ARG) and $ARG =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
         $locale_data->{$1} = $2;
         $entries++;
-    } elsif ( length($_) ) {
-        warn("syntax error in locale file '$filename' [$_]");
+    } elsif ( length($ARG) ) {
+        warn("syntax error in locale file '$filename' [$ARG]");
     }
 } @lines;
 my $s = $entries == 1 ? 'y' : 'ies';
@@ -32,7 +32,7 @@ my $s = $entries == 1 ? 'y' : 'ies';
 return $locale_data;
 
 # ______________________________________________________________________________
-#\\LZW2EBJ4AAVDG5FGCNVVUODZCBFRC6G4E62C4FFQP2HC6P46HLOJL76HL7GQE7BQWX4CHVLF3UBR4
-# \\ ZXCKG55OFZLBT5PRUSRS3DFYTHWQ2LSEW6WGWWKRQQCDBSRXA5TI \\// C25519-BASE-32 //
-#  \\// JBIPRC6KMAUUUXAZ6S6VFUBKIOJA4YMSR46JS4TQW3ZH4EF7CBI \\ CODE SIGNATURE \\
+#\\OINLF7OH37YJ4QLJV5OSCDVJWJQFYAVF2C5P44QO4J2L4NEMRPNHCJJKMTXJS2VYEDOQQHKD4P5YQ
+# \\ D7MJVPF3OUVQARC32IEMZVHH4Y2C6CVZ6ZQBJFB6N55EUTJKPOBM \\// C25519-BASE-32 //
+#  \\// 5ZZS2OT7BJALGZS3RM6SM5FURPO2E2CHFB7RONFDWIVGJ7NDYBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

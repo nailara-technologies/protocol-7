@@ -7,11 +7,11 @@ die "socket_id not configured"
     or <pcycle.cfg.socket_id> !~ /^\d+\.\d$/;
 
 map {
-    <base.watcher.signal>->{$_}->cancel
-        if defined <base.watcher.signal>->{$_};
-    my $uc_sig = uc($_);
+    <base.watcher.signal>->{$ARG}->cancel
+        if defined <base.watcher.signal>->{$ARG};
+    my $uc_sig = uc($ARG);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
-    <base.watcher.signal>->{$_} = <[event.add_signal]>
+    <base.watcher.signal>->{$ARG} = <[event.add_signal]>
         ->( { 'signal' => $uc_sig, 'handler' => 'pcycle.handler.shutdown' } );
 } ( 'int', 'term', 'quit' );
 
@@ -24,7 +24,7 @@ map {
 0;
 
 # ______________________________________________________________________________
-#\\5SAB4PDSHEI45S7PRJNKVJ4XCPPPUCXONYGYBYQF4PBKQN5GDNHR2SRMYEVPNRKGFB4NROHXG6BZO
-# \\ ZRAWWRP2R74YCPPDIFYMWWCQ3KYGDVU2DD7JOOROAL7UFWZBJ7KN \\// C25519-BASE-32 //
-#  \\// CHCFSSPL6JAT3MVAS3MBMQFISQZHQN23NJRJ34LYDCT3TPGAKAY \\ CODE SIGNATURE \\
+#\\OFHHYOED7YWMWM2BOADAMI5F7UQCSUQPWPQJAKD27YRQR2QTZBRSBCOAB5P576OEDJOXANYDQ4HYS
+# \\ 6XHXBLRTBOTRFF3XUJTAPPMZXERQODNHF74BD3WS3W35AUMTU2UU \\// C25519-BASE-32 //
+#  \\// HNC7NUR5WH6YGJFAL5T34HCOJP6LCYJ4ALVBXCL33GLB45ASWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

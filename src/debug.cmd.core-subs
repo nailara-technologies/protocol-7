@@ -18,8 +18,8 @@ return {
 my $pattern_re;
 eval { $pattern_re = qr|$pattern| };
 
-if ($@) {
-    ( my $reason = $@ ) =~ s| at .+\n$||;
+if ($EVAL_ERROR) {
+    ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
     return {
         'mode' => 'nak',
         'data' => "invalid regular expression '$pattern' [ $reason ]"
@@ -42,7 +42,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\LPEXVN7ASGLBMUJFAK3RQH55TQCHMPMGPHD62IOOIOZ2UAZP4E75546XZZY5R4AZ6M3LGS72RS44W
-# \\ 5Z2FCNANNFUZD7BUPG7VXTGDFBH2EESARTH5THGIECV6MIS2T3NK \\// C25519-BASE-32 //
-#  \\// J6AQWXD6CTZYWWSABVX23MLWOC3QRXQU4XFLEFQ77CC4ACGYICA \\ CODE SIGNATURE \\
+#\\I5KKLDGYWVVB4AUDQMPOKBVRNNKTR7WAPDC4MOLWWKGDHDD74ADROIJFS7UGS2IQVEVXG6DZYBQXE
+# \\ GDP7ULCI3P65X5AV6XNQSOBISQHX7J3WHCGWEKBUQJMXMNFIECXL \\// C25519-BASE-32 //
+#  \\// FPIZ6PQTDNJDZXTF22FLB4R6QV4AHXYW75CZ7KOWGZR26BW3CCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -110,10 +110,10 @@ foreach my $entry (@url_list) {
 my $pause_cnt = 0;
 my $url_count = scalar @{<browser.url.list>};
 map {
-    $pause_cnt++ if $_ eq '[PAUSE]';    # universal-child
+    $pause_cnt++ if $ARG eq '[PAUSE]';    # universal-child
 
     if ( <browser.min_zoom> <=> 1
-        and index( $_, '/var/cache/weather/html/', 0 ) > -1 ) {    # weather
+        and index( $ARG, '/var/cache/weather/html/', 0 ) > -1 ) {    # weather
         <[base.log]>->( 1, ": found weather URLs, resetting min_zoom to 1 .," );
         <browser.min_zoom> = 1;
         <[browser.calc_zoom_level]>;
@@ -130,7 +130,7 @@ if (@{<browser.url.list>}
 }
 
 # ______________________________________________________________________________
-#\\PR6FTJ2MK72IKUKSBQHXTKBHHXNWDVQMS4E4CRAVRMIRI3FQSL2O3KRMJA5EWUJEY6E2AD5T4HC46
-# \\ KOPS6ZSPHHL6IU2TDENCFEYJGBVUKK7N4YGFGB37FN7IOVYHKIEC \\// C25519-BASE-32 //
-#  \\// AVIJMARFCJQ3RAFWO2B2UX2U7C2V4SIB2WWBVE7YVDWRJ2ALMBQ \\ CODE SIGNATURE \\
+#\\SWZ2UMKH3ZJBMM3D2PUPG546M7XSU4K5IPBF4AZMPAAAZ5IBIIZ4ZPTWG63MUREM5N6MJWL4O5KCI
+# \\ UT5N2IWE5ZNZPTOKMU5LN4Y3LGDBSZUMLQAMUUDGPA4247O6FDNL \\// C25519-BASE-32 //
+#  \\// Q2T3NUWH66LRFJXBLS7JH6GBR4DOF5PGCTPYHVILGABULD2JGBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

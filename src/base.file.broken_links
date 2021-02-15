@@ -18,12 +18,12 @@ foreach my $check_path (@check_dirs) {
         push( @error_list, ( $reason_str => [$check_path] ) );
     }
 
-    map { <[base.log]>->( 2, $_ ) } ( ':', "::[ $check_path ]", ':' );
+    map { <[base.log]>->( 2, $ARG ) } ( ':', "::[ $check_path ]", ':' );
 
     <[file.all_links]>->( $check_path, \my %all_links );
 
     my $previous_cwd = Cwd::cwd();
-    chdir($check_path) or warn "cwd : $! [ '$check_path' ]";
+    chdir($check_path) or warn "cwd : $OS_ERROR [ '$check_path' ]";
 
     my $err_reason = 'missing link target';
 
@@ -45,14 +45,14 @@ foreach my $check_path (@check_dirs) {
             <[base.log]>->( 2, ": [ resolved ] '$lnk_dst' <-- '$lnk_src'" );
         }
     }
-    chdir($previous_cwd) or die "[ chdir ] $! [ $previous_cwd ]";
+    chdir($previous_cwd) or die "[ chdir ] $OS_ERROR [ $previous_cwd ]";
     <[base.log]>->( 2, ":" );
 }
 
 return @error_list;
 
 # ______________________________________________________________________________
-#\\6HEEETSXLB4MJGSZRAI3YRBZGNHBW4ZAI75NRRQGZI5QYTJMS4OKPBFOOJDSGZOVFFUG62FW6OEVM
-# \\ K6SH5CGKXX4DGK7IUB3WZEEBMSS26N5TGGA2YIL5IR7GJFPGGBDW \\// C25519-BASE-32 //
-#  \\// WHEQBO6HWPCEEFBVDEFJXYJFVCNE5QXHOW3PMBHWTT57RC57OCA \\ CODE SIGNATURE \\
+#\\LYM3WJCUW2KTYEX3AXX2VKFURNJDRFPRROLB425ZLFQ52WPDFBX5DK3KQTWDDSSCHA4QAIPUV7B6W
+# \\ LT6KIOGD5QPLKHQSWUAJPZ5LZTZU73GESTBRQ7LVQRLZTMUD5UPD \\// C25519-BASE-32 //
+#  \\// 2HMULTH6MBYE6XYUR6IRD6ZEMFPSSUB7LFRETFZEVHGJQFHLGAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

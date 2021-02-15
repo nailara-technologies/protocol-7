@@ -18,15 +18,15 @@ eval {
     @window_ids = unpack( 'L*', $value );
 };
 
-if ($@) {
-    ( my $err_str = $@ ) =~ s| at .+$||;
+if ($EVAL_ERROR) {
+    ( my $err_str = $EVAL_ERROR ) =~ s| at .+$||;
     warn ' < get_window_ids > ' . $err_str;
 }
 
 return sort @window_ids;
 
 # ______________________________________________________________________________
-#\\46WOELWQAP5W3CBPQAI5ISOGLL4ZNO62XA7X6C7L7OY63FYDEMT7SQAP6V2JPK7T47YSOZPYH763G
-# \\ IIJFT3LXEPJUYBPQNPW477HS3Q67QNKY363TVA4EB7OAQZD3TDDA \\// C25519-BASE-32 //
-#  \\// XMECXOJBLKZWKMP3VKVCW3BGYWZOWHVFWVHDOZ6AJYAOQEDN4CQ \\ CODE SIGNATURE \\
+#\\RFMHPNL2IMYGPQ5GH7QPLWNTRKFIEEQE5V7WDOGAMHRARLVNH5AD66OKPVDNQLOKWZB3B6AUM2EXO
+# \\ VOAWS4CJ3ZHVLR63Z76IV5VHYBELK2LC573K44CTO5U2YMR4TGHW \\// C25519-BASE-32 //
+#  \\// XBRHIOQHFGYVWOG67ITAQQSEH2VWWMRLP3B6BGP5S4VTQKLBWBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

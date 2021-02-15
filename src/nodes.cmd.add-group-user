@@ -25,8 +25,8 @@ return {
 my $regex_qr;
 eval { $regex_qr = qr|^$regex_str| };
 
-return { 'mode' => 'nak', 'data' => "regex invalid [ $@ ]" }
-    if $@ and $@ =~ s| at .+$||;
+return { 'mode' => 'nak', 'data' => "regex invalid [ $EVAL_ERROR ]" }
+    if $EVAL_ERROR and $EVAL_ERROR =~ s| at .+$||;
 
 my $grp_id = <[base.list.element.add]>->(
     {   'key_ref' => \$data{'nodes'}{'group'}{'by-id'},
@@ -50,7 +50,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\MY26UMZVJ6I2AZDA25QOE5KTETICRX6UXCVG5OAXFX5CR55DQI5RVFPIG36KB3JK74AGI5RZFWJFM
-# \\ 6NGWBLPNSGDRRVA4PNEB7JQYLZVNLVUHK46WPBOBG53EDGUWW74G \\// C25519-BASE-32 //
-#  \\// M6KED72L77Z452ZP74GTJFXNIEFO2LYUEK66BTBJ2PZLS4WXWBY \\ CODE SIGNATURE \\
+#\\PMIXFQVZKO4Z54C4MXQO4BQ7F45H4I43WPWNU5FX4WZZXCVQPSZF3B2HR5MAYJHWOOPUIO2DYD2ME
+# \\ 727NGUAFMSE3T56GD3IM2QKVRBAQ4MB5SEDO7IPYAEG6GZZZTRKF \\// C25519-BASE-32 //
+#  \\// EXLGO2C52BWYOMXP7QVSHJAVPZDX54GKDGUFPGTTKJI6VMUGICQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

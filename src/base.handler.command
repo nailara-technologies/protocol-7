@@ -241,7 +241,7 @@ if ( defined $alias_to and length($alias_to) ) {
         'SOURCE_AGENT' => <system.node.name> . '.' . $user,
         'SOURCE_SID'   => $id
     };
-    map { $cmd =~ s|$_|$args_map->{$_}|g } keys %{$args_map};
+    map { $cmd =~ s|$ARG|$args_map->{$ARG}|g } keys %{$args_map};
 
     if ( $cmd =~ s|^([^ ]+) +([^\n]+)$|$1| ) {
         if ( defined $$call_args{'args'} ) {
@@ -512,9 +512,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 ## calling command handler ##
                 my $reply;
                 {
-                    local $@ = undef;
+                    local $EVAL_ERROR = undef;
                     $reply = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
-                    if ( my $err_str = $@ ) {
+                    if ( my $err_str = $EVAL_ERROR ) {
                         $err_str =~ s| at (\S+) line (\d+).*\n$||;
                         my $file = $1;
                         my $line = $2;
@@ -896,7 +896,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\QKYTOFD2ASDY2NTTFDSUZULVHMWRLLLIP7JKFMMIHXZEWV2NVEJ6VWTX7QS563FQO34IT7SIMSWKU
-# \\ XRXKL43VST5D2Z53MO23OLBSSWURJLDZXUKSSZDXSDTV4TFUQSFC \\// C25519-BASE-32 //
-#  \\// DJWK7PMZLYPTU43IIGYZAH7LDA45RUVFH5EBIUZIREAZYZZTWDQ \\ CODE SIGNATURE \\
+#\\AJZB6U5S77V2A6YGLTTMLENYC7FQGW53DBTHTEASCF44MO7RH374MGFJQAAGVVU2UH7QQILKVYL3M
+# \\ 7DL6S4EN4N4D77TZ4OC2PJ74FY6YGDYDDA37VYZUYPELUMNRSQMK \\// C25519-BASE-32 //
+#  \\// UWXH4QCW2UCV7O5OSJHMM7ZE6SSO4OOOS2MYDXSIX7MVZNS4EAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
