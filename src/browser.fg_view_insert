@@ -21,7 +21,7 @@ my $view     = <browser.gtk_obj.view>->{$fg_index};
 <browser.url_flags>    = {};
 
 if ( $load_uri =~ s|#\[([\w+\_\|]+)\]#$|| ) {
-    map { <browser.url_flags>->{ lc($_) } = 1 } split( m{\|}, $1 );
+    map { <browser.url_flags>->{ lc($ARG) } = 1 } split( m{\|}, $1 );
 }
 
 <[browser.process_url_flags]>;
@@ -43,12 +43,12 @@ if ( not <browser.zoom_text_only> and defined <browser.keep_text_zoom_path> ) {
 my $url_file     = '/tmp/.nailara.browser.' . $$;
 my $file_content = "current_url : $load_uri\nurl_flags   : "
     . join( ', ', sort keys %{<browser.url_flags>} ) . "\n";
-<[file.put]>->( $url_file, $file_content ) or warn "$url_file: $!";
+<[file.put]>->( $url_file, $file_content ) or warn "$url_file: $OS_ERROR";
 
 $view->load_uri($load_uri);
 
 # ______________________________________________________________________________
-#\\QSZCDW4KBKS3KZLGTP6W5G4CKHGN6PA6JKV7K5VXF2MQVANDPNWM3YQCYBKHOUPU5L2B23VB3I3GQ
-# \\ PMV7UZ23WRA5OZOM3ZN3OJRPCZTYLSBLUAHK6PMCKPM3HCB6M6BZ \\// C25519-BASE-32 //
-#  \\// FCSK7TXGVZP6ZFHOLP6OXX5OFCVHJFW5AJD3UFRSEG5ACQLISAQ \\ CODE SIGNATURE \\
+#\\RBPEOK6VEWLLKMLGAD4ZJW7ADIQSS7NYWBWF7FVXTLRPNBOUZ6EOOVRF2ICV5MF256N5MP4EHUO7Q
+# \\ 4IKEPRFBD6NPACBH2HH4R2ILKC7C5KX4CWDD7R7FU2FAXYG7NVOK \\// C25519-BASE-32 //
+#  \\// O45RFTNXUUJCH5ETHRCT6F3YUIPW4JYGIEZBGHWXZF3SDIJQ4CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

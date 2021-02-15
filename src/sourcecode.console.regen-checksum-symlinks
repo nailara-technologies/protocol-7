@@ -15,9 +15,9 @@ my $version_root = $path->{'version_root'};
 
 my @copy_sources;
 map {
-    my $source_path = catfile( $work_tree, $_ );
+    my $source_path = catfile( $work_tree, $ARG );
     die "source path $source_path does not exist" if !-d $source_path;
-    push( @copy_sources, $_ );
+    push( @copy_sources, $ARG );
 } qw| bin cfg src |;
 
 <[base.log]>->( 1, ".:[ UPDATING SOURCE CHECKSUMS ]:." );
@@ -29,10 +29,10 @@ if ( !-w $source_root ) {
 }
 my $dir_fh;
 if ( !opendir( $dir_fh, $version_root ) ) {
-    <[base.log]>->( 0, "can not open directory '$version_root' [ $! ]" );
+    <[base.log]>->( 0, "can not open directory '$version_root' [ $OS_ERROR ]" );
     <[base.exit]>->(2);
 }
-my %vers_dirs = map { $_ => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
+my %vers_dirs = map { $ARG => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
 closedir($dir_fh);
 
 my $target_path = catfile( $version_root, $source_version );
@@ -41,7 +41,7 @@ if ( not exists $vers_dirs{$source_version} ) {
     <[base.log]>
         ->( 1, ": :. creating source version path [ $source_version ]" );
     <[file.make_path]>->( $target_path, 0755 )
-        or die "cannot create directory '$source_version' [ $! ]";
+        or die "cannot create directory '$source_version' [ $OS_ERROR ]";
     my $path_descr_str = <sourcecode.path_desc.version>;
     <[file.put]>
         ->( catfile( $target_path, '.path-desc' ), "$path_descr_str\n" );
@@ -54,8 +54,8 @@ foreach my $directory (@copy_sources) {
     my $src_path  = catfile( $work_tree, $directory );
     my $checksums = <[source.acquire_checksums]>->( $src_path, 224 );
     map {
-        my $rel_path     = catfile( $directory, $_ );
-        my $checksum_b32 = delete $checksums->{$_};
+        my $rel_path     = catfile( $directory, $ARG );
+        my $checksum_b32 = delete $checksums->{$ARG};
         $source_paths->{$rel_path} = $checksum_b32;
         push(
             @{ $checksum_table->{$checksum_b32} },
@@ -93,7 +93,7 @@ foreach my $src_file_rel (
 
         File::Copy::syscopy( $src_file_path, $dst_file_path )
             or return <[base.log]>->(
-            0, "<< copy >> '$src_file_rel' -> '$target_path/' [ $! ]"
+            0, "<< copy >> '$src_file_rel' -> '$target_path/' [ $OS_ERROR ]"
             );
 
         chmod( $src_stat->mode, $dst_file_path );  ## preserving exec. bits., ##
@@ -144,16 +144,16 @@ foreach my $src_file_rel (
     my $dst_path_rel   = File::Spec->abs2rel( $dst_file_path, $src_file_dir );
     my $link_short_str = my $link_str = "$src_file_rel --> $dst_path_rel";
     <[base.parser.ellipse_center]>->( \$link_short_str, 47 );
-    chdir($src_file_dir) or die "< chdir > $src_file_dir [ $! ]";
+    chdir($src_file_dir) or die "< chdir > $src_file_dir [ $OS_ERROR ]";
 
     <[base.log]>->( 2, "<link> $link_short_str" );
-    unlink($src_file_path) or die "< unlink > $src_file_rel [ $! ]";
+    unlink($src_file_path) or die "< unlink > $src_file_rel [ $OS_ERROR ]";
     symlink( $dst_path_rel, $src_file_name )
-        or die "< error > $link_str [ $! ]";
+        or die "< error > $link_str [ $OS_ERROR ]";
 }
 
 # ______________________________________________________________________________
-#\\KE6RFGZTMLZRDHV6IEOUQCCGYOZ27IWD445VJI4Z5IXDBHWJHHJKCYY3DNACAWUB4EG5KPDVTJ2P6
-# \\ Y5SO3VN56RUPJUPOCRUNGR2BALQ2WYJUTPZPTHS5TJZYFC6ATXRL \\// C25519-BASE-32 //
-#  \\// Q5IPZDHVPTA4DGCCBPUEGBNC4IF52FKX6JXSFROGXM34DXBIOAA \\ CODE SIGNATURE \\
+#\\6GTQEZDKEK2UPKZCH7DI4QHOWIEBAFXYBBVKVSS5H2L4UCXVGA3HTVVSOQFJLUOUJFWD7R4RIB3DW
+# \\ 4YYVCWGXRI3NIU5G6LRWOVHQFATG7Z25PV6EP2B7ZQ2QPS5PBE6J \\// C25519-BASE-32 //
+#  \\// TOI7UH5OK7O5QWDDQIOZEIOT2UZOBNUAR3FEJU5BCJLF2DWS2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

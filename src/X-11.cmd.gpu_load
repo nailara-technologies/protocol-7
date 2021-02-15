@@ -10,7 +10,7 @@ return { 'mode' => 'nak', 'data' => 'no statistics available' }
 
 if ( defined $$call{'args'} ) {
     my $ivl  = $$call{'args'};
-    my %secs = map { $_ => 1 } @{<X-11.gpu_top.stats.secs>};
+    my %secs = map { $ARG => 1 } @{<X-11.gpu_top.stats.secs>};
     return {
         'mode' => 'nak',
         'data' => "no statistics for interval \"$ivl\" collected .. [ "
@@ -38,8 +38,8 @@ if ( defined $$call{'args'} ) {
 my $stats_str = '';
 map {
     my $value
-        = defined <X-11.gpu_top.stats.load_average>->{$_}
-        ? <X-11.gpu_top.stats.load_average>->{$_}
+        = defined <X-11.gpu_top.stats.load_average>->{$ARG}
+        ? <X-11.gpu_top.stats.load_average>->{$ARG}
         : '---';
     if ( !length($stats_str) ) {
         $stats_str .= "< $value% >  ";
@@ -52,7 +52,7 @@ $stats_str =~ s| +$||;
 return { 'mode' => 'ack', 'data' => $stats_str }
 
 # ______________________________________________________________________________
-#\\77Z7P4MFULNKDJ7ZKTDKCJLZUT7TN5DSUNQNEON7YPX4WZFUP57LRUEZFRPPIE77TTIVRFZ622H34
-# \\ LOUYK44B7AFT2D4ZZQUQQ6GAZBIXT5J4WENPDMU3QQIMHEVTQV2Z \\// C25519-BASE-32 //
-#  \\// 26UIEUSWMTYFRCWVMZCVXQWMBD4LUXMGOYA3E22WCBWSOHB7KDA \\ CODE SIGNATURE \\
+#\\QV4R2SBDF2LD42GBOXOU3DIGGVPJDDZJTQCWTJ47P5FE42IUTI7N7ZHDSYFFLR276QIGF46DHWBVM
+# \\ A3VEJKSI7GRGKOY4Y2ARK5GWCF63VOR5HBTHLSBWJMDK6ARQICFS \\// C25519-BASE-32 //
+#  \\// TY5MCWUATFVRO3R3UVJ37C2OJOHJSDQSC3MAJDX32H76PVGYACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

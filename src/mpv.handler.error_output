@@ -5,7 +5,7 @@
 my @err_fds = @_;
 push( @err_fds, <mpv.fh.stdout>, <mpv.fh.stderr> ) if !@err_fds;
 
-foreach my $err_line ( map { $_->getlines } @err_fds ) {
+foreach my $err_line ( map { $ARG->getlines } @err_fds ) {
     chomp($err_line);
     next if !length($err_line);
     if ( $err_line =~ m|^Error parsing option (.+)(?:-option)? \((.+)\)$| ) {
@@ -22,7 +22,7 @@ foreach my $err_line ( map { $_->getlines } @err_fds ) {
 }
 
 # ______________________________________________________________________________
-#\\4BATH7BP3HE36QSORCGEBKGIO4EZ6BG7PB4YJFIFZZLKTE7UMYKQHF5VLXNVKFHLUNAG3UB6VJG2O
-# \\ 62YQHSXCU6FIMUAKRQIVS223EKZYO7GYQGUKCONQVGKB2GM7JW3W \\// C25519-BASE-32 //
-#  \\// 5RYKYAERP7PPDYTCLGO4JEIIASZCIYYI4GYYX7HHHXY35CGLQCA \\ CODE SIGNATURE \\
+#\\RI3NPYYHBNRH2CI6RWJ3ZXRKBBFHPRA7A2UUOI34GD5R4PVRPHDE7CDTQ3LGX7MTMXVV7ZO4XI3JQ
+# \\ YHPB2ESUTW2BE5O3RYEDMRKTSQAVWSHO2TBZOOB7AXSSHKMDOQ2C \\// C25519-BASE-32 //
+#  \\// 5A2HUB6CV2QODAHAQJWPGEDZ2IX6Y73Z4VXQFUYPNQCYWWMLICA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

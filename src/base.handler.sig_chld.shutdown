@@ -4,17 +4,17 @@
 
 <[base.log]>->( 0, 'SIGCHLD received. collecting children.,' );
 my %died_pid;
-local ( $!, $? );
+local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
 
     # determine exit status
-    my $e_val = $? >> 8;
-    my $e_sig = $? & 127;
+    my $e_val = $CHILD_ERROR >> 8;
+    my $e_sig = $CHILD_ERROR & 127;
     $e_sig = $e_sig ? ", signal $e_sig" : '';
-    my $e_dmp     = $? & 128 ? ' < with a core dump. >' : '';
+    my $e_dmp     = $CHILD_ERROR & 128 ? ' < with a core dump. >' : '';
     my $log_level = 2;
     $log_level = 1 if $e_val;
-    $log_level = 0 if $? & 128;
+    $log_level = 0 if $CHILD_ERROR & 128;
     $log_level = 2
         if <agent.shutdown>
         and !length($e_dmp)
@@ -32,7 +32,7 @@ while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
 exit(0);
 
 # ______________________________________________________________________________
-#\\5PA3P6NISL3TKONEG4YDVIW2IHJRIQTQULFE4DKXQSXZXAD3D42525DNCFN3T37SZBCAWZ7DTBWPC
-# \\ VMMUOWNJFCYTQT7U24F2FFVFGS36RAZNKZ53DXKTZZR7YXJO6PYW \\// C25519-BASE-32 //
-#  \\// 4EUGICFR6HN7F3G2YQRAUELUW7K7H7H4M2NSDDMIVIXRSQLFWBQ \\ CODE SIGNATURE \\
+#\\HP76D3TSD7U22SAFTE4ZWAGG5HDPC6HU6IXUGMM5O4EWDAL3B4PQQQIERRONFY2P24IXRQQKPHNTG
+# \\ VGVVIHTVDNLZMHZKINCLFOMVSHGVWV3AMECPMMJ3H65Z6G55JMHR \\// C25519-BASE-32 //
+#  \\// QKL3QM3KXA74LYJTXJHWWOMCOUHOXX6ZVB342HE3BL74DQDD6BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

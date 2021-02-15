@@ -8,9 +8,9 @@ my $log_sid = $$call{'session_id'};
 my @params  = split( / +/, $$call{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
-    return { 'mode' => 'nak', 'data' => "expected $_ parameter" }
-        if not defined $coords{$_}
-        or $coords{$_} !~ /^\d+$/
+    return { 'mode' => 'nak', 'data' => "expected $ARG parameter" }
+        if not defined $coords{$ARG}
+        or $coords{$ARG} !~ /^\d+$/
 } ( 'x', 'y' );
 
 <[base.log]>->(
@@ -36,7 +36,7 @@ return {
 return { 'mode' => 'ack', 'data' => "mouse position set" }
 
 # ______________________________________________________________________________
-#\\N6YSHWUH5GSX4JVUIKBSQ6REOGAGV5BCABWLBH7WX4T634N7MZHAGUFAYVFQKQXLAJ3HEWLG6KRRU
-# \\ 33QAN6OIDS6LJPUJWYLYH6542AIGMHCVFZ47V47D43RVZMLHXOAI \\// C25519-BASE-32 //
-#  \\// LDPNYQGZTVZVQKUJYY24TNKBYHN67PERRWCLUYUX5QZ6A2SBOBA \\ CODE SIGNATURE \\
+#\\WB77HD3KEETX3J5DAMPNWMZXGTFZYSXYPRZ45SB4PWWA63DF7QKCIR5JIVQTQU72IIPOD62KRSSFC
+# \\ UEWHFJSKBBVRNSVZFLFNDJS7XKRRHE564X2LN3A5YBH3SYAIUIHS \\// C25519-BASE-32 //
+#  \\// UNF7IYXR4K6VDWXAHGP66XWGOBQOEOZ6FKK4I66ACYU3GF64UBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

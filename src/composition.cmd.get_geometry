@@ -15,7 +15,7 @@ $agent_name = $source_agent if not defined $agent_name;
 if ( $agent_name =~ m|^\[([^\]]+)\]$| ) {    #  <--  only subname given
     my $subname = $1;
     my %agent_names;
-    map { $agent_names{$_} = 1 if $_ =~ m|\[$subname\]$| }
+    map { $agent_names{$ARG} = 1 if $ARG =~ m|\[$subname\]$| }
         keys %{<composition.coordinates>};
     my $err_msg;
     if ( !keys(%agent_names) ) {
@@ -33,8 +33,8 @@ if ( not exists <composition.coordinates>->{$agent_name} ) {
     my $msg_str = "no geometry defined for agent '$agent_name'";
     if ( $agent_name !~ m|[\[\]]+| ) {
         map {
-            if ( $_ =~ m|^([^\[]+)\[| and $1 eq $agent_name ) {
-                $last_match = $_;
+            if ( $ARG =~ m|^([^\[]+)\[| and $1 eq $agent_name ) {
+                $last_match = $ARG;
                 $match++;
             }
         } keys %{<composition.coordinates>};
@@ -69,7 +69,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\HTYR5DZE7O56PUY2WLNQNGWK55CX22Q25637B52GE2NNG4ZXBSIBILUFNTVG4VDCMNQPRPOK4PXZA
-# \\ DDIYHNJC62AQW3UNV3NQRVA66V4Q66TPKG3LYZIMLJH2VV4MX6WL \\// C25519-BASE-32 //
-#  \\// GA6LIPDVW2KV2LR4B3P7NSHUUM6T2ZV3IMRUO3Z6GQJ5NFWUYBI \\ CODE SIGNATURE \\
+#\\QHZW6XARIID7FEO6XWQ7VTUUBJELAUZQIJHJHWEFKH65MCOZMZH3DT2LZ4C4ZTLQHOHXOURY7T4V2
+# \\ P2EBRUVBDIWEUJWW5K2AMM5CROSIHWM2EDZS63H4R5Q2O4X7NT5G \\// C25519-BASE-32 //
+#  \\// YON7I3SIV3PI2RCCBO26NTQGIT37MLGGZILC73HWXWMF7BOPMAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

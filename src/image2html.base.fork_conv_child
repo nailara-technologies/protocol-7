@@ -11,8 +11,9 @@ use Socket;
 <[base.log]>->( 1, "forking image conversion child.." );
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$!]";
-map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+    || die "can't create socketpair! [$OS_ERROR]";
+map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+    ( $child_pipe, $parent_pipe );
 
 <image2html.child.pid> = fork;
 if ( !<image2html.child.pid> ) {    ## child ##
@@ -28,7 +29,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
     my $subname = <system.agent.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
     <system.agent.subname> = 'child' . $sn_str;
-    $0 = <system.agent.name> . "[child$sn_str]";
+    $PROGRAM_NAME = <system.agent.name> . "[child$sn_str]";
 
     <callback.session.closing_last.params>->[1] = 1;  # silencing child shutdown
     $data{'session'}{$session_id}{'shutdown'} = 1;
@@ -61,7 +62,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\Z3EQ3G5NM47NJSQDL6O5ASVYFJTPYLFN2ORKX6DN3HI4Z5CBFK2YJB7ODYTWQNDMJ4VPUEWSKNJCW
-# \\ OVULA3EJJEBV4FZJSASSIUKEPJ5ACHB3FEJMI2GIWMG7EJI2SKAO \\// C25519-BASE-32 //
-#  \\// EREOFYB2JBVOXOTBWFMA3VLCBRL2HPD2T65NO7FXPKHI3QWROCI \\ CODE SIGNATURE \\
+#\\MIQXOXBMQXYLDA4H4CNAFSUBQWKB3GVZCVDFNWQV27WOI2CYULQ4WDJTYZFRQVEPERD2WTT3JVFGG
+# \\ BF3Q7D2HAGXYLYCBP33LCDNQ7DFU6F5NBDAAPOPJ6PNDNQMQ4FY2 \\// C25519-BASE-32 //
+#  \\// Y5STDOXCIR6WIKWICOM7ZIOV7U3NWCFURJ43VV7AMZNZ3WEPQDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

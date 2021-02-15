@@ -80,8 +80,11 @@ if ( $mode ne 'host' ) {
     # LLL: change uid for 'xephyr'..,
     $server_pid = open( my $out_fh, $cmd_line );
 
-    if ( not defined $server_pid or $@ ) {
-        my $err_reason = ( defined $! and length($!) ) ? ": \"$!\"" : '!';
+    if ( not defined $server_pid or $EVAL_ERROR ) {
+        my $err_reason
+            = ( defined $OS_ERROR and length($OS_ERROR) )
+            ? ": \"$OS_ERROR\""
+            : '!';
         <[base.log]>->( 0, ": unable to start $bin_name_lc-server$err_reason" );
         exit(2);
     } else {
@@ -151,9 +154,9 @@ if ( <X-11.mode> =~ m{^(xephyr|nxagent)} ) {
 if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
     <[base.log]>->( 1, ": : RANDR support present =)" );
     eval { <X-11.obj>->RRQueryVersion( 1, 0 ); };
-    if ($@) {
+    if ($EVAL_ERROR) {
         <X-11.has_randr> = 0;
-        ( my $err_msg = $@ ) =~ s| at .+\n$||;
+        ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
         <[base.log]>->( 0, ': : : initialization error., RANDR disabled..,' );
         <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
     } else {
@@ -167,9 +170,9 @@ if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
 if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
     <[base.log]>->( 1, ": : DPMS is supported =)" );
     eval { <X-11.obj>->DPMSGetVersion(); };
-    if ($@) {
+    if ($EVAL_ERROR) {
         <X-11.has_dpms> = 0;
-        ( my $err_msg = $@ ) =~ s| at .+\n$||;
+        ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
         <[base.log]>->( 0, ': : : initialization error., DPMS disabled..,' );
         <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
     } else {
@@ -183,9 +186,9 @@ if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
 if ( <X-11.obj>->init_extension('Composite') ) {
     <[base.log]>->( 1, ": : X-11 is composited =)" );
     eval { <X-11.obj>->CompositeQueryVersion(); };
-    if ($@) {
+    if ($EVAL_ERROR) {
         <X-11.is_composited> = 0;
-        ( my $err_msg = $@ ) =~ s| at .+\n$||;
+        ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
         <[base.log]>->(
             0, ': : : initialization error., Composite extension disabled..,'
         );
@@ -263,7 +266,8 @@ if (<X-11.has_randr>) {
 ## custom xrandr ##
 
     map {
-        system( '/usr/bin/xrandr', split( m| +|, <X-11.custom_xrandr>->{$_} ) )
+        system( '/usr/bin/xrandr',
+            split( m| +|, <X-11.custom_xrandr>->{$ARG} ) )
         }
         sort { $a <=> $b } keys %{<X-11.custom_xrandr>}
         if <X-11.mode> eq 'xorg'
@@ -352,7 +356,9 @@ if ( defined $bg_image ) {
     <[base.log]>->( 1, "setting background image '$img_txt'" );
     @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux.
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-        <[base.log]>->( 0, "unable to execute 'hsetroot' ( returned $? )" );
+        <[base.log]>->(
+            0, "unable to execute 'hsetroot' ( returned $CHILD_ERROR )"
+        );
     }
 }
 
@@ -362,7 +368,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\IXRD4YHMVQAE7NLHXNGB5IIPX6RWFW5U36KTBGTM3UTD6JHOAI22H6HQY2D542NKLYVXXXSH3NE6K
-# \\ G4SL2KXOHUVHBXUJNZC5UK4ZQGPHWT3XKE6JGINFNSV6VA3QBG3Q \\// C25519-BASE-32 //
-#  \\// TUGHUMD75PZ4ZYJETSE3KW3CJO4J74C4ONT4T44SCXVEY7DCYDA \\ CODE SIGNATURE \\
+#\\ELPNEPXRZJKFZPTD4PEBOKIC5MRLMBFYAJSPMQ5YQH3M5BG7TR4LN6SL2RDJOFBL7WFGCYSEOZ5QK
+# \\ R4VDDAR5REKOVYSUBAA3GNJBF363FRY3THQQVZRIV2ODIWX6R5E4 \\// C25519-BASE-32 //
+#  \\// AUE3S474CVXTPTEXNSBE3HM4IGG23PLJ4DOT2SCF2CVZYSIMOCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

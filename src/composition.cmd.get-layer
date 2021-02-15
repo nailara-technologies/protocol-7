@@ -15,7 +15,7 @@ $agent_name = $source_agent if not defined $agent_name;
 if ( $agent_name =~ /^\[([^\]]+)\]$/ ) {    # <- only subname given
     my $subname = $1;
     my %agent_names;
-    map { $agent_names{$_} = 1 if $_ =~ /\[$subname\]$/ }
+    map { $agent_names{$ARG} = 1 if $ARG =~ /\[$subname\]$/ }
         keys %{<composition.layers>};
     my $err_msg;
     if ( !keys(%agent_names) ) {
@@ -33,8 +33,8 @@ if ( not exists <composition.layers>->{$agent_name} ) {
     my $msg_str = "no set-upured layer found for agent '$agent_name'";
     if ( $agent_name !~ /[\[\]]+/ ) {
         map {
-            if ( $_ =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
-                $last_match = $_;
+            if ( $ARG =~ /^([^\[]+)\[/ and $1 eq $agent_name ) {
+                $last_match = $ARG;
                 $match++;
             }
         } keys %{<composition.layers>};
@@ -56,7 +56,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\OUKQ7H5FOT4AILYWZNWQX2AOXRBWXL6UMNA3WNDFY6NVXVCEHA6T56OIOZIRDDRJZJPH5WXCFNKPC
-# \\ NTSM57KVANPAS2EWCZKG53HWVO5FLNZSR7KB3ZIK75QCZDJ5W67O \\// C25519-BASE-32 //
-#  \\// TWIJ2MZQLOPH6URNG3VKU5XNJH3DCRGZTTSSOIKR3IIM3A6GMAQ \\ CODE SIGNATURE \\
+#\\YM3PNC62L5DFOPONCOP43D7TZ2GA5VCYOTM3CKRKTXN2POVFDZNIOJ6KOYBSQ7RVIZWLEQQTRNPIU
+# \\ 44E3RLHICMQSYXFQNED67UJ4HDMEOGTPZILQRDHR54WATJZJZINS \\// C25519-BASE-32 //
+#  \\// Q22VDSEALJFGRARMF3WSGNLUVILWBZ3CW7X5BCPKOPCIPKFPWBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

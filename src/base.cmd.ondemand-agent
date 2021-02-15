@@ -20,8 +20,8 @@ if ( $cmd eq 'add' ) {
             'data' => "there already is one registered ondemand type agent "
                 . "'$agent_name'"
             }
-            if <agents.virtual>->{$_}->{'type'} eq 'ondemand'
-            and <agents.virtual>->{$_}->{'name'} eq $agent_name
+            if <agents.virtual>->{$ARG}->{'type'} eq 'ondemand'
+            and <agents.virtual>->{$ARG}->{'name'} eq $agent_name
     } keys %{<agents.virtual>};
 
     my $agent_id = <[base.list.element.add]>->(
@@ -47,10 +47,10 @@ if ( $cmd eq 'add' ) {
     my $_agent;
     my $del_id;
     map {
-        if (    <agents.virtual>->{$_}->{'type'} eq 'ondemand'
-            and <agents.virtual>->{$_}->{'name'} eq $agent_name ) {
-            $_agent = delete <agents.virtual>->{$_};
-            $del_id = $_;
+        if (    <agents.virtual>->{$ARG}->{'type'} eq 'ondemand'
+            and <agents.virtual>->{$ARG}->{'name'} eq $agent_name ) {
+            $_agent = delete <agents.virtual>->{$ARG};
+            $del_id = $ARG;
         }
     } keys %{<agents.virtual>};
     return {
@@ -66,7 +66,7 @@ if ( $cmd eq 'add' ) {
 }
 
 # ______________________________________________________________________________
-#\\SQQHUXOXR3XYAOUQJ6G3GCLOSID6BMUHS5DD7ORDM6FMW3AHCXUAOEJHQUAJAUGOR5SMZMQHWDK54
-# \\ 64TBGBAFFPAEQRM3SJTC7TSOE3676JOV5PF53LJW32IQQ3NW7VMM \\// C25519-BASE-32 //
-#  \\// L5U3K7ZN5NCHAVQV44SWK5JCICDLTOZLV4PW6EVQWU7TEYSCQAA \\ CODE SIGNATURE \\
+#\\XUA3FDDVYQV4PRG5HB2FEG6QHJDAEPX7U4MXLLXESJINGZSFX6DZUV3TS24G2XYRVS6TSYCQYSWWW
+# \\ 5QDKLCC2ZYMXQNWYWH5XU6AQ4MELUEFQMKS3MBO3NJL3DPTILAFB \\// C25519-BASE-32 //
+#  \\// BE4Z7V6UDOGDYSJM7GFY2S4W5PSK6LAJ63DZEZZVO3CYV76KMAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

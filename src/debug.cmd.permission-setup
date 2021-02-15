@@ -9,12 +9,15 @@ my $reply_str = '';
 my $param_re;
 
 eval { $param_re = qr|$param_str|i };
-if ( defined $@ ) { $@ =~ s| at .+\n?$||; $@ =~ s|;| \\\\ |g }
+if ( defined $EVAL_ERROR ) {
+    $EVAL_ERROR =~ s| at .+\n?$||;
+    $EVAL_ERROR =~ s|;| \\\\ |g;
+}
 return {
     'mode' => 'nak',
-    'data' => "input pattern regex error [ $@ ] escape the pattern ?"
+    'data' => "input pattern regex error [ $EVAL_ERROR ] escape the pattern ?"
     }
-    if $@ or not defined $param_re;
+    if $EVAL_ERROR or not defined $param_re;
 
 if ( length($param_str) ) {
     $reply_str .= "\n#\n# ";
@@ -25,9 +28,9 @@ if ( length($param_str) ) {
 
 my $cmd_len = 0;
 map {
-    $cmd_len = length($_)
-        if length($_) > $cmd_len
-        and ( $_ =~ $param_re or <access.cmd.usr>->{$_} =~ $param_re )
+    $cmd_len = length($ARG)
+        if length($ARG) > $cmd_len
+        and ( $ARG =~ $param_re or <access.cmd.usr>->{$ARG} =~ $param_re )
     }
     keys %{<access.cmd.usr>};
 $cmd_len += 15;
@@ -76,7 +79,7 @@ return { 'mode' => 'nak', 'data' => "no match for '$param_str' pattern" }
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\UNM5Q6V3O3PKXCVTD6FPAPWLA65IAX3CJVNCHDIK5YFPM6RYDAFFKZEVU4ODNPZMBAEL7PVSGSRGU
-# \\ E6T7MUBZINM7VBAZ7MSPK5BVQBRE6V44464AAMK6PH22P3TVS5RV \\// C25519-BASE-32 //
-#  \\// NTJYSYMHCLGMKN2NGYZB5CNJ7L4BT6LV24ENNO3CDWKM3LDRUDQ \\ CODE SIGNATURE \\
+#\\DHWXPF77Y6FVBUEHMQVDPJQCRNYGDKM6DP6IKBONGBPHXK6SESXXRGFSDCI7TKKHIIK4LYGJFUFTS
+# \\ I3MHIEPSMUBIHHYX45JC5W552WT4KUANTBZJYGQE34KNR4FDS2EI \\// C25519-BASE-32 //
+#  \\// B6O7AMCDSI4R2IH3367BFDZEVDIIML6RCR5EHPAMUYMFI54SIAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

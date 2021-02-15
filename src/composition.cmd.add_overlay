@@ -16,7 +16,7 @@ return {
     }
     if $overlay_str eq <composition.current_tile_group>;
 
-my %new_overlays = map { $_ => 1 } split / +/, $overlay_str;
+my %new_overlays = map { $ARG => 1 } split / +/, $overlay_str;
 my @new_overlays = sort keys %new_overlays;
 
 map {
@@ -24,14 +24,14 @@ map {
         'mode' => 'nak',
         'data' => "expected valid tile group name"
         }
-        if not defined $_ or !length($_);
+        if not defined $ARG or !length($ARG);
     return {
         'mode' => 'nak',
         'data' => "composition \"$overlay_str\" not found!"
         }
-        if not exists <composition.setup.tile-groups>->{$_};
+        if not exists <composition.setup.tile-groups>->{$ARG};
 
-    push( @{<composition.overlays.current>}, $_ );
+    push( @{<composition.overlays.current>}, $ARG );
 } @new_overlays;
 
 my $merged_name = <[composition.merge_multiple]>->(@new_overlays);
@@ -39,7 +39,7 @@ my $merged_name = <[composition.merge_multiple]>->(@new_overlays);
 return <[composition.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
 
 # ______________________________________________________________________________
-#\\B4MQEQ7U4UDMPNRVMU3TJJT6RHIRUP3SKIJXY4TVAZENW5VZ54PJIL36DMC4G3OPIVVYHACOQURN6
-# \\ TESLGQBWA7SUUH6KVZCD7Y2U7MIAU36WK43JZ437PEFPTZKBIHFN \\// C25519-BASE-32 //
-#  \\// NLGSVGLFE2CXTH5QBZJ6BOPRDHJ5NVDZOTHWWRSJJV3TTSPR4BI \\ CODE SIGNATURE \\
+#\\QADZAWQJ7LV7BH3M6TZS22RFHEG5WJZVYCPKFAFJFXBHYCSU7LU3N5G3BHYSL4LTIDJTT3FX7G7VE
+# \\ QG4PMUUGJJEQ3CILXY7D6FEYWWCYBZFYIJHE5MKEEA4TAYJQEY2W \\// C25519-BASE-32 //
+#  \\// FBRCYIUZMLDQXCXBOKNGXZFANT2Z5P3SIAYVZXG6YWENCWIIWDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

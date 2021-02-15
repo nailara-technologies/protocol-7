@@ -19,12 +19,12 @@ my $gradient_dir = "$data_dir/gfx/gradients";
 
 if ( !-d $html_dir ) {
     <[base.log]>->( 1, ": creating html dir '$html_dir'" );
-    make_path($html_dir) or die "make_path($html_dir): $!";
+    make_path($html_dir) or die "make_path($html_dir): $OS_ERROR";
 }
 my $image_dir = "$html_dir/images";
 if ( !-d $image_dir ) {
     <[base.log]>->( 1, ": creating 'images' directory" );
-    make_path($image_dir) or die "make_path($image_dir): $!";
+    make_path($image_dir) or die "make_path($image_dir): $OS_ERROR";
 }
 
 my $icon_setup = <[weather.parent.icon_setup]>->('vclouds'); # LLL: to config...
@@ -40,7 +40,7 @@ foreach my $icon_file (@icon_paths) {
     my $target_path = "$image_dir/$file_name";
     next if -f $target_path;
     copy( $icon_file, $target_path )
-        or die "copy('$icon_file','$target_path'): $!";
+        or die "copy('$icon_file','$target_path'): $OS_ERROR";
     $copied++;
 }
 <[base.log]>->( 1, ": copied $copied files to ./images/" ) if $copied;
@@ -53,7 +53,7 @@ foreach my $name (<[weather.parent.page_list]>) {
 }
 
 # ______________________________________________________________________________
-#\\3BZAWBIBDALX5KUBRGYDL4I62JOVOSAOW7KLWYNMGKHZNA2LB37K2X6P2FUFS7ALXBQV3BAC5NDYI
-# \\ US2P2UFNDLNKFJ7IFNTT7HNWTQMOEZSZQ5EUYYTS4LS6KYZ6I3MQ \\// C25519-BASE-32 //
-#  \\// YXZU3MMCFXT6JIJUS2RZGCFNQUPVMW3FWEJAT4JVU6B7XD3YUBQ \\ CODE SIGNATURE \\
+#\\HPJ7MWKH3QDIHIMA56UIU24RY6PDONDCVOFZ2QMDM66VCCBZ2RFQITOJMKBUPV4UOCFI6UNCRWHAA
+# \\ BWHA2YLTNTJCI3QAU43DGDGU2MK6WADWH7XS2IWT2TJ4IUXXKZVU \\// C25519-BASE-32 //
+#  \\// UIHLDFEQHGDCZUXYPHJBPGXIMK2SR236YRNX6TB7Q47UXTNVKCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

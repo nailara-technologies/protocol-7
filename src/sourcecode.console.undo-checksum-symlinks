@@ -18,22 +18,22 @@ my $version_root = $path->{'version_root'};
 
 my @copy_sources;
 map {
-    my $source_path = catfile( $work_tree, $_ );
+    my $source_path = catfile( $work_tree, $ARG );
     die "source path $source_path does not exist" if !-d $source_path;
-    push( @copy_sources, $_ );
+    push( @copy_sources, $ARG );
 } qw| bin cfg src |;
 
 <[base.log]>->( 1, ": scanning for broken symlinks ..," );
 
 my %symlink_errors
     = <[file.broken_links]>
-    ->( map { my $source_path = catfile( $work_tree, $_ ) } @copy_sources );
+    ->( map { my $source_path = catfile( $work_tree, $ARG ) } @copy_sources );
 
 if (%symlink_errors) {
     <[base.log]>->( 0, ".:[ encountered symlink errors ]:." );
     <[base.log]>->( 0, ":" );
     foreach my $k ( keys %symlink_errors ) {
-        map { <[base.log]>->( 0, sprintf( ": %s [ %s ]", $_, $k ) ); } (
+        map { <[base.log]>->( 0, sprintf( ": %s [ %s ]", $ARG, $k ) ); } (
             ref( $symlink_errors{$k} ) eq 'ARRAY'
             ? @{ $symlink_errors{$k} }
             : $symlink_errors{$k} . '.'
@@ -53,11 +53,11 @@ if ( !-w $source_root ) {
 }
 my $dir_fh;
 if ( !opendir( $dir_fh, $source_root ) ) {
-    <[base.log]>->( 0, "can not open directory '$source_root' [ $! ]" );
+    <[base.log]>->( 0, "can not open directory '$source_root' [ $OS_ERROR ]" );
     <[base.exit]>->(2);
 }
 
-my %vers_dirs = map { $_ => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
+my %vers_dirs = map { $ARG => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
 closedir($dir_fh);
 
 my %source_links;
@@ -88,7 +88,7 @@ my $count_missing = 0;
 my @restore_links;
 
 my $previous_cwd = Cwd::cwd();
-chdir($work_tree) or die "[ chdir ] $! [ $work_tree ]";
+chdir($work_tree) or die "[ chdir ] $OS_ERROR [ $work_tree ]";
 
 foreach my $src_file_path (
     sort { length($b) <=> length($a) }
@@ -114,13 +114,13 @@ foreach my $src_file_path (
         <[base.log]>
             ->( 0, ":: symlink destination missing [ $dst_file_path ]" );
         <[base.parser.ellipse_center]>->( \$src_file_path, 41 );
-        map { <[base.log]>->( 0, $_ ) }
+        map { <[base.log]>->( 0, $ARG ) }
             ( ':', ":. source : '$src_file_path'", ':' );
     }
 
     $file_count++;
 }
-chdir($previous_cwd) or die "[ chdir ] $! [ $previous_cwd ]";
+chdir($previous_cwd) or die "[ chdir ] $OS_ERROR [ $previous_cwd ]";
 
 my $percent_val = !$file_count ? 0 : $link_count * 100 / $file_count;
 <[base.log]>->(
@@ -131,7 +131,7 @@ my $percent_val = !$file_count ? 0 : $link_count * 100 / $file_count;
     )
 );
 
-my %console_args = map { $_ => 1 } split / +/, $data{'system'}{'args'};
+my %console_args = map { $ARG => 1 } split / +/, $data{'system'}{'args'};
 my $apply_force  = not exists $console_args{'-force'} ? 0 : 1;
 
 if ($err_count) {
@@ -183,11 +183,13 @@ if ( !$err_count or $apply_force ) {
         <[base.log]>->( 1, ":[copy]: '$r_to_str'" );
         <[base.log]>->( 2, ":[from]: '$r_from_str'" );
 
-        unlink($r_to) or warn "[unlink] $! ['$r_to']";    ## removing first
+        unlink($r_to) or warn "[unlink] $OS_ERROR ['$r_to']";  ## removing first
         File::Copy::syscopy( $r_from, $r_to )
-            or <[base.log]>->( 0, "<< copy >> '$r_from' -> '$r_to' [ $! ]" );
+            or <[base.log]>
+            ->( 0, "<< copy >> '$r_from' -> '$r_to' [ $OS_ERROR ]" );
         if ( -f $r_to ) {
-            chmod( $src_stat->mode, $r_to ) or warn "[chmod] $! ['$r_to']";
+            chmod( $src_stat->mode, $r_to )
+                or warn "[chmod] $OS_ERROR ['$r_to']";
             $restore_count++;
         }
     }
@@ -200,7 +202,7 @@ if ( !$err_count or $apply_force ) {
 }
 
 # ______________________________________________________________________________
-#\\U2ALK4YYDURJBVAC6F7T6R3TD3NCM3BH4OCVRJQZ3G5RDEXZYHSZ5KWKDBPXOZX76SWAZW54DK6UW
-# \\ NGDKVBD65OMKOLK4RRGNL4NSI3CB57IHP2Q54BB4YVIZJ2XXDNK2 \\// C25519-BASE-32 //
-#  \\// 6CQV72FOHSEWMGVETRTZVL3RZLCJTRHSSGERAC3TLH6ABJLZWBA \\ CODE SIGNATURE \\
+#\\CJ7EGLI6CNAFWAC6KI42ROI437KEJXGYRFMU33CKMSHNRIBU2BVINZ7HFSVEQC4J4MW4H4QPF5P7Q
+# \\ GTUZXZNR7Y5IOP32GFUYM4KNB7NOA4RRP2QWJOGBQUHP7T7HPBHC \\// C25519-BASE-32 //
+#  \\// Q7ODV4LYHREGREI63SXROAYV4V6UXC6OFS4N6NFKEWXBVQXOKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

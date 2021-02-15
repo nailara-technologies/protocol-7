@@ -22,7 +22,7 @@ $answer->{'data'} =~ s|\n$||;
 my @window_stack = split( /\n/, $answer->{'data'} );
 
 my $missing   = 0;
-my %wid_check = map { $_ => 1 } @window_stack;
+my %wid_check = map { $ARG => 1 } @window_stack;
 for my $agent_name ( keys %{<composition.layers>} ) {
     my $wid_str = <composition.window_ids>->{$agent_name};
     if ( not defined $wid_str ) {
@@ -32,8 +32,8 @@ for my $agent_name ( keys %{<composition.layers>} ) {
 
     my @wids_ok;
     map {
-        push( @wids_ok, $_ ) if defined $_ and exists $wid_check{$_};
-        $missing++ if not exists $wid_check{$_}
+        push( @wids_ok, $ARG ) if defined $ARG and exists $wid_check{$ARG};
+        $missing++ if not exists $wid_check{$ARG}
         }
         split /\D+/, $wid_str;
     if ( !@wids_ok ) {
@@ -55,10 +55,10 @@ for my $agent_name (
     my @window_ids = sort split( /\D+/, $window_ids_str );
     my $layer_pos  = <composition.layers>->{$agent_name};
     push( @lower_ids, @window_ids );
-    map { $known_ids{$_} = 1 } @window_ids;
+    map { $known_ids{$ARG} = 1 } @window_ids;
 }
 my @known_windows;
-map { push( @known_windows, $_ ) if exists $known_ids{$_} } @window_stack;
+map { push( @known_windows, $ARG ) if exists $known_ids{$ARG} } @window_stack;
 
 my $ack_msg = 'layers sorted';
 if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
@@ -67,7 +67,7 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
     map {
         <[base.protocol-7.command.send.local]>->(
             {   'command'   => "core.X-11.lower_window",
-                'call_args' => { 'args'    => $_ },
+                'call_args' => { 'args'    => $ARG },
                 'reply'     => { 'handler' => 'dev.null' }
             }
         )
@@ -82,7 +82,7 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
 ) if defined $reply_id;
 
 # ______________________________________________________________________________
-#\\SUMZITZ7QLCH2RD2RNOJYXU6VMK757YFNPVXKK2F2WIJ6C4SRVHOK67VSFVEKSX53NDAGHYB33TDG
-# \\ QL3LFSSAE6VHLUWXDIUTE5EBARHFRPHWYJNIC4JZIKGQNXCTDHJX \\// C25519-BASE-32 //
-#  \\// IYDKTIUVYN4YE266JMCSYQCT67LOQ2PELTTDPQ55LCQYCYFUIBQ \\ CODE SIGNATURE \\
+#\\P7UA3PLWQE4VXM65GLWMLPKTA76IOAVJM32Z45F6JOJBWJVX53HYJNV5GJLJPBMQIEQW7HIQBT6BO
+# \\ X6LUQO76MRGXGCZ6D3TGEYZ6L56HTLVZZOSYID6W45GB4QUSFPFS \\// C25519-BASE-32 //
+#  \\// 2NCFO7YLAV3OFFOIKOIWIYZSRD3VFKK4HLT6AC5HHJAKZZR5SBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

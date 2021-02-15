@@ -46,17 +46,17 @@ if ( defined <rss.ticker.content_url> ) {
     if ( ref(<rss.ticker.content_url>) ne 'HASH' ) {
         @rss_urls = (<rss.ticker.content_url>);
     } else {
-        @rss_urls = map { <rss.ticker.content_url>->{$_} }
+        @rss_urls = map { <rss.ticker.content_url>->{$ARG} }
             keys %{<rss.ticker.content_url>};
     }
     <rss.ticker.url_hash>
-        = <[digest.sha.1]>->( join( '', map {"$_\n"} @rss_urls ) );
+        = <[digest.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
 }
 
 0;
 
 # ______________________________________________________________________________
-#\\Y6FRVYSIWHVOMF4W7ACVKTWFATWNFBGURTNOZIZEX7MWNUDCKXGGYROMXPELPXHD3LYBW4BOQQX2C
-# \\ QZKIQ2AU2VBQHBNV4PGBIN5DJV4RXPWLWVJBZZ36Q575TR36W3WQ \\// C25519-BASE-32 //
-#  \\// EB7VYFIV4WSBCFWSZZMGGVBN7WKSQXFVAG2SMP4ZGFSEBKOKEAI \\ CODE SIGNATURE \\
+#\\5YDOA4XKPWJAWFP6UWA5A73AECUXGUQRAIE4AX7XYY73IVP5U4GVPR27DKPS6RCBMUUNWHDFOQBX2
+# \\ 4RPFYUCPV4GK33HP6FJ5ARYGNXTYRVAB5CYN3IQSXZ73KU4M5WQV \\// C25519-BASE-32 //
+#  \\// BI4RH4FBO4T2PG2IRK4WDBMQT3OVFTFX5E27C2L3IT2RT4XAYAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

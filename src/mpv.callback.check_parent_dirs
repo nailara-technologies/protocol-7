@@ -19,7 +19,7 @@ check_again:
 
 @cleanup_dirs = ();
 foreach my $check_dir (@dir_tree) {
-    opendir( my $dir_fh, $check_dir ) or die "$check_dir: $!";
+    opendir( my $dir_fh, $check_dir ) or die "$check_dir: $OS_ERROR";
     my @dir_content = readdir($dir_fh);
     push( @cleanup_dirs, $check_dir ) if scalar(@dir_content) == 2;
     closedir($dir_fh);
@@ -27,8 +27,8 @@ foreach my $check_dir (@dir_tree) {
 
 my $cleanup_count = 0;
 map {
-    if   ( rmdir($_) ) { $cleanup_count++ }
-    else               { warn "rmdir($_): $!" }
+    if   ( rmdir($ARG) ) { $cleanup_count++ }
+    else                 { warn "rmdir($ARG): $OS_ERROR" }
 } @cleanup_dirs;
 $cleaned_total += $cleanup_count;
 goto check_again if $cleanup_count;
@@ -40,7 +40,7 @@ my $ies = $cleaned_total == 1 ? 'y' : 'ies';
 return $cleaned_total;
 
 # ______________________________________________________________________________
-#\\5O4TCHXCSEPHWF3K5HTUAVF5SUKDCZRZRXOYPYKGJCXY56GTYEKOXXMEGVENIMN3746GSUMXTTW5C
-# \\ YGWQ2MARGFWU4YSCVVG74AQFQ7AAA3IRZAL7XH42W5EL7YA5XNNA \\// C25519-BASE-32 //
-#  \\// LDTIB5LX2WTNZLKWOQH4N6HJGIYJOGHIBMHSGTI3ZXEMYRTWWAI \\ CODE SIGNATURE \\
+#\\R3PMHY6GIZBWHCA3CAX34GBCUSMHJF5QOQ3HDXW5NYF3YYK2N4WU4C5P6ME46J5Z3XLY44AAZ3R2O
+# \\ ZMHNWEOFRH63UGTR6CYEJVX7OR6Y2D36QQFZS2QZQDDXLWUGVQ2W \\// C25519-BASE-32 //
+#  \\// HFUHH4GE7N54OUE2U7DLULU34WPL53C6VJB5JKC7UU6QOXOVYBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

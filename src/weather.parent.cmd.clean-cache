@@ -27,7 +27,7 @@ $which_str = " station-id" if $param eq 'stations';
 
 <[base.log]>->( 1, "cleaning up weather$which_str cache... (requested)" );
 
-map { remove_tree( "$cache_dir/$_", { 'keep_root' => 1 } ) } @subdirs;
+map { remove_tree( "$cache_dir/$ARG", { 'keep_root' => 1 } ) } @subdirs;
 
 # unlink($city_file) if -f $city_file; # LLL: would likely break restart!
 
@@ -36,7 +36,7 @@ map { remove_tree( "$cache_dir/$_", { 'keep_root' => 1 } ) } @subdirs;
 return { 'mode' => 'ack', 'data' => "weather$which_str disk cache cleared" }
 
 # ______________________________________________________________________________
-#\\3G232STTLZQ2O3O4CHSHY3DZHSDUJOA4PZO5ADHRJZO4S3255ZVNF6RVM2MDA63QZNV4DRIVLJGHG
-# \\ WNR32V2TJES2NHDSCBO5IRYB5D25KCSI3NV3TIDNTX3JY63ZHJHB \\// C25519-BASE-32 //
-#  \\// Z7QKO3VKKOAYPAX3ROFHYGOMT4OONZKD4RXNVHHH6QLOQJI7KBI \\ CODE SIGNATURE \\
+#\\3O465NOD7F2TTBO25TYABWKZCER7CLNSQU3UPXVDOMFVGVZ75VVRIRBLEPHAUZNVTC3MBPPOHXDCQ
+# \\ 7TSZUC4WE6XJZUZFVAL3TS74ABZGWBDJUERHSXPLWJ3GUPLJ3GVO \\// C25519-BASE-32 //
+#  \\// RDNLLENEZU3UX45ROK37GHBX54FLSDEZ53GYM4AYB7DDPEMWEBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

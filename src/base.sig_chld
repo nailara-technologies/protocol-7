@@ -3,13 +3,15 @@
 # name       = base.sig_chld
 
 <[base.log]>->( 2, 'SIGCHLD received.. collecting children...' );
-local ( $!, $? );
+local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
-    <[base.log]>->( 2, "cleaning up child pid $pid (exit code: $?).." );
+    <[base.log]>->(
+        2, "cleaning up child pid $pid (exit code: $CHILD_ERROR).."
+    );
 }
 
 # ______________________________________________________________________________
-#\\OQAIPKNNBRXHS5JIHXY3JD7TGDTHAFHXWJSAVH42IHPSC4YYXL4YDZUOKFE2X43RQCY2FUIVJTAPW
-# \\ BWOCVV4ZFUEOT5MVF4VDQLEFH3VSFAOVLMDSAK7SS5I4565DBYE3 \\// C25519-BASE-32 //
-#  \\// SET3BDJZNPFEO4FYEUOLRPXY4BZJJOLLLR2JJRGYF2QOX7NCEAY \\ CODE SIGNATURE \\
+#\\5DYG2K4HVBH7INZXA27E2JFMVHABUD6KRLWBBYWBCD2K6UQTPSQQY4666UQYETLR6746OGH4DZS7I
+# \\ 3IEGXTPCESZTKRIYARA3NTYSIU3GMFVBFHPHIBILCCU25JSKC3PJ \\// C25519-BASE-32 //
+#  \\// QK5SR245ZXBZ7DTMOSOBL3X6JS5U4NN44OLO4PQGI34UKNA6QAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

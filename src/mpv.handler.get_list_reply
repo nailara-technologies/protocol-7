@@ -84,7 +84,7 @@ if ( !$keep_file ) {
 
 map {
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
-    <[mpv.send_command]>->( 'loadfile', $_, 'append-play' );
+    <[mpv.send_command]>->( 'loadfile', $ARG, 'append-play' );
 } @append_files;
 
 if ( <system.agent.mode> eq 'universal-child' ) {
@@ -98,11 +98,11 @@ if ( <system.agent.mode> eq 'universal-child' ) {
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
     }
     <mpv.playlist_contains_pause> //= 0;
-    map { <mpv.playlist_contains_pause>++ if $_ eq '[PAUSE]' } @update_files;
+    map { <mpv.playlist_contains_pause>++ if $ARG eq '[PAUSE]' } @update_files;
 }
 
 # ______________________________________________________________________________
-#\\4YWOBCICH3CYMUKGVB7MLPIKV56NI3PJJFFUNVOH6JMV7UYPFKLGTY7KEVQZSURMJ5RTOFS4SYW3U
-# \\ VESVNA7ZO2QP3C47BWL6LN5A2EWQT6JLPA3AN4F24NY3XH7XTQHF \\// C25519-BASE-32 //
-#  \\// JKKJYI2QTKDHL5R2FB4VJEZZRAGTL7EL6KTSLYFRTDKM4FUTOCI \\ CODE SIGNATURE \\
+#\\OOQKROYLJSPI7243NLOD4UJJQJTSETF6RGD7ZVC5XHPO6B3RJS6WLCWUGQNFWWK5KTYYNE3CHS3NW
+# \\ OCPDTZ7IUWDJ43GQ66TVG2Y2FDST6BE7D4M3VLPP3HACZOTGWPSN \\// C25519-BASE-32 //
+#  \\// 2GMK66KVI6FGZIMMPIUELWSCUMKAWQEZ2VDAROSDILRSECX3KBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

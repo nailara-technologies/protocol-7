@@ -56,7 +56,7 @@ if ( $data_age >= $max_age ) {
     <[base.log]>->(
         1, "'$type' data cache timed out [ $age_str old ], purging .,"
     );
-    unlink($file_path) or die "unlink($file_path): $!";
+    unlink($file_path) or die "unlink($file_path): $OS_ERROR";
     delete <weather.data>->{$station_id};
 
     # LLL: write loading pages..,
@@ -67,7 +67,7 @@ if ( $data_age >= $max_age ) {
 }
 
 # ______________________________________________________________________________
-#\\KKFGQC452IHI6MWKPKKSOQGE6JT7JMAY5L2COFTJZ77BBXS6TG62LU5UN6IYJLOU3DFXVBBTU3QY6
-# \\ AKXVUY2G7ITN56PG6MIFTDYMA67UPNGMLVOTHTNMGAYCA7MEGMHE \\// C25519-BASE-32 //
-#  \\// PXIRXPE3KJMODAED34S62II6XEB7DHW7JKTHP2ER2XGGVDTISBY \\ CODE SIGNATURE \\
+#\\3YJ54SELXBLWSZ5CIBHUF5MEPML2L2U2XXJIZEDBR7WY32NZ56PDNQQCUR342RABTQP2JWGKYHPAA
+# \\ 4ACTKUQ5Z5MO47NXFIKIOUS3DM6PS5XI6J55MM5FTY6II55IVEWS \\// C25519-BASE-32 //
+#  \\// RWOY5JOMI57J4BSROW5H2STWNEL72R4BJH4RS3RPNCSO7J5H6DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

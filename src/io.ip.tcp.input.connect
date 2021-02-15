@@ -7,7 +7,8 @@ my $fd = $data{'session'}{$id}{'handle'};
 
 if ( -S $fd ) {
     my $new_sock = $fd->accept()
-        or <[base.log]>->( 0, "tcp.connect_handler: can not accept [$!]" );
+        or
+        <[base.log]>->( 0, "tcp.connect_handler: can not accept [$OS_ERROR]" );
     my ( $p_host, $p_port ) = ( $new_sock->peerhost(), $new_sock->peerport() );
 
     return undef if not defined $p_host or not defined $p_port;  # <-- closed[!]
@@ -40,7 +41,7 @@ if ( -S $fd ) {
 }
 
 # ______________________________________________________________________________
-#\\OUNHZTT377DARTW7S7E3WQZ53VJBQC2J66IV62FEW5I3KMZHOD6EUEMJT35C3ATLOME3SY2ONNRDI
-# \\ DMU2EQOPNG5F2UIJ3GRAMDPJUSCUOY452KTYV7GY7OGVAT2LK7EV \\// C25519-BASE-32 //
-#  \\// 3TVSQYZYS56T74G65I6BM4X5OFNMBE5JCILRKT6CZ7OJB4OTICA \\ CODE SIGNATURE \\
+#\\QI6LRR63JHXDYQEPOQHU35AKT3I6BPBRIP4A4OF5JED2HOUPALPOAPJQOOKVNWRSDA5TLTKI3LGGA
+# \\ RR2ULSFPBOL5FESOD7CQ6XFNDLMLRRYXW2UUH2WIVSEN457IPHZF \\// C25519-BASE-32 //
+#  \\// EUVE2F7PAZ5FFIZHHYOM7SRAMNVSQHGAEZZDIDTVPQYLJ7RECDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

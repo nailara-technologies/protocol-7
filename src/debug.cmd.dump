@@ -6,7 +6,7 @@
 
 my $keyword = $$call{'args'} // '';
 if ( not eval {qr|$keyword|} ) {
-    ( my $regex_err = lc($@) ) =~ s| in regex.+\n$||;
+    ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
     return {
         'mode' => 'nak',
         'data' => "$regex_err in regex [ invalid pattern ]"
@@ -19,7 +19,7 @@ $reply = {
 };
 
 # ______________________________________________________________________________
-#\\ZQABF6ISNTMIRNUXCOXQQK3M7JYISGKB34IDF5IJJBQZHQYWSJFMTEJ4XVBUDYZDCK7EDG4OXI4P6
-# \\ EIONWXDS5AOUVW4OE6TVDUIFBLHTQOB2Z2BMG6R5AGU4ORLDKTBP \\// C25519-BASE-32 //
-#  \\// OYHGOXZLCY3QAJKZMGWIYD26IJSSDXDO7JEPTK43ONWMXS6XGDQ \\ CODE SIGNATURE \\
+#\\XTKTKJJ2G4XE24V7Q5TQBT4OGXVIXGUYGN7ORSEZJHA2WD7VOHIXNWUI5IBE372IVETV2GQ6MQXAG
+# \\ H55AZDBCYO7OWS2GV5SWNVE46UW5J2E2PVUGGHNFWUE5HOUAQE5G \\// C25519-BASE-32 //
+#  \\// DIP6ORR2QQPZ4I3L57FA6HRMZ4BPCGD4WI7L4WZ6O4346SH3OCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

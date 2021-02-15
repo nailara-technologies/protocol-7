@@ -11,8 +11,9 @@ use Socket;
 <[base.log]>->( 1, "forking pdf conversion child.." );
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$!]";
-map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+    || die "can't create socketpair! [$OS_ERROR]";
+map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+    ( $child_pipe, $parent_pipe );
 
 <pdf.html.child.pid> = fork;
 if ( !<pdf.html.child.pid> ) {    ## child ##
@@ -28,7 +29,7 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     my $subname = <system.agent.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
     <system.agent.subname> = 'child' . $sn_str;
-    $0 = <system.agent.name> . "[child$sn_str]";
+    $PROGRAM_NAME = <system.agent.name> . "[child$sn_str]";
 
     # silencing child shutdown ( incr. loglevel )
     <callback.session.closing_last.params>->[1] = 1;
@@ -63,7 +64,7 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\NCAVN4XF572X7YNTCNVA4PPZKQV7UZS55WHV2HDGXMSZJBK2E6JT5E3JOTSLU3MGECFC5FN5LH4LM
-# \\ CE2NSQWXTVMTWZKS2A57PTWE7ZZ6NEN7MEQPV5VJOSKFNCYNQPSB \\// C25519-BASE-32 //
-#  \\// HBKBAJZRPBNUG5TOIMVZPIOZERKXIUNIOKF3BZVLJCQ6FKC6CBY \\ CODE SIGNATURE \\
+#\\QYFMX2B4NAAGJ5LTBQBD5XVPA2UZW27W4TGJ7IREF7VRN4EU7JFXHH7TCKNSOEL7RX63U3SJM7KIU
+# \\ D7JHD4QKDOVYWU5IYSPEMD652VKP4UBW7ZI7TOFDLYYVH45HPQ6J \\// C25519-BASE-32 //
+#  \\// D6PUIYCBLVXTYDWS7YPE44NUM3RTUIM7RQSE7U634XME6VBSQCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

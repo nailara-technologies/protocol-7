@@ -47,9 +47,9 @@ if ( !-e $sysrq_file ) {
 #
 
 map {
-    open( my $sysrq_fh, ">$sysrq_file" ) or die "[ $sysrq_file : $! ]";
-    print {$sysrq_fh} "$_\n";
-    if ( $_ eq 'e' ) {    # SIGTERM
+    open( my $sysrq_fh, ">$sysrq_file" ) or die "[ $sysrq_file : $OS_ERROR ]";
+    print {$sysrq_fh} "$ARG\n";
+    if ( $ARG eq 'e' ) {    # SIGTERM
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
         <[base.sleep]>->($term_delay);
         print {$sysrq_fh} "i\n";    # SIGKILL
@@ -62,7 +62,7 @@ map {
 ##
 
 # ______________________________________________________________________________
-#\\2A3WGJGKW5R3IM2N6IWURXUNDCUZAITSBQVR5CJ4EVQEBWDBSAKQR775TPVP6TQCG677AOLVQLXNQ
-# \\ FLY4PZFOU5AGXK4VOJNUL4O4PXISM5QHBQUKFD46BS3SRYHMGONR \\// C25519-BASE-32 //
-#  \\// BKFSOPOFC2XYZYMWU6VUM5MX3D7JV4AADB4FOQK3AG4BOXPWIAI \\ CODE SIGNATURE \\
+#\\32EZAWPZLOZNO64325ACXWRRGH54KBFSBCOOO5SNEG37X44DPJNEIJNZPEALKDXODLCXEWN34RDOI
+# \\ IOLQYY723UO3SNRKE3NFZOQBUX24U2SZJ6ASYMRKSSBN6QFMO4RR \\// C25519-BASE-32 //
+#  \\// RYGA5FIIHE7S5CWDGLB6MELFUCAVFODAYJ2TXK2XKYNCNV5V2AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

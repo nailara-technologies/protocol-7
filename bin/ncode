@@ -181,7 +181,7 @@ sub cmd_description {
             . '[  p a r a m e t e r   d e s c r i p t i o n  ]'
             . ansi('reset') . "\n\n";
 
-        $description_text =~ s/(\W+)/&ansi('reset').$1.&ansi('cyan')/ge;
+        $description_text =~ s/(\W+)/ansi('reset').$1.ansi('cyan')/ge;
 
         print ansi('cyan') . $description_text . ansi('reset') . "\n\n";
 
@@ -718,7 +718,7 @@ sub description_txt {
 
     if ( defined $cmd and $cmd eq 'description_txt' ) {
         if ( $description_type eq 'params' ) {
-            $params_txt =~ s/(\w+)/&ansi('cyan').$1.&ansi('reset')/ge;
+            $params_txt =~ s/(\w+)/ansi('cyan').$1.ansi('reset')/ge;
             return $params_txt;
         } elsif ( $description_type eq 'text' ) {
             $description_text =~ s/^\n+/\n/gms;
@@ -735,7 +735,7 @@ sub description_txt {
 # :: warn_apply :: warns before applying changes to disk [ <anykey> == abort ]
 
 sub warn_apply {
-    $| = 1;
+    $OUTPUT_AUTOFLUSH = 1;
 
     my $s = IO::Select->new();
     &raw_mode_on;
@@ -941,12 +941,12 @@ sub pack_backup {
     my $backup_file_short = $backup_file;
     if ( defined $cut_path ) { $backup_file_short =~ s|^$cut_path|| }
 
-    $backup_file_short =~ s|/([^/]+)$| '/' .&ansi('green').$1.&ansi('reset') |e;
+    $backup_file_short =~ s|/([^/]+)$| '/' .ansi('green').$1.ansi('reset') |e;
 
     print ":: creating backup archive file $backup_file_short ::\n\n";
 
     chdir($pack_dir);
-    my $pack_results = qx(tar czvvf $backup_file .);
+    my $pack_results = qx| tar czvvf $backup_file . |;
     chmod( 0400, $backup_file );
     chdir( $PATH->{'work'} )
         ;    # change back to a secure path as the dir will disappear
@@ -957,7 +957,7 @@ sub pack_backup {
                 $filename )
                 = ( $1, $2, $3, $4, $5, $6 );
             my $owner_padding = 20 - length($owner);
-            $filename =~ s|([^/]+)$| &ansi('green'). $1 .&ansi('reset') |e;
+            $filename =~ s|([^/]+)$| ansi('green'). $1 .ansi('reset') |e;
             if ( $filename =~ m|/$| ) { $size = '' }
 
             print ': '
@@ -1021,7 +1021,8 @@ sub check_target_files {    # LLL: incomplete
             }
         } else {
             open( my $CHK_FILE, '<' . $check_file )
-                or die " :: can not open target file '$check_file' : $! ::\n";
+                or die
+                " :: can not open target file '$check_file' : $OS_ERROR ::\n";
             my $bmw = Crypt::Digest::BMW->new(256);
             $bmw->addfile($CHK_FILE);
             my $chk_sum = encode_b32r( $bmw->digest );
@@ -1052,7 +1053,7 @@ sub load_metadata {
     my $file_name_short = $file_name;
     if ( defined $cut_path ) { $file_name_short =~ s{^$cut_path}{} }
 
-    $file_name_short =~ s{/([^/]+)$}{ '/' .&ansi('cyan'). $1 .&ansi('reset') }e;
+    $file_name_short =~ s{/([^/]+)$}{ '/' .ansi('cyan'). $1 .ansi('reset') }e;
 
     print "\n:: loading meta data from $file_name_short ::\n";
 
@@ -1063,7 +1064,8 @@ sub load_metadata {
         }
 
         open( my $META_FILE, '<' . $file_name )
-            or die " :: can not open metadata file '$file_name : $! ::\n";
+            or die
+            " :: can not open metadata file '$file_name : $OS_ERROR ::\n";
 
         @metadata_file = <$META_FILE>;
         close($META_FILE);
@@ -1144,12 +1146,12 @@ sub save_metadata {
             my $file_name_short = $file_name;
             if ( defined $cut_path ) { $file_name_short =~ s|^$cut_path|| }
             $file_name_short
-                =~ s|/([^/]+)$| '/' . &ansi('cyan'). $1 .&ansi('reset') |e;
+                =~ s|/([^/]+)$| '/' . ansi('cyan'). $1 .ansi('reset') |e;
 
             print ":: backup metadata saved to $file_name_short ::\n\n";
         } else {
             die " :: failed to open backup meta "
-                . "data file '$file_name' :: $! ::\n";
+                . "data file '$file_name' :: $OS_ERROR ::\n";
         }
     } else {
         die ' :: save_metadata() :: nothing to save :: ';
@@ -1172,7 +1174,7 @@ sub create_checksums {
             $relative_filename =~ s|^$root_path/?||;
 
             $relative_filename
-                =~ s{/([^/]+)$}{ '/' .&ansi('cyan'). $1 .&ansi('reset') }e;
+                =~ s{/([^/]+)$}{ '/' .ansi('cyan'). $1 .ansi('reset') }e;
 
             print ': '
                 . ansi('cyan')
@@ -1199,14 +1201,14 @@ sub load_source {
         foreach my $file ( &files($PATH_key) ) {
             next if -d $file;
             check_link($file);
-            local $/ = undef;
+            local $RS = undef;
             open( my $FILE, '<' . $file )
                 or warn " can not open file '"
                 . ansi('cyan')
                 . $file
                 . ansi('reset') . "' ["
                 . ansi('bold red')
-                . $!
+                . $OS_ERROR
                 . ansi('reset') . "]\n\n"
                 and next;
             $source{$file} = <$FILE>;
@@ -1234,13 +1236,13 @@ sub save_source {
         if ( defined $source_data->{$file} ) {
 
             open( my $FILE, '>' . $file )
-                or die ":: can not open file '$file' : $! ::\n";
+                or die ":: can not open file '$file' : $OS_ERROR ::\n";
             print {$FILE} $source_data->{$file};
             close($FILE);
             $change_count++;
             my $bytes_written = length( $source_data->{$file} );
 
-            if ( defined $cut_path ) { $file =~ s/^$cut_path// }
+            if ( defined $cut_path ) { $file =~ s|^$cut_path|| }
 
             my $output_line
                 = ': '
@@ -1256,7 +1258,7 @@ sub save_source {
                 . ansi('reset') . "\n";
 
             $output_line
-                =~ s/\/([^\/]+)$/'\/'.&ansi('cyan').$1.&ansi('reset')/e;
+                =~ s|/([^/]+)$| '/' . ansi('cyan') . $1 . ansi('reset') |e;
 
             print $output_line;
 
@@ -1264,8 +1266,8 @@ sub save_source {
     }
     if ( !$change_count ) {
         die ansi('bold') . ':: '
-            . ansi('red')
-            . 'no files written - aborting'
+            . ansi('green')
+            . 'no files changed ., aborting .,'
             . ansi('reset bold') . ' ::'
             . ansi('reset') . "\n\n";
     }
@@ -1285,7 +1287,7 @@ sub check_path {
 
         my $current_path_short = $current_path;
 
-        if ( defined $cut_path ) { $current_path_short =~ s/^$cut_path// }
+        if ( defined $cut_path ) { $current_path_short =~ s|^$cut_path|| }
 
         if ( !-d $current_path ) {
             if ( mkdir($current_path) ) {
@@ -1301,10 +1303,11 @@ sub check_path {
                     . " : $current_path_short " . "\n";
 
                 $output_line
-                    =~ s/\/([^\/]+)$/'\/'.&ansi('green').$1.&ansi('reset')/e;
+                    =~ s/\/([^\/]+)$/'\/'.ansi('green').$1.ansi('reset')/e;
                 print $output_line;
             } else {
-                die ":: failed to create directory '$current_path' : $! ::\n";
+                die
+                    ":: failed to create directory '$current_path' : $OS_ERROR ::\n";
             }
         }
     }
@@ -1366,13 +1369,12 @@ sub clean_dir {
                 . ansi('reset')
                 . " : $directory_path " . "\n";
 
-            $output_line
-                =~ s/\/([^\/]+)$/'\/'.&ansi('green').$1.&ansi('reset')/e;
+            $output_line =~ s/\/([^\/]+)$/'\/'.ansi('green').$1.ansi('reset')/e;
             print $output_line;
             return 1;
         } else {
             die " :: clean_dir() : removing of "
-                . "directory '$directory_path' failed : $! ::\n";
+                . "directory '$directory_path' failed : $OS_ERROR ::\n";
         }
     }
 }
@@ -1384,7 +1386,8 @@ sub files {
     my $type = shift;
     my $path = $targets{$type};
     if ( defined $path and $path ne '' and -d $path ) {
-        opendir( my $dir_fh, $path ) or die "failed to open dir '$path': $!\n";
+        opendir( my $dir_fh, $path )
+            or die "failed to open dir '$path': $OS_ERROR\n";
         foreach my $filename ( readdir($dir_fh) ) {
             next if $filename eq '.' or $filename eq '..';
             ( $filename = "$path/$filename" ) =~ s,//,/,g;
@@ -1394,7 +1397,7 @@ sub files {
                 ## cfg/agents/*/... ##
                 if ( $filename =~ m|cfg/agents/[^\/]+$| and -d $filename ) {
                     opendir( my $adir_fh, $filename )
-                        or die "failed to open dir '$filename': $!\n";
+                        or die "failed to open dir '$filename': $OS_ERROR\n";
                     map { push( @files, $filename . "/$ARG" ) }
                         readdir($adir_fh);
                     closedir($adir_fh);
@@ -1437,7 +1440,7 @@ sub new_path {
 
 sub get_user_input {
     my $prompt = shift;
-    $| = 1;
+    $OUTPUT_AUTOFLUSH = 1;
     print "  :\n";
     my $pattern = $term->readline("  :: $prompt :. ");
     $term->addhistory($pattern);
@@ -1721,10 +1724,10 @@ sub move_perl_subs {
         }
 
         my $sub_name_txt = sprintf( "%-*s", $max_len, $sub_name );
-        $sub_name_txt =~ s/(\w+\s+)$/&ansi('bold').$1.&ansi('reset')/e;
+        $sub_name_txt =~ s/(\w+\s+)$/ansi('bold').$1.ansi('reset')/e;
 
         my $dest_sub_txt = $destination_sub_name;
-        $dest_sub_txt =~ s/(\w+)/&ansi('bold').$1.&ansi('reset')/ge;
+        $dest_sub_txt =~ s/(\w+)/ansi('bold').$1.ansi('reset')/ge;
 
         print ': ' . $sub_name_txt
 
@@ -1869,11 +1872,11 @@ sub adjust_subroutine_calls {
 
                     # remove package name in calls if sub is in same package
                     my $old_line = $source_line;
-                    $source_line
-                        =~ s/$destination_subname([^\w\_])/$plain_dest_subname$1/g;
+                    $source_line =~ s|$destination_subname([^\w\_])
+                                     |$plain_dest_subname$1|xg;
                 } elsif ( $current_package eq $source_package ) {
-                    $source_line
-                        =~ s/$plain_src_subname([^\w\_])/$destination_subname$1/g;
+                    $source_line =~ s|$plain_src_subname([^\w\_])
+                                     |$destination_subname$1|xg;
                 }
                 push( @modified_file, $source_line . "\n" );
             }
@@ -1944,7 +1947,9 @@ sub replace_all {
                 . "s/\$regexp{search}/$rep_rex/$regexp{options}";
             $changed->{'files_parsed'}++;
 
-            if ($@) { die "\n :: error during regexp operation :: $@\n\n" }
+            if ($EVAL_ERROR) {
+                die "\n :: error during regexp operation :: $EVAL_ERROR\n\n";
+            }
 
             if ($match_count) {
 
@@ -1966,16 +1971,6 @@ sub pattern_invalid {
     my $regexp_pattern = shift;
 
     my $_tmp_pattern = $regexp_pattern;
-
-    # remove any escaped slashes
-    $_tmp_pattern =~ s,\\/,,g;
-
-    # check if there still are some slashes
-    if ( $_tmp_pattern =~ /\// ) {
-        print " : error in regular expression : "
-            . "$pattern_type pattern contains unescaped slash[es].\n";
-        return 1;
-    }
 
     # remove escaped and trailing '$' chars
     $_tmp_pattern =~ s,\\\$|\$$,,g;
@@ -2021,8 +2016,8 @@ sub pattern_test_ok {
     my $rep_test     = '';
     my $re_test_code = '$rep_test =~ ' . create_regexp( \%regexp );
     eval $re_test_code;
-    if ($@) {
-        print " : error in regular expression : $@\n";
+    if ($EVAL_ERROR) {
+        print " : error in regular expression : $EVAL_ERROR\n";
         return 0;
     } else {
         return 1;
@@ -2150,9 +2145,9 @@ sub diff_less {
                 if ( $diff_line =~ s/^([<|-]{1})([^-]{1})/$2/ ) {
 
                     $diff_txt
-                        .= &ansi('bold blue')
+                        .= ansi('bold blue')
                         . $1
-                        . &ansi('reset')
+                        . ansi('reset')
                         . highlight( $diff_line, $search_pattern,
                         ansi('reverse blink blue'),
                         ansi('reset') );
@@ -2162,7 +2157,7 @@ sub diff_less {
                         $replace_highlight = eval $replace_pattern;
                     }
                     $diff_txt
-                        .= &ansi('cyan')
+                        .= ansi('cyan')
                         . $1
                         . ansi('reset')
                         . highlight(
@@ -2174,7 +2169,7 @@ sub diff_less {
 
                         # highlight file names
                         $diff_line
-                            =~ s/\/([^\/]+)\s*$/'\/'.&ansi('bold cyan').$1/ge;
+                            =~ s/\/([^\/]+)\s*$/'\/'.ansi('bold cyan').$1/ge;
                     }
                     $diff_txt .= ansi('blue') . $diff_line . ansi('reset');
                 } else {
@@ -2207,9 +2202,9 @@ sub highlight {
     my $case_insensitive = shift // 1;
 
     if ($case_insensitive) {
-        $text =~ s/($pattern)/$open_tag$1$close_tag/ig;
+        $text =~ s|($pattern)|$open_tag$1$close_tag|ig;
     } else {
-        $text =~ s/($pattern)/$open_tag$1$close_tag/g;
+        $text =~ s|($pattern)|$open_tag$1$close_tag|g;
     }
     return $text;
 }
@@ -2222,16 +2217,16 @@ sub ansi {
     return color $requested_color;
 }
 
-# :: print_usage :: displays usage / description header
+# :: print_usage :: displays usage \ description header
 
 sub print_usage {
     my $usage_txt = "ncode <command> [parameters]\n";
-    $usage_txt =~ s/(\W+)/&ansi('reset').$1.&ansi('cyan')/ge;
+    $usage_txt =~ s|(\W+)| ansi('reset') . $1 . ansi('cyan') |ge;
     print "\n    " . ansi('cyan') . $usage_txt . ansi('reset');
 }
 
 # ______________________________________________________________________________
-#\\ML7L5FZATOZEPDXR4FKTAYRQ36FLYFJNCKS4CS3P3KU3HJR5EVTM3V5TVX3GMT43NF3C3NEVDIENA
-# \\ 7AWKNOVUMQCG2P5KE232BRUIGTJUFHNJUACICNTGS26B5FK66K7K \\// C25519-BASE-32 //
-#  \\// MNCDOXEX6ZRUUCCRAGHOCKBABJB422NYTRPMZJQXSJP2SSHP2AI \\ CODE SIGNATURE \\
+#\\4LFOK45ISR2WNDVSENXNJBZLI2HHFFJ5HS7TSA24HYGH4IWAMM2FCRPPH7LSKXOEUYALFAWBBXXJE
+# \\ WMHDKIBUHCS2JSNGRMZ5NRUJAVZ3RVEXSZSVBK6MF4PGZFK2AN67 \\// C25519-BASE-32 //
+#  \\// JF5ERFEEUVTHPJEIVTUR5WR4SBY5B5P6VDUVIO42WX2N4OUMCDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

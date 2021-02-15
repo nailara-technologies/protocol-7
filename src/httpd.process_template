@@ -69,12 +69,12 @@ my $session_var_re = qr/(?<!\\)<\(([\w\-_]+\.[^\]]+)\)>/;    # <(var_name)>
 # print Dumper $r_seq;
 
 my $cmd_count = 0;
-map { $cmd_count++ if defined $_->{'command'} } @{$r_seq};
+map { $cmd_count++ if defined $ARG->{'command'} } @{$r_seq};
 
 if ( !$cmd_count ) {    # request / content complete :
 
     my $content_length = 0;
-    map { $content_length += length( ${ $_->{'data'} } ) } @{$r_seq};
+    map { $content_length += length( ${ $ARG->{'data'} } ) } @{$r_seq};
 
     $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         200,
@@ -87,7 +87,7 @@ if ( !$cmd_count ) {    # request / content complete :
             'Accept-Ranges' => 'bytes',
             %{$response_params}
         }
-    ) . join( '', map { ${ $_->{'data'} } } @{$r_seq} );
+    ) . join( '', map { ${ $ARG->{'data'} } } @{$r_seq} );
 
     return $session->{'http'}->{'close'} ? 2 : 0;
 
@@ -116,8 +116,9 @@ if ( !$cmd_count ) {    # request / content complete :
             my @key_vals;
             my $keys_str = $1;
             map {
-                push( @key_vals, join( '=', $_, encode_b64u( $query{$_} ) ) )
-                    if defined $query{$_}
+                push( @key_vals,
+                    join( '=', $ARG, encode_b64u( $query{$ARG} ) ) )
+                    if defined $query{$ARG}
                 }
                 split( /,/, $keys_str );
             my $param_line_str = join( ',', @key_vals );
@@ -143,7 +144,7 @@ if ( !$cmd_count ) {    # request / content complete :
 }
 
 # ______________________________________________________________________________
-#\\P3AP2ECJAQCO756CMLUI5GQLKWEMF6EHRPP3VRTTDQ234DV2RLABO44Z2PYZ4SZYNKSKRA2ZXJVOW
-# \\ YJKMCRDCHSWWNVO6BTKS3TFNUNM6FRO7GIF5MCJD3GXRI5FZYPJ2 \\// C25519-BASE-32 //
-#  \\// FBRLSVZZBKSVA35SI5DZZG4VHTRNRMEEOLKOGD4G6TLGW4KW6CY \\ CODE SIGNATURE \\
+#\\JG5HW3WDTHNCUUW2PGDOOE3C3NUNTHJDWZ7SX4S5S2BXWZ4G4L5ZDXY43JEPVOLJEDDC4CNON7KHE
+# \\ Z5Y3VSQRZPIEI6BQDTQF5NZUPEFEUIYSRBDYGEEE47C7EWAPJ5C3 \\// C25519-BASE-32 //
+#  \\// XR4FDPZUEXTLSZGEZ6B6ZJ5CT364AIKNLANZJXOG74XSXCYNGBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

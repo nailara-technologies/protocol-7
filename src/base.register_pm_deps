@@ -2,7 +2,7 @@
 
 # name = base.register_pm_deps
 
-my %pmods    = map { $_ => 1 } @_;
+my %pmods    = map { $ARG => 1 } @_;
 my $agent    = <system.agent.name>;
 my $cfg_path = <system.conf_path>;
 state $access_warned = 0;
@@ -17,7 +17,7 @@ if ( $mod_dir =~ s|agents/$agent/config|$cfg_path/agents/$agent/pm-dep| ) {
             next if -e "$mod_dir/$mod_name";
             eval 'use Module::CoreList'
                 if not defined &Module::CoreList::is_core;
-            next if $@ or Module::CoreList::is_core($mod_name);
+            next if $EVAL_ERROR or Module::CoreList::is_core($mod_name);
             my $fh;
             open( $fh, '>', "$mod_dir/$mod_name" ) and close($fh);
         }
@@ -29,7 +29,7 @@ if ( $mod_dir =~ s|agents/$agent/config|$cfg_path/agents/$agent/pm-dep| ) {
 }
 
 # ______________________________________________________________________________
-#\\2676SIFUUZYO3UQJ4O2S3QTCJXWPM2NMHNHC6RG43SCUPRPQQ7XYEYFLMWFNPDOVGR7LYFFFTKJPC
-# \\ MZZ74MHR2AHYGK26DYWTWIFMKVDRTMQKVOYWFZHMWXT25KBWIDJ2 \\// C25519-BASE-32 //
-#  \\// USR2ECP3HF65HAUYMOJWB3LE5J23YDCED5HDZ5IC3H7RZEJ2SDI \\ CODE SIGNATURE \\
+#\\JJ44ZAM3TKN62GIYDBOLTZ7CTNEBGEABNGCFP44D6PWAQASHMONHEV6RN43WJNEJWQVZKMSOS2U5E
+# \\ H2SFQUR7WVRKXDKPJKDXBOAUSZIYLHIALAUN3HRWWVMUD3JWBRQ7 \\// C25519-BASE-32 //
+#  \\// YNFWONZR3JQT4PDOPEU5UUDWY5INVCBDIGXCFA6K6LFD4H5V2BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

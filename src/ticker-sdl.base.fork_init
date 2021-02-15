@@ -9,8 +9,9 @@ use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$!]";
-map { $data{'handle'}{$_}{'link'} = 'ipc.pipe' } ( $child_pipe, $parent_pipe );
+    || die "can't create socketpair! [$OS_ERROR]";
+map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+    ( $child_pipe, $parent_pipe );
 
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';
@@ -26,7 +27,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     my $subname = <system.agent.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
     <system.agent.subname> = 'child' . $sn_str;
-    $0 = <system.agent.name> . "[child$sn_str]";
+    $PROGRAM_NAME = <system.agent.name> . "[child$sn_str]";
 
     delete <process.renice_child>;
 
@@ -105,7 +106,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 }
 
 # ______________________________________________________________________________
-#\\2QLXXB2RIEL4JHVCJQL3ZBLXWMVKLQBLZEJCYCG5Z6ZTUYFI3M73TOB4YJZPG4M756T555MZBQS42
-# \\ Q55KS27PJV2MTHYBPVGKJXGEQBJZXAVHMBP7E6TBOZDP5AQJSPRF \\// C25519-BASE-32 //
-#  \\// 767BSSOBNFPMEMFUZVLHPTRDLF6C3MVP7OC6336R25AR6CNX6AY \\ CODE SIGNATURE \\
+#\\2DMEF4R6LDVZQD7YMKFHNUUZAQCZ3FIMKP6WHAKFXOKZMNIQPX635ZLWWWC3NGOXYO6OK6TW7ZSYE
+# \\ 7XUM5WRN66WBD7E7O7H2O4S2V36PQHCIAB7IU4JSYQHHLBHVN7GK \\// C25519-BASE-32 //
+#  \\// NN5KRQ4DQCHGSORTG2LRRNL4Z4REZQLWJDKLV35PWMELN5UVWAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -27,13 +27,13 @@ my $tmp_bin    = "$nlr_bin_path.$nlr_checksum";
 my @gcc_params = $compile_static ? ('-static') : ();
 push( @gcc_params, qw| -O3 -x c -o |, $tmp_bin, '-' );
 
-unlink($tmp_bin) or die "< unlink > $tmp_bin [ $! ]" if -f $tmp_bin;
+unlink($tmp_bin) or die "< unlink > $tmp_bin [ $OS_ERROR ]" if -f $tmp_bin;
 
 ## compiling.., ###
 my $gcc_in_fh  = IO::Handle->new();
 my $gcc_err_fh = IO::Handle->new();
 my $gcc_pid    = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
-    or die "<< ! >> compilation failed [ $! ] << ! >>\n";
+    or die "<< ! >> compilation failed [ $OS_ERROR ] << ! >>\n";
 print {$gcc_in_fh} $nlr_src_str if $gcc_in_fh->opened;
 close($gcc_in_fh)               if $gcc_in_fh->opened;
 
@@ -54,8 +54,8 @@ qx| $strip_binpth -R .comment $tmp_bin | if length($strip_binpth); # optional ##
 if ( -f $tmp_bin ) {
     close($gcc_err_fh) if $gcc_err_fh->opened;
     rename( $tmp_bin, $nlr_bin_path )
-        or die "< rename > $tmp_bin --> $nlr_bin_path [$!]";
-    chmod( 0755, $nlr_bin_path ) or die "< chmod > $nlr_bin_path [ $! ]";
+        or die "< rename > $tmp_bin --> $nlr_bin_path [$OS_ERROR]";
+    chmod( 0755, $nlr_bin_path ) or die "< chmod > $nlr_bin_path [ $OS_ERROR ]";
     <[base.log]>->( 1, ":: :. successfully installed to '$nlr_bin_path'. =)" )
         and return 1
         if <[nroot.bin_nlr_is_current]>->(2); # <-- silent checksum verification
@@ -71,7 +71,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\HVVKY75FIMF6DT2NWYVH4URL7EMPVCGCEVLAIGUTEP4C4JIS3SZJ6LHPK3SWWGCRKLTJXNREO3EJG
-# \\ 3V5Q77JYLKBGCRDVNCYQFKOX4N4QTJM5VKDN7LJJYFEKYPRYRCMZ \\// C25519-BASE-32 //
-#  \\// SGPUXR5GQZB4LA4AUIXNYQM76Z4INWEHPE3Z6R35HYTVMISGWCI \\ CODE SIGNATURE \\
+#\\3UC7VY36G3VYOCU4IQTJZBP34RANPJS5PPJIL6EM2XND2CHRILFV6SRP42WPBJFRHLFBWS357YUAU
+# \\ 6UY3QFXTYZISOVCR6UM25LGFLLWEVZBFICBDY6MCAJXCPM5K4XRS \\// C25519-BASE-32 //
+#  \\// DEHILR57234DWYIELJFE5S3SEBGAK5PDXE3SWC6A25ZGEADMODI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

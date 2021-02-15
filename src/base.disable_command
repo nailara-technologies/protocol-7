@@ -11,21 +11,21 @@ my $s = @requested > 1 ? 's:' : '';
 <[base.log]>->( 2, "disabling command$s : " . join( ', ', @requested ) );
 
 my %already_disabled;
-map { $already_disabled{$_} = 1 } @{ $data{'disabled_commands'} };
+map { $already_disabled{$ARG} = 1 } @{ $data{'disabled_commands'} };
 
 map {
-    push( @{ $data{'disabled_commands'} }, $_ )
-        if not exists $already_disabled{$_}
+    push( @{ $data{'disabled_commands'} }, $ARG )
+        if not exists $already_disabled{$ARG}
 } @requested;
 
 map {
-    delete $code{"base.cmd.$_"};
-    delete $data{'base'}{'cmd'}{$_};
-    delete $data{'base'}{'commands'}{$_}
+    delete $code{"base.cmd.$ARG"};
+    delete $data{'base'}{'cmd'}{$ARG};
+    delete $data{'base'}{'commands'}{$ARG}
 } @{ $data{'disabled_commands'} };
 
 # ______________________________________________________________________________
-#\\FXLTJJHRCSYMCCVW6FSZRUIZYESQT2EQDJ3LUKR4AB5NIWSK3LJQH2G6E5H3SMGEJ56WGRNQ2ABA2
-# \\ SC4VV6HCVV3G3XFMP7B3GUFWQZYF2TTWO5L2SI5AIDRJI656BUG2 \\// C25519-BASE-32 //
-#  \\// O2JBUDRAHV52FFMWOSDQGODS5M5JVOQLBRYCTNE4SVJNY4E3GDQ \\ CODE SIGNATURE \\
+#\\6CP5YJQACYNPKV5UQOVHFBQ7OJF4KYPZ7VDOWNWPD45TWRO4DTJFUN3A57ZNWNOOLRQDVQAIIEM5A
+# \\ QKS5SLD7UJXTFWRXCJRYDCKJORZDJPL6VHPO7XFERAX36PQNPQBI \\// C25519-BASE-32 //
+#  \\// 6B5FDMLZWIII7V4ZPREZAAFTJNNZNZDTHMDLH7XXI4SN5HV5SDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

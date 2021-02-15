@@ -10,7 +10,7 @@ my $id = $$call{'session_id'};
 return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
-my %mod = map { $_ => 1 } split / +/, <modules.load>;    # LLL: <!> create iface
+my %mod = map { $ARG => 1 } split / +/, <modules.load>;  # LLL: <!> create iface
 if ( delete $mod{'debug'} ) {
     <[base.log]>->( 1, "<!> persistently disabling debug module <!>" );
     <modules.load>
@@ -29,7 +29,7 @@ return { 'mode' => 'ack', 'data' => 'debug commands removed =)' }
 return { 'mode' => 'nak', 'data' => 'can not remove debug module `:|' }
 
 # ______________________________________________________________________________
-#\\6DFMOXM6UMJZDC32EKRRB62HFPZESUC6QALR6ABVCHZZ5R5UJMOPDLVFKPBWVLDTO42YEK52NSJPA
-# \\ 3WVIGSELMP3EMZUZ24ECBID2HVBLGAVI6GOUJZ3XZVZPXQUYDIEM \\// C25519-BASE-32 //
-#  \\// DIW4QMPBLW5XG3JYM62RVFRMLXUX3XDRDQ5HWGCROS2Q4XNJ4DY \\ CODE SIGNATURE \\
+#\\A763SRZNEYSBQFLHLWO2F3H7ACNUPN77OCXMHR3V6WXJFS756HEFFPFUDA2WK5G7QQIISOOZTSPBS
+# \\ JBIHG3TQCF4BHUWZMWJ7KI6S7PWMSMTY4I7QNUEIZZ3HOWM5SNMK \\// C25519-BASE-32 //
+#  \\// JYIOZ4DPO3QXFOEDSBH7ITJAEGAKG3IDYPWYAJNCGU6JOQSJEAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

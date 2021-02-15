@@ -9,7 +9,7 @@ if ( !-d $drm_dir ) {
     return;
 }
 
-opendir( my $drm_dir_fh, $drm_dir ) or die "$drm_dir: $!";
+opendir( my $drm_dir_fh, $drm_dir ) or die "$drm_dir: $OS_ERROR";
 
 my $connected = 0;
 
@@ -27,7 +27,7 @@ foreach my $card_name ( readdir($drm_dir_fh) ) {
     <base.obj.inotify>
         ->watch( $target_path, IN_ACCESS(), $code{'X-11.scan_display_states'} );
 
-    opendir( my $card_dir_fh, $target_path ) or die "$target_path: $!";
+    opendir( my $card_dir_fh, $target_path ) or die "$target_path: $OS_ERROR";
     foreach my $disp_name ( readdir($card_dir_fh) ) {
         next if !-d "$target_path/$disp_name" or $disp_name !~ /^$card_name/;
         my $status_file = "$target_path/$disp_name/status";
@@ -50,7 +50,7 @@ closedir($drm_dir_fh);
 return $connected;
 
 # ______________________________________________________________________________
-#\\SFFPPXW5KLRM54JZKDVHDEGJPCAT4IX7JZAKXNKAFVRSWDVEHIUEIV3I4XCXXW7RSFLMIC5LBODGC
-# \\ QBTR6CVFP5RIFJWPISWGIKNYDWNNGUHRA3OOIBKJLWRPBYEN6QHQ \\// C25519-BASE-32 //
-#  \\// 2NQRCVZWMQYZ57ZZKK7QYJDM266T7SMCJ3SPBOWK4BA2I4SNKDY \\ CODE SIGNATURE \\
+#\\JGXIUUC3ZRWO3FE7PQDJI7GPCPCZUQ5HGN7XIUTKYLAYCVZVFBTZLIHKMJ4XUHULKBSDNIFQYWCUW
+# \\ RVRIAYBPP5RXTIKEXNCWYHJM3V32ICIPG7MEDGOOMW24P2UUUE6I \\// C25519-BASE-32 //
+#  \\// JFBOR4PVRNYZ2K3EUINN3O7VSASPBY5VOP7OAP5TUKIE7SCJSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

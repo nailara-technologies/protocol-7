@@ -33,7 +33,7 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
         ## create ##
         if ( !-d $dir_path ) {
             mkdir($dir_path)
-                or warn "mkdir($dir_path) : $!";
+                or warn "mkdir($dir_path) : $OS_ERROR";
         }
         next if !-d $dir_path;
 
@@ -44,7 +44,7 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
         if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
             ## chown ##
             chown( $src_stat->uid, $gid, $dir_path )
-                or warn "$dir_path : $!";
+                or warn "$dir_path : $OS_ERROR";
         }
         ## placeholder ##
         my $placeholder_path = "$dir_path/.placeholder";
@@ -57,7 +57,7 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
 }
 
 # ______________________________________________________________________________
-#\\4PLL4QFX6DA5VX5F5OIIB7ZRBIOMWHOERZ52XDZVOSV5MAJV2GXYALNXLAMGTGOEYEOQBL4MJPFFG
-# \\ MDQNCZI34PIROWG2W2TDJGKNCB44JTNWXOC2NNDQOJDGREOI5KR7 \\// C25519-BASE-32 //
-#  \\// 6YFXU6LEL7ZJKY3MTZNFC6K4B2OKVYUJAIQ5PU4ESLAZFNOJ4CA \\ CODE SIGNATURE \\
+#\\YO5UIT7NJQ27HKZ5OCWDGEWVIBHZRIRZFG2R4D3HL7NSYOOVTSQXVVZPAJR66Z5C6GYXHWDMLB2I6
+# \\ ABASW2S6KUGROGK5YETGCJG6XCSMFWIPCRUVUCHMKHOZWCGUBQP5 \\// C25519-BASE-32 //
+#  \\// JZJXQHM6BNSN3VVLPMEPJL7EOYDWKTCRXWNEQXRRG25WBWUQMCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

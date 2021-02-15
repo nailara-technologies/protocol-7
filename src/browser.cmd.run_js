@@ -39,7 +39,7 @@ $view->run_javascript(
         #         my $js_vm = $s_con->get_property('virtual-machine');
 
         eval { $s_res = $self->run_javascript_finish($result) };
-        ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
+        ( my $ex_str = $EVAL_ERROR ) =~ s| at /usr/.+\n$||;
         $ex_str =~ s|^[^ ]+ ||;
 
         my $re_mode = $ex_str =~ /^[^:]*Error[^:]*:/ ? 'nak' : 'ack';
@@ -66,7 +66,7 @@ $view->run_javascript(
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\73Z7BTLCMGTQ7H5QZOMXRTXGNAFHGKGIWL5PSGI47LKH35BFCQ66VHMLYBPX6GDHZI6HKMR6M4AQK
-# \\ F3ERLHSQPHOZAD2G6QATUKYHN3OMHXOQMW6TIMXUPGKWBZKX6LZI \\// C25519-BASE-32 //
-#  \\// JHKJT5L5MRAEZDWHVGA2YMREQAN5END2YF7DAX34W3VWD3RWCDA \\ CODE SIGNATURE \\
+#\\DXUBJ2LBS3ZJBHXBZKYWT7J2S4HKA3UE5XWIMN76VGSTFG35DDVZGLOU47VQUILF7DO5FEXOPZDJW
+# \\ 74TFH63XG2AFO245FZYUY2T42OAJCT4SNTMYCFGFY7F6EFEHXBMU \\// C25519-BASE-32 //
+#  \\// 6JNPGSLQSNLK3GQI7UZFSDFSLYLGFNOUAS63XMMDBRUVRS4QEDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

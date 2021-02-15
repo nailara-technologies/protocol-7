@@ -5,8 +5,8 @@
 my $file_path = shift;
 my @content   = @_;
 
-open( my $fh, '>', $file_path ) or die "$file_path: $!";
-binmode( $fh, ":raw" )          or warn "binmode(): $!";
+open( my $fh, '>', $file_path ) or die "$file_path: $OS_ERROR";
+binmode( $fh, ":raw" )          or warn "binmode(): $OS_ERROR";
 if ( @content > 1 ) {
     print {$fh} @content;
 } elsif ( @content and ref( $content[0] ) eq 'ARRAY' ) {
@@ -21,7 +21,7 @@ close($fh);
 return 1;
 
 # ______________________________________________________________________________
-#\\7VQBT2TEQU5LCPV43NBNV3O3ZIYAAPLGQ7QTADRKREQOPOWWOZ4UIDJUWZDCSSUEPDP26L2XJCDYI
-# \\ ZL7XGJYSHJS4MN7GCCUJOXIZF74MX7XDKR3CJDRXYBKIHRYROEVW \\// C25519-BASE-32 //
-#  \\// LOIARRCGZXSUM3NRRAXBXROEIYZGYDRATBPHK2LP32DQ5TSLSBA \\ CODE SIGNATURE \\
+#\\3ZP3YXVUYKCWWABGOUPRQQXGDBNWNETKSJHJLPEAOHH7NP7WYUYBEFSUQFDHTII2K72OHKF33M2CK
+# \\ 55IKMPDLMQPIY2G5FZJACBBH557FJOE4DVWO6A3ZGTQ6ZWJE7NA4 \\// C25519-BASE-32 //
+#  \\// IJVREKGNH6OBNAK6IQKNPDRADKQP3TUVYKJUFHZPEJEFFZBXGCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

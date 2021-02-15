@@ -6,8 +6,8 @@ my @names;
 my $child_pid;
 do {
     $child_pid = waitpid( -1, WNOHANG() );
-    my $e_val = $? >> 8;
-    my $e_sig = $? & 127;
+    my $e_val = $CHILD_ERROR >> 8;
+    my $e_sig = $CHILD_ERROR & 127;
     if ( exists <universal.running>->{$child_pid} ) {
         my $child_name = <universal.running>->{$child_pid};
         push( @names, "'$child_name'" );
@@ -27,8 +27,8 @@ do {
                 : '';
             my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
-                or warn("$file_name: $!");
-            chmod( 0644, $file_name ) or warn("$file_name: $!");
+                or warn("$file_name: $OS_ERROR");
+            chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
         }
 
     } elsif ($child_pid) {
@@ -51,10 +51,10 @@ do {
 ) if !<universal.restarting_agent>;
 <universal.restarting_agent> = 1;
 $SIG{'CHLD'} = 'IGNORE';
-map { kill( 15, $_ ) if $_ =~ m|^\d+$| } keys %{<universal.running>};
+map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 # ______________________________________________________________________________
-#\\DOU666FQJBRSGNXHA723XFFAKXYS2MTZ6M2WKXXTZQZMAJDMR4HI5HLNPHZNKNZWZQHPQMZEGTQGG
-# \\ S3VJ5NXHGVCDVX5ULTAQ6R4D3BGM42H5ITZIBJS3YJ2WAZ67KPFI \\// C25519-BASE-32 //
-#  \\// XV7H537N6ZL5KRVA4ETSR7Z7X3RED6EXNYGF454WY53VIRPLCBQ \\ CODE SIGNATURE \\
+#\\AGCL4OLIUFL2XKOOOIFSQODMBCYZ3IRZYL4WMJCAOHDFN2L6VBINTM2GIXONFPQRSL33AODH4LZTQ
+# \\ HS5QQ6YMRGXDEJ525LDYY5RTQ4VUKUKINEDVE3WSXI5JDHV7PZEX \\// C25519-BASE-32 //
+#  \\// CDNATMRNT7Z2EWL7XYMDGENQTMZMDWEEAL2K3SE7WMU7RO4BKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

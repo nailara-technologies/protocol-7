@@ -38,17 +38,18 @@ foreach my $_dir ( split m|/|, $path ) {
     $current_path .= '/' . $_dir;
     next if -d $current_path;
 
-    mkdir( $current_path, $mode ) or die " mkdir '$current_path' : [ $! ]";
+    mkdir( $current_path, $mode )
+        or die " mkdir '$current_path' : [ $OS_ERROR ]";
     if ( defined $owner ) {
         chown( $uid, $gid, $current_path )
-            or die " chown [$uid:$gid] '$current_path' : [ $! ]";
+            or die " chown [$uid:$gid] '$current_path' : [ $OS_ERROR ]";
     }
 }
 
 return $path;
 
 # ______________________________________________________________________________
-#\\QE4X756XO6JFIZ53QVQNUC4LHU5HPDR6BZQSFPNZW6R2FELTFWLVWTB26IHSOV25JK5NAIVVOHGMM
-# \\ V4BIKYILTNAFVDAVARAUSXFFVZRTM2NWEIOXGABYWZ4NL2Z33EMD \\// C25519-BASE-32 //
-#  \\// RQU3EO7NK7VKXZ7F23WBWGHP32RI644PH4H34OTS7IERJFHRMBQ \\ CODE SIGNATURE \\
+#\\4Z7672QNU4U2N4JMU7MGK4AGVVZMOF6HDCD4VA4FG3WQCCNX4IIH7YV75O5WWQLV4KRYDQUCBTBIW
+# \\ XICNDE5J5PBI4544VVP356KRSTFMSKBE36JQ3SCEL6MOHPKOR5LF \\// C25519-BASE-32 //
+#  \\// ZOTYR6GR2PWZPV3GZ5PL6W3K3UGU4SUXGMBJXRKG4WR5Z5HDWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

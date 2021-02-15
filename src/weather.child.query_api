@@ -51,7 +51,7 @@ $content =~ s|unable to set keepalive: unread data in buffer\n$||s;
 my $json_decoded;
 eval { $json_decoded = <weather.child.json>->decode($content) };
 
-if (   $@
+if (   $EVAL_ERROR
     or not exists $json_decoded->{'cod'}
     or $json_decoded->{'cod'} ne '200' ) {
     my $reason_str = '';
@@ -70,7 +70,7 @@ if (   $@
 return ( 200, $json_decoded );
 
 # ______________________________________________________________________________
-#\\IVM37772BOQWVDKUG2KBAFAT4SSMNI3HSCTMLUOJCMSO5RLAPW4WDYRWGU5B5T3NWZETHZFAQV6JC
-# \\ XPEB2AIUW2UVKUYCXZSC6MATT5MZGRYHMC7UFM44CIA5B4PRESGE \\// C25519-BASE-32 //
-#  \\// PHVFPNRSGJ2UMPU2F4KFLDJGT7Q5QPXXSWO4FYZAZ6XUR6UOSDA \\ CODE SIGNATURE \\
+#\\INDQJGC7NDOFGJ4O6WTL6PJJJKSHUHZP3A65CDDJR2LPF34WRE23EFD3KVWB5HYVQJOWCWWB4OAK4
+# \\ T7AZAZRG37ISJDUA7YRFVXXVNQVYU3JZJZD4KU72QJFAU62LQLKK \\// C25519-BASE-32 //
+#  \\// YM7P464UF5JWECCPHXVCNMI2QVHK23FCRMITQDJOXF6QO36AUBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

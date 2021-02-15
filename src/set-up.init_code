@@ -15,12 +15,13 @@ my $dir_path = <system.local_config_dir>;
 if ( !-d $dir_path ) {
     <[base.log]>->( 1, "<< creating local nailara config dir [$dir_path] >>" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-        or warn "unable to create local config directory '$dir_path' [$!]";
+        or warn
+        "unable to create local config directory '$dir_path' [$OS_ERROR]";
 }
 
 ## './cfg/profiles' is created in config.chk_profile_dir ..,
 
-map { <[base.disable_command]>->($_) } qw|
+map { <[base.disable_command]>->($ARG) } qw|
     list-exportable
     export-config
     fetch-agent-config
@@ -39,7 +40,7 @@ if ( !exists $code{ sprintf( '%s.set-up.export_rules', <system.agent.name> ) } )
 0;
 
 # ______________________________________________________________________________
-#\\AS3ANESUWWXMUPA5EWGKWZ5O4TLRTBCI4FVGB2OU25ZKVN5KI2AML7RIVV2AKZ2NNI525653F4M5Q
-# \\ NVFRKOAI7GK6Q4OG7J7UNNN45BC7USSAJ4FIMRSZ4NPUAW7MW4WA \\// C25519-BASE-32 //
-#  \\// 5DEKSGGZVRFTOHCCCFCVIVFFJG2ZIRBIE6KJJVN7DMJHQC7EGAA \\ CODE SIGNATURE \\
+#\\DCSBAO3FEIT3ZKPWYCNEGNEVQ6EDMGGDCF7VBXWN7RGOEX5OOD5K7EQW2CB6VLUPJBZC7463E24BM
+# \\ KFOO6LPNEQG7VPXFJ3HVWUIFFAZSKKB737MHVVCL7ZRDHH5NCKFH \\// C25519-BASE-32 //
+#  \\// C5QGE5XSQEDCTO5TNZSRWRS3TBMMJEOW3CCX2TUPRVDBXH3QMBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

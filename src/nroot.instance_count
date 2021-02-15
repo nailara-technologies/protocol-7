@@ -12,17 +12,17 @@ $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 my $instance_count = 0;
 map {
     $instance_count++
-        if <nroot.agent.instance>->{$_}->{'agent_name'} eq $agent_name
+        if <nroot.agent.instance>->{$ARG}->{'agent_name'} eq $agent_name
         and ( not defined $agent_subname
         or defined $agent_subname
-        and defined <nroot.agent.instance>->{$_}->{'subname'}
-        and $agent_subname eq <nroot.agent.instance>->{$_}->{'subname'} )
+        and defined <nroot.agent.instance>->{$ARG}->{'subname'}
+        and $agent_subname eq <nroot.agent.instance>->{$ARG}->{'subname'} )
 } keys %{<nroot.agent.instance>};
 
 return $instance_count;
 
 # ______________________________________________________________________________
-#\\DES5OKRGGAUR6Y67APQDUZGMNIXSBF4CN6P2G7HWQNKNGJBHFI3UQPHGVIYKTO3DVV6YOLJXDLA2I
-# \\ RXWYIJ37UAQQOKP743UR5XR6YGEN5X5BH7DYRM5SBVFOLPS3H35P \\// C25519-BASE-32 //
-#  \\// 5W7JGOLBG5BBXUADW7TAU22ZLL3YKVIY45P2TSIVUQSSEUXMQBQ \\ CODE SIGNATURE \\
+#\\WM6ENX5JP4AA6TBYCXTC2LQKYQGBHUGV7ARH7SFZ6H4MZXI6B2EN6ZESAOIFCIL2QFQ42AJRVP7KO
+# \\ 5X3BYH7HFT2X2D7TFSKVCNAVPGMD6JTXZHTJPWV3DU6SIP2CWJ7A \\// C25519-BASE-32 //
+#  \\// RCXFTZYOGX2WT2CGHVPC7RF5IJFKZSAHHMVQUOKMVFRUNLRJ4DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

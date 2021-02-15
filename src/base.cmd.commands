@@ -14,12 +14,14 @@ my @commands   = ();
 my @dbg_cmds;
 
 <base.commands.is_debug> //= {};
-map { $_ =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$_} //= 1 }
+map { $ARG =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$ARG} //= 1 }
     grep {m|^debug.*\.cmd\.|} keys %code;
 
 # getting a list of all commands the user [ who sent the request ] has access to
-foreach my $cmd ( sort { length($b) <=> length($a) }
-    reverse sort keys %{<base.cmd>} ) {
+foreach my $cmd (
+    sort { length($b) <=> length($a) }
+    reverse sort keys %{<base.cmd>}
+) {
 
     next if not <[base.has_access]>->( $user, $cmd );
 
@@ -64,7 +66,7 @@ $$reply{'data'} .= "\n";
 $$reply{'mode'} = 'data';
 
 # ______________________________________________________________________________
-#\\2PFAZKTSFCXFE7AX7J56D3N7YBRCUESRVUWNBD7AQX6GJZOLOEANKGOE576CVMIJVP2BNITGHHJMS
-# \\ DFJ6XXM7N73EU462K6K2QMD66VXZKN46VVVPPEASZYZ6W2IZNATZ \\// C25519-BASE-32 //
-#  \\// 7I4UV5DQXCA25RXRGTWMEIEIVP74PFX2A2J3SP6542VBATS2IDA \\ CODE SIGNATURE \\
+#\\PD5N3JS2TG7DYU7KV5P4JJ2ZYZZYCLQVPQ6HYFBZJQOIXFGA4J3CFXXRFUGWAAAEFEI4AQIAVJYP4
+# \\ LMHSWZIEWUB4H6QAC6UEUMY5ZSNIAGAW7QSUCPFABM2LRSOIX47B \\// C25519-BASE-32 //
+#  \\// P7WCRJDIMKTUL2HB7KQWXZPC5PIGAOWDNW6ZNMVYK3QN3OKLKCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

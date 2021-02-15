@@ -22,8 +22,8 @@ my @modifier_names = qw(
 );
 
 map {
-    my $kcode = <X-11.kbd>->KeysymToKeycode($_);
-    $mod_href->{$kcode} = $_ if defined $kcode;
+    my $kcode = <X-11.kbd>->KeysymToKeycode($ARG);
+    $mod_href->{$kcode} = $ARG if defined $kcode;
 } @modifier_names;
 
 my @mod_cat_names = qw(
@@ -39,14 +39,17 @@ my @mod_cat_names = qw(
 
 foreach my $kc_aref ( @{ [ <X-11.obj>->GetModifierMapping() ] } ) {
     my $m_name = shift @mod_cat_names;
-    map { $mod_href->{$_} = $m_name if $_ and not defined $mod_href->{$_} }
-        @{$kc_aref};
+    map {
+        $mod_href->{$ARG} = $m_name
+            if $ARG
+            and not defined $mod_href->{$ARG}
+    } @{$kc_aref};
 }
 
 return $mod_href;
 
 # ______________________________________________________________________________
-#\\S42UQUX5QXNRDYZZ2CDT2T43JBWBBQ6FHJ7VLR7QQRBGPVR7BHGFUQAWFZW3F3E7IBFAQ7CQHIJVG
-# \\ 3QSWKCNVHUETTVZ4E3IPKHYAPZB3IUA3U4CGVZGRZKDIR6NLI4LU \\// C25519-BASE-32 //
-#  \\// ENLZUNP6MKOX4SMVLSAJSM7GQHQRCDGL6U3LX4KDU6SXEXP2WCA \\ CODE SIGNATURE \\
+#\\ZTKT2TMZITVZUPCGAVUNIPFYRQHIVD53NQWYZDCTDX7FSGYGYYXFSFQ6RPRYYU77X4E3FCNCENVLQ
+# \\ HYU2FTRC6DBR3PPUTRSUH6Y6EXMRY7KNNFETHXAGFGR4OOTYB5UJ \\// C25519-BASE-32 //
+#  \\// RROU3GIZXJT6XXSRB4EGGGV3DK7UVK4NPEIGRU65PXQKZM2T6BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

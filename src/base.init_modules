@@ -4,7 +4,7 @@
 # descr = executes 'pre_init', 'init_code' and 'post_init' routines
 # todo  = track moved namespaces for agument list as well
 
-my @module_names = map { split m| +|, $_ } @_;
+my @module_names = map { split m| +|, $ARG } @_;
 
 my %skip_list;
 my $success = 1;
@@ -59,8 +59,10 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                 eval {
                     $return_code = $code{$sub_name}->( $reinit, $real_m_name );
                 };
-                if ( $@ or not defined $return_code or $return_code ne '0' ) {
-                    ( my $err_msg = $@ )
+                if (   $EVAL_ERROR
+                    or not defined $return_code
+                    or $return_code ne '0' ) {
+                    ( my $err_msg = $EVAL_ERROR )
                         =~ s| at (\S+) line (\d+).*\n$| ' [ $1, line $2 ]|;
                     <[base.log]>->( 0, ": ' $err_msg" ) if length $err_msg;
                     $success = 0;
@@ -96,7 +98,7 @@ undef <base.init_modules>;
 return $success;
 
 # ______________________________________________________________________________
-#\\27VOP6U7OOXY7RAI562WTSBAMHKNGGG2ED4KYJUQBTIQGOCHJE4FQDF3EX6POBEUHI25I4ABI5DMY
-# \\ D5CS4EN2LR2RGWV7PU4ETBVABFU6NPPRCAJ5DZFOSPFUOJXXCMIC \\// C25519-BASE-32 //
-#  \\// J4A5UBKQRKCHWATID4O7GCBKEF5HOSH6VBTHKKK4BKIMGRGSIAQ \\ CODE SIGNATURE \\
+#\\CU74D23RPJR4QFZNE5LMR42RNEHO6DRLENPC2G7NQAKSB6GQAG672MTHYLJPWSM7J5CJI7GJD7OKU
+# \\ DC3KFVW736WQP7BA2RQDHSEDXIDUOYQQMH7SRJTN3YHBU6PGBBEQ \\// C25519-BASE-32 //
+#  \\// JAWXT3XRVSAAQF5RFNANCHLJHO6WKYFYFMTOO3FNNOI4SNUW6DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

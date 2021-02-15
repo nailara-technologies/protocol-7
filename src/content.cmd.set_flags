@@ -9,7 +9,7 @@ return { 'mode' => 'nak', 'data' => 'flag name expected!' }
     if not defined $flag_str or !length($flag_str);
 $flag_str =~ s|,,|,|g;
 map {
-    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     return {
         'mode' => 'nak',
         'data' => "invalid url flag name '$flag_name'"
@@ -19,7 +19,7 @@ map {
         if not exists <content.url_flags>->{$flag_name}
 } split( /,/, $flag_str );
 map {
-    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     return {
         'mode' => 'nak',
         'data' => "URL expected for '$flag_name' flag!"
@@ -29,7 +29,7 @@ map {
 } split( /,/, $flag_str );
 
 my $match = 0;
-map { $match++ if $_ eq $url; } @{<content.file_list>};
+map { $match++ if $ARG eq $url; } @{<content.file_list>};
 
 return { 'mode' => 'nak', 'data' => 'no match in playlist!' } if !$match;
 
@@ -45,12 +45,12 @@ return {
     and $url !~ m{/(\?.+)?$|\.(cgi|asp|php|html?)(\?.+)?$|/[^\.]+$};
 
 map {
-    if ( $_ !~ /^delay=\d+(\.\d+)?$/ and $_ =~ /^([^=]+)=/ ) {
+    if ( $ARG !~ /^delay=\d+(\.\d+)?$/ and $ARG =~ /^([^=]+)=/ ) {
         return {
             'mode' => 'nak',
             'data' => "no parameter expected for flag '$1'!"
         };
-    } elsif ( $_ =~ /^delay/ and $_ !~ /^delay=\d+(\.\d+)?$/ ) {
+    } elsif ( $ARG =~ /^delay/ and $ARG !~ /^delay=\d+(\.\d+)?$/ ) {
         return {
             'mode' => 'nak',
             'data' => "expected time in seconds parameter for 'delay' flag!"
@@ -60,9 +60,9 @@ map {
 
 my $s = $flag_str =~ /,/ ? 's' : '';
 <[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
-map { delete <content.url_flags>->{$_}->{$url} } keys %{<content.url_flags>};
+map { delete <content.url_flags>->{$ARG}->{$url} } keys %{<content.url_flags>};
 map {
-    my ( $flag_name, $flag_param ) = split( /=/, $_ );
+    my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     $flag_param //= 1;
     <content.url_flags>->{$flag_name}->{$url} = $flag_param
 } split( /,/, $flag_str );
@@ -74,7 +74,7 @@ my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 return { 'mode' => 'ack', 'data' => $msgstr };
 
 # ______________________________________________________________________________
-#\\7SBLD6CGYUFSMHKSKYKRNBODUQR245HFR3Y7C4NFSQR263NGLUHZRZYHYP5NGKD77GNY2LE63PBGW
-# \\ X3NSIKVN3OETJGSPEUKENOOUY2WJSOI6X3MUAVODJ2E3H2JXKVDB \\// C25519-BASE-32 //
-#  \\// UGZZET25XYMBOUK3JEMXWMH5BARZYZYPWJTAXBODJ32IHGG6GDQ \\ CODE SIGNATURE \\
+#\\7HE3OOU2CBUKB4DCGVI7AN2TAPBBSMLJ3RU3L7ZR43IVZSDQJ7ZOWFZUJL3N2QKLIBHGTUELE3VU4
+# \\ AFN4H4ABVARRUT66XPI43U64NSY72C6XQQA4ULONDNLUXHCNSP32 \\// C25519-BASE-32 //
+#  \\// LO5W7XIPQ3W2TJBINQ57DP4KEPSDP5BV4DXDXYQ5KVE4CJ6BIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -15,8 +15,8 @@
 
 # initialize offsets / positions
 map {
-    $_->{'text_offset'}   = 0;
-    $_->{'screen_offset'} = <sdl.display_width>;
+    $ARG->{'text_offset'}   = 0;
+    $ARG->{'screen_offset'} = <sdl.display_width>;
 } @{<ticker-sdl.content.work>};
 
 while ( @{<ticker-sdl.content.work>} ) {
@@ -70,7 +70,7 @@ while ( @{<ticker-sdl.content.work>} ) {
     # update screen ( try hardware blitting first )
     if ( !<sdl.flip_failed> ) {
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
-            my $err_str          = SDL::get_error() || $!;
+            my $err_str          = SDL::get_error() || $OS_ERROR;
             my $err_str_brackets = length($err_str) ? " [ $err_str ]" : '';
             warn "unable to swap buffers! (switching to software mode)"
                 . $err_str_brackets . "\n";
@@ -87,7 +87,7 @@ while ( @{<ticker-sdl.content.work>} ) {
 }
 
 # ______________________________________________________________________________
-#\\YRUFGB5AG4LWNQIIANVI4BZWTV2T5FXPUYWHA46TOGSXUA4K2RCP4KYXCKRQKZZMJBGP4XJ5SVFWE
-# \\ LRD4ZGYV55VS6FJPO5234UL22QXKZM2ADOAPRCRB5GYRRQDCWEI4 \\// C25519-BASE-32 //
-#  \\// MYDHWLNE2POL4R3ZJIKLIA2UGZEWAMUEO2NWVJEXE6ZOFJ7GEAI \\ CODE SIGNATURE \\
+#\\YFKJQHLYJA73NIUWK2EV4EEBFCUEW6WH56MWSTZKTNSP53LZZORAWWTYTUJFELRVHRKUYSNVPLPVQ
+# \\ SIMYUNDDBVLAUAZQGBG4N5DLVUIECP3UBZAMMHLYRPRTM7G5LHPM \\// C25519-BASE-32 //
+#  \\// GH7AVSPPK7HNSBOEHUQXWPPKPSWF6ZEHOUTYARWED7IX2K7QGAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

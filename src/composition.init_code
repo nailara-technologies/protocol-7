@@ -31,7 +31,8 @@ if ( !<composition.watch_tiles.poll_tile_color>
     and defined <composition.timer.poll_tile_color> ) {
     my $timers = <composition.timer.poll_tile_color>;
     <[base.log]>->( 0, "stopping tile activity poll timers [config changed]" );
-    map { $timers->{$_}->cancel if $timers->{$_}->is_active } keys %{$timers};
+    map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
+        keys %{$timers};
 }
 
 delete <composition.setup.ticker_agent_type>
@@ -48,14 +49,15 @@ if ( !-d <composition.cfg_directory> ) {
             or die "user '" . <system.privs.user> . "' not in passwd file";
         make_path( $cfg_dir,
             { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
-            or die "make_path: $!";
+            or die "make_path: $OS_ERROR";
     } else {
         my $old_perms = <[base.file_perm]>->($cfg_dir);
         if ( $old_perms ne $perms ) {
             <[base.log]>->(
                 0, "<!> fixing config dir permissions [ $old_perms -> $perms ]"
             );
-            chmod( oct($perms), $cfg_dir ) or warn("chmod($cfg_dir): $!");
+            chmod( oct($perms), $cfg_dir )
+                or warn("chmod($cfg_dir): $OS_ERROR");
         }
     }
 }
@@ -111,10 +113,10 @@ if ( -f $default_cfg ) {
         and <composition.fallback_tile_group> ne
         ${ <[file.slurp]>->($default_cfg) } ) {
         <[base.log]>->( 0, "<!> default composition has changed <!>" );
-        unlink($current_cfg) or warn "unlink($current_cfg): $!";
+        unlink($current_cfg) or warn "unlink($current_cfg): $OS_ERROR";
 
     } else {
-        unlink($default_cfg) or warn "unlink($default_cfg): $!";
+        unlink($default_cfg) or warn "unlink($default_cfg): $OS_ERROR";
     }
 }
 
@@ -131,7 +133,7 @@ if ( <composition.restore_composition_enabled> and -f $current_cfg ) {
                 "stored composition selection has timed out (${timeout_secs}s),"
                     . " ignoring.."
             );
-            unlink($current_cfg) or warn("unlink($current_cfg): $!");
+            unlink($current_cfg) or warn("unlink($current_cfg): $OS_ERROR");
         } else {
             <[base.log]>->( 2, "processing 'composition.current' config..." );
 
@@ -182,7 +184,7 @@ if ( not exists <composition.setup.tile-groups>->{$tile_group_name} ) {
     );
     if ( -f $current_cfg ) {
         <[base.log]>->( 2, ": removing '$current_cfg' ..." );
-        unlink($current_cfg) or warn "unlink($current_cfg): $!";
+        unlink($current_cfg) or warn "unlink($current_cfg): $OS_ERROR";
     }
     ($tile_group_name) = sort keys %{<composition.setup.tile-groups>};
     $default_str = ' _fallback_ ';
@@ -209,18 +211,18 @@ if ( defined <composition.fallback_tile_group> ) {
 }
 
 map {
-    <base.watcher.signal>->{$_}->cancel
-        if defined <base.watcher.signal>->{$_};
-    my $uc_sig = uc($_);
+    <base.watcher.signal>->{$ARG}->cancel
+        if defined <base.watcher.signal>->{$ARG};
+    my $uc_sig = uc($ARG);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
-    <base.watcher.signal>->{$_} = <[event.add_signal]>->(
+    <base.watcher.signal>->{$ARG} = <[event.add_signal]>->(
         { 'signal' => $uc_sig, 'handler' => 'composition.handler.sig_term' } );
 } ( 'int', 'term', 'quit' );
 
 0;
 
 # ______________________________________________________________________________
-#\\LB54WPX4DCFDT2WP3JBPYWSZFPPXWICWMJT7YUVB353U57DK3UNEEMFKGYZPA6KSXK2G7ZWPIVPHU
-# \\ T43RZHEO7JGV7LCGJWMNOZGOZQSADZBUWDOE6PBE5GLJDBA3UXK3 \\// C25519-BASE-32 //
-#  \\// XDKKIBOO6NVAGKLT4FB5WYLB6VV47ONCK2XGXRNQFMJSZWUJAAQ \\ CODE SIGNATURE \\
+#\\JKTJXNCHCRCOAGCH7VRU7WUKH3YVVITJO5CWIEWJS6S4LO7OCSL37HBONXWFGX5TY2LASQ5MKEUZS
+# \\ CDZHE6JPMO5LCEHKL3DH2CTWRRMT6MAFJFZQEXXXAOREG2KCEBVC \\// C25519-BASE-32 //
+#  \\// 7DQFIDGEWHWF5TN4LRGNVI6F5N2HROE6TYV73CUX5IHQ536W2AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -21,13 +21,13 @@ if ( defined $ntime_decoded ) { ## contains network time with arbitary precision
 }
 
 $unix_time = $utime_copy    # <<[?]>> deal with false positives <<[?]>>
-    if $$call{'args'} =~ m|[A-Z]| and ( not defined $unix_time or $@ );
+    if $$call{'args'} =~ m|[A-Z]| and ( not defined $unix_time or $EVAL_ERROR );
 
 return {
     'mode' => 'nak',
     'data' => "submitted parameter string is not valid"
     }
-    if $@
+    if $EVAL_ERROR
     or not defined $unix_time
     or $unix_time !~ /^\d{1,17}(\.\d{1,20})?$/;
 
@@ -60,7 +60,7 @@ return {
     }
 
 # ______________________________________________________________________________
-#\\F5TLDS5YQWDETUXM77KH7WJUDUCLXRA4F5M7AEBUNDHXAPWBVDQ6X6OIOHO3Y3IFQAG2LB7JYOG3Y
-# \\ VW6BTG4OUIWVGIKBL5NVP4GUNMTPGATZLDNLJYBEWQPIABY3X5A2 \\// C25519-BASE-32 //
-#  \\// Y5F4M2LZ4WHR2AXU4RH4VRAS3T4R3ECHUZ7EMMDJBVKXGLMX2DQ \\ CODE SIGNATURE \\
+#\\SO3PLXINSW2WQOO6RUMSFRRM4SO2LPHDKGB5KCYQJGBHUT5JFYMGE67JFVPE4EL2HOLQSJCUHS2GQ
+# \\ PSSL26X63HATB6N7DQKBKYHRTUVLB3KLQ45TDXCJ5YGRJWAJJEGW \\// C25519-BASE-32 //
+#  \\// 7XRV5XQIKERTU3BGYVFY6WZLYS7LUJYW46SDA4M5U3L55UBDMCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

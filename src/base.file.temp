@@ -21,7 +21,7 @@ foreach my $chk_dir (@check_dirs) {
         last;
     }
 }
-die "no success creating temp dir [ $! ]" if not defined $first_dir;
+die "no success creating temp dir [ $OS_ERROR ]" if not defined $first_dir;
 
 my $retries = 47;
 my $tmp_file_path;
@@ -40,14 +40,14 @@ return $tmp_file_path if !wantarray; # <-- scalar context does not open the file
 
 <[base.log]>->( 1, " :. opening file : $tmp_file_path .," );
 
-open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $!";
+open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $OS_ERROR";
 
 # LLL: implement optional file locking and unlink mechanism here, see File::Temp
 
 return ( $tmp_fh, $tmp_file_path );
 
 # ______________________________________________________________________________
-#\\CV5ZEDYADFVEB7FXR3T7NQNU6JBKOUGNRNIA3RX4RGUDXIFBY5DC73Y2PKKEYM2QZN6ZKJV5ZXO2M
-# \\ S4NNBGATX45TSR7S3JHOKSRDDSTBPYPQYORBP32MRYWJN65DNGRO \\// C25519-BASE-32 //
-#  \\// EAXOFRCR4P72UZYIPJK2K4I42I7OFWIT7J7DROCOO6YTHRWPIDY \\ CODE SIGNATURE \\
+#\\MOER5KW6UIFYOK2HSTPHNDMTM2HPZL3R2OQRIFWL7SGVIFVIWIMXDLS53XFHBFT4B4WESV7CGMK3W
+# \\ RSHUFZKCFSQKIUMQ5BGKW7YL3JJL676TUJROWPVPNA6FNJBNSZL6 \\// C25519-BASE-32 //
+#  \\// K6XNANI6Q7OK3NZLR4SJYXE3THQSDVA3BPZV3GMQ2T63CAW5IAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -29,7 +29,7 @@ my $content_type = $header->{'Content-Type'}   // mimetype($file_path);
 
 my $content_fh;
 if ( not open( $content_fh, '< :raw', $file_path ) ) {
-    warn "<!> $file_path: $!";    # LLL: improve error handling..,
+    warn "<!> $file_path: $OS_ERROR";    # LLL: improve error handling..,
     <[httpd.send_error_page]>->( $id, 500 );
     return 2;
 }
@@ -44,8 +44,8 @@ if ( exists $request->{'range'} ) {
     $content_size = 0;
     @ranges       = @{ $request->{'range'} };
     map {
-        $content_size += $_->{'part_size'}
-            = 1 + ( $_->{'end'} - $_->{'start'} );
+        $content_size += $ARG->{'part_size'}
+            = 1 + ( $ARG->{'end'} - $ARG->{'start'} );
     } @ranges;
     my $end   = $ranges[0]->{'end'};
     my $start = $ranges[0]->{'start'};
@@ -57,7 +57,8 @@ if ( exists $request->{'range'} ) {
 
     } else {                 ## multipart byteranges ##
 
-        my $h_str = join( '|', map { $_, $header->{$_} } sort keys %{$header} );
+        my $h_str
+            = join( '|', map { $ARG, $header->{$ARG} } sort keys %{$header} );
         $boundary = <[digest.bmw.L13_str]>->($h_str);
         $header->{'Content-Type'} = "multipart/byteranges; boundary=$boundary";
 
@@ -68,8 +69,8 @@ if ( exists $request->{'range'} ) {
             my $part_header = $part_id++ ? "\n" : '';
             $part_header .= "--$boundary\nContent-Type: $content_type\n"
                 . "Content-Range: bytes $start-$end/$file_size\n\n";
-            $_->{'part_header'} = $part_header;
-            $_->{'part_size'}   = 1 + ( $end - $start );
+            $ARG->{'part_header'} = $part_header;
+            $ARG->{'part_size'}   = 1 + ( $end - $start );
             $content_size += length($part_header);
         } @ranges;
 
@@ -133,7 +134,7 @@ $session->{'watcher'}->{'download_handler'}->now;
 return 0;
 
 # ______________________________________________________________________________
-#\\LDMAQYPEZDZ4HD5Q54DW7ZXNDUAZFMBF7FGE6QUN7LI3HR5RWSH5C6S5ZTMRUX3YIP542OI4XUW3O
-# \\ GCNX2Q2M56N6UUXELGTI4LFSORUAJKI4NQ7MS33K5IAE42MPSLMN \\// C25519-BASE-32 //
-#  \\// EUQZXUEUO5YGYWOQTRCFG2PI445ZPLLNMMIGPBE7P32WWDFVCDI \\ CODE SIGNATURE \\
+#\\A7UJNC3AP5NFAKGJIUM47JH7QPV4IVLIDGNLZXDO2PM3JBOE5YVAQ5K5GKWEWLYZSTPQHVAOIDIJ4
+# \\ F3AOQVHUOYI6SEVGB2GMINB2PTNUH3YO5LBLWDPVRMXO25DC5HVK \\// C25519-BASE-32 //
+#  \\// SRUJ6MBZP273NAZAJ467VTXAV2GXAYGC3GNIRHHS7WXYGYNTOBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

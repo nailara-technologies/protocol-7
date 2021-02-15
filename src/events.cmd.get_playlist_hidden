@@ -8,16 +8,16 @@ my $reply_str = '';
 my %hidden;
 
 map {    # SHOW/HIDE
-    $hidden{$_} = 1
-        if ( not defined <events.stack.playlist>->{$_}->{'action'}->{'type'}
-        or <events.stack.playlist>->{$_}->{'action'}->{'type'} ne
+    $hidden{$ARG} = 1
+        if ( not defined <events.stack.playlist>->{$ARG}->{'action'}->{'type'}
+        or <events.stack.playlist>->{$ARG}->{'action'}->{'type'} ne
         'playlist_exclusive_entry' )
-        and <events.stack.playlist>->{$_}->{'visibility'} < 1;
+        and <events.stack.playlist>->{$ARG}->{'visibility'} < 1;
     }
     keys %{<events.stack.playlist>};
 
 map {    # EXCLUSIVE
-    my $action = <events.setup>->{$_}->{'action'};
+    my $action = <events.setup>->{$ARG}->{'action'};
     if (    defined $action
         and defined $action->{'type'}
         and $action->{'type'} eq 'playlist_exclusive_entry' ) {
@@ -30,12 +30,12 @@ map {    # EXCLUSIVE
     }
     keys %{<events.setup>};
 
-map { $reply_str .= "$_\n" } keys %hidden;
+map { $reply_str .= "$ARG\n" } keys %hidden;
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\ED2YG3CQGRDQSTWM3I6YPVNKZOXELIX62Q656CMB4MQ3THE5CF3YFYLIQVDLILBRRZKHELIZNER22
-# \\ ABQIFQBVZ5KAFQL44C4CPTOJS2SYJ3FQJBY2MVWCH7GQXNAMBLW7 \\// C25519-BASE-32 //
-#  \\// F7F4H5OFRPIK3IQWODPMZMTLMEMHZ3MNGZTKDLCRW6KC25FPQAI \\ CODE SIGNATURE \\
+#\\6ED2PC7POF4Y7SQZYR24HTIS3KO4Z3FMXVSLKJX7YMVGDAO77LKDRBDJMJ6N33UM3KVB36RROZC4K
+# \\ V3C5ENQZKL2Z6F2Y4WMHBDSSWWV5LZW3OSDQDDSG2FCFZQXOWN3H \\// C25519-BASE-32 //
+#  \\// HDIN5DRVFTE6K75ZJ5AI37BXROM3RX2ZXD4YGJLENONIIEQAYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -11,7 +11,7 @@ if ( !keys %{<system.process.wait_gone>} ) {
     return;
 }
 
-my %pids_gone = map { $_ => 1 } keys %{<system.process.wait_gone>};
+my %pids_gone = map { $ARG => 1 } keys %{<system.process.wait_gone>};
 
 foreach my $p ( @{ <system.process.pt>->table } ) {
     my $pid = $p->pid;
@@ -19,8 +19,8 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
 }
 
 map {
-    my $callback = delete <system.process.wait_gone>->{$_};
-    $code{$callback}->($_)
+    my $callback = delete <system.process.wait_gone>->{$ARG};
+    $code{$callback}->($ARG)
         if defined $code{$callback} and ref( $code{$callback} ) eq 'CODE';
 } keys %pids_gone;
 
@@ -30,7 +30,7 @@ if ( !keys %{<system.process.wait_gone>} ) {
 }
 
 # ______________________________________________________________________________
-#\\LJ3GPCYRUX7S5QFVK3SXUQWUWPSMURCANSIS44JY6ZVRUYNWLF5SWNWUKBHKUOP7YI6WX2QMPWYBQ
-# \\ HD56OGVVX5VV3QS7TU3FZG7BVQ7COS7NMB3OQJZJWXJ4M25SG3X6 \\// C25519-BASE-32 //
-#  \\// 63JSAAPCN6XJEN7T52KQROCAZX6DHIQDEQMN7CBFUZZ2LTSNAAI \\ CODE SIGNATURE \\
+#\\UKCQ7NS3TMSAIOLS42JBV5RO3OBLPQWCLBEZ52CY5OODP3H7ANM7O4TG4EPVD5W5RV2PE7GBUCWVA
+# \\ V2YW5RRSE55JQAOUUALMHTETGUECXTBWXJD6UPH533VUMA3T3AGE \\// C25519-BASE-32 //
+#  \\// EPLBYCEGL73RKF4QQSV6VGEGWKKZZ7KRZ4RJLSBWF67YFHVPCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

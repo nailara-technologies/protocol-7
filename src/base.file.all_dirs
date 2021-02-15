@@ -20,7 +20,7 @@ if ( -d $path ) {
     my $dir_fh;
     $path =~ s/\/+$//;
     if ( !opendir( $dir_fh, $path ) ) {
-        <[base.log]>->( 0, "can not open directory '$path' [$!]" );
+        <[base.log]>->( 0, "can not open directory '$path' [$OS_ERROR]" );
         return undef;
     }
     foreach my $entry ( sort( readdir($dir_fh) ) ) {
@@ -34,7 +34,7 @@ if ( -d $path ) {
 return $result_aref if !$recursion_entered;
 
 # ______________________________________________________________________________
-#\\4H2ZTOU4CYTSLHODR76FDH2UTO23RVQ53K2G6YVWJTPHBZBCWGGCIJJYPFLIZVHPKILKIAAPZWARC
-# \\ ELKESE46B5OAQR6KDOR5NXEU67I23QUMBL2YT667MCAI4AK6LLCW \\// C25519-BASE-32 //
-#  \\// QLDFE4SGZZCVAG7XCDGLD6S2YLDUAUKYBEJZ6IBIF6LELXU2MBI \\ CODE SIGNATURE \\
+#\\3X5TERM57PI7LQ75HGZVCDPTJKRG2H36UGVFDNQYMGYY6HSBHAM6OKKB7GPH4TKTSDC665GZO6MU2
+# \\ HTPE4GNT5X2TKTM4TTN72NTUYI3QFOHIVWN67KXNLGI3JLAUAJLJ \\// C25519-BASE-32 //
+#  \\// 3T3MDVCGFYZXPIJWZVGNGJJOVGBHH32RY7TXKKSMJU5QABUZ2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

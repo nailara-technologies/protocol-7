@@ -10,7 +10,8 @@ die "load_start_setup: no start setup specified"
     if not defined $config_to_load;
 
 my $start_setup_pattern
-    = join( ' ', map { $base_file_name . $_ } split( /\s+/, $config_to_load ) );
+    = join( ' ',
+    map { $base_file_name . $ARG } split( /\s+/, $config_to_load ) );
 
 return <[base.log]>->( 0, "<!> config '$start_setup_pattern' not found <!>" )
     if !-f "$cfg_root_path/$start_setup_pattern";
@@ -28,7 +29,7 @@ return <[base.log]>->( 0, "<!> config '$start_setup_pattern' is empty <!>" )
 push( @{<nroot.cfg_data.start_setup>}, $start_setup_data );
 
 # ______________________________________________________________________________
-#\\6NQETDP6UQGYEA3KHP3TILRTU5HLABRNQX645QL5WZOR56OYXEMH4HIG266JYEGWGRPYY4JLHHY22
-# \\ CSZQ5K2WPQ3K2DP34IOYVTENTADUD67MZWAIWP57SPM2KFZZK3HQ \\// C25519-BASE-32 //
-#  \\// SKSWIQAMMYWDFU4GAN5OIHLREMVFTHKNGQ7JEWMSBZEVERRLCCQ \\ CODE SIGNATURE \\
+#\\6BITKXUXITUMM3UOHD4G64RMSCKFIDYWUQIZZNTDJAG7WJTR7TGEHLC3XYTYZCUZ2LKBDMKPT3VYY
+# \\ J4ODHROGZMKQOXYS4A6P3RTSFEA5W4MCV5K6F3KIBHAUXMH7PGL3 \\// C25519-BASE-32 //
+#  \\// HF2XOJI7CXW3MM2KOZ5YIZBJHRV3AIVG76ELEB6MRVLUZ56JQBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

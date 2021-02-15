@@ -92,7 +92,7 @@ if ( !<mpv.audio_only> ) {
     }
 } else {
     $mpv_params = <mpv.audio_params>;
-    map { <[base.disable_command]>->($_) }
+    map { <[base.disable_command]>->($ARG) }
         ( 'zoom', 'align-x', 'align-y', 'change_subname' );
 }
 
@@ -132,7 +132,7 @@ if (   not defined <mpv.pid>
     or !<mpv.pid>
     or $wait_res == <mpv.pid>
     or $wait_res < 0 ) {
-    <[base.log]>->( 0, "[!] unable to start mpv [$@]" );
+    <[base.log]>->( 0, "[!] unable to start mpv [$EVAL_ERROR]" );
     <[mpv.handler.error_output]>;
     <[mpv.callback.abort_startup]>;    # <-- exiting
 } else {
@@ -195,7 +195,7 @@ close( delete(<mpv.fh.stdin>) );    # input fd not required
 <[base.log]>->( 1, "player startup successful., =)" );
 
 # ______________________________________________________________________________
-#\\TEGKJS6KB7DBLMSWZZQ5JBJZVLAZ7SW3XVDWMZFORVOYGWCCHFZINUXZLARD6AFJI3UQVQXRRSYIQ
-# \\ J5GYPY7GUYEJJLAKRMBIVAVWSEUIUCUKDQ47MFAWAA5KKY74VHNY \\// C25519-BASE-32 //
-#  \\// RL4TQRSIXA54ZZCTTDHDY5WVKUQ2BVAQ5PEZWTLNQ2NPFKJQIBA \\ CODE SIGNATURE \\
+#\\EQG3BBL2UTG7D5YVWMTFMJTDLLWQJO4DBKKLSSQCEX4RPITOKPLLCK6KBWFCW4M7KJUFY5YSWFYBI
+# \\ OGK6G6U2NMWGFQKZBQOF3XB6K4LSUPVF5GDGYAAKL6DWUQYCKYFP \\// C25519-BASE-32 //
+#  \\// HVZFDOA2IRXKOCZ2I5ZLEY7LSW66FMWRJXIG4VK65DWYE253MCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

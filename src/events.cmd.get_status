@@ -20,10 +20,13 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         and $current_time > <events.unix.timetable>->{$ev_id}->{'start'};
 }
 
-return { 'mode' => 'data', 'data' => join( '', map {"$_\n"} @events_active ) }
+return {
+    'mode' => 'data',
+    'data' => join( '', map {"$ARG\n"} @events_active )
+    }
 
 # ______________________________________________________________________________
-#\\VXDN4LVDVOHPHFMJYOGEA3RYPJML2J7Y4JBZ7WERXTZOZDHHWSAGU43QVO4QWOB4OJBSBL4CVDFNQ
-# \\ IIUFEPT6OFZQXANPLS3AHTKA5GHFZBWOX5JAOEZ364MSUQOKPHDH \\// C25519-BASE-32 //
-#  \\// F5JDHWFPPK3DUQ4INPVEJC42AUVLJ3PWR4NHICMTFNJAZBUCKAY \\ CODE SIGNATURE \\
+#\\JLFST3YVNIELZQGRKQQBI3GQKZSUFCSDBF23RGECUBYXB4DN5RKML33OROR24UR4M5P44YLOKGU5A
+# \\ IU2F5SUTBLFFDJ4EU3DUNDUGSOFYRG25VVQRGG2LILDZPFWBFY6I \\// C25519-BASE-32 //
+#  \\// V7BEQCEMMC43MNPUWVYAVGGZCJQOEOVXOZIOYYVLTTGBKCJXOAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

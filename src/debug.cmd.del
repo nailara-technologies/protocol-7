@@ -27,7 +27,7 @@ my $deleted    = 0;
 my $parent_ref = <[base.resolve_key_parent]>->($del_key);
 
 my @del_key_chain = split m|\.|, $_del_key;
-map { $_ =~ s|\0|.|g } @del_key_chain;
+map { $ARG =~ s|\0|.|g } @del_key_chain;
 
 while ( my $sub_key = pop(@del_key_chain) ) {
     $deleted++ if !$deleted and delete $parent_ref->{$sub_key};
@@ -51,7 +51,7 @@ if ($deleted) {
 }
 
 # ______________________________________________________________________________
-#\\LC3R7APOPBF246SBHY3D3FN4IQIEXNOLPUXTISY7CHFRQK4I52POKDESVZIIXFALVBZ5HJMIDMQ4C
-# \\ RS5JMR4CDXDWFPUXYBK6OTBUEZQRZ25I6DUYYDJYFVMUTIUPUVND \\// C25519-BASE-32 //
-#  \\// QKRMY4ZJHSYHZQNHUTFCPPZHQMOBKNS6XUTNLPXFASDFWB6XMCQ \\ CODE SIGNATURE \\
+#\\55ALBDNPAMMN4OJAZMKYVBMEYAR4DS5NZCRCVJF2LGWSKIGWWALMK45ZECMLAWHQDTYF5TX7FOQGY
+# \\ NZCSRM65ZW47L47UTSPOKWCPENVNSLFG5U26IBLXLY24K6ISGMC3 \\// C25519-BASE-32 //
+#  \\// Y4ILWA6Z62FNHCHXE3OI52UNPAEW3ZWKN2AHNCPI2UPEFEVFACQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -32,17 +32,19 @@ return 1
     or $config_href->{'disabled'} =~ /^\s+$/ );
 
 # agents.diabled takes precedence before agents.enabled!
-map { return 0 if $_ eq $agent_name } split( /\s+/, $config_href->{'disabled'} )
+map { return 0 if $ARG eq $agent_name }
+    split( /\s+/, $config_href->{'disabled'} )
     if defined $config_href->{'disabled'};
 
 return 1 if not defined $config_href->{'enabled'};
 
 # if agents.enabled is present, all agents not listed there count as disabled!
-map { return 1 if $_ eq $agent_name } split( /\s+/, $config_href->{'enabled'} );
+map { return 1 if $ARG eq $agent_name }
+    split( /\s+/, $config_href->{'enabled'} );
 return 0;
 
 # ______________________________________________________________________________
-#\\54QRF3EUVMMC2FJV5VRDIKYL2M5QM2O36HCVKHIPMF5PDW6XYWKANOCFG5DQKQ2GPK7MNK24IBTFS
-# \\ TA6UU4CGLJPSIHO4JYHBKBPRIYBHHUZFG73FW2D2A3BEVE76SNLO \\// C25519-BASE-32 //
-#  \\// YAIW6C5CHCHY7VJE2K3LYUYXEIHRYW5PJP24JEDYX5NKYDTQMBY \\ CODE SIGNATURE \\
+#\\JA22SK27PDQYJOH37LCRYU5H245DZ7KZTG4VNQDTPVB232DM3MTYW3DQTMTQQJEXKWWDME22IIM3M
+# \\ L7WTJ5GHIEUDP4IWTCMTJTXIIZIBIPBN5Z76KSW7IFYKE7QKUQ6L \\// C25519-BASE-32 //
+#  \\// TGPS4EWYKGQVYI6QS6TVX3GXFKXQYDXR7NIDFCX5EY4BZ35HIBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

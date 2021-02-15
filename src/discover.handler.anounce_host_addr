@@ -20,10 +20,10 @@ my $ifaces   = Net::Ifconfig::Wrapper::Ifconfig('list'); # LLL -> Net::Interface
 my $payload_str = "HOST[ $hostname ] = {\n";
 my $start_len   = length($payload_str);
 map {
-    foreach my $ip_addr ( keys( %{ $ifaces->{$_}->{'inet'} } ) ) {
+    foreach my $ip_addr ( keys( %{ $ifaces->{$ARG}->{'inet'} } ) ) {
 
         # LLL: make exclusion patterns configurable!
-        next if $_ !~ /^(en|\wth|wl)/;    # <- skipping other interfaces!
+        next if $ARG !~ /^(en|\wth|wl)/;    # <- skipping other interfaces!
 
         $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
 
@@ -43,13 +43,13 @@ map {
 
         # LLL: make prio patterns configurable!
         my $iface_prio = 0;
-        $iface_prio-- if $_ =~ /^(e(th|n))/;
-        $iface_prio++ if $_ =~ /^(ath|wl(p|an))/;
+        $iface_prio-- if $ARG =~ /^(e(th|n))/;
+        $iface_prio++ if $ARG =~ /^(ath|wl(p|an))/;
 
         $ifconfig{ <[base.gen_id]>->( \%ifconfig ) } = {
             'ip'         => $ip_addr,
-            'iface'      => $_,
-            'mac'        => $ifaces->{$_}->{'ether'},
+            'iface'      => $ARG,
+            'mac'        => $ifaces->{$ARG}->{'ether'},
             'is_local'   => $is_local,
             'iface_prio' => $iface_prio
         };
@@ -68,11 +68,11 @@ foreach my $id (
     }
     sort {
         int(join( '',
-                map { sprintf "%03d", $_ } split /\./,
+                map { sprintf "%03d", $ARG } split /\./,
                 $ifconfig{$a}{'ip'} )
         ) <=> int(
             join( '',
-                map { sprintf "%03d", $_ } split /\./,
+                map { sprintf "%03d", $ARG } split /\./,
                 $ifconfig{$b}{'ip'} )
         )
     }
@@ -110,7 +110,7 @@ my $payload_len = length($payload_str);
     > <discover.announce_interval.maximum>;
 
 # ______________________________________________________________________________
-#\\ERRYTFEGKPMJGZXCMZC3HDPZFKXICQZ6PDDLABN67QR7DEYBYAMB3JWP5ORSDMMZ6FELGJ44BVXUE
-# \\ G4XVBJXDTTFISTGRLP6NX735YHCS3EZQKWYXZDZMXJP4PJPAMN7X \\// C25519-BASE-32 //
-#  \\// W6ZR2Z67FQ64MU5OUS64JHANQVQGYT3DIZZVBSVNIYCCAZHJKDY \\ CODE SIGNATURE \\
+#\\UNEYKPXIXOAM67NR55KKSDN6NYC7I6CPVGDHRXTBQQRUEKUUVLVSM5UHR2BB7CED4TBG6R26EGEVG
+# \\ ZN3CPH6O33B27VKFKK33KHKFYWVNN6E6VZO4S2D3Y7MA66VFVKR3 \\// C25519-BASE-32 //
+#  \\// OTCCOTYQ7CMI4YN2UCH4CT4LLFJHEH7HKJIP37SYWTSNZ34YYBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

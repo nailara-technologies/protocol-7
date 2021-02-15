@@ -12,8 +12,9 @@ if ( defined $setup_name ) {
 } else {
     my $dir_fh;
     <[base.log]>->( 1, "no specific rule file configured, loading all .," );
-    opendir( $dir_fh, <system.conf_path> ) or die "unable to open conf dir: $!";
-    map { push( @rule_files, $_ ) if $_ =~ /^conf\.udev_rules\..+$/ }
+    opendir( $dir_fh, <system.conf_path> )
+        or die "unable to open conf dir: $OS_ERROR";
+    map { push( @rule_files, $ARG ) if $ARG =~ /^conf\.udev_rules\..+$/ }
         readdir($dir_fh);
     closedir($dir_fh);
 }
@@ -27,7 +28,7 @@ foreach my $file (@rule_files) {
 }
 
 # ______________________________________________________________________________
-#\\DRTRM3QPSZ3YSLCVPGJX765NNW6PPA3XVTNLXZCGCMVE3XKIJCV3ULTHJJHQREMHZGD4URW7PJHPE
-# \\ 6VCYYJ6FOZTUUVQ576WGDNVHWFSZNIJDPQH5FH5YGVEKQJCQ4DGD \\// C25519-BASE-32 //
-#  \\// 7ZXF4AYMWRDS5OE72XZYIMJGF5WKOWVHONKJBZ227OIHMNJAQBA \\ CODE SIGNATURE \\
+#\\BUDSB4XATVDCD45KQFMVUB3XHWBEXQ57HALPL6PUZCJ4KBRNKYPU3V7DS4S2VX4Z67GEIXE4ID4QW
+# \\ WA7R7GZ5HCV5FNE5YGPZIVN47CZ3W5RDUN24PUFCHKX67QJ4VY3G \\// C25519-BASE-32 //
+#  \\// HNEKXWBQV7IVYO3AISZYYXWR5R2UYOBEUW6PA3WZIGONL45ZIAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

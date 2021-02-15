@@ -6,14 +6,14 @@
 
 # sub daemonize {
 
-chdir '/' or die "Can't chdir to /: $!";
-open STDIN, '/dev/null' or die "Can't read /dev/null: $!";
+chdir '/' or die "Can't chdir to /: $OS_ERROR";
+open STDIN, '/dev/null' or die "Can't read /dev/null: $OS_ERROR";
 open STDOUT, '>/dev/null'
-    or die "Can't write to /dev/null: $!";
-defined( my $pid = fork ) or die "Can't fork: $!";
+    or die "Can't write to /dev/null: $OS_ERROR";
+defined( my $pid = fork ) or die "Can't fork: $OS_ERROR";
 exit if $pid;
-POSIX::setsid() or die "setsid() failed: $!";
-open STDERR, '>&STDOUT' or die "Can't dup stdout: $!";
+POSIX::setsid() or die "setsid() failed: $OS_ERROR";
+open STDERR, '>&STDOUT' or die "Can't dup stdout: $OS_ERROR";
 
 IO::AIO::reinit();    # <- makes base.s_read() and base.s_write() work again...
 
@@ -29,7 +29,7 @@ IO::AIO::reinit();    # <- makes base.s_read() and base.s_write() work again...
 # }
 
 # ______________________________________________________________________________
-#\\B5G44VOF4WOA4BFY32N5RENIV6DBP7LHSHSE3ZL34FV6IC6H43HCB2WARYWSISNRYXY722BNMLNIG
-# \\ LUF7WKKR2OIXNBPWLXFXZ2A2GGMN3SDUQANHBWHFEQR4ZSYXNW5L \\// C25519-BASE-32 //
-#  \\// F247JBJKYDQOSOCFSWNURC4Z7GC23HUYBY5DUNETUX7RCE6JECQ \\ CODE SIGNATURE \\
+#\\FHTGROMVLOXQ3PKEBFCBM55YSG5KM6AVEONB6OEEUFTXYPDWXKVTDMXAQDOBY4RVTPRS2CSLDU33S
+# \\ URYVDDTDPNYAGSFNRTTKKD62HWBZQZZ2ZNPVFEKQRORQIGOZTJUR \\// C25519-BASE-32 //
+#  \\// FLFGFIODI6BHGZSZMTM446LK6TCANHWV5QVAMI7GR76LD3WTUCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -9,7 +9,7 @@ my $cache_timeout = <pdf.html.cache_timeout> * 3600 * 24;
 
 <[base.log]>->( 1, "checking cache directory time-stamps.," );
 
-opendir( my $dir_fh, $cache_dir ) or die "$cache_dir: $!";
+opendir( my $dir_fh, $cache_dir ) or die "$cache_dir: $OS_ERROR";
 foreach my $subdir ( readdir($dir_fh) ) {
     next if $subdir =~ /^\./;
     next if !-f "$cache_dir/$subdir/.last_used";
@@ -40,7 +40,7 @@ my $y = $remove_count == 1 ? 'y' : 'ies';
 <[base.log]>->( 1, ": $remove_count director$y removed." );
 
 # ______________________________________________________________________________
-#\\YGL3XWHNAYQ2NLOHEAOII7TYKP7TWPEWSWETTBFVRWJ55X7V7P5U35CRSCT3XPFET5VSUXTR4IP3Y
-# \\ W36ZFRCZPQBBSPSPZ4GYSWZS4NTGFBYKPQSE7PXUJYXVYZEG4MUF \\// C25519-BASE-32 //
-#  \\// 63QUECM5FOA35LE3E6MU66PX4ZOB5LT7LNWQAG254CSHASVEGCQ \\ CODE SIGNATURE \\
+#\\HXT4KTHMFXT2C4PTKGPLIST2FC76PEAA7DYTF357YX762MEZBRM4OUQJUCA4CNYUN3ZHEFPQ3RXHS
+# \\ FSXGPNYRE3EXUSLPAP44RP2AB24RGVIQDFNAZBYY77D5SFWXIFBA \\// C25519-BASE-32 //
+#  \\// I6IUMABNOK2K4YC4TO2R5ZL32UQ6J6CQUC7TMX3VXL5T3EQDWAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

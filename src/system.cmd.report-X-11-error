@@ -15,12 +15,12 @@ return {
     }
     if $core_user !~ $allowed_users;
 
-map { <[base.log]>->( 0, $_ ) } ( "<!> X-11 protocol error <!>", ' :' );
+map { <[base.log]>->( 0, $ARG ) } ( "<!> X-11 protocol error <!>", ' :' );
 
 local $Text::Wrap::columns   = 57;
 local $Text::Wrap::separator = "\n";
 ( my $wrapped_err_msg = wrap( ' :  ', ' :  ', $err_msg ) ) =~ s|( ')?$| '|;
-map { <[base.log]>->( 0, $_ ) } ( split( m|\n+|, $wrapped_err_msg ), ' :' );
+map { <[base.log]>->( 0, $ARG ) } ( split( m|\n+|, $wrapped_err_msg ), ' :' );
 
 my $reply_message = 'acknowledged, ';
 my $does_reboot   = <[system.xcrash_hostreboot_trigger]>;
@@ -33,7 +33,7 @@ $reply_message
 return { 'mode' => 'ack', 'data' => $reply_message }
 
 # ______________________________________________________________________________
-#\\HUKDEFHT3IP4RWIXOH6K7BE2O3SAIL55ARWBRJW4KI45JDT3PWLNJ2PXWH7CSUSWX47ZTOTVDI542
-# \\ Y4SRTURTQLCMN5V2OOYW2WC4KB4IDGPZ7EPENDHUFPRXB37TLDO3 \\// C25519-BASE-32 //
-#  \\// LG46S32TOQVKXGPEQRGRDASLQMJWXCK2WIGB2T3Q6LCKZBIDCBY \\ CODE SIGNATURE \\
+#\\KGQVT7X34FAA7UQDMGWQQJUWGPHT4LGJKIZKR4AJC5S4EUSK77MV3FYSKDXMEGZZOQGFGAHKUZXOE
+# \\ GENALUWZ3IMAVRCSCS3H3GTE6PCD4WYFCSZ7WQ6GT2MNZDZG5I3U \\// C25519-BASE-32 //
+#  \\// F2F4QUQHROJLIDMLQEM3MPO4X54G5ITV4YNSWSFSMAUUPNTTYAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -5,7 +5,7 @@
 my $user = shift // $ENV{'HOME'} // $ENV{'LOGDIR'} // '';
 
 if ( $user eq '' ) {
-    $user = getpwuid($>);    # current user(id)
+    $user = getpwuid($EUID);    # current user(id)
 } elsif ( $user =~ /^\d+$/ ) {
     $user = getpwuid($user);    # given by uid
 }    # else provided as name!
@@ -21,7 +21,7 @@ if ( length($homedir) ) {
 return $homedir;
 
 # ______________________________________________________________________________
-#\\2HXXCVQ6ZPDNDLGLPTOZV3TEAR6B2WTDRPVDFJWB3QSMERZ2B5T6U23GZEJVFG3QAQMHPO7E2EKYM
-# \\ I6WUXVDXRO3KST5AS6E3FREJPCGHAAUNEIPZHKNKDORU7T27CZKD \\// C25519-BASE-32 //
-#  \\// VTRBJTNEHQ3L6WZS6JRBVSAEAWOSA5XWD5Y5BYZ2LWAMTSAN6DY \\ CODE SIGNATURE \\
+#\\TTHPR2ZATHEOGMQW4FW55ZHWXULJ3QCL7HWXNHQ2MVDWMLYOBX74TGXEPGTCZ6RBT37KNVMYZ2PA2
+# \\ VBZ7UHYI6ZP252GHZ7FXKM22CJ5IQRELIYDHBCCFN2YZGPXW6UEZ \\// C25519-BASE-32 //
+#  \\// HT2U7OILK42J5IMIBBU7EQPKI5NN3UYSTYMJ6O3TB7EULU4LUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

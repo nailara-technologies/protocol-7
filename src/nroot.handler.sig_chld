@@ -3,7 +3,7 @@
 # name  = nroot.handler.sig_chld
 
 <[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
-local ( $!, $? );
+local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     my $instance_id;
@@ -20,13 +20,13 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     # determine exit status
     my $log_level = 2;
-    my $e_val     = $? >> 8;
-    my $e_sig     = $? & 127;
+    my $e_val     = $CHILD_ERROR >> 8;
+    my $e_sig     = $CHILD_ERROR & 127;
     my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
     $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
-    my $e_dmp = $? & 128 ? ' [ with core dump ]' : '';
+    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
     $log_level = 1 if $e_val;
-    $log_level = 0 if $? & 128;
+    $log_level = 0 if $CHILD_ERROR & 128;
     my $agent_str = defined $agent_name ? "< $agent_name > " : '';
     <[base.log]>->(
         $log_level,
@@ -66,10 +66,12 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
                 : '';
             my $file_name
                 = "/tmp/.nailara.browser.crash_pid$subname_b32";    # <<< ! >>>
-            <[file.put]>->( $file_name, "$pid\n" ) or warn("$file_name: $!");
-            chmod( 0644, $file_name ) or warn("$file_name: $!");
+            <[file.put]>->( $file_name, "$pid\n" )
+                or warn("$file_name: $OS_ERROR");
+            chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
             my @pwn = getpwnam($browser_uname);
-            chown( $pwn[2], $pwn[3], $file_name ) or warn("$file_name: $!");
+            chown( $pwn[2], $pwn[3], $file_name )
+                or warn("$file_name: $OS_ERROR");
         }
 
         my $next_status = (
@@ -81,7 +83,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         $next_status = 'restart' if $old_status eq 'restart';
 
         if ( $old_status eq 'online' and defined <nroot.ondemand_agents> ) {
-            map { $next_status = 'offline' if $_ eq $agent_name }
+            map { $next_status = 'offline' if $ARG eq $agent_name }
                 @{<nroot.ondemand_agents>};
         }
 
@@ -108,7 +110,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 # ______________________________________________________________________________
-#\\EEE7XSPKL26ZQEJC6GLZZUBDZTMMNN5LZDJILCKJNRT5KDZYA5SXLMV7EC32AMHFHGYIFOU4BSAXE
-# \\ WQZZYXDRIBM6ZQPHUJP2L3TNXN7J3UYZYDZKCKKEKHMSYKRTTAQ6 \\// C25519-BASE-32 //
-#  \\// LSS6HSLQLEF462TVO4M7W6ZFTZOYXFTAX6GYYYH27ZXY4PJPODQ \\ CODE SIGNATURE \\
+#\\AIOHFGVEQEPE3ELW5XYJGPK35IZ7PPRPOLZHULB7RJEK6TM77EQJ2CUT4SSLMAGE7HBDFXTFUXROE
+# \\ BO5GMIBYYOL2T4O3WUYB4DMGPKDWPJJOZ7LOVLJHVZP3C7BZJVXG \\// C25519-BASE-32 //
+#  \\// 7DORHKCTYUQAQTE7O5USLGAXPCEKOM22A64NUIK2OV5APJOIAAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

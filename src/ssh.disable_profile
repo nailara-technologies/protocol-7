@@ -12,14 +12,14 @@ return <[base.log]>->( 0, "there is no active profile named '$profile_name'" )
 <ssh.status.profiles>->{$profile_name} = 'disabled';
 
 foreach my $link ( keys %{ <ssh.profiles>->{$profile_name} } ) {
-    map { <[ssh.connection.stop]>->($_) }
+    map { <[ssh.connection.stop]>->($ARG) }
         @{ <ssh.profiles>->{$profile_name}->{$link} };
 }
 
 delete <ssh.profiles>->{$profile_name};
 
 # ______________________________________________________________________________
-#\\LPYMY2ZERKPG7EFB4F74MEZLQ7AFHQDAMDGNF7QOOZKFS3AP534THKSA7WG5BEVZNSQOQ33DOCQFU
-# \\ 6BTOWMYXRAX6Q3P3TIPDTHIW7IUEM35TUIRQ5TQV75XJ6P4HS7UE \\// C25519-BASE-32 //
-#  \\// 7RJMMS6QFQGDVJDPYUQNWNPYUT3B6FNGVILWCGTQFMOQ5XF7AAY \\ CODE SIGNATURE \\
+#\\KWSLRMNSTI6FPAUSCWTCMNSDILNUUG2VUT65DHNYW3BEG7T54CDHFWO2ZOUIQDJUPGFXD5SN4E6WM
+# \\ JCOVXK6BZYYLPG4ZNDDVBOR5WP3LDOQP5DVFVF347I4GCR46SIOW \\// C25519-BASE-32 //
+#  \\// UQISSWJYCPSWHODMOABI2AS7QJS2MBFCLRDPWSOKRP5JPED4CAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
