@@ -13,10 +13,16 @@ eval {
     }
 };
 
-return $perl_path;
+if ( not defined $perl_path ) {
+    warn 'failed to avquire perl bin path from Config module';
+} elsif ( $perl_path ne <system.perl_execname> ) {
+    warn "< security > \$Config{'perlpath'} and \$EXECUTABLE_NAME differ <<!>>";
+}
+
+return $perl_path // <system.perl_execname>;
 
 # ______________________________________________________________________________
-#\\5ZMRUKYGQQB7ZNTKLVG7XQ25HDTG4IMR4BWU36ETKZB7KBJD72XO2P76QBOGVKGYSJ2NPD2QNM6FQ
-# \\ HHCUIIOUUO2B27752PB45AKISHC4HVLW4DNKF4SC6CZXMRHMFPLV \\// C25519-BASE-32 //
-#  \\// BOOGYQFV5YMJAMDH723WDRQJ5P6TRD463KD3DF6G2CWJKFE52DY \\ CODE SIGNATURE \\
+#\\DU5DMSQ66OUWHGWAWNC22DGGDKZG7V24SDBIWJBNXJAKM2VNILDBPPTRX3LSRAUUM2O67EDAQNKK2
+# \\ EXJQZVDPBXDU3CVSRNXPFKMISUO7ECXBQMC5RFP5QKMNEOGMF5T7 \\// C25519-BASE-32 //
+#  \\// LDHRZ3C3R4JV37R4XLQJUADK7VJQM2TNELIHF7WWMBQHIDMHYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
