@@ -1,6 +1,6 @@
 # >:]
 
-# name  = nroot.agent.cmd.get_instance_ids
+# name  = nroot.agent.cmd.get-instance-ids
 # param = <name[s]>
 # descr = return instance ids for matching agent names
 
@@ -11,14 +11,14 @@ return { 'mode' => 'nak', 'data' => 'expected agent name[s]' }
 my @instance_ids;
 my $not_found   = 0;
 my $setup_found = 0;
-my $failed_name;
+my $not_found_name;
 foreach my $param_str ( split / +/, $params ) {
     my $agent_name = $param_str;
     my $agent_subname;
     $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
     my $agent_id = <[agent.get_id]>->($agent_name);
     if ( defined $agent_id ) { $setup_found++ }
-    else { $not_found++; $failed_name //= $agent_name; next }
+    else { $not_found++; $not_found_name //= $agent_name; next }
     foreach my $iid ( keys %{<nroot.agent.instance>} ) {
         next
             if defined $agent_subname
@@ -34,7 +34,7 @@ foreach my $param_str ( split / +/, $params ) {
 
 return {
     'mode' => 'nak',
-    'data' => "no agent '$failed_name' found in setup! (see 'list agents')"
+    'data' => "no agent '$not_found_name' found in setup [ see 'list agents' ]"
     }
     if !$setup_found and $not_found;
 
@@ -48,7 +48,7 @@ if (@instance_ids) {
 }
 
 # ______________________________________________________________________________
-#\\KYLCQCXCFMPXFG3X2T6YGFJPNE5EZYCZPAEM63GGCC57ZRIVNRNJ3CHUUA3DYAGEDDHI3IMO435IG
-# \\ DIHITG2RY55IBA353U5GOTLNH3KFWFED3242GVVB4DISUUNC3JDG \\// C25519-BASE-32 //
-#  \\// 54O2TY7CQWANQHX2K6SUFTWV6ALT3EP3VGJCC3VBQHH77XMLWBA \\ CODE SIGNATURE \\
+#\\4ZCLODWMQ6L2V52UBOXUUKJ5645KUZXONEIJGMTVPXMS2TV34RBBMW4WTZU4Y4N4S4V43TBQG267U
+# \\ DZBPU6WUG3EVSZ2I3CHDZ7YKVW73XJQESAM6ZRFMJG2WMBRTLO6F \\// C25519-BASE-32 //
+#  \\// MGL7JKEJZYEPPYVLEHXVJ3YCXTZT4JOEYCEKWINHNK7IQLLYOAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

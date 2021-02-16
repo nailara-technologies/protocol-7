@@ -14,7 +14,7 @@ my $stop_mode
     : 'manual';
 
 my @instance_ids;
-my $failed_name;
+my $not_found_name;
 my $not_found   = 0;
 my $setup_found = 0;
 foreach my $param_str ( split m| +|, $params ) {
@@ -31,7 +31,7 @@ foreach my $param_str ( split m| +|, $params ) {
         $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
         my $agent_id = <[agent.get_id]>->($agent_name);
         if ( defined $agent_id ) { $setup_found++ }
-        else { $not_found++; $failed_name //= $agent_name; next }
+        else { $not_found++; $not_found_name //= $agent_name; next }
         foreach my $iid ( keys %{<nroot.agent.instance>} ) {
             next
                 if defined $agent_subname
@@ -121,7 +121,7 @@ map { <[agent.change_status]>->( $ARG, 'shutdown' ) } @instance_ids;
 
 return {
     'mode' => 'nak',
-    'data' => "no agent '$failed_name' found in setup [ see 'list agents' ]"
+    'data' => "no agent '$not_found_name' found in setup [ see 'list agents' ]"
     }
     if !$setup_found and $not_found;
 
@@ -152,7 +152,7 @@ if ($count) {
 }
 
 # ______________________________________________________________________________
-#\\YPKGS45NL6CRM37E42SZTH2FIOMBP7ILWL6QRQ77VF5L2ZF6LYGUWSGRWJSF26TNPPYN435KBKPCS
-# \\ O7TNDKAYQBOBRKCRB577NCPGCFUU5X6NLIZUDDDYCDFNIZYHYAJ6 \\// C25519-BASE-32 //
-#  \\// XY5C5Q4UHLESDPOBG5IOB5LXQH7EEBQWF2SW62DE5RFCQDJTEDI \\ CODE SIGNATURE \\
+#\\7QPAPUR4MWRYEQ7F5V3Y5WHF63BQSTJRJ2PB6PUZJWZE3LDO2C2RGRAYMJTE375H5HT5DULGMX5VA
+# \\ 53DQDMFTTVEFWONFTHHBC25PUG6NGXKRYHV3B45ESG4USGZNKJIY \\// C25519-BASE-32 //
+#  \\// XJKQBRVBCVWGAIA4ESMJRBISA2TXYXTZDXJLA7CCKLV5JXDAIBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
