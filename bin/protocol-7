@@ -1,4 +1,4 @@
-#!/usr/bin/perl -C31
+#!/usr/bin/env -S perl -C31
 
 use v5.28.0;
 use strict;
@@ -197,9 +197,9 @@ sub prepare_subs {
             = File::Spec->rel2abs( canonpath($PROGRAM_NAME) )
             ;    # apparent exec [symlink]
         $data{'system'}{'root_path'} = abs_path( catdir( $bin_path, updir() ) );
-        $data{'system'}{'perl_version'} = $PERL_VERSION;       # < v5.6
-        $data{'system'}{'perl_version'} = sprintf( "%vd", $^V ) if defined $^V;
-        $data{'system'}{'perl_unicode'} = ${^UNICODE};
+        $data{'system'}{'perl_execname'} = $EXECUTABLE_NAME;
+        $data{'system'}{'perl_version'}  = $PERL_VERSION;
+        $data{'system'}{'perl_unicode'}  = ${^UNICODE};
         my $root_path = $data{'system'}{'root_path'};
         $data{'system'}{'code_path'} = catdir( $root_path, 'src' );
         $data{'system'}{'conf_path'} = catdir( $root_path, 'cfg' );
@@ -1389,7 +1389,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\XQX4YTEFEEAZ3W7W74HYKNF2SGGLZA2HFYM5XNWXDOFSVFCNBN4UTDWCFF6N5PCICNDXM6QBYF6ZG
-# \\ RJXVN7NXLZBJA3WBTKCNM62PJJ4VMM2DYRARCLTIH46V3SN7JX33 \\// C25519-BASE-32 //
-#  \\// 656Z5SWEWM32L3WJSAYFCACNZSF7GS5XLJQDS2VTMBBDGD3AEDQ \\ CODE SIGNATURE \\
+#\\7S7IIM35NUZCQ6D32WNWVW64OQUG2WD7CZUZTHIPJFIGTN2UG7EY6ERP3D4XBSMBYAYUAWVCBUXPO
+# \\ BFREQOW7ZKIMOD4ADONQTHYOXCPTJVTDVWGRAMP6VZADFCMMQHXB \\// C25519-BASE-32 //
+#  \\// VMSHFZMY3ZB2E22EI4KZVCNQKG2PL6RN33GNL6OM7WEJGW3KWDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
