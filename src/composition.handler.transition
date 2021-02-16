@@ -33,7 +33,7 @@ if ( not defined <composition.transition.status.waiting.stop>
         }
         if ( !$fade ) {    ## instance_id (no_fade) ##
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "core.nroot.get_instance_ids",
+                {   'command'   => "core.nroot.get-instance-ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -138,7 +138,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         : 0;    # <- 0 == failed, fade will be skipped!
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "core.nroot.get_instance_ids",
+        {   'command'   => "core.nroot.get-instance-ids",
             'call_args' => { 'args' => $agent },
             'reply'     => {
                 'handler' => 'composition.handler.transition',
@@ -282,7 +282,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 # ______________________________________________________________________________
-#\\JM6N75KJMO7YS2N7KJLC2YCSWQMAO45VU7LW4JOOMR6LCGU47S45IL7SZNS6E3CW6ILWAW3MJ3ADU
-# \\ 5DH77KWC7AQ663C3G4Q5R4H3K2HSZZZJMCWZN5ONZ3PTMB5AR4KV \\// C25519-BASE-32 //
-#  \\// 2E6DUNKFQYBVIGFYPSQDHQR62IWWR2IJRXGED2R7S3ZRN6Z2MDI \\ CODE SIGNATURE \\
+#\\SMY4V3X3ZHN5W4DOKYUCHO4DHEHCI6ITJLCP5MSOAIOO7TOOKRZBC6KXTTD43NPH5XKBEB6RGQWVW
+# \\ SWZ4DA6OX43F4DXNIYKWQ7JU54LHOIRGLTTO5HVCLYDRFI6LQKD3 \\// C25519-BASE-32 //
+#  \\// NETAWFUADWFDF52ICWJCVNHUFVUIARA3RMIGKFX4ESRVW3G3ACA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
