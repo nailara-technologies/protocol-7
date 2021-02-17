@@ -6,6 +6,8 @@
 my $source_version  = <protocol-7.source-version>;
 my $release_version = <protocol-7.release-version>;
 
+my $exclude_files = { 'bin/nlr' => 1 };    ## <-- expand as required., ###
+
 # my @copy_sources = (<system.code_path>);   # <-- use previous version path ..,
 
 my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
@@ -29,19 +31,26 @@ map {
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
-my @source_paths;
-
+my @all_files;
 foreach my $directory (@copy_sources) {
     my $src_path = catfile( $work_tree, $directory );
-    <[file.all_files]>->( $src_path, \@source_paths );
+    <[file.all_files]>->( $src_path, \@all_files );
 }
+
+my @source_paths
+    = grep { $ARG =~ s|^$work_tree/?||; not exists $exclude_files->{$ARG} }
+    grep { !m|/\.| } @all_files;
+
 my $file_count = scalar @source_paths;
 
-map { die "source file $ARG is not writable" if !-w $ARG } @source_paths;
+map {
+    <[log.error]>->("source file ./$ARG is not writable")
+        if not -w "$work_tree/$ARG"
+} @source_paths;
 
 <[base.log]>->( 1, "* updating $file_count source file signatures..," );
-foreach my $path_abs ( grep { !m|/\.| } @source_paths ) {
-    ( my $path_rel = $path_abs ) =~ s|^$work_tree/?||;
+foreach my $path_rel (@source_paths) {
+    my $path_abs = catfile( $work_tree, $path_rel );
 
     <[base.log]>->( 2, '.' );
     <[base.log]>->( 2, ":::[ $path_rel ]::" );
@@ -68,7 +77,7 @@ foreach my $path_abs ( grep { !m|/\.| } @source_paths ) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;    # log files changed..,
 
 # ______________________________________________________________________________
-#\\CLE7NIBERKOEZ7MJCYUESYM3ARKGD65V5SYUUBMPLQEWXQFVINXLDZCXZA4TPY7NFL7ML6K2L6KH4
-# \\ RRLTF5EENBSU7JZAV7ZSDCFUR5FHNCS2GDKQKHOQ7Z4B7TVPK5XG \\// C25519-BASE-32 //
-#  \\// G4C32EABHQG2ST5CW2UPFLGEBRQ5YDIIBZISQG764DSFTVHCCDQ \\ CODE SIGNATURE \\
+#\\ZFRSZYX37RANKFIICLF647MHS33GZAJ5K37V4LPFTCSGSOVGAR3UU3KS2BXMKYT6DRJH7JF5HGWIM
+# \\ NYFMAZNGLR7CHICUNKCI77WUQZZM22ZHGKOWX7NW7FSWSMWQWGKW \\// C25519-BASE-32 //
+#  \\// PBCIS23VGA45CBYZBVSDFLWPWY2IKXIAUC7ADZD4LPA7XS2TWAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -7,30 +7,43 @@ my $nlr_bin_path = <nroot.cfg.nlr_bin_path>;
 my $nlr_src_path = join( '/', <system.root_path>, <system.nlr_src_path> );
 return warn "[ nlr-bin ] $nlr_src_path not found <<!>>" if !-f $nlr_src_path;
 
-my $bin_checksum = '';
-my $src_checksum = <[digest.bmw.filesum]>->( 224, $nlr_src_path );
-chomp( $bin_checksum = eval { $bin_checksum = qx|$nlr_bin_path -dq| } // '' )
-    if -x $nlr_bin_path;
+my $current_result = 0;
+my $bin_checksum   = '';
+my $src_checksum   = <[digest.bmw.filesum]>->( 224, $nlr_src_path );
 
-if ( $src_checksum eq $bin_checksum ) {
+if ( <[nroot.nlr_compare_checksum]>->( $nlr_bin_path, $src_checksum ) ) {
     <[base.log]>->( $log_level, ": 'nlr' binary installed and current =)" );
     <[base.log]>->( 2, ":. src: $src_checksum" );
-    return 1;
+    $current_result = 1;
 } else {
+    my $root_path = <system.root_path>;
+    $nlr_bin_path = s|^$root_path/?|./|;
     my $result_msg
         = !length($bin_checksum)
-        ? "'nlr' binary is not installed [ /usr/local/bin/nlr ].,"
+        ? "'nlr' binary is not installed [ $nlr_bin_path ].,"
         : "'nlr' binary needs upgrade. [ bmw checksum differs ].,";
     <[base.log]>->( --$log_level, ": $result_msg" );
     <[base.log]>->( 2,            ":. src: $src_checksum" );
     <[base.log]>->( 2,            ":: bin: $bin_checksum" )
         if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
     <nroot.checksum.nlr_source> = $src_checksum;
-    return 0;
 }
 
+if ( not -x $nlr_bin_path ) {    ##  <-- automatic repair desired ? ###    [LLL]
+    map { <[base.log]>->( 0, $ARG ) } (
+        ':',
+        ": has no exec permission : $nlr_bin_path",
+        ": please repair manually :",    ## <-- security consideration ., ###
+        ':'
+    );
+}
+
+### check \ create symbolic link to /usr/local/bin/nlr ., ###              [LLL]
+
+return $current_result;
+
 # ______________________________________________________________________________
-#\\NRGZ7QWBMUDBKCTYGFNURQL7WRXCS2KBROMCXJ3X2ORKT6SGRLFPNEKDWQJZ42JAXIA55ROS7TUB6
-# \\ M3ANOJWHSHESJCYREFYERREH2QITDMJQK3LIA4TI7RXZ3ZTIV7OI \\// C25519-BASE-32 //
-#  \\// W3HT63K34WJJUMR7QQSCVULZSGOLMH7523LYW4JT4S37XGCJCAA \\ CODE SIGNATURE \\
+#\\TNJ6IZ37XROON5WNBYOBFNCP7KJIXCJBXHBT5FEG3A5IZIGJJOTUTNPQR2LPWMVR5YNB4ZRHCKGYI
+# \\ 545FGTGWU454FJ7WSYQ73XXFHD2ISCW62CASVDD6GAORO6YJT2X2 \\// C25519-BASE-32 //
+#  \\// 5M3ZJMT3ZA4YQQEOH62FNRWGZITXYT4Z25BUA53PHPY4VCZFWBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
