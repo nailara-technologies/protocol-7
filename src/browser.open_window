@@ -116,7 +116,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     return if <browser.shutting_down>;
     <browser.shutting_down> = 1;
 
-    my $url_file = '/tmp/.nailara.browser.' . $$;
+    my $url_file = '/var/tmp/.protocol-7.browser.' . $$;
     unlink($url_file) if -f $url_file;    # clean shutdown
 
     map { <browser.timer>->{$ARG}->cancel } keys %{<browser.timer>};
@@ -157,7 +157,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 # ______________________________________________________________________________
-#\\7PWRZ7K7Z4BSY7UIBA3IUBISARO3NFQIG6EEUI3FCYSMJ2R4F5OJM6KYSMNCAEAMHQQJ4KOQVAW5C
-# \\ D57WSPYZKLUHZ6YOYHBWF4PE7RJW7NZ4NDEIAGZ7KY66QHDPAFNV \\// C25519-BASE-32 //
-#  \\// OWZXKYKXASVJ3BWZ7ULKQZZHJ4NBNTV3XFIOTPVGGK2C4XQXUCQ \\ CODE SIGNATURE \\
+#\\U6SPFN3GA6ZLZ2MVXTEJZ3JRR5ABXPDOTB5SJUQJVQQN7PY6AJHX4PYCTXERG75UB7OZGUJSSZPIK
+# \\ GY64FUVBU62HESCWG4QEZSUMQIJ25VWNWDXDLRN5ZL7ELHR25HIF \\// C25519-BASE-32 //
+#  \\// G2W4J6MQ3T6PRPSFFDUW6CHTXHD3BW6EXFGE2IC32SUQYJQT4AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

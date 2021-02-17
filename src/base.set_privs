@@ -84,7 +84,8 @@ if ( !length( $user // '' ) ) {
                         = <system.agent.name> ne 'nroot'
                         ? sprintf "T.h.%s.%s.%d", <system.agent.name>, $user, $$
                         : sprintf "T.h.%s.XXXXXXXXXX", $user;
-                    $home_dir = <[base.temp_dir]>->( '/tmp/', $tdir_template );
+                    $home_dir
+                        = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
                     if ( -d $home_dir ) {
                         chown( $uid, $gid, $home_dir )
                             or warn "chown($uid,$gid,$home_dir): $OS_ERROR";
@@ -128,7 +129,7 @@ if ( !length( $user // '' ) ) {
 }
 
 # ______________________________________________________________________________
-#\\MXD4PCXQMXIVVRZSO3NOT57VOBSVBTN7PQQERVOFNIVBXBSFI27GTB5RRLY6IIYN6T4IDANPSKQWY
-# \\ SKCGSJNEKDIBC5LIQWASPCNCBH77F2GQVRSJMAEBM4EKMTZ6L4Y4 \\// C25519-BASE-32 //
-#  \\// TREDRIU7KXE3MYJQ2DU65VXL5EH3YEPGC67BP5COUHRKX5HIKCA \\ CODE SIGNATURE \\
+#\\AHINPEKKRYFB43FHN2LM3MMLVNHWCJXW2E2L5KD5STIJKKUUJDCL7MPX73Y2USNFLZPZIRHFNRD7G
+# \\ 4CCIOIGQITY2GGXZTK3N2ZKUC4GAWXJJSSLLLWYUG655IQTJQRCE \\// C25519-BASE-32 //
+#  \\// FFLH7ZLVSVWUBG7WDYWKDIAURGNAAXQ2ZV3RFI2QRS5XNXIGADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

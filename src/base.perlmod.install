@@ -42,8 +42,9 @@ if (@cpan_list) {
         if ( <system.host.os.dist.name> eq 'debian' ) {
             system( 'apt-get', '-fy', 'install', 'cpanminus' );
         } else {
-            qx( wget https://cpanmin.us -O /tmp/autoinst.cpanm );
-            system( '/tmp/autoinst.cpanm', '--self-upgrade' );  # LLL: CHECKSUM!
+            qx( wget https://cpanmin.us -O /var/tmp/autoinst.cpanm );
+            system( '/var/tmp/autoinst.cpanm', '--self-upgrade' )
+                ;    # LLL: CHECKSUM!
         }
     }
     my $s = @cpan_list > 1 ? 's' : '';
@@ -52,7 +53,7 @@ if (@cpan_list) {
 }
 
 # ______________________________________________________________________________
-#\\ESA6CDUJCOJMINZMRBOCDC3E4Y5SUG4ZG626CZO2CPQH6PVRDC2VTDGPY2H4DTYQ3CLX6HVGSJ6LG
-# \\ 53RQX7QVEMGI745XQDLQPUUHCOCLISS45I7SDKJHORXNL3YMX2QR \\// C25519-BASE-32 //
-#  \\// S4I36N4FMJ7KDNYW37J7EI7ZEWFHFIOEJTSPEJSL5YY6UH44SAA \\ CODE SIGNATURE \\
+#\\KGCTITATUSQVFN345MFHHR7AURL5VDITVEATXG2KZ5QWQKZ2SIC5GXFVH6IP7S6BWVZIZLJGPVE4G
+# \\ YCCU6THU4DLI7WGOKK3JLSWIU4JC5YKFN2Q76KTWF72VRVU4A67N \\// C25519-BASE-32 //
+#  \\// MN4BL4RCOWPMV2RUVQZAFOL423L7ZOH6JNZ7IPUJSNAX2IB2WDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -20,9 +20,9 @@ map {
         if $ARG->pid > 2
     }
     grep {
-    $ARG->ppid == 1             # parent is 'init' now
-        and $ARG->pgrp == $$    # process group was nroot agent
-        and $ARG->pid != $$     # and is not this process [nroot]
+    $ARG->ppid == 1               # parent is 'init'
+        and $ARG->pgrp == $GID    # process group was 'nroot' agent
+        and $ARG->pid != $PID     # and is not this process ['nroot']
         and not exists $own_children{ $ARG->pid }
         and ( not defined $ARG->exec
         or $ARG->exec ne
@@ -42,7 +42,7 @@ map {
 return sort keys %orphans;
 
 # ______________________________________________________________________________
-#\\MLZ4MGCXFG4W4IEEP4AKBCTYJEFUJRMQTETYXTDJY3CYIKE3HVSYU3KWD7QJ6XOCYSSMORTPY2TWM
-# \\ V3CR5WN3VPB44H43TKCGCM7QGD4RX3DPP6435WGYSAAWICN7NJI2 \\// C25519-BASE-32 //
-#  \\// GKTTBSP7OZIZBO7LFK2QOFANQWQ43HTTTEFOH5FCVK2EAYXNECA \\ CODE SIGNATURE \\
+#\\GOSZJL6S7MVAZPRBR4GMZKQ55435XXSGWSWKC3OE7M2WHSNOBPKRBLDE5H7TDXYGXIME7VQL2VKWC
+# \\ 7TZF3LUHJYJ6ZXTKPGQB6MVHCRX6PCIGU4KUXQYGPP56LKMDLH7U \\// C25519-BASE-32 //
+#  \\// PJ4B3YVB75ZXDZBMAFCIPHKCDHFC3FDMXAYERFFJEZAORPJI4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

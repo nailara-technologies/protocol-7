@@ -6,13 +6,13 @@
 
 <openbox.tmp_dir_init> //= 0;
 if ( not <openbox.tmp_dir_init> ) {
-    my $home_path = $ENV{'HOME'} = '/tmp/.openbox-' . $$;
+    my $home_path = $ENV{'HOME'} = '/var/tmp/.openbox-' . $$;
     my $log_dir   = "$home_path/.cache/openbox";
     make_path($log_dir)
         or die "cannot create directory '$log_dir' [ \l$OS_ERROR ]";
     ### ..hiding log file after creation., [ will remain empty ] ###
     map { remove_tree($ARG) if -d $ARG and ( -o $ARG or -w $ARG ) }
-        glob('/tmp/.openbox-*');
+        glob('/var/tmp/.openbox-*');
     <openbox.home_path>    = $home_path;
     <openbox.log_file>     = "$log_dir/openbox.log";
     <openbox.tmp_dir_init> = 1;
@@ -51,13 +51,13 @@ die "[!] openbox binary not found [!]\n"
 
 $SIG{'TERM'} = sub {
     map { remove_tree($ARG) if -d $ARG and ( -o $ARG or -w $ARG ) }
-        glob('/tmp/.openbox-*');
+        glob('/var/tmp/.openbox-*');
 };
 
 0;
 
 # ______________________________________________________________________________
-#\\MPP7P3D35Z4SMCEGSMHIOFSXPX3UQ4P4ILMUVP45QQ5XY5JIJ3FQGXZB6RG4DEYILR26JJWPM3VUC
-# \\ LOQM2JBF4XISEUCSALHWLKGSUAIU7BWK277ZLGV3DPA7Y5LPRLTX \\// C25519-BASE-32 //
-#  \\// MOWQYB3R6E5W3RUGG7QIX7FQ3EFNYFS7FKCNJO5RKIZSKHU5EDI \\ CODE SIGNATURE \\
+#\\RG4ZRZIVQAX6NBV7462WON7JOLCIVCM64YJ7NS5S5665EIMVIG7QY2K55PEILJWU6WB5PJA6S2YCC
+# \\ DM6MOAT6RN6NRQESS6HL5MXHV5SLL2F5HMRF2XVUKYFT25QGTDVF \\// C25519-BASE-32 //
+#  \\// M2I5AV6BIV5SXC5CPCVP2UHSHSD4Y6AO6GFGNMDBAJ643KOA2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
