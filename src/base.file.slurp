@@ -6,7 +6,7 @@
 
 my $filename   = abs_path(shift);
 my $target_ref = shift;              # optional scalar or array reference
-my @encoding   = ( shift // '' );    # optional encoding type ( i.e. ':raw' )
+my @encoding   = ( shift // '' );    # optional encoding type [ i.e. ':raw' ]
 if ( defined $target_ref and !length( ref($target_ref) ) ) {
     @encoding = ($target_ref);
     undef $target_ref;
@@ -22,7 +22,9 @@ if ( !-f $filename ) {
 }
 my $file_fh;
 if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
-    <[base.log]>->( 0, "file.slurp: unable to open '$filename' [$OS_ERROR]" );
+    <[base.log]>->(
+        0, "file.slurp: unable to open '$filename' [ \l$OS_ERROR ]"
+    );
     return undef;
 }
 my $ref_type = ref($target_ref);
@@ -36,14 +38,14 @@ if ( $ref_type eq 'SCALAR' ) {
     chomp(@$target_ref);
 
 } else {
-    <[log.error]>->("file.slurp: unsupported reference type '$ref_type'!");
+    warn "file.slurp: unsupported reference type '$ref_type'. <{C1}>";
     return undef;
 }
 
 return $target_ref;
 
 # ______________________________________________________________________________
-#\\PTHX46PPVRDHGDGA7X2GDVV7TKZLQWH452CT26MR2RXY2C734DS6G4ZI4QSU754ZA5R3SYDWBZ3CY
-# \\ LJTHVLE6A3OU6DEOTAYNWQBZGDTR5WJHU2SX5NI5YNEQSGMY7XCQ \\// C25519-BASE-32 //
-#  \\// 2K4A5OLCBN2XVWKA2VWBNB53SEP4KYPQ73OUNGBCTTYIDV6IKDQ \\ CODE SIGNATURE \\
+#\\GP5CHBGFCM5MO3BEPXH3PMUVQDLLRWMB3KIO7GEWQWLNJTC7DTWDWENBOHBW3ZGPLD2NEFGXJQTWW
+# \\ YKMLXNZDSTK2I4RKYUSXZ4V7VSGLEUVVONLI52L2PKFAXP6UA636 \\// C25519-BASE-32 //
+#  \\// CXTYQMJHEKZS5NSDANXA3H6FW3T2ZEVMQS3ZSC6GP7LVKULKKAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

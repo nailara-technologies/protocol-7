@@ -1,0 +1,41 @@
+# >:]
+
+# name  = nroot.nlr_compare_checksum
+# descr = parses the binary to find the checksum that is reported by `nlr -dq`
+
+my $nlr_bin_path    = shift;
+my $checksum_string = shift;
+
+( warn "expected 'nlr' binary \\ executable path <{C1}>" and return 0 )
+    if not defined $nlr_bin_path;
+( warn "expected source checksum parameter <{C1}>" and return 0 )
+    if not defined $checksum_string;
+
+return 0 if not -e $nlr_bin_path; ## no binary present \ checksum not found.. ##
+
+( <[base.log]>->( 0, "no read access to '$nlr_bin_path'" ) and return 0 )
+    if not -r $nlr_bin_path;
+
+my $binary_fh;
+if ( !open( $binary_fh, join( ' ', '<', ':raw' ), $nlr_bin_path ) ) {
+    <[base.log]>->( 0, "unable to open '$nlr_bin_path' ., [ \l$OS_ERROR ]" );
+    return 0;
+}
+
+my $checksum_found = 0;
+while (<$binary_fh>) {
+    if ( index( $ARG, $checksum_string ) >= 0 ) {
+        <[base.log]>->( 2, "checksum found in binary [ line $NR ]" );
+        $checksum_found = 1;
+        last;
+    }
+}
+
+close($binary_fh);
+return $checksum_found;
+
+# ______________________________________________________________________________
+#\\QNL42SNEU2SEMYECKZGW5OQHC7O5IRINDMWV5R46XQCQYKH7323UUDJE5S3AKAMA62RH24MVZY5VG
+# \\ REQHLE57EQDAFGE7MK7NAXJWLPIRKHR5HGOVJS3XUIDGN23CM3FY \\// C25519-BASE-32 //
+#  \\// IFXJHTS5F6ULSAUBZJ6QXY5LZCS3LDK4M4EB2EUP32H3WGAHGDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
