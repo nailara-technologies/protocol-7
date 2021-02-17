@@ -2,17 +2,17 @@
 
 # name  = auth.auth_select
 
-my $id     = shift;
-my $method = shift;
-my $ok     = 0;
+my $id      = shift;
+my $method  = shift;
+my $success = 0;
 
 warn "[$id] expected auth _method_ parameter" if not defined $method;
 
 foreach my $available ( split( m|\n|, <[auth.auth_list]>->($id) ) ) {
-    if ( $available eq $method ) { $ok = 1; last }
+    if ( $available eq $method ) { $success = 1; last }
 }
 
-if ($ok) {
+if ($success) {
     $data{'session'}{$id}{'auth'}{'method'} = $method;
     <[net.out]>->( $data{'session'}{$id}{'handle'}, "ACK continue\n" );
     <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
@@ -30,7 +30,7 @@ if ($ok) {
 }
 
 # ______________________________________________________________________________
-#\\WWACU2EKCWDAQTNQ76SGB3ZDK2D2AMGVILJ7WYJN35VJ3SP3LUYF5ICVIIUDKH7YCXGEVTCHC7V3O
-# \\ DP72I6NA77UEO6FN3IHWYZW2E3AAEIWMMBBX5DHDOKB5Z7PTURUI \\// C25519-BASE-32 //
-#  \\// EL7LXFYL4ZI4CWZQ6CGNZNHBWNJGVZVRC3XKU4LAMFPU7AELQAA \\ CODE SIGNATURE \\
+#\\X5VX6FSHRYI5IK4NHKSFFI3RI6WYHY6SOYIYTFAW3E7OMLQWI4RYR7HH3EBKN4KYRUCOJOQCR7JB6
+# \\ 7VTYXTEM73XRRAQ6M4FFKQIW7KYOBHBACYN3O43AVMYFJOFRULPG \\// C25519-BASE-32 //
+#  \\// T763RGXQMBYPIOLJUQQ35HATJVTSSSBLDEKVDC2SBGDHE7TTACY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

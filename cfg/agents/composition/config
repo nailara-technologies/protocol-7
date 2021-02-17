@@ -3,14 +3,14 @@
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.core = commands heart reload verify-instance * # <- LLL
+access.cmd.usr.core = commands heart reload verify-instance * # <-- [LLL]
 
 ## [ ./cfg/agents/composition/tile-group-setup.<name> ] ##
 composition.setup_file_name     = example
 composition.fallback_tile_group = web-browser
 
-composition.hash_file   = /etc/nailara/nailara.composition/composition_file.sha1
-composition.tiles_visible_file      = /etc/nailara/import/playlist.tiles_visible
+composition.hash_file          =  /etc/protocol-7/agents/composition/set-up.sha1
+composition.tiles_visible_file = '/etc/protocol-7/import/playlist.tiles_visible'
 composition.restore_composition_enabled  = 1   # select last used cfg on startup
 composition.restore_composition_timeout  = 242 # seconds
 
@@ -22,10 +22,10 @@ composition.watch_tiles.poll_int_start   = 33 # start delay < first 'interval' >
 composition.watch_tiles.inactive_timeout = 127 # seconds
 
 composition.startup.stop_agents  = universal mpv browser ticker-gtk ticker-sdl \
-                                   impressive start-anim remote-cam storchencam \
+                                   impressive start-anim storchencam \
                                    rss-ticker remote-cam
 
-composition.startup.restart_agents   = dsys-update-check osd-logo # LLL rotate.,
+composition.startup.restart_agents = dsys-update-check osd-logo # [LLL] rotate.,
 
 composition.mapped_subcfg.browser    = adblock noscript scroll_speed auto_speed
 composition.mapped_subcfg.universal  = adblock noscript scroll_speed auto_speed

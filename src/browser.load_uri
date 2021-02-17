@@ -92,8 +92,8 @@ if ( defined <browser.keep_text_zoom_path> ) {
 #    = Glib::Timeout->add_seconds( 1, $code{'browser.handler.load_timeout'},
 #    undef, 10 );
 
-# store current url in /tmp in case browser engine segfaults
-my $url_file     = '/tmp/.nailara.browser.' . $$;
+# store current url in /var/tmp in case browser engine segfaults
+my $url_file     = '/var/tmp/.protocol-7.browser.' . $$;
 my $file_content = "current_url : $load_uri\nurl_flags   : "
     . join( ', ', sort keys %{<browser.url_flags>} ) . "\n";
 <[file.put]>->( $url_file, $file_content ) or warn "$url_file: $OS_ERROR";
@@ -104,7 +104,7 @@ $bg_view->load_uri($load_uri);
 return 0;
 
 # ______________________________________________________________________________
-#\\ZDFVYNGAC4BRNCAEORPXWW4DKHYGV6SUKFIULB2DZN7SCXSXPYBEWM555XU4QBRKMUBHZDXV53TXU
-# \\ QUQIVHXHYXBNSYKC2X3UK4UQ3FVR7W7HUM2IAA6GQIGNGFYBD2KX \\// C25519-BASE-32 //
-#  \\// KPTFCXCTINJS6C7BVZ4ASNRQTH43JDSKYOR4WY4BW6XKTVB3MCQ \\ CODE SIGNATURE \\
+#\\Y7JJP4VOQVCNS6OKCZGNCN4W5PICUMHAJZLRIXZKRC7WI6PMVON7KLFWYBK2ZIHPOSAVEWKJ65DAQ
+# \\ CYGOUO547AHGQZ6GBTQIJ7PP7NO3CVIZP2RJK33I4PST6HJO4XVN \\// C25519-BASE-32 //
+#  \\// VR3XFNYBWE4AIVU6BUPYDM4YPHQX6OHUWTGWEPXA7MF3L5JCACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

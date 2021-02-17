@@ -34,7 +34,7 @@ setup.aliases.source_agent      =    notify.message nroot.teardown \
 
 net.auth.timeout = 13   ## protocol-7 ##
 
-# loading additional (.json) configuration files from /etc/nailara/import/
+# loading additional (.json) configuration files from /etc/protocol-7/import/
 # modules.pre_load = core.set-up set-up.json
 # [load_modules:<modules.pre_load>]
 # [init_modules:<modules.pre_load>]
@@ -52,9 +52,9 @@ net.auth.timeout = 13   ## protocol-7 ##
 core.local = <protocol-7.network.internal>
 
 ## local unix domain socket ##
-[file.make_path:'/tmp/.n/s',0777]
+[file.make_path:'/var/run/.7/UNIX',0775,<system.privs.user>]
 unix.path = [digest.elf.b32:"<core.local.addr>:<core.local.port>"]
-unix.sock = [base.open:'unix','input',"/tmp/.n/s/<unix.path>"]
+unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.path>",0777]
 
 ## ip.tcp socket ##
 tcp_ip.sock = [base.open:'ip.tcp','input',<core.local.addr>,<core.local.port>]

@@ -35,8 +35,8 @@ SDL::init( SDL_INIT_VIDEO() );
 
 SDL::Mouse::show_cursor( SDL_DISABLE() );
 
-SDL::Video::wm_set_caption( <system.agent.name> . '(' . $$ . ')',
-    <system.agent.name> . '(' . $$ . ') [minimized]' );
+SDL::Video::wm_set_caption( <system.agent.name> . '(' . $PID . ')',
+    <system.agent.name> . '(' . $PID . ') [minimized]' );
 
 SDL::TTF::init();
 
@@ -65,7 +65,7 @@ SDL::Video::fill_rect( $screen,
     SDL::Rect->new( 0, 0, $screen->w, $screen->h ), $bg_col_map );
 SDL::Video::flip($screen);
 
-my $title_pattern = <system.agent.name> . '\(' . $$ . '\)';
+my $title_pattern = <system.agent.name> . '\(' . $PID . '\)';
 if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
     <[base.log]>->( 0, "agent startup error [ sdl window did not open ]" );
     exit(2);
@@ -212,7 +212,7 @@ sub loop_wait {    # processing network event while waiting
 }
 
 # ______________________________________________________________________________
-#\\HAFROYESLSARD5R2XQDYAZXPZHVWAZTICWNCAY4ORRO343SW35STQWICLIXLA4TYNTR3FFJHNIKLW
-# \\ 2PLY4GOUIEA53DMNMPH2GYRWYRWWMXMR4T3FSIKVS23V6OJ5OJHC \\// C25519-BASE-32 //
-#  \\// LQSXZBAJKZHQRHNSDDXARM2XEIFESKBJ6NQDR77I6QK2WTVTKDQ \\ CODE SIGNATURE \\
+#\\W77ROFDNWF73NX7E5DAWQ7BBQL5J5RL2ANZ622DWLYIIOYABTM2YQHPZE6475UXOJOYSG6Y7ZW6DW
+# \\ WKTVA7DHNTPT7AKJVVZGZUPKT7DZSAXHGACFI5YH3D6O4UXZLOW5 \\// C25519-BASE-32 //
+#  \\// 3G22R3MMLV5AHP7DIJCVFYZTO7GTNKLWGY4BAOYHI73YP5MIADA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

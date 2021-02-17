@@ -1,19 +1,19 @@
 # >:]
 
-# name  = debug.cmd.dump-as-yaml
+# name  = debug.cmd.dump-as-yaml ## <-- y-dump
 # param = [key_pattern]
 # descr = dump internal program state
 
 my $d_ref;
 my $keyword = $$call{'args'} // '';
-if ( length($keyword) and not eval {qr/$keyword/} ) {
-    ( my $regex_err = lc($EVAL_ERROR) ) =~ s/ in regex.+\n$//;
+if ( length($keyword) and not eval {qr{$keyword}} ) {
+    ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
     return {
         'mode' => 'nak',
         'data' => "$regex_err in regex [ invalid pattern n param ]"
     };
 } elsif ( length($keyword) ) {
-    $d_ref = <[base.resolve_key]>->($keyword);
+    $d_ref = ${ <[base.resolve_key]>->($keyword) };
 } else {
     $d_ref = \%data;
 }
@@ -26,11 +26,11 @@ return {
 
 $reply = {
     'mode' => 'data',
-    'data' => "#:Y:['$keyword']:.\n\n" . YAML::XS::Dump($d_ref) . "\n#:Y:.\n"
+    'data' => "#:Y::['$keyword'].\n\n" . YAML::XS::Dump($d_ref) . "\n#:Y::.\n"
 };
 
 # ______________________________________________________________________________
-#\\IIRTUNEFEHLQSAVHWGAYPGSBBZX4D63SMURW5ZFGRNLIDO3FHDCBEHNJUVMXUXLSTKCWKFYQB6M3A
-# \\ RT6ARPTA44NFGA7WHYUEBCI5336ACXPLH3SLVCHLKVLKY5GOKRYW \\// C25519-BASE-32 //
-#  \\// 5Y74TFE5VTGIQVQYAM5CWPGCFRUXOJA4GMRVL6MRJJRHDUAWACY \\ CODE SIGNATURE \\
+#\\ZUTCFHYGTFW5HF5WWQWWPRU75NTASKMD7SLBBBGIKATSZAUBBNVCQPNRFZROI4UZ4ZG6V6IGO4JVW
+# \\ NZVDQN7A2RBGP5O77WTDZF664VE5LJHVU5AP3IRFI3YZGC5MRBWB \\// C25519-BASE-32 //
+#  \\// 7INMZ7W7PO7TH3PYRDLPLRYNHH6GMI7X54IDNID3P3OUXU6QEBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

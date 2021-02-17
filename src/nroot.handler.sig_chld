@@ -65,7 +65,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
                 ? '.' . encode_b32r($agent_subname)
                 : '';
             my $file_name
-                = "/tmp/.nailara.browser.crash_pid$subname_b32";    # <<< ! >>>
+                = "/var/tmp/.protocol-7.browser.crash_pid$subname_b32"
+                ;                            # <<< ! >>>
             <[file.put]>->( $file_name, "$pid\n" )
                 or warn("$file_name: $OS_ERROR");
             chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
@@ -110,7 +111,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 # ______________________________________________________________________________
-#\\AIOHFGVEQEPE3ELW5XYJGPK35IZ7PPRPOLZHULB7RJEK6TM77EQJ2CUT4SSLMAGE7HBDFXTFUXROE
-# \\ BO5GMIBYYOL2T4O3WUYB4DMGPKDWPJJOZ7LOVLJHVZP3C7BZJVXG \\// C25519-BASE-32 //
-#  \\// 7DORHKCTYUQAQTE7O5USLGAXPCEKOM22A64NUIK2OV5APJOIAAQ \\ CODE SIGNATURE \\
+#\\EHGYEGKGWJ4D2UCZYHGZI64OCL2U5MVFZW4T6BRVT6LOMRIAPLI4EPWBKJWSOHMZ4DIVKBZGKOQQ2
+# \\ 2EX2PKS6BYZAC5LDI4PSRFH4POQF7KPKVH5NGRQMOJXXTFIPPJIV \\// C25519-BASE-32 //
+#  \\// ONFSXEGOFLVKPWN4UDHNDNPW6ROOGBP7IJT4YXTBYXDRZMZ7QDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
