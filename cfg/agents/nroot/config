@@ -12,16 +12,24 @@ load.start_setup = 'basic'   #    <--   [ ./cfg/agents/nroot/start-setup.basic ]
 
 access.cmd.usr.core = *
 
-nroot.cfg.install_bin_nlr = yes
-nroot.cfg.nlr_bin_path = /usr/local/bin/nlr
-nroot.cfg.nlr_static = yes
-system.nlr_src_path = bin/src/nlr.c # /usr/local/nailara/..,
-
-nroot.host-reboot.enabled    = 1
-nroot.host-reboot.term-delay = 1.3787
-
+nroot.host-reboot.enabled        = 1
+nroot.host-reboot.term-delay     = 1.3787
 nroot.system-poweroff.enabled    = 1
 nroot.system-poweroff.term-delay = 1.3787
+
+## NLR BINARY AUTO INSTALLATION ##
+nroot.cfg.install_bin_nlr   =  yes
+nroot.cfg.nlr_static        =  yes
+nroot.cfg.nlr_make_symlink  =  auto # [yes|no|auto]
+#
+system.nlr_src_path         = bin/src/nlr.c         # /usr/local/nailara/..,
+nroot.cfg.nlr_bin_path      = /usr/local/bin/nlr
+
+  ## not enabled yet.., ##
+  # nroot.cfg.nlr_bin_path      = '<system.root_path>/bin/nlr'
+  # nroot.cfg.nlr_symlink_path  = '/usr/local/bin/nlr'
+
+##
 
 [load_modules:'set-up.json nroot.set-up']
 [init_modules]

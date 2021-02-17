@@ -973,14 +973,19 @@ sub prepare_subs {
                         );
                         "  :: \l$ARG"
                     } split( m|\n+|, $s_comp_stderr )
-                )
+                ),
+                '..,'
             ) if defined $s_comp_stderr;
             close(STDERR);
             open( STDERR, ">&", $stderr_fh )
                 or print "\n<< ! >> cannot restore STDERR [ $OS_ERROR ]\n\n";
 
-#            my $dev_null_path = File::Spec->devnull();
-#            open STDERR, ">$dev_null_path" or print "$dev_null_path: $OS_ERROR\n";
+            ##:. replace with a <stderr> warning wrapper .:##
+            #
+            #    my $dev_null_path = File::Spec->devnull();
+            #    open STDERR, ">$dev_null_path"
+            #         or print "$dev_null_path: $OS_ERROR\n";
+            ##
 
             if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
@@ -1031,6 +1036,7 @@ sub prepare_subs {
                     $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
                     } @compile_errors
                     if defined $code{'base.buffer.add_line'};
+                $warn_count = 0;
             }
 
             if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} )
@@ -1399,7 +1405,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\2JYV6VVZ3VZQ74P7ZQJQHVWKVCPLCSGVMHQEOTUFMFGO3MGSSH4WTIY6BL3U6RYQQP3F4LY3LXYPA
-# \\ UC2OXTUQWLZRWIKU5A7XBQRVRYGYQ44GDPQNEVPOELYCB6MFEZQX \\// C25519-BASE-32 //
-#  \\// 4QCIOHWHWE4S53OQODSWGU2Q5G3UUB6L2SG2U5ECZI5CXVICYCA \\ CODE SIGNATURE \\
+#\\RS4EQYKK7LXVU6PULGBAQJNCW5I23ICYIM5D5XLWPFVO42ALJRNDTODRSMLM4ZBOZQY7P5MHSFGUE
+# \\ JMI6VB6YAS57HBAR5FQ47VG5WDXRMEOCH245XO56LJOVUGN4UDTN \\// C25519-BASE-32 //
+#  \\// YCZ6NS6ILI4KMKWUCHOLHMDL5XVZEEYJXLSPGTUBLUIB5LMPWDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
