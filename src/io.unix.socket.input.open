@@ -3,14 +3,12 @@
 # name  = io.unix.socket.input.open
 
 my $socket_path  = shift;
-my $socket_umask = shift;
+my $socket_umask = shift // 0775;
 
 <[base.start.unlink_child]>;
 
 undef <unix.socket_paths> if ref(<unix.socket_paths>) ne 'ARRAY';
 <unix.socket_paths> //= [];
-
-$socket_umask //= 0777;
 
 my $uaddr = sockaddr_un($socket_path);
 my $proto = getprotobyname('tcp');
@@ -46,7 +44,7 @@ $data{'handle'}{$unix_sock}{'link'} = 'unix';
 return $unix_sock;
 
 # ______________________________________________________________________________
-#\\APRQYDFMXE4ER3MCMRW4RSCL3C6G33OO3YIGJ2AIKLUJVBPYXNNCUVGGV2T3LSNLYJ6ABRARNYWO4
-# \\ X3ZMZWVPVPOZ2LV5RJJQKGANV4D4CJQ7GWRBIZPYTG3GUFND26CS \\// C25519-BASE-32 //
-#  \\// XAQTPNIG2DXG7THJANP2X55YJM2ECNX5XHTCCCYQY6C2ZGZ2OCY \\ CODE SIGNATURE \\
+#\\Y7FBTEUT7JGZPENRYNJACJX4HPZFALIQBTE4YT3HOXH2NQDXQDE62JFNPUEDBSW5ICKUOVK3OP7PK
+# \\ DOZLGUE37BIKTOJ5FKU2QOP6MEBJJKJSN46DU5UEIO7OBCJ46IL6 \\// C25519-BASE-32 //
+#  \\// CHH3FV62ZMDLA7TVYW36YFMJ5T4JCFYB72AIFR2ICUN5H57WGAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -39,8 +39,8 @@ if ( not <browser.zoom_text_only> and defined <browser.keep_text_zoom_path> ) {
     $view->set_settings($settings);
 }
 
-# store current url in /tmp in case browser engine segfaults
-my $url_file     = '/tmp/.nailara.browser.' . $$;
+# store current url in /var/tmp in case browser engine segfaults
+my $url_file     = '/var/tmp/.protocol-7.browser.' . $$;
 my $file_content = "current_url : $load_uri\nurl_flags   : "
     . join( ', ', sort keys %{<browser.url_flags>} ) . "\n";
 <[file.put]>->( $url_file, $file_content ) or warn "$url_file: $OS_ERROR";
@@ -48,7 +48,7 @@ my $file_content = "current_url : $load_uri\nurl_flags   : "
 $view->load_uri($load_uri);
 
 # ______________________________________________________________________________
-#\\RBPEOK6VEWLLKMLGAD4ZJW7ADIQSS7NYWBWF7FVXTLRPNBOUZ6EOOVRF2ICV5MF256N5MP4EHUO7Q
-# \\ 4IKEPRFBD6NPACBH2HH4R2ILKC7C5KX4CWDD7R7FU2FAXYG7NVOK \\// C25519-BASE-32 //
-#  \\// O45RFTNXUUJCH5ETHRCT6F3YUIPW4JYGIEZBGHWXZF3SDIJQ4CI \\ CODE SIGNATURE \\
+#\\2OMCGDCE6OZZE272KCOX7O7BDWBLBKWA5X36F7RXXFW5JKSKK2FU7AEL47Q5D6IIM353LKRKZOEOW
+# \\ CYITOI462I6I3UU2K2JVAJJN5UVX335YZJAA6EXODMDKH5FKDVBC \\// C25519-BASE-32 //
+#  \\// Y4DXFNX4AQUSFCVAFVJAKZFT66LXQDB3ANRHVKPGBN2FFBJ5IBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

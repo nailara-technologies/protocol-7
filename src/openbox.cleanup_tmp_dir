@@ -6,13 +6,13 @@ my $tmp_path = <openbox.home_path>;
 
 if ( -d $tmp_path and $tmp_path =~ m|openbox| ) {
     <[base.log]>->( 2, "recursively removing tmp dir '$tmp_path'" );
-    rename( <openbox.log_file>, '/tmp/openbox.' . $$ ) or warn $OS_ERROR;
-    unlink( '/tmp/openbox.' . $$ )                     or warn $OS_ERROR;
+    rename( <openbox.log_file>, '/var/tmp/openbox.' . $PID ) or warn $OS_ERROR;
+    unlink( '/var/tmp/openbox.' . $PID )                     or warn $OS_ERROR;
     remove_tree($tmp_path) or warn "remove_tree: $OS_ERROR";
 }
 
 # ______________________________________________________________________________
-#\\EKD6XGA5NWK4A5QLA4MWO2O7SHSC3VNGTCEKOIZQJV7UB6EMQHH76PKNU6XJDSGPWUA2W3MVZXQLI
-# \\ VRHZAJL4VX255TD5HZHSBZH6VH7D6W72C4ROHUU3FZ7RBKROT2YO \\// C25519-BASE-32 //
-#  \\// YURPSYDTK42MCYC6BNH3EGPYQBZF3QG7HQSNLIXGEFFLEMGOICY \\ CODE SIGNATURE \\
+#\\HPRSUD3N3NSMZPKJKK55Q2OFBQAXZKLJ5YXEIUMGE4HWYS4OPB67Z2GBMT76KW4ZQ6P2IDAC2ID3Q
+# \\ U7OXYUMCO7FJL2VVK6Q7BX3F77DSLYSCRQRH7PCA7XUXLHE7FNOY \\// C25519-BASE-32 //
+#  \\// O4P2GTSC5PYYV4QUS4M7VFGTNCJWPTV3C7PNCAZRFIMHXLIRYBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

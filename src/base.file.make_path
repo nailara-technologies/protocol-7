@@ -3,17 +3,24 @@
 # name  = base.file.make_path
 # descr = recursively create a directory path
 
-my ( $path, $mode, $owner ) = @_;
-$mode //= 0700;    # <- strict default
-$mode = oct($mode) if $mode =~ m|^0|;
+my ( $path, $param_mode, $param_owner ) = @_;
+
+$param_mode //= 0700;    # <- strict default
+$param_mode = oct($param_mode) if $param_mode =~ m|^0|;
 die "expected absolute path [ to create ]"
     if not defined $path or $path !~ m|^/[^/]+|;
 
+my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
+
+## optionally recursive mode array [ reference ] ##  <-- expand for owners [LLL]
+my $modes = ref($param_mode) ne 'ARRAY' ? [$param_mode] : $param_mode;
+
+### path clean-up ####
 $path =~ s|/[^/]+/\.\./||g;
 $path =~ s|//|/|g;
 $path =~ s|/$||;
 
-die "invalid path '$path'" if $path !~ m|^/[^/]+|;
+die "< file.mkdir > not valid path '$path'" if $path !~ m|^/[^/]+|;
 
 if ( -d $path ) {
     <[base.log]>->( 2, ":. present =) .: ['$path']" );
@@ -21,35 +28,48 @@ if ( -d $path ) {
 }
 
 my ( $uid, $gid );
-if ( defined $owner ) {
-    die "invalid username '$owner'" if $owner !~ <regex.base.usr>;
-    ( undef, undef, $uid, $gid ) = getpwnam($owner)
-        or die "owner $owner not in passwd file";
+if ( defined $param_owner ) {
+    die "invalid username '$param_owner'" if $param_owner !~ <regex.base.usr>;
+    ( undef, undef, $uid, $gid ) = getpwnam($param_owner)
+        or die "owner $param_owner not in passwd file";
 }
 
 my $install_root = <system.root_path>;
 ( my $report_path = $path ) =~ s|^$install_root/?||;
 
-<[base.log]>->( 2, ":. creating.. .: ['$report_path']" );
+<[base.log]>->( 2, ":. creating., .: ['$report_path']" );
 
+my $previous_umask = umask($mkdir_umask)
+    or die "umask[ $mkdir_umask ] : [ $OS_ERROR ]";
+
+my $current_mode;
 my $current_path = '';
 foreach my $_dir ( split m|/|, $path ) {
     next if !length($_dir);
-    $current_path .= '/' . $_dir;
-    next if -d $current_path;
 
-    mkdir( $current_path, $mode )
-        or die " mkdir '$current_path' : [ $OS_ERROR ]";
-    if ( defined $owner ) {
-        chown( $uid, $gid, $current_path )
-            or die " chown [$uid:$gid] '$current_path' : [ $OS_ERROR ]";
-    }
+    $current_path .= '/' . $_dir;
+    $current_mode //= shift( @{$modes} );
+
+    next if -d $current_path;    ## <-- exists \ continue ., ##
+
+    eval {
+        mkdir( $current_path, $current_mode )
+            or warn " mkdir['$current_path'] : [ $OS_ERROR ]";
+        chmod( $current_mode, $current_path )
+            or warn " chmod[ $param_mode ] : [ $OS_ERROR ]";
+        if ( defined $param_owner ) {
+            chown( $uid, $gid, $current_path )
+                or die " chown [$uid:$gid] '$current_path' : [ $OS_ERROR ]";
+        }
+    };
 }
+
+umask($previous_umask);
 
 return $path;
 
 # ______________________________________________________________________________
-#\\4Z7672QNU4U2N4JMU7MGK4AGVVZMOF6HDCD4VA4FG3WQCCNX4IIH7YV75O5WWQLV4KRYDQUCBTBIW
-# \\ XICNDE5J5PBI4544VVP356KRSTFMSKBE36JQ3SCEL6MOHPKOR5LF \\// C25519-BASE-32 //
-#  \\// ZOTYR6GR2PWZPV3GZ5PL6W3K3UGU4SUXGMBJXRKG4WR5Z5HDWDQ \\ CODE SIGNATURE \\
+#\\SIOOP2POAXLJSCQQ6WF2TSD5USOJ7MQB5BMWGPN3FOSHHTILDP4FG5W4ZLYF2CY4WUJOTX6QT4KYI
+# \\ J6T6PFWFEK6SHHYCWT6RV7KLZ43P5367QV5NDUQPITSCMIZMDRT5 \\// C25519-BASE-32 //
+#  \\// GRHYO3LCJKW6LHZVYFSI2TW6FE4V6DQ6MABNW23FSUKTT3VV6CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

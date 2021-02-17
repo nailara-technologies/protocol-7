@@ -21,14 +21,14 @@
 };
 ##
 
-<universal.vid_frame_dir> //= '/tmp/.video_frames';
+<universal.vid_frame_dir> //= '/var/tmp/.video_frames';
 
 $SIG{'CHLD'} = $code{'universal.handler.sig_chld'};
 
 <universal.lsp_name>
     = defined <system.agent.subname>
     ? 'start-anim[' . <system.agent.subname> . ']'
-    : 'start-anim[' . $$ . ']';
+    : 'start-anim[' . $PID . ']';
 
 my @dis_cmds = @{ $data{'disabled_commands'} };
 $data{'disabled_commands'} = [];
@@ -55,7 +55,7 @@ $data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
 0;
 
 # ______________________________________________________________________________
-#\\ZEOAQ4I2SYE56SJG5RE6XMEPREZHWVCLVBAZ7EEUZZLCZL5GRM6HE7RBYZM5QQFTIPQUOGEHXDJOY
-# \\ I3BLLEEEDFC4VQGEZFQMEI2RRXN2UNVI6V3R6TRZJIXZLJU4NLLU \\// C25519-BASE-32 //
-#  \\// HC4TTG5FLD3X72W2DT6BBIQHOSOJJCMTDVUTVBR6YAIJ2PXV6AY \\ CODE SIGNATURE \\
+#\\DHWNQKIJFTKYCAY4RBOKUTOWI6P6HUSQIDFJ7C2QT3JZ7VHGMF7CVMXWSUIVQPQLIGPOQVSWXVJAO
+# \\ OSMX323JSDLIFEILEAUWJM5MK5IUDWRODAIWFRREM2QLCBVZT5QE \\// C25519-BASE-32 //
+#  \\// PSR2LS7YLDGST37S23BSQHKUOEAXLNMKOHVVPXXLFXYLJIMCGDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

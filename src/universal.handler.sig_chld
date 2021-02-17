@@ -25,7 +25,8 @@ do {
                 = ( defined $agent_subname and length($agent_subname) )
                 ? '.' . encode_b32r($agent_subname)
                 : '';
-            my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
+            my $file_name
+                = "/var/tmp/.protocol-7.browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
                 or warn("$file_name: $OS_ERROR");
             chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
@@ -54,7 +55,7 @@ $SIG{'CHLD'} = 'IGNORE';
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 # ______________________________________________________________________________
-#\\AGCL4OLIUFL2XKOOOIFSQODMBCYZ3IRZYL4WMJCAOHDFN2L6VBINTM2GIXONFPQRSL33AODH4LZTQ
-# \\ HS5QQ6YMRGXDEJ525LDYY5RTQ4VUKUKINEDVE3WSXI5JDHV7PZEX \\// C25519-BASE-32 //
-#  \\// CDNATMRNT7Z2EWL7XYMDGENQTMZMDWEEAL2K3SE7WMU7RO4BKAI \\ CODE SIGNATURE \\
+#\\CYDPG4535FF5W2BOYBTHVFNM4DGMY754QIMWEB5MKDSAL7KPGLMTCC2MDSVMTOSQ7FVTMQE3PBV7Q
+# \\ 2FGL2OHM7SCMQ6P62JGN6GVOTJZUDAQBUGMKEIBNZKRBJCVUAYYM \\// C25519-BASE-32 //
+#  \\// H5RQN5N7FQ7FNTMOFGTO4ZZZYW64HMLY4LNLI63LEOVX7PMNUDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
