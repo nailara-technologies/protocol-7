@@ -5,7 +5,7 @@
 system.verbosity.agent_buffer = 2
 # system.verbosity.console    = 2
 
-universal.vid_frame_dir = /tmp/.video_frames
+universal.vid_frame_dir = /var/tmp/.video_frames
 
 universal.cfg.fade_on_switch  = 1 # fade in on switch [ browser <--> mpv ]
 universal.cfg.can_self_restart = 1 # auto-recovery [ universal agent restart ]
@@ -21,9 +21,9 @@ modules.load = auth net protocol io.ip io.unix plugin.auth digest universal
 [init_modules]
 
 auth.supported_methods = unix
-[file.make_path:'/tmp/.n/s',0777]
+[file.make_path:'/var/run/.7/UNIX',0775]
 unix.agent.path = [digest.elf.b32:"<system.agent.name>:<system.agent.subname>"]
-unix.sock = [base.open:'unix','input',"/tmp/.n/s/<unix.agent.path>"]
+unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.agent.path>",0777]
 
 [set_privs:<system.privs.user>]
 

@@ -17,12 +17,12 @@ my $subname_b32
     = ( defined <system.agent.subname> and length(<system.agent.subname>) )
     ? '.' . encode_b32r(<system.agent.subname>)
     : '';
-my $file_name = "/tmp/.nailara.browser.crash_pid$subname_b32";
+my $file_name = "/var/tmp/.protocol-7.browser.crash_pid$subname_b32";
 return if !-f $file_name;
 chomp( my $crash_pid = ${ <[file.slurp]>->($file_name) } );
 unlink($file_name) or warn("$file_name: $OS_ERROR");
 return if $crash_pid !~ /^\d+$/;
-$file_name = "/tmp/.nailara.browser.$crash_pid";
+$file_name = "/var/tmp/.protocol-7.browser.$crash_pid";
 return if !-f $file_name;
 my $file_content = ${ <[file.slurp]>->($file_name) };
 unlink($file_name) or warn("$file_name: $OS_ERROR");
@@ -65,7 +65,7 @@ my $s = $next_flags =~ /,/ ? 's' : '';
 );
 
 # ______________________________________________________________________________
-#\\NYROXDAKRUXAQKPA4QYYZTCYYWWTUQYXXVN4QNWHE2V6BBZQFFQLZ5FV7WAFUMKCQ2EXI6TAAAXWA
-# \\ FRA6NMWVGJU6U434AYTM4SMR7YLYCGMICOWDFUIPWC3CAXM7KTOQ \\// C25519-BASE-32 //
-#  \\// W5PBNN5VPWLHMP5JWRAGGVXSKYLJEKSTWPM7ASQUDLYF3KN4UAY \\ CODE SIGNATURE \\
+#\\UYROEAIQV3FLSGJPZAXXUXVMFAVSJ6J23FODTBYUXF6H5MBODQ6MBM5LLC4RSW27JGGX3MVMU25CO
+# \\ SIAEULDET2DNZ5WXRDWVO7T3JQUWUZRR57P6TZXK67PAGAW2353G \\// C25519-BASE-32 //
+#  \\// B25GVGUA7H5WLWLCBPW4AMMALOF3AP7RTV5F6R5IOPPPCT4XUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -7,7 +7,8 @@ die "invalid template syntax [ no paths ]" if $tmpl =~ m|/|; # allow paths later
 
 my $first_dir;
 my $agent_name = <system.agent.name>;
-my @check_dirs = qw| /var/run/nailara /var/cache/nailara /tmp/nailara |;
+my @check_dirs
+    = qw| /var/run/protocol-7 /var/cache/protocol-7 /var/tmp/protocol-7 |;
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | )
     if not exists &{'make_path'};
@@ -47,7 +48,7 @@ open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $OS_ERROR";
 return ( $tmp_fh, $tmp_file_path );
 
 # ______________________________________________________________________________
-#\\MOER5KW6UIFYOK2HSTPHNDMTM2HPZL3R2OQRIFWL7SGVIFVIWIMXDLS53XFHBFT4B4WESV7CGMK3W
-# \\ RSHUFZKCFSQKIUMQ5BGKW7YL3JJL676TUJROWPVPNA6FNJBNSZL6 \\// C25519-BASE-32 //
-#  \\// K6XNANI6Q7OK3NZLR4SJYXE3THQSDVA3BPZV3GMQ2T63CAW5IAI \\ CODE SIGNATURE \\
+#\\BAKX4BRNCTP447KQB7WU6YPHBFHXWL4YTDRHTFS5JGCQCCEDLGVJDVIJWOSGPJXAJN4EBLI5TM24A
+# \\ NXISH23BIBR4M7V3YYVEAVX6SIEPFFQU32RQF4XABDNZMKQZJYKH \\// C25519-BASE-32 //
+#  \\// PYIRDOOZB6TBIRTDZMJQHH267IV242KJYM2VZYYRFNIV7Y3W6CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
