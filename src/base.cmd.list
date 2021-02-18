@@ -6,8 +6,10 @@
 
 my $list_name = $$call{'args'};
 
+my $list_nam_chars = qr|\w\-\_\.|;
+
 if (    defined $list_name
-    and $list_name =~ m|^\w+$|
+    and $list_name =~ m|^[$list_nam_chars]+$|
     and defined $data{'list'}{$list_name} ) {
     my $list = $data{'list'}{$list_name};
     $data{'list'}{$list_name}{'mask'} //= "<key>:$$list{'key'}";
@@ -36,14 +38,14 @@ if (    defined $list_name
             }
         )
     };
-} elsif ( defined $list_name and $list_name =~ m|\W| ) {
-    $$reply{'data'} = 'invalid characters in list name';
+} elsif ( defined $list_name and $list_name =~ m|([^$list_nam_chars]+)| ) {
+    $$reply{'data'} = "invalid characters in list name ['$1']";
 } else {
-    $$reply{'data'} = sprintf("no such list (see 'list')");
+    $$reply{'data'} = sprintf("no such list [ see 'list' command ]");
 }
 
 # ______________________________________________________________________________
-#\\OYMLW7OCRJWNCUJL5322VJQ7ZQODKIJOM656OMGCC3EZ3PTDX5CIRA3BLL57A3CPGJXISDKWOIHTW
-# \\ MEN2CIECPGIZEDBIZANMA7EGYR7Y5DIE2F3JNVOYFM3UXIB7HPFK \\// C25519-BASE-32 //
-#  \\// MGQYMXMRWUKI3LSOGQNI7PNVX2PJWW257P6FBHLDQWE3WEQIIAY \\ CODE SIGNATURE \\
+#\\E6RSD2J3M22VQ34XJPCEGO3RIT4RDTOQDPMDAPP257F5RMDLBF25MUGUXKGGCR42QVBASUXNDSWVU
+# \\ OJJ44VHU2ECVZVDJ42PDJA5QQPQLU26DWCN33G5WM5P36FK4OMG4 \\// C25519-BASE-32 //
+#  \\// 6765ASSK7FZXBR4O6ZXV44LAOJWS24A3O4CDHAPOFZQBYJXLWCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
