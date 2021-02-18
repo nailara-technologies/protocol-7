@@ -6,10 +6,9 @@ return
     if not defined <composition.current_tile_group>
     or !length(<composition.current_tile_group>);
 
-my $cfg_file = <composition.cfg_directory> . '/composition.current';
-<[base.log]>->(
-    1, "storing current composition in 'composition.current' config.."
-);
+my $file_name = 'tile-group.current';
+my $cfg_file  = join( '/', <composition.cfg_directory>, $file_name );
+<[base.log]>->( 1, "storing current tile group in '$file_name' config.," );
 
 <[file.put]>->(
     $cfg_file,
@@ -19,7 +18,7 @@ my $cfg_file = <composition.cfg_directory> . '/composition.current';
 );
 
 # ______________________________________________________________________________
-#\\A56I3RAW3BCKLSLPWIEP6XQMGJMRRD77XASJEXR2JTOKHUOL3NKRZH77DHIDKW4ENCBTGUMBVQBTU
-# \\ 2EOY2N74NLY7UNMCB4RNMTD3FAUR7IBSIPBB6MDHDHD2GZHADJFL \\// C25519-BASE-32 //
-#  \\// W34YJGFWFLMUBCHMLJZPIAB5PVRCN2YESS64S3QBU5J357CV2AQ \\ CODE SIGNATURE \\
+#\\IDLKU5A6ROM3CVEDHUD4E7L2JASY3NJ4TGU5LJQXBM4KCYT34RQRPCSNNEPKMHBRYJ2NKEDYX5I7M
+# \\ PQ4VUMHLO77FMRWIZYWOTVZSKXSFEJYPNH3AZALAAY6Z3MRBFHX7 \\// C25519-BASE-32 //
+#  \\// XBD23RYNJKPXEPTMCLCLCCNAC77BN7ROB4C7Y533A4VQWP6S2DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
