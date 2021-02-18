@@ -155,13 +155,13 @@ if ( $action_type =~ /^composition_/ ) {
     my $current_tile_group = pop @composition_stack;
     my $restore_config
         = -d <events.composition.cfg_directory>
-        ? <events.composition.cfg_directory> . '/composition.current'
+        ? <events.composition.cfg_directory> . '/tile-group.current'
         : undef;
 
     if ( defined $current_tile_group
         and <events.stack.composition.visibility>->{$current_tile_group} ) {
         <[base.log]>->(
-            1, "writing 'composition.current' config.. [active event]"
+            1, "writing 'tile-group.current' config.. [active event]"
         );
         <[file.put]>->(
             $restore_config,
@@ -208,7 +208,7 @@ if ( $action_type =~ /^overlay_(show|hide)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\AEAJUNE3HHVXCLYHOIQK2BLWNVAWGZXWICQVBRL5NLNKYRH2KDBPBPXGC432Q424OKOKA4PMNQDHS
-# \\ JCYNUA3KEQE46JSCYQHX2Q2DJJUCSQ6CCRTXC5GODPAFSDNLJM7N \\// C25519-BASE-32 //
-#  \\// OKD37GV5VEGEABTZOOQ5MBILZRGBLYNFKELNTQAPD5SQNX4WABA \\ CODE SIGNATURE \\
+#\\53KN6RYMLIQMX52KEP542AWX7KGUBYFCAZLCMTP5GLXV5ZXET3A6EG5AWC5SXT62RB7THY5F6OBEA
+# \\ TQZ46ESE4M33EJJIQRZ5CSYMUUEVYQPLVZ26PNCGOEJXOMIQCSNA \\// C25519-BASE-32 //
+#  \\// EN6PX4XS2GZVIGL2QDAPCZ6WI6YNFZEWX2EII3DUW7WKGJPEODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
