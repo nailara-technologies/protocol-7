@@ -3,7 +3,7 @@
 # name  = composition.switch-tile-group
 
 my $tile_group_name = shift;
-die "composition name expected"
+die "tile group name expected"
     if not defined $tile_group_name or !length($tile_group_name);
 die "composition '$tile_group_name' does not exist"
     if not exists <composition.setup.tile-groups>->{$tile_group_name};
@@ -27,7 +27,7 @@ if ( not exists <composition.setup.tile-groups>->{$tile_group_name} ) {
 
 if ( $tile_group_name eq <composition.current_tile_group> ) {
     <[base.log]>->(
-        0, "'$tile_group_name' already active, composition transition skipped!"
+        0, "'$tile_group_name' already active, tile group transition skipped."
     );
     shift @{<composition.transition_queue>};
     <composition.transition_in_progress> = 0
@@ -39,17 +39,17 @@ if ( $tile_group_name eq <composition.current_tile_group> ) {
 <composition.current_tile_group>   = $tile_group_name;
 
 <[file.put]>->(
-    <composition.cfg_directory> . '/composition.current',
+    <composition.cfg_directory> . '/tile-group.current',
     sprintf( "%.4f %s\n", <[base.time]>->(4), $tile_group_name )
 );
 
 <[composition.process-tile-group]>->($tile_group_name);
 
-<[base.log]>->( 1, "switching to composition '$tile_group_name'.." );
+<[base.log]>->( 1, "switching to tile group '$tile_group_name'.," );
 return 1;
 
 # ______________________________________________________________________________
-#\\LLGTVYS5NTFIVHS23T7ON3NEMWQJFBBNWNQU62KRLSYKH45MYNCZJUKGLMNJJ3CYI3RGDZ4R32RRS
-# \\ CHNBML6DHJKGKTY6NDCOTIB677Q3FLSK27RJ6CA2AARYKEB4HZBT \\// C25519-BASE-32 //
-#  \\// JMSZ2JITHDHRHWHZN2ELGIMMTZPY632F2YOOIRS63D4ZN326ACY \\ CODE SIGNATURE \\
+#\\NWQMXI5HGU6CVCXH4RNA2S3AUGGAPEVOVLTULBIAGAPZFF5IQOVBSFSJK3UKRLFGGI4YSEYI6WIZQ
+# \\ MD2YGALI7TVOD5AEQKTKIYFZVLQITWJ7GSJ7CWUCPJJKKWETYCZG \\// C25519-BASE-32 //
+#  \\// 42O5L4AZD7NHKQOEZR65KFJMQKHC3NKNBAEZFBNMYR6T3ZOYWAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
