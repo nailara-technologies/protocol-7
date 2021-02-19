@@ -2,10 +2,23 @@
 
 use strict;
 use warnings;
+
 use Math::BigFloat;
 use Digest::Elf qw| elf |;
 
+my $divisor = 0; ## <-- if set, divide result and check outcome instead of it .,
+$divisor = $1
+    if @ARGV > 1
+    and $ARGV[0] =~ m|^\-d(\d+(\.\d+)?)$|
+    and shift @ARGV;
+
 my $quiet = ( @ARGV > 1 and $ARGV[0] eq '-q' and shift @ARGV ) ? 1 : 0;
+
+my $numeric
+    = (     @ARGV == 2
+        and $ARGV[0] eq '-n'
+        and $ARGV[1] =~ m|^\d+(\.\d+)?$|
+        and shift @ARGV ) ? 1 : 0; ## <-- treat as number, not als hashed string
 
 my %ANSI = (
     'str'     => "\c[[1m",
@@ -16,42 +29,59 @@ my %ANSI = (
     'color_n' => "\c[[6m\c[[1m",
 );
 
-Math::BigFloat->round_mode('trunc');
-
 my $check_string = join( ' ', @ARGV );
-my $elf_checksum = elf($check_string);
+my $elf_checksum = $numeric ? $check_string : elf($check_string);
 
-my $un_harmonic = '230769';
-my $harmony     = join( '', map {ord} qw| T = 5 | );
+my $accuracy = 13;
+
+Math::BigFloat->round_mode('trunc');
+Math::BigFloat->accuracy($accuracy);
+
+if ( $divisor != 0 ) {
+    $elf_checksum
+        = Math::BigFloat->new($elf_checksum)->bdiv( $divisor, $accuracy );
+    $check_string = $elf_checksum;
+}
+
+Math::BigFloat->accuracy( $accuracy + length($elf_checksum) );
+
+my $un_harmonic = '230769';                             ## <ETB> <BEL> <'E'> ###
+my $harmony     = join( '', map {ord} qw| T = 5 | );    ## <'T'> <'='> <'5'> ###
 my $calc        = Math::BigFloat->new($elf_checksum);
-my $calc_str    = $calc->bdiv( 13, 20 );
+my $calc_str    = $calc->bdiv( 13, $accuracy + length($elf_checksum) );
+
+$calc_str = sprintf( '%0.7f', $calc_str )
+    if $calc_str !~ m|\.(\d+)|
+    or length($1) < $accuracy;
 
 my $line_str = "\n < $calc_str > ";
 my $dot_pos  = index( $line_str, '.' ) - 1;
 $dot_pos = length($calc_str) if $dot_pos < -1;
 my $space = ' ' x $dot_pos;
 
-$line_str =~ s{($harmony)}{$ANSI{'match_y'}$1$ANSI{'reset'}}
-    or $line_str =~ s{($un_harmonic)}{$ANSI{'match_n'}$1$ANSI{'reset'}};
-
-$calc_str =~ s|^\d+\.||;
+$line_str =~ s{(*plb:\.)(\d*?)($harmony|0{$accuracy,} )}
+        {$1$ANSI{'match_y'}$2$ANSI{'reset'}}
+    or $line_str =~ s{(*plb:\.)(\d*?)($un_harmonic)}
+        {$1$ANSI{'match_n'}$2$ANSI{'reset'}};
 
 my $return_code = 1;
-my $result      = '< ? >';
-if ( $calc_str =~ m|$harmony| or $calc_str =~ m|^0+$| ) {
+$calc_str =~ s|^\d+\.||;
+my $result = '< ? >';
+if ( $calc_str =~ m|($harmony(*nla:\d+\.))| or $calc_str =~ m|0{$accuracy}$| ) {
     $result      = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
     $return_code = 0;
 } elsif ( $calc_str =~ m|$un_harmonic| ) {
     $result = ">:|  [ $ANSI{'color_n'}not$ANSI{'reset'} harmonic. ]";
 }
-
-print "\n$space'$ANSI{'str'}$check_string$ANSI{'reset'}'  ==="
-    . "  $result\n$line_str\n\n" if not $quiet;
+my $q = $numeric ? '' : "'";
+print "\n$space $q$ANSI{'str'}$check_string$ANSI{'reset'}$q  ==="
+    . "  $result\n$line_str\n\n"
+    if not $quiet;
 
 exit($return_code);
 
 # ______________________________________________________________________________
-#\\FUEBX6DDQTZI57SWWMYRBVYHWJFJ5G32QKSLOYJHREFDJKKHCJZVT7PF4LW7XMJCLGZSTELGZC32E
-# \\ XGRK24Q6TVFPT6ZAMIJBTLPAODHBBXSSOB5DIJK3WAU3ROKRAWHY \\// C25519-BASE-32 //
-#  \\// Z3LLV23OEM3DKEVO75WCPB5QBBJ5QDDMWEHGEJCJA4K6QC6G2AQ \\ CODE SIGNATURE \\
+#\\RVQ7KURW6L65NWNMODXJ6TM55JJKCNTRBNDAPEQM2SYXKJOC4YK2TJNU4DH7YXYFB5RDZ56YMH4QI
+# \\ 6AP2KJCZEBYPB6BDTSWSN7ARKJC3HTCYANDOG3PM72UR5SDHMMXE \\// C25519-BASE-32 //
+#  \\// EYJZUFS4FRO36GIJRCXWU4VEY7II4JZWDFURRPFHFRG46T7FKBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
