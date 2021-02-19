@@ -2,7 +2,7 @@
 
 # name  = crypt.C25519.cmd.set-client-key
 # param = <pub_key_B32>
-# descr = set client C25519 public key [base32 encoded]
+# descr = set client C25519 public key [ BASE32 encoded ]
 
 my $params  = shift;
 my $key_str = $params->{'args'};
@@ -12,11 +12,11 @@ my $base_re = <regex.base.base_32>;
 
 return {
     'mode' => 'nak',
-    'data' => "expected [ RFC 4648 base32 encoded ] C25519 public key"
+    'data' => 'expected [ RFC 4648 base32 encoded ] C25519 public key'
     }
     if not defined $key_str
     or length($key_str) != 52
-    or $key_str !~ $base_re;
+    or $key_str !~ m|^$base_re$|;
 
 $session->{'client_key'} = decode_b32r($key_str);
 
@@ -24,7 +24,7 @@ if ( length( $session->{'client_key'} // '' ) != 32 ) {
     delete $session->{'client_key'};
     return {
         'mode' => 'nak',
-        'data' => "decoding not successful [ BASE32 expected ]"
+        'data' => 'decoding not successful [ BASE32 expected ]'
             . length( $session->{'client_key'} // '' )
     };
 }
@@ -38,7 +38,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\2UWYESCRLHXZCJKTWKMU2FKTPEKEJQWSXSKHFNL7BYTQTLOIPJLYKXT77L4SYYCBWVQP4IWGL7ZVC
-# \\ BEXJXQP5N53X3RX77UVJUJ35WAGJYEDK4O5BHCOMM65BQN2UK2YH \\// C25519-BASE-32 //
-#  \\// XWLJLHMOR4NRQ4OOFMNGL5NT4RXZKHHTXH5KCLBFQAJIB2LJYBY \\ CODE SIGNATURE \\
+#\\CIBCN5NYFO4JXY5WZNQCB7S3LKYCID4RSAYY3LFGAEZK3ANAO2JRWICR5UO3L7M7QBQAHIMSBSKR6
+# \\ WITYZHCHSGGEIOSEOXSQLY6RNQ5JS73HWMWHVJ2NAIU5XJBZQV4A \\// C25519-BASE-32 //
+#  \\// NBDBLJV5S5VDO65RSTQGTKOMAQCSVI6L2BCUZIJWCIUWPU5DICA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
