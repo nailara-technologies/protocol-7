@@ -4,9 +4,13 @@
 # args  = <filename>[, <target_reference> (SCALAR|ARRAY)][, <encoding>]
 # descr = loads a file into memory and return a reference to it
 
-my $filename   = abs_path(shift);
+my $filename   = shift;
 my $target_ref = shift;              # optional scalar or array reference
 my @encoding   = ( shift // '' );    # optional encoding type [ i.e. ':raw' ]
+
+warn 'expected filename parameter <{C1}>' if not defined $filename;
+$filename = abs_path($filename)           if -e $filename;
+
 if ( defined $target_ref and !length( ref($target_ref) ) ) {
     @encoding = ($target_ref);
     undef $target_ref;
@@ -17,13 +21,13 @@ if ( not defined $target_ref ) {
     $target_ref = \$buffer;
 }
 if ( !-f $filename ) {
-    <[base.log]>->( 0, "file.slurp: file '$filename' not found." );
+    <[base.log]>->( 0, "< file.slurp > '$filename' not found .," );
     return undef;
 }
 my $file_fh;
 if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
     <[base.log]>->(
-        0, "file.slurp: unable to open '$filename' [ \l$OS_ERROR ]"
+        0, "< file.slurp > unable to open '$filename' [ \l$OS_ERROR ]"
     );
     return undef;
 }
@@ -38,14 +42,14 @@ if ( $ref_type eq 'SCALAR' ) {
     chomp(@$target_ref);
 
 } else {
-    warn "file.slurp: unsupported reference type '$ref_type'. <{C1}>";
+    warn "< file.slurp > unsupported reference type '$ref_type'. <{C1}>";
     return undef;
 }
 
 return $target_ref;
 
 # ______________________________________________________________________________
-#\\GP5CHBGFCM5MO3BEPXH3PMUVQDLLRWMB3KIO7GEWQWLNJTC7DTWDWENBOHBW3ZGPLD2NEFGXJQTWW
-# \\ YKMLXNZDSTK2I4RKYUSXZ4V7VSGLEUVVONLI52L2PKFAXP6UA636 \\// C25519-BASE-32 //
-#  \\// CXTYQMJHEKZS5NSDANXA3H6FW3T2ZEVMQS3ZSC6GP7LVKULKKAA \\ CODE SIGNATURE \\
+#\\JB52LGZRLG3YUIAHQNMZNAHXGSNPMFT6SR655EEEE4VQTYJIWPBYMEHB3Z6ANAICI5UZOKYXUO3RE
+# \\ TKTJCWS725LQTUA5NYHG3Q27NKVTFKHOQFBNH2X3G67CF4D26L3Y \\// C25519-BASE-32 //
+#  \\// FYLMD7PTS5SYEUBO4XVN7Q5PD7YNWHFZ3CKR5PBKLAKBCI7RADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
