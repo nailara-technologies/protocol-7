@@ -14,8 +14,8 @@ $time_stamp //= $code{'base.anum_log_time'}->();
 <system.verbosity.agent_buffer>  //= 1;
 <system.verbosity.agent_logfile> //= 0;
 
-return
-        if $log_level > <system.verbosity.console>
+return 1
+    if $log_level > <system.verbosity.console>
     and $log_level > <system.verbosity.agent_buffer>
     and $log_level > <system.verbosity.agent_logfile>;
 
@@ -69,8 +69,10 @@ utf8::decode($log_str)
     if fileno(STDOUT)
     and $log_level <= <system.verbosity.console>;
 
+return 1;
+
 # ______________________________________________________________________________
-#\\5C3ANDCCKUR7V3BBGMHU6QAY5LTCSPG2L7IDMRP3FJZNWUWPVZOG5G5RZDEBHYBC7LK7AMG4ZQCY2
-# \\ RQBX6USO4YC37VCOHMW7OHII2FUFTYNZH3DUOIQMFRCXGBUT3XI3 \\// C25519-BASE-32 //
-#  \\// 5346WVAPKZOG356R6HJPO4GWH5ZZ4QF22K4NDEZ4JSDYVEC3UAY \\ CODE SIGNATURE \\
+#\\DBGEOEBQCPLBBAAKK3SOVX4PJJXHQIFQU64ZXEGKG5O5GK2X3WWKJRLIFHVSQGEZRKFHKE66TY3QE
+# \\ NHNHUFIE4LAPV2IDTBLE52IGEGPUKUKFFFH4A3NTAVPNTL44HMFO \\// C25519-BASE-32 //
+#  \\// KRJRJSADG4PMPO5LFU7XBUQN2DISW2NJP7JY73RBXIUHY4BBSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
