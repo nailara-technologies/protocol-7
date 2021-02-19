@@ -30,7 +30,7 @@ while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
     $retries = 0 if $tmpl !~ m|X|;    # <-- no rnd char range in template
     ( my $fname = $tmpl )
         =~ s|(X+)|uc( <[base.rnd_chars_anum]>->( length $1 ) )|ge;
-    $tmp_file_path = File::Spec->catfile( $first_dir, $fname );
+    $tmp_file_path = catfile( $first_dir, $fname );
 }
 
 die "can not find suitable temp file name [ exists ]" if -e $tmp_file_path;
@@ -48,7 +48,7 @@ open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $OS_ERROR";
 return ( $tmp_fh, $tmp_file_path );
 
 # ______________________________________________________________________________
-#\\BAKX4BRNCTP447KQB7WU6YPHBFHXWL4YTDRHTFS5JGCQCCEDLGVJDVIJWOSGPJXAJN4EBLI5TM24A
-# \\ NXISH23BIBR4M7V3YYVEAVX6SIEPFFQU32RQF4XABDNZMKQZJYKH \\// C25519-BASE-32 //
-#  \\// PYIRDOOZB6TBIRTDZMJQHH267IV242KJYM2VZYYRFNIV7Y3W6CY \\ CODE SIGNATURE \\
+#\\OEEUHR26DTARKEPD3FCDVBJPTZPTNWCLNPY3FIB6C7YBH2L5WQE56E27RN5AG7PBO5CGTYZFOO2KU
+# \\ M5LFFFKNRS3FSKJV5EWLVMS62MGV3YIOHNL7MKTJUXBWA4DG2GEB \\// C25519-BASE-32 //
+#  \\// C4JXSGORLV6VX4OWJ3G5SJ2LALHPCBYQ25NASZ6455WUR24Z2DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
