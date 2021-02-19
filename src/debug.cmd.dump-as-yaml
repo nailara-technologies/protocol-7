@@ -10,7 +10,7 @@ if ( length($keyword) and not eval {qr{$keyword}} ) {
     ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
     return {
         'mode' => 'nak',
-        'data' => "$regex_err in regex [ invalid pattern n param ]"
+        'data' => "expected a valid pattern .:[ $regex_err in regex ]::"
     };
 } elsif ( length($keyword) ) {
     $d_ref = ${ <[base.resolve_key]>->($keyword) };
@@ -30,7 +30,7 @@ $reply = {
 };
 
 # ______________________________________________________________________________
-#\\ZUTCFHYGTFW5HF5WWQWWPRU75NTASKMD7SLBBBGIKATSZAUBBNVCQPNRFZROI4UZ4ZG6V6IGO4JVW
-# \\ NZVDQN7A2RBGP5O77WTDZF664VE5LJHVU5AP3IRFI3YZGC5MRBWB \\// C25519-BASE-32 //
-#  \\// 7INMZ7W7PO7TH3PYRDLPLRYNHH6GMI7X54IDNID3P3OUXU6QEBI \\ CODE SIGNATURE \\
+#\\3L7QBX4EXHK5HMAUCW3G4B4ZRVKVFSOPKMKEHRMWCQT3U5IT4POTRUVSKT7H5NOHWJMFI7MLIHGN4
+# \\ 236Y5C5YKX5RFSERYFTKBLHF7R5KBBQOCR3YJQ7SNHPGNYGCOGSG \\// C25519-BASE-32 //
+#  \\// KNM4O45VQGYXCWEGVIII6USD6SXE72A6UMVB5G6QN664IOSMCBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

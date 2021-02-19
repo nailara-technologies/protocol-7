@@ -15,21 +15,27 @@ return { 'mode' => 'nak', 'data' => 'subroutine parameters are not supported' }
 return { 'mode' => 'nak', 'data' => 'no such subroutine' }
     if not exists $code{$sub_name};
 
-my $sub_output = eval { $code{$sub_name}->(@params) };
+my @sub_output = eval { $code{$sub_name}->(@params) };
 
 my $err_msg;
 $err_msg = 'errors during subroutine execution' if $EVAL_ERROR;
-$err_msg = 'undefined subroutine output'        if not defined $sub_output;
+$err_msg = 'undefined subroutine output'
+    if !@sub_output
+    or @sub_output == 1 and not defined $sub_output[0];
 return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
 
-$sub_output =~ s|\n$|| if $sub_output =~ m|\n| <= 1;
+map { $ARG //= 'UNDEF' } @sub_output if @sub_output > 1;
 
-my $rep_mode = $sub_output =~ m|\n| ? 'data' : 'ack';
+my $rep_mode = 'ack';
+if ( @sub_output == 1 ) {
+    $sub_output[0] =~ s|\n$|| if $sub_output[0] =~ m|\n| <= 1;
+    $rep_mode = 'data' if $sub_output[0] =~ m|\n|;
+}
 
-return { 'mode' => $rep_mode, 'data' => $sub_output };
+return { 'mode' => $rep_mode, 'data' => join( ', ', @sub_output ) };
 
 # ______________________________________________________________________________
-#\\CBHADY2BCVOBTJ3BRKRN6774AU3LBOG5V4JQ33NP5Y72XE6EM632YQOU7RXS4CD332UQ5XRWWBOUI
-# \\ VLD2YYY2LLHAG7GX2YSAYPKOIV6DMWDWFTRNAT5C6OI2I22H2PLK \\// C25519-BASE-32 //
-#  \\// 3PMKFDWWWTLIOZ22XOV6YQGF367PKCH5R2E2MNQVQYQR7LUM4CA \\ CODE SIGNATURE \\
+#\\YK5DDUCZIE7W4S2VGX5Q23LWKOCJBWT4ERC2BW5RURH5WNRQESZ47XXWN7DIKRDNXT24JRIC4S4RK
+# \\ D3JRBQQAIG4VY6GJRREK3NJVJEU7XNWVJMV4CZ6TUCYSFT4PP42Z \\// C25519-BASE-32 //
+#  \\// JNPQECPKNNEKRMZIMVETN2D3HXYEBIVJCWIK4WZLW2MQRXHOCDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
