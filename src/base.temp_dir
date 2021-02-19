@@ -36,7 +36,7 @@ while ( not defined $tmp_dir_path or -e $tmp_dir_path and $retries-- ) {
     $retries = 0 if $template !~ m|X|;    # <-- no rnd char range in template
     ( my $dname = $template )
         =~ s|(X+)|uc( <[base.rnd_chars_anum]>->( length $1 ) )|ge;
-    $tmp_dir_path = File::Spec->catfile( $target, $dname );
+    $tmp_dir_path = catfile( $target, $dname );
 }
 
 make_path( $tmp_dir_path, { 'mode' => 0750 } )
@@ -47,7 +47,7 @@ make_path( $tmp_dir_path, { 'mode' => 0750 } )
 return $tmp_dir_path;
 
 # ______________________________________________________________________________
-#\\GYJVLQKLF52BRU4U6KFAYSUGPLZGQTILR35G7KH2V53RITL7AHENJXAVOQZSEAZBTLSP7HYMPZD2S
-# \\ PSRLLUAPNIYKU7ZTVCPOOW4LIVBSMN5UHA73DLZRER5PKOP3F26L \\// C25519-BASE-32 //
-#  \\// GD6MTOWSQN74ZOV6AQYIESKIXI7J53WKPYN7PEGSC672DSCK4BY \\ CODE SIGNATURE \\
+#\\2V2SR55CX5OIWQEWBTRGNDOHCAPMRRZ5ECTBYZQ56AUZ5ATZPVB5QKVXROWJC4UWDG3S6XUYHL4VO
+# \\ SADFSGM4D3DDNM7CN626TQLB3Q5Z7N76AJ3ZERT4QCK7WDPZGGSA \\// C25519-BASE-32 //
+#  \\// 7ZCPH7KBLTRIL7FZRZSJM6FFNUFKBIGF4ZOPMBOEUWYU63CH4DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
