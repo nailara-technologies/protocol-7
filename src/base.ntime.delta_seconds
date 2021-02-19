@@ -1,0 +1,44 @@
+# >:]
+
+# name  = base.ntime.delta_seconds
+
+my $ntime_start = shift // '';
+my $ntime_end   = shift;
+
+my $base_regex = <regex.base.base_32>;
+my $time_regex = qr|^$base_regex$|o;
+
+warn 'expected valid network time value <{C1}>' and return undef
+    if $ntime_start !~ m|^\d+(\.\d+)?$| and $ntime_start !~ $time_regex;
+warn 'end time value is not valid <{C1}>'
+    and return undef
+    if defined $ntime_end
+    and $ntime_end !~ m|^\d+(\.\d+)?$|
+    and $ntime_end !~ $time_regex;
+
+if ( $ntime_start !~ m|^\d+(\.\d+)?$| ) {
+    eval { $ntime_start = unpack( 'w', decode_b32r($ntime_start) ) };
+    warn "BASE32 decoding error ['$ntime_start']" and return undef if $OS_ERROR;
+}
+
+my $precision = 0;
+if ( defined $ntime_end ) { ## end time given ##
+    if ( $ntime_end !~ m|^\d+(\.\d+)?$| ) {
+        eval { $ntime_end = unpack( 'w', decode_b32r($ntime_end) ) };
+        warn "BASE32 decoding error ['$ntime_end']" and return undef
+            if $OS_ERROR;
+    }
+} else { ## end time is current time ##
+    my $precision = defined $1 ? length($1) : 0;
+    $ntime_end = <[base.ntime]>->($precision);
+}
+my $delta_secs = ( $ntime_end - $ntime_start ) / 4200;
+
+$precision += 3;
+return sprintf( '%.' . $precision . 'f', $delta_secs );
+
+# ______________________________________________________________________________
+#\\YAQH2W5IUUTKRC72RNMCY6JUNMH64QJPOZRVNI7XLMRGMKH3DQ2CPDK2KXAQGBENPU2W3NDGOWUPA
+# \\ RR255ZDPCZ5SH6RXYCA5OWT6H7QM52FTR4LRRUWFZ2TUTWXU2REI \\// C25519-BASE-32 //
+#  \\// K32K6DBS3BW67ISOC5SUOLTEPY7DQHXKDM37FA633UGJDJOIUCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
