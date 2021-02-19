@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Crypt::Misc 'encode_b32r';
+use Digest::BMW 'bmw_224';
+my $bmw = Digest::BMW->new(224);
+
+if ( @ARGV == 2 and $ARGV[0] =~ m|^\-fq?| ) {
+    my $fname = $ARGV[1];
+    die "\n <!> file '$fname' not found <!>" if !-e $fname;
+    open( my $FH, '<' . $fname ) or die "\n <!> $fname : $!\n\n";
+    $fname =~ s|^.*/||;
+    my $bmw_b32 = encode_b32r( $bmw->addfile($FH)->digest );
+    printf( "%s\n", $bmw_b32 ) and exit if length( $ARGV[0] ) == 3;
+    printf( ":\n: $fname :. %s .:\n:\n", $bmw_b32 );
+    close($FH);
+} elsif ( @ARGV == 2
+    and $ARGV[0] eq '-fl'
+    and ( -f $ARGV[1] or $ARGV[1] eq '-' ) ) {
+    my $fname = $ARGV[1];
+    if ( $fname eq '-' ) {
+        while (<STDIN>) {
+            printf "%s\n", encode_b32r( bmw_224($_) );
+        }
+    } else {
+        printf "[ %s ]\n", $fname;
+        open( my $FH, '<' . $fname ) or die $!;
+        while (<$FH>) {
+            printf ": %s\n", encode_b32r( bmw_224($_) );
+        }
+        close($FH);
+    }
+} else {
+    printf "%s\n", encode_b32r( bmw_224( ( join( ' ', @ARGV ) ) ) );
+}
+# ______________________________________________________________________________
+#\\EXFHEUFUVLY4MBKS3KT3LABPSHMWYY3OXZ6QUNYE2FSJM66GXMASECOJ57AGCF6S3W33XRRMDV6SC
+# \\ 3CV6IYKUNER4OEYWKAWUOZNW74V2NLOVZKWDJYWOFJZA77DOJUVO \\// C25519-BASE-32 //
+#  \\// JQIFEYJ2D5ZOFMGKUGWENWYKXQKMCGAFQ3ONI725VMGXFKXS6CY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
