@@ -1,0 +1,23 @@
+# >:]
+
+# name  = base.file.timestamped_delta_s
+
+my $file_name = shift;
+my $ext_param = shift // '';
+warn 'expected file name parameter <{C1}>' and return undef
+    if not defined $file_name;
+
+( my $network_time, my $value )
+    = <[file.read_timestamped]>->( $file_name, $ext_param );
+
+return undef if not defined $network_time;
+
+my $delta_seconds = <[base.ntime.delta_seconds]>->($network_time);
+
+return ( $delta_seconds, $value );
+
+# ______________________________________________________________________________
+#\\ET4RGB4BYHDZRR2XC6FOX6N456JTQTVGP4OTTH5YDBZVNHDTYU6OAAGWPSPLVN3LX3AA7XTERGJ3Y
+# \\ HVTPSIDMUGIQNYPM2LWEUDMOM6PQBNXFSJRGXGSAL2NX37HW2KFX \\// C25519-BASE-32 //
+#  \\// JSTKLETVJ35ITQJD2B3RS5F4BGJFKYK63XFQOIGDWPOQUT56ADY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
