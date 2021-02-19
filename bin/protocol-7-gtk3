@@ -1,11 +1,14 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
-use File::Spec;
+
+use English;
 use Module::Load;
 use Cwd 'abs_path';
-use FindBin qw($RealBin $RealScript);
+use File::Spec;
+use File::Spec::Functions;
+use FindBin qw| $RealBin $RealScript |;
 eval { load 'File::Which', 'which' };
 my $which_loaded = $EVAL_ERROR ? 0 : 1;
 
@@ -20,27 +23,36 @@ my $agentname;
 my @call_args = @ARGV;
 
 ## [script path] ##
-my $exec_path = abs_path( File::Spec->catfile( $RealBin, $RealScript ) );
+my $exec_path = abs_path( catfile( $RealBin, $RealScript ) );
 my $bin_path  = abs_path($RealBin);
 ## [perl path] ##
-my $perl_path = '/usr/bin/perl';
-eval { $perl_path = which('perl') }          if $which_loaded;
-die "<!> WEIIIRD <!> perl binary not found." if !-e $perl_path;
-my $nailara_path = File::Spec->catfile( $bin_path, 'nailara' );
-die "<!> '$nailara_path' : path not found." if !-f $nailara_path;
+
+my $perl_path;
+eval {
+    use Config;
+    $perl_path = $Config{'perlpath'};
+    if ( $^O ne 'VMS' ) {
+        $perl_path .= $Config{'_exe'}
+            unless $perl_path =~ m|\Q$Config{_exe}\E$|i;
+    }
+};
+$perl_path //= $EXECUTABLE_NAME;
+
+my $protocol_7_path = catfile( $bin_path, 'protocol-7' );
+die "<< '$protocol_7_path' : path not found >>" if !-f $protocol_7_path;
 
 ## agent name [ link derived ] ###
 if ( -l File::Spec->rel2abs($PROGRAM_NAME) ) {
     $agentname = lc($PROGRAM_NAME);
-    $agentname =~ s/^.*nailara\.|[\. ]$//g;
+    $agentname =~ s{^.*protocol-7\.|[\. ]$}{};
     @call_args = ( $agentname, @ARGV );
 }
-$agentname //= 'nailara';
-exec( $perl_path, '-C31', '-MGtk3', $nailara_path, @call_args )
-    or die "failed to start $agentname agent: $OS_ERROR";
+$agentname //= 'protocol-7';
+exec( $perl_path, '-C31', '-MGtk3', $protocol_7_path, @call_args )
+    or die "failed to start $agentname agent [ \l$OS_ERROR ]";
 
 # ______________________________________________________________________________
-#\\TXNJACBLKKFJFECEKHY6KJAFOJL6RKLA6FI2TIZ3WHGPBTXYMLDJ5GR25GG3WNUZRNJRJEPWPYOP2
-# \\ ZNERE53E43VMOK2YI3PX4GP6TW3LWL7JW7CQWWYY4FBVQVOW5OGI \\// C25519-BASE-32 //
-#  \\// BRFMLHJ7CJDWVHUUGFKBWEANOLZ6GN7UI5GWD234GTKUQIUPKCQ \\ CODE SIGNATURE \\
+#\\BRQUM37AVEIPMRDQ3SUAQFZN7UE2WJQGHAER7RNGRSD6OAZRIGVS7XAVCZQJQHGMWFSRPSOYTD742
+# \\ DX7ESYUC3DACI6NZ3NRFUAEL3HNCYWWU73PF2ZTEPJWUZAOZUOFH \\// C25519-BASE-32 //
+#  \\// BF7PDWDPJCWBUXHGAEWFHYGYVMYMYPBXDSKOPMZUVKOQW3CHYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
