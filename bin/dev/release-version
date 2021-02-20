@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 use File::Spec;
-use Cwd 'abs_path';
-use FindBin qw($RealBin);
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
 
 my $release_version;
 my $version_seed = 42513;
@@ -13,7 +13,7 @@ my $mode = ( @ARGV and $ARGV[0] eq '-m' ) ? 'msg_str' : 'rel_ver';
 if ( @ARGV and $ARGV[0] eq '-s' ) { $mode = 'set_tag'; shift @ARGV }
 
 if ( $mode eq 'set_tag' and @ARGV and $ARGV[0] =~ m|^v?(\d+\.\d+\.\d+)$| ) {
-    $release_version = $1 and shift @ARGV;    ## <-- setting custom version ##
+    $release_version = $1 and shift @ARGV; ## <-- setting custom rel. version ##
 }
 
 my $u = File::Spec->updir;
@@ -26,7 +26,7 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
     local $/ = undef;
     if ( open( my $v_fh, '<' . $version_file ) ) {
         ( my $raw_str = <$v_fh> ) =~ s|\s.+$||sg;
-        ( my $year_float, my $commit ) = split( /-/, $raw_str, 2 );
+        ( my $year_float, my $commit ) = split( m|\-|, $raw_str, 2 );
         if ( not defined $release_version ) {
             (   $release_version = sprintf(
                     "%.3f", ( $commit * $year_float ) / $version_seed
@@ -35,10 +35,10 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
         }
         my $tag_msg
             = sprintf(
-            "<< release \\\\// nailara-v%s || source code \\\\// %s >>",
+            "<< release \\\\// protocol-7-base-v%s || source \\\\// %s >>",
             $release_version, $raw_str );
         if ( $mode eq 'rel_ver' ) {
-            print STDOUT ":\n: calculated nailara release : ";
+            print STDOUT ":\n: calculated protocol-7 release version : ";
             print STDERR "v$release_version\n";
             print STDOUT ":\n";
         } elsif ( $mode eq 'msg_str' ) {
@@ -53,8 +53,9 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
         die "$version_file: $!\n";
     }
 }
+
 # ______________________________________________________________________________
-#\\JCKNRKE73FLOLFECEQYFOTTRRDFN5GKG6455ZCQUGBZSBVWUZPW4R4QPW5GB6HAN42WS5CB4ECAMU
-# \\ KGXCLAOBONZLY4FOJFABUQX6VBY45MAQA3ZBVWC6CWZNGDTLE7BQ \\// C25519-BASE-32 //
-#  \\// D3PKEBNSLNHS73JPQWHIDYIKBFOMIAZNOLHXFCZXODFNYQWHSDI \\ CODE SIGNATURE \\
+#\\36R3KNEQO6USS5CBN2T7YQVMJVNSA7STR34WN3BC7KMHO66V7372ZNTFQUJTO45DAVHMDE4SH2OOK
+# \\ KCRJ4ZCJPYZBNEOD74L42ZCONYJREJQ7MFDJCN6VUBDBSAC4KBS2 \\// C25519-BASE-32 //
+#  \\// NMXFCVO5GY5UK4J4LJPLO4XHJ64ADNYE2D4CEOVCTZWHJYCJGAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
