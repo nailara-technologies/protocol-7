@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 
-use Time::HiRes qw/sleep/;
+use Time::HiRes qw| sleep |;
 
 my @edit_files;
 
 @ARGV = split( /\s+/, qx(xsel -o) ) if !@ARGV;
 
 my @check_paths = qw(
-    /data/projects/nailara/src
-    /data/projects/nailara/cfg/agents
-    /data/projects/nailara/cfg
-    /data/projects/nailara/bin
-    /data/projects/nailara
+    /data/projects/protocol-7/src
+    /data/projects/protocol-7/cfg/agents
+    /data/projects/protocol-7/cfg
+    /data/projects/protocol-7/bin
+    /data/projects/protocol-7
 );
 
 {
@@ -63,3 +63,9 @@ for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
     sleep $accel;
     $accel = 0.047 - sprintf( "%.04f", $accel * 0.47 );
 }
+
+# ______________________________________________________________________________
+#\\HD53GMOP5SY7PGVADLAHQDK7WJRCX2TQLMGWKIDJDSADHK472WSG33IA7EH4B7VL6XJKDJUOLP4LI
+# \\ GR33QDRZXKGEKULQVI6STNYCNIZB3AANAF3BOF3XUKE57WHWTYZZ \\// C25519-BASE-32 //
+#  \\// EZFFSFNWESSEN22TBWJDE4BES3FWNSGSZAAF3DWZTNBFMA2NSDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
