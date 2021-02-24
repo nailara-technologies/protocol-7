@@ -36,3 +36,9 @@ gource \
 #    | avconv -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K $TARGET 2>/dev/null
 
 ls -lh $TARGET
+
+# ______________________________________________________________________________
+#\\I6UYHYKO6PGSPWMVY2FE7TJCG6GLO6JYGZ2QFFYFTZNVT7NG2POYJAC6WGQ3SOJ7IV5UHATYANM2A
+# \\ 6MROT36EDMMMSIWIZBMAHSJU33DOZBE5RZTFH54ZYCCSESND7K2V \\// C25519-BASE-32 //
+#  \\// YIYU7UDJIUVA7B4JMAQFNIYSGVC7KLOMZLCYXELU7SKK7MRF2DQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
