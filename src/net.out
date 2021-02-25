@@ -5,41 +5,34 @@
 # args  = filehandle, data [string]
 
 if ( fileno $_[0] ) {
+    my $cid = $data{'handle'}{ $_[0] }{'cid'};
+
     if (    defined $data{'handle'}{ $_[0] }
-        and defined $data{'handle'}{ $_[0] }{'cid'}
-        and defined $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }
-        {'output'}{'handler'} ) {
-        if (defined &{
-                $code{
-                    $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }
-                        {'output'}{'handler'}
-                }
-            }
-        ) {
+        and defined $cid
+        and defined $data{'session'}{$cid}{'output'}
+        and defined $data{'session'}{$cid}{'output'}{'handler'} ) {
+        if ( defined &{ $code{ $data{'session'}{$cid}{'output'}{'handler'} } } )
+        {
             <[base.s_write]>->(
                 $_[0],
-                &{  $code{
-                        $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }
-                            {'output'}{'handler'}
-                    }
-                }( $_[1] )
+                $code{ $data{'session'}{$cid}{'output'}{'handler'} }->( $_[1] )
             );
         } else {
             <[base.log]>->(
                 0, "[$_[0]] output chain handler is not valid. [ deleted ]"
             );
-            $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }
-                {'output'}{'handler'} = undef;
+            $data{'session'}{$cid}{'output'}{'handler'} = undef;
 
-          #            <[base.session.shutdown]>->( $id, 'filter chain error' );
+            ## <[base.session.shutdown]>->( $id, 'filter chain error' );
+
             return 1;
         }
     } else {
         <[base.s_write]>->( $_[0], $_[1] );
     }
 
-    if ( $data{'handle'}{ $_[0] }{'cid'} ) {
-        $data{'session'}{ $data{'handle'}{ $_[0] }{'cid'} }{'bytes'}{'in'}
+    if ( defined $cid ) {
+        $data{'session'}{$cid}{'bytes'}{'in'}
             += length( $_[1] );
     } else {
         $data{'handle'}{ $_[0] }{'bytes'}{'in'} += length( $_[1] );
@@ -51,7 +44,7 @@ if ( fileno $_[0] ) {
 }
 
 # ______________________________________________________________________________
-#\\GXKFJV6JLBSDIHGSJPICJ5ITWESJADNRBJOEWTN2GAGGMUOMRQXUYAX6CAQ7CORLMODFQT6XM45SO
-# \\ GCACLXTLDFTCMIXEFM5BPLMRROTUYU3GV6LKMWTAF6I6CEQOASKF \\// C25519-BASE-32 //
-#  \\// SEWEQ2WHGLRMGJYJU463L52QRAHSVIJPAX5FD4LRJKANV6VIWCA \\ CODE SIGNATURE \\
+#\\UFCRIGOK5JC3GNPE3RNAWWMQ72SNFAU3WY3JLBJAOD6MAWY467X7ZRMESL55THXJPB7WY4O55NGTY
+# \\ IJE4MA4JUNY5OBNIVRFIWVQOBCLLMIJLHQE45KEBLQ4NJZX3IE2T \\// C25519-BASE-32 //
+#  \\// 4BTPDWI37W3SNXDS4JWZSAZJOEK2KPA6S2XLYEBURGCLFSHFODA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
