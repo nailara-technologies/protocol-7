@@ -28,8 +28,8 @@ if ( defined $name and $name !~ m|^$re->{usr}$| ) {
 
 $name //=
     $mode eq 'server'
-    ? <base.session.uname_server>
-    : <base.session.uname_client>;
+    ? <base.session.uname.server>
+    : <base.session.uname.client>;
 
 if ( not defined $data{'protocol'}{$protocol} ) {
     <[base.log]>->( 0, "< base.session.init > unknown protocol '$protocol'" );
@@ -48,6 +48,8 @@ my $id = <[base.list.element.add]>->(
             'link'           => $data{'handle'}{$fd}{'link'},
             'mode'           => $mode,
             'state'          => 0,
+            'paused'         => 0,
+            'complete'       => 1,
             'shutdown'       => 0,
             'initialized'    => $initialized,
             'flush_shutdown' => 0,
@@ -63,7 +65,7 @@ my $id = <[base.list.element.add]>->(
     }
 );
 
-if ( $name ne <base.session.uname_server> ) {
+if ( $name ne <base.session.uname.server> ) {
     $mode = $data{'user'}{$name}{'session'}{$id}{'mode'} = 'client';
 }
 
@@ -126,8 +128,8 @@ if ( $mode eq 'server' ) {
     my @timeout
         = (
                $protocol ne 'protocol-7'
-            or $name ne <base.session.uname_server>
-            and $name ne <base.session.uname_client>
+            or $name ne <base.session.uname.server>
+            and $name ne <base.session.uname.client>
         )
         ? ()
         : (
@@ -140,7 +142,7 @@ if ( $mode eq 'server' ) {
         }
         );
 
-    if ( $protocol eq 'http' and $name eq <base.session.uname_server> ) {
+    if ( $protocol eq 'http' and $name eq <base.session.uname.server> ) {
 
         # http[d] timeout
         @timeout = (
@@ -184,8 +186,9 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 }
 
 return $id;
+
 # ______________________________________________________________________________
-#\\FJ7SJ6NEJZVMBWXCK22GKG325A732FWHKP77UEFHZGHYK645SHAFPB4E4FM7E5WGZI6V4ZHHO5NRG
-# \\ EMVZ2XASTIG37DKP7VGJ2AT6GKAZFKRQ6I33E5B4VJ76E7N4TJ3V \\// C25519-BASE-32 //
-#  \\// BFM6JOKSX2PACN52KSYFHA3XMOLYKZD3SQEFZXQIG7MBLMEHMCY \\ CODE SIGNATURE \\
+#\\7BTY5CBWA7RJAC26TADEHM2NFGAULZIYRCWCHHD7IFP4GTINJOKRUMQHDAVXHQEECW5AEAAHCTVCO
+# \\ ZTSTPZR7J64DGPVBLYRGFD5A7TUGEUHHBTLDNWDMY4TGZ4R3OBA3 \\// C25519-BASE-32 //
+#  \\// BZCHTI4V7FWQST3W3VSOKBV57OYRJPLLS7DRE26DKVMKBSUXKBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

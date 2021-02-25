@@ -5,77 +5,81 @@
 
 my $id = $_[0]->w->data;
 
-if ( not defined $id or not exists $data{'session'}{$id} ) {
+if ( not defined $id or not defined $data{'session'}{$id} ) {
     my $id = '!' if not defined $id;
     $_[0]->w->cancel;
 
-    # call cleanup.., [protocol.,]
-    <[base.log]>->(
-        0,
-        "[$id] session of input handler was already closed, watcher stopped.,"
-    );
+    ## call cleanup handler.., [protocol.,]                                [LLL]
+    <[base.log]>->( 0, "[$id] input handler session was already closed.," );
     return undef;
 }
 
-my $fd = $data{'session'}{$id}{'input'}{'handle'}
-    || $data{'session'}{$id}{'handle'};
+my $session = $data{'session'}{$id};
+my $fd      = $session->{'input'}->{'handle'} // $session->{'handle'};
 my $type    = $data{'handle'}{$fd}{'link'};
-my $proto   = $data{'session'}{$id}{'protocol'};
-my $state   = $data{'session'}{$id}{'state'};
+my $proto   = $session->{'protocol'};
+my $state   = $session->{'state'};
 my $mode    = $data{'handle'}{$fd}{'mode'};
-my $handler = $data{'session'}{$id}{'input'}{'handler'};
+my $handler = $session->{'input'}->{'handler'};
 
-my $start_len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+my $start_len = length( $session->{'buffer'}->{'input'} );
 
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     my $ret_code = $code{$handler}->( $_[0] );
 
+    ## return code 0 ## command processed  [ removed from buffer ]
+    ## return code 1 ## ..not complete.,   [ more data expected. ]
+
+    $session->{'complete'} = $ret_code == 1 ? 0 : 1;
+
+    ## return code 2 ## terminate session and close connection ##
     if ( defined $ret_code and $ret_code =~ m|^\d+$| and $ret_code == 2 ) {
-        $data{'session'}{$id}{'shutdown'} = 1;
+        $session->{'shutdown'} = 1;
     }
-} elsif ( defined $data{'session'}{$id} ) {
+    ##
+} else {
 
     $_[0]->w->stop;
-    $data{'session'}{$id}{'buffer'}{'input'} = '';
+    $session->{'buffer'}->{'input'} = '';
     $_[0]->w->start;
 
     <[base.log]>->(
-        0, "[$id] undefined input handler '$handler', dropped buffer.,"
+        0, "[$id] undefined input handler '$handler', buffer content dropped.,"
     );
 
-    if (   $data{'session'}{$id}{'mode'} eq 'client'
-        or $data{'session'}{$id}{'mode'} eq 'in' ) {
-        $data{'session'}{$id}{'shutdown'} = 1;
+    if (   $session->{'mode'} eq 'client'
+        or $session->{'mode'} eq 'in' ) {
+        $session->{'shutdown'} = 1;
     }
 }
 
-my $len = length( $data{'session'}{$id}{'buffer'}{'input'} );
+my $len = length( $session->{'buffer'}->{'input'} );
 return $_[0]->w->cancel if not defined $len;    ## <-- buffer undefined ##
 
 if ( $len < $data{'size'}{'buffer'}{'input'}
-    and !$data{'session'}{$id}{'shutdown'} ) {
+    and !$session->{'shutdown'} ) {
     push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
     }
 }
 
-if ( !$data{'session'}{$id}{'watcher'}{'input_buffer'}->is_running ) {
-    $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
+if ( !$session->{'watcher'}->{'input_buffer'}->is_running ) {
+    $session->{'watcher'}->{'input_buffer'}->now;
 }
 
-if (    $len
+if (    $len > 0
     and $len != $start_len
-    and $data{'session'}{$id}{'buffer'}{'input'} =~ m|\n| ) {
-    $data{'session'}{$id}{'watcher'}{'input_buffer'}->now;
+    and $session->{'buffer'}->{'input'} =~ m|\n| ) {
+    $session->{'watcher'}->{'input_buffer'}->now;
 }
 
-# if ( !$data{'session'}{$id}{'watcher'}{'output_buffer'}->is_running ) {
-#    $data{'session'}{$id}{'watcher'}{'output_buffer'}->now;
+# if ( !$session->{'watcher'}->{'output_buffer'}->is_running ) {
+#    $session->{'watcher'}->{'output_buffer'}->now;
 # }
 
 # ______________________________________________________________________________
-#\\LZANBBK7VRFZTTMUP3WTKSE5ROBMLI4HZ3T2EKHOGWMS33GTFAE2KBBE7N7D4YZNB7JHDGWGNB2UW
-# \\ R3JXBP4INIGDGH4WKB6QM22IZKUQZHJS5ZNJOF5URRSKEQI4TTZA \\// C25519-BASE-32 //
-#  \\// WABD6ZL3NTGKYVSL76EKKW2DCOA5HXO3ISSCVQ24LYLXK7PKAAY \\ CODE SIGNATURE \\
+#\\37FTDYQZ7WUHQ7RQKO7UXCOXOBAUDSJFH4XVNDCS3D3SHSO3CJLFW27MSAW5KGH6RH36AD32WOI4G
+# \\ GASX6LJOBZUM2B2HZAVGBAKXHBR46CT6IPYEFPHE6LKFXSKXX5BN \\// C25519-BASE-32 //
+#  \\// 3CEHJE4EKX2BZWSMUBIIT7XZ4NJHRRK4E7RNPSTPA5JW22UKGCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
