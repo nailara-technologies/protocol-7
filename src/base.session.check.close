@@ -31,10 +31,10 @@ foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
 
 my $user = $data{'session'}{$id}{'user'};
 
-# clean up user -> session reference
+# clean up user to session reference
 if ( defined $data{'user'}{$user}{'session'}{$id} ) {
 
-    # first clean up subname -> session reference
+    # first clean up subname to session reference
     if (    defined $data{'session'}{$id}{'subname'}
         and defined $data{'user'}{$user}{'subname'} ) {
         my $subname = $data{'session'}{$id}{'subname'};
@@ -63,22 +63,31 @@ if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
 my $dfh = $data{'session'}{$id}{'handle'};
 close( $data{'session'}{$id}{'handle'} );
 
-# forced freeing of memory consumed by buffers((!))
+# force freeing of all memory consumed by buffers ..,
 map { undef $data{'session'}{$id}{'buffer'}->{$ARG} }
     keys %{ $data{'session'}{$id}{'buffer'} };
 
 map { undef $data{'session'}{$id}->{$ARG} } keys %{ $data{'session'}{$id} };
 map { undef $data{'handle'}{$dfh}->{$ARG} } keys %{ $data{'handle'}{$dfh} };
 
+## cleaning up references ##
+
+map {
+    undef $data{'user'}{$ARG}{'session'};
+    <[base.clean_hashref]>->( $data{'user'}->{$ARG} )
+} keys %{<base.session.uname>};
+
 delete $data{'session'}{$id};
 delete $data{'handle'}{$dfh};
+
+map { <[base.clean_hashref]>->( $data{$ARG} ) } qw| user handle session |;
 
 <[base.log]>->( 1, "[$id] connection closed." );
 
 <[base.session.check_remaining]>;
 
 # ______________________________________________________________________________
-#\\JM677SZNQX4CZVLKXG6Y3TQLZN6H5OWJUNQAW6YC2P5FTNVLLXKAGN6HWNKY4MBQ52FI3E7U5ZZ7Y
-# \\ WRUGSWIEL7WB7UF4RSSLP4RRPD4WFKK2RWWI676MNCB5BH5RRFQG \\// C25519-BASE-32 //
-#  \\// FFHY6ZVIA5I6VI5W2S7AXPAQEZIKQYN2H57772N5XDGUMNPDICA \\ CODE SIGNATURE \\
+#\\7JFQVURZR6KXUIV5V64T3INKAUPBFNZPXGHE3XJ4OAMCX5R3AWDF6WL6IPY7FINSFZLL7ZFGYQSQC
+# \\ 565UK4IURHPJ2CHSX3DKWCHLOMOA4G7JMT5QFU5RZ3SXDNY6BOOB \\// C25519-BASE-32 //
+#  \\// DIBOKY7SZULUFDUJYN2UHYRIAXGNORHUX6J4XVUGU4YBQGQIMCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

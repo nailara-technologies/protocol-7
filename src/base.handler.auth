@@ -18,13 +18,13 @@ my $s_met = <auth.supported_methods>;
 die "no auth methods defined" if not defined $s_met;
 ($auth_method) = $$session{'auth'}{'method'} // split( m|\s+|, $s_met );
 
-$_[0]->w->stop;                     # <- stopping event handler to modify buffer
+$_[0]->w->stop;    # <-- stopping event handler to modify buffer
 
 if ( $$input =~ s|^(auth\.)?close\n|| ) {
     $$output .= "ACK connection closed\n";
     <[base.log]>->( 1, "[$id] connection shutdown requested" );
-    return 2;    # <- disconnect
-} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| ) {  # <- auth method
+    return 2;    # <-- disconnect
+} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| ) { # <-- auth method
     my $req_method = $+{method};
     $_[0]->w->start;
 
@@ -85,7 +85,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
 # ... calling selected authentication plugin ..,
 elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
-    $_[0]->w->start;    # <- resume event watcher
+    $_[0]->w->start;    # <-- resume event watcher
 
     ( $auth_code, $auth_name )
         = ( $code{"plugin.auth.$auth_method"}->( $_[0] ) );
@@ -101,6 +101,11 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         $$session{'initialized'} = 1 if $auth_method ne 'agent';
         $$session{'authenticated'} = 'yes';
 
+        my $unauth_client = <base.session.uname.client>;
+        delete $data{'user'}{$unauth_client}{'session'}{$id};    ## clean-up ##
+        <[base.clean_hashref]>->( $data{'user'}{$unauth_client} );
+        <[base.clean_hashref]>->( $data{'user'} );
+
         $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = 'client';
 
         $data{'user'}{$auth_name}{'connected_since'} = time()
@@ -112,23 +117,22 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         # disable the authentication timeout
         $$session{'watcher'}{'input_handler'}->timeout(undef);
 
-        undef $count_select;    # .. cleanup .,
+        undef $count_select;    # .. clean-up .,
         delete $$session{'counter'}{'auth'};
         delete $$session{'counter'} if !keys( %{ $$session{'counter'} } );
-
-        return 0;               # <- authorized
+        return 0;               # <-- authorized
     } elsif ( $auth_code == 1 ) {
-        return 1;               # <- continue..,
+        return 1;               # <-- continue..,
     } else {
-        return 2;               # <- disconnect
+        return 2;               # <-- disconnect
     }
 } else {
     <[base.log]>->( 0, "auth plugin '$auth_method' not loaded" );
-    return 2;                   # <- disconnect
+    return 2;                   # <-- disconnect
 }
 
 # ______________________________________________________________________________
-#\\XN3VRQDEUA4KTIMMN42DWZNDOM72Z73X5ZSJT5ABCAJJREH6QGCCGFWBZWDD4ISVWS7Y6FXTHQKGA
-# \\ HTYENJGLQXBIAKFNP7VY7LT5RZW3MCDVHRMEQ4LNHE3A3RFQE5E7 \\// C25519-BASE-32 //
-#  \\// 62CJHRSOJGQMUSD3ML732XVK3AMU3SDKQPGP6UJ5KH4ZSOP7QCQ \\ CODE SIGNATURE \\
+#\\XTQZVFDKF3TNPWIUTFUUNNCBQJEM4GR7JSIVSCK5LWXJ7DIMFR4EHD57HSK4E2KPJDPMVG3AZ3LN6
+# \\ 2R6IXOAYY4TCDS6HFUM5OCRKNQW4X7GDXA3JGDRYDHRSOD5UTJ7S \\// C25519-BASE-32 //
+#  \\// VVBLPW25IRKAUPPYKR4AUWLWWD725DNZPDUARF3YSHUCPWGKGCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

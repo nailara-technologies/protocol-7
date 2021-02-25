@@ -65,17 +65,18 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $$input !~ m|^\(($re->{cmd_id})\)| ) {
     my $cmd_id = $1 // '';
     $$input =~ s|^(\([^\)]*\)[^\n]+)\n||;
-    <[base.log]>->( 1, "[$id] invalid command id ('$cmd_id')" );
+    <[base.log]>->( 1, "[$id] invalid command id ['$cmd_id']" );
     $$output .= "NAK invalid command id syntax or length\n";
-    return 1;
+    return 0;    ## comand complete ##
 }
 
-## checking for multiple line commands ###
+## checking for multi-line commands ###
 
-if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
+if ( $$input
+    =~ s,^(((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
 {
-    $cmd = $1;
-    if ( $$input =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
+    ( my $multiline_cmd, $cmd ) = ( $1, $2 );
+    if ( $multiline_cmd =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
 
         # core agent 'select' command [ base path prefix handling ]
         $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
@@ -89,7 +90,7 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
 
         my $header = 1;
 
-        while ( $$input =~ s|^(.*)\n|| ) {
+        while ( $multiline_cmd =~ s|^([^\n]*)\n|| ) {
 
             my $arg = $1 // '';
 
@@ -112,10 +113,13 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
                         <[base.log]>->(
                             1, "[$id] invalid command parameter format"
                         );
-                        $$output .= $_cmd_id
-                            . "NAK invalid command parameter format\n"; # FIX!!!
+                        $$output
+                            .= $_cmd_id
+                            . "NAK [multi-line] command parameter"
+                            . " syntax not valid\n";    ## <-- [re]define. [LLL]
+
                         $_[0]->w->start;
-                        return 1;
+                        return 0;                       ## command complete ##
                     }
                 } elsif ( $header == 1 ) {
                     $header = 0;
@@ -131,12 +135,12 @@ if ($$input =~ m,^((\($re->{cmd_id}\)|)[\(\d+\)]?$re->{cmdp})\+\n(.*\n)*\.\n,o )
     }
 }
 
-# incomplete multiple line command
+## incomplete multiple line command ##
 
 elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
 
     $_[0]->w->start;
-    return 1;
+    return 1;    ## command not complete ###
 }
 
 ## incomplete DATA reply ## [LLL] switch to stream type transfer ..,
@@ -145,7 +149,7 @@ elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *DATA +(\d+)\n),o
     and length($$input) < ( $3 + length($1) ) ) {
 
     $_[0]->w->start;
-    return 1;
+    return 1;    ## command not complete ###
 }
 
 ### single command line ###
@@ -176,7 +180,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
     <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
     $$output .= $_cmd_id . "NAK $protocol_error\n";
     $_[0]->w->start;
-    return 0;
+    return 0;    ## command complete ##
 }
 
 # empty command line
@@ -185,7 +189,7 @@ elsif ( $$input =~ s|^$|| ) { $_[0]->w->start; return 0 }
 
 # incomplete command line
 
-else { $_[0]->w->start; return 1 }
+else { $_[0]->w->start; return 1 }    ## command not complete ###
 
 # won't modify buffer again
 
@@ -259,7 +263,7 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 my $valid_answer = 0;
 
 my ( $_m1, $_m2 );
-my $cmd_usr_str = $cmd; # used for access checking (relevant with <sid>.<cmd>'s)
+my $cmd_usr_str = $cmd; # used for access checking [ relevant with <sid>.<cmd> ]
 $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     if $cmd =~ m|^($re->{sid})(\..+)$|
     and $_m1 = $1
@@ -308,8 +312,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                                 . $$route{'reply'}{'handler'} . "]"
                         );
                     }
-                } elsif ( exists $data{'session'}{ $$route{'source'}{'sid'} } )
+                } elsif ( defined $data{'session'}{ $$route{'source'}{'sid'} } )
                 {
+                    my $source_sid = $$route{'source'}{'sid'};
                     ##  calling reply handler if a filter hook was applied., ###
                     $route->{'hook_data'}->{'handler'}->(
                         {   'mode' => $cmd,
@@ -322,8 +327,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                     # route reply
                     $$call_args{'args'} //= 'UNDEFINED';
-                    $data{'session'}{ $$route{'source'}{'sid'} }{'buffer'}
-                        {'output'}
+                    $data{'session'}{$source_sid}{'buffer'}{'output'}
                         .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
 
                 } else {    # should never come here [ SID gone. ]
@@ -450,7 +454,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     1, "[$id] called unimplemented answer type ['$cmd']"
                 );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
-                return 1;
+                return 0;    ## command complete ##
             }
         }
     } else {
@@ -472,6 +476,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     $ignore_log_level,
                     "[$id] : dropped next $ignore_bytes bytes too.. [DATA body]"
                 );
+                return 0;    ## command complete ###
             } else {
                 <[base.log]>->(
                     $ignore_log_level,
@@ -481,12 +486,12 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 truncate( $$input, 0 );
             }
         }
-        return 1;
+        return 1;    ## command not complete ###
     }
 
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
-    $$output .= $_cmd_id . "NAK protocol mismatch [ 'invalid reply type' ]\n";
+    $$output .= $_cmd_id . "NAK protocol mismatch [ invalid reply type ]\n";
 } elsif ( <[base.has_access]>->( $user, $cmd_usr_str ) ) {
 
     ### local command ###
@@ -549,7 +554,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     <[base.log]>->( 2, "setting up reply for id $reply_id" );
 
                     # [LLL] set up reply timeout .,
-                    return 0;
+                    return 0;    ## command complete ##
                 }
                 delete <base.cmd_reply>->{$reply_id};
 
@@ -599,7 +604,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 } elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
                     <[base.session.shutdown]>->( $id, $$reply{'data'} );
                 }
-                return 0;
+                return 0;    ## command complete ##
             } else {
                 <[base.log]>->(
                     1, "[$id] command '$cmd' configured but not defined"
@@ -611,7 +616,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         $$output .= $_cmd_id . "NAK $unkown_command\n";
 
-        return 1;
+        return 0;    ## command complete ##
     }
 
     ## tree upwards., ##
@@ -623,14 +628,14 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
 
         $$output .= "NAK not implemented yet.,\n";
-        return 1;
+        return 0;    ## command complete ##
 
         if ( exists $data{'user'}{$1}{'session'}
             and $data{'user'}{$1}{'mode'} eq 'link' ) {
 
          #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
-        return -1;
+        return 0;    ## command complete ##
     }
 
     ## absolute address notation ##
@@ -730,7 +735,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                         }
                     );
                 }
-                return 0;
+                return 0;    ## command complete ##
             } else {
                 <[base.log]>->( 1, ": target user '$target_user' not found" );
             }
@@ -742,7 +747,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             <[base.log]>->(
                 $l_lvl, "[$id] offline : '$target_name' : '$command_str'"
             );
-            return 1;
+            return 0;    ## command complete ###
         }
 
         my @send_sids_left;
@@ -767,7 +772,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             );
         }
 
-        return 1                     if !@send_sids_left;
+        return 0 if @send_sids_left == 0;    ##  <--  all done.,  ###
         @send_sids = @send_sids_left if @send_sids_left != @send_sids;
 
         # command [argument] filter hooks  ..,
@@ -784,15 +789,15 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         foreach my $target_sid (@send_sids) {
 
             my $target_session = $data{'session'}{$target_sid};
-            if (   $target_session->{'user'} eq <base.session.uname_server>
-                or $target_session->{'user'} eq <base.session.uname_client>
+            if (   $target_session->{'user'} eq <base.session.uname.server>
+                or $target_session->{'user'} eq <base.session.uname.client>
                 or defined $target_session->{'authenticated'}
                 and $target_session->{'authenticated'} ne 'yes' ) {
                 $targets_denied++;
                 next;    # skip unauthorized connections
             }
 
-            # setup route
+            ## setting up route ##
 
             my $route = <[base.route.add]>->(
                 {   'source' => { 'sid' => $id, 'cmd_id' => $cmd_id },
@@ -876,16 +881,16 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 0,
                 "[$id] blocked access [ usr:'$user' cmd:'$target_name.$cmd' ]"
             );
-            return 1;
+            return 0;    ## command complete ##
         }
 
         ## at least one target was valid ##
 
-        return 0;
+        return 0;        ## command complete ##
     } else {    ## command syntax not valid ##
         $$output .= $_cmd_id . "NAK $protocol_error\n";
         <[base.log]>->( 1, "[$id] protocol mismatch ['$cmd']" );
-        return 1;
+        return 0;    ## command complete ##
     }
 
     ## command unknown ##
@@ -894,13 +899,13 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 } else {    ## insufficient access permissions ##
     $$output .= $_cmd_id . "NAK $no_permissions\n";
     <[base.log]>->( 0, "[$id] blocked access [ usr:'$user' cmd:'$cmd' ]" );
-    return 1;
+    return 0;    ## command complete ##
 }
 
-return 0;
+return 0;        ## command complete ##
 
 # ______________________________________________________________________________
-#\\3JADAGKOVGQJOKMT6XHXGECZ6N3JRFE5VY4IYEJ5ICREXKRB3YCG65ISV7ROEWPNZ2TCNHHI7BEPE
-# \\ I6PPAGUEVVR4LDDJCUAJIWHDLYEW2RCS2PF54GWBKN5VH342QJTN \\// C25519-BASE-32 //
-#  \\// 3R5TLJH46GSAOVOTOQJ6WJJQYQ52JJNZX7QNKTPLRVE7WWBDUBI \\ CODE SIGNATURE \\
+#\\RUGWY2Z3ZYUITPOANJH43ISIBEDRC3Q6NKOD7DZL5PHU5Q7DGF6L3CS5MO23C34WPXV6N52HR3N2E
+# \\ AENKNPNFSFVWVN3N37QOATDX3QVQUVZZ6DKMQGO2SCAUT4YXSWLK \\// C25519-BASE-32 //
+#  \\// 6G4VM43W3BN3X7NVEHD6TU3YRMHEEDO6K2T45L66UI2PMFIUECA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

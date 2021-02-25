@@ -7,10 +7,8 @@ my $id = $_[0]->w->data;
 
 if ( not defined $id or not defined $data{'session'}{$id} ) {
     $_[0]->w->cancel;
-    $id //= '---';
-    <[base.log]>->(
-        1, "[$id] handler of already closed session called, cancelled!"
-    );
+    $id //= '---';    ## <-- !!! session history ?                        [LLL]
+    <[base.log]>->( 1, "[$id] called handler of closed session." );
     return undef;
 }
 
@@ -48,7 +46,7 @@ if ( $len > $$session{'size'}{'buffer'}{'input'} ) {
 }
 
 # ______________________________________________________________________________
-#\\OT3PBXTK3ZNXYWHUQKHKOYB3TF6NYQQGLROB5M773ZXIAFIDKITE3GTRZ4HCFDVZW4GU5VKHMESRY
-# \\ YYAYPZMIOE3ASEJ5F56PWXTW35UFLQXFTERBMBPOX7HCKQ6JQYYJ \\// C25519-BASE-32 //
-#  \\// OW4C3PQMGZYVIWMO33N6IN7FKJLCMQGPY3MMDDC27MB4ROCXGCY \\ CODE SIGNATURE \\
+#\\NHCGOKTMNHLE3RMLBNWEOOVXPKAYOCV3ZMYIYA3FDLZDPD2V2CLPRLZIKT4ZYNR4TSC5XW34NNEJ4
+# \\ JY43JWX7QXUEUE2PEYLQ7OVBB2TQCGYJH7V3DUI4HZF5FK4TTLTH \\// C25519-BASE-32 //
+#  \\// NBK6EHJR7PPPXJRNSQQZTUNZWBVHQW7USLAPBOQSPFBK4MUK6BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
