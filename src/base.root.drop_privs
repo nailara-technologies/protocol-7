@@ -10,7 +10,10 @@ my $user = shift;
 <[base.check_dependency_dirs]>->($user);
 
 if ( !length( $user // '' ) ) {
-    <[base.log]>->( 0, 'can not change priviledges [ no user name supplied ]' );
+    <[base.log]>->(
+        0, '<< cannot drop priviledges [ no user name supplied ] >>'
+    );
+    <[base.exit]>->(110) if !$noop;
     return -1;
 } else {
 
@@ -29,26 +32,28 @@ if ( !length( $user // '' ) ) {
         <[base.log]>->( 1, "set_privs: already am '$user', doing nothing." );
         return -2;
     } elsif ($UID) {
-        <[base.log]>
-            ->( 0, "can not change privs to user '$user' [ not root ]" );
+        <[base.log]>->(
+            0, "<< cannot change privs to user '$user' [ not root ] >>"
+        );
+        <[base.exit]>->(110) if !$noop;
         return -1;
     } else {
         if ( not defined $name or $name ne $user ) {
             <[base.log]>->(
-                0, "can not change priviledges to '$user' [ no such user ]"
+                0, "<< cannot change privs to '$user' [ no such user ] >>"
             );
+            <[base.exit]>->(110) if !$noop;
             return -1;
         } else {
             my @rgids;
             while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
                 push( @rgids, $_gid )
-                    if ( grep( $ARG eq $user, split( /\s+/, $_members ) ) );
+                    if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
             }
 
             if ( !length( $home_dir // '' ) ) {
                 <[base.log]>->(
-                    0,
-                    sprintf( "<!> undefined homedir [ user '%s' ] <!>", $user )
+                    0, sprintf( "<< undefined homedir [ user '%s' ] >>", $user )
                 );
                 <[base.log]>->( 2, " :. setting to '/'.," );
                 $home_dir = '/';
@@ -56,7 +61,7 @@ if ( !length( $user // '' ) ) {
                 <[base.log]>->(
                     0,
                     sprintf(
-                        "<!> user '%s' has no home dir [ creating %s ]",
+                        "<< user '%s' has no home dir [ creating %s ] >>",
                         $user, $home_dir
                     )
                 );
@@ -69,7 +74,7 @@ if ( !length( $user // '' ) ) {
                 );
             } elsif ( !-d $home_dir or $user eq 'nobody' ) {    # /nonexistent
                 <[base.log]>->(
-                    0, "unable to create home directory '$home_dir'"
+                    0, "<< unable to create home directory '$home_dir' >>"
                 ) if $home_dir ne '/nonexistent';
                 ### temporary home directory ###
                 <system.privs.create_temp_home> //= 0;
@@ -88,7 +93,7 @@ if ( !length( $user // '' ) ) {
                         = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
                     if ( -d $home_dir ) {
                         chown( $uid, $gid, $home_dir )
-                            or warn "chown($uid,$gid,$home_dir): $OS_ERROR";
+                            or warn "chown[$uid,$gid,$home_dir]: $OS_ERROR";
                         <[base.log]>->(
                             1, ":: created temporary home directory"
                         );
@@ -129,7 +134,7 @@ if ( !length( $user // '' ) ) {
 }
 
 # ______________________________________________________________________________
-#\\SI777C3W7EIJQZ723U3GKAQCAS74K4S7WR7KH4IPRCUOFG4H4ZBXRP75BHJIQI3WOHV5DIPLYZB2G
-# \\ N4YTAYNABDWLBO2OGIM4GKXEZJ5NGZJR77BRLYEXM25PTZHBOEZG \\// C25519-BASE-32 //
-#  \\// KAAFA27MPCBL2BXIH3T6CJDPZSHZSAZJPUCAXWNBTYVVN4IRMDI \\ CODE SIGNATURE \\
+#\\GIPRM3NNNTQ4RB5Z6C4JEIS2FFRYMXPRUXTQJAGK7V4GB3U7CSL2P54EQK7SIFDZMANTBF4J3TFHA
+# \\ L4FUSOTHDJXVTMLY2FUKN7BAVESCMJGWMXDJCBOEREJJANZN74BO \\// C25519-BASE-32 //
+#  \\// JKG2KNPAEZJMTYF7YTEXNIZCVXX5HI2TJXOTEY35NKYLVRTJYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
