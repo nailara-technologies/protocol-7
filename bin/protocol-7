@@ -10,6 +10,7 @@ our %code;
 our %data;
 our %KEYS;
 our %ANSI;
+our $SUB_NAME;
 
 prepare_subs();
 
@@ -1337,6 +1338,7 @@ sub prepare_subs {
             }  # todo: human readable way do debug [eval] callers., [+stacktrc?]
             map {
                 $ARG =~ s| at $filename line $line[\.,].*$||;
+                $ARG =~ s|no success on eval ('\$code\{\S+)|<< $1 >>|;
                 $level = $1 || 1 if $ARG =~ s| *<\{C(\d{1,3})?\}>$||
             } @err;
             if ($level) {    # <- log parent caller instead ('<{C[level]}>')
@@ -1344,10 +1346,11 @@ sub prepare_subs {
                 ( $package, $filename, $line, $subroutine ) = @caller;
             }
 
-            # special exception for agent code evaluation
+            # special exception for agent code evaluation [ base.init ]
             if ( abs_path($filename) eq
-                abs_path( $data{'system'}{'start'}{'exec_name'} )
-                and $line == 56 ) {
+                    abs_path( $data{'system'}{'start'}{'exec_name'} )
+                and defined $SUB_NAME
+                and $SUB_NAME eq 'base.init' ) {
                 my $l = 0;
                 $filename = $data{'base'}{'eval_error'}{'name'}
                     //= [ caller($l) ]->[1];
@@ -1406,7 +1409,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\BBSC2JXYPMG5HWPPYAOZR3SFL3G45U6BV27YAHMV53Q2INLJPHHDS57ZKZOZREVWJ3JM4J66ZIIKQ
-# \\ FQFPRK7Z2MD2ADWDGHV3DASVK5KPYHDMJFGMUAAQMF3BXUXAMZEK \\// C25519-BASE-32 //
-#  \\// FTKMZROEBRMAAMVNE65LBPGVMF3IYNQK5PIAGKZLWMIEVPB6CBY \\ CODE SIGNATURE \\
+#\\WXW27E4ILH6G3NC5HLBJ2K3FRKRQ6QEGITAYRZGPDPEUG2LXD2O532PG3C2CHIR5BW5OQLVZ545KM
+# \\ UEF2EC4TRXIZUDGYDGLKVZEQTVHKQOKZBRQSVVKWBXDSDSSISTPR \\// C25519-BASE-32 //
+#  \\// GF2PESB7BBVN5MDEDTOLRDJJUHRKN2T4DTBLGTBPG45GRCZL6AI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
