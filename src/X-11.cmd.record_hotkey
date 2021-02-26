@@ -8,7 +8,7 @@ my $re      = <regex.base>;
 my $command = $$call{'args'} // '';
 
 return { 'mode' => 'nak', 'data' => 'expected valid nailara command string' }
-    if $command !~ /^($re->{usr}\.)+$re->{cmd} ?/;
+    if $command !~ m|^($re->{usr_str}\.)+$re->{cmd_str} ?|;
 
 <X-11.hotkeys.recording> = $command;
 
@@ -17,7 +17,7 @@ push( @{<X-11.hotkeys.rec_reply_ids>}, $$call{'reply_id'} );
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\5LAHAOQLUCL3R6W2IZHS3LKU3J4DR6GYP2U2GPTKSXAPW36HJ3EF4DC7L7K5NQ5HHYZWTDOI3RULW
-# \\ NWTED656EBLRTO3RVB6GN4ZMHSN26IF4YOX6LUWJ4B54VIIZJ2UW \\// C25519-BASE-32 //
-#  \\// RGBRCRHYGCAZCYSMFMLI567YTOYCZZ5MXUF4FCOYXQOWYHFXODI \\ CODE SIGNATURE \\
+#\\POH7JE2CQN2ICUPQLPBCFZVZ7THMJYIXXYCK2RGH4QDJGXIVRFPGKJPMOSHNLHDRABYLD6SVJPJNA
+# \\ JTMQBZI4KDYSCMU4TX4YYUHECKLXL6T6QAIZLCHGKCKHXLYKLHBV \\// C25519-BASE-32 //
+#  \\// FWFQPTZ5MCIV5QQZUY7E6LAVHTNVA7YA2ZEJAH46DQRLLUVWCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

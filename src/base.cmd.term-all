@@ -6,7 +6,7 @@
 
 my $re = <regex.base>;
 
-if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
+if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
     my $param      = $1;
     my $term_msg   = $3 || 'session terminated';
     my $sid        = $$call{'session_id'};
@@ -63,7 +63,7 @@ if ( $$call{'args'} =~ /^($re->{usr}|\d+)( +(.+))?$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\76VSGEKSGXRI63F62MLA5ZMS5C36F2ZCWM4TTM4ZU7R2UW53A2JPDBBOVE2BJHOKXMO4342DPWN6C
-# \\ VQWMMTEU3DHT72OPATOSPQQFF4YGTGYQYKGZRWRUUOZDWUX2HCBQ \\// C25519-BASE-32 //
-#  \\// MCX5QNQG6J3Q2Q6TW73JGC6AYSVABWYZBSOAJ36HBJOFNRS4EDI \\ CODE SIGNATURE \\
+#\\JD2ACIX4W2YI6D63K6QHL2ID2M2JJKLEEOE5RGOHNHXDMVS7GOH3B2E6Q5ZKVFOB2XSQLQIZSLS6S
+# \\ LR6IRCVBICG6VIS72B63WPUWIHY4CG3GYEIUHZWJK2FXQSCFRMJH \\// C25519-BASE-32 //
+#  \\// B4U4OHB2H2FMNSONENY43OKIWIHFFWT5SDTDAQVZCC6LXXBKWBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

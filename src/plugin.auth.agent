@@ -14,14 +14,13 @@ if (   not %KEYS
     or ref( $KEYS{'auth'}{'agent'} ) ne 'HASH'
     or !keys( %{ $KEYS{'auth'}{'agent'} } ) ) {
     <[base.log]>
-        ->( 0, "[$id] can not authenticate agent session [..no key..]" );
+        ->( 0, "[$id] can not authenticate agent session [..no key.,]" );
     $$output .= "NOPE >:|\n";    # LLL: move down?
     return 2;
 }
 
-if ( $$input =~ s{^($re->{usr}|$re->{usr_sub}) (\S+)\n}{} ) {
+if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
-
     my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
 
     if ( exists $KEYS{'auth'}{'agent'}->{$user} ) {
@@ -59,7 +58,7 @@ if ( $$input =~ s{^($re->{usr}|$re->{usr_sub}) (\S+)\n}{} ) {
 }
 
 # ______________________________________________________________________________
-#\\UJCBN3V6ZYP2K3WSFVERQCRIHBMJ4FCBZO35YYAAW2DMG2JVJGKQ3ZLVSSRDWNGFSFWOKT3JCMGOI
-# \\ 6F5CQ2K55OO3ZXNLQEG36LWG4T5OKKBXOYE7BX5GPFYCQIEV2AGO \\// C25519-BASE-32 //
-#  \\// VG7YNV3BX7BVUO7ULDKVN3CONXGWOYGCTRYJFVRGGPOM4WNCYBI \\ CODE SIGNATURE \\
+#\\DW2RN4LS2MUHE46DA3W4CLN6L4EYKQH4NNLWN2VN34OAPC36HA2SRVZLBBDQCY3WTMNDN5Q3ZCAYI
+# \\ WHPRQ3DT6LLUFAU47424GY5RMZTQRHKXCMSUUNBF7YHJTMXDTBRV \\// C25519-BASE-32 //
+#  \\// KMH4LD2V7JANKC4IZF66UELIVGCFXGBSSPLYKNY5JIP2QNW6ABA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

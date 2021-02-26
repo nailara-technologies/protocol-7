@@ -45,7 +45,6 @@ if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies.,
     }
 }
 
-
 ##[ STOP WATCHER TO MODIFY INPUT BUFFER ]#######################################
 
 # stop handler to modify buffer without calling the handler
@@ -301,7 +300,6 @@ if ( defined $alias_to and length($alias_to) ) {
 my $_cmd_id = '';
 if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
-
 ##[ COMMAND REPLIES ]###########################################################
 
 # check reply types
@@ -310,13 +308,13 @@ my $valid_answer = 0;
 my ( $_m1, $_m2 );
 my $cmd_usr_str = $cmd; # used for access checking [ relevant with <sid>.<cmd> ]
 $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
-    if $cmd =~ m|^($re->{sid})(\..+)$|
+    if $cmd =~ m|^($re->{sid_str})(\..+)$|
     and $_m1 = $1
     and $_m2 = $2
     and exists $data{'session'}{$_m1}
-    and $data{'session'}{$_m1}{'user'} =~ m|^$re->{usr}$|;
+    and $data{'session'}{$_m1}{'user'} =~ $re->{usr};
 
-##[ COMMAND REPLY \ MATCH TYPE ]#$##############################################
+##[ COMMAND REPLY \ MATCH TYPE ]################################################
 
 if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
@@ -559,7 +557,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     ### local command ###
 
-    if ( $cmd =~ m|^$re->{cmd}$| ) {
+    if ( $cmd =~ $re->{'cmd'} ) {
 
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
@@ -733,9 +731,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 ##[ PROCESS \ PREPARE TARGET SIDS ]#############################################
 
     } elsif (
-        $cmd =~ s,^($re->{sid}|$re->{usr}|$re->{usr_sub})\.
-                    ((($re->{sid}|$re->{usr}|$re->{usr_sub})\.)*
-                    $re->{cmd})$,$2,gxo
+        $cmd =~ s,^($re->{sid_str}|$re->{usr_str}|$re->{usr_subn_str})\.
+                    ((($re->{sid_str}|$re->{usr_str}|$re->{usr_subn_str})\.)*
+                    $re->{cmd_str})$,$2,gxo
     ) {
         my $target_name = $1;    # usr|sid
         my $command_str = $2;    # [ deeper targets + ] command
@@ -744,7 +742,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         my @send_sids;
 
-        if ( $target_name =~ m|^$re->{sid}$| ) {  ## <session_id>.<command> mode
+        if ( $target_name =~ $re->{sid} ) {    ## <session_id>.<command> mode
             my $target_sid = $target_name;
             if ( exists $data{'session'}{$target_sid}
                 and $data{'session'}{$target_sid}{'mode'} eq 'client' ) {
@@ -756,7 +754,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 or
                 defined $data{'user'}{$target_name}{'subname'}{$target_subname}
             )
-            ) {                                   ## [ online \ present ]
+            ) {                                ## [ online \ present ]
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 next if $data{'session'}{$target_sid}{'mode'} ne 'client';
@@ -1025,7 +1023,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 # ______________________________________________________________________________
-#\\PXKG243KBFUN2C76X7ZUUUM3I2JVBLENL5OXGRO2LKDFBYQEN7QG363SSE7EJOQV2T27E5BLF72JE
-# \\ ZR6BITFBZRHEEIJJTK6NZ5LQPVP4PTWIITQETTBFVFCK2USDJVOO \\// C25519-BASE-32 //
-#  \\// DG4GWB7BT4FIV7UQUZAC6ZYXU34XEXOIDMLWFNRGNVHB52CPYAA \\ CODE SIGNATURE \\
+#\\4DCK3Q4NOHEMNEB2IFVL4FQXGOC5VUKLIOKYMVNPQ2KAW2DR5GU3BONLWSQHSKU7HO4G3HZ2RUWFO
+# \\ MWAH6FLVFMPUOB5OZIJFKSBQSF66BIPBBZTY4DSOMIKZGRZNSK3V \\// C25519-BASE-32 //
+#  \\// O2KHFV2L43KKQINQY32QZ2UXWRLZGIIDMK63G2X4XK2UL4OAQCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

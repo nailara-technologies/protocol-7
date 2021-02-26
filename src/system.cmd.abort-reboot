@@ -5,7 +5,7 @@
 
 ( my $core_user, undef ) = split( m| +|, $$call{'args'}, 2 );
 my $hostname = <system.host.hostname>;
-my $uname_re = <regex.base.usr>;
+my $uname_re = <regex.base.usr_str>;
 
 if ( $core_user =~ m|^$hostname.($uname_re)$| ) { $core_user = $1 }
 else {
@@ -38,7 +38,7 @@ if ( defined <system.timer.host_reboot> ) {
 return { 'mode' => 'ack', 'data' => $reply_message }
 
 # ______________________________________________________________________________
-#\\SLXI32S7PPBRVMJJQWCDMFGCDAALCM35T7DOTTIQHMW23LRHDCJS6E7HIS3HOJZ773BHYO6B3YVTK
-# \\ JLQIKUSOSTR7VH32B2FFX2TZW7WLEOII5UTS5QOY35X3FR7SUUJC \\// C25519-BASE-32 //
-#  \\// N5NE5ZWIEOD7AR7XXVRHRMVDOK4IN3D3BC7Z4OFRHWY6OBJYGBY \\ CODE SIGNATURE \\
+#\\QDC6RWYQOQYGWS7SA3YMLDAP6GBHJF5IMNVXS6UWORSLZNWXNJUE677XTTCAZN25X3ABRICOAAP2U
+# \\ U3QBIUASQDOFRIPY7KTQLCPE2HXFL5DIEUVKJYUT2IDDLNMLDWTL \\// C25519-BASE-32 //
+#  \\// 4IZDG5O2RVDTU25MC5VXG6GKHOQVR3D6MDQSIVZA3NGOMATHGDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
