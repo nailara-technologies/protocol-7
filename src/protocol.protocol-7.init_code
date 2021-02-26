@@ -15,20 +15,19 @@
         }
 
             # ,'2' => { ## .. encrypted session state .., ? ## }
-    }
+    },
+    'clean-up-regex'   => [qr|^(\s*\n)+$|], ## <-- applied before cmd processing
+    'command-handlers' => { 'input' => [qw| multi-line |], 'process' => [qw||] }
 };
 
-<protocol.protocol-7.messages> = {
-    'unknown_command'        => 'command unknown',
-    'not_initialized'        => 'not initialized yet',
-    'permission_message'     => 'no access permissions',
-    'protocol_error_message' => 'protocol mismatch'
-};
+<protocol.protocol-7.settings.do-clean-up> //= 1; # override in configuration ##
+
+<protocol.protocol-7.messages> = <[protocol.protocol-7.protocol-messages]>;
 
 0;
 
 # ______________________________________________________________________________
-#\\3FJNQZDCFBWNDAJCDQAFDP3QLP2PIUZD5RQVY6YTWPNT3MYUJYSSQ3CUDOGZZMS2H27BMG23GCJFQ
-# \\ K2VOJ4L4BQRCGMUJN4I7UQ4VBCFVNEPJHMHZISB4OK7JW37N4FPL \\// C25519-BASE-32 //
-#  \\// LH2UOOFR6RVGN67PJ2LMTNUC5WH64WKXM4Y6C7WCZZCDZPQNABI \\ CODE SIGNATURE \\
+#\\WE45XNGURCGNAA4HDB3U7REJ7NLVXYLOMPVJX7JEYCVEDLPWYCAETBFDCG2BSOELMEYCA52ZP46GQ
+# \\ OMOUSFEBDMCAINUDZIJKAQQQUUX5WRHEXZURVAQO5URFESSJCHOK \\// C25519-BASE-32 //
+#  \\// T22V73MMTAT4UNGH4A7VCCJUQADD4MJZKHV4AWLF4WSWWZEIODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
