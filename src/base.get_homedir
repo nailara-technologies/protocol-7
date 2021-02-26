@@ -5,23 +5,26 @@
 my $user = shift // $ENV{'HOME'} // $ENV{'LOGDIR'} // '';
 
 if ( $user eq '' ) {
-    $user = getpwuid($EUID);    # current user(id)
-} elsif ( $user =~ /^\d+$/ ) {
+    $user = getpwuid($EUID);    # current user[id]
+} elsif ( $user =~ m|^\d+$| ) {
     $user = getpwuid($user);    # given by uid
-}    # else provided as name!
+}    # else provided as name .,
 
-my $homedir = [ getpwnam($user) ]->[7];
+my @pwnam = getpwnam($user);
+my $homedir = $pwnam[7];
 
-if ( length($homedir) ) {
-    <[base.log]>->( 2, "[get_homedir] '$user' -> '$homedir'" );
+if ( @pwnam == 0 ) {
+    <[base.log]>->( 0, "<< no such user : '$user' >>" );
+} elsif ( length($homedir) ) {
+    <[base.log]>->( 2, "[get_homedir] '$user' --> '$homedir'" );
 } else {
-    <[base.log]>->( 1, "<!> no home directory [user '$user'] <!>" );
+    <[base.log]>->( 1, "<< empty home-dir for user '$user' >>" );
 }
 
 return $homedir;
 
 # ______________________________________________________________________________
-#\\TTHPR2ZATHEOGMQW4FW55ZHWXULJ3QCL7HWXNHQ2MVDWMLYOBX74TGXEPGTCZ6RBT37KNVMYZ2PA2
-# \\ VBZ7UHYI6ZP252GHZ7FXKM22CJ5IQRELIYDHBCCFN2YZGPXW6UEZ \\// C25519-BASE-32 //
-#  \\// HT2U7OILK42J5IMIBBU7EQPKI5NN3UYSTYMJ6O3TB7EULU4LUAA \\ CODE SIGNATURE \\
+#\\CYL7P7TL5SANTVKR7FD3LDTQ2L2MKZGKC4RCBN2TKT7NL362KYCRAFVNQY5ZLEVV6JTI6ES6KWWRQ
+# \\ CDTOYEFAAXJKUSEHZAHOQU6JAECQBSGIWEQJCB5LPCDYGZOHN2GB \\// C25519-BASE-32 //
+#  \\// YZHZTISEI63RCCWAQOJD4RK4INPVD2VZYW5WRNY2WAW7KZJW6CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
