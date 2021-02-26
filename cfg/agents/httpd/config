@@ -37,7 +37,7 @@ httpd.timeout       =  23
 httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 [base.protocol.bind:<httpd.sock>,'http','server']
 
-[set_privs:<httpd.system.user>]
+[root.drop_privs:<httpd.system.user>]
 
 [base.get_session_id]
 

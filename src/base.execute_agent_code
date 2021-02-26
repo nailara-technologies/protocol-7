@@ -1,18 +1,18 @@
 # >:]
 
 # name  = base.execute_agent_code
-# descr = executes nailara agent code
+# descr = execute protocol-7 agent code
 
-<[base.log]>->( 2, ': executing agent code..' );
+<[base.log]>->( 2, ': executing protocol-7 agent code .,' );
 
 my $noerr = 1;
 foreach my $code_line (@_) {
-    $code_line =~ s/&cmd\.([^\(]+)/<[base.check_alias]>->($1)/eg;
+    $code_line =~ s|&cmd\.([^\(]+)|<[base.check_alias]>->($1)|eg;
     if ( $code_line ne '' ) { eval($code_line) }
     if ($EVAL_ERROR) {
-        if ( $EVAL_ERROR =~ /^Can't use string \(""\) as a subroutine ref/ ) {
+        if ( $EVAL_ERROR =~ m|^Can't use string \(""\) as a subroutine ref| ) {
             my $code_line_copy = $code_line;
-            while ( $code_line_copy =~ s/(\$code\{'([^\']*)'\})// ) {
+            while ( $code_line_copy =~ s|(\$code\{'([^\']*)'\})|| ) {
                 my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
                 next if length($sub_name) and exists $code{$sub_name};
                 <[base.log]>->(
@@ -22,7 +22,7 @@ foreach my $code_line (@_) {
             }
         }
         if ($noerr) {
-            $EVAL_ERROR =~ s/ at ([^\s]+) line (\d+).+\n//;
+            $EVAL_ERROR =~ s| at ([^\s]+) line (\d+).+\n||;
             <base.eval_error.name> = $1;
             <base.eval_error.line> = $2;
             warn("no success on eval '$code_line' [ '$EVAL_ERROR' ] <{C3}>");
@@ -33,7 +33,7 @@ foreach my $code_line (@_) {
 return $noerr;
 
 # ______________________________________________________________________________
-#\\CXP4YM3IG4PFC6GFMICKENTNK3KHUGCZAGHVYXOWN6IS7CKNAMXAXQQ4EUGOMO2ISIU4JMNIFYMWE
-# \\ BM6RMYISWTMR5NG4K7FGA2TV7HCXTA5RU6I3SZVWNOL2M4BOMN7B \\// C25519-BASE-32 //
-#  \\// 6HTBWPES26RZV47CCML2WCR5I2VM6PRK3KPFBQF2EPHSZBMRYDI \\ CODE SIGNATURE \\
+#\\L6U327LQLZI7TAR2NCMRRX7SEK4GSXNRFG4FNT6XXRCZEX3GC7ORSDYGK4MIWW4WHKGA4F2K4XGFO
+# \\ 3CHSXVNSHCH4P7HL5EJLV25AIGYH3C3WSYBQRCDKX2ZTEU4RR6BX \\// C25519-BASE-32 //
+#  \\// 25L7MDXWDUN5R474OOXSAZY3OTCQZ65HLYD436Q43K3NNOFQYDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

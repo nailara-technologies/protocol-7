@@ -25,7 +25,7 @@ auth.supported_methods = unix
 unix.agent.path = [digest.elf.b32:"<system.agent.name>:<system.agent.subname>"]
 unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.agent.path>",0777]
 
-[set_privs:<system.privs.user>]
+[root.drop_privs:<system.privs.user>]
 
 core.reroute.pattern.usr = ^(?!core)
 core.reroute.pattern.match = ^(?!composition\.|whoami)
