@@ -16,7 +16,7 @@ if ( defined $key_str
     if ( $bytes_read > 0 ) {
         if ( $smiley eq ">:]\n" ) {
             <[base.log]>->( 2, '[*] protocol banner detected.,' );
-    } else {
+        } else {
             <[base.log]>->(
                 0, '[#] protocol mismatch [ no valid connection banner ]'
             ) and return undef;
@@ -60,7 +60,7 @@ if ( defined $key_str
     } elsif ( $answer eq '>:|' ) {
         <[base.log]>->( 0, '[#] authentication timeout :|' ) and return undef;
     } else {    ##  >:[ .., ##
-        <[base.log]>->( 0, '[#] protocol mismatch >:[ ---> ' . $answer )
+        <[base.log]>->( 0, '[#] protocol mismatch >:[' )
             and return undef;
     }
 
@@ -68,8 +68,9 @@ if ( defined $key_str
     <[base.log]>->( 0, 'session_key not set, authentication not possible..,' );
     return undef;
 }
+
 # ______________________________________________________________________________
-#\\XP362AZGFVM6A66ORADLB54DIJQ5W4LEQ2IJRXTWUVNU5IFTB5NOPOZNVEK5MUYFXBBAADKBUJM7E
-# \\ K7LAE2BL6LWATAALMJIB4PRI3B5CKPDAYOS3XSWRAHOTUAL3KLQV \\// C25519-BASE-32 //
-#  \\// DYQXSXVTAA4WCMHMYL5CBW7DKVPMOE2WWJRUKJVE6547JHOBKCA \\ CODE SIGNATURE \\
+#\\67OCL4DC3SL25B3T3WSAG76LMBEBYXGWTVLR2QLZJ5TGCOETKBJOK2O3OJQA4LOFTZROVI5POIFXW
+# \\ 3AWOSFKTLW5MXG74VEA22UNDXHSQOAO3EAGQR2HXFF4P7AYXWJFA \\// C25519-BASE-32 //
+#  \\// EUFIQAN5RILHL4W6BG2GRU7Q37LPN7BOJNNMQYDVMSOPSTACSCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
