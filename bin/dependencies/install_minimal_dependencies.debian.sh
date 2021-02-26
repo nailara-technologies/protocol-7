@@ -26,7 +26,7 @@ apt-get -y install cpanminus git libevent-perl libproc-processtable-perl \
 
 # no longer found: libmodule-build-pluggable-perl
 
-cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite \
+cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite SigAction::SetCallBack \
       File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats URI::QueryParam
 
 # Crypt::Curve25519 no longer compiles as orig., provided fixed copy locally now
@@ -46,7 +46,7 @@ cpanm https://github.com/jheddings/bittrex.git
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 # ______________________________________________________________________________
-#\\6SE7MUXOYBSVKCLADXVCC7XXIQUHF2OZLSV2EDUO2ACDB7FKGRHVWAT7HXMVAJOFIB2NEF7ZA3DU6
-# \\ ZGWW2P4NWPU7XOEMLAWRVNTKTEIZYE2TQNY4QV22VNUSHYIBSSTU \\// C25519-BASE-32 //
-#  \\// JP6YVDVSUGS3S3DMRBFGHKZ6E2PPAXBX72Y5CK6CE3Z64HGMOBA \\ CODE SIGNATURE \\
+#\\TLXHXUCJUEXDA6NN2TWRAUOKW67FOOE6DOCLR5VL3NC7X36QAJ264P7C5N55QCFEOOSYCAXZI57J6
+# \\ 64BOB2UPIXNCXMLWSJVQDH72UHJTD5NMBDDFPGPRRSPVLQTQEZ4T \\// C25519-BASE-32 //
+#  \\// NTACXYZNKMJ7QLJQ7NPEFHOSSSAZMNR7GMMSWD44GBCT5JWBGBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
