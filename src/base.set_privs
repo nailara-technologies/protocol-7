@@ -17,13 +17,13 @@ if ( !length( $user // '' ) ) {
     my ( $name, $pwd, $uid, $gid, $quota, $comment, $gcos, $home_dir, $shell )
         = getpwnam($user);
 
-    my %_gid = map { $ARG => 1 } split( / /, $GID );
-    my %egid = map { $ARG => 1 } split( / /, $EGID );
+    my %_gid = map { $ARG => 1 } split( m| |, $GID );
+    my %egid = map { $ARG => 1 } split( m| |, $EGID );
 
     if (    !$noop
         and defined $name
         and exists $_gid{$gid}
-        and exists $egid{$gid}    # LLL: complete secondary group[s] setup..,
+        and exists $egid{$gid}    # [LLL] complete secondary group[s] setup .,
         and $EUID == $uid and $UID == $uid
     ) {
         <[base.log]>->( 1, "set_privs: already am '$user', doing nothing." );
@@ -129,7 +129,7 @@ if ( !length( $user // '' ) ) {
 }
 
 # ______________________________________________________________________________
-#\\AHINPEKKRYFB43FHN2LM3MMLVNHWCJXW2E2L5KD5STIJKKUUJDCL7MPX73Y2USNFLZPZIRHFNRD7G
-# \\ 4CCIOIGQITY2GGXZTK3N2ZKUC4GAWXJJSSLLLWYUG655IQTJQRCE \\// C25519-BASE-32 //
-#  \\// FFLH7ZLVSVWUBG7WDYWKDIAURGNAAXQ2ZV3RFI2QRS5XNXIGADQ \\ CODE SIGNATURE \\
+#\\SI777C3W7EIJQZ723U3GKAQCAS74K4S7WR7KH4IPRCUOFG4H4ZBXRP75BHJIQI3WOHV5DIPLYZB2G
+# \\ N4YTAYNABDWLBO2OGIM4GKXEZJ5NGZJR77BRLYEXM25PTZHBOEZG \\// C25519-BASE-32 //
+#  \\// KAAFA27MPCBL2BXIH3T6CJDPZSHZSAZJPUCAXWNBTYVVN4IRMDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

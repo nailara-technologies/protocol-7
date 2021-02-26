@@ -44,7 +44,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     }
     return 1;                               # <- keeping connection state
 
-} elsif ( $$input =~ s|^set-key ($re->{usr}) (\S+)( (\S+))?\n|| ) {
+} elsif ( $$input =~ s|^set-key ($re->{usr_str}) (\S+)( (\S+))?\n|| ) {
     $auth_state->{'peer_name'}          = $1;
     $auth_state->{'peer_pubkey'}        = $2;
     $auth_state->{'peer_net_signature'} = $3;    # optional in 'anon-usr' case
@@ -55,7 +55,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     return 1;                                    # <- keep state
 
 } elsif ( $$input =~ m|\n| ) {
-    $$output .= ">:[\a\n";
+    $$output .= ">:[\n";
     <[base.log]>->( 0, "[$id] authentication protocol mismatch [ enc ]" );
     return 2;                                    # <- terminate
 } else {
@@ -63,7 +63,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
 }
 
 # ______________________________________________________________________________
-#\\ZHZXW2SPNTTST7U7AC7SWBZ7KGBDL6WDAP3NICOMMJMGYOISEVGUXQTLDKQ2YBYH65WAVK4JYFATS
-# \\ RHEOP3HB7UHOLXM3YCNR5TBJ7QRSFWYKWMUVHJPWBHJKPIB6B2XE \\// C25519-BASE-32 //
-#  \\// WDDFODBFHOON5I3WJAMB5PSINDYGU3NLCAS544DYFWR4VXZAKBY \\ CODE SIGNATURE \\
+#\\Z42KBQBGHCTCZ63HGALMNHUESMZLAVW66FC33ICMZ6UJJ3MFDO4CF3EJZMJK3XNFNDNBASHUDB7DK
+# \\ CFYJFHVLPW4TUYOEF4T6WBFDQAR2SOZDIJWIYASYMIIDYPM4EV3V \\// C25519-BASE-32 //
+#  \\// QZ2EVQRZDASU33W4N56AKQVCNCLHXKUEQRRRBCT6KXQC4DTSKDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
