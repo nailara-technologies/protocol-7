@@ -1,0 +1,28 @@
+# >:]
+
+# name  = base.handler.warn_nak_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $command = $reply->{'params'};
+    my $reason  = $reply->{'call_args'}->{'args'};
+    my $lpw     = <system.start.log_prefix_width> // <[base.log_prefix_width]>;
+    <[base.log]>->( 0, '::' );
+    my $width = 52 - $lpw;
+    <[base.log]>->(
+        0, sprintf( "<< unexpected reply >> %${width}s", "[ $reason ]" )
+    );
+    if ( defined $command ) {
+        $width = 57 - $lpw;
+        map { <[base.log]>->( 0, $ARG ) } (
+            ' \\', sprintf( "  \\ \\  cmd was  : %${width}s", "' $command '" )
+        );
+    }
+    <[base.log]>->( 0, '::' );
+}
+# ______________________________________________________________________________
+#\\OLX2CAKOVX7ORILB2247YD7WIGBH45IOCT7E5VIICRXHJLUBTURRRMD7RO7J74QRLOTKW6KY36R36
+# \\ EKMC7F3PEHCX6JSJOEXFVWKZ7HTRJHAET4ZJ6S23DGM32TSOA36U \\// C25519-BASE-32 //
+#  \\// SS2WFWEWN2PYM6IT3MIRJMHFLKQIQ5XUO4BWAIOIM6EWUDBBSCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
