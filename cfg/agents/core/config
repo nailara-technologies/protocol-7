@@ -64,7 +64,7 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<core.local.addr>,<core.local.port>]
 [base.protocol.bind:<tcp_ip.sock>,'protocol-7']
 
 # drop root priviledges [ now 'online' ]
-[set_privs:'nailara']
+[root.drop_privs:<system.privs.user>]
 
 # run agent
 [event.loop]

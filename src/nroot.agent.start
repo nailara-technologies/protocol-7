@@ -142,7 +142,7 @@ if ( exists $init_result_data->{'start_mode'}
         <[agent.change_status]>->( $instance_id, 'error' );
         return undef;
     } else {
-        my $privs = <[base.set_privs]>->( $prog_usr, 'noop' );
+        my $privs = <[base.root.drop_privs]>->( $prog_usr, 'noop' );
         if ( not defined $privs or ref($privs) ne 'HASH' ) {
             <[base.log]>
                 ->( 0, "exec_usr for '$agent_name' is invalid - ERROR" );
@@ -275,7 +275,7 @@ close($in_fh);    # <-- no further use for agent stdin handle [ for now ]
 <[base.log]>->( 1, "agent '$agent_sn_str' started [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\PBWM5AY5LORGZ7ZNAC5OWETMF4GAHDDJK57NFR7USKWY4C4MANIFW2ZSAIL6BECHXTSWZBNOFIGEG
-# \\ XVOSOCFT7XF3PZXZVJPMHGJVMGDPADPAMIHZZWEYOEBI5FB4B4SV \\// C25519-BASE-32 //
-#  \\// Y3MGTOOJPDIZTWC5AW7ICUTYAZIZL7LDN5JLOYKUZSVLO6MI6AQ \\ CODE SIGNATURE \\
+#\\IBM6R2HHI4QF7AMLC5DJKOKNQEDJUO5RYU2LQ3QCTQBJEUPSXW4EY2L6MGLQ5CQE4BUUYUQNZBYC2
+# \\ X53DFQMZNIPIMBWVTTCBE5YOTJS6R4GZP22DOBZ5Z3L2QLKT3GQX \\// C25519-BASE-32 //
+#  \\// MSKOV2BUYZHD7X6UXVKJIZAEE6PWKE2ENHK5XAMA7IIXVWVD6AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
