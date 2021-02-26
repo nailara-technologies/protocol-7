@@ -10,7 +10,7 @@ my $re = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
+if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 
     if ( <[auth.pwd.success]>->( $1, $2 ) ) {
         $$output .= "YEAH >:P\n";
@@ -21,8 +21,8 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
         <[base.log]>->( 0, "[$id] [ auth pwd ] access denied to user '$1'" );
         return 2;
     }
-} elsif ( $$input =~ /\n/ ) {
-    $$output .= ">:[\a\n";
+} elsif ( $$input =~ m|\n| ) {
+    $$output .= ">:[\n";
     <[base.log]>->( 0, "[$id] authentication protocol mismatch [ pwd ] >:[" );
 } else {
     return 1;
@@ -31,7 +31,7 @@ if ( $$input =~ s/^auth ($re->{usr}) (\S+)\n// ) {
 return 2;
 
 # ______________________________________________________________________________
-#\\W7RH7J2DZY7S26RAXAHIKWZNBIHRZ5SV3IKIMWP2ZO2E2GMXUSAAXE2JEFASXSP4B5NYI56FOQIBC
-# \\ I7W22I2O2CL6UYDVX6UAIX2DLL37NJ4Q4XZIIU6JFYQ63T4KR7KB \\// C25519-BASE-32 //
-#  \\// ZDFDQ3OOWO6UNLWRJS7PEC5L37W2XEBLX2STSO3QJ6F2HG5RADQ \\ CODE SIGNATURE \\
+#\\AD3CLNKY5KRXAGKI2KQENPKJR7XBQAXDXLKKVL7776RYU3PON76663VKDL4ESZE7DKONEWEKGQWJ4
+# \\ PGRDR4U4IROKL2VSWMMQ73N2A6P76XDZQDKBUYZHRVN65JXVBOOW \\// C25519-BASE-32 //
+#  \\// 7E5LB7EAR4ULFPIT6S7P5MTPWMXR5BZ7KTAMH7CRCYNAQEJ3OBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

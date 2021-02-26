@@ -5,7 +5,7 @@
 
 ( my $core_user, undef ) = split( m| +|, $$call{'args'}, 2 );
 my $hostname = <system.host.hostname>;
-my $uname_re = <regex.base.usr>;
+my $uname_re = <regex.base.usr_str>;
 
 if ( $core_user =~ m|^$hostname.($uname_re)$| ) { $core_user = $1 }
 else {
@@ -26,7 +26,7 @@ my $log_message   = "$reply_message [ by '$core_user' ]";
 return { 'mode' => 'ack', 'data' => $reply_message };
 
 # ______________________________________________________________________________
-#\\RBO3QLYR4U7JXEWUEEFZV7JSTXFOMGS5SZIX45J3ZX3A3X7S2ADHF2UHTIWOZYQPP66XRKRRUZWF4
-# \\ PMZZKONLOHZIG57XZ4JRTH2SKKMRC6SRAVL2Z6IU4YWFX4BOZZGS \\// C25519-BASE-32 //
-#  \\// N6II3V2JACFKJHLCKQLG2XOADDQ44EQSTETLBHUZOFY7SEKMKCA \\ CODE SIGNATURE \\
+#\\GLP4QK6QUB5T7FCOHLON7ULLZTYSK6BC4PDDYAKPNWPPSI5KWYLROXANHH6TR6SIAUQC5CTBFQKWU
+# \\ MYLQFWZCPYBQXW5MHWI5VS6YLNTMRPVQ2UVSDCPOWTS3HEGG53UU \\// C25519-BASE-32 //
+#  \\// II6QVPLPAPYHLEU2IDQ6FUV6GWTOKF2NYTWW63OYTDXXN6J5IAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

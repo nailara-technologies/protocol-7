@@ -4,11 +4,9 @@
 # param = <name>
 # descr = report whether a user or agent is connected
 
-my $re_usr = <regex.base.usr>;
-
 if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     $$reply{'data'} = 'no username specified';
-} elsif ( $$call{'args'} =~ $re_usr ) {
+} elsif ( $$call{'args'} =~ <regex.base.usr> ) {
     my $user = $$call{'args'};
 
     return { 'mode' => 'nak', 'data' => 'seen no such client' }
@@ -43,7 +41,7 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
 }
 
 # ______________________________________________________________________________
-#\\L5BFKDU5U7VCZAZ7YH4TX23ZJUMHSZSOD7FATFZDZPRU4H4RVNJ55CCRRFSUUOWC6TT6E2CAPXDFC
-# \\ PYQUDQSKBZ54O3O36YZTUIL453XU3BFOUQOAY5IQ3FP435ZABSRT \\// C25519-BASE-32 //
-#  \\// 3TAZZBLSCOIBK2D6MTLJIKTW3XXWKIAX3F77ULNQQEYSGADLGDQ \\ CODE SIGNATURE \\
+#\\VIQW2B27TTNRRG7YJDS6OBSKF3UO3R2HH5HD3UMRJCCGQHD3HZPXABNQSTTOZUUSGWSNOIRF2LZDQ
+# \\ C4ZXSCOWNUJIYM6BEVPSDSHAYPHRU4UF2MGTIINQZVJEYEM7FEK5 \\// C25519-BASE-32 //
+#  \\// SPXFRTBC6JHIJMILEDKCEVP77V2GGFY23GVLBRTC2QOJGJBGSAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
