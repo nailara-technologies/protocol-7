@@ -12,11 +12,9 @@ use IO::Socket::UNIX;
 use Term::ReadPassword;
 use Time::HiRes 'sleep';
 use Digest::Elf qw| elf |;
+use SigAction::SetCallBack;
 use Crypt::Misc qw| encode_b32r |;
 use POSIX qw| sys_wait_h WNOHANG |;
-
-use POSIX::SigAction;
-use POSIX::SigSet;
 
 my $lnk_path = File::Spec->rel2abs( File::Spec->canonpath($PROGRAM_NAME) );
 my $bin_path = $lnk_path;
@@ -25,23 +23,19 @@ while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
     $bin_path = $readlink_path;
     last if $bin_path =~ m|/nshell$|;  # skip resolving last stage., [ improve ]
 }
-( my $root_path = $bin_path ) =~ s/\/[^\/]+\/[^\/]+$//;
+( my $root_path = $bin_path ) =~ s,/[^/]+/[^/]+$,,;
 
 my $path_digest = elf($root_path);
 my $path_offset = $path_digest ^ 105641153; # <- /usr/local/nailara [or current]
 my $nailara_port = calc_port($path_offset);
 
-( my $hostname = qx(hostname) ) =~ s/(\..+|\n)$//g;
+( my $hostname = qx| hostname | ) =~ s,(\..+|\n)$,,g;
 
 $PROGRAM_NAME = 'nshell';
 
 $SIG{'PIPE'} = 'IGNORE';
 
-map { $SIG{$ARG} = \&parent_exit; } qw| TERM INT HUP |;
-
-my $sigset          = POSIX::SigSet->new();
-my $sigaction       = POSIX::SigAction->new( \&readline_signals, $sigset, 0 );
-my $old_int_handler = POSIX::SigAction->new;
+map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |; # see override_signals ##
 
 my $stdout_pid;
 my $parent_pid = $$;
@@ -56,11 +50,11 @@ my $core_user;
 my $remember  = 0;
 my $arg_index = 0;
 foreach my $param (@ARGV) {
-    if ( $param =~ /^-u$/ and defined $ARGV[ $arg_index + 1 ] ) {
+    if ( $param =~ m|^-u$| and defined $ARGV[ $arg_index + 1 ] ) {
         $core_user = $ARGV[ $arg_index + 1 ];
         delete $ARGV[$arg_index];
         delete $ARGV[ $arg_index + 1 ];
-    } elsif ( $param =~ /^(-r|--remember)$/ ) {
+    } elsif ( $param =~ m,^(-r|--remember)$, ) {
         $remember = 1;
     } else {
         push( @args, $param );
@@ -179,7 +173,7 @@ sub shell_connect {
                 Peer => $sock_path,
                 )
                 or warn
-                "\n [!] failed to connect to unix:$sock_path [$OS_ERROR]\n";
+                "\n << connection error : unix:$sock_path [$OS_ERROR] >>\n";
         }
     }
     if ( not defined $sock ) {
@@ -189,15 +183,15 @@ sub shell_connect {
             Proto    => 'tcp'
             )
             or die
-            "\n [!] failed to connect to $core_addr:$core_port [$OS_ERROR]\n\n";
+            "\n << connection error : $core_addr:$core_port [$OS_ERROR] >>\n\n";
     } else {
         $link_type = 'unix';
     }
 
     binmode( $sock, ':encoding(UTF-8)' );
 
-    die " [!] connection not successful [ protocol mismatch ]\n"
-        if <$sock> !~ />:\]/;
+    die " << connection not successful [ protocol mismatch ] >>\n"
+        if <$sock> !~ m|>:\]|;
     return $sock;
 
 }
@@ -206,14 +200,14 @@ sub shell_auth {
     my ( $fh, $user, $pwd ) = @_;
     s_write( $fh, "auth $user $pwd\n" );
     my $answer = <$fh>;
-    die "\n  [!] connection was prematurely terminated [!]\n\n"
+    die "\n  << connection was prematurely terminated >>\n\n"
         if not defined $answer;
-    if ( $answer =~ /YEAH/ ) {
+    if ( $answer =~ m|YEAH| ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ /NOPE >:\|/ ) {
+    } elsif ( $answer =~ m,NOPE >:|, ) {
         die " :: authentication not successful ::\n\n";
-    } elsif ( $answer =~ />:\|/ ) {
+    } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
@@ -225,20 +219,20 @@ sub unix_auth {
     my ( $fh, $user ) = @_;
     s_write( $fh, "select unix\n" );
     my $answer = <$fh>;
-    die "\n  [!] connection was prematurely terminated [!]\n\n"
+    die "\n  << connection was prematurely terminated >>\n\n"
         if not defined $answer;
-    if ( $answer !~ /^ACK continue/ ) {
+    if ( $answer !~ m|^ACK continue| ) {
         die " :: unix auth not available ::\n\n";
     }
     s_write( $fh, "auth $user\n" );
     $answer = <$fh>;
     print "\n";
-    if ( $answer =~ /YEAH/ ) {
+    if ( $answer =~ m|YEAH| ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ /NOPE >:\|/ ) {
+    } elsif ( $answer =~ m,NOPE >:|, ) {
         die " :: authentication not successful ::\n\n";
-    } elsif ( $answer =~ />:\|/ ) {
+    } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
@@ -254,7 +248,7 @@ sub s_write {
     IO::AIO::aio_write( $write_fh, undef, length($write_str),
         $write_str, 0, sub { $b_written = $_[0] } );
     IO::AIO::flush();
-    undef $b_written if $b_written < 0;    # <- emulates syswrite() behaviour ..
+    undef $b_written if $b_written < 0;    # <- emulates syswrite() behaviour .,
     return $b_written;
 }
 
@@ -294,19 +288,19 @@ sub shell_loop {
             $term->add_history($line) if $line ne $last_line;
             $last_line = $line;
 
-            if ( $line =~ /^\. cd (.+)/ ) {
+            if ( $line =~ m|^\. cd (.+)| ) {
                 if ( !chdir($1) ) { print "cd: " . $OS_ERROR . "\n" }
-            } elsif ( $line =~ /^\. (.+)$/ ) {
+            } elsif ( $line =~ m|^\. (.+)$| ) {
                 $lines_up = 1;
                 no warnings;
                 if ( my $err = system($1) ) {
-                    my $failed  = '';
+                    my $error   = '';
                     my $err_msg = "exit code: $err";
                     if ( $err == -1 ) {
                         $err_msg = $OS_ERROR;
-                        $failed  = ' failed - ! -';
+                        $error   = ' << error >>';
                     }
-                    print "\n - ! -$failed ( " . $err_msg . " )\n\n";
+                    print "\n - ! -$error [ " . $err_msg . " ]\n\n";
                 }
                 use warnings;
             } else {
@@ -325,7 +319,7 @@ sub shell_loop {
                 } elsif ( defined $stored_cmd
                     or !-S $sock
                     or !$sock->connected ) {
-                    my $r_msg = ' :: reconnecting...';
+                    my $r_msg = ' :: reconnecting..,';
                     if ( not defined $stored_cmd ) {
                         print "\e[2H\e[2J$r_msg\n";
                     } else {
@@ -353,9 +347,9 @@ sub shell_loop {
 
 sub stdout_fork {
     close(STDIN);
-    $PROGRAM_NAME = "nshell ( stdout )";
+    $PROGRAM_NAME = "nshell [ stdout ]";
     while ( my $out = <$shell_sock> ) {
-        $out =~ s/\n$//;
+        $out =~ s|\n$||;
         print "$out\n";
     }
     close($shell_sock);
@@ -368,11 +362,11 @@ sub stdout_fork {
 sub rl_filename_list_lcl { #<- currently not working since Term::ReadLine switch
     my ( $text, $line, $pos ) = @_;
 
-    if ( !$pos or $line !~ /^\. / ) {
+    if ( !$pos or $line !~ m|^\. | ) {
         no warnings 'once';
         $readline::rl_completer_terminator_character = '';
         use warnings 'once';
-        if ( !$WARNED and $line !~ /^\. / ) {
+        if ( !$WARNED and $line !~ m|^\. | ) {
             print "\n<!> prefix '. ' can be used for local shell commands"
                 . ", type 'commands' for netw. <!>\n";
             $WARNED = 1;
@@ -394,16 +388,14 @@ sub rl_filename_list_lcl { #<- currently not working since Term::ReadLine switch
 }
 
 sub override_signals {
-    POSIX::sigaction( &POSIX::SIGINT,  $sigaction, $old_int_handler );
-    POSIX::sigaction( &POSIX::SIGHUP,  $sigaction );
-    POSIX::sigaction( &POSIX::SIGTERM, $sigaction );
+    map { SigAction::SetCallBack->sig_registry( $ARG, \&readline_signals ) }
+        qw| INT TERM HUP |;
+
     return $term_loop = 1;
 }
 
 sub restore_signals {
-    POSIX::sigaction( &POSIX::SIGINT,  $old_int_handler );
-    POSIX::sigaction( &POSIX::SIGHUP,  $old_int_handler );
-    POSIX::sigaction( &POSIX::SIGTERM, $old_int_handler );
+    map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
 }
 
 sub readline_signals {
@@ -425,7 +417,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\P2TY2O5VCO6K34VNK4CHOZFWNSDDSPJRFS63PMZZSZ2E2B2GSCNEPX6FCTVVG6LIKSMEKGNA7Y3AU
-# \\ T3WWVVJO54MSEOOZ7ZHF7M3CSIMV5R2L2S4F4IULE7G7Q7COAU7A \\// C25519-BASE-32 //
-#  \\// MFXTXKSCYYKFRVMI6C57FBPRY6TYJHKSGD2XJU2GVEQKWGOQICY \\ CODE SIGNATURE \\
+#\\GYX7FMPRYQXKCUWPA6DOS2SAE7XJUK6I2VIRPEPZADAYXWIZGDGBY2R5W3EVF3NC4LXN242IJ6XG6
+# \\ U7VSM5DPLCCQWRYBVT5BJBE5BDZ3DESCDJ3XJOZ54P6Z4BMQ7PGB \\// C25519-BASE-32 //
+#  \\// EEL2AS7HNI3CSMVL27DUHS6APU7UIWRLMAZG7D4EXODVSFYFUBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
