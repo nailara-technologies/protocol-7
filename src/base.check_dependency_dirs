@@ -7,7 +7,9 @@ my $agent    = <system.agent.name>;
 my $cfg_path = <system.conf_path>;
 
 my ( undef, undef, $uid, $gid ) = getpwnam($user)
-    or die "user '$user' not in passwd file";
+    or return <[base.log]>->(
+    2, "<< check_dependency_dirs :user '$user' not in passwd file >>"
+    );
 
 my @sub_dirs = qw|
     os-dep
@@ -23,7 +25,7 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
     and -d $dep_dir
     and -w $dep_dir
     and opendir( my $dir_fh, $dep_dir ) ) {
-    my @dir_names = grep { !/^\,/ } readdir($dir_fh);
+    my @dir_names = grep { !m|^\,| } readdir($dir_fh);
     close($dir_fh);
 
     my $src_stat = File::stat::stat($dep_dir);
@@ -57,7 +59,7 @@ if (    $dep_dir =~ s|agents/$agent/config$|$cfg_path/agents/$agent|
 }
 
 # ______________________________________________________________________________
-#\\YO5UIT7NJQ27HKZ5OCWDGEWVIBHZRIRZFG2R4D3HL7NSYOOVTSQXVVZPAJR66Z5C6GYXHWDMLB2I6
-# \\ ABASW2S6KUGROGK5YETGCJG6XCSMFWIPCRUVUCHMKHOZWCGUBQP5 \\// C25519-BASE-32 //
-#  \\// JZJXQHM6BNSN3VVLPMEPJL7EOYDWKTCRXWNEQXRRG25WBWUQMCA \\ CODE SIGNATURE \\
+#\\TXW3ICEHZ7KTPUEKNYIRDIMCK2KOL72OGAZMOD722JHBQEEWNQXAASLTUSEE4QSA4ICJJYNUKKXL4
+# \\ AQWIHQOLU2UI6FM5QYEYPNE6IKUNVAJUP3F2N2I5LRXJ3NZEXP3D \\// C25519-BASE-32 //
+#  \\// KYWG3G7CMALFMLODOGMBAMLG36PMQBRQ6ENA7NAQE6NOP74UCAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

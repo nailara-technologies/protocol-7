@@ -25,7 +25,10 @@ if ( defined $key_name ) {
     $key_name //= <crypt.C25519.base_key_name> // join( '.', $key_usr, 'base' );
 }
 my $home_dir = <crypt.C25519.key_usr_home> //= <[base.get_homedir]>->($key_usr);
-my $key_dir  = <crypt.C25519.key_dir>      //= "$home_dir/.n/user-keys";
+<[base.log]>->( 2, 'no home directory, C25519 initialization aborted .,' )
+    and return { 'usr_name' => $key_usr }
+    if not defined $home_dir;
+my $key_dir = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys";
 
 my $key_file_ext;
 my $key_filename;
@@ -51,7 +54,7 @@ return <crypt.C25519.key_vars> = {
 };
 
 # ______________________________________________________________________________
-#\\FCVKGRYKOHMJORQQ6DVGCBE6QKEZMGYWHHTQAGTLWSPTJOSQ4O2THEVI3JSATOGQVZZRQR5WIFOMQ
-# \\ TIOGRO5TRYNOGM4ULVKBS6YKXAHBJQZO4T6RHFPBR7LRVQZRWAQ7 \\// C25519-BASE-32 //
-#  \\// O6XFWUQ5U2PECFSCCZFBGNQEIVVB6BX3OFXWHSIAFPG65JIGWDY \\ CODE SIGNATURE \\
+#\\JKDQDKOTZNR2QJXZYENHVUIROYVYVV7YQ6K77JD5JULFQYOBXZ6CEQTWUNLB3ES4ABX5K53UTGIJK
+# \\ 3TFQZPUHKVHRV46WIZ7UHF64KVGITW54OGXCZ6E2XVUX4YMQOML7 \\// C25519-BASE-32 //
+#  \\// MR3DTRYFEQOD7N4OL7ZI2ILJL3SNGLXDO63XQOJDQXR2XKTCUBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
