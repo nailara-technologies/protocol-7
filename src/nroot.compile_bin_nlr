@@ -7,7 +7,7 @@ my $gcc_timeout    = <nroot.gcc_timeout> || 7;
 my $nlr_src_path   = join( '/', <system.root_path>, <system.nlr_src_path> );
 my $nlr_bin_path   = <nroot.cfg.nlr_bin_path>;
 my $strip_binpth   = <[file.which]>->(qw| strip |);
-my $compile_static = <[base.cfg_boolean]>->(<nroot.cfg.nlr_static>) // 1;
+my $compile_static = <[base.cfg_boolean]>->( <nroot.cfg.nlr_static> // 1 );
 die "<< 'gcc' binary not found >>"          if !-x $gcc_bin;
 die "source file '$nlr_src_path' not found" if !-f $nlr_src_path;
 
@@ -71,7 +71,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\3UC7VY36G3VYOCU4IQTJZBP34RANPJS5PPJIL6EM2XND2CHRILFV6SRP42WPBJFRHLFBWS357YUAU
-# \\ 6UY3QFXTYZISOVCR6UM25LGFLLWEVZBFICBDY6MCAJXCPM5K4XRS \\// C25519-BASE-32 //
-#  \\// DEHILR57234DWYIELJFE5S3SEBGAK5PDXE3SWC6A25ZGEADMODI \\ CODE SIGNATURE \\
+#\\PZHO2KBGEREKFFXIQ44UMTKQZR7VJ2DSFA5NWHQEC2EKCBZ2NYP7P3MG4PZVH56VMQJWD3UQAUP5W
+# \\ KLN34ESSQN4VJENZBKC5E4PLLS3M4VVB3P5IHOVLBHZRNXWYZ535 \\// C25519-BASE-32 //
+#  \\// JZJHDO77N6C673WR3PJLVBLLWRTSJYBF3JHMCVXFPOZ3G3VNYDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -6,7 +6,7 @@
 
 my $param = $$call{'args'} // '';
 
-my $reboot_enabled = <[base.cfg_boolean]>->(<nroot.host-reboot.enabled>) // 1;
+my $reboot_enabled = <[base.cfg_boolean]>->( <nroot.host-reboot.enabled> // 1 );
 
 return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
     if !-e '/proc/sysrq-trigger';
@@ -31,7 +31,7 @@ system('/bin/sync') if $param ne 'nosync';
 return { 'mode' => 'ack', 'data' => '<< rebooting host system >>' }
 
 # ______________________________________________________________________________
-#\\R6UEC47RZ5VKHO2HUGQ6C72OEK3L64OPKOC2GDVWC5O3TZLNDVHEEPB65FELBDOMK3P7HSC4P73VS
-# \\ OQHEJXE3ANPRAP5SRPPUUHZBGGIBWEHUAPUW5AV3GWGWZF46I7TD \\// C25519-BASE-32 //
-#  \\// AU4OL5XIV3HAWKVXDPKF4CPZCGNR3TJ3P5OQQXZFGKYRCDBY4AQ \\ CODE SIGNATURE \\
+#\\JQU5SDGTKLQOCKWID5MYKQH6CN5RFLVN2OBSYYLJV2BYPRRP74WH67QYOP36BX4G36WZPH7KV77YM
+# \\ SXSUQI5Q7JVN5AYXJJW2QLE7UQXTH6FK6ZMQT66PXPR5IFOTYHMS \\// C25519-BASE-32 //
+#  \\// AECMYS5SGSVFXBS5IXI3SZIHISNHSKFTWXNPVYVT7SYO5P2AWDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
