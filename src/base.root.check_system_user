@@ -1,0 +1,71 @@
+# >:]
+
+# name  = base.root.check_system_user
+# note  = also implement 'mo-group' and <group-name> options
+
+my $usr      = shift // '';
+my $not_home = shift // '';
+die 'expected username parameter' if !length($usr);
+
+my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
+
+## initialize base.root module if called too early ##
+<[base.root.init_code]> if not defined <base.root.useradd.exit-codes>;
+
+my $exit_codes = <base.root.useradd.exit-codes>;
+
+my $home_setting = <[base.cfg_boolean]>->(<base.root.useradd.create_home>);
+$not_home = $not_home eq 'not-home' ? 1 : $home_setting ^ 1;
+
+my $uid = getpwnam($usr);
+
+if ( not defined $uid ) {
+    my $uid_str = '';
+    if (    defined <base.root>
+        and defined <base.root.pref-uid>
+        and defined <base.root.pref-uid>->{$usr}
+        and <base.root.pref-uid>->{$usr} =~ m|^\d{3}$| ) {
+        $uid     = <base.root.pref-uid>->{$usr};
+        $uid_str = " [ UID $uid ]";
+    }
+    my $useradd = shift @useradd_paths;
+    while ( !-x $useradd and @useradd_paths ) {
+        my $new_path = shift @useradd_paths;
+        $useradd = $new_path if -x $new_path;
+    }
+    return map { <[base.log]>->( 0, $ARG ) } (
+        '::[ check_system_user ]:.',
+        ':', ":: cannot find useradd binary at '$useradd' ::"
+    ) if !-x $useradd;
+
+    <[base.log]>->( 0, "creating system user '$usr'$uid_str.," );
+    my @useradd_opts = ( qw| --system -U |, $not_home ? '-M' : '-m' );
+    push( @useradd_opts, '-u', $uid ) if defined $uid;
+
+    push( @useradd_opts, $usr );
+    <[base.log]>->( 2, "< useradd > " . join( ' ', @useradd_opts ) );
+
+    <[base.stderr_redir]>;
+    my $status = system( $useradd, @useradd_opts ) >> 8;
+    <[base.stderr_restore]>;
+
+    if ( $status > 0 ) {
+        my $reason = $exit_codes->{$status} // "exit code $status";
+        return
+            map { <[base.log]>->( 0, $ARG ) }
+            ( "< useradd > $reason", ':', "::[ cannot create user '$usr' ]" );
+    } else {
+        my $created_uid = getpwnam($usr);
+        my $new_uid_str = defined $uid ? '' : " [ UID $created_uid ]";
+        my $l = defined $uid ? 1 : 0;
+        <[base.log]>->( $l, ":.. user creation was successful =)$new_uid_str" );
+    }
+} else {
+    <[base.log]>->( 2, "user '$usr' esists [ $uid ].," );
+}
+
+# ______________________________________________________________________________
+#\\VYH67ZUX2G7CHG7E5XBHGQ4ZIEQLB772OAXP3TYQGZHZGYWU6QUST3VV2E5IZATOI3DXI7PZLBDQI
+# \\ MZVQ6HGGKIEMA2F6OQKSBJ2SEPQBSWMZSC4KNBFEXUG6E3RZSX6N \\// C25519-BASE-32 //
+#  \\// TH6CUXFHF5WDPLEJJJX3V5HBT36P6P53EQYGWIVMYTORW75C6BQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
