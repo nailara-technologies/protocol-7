@@ -925,12 +925,9 @@ sub prepare_subs {
             ##                      ###
             ## compiling subroutine ###
             ##                      ###
-            my $stderr_fh;
-            open( $stderr_fh, ">&STDERR" )
-                or print "\n<< ! >> cannot clone STDERR [ $OS_ERROR ]\n\n";
-            close(STDERR);
-            open STDERR, '>', \my $s_comp_stderr
-                or print "stderr.redir: $OS_ERROR\n";
+
+            $code{'base.stderr_redir'}->( \my $s_comp_stderr );
+
             $src_bytes_total += length($sub_code);
             my $compilation_success
                 = ( $code{$sub_name} = eval($sub_code)
@@ -948,7 +945,7 @@ sub prepare_subs {
                 = scalar $s_comp_stderr
                 =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|sg
                 if defined $s_comp_stderr;
-            +local $Text::Wrap::columns = 57;
+            local $Text::Wrap::columns   = 57;
             local $Text::Wrap::separator = "\n";
             delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
             my @compile_errors = (
@@ -977,16 +974,8 @@ sub prepare_subs {
                 ),
                 '..,'
             ) if defined $s_comp_stderr;
-            close(STDERR);
-            open( STDERR, ">&", $stderr_fh )
-                or print "\n<< ! >> cannot restore STDERR [ $OS_ERROR ]\n\n";
 
-            ##:. replace with a <stderr> warning wrapper .:##
-            #
-            #    my $dev_null_path = File::Spec->devnull();
-            #    open STDERR, ">$dev_null_path"
-            #         or print "$dev_null_path: $OS_ERROR\n";
-            ##
+            $code{'base.stderr_restore'}->();
 
             if ($compilation_success) {
                 delete $data{'code'}{$sub_name}{'source'};
@@ -1095,6 +1084,29 @@ sub prepare_subs {
             );
         }
         return ( $ok_count, $err_count );
+    };
+
+    $code{'base.stderr_redir'} = sub {
+        my $redir_ref = shift // \my $redir_var;
+        open( $data{'base'}{'stderr_fh'}, '>&', STDERR )
+            or print "\n<< ! >> cannot clone STDERR [ $OS_ERROR ]\n\n";
+        close(STDERR);
+        open( STDERR, '>', $redir_ref ) or say "< stderr_redir > $OS_ERROR";
+        return $redir_ref;
+    };
+
+    $code{'base.stderr_restore'} = sub {
+        my $restore_fh = delete $data{'base'}{'stderr_fh'};
+        close(STDERR);
+        if ( defined $restore_fh ) {
+            open( STDERR, '>&', $restore_fh )
+                or print "\n<< ! >> cannot restore STDERR"
+                . " to $restore_fh [ $OS_ERROR ]\n\n";
+        } else {
+            open( STDERR, '>', File::Spec->devnull() )
+                or print "\n<< ! >> cannot restore STDERR"
+                . " to '/dev/null' [ $OS_ERROR ]\n\n";
+        }
     };
 
     $code{'base.collect_sub_stats'} = sub {    ## [ LLL ] .. implement ., ###
@@ -1409,7 +1421,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\WXW27E4ILH6G3NC5HLBJ2K3FRKRQ6QEGITAYRZGPDPEUG2LXD2O532PG3C2CHIR5BW5OQLVZ545KM
-# \\ UEF2EC4TRXIZUDGYDGLKVZEQTVHKQOKZBRQSVVKWBXDSDSSISTPR \\// C25519-BASE-32 //
-#  \\// GF2PESB7BBVN5MDEDTOLRDJJUHRKN2T4DTBLGTBPG45GRCZL6AI \\ CODE SIGNATURE \\
+#\\QW5TLTZHAHKFBDQJSOCYLWPHFQAREXAHFF2QWVTLSLVDZENXXOVYBCCKTNSRPDCQSJFYTEYI3LXKM
+# \\ SFHXB5NIKWDHYNB63RQV2ZQCLUCYMWIFJ26K2DCE3L34HPTMDWEQ \\// C25519-BASE-32 //
+#  \\// MG4HASVCLJZ36NF6O2YELEDSZAXNZTW6CFXO2UWF6EJKFIULCCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
