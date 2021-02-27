@@ -953,7 +953,7 @@ sub prepare_subs {
                 ".:[ $sub_name ]:.",
                 ':',
                 (   map  { s|Can.t|cannot|g; s|"|'|g; ": :  \l$ARG" }
-                    grep { !m|BEGIN not safe| } split( m|\n+|, $err_str )
+                    grep { !m|^BEGIN | } split( m|\n+|, $err_str )
                 ),
                 '='
                 )
@@ -1061,8 +1061,8 @@ sub prepare_subs {
         delete $data{'callbacks'}{'end_code'}
             if !@{ $data{'callbacks'}{'end_code'} };
         map {
-            $data{'code'}{$ARG}{'status'} = 'removed'
-                if not exists $code{$ARG}
+            $data{'code'}{$ARG}{'status'} = 'undefined'
+                if not defined $code{$ARG}
             }
             keys %{ $data{'code'} };
         my $s     = $ok_count != 1         ? 's' : '';
@@ -1421,7 +1421,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\QW5TLTZHAHKFBDQJSOCYLWPHFQAREXAHFF2QWVTLSLVDZENXXOVYBCCKTNSRPDCQSJFYTEYI3LXKM
-# \\ SFHXB5NIKWDHYNB63RQV2ZQCLUCYMWIFJ26K2DCE3L34HPTMDWEQ \\// C25519-BASE-32 //
-#  \\// MG4HASVCLJZ36NF6O2YELEDSZAXNZTW6CFXO2UWF6EJKFIULCCA \\ CODE SIGNATURE \\
+#\\RKWVKO74YL4FVWEY477MT53Z5J3DDZCDURXUA4IP5KWVPAUAPP4VRMMVJX3JAUKMS446LXLD4C7CS
+# \\ A4NK6HBCPKKNKUJP2BI3UW6KJ6FJEHJT4QHWPILI5VSHIPNH2XSD \\// C25519-BASE-32 //
+#  \\// BKN726X2BAUZD6MYQTRAKGFBCOTPTHMUP76HH4YBPUAR5PFFGBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
