@@ -5,36 +5,36 @@
 
 my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
-my $overwrite_policy  = shift // 'wipe';    # [wipe|overwrite|if_missing]
+my $overwrite_policy  = shift // 'undefine';   # [undefine|overwrite|if_missing]
 
 my @sub_names     = keys %code;
 my $subs_matching = 0;
-map { $subs_matching++ if $ARG =~ /^$source_sub_prefix\./ } @sub_names;
+map { $subs_matching++ if $ARG =~ m|^$source_sub_prefix\.| } @sub_names;
 if ( !$subs_matching ) {
     <[base.log]>->(
-        2, "swap_subs skipped (no $source_sub_prefix subs present)"
+        2, "<swap_subs> skipped [ no $source_sub_prefix subs present ]"
     );
     return 0;
 }
 
-if ( $overwrite_policy eq 'wipe' ) {
+if ( $overwrite_policy eq 'undefine' ) {
     map {
-        if ( $ARG =~ /^$target_sub_prefix\./ ) {
+        if ( $ARG =~ m|^$target_sub_prefix\.| ) {
             delete $code{$ARG};
-            $data{'code'}{$ARG}{'status'} = 'wiped';
+            $data{'code'}{$ARG}{'status'} = 'undefined';
         }
     } @sub_names;
-    my $wipe_count = @sub_names - keys %code;
+    my $removed_count = @sub_names - keys %code;
     <[base.log]>->(
-        2, "wiped $wipe_count subs from '$target_sub_prefix' namespace"
-    ) if $wipe_count;
+        2, "undefined $removed_count subs from '$target_sub_prefix' namespace"
+    ) if $removed_count;
 }
 
 my $moved      = 0;
 my $logged_yet = 0;
 foreach my $sub_name ( keys %code ) {
     ( my $new_sub = $sub_name )
-        =~ s/^($source_sub_prefix)\./$target_sub_prefix./;
+        =~ s|^($source_sub_prefix)\.|$target_sub_prefix.|;
     if ( $new_sub ne $sub_name ) {
         if ( $overwrite_policy eq 'if_missing' and exists $code{$new_sub} ) {
             delete $code{$sub_name};
@@ -43,13 +43,17 @@ foreach my $sub_name ( keys %code ) {
         if ( !$logged_yet ) {
             <[base.log]>->(
                 2,
-                ": moving subroutines: $source_sub_prefix -> $target_sub_prefix"
+                ": moving subroutines : "
+                    . "$source_sub_prefix --> $target_sub_prefix"
             );
             ++$logged_yet;
         }
-        $code{$new_sub} = $code{$sub_name};
-        delete $code{$sub_name};
+        $code{$new_sub} = delete $code{$sub_name};
         $moved++;
+        ## also transfer compilation status ##
+        $data{'code'}{$new_sub}{'status'}  = $data{'code'}{$sub_name}{'status'};
+        $data{'code'}{$sub_name}{'status'} = 'undefined';
+
         if ( exists $data{'code'}{$sub_name} ) {
             $data{'code'}{$sub_name}{'moved_to'} = $new_sub;
         }
@@ -61,26 +65,28 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
     my $del_index = 0;
     foreach my $sub_name ( @{$$sub_list_ref} ) {
         next if not defined $sub_name;
-        if ( $sub_name =~ /^$target_sub_prefix(\.|$)/ ) {
+        if ( $sub_name =~ m<^$target_sub_prefix(\.|$)> ) {
             delete $$sub_list_ref->[$del_index];
         } else {
-            $sub_name =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/;
+            $sub_name =~ s{^$source_sub_prefix(\.|$)}{$target_sub_prefix$1};
         }
         $del_index++;
     }
 }
 
-map { <base.cmd>->{$ARG} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+map { <base.cmd>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1, }
     keys %{<base.cmd>}
     if exists <base.cmd>;
 
-map { <base.cli>->{$ARG} =~ s/^$source_sub_prefix(\.|$)/$target_sub_prefix$1/ }
+map { <base.cli>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1, }
     keys %{<base.cli>}
     if exists <base.cli>;
 
 if ( !$moved ) {
     <[base.log]>->(
-        2, "swap_subs: nothing done ($source_sub_prefix >> $target_sub_prefix)"
+        2,
+        "<swap_subs> nothing done "
+            . "[ $source_sub_prefix --> $target_sub_prefix ]"
     );
 } else {
     <base.modules.internal_name>->{$target_sub_prefix} = $source_sub_prefix;
@@ -90,7 +96,7 @@ if ( !$moved ) {
 }
 
 # ______________________________________________________________________________
-#\\MK26EKIWXCYPQA244FOHHNIJ5DBQIXR4K34M5H4HQNZM6S6BU4GDFE7Q2FLC2E2XGS5BF6XFDFMYY
-# \\ UFDFWXTB4WOUVZPR2COY7XGYRQMP3Z6QDFVEABVB3HWS67LMEY5B \\// C25519-BASE-32 //
-#  \\// KDRCWWYVDPUFGYHW2OGGIMKCYZJHLBAZOQRBI5EDR2D7L2SWGAI \\ CODE SIGNATURE \\
+#\\PEPYDSFXY5JEGVK6HYS3C2UASNOPMB7ACCADBWYFHLUTUQHP4QM5T4ZJZ4AJM6STHP4XV2IKTVZYC
+# \\ F6AGGXEGNNUB76L532KBSZRC57TTVLYEMEBFUDX5ULWQUNZA4BL7 \\// C25519-BASE-32 //
+#  \\// XYP4I3ZUANM5O457KEK5GQLFTN3IYHVX63FBZMWEGB4LRN5SYCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
