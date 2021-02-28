@@ -1,0 +1,52 @@
+# >:]
+
+# name  = base.file.callback.chown-all
+
+my $add_changed = 0;
+my $path_name   = $File::Find::name;
+
+my $old_uid = <base.file.chown-all.change_from.uid>;
+my $old_gid = <base.file.chown-all.change_from.gid>;
+
+my $new_uid = <base.file.chown-all.change_to.uid>;
+my $new_gid = <base.file.chown-all.change_to.gid>;
+
+return if $path_name =~ qr{^/(proc|sys|dev)/} or !-e $path_name;
+
+eval {
+    my $path_stat = File::stat::stat($path_name);
+    if ( $path_stat->uid == $old_uid ) {
+        <[base.log]>->( 2, "< UID-match > '$path_name'" );
+        $add_changed = 1;
+    }
+    if ( $path_stat->gid == $old_gid ) {
+        <[base.log]>->( 2, "< GID-match > '$path_name'" );
+        $add_changed = 1;
+    }
+};
+
+my $err_str;
+( $err_str = lc($EVAL_ERROR) ) =~ s| at .+$|| if $EVAL_ERROR;
+warn $err_str                                 if defined $err_str;
+
+if ($add_changed) {
+    if ( not chown( $new_uid, $new_gid, $path_name ) ) {
+        <base.file.chown-all.errors.chown.total>++;
+        my $warned_paths = <base.file.chown-all.warnings>;
+        my $ch_err_str;
+        ( $ch_err_str = lc($OS_ERROR) ) =~ s| at .+$|| if $OS_ERROR;
+        if ( defined $ch_err_str ) {
+            <[base.log]>->( 1, "[ $ch_err_str ] $path_name" );
+            $ch_err_str =~ s| +|_|g;
+            $warned_paths->{'chown'}->{$ch_err_str}->{$path_name} = 1;
+        }
+    }
+}
+
+<base.file.state.change_count> += $add_changed;
+
+# ______________________________________________________________________________
+#\\22BZOJ2PIQIAIOSIQ7IV4PFAIFOCWYO7W2NKW44OI4OQXSV2XVVPBQQC24NKTMHID7B2Y5FZZEQEO
+# \\ AANFSVMXTEUX237ALLIPVMX2L6SISOUR5N3RARQL2IYIPSYWPUQG \\// C25519-BASE-32 //
+#  \\// PRS5M4WEQ7LFWXLSGEDF4OHWL5XEE4SFIQ5335OWN2KAWPFU2DA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
