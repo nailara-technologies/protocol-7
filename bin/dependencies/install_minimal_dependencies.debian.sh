@@ -4,7 +4,6 @@ script_path=`realpath $0`
 bin_path=`dirname $script_path` # ./bin/dependencies/
 NAILARA_ROOT=`realpath $bin_path/../..`
 
-( id nailara || useradd -m -r nailara ) 2>&1 >/dev/null
 ln -f -s $NAILARA_ROOT/bin/protocol-7 /usr/local/bin/protocol-7
 ln -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
@@ -46,7 +45,7 @@ cpanm https://github.com/jheddings/bittrex.git
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 # ______________________________________________________________________________
-#\\TLXHXUCJUEXDA6NN2TWRAUOKW67FOOE6DOCLR5VL3NC7X36QAJ264P7C5N55QCFEOOSYCAXZI57J6
-# \\ 64BOB2UPIXNCXMLWSJVQDH72UHJTD5NMBDDFPGPRRSPVLQTQEZ4T \\// C25519-BASE-32 //
-#  \\// NTACXYZNKMJ7QLJQ7NPEFHOSSSAZMNR7GMMSWD44GBCT5JWBGBA \\ CODE SIGNATURE \\
+#\\QKQPKSLHRMJXLNPLI5VG6FNI4YCMJB5SMYX75SFQLS4JKBPNJQP6JNWGC46TDVO753ELS7BJGFPVG
+# \\ JM7DCIQQO4PDAV5VZNOBRHKN2EQXXMAHM2XOFA3ZYU4ZY2GCFXBC \\// C25519-BASE-32 //
+#  \\// 6JMGGCZ52WOSNJPXWGCTDKOSM4TQRZZN5CTC4H7HFU4MVD6RCDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
