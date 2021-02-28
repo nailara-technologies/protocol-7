@@ -89,7 +89,7 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        my $path_etag = <[digest.elf.b32]>
+        my $path_etag = <[digest.elf.BASE32]>
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
@@ -146,7 +146,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\BWHKYBTLQW7ZNIOXVAE5AT6NZQFXZNYYELRFW7HIIP4QT4CKU5KFXSJCEI72Z44Q27TC4RH4745DG
-# \\ OV4WOKUBPQ2KB3TFK27FXT7B6D7AYKHBD5UA5GBSPEO4BKZKE6ML \\// C25519-BASE-32 //
-#  \\// AX3TQDXYIFALQUHVGO2TZ36Z4JLH5SNOZ7P5GLSOQUUT6HH4CAA \\ CODE SIGNATURE \\
+#\\7WLJBLM2DYH45I22DWJUBCCXUICWXXKXRNZXRB3D3WOPGXGIVMWFPZGVONCAO7PDX27YB3KZN2HUY
+# \\ 4MLJC7B3CHZB2YWPII7EXOHV7ZFRQTY7KMOBEQWFVLUJCLHZCGNT \\// C25519-BASE-32 //
+#  \\// 66VHDJ7Q662ZD64A4YAWMSELCTORSO5W6G57YLICZORDNBZLECA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
