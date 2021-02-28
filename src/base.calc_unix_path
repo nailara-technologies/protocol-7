@@ -1,0 +1,19 @@
+# >:]
+
+# name  = base.calc_unix_path
+
+( my $ip_addr, my $ip_port ) = ( shift, shift );
+die 'expected ip address and port parameters'
+    if not defined $ip_addr or not defined $ip_port;
+
+my $unix_path = <[digest.elf.BASE32.harmony]>->("TCP[$ip_addr:$ip_port]");
+
+<[base.log]>->( 2, "calculated unix path for $ip_addr:$ip_port = $unix_path" );
+
+return $unix_path;
+
+# ______________________________________________________________________________
+#\\S47ZRMPN7UIUDITR24R5ETNZZQXRH3BNMJF23HKXAWPMZMGIWZB7HSX34PD63CCYYS6YJI6SU3BYC
+# \\ NGYMIAGO4JLVYZ2F6Z7GLF7GFW2XARW36JKYJYVMRJDUOOGZLBUK \\// C25519-BASE-32 //
+#  \\// XHDNBHRCRWCHK5RZ5OXMT5VEGJQY7DUWD6PCDLBSVBR5ABOVGBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

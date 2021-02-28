@@ -26,8 +26,7 @@ foreach my $c_type (@connection_types) {
             } else {
                 <unix.path> = $unix_path
                     = '/var/run/.7/UNIX/'
-                    . <[digest.elf.BASE32]>
-                    ->( join( ':', $core_addr, $core_port ) );
+                    . <[base.calc_unix_path]>->( $core_addr, $core_port );
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
@@ -81,7 +80,7 @@ if ( not defined $core_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\VQVRPQ5FVQJOEIPIW2EKP53NODGNCRBEL3EXEW3YEZ6NH7XDCG6JJMVE6MVKCA5VI25666JEH2NJG
-# \\ V4CPAWCJM34DVOBT2SLMTAJR2FC6Q46N73G6PRRP67GUFUJXDDER \\// C25519-BASE-32 //
-#  \\// 4JLPVWEDUV5W5EV3TJYWEBTKOGYNK4AEMGKAJ753AVOHGJNIABQ \\ CODE SIGNATURE \\
+#\\7EUANM33ORXBJC5NOOBCUBCCP34QYASZCBOMEYSPDA3PFETYDMJJCPQLQHTV4U5RYEJRVYJSAPR6W
+# \\ LSU6QHKC2LJLB56LM6SN3MD3FAOVIBDSOBAOSGWPUGZWVG4CO47J \\// C25519-BASE-32 //
+#  \\// M77WVABCWVLRNBFZ3UOPLWSMA4XO7SLYGSYP73S5FRK6EKLWECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
