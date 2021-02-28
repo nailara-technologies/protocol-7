@@ -55,9 +55,9 @@ net.auth.timeout = 13   ## protocol-7 ##
 core.local = <protocol-7.network.internal>
 
 ## local unix domain socket ##
-[file.make_path:'/var/run/.7/UNIX',0775,<system.privs.user>]
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
 unix.path = [base.calc_unix_path:<core.local.addr>,<core.local.port>]
-unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.path>",0777]
+unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
 
 ## ip.tcp socket ##
 tcp_ip.sock = [base.open:'ip.tcp','input',<core.local.addr>,<core.local.port>]
