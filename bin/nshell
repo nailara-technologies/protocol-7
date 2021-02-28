@@ -7,6 +7,7 @@ use English;
 use IO::AIO;
 use File::Spec;
 use IO::Socket;
+use Math::BigFloat;
 use IO::Socket::IP;
 use IO::Socket::UNIX;
 use Term::ReadPassword;
@@ -26,8 +27,8 @@ while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
 ( my $root_path = $bin_path ) =~ s,/[^/]+/[^/]+$,,;
 
 my $path_digest = elf($root_path);
-my $path_offset = $path_digest ^ 105641153; # <- /usr/local/nailara [or current]
-my $nailara_port = calc_port($path_offset);
+my $path_offset = $path_digest ^ elf('/usr/local/protocol-7');  # <-- or current
+my $protocol_7_port = calc_port($path_offset);
 
 ( my $hostname = qx| hostname | ) =~ s,(\..+|\n)$,,g;
 
@@ -69,7 +70,7 @@ my $lines_up  = 3;
 my $link_type = defined $core_user ? 'unix' : 'ip.tcp';
 my $sckargcnt = scalar @args;
 my $core_addr = shift(@args) || '127.0.0.1';
-my $core_port = shift(@args) || $nailara_port;
+my $core_port = shift(@args) || $protocol_7_port;
 my $usock_dir = '/var/run/.7/UNIX';
 
 my $prompt = "\\ $hostname \\:[?]:, ";
@@ -81,7 +82,7 @@ $OUTPUT_AUTOFLUSH = 0;
 
 # clear();
 
-my $term = new Term::ReadLine('nailara.shell');
+my $term = new Term::ReadLine('protocol-7.shell');
 $term->ornaments('mh,me,md,me');
 $term->enableUTF8();
 $term->MinLine(undef);
@@ -93,7 +94,7 @@ use warnings 'once';
 my $shell_sock;
 while ($connect) {
     $shell_sock = shell_connect( $core_addr, $core_port );
-    if ( $link_type eq 'unix' and $lnk_path =~ /\.([^\/\.]+)$/ ) {
+    if ( $link_type eq 'unix' and $lnk_path =~ m|\.([^/\.]+)$| ) {
         my $core_user = $1;
         $shell_sock = unix_auth( $shell_sock, $core_user );
     } elsif ( $link_type eq 'unix' and defined $core_user ) {
@@ -129,11 +130,8 @@ while ($connect) {
     }
 }
 
-# <system.path_digest> //= elf(<system.root_path>);
-# <system.path_offset> = <system.path_digest> ^ 105641153;   #<-/usr/local/nailara
-
-##  calculated values  :      /usr/local/nailara : ext-port = 47, int-port = 57
-##                     :  /data/projects/nailara : ext-port = 87, int-port = 737
+## calculated values :      /usr/local/protocol-7 : ext-port = 47, int-port = 57
+##                   : /data/projects/protocol-7 : ext-port = 87, int-port = 737
 
 sub calc_port {
     my $path_offset = shift;
@@ -141,7 +139,7 @@ sub calc_port {
     my $port_end    = 1021;
     my $port_delta  = $port_end - $port_start;
 
-    my $n_port = $port_start + $path_offset % $port_delta;
+    my $n_port = $port_start + $path_offset % $port_delta * 5;
 
     return $n_port;
 }
@@ -161,12 +159,71 @@ sub login_prompt {
     return ( $user, $pass );
 }
 
-sub sock_path { encode_b32r( pack( 'V', elf( $_[0] ) ) ) }
+sub calc_unix_path {
+    my $ip_addr = shift;
+    my $ip_port = shift;
+
+    return harmony_digest("TCP[$ip_addr:$ip_port]");
+}
+
+sub harmony_digest {
+    my $input_string = join( '', @_ );
+    my $harmony      = join( '', map {ord} qw| T = 5 | );    ## <-- [ / 13 ]
+
+    my $accuracy = 13;
+    Math::BigFloat->round_mode('trunc');
+    Math::BigFloat->accuracy($accuracy);
+
+    my $elf_checksum;
+    my $encoded_string;
+    my $B32_elf_checksum;
+
+    $elf_checksum   = elf($input_string);
+    $encoded_string = encode_b32r( pack 'V', $elf_checksum );
+
+    my $template = '::%s::%s::%s::';
+
+    my $calc_input = sprintf( $template,
+        $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+
+    my $max_rounds = 42;
+
+RECALC:
+
+    $elf_checksum     = elf($calc_input);
+    $encoded_string   = encode_b32r( pack 'V', $elf_checksum );
+    $B32_elf_checksum = elf($encoded_string);
+
+    my $calc_0000_str = Math::BigFloat->new($elf_checksum)
+        ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
+
+    my $calc_0110_str = Math::BigFloat->new($B32_elf_checksum)
+        ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
+
+    if (
+        (      $calc_0000_str !~ m{\.(.*$harmony.*|0+)$}
+            or $calc_0110_str !~ m{\.(.*$harmony.*|0+)$}
+        )
+        and $max_rounds--
+    ) {
+        ## ..230769.., == disharmony ..,
+
+        ## change input with entropy from previous result ##
+        $elf_checksum = $elf_checksum ^ elf($encoded_string);
+        $calc_input   = sprintf( $template,
+            $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+
+        goto RECALC;
+    }
+
+    return $encoded_string;
+}
 
 sub shell_connect {
     my $sock;
     if ( !$sckargcnt ) {
-        my $sock_path = "$usock_dir/" . sock_path("$core_addr:$core_port");
+        my $sock_path
+            = "$usock_dir/" . calc_unix_path( $core_addr, $core_port );
         if ( -e $sock_path ) {
             $sock = IO::Socket::UNIX->new(
                 Type => SOCK_STREAM(),
@@ -206,12 +263,12 @@ sub shell_auth {
         print " :: authentication successful ::\n";
         return $fh;
     } elsif ( $answer =~ m,NOPE >:|, ) {
-        die " :: authentication not successful ::\n\n";
+        die "\n  :: authentication not successful ::\n\n";
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
-        die " :: protocol mismatch >:[\n\n";
+        die "\n  :: protocol mismatch >:[\n\n";
     }
 }
 
@@ -222,7 +279,7 @@ sub unix_auth {
     die "\n  << connection was prematurely terminated >>\n\n"
         if not defined $answer;
     if ( $answer !~ m|^ACK continue| ) {
-        die " :: unix auth not available ::\n\n";
+        die "\n  :: unix auth not available ::\n\n";
     }
     s_write( $fh, "auth $user\n" );
     $answer = <$fh>;
@@ -231,12 +288,12 @@ sub unix_auth {
         print " :: authentication successful ::\n";
         return $fh;
     } elsif ( $answer =~ m,NOPE >:|, ) {
-        die " :: authentication not successful ::\n\n";
+        die "\n  :: authentication not successful ::\n\n";
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
-        die " :: protocol mismatch >:[\n\n";
+        die "\n  :: protocol mismatch >:[\n\n";
     }
 }
 
@@ -417,7 +474,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\GYX7FMPRYQXKCUWPA6DOS2SAE7XJUK6I2VIRPEPZADAYXWIZGDGBY2R5W3EVF3NC4LXN242IJ6XG6
-# \\ U7VSM5DPLCCQWRYBVT5BJBE5BDZ3DESCDJ3XJOZ54P6Z4BMQ7PGB \\// C25519-BASE-32 //
-#  \\// EEL2AS7HNI3CSMVL27DUHS6APU7UIWRLMAZG7D4EXODVSFYFUBA \\ CODE SIGNATURE \\
+#\\3KGVQWAUEAMP473ZESJ3SMRWZFXKKBG7LRPGUOWE3RS7R4JI225BS4E5ADXGRNEOFVPV7MP34NKD4
+# \\ XQKA4PTETWHDJJ7DTND7CRTQH5DYMY4OUCFEKSG4IZHJQJNWBB2G \\// C25519-BASE-32 //
+#  \\// SFARI4ZVEOORA6FAOJN3PIGI7DTPGKEIL6C7RGBIW46ZS5SIGBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

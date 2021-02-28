@@ -5,27 +5,27 @@
 <[base.perlmod.load]>->( 'Digest::Elf', 'elf' );
 
 <system.path_digest> //= elf(<system.root_path>);
-<system.path_offset> = <system.path_digest> ^ 105641153;   #<-/usr/local/nailara
+<system.path_offset> = <system.path_digest> ^ elf('/usr/local/protocol-7');
 
 my $port_ranges = {
-    'ext' => { 'start' => 47, 'end' => 1021 }, # <- regular external port: 47 <-
-    'int' => { 'start' => 57, 'end' => 1021 }  # <- regular internal port: 57 <-
+    'ext' => { 'start' => 47, 'end' => 1021 }, # <-- regular external port: 47
+    'int' => { 'start' => 57, 'end' => 1021 }  # <-- regular internal port: 57
 };
 
 # ..following values can be overridden in './cfg/defaults', './cfg/network', ...
 
 <protocol-7.network.external.addr> //= '0.0.0.0';
 <protocol-7.network.external.port>
-    //= <[net.calc_port]>->( $port_ranges->{'ext'} );    #<-soon
+    //= <[net.calc_port]>->( $port_ranges->{'ext'} );    # <-- soon
 
 <protocol-7.network.internal.addr> //= '127.0.0.1';
 <protocol-7.network.internal.port>
-    //= <[net.calc_port]>->( $port_ranges->{'int'} );    #<-core
+    //= <[net.calc_port]>->( $port_ranges->{'int'} );    # <-- core
 
 0;
 
 # ______________________________________________________________________________
-#\\V5ZQK3WKTEL3SRGXLGST2XSKTM3WLIQKSI6YY7EY3MJX5R2MPSRCNJK4JPOZJUWJPWNG5XPHXV6V4
-# \\ GQ77I2XGHYVZWE5FQEVOOZTBSEGKJQX37J4YVIJXPV4YD62ORRGT \\// C25519-BASE-32 //
-#  \\// 5OI53EXZN2KS34WJ76RVBAOA2P4UE36X6GYP7OUMCXAWZ7HTQDY \\ CODE SIGNATURE \\
+#\\VFFO4GFGFASRSMUCF54LA4CE4EDPPKX2OQX75WWTDAP4E4UOQYQZWL5TZQXPHSLG6YM6LPNC2V2XE
+# \\ XWQLVIYR7YBNEDQTWVG27YJAK4YCOIJEKFVXDEALFIAESECZ5WZV \\// C25519-BASE-32 //
+#  \\// 5S77IB2YH5CN7DX64UP5K5BCAYGOEQS3CLDD4DNGJDBZA5YKIBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
