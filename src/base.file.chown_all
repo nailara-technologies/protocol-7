@@ -13,6 +13,10 @@ warn 'expected at least <old_user> and <new_user> parameters'
 warn "parent path '$parent_path' does not exist <{C1}>" and return 0
     if !-d $parent_path;
 
+warn "'base.file' module not initialized yet, cannot chown_all.., <{C1}>"
+    and return 0
+    if not defined $code{'file.callback.chown-all'};
+
 <base.file.chown-all> = {
     'warnings' => { 'scan'  => { 'total' => 0 } },
     'errors'   => { 'chown' => { 'total' => 0 } }
@@ -75,14 +79,14 @@ my $change_count = delete <base.file.state.change_count> // 0;
 <[base.clean_hashref]>->(<base.file.state>);
 my $s = $change_count == 1 ? '' : 's';
 map { <[base.log]>->( 1, $ARG ) } (
-    ':', "::[ errors : $error_count :: scan-warnings : $warn_count ]",
-    ':', ":. changed $change_count file$s in $time_delta seconds."
+    "::[ errors : $error_count :: scan-warnings : $warn_count ]", ':',
+    ":. changed $change_count file$s in $time_delta seconds.",    ':'
 );
 
 return $change_count;
 
 # ______________________________________________________________________________
-#\\SXOQ2TIHJ4A4MUV6Q3BAVAAFS7TTD7LQVPX377ZCD6NK3X4YYKSRVTNWYGTOSWK6E7JEIW2PJYMF4
-# \\ U7VFT2LMEY3FFABV43JHWKIV5O54SLBAKNRES2RBOR3VZKTLYWLX \\// C25519-BASE-32 //
-#  \\// QOF32BBGO73TMP7EX5XBJDWJXYBAFG62HBA5AVPSFAHCVZFYEAQ \\ CODE SIGNATURE \\
+#\\GROGPHMIPBNMPLRBAWTEJPNLGBL6TPBRKIYBSVC7WXM5B6T7CO46Y2HEQKYPRMQFJGK5K3Q4MTPQC
+# \\ DGLSQ3FL3K2SRUW5DDXABU2W7GIA2N4QKRFWUTJQZUFEXO6DUW7M \\// C25519-BASE-32 //
+#  \\// ZAACS6HFGLCYDUMQNMZMRILYBLZNU26HNVUUTELJBO7LMWRBCCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

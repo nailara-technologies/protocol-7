@@ -1,0 +1,50 @@
+# >:]
+
+# name  = base.root.convert-user.nailara
+
+my $old_user = 'nailara';
+my $new_user = 'protocol-7';
+
+my @userdel_paths = qw| /usr/sbin/userdel /sbin/userdel |;
+my $exit_codes    = <base.root.userdel.exit-codes>;
+
+my $old_user_id = getpwnam($old_user);
+return <[base.log]>->( 2, ":. user '$old_user' not existing, no conversion .," )
+    if not defined $old_user_id;
+
+<[base.log]>->( 0, ":. converting '$old_user' files to '$new_user'.," );
+
+<[file.chown_all]>->( $old_user, $new_user );
+
+## removing old 'nailara' user ###
+my $userdel = shift @userdel_paths;
+while ( !-x $userdel and @userdel_paths ) {
+    my $new_path = shift @userdel_paths;
+    $userdel = $new_path if -x $new_path;
+}
+return
+    map { <[base.log]>->( 0, $ARG ) }
+    ( ':', ":: cannot find 'userdel' binary at '$userdel' ::" )
+    if !-x $userdel;
+###
+<[base.log]>->( 0, ": removing old '$old_user' user [ UID $old_user_id ]..," );
+
+<[base.stderr_redir]>;
+my $status = system( $userdel, $old_user ) >> 8;
+<[base.stderr_restore]>;
+
+if ( $status > 0 ) {
+    my $reason = $exit_codes->{$status} // "exit code $status";
+    return
+        map { <[base.log]>->( 0, $ARG ) }
+        ( "< userdel > $reason", ':', "::[ cannot remove user '$old_user' ]" );
+} else {
+    <[base.log]>->( 1, ":.. user removal was successful =)" );
+    <[base.log]>->( 2, ": '$old_user' home directory was left existing ..," );
+}
+
+# ______________________________________________________________________________
+#\\TGDZPPNCDNLMELBEMH46TBRB3G6I553C3PYADQXYKRBCRH2WPF4O2SBFCDMZSXH3GKPWE7W3R6CRK
+# \\ JSLYZA6DHZEPFJTBNI6LXXESK24IMM7WMRHS4I5VBWEHCHE7J7BW \\// C25519-BASE-32 //
+#  \\// UZN2FFJB7AH4NE4LX6QWLGCLUO7O67RUA4YR6HGNXL3NIS2MECA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
