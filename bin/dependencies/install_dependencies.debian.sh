@@ -6,7 +6,7 @@
 apt-get -y install notify-osd x11-utils x11-xserver-utils unclutter xnest nxagent \
             compton openbox hsetroot xserver-xorg xserver-xephyr xvfb fuse3 \
             mpv ffmpeg melt expect mediainfo dbus-x11 libnotify-bin notify-osd \
-            python-pil python-pygame mupdf-tools pdftk libpoppler-glib-dev \
+            python3-pil python3-pygame mupdf-tools pdftk libpoppler-glib-dev \
             libio-socket-multicast-perl gnome-colors-common oxygen-icon-theme \
             liblwpx-paranoidagent-perl libnet-libdnet-perl libtimedate-perl \
             libc6-dev libimlib2-dev liblinux-inotify2-perl libimager-perl \
@@ -23,7 +23,7 @@ cpanm --force XML::RSS::TimingBot  # <-- evaluate if above module still required
 # optional [i.e. not on raspbian]
 apt-get -y install intel-gpu-tools firmware-misc-nonfree 2>/dev/null
 # ______________________________________________________________________________
-#\\PRGF4AJOE54FCGVROQMOYS36ETHSTCVQJKKWJIUDTQJ74YEJWLJTMEGLOW5RRSYANGG6QDHHEYAYK
-# \\ EDSTPYFAN26NKQHE3SS32PPBKDRLU5BOQ4KNIPKX2NGS5U2PVJFS \\// C25519-BASE-32 //
-#  \\// 4OXSJTWGW4JKSP75F3CU246DDJZABYQGK2TIQBEYTSTJXQZXABI \\ CODE SIGNATURE \\
+#\\M7V2FU4OYEUCQNWJEZCHY6O2GQAEHZEB6I4BBD6RGTRBKOKDOR4KTYOQKQE5MNY44L544HUOJSR62
+# \\ SHIVE7LZGJV2KSVXHWKMSYDAGWMP4HAGH2PYMKZXZMPGKLJPCJDW \\// C25519-BASE-32 //
+#  \\// GHVNNKSDMBIT36YUUQW2IISQUNXEBMHBV5PBOFJITVEHOCYUGBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
