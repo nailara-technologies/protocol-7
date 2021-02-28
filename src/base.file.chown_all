@@ -1,0 +1,88 @@
+# >:]
+
+# name  = base.file.chown_all
+
+my $old_user    = shift // '';
+my $new_user    = shift // '';
+my $parent_path = shift // '/';
+
+warn 'expected at least <old_user> and <new_user> parameters'
+    and return 0
+    if !length($old_user)
+    and !length($new_user);
+warn "parent path '$parent_path' does not exist <{C1}>" and return 0
+    if !-d $parent_path;
+
+<base.file.chown-all> = {
+    'warnings' => { 'scan'  => { 'total' => 0 } },
+    'errors'   => { 'chown' => { 'total' => 0 } }
+};
+
+my $old_uid = <base.file.chown-all.change_from.uid> = getpwnam($old_user);
+my $new_uid = <base.file.chown-all.change_to.uid>   = getpwnam($new_user);
+
+my $old_gid = <base.file.chown-all.change_from.gid> = getgrnam($old_user);
+my $new_gid = <base.file.chown-all.change_to.gid>   = getgrnam($new_user);
+
+warn "user '$old_user' does not exist <{C1}>" and return 0
+    if not defined $old_uid;
+warn "user '$new_user' does not exist <{C1}>" and return 0
+    if not defined $new_uid;
+
+map { <[base.log]>->( 1, $ARG ) } (
+    "::::[ changing owner : '$old_user' --> '$new_user' ]:.",            '::',
+    ":::[ UID : $old_uid --> $new_uid :: GID : $old_gid --> $new_gid ]", ':'
+);
+
+## loading File::Find on demand.., ##
+if ( not defined &File::Find::find ) {
+    <[base.perlmod.load]>->('File::Find');
+    eval 'no warnings qw| File::Find |';
+}
+
+<base.file.state.change_count> = 0;
+
+my $time_start = 1000 * <[base.time]>->(3);
+my $warned_paths;
+
+eval {
+    local $SIG{'__WARN__'} = sub {
+        if ( shift =~ m|\((.+)\).+keys: (.+)| ) {
+            my $path = $1;
+            ( my $key = lc($2) ) =~ s| |_|g;
+            $warned_paths->{'scan'}->{$key}->{$path}++;
+            $warned_paths->{'scan'}->{'total'}++;
+        }
+    };
+    File::Find::finddepth( $code{'file.callback.chown-all'}, $parent_path );
+};
+
+my $err_str;
+( $err_str = $@ ) =~ s| at .+$|| if $@;
+warn $err_str                    if defined $err_str;
+
+my $time_end   = 1000 * <[base.time]>->(3);
+my $time_delta = ( $time_end - $time_start ) / 1000;
+
+my $warn_count  = $warned_paths->{'scan'}->{'total'} //= 0;
+my $error_count = <base.file.chown-all.errors.chown.total>;
+<base.file.chown-all.warnings.scan.total> = $warned_paths->{'scan'}->{'total'};
+
+<base.file.chown-all.warnings>  = $warned_paths;
+<base.file.chown-all.scan-time> = $time_delta;
+
+my $change_count = delete <base.file.state.change_count> // 0;
+<[base.clean_hashref]>->(<base.file.state>);
+my $s = $change_count == 1 ? '' : 's';
+map { <[base.log]>->( 1, $ARG ) } (
+    ':', "::[ errors : $error_count :: scan-warnings : $warn_count ]",
+    ':', ":. changed $change_count file$s in $time_delta seconds."
+);
+
+return $change_count;
+
+# ______________________________________________________________________________
+#\\SXOQ2TIHJ4A4MUV6Q3BAVAAFS7TTD7LQVPX377ZCD6NK3X4YYKSRVTNWYGTOSWK6E7JEIW2PJYMF4
+# \\ U7VFT2LMEY3FFABV43JHWKIV5O54SLBAKNRES2RBOR3VZKTLYWLX \\// C25519-BASE-32 //
+#  \\// QOF32BBGO73TMP7EX5XBJDWJXYBAFG62HBA5AVPSFAHCVZFYEAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
