@@ -11,18 +11,21 @@ cp $NAILARA_ROOT/lib/systemd/system/protocol-7.service /lib/systemd/system/
 
 # dependencies for 'nroot','core','config', 'events' agents + nshell
 
-apt-get -y install cpanminus git libevent-perl libproc-processtable-perl \
-  libterm-readpassword-perl libterm-readline-gnu-perl libio-aio-perl libc6-dev \
-  libclone-perl libhash-flatten-perl libhash-merge-simple-perl libjson-xs-perl \
-  libio-socket-multicast-perl libfile-slurper-perl libtimedate-perl gcc make \
-  libdigest-crc-perl libclass-accessor-lite-perl libc6-dev libsub-uplevel-perl \
-  liburi-perl libbsd-resource-perl libcryptx-perl libtest-exception-perl \
-  libdigest-jhash-perl libdigest-elf-perl libhttp-date-perl libnet-dns-perl \
-  libtest-requires-perl libtest-sharedfork-perl libhttp-message-perl \
-  libfile-which-perl libyaml-libyaml-perl libfile-extattr-perl \
-  libbsd-resource-perl liburi-query-perl libconfig-simple-perl \
-  libio-socket-ssl-perl liblwp-protocol-https-perl \
-  libfile-finder-perl libmce-perl libperl-critic-perl libppix-utilities-perl &&
+apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
+            liburi-perl libclone-perl libevent-perl libcryptx-perl \
+            libio-aio-perl libjson-xs-perl libnet-dns-perl libtimedate-perl \
+            libhttp-date-perl liburi-query-perl libdigest-crc-perl \
+            libdigest-elf-perl libfile-which-perl libfile-finder-perl \
+            libperl-critic-perl libsub-uplevel-perl libbsd-resource-perl \
+            libbsd-resource-perl libdigest-jhash-perl libfile-extattr-perl \
+            libfile-slurper-perl libhash-flatten-perl libhttp-message-perl \
+            libyaml-libyaml-perl libconfig-simple-perl libio-socket-ssl-perl \
+            libtest-requires-perl libppix-utilities-perl \
+            libtest-exception-perl libtest-sharedfork-perl \
+            libhash-merge-simple-perl libproc-processtable-perl \
+            libterm-readline-gnu-perl libterm-readpassword-perl \
+            liblwp-protocol-https-perl libclass-accessor-lite-perl \
+            libio-socket-multicast-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
@@ -47,7 +50,7 @@ cpanm --force https://github.com/jheddings/bittrex.git
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
 # ______________________________________________________________________________
-#\\7JUIFDHLD2AFFRPAV6LK5B2MAISHKL3FXQYYRL6L5DFST32VCJQPP6RHGIBBHTQDLNK3D4WFUO6ME
-# \\ YFYYVXY3ZY3AQYE5N6RJ3327UG7TVCHYCN64K3T7FPVYDIDWX2XB \\// C25519-BASE-32 //
-#  \\// RQAEGJJZVLJWPMYQDAAWXEHZ3QN3H6NCZGUJJR7YUNOBUFJXYCY \\ CODE SIGNATURE \\
+#\\D4JBANUQPJYENLXF33EPWKZO26LCH642VAV6KXHEVGNWCJKIOK57Q36KXVYEI4F4RNG6ORSGNL6ZK
+# \\ Q7BXEMPMXUD2ORILML5HHKUHTUYQ3SFUQFFZDWFQSHOHHANIEV3L \\// C25519-BASE-32 //
+#  \\// ZQQE7SLBVSPNNSRXAWPYVKAX6FWEPSWPGJTLHF42VTA5MNIW2AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
