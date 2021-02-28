@@ -1,0 +1,62 @@
+# >:]
+
+# name  = digest.elf.BASE32.harmony
+# descr = return next harmonic BASE32 encoded elf hash value [VAX]
+
+my $input_string = join( '', @_ );
+
+my $harmony = join( '', map {ord} qw| T = 5 | );   ## <'T'> <'='> <'5'> ###[/13]
+
+my $accuracy = 13;
+Math::BigFloat->round_mode('trunc');
+Math::BigFloat->accuracy($accuracy);
+
+my $elf_checksum;
+my $encoded_string;
+my $B32_elf_checksum;
+
+$elf_checksum   = Digest::Elf::elf($input_string);
+$encoded_string = encode_b32r( pack 'V', $elf_checksum );
+
+my $template = '::%s::%s::%s::';
+
+my $calc_input = sprintf( $template,
+    $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+
+my $max_rounds = 42;
+
+RECALC:
+
+$elf_checksum     = Digest::Elf::elf($calc_input);
+$encoded_string   = encode_b32r( pack 'V', $elf_checksum );
+$B32_elf_checksum = Digest::Elf::elf($encoded_string);
+
+my $calc_0000_str = Math::BigFloat->new($elf_checksum)
+    ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
+
+my $calc_0110_str = Math::BigFloat->new($B32_elf_checksum)
+    ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
+
+if (
+    (      $calc_0000_str !~ m{\.(.*$harmony.*|0+)$}
+        or $calc_0110_str !~ m{\.(.*$harmony.*|0+)$}
+    )
+    and $max_rounds--
+) {
+    ## ..230769.., == disharmony ..,
+
+    ## change input with entropy from previous result ##
+    $elf_checksum = $elf_checksum ^ Digest::Elf::elf($encoded_string);
+    $calc_input   = sprintf( $template,
+        $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+
+    goto RECALC;
+}
+
+return $encoded_string;
+
+# ______________________________________________________________________________
+#\\5YWQD7LERHJX7F2XDHFE5FXMEGQFHWXWKQBAJGKFMWDT6DIHJO5Y5LCIVJ7TFTJIYWJHGDL4QLSZK
+# \\ AMA4N7GGE52U5IE3F6ZXXQGBGZGAJB6TDKA65HQVTHEIJWPMEBJL \\// C25519-BASE-32 //
+#  \\// U6EGTPQYPUR3KFK52LXBAFX3A55PXIPFRKDW7BQ4PKD7TZ6A2DQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
