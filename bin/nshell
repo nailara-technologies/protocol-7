@@ -10,6 +10,7 @@ use IO::Socket;
 use Math::BigFloat;
 use IO::Socket::IP;
 use IO::Socket::UNIX;
+use Cwd qw| abs_path |;
 use Term::ReadPassword;
 use Time::HiRes 'sleep';
 use Digest::Elf qw| elf |;
@@ -24,7 +25,7 @@ while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
     $bin_path = $readlink_path;
     last if $bin_path =~ m|/nshell$|;  # skip resolving last stage., [ improve ]
 }
-( my $root_path = $bin_path ) =~ s,/[^/]+/[^/]+$,,;
+( my $root_path = abs_path($bin_path) ) =~ s,/[^/]+/[^/]+$,,;
 
 my $path_digest = elf($root_path);
 my $path_offset = $path_digest ^ elf('/usr/local/protocol-7');  # <-- or current
@@ -474,7 +475,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\3KGVQWAUEAMP473ZESJ3SMRWZFXKKBG7LRPGUOWE3RS7R4JI225BS4E5ADXGRNEOFVPV7MP34NKD4
-# \\ XQKA4PTETWHDJJ7DTND7CRTQH5DYMY4OUCFEKSG4IZHJQJNWBB2G \\// C25519-BASE-32 //
-#  \\// SFARI4ZVEOORA6FAOJN3PIGI7DTPGKEIL6C7RGBIW46ZS5SIGBA \\ CODE SIGNATURE \\
+#\\2JOUUQOVLAYIXEGCBT46CKJO4WT3UW4J24GYXRMR35UIVV3SJCGIU6J3Z6CC2MUCOKFAOMIHXIGY2
+# \\ XPFT7HZTSL4FKOFIC4XOOKHAGQ7BEYL7MOH4LKQL6U7BL57PIERF \\// C25519-BASE-32 //
+#  \\// LD3UM6LESTK45MG4WTEXWYOD63ZMTHDGEEDLLVIMRHYGUQVSABI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
