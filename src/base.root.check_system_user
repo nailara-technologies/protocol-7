@@ -14,12 +14,13 @@ my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
 
 my $exit_codes = <base.root.useradd.exit-codes>;
 
+my $user_created = 0;
 my $home_setting = <[base.cfg_boolean]>->(<base.root.useradd.create_home>);
 $not_home = $not_home eq 'not-home' ? 1 : $home_setting ^ 1;
 
 my $uid = getpwnam($usr);
 
-if ( not defined $uid ) {
+if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
     my $uid_str = '';
     if (    defined <base.root>
         and defined <base.root.pref-uid>
@@ -35,7 +36,7 @@ if ( not defined $uid ) {
     }
     return map { <[base.log]>->( 0, $ARG ) } (
         '::[ check_system_user ]:.',
-        ':', ":: cannot find useradd binary at '$useradd' ::"
+        ':', ":: cannot find 'useradd' binary at '$useradd' ::"
     ) if !-x $useradd;
 
     <[base.log]>->( 0, "creating system user '$usr'$uid_str.," );
@@ -57,15 +58,26 @@ if ( not defined $uid ) {
     } else {
         my $created_uid = getpwnam($usr);
         my $new_uid_str = defined $uid ? '' : " [ UID $created_uid ]";
+        $user_created = 1;
         my $l = defined $uid ? 1 : 0;
         <[base.log]>->( $l, ":.. user creation was successful =)$new_uid_str" );
     }
+} elsif ( $EFFECTIVE_USER_ID != 0 ) {
+    <[base.log]>->(
+        0, "<< am not 'root', not creating system user '$usr'., >>"
+    );
 } else {
-    <[base.log]>->( 2, "user '$usr' esists [ $uid ].," );
+    <[base.log]>->( 2, "user '$usr' exists [ $uid ].," );
 }
 
+## [ chown all files to user 'protocol-7' + remove 'nailara' user from passwd ]
+<[base.root.convert-user.nailara]>
+    if $user_created == 1
+    and $usr eq 'protocol-7'
+    and <[base.cfg_boolean]>->( <base.root.convert-usr.nailara> // 1 );
+
 # ______________________________________________________________________________
-#\\VYH67ZUX2G7CHG7E5XBHGQ4ZIEQLB772OAXP3TYQGZHZGYWU6QUST3VV2E5IZATOI3DXI7PZLBDQI
-# \\ MZVQ6HGGKIEMA2F6OQKSBJ2SEPQBSWMZSC4KNBFEXUG6E3RZSX6N \\// C25519-BASE-32 //
-#  \\// TH6CUXFHF5WDPLEJJJX3V5HBT36P6P53EQYGWIVMYTORW75C6BQ \\ CODE SIGNATURE \\
+#\\BYZROXRR4EZLC4YT6AZ4GVLLEZBHCMLOHP2JPDWCMWWNNJVC3QHWIKNMLSISNTJLSGVRWI5KSLX72
+# \\ HISDXX5XIDQPPMTJTVSZFYB4DMOQNWUDHFRDVB3452XOLL4BYLK7 \\// C25519-BASE-32 //
+#  \\// XMVATUVJ766OWOA5HU4CX5VNHGHJPKPQ3WH56ZWPIFVIHDGW2CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
