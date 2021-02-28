@@ -13,7 +13,7 @@ my ($node_agent, $instance_id, $buffer_name,
 <history.checksums>                                     //= {};
 my $node_checksums = <history.checksums>->{$node_agent} //= {};
 $node_checksums->{$buffer_name}                         //= '';
-my $entry_checksum = <[digest.elf.b32]>->( $_[0]->{'args'} );
+my $entry_checksum = <[digest.elf.BASE32]>->( $_[0]->{'args'} );
 if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
     <[base.log]>->(
         2, "rejected duplicate '$buffer_name' entry from '$node_agent'.,"
@@ -112,7 +112,7 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => 'nak', 'data' => $err_msg };
 # ______________________________________________________________________________
-#\\WPINTHPH42PCBYX4GJP5I7YHTC3MVUBJMOTU7SE57GKDCSLP5RONPXWTFJXGWXC5I3AE3PNNZD5Q4
-# \\ BXHDWPXU667VKHOAAH4NA4KPIOPYXNPOKB6K7DGQ2TDASV7MOLEG \\// C25519-BASE-32 //
-#  \\// MUCTUC5GP5XC77LHJXHPK4I3DXMFVTAGWERD2M7NCN5X7UT6ICI \\ CODE SIGNATURE \\
+#\\BC5I6WHTU2KAUYYRQGMU34XAEYY5GMHMS3VS46VBUEWSVCMWVAPFJBBIEQ4CHEE7CUF5JZKYH7CVW
+# \\ TL6SVGEGPA4HDWVGQP2HIXSEUPHY5SERKPO3UDSWHTOF5RTQEEKF \\// C25519-BASE-32 //
+#  \\// DT7ACZTPVPYG73G6KHOVUCT72F7Y336BC7KNH5RPJXDYBJ4XEAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
