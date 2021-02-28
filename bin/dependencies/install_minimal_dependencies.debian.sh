@@ -21,6 +21,7 @@ apt-get -y install cpanminus git libevent-perl libproc-processtable-perl \
   libtest-requires-perl libtest-sharedfork-perl libhttp-message-perl \
   libfile-which-perl libyaml-libyaml-perl libfile-extattr-perl \
   libbsd-resource-perl liburi-query-perl libconfig-simple-perl \
+  libio-socket-ssl-perl liblwp-protocol-https-perl \
   libfile-finder-perl libmce-perl libperl-critic-perl libppix-utilities-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
@@ -41,11 +42,12 @@ perl -Mv5.13 -e \
 cpanm --force Poloniex::API
 perl -Mv5.13 -e \
  'my$M="Bittrex::API";eval"require $M";exit(1)if$@;say"$M is installed ..,"'||
-cpanm https://github.com/jheddings/bittrex.git
+cpanm --force https://github.com/jheddings/bittrex.git
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
+
 # ______________________________________________________________________________
-#\\QKQPKSLHRMJXLNPLI5VG6FNI4YCMJB5SMYX75SFQLS4JKBPNJQP6JNWGC46TDVO753ELS7BJGFPVG
-# \\ JM7DCIQQO4PDAV5VZNOBRHKN2EQXXMAHM2XOFA3ZYU4ZY2GCFXBC \\// C25519-BASE-32 //
-#  \\// 6JMGGCZ52WOSNJPXWGCTDKOSM4TQRZZN5CTC4H7HFU4MVD6RCDA \\ CODE SIGNATURE \\
+#\\7JUIFDHLD2AFFRPAV6LK5B2MAISHKL3FXQYYRL6L5DFST32VCJQPP6RHGIBBHTQDLNK3D4WFUO6ME
+# \\ YFYYVXY3ZY3AQYE5N6RJ3327UG7TVCHYCN64K3T7FPVYDIDWX2XB \\// C25519-BASE-32 //
+#  \\// RQAEGJJZVLJWPMYQDAAWXEHZ3QN3H6NCZGUJJR7YUNOBUFJXYCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
