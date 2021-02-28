@@ -17,10 +17,18 @@ return { 'mode' => 'nak', 'data' => 'no such subroutine' }
 
 my @sub_output = eval { $code{$sub_name}->(@params) };
 
+my $err_str;
+if ($EVAL_ERROR) {
+    ( $err_str = $EVAL_ERROR ) =~ s, (while|at) .+$,,;
+    $err_str =~ s|Can.t|cannot|;
+    $err_str = 'undefined error' if !length($err_str);
+    warn $err_str;
+}
+
 my $err_msg;
 $err_msg = 'errors during subroutine execution' if $EVAL_ERROR;
 $err_msg = 'undefined subroutine output'
-    if !@sub_output
+    if not defined $err_msg and !@sub_output
     or @sub_output == 1 and not defined $sub_output[0];
 return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
 
@@ -35,7 +43,7 @@ if ( @sub_output == 1 ) {
 return { 'mode' => $rep_mode, 'data' => join( ', ', @sub_output ) };
 
 # ______________________________________________________________________________
-#\\YK5DDUCZIE7W4S2VGX5Q23LWKOCJBWT4ERC2BW5RURH5WNRQESZ47XXWN7DIKRDNXT24JRIC4S4RK
-# \\ D3JRBQQAIG4VY6GJRREK3NJVJEU7XNWVJMV4CZ6TUCYSFT4PP42Z \\// C25519-BASE-32 //
-#  \\// JNPQECPKNNEKRMZIMVETN2D3HXYEBIVJCWIK4WZLW2MQRXHOCDA \\ CODE SIGNATURE \\
+#\\3SZTFE5QKYWYIUTSBR32ZIE76HAJU635ZZVJHVW3XZE6LU3VRA7L5NEBMRT6WVQTRMV5AOM5ID6MC
+# \\ NFTUYOK7J22Q34AWJ37MBC665NU26KIKDYGKVHMVBVD55EJRDCQ5 \\// C25519-BASE-32 //
+#  \\// 5TZTPYCTHUYS55YS53M5WW2BGPVIBIOXBRGOCMAHOMGQK5N3OBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
