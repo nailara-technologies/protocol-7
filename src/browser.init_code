@@ -16,18 +16,9 @@ $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = 'no';
 $ENV{'GDK_DEBUG'}    = 'no';
 
-
 open( STDERR, '>', File::Spec->devnull() ) or warn "STDERR/dev/null: $OS_ERROR";
 
-my $sn_str
-    = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
-
-<browser.window.title_str>
-    = <system.agent.mode> eq 'universal-child'
-    ? 'universal.browser'
-    : 'browser';
-<browser.window.title_str> .= $sn_str;
-<browser.window.title_str> .= "-$PID" if !length($sn_str);
+<[browser.start-up.init_window_title]>; ## setting <browser.window.title_str> ##
 
 <browser.status.fade_view> //= 0;
 <browser.fg_opacity>       //= 1;
@@ -84,7 +75,6 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
     = qr{Source ID \d+ was not found when attempting to remove it
         |GLib-LOG \*\*: posix_start avoided}x;
 
-
 <browser.open_gtk_inspector> //= 0;
 if (<browser.open_gtk_inspector>) {
     <[base.log]>->(
@@ -129,7 +119,7 @@ sub INIT_INSTANCE {
 0;
 
 # ______________________________________________________________________________
-#\\5H42BYTXMXP35RINUOWSCRVVVEJLM5MBS3SPGSENDX7YFDU5CRPNL4Z2XBZWCH7M6PFFKI7N3XHVI
-# \\ 7XDY4C5VP5VIOFIZAZHT3POSDRAPH4X7KX6WNIGFBJXASAVIXR7U \\// C25519-BASE-32 //
-#  \\// XQCF5WZW2T2LQQHUJ25CI42OO3LPHGBR37MJS2RK7BX3UUYPADA \\ CODE SIGNATURE \\
+#\\M42PZRICP3IHUJGUSYITIS4YHIVX6BTPNPZ7N22TITBCLDH24KIGQJ6VQ6KFMYZHCHAYW4NEEEG3S
+# \\ LNULEYQWJDKTHE4WAFK6ED6QXFPXUE7GFKEWXAME4EHCKQJDUQUB \\// C25519-BASE-32 //
+#  \\// UYLAWHWCP6FKVC3T4A2G22W54UIQ3T23HY2EKN6BVTD3BG7ZKAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
