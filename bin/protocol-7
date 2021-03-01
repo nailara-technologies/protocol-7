@@ -662,6 +662,12 @@ sub prepare_subs {
                 and not( $data{'system'}{'no_http_source'} // 0 )
         ) ? 1 : 0;
 
+        $code{'log.error'}
+            ->( '< not readable > ' . $data{'system'}{'code_path'} )
+            if $src_from_http
+            and !-r $data{'system'}{'code_path'}
+            and not( $data{'system'}{'use_http_source'} // 0 );
+
         $data{'system'}{'use_http_source'} = $src_from_http;
 
         my $c_ref            = $data{'base'}{'source'}{'code_files'} // [];
@@ -1359,9 +1365,12 @@ sub prepare_subs {
             }
 
             # special exception for agent code evaluation [ base.init ]
-            if ( abs_path($filename) eq
-                    abs_path( $data{'system'}{'start'}{'exec_name'} )
-                and defined $SUB_NAME
+            my $abs_filename = abs_path($filename);
+            my $abs_ex_name = abs_path( $data{'system'}{'start'}{'exec_name'} );
+            if (    defined $SUB_NAME
+                and defined $abs_ex_name
+                and defined $abs_filename
+                and $abs_filename eq $abs_ex_name
                 and $SUB_NAME eq 'base.init' ) {
                 my $l = 0;
                 $filename = $data{'base'}{'eval_error'}{'name'}
@@ -1421,7 +1430,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\RKWVKO74YL4FVWEY477MT53Z5J3DDZCDURXUA4IP5KWVPAUAPP4VRMMVJX3JAUKMS446LXLD4C7CS
-# \\ A4NK6HBCPKKNKUJP2BI3UW6KJ6FJEHJT4QHWPILI5VSHIPNH2XSD \\// C25519-BASE-32 //
-#  \\// BKN726X2BAUZD6MYQTRAKGFBCOTPTHMUP76HH4YBPUAR5PFFGBI \\ CODE SIGNATURE \\
+#\\KW5NMGWUO2AKTRHGZSODABZNZQB47EKFYQXUJCCHYSKQSN2MI6IKI3BHVHOWBOD3GHXVRA2FN54QA
+# \\ 6DTEKWBI4JQCPXPQT3W3HSFRQQ7YBY4VPTM24F3PZ4A53RWSRKHH \\// C25519-BASE-32 //
+#  \\// C4N2L3O5QKZKQDTMBP5CICRS2XGVJ6PPLBZMKWBEUXT4LJFXKCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
