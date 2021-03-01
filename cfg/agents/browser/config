@@ -60,21 +60,21 @@ browser.loading_page   = '<browser.templates_path>/loading.html'
 browser.error_page     = '<system.root_path>/data/html/failed_to_load.html'
 browser.load_icon_page = '<system.root_path>/data/html/loading_animation.html'
 
+system.privs.create_temp_home = 1   # allow temporary 'nobody' home dir creation
+
 [load_modules:'set-up.json browser.set-up']
 [init_modules]
-
-
-system.privs.create_temp_home = 1   # allow temporary 'nobody' home dir creation
-[browser.set-up.set_privs:'nobody'] # <-- only when not an 'universal-child'
 
 [set-up.json.import_file:'browser.set-up.json']
 
 browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector [for debugging]
 
-modules.load = auth net protocol io.ip io.unix digest.sha browser
+modules.load = auth net protocol io.ip io.unix digest.sha browser ## debug
 
 [load_modules:<modules.load>]
 [init_modules]
+
+[browser.set-up.set_privs:'nobody'] # <-- only when not an 'universal-child'
 
 [net.connect_to_core:'ip.tcp']
 

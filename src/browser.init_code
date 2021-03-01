@@ -7,10 +7,16 @@
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Glib');
 <[base.perlmod.autoload]>->('HTTP::Soup');
-<[base.perlmod.autoload]>->('Glib::Event');
 <[base.perlmod.autoload]>->('Gtk3::WebKit2');
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+eval { <[base.perlmod.autoload]>->('Glib::Event') }; # may fail, not mandatory #
+
+my $l = $EVAL_ERROR ? 0 : 1;
+<[base.log]>->( $l, ":.. will run without 'Glib::Event', less efficient ..," )
+    if not defined <base.perlmod.loaded>->{'Glib::Event'}
+    or <base.perlmod.loaded>->{'Glib::Event'} == 0;
 
 $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = 'no';
@@ -119,7 +125,7 @@ sub INIT_INSTANCE {
 0;
 
 # ______________________________________________________________________________
-#\\M42PZRICP3IHUJGUSYITIS4YHIVX6BTPNPZ7N22TITBCLDH24KIGQJ6VQ6KFMYZHCHAYW4NEEEG3S
-# \\ LNULEYQWJDKTHE4WAFK6ED6QXFPXUE7GFKEWXAME4EHCKQJDUQUB \\// C25519-BASE-32 //
-#  \\// UYLAWHWCP6FKVC3T4A2G22W54UIQ3T23HY2EKN6BVTD3BG7ZKAQ \\ CODE SIGNATURE \\
+#\\WOC7ML6PAJ3QCO7XILFTUQ5ZNSSVNMAVQRVY3XK337QVF2PZZJTHFH5I4H46FC7I2QQQALALRBCES
+# \\ PBSWMLPDUCUQWUAXKKQR4BJJDFXC7ZNHIJIG6NGFUPREJNCBIL6O \\// C25519-BASE-32 //
+#  \\// NKTVFQTWAOZS4YKSD5IHV67NBWTL3WXMQU25P4A6ZKMIOO3XECQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
