@@ -21,7 +21,7 @@ foreach my $type ( 'secret', 'public' ) {
 }
 foreach my $type ( 'secret', 'public' ) {
     my $file_name = join( '.', $key_basepath, $type );
-    my $tmp_fname = join( '.', $file_name,    $$, <[base.ntime.b32]> );
+    my $tmp_fname = join( '.', $file_name,    $PID, <[base.ntime.b32]> );
     open( my $key_fh, '>', "$tmp_fname" ) or die "[ $tmp_fname ] $OS_ERROR";
     if ( $type eq 'public' ) {
         chmod( 0640, "$tmp_fname" ) or die "[chmod] $OS_ERROR";
@@ -39,7 +39,7 @@ foreach my $type ( 'secret', 'public' ) {
 return 1;
 
 # ______________________________________________________________________________
-#\\UIKHUGLHPX6BOCY5TBE5UHEPT725BEVVTTRLTBJKNRRSDJNFTO3TARGWWE37BOLOYXEE5OSJNFZVA
-# \\ TWLRUQ25A6CZ63IOVW4DSTZSRJOQWYPOZTHC7MN3DWP5TD4YESXT \\// C25519-BASE-32 //
-#  \\// BAB5X2ZSRONOS67MYVHMYGKGYKACGJGU2WNWVKWCWKJ7RQLWUDQ \\ CODE SIGNATURE \\
+#\\65SNUQNY73F6C3FHWGDSNEKWNGXUCXWHOHHZFYNKQJM45Z3USOGZY3MFDNFOEPPIF7BRL3BOYQAUK
+# \\ FFQDY2CUZ6E3C7OH4XSTXMJMLZHVZMSOGWQWZMYDIVKY2PKILBMY \\// C25519-BASE-32 //
+#  \\// GM3ZYLGLJCX4YLWBA3EHKYZOSW4YOHZULR3U2YQ3ZBSAALF52AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

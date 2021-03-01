@@ -18,25 +18,25 @@ my $out = '';
 foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
     my $_val = ${$arg_3}{$_key};
     $_val = '' if not defined $_val;
-    $_val =~ s/\\/\\\\/g;
-    $_val =~ s/\n/\\n/g;
-    $_key =~ s/\'/\\'/g;    # actually invalid key
-    $_key = "'$_key'" if $_key =~ /[\. \'#]/;
+    $_val =~ s|\\|\\\\|g;
+    $_val =~ s|\n|\\n|g;
+    $_key =~ s|\'|\\'|g;    ## <-- not a valid key ##
+    $_key = "'$_key'" if $_key =~ m|[\. \'#]|;
     if ( defined $_[4] and $_[4] ne '' ) { $_key = "$_[4].$_key" }
     my $__key = $_key // '';
-    if ( $_[5] ne '' ) { $__key =~ s/$_[5]/$_[6]/ge }
+    if ( $_[5] ne '' ) { $__key =~ s|$_[5]|$_[6]|ge }
 
     if ( ref($_val) ne 'HASH' ) {
 
         if (   not defined $_[2]
             or $_[2] eq ''
-            or $_key =~ /^\^/ and $_key =~ /^\Q^$_[2]/
-            or $_key =~ /\$$/ and $_key =~ /\Q$_[2]\$$/
-            or $_key =~ /$_[2]/ ) {
+            or $_key =~ m|^\^|   and $_key =~ m|^\Q^$_[2]|
+            or $_key =~ m|\$PID| and $_key =~ m|\Q$_[2]\$PID|
+            or $_key =~ m|$_[2]| ) {
             if ( ref($_val) eq 'ARRAY' ) {
 
                 if ( tied @$_val ) {
-                    $out .= "$_key = TIED_ARRAY( " . tied(@$_val) . " )\n";
+                    $out .= "$_key = TIED_ARRAY[ " . tied(@$_val) . " ]\n";
                     next;
                 }
 
@@ -47,19 +47,19 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                 } else {
                     my $max_len = 68;
                     foreach my $element (@array) {
-                        $element =~ s/"/\\"/g;
+                        $element =~ s|"|\\"|g;
                         my $e_len = length($element);
                         substr(
                             $element,
                             $max_len - 3,
-                            3 + $e_len - $max_len, '...'
+                            3 + $e_len - $max_len, '..,'
                         ) if $e_len > $max_len;
                     }
                     my $elements_str = join(
                         ' ',
                         map {
                             $ARG = "\"$ARG\""
-                                if $ARG =~ /[ '"\{\}#]|TIED_/;
+                                if $ARG =~ m{[ '"\{\}#]|TIED_};
                             $ARG
                         } @array
                     );
@@ -69,11 +69,11 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
             } else {
 
                 if ( tied $_val ) {
-                    $out .= "$_key = TIED_SCALAR( " . tied($_val) . " )\n";
+                    $out .= "$_key = TIED_SCALAR[ " . tied($_val) . " ]\n";
                     next;
                 }
-                $_val =~ s/"/\\"/g;
-                $_val = "\"$_val\"" if $_val =~ /[ '"\{\}#]|TIED_/;
+                $_val =~ s|"|\\"|g;
+                $_val = "\"$_val\"" if $_val =~ m,[ '"\{\}#]|TIED_,;
             }
 
             $out .= "$__key = $_val\n";
@@ -81,10 +81,10 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
     } else {
 
         if ( tied %$_val ) {
-            $out .= "$_key = TIED_HASH( " . tied(%$_val) . " )\n";
+            $out .= "$_key = TIED_HASH[ " . tied(%$_val) . " ]\n";
             next;
         } elsif ( !keys(%$_val) and not defined $_[2]
-            or !keys(%$_val) and $_key =~ /$_[2]/ ) {
+            or !keys(%$_val) and $_key =~ m|$_[2]| ) {
             $out .= "$__key = { }\n";
             next;
         }
@@ -98,11 +98,11 @@ if ( not defined $_[0] and not defined $_[1] ) { return $out }
 else {
     # no longer exists:
     # <[net.raw_out]>->( $out, $_[1] );
-    warn "undefined / invald subroutine usage";
+    warn 'undefined \\ invald subroutine usage';
 }
 
 # ______________________________________________________________________________
-#\\KACSAHKNPUDU246YAVL2DO4P7H664K64MFLNQMYY2J2DM23CMZ4HIVCXIDNKIUUGZSUPYO3JOVDGC
-# \\ 5HG6BKGC7SKIUAU6I6H7FPI2F2I6IVNVEJ7ANYBH3NQI7FJDH7UW \\// C25519-BASE-32 //
-#  \\// RVS7OJF4DUU4WDMDZFLWSPFLFRGJZNACLHP7ZRHU4BC5YEWFIDI \\ CODE SIGNATURE \\
+#\\WGOD2WALCU45AL5OGVD6CXRXU3IMLYMDQFOCFH4SRZB3NBRVAW2HGJ5DH6CDP4VBV6LMLEFYQSKRU
+# \\ KQ3BNSTXYDFUTCCD2JKNMADJZUOFFBMD67Y2HD6RZ44DYNHIKHPA \\// C25519-BASE-32 //
+#  \\// PFSQYFOCRHN6Y54QDFTG2M4NO6WFQ4XQBKNXINAW3ZABD4OBMAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

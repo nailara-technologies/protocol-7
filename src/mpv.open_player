@@ -96,7 +96,7 @@ if ( !<mpv.audio_only> ) {
         ( 'zoom', 'align-x', 'align-y', 'change_subname' );
 }
 
-my $socket_path = <mpv.path.ipc_socket> = "/var/tmp/.mpv.socket.$$";
+my $socket_path = <mpv.path.ipc_socket> = "/var/tmp/.mpv.socket.$PID";
 $mpv_params .= " --input-ipc-server=$socket_path";
 
 $mpv_params =~ s|  +| |g;
@@ -195,7 +195,7 @@ close( delete(<mpv.fh.stdin>) );    # input fd not required
 <[base.log]>->( 1, "player startup successful., =)" );
 
 # ______________________________________________________________________________
-#\\SKFNLX24ZB3G4LYLFOVTEP7F7B4TV2T7EMEHMLE53O6R7NYSYYYJBHU4ZPUJ4PRG2FUVCEWWU5XRK
-# \\ VI7GOLCVGJCLHLBW6MBK74Q7FCXGCNCXWDTZLKL2Q5DTYMMKYMIX \\// C25519-BASE-32 //
-#  \\// CYIYAS6H65LBIJMGBSESFF7IRTGJX4Q4LCBB5YL7JN5EIE7E6AQ \\ CODE SIGNATURE \\
+#\\CFED3T5EW3DOPF2AP3P63IG4SJA2WXUGKJUTSHLPHADKQRBFSCTUBQPPZ4DGVDDQNVTHPBMK4TH7E
+# \\ PNDEGGYSMRM22MC53V2663NT6LQZZFTTO7WCQKOLGRNTA6GRO6YC \\// C25519-BASE-32 //
+#  \\// GQRHHJSWA7OIXAQH4XVHOQLHMGKQDHHNO7VBRMH6KSKZI4W7OCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

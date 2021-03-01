@@ -2,6 +2,8 @@
 
 # name = browser.init_code
 
+<system.agent.mode> //= 'stand-alone';
+
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Glib');
 <[base.perlmod.autoload]>->('HTTP::Soup');
@@ -14,50 +16,8 @@ $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = 'no';
 $ENV{'GDK_DEBUG'}    = 'no';
 
-<browser.open_gtk_inspector> //= 0;
-if (<browser.open_gtk_inspector>) {
-    <[base.log]>->(
-        0, "<<< 'Gtk Inspector' enabled.., >>>  [ open_gtk_inspector=1 ]"
-    );
-    $ENV{'GTK_DEBUG'} = 'interactive';
-}
 
-package Browser::ScrolledWindow;
-
-use Glib::Object::Subclass 'Gtk3::ScrolledWindow';
-
-sub INIT_INSTANCE {
-    my $self = shift;
-    $self->set_policy( 'never', 'never' );
-}
-
-package Browser::WebView;
-
-Glib::Object::Introspection->setup(
-    qw| basename WebKit2 version 4.0 package Gtk3::WebKit2 |);
-
-use Glib::Object::Subclass 'Gtk3::WebKit2::WebView',
-    properties => [
-    Glib::ParamSpec->boolean(
-        'self-scrolling', 'undefined',
-        'undefined',      0,
-        [qw| readable writable |]
-    ),
-    ];
-
-sub INIT_INSTANCE {
-    my $self = shift;
-    $self->set_property( 'self-scrolling', 0 );
-}
-
-#[ AUTOSCROLL WITHOUT JS ]######################################################
-# web extension to access DOM coming later: needs webkit2/webkit-web-extension.h
-#        ( ... see https://github.com/tlby/webkit2gtk-webextension-example.git )
-################################################################################
-
-package main;
-
-<system.agent.mode> //= 'stand-alone';
+open( STDERR, '>', File::Spec->devnull() ) or warn "STDERR/dev/null: $OS_ERROR";
 
 my $sn_str
     = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
@@ -67,7 +27,7 @@ my $sn_str
     ? 'universal.browser'
     : 'browser';
 <browser.window.title_str> .= $sn_str;
-<browser.window.title_str> .= "-$$" if !length($sn_str);
+<browser.window.title_str> .= "-$PID" if !length($sn_str);
 
 <browser.status.fade_view> //= 0;
 <browser.fg_opacity>       //= 1;
@@ -124,12 +84,52 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
     = qr{Source ID \d+ was not found when attempting to remove it
         |GLib-LOG \*\*: posix_start avoided}x;
 
-open( STDERR, '>', File::Spec->devnull() ) or warn "STDERR/dev/null: $OS_ERROR";
+
+<browser.open_gtk_inspector> //= 0;
+if (<browser.open_gtk_inspector>) {
+    <[base.log]>->(
+        0, "<<< 'Gtk Inspector' enabled.., >>>  [ open_gtk_inspector=1 ]"
+    );
+    $ENV{'GTK_DEBUG'} = 'interactive';
+}
+
+package Browser::ScrolledWindow;
+
+use Glib::Object::Subclass 'Gtk3::ScrolledWindow';
+
+sub INIT_INSTANCE {
+    my $self = shift;
+    $self->set_policy( 'never', 'never' );
+}
+
+package Browser::WebView;
+
+#[ AUTOSCROLL WITHOUT JS ]######################################################
+# web extension to access DOM coming later: needs webkit2/webkit-web-extension.h
+#        ( ... see https://github.com/tlby/webkit2gtk-webextension-example.git )
+################################################################################
+
+Glib::Object::Introspection->setup(
+    qw| basename WebKit2 version 4.0 package Gtk3::WebKit2 |);
+
+use Glib::Object::Subclass 'Gtk3::WebKit2::WebView',
+    properties => [
+    Glib::ParamSpec->boolean(
+        'self-scrolling', 'undefined',
+        'undefined',      0,
+        [qw| readable writable |]
+    ),
+    ];
+
+sub INIT_INSTANCE {
+    my $self = shift;
+    $self->set_property( 'self-scrolling', 0 );
+}
 
 0;
 
 # ______________________________________________________________________________
-#\\E6W5LP4IVPCI3UB3U3VZ7G4P42AMS4EPY7IMSJF7GFLXJPROJZC6UUZMPKM2PBWOYR4ED3ZUOCHVI
-# \\ PARU7LA4TL2CKBGYWLY6M4TYOW7FSNGZDSZSC3KCIRNEXSTVY45H \\// C25519-BASE-32 //
-#  \\// 3V2B7SYWJ7M3HCV6AS4E5BZUX5ZQ2HYDDGV4S2SCGE5KI753IBI \\ CODE SIGNATURE \\
+#\\5H42BYTXMXP35RINUOWSCRVVVEJLM5MBS3SPGSENDX7YFDU5CRPNL4Z2XBZWCH7M6PFFKI7N3XHVI
+# \\ 7XDY4C5VP5VIOFIZAZHT3POSDRAPH4X7KX6WNIGFBJXASAVIXR7U \\// C25519-BASE-32 //
+#  \\// XQCF5WZW2T2LQQHUJ25CI42OO3LPHGBR37MJS2RK7BX3UUYPADA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
