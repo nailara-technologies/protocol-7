@@ -1,0 +1,20 @@
+# >:]
+
+# name  = browser.start-up.init_window_title
+
+my $sn_str
+    = defined <system.agent.subname> ? '[' . <system.agent.subname> . ']' : '';
+
+<browser.window.title_str>
+    = <system.agent.mode> eq 'universal-child'
+    ? 'universal.browser'
+    : 'browser';
+<browser.window.title_str> .= $sn_str;
+<browser.window.title_str> .= "-$PID" if !length($sn_str);
+
+return <browser.window.title_str>;
+# ______________________________________________________________________________
+#\\2THEW3QXEZ2VXJNRKYX3AZ4OIUWQRDC3M5C7427XGA2BWULEHKMGVNYF22YQAP5HLZIIKPAEQXPHW
+# \\ V2SNJ4V6DGYGMDKNME53KKPOJZTVNMC5AMTEDT72LQWRBUZC5UED \\// C25519-BASE-32 //
+#  \\// KKWOEMGAAOO3O2PODPJHH6KFGDC3CLAPA53E5MHNUHJLBNEUYAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
