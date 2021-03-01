@@ -4,14 +4,14 @@
 # descr = renice process priority
 
 my $prio = shift;
-my $rpid = shift // $$;
+my $rpid = shift // $PID;
 die "base.renice: invalid priority '$prio' given." if $prio !~ m|^\-?\d{1,2}$|;
 die "base.renice: invalid pid '$rpid' given."      if $rpid !~ m|^\d+$|;
 
 <[base.log]>->( 1, "[ PID $rpid ] <-- set priority $prio" );
 
 undef $OS_ERROR;
-$rpid = 0 if $rpid == $$;
+$rpid = 0 if $rpid == $PID;
 my $ret = setpriority( 0, $rpid, $prio );
 <[base.log]>->( 0, "setpriority $prio <-- [ $OS_ERROR ]" )
     if length( $OS_ERROR // '' );
@@ -19,7 +19,7 @@ my $ret = setpriority( 0, $rpid, $prio );
 return $ret;
 
 # ______________________________________________________________________________
-#\\VPJJYSIWJWRFKRIERQEJN66KEEB7WYW2C5L2QN2JK6C7FRKLZJ5M33AUPUUVKN6WYUBLSYNKAYCCO
-# \\ WUUUTHW5LUX3TFNPHEXIO32I3457EFQNNQ2WKHE25ABVA6KRK3UR \\// C25519-BASE-32 //
-#  \\// N63LARSITKTKQ6SBTDY65AOZUDRZ2TGSLL7NBDUASSPQMMC6ACQ \\ CODE SIGNATURE \\
+#\\VVV63BSKB7MOMMAJDS6ZKBJ4KWW2MUKTRQDXXOUAABPSOVDVIQXJVUWCZLMM52ARWAOAKVAX3YUMO
+# \\ TKJ7T5VMZUDC74JJJBFVJS3IXFHAPXZXODZE3WCQA3754RPGQNIC \\// C25519-BASE-32 //
+#  \\// 24M75225CGAUBZQOILOM43S5OBFXRLPCS5KEPZYNJ4V37QWKIDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
