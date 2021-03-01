@@ -70,6 +70,12 @@ my $view = Browser::WebView->new_with_context(<browser.gtk_obj.web_context>);
 
 <browser.scr_win>->{$view} = $scrolled_window;
 
+##[LLL] seems to not work., check why..,
+# my $bg_rgba = Gtk3::Gdk::RGBA->new();
+# $bg_rgba->parse('#0000FF');
+# $view->set_background_color($bg_rgba);
+##
+
 $view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
     '[init:blank]' );
 
@@ -87,17 +93,23 @@ $view->signal_connect( # filtering all events according to blocklist setup above
         my $type = $evt->type();
 
         return 1 if exists <browser.blocked_event_types>->{$type};    # block
-            # print "\n [ event : $type ]\n\n";
+        ## say "\n [ event : $type ]\n";
         if ( index( $type, 'key' ) == 0 )
         {    # block key presses outside input fields
             return 1               if !$v->can_paste_clipboard();
             $v->delete_selection() if $v->can_copy_clipboard();
         }
+
+        # elsif ( index( $type, 'visibility-notify' ) == 0 ) {  ## track visible
+        # }
+
+        ## [LLL] create event handler [ sub-routine naming convention ] ##
+
         return 0;    # allow the rest
     }
 ) if $filter_events;
 
-$view->signal_connect(    ### LLL: <- check if ever called, remove...
+$view->signal_connect(    ### LLL: <-- check if ever called, remove .,
     'size_allocate',
     sub {
         my $view          = shift;
@@ -161,7 +173,7 @@ $overlay->add_overlay($scrolled_window);
 <browser.gtk_obj.view>->{$id}            = $view;
 
 # ______________________________________________________________________________
-#\\MFBHYRVMWIEC65LOTWXOSPC55JL3FQHI6PHSYTOMXPKIUFGZWAS2DJ2EXS4ZJYRNGUNMU4ETR3JWQ
-# \\ CFBTBCH55BFXA4DKIOPUGTJH3WCNUODFRDT6C3UZHQN2XGXKDCA6 \\// C25519-BASE-32 //
-#  \\// JBM4VMHLEZJRZOMPWI3UAZY5DI5HPELEDPYZXSDWCIGBRYZNWAI \\ CODE SIGNATURE \\
+#\\C6UOS2UTCH3CRXPKZUGJPLNRVLNYYS4UOJDMQDPHKTRCLQ4LJJAA3R2QAVNGJPLEW3DXY4ZB36UPW
+# \\ TU6KBCYGAUDSMCQD3RUBUDVSAF7YVSTHG6U2QKKHN6FM744A2OCU \\// C25519-BASE-32 //
+#  \\// AHL5QGKCJFJOQSDV6RY3ARLNAGJBMOZSVEIFBSZC4BVAFLFJ4CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
