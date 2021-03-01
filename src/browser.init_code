@@ -118,18 +118,18 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
 
 <browser.html_ref.loading_page> = <[file.slurp]>->(<browser.loading_page>);
 
-# [ workaround to suppress weird/untraceable Event.pm warnings on load timeout ]
+# [ workaround to suppress weird\untraceable Event.pm warnings on load timeout ]
 <sig_warn_blacklist.package> = 'Carp';
 <sig_warn_blacklist.pattern>
-    = qr/Source ID \d+ was not found when attempting to remove it
-        |GLib-LOG \*\*: posix_start avoided/;
+    = qr{Source ID \d+ was not found when attempting to remove it
+        |GLib-LOG \*\*: posix_start avoided}x;
 
-open STDERR, '>>/dev/null' or warn "/dev/null: $OS_ERROR";
+open( STDERR, '>', File::Spec->devnull() ) or warn "STDERR/dev/null: $OS_ERROR";
 
 0;
 
 # ______________________________________________________________________________
-#\\ULFLU4LEJIBRTVYYCUULHSTYSSJUYF4S5QC3QB5UWHOXAESUJOIMVZBDRYTM7RI6DHUA2N6MUOQGQ
-# \\ Z5IMPXPVZZZOSABKVISIE2DYMCCQGVP7A5FY6E7A7PU2LEETEZ6B \\// C25519-BASE-32 //
-#  \\// DUVLVQMMRDM7NVT35QO5G3APZO7XRTJE72AM7PDTUSZK5XTXUCI \\ CODE SIGNATURE \\
+#\\E6W5LP4IVPCI3UB3U3VZ7G4P42AMS4EPY7IMSJF7GFLXJPROJZC6UUZMPKM2PBWOYR4ED3ZUOCHVI
+# \\ PARU7LA4TL2CKBGYWLY6M4TYOW7FSNGZDSZSC3KCIRNEXSTVY45H \\// C25519-BASE-32 //
+#  \\// 3V2B7SYWJ7M3HCV6AS4E5BZUX5ZQ2HYDDGV4S2SCGE5KI753IBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
