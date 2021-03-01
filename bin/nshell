@@ -40,7 +40,7 @@ $SIG{'PIPE'} = 'IGNORE';
 map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |; # see override_signals ##
 
 my $stdout_pid;
-my $parent_pid = $$;
+my $parent_pid = $PID;
 
 $SIG{'CHLD'} = sub {
     $PROGRAM_NAME .= "[disconnected]"
@@ -475,7 +475,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\BNSEOW3LMNHCQO2DK6O5POXNAE2TPAPPD2G5USXB6QHIC24DNYU4YOJC2GEABBPAWJUAGNUUBSWLI
-# \\ UVLPY3PT7S6HFKIEALEY6A5TTQMX6YIETNEAXBL2QZAM45AISN5Q \\// C25519-BASE-32 //
-#  \\// EO6JAPCCTZGESDMXL45YX3JLO7HYL6OLIMMZ7BNQMH3ZBWT5IBQ \\ CODE SIGNATURE \\
+#\\4JBSAEGQ3TEYNKFSII3G6L6EGKXXDCJB3RDLTUAGVJIURPCR4EZUU5NQVMZEJP3NP36WCCDCQI4XK
+# \\ XMWHAYRRK234R4TFP7KF73FN3F6SCUFNNYUUIZ27TQSR25XOEPDW \\// C25519-BASE-32 //
+#  \\// D3X7NQU6OSLSRADCROEJJOUOKZYOQJ7T5BG3TICTEMEZEEDSYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

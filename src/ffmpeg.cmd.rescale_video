@@ -93,7 +93,7 @@ my @ffmpeg_params = (
 
 new_log_name:
 my $error_log_file
-    = sprintf( "/var/tmp/.ffmpeg.$$.%f.log", <[base.time]>->(5) );
+    = sprintf( "/var/tmp/.ffmpeg.$PID.%f.log", <[base.time]>->(5) );
 goto new_log_name if -e $error_log_file;
 
 if ( !-f $output_file ) {
@@ -133,7 +133,7 @@ unlink($error_log_file) if -f $error_log_file;
 return { 'mode' => 'ack', 'data' => $output_file }
 
 # ______________________________________________________________________________
-#\\CVKQGHBQLPPWGVVG2FGICXVZQRRBV66LVC243WOULD4WDWK33DOW4SPSVK6BQT22OIULISTYHQ2P6
-# \\ CDVBJELMMGPELMKDK7DBCRYOUUU4AOH3B4CMTMAEQ3UNMQOYHYW6 \\// C25519-BASE-32 //
-#  \\// PFDDABD2XTVNHSP7LMBI7VPXOY2LWHEYRIV57JLX3T6BDYUECDA \\ CODE SIGNATURE \\
+#\\KX7ZONXAM2MXXI4SURMDQ2LJ6GRORZ3ULF4LSYYQU6NQFODCYQBLGPSXZCHBLDLUOXCYYWORXRQZO
+# \\ 7PAY3O7SFDTBSTEFD4C3VBWGM5PHZJSRHNV24FQ37HMPYEA6FGYN \\// C25519-BASE-32 //
+#  \\// VBZTSMMFSKRVFBVRTU2VL7JEW2UGDSXXBF2CLHTHQOVVQ4FTSCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
