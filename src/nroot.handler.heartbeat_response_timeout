@@ -8,15 +8,23 @@ my $agent_name    = $instance->{'agent_name'};
 my $agent_status  = $instance->{'status'};
 my $is_core_agent = $instance->{'is-core'};
 my $error_count   = $instance->{'heartbeat'}->{'errors'}++;
-my $retry_count   = $instance->{'heartbeat'}->{'retry_count'}-- || 0;
-my $retry_timeout = $instance->{'heartbeat'}->{'retry_count'} //= 2.1;
-my $dots          = '.' x ( $error_count + 1 );
-my $retry_str     = $retry_count ? " .. retrying $dots," : ' `:|';
+
+my $heartbeat_ref = $instance->{'heartbeat'} //= {};
+
+delete $heartbeat_ref->{'retry_count'}
+    if --$heartbeat_ref->{'retry_count'} < 0;
+
+my $retry_count   = $heartbeat_ref->{'retry_count'} //= 0;
+my $retry_timeout = $heartbeat_ref->{'retry_count'} //= 2.1;
+
+( my $dots = '.' x ( $error_count % 3 ) ) =~ s|\.{3}$|..,|;
+my $retry_str = $retry_count ? " , retrying $dots," : ' `:|';
 <[base.log]>->(
     0, "instance $instance_id ['$agent_name'] response timeout$retry_str"
 );
 
-if ( !$retry_count ) {    # [ no further retries ]
+if ( $retry_count <= 0 ) {    # [ no further retries.., ]
+    $heartbeat_ref->{'retry_count'} = $heartbeat_ref->{'retry_reset'};
     if ($is_core_agent) {
         if ( $agent_status eq 'error' ) {   #   <--  was already not successful.
             <callback.session.closing_last> = {
@@ -37,12 +45,15 @@ if ( !$retry_count ) {    # [ no further retries ]
         and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
 
     ## decreasing heartbeat timeout .,
+
     $retry_timeout = sprintf( "%.3f", $retry_timeout / 2 );
     $retry_timeout = 0.7 if $retry_timeout < 0.7;
-    $instance->{'heartbeat'}->{'retry_timeout'} = $retry_timeout;
-    ####
+
+    $heartbeat_ref->{'retry_timeout'} = $retry_timeout;
+
+    ##
     $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
-        {   'after'   => $instance->{'heartbeat'}->{'retry_timeout'},
+        {   'after'   => $heartbeat_ref->{'retry_timeout'},
             'handler' => 'nroot.handler.heartbeat_response_timeout',
             'data'    => $instance_id
         }
@@ -52,7 +63,7 @@ if ( !$retry_count ) {    # [ no further retries ]
 }
 
 # ______________________________________________________________________________
-#\\CYPIEGFX44Q2GSFKKLPMFZU6WNGQPDEROSR3Z2MCDUDP2CW4T6FCT5H76YQFHIFY3G4ZRCM3GAFDU
-# \\ 6VL4DUJEDMOYOAH74ERSK2Q56FXUNPIN3CSEREHLC3J4GZ7GQJY4 \\// C25519-BASE-32 //
-#  \\// YWKD72DRNQCUVT3GYU6LX32EZAULKZV46WLGXDWXK2ZFKVKRQDI \\ CODE SIGNATURE \\
+#\\TPVABYG3FK763JPEQUR67RI4G7BIEP5GSZPKI47NLGSJHZQN2EV6H5IIGBUTD4V3WSR5KFOUNUZDM
+# \\ 76CVQCGOFFUB2DBLKD4GEEIZ6KGYV4SMMM4LSLDFZ4TNHWR6FFI6 \\// C25519-BASE-32 //
+#  \\// Z7WBPQ6CVK7FOMOHXBQ7BNWYTCDHA6STKQOD6X57WFAOTTDLEDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

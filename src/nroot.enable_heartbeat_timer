@@ -5,7 +5,7 @@
 my ( $instance_id, $after, $interval ) = @_;
 die "no instance id specified" if not defined $instance_id;
 
-my $globals      = <nroot.start_setup.globals> || {};
+my $globals      = <nroot.start_setup.globals> // {};
 my $instance     = <nroot.agent.instance>->{$instance_id};
 my $agent_id     = $instance->{'agent_id'};
 my $agent_name   = <nroot.agent.setup>->{$agent_id}->{'name'};
@@ -30,9 +30,10 @@ my $status_timer_interval
 <[base.clean_hashref]>->($globals);
 <[base.clean_hashref]>->($agent_config);
 
-$instance->{'heartbeat'}                    //= {};
-$instance->{'heartbeat'}->{'retry_count'}   //= 2;
-$instance->{'heartbeat'}->{'retry_timeout'} //= 2.1;    ## decreased timeout ##
+my $heartbeat_ref = $instance->{'heartbeat'} //= {};
+$heartbeat_ref->{'max_retries'} //= 3;
+$heartbeat_ref->{'retry_count'}   //= $heartbeat_ref->{'max_retries'};
+$heartbeat_ref->{'retry_timeout'} //= 2.1;    ## decreased timeout ##
 
 # set up new status timer..,
 $instance->{'timer'}->{'heartbeat-status'} = <[event.add_timer]>->(
@@ -44,7 +45,7 @@ $instance->{'timer'}->{'heartbeat-status'} = <[event.add_timer]>->(
 );
 
 # ______________________________________________________________________________
-#\\QSPWY5LP63A75QV3DMYI4COTL4JF3SOG73S7XTUOVNSUNKQPDNZICMVYY4MZPNGKZGY5LMUTJTRPG
-# \\ NWXP4XXLATMJTWS4CYHF63427MPUZ7IFGGNMIQGB3RWSHJHTBWV5 \\// C25519-BASE-32 //
-#  \\// A5THIE225GM7LHEBNI2JLD4E5I4FAA2HIZJ2UU56VRVS2EVYGDQ \\ CODE SIGNATURE \\
+#\\JA3NROCZ37LC44G5TVR4LPO6HQH2JZD3USFTDZ556SOJDKVBUNUNWBOX4OHE3TREXTTA5T4JVBSB4
+# \\ GOLAHLZOSVZHAJDSTERUSMIX5QLOOCVGE5ET6BLDB2O4EBJPL3QU \\// C25519-BASE-32 //
+#  \\// ADOUCGK6CBMYE5I4V4SVYWZIRUA7SSQGC4D6V7AHCROG46SQYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
