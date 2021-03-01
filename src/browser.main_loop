@@ -2,7 +2,8 @@
 
 # name = browser.main_loop
 
-if ( exists <base.perlmod.loaded>->{'Glib::Event'} ) {
+if ( defined <base.perlmod.loaded>->{'Glib::Event'}
+    and <base.perlmod.loaded>->{'Glib::Event'} == 1 ) {
     <[base.log]>->( 1, "entering main loop..," );
     Gtk3->main;
     CORE::exit(0);
@@ -31,7 +32,7 @@ if ( exists <base.perlmod.loaded>->{'Glib::Event'} ) {
 }
 
 # ______________________________________________________________________________
-#\\PK3VBQ7QVVSGFNBYUUQZSDDYWXF2ZOKDZRFQINWRDWNHAVXDMCYJE6T5WFNDGDYQECKL54CPZWBG6
-# \\ AINZWC4DAR455B3BBZIPTJEF7IWJEPS75VJJXXTD75MATXKNOBNY \\// C25519-BASE-32 //
-#  \\// RUDQKLWCADKCRWLK2K5RIWKJL2RV3T23ZQ4EH5YBL2O52R6BSCY \\ CODE SIGNATURE \\
+#\\RPPSJMVDPTLTFUGJQGOKZYTLTK7Z7CQWV4FWOPCB7DOJQEYGYPEDVDXHIJBDLSMKGOH65ARNFV276
+# \\ 6CINTBJXZQXFGCHBYKN5YLVNNDZN3COFK4CS4AX5CLZQCY66GOWE \\// C25519-BASE-32 //
+#  \\// T4GVAY5O742CH32F2OQ37RPACL443DWKJG34EIRHFXK32VM5ODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
