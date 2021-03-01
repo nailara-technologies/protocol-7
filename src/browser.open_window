@@ -72,24 +72,25 @@ map { <[browser.init_view]>->($ARG) }
 
 <browser.overlay.index> = { 'fg' => 1, 'bg' => 2 };
 
-$window->signal_connect(
-    'size_allocate',
-    sub {
-        &{ $code{'browser.handler.size_allocate'} };
-    }
-);
+$window->signal_connect( 'size_allocate',
+    $code{'browser.handler.size_allocate'} );
 
 $window->add($overlay);
 
-$window->show_all();
-
 if ( <system.agent.mode> eq 'universal-child' ) {
     <[base.log]>->(
-        1, "<<< setting slideshow.autostart = 1 ['universal-child' mode] >>>"
+        1, "<<< setting slideshow.autostart = 1 [ 'universal-child' mode ] >>>"
     ) if !( <browser.slideshow.autostart> //= 0 );
     <browser.slideshow.autostart> = 1;    ## <-- auto-enable slideshow mode ##
     $window->iconify();
+} else {
+    $window->iconify(); ## [LLL] create exception? wait for bg-color being set.,
+
+    ## raise window when ready ##
+    <[browser.js_call]>->( '', $code{'browser.start-up.raise_window'} );
 }
+
+$window->show_all;
 
 Glib::Idle->add(
     sub {
@@ -107,7 +108,7 @@ Glib::Idle->add(
 );
 
 map { <base.watcher.signal>->{$ARG}->cancel }
-    grep ( !/hup/, keys %{<base.watcher.signal>} );
+    grep ( !m|hup|, keys %{<base.watcher.signal>} );
 
 undef %SIG;
 $SIG{'INT'} = $SIG{'TERM'} = sub {
@@ -157,7 +158,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 # ______________________________________________________________________________
-#\\U6SPFN3GA6ZLZ2MVXTEJZ3JRR5ABXPDOTB5SJUQJVQQN7PY6AJHX4PYCTXERG75UB7OZGUJSSZPIK
-# \\ GY64FUVBU62HESCWG4QEZSUMQIJ25VWNWDXDLRN5ZL7ELHR25HIF \\// C25519-BASE-32 //
-#  \\// G2W4J6MQ3T6PRPSFFDUW6CHTXHD3BW6EXFGE2IC32SUQYJQT4AY \\ CODE SIGNATURE \\
+#\\NJV4577FKEN6QDLMMXNDOSLPGZK4MEM6X4EAAUC26HRBX6QDXDW6K4WCMJOCGQG35B55FTPIO23AE
+# \\ NQCSDN7KMS2OVKMZKH2V5KXGGDMMWO2GDJS2LQ6LNGZF4K252S4C \\// C25519-BASE-32 //
+#  \\// 47KTZU3FRFLQWYLDBXORA3BH24CKF36MUVAZDO7IDOYDOV42UDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

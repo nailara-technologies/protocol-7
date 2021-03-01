@@ -31,6 +31,12 @@ return 1 if $is_loading;    # [0|1]
 
 <[base.log]>->( 2, "< load_finished > [status:$status_code]" );
 
+##[ deiconify if was started hidden ]
+# <browser.startup.first-load> //= 1;
+# <browser.gtk_obj.window>->deiconify and <browser.startup.first-load>--
+#    if <browser.startup.first-load>;
+##
+
 $view->signal_handler_disconnect( delete <browser.signal_id.load_progress> )
     if defined <browser.signal_id.load_progress>;
 
@@ -41,7 +47,7 @@ $view->signal_handler_disconnect( delete <browser.signal_id.load_changed> )
 
 if (    $load_status eq 'finished'
     and defined $status_code
-    and ( $status_code =~ /^(20)?0$/ or $status_code == 304 ) ) {
+    and ( $status_code =~ m|^(20)?0$| or $status_code == 304 ) ) {
 
     <browser.time.load_finished> = <[base.time]>->(3);
     my $load_time = sprintf( "%.3f",
@@ -68,12 +74,12 @@ if (    $load_status eq 'finished'
 
 } else {
 
-    my $st_txt     = defined $status_code ? " ($status_code)" : '';
+    my $st_txt     = defined $status_code ? " [$status_code]" : '';
     my $reason_txt = $st_txt;
 
-    $reason_txt .= " [$title]" if $title eq '404 Not Found';
-    $reason_txt = " [$1]"
-        if $title =~ /^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$/i;
+    $reason_txt .= " [ $title ]" if $title eq '404 Not Found';
+    $reason_txt = " [ $1 ]"
+        if $title =~ m|^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$|i;
 
     if (    <browser.init_proxy>
         and not defined $status_code
@@ -94,7 +100,7 @@ if (    $load_status eq 'finished'
         }
     }
 
-    my $err_msg = "failed to load uri '$load_uri'" . $reason_txt;
+    my $err_msg = "cannot load uri '$load_uri'" . $reason_txt;
     <browser.last_err_msg> //= '';
     my $loglevel = <browser.last_log_level> //= 0;
     if ( $err_msg eq <browser.last_err_msg> ) {
@@ -121,7 +127,7 @@ if (    $load_status eq 'finished'
 }
 
 # ______________________________________________________________________________
-#\\IL25RXX4VPR6SUEOWBWKGJIAUR52V2F277L2QUJTY3AEQ5NAJQP7OZ6MM5QYJBK6HHFYTS4X3GDL2
-# \\ V3OT325MHHUTJ2RKSSAC5HBDK5BMOUD3PA6BCT5VMOMAVH6YI33U \\// C25519-BASE-32 //
-#  \\// KVIM7UKJYHP6M3DXHDHXIVKYZPHXRALM4NH5X4W354JIVD6KOBQ \\ CODE SIGNATURE \\
+#\\2F47EH3M6VU5UFINHCLIF5FG3LB6NPARUZNMWKNLDPCT7W4MG3TZ5TGXJO5LOIVBIN5S4CVWEKGWS
+# \\ ZMPLTRVTFYZTNKS2TWZDCNYXAKT77LNMQBBJHBBVLWSWPQIPPGGK \\// C25519-BASE-32 //
+#  \\// 4CJENYPEH7SK66SBLW25Y5CY3BWCMR56PBNKGIDVOEN2LQCAUAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
