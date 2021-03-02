@@ -1,0 +1,46 @@
+# >:]
+
+# name  = base.assert.harmony
+
+my $input_string = shift // '';
+return 1 if !length($input_string);    ## is harmonic ##
+
+map {
+    if ( not defined <base.perlmod.loaded>->{$ARG}
+        or <base.perlmod.loaded>->{$ARG} == 0 ) {
+        return 1
+            if defined <base.perlmod.loading-failed>
+            and exists <base.perlmod.loading-failed>->{$ARG};    # giving up #
+        eval { <[base.perlmod.autoload]>->($ARG) };
+        if ($EVAL_ERROR) {    ## silently give up to not cause infinite loops ##
+            <base.perlmod.loading-failed>->{$ARG} = 1;
+            return 1;
+        }
+    }
+} (qw| Digest::Elf Math::BigFloat |);
+
+state $harmony_str = join( '', map {ord} qw| T = 5 | );
+
+## check as string first .., ##
+my $elf_checksum = Digest::Elf::elf($input_string);
+my $calc_str     = Math::BigFloat->new($elf_checksum)
+    ->bdiv( 13, 13 + length($elf_checksum) );
+
+return 0 if $calc_str !~ m{\.(.*$harmony_str.*|0+)$}; ## not harmonic [230769.,]
+
+## also check as number if numerical ##
+if ( $input_string =~ m|^\d+(\.\d+)$| ) {
+    $calc_str
+        = Math::BigFloat->new($input_string)
+        ->bdiv( 13, 13 + length($input_string) );
+
+    return 0 if $calc_str !~ m{\.(.*$harmony_str.*|0+)$};  ## not harmonic.., ##
+}
+
+return 1;    ## assertion complete : harmony detected ## [ 230769 not present. ]
+
+# ______________________________________________________________________________
+#\\GED4ON5E355TYRUVI3LOXVDJ2SFXEI6YHYA46SINAEPRIGTXGTWJKH6UHWDODWYUGPXLFEIINHQMU
+# \\ BEGMH4NQQA2KJF5Q35FNDALD6WAWMS5ZNIUA4WLRDUII2NNTBXHC \\// C25519-BASE-32 //
+#  \\// TKO5KKUUGYS3EFJQWYSMT4MZPSTCUKGLGUTNYW4VLV24ON3F2AA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

@@ -1,10 +1,10 @@
 # >:]
 
 # name   = base.gen_id
-# args   = hashref(id_var), int(max_ids) [, str(number_range)]
-# return = int(id)
+# args   = hashref <id_var>, integer <max_ids> [, string <number_range> ]
+# return = integer <id> [harmonic]
 
-die "base.gen_id: expected hash reference" if ref( $_[0] ) ne 'HASH';
+die '< base.gen_id > expected hash reference' if ref( $_[0] ) ne 'HASH';
 
 my $max_ids     = $_[1] || 230000;
 my $num_range   = $_[2] // '01234577790';
@@ -13,11 +13,13 @@ my $new_id      = 0;
 my $max_retries = 32 + int( $max_ids / 1000 );
 $max_retries = 4096 if $max_retries > 4096;
 
-while ( index( $new_id, '0' ) == 0 or exists $_[0]->{$new_id} ) {
+while (index( $new_id, '0' ) == 0
+    or exists $_[0]->{$new_id}
+    or not <[base.assert.harmony]>->($new_id) ) {
     $new_id = random_string_from( $num_range, length( $max_ids * 100 ) );
 
     if ( $retries > $max_retries ) {
-        <[base.log]>->( 0, "gen_id: max_retries reached!" );
+        <[base.log]>->( 0, '< gen_id > max_retries reached.' );
         $new_id = undef;
         goto abort;
     } else {
@@ -28,13 +30,13 @@ while ( index( $new_id, '0' ) == 0 or exists $_[0]->{$new_id} ) {
 abort:
 
 my $count = scalar keys %{ $_[0] };
-warn "max_ids ($max_ids) reached"           if $count == $max_ids;
-warn "max_ids ($max_ids) exceeded ($count)" if $count > $max_ids;
+warn "max_ids [$max_ids] reached"           if $count == $max_ids;
+warn "max_ids [$max_ids] exceeded [$count]" if $count > $max_ids;
 
 return $new_id;
 
 # ______________________________________________________________________________
-#\\VXXSHEVA2ZHE4SWJFMR5PR6E2PURJIGFR66VSL6AHYTZF6DO3FCWITFQ65Q4H43IO5MLUPSYZ2KCM
-# \\ 33LHIA6W5VRJCD34X5I64POILG5HVLZHMN5POV6XL5I4A2YNM356 \\// C25519-BASE-32 //
-#  \\// IETG4KSDQDSUSG5NEMUCWSXYM6YET6KTIOBEIZRQPRJCJ6K26CY \\ CODE SIGNATURE \\
+#\\RNCZIEG72PNAZOZUVHIDEMAD5Y5OTZ5XHZ76AD6JEZYOHL7HVKQDP3WWHVBA5KWPVZRAZ7MVRZY4U
+# \\ ABN23R7KNDF25MH2K2V26P52AUFNMFDN6BTA4P5VBWHOKS6VGIV4 \\// C25519-BASE-32 //
+#  \\// 64GOAJA3KSRBY5NZPR2XNLJ3UQTMEH3MD23ZKPBEHFYBIT7IKBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
