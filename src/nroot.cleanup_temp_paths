@@ -12,7 +12,7 @@ return warn 'instance_id not defined <{C1}>' if not defined $instance_id;
 my $instance = <nroot.agent.instance>->{$instance_id};
 return if not defined $instance;    # <-- gone..,
 return
-    <[base.log]>->( 2, "no temp-paths to clean up for instance $instance_id" )
+    <[base.log]>->( 1, "no temp-paths to clean up for instance $instance_id" )
     if not defined $instance->{'temp-path'}
     or !@{ $instance->{'temp-path'} };
 
@@ -20,7 +20,7 @@ return
     if not defined &{'remove_tree'};
 
 <[base.log]>->(
-    1, "cleaning up temp paths for instance $instance_id [pid:$process_id]"
+    1, "cleaning up temp paths for instance $instance_id [PID:$process_id]"
 );
 
 my $stat_uid = delete $instance->{'stat_uid'};
@@ -31,8 +31,10 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
         my $stat_ref = File::stat::stat($clean_path);
         if (   $stat_ref->cando( S_IWUSR(), $stat_uid )
             or $stat_ref->cando( S_IWGRP(), $stat_gid ) ) {
-            my $d_str = -d $clean_path ? ' dir' : '';
-            <[base.log]>->( 1, ": . removing$d_str path '$clean_path'.," );
+            my $len      = 52 - length(<system.node.name>);
+            my $type_str = -d $clean_path ? 'dir.' : 'path';
+            my $pth_str = <[base.parser.ellipse_center]>->( $clean_path, $len );
+            <[base.log]>->( 1, ":. unlink $type_str '$pth_str'" );
             eval { remove_tree($clean_path) };
             $EVAL_ERROR = 'still exists' if not $EVAL_ERROR and -e $clean_path;
             warn "<remove_path> $clean_path [ $EVAL_ERROR ]"
@@ -44,7 +46,7 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
 delete $instance->{'temp-path'};
 
 # ______________________________________________________________________________
-#\\QWQT6WHLHTEIBS4UTMFFAI7QZOKKS5CQK2BHM55PPTE4DGV4XHJATK3D4IYN2GWVKURFMHRCRWFQQ
-# \\ XZKV5QN7BODWVPYSFR7SCYI2IKDHR3I7ZEY6WB7QD6LVTA5DI5KK \\// C25519-BASE-32 //
-#  \\// CD33QDBFZJTS5ZNOKBP5ROPHHY647HT6M3JXONSCXOHI3LIBQBY \\ CODE SIGNATURE \\
+#\\W46YA7H4LN7LI6PGFPUTAGQ7PSZUIWLNQRHDROHIPVADBCCUZVY66KEWPVWEX6PM47BX5UYFJVISQ
+# \\ WGF3UXKAVOQREAXVF3676UGWSAQKM6IWFIPES6XCRQB3TAZISY6L \\// C25519-BASE-32 //
+#  \\// MIBEYOXMZTG2C6N6RKYQXDH7DQIJX37JQCYOPT4MQF6GKDDLECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
