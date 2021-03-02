@@ -369,10 +369,10 @@ sub prepare_subs {
     $code{'dump_core_subs'} = sub {
         my %core_subs;
         my $bin_path = $data{'system'}{'start'}{'exec_name'};
-        open( my $nlr_fh, $bin_path ) or die "$bin_path: $OS_ERROR\n";
+        open( my $p7_fh, $bin_path ) or die "$bin_path: $OS_ERROR\n";
         my %sub_src;
         my $sub_name;
-        foreach my $src_line (<$nlr_fh>) {
+        foreach my $src_line (<$p7_fh>) {
             $sub_name = undef
                 if defined $sub_name and $src_line =~ m|^\s*};\s*(#.*)?\n$|;
             if ( defined $sub_name ) {
@@ -384,7 +384,7 @@ sub prepare_subs {
                 =~ m|^\s*\$code\{\'([^\']+)\'\}\s*=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
         }
         print "\n";
-        close($nlr_fh);
+        close($p7_fh);
         foreach
             my $sub_name ( sort { length $a <=> length $b } sort keys %sub_src )
         {
@@ -1430,7 +1430,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\KW5NMGWUO2AKTRHGZSODABZNZQB47EKFYQXUJCCHYSKQSN2MI6IKI3BHVHOWBOD3GHXVRA2FN54QA
-# \\ 6DTEKWBI4JQCPXPQT3W3HSFRQQ7YBY4VPTM24F3PZ4A53RWSRKHH \\// C25519-BASE-32 //
-#  \\// C4N2L3O5QKZKQDTMBP5CICRS2XGVJ6PPLBZMKWBEUXT4LJFXKCQ \\ CODE SIGNATURE \\
+#\\XOTSDK4CUMLBT5CFUZ4AHOS67LIKDOTT4UBDO5USG5GABW2QMRSOQ35PK7T42LAJD7DD3WM5AJPCO
+# \\ HEROTCRXSKFJKZRQT53UCL55WZXPAM7HFVXPJDNM4NNQ4D47LE2O \\// C25519-BASE-32 //
+#  \\// WPPCXURKBIHCDWG25TWPC4EHR6M6WKMI2PDIH2WAT3R6MNRHMBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

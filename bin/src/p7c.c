@@ -10,7 +10,7 @@
 
 /* LLL: needs at least a timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/var/tmp/.7/UNIX/HKLAKCI";        /* or ENV{'NLR_UNX'} */
+char * socket_path = "/var/tmp/.7/UNIX/HKLAKCI";        /* or ENV{'P7C_UNX'} */
 char * src_bmw_b32 = "[BMW_FILE_DIGEST]";
 
 char* concat(const char *s1, const char *s2)
@@ -31,7 +31,7 @@ int main( int argc, char * argv[] ) {
     struct sockaddr_un addr;
     int errno, socket_fd, result;
 
-    char * nailara_socket  = secure_getenv("NLR_UNX");
+    char * nailara_socket  = secure_getenv("P7C_UNX");
     char * unix_user       = secure_getenv("USER");
 
     if ( unix_user == NULL ) {
@@ -65,7 +65,7 @@ int main( int argc, char * argv[] ) {
            else
            {
                 printf(
-                  "\n <<!>> option invalid <<!>> [ -d[q] for BMW checksum ]\n\n"
+                  "\n  << option not valid >>  [ -d[q] for BMW checksum ]\n\n"
                 );
                 return 2;
            }
@@ -105,7 +105,7 @@ int main( int argc, char * argv[] ) {
 
     /* connect to socket */
     if (connect( socket_fd, ( struct sockaddr * ) & addr, sizeof(addr) ) == -1){
-        printf( "< connection failed > %s [unix:%s]\n",
+        printf( "< connection not successful > %s [unix:%s]\n",
                 strerror(errno), socket_path );
         exit(-1);
     }
@@ -118,7 +118,7 @@ int main( int argc, char * argv[] ) {
     while ( match < 2 ) {
         result = recv( socket_fd, &byte, 1, 0 );
         if ( result < 0 ) {
-            printf( "[!] error during authentication: %s\n", strerror(errno) );
+            printf( "[!] error during authentication : %s\n", strerror(errno) );
             exit(-1);
         }
         if ( byte == '\n' ) { match++; }
@@ -156,7 +156,7 @@ int main( int argc, char * argv[] ) {
             }
         }
     } else if ( result < 0 ) {
-        printf( "Error on select(): %s", strerror(errno) );
+        printf( "<< ! >> error on select() call : %s", strerror(errno) );
     }
     return 0;
 }
