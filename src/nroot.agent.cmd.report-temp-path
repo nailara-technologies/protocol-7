@@ -4,7 +4,7 @@
 # param = <tmp-path>
 # descr = register temporary path[s] for later cleanup
 
-( my $agent, my $agent_sid, my $temp_path ) = split( / /, $$call{'args'}, 3 );
+( my $agent, my $agent_sid, my $tmppath ) = split( m| |, $$call{'args'}, 3 );
 
 my $valid_chars_re = qr|[0-9a-zA-Z\-_\./]+|;
 $agent =~ s|^.*\.||;    # <-- node portion
@@ -14,18 +14,18 @@ $err_reason = 'expected agent sid from core [ misconfigured ]'
     if not defined $agent_sid or $agent_sid !~ m|^\d+$|;
 warn sprintf( "[%d] << $err_reason >>", $$call{'session_id'} )
     if defined $err_reason;
-$err_reason = 'expected path parameter' if !length( $temp_path // '' );
+$err_reason = 'expected path parameter' if !length( $tmppath // '' );
 $err_reason = 'absolute path expected'
-    if not defined $err_reason and $temp_path !~ m|^/|;
+    if not defined $err_reason and $tmppath !~ m|^/|;
 
-( my $inv_chars = $temp_path ) =~ s|$valid_chars_re||g;
+( my $inv_chars = $tmppath ) =~ s|$valid_chars_re||g;
 $err_reason = "temp dir path contains invalid characters ['$inv_chars']"
-    if not defined $err_reason and $temp_path !~ m|^$valid_chars_re$|;
+    if not defined $err_reason and $tmppath !~ m|^$valid_chars_re$|;
 
-$temp_path  = abs_path($temp_path) if not defined $err_reason;
+$tmppath    = abs_path($tmppath) if not defined $err_reason;
 $err_reason = 'specified directory path does not exist'
     if not defined $err_reason
-    and ( not defined $temp_path or !-d $temp_path );
+    and ( not defined $tmppath or !-d $tmppath );
 
 my $agent_instance;
 if ( not defined $err_reason ) {
@@ -62,7 +62,7 @@ if ( not defined $err_reason ) {
 my $uid_match = 0;    # LLL: also check gids.,
 if ( not defined $err_reason ) {
     my @match_type;
-    my $stat_ref = File::stat::stat($temp_path);
+    my $stat_ref = File::stat::stat($tmppath);
     my $stat_uid = $stat_ref->uid;
     my $stat_gid = $stat_ref->gid;
     my %match_pid;
@@ -90,17 +90,17 @@ if ( not defined $err_reason ) {
     if defined $err_reason;
 return { 'mode' => 'nak', 'data' => $err_reason } if defined $err_reason;
 
-<[base.log]>->( 1, "[$agent_instance] <+temp-path+> '$temp_path'" );
+push( @{ <nroot.agent.instance>->{$agent_instance}->{'temp-path'} }, $tmppath );
 
-push(
-    @{ <nroot.agent.instance>->{$agent_instance}->{'temp-path'} },
-    $temp_path
-);
+my $str_len = 52 - length(<system.node.name>);
 
-return { 'mode' => 'ack', 'data' => "registered '$temp_path'" };
+my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
+<[base.log]>->( 1, "[$agent_instance] <pth> $tmppath_str" );
+
+return { 'mode' => 'ack', 'data' => "registered '$tmppath'" };
 
 # ______________________________________________________________________________
-#\\YVKVOYTTFPEWRGETSSPXL7OIYDDQRJGAXGEFYHFZBFIQFZZGDER475IOHMBHJE43F32RPPWTULEU2
-# \\ TMYZ2MRNDWIZLW665HC6PMX7OXIO5LSXFKRKQQAZVXFKL4RVGUAG \\// C25519-BASE-32 //
-#  \\// 47RU7MYMP2IM53SJCOBVCY5EYIGTD2Q624IBMHVPJMSUXHTNECQ \\ CODE SIGNATURE \\
+#\\2CVBZKSGA2R6YCOMV2MPCWKAYR7YQJGN4KVKOYGSH6NE2DJB3MYCMYDOVR7TUULBUL7AEYWLMAQIE
+# \\ QCAEJNZNS47MTE4DNA2JRI2LKTMAMKW2Z3VFXOFM3GAAE3H6PCGM \\// C25519-BASE-32 //
+#  \\// ET2DQQTOXJ2AVQCHL6R2ESQCWDIJ3HJHQZJKGIQU4TMR6GWREBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
