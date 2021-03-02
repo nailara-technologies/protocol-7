@@ -22,7 +22,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$core_fh>;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|DATA) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(NAK|DATA) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -30,7 +30,7 @@ while ( !$matched_reply ) {
 
 my $subcfg_data  = {};
 my $read_timeout = 2;
-if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)DATA (\d+)\n$| ) {
     my $bytes_to_go = $1;
     my $bytes_total = $bytes_to_go;
     if ( !$bytes_to_go ) {
@@ -45,21 +45,19 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
         $bytes_to_go -= $bytes if defined $bytes;
     }
     chop($buffer);
-    foreach my $cfg_line ( split( /\n/, $buffer ) ) {
-        my ( $c_key, $c_val ) = split( / +\= /, $cfg_line, 2 );
+    foreach my $cfg_line ( split( m|\n|, $buffer ) ) {
+        my ( $c_key, $c_val ) = split( m| +\= |, $cfg_line, 2 );
         $subcfg_data->{$c_key} = $c_val;
     }
     <[base.log]>->(
-        1, "received composition subconfig for '$name_str' [$bytes_total bytes]"
+        1, "received tile group subconfig for '$name_str' [$bytes_total bytes]"
     );
     return $subcfg_data;
-} elsif ( $reply_string =~ /^\($cmd_id\)NAK no set-up for agent '([^ ]+)'/ ) {
+} elsif ( $reply_string =~ m|^\($cmd_id\)NAK no set-up for agent '([^ ]+)'| ) {
     <[base.log]>->( 1, ": <!> composition agent has no set-up for \"$1\" <!>" );
     return undef;
-} elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
-    <[base.log]>->(
-        1, ": << get_subconfig unsuccessful [NAK] >> for '$name_str'"
-    );
+} elsif ( $reply_string =~ m|^\($cmd_id\)NAK command unknown\n$| ) {
+    <[base.log]>->( 1, ": << get_subconfig [ NAK ] >> for '$name_str'" );
     return undef;
 } else {
     <[base.log]>->(
@@ -71,7 +69,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\DZOPAY63YVT33SS7GTLOTQOVYZONIL54A4CKEMQNZRJAIVOS5ATH23BUYNVNCNKCNZAK4HZUMRRYW
-# \\ PQFLSAQHINZFXMVFCNSGZ24NXNWJEIH3ADXEAIHTTXCVCEQZS36O \\// C25519-BASE-32 //
-#  \\// S5MXNGZSWKM3O2S5TODXIVUT3SM3B2VOSKKVC6WMVVQU36DHIDQ \\ CODE SIGNATURE \\
+#\\3IT3HG4JZHLXMM6V4K45C3TRIUTILV6VSN3NCYGZ6Q5ELNLROTH6QF3VDWFF2KNIURSDM3MMQFZ5E
+# \\ JPOZU5WEHODFIQLDONJDFMGJOYCCQDLKNUXFREK3CJTZGXQG3QAL \\// C25519-BASE-32 //
+#  \\// TTXJP3V2VCQZYCXCYVVELDNANILDU2AAJ7NLFOSFBRYGOPUXWAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

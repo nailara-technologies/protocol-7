@@ -89,8 +89,8 @@ if ( !length( $user // '' ) ) {
                 } else { # creating temporary home directory for user 'nobody':.
                     my $tdir_template
                         = <system.agent.name> ne 'nroot'
-                        ? sprintf "T.h.%s.%s.%d", <system.agent.name>, $user, $PID
-                        : sprintf "T.h.%s.XXXXXXXXXX", $user;
+                        ? sprintf "temp-home.%s.%s.%d", <system.agent.name>, $user, $PID
+                        : sprintf "temp-home.%s.XXXXXXXXXX", $user;
                     $home_dir
                         = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
                     if ( -d $home_dir ) {
@@ -136,7 +136,7 @@ if ( !length( $user // '' ) ) {
 }
 
 # ______________________________________________________________________________
-#\\ELZ26HBOHT3LBUROA3I3VAMPBSHEVBMN6UEI22P57BX3H7EZY6GSJW7C6H3AC6RLYO6NMBJ52G5AG
-# \\ ZW6B2MLC3HYQR3LEKXOZJAXLOUGLQXV6UTSKZBDSWAPEOS34IZAI \\// C25519-BASE-32 //
-#  \\// V3NUVSZHYHHJM3B2OZKTE3RDISHXQCUJG5VSNAKU2X6DYT4FEAQ \\ CODE SIGNATURE \\
+#\\6H5U5ZORUN7X7MI3EPMZFMXBW4GEJADYWE4Z4MS64T66LLTEMUW5IJ3LM5B5CESYSI4Z7BSGK4W4G
+# \\ KQDQM3GIST26AWZUFRVIB65ZTBX6FQB7JPHBCBJWGD4YURQ7SDHB \\// C25519-BASE-32 //
+#  \\// 3E763A24YBVZSDZJW5RBQWLZ4Y5HENBIBJRNCEYRBVIQAVFGKBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

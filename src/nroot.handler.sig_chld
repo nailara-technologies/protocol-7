@@ -37,9 +37,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     <[nroot.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
 
-    <[nroot.terminate_process]>->($pid);    # <- cleans up children too..,
-
-    <[nroot.cleanup_temp_paths]>->( $pid, $instance_id );
+    <[nroot.terminate_process]>->($pid);  # <-- cleaning up children as well ..,
 
     delete <nroot.process.instance_cache>->{$pid};
     delete <nroot.process.instance_cache>
@@ -57,9 +55,9 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
         <[base.log]>->( 2, ": had status : '$old_status'" );
 
-        ## record browser segfaults (for crash mitigation) ##
+        ## record browser segfaults [ for crash mitigation ] ##
         if ( $e_sig == 11 and $agent_name eq 'browser' ) {
-            my $browser_uname = 'nobody';    # LLL: determine automatically ..,
+            my $browser_uname = 'nobody';    # <-- [LLL] determine automatically
             my $subname_b32
                 = ( defined $agent_subname and length($agent_subname) )
                 ? '.' . encode_b32r($agent_subname)
@@ -111,7 +109,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 # ______________________________________________________________________________
-#\\EHGYEGKGWJ4D2UCZYHGZI64OCL2U5MVFZW4T6BRVT6LOMRIAPLI4EPWBKJWSOHMZ4DIVKBZGKOQQ2
-# \\ 2EX2PKS6BYZAC5LDI4PSRFH4POQF7KPKVH5NGRQMOJXXTFIPPJIV \\// C25519-BASE-32 //
-#  \\// ONFSXEGOFLVKPWN4UDHNDNPW6ROOGBP7IJT4YXTBYXDRZMZ7QDY \\ CODE SIGNATURE \\
+#\\PDH4ZNA4JV7KTUHBDIOX6VI3KPVB3PZ5QGXN6UPYZJGT7VH46SDF6P2QMT3LZP2PVRBQXXXIPROPA
+# \\ JB62OZHUXBV274VATRR3LAHT2E5ZAD5XFGZMTFKZAPFVKZI3DHKP \\// C25519-BASE-32 //
+#  \\// LD4KQH7PAEUUFULHM7DEDN5JNHY37P7BCJKZG772SVCDDSFMQCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
