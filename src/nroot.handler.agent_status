@@ -132,12 +132,13 @@ if (    $status ne 'starting'
     and $status ne 'extbin'
     and exists $instance->{'process'}
     and defined $instance->{'process'}->{'id'} ) {
-
+    my $parent_pid = $instance->{'process'}->{'id'};
     map { <[nroot.terminate_process]>->($ARG) } (
-        $instance->{'process'}->{'id'},
+        $parent_pid,
         <[nroot.instance_child_pids]>->($instance_id),
         <[nroot.sub-process.orphan_pids]>    # LLL: <- make obsolete. [ heavy ]
     );
+    <[nroot.cleanup_temp_paths]>->( $parent_pid, $instance_id );  ## clean-up ##
 }
 
 if ( $old_status ne 'error' and $status eq 'error' ) {
@@ -395,7 +396,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\JRV4UWM55WYCCEIUFS6ANQSOBVJO6IPS3ZPIGICDYQYE3O22YW7RGJ5CNQNLP5GSAAMTOHFDHRJMW
-# \\ 7PUZYQIOGVHHD3OTR7DWKIBEVWAK6RI6BDH7LNN7H3OQYVRKCGYC \\// C25519-BASE-32 //
-#  \\// FZEZIESTBLOTH6BD2KX2ZAA3YWLXNSDRUAQZV7A44SUHTTNHEDY \\ CODE SIGNATURE \\
+#\\NC7J5W65HBYEM46ZNUYP5DSLKXO3HTD4KOIUW2XSLLSB7UMTDKG3GWBNN5YVV5CRRUE4DVVTJF2RY
+# \\ TL7UROZZZU73EGRS76AVDASYZ56V4SB2REINCYVGGTFO5HZ3B5CH \\// C25519-BASE-32 //
+#  \\// TIP3TLMRBXZGBOEA7NKOSD7MZSWIS4FDY3PICIWMBUR2KWYIQCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
