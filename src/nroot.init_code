@@ -36,20 +36,20 @@ map { <[base.disable_command]>->($ARG) } qw(
 );
 
 <nroot.gcc_bin> = '/usr/bin/gcc';
-<nroot.cfg.install_bin_nlr> //= 'yes';                  # LLL: only when root..,
-<nroot.cfg.nlr_bin_path>    //= '/usr/local/bin/nlr';
+<nroot.cfg.install_bin_p7c> //= 'yes';                  # LLL: only when root..,
+<nroot.cfg.p7c_bin_path>    //= '/usr/local/bin/p7c';
 
-## gcc \ nlr ##
+## gcc \ p7c ##
 <nroot.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <nroot.gcc_bin> ) {
     <nroot.gcc_bin> = undef;
     <[base.log]>->( 0, "<!> 'gcc' binary not found <!>" )
-        if defined <nroot.cfg.install_bin_nlr>
-        and <nroot.cfg.install_bin_nlr> =~ m{^(1|yes)$};
-} elsif ( defined <nroot.cfg.install_bin_nlr>
-    and <nroot.cfg.install_bin_nlr> =~ m{^(1|yes)$}
-    and not <[nroot.bin_nlr_is_current]> ) {
-    <[nroot.compile_bin_nlr]>;
+        if defined <nroot.cfg.install_bin_p7c>
+        and <nroot.cfg.install_bin_p7c> =~ m{^(1|yes)$};
+} elsif ( defined <nroot.cfg.install_bin_p7c>
+    and <nroot.cfg.install_bin_p7c> =~ m{^(1|yes)$}
+    and not <[nroot.bin_p7c_is_current]> ) {
+    <[nroot.compile_bin_p7c]>;
 }
 ## modprobe ##
 <nroot.modprobe_bin> = <[base.required_bin_path]>->('modprobe');
@@ -184,7 +184,7 @@ delete <list.users>;
 return 0;
 
 # ______________________________________________________________________________
-#\\YAI33ORVT5RY2UQXWIMDH336F2MMJ5PVVJ7PDQJJWLPVJHWENRXP5BMYOFSLCMYA6XR57LUYBNSFA
-# \\ ZDZVGV4FUEXGDADULT53YHVY2WSXI3FE2X5HVIRDKQKRM6VXM26B \\// C25519-BASE-32 //
-#  \\// VJ5XKC44GGP5IFP5OCORSHJ5U73C7PLD3XDHS6W7XSCO7GRCIDY \\ CODE SIGNATURE \\
+#\\RU2BL53Q7MJD6IOLLJRLVKTTEDUFDV6CUPCF2XCEUFAQ7TLG6SUSD2REOMFODIS2ADSACGGOODWTS
+# \\ BZCP5GSZ3ZV45B5NPBMHORLNY6WQSJQLLNL34EZEYM4OK47LQNIH \\// C25519-BASE-32 //
+#  \\// Y6MGE6WKOZ74TG4KVUJSECVRDMM5JF7H5AWQG7LPZ6OFYPLCYAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
