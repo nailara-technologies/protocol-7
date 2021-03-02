@@ -1,29 +1,29 @@
 # >:]
 
-# name = nroot.compile_bin_nlr
+# name = nroot.compile_bin_p7c
 
 my $gcc_bin        = <nroot.gcc_bin>;
 my $gcc_timeout    = <nroot.gcc_timeout> || 7;
-my $nlr_src_path   = join( '/', <system.root_path>, <system.nlr_src_path> );
-my $nlr_bin_path   = <nroot.cfg.nlr_bin_path>;
+my $p7c_src_path   = join( '/', <system.root_path>, <system.p7c_src_path> );
+my $p7c_bin_path   = <nroot.cfg.p7c_bin_path>;
 my $strip_binpth   = <[file.which]>->(qw| strip |);
-my $compile_static = <[base.cfg_boolean]>->( <nroot.cfg.nlr_static> // 1 );
+my $compile_static = <[base.cfg_boolean]>->( <nroot.cfg.p7c_static> // 1 );
 die "<< 'gcc' binary not found >>"          if !-x $gcc_bin;
-die "source file '$nlr_src_path' not found" if !-f $nlr_src_path;
+die "source file '$p7c_src_path' not found" if !-f $p7c_src_path;
 
-( my $src_name = $nlr_src_path ) =~ s|^.+./||;
+( my $src_name = $p7c_src_path ) =~ s|^.+./||;
 
-<[base.log]>->( 0, ":. compiling '$src_name' source onto '$nlr_bin_path'..," );
+<[base.log]>->( 0, ":. compiling '$src_name' source onto '$p7c_bin_path'..," );
 
 ## reading source., ##
-<[file.slurp]>->( $nlr_src_path, \my $nlr_src_str )
+<[file.slurp]>->( $p7c_src_path, \my $p7c_src_str )
     or die "unable to compile '$src_name' << ! >>";
 
-my $nlr_checksum = delete <nroot.checksum.nlr_source>
-    // <[digest.bmw.filesum]>->( 224, $nlr_src_path );
-$nlr_src_str =~ s|\[BMW_FILE_DIGEST\]|$nlr_checksum|g;
+my $p7c_checksum = delete <nroot.checksum.p7c_source>
+    // <[digest.bmw.filesum]>->( 224, $p7c_src_path );
+$p7c_src_str =~ s|\[BMW_FILE_DIGEST\]|$p7c_checksum|g;
 
-my $tmp_bin    = "$nlr_bin_path.$nlr_checksum";
+my $tmp_bin    = "$p7c_bin_path.$p7c_checksum";
 my @gcc_params = $compile_static ? ('-static') : ();
 push( @gcc_params, qw| -O3 -x c -o |, $tmp_bin, '-' );
 
@@ -34,13 +34,13 @@ my $gcc_in_fh  = IO::Handle->new();
 my $gcc_err_fh = IO::Handle->new();
 my $gcc_pid    = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
     or die "<< ! >> compilation failed [ $OS_ERROR ] << ! >>\n";
-print {$gcc_in_fh} $nlr_src_str if $gcc_in_fh->opened;
+print {$gcc_in_fh} $p7c_src_str if $gcc_in_fh->opened;
 close($gcc_in_fh)               if $gcc_in_fh->opened;
 
 ## timeout., ###
 if ( defined $gcc_pid ) {
     local $SIG{'ALRM'} = sub {
-        warn "'nlr' compilation timed out after $gcc_timeout seconds.";
+        warn "'p7c' compilation timed out after $gcc_timeout seconds.";
         kill( 9, $gcc_pid );
     };
     alarm($gcc_timeout);
@@ -53,12 +53,12 @@ qx| $strip_binpth -R .comment $tmp_bin | if length($strip_binpth); # optional ##
 ## verify.., ##
 if ( -f $tmp_bin ) {
     close($gcc_err_fh) if $gcc_err_fh->opened;
-    rename( $tmp_bin, $nlr_bin_path )
-        or die "< rename > $tmp_bin --> $nlr_bin_path [$OS_ERROR]";
-    chmod( 0755, $nlr_bin_path ) or die "< chmod > $nlr_bin_path [ $OS_ERROR ]";
-    <[base.log]>->( 1, ":: :. successfully installed to '$nlr_bin_path'. =)" )
+    rename( $tmp_bin, $p7c_bin_path )
+        or die "< rename > $tmp_bin --> $p7c_bin_path [$OS_ERROR]";
+    chmod( 0755, $p7c_bin_path ) or die "< chmod > $p7c_bin_path [ $OS_ERROR ]";
+    <[base.log]>->( 1, ":: :. successfully installed to '$p7c_bin_path'. =)" )
         and return 1
-        if <[nroot.bin_nlr_is_current]>->(2); # <-- silent checksum verification
+        if <[nroot.bin_p7c_is_current]>->(2); # <-- silent checksum verification
 } else {
     ( my $err_str = join( '', $gcc_err_fh->getlines ) )
         =~ s{gcc: (fatal )?error: |\n+}{ }g;
@@ -71,7 +71,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\PZHO2KBGEREKFFXIQ44UMTKQZR7VJ2DSFA5NWHQEC2EKCBZ2NYP7P3MG4PZVH56VMQJWD3UQAUP5W
-# \\ KLN34ESSQN4VJENZBKC5E4PLLS3M4VVB3P5IHOVLBHZRNXWYZ535 \\// C25519-BASE-32 //
-#  \\// JZJHDO77N6C673WR3PJLVBLLWRTSJYBF3JHMCVXFPOZ3G3VNYDY \\ CODE SIGNATURE \\
+#\\EJEK2DYW56TZUHUDGPKD6BCUBJCYM3ZRYOMVBLY75UYCRE5V2L75GKCQTJ4ENHA2AAZON57WMFJJO
+# \\ ZALDHBJH7NOAGUIYZLVVHESSEAT2U42L5D4URXPGC6Y2N6OZ6TMT \\// C25519-BASE-32 //
+#  \\// XX5YJGG7D4U27T3EM6MPA2AAGCBNA5YLGY23ITMFKJYJK2LMICQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
