@@ -6,17 +6,17 @@
 my ( $log_name, $log_msg_ref ) = @_;
 
 # validating input parameters
-return ( 0, "no log file specified" )
+return ( 0, 'no log file specified' )
     if not defined $log_name or !length($log_name);
-return ( 0, "invalid log file name '$log_name'" ) if $log_name =~ /^\./;
+return ( 0, "invalid log file name '$log_name'" ) if $log_name =~ m|^\.|;
 return ( 0, "invalid characters in log file name '$log_name'" )
-    if $log_name !~ /^[\w\d\-\.\_\ ]+$/;
-return ( 0, "empty log message" )
+    if $log_name !~ m|^[\w\d\-\.\_\ ]+$|;
+return ( 0, 'empty log message' )
     if not defined $$log_msg_ref or !length($$log_msg_ref);
-$$log_msg_ref =~ s/^0 //;    # core-agent source sid
-$$log_msg_ref .= "\n" if $$log_msg_ref !~ /\n$/;
+$$log_msg_ref =~ s|^0 ||;    # core-agent source sid
+$$log_msg_ref .= "\n" if $$log_msg_ref !~ m|\n$|;
 
-my $log_path = <log.nailara_log.path>;
+my $log_path = <log.protocol_7.path>;
 my $log_file .= "$log_name.log";
 my $file_create_mode = 0640;
 
@@ -26,13 +26,13 @@ my $file_create_mode = 0640;
 if ( !-d $log_path ) {
     <[base.log]>->( 0, "log directory '$log_path' disappeared, recreating..," );
     my ( $ok, $err_msg )    # LLL: use File::Path::make_path() ?
-        = <[file.make_path]>->( $log_path, <log.nailara_log.dir_mask> );
+        = <[file.make_path]>->( $log_path, <log.protocol_7.dir_mask> );
     return ( 0, $err_msg ) if !$ok;
-    my ( undef, undef, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
-        or return ( 0, "user '<log.nailara_log.user>' not in passwd file" );
-    <log.nailara_log.path> =~ s|/+$||;
-    chown( $uid, $gid, <log.nailara_log.path> )
-        or return ( 0, "chown(<log.nailara_log.path>): $OS_ERROR" );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<log.protocol_7.user>)
+        or return ( 0, "user '<log.protocol_7.user>' not in passwd file" );
+    <log.protocol_7.path> =~ s|/+$||;
+    chown( $uid, $gid, <log.protocol_7.path> )
+        or return ( 0, "chown(<log.protocol_7.path>): $OS_ERROR" );
     <log.files>->{$log_name} = { 'fh' => undef, 'locked' => 0 };
 }
 
@@ -64,7 +64,7 @@ print {$log_fh} $$log_msg_ref;
 return 1;
 
 # ______________________________________________________________________________
-#\\XTZCDVYNODDASZ6WSH34KXH2R4XHQJ3GMBKAICIQV52K5UGIUBHTHZ4Q2T63NEK7UUOGA33OLSLDA
-# \\ RZZBXPHVVDU7LSILESQNZ4TXLV6W7FFNCIN54GTYLE3K7RANAUJU \\// C25519-BASE-32 //
-#  \\// 4DJ2C2GUNEKRS2FKP5YGRPMCEIRRCG7D7UZ5G42IKHGNUPQ5WDI \\ CODE SIGNATURE \\
+#\\LY2B4DKSIPXYVN5DNHGJGCIS3PCT7HU3IWNSPFWYVVYUANA6AJBAOHVIDJW4X4ROGSYA6FTYER7SC
+# \\ EDPE4JCKPGBQLRFUY64FWOBFMIEMFO2RCUILBWVXMLNG37RSGMKJ \\// C25519-BASE-32 //
+#  \\// LNLRAIUTENQQG2BYUGP5WGGMLDKF4VI7FRMJACKB3SKMIWBT4CQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
