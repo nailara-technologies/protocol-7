@@ -1,0 +1,41 @@
+# >:]
+
+# name  = base.cmd.verbosity
+# descr = reports the current agent log level[s]
+# param = [buffer|file|console]
+
+my $verbosity_type = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'incorrect verbosity type parameter [buffer|logfile|console]'
+    }
+    if defined $verbosity_type and $verbosity_type !~ m,buffer|file|console,;
+
+my $verbosities = <system.verbosity> // {};
+
+if ( defined $verbosity_type ) {
+
+    $verbosity_type =~ s{^(file)$}{log$1};
+    $verbosity_type =~ s{^(buffer|logfile)$}{agent_$1};
+
+    return { 'mode' => 'nak', 'data' => 'type not valid' }
+        if not exists $verbosities->{$verbosity_type};
+
+    return { 'mode' => 'ack', 'data' => $verbosities->{$verbosity_type} };
+}
+
+my $v_report;
+foreach my $key ( reverse sort keys %{$verbosities} ) {
+    ( my $name_str = $key ) =~ s|agent_||;
+    $v_report
+        .= sprintf( ": : %7s  :.  %s\n", $name_str, $verbosities->{$key} );
+}
+
+return { 'mode' => 'data', 'data' => ":\n$v_report:\n" };
+
+# ______________________________________________________________________________
+#\\5ICB5NXDHNWT4FYJLWXMRYYCQZATCPS546YZJ333SL4NWCQSL4JAKT2AJHUZMQGJ5D7SO7EQNANUY
+# \\ 6EVTI7WGR5KQKONTMYDFDHIC7HZSZPZSRAMEOYJ2KLWXIIPVZNXB \\// C25519-BASE-32 //
+#  \\// 7VHCL2MY3W3U4ZPVTCE4YTPF7OIYAEVNSDLCWD2CEXD3SQVP2DA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
