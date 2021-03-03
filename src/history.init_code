@@ -4,28 +4,24 @@
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
-<log.nailara_log.dir_mask> //= 0750;
-<log.nailara_log.user>     //= 'nailara';
-<log.nailara_log.path>     //= '/var/log/nailara';
-<log.nailara_log.path> =~ s|/+$||;
+<log.protocol_7.dir_mask> //= 0750;
+<log.protocol_7.user>     //= <system.privs.user>;
+<log.protocol_7.path>     //= '/var/log/protocol-7';
+<log.protocol_7.path> =~ s|/+$||;
 
-if ( !-d <log.nailara_log.path> ) {
-
-    my ( undef, undef, $uid, $gid ) = getpwnam(<log.nailara_log.user>)
-        or die "user '<log.nailara_log.user>' not in passwd file";
-
-    make_path( <log.nailara_log.path>, { mode => <log.nailara_log.dir_mask> } );
-    chown( $uid, $gid,
-        <log.nailara_log.path> )    # LLL: use File::Path::make_path ?
-        or die "chown(<log.nailara_log.path>): $OS_ERROR";
-}
+<[file.make_path]>->(
+    <log.protocol_7.path>, <log.protocol_7.dir_mask>, <log.protocol_7.user>
+    )
+    and <[base.log]>->(
+    1, "created log directory [" . <log.protocol_7.path> . "/]"
+    ) if !-d <log.protocol_7.path>;
 
 <log.files> //= {};
 
 return 0;
 
 # ______________________________________________________________________________
-#\\GKLE3YY73CAOABBYJUQ22M63EF6NFBZB4L5V2XF6A3373DVDQAX7VGYC4JGLA6OQQGAL4K4EUAPX2
-# \\ ICL5TMUYVLCTMMRRXQ4PHNXHN4Q7H3JWZGBNH6PXSAL5JP63ZB7H \\// C25519-BASE-32 //
-#  \\// 3QDTFPX3MKZRH2L4OEXBMI5U5PICJHOB7PHLUFHVH3NBP7DHQDY \\ CODE SIGNATURE \\
+#\\7VP5A6XU7TVOJM5EBWRFG7U4AKKRCKLQTDD2WGTLLMP6NQNHIABAMXCEQE5JIJLGITT4HMPKMWJUA
+# \\ DWZ6AL6JBWLK66O6OWB5XZL5ANV2LDT5FFTJOTYPNH54TBRCXK7F \\// C25519-BASE-32 //
+#  \\// BFB4JH2U5B2F5RNC75HF6XQB222UUGCHJSFUPHLL6XP7F4DZACI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
