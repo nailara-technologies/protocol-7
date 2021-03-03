@@ -31,12 +31,12 @@ if ( $PROGRAM_NAME =~ m|^.*protocol-7\.| ) {
 ( $agentname, @ARGV ) = ( split( m| +|, $agentname ), @ARGV )
     if defined $agentname and index( $agentname, ' ' ) != -1;
 
-( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s| *-[v]+( *)|$1|;
+( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s| *-[v]+h?z?d?( *)|$1|;
 
 if ( defined $agentname and $agentname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
         $data{'startup'}{'init_code'} = [];
-        $code{'log.noerr'}->('< awaiting stdin init-code');
+        $code{'log.noerr'}->('< awaiting init-code on stdin');
         while (<STDIN>) {
             push( @{ $data{'startup'}{'init_code'} }, $ARG );
         }
@@ -123,7 +123,7 @@ sub prepare_subs {
 
     $code{'base.ntime'} = sub { # [ network time : secs from 2002-06-05 * 4200 ]
         my $param        = shift // 0;
-        my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 0;
+        my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
         my $ntime_start  = $data{'base'}{'ntime_ustart'} //= 1023228000;
 
         my $retries_left    = 24;    ## <-- configure [ retries-max ]
@@ -368,12 +368,13 @@ sub prepare_subs {
     };
 
     $code{'base.anum_log_time'} = sub {
-        my $nt_param = shift // 5; # <-- LLL: make configurable, precision\utime
+        my $pt_param = shift // 5; # <-- LLL: make configurable, precision\utime
+        my $want_harmony = shift;    # <-- skip not harmonic time stamps ?
+
         if ( &{ $code{'base.load_b32_encoder'} } ) {
-            return $code{'base.ntime.b32'}->($nt_param);
+            return $code{'base.ntime.b32'}->( $pt_param, $want_harmony );
         } else {
-            my $ntime_value = $code{'base.ntime'}->($nt_param);
-            return $ntime_value;
+            return $code{'base.ntime'}->( $pt_param, $want_harmony );
         }
     };
 
@@ -481,7 +482,6 @@ sub prepare_subs {
                 $visualize->{'harmony'}    = 1 if $vis =~ m|h|;
                 $visualize->{'zulum'}      = 1 if $vis =~ m|z|;
                 $visualize->{'disharmony'} = 1 if $vis =~ m|d|;
-
             }
             if ( $arg eq '-d' ) { $data{'system'}{'daemon_mode'} = 1 }
             if ( $arg eq '-stdin' ) {
@@ -494,11 +494,11 @@ sub prepare_subs {
             }
             if ( $arg eq '-na' ) { $data{'system'}{'ansi_color'} = 0 }
             if ( $arg eq '-nb' ) { $data{'system'}{'start'}{'showbanner'} = 0; }
-            if ( $arg =~ /^-N(.+)$/ ) { $data{'system'}{'agent'}{'name'} = $1; }
+            if ( $arg =~ m|^-N(.+)$| ) { $data{'system'}{'agent'}{'name'} = $1 }
             elsif ($stdin_mode) {
                 $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
-            if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <- used by 'nroot' agent
+            if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'nroot' agent
                 $data{'system'}{'start'}{'log_prefix_width'} = $1;
             }
             if ( $arg eq '-use-http-src' ) {
@@ -1342,7 +1342,7 @@ sub prepare_subs {
         return if $data{'system'}{'verbosity'}{'console'} < 2;
         my $sub_name = shift(@_);
         ## $code{'base.collect_sub_stats'}->($sub_name); # <-- replace touch_dir
-        my $quoted_chars = qr/[\ ;:,\.'\\]|^$/o;
+        my $quoted_chars = qr{[\ ;:,\.'\\]|^$}o;
         my @_p           = @_;
 
         # log all used subroutines if $sub_touch_dir exist and is owned by root.
@@ -1649,7 +1649,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\CWTDSW3DIZ7R43I3MET6C6MW5RDPW4TENAHHNWGCMLAS2RKK5FMAKNXR5LHMEDBPKTR5VT7VCMVMG
-# \\ HJ7K62MP5EYG3DSRBBR6XIBC2C32H5IA3LX75VXI55T6HT46NTXH \\// C25519-BASE-32 //
-#  \\// G33UNY7TDKDCMS5NFYF4BRPKKU244QDFMX53LYKMBQZHVQBOKAI \\ CODE SIGNATURE \\
+#\\II7UERXQIDM4RMTE3HN4TRGEEDUWSMQAM4K2SXT54B4A4YE5KLCDD3TYZPJOXD52UJQ6OHCBRZY7U
+# \\ FTIQ2B3ETOB3VG774MX6DDHR2DGCXJS6CJBXZTHHSTZSGQQBLYH4 \\// C25519-BASE-32 //
+#  \\// H42DRLFJL5S2KSADWFMXP4VE6YKUOTEVUXRYH5R6HZMEVBNICBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
