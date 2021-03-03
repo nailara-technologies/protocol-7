@@ -6,7 +6,7 @@
 my $hostname  = <system.host.hostname>;
 my $reply_str = sprintf( "..%11s\n", '..' );
 return { 'mode' => 'nak', 'data' => 'nailara log directory not found' }
-    if !-d <log.nailara_log.path>;
+    if !-d <log.protocol_7.path>;
 my %file_size_str;
 my %file_size_raw;
 my %file_size_uval;
@@ -29,7 +29,7 @@ map {
         : $file_size_str{$file_name};
 
 } grep {/\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/}
-    @{ <[file.all_files]>->(<log.nailara_log.path>) };
+    @{ <[file.all_files]>->(<log.protocol_7.path>) };
 
 foreach my $file_name (
     sort {
@@ -50,7 +50,7 @@ $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
 return { 'mode' => 'data', 'data' => $reply_str }
 
 # ______________________________________________________________________________
-#\\Z6A6CWYAV3GLS5L7MS63VOXBIEK6CLBRXNSLMUGBOSE4YMGB67TDVCGCTSVZKJ4IIHRTUOBZEOXSO
-# \\ 4EB6JZKPT24XQYSYXTSRG7E3MACQZNKW3IB3NT2U7B4WRGBBFI36 \\// C25519-BASE-32 //
-#  \\// C2C7U7UBMFBRVFZ4OIMXXGNAGLOCGXABXCLIJJQQQG5JHLZAQBQ \\ CODE SIGNATURE \\
+#\\PVRCHX4QZ77V3LKXR26DEMTZM3PMSLXQDERA2SSO3637MOV3UPLXC3G2NVCEM3EHOFAJCVCTHHFMU
+# \\ RHMHPD6C2CITI2BOND6LQS5ZPOU5RXQNROIJTMOVS6XKTTH5YIXJ \\// C25519-BASE-32 //
+#  \\// R4VJQIGOAEPT7TT4KKH5WZB3PYAIKARAMIDM3RAZQL4L4VK3YDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
