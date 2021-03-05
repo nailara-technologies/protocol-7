@@ -5,14 +5,14 @@
 # descr = report x11 window id[s] for current agent
 # todo  = SIGTERM handler to remove them + auto cleanup of window ids
 
-my ( $source_name, $wid_str, $tile_name ) = split( / +/, $$call{'args'}, 3 );
+my ( $source_name, $wid_str, $tile_name ) = split( m| +|, $$call{'args'}, 3 );
 $source_name =~ s|^.+\.||g;
 my $err_msg;
 
 $err_msg = 'core config error (source name parameter missing)'
     if not defined $source_name;
 $err_msg = 'expected numerical window_id parameter'
-    if not defined $wid_str or $wid_str !~ /^\d+(,\d+)*$/;
+    if not defined $wid_str or $wid_str !~ m|^\d+(,\d+)*$|;
 if ( defined $err_msg ) {
     my $source_str = defined $source_name ? "[$source_name]" : '';
     <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
@@ -28,7 +28,7 @@ my $agent_name
 if ( not defined $tile_name ) {
     my $agent_count = 0;
     map {
-        if ( $ARG =~ /^$source_name\[/ ) {
+        if ( $ARG =~ m|^$source_name\[| ) {
             $agent_count++;
             $agent_name = $ARG;
         }
@@ -36,7 +36,7 @@ if ( not defined $tile_name ) {
         keys %{<composition.window_ids>};
     if ( $agent_count > 1 ) {
         <[base.log]>->(
-            0, "assign_window: multiple '$source_name' agents! [no tile name]"
+            0, "<assign_window> multiple '$source_name' agents [ no tile name ]"
         );
         return {
             'mode' => 'nak',
@@ -51,11 +51,11 @@ if (exists <composition.window_ids>->{$agent_name}
     #    #    and not defined <composition.window_ids>->{$agent_name}
 ) {
 
-    $wid_str = join( ',', sort { $a <=> $b } split( /\D+/, $wid_str ) );
+    $wid_str = join( ',', sort { $a <=> $b } split( m|\D+|, $wid_str ) );
     my $wid_lmsg = $wid_str;
     $wid_str =~ s|,| |g;
     <composition.window_ids>->{$agent_name} = $wid_str;  # LLL: check if exists!
-    my $s = $wid_str =~ / / ? 's' : '';
+    my $s = $wid_str =~ m| | ? 's' : '';
     <[base.log]>->( 1, "assigned window id$s $wid_lmsg to '$agent_name'" );
 
 ###[ ALPHA SUPPORT ]###
@@ -92,7 +92,7 @@ if (exists <composition.window_ids>->{$agent_name}
 }
 
 # ______________________________________________________________________________
-#\\RA6CBYBEYUCWYCXK5EXQH37Y2ZINBU3OPBBR2VLXDLPFA4SPWBC6TRKRN5GNT77BNXFOFLBQKE3F4
-# \\ NTMIX7WVAUHYFKX7LZN6V2OTH2WGXBKB243QXUTOAFIPTXSSKVRU \\// C25519-BASE-32 //
-#  \\// RL7YCVOFK6JTNNY3G2YIVK6CIE5FSYJ7H54XJQOCJ3NEVQRQWCA \\ CODE SIGNATURE \\
+#\\FGGEVFY6GPMQR2BQT5FCEHTUUFORLSDB573JRGTMMNTM2ILNTW2Y7QZFJAJFYR2L5OAFWFLOHFDVA
+# \\ DTA2P2XYV3HK5NSWHWXU3YCI4UDKYMMD3WWVRYKEFRYBYFVIZUMM \\// C25519-BASE-32 //
+#  \\// SALLGTAFS5HSJRTBMMOKZYDSCIRW2MO5SF3YQGRU7N2AUNNMCBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
