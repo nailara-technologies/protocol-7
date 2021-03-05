@@ -13,19 +13,19 @@ if ( not defined $display ) {
 <[base.log]>->( 1, "starting compton on display $display .." );
 
 # old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
-my $vsync_options = '--unredir-if-possible';
+my @vsync_options = qw| --unredir-if-possible |;
 
-$vsync_options = '--paint-on-overlay --dbe --unredir-if-possible'
+@vsync_options = qw| --paint-on-overlay --dbe --unredir-if-possible |
     if <x11.driver> eq 'nvidia';
 
-$vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
+@vsync_options = qw|--backend xrender --vsync opengl --paint-on-overlay --dbe|
     if <x11.mode> eq 'xephyr';
 
 <compton.pid> = my $pid = open3(
     <compton.in_fh>,
     <compton.out_fh>,
-    undef, qw| compton -d |, $display, $vsync_options, qw|
-         --shadow --no-dock-shadow -t -18 -l -15 -r 10 -o 1 -c -C
+    undef, qw| compton -d |, $display, @vsync_options, qw|
+        --shadow --no-dock-shadow -t -18 -l -15 -r 10 -o 1 -c -C
         --blur-background-fixed --blur-kern 11x11gaussian --resize-damage 5
         -f -D 21 --no-fading-destroyed-argb --detect-client-opacity
         --shadow-red 0.97 --shadow-green 0.97 --shadow-blue 1
@@ -70,7 +70,7 @@ delete <compton.renice_fh>;
 );
 
 # ______________________________________________________________________________
-#\\QRPBQCNU2WFV3ORYBRLWMIIISYF3CCB2AUGV7S6QC5OECBRHLQ7O57NW6WOAV4I37LFEJM2RPD3CA
-# \\ RNPPOEKDVFOYJRPVTUGNKGAOEC2EPTNI2CSTXAFER3TCMMNPJY2U \\// C25519-BASE-32 //
-#  \\// AJVFKR6AYIPQ6FTUGG4ZNNMRTH5RGD6LHTN72XFCD24EJVEOKBQ \\ CODE SIGNATURE \\
+#\\RFA2EOPPAPBCW4YAFEXBN2U3QUAHBGHPPQNHIJOOBY2PZYF4XO4CUMTZ6IVC3R64F7NM7XLTG5IHM
+# \\ 7KMSLRHBS4P4TZUFBWHDFB7FV4Q53PPPOWIZHOJG4RD7SSNX3HBD \\// C25519-BASE-32 //
+#  \\// FCRP3TUUEFUJSKUXD43WVH3XIL5ZQ5BLBGFH4JS4PCURNCKC4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
