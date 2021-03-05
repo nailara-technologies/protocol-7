@@ -241,7 +241,7 @@ sub prepare_subs {
         my $visualize_harmony    = $visualize->{'harmony'}    // 0;
         my $visualize_disharmony = $visualize->{'disharmony'} // 0;
 
-        local %ANSI = (
+        my %ansi = (
             'str'    => "\c[[1m",
             'reset'  => "\c[[m",
             'BLUE-B' => "\c[[34m\c[[1m",
@@ -314,7 +314,7 @@ sub prepare_subs {
                 ### ..340769.., [E] ##
                 $calc_str
                     =~ s{(\d+?)((((((3)?0)?7)?6)?9)?230769([230769]+)*)(\d*)$}
-                {$ANSI{'D-REST'}$1$ANSI{'YEL'}$2$ANSI{'D-REST'}$9$ANSI{'reset'}}
+                {$ANSI{'D-REST'}$1$ansi{'YEL'}$2$ansi{'D-REST'}$9$ansi{'reset'}}
                     and say ": $input_num$seperator_str$calc_str"
                     if $visualize_disharmony;
 
@@ -324,13 +324,13 @@ sub prepare_subs {
                 ### ..846153.., [T=5] ##
                 $calc_str
                     =~ s{(\d+?)((((((4)?6)?1)?5)?3)?846153([846153]+)*)(\d*)$}
-                {$ANSI{'BLUE'}$1$ANSI{'BLUE-B'}$2$ANSI{'B-REST'}$9$ANSI{'reset'}};
+                {$ANSI{'BLUE'}$1$ansi{'BLUE-B'}$2$ansi{'B-REST'}$9$ansi{'reset'}};
                 say ": $input_num$seperator_str$calc_str";
 
             } elsif ( $visualize_zulum and index( $calc_str, '0000000' ) >= 0 )
             {
                 $calc_str =~ s{(\d+?)?(0000000*)$}
-                {$ANSI{'BLUE'}$1$ANSI{'BLUE-B'}$2$ANSI{'reset'}};
+                {$ANSI{'BLUE'}$1$ansi{'BLUE-B'}$2$ansi{'reset'}};
                 say ": $input_num$seperator_str$calc_str";
 
             } elsif ( $visualize_harmony and $visualize_disharmony ) {
@@ -1649,7 +1649,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\II7UERXQIDM4RMTE3HN4TRGEEDUWSMQAM4K2SXT54B4A4YE5KLCDD3TYZPJOXD52UJQ6OHCBRZY7U
-# \\ FTIQ2B3ETOB3VG774MX6DDHR2DGCXJS6CJBXZTHHSTZSGQQBLYH4 \\// C25519-BASE-32 //
-#  \\// H42DRLFJL5S2KSADWFMXP4VE6YKUOTEVUXRYH5R6HZMEVBNICBA \\ CODE SIGNATURE \\
+#\\VHL3MMNIRC5PMO4AUHUV6YWIQ4HT6FLQSJQKW463PSGNZRZQWRRPVFRW5WBLPXHD6TNCAS3LUP4QM
+# \\ GCRBMSVAOIORTI4SVQV7KTTQGBJTNFS7CNS5HZVODUBDKBZQCXMS \\// C25519-BASE-32 //
+#  \\// CEDRS437UDN752EWJOTLIYMOPYTUVJAHB7IECFSGGZMJGFF2CCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
