@@ -16,7 +16,7 @@ return {
     if not defined $tile_group_name or !length($tile_group_name);
 return {
     'mode' => 'nak',
-    'data' => "tile group "$tile_group_name\" not found."
+    'data' => "tile group '$tile_group_name' not found."
     }
     if not exists <composition.setup.tile-groups>->{$tile_group_name};
 
@@ -24,13 +24,13 @@ if (<composition.transition_in_progress>) {
     push( @{<composition.transition_queue>}, $tile_group_name );
     return {
         'mode' => 'ack',
-        'data' => "transition queued..,"
+        'data' => 'transition queued..,'
     };
 }
 
 return {
     'mode' => 'nak',
-    'data' => "composition '$tile_group_name' is already active."
+    'data' => "tile group '$tile_group_name' is already active."
     }
     if $tile_group_name eq <composition.current_tile_group>;
 
@@ -44,7 +44,7 @@ return {
 };
 
 # ______________________________________________________________________________
-#\\DS67IO2VBUBBL44VTYXSKGB7GKDLTINPO2XDNZK6TELNF3ZWY2YMDYWROPI2JYWGWKOHIHSCPWC7I
-# \\ 7GFLZKESHVIJYRYEY2UWZV2NWGEE7RXEQDZB4ZWQTJJBC3SXQ5HI \\// C25519-BASE-32 //
-#  \\// KZRAR3HERNKIOGILNREII4JLHHSRXIKWU6GPMMYLP5S5LK2BCBI \\ CODE SIGNATURE \\
+#\\CIQCJVDKE255MSAUAMZHIITMWT2N5V6NFBNSCQW2BUOREX4KA3PH2KUZO5YAXQCEEMZYDZ3G5RJAU
+# \\ 6WWXWP64XBIEWQRFUI75TC32G6U6IBTODPJG4QJJXY7LXOUJJOQ5 \\// C25519-BASE-32 //
+#  \\// UQGYCEYJ35GGIYYXITABFFJQDNEP4BW4DURZMZFWGOPQJQQCYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

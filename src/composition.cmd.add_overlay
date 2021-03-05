@@ -22,12 +22,12 @@ my @new_overlays = sort keys %new_overlays;
 map {
     return {
         'mode' => 'nak',
-        'data' => "expected valid tile group name"
+        'data' => 'expected valid tile group name'
         }
         if not defined $ARG or !length($ARG);
     return {
         'mode' => 'nak',
-        'data' => "tile group "$overlay_str\" not found."
+        'data' => "tile group '$overlay_str' not found."
         }
         if not exists <composition.setup.tile-groups>->{$ARG};
 
@@ -39,7 +39,7 @@ my $merged_name = <[composition.merge_multiple]>->(@new_overlays);
 return <[composition.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
 
 # ______________________________________________________________________________
-#\\FNNEG3CML4UOXEFIBKRFDPDU3B4EPIMX3Z7U6MAIU3KLUHQARCD3D5YJX7QGNSNFXCJ5VOYEZ7R7U
-# \\ RBTROCFQUPEKXSC3WAKUSF4GCO66PEJPRF57STHWCCU6OIM7GJVX \\// C25519-BASE-32 //
-#  \\// NX4ZUCYFDEDY64VOIOP5JO7RRIZDM4GW63TOB2TZSGKGSFP6KDI \\ CODE SIGNATURE \\
+#\\OTTLS33V2ZEF7HWNRC4J64GCK2OTT7T7V42FVDZD3SYTN5DJR5CQUPUYQHLUMFZSBY644BYXGM4SY
+# \\ QH4UT74ZPUQBUY6KQ42ZG3FCCHDWFXZHRT5LRIFQN6TVHAI7JSEU \\// C25519-BASE-32 //
+#  \\// HU2ULSZAC3Z2LB42ZB3PK66N25UQTCVS6Q7POAK5N76DEKMROCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
