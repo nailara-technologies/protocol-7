@@ -24,17 +24,17 @@ $vsync_options = '--backend xrender --vsync opengl --paint-on-overlay --dbe'
 <compton.pid> = my $pid = open3(
     <compton.in_fh>,
     <compton.out_fh>,
-    undef,
-    split(
-        / +/,
-        join( ' ',
-            "compton -d $display --shadow --no-dock-shadow",
-            $vsync_options,
-            "-t -18 -l -15 -r 10 -o 1 -c -C",
-            "-f -D 21 --no-fading-destroyed-argb --detect-client-opacity",
-            '--shadow-exclude !name~="ticker-sdl"',
-            "--shadow-red 1 --shadow-green 1 --shadow-blue 1" )
-    )
+    undef, qw| compton -d |, $display, $vsync_options, qw|
+         --shadow --no-dock-shadow -t -18 -l -15 -r 10 -o 1 -c -C
+        --blur-background-fixed --blur-kern 11x11gaussian --resize-damage 5
+        -f -D 21 --no-fading-destroyed-argb --detect-client-opacity
+        --shadow-red 0.97 --shadow-green 0.97 --shadow-blue 1
+        --shadow-exclude !name~="ticker-sdl"
+        --opacity-rule 97:name*='SciTE'
+        --opacity-rule 92:name*='Firefox'
+        --opacity-rule 77:class_g*='XTerm'
+        |
+
 );
 if ( !<compton.pid> ) {
     <[base.log]>->( 0, "[!] unable to start compton [$OS_ERROR]" );
@@ -62,7 +62,7 @@ delete <compton.renice_fh>;
             'bin'               => 'compton',
             'pid'               => <compton.pid>,
             'callback_patterns' => {
-                qr/^No composite extension$/ =>
+                qr|^No composite extension$| =>
                     'compton.callback.not_composited'
             }
         }
@@ -70,7 +70,7 @@ delete <compton.renice_fh>;
 );
 
 # ______________________________________________________________________________
-#\\GVC4XRJP6BXLOYLNWOQCG5OXH6FGMMZMRNOYZ4K2FO4CL4IWJRBSMNR4M3X6COATYVMW6K5K4VDPK
-# \\ GOJ2STV2RTIACNA3VOV4UOXYABHII2QKKZU6PZM2JC7BUEGWMTXH \\// C25519-BASE-32 //
-#  \\// 643XEI5BJLSY2MWMXCXHE6IMPB5VHH46G2QJC4NJLLVNEMG44BI \\ CODE SIGNATURE \\
+#\\QRPBQCNU2WFV3ORYBRLWMIIISYF3CCB2AUGV7S6QC5OECBRHLQ7O57NW6WOAV4I37LFEJM2RPD3CA
+# \\ RNPPOEKDVFOYJRPVTUGNKGAOEC2EPTNI2CSTXAFER3TCMMNPJY2U \\// C25519-BASE-32 //
+#  \\// AJVFKR6AYIPQ6FTUGG4ZNNMRTH5RGD6LHTN72XFCD24EJVEOKBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
