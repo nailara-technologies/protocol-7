@@ -6,11 +6,30 @@
 my $display = <x11.display>;
 if ( not defined $display ) {
     <[base.log]>->(
-        1, "<!> unable to aquire DISPLAY setting from X-11, aborting startup!"
+        0, "<< not able to get DISPLAY setting from X-11, aborting startup >>"
     );
     exit(2);
 }
-<[base.log]>->( 1, "starting compton on display $display .." );
+<[base.log]>->( 1, "starting 'compton' on display $display .," );
+
+my $shadow_def = '#000013';
+<compton.default_shadow> //= $shadow_def;
+( my $sh_col = <compton.shadow_color> //= <compton.default_shadow> );
+if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
+    <[base.log]>->( 0, "<!> no a valid background color syntax ['$sh_col']" )
+        if defined $sh_col;
+    $sh_col = <compton.default_shadow>;    # <-- fallback color
+}
+
+## [ calculate shadow color values ]
+my @sh_val;
+my @shadow_opts;
+while ( $sh_col =~ s|^#?(\w{2})||i ) {
+    push( @sh_val, ord( pack( 'h*', $1 ) ) );
+}
+map { push( @shadow_opts, "--shadow-$ARG", pop(@sh_val) ) }
+    qw| blue green red |;
+##
 
 # old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
 my @vsync_options = qw| --unredir-if-possible |;
@@ -21,6 +40,8 @@ my @vsync_options = qw| --unredir-if-possible |;
 @vsync_options = qw|--backend xrender --vsync opengl --paint-on-overlay --dbe|
     if <x11.mode> eq 'xephyr';
 
+### start-up ###
+
 <compton.pid> = my $pid = open3(
     <compton.in_fh>,
     <compton.out_fh>,
@@ -28,13 +49,12 @@ my @vsync_options = qw| --unredir-if-possible |;
         --shadow --no-dock-shadow -t -18 -l -15 -r 10 -o 1 -c -C
         --blur-background-fixed --blur-kern 11x11gaussian --resize-damage 5
         -f -D 21 --no-fading-destroyed-argb --detect-client-opacity
-        --shadow-red 0.97 --shadow-green 0.97 --shadow-blue 1
         --shadow-exclude !name~="ticker-sdl"
         --opacity-rule 97:name*='SciTE'
         --opacity-rule 85:name*='Firefox'
         --opacity-rule 76:class_g*='XTerm'
         --opacity-rule 76:class_g*='Xephyr'
-        |
+        |, @shadow_opts
 
 );
 if ( !<compton.pid> ) {
@@ -45,7 +65,11 @@ if ( !<compton.pid> ) {
 
 <[base.log]>->( 1, " : compton process started [PID=$pid]" );
 my $prio = <compton.priority>;
-<[base.log]>->( 2, "setting priority of compton child (PID $pid) to $prio" );
+
+<[base.log]>->( 1, " :. reporting process id to 'nroot' .," );
+<[base.agents.report_child_pid]>->($pid);
+
+<[base.log]>->( 2, ": setting child priority [ $pid ] to $prio" );
 print {<compton.renice_fh>} "$pid $prio\n";
 close(<compton.renice_fh>);
 delete <compton.renice_fh>;
@@ -71,7 +95,7 @@ delete <compton.renice_fh>;
 );
 
 # ______________________________________________________________________________
-#\\Z3K5HN2STXQC3ZXPW7YLNPR6M434QK5CJ36QRLJSY7WEDH6VIDS66MXU4L4ITXQFXHTAK3SFEZVI2
-# \\ 4MWK3ZHZ2HXVUAO3FH3D4CWCKQMVS2Y6QJWNOSDHXBPGM2FZRA45 \\// C25519-BASE-32 //
-#  \\// Z2JKVWLPU26NINHCWBGCZ4VETOBHBDN2AXOZBWYFP7YFU6EUGAY \\ CODE SIGNATURE \\
+#\\GGASJSIIPDLBGDKH7C5TGLSZECTDRVFKLQNFFUJAO3XWWC23PIDOZ57DP3MRM6VRHD6G433B2N7VA
+# \\ Q3W7MPGPUP7LHBVMHMHJSC6KSSNUH2UJW222TX232W36FZOYNM4R \\// C25519-BASE-32 //
+#  \\// JBYD5TG3NX6IZZB2ICQ3AZZDZMFDW5MTQLITEPTUBA2ANAW3CDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
