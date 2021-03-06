@@ -59,7 +59,7 @@ my $dot_pos  = index( $line_str, '.' ) - 1;
 $dot_pos = length($calc_str) if $dot_pos < -1;
 my $space = ' ' x $dot_pos;
 
-$line_str =~ s{(*plb:\.)(\d*?)($harmony|0{$accuracy,} )}
+$line_str =~ s{(*plb:\.)(\d*?)($harmony|0+ )}
         {$1$ANSI{'match_y'}$2$ANSI{'reset'}}
     or $line_str =~ s{(*plb:\.)(\d*?)($un_harmonic)}
         {$1$ANSI{'match_n'}$2$ANSI{'reset'}};
@@ -67,7 +67,7 @@ $line_str =~ s{(*plb:\.)(\d*?)($harmony|0{$accuracy,} )}
 my $return_code = 1;
 $calc_str =~ s|^\d+\.||;
 my $result = '< ? >';
-if ( $calc_str =~ m|($harmony(*nla:\d+\.))| or $calc_str =~ m|0{$accuracy}$| ) {
+if ( $calc_str =~ m|($harmony(*nla:\d+\.))| or $calc_str =~ m|0+$| ) {
     $result      = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
     $return_code = 0;
 } elsif ( $calc_str =~ m|$un_harmonic| ) {
@@ -81,7 +81,7 @@ print "\n$space $q$ANSI{'str'}$check_string$ANSI{'reset'}$q  ==="
 exit($return_code);
 
 # ______________________________________________________________________________
-#\\RVQ7KURW6L65NWNMODXJ6TM55JJKCNTRBNDAPEQM2SYXKJOC4YK2TJNU4DH7YXYFB5RDZ56YMH4QI
-# \\ 6AP2KJCZEBYPB6BDTSWSN7ARKJC3HTCYANDOG3PM72UR5SDHMMXE \\// C25519-BASE-32 //
-#  \\// EYJZUFS4FRO36GIJRCXWU4VEY7II4JZWDFURRPFHFRG46T7FKBA \\ CODE SIGNATURE \\
+#\\SJL6ANDY7BEEVFRAGJXKR3WVCVAZNAJYBK4PZ4I7NGSHP42DCUWWF2PWMLVXTBAZDZAVEB75QNDI6
+# \\ EVLTEHBFVX2BD6DD3O5KYUELW24VQB4P2R2RYF5GTJB4HOX4TAIV \\// C25519-BASE-32 //
+#  \\// BBE25FAFVKHCUGIYOAZWN4OZU7W3GYQVXN7PNUAQU6WVPNNKEAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
