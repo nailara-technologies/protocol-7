@@ -1,0 +1,3 @@
+#!/bin/sh
+
+perl -MMath::BigFloat -MTerm::Size -e '$M=6;$T="\eH;\e[%dm\x1b[38;5;%dm%s";$INIT=1;no warnings;use v5.10.0;($x,$y)=Term::Size::chars;$A=$M*$x*$y;use Crypt::PRNG::Fortuna;use Time::HiRes qw|time sleep|;$GND=Crypt::PRNG::Fortuna->new(sprintf"%.13f",time*rand(4200)/13);$|=1;binmode(STDOUT,":encoding(UTF-32)");Math::BigFloat->accuracy($A+1);Math::BigFloat->round_mode(qw|trunc|);$ZULUM=Math::BigFloat->new($GND->int32);while(1){$Z0=scalar$ZULUM->bdiv(13,$A);while(length($Z0)){printf($T,substr($Z0,0,2,""),substr($Z0,0,3,""),join("",map{ chr(substr($Z0,0,3,""))}(5..$A/3)));sleep(1/(($GND->rand()*5)));sleep(1.2)if$INIT-->0}}' 2>/dev/null
