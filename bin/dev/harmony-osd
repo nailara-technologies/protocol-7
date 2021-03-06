@@ -2,6 +2,7 @@
 use v5.10;
 use strict;
 use warnings;
+use English;
 
 $ENV{'DISPLAY'} //= ':0.0';
 
@@ -9,12 +10,15 @@ $ENV{'DISPLAY'} //= ':0.0';
 
 exit(0) if not length $check_string;
 
-my $text_file = '/tmp/.osd_harmony.' . $$;
+my $text_file = '/tmp/.osd_harmony.' . $PID;
 my @aosd_opts
     = ( qw| -p 1 -e 1 -o 2400 -y 17 -x 0 -n WhiteRabbit -i |, $text_file );
 
 my $msg;
-if ( system( '/usr/local/bin/harmony', '-q', $check_string ) == 0 ) {
+if (system( qw| harmony -q |, $check_string ) == 0
+    and ( $check_string !~ m|^\d+(\.\d+)?$|
+        or system( qw| harmony -q -n |, $check_string ) == 0 )
+) {
     $msg = "'$check_string'  IS  HARMONIC =)\n";
     push( @aosd_opts, qw| -u 2400 -R #0069B7 | );
 } else {
@@ -27,8 +31,9 @@ print FILE $msg;
 close FILE;
 
 system( '/usr/bin/aosd_cat', @aosd_opts );
+
 # ______________________________________________________________________________
-#\\KELPVYJHTMKJWJE3VTQHVDRT3IVOXGI6ZKKYHMR7RIVM6ESOWA3K57AOJS3U5WRQROAIESYUVXS3A
-# \\ 44COUL5NMKLWKIWHM4ZBZWHWSAB4JK64GZ36DQTCEWNGZ45B4YAZ \\// C25519-BASE-32 //
-#  \\// MNDU44IV4SMMXZZUEGCOJPRD6NP4X6XT6DYMV4YSJWC7Z65YABA \\ CODE SIGNATURE \\
+#\\B5D7YFAB5Z2UZY2GYRV6RWYNDPZO7GEYX3RKQLD5FIHT7WMGRD227ZSLICSZRKRCKISEWHKEHLWLG
+# \\ IJFUFD7KD75KDC2KJZAAUH3NLYBHPQI5R3SJC7VKMCX6JGQGZIXW \\// C25519-BASE-32 //
+#  \\// VPVRXVTRX4N332J2QVEOML6PSSG46FH22H5UZSTSORBZAJGYODI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
