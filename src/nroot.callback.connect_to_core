@@ -19,9 +19,9 @@ $c_fh = <[auth.agent.client]>->( $c_fh, $authname, $core_key );
 if ( exists $init_data->{'core'}->{'key'} ) {    ## secure key erasure ##
     my $rand_len = length( $init_data->{'core'}->{'key'} );
     substr( $init_data->{'core'}->{'key'},
-        0, $rand_len, <[base.rnd_chars]>->($rand_len) );
+        0, $rand_len, <[base.prng.characters]>->($rand_len) );
     $init_data->{'core'}->{'key'}
-        .= <[base.rnd_chars]>->( 8 + int( rand(9) ) );
+        .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
     delete $init_data->{'core'}->{'key'};
     delete $init_data->{'core'} if !keys %{ $init_data->{'core'} };
 }
@@ -51,7 +51,7 @@ my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
 return 1;
 
 # ______________________________________________________________________________
-#\\B4QP6GX5C7EFLGCUFWTXD4MAVTBHB2TCNJSLIFDCBZAIBJE6ZSVAHU5SUJVX3O4HA5YBPOIUHSFRK
-# \\ RLMSTDZBV44AL6HOE4SHT6OHYZBSVMYSIZIPZNGHTJXVTJB4Q7BK \\// C25519-BASE-32 //
-#  \\// DRNOYNPQ2HG2KD22DBPGSBJG7EIC4RSAMDMLCS6REBCI3TZJECI \\ CODE SIGNATURE \\
+#\\MAGZDOMKIUB3AL6POD6DWDLMVKTE6LSPEGSLOEOXDJEJWUL474MQQESIS2T7GM2NFNAM25SGDKUSC
+# \\ FMXDGEBQJT7NODH6G3O4F6AOD45BDTWJAPOELIVY7AGVIJJXAB3W \\// C25519-BASE-32 //
+#  \\// HMNUBC4WCFIGH5MV2LLECFGHMWTQTZFFY62YMGPQ5DR45BICWDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

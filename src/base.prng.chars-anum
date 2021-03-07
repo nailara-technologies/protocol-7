@@ -1,0 +1,20 @@
+# >:]
+
+# name = base.prng.chars-anum
+
+my $length = shift;
+die 'ammount of random bytes not specified' if not defined $length;
+die 'expected positive integer argument' if $length !~ m|^\d+$| or $length < 1;
+
+my $seed_string
+    = '01234577790'
+    . 'abcdefghijklmnopqrstuvwxyz'
+    . 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+return <base.prng.fortuna>->string_from( $seed_string, $length );
+
+# ______________________________________________________________________________
+#\\JYAH54DXUX5G3QEBHCCMU54MZHIYSK5SWQHTVM4XBCSUTOCARQ23RHASVZYB7ENV3BCZUYGEXFSYQ
+# \\ KXJTD7YVR5SICNV3YCUMKOQY2TXO6DEPKQCZ7WR3AHQTFHSQRVDN \\// C25519-BASE-32 //
+#  \\// 7H45652KBTAMQLYNHIABXPICYDAWMQX6MB7BGWASC5YRKXVLSAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

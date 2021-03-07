@@ -568,7 +568,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 ## prepare reply id [ used in 'deferred' mode ] ##
 
                 <base.cmd_reply> //= {};
-                my $reply_id = <[base.gen_id]>->(<base.cmd_reply>);
+                my $reply_id
+                    = <[base.gen_id]>->( <base.cmd_reply>, undef, undef, 0 );
                 <base.cmd_reply>->{$reply_id} = {
                     'cmd'        => $cmd,
                     'cmd_id'     => $cmd_id,
@@ -1023,7 +1024,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 # ______________________________________________________________________________
-#\\4DCK3Q4NOHEMNEB2IFVL4FQXGOC5VUKLIOKYMVNPQ2KAW2DR5GU3BONLWSQHSKU7HO4G3HZ2RUWFO
-# \\ MWAH6FLVFMPUOB5OZIJFKSBQSF66BIPBBZTY4DSOMIKZGRZNSK3V \\// C25519-BASE-32 //
-#  \\// O2KHFV2L43KKQINQY32QZ2UXWRLZGIIDMK63G2X4XK2UL4OAQCA \\ CODE SIGNATURE \\
+#\\UCAO4V3PHPBPQOTT7JMHFO7EZ6FKB6474VYLBOZ4UN3T473D65CP4ZMV7BTYPC5JQLKC3NWEFQIDY
+# \\ 3K6RL55MTHXHUCHY7EPG6BUA3V5G6JSPYE7VZ4372JAY2QCXWSSD \\// C25519-BASE-32 //
+#  \\// Y2BHTDO7G57ROQDPBUFS5TACOWGVCTPDO72Y5ZA5PGSTUQVPECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
