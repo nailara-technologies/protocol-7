@@ -85,7 +85,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
         }
     skip_sign:
         substr( $root_key{'secret'}, 0, $rk_priv_len,
-            <[base.rnd_chars]>->($rk_priv_len) );
+            <[base.prng.characters]>->($rk_priv_len) );
         map { undef $root_key{$ARG} } ( 'secret', 'public' );
     } else {
         <[base.log]>->( 1, ": unrecognized root key url, skipped signing..," );
@@ -97,7 +97,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
 }
 
 # ______________________________________________________________________________
-#\\GSTBLWM3ZUFUQJDXPQCIM7HBNO52W2NYJQYEYCUHLF77IAQLR6F55I7YKW6DOPVPZMHF5BYUTRRDS
-# \\ 6V6JNKQGFDUKRBOPGGO3DH2EPYQY2V4LLDV52P7F5L32JTUIDCBD \\// C25519-BASE-32 //
-#  \\// MPO5RRCSRB2DJOF4HCWVKLYVJDWQLVLY5L2KAXOMIPPYLX6J4AA \\ CODE SIGNATURE \\
+#\\AH2HVXUVNURBAGS64C5J2CVQSMJMLXTWBZJD67XLKKAVPCMVJ6RUDDW2K2UDAF3277O2HD2YPHF3W
+# \\ A6JOPCBBDV4WEDJ4YUZXTUJ3HFDVY6GSG76PZOFIZUKUQ5JPATHK \\// C25519-BASE-32 //
+#  \\// X3YV5SAHLB4P4QPKDKI7TIBDSESSAZOSRUFMNL6EX6KZXILAYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

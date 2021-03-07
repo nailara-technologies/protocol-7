@@ -28,8 +28,7 @@ if ( <X-11.mode> eq 'host' ) {
 }
 <[base.log]>->(
     0,
-    sprintf( "warning: X-11 mode changed to '%s', restart required <!>",
-        <X-11.mode> )
+    sprintf( "<< X-11 mode changed to '%s', restart required >>", <X-11.mode> )
 ) if defined <X-11.old_mode> and <X-11.mode> ne <X-11.old_mode>;
 
 return 0 if <X-11.initialized>;
@@ -89,7 +88,7 @@ if ( $mode ne 'host' ) {
         exit(2);
     } else {
         <[base.log]>->(
-            1, ": '$bin_name_lc' process started [pid=$server_pid]"
+            1, ": '$bin_name_lc' process started [PID:$server_pid]"
         );
         <X-11.pid> = $server_pid;
 
@@ -315,22 +314,22 @@ if (    <X-11.has_dpms>
 ## GPU load statistics [intel only] ##
 <X-11.collect_intel_gpu_stats> //= 0;
 <X-11.collect_gpu_stats_on_4K> //= 0;
-<[X-11.start_gpu_top]> if <X-11.video_driver> =~ /^i/i    # i9xx <?>
+<[X-11.start_gpu_top]> if <X-11.video_driver> =~ m|^i|i    # i9xx <?>
     and ( <X-11.collect_intel_gpu_stats>
     or <X-11.collect_gpu_stats_on_4K> and <X-11.obj>->width_in_pixels >= 3840 );
 
 ## background image / color ##
 
 <X-11.keep_background> //= 0;
-if (<X-11.keep_background>) {    # <- don't touch background image and color
+if (<X-11.keep_background>) {    # <- do not touch background image and color
     <X-11.initialized> = 1;
     return 0;
 }
 
-if ( not defined $bg_col or $bg_col !~ /^\#?[0-9A-F]{6}$/i ) {
+if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
     <[base.log]>->( 0, "<!> no a valid background color syntax ['$bg_col']" )
         if defined $bg_col;
-    $bg_col = <X-11.bg_col_default> // '#000000';    # <- fallback color
+    $bg_col = <X-11.bg_col_default> // '#000000';    # <-- fallback color
 }
 
 if ( <X-11.bg_fade> //= 1 and $bg_col ne '#000000' ) {
@@ -354,10 +353,10 @@ if ( defined $bg_image ) {
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
-    @hsetroot_params = ( "-$bg_mode", $bg_image ); # <- no -cover on arch linux.
+    @hsetroot_params = ( "-$bg_mode", $bg_image );  # <-- aquire available [LLL]
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
         <[base.log]>->(
-            0, "unable to execute 'hsetroot' ( returned $CHILD_ERROR )"
+            0, "unable to execute 'hsetroot' [ returned $CHILD_ERROR ]"
         );
     }
 }
@@ -368,7 +367,7 @@ if ( defined $bg_image ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\ELPNEPXRZJKFZPTD4PEBOKIC5MRLMBFYAJSPMQ5YQH3M5BG7TR4LN6SL2RDJOFBL7WFGCYSEOZ5QK
-# \\ R4VDDAR5REKOVYSUBAA3GNJBF363FRY3THQQVZRIV2ODIWX6R5E4 \\// C25519-BASE-32 //
-#  \\// AUE3S474CVXTPTEXNSBE3HM4IGG23PLJ4DOT2SCF2CVZYSIMOCY \\ CODE SIGNATURE \\
+#\\NJ5TYSTFZCCHWFZCLTTLC6X2RMUGXJ57FRDDAD6WO7WUWITPE4677HE4FVUYJKOEVXBRXBB5YTYR4
+# \\ QWRC7NBYMPFAPQVZKYSJI2BTXXM3MG46RWYQOD6YIGFFILBSHVDW \\// C25519-BASE-32 //
+#  \\// WA3LMDATXFZLELVDWR3Y2X4A5UJPHTA5TJQ2ZI4QGSZ3BYWNKAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -13,7 +13,7 @@ return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
 
 if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
-    my $cmd_id        = <[base.gen_id]>->( $data{'route'} );
+    my $cmd_id        = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
     my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
     my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
@@ -123,7 +123,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 # ______________________________________________________________________________
-#\\53WQI7XS2MFTCKD6DP3L2V662MMCGSY44NL2FDQSRMRSBPARF5LGWUTW5G4RYIKXZRATV43Y6E4DY
-# \\ GMODJTDO63UKIDHK6YUSDXSOY6AP6J4EBZ5TTMBTC756KXHGTUUN \\// C25519-BASE-32 //
-#  \\// 7EOCL6YZ4JYQ5P3O25LLNOWOQ7VUZLQI6EZ737GWX4243TZ6ODQ \\ CODE SIGNATURE \\
+#\\2M4PCOUUNQ6XMPGQHVXAHKY7UYGEKH4QEU7JNCSBJWMZZJEMYXUJUV2J7J6PRJYHE5YOPRUJO5UJA
+# \\ B3AX6NB6XQPO4FS7KEPO76MIDNAEBF4VU6NIVU7DVT4C2CVMFHC6 \\// C25519-BASE-32 //
+#  \\// T5FLD5HS4FLDOZMB35JSGVKIJUSIIZARFJGSPH3WJSO66V7YGCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

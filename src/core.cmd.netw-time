@@ -4,7 +4,7 @@
 # param = [unix|precision]
 # descr = protocol-7 network time, BASE-32 encoded
 
-my $parameter = $$call{'args'} // 0;  #  <--  precision or given unix time value
+my $parameter = $$call{'args'} // 3;  #  <--  precision or given unix time value
 
 return {
     'mode' => 'nak',
@@ -15,7 +15,7 @@ return {
 return { 'mode' => 'ack', 'data' => <[base.ntime.b32]>->($parameter) };
 
 # ______________________________________________________________________________
-#\\UNWXHX77FIIAY6UJILXHDHBSYF3FQCYDY3H2LJEFOR4TAEAZGHZPDFIKY5PAB6OALCWJKF4IKLXDG
-# \\ 6JOHIA5ITQU6MXHQ3KBTCPT2F4QX6ZYCB7YXCNMJWTKVJWKAAQKV \\// C25519-BASE-32 //
-#  \\// UBACWAWLIHPTEWKPCJF5YONXKZ6DMNZEJDMV55QMFWSJMJE3UDQ \\ CODE SIGNATURE \\
+#\\V2TH4YBKXPGBVUSFRRQ3RRQKBZO7MAGZHLMOBWN2OZ3ILPAYUPAOVYIEMIQIXYOMV4G5PFIW4FCTU
+# \\ KGOV3F2X5ZDGHX4F56EWENXAUGBQXUWVDTLHICRTOBTT5WHT7CIP \\// C25519-BASE-32 //
+#  \\// 2U35AGXKRE4B6PQ5VTECES5TFQH7STI7U2PJDDTXT3FRU74SCBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

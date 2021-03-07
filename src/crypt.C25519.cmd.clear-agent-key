@@ -17,7 +17,7 @@ return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
 my $usr_key = $KEYS{'C25519'}{$key_name};
 map {
     my $k_len = length( $usr_key->{$ARG} );
-    substr( $usr_key->{$ARG}, 0, $k_len, <[crypt.random.bytes]>->($k_len) );
+    substr( $usr_key->{$ARG}, 0, $k_len, <[base.prng.bytes]>->($k_len) );
     undef $usr_key->{$ARG};
 } keys %{$usr_key};
 undef $usr_key;
@@ -31,7 +31,7 @@ if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
     my $s_key = $KEYS{'C25519'}{'session'}{$s_key_name};
     map {
         my $k_len = length( $s_key->{$ARG} );
-        substr( $s_key->{$ARG}, 0, $k_len, <[crypt.random.bytes]>->($k_len) );
+        substr( $s_key->{$ARG}, 0, $k_len, <[base.prng.bytes]>->($k_len) );
         undef $s_key->{$ARG};
     } keys %{$s_key};
     undef $s_key;
@@ -45,7 +45,7 @@ delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
 return { 'mode' => 'ack', 'data' => "deleted '$key_name' key from memory" }
 
 # ______________________________________________________________________________
-#\\Q4KGOTWXOOT4JDTIW2FNTGVNXX4NNLWE6ZYHJQ4PWSON6U3EEACP4A5JVLFNMFYM4OC2QB2YWDRG4
-# \\ IVZLSSE7YVHP2E2WBN57IYBKP7S3FONRKIJRD2LWJCO6US3RTYK3 \\// C25519-BASE-32 //
-#  \\// G34RUOJUNMWXIHXMQNKAHLBLCX5P75DRYPEDN73PRCKT22ZNCAY \\ CODE SIGNATURE \\
+#\\OYFIUIBMCXHA6QZ2R2AOOPARI2KVHJQ5XOIY4VMVH74RBPTS6KYG6K52CWNDBKJJSNAKDERJGVOWE
+# \\ PQYBUCZID2NL4IAN2FBQEQSASRSUIYDX657XQPH3CP6PFOJOVYT4 \\// C25519-BASE-32 //
+#  \\// UII73477BZOFXN36KGFQXGBVNGA3EVMPVNMLBOJCZDSOXFFQYBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

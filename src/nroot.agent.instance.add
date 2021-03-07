@@ -7,22 +7,21 @@ my $agent_id = shift // '';
 die "agent id '$agent_id' does not exist."
     if not exists <nroot.agent.setup>->{$agent_id};
 
-my $instance_id = <[base.gen_id]>->(<nroot.agent.instance>); # dec. max width -2
-
-my $now_ntime = <[base.ntime]>->(3);
+my $network_time = <[base.ntime]>->(3);
+my $instance_id  = <[base.gen_id]>->(<nroot.agent.instance>);
 
 <nroot.agent.instance>->{$instance_id} = {
     'agent_id'     => $agent_id,
     'agent_name'   => <nroot.agent.setup>->{$agent_id}->{'name'},
-    'created'      => $now_ntime,
-    'status-since' => $now_ntime,
+    'created'      => $network_time,
+    'status-since' => $network_time,
     'status'       => 'offline'
 };
 
 return $instance_id;
 
 # ______________________________________________________________________________
-#\\OEO26UJUKKW3XQUYPEUNLHZKBXNCSZBZPT2S7AWBDPUPWEJ5AUDPHQH4FGR5FCJCS3CNC3IZPHE6Q
-# \\ 23E44CZ4MXFBTYICQW7CJLJ27PJAODBYFGTZRCDHIMMGBM33YPUI \\// C25519-BASE-32 //
-#  \\// Q5V2ADH2FQ345OPPCCELLHAM2M52KIHYF2QXW7DEQ5UGWWHMUBA \\ CODE SIGNATURE \\
+#\\5MFYSQ33FHUCFLGOXPF2QXEIPQLTNMGJC5E7NYOGL3PH6CPV5ZZNGUOLDWHB2S4WCAZ5WVC3IUNZU
+# \\ QAL3I4UXICJKJEDODEQG3NNAKOHEJKK45WNVQEXHBBCRFGJWA64T \\// C25519-BASE-32 //
+#  \\// ZJVHS2X3SOKTX5BMORBVHA5COKRML4RN3X4O5S4NEGTKVC6S4BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
