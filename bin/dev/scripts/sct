@@ -1,4 +1,9 @@
 #!/usr/bin/perl
+use strict;
+use warnings;
+use v5.10.0;
+
+## use script root path ## [ LLL ] ## <-- <<< ! >>>
 
 use Time::HiRes qw| sleep |;
 
@@ -11,8 +16,9 @@ my @check_paths = qw(
     /data/projects/protocol-7/cfg/agents
     /data/projects/protocol-7/cfg
     /data/projects/protocol-7/bin
-    /data/projects/protocol-7
     /data/projects/protocol-7/bin/dev
+    /data/projects/protocol-7
+    /data/projects/protocol-7/bin/dev/scripts
 );
 
 {
@@ -38,7 +44,7 @@ foreach my $filename (@ARGV) {
     }
 }
 
-warn "\n <!> selected file name or path not found <!>\n\n"
+warn "\n << selected file name or path not found >>\n\n"
     if @ARGV and !@edit_files;
 
 system( join( ' ', 'scite', @edit_files, '&' ) );
@@ -56,8 +62,8 @@ die "\n << error while acquiring screen"
 
 my $wh = $sh + 77 - 20;
 
-system("wmctrl -e '0,0,-77,947,$wh' -r ' - SciTE' &");
-system("wmctrl -a ' - SciTE' &");
+system( qw| wmctrl -e |, "'0,0,-77,947,$wh'", qw| -r ' - SciTE' & | );
+system(qw| wmctrl -a ' - SciTE' & |);
 my $accel = 0.047;
 for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
     qx| transset -n SciTE $t |;
@@ -66,7 +72,7 @@ for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
 }
 
 # ______________________________________________________________________________
-#\\M6UDJ7W23STRFDQFYPSLBBV4PJNLQPCE4ND2HPCWUZPWIGRQIJZFU35Q3ILBIRQPA4EFYA3MTJCCO
-# \\ OWC56TVRZN5EZFQNSOSXAFHBUBV2PBS2J2DUTN6S4ASTFEESB7V7 \\// C25519-BASE-32 //
-#  \\// YXR7SF3QB6ZTX5USO5MVPU3CUCEJA6VFSBQLNXBI2SZKE3NHUAY \\ CODE SIGNATURE \\
+#\\CXQO2OCF23E5YKCADN2FGTE4DI3NFVTA6FXQH6COGMLN5VG6TYPKAWXGQ2GYEP4MOSC3AQ7P5LGEK
+# \\ 7724KJASPDLXCNMJDPIN3MODPJ5CDID6VLB3HT5GEHOYXPGHCJJ5 \\// C25519-BASE-32 //
+#  \\// ERDKTV6EQNFMZHL4RUPYK2NUEFSFU2ZDFU6EW5BCALK46LYO4DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
