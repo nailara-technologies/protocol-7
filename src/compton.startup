@@ -15,6 +15,7 @@ if ( not defined $display ) {
 my $shadow_def = '#000013';
 <compton.default_shadow> //= $shadow_def;
 ( my $sh_col = <compton.shadow_color> //= <compton.default_shadow> );
+
 if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
     <[base.log]>->( 0, "<!> no a valid background color syntax ['$sh_col']" )
         if defined $sh_col;
@@ -25,7 +26,13 @@ if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
 my @sh_val;
 my @shadow_opts;
 while ( $sh_col =~ s|^#?(\w{2})||i ) {
-    push( @sh_val, ord( pack( 'h*', $1 ) ) );
+    push(
+        @sh_val,
+        uc($LAST_PAREN_MATCH) eq 'FF'    ## <-- white exception ., ##
+        ? 1
+        : sprintf( "%.2f",
+            ord( pack( 'h*', $LAST_PAREN_MATCH ) ) / 100 / 2.72 )
+    );
 }
 map { push( @shadow_opts, "--shadow-$ARG", pop(@sh_val) ) }
     qw| blue green red |;
@@ -42,31 +49,43 @@ my @vsync_options = qw| --unredir-if-possible |;
 
 ### start-up ###
 
-<compton.pid> = my $pid = open3(
-    <compton.in_fh>,
-    <compton.out_fh>,
-    undef, qw| compton -d |, $display, @vsync_options, qw|
+my @c = (
+    qw| compton -d |, $display, @vsync_options, qw|
         --shadow --no-dock-shadow -t -18 -l -15 -r 10 -o 1 -c -C
-        --blur-background-fixed --blur-kern 11x11gaussian --resize-damage 5
-        -f -D 21 --no-fading-destroyed-argb --detect-client-opacity
-        --shadow-exclude !name~="ticker-sdl"
+        --blur-background-fixed --detect-client-opacity
+        --blur-kern 11x11gaussian --resize-damage 5
+        -f -D 21 --no-fading-destroyed-argb
+        --shadow-exclude name*='menu'
+        --shadow-exclude name*='ticker'
+        --shadow-exclude name*='gkrellm'
         --opacity-rule 97:name*='SciTE'
         --opacity-rule 85:name*='Firefox'
         --opacity-rule 76:class_g*='XTerm'
         --opacity-rule 76:class_g*='Xephyr'
         |, @shadow_opts
-
 );
+
+### [ logging command arguments ] ###
+my $wrap_at = 78 - <system.start.log_prefix_width> // <[base.log_prefix_width]>;
+local $Text::Wrap::columns   = $wrap_at;
+local $Text::Wrap::separator = "\n";
+my $cmd_string = wrap( '  ', ' ' x 18, join( ' ', @c ) );
+$cmd_string =~ s|\n| \\\n|mg;
+$cmd_string =~ s|( +\\\n)?$|\n|s;
+map { <[base.log]>->( 2, $ARG ) } ( ':.', split( m|\n|, $cmd_string ), '..' );
+###
+
+<compton.pid> = my $pid = open3( <compton.in_fh>, <compton.out_fh>, undef, @c );
 if ( !<compton.pid> ) {
     <[base.log]>->( 0, "[!] unable to start compton [$OS_ERROR]" );
     <[base.log]>->( 1, " : aborting agent startup .," );
     exit(1);
 }
 
-<[base.log]>->( 1, " : compton process started [PID=$pid]" );
+<[base.log]>->( 1, ": compton process started [PID=$pid]" );
 my $prio = <compton.priority>;
 
-<[base.log]>->( 1, " :. reporting process id to 'nroot' .," );
+<[base.log]>->( 1, ": :. reporting process id to 'nroot' .," );
 <[base.agents.report_child_pid]>->($pid);
 
 <[base.log]>->( 2, ": setting child priority [ $pid ] to $prio" );
@@ -95,7 +114,7 @@ delete <compton.renice_fh>;
 );
 
 # ______________________________________________________________________________
-#\\GGASJSIIPDLBGDKH7C5TGLSZECTDRVFKLQNFFUJAO3XWWC23PIDOZ57DP3MRM6VRHD6G433B2N7VA
-# \\ Q3W7MPGPUP7LHBVMHMHJSC6KSSNUH2UJW222TX232W36FZOYNM4R \\// C25519-BASE-32 //
-#  \\// JBYD5TG3NX6IZZB2ICQ3AZZDZMFDW5MTQLITEPTUBA2ANAW3CDQ \\ CODE SIGNATURE \\
+#\\V7YZAO2MLDSFCGJ75J3WHPQXCX7DMP544F7S6IV7VNM4KRQY6ZQX72B3RHGLKYFQL2P2MUCFOC5KY
+# \\ X6KLODJSK3HBKQKPCPNY62INLJCTHLQXBNQMV6JJ2XU2K4VV6VYK \\// C25519-BASE-32 //
+#  \\// WTLYHP3TG5OSXTGTE7L6IYGGPXGMRNTR7S6AXICKBORRB47QOAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
