@@ -1,0 +1,23 @@
+# >:]
+
+# name  = base.prng.init_code
+
+<[base.perlmod.load]>->('Crypt::PRNG::Fortuna');
+
+## [ initializing fortuna ] ##
+my $iterations    = 44;
+my $harmonic_seed = '[_not_yet_]';
+while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
+    ( $harmonic_seed = join( '', <[base.ntime]>->(5), rand(13747) ) ) =~ s|\.||;
+    ( $harmonic_seed /= 13 ) =~ s,(\.|e.+$),,g;
+    <[base.sleep]>->(0.0013) if $iterations < 37;
+}
+
+<base.prng.fortuna> = Crypt::PRNG::Fortuna->new($harmonic_seed);
+
+0;
+# ______________________________________________________________________________
+#\\Y2LBXNPXKXJPVMJ5VEL55X4DVFJNOFYSVZCWRCFHCPXF4SYZERADPR3TX5DXZ3L2N3GX75R5GVF2M
+# \\ BU5VSJ4OXFZBUAXKBLMURYX7OHLWFGQC5MJRIRRVBD4Z2XDXYPDD \\// C25519-BASE-32 //
+#  \\// XFTLTCB4YWUEFDSOYVWJKCGF4IVI7XY6X4D7YGCVRZWF6WMPEAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

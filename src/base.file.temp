@@ -29,7 +29,7 @@ my $tmp_file_path;
 while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
     $retries = 0 if $tmpl !~ m|X|;    # <-- no rnd char range in template
     ( my $fname = $tmpl )
-        =~ s|(X+)|uc( <[base.rnd_chars_anum]>->( length $1 ) )|ge;
+        =~ s|(X+)|uc( <[base.prng.chars-anum]>->( length $1 ) )|ge;
     $tmp_file_path = catfile( $first_dir, $fname );
 }
 
@@ -48,7 +48,7 @@ open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $OS_ERROR";
 return ( $tmp_fh, $tmp_file_path );
 
 # ______________________________________________________________________________
-#\\OEEUHR26DTARKEPD3FCDVBJPTZPTNWCLNPY3FIB6C7YBH2L5WQE56E27RN5AG7PBO5CGTYZFOO2KU
-# \\ M5LFFFKNRS3FSKJV5EWLVMS62MGV3YIOHNL7MKTJUXBWA4DG2GEB \\// C25519-BASE-32 //
-#  \\// C4JXSGORLV6VX4OWJ3G5SJ2LALHPCBYQ25NASZ6455WUR24Z2DY \\ CODE SIGNATURE \\
+#\\SKK23HMYW3LSQ4WHMFAAKRN44PERXGVU6BSJIWTN5VO6ECSA6NSBVAYWBOFMZODUNF6TNUC5SPVDI
+# \\ TXXQRZBMSCWZCRHQTKJBOQJVQIWXWZVF7J2C73C6CSTWUJU6MHCJ \\// C25519-BASE-32 //
+#  \\// F7YO5FDHL2DORLQ7DQWI5XLUGIPJ5IRWHDSMYDTO42PDGU7HUCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

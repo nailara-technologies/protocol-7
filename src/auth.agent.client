@@ -42,9 +42,9 @@ if ( defined $key_str
     if ( exists $KEYS{'agent'}{'session_key'} ) {    ## secure key erasure ##
         my $rand_len = length( $KEYS{'agent'}{'session_key'} );
         substr( $KEYS{'agent'}{'session_key'},
-            0, $rand_len, <[base.rnd_chars]>->($rand_len) );
+            0, $rand_len, <[base.prng.characters]>->($rand_len) );
         $KEYS{'agent'}{'session_key'}
-            .= <[base.rnd_chars]>->( 8 + int( rand(9) ) );
+            .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
         delete $KEYS{'agent'}{'session_key'};
     }
 
@@ -70,7 +70,7 @@ if ( defined $key_str
 }
 
 # ______________________________________________________________________________
-#\\67OCL4DC3SL25B3T3WSAG76LMBEBYXGWTVLR2QLZJ5TGCOETKBJOK2O3OJQA4LOFTZROVI5POIFXW
-# \\ 3AWOSFKTLW5MXG74VEA22UNDXHSQOAO3EAGQR2HXFF4P7AYXWJFA \\// C25519-BASE-32 //
-#  \\// EUFIQAN5RILHL4W6BG2GRU7Q37LPN7BOJNNMQYDVMSOPSTACSCY \\ CODE SIGNATURE \\
+#\\OTUMT5ABZGP7BSD5T2KQ6XSWTOELHPYYTXWQPHSO7IRXHWDHXEEHKB46DRINGB6G5XV4BLX7MFD3A
+# \\ 6472I25E43V4LLMIDW5GYJM62WSGGULO6D7V5OXFQB3YPLJ75GHF \\// C25519-BASE-32 //
+#  \\// YM37MP5KAHDRUIMR6WZTKNI2Q4VMIJKVH6WW2YIOCCS7LAGG4AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

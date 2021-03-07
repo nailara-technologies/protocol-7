@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-X-11.mode = auto-xephyr  # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb]
+X-11.mode = auto-xephyr     # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb]
                             # override configured agent mode using agent subname
 
 X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
@@ -84,7 +84,7 @@ modules.preload = X-11.set-up set-up.json
 
 [set-up.json.import_file:'X-11.set-up.json']
 
-modules.load = auth net protocol io.ip crypt.random X-11 ## debug
+modules.load = auth net protocol io.ip X-11 ## debug
 [load_modules:<modules.load>]
 [init_modules]
 
