@@ -1,15 +1,16 @@
 # >:]
 
 # name  = base.list.element.add
-# args  = { key_ref val_ref }
+# args  = { key_ref val_ref want_harmony }
 
 if ( ref( $_[0] ) ne 'HASH' ) {
     <[base.log]>->( 0, 'base.list.element.add: submitted argument is no hash' );
     return undef;
 }
 
-my $key_ref = ${ $_[0] }{'key_ref'};
-my $val_ref = ${ $_[0] }{'val_ref'};
+my $key_ref      = ${ $_[0] }{'key_ref'};
+my $val_ref      = ${ $_[0] }{'val_ref'};
+my $want_harmony = ${ $_[0] }{'want_harmony'};
 
 if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
     <[base.log]>->(
@@ -29,7 +30,8 @@ if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
 }
 
 my $id = <[base.gen_id]>->(
-    $$key_ref, $data{'base'}{'element'}{$key_ref}{'max_count'}
+    $$key_ref, $data{'base'}{'element'}{$key_ref}{'max_count'},
+    undef,     $want_harmony
 );
 
 ${$$key_ref}{$id} = $$val_ref;
@@ -39,7 +41,7 @@ $data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
 return $id;
 
 # ______________________________________________________________________________
-#\\GNHE4LYH7KXWFMNTD3ESY4ONSW5QTFRHBSCBFOUUDWUFN2LLH2OQ724NF5HWCY3AHH47HYZIBEFAS
-# \\ OLHGJDF4SRN5JVY7T3JGFBFTJWJNX2DNO5PD3FEBQXOQI2DJW4QC \\// C25519-BASE-32 //
-#  \\// MJB5CU6DIQXOZHBFGCRFC4GRR5PH4H5436WEJE7LVS5WNMXCEBQ \\ CODE SIGNATURE \\
+#\\JTKHDJMMXD3KOX3B3M57YOFGTW7XAULRU4NU7SMG4EK5Z25PMOFYKSNCKXUFH46O75R3S5HCWUJHE
+# \\ 5S2QYYW6FRZSSH5P52QDMT4JLJOR4VQ6K2XF7QNFLZKLREHUFQOF \\// C25519-BASE-32 //
+#  \\// 4OWODG5S5POULUT2YPILCOE2DDPNTQN2FL64HQAIQ5UXYOR3CCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
