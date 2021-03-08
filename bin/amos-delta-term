@@ -7,6 +7,13 @@ use Term::Size;
 use Math::BigFloat;
 use Encode qw| decode |;
 
+my $iteration;
+my $result_13;
+
+$SIG{__WARN__} = sub {
+    die join( ' ', "\n < $iteration >", @_, "\n [ '", $result_13, "' ]\n\n" );
+};
+
 my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
 
 my $speed_div = 7;    ##[ 1..7 ]## [ make adjust to temperature later.., ] [LLL]
@@ -22,17 +29,17 @@ my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
 
 $SIG{'INT'} = $SIG{'TERM'} = $SIG{'QUIT'} = sub { exec('/usr/bin/reset') };
 
-my $bg_len   = 2;
+my $template = "\e[3%d;%dm%s";
+
 my $fg_len   = 3;
-my $char_len = 7;    ##  <--  7 bytes are 8 7-bit characters   ###
+my $bg_len   = 1;
+my $char_len = 8;    ##  <--  7 bytes are 8 7-bit characters   ###
 
 my $char_mul = $bg_len + $fg_len + $char_len;
 
 $| = 1;
 
-my $template = "\e[%d;5;%dm%s";
-
-my $screen_bytes = ( $char_mul * $x * $y );
+my $screen_bytes = 2 * $fg_len + $char_mul * $x * $y;
 
 use Crypt::PRNG::Fortuna;
 use Time::HiRes qw|time sleep|;
@@ -40,37 +47,85 @@ use Time::HiRes qw|time sleep|;
 my $GND = Crypt::PRNG::Fortuna->new( sprintf "%.13f",
     ( time * 4200 ) / 13 / 13 / 13 );
 
-Math::BigFloat->round_mode("trunc");
+########################
+my $seed = $GND->irand;
+my $init_delay = 0.7;
+# my $seed       = 3;
+# my $init_delay = 1.42;
+########################
 
-my $ZULUM = Math::BigFloat->new( $GND->irand );
+Math::BigFloat->round_mode('trunc');
+
+my $ZULUM = Math::BigFloat->new($seed);
 
 print "\e[H\e[2J\e[3J";    ## clear screen ##
 
 binmode( STDOUT, ':encoding(UTF-8)' );    ## converting UTF-7 to UTF-8 ##
 
+my $init = 1;
 while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
-    my $result_ln = Math::BigFloat->new( scalar $ZULUM );
-    my $length    = length($LAST_PAREN_MATCH)
-        if scalar( $result_ln->bdiv( 13, 24 ) ) =~ m|^(\d+\.)|;
+    Math::BigFloat->accuracy( $screen_bytes + 13 );
 
-    Math::BigFloat->accuracy( $screen_bytes + $length );
-    ( my $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + $length ) )
-        =~ s|^\d+\.||;
+    $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + 13 );
 
-    substr( $result_13, $screen_bytes, length($result_13) - $screen_bytes, '' );
+    $result_13 =~ s|\.||;
+
+    my $result_len = length($result_13);
+
+    substr( $result_13, $screen_bytes, $result_len - $screen_bytes ) = '';
+
+    $result_len = length($result_13);
+
+    die sprintf "\n  << result length %d != %d >>\n\n", $result_len,
+        $screen_bytes
+        if $result_len != $screen_bytes;
+
+    $iteration = 0;
 
     my $screen_buffer;
     while ( length($result_13) ) {
 
-        my $bg_color = sprintf( "%d", substr( $result_13, 0, $bg_len, '' ) );
-        my $fg_color = sprintf( "%d", substr( $result_13, 0, $fg_len, '' ) );
+        $iteration++;
 
-        my $characters_7 = substr( $result_13, 0, $char_len, '' );
+        my $bg_color;
+        my $fg_color;
+        my $characters_7;
+
+        $bg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^\d{1}|;
+
+        substr( $result_13, 0, 1, '' );
+
+        $characters_7 .= $MATCH if $result_13 =~ m|^\d{2}|;
+
+        $fg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^\d{1}|;
+
+        substr( $result_13, 0, 2, '' );
+
+        $characters_7 .= $MATCH if $result_13 =~ m|^\d{2}|;
+
+        substr( $result_13, 0, 1, '' );
+
+        $fg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^.\d{1}|;
+
+        substr( $result_13, 0, 1, '' );
+
+        $characters_7 .= $MATCH if $result_13 =~ m|^\d{2}|;
+
+        substr( $result_13, 0, 1, '' );
+
+        $fg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^\d{1}|;
+
+        substr( $result_13, 0, 1, '' );
+
+        $characters_7 .= $MATCH if $result_13 =~ m|^\d{2}|;
+
+        substr( $result_13, 0, 1, '' );
+
         my $characters_8 = '';
 
-        while ( $characters_7 =~ s|^(\d{2})|| ) {
-            $characters_8 .= chr($LAST_PAREN_MATCH);
+        while ( $characters_7 =~ s|\d{2}|| ) {
+            $characters_8 .= chr($MATCH);
         }
 
         $screen_buffer .= sprintf( $template,
@@ -78,11 +133,13 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
     }
 
-    print "\e[H$screen_buffer" and sleep($frame_delay);
+    print "\e[H$screen_buffer" and sleep( $frame_delay + $init_delay );
+
+    $init_delay = 0 if $init--;
 }
 
 # ______________________________________________________________________________
-#\\JQV3Z6EV4KQU2X2U2L2AK7FRKC4OB43GQG5CYG6DKKBONW453F4DBWDBGVIDQXOLFFQ6IFJQZXDOC
-# \\ DV7U2CDTS3O3LYWM7MJQIDQSDPDPUIGXEWPL4OUU4PCNJ3XTQOLW \\// C25519-BASE-32 //
-#  \\// 4ZCBDLHXRVQDRIUNCRPJD2NY53XMS7ROPIPQB4I7RKWPZYS2SDQ \\ CODE SIGNATURE \\
+#\\QD5YZSGW7LWFGRUQK4VLU7FLU4QTVW3WIXDXKPKTHRNL23E34WRDI7WE4DMWXMUBOEGSAV7X7WKOW
+# \\ GTT44P4T34VPC2UJWXYM4SEIODX7W3WOOO7WDKZ7YGZYMULJZ2T2 \\// C25519-BASE-32 //
+#  \\// 7VMYGJEGINF63S27CBZXJ6WEEJWLQZ4YQS6XNPXRI3LCATKCODA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
