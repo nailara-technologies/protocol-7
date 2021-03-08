@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+use warnings;
+use v5.10.0;
+use strict;
+use English;
+use Term::Size;
+use Math::BigFloat;
+use Encode qw| decode |;
+
+my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
+
+my $speed_div = 7;    ##[ 1..7 ]## [ make adjust to temperature later.., ] [LLL]
+
+$speed_div = 8 - $ARGV[1]
+    if @ARGV == 2
+    and $ARGV[0] eq '-s'
+    and $ARGV[1] =~ m|^[1-7]$|;
+
+my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
+
+( my $x, my $y ) = Term::Size::chars;
+
+$SIG{'INT'} = $SIG{'TERM'} = $SIG{'QUIT'} = sub { exec('/usr/bin/reset') };
+
+my $bg_len   = 2;
+my $fg_len   = 3;
+my $char_len = 7;    ##  <--  7 bytes are 8 7-bit characters   ###
+
+my $char_mul = $bg_len + $fg_len + $char_len;
+
+$| = 1;
+
+my $template = "\e[%d;5;%dm%s";
+
+my $screen_bytes = ( $char_mul * $x * $y );
+
+use Crypt::PRNG::Fortuna;
+use Time::HiRes qw|time sleep|;
+
+my $GND = Crypt::PRNG::Fortuna->new( sprintf "%.13f",
+    ( time * 4200 ) / 13 / 13 / 13 );
+
+Math::BigFloat->round_mode("trunc");
+
+my $ZULUM = Math::BigFloat->new( $GND->irand );
+
+print "\e[H\e[2J\e[3J";    ## clear screen ##
+
+binmode( STDOUT, ':encoding(UTF-8)' );    ## converting UTF-7 to UTF-8 ##
+
+while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
+
+    my $result_ln = Math::BigFloat->new( scalar $ZULUM );
+    my $length    = length($LAST_PAREN_MATCH)
+        if scalar( $result_ln->bdiv( 13, 24 ) ) =~ m|^(\d+\.)|;
+
+    Math::BigFloat->accuracy( $screen_bytes + $length );
+    ( my $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + $length ) )
+        =~ s|^\d+\.||;
+
+    substr( $result_13, $screen_bytes, length($result_13) - $screen_bytes, '' );
+
+    my $screen_buffer;
+    while ( length($result_13) ) {
+
+        my $bg_color = sprintf( "%d", substr( $result_13, 0, $bg_len, '' ) );
+        my $fg_color = sprintf( "%d", substr( $result_13, 0, $fg_len, '' ) );
+
+        my $characters_7 = substr( $result_13, 0, $char_len, '' );
+        my $characters_8 = '';
+
+        while ( $characters_7 =~ s|^(\d{2})|| ) {
+            $characters_8 .= chr($LAST_PAREN_MATCH);
+        }
+
+        $screen_buffer .= sprintf( $template,
+            $bg_color, $fg_color, decode( "UTF-7", $characters_8 ) );
+
+    }
+
+    print "\e[H$screen_buffer" and sleep($frame_delay);
+}
+
+# ______________________________________________________________________________
+#\\JQV3Z6EV4KQU2X2U2L2AK7FRKC4OB43GQG5CYG6DKKBONW453F4DBWDBGVIDQXOLFFQ6IFJQZXDOC
+# \\ DV7U2CDTS3O3LYWM7MJQIDQSDPDPUIGXEWPL4OUU4PCNJ3XTQOLW \\// C25519-BASE-32 //
+#  \\// 4ZCBDLHXRVQDRIUNCRPJD2NY53XMS7ROPIPQB4I7RKWPZYS2SDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
