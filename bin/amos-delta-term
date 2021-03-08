@@ -10,6 +10,21 @@ use Encode qw| decode |;
 my $result_13;
 my $iteration = 0;
 
+my $color_table = {
+    'bg' => { 1 => 0, 2 => 9, 3 => 9, 5 => 4, 6 => 9, 7 => 9 },
+    'fg' => { 3 => 1, 5 => 1, 6 => 1, 4 => 9 }
+};
+
+my $character_table = {
+    '&' => '!',
+    '%' => '=',
+    '$' => '+',
+    '~' => '-',
+    '/' => '\\',
+    ';' => ":",
+    '"' => "'",
+};
+
 $SIG{__WARN__} = sub {
     die join( ' ', "\n < $iteration >", @_, "\n [ '", $result_13, "' ]\n\n" );
 };
@@ -17,7 +32,7 @@ $SIG{__WARN__} = sub {
 my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
 
 my $seed;
-my $speed_div = 7;    ##[ 1..7 ]## [ make adjust to temperature later.., ] [LLL]
+my $speed_div = 2;    ##[ 1..7 ]## [ make adjust to temperature later.., ] [LLL]
 
 ## '-s <speed>' [ 1 .. 7 ] ##
 if (    @ARGV > 1
@@ -42,7 +57,7 @@ my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
 
 $SIG{'INT'} = $SIG{'TERM'} = $SIG{'QUIT'} = sub { exec('/usr/bin/reset') };
 
-my $template = "\e[3%d;%dm%s";
+my $template = "\e[4%d;%dm%s";
 
 $| = 1;
 
@@ -92,6 +107,7 @@ $ZULUM = Math::BigFloat->new($seed);    # my $init_delay = 1.42;
 
 # say ' < seed > ' . scalar $ZULUM->bdiv(13) and sleep 4;
 
+my $loop_count = 0;
 while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
     my $chars_left  = $screen_chars;
@@ -158,6 +174,24 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
         my $decoded_chars = decode( "UTF-7", $characters_8 );
 
+        foreach my $character ( split '', $decoded_chars ) {
+            ## remapping ..,
+            $character = ' ' if ord($character) < 32;
+            $character = uc($character);
+            $character = $character_table->{$character}
+                if defined $character_table->{$character};
+            ##
+        }
+
+        ### remapping [uggly] colors and characters with a table ###
+        ##
+        $bg_color = $color_table->{'bg'}->{$bg_color}
+            if defined $color_table->{'bg'}->{$bg_color};
+        $fg_color = $color_table->{'fg'}->{$fg_color}
+            if defined $color_table->{'fg'}->{$fg_color};
+        ##
+        ###
+
         $screen_buffer
             .= sprintf( $template, $bg_color, $fg_color, $decoded_chars )
             if $chars_left >= 0;
@@ -169,10 +203,11 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
     print "\e[H$screen_buffer" and sleep( $frame_delay + $init_delay );
 
     $init_delay = 0 if $init--;
+    $loop_count++;
 }
 
 # ______________________________________________________________________________
-#\\GDW3S3PA2MTZT2CZFHERQH3YQI7PD4V6B6N2VNNPRTEJXCPFNT4B2G345VLNRWXNGYPTZUX4IZ6YY
-# \\ JDXR2NFK3NQRWDJ47RAEFV6RQIU4HQAMOHZSJBV5B2UFFJWV744O \\// C25519-BASE-32 //
-#  \\// WVTWTF3IX5IF3NAOJGNFVYQL3XU5WMCIOH3AXX2MSKQF555HSAA \\ CODE SIGNATURE \\
+#\\CAJVSJC2F2B33PICWTK2XUHAXBWMGWZUSTNKPWSNXGZXZB43FS5LZXATSLGXEQCBKE22EQ2XAAV2I
+# \\ X4MKEVXI5NFPVFQV2ZMCENJV5SBV2SVZIG6LIVVLEDA2M6TZF4PB \\// C25519-BASE-32 //
+#  \\// RNOWMX5NWINLIT4L2S7OPRAULV6C4DRNOQTEC3R7EH3SHS77MCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
