@@ -7,8 +7,8 @@ use Term::Size;
 use Math::BigFloat;
 use Encode qw| decode |;
 
-my $iteration;
 my $result_13;
+my $iteration = 0;
 
 $SIG{__WARN__} = sub {
     die join( ' ', "\n < $iteration >", @_, "\n [ '", $result_13, "' ]\n\n" );
@@ -16,12 +16,25 @@ $SIG{__WARN__} = sub {
 
 my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
 
+my $seed;
 my $speed_div = 7;    ##[ 1..7 ]## [ make adjust to temperature later.., ] [LLL]
 
-$speed_div = 8 - $ARGV[1]
-    if @ARGV == 2
+## '-s <speed>' [ 1 .. 7 ] ##
+if (    @ARGV > 1
     and $ARGV[0] eq '-s'
-    and $ARGV[1] =~ m|^[1-7]$|;
+    and $ARGV[1] =~ m|^[1-7]$| ) {
+    shift(@ARGV);
+    $speed_div = 8 - shift(@ARGV);
+}
+
+## '-S <SEQUENCE-SEED>' ##
+if (    @ARGV > 1
+    and $ARGV[0] eq '-S' ) {
+    shift(@ARGV);
+    $seed = join( ' ', @ARGV );
+    $seed = join '', map { sprintf "%03d", $ARG } unpack 'U*', $seed
+        if $seed !~ m|^\d+(\.\d+)?$|;
+}
 
 my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
 
@@ -31,51 +44,66 @@ $SIG{'INT'} = $SIG{'TERM'} = $SIG{'QUIT'} = sub { exec('/usr/bin/reset') };
 
 my $template = "\e[3%d;%dm%s";
 
-my $fg_len   = 3;
-my $bg_len   = 1;
-my $char_len = 8;    ##  <--  7 bytes are 8 7-bit characters   ###
-
-my $char_mul = $bg_len + $fg_len + $char_len;
-
 $| = 1;
 
-my $screen_bytes = 2 * $fg_len + $char_mul * $x * $y;
+my $ZULUM;
+my $init       = 1;
+my $init_delay = 0.7;
+print "\e[H\e[2J\r";                      ## clear screen ##
+binmode( STDOUT, ':encoding(UTF-8)' );    ## converting UTF-7 to UTF-8 ##
+
+###############################
+my $screen_bytes = $x * $y * 6;
+my $screen_chars = $x * $y;
+###############################
 
 use Crypt::PRNG::Fortuna;
 use Time::HiRes qw|time sleep|;
 
-my $GND = Crypt::PRNG::Fortuna->new( sprintf "%.13f",
-    ( time * 4200 ) / 13 / 13 / 13 );
-
-########################
-my $seed = $GND->irand;
-my $init_delay = 0.7;
-# my $seed       = 3;
-# my $init_delay = 1.42;
-########################
-
 Math::BigFloat->round_mode('trunc');
+Math::BigFloat->accuracy( $screen_bytes + 13 );
 
-my $ZULUM = Math::BigFloat->new($seed);
+my $prng_seed;
+my $num_seed;
+my $seed_count = 0;
+my $start_seed = $seed;
 
-print "\e[H\e[2J\e[3J";    ## clear screen ##
+RESEED:
 
-binmode( STDOUT, ':encoding(UTF-8)' );    ## converting UTF-7 to UTF-8 ##
+$seed_count++;
 
-my $init = 1;
+( $num_seed = sprintf( "%.13f", ( time * 4200 ) / 13 / 13 / 13 ) ) =~ s|\.||;
+
+if ( not defined $start_seed or $seed_count == 1 ) {
+    $prng_seed = $seed // $num_seed;
+} else {
+    $prng_seed = join( '', $start_seed, $num_seed );
+}
+## [ [RE]SEEDING THE PRNG .., ] ###
+my $GND = Crypt::PRNG::Fortuna->new($prng_seed);
+##
+
+######################## ## use '3' as test intialization [error] seed ##
+$seed //= join( '', map { $GND->irand } ( 1 .. 7 ) );    # <-- plain init
+$seed = join( '', map { $GND->irand } ( 1 .. 7 ) ) if $seed_count > 1;
+######################## ## ########################
+
+$ZULUM = Math::BigFloat->new($seed);    # my $init_delay = 1.42;
+
+# say ' < seed > ' . scalar $ZULUM->bdiv(13) and sleep 4;
+
 while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
-    Math::BigFloat->accuracy( $screen_bytes + 13 );
+    my $chars_left  = $screen_chars;
+    my $last_result = $result_13 // '';
 
-    $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + 13 );
-
-    $result_13 =~ s|\.||;
-
+    ( $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + 13 ) ) =~ s|\.||;
     my $result_len = length($result_13);
 
     substr( $result_13, $screen_bytes, $result_len - $screen_bytes ) = '';
-
     $result_len = length($result_13);
+
+    goto RESEED if $result_13 eq $last_result;
 
     die sprintf "\n  << result length %d != %d >>\n\n", $result_len,
         $screen_bytes
@@ -128,8 +156,13 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
             $characters_8 .= chr($MATCH);
         }
 
-        $screen_buffer .= sprintf( $template,
-            $bg_color, $fg_color, decode( "UTF-7", $characters_8 ) );
+        my $decoded_chars = decode( "UTF-7", $characters_8 );
+
+        $screen_buffer
+            .= sprintf( $template, $bg_color, $fg_color, $decoded_chars )
+            if $chars_left >= 0;
+
+        $chars_left -= length($decoded_chars) / 3; ##  <--  3 bytes, 1 character
 
     }
 
@@ -139,7 +172,7 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 }
 
 # ______________________________________________________________________________
-#\\QD5YZSGW7LWFGRUQK4VLU7FLU4QTVW3WIXDXKPKTHRNL23E34WRDI7WE4DMWXMUBOEGSAV7X7WKOW
-# \\ GTT44P4T34VPC2UJWXYM4SEIODX7W3WOOO7WDKZ7YGZYMULJZ2T2 \\// C25519-BASE-32 //
-#  \\// 7VMYGJEGINF63S27CBZXJ6WEEJWLQZ4YQS6XNPXRI3LCATKCODA \\ CODE SIGNATURE \\
+#\\GDW3S3PA2MTZT2CZFHERQH3YQI7PD4V6B6N2VNNPRTEJXCPFNT4B2G345VLNRWXNGYPTZUX4IZ6YY
+# \\ JDXR2NFK3NQRWDJ47RAEFV6RQIU4HQAMOHZSJBV5B2UFFJWV744O \\// C25519-BASE-32 //
+#  \\// WVTWTF3IX5IF3NAOJGNFVYQL3XU5WMCIOH3AXX2MSKQF555HSAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
