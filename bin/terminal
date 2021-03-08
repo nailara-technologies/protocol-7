@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+$0 = '[terminal]';
+
+use v5.10.0;
+use strict;
+use English;
+
+my $font_size = 13;
+
+my @exec_args = qw|
+
+    /usr/bin/xterm
+    -xrm xterm*geometry:80x25
+    -xrm *xterm*renderFont:true
+    -xrm *xterm*faceName:WhiteRabbit
+    -xrm *xterm*faceSize:13
+    -xrm *xterm*Background:#000007
+    -xrm *xterm*Foreground:#4477FF
+    -xrm xterm*cursorColor:#5577FF
+    -xrm *pointerColor:#7700FF
+    -xrm *pointerShape:left_ptr
+    -xrm *cursorBlink:true
+    -xrm *cursorOffTime:769
+    -xrm *cursorUnderLine:true
+    -xrm *cursorOnTime:1274
+
+    |;
+
+use warnings;
+
+shift(@ARGV)
+    and $font_size = shift(@ARGV)
+    if @ARGV > 1
+    and $ARGV[0] eq '-s'
+    and $ARGV[1] =~ m|^\d+$|;
+
+map { $ARG =~ s|Size:13|Size:$font_size| } @exec_args if $font_size != 13;
+
+shift(@ARGV) if @ARGV and $ARGV[0] eq '-e';
+
+push( @exec_args, '-e', @ARGV ) if @ARGV;
+
+exec(@exec_args);
+
+# ______________________________________________________________________________
+#\\XUSFN5TJUJDP3GZS4IFIJY4K4JMVH53RBUBWLRXBYDTQV2SV6CMVEZDVRQIDPOCEYK6TY7BZN5IY4
+# \\ 3Z7FRXWLJLD26HYO3KWEXF43WFOT7V7FW7FJLNW4XOVI5AGZXWIJ \\// C25519-BASE-32 //
+#  \\// EJGSRKKEHP6AF3UIWENLISGV5KFYPMOOBL4HYLSIHYJRWSOHECQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
