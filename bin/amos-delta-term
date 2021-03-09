@@ -1,29 +1,61 @@
 #!/usr/bin/perl
 use warnings;
-use v5.10.0;
+use v5.24;
 use strict;
 use English;
 use Term::Size;
 use Math::BigFloat;
 use Encode qw| decode |;
+use Crypt::Misc qw| encode_b32r decode_b32r |;
+no warnings 'experimental';
+
+### to implement ###
+
+# -Sprng <seed> -Szul <seed>
+
+## [ TEST SEED ]
+#
+# my $restore_seed_prng  = '30879790939393258094788';
+# my $restore_seed_zulum = '4085077156245892212221638888445691017'
+#                        . '681238712064386070392685102677';
+
+###
+
+my $seed      = $restore_seed_zulum;
+my $prng_seed = $restore_seed_prng;
+
+# my $seed;
+# my $prng_seed;
+
+my $set_up = {
+    'do-color-mapping'        => 1,
+    'substitute-escape-codes' => 1,
+    'do-character-mapping'    => 1,
+    'reseed-after-saturation' => 0,
+};
+
+my $state = {};
 
 my $result_13;
 my $iteration = 0;
 
 my $color_table = {
     'bg' => { 1 => 0, 2 => 9, 3 => 9, 5 => 4, 6 => 9, 7 => 9 },
-    'fg' => { 3 => 1, 5 => 1, 6 => 1, 4 => 9 }
+    'fg' => { 3 => 4, 6 => 4, 7 => 0, 5 => 4 }
 };
 
 my $character_table = {
-    '&' => '!',
-    '%' => '=',
-    '$' => '+',
-    '~' => '-',
-    '/' => '\\',
-    ';' => ":",
-    '"' => "'",
+    "\0" => '0',
+    '&'  => '!',
+    '%'  => '=',
+    '$'  => '+',
+    '~'  => '-',
+    '/'  => '\\',
+    ';'  => ":",
+    '"'  => "'",
 };
+
+my $loop_count = 0;
 
 $SIG{__WARN__} = sub {
     die join( ' ', "\n < $iteration >", @_, "\n [ '", $result_13, "' ]\n\n" );
@@ -31,41 +63,34 @@ $SIG{__WARN__} = sub {
 
 my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
 
-my $seed;
 my $speed_div = 2;    ##[ 1..7 ]## [ make adjust to temperature later.., ] [LLL]
 
-## '-s <speed>' [ 1 .. 7 ] ##
-if (    @ARGV > 1
-    and $ARGV[0] eq '-s'
-    and $ARGV[1] =~ m|^[1-7]$| ) {
-    shift(@ARGV);
-    $speed_div = 8 - shift(@ARGV);
-}
-
-## '-S <SEQUENCE-SEED>' ##
-if (    @ARGV > 1
-    and $ARGV[0] eq '-S' ) {
-    shift(@ARGV);
-    $seed = join( ' ', @ARGV );
-    $seed = join '', map { sprintf "%03d", $ARG } unpack 'U*', $seed
-        if $seed !~ m|^\d+(\.\d+)?$|;
-}
+process_arguments();
 
 my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
 
 ( my $x, my $y ) = Term::Size::chars;
 
-$SIG{'INT'} = $SIG{'TERM'} = $SIG{'QUIT'} = sub { exec('/usr/bin/reset') };
+$| = 1;
+
+my $SIG_INT  = 0;
+my $SIG_QUIT = 0;
+
+$SIG{'TERM'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
+$SIG{'INT'}  = $SIG{'HUP'}  = sub { $SIG_INT  = 1 };
+
+$SIG{'TRAP'} = sub { system 'reset'; dump_state(); sleep 42 };
 
 my $template = "\e[4%d;%dm%s";
-
-$| = 1;
 
 my $ZULUM;
 my $init       = 1;
 my $init_delay = 0.7;
-print "\e[H\e[2J\r";                      ## clear screen ##
-binmode( STDOUT, ':encoding(UTF-8)' );    ## converting UTF-7 to UTF-8 ##
+
+clear_screen();
+
+#binmode( STDOUT, ':encoding(UTF-8)' );    ## converting UTF-7 to UTF-8 ##
+binmode( STDOUT, ':encoding(UTF-32)' );    ## converting UTF-7 to UTF-8 ##
 
 ###############################
 my $screen_bytes = $x * $y * 6;
@@ -78,8 +103,8 @@ use Time::HiRes qw|time sleep|;
 Math::BigFloat->round_mode('trunc');
 Math::BigFloat->accuracy( $screen_bytes + 13 );
 
-my $prng_seed;
 my $num_seed;
+my $screen_buffer;
 my $seed_count = 0;
 my $start_seed = $seed;
 
@@ -90,9 +115,9 @@ $seed_count++;
 ( $num_seed = sprintf( "%.13f", ( time * 4200 ) / 13 / 13 / 13 ) ) =~ s|\.||;
 
 if ( not defined $start_seed or $seed_count == 1 ) {
-    $prng_seed = $seed // $num_seed;
+    $prng_seed //= $seed // $num_seed;
 } else {
-    $prng_seed = join( '', $start_seed, $num_seed );
+    $prng_seed //= join( '', $start_seed, $num_seed );
 }
 ## [ [RE]SEEDING THE PRNG .., ] ###
 my $GND = Crypt::PRNG::Fortuna->new($prng_seed);
@@ -107,19 +132,34 @@ $ZULUM = Math::BigFloat->new($seed);    # my $init_delay = 1.42;
 
 # say ' < seed > ' . scalar $ZULUM->bdiv(13) and sleep 4;
 
-my $loop_count = 0;
+my ( $LAST_BG, $LAST_FG_COL );
 while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
     my $chars_left  = $screen_chars;
     my $last_result = $result_13 // '';
 
-    ( $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + 13 ) ) =~ s|\.||;
+    ## pause signal handler ###
+    my $signal_handler = $SIG{'INT'};
+    $SIG{'INT'} = 'IGNORE';
+
+    ( $result_13 = scalar $ZULUM->bdiv( 13, $screen_bytes + 13 ) ) =~ s|\.||; #?
     my $result_len = length($result_13);
 
     substr( $result_13, $screen_bytes, $result_len - $screen_bytes ) = '';
     $result_len = length($result_13);
 
-    goto RESEED if $result_13 eq $last_result;
+    ### MESSAGE DECODED ###
+    if ( $result_13 =~ m|^0\.0+$| ) {
+        if ( $set_up->{'reseed-after-saturation'} ) {
+            goto RESEED;
+        } else {
+            while (42) {
+                chomp( my $command = <STDIN> );
+                goto RESEED if $command eq 'reseed';
+                exit(0)     if $command eq 'quit' or $command eq 'exit';
+            }
+        }
+    }
 
     die sprintf "\n  << result length %d != %d >>\n\n", $result_len,
         $screen_bytes
@@ -127,21 +167,25 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
     $iteration = 0;
 
-    my $screen_buffer;
+    ## resume signal handling ###
+    $SIG{'INT'} = $signal_handler;
+
     while ( length($result_13) ) {
 
         $iteration++;
 
         my $bg_color;
         my $fg_color;
-        my $characters_7;
+        my $characters_7 = '';
 
+        ## extract background color ##
         $bg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^\d{1}|;
 
         substr( $result_13, 0, 1, '' );
 
         $characters_7 .= $MATCH if $result_13 =~ m|^\d{2}|;
 
+        ## extract foreground color [ part 0 ] ##
         $fg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^\d{1}|;
 
         substr( $result_13, 0, 2, '' );
@@ -150,6 +194,7 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
         substr( $result_13, 0, 1, '' );
 
+        ## extract foreground color [ part 1 ] ##
         $fg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^.\d{1}|;
 
         substr( $result_13, 0, 1, '' );
@@ -158,6 +203,7 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
         substr( $result_13, 0, 1, '' );
 
+        ## extract foreground color [ part 2 ] ##
         $fg_color .= sprintf( "%d", $MATCH ) if $result_13 =~ m|^\d{1}|;
 
         substr( $result_13, 0, 1, '' );
@@ -174,16 +220,39 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
         my $decoded_chars = decode( "UTF-7", $characters_8 );
 
-        foreach my $character ( split '', $decoded_chars ) {
-            ## remapping ..,
-            $character = ' ' if ord($character) < 32;
-            $character = uc($character);
-            $character = $character_table->{$character}
-                if defined $character_table->{$character};
-            ##
+        my $base_32 = qr|[A-Z2-7]+|o,;
+
+        if ( $set_up->{'do-base32-decoding'} ) {
+            my $_len = length($decoded_chars);
+            if ( $decoded_chars =~ $base_32 ) {
+                my $b32d = decode_b32r($MATCH);
+                if ( defined $b32d and length $b32d ) {
+                    $decoded_chars =~ s{ $MATCH}{ $b32d };
+                    $decoded_chars .= ' ' x ( $_len - length($decoded_chars) );
+
+                    #   say "\n\n <<< MATCH >>> [ '$b32d' ]\n\n";
+                    #   sleep 1.2;
+                }
+            }
         }
 
-        ### remapping [uggly] colors and characters with a table ###
+        if ( $set_up->{'do-character-mapping'} ) {
+            foreach my $character ( split '', $decoded_chars ) {
+                ## remapping ..,
+                $character = ' ' if ord($character) < 32;
+                $character = uc($character);
+                $character = $character_table->{$character}
+                    if exists $character_table->{$character};
+                ##
+            }
+        }
+
+        if ( $set_up->{'substitute-escape-codes'} ) {
+            $decoded_chars =~ s|[\a\e]| |g;
+            $decoded_chars =~ s|[\f\t\n]|\r|g;
+        }
+
+        ### remapping [uggly] colors with a table ###
         ##
         $bg_color = $color_table->{'bg'}->{$bg_color}
             if defined $color_table->{'bg'}->{$bg_color};
@@ -191,6 +260,9 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
             if defined $color_table->{'fg'}->{$fg_color};
         ##
         ###
+
+        $LAST_BG     = $bg_color;
+        $LAST_FG_COL = $fg_color;
 
         $screen_buffer
             .= sprintf( $template, $bg_color, $fg_color, $decoded_chars )
@@ -200,14 +272,124 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
     }
 
+    cmd_quit()        if $SIG_QUIT;
+    sig_int_handler() if $SIG_INT;
+
     print "\e[H$screen_buffer" and sleep( $frame_delay + $init_delay );
 
     $init_delay = 0 if $init--;
     $loop_count++;
 }
 
+sub process_arguments {
+
+    while (@ARGV) {
+
+## '-s <speed>' [ 1 .. 7 ] ##
+        if (    @ARGV > 1
+            and $ARGV[0] eq '-s'
+            and $ARGV[1] =~ m|^[1-7]$| ) {
+            shift(@ARGV);
+            $speed_div = 8 - shift(@ARGV);
+        }
+
+## restart run with new seed after message complete ##
+        elsif ( @ARGV > 0
+            and $ARGV[0] eq '-r' ) {
+            $set_up->{'reseed-after-saturation'} = 1;
+            shift(@ARGV);
+        }
+## '-S <SEQUENCE-SEED>' ##
+        elsif ( @ARGV > 1
+            and $ARGV[0] eq '-S' ) {
+            shift(@ARGV);
+            $seed = join( ' ', @ARGV );
+            $seed = join '', map { sprintf "%03d", $ARG } unpack 'U*', $seed
+                if $seed !~ m|^\d+(\.\d+)?$|;
+            @ARGV = ();
+        } else {
+            say sprintf "\n  << unknown option '%s' >>\n\n", shift(@ARGV);
+            exit(1);
+        }
+    }
+}
+
+sub dump_state {
+    say ":: seeds :.\n:\n::: prng :: $prng_seed\n:\n:: zulum :: $seed\n:\n";
+}
+
+# system('/usr/bin/reset');
+
+sub clear_screen { print "\e[H\e[2J\r" }
+sub cmd_clear    { clear_screen();               say "# >:]\n" }
+sub cmd_reset    { system qw| reset |;           cmd_clear() }
+sub cmd_quit     { cmd_reset() and dump_state(); exit(0) }
+
+sub sig_int_handler {
+    $SIG_INT = 0;
+    my $last_cmd;
+
+    my @commands = (
+        'exit \\ quit', 'resume \\ continue', qw|
+            last loop-count buffer result-13 zulum
+            clear reset commands show-seed completed
+            |
+    );
+
+    while (42) {
+        print "\e[0m\e[40m\e[34m\r< awaiting command > ";
+        chomp( my $cmd = <STDIN> // '' );
+        $cmd =~ s|[^\w\-]||;
+        $last_cmd = $cmd if $cmd ne 'last';
+    PROCESS_CMD:
+        given ($cmd) {
+            when ('last') { $cmd = $last_cmd // ''; goto PROCESS_CMD }
+            when ('commands') {
+                say "\n::: available commands :.\n:\n"
+                    . join( '',
+                    map  {":: $ARG\n"}
+                    sort { length $a <=> length $b }
+                    sort @commands )
+                    . ':'
+            }
+            when ('loop-count') { say $loop_count }
+            when ('buffer') {
+                say "\n\e[H\e[2J\e[3J$screen_buffer\r";
+            }
+            when ('result-13') {
+                say "\n\e[3J\n '$result_13'\r";
+            }
+            when ('zulum') { say "\n\e[3J\n '" . scalar($ZULUM) . "'\r" }
+            when ('clear')          { cmd_clear() }    ## clear screen ##
+            when ('reset')          { cmd_reset() }    ## restore screen ##
+            when (m{^(exit|quit)$}) { cmd_quit() }
+            when (m{^(resume|continue)$}) {            ##  continue., ##
+                printf( "\e[4%d;%dm", $LAST_BG, $LAST_FG_COL );
+                $SIG_INT = 0;
+                last;
+            }
+            when ('show-seed') { dump_state() }
+            when ('completed') {    ## message mode ## [ implement other., ]
+                my $len_0000 = length( scalar $ZULUM );
+                my $len_0110
+                    = scalar($ZULUM) =~ m|^(0\.0+)|
+                    ? length($LAST_PAREN_MATCH)
+                    : 0;
+                say sprintf(
+                    "\r:\n:: $len_0110 \\ $len_0000 ::"
+                        . " %.4f percent decoded =) ::\n:\n",
+                    $len_0110 * 100 / $len_0000
+                );
+            }
+            default {               ##  continue., ##
+                print "\r< awaiting command > ";
+            }
+        }
+    }
+}
+
 # ______________________________________________________________________________
-#\\CAJVSJC2F2B33PICWTK2XUHAXBWMGWZUSTNKPWSNXGZXZB43FS5LZXATSLGXEQCBKE22EQ2XAAV2I
-# \\ X4MKEVXI5NFPVFQV2ZMCENJV5SBV2SVZIG6LIVVLEDA2M6TZF4PB \\// C25519-BASE-32 //
-#  \\// RNOWMX5NWINLIT4L2S7OPRAULV6C4DRNOQTEC3R7EH3SHS77MCY \\ CODE SIGNATURE \\
+#\\FMCLSMRRKJXGCZTT5Q7Q53FXZN7SIHDANT4IXLPAYUE3RGAS66BG4UX3PZ2IFZBOCZU3XDP2VETAI
+# \\ SUEORITC2ETEY3GRWKSRJ7OII66V4INIILMTMZETM232ZGBDHM4Q \\// C25519-BASE-32 //
+#  \\// G373ICYUVZKRINPQUGAUP46C7IF2HEHJBUYSALRXPVXWDJNJ6BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
