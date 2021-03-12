@@ -1,6 +1,6 @@
 # >:]
 
-# name  = history.cmd.append
+# name  = p7-log.cmd.append
 # param = <log-data>
 # descr = write a log line to the named log file
 # todo  = buffered write [ instead of line by line ], cleanup log time handling
@@ -10,8 +10,8 @@ my ($node_agent, $instance_id, $buffer_name,
 ) = split( m| |, $_[0]->{'args'}, 6 );
 
 ## preventing duplicate entries ##   <-- usecase needs repair [ nroot, verb.=0 ]
-<history.checksums>                                     //= {};
-my $node_checksums = <history.checksums>->{$node_agent} //= {};
+<p7-log.checksums>                                     //= {};
+my $node_checksums = <p7-log.checksums>->{$node_agent} //= {};
 $node_checksums->{$buffer_name}                         //= '';
 my $entry_checksum = <[digest.elf.BASE32]>->( $_[0]->{'args'} );
 if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
@@ -41,7 +41,7 @@ $err_msg = 'numerical <log-level> expected'
 if ( defined $err_msg ) {
     my $node_name = <system.node.name>;
     $node_agent =~ s|^$node_name\.||;
-    <history.disable_err_log_dump> //= 0; ## <-- suppress err log data on demand
+    <p7-log.disable_err_log_dump> //= 0; ## <-- suppress err log data on demand
     <[base.log]>->( 0, "\<$instance_id> ['$node_agent'] $err_msg" );
     ## log offending line for debugging ###
     <[base.log]>->(
@@ -50,7 +50,7 @@ if ( defined $err_msg ) {
     <[base.log]>->( 1, "< request > [ '$_[0]->{'args'}' ]" );
 
     if ( $data{'system'}{'verbosity'}{'console'}
-        and !<history.disable_err_log_dump> ) {
+        and !<p7-log.disable_err_log_dump> ) {
         my $show_line = $$call{'args'};
         <[base.parser.ellipse_center]>->( \$show_line, 74 );
         my $s = ' ' x 76;
@@ -103,7 +103,7 @@ my $write_line = sprintf( "%s %07d %d %s\n",
     $log_time, $instance_id, $log_level, $log_message );
 
 my $msg_len = length($write_line);
-( my $success, $err_msg ) = <[history.add_line]>->( $log_file, \$write_line );
+( my $success, $err_msg ) = <[p7-log.add_line]>->( $log_file, \$write_line );
 
 # success
 return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
@@ -112,7 +112,7 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => 'nak', 'data' => $err_msg };
 # ______________________________________________________________________________
-#\\F5XRWW6FL5CIKN5FBD22E7GCXEOTJTOUYDFOE4FYJMYM2T2TKXGEULRCSFBXWVFQJKGFJEPEYJLL2
-# \\ S3HE32DZKITBFQG5VEKWLBWVKKJ7D3KVEDGKGHCEMTUSGZJ5LCSZ \\// C25519-BASE-32 //
-#  \\// K36KZEMFQQXP3LWEX27HJ6A7M3UN6JODNDKGCQDXKWYKM7RJEDQ \\ CODE SIGNATURE \\
+#\\JKPXBQMBPALUX3VUBDYUOXZFILHAJFZE23263YETL6KHQRVFMZJ2XVK7BXQEGYH5BVFTM5O6E6OAO
+# \\ EEHAY44ZEXCQED6YNBGCOJKQ2MH2XDVUF733IAWEA7NFNNO2KLF3 \\// C25519-BASE-32 //
+#  \\// NMPPJDUOFBUOMZLDYF5AVVWTNCLTG6K7TMJHJMA57CDUDWC6UDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
