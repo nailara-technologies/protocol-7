@@ -1,7 +1,7 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : 21.1904-3825.0 ]
+### [ source code version : 21.1938-3826.0 ]
 
 ### ( this is the [ISC license](license)d "base" branch )
 ---
