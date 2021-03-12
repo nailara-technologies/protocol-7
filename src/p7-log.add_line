@@ -1,6 +1,6 @@
 # >:]
 
-# name  = history.add_line
+# name  = p7-log.add_line
 # descr = add a log entry to specified log file
 
 my ( $log_name, $log_msg_ref ) = @_;
@@ -48,7 +48,7 @@ if ( !<log.files>->{$log_name}->{'locked'} ) {
     <log.files>->{$log_name}->{'fh'}     = $log_fh;
     <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(
         {   'after'   => 1,
-            'handler' => 'history.handler.close_log',
+            'handler' => 'p7-log.handler.close_log',
             'data'    => $log_name
         }
     );
@@ -64,7 +64,7 @@ print {$log_fh} $$log_msg_ref;
 return 1;
 
 # ______________________________________________________________________________
-#\\LY2B4DKSIPXYVN5DNHGJGCIS3PCT7HU3IWNSPFWYVVYUANA6AJBAOHVIDJW4X4ROGSYA6FTYER7SC
-# \\ EDPE4JCKPGBQLRFUY64FWOBFMIEMFO2RCUILBWVXMLNG37RSGMKJ \\// C25519-BASE-32 //
-#  \\// LNLRAIUTENQQG2BYUGP5WGGMLDKF4VI7FRMJACKB3SKMIWBT4CQ \\ CODE SIGNATURE \\
+#\\7FMSNUJFUHUOSOEZRBFWUBY3P7FX3HQC34JVP2E3LVQE3Y6XGKEA6QUMJF4NCU5XW23PGO7ZIDCES
+# \\ KZM3SJW5CA2MFEIDN2HTIGOFKPQOAXWCTK7EBNB7EXOPE5P3NRXM \\// C25519-BASE-32 //
+#  \\// XLQ5P7UKPISRD44DZEMZ5OKQBUI6IICV2QWVTQN5Z6NB2YRFGDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -833,7 +833,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         if ( !@send_sids ) {
             $$output .= $_cmd_id . "NAK $unkown_command\n";
-            my $l_lvl = $target_name eq 'history' ? 2 : 1;
+            my $l_lvl = $target_name eq 'p7-log' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl, "[$id] offline : '$target_name' : '$command_str'"
             );
@@ -918,10 +918,10 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     "[$id] $data{'session'}{$id}{'user'}"
                         . " ..:. $target_name ..:. $cmd [M=$command_mode]"
                     )
-                    if ( $target_name ne 'history'
+                    if ( $target_name ne 'p7-log'
                     or $cmd ne 'append'
                     or !<debug.skip_log_msg> )
-                    and ( $cmd ne 'history.append'
+                    and ( $cmd ne 'p7-log.append'
                     or !<debug.skip_log_msg> )
                     and ( $user ne 'nroot'
                     or $cmd ne 'heart'
@@ -1024,7 +1024,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 # ______________________________________________________________________________
-#\\UCAO4V3PHPBPQOTT7JMHFO7EZ6FKB6474VYLBOZ4UN3T473D65CP4ZMV7BTYPC5JQLKC3NWEFQIDY
-# \\ 3K6RL55MTHXHUCHY7EPG6BUA3V5G6JSPYE7VZ4372JAY2QCXWSSD \\// C25519-BASE-32 //
-#  \\// Y2BHTDO7G57ROQDPBUFS5TACOWGVCTPDO72Y5ZA5PGSTUQVPECI \\ CODE SIGNATURE \\
+#\\3KHU2N6CVBYT5UFN2HOJTOUCGN7LH472G4K2PKV64PJBAR2KFK2Y5JU5HK4SXG5F3TKYCTEL3JHQO
+# \\ FSFOHTFXPY6LBAGTLN63HJ65UVNTDDZSSIFUA3E6674E6NQ63NI3 \\// C25519-BASE-32 //
+#  \\// O2BBTK7T5OAWDFSI3SWIVAJGTPKJW3TH3NLBOO3LT5L6OFC5QDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
