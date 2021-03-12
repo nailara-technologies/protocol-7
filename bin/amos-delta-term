@@ -22,11 +22,9 @@ $YAML::XS::UseCode     = 0;
 $YAML::XS::DumpCode    = 0;
 $YAML::XS::LoadCode    = 0;
 
-###############################
+#####################################
 ( my $x, my $y ) = Term::Size::chars;
-my $screen_bytes = $x * $y * 6;
-my $screen_chars = $x * $y;
-###############################
+#####################################
 
 ### to implement ###
 
@@ -48,10 +46,11 @@ our @process_command;
 my $set_up = {
     'prompt-hidden'      => 1,
     'prompt-delay'       => 0.377,
-    'encode-base32'      => 1,
-    'decode-base32'      => 1,
-    'substitute-escapes' => 0,                         ##  <-- replace
+    'encode-base32'      => 0,
+    'decode-base32'      => 0,
+    'substitute-escapes' => 1,                         ##  <-- replace
     'reseed-on-end'      => 0,                         ##  <-- replace
+    'speed-div'          => 2,                         ## [ 1 .. 7 ] ##
     'state-file'         => 'atom-delta-term.state',
 };
 
@@ -65,14 +64,18 @@ our $state = {
     'init'          => 1,
     'init-delay'    => 0.7,
     'screen-buffer' => '',
+    'screen-bytes'  => $x * $y * 6,
+    'screen-chars'  => $x * $y,
     'result-13'     => undef,
     'page-legend'   => undef,
     'loop-count'    => 0,
     'iteration'     => 0,
     'zulum-offset'  => 0,
-    'speed-div'     => 2,         ## [ 1 .. 7 ] ##
-    'screen'        =>
-        { 'x' => $x, 'y' => $y, 'chars' => $screen_chars, 'tab-width' => 4 }
+    'screen'        => {
+        'x'         => $x,
+        'y'         => $y,
+        'tab-width' => 4
+    }
 };
 
 our $math = {
@@ -115,12 +118,13 @@ $SIG{__WARN__} = sub {
 
 my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
 
-my $SIG_INT  = 1;
+my $SIG_INT  = 0;
 my $SIG_QUIT = 0;
 
 process_arguments();
 
-my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $state->{'speed-div'} ) );
+my $speed_div   = $state->{'set-up'}->{'speed-div'};
+my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
 
 $| = 1;
 
@@ -140,7 +144,7 @@ RESTART:
 cmd_reset();                              ## clear screen \ ansi reset ##
 
 Math::BigFloat->round_mode('trunc');
-Math::BigFloat->accuracy( $screen_bytes + 13 );
+Math::BigFloat->accuracy( $state->{'screen-bytes'} + 13 );
 
 my $start_seed = $state->{'seed'}->{'zulum'};
 
@@ -180,9 +184,11 @@ $math->{'zulum'} //= Math::BigFloat->new( $state->{'seed'}->{'zulum'} );
 my ( $LAST_BG, $LAST_FG_COL );
 while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
+RECALC:
+
     $state->{'screen-buffer'} = '';
-    my $chars_left  = $screen_chars;
-    my $last_result = $state->{'result-13'} // '';
+    my $screen_chars = $state->{'screen-chars'};
+    my $last_result  = $state->{'result-13'} // '';
 
     ## pause signal handler ###
     my $signal_handler = $SIG{'INT'};
@@ -191,7 +197,7 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
     $state->{'page-legend'} = '';
 
     $state->{'result-13'}
-        = scalar $math->{'zulum'}->copy()->bdiv( 13, $screen_bytes );
+        = scalar $math->{'zulum'}->copy()->bdiv( 13, $state->{'screen-bytes'} );
 
     ## shift for zulum prefix ##
     my $zulum_offset = 0;
@@ -202,7 +208,7 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
     my $dot_offset = $zulum_offset || index( $state->{'result-13'}, '.' );
 
     if ( $dot_offset >= 0 ) {
-        my $result_len  = $screen_bytes - $dot_offset - 1;
+        my $result_len  = $state->{'screen-bytes'} - $dot_offset - 1;
         my $page_offset = $state->{'page-offset'} = $dot_offset % 2;
 
         $state->{'page-legend'}
@@ -210,10 +216,11 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
             if !$zulum_offset;
 
         $state->{'result-13'} = substr(
-            scalar $math->{'zulum'}
-                ->bdiv( 13, $screen_bytes + $dot_offset + $page_offset ),
+            scalar $math->{'zulum'}->bdiv(
+                13, $state->{'screen-bytes'} + $dot_offset + $page_offset
+            ),
             $dot_offset + 1 + $page_offset,    ## <-- ..,
-            $screen_bytes + $screen_bytes % 2
+            $state->{'screen-bytes'} + $state->{'screen-bytes'} % 2
         );
     } else {
         $state->{'page-offset'} = 0;
@@ -222,8 +229,8 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
     ### remove .., ## [LLL]
     my $result_len = length( $state->{'result-13'} );
     die sprintf "\n  << result length %d != %d >>\n\n", $result_len,
-        $screen_bytes
-        if $result_len != $screen_bytes;
+        $state->{'screen-bytes'}
+        if $result_len != $state->{'screen-bytes'};
 
     $state->{'iteration'} = 0;
 
@@ -235,13 +242,15 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
         $SIG_INT = 1;
     }
 
-    while ( length( $state->{'result-13'} and $chars_left ) ) {
-        $state->{'iteration'}++;
+    #    while ( length( $state->{'result-13'} and $screen_chars ) ) {
+    #        $state->{'iteration'}++;
 
-        my $columns = $state->{'screen'}->{'x'};
-        my $rows    = $state->{'screen'}->{'y'};
+    my $columns = $state->{'screen'}->{'x'};
+    my $rows    = $state->{'screen'}->{'y'};
 
-        decode_row( \$state->{'result-13'}, \$state->{'screen-buffer'}, $rows );
+    for ( 0 .. $rows ) {
+        decode_row( \$state->{'result-13'},
+            \$state->{'screen-buffer'}, $columns );
     }
 
     if ( $set_up->{'encode-base32'} ) {
@@ -270,19 +279,11 @@ while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
         }
     }
 
-# die $screen_chars . ' \\ ' .$chars_left .' \\ ', length($state->{'screen-buffer'}) - $col_len;
-
     cmd_quit()        if $SIG_QUIT;
     sig_int_handler() if $SIG_INT;
 
-    my $buffer_len = length( $state->{'screen-buffer'} );
-
-    print clear() . $state->{'screen-buffer'}
-        and sleep( 1 / 300 );
-
-    # and sleep( $frame_delay + $state->{'init-delay'} );
-
-    ## "\e[H[$zulum_offset|$buffer_len]\r"
+    print "\e[H" . $state->{'screen-buffer'}
+        and sleep( $frame_delay + $state->{'init-delay'} );
 
     $state->{'init'} = $state->{'init-delay'} = 0 if $state->{'init'};
 
@@ -309,7 +310,8 @@ sub decode_row {
     ( my $input, my $output, my $chars_left ) = ( $_[0], $_[1], $_[2] // 80 );
     die "['$$input']" if !length($$input);
 
-    my $line_width = $chars_left;
+    my $line_width  = $chars_left;
+    my $start_width = length($$output);
 
     ##  $$output .= ' ' x $line_width;
 
@@ -379,14 +381,19 @@ ADD_CHARACTERS:
         $chars_left = 0;
     }
 
-    $$output .= join( '', $bg_color, $fg_color, $decoded_chars );
-
     my $dec_len = length($decoded_chars);
+
+    $$output .= join( '',
+        $bg_color, $fg_color, substr( $decoded_chars, 0, $chars_left ) )
+        if $chars_left;
+
     $chars_left -= $dec_len;
 
     goto ADD_CHARACTERS if $chars_left > $dec_len and length($$input);
 
-    return length($decoded_chars);
+    $$output .= ' ' x $chars_left if $chars_left;
+
+    return length($$output) - $start_width;
 }
 
 sub process_arguments {
@@ -398,7 +405,7 @@ sub process_arguments {
             and $ARGV[0] eq '-s'
             and $ARGV[1] =~ m|^[1-7]$| ) {
             shift(@ARGV);
-            $state->{'speed-div'} = 8 - shift(@ARGV);
+            $state->{'set-up'}->{'speed-div'} = 8 - shift(@ARGV);
         }
 
 ## restart run with new seed after message complete ##
@@ -524,7 +531,7 @@ sub load_state {
 sub sig_int_handler {
     $SIG_INT = 0;
 
-    my @commands = (
+    my @available_commands = (
         'exit \\ quit', 'resume \\ continue', qw|
             clear reset checksum show-seed completed load save
             last loop-count buffer result-13 zulum state rewind
@@ -545,6 +552,7 @@ sub sig_int_handler {
             }
             chomp( $cmd = <STDIN> // '' );
             $cmd =~ s|^\d+||; ## clean-up [ garbled by ansi ] ## [inversitgate.]
+            $set_up->{'prompt-hidden'} = 0 if length($cmd);
         }
         $state->{'last-cmd'} = $cmd
             if $cmd !~ m,^(clear|last|(save|load)-state|resume|continue)$,;
@@ -554,12 +562,13 @@ sub sig_int_handler {
                 $cmd = $state->{'last-cmd'} // '';
                 goto PROCESS_CMD
             }
+            when ('.') { $set_up->{'prompt-hidden'} = 0 }
             when (m{^(help|commands)$}) {
                 say "\n::: available commands :.\n:\n"
                     . join( '',
                     map  {":: $ARG\n"}
                     sort { length $a <=> length $b }
-                    sort @commands )
+                    sort @available_commands )
                     . ':'
             }
             when ('loop-count') { say $state->{'loop-count'} }
@@ -568,7 +577,7 @@ sub sig_int_handler {
             }
             when ('buffer') {
                 say "\n\e[H\e[2J\e[3J$state->{'screen-buffer'}";
-                sleep 2.42;
+                sleep 1.2131 if not $set_up->{'prompt-hidden'};
             }
             when ('result-13') {
                 say "\n\e[3J\n '$state->{'result-13'}'\r";
@@ -606,8 +615,9 @@ sub sig_int_handler {
             }
             when ('rewind') { reset_state() }
             when (m{^(n(ext)?)?$}) {    ## [n]ext or <ENTER> loops once ###
-                $SIG_INT         = -1;
-                @process_command = qw| resume |
+                $set_up->{'prompt-hidden'} = 1;
+                $SIG_INT                   = -1;
+                @process_command           = qw| resume |
             }
             when ('show-seed') { dump_seed_state() }
 
@@ -632,7 +642,6 @@ sub sig_int_handler {
                     say "< key '$1' undefined >";
                 }
             }
-
             when ('state') { dump_state() }
             when ('save')  { save_state() }
             when ('load')  { load_state() }
@@ -660,7 +669,7 @@ sub sig_int_handler {
 }
 
 # ______________________________________________________________________________
-#\\P6SWGVCP3G4YT3UEZ5TFPDFH5KCHMZ5HOQFSI26XZPMSFVFNKQEIP3S2GO5AK3LEKTJSWQN7YZGS6
-# \\ UCIUOLEUEJD5RS5WS6X6W5FXK24YTS27URLO5EPMC7ME2EQQWWFB \\// C25519-BASE-32 //
-#  \\// TLJ74C7WX6STVRGGQ5QE3P66PZILW7BI6HRLVYBYFIQ2HCX7ICQ \\ CODE SIGNATURE \\
+#\\VTHIFUFFAQMP4KHMPDE2XLLEUEYQ32APGTU5NUWTEPGAOS6ZHBFYYMBLQSTGTFFRKQL7T2WVKDZTY
+# \\ NJ7P6ZV3ENULLD4PCUXVDJCDDDXIZODICZHDPTDCW73C3XEMEX2U \\// C25519-BASE-32 //
+#  \\// 3PLXWISYM2SEHXZUMF75C55VMK3CKUYHP2BKN3S3LIKKAMWN2DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
