@@ -1,15 +1,14 @@
 # >:]
 
-# name  = events.cmd.get_status
+# name  = events.cmd.show-active
 # descr = return list of currently active events
 
 return { 'mode' => 'nak', 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
     or !keys %{<events.unix.timetable>};
 
-my $current_time = <[base.time]>->(2);
-
 my @events_active;
+my $current_time = <[base.time]>->(2);
 
 foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     push( @events_active,
@@ -20,13 +19,15 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         and $current_time > <events.unix.timetable>->{$ev_id}->{'start'};
 }
 
+return { 'mode' => 'nak', 'data' => 'no events active' } if !@events_active;
+
 return {
     'mode' => 'data',
     'data' => join( '', map {"$ARG\n"} @events_active )
     }
 
 # ______________________________________________________________________________
-#\\JLFST3YVNIELZQGRKQQBI3GQKZSUFCSDBF23RGECUBYXB4DN5RKML33OROR24UR4M5P44YLOKGU5A
-# \\ IU2F5SUTBLFFDJ4EU3DUNDUGSOFYRG25VVQRGG2LILDZPFWBFY6I \\// C25519-BASE-32 //
-#  \\// V7BEQCEMMC43MNPUWVYAVGGZCJQOEOVXOZIOYYVLTTGBKCJXOAI \\ CODE SIGNATURE \\
+#\\QKEYJGCJFFW2D7XA72VD7A3S7ICPMZLAHLU7DLCLD2PNVGJKMXF5LU2F2EEEYAWWJA6Q7CTESOA2M
+# \\ 7CLNE2DF3FTZL2N4YSGKMPR27BVVCBN6D3FCQW5BVIWJ6JWEGKBA \\// C25519-BASE-32 //
+#  \\// 7LI35H75BPNX3FXLUJCDXDGVEFGS7RP5H4TSFUT7SMW7UEXMODI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

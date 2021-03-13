@@ -11,13 +11,13 @@ $config_data = shift(@ARGV) if ref( $ARGV[0] ) eq 'HASH';
 my @cfg_files = @_;
 
 foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
-    ( my $file_name = $file_path ) =~ s/^.*\///g;
+    ( my $file_name = $file_path ) =~ s|^.*/||g;
     <[log.noerr]>->("loading section config '$file_name'");
 
     my @cfg_lines;
     <[file.slurp]>->( $file_path, \@cfg_lines );
     if ( !@cfg_lines ) {
-        <[log.error]>->("unable to load config file '$file_name'");
+        <[log.error]>->("unable to load section config file '$file_name'");
         return undef;
     }
 
@@ -25,20 +25,20 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
     my ( $section, $sub_section, $sub_sub_section );
     foreach my $line (@cfg_lines) {
         $line_num++;
-        $line =~ s/(#.*|\s*)+$//g;
-        $line =~ s/^\s+//;
+        $line =~ s{(#.*|\s*)+$}{}g;
+        $line =~ s|^\s+||;
         next if $line eq '';
-        if ( $line =~ /^\.:\s*([\w_\-\.]+)\s*:\.$/ ) {
+        if ( $line =~ m|^\.:\s*([\w_\-\.]+)\s*:\.$| ) {
             $section         = $1;
             $sub_section     = undef;
             $sub_sub_section = undef;
-        } elsif ( $line =~ /^-\s*([\w_\-\.]+)$/ ) {
+        } elsif ( $line =~ m|^-\s*([\w_\-\.]+)$| ) {
             $sub_section     = $1;
             $sub_sub_section = undef;
-        } elsif ( $line =~ /^:\s*([\w\[\]_\-\.]+)\s*:$/ ) {
+        } elsif ( $line =~ m|^:\s*([\w\[\]_\-\.]+)\s*:$| ) {
             $sub_sub_section = $1;
         } else {
-            if ( $line =~ /^([\w\._]+)\s*=\s*(.+)+$/ ) {
+            if ( $line =~ m|^([\w\.\-_]+)\s*=\s*(.+)+$| ) {
                 if (    defined $section
                     and defined $sub_section
                     and defined $sub_sub_section ) {
@@ -50,12 +50,12 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
                     $config_data->{$section}{$1} = $2;
                 } else {
                     <[log.error]>->( "$file_name: "
-                            . "no section defined for '$line' (line $line_num)"
-                    );
+                            . "no section defined for "
+                            . "'$line' [ line $line_num ]" );
                 }
             } else {
                 <[log.error]>->( "syntax error in '$file_name' "
-                        . "at line $line_num ( \"$line\" )" );
+                        . "at line $line_num ['$line\']" );
             }
         }
     }
@@ -63,7 +63,7 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
 return $config_data;
 
 # ______________________________________________________________________________
-#\\XCJOGWADJOG7E5OVBRWSI7VJVA27LW2YDYXXSZYPQDRMDHDF7OLYO6MZVYO4MVQT4XFZV35X2KMDA
-# \\ DLNVCRLMDMCIJOKGCZ5BI423SD46CEBUN56P7UX67AZNC3RCIFTR \\// C25519-BASE-32 //
-#  \\// 25HICUDR7L3O7PPEZALWO2K32MAHWAHBACK2BPZ3PVF3MFXQ4BA \\ CODE SIGNATURE \\
+#\\IDAGYGER34AMW2WBCWU6A7SEU4EPFOCJ5FDZ34C4KJT5CPYMWCKKJM5CNMNQKLW7PQJTCQT7Z76XC
+# \\ 6LASHS4YJRH2APFH3XULSJXUPMIBO2QBMP5NXJF6GPWTD3A4P6H2 \\// C25519-BASE-32 //
+#  \\// 6QVMHJAD23YNTNHLXWMEUGSW2C4TUQ2LU2LQJQASWCLYVOZFODQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

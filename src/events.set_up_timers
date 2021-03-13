@@ -11,11 +11,11 @@ die "invalid mode '$mode'" if length($mode) and $mode ne 'recalc';
 map {
     if ( exists <event.timers>->{$ARG} ) {
 
-        # LLL: trigger 'end' handler ...
+        # LLL: trigger 'end' handler ..,
         <event.timers>->{$ARG}->cancel if <event.timers>->{$ARG}->is_active;
         delete <event.timers>->{$ARG};
         <[base.log]>->(
-            0, "cancelled timer for event $ARG (no longer defined)"
+            0, "cancelled timer for event $ARG [ no longer defined ]"
         );
     }
 } keys %{<events.unix.timetable>};
@@ -31,7 +31,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     my $e_start
         = defined $u_event->{'at'} ? $u_event->{'at'} : $u_event->{'start'};
     if ( not defined $e_start ) {
-        warn "[$t_event->{name}] no start time defined, skipping event..";
+        warn "[$t_event->{name}] no start time defined, skipping event.,";
         next;
     }
     my $event_in = sprintf( "%.1f", $e_start - $current_time );
@@ -39,7 +39,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     my @timer_types = defined $u_event->{'at'} ? ('at') : ( 'start', 'end' );
 
     <[base.log]>->(
-        2, "[timer setup] event $ev_id (..in $event_in seconds..) [$e_start]"
+        2, "[timer setup] event $ev_id [..in $event_in seconds..] [ $e_start ]"
     );
     <events.timers>->{$ev_id} = {};
     my $all_in_past = 1;
@@ -57,7 +57,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
             }
             )
             if ( $mode ne 'recalc'
-            or $action_type !~ /^(composition|playlist)_/ )
+            or $action_type !~ m,^(composition|playlist)_, )
             or (
             !$all_in_past
             and (  $ARG ne 'start'
@@ -65,10 +65,10 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 or $u_event->{$ARG} >= $current_time )
             );
 
-   #        if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
-   #        or $mode ne 'recalc' and $action_type !~ /^(composition|playlist)_/;
+   #       if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
+   #       or $mode ne 'recalc' and $action_type !~ m.^(composition|playlist)_,;
 
-        if ( $action_type =~ /^playlist_/ ) {
+        if ( $action_type =~ m|^playlist_| ) {
             my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'} //= '';
             if ( !length($b32id) ) {
                 warn "playlist entry 'b32id' not defined in event '$ev_id'";
@@ -80,7 +80,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
 }
 
 # ______________________________________________________________________________
-#\\V3JM2CLFJ37AJL6YHWBL3FDHGCTL635WTJUMXRZTXDCYFGA35KQQTXUKTYCVSUL26QSOVXSLEZ4HC
-# \\ UKOOBZYVP26Q4KUCTQSDWCUM54GMOGEYRTUWCUTVD4IRSAWSEZEJ \\// C25519-BASE-32 //
-#  \\// 7J4CNYB76R4EH762OALKKHHPQY5BOSH6D7EK2KW6TVYD4GDIGCQ \\ CODE SIGNATURE \\
+#\\JX7ZZAJ2KGOSPQGHJ6XGGLQVEAPC64JQTT3XOCSPQNYXEL2SLBZG52K2RR7QL77KNGXA2NQ4TTZBY
+# \\ M62X3MQ4WHPCIABVI7DHGANXLTP4KV55QEC3WELI6FEWRQGFW323 \\// C25519-BASE-32 //
+#  \\// CNI6BJVFH2LXPVMD4NHU4ENEAMYPMK4XJKATJ5E4CWMEQSKTICI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
