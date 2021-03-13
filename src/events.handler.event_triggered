@@ -13,33 +13,33 @@ my $action_type = $action->{'type'};
 
 if ( not exists <events.enabled>->{$event_name}
     or !<events.enabled>->{$event_name} ) {
-    <[base.log]>->( 2, "[IGNORED] event '$event_name' not enabled (setup)" );
+    <[base.log]>->( 2, "[IGNORED] event '$event_name' not enabled in set-up" );
     return;
 }
 
 if ( defined $ev_data->{'dep_id'}
     and !<[dependency.ok]>->( $ev_data->{'dep_id'}, $ev_id ) ) {
     <[base.log]>->(
-        1, "[IGNORED] '$event_name' event (unresolved dependencies)"
+        1, "[IGNORED] '$event_name' event [ unresolved dependencies ]"
     );
     return;
 } elsif ( defined $ev_data->{'dep_id'} ) {
-    <[base.log]>->( 2, "[OK] dependencies resolved [event '$event_name']" );
+    <[base.log]>->( 2, "[RUN] dependencies resolved [ event '$event_name' ]" );
 }
 
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
 die "'tile_group_name' parameter is missing from '$action_type' setup"
-    if $action_type =~ /^composition_/
-    and not defined $action->{'tile_group_name'};
+    if $action_type =~ m|^composition_|
+    and not defined $action->{'tile_group_name'}; ## <-- check \ test [LLL]
 
 <events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
     = $action_type
     if defined $action->{'b32id'};
 
-if ( $action_type eq 'agent_running' ) {
+if ( $action_type eq 'agent-present' ) {
     my $command;
-    my $agent_name = $action->{'agent_name'};
+    my $agent_name = $action->{'agent-name'};
     die "parameter agent_name not defined in event $ev_id setup"
         if not defined $agent_name;
     $command = 'start_once'    if $ev_type eq 'start';
@@ -52,7 +52,7 @@ if ( $action_type eq 'agent_running' ) {
             'call_args' => { 'args' => $agent_name }
         }
     );
-} elsif ( $action_type eq 'send_command' ) { #LLL: need param check during setup
+} elsif ( $action_type eq 'send-command' ) { #LLL: need param check during setup
     map {
         die "'$ARG' param is invalid for action type '$action_type'"
             . ", expected <at>-parameter"
@@ -67,7 +67,7 @@ if ( $action_type eq 'agent_running' ) {
         = split( / +/, $action->{'command'}, 2 );
     my $args_ref = defined $args_str ? { 'args' => $args_str } : {};
 
-    my $args_lstr = defined $args_str ? " ($args_str)" : '';
+    my $args_lstr = defined $args_str ? " [ $args_str ]" : '';
     <[base.log]>->( 1, "sending '$target_route' command" . $args_lstr );
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => "core.$target_route",
@@ -127,12 +127,14 @@ if ( $action_type eq 'agent_running' ) {
     <events.stack.overlay.visibility>->{$l_name} -= $change;
 }
 
-if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
-    delete <events.unix.timetable>->{$ev_id};
-    <event.timer.recalc>->cancel if defined <event.timer.recalc>;
-    <event.timer.recalc> = <[event.add_timer]>
-        ->( { 'at' => time + 1, 'handler' => 'events.recalc' } );
-}
+## [ check \ rework ]
+
+# if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
+#     delete <events.unix.timetable>->{$ev_id};
+#     <event.timer.recalc>->cancel if defined <event.timer.recalc>;
+#     <event.timer.recalc> = <[event.add_timer]>
+#         ->( { 'at' => time + 1, 'handler' => 'events.recalc' } );
+# }
 
 <[base.protocol-7.command.send.local]>
     ->( { 'command' => "core.content.update" } )
@@ -140,7 +142,7 @@ if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
 
 <events.composition.cfg_directory> //= '/etc/protocol-7/agents/composition';
 
-if ( $action_type =~ /^composition_/ ) {
+if ( $action_type =~ m|^composition_| ) {
 
     delete
         <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
@@ -161,7 +163,7 @@ if ( $action_type =~ /^composition_/ ) {
     if ( defined $current_tile_group
         and <events.stack.composition.visibility>->{$current_tile_group} ) {
         <[base.log]>->(
-            1, "writing 'tile-group.current' config.. [active event]"
+            1, "writing 'tile-group.current' configuration., [ active event ]"
         );
         <[file.put]>->(
             $restore_config,
@@ -180,7 +182,7 @@ if ( $action_type =~ /^composition_/ ) {
     }
 }
 
-if ( $action_type =~ /^overlay_(show|hide)$/ ) {
+if ( $action_type =~ m,^overlay_(show|hide)$, ) {
     my $show_hide    = $1;
     my $overlay_name = $action->{'tile_group_name'};
     my $command_str  = (
@@ -208,7 +210,7 @@ if ( $action_type =~ /^overlay_(show|hide)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\53KN6RYMLIQMX52KEP542AWX7KGUBYFCAZLCMTP5GLXV5ZXET3A6EG5AWC5SXT62RB7THY5F6OBEA
-# \\ TQZ46ESE4M33EJJIQRZ5CSYMUUEVYQPLVZ26PNCGOEJXOMIQCSNA \\// C25519-BASE-32 //
-#  \\// EN6PX4XS2GZVIGL2QDAPCZ6WI6YNFZEWX2EII3DUW7WKGJPEODQ \\ CODE SIGNATURE \\
+#\\MOVXZJJBFNZQADIWJFDK2VLLDYGTXN2UYB7NLEXFSE3FGIL5ML2KYHX7ZSB6M64PKVJQKVVLLQBMY
+# \\ UX5QHISWPOFB72EE3XWEQFISIQSFR3B472I7OJCH3C7YP2U2MJDC \\// C25519-BASE-32 //
+#  \\// 7TIVJEOOXW6RLLXWX2BNIM74V4CGY7XHUOZ7NPQ6CIWFDZKA2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

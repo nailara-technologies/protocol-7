@@ -1,11 +1,11 @@
 # >:]
 
 # name = events.init_code
-# note = event.* and events.* namespaces have entirely different meanings! ;)
+# note = event.* and events.* namespaces have entirely different meanings ..,
 
 <[base.perlmod.autoload]>->('Date::Parse');
 
-my $config_name     = <events.load_config> //= 'example';
+my $config_name     = <events.load_config> //= 'base';
 my $cfg_root_path   = <system.conf_path>;
 my $config_filename = "event-setup.$config_name";
 
@@ -14,24 +14,21 @@ my $config_filename = "event-setup.$config_name";
     'key'      => 'events.timetable',
     'sort_key' => 'name',
     'descr'    => 'events and their IDs',
-    'mask'     => 'name:agent_name <key>:event_ID',
-    'align'    => {
-        'name'     => 'center',
-        'event_ID' => 'center-1'
-    }
+    'mask'     => 'name:agent-name <key>:event_ID',
+    'align'    => { 'name' => 'right', 'event_ID' => 'center-1' }
 };
 
 <events.setup>     //= {};
 <events.enabled>   //= {};
 <events.timetable> //= {};
 <events.day_regex> //= {
-    0 => qr/^Su(n(day)?)?$/i,
-    1 => qr/^Mo(n(day)?)?$/i,
-    2 => qr/^Tu(e(sday)?)?$/i,
-    3 => qr/^We(d(nesday)?)?$/i,
-    4 => qr/^Th(u(rsday)?)?$/i,
-    5 => qr/^Fr(i(day)?)?$/i,
-    6 => qr/^Sa(t(urday)?)?$/i,
+    0 => qr|^Su(n(day)?)?$|i,
+    1 => qr|^Mo(n(day)?)?$|i,
+    2 => qr|^Tu(e(sday)?)?$|i,
+    3 => qr|^We(d(nesday)?)?$|i,
+    4 => qr|^Th(u(rsday)?)?$|i,
+    5 => qr|^Fr(i(day)?)?$|i,
+    6 => qr|^Sa(t(urday)?)?$|i,
 };
 <events.intervals> //= {};
 <events.weekdays>  //= {};
@@ -50,9 +47,9 @@ my $cfg_full_path
     $config_filename );
 
 if ( !-f $cfg_full_path ) {
-    <[base.log]>->( 0, "<!> config '$config_filename' not found <!>" );
+    <[base.log]>->( 0, "<< '$config_filename' set-up not found >>" );
 } else {
-    <[base.log]>->( 1, "<!> loading '$config_name' event setup <!>" );
+    <[base.log]>->( 1, "<< loading '$config_name' event setup >>" );
     ## loading events setup configuration ##
     local <system.conf_path> = "$cfg_root_path/agents/" . <system.agent.name>;
     $config_data = <[base.load_section_config]>->($config_filename);
@@ -69,13 +66,13 @@ map { <events.enabled>->{$ARG} = 1 }
 
 my @enabled;
 map { <events.enabled>->{$ARG} = 1; push( @enabled, $ARG ) }
-    split( / +/, $config_data->{'events'}->{'enabled'} )
+    split( m| +|, $config_data->{'events'}->{'enabled'} )
     if defined $config_data->{'events'}->{'enabled'};
 
 if (@enabled) {
     <[base.logs]>->( 1, "enabled : '%s'", join( "', '", @enabled ) );
 } else {
-    <[base.log]>->( 0, "<!> no events enabled in configuration <!>" );
+    <[base.log]>->( 0, "<< no events enabled in configuration >>" );
 }
 
 <[dependency.install_callbacks]>->('events');
@@ -102,7 +99,7 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
             = delete $config_data->{'timetable'}->{$event_name}->{'days'};
         @selected_days = sort keys %{$day_ref} if ref($day_ref) eq 'HASH';
         @selected_days = sort @{$day_ref}      if ref($day_ref) eq 'ARRAY';
-        @selected_days = sort split( / +/, $day_ref ) if ref($day_ref) eq '';
+        @selected_days = sort split( m|\s+|, $day_ref ) if ref($day_ref) eq '';
         foreach my $day_name (@selected_days) {
             map {
                 <events.setup>->{$ev_id}->{'days'}->{$ARG} = 1
@@ -128,7 +125,7 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 #
 # <events.setup>->{$ev_id} = {
 #     'name'   => 'soon_soon',
-#     'action' => { 'type' => 'agent_running', 'agent_name' => 'xclock' }
+#     'action' => { 'type' => 'agent-present', 'agent-name' => 'another' }
 # };
 #
 # my $next_start = strftime "%H:%M:%S", localtime( time + 23 );
@@ -147,7 +144,7 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 0;
 
 # ______________________________________________________________________________
-#\\CJ3VRB2EQN2EQH5RWYXMYJRVRSFOPC42Z36UE25KN3IN2YKBXQAQXPAUOYNZJTSVMDFJK73C5E7HW
-# \\ 66D6DB6QUM3RXQ4N7CCEANLKNOUBYHBKRMPMGBV37JUZ4KEDXJJC \\// C25519-BASE-32 //
-#  \\// DY2FT757DEGE2KRBE4L27OHN5I4I4RXLOHF4P7QRGLU54SRTOAQ \\ CODE SIGNATURE \\
+#\\PTNT4WKWKZGFSCPEHIFO4WMI2L2RNBJUDPGBXY5VCFZQBMBBB5AB5RI5XU6SYILH264JSP566Q4AI
+# \\ 7NNNMDQNQY3KV76W5ZZTQJ4KTMKF72XWY537ARKACR22Z5WBD3HW \\// C25519-BASE-32 //
+#  \\// R4UYDSBJ4ZIIKHRJ5QY7NJIXG77MD5XYWITZY3FGIKWR4CE36AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

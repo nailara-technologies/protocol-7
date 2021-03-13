@@ -1,12 +1,12 @@
 
-.:[ nailara 'events' [ management and trigger ] agent ]:.
+.:[ 'events' [ trigger ] agent ]:.
 
 [load_config_file:'shared-params']
 
-events.load_config  = 'example' # <- ./cfg/events.setup.<name>
+events.load_config  = 'base'  #  <--  [ ./cfg/agents/events/event-setup.<name> ]
 
-modules.load         = net protocol io.ip auth events set-up.json
-access.cmd.usr.core  = verify-instance commands heart reload *
+modules.load         = net protocol io.ip auth events set-up.json  ## debug
+access.cmd.usr.core  = verify-instance commands heart reload * # <-- refine
 
 [load_modules:<modules.load>]
 [init_modules]
