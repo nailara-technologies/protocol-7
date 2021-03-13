@@ -1,0 +1,26 @@
+# >:]
+
+# name  = events.cmd.show-enabled
+# descr = list events enabled in set-up
+
+return { 'mode' => 'nak', 'data' => 'no events configured' }
+    if not defined <events.unix.timetable>
+    or !keys %{<events.unix.timetable>};
+
+return { 'mode' => 'nak', 'data' => 'no events are enabled' }
+    if not defined <events.enabled>
+    or !keys %{<events.enabled>};
+
+my @enabled_events
+    = sort { length $b <=> length $a } reverse sort keys %{<events.enabled>};
+
+return {
+    'mode' => 'data',
+    'data' => join( '', map {": enabled : $ARG\n"} @enabled_events )
+    }
+
+# ______________________________________________________________________________
+#\\QKEYJGCJFFW2D7XA72VD7A3S7ICPMZLAHLU7DLCLD2PNVGJKMXF5LU2F2EEEYAWWJA6Q7CTESOA2M
+# \\ 7CLNE2DF3FTZL2N4YSGKMPR27BVVCBN6D3FCQW5BVIWJ6JWEGKBA \\// C25519-BASE-32 //
+#  \\// 7LI35H75BPNX3FXLUJCDXDGVEFGS7RP5H4TSFUT7SMW7UEXMODI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
