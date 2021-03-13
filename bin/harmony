@@ -45,10 +45,11 @@ if ( $divisor != 0 ) {
 
 Math::BigFloat->accuracy( $accuracy + length($elf_checksum) );
 
-my $un_harmonic = '230769';                             ## <ETB> <BEL> <'E'> ###
-my $harmony     = join( '', map {ord} qw| T = 5 | );    ## <'T'> <'='> <'5'> ###
-my $calc        = Math::BigFloat->new($elf_checksum);
-my $calc_str    = $calc->bdiv( 13, $accuracy + length($elf_checksum) );
+my $false = '230769';    ## <-- # ःE ## FALSE ##
+my $true  = '846153';    ## <-- #  ℍ5 ##  TRUE ##
+
+my $calc     = Math::BigFloat->new($elf_checksum);
+my $calc_str = $calc->bdiv( 13, $accuracy + length($elf_checksum) );
 
 $calc_str = sprintf( '%0.7f', $calc_str )
     if $calc_str !~ m|\.(\d+)|
@@ -59,18 +60,18 @@ my $dot_pos  = index( $line_str, '.' ) - 1;
 $dot_pos = length($calc_str) if $dot_pos < -1;
 my $space = ' ' x $dot_pos;
 
-$line_str =~ s{(*plb:\.)(\d*?)($harmony|0+ )}
+$line_str =~ s{(*plb:\.)(\d*?)($true|0+ )}
         {$1$ANSI{'match_y'}$2$ANSI{'reset'}}
-    or $line_str =~ s{(*plb:\.)(\d*?)($un_harmonic)}
+    or $line_str =~ s{(*plb:\.)(\d*?)($false)}
         {$1$ANSI{'match_n'}$2$ANSI{'reset'}};
 
 my $return_code = 1;
 $calc_str =~ s|^\d+\.||;
 my $result = '< ? >';
-if ( $calc_str =~ m|($harmony(*nla:\d+\.))| or $calc_str =~ m|0+$| ) {
+if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0+$| ) {
     $result      = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
     $return_code = 0;
-} elsif ( $calc_str =~ m|$un_harmonic| ) {
+} elsif ( $calc_str =~ m|$false| ) {
     $result = ">:|  [ $ANSI{'color_n'}not$ANSI{'reset'} harmonic. ]";
 }
 my $q = $numeric ? '' : "'";
@@ -81,7 +82,7 @@ print "\n$space $q$ANSI{'str'}$check_string$ANSI{'reset'}$q  ==="
 exit($return_code);
 
 # ______________________________________________________________________________
-#\\SJL6ANDY7BEEVFRAGJXKR3WVCVAZNAJYBK4PZ4I7NGSHP42DCUWWF2PWMLVXTBAZDZAVEB75QNDI6
-# \\ EVLTEHBFVX2BD6DD3O5KYUELW24VQB4P2R2RYF5GTJB4HOX4TAIV \\// C25519-BASE-32 //
-#  \\// BBE25FAFVKHCUGIYOAZWN4OZU7W3GYQVXN7PNUAQU6WVPNNKEAY \\ CODE SIGNATURE \\
+#\\VBNRPE7PZCESBTRNO4WTWH5WB3XHVYDZCOKBQOGUHPNDQI4KDZV2NA6E3NNDF5RXJTYHT5B5ROHGW
+# \\ MD2AUWR67L7QH77LRQEGRJ4YYY47SW726PIHXACH2ABV3JWLZZBI \\// C25519-BASE-32 //
+#  \\// UAWZE2XJ6Y34QZXQT2E5TQ3MU7CKG3RAVZ5ZWJEH2BKSEQOSCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -66,7 +66,8 @@ my @c = (
 );
 
 ### [ logging command arguments ] ###
-my $wrap_at = 78 - <system.start.log_prefix_width> // <[base.log_prefix_width]>;
+my $lpw = <system.start.log_prefix_width> // <[base.log_prefix_width]> // 24;
+my $wrap_at = 78 - $lpw;
 local $Text::Wrap::columns   = $wrap_at;
 local $Text::Wrap::separator = "\n";
 my $cmd_string = wrap( '  ', ' ' x 18, join( ' ', @c ) );
@@ -114,7 +115,7 @@ delete <compton.renice_fh>;
 );
 
 # ______________________________________________________________________________
-#\\V7YZAO2MLDSFCGJ75J3WHPQXCX7DMP544F7S6IV7VNM4KRQY6ZQX72B3RHGLKYFQL2P2MUCFOC5KY
-# \\ X6KLODJSK3HBKQKPCPNY62INLJCTHLQXBNQMV6JJ2XU2K4VV6VYK \\// C25519-BASE-32 //
-#  \\// WTLYHP3TG5OSXTGTE7L6IYGGPXGMRNTR7S6AXICKBORRB47QOAA \\ CODE SIGNATURE \\
+#\\5AZEELFLOHYPQRDOV4QJOLNXEBMKVTYDGQJ2ZDERIPCZZKOPPFWUIP5KLQYTD2Q7TDI2T7ZJEROAI
+# \\ JEEIAXNTKHTUGKN3K2H7JQNFDEHKYJAM5Y3REQKTOYVQUYOHYLPO \\// C25519-BASE-32 //
+#  \\// CXHQCTAUCWACC4MEJCDN32V6SDGIRYEH5XXVHAAXISSOG5USGAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -5,10 +5,11 @@ BEGIN { $ENV{'NO_AT_BRIDGE'} = 1 }
 use utf8;
 use strict;
 use warnings;
+use English;
 use File::Spec;
 use Gtk3 '-init';
 use feature ':5.10';
-use Glib qw/TRUE FALSE/;
+use Glib qw| TRUE FALSE |;
 
 use Data::Dumper 'Dumper';
 
@@ -25,6 +26,8 @@ die "image file '$image_path' not found"   if !-f $image_path;
 #open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on termin. xserver
 
 my $window = Gtk3::Window->new('toplevel');
+# my $root_window = $window->get_root_window;
+
 $window->signal_connect( 'delete_event'         => sub { Gtk3->main_quit } );
 $window->signal_connect( 'touch-event'          => \&menu_open );
 $window->signal_connect( 'button-release-event' => \&menu_open );
@@ -39,7 +42,9 @@ $window->set_decorated(0);
 $window->stick;
 
 $window->set_app_paintable(1);
-my $screen = $window->get_screen();
+my $screen = $window->get_screen;
+
+# $screen->signal_connect( 'window-openend-event' => \&window_opened );
 
 if ($use_transparency) {
     my $rgba = $screen->get_rgba_visual();
@@ -59,6 +64,7 @@ my $img_w = $pbuf->get_width();
 my $img_h = $pbuf->get_height();
 my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
+#########
 my $image = Gtk3::Image->new_from_pixbuf(
     $pbuf->scale_simple(
         sprintf( "%.0f", $scr_w * $scale_factor ),
@@ -112,6 +118,12 @@ $window->show_all;
 Gtk3->main;
 
 ###[SUBROUTINES]################################################################
+
+sub window_opened {
+    my ( $window, $event ) = @_;
+
+    printf( " < window > ' %s '  < event > " . Dumper($event), $window );
+}
 
 sub menu_open {
     my ( $window, $event ) = @_;
