@@ -1,50 +1,50 @@
 # >:]
 
 # name  = nroot.agent.is_enabled
-# descr = returns true if agent is enabled / not disabled in the configuration
+# descr = returns true if agent is enabled \ not disabled in the configuration
 
 my $agent_name = shift;
-die "nroot.agent.is_enabled: no agent name specified"
+die 'nroot.agent.is_enabled: no agent name specified'
     if not defined $agent_name;
 
-my $config_href = <nroot.start_setup.globals.agents>;
+my $config_href   = <nroot.start_setup.globals.agents>;
+my $agent_name_re = <regex.base.usr_str>;
 
 # checking config syntax
 foreach my $check_key ( 'enabled', 'disabled' ) {
     if (    exists $config_href->{$check_key}
         and defined $config_href->{$check_key}
-        and $config_href->{$check_key} !~ /^(([a-z][a-z\.\-_\d]*\ *)+)?\s*$/i )
-    {
+        and $config_href->{$check_key} !~ m|^(($agent_name_re*\ *)+)?\s*$|i ) {
         <[base.log]>->(
             0,
             "start setup syntax error: agents.$check_key = '"
                 . $config_href->{$check_key}
-                . "' <- expecting valid agent name(s)"
+                . "' <-- expecting valid agent name[s]"
         );
-        die "critical configuration error";
+        die 'critical configuration error';
     }
 }
 
-# all agents considered enabled in absence of explicit statements!
+# all agents are considered enabled in absence of explicit statements ..,
 return 1
     if not defined $config_href->{'enabled'}
     and ( not defined $config_href->{'disabled'}
-    or $config_href->{'disabled'} =~ /^\s+$/ );
+    or $config_href->{'disabled'} =~ m|^\s+$| );
 
-# agents.diabled takes precedence before agents.enabled!
+# agents.diabled takes precedence to agents.enabled.,
 map { return 0 if $ARG eq $agent_name }
-    split( /\s+/, $config_href->{'disabled'} )
+    split( m|\s+|, $config_href->{'disabled'} )
     if defined $config_href->{'disabled'};
 
 return 1 if not defined $config_href->{'enabled'};
 
-# if agents.enabled is present, all agents not listed there count as disabled!
+# if agents.enabled is present, all agents not listed there count as disabled .,
 map { return 1 if $ARG eq $agent_name }
-    split( /\s+/, $config_href->{'enabled'} );
+    split( m|\s+|, $config_href->{'enabled'} );
 return 0;
 
 # ______________________________________________________________________________
-#\\JA22SK27PDQYJOH37LCRYU5H245DZ7KZTG4VNQDTPVB232DM3MTYW3DQTMTQQJEXKWWDME22IIM3M
-# \\ L7WTJ5GHIEUDP4IWTCMTJTXIIZIBIPBN5Z76KSW7IFYKE7QKUQ6L \\// C25519-BASE-32 //
-#  \\// TGPS4EWYKGQVYI6QS6TVX3GXFKXQYDXR7NIDFCX5EY4BZ35HIBQ \\ CODE SIGNATURE \\
+#\\RNBL3KRQHCEFPULDEPMB6HJOKEJCSCOKRS5ISKTO34CN4YGI5BT2OCRH673QHKGUKBXIWINICTCCU
+# \\ D3XRO57RNEIRNRFT6ZBO3HS56I5GRU2TZ3XWDDKIPEI3BW6WW4ZX \\// C25519-BASE-32 //
+#  \\// WXJBXYIXU2YFHEZZ5APIHCRSK4HBMPEJFDR3IX3PFCZBNTBV6BA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
