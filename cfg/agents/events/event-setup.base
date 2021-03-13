@@ -1,0 +1,39 @@
+
+# name  = events-setup.base
+# descr = simple example setup for 'events' agent
+
+
+.: events :.
+
+    enabled = forensics # dist-upgrade
+
+    - dist-upgrade
+
+      : action :
+        type      = agent-present
+        agent-name = dist-upgrade
+
+    - forensics
+
+      : action :
+        type   = agent-present
+        agent-name = forensics
+
+    - another-example
+
+      : action :
+        type    = send-command
+        command = agent-name.command [params]
+
+.: timetable :.
+
+  - dist-upgrade
+    at  =  03:47
+
+  - forensics
+
+    start = 20:05
+    end   = 04:07
+
+  - another-example
+    at = HH:05:13
