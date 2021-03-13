@@ -12,7 +12,7 @@ my $openbox_rc_path = <system.conf_path> . '/agents/' . <system.agent.name>;
 my $cfg_path = $openbox_rc_path . '/openbox.' . $cfg_name . '.xml';
 if ( !-f $cfg_path ) {
     <[base.log]>->( 0, "openbox config file '$cfg_path' not found." );
-    <[base.log]>->( 1, " : aborting agent startup .," );
+    <[base.log]>->( 1, ' : aborting agent startup .,' );
     exit(1);
 }
 
@@ -23,15 +23,15 @@ if ( !-f $cfg_path ) {
 );
 if ( !<child.openbox.pid> ) {
     <[base.log]>->( 0, "<!> unable to start openbox [ \l$OS_ERROR ]" );
-    <[base.log]>->( 1, " : aborting agent startup .," );
+    <[base.log]>->( 1, ' : aborting agent startup .,' );
     exit(1);
 } else {
     <[base.agents.report_child_pid]>->(<child.openbox.pid>);
 }
 <[base.log]>->( 1, ": openbox started [pid=<child.openbox.pid>].," );
-<[base.log]>->( 2, ": : registering output handler..," );
+<[base.log]>->( 2, ': : registering output handler..,' );
 my $max_wait = 70;    # wait no longer than 7 seconds..
-<[base.log]>->( 1, "waiting for openbox log file creation.," );
+<[base.log]>->( 1, 'waiting for openbox log file creation.,' );
 while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }
 if ( -f <openbox.log_file> ) {
     <[event.add_timer]>
@@ -55,7 +55,12 @@ if ( -f <openbox.log_file> ) {
                 'XRandR extension is not present',
                 'XIO:  fatal IO error ',
                 'after \d+ requests',
-            ]
+                'a window manager is already running'
+            ],
+            'callback_patterns' => {
+                'a window manager is already running' =>
+                    'openbox.callback.already_running'
+            }
         }
     }
 );
@@ -63,7 +68,7 @@ if ( -f <openbox.log_file> ) {
 <[event.once:0.07]>;
 
 # ______________________________________________________________________________
-#\\4VGFZXSPG4QSGTAHHXOJVPJISGF4SITQAFGOW323R6UHEHD4CMZS4USJV4QQ4EOZDQAGLKGBPVMFK
-# \\ RJRKWXG2TGAONCWLKEY2FPOSUWAEBU3EI67CAFTNZPHBDEX6ALLQ \\// C25519-BASE-32 //
-#  \\// 7Z5CKU4O4KSUEUYZ6VUOAHNQDFXSG6XUOBYIXBGCF2V5YOKPADA \\ CODE SIGNATURE \\
+#\\4O4WIZ3FNBJGCOSBH5QAXIWPWYF4AMJJG3PM522QMGQCK3K6KDG6LEFSMDT4W4XBXIHMDOOUN4KBM
+# \\ NVHEOWZ3V3Y3OZ43DAI5DKNTS6YU2GNVUIRX3LKI4RZ2IVWN545W \\// C25519-BASE-32 //
+#  \\// XUIZRW6ZSROFKMNTZHFS7FGPVV6JMSC3HTSVJ7CFDBIHDYI6OBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
