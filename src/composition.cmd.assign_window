@@ -54,7 +54,7 @@ if (exists <composition.window_ids>->{$agent_name}
     $wid_str = join( ',', sort { $a <=> $b } split( m|\D+|, $wid_str ) );
     my $wid_lmsg = $wid_str;
     $wid_str =~ s|,| |g;
-    <composition.window_ids>->{$agent_name} = $wid_str;  # LLL: check if exists!
+    <composition.window_ids>->{$agent_name} = $wid_str;  # LLL: check if exists.
     my $s = $wid_str =~ m| | ? 's' : '';
     <[base.log]>->( 1, "assigned window id$s $wid_lmsg to '$agent_name'" );
 
@@ -84,7 +84,7 @@ if (exists <composition.window_ids>->{$agent_name}
 
 } else {
 
-    # LLL: refine message (reason)
+    # [LLL] refine message [ reason ]
     return {
         'mode' => 'nak',
         'data' => 'unable to assign!'
@@ -92,7 +92,7 @@ if (exists <composition.window_ids>->{$agent_name}
 }
 
 # ______________________________________________________________________________
-#\\FGGEVFY6GPMQR2BQT5FCEHTUUFORLSDB573JRGTMMNTM2ILNTW2Y7QZFJAJFYR2L5OAFWFLOHFDVA
-# \\ DTA2P2XYV3HK5NSWHWXU3YCI4UDKYMMD3WWVRYKEFRYBYFVIZUMM \\// C25519-BASE-32 //
-#  \\// SALLGTAFS5HSJRTBMMOKZYDSCIRW2MO5SF3YQGRU7N2AUNNMCBY \\ CODE SIGNATURE \\
+#\\GQ4NF25EBIWBNBXR5K6YOXEAJWFM5XTJLV7WTSW4CQ5BGR7LDIHFOCH5EFRP4UKPG3KFVVZHF2SHM
+# \\ GZ7RV5G7JFBNMAZF2HEGKXR3YSNJDZLPAPOZUIUYNX3QEKHCNDPB \\// C25519-BASE-32 //
+#  \\// 25OBTW6RVXW3KY74QSYBPINLDSTP2A2HTP2HFABLUGXKWFXJKAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
