@@ -1,8 +1,8 @@
 # >:]
 
 # name  = net.calc_port
-# descr = calculate nailara network ports based on installation path
-# todo  = implement exclusion based on /etc/services and already bound ports ...
+# descr = calculate protocol-7 network ports based on installation path
+# todo  = implement exclusion based on /etc/services and already bound ports ..,
 
 my $port_range  = shift;
 my $port_start  = $port_range->{'start'};
@@ -10,15 +10,15 @@ my $port_end    = $port_range->{'end'};
 my $port_delta  = $port_end - $port_start;
 my $path_offset = <system.path_offset>;
 
-##  calculated values  :      /usr/local/nailara : ext-port = 47, int-port = 967
-##                     :  /data/projects/nailara : ext-port = 87, int-port = 917
+## calculated values :     /usr/local/protocol-7 : ext-port = 47, int-port = 967
+##                   : /data/projects/protocol-7 : ext-port = 87, int-port = 917
 
 my $n_port = $port_start + $path_offset % $port_delta * 5;
 
 return $n_port;
 
 # ______________________________________________________________________________
-#\\PYVJFJUOTZ6FMRY5MQKAB3YWJ7XH75JNDIEWX5KDXXCACBBRH6PWOJVEKARMY2KH5FSPGSLBI7FIS
-# \\ RCGJMDSVBWU7YTTPNE3BNYVL6RXVU2BSH774RDQCCTYZG2EC32EO \\// C25519-BASE-32 //
-#  \\// WCILNXQYF4FETD3H27KGCQPCABMWZEYOAAOQCCN53DP2XSMUGAA \\ CODE SIGNATURE \\
+#\\Z4ACIJIJNNYLN62THFE2CLYU2RYMJXU23DN4RZ7AQTJHBUWVFNOBIT2COLLMY3UVZQZ5Z2S6VHQ74
+# \\ 2PDRXVSYS2G7IOZPQ4I5NUALWETEHC3DUDGQDXVFSP5ABVYITRWJ \\// C25519-BASE-32 //
+#  \\// R6JJVK3NNXAKXV5I2NRGEJWLV4CRY27WZHI4UCPWD3ODYCSHADQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

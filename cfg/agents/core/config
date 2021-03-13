@@ -37,16 +37,9 @@ net.auth.timeout = 13   ## protocol-7 ##
 # create protocol-7 user if required.,
 [root.check_system_user:<system.privs.user>]
 
-# loading additional (.json) configuration files from /etc/protocol-7/import/
-# modules.pre_load = core.set-up set-up.json
-# [load_modules:<modules.pre_load>]
-# [init_modules:<modules.pre_load>]
-# [set-up.json.import_file:'core.auth_setup_usr.json']
-# [set-up.json.import_file:'core.access_cmd.json']
-
 # load and initialize modules
 [load_modules:<modules.load>]
-[init_modules] # LLL: fix redundant initializations: modules.pre_load
+[init_modules]
 
 ## loading [auth.] plugins ##
 [load_plugins:<plugins.load>]
