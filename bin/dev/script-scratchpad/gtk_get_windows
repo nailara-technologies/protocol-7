@@ -1,0 +1,41 @@
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+use feature 'say';
+
+## apt install libwnck-3-dev ##
+
+use Gtk3 -init;
+use Glib::Object::Introspection;
+Glib::Object::Introspection->setup(
+    basename => 'GdkX11',
+    version  => '3.0',
+    package  => 'Gtk3::Gdk'
+);
+Glib::Object::Introspection->setup(
+    basename => 'Wnck',
+    version  => '3.0',
+    package  => 'Wnck'
+);
+
+my $screen_gdk = Gtk3::Gdk::Screen::get_default();
+
+# $screen_gdk->signal_connect(
+#     'window-openend' => sub { say '< window-openend >' } );
+
+my $screen = Wnck::Screen::get_default();
+
+###
+
+$screen->force_update;
+
+for my $win ( @{ $screen->get_windows } ) {
+    my $name = $win->get_name;
+    my $ws   = $win->get_workspace;
+    my $w    = $ws ? $ws->get_number : -1;
+    printf "(%04d, %04d) %04dx%04d:%2s $name\n", $win->get_geometry, $w;
+}
+
+# Gtk3->main;
+
+exit;
