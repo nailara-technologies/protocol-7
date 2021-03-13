@@ -1,0 +1,25 @@
+
+.:[ 'zulum' stream-13 agent ]:.
+
+buffer.system.log_cmd = p7-log.append
+
+[load_config_file:'shared-params']
+
+modules.load          = net protocol io.ip auth zulum debug # <-- << ! >>
+
+access.cmd.usr.core   = verify-instance commands heart reload subname \
+                        cur-pid list show-buffer clear-buffer list-deps \
+                        source-version release-version source-age \
+                        stream-add stream-remove stream-attach ask-question \
+                        save-state load-state \
+                        * ## <-- debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+
+[net.connect_to_core:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]
