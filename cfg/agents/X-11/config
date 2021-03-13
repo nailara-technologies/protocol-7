@@ -3,6 +3,8 @@
 
 [load_config_file:'shared-params']
 
+[load_config_file:'x11-vars']
+
 X-11.mode = host            # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb]
                             # override configured agent mode using agent subname
 
@@ -88,7 +90,7 @@ modules.load = auth net protocol io.ip X-11 ## debug
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.privs.user>]
+[root.drop_privs:<x11.user>]
 
 [net.connect_to_core:'ip.tcp']
 
