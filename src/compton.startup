@@ -10,6 +10,7 @@ if ( not defined $display ) {
     );
     exit(2);
 }
+
 <[base.log]>->( 1, "starting 'compton' on display $display .," );
 
 my $shadow_def = '#000013';
@@ -95,27 +96,29 @@ close(<compton.renice_fh>);
 delete <compton.renice_fh>;
 
 <[event.add_io]>->(
-    {   'fd'            => <compton.out_fh>,
-        'handler'       => 'base.handler.child_output.simple',
-        'log_whitelist' => [
-            'invalid Window parameter',
-            'XIO:  fatal IO error ',
-            'after \d+ requests',
-            'No composite extension'
-        ],
-        'data' => {
-            'bin'               => 'compton',
-            'pid'               => <compton.pid>,
+    {   'fd'      => <compton.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin'           => 'compton',
+            'pid'           => <compton.pid>,
+            'log_whitelist' => [
+                'invalid window parameter',
+                'XIO:  fatal IO error ',
+                'after \d+ requests',
+                'no composite extension',
+                'another composite manager'
+            ],
             'callback_patterns' => {
-                qr|^No composite extension$| =>
-                    'compton.callback.not_composited'
+                'no composite extension' => 'compton.callback.not_composited',
+                'another composite manager is already running' =>
+                    'compton.callback.already_running'
             }
         }
     }
 );
 
 # ______________________________________________________________________________
-#\\5AZEELFLOHYPQRDOV4QJOLNXEBMKVTYDGQJ2ZDERIPCZZKOPPFWUIP5KLQYTD2Q7TDI2T7ZJEROAI
-# \\ JEEIAXNTKHTUGKN3K2H7JQNFDEHKYJAM5Y3REQKTOYVQUYOHYLPO \\// C25519-BASE-32 //
-#  \\// CXHQCTAUCWACC4MEJCDN32V6SDGIRYEH5XXVHAAXISSOG5USGAI \\ CODE SIGNATURE \\
+#\\3OZKSNI5SVTGP7VRDJTBEBJKTHQF4JNJZIGIP2MT3UNPEHA4CVQLMKWQOTVGIWMJWXTGJM7XMTQ6Y
+# \\ LJNGVSG7TIKIS3UZ4576YPVVF2YZJPTB7X67RMJUDGWMCVQRYMYA \\// C25519-BASE-32 //
+#  \\// F2RG6V5QVWWLGGX4AQ5CICBQAQOUWZM4RKTXKS2CUC634NJECDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
