@@ -422,7 +422,6 @@ sub prepare_subs {
         delete $data{'system'}{'lmod_path'} if !-d $data{'system'}{'lmod_path'};
         $data{'base'}{'httpc'}{'last_mlen'}  //= 80;
         $data{'buffer'}{'agent'}{'max_size'} //= 64 * 1024;    # 64K log-buffer
-        $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
 
         ## source code version ##
         my $ver_str = $data{'protocol-7'}{'source-version'} = 'unknown';
@@ -1170,7 +1169,11 @@ sub prepare_subs {
                 = scalar $s_comp_stderr
                 =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|sg
                 if defined $s_comp_stderr;
-            local $Text::Wrap::columns   = 57;
+            ( my $lpw )
+                = ( <system.start.log_prefix_width>
+                    // $code{'base.log_prefix_width'}->() || 24 );
+            my $width = 76 - $lpw;
+            local $Text::Wrap::columns   = $width;
             local $Text::Wrap::separator = "\n";
             delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
             my @compile_errors = (
@@ -1229,12 +1232,13 @@ sub prepare_subs {
                 };
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'base'}{'modules'}{'load_errors'}++;
-                $code{'log.error'}
-                    ->( map { split m|\n|, $t_wrap->($ARG) } @compile_errors );
+                $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
+                my @wrapped_error
+                    = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
+                $code{'log.error'}->(@wrapped_error);
                 map {
                     $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
-                    } @compile_errors
-                    if defined $code{'base.buffer.add_line'};
+                } @wrapped_error if defined $code{'base.buffer.add_line'};
 
                 $err_str =~ s|\n| |sg;
                 $err_str =~ tr| ||s;
@@ -1245,12 +1249,13 @@ sub prepare_subs {
                 $err_count++;
             }
             if ( $compilation_success and $warn_count ) {
-                $code{'log.error'}
-                    ->( map { split m|\n|, $t_wrap->($ARG) } @compile_errors );
+                $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
+                my @wrapped_error
+                    = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
+                $code{'log.error'}->(@wrapped_error);
                 map {
                     $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
-                    } @compile_errors
-                    if defined $code{'base.buffer.add_line'};
+                } @wrapped_error if defined $code{'base.buffer.add_line'};
                 $warn_count = 0;
             }
 
@@ -1649,7 +1654,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\VHL3MMNIRC5PMO4AUHUV6YWIQ4HT6FLQSJQKW463PSGNZRZQWRRPVFRW5WBLPXHD6TNCAS3LUP4QM
-# \\ GCRBMSVAOIORTI4SVQV7KTTQGBJTNFS7CNS5HZVODUBDKBZQCXMS \\// C25519-BASE-32 //
-#  \\// CEDRS437UDN752EWJOTLIYMOPYTUVJAHB7IECFSGGZMJGFF2CCQ \\ CODE SIGNATURE \\
+#\\5SFYNK7GKMICIK7LGVBMYGYZIFURWEBC3XFX5O4VPF6VXSXZJAPG7M4BIOEOGCBTSYN47JRVHIW22
+# \\ TP4UG4F7EP5Q73BS6EUFL3OVHL6E2NRGROJ3M46JFI32ND6GD6JA \\// C25519-BASE-32 //
+#  \\// NBKURB75U4F5FBMYSMLRSQ555CDN6CGMIRMU24FIJN3FRC7N2BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
