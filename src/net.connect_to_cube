@@ -42,9 +42,15 @@ foreach my $c_type (@connection_types) {
                 );
                 exit(2);
             } else {
+                my $socket_name
+                    = <[base.calc_unix_path]>->( $cube_addr, $cube_port );
+                <[base.log]>->(
+                    0, '<< unix socket name calculation not successful >>'
+                    )
+                    and next
+                    if not defined $socket_name;
                 <unix.path> = $unix_path
-                    = '/var/tmp/.7/UNIX/'
-                    . <[base.calc_unix_path]>->( $cube_addr, $cube_port );
+                    = join( '', '/var/tmp/.7/UNIX/', $socket_name );
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
@@ -74,7 +80,7 @@ foreach my $c_type (@connection_types) {
     } elsif ( $c_type eq 'pipe' ) {
         die "<<< connection type 'pipe' not implemented yet >>>";
     } else {
-        die "[!] unknown connection type '$c_type' requested [!]";
+        die "<<< unknown connection type '$c_type' requested >>>";
     }
 
     if ( defined $cube_sock ) {
@@ -93,14 +99,15 @@ foreach my $c_type (@connection_types) {
 }
 
 if ( not defined $cube_sock ) {
-    <[base.log]>->(
-        0, "<!> unable to connect to local cube, aborting agent startup <!>"
+    map { <[base.log]>->( 0, $ARG ) } (
+        '<< not able to connect to local cube., >>',
+        ' :. aborting agent start-up ..,'
     );
-    exit(1);
+    exit(4);
 }
 
 # ______________________________________________________________________________
-#\\Z6MM4V5YFAWXV6ELTDMPRYEPORFHG32YVPNHZJLAGUDRO7HT3ABSRF3GD22QUM2SGS4R2JNBKCXHG
-# \\ IWZIXDCXY6H37TTGL5CO5PHVQST7ZN5GFRYUPYENJF4WEVXC76DX \\// C25519-BASE-32 //
-#  \\// E6B75BCNVVF6T6WW5F4ZEIO2SBPTPHLJOHD7W3UIWUX4I432OBY \\ CODE SIGNATURE \\
+#\\LS5FMXQ5KKOXLIQAHAYUAD4UXBDZNX7WKMXE2Z2JBVS6Q2554H4ECZBM6JIXWERTFPQBRSBRCUZWQ
+# \\ DFO6Z4KL5HYKCK2YW4XRFVFK4QPB6G2XPSRVS2K7EIWUTNDMM5DT \\// C25519-BASE-32 //
+#  \\// CWBPKF3ETEGKXIUMPAX7FXNCGL4ZYAPB2QY52JGYDAN2ZPZ6EBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
