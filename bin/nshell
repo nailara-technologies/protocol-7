@@ -48,12 +48,12 @@ $SIG{'CHLD'} = sub {
 };
 
 my @args;
-my $core_user;
+my $cube_user;
 my $remember  = 0;
 my $arg_index = 0;
 foreach my $param (@ARGV) {
     if ( $param =~ m|^-u$| and defined $ARGV[ $arg_index + 1 ] ) {
-        $core_user = $ARGV[ $arg_index + 1 ];
+        $cube_user = $ARGV[ $arg_index + 1 ];
         delete $ARGV[$arg_index];
         delete $ARGV[ $arg_index + 1 ];
     } elsif ( $param =~ m,^(-r|--remember)$, ) {
@@ -64,14 +64,14 @@ foreach my $param (@ARGV) {
     $arg_index++;
 }
 
-my $core_pass;
+my $cube_pass;
 my $stored_cmd;
 my $term_loop = 0;
 my $lines_up  = 3;
-my $link_type = defined $core_user ? 'unix' : 'ip.tcp';
+my $link_type = defined $cube_user ? 'unix' : 'ip.tcp';
 my $sckargcnt = scalar @args;
-my $core_addr = shift(@args) || '127.0.0.1';
-my $core_port = shift(@args) || $protocol_7_port;
+my $cube_addr = shift(@args) || '127.0.0.1';
+my $cube_port = shift(@args) || $protocol_7_port;
 my $usock_dir = '/var/tmp/.7/UNIX';
 
 my $prompt = "\\ $hostname \\:[?]:, ";
@@ -94,17 +94,17 @@ use warnings 'once';
 
 my $shell_sock;
 while ($connect) {
-    $shell_sock = shell_connect( $core_addr, $core_port );
+    $shell_sock = shell_connect( $cube_addr, $cube_port );
     if ( $link_type eq 'unix' and $lnk_path =~ m|\.([^/\.]+)$| ) {
-        my $core_user = $1;
-        $shell_sock = unix_auth( $shell_sock, $core_user );
-    } elsif ( $link_type eq 'unix' and defined $core_user ) {
-        $shell_sock = unix_auth( $shell_sock, $core_user );
+        my $cube_user = $1;
+        $shell_sock = unix_auth( $shell_sock, $cube_user );
+    } elsif ( $link_type eq 'unix' and defined $cube_user ) {
+        $shell_sock = unix_auth( $shell_sock, $cube_user );
     } else {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        $PROGRAM_NAME = "nshell ( $core_addr : $core_port )";
+        $PROGRAM_NAME = "nshell ( $cube_addr : $cube_port )";
         if ( not defined $stored_cmd ) {
             clear();
             print "\e[1m\e[5m\e[34m\e-\e[0m\n";
@@ -147,16 +147,16 @@ sub calc_port {
 
 sub login_prompt {
     if (    $remember
-        and defined $core_user
-        and defined $core_pass ) {
-        return ( $core_user, $core_pass );
+        and defined $cube_user
+        and defined $cube_pass ) {
+        return ( $cube_user, $cube_pass );
     }
     my ( $user, $pass );
     print "\n :: user :. ";
     chop( $user = <STDIN> );
     $pass = read_password(" :: pass :. ");
     print "\n";
-    ( $core_user, $core_pass ) = ( $user, $pass ) if $remember;
+    ( $cube_user, $cube_pass ) = ( $user, $pass ) if $remember;
     return ( $user, $pass );
 }
 
@@ -224,7 +224,7 @@ sub shell_connect {
     my $sock;
     if ( !$sckargcnt ) {
         my $sock_path
-            = "$usock_dir/" . calc_unix_path( $core_addr, $core_port );
+            = "$usock_dir/" . calc_unix_path( $cube_addr, $cube_port );
         if ( -e $sock_path ) {
             $sock = IO::Socket::UNIX->new(
                 Type => SOCK_STREAM(),
@@ -236,12 +236,12 @@ sub shell_connect {
     }
     if ( not defined $sock ) {
         $sock = new IO::Socket::IP(
-            PeerAddr => $core_addr,
-            PeerPort => $core_port,
+            PeerAddr => $cube_addr,
+            PeerPort => $cube_port,
             Proto    => 'tcp'
             )
             or die
-            "\n << connection error : $core_addr:$core_port [$OS_ERROR] >>\n\n";
+            "\n << connection error : $cube_addr:$cube_port [$OS_ERROR] >>\n\n";
     } else {
         $link_type = 'unix';
     }
@@ -475,7 +475,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\4JBSAEGQ3TEYNKFSII3G6L6EGKXXDCJB3RDLTUAGVJIURPCR4EZUU5NQVMZEJP3NP36WCCDCQI4XK
-# \\ XMWHAYRRK234R4TFP7KF73FN3F6SCUFNNYUUIZ27TQSR25XOEPDW \\// C25519-BASE-32 //
-#  \\// D3X7NQU6OSLSRADCROEJJOUOKZYOQJ7T5BG3TICTEMEZEEDSYCA \\ CODE SIGNATURE \\
+#\\ADHNMBCGNFIM6TAPFAGUCXDGCSZXH6WZPWTQKHGGUDVGCXSTLAU6XKWNAIBOV4IWNCSP6P4D5UFPI
+# \\ TV7DHVNKSQ2VCO2MNWHGT4Z7VTJX3P4DPF76NMNO3VJXXB6S52MF \\// C25519-BASE-32 //
+#  \\// NGSOXIBWO6RVXM5BTEWXJKJNQEZPN7KODCD4PO6GGVOPSZAQICY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

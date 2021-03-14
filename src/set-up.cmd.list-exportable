@@ -11,8 +11,8 @@ return { 'mode' => 'nak', 'data' => 'expected agent name parameter' }
 return { 'mode' => 'nak', 'data' => 'invalid agent name syntax!' }
     if $agent_name !~ <regex.base.usr>;
 
-my $cmd_path = "core.$agent_name.get-config-names";
-$cmd_path = "core.get-config-names" if $agent_name eq 'core';
+my $cmd_path = "cube.$agent_name.get-config-names";
+$cmd_path = "cube.get-config-names" if $agent_name eq 'cube';
 
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => $cmd_path,
@@ -30,7 +30,7 @@ $cmd_path = "core.get-config-names" if $agent_name eq 'core';
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\REMZPKFLOBYXXA57A3VI4XNV3CU5J3UVQU3PXROOY6M2NTNQ7MEZOJX465K7SVOEUZAA7DAMOHFLW
-# \\ ZWTZJAIUCO2PGZ4CWI3M7K7TTMKQ4DOTU25QBV2XKGXIDJXWHZGH \\// C25519-BASE-32 //
-#  \\// QNETVYL5XBVKPQ73PUCW2QIJTVAMPUPOWXIS3FIPA6HE6IPYABY \\ CODE SIGNATURE \\
+#\\GE6PIOGFDZBBWWZW6TCIAW4EDN6TB2XB3SBKF4KWVXK24MDYB2DBNR7GSYINDRUMNJSIRSO5V3IKC
+# \\ GEPPCG4BR6SMWRHC45CH5I5P5J6GQPEJMJMARIPVWDQAHA5BZJ5U \\// C25519-BASE-32 //
+#  \\// DOTHWEKSBPE743IKQXKU56EFI6UBWFJO6QUI6HQK43BN4KAHECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

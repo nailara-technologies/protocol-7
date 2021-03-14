@@ -3,7 +3,7 @@
 # name = base.X-11.get_window_id
 
 my $name     = shift;
-my $user     = shift // 'core';
+my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 if ( not defined $name ) {
@@ -18,18 +18,18 @@ my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 
 my $retry_count = 5;
 retry:
 
-<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}X-11.get_windows $name\n" );
+<[net.out]>->( $cube_fh, "($cmd_id)${cmd_path}X-11.get_windows $name\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
-    die "core handle had an exception!"
+    $reply_string = <$cube_fh>;
+    die "cube handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
     $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|DATA) /;
@@ -58,9 +58,9 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
         return undef;
     }
     while ($bytes_to_go) {
-        my $read_bytes = read( $core_fh, $buffer_string, $bytes_to_go,
+        my $read_bytes = read( $cube_fh, $buffer_string, $bytes_to_go,
             length($buffer_string) );
-        die "core filehandle had unexpected exception!"
+        die "cube filehandle had unexpected exception!"
             if not defined $read_bytes;
         $bytes_to_go -= $read_bytes if $read_bytes;
         sleep 0.1                   if $bytes_to_go and !$read_bytes;
@@ -77,7 +77,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\5YR3EYKNSNDVFS5E6L2LPDEM5YLAGFQXSYRF7EGST7MR5TAAD2L5VMKXDCTWSJYTFO3WL3WP4MC44
-# \\ 3LT53IOFRDKD2IMPNKNYS2EXYYGLV725FVKNTOW5RTUGG2ULXX6J \\// C25519-BASE-32 //
-#  \\// LGTVUWEVBMKGHV2DUGXMHRG4HCNABY7Q2VRJOV744RXFGA6EOAY \\ CODE SIGNATURE \\
+#\\LLONP2DFHUBTC4TXOJEF62ENRD7O5LV3VLSOTLC6H3JWIAIUBY2PJJNLEGCYUXUCTVC3MZ3JAFDBO
+# \\ 7OYF3QTHQBJ3ZPYBWRSZ4JRYWYEETIZQRQH5CUEHHNZEIPBOVQEP \\// C25519-BASE-32 //
+#  \\// FKYNWKK37OD2E2B2PTTF5UMS5ORL27UVWHKIBJIFUCAHZ52VKBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

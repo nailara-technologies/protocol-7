@@ -1,5 +1,5 @@
 
- .:[ nailara 'core' [ local routing ] agent ]:.
+ .:[ nailara 'cube' [ local routing ] agent ]:.
 
 [load_config_file:'shared-params']
 system.verbosity.agent_buffer = 1
@@ -7,17 +7,17 @@ system.verbosity.agent_buffer = 1
 # change priority
 [base.renice:-13]
 
-# loading core agent authentication setup
-[load_config_file:'agents/core/core-auth.users']
-[load_config_file:'agents/core/core-auth.agents']
+# loading cube agent authentication setup
+[load_config_file:'agents/cube/cube-auth.users']
+[load_config_file:'agents/cube/cube-auth.agents']
 
 # load command access permission setup
-[load_config_file:'agents/core/access.agents']
-[load_config_file:'agents/core/access.users']
+[load_config_file:'agents/cube/access.agents']
+[load_config_file:'agents/cube/access.users']
 
-system.agent.type               =    core
+system.agent.type               =    cube
 modules.load                    =    auth digest net protocol io.ip io.unix \
-                                     core.cmd crypt.C25519 ## debug
+                                     cube.cmd crypt.C25519 ## debug
 plugins.load                    =    plugin.auth
 auth.supported_methods          =    agent enc pwd unix
 # get.route                     =    files node_name.file :target:
@@ -45,15 +45,15 @@ net.auth.timeout = 13   ## protocol-7 ##
 [load_plugins:<plugins.load>]
 
 ## calculated network address \ port ##
-core.local = <protocol-7.network.internal>
+cube.local = <protocol-7.network.internal>
 
 ## local unix domain socket ##
 [file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
-unix.path = [base.calc_unix_path:<core.local.addr>,<core.local.port>]
+unix.path = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
 
 ## ip.tcp socket ##
-tcp_ip.sock = [base.open:'ip.tcp','input',<core.local.addr>,<core.local.port>]
+tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
 
 ## bind protocol-7 to sockets ##
 [base.protocol.bind:<unix.sock>,'protocol-7']

@@ -2,19 +2,19 @@
 
 # name = base.X-11.get_driver
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 2, "requesting video driver name from X-11 agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_driver\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_driver\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\XZYJ6RPLFTBLYJD3CLYMSUR5SW5OL2O6CPRFVJVGHY77WBFSCCASBXGI4SOZ4CTNNDUPYOFC3UV34
-# \\ 5NLRKL3EDGQKUSBELPR3YZQDJ6T55FTWVVUYCYT732XZDP7LVNXB \\// C25519-BASE-32 //
-#  \\// RL7UCRB74ZULFFRUM6RDJCZA346TIHCNCYET2FIGTETF5NIFYCI \\ CODE SIGNATURE \\
+#\\AYFWZRM543GMTS7M56ITTQW6E33DYUBQHPH3VH5ILXND6PH3ILNWZ54TXDZQPHSF7ILZEZETY5YOG
+# \\ HUNDKSMF3PXSDMSBLXF6VGCRXOTNXL6ZYGGWAJ2EXGK3CGVA7DP6 \\// C25519-BASE-32 //
+#  \\// RNF7MRKO3Y5UIGN32FYP3NAO7OWNBLRVCJLK33SMTZAHDS2VABA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

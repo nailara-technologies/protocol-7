@@ -2,19 +2,19 @@
 
 # name = base.X-11.get_dbus_addr
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 1, "requesting socket address from dbus agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)dbus.socket_address\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)dbus.socket_address\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -35,7 +35,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\6B5EH5QT3UG5TMJP5QALU2P5LJPCT3DWMNGWECFKXRIVSBREH3QHEO6W5ISMN7E24G4URZWIFP5IM
-# \\ IMXDGHVAKVZQOLQ4CQSCQ3XUEQGGFAAXG4EUURSSMUN2O76EARSL \\// C25519-BASE-32 //
-#  \\// R4HSA77SLA245IWA7CDKOPLUBQY7WLTQCT5CAPQZEDKYEZYVIDQ \\ CODE SIGNATURE \\
+#\\DGGC2WEFSWLKD3JES4S2JJVMQJXXFFNDAJ4NJWUU7ZG3MJVILIZ2ENIQLGJPGJQ5MIDYHCRVVPHFK
+# \\ TY2NYJ4QKZDILRDS4WWAUY45PRLMGAXQCBSRJM2HFYVL34HOI3XW \\// C25519-BASE-32 //
+#  \\// 46B3ZEUU5M47D3CKU2GNCVN4HDMZJIAOGECRGWOWSBOQCJSY2BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

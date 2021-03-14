@@ -110,8 +110,8 @@ $data{'list'} //= {};
     'descr' => 'available log / data buffers'
 };
 
-# 'verify-instance' command not required in core type agents [for now]
-if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
+# 'verify-instance' command not required in cube type agents [for now]
+if ( defined <system.agent.type> and <system.agent.type> eq 'cube' ) {
     <[base.disable_command]>->('verify-instance');
     <agents.virtual> //= {};
     my $key_ref = \$data{'agents'}{'virtual'};
@@ -132,7 +132,7 @@ if ( defined <system.agent.type> and <system.agent.type> eq 'core' ) {
         },
         'descr' => 'virtual agent list'
     };
-} else {    # remove some commands for non-core type agents
+} else {    # remove some commands for non-cube type agents
     map { <[base.disable_command]>->($ARG) } (
         qw|
             exit
@@ -197,7 +197,7 @@ if ( defined <setup.aliases> ) {
         if defined <setup.aliases.source_agent_sid>;
 }
 
-## called after receiving core session id ##
+## called after receiving cube session id ##
 <base.callback_hooks.async_online> //= [];
 
 ## setting up command [argument] filter hooks ##
@@ -208,7 +208,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\QD64RSFT5DA34XB2VCUN5BI3LGFJJBZSY6RM5YRHMHPERSPARZYQRCNHZHNJZC5CGM2J6JDASPR3K
-# \\ YORJCRWWIAOUWDOBUAINZWZFF3GFUUQZSYIQGBJMNVZFK7I42TRV \\// C25519-BASE-32 //
-#  \\// FLFEEUL2JV4XA7H7TQLBMKZIZ5LCHGUYHZNSND4YICO4PMKOQBI \\ CODE SIGNATURE \\
+#\\P42ANDFZJNTLR3KMFSCAQ7RYA73SVM5ZBTF4IE7NEY6YSAOKRESU26BY32U77ANBXIFJ57DNCI22A
+# \\ DOCC2UUJKL2EAVURA2BEP2BDIDQUQLDN5SQ77BLZEPDZPZHG4NHW \\// C25519-BASE-32 //
+#  \\// D7QG6FWGKWWLDY4HL3JDHOY7CU7LLOAMRPTZESTSA7XK2TSAMBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

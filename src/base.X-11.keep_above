@@ -4,7 +4,7 @@
 
 my $id = shift;
 
-my $user     = shift // 'core';
+my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.'                   if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
@@ -14,15 +14,15 @@ my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 
-<[net.out]>->( $core_fh, "($cmd_id)${cmd_path}X-11.keep_above $id\n" );
+<[net.out]>->( $cube_fh, "($cmd_id)${cmd_path}X-11.keep_above $id\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
-    die "core handle had an exception!" if not defined $reply_string;
+    $reply_string = <$cube_fh>;
+    die "cube handle had an exception!" if not defined $reply_string;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -37,7 +37,7 @@ if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\4CHQ5JAATPR664E7NZ3GP5FKM2SXRQP27CNUYGJO7MMAWBRIQZD5ZQNWUK7D3IXVPOVWZYTLRIFNO
-# \\ GGKDV2JC4TPUSUQ37QBP5X26K3CO3NJSJ5XS4YPEDC6XDPJZXWVO \\// C25519-BASE-32 //
-#  \\// LEOC2EW7N2Q6UYFWTDQ3ZJXKO4HANK6UCVMO746U2ZSVDJ33SAA \\ CODE SIGNATURE \\
+#\\MOFHCPSMGI5XXH6TLTIIDXSS2RTIBJYBHVAHM3USIPV3VQNXHTJPH26SB55D5O554V7LPH7ONV3RM
+# \\ 76JZXXTFRPPDIZNT5JTOZMPGNYNVNOKKJBZ3USF4IZGBT3HJCYOT \\// C25519-BASE-32 //
+#  \\// IRXCRLTJI7OSBLY36DIJEDKBEVZDC6AQ72CF3VBJ7JVJUZSF4BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

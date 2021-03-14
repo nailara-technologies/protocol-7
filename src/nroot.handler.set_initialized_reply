@@ -7,17 +7,17 @@ my $session_id = $reply->{'sid'};
 
 if ( $reply->{'cmd'} eq 'ACK' ) {
     $data{'session'}{$session_id}{'initialized'} = 1;
-    <[base.log]>->( 1, "bidirectional core connection initialized. =)" );
-    <[base.log]>->( 2, ":. local core session id is : $session_id ...:" );
+    <[base.log]>->( 1, "bidirectional cube connection initialized. =)" );
+    <[base.log]>->( 2, ":. local cube session id is : $session_id ...:" );
 } else {
     $data{'session'}{$session_id}{'initialized'} = 0;
     my $err_reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "initializing core session was not successful.," );
-    <[base.log]>->( 2, ":. ['$session_id'] core-reply '$err_reason' .," );
+    <[base.log]>->( 0, "initializing cube session was not successful.," );
+    <[base.log]>->( 2, ":. ['$session_id'] cube-reply '$err_reason' .," );
 }
 
 # ______________________________________________________________________________
-#\\3TWVUKTANUUURT5HXH5LRT7YFCEG75OXMW2CXSGWD3DQ3HYWZHDLUX6KJB2PEFVMVBDHKAKI6O56Y
-# \\ D7GRWD7HWZ2UMN3PDVS2OJ6KEAXVAC7LV6JJOLR7DNFP4SSENQI4 \\// C25519-BASE-32 //
-#  \\// OUYFRZWCP7OV4QEGURO4RPO6HNBGK6T5TKRUBWKCW7AG5XCVMBY \\ CODE SIGNATURE \\
+#\\INKGBLNTB7SE3WBR2ADKWT3ACNPKEXZKQ2QIRFF7KPEQDLXJQ5PGJV64Q53GBQ6EXBI7S2WN6NANA
+# \\ 4AS262SQXLWM5CA5SL6KJY6YP4D27A7PMNGPRG44VMIAKIP433SR \\// C25519-BASE-32 //
+#  \\// 3MQSSET5TP2VFVUXRAAGGKBLC65QLTS7SSKSO7M7WVY7LUASIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

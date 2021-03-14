@@ -9,7 +9,7 @@ if ( not exists <nroot.agent.instance>->{$instance_id} ) {
     return;
 }
 my $instance        = <nroot.agent.instance>->{$instance_id};
-my $is_core_agent   = $instance->{'is-core'};
+my $is_cube_agent   = $instance->{'is-cube'};
 my $agent_name      = $instance->{'agent_name'};
 my $fail_count      = $instance->{'heartbeat'}->{'errors'}++;
 my $heartbeat_retry = $fail_count ? 0 : 1;                      # retry once
@@ -32,7 +32,7 @@ if (    $response->{'cmd'} eq 'ACK'
     <[base.log]>->(
         0, "instance $instance_id [$agent_name] heartbeat response ( error )"
     );
-    delete <callback.session.closing_last> if $is_core_agent; # for safe restart
+    delete <callback.session.closing_last> if $is_cube_agent; # for safe restart
 
     <[nroot.stop_heartbeat_timer]>->($instance_id);
     $instance->{'heartbeat'}->{'errors'} = 0;    # <- resetting error counter
@@ -58,7 +58,7 @@ if (    $response->{'cmd'} eq 'ACK'
 }
 
 # ______________________________________________________________________________
-#\\NIE6BE2SNK4P32XWVETOJX23IRWNUJHJXTOLZ3BBFDFOE3I7WB6EKQ7TOWHBHTIKS3BGXACEZMZ5C
-# \\ 5ZC75QV2X2KWHM3Q4HQCW5VNUGOWVZJDKXKY6NPFFJWUALTRG4OB \\// C25519-BASE-32 //
-#  \\// 7XIHNO47RLNN5FIRYEVCU5YLJZHPDP7IUEJQJWEZ4V7ZTN3XCAY \\ CODE SIGNATURE \\
+#\\UNLOFEVO77GSY6W2NEKLDXXTECT35WTC4OCHPWQX2XBWMCXRTOT234ND3I45V4JBJNALLAFNXHFUQ
+# \\ SXTO4MAPTQDMGP7IAF4C4YAGRSGHGFQX6SHUHEWDOLNSGLW4VGFB \\// C25519-BASE-32 //
+#  \\// K254VOVVMMXZUQJFHI774XVWU4C4CCMDN6NDKTOXZAM44GCAUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

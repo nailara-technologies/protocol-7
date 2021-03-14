@@ -75,7 +75,7 @@ if ( !@file_names ) {
     <content.type_cache> = {};
     <[base.log]>->( 0, "no files in playlist." );
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "core.nroot.restart",
+        {   'command'   => "cube.nroot.restart",
             'call_args' => { 'args' => <update.restart_on_empty> }
         }
     ) if defined <update.restart_on_empty>;
@@ -128,7 +128,7 @@ foreach my $file (@file_names) {
             my $city = $city_str;
             $city_str .= " [$agent_subname]" if defined $agent_subname;
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "core.weather.get-urls",
+                {   'command'   => "cube.weather.get-urls",
                     'call_args' => { 'args' => $city_str },
                     'reply'     => {
                         'handler' => 'content.handler.weather_urls_reply',
@@ -242,7 +242,7 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
 <[content.update.send_notifications]>;  ##  <-- check if required [yet].., [LLL]
 
 # ______________________________________________________________________________
-#\\5XD7FSUA7XTOYUKE6MCYT43Q3NNQ5FOWNO5W5WAOLE2CRG3CPRPJEQBJOU3SNWNLFEP4C2K6CP6WI
-# \\ ICRPE3I7UN7XRC2EW5GLRED2ABYPP6SXPGW7MW3DJ43RP5Q6KZD4 \\// C25519-BASE-32 //
-#  \\// ZFZK2K5KS5I7WSFDTS3ZNI5MTQN4CSCRIKFPBZXO3ELDWNJLIDQ \\ CODE SIGNATURE \\
+#\\3AY7SEPN2CKZO53JNUXFNZZWRYMV6UHSXVGV4VGLCEYVO6IEOLD37Q6EPTZACEYM6I2VDXY7YDUEM
+# \\ U3XB5Q5AH5QVBLYEEIVD2C5DK2G2WK3LBSCZLC4GGNF2Z5QAVSIZ \\// C25519-BASE-32 //
+#  \\// EEX4RYTNYOJQ2UJLMOIM2TAIFXS7QC7HARYPQ3W2TZA6A6ELQCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

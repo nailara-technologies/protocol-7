@@ -1,15 +1,15 @@
 # >:]
 
-# name  = debug.cmd.core-subs
+# name  = debug.cmd.cube-subs
 # param = [pattern]
-# descr = matching list of 'core' subroutines
+# descr = matching list of 'cube' subroutines
 
 my $pattern = $$call{'args'};
-my $coderef = <base.core_subs>;
+my $coderef = <base.cube_subs>;
 
 return {
     'mode' => 'data',
-    'data' => "\n### list of loaded 'core' subroutines ###\n\n"
+    'data' => "\n### list of loaded 'cube' subroutines ###\n\n"
         . join( "\n", sort { length $b <=> length $a } sort keys %{$coderef} )
         . "\n\n"
     }
@@ -37,12 +37,12 @@ return {
 
 return {
     'mode' => 'data',
-    'data' => "\n# .: 'core' subroutines matching '$pattern' :.\n\n"
+    'data' => "\n# .: 'cube' subroutines matching '$pattern' :.\n\n"
         . join( "\n", @sub_list ) . "\n\n"
     }
 
 # ______________________________________________________________________________
-#\\I5KKLDGYWVVB4AUDQMPOKBVRNNKTR7WAPDC4MOLWWKGDHDD74ADROIJFS7UGS2IQVEVXG6DZYBQXE
-# \\ GDP7ULCI3P65X5AV6XNQSOBISQHX7J3WHCGWEKBUQJMXMNFIECXL \\// C25519-BASE-32 //
-#  \\// FPIZ6PQTDNJDZXTF22FLB4R6QV4AHXYW75CZ7KOWGZR26BW3CCQ \\ CODE SIGNATURE \\
+#\\IMRPLQ24QKFGGY4HEU2UCQCMBKZQPYUOWJWTJ6E5EFJJ5JOTRJG4LFDSW724SNSAM6BCHCQ4CUSI4
+# \\ 33MTHT42SEUA4JZ6BH3DZSBEDWLEMZOGPW5TVYTF3H3YWXGDIO5W \\// C25519-BASE-32 //
+#  \\// JYB5TBLDU55EPIVZC7LYWNASKTAWTSRMEEAIXZ3223ML7CYS2DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

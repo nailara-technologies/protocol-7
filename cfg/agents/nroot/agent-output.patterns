@@ -5,21 +5,21 @@
 
 .: output patterns :.
 
-  - core:/changed priviledges to user '[^\']+'$/
+  - cube:/changed priviledges to user '[^\']+'$/
     [agent.change_status:<instance_id>,'online'];
 
-  - core:/^\[(\d+)\] agent '([^']+)' session authorized\.$/
-    [nroot.handler.core_session_auth:<instance_id>,<match_1>,'agent',<match_2>]
-  - core:/^\[(\d+)\] session authorized as '([^']+)'( \[u:[^\]]+\])?$/
-    [nroot.handler.core_session_auth:<instance_id>,<match_1>,'unix',<match_2>]
-  - core:/^\[(\d+)\] user session authorized to '([^']+)'$/
-    [nroot.handler.core_session_auth:<instance_id>,<match_1>,'pwd',<match_2>]
+  - cube:/^\[(\d+)\] agent '([^']+)' session authorized\.$/
+    [nroot.handler.cube_session_auth:<instance_id>,<match_1>,'agent',<match_2>]
+  - cube:/^\[(\d+)\] session authorized as '([^']+)'( \[u:[^\]]+\])?$/
+    [nroot.handler.cube_session_auth:<instance_id>,<match_1>,'unix',<match_2>]
+  - cube:/^\[(\d+)\] user session authorized to '([^']+)'$/
+    [nroot.handler.cube_session_auth:<instance_id>,<match_1>,'pwd',<match_2>]
 
-  - core:/^\[(\d+)\] connection closed\.$/
-    [nroot.handler.core_session_close:<instance_id>,<match_1>]
+  - cube:/^\[(\d+)\] connection closed\.$/
+    [nroot.handler.cube_session_close:<instance_id>,<match_1>]
 
-  - !core:/^core session id received \[(\d+)\]$/
-    [agent.set_core_sid:<instance_id>,<match_1>]
+  - !cube:/^cube session id received \[(\d+)\]$/
+    [agent.set_cube_sid:<instance_id>,<match_1>]
 
-  - !core:/^instance verification \[KEY:([a-zA-Z\d]+)\]$/
+  - !cube:/^instance verification \[KEY:([a-zA-Z\d]+)\]$/
     [nroot.handler.instance_verification:<instance_id>,<match_1>]

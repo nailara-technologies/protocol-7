@@ -10,7 +10,7 @@ my $valid_chars_re = qr|[0-9a-zA-Z\-_\./]+|;
 $agent =~ s|^.*\.||;    # <-- node portion
 
 my $err_reason;
-$err_reason = 'expected agent sid from core [ misconfigured ]'
+$err_reason = 'expected agent sid from cube [ misconfigured ]'
     if not defined $agent_sid or $agent_sid !~ m|^\d+$|;
 warn sprintf( "[%d] << $err_reason >>", $$call{'session_id'} )
     if defined $err_reason;
@@ -33,11 +33,11 @@ if ( not defined $err_reason ) {
         my $instance = <nroot.agent.instance>->{$instance_id};
         $agent_instance = $instance_id
             and last
-            if defined $instance->{'core_sid'}
-            and $instance->{'core_sid'} == $agent_sid;
+            if defined $instance->{'cube_sid'}
+            and $instance->{'cube_sid'} == $agent_sid;
     }
 }
-$err_reason = "no instance matches core-sid $agent_sid"
+$err_reason = "no instance matches cube-sid $agent_sid"
     if not defined $err_reason and not defined $agent_instance;
 
 my $instance;
@@ -100,7 +100,7 @@ my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 return { 'mode' => 'ack', 'data' => "registered '$tmppath'" };
 
 # ______________________________________________________________________________
-#\\2CVBZKSGA2R6YCOMV2MPCWKAYR7YQJGN4KVKOYGSH6NE2DJB3MYCMYDOVR7TUULBUL7AEYWLMAQIE
-# \\ QCAEJNZNS47MTE4DNA2JRI2LKTMAMKW2Z3VFXOFM3GAAE3H6PCGM \\// C25519-BASE-32 //
-#  \\// ET2DQQTOXJ2AVQCHL6R2ESQCWDIJ3HJHQZJKGIQU4TMR6GWREBY \\ CODE SIGNATURE \\
+#\\XARGCCG3USUDEVMKY2N4AAUNSFU3Z4ROOM25GAT5UIKJOV5TTKB4FPFPGDCDDNPPKBSUNSQX6Y7GM
+# \\ ZAIK4TSQAWXGBK22A6ZLI5KGWOTJHWCLS3GA5PVAH4TW75AVC7WN \\// C25519-BASE-32 //
+#  \\// XTSLVKYFB4ZSP4BZCIANWXR3IMNMHO26W2PF5MMCXI3HSETIKCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

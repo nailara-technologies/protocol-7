@@ -24,7 +24,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     my $e_sig     = $CHILD_ERROR & 127;
     my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
     $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
-    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
+    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with cube dump ]' : '';
     $log_level = 1 if $e_val;
     $log_level = 0 if $CHILD_ERROR & 128;
     my $agent_str = defined $agent_name ? "< $agent_name > " : '';
@@ -109,7 +109,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 # ______________________________________________________________________________
-#\\PDH4ZNA4JV7KTUHBDIOX6VI3KPVB3PZ5QGXN6UPYZJGT7VH46SDF6P2QMT3LZP2PVRBQXXXIPROPA
-# \\ JB62OZHUXBV274VATRR3LAHT2E5ZAD5XFGZMTFKZAPFVKZI3DHKP \\// C25519-BASE-32 //
-#  \\// LD4KQH7PAEUUFULHM7DEDN5JNHY37P7BCJKZG772SVCDDSFMQCY \\ CODE SIGNATURE \\
+#\\TYUCOK3ZRHPZJ6SERBXQSKIIAGESM3LETYKWPGHBRGBDIUHLXKK5QB6HTU36HX2B4YWN7YDSI2SYA
+# \\ CGQWLCRCL5Q7H6IOST7KNEORQKJV4CBFILPMEDBKDCY4HRMW3POI \\// C25519-BASE-32 //
+#  \\// VX2EQMMDS4FK626DUJAZD75FDKEIRXV6COR3M2TAWIYJSW7CUBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

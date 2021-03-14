@@ -76,13 +76,13 @@ if ( exists $instance->{'pid_check_timer'} and $status ne 'delayed' ) {
     delete $instance->{'pid_check_timer'};
 }
 
-# prevent undesired core shutdown [ 'session.check.last' ]
+# prevent undesired cube shutdown [ 'session.check.last' ]
 if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
     <[base.log]>->( 0, "removing session.closing_last callback.," );
     delete <callback.session.closing_last>;
 }
 
-delete $instance->{'core_sid'}
+delete $instance->{'cube_sid'}
     if $status ne 'online'
     and $status ne 'extbin'
     and ( $old_status eq 'online' or $old_status eq 'extbin' );
@@ -199,7 +199,7 @@ if (    $old_status ne 'online'
             )
         );
     } else {
-        delete $instance->{'core_sid'};
+        delete $instance->{'cube_sid'};
         <[agent.change_status]>->( $instance_id, 'offline' )
             if $old_status ne 'error';
         return;
@@ -215,7 +215,7 @@ if (   $status eq 'offline'
     return;
 }
 
-delete $instance->{'core_sid'} if $status eq 'restart';
+delete $instance->{'cube_sid'} if $status eq 'restart';
 
 # select correct target job queue
 my $target_queue;
@@ -277,7 +277,7 @@ foreach my $name_or_id (@check_keys) {
                 if ( $status eq 'online' ) {
                     $startup_reply_msg
                         = sprintf( "$what '$name_or_id' is online [%d]",
-                        $instance->{'core_sid'} );
+                        $instance->{'cube_sid'} );
                 } elsif ( $status eq 'extbin' ) {
                     $what =~ s|^agent|external program|;
                     $startup_reply_msg
@@ -366,15 +366,15 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
     # clean up temporary agent instance startup data
     delete $instance->{'init_data'};
 
-    # set core session to 'initialized'
-    if (    defined $instance->{'core_sid'}
+    # set cube session to 'initialized'
+    if (    defined $instance->{'cube_sid'}
         and $old_status ne 'online'
         and $status eq 'online' ) {
         my $root_sid = $instance->{'root_sid'};
-        my $core_sid = $instance->{'core_sid'};
+        my $cube_sid = $instance->{'cube_sid'};
         <[base.protocol-7.command.send.local]>->(
             {   'command'   => "$root_sid.set-initialized",
-                'call_args' => { 'args' => $core_sid }
+                'call_args' => { 'args' => $cube_sid }
             }
         );
     }
@@ -396,7 +396,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\NC7J5W65HBYEM46ZNUYP5DSLKXO3HTD4KOIUW2XSLLSB7UMTDKG3GWBNN5YVV5CRRUE4DVVTJF2RY
-# \\ TL7UROZZZU73EGRS76AVDASYZ56V4SB2REINCYVGGTFO5HZ3B5CH \\// C25519-BASE-32 //
-#  \\// TIP3TLMRBXZGBOEA7NKOSD7MZSWIS4FDY3PICIWMBUR2KWYIQCQ \\ CODE SIGNATURE \\
+#\\CZJ5RCTEFOCU26M5Z7COWXSHUB4DFGMPJTQVIEU5YSMMDGDV3CJZHQBD7JNSZS43VMBLKW4LCXYCA
+# \\ DVJEF4AMVB46QKAVSNVKKPQTFZG2IXVMHEUJQLBLZPWTNA5GSD2U \\// C25519-BASE-32 //
+#  \\// RUXAAMR7PD6RZKQDE3AQJ4VAUGQVKVNAHPAKJMJO2BQRGVPGCCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

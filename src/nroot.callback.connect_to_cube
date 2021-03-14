@@ -1,0 +1,57 @@
+# >:]
+
+# name  = nroot.callback.connect_to_cube
+# descr = create nroot agent client session to local cube
+
+my $instance_id = shift;
+my $cube_addr   = <protocol-7.network.internal.addr>;
+my $cube_port   = <protocol-7.network.internal.port>;
+my $init_data   = <nroot.agent.instance>->{$instance_id}->{'init_data'};
+my $cube_key    = $init_data->{'cube'}->{'key'};
+my $authname = <system.agent.name> eq '<stdin>' ? 'nroot' : <system.agent.name>;
+$authname = <system.agent.auth_name> if exists <system.agent.auth_name>;
+
+<[base.log]>->( 1, "connecting to local cube [$cube_addr:$cube_port] ..," );
+
+my $c_fh = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
+$c_fh = <[auth.agent.client]>->( $c_fh, $authname, $cube_key );
+
+if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
+    my $rand_len = length( $init_data->{'cube'}->{'key'} );
+    substr( $init_data->{'cube'}->{'key'},
+        0, $rand_len, <[base.prng.characters]>->($rand_len) );
+    $init_data->{'cube'}->{'key'}
+        .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
+    delete $init_data->{'cube'}->{'key'};
+    delete $init_data->{'cube'} if !keys %{ $init_data->{'cube'} };
+}
+
+#[ error \ <false> ]
+return 0 if not defined $c_fh;
+
+my $session_id = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
+<[base.log]>->( 1, "auth. to cube successful [ session $session_id ]" );
+<nroot.agent.instance>->{$instance_id}->{'root_sid'} = $session_id;
+<nroot.agent.instance>->{$instance_id}->{'is-cube'}  = 1;
+
+<callback.session.closing_last> = {
+    'name'   => 'agent.change_status',
+    'params' => [ $instance_id, 'error' ]
+};
+
+my $root_sid = <nroot.agent.instance>->{$instance_id}->{'root_sid'};
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$root_sid.set-initialized",
+        'reply'     => { 'handler' => 'nroot.handler.set_initialized_reply' },
+        'call_args' => { 'args'    => 0 }  # [ 0 == nroot-agent session [self] ]
+    }
+);
+
+#[success]
+return 1;
+
+# ______________________________________________________________________________
+#\\3X2DJHAACYKUW4BXNCNK2PQCXNMGAFGJLODLGQ7RGFCHS3Y6AKFCLLVI4D4LAIT425JNPJS3E6B7E
+# \\ P77UAK3UNI5KFPQYL3UKRXQG3V6QIXAX7KAHEN42ZNDXURKZZANA \\// C25519-BASE-32 //
+#  \\// WSN76354MY2KFLCCPWKX4HISSKX6QYO4XVURNFFYMX7SXGCZ6CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

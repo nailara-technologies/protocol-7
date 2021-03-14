@@ -23,11 +23,11 @@ my $next_index = $log_data->{'next_index'};
 return if not defined $data{'buffer'}{$name}{'data'}[$next_index];
 
 # find path to log agent..,
-my $route_prefix = 'core.';
+my $route_prefix = 'cube.';
 my @send_line;
 
-##[ core has sid 0 ]##
-if ( <system.agent.type> eq 'core' ) {
+##[ cube has sid 0 ]##
+if ( <system.agent.type> eq 'cube' ) {
     push( @send_line, "<system.node.name>.<system.agent.name>", 0 );
     $route_prefix = '';
 }
@@ -57,7 +57,7 @@ $log_data->{'complete'} = 0;
     );
 
 # ______________________________________________________________________________
-#\\HLWISWLIUHFFHGGLX6GVH5V4SD2IOAAZAGH6VAJ7IU53FMN5B3WQAXECIEWQOPQVKPE3FJKRLPLWE
-# \\ KXMP52YSG6DNILS6TGTC33CDGC4VHIP77SA6CWH4F5Z6EWL2CP3H \\// C25519-BASE-32 //
-#  \\// QZ6AXBYYRVIWKBP33YTK2KVRARZDJZ6HMPBJGDBAWEZLZCVIMAI \\ CODE SIGNATURE \\
+#\\OCLYRPNMHNXB7G7AK5RAYI4YSOOTDHTXXHZ7T2GZL6OWVSRD5XUDLZAXVNWFGMXKK6XVIYHV5Q66U
+# \\ AVRLDMUKRZYRVW6PULZX5VGAZCBCE6JSF3WSWTXSTGKSKGOO4KXX \\// C25519-BASE-32 //
+#  \\// SBD2CWLH7QRZOZCERVO3PPYW7QQRZICCJPSQJLCJLNJOTWKI2AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

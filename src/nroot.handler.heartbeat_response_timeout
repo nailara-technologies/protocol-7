@@ -6,7 +6,7 @@ my $instance_id   = shift->w->data;
 my $instance      = <nroot.agent.instance>->{$instance_id};
 my $agent_name    = $instance->{'agent_name'};
 my $agent_status  = $instance->{'status'};
-my $is_core_agent = $instance->{'is-core'};
+my $is_cube_agent = $instance->{'is-cube'};
 my $error_count   = $instance->{'heartbeat'}->{'errors'}++;
 
 my $heartbeat_ref = $instance->{'heartbeat'} //= {};
@@ -25,11 +25,11 @@ my $retry_str = $retry_count ? " , retrying $dots," : ' `:|';
 
 if ( $retry_count <= 0 ) {    # [ no further retries.., ]
     $heartbeat_ref->{'retry_count'} = $heartbeat_ref->{'retry_reset'};
-    if ($is_core_agent) {
+    if ($is_cube_agent) {
         if ( $agent_status eq 'error' ) {   #   <--  was already not successful.
             <callback.session.closing_last> = {
                 'name'   => 'nroot.teardown',
-                'params' => ['fatal core agent error']
+                'params' => ['fatal cube agent error']
             };
             <[base.session.check_remaining]>;
         } else {
@@ -63,7 +63,7 @@ if ( $retry_count <= 0 ) {    # [ no further retries.., ]
 }
 
 # ______________________________________________________________________________
-#\\TPVABYG3FK763JPEQUR67RI4G7BIEP5GSZPKI47NLGSJHZQN2EV6H5IIGBUTD4V3WSR5KFOUNUZDM
-# \\ 76CVQCGOFFUB2DBLKD4GEEIZ6KGYV4SMMM4LSLDFZ4TNHWR6FFI6 \\// C25519-BASE-32 //
-#  \\// Z7WBPQ6CVK7FOMOHXBQ7BNWYTCDHA6STKQOD6X57WFAOTTDLEDY \\ CODE SIGNATURE \\
+#\\PEKTQBOUNU7HY6VSM32BXS5ONTYWZWZ6657V2YXV2LUZZXU7JPVCG4MT665DM75SYQWD445MZC5GO
+# \\ JCALADBBPGNO4CLNZB6SEAHD2W5ROBNTUDCMKETCYQUJIBKYYVY3 \\// C25519-BASE-32 //
+#  \\// BAWFWABOYZXLGHRS7EJESI5IOPWWHPCMH6TEVPNQXCQ6W7OZCAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

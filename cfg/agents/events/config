@@ -6,14 +6,14 @@
 events.load_config  = 'base'  #  <--  [ ./cfg/agents/events/event-setup.<name> ]
 
 modules.load         = net protocol io.ip auth events set-up.json  ## debug
-access.cmd.usr.core  = verify-instance commands heart reload * # <-- refine
+access.cmd.usr.cube  = verify-instance commands heart reload * # <-- refine
 
 [load_modules:<modules.load>]
 [init_modules]
 
 [root.drop_privs:<system.privs.user>]
 
-[net.connect_to_core:'ip.tcp']
+[net.connect_to_cube:'ip.tcp']
 [base.get_session_id]
 
 [event.loop]

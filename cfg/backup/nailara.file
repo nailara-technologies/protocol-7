@@ -5,7 +5,7 @@
 [load_config_file:'defaults']
 
 net.daemon_name		= file
-auth.core.pass		= l0g
+auth.cube.pass		= l0g
 
 limit.max.sessions      = 23
 access.cmd.usr.*        = help heart text *
@@ -23,18 +23,18 @@ modules.load = auth net io.ip crypt.random file
 
 #	[chroot:<file.dir>]
 
-my.core.name = core
+my.cube.name = cube
 
-access.cmd.usr.core      =   ..*.** ** *
+access.cmd.usr.cube      =   ..*.** ** *
 
 [set_privs:nailara]
 
 [file.index.scan]
 
-# core.handle = [auth.agent.client:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>]
-core.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.core.pass>]
+# cube.handle = [auth.agent.client:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>]
+cube.handle = [net.authme:[base.open:'tcp/ip','out',<net.local.addr>,<net.local.port>],<net.daemon_name>,<auth.cube.pass>]
 
-[base.session.init:<core.handle>,'nailara','client','core']
+[base.session.init:<cube.handle>,'nailara','client','cube']
 
 # [base.daemonize]
 

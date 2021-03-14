@@ -9,16 +9,16 @@ ticker-sdl.child.renice_fh = [base.start.renice_child]
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.core = commands heart reload verify-instance read_file pause \
+access.cmd.usr.cube = commands heart reload verify-instance read_file pause \
                       resume get_opacity list dump_buffer child.*
 
 access.cmd.usr.parent = commands reload read_file dump_buffer
 
-access.cmd.usr.child  = core.X-11.wait_visible core.X-11.raise_window \
-                        core.X-11.keep_above core.whoami core.dump_buffer \
-                        core.nroot.notify_online core.rss-ticker.resend_update \
-                        core.composition.assign_window \
-                        core.X-11.set_opacity core.list
+access.cmd.usr.child  = cube.X-11.wait_visible cube.X-11.raise_window \
+                        cube.X-11.keep_above cube.whoami cube.dump_buffer \
+                        cube.nroot.notify_online cube.rss-ticker.resend_update \
+                        cube.composition.assign_window \
+                        cube.X-11.set_opacity cube.list
 
 #                known [expected] fonts:  DroidSans DroidSans-Bold DroidSansMono
 #                                         DroidSerif-Bold DroidSerif-Regular
@@ -44,7 +44,7 @@ modules.load = auth net protocol io.ip ticker-sdl.base
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_core:'ip.tcp']
+[net.connect_to_cube:'ip.tcp']
 
 [base.X-11.get_display]
 [base.X-11.get_coordinates]
