@@ -1,15 +1,14 @@
 #!/usr/bin/perl
 
 use FindBin;
-use Crypt::Digest::SHA1 qw( sha1_hex );
+use Crypt::Digest::SHA1 qw( sha1_hex );    ## <-- to be replaced..,
 use Term::ReadPassword;
 
 $aname = $ARGV[0] // 'cube';
 
 $DATA{'conf'}{'root'} = $FindBin::Bin;
-$DATA{'conf'}{'root'} =~ s/\/bin$//;
-$DATA{'conf'}{'file'}
-    = $DATA{'conf'}{'root'} . "/cfg/agents/$aname/cube-auth";
+$DATA{'conf'}{'root'} =~ s|/bin$||;
+$DATA{'conf'}{'file'} = $DATA{'conf'}{'root'} . "/cfg/agents/$aname/auth.users";
 
 print "\n ::[ nailara.cube user generator ]\n ::\n";
 
@@ -71,7 +70,7 @@ close(CONF);
 print " ::\n :\n\n";
 
 # ______________________________________________________________________________
-#\\GIKAJRYP3GUQ374HOFDE5CSV2JIZ7QOFFQFECQR5WHHHJWSK4RGNI27MEGKJHZ4PB7DZW5VUO7JEK
-# \\ ARMSHM6RQMFTE5NJ4DAONIYRVWB2UU6MOZNZU76ETP6CZOALCOZP \\// C25519-BASE-32 //
-#  \\// D5YMMEBESBPK5PP4G5EROTQIG7GW45Z456JFJWKFQFSWCJCU4AI \\ CODE SIGNATURE \\
+#\\P3JUMLFKLHLY6ODWVL3IE2FNMSKOQAMTJT467RIJHCEO6XNR5TWQJ6OP3LWNQGRAGZGCGG6QYJRCM
+# \\ CR6HGXETD3ACJJXCFVUIXCW54ZZ6WBHFMKC672LBCDFSJDMDUDEU \\// C25519-BASE-32 //
+#  \\// 6IGQLBUPIDCSENUKTT5I3SYWWOUZXIDERBWN7O4G6Q5NKP5AIBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
