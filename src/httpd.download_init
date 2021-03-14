@@ -59,7 +59,7 @@ if ( exists $request->{'range'} ) {
 
         my $h_str
             = join( '|', map { $ARG, $header->{$ARG} } sort keys %{$header} );
-        $boundary = <[digest.bmw.L13_str]>->($h_str);
+        $boundary = <[chk-sum.bmw.L13_str]>->($h_str);
         $header->{'Content-Type'} = "multipart/byteranges; boundary=$boundary";
 
         my $part_id = 0;
@@ -134,7 +134,7 @@ $session->{'watcher'}->{'download_handler'}->now;
 return 0;
 
 # ______________________________________________________________________________
-#\\A7UJNC3AP5NFAKGJIUM47JH7QPV4IVLIDGNLZXDO2PM3JBOE5YVAQ5K5GKWEWLYZSTPQHVAOIDIJ4
-# \\ F3AOQVHUOYI6SEVGB2GMINB2PTNUH3YO5LBLWDPVRMXO25DC5HVK \\// C25519-BASE-32 //
-#  \\// SRUJ6MBZP273NAZAJ467VTXAV2GXAYGC3GNIRHHS7WXYGYNTOBQ \\ CODE SIGNATURE \\
+#\\TCMSYCCTXUC6ONQG6FRKKJ33JAMGFD2ZFERROTVRCYE4IHMYSJOBYIHFDPTJ44LCYQMDLN7N2C6Y6
+# \\ BZXEZM2LMAF3SQSKFAEEELML2GPRL7M4ZD4VWKUTMZZWC5YMNQWO \\// C25519-BASE-32 //
+#  \\// AS2PJ7AS752CHNMNFEAMS4BTOB5W3K6IH2RHASF45UP6AM6PKDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -118,7 +118,7 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        my $path_etag = <[digest.elf.BASE32]>
+        my $path_etag = <[chk-sum.elf.BASE32]>
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
@@ -204,7 +204,7 @@ if ( defined $http_host and defined $link_target ) {
             %{ $response->{'params'} }
         };
 
-        $path_etag = <[digest.elf.BASE32]>
+        $path_etag = <[chk-sum.elf.BASE32]>
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
@@ -241,7 +241,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 # ______________________________________________________________________________
-#\\M6TQTXF7TKVDUFIBJN6HOBUNV2WYFROMQ7V6FIMAE5WEDGU3XBNDLSQKZCGPULS74MMGGPBJWQ5KC
-# \\ SF72KLJTVX2KB63UUZW6PZ6KBVUK4QMCGRHSJOSADFR75EY4E7O6 \\// C25519-BASE-32 //
-#  \\// PN2MHXVI6OVHN52JB53HSLNXSF7QFKNGRBDWIVQHVEPI2CYB6DA \\ CODE SIGNATURE \\
+#\\HNSFCDIF6HGPY5LXZWA4NMMHCEFWKHRSMTMPKOYLHNHXNDYFI2IYWKNWOCUDP4S7PVFXCZDVC4VPA
+# \\ 6OJC6NKEWQMRO3EGGDH4UAED6OLVKZMVJQKJNL7RDRKEFMAW477I \\// C25519-BASE-32 //
+#  \\// UVURTHATZA5ME24JOW2HCOODLBLXRY4DPBSF2IQ4KIXJVXUMUBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

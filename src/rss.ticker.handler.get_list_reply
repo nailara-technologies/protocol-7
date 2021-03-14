@@ -24,7 +24,7 @@ my $rss_index = 0;
 <rss.ticker.content_url> = {};
 map { <rss.ticker.content_url>->{ $rss_index++ } = $ARG } @rss_urls;
 
-my $ticker_sha = <[digest.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
+my $ticker_sha = <[chk-sum.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
 <rss.ticker.url_hash> //= $ticker_sha;
 
 if ( $ticker_sha ne <rss.ticker.url_hash> ) {
@@ -34,7 +34,7 @@ if ( $ticker_sha ne <rss.ticker.url_hash> ) {
 }
 
 # ______________________________________________________________________________
-#\\I4WGZED47TVCEHTIWQYMDEOTYIF6P4HISTFYWLK2HEZYCT6FL3FIRYFK5SHQID77SODTXWSSOYUFW
-# \\ 6ZHDXCUHLWJDXKLHOC4G7FECZ4JYRAYMNGC67UGEKYUYWZWMXVXO \\// C25519-BASE-32 //
-#  \\// YL7UUC34IAX24GIJPD6IZXYX3NGI6KI5MP6KI4UHV2LN44KXSBQ \\ CODE SIGNATURE \\
+#\\I2ATRGVEJOBGTRFUHB7HITVMK2M4KXUDAWZL3XLOMUQHNGYKUIYPOLY5AV35AVXY4HOJJP3RON76Y
+# \\ GCNQRZLZYVT4N5GQ3C5Z5USBMEA6LYBJN2OKLTOLI4F2XSA2SZG6 \\// C25519-BASE-32 //
+#  \\// X2MEY72VQ4T3SJ6TRCON4AST6BMWVVXO3XQPX6JTNVLF67Q3KAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

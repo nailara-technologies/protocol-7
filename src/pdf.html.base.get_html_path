@@ -12,15 +12,15 @@ die "html_path_name: pdf file '$pdf_path' does not exist!\n"
 
 my $sha_hash
     = $pdf_path =~ m|^https?://|
-    ? <[digest.sha.1]>->($pdf_path)
-    : <[digest.sha.file_hex]>->($pdf_path);
+    ? <[chk-sum.sha.1]>->($pdf_path)
+    : <[chk-sum.sha.file_hex]>->($pdf_path);
 
 ( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;
 
 return $html_path;
 
 # ______________________________________________________________________________
-#\\65ZKZZJ3X6ASUBXWRR64SX7RAUFGV6VKWWMVIEM6V7HGD5XPKHC3DOOMBQ7FRY6GURXS6PZZQHY2C
-# \\ 7NDLM2TZWNLFAAT3PJXNDC57UWXPLUES354CCNXSVANQS53JNXYC \\// C25519-BASE-32 //
-#  \\// SVU5GRRSK5UIRXABJW3TVJ5ET64MKJ3EFRHQYKOQZH7L2HHSOBI \\ CODE SIGNATURE \\
+#\\W4E5ISZALWNEVEOBVKUMJT2VETPK5HP6QMRPU2BK7HT2TLB2QEQA4WA42IJIRTKTMDC6CEQXY4VGE
+# \\ SEC2HUL75JXEPRXIL5QDYFKKRH6NXTZQSIT74XJRGGYSS72VMTFD \\// C25519-BASE-32 //
+#  \\// 4AUTXQFCTNHQB2GPZVORIERGO6FTEJXVG47AVITGUZXJIGTASDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -10,7 +10,7 @@ return { 'mode' => 'nak', 'data' => 'expected url parameter' }
     if !length($url);
 
 my $download_dir  = <download.cfg.download_path>;
-my $url_md5u_hash = <[digest.md5.b64u]>->($url);
+my $url_md5u_hash = <[chk-sum.md5.b64u]>->($url);
 ( my $target_dir = "$download_dir/$url_md5u_hash" ) =~ s|//|/|g;
 my $temp_filename = 'part.' . $url_md5u_hash;
 my $file_path     = "$target_dir/$temp_filename";
@@ -68,7 +68,7 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 return { 'mode' => 'ack', 'data' => $target_path };
 
 # ______________________________________________________________________________
-#\\RZLHDHEGB5OIS7MR3IZZEP2CKTRHTVLQJRKBKZIAOUKTPJE3P26OZVGB67GEEMBL3NHTK2HM2YNMS
-# \\ JAYFLDJEK43N6P6FPLHVKOQE4FL77MHEXFHA7FRIVT6YMFMWOE6Y \\// C25519-BASE-32 //
-#  \\// YU6PJ4IRZRMK3U2N2X5VWGHZO5WH2OXXU2GDFJCB5UBM4XHHEAQ \\ CODE SIGNATURE \\
+#\\ZGRL7QUVMN2FVX5XXQBQQQMIMO72X7QXQRRHW2VCEMF277CSZECCPE7H4VT7WYPF2CCCFCEK2I7RW
+# \\ IZL2QITMW7QF4L3GYGVHPHOCRGXYCIIEZLXTWS2AI6KPOUH4UJXW \\// C25519-BASE-32 //
+#  \\// QAXPHHXQM3IJHPGKZJRT6HLFQVAEQFV746ZZDKB5BLOKSCF32AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

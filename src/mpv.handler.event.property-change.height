@@ -78,7 +78,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
             "${box_width}x$box_height" );
         <[mpv.check_rescale_path]> if defined <mpv.rescale_path>; # LLL: cleanup
         $cmd_args .= ' ' . <mpv.rescale_path> if defined <mpv.rescale_path>;
-        my $chk_hash = <[digest.md5.hex]>->($cmd_args);
+        my $chk_hash = <[chk-sum.md5.hex]>->($cmd_args);
 
         if (    not exists <mpv.converting>->{$chk_hash}
             and not exists <mpv.rescale_failed>->{$chk_hash} ) {
@@ -113,7 +113,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
 }
 
 # ______________________________________________________________________________
-#\\EQDOE35FQMVGDLAIVQAKNZFEHASB63FGPJNESOYYFPJDHL2HOHGUOXISOUGW64SAGVEEVOCXF5G3Q
-# \\ UFHNLBOHFXOHPJAIBK5F7Q7F7C6S6XAOKRTQWKFLXKFHSM6H67A2 \\// C25519-BASE-32 //
-#  \\// FPMLADDT3WLPRRDOJKZU4XXVXFE7QDXXXEUSJJS6BAB46I6YMDA \\ CODE SIGNATURE \\
+#\\ZAW7YZRYMPNS6VAKX3M5GHIFNHADRJS6JTQ4CGWFJJRNP7EGGNFZYGXFSLICSVDAN5O4BMJKENXL4
+# \\ INLZQ7GTPLEH42MI5OHTBL22U5V7S24ZFK7XCBBZE5XR3PXFVFDX \\// C25519-BASE-32 //
+#  \\// WH33BVKTZRUCAAZCM456RJYOPO336UAEMQ4GDGSXV4MS5DSVEDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
