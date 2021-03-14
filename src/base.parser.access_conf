@@ -1,41 +1,56 @@
 # >:]
 
-# name       = base.parser.access_conf
-# return     = 0 (no errors), 1 (syntax errors found)
-# descr      = compile and store command regex masks
+# name   = base.parser.access_conf
+# descr  = compile and store command regex masks
+# return = 0 : no errors, <n> : syntax error count
 
-<[base.log]>->( 2, ': compiling command permission masks..' );
+<[base.log]>->( 2, ': compiling command permission masks..,' );
 
-my $error = 0;
+my $errors = 0;
 
-foreach my $user ( sort keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
+my $user_re = <regex.base.usr_str>;
+my $cmdp_re = <regex.base.cmdrp>;
 
-    my $regex_mask = '';
-    my $pos        = 0;
+foreach my $user ( sort keys( %{<access.cmd.usr>} ) ) {
+    my $access_cfg_mask = <access.cmd.usr>->{$user};
+    my $regex_mask      = '';
+    my $pos             = 0;
 
-    if ( $user !~ /^\w[\w\d\-_]*$|^\*$/ ) {
+    if ( $user =~ m|<admin-user>| and defined <system.admin-user> ) {   ## < ! >
+
+        $user = <system.admin-user>;
+
+    } elsif ( not defined <system.admin-user> ) {
+        $errors++;
         <[base.log]>->(
             0,
-            'invalid character in user name \''
-                . $user
-                . '\'. access mask dropped!'
+            '\<system.admin-user> not defined,'
+                . ' <admin-user> access mask dropped.'
         );
-        $error = 1;
+        next;
+    }
+
+    if ( $user !~ m,^$user_re*$|^\*$, ) {
+        <[base.log]>->(
+            0,
+            'invalid character in user name \' '
+                . $user
+                . ' \' ., access mask dropped.'
+        );
+        $errors++;
     } else {
-        foreach
-            my $cmd ( split( /[\ \t]+/, $data{'access'}{'cmd'}{'usr'}{$user} ) )
-        {
+        foreach my $cmd ( split( m|[ \t]+|, $access_cfg_mask ) ) {
 
             # compile command regex mask
-            if ( $cmd =~ /[^\w\-_\\\[\]\.\^\*]/ ) {
+            if ( $cmd =~ m|$cmdp_re^\*]| ) {
                 <[base.log]>->(
                     0,
-                    'invalid character in command regex mask (user \''
+                    'invalid character in command regex mask [ user \''
                         . $user
                         . '\' pos '
-                        . $pos . ')'
+                        . $pos . ' ]'
                 );
-                $error = 1;
+                $errors = 1;
             } else {
                 $cmd =~ s|([\[\]])|\\$1|g;
                 $cmd =~ s,\.,\\\.,g;
@@ -48,46 +63,44 @@ foreach my $user ( sort keys( %{ $data{'access'}{'cmd'}{'usr'} } ) ) {
                 $cmd = '^' . $cmd . '$';
 
                 no warnings;
-                if ( eval("qr/$cmd/") ) { $regex_mask .= $cmd . '|' }
+                if ( eval("qr{$cmd}") ) { $regex_mask .= $cmd . '|' }
                 else {
                     <[base.log]>->(
                         0,
-                        'syntax error in command regex mask (user \''
+                        'syntax error in command regex mask [ user \''
                             . $user
                             . '\' pos '
-                            . $pos . ')'
+                            . $pos . ' ]'
                     );
-                    $error = 1;
+                    $errors++;
                 }
                 use warnings;
                 $pos++;
             }
-
         }
 
         chop $regex_mask;
 
-        # print "\nREGEX[$user]: $regex_mask\n\n";
+        ## say "\nREGEX[$user]: $regex_mask\n"; ## <-- add to logging .., [LLL]
 
         no warnings;
-        if ( not $data{'access'}{'cmd'}{'regex'}{'usr'}{$user}
-            = eval("qr/$regex_mask/") ) {
+        if ( not <access.cmd.regex.usr>->{$user} = eval("qr{$regex_mask}") ) {
             <[base.log]>->(
                 0,
-                'error in command regex mask (user \''
+                'error in command regex mask [ user \' '
                     . $user
-                    . '\'). access mask dropped!'
+                    . ' \' ] ., access mask dropped.'
             );
-            $error = 1;
+            $errors++;
         }
         use warnings;
     }
 }
 
-return $error;
+return $errors;
 
 # ______________________________________________________________________________
-#\\6NGLL7NFAV3GULIVMMKJ7GZUBUMC62FME2UG3JMS2GPCV6IFIJJ7D6XTQ3TFF6UCOU6HI2IZJYQOO
-# \\ GEVGZV5NBJKU77DDXQ6QLNIABZL5T2E5K2KS4AAYUMZCQT77MQ47 \\// C25519-BASE-32 //
-#  \\// BQWUO6PCSUVKJINXZT5CX2C3Q5GNQS34H5IWIOZQU3TKMRQPOBI \\ CODE SIGNATURE \\
+#\\X3WAQD6OUSECJQZU7ITTPX6VV3F7MAD42F6OL265D5LSLGPGZUR7C7VG7XJFAJTU6JPWUQNVWAMUS
+# \\ 2WFKJ25E6GM73YQU3CTU57YAZREXCYSRHNHOVEBHFAM5W2CTNEFW \\// C25519-BASE-32 //
+#  \\// XIJXHQ4EMIJL2RJ3HP6P2F6QUF7XYXN3UEAP5BS5J7WPDV6Z6DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
