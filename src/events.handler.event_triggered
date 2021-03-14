@@ -48,7 +48,7 @@ if ( $action_type eq 'agent-present' ) {
     die "event $ev_id action command undefined" if not defined $command;
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => 'core.nroot.' . $command,
+        {   'command'   => 'cube.nroot.' . $command,
             'call_args' => { 'args' => $agent_name }
         }
     );
@@ -70,7 +70,7 @@ if ( $action_type eq 'agent-present' ) {
     my $args_lstr = defined $args_str ? " [ $args_str ]" : '';
     <[base.log]>->( 1, "sending '$target_route' command" . $args_lstr );
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "core.$target_route",
+        {   'command'   => "cube.$target_route",
             'call_args' => $args_ref
         }
     );
@@ -137,7 +137,7 @@ if ( $action_type eq 'agent-present' ) {
 # }
 
 <[base.protocol-7.command.send.local]>
-    ->( { 'command' => "core.content.update" } )
+    ->( { 'command' => "cube.content.update" } )
     if index( $action_type, 'playlist_' ) == 0;
 
 <events.composition.cfg_directory> //= '/etc/protocol-7/agents/composition';
@@ -170,7 +170,7 @@ if ( $action_type =~ m|^composition_| ) {
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => 'core.composition.switch-tile-group',
+            {   'command'   => 'cube.composition.switch-tile-group',
                 'call_args' => { 'args' => $current_tile_group }
             }
         );
@@ -178,7 +178,7 @@ if ( $action_type =~ m|^composition_| ) {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
         <[base.protocol-7.command.send.local]>
-            ->( { 'command' => 'core.composition.reset-tile-group' } );
+            ->( { 'command' => 'cube.composition.reset-tile-group' } );
     }
 }
 
@@ -193,14 +193,14 @@ if ( $action_type =~ m,^overlay_(show|hide)$, ) {
     if ( $command_str eq 'add'
         and <events.stack.overlay.visibility>->{$overlay_name} ) {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => 'core.composition.add_overlay',
+            {   'command'   => 'cube.composition.add_overlay',
                 'call_args' => { 'args' => $overlay_name }
             }
         );
     } elsif ( $command_str eq 'remove'
         and !<events.stack.overlay.visibility>->{$overlay_name} ) {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => 'core.composition.remove_overlay',
+            {   'command'   => 'cube.composition.remove_overlay',
                 'call_args' => { 'args' => $overlay_name }
             }
         );
@@ -210,7 +210,7 @@ if ( $action_type =~ m,^overlay_(show|hide)$, ) {
 }
 
 # ______________________________________________________________________________
-#\\MOVXZJJBFNZQADIWJFDK2VLLDYGTXN2UYB7NLEXFSE3FGIL5ML2KYHX7ZSB6M64PKVJQKVVLLQBMY
-# \\ UX5QHISWPOFB72EE3XWEQFISIQSFR3B472I7OJCH3C7YP2U2MJDC \\// C25519-BASE-32 //
-#  \\// 7TIVJEOOXW6RLLXWX2BNIM74V4CGY7XHUOZ7NPQ6CIWFDZKA2AQ \\ CODE SIGNATURE \\
+#\\35KMINUQTGPMTITTUJSX7LRE5TYTAMYQYELDNU3PRASTAIOHUJZRP6O65WSQHBRHIJVP4JX23BW4Q
+# \\ ZWKBO3FX7VPBAUHPKWWNPVMSPHF6KEVQF5T2NWWOOLRJGMR76KJZ \\// C25519-BASE-32 //
+#  \\// 6MMUZVIPR2LLKXGDEKMXL63NGQDWGGOPH6BO77DPGZMZN7QK4DA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -54,7 +54,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
             <[base.log]>->( 1, " : checking playlist for tile '$tile_name'.." );
 
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => 'core.content.get_list',
+                {   'command'   => 'cube.content.get_list',
                     'call_args' => { 'args' => "[$tile_name]" },
                     'reply'     => {
                         'handler' => 'composition.handler.check_playlist_reply',
@@ -71,7 +71,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
             <[base.log]>->( 0, " :  restarting agent '$agent_name_str' ..." );
 
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => 'core.nroot.restart',
+                {   'command'   => 'cube.nroot.restart',
                     'call_args' => { 'args' => $agent_name_str }
                 }
             );
@@ -118,7 +118,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 <composition.last_tile_color>->{$tile_name} = $tile_color;
 
 # ______________________________________________________________________________
-#\\ZWFFAJAVQH6CTFVZGYMMHFEB5OYDK5HHEIPNAJTC25YEH2XO6I5F4IHWLOOTI2472KUODODSA3SP2
-# \\ OWADCQO4H4X6QDLHQDUP624K3IDHWR3UCHYJGEMRLYSJBENCD4GZ \\// C25519-BASE-32 //
-#  \\// UQVY2UFLSQSBINQ7Y62BZPSS3CHARPS2NXVIVM5EGDS45YU2EBQ \\ CODE SIGNATURE \\
+#\\FPRXYPQUX3324P6HFPRDURSRHAQCGTTSPPRTDHEASKZJOFTYRM7QFLYFANSIHTLTAIL6Y77IRXXPA
+# \\ RY2KX64AAX34MJACQZ75DMTK3AWWWHBGTC44JZAGFBCCQPBL4KD7 \\// C25519-BASE-32 //
+#  \\// AU62JS3W5YSTUS7MNTES5YIVP3EN7Q3TJS5X24J2KO3FXXEIODI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

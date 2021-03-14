@@ -3,14 +3,14 @@
 # name  = agent-startup.nroot
 # descr = 'httpd' agent startup configuration used by 'nroot' agent
 
-dependencies = core
+dependencies = cube
 
 : nroot-init :
   start_mode = stdin-agent
   max_concurrency = 1
-  core.key = [base.prng.chars-anum:44]
-  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+  cube.key = [base.prng.chars-anum:44]
+  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<cube.key>]
 
 : agent-init :
-  [base.auth.set_agent_key:'<{core.key}>']
+  [base.auth.set_agent_key:'<{cube.key}>']
 

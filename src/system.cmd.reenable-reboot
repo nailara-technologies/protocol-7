@@ -3,11 +3,11 @@
 # name  = system.cmd.reenable-reboot
 # descr = activate automatic 'xcrash' mitigation reboot
 
-( my $core_user, undef ) = split( m| +|, $$call{'args'}, 2 );
+( my $cube_user, undef ) = split( m| +|, $$call{'args'}, 2 );
 my $hostname = <system.host.hostname>;
 my $uname_re = <regex.base.usr_str>;
 
-if ( $core_user =~ m|^$hostname.($uname_re)$| ) { $core_user = $1 }
+if ( $cube_user =~ m|^$hostname.($uname_re)$| ) { $cube_user = $1 }
 else {
     return {
         'mode' => 'ack',
@@ -19,14 +19,14 @@ else {
 <system.X-11_crash.admin_reboot_abort>  = 0;
 
 my $reply_message = "automatic 'xcrash' reboot [re]enabled.";
-my $log_message   = "$reply_message [ by '$core_user' ]";
+my $log_message   = "$reply_message [ by '$cube_user' ]";
 
 <[base.log]>->( 0, $log_message );
 
 return { 'mode' => 'ack', 'data' => $reply_message };
 
 # ______________________________________________________________________________
-#\\GLP4QK6QUB5T7FCOHLON7ULLZTYSK6BC4PDDYAKPNWPPSI5KWYLROXANHH6TR6SIAUQC5CTBFQKWU
-# \\ MYLQFWZCPYBQXW5MHWI5VS6YLNTMRPVQ2UVSDCPOWTS3HEGG53UU \\// C25519-BASE-32 //
-#  \\// II6QVPLPAPYHLEU2IDQ6FUV6GWTOKF2NYTWW63OYTDXXN6J5IAI \\ CODE SIGNATURE \\
+#\\PP2NUDHVTJUWDUZGDRKZEG2RFPVX3F4NVK4SEZH6VVJUY64WMPPVZG6HLPBVWYI6AMHZ23HBP62ZY
+# \\ CZJ4NFYBWTCF6ZIAUJVWNPBOYYL5YF57HXCXSBR3MGDQKWSZVGSG \\// C25519-BASE-32 //
+#  \\// TILKQNGGWYXACPM7IPDHGHMXGVG3RZBQWCLUA77XZHDZC3TJGCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

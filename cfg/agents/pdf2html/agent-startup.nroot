@@ -3,7 +3,7 @@
 # name  = agent-startup.nroot
 # descr = 'pdf2html' agent startup configuration used by 'nroot' agent
 
-dependencies  = core content
+dependencies  = cube content
 start.on-demand    = 1
 heartbeat.disabled = 1
 restart.disabled   = 1
@@ -11,10 +11,10 @@ restart.disabled   = 1
 : nroot-init :
   start_mode = stdin-agent
   command_line_modules = FindBin Glib::Object::Introspection
-  core.key = [base.prng.chars-anum:44]
-  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<core.key>]
+  cube.key = [base.prng.chars-anum:44]
+  [nroot.callback.setup_agent_key:<instance_id>,'<agent_name>',<cube.key>]
 
 : agent-init :
-  [base.auth.set_agent_key:'<{core.key}>']
+  [base.auth.set_agent_key:'<{cube.key}>']
   [base.agents.set_ondemand_timeout:147]
 

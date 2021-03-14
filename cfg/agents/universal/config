@@ -12,7 +12,7 @@ universal.cfg.can_self_restart = 1 # auto-recovery [ universal agent restart ]
 universal.cfg.autospeed_notrans = 1 # stop mpv \ browser fading on load alerts
 universal.cfg.self_restart_delay = 4.2 # <-- wait to not interfere with SIGCHLD
 
-access.cmd.usr.core    = commands heart reload verify-instance * # <- [ LLL ]
+access.cmd.usr.cube    = commands heart reload verify-instance * # <- [ LLL ]
 access.cmd.usr.mpv     = whoami
 access.cmd.usr.browser = whoami
 
@@ -27,12 +27,12 @@ unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.agent.path>",0777]
 
 [root.drop_privs:<system.privs.user>]
 
-core.reroute.pattern.usr = ^(?!core)
-core.reroute.pattern.match = ^(?!composition\.|whoami)
-core.reroute.pattern.replace = core.
+cube.reroute.pattern.usr = ^(?!cube)
+cube.reroute.pattern.match = ^(?!composition\.|whoami)
+cube.reroute.pattern.replace = cube.
 [base.protocol.bind:<unix.sock>,'protocol-7']
 
-[net.connect_to_core:'ip.tcp']
+[net.connect_to_cube:'ip.tcp']
 
 [base.X-11.get_display]
 [base.X-11.get_geometry]

@@ -44,7 +44,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
-    ( my $session_id ) = keys( %{<user.core.session>} );
+    ( my $session_id ) = keys( %{<user.cube.session>} );
     $data{'session'}{$session_id}{'shutdown'} = 1;
     <[event.once]>;
 
@@ -55,7 +55,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 
     my $title_pattern = <system.agent.name> . '\(' . $PID . '\)';
     <ticker-sdl.window_id>
-        = <[base.X-11.wait_for_window]>->( $title_pattern, 'parent', 'core' );
+        = <[base.X-11.wait_for_window]>->( $title_pattern, 'parent', 'cube' );
     if ( not defined <ticker-sdl.window_id> ) {
         <[base.log]>->( 0, "agent startup error (ticker window did not open)" );
         exit(2);    # LLL: deal with parent? (test SIGCHLD handler!)
@@ -65,8 +65,8 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 
     if ( !<ticker-sdl.use_transparency> ) {
         <[base.X-11.raise_window]>
-            ->( <ticker-sdl.window_id>, 'parent', 'core' );
-        <[base.X-11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'core' );
+            ->( <ticker-sdl.window_id>, 'parent', 'cube' );
+        <[base.X-11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'cube' );
         <ticker-sdl.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
@@ -76,7 +76,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
         <[ticker-sdl.sdl.raise_and_fade]>;
     }
 
-    <[base.get_session_id]>->( 'parent', 'core' );    # agent status -> 'online'
+    <[base.get_session_id]>->( 'parent', 'cube' );    # agent status -> 'online'
 
     <[event.add_timer]>->(
         {   'after'   => 0.64,
@@ -106,7 +106,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 }
 
 # ______________________________________________________________________________
-#\\2WYPJHY3U2JZMQEANHXFZYMDHPMZCM3UQ3O7C2XVFGOUHVTTHR4G3CVCEVBDIK4O4ZPHRYY2GZP2O
-# \\ 7LYWLVBBDTBRR357RQUSH3JJEFFD4TQHE3VURKF7HXTMS3DWTALQ \\// C25519-BASE-32 //
-#  \\// NECEFJMXTXUUA4T4L7INYLJC4PA5ZSVE6CCTEBTC2KNXUFSP6CI \\ CODE SIGNATURE \\
+#\\VEGNHCIYG72HIHFTSIBZL7BKEAB3XXTG3DGLYQX434LQXP6MKR3LGAHFT2OJDIC7NS6GQTOFV6NEQ
+# \\ FY5WKLDQSRUQT4CP4KZKLWLAK565CXB6JVSO4RYA7XMOKA7RU5QQ \\// C25519-BASE-32 //
+#  \\// 2U253GQOYRTZFPS4PHGQYSAJJR4R4B4KXTZU2FHLL5LOCXSVYAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -6,21 +6,21 @@ my $gravity = shift;
 $gravity //= '';
 die "invalid gravity keyword '$gravity' [left|right|top|bottom]"
     if $gravity !~ /^(top|bottom|left|right)$/;
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->(
     1, "setting gravity for window id " . <x11.id> . " to '$gravity'.."
 );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[net.out]>
-    ->( $core_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n" );
+    ->( $cube_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -37,7 +37,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\235XJP3WBW5SMVB32XVLSQA52PBO6Q4PGKGCHYJSC726IHJSFPR22S7VSRRHSQMGL5RRDRSSQTWW6
-# \\ T6P4RLY6FWB2MT6UO7HFBEXRPLWMU3KLBJFHC2Q6GCZNMV2H4OAH \\// C25519-BASE-32 //
-#  \\// UR4YIKOFRLD6LYX4FUJTV2VSVEABNJVCXAC2GK563DI4CRX5OCI \\ CODE SIGNATURE \\
+#\\SZTSBSS4LKJ35EA7CSELSOXH4CKT6MU3QCQYTGKQ4YBCL2F2ZFXKJPCKRGSJ4RYD4UBPSWUQOGYV2
+# \\ 5LWFESD32YMTOYRCT3L5FELJTWH2ENNFXESLCN5L4GL2BS3TF4O3 \\// C25519-BASE-32 //
+#  \\// ZOM7DL2JWOHKLYO4P2DVAVBRQ7WGZB5OSOFPSCZEGR74SJZ46BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

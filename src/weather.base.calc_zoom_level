@@ -2,7 +2,7 @@
 
 # name = weather.base.calc_zoom_level
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 <weather.zoom_level> //= 1;
 
 my $cache_dir      = <weather.cache_dir>;
@@ -32,13 +32,13 @@ if ( not defined <weather.browser_zoom> or !<weather.browser_zoom> ) {
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_screen_size\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_screen_size\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -84,7 +84,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\NMESMUGHDFK67RLSSLGLEPQFAPWGT7LSKU7WY4SFFH67MRVD5PB7EHGCN5NSSO5SLUGHLS3OBWE5M
-# \\ MZN3IW7TUTJJNWHJ42G2LEZKWFLF47LHCTUPFWFTTNUKZXYXIASY \\// C25519-BASE-32 //
-#  \\// 3FD647OVREJJRRUOKCGLYTCPOYVRDPM7QHKC42Q4TFZCH3EOOAQ \\ CODE SIGNATURE \\
+#\\X5YLARI77N2DIGEMXSMZ4BQHKQOVQDBSJQSHVZWTDTPRTJ7D6DOKGCMLAZ4RGWKHMPJX2NMW3KIKI
+# \\ ACVFHEVCPP3L6AX6SZMCXRM6TVAV7APAYTY7EQZPXFEME3NDKPFF \\// C25519-BASE-32 //
+#  \\// E62Q7NTXVMWLUJY4BPB63DURUPTWMSVDAG3DSGTEJ4NZT6MN2BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

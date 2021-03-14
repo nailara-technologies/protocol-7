@@ -2,7 +2,7 @@
 
 # name = composition.handler.transition
 
-my $core_reply = shift // {};
+my $cube_reply = shift // {};
 
 die "[!] no composition transition data defined"
     if not defined <composition.transition.status>
@@ -33,7 +33,7 @@ if ( not defined <composition.transition.status.waiting.stop>
         }
         if ( !$fade ) {    ## instance_id (no_fade) ##
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "core.nroot.get-instance-ids",
+                {   'command'   => "cube.nroot.get-instance-ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -46,7 +46,7 @@ if ( not defined <composition.transition.status.waiting.stop>
             );
         } else {    ## window_id(s) (fade) ##
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "core.X-11.get_window_ids",
+                {   'command'   => "cube.X-11.get_window_ids",
                     'call_args' => { 'args' => $agent },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -64,22 +64,22 @@ if ( not defined <composition.transition.status.waiting.stop>
 }
 
 my $event_type
-    = defined $core_reply->{'params'}->{'event_type'}
-    ? $core_reply->{'params'}->{'event_type'}
+    = defined $cube_reply->{'params'}->{'event_type'}
+    ? $cube_reply->{'params'}->{'event_type'}
     : 'init';
 
 if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
 
-    # print STDERR Dumper($core_reply);
+    # print STDERR Dumper($cube_reply);
 
     <composition.transition.status.waiting.i_id>--;
-    my $agent = $core_reply->{'params'}->{'agent_name'};
-    if (    $core_reply->{'cmd'} eq 'ACK'
-        and $core_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
-        my $instance_id = $core_reply->{'call_args'}->{'args'};
+    my $agent = $cube_reply->{'params'}->{'agent_name'};
+    if (    $cube_reply->{'cmd'} eq 'ACK'
+        and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
+        my $instance_id = $cube_reply->{'call_args'}->{'args'};
         ## notify_offline ##
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "core.nroot.notify_offline",
+            {   'command'   => "cube.nroot.notify_offline",
                 'call_args' => { 'args' => $instance_id },
                 'reply'     => {
                     'handler' => 'composition.handler.transition',
@@ -96,14 +96,14 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
             or <composition.transition.status.agents.fade_out>->{$agent} ne
             '1' ) {
             <[base.protocol-7.command.send.local]>->(    ## stop (no fade) ##
-                {   'command'   => "core.nroot.stop_implicit",
+                {   'command'   => "cube.nroot.stop_implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
         } else {
-            my $window_ids = $core_reply->{'params'}->{'window_ids'};
+            my $window_ids = $cube_reply->{'params'}->{'window_ids'};
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "core.X-11.fade_out",
+                {   'command'   => "cube.X-11.fade_out",
                     'call_args' => {
                         'args' => join( ' ', $fade_out_duration, $window_ids )
                     },
@@ -129,16 +129,16 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         <composition.transition.status.waiting.stop>--;
     }
 } elsif ( $event_type eq 'window_id' ) {    ### window id(s) reply ###
-    my $agent       = $core_reply->{'params'}->{'agent_name'};
-    my $instance_id = $core_reply->{'params'}->{'instance_id'};
+    my $agent       = $cube_reply->{'params'}->{'agent_name'};
+    my $instance_id = $cube_reply->{'params'}->{'instance_id'};
     my $window_ids
-        = (     $core_reply->{'cmd'} eq 'ACK'
-            and $core_reply->{'call_args'}->{'args'} =~ /^\d+/ )
-        ? $core_reply->{'call_args'}->{'args'}
+        = (     $cube_reply->{'cmd'} eq 'ACK'
+            and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
+        ? $cube_reply->{'call_args'}->{'args'}
         : 0;    # <- 0 == failed, fade will be skipped!
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "core.nroot.get-instance-ids",
+        {   'command'   => "cube.nroot.get-instance-ids",
             'call_args' => { 'args' => $agent },
             'reply'     => {
                 'handler' => 'composition.handler.transition',
@@ -151,18 +151,18 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         }
     );
 } elsif ( $event_type eq 'fade_out' ) {
-    my $agent       = $core_reply->{'params'}->{'agent_name'};
-    my $instance_id = $core_reply->{'params'}->{'instance_id'};
+    my $agent       = $cube_reply->{'params'}->{'agent_name'};
+    my $instance_id = $cube_reply->{'params'}->{'instance_id'};
     <[base.protocol-7.command.send.local]>->(    ## stop (fading complete) ##
-        {   'command'   => "core.nroot.stop_implicit",
+        {   'command'   => "cube.nroot.stop_implicit",
             'call_args' => { 'args' => $instance_id }
         }
     );
 } elsif (
     $event_type eq 'is_offline'    ## agent stopped or not running ##
-    and defined $core_reply->{'params'}->{'agent_name'}
+    and defined $cube_reply->{'params'}->{'agent_name'}
 ) {
-    my $agent = $core_reply->{'params'}->{'agent_name'};
+    my $agent = $cube_reply->{'params'}->{'agent_name'};
     if ( exists <composition.transition.status.agents.fade_out>->{$agent} ) {
         delete <composition.transition.status.agents.fade_out>->{$agent};
         <composition.transition.status.waiting.fade_out>--;
@@ -174,7 +174,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
         if ( exists <composition.transition.status.agents.concurrency>->{$ARG} )
         {
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "core.nroot.start",
+                {   'command'   => "cube.nroot.start",
                     'call_args' => { 'args' => $ARG },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -189,13 +189,13 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
     } ( $agent, $agent_stripped );
 
 } elsif ( $event_type eq 'is_online' ) {    # new agent started successfully
-    my $agent = $core_reply->{'params'}->{'agent_name'};
+    my $agent = $cube_reply->{'params'}->{'agent_name'};
     delete <composition.transition.status.agents.start>->{$agent};
     <composition.transition.status.waiting.start>--;
 } elsif ( $event_type eq 'start' ) {
-    my $agent = $core_reply->{'params'}->{'agent_name'};
-    if ( $core_reply->{'cmd'} eq 'NAK' ) {
-        my $reason = $core_reply->{'call_args'}->{'args'};
+    my $agent = $cube_reply->{'params'}->{'agent_name'};
+    if ( $cube_reply->{'cmd'} eq 'NAK' ) {
+        my $reason = $cube_reply->{'call_args'}->{'args'};
         if ( $reason =~ /concurrency/ ) {
             $agent =~ s/\[.+$// if $reason !~ /subname/;
             <composition.transition.status.agents.concurrency>->{$agent} = 1;
@@ -204,10 +204,10 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of agents to be stopped
             # failed - log! retry?
         }
     } else {
-        ( my $job_id = $core_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
+        ( my $job_id = $cube_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
         ## notify_online ##
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "core.nroot.notify_online",
+            {   'command'   => "cube.nroot.notify_online",
                 'call_args' => { 'args' => "job:$job_id" },
                 'reply'     => {
                     'handler' => 'composition.handler.transition',
@@ -230,7 +230,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
     foreach my $agent (@start_agents) {
         ## start ##
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "core.nroot.start",
+            {   'command'   => "cube.nroot.start",
                 'call_args' => { 'args' => $agent },
                 'reply'     => {
                     'handler' => 'composition.handler.transition',
@@ -278,11 +278,11 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
     }
 }
 
-#print STDERR ">---\n" . Dumper( $core_reply, <composition.transition> ) . "<---\n";
+#print STDERR ">---\n" . Dumper( $cube_reply, <composition.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
 # ______________________________________________________________________________
-#\\SMY4V3X3ZHN5W4DOKYUCHO4DHEHCI6ITJLCP5MSOAIOO7TOOKRZBC6KXTTD43NPH5XKBEB6RGQWVW
-# \\ SWZ4DA6OX43F4DXNIYKWQ7JU54LHOIRGLTTO5HVCLYDRFI6LQKD3 \\// C25519-BASE-32 //
-#  \\// NETAWFUADWFDF52ICWJCVNHUFVUIARA3RMIGKFX4ESRVW3G3ACA \\ CODE SIGNATURE \\
+#\\7ZY5ZBKC4IL2ISV2QNHT5VMGFHT7QDC6YEYCUBJOWNN6UADIXTDER3M2OKR5EI5DSKX46N7P72KH2
+# \\ 45VT4IL3L2FESWZQSOAFGKTEDC3IC7RTXUWCBJUY7JJZKO7II7DS \\// C25519-BASE-32 //
+#  \\// OARSSTXIGNY7N27QX6QT4PGANX5X22XZU4R2L4OWHRAVUYBPWAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

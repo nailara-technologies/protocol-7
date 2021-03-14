@@ -49,7 +49,7 @@ if (    not defined <[agent.get_id]>->($query_param)
 }
 
 if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
-    my $core_sid = <nroot.agent.instance>->{$id}->{'core_sid'};
+    my $cube_sid = <nroot.agent.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <nroot.agent.instance>->{$id}->{'process'}->{'id'};
     if ( defined <nroot.agent.instance>->{$id} ) {
         my $agent_status = <nroot.agent.instance>->{$id}->{'status'};
@@ -68,8 +68,8 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
             if <nroot.agent.instance>->{$id}->{'status'} eq 'extbin';
 
         my $status_msg
-            = ( $agent_status eq 'online' and defined $core_sid )
-            ? " [$agent_status] < since $duration > [ core-sid $core_sid ]"
+            = ( $agent_status eq 'online' and defined $cube_sid )
+            ? " [$agent_status] < since $duration > [ cube-sid $cube_sid ]"
             : " [$agent_status] < since $duration >";
 
         return { 'mode' => 'ack', 'data' => $status_msg };
@@ -77,7 +77,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
 }
 
 foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [+subname]
-    my $core_sid = <nroot.agent.instance>->{$id}->{'core_sid'};
+    my $cube_sid = <nroot.agent.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <nroot.agent.instance>->{$id}->{'process'}->{'id'};
     if (<nroot.agent.instance>->{$id}->{'agent_name'} eq $query_param
         and (  not defined $agent_subname
@@ -100,8 +100,8 @@ foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [+subname]
             if <nroot.agent.instance>->{$id}->{'status'} eq 'extbin';
 
         my $status_msg
-            = ( $agent_status eq 'online' and defined $core_sid )
-            ? "[ $agent_status ] < since $duration > [ core-sid $core_sid ]"
+            = ( $agent_status eq 'online' and defined $cube_sid )
+            ? "[ $agent_status ] < since $duration > [ cube-sid $cube_sid ]"
             : "[ $agent_status ] <$duration>";
 
         return { 'mode' => 'ack', 'data' => $status_msg };
@@ -111,7 +111,7 @@ foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [+subname]
 return { 'mode' => 'nak', 'data' => 'not present' }
 
 # ______________________________________________________________________________
-#\\CMISU6PGJ434RWELFZHLR7NKBZ43OHZ74FC3FMWSL7J6IAKIHUGQY6RLIWXAWV6Y2PHQX3NMIUJTI
-# \\ ENDWZVNGCDPOYN3U2BXDX362BYGMF52N5D7OC4I7LL5D6Y6NZQEE \\// C25519-BASE-32 //
-#  \\// WAT2ZIGMPGCU6SJ6JLEUKK5NMGM5YK45BOSPCAANBBAJ3726SAY \\ CODE SIGNATURE \\
+#\\M3552MVFCEBI7YTUQ2AWNTQVLEFBT2BDNEXJXTFZXKBQGRZYGZ466KHZCWKRPYXUMRAF367WUCNII
+# \\ UQGZTESQV7SMNYP5YK3ETSMDKTCQNR5JA74GXXSX4POFXUMPTPCH \\// C25519-BASE-32 //
+#  \\// K7L7D5BINWG6VFMXIAMRKVUDC44XLT7XFZSCDA4SJLHY4PZNGBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -14,7 +14,7 @@ if ( not exists <nroot.agent.instance>->{$instance_id} ) {
 my $instance = <nroot.agent.instance>->{$instance_id};
 $instance->{'timer'}->{'restart'}->cancel;
 delete $instance->{'timer'}->{'restart'};
-delete $instance->{'core_sid'};
+delete $instance->{'cube_sid'};
 
 return
     if defined <agent.instance.shutdown>
@@ -24,7 +24,7 @@ return
 <[jobqueue.move_job]>->( $instance->{'job_id'}, 'queued' );
 
 # ______________________________________________________________________________
-#\\VFSKPE6HJGPFPCIF64MSTN7DDOAZJOBRV6QHM6ZYMMWDH6JZE3A2R7N4P5EIRI33SUDJEFDLOZOZU
-# \\ HLTTDXAOYAU5YQTFU2IAYWUXV2ZWLUN3PSAA3MU2PIWC4LQX44GU \\// C25519-BASE-32 //
-#  \\// CZAP2T3DREB4Y7INYKLBTER5IKA2WDLEQO2UQ4WHLB2RZBUGSDY \\ CODE SIGNATURE \\
+#\\3MVMVPWDG2QEWZVACODJRQFNPCTWY4WQOE3ROC2LW4NL5T2AL5GRJ3TMBZOD24JVLFPMIMIIMJ5BI
+# \\ KDT5UK2RGLKHVAYFXLA5HBAOK4PCZVCPLSTL5I3LTLF5J2BYOBEW \\// C25519-BASE-32 //
+#  \\// XNMC55KXVQLGTPVIDYN3ZUGTWX7YR7PRNSBUMQXKB5OMTS2DUBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

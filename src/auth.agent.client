@@ -1,7 +1,7 @@
 # >:]
 
 # name  = auth.agent.client
-# descr = authenticate to core in agent mode
+# descr = authenticate to cube in agent mode
 # note  : agent name can now contain subnames
 
 my ( $filehandle, $agent, $key_str ) = @_;
@@ -53,7 +53,7 @@ if ( defined $key_str
     if ( not defined $answer ) {
         <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
     } elsif ( $answer =~ m|^YEAH | ) {
-        <[base.log]>->( 1, '[*] success., =), core authorized session.' );
+        <[base.log]>->( 1, '[*] success., =), cube authorized session.' );
         return $filehandle;
     } elsif ( $answer =~ m|^NOPE | ) {
         <[base.log]>->( 0, '[#] access denied >:|' ) and return undef;
@@ -70,7 +70,7 @@ if ( defined $key_str
 }
 
 # ______________________________________________________________________________
-#\\OTUMT5ABZGP7BSD5T2KQ6XSWTOELHPYYTXWQPHSO7IRXHWDHXEEHKB46DRINGB6G5XV4BLX7MFD3A
-# \\ 6472I25E43V4LLMIDW5GYJM62WSGGULO6D7V5OXFQB3YPLJ75GHF \\// C25519-BASE-32 //
-#  \\// YM37MP5KAHDRUIMR6WZTKNI2Q4VMIJKVH6WW2YIOCCS7LAGG4AQ \\ CODE SIGNATURE \\
+#\\O2RZH6CHT4N4DPMA27LPMR6IF3HYEEHWELAGI6LC26G764KQETELF7IE3NKSFUKS6L2AMCDCR4466
+# \\ GUWLNHUMMAFTEYCSFDIBGABTBKWLQS4J3HNL2YYS3SH7LFHHHDE5 \\// C25519-BASE-32 //
+#  \\// VVQHDOHWTJOUY6EARHEH4POULT6HYPD74CHPAYMEWELDU74HODY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

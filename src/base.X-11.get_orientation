@@ -2,19 +2,19 @@
 
 # name = base.X-11.get_orientation
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 2, "requesting screen orientation from X-11 agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_orientation\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_orientation\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\JC3YMJJOYNEJJ2YO5R3FVBBBHT7Y6HQUSBW6NVOF33ADNLULFFTTKICHPXKDZYAW4ADTZV7N5TEOC
-# \\ XSOCMRDZ23WUP4SHMZSVY552NJCTPE2ZEXJ2NXGI6LERRNL6I6OA \\// C25519-BASE-32 //
-#  \\// 4KZO7O73KEGAXNN2OFWZSG3FT6WUZY7KTCMT73WM4VJ6D6QOSBA \\ CODE SIGNATURE \\
+#\\CSTRH62KWBGPQ46VGR3IHA6WPLAKZVBEMLMTMMZI77DFTGRG4A3CH6TMJMRINRAD5LAWB3TKQZTG4
+# \\ PZQBC7OYZI6DPW5BPOCDDCX653XGY3NXL76A3DX4TOG3EYVD4B33 \\// C25519-BASE-32 //
+#  \\// TIA2V6GHRNJRO5SIOKW4JAZKCNSIZL72LZKARMLRPDY372VBCBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

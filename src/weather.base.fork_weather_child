@@ -4,7 +4,7 @@
 
 use Socket;
 
-( my $session_id ) = keys( %{<user.core.session>} );
+( my $session_id ) = keys( %{<user.cube.session>} );
 
 <weather.pipe> = { 'child' => {}, 'parent' => {} };
 
@@ -49,7 +49,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     <[base.load_modules]>->('weather.child');
     <[base.init_modules]>->('weather.child');
 
-    <[base.log]>->( 1, 'preparing to close core session of child .,' );
+    <[base.log]>->( 1, 'preparing to close cube session of child .,' );
 
 } else {    ## parent ##
     close($parent_pipe);
@@ -99,7 +99,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 # ______________________________________________________________________________
-#\\YO5M4AUQLBYQ2GNGVAEJDKUCSEFDGFRBFSEP7IY5XBKQ3L77TGPQYQVYOOWCJV7VM6AME5MFMR3NG
-# \\ 3O45XNWWJJQHTDAJS2UD2NYR2KQTNRBQIKSY7CVJHRDSTBB5ZST4 \\// C25519-BASE-32 //
-#  \\// HDP7FUANX3Y4ZTCKVUOHTMRMAVGEUR425VP5KROWAUHGMUHI6BQ \\ CODE SIGNATURE \\
+#\\WS6F5JGKQF5KZCBBRL2IAUNDJ3IL6NZQY5LGXCKHWVZUAPOV4GE2BVGZSRBDMPTJ5FLAOWKAXKJBI
+# \\ IB5QK7AQIQHTSWSXR3QSNM37J7WI73B7NUWXBOGGY7BCCKAWH3ZF \\// C25519-BASE-32 //
+#  \\// XOUREVNOINM72U3RV4XSZAPJHXBTNQNSQ5JFEPD5EEG3TUBYICA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
