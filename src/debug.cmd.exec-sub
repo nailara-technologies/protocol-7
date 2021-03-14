@@ -34,6 +34,9 @@ return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
 
 map { $ARG //= 'UNDEF' } @sub_output if @sub_output > 1;
 
+map { ( $ARG = Dumper($ARG)."\n" ) =~ s|^\$VAR1 =|| if length( ref($ARG) ) }
+    @sub_output;
+
 my $rep_mode = 'ack';
 if ( @sub_output == 1 ) {
     $sub_output[0] =~ s|\n$|| if $sub_output[0] =~ m|\n| <= 1;
@@ -43,7 +46,7 @@ if ( @sub_output == 1 ) {
 return { 'mode' => $rep_mode, 'data' => join( ', ', @sub_output ) };
 
 # ______________________________________________________________________________
-#\\3SZTFE5QKYWYIUTSBR32ZIE76HAJU635ZZVJHVW3XZE6LU3VRA7L5NEBMRT6WVQTRMV5AOM5ID6MC
-# \\ NFTUYOK7J22Q34AWJ37MBC665NU26KIKDYGKVHMVBVD55EJRDCQ5 \\// C25519-BASE-32 //
-#  \\// 5TZTPYCTHUYS55YS53M5WW2BGPVIBIOXBRGOCMAHOMGQK5N3OBQ \\ CODE SIGNATURE \\
+#\\BB6EIURV5H3DHQPZOWL76GEMXHAVZQIRXAEP3U7XFPS7RC5XAAGEKHGZZLF3P6WWH57WDIFFTQM74
+# \\ DQG7PFFBOYDS44GBGSQIV47AVLRMUHLV4TVJXSJRQNRF75XD4GSC \\// C25519-BASE-32 //
+#  \\// RK75DIEIDCG5TZQXZ2S6XRV7ALDZPKY7CGAIC4JBAU4DVRMNCAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
