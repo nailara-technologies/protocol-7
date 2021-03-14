@@ -1,0 +1,26 @@
+# >:]
+
+# name = base.loaded_p7_mods
+
+my $base = 0;
+<base.p7_mod.loaded> //= {};
+
+if ( exists <base.p7_mod.loaded>->{'base'} ) {
+    delete <base.p7_mod.loaded>->{'base'};
+    $base = 1;
+}
+
+my @p7m = grep {defined} keys %{<base.p7_mod.loaded>};
+map { $ARG =~ s|\s+||g } @p7m;
+
+my @modules = sort { length $a <=> length $b } reverse sort grep {length} @p7m;
+
+unshift( @modules, qw| base | ) and <base.p7_mod.loaded>->{'base'} = 1 if $base;
+
+return @modules;
+
+# ______________________________________________________________________________
+#\\4IXSOJNYFHUED77ZKQOGCQJC7XVTPIHPUR34QFWNLJASDKZTGQM24MQ5ZTSSFBAXBDAQ3FB6FK7DY
+# \\ X7UB6QJMKZAUTMEMD72F2DRKPDFJ636HDWU4NYXGYPPF5IGU3RC5 \\// C25519-BASE-32 //
+#  \\// WJKPG24MNOIN6TX3ORG2CKYIYOUKFFDYV2I5HJTB7UDZBHBMKBI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
