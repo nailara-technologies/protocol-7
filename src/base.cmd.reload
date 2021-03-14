@@ -28,6 +28,10 @@ if ( $arg eq 'config' or $arg eq 'all' ) {
     $success = 1;
 }
 if ( $arg eq 'source' or $arg eq 'all' ) {
+
+    my @reload_modules = <[base.clear_p7_mods]>;
+    my %mod            = map { $ARG => 1 } @reload_modules;
+
     $keyword_match = 1;
     delete $data{'base'}{'commands'};
     <base.modules.load_errors> = 0;
@@ -42,18 +46,14 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         # todo: create src tracking unload mechanism
         <[base.purge_code]>->('debug');
     } else {
-        my %mod = map { $ARG => 1 } split / +/,
-            <modules.load>;    # <!> create iface
         if ( not exists $mod{'debug'} ) {
-            <[base.log]>->( 1, "<< persistently enabling debug module >>" );
+            <[base.log]>->( 1, "<< keeping debug module enabled >>" );
             $mod{'debug'} = 1;
-            <modules.load>
-                = join( ' ', sort { length $a <=> length $b } sort keys %mod );
         }
     }
-
     map { delete $data{'base'}{$ARG} } ( 'cmd', 'console', 'overwritten' );
-    my $error = <[base.load_modules]>->("base $data{modules}{load}");
+
+    my $error = <[base.load_modules]>->(@reload_modules);
     if ( !$error and !<base.modules.load_errors> ) {
         $$reply{'data'} .= "$s reload source  [ success ]\n";
         $success = 1;
@@ -128,7 +128,7 @@ $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 # ______________________________________________________________________________
-#\\GY6BSQOOTGVTJJ2IOHSWBETD3GEI6TGTLVTU4QD7IS7H4UFYY5CSFE3HGZQDXKCT34WZXCWC7UUJ2
-# \\ Z3Q23VZGSNLWKLWHWYKJ7LYG6GKFBRNZEW7O6M2VPM337TQL3DVD \\// C25519-BASE-32 //
-#  \\// OZHWM23W2PIKXHERHA6OC7HDSNQWALVUOG3NHDZ2I7OTK6XEQAY \\ CODE SIGNATURE \\
+#\\66SJIEFOLOKKBTXTH2DHGH52X7GLSKV4BJEYUYJHTP7DFLCMMHIV2OQILSE3QR4NQOKLY3EP6R64I
+# \\ UOY53E2HOM5D2KVKRK72ULNGT4LA7U2MPW6Z7U6IXRTZMG3I2VZQ \\// C25519-BASE-32 //
+#  \\// AO75DDBMFYJLVQOCKPVOQKSHVKOXAVDJ5YZ5GFSIGIRITFN26AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
