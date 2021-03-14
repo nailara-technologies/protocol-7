@@ -3,11 +3,12 @@
 # name = net.connect_to_cube
 
 my $cube_sock;
+my $cube_name = 'cube';
 my $cube_port = <protocol-7.network.internal.port>;
 my $cube_addr = <protocol-7.network.internal.addr>;
 
 my @connection_types;
-
+my $custom_addr = 0;
 foreach my $param (@_) {
     if ( $param =~ m|^\d+$| ) {
         $cube_port = $param;
@@ -15,8 +16,11 @@ foreach my $param (@_) {
         $cube_sock = $param;
     } elsif ( $param =~ m,^(ip\.|unix), ) {
         push( @connection_types, $param );
+    } elsif ( !$custom_addr ) {
+        $custom_addr = 1;
+        $cube_addr   = $param;
     } else {
-        $cube_addr = $param;
+        $cube_name = $param;
     }
 }
 
@@ -74,7 +78,9 @@ foreach my $c_type (@connection_types) {
     }
 
     if ( defined $cube_sock ) {
-        <[base.session.init]>->( $cube_sock, qw| protocol-7 client cube | );
+        <[base.session.init]>->(
+            $cube_sock, qw| protocol-7 client |, $cube_name
+        );
 
         <system.timer>->{'send_reports'} = <[event.add_timer]>->(
             {   'repeat'  => 0,
@@ -94,7 +100,7 @@ if ( not defined $cube_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\WIIHSYA2YPYLMNDNSXFSL23SQYCLFYISWUWGMNIIRSQ4VPIFG7EDWBZ7W6XJ2FDMGAIE6M3LNXQBE
-# \\ 7DUFAQDGV6QHEZCTC7PXFA5LVB5Q3CQVLT343VD7ZFOQJQZCKUXD \\// C25519-BASE-32 //
-#  \\// XA4BN6VEBRYZQRJBBG6ETDY6E2226IMF45FKRI2SA4NNFRKLADA \\ CODE SIGNATURE \\
+#\\Z6MM4V5YFAWXV6ELTDMPRYEPORFHG32YVPNHZJLAGUDRO7HT3ABSRF3GD22QUM2SGS4R2JNBKCXHG
+# \\ IWZIXDCXY6H37TTGL5CO5PHVQST7ZN5GFRYUPYENJF4WEVXC76DX \\// C25519-BASE-32 //
+#  \\// E6B75BCNVVF6T6WW5F4ZEIO2SBPTPHLJOHD7W3UIWUX4I432OBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
