@@ -1140,10 +1140,9 @@ sub prepare_subs {
                     . $data{'code'}{$sub_name}{'source'} . ' }';
             } else {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code
-                    = 'sub {'
-                    . $line_comment
-                    . $data{'code'}{$sub_name}{'source'} . '}';
+                $sub_code = join ' ',
+                    'sub {', $line_comment,
+                    ( $data{'code'}{$sub_name}{'source'} // '' ), '}';
             }
 
             ##                      ###
@@ -1654,7 +1653,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\YDVTDZ7K4NIQ4Z777KRSB47HFWATJZQ3DRNY3PYMUH3ONIQQUTPIYIUMJNPYR6OLF6ND7SZABZF34
-# \\ HVMGSVW5SIMNK4LISDLX4PSRW22DEYY4KGARM6JUDLMGMRMNWQP7 \\// C25519-BASE-32 //
-#  \\// KS77I7HJYNDE3ODTJZ45IFE4FGDHOLF4SBTUNDJ6D3GCL5MS6DY \\ CODE SIGNATURE \\
+#\\BH4VNGHOYGDX4EX2RZ73VSENM2FORVYMY7VJQ2EMD2ONDYS3FSAWIECL5WNNDOKCTJ7BH2GLJPOGS
+# \\ OVZLML3RZRKIV3AYCG3POXULRV5YDZR2D4T3RMUR44AUQYWABUS3 \\// C25519-BASE-32 //
+#  \\// W5SPGC5CA7IFE2FVDPYFGHCFPDWDFDRG3KTAIP4OBQN7DGENEBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
