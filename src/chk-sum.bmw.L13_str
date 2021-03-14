@@ -1,0 +1,21 @@
+# >:]
+
+# name  = chk-sum.bmw.L13_str
+# descr = returns 13 character string [ '*' XOR with eight BMW chk-sum segments ]
+
+die 'expected data parameter' if not defined $_[0];
+
+my $bmwsum   = <[chk-sum.bmw.ctx]>->(512);
+my $entropy  = '*' x 8;
+my $template = 'A8' x 8;
+
+map { $entropy ^= $ARG }
+    unpack( $template, $bmwsum->add( shift // '' )->digest );
+
+return encode_b32r($entropy);
+
+# ______________________________________________________________________________
+#\\7MEFA6O4BWLOBZV4BREGMADGGPKWTDM4JHG6BVUKJ6PYZIUP3LB2TGPOW4UMXQ5SBXJDFRMBNTKUE
+# \\ SDLVKODJBEPPIJUBBSKAZ4T373RNFPHT425OZJNCMTTWUCRE3NUF \\// C25519-BASE-32 //
+#  \\// L4K3MPWOGFI6UN6UBEY5TP64XMOMMLHA3GH2XGY23YXINQZAGAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

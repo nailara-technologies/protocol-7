@@ -18,8 +18,8 @@ my $frame_src_path = $reply->{'call_args'}->{'args'};
 my $vid_file_path  = delete <universal.frames_to_go>->{$frame_id};
 
 my $vid_frame_dir     = <universal.vid_frame_dir>;
-my $path_digest       = <[digest.elf]>->($vid_file_path);
-my $frame_target_path = "$vid_frame_dir/$path_digest.png";
+my $path_chk_sum      = <[chk-sum.elf]>->($vid_file_path);
+my $frame_target_path = "$vid_frame_dir/$path_chk_sum.png";
 
 ( my $output_path = $frame_target_path ) =~ s|/[^\/]+$||;
 
@@ -58,7 +58,7 @@ if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
 }
 
 # ______________________________________________________________________________
-#\\52RL3TULDKZ6C4YGRU2QXPM2AK5MTKKQIOH7QQ7SXFYQB2HMG4PH2DWOMIG4JIDL7QQ5Z765EAYSK
-# \\ 4EDK2LXT7U7TE4HPDXZZOJMG5HVZY3GRPWLTJX6XDFZ6G67ZAKHF \\// C25519-BASE-32 //
-#  \\// X6SLWL7DANSILXPL25KZBT6ZCVPTYGWLZLASHGP4KDVDWJ6TSCA \\ CODE SIGNATURE \\
+#\\2MKVFMEA6JETKZETQMFOKGTPBRM3QWFW7G5UQSYNGMPJJTZO7TUQZGVWTYRJKZFMGTH2P7AF2XWU6
+# \\ 2YPU7YEHCTTTRFHGROH7BWUERS5J3NOBGTMBXNTWAR6HQP4KAMVO \\// C25519-BASE-32 //
+#  \\// C3RPEOCZ54SK32IZZR3QPCDRGGTK5BXWZIJO4R3TCXBXTZZRQDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

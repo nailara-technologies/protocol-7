@@ -12,14 +12,14 @@ die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
 <[base.log]>->( 1, "writing station id $station_id [$city] to disk cache.." );
 
-my $city_hash = <[digest.sha.1]>->($city);
+my $city_hash = <[chk-sum.sha.1]>->($city);
 
 my $content_str = sprintf( "%s %s\n", time, $station_id );
 
 <[file.put]>->( "$cache_dir/$city_hash", $content_str );
 
 # ______________________________________________________________________________
-#\\UYCC36D7C3XJ5BMXQBAQFXE4JPDE37E5ZJN6DA2YP7PL55JC7CYJGQMXPE7G3IVNEO32XNTZTYNYY
-# \\ 2IKTYSPRKBU2HCO3HPLUHE4AQXUCIODCZQXVV7ZFI33SLSLSJTE2 \\// C25519-BASE-32 //
-#  \\// EJBL62FIQXPPRXJNJK3D3DV7I6UGCL56UVVFYVFYX6N2ZYRCQCA \\ CODE SIGNATURE \\
+#\\FJAJE6B4SHCV2SKGVBHUXYM5JCEEPXJ7VIZ6JP6OUZICT7MYIQVSJBWEWSR3BRDTBO4HQPRN7SUL6
+# \\ 2OWT3YGURUYG6P7KNOTRPDJ2W62YDKA4UU2GDKHPIAGVN7JIPIMX \\// C25519-BASE-32 //
+#  \\// ALN7UONPOSCSIBQ5LOWBOKSFT6KCV5YMO7X3RHW57KSDU4QCWAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

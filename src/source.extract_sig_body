@@ -25,7 +25,8 @@ if ($strip) {
     $footer_body = $1 if $$src_ref =~ m|$footer_start\n((#[^\n]+\n){4})$|;
 }
 
-$footer_data->{'data-chksum'} = <[digest.bmw.strsum]>->( $bit_size, $$src_ref );
+$footer_data->{'data-chksum'}
+    = <[chk-sum.bmw.strsum]>->( $bit_size, $$src_ref );
 
 return $footer_data if not defined $footer_body;  ## keeping current checksum ##
 
@@ -75,7 +76,7 @@ $footer_data->{'signature'}      = $signature_B32;
 return $footer_data;
 
 # ______________________________________________________________________________
-#\\ZOEEE2P3AJDWMQHDPWFYGEEL54BP6EPFUAJNI36R2HJRYG35QRRRGJ2S2JDK3LCWD7ZLRM3ETJWIW
-# \\ OKT5DOA5YMK6R4TRT6IKHMQYU2M7U5ODQIAM7AKA2C7KQRFEVLPJ \\// C25519-BASE-32 //
-#  \\// 4WCCEQIHATLO3AX3BGZN6ATQQJZD6Q7K7GUWUTHAUQ7LXSZKGCY \\ CODE SIGNATURE \\
+#\\VVMYR4VXINWT64NTX2ODYFU67XZTJWXXZD5KFHD3XV7JW2LXDF674QW2FEQD226HRPN4QGXPJ3GHQ
+# \\ S6RAZE4DVLVIC3MNTSYOF2X7WUJCWNQSMSANXREFI22VJCZ7COB3 \\// C25519-BASE-32 //
+#  \\// YTBPG6U4DGY6WXBL5C743B4PCHDUZMDAISZ4STOTYEQ3KBSUEAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

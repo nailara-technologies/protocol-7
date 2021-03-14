@@ -8,7 +8,7 @@ die "expected source data scalar reference"
     or ref($src_data_ref) ne 'SCALAR';
 
 my $bit_size   = <source.chksum_bitsize>;
-my $chksum_b32 = shift // <[digest.bmw.strsum]>->( $bit_size, $$src_data_ref );
+my $chksum_b32 = shift // <[chk-sum.bmw.strsum]>->( $bit_size, $$src_data_ref );
 my $data_len   = length($$src_data_ref);
 
 <[base.log]>->(
@@ -28,7 +28,7 @@ return encode_b32r(
 );
 
 # ______________________________________________________________________________
-#\\FGZ2JW7CMGXDDXOP3SQ3UL77FK7LSXAS4MFZL4KOQ45FFYURBHK74LAZ43HAFNRPG4QNF7UVAWAI6
-# \\ VU3HZP35X74CDNKQSDICNOUTVQFTBHSNRMQ53P2J3XDJRKQ2O34S \\// C25519-BASE-32 //
-#  \\// MGCYGZXM27AE75WRQX4PCFIDW32AMXY22J6MPB4DUSLUDZU3ABY \\ CODE SIGNATURE \\
+#\\XRP5VSDQL5SCEKPY3I5WYWJEGFI4XORDV7HKQDTXFTEA6WPRJCUVPU4JKK7PL4Q5SB3HEE6YWWAUO
+# \\ LVIRU4JSBDQNI5CAUTXGXIA7OLDVB4TO7PACJAXNY2FUKRZJO7V5 \\// C25519-BASE-32 //
+#  \\// 4IB57YT2GIQ57C6RMMVDXGGFWFWAJMCFHQGLKUHWIW2RLJRKMDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

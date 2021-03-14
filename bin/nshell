@@ -27,8 +27,8 @@ while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
 }
 ( my $root_path = abs_path($bin_path) ) =~ s,/[^/]+/[^/]+$,,;
 
-my $path_digest = elf($root_path);
-my $path_offset = $path_digest ^ elf('/usr/local/protocol-7');  # <-- or current
+my $path_chk_sum = elf($root_path);
+my $path_offset  = $path_chk_sum ^ elf('/usr/local/protocol-7'); #[ || current ]
 my $protocol_7_port = calc_port($path_offset);
 
 ( my $hostname = qx| hostname | ) =~ s,(\..+|\n)$,,g;
@@ -63,7 +63,7 @@ foreach my $param (@ARGV) {
     $arg_index++;
 }
 
-@args = grep { defined } @ARGV;
+@args = grep {defined} @ARGV;
 
 my $cube_pass;
 my $stored_cmd;
@@ -105,7 +105,7 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        $PROGRAM_NAME = "nshell [ $core_addr : $core_port ]";
+        $PROGRAM_NAME = "nshell [ $cube_addr : $cube_port ]";
         if ( not defined $stored_cmd ) {
             clear();
             print "\e[1m\e[5m\e[34m\e-\e[0m\n";
@@ -165,10 +165,10 @@ sub calc_unix_path {
     my $ip_addr = shift;
     my $ip_port = shift;
 
-    return harmony_digest("TCP[$ip_addr:$ip_port]");
+    return harmony_chk_sum("TCP[$ip_addr:$ip_port]");
 }
 
-sub harmony_digest {
+sub harmony_chk_sum {
     my $input_string = join( '', @_ );
     my $harmony      = join( '', map {ord} qw| T = 5 | );    ## <-- [ / 13 ]
 
@@ -476,7 +476,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\32R74R2T5LYKQTRYXM3ISUITSYZPIDZLY4XKWTBVEFL7IHOBTKQNS7NDA7GUTEM2HAPK2JKTIMBTM
-# \\ TFRD6MKXQ2HFCUHKVEXKRCO6OQK2TSWDVBYW7QRUTXEFSCLVI2DY \\// C25519-BASE-32 //
-#  \\// TFXGT2VWPR3ARU3EG2UQL2RAYU372EJV2PAQXLOI5YPXR3BGSAQ \\ CODE SIGNATURE \\
+#\\H5SKDA5D4HWP54Q2W7PW6THVIKXUCCKIMQFLCKZXSPKIDJVSPM7IMCMTMQATZY6GW5IRZWT6CLQ7A
+# \\ V4GS3WPMKORNVJPIVKRV2A22MKHTNEBCN5P7JXBGZKYBAVNSUB3Q \\// C25519-BASE-32 //
+#  \\// LNUJZJZWQQN3CWBZY43QE24VO3NZWJQPDWN4STWBISZM4KURICY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

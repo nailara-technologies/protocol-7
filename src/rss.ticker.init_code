@@ -41,7 +41,7 @@ push(
 );
 
 my @rss_urls;
-<rss.ticker.url_hash> //= <[digest.sha.1]>->('');
+<rss.ticker.url_hash> //= <[chk-sum.sha.1]>->('');
 if ( defined <rss.ticker.content_url> ) {
     if ( ref(<rss.ticker.content_url>) ne 'HASH' ) {
         @rss_urls = (<rss.ticker.content_url>);
@@ -50,13 +50,13 @@ if ( defined <rss.ticker.content_url> ) {
             keys %{<rss.ticker.content_url>};
     }
     <rss.ticker.url_hash>
-        = <[digest.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
+        = <[chk-sum.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
 }
 
 0;
 
 # ______________________________________________________________________________
-#\\S3I4INJKWL53MWDL742UQ27NUIXGE7FE4P2JJTEQ6IQ5UTRITTGAQW4STBWIFEMW6JXO3VFURCTBI
-# \\ I7WKJQF75JFSGIDVWTU2KVAD5FX4JZURA5KOBEEB26JFYKOFEPKY \\// C25519-BASE-32 //
-#  \\// GECFI5XXDACX5Q4O5AEJJY7RLK4RRPGHM73IKCFDBA2AGXHDEDI \\ CODE SIGNATURE \\
+#\\PBW3FUGSZTBQU2O3IKFCPAFJSR3CU6BWXK3EE5CB4NCJMNC7XN6LSZOL2ZZEVS7R6G3LWNL4WA6DC
+# \\ UD7IRDUAJ3BXCEJMTNPXMCT4J36CFYDUSG5ELQRBDS42X3QZRXMU \\// C25519-BASE-32 //
+#  \\// SUZJSWUT23ULZBCNIRUBHUMK5P3K2NCHRMSKMYPX7HTSVDQ2CCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

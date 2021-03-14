@@ -12,7 +12,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 my @file_list     = split( "\n", $reply->{'data'} );
-my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
+my $playlist_sha1 = <[chk-sum.sha.1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
@@ -73,7 +73,7 @@ if (<impressive.cfg.use_start-anim>) {
 }
 
 # ______________________________________________________________________________
-#\\NTEWYL3NEKEWR23BD26PJ23T36MTJQP3VH4VDK7DFUZFPN2UNB36FUKSPULNHBWBA3TFI4H3CD7DQ
-# \\ DVNEJZU6LBZQOK24MIE6YWWLHMUX3LZ52FD2WJGAJ6H4ZUYGTBCU \\// C25519-BASE-32 //
-#  \\// 6OQPZRICGCZDIU6RC5I3CDC2EHUGH7LPH2EFULMPL72IZNHY2BI \\ CODE SIGNATURE \\
+#\\C3VWN2ZOYKCLNUBTM3KWZWSWPUNG7RRGIFBBNNSEPIEGGZTOWVBAMFV2DG7KAMGJPDEULLCBGUATY
+# \\ ITHIROWV63SJPVAGS3N6VPGF5VOF4KQ4AM2RLNVH6ONVYG6EDHCB \\// C25519-BASE-32 //
+#  \\// 2LGOKF3TIK3VOI2DUNRHNVYKRPNRIRAXNRU2CR6RWVRWGTAYSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
