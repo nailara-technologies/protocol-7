@@ -5,14 +5,14 @@
 my $pid = CORE::fork;
 
 if ( !$pid ) {    # making rand() fork-safe..,
-    ( my $seed = $PID + $code{'base.ntime'}->(13) ) =~ s/\.//;
+    ( my $seed = $PID + $code{'base.ntime'}->(13) ) =~ s|\.||;
     srand($seed);
 }
 
 return $pid;
 
 # ______________________________________________________________________________
-#\\S4SRC65ZQS564KLXK3XJPG2PGYW6HS6GBGZG336HLM3MUSXRWSXFJAFPXMZVFSUVWN5H3QDVLBW3Y
-# \\ TUUBDZHJAOW77HSOBBYTZTWFH5OMOJNSPFTNG6JGKCIJ2QTAKFYI \\// C25519-BASE-32 //
-#  \\// RRITH6IQNOYSQIWUDHWCOLRDGJF3NOWO52H4ZQM2MPW2TLSKCAY \\ CODE SIGNATURE \\
+#\\IOBIC52XFHWVWQOU7LNUTGZM2B5JXJUESQHYOCE72MAZSSEAMUMBDZRPVTFX4JHMGGB7K5DU76PKQ
+# \\ HHD43WL2U64RIJJ5DG4KFN2VKBBH6JDFNQA7H6EULG5WEZNAEFVM \\// C25519-BASE-32 //
+#  \\// I75F3FWCMRYYKPOPC4UWMAPJAJLTLIHHUZBUAOPETH275ABLYBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
