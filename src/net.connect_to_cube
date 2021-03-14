@@ -2,12 +2,26 @@
 
 # name = net.connect_to_cube
 
-my @connection_types = @_;
-@connection_types = ('unix') if defined <unix.path>; # overriding [in -sic mode]
-
 my $cube_sock;
-my $cube_addr     = <protocol-7.network.internal.addr>;
-my $cube_port     = <protocol-7.network.internal.port>;
+my $cube_port = <protocol-7.network.internal.port>;
+my $cube_addr = <protocol-7.network.internal.addr>;
+
+my @connection_types;
+
+foreach my $param (@_) {
+    if ( $param =~ m|^\d+$| ) {
+        $cube_port = $param;
+    } elsif ( -S $param ) {    ##  <--  implement   ##    [LLL]
+        $cube_sock = $param;
+    } elsif ( $param =~ m,^(ip\.|unix)$, ) {
+        push( @connection_types, $param );
+    } else {
+        $cube_addr = $param;
+    }
+}
+
+@connection_types = ('unix') if !@connection_types and defined <unix.path>;
+
 my $unix_path     = defined <unix.path> ? <unix.path> : undef;
 my $agent_name    = <system.agent.name>;
 my $agent_subname = <system.agent.subname>;
@@ -80,7 +94,7 @@ if ( not defined $cube_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\5XWHLEGA6FHFGZCGON2ELAHCYLCB6AQ4XWBF3VC35IIU4R2R2KFYSY7ROBUQM6BT2DMEHPXXMUNEI
-# \\ ISNMWZZHXQDP37T7SQS6Z6TVAFDL6L66WN2CI7RPWAGG7ZLM6W26 \\// C25519-BASE-32 //
-#  \\// 5GUKT6S7IV4XMCOH5WD5AEW6XHHYXASZFIVKRXETQDJNJQXP6BI \\ CODE SIGNATURE \\
+#\\43A624RXC6J2CP7EKTUA2NCFBYXTJHSH2N67PNIP3QPVJZUQJN5EVOZR4EJWFV66RQPUB6LSK6NTC
+# \\ KA2O4F4CZZ7FLHOZVZ2L76SCA6ICYCEX3V33EDXMN7KUWQV26ENO \\// C25519-BASE-32 //
+#  \\// HWYQGDGOP23BVUICPVED3AXWSCTKZE7NICWNX3SIDIYYM545YDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
