@@ -19,38 +19,49 @@ if (   not defined $backend_socket
 }
 
 if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
-    if ( $smiley =~ />:\]\n/ ) {
-        <[base.log]>->( 2, '[*] protocol banner detected..' );
+    if ( $smiley eq ">:]\n" ) {
+        <[base.log]>->( 2, '[*] protocol banner detected.,' );
     } else {
-        <[base.log]>->( 0, '[#] no valid smiley found! :(' );
-        return undef;
+        <[base.log]>->(
+            0, '[#] protocol mismatch [ no valid connection banner ]'
+        ) and return undef;
     }
     <[net.out]>->( $backend_socket, "select unix\n" );
     <[base.sleep]>->(0.2);
-    $answer = <$backend_socket>;
-    if ( $answer =~ /ACK continue\n/ ) {
-        <[base.log]>->( 2, '[*] unix auth. selected' );
+
+    chomp( my $answer = readline($backend_socket) );
+
+    if ( not defined $answer ) {
+        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+    } elsif ( $answer ne 'ACK continue' ) {
+        <[base.log]>->( 0, '[#] unix auth. not available >:|' )
+            and return undef;
     } else {
-        <[base.log]>->( 0, '[#] unix auth. not available!' );
-        return undef;
+        <[base.log]>->( 2, '[*] unix auth. selected' );
+        $answer = '';
     }
     <[net.out]>->( $backend_socket, "auth $user\n" );
+
     if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
-        if ( $answer =~ /YEAH/ ) {
-            <[base.log]>->( 1, '[*] successfully authenticated =)' );
+        if ( not defined $answer ) {
+            <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+        } elsif ( $answer =~ m|^YEAH | ) {
+            <[base.log]>->( 1, '[*] success., =), cube authorized session.' );
             return $backend_socket;
-        } elsif ( $answer =~ /NOPE/ ) {
-            <[base.log]>->( 0, '[#] access denied :(' );
-            return undef;
-        } else {
-            <[base.log]>->( 0, '[#] protocol mismatch >:[' );
-            return undef;
+        } elsif ( $answer =~ m|^NOPE | ) {
+            <[base.log]>->( 0, '[#] access denied >:|' ) and return undef;
+        } elsif ( $answer eq '>:|' ) {
+            <[base.log]>->( 0, '[#] authentication timeout :|' )
+                and return undef;
+        } else {    ##  >:[ .., ##
+            <[base.log]>->( 0, '[#] protocol mismatch >:[' )
+                and return undef;
         }
     }
 }
 
 # ______________________________________________________________________________
-#\\OIAT7CAX66V2RLYGUN7VENV7QPZDKR6I3ELHFWH6R2655R4V7ZDQEAEV64JHW3RWUYF6BKICPS62C
-# \\ 7JC7WRPOEZ6YKEKO62FSKY3FRCG7LGFWI7XAKCRMA74EFWQGS2RE \\// C25519-BASE-32 //
-#  \\// NGOS65IJSH74PQ32UPBK2YE7IQVLGFXBCDWUBC7UO2LMY6NCWDI \\ CODE SIGNATURE \\
+#\\NQ3IFXWNCOCOAFBZ36POWBN7KFWKBIN6SCIAUGTIIRYSBWBFXHNIWFSLXYKPKTQ2GCJYEUOPKVBYW
+# \\ OOZLQJK3QA2E6BBBBJHCRNNLGQHTXZLE3K2SMCAFSU3RUKRLG52E \\// C25519-BASE-32 //
+#  \\// X63FGOCOKYG43XPUVTUPJUNDQNVJFYURAAHQICB65JOHRZD4YDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
