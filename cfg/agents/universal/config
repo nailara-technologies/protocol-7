@@ -22,7 +22,7 @@ modules.load = auth net protocol io.ip io.unix plugin.auth digest universal
 
 auth.supported_methods = unix
 [file.make_path:'/var/tmp/.7/UNIX',0775]
-unix.agent.path = [digest.elf.BASE32:"<system.agent.name>:<system.agent.subname>"]
+unix.agent.path=[digest.elf.BASE32:"<system.agent.name>:<system.agent.subname>"]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.agent.path>",0777]
 
 [root.drop_privs:<system.privs.user>]
