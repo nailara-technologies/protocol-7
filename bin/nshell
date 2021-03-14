@@ -1,10 +1,10 @@
-#!/usr/bin/perl -C31
-
-use strict;
-use warnings;
+#!/usr/bin/env -S perl -C31
 use utf8;
-use English;
+use strict;
+use v5.10.0;
 use IO::AIO;
+use English;
+use warnings;
 use File::Spec;
 use IO::Socket;
 use Math::BigFloat;
@@ -52,26 +52,27 @@ my $cube_user;
 my $remember  = 0;
 my $arg_index = 0;
 foreach my $param (@ARGV) {
-    if ( $param =~ m|^-u$| and defined $ARGV[ $arg_index + 1 ] ) {
+    next if not defined $param;
+    if ( $param eq '-u' and defined $ARGV[ $arg_index + 1 ] ) {
         $cube_user = $ARGV[ $arg_index + 1 ];
         delete $ARGV[$arg_index];
         delete $ARGV[ $arg_index + 1 ];
     } elsif ( $param =~ m,^(-r|--remember)$, ) {
         $remember = 1;
-    } else {
-        push( @args, $param );
     }
     $arg_index++;
 }
+
+@args = grep { defined } @ARGV;
 
 my $cube_pass;
 my $stored_cmd;
 my $term_loop = 0;
 my $lines_up  = 3;
 my $link_type = defined $cube_user ? 'unix' : 'ip.tcp';
-my $sckargcnt = scalar @args;
 my $cube_addr = shift(@args) || '127.0.0.1';
 my $cube_port = shift(@args) || $protocol_7_port;
+my $sckargcnt = scalar @args;
 my $usock_dir = '/var/tmp/.7/UNIX';
 
 my $prompt = "\\ $hostname \\:[?]:, ";
@@ -104,7 +105,7 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
     if ( -S $shell_sock ) {
-        $PROGRAM_NAME = "nshell ( $cube_addr : $cube_port )";
+        $PROGRAM_NAME = "nshell [ $core_addr : $core_port ]";
         if ( not defined $stored_cmd ) {
             clear();
             print "\e[1m\e[5m\e[34m\e-\e[0m\n";
@@ -113,7 +114,7 @@ while ($connect) {
                 sleep(0.1);
                 close($shell_sock);
 
-                exit(2);    # aborting connection, failed to send!
+                exit(2);    # aborting connection, failed to send.
             } else {
                 printf "\033[${lines_up}A\r\e[5m\e[34m.\e[0m"
                     . "  \e[34m< \e[32m%-79s\n\n",
@@ -475,7 +476,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 # ______________________________________________________________________________
-#\\ADHNMBCGNFIM6TAPFAGUCXDGCSZXH6WZPWTQKHGGUDVGCXSTLAU6XKWNAIBOV4IWNCSP6P4D5UFPI
-# \\ TV7DHVNKSQ2VCO2MNWHGT4Z7VTJX3P4DPF76NMNO3VJXXB6S52MF \\// C25519-BASE-32 //
-#  \\// NGSOXIBWO6RVXM5BTEWXJKJNQEZPN7KODCD4PO6GGVOPSZAQICY \\ CODE SIGNATURE \\
+#\\32R74R2T5LYKQTRYXM3ISUITSYZPIDZLY4XKWTBVEFL7IHOBTKQNS7NDA7GUTEM2HAPK2JKTIMBTM
+# \\ TFRD6MKXQ2HFCUHKVEXKRCO6OQK2TSWDVBYW7QRUTXEFSCLVI2DY \\// C25519-BASE-32 //
+#  \\// TFXGT2VWPR3ARU3EG2UQL2RAYU372EJV2PAQXLOI5YPXR3BGSAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
