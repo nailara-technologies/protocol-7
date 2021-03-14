@@ -20,8 +20,8 @@ die "source file '$p7c_src_path' not found" if !-f $p7c_src_path;
     or die "unable to compile '$src_name' << ! >>";
 
 my $p7c_checksum = delete <nroot.checksum.p7c_source>
-    // <[digest.bmw.filesum]>->( 224, $p7c_src_path );
-$p7c_src_str =~ s|\[BMW_FILE_DIGEST\]|$p7c_checksum|g;
+    // <[chk-sum.bmw.filesum]>->( 224, $p7c_src_path );
+$p7c_src_str =~ s|\[BMW_FILE_CHkSUM\]|$p7c_checksum|g;
 
 my $tmp_bin    = "$p7c_bin_path.$p7c_checksum";
 my @gcc_params = $compile_static ? ('-static') : ();
@@ -71,7 +71,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\EJEK2DYW56TZUHUDGPKD6BCUBJCYM3ZRYOMVBLY75UYCRE5V2L75GKCQTJ4ENHA2AAZON57WMFJJO
-# \\ ZALDHBJH7NOAGUIYZLVVHESSEAT2U42L5D4URXPGC6Y2N6OZ6TMT \\// C25519-BASE-32 //
-#  \\// XX5YJGG7D4U27T3EM6MPA2AAGCBNA5YLGY23ITMFKJYJK2LMICQ \\ CODE SIGNATURE \\
+#\\QVTVWW36XT2AY6IV4POKHRGSDQ6KLQM2H6APSCUYAAJ5UXEAKDIIOR4LBCH5VI2LYLXQRI2QUGIQ6
+# \\ PDNLHN6VF2KK55BRVZ5ZMZHWYTCRZOVPGFDYCBPXODFHL3UMZ6MD \\// C25519-BASE-32 //
+#  \\// JPWIJFA4XGCDUWAKNHZDAALL7DYVDLXBM63KR4CY63UHYXYD2CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

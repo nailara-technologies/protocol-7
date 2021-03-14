@@ -12,7 +12,7 @@ die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 $cache_dir .= '/html';
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
-my $hash_str = <[digest.sha.1]>->($station_id);
+my $hash_str = <[chk-sum.sha.1]>->($station_id);
 my $html_dir = "$cache_dir/$station_id";
 
 <[weather.parent.populate_html_dir]>->($station_id) if !-d $html_dir;
@@ -32,7 +32,7 @@ $url_list[1] .= '#[DELAY=' . <weather.current_cond_delay> . ']#'
 return @url_list;
 
 # ______________________________________________________________________________
-#\\2VBRIRA7OVRUAJSUM4R6RCLUU3HH2HRIPVMX5MSHJGAXW7QNZF5LLZU6ESTS7XIQILR3N6H5VR4DY
-# \\ OLPROZZWEWIX3D2ZFYUYFNNB62JQ7EJ5PQNU7AGHGAXQWUV62VDE \\// C25519-BASE-32 //
-#  \\// K7IUQMEMV2JBKMYN6GGPEUPFPKQICBEINW2MVWNIDT3U5VM3ACY \\ CODE SIGNATURE \\
+#\\SB7BBJEAOIAEMS3ZMTN6E3LIDXGLEQZKB44TAP5JHJUYG3Z2XNHJVIZPKKJOYYXK575TU6PJT4X2U
+# \\ 7LPWY6OHHSRZAYNWFWWEC6JCJK55AUINSWMPJVN7Y3W6HV6X6RDB \\// C25519-BASE-32 //
+#  \\// 4QE2JICF7ZALWCRM7F3V7ZCPHVT23MPENKEKU56BFWFXD3LIEAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

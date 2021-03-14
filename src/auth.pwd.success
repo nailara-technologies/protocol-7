@@ -5,7 +5,7 @@
 return 0 if $_[0] eq "" or $_[1] eq "";
 
 my $key_ref = <[base.resolve_key]>->( 'auth.setup.usr.' . $_[0] );
-if ( ref($key_ref) eq 'SCALAR' and ${$key_ref} eq <[digest.sha.1]>->( $_[1] ) )
+if ( ref($key_ref) eq 'SCALAR' and ${$key_ref} eq <[chk-sum.sha.1]>->( $_[1] ) )
 {
     return 1;
 } else {
@@ -13,7 +13,7 @@ if ( ref($key_ref) eq 'SCALAR' and ${$key_ref} eq <[digest.sha.1]>->( $_[1] ) )
 }
 
 # ______________________________________________________________________________
-#\\SNYBUEDSAR3ZJJAR3HUSHBWVVACVZA254NTMN6PI4BQ2ZXFXEHFMPZNNI6SNF5NRVGXLTNML5GUA2
-# \\ DVJUIHFWAMCYUAS4RY4HUWJDLYTA3LX4NP5QHLOKOC4JGZVCWP3V \\// C25519-BASE-32 //
-#  \\// L7GAPJNNIQ2DGFA2NOPY47XWKICTTFXHOCLTLZG3WHGWAOD7WCY \\ CODE SIGNATURE \\
+#\\ZKVPTKACLMLYARLGRI5FPGIY6WVEUYMS5IXNNHFSNKP546ISJVVVLEXOK4YAU6WEP3FGUYHGAOGZG
+# \\ 5ABI7UBDZD5MPE34INKNNYRE5JXKI4XERNGI5LHUFKFGAHZ7V42X \\// C25519-BASE-32 //
+#  \\// AB553ZOQY5AA4OTCYVFXPHZQJQ2GVYAOH4VOPPIFFVJ5IKPOICY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

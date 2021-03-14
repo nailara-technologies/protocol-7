@@ -10,7 +10,7 @@ die "expected city name parameter" if not defined $city or !length($city);
 
 <[base.log]>->( 2, "checking station id cache for '$city'.." );
 
-my $city_hash = <[digest.sha.1]>->($city);
+my $city_hash = <[chk-sum.sha.1]>->($city);
 my $file_path = "$cache_dir/$city_hash";
 
 if ( !-f $file_path ) {
@@ -39,7 +39,7 @@ if ( $data_age >= $max_age ) {
 }
 
 # ______________________________________________________________________________
-#\\5RI7DTN32CDBTUH4ECJNJH4XCZUHDX4WDLR364XBT7VDEKGMZKBCL54Y6BOTQ63D46JFEY2UKICRI
-# \\ 73RXPWP2FJLE3TY3XPNK3XWU6AVQ754MEP2IF2EZUG2WD6SDSJXV \\// C25519-BASE-32 //
-#  \\// KAP7EX3JIRY2SSQM3A4WO4SSZUEXHJFUTL565XIHI7J3N2N5CBQ \\ CODE SIGNATURE \\
+#\\4DZQQYU5ZJQRZCHPBTT4PVIO4D2GUMLCRTJO7BIPWJUT6NUVSLR3FWGL7Z6L7SYVJTPHXQWL3DP3M
+# \\ DAOXGR6LAT2CYUFCR3M7K5IORLW6Q5AJU6PBXX3SI7H2HTK3EKGV \\// C25519-BASE-32 //
+#  \\// KKHCYRV3RYXLSQEAVWITAA7BNL3VKJUGFOQ644FXFRMDFSBBECY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

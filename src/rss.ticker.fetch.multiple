@@ -53,7 +53,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
                 }
             };
         }
-        my $url_hash = <[digest.sha.1]>->($rss_url);
+        my $url_hash = <[chk-sum.sha.1]>->($rss_url);
         if ( !-d $data_dir ) {
             mkdir($data_dir)
                 or die "can't create rss data dir '$data_dir' [ $OS_ERROR ]";
@@ -90,7 +90,7 @@ my %txt_data;
 my $feed_data_count = 0;
 foreach my $index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$index};
-    my $url_hash = <[digest.sha.1]>->($rss_url);
+    my $url_hash = <[chk-sum.sha.1]>->($rss_url);
     my $url_data_file .= "$data_dir/$url_hash.txt";
 
     if ( !-f $url_data_file ) {
@@ -180,7 +180,7 @@ move( $output_file . '.NEW', $output_file )
 return 1;
 
 # ______________________________________________________________________________
-#\\PEZABRHKMNR2Y7SSRNKDWGWRRQNF6JPU4432QIQEUFXRJVVONPFRO3BVCFRYIIQIFB2ITV6F6S7GM
-# \\ 2ZVEFJPUF2HYSTM37BGRDIM5HO6DPYXCE27MZVP3NRBANKK5KGGP \\// C25519-BASE-32 //
-#  \\// 6ELBGAZAHEYC5G3EV4DKQFK2R2DROZYT4OKKRCDCXWUL2T4AECA \\ CODE SIGNATURE \\
+#\\4MR4SDG5KQLFQVYW4ZQQ5LUALRM73ELWV5PZC6GBWXCCU6XSZIL7TOV26GCDCFUMDQJKRLRMK65HG
+# \\ 2AALTVEZZUQP4BA4RBMTIDSWPOVSI6RDT3EVV2JVGFV767EWTSSY \\// C25519-BASE-32 //
+#  \\// 7V7DIA6H4T2QJOYVSV5YONRQV3VEIU5CO3VCI6SVQRCBQIB7UAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

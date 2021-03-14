@@ -4,12 +4,12 @@
 
 <[base.perlmod.load]>->( 'Digest::Elf', 'elf' );
 
-<system.path_digest> //= elf(<system.root_path>);
-<system.path_offset> = <system.path_digest> ^ elf('/usr/local/protocol-7');
+<system.path_chk_sum> //= elf(<system.root_path>);
+<system.path_offset> = <system.path_chk_sum> ^ elf('/usr/local/protocol-7');
 
 my $port_ranges = {
-    'ext' => { 'start' => 47, 'end' => 1021 }, # <-- regular external port: 47
-    'int' => { 'start' => 57, 'end' => 1021 }  # <-- regular internal port: 57
+    'ext' => { 'start' => 47, 'end' => 1021 },   # <-- regular external port: 47
+    'int' => { 'start' => 57, 'end' => 1021 }    # <-- regular internal port: 57
 };
 
 # ..following values can be overridden in './cfg/defaults', './cfg/network', ...
@@ -25,7 +25,7 @@ my $port_ranges = {
 0;
 
 # ______________________________________________________________________________
-#\\PRTQZS3YARJOHH3KKTUQVFBXEKDQ5TLQAZ5G6KX5H5RCHQE5Q5YUMRSWFQBYV5EP7OH2AQOFHMSOK
-# \\ QJKOQA36FFJQPPH2MMZ75H7FCAZVNWLCTDUGPXH33B6EM7IOHDWC \\// C25519-BASE-32 //
-#  \\// 7KNHY4XKGQPJOUZMCWEDGCPNUBNHM6DTBJNJI6RLF5JADEIUQDA \\ CODE SIGNATURE \\
+#\\QHI3I7AQAPBCGOUUA4YN4DO3XHAQQYSVP7YCCEKEPFFCWYQRG5NBBFUXXEO27CTY7T43AENDOAKUK
+# \\ TZMQDRWNLGMKLSMRTUSNPWXOP6JWUXTPSSDIJGWKGIUEPUFFWCDE \\// C25519-BASE-32 //
+#  \\// H25DIJVKTIEUOUFYXQ7M7FTNFCGIGUBJSLDR6UI2SEQVVUJQEDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

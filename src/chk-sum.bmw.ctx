@@ -1,0 +1,18 @@
+# >:]
+
+# name  = chk-sum.bmw.ctx
+
+my $bits = shift || 512;
+$bits = substr( $bits, 0, 5 ) . '..,' if length($bits) > 7;
+die "invalid bit size ['$bits'] <-- [ valid : 224, 256, 384, 512 ]"
+    if not exists <chk-sum.bmw>->{$bits};
+
+<chk-sum.bmw>->{$bits} //= Digest::BMW->new($bits); # <-- ondemand initialization
+
+return <chk-sum.bmw>->{$bits}->clone;
+
+# ______________________________________________________________________________
+#\\MX77QEOMPW2FYJ64YEFIFJUZNE266U5QT6KH435IXRX2J553ZTADSTO7Q3HDMHPK2GSPBMDQWF344
+# \\ 5H6MKZOB7E5XDUMJR2XXM7WFAMSRP3GSAJHVFRFL37KT47ZRHCE2 \\// C25519-BASE-32 //
+#  \\// UR5L77YAWXWPJOAG4JVALCSKLE4GMYPOYBYLPTJBOL4OQ3PGGCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

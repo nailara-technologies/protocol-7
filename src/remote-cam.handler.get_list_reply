@@ -12,7 +12,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 my @file_list     = split( "\n", $reply->{'data'} );
-my $playlist_sha1 = <[digest.sha.1]>->( join( ' ', @file_list ) );
+my $playlist_sha1 = <[chk-sum.sha.1]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
@@ -35,7 +35,7 @@ warn "multiple url playlist entries currently not supported" if @file_list > 1;
 <[base.log]>->( 1, "[CAM_URL] " . <remote-cam.image_url> );
 
 # ______________________________________________________________________________
-#\\V7RJQP2EMZPVPUCUFYZEQFAQPQ77AJFEDE46XK3AQDQLP6PFEFQH33T4YBFB5SMA2GLZIVK2N27GI
-# \\ OVVKPNUAVWGJ4YQRQT7PJ7YVB463PSWXA72ZSLHRTSDS44PZAUIX \\// C25519-BASE-32 //
-#  \\// LVLRQ645QJL6K2YLA5UHHFSESXBG6NBFL2UDZMUI3ZLDPY342BY \\ CODE SIGNATURE \\
+#\\Q34ARTLDJ6Q3OE4OJ3I6T4DOEP4RV3ISUTAZJJXPMYMXP4BNZ3UUKXGLDE4AZS2M6XQKIRUHJKBLA
+# \\ K36GSC5SQCLIEPUIOWKJ6UNTZJLLUDZDA7MGQ2H7QHGYUMPMA4Q3 \\// C25519-BASE-32 //
+#  \\// 5FDV754MNYKR7XX42TYXQY6SV5OM2LXC2L5DBUIPNBPYMR7QMCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -12,8 +12,8 @@ my ($node_agent, $instance_id, $buffer_name,
 ## preventing duplicate entries ##   <-- usecase needs repair [ nroot, verb.=0 ]
 <p7-log.checksums>                                     //= {};
 my $node_checksums = <p7-log.checksums>->{$node_agent} //= {};
-$node_checksums->{$buffer_name}                         //= '';
-my $entry_checksum = <[digest.elf.BASE32]>->( $_[0]->{'args'} );
+$node_checksums->{$buffer_name}                        //= '';
+my $entry_checksum = <[chk-sum.elf.BASE32]>->( $_[0]->{'args'} );
 if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
     <[base.log]>->(
         2, "rejected duplicate '$buffer_name' entry from '$node_agent'.,"
@@ -41,7 +41,7 @@ $err_msg = 'numerical <log-level> expected'
 if ( defined $err_msg ) {
     my $node_name = <system.node.name>;
     $node_agent =~ s|^$node_name\.||;
-    <p7-log.disable_err_log_dump> //= 0; ## <-- suppress err log data on demand
+    <p7-log.disable_err_log_dump> //= 0;  ## <-- suppress err log data on demand
     <[base.log]>->( 0, "\<$instance_id> ['$node_agent'] $err_msg" );
     ## log offending line for debugging ###
     <[base.log]>->(
@@ -111,8 +111,9 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 # error case
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => 'nak', 'data' => $err_msg };
+
 # ______________________________________________________________________________
-#\\JKPXBQMBPALUX3VUBDYUOXZFILHAJFZE23263YETL6KHQRVFMZJ2XVK7BXQEGYH5BVFTM5O6E6OAO
-# \\ EEHAY44ZEXCQED6YNBGCOJKQ2MH2XDVUF733IAWEA7NFNNO2KLF3 \\// C25519-BASE-32 //
-#  \\// NMPPJDUOFBUOMZLDYF5AVVWTNCLTG6K7TMJHJMA57CDUDWC6UDQ \\ CODE SIGNATURE \\
+#\\VH3KPEGWDY7AUACIYQWFIBGOULYT7QM3IF5D6SUXMQDVCNYG3PSQB3DT7DWQPMNVBKSZCQPOH2HQI
+# \\ 3SZROKHKQXY7TNRTL3KLPN4QOWM6UW5JMXXSIBYJ2GOBGRS2TU5K \\// C25519-BASE-32 //
+#  \\// ARVCZ5NLNFTRRTRGQRLQ3CYCYSYIOMFIMTHOVRHISPI5O4KNYDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

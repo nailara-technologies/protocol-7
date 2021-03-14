@@ -16,13 +16,13 @@ access.cmd.usr.cube    = commands heart reload verify-instance * # <- [ LLL ]
 access.cmd.usr.mpv     = whoami
 access.cmd.usr.browser = whoami
 
-modules.load = auth net protocol io.ip io.unix plugin.auth digest universal
+modules.load = auth net protocol io.ip io.unix plugin.auth chk-sum universal
 [load_modules:<modules.load>]
 [init_modules]
 
 auth.supported_methods = unix
 [file.make_path:'/var/tmp/.7/UNIX',0775]
-unix.agent.path=[digest.elf.BASE32:"<system.agent.name>:<system.agent.subname>"]
+unix.agent.path=[chk-sum.elf.BASE32:"<system.agent.name>:<system.agent.subname>"]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.agent.path>",0777]
 
 [root.drop_privs:<system.privs.user>]

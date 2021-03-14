@@ -14,7 +14,7 @@ return { 'mode' => 'nak', 'data' => 'expected path to image file' }
 return { 'mode' => 'nak', 'data' => 'input file not found' }
     if !-f $input_file;
 
-my $image_sha1 = <[digest.sha.file_hex]>->($input_file);
+my $image_sha1 = <[chk-sum.sha.file_hex]>->($input_file);
 
 my $image  = Graphics::Magick->new;
 my $status = $image->Read($input_file);
@@ -24,7 +24,7 @@ $image->Trim() if $color_str eq 'auto';
 
 $color_str = <[colortoalpha.guess_bg_color]>->($image) if $color_str eq 'auto';
 
-my $color_md5 = <[digest.md5.b64u]>->($color_str);
+my $color_md5 = <[chk-sum.md5.b64u]>->($color_str);
 
 my $output_file
     = join( '/', <colortoalpha.cache_dir>, $image_sha1 . $color_md5 . '.png' );
@@ -46,7 +46,7 @@ return { 'mode' => 'nak', 'data' => "$status" } if "$status";
 return { 'mode' => 'ack', 'data' => $output_file }
 
 # ______________________________________________________________________________
-#\\2YNHXYT7COXBYKWJFDYB2MNQ5IAG2LNVVQ4SK5DHSTZFOLCZAE7VPXXG62XBCWTWZZAG5TU7BHM4W
-# \\ PYMSTSLPVCN6A4NR7VHQJANQMM3H2OTY35J6KITFHYI2CP2TUPXX \\// C25519-BASE-32 //
-#  \\// WIN6VS4454HWRUDH2ODLFXGAWENNI3SMRU6WUJMNKJBEHVWCYAA \\ CODE SIGNATURE \\
+#\\GWHQMSIYTEGGCDQ2AYX2L47AQIXN4KGBIM5N4US6JKO6F6G4K5ZHFBROTAUXQJFXKQKXEKJIGX4NQ
+# \\ X5URTQJKLJNY7BD3IHOOJB5V5RNE4K4QLCEKJMY2KI4SHPCAEUPT \\// C25519-BASE-32 //
+#  \\// IABJTSLUNNQD5OXHJC3FXCWDEFWXJBAB3QY5GNTHRIMGIJ6EIBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
