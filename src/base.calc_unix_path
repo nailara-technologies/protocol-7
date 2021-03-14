@@ -6,6 +6,9 @@
 die 'expected ip address and port parameters'
     if not defined $ip_addr or not defined $ip_port;
 
+<[base.log]>->( 0, "<< 'chk-sum.elf' module not loaded ., >>" ) and return
+    if not defined $code{'chk-sum.elf.BASE32.harmony'};
+
 my $unix_path = <[chk-sum.elf.BASE32.harmony]>->("TCP[$ip_addr:$ip_port]");
 
 <[base.log]>->( 2, "calculated unix path for $ip_addr:$ip_port = $unix_path" );
@@ -13,7 +16,7 @@ my $unix_path = <[chk-sum.elf.BASE32.harmony]>->("TCP[$ip_addr:$ip_port]");
 return $unix_path;
 
 # ______________________________________________________________________________
-#\\4AS4KMPC5QM5RXUU3LDCKKQKECJIYUPKMVOYM4SSWOKMZYYCG72L64ZJKIMQ3NF54F5LKW3SZYWVM
-# \\ HPFSB3TOGYZ2FCXWLHESSF3C5UGY62TE7PF6JOE3IIZ7M46WTUWF \\// C25519-BASE-32 //
-#  \\// WUO6AUFO6ILVVCELYBRTD56BYSVUNQURXQGCDWPNGB4EBQ63UBI \\ CODE SIGNATURE \\
+#\\ILW4XJ6ZNS4TXK5JJMB73TIMHK2LYREG44FY2NLBAZ7KPJLAL5Y7TRU4RWGOQEHWPF3JHNFGY5JBW
+# \\ LDX3T23B3DNO4R5ZNRCDXX5TKQR6HVLO624525QRHHV6XP4O7RL5 \\// C25519-BASE-32 //
+#  \\// CRYF3GATXC5RK5CUZPL6XMFEVXFIUB35K46DL3YRF5SCZSGHADI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
