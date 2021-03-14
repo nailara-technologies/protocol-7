@@ -3,7 +3,8 @@
 # name  = base.session.send_init_reports
 
 <system.timer>->{'send_reports'}->cancel
-    if <system.timer>->{'send_reports'}->is_active;
+    if defined <system.timer>->{'send_reports'}
+    and <system.timer>->{'send_reports'}->is_active;
 delete <system.timer>->{'send_reports'};
 
 return 0
@@ -36,7 +37,7 @@ foreach my $item (@pending_reports) {
 return $report_count;
 
 # ______________________________________________________________________________
-#\\LFTTS35KHHKTG6JV2SCQ7WH5CUE2E6KVEXLWLA65VLAKA7QOJAPIYZ5V2BFS5ZCPVTP64RXIAVGQY
-# \\ QU66H2RMUDGHUJH5IYV3F5RJMZQ7FLYOE5QFGWYAVZQMPLEZRKE2 \\// C25519-BASE-32 //
-#  \\// ZDRYKF3ZNCHBBQWVWDNR7XWXKR76R6B7BVEEMMC2HFH32QFEMDI \\ CODE SIGNATURE \\
+#\\REN62A7TCTUPPGTOTSZJSBC2PCGUEQDVEJCTRAA6GR47LMGHW3TM2CE4XRPLTKPHOPTBTKJJ5SXEY
+# \\ 5JZ6JKIQA5ZQOAXLQ5UVZ5TVLNEIFFRDJCPZ2X45K57VTI3BE4DE \\// C25519-BASE-32 //
+#  \\// 2E2ZNTGOTAATPXUVDRSG2KIPHGU6B5YWAVH4MH6PI5UMV67IKCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
