@@ -110,8 +110,10 @@ $data{'list'} //= {};
     'descr' => 'available log / data buffers'
 };
 
-# 'verify-instance' command not required in cube type agents [for now]
-if ( defined <system.agent.type> and <system.agent.type> eq 'cube' ) {
+# 'verify-instance' command not required in local 'cube' agent
+if (    defined <system.agent.type>
+    and <system.agent.type> eq 'cube'
+    and <system.agent.name> eq 'cube' ) {
     <[base.disable_command]>->('verify-instance');
     <agents.virtual> //= {};
     my $key_ref = \$data{'agents'}{'virtual'};
@@ -208,7 +210,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\P42ANDFZJNTLR3KMFSCAQ7RYA73SVM5ZBTF4IE7NEY6YSAOKRESU26BY32U77ANBXIFJ57DNCI22A
-# \\ DOCC2UUJKL2EAVURA2BEP2BDIDQUQLDN5SQ77BLZEPDZPZHG4NHW \\// C25519-BASE-32 //
-#  \\// D7QG6FWGKWWLDY4HL3JDHOY7CU7LLOAMRPTZESTSA7XK2TSAMBY \\ CODE SIGNATURE \\
+#\\PW455G6X6VFGKB637ASPXHTAUQQ7AS34QXVJDB2U37MRCS4WTYLIFFZCNMCYBIDLYRHTINYZ4PAHU
+# \\ 36N4ILJIQQYN7LECWI2FN4SHTALLPJJIWS24YDLULDACJ7QYZJCM \\// C25519-BASE-32 //
+#  \\// U4FHTDXRZGUVZ2THPSMMYDB3UV2VO2RPJTY4MIHQ3QV7KOSIOBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
