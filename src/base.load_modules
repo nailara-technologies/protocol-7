@@ -2,16 +2,16 @@
 
 # name    = base.load_modules
 # descr   = load a given set of modules
-# comment = todo: clean reload
 
-my @modules_to_load = split( / /, $_[0] );
+my @modules_to_load = split( m| +|, join( ' ', @_ ) );
 
 if ( not scalar @modules_to_load ) {
-    <[base.log]>->( 0, 'base.load_modules: no source names specified' );
+    <[base.log]>->( 0, 'base.load_modules: no p7 module names specified' );
     return 1;
 }
 
 <[base.register_src_deps]>->(@modules_to_load);
+<[base.register_p7_mod_load]>->(@modules_to_load);
 
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
 
@@ -22,7 +22,7 @@ if ( not defined $subs_ok or !$subs_ok ) {
 return $subs_failed;
 
 # ______________________________________________________________________________
-#\\QXWQFHXPIKCTCXKDGFOSUWBVPOIYMDBX2KN7H3PL5LLOBHWKEVLAHZLAPHGHLCMW2BIG375SO7RRE
-# \\ BYRX4DIKHYOIWY5DJKB4RIYQ5QXFBZGHEKTA4HIA3MLQ5Q26YY2K \\// C25519-BASE-32 //
-#  \\// 5LJCD5S7FTNBWU5LBFIGJO5NVQHTGVVICZTRU5RWCZIPG3DSIDI \\ CODE SIGNATURE \\
+#\\BJYZHWMZVYZTCMDR4AUGMO7UN2KMQDDNY57Z7W7DW5IQBSEXAKSMOITHBONFSCOE3U7Q2QTGZ2DB4
+# \\ 6TYSYFMESE44646YXVSCNXXA4AYUPQ5JLS5TMOJXE5UR22435M32 \\// C25519-BASE-32 //
+#  \\// AABFC62R2SDLMSJS7MHUPHQKWDQPI3M5D2KY2Z6JDICJE27FSDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

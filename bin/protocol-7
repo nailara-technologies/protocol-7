@@ -334,8 +334,8 @@ sub prepare_subs {
                 say ": $input_num$seperator_str$calc_str";
 
             } elsif ( $visualize_harmony and $visualize_disharmony ) {
-                say
-                    ": $input_num$seperator_str$ANSI{'UNKNOWN'}$calc_str$ANSI{'reset'}";
+                say ": $input_num$seperator_str$ANSI{'UNKNOWN'}"
+                    . "$calc_str$ANSI{'reset'}";
             }
         }
 
@@ -641,8 +641,9 @@ sub prepare_subs {
                     and
                     eval { undef &{ delete $code{$ARG} } };   # <--improve [LLL]
 
-#           #[ debug ]
-#           and $code{$ARG} = eval "sub { print STDERR \"\n MISSING '$ARG'\n\n\" }";
+                #           #[ debug ]
+                #           and $code{$ARG} = eval "sub { print STDERR \"\n"
+                #                                 ." MISSING '$ARG'\n\n\" }";
 
                 push( @agent_commands, $1 ) if $ARG =~ m|\.cmd\.(.+)$|;
                 --$purge_count              if $EVAL_ERROR;
@@ -696,12 +697,28 @@ sub prepare_subs {
     };
 
     $code{'base.code.sort_filter'} = sub {
+        my @filtered_subroutines;
         my @subroutine_names = @_;
         my %subroutines      = map { $ARG => 0 } @subroutine_names;
         my $occurrence       = 0;
 
-        #        map { say $ARG } @subroutine_names;
-        return @subroutine_names;
+        ## unique filter ##
+        my $subs_skipped = 0;
+        my %sub_is_present;
+        map {
+            if ( not exists $sub_is_present{$ARG} ) {
+                push( @filtered_subroutines, $ARG ) and ++$sub_is_present{$ARG};
+            } else {
+                $subs_skipped++;
+            }
+        } @subroutine_names;
+
+        $code{'log.error'}->(": :. skipped identical .: $subs_skipped ::")
+            if $subs_skipped;
+
+        ## .., ## [LLL] implement code dependency tree ..,
+
+        return @filtered_subroutines;
     };
 
     $code{'base.httpc.remote_file'} = sub {
@@ -716,8 +733,8 @@ sub prepare_subs {
         my $http_retries = $data{'system'}{'http_src_retries'} // 4;
         eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
         $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
-        warn
-            "<< 'HTTP::Tiny' pmod. not found [ yet in cubelist ] [ $EVAL_ERROR ] >>"
+        warn "<< 'HTTP::Tiny' pmod. not found"
+            . " [ yet in cubelist ] [ $EVAL_ERROR ] >>"
             and return undef
             if $EVAL_ERROR;
         $data{'system'}{'http_reqs'}++;
@@ -860,7 +877,12 @@ sub prepare_subs {
 
     $code{'base.load_code'} = sub {
         my ( $file, $code_name );
-        my @module_names = sort { length $a <=> length $b } sort @_;
+
+        my $base = 0;    ## loading 'base' first ##
+        map { $base = 1 if $ARG eq 'base' } @_;
+        my @module_names = sort { length $a <=> length $b } reverse sort
+            grep { !m|^base$| } @_;
+        unshift( @module_names, 'base' ) if $base;
 
         $data{'callbacks'}{'end_code'} //= [];
 
@@ -928,10 +950,17 @@ sub prepare_subs {
             $code{'log.debug'}->(": :. $file_cnt files. [src]");
         }
         $OUTPUT_AUTOFLUSH = 1;
+
+        my %module_code_map;
         my @compile_order = ();
+
         while ( $code_name = shift @module_names ) {
+
             my $src_str = $code_name =~ m|^(.+/)?plugin.| ? '' : ' source';
             $code{'log.noerr'}->(": loading$src_str '$code_name'");
+
+            $data{'base'}{'p7_mod'}{'errors'}->{$code_name} = 0;
+            $data{'base'}{'p7_mod'}{'loaded'}->{$code_name} = 0;
 
             if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
                 my $s = $purge_count == 1 ? '' : 's';
@@ -1014,11 +1043,15 @@ sub prepare_subs {
                         and $data{'system'}{'verbosity'}{'console'} > 3 ) {
                         $code{'log.error'}->( "\n\n .: $file_name :.\n\n"
                                 . $data{'code'}{$file_name}{'source'} );
-
                         $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
                             if !length($src_str);    # <- is plugin..
                     }
+
                     push( @compile_order, $file_name );
+
+                    # register for error \ success tracking #
+                    $module_code_map{$file_name} = $code_name;
+
                 } elsif ( $file_name =~ m|\.orig$| ) {
                     $code{'log.error'}->("[invalid\\remove.,] $file_name");
                 }
@@ -1058,9 +1091,20 @@ sub prepare_subs {
             and ref( $data{'disabled_commands'} ) eq 'ARRAY';
 
         ## sort [ and filter ] in code occurence order ###
-        # @compile_order = $code{'base.code.sort_filter'}->(@compile_order);
+        @compile_order = $code{'base.code.sort_filter'}->(@compile_order);
         ##
+
         foreach my $sub_name (@compile_order) {
+            my $module_name   = $module_code_map{$sub_name};
+            my $loading_error = 0;
+            my $source_len = length( $data{'code'}{$sub_name}{'source'} ) // 0;
+
+            if ( !$source_len ) {  ##  <--  recompiling twice case, now filtered
+                $code{'log.error'}->(":. << empty subroutine [ $sub_name ] >>");
+                $loading_error = 1;
+            }
+
+            $data{'base'}{'p7_mod'}{'sbytes'}->{$module_name} = $source_len;
 
             local $SIG{'__WARN__'} = 'IGNORE';
             local $SIG{'__DIE__'}  = 'IGNORE';
@@ -1142,21 +1186,23 @@ sub prepare_subs {
                 my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
                 $sub_code = join ' ',
                     'sub {', $line_comment,
-                    ( $data{'code'}{$sub_name}{'source'} // '' ), '}';
+                    ( $data{'code'}{$sub_name}{'source'} ), '}';
             }
 
             ##                      ###
             ## compiling subroutine ###
             ##                      ###
 
+            $src_bytes_total += $source_len;
+
             $code{'base.stderr_redir'}->( \my $s_comp_stderr );
 
-            $src_bytes_total += length($sub_code);
             my $compilation_success
                 = ( $code{$sub_name} = eval($sub_code)
                     and ref( $code{$sub_name} ) eq 'CODE' )
                 ? 1
                 : 0;
+
             my $err_str = $EVAL_ERROR;
             state $t_wrap //=
                 ( defined &wrap )
@@ -1169,7 +1215,7 @@ sub prepare_subs {
                 =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|sg
                 if defined $s_comp_stderr;
             ( my $lpw )
-                = ( <system.start.log_prefix_width>
+                = ( $data{'system'}{'start'}{'log_prefix_width'}
                     // $code{'base.log_prefix_width'}->() || 24 );
             my $width = 76 - $lpw;
             local $Text::Wrap::columns   = $width;
@@ -1204,7 +1250,12 @@ sub prepare_subs {
 
             $code{'base.stderr_restore'}->();
 
+            $compilation_success = 0 if $source_len == 0;
+
             if ($compilation_success) {
+
+                $data{'base'}{'p7_mod'}{'loaded'}->{$module_name} = 1;
+
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'}
                     = $warn_count ? 'warned' : 'no-error';
@@ -1214,14 +1265,17 @@ sub prepare_subs {
                     push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
                 }
             } else {
+
+                $data{'base'}{'p7_mod'}{'errors'}->{$module_name}++;
+
                 $code{$sub_name} = sub {
                     if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) {
-                        $code{'log.error'}->(
-                            "<< ! >> called broken subroutine :. '$sub_name'");
+                        $code{'log.error'}
+                            ->("<<< called broken routine :: $sub_name >>>");
                         return undef;
                     } else {
-                        $code{'log.error'}->(
-                            "<< ! >> broken command called .., ['$sub_name']");
+                        $code{'log.error'}
+                            ->("<<< broken command called :: $sub_name >>>");
                         return {
                             'mode' => 'nak',
                             'data' => "command '$sub_name' is broken.,"
@@ -1653,7 +1707,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\FZL23I5S4WNVSF4GIDBOAQF5KVR66ZSWA7PHDUXCVJJFXWWXQVRGHOPV6WOWYU5QS2QK3JTAESG4K
-# \\ A6WTC2AH6ZZL4DVCRG4OGMQTA3UKBOOZFCKNFDI2LSFACIEWTRWF \\// C25519-BASE-32 //
-#  \\// HDTJY5ZFIADWC5SBPYQROV3Q2ABOI62ICLNXPVCNUOSENVSQECA \\ CODE SIGNATURE \\
+#\\T2BQ7EP7WVKXBZB5NMGDOVK4RPPQXMJZB2U3USSHXUHCWRVRIYM2NXKVGUO7YEL5X7R6ADW7QTS4O
+# \\ LREOPPPQXQOEXWXKQOZZ7EDDW6KR6EJP44KHHBO3VGP6NPB4D6OS \\// C25519-BASE-32 //
+#  \\// 4TTSKWWGPF3RXJQGECDKOTQHFMDAFDDAEJYHKQBSVJYXHNT2OCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
