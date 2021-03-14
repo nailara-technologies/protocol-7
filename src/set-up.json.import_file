@@ -1,37 +1,39 @@
 # >:]
 
 # name = set-up.json.import_file
+# note = logging needs clean-up .,
 
 if ( <system.agent.name> eq '<stdin>' ) {
     <set-up.json.import_skip_warned> //= 0;
-    <[base.log]>->( 1, "skipping json import for <stdin>-mode!" )
+    <[base.log]>->( 1, "skipping json import for <stdin>-mode." )
         if !<set-up.json.import_skip_warned>;
     <set-up.json.import_skip_warned> = 1;
     return;
 }
 
 my $filename      = shift;
-my $config_type   = shift;   # <- optional (autodetect from filename if omitted)
+my $config_type   = shift; # <-- optional, auto-detect from filename if omitted.
 my $absolute_path = shift // 0;
 my $import_dir    = <set-up.json.import_dir>;
 my $agent_name    = <system.agent.name>;
 my $rules_subname = "$agent_name.set-up.import_rules";
 
-die "invalid characters in set-up filename" if $filename =~ /\s/;
+die "invalid characters in set-up filename" if $filename =~ m|\s|;
 
 die "json file import is disabled in agent setup"
     if not exists <set-up.json.import_allowed>
     or !<set-up.json.import_allowed>;
 
-die "no import rules defined for agent '$agent_name'!"
-    if not exists $code{$rules_subname};
+die "no import rules defined for agent '$agent_name'."
+    if not defined $code{$rules_subname};
+
 my $import_rules = $code{$rules_subname}->();
 
 die "set-up filename parameter expected"
     if not defined $filename or !length($filename);
 
 if ($absolute_path) {
-    die "expected abolute path" if $filename !~ /^\//;
+    die "expected abolute path" if $filename !~ m|^/|;
     if ( $filename =~ s|^(\/(.+\/)?)([^\/]+)$|$3| ) {
         ( $import_dir = $1 ) =~ s|\/\/|\/|g;
         ( $import_dir = $1 ) =~ s|\/$|| if length($import_dir) > 1;
@@ -40,13 +42,13 @@ if ($absolute_path) {
     die "invalid set-up filename [ relative paths only ]";
 }
 $config_type = $1
-    if not defined $config_type and $filename =~ /^[^\.]+\.([^\.]+)\.json$/;
+    if not defined $config_type and $filename =~ m|^[^\.]+\.([^\.]+)\.json$|;
 warn "[!] unable to detect set-up type from filename,"
     . " trying type 'set-up'\n"
     if not defined $config_type;
 $config_type //= 'set-up';
 
-die "no import rules defined for config type '$config_type'"
+die "<< no import rules for config type '$config_type' >>"
     if not exists $import_rules->{'keys'}->{$config_type};
 
 my $import_key_rules = $import_rules->{'keys'}->{$config_type};
@@ -130,7 +132,7 @@ foreach my $m_key (@merge_keys) {    # LLL: implement for key depth > 1
 #}
 
 # ______________________________________________________________________________
-#\\CWCV5JIQJECJKMZ5P7LBYLLYXW5LXWNRDJMAI4NFHBLYD5RMOYQYESBNTG6OZXL6D4F6FQOOUWQEC
-# \\ 4OVACOQ3L2TTITUVROV576LURMB7FOGJQEJR6GYK3XGV2RWG3LN2 \\// C25519-BASE-32 //
-#  \\// 7VK5AR5WS3XVBSTJS2ZRBG6VDYWTBAGAU7UPDQAIA7UVXVMHOBY \\ CODE SIGNATURE \\
+#\\2RXUEGYPNKXMJZSIEGOWRLGBAXVMHRG2KGM46JQEBXQC4LA6KPPAGHNXNGKLELT3BIUGCKWUH4CKG
+# \\ HHGIYCIWHA3C4L6FBRF3NCLKZDJANKNXLOO4AAFGNHAMINCOLSGI \\// C25519-BASE-32 //
+#  \\// JYTTJKHENBS3TOZKBY2GEQ2FOCQUKK37VHRXHFSPMRUEPUSPMDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

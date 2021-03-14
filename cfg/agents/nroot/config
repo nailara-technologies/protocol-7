@@ -5,8 +5,7 @@
 system.verbosity.agent_buffer = 1
 [load_config_file:'x11-vars']
 
-modules.load = nroot jobqueue net protocol io.ip auth.agent \
-               set-up.json chk-sum.bmw ## debug
+modules.load = nroot jobqueue net protocol io.ip auth.agent chk-sum.bmw ## debug
 
 load.start_setup = 'basic'   #    <--   [ ./cfg/agents/nroot/start-setup.basic ]
 
@@ -30,9 +29,6 @@ nroot.cfg.p7c_bin_path      = /usr/local/bin/p7c
   # nroot.cfg.p7c_symlink_path  = '/usr/local/bin/p7c'
 
 ##
-
-[load_modules:'set-up.json nroot.set-up']
-[init_modules]
 
 # create protocol-7 user if required.,
 [root.check_system_user:<system.privs.user>]
