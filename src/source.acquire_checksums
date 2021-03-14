@@ -14,7 +14,7 @@ my $start_time = <[base.time]>->(5);
 foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {  # <-- recurs.!
     ( my $file_name = $file_path ) =~ s|^.*/||;
     <source.checksums>->{$path_name}->{$file_name}
-        = <[digest.bmw.filesum]>->( $bit_size, $file_path );
+        = <[chk-sum.bmw.filesum]>->( $bit_size, $file_path );
     $file_count++;
 }
 
@@ -29,7 +29,7 @@ foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {  # <-- recurs.!
 return <source.checksums>->{$path_name};
 
 # ______________________________________________________________________________
-#\\XKNJ65FI5CB36PVAJLR52UNQCBDRJII6LYW2CIDRMAJ6PRX4HOBHJGFTB4Q2BBKUMXNKQPMH3D5PU
-# \\ A6KYJ7T75W2Z3E2BSYD2RUBGNCVNHUG6T52ONTXNSCEHHTFOEOVT \\// C25519-BASE-32 //
-#  \\// XIBYJLJZMZTOAETLPKKTKSGY45PQ6MJ2LKFFSL7B5EVFKHFXYBI \\ CODE SIGNATURE \\
+#\\RORFD2SEDF3JLFV6HVSU7MV2MFTSNG4A7OOFLNN5VJ3OULOT43CXKMNMXOGBSOPZDEWCSVJYE4W5E
+# \\ GPR4UII7V7FI42MUUSGL7RIC3MNMSDGIT5Z5JYA5NVCZ3BEEIKON \\// C25519-BASE-32 //
+#  \\// YSQO46VHNL4GIQVUNZNKUFQVSAS345EYMWB3774XFZ5RZZRV2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

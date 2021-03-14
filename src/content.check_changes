@@ -5,7 +5,7 @@
 my $file_name = shift;
 return if !-f $file_name;
 
-my $playlist_sha1 = <[digest.sha.file_hex]>->($file_name);
+my $playlist_sha1 = <[chk-sum.sha.file_hex]>->($file_name);
 
 <content.content_changed>++
     if defined <content.sha1> and $playlist_sha1 ne <content.sha1>;
@@ -13,7 +13,7 @@ my $playlist_sha1 = <[digest.sha.file_hex]>->($file_name);
 <content.sha1> = $playlist_sha1;
 
 # ______________________________________________________________________________
-#\\NBD326SS22ENZ4AL6ULTMN3YHG5BTN55XL7Y7EUYHLBY2MEOLK6E64UQ7TI7KW4GKF2TVI2RSX4G2
-# \\ EYZSAWQPANCVUP4SBUHNTQ2XAH5KFBKSUOGCE5RFJSBDHTYLNSK6 \\// C25519-BASE-32 //
-#  \\// NI2ESYOWUBBC2DSUPR4YWPYX7SFR6KFNC7BHNLLV2T7MCCOAKBQ \\ CODE SIGNATURE \\
+#\\ORISAZCPV52EHD4KN5QD7OFI5DBRJ2AXOY3CYGH5D35PVO7Z4N4BJ7TMUDKI6H4E7MPQXK3IH7JMO
+# \\ 5QIUPKM4HTSZFTHOD47EHDLAK6HG2UGX6ALS4PAADHXKUXHY46XD \\// C25519-BASE-32 //
+#  \\// UWTOH3KPMMD3FJ5PV4YKGLLFAHVIJNAEYPTSAWUHWP6LAPGDSAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

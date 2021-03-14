@@ -25,8 +25,8 @@ foreach my $playlist_entry ( @{ <universal.playlist.agent>->{'mpv'} } ) {
 
 foreach my $frame_id ( keys %{<universal.frames_to_go>} ) {
     my $vid_file_path = <universal.frames_to_go>->{$frame_id};
-    my $path_digest   = <[digest.elf]>->($vid_file_path);
-    my $frame_path    = "$video_frame_dir/$path_digest.png";
+    my $path_chk_sum  = <[chk-sum.elf]>->($vid_file_path);
+    my $frame_path    = "$video_frame_dir/$path_chk_sum.png";
     <universal.video_frames>->{$vid_file_path} = $frame_path;
     my $pos = <universal.sequence.frame_pos>->{$frame_id};
     <universal.sequence.frame_path>->{$pos} = $frame_path;
@@ -54,7 +54,7 @@ if ( !$count ) {    # frames already complete
 }
 
 # ______________________________________________________________________________
-#\\5LQJCCS5FLRTQC76HUE6M23LDMYKN2ONYKOZHPBYR5SSPDWPHLGXLX3AZLCPJEW4UPEL4HZE6QZZO
-# \\ S66ZQN6JYGZXLUT4JAWQLDQT7SM3LZSFKE6JZWY6DCNMCF5CVJY3 \\// C25519-BASE-32 //
-#  \\// RZMP3NWOC5PLY62LH4XLSUPEJVURNW44NJLWDLPC2SHRD2LHQBY \\ CODE SIGNATURE \\
+#\\E2IMPXXX32Y6CFHBYRBK3E7L7UTRNXWTC7TJ2X4UDY3W5X25X4SGXSYXFJHUJ6VJQ5LY65NVGPHXM
+# \\ MDQU64NBBLX5C3Q7UXV4BZO6UJREUTUNM2LO4ASLUSTJKF55GOFW \\// C25519-BASE-32 //
+#  \\// AS5ACMIALOP5WT66VHB3GZUVXYYVHHTKA6TPRKIDJWQGDDZTIBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
