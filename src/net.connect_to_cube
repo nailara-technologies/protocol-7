@@ -1,57 +1,57 @@
 # >:]
 
-# name = net.connect_to_core
+# name = net.connect_to_cube
 
 my @connection_types = @_;
 @connection_types = ('unix') if defined <unix.path>; # overriding [in -sic mode]
 
-my $core_sock;
-my $core_addr     = <protocol-7.network.internal.addr>;
-my $core_port     = <protocol-7.network.internal.port>;
+my $cube_sock;
+my $cube_addr     = <protocol-7.network.internal.addr>;
+my $cube_port     = <protocol-7.network.internal.port>;
 my $unix_path     = defined <unix.path> ? <unix.path> : undef;
 my $agent_name    = <system.agent.name>;
 my $agent_subname = <system.agent.subname>;
 
 foreach my $c_type (@connection_types) {
-    <[base.log]>->( 1, "initiating core connection [$c_type].," );
+    <[base.log]>->( 1, "initiating cube connection [$c_type].," );
     if ( $c_type eq 'unix' ) {
         if ( not defined $unix_path ) {
-            if ( not defined $core_addr and defined $core_port ) {
+            if ( not defined $cube_addr and defined $cube_port ) {
                 <[base.log]>->(
                     0,
-                    'connect_to_core[unix]: neither unix.path nor '
+                    'connect_to_cube[unix]: neither unix.path nor '
                         . 'net.local.{addr,port} are defined, aborting.,'
                 );
                 exit(2);
             } else {
                 <unix.path> = $unix_path
                     = '/var/tmp/.7/UNIX/'
-                    . <[base.calc_unix_path]>->( $core_addr, $core_port );
+                    . <[base.calc_unix_path]>->( $cube_addr, $cube_port );
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
             <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.," );
             next;
         }
-        $core_sock = <[base.open]>->( 'unix', 'output', $unix_path );
-        if (    defined $core_sock
-            and -S $core_sock
-            and $core_sock->connected ) {
-            $core_sock = <[net.unix.authme]>->( $core_sock, $agent_name );
+        $cube_sock = <[base.open]>->( 'unix', 'output', $unix_path );
+        if (    defined $cube_sock
+            and -S $cube_sock
+            and $cube_sock->connected ) {
+            $cube_sock = <[net.unix.authme]>->( $cube_sock, $agent_name );
         } else {
-            $core_sock = undef;
+            $cube_sock = undef;
         }
     } elsif ( $c_type eq 'ip.tcp' ) {
-        $core_sock
-            = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
-        if (    defined $core_sock
-            and -S $core_sock
-            and $core_sock->connected ) {
+        $cube_sock
+            = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
+        if (    defined $cube_sock
+            and -S $cube_sock
+            and $cube_sock->connected ) {
             my $auth_name = $agent_name;
             $auth_name .= "[$agent_subname]" if defined $agent_subname;
-            $core_sock = <[auth.agent.client]>->( $core_sock, $auth_name );
+            $cube_sock = <[auth.agent.client]>->( $cube_sock, $auth_name );
         } else {
-            $core_sock = undef;
+            $cube_sock = undef;
         }
     } elsif ( $c_type eq 'pipe' ) {
         die "<<< connection type 'pipe' not implemented yet >>>";
@@ -59,8 +59,8 @@ foreach my $c_type (@connection_types) {
         die "[!] unknown connection type '$c_type' requested [!]";
     }
 
-    if ( defined $core_sock ) {
-        <[base.session.init]>->( $core_sock, qw| protocol-7 client core | );
+    if ( defined $cube_sock ) {
+        <[base.session.init]>->( $cube_sock, qw| protocol-7 client cube | );
 
         <system.timer>->{'send_reports'} = <[event.add_timer]>->(
             {   'repeat'  => 0,
@@ -68,19 +68,19 @@ foreach my $c_type (@connection_types) {
                 'handler' => 'base.session.send_init_reports'
             }
         );
-        return $core_sock;
+        return $cube_sock;
     }
 }
 
-if ( not defined $core_sock ) {
+if ( not defined $cube_sock ) {
     <[base.log]>->(
-        0, "<!> unable to connect to local core, aborting agent startup <!>"
+        0, "<!> unable to connect to local cube, aborting agent startup <!>"
     );
     exit(1);
 }
 
 # ______________________________________________________________________________
-#\\4EC6MTRAI6HK2CWHMZR3D5XVOACFBFBYXGAEDLRGU7MFQDVWCQYRSBDITWQPNXRFNG3N34T4EZQLW
-# \\ LSU73X4DINIGGUKSG5UOGWEV5HKYUUUSHWOQFLRM6ZEB5U2QPKJR \\// C25519-BASE-32 //
-#  \\// HN22BKA3OHCFHF5ADA3XBSZAJQRRKVWORODFVNDKS24IEUSHYCI \\ CODE SIGNATURE \\
+#\\5XWHLEGA6FHFGZCGON2ELAHCYLCB6AQ4XWBF3VC35IIU4R2R2KFYSY7ROBUQM6BT2DMEHPXXMUNEI
+# \\ ISNMWZZHXQDP37T7SQS6Z6TVAFDL6L66WN2CI7RPWAGG7ZLM6W26 \\// C25519-BASE-32 //
+#  \\// 5GUKT6S7IV4XMCOH5WD5AEW6XHHYXASZFIVKRXETQDJNJQXP6BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

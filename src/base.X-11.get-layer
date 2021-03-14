@@ -6,7 +6,7 @@ return
     if defined <x11.composition.layer> and <x11.composition.layer> =~ m|^\d+$|;
 undef <x11.composition.layer> if defined <x11.composition.layer>;
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 my $agent_name
     = ( defined <system.agent.mode>
@@ -19,13 +19,13 @@ my $name_str = defined $subname ? "$agent_name\[$subname]" : $agent_name;
 <[base.log]>->( 1, "requesting $name_str layer position" );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)composition.get-layer $name_str\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)composition.get-layer $name_str\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -38,7 +38,7 @@ while ( !$matched_reply ) {
 ) if defined <x11.composition.layer>;
 
 # ______________________________________________________________________________
-#\\OKRNDH3DHJX2Y4BQVT33J2FZZ4ZFZJFTUW7LWRMMU7L6PH3GMOJJTTH47NB7BFWA2GGLSBARRJW7W
-# \\ GT7MHEBV5WBJ7LLHQQT7OFFISTD4XW4OBMKQNO4CVQMSYZAHFSDI \\// C25519-BASE-32 //
-#  \\// WS5536YUL4HIV6B7OEP66JNBZXTLZQKAYSVSCTTM74H6PMCAEBI \\ CODE SIGNATURE \\
+#\\ZZFFKV4K56FYBXPXQCQHDUCH6TDIBFLBWSH7PPH24M6HYISTGBWTYCKTWTTT6FRYXWWKXV25M3XF6
+# \\ L4RNERCM6KAYDFXMX5RSPMZPHYCNDFIK2MKCSKSX27WGP4YX54YC \\// C25519-BASE-32 //
+#  \\// KWMBYDPYWHUU2UIWHMOG3KMEH2W3GKVMZPWD2YRQQMGIHHVRYCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

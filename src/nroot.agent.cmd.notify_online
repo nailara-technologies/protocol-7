@@ -49,12 +49,12 @@ if (    not defined <[agent.get_id]>->($query_param)
 }
 
 if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
-    my $core_sid = <nroot.agent.instance>->{$id}->{'core_sid'};
+    my $cube_sid = <nroot.agent.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <nroot.agent.instance>->{$id}->{'process'}->{'id'};
     if ( defined <nroot.agent.instance>->{$id} ) {
         return {
             'mode' => 'ack',
-            'data' => "agent instance '$id' already online., [$core_sid]"
+            'data' => "agent instance '$id' already online., [$cube_sid]"
             }
             if <nroot.agent.instance>->{$id}->{'status'} eq 'online';
         return {
@@ -67,7 +67,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
 }
 
 foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [ +subname ]
-    my $core_sid = <nroot.agent.instance>->{$id}->{'core_sid'};
+    my $cube_sid = <nroot.agent.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <nroot.agent.instance>->{$id}->{'process'}->{'id'};
     if (<nroot.agent.instance>->{$id}->{'agent_name'} eq $query_param
         and (  not defined $agent_subname
@@ -76,9 +76,9 @@ foreach my $id ( keys %{<nroot.agent.instance>} ) {    # agent name [ +subname ]
     ) {
         return {
             'mode' => 'ack',
-            'data' => "agent '$query_copy' already online., [$core_sid]"
+            'data' => "agent '$query_copy' already online., [$cube_sid]"
             }
-            if defined $core_sid
+            if defined $cube_sid
             and <nroot.agent.instance>->{$id}->{'status'} eq 'online';
         return {
             'mode' => 'ack',
@@ -96,7 +96,7 @@ push( @{ <nroot.agent.notify_online>->{$query_copy} }, $reply_id );
 return { 'mode' => 'deferred' }
 
 # ______________________________________________________________________________
-#\\WODWBC7724LZK6R2GHBFWIXBSJBGXTEJHIL3UXEODRTNCW6MG5EB5Z63YZDRTBV4KQRSOA3MXSGRI
-# \\ EBJ67PDIALSNSQK4ILHKCFAINCVSRT4AQ5JG742HCJFQ4MYCOWE2 \\// C25519-BASE-32 //
-#  \\// DZDWUB76QNK6VDOJYAFT32EDIAF2X6VDBIBBUUIQ6EQ5OVTPIBY \\ CODE SIGNATURE \\
+#\\SS22TSIROF2P65H2W7AHTBDBB2N6SUJJ22WEPTEP7PCENBAGROQ3HMDZLFHNIECEDCZZP55KQ5JCE
+# \\ 7N2MMK6HLASE6DZJW4L7PIFFZYVGTV3Z3VC6YLBYSNV2PZ4BY7OR \\// C25519-BASE-32 //
+#  \\// WP2WEI5OAQ2UFGRV34C5MCIJTP23ILM7PWOGR7MBUMYUONQKKCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -15,14 +15,14 @@ die "expected numerical opacity from 0 to 100"
 
 <[base.log]>->( 2, "setting window '$id' opacity to $opacity% .." );
 
-$target //= 'core';
+$target //= 'cube';
 
 my ($sid) = keys( %{ $data{'user'}{$target}{'session'} } );
 
-if ( defined $data{'session'}->{$sid} ) {    # status 'online' # ->{'core_sid'}
+if ( defined $data{'session'}->{$sid} ) {    # status 'online' # ->{'cube_sid'}
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => $route_str . 'core.X-11.set_opacity',
+        {   'command'   => $route_str . 'cube.X-11.set_opacity',
             'call_args' => { 'args' => "$id $opacity" }
         }
     );
@@ -30,16 +30,16 @@ if ( defined $data{'session'}->{$sid} ) {    # status 'online' # ->{'core_sid'}
 }
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
-my $core_fh = $data{'session'}{$sid}{'handle'};
+my $cube_fh = $data{'session'}{$sid}{'handle'};
 <[net.out]>->(
-    $core_fh, "($cmd_id)${route_str}X-11.set_opacity $id $opacity\n"
+    $cube_fh, "($cmd_id)${route_str}X-11.set_opacity $id $opacity\n"
 );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
-    die "core handle had an exception" if not defined $reply_string;
+    $reply_string = <$cube_fh>;
+    die "cube handle had an exception" if not defined $reply_string;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$sid}{'buffer'}{'input'} .= $reply_string;
@@ -54,7 +54,7 @@ if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\5TCU6WPPVJFDHIRIYSBH53GSMKRSQ3HZBGYOZV5VW7KH4E7MRUG7K2O6O7IZFH2WKVZGD7OYBP4EA
-# \\ AIAUF7DEJHCKEMXY6Q3QSS4I2QRQUTNMARL5Q4CJXOJ4FYGXUJRI \\// C25519-BASE-32 //
-#  \\// EGYHC5W4WP2QNJGFVBU466224W2GZLL4T5FVH2324AGDZJBEWAA \\ CODE SIGNATURE \\
+#\\2CBNJGZH4B2XKPVI25RXCFWRRT6LPEUG5C445OCWD5OISIV6YSO3Q3KTZ5OUXEIJVJFKRPCXX2V5K
+# \\ 7KKW5VL3LZSROC6AKHN247ORZ3QRFGSFYYBDFZ6I3ZE6JF7HJ7OO \\// C25519-BASE-32 //
+#  \\// DBJCKJJOZJ7K6Z6XDKFBQEXD7NSWB7U2643WGY7A5QHL35M54CI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

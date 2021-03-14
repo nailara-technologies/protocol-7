@@ -2,7 +2,7 @@
 
 # name = browser.calc_zoom_level
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 <browser.zoom_level> //= 1;
 
 if ( not defined <browser.auto_zoom> or !<browser.auto_zoom> ) {
@@ -18,13 +18,13 @@ if ( not defined <browser.auto_zoom> or !<browser.auto_zoom> ) {
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_screen_size\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_screen_size\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -58,7 +58,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\AEVZBT2SSNXJW4I4OEMEOEDCIZBQUEWMVJZTBOGXYCKMJDUSY5NNZQGHYUHBTAU5APLXLV5ZNDP44
-# \\ WSY3MMFGQZONBTWFGXP45LQYGNULCYZGLS743NHRU2F7K7TNXJF5 \\// C25519-BASE-32 //
-#  \\// OV4JJZ6S74YHDBNKMPJ7QY56WKXRBG6X266UQBNXMK6OCRJMEBY \\ CODE SIGNATURE \\
+#\\24XR5G257WRI5SZBRWJEPSXFSVCZBGRPCKVSTKZOG3MHK75337ZJS25273CM4J2HARN2TH7WN5EHE
+# \\ O3A2PQ5TIMVY3KWXAEUUVM235UGFKSS4IBPG4XV5IW2YCY2VYGR3 \\// C25519-BASE-32 //
+#  \\// UC5UV3J2O4AI35T5FV3DOSGH3SAQFKSTVHJHR5OSAYI66S3XCCY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

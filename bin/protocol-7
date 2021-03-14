@@ -504,7 +504,7 @@ sub prepare_subs {
                 $data{'system'}{'use_http_source'} = 1;
             }
             if ( $arg eq '-export-core-subs' ) {
-                $code{'dump_core_subs'}->();
+                $code{'dump_cube_subs'}->();
                 exit(0);
             }
         }
@@ -584,8 +584,8 @@ sub prepare_subs {
         say "$n: $version_str\n:";
     };
 
-    $code{'dump_core_subs'} = sub {
-        my %core_subs;
+    $code{'dump_cube_subs'} = sub {
+        my %cube_subs;
         my $bin_path = $data{'system'}{'start'}{'exec_name'};
         open( my $p7_fh, $bin_path ) or die "$bin_path: $OS_ERROR\n";
         my %sub_src;
@@ -622,7 +622,7 @@ sub prepare_subs {
         my @agent_commands;
         map {
             if (    $ARG !~ m{\.(callback|handler)\.}
-                and not exists $data{'base'}{'core_subs'}{$ARG}
+                and not exists $data{'base'}{'cube_subs'}{$ARG}
                 and $ARG ne 'base.log'
                 and $ARG ne 'base.s_read'
                 and $ARG ne 'base.gen_id'
@@ -646,7 +646,7 @@ sub prepare_subs {
 
                 push( @agent_commands, $1 ) if $ARG =~ m|\.cmd\.(.+)$|;
                 --$purge_count              if $EVAL_ERROR;
-            } elsif ( not exists $data{'base'}{'core_subs'}{$ARG} ) {
+            } elsif ( not exists $data{'base'}{'cube_subs'}{$ARG} ) {
                 $data{'code'}{$ARG}{'status'}
                     = 'leftover';    ## kept \ essential ##
             }
@@ -717,7 +717,7 @@ sub prepare_subs {
         eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
         $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
         warn
-            "<< 'HTTP::Tiny' pmod. not found [ yet in corelist ] [ $EVAL_ERROR ] >>"
+            "<< 'HTTP::Tiny' pmod. not found [ yet in cubelist ] [ $EVAL_ERROR ] >>"
             and return undef
             if $EVAL_ERROR;
         $data{'system'}{'http_reqs'}++;
@@ -1644,7 +1644,7 @@ sub prepare_subs {
     };
 
     map {
-        $data{'base'}{'core_subs'}{$ARG} = $code{$ARG};
+        $data{'base'}{'cube_subs'}{$ARG} = $code{$ARG};
         $data{'code'}{$ARG}{'status'} = 'core-sub'
     } keys %code;
 }
@@ -1654,7 +1654,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\5SFYNK7GKMICIK7LGVBMYGYZIFURWEBC3XFX5O4VPF6VXSXZJAPG7M4BIOEOGCBTSYN47JRVHIW22
-# \\ TP4UG4F7EP5Q73BS6EUFL3OVHL6E2NRGROJ3M46JFI32ND6GD6JA \\// C25519-BASE-32 //
-#  \\// NBKURB75U4F5FBMYSMLRSQ555CDN6CGMIRMU24FIJN3FRC7N2BI \\ CODE SIGNATURE \\
+#\\YDVTDZ7K4NIQ4Z777KRSB47HFWATJZQ3DRNY3PYMUH3ONIQQUTPIYIUMJNPYR6OLF6ND7SZABZF34
+# \\ HVMGSVW5SIMNK4LISDLX4PSRW22DEYY4KGARM6JUDLMGMRMNWQP7 \\// C25519-BASE-32 //
+#  \\// KS77I7HJYNDE3ODTJZ45IFE4FGDHOLF4SBTUNDJ6D3GCL5MS6DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

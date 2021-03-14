@@ -92,7 +92,7 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o ) {
     ( my $multiline_cmd, $cmd ) = ( $1, $2 );
     if ( $multiline_cmd =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
 
-        # core agent 'select' command [ base path prefix handling ]
+        # cube agent 'select' command [ base path prefix handling ]
         $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
             if defined $data{'session'}{$id}{'base_path'};
 
@@ -180,7 +180,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
 
     ( $cmd, $$call_args{'args'} ) = ( $1, $4 );
 
-    # core agent 'select' command [ base path prefix handling ]
+    # cube agent 'select' command [ base path prefix handling ]
     $cmd = 'unselect' if $cmd eq '../';    # 'unselect' alias "../" <!>
     $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
         if defined $data{'session'}{$id}{'base_path'}
@@ -234,24 +234,24 @@ $$call_args{'session_id'} = $id;
 
 # 'reroute' replacement regex
 
-if ( defined <core.reroute> ) {
-    if (    defined <core.reroute.pattern.match>
-        and defined <core.reroute.pattern.replace>
+if ( defined <cube.reroute> ) {
+    if (    defined <cube.reroute.pattern.match>
+        and defined <cube.reroute.pattern.replace>
         and uc($cmd) ne $cmd ) {
-        my $rre_pattern_match   = <core.reroute.pattern.match>;
-        my $rre_pattern_replace = <core.reroute.pattern.replace>;
+        my $rre_pattern_match   = <cube.reroute.pattern.match>;
+        my $rre_pattern_replace = <cube.reroute.pattern.replace>;
         my $rre_pattern_usr
-            = defined <core.reroute.pattern.usr>
-            ? <core.reroute.pattern.usr>
+            = defined <cube.reroute.pattern.usr>
+            ? <cube.reroute.pattern.usr>
             : '';
 
         my $rre_m = qr|$rre_pattern_match|;
         my $rre_u = qr|$rre_pattern_usr|;
         $cmd =~ s|$rre_m|$rre_pattern_replace| if $user =~ $rre_pattern_usr;
     }
-    $cmd = <core.reroute.command>->{$cmd}
-        if defined <core.reroute.command>
-        and exists <core.reroute.command>->{$cmd};
+    $cmd = <cube.reroute.command>->{$cmd}
+        if defined <cube.reroute.command>
+        and exists <cube.reroute.command>->{$cmd};
 }
 
 ##[ ALIASES ]###################################################################
@@ -846,7 +846,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         foreach my $target_sid (@send_sids) { # check if session initialized yet
             if (
                 (   not defined <system.agent.mode>
-                    or <system.agent.mode> ne 'core'
+                    or <system.agent.mode> ne 'cube'
                 )
                 or $user eq 'nroot'  # [LLL] improve check if really nroot agent
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
@@ -1024,7 +1024,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 # ______________________________________________________________________________
-#\\3KHU2N6CVBYT5UFN2HOJTOUCGN7LH472G4K2PKV64PJBAR2KFK2Y5JU5HK4SXG5F3TKYCTEL3JHQO
-# \\ FSFOHTFXPY6LBAGTLN63HJ65UVNTDDZSSIFUA3E6674E6NQ63NI3 \\// C25519-BASE-32 //
-#  \\// O2BBTK7T5OAWDFSI3SWIVAJGTPKJW3TH3NLBOO3LT5L6OFC5QDI \\ CODE SIGNATURE \\
+#\\YKBNOKBVKQJEHHPLJD6FCEFE65OBAIJIBN5DEA2PGCG7F2QVTUKG7LG3R4XMAUMM7TEUYUNVAER46
+# \\ AIGFXMZ2JQTG2W5VIXKYQ7CV7WSWUIMOSZWRFOIGPZOWWPRGK5BF \\// C25519-BASE-32 //
+#  \\// 5S63ES7OHJ3EM5O4P6UN7VCJHDMECWC6254HIHE23MGPSOYLGDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

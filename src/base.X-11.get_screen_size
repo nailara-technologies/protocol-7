@@ -2,19 +2,19 @@
 
 # name = base.X-11.get_screen_size
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 2, "requesting screen size from X-11 agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_screen_size\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_screen_size\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+) ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\KMLA7XNFYK5H2UBOXO6YGQLL53QNGRZMFWSWDLO32ZFLJONSATOT4VJX6NHTJWPQD6STHH7VFSPTS
-# \\ XIMDH4MID5423GFPLDFI5HGFWWLELVI7L7VWVSYQK2NPEWM7FFFD \\// C25519-BASE-32 //
-#  \\// FESHOEFKZCIRCPBC23EILX4G7CJPZZ7VRZVNBHTWKIX4OC2CKCA \\ CODE SIGNATURE \\
+#\\74UXUTQALVCFNQJ4S3DLUTP2KBIRNU6EEA4ONVGMY6LJBECHNASFZTYNHO3SRRW432VSBEDP3UOQU
+# \\ 2SG2HDS5OTDXUAJFN4BWDZ5DQS6M7FJMCAPE6TBE6QMIHYJRJXQA \\// C25519-BASE-32 //
+#  \\// 4GSWF5EQNINN4ZLIG25NMC6SY3XRMA3SODSKR5YALMOR7UN5KAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

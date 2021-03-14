@@ -2,19 +2,19 @@
 
 # name = base.X-11.get_mode
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 2, "requesting mode name from X-11 agent.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_mode\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_mode\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\TSPYVZZM2ROIFUULBCXWB5CKOGQC32NKZREKEKHOJ3SKHEHME56KRS73763ZUFXSWGKFE24NBYD3K
-# \\ IHLDPSQCE2B4ZY6Y5XU7EMMADGL32Z5XPVRDW4IEKMNZHT7FB3CC \\// C25519-BASE-32 //
-#  \\// KUYYXHNMBLGEOYOXFKCXPWZR5EM6VWRQFLXWXCDGQTY4LT67IDQ \\ CODE SIGNATURE \\
+#\\YG5I4V7KDOHLZISV65WOBIPSI2SLWUGYZKASLXQ56RSPEMUDAUQAP7XZ7E7FGAHDL7RPTU5735AZC
+# \\ O7HHMDJCDAK5CAQJCGSQHKNXSUPC44X2SPIXPFGHDGQ63X7GDB7I \\// C25519-BASE-32 //
+#  \\// WXATJN2S6LDHXOM7J4OO423F2I4R6A6EPK454WGN4OPH765S2BQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

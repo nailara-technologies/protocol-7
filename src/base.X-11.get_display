@@ -2,21 +2,21 @@
 
 # name = base.X-11.get_display
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 2, "requesting display name from X-11 agent.," );
 
 $data{'route'} //= {};
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.get_display\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_display\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
-    die "core handle exception" if not defined $reply_string;
+    $reply_string = <$cube_fh>;
+    die "cube handle exception" if not defined $reply_string;
     $matched_reply = 1          if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -39,7 +39,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\ZHQJLPFEHVE27OLXSBWXEI6J7BWGO65DHDGCX4BMMDAYGMEVFHFGYQUFEGGHQ2XFIJ6OQDR7YXFF2
-# \\ NIZ63D73W3BLEWZNMJPTPA457RCYPKEEMFW27AXULBGQ644LVLDT \\// C25519-BASE-32 //
-#  \\// DXPYOD4Y2U5YR37MQKFPEUFZVEINVVTKFA3EJA4ESG2ICLZIIDA \\ CODE SIGNATURE \\
+#\\P7OSTTFE5KNRIAQ5MCM62CSLTHYZCGU3422ROWHG4ZHG2UNLVLV2W7SBBSHWVHND3OPH62XMIATAU
+# \\ WSSKNONG2SFDEVPEGTYENE33KR55VMUZNK6URRL3G4BWHSCGQPVE \\// C25519-BASE-32 //
+#  \\// Z2QSVHIVPMUWFUWNEXODFANM5ZBGKTEJW6C6SQGVBGKO7U5CYDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

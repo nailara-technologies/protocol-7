@@ -35,7 +35,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         and !<browser.slideshow.iteration> ) {
         <browser.slideshow.iteration> = 1;  ## reporting universal-child 'ready'
         <[base.protocol-7.command.send.local]>
-            ->( { 'command' => 'core.report_paused' } );
+            ->( { 'command' => 'cube.report_paused' } );
     }
     return;
 } else {
@@ -77,7 +77,7 @@ my $index = 0;
 foreach my $entry (@url_list) {
     if ( $type_list{$entry} eq 'pdf' ) {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "core.pdf2html.get_url",
+            {   'command'   => "cube.pdf2html.get_url",
                 'call_args' => { 'args' => "$entry $width" },
                 'reply'     => {
                     'handler' => 'browser.handler.2html_reply',
@@ -90,7 +90,7 @@ foreach my $entry (@url_list) {
 
     } elsif ( $type_list{$entry} eq 'image' ) {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "core.image2html.get_url",
+            {   'command'   => "cube.image2html.get_url",
                 'call_args' => { 'args' => "$entry $width $height" },
                 'reply'     => {
                     'handler' => 'browser.handler.2html_reply',
@@ -130,7 +130,7 @@ if (@{<browser.url.list>}
 }
 
 # ______________________________________________________________________________
-#\\AKHKLDA5Y4WUFKV5OSCA6QVL7D2UZIHYISSRPVSHYKLMX2IMTGRQF43UQRBYAHH4RBA2KNRBPIOYU
-# \\ IGKSWQYH6NISEK43DKZH4Q34QS7HKWNJJ3E5QLXMX2CVRTHRNF2P \\// C25519-BASE-32 //
-#  \\// QPIYP5CV7TOYNP5MROMSF7CQIP6EQAKBKZE3IJ5K3KTLHKUOIAI \\ CODE SIGNATURE \\
+#\\KU4I4WHXY43X3EYBOCOARN3NNU2OPA7U5Q4UFNMXA6VDQT4YB7TEB44EZWXPKYLHAIAJBEIALUAD2
+# \\ 6KCVMG4VMMSTGNWQPSM6PG7MA5WID6QONWAQ652EK546RSA3PMSQ \\// C25519-BASE-32 //
+#  \\// VCUVWRF43PAUWLDBWXPZT3VY44MH7V7VLRIZA6BZWVEIAQQXOBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -1,0 +1,25 @@
+# >:]
+
+# name = mpv.handler.event.property-change.cube-idle
+
+my $cube_idle = shift->{'data'};
+return
+    if defined <mpv.status.cube-idle>
+    and ( not defined $cube_idle
+    or $cube_idle !~ /^1|0$/
+    or $cube_idle == <mpv.status.cube-idle> );
+
+<mpv.status.cube-idle> = $cube_idle;
+<mpv.fade_idle_volume> //= 1;
+
+if ( $cube_idle and <mpv.fade_idle_volume> ) {
+    <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+} else {    # LLL: s/start/current/ volume ...
+    <[mpv.cmd.fade]>->( { 'args' => <mpv.current.volume_target> } );
+}
+
+# ______________________________________________________________________________
+#\\4ZTOEVPNCA3YHPZ23PJDBIBDJCVLAZJRHPTL4LAQ7ESQEL53GY2CKYVLQ433QTDE4K7EXNJAHKJ2S
+# \\ U6QYEDFULOKC3OCCZSJ7ZJCF3ZNXPV7LAGW5VHWG3XYOLBXLO23J \\// C25519-BASE-32 //
+#  \\// 4AT6JWDDHS5LPI77TONZUM4H7RGIJMSN233SUYK7UYSIF6KTIAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

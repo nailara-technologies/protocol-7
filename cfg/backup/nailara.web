@@ -13,7 +13,7 @@ web.plugin.menu.dir     =   data/web/plugins/
 web.menu.default_plugin =   tree
 web.default_language    =   de
 access.usr.web			=	client_conf request content
-access.usr.core			=	*
+access.usr.cube			=	*
 access.usr.*			=	close
 
 
@@ -34,12 +34,12 @@ web.unix.socket         =       /tmp/.nailara.web.socket
 [web.load_api]
 
 
-my.core.auth_handler = net.authme
-my.core.name = core
+my.cube.auth_handler = net.authme
+my.cube.name = cube
 
-core.handle = [auth.agent.client:[tcp.client:<net.local.addr>,<net.local.port>],<net.daemon_name>]
+cube.handle = [auth.agent.client:[tcp.client:<net.local.addr>,<net.local.port>],<net.daemon_name>]
 
-[net.cmd_add_client:<my.core.name>,<core.handle>]
+[net.cmd_add_client:<my.cube.name>,<cube.handle>]
 
 io.grp.unix.connect = unix.connect_handler
 io.grp.unix.auth = net.auth_handler

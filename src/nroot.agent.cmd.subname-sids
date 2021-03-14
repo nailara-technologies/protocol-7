@@ -2,7 +2,7 @@
 
 # name  = nroot.agent.cmd.subname-sids
 # param = <pattern>
-# descr = list core sid[s] for given subname pattern
+# descr = list cube sid[s] for given subname pattern
 
 my $subname_query = $$call{'args'} // '';
 return { 'mode' => 'nak', 'data' => 'expected agent subname pattern' }
@@ -13,12 +13,12 @@ foreach my $instance_id ( keys %{<nroot.agent.instance>} ) {
     my $instance = <nroot.agent.instance>->{$instance_id};
     next
         if not exists $instance->{'subname'}
-        or not exists $instance->{'core_sid'}
+        or not exists $instance->{'cube_sid'}
         or $instance->{'subname'} !~ qr/$subname_query/;
     push(
         @reply_list,
         join( ' ',
-            $instance->{'core_sid'},
+            $instance->{'cube_sid'},
             "$instance->{agent_name} \[ $instance->{subname} ]" )
     );
 }
@@ -36,7 +36,7 @@ if (@reply_list) {
 }
 
 # ______________________________________________________________________________
-#\\6QOM3ZEK6FKH2Z3LYTJCLFPRVS7HBMHGIWUUTZMKQ7TPXWPHYT4YWBXZUIHJYDT3Z33UIWIN5ML7Y
-# \\ WIAYZQZJ5FUE3YEX7FFEOCNFFMISN4B4C22HZMPJW3UXSJS3JBBI \\// C25519-BASE-32 //
-#  \\// J3CFCLZQODWM5IHYYLW26YCHBRKMLYEEFLA3OVP6XRQLO2RH2AI \\ CODE SIGNATURE \\
+#\\LMK45HEA7VKA3WEQ55BANT3CW4YQIH6S3D3EEMWHH7YY7AQA5PAR7LZQRKCQRJRDLTYWAELFU3RAC
+# \\ PNZ5KFP3233NJMUPQKCDB6HFL7BLJ46UGYEVZMP5LAYLLKCKWVD4 \\// C25519-BASE-32 //
+#  \\// GCGBMHYYZPBGXTRC5EGN4BP27LGXVSTSVHGFCQNIB3ZUAKMWABY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
