@@ -5,8 +5,8 @@
 
 my $event = shift->w;
 
-my $core_addr = <protocol-7.network.internal.addr>;
-my $core_port = <protocol-7.network.internal.port>;
+my $cube_addr = <protocol-7.network.internal.addr>;
+my $cube_port = <protocol-7.network.internal.port>;
 
 my $read_fh      = $event->fd;
 my $con_id       = $event->data->{'con_id'};
@@ -49,9 +49,9 @@ if ( !$connection->{'authorized'} ) {
 
         # LLL: check status..,
         my $l_sock
-            = <[base.open]>->( 'ip.tcp', 'output', $core_addr, $core_port );
+            = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
         if ( not defined $l_sock or !$l_sock->connected ) {
-            <[base.log]>->( 0, ": : tcp connection to local core failed." );
+            <[base.log]>->( 0, ": : tcp connection to local cube failed." );
             return <[ssh.connection.stop]>->($con_id);
         }
         my $local_user = $profile_data->{$link_name}->{'nailara.local.user'};
@@ -115,7 +115,7 @@ if ( !$connection->{'authorized'} ) {
 }
 
 # ______________________________________________________________________________
-#\\6Q4SWC6MT7DE5VHGHK3AQ72YBMWP45TANNDPYND6WA74AZ2PUHBNHQKOM7UOMLVQ3LVROBZB34INO
-# \\ 5VR2R5MA5E2O47TCLYEOPCVSVLMLCWGLAG56MO6GNYTARRQEA3U7 \\// C25519-BASE-32 //
-#  \\// 2Z2B66WEUNOXSY5EWTA5DPPXTLPGYJ4RNSDJMKBL4YKU5B4X4DI \\ CODE SIGNATURE \\
+#\\GY4FEMBHJRWVJ7LXV2Z635KVLNKFSANA6LE42ERGAP7ILENSBA72GWB6DOTQXCDV4TBC5TNWNW5IQ
+# \\ Z2AEKAF45DN7RPIM2ASOOI5AMCPLN5WQFM773AA2X4XLFAB7FJ6G \\// C25519-BASE-32 //
+#  \\// PF3IJUSGE4LUAQPT7EPA4NO4OJPMKZHRFIQOTFZYMJUO2H3WUDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

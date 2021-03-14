@@ -9,7 +9,7 @@ my ( $source_name, $wid_str, $tile_name ) = split( m| +|, $$call{'args'}, 3 );
 $source_name =~ s|^.+\.||g;
 my $err_msg;
 
-$err_msg = 'core config error (source name parameter missing)'
+$err_msg = 'cube config error (source name parameter missing)'
     if not defined $source_name;
 $err_msg = 'expected numerical window_id parameter'
     if not defined $wid_str or $wid_str !~ m|^\d+(,\d+)*$|;
@@ -66,7 +66,7 @@ if (exists <composition.window_ids>->{$agent_name}
         my $alpha_str
             = sprintf( "%.2f", ( 100 - $composition_data->{'alpha'} ) / 100 );
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "core.X-11.fade_out",
+            {   'command'   => "cube.X-11.fade_out",
                 'call_args' => { 'args' => "0.8:$alpha_str $wid_str" }
             }
         );
@@ -92,7 +92,7 @@ if (exists <composition.window_ids>->{$agent_name}
 }
 
 # ______________________________________________________________________________
-#\\GQ4NF25EBIWBNBXR5K6YOXEAJWFM5XTJLV7WTSW4CQ5BGR7LDIHFOCH5EFRP4UKPG3KFVVZHF2SHM
-# \\ GZ7RV5G7JFBNMAZF2HEGKXR3YSNJDZLPAPOZUIUYNX3QEKHCNDPB \\// C25519-BASE-32 //
-#  \\// 25OBTW6RVXW3KY74QSYBPINLDSTP2A2HTP2HFABLUGXKWFXJKAI \\ CODE SIGNATURE \\
+#\\W422C734EHUUIWRCAAAZ6WBRAG7FURF4HTGPWZKYYJBLOEI3SE4KKJ4YFINDHKTY356HQT2BSBFUK
+# \\ QS6XPWWGFKM2CNBM6YCYEO5UPRC7SRK4IVBPRT5AGJM3LG4XFTPX \\// C25519-BASE-32 //
+#  \\// 7LXGSYCKGQNV7JQMYV7O4FQ2HWHXS6DD3CR2FKXXE2QUPSAIYAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

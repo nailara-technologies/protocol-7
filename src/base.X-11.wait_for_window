@@ -4,7 +4,7 @@
 
 my $timeout  = <x11.window_timeout> || 7;
 my $name     = shift;
-my $user     = shift // 'core';
+my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 if ( not defined $name ) {
@@ -20,17 +20,17 @@ my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 
 <[net.out]>->(
-    $core_fh, "($cmd_id)${cmd_path}X-11.wait_visible $timeout $name\n"
+    $cube_fh, "($cmd_id)${cmd_path}X-11.wait_visible $timeout $name\n"
 );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$core_fh>;
-    die "<<<!>>> core handle exception <<<!>>>"
+    $reply_string = <$cube_fh>;
+    die "<<<!>>> cube handle exception <<<!>>>"
         if not defined $reply_string or !length($reply_string);
 
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
@@ -51,7 +51,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$} and <x11.id> = $1 ) {
 }
 
 # ______________________________________________________________________________
-#\\3H5BPL2PML6GEBZU7NYR7WAZLMRVFGJ522M3ZJE7UHIWAHWQZ3N7GXPM3IKPXVXDIFAX6KFV6FKTU
-# \\ UAC6PDPODSY2NGBWRPH2TZCR2MBJR2JG3MHK7XJMWXGK6MPHQTA4 \\// C25519-BASE-32 //
-#  \\// 4QEDHEC7NCC6PIDXFD7CNPL4E2OGDN24IOFCG2Z5UBAHLHQKEDI \\ CODE SIGNATURE \\
+#\\TNRIXMLVSLVM55W7CNCTE7VJVVZ5BRVWPGJTDW4V57GFROGHJFO5LX7I3XCN7U3LQTIPITKKGVGQE
+# \\ 44WF3OEWPBSJLI4JQAB3TDDN2MVDPWLGT3HY4HOFBL7WNFAIDJUI \\// C25519-BASE-32 //
+#  \\// K25O64PBF7AT2H7TGRS2VUGMEVL37CX4WSOQEBIJQVTDV3FQIDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

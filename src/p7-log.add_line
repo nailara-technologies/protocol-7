@@ -13,7 +13,7 @@ return ( 0, "invalid characters in log file name '$log_name'" )
     if $log_name !~ m|^[\w\d\-\.\_\ ]+$|;
 return ( 0, 'empty log message' )
     if not defined $$log_msg_ref or !length($$log_msg_ref);
-$$log_msg_ref =~ s|^0 ||;    # core-agent source sid
+$$log_msg_ref =~ s|^0 ||;    # cube-agent source sid
 $$log_msg_ref .= "\n" if $$log_msg_ref !~ m|\n$|;
 
 my $log_path = <log.protocol_7.path>;
@@ -64,7 +64,7 @@ print {$log_fh} $$log_msg_ref;
 return 1;
 
 # ______________________________________________________________________________
-#\\7FMSNUJFUHUOSOEZRBFWUBY3P7FX3HQC34JVP2E3LVQE3Y6XGKEA6QUMJF4NCU5XW23PGO7ZIDCES
-# \\ KZM3SJW5CA2MFEIDN2HTIGOFKPQOAXWCTK7EBNB7EXOPE5P3NRXM \\// C25519-BASE-32 //
-#  \\// XLQ5P7UKPISRD44DZEMZ5OKQBUI6IICV2QWVTQN5Z6NB2YRFGDA \\ CODE SIGNATURE \\
+#\\W6JUQFZY6GPPQ5K6UWE7XOSB5PCIIF67BCLTAPHOMNZ2FZNGUQ32YIY252T6HHUD4HKZN3VUIUXVA
+# \\ KO4QAODRADALMPUTAZOCPCYY6CZFWT3KYQJ4U4XB3XPOPLIMHPSF \\// C25519-BASE-32 //
+#  \\// DQVC5NT6EDMFGC2VKTILHB5EIAB4SLH2UJVJFCZMMYO7DWOIIBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -73,7 +73,7 @@ if (<composition.startup.initializing>) {
                 ? join( ' ', $_composition_data->{$ARG}->{'stop_agents'}, $ARG )
                 : $ARG;
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => 'core.nroot.stop_implicit',
+                {   'command'   => 'cube.nroot.stop_implicit',
                     'call_args' => { 'args' => $stop_agents }
                 }
             );
@@ -213,7 +213,7 @@ if (<composition.watch_tiles.poll_tile_color>) {
             1, " : fetching X-11 background color., [ bgcol-mode ]"
         );
         <[base.protocol-7.command.send.local]>->(
-            {   'command' => 'core.X-11.bg_color',
+            {   'command' => 'cube.X-11.bg_color',
                 'reply' => { 'handler' => 'composition.handler.bg_color_reply' }
             }
         );
@@ -248,12 +248,12 @@ if (<composition.watch_tiles.poll_tile_color>) {
 <composition.startup.initializing> = 0;
 
 <[base.protocol-7.command.send.local]>
-    ->( { 'command' => 'core.content.update' } );
+    ->( { 'command' => 'cube.content.update' } );
 
 <[composition.handler.transition]>;
 
 # ______________________________________________________________________________
-#\\2ZHKALUOB4SDGIUWAALP2MWJTXKA4CGYWHC2AYRVVNRSU4YEI26WA45RGO3AFTMFMQVJTQQUNRCDW
-# \\ OEHIW7ECBWPIFVRXAEEH3PKBKLDNSAUC4C3GARDDLQUOAVJM7N3N \\// C25519-BASE-32 //
-#  \\// Q76CQIOORCNV4SO4P4FQODI4SBOJ5AKYSAZB7BHIJBI3V6VF4AI \\ CODE SIGNATURE \\
+#\\KYFZEWACWW47CHSPIXCOIT7ZKK5OXG2BY66KT4LHT7BNEBGXPLC5QPUXNQRERSM3GGEJUWKXIJAG2
+# \\ JJQOURZUB372UT3Y7JYQFXQFEX3VUSS2G43GPM3HJXYHY26IGSTQ \\// C25519-BASE-32 //
+#  \\// VXMQ7BT2SCR663BPTP3WDZHV24VJNUST2FJFIIX4VJ7PMEVZSCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

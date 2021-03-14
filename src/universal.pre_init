@@ -9,21 +9,21 @@
     'image' => 'browser'
 };
 
-<access.cmd.usr.core> = '*';
+<access.cmd.usr.cube> = '*';
 
 my %display_agents;
 map { $display_agents{$ARG} = 1 } values %{<universal.content.agent_map>};
 <universal.display_agents> = [ sort keys %display_agents ];
 foreach my $agent_name ( keys(%display_agents) ) {
     <universal.child>->{$agent_name} = {};
-    <access.cmd.usr.core> .= ' ' . $agent_name . '.*';
+    <access.cmd.usr.cube> .= ' ' . $agent_name . '.*';
     <access.cmd.usr>->{$agent_name} = '**';
 }
 
 0;
 
 # ______________________________________________________________________________
-#\\ZWR3LW7CSGCMI45EHSMMMH4KPIHIR724RNKKPKYWYWVC6RVOWVYTGM6SKA6YN4HOYRCF62UX375TI
-# \\ 3ZR2R772K4M54MKENZYYIUG35D6GUCEBQJV6BEOWJFJEIG7SR6Q6 \\// C25519-BASE-32 //
-#  \\// RGYDAB6CJFWVYFQIH5SDDBKNXOPYDVD7ZCDZ6ED7TZHA6XWPGBA \\ CODE SIGNATURE \\
+#\\RQUEJ6KKPGDS5JJPHHLXMOOLCFB2MH4DYF3RPXI3O3GTAXRWBI4PHO2ML33OLSC4WCB3Q75XMVHBA
+# \\ GQUEPA7TNC7X2ZFJZC4G32XQ4O3VMK3XVXCOB5MOQ6ZRTLYJXB3J \\// C25519-BASE-32 //
+#  \\// ICYM72447IMWWJDVPI24LRJOPBFUTJBU2JDPNZPY5J2J4JDW2DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

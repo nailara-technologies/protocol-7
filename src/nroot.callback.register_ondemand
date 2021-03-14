@@ -5,26 +5,26 @@
 my $ondemand_agents = shift;
 $ondemand_agents //= <nroot.ondemand_agents>;
 
-my $core_path = 'core.';
+my $cube_path = 'cube.';
 
-## check previous post-init command status [ 'connect_to_core' ] ..,
+## check previous post-init command status [ 'connect_to_cube' ] ..,
 my $post_init_status = <nroot.current-init-data.status.post-init> // 0;
-return <[base.log]>->( 0, 'core authentication was not successful .,' )
+return <[base.log]>->( 0, 'cube authentication was not successful .,' )
     if $post_init_status == 0;
 ##
 return warn 'expected array reference with agent names'
     if not defined $ondemand_agents
     or ref($ondemand_agents) ne 'ARRAY';
 
-<[base.log]>->( 1, 'registering ondemand agents at core .,' )
+<[base.log]>->( 1, 'registering ondemand agents at cube .,' )
     if @{$ondemand_agents};
 
 foreach my $agent_name ( @{$ondemand_agents} ) {
     <[base.protocol-7.command.send.local]>->(
-        {   'command' => $core_path . 'ondemand-agent',
+        {   'command' => $cube_path . 'ondemand-agent',
             'reply'   => {
                 'handler' => 'base.handler.warn_nak_reply',
-                'params'   => "${core_path}ondemand-agent add $agent_name"
+                'params'   => "${cube_path}ondemand-agent add $agent_name"
             },
             'call_args' => { 'args' => "add $agent_name" }
         }
@@ -32,7 +32,7 @@ foreach my $agent_name ( @{$ondemand_agents} ) {
 }
 
 # ______________________________________________________________________________
-#\\EWXC57CM5IHAC7SHQUWLAGCM4XYD7HH5LQ5UZDN4WP6PLOSBHIIS3NXAR3Q6AKRE352EMAZK4Q6RY
-# \\ J4NMETCWXQPOOKDKD7YH7CZFIGKJMCC4YLAUHN724PSLYLBGQRXX \\// C25519-BASE-32 //
-#  \\// QPXVXK4QTJRK7A27U2M2VDQF6AD6WZMQ7DUMTOOKIIUM3YCZUDA \\ CODE SIGNATURE \\
+#\\ZWEONJ27GASRNK4TYUNVD7UHO2J442Q3MTOTPSI65DETSVPXYXDPDK2VLW6O7ZVOSUPD7744KW4AS
+# \\ 5VZI5DVACQDIHQUREOGFMNX2M3VOMMZ3RPQCON5OMKBS35LTBRQH \\// C25519-BASE-32 //
+#  \\// PTKWFEUCYKD7QUOAGTDXRW3X7ZCFXK6IUAQG5IWAJATJZEI4UDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

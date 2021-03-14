@@ -17,7 +17,7 @@ $instance->{'heartbeat'}->{'errors'} //= 0;
 my $globals      = <nroot.start_setup.globals> // {};
 my $agent_name   = $instance->{'agent_name'};
 my $root_sid     = $instance->{'root_sid'};
-my $core_sid     = $instance->{'core_sid'};
+my $cube_sid     = $instance->{'cube_sid'};
 my $agent_config = <nroot.start_setup.agents.config>->{$agent_name};
 my $timeout_secs
     = $agent_config->{'heartbeat'}->{'timeout'}
@@ -33,7 +33,7 @@ $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
     if not defined $instance->{'timer'}->{'heartbeat-timeout'}
     or !$instance->{'timer'}->{'heartbeat-timeout'}->is_active;
 
-my $command_route = defined $core_sid ? "$root_sid.$core_sid" : $root_sid;
+my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
 
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => "$command_route.heart",
@@ -49,7 +49,7 @@ delete $agent_config->{'heartbeat'} if !keys %{ $agent_config->{'heartbeat'} };
 delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
 
 # ______________________________________________________________________________
-#\\QUOJTNCLSU4W2LFW3RK54OX37O7O3ZFYISTERB7INTHUXSQY66O5TNHX7ZJOGUPE3LJD6GO4LAZXK
-# \\ A5TKPOKQPPXWETY7XDKJHFVWISHLQVAE5FW422SIGXWEWY53S6S2 \\// C25519-BASE-32 //
-#  \\// YO3XAGINHTRLZP3JJ4OJFY3QWIL37ST2VND4BJKHSFQEFSJ4ABQ \\ CODE SIGNATURE \\
+#\\GVU5K3U3LME2CJNQ6MATOBR6MCBA6HZHXHQ5MAE722BPDFVR63OHPILEZRY5BVW7WJBRZ4NNXH4XW
+# \\ C4T4VFVZOGZNNZVJCKK22DAYNGEMX5QTC435NNQVVCTPIYA7YVN6 \\// C25519-BASE-32 //
+#  \\// ZFLPMYT6JNL6PNXCF7L4VDYEAYNQ4LH2E2SYKFTXSLVG4BAMIAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

@@ -2,19 +2,19 @@
 
 # name = base.X-11.get_bg_color
 
-my ($local_sid) = keys( %{<user.core.session>} );
+my ($local_sid) = keys( %{<user.cube.session>} );
 
 <[base.log]>->( 1, "querying background color from X-11 agent .," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $core_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $core_fh, "($cmd_id)X-11.bg_color\n" );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.bg_color\n" );
 
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$core_fh>;
+    $reply_string  = <$cube_fh>;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 # ______________________________________________________________________________
-#\\KDF7CJ2C5UTKFHTIDAWSZG3GYEPGYAYKUP7UOJ7VXQA2CVR2NCEIFFHPY6TP7IRHATDPAIKONB2JQ
-# \\ U6FCDEIY7PAPDJFTZDUMPUQHJJGI7MS3J2UM44XALW3IAOVRKDV3 \\// C25519-BASE-32 //
-#  \\// JHCMBLJL6OOKFJOX2MP5WGRYPP7LNVREM52SSTWMBZXTCF7ISAA \\ CODE SIGNATURE \\
+#\\A22ZFS5JBQUKH7WVDMH3RLSOKLDQDDI4VFLFO6UMCEKI6SRBBHRTQKUV6EAE5OQR4WUFHTIONINQO
+# \\ 67DDJ6DU3242GM4R6HF7IQVVFCC6TQT2534DUWBHBV4LTIXCZONM \\// C25519-BASE-32 //
+#  \\// BC7CIY62WADVQWNEK4ESYWTF7Q2Q2R7W3QRHOCHKQQ5JEBOEKBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

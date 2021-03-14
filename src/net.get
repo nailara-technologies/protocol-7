@@ -1,7 +1,7 @@
 # >:]
 
 # name = net.get
-# descr = retrieves a value from 'core' agent (if connected to it)
+# descr = retrieves a value from 'cube' agent (if connected to it)
 # args = <key to retrieve>
 # note = currently only supports single line replies (ACK/NAK)
 
@@ -10,10 +10,10 @@ die "expected a key as argument"
     if not defined $key_to_retrieve
     or $key_to_retrieve eq '';
 
-my $core_fh = <core.handle>;
+my $cube_fh = <cube.handle>;
 
-<[net.out]>->( $core_fh, "get $key_to_retrieve\n" );
-chomp( my $get_reply = <$core_fh> );
+<[net.out]>->( $cube_fh, "get $key_to_retrieve\n" );
+chomp( my $get_reply = <$cube_fh> );
 
 if ( $get_reply =~ s|^ACK || ) {
     return $get_reply;
@@ -28,7 +28,7 @@ if ( $get_reply =~ s|^ACK || ) {
 }
 
 # ______________________________________________________________________________
-#\\BX5T7GP55DMZ32TBIZTPCJMH3FTIJ2TVYDSNN3XFBUTKGOYSETOP2WTCKM5JBZLBDCSQHATORVVSK
-# \\ USF2EQHLQA4SAQH3KQP7CJUZGFFRQG6XJQSCR6UKMMBBLQKEBTSQ \\// C25519-BASE-32 //
-#  \\// W372HAYI6D3EXARYCLOQZST7LCNN2JG22RGPD4ARFHMO2KKQYDI \\ CODE SIGNATURE \\
+#\\BD4KUORHRMXCNQTUBUTESKLWPNGCE2XXA5JMTIXPCMQEMQTBRLXOMASSLD764VF4GB7WGFEYJSGPE
+# \\ EH4Y5J4ZPTKFJ7ZX57SCM5FWTO6OPMJLWOPEH6AJ3XFIAYCFCIGX \\// C25519-BASE-32 //
+#  \\// 2JC76VR7DC6GDDUZMTUWV25JVAWXCXPXPUMLYWP2JRAQFDN4EDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

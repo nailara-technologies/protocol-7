@@ -1,27 +1,27 @@
 # >:]
 
-# name = nroot.agent.set_core_sid
+# name = nroot.agent.set_cube_sid
 
-my ( $instance_id, $core_sid ) = @_;
+my ( $instance_id, $cube_sid ) = @_;
 my $instance_data = <nroot.agent.instance>->{$instance_id};
 
-if ( exists $instance_data->{'core_sid'} ) {
+if ( exists $instance_data->{'cube_sid'} ) {
     <[base.log]>->(
-        0, "<< core sid for instance $instance_id was already set >>"
+        0, "<< cube sid for instance $instance_id was already set >>"
     );
     <[agent.change_status]>->( $instance_id, 'error' ); # compromisation attempt
     return;
 }
 
-<[base.log]>->( 2, "instance $instance_id : core sid = $core_sid" );
-$instance_data->{'core_sid'} = $core_sid;
+<[base.log]>->( 2, "instance $instance_id : cube sid = $cube_sid" );
+$instance_data->{'cube_sid'} = $cube_sid;
 
 ## LLL: unclear if will be required \ used later ##
 my $inst_pid = $instance_data->{'process'}->{'id'};
 <nroot.process.instance_cache>->{$inst_pid} = $instance_id if defined $inst_pid;
 ##
 
-# acquire local core sid [ get first and only sid for now ]
+# acquire local cube sid [ get first and only sid for now ]
 my ($root_sid) = keys %{ $data{'session'} };
 
 $instance_data->{'root_sid'} = $root_sid;
@@ -37,16 +37,16 @@ $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
     }
 );
 
-<[base.log]>->( 1, "[$instance_id] verification request <$core_sid>" );
+<[base.log]>->( 1, "[$instance_id] verification request <$cube_sid>" );
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "$root_sid.$core_sid.verify-instance",
+    {   'command'   => "$root_sid.$cube_sid.verify-instance",
         'call_args' => { 'args' => $verification_str }
     }
 );
 
 # ______________________________________________________________________________
-#\\OJDTUYB3LJKXUYE5QTCQBZFKHBUJ4V6LZTLTZURO4F7AVHSF6PBDLKGLO3M5LJ2UKMGSO2J7MFSVO
-# \\ SJXUXAWNNQ6ABKPL5QZN2ZPVRM6FCMVFQPKAJH3UQ3MG2VFCXYLE \\// C25519-BASE-32 //
-#  \\// YDXQLTG77T4BPETAYO5SSKL3R6KIOJSRZXG6OKTCPANGEYI7CDQ \\ CODE SIGNATURE \\
+#\\FWILP7UI5XDXAISOMFS7APDPJOWD3X7KLPDKETUUYQPI4AJERKYCOZV7FJ4LDLNIJU2CUPCXZDDB4
+# \\ LBI3UFUDPVZB6JOIBIQE5BKYN5RMA5V2PXI2Q4XIWYLOIMIYJOJU \\// C25519-BASE-32 //
+#  \\// UYRJNI4AIHEZMCEU2AICE2QWTG5I2OUCTNUTHACC7J5Z4JEGKAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

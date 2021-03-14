@@ -14,8 +14,8 @@ return { 'mode' => 'nak', 'data' => 'invalid agent name syntax!' }
 my $type_args = {};
 $type_args = { 'args' => $config_type } if defined $config_type;
 
-my $cmd_path = "core.$agent_name.get-config";
-$cmd_path = "core.get-config" if $agent_name eq 'core';
+my $cmd_path = "cube.$agent_name.get-config";
+$cmd_path = "cube.get-config" if $agent_name eq 'cube';
 
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => $cmd_path,
@@ -33,7 +33,7 @@ $cmd_path = "core.get-config" if $agent_name eq 'core';
 return { 'mode' => 'deferred' };
 
 # ______________________________________________________________________________
-#\\M3ANN5JRX2LHGBMZPO4JR72CI6NDD2IIREVI7TGXKFZUTKXJIN7F72SJI7AKB33DNANSMPOFMAWHE
-# \\ OWTC5VOZH4FZVRFJQQVEKFSZXYHCY7HBC4XFZWHPHXMXK5IKYOUI \\// C25519-BASE-32 //
-#  \\// KGOL6ISQUJ3D6U3AIQ7RORXPVHONU5LVKGJSM2WABTTIQ7QAEDA \\ CODE SIGNATURE \\
+#\\TTKUUOCYSXED6OL6PURSF74YUO7AJXIQJ2T6DOATMK5G3RWAOVRKUOWK4P3CMPJUNCYHPRY3UZAX2
+# \\ TRYYUR77NJUM3GG6Q2RKRYGOVJUHD4OXHKNTY5QW5ILIOC7IEBVG \\// C25519-BASE-32 //
+#  \\// K7U5NZICHNLURV6YS5EVNNA6THI3HFDRJGDNCJNWTOJ63TVK2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

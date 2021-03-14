@@ -16,14 +16,14 @@ if ( $reply->{'cmd'} ne 'ACK' ) {
 my $reply_str = $reply->{'call_args'}->{'args'};
 
 if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
-    my ( $agent_name, $core_sid ) = ( $1, $2 );
+    my ( $agent_name, $cube_sid ) = ( $1, $2 );
     if ( $agent_name ne <system.agent.name> ) {
         <[base.log]>->( 0, "<!> 'whoami' reply does not match agent name <!>" );
     }
     my $usr_str = $reply->{'params'}->{'route_user'};
     my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
-    $data{'session'}{$local_sid}{'core_sid'} = $core_sid;
-    <[base.log]>->( 1, "core session id received [$core_sid]" );
+    $data{'session'}{$local_sid}{'cube_sid'} = $cube_sid;
+    <[base.log]>->( 1, "cube session id received [$cube_sid]" );
     <system.agent.initialized> = 1;
     <[base.call_online_hooks]>;
 } else {
@@ -34,7 +34,7 @@ if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
 }
 
 # ______________________________________________________________________________
-#\\AYSXO33MBH343PEUYAYKDSLH4MV2VVTYJSFSTH2LDPREYNTETDHASGZWZ3DXSXOOLQRH43KJOG4TG
-# \\ EM2JHS2ZLOASF6E6UXXIVVPW6YUKTZERMS3D3IIBHV5OO5C65K5Y \\// C25519-BASE-32 //
-#  \\// BAE7IEVQCTM4FSZ3RRBIRTI4R5YNMJDUJUEIUYNODKM6DJNZQBQ \\ CODE SIGNATURE \\
+#\\P6YUQO5CQXQCTLBFJKX4GXX677ZQUULJYO5RWOM2FCBV7Q6F6U3BZKCPFSX5DVGLVGEEDYEV4ETC2
+# \\ BFTE5FHR2XY3Q5RGH5UNMHQTO4EVXZ7PM4YITBAU577IKV5HYTYW \\// C25519-BASE-32 //
+#  \\// N4G374Y42GJKL543ILXT2LD2JN4U5WRJYMGPWB7H6M6XRVE4SCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
