@@ -7,17 +7,19 @@ use Safe;
 use Module::Load;
 use Time::Seconds;
 
-no warnings 'once';
-*CORE::GLOBAL::fork = $code{'base.fork'}; # <- cryptographically safe version..,
-use warnings 'once';
-
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('IO::AIO');
 <[base.perlmod.load]>->( 'Time::Local',   qw| timegm_nocheck | );
 <[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
-<[base.perlmod.load]>->(
-    'POSIX', qw | strftime uname getcwd setsid sys_wait_h |
-);
+<[base.perlmod.load]>->(qw|  POSIX  strftime uname getcwd setsid sys_wait_h |);
+
+## installing cryptographically safe fork version ##
+##
+no warnings qw| once redefine |;
+map { eval "no warnings $ARG" } qw| once redefine |;
+*CORE::GLOBAL::fork = sub { return $code{'base.fork'}->(@_) };
+use warnings qw| once redefine |;
+##
 
 ## init some variables ##
 
@@ -210,7 +212,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\PW455G6X6VFGKB637ASPXHTAUQQ7AS34QXVJDB2U37MRCS4WTYLIFFZCNMCYBIDLYRHTINYZ4PAHU
-# \\ 36N4ILJIQQYN7LECWI2FN4SHTALLPJJIWS24YDLULDACJ7QYZJCM \\// C25519-BASE-32 //
-#  \\// U4FHTDXRZGUVZ2THPSMMYDB3UV2VO2RPJTY4MIHQ3QV7KOSIOBY \\ CODE SIGNATURE \\
+#\\2NW3CI3DXISKMYQIINTE6POTSTC5KDKZFORUWAI4JECSEYMRJ2NETYI2C42Q5B3RGBKDDSVUPNSVO
+# \\ R6N62CYIC7JYZOSS2T22PQ6BHTWEQATLZ7UIBVWR2XA2DZAHD5AW \\// C25519-BASE-32 //
+#  \\// B6L5H3HLXSRJ6GGHJ2QYKYMKU27WLFV4BQSRRVTH4UHN3AOC4BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
