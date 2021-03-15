@@ -1,0 +1,40 @@
+# >:]
+
+# name = web-browser.handler.progress_changed
+
+my $view = shift;
+
+# my $progress = shift; # started | committed | finished ...
+
+my $progress = $view->get_estimated_load_progress() * 100;
+
+return 0
+    if defined <web-browser.last_progress>
+    and $progress == <web-browser.last_progress>;
+
+my $bg_color = <web-browser.bg_color> // '#000013';
+
+if ( exists <web-browser.last_progress> or $progress != 100 ) {
+    my $fg_view  = <web-browser.gtk_obj.view>->{1};
+    my $html_str = ${<web-browser.html_ref.loading_page>};
+    $html_str =~ s|\[BG_COLOR\]|$bg_color|sg;
+    $html_str =~ s|\[COMPLETED_PERCENT\]|$progress|sg;
+    $fg_view->load_alternate_html( $html_str, '[progress:$progress]' );
+}
+
+<web-browser.last_progress> = $progress;
+
+if ( $progress == 100 ) {
+    $view->signal_handler_disconnect(
+        delete <web-browser.signal_id.load_progress> )
+        if defined <web-browser.signal_id.load_progress>;
+    delete <web-browser.last_progress>;
+}
+
+return 0;
+
+# ______________________________________________________________________________
+#\\XDXYZJEGXJRH3DHWNHSCWPQ5KAH2XSU7AEZVIFWRI5YL6GO354OXD2V3C3DGMZX3LWB3JDCMTN5NG
+# \\ EDJMG4RXJZPXBVMNJ6YHVLRLZUEYSNRG6SZACOECO5EE3V53RNEZ \\// C25519-BASE-32 //
+#  \\// AWY3MXLQFGS7VNRN42SA6GUPE2BJ6LU3J2TPI65LUKAUKJISYAI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

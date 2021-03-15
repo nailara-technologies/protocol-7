@@ -1,0 +1,24 @@
+# >:]
+
+# name = web-browser.callback.load_fail_page
+
+my $bg_index = <web-browser.overlay.index.bg>;
+my $bg_view  = <web-browser.gtk_obj.view>->{$bg_index};
+my $bg_color = <web-browser.bg_color> // '#000013';
+
+<locales.string.failed_to_load> //= 'cannot load web-page';
+
+my $fail_page_ref = <[file.slurp]>->(<web-browser.error_page>);
+$$fail_page_ref =~ s|\[ERR_MSG\]|<locales.string.failed_to_load>|sg;
+$$fail_page_ref =~ s|\[BG_COLOR\]|$bg_color|sg;
+
+$bg_view->load_alternate_html( $$fail_page_ref, '[error:unknown]' );
+<[web-browser.swap_views]>;
+
+return 0;
+
+# ______________________________________________________________________________
+#\\ARQ3FYDKNKQTWYKYY7WVZZPSP2FRBZP7MQGMTIYQQMBPNIKK33PP3RLBNY7YFUE7MPL2QVIXKRGEG
+# \\ AXQ5NK5X54RIIMVSRB5S5NG2IOSDM56F5SFMKSYWKTAJ4UQIORP4 \\// C25519-BASE-32 //
+#  \\// YTY4U6W5K3LX3DDY3AK2DIZAZC6J3LXLUEOCQIIWGQ4RLXU7KAY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

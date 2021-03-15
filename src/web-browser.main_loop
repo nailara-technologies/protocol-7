@@ -1,0 +1,39 @@
+# >:]
+
+# name = web-browser.main_loop
+
+if ( defined <base.perlmod.loaded>->{'Glib::Event'}
+    and <base.perlmod.loaded>->{'Glib::Event'} == 1 ) {
+    <[base.log]>->( 1, "entering main loop..," );
+    Gtk3->main;
+    CORE::exit(0);
+} else {
+
+    map { <[base.log]>->( 1, $ARG ) } (
+        ':',
+        ":  << 'Glib::Event' module is not available, >>",
+        ':  <<  :. entering alternative main loop .., >>', ':'
+    );
+    <web-browser.main-loop.wakeup-interval> = 0.24;
+    Event->idle(    ## <-- also create 'base.event.add_signal' routine ##  [LLL]
+        cb => sub {
+            $SIG{'ALRM'} = sub { }; ## <-- will wake up from waiting gtk loop ##
+            my $wakeup_interval = <web-browser.main-loop.wakeup-interval>
+                //= 0.24;
+            Time::HiRes::alarm($wakeup_interval) if !<window.scrolling>;
+            Gtk3->main_iteration_do();
+            alarm 0;                ## <-- returned, disabling alarm signal ##
+
+            return 1;
+        },
+        repeat => 1
+    );
+    <[event.loop]>;
+    <[base.exit]>;
+}
+
+# ______________________________________________________________________________
+#\\OXV32ENMQK3PAVEQTHEI4ST75OWYCVESA6FOWRFU5SJ2Y5XDP7C2SYF76H2TEJA5J3L7EREB2IPHO
+# \\ MOASZSWWAE7YI7NXUNPC43ZBJ2KKI42GESGA7W5VUQRF3OBQOMH5 \\// C25519-BASE-32 //
+#  \\// XCKLML5GME2T5KJ4UB3IDG2TAN67CE3GZFJNMMRFZOBPQSDTEAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

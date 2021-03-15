@@ -1,0 +1,39 @@
+# >:]
+
+# name  = web-browser.cmd.resume
+# descr = 'unpause' slideshow
+
+return { 'mode' => 'nak', 'data' => 'slideshow was not paused' }
+    if !<web-browser.slideshow.paused>;
+
+<web-browser.slideshow.paused> = 0;
+
+my @url_list = @{<web-browser.url.list>};
+
+if ( !@url_list ) {
+    <web-browser.slideshow.running> = 0;
+    return { 'mode' => 'nak', 'data' => 'url list is empty' };
+}
+<web-browser.slideshow.url_index> = 0
+    if <web-browser.slideshow.url_index> >= @url_list;
+
+my $looped = 0;
+while ( $looped < 2
+    and $url_list[<web-browser.slideshow.url_index>] eq '[PAUSE]' ) {
+    <web-browser.slideshow.url_index>++;
+    if ( <web-browser.slideshow.url_index> >= @url_list ) {
+        <web-browser.slideshow.url_index> = 0;
+        $looped++;
+    }
+}
+
+<web-browser.slideshow.status> = 'load';
+<[web-browser.handler.slideshow]>;
+
+return { 'mode' => 'ack', 'data' => 'resumed slideshow' }
+
+# ______________________________________________________________________________
+#\\EHHQBEKRFWA6E6HQTTE4LBR2DSJL43VKXNPWPC5SC26W4E6QMWFGFR7PTHY7NYJIFPY3PGTRNPR5O
+# \\ VKJM55YTRUOINSP2KCJIHU4H2BQDEH2DD43PDACVJFP2JTQPZYUE \\// C25519-BASE-32 //
+#  \\// EPQUPKOCGIIIP2HFQHDIE4IF6DWQJJ2CSLEW4RDLJHXDT2AKCDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
