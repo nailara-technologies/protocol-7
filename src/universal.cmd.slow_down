@@ -15,13 +15,13 @@ my $param_str = defined $percent ? " [$percent%]" : '';
 
 if (<universal.cfg.autospeed_notrans>) {
     <universal.cfg.fade_on_switch> = 0;
-    <[base.log]>->( 1, " : mpv / browser fading transition disabled" );
+    <[base.log]>->( 1, " : mpv / web-browser fading transition disabled" );
 }
 
-my $cmd_params = { 'command' => "browser.slow_down" };
+my $cmd_params = { 'command' => "web-browser.slow_down" };
 $cmd_params->{'call_args'}->{'args'} = $percent if defined $percent;
 
-<[base.log]>->( 1, " : relaying slow_down command to browser child ..." );
+<[base.log]>->( 1, " : relaying slow_down command to web-browser child ..." );
 <[base.protocol-7.command.send.local]>->($cmd_params);
 
 if ( defined $percent ) {
@@ -36,7 +36,7 @@ if ( defined $percent ) {
 }
 
 # ______________________________________________________________________________
-#\\36FPMAQC2SJ7MEL4TFNOXOQZCT4XZ64Z74WPVBVEBKX3GKIQAYFGWPEX4HXR27TCLDJSCDOLW4MJA
-# \\ U2J2Q2QO2JJM6XHZGVYEH2HRA625QU6TNASZ6TLKBU2CNMPXRQWV \\// C25519-BASE-32 //
-#  \\// UQUZJDZ4L2OR3LNC6V2YLVQEEZUSQKOBEXL2R5BTTCTTII6PCCA \\ CODE SIGNATURE \\
+#\\P4G3L2DLEN5G4PXME77XBB4QYFN4S6FR2OMT5QMWUGIYU6VFZ4MBS4UVQXAI23KJ4JQ7MTSYX345C
+# \\ 6VUXTQXKLM6U6DBFXGB7EORL3NET4JTTFUWNQZGRGURIALBOG5RR \\// C25519-BASE-32 //
+#  \\// WVZBOY3CDLDJUFTFPMO4BOZEPN5BULRZQKXPJJJBXQBXEE5COAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

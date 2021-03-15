@@ -1,0 +1,23 @@
+# >:]
+
+# name  = web-browser.cmd.scroll_stop
+# descr = stop currently active page scrolling
+
+my $reply_id = $$call{'reply_id'};
+
+return { 'mode' => 'nak', 'data' => 'no scrolling in progress' }
+    if !<window.scrolling>;
+
+return { 'mode' => 'nak', 'data' => 'stop request already sent' }
+    if <window.scroll.stop>;
+
+<window.scroll.stop>          = 1;
+<window.scroll.stop_reply_id> = $reply_id;
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\CKSVIMDHR4LMEBZ2GKASXMLQXS5KD7MQTHQJYECV2STF63QFFFOO3A3JYQHBSF3ULMEHFSRDQCRTS
+# \\ XOOTN5JGYLUTIDWNUKXADDO23GFXJHPRKZ577KBOSGS6DHBNAACU \\// C25519-BASE-32 //
+#  \\// PS7WAYRBHEVO4NORW5TDP4YZYSKTTUZ4G7IX23NTYCU2JMW7QAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

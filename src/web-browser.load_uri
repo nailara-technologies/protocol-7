@@ -1,0 +1,113 @@
+# >:]
+
+# name = web-browser.load_uri
+
+return if defined <web-browser.shutdown> and <web-browser.shutdown>;
+
+my $load_uri = shift;
+
+if ( not defined $load_uri or !length($load_uri) ) {
+    <[base.log]>->( 0, "load_uri: uri parameter required." );
+    return;
+}
+
+if (<window.scrolling>) {
+    <window.scroll.stop>              = 1;
+    <web-browser.slideshow.running>   = 0;
+    <web-browser.load_at_scroll_stop> = $load_uri;
+    return;
+}
+
+$load_uri = "file://$load_uri" if $load_uri =~ m|^/|;
+$load_uri = "http://$load_uri" if $load_uri !~ m|^\w+:|;
+
+##[loading on to bg view]###
+my $bg_index = <web-browser.overlay.index.bg>;
+my $bg_view  = <web-browser.gtk_obj.view>->{$bg_index};
+##[progress bar on fg view]###
+my $fg_index = <web-browser.overlay.index.fg>;
+my $fg_view  = <web-browser.gtk_obj.view>->{$fg_index};
+
+my $bg_resource = $bg_view->get_main_resource;
+my $fg_resource = $fg_view->get_main_resource;
+
+<web-browser.current_view> = $bg_view;
+<web-browser.url_flags>    = {};
+
+if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
+    map {
+        my ( $flag_name, $flag_param ) = split( m|=|, $ARG );
+        $flag_param //= 1;
+        <web-browser.url_flags>->{ lc($flag_name) } = $flag_param
+    } split( m{\|}, $1 );
+}
+
+<web-browser.slideshow.temp_delay> = <web-browser.url_flags.delay>
+    if defined <web-browser.url_flags.delay>
+    and <web-browser.url_flags.delay> =~ m|^\d+(\.\d+)?$|;
+
+<[base.log]>->(
+    2,
+    "(i) slideshow delay is "
+        . <web-browser.slideshow.temp_delay>
+        . " seconds.,"
+) if defined <web-browser.slideshow.temp_delay>;
+
+<web-browser.load_uri> = $load_uri;
+
+<[web-browser.process_url_flags]>;
+
+<[base.log]>->( 2, ":. loading uri '$load_uri'.," );
+
+<web-browser.time.load_start> = <[base.time]>->(3);
+
+if ( defined <web-browser.keep_text_zoom_path> ) {
+    my $settings     = $bg_view->get_settings;
+    my $skip_pattern = qr{^file://<web-browser.keep_text_zoom_path>};
+    if ( $load_uri =~ $skip_pattern ) {
+        $settings->set_zoom_text_only(1);
+    } else {
+        $settings->set_zoom_text_only( <web-browser.zoom_text_only> ? 1 : 0 );
+    }
+    $bg_view->set_settings($settings);
+}
+
+<[web-browser.disconnect_signal.received_data]>;
+
+<web-browser.signal_id.received_data>
+    = $fg_resource->signal_connect( 'received-data',
+    $code{'web-browser.handler.progress_changed'} )
+    if <web-browser.cfg.show_progress_bar>
+    and defined $fg_resource
+    and not defined <web-browser.signal_id.received_data>;
+
+<web-browser.signal_id.load_changed> = $bg_view->signal_connect(
+    'load-changed' => sub { $code{'web-browser.handler.load_changed'}->(@_) } );
+
+<web-browser.signal_id.load_failed> = $bg_view->signal_connect(
+    'load-failed' => sub {
+        $code{'web-browser.handler.signal.load_failed'}
+            ->(@_)    # <-- reloadable code.
+    }
+);
+
+# <web-browser.signal_id.load_timeout>
+#    = Glib::Timeout->add_seconds( 1, $code{'web-browser.handler.load_timeout'},
+#    undef, 10 );
+
+# store current url in /var/tmp in case web-browser engine segfaults
+my $url_file     = '/var/tmp/.protocol-7.web-browser.' . $PID;
+my $file_content = "current_url : $load_uri\nurl_flags   : "
+    . join( ', ', sort keys %{<web-browser.url_flags>} ) . "\n";
+<[file.put]>->( $url_file, $file_content ) or warn "$url_file: $OS_ERROR";
+#
+
+$bg_view->load_uri($load_uri);
+
+return 0;
+
+# ______________________________________________________________________________
+#\\GTSVAMSC44YKTW6OEKFL7W7E3OYI7RYF56VE6SHIQZ66UZB74TNIU2LRJJV3PSN4M3PQDXO526R5C
+# \\ LPF2UVOGWJXZQ4QP4RKGCPWQEJA6AXVNVKO3YMN3FQQQQEQPXIQG \\// C25519-BASE-32 //
+#  \\// X7YP2O7OXFP4SRVGLOMXEXIVWD26WLC4HI4A4A6RZPJBGLD5UCI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

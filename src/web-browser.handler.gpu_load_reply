@@ -1,0 +1,62 @@
+# >:]
+
+# name = web-browser.handler.gpu_load_reply
+
+my $params = shift;
+
+<web-browser.cfg.max_gpu_load> //= 67;    # setting sane(?) defaults ..
+my $limit       = <web-browser.cfg.max_gpu_load>;    # % GPU max. load target
+my $stat_window = <web-browser.cfg.gpu_load_secs>;
+
+my $is_scrolling = <window.scrolling> // 0;
+
+my $accel_factor    = 1.42 / $stat_window;
+my $upper_tolerance = 1.2;
+my $lower_tolerance = 4.2;
+
+return if $params->{'cmd'} ne 'ACK';
+my $load_percent = $params->{'call_args'}->{'args'};
+
+my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
+
+<web-browser.redraw_fps.slowdown_target>
+    //= $percent_exceeded > 0 ? $percent_exceeded : 0; # initial value (adjusts)
+
+$accel_factor *= 0.42 if $percent_exceeded < 0;
+$accel_factor *= 0.01 if $percent_exceeded < 0 and !$is_scrolling;
+
+my $target_percent = <web-browser.redraw_fps.slowdown_target>;
+my $old_target     = $target_percent;
+
+$target_percent
+    = sprintf( "%.2f", $target_percent + $percent_exceeded * $accel_factor );
+
+$target_percent = 100 if $target_percent > 100;
+$target_percent = 0   if $target_percent < 0;
+
+my $skip = (
+           $percent_exceeded <= 0 and abs($percent_exceeded) < $lower_tolerance
+        or $percent_exceeded > 0  and abs($percent_exceeded) < $upper_tolerance
+) ? 1 : 0;
+
+<web-browser.redraw_fps.slowdown_target> = $target_percent
+    if !$skip;    # SET new val.
+
+# debug section
+$target_percent = <web-browser.redraw_fps.slowdown_target>;
+my $delta_t   = sprintf( "%.2f", $target_percent - $old_target );
+my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
+$delta_str    = '' if $delta_t == 0;
+$load_percent = sprintf( "%.2f", $load_percent );
+<web-browser.debug.loglevel.autospeed> //= 2;
+<[base.log]>->(
+    <web-browser.debug.loglevel.autospeed>,
+    "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
+        . " >- [ SLW ${target_percent}% ]$delta_str"
+);
+
+# ______________________________________________________________________________
+#\\6BSPOEHE3OWN7ZIMPMH7L3LRVXMYF7ZGAPDGASYM4IRZWNUDTODRZQOGPZ24UCNN7CEGBXJKKJ2NS
+# \\ VUZUQM3HOCZNOBY5GGFWVXIJPJUVORZJ7CFQQ4LI3S2JUWXXHZ6S \\// C25519-BASE-32 //
+#  \\// QFEFGOEL6AH4MK5U4AY7DL4JOFB7H5JNDD7QTVKMOPDQMXXHIBQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

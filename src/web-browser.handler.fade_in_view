@@ -1,0 +1,65 @@
+# >:]
+
+# name = web-browser.handler.fade_in_view
+
+my $fg_index = <web-browser.overlay.index.fg>;
+my $bg_index = <web-browser.overlay.index.bg>;
+my $view     = <web-browser.gtk_obj.view>->{$bg_index};
+my $delta_t
+    = sprintf( "%.3f", <[base.time]>->(3) - <web-browser.time.fade_view> );
+my $opacity = <web-browser.fg_opacity>;
+
+if ( !<web-browser.cfg.use_transparency> ) {
+    <web-browser.fg_opacity> = 1;
+} else {
+    <web-browser.fg_opacity> += incr($delta_t);
+}
+
+if ( <web-browser.fg_opacity> >= 1 ) {    # fade in complete
+    <web-browser.fg_opacity>       = 1;
+    <web-browser.status.fade_view> = 0;
+
+    <[web-browser.clear_bg_view]>;
+    delete <web-browser.time.fade_view>;
+    while ( my $reply_id = shift @{<web-browser.fade.reply_ids>} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => <web-browser.fade.reply_mode>,
+                'data' => <web-browser.fade.reply_msg>
+            }
+        );
+        if ( !@{<web-browser.fade.reply_ids>} ) {
+            delete <web-browser.fade.reply_mode>;
+            delete <web-browser.fade.reply_msg>;
+        }
+    }
+
+    <[base.log]>->( 2, "[view_id:$fg_index] fade-in completed." );
+
+    <web-browser.time.fade_complete> = <[base.time]>->(3);
+
+    <[web-browser.callback.load_finished]>;
+}
+
+<web-browser.gtk_obj.scrolled_window>
+    ->{$fg_index}->set_opacity(<web-browser.fg_opacity>);
+
+sub incr {
+    my $dt   = shift;
+    my $dt_2 = $dt - 4;
+    $dt_2 = 0 if $dt_2 > 0;
+    my $t_inc = $dt - 2;
+    my $increase
+        = ( 1.1 - <web-browser.fg_opacity> ) * 0.22 *
+        <[base.calc_gauss]>->($t_inc);
+    $increase
+        += ( ( 1.1 - <web-browser.fg_opacity> ) * <[base.calc_gauss]>->($dt_2) )
+        / 4;
+    return sprintf( "%.5f", $increase );
+}
+
+# ______________________________________________________________________________
+#\\YVNH6CTWEYJOEJFQ6JA27KWOQSNMS3KRUY3DKQNY6Z5L6R5O2JVH3NS22BLH7MKROO3DKRSUDU5XC
+# \\ NHOSVJELWXKN6SI5FPO6WGQJRCJUQYKECRHV3AHVMFI7B24IIO2H \\// C25519-BASE-32 //
+#  \\// 2WQEVXKBUETTPDA3ESFOJVP2MQCCMGAWSB5IVYGYNJQ3TXQEMDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

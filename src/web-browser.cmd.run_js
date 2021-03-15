@@ -1,0 +1,72 @@
+# >:]
+
+# name  = web-browser.cmd.run_js
+# descr = run javascipt in foreground view
+
+my $reply_id  = $$call{'reply_id'};
+my $fg_index  = <web-browser.overlay.index>->{'fg'};
+my $view      = <web-browser.gtk_obj.view>->{$fg_index};
+my $view_uri  = $view->get_uri();
+my $settings  = $view->get_settings();
+my $js_string = $$call{'args'} // '';
+
+return {
+    'mode' => 'NAK',
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+return { 'mode' => 'nak', 'data' => 'expected javascript command string' }
+    if !length($js_string);
+
+<[base.log]>->( 2, "[$view_uri] running javascript : '$js_string'" );
+
+$js_string = "throw $js_string";    # see comment below for reason ..,
+
+$view->run_javascript(
+    $js_string,    # <-- raw javascript
+    undef,         # <-- GCancellable
+    sub {          # <-- :[LLL]: create external (reloadable) handler... <<!>>
+        my $self   = shift;    # <- WebView
+        my $result = shift;    # <- WebKitJavascriptResult
+        my $rep_id = shift;    # <- nailara internal reply id
+        my $s_res  = '';
+
+        ## [ was unable to access value, so using exception \ throw to get it. ]
+        #
+        #         my $s_val = $s_res->get_js_value();
+        #         my $s_con = $s_val->get_property('context');
+        #         my $js_vm = $s_con->get_property('virtual-machine');
+
+        eval { $s_res = $self->run_javascript_finish($result) };
+        ( my $ex_str = $EVAL_ERROR ) =~ s| at /usr/.+\n$||;
+        $ex_str =~ s|^[^ ]+ ||;
+
+        my $re_mode = $ex_str =~ /^[^:]*Error[^:]*:/ ? 'nak' : 'ack';
+        $re_mode = 'data' if $ex_str =~ /\n/;
+        $ex_str  = '<!> "throw" already being prepended internally <!>'
+            if $ex_str eq "SyntaxError: Unexpected keyword 'throw'";
+
+        <[base.log]>->(
+            0,              sprintf "<!JSerr!> [%s] %s",
+            $self->get_uri, $ex_str
+        ) if $re_mode eq 'nak';    # <- has JS error..,
+
+        <[base.callback.cmd_reply]>->(
+            $rep_id,
+            {   'mode' => $re_mode,
+                'data' => $ex_str
+            }
+        );
+
+    },
+    $reply_id
+);
+
+return { 'mode' => 'deferred' };
+
+# ______________________________________________________________________________
+#\\44BUI5RAVP3U3ANFSTUP3WZVSZJPW4YZ5CCA6762ZAN7XDS5KETUERUQZ6VEULM43B4MD3S2QH7C2
+# \\ C6WDT26TWD7NOWTUINZJ7OVOBFIVMBWWXPGOYAGXTJEQWB3HZXVT \\// C25519-BASE-32 //
+#  \\// 2PGBN5TFTPY4JWR2ZUD4I54MLKJS6VY6ABCHRMDW62CGHEOLCCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

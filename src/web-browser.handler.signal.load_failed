@@ -1,0 +1,93 @@
+# >:]
+
+# name = web-browser.handler.signal.load_failed
+
+my ( $view, $sig_status, $error_uri, $glib_error ) = @_;
+
+my $load_uri = $error_uri // <web-browser.load_uri>;
+
+my $resource    = $view->get_main_resource;
+my $response    = defined $resource ? $resource->get_response    : undef;
+my $status_code = defined $response ? $response->get_status_code : 0;
+
+# my $fg_index = <web-browser.overlay.index.fg>;
+# my $bg_index = <web-browser.overlay.index.bg>;
+# my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+$view->signal_handler_disconnect( delete <web-browser.signal_id.load_progress> )
+    if defined <web-browser.signal_id.load_progress>;
+
+$view->signal_handler_disconnect( delete <web-browser.signal_id.load_changed> )
+    if defined <web-browser.signal_id.load_changed>;
+
+###
+use Text::Unidecode;
+###
+
+my $reason_txt = unidecode( $glib_error->{'message'} );
+my $title      = $view->get_title // '';
+
+<[web-browser.stop_timeout]>;
+
+# my $status_code = defined $message ? $message->get('status-code') : undef;
+
+# my $st_txt     = defined $status_code ? " ($status_code)" : '';
+# my $reason_txt = $st_txt;
+#
+#
+# $reason_txt .= " [$title]" if $title eq '404 Not Found';
+# $reason_txt = " [$1]"
+#     if $title =~ /^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$/i;
+#
+# if (    <web-browser.init_proxy>
+#     and not defined $status_code
+#     and !length($reason_txt)
+#     and !length($title) ) {
+#     my $check_sock = IO::Socket::IP->new(
+#         PeerAddr => <web-browser.cfg.proxy_addr>,
+#         PeerPort => <web-browser.cfg.proxy_port>,
+#         Proto    => 'tcp',
+#         Timeout  => 0.2
+#     );
+#     if (   not defined $check_sock
+#         or !-S $check_sock
+#         or !$check_sock->connected() ) {
+#         $reason_txt = ' [proxy unreachable!]';
+#     } else {
+#         $check_sock->close();
+#     }
+# }
+
+my $err_msg = "failed to load uri '$error_uri' [$reason_txt]";
+<web-browser.last_err_msg> //= '';
+my $loglevel = <web-browser.last_log_level> //= 0;
+if ( $err_msg eq <web-browser.last_err_msg> ) {
+    $loglevel++ if <web-browser.last_log_level> < 2;
+} else {
+    $loglevel = 0;
+}
+
+$loglevel = 2 if $reason_txt eq 'Load request cancelled';
+
+<web-browser.last_err_msg>   = $err_msg;
+<web-browser.last_log_level> = $loglevel;
+$err_msg .= ' <...>' if $loglevel > 0;
+<[base.log]>->( $loglevel, $err_msg );
+
+<web-browser.slideshow.temp_delay> = <web-browser.slideshow.err_delay>;
+
+<web-browser.fade.reply_mode> = 'nak';
+<web-browser.fade.reply_msg>  = 'loading failed';
+
+#<[base.callback.cmd_reply]>->(
+#    $reply_id,
+#    { 'mode' => 'nak', 'data' => "failed to load" . $reason_txt }
+#);
+
+Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
+
+# ______________________________________________________________________________
+#\\YE5UYOU5YJGGGRQY552WOHQ5I7HMXL5XDIQE7ALYB5MDCCZC4RRKF6SMX3DEOFCPAYOPLIGOCHF52
+# \\ LBSPZKPH5DYC3RCATSK7A7LEABWOTMQEAUV4NWD4YNNB4YFX7HHF \\// C25519-BASE-32 //
+#  \\// 72IXGUGJJABUNLNYGRCF4HYBRFB42XCE4GAPGO6ZR2DM2SUUWCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

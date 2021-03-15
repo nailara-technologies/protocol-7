@@ -1,0 +1,64 @@
+# >:]
+
+# name = web-browser.process_subcfg
+
+<web-browser.subcfg> //= {};
+
+<web-browser.subcfg>->{'adblock'}    //= 0;
+<web-browser.subcfg>->{'noscript'}   //= 0;
+<web-browser.subcfg>->{'auto_speed'} //= 0;
+
+<[base.log]>->( 1, "processing composition tile subconfig..," );
+
+if ( <web-browser.subcfg>->{'adblock'} ) {
+    <web-browser.cfg.use_proxy> = 'auto';
+    <[base.log]>->( 1, ":  adblock enabled : [proxy:auto]" );
+}
+
+if ( <web-browser.subcfg>->{'noscript'} ) {
+
+    if ( <web-browser.slideshow.no_scroll>
+        or !<web-browser.slideshow.autostart>
+        and !<web-browser.slideshow.running> ) {
+        <web-browser.cfg.javascript_enabled> = 0;
+        <[base.log]>->( 1, ": noscript enabled : [javascript:off]" );
+    } else { ### current autoscroll implementation requires javascript ### [LLL]
+        <[base.log]>->( 1, ": noscript enabled but conflicts with autoscroll" );
+        <[base.log]>->( 1, ": :. <<< skipping 'noscript' tile setting >>>" );
+    }
+}
+
+if (    defined <web-browser.subcfg.scroll_speed>
+    and <web-browser.subcfg.scroll_speed> =~ m|^\d+$|
+    and <web-browser.subcfg.scroll_speed> >= 1
+    and <web-browser.subcfg.scroll_speed> <= 10 ) {
+    <web-browser.cfg.scroll_speed> = <web-browser.subcfg.scroll_speed>;
+    <[web-browser.calc_scroll_speed]>;
+    <[base.log]>->(
+        1,
+        sprintf(
+            ": cfg scroll speed : %2s  [ %s FPS ]",
+            <web-browser.cfg.scroll_speed>,
+            <web-browser.autoscroll.fps>
+        )
+    );
+} elsif ( defined <web-browser.subcfg.scroll_speed> ) {
+    <[base.log]>->(
+        0,
+        "invalid scroll speed '"
+            . <web-browser.subcfg.scroll_speed>
+            . "' configured [1..10]"
+    );
+    delete <web-browser.subcfg.scroll_speed>;
+}
+
+if ( <web-browser.subcfg>->{'auto_speed'} ) {
+    <[base.log]>->( 1, ": auto_speed enabled : [gpu load limit]" );
+    <[web-browser.enable_auto_speed]>;
+}
+
+# ______________________________________________________________________________
+#\\GW65RFL56XCGUBM2NNBBGTFDEZPC35FIPUQNESJQQ2APFWIMRK6QJK5XHAPUPUAAJ547CMBY564ZK
+# \\ RQLW5DSFG2KMIBKQLH56BTRTAWENXNEHLH6LUBLIQB72RFTX7HTS \\// C25519-BASE-32 //
+#  \\// FYSPTPN4VKEKVDVEK2HS5W6DEIDB52M4L2VULQHYXIZYRTHHWCQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

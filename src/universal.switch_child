@@ -40,7 +40,7 @@ if ( not defined $window_id ) {
 
 if (    <universal.cfg.fade_on_switch>
     and !<universal.sequence.startup>
-    and $agent_name ne 'browser' ) {
+    and $agent_name ne 'web-browser' ) {
 
     <universal.timer.switch>->{$window_id}->{'fade'}->cancel
         if defined <universal.timer.switch>->{$window_id}->{'fade'}
@@ -85,13 +85,13 @@ if (<universal.start-anim_running>) {
 <[universal.hide_except]>->($agent_name)
     if <universal.sequence.startup>
     or ( !<universal.cfg.fade_on_switch>
-    and $agent_name ne 'browser' );
+    and $agent_name ne 'web-browser' );
 
 <[base.protocol-7.command.send.local]>
-    ->( { 'command' => 'browser.clear_views' } )
+    ->( { 'command' => 'web-browser.clear_views' } )
     if !<universal.sequence.startup>
     and !<universal.cfg.fade_on_switch>
-    and $agent_name ne 'browser';
+    and $agent_name ne 'web-browser';
 
 <universal.sequence.startup> = 0;
 
@@ -114,7 +114,7 @@ if ( $agent_name eq 'mpv' ) {    # check if mpv actually resumed playing
 }
 
 # ______________________________________________________________________________
-#\\5GKQ73KJ6IJII2EHBGR3LHV6OC24R6OOB5OK5PKCBGZTU6KIA76LLQIFWZIX4TGDIJXKQC7Y24FOE
-# \\ XQ2C5IBORQMA3Q74FSUDLXQHHUNVQQJ2SC7ILN73QQFTJLTRZRNU \\// C25519-BASE-32 //
-#  \\// IMUB4HHLNDSADXH3JO27XBP25MFI5ELLU7Y5YARDCMNWBZP6IAY \\ CODE SIGNATURE \\
+#\\RD27G4EMHBM6CI6RAPGOC3JZC7GSMOZPTIL3OGMEWVWU7CL56OXPONEDPA3NBR74WRT6SFM2LKSQK
+# \\ N3EOBSWA6LXAP66ZVIQXXZTQBQ63UOCASBPFNRF3DVV3HSOOB7XN \\// C25519-BASE-32 //
+#  \\// UWQEWVVIZCTZN3TSV2UI63TWDEJLYPRUW74XPVHCWQ23EAFMGDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
