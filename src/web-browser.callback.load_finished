@@ -1,0 +1,36 @@
+# >:]
+
+# name = web-browser.callback.load_finished
+
+my $fg_index  = <web-browser.overlay.index.fg>;
+my $call_mode = shift // 'scroll_check';          # [scroll_check|no_scroll]
+
+if (    <web-browser.slideshow.running>
+    and !<web-browser.slideshow.no_scroll>
+    and !<window.scrolling>
+    and $call_mode ne 'no_scroll' ) {
+
+# next calls web-browser.callback.load_finished again if at end of page already!
+    <[web-browser.scroll_start]>;
+
+} else {
+    if (<web-browser.slideshow.running>) {
+        <web-browser.slideshow.status> = 'load_finished';
+        <[web-browser.handler.slideshow]>;
+    } else {
+        while ( my $reply_id = shift @{<web-browser.fade.reply_ids>} ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => <web-browser.fade.reply_mode>,
+                    'data' => <web-browser.fade.reply_msg>
+                }
+            );
+        }
+    }
+}
+
+# ______________________________________________________________________________
+#\\D2WIN7W2IALRQNF2A27J5YRHXCPHBFKONWGRTEYRI6YXO5F6FMZXAQ55TS7DSO2MJALQJPX4FYZ5Q
+# \\ KIMXFNCIQDLQEH3Q7FLAN5ZRGEE6QURGXS2GPTCEEOBWVE46BVYL \\// C25519-BASE-32 //
+#  \\// KMR4VDXIA3RQVEMJ7DDHHWPPWNYDLGDNQOBVTLWWNIM34YHCEDI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

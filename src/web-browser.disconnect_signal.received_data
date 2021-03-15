@@ -1,0 +1,23 @@
+# >:]
+
+# name = web-browser.disconnect_signal.received_data
+
+my $rd_sig_id = delete <web-browser.signal_id.received_data>;
+
+return if not defined $rd_sig_id;
+
+foreach my $v_layer ( 'fg', 'bg' ) {
+    my $view = <web-browser.gtk_obj.view>
+        ->{ <web-browser.overlay.index>->{$v_layer} };
+    my $resource = $view->get_main_resource;
+    next if not defined $resource;
+
+    $resource->signal_handler_disconnect($rd_sig_id)
+        if $resource->signal_handler_is_connected($rd_sig_id);
+}
+
+# ______________________________________________________________________________
+#\\OLKDEAHKXOVK7CQHWVAFFPT64BMH3P7YIPTMB7CD37VZQZJBGABMCED367H3QUBJ56BNDXPYQA4Y4
+# \\ B4CHOKN4QEQ2EOEH4PGCXV3JQMIAOIWWIQOXOCEMLNMWIQ5LXOPY \\// C25519-BASE-32 //
+#  \\// YJZQXJSHU5VSDMT7QN25LPZE24ASEUCFHPURFKWUTRDNDH63KDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

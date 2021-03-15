@@ -1,0 +1,22 @@
+# >:]
+
+# name  = web-browser.cmd.fg_insert
+# descr = insert page on foreground view
+
+return { 'mode' => 'nak', 'data' => 'web-browser agent shutdown in progress' }
+    if defined <web-browser.shutdown> and <web-browser.shutdown>;
+
+my $load_uri = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'uri parameter required!' }
+    if not defined $load_uri or !length($load_uri);
+
+<[web-browser.fg_view_insert]>->($load_uri);
+
+return { 'mode' => 'ack', 'data' => 'loading to front view!' };
+
+# ______________________________________________________________________________
+#\\QWCGIT4VLIYPKWQJHPJBNBYZMEURFS4D62LERG2UOXRJXQJMWEO3VQWLXXSPBO5KMVEZUXABR35KS
+# \\ HSNV2BBN5E75L235KYRS26P3ZIED4VGSUWYXI6GH6YL737UM4KCI \\// C25519-BASE-32 //
+#  \\// R6DHKMIC7O6KNDYVQNPEGIXMIGVO63DMXZH3MJGZ6INYW5ZPQBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

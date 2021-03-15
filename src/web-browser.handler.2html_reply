@@ -1,0 +1,34 @@
+# >:]
+
+# name = web-browser.handler.2html_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    <[base.log]>->(
+        0, "unable to fetch url [" . $reply->{'call_args'}->{'args'} . "]"
+    );
+    return;
+}
+
+my $url   = $reply->{'call_args'}->{'args'};
+my $index = $reply->{'params'}->{'index'};
+
+<web-browser.url.list_reply>->[$index] = $url;
+@{<web-browser.url.list>} = ();
+
+map { push( @{<web-browser.url.list>}, $ARG ) if $ARG !~ /^\!/ }
+    @{<web-browser.url.list_reply>};
+
+if (    @{<web-browser.url.list>}
+    and <web-browser.slideshow.autostart>
+    and !<web-browser.slideshow.running> ) {
+    <[base.log]>->( 1, ": starting slideshow.." );
+    <[web-browser.cmd.start_slideshow]>;
+}
+
+# ______________________________________________________________________________
+#\\CKSTCZMFTTZMPRLG2G4FJYUNMBDAARCPSSQ4XRMPNJLXQRD7DTTBSTHO2QWUS4QZIXYR4H5ZYNPL6
+# \\ ANIFVCGNX6YWXOZHIZK573EM4QTAU22KNVOBGTCLH4CIT5IQGL5J \\// C25519-BASE-32 //
+#  \\// LG54C7POLN4KMTXCGTP6KO6D2JY4GCJO3RVIUM4PSFANMNSQ4AY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

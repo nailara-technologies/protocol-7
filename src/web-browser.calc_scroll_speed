@@ -1,0 +1,29 @@
+# >:]
+
+# name = web-browser.calc_scroll_speed
+
+# load based slowdown
+<web-browser.redraw_fps.slowdown>        //= 0;
+<web-browser.redraw_fps.slowdown_target> //= 0;
+my $slowdown_factor = ( 100 - <web-browser.redraw_fps.slowdown> ) / 100;
+
+# configured scroll speed
+<web-browser.cfg.scroll_speed> //= 5;
+<web-browser.cfg.scroll_speed> = 10 if <web-browser.cfg.scroll_speed> > 10;
+<web-browser.cfg.scroll_speed> = 1  if <web-browser.cfg.scroll_speed> < 1;
+
+my $actual_speed = <web-browser.cfg.scroll_speed> * $slowdown_factor;
+$actual_speed = 1 if $actual_speed < 1;
+
+# redraw delay (padding)
+<web-browser.autoscroll.delay>
+    = sprintf( "%.6f", 1 / 60 / ( $actual_speed / 10 ) );
+<web-browser.autoscroll.fps>
+    = sprintf( "%.2f", 1 / <web-browser.autoscroll.delay> );
+<web-browser.autoscroll.cfg_delay> = <web-browser.autoscroll.delay>;
+
+# ______________________________________________________________________________
+#\\HOLWA6XLGNY64PNUI5ZNZV4KAU5DYCJO67MPC6W5NXUSRQYATKUIN5WOPZDPZQD4HO5JFHSFQ6YHG
+# \\ BXN4GLY4763XQX3Q6YTTRDF3LL66R2MVUI72R74UZSAJEMMIGWWU \\// C25519-BASE-32 //
+#  \\// ZHPH52PMB3Z3MBZJM3SZMUSJPUCFAMP2Z5ARTJGWK3GSCRMIYCA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

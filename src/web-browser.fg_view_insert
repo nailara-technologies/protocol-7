@@ -1,0 +1,55 @@
+# >:]
+
+# name  = web-browser.fg_view_insert
+# descr = insert page on foreground view
+
+return if defined <web-browser.shutdown> and <web-browser.shutdown>;
+
+my $load_uri = shift;
+
+die 'uri parameter expected.' if not defined $load_uri or !length($load_uri);
+
+<window.scroll.stop> = 1 if <window.scrolling>;
+
+$load_uri = "file://$load_uri" if $load_uri =~ m|^/|;
+$load_uri = "http://$load_uri" if $load_uri !~ m|^\w+:|;
+
+my $fg_index = <web-browser.overlay.index.fg>;
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+<web-browser.current_view> = $view;
+<web-browser.url_flags>    = {};
+
+if ( $load_uri =~ s|#\[([\w+\_\|]+)\]#$|| ) {
+    map { <web-browser.url_flags>->{ lc($ARG) } = 1 } split( m{\|}, $1 );
+}
+
+<[web-browser.process_url_flags]>;
+
+<[base.log]>->( 2, "loading uri '$load_uri' to front view.." );
+
+if ( not <web-browser.zoom_text_only>
+    and defined <web-browser.keep_text_zoom_path> ) {
+    my $keep_pattern = qr{^file://<web-browser.keep_text_zoom_path>};
+    my $settings     = $view->get_settings;
+    if ( $load_uri =~ $keep_pattern ) {
+        $settings->set_zoom_text_only(1);
+    } else {
+        $settings->set_zoom_text_only( <web-browser.zoom_text_only> ? 1 : 0 );
+    }
+    $view->set_settings($settings);
+}
+
+# store current url in /var/tmp in case web-browser engine segfaults
+my $url_file     = '/var/tmp/.protocol-7.web-browser.' . $PID;
+my $file_content = "current_url : $load_uri\nurl_flags   : "
+    . join( ', ', sort keys %{<web-browser.url_flags>} ) . "\n";
+<[file.put]>->( $url_file, $file_content ) or warn "$url_file: $OS_ERROR";
+
+$view->load_uri($load_uri);
+
+# ______________________________________________________________________________
+#\\V7S4EO4RCTRMY3UXGNTAEXAXOLURMLOYU46YGJ4SMR5CQ7LWH6BAN4XAXXXV33G7TM5IQ5YUTQUBG
+# \\ FPC5I4ZNTIPHARLXDAD3ZLOP3LTIR5XUTIFKXX24E75BNLZN5ZT2 \\// C25519-BASE-32 //
+#  \\// UPBY2SJYY3BC4CH5IFI5IVJ4X2EOAH2UYPIHRCM5MBV6UHAZYBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

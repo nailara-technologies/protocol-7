@@ -15,7 +15,7 @@ my $seperator = <rss.ticker.item_seperator>;
 
 <[base.log]>->( 2, "checking RSS feed for new data..," );
 
-my $response = <rss.browser>->get($rss_url);
+my $response = <rss.web-browser>->get($rss_url);
 
 if ( $response->code == 200 ) {
     <rss.ticker.fail_warned> = 0;
@@ -54,7 +54,7 @@ if ( $response->code == 200 ) {
     move( $output_file . '.NEW', $output_file )
         or die "cannot move '$output_file.NEW' to '$output_file' [ $OS_ERROR ]";
     <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
-    <rss.browser>->commit;
+    <rss.web-browser>->commit;
     return 1;
 
 } elsif ( $response->code == 304 ) {
@@ -105,7 +105,7 @@ if ( $response->code == 200 ) {
 }
 
 # ______________________________________________________________________________
-#\\DRTZTFS37ULBXWTWKRAAGEEUG5PO3MAMALRDLPPLMA5DZ3WDYLLPN5ZSUGPAIP4MVQFAYNR3LGVI2
-# \\ W3CK454TKUAQH5OM5PF5TYAUK7WGC72W4TAEHYBRHQVDAMRYF3GS \\// C25519-BASE-32 //
-#  \\// JBXJQ3TAY5DYZIKKYFMCK23WCHWPB74WL22OXMNLJHLJDLDHGAY \\ CODE SIGNATURE \\
+#\\TQCWRXNFQBTKV6ONSVGXCLW534Z25JFQHMRCDG3U4FZC72NZO6HWBQ46QQFN6HK7DWQV4LMAZYQC4
+# \\ YAE4J6Y3L2G6ABVXSFC54LUTYAJPWSVK77MKXH3R5MXEHZ5DMAWD \\// C25519-BASE-32 //
+#  \\// U76DMW64YUBLMO3W2GC7WF4SSA2AMQDRLIA2LRN4GYUK35RWYDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

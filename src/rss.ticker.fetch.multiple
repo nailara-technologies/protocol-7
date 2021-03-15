@@ -28,7 +28,7 @@ my $got_updates = 0;
 <rss.ticker.fail_warned> //= 0;
 foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$rss_index};
-    my $response = <rss.browser>->get($rss_url);
+    my $response = <rss.web-browser>->get($rss_url);
     if ( $response->code == 200 ) {
         <rss.ticker.fail_warned> = 0;
         <[base.log]>->( 2, ": got fresh RSS content.," );
@@ -69,7 +69,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
 
         $got_updates++;
         <[base.log]>->( 2, ": : wrote txt data to '$url_data_file'" );
-        <rss.browser>->commit;
+        <rss.web-browser>->commit;
 
     } elsif ( $response->code == 304 ) {
         <rss.ticker.fail_warned> = 0;
@@ -180,7 +180,7 @@ move( $output_file . '.NEW', $output_file )
 return 1;
 
 # ______________________________________________________________________________
-#\\4MR4SDG5KQLFQVYW4ZQQ5LUALRM73ELWV5PZC6GBWXCCU6XSZIL7TOV26GCDCFUMDQJKRLRMK65HG
-# \\ 2AALTVEZZUQP4BA4RBMTIDSWPOVSI6RDT3EVV2JVGFV767EWTSSY \\// C25519-BASE-32 //
-#  \\// 7V7DIA6H4T2QJOYVSV5YONRQV3VEIU5CO3VCI6SVQRCBQIB7UAI \\ CODE SIGNATURE \\
+#\\AZZPDIJ32WBQYUSWEHKRUKR2WE6LNN6SYCPYRGD3K5BBVYZFSRPJVAQ72674VBVFCEPKH5OL4LRC2
+# \\ 5ZSJX6SBIQ2ATABIC5RCCQ3OAPWYZQ65EW6PWLTW3KOA5EJBU3MO \\// C25519-BASE-32 //
+#  \\// PYHWMSVWN65WSKNDAFEIMRI3ONPTEDYPAIKNYLJRX6BMHMFP6DY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
