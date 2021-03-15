@@ -17,7 +17,7 @@ my $subname_b32
     = ( defined <system.agent.subname> and length(<system.agent.subname>) )
     ? '.' . encode_b32r(<system.agent.subname>)
     : '';
-my $file_name = "/var/tmp/.protocol-7.browser.crash_pid$subname_b32";
+my $file_name = "/var/tmp/.7/amos-web.crash_pid$subname_b32";
 return if !-f $file_name;
 chomp( my $crash_pid = ${ <[file.slurp]>->($file_name) } );
 unlink($file_name) or warn("$file_name: $OS_ERROR");
@@ -65,7 +65,7 @@ my $s = $next_flags =~ /,/ ? 's' : '';
 );
 
 # ______________________________________________________________________________
-#\\TFZUCE55DOFD5OE3232QFZP7MSBSYS5RO5W7BAYGJN3UH4STYZHF5AMP3H4XCTQF33G7NL3JUV3OS
-# \\ 3VRHX2CMAKFTDCII5AZM3YBGNY55ANUJLRNWPV4X54WFU3JUSIWQ \\// C25519-BASE-32 //
-#  \\// IKBLS4WNZLOFDN7AYLVRO6AXQDFLIONVYIRKEGQ6ZDCNTO5DGCA \\ CODE SIGNATURE \\
+#\\MHIX2WQJDX4FRQGRZKDVG7L7TKNOFV7LWLIM6AK4TU2MI2M37WXMREUFT4ZJOWM3C2TM3I6BOOOM6
+# \\ AYGMBDELZDEKRTUSJ2BHHWY4WAFPTEBDHTB5DG5Q35RKYPW6NERW \\// C25519-BASE-32 //
+#  \\// NKXR2OR7AIHVVYSN27SDKRYCF4VWZX3HJXEGQR5XFPUPVD4GIAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
