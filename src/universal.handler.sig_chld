@@ -26,7 +26,7 @@ do {
                 ? '.' . encode_b32r($agent_subname)
                 : '';
             my $file_name
-                = "/var/tmp/.protocol-7.browser.crash_pid$subname_b32";
+                = "/var/tmp/.7/amos-web.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
                 or warn("$file_name: $OS_ERROR");
             chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
@@ -55,7 +55,7 @@ $SIG{'CHLD'} = 'IGNORE';
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 # ______________________________________________________________________________
-#\\CYDPG4535FF5W2BOYBTHVFNM4DGMY754QIMWEB5MKDSAL7KPGLMTCC2MDSVMTOSQ7FVTMQE3PBV7Q
-# \\ 2FGL2OHM7SCMQ6P62JGN6GVOTJZUDAQBUGMKEIBNZKRBJCVUAYYM \\// C25519-BASE-32 //
-#  \\// H5RQN5N7FQ7FNTMOFGTO4ZZZYW64HMLY4LNLI63LEOVX7PMNUDQ \\ CODE SIGNATURE \\
+#\\W56EH4UQZN5KDFOIBWDNSI2YZAM5BTBB4MFASY2OU2JXQ2V4MUBVSWPVJODA5X4BYN6XZVKKZUTSA
+# \\ 6WMC3WLJAEKISPECQFAHO3IS2EVUZXJQ7YFEZEPZWPXEY7HMCTKH \\// C25519-BASE-32 //
+#  \\// WDVBF4K3MFMYP4HZOD6PESXQWUT3VDVCBFQD4W5KR4BELCJYQCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
