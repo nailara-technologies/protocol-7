@@ -1,0 +1,51 @@
+# >:]
+
+# name  = web-browser.callback.scroll_start_js_result
+# descr = callback invoked from js_call
+
+my $js_result = shift // '';                   # "<scroll_max_Y>:<scroll_pos_Y>"
+my $cb_params = shift;
+my $reply_id  = $cb_params->{'reply_id'};
+my $call_sub  = $cb_params->{'caller'};
+my $window    = <web-browser.gtk_obj.window>;
+
+<window.scrolling> //= 0;
+<window.scroll.reply_id> = $reply_id;
+
+warn "result string not as expected [$js_result], can not scroll."
+    if $js_result !~ m|^(\-?\d+):(\d+)|;
+
+<window.scroll.max>  = $1 // 0;
+<window.scroll.pos>  = $2 // 0;
+<window.scroll.stop> = 0;
+
+if ( <window.scroll.pos> >= <window.scroll.max> ) {
+    return <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'ack', 'data' => 'already at end of page' }
+    ) if defined $reply_id;
+
+    <[base.log]>->( 2, ": skipping auto-scroll [ end of page ]" );
+    <[web-browser.callback.load_finished]>->('no_scroll')
+        if $call_sub eq 'web-browser.callback.load_finished';
+    return;
+
+} else {
+    my $pixels = <window.scroll.max> - <window.scroll.pos>;
+    <[base.log]>->( 2, ": starting auto-scrolling.., [ $pixels pixels ]" );
+}
+
+<web-browser.timer.slideshow>->cancel
+    if exists <web-browser.timer.slideshow>;    # <- chk.
+
+<web-browser.signal_id.auto_scroll>
+    = $window->signal_connect(
+    draw => $code{'web-browser.handler.auto_scroll'} );
+
+$window->queue_draw();
+<window.scrolling> = 1;
+
+# ______________________________________________________________________________
+#\\M5YYLHADC3C2Z3737AMNADOA4XQC4VGTQJJ2CZBRRCCUCJSC4HBGH5NFYAMFJKNLSW2RI37SF75WK
+# \\ CHCYCNGPL744ZZ4SAROXW35WXKFSCMJGGVCLI6UFP5RX7GPVYLLZ \\// C25519-BASE-32 //
+#  \\// LFPCPITSJW4P3EXVKF54D2D6V3ZIVS5H6OL3JROKHPVQDVUUEBA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

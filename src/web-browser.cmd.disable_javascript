@@ -1,0 +1,19 @@
+# >:]
+
+# name  = web-browser.cmd.disable_javascript
+# descr = immediately stops\disables JS execution
+
+return { 'mode' => 'nak', 'data' => 'javascript was not enabled' }
+    if !<web-browser.cfg.javascript_enabled>;
+
+<[base.log]>->( 0, "<<< globally disabling javascript.., [ requested ] >>>" );
+
+<[web-browser.disable_javascript]>;
+
+return { 'mode' => 'ack', 'data' => 'javascript disabled' }
+
+# ______________________________________________________________________________
+#\\DHHSCQJDNLLQKQLEHMMC5JZGZ56OZ3QNBS5I3EBKAJVSYIEUAY4C5I7OH4TRSIGFS6OYRMAXCKFKG
+# \\ 5DT27AHJSSRRWJMGNEOAU2HZJRHF7QJFITXIJCAN2UNFNUC6BNAR \\// C25519-BASE-32 //
+#  \\// HAH26LN2NM5R5ZPJMTQ7HFHKJGYMBGDLSZDT3WAZZXPJUBAP4CI \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

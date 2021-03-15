@@ -1,0 +1,34 @@
+# >:]
+
+# name  = web-browser.start_slideshow
+
+<web-browser.url.list> //= [];
+
+my $min_delay = <web-browser.slideshow.min_delay> //= 7;
+my $url_ref   = <web-browser.url.list>;
+my $url_count = scalar @{$url_ref};
+
+return <[base.log]>->( 0, 'start_slideshow: slideshow is already running.' )
+    if <web-browser.slideshow.running>;
+return
+    <[base.log]>->( 0, 'start_slideshow: emtpy url list, slideshow aborted.' )
+    if !$url_count;
+
+<[base.log]>->( 2, ": :. slideshow min-delay = $min_delay seconds .," );
+
+## current autoscroll implementation requires javascript enabled ### [LLL]
+if (    !<web-browser.cfg.javascript_enabled>
+    and !<web-browser.slideshow.no_scroll> ) {
+    <[base.log]>->( 0, "enabling javascript [ required by autoscroll ]" );
+    <[web-browser.enable_javascript]>;
+}
+##
+
+<web-browser.slideshow.running> = 1;
+<[web-browser.handler.slideshow]>;
+
+# ______________________________________________________________________________
+#\\HGFGHRQKJCVSXE5IOZWJHWJ3TRI2PPR2MPDE74QTLBXRDQ44YESY7MYF7QRS67T7I5JE3K6R57CUS
+# \\ TDRFA23JQ2P2V63RTJFTXGJ7LWJX6ZLIMGOAZXWZOQCPC3P3AXDB \\// C25519-BASE-32 //
+#  \\// VK5O3WULOPXDMBEQ7DPNFAQHHJUEKAQYVNDNEWDDTT46M3EAGAQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

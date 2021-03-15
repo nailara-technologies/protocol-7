@@ -18,15 +18,15 @@ do {
             "<< SEGMENTATION FAULT >> \\ agent '$child_name' [ PID $child_pid ]"
         ) if $e_sig == 11;
 
-        ## record browser segfault [ crash mitigation ] ##
-        if ( $e_sig == 11 and $child_name eq 'browser' ) {
+        ## record web-browser segfault [ crash mitigation ] ##
+        if ( $e_sig == 11 and $child_name eq 'web-browser' ) {
             my $agent_subname = <system.agent.subname>;
             my $subname_b32
                 = ( defined $agent_subname and length($agent_subname) )
                 ? '.' . encode_b32r($agent_subname)
                 : '';
             my $file_name
-                = "/var/tmp/.7/amos-web.crash_pid$subname_b32";
+                = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
                 or warn("$file_name: $OS_ERROR");
             chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
@@ -55,7 +55,7 @@ $SIG{'CHLD'} = 'IGNORE';
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 # ______________________________________________________________________________
-#\\W56EH4UQZN5KDFOIBWDNSI2YZAM5BTBB4MFASY2OU2JXQ2V4MUBVSWPVJODA5X4BYN6XZVKKZUTSA
-# \\ 6WMC3WLJAEKISPECQFAHO3IS2EVUZXJQ7YFEZEPZWPXEY7HMCTKH \\// C25519-BASE-32 //
-#  \\// WDVBF4K3MFMYP4HZOD6PESXQWUT3VDVCBFQD4W5KR4BELCJYQCI \\ CODE SIGNATURE \\
+#\\W6NDY4VPEJLK44IO46DKFKWXDVH52QID2J3KQFZKS3ENPRD7PHRNOXV67FTB4VCPGYGKDUL6ZHDE2
+# \\ CAGEM6DBTKVFH35YC4MVTHKNDZZPGU3G32EJ5HJY762YF7CZQCFK \\// C25519-BASE-32 //
+#  \\// IFLDXX6UXAWDVJXLDTYDEDSRZ66T2GALH4UCPAR2UWY6GXJNWAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

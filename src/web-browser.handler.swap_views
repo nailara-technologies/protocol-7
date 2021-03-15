@@ -1,0 +1,85 @@
+# >:]
+
+# name = web-browser.handler.swap_views
+#  LLL : needs fixes for auto-speed mode (see FPS value)
+
+my ( $widget, $context, $ref_status ) = @_;
+
+my $max_delay = sprintf( "%.6f", 1 / 6 );
+<web-browser.redraw_fps.slowdown>--
+    if <web-browser.redraw_fps.slowdown> == 100;    # / by0
+my $slowdown_delay
+    = sprintf( "%.6f",
+    1 / ( ( 100 - <web-browser.redraw_fps.slowdown> ) * 60 ) );
+
+<web-browser.swap.update_delay>      //= 1 / 60;               # initial FPS
+<web-browser.swap.update_start_time> //= <[base.time]>->(6);
+<web-browser.swap.brake_count>       //= 0;
+my $xccel_steps = 0.00001;
+
+if (<web-browser.status.fade_view>) {
+
+    <[web-browser.handler.fade_in_view]>;
+
+    my $wait_delay = sprintf( "%.6f",
+        $slowdown_delay
+            + <web-browser.swap.update_delay>
+            - ( <[base.time]>->(6) - <web-browser.swap.update_start_time> ) );
+
+    $wait_delay = $max_delay if $wait_delay > $max_delay;
+
+    if ( $wait_delay > 0 ) {
+        <[base.sleep]>->($wait_delay);
+
+    } elsif ( <web-browser.swap.update_delay> < 1 / 30 )
+    {    # ... slowing down ...
+        <web-browser.swap.update_delay>
+            = sprintf( "%.6f", <web-browser.swap.update_delay> + $xccel_steps );
+        <web-browser.swap.brake_count>++;
+        <web-browser.swap.fps>
+            = sprintf( "%.2f", 1 / <web-browser.swap.update_delay> );
+    }
+    <web-browser.swap.update_start_time> = <[base.time]>->(6);
+
+} elsif ( defined <web-browser.signal_id.swap_views> ) {
+    delete <web-browser.swap.update_start_time>;
+    $widget->signal_handler_disconnect(
+        delete <web-browser.signal_id.swap_views> );
+
+    # (slowly) speeding up again ...
+    if (   !<web-browser.swap.brake_count>
+        and <web-browser.swap.update_delay> >= 1 / 60 ) {
+        <web-browser.swap.update_delay> = sprintf( "%.6f",
+            <web-browser.swap.update_delay> - ( $xccel_steps / 10 ) );
+    }
+    delete <web-browser.swap.brake_count>;
+
+    ## NOJS_SCROLL ##
+    if ( exists <web-browser.url_flags.nojs_scroll> ) {
+        my $uri      = <web-browser.load_uri>;
+        my $fg_index = <web-browser.overlay.index>->{'fg'};
+        my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+        my $settings = $view->get_settings;
+        my $l_level  = <web-browser.url_flag_loglevel> // 2;
+
+        # $settings->set_property( 'enable-scripts', 0 );
+
+        $view->set_settings($settings);
+        <web-browser.url_active.nojs> = 1;
+        <[base.log]>->( $l_level, ": JS disabled ( nojs_scroll flag '$uri' )" );
+    }
+
+}
+
+<web-browser.swap.fps>
+    = sprintf( "%.2f",
+    1 / ( <web-browser.swap.update_delay> + $slowdown_delay ) );
+<web-browser.swap.fps> = 6 if <web-browser.swap.fps> < 6;
+
+$widget->queue_draw;
+
+# ______________________________________________________________________________
+#\\GZ44F5A7A7SXJ6Q2ZC7UQAXSUSWFOZ2KD2G4V43ZFSMGI7Y4YXBMKRMDY3HVTY75YHFY5WQWNVHX4
+# \\ BZ4W4T6KUBLPTDANRWJSWT35FU27PV72TDGHB5FR5WONHIR4P2LE \\// C25519-BASE-32 //
+#  \\// GS26ADMA6MPE5SO66WGMPHSOPAX6XDPEYDPRRWVW6GFEHF3OQBY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

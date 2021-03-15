@@ -1,11 +1,11 @@
 # >:]
 
 # name  = composition.gpu_alerts.enable_auto_speed
-# descr = send 'slow_down' command to browser agents ([GPU/CPU] load reduction)
+# descr = send 'slow_down' command to web-browser agents ([GPU/CPU] load reduction)
 
 my $agents_present //= {};
 foreach my $agent_name ( keys %{<composition.subconfig>} ) {
-    next if $agent_name !~ m{^(browser|universal|ticker-gtk)};
+    next if $agent_name !~ m{^(web-browser|universal|ticker-gtk)};
     if ( not defined <composition.subconfig>->{$agent_name}->{'auto_speed'}
         or !<composition.subconfig>->{$agent_name}->{'auto_speed'} ) {
 
@@ -28,7 +28,7 @@ map {
 } sort keys %{$agents_present};
 
 # ______________________________________________________________________________
-#\\4RDFW3MRGKC6Z7GSOSWCXIPMUV7QAIQQAFXY3J7FISZNJY2BELS2VUCGVAGXJFSQMFP5GB6CZ274E
-# \\ OJOCNDILZCMC7XHEVRAEPTSPSHGIMHLQSDHCHU5LQXYUO4OVPZIW \\// C25519-BASE-32 //
-#  \\// UWGSKMMKME5SCBDTHAPZ4RJBMXVPH53NTBUD2NY45W75BCNR4AI \\ CODE SIGNATURE \\
+#\\SG3RD5RG2D6MHQYDP7RDMC4J3TSJ2UWLESQI2PRKIJECPUF6M6EIX75S4IRSZ3TV44CUPDB33EEBQ
+# \\ HMSPQPKD26YNFBJX7AZDW3OHHLRPYOJ3KXKTJLDDC6PSMLJKTEWP \\// C25519-BASE-32 //
+#  \\// VARAWMLGMNUBF6GZNDOTW7RPSFG3NBHESTRCAQYH5UY53Z4DSAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

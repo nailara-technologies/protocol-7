@@ -1,0 +1,133 @@
+# >:]
+
+# name = web-browser.handler.load_changed
+
+my $view        = shift;
+my $load_status = shift;
+my $bg_index    = <web-browser.overlay.index.bg>;
+my $load_uri    = <web-browser.load_uri>;
+my $actual_uri  = $view->get_uri // '';
+my $resource    = $view->get_main_resource;
+my $response    = defined $resource ? $resource->get_response    : undef;
+my $status_code = defined $response ? $response->get_status_code : 0;
+
+<web-browser.time.load_start> = <[base.time]>->(3) if $load_status eq 'started';
+
+my $is_loading = $view->get_property('is-loading');
+
+my $percentage = sprintf( "%.03f", $view->get_estimated_load_progress() * 100 );
+
+my $title = $view->get_title // '';
+
+<[base.log]>->( 2, "< load_changed > $percentage% [ $load_status ] " );
+
+my $s = $view->get_settings;
+
+#use Data::Dumper 'Dumper';
+#$Data::Dumper::Sortkeys = 1;
+# print Dumper($s) if $is_loading;
+
+return 1 if $is_loading;    # [0|1]
+
+<[base.log]>->( 2, "< load_finished > [status:$status_code]" );
+
+##[ deiconify if was started hidden ]
+# <web-browser.startup.first-load> //= 1;
+# <web-browser.gtk_obj.window>->deiconify and <web-browser.startup.first-load>--
+#    if <web-browser.startup.first-load>;
+##
+
+$view->signal_handler_disconnect( delete <web-browser.signal_id.load_progress> )
+    if defined <web-browser.signal_id.load_progress>;
+
+$view->signal_handler_disconnect( delete <web-browser.signal_id.load_changed> )
+    if defined <web-browser.signal_id.load_changed>;
+
+#########
+
+if (    $load_status eq 'finished'
+    and defined $status_code
+    and ( $status_code =~ m|^(20)?0$| or $status_code == 304 ) ) {
+
+    <web-browser.time.load_finished> = <[base.time]>->(3);
+    my $load_time = sprintf( "%.3f",
+        <web-browser.time.load_finished> - <web-browser.time.load_start> );
+    <[base.log]>->(
+        2, "[$load_uri] loaded in $load_time seconds. [$actual_uri]"
+    );
+
+    <web-browser.fade.reply_mode> = 'ack';
+    <web-browser.fade.reply_msg>  = 'finished loading';
+
+    my $swap_delay
+        = exists <web-browser.time.scroll_complete>
+        ? <web-browser.slideshow.swap_delay>
+        - ( <[base.time]>->(3) - <web-browser.time.scroll_complete> )
+        : 0;
+    $swap_delay = 0 if $swap_delay < 0;
+
+    <web-browser.timer.swap_views> = <[event.add_timer]>->(
+        {   'after'   => $swap_delay,
+            'handler' => 'web-browser.swap_views'
+        }
+    );
+
+} else {
+
+    my $st_txt     = defined $status_code ? " [$status_code]" : '';
+    my $reason_txt = $st_txt;
+
+    $reason_txt .= " [ $title ]" if $title eq '404 Not Found';
+    $reason_txt = " [ $1 ]"
+        if $title =~ m|^proxy error:.+failed: ([\w\.\:\/\s]{1,42})\.$|i;
+
+    if (    <web-browser.init_proxy>
+        and not defined $status_code
+        and !length($reason_txt)
+        and !length($title) ) {
+        my $check_sock = IO::Socket::IP->new(
+            PeerAddr => <web-browser.cfg.proxy_addr>,
+            PeerPort => <web-browser.cfg.proxy_port>,
+            Proto    => 'tcp',
+            Timeout  => 0.2
+        );
+        if (   not defined $check_sock
+            or !-S $check_sock
+            or !$check_sock->connected() ) {
+            $reason_txt = ' [ proxy unreachable ]';
+        } else {
+            $check_sock->close();
+        }
+    }
+
+    my $err_msg = "cannot load uri '$load_uri'" . $reason_txt;
+    <web-browser.last_err_msg> //= '';
+    my $loglevel = <web-browser.last_log_level> //= 0;
+    if ( $err_msg eq <web-browser.last_err_msg> ) {
+        $loglevel++ if <web-browser.last_log_level> < 2;
+    } else {
+        $loglevel = 0;
+    }
+    <web-browser.last_err_msg>   = $err_msg;
+    <web-browser.last_log_level> = $loglevel;
+    $err_msg .= ' <...>' if $loglevel > 0;
+    <[base.log]>->( $loglevel, $err_msg );
+
+    <web-browser.slideshow.temp_delay> = <web-browser.slideshow.err_delay>;
+
+    <web-browser.fade.reply_mode> = 'nak';
+    <web-browser.fade.reply_msg>  = 'loading failed';
+
+    #<[base.callback.cmd_reply]>->(
+    #    $reply_id,
+    #    { 'mode' => 'nak', 'data' => "failed to load" . $reason_txt }
+    #);
+
+    Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
+}
+
+# ______________________________________________________________________________
+#\\5BHX7K6M6MVX2E3EH6W7LAEZMDWJNUODJIKL6P465A6TGH4SFC6UTOBUL7FPI7O3I2ELSCSECC6PE
+# \\ ILMW6R5S3GSTIEK5CFBUASJVAXJ3TYJBZ4E7ACZHCOYYSU2FAFQC \\// C25519-BASE-32 //
+#  \\// MQPXWPTKYAUPXQ52UHPEKSYFSLCOXV343XF72HDNIV5IS6FV2CQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

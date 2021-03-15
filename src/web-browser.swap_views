@@ -1,0 +1,62 @@
+# >:]
+
+# name = web-browser.swap_views
+
+my $scrolled_window = <web-browser.gtk_obj.scrolled_window>;
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $bg_index = <web-browser.overlay.index>->{'bg'};
+my $bg_view  = <web-browser.gtk_obj.view>->{$bg_index};
+my $fg_view  = <web-browser.gtk_obj.view>->{$fg_index};
+my $window   = <web-browser.gtk_obj.window>;
+my $overlay  = <web-browser.gtk_obj.overlay>;
+
+<[web-browser.disconnect_signal.received_data]>;
+
+if ( !<web-browser.cfg.use_transparency> ) {
+
+    map {
+        <web-browser.gtk_obj.scrolled_window>->{$ARG}->set_opacity(1)
+            if <web-browser.gtk_obj.scrolled_window>->{$ARG}->get_opacity()
+            != 1;
+    } ( $fg_index, $bg_index );
+
+    $overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+    <web-browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+
+    <web-browser.time.fade_complete> = sprintf( "%.3f",
+        <[base.time]>->(3) + ( <web-browser.slideshow.swap_delay> / 2 ) );
+
+    <[web-browser.callback.load_finished]>;
+    return;
+}
+
+<web-browser.fg_opacity> = $bg_view->get_opacity;
+
+if ( <web-browser.fg_opacity> == 1 ) {
+    <web-browser.gtk_obj.scrolled_window>->{$bg_index}->set_opacity(0);
+    <web-browser.fg_opacity> = 0;
+}
+
+$overlay->reorder_overlay( $scrolled_window->{$fg_index}, 0 );
+
+<web-browser.gtk_obj.scrolled_window>->{$fg_index}->set_opacity(1);
+<web-browser.time.fade_view>   = <[base.time]>->(3);
+<web-browser.status.fade_view> = 1;
+
+<web-browser.overlay.index> = { 'fg' => $bg_index, 'bg' => $fg_index };
+
+$window->signal_handler_disconnect( delete <web-browser.signal_id.swap_views> )
+    if defined <web-browser.signal_id.swap_views>
+    and
+    $window->signal_handler_is_connected(<web-browser.signal_id.swap_views>);
+
+<web-browser.signal_id.swap_views>
+    = $window->signal_connect(
+    draw => $code{'web-browser.handler.swap_views'} );
+
+# ______________________________________________________________________________
+#\\UIMDWVKX5UWNANL7GVKGPXDXJNQNKAUYENJY5B76W2C7TU5ZSZ2CGSF75C4QYN23PMLXDUUKNOTN6
+# \\ MJ547PCYUBT45LEMTTUF57S2W2XUS44MYQV2O7QGWTCB77MTUQSD \\// C25519-BASE-32 //
+#  \\// TK227TNMSTW4YOP5TY5JL6VPA4WYROSEVKZZU6SSHJT4UPRKSCY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

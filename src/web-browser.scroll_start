@@ -1,0 +1,22 @@
+# >:]
+
+# name  = web-browser.scroll_start
+# descr = callback invoked from js_call
+
+my $reply_id = shift;           # <- can be undefined!
+my $call_sub = [caller]->[1];
+
+## current autoscroll implementation requires javascript enabled ### [LLL]
+if ( !<web-browser.cfg.javascript_enabled> ) {
+    <[base.log]>->( 0, "<< enabling javascript [ required by autoscroll ] >>" );
+    <[web-browser.enable_javascript]>;
+}
+##
+
+<[web-browser.callback.scroll_start_js_exec]>->( $call_sub, $reply_id );
+
+# ______________________________________________________________________________
+#\\RZGTLCO5XNVWZW3KUUQ2KVQA4OFNUKCRY3SNKXOMPOPJ677FM3YQHOUUAZACGNOFJ22Y4DMVFMXEW
+# \\ GZIGJWAEBS7P2BBYBS4PT4NUSTIGLOTGBZDT2NQKRQYY34T2D2TB \\// C25519-BASE-32 //
+#  \\// 73CFTLLF33LEBWAS7R4MBQQ4ZW4QZQVGHF3BUK5PTDAR6JQLQDA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````

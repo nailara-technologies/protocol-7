@@ -24,14 +24,14 @@ if ( -d $db_dir ) {
     qx(rm -rf -- $db_dir);
 }
 
-<rss.browser> = XML::RSS::TimingBot->new;
+<rss.web-browser> = XML::RSS::TimingBot->new;
 push(
     @LWP::Protocol::http::EXTRA_SOCK_OPTS,
     PeerHTTPVersion => "1.1",
     SendTE          => 0
 );
-<rss.browser>->timeout(<rss.ticker.request_timeout>);
-<rss.browser>->default_headers->header(
+<rss.web-browser>->timeout(<rss.ticker.request_timeout>);
+<rss.web-browser>->default_headers->header(
     'User-Agent' =>
         'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0',
     'Accept' =>
@@ -56,7 +56,7 @@ if ( defined <rss.ticker.content_url> ) {
 0;
 
 # ______________________________________________________________________________
-#\\PBW3FUGSZTBQU2O3IKFCPAFJSR3CU6BWXK3EE5CB4NCJMNC7XN6LSZOL2ZZEVS7R6G3LWNL4WA6DC
-# \\ UD7IRDUAJ3BXCEJMTNPXMCT4J36CFYDUSG5ELQRBDS42X3QZRXMU \\// C25519-BASE-32 //
-#  \\// SUZJSWUT23ULZBCNIRUBHUMK5P3K2NCHRMSKMYPX7HTSVDQ2CCQ \\ CODE SIGNATURE \\
+#\\7GN6W3NT3SLVWJ43X5ESX7PFNXF2YBVT4Z7HZA7XSHUC3ZTYC4CEA3EIAXQ2GSOAOFV2SEEUO2YY2
+# \\ TQGAYHDIACWYEWO27DNREQMD4F3K3FNCV6ANKIVXRLUC44EKCADB \\// C25519-BASE-32 //
+#  \\// OL7LWOXN3PHBN4JIMULPHVXQ3BJ24QSSRE67J77ZREQYAILUKDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
