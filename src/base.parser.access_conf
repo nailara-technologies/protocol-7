@@ -16,9 +16,13 @@ foreach my $user ( sort keys( %{<access.cmd.usr>} ) ) {
     my $regex_mask      = '';
     my $pos             = 0;
 
-    if ( $user =~ m|<admin-user>| and defined <system.admin-user> ) {   ## < ! >
+    if ( $user =~ m,<(admin-user|unix-admin)>, and defined <system.admin-user> )
+    {
 
-        $user = <system.admin-user>;
+        $user
+            = $LAST_PAREN_MATCH eq 'admin-user'
+            ? <system.admin-user>
+            : 'unix-' . <system.admin-user>;
 
     } elsif ( not defined <system.admin-user> ) {
         $errors++;
@@ -100,7 +104,7 @@ foreach my $user ( sort keys( %{<access.cmd.usr>} ) ) {
 return $errors;
 
 # ______________________________________________________________________________
-#\\X3WAQD6OUSECJQZU7ITTPX6VV3F7MAD42F6OL265D5LSLGPGZUR7C7VG7XJFAJTU6JPWUQNVWAMUS
-# \\ 2WFKJ25E6GM73YQU3CTU57YAZREXCYSRHNHOVEBHFAM5W2CTNEFW \\// C25519-BASE-32 //
-#  \\// XIJXHQ4EMIJL2RJ3HP6P2F6QUF7XYXN3UEAP5BS5J7WPDV6Z6DI \\ CODE SIGNATURE \\
+#\\2V5LBXYPAGKRXZXMZ2ZSQND67ZOWL2X5PKISNFURDCQ6IJF5AIDITUUJ6VGLOEVSZM4S7LKFJFPNE
+# \\ PS4UEACE5YUAI2RHWAEEBXCYVXOM3STH276JHEEQYZDX5XAMFII5 \\// C25519-BASE-32 //
+#  \\// AZUZIPSSHDTOHVCXBCXV2PC3M65ZTQPFYFHIIEF36J6NDLYMKCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
