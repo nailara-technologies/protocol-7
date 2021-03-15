@@ -23,7 +23,8 @@ $YAML::XS::DumpCode    = 0;
 $YAML::XS::LoadCode    = 0;
 
 #####################################
-( my $x, my $y ) = Term::Size::chars; $y+=4;
+( my $x, my $y ) = Term::Size::chars;
+$y += 4;
 #####################################
 
 ### to implement ###
@@ -329,11 +330,16 @@ ADD_CHARACTERS:
         and $1 <= 255;
 
     ## foreground color ##
-    $fg_color .= color( sprintf( 'r%dg%db%d', $3, $2, $1 ) )
+    $fg_color .= color(
+        sprintf( 'r%dg%db%d',
+            int( 0.3 * $3 ),
+            int( 0.3 * $2 ),
+            int( 0.7 * $1 ) )
+        )
         if $$input =~ m|^(\d{3})(\d{3})(\d{3})|
-        and $1 <= 255
-        and $2 <= 255
-        and $3 <= 255;
+        and int( $1 * 0.7 ) <= 255
+        and int( $2 * 0.3 ) <= 255
+        and int( $3 * 0.3 ) <= 255;
 
     $characters_7 .= substr( $$input, 0, 3, '' );    # _dec
 
@@ -669,7 +675,7 @@ sub sig_int_handler {
 }
 
 # ______________________________________________________________________________
-#\\2ZBD7QUXXXKKZWDDBLOXN7IG4FLXXTTPHSYSMRXZFURO3X4UTWSDVUV56XO7J5KCVZQFX63YFTZXM
-# \\ 4ELQ77MEFJU2F5AWPEXDG5MVVNQH2P42772F5CUSEXUNNOQ5XADL \\// C25519-BASE-32 //
-#  \\// GONEHGHK3IODXB7QAFUOB4HY4RZQW2K3FXCNMDFUSSWTR5KEUDA \\ CODE SIGNATURE \\
+#\\LGM56LGMNJOH4YX3MYWODGDPBXQPZJBYE65IWD4GSPZC3CEME2YGMZL6PDG5SICXKGNWPMUSCIGUA
+# \\ 4GQ7IAV7CIAHX4U7U46T7ITM66EIZKGVMZLMBAJHXX37J36AE2RU \\// C25519-BASE-32 //
+#  \\// KYGH5DMLVBELVVHJHCVZK2MX3TFG2TNHHJUB5573FGDFGDF3SBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
