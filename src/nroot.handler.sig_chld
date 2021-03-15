@@ -57,14 +57,12 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
         ## record browser segfaults [ for crash mitigation ] ##
         if ( $e_sig == 11 and $agent_name eq 'browser' ) {
-            my $browser_uname = 'nobody';    # <-- [LLL] determine automatically
+            my $browser_uname = <x11.user>;
             my $subname_b32
                 = ( defined $agent_subname and length($agent_subname) )
                 ? '.' . encode_b32r($agent_subname)
                 : '';
-            my $file_name
-                = "/var/tmp/.protocol-7.browser.crash_pid$subname_b32"
-                ;                            # <<< ! >>>
+            my $file_name = "/var/tmp/.7/amos-web.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$pid\n" )
                 or warn("$file_name: $OS_ERROR");
             chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
@@ -109,7 +107,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 # ______________________________________________________________________________
-#\\TYUCOK3ZRHPZJ6SERBXQSKIIAGESM3LETYKWPGHBRGBDIUHLXKK5QB6HTU36HX2B4YWN7YDSI2SYA
-# \\ CGQWLCRCL5Q7H6IOST7KNEORQKJV4CBFILPMEDBKDCY4HRMW3POI \\// C25519-BASE-32 //
-#  \\// VX2EQMMDS4FK626DUJAZD75FDKEIRXV6COR3M2TAWIYJSW7CUBQ \\ CODE SIGNATURE \\
+#\\W2K6NHCWPQN2VR2QZQHS7N5ZIBLPZHAH4ESLSOYOQPQ25PGMSBWQZGR3JZ6DR4KPNADHORBG5U7H2
+# \\ AO6UNJOQD2UD66JHPRU5J2CBA5RULYNLP3E4ZFA7DOBLENTKJHO2 \\// C25519-BASE-32 //
+#  \\// RRRMCHNV6CIT5YDX4N65JH77N5YFBUYC733EXNB2VDVY7Y3F6BI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
