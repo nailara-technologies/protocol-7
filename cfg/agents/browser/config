@@ -4,6 +4,8 @@
 [load_config_file:'shared-params']
 system.verbosity.agent_buffer = 1
 
+[load_config_file:'x11-vars']
+
 browser.playlist.content_types = html pdf image
 
 browser.cfg.proxy_addr = 127.0.0.1
@@ -74,7 +76,7 @@ modules.load = auth net protocol io.ip io.unix chk-sum.sha browser ## debug
 [load_modules:<modules.load>]
 [init_modules]
 
-[browser.set-up.set_privs:'nobody'] # <-- only when not an 'universal-child'
+[browser.set-up.set_privs:<x11.user>]  # <-- only when not an 'universal-child'
 
 [net.connect_to_cube:'ip.tcp']
 
