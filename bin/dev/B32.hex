@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use v5.10.0;
+use strict;
+use warnings;
+
+use Crypt::Misc qw| encode_b32r decode_b32r |;
+
+my $reverse_mode = 0;
+$reverse_mode = 1 if @ARGV == 2 and shift(@ARGV) eq '-r';
+
+my $input_str = shift( @ARGV );
+
+say unpack 'H*', decode_b32r $input_str and exit if $reverse_mode;
+
+say encode_b32r pack 'H*', $input_str;
+
+# ______________________________________________________________________________
+#\\PT3A4XGTW3GNCCRYVBFY625BBR5C5ETLBERZWWZGAAIAFURKJHWIJP2GHSXXORF7KHYGVGUHPGAQ4
+# \\ XIZPPWK4QW5TJEKUDJFTYKWUAUC2IYNZ4T6ZOW7BQAHUG5AS6EBQ \\// C25519-BASE-32 //
+#  \\// FHOLVV4HQVX7CTRFZP63W3JMJVBK5UAIRTVWMYYL6V6YJWE4UDY \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
