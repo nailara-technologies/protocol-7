@@ -10,6 +10,7 @@ use v5.30.0;
 use English;
 use File::Spec;
 use IO::Select;
+use Cwd 'abs_path';
 use Term::ReadLine;
 use Term::ANSIColor;
 no warnings 'experimental';
@@ -58,7 +59,7 @@ my %commands = (
     'search'         => \&cmd_search,
     'show-psub'      => \&cmd_show_psub,
     'move-psubs'     => \&cmd_move_psubs,
-    'rep'            => \&cmd_replace,
+    'r'              => \&cmd_replace,
     'replace'        => \&cmd_replace,
     'parse'          => \&cmd_parse_headers,
     'parse-headers'  => \&cmd_parse_headers,
@@ -794,6 +795,13 @@ sub preview {
     my $changes         = shift;
     my $regexp          = shift;
 
+    die "first argument to preview() expected a hash reference"
+        if ref($original_source) ne 'HASH';
+    die "second argument to preview() expected a hash reference"
+        if ref($modified_source) ne 'HASH';
+    die "third argument to preview() expected a hash reference"
+        if ref($changes) ne 'HASH';
+
     my ( $search_pattern, $replace_pattern )
         = ( $regexp->{'search'}, $regexp->{'replace'} );
 
@@ -811,8 +819,8 @@ sub preview {
     my $original_source_path = $preview_path . 'original/';
     my $modified_source_path = $preview_path . 'modified/';
 
-    $original_source = new_path( $original_source_path, $original_source );
-    $modified_source = new_path( $modified_source_path, $modified_source );
+    $original_source = add_path( $original_source_path, $original_source );
+    $modified_source = add_path( $modified_source_path, $modified_source );
 
     print ":: saving original source ::\n\n";
     save_source( $original_source, $preview_path );
@@ -821,7 +829,7 @@ sub preview {
     save_source( $modified_source, $preview_path );
 
     if ( !diff_less( $original_source_path, $modified_source_path, $regexp ) ) {
-        die " :: failed to run diff ::\n\n";
+        die " :: cannot run diff ::\n\n";
     }
 
     clean_dir($preview_path);
@@ -833,7 +841,12 @@ sub preview {
 sub create_backup {
     my $backup_source   = shift;  # the sourcecode hash of files to be backupped
     my $backup_metadata = shift;  # hashref to some meta data of the backup
-    my $modified_source = shift;  # modified source [if exists] (for checksums)
+    my $modified_source = shift;  # modified source [if exists] [for checksums]
+
+    die "first argument to create_backup() expected a hash reference"
+        if ref($backup_source) ne 'HASH';
+    die "second argument to create_backup() expected a hash reference"
+        if ref($backup_metadata) ne 'HASH';
 
     print ":: creating backup of original files ::\n\n";
 
@@ -847,7 +860,7 @@ sub create_backup {
 
     # make a copy of the sourcecode in current_backup dir
 
-    save_source( new_path( $pack_dir, $backup_source ), $pack_dir );
+    save_source( add_path( $pack_dir, $backup_source ), $pack_dir );
 
     print "\n";
 
@@ -1152,7 +1165,7 @@ sub save_metadata {
 
             print ":: backup metadata saved to $file_name_short ::\n\n";
         } else {
-            die " :: failed to open backup meta "
+            die " :: cannot open backup meta "
                 . "data file '$file_name' :: $OS_ERROR ::\n";
         }
     } else {
@@ -1200,7 +1213,7 @@ sub load_source {
     my @load_types = ( split( '\+', $type ) );
 
     foreach my $PATH_key (@load_types) {
-        foreach my $file ( &files($PATH_key) ) {
+        foreach my $file ( files($PATH_key) ) {
             next if -d $file;
             check_link($file);
             local $RS = undef;
@@ -1216,6 +1229,7 @@ sub load_source {
             $source{$file} = <$FILE>;
         }
     }
+
     return \%source;
 }
 
@@ -1273,19 +1287,20 @@ sub save_source {
             . ansi('reset bold') . ' ::'
             . ansi('reset') . "\n\n";
     }
+
 }
 
 # :: check_path :: checks path and creates dirs recursively if missing
 
 sub check_path {
     my $_chk_path = shift;
-    $_chk_path =~ s/[^\/]+$//;
+    $_chk_path =~ s,[^/]+$,,;
     my $cut_path = shift;
     my $current_path;
 
-    foreach my $dir ( split( /\/+/, $_chk_path ) ) {
+    foreach my $dir ( split( m|/+|, $_chk_path ) ) {
         $current_path .= '/' . $dir;
-        $current_path =~ s/\/\//\//g;
+        $current_path =~ s,//,/,g;
 
         my $current_path_short = $current_path;
 
@@ -1308,8 +1323,8 @@ sub check_path {
                     =~ s/\/([^\/]+)$/'\/'.ansi('green').$1.ansi('reset')/e;
                 print $output_line;
             } else {
-                die
-                    ":: failed to create directory '$current_path' : $OS_ERROR ::\n";
+                die ":: cannot create directory "
+                    . "'$current_path' : $OS_ERROR ::\n";
             }
         }
     }
@@ -1341,7 +1356,7 @@ sub create_dir {
         if ( mkdir($full_path) ) {
             print ": directory '$full_path' created :\n";
         } else {
-            die ":: failed to create directory '$full_path' :: ";
+            die ":: cannot create directory '$full_path' :: ";
         }
     } else {
         print ": directory '$full_path' already_ exists :\n";
@@ -1387,9 +1402,13 @@ sub files {
     my @files;
     my $type = shift;
     my $path = $targets{$type};
+
+    die ":\n:: no such target :. $type\n\n"         if not defined $path;
+    die ":\n:: target path not exists :. $path\n\n" if !-e $path;
+
     if ( defined $path and $path ne '' and -d $path ) {
         opendir( my $dir_fh, $path )
-            or die "failed to open dir '$path': $OS_ERROR\n";
+            or die "cannot open dir '$path': $OS_ERROR\n";
         foreach my $filename ( readdir($dir_fh) ) {
             next if $filename eq '.' or $filename eq '..';
             ( $filename = "$path/$filename" ) =~ s,//,/,g;
@@ -1399,7 +1418,7 @@ sub files {
                 ## cfg/agents/*/... ##
                 if ( $filename =~ m|cfg/agents/[^\/]+$| and -d $filename ) {
                     opendir( my $adir_fh, $filename )
-                        or die "failed to open dir '$filename': $OS_ERROR\n";
+                        or die "cannot open dir '$filename': $OS_ERROR\n";
                     map { push( @files, $filename . "/$ARG" ) }
                         readdir($adir_fh);
                     closedir($adir_fh);
@@ -1411,14 +1430,19 @@ sub files {
     return sort(@files);
 }
 
-# :: new_path :: parses a new path into the source hash keys [filenames]
+# :: add_path :: parses a new path into the source hash keys [filenames]
 
-sub new_path {
+sub add_path {
     my $_new_path   = shift;
     my $source_hash = shift;
+    die "second argument to add_path() expected a hash reference \\ "
+        . join( ' : ', @{ [caller] } )
+        if ref($source_hash) ne 'HASH';
 
     my $root_path = $PATH->{'root'} . '/';
     $root_path =~ s,//,/,g;
+
+    $root_path = abs_path( $targets{$target} ) if $target eq '.';
 
     my $result_hash = {};
 
@@ -1431,7 +1455,12 @@ sub new_path {
         $new_filename =~ s/^$root_path/$_new_path/;
 
         # remove double slashes
-        $new_filename =~ s/\/\//\//g;
+        $new_filename =~ s,//,/,g;
+
+        die ":\n:: < add_path > old and new"
+            . " file path identical :. '$new_filename'\n\n"
+            if $old_filename eq $new_filename;
+
         $result_hash->{$new_filename} = $source_hash->{$old_filename};
     }
 
@@ -1771,7 +1800,7 @@ sub cut_out_sub {
     } else {
         print ansi('bold') . "\n:: "
             . ansi('red')
-            . "failed to cut out source of subroutine '"
+            . "cannot cut out source of subroutine '"
             . ansi('reset')
             . $sub_name
             . ansi('bold red') . "'"
@@ -1917,8 +1946,8 @@ sub replace_all {
     my $changed_source;
     %{$changed_source} = %{$source};
 
-    warn "\n\n fnames: $fnames === caller : "
-        . scalar( ( caller(1) )[3] ) . "\n\n";
+    #   warn "\n\n < replace_all > fnames: $fnames === caller : "
+    #       . scalar( ( caller(1) )[3] ) . "\n\n" and exit;
 
     # default option is to replace global
     if ( not defined $regexp{'options'} ) {
@@ -2127,12 +2156,13 @@ sub diff_less {
 
         if ( not defined $k_path{$_path_type}
             or $k_path{$_path_type} eq '' ) {
-            die ":: kompare() :: $_path_type path not defined\n";
+            warn ":: kompare() :: $_path_type path not defined\n" and return 0;
         }
         if ( !-d $k_path{$_path_type} ) {
-            die ":: kompare() :: $_path_type path '"
+            warn ":: kompare() :: $_path_type path '"
                 . $k_path{$_path_type}
-                . "' does not exist\n";
+                . "' does not exist\n"
+                and return 0;
         }
         $k_path{$_path_type} =~ s|^$cut_path||;
     }
@@ -2228,7 +2258,7 @@ sub print_usage {
 }
 
 # ______________________________________________________________________________
-#\\DMRQ5PKMWKPBKCLBNAX7SIMDFEQTJO4NK35BR35KXWS42PKSNIZEZRNLLEQYUA6EBKJRR7TOW5PBA
-# \\ KYPWIMIGYO5LANLBEKEF4JN7WUSRBGO2MG3OMMD4DZD3TB6VJ3JQ \\// C25519-BASE-32 //
-#  \\// 652JAYIUAOSY4EYZUWGMSYSJPS2K5ULPQ5ILO3AD6B6WQHJMKCQ \\ CODE SIGNATURE \\
+#\\JCAVR5BXJM3VNIMX5HG63ZH72U2WOVALOTDRFQSQELLQZQPZAFRHBDCEISP2J5W56FMWZO77HV4GS
+# \\ HU2AHOZRWGJJBH6ZESSYCKXQ6VUFFRNIOB6P2W6BN3WESI6ZMK5B \\// C25519-BASE-32 //
+#  \\// 3MCWMURSDUSU2RDHUWOLLSVP7IC6OBGDOH3TXW4I33ZCJEI3OBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
