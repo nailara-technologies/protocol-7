@@ -12,11 +12,10 @@ my @key_files = grep {m{C25519_b32}} @{ <[file.all_files]>->($key_dir) };
 
 <[base.log]>->( 2, ": [ auto-convert ] no convertable keys present.," )
     and return
-    if !@key_files;
+    if !( grep {m{C25519_b32\.(public|secret)\..+}} @key_files );
 
 map { <[base.log]>->( 0, $ARG ) }
-    ( ':', ": [ auto_convert ] : .. renaming .. :.", ':' )
-    if @key_files;
+    ( ':', ": [ auto_convert ] : .. renaming .. :.", ':' );
 
 foreach my $source_path (@key_files) {
     my $target_path = $source_path;
@@ -39,7 +38,7 @@ foreach my $source_path (@key_files) {
 }
 
 # ______________________________________________________________________________
-#\\7HMXVWFBU7HFTKQTM2CA5TPR6CMNMWOJSUJ3TRK7WJHV2GPDXIFQDWOPAC64YGXSTULDWPVSF6LU4
-# \\ XMFOVX6T2G62ZPMIJFLXOTCZFCAFA32UZXNXQBPGN55Q3O53FCJL \\// C25519-BASE-32 //
-#  \\// SUKOTRL6XSJGRBMUQ6YOCOUZMNPNMWZZOJRIURZ2CJNGR3WDODY \\ CODE SIGNATURE \\
+#\\27ZPKDEBAKKU7PTQWF74IQZCSGI3QBRQJT46G2Y5ZK62CH4VTUMU673242JRG2O7MOXZFEKJ5NWHQ
+# \\ AMOCGTIIDIMSFLUV2LMKRDJGV4KCK6HEWPDZH2ECC7DDXAAHXIF7 \\// C25519-BASE-32 //
+#  \\// N4YXKTQGVZ2NINMOV7JNLIK6GBFSX7T2GFQJQ6DMCBKEYKBSWCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
