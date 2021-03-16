@@ -3,20 +3,76 @@
 use v5.10.0;
 use strict;
 use warnings;
+use English;
 
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 
+my $B32_re = qr|[A-Z2-7]{2,}|o;
+my $hex_re = qr|[a-f0-9]{2,}|o;
+
+my $file_mode    = 0;
 my $reverse_mode = 0;
-$reverse_mode = 1 if @ARGV == 2 and shift(@ARGV) eq '-r';
 
-my $input_str = shift( @ARGV );
+$file_mode = 1 if @ARGV == 2 and $ARGV[0] eq '-f' and shift(@ARGV);
 
-say unpack 'H*', decode_b32r $input_str and exit if $reverse_mode;
+my $input_str = shift(@ARGV) if not $file_mode;
 
-say encode_b32r pack 'H*', $input_str;
+die ":\n:: expected input string or -f <file-path[s]>\n\n"
+    if not defined $input_str and not $file_mode;
+
+if ( not $file_mode ) {
+    my $mode;
+    $mode = 'B32-in' if $input_str =~ m|^$B32_re$| and $input_str !~ m|a-f0189|;
+    $mode = 'hex-in' if $input_str =~ m|^$hex_re$| and $input_str !~ m|G-Z0189|;
+    die ":\n:: not hex or B32 :. '$input_str'\n\n" if not defined $mode;
+    if ( $mode eq 'B32-in' ) {
+        say unpack 'H*', decode_b32r $input_str;
+    } else {
+        say encode_b32r pack 'H*', $input_str;
+    }
+} else {
+    my @files = @ARGV;
+    map { die ":\n:: not found :. '$ARG'\n\n" if !-f $ARG } @files;
+    foreach my $path (@files) {
+        open( my $fh, '<', $path ) or die ":\n:: $OS_ERROR :. $path\n\n";
+        my $mode;
+        foreach my $line (<$fh>) {
+            $mode = 'hex-in'
+                if not defined $mode
+                and $line =~ m|($hex_re)\s|
+                and $1    !~ m|^\d+$|;
+            $mode = 'B32-in'
+                if not defined $mode
+                and $line =~ m|($B32_re)\s|
+                and $1    !~ m|^\d+$|;
+            next if not defined $mode;
+
+            # say " < detected mode > $mode" and exit;
+
+            if ( $mode eq 'B32-in' ) {
+                $line =~ s|($B32_re)(\s)|
+                    my $M = $1; my $s = $2;
+                    if ( $M =~ m{^\d+$} or $M =~ m{/} ) { "$M$s" } else {
+                        unpack( 'H*', decode_b32r $1 ).$s
+                    }
+                |gxe;
+            } else {
+                $line =~ s|($hex_re)(\s)|
+                    my $M = $1; my $s = $2;
+                    if ( $M =~ m{^\d+$} or $M =~ m{/} ) { "$M$s" } else {
+                        encode_b32r( pack 'H*', $M ) . $s
+                    }
+                |gxe;
+            }
+            print $line;
+        }
+        close($fh);
+        die ":\n:: found no hex or B32 :. '$path'\n\n" if not defined $mode;
+    }
+}
 
 # ______________________________________________________________________________
-#\\PT3A4XGTW3GNCCRYVBFY625BBR5C5ETLBERZWWZGAAIAFURKJHWIJP2GHSXXORF7KHYGVGUHPGAQ4
-# \\ XIZPPWK4QW5TJEKUDJFTYKWUAUC2IYNZ4T6ZOW7BQAHUG5AS6EBQ \\// C25519-BASE-32 //
-#  \\// FHOLVV4HQVX7CTRFZP63W3JMJVBK5UAIRTVWMYYL6V6YJWE4UDY \\ CODE SIGNATURE \\
+#\\TK7HSISVKSU4F4L4LGYXSDPV37W2H24PQHIJIPNMNYTZEWYXKR5HM5S2HQNQYHXKRC3A5Y7KOQ5LG
+# \\ QHIGXY2GMPERSQNS333NB5WGFYZRS4FRMBDNJBDRB55UIXA25S7B \\// C25519-BASE-32 //
+#  \\// AG4TYPVRQGPEGOTU64IYKBQ5PZR67P6LURWEGYMJCTOFDKNXYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
