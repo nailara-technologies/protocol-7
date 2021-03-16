@@ -39,7 +39,7 @@ foreach my $directory (@copy_sources) {
 
 my @source_paths
     = grep { $ARG =~ s|^$work_tree/?||; not exists $exclude_files->{$ARG} }
-    grep { !m|/\.| } @all_files;
+    grep { !m{/\.|~$} } @all_files;
 
 my $file_count = scalar @source_paths;
 
@@ -77,7 +77,7 @@ foreach my $path_rel (@source_paths) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;    # log files changed..,
 
 # ______________________________________________________________________________
-#\\CNLA56TYSGJR2ZSCOCSVDNJFJTQD7MAURVJFHDXK4JM7DWH2VFTLFUA4UDV6R3O76PBQCBSD7WV7I
-# \\ B2ZKJPBWO3AQP2IMLR7FT47NPTAFN4IO7YBCNJQDAMIEMGNGYBAS \\// C25519-BASE-32 //
-#  \\// H6FRS5I2GM4XTTBCJKZEI7VXYRWITMVPJ7LS7IJJUYS6FACDADQ \\ CODE SIGNATURE \\
+#\\YA3PW5CSKSNEE4LE6ER3K7G5N3RZGTP75RCIEVG4UB4QSQNKHPQ32BAL5TDUPTXAPKKXNB3J5FCOM
+# \\ O7NP3MLUAWFRG7POZN25TUGOLRHT2K74GKRH2PFT2OYXWK6YKBS2 \\// C25519-BASE-32 //
+#  \\// QN7GIUTBLGUOWXFC72N6JNWQJMGIS5DOLMGIGTFEI6OHO7POIDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
