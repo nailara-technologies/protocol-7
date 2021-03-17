@@ -4,7 +4,7 @@
 
 my $agent_name    = shift;
 my $agent_subname = <system.agent.subname>;
-my $nailara_bin   = <system.start.exec_name>;
+my $protocol_7    = <system.start.exec_name>;
 my $perl_bin_path = <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 <universal.running> //= {};
@@ -33,7 +33,7 @@ my @cmd_line_mods
         join(
             ' ',
             (   $perl_bin_path, '-C31',        @cmd_line_mods,
-                $nailara_bin,   $agent_sn_str, @exec_args
+                $protocol_7,    $agent_sn_str, @exec_args
             )
         )
     )
@@ -45,7 +45,7 @@ push( @cmd_line_mods, "-C$_C" ) if defined $_C;
 eval {
     $pid
         = open2( $out_fh, $in_fh, $perl_bin_path, @cmd_line_mods,
-        $nailara_bin, $agent_sn_str, @exec_args );
+        $protocol_7, $agent_sn_str, @exec_args );
 };
 
 if ( not defined $pid or $EVAL_ERROR ) {
@@ -68,8 +68,12 @@ push( @{<system.kill_list>}, $pid );
 
 <[base.log]>->( 1, ": agent <'$agent_sn_str'> pid = $pid" );
 
+my $unix_path = '/var/tmp/.7/UNIX/' . <unix.agent.path>;
+<[base.log]>->( 1, ": unix :. $unix_path" );
+
+## pushing configuration to started agent ##
 print {$in_fh} "system.agent.mode=universal-child\n";
-print {$in_fh} "unix.path=/var/tmp/.7/UNIX/" . <unix.agent.path> . "\n";
+print {$in_fh} "unix.path=$unix_path\n";
 close($in_fh);
 
 <[event.add_io]>->(
@@ -82,7 +86,7 @@ close($in_fh);
 return 1;
 
 # ______________________________________________________________________________
-#\\UUCX6MMKPGERIZHC657NKNS6FONBG5MEUYXYINTGWDEHISWQ43MQJBXXVSVJJ2NBNJN3KHQVHRHM6
-# \\ 2Z5XBUUIHGFXATYTJ3XCT4L4XSCRU6JCDESPSG2O5A6S3OGHJA5I \\// C25519-BASE-32 //
-#  \\// I27W6MVXD2GL7CGCKUQ6T5D3QD36Q7CK2OBUJ56HHKCINGGUMBQ \\ CODE SIGNATURE \\
+#\\YM7JCWIN4IPNY5HY34MIADX4IFV6FRKJGU4N7YWAMK7AYUJNPRAYBQZVX6IULM7O7KGJIUDEJBBJQ
+# \\ 2GHLNK23WIBZMBCQ544FZRGZL5RA4FCQGW4RPICJUZAQ7UZCIUOA \\// C25519-BASE-32 //
+#  \\// BXCJJRCD4HX47GP3Q7JJ7R3CHXEVNUO6SZNSZJMKBFM26JYEOBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

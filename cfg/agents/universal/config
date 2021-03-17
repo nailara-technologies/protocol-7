@@ -20,8 +20,10 @@ modules.load = auth net protocol io.ip io.unix plugin.auth chk-sum universal
 [load_modules:<modules.load>]
 [init_modules]
 
+
 auth.supported_methods = unix
-[file.make_path:'/var/tmp/.7/UNIX',0775]
+## local unix domain socket ##
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
 unix.agent.path=[chk-sum.elf.BASE32:"<system.agent.name>:<system.agent.subname>"]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.agent.path>",0777]
 

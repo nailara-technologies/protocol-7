@@ -57,11 +57,15 @@ foreach my $c_type (@connection_types) {
             <[base.log]>->( 2, "unix path '$unix_path' not found, skipping.," );
             next;
         }
+
         $cube_sock = <[base.open]>->( 'unix', 'output', $unix_path );
         if (    defined $cube_sock
             and -S $cube_sock
             and $cube_sock->connected ) {
+
+            ## authenticate without key [ unix uname only ] ##
             $cube_sock = <[net.unix.authme]>->( $cube_sock, $agent_name );
+
         } else {
             $cube_sock = undef;
         }
@@ -73,7 +77,7 @@ foreach my $c_type (@connection_types) {
             and $cube_sock->connected ) {
             my $auth_name = $agent_name;
             $auth_name .= "[$agent_subname]" if defined $agent_subname;
-            $cube_sock = <[auth.agent.client]>->( $cube_sock, $auth_name );
+            $cube_sock = <[auth.agent.ip.client]>->( $cube_sock, $auth_name );
         } else {
             $cube_sock = undef;
         }
@@ -107,7 +111,7 @@ if ( not defined $cube_sock ) {
 }
 
 # ______________________________________________________________________________
-#\\LS5FMXQ5KKOXLIQAHAYUAD4UXBDZNX7WKMXE2Z2JBVS6Q2554H4ECZBM6JIXWERTFPQBRSBRCUZWQ
-# \\ DFO6Z4KL5HYKCK2YW4XRFVFK4QPB6G2XPSRVS2K7EIWUTNDMM5DT \\// C25519-BASE-32 //
-#  \\// CWBPKF3ETEGKXIUMPAX7FXNCGL4ZYAPB2QY52JGYDAN2ZPZ6EBA \\ CODE SIGNATURE \\
+#\\RQPRYBIN7T4B2P3UKND5G4Z5MJZIECIQJ3OVLONP6CBSR7RNQRF3SHBWHPAE27MME65O2TUSLPG4U
+# \\ 52PPLPXJPXRYXPS64MI7XK4LHK2H4J6PCQBVGUR7EUH7JLA3RIAO \\// C25519-BASE-32 //
+#  \\// F5LRZF3PCMMS7IOFTHHFUCPLXGK6SS4JY2BEXIVY2K27MQZY6AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

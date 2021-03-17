@@ -1,10 +1,10 @@
 # >:]
 
 # name    = plugin.auth.unix
-# args    = int(session id)
-# return  = str(user name) [success], undef [error]
+# return  = user-name [ success ], undef on error
 
-my $id = $_[0]->w->data;
+my $ev = shift;
+my $id = $ev->w->data;
 my $re = <regex.base>;
 
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
@@ -66,7 +66,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 return 2;
 
 # ______________________________________________________________________________
-#\\SS5TPZJFFAJDCME37RGPHFTP6RZ4MO4NBBHCGKH2R3GNCVR6KHWCFD4EJPNQH2MTHVNK7N25S7SM6
-# \\ 4RPWD5QHCFPJA4WLQTXOJZXYOORT7U6RFBVQCMXIW2W3W6RZ2TAD \\// C25519-BASE-32 //
-#  \\// YOL3RDNFXXCKIF752WWOYO3CIRROO42USETB76EZVKTX6MIWCDQ \\ CODE SIGNATURE \\
+#\\NQIHI6N6SNLEZ3VPZEXFZQK2HJFVZGUUK7QNR4BWC7XXOCKBUD54BHXECSCXJD3HPS3M2LPX6S7KU
+# \\ WZKY22I5HAQWH2UGM3FNW77P3HKJNNZJ6C5DESHC3TOUOAB3RQR3 \\// C25519-BASE-32 //
+#  \\// 4OIZHY56ETQXWGWNKQQWJCDN3KWM7VL6UQQPZBNBXWCIOPFAWCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
