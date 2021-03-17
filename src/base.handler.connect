@@ -9,8 +9,8 @@ my $proto  = $data{'session'}{$id}{'protocol'};
 my $state  = $data{'session'}{$id}{'state'};
 my $mode   = $data{'handle'}{$fd_srv}{'mode'};
 
-my $handler = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
-my $banner  = $data{'protocol'}{$proto}{'connect'}{'banner'} // '';
+my $handler       = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
+my $banner_string = $data{'protocol'}{$proto}{'connect'}{'banner'} // '';
 
 if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     <[base.log]>->(
@@ -25,19 +25,19 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     if ( defined $fd_client and $fd_client->connected() ) {
         my $id = <[base.session.init]>->( $fd_client, $proto, $mode );
 
-        # send server banner
-        if ( length($banner) and $mode eq 'input' ) {
-            <[net.out]>->( $fd_client, $banner );
+        ## sending protocol banner string ., ##
+        if ( length($banner_string) and $mode eq 'input' ) {
+            <[net.out]>->( $fd_client, $banner_string );
         }
         <[base.log]>->( 1, "[$id] establishing $proto protocol link" );
     } else {
-        <[base.log]>->( 1, "[$id] connection [ already ] closed.," );
+        <[base.log]>->( 1, "[$id] connection was closed .," );
         return undef;
     }
 }
 
 # ______________________________________________________________________________
-#\\RKDBW6NBAGGZPB3MIS5RBP4O5AVCURYOQI5LZ5GZIGQVVCULPNS2GZZTISNQ7V3F5NWIN7Z24SUH2
-# \\ Y4HNHUGJ657P7R4UQGENAYALEYPPBGB2Q6Q6ZZXWAX764V7WRGWW \\// C25519-BASE-32 //
-#  \\// DX5PLPFE3ZFDWMVBDNF4J5YIRQJ4LIM3Q7VUM4KKEJ7XNJWGGAI \\ CODE SIGNATURE \\
+#\\GTLCXW6ISZJQIJN2DWC4PBG3R4QHPIGFYDV5NBOXMXFXDHKFWLTJ34VQ4I3CE63MAU3XTHZ63LC7A
+# \\ ZYSCPDY6TLDKKO7SZEHQJLCHP44QTGIMTCVDDJ6XZQOBV3T3HOZB \\// C25519-BASE-32 //
+#  \\// GTOKJ7OHBUNWT6IHOA3FBWLQJOOP7ZLX6TF624NIBR3D6GQCECI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

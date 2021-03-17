@@ -11,10 +11,10 @@ if ( defined $key_str
     and exists $KEYS{'agent'}{'session_key'}
     and $KEYS{'agent'}{'session_key'} ne '' ) {
     $key_str //= $KEYS{'agent'}{'session_key'};
-    my $smiley;
-    my $bytes_read = <[base.s_read]>->( $filehandle, \$smiley, 4 ) // 0;
+    my $banner_string;
+    my $bytes_read = <[base.s_read]>->( $filehandle, \$banner_string, 4 ) // 0;
     if ( $bytes_read > 0 ) {
-        if ( $smiley eq ">:]\n" ) {
+        if ( $banner_string eq ">:]\n" ) {
             <[base.log]>->( 2, '[*] protocol banner detected.,' );
         } else {
             <[base.log]>->(
@@ -70,7 +70,7 @@ if ( defined $key_str
 }
 
 # ______________________________________________________________________________
-#\\5SUYAIFZSTVCAYH7YPIUSVK25DDELD7AQKH6PBP4HGKP5RQOTPZQICMRAWAJIYXC5WQM7VIFIJKWO
-# \\ GXNW43JT4A64F3BWII5XI4FUAOFD22N76ZSDPN7K2DLGE2MMN2XI \\// C25519-BASE-32 //
-#  \\// V6KYOWQ3AKPSQGBOKHQFIQTPC47DLMD2FSGIJYY53VWOWKO2CDY \\ CODE SIGNATURE \\
+#\\WKZ6BE5XVFV6A2AKLIMMACDWJQC5VDJ3NO56BLXVNLWU6T654YRN7NQVMGRMHDLVWHIHV4C4XKJYU
+# \\ ADVFKX3PWOQ5EIQZDIKGVPCSGZSAXYAHUOPJVUEFYWOGEA56QQCY \\// C25519-BASE-32 //
+#  \\// SCOBKF2C5MCBPVGLFS6KAB3QBUQKGSLPLCYEBWDRJIII2KTIKDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

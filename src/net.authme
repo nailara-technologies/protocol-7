@@ -5,14 +5,14 @@
 # todo  = check for possible race conditions ...
 
 my $answer;
-my $smiley;
-my $backend_socket = $_[0], $smiley = "", $answer = "";
+my $banner_string;
+my $backend_socket = $_[0], $banner_string = "", $answer = "";
 die "net.authme: no password supplied" if not defined $_[2];
-if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
-    if ( $smiley =~ />:\]\n/ ) {
+if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
+    if ( $banner_string =~ />:\]\n/ ) {
         <[base.log]>->( 2, '[*] protocol banner detected..' );
     } else {
-        <[base.log]>->( 0, '[#] no valid smiley found! :(' );
+        <[base.log]>->( 0, '[#] no valid banner_string found! :(' );
         return undef;
     }
     <[net.out]>->( $backend_socket, "auth $_[1] $_[2]\n" );
@@ -31,7 +31,7 @@ if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
 }
 
 # ______________________________________________________________________________
-#\\F7DS3X5FD4NGWERWXXD55KTFMRGYT5DZVBDNOIIBSGI3HBEQ3J5FEPXPO4CLPCTZJ5D6QH7XHM4AU
-# \\ CZOFPXRIRKTBJRA4PJ5HCC2TOJCTT4BCZFYLV65D6TZKJZ64OC4G \\// C25519-BASE-32 //
-#  \\// F7UAJZXGXYNRVYPOA5QSABOMD74EDSZYTMR6VWG53K3AYB55KAY \\ CODE SIGNATURE \\
+#\\JUG4RFWKLIMVFJEVM354XMTY2W2UY7HIIT6CONVHQXGTFZQESETWHNEJMC5VKRBGTAZVFZEVPLSES
+# \\ AQ7VHL5RB62GNK7OTYF6IHYIFWCYGMCE5FK5LXYNME66Q5NU2KHX \\// C25519-BASE-32 //
+#  \\// XZKUR5PCMZBKMPLW2JBAXGYYXJTQOADJV3GRKRJ63GJ7YZUU2CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
