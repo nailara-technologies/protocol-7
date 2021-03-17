@@ -3,16 +3,16 @@
 # name  = base.cmd.release-version
 # descr = return the nailara release version string
 
-return {
-    'mode' => 'nak',
-    'data' => 'release version is undefined'
-    }
+return { 'mode' => 'nak', 'data' => 'not defined' }
     if not defined <protocol-7.release-version>;
 
-return { 'mode' => 'ack', 'data' => <protocol-7.release-version> }
+return {
+    'mode' => 'ack',
+    'data' => ': AMOS release version : ' . <protocol-7.release-version>
+    }
 
 # ______________________________________________________________________________
-#\\ZPKQRN736ZTEBKQ7O3U7TYIRRTUNCFVNVAEXULNVFOY3HTRPVZQEJQ2YTKI2QMZX3FHPCTM4E3SQI
-# \\ C2PSJW6GHGCFVDIL2ZGWTDYNR7E7NFDFFUCOG5IGWA5HXQOKYCDN \\// C25519-BASE-32 //
-#  \\// 3E6MQOF5FN4YPDUYZU2JTXBKLRXTBR6KHHJAO4XPEIO6I5O7ACI \\ CODE SIGNATURE \\
+#\\V67O3ZUPUPGVZRGJWIBLS7NA27O3EYPETQ7B7RFYEMJK6IE6VL2AV5RS7YTYEIECFDUOCKW5MCGUU
+# \\ IIZMOWGZ3NLHQJXQIJBOEMZYOMWBAXCFWQFKOWFD4TQBOA2PPDJ5 \\// C25519-BASE-32 //
+#  \\// JNWIBJGWV6CGHVWCPTUAH32VTABJ2OPJXXLJBFQEGGZ6SFUIUAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
