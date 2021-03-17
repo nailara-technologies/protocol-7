@@ -65,21 +65,21 @@ $git->add($rl_v_file)
 
 ## ./cfg/protocol-7.source-version ##
 open( my $ver_fh, '>' . $v_file ) or die " -> $v_file : $!\n";
-print {$ver_fh} "$version_string\n";
+say {$ver_fh} $version_string;
 close($ver_fh);
 $git->add($v_file);
 
 ## ./README.md ##
 {
     local $/ = undef;
-    my $B32_ntime_re = qr|[A-Z2-7]{10}|o;
+    my $B32_re = qr|[A-Z2-7]{10}|o;
     open( my $md_fh, '<' . $readme_md ) or die "$readme_md : $!\n";
     my $md_copy = my $md_str = <$md_fh>;
     close($md_fh);
-    if ( $md_str =~ s|\Q$old_version\E|$version_string|g ) {
-        $md_str =~ s|: $B32_ntime_re |: $version_string |g;    ## B32 version ##
-        $md_str =~ s|: \d\d\.\d\d\d\d\-\d\d\d\d\.\d+ |: $version_string |g;
-    }
+
+    $md_str =~ s{: ($B32_re|\d\d\.\d{4})\-\d{4,}\.\d+ }{: $version_string }g
+        if $md_str !~ s|\Q$old_version\E|$version_string|g;
+
     if ( $md_str ne $md_copy ) {
         open( $md_fh, '>' . $readme_md ) or die " -> $readme_md : $!\n";
         print {$md_fh} $md_str;
@@ -88,15 +88,22 @@ $git->add($v_file);
     }
 }
 
-print ":\n: updated version : $version_string\n:\n";
+say ":\n:: source version :: $version_string\n:";
 
 ### SUBROUTINES ################################################################
 
 sub gen_ver_string {
+    my $version_str;
     my $count_str = shift;
     my $new_minor = shift // '';
     $count_str .= '.' . $new_minor if length($new_minor);
-    return join( '-', ntime_B32(), $count_str );
+RECALC_VERSION:
+    $version_str = '';
+    $version_str = join( '-', ntime_B32(), $count_str );
+    Time::HiRes::sleep(0.013) and goto RECALC_VERSION
+        if assert_harmony($version_str);
+
+    return $version_str;
 }
 
 sub get_old_version {
@@ -116,9 +123,8 @@ sub time_float {
 }
 
 sub ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
-    my $param        = shift // 0;
-    my $want_harmony = shift // 1;
-    my $ntime_start  = 1023228000;
+    my $param       = shift // 0;
+    my $ntime_start = 1023228000;
 
     my $retries_left    = 24;    ## <-- configure [ retries-max ]
     my $collision_delay = 0;
@@ -126,46 +132,14 @@ sub ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     my $unix_precision;
     my $ntime_precision;
 
-    my $ntime_retry_count = 0;
+    my ( $unix_time, $precision ) = ( undef, $param );
+    $ntime_precision = $param;
+    $unix_precision  = $ntime_precision + 2;
 
-    my ( $unix_time, $precision ) = ( undef, 0 );
-    if ( length($param) >= 9 ) {    # < unix time + inherited precision >
-        $unix_time       = $param;
-        $unix_precision  = length($1) if $unix_time =~ m{\.(\d+)$};
-        $ntime_precision = $unix_precision - 2;
-        $ntime_precision = 0 if $ntime_precision < 0;
-
-    } else {
-        $ntime_precision = $param;
-        $ntime_precision = 8 if $ntime_precision > 8;
-        $unix_precision  = $ntime_precision + 2;
-        $unix_precision  = 11 if $unix_precision > 11;
-    }
-    my $zulum_len = $unix_precision - 1;
-    $collision_delay = join( '', '0.', '0' x $zulum_len, '7' );
-
-RETRY_BASE_NTIME:
-    $last_time = $unix_time if defined $unix_time;
     $unix_time = time_float($unix_precision);
-
-    if ( $unix_time == $last_time ) {    ## same input \ collision ##
-        Time::HiRes::sleep($collision_delay);
-        goto RETRY_BASE_NTIME;
-    }
 
     my $ntime = sprintf( "%.0${ntime_precision}f",
         ( ( $unix_time - $ntime_start ) * 4200 ) );
-
-    if (    $want_harmony == 1
-        and length($param) < 9
-        and assert_harmony( $unix_time, 0 ) == 0
-        and $retries_left-- ) {
-
-        ++$ntime_retry_count
-            and goto RETRY_BASE_NTIME;
-    }
-
-    say '< exceeded >' if !$retries_left;
 
     return $ntime;
 }
@@ -173,48 +147,25 @@ RETRY_BASE_NTIME:
 ################################################################################
 
 sub ntime_B32 {
-    my $param        = shift // 0;    # <-- precision or utime
-    my $want_harmony = shift // 1;
-    my $retries_left = 5;             ## <-- configure [ retries-max ]
-    my $last_ntime   = 0;
-    my $ntime_precision;
+    my $precision = shift // 0;    # <-- precision or utime
     my $ntime_value;
+    my $last_ntime = 0;
 
-    my $ntime_B32_retry_count = 0;
-
-RETRY_BASE_NTIME_B32:                 ## only choose harmonic values ##
-
-    $last_ntime = $ntime_value
-        if $want_harmony
-        and defined $ntime_value
-        and $ntime_value != $last_ntime;
+RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
 
     ####
-    $ntime_value = ntime( $param, $want_harmony );
+    $ntime_value = ntime($precision);
     ####
 
-    if ($want_harmony) {
-        $ntime_precision = 0;
-        $ntime_precision = length($1) if $ntime_value =~ m|\.(\d+)$|;
-        my $zulum_len       = $ntime_precision + 1;
-        my $collision_delay = join( '', '0.', '0' x $zulum_len, '113' );
-        if ( $last_ntime == $ntime_value ) {    ## same input \ collision ##
-            Time::HiRes::sleep($collision_delay);
-            goto RETRY_BASE_NTIME_B32;
-        }
-    }
+    my $zulum_len = $precision + 1;
 
     my @nt = split( m|\.|, $ntime_value );
     $nt[1] = '7' . $nt[1] if scalar @nt == 2;    # <-- 7 catches prefixed 0
 
     my $encoded_ntime = encode_b32r( pack( 'w*', @nt ) );
 
-    ++$ntime_B32_retry_count
-        and goto RETRY_BASE_NTIME_B32
-        if $want_harmony == 1
-        and length($param) < 9                   # <-- precision
-        and assert_harmony($encoded_ntime) == 0
-        and $retries_left--;
+    Time::HiRes::sleep(0.013) and goto RETRY_BASE_NTIME_B32
+        if assert_harmony($encoded_ntime) == 0;
 
     return $encoded_ntime;
 }
@@ -224,48 +175,29 @@ RETRY_BASE_NTIME_B32:                 ## only choose harmonic values ##
 sub assert_harmony {
     my $input_string = shift // '';
     my $check_elf    = shift // 1;
-    return 1 if !length($input_string);          ## is harmonic ##
 
     Math::BigFloat->round_mode('trunc');
 
     my $calc_str;
     ## check as mumber ##
-    if ( $input_string =~ m|^\d+(\.\d+)?$| ) {
-        ( my $input_num = $input_string ) =~ s|\.||;
 
-        my $accuracy = 11;
+    my $accuracy = 13;
 
-        ( $calc_str
-                = Math::BigFloat->new($input_num)
-                ->bdiv( 13, $accuracy + length($input_num) ) ) =~ s|\.||;
+    ## check as string ##
+    my $elf_checksum = elf($input_string);
+    $calc_str = Math::BigFloat->new($elf_checksum)
+        ->bdiv( 13, 13 + length($elf_checksum) );
 
-        my $seperator_str = ' : ';
-
-        if ( index( $calc_str, '230769' ) >= 0 ) {    ## not harmonic.., ##
-
-            my $min_len = $accuracy + 5;
-            my $num_len = length($input_num);
-            my $z_len   = abs( $min_len - $num_len );
-
-            ### ..340769.., [E] ##
-        }
-
-        return 1 if $check_elf == 0;
-
-        ## check as string ##
-        my $elf_checksum = elf($input_string);
-        $calc_str = Math::BigFloat->new($elf_checksum)
-            ->bdiv( 13, 13 + length($elf_checksum) );
-        return 0 if index( $calc_str, '230769' ) >= 0;
-        ##
-        return 1;   ## assertion complete : harmony detected ## [ no 230769.., ]
-    }
+    my $check_str = scalar $calc_str;
+    return 0 if index( $check_str, '230769' ) >= 0;
+    ##
+    return 1;    ## assertion complete : harmony detected ## [ no 230769.., ]
 }
 
 ################################################################################
 
 # ______________________________________________________________________________
-#\\YYYMPBNRRR5RM3WZI2T7BHB62R35ZRC4TW2H2EBAVFRIX5O2YH4IFDYCLKLO7O6LELLS3CEGCEOAC
-# \\ ZEGVAJ36ROHFXLHUFEWH7MWZUEIJ4PAXOFL4YFVMJ3ZKVFFXWBWH \\// C25519-BASE-32 //
-#  \\// AZTNOFUWC544EMZVZ3HONWVAHKBW4I7C6SZWICKZDHS3V4UVYBA \\ CODE SIGNATURE \\
+#\\RYQ37QO2GMYWV7ATD62Q4IUHFXGKDFKHDGKINFZQ2YDJ4QBNAVOVOSTK6ASFDIX7IKD4RK2O4B2GM
+# \\ 4A45S6VVETQMAIORCGGWOMZ5BQRDLZHSBAOR74252OXHWMYXJRPI \\// C25519-BASE-32 //
+#  \\// 2GF6ZIMOCEQ3UB6J2VPR6SGWBDNUTOTQSWFVPOSMFNJUPVYMOBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
