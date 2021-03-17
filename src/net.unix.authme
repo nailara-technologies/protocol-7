@@ -5,7 +5,7 @@
 # todo  = implement client side authentication timeout
 
 my $answer;
-my $smiley;
+my $banner_string;
 my ( $backend_socket, $user ) = @_;
 
 if (   not defined $backend_socket
@@ -18,8 +18,8 @@ if (   not defined $backend_socket
     return undef;
 }
 
-if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
-    if ( $smiley eq ">:]\n" ) {
+if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
+    if ( $banner_string eq ">:]\n" ) {
         <[base.log]>->( 2, '[*] protocol banner detected.,' );
     } else {
         <[base.log]>->(
@@ -61,7 +61,7 @@ if ( <[base.s_read]>->( $backend_socket, \$smiley, 4 ) ) {
 }
 
 # ______________________________________________________________________________
-#\\NQ3IFXWNCOCOAFBZ36POWBN7KFWKBIN6SCIAUGTIIRYSBWBFXHNIWFSLXYKPKTQ2GCJYEUOPKVBYW
-# \\ OOZLQJK3QA2E6BBBBJHCRNNLGQHTXZLE3K2SMCAFSU3RUKRLG52E \\// C25519-BASE-32 //
-#  \\// X63FGOCOKYG43XPUVTUPJUNDQNVJFYURAAHQICB65JOHRZD4YDI \\ CODE SIGNATURE \\
+#\\6JG6X3SZ5E6B2LL5OFLZ3E5LUNHSZSOFE732KCCCPEOH5S57IDK5F2DSV6QHMMMP7JYB47A2VWD3S
+# \\ H53LJGWL57FCJERX5G7KNRDJR7JWEATYAQFW7WGONGT7MVO3QL4N \\// C25519-BASE-32 //
+#  \\// WGWTAKTGIPKJYIHKQGA3G2EXVZFJKICVXWTB3PCGL3KAMPAZKAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
