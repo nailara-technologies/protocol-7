@@ -3,13 +3,16 @@
 # name  = base.cmd.source-version
 # descr = running nailara agent source code version
 
-return { 'mode' => 'nak', 'data' => 'the source code version is not defined!' }
+return { 'mode' => 'nak', 'data' => 'not defined' }
     if not defined <protocol-7.source-version>;
 
-return { 'mode' => 'ack', 'data' => <protocol-7.source-version> }
+return {
+    'mode' => 'ack',
+    'data' => ': protocol-7 source version : ' . <protocol-7.source-version>
+    }
 
 # ______________________________________________________________________________
-#\\32EGWTPIGCZJSWNCJAUIZJEE4SVXDG2FAQCYHLX6IJWQKWF4TM2XBPMMCY7GFWZPOVK5WS2PCQJPY
-# \\ 44ZDNKPT7NZ3B3MY6QHCBGC6OHNRKSSBPAODZYBYNQDPUHJBF7EV \\// C25519-BASE-32 //
-#  \\// ETQPZ7TYZN7HGY4IL5GB3HERPHPQOUBNGPLMJ5EIVSXKR57JCAQ \\ CODE SIGNATURE \\
+#\\X5Z64EQXUHPOZ222GJA6CCZO3IG2YIV2CWSUBT22ZP7P4ZK3SNQS3N3UNZTUDSAYQG7YVSTSZQJOC
+# \\ ESSJX4Y7K4POVTNUQNQUKSXNBWRIIFHZYMF6MFEHMMJBP7D4OA2Q \\// C25519-BASE-32 //
+#  \\// HR2O3DM5NB62PALXGW75RJLUWQZ6RLXOIXE5BN6OKDW73PL5QDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
