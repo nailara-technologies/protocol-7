@@ -572,7 +572,7 @@ sub prepare_subs {
         open( my $banner_fh,
             catfile( $data{'system'}{'conf_path'}, '.banner' ) )
             or return;
-        my $banner = <$banner_fh>;
+        my $nailara_header = <$banner_fh>;
         close($banner_fh);
         my $n = $b = '';
         if ( $data{'system'}{'ansi_color'} ) {
@@ -580,7 +580,7 @@ sub prepare_subs {
         } else {
             $ANSI{'yelblue'} = '';
         }
-        map { say "$n: $b$ARG" } split( m|\n|, $banner ), '';
+        map { say "$n: $b$ARG" } split( m|\n|, $nailara_header ), '';
         say "$n: $version_str\n:";
     };
 
@@ -1707,7 +1707,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\T2BQ7EP7WVKXBZB5NMGDOVK4RPPQXMJZB2U3USSHXUHCWRVRIYM2NXKVGUO7YEL5X7R6ADW7QTS4O
-# \\ LREOPPPQXQOEXWXKQOZZ7EDDW6KR6EJP44KHHBO3VGP6NPB4D6OS \\// C25519-BASE-32 //
-#  \\// 4TTSKWWGPF3RXJQGECDKOTQHFMDAFDDAEJYHKQBSVJYXHNT2OCI \\ CODE SIGNATURE \\
+#\\ZVZISAAKN37OPPDNP5NGEZ6HXUXCYHGZYLZ4W6GNMIG5G5VKEJK4UMNKMKV2W57EUPJXKDT3AIGYC
+# \\ FPVSTZXVMABXZQSS7KJEB6SR4GC4HGG6FRLS3OPUG5R3ZOMPVPMO \\// C25519-BASE-32 //
+#  \\// AHGCJTXYA2CB5CYATG4YQWNEPNTWAJNW5UYV7LCG6FGK4IVWIDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
