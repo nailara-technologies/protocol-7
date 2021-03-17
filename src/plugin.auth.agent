@@ -1,7 +1,7 @@
 # >:]
 
 # name  = plugin.auth.agent
-# descr = perform 'agent' auth. initiated / enabled by nroot agent
+# descr = perform 'agent' type authentication initiated \ enabled by nroot agent
 
 my $id     = $_[0]->w->data;
 my $re     = <regex.base>;
@@ -52,13 +52,13 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
         return 1;
     }
 } else {
-    <[base.log]>->( 0, "[$id] [agent] authentication protocol mismatch <!>" );
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ agent ]" );
     $$output .= ">:[\n";
     return 1;
 }
 
 # ______________________________________________________________________________
-#\\DW2RN4LS2MUHE46DA3W4CLN6L4EYKQH4NNLWN2VN34OAPC36HA2SRVZLBBDQCY3WTMNDN5Q3ZCAYI
-# \\ WHPRQ3DT6LLUFAU47424GY5RMZTQRHKXCMSUUNBF7YHJTMXDTBRV \\// C25519-BASE-32 //
-#  \\// KMH4LD2V7JANKC4IZF66UELIVGCFXGBSSPLYKNY5JIP2QNW6ABA \\ CODE SIGNATURE \\
+#\\3N4P62S5T7S7MTSFM7WJQWWKH4CVUJMA3TZFPRAOWDP25MT4GWMGTI5CWTIQB5SLX7OQYWRG3KGFC
+# \\ 65MERKQU5GESYIFTGVL355HGLJIX7ZO3J5FJY3JFGBOQL3LKTUQN \\// C25519-BASE-32 //
+#  \\// GL5CKKRWR3F3E4E4T2HRNFJC62PPKNCZJ4HXM4XNN3SSV4N5YBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
