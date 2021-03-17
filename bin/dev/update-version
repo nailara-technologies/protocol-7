@@ -13,6 +13,8 @@ use FindBin '$RealBin';
 use Digest::Elf qw| elf |;
 use Crypt::Misc qw| encode_b32r |;
 
+my $readme_file_path = 'readme/md/README.md';
+
 our $amend = 0;
 my $reset = 0;
 my $down  = 0;
@@ -31,7 +33,7 @@ my $root_path
 my $cfg_path = File::Spec->catdir( $root_path, 'cfg' );
 our $v_file    = File::Spec->catfile( $cfg_path, 'protocol-7.source-version' );
 our $rl_v_file = File::Spec->catfile( $cfg_path, 'protocol-7.release-version' );
-my $readme_md    = File::Spec->catfile( $root_path, 'README.md' );
+my $readme_md    = File::Spec->catfile( $root_path, $readme_file_path );
 my $old_version  = get_old_version();
 my $git          = Git::Wrapper->new($root_path);
 my $commit_count = $git->log - 1;
@@ -197,7 +199,7 @@ sub assert_harmony {
 ################################################################################
 
 # ______________________________________________________________________________
-#\\RYQ37QO2GMYWV7ATD62Q4IUHFXGKDFKHDGKINFZQ2YDJ4QBNAVOVOSTK6ASFDIX7IKD4RK2O4B2GM
-# \\ 4A45S6VVETQMAIORCGGWOMZ5BQRDLZHSBAOR74252OXHWMYXJRPI \\// C25519-BASE-32 //
-#  \\// 2GF6ZIMOCEQ3UB6J2VPR6SGWBDNUTOTQSWFVPOSMFNJUPVYMOBQ \\ CODE SIGNATURE \\
+#\\DT2ZDRK33EH6WGWDCTVY7TWF4C5D6MYVIYVDEQ2ARWBVZIRZEJIZVGLGYK4QHWTGIMETF4KBXMNLY
+# \\ 2FGLNNXOOGELOTZ3V2BWV5U4FVS26BASO35LTTW7C4LOTYRR4IRF \\// C25519-BASE-32 //
+#  \\// 52TQUOI74PMNOJMK3SBKXD7FAK6ITIVL6ZK6EDGC2QXFWHWYWDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
