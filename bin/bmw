@@ -1,40 +1,76 @@
 #!/usr/bin/perl
+use v5.24;
 use strict;
+use English;
 use warnings;
+use Digest::BMW;
 use Crypt::Misc 'encode_b32r';
-use Digest::BMW 'bmw_224';
-my $bmw = Digest::BMW->new(224);
 
-if ( @ARGV == 2 and $ARGV[0] =~ m|^\-fq?| ) {
-    my $fname = $ARGV[1];
-    die "\n <!> file '$fname' not found <!>" if !-e $fname;
+my @sizes = qw| 224 256 384 512 |;
+
+my $bits = 0;
+my $next_size;
+my $numerical = 0;
+map { $numerical = 1 if $ARG eq '-d' } @ARGV;
+
+map { $bits = $LAST_PAREN_MATCH if $ARG =~ m|^-(\d+)| } @ARGV;
+
+my $pmode;
+my $bytes;
+if ( length($bits) < 3 ) {    ## bytes mode ##
+    $bytes = $bits;
+    $bits *= 8;
+    $pmode = 'bytes';
+} else {    ## bits mode ##
+    $bytes = int( $bits / 8 );
+    $bytes++ if $bits % 8;
+    $pmode = 'bits';
+}
+map { $next_size //= $ARG if $bits <= $ARG or $ARG == 512 } @sizes;
+my $b_str = $pmode eq 'bytes' ? sprintf( " [ %d bytes ]", $next_size / 8 ) : '';
+die ":\n:: requested bit size larger than $next_size ::$b_str\n:\n"
+    if $bits > $next_size;
+$bytes ||= $next_size / 8;
+
+my $bmw = Digest::BMW->new($next_size);
+
+my @args = grep { !m,^-(b|\d+)$, } @ARGV;
+
+if ( @args == 2 and $args[0] =~ m|^\-fq?| ) {
+    my $fname = $args[1];
+    die "\n  << not found : $fname >>" if !-e $fname;
     open( my $FH, '<' . $fname ) or die "\n <!> $fname : $!\n\n";
     $fname =~ s|^.*/||;
-    my $bmw_b32 = encode_b32r( $bmw->addfile($FH)->digest );
-    printf( "%s\n", $bmw_b32 ) and exit if length( $ARGV[0] ) == 3;
-    printf( ":\n: $fname :. %s .:\n:\n", $bmw_b32 );
+    my $bmw_enc = encode( $bmw->addfile($FH)->digest );
+    say $bmw_enc and exit if length( $args[0] ) == 3;
+    printf( ":\n: $fname :. %s .:\n:\n", $bmw_enc );
     close($FH);
-} elsif ( @ARGV == 2
-    and $ARGV[0] eq '-fl'
-    and ( -f $ARGV[1] or $ARGV[1] eq '-' ) ) {
-    my $fname = $ARGV[1];
+} elsif ( @args == 2
+    and $args[0] eq '-fl'
+    and ( -f $args[1] or $args[1] eq '-' ) ) {
+    my $fname = $args[1];
     if ( $fname eq '-' ) {
-        while (<STDIN>) {
-            printf "%s\n", encode_b32r( bmw_224($_) );
-        }
+        while (<STDIN>) { say encode( $bmw->add($ARG)->digest ) }
     } else {
-        printf "[ %s ]\n", $fname;
+        say "[ %s ]", $fname;
         open( my $FH, '<' . $fname ) or die $!;
-        while (<$FH>) {
-            printf ": %s\n", encode_b32r( bmw_224($_) );
-        }
+        while (<$FH>) { printf ": %s\n", encode( $bmw->add($ARG)->digest ) }
         close($FH);
     }
 } else {
-    printf "%s\n", encode_b32r( bmw_224( ( join( ' ', @ARGV ) ) ) );
+    say encode( $bmw->add( join( ' ', @args ) )->digest );
 }
+
+sub encode {
+    my $checksum = shift;
+    return substr( encode_b32r($checksum), 0, $bytes ) if not $numerical;
+    return join( '',
+        map { sprintf "%03d", $ARG }
+            unpack( 'C*', substr( $checksum, 0, $bytes ) ) );
+}
+
 # ______________________________________________________________________________
-#\\EXFHEUFUVLY4MBKS3KT3LABPSHMWYY3OXZ6QUNYE2FSJM66GXMASECOJ57AGCF6S3W33XRRMDV6SC
-# \\ 3CV6IYKUNER4OEYWKAWUOZNW74V2NLOVZKWDJYWOFJZA77DOJUVO \\// C25519-BASE-32 //
-#  \\// JQIFEYJ2D5ZOFMGKUGWENWYKXQKMCGAFQ3ONI725VMGXFKXS6CY \\ CODE SIGNATURE \\
+#\\RJTKVABYDV3ARVPUFNJESULHOO64DU6U4JK2QEF7C5DKZM2UIV7HIO2PD5VJSWTKC2YX4KZKJMEVA
+# \\ K3LNGFHH4C7SLOEIXGVIDE3HAQZSA4OPRM4PS6WEUQBZCJLP5QPU \\// C25519-BASE-32 //
+#  \\// L5XE5RBIP2T64YXYH3ZW3Q2FDQO5XJOK3QPTD2ZTEL7P7BTDKBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
