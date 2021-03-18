@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use Term::ANSIColor;
+use Text::Wrap qw| wrap |;
+use Time::HiRes qw| sleep |;
+
+getopts( 'vr:qu:U:', \my %mode );
+
+my $nailara_bg  = color('on_r09g05b41');
+my $nailara_fg  = color('r38g46b153');
+my $amos_color  = color('r71g195b6');
+my $error_color = color('r195g71b6');
+
+$SIG{'__WARN__'} = sub {
+    my $err = shift;
+    my $w   = 44;
+    $err =~ s{ at .+$|\n+}{}g;
+    $err =~ s{[0\\]x(\S\S)}
+    { $w+=-3+length("$nailara_fg");
+    $amos_color.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
+    $Text::Wrap::columns = $w;
+    print STDERR "$nailara_fg\r" . wrap( '  ', '  ', $err ) . "\r$amos_color\n";
+};
+
+$| = 1;
+exit if !@ARGV;
+( my $input_num = join( '', @ARGV ) ) =~ s|\D+||g;
+exit if !length($input_num);
+
+my $U = $mode{'U'} // '8';
+
+print $nailara_fg . ":\n    " . $nailara_bg . $amos_color;
+
+if ( $U ne 'R' ) {
+    ## testing ##
+    no warnings;
+    eval 'use warnings FATAL => "all"; binmode( STDOUT, ":encoding(UTF-$U)" )';
+    use warnings;
+    binmode( STDOUT, ":raw" )
+        and say "   $amos_color<< encoding"
+        . " [${error_color}'UTF-$U'$amos_color]"
+        . " not found >>   $nailara_fg\n:"
+        . color('reset')
+        and exit
+        if $EVAL_ERROR;
+    ## applying ##
+    binmode( STDOUT, ":encoding(UTF-$U)" );
+} else {
+    binmode( STDOUT, ":raw" );
+}
+
+my $c_mode = $mode{'u'} // 4;
+
+my $repeat = $mode{'r'} // $MATCH if $input_num =~ m|^\d|;
+$repeat ||= 1;
+
+if ( $mode{'q'} ) {
+    no warnings;
+}
+my $input_num_copy = $input_num;
+for ( 1 .. $repeat ) {
+    while ( length($input_num) > 1 ) {
+        my $C = $c_mode;
+        if ( $c_mode < 2 ) {
+            $C = 3;
+            $C = 2
+                if length($input_num) == 2
+                or $input_num =~ m|^(\d{$C})| and $MATCH > 255;
+        }
+        $C = length($input_num) if $C > length($input_num);
+        printf "%s <%02d:%03d> %s", $nailara_fg, $C, $MATCH, $amos_color
+            if $mode{'v'};
+        printf "%c", $MATCH and sleep 0.13 if $input_num =~ s|^\d{$C}||;
+    }
+    $input_num = $input_num_copy;
+}
+
+binmode( STDOUT, ":raw" );
+
+say ' ' . color('reset') . $nailara_fg . "\n\n:" . color('reset');
+
+# ______________________________________________________________________________
+#\\QAJNDIV2XWDX6XTDB2OYTX2LCGY2E3TFJ22SJ3WYHRJH4MMDFQQCBXGCOLZHU5N2I6XB7YNEGXOLM
+# \\ KS65HDP5NUZ73EVPPYGVUZTW62TDRTSVWPMBFUURXNBFGUPQ4IG5 \\// C25519-BASE-32 //
+#  \\// 3K7LQWOFEK5I72G5MU2EDI4AVUJ2SQ5FI4SIKHS6ENLL3ZFU2DA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
