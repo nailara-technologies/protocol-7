@@ -13,7 +13,7 @@ use Time::HiRes qw| sleep |;
 use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
 
 ( my $x, my $y ) = Term::Size::chars;
-getopts( 'BSvs:r:qu:C:U:', \my %mode );
+getopts( 'BSvs:r:equ:C:U:', \my %mode );
 
 my $screen_chars = $y * $x;
 
@@ -155,12 +155,18 @@ if ( defined $char_buffer ) {
 binmode( STDOUT, ":raw" );
 
 say ' ' . color('reset') . $nailara_fg . "\n:" if not $mode{'S'};
+if ( $mode{'e'} ) {
+    my $char_desc = " .:[ $error_color$C$nailara_fg ]:. ";
+    print "\r$nailara_fg$char_desc$amos_color";
+    print substr( $char_buffer, 0, $x - length($char_desc) ) . "\r"
+        if $mode{'S'};
+}
 print color('reset');
 
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\HJEUFJBPT4VKGW3K2YIZATKJCC4SHHR6SARJIRIY7AZVBNXAKU2DSNEEXCG2LMJ47UJTCX73R6XA4
-# \\ 3ELUKBOS4MFHPUGX3FRXWBR5NCC2V7BUGBNSHTGN5CK2LNVS7AZA \\// C25519-BASE-32 //
-#  \\// VA7HYG42EVBFJKHR6DFNF7W4NAISMLRW7DGN6ZQO5UYAEX2JOCQ \\ CODE SIGNATURE \\
+#\\JPDURKJC2ZGWX5JCUQNQQR5X4UFESZUZ5JUHZESGIKQWOTVPHLVKGJ52DKXMX5HLAXMFCSHY7ZJ6G
+# \\ XF4DU3RTQORO3KDG422776DLYNFJRRCCWPBIMVEBTLKXPNBOD5HX \\// C25519-BASE-32 //
+#  \\// K5EKP5ZDLZKPWXRCFYQ7OWHHT65W5RTXQDDJBAZMR6FH7XVCKAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
