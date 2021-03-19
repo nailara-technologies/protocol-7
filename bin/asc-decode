@@ -106,7 +106,6 @@ my $char_buffer    = '';
 my $input_num_copy = $input_num;
 while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
     or !$mode{'S'} and $repeat-- ) {
-    my $old_len = length($char_buffer);
     while ( length($input_num) > 1 ) {
         my $c_count = $c_mode;
         if ( $c_mode < 2 ) {
@@ -133,14 +132,11 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
 
         $char = to_utf8( { -string => chr($c_num), -charset => $C } )
             if $encoding_mode eq 'map';
+        $char_buffer .= $char;
 
-        if ($delay) {
-            print $char and sleep $delay;
-        } else {
-            $char_buffer .= $char;
-        }
+        print $char and sleep $delay if $delay;
     }
-    last if $old_len == length($char_buffer);
+    last if length($char_buffer) == 0;
     $input_num = $input_num_copy;
 }
 
@@ -149,7 +145,7 @@ if ( defined $char_buffer ) {
     $char_buffer = ' < U7 > ' . Encode::decode( 'UTF-7', $char_buffer )
         if $mode{'B'};
 
-    print $char_buffer if defined $char_buffer;
+    print $char_buffer if defined $char_buffer and !$delay;
 }
 
 binmode( STDOUT, ":raw" );
@@ -157,16 +153,23 @@ binmode( STDOUT, ":raw" );
 say ' ' . color('reset') . $nailara_fg . "\n:" if not $mode{'S'};
 if ( $mode{'e'} ) {
     my $char_desc = " .:[ $error_color$C$nailara_fg ]:. ";
-    print "\r$nailara_fg$char_desc$amos_color";
-    print substr( $char_buffer, 0, $x - length($char_desc) ) . "\r"
-        if $mode{'S'};
+    my $cd_len    = length($char_desc) - length( $error_color . $nailara_fg );
+    print "\r$nailara_fg$char_desc";
+    if ( $mode{'S'} ) {
+        print substr( $char_buffer, 0, $x - $cd_len ) . "\r";
+    } else {
+        say "\n " . ':' x ( $cd_len - 2 );
+        say "\n..,";
+    }
+    print $amos_color;
+
 }
 print color('reset');
 
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\JPDURKJC2ZGWX5JCUQNQQR5X4UFESZUZ5JUHZESGIKQWOTVPHLVKGJ52DKXMX5HLAXMFCSHY7ZJ6G
-# \\ XF4DU3RTQORO3KDG422776DLYNFJRRCCWPBIMVEBTLKXPNBOD5HX \\// C25519-BASE-32 //
-#  \\// K5EKP5ZDLZKPWXRCFYQ7OWHHT65W5RTXQDDJBAZMR6FH7XVCKAA \\ CODE SIGNATURE \\
+#\\XDG5OZR2DTYGVTR56IOFYUIR56VUI6IANONKWVNARKYKL6M6OVEDJST2YLTLEUXPVALLCRP5Z3N3S
+# \\ ZNECTUI5OMOVSONXDOGWQFNKHWVQJPJW2QUP6DKSCV3LPCEXEQRA \\// C25519-BASE-32 //
+#  \\// X4X24MOBBLHH3RIZZ3ATNKQWSIR6RYHQQSUMHEEY63NFKBWQEDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
