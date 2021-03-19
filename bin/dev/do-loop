@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use Time::HiRes qw| sleep |;
+$SIG{'INT'} = sub {exit};
+
+my @commands;
+my $loop_count  = shift;
+my $loop_delay  = shift;
+my $min_delay   = 0.0007;
+my $error_delay = 0.13;
+
+die ":\n:: expected < loop-count > parameter\n\n"
+    if not defined $loop_count
+    or $loop_count !~ m|^\-?\d+$|;
+die ":\n:: expected < loop-delay > parameter\n\n"
+    if not defined $loop_delay
+    or $loop_delay !~ m|^\d+(\.\d+)?$|;
+$loop_delay = $min_delay if $loop_delay < $min_delay;
+if (@ARGV) { @commands = join( ' ', @ARGV ) }
+else       { @commands = <STDIN> }
+die ":\n:: no commands given\n\n" if !@commands;
+
+while ( $loop_count == -1 or $loop_count-- ) {
+    foreach my $command (@commands) {
+        system($command) == 0 or sleep $error_delay;
+        sleep $loop_delay;
+    }
+}
+
+# ______________________________________________________________________________
+#\\BYZMPVR2RNZ5SOWLF35VCW2QRFVEDATA7FR24CB6MCZDSEWQE6EE7SO7Z6OT74XTNDQEJECEJNNZ4
+# \\ EKWENUYZKPAQZQUGZLU2CZORGUTZR5JMGDOUGDPJQLX5GTCYKTMN \\// C25519-BASE-32 //
+#  \\// 6QXF5KR77JDUVOSB674EBH6XGFGCXMDYW7AMYDG5IGD3NPKHKDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
