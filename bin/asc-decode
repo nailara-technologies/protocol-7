@@ -102,10 +102,11 @@ if ( $mode{'q'} ) {
     no warnings;
 }
 my $num_buffer;
-my $char_buffer;
+my $char_buffer    = '';
 my $input_num_copy = $input_num;
 while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
     or !$mode{'S'} and $repeat-- ) {
+    my $old_len = length($char_buffer);
     while ( length($input_num) > 1 ) {
         my $c_count = $c_mode;
         if ( $c_mode < 2 ) {
@@ -139,6 +140,7 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
             $char_buffer .= $char;
         }
     }
+    last if $old_len == length($char_buffer);
     $input_num = $input_num_copy;
 }
 
@@ -158,7 +160,7 @@ print color('reset');
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\I77K76QFZYBJYH526YDOXBSORRHONLF3VRKBNL6TSITQTOKKKBEP2YI5YB6PSWBDDLM43KSPE3SNQ
-# \\ 67MQWSOBL3DGYSUF5MQSPBOGLHD6W3CM6Q2ZEHOLRYGRDTGB572X \\// C25519-BASE-32 //
-#  \\// DZREVPI7DBCQIZGCTJ7VHGRMOK4CS4N3W2CJSY4XARRPNZO3ACA \\ CODE SIGNATURE \\
+#\\HJEUFJBPT4VKGW3K2YIZATKJCC4SHHR6SARJIRIY7AZVBNXAKU2DSNEEXCG2LMJ47UJTCX73R6XA4
+# \\ 3ELUKBOS4MFHPUGX3FRXWBR5NCC2V7BUGBNSHTGN5CK2LNVS7AZA \\// C25519-BASE-32 //
+#  \\// VA7HYG42EVBFJKHR6DFNF7W4NAISMLRW7DGN6ZQO5UYAEX2JOCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
