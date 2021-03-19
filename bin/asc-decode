@@ -3,13 +3,23 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Term::Size;
 use Getopt::Std;
 use Term::ANSIColor;
+use Digest::Elf qw| elf |;
+use Crypt::PRNG::Fortuna;
 use Text::Wrap qw| wrap |;
 use Time::HiRes qw| sleep |;
+use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
 
-getopts( 'vr:qu:U:', \my %mode );
+( my $x, my $y ) = Term::Size::chars;
+getopts( 'BSvs:r:qu:C:U:', \my %mode );
 
+my $screen_chars = $y * $x;
+
+# say " $x x $y == $screen_chars" and sleep 1.2 and exit;
+
+my $B32         = qr|[A-Z2-7]+|o;
 my $nailara_bg  = color('on_r09g05b41');
 my $nailara_fg  = color('r38g46b153');
 my $amos_color  = color('r71g195b6');
@@ -17,7 +27,8 @@ my $error_color = color('r195g71b6');
 
 $SIG{'__WARN__'} = sub {
     my $err = shift;
-    my $w   = 44;
+    return if lc($err) =~ m|^wide character| or $mode{'q'};
+    my $w = 44;
     $err =~ s{ at .+$|\n+}{}g;
     $err =~ s{[0\\]x(\S\S)}
     { $w+=-3+length("$nailara_fg");
@@ -33,58 +44,121 @@ exit if !length($input_num);
 
 my $U = $mode{'U'} // '8';
 
-print $nailara_fg . ":\n    " . $nailara_bg . $amos_color;
+print $nailara_fg . ":\n    " if not $mode{'S'};
+print $nailara_bg . $amos_color;
 
-if ( $U ne 'R' ) {
-    ## testing ##
+my $C = $mode{'C'} // "UTF-$U";
+
+## randomized selection ##
+if ( $C eq 'R' ) {
+    my @select_from = utf8_supported_charset;
+    my $fortuna     = Crypt::PRNG::Fortuna->new( scalar elf($input_num) );
+    my $index       = $fortuna->irand;
+    while ( $index >= scalar @select_from ) {
+        $index = int( $index * 0.7 ) % scalar @select_from;
+    }
+    $C = $select_from[$index];
+}
+##
+
+$C = ':raw' if $C eq 'raw' or $C eq 'r';
+say ":\n:: ${error_color}character set '$C' not supported\n" . color('reset')
+    and exit(4)
+    if $C ne ':raw'
+    and $C !~ m|^UTF-\d{1,2}|
+    and not utf8_supported_charset($C);
+
+my $encoding      = $C =~ m|^:| ? $C : sprintf(":encoding($C)");
+my $encoding_mode = 'native';
+
+if ( not utf8_supported_charset($C) ) {
+## testing ##
     no warnings;
-    eval 'use warnings FATAL => "all"; binmode( STDOUT, ":encoding(UTF-$U)" )';
+    eval 'use warnings FATAL => "all"; binmode( STDOUT, $encoding )';
     use warnings;
     binmode( STDOUT, ":raw" )
         and say "   $amos_color<< encoding"
-        . " [${error_color}'UTF-$U'$amos_color]"
-        . " not found >>   $nailara_fg\n:"
+        . " [${error_color}'$encoding'$amos_color]"
+        . " not found >>  $nailara_fg\n:"
         . color('reset')
         and exit
         if $EVAL_ERROR;
-    ## applying ##
-    binmode( STDOUT, ":encoding(UTF-$U)" );
+## applying ##
+    binmode( STDOUT, $encoding );
 } else {
-    binmode( STDOUT, ":raw" );
+    $encoding_mode = 'map';
 }
 
 my $c_mode = $mode{'u'} // 4;
+my $delay  = $mode{'s'} // 0.13;
+$delay = 0 if $mode{'S'};
 
 my $repeat = $mode{'r'} // $MATCH if $input_num =~ m|^\d|;
 $repeat ||= 1;
 
+$screen_chars *= $repeat if defined $mode{'r'};
+
 if ( $mode{'q'} ) {
     no warnings;
 }
+my $num_buffer;
+my $char_buffer;
 my $input_num_copy = $input_num;
-for ( 1 .. $repeat ) {
+while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
+    or !$mode{'S'} and $repeat-- ) {
     while ( length($input_num) > 1 ) {
-        my $C = $c_mode;
+        my $c_count = $c_mode;
         if ( $c_mode < 2 ) {
-            $C = 3;
-            $C = 2
+            $c_count = 3;
+            $c_count = 2
                 if length($input_num) == 2
-                or $input_num =~ m|^(\d{$C})| and $MATCH > 255;
+                or $input_num =~ m|^(\d{$c_count})| and $MATCH > 255;
         }
-        $C = length($input_num) if $C > length($input_num);
-        printf "%s <%02d:%03d> %s", $nailara_fg, $C, $MATCH, $amos_color
+        $c_count = length($input_num) if $c_count > length($input_num);
+        printf "%s <%02d:%03d> %s", $nailara_fg, $c_count, $MATCH, $amos_color
             if $mode{'v'};
-        printf "%c", $MATCH and sleep 0.13 if $input_num =~ s|^\d{$C}||;
+
+        last if $c_count < 2;
+
+        my $c_num = $MATCH if $input_num =~ s|^\d{$c_count}||;
+
+        $c_num = 32 if $c_num < 32;
+
+        my $char = chr($c_num);
+
+        next if $mode{'B'} and $char !~ $B32;
+
+        $num_buffer .= $c_num;
+
+        $char = to_utf8( { -string => chr($c_num), -charset => $C } )
+            if $encoding_mode eq 'map';
+
+        if ($delay) {
+            print $char and sleep $delay;
+        } else {
+            $char_buffer .= $char;
+        }
     }
     $input_num = $input_num_copy;
 }
 
+if ( defined $char_buffer ) {
+
+    $char_buffer = ' < U7 > ' . Encode::decode( 'UTF-7', $char_buffer )
+        if $mode{'B'};
+
+    print $char_buffer if defined $char_buffer;
+}
+
 binmode( STDOUT, ":raw" );
 
-say ' ' . color('reset') . $nailara_fg . "\n\n:" . color('reset');
+say ' ' . color('reset') . $nailara_fg . "\n:" if not $mode{'S'};
+print color('reset');
+
+my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\QAJNDIV2XWDX6XTDB2OYTX2LCGY2E3TFJ22SJ3WYHRJH4MMDFQQCBXGCOLZHU5N2I6XB7YNEGXOLM
-# \\ KS65HDP5NUZ73EVPPYGVUZTW62TDRTSVWPMBFUURXNBFGUPQ4IG5 \\// C25519-BASE-32 //
-#  \\// 3K7LQWOFEK5I72G5MU2EDI4AVUJ2SQ5FI4SIKHS6ENLL3ZFU2DA \\ CODE SIGNATURE \\
+#\\I77K76QFZYBJYH526YDOXBSORRHONLF3VRKBNL6TSITQTOKKKBEP2YI5YB6PSWBDDLM43KSPE3SNQ
+# \\ 67MQWSOBL3DGYSUF5MQSPBOGLHD6W3CM6Q2ZEHOLRYGRDTGB572X \\// C25519-BASE-32 //
+#  \\// DZREVPI7DBCQIZGCTJ7VHGRMOK4CS4N3W2CJSY4XARRPNZO3ACA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
