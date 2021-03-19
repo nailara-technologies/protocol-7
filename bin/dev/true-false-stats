@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Term::Size;
+use Getopt::Std;
+use Term::ANSIColor;
+use Digest::Elf qw| elf |;
+use Crypt::PRNG::Fortuna;
+use Text::Wrap qw| wrap |;
+use Time::HiRes qw| sleep |;
+use Data::Dumper qw| Dumper |;
+use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
+
+no warnings;
+$SIG{'__WARN__'} = sub { };
+
+my $stats = { 'true' => {}, 'false' => {} };
+
+( my $true = sprintf "%.7f", 5 / 13 )  =~ s|^0\.||;
+( my $false = sprintf "%.7f", 3 / 13 ) =~ s|^0\.||;
+$true                                  =~ s|\d$||;
+$false                                 =~ s|\d$||;
+
+my $calc = { 'true' => $true, 'false' => $false };
+
+# say " <  true > $true\n < false > $false"; exit;
+
+my $csets = {};
+
+foreach my $cset (utf8_supported_charset) {
+    map {
+        my $RES = to_utf8( -string => chr( $calc->{$ARG} ), -charset => $cset );
+        $stats->{$ARG}->{$RES}++;
+        push( @{ $csets->{$RES} }, $cset );
+    } qw| true false |;
+}
+
+# sleep 5; say Dumper($stats);
+
+my $s_len = 32;
+
+say '+' x $s_len;
+foreach my $type ( sort { length $a <=> length $b } keys( %{$stats} ) ) {
+    my $counter = $stats->{$type};
+    foreach my $result (
+        sort { $counter->{$b} <=> $counter->{$a} } reverse sort
+        keys %{$counter}
+    ) {
+        printf ":\n:\n::: %-5s :: %04d ::  %7s\n:\n::. %s\n", $type,
+            $counter->{$result}, $result,
+            join( ' : ',
+            sort { length $b <=> length $a }
+                reverse sort @{ $csets->{$result} } );
+    }
+    say '+' x $s_len;
+}
+# ______________________________________________________________________________
+#\\HGMJL4GDUXCW6CGHESMHRMYJKWLDARQBYUCLVARTU6GP5SQHMEUBASC42WZQQTBQKA3PBCGFKUSWG
+# \\ YS7WTGBHPVNCCRFYXEVTCQLOZZ6XHTRQPIBV67I5WJJ23FLPKPQL \\// C25519-BASE-32 //
+#  \\// JEF3FB3W4VVJ3UYR474ZDRBKXZGUTSHY67GIRRG234QA42V3GDQ \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
