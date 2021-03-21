@@ -3,7 +3,6 @@ use warnings;
 use v5.24;
 use strict;
 use English;
-use Term::Size;
 use Digest::BMW;
 use Math::BigFloat;
 use Term::ANSIColor;
@@ -23,7 +22,7 @@ $YAML::XS::DumpCode    = 0;
 $YAML::XS::LoadCode    = 0;
 
 #####################################
-( my $x, my $y ) = Term::Size::chars;
+( my $x, my $y ) = @{&term_size};
 $y += 4;
 #####################################
 
@@ -402,6 +401,20 @@ ADD_CHARACTERS:
     return length($$output) - $start_width;
 }
 
+sub term_size {
+
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = 21523;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+
+    return [ unpack 'S!S!S!S!', $size ]    ## <-- [ <x>, <y>, <x-px> <y-px> ]
+
+}
+
 sub process_arguments {
 
     while (@ARGV) {
@@ -675,7 +688,7 @@ sub sig_int_handler {
 }
 
 # ______________________________________________________________________________
-#\\LGM56LGMNJOH4YX3MYWODGDPBXQPZJBYE65IWD4GSPZC3CEME2YGMZL6PDG5SICXKGNWPMUSCIGUA
-# \\ 4GQ7IAV7CIAHX4U7U46T7ITM66EIZKGVMZLMBAJHXX37J36AE2RU \\// C25519-BASE-32 //
-#  \\// KYGH5DMLVBELVVHJHCVZK2MX3TFG2TNHHJUB5573FGDFGDF3SBQ \\ CODE SIGNATURE \\
+#\\636KYGGWSQ5SUCEP7LOU3E2MXY6LEGKUGPOI4F5JOZVVXBB2ILZGXWLZQD34IXXFAWFZNB63BHUUA
+# \\ QQ5LFPZ7Q2I7JFEVVHTKHSGIC65FFAPT3MEN5KSONXUKRAPZTIII \\// C25519-BASE-32 //
+#  \\// 5KNMMNVJ32VMVAEQOUUYDBFUHVXYDKZE2TGFHDXAJDHJDMSTWBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
