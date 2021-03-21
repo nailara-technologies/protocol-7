@@ -41,7 +41,7 @@ $log_msg = "call to unknown subroutine while executing '$1'!"
 my $dots = <log.dots> //= '.';
 
 my $agent_prefix
-    = sprintf( ":.%s%s%s.:", <system.node.name>, $dots, <system.agent.name> );
+    = sprintf( ":.%s.%s%s:", <system.node.name>, <system.agent.name>, $dots );
 
 my $log_str;
 if ( $log_level > 0 ) {
@@ -67,15 +67,23 @@ if ( defined $code{'base.buffer.add_line'} ) {
 }
 
 # print to console
-utf8::decode($log_str)
-    and say $log_str
-    if fileno(STDOUT)
-    and $log_level <= <system.verbosity.console>;
+
+if ( fileno(STDOUT)
+    and $log_level <= <system.verbosity.console> ) {
+
+    say delete <log.next_console_line> if defined <log.next_console_line>;
+
+    utf8::decode($log_str) and say $log_str;    ## <-- log to console ##
+
+    <log.logged_prefix_width> = length($agent_prefix)
+        if not defined <log.logged_prefix_width>
+        or <log.logged_prefix_width> != length($agent_prefix);
+}
 
 return 1;
 
 # ______________________________________________________________________________
-#\\L4OCQG5CM2VME4T3THKUZN4WBKVP6EWVF66MMWYFPOWLUVMICGHCC26N45DLI2YZ6H3GFUJHEL5GG
-# \\ 3V55MDUG2XEYGSBMHQTVZ4TUQDTBKTPGEFRGIS7YGAK4KTDGJN5H \\// C25519-BASE-32 //
-#  \\// LUK5O224N5SCC6E3VGS2VQWMXK4EAU6IVNBFYCBU3HORK5SRMAY \\ CODE SIGNATURE \\
+#\\AY56FK5JDQ53O5S2NJ2Z3EALZWVUNNCWDR57ZLVYIZNIJ2V7XR4M7V5FBWCAZ2C7WJEKAT23CCXDY
+# \\ STYHSNCMZOKLMPE26TB7SBLVMGWJQCVJYWJQ446FPNNQD2AIGWX4 \\// C25519-BASE-32 //
+#  \\// DXX6LLBBL4572AQ4G552LM4LTCIJWHSLU4JBMY3YN2HXOIMF4AA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

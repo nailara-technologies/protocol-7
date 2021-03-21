@@ -6,7 +6,7 @@
 my $apw_href = <nroot.agent.prefix_width> //= {};
 
 foreach my $agent_name (@_) {
-    $apw_href->{$agent_name} = <[base.log_prefix_width]>->($agent_name);
+    $apw_href->{$agent_name} = <[base.get_start_lpw]>->($agent_name);
 }
 
 my $max_len = 0;
@@ -14,10 +14,11 @@ foreach my $agent_name ( keys %{$apw_href} ) {
     $max_len = $apw_href->{$agent_name} if $max_len < $apw_href->{$agent_name};
 }
 
-map { $apw_href->{$ARG} = $max_len } keys %{$apw_href}
+map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} > $max_len }
+    keys %{$apw_href}
 
 # ______________________________________________________________________________
-#\\3UMAHO6USZBRBWKSX3SBB5AMIC5X2Y7FMXZW4HGCDK45SO6HUXZXJO4ZVUGHGQR6SWCE6VKFOXHN6
-# \\ NSUQVAFWHDYKYAIWNY6APF5MU2LC6RT73HJRTOKVP3AK7FXLVU2L \\// C25519-BASE-32 //
-#  \\// OQ5EJAQXUREWLQOQUUCA3PWRM7I44I43N2AFD4THS6SQLMVECBQ \\ CODE SIGNATURE \\
+#\\L6N4LM2MJU3I3UFFM3NW42OLRJS7LIIBQ5SRWOKNBIQAPVNQYOXQ75HBDHNVILU6OXP3PU4JJXCJC
+# \\ CHJEJ3UNBBRFADDODVNKQ3I55PC6MVDPO2JAK2S3ZSCV5V3LHHGX \\// C25519-BASE-32 //
+#  \\// BQJQUV3TSBTHRRWTKHPKWKHOZGXH72UG772TGRA5PI2OHI6TQBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
