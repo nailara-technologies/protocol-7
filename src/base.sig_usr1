@@ -1,12 +1,47 @@
 # >:]
 
 # name  = base.sig_usr1
-# descr = stub handler, will handle SIGUSR2[, SIGUSR1], SIGUSR2 sequences...
 
-<[base.log]>->( 0, 'SIGUSR1 received. ignoring...' );
+my $start_lpw = <system.start.log_prefix_width>;
+my $cur_lpw   = <system.agent.log_prefix_width>;
+my $max_lpw   = 27;                                ## <-- auto-calc
+
+if ( $cur_lpw < $max_lpw ) {
+    <[base.log]>->( 2, '[ SIGUSR1 ] increasing log prefix width ..,' );
+    $cur_lpw += 1;
+} else {
+    <[base.log]>->( 2, '[ SIGUSR1 ] maximum prefix width reached .,' );
+    return;
+}
+
+<system.agent.log_prefix_width> = $cur_lpw;
+
+my $d         = '';
+my $next_dots = <log.dots> = '.' x ( $cur_lpw - $start_lpw + 1 );
+
+my $intended_prefix_width = length(
+    sprintf( ':.%s%s%s.:,',
+        <system.node.name>, <log.dots>, <system.agent.name> )
+) - 1;
+
+<log.next_console_line> = ':.';
+
+my $width_delta = 0;
+if ( defined <log.logged_prefix_width> ) {
+    my $logged_width = <log.logged_prefix_width>;
+    $width_delta = $intended_prefix_width - $logged_width;
+    substr( $next_dots, 0, $width_delta, '' );
+    <log.next_console_line>
+        .= ':' x ( $intended_prefix_width - $width_delta - 4 );
+}
+
+<log.next_console_line> .= '.:';
+<log.next_console_line>
+    .= '.' x ( $intended_prefix_width - length(<log.next_console_line>) - 1 );
+<log.next_console_line> .= ',';
 
 # ______________________________________________________________________________
-#\\36KMXXDJJQWM4AEOFDWZ2J2SJ2ATPHJQXBOBP72WOCN2F3UNZLPHMGT3FUFBRGHRCRNDC2EG4DK4M
-# \\ 5HRTDUKDTVWUH24H5YJENO7B2WBPG7627QH2V74R7W6SORUYQ4TM \\// C25519-BASE-32 //
-#  \\// 7J3O6GRHEAV6JITQS6A3BZNDGDKOGYEHH6NINAESDIXK4AXL4AA \\ CODE SIGNATURE \\
+#\\XQUYKHA7EQU44L5SV2RQKPZ5J7PT7F3FJAEHESUTWBZXXZACSIHYMNBQKK76KTD7ENDYPYJWH6HI2
+# \\ SIJE2ZZQAJW7244BPCCVUVF4VO3JKJV3MQI5KTEYH67IQXXP6MYS \\// C25519-BASE-32 //
+#  \\// QBXIT26O6TVIW2IKQ5JQGKXGE574EM2SBNEWA3WEDK4A6FABUCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
