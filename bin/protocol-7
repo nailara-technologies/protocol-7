@@ -352,6 +352,21 @@ sub prepare_subs {
 
 ################################################################################
 
+    $code{'base.term.size'} = sub {
+
+        my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+        return undef if not -t $handle;
+        state $size       = "\0" x 8;
+        state $TIOCGWINSZ = 21523;
+
+        ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+
+        return [ unpack 'S!S!S!S!', $size ]   ## <-- [ <x>, <y>, <x-px> <y-px> ]
+    };
+
+################################################################################
+
     $code{'base.load_b32_encoder'} = sub {
         if (    not defined &encode_b32r
             and not defined $data{'modules'}{'startup_error'}{'base32'} ) {
@@ -491,7 +506,14 @@ sub prepare_subs {
                 $data{'system'}{'console-mode'} = 1;
                 $code{'log.error'}->('<< in console mode >>');
             }
-            if ( $arg eq '-na' ) { $data{'system'}{'ansi_color'} = 0 }
+            if ( $arg eq '-c' ) {
+                $data{'system'}{'ansi_color'}   = 1;
+                $data{'system'}{'force-colors'} = 1;
+            }
+            if ( $arg eq '-nc' ) {
+                $data{'system'}{'ansi_color'}   = 0;
+                $data{'system'}{'force-colors'} = 0;
+            }
             if ( $arg eq '-nb' ) { $data{'system'}{'start'}{'showbanner'} = 0; }
             if ( $arg =~ m|^-N(.+)$| ) { $data{'system'}{'agent'}{'name'} = $1 }
             elsif ($stdin_mode) {
@@ -536,7 +558,30 @@ sub prepare_subs {
         }
         ## prepare agent name column width ###
         my $own_len = &{ $code{'base.log_prefix_width'} };
-
+        if ( not defined $code{'base.term.size'}->(*STDIN) ) {
+            $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
+        } else {
+            $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
+        }
+        if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
+            $data{'system'}{'term'}{'piped'}{'stdout'} = 1;
+        } else {
+            $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
+        }
+        if ( not defined $code{'base.term.size'}->(*STDERR) ) {
+            $data{'system'}{'term'}{'piped'}{'stderr'} = 1;
+        } else {
+            $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
+        }
+        map {
+            if ( $data{'system'}{'term'}{'piped'}{$ARG} ) {
+                $data{'system'}{'term'}{'colors'}{$ARG}
+                    = $data{'system'}{'force-colors'} // 0;
+            } else {
+                $data{'system'}{'term'}{'colors'}{$ARG}
+                    = $data{'system'}{'ansi_color'} // 1;
+            }
+        } qw| stdout stderr |;
         if ( defined $data{'system'}{'start'}{'log_prefix_width'}
             and $own_len <= $data{'system'}{'start'}{'log_prefix_width'} ) {
 
@@ -1535,6 +1580,8 @@ sub prepare_subs {
     };
 
     $code{'log.error'} = sub {
+        my $error_color
+            = $data{'system'}{'term'}{'colors'}{'sterr'} ? $ANSI{'bold'} : '';
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} and defined &{ $code{'base.log'} } ) {
             map { $code{'base.log'}->( 0, $ARG ) } @_;
@@ -1707,7 +1754,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\SD72UAVT7WRZV27GQGMXSTNPNO4476JG2B3R63M5YWCKNLSSCGIVQC36SSHDVOWNJQQX7HEBKHI5G
-# \\ GVCSXG3MQZAEQTQAVVGVNHCR3W5KCM3K6YUNBRRA6ANSBU6UQQ6R \\// C25519-BASE-32 //
-#  \\// CPCT6SSLD6OY2WRDJ5Z67AMNGRTIXN2JJORTRGWXWX62LXTNKBQ \\ CODE SIGNATURE \\
+#\\ATHGB2PMCZ75SLXUW4EMIIJOXPQII2T22H66OK7XFCIO5SVNYFVFBMTWRBYVZMOCX6OVHMZ5VLXYO
+# \\ W7IRTUDK66HQNBVYNOHZWWV2HWUQ5KHHQG4WLHHJHJFGASOABUMD \\// C25519-BASE-32 //
+#  \\// 4EJJJDHLIT2KTTSPNAT6GEA5IHALYVK3FDEJITZGJ5VEDCL76DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
