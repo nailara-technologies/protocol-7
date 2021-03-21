@@ -328,6 +328,11 @@ if ( $status eq 'shutdown'
     delete <nroot.agent.instance>->{$instance_id};
     delete <agent.instance.shutdown>->{$instance_id};
     <[base.log]>->( 2, "instance $instance_id terminated ['shutdown']" );
+
+    if ( <[agent.cmd.get-instance-ids]>->($agent_name)->{'mode'} eq 'nak' ) {
+        delete <nroot.agent.prefix_width>->{$agent_name};   ## <-- improve [LLL]
+        <[nroot.calc_prefix_lengths]>->( keys %{<nroot.online-agents>} );
+    }
 }
 
 if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
@@ -396,7 +401,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 # ______________________________________________________________________________
-#\\CZJ5RCTEFOCU26M5Z7COWXSHUB4DFGMPJTQVIEU5YSMMDGDV3CJZHQBD7JNSZS43VMBLKW4LCXYCA
-# \\ DVJEF4AMVB46QKAVSNVKKPQTFZG2IXVMHEUJQLBLZPWTNA5GSD2U \\// C25519-BASE-32 //
-#  \\// RUXAAMR7PD6RZKQDE3AQJ4VAUGQVKVNAHPAKJMJO2BQRGVPGCCQ \\ CODE SIGNATURE \\
+#\\ZPDMKZZUBXSZLO6LIMWV3ZYN7XZ2WAFZGAXW4WWQIZBY2CJ52GMOKBYCZCKWSQWTIQYXXMS5AQDYY
+# \\ XXIJRGPXUNCUXHNRCEM6KWZT2CZ6Q2CLJ7ZM66IQGROZMSPQOTYF \\// C25519-BASE-32 //
+#  \\// 4TLPYH5CYTYPLANIBM6OGCMDKFYQHSCOQSI33NDEWO5ESBVNUDY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

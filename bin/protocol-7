@@ -396,7 +396,6 @@ sub prepare_subs {
     $code{'base.get_start_lpw'} = sub {
         my $agent_name = shift // $data{'system'}{'agent'}{'name'};
         my $node_name  = $data{'system'}{'node'}{'name'};
-
         return length("$node_name.$agent_name");
     };
 
@@ -522,12 +521,8 @@ sub prepare_subs {
             elsif ($stdin_mode) {
                 $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
-            my $agent_lpw = &{ $code{'base.get_start_lpw'} };
-            $data{'system'}{'start'}{'log_prefix_width'} = $agent_lpw;
             if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'nroot' agent
                 $data{'system'}{'agent'}{'log_prefix_width'} = $1;
-            } else {
-                $data{'system'}{'agent'}{'log_prefix_width'} = $agent_lpw;
             }
             if ( $arg eq '-use-http-src' ) {
                 $data{'system'}{'use_http_source'} = 1;
@@ -537,6 +532,13 @@ sub prepare_subs {
                 exit(0);
             }
         }
+
+        ## setting log prefix width values \ defaults ##
+        $data{'system'}{'start'}{'log_prefix_width'}
+            = &{ $code{'base.get_start_lpw'} };
+        $data{'system'}{'agent'}{'log_prefix_width'}
+            //= $data{'system'}{'start'}{'log_prefix_width'};
+
         ### load agent code from stdin ###
         $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
             if $stdin_mode;
@@ -1758,7 +1760,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\YSGC3HTYKOASO5Q46U2DHSF6F7IP3BDKKEJB4A55RH3K24QJSA4IMWLR2D32WNYMKYNLEGBFSXXDW
-# \\ 3KCVVMMK5PQH33S3P3TKVEKHHGRZPCQQQX6QJ26NAMUV7ZDNL7DL \\// C25519-BASE-32 //
-#  \\// RZSL4RIJ5VEUCZ2FENDNCB4Z7J4EFGENZMDL4UFHNJVPBEIF2AQ \\ CODE SIGNATURE \\
+#\\CSTMU7AIKVUMYB7OOGEN7ONLQ6EHLB6SU7RBAYWAMZMFGHQVKPGBINPJIXEK74OVWK5LJ7QM6W444
+# \\ 7M2INVDNOCSXC66JMGXD4PK6BBYSOWUMJDOPRW7TORYJQG6AZY2E \\// C25519-BASE-32 //
+#  \\// 7X7XFUMCBW7JZOSM6HNQACURBUMJFZUZOIMFQRTNNZLYGKFGSBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
