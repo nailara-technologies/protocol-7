@@ -2,7 +2,8 @@
 
 # name = base.reload_values
 
-<[base.log]>->( 1, "reloading '" . $_[1] . "' config.." );
+my $u = length( $_[1] ) > 20 ? '' : 'uration';
+<[base.log]>->( 1, ": reloading '$_[1]' config$u .," );
 
 <base.parser.config.reloading> = 1;
 my $result = <[base.extract_values]>->(
@@ -14,7 +15,7 @@ delete <base.parser.config.reloading>;
 return $result;
 
 # ______________________________________________________________________________
-#\\FTKLTQC6XMWB4HXWTMG25FA27TS42GB4A7CQVMHCXCBRUDANDOJVAVPDIP2PFJ4BGYJ3BD4N34VWY
-# \\ RPF5CY6DP2MAGVUJMGUUYZ6K7F6SHQCNIVPQFISZUB3JR363NP6R \\// C25519-BASE-32 //
-#  \\// MXDGSLGTJOJ37ZRCADX76X72KAAAUXEVRRTQD3IKPPPYP6SK6BI \\ CODE SIGNATURE \\
+#\\H3EE7C6KKSEHLCFC6HSFSV476VIR2PAP34C26CSFUC3KIDMRGNDQAIHCMWB4E6NQCY37DDOW243HE
+# \\ DM2QGESKHVVVAJTG4HJX3EGEY7AU2VZJGIINKQ6LCPFYK5JYVDYO \\// C25519-BASE-32 //
+#  \\// 6NDGE2W3VJZM3YYAW6VRNSTVPUM54RJNMRCMHGWEWKMSAIT34CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

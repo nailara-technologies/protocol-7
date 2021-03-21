@@ -393,7 +393,7 @@ sub prepare_subs {
         }
     };
 
-    $code{'base.log_prefix_width'} = sub {
+    $code{'base.get_start_lpw'} = sub {
         my $agent_name = shift // $data{'system'}{'agent'}{'name'};
         my $node_name  = $data{'system'}{'node'}{'name'};
 
@@ -472,6 +472,9 @@ sub prepare_subs {
             $data{'system'}{'agent'}{'name'} = '<init>';
         }
 
+        $data{'system'}{'node'}{'name'} = hostname() // 'protocol-7';
+        $data{'system'}{'node'}{'name'} =~ s|\..+$||;
+
         #   ( $data{'system'}{'node'}{'name'},
         #    $data{'system'}{'agent'}{'name'} ) = split ( m|\.|, $_[0] ); #[LLL]
 
@@ -519,8 +522,12 @@ sub prepare_subs {
             elsif ($stdin_mode) {
                 $data{'system'}{'agent'}{'name'} = '<stdin>';
             }
+            my $agent_lpw = &{ $code{'base.get_start_lpw'} };
+            $data{'system'}{'start'}{'log_prefix_width'} = $agent_lpw;
             if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'nroot' agent
-                $data{'system'}{'start'}{'log_prefix_width'} = $1;
+                $data{'system'}{'agent'}{'log_prefix_width'} = $1;
+            } else {
+                $data{'system'}{'agent'}{'log_prefix_width'} = $agent_lpw;
             }
             if ( $arg eq '-use-http-src' ) {
                 $data{'system'}{'use_http_source'} = 1;
@@ -533,8 +540,6 @@ sub prepare_subs {
         ### load agent code from stdin ###
         $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
             if $stdin_mode;
-        $data{'system'}{'node'}{'name'} = hostname() // 'protocol-7';
-        $data{'system'}{'node'}{'name'} =~ s|\..+$||;
 
         ## defining console ansi colors ###
         if ( $data{'system'}{'ansi_color'} ) {
@@ -557,7 +562,6 @@ sub prepare_subs {
             );
         }
         ## prepare agent name column width ###
-        my $own_len = &{ $code{'base.log_prefix_width'} };
         if ( not defined $code{'base.term.size'}->(*STDIN) ) {
             $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
         } else {
@@ -582,13 +586,13 @@ sub prepare_subs {
                     = $data{'system'}{'ansi_color'} // 1;
             }
         } qw| stdout stderr |;
-        if ( defined $data{'system'}{'start'}{'log_prefix_width'}
-            and $own_len <= $data{'system'}{'start'}{'log_prefix_width'} ) {
+        if ( $data{'system'}{'start'}{'log_prefix_width'}
+            <= $data{'system'}{'start'}{'log_prefix_width'} ) {
+            my $dot_count
+                = $data{'system'}{'agent'}{'log_prefix_width'}
+                - $data{'system'}{'start'}{'log_prefix_width'} + 1;
 
-            my $dot_cnt
-                = $data{'system'}{'start'}{'log_prefix_width'} - $own_len + 1;
-
-            $data{'log'}{'dots'} = '.' x $dot_cnt;
+            $data{'log'}{'dots'} = '.' x $dot_count;
         }
         ## nailara start-up banner ##
         if (   $data{'system'}{'verbosity'}{'console'}
@@ -1261,7 +1265,7 @@ sub prepare_subs {
                 if defined $s_comp_stderr;
             ( my $lpw )
                 = ( $data{'system'}{'start'}{'log_prefix_width'}
-                    // $code{'base.log_prefix_width'}->() || 24 );
+                    // $code{'base.get_start_lpw'}->() || 24 );
             my $width = 76 - $lpw;
             local $Text::Wrap::columns   = $width;
             local $Text::Wrap::separator = "\n";
@@ -1754,7 +1758,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\ATHGB2PMCZ75SLXUW4EMIIJOXPQII2T22H66OK7XFCIO5SVNYFVFBMTWRBYVZMOCX6OVHMZ5VLXYO
-# \\ W7IRTUDK66HQNBVYNOHZWWV2HWUQ5KHHQG4WLHHJHJFGASOABUMD \\// C25519-BASE-32 //
-#  \\// 4EJJJDHLIT2KTTSPNAT6GEA5IHALYVK3FDEJITZGJ5VEDCL76DI \\ CODE SIGNATURE \\
+#\\YSGC3HTYKOASO5Q46U2DHSF6F7IP3BDKKEJB4A55RH3K24QJSA4IMWLR2D32WNYMKYNLEGBFSXXDW
+# \\ 3KCVVMMK5PQH33S3P3TKVEKHHGRZPCQQQX6QJ26NAMUV7ZDNL7DL \\// C25519-BASE-32 //
+#  \\// RZSL4RIJ5VEUCZ2FENDNCB4Z7J4EFGENZMDL4UFHNJVPBEIF2AQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
