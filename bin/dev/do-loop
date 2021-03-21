@@ -13,7 +13,7 @@ my $error_delay = 0.13;
 
 die ":\n:: expected < loop-count > parameter\n\n"
     if not defined $loop_count
-    or $loop_count !~ m|^\-?\d+$|;
+    or $loop_count !~ m|^\d+$|;
 die ":\n:: expected < loop-delay > parameter\n\n"
     if not defined $loop_delay
     or $loop_delay !~ m|^\d+(\.\d+)?$|;
@@ -22,7 +22,9 @@ if (@ARGV) { @commands = join( ' ', @ARGV ) }
 else       { @commands = <STDIN> }
 die ":\n:: no commands given\n\n" if !@commands;
 
-while ( $loop_count == -1 or $loop_count-- ) {
+++$loop_count if $loop_count > 0; ## keep above 0, 0 === infinite
+
+while ( $loop_count == 0 or $loop_count > 0 and --$loop_count ) {
     foreach my $command (@commands) {
         system($command) == 0 or sleep $error_delay;
         sleep $loop_delay;
@@ -30,7 +32,7 @@ while ( $loop_count == -1 or $loop_count-- ) {
 }
 
 # ______________________________________________________________________________
-#\\BYZMPVR2RNZ5SOWLF35VCW2QRFVEDATA7FR24CB6MCZDSEWQE6EE7SO7Z6OT74XTNDQEJECEJNNZ4
-# \\ EKWENUYZKPAQZQUGZLU2CZORGUTZR5JMGDOUGDPJQLX5GTCYKTMN \\// C25519-BASE-32 //
-#  \\// 6QXF5KR77JDUVOSB674EBH6XGFGCXMDYW7AMYDG5IGD3NPKHKDQ \\ CODE SIGNATURE \\
+#\\N2V5BBXTTBFZFLWP6SWTGP4TAALMDQ7YYRPUZV2L2PJTB3JMJCCH6ZUZSQKI2IEQPE2UM4IXA3KO4
+# \\ MU7PXKH35QZPF5M6ZJTH5VBVJ2IYFJHPBDR2U7HSSDKU54BB7MXX \\// C25519-BASE-32 //
+#  \\// 5AAD5LFAAV2UYZF3EYAXILX465ZPTGGXMAYFBCUAYJTYVTDFSBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
