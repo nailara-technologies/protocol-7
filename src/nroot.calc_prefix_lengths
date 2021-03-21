@@ -5,20 +5,57 @@
 
 my $apw_href = <nroot.agent.prefix_width> //= {};
 
-foreach my $agent_name (@_) {
-    $apw_href->{$agent_name} = <[base.get_start_lpw]>->($agent_name);
+my @online_agents = keys %{<nroot.online-agents>};
+
+foreach my $agent_name ( @_, @online_agents, 'nroot' ) { # <-- unique filter !!!
+    $apw_href->{$agent_name} //= <[base.get_start_lpw]>->($agent_name);
 }
 
 my $max_len = 0;
-foreach my $agent_name ( keys %{$apw_href} ) {
+foreach my $agent_name ( sort { length $a <=> length $b } keys %{$apw_href} ) {
     $max_len = $apw_href->{$agent_name} if $max_len < $apw_href->{$agent_name};
 }
 
-map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} > $max_len }
-    keys %{$apw_href}
+foreach my $agent_name ( keys %{$apw_href} ) {
+    next if $apw_href->{$agent_name} == $max_len;
+
+    my @agent_pids;
+    map {
+        push( @agent_pids, <nroot.agent.instance>->{$ARG}->{'process'}{'id'} )
+            if $ARG =~ m|^\d+$|;
+    } split( "\n", <[agent.cmd.get-instance-ids]>->($agent_name)->{'data'} )
+        if $agent_name ne 'nroot';
+
+    if ( $apw_href->{$agent_name} < $max_len ) {
+        my $delta_len = $max_len - $apw_href->{$agent_name};
+
+        while ( $delta_len-- ) {
+            if ( $agent_name ne 'nroot' ) {
+                kill qw| SIGUSR1 |, @agent_pids;
+                <[base.sleep]>->(0.007) if $delta_len; # <-- make async ., [LLL]
+            } else {
+                <[base.sig_usr1]>;
+            }
+        }
+
+    } elsif ( $apw_href->{$agent_name} > $max_len ) {
+        my $delta_len = $apw_href->{$agent_name} - $max_len;
+        while ( $delta_len-- ) {
+            if ( $agent_name ne 'nroot' ) {
+                kill qw| SIGUSR2 |, @agent_pids;
+                <[base.sleep]>->(0.007) if $delta_len; # <-- make async ., [LLL]
+            } else {
+                <[base.sig_usr2]>;
+            }
+        }
+    }
+}
+
+map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
+    ( keys %{$apw_href} );
 
 # ______________________________________________________________________________
-#\\L6N4LM2MJU3I3UFFM3NW42OLRJS7LIIBQ5SRWOKNBIQAPVNQYOXQ75HBDHNVILU6OXP3PU4JJXCJC
-# \\ CHJEJ3UNBBRFADDODVNKQ3I55PC6MVDPO2JAK2S3ZSCV5V3LHHGX \\// C25519-BASE-32 //
-#  \\// BQJQUV3TSBTHRRWTKHPKWKHOZGXH72UG772TGRA5PI2OHI6TQBI \\ CODE SIGNATURE \\
+#\\VEOLL6AFUMBCNO2NS72GYUUDR7CH2ELDENKCB6KEF32WIVDXFQGLR7JUVFUZPF5QNXLFVXC2CJB72
+# \\ 4DY6KQ45DDZ5BFCHFMHI3I5A7O3LP7QTLR3K2AEUUCGDMBIG7UL2 \\// C25519-BASE-32 //
+#  \\// TFI7GUS7TZDX4DDJLSKSXLMAYC3VHJEHB7KNC7TXVN5LZKWFYAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

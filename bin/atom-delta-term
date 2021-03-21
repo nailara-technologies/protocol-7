@@ -23,7 +23,7 @@ $YAML::XS::LoadCode    = 0;
 
 #####################################
 ( my $x, my $y ) = @{&term_size};
-$y += 4;
+$y += 13;    # <-- repair buffer length issue [LLL]
 #####################################
 
 ### to implement ###
@@ -604,10 +604,10 @@ sub sig_int_handler {
             when ('zulum') {
                 say "\n\e[3J\n '" . scalar( $math->{'zulum'} ) . "'\r"
             }
-            when ('clear')          { cmd_clear() }    ## clear screen ##
-            when ('reset')          { cmd_reset() }    ## restore screen ##
-            when (m{^(exit|quit)$}) { cmd_quit() }
-            when (m{^(resume|continue)$}) {            ##  continue., ##
+            when ('clear')            { cmd_clear() }    ## clear screen ##
+            when ('reset')            { cmd_reset() }    ## restore screen ##
+            when (m{^(exit|q|quit)$}) { cmd_quit() }
+            when (m{^(resume|c|continue)$}) {            ##  continue., ##
                 printf( "%s%s", $LAST_BG, $LAST_FG_COL );
                 $SIG_INT = 0 if $SIG_INT > 0;
                 goto RESTART if not defined $state->{'result-13'};
@@ -688,7 +688,7 @@ sub sig_int_handler {
 }
 
 # ______________________________________________________________________________
-#\\636KYGGWSQ5SUCEP7LOU3E2MXY6LEGKUGPOI4F5JOZVVXBB2ILZGXWLZQD34IXXFAWFZNB63BHUUA
-# \\ QQ5LFPZ7Q2I7JFEVVHTKHSGIC65FFAPT3MEN5KSONXUKRAPZTIII \\// C25519-BASE-32 //
-#  \\// 5KNMMNVJ32VMVAEQOUUYDBFUHVXYDKZE2TGFHDXAJDHJDMSTWBA \\ CODE SIGNATURE \\
+#\\AFSZSFC6RZP3WRRZWQDXHWKW7FTW6ZLVCMXNEPTHQKSEVFSA5TGWJC6AKXL2V6SY3ZMFYZKQIECSO
+# \\ ZVCE7PXVRHE3TSZ6MMITRKILFIFT7PUUDSNWZMD7V3BBYJBXZV6S \\// C25519-BASE-32 //
+#  \\// ZRZK7N5ZW5QG7ZBIS3RGQJP2B3VZ65OKSRKXQU433OJAUEHM4AY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
