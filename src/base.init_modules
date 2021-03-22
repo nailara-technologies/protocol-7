@@ -39,7 +39,8 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                 and exists <base.modules.internal_name>->{$module_name};
             ( my $init_txt = $init_mode ) =~ s|_|-|g;
             $init_txt =~ s|-code||;
-            <[base.log]>->( 2, "running '$module_name' $init_txt code.," );
+            my $level = $module_name eq 'base' ? 1 : 2;
+            <[base.log]>->( $level, "running '$module_name' $init_txt code.," );
             my $reinit = 0;
 
             if (not exists
@@ -54,7 +55,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                     if exists <base.modules.moved_to>
                     and exists <base.modules.moved_to>->{$module_name};
 
-                # LLL: later also include module version[s] in argument list..,
+                # [LLL] include module version[s] in argument list ?
                 my $return_code;
                 eval {
                     $return_code = $code{$sub_name}->( $reinit, $real_m_name );
@@ -88,7 +89,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                 <[base.log]>->(
                     0,
                     ": module '$module_name' init not successful"
-                        . " [ $sub_name vanished or broken ]"
+                        . " [ $sub_name undefined or broken ]"
                 );
             }
         }
@@ -98,7 +99,7 @@ undef <base.init_modules>;
 return $success;
 
 # ______________________________________________________________________________
-#\\CU74D23RPJR4QFZNE5LMR42RNEHO6DRLENPC2G7NQAKSB6GQAG672MTHYLJPWSM7J5CJI7GJD7OKU
-# \\ DC3KFVW736WQP7BA2RQDHSEDXIDUOYQQMH7SRJTN3YHBU6PGBBEQ \\// C25519-BASE-32 //
-#  \\// JAWXT3XRVSAAQF5RFNANCHLJHO6WKYFYFMTOO3FNNOI4SNUW6DI \\ CODE SIGNATURE \\
+#\\C7I6DNZXML5XME2J5RJ5UXTUQSOASKHZLY37MAX3SX7XF52TZUB7H7XTLXOMC7T2CE323YUEHECB6
+# \\ BRCUVLVSOLHVTRZU7GHN7XDM76DPT2LCE5PV4KPN32DTH7G5ADGO \\// C25519-BASE-32 //
+#  \\// 33ACY5AS46AOXEDAFVAR63UVBDANKITIZ55LD4VU7F5PVIU2EBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
