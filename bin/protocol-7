@@ -438,20 +438,19 @@ sub prepare_subs {
         $data{'buffer'}{'agent'}{'max_size'} //= 64 * 1024;    # 64K log-buffer
 
         ## source code version ##
-        my $ver_str = $data{'protocol-7'}{'source-version'} = 'unknown';
+        my $ver_str = $data{'protocol-7'}{'src-ver'} = 'unknown';
         my $version_file
-            = catfile( $data{'system'}{'conf_path'},
-            'protocol-7.source-version' );
+            = catfile( $data{'system'}{'conf_path'}, 'protocol-7.src-ver' );
         if ( -e $version_file and open( my $ver_fh, '<' . $version_file ) ) {
-            ( $data{'protocol-7'}{'source-version'} = $ver_str = <$ver_fh> )
+            ( $data{'protocol-7'}{'src-ver'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
         }
         ## source code release version ##
-        my $release_file = catfile( $data{'system'}{'conf_path'},
-            'protocol-7.release-version' );
+        my $release_file
+            = catfile( $data{'system'}{'conf_path'}, 'protocol-7.rel-ver' );
         if ( -e $release_file and open( my $ver_fh, '<' . $release_file ) ) {
-            ( $data{'protocol-7'}{'release-version'} = $ver_str = <$ver_fh> )
+            ( $data{'protocol-7'}{'rel-ver'} = $ver_str = <$ver_fh> )
                 =~ s|\s||g;
             close($ver_fh);
         }
@@ -624,7 +623,7 @@ sub prepare_subs {
             $code{'base.anum_log_time'}->()
                 . " 1 STARTUP 'agents/$data{system}{agent}{name}'/",
             $code{'base.anum_log_time'}->()
-                . " 1 VERSION '$data{'protocol-7'}{'source-version'}'"
+                . " 1 VERSION '$data{'protocol-7'}{'src-ver'}'"
         );
     };
 
@@ -637,7 +636,7 @@ sub prepare_subs {
     $code{'base.banner'} = sub {
         my $version_str = sprintf(
             $ANSI{'p7_bg'} . "protocol-seven version :: %s" . $ANSI{'reset'},
-            $data{'protocol-7'}{'source-version'}
+            $data{'protocol-7'}{'src-ver'}
         );
         local $RS = undef;
         open( my $banner_fh,
@@ -1805,7 +1804,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\SFQ76AXWBI7ZHHHRMJQ7WEA3NUF57MDXXKL5PZJQCE3JI5E6IQSBN6TVOQYTGNSB4X4XPJOGJ5E5K
-# \\ QSVH6VO5SWEQ4KBIHO5G3DZIJF3GXGWXYGYWN2SZC22HR3O7MEVT \\// C25519-BASE-32 //
-#  \\// VBHQGFQA45DMSMIBUZD3KU2N53NLOFTWD4RRRRPHQ3P2VN54IBQ \\ CODE SIGNATURE \\
+#\\J3DMDSS5VG2JTV2OQ5TIIVRDJ4C2FG622XSSCKSEZQWOUJQPEWNWAFX64RWURNGQEOHXGMLWX2FL6
+# \\ EUBBR57DQYCMG5JGSHASGLEJPHKRHTPGV76Y2IYASDU33FM6VY7Z \\// C25519-BASE-32 //
+#  \\// Y3DWIP63US72T32RO55HWBZ4LP2UVY5ISLCAOA75JIMOWISYYCI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

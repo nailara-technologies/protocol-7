@@ -1,13 +1,15 @@
 #!/usr/bin/perl
-
+use v5.24;
 use strict;
+use English;
 use warnings;
 use File::Spec;
 use Cwd qw| abs_path |;
 use FindBin qw| $RealBin |;
+use Crypt::Misc qw| decode_b32r |;
 
+my $ver_seed = 54;
 my $release_version;
-my $version_seed = 42513;
 
 my $mode = ( @ARGV and $ARGV[0] eq '-m' ) ? 'msg_str' : 'rel_ver';
 if ( @ARGV and $ARGV[0] eq '-s' ) { $mode = 'set_tag'; shift @ARGV }
@@ -20,23 +22,27 @@ my $u = File::Spec->updir;
 my $root_path
     = abs_path( File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
 my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
-    'protocol-7.source-version' );
+    'protocol-7.src-ver' );
 {
     local $| = 1;
     local $/ = undef;
     if ( open( my $v_fh, '<' . $version_file ) ) {
-        ( my $raw_str = <$v_fh> ) =~ s|\s.+$||sg;
-        ( my $year_float, my $commit ) = split( m|\-|, $raw_str, 2 );
+        ( my $src_ver_str = <$v_fh> ) =~ s|\s.+$||sg;
+
+        ( my $ntime_B32, my $commit ) = split( m|\-|, $src_ver_str, 2 );
+
+        my $ntime = ntime_dec($ntime_B32);
+
         if ( not defined $release_version ) {
-            (   $release_version = sprintf(
-                    "%.3f", ( $commit * $year_float ) / $version_seed
-                )
+            (   $release_version = sprintf "%.3f",
+                ( $commit * $ntime / $ver_seed / ( 7777777 * 12242707 ) )
             ) =~ s|(\d)$|\.$1|;
         }
+
         my $tag_msg
             = sprintf(
             "<< release \\\\// protocol-7-base-v%s || source \\\\// %s >>",
-            $release_version, $raw_str );
+            $release_version, $src_ver_str );
         if ( $mode eq 'rel_ver' ) {
             print STDOUT ":\n: calculated protocol-7 release version : ";
             print STDERR "v$release_version\n";
@@ -54,8 +60,27 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
     }
 }
 
+sub ntime_dec {
+
+    my $network_time = shift;
+
+    my $B32_re = qr|[A-Z2-7]+|;
+
+    die ":\n:: invalid network time format in 'src-ver' file\n\n"
+        if $network_time !~ m|^$B32_re{1,22}$|;
+
+    my $ntime_dec;
+    eval { $ntime_dec = unpack( 'w', decode_b32r($network_time) ) };
+
+    die ":\n:: network time decoding not successful [ $EVAL_ERROR ]\n\n"
+        if $EVAL_ERROR
+        or !length( $ntime_dec // '' );
+
+    return $ntime_dec;
+}
+
 # ______________________________________________________________________________
-#\\36R3KNEQO6USS5CBN2T7YQVMJVNSA7STR34WN3BC7KMHO66V7372ZNTFQUJTO45DAVHMDE4SH2OOK
-# \\ KCRJ4ZCJPYZBNEOD74L42ZCONYJREJQ7MFDJCN6VUBDBSAC4KBS2 \\// C25519-BASE-32 //
-#  \\// NMXFCVO5GY5UK4J4LJPLO4XHJ64ADNYE2D4CEOVCTZWHJYCJGAI \\ CODE SIGNATURE \\
+#\\XXJDJLS3DTKMZCCGVALCARB5OWNX7WJ4I3DK6YAWMHXEERLUVI6NKVYDZTB6TPQ5T5NZNWWK2NUKU
+# \\ NVZ42UCZTCN7D7SPXTIJXFCDF6SMUCARR2M6RHJ6RYDIMETCE7XG \\// C25519-BASE-32 //
+#  \\// TK5IJKSJ55EMDETI4IP46KJ7JG72CCLSRMHD4WNKBK7JEYR24CY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
