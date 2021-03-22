@@ -227,6 +227,25 @@ sub prepare_subs {
 
 ################################################################################
 
+sub $code{'base.b32.ntime'} {
+    my $network_time = shift;
+
+    warn 'invalid network time format <{C1}>' and return undef
+        if $network_time !~ m|^[A-Z2-7]{1,22}$|o;
+
+    my $ntime_dec;
+    eval { $ntime_dec = unpack( 'w', decode_b32r($network_time) ) };
+
+    warn 'network time decoding not successful <{C1}>' and return undef
+        if $EVAL_ERROR
+        or !length( $ntime_dec // '' );
+
+    return $ntime_dec;
+}
+
+
+################################################################################
+
     $code{'base.assert.harmony'} = sub {    ## overloaded by 'base' module., ##
         my $input_string = shift // '';
         my $check_elf    = shift // 1;
