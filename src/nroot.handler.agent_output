@@ -95,7 +95,7 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     <[base.strip_ansi]>->(\$output_line);
 
     if (@matched_names) {    ## matching pattern name exists ##
-        $output_line =~ s|^:(\.[^\.]+)?\.+$agent_name\.+: ||;
+        $output_line =~ s{^:(\.[^\.]+)?\.+($agent_name|<agent_name>)\.+: }{};
         foreach my $pattern_name (@matched_names) {
             foreach my $pattern (
                 keys %{ <nroot.patterns.agent_output>->{$pattern_name} } ) {
@@ -117,7 +117,7 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
 }
 
 # ______________________________________________________________________________
-#\\ZQ2YMYTREPWYGICLNR5X6Y7DH3OD6SJYIOCOWNZ3PYGUZBRYGGTETPBNYBPC7REEUPJCLRCXGDN4A
-# \\ 7AFX2ZZU4GCPHLKUDS6VKFUFO676EPGLD3FNPDPOWFBNDVGFGDEY \\// C25519-BASE-32 //
-#  \\// SWW3I7T6OW7LKMMU2SUFZLEPOGJO3LTG7JPUNTA3DZD5FXM2QBY \\ CODE SIGNATURE \\
+#\\N54TFPDXGOWRFEXYGI5SWXHSVD4BQT6UMKXG5RUPUICBL5HH5TKP3HUR5PYN5VTA4DEIOQSHA7WSU
+# \\ XLHDERQTWQT3GO3WY4QIXDH4MGYXNPJDRKPGAYRMGEOTRG63DBML \\// C25519-BASE-32 //
+#  \\// IOXTCHZ6R4H3M2ZC5OE25RDMW22X7YMGQLBXV52IZP34UZGZ4DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
