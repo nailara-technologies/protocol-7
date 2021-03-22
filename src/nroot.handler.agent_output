@@ -4,6 +4,7 @@
 # descr = reads agent console output and triggers commands on matching patterns
 
 <nroot.patterns.agent_output> //= {};
+<nroot.patterns.log_matches>  //= 0;
 
 my $event       = shift->w;
 my $read_fh     = $event->fd;
@@ -17,6 +18,7 @@ if ( not exists <nroot.agent.instance>->{$instance_id} ) {
 my $agent_instance = <nroot.agent.instance>->{$instance_id};
 my $agent_id       = $agent_instance->{'agent_id'};
 my $agent_name     = <nroot.agent.setup>->{$agent_id}->{'name'};
+
 
 <[base.log]>->( 2, "instance $instance_id : agent name not defined." )
     and return
@@ -84,17 +86,24 @@ foreach my $a_name ( keys %{$patterns_output} ) {
 
 while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-
     utf8::decode($output_line);
 
-    print $output_line. "\n"
+    say $output_line
         if <system.verbosity.console> or $output_line =~ m|\Q$ANSI{bold}|;
-    if (@matched_names) {    # matching pattern name exists
+
+    ## remove colors before matching .., ##
+    <[base.strip_ansi]>->(\$output_line);
+
+    if (@matched_names) {    ## matching pattern name exists ##
         $output_line =~ s|^:(\.[^\.]+)?\.+$agent_name\.+: ||;
         foreach my $pattern_name (@matched_names) {
             foreach my $pattern (
                 keys %{ <nroot.patterns.agent_output>->{$pattern_name} } ) {
                 if ( my @matches = $output_line =~ $pattern ) {
+
+                    <[base.log]>->( 0, '<<M>>' . $pattern )
+                        if <nroot.patterns.log_matches>;
+
                     <nroot.patterns.agent_output>->{$pattern_name}->{$pattern}
                         ->( $instance_id, $agent_name, @matches );
                 }
@@ -108,7 +117,7 @@ while ( $agent_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
 }
 
 # ______________________________________________________________________________
-#\\LLJKJWMVYG233GRXWT6WL4NNFC5K2YRTCPHA2PEG226SSRCHCXFI3NJ3MKFGCRBJ36E27H7XWNQYW
-# \\ RCGPK2NL3HICWRWDWLW6XY57JQCVPYKVIL6USJB7KJX3YZILRKLQ \\// C25519-BASE-32 //
-#  \\// VUSSXL4OOX546VQYF5P7RCOZV2CYJGUETSOWYUF2OTRY6VDIUAA \\ CODE SIGNATURE \\
+#\\ZQ2YMYTREPWYGICLNR5X6Y7DH3OD6SJYIOCOWNZ3PYGUZBRYGGTETPBNYBPC7REEUPJCLRCXGDN4A
+# \\ 7AFX2ZZU4GCPHLKUDS6VKFUFO676EPGLD3FNPDPOWFBNDVGFGDEY \\// C25519-BASE-32 //
+#  \\// SWW3I7T6OW7LKMMU2SUFZLEPOGJO3LTG7JPUNTA3DZD5FXM2QBY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
