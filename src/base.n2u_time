@@ -4,7 +4,9 @@
 # descr = converts [ numerical ] nailara network time to unix time-stamps
 
 my $ntime = shift;
-die "expected nailara network time" if $ntime !~ /^\d{13,}(\.\d+)?/;
+die 'expected valid protocol-7 network time'
+    if $ntime !~ m|^\d{13,}(\.\d+)?|
+    or $ntime < 2455747200000;    # <-- network-time begin
 my $precision = shift;
 $precision = 13 if defined $precision and $precision > 13;
 <base.ntime_ustart> //= 1023228000;
@@ -25,7 +27,7 @@ $unix_reply =~ s|0{3,}$||;
 return $unix_reply;
 
 # ______________________________________________________________________________
-#\\DPQWYTYLU3NPSM7O5TTFXWOGEZ5VVA6TCFTJYXPQPGXJH2RAHOUME453CLNCQIOOJTBVVR5KP723G
-# \\ OHFWN64CA3U5R5QDQ3BYXXKHNE4XXU7GO6ZYFMNUIQBCTNUJXTNZ \\// C25519-BASE-32 //
-#  \\// ACKICHRHJU2O4UKN747BA4VEA7F47KLUTLQMQPY2MFOZX5O2YDQ \\ CODE SIGNATURE \\
+#\\FKL7A5P775FMRUOK7EMBHE2M7RJA3MKAMXMR5M3I3LLHH24FN7NQIYTC4XNYKAKFMJ7YY53WE3KNM
+# \\ DH3NGCUFVRRJX5WG4DVAETPZWU723DWJ44JISYQQ3QAB4IIYHYDD \\// C25519-BASE-32 //
+#  \\// XGE2ZCCVLMLNWCRNVCCIT2HHXV47RLOW7W7TDU2UFYANLCR2YAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

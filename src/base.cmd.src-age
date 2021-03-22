@@ -1,8 +1,8 @@
 # >:]
 
-# name  = base.cmd.source-age
+# name  = base.cmd.src-age
 # param = ['date'] [VERSION]
-# descr = return installed protocol-7 source code age
+# descr = return age of installed p7 source code
 
 my $network_time;
 
@@ -33,7 +33,8 @@ return { 'mode' => 'nak', 'data' => 'have no version time-stamp' }
 my $src_ntime = <[base.b32.ntime]>->($network_time);
 
 return { 'mode' => 'nak', 'data' => 'decoding not successful' }
-    if not defined $src_ntime;
+    if not defined $src_ntime
+    or $src_ntime < 2455747200000;    # <-- network-time begin
 
 my $src_unix = <[base.n2u_time]>->($src_ntime);
 
@@ -45,7 +46,7 @@ return { 'mode' => 'ack', 'data' => $date_stamp } if $date_mode;
 return { 'mode' => 'ack', 'data' => $duration_str }
 
 # ______________________________________________________________________________
-#\\FNQHDKCTMDOWARDL6H6O43XPX556SZZV6LKFXP2ROZ6U6D7JCEWL33N2GIT5WRKTTZB4HRLHSVONU
-# \\ GY6EAGLKQRUIRV7FRJEVTGV7ZCZCUWKG2X3DSOCGK6TVBPWNZ7AK \\// C25519-BASE-32 //
-#  \\// ZD7MEW5CH6MESS36PL473QZ5AKIPLPYAXCZY3KROQF552GQAIDA \\ CODE SIGNATURE \\
+#\\QBGAJZWKJB2MOICZRT7XVHYCTJ5GG6PNFKH6IR55AYPNYYDEGJRVVTJRSJQPNNKSKAFQKOM6PHGMM
+# \\ V3SHRWMIJSQKTISXOO7QNJDPTANZSFSUAJNB2SKRF7JFBXCER2TV \\// C25519-BASE-32 //
+#  \\// ZFTEOQ7ZIEBGLERK7DORPKDKXIHIMOXJIQ6TPTJ74IZGMRL2UCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
