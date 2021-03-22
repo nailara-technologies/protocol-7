@@ -229,19 +229,19 @@ sub prepare_subs {
 
     $code{'base.b32.ntime'} = sub {
         my $network_time = shift;
-
-        warn 'invalid network time format <{C1}>' and return undef
-            if $network_time !~ m|^[A-Z2-7]{1,22}$|o;
-
         my $ntime_dec;
+        warn 'invalid network time format <{C1}>' and return undef
+            if $network_time !~ m|^[A-Z2-7]{1,22}$|o; ## <-- increase len. [LLL]
         eval {
+            no warnings;
             $ntime_dec = unpack( 'w', Crypt::Misc::decode_b32r($network_time) );
         };
-
-        warn "network time decoding not successful <{C1}>" and return undef
-            if $EVAL_ERROR
-            or !length( $ntime_dec // '' );
-
+        if ( $EVAL_ERROR or !length( $ntime_dec // '' ) ) {
+            my $caller_str = [caller]->[1] . ':' . [caller]->[2];
+            $code{'log.debug'}->( "network time decoding error"
+                    . " [\"$network_time\"] \\ $caller_str" );
+            return undef;
+        }
         return $ntime_dec;
     };
 
@@ -1824,7 +1824,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\MBEQJMO35RLKYT7F5O47HL3FC43IODXHFUGX7GXS7OQWSVYR5KHN7ZHDQAN4WHNQSOM7OAFZYARKM
-# \\ LWKJBHV2CN4YSHIRA6NFOOEFPREDXYL3NSSF62IEQLIJEWZFQJ4A \\// C25519-BASE-32 //
-#  \\// WALHSR7EHPGUTHV6WVFQBZUSYYCELNMAHFOBIH7KZIKTA3YIUAA \\ CODE SIGNATURE \\
+#\\64TGPZGZR2SBSWTQYPKNSI4AOUQXESCZPEQEYEIXN767SJTAJ2L6OXZ7CZYQ56BFBXYZBGEOCC6RC
+# \\ Q6CZH3TW7K5L3BXHNH7WMLLDTZPQV6QKOVOILHOYEMZP5MVJR6QM \\// C25519-BASE-32 //
+#  \\// XPTIKPPSNQQ7LNB5PLVGV4OBJ5BGXSCHT2PTS3WP2A42IKUW4DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

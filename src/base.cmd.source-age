@@ -1,17 +1,15 @@
 # >:]
 
 # name  = base.cmd.source-age
-# param = ['date']
-# descr = installed nailara 'protocol-7' code age
-# additional param = [year_float]
-# todo = create and process ntime time-stamp for abolute precision
+# param = ['date'] [VERSION]
+# descr = return installed protocol-7 source code age
 
-my $param_str = shift->{'args'} // '';
-my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
+my $network_time;
 
-my $current_time = time;
-my $c_year_float = <[base.time.year_utc_float]>->($current_time);
-my $s_year_float = $1 if <protocol-7.src-ver> =~ m|^(\d+(\.\d+)?)\-|;
+my $param_str     = shift->{'args'} // '';
+my $date_mode     = $param_str =~ s|^date *|| ? 1 : 0;
+my $B32_re        = <regex.base.base_32>;
+my $current_ntime = <[base.ntime]>;
 
 if ( ( not exists <system.agent.type> or <system.agent.type> ne 'cube' )
     and length($param_str) ) {   # <-- no second param for non-cube type agents.
@@ -19,35 +17,35 @@ if ( ( not exists <system.agent.type> or <system.agent.type> ne 'cube' )
         'mode' => 'nak',
         'data' => "ask a 'cube'-type agent for custom values"
     };
-} elsif ( $param_str =~ m|^(\d{1,5}+(\.\d{1,5})?)\-?| ) {
-    $s_year_float = $1;
+} elsif ( $param_str =~ m|^($B32_re+)\-\d+\.\d+$| ) {  # <-- strict format [LLL]
+    $network_time = $LAST_PAREN_MATCH;
 } elsif ( length($param_str) ) {
     return {
         'mode' => 'nak',
-        'data' => "invalid version time-stamp syntax [ see 'src-ver' ]"
+        'data' => "version syntax not valid [ check 'src-ver' ]"
     };
+} elsif ( <protocol-7.src-ver> =~ m|^($B32_re+)\-\d+\.\d+$| ) {
+    $network_time = $LAST_PAREN_MATCH;
 }
+return { 'mode' => 'nak', 'data' => 'have no version time-stamp' }
+    if not defined $network_time;
 
-my $year_delta  = sprintf( "%.4f", $c_year_float - $s_year_float );
-my $year_int    = int( 2000 + $s_year_float );
-my $ydays       = <[base.time.is_leap_year]>->($year_int) ? 366 : 365;
-my $source_yday = 1 + ( $s_year_float * $ydays - int($s_year_float) * $ydays );
-my $delta_secs  = $ydays * $year_delta * 86400;
+my $src_ntime = <[base.b32.ntime]>->($network_time);
 
-my $src_unix = timegm_nocheck( 0, 0, 0, $source_yday, 0, $year_int ) + 3600;
+return { 'mode' => 'nak', 'data' => 'decoding not successful' }
+    if not defined $src_ntime;
 
-$src_unix += $delta_secs / 2;
-my $e_str = ' [ estimated ]';
+my $src_unix = <[base.n2u_time]>->($src_ntime);
 
 ( my $date_stamp   = <[base.parser.timestamp]>->($src_unix) ) =~ s|:\d\d$||;
 ( my $duration_str = <[base.parser.duration]>->($src_unix) )  =~ s|^0s$|0m|;
 
-return { 'mode' => 'ack', 'data' => $date_stamp . $e_str } if $date_mode;
+return { 'mode' => 'ack', 'data' => $date_stamp } if $date_mode;
 
-return { 'mode' => 'ack', 'data' => $duration_str . $e_str }
+return { 'mode' => 'ack', 'data' => $duration_str }
 
 # ______________________________________________________________________________
-#\\67QYPAFLON62AGU3LSTCKO5WFF7YRG6FG67BTSMP55MQSR3LPD5K4MYFY2JBSKTYGBY4CJBK5OPOQ
-# \\ 6ETVYXPAEHWAPZ4HPJNDQ7RP4JD2MHSSPQGOF6ZBWCOOZ5BUYSPT \\// C25519-BASE-32 //
-#  \\// CXBH6GIMIYE7K4WV37K5IG4BFI72NOUHKF5PT7ZM7KCL7MRXIDQ \\ CODE SIGNATURE \\
+#\\FNQHDKCTMDOWARDL6H6O43XPX556SZZV6LKFXP2ROZ6U6D7JCEWL33N2GIT5WRKTTZB4HRLHSVONU
+# \\ GY6EAGLKQRUIRV7FRJEVTGV7ZCZCUWKG2X3DSOCGK6TVBPWNZ7AK \\// C25519-BASE-32 //
+#  \\// ZD7MEW5CH6MESS36PL473QZ5AKIPLPYAXCZY3KROQF552GQAIDA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
