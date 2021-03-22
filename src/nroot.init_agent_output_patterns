@@ -4,46 +4,51 @@
 
 if ( not defined <nroot.pattern_config>
     or ref(<nroot.pattern_config>) ne 'ARRAY' ) {
-    <[base.log]>->( 1, "no agent output patterns to initialize, skipping.." );
+    <[base.log]>->( 1, 'no agent output patterns to initialize, skipping..,' );
     return;
 }
 
 my $agent_pattern_data = <nroot.pattern_config>;
 
+my $re            = '::';                 ## <-- regex delimiter ##
+my $name_chars    = qr|!\w\d_\-,\s\*|;    ## <-- agent-name pattern
+my $pattern_chars = qr|\\<>\w\d_\|\-\+\?,\s\.\[\]\:\'\^\$\*|;    ## <-- regex.
+
 foreach my $p_ref (@$agent_pattern_data) {
     foreach my $pattern ( keys %$p_ref ) {
         my $p_key = $pattern;
-        if ( $pattern =~ s/^([!\w\d_\-, \t\*]+):\/([^\/]+)\/(i?)/$2/g ) {
+        if ($pattern =~ s{^([$name_chars]+)$re([$pattern_chars]+)$re(i?)}{$2}g )
+        {
             my ( $agent_string, $pattern_string, $i ) = ( $1, $2, $3 // '' );
-            $agent_string =~ s/[ \t]+//g;
-            foreach my $agent_match ( split( /,/, $agent_string ) ) {
+            $agent_string =~ s|[ \t]+||g;
+            foreach my $agent_match ( split( m|,|, $agent_string ) ) {
                 my $pattern_code_aref = $p_ref->{$p_key};
                 my $pattern_re
-                    = length($i)
-                    ? qr/$pattern_string/i
-                    : qr/$pattern_string/;
+                    = $i eq 'i'
+                    ? qr|$pattern_string|i
+                    : qr|$pattern_string|;
                 my $sub_code
                     = 'sub { my $instance_id = shift;'
                     . ' my $agent_name = shift;'
                     . ' my @matches = @_; '
                     . join( '; ', <[base.parser.config]>->($pattern_code_aref) )
                     . ' }';
-                $sub_code =~ s/<instance_id>/\$instance_id/g;
-                $sub_code =~ s/<agent_name>/\$agent_name/g;
-                $sub_code =~ s/<match_([1-9])>/\$matches[$1-1]/g;
+                $sub_code =~ s|<agent_name>|\$agent_name|g;
+                $sub_code =~ s|<instance_id>|\$instance_id|g;
+                $sub_code =~ s|<match_([1-9])>|\$matches[$1-1]|g;
                 <nroot.patterns.agent_output>->{$agent_string}->{$pattern_re}
                     = eval $sub_code;
             }
         } else {
             <[base.log]>->(
-                0, "<!> syntax error in agent output pattern <!> ['$pattern']"
+                0, "<< syntax error in agent output pattern ['$pattern'] >>"
             );
         }
     }
 }
 
 # ______________________________________________________________________________
-#\\ZJ3WGL47WGCSUHF2M76NB7B5L4MHE5SAXPEZ3LLU54MY2Q6B23QK5MIOCYKFIBKUCDBDO3W2BG5Y2
-# \\ EZJMB3SV6HBKPRPIQDORVZ37BCF7ZSQ6ZSBMITTZ4NTRQHR3PKZV \\// C25519-BASE-32 //
-#  \\// LRBKGJBMXXZKVRTJ55DGCKNCX2HUSSPBFYDDCHICTZX7IDJSOBI \\ CODE SIGNATURE \\
+#\\AJBSQF2NESPHODWQMWFU7ROF55OUISJ3EEW7SB2OEO735FEODT5HFSG7OZ4S3FEHDU45RQQHCBMYQ
+# \\ YDNELJV75PWPKYWDJ5MIZKOWJWS7GSXQKXKS4DJ6B2APSHLDEAAQ \\// C25519-BASE-32 //
+#  \\// CMVCOS4ZVF3XCGVCWFS7273GRR527K4EYBIQEWNGDM7WJXFOEAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
