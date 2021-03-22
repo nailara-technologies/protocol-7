@@ -213,7 +213,7 @@ sub prepare_subs {
         my @nt = split( m|\.|, $ntime_value );
         $nt[1] = '7' . $nt[1] if scalar @nt == 2;    # <-- 7 catches prefixed 0
 
-        my $encoded_ntime = encode_b32r( pack( 'w*', @nt ) );
+        my $encoded_ntime = Crypt::Misc::encode_b32r( pack( 'w*', @nt ) );
 
         ++$data{'base'}{'retry-count'}{'ntime-B32'}
             and goto RETRY_BASE_NTIME_B32
@@ -227,22 +227,23 @@ sub prepare_subs {
 
 ################################################################################
 
-sub $code{'base.b32.ntime'} {
-    my $network_time = shift;
+    $code{'base.b32.ntime'} = sub {
+        my $network_time = shift;
 
-    warn 'invalid network time format <{C1}>' and return undef
-        if $network_time !~ m|^[A-Z2-7]{1,22}$|o;
+        warn 'invalid network time format <{C1}>' and return undef
+            if $network_time !~ m|^[A-Z2-7]{1,22}$|o;
 
-    my $ntime_dec;
-    eval { $ntime_dec = unpack( 'w', decode_b32r($network_time) ) };
+        my $ntime_dec;
+        eval {
+            $ntime_dec = unpack( 'w', Crypt::Misc::decode_b32r($network_time) );
+        };
 
-    warn 'network time decoding not successful <{C1}>' and return undef
-        if $EVAL_ERROR
-        or !length( $ntime_dec // '' );
+        warn "network time decoding not successful <{C1}>" and return undef
+            if $EVAL_ERROR
+            or !length( $ntime_dec // '' );
 
-    return $ntime_dec;
-}
-
+        return $ntime_dec;
+    };
 
 ################################################################################
 
@@ -1823,7 +1824,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\J3DMDSS5VG2JTV2OQ5TIIVRDJ4C2FG622XSSCKSEZQWOUJQPEWNWAFX64RWURNGQEOHXGMLWX2FL6
-# \\ EUBBR57DQYCMG5JGSHASGLEJPHKRHTPGV76Y2IYASDU33FM6VY7Z \\// C25519-BASE-32 //
-#  \\// Y3DWIP63US72T32RO55HWBZ4LP2UVY5ISLCAOA75JIMOWISYYCI \\ CODE SIGNATURE \\
+#\\MBEQJMO35RLKYT7F5O47HL3FC43IODXHFUGX7GXS7OQWSVYR5KHN7ZHDQAN4WHNQSOM7OAFZYARKM
+# \\ LWKJBHV2CN4YSHIRA6NFOOEFPREDXYL3NSSF62IEQLIJEWZFQJ4A \\// C25519-BASE-32 //
+#  \\// WALHSR7EHPGUTHV6WVFQBZUSYYCELNMAHFOBIH7KZIKTA3YIUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
