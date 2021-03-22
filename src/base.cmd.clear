@@ -3,15 +3,17 @@
 # name   = base.cmd.clear
 # descr  = return ansi sequence to clear screen
 
-my @smileys    = qw| =) \o/ >=P' >:] |;
-my $chosen_one = int( rand( scalar @smileys ) );
+my @character_art = qw| =] =) \o/ >=P' >:] |;
+my $sel           = int( rand( scalar @character_art ) );
 $reply = {
     'mode' => 'data',
-    'data' => sprintf( "%s%3s\n\n", $ANSI{'cls'}, $smileys[$chosen_one] )
+    'data' => sprintf( "%s%s%3s%s\n\n",
+        $ANSI{'clear_screen'}, $ANSI{'p7_fg_0000'},
+        $character_art[$sel],  $ANSI{'reset'} )
 };
 
 # ______________________________________________________________________________
-#\\5G4ZK3XCDBSL2SMSXYBF4CUCCZUY7JRGGBH6AKNK7TV24SJVTXHN2PCR7B47OUGZ6Y2AQ6QSX2JOC
-# \\ LBV5RMUJNBSF7QKIESQ2NYAWXQYPPUQTYNAOYWQTPPDET5K4TJV5 \\// C25519-BASE-32 //
-#  \\// 4TJZE4NKLIMJSYLOZTDDTUN4LBPCV5EAFEFOATOOW5KWGNJHSBY \\ CODE SIGNATURE \\
+#\\4XFRT4VZ3J4XMFXVJOHMGQTRDQXJGPOYGYE3XKU7PBCW2E25FNGIER3UHSGYDPI6ZSV6TWFZGUOJK
+# \\ SMCMSFTTIMILGBMNNKGEFMGEF3GSUNDOKH3TJV5XVMVPNP4NYGN5 \\// C25519-BASE-32 //
+#  \\// U6OBISZXENUXUTPFTXH6ZSQCCOZ2OE5G62M7GHIBCDRHVTMGCAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
