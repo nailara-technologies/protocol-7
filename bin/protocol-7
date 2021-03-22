@@ -546,23 +546,34 @@ sub prepare_subs {
         ## defining console ansi colors ###
         if ( $data{'system'}{'ansi_color'} ) {
             %ANSI = (
-                'bold'      => "\c[[1m",
-                'yelblue'   => "\c[[44m\c[[33m\c[[38;5;202m\c[[48;5;17m",
-                'underline' => "\c[[4m",
-                'reverse'   => "\c[[7m",
-                'normal'    => "\c[[m",
-                'cls'       => "\c[[H\c[[2J"
+                'p7_bg'        => "\e[48;2;9;5;41m",
+                'p7_fg_0000'   => "\e[38;2;68;39;172m",
+                'p7_fg_0001'   => "\e[38;2;38;46;153m",
+                'p7_fg_0002'   => "\e[38;2;195;71;6m",
+                'p7_fg_0003'   => "\e[38;2;71;185;6m",
+                'p7_fg_0004'   => "\e[38;2;6;71;195m",
+                'bold'         => "\e[1m",
+                'reset'        => "\e[0m",
+                'clear_screen' => "\e[H\c[[2J"
             );
         } else {
             %ANSI = (
-                'yelblue'   => '',
-                'bold'      => "<< ",
-                'underline' => "<< ",
-                'reverse'   => "<< ",
-                'normal'    => " >>",
-                'cls'       => "\c[[H\c[[2J"
+                'p7_bg'        => '',
+                'p7_fg_0000'   => '',
+                'p7_fg_0001'   => '',
+                'p7_fg_0002'   => '',
+                'p7_fg_0003'   => '',
+                'p7_fg_0004'   => '',
+                'bold'         => '',
+                'reset'        => '',
+                'clear_screen' => "\c[[H\c[[2J"
             );
         }
+        ## prepare for stripping ansi from output ##
+        $data{'base'}{'ansi_re'} = join( '|',
+            map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A }
+                keys %ANSI );
+
         ## prepare agent name column width ###
         if ( not defined $code{'base.term.size'}->(*STDIN) ) {
             $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
@@ -596,10 +607,11 @@ sub prepare_subs {
 
             $data{'log'}{'dots'} = '.' x $dot_count;
         }
+        print STDERR $ANSI{'p7_fg_0002'};
         ## nailara start-up banner ##
         if (   $data{'system'}{'verbosity'}{'console'}
             && $data{'system'}{'start'}{'showbanner'} ) {
-            say ".\n.";
+            say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '.';
             &{ $code{'base.banner'} };
         }
         ## initializing early agent buffer capture ###
@@ -616,23 +628,32 @@ sub prepare_subs {
         );
     };
 
+    $code{'base.strip_ansi'} = sub {
+        my $scalar_ref = shift;
+        return if !$data{'system'}{'ansi_color'};
+        $$scalar_ref =~ s,$data{base}{ansi_re},,g;
+    };
+
     $code{'base.banner'} = sub {
-        my $version_str = sprintf( " \\ protocol-seven version \\ %s \\",
-            $data{'protocol-7'}{'source-version'} );
+        my $version_str = sprintf(
+            $ANSI{'p7_bg'} . "protocol-seven version :: %s" . $ANSI{'reset'},
+            $data{'protocol-7'}{'source-version'}
+        );
         local $RS = undef;
         open( my $banner_fh,
             catfile( $data{'system'}{'conf_path'}, '.banner' ) )
             or return;
         my $nailara_header = <$banner_fh>;
         close($banner_fh);
-        my $n = $b = '';
-        if ( $data{'system'}{'ansi_color'} ) {
-            $n = $ANSI{'normal'} and $b = $ANSI{'bold'};
-        } else {
-            $ANSI{'yelblue'} = '';
-        }
-        map { say "$n: $b$ARG" } split( m|\n|, $nailara_header ), '';
-        say "$n: $version_str\n:";
+        map {
+            say "$ANSI{'p7_bg'}$ANSI{'p7_fg_0001'}:$ANSI{'reset'} "
+                . "$ANSI{'p7_bg'}$ANSI{'p7_fg_0000'}$ARG$ANSI{'reset'}"
+            }
+            split( m|\n|, $nailara_header );
+        say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0001'}, ":\n",
+            ':', $ANSI{'reset'}, ' ', $ANSI{'p7_fg_0000'},
+            "$version_str\n", $ANSI{'p7_fg_0001'}, $ANSI{'p7_bg'}, ':',
+            $ANSI{'reset'};
     };
 
     $code{'dump_cube_subs'} = sub {
@@ -1008,7 +1029,7 @@ sub prepare_subs {
         while ( $code_name = shift @module_names ) {
 
             my $src_str = $code_name =~ m|^(.+/)?plugin.| ? '' : ' source';
-            $code{'log.noerr'}->(": loading$src_str '$code_name'");
+            $code{'log.noerr'}->(". loading$src_str '$code_name'");
 
             $data{'base'}{'p7_mod'}{'errors'}->{$code_name} = 0;
             $data{'base'}{'p7_mod'}{'loaded'}->{$code_name} = 0;
@@ -1092,7 +1113,7 @@ sub prepare_subs {
                     if (length( $data{'code'}{$file_name}{'source'} )
                         > $orig_len
                         and $data{'system'}{'verbosity'}{'console'} > 3 ) {
-                        $code{'log.error'}->( "\n\n .: $file_name :.\n\n"
+                        $code{'log.debug'}->( "\n\n .: $file_name :.\n\n"
                                 . $data{'code'}{$file_name}{'source'} );
                         $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
                             if !length($src_str);    # <- is plugin..
@@ -1399,20 +1420,23 @@ sub prepare_subs {
                 if not defined $code{$ARG}
             }
             keys %{ $data{'code'} };
+        my $p     = '..: ';
         my $s     = $ok_count != 1         ? 's' : '';
         my $w     = $warn_count_total == 1 ? ''  : 's';
         my $w_msg = !$warn_count_total ? '' : ", $warn_count_total warning$w";
+
         if ($err_count) {
-            $code{'log.error'}->(
-                ": success on $ok_count sub$s, $err_count broken$w_msg., `:|");
+            $code{'log.error'}->( $p
+                    . "success on $ok_count sub$s, $err_count broken$w_msg., `:|"
+            );
         } elsif ($warn_count_total) {
-            $code{'log.error'}->(": success on $ok_count sub$s$w_msg :|");
+            $code{'log.error'}->( $p . "success on $ok_count sub$s$w_msg :|" );
         } else {
             $src_bytes_total = sprintf( "%.2f", $src_bytes_total / 1024 );
             $src_bytes_total =~ s|\.?0+$||;
             $code{'log.noerr'}->(
                 sprintf(
-                    ": %d sub%s., %dK src., no errors., =)",
+                    $p . "%d sub%s., %dK src., no errors., =)",
                     $ok_count, $s, $src_bytes_total
                 )
             );
@@ -1512,18 +1536,21 @@ sub prepare_subs {
         $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}{' : '.lc($1)}ige;
         $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}{lc($1)}ge;
         $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( " :: %s ::",
-            lc(encode_b32r(pack("H*",$1))))
-        }gxe
-            if defined &{'encode_b32r'};
-        ##
+             substr( encode_b32r(pack("V*",Digest::Elf::elf($1))) , 2,3 )
+            .'0'. substr( Digest::Elf::elf(pack("H*",$1)), -3, 3 )
+             )
+        }gxe if defined &{'encode_b32r'} and defined &Digest::Elf::elf;
+        ## [ LLL ] ids need to become resolvable + debug command ..,
         say sprintf(
-            ' . %s : %s [ %s ]',
+            "$ANSI{p7_fg_0000}. %s$ANSI{p7_fg_0001} :"
+                . " $ANSI{p7_fg_0004}%s [ $ANSI{p7_fg_0003}%s$ANSI{p7_fg_0000} ]"
+                . $ANSI{'reset'},
             $data{'system'}{'agent'}{'name'},
             $sub_name, $param_list
             )
             if $sub_name ne 'base.log'
             and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'agent' )
-            and $sub_name ne 'base.dump_data';    # skipping too much output..,
+            and $sub_name ne 'base.dump_data';    # skipping too much output ..,
     };
 
     $code{'base.log_hook'} = sub {
@@ -1570,8 +1597,14 @@ sub prepare_subs {
                     ? $data{'log'}{'dots'}
                     : '.';
                 map {
-                    say ':.', $data{'system'}{'node'}{'name'},
-                        $dot, $data{'system'}{'agent'}{'name'}, '.', $ARG,
+                    say $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, ':.',
+                        $ANSI{'p7_fg_0001'},
+                        $data{'system'}{'node'}{'name'},
+                        $ANSI{'p7_fg_0000'},
+                        $dot, $ANSI{'p7_fg_0001'},
+                        $data{'system'}{'agent'}{'name'},
+                        $ANSI{'p7_fg_0000'}, '.:', $ANSI{'reset'}, ' ',
+                        $ANSI{'p7_fg_0004'}, $ARG,
                         $spaces
                 } @_;
             }
@@ -1604,10 +1637,17 @@ sub prepare_subs {
                         = defined $code{'base.log_hook'}
                         ? $code{'base.log_hook'}->()
                         : 0;
-                    my $spaces  = ' ' x $s_len;
-                    my $msg_str = $ARG . $spaces;
-                    say ':.', $n_n, $dot, $a_n, '.', $ANSI{'bold'} // '',
-                        $msg_str, $ANSI{'normal'} // '';
+                    my $spaces = ' ' x $s_len;
+
+                    say $ANSI{'p7_fg_0000'}, ':.',
+                        $ANSI{'p7_fg_0001'},
+                        $n_n,
+                        $ANSI{'p7_fg_0000'},
+                        $dot, $ANSI{'p7_fg_0001'},
+                        $a_n,
+                        $ANSI{'p7_fg_0000'}, '.: ', $ANSI{'p7_fg_0004'}, $ARG,
+                        $spaces;
+
                 } else {
                     warn '<< error message undefined >> <{C1}>';
                 }
@@ -1638,9 +1678,14 @@ sub prepare_subs {
                     ? $data{'log'}{'dots'}
                     : '.';
                 map {
-                    my $msg_str = $ARG . $spaces;
-                    say ':.', $data{'system'}{'node'}{'name'},
-                        $dot, $data{'system'}{'agent'}{'name'}, '.', $msg_str
+                    say $ANSI{'p7_fg_0000'}, ':.',
+                        $ANSI{'p7_fg_0001'},
+                        $data{'system'}{'node'}{'name'},
+                        $ANSI{'p7_fg_0000'},
+                        $dot, $ANSI{'p7_fg_0001'},
+                        $data{'system'}{'agent'}{'name'},
+                        $ANSI{'p7_fg_0000'}, '.: ', $ANSI{'p7_fg_0001'}, $ARG,
+                        $spaces
                 } @_;
             }
             ## early start-up buffer ##
@@ -1760,7 +1805,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\CSTMU7AIKVUMYB7OOGEN7ONLQ6EHLB6SU7RBAYWAMZMFGHQVKPGBINPJIXEK74OVWK5LJ7QM6W444
-# \\ 7M2INVDNOCSXC66JMGXD4PK6BBYSOWUMJDOPRW7TORYJQG6AZY2E \\// C25519-BASE-32 //
-#  \\// 7X7XFUMCBW7JZOSM6HNQACURBUMJFZUZOIMFQRTNNZLYGKFGSBQ \\ CODE SIGNATURE \\
+#\\SFQ76AXWBI7ZHHHRMJQ7WEA3NUF57MDXXKL5PZJQCE3JI5E6IQSBN6TVOQYTGNSB4X4XPJOGJ5E5K
+# \\ QSVH6VO5SWEQ4KBIHO5G3DZIJF3GXGWXYGYWN2SZC22HR3O7MEVT \\// C25519-BASE-32 //
+#  \\// VBHQGFQA45DMSMIBUZD3KU2N53NLOFTWD4RRRRPHQ3P2VN54IBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

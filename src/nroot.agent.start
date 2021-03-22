@@ -10,6 +10,8 @@ my @exec_args  = qw| -nb |;
 my $agent_subname;
 $agent_subname = $1 if $agent_name =~ s|\[([^\]]+)\]$||;
 
+push( @exec_args, '-nc' ) if not <system.ansi_color>;
+
 my $perl_bin            = <system.path.perl_bin>;
 my $bin_protocol_7_path = <system.start.exec_name>;
 
@@ -275,7 +277,7 @@ close($in_fh);    # <-- no further use for agent stdin handle [ for now ]
 <[base.log]>->( 1, "agent '$agent_sn_str' started [ pid : $pid ]" );
 
 # ______________________________________________________________________________
-#\\IBM6R2HHI4QF7AMLC5DJKOKNQEDJUO5RYU2LQ3QCTQBJEUPSXW4EY2L6MGLQ5CQE4BUUYUQNZBYC2
-# \\ X53DFQMZNIPIMBWVTTCBE5YOTJS6R4GZP22DOBZ5Z3L2QLKT3GQX \\// C25519-BASE-32 //
-#  \\// MSKOV2BUYZHD7X6UXVKJIZAEE6PWKE2ENHK5XAMA7IIXVWVD6AA \\ CODE SIGNATURE \\
+#\\RWVJCK4ZT5AG7PAZJTEUAFAU5TKP7ADMXK3W2M4SVKBPWSO3X3N2RKOQW2IGT45F6WM6FVLIHBVAS
+# \\ KDQE5YOQCUQQMU3VCJBE5SWYZ4GRUBFB65SGOZEEZ6UNVHABMUOJ \\// C25519-BASE-32 //
+#  \\// EJMDUT2IFBWQ7P4GDHSTKA4Z42QIMXRL2EKAJEIDYTIDUPTJ6DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

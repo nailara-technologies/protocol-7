@@ -7,22 +7,23 @@ my $clear_reply = 'console cleared';
 my $header_text = 'protocol 7 console';
 
 if (<system.ansi_color>) {
-    my $col_blue  = "\e[34m";
-    my $col_reset = "\e[39m";
-    my $quote_str = "$col_blue'$col_reset";
+    my $quote_str = "$ANSI{'p7_fg_0000'}'$ANSI{'p7_fg_0001'}";
     my $host_str  = sprintf( "%s%s%s protocol 7 console",
         $quote_str, <system.host.hostname>, $quote_str );
-    printf( STDERR "\e[H\e[2J%s\n .:[%s %s %s]:.\c[[m\n\n",
-        $col_blue, $col_reset, $host_str, $col_blue );
+    printf( STDERR "%s\n %s.:[%s %s %s]:.%s\n\n",
+        $ANSI{'clear_screen'},                $ANSI{'p7_fg_0004'},
+        $ANSI{'p7_bg'} . $ANSI{'p7_fg_0004'}, $host_str,
+        $ANSI{'reset'} . $ANSI{'p7_fg_0004'}, $ANSI{'reset'}
+    );
 } else {
     my $host_str = sprintf( "%s %s", <system.host.hostname>, $header_text );
     printf( STDERR "\n .:[ %s ]:.\n\n", $host_str );
-    $clear_reply = "wrote hostname marker only [ active '-na' option ]";
+    $clear_reply = "wrote hostname marker only [ active '-nc' option ]";
 }
 return { 'mode' => 'ack', 'data' => $clear_reply };
 
 # ______________________________________________________________________________
-#\\WILPPV3QHGGCM3FCNAPOEAKWTQYWXZTJ5PQ46NPGUEM6KAEL7WDEWANWYLW6DBLFJRRT64DM6ZKX6
-# \\ FCBCL4YTGATETF4VSQYMQCMLTUKJV7HIDVG2KVSK6UCEX7SE2WUG \\// C25519-BASE-32 //
-#  \\// BMANXEBCKQXP6OP4HXKALNEA5NEFVDGJAKF2ZZUWXMM24TOSCCY \\ CODE SIGNATURE \\
+#\\YT2IHZJY73JLGU3EXNZYZDWCNBALMW3UZU6G2UB2QFO6NI4UO4V4AXGSMGKMUSNVPZBF7QIJTJBB2
+# \\ ZP4CEDGPJF6KY3A3K74AP7VAW6TWZXB3ENN6OXAXFTQKE4J6VPVG \\// C25519-BASE-32 //
+#  \\// DTQWVVQNQOCSLOZ3CAF4LNBXQW5HCOZUJMRSY4U46N7PJYQBSDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
