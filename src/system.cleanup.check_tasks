@@ -9,38 +9,35 @@ return <[base.log]>->( 0, 'skipping clean-up tasks., [ path not found ]' )
 
 <[base.log]>->( 1, 'checking clean-up tasks..,' );
 
-my $cleanup_path     = <system.path.cleanup_files>;
-my $current_version  = <protocol-7.src-ver>;
-my $current_vers_num = $current_version;
-$current_vers_num =~ s|\.(\d+)$|sprintf("%03d",$1)|e;
-$current_vers_num =~ s|[\.\-]||g;
-
-my $hostname_str = <system.host.hostname>;
+my $B32_re          = <regex.base.base_32>;
+my $hostname_str    = <system.host.hostname>;
+my $cleanup_path    = <system.path.cleanup_files>;
+my $ntime_current   = <[base.ntime]>;
+my $current_version = <protocol-7.src-ver>;
+( my $version_ntime = $current_version ) =~ s|\-\d+\.\d+$||;
+my $ver_ntime_dec = <[base.b32.ntime]>->($version_ntime);
+my $links_href    = <[file.all_links]>->( $cleanup_path, 'recursive' );
+my $task_count    = 0;
+my $items_removed = 0;
 
 my $root_path = <system.root_path>;
 ( my $cleanup_path_rel = $cleanup_path ) =~ s|^$root_path/?||;
 
 <[base.logs]>->( 2, "[ %s ]", $cleanup_path_rel );
 
-my $task_count    = 0;
-my $items_removed = 0;
-my $ntime_current = <[base.ntime]>;
-my $links_href    = <[file.all_links]>->( $cleanup_path, 'recursive' );
-
 foreach my $link_path ( keys %{$links_href} ) {
     ( my $link_name = $link_path ) =~ s|^$cleanup_path/?||;
-
     my $task_vers_num;
     my $remove_match = 0;
-    if ( $link_name =~ m|at-version/([^/]+)$| ) {    # <- 'at-version' match
+    if ( $link_name =~ m|at\-version/($B32_re+\-\d+\.\d+)$| ) {   # 'at-version'
         $task_count++;
-        my $task_version = $1;
-        $task_vers_num = $task_version;
-        $task_vers_num =~ s|\.(\d+)$|sprintf("%03d",$1)|e;
-        $task_vers_num =~ s|[\.\-]||g;
-        $remove_match = 1 if $current_vers_num >= $task_vers_num;
-    } elsif ( $link_name =~ m|after-ntime/([^/]+)$| ) {    # <- 'after-ntime'
-        my $task_ntime = $1;
+        ( my $task_version = $LAST_PAREN_MATCH ) =~ s|\-\d+\.\d+$||;
+        my $task_ntime = <[base.b32.ntime]>->($task_version);
+        $remove_match = 1 if $ver_ntime_dec >= $task_ntime;
+    } elsif ( $link_name =~ m|at\-version/.+$| ) {
+        <[base.log]>->( 0, "mismatching format '$link_name' [ ignored ]" );
+    } elsif ( $link_name =~ m|after\-ntime/($B32_re+)$| ) {    # 'after-ntime'
+        my $task_ntime = <[base.b32.ntime]>->($LAST_PAREN_MATCH);
         $remove_match = 1 if $ntime_current >= $task_ntime;
     }
 
@@ -49,7 +46,7 @@ foreach my $link_path ( keys %{$links_href} ) {
         <[base.log]>->( 2, ": task match : $task_name" );
         my $link_target = $links_href->{$link_path};
 
-        $link_target =~ s|<hostname>|$hostname_str|g;    # <- <hostname>-syntax
+        $link_target =~ s|<hostname>|$hostname_str|g;    # <-- <hostname>-syntax
 
         my $type = 'path';
         $type = 'file'      if -f $link_target;
@@ -59,7 +56,7 @@ foreach my $link_path ( keys %{$links_href} ) {
             <[base.log]>->( 0, "< removing $type > '$link_target'" );
             $items_removed += remove_tree( $link_target, { safe => 1 } );
             <[base.log]>->(
-                0, "<!> no success <!> $link_target   <-  [ still exists. ]"
+                0, "<!> no success <!> $link_target   <--  [ still exists. ]"
             ) if -e $link_target;
         } else {
             <[base.log]>->( 2, "[ already gone ] $link_target" );
@@ -74,7 +71,7 @@ if ($task_count) {
 }
 
 # ______________________________________________________________________________
-#\\UOQ2N6TH355GB36IM2CXWQI6WPINLOSOCO5B2WCTO5T6BSJBTHYSEPA4FE4KVWEYM4L4SBPER66AC
-# \\ PPRQB2A5U7DRCWRLUB422QHWSNXBYOVIB5QIF2FPRJTWKYQVBBU3 \\// C25519-BASE-32 //
-#  \\// LFZBVPGW27BTOWTLV6QEIFEKLHOHGJKD3HTY7JFOHLC4DUWF6AA \\ CODE SIGNATURE \\
+#\\VCEW3PCYQVW5EZLUKPBS4VQKMNWIZON3ICXJQN5Z4PGACUXZXLE4OZAIYY55MNN6KSQXILIU7KUDO
+# \\ J6EMTDK6SZGUEYNRWLXTQ4HKQOWJMEWWTSW6ZHGKKPT6XAG3GLMI \\// C25519-BASE-32 //
+#  \\// 2AVJ54UFIXQBRQS7NBFQQNOL2F5JPMWIGMHY5DUJXURL4VJKOAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
