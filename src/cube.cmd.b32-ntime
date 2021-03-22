@@ -1,0 +1,28 @@
+# >:]
+
+# name  = cube.cmd.b32-ntime
+# descr = decode BASE-32 to numerical network time
+
+my $param  = $$call{'args'} // '';
+my $B32_re = <regex.base.base_32>;
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected BASE-32 encoded network time'
+    }
+    if $param !~ m|^$B32_re{1,22}$|;
+
+my $ntime_dec;
+eval { $ntime_dec = unpack( 'w', decode_b32r($param) ) };
+
+return { 'mode' => 'nack', 'data' => 'decoding error' }
+    if $EVAL_ERROR
+    or !length( $ntime_dec // '' );
+
+return { 'mode' => 'ack', 'data' => $ntime_dec };
+
+# ______________________________________________________________________________
+#\\EL6VKSWSP2O3NAPMP6BJNEZNIFUDTTPHYQ4HPTDFMYU2JRTQ57WNMJTTOK2MY2EHNOC73DTTWKXWQ
+# \\ W76G522IIAY5CF7QKBWBUCK5MOED2BGBSZROGUQ5QKCEWC3HUXEE \\// C25519-BASE-32 //
+#  \\// PTIKCE2TAO2A7BKP27MQ4Y424X5YBDT6C64ZBQO6GMET7WWKQAA \\ CODE SIGNATURE \\
+#   ````````````````````````````````````````````````````````````````````````````
