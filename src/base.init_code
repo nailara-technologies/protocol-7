@@ -136,6 +136,9 @@ if (    defined <system.agent.type>
         },
         'descr' => 'virtual agent list'
     };
+
+    <base.commands.cmd.src-age.descr> =~ s|installed ||;
+
 } else {    # remove some commands for non-cube type agents
     map { <[base.disable_command]>->($ARG) } (
         qw|
@@ -151,8 +154,7 @@ if (    defined <system.agent.type>
             |
     );
 
-    <base.commands.cmd.source-age.param> = "['date']"; # <-- disab. second param
-    <base.commands.cmd.source-age.descr> =~ s|\[year\]||;
+    <base.commands.cmd.src-age.param> = "['date'] ";  # <-- disable second param
 
     if ( <system.agent.name> ne 'universal' ) {
         <[base.hide_list]>->(qw| sessions |);
@@ -212,7 +214,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 # ______________________________________________________________________________
-#\\2NW3CI3DXISKMYQIINTE6POTSTC5KDKZFORUWAI4JECSEYMRJ2NETYI2C42Q5B3RGBKDDSVUPNSVO
-# \\ R6N62CYIC7JYZOSS2T22PQ6BHTWEQATLZ7UIBVWR2XA2DZAHD5AW \\// C25519-BASE-32 //
-#  \\// B6L5H3HLXSRJ6GGHJ2QYKYMKU27WLFV4BQSRRVTH4UHN3AOC4BI \\ CODE SIGNATURE \\
+#\\EUHZDE5DC7LXZNMCZQQSPXUH4STKW66S3PVI443FMDHECGBQ255KVIENFRLTOIAM7BYYASMNSHABI
+# \\ PCYAVRU3H6NVZFVS4LYQOJI3GFRTHGTZSTTJIWPIX33BS3NH6KQG \\// C25519-BASE-32 //
+#  \\// JC4BDOW55T36UIWQLLY363BKNYNFIVSJKUUBZRRHL3XRGGKJGAY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
