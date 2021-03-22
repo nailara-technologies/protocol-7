@@ -34,24 +34,42 @@ $log_msg =~ s|\e|\\e|g;
 my $fatal_exit
     = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, ) ? 1 : 0;
 
-$log_msg = "call to unknown subroutine while executing '$1'!"
+$log_msg = "$ANSI{'p7_fg_0002'}call to unknown subroutine while executing '$1'"
     if $log_msg
     =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
 
 my $dots = <log.dots> //= '.';
 
-my $agent_prefix
-    = sprintf( ":.%s.%s%s:", <system.node.name>, <system.agent.name>, $dots );
+my $bg   = $ANSI{'p7_bg'};
+my $rst  = $ANSI{'reset'};
+my $bl_c = $ANSI{'p7_fg_0000'};
+my $an_c = $ANSI{'p7_fg_0001'};
+
+my $agent_prefix = sprintf( $bl_c . "$bg:.$an_c%s$bl_c.$an_c%s$bl_c%s:$rst",
+    <system.node.name>, <system.agent.name>, $dots );
 
 my $log_str;
+
+# say '< caller 0 > '.[caller(1)]->[1].':'.[caller(1)]->[2] if $log_level == 0;
+# say '< caller 4 > '.[caller(1)]->[1].':'.[caller(1)]->[2] and sleep 0.24 if $log_level == 2;
+
+## log colors ##
+my $c_l = 2;
+$c_l = 3 if $log_level == 0;
+$c_l = 4 if $log_level == 1;
+$c_l = 1 if $log_level == 2;
+$c_l = 0 if $log_level > 2;
+my $fg_c = $ANSI{"p7_fg_000$c_l"};
+##
 if ( $log_level > 0 ) {
-    $log_str = "$agent_prefix $log_msg";
+    $log_str = "$agent_prefix ${fg_c}$log_msg$ANSI{'reset'}";
 } else {
-    $log_str = "$agent_prefix $ANSI{bold}$ANSI{yelblue}$log_msg$ANSI{normal}";
+    $log_str = "$agent_prefix $ANSI{'bold'}${fg_c}$log_msg$ANSI{'reset'}";
 }
 
 if ($fatal_exit) {
-    say STDERR $log_str, "$agent_prefix << EMERGENCY SHUTDOWN >> ",
+    say STDERR $log_str,
+        "$agent_prefix$ANSI{'p7_fg_0002'} << EMERGENCY SHUTDOWN >> ",
         " [ anticipated deep recursion in log system ]";
     exit 2;
 }
@@ -75,6 +93,9 @@ if ( fileno(STDOUT)
 
     utf8::decode($log_str) and say $log_str;    ## <-- log to console ##
 
+    ## correcting length to plain text ., ##
+    <[base.strip_ansi]>->( \$agent_prefix );
+
     <log.logged_prefix_width> = length($agent_prefix)
         if not defined <log.logged_prefix_width>
         or <log.logged_prefix_width> != length($agent_prefix);
@@ -83,7 +104,7 @@ if ( fileno(STDOUT)
 return 1;
 
 # ______________________________________________________________________________
-#\\AY56FK5JDQ53O5S2NJ2Z3EALZWVUNNCWDR57ZLVYIZNIJ2V7XR4M7V5FBWCAZ2C7WJEKAT23CCXDY
-# \\ STYHSNCMZOKLMPE26TB7SBLVMGWJQCVJYWJQ446FPNNQD2AIGWX4 \\// C25519-BASE-32 //
-#  \\// DXX6LLBBL4572AQ4G552LM4LTCIJWHSLU4JBMY3YN2HXOIMF4AA \\ CODE SIGNATURE \\
+#\\O2QPN2V2JRJTULUDI23TJG43XC5UIJHF6HWODVIHIMU2Y2Z3BFUMT4TMLHPV4IGURXYHVJOPECE4U
+# \\ 3MK427M54W3KGQOOYXPEQNUH3UBG7ITNG5JBAPAR7PO2OR52HMUB \\// C25519-BASE-32 //
+#  \\// OCP6Y75DUK5Y25AVB2KLINVZG6KCCMVNG25LH3ODRNLGTWZ6GCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
