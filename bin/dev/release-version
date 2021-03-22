@@ -61,18 +61,15 @@ my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
 }
 
 sub ntime_dec {
-
     my $network_time = shift;
 
-    my $B32_re = qr|[A-Z2-7]+|;
-
     die ":\n:: invalid network time format in 'src-ver' file\n\n"
-        if $network_time !~ m|^$B32_re{1,22}$|;
+        if $network_time !~ m|^[A-Z2-7]{1,22}$|;
 
     my $ntime_dec;
     eval { $ntime_dec = unpack( 'w', decode_b32r($network_time) ) };
 
-    die ":\n:: network time decoding not successful [ $EVAL_ERROR ]\n\n"
+    die ":\n:: network time decoding not successful\n\n"
         if $EVAL_ERROR
         or !length( $ntime_dec // '' );
 
