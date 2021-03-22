@@ -63,36 +63,36 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
 
     ## source version ##
     my $src_version_file
-        = catfile( $data{'system'}{'conf_path'}, 'protocol-7.source-version' );
+        = catfile( $data{'system'}{'conf_path'}, 'protocol-7.src-ver' );
     if ( -f $src_version_file and open( my $ver_fh, '<' . $src_version_file ) )
     {
-        my $old_version = <protocol-7.source-version> // '';
-        ( <protocol-7.source-version> = <$ver_fh> ) =~ s|\s||g;
+        my $old_version = <protocol-7.src-ver> // '';
+        ( <protocol-7.src-ver> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
         <[base.log]>->(
-            0, sprintf( "NEW SOURCE CODE [ %s ]", <protocol-7.source-version> )
-        ) if <protocol-7.source-version> ne $old_version;
+            0, sprintf( "NEW SOURCE CODE [ %s ]", <protocol-7.src-ver> )
+        ) if <protocol-7.src-ver> ne $old_version;
     } else {
-        <protocol-7.source-version> = 'unknown';
+        <protocol-7.src-ver> = 'unknown';
     }
 
     ## release version ##
     my $rel_version_file
-        = catfile( $data{'system'}{'conf_path'}, 'protocol-7.release-version' );
+        = catfile( $data{'system'}{'conf_path'}, 'protocol-7.rel-ver' );
     if ( -f $rel_version_file and open( my $ver_fh, '<' . $rel_version_file ) )
     {
-        my $old_release = <protocol-7.release-version> // '';
-        ( <protocol-7.release-version> = <$ver_fh> ) =~ s|\s||g;
+        my $old_release = <protocol-7.rel-ver> // '';
+        ( <protocol-7.rel-ver> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
         <[base.log]>->(
             0,
             sprintf(
                 "RELEASE VERSION : %s -> %s",
-                $old_release, <protocol-7.release-version>
+                $old_release, <protocol-7.rel-ver>
             )
-        ) if <protocol-7.release-version> ne $old_release;
+        ) if <protocol-7.rel-ver> ne $old_release;
     } else {
-        <protocol-7.release-version> = 'unknown';
+        <protocol-7.rel-ver> = 'unknown';
     }
 }
 if ( $arg eq 'plugins' or $arg eq 'all' ) {
@@ -128,7 +128,7 @@ $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 # ______________________________________________________________________________
-#\\66SJIEFOLOKKBTXTH2DHGH52X7GLSKV4BJEYUYJHTP7DFLCMMHIV2OQILSE3QR4NQOKLY3EP6R64I
-# \\ UOY53E2HOM5D2KVKRK72ULNGT4LA7U2MPW6Z7U6IXRTZMG3I2VZQ \\// C25519-BASE-32 //
-#  \\// AO75DDBMFYJLVQOCKPVOQKSHVKOXAVDJ5YZ5GFSIGIRITFN26AA \\ CODE SIGNATURE \\
+#\\LCKTJJND5S4MCNSH4KFUE7DZ3AKVECKJHQ5EZYHVBDPTOZCUWWULUJAMISOXETHIUFMRZ7SFB63HS
+# \\ 74JPEVW75SUXW6AXRX6O2T2DXAJVR5X2IDWJWEEOJ6ZHAMTHQKKY \\// C25519-BASE-32 //
+#  \\// C6SYQZEQA2Y6QP55MHS4FPJ4YMSVNLZ5J3SSJ7G4SYLMQZKDCDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

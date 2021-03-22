@@ -11,7 +11,7 @@ my $date_mode = $param_str =~ s|^date *|| ? 1 : 0;
 
 my $current_time = time;
 my $c_year_float = <[base.time.year_utc_float]>->($current_time);
-my $s_year_float = $1 if <protocol-7.source-version> =~ m|^(\d+(\.\d+)?)\-|;
+my $s_year_float = $1 if <protocol-7.src-ver> =~ m|^(\d+(\.\d+)?)\-|;
 
 if ( ( not exists <system.agent.type> or <system.agent.type> ne 'cube' )
     and length($param_str) ) {   # <-- no second param for non-cube type agents.
@@ -24,7 +24,7 @@ if ( ( not exists <system.agent.type> or <system.agent.type> ne 'cube' )
 } elsif ( length($param_str) ) {
     return {
         'mode' => 'nak',
-        'data' => "invalid version time-stamp syntax [ see 'source-version' ]"
+        'data' => "invalid version time-stamp syntax [ see 'src-ver' ]"
     };
 }
 
@@ -47,7 +47,7 @@ return { 'mode' => 'ack', 'data' => $date_stamp . $e_str } if $date_mode;
 return { 'mode' => 'ack', 'data' => $duration_str . $e_str }
 
 # ______________________________________________________________________________
-#\\5XDADLRAOJG6YTOFT2PXLL4B24X7X4M3JT2OR4PZ7IFBQS5U3IBJ47UOO63MEWWE4XK7BB5IT7YUG
-# \\ K7BV4NHHIAY2BSZTABIQJ2VOSEAY7ZUKWQMWTSMTUKW6GXL7EM6C \\// C25519-BASE-32 //
-#  \\// 4MDQYI4P3J4ELNMXXNZ4JL2C37QCJ6D65J5OMQA7PZYYXEIIAAQ \\ CODE SIGNATURE \\
+#\\67QYPAFLON62AGU3LSTCKO5WFF7YRG6FG67BTSMP55MQSR3LPD5K4MYFY2JBSKTYGBY4CJBK5OPOQ
+# \\ 6ETVYXPAEHWAPZ4HPJNDQ7RP4JD2MHSSPQGOF6ZBWCOOZ5BUYSPT \\// C25519-BASE-32 //
+#  \\// CXBH6GIMIYE7K4WV37K5IG4BFI72NOUHKF5PT7ZM7KCL7MRXIDQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

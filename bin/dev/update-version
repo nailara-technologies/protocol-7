@@ -30,12 +30,15 @@ my $u = File::Spec->updir;
 my $root_path
     = abs_path( File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
 my $cfg_path = File::Spec->catdir( $root_path, 'cfg' );
-our $v_file    = File::Spec->catfile( $cfg_path, 'protocol-7.source-version' );
-our $rl_v_file = File::Spec->catfile( $cfg_path, 'protocol-7.release-version' );
+our $vers_file = File::Spec->catfile( $cfg_path, 'protocol-7.src-ver' );
+our $rl_v_file = File::Spec->catfile( $cfg_path, 'protocol-7.rel-ver' );
 my $readme_md    = File::Spec->catfile( $root_path, $readme_file_path );
 my $old_version  = get_old_version();
 my $git          = Git::Wrapper->new($root_path);
 my $commit_count = $git->log - 1;
+
+die ":\n:: not found './cfg/protocol-7.src-ver'\n\n" if !-f $vers_file;
+die ":\n:: not found './cfg/protocol-7.rel-ver'\n\n" if !-f $rl_v_file;
 
 $commit_count-- if $amend;
 
@@ -62,13 +65,13 @@ $git->add($rl_v_file)
     if !$amend
     and $version_string ne $old_version
     and -f $rl_v_file
-    and $git->ls_files('cfg/protocol-7.release-version');
+    and $git->ls_files('cfg/protocol-7.rel-ver');
 
-## ./cfg/protocol-7.source-version ##
-open( my $ver_fh, '>' . $v_file ) or die " -> $v_file : $!\n";
+## ./cfg/protocol-7.src-ver ##
+open( my $ver_fh, '>' . $vers_file ) or die " -> $vers_file : $!\n";
 say {$ver_fh} $version_string;
 close($ver_fh);
-$git->add($v_file);
+$git->add($vers_file);
 
 ## ./README.md ##
 {
@@ -109,8 +112,8 @@ RECALC_VERSION:
 
 sub get_old_version {
     local $/ = undef;
-    return '' if !-f $v_file;
-    open( my $fh, $v_file ) or die "$v_file : $!\n";
+    return '' if !-f $vers_file;
+    open( my $fh, $vers_file ) or die "$vers_file : $!\n";
     ( my $old_version = <$fh> ) =~ s|\n+.+$||sg;
     close($fh);
     return $old_version;
@@ -198,7 +201,7 @@ sub assert_harmony {
 ################################################################################
 
 # ______________________________________________________________________________
-#\\I7XEEVKUXSDYJQPA3RRJAR54Q3C4VSSPM5OR2OZHJBSDBLXHIYQQI5QDB5EH77HOBNZXGED3SFAXI
-# \\ 2QYNDBSM6GXAG7BKF4KTVNLM3M7D3QOJH65WYBVTG2RB52YKOPOD \\// C25519-BASE-32 //
-#  \\// YZAOH3XE4Z56ZBY7A2S53XDXSKWXQETCUQ2TMVY234C4R7X7GAY \\ CODE SIGNATURE \\
+#\\T42ZAMOACNY4FC2QLUBLM5LUBBXOP2LFWMTTWQTPOEAPUQHUIUU5XXCGPUT42VVEDSLQUEZYSVILI
+# \\ WF3S57UC3UI4B6MWCU6VU34YYFX4I5UWTL57MHMK3FW66GGC3LVR \\// C25519-BASE-32 //
+#  \\// LJGGCMBW4FC3T5XOGNLBFOBTO5YQ33NPAV2V35RVYND3GNL3GBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
