@@ -147,13 +147,14 @@ if ( !$has_stdin ) {
 
         $line =~ s{Author\s*:\s*([^\n]+)}
                   { my $author = $1; $author =~ s|<([^>]+)>|<[$1]>|;
-                    sprintf( "${blacklight}: AUTHOR :: %-70s",$author)}gxe;
+                    sprintf( "${blacklight}: AUTHOR :: %67s",$author)}gxe;
 
         $line =~ s{(Date\s*):\s*([^\n]+?)(\d\d:\d\d:\d\d)
                   \ ($current_year)?(\d{4})?\s[+-]\d{4}}
-                  { my $older=$5//''; $older = "$older ::" if length($older);
-                  sprintf( "$blacklight%6s :: %69s$reset_color",
-                       uc( ": C:$1" ), ":: $2:: $3 :: $older" ) }gxe;
+                  { my $older = defined $5 ? " $5" : '';
+                       $older = "$older ::" if length($older) > 1;
+                  sprintf( "$blacklight%6s :: %66s$reset_color",
+                       uc( ": C:$1" ), ":: $2:: $3 ::$older" ) }gxe;
         ################################################################
 
         my $ok = DiffHighlight::handle_line($line);
@@ -1005,7 +1006,7 @@ sub get_terminal_width {
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
 # ______________________________________________________________________________
-#\\NBXKADVDZZPH47PJ6LQLU3TE6BBJWNS43EIKRMG2YMJ56WCJOAK7ACEFQRIQO4SDVAQOY7KTFCQTC
-# \\ DGP7W4RKRFR64VOE5GYQOIH6ZGD4IY63XAEGCE5JEQOGRD4NGEMH \\// C25519-BASE-32 //
-#  \\// MJEIFLEJ5R7NMBFITC5EHYA2NRGLKXH6CEP2JL7XBECZLCQDYCA \\ CODE SIGNATURE \\
+#\\CWBFARQ2U5IQMEGHAKIOIRHSRUXJRLZ5WBHY3CN6DA744XDLWLJRNOFOONNK73VIZ6RWTULP4VVNG
+# \\ IO7FK3HWVBHCSEWAUTELHXUILC3QJWTWBXYAL3UMUIUQY7PTR6YL \\// C25519-BASE-32 //
+#  \\// ORRIDAMFBSSAYR7YSC6CGH46NTHVXCB6MYNKN6FODBX4E7BI4CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
