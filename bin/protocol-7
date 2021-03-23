@@ -1309,7 +1309,7 @@ sub prepare_subs {
             $warn_count_total += $warn_count
                 = scalar $s_comp_stderr
                 =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|sg
-                if defined $s_comp_stderr;
+                if defined $s_comp_stderr and $s_comp_stderr;
             ( my $lpw )
                 = ( $data{'system'}{'start'}{'log_prefix_width'}
                     // $code{'base.get_start_lpw'}->() || 24 );
@@ -1427,11 +1427,10 @@ sub prepare_subs {
 
                   # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
                 } else {
-                    $data{'base'}{'modules'}{'load_errors'}++;
-                    $code{'log.error'}->(
-                        ':', "::[ broken agent command '$2' ]",
-                        ':', @compile_errors
-                    );
+                    $code{'log.error'}
+                        ->( ':', "::[ broken agent command '$2' ]", ':' );
+                    $code{'log.error'}->(@compile_errors)
+                        if not $data{'base'}{'modules'}{'load_errors'}++;
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
                         = '<<< command did not compile properly >>>';
                 }
@@ -1830,7 +1829,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\BQOFGQ3UZFMWS2TBHNYJHPX7LSVQ5GM3HPVLM3UVTXGOON6FH232C5EFE7QEXCYZOZC6D3IZOFK7K
-# \\ A2ELXDMGEHHGL56KNQ752MNYWAO2GSZH3OJR4Z6P77KCZ5GWKUAT \\// C25519-BASE-32 //
-#  \\// ISDQ5WTCGD4QZ4COTBWXXEJF3LNPPKLFJ3GNCXIOJFA37CTJIAI \\ CODE SIGNATURE \\
+#\\4JQW6VHUCWRHXBFP2QHNLPG67ZPRZA5H33YF4LLTSMK6F4TUOBC7DLIEMHPMUY5PPOI66VGQ6IE5K
+# \\ VBP47AOL62MOX3KNOQN4MJXSUULG6SFHZJRTBF2SM7P7FHEF6YOU \\// C25519-BASE-32 //
+#  \\// QBC5UG2Q5MOMBL3RAQZPDACU4I4GED3J2DETCXGRC5C4HY3XAAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
