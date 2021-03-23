@@ -94,7 +94,7 @@ if ( fileno(STDOUT)
     utf8::decode($log_str) and say $log_str;    ## <-- log to console ##
 
     ## correcting length to plain text ., ##
-    <[base.strip_ansi]>->( \$agent_prefix );
+    <[base.strip_ansi]>->( \$agent_prefix ) if $data{'system'}{'ansi_color'};
 
     <log.logged_prefix_width> = length($agent_prefix)
         if not defined <log.logged_prefix_width>
@@ -104,7 +104,7 @@ if ( fileno(STDOUT)
 return 1;
 
 # ______________________________________________________________________________
-#\\O2QPN2V2JRJTULUDI23TJG43XC5UIJHF6HWODVIHIMU2Y2Z3BFUMT4TMLHPV4IGURXYHVJOPECE4U
-# \\ 3MK427M54W3KGQOOYXPEQNUH3UBG7ITNG5JBAPAR7PO2OR52HMUB \\// C25519-BASE-32 //
-#  \\// OCP6Y75DUK5Y25AVB2KLINVZG6KCCMVNG25LH3ODRNLGTWZ6GCA \\ CODE SIGNATURE \\
+#\\RNBEMZ3HGRCZJZVWWYMSWLRNXNBKSHIDCV6RXIAWAIAECAL5EP2R2TRWU453C575LI2XQ4U2DDYQI
+# \\ SS34UNX2MGQAKTLP2I2UHRHPUVMPTALZROO4NDG4LHUVV4XJUWF5 \\// C25519-BASE-32 //
+#  \\// BVFRXG7YK6VB5DG4EW2JRYCA34CMY6JAYA4KJK77WGHDZUZ76BY \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
