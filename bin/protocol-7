@@ -562,6 +562,36 @@ sub prepare_subs {
         $data{'system'}{'path'}{'rel'}{'cur_agent_cfg'} = '<STDIN>'
             if $stdin_mode;
 
+        ## prepare agent name column width and color mode pipe override ###
+        if ( not defined $code{'base.term.size'}->(*STDIN) ) {
+            $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
+        } else {
+            $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
+        }
+        if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
+            $data{'system'}{'term'}{'piped'}{'stdout'} = 1;
+        } else {
+            $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
+        }
+        if ( not defined $code{'base.term.size'}->(*STDERR) ) {
+            $data{'system'}{'term'}{'piped'}{'stderr'} = 1;
+        } else {
+            $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
+        }
+        ##
+        map {
+            if ( $data{'system'}{'term'}{'piped'}{$ARG} ) {
+                $data{'system'}{'term'}{'colors'}{$ARG}
+                    = $data{'system'}{'ansi_color'}
+                    = $data{'system'}{'force-colors'} // 0;
+            } else {
+                $data{'system'}{'term'}{'colors'}{$ARG}
+                    = $data{'system'}{'ansi_color'} // 1;
+            }
+        } qw| stdout stderr |;
+        $data{'system'}{'ansi_color'} //= 1;
+        ##
+
         ## defining console ansi colors ###
         if ( $data{'system'}{'ansi_color'} ) {
             %ANSI = (
@@ -593,31 +623,6 @@ sub prepare_subs {
             map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A }
                 keys %ANSI );
 
-        ## prepare agent name column width ###
-        if ( not defined $code{'base.term.size'}->(*STDIN) ) {
-            $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
-        } else {
-            $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
-        }
-        if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
-            $data{'system'}{'term'}{'piped'}{'stdout'} = 1;
-        } else {
-            $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
-        }
-        if ( not defined $code{'base.term.size'}->(*STDERR) ) {
-            $data{'system'}{'term'}{'piped'}{'stderr'} = 1;
-        } else {
-            $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
-        }
-        map {
-            if ( $data{'system'}{'term'}{'piped'}{$ARG} ) {
-                $data{'system'}{'term'}{'colors'}{$ARG}
-                    = $data{'system'}{'force-colors'} // 0;
-            } else {
-                $data{'system'}{'term'}{'colors'}{$ARG}
-                    = $data{'system'}{'ansi_color'} // 1;
-            }
-        } qw| stdout stderr |;
         if ( $data{'system'}{'start'}{'log_prefix_width'}
             <= $data{'system'}{'start'}{'log_prefix_width'} ) {
             my $dot_count
@@ -1591,7 +1596,8 @@ sub prepare_subs {
         }
         ##
         return 0
-            if not defined $data{'base'}{'httpc'}{'last_mlen'}
+            if not $data{'system'}{'use_http_source'} # <-- check if required .,
+            or not defined $data{'base'}{'httpc'}{'last_mlen'}
             or not $data{'system'}{'verbosity'}{'console'};
         if ( my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
             local $OUTPUT_AUTOFLUSH = 1;
@@ -1824,7 +1830,7 @@ END {
 }
 
 # ______________________________________________________________________________
-#\\64TGPZGZR2SBSWTQYPKNSI4AOUQXESCZPEQEYEIXN767SJTAJ2L6OXZ7CZYQ56BFBXYZBGEOCC6RC
-# \\ Q6CZH3TW7K5L3BXHNH7WMLLDTZPQV6QKOVOILHOYEMZP5MVJR6QM \\// C25519-BASE-32 //
-#  \\// XPTIKPPSNQQ7LNB5PLVGV4OBJ5BGXSCHT2PTS3WP2A42IKUW4DQ \\ CODE SIGNATURE \\
+#\\BQOFGQ3UZFMWS2TBHNYJHPX7LSVQ5GM3HPVLM3UVTXGOON6FH232C5EFE7QEXCYZOZC6D3IZOFK7K
+# \\ A2ELXDMGEHHGL56KNQ752MNYWAO2GSZH3OJR4Z6P77KCZ5GWKUAT \\// C25519-BASE-32 //
+#  \\// ISDQ5WTCGD4QZ4COTBWXXEJF3LNPPKLFJ3GNCXIOJFA37CTJIAI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
