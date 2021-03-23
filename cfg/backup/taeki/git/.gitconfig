@@ -1,0 +1,106 @@
+[user]
+	name = Taeki Ten {[.NAiLArA:T3K`]}
+	email = sourcecode@nailara.network
+
+[color]
+	ui      =  true
+
+[color "diff"]
+        old        = 25
+        new        = 34
+        meta       = 25
+        frag       = 32
+        commit     = 27
+        whitespace = 17 reverse
+
+[color "backup"]
+        added     = 16 55  reverse
+        changed   = 17 117 reverse
+
+[color "status"]
+        added     = 17 117 reverse
+        changed   = 16 55  reverse
+        untracked = 16 63  reverse bold blink
+
+[alias]
+        co    = checkout
+        cob   = checkout base
+        cam   = commit -a --amend
+        ci    = commit
+        cim   = commit -m
+        b     = branch
+        s     = status
+        sh    = show
+        st    = "!showci () { rev=$(git rev-parse \"${*:-HEAD}\"); git difftool $rev~1 $rev; }; showci"
+        f     = fetch
+
+        df    = diff
+        dfc   = diff --cached
+
+        d     = difftool
+        dc    = difftool --cached
+
+        dm    = difftool -t mediainfo
+        dmc   = difftool --cached -t mediainfo
+
+        dd    = diff
+        ddc   = diff --cached
+
+        l     = log
+        lp    = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+        cp    = cherry-pick
+        rob   = reset --hard origin/base
+        lcf   = diff --name-only --relative HEAD
+        dh    = diff HEAD
+        lsf   = diff --name-status --relative HEAD
+        rhh   = reset --hard HEAD~1
+        rbb   = rebase --merge --autostash base -X theirs
+        rbc   = rebase --continue --no-edit
+
+        stu   = stash -u
+        stl   = stash list
+        sts   = stash show -p
+        std   = stash drop
+        stp   = stash pop
+        cma   = commit --amend
+        cmano = commit --amend --no-edit --date=now
+
+        cod   = checkout dibosys-NG
+        pax   = pull --rebase --autostash -X theirs
+        pvb   = pull --rebase --autostash -X theirs vac base
+        pvd   = pull vac  --rebase --autostash -X theirs dibosys-NG
+        psvb  = push vac base
+        psvd  = push vac dibosys-NG -f
+        pshb  = push hub base
+
+        ptm   = pull twc master
+        ptd   = pull twc dibosys-NG
+        pstm  = push twc master
+        pstd  = push twc dibosys-NG -f
+
+	clone-branches = "! git branch -a | sed -n \"/\\/HEAD /d; /\\/base$/d; /remotes/p;\" | xargs -L1 git checkout -t"
+
+[merge]
+	tool    =  meld
+
+[diff]
+	tool = ccdiff
+
+[difftool]
+	prompt = false
+
+[difftool "ccdiff"]
+	cmd = ccdiff --bg=black --new=rgb014 --old=rgb013 -u $LOCAL $REMOTE
+
+[difftool "mediainfo"]
+        cmd = mediainfo $LOCAL $REMOTE
+
+[fetch]
+	prune = true
+
+[push]
+	default = simple
+
+[core]
+	editor  =  j
+	pager   =  diff-modified | less --tabs=4 -RFX
