@@ -11,12 +11,13 @@ use Crypt::PRNG::Fortuna;
 use Text::Wrap qw| wrap |;
 use Time::HiRes qw| sleep |;
 use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
-
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 no warnings 'experimental';
 
 my $base_size  = '6';
 my $base_table = 'cp10007';
+
+## [LLL] disable ANSIColor on 'piped' STDOUT mode .., [$mode{Q}]
 
 my $skip_repeat_spaces = 1;
 
@@ -27,14 +28,14 @@ my $highlight = { map { unpack( "%U", $ARG ) => 1 } @highlight_chars };
 map { $highlight->{$ARG} = 1 } qw| 7692 1538 |;                  # Ḍ ؂
 
 ( my $x, my $y ) = Term::Size::chars;
-getopts( 'hBSvs:r:eqd:C:U:', \my %mode );
+getopts( 'hBSvs:r:eqQd:DC:U:', \my %mode );
 
 $x //= 80;
 $y //= 25;
 
 my $screen_chars = $y * $x;
 
-# say " $x x $y == $screen_chars" and sleep 1.2 and exit;
+say " $x x $y == $screen_chars" if $mode{'D'};    ## <-- '-D' debug mode is ..,
 
 $skip_repeat_spaces = 0 if $mode{'S'};
 
@@ -47,11 +48,13 @@ my $green       = color('r71g195b6');
 
 # my $blacklight  = color('r71g195b6'); ## <-- AMOS-green
 
+$mode{'q'} = 1 if $mode{'Q'};
+
 $SIG{'__WARN__'} = sub {
     my $err = shift;
     return if lc($err) =~ m|^wide character| or $mode{'q'};
     my $w = 44;
-    $err =~ s{ at .+$|\n+}{}g;
+    $err =~ s{ at .+$|\n+}{}g if not $mode{'D'};
     $err =~ s{[0\\]x(\S\S)}
     { $w+=-3+length("$nailara_fg");
     $blacklight.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
@@ -68,8 +71,10 @@ my $U = $mode{'d'} // $base_size;
 $mode{'C'} //= $base_table if not defined $mode{'U'};
 my $C = $mode{'C'} // "UTF-$U";
 
-print $nailara_fg . ":\n    " if not $mode{'S'};
-print $nailara_bg . $blacklight;
+if ( not $mode{'Q'} ) {
+    print $nailara_fg . ":\n    " if not $mode{'S'};
+    print $nailara_bg . $blacklight;
+}
 
 ## randomized selection ##
 if ( $C eq 'R' ) {
@@ -88,12 +93,13 @@ say ":\n:: ${error_color}character set '$C' not supported\n" . color('reset')
     and exit(4)
     if $C ne ':raw'
     and $C !~ m|^UTF-\d{1,2}|
+    and $C ne 'BASE32'
     and not utf8_supported_charset($C);
 
-my $encoding      = $C =~ m|^:| ? $C : sprintf(":encoding($C)");
+my $encoding      = $C =~ m{^:|^BASE32$} ? $C : sprintf(":encoding($C)");
 my $encoding_mode = 'native';
 
-if ( not utf8_supported_charset($C) ) {
+if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
 ## testing ##
     no warnings;
     eval 'use warnings FATAL => "all"; binmode( STDOUT, $encoding )';
@@ -107,7 +113,7 @@ if ( not utf8_supported_charset($C) ) {
         if $EVAL_ERROR;
 ## applying ##
     binmode( STDOUT, $encoding );
-} else {
+} elsif ( $C ne 'BASE32' ) {
     $encoding_mode = 'map';
 }
 
@@ -146,7 +152,7 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
 
         my $c_num = $MATCH if $input_num =~ s|^\d{$c_count}||;
 
-        $c_num = 32 if $c_num < 32;
+        $c_num = 32 if not defined $c_num or $c_num < 32;
 
         my $char = chr($c_num);
 
@@ -162,7 +168,8 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
         $char = $green . $char . $blacklight
             if $mode{'h'}
             and ( exists $highlight->{$c_num} or @highlight_chars ~~ $char );
-        print $char and sleep $delay if $delay;
+
+        print $char and sleep $delay if $delay and $C ne 'BASE32';
 
         $last_char = $char;
     }
@@ -172,18 +179,24 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
 }
 
 if ( defined $char_buffer ) {
-    if ( $mode{'B'} ) {    ## not working .., ## change ., ##
+    if ( $C eq 'BASE32' ) {    ## special 'character set' BASE32 [ encoding ]
 
-        #        $char_buffer = Encode::decode( 'UTF-7', $char_buffer );
-        #        $char_buffer =~ s|$B32||g;
+        print encode_b32r($char_buffer);
+
+    } elsif ( $mode{'B'} ) {    ## not working .., ## change ., ##
+        ## [ experiments ]
+        # $char_buffer = Encode::decode( 'UTF-7', $char_buffer );
+        # $char_buffer =~ s|$B32||g;
         # $char_buffer = decode_b32r($char_buffer);
     }
-    print $char_buffer if defined $char_buffer and !$delay;
+
+    print $char_buffer if $C ne 'BASE32' and defined $char_buffer and !$delay;
 }
 
 binmode( STDOUT, ":raw" );
 
-say ' ' . color('reset') . $nailara_fg . "\n:" if not $mode{'S'};
+say ' ' . color('reset') . $nailara_fg . "\n:"
+    if not $mode{'S'} and not $mode{'Q'};
 
 if ( $mode{'e'} ) {
 
@@ -199,15 +212,15 @@ if ( $mode{'e'} ) {
         say "\n " . ':' x ( $cd_len - 2 );
         say "\n..,";
     }
-    print $blacklight;
+    print $blacklight if not $mode{'Q'};
 
 }
-print color('reset');
+print color('reset') if not $mode{'Q'};
 
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\I7USIP3WYNBJJWCG5RMVXVJRESR4FS76WYIGBAT5U32UVQHB6PBIDQ6PGKXCGI65SGN5GW4KE5IKW
-# \\ QRRTOO2P3LRAHNYEBA3BH4HHQSWVQT67BECAY4QTSLIRFNSYNWJU \\// C25519-BASE-32 //
-#  \\// C55EZISWBNYPR7WT6JIHMTQBGP6MUDLKLWBJMI4CUSBWJ6NSMBQ \\ CODE SIGNATURE \\
+#\\DTNOTCYPAC4WAZZCLWBK7E3C2PXXTCKMG5HINDUWC4ZUSJCKWMMWCBJCS3LEE45O4X7EHVTG3T6NO
+# \\ PRIKAVVWU6FSWIRMDNQODJDCXC4FE6LKHGAPXSWX64MX4GJKYXC3 \\// C25519-BASE-32 //
+#  \\// 46DIJQDWXE7NKWTRY3IZRIFUNBHJ57KSQEQL7TQTAQRCYHRRKBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
