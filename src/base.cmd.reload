@@ -3,18 +3,19 @@
 # name  = base.cmd.reload
 # param = [keyword]
 # descr = reload or reinit config and source code
-my @keywords = qw| config  source  plugins  init  all |;
+my @keywords = qw|  config  source  plugins  init  all  |;
 
 my $arg = $$call{'args'} // 'all';
 my $id  = $$call{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
 
-<base.debug.keep_on_reload> //= 0;    # <- [persistence] override : cfg/defaults
+<base.debug.keep_on_reload> //= 0; # <-- [persistence] override : cfg \ defaults
+<base.reload.success.clean-code> //= 1;   # <-- delete $data{'code'} [ success ]
 
 my $s = '     ';
-$$reply{'data'} = ":\n\n\n::\n\n";      # <-- header
-my $reply_footer  = "\n::\n\n\n:\n";    # <-- footer
+$$reply{'data'} = ":\n\n\n::\n\n";        # <-- header
+my $reply_footer  = "\n::\n\n\n:\n";      # <-- footer
 my $keyword_match = 0;
 
 if ( $arg eq 'config' or $arg eq 'all' ) {
@@ -38,20 +39,18 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] < reload source code >" );
 
-    if ( !<base.debug.keep_on_reload>
-        and ( not defined <modules.load> or <modules.load> !~ m|debug| ) ) {
-        <[base.log]>->( 0, "[reload] .. removing 'debug' module [mem] .," )
+    if ( not <base.debug.keep_on_reload> and not exists $mod{'debug'} ) {
+        <[base.log]>->( 0, '[reload] .. removing debug module [mem] .,' )
             if ref( $code{'debug.dump'} ) eq 'CODE';
-
-        # todo: create src tracking unload mechanism
-        <[base.purge_code]>->('debug');
+        <[base.purge_code]>->('debug');    # [LLL] create unload mechanism
+    } elsif (<base.debug.keep_on_reload>) {
+        <[base.log]>->( 0, '<< keeping debug module enabled >>' );
+        $mod{'debug'} = 1;
     } else {
-        if ( not exists $mod{'debug'} ) {
-            <[base.log]>->( 1, "<< keeping debug module enabled >>" );
-            $mod{'debug'} = 1;
-        }
+        <[base.log]>->( 0, '<< debug module enabled in configuration >>' );
     }
-    map { delete $data{'base'}{$ARG} } ( 'cmd', 'console', 'overwritten' );
+
+    map { delete $data{'base'}{$ARG} } (qw|  cmd  console  overwritten  |);
 
     my $error = <[base.load_modules]>->(@reload_modules);
     if ( !$error and !<base.modules.load_errors> ) {
@@ -121,6 +120,10 @@ if ( !$keyword_match ) {
 }
 if ($success) {
     <[base.log]>->( 1, "[$id] .. reloading complete =)" );
+    if (<base.reload.success.clean-code>) {
+        <[base.log]>->( 2, ":.. cleaning up 'code' namespace .," );
+        delete $data{'code'};
+    }
 } else {
     <[base.log]>->( 0, "[$id] reloading $arg was not successful `:|" );
 }
@@ -128,7 +131,7 @@ $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 # ______________________________________________________________________________
-#\\LCKTJJND5S4MCNSH4KFUE7DZ3AKVECKJHQ5EZYHVBDPTOZCUWWULUJAMISOXETHIUFMRZ7SFB63HS
-# \\ 74JPEVW75SUXW6AXRX6O2T2DXAJVR5X2IDWJWEEOJ6ZHAMTHQKKY \\// C25519-BASE-32 //
-#  \\// C6SYQZEQA2Y6QP55MHS4FPJ4YMSVNLZ5J3SSJ7G4SYLMQZKDCDI \\ CODE SIGNATURE \\
+#\\NFK4QVQX4DQNNONKHTWWWR7CFJYSRXFXSOLSLNDFLEM6CLK6FOCYSQYAVUM4XKCO5A2WHNB644TGS
+# \\ IN6H2U4MGFQH3UBVZFWW4N43YSCYCKI3QMPRPGI6OLY5PNNYM5SE \\// C25519-BASE-32 //
+#  \\// UNGPDGHT4NW4GZHWX3UQMEXCKNNJENRDDSKNOL52OEMG7GELWDI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
