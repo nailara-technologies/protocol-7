@@ -1,45 +1,55 @@
 #!/usr/bin/perl
 
+use v5.24;
 use strict;
+use English;
 use warnings;
-
+use Getopt::Std;
 use Math::BigFloat;
+use Term::ANSIColor;
 use Digest::Elf qw| elf |;
 
-my $divisor = 0; ## <-- if set, divide result and check outcome instead of it .,
-$divisor = $1
-    if @ARGV > 1
-    and $ARGV[0] =~ m|^\-d(\d+(\.\d+)?)$|
-    and shift @ARGV;
+getopts( 'nqvd:A:', \my %mode );
 
-my $quiet = ( @ARGV > 1 and $ARGV[0] eq '-q' and shift @ARGV ) ? 1 : 0;
+$mode{'d'} //= 0;   ## <-- divisor [ -d <n> ] : check result instead of input ##
 
-my $numeric
-    = (     @ARGV == 2
-        and $ARGV[0] eq '-n'
-        and $ARGV[1] =~ m|^\d+(\.\d+)?$|
-        and shift @ARGV ) ? 1 : 0; ## <-- treat as number, not als hashed string
+my @asc_dec = qw| asc-dec -q -C cp10007 -u6 -r0 |;
 
-my %ANSI = (
-    'str'     => "\c[[1m",
-    'reset'   => "\c[[m",
-    'match_y' => "\c[[34m",
-    'match_n' => "\c[[33m",
-    'color_y' => "\c[[6m\c[[34m",
-    'color_n' => "\c[[6m\c[[1m",
+die ":\n:: divisor not valid [ expected numerical ]\n\n"
+    if $mode{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
+
+$mode{'q'} = 1 if $mode{'v'};
+
+my $nailara_bg = color('on_r09g05b41');
+my $nailara_fg = color('r38g46b153');
+my $blacklight = color('r68g39b172');
+my $green      = color('r71g195b6');
+my $blink      = "\e[6m";
+my $reset      = "\c[[m";
+
+my %col = (
+    'str' => $nailara_bg . $nailara_fg,
+    'bg'  => $nailara_bg,
+    'fg'  => $nailara_fg,
+    'r'   => $reset,
+    'm_y' => $nailara_bg . $blacklight,
+    'm_n' => $nailara_bg . $green,
+    'y'   => $blink . $blacklight,
+    'n'   => $green,
+    'b'   => $blacklight,
 );
 
 my $check_string = join( ' ', @ARGV );
-my $elf_checksum = $numeric ? $check_string : elf($check_string);
+my $elf_checksum = $mode{'n'} ? $check_string : elf($check_string);
 
 my $accuracy = 13;
 
 Math::BigFloat->round_mode('trunc');
 Math::BigFloat->accuracy($accuracy);
 
-if ( $divisor != 0 ) {
+if ( $mode{'d'} != 0 ) {
     $elf_checksum
-        = Math::BigFloat->new($elf_checksum)->bdiv( $divisor, $accuracy );
+        = Math::BigFloat->new($elf_checksum)->bdiv( $mode{'d'}, $accuracy );
     $check_string = $elf_checksum;
 }
 
@@ -55,34 +65,54 @@ $calc_str = sprintf( '%0.7f', $calc_str )
     if $calc_str !~ m|\.(\d+)|
     or length($1) < $accuracy;
 
-my $line_str = "\n < $calc_str > ";
+my $res_copy = $calc_str;
+
+my $line_str = "< $calc_str >";
 my $dot_pos  = index( $line_str, '.' ) - 1;
 $dot_pos = length($calc_str) if $dot_pos < -1;
-my $space = ' ' x $dot_pos;
+my $space_1 = ' ' x ( $dot_pos + 7 );
+
+my $sp_0_len = 37 - length($check_string);
+$sp_0_len = 5 if $sp_0_len < 5;
+
+my $space_0  = ' ' x $sp_0_len;
 
 $line_str =~ s{(*plb:\.)(\d*?)($true|0000+ )}
-        {$1$ANSI{'match_y'}$2$ANSI{'reset'}}
+              {$1$col{'m_y'}$2$col{'r'}$col{'b'}}
     or $line_str =~ s{(*plb:\.)(\d*?)($false)}
-        {$1$ANSI{'match_n'}$2$ANSI{'reset'}};
+                     {$1$col{'m_n'}$2$col{'r'}$col{'b'}};
 
 my $return_code = 1;
 $calc_str =~ s|^\d+\.||;
 my $result = '< ? >';
 if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
-    $result      = ">:]  [ is $ANSI{'color_y'}harmonic$ANSI{'reset'} =) ]";
+    $result = "$col{n}>:] $col{b} [ $col{y}true $col{'b'}>:]$col{r}$col{b} ]";
     $return_code = 0;
 } elsif ( $calc_str =~ m|$false| ) {
-    $result = ">:|  [ $ANSI{'color_n'}not$ANSI{'reset'} harmonic. ]";
+    $result = "$col{fg}>:| $col{b} [ $col{'n'}not true$col{b} ]";
 }
-my $q = $numeric ? '' : "'";
-print "\n$space $q$ANSI{'str'}$check_string$ANSI{'reset'}$q  ==="
-    . "  $result\n$line_str\n\n"
-    if not $quiet;
+
+my $q = $mode{'n'} ? '' : "$col{'b'}'$col{'r'}";
+print "\n$space_0$q$col{'str'}$check_string$col{'r'}$q $col{fg} === $col{r}"
+    . " $result\n\n$space_1$line_str\n$col{r}\n"
+    if not $mode{'q'};
+
+say $res_copy if $mode{'v'};
+
+if ( not $mode{'q'} ) {
+    if ( defined $mode{'A'} ) {
+        system( @asc_dec, split( ' ', $mode{'A'} ), $res_copy );
+    } else {
+        push( @asc_dec, qw| -s0 | ) if $return_code == 1;
+        system( @asc_dec, $res_copy );
+    }
+    say $col{'b'} . '.. .,' . $col{'r'};
+}
 
 exit($return_code);
 
 # ______________________________________________________________________________
-#\\534FTEU3AZHCTNZPBYSQ5HPWR4LPX2LG43C3EDI6LK7ESV5ISI5SI3QKEJ754BWF52TVI4NDY5PRW
-# \\ S5A7DTYLQNYI5OKTU6PMHP7YYA533YEZM4OVTMZ63JESVIVJRSNJ \\// C25519-BASE-32 //
-#  \\// 5P4C7F2VRFEEUQGK6EDMU7W6GUVGKACBDOPJDPMNQYLDFKKQMCI \\ CODE SIGNATURE \\
+#\\2SAJJDYPXBZKYQF7MOX4APHDZNSNCQA6Z254ALZBYWSTPP4G5Z7473FSGQAQHBQMIH5ESEBGI7BRA
+# \\ 6OG6PQ27CTJBK3L6UBY7INOP2FLTDQAHPLB7ACCLR6TYVO6YNJFS \\// C25519-BASE-32 //
+#  \\// GYHQ4N6SWQEJSV5TFYQIY362UUJIWDDTTMR74UHPP4UJWMQF2DQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
