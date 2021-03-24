@@ -15,15 +15,20 @@ use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
 ( my $x, my $y ) = Term::Size::chars;
 getopts( 'BSvs:r:equ:C:U:', \my %mode );
 
+$x //= 0;
+$y //= 0;
+
 my $screen_chars = $y * $x;
 
 # say " $x x $y == $screen_chars" and sleep 1.2 and exit;
 
-my $B32         = qr|[A-Z2-7]+|o;
-my $nailara_bg  = color('on_r09g05b41');
-my $nailara_fg  = color('r38g46b153');
-my $error_color = color('r195g71b6');
-my $amos_color  = color('r68g39b172');
+my $B32          = qr|[A-Z2-7]+|o;
+my $nailara_bg   = color('on_r09g05b41');
+my $nailara_fg   = color('r38g46b153');
+my $error_color  = color('r195g71b6');
+my $amos_color   = color('r68g39b172');
+my $blacklight   = color('r68g39b172');
+my $remote_color = color('r71g195b6');
 
 # my $amos_color  = color('r71g195b6'); ## <-- AMOS-green
 
@@ -171,7 +176,7 @@ print color('reset');
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\XVX7UW7OBQDJBLEOT4SZTWXNPE4XCBTR76KZZE63KAHKEDXSTJQVARP4IES4WQAYYFBSOIQ6WD4KE
-# \\ 6ZUTFZSR6SOFOZHTLVZSNP3AIEFVJ3AEFADDJGTY3TVSMEDVWFZ7 \\// C25519-BASE-32 //
-#  \\// 2KRU4GH3RY2QJVVY62MIT5KAWYUM5FYZKB6JRPYUHQRPBIHEEBI \\ CODE SIGNATURE \\
+#\\PEHCTRPCB46AIV5PBF5F7TZ56KFRTM25TR2GMEXULHYLUTM2G7SME5UUI5FL4467PDALMU3J6EVK6
+# \\ M4FJDYMJFLDWXPAYUKJT64ARG3ITVNCICGGCE364GMK7ML7DGQKG \\// C25519-BASE-32 //
+#  \\// E4CCCS5Q77CBJIU77LVR4KL6IIVNBL5FPX2BIGQH3JTONYBYIAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
