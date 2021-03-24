@@ -18,7 +18,7 @@
         changed   = 17 117 reverse
 
 [color "status"]
-        added     = 17 117 reverse
+        added     = 17 50 reverse
         changed   = 16 55  reverse
         untracked = 16 63  reverse bold blink
 
@@ -34,25 +34,20 @@
         st    = "!showci () { rev=$(git rev-parse \"${*:-HEAD}\"); git difftool $rev~1 $rev; }; showci"
         f     = fetch
 
-        df    = diff
-        dfc   = diff --cached
+        d     = diff
+        c     = diff --cached
 
-        d     = difftool
-        dc    = difftool --cached
+        m     = difftool -t mediainfo
+        mc    = difftool --cached -t mediainfo
 
-        dm    = difftool -t mediainfo
-        dmc   = difftool --cached -t mediainfo
-
-        dd    = diff
-        ddc   = diff --cached
+        lc   = diff --name-status --relative HEAD
+        lsl  = diff --name-only --relative HEAD
 
         l     = log
         lp    = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
         cp    = cherry-pick
         rob   = reset --hard origin/base
-        lcf   = diff --name-only --relative HEAD
         dh    = diff HEAD
-        lsf   = diff --name-status --relative HEAD
         rhh   = reset --hard HEAD~1
         rbb   = rebase --merge --autostash base -X theirs
         rbc   = rebase --continue --no-edit
