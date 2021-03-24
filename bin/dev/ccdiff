@@ -5,9 +5,9 @@ package App::ccdiff;
 use 5.014000;
 use warnings;
 use charnames ();
-use List::Util qw( first  max     );
-use Term::ANSIColor qw(:constants color);
-use Getopt::Long qw(:config bundling);
+use List::Util qw| max first |;
+use Term::ANSIColor qw| :constants color |;
+use Getopt::Long qw| :config bundling |;
 
 our $VERSION = "0.30";
 our $CMD     = $0 =~ s{.*/}{}r;
@@ -113,7 +113,7 @@ if ($no_colors) {
 
 unless (caller) {
     $ENV{CCDIFF_OPTIONS}
-        and unshift @ARGV, split m/\s+/ => $ENV{CCDIFF_OPTIONS};
+        and unshift @ARGV, split m|\s+| => $ENV{CCDIFF_OPTIONS};
     GetOptions(
         "help|?"    => sub { usage(0); },
         "V|version" => sub { say "$CMD [$VERSION]"; exit 0; },
@@ -1290,7 +1290,7 @@ the same terms as The Artistic License 2.0.
 =cut
 
 # ______________________________________________________________________________
-#\\K6VYBRB2BNQFU7NXIDPKZ6ZBSUO6RFFFXB74B4CJ2CPKH37Z7E7ETOBGG4CAUKSZVKO7I5UHNVYGI
-# \\ UDYJJ3W674537WSLCOXVHSRPTO5C5Q3DQIRTMQJPXJMUTN34Q2EE \\// C25519-BASE-32 //
-#  \\// IGJRYOUTJCVE7HDAFZMHHOP5WOFEKXVR5376QIH3ICB3E3L2QBQ \\ CODE SIGNATURE \\
+#\\G7GQL44KMQCWMOPF243C5FN3VNDNO26SDDCEFSQLC4TWIEPLDGKPWT3G4LCCASRMPM53VR3CN4TL2
+# \\ 66VTBHZRHWHLC3V7R5DLCZ5JTDWV5WHHWV4JVP3KG7OHDGFUSKKO \\// C25519-BASE-32 //
+#  \\// G7NBJ4IUZ2UVOB6QUTYWXMVYRBCNMBBX6HLFQYQYAHOEBW55ABI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
