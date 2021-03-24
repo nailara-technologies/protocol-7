@@ -9,11 +9,11 @@ use Math::BigFloat;
 use Term::ANSIColor;
 use Digest::Elf qw| elf |;
 
-getopts( 'nqvd:A:', \my %mode );
+getopts( 'canqvd:A:', \my %mode );
 
 $mode{'d'} //= 0;   ## <-- divisor [ -d <n> ] : check result instead of input ##
 
-my @asc_dec = qw| asc-dec -q -C cp10007 -u6 -r0 |;
+my @asc_dec = qw| asc-dec -q |;
 
 die ":\n:: divisor not valid [ expected numerical ]\n\n"
     if $mode{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
@@ -75,7 +75,7 @@ my $space_1 = ' ' x ( $dot_pos + 7 );
 my $sp_0_len = 37 - length($check_string);
 $sp_0_len = 5 if $sp_0_len < 5;
 
-my $space_0  = ' ' x $sp_0_len;
+my $space_0 = ' ' x $sp_0_len;
 
 $line_str =~ s{(*plb:\.)(\d*?)($true|0000+ )}
               {$1$col{'m_y'}$2$col{'r'}$col{'b'}}
@@ -99,20 +99,30 @@ print "\n$space_0$q$col{'str'}$check_string$col{'r'}$q $col{fg} === $col{r}"
 
 say $res_copy if $mode{'v'};
 
-if ( not $mode{'q'} ) {
-    if ( defined $mode{'A'} ) {
-        system( @asc_dec, split( ' ', $mode{'A'} ), $res_copy );
+if ( not $mode{'q'} and ( $return_code == 0 or $mode{'a'} ) ) {
+
+    ( my $code = $mode{'c'} ? $check_string : $res_copy ) =~ s'(\.\d+$|\D+)''g;
+    die ":\n:: check-string not numerical ['$code']\n\n" if $code !~ m|^\d+$|;
+    ##
+    if ( defined $mode{'A'} ) { ## -A'<param>' : asc-dec pass through parameters
+        my $passthrough_params = join( ' ', split( ' +', $mode{'A'} ) );
+        $passthrough_params = "-$passthrough_params"
+            if $passthrough_params !~ m|^-|;
+        ####
+        system( @asc_dec, split( ' +', $passthrough_params ), $code );
     } else {
-        push( @asc_dec, qw| -s0 | ) if $return_code == 1;
-        system( @asc_dec, $res_copy );
+        ####
+        push( @asc_dec, qw| -s0 | ) if $return_code == 1; ## no delay on 'false'
+        system( @asc_dec, $code );
     }
+    ##
     say $col{'b'} . '.. .,' . $col{'r'};
 }
 
 exit($return_code);
 
 # ______________________________________________________________________________
-#\\2SAJJDYPXBZKYQF7MOX4APHDZNSNCQA6Z254ALZBYWSTPP4G5Z7473FSGQAQHBQMIH5ESEBGI7BRA
-# \\ 6OG6PQ27CTJBK3L6UBY7INOP2FLTDQAHPLB7ACCLR6TYVO6YNJFS \\// C25519-BASE-32 //
-#  \\// GYHQ4N6SWQEJSV5TFYQIY362UUJIWDDTTMR74UHPP4UJWMQF2DQ \\ CODE SIGNATURE \\
+#\\HVFSMSEA43LX4IRDICGOF5GROIYE5GNBKBCTE4UB47MWDBAV6E4WOB762PEEV7VT5K4K2E4I7O2GU
+# \\ LKL7EQSB4PSXMXG44MX5I2DKP4GQT34CTFHS2QAZ4LFJI3BAUSM5 \\// C25519-BASE-32 //
+#  \\// UVDONVVCLSKAVDKCGDZGXA46CUETEI3MNFWZRA7AU72F2JLIYCQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
