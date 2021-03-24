@@ -32,6 +32,9 @@ my $colors_del = $blacklight;
 
 say $nailara_bg. $blacklight . '.' . color('reset');
 
+my $l = $nailara_bg . $blacklight . ':' . color('reset') . ' ';
+my $d = $nailara_bg . $blacklight . '.' . color('reset') . ' ';
+
 my $remove_file_add_header    = 1;
 my $remove_file_delete_header = 1;
 my $clean_permission_changes  = 1;
@@ -107,6 +110,7 @@ if ( !$has_stdin ) {
             do_dsf_stuff( \@lines );
             @lines = ();
         }
+
     };
 
     my $line_count = 0;
@@ -147,7 +151,7 @@ if ( !$has_stdin ) {
 
         $line =~ s{Author\s*:\s*([^\n]+)}
                   { my $author = $1; $author =~ s|<([^>]+)>|<[$1]>|;
-                    sprintf( "${blacklight}: AUTHOR :: %67s",$author)}gxe;
+                    sprintf( "${blacklight}: AUTHOR :: %66s",$author)}gxe;
 
         $line =~ s{(Date\s*):\s*([^\n]+?)(\d\d:\d\d:\d\d)
                   \ ($current_year)?(\d{4})?\s[+-]\d{4}}
@@ -157,12 +161,17 @@ if ( !$has_stdin ) {
                        uc( ": C:$1" ), ":: $2:: $3 ::$older" ) }gxe;
         ################################################################
 
+        $line =~ s|^$ansi_color_regex\-{3} a/(.+)|\n|;
+        $line =~ s{^$ansi_color_regex\+{3} b/(.+)}
+                  {$l$nailara_fg$LAST_PAREN_MATCH $l$d};
+
         my $ok = DiffHighlight::handle_line($line);
         $line_count++;
     }
 
     DiffHighlight::flush();
     do_dsf_stuff( \@lines );
+
 }
 
 say $nailara_bg. $blacklight . ' ..,' . color('reset');
@@ -343,11 +352,17 @@ sub do_dsf_stuff {
                 my $frag_color = get_config_color("fragment");
                 print $frag_color;
             }
+            my $nll = length($last_file_seen) - 4;
+            $nll = 5 if $nll < 5;
+            my $name_line = '─' x $nll;
 
-            print "\n${last_function_color}─────   ─ "
-                . "   ─${reset_color}\n@ $last_file_seen:$start_line"
-                . " \@${bold}${last_function_color}${remain}${reset_color}\n"
-                . "${last_function_color}─────   ─    ─${reset_color}\n\n";
+            print "\n$blacklight   $name_line   ─    ─\n"
+                . "$blacklight | $remote_color"
+                . "$last_file_seen$blacklight:$remote_color"
+                . sprintf( "%04d", $start_line )
+                . "$blacklight |"
+                . "${bold}${last_function_color}${remain}${reset_color}\n"
+                . "$blacklight   $name_line   ─    ─${reset_color}\n\n";
             #####################################
             # removing any new file permissions #
             #####################################
@@ -439,7 +454,7 @@ sub do_dsf_stuff {
             }
 
             #############################################################
-            print $nailara_bg. $blacklight . ':' . color('reset') . ' ' . $line;
+            print $l . $line;
             #############################################################
         }
 
@@ -1006,7 +1021,7 @@ sub get_terminal_width {
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
 # ______________________________________________________________________________
-#\\CWBFARQ2U5IQMEGHAKIOIRHSRUXJRLZ5WBHY3CN6DA744XDLWLJRNOFOONNK73VIZ6RWTULP4VVNG
-# \\ IO7FK3HWVBHCSEWAUTELHXUILC3QJWTWBXYAL3UMUIUQY7PTR6YL \\// C25519-BASE-32 //
-#  \\// ORRIDAMFBSSAYR7YSC6CGH46NTHVXCB6MYNKN6FODBX4E7BI4CA \\ CODE SIGNATURE \\
+#\\WKJPLAPX5CCF3TD5KX64ZXJ4ZU7PKJOTWZNPV6BPKCVA6DSWVSVTPOEEIJQLELLQIASTE6764QJJ2
+# \\ YZDNLGRIAOIUM6E4PVB45KCGA5DF5TA5HBZ42PWZA6YX4RMUDWPU \\// C25519-BASE-32 //
+#  \\// XU4CVRI7ZG5WSFM2Q6RKOL5FINJR7ULLHRGLV4HNQVSFN64EGCA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
