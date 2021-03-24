@@ -12,25 +12,40 @@ use Text::Wrap qw| wrap |;
 use Time::HiRes qw| sleep |;
 use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
 
-( my $x, my $y ) = Term::Size::chars;
-getopts( 'BSvs:r:equ:C:U:', \my %mode );
+use Crypt::Misc qw| encode_b32r decode_b32r |;
+no warnings 'experimental';
 
-$x //= 0;
-$y //= 0;
+my $base_size  = '6';
+my $base_table = 'cp10007';
+
+my $skip_repeat_spaces = 1;
+
+my @highlight_chars = qw| ℍ ᔈ 5 .٫ ܳ L = ≠ ≤ т † Ҭ T Т ∞ • |;    #  ℍ === 8461
+
+my $highlight = { map { unpack( "%U", $ARG ) => 1 } @highlight_chars };
+
+map { $highlight->{$ARG} = 1 } qw| 7692 1538 |;                  # Ḍ ؂
+
+( my $x, my $y ) = Term::Size::chars;
+getopts( 'hBSvs:r:eqd:C:U:', \my %mode );
+
+$x //= 80;
+$y //= 25;
 
 my $screen_chars = $y * $x;
 
 # say " $x x $y == $screen_chars" and sleep 1.2 and exit;
 
-my $B32          = qr|[A-Z2-7]+|o;
-my $nailara_bg   = color('on_r09g05b41');
-my $nailara_fg   = color('r38g46b153');
-my $error_color  = color('r195g71b6');
-my $amos_color   = color('r68g39b172');
-my $blacklight   = color('r68g39b172');
-my $remote_color = color('r71g195b6');
+$skip_repeat_spaces = 0 if $mode{'S'};
 
-# my $amos_color  = color('r71g195b6'); ## <-- AMOS-green
+my $B32         = qr|[A-Z2-7]+|o;
+my $nailara_bg  = color('on_r09g05b41');
+my $nailara_fg  = color('r38g46b153');
+my $error_color = color('r195g71b6');
+my $blacklight  = color('r68g39b172');
+my $green       = color('r71g195b6');
+
+# my $blacklight  = color('r71g195b6'); ## <-- AMOS-green
 
 $SIG{'__WARN__'} = sub {
     my $err = shift;
@@ -39,9 +54,9 @@ $SIG{'__WARN__'} = sub {
     $err =~ s{ at .+$|\n+}{}g;
     $err =~ s{[0\\]x(\S\S)}
     { $w+=-3+length("$nailara_fg");
-    $amos_color.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
+    $blacklight.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
     $Text::Wrap::columns = $w;
-    print STDERR "$nailara_fg\r" . wrap( '  ', '  ', $err ) . "\r$amos_color\n";
+    print STDERR "$nailara_fg\r" . wrap( '  ', '  ', $err ) . "\r$blacklight\n";
 };
 
 $| = 1;
@@ -49,12 +64,12 @@ exit if !@ARGV;
 ( my $input_num = join( '', @ARGV ) ) =~ s|\D+||g;
 exit if !length($input_num);
 
-my $U = $mode{'U'} // '8';
+my $U = $mode{'d'} // $base_size;
+$mode{'C'} //= $base_table if not defined $mode{'U'};
+my $C = $mode{'C'} // "UTF-$U";
 
 print $nailara_fg . ":\n    " if not $mode{'S'};
-print $nailara_bg . $amos_color;
-
-my $C = $mode{'C'} // "UTF-$U";
+print $nailara_bg . $blacklight;
 
 ## randomized selection ##
 if ( $C eq 'R' ) {
@@ -84,8 +99,8 @@ if ( not utf8_supported_charset($C) ) {
     eval 'use warnings FATAL => "all"; binmode( STDOUT, $encoding )';
     use warnings;
     binmode( STDOUT, ":raw" )
-        and say "   $amos_color<< encoding"
-        . " [${error_color}'$encoding'$amos_color]"
+        and say "   $blacklight<< encoding"
+        . " [${error_color}'$encoding'$blacklight]"
         . " not found >>  $nailara_fg\n:"
         . color('reset')
         and exit
@@ -96,11 +111,12 @@ if ( not utf8_supported_charset($C) ) {
     $encoding_mode = 'map';
 }
 
-my $c_mode = $mode{'u'} // 4;
-my $delay  = $mode{'s'} // 0.13;
+my $c_mode = $mode{'d'} // 3;
+my $delay  = $mode{'s'} // 0.07;
 $delay = 0 if $mode{'S'};
 
-my $repeat = $mode{'r'} // $MATCH if $input_num =~ m|^\d|;
+$mode{'r'} //= 2.42 if $mode{'S'};
+my $repeat = $mode{'r'} // 0;
 $repeat ||= 1;
 
 $screen_chars *= $repeat if defined $mode{'r'};
@@ -109,6 +125,7 @@ if ( $mode{'q'} ) {
     no warnings;
 }
 my $num_buffer;
+my $last_char      = '';
 my $char_buffer    = '';
 my $input_num_copy = $input_num;
 while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
@@ -122,7 +139,7 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
                 or $input_num =~ m|^(\d{$c_count})| and $MATCH > 255;
         }
         $c_count = length($input_num) if $c_count > length($input_num);
-        printf "%s <%02d:%03d> %s", $nailara_fg, $c_count, $MATCH, $amos_color
+        printf "%s <%02d:%03d> %s", $nailara_fg, $c_count, $MATCH, $blacklight
             if $mode{'v'};
 
         last if $c_count < 2;
@@ -133,42 +150,56 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
 
         my $char = chr($c_num);
 
-        next if $mode{'B'} and $char !~ $B32;
-
         $num_buffer .= $c_num;
 
-        $char = to_utf8( { -string => chr($c_num), -charset => $C } )
+        $char = to_utf8( { -string => pack( 'U', $c_num ), -charset => $C } )
             if $encoding_mode eq 'map';
+
         $char_buffer .= $char;
 
+        next if $skip_repeat_spaces and $char =~ m|\s| and $char =~ m|\s|;
+
+        $char = $green . $char . $blacklight
+            if $mode{'h'}
+            and ( exists $highlight->{$c_num} or @highlight_chars ~~ $char );
         print $char and sleep $delay if $delay;
+
+        $last_char = $char;
     }
+
     last if length($char_buffer) == 0;
     $input_num = $input_num_copy;
 }
 
 if ( defined $char_buffer ) {
+    if ( $mode{'B'} ) {    ## not working .., ## change ., ##
 
-    $char_buffer = ' < U7 > ' . Encode::decode( 'UTF-7', $char_buffer )
-        if $mode{'B'};
-
+        #        $char_buffer = Encode::decode( 'UTF-7', $char_buffer );
+        #        $char_buffer =~ s|$B32||g;
+        # $char_buffer = decode_b32r($char_buffer);
+    }
     print $char_buffer if defined $char_buffer and !$delay;
 }
 
 binmode( STDOUT, ":raw" );
 
 say ' ' . color('reset') . $nailara_fg . "\n:" if not $mode{'S'};
+
 if ( $mode{'e'} ) {
-    my $char_desc = " .:[ $error_color$C$nailara_fg ]:. ";
+
+    my $char_desc = " .:[ $green$C$nailara_fg ]:. ";
     my $cd_len    = length($char_desc) - length( $error_color . $nailara_fg );
     print "\r$nailara_fg$char_desc";
+
     if ( $mode{'S'} ) {
-        print substr( $char_buffer, 0, $x - $cd_len ) . "\r";
+
+#        print substr( $char_buffer, 0, $x - $cd_len ) . "\n"; ## <-- repair ..,
     } else {
+
         say "\n " . ':' x ( $cd_len - 2 );
         say "\n..,";
     }
-    print $amos_color;
+    print $blacklight;
 
 }
 print color('reset');
@@ -176,7 +207,7 @@ print color('reset');
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
 # ______________________________________________________________________________
-#\\PEHCTRPCB46AIV5PBF5F7TZ56KFRTM25TR2GMEXULHYLUTM2G7SME5UUI5FL4467PDALMU3J6EVK6
-# \\ M4FJDYMJFLDWXPAYUKJT64ARG3ITVNCICGGCE364GMK7ML7DGQKG \\// C25519-BASE-32 //
-#  \\// E4CCCS5Q77CBJIU77LVR4KL6IIVNBL5FPX2BIGQH3JTONYBYIAQ \\ CODE SIGNATURE \\
+#\\I7USIP3WYNBJJWCG5RMVXVJRESR4FS76WYIGBAT5U32UVQHB6PBIDQ6PGKXCGI65SGN5GW4KE5IKW
+# \\ QRRTOO2P3LRAHNYEBA3BH4HHQSWVQT67BECAY4QTSLIRFNSYNWJU \\// C25519-BASE-32 //
+#  \\// C55EZISWBNYPR7WT6JIHMTQBGP6MUDLKLWBJMI4CUSBWJ6NSMBQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
