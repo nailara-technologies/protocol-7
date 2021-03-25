@@ -40,6 +40,8 @@ say " $x x $y == $screen_chars" if $mode{'D'};    ## <-- '-D' debug mode is ..,
 
 $skip_repeat_spaces = 0 if $mode{'S'};
 
+my $result_prefix = ':: ';
+
 my $B32         = qr|[A-Z2-7]+|o;
 my $nailara_bg  = color('on_r09g05b41');
 my $nailara_fg  = color('r38g46b153');
@@ -47,6 +49,7 @@ my $error_color = color('r195g71b6');
 my $blacklight  = color('r68g39b172');
 my $green       = color('r71g195b6');
 
+$mode{'d'} //= 0;
 $mode{'q'} = 1        if $mode{'Q'};
 $mode{'C'} = 'BASE32' if defined $mode{'C'} and $mode{'C'} eq 'B';
 
@@ -81,7 +84,7 @@ $mode{'C'} //= $base_table if not defined $mode{'U'};
 my $C = $mode{'C'} // "UTF-$U";
 
 if ( not $mode{'Q'} ) {
-    print $nailara_fg . ":\n    " if not $mode{'S'};
+    print $nailara_fg . ":\n" . $result_prefix if not $mode{'S'};
     print $nailara_bg . $blacklight;
 }
 
@@ -126,8 +129,9 @@ if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
     $encoding_mode = 'map';
 }
 
-my $c_mode = $mode{'d'} // 3;
-my $delay  = $mode{'s'} // 0.07;
+my $c_mode = $mode{'d'} // 1;
+$c_mode = 2 if $mode{'d'} !~ m|^\d+$|;
+my $delay = $mode{'s'} // 0.07;
 $delay = 0 if $mode{'S'};
 
 $mode{'r'} //= 2.42 if $mode{'S'};
@@ -236,7 +240,7 @@ my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 sub input_complaint { say ":\n:: numerical input expected\n" }
 
 # ______________________________________________________________________________
-#\\UKJVIYPWT2L7KWCUIXFKCSV457P5Z4YKHXEG5ADKGQYEQUZJ2Q3WLGIW5CQYYGZBEAYDQSI6BSG6U
-# \\ IHWSO4RLKDSXTAT4CGRUUL55G4AXUY3ZGVXH4LJCTSDQZJJQV563 \\// C25519-BASE-32 //
-#  \\// AHBPKECS34MJVWBHVUOOTBTPDGQ5P4E55NQINVW5DE4N3UAXAAA \\ CODE SIGNATURE \\
+#\\G5O5YUGUIWF4N4AL7HODALGLAXVICDIMSXVX6QPCRAUTYLYQMIVQF7LHSQIHC2BFWSMVFSIBCFIF6
+# \\ YHGXVSY4AUW57FEPPKKHDJJIG3F3MDILLNNFNI2ERQC2WYDPTM2L \\// C25519-BASE-32 //
+#  \\// WKGCJEFWHB566Q3SMOV4WAHVODVQMQW2PP4X44H7PFUULOZ22CA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
