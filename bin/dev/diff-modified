@@ -146,7 +146,7 @@ if ( !$has_stdin ) {
                    $l =~ s{tag: }{T${blacklight}::$remote_color}g;
                    $l
                   |e;
-        $line =~ s|(\e\[38;5;27mcommit) ([0-9a-f]+)|
+        $line =~ s|(\e.+?\d+mcommit) ([0-9a-f]+)|
                             $blacklight.uc(": $1 :: $2")|e;
 
         $line =~ s{Author\s*:\s*([^\n]+)}
@@ -170,7 +170,8 @@ if ( !$has_stdin ) {
     }
 
     DiffHighlight::flush();
-    do_dsf_stuff( \@lines );
+
+    do_dsf_stuff( \@lines ) if @lines;  ### : was : ### do_dsf_stuff( \@lines );
 
 }
 
@@ -392,7 +393,7 @@ sub do_dsf_stuff {
             # check if we are changing the permissions of a file #
             #####################################################
         } elsif ( $clean_permission_changes
-            && $line =~ /^${ansi_color_regex}old mode (\d+)/ ) {
+            && $line =~ m|^${ansi_color_regex}old mode (\d+)| ) {
             my ($old_mode) = $4;
             my $next = shift(@$input);
 
@@ -412,6 +413,7 @@ sub do_dsf_stuff {
 
             # if it is a move with content change, we
             # ignore this one and the next two lines
+
             if ( $simil != 100 ) {
                 shift(@$input);
                 shift(@$input);
@@ -419,10 +421,10 @@ sub do_dsf_stuff {
             }
 
             my $next = shift(@$input);
-            my ($file1) = $next =~ /rename from (.+)/;
+            my ($file1) = $next =~ m|rename from (.+)|;
 
             $next = shift(@$input);
-            my ($file2) = $next =~ /rename to (.+)/;
+            my ($file2) = $next =~ m|rename to (.+)|;
 
             if ( $file1 && $file2 ) {
 
@@ -924,19 +926,13 @@ sub term_color {
 
 #print term_color(15) ."Shelling out for color: '$str'\n" . term_color('reset');
 
-        # [color "diff-highlight"]
-        #         newNormal = cyan
-        #         oldNormal = 19
-        #         newHighlight = blue bold
-        #         oldHighlight = 21 bold
-        #
         # [color "diff"]
-        #         old = 20
-        #         new = cyan black
-        #         meta = 39 black
-        #         frag = blue
-        #         commit = 27
-        #         whitespace = blue reverse
+        #         old        = 25
+        #         new        = 34
+        #         meta       = 25
+        #         frag       = 32
+        #         commit     = 54
+        #         whitespace = 0 54
 
         if ( $str eq "meta" ) {
             $ret = DiffHighlight::color_config('color.diff.meta')
@@ -1021,7 +1017,7 @@ sub get_terminal_width {
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
 # ______________________________________________________________________________
-#\\4RHJ4FVWV6SWBNAPTIXQDF4C2CZPYLJJZXZL62TJGOH7CEJPQ2BS2Z6VOBBFT5FOINI6YN2WUI7PC
-# \\ 4MJ3RTLKDTWGHLPTUUZVNXZSYJCSB7N3HFQEFLP7YA3OAJBFBQ3S \\// C25519-BASE-32 //
-#  \\// 2LJURRAKHGWTDRP5F6AVNICHDSJW4S3U3QQHAFK7QPM4LONTOAY \\ CODE SIGNATURE \\
+#\\UBGSNXTL6URCAAMHQSYBVI2YT2EUF2EPOV7OS3RKACDZ2KHALFDMCBX234HJV3QF72A6ZWLZHWNT2
+# \\ D6MGM4Q4TBPLGYBLKE3A24ZKMJGR2F6HK5RWSOZPRP7A24AR3JLZ \\// C25519-BASE-32 //
+#  \\// SAGSYVQUUBTKVOFK4YIJD7N6YVQPPWT4EADBRVVKS72LPEWBWBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
