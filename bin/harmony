@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-
 use v5.24;
 use strict;
 use English;
@@ -8,16 +7,25 @@ use Getopt::Std;
 use Math::BigFloat;
 use Term::ANSIColor;
 use Digest::Elf qw| elf |;
+binmode( STDOUT, ':encoding(UTF-8)' );
 
-getopts( 'canqvd:A:', \my %mode );
+no warnings 'experimental';
 
+getopts( 'DcanhqvBl:d:A:T:Zz', \my %mode );
+
+$mode{'z'} //= 8;  ## <-- digit read size override for 'asc-dec' fullscreen mode
+$mode{'A'} //= "-r2.1 -d$mode{z} -S" if $mode{'Z'};  ## -Z is 'full-screen' mode
+$mode{'T'} //= '857';    ## <-- 'asc-dec' table [ when in use ]
+$mode{'l'} //= 45;       ## <-- blue midnight wish entropy size
 $mode{'d'} //= 0;   ## <-- divisor [ -d <n> ] : check result instead of input ##
+$mode{'B'} = !$mode{'B'};    ## BMW mode enabled by default
 
 my @asc_dec = qw| asc-dec -q |;
 
 die ":\n:: divisor not valid [ expected numerical ]\n\n"
     if $mode{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
 
+$mode{'h'} = 1 if !$mode{'S'};
 $mode{'q'} = 1 if $mode{'v'};
 
 my $nailara_bg = color('on_r09g05b41');
@@ -32,17 +40,21 @@ my %col = (
     'bg'  => $nailara_bg,
     'fg'  => $nailara_fg,
     'r'   => $reset,
-    'm_y' => $nailara_bg . $blacklight,
+    'm_y' => $nailara_bg . $green,
     'm_n' => $nailara_bg . $green,
     'y'   => $blink . $blacklight,
     'n'   => $green,
     'b'   => $blacklight,
 );
 
-my $check_string = join( ' ', @ARGV );
-my $elf_checksum = $mode{'n'} ? $check_string : elf($check_string);
+my $check_string = Encode::decode_utf8( join( ' ', @ARGV ) );
+my $elf_checksum = $mode{'n'} ? $check_string : sprintf "%09d",
+    elf($check_string);
 
-my $accuracy = 13;
+my $bmw_checksum;
+chomp( $bmw_checksum = qx| bmw -d -$mode{'l'} '$check_string' | ) if $mode{'B'};
+
+my $accuracy = 17;
 
 Math::BigFloat->round_mode('trunc');
 Math::BigFloat->accuracy($accuracy);
@@ -55,13 +67,15 @@ if ( $mode{'d'} != 0 ) {
 
 Math::BigFloat->accuracy( $accuracy + length($elf_checksum) );
 
-my $false = '230769';    ## <-- # ःE ## FALSE ##
-my $true  = '846153';    ## <-- #  ℍ5 ##  TRUE ##
+my $false = '076923';    ## <-- #   ǽ ## FALSE ##
+my $true  = '461538';    ## <-- #  ǍȚ ##  TRUE ##
+
+our $assertion = { 'false' => $false, 'true' => $true };
 
 my $calc     = Math::BigFloat->new($elf_checksum);
 my $calc_str = $calc->bdiv( 13, $accuracy + length($elf_checksum) );
 
-$calc_str = sprintf( '%0.7f', $calc_str )
+$calc_str = sprintf( '%0.18f', $calc_str )
     if $calc_str !~ m|\.(\d+)|
     or length($1) < $accuracy;
 
@@ -92,37 +106,114 @@ if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
     $result = "$col{fg}>:| $col{b} [ $col{'n'}not true$col{b} ]";
 }
 
+$col{'str'} = $green if $return_code == 0;
+
 my $q = $mode{'n'} ? '' : "$col{'b'}'$col{'r'}";
 print "\n$space_0$q$col{'str'}$check_string$col{'r'}$q $col{fg} === $col{r}"
     . " $result\n\n$space_1$line_str\n$col{r}\n"
     if not $mode{'q'};
 
+my $status = $return_code == 0 ? 'true' : 'false';
+
+display_result( $status, $res_copy, $mode{'T'}, $bmw_checksum );
+
 say $res_copy if $mode{'v'};
-
-if ( not $mode{'q'} and ( $return_code == 0 or $mode{'a'} ) ) {
-
-    ( my $code = $mode{'c'} ? $check_string : $res_copy ) =~ s'(\.\d+$|\D+)''g;
-    die ":\n:: check-string not numerical ['$code']\n\n" if $code !~ m|^\d+$|;
-    ##
-    if ( defined $mode{'A'} ) { ## -A'<param>' : asc-dec pass through parameters
-        my $passthrough_params = join( ' ', split( ' +', $mode{'A'} ) );
-        $passthrough_params = "-$passthrough_params"
-            if $passthrough_params !~ m|^-|;
-        ####
-        system( @asc_dec, split( ' +', $passthrough_params ), $code );
-    } else {
-        ####
-        push( @asc_dec, qw| -s0 | ) if $return_code == 1; ## no delay on 'false'
-        system( @asc_dec, $code );
-    }
-    ##
-    say $col{'b'} . '.. .,' . $col{'r'};
-}
 
 exit($return_code);
 
+sub display_result {
+
+    my $status = shift;    ## [ true | false ]
+
+    ( my $result = shift ) =~ s{\.(\d+)?$|\D+}{}g;
+    my $sub_zulum = $LAST_PAREN_MATCH;
+
+    my $table_name = shift // '857';
+
+    my $display = shift;
+    if ( defined $display ) {
+        $display =~ s{\.(\d+)?$|\D+}{}g;
+        $result = $display if length($display);
+    }
+
+    my $offset
+        = $sub_zulum =~ m|0{6,}$|
+        ? 0
+        : index( $sub_zulum, $assertion->{$status} );
+
+    my $shift_mode = 'right';    ## [ left | right ] ##
+
+    my $result_1_0;
+    my $result_1_1;
+
+    my $s_len         = 1 + length($result) % 3;
+    my $change_offset = scalar( length($result) % 3 ? 1 : 0 );
+
+    # say "< offset > $offset";
+    # say "<  s-len > $s_len";
+    # say "< assert > $change_offset";
+    # say '';
+    # say "< res-0000.0 > '$result'\n\n";
+
+    if ( $shift_mode eq 'left' ) {
+        $result_1_0 = substr( $result, $offset, length($result) - $s_len );
+        $result_1_1 = substr( $result, 0,       $offset );
+    } elsif ( $shift_mode eq 'right' ) {
+        $result_1_0 = substr( $result, -$offset, $offset );
+        $result_1_1 = substr( $result, 0,        length($result) - $offset );
+    }    # else [ 'none' ]
+
+    # say "< res-0010 > '$result_1_0'\n";
+    # say "< res-0110 > '$result_1_1'\n";
+    # say '';
+
+    $result = join( '', $result_1_0, $result_1_1 );
+
+    # say "< res-0000.1 > '$result'";
+
+    if ( not $mode{'q'} ) {
+
+        @asc_dec = ( qw|asc-dec -q -r0 -C|, $table_name );
+
+        push( @asc_dec, qw| -s0 | ) if $status ne 'true';
+
+        my @exec_args;
+
+        $check_string =~ s'(\.\d+$|\D+)''g if $mode{'c'};
+
+        ( my $code = $mode{'c'} ? $check_string : $result );
+        die ":\n:: check-string not numerical ['$code']\n\n"
+            if $code !~ m|^\d+$|;
+        ##
+        if ( defined $mode{'A'} )
+        {    ## -A'<param>' : asc-dec pass through parameter
+            my $passthrough_params = join( ' ', split( ' +', $mode{'A'} ) );
+            $passthrough_params = "-$passthrough_params"
+                if $passthrough_params !~ m|^-|;
+            ####
+            @exec_args
+                = ( @asc_dec, split( ' +', $passthrough_params ), $code );
+        } else {
+            ####
+            push( @asc_dec, qw| -s0 | )
+                if $return_code == 1;    ## no delay on false
+            @exec_args = ( @asc_dec, $code );
+        }
+
+        say "< exec-args > " . join( ' ', @exec_args ) if $mode{'D'};
+        system(@exec_args);
+
+        say $col{'b'} . '.. .,' . $col{'r'};
+    }
+
+}
+
+## [ NOTES ]
+# 2 : îŤΛLΛL
+# 0 : ʘɧƀɧƀf�ʘɧƀɧƀf�ʘɧƀɧƀf
+
 # ______________________________________________________________________________
-#\\HVFSMSEA43LX4IRDICGOF5GROIYE5GNBKBCTE4UB47MWDBAV6E4WOB762PEEV7VT5K4K2E4I7O2GU
-# \\ LKL7EQSB4PSXMXG44MX5I2DKP4GQT34CTFHS2QAZ4LFJI3BAUSM5 \\// C25519-BASE-32 //
-#  \\// UVDONVVCLSKAVDKCGDZGXA46CUETEI3MNFWZRA7AU72F2JLIYCQ \\ CODE SIGNATURE \\
+#\\RYBJTBFRJNOUUMNJIBYHM2PZBM6IF6VBH6ADECL3WPHUXUIRFN2WLBS2GEJCXSQK47AYACQZ6GMOU
+# \\ EICP5FHLZK2Z52HLEJHN4L6HI5PKFGZI6G7Q33WCQYNKLAIKI7TI \\// C25519-BASE-32 //
+#  \\// KGLLIGVVFVU3F64IPC3NCK7EVUZGRHLFGII7327DJRYULR74MBI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
