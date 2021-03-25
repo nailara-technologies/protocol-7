@@ -1,12 +1,17 @@
 # >:]
 
 # name  = chk-sum.elf
-# descr = 'Elf' chk-sum of input value (as numerical value)
+# descr = elf chk-sum of input value [ as numerical value ]
+# note  = becomes unreliable for input longer than 47 bytes
 
-return Digest::Elf::elf( join( '', @_ ) )
+die 'expected single argument' if scalar @ARG > 1;
+warn 'input data too long [>47] use different implementation' and return undef
+    if length( $ARG[0] );
+
+return Digest::Elf::elf( $ARG[0] );
 
 # ______________________________________________________________________________
-#\\2KSFESMEQPEWC6DOHKNUR4XAM2RAVMWCTO2BKCD3JSPX2PT34JCA6PC2FRP4XDTJJTPBN63CJVD26
-# \\ Z53VLNUGT7FJJVVWZZJINVFR4SLVSK33MY3AR54AJTMZZT3KFVKW \\// C25519-BASE-32 //
-#  \\// JQUYGLQPGU3NXIXVVDEJEH5IS3SA35KJDFSWIAZYLQD5NE5D6CY \\ CODE SIGNATURE \\
+#\\XAVR3XOWT6WGLETPKEJFSBFJ6I2VIMB4NKR62GMMIWHCIHK2FLVWE5N7OBCEP6ZCAH5LUJUXVO6FO
+# \\ JEQYBLRXITJERXYZWNS6WPUL6KH6T7LF5DTXTK77LLFHV3SMIGHU \\// C25519-BASE-32 //
+#  \\// HSGC2RIQVLM6YQ3H7NHRNBJ6J5YSV3BFTHGQ74MRYKSW4ILY6DI \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
