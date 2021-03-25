@@ -3,24 +3,82 @@
 	email = sourcecode@nailara.network
 
 [color]
-	ui      =  true
+	ui = always
+
+[blame]
+        coloring = repeatedLines
+
+[color "blame"]
+        highlightRecent = #FF0AF3
+        repeatedLines   = 17
+
+[color "decorate"]
+        head         = #FF0AF3
+        branch       = #FF0AF3
+        tag          = 54
+        stash        = 54
+        remoteBranch = 54
+
+[color "branch"]
+        current  = 54
+        local    = 54
+        remote   = 54
+        upstream = 54
+        plain    = 54
 
 [color "diff"]
-        old        = 25
-        new        = 34
-        meta       = 25
-        frag       = 32
-        commit     = 27
-        whitespace = 17 reverse
+        meta          = 25
+        frag          = 32
+        commit        = 54
+        context       = 25
+        contextBold   = 27
+        contextDimmed = 24
 
-[color "backup"]
-        added     = 16 55  reverse
-        changed   = 17 117 reverse
+        new     = 34
+        newBold = 35
+        newMoved = 34
+        newDimmed  = 28
+        newMovedDimmed = 28
+        newMovedAlternative = 34
+        newMovedAlternativeDimmed = 28
+
+        whitespace = 18 55 ul strike blink
+
+        oldMovedAlternativeDimmed = 17
+        oldMovedAlternative = 18
+        oldMovedDimmed  = 17
+        oldDimmed    = 17
+        oldMoved  = 18
+        oldBold = 20
+        old  = 18
+
+[color "interactive"]
+        prompt      = 54
+        header      = 17
+        help        = 17
+        error       = #FF0AF3
+
+[color "push"]
+        error       = 54
+
+[color "transport"]
+        error       = 54
+        warning     = 54
+        success     = #FF0AF3
+
+[color "remote"]
+        rejected     = 54
 
 [color "status"]
-        added     = 17 50 reverse
-        changed   = 16 55  reverse
-        untracked = 16 63  reverse bold blink
+        header       = 17
+        branch       = 54
+        nobranch     = 54
+        localBranch  = 54
+        remoteBranch = 54
+        added     = 50 17
+        updated   = 57 17
+        changed   = 57 16
+        untracked = 63 16 blink bold
 
 [alias]
         co    = checkout
@@ -30,7 +88,7 @@
         cim   = commit -m
         b     = branch
         s     = status
-        sh    = show
+        h     = show
         st    = "!showci () { rev=$(git rev-parse \"${*:-HEAD}\"); git difftool $rev~1 $rev; }; showci"
         f     = fetch
 
@@ -76,7 +134,7 @@
 	clone-branches = "! git branch -a | sed -n \"/\\/HEAD /d; /\\/base$/d; /remotes/p;\" | xargs -L1 git checkout -t"
 
 [merge]
-	tool    =  meld
+	tool = meld
 
 [diff]
 	tool = ccdiff
@@ -97,5 +155,5 @@
 	default = simple
 
 [core]
-	editor  =  j
-	pager   =  diff-modified | less --tabs=4 -RFX
+	editor = j
+        pager  = diff-modified | less --tabs=4 -RFX --mouse --wheel-lines=4
