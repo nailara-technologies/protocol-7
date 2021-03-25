@@ -12,6 +12,7 @@ use Text::Wrap qw| wrap |;
 use Time::HiRes qw| sleep |;
 use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
+
 no warnings 'experimental';
 
 my $base_size  = '6';
@@ -46,9 +47,17 @@ my $error_color = color('r195g71b6');
 my $blacklight  = color('r68g39b172');
 my $green       = color('r71g195b6');
 
-# my $blacklight  = color('r71g195b6'); ## <-- AMOS-green
+$mode{'q'} = 1        if $mode{'Q'};
+$mode{'C'} = 'BASE32' if defined $mode{'C'} and $mode{'C'} eq 'B';
 
-$mode{'q'} = 1 if $mode{'Q'};
+my @B32_exclude
+    = grep {length} map { defined $mode{$ARG} && "-$ARG" } qw| S B v r d U |;
+say sprintf( ":\n:: mutually exclusive modes selected [ -C BASE32 and %s ]\n",
+    join( ', ', reverse sort @B32_exclude ) )
+    and exit(4)
+    if defined $mode{'C'}
+    and $mode{'C'} eq 'BASE32'
+    and scalar(@B32_exclude);
 
 $SIG{'__WARN__'} = sub {
     my $err = shift;
@@ -63,9 +72,9 @@ $SIG{'__WARN__'} = sub {
 };
 
 $| = 1;
-exit if !@ARGV;
+input_complaint() and exit if !@ARGV;
 ( my $input_num = join( '', @ARGV ) ) =~ s|\D+||g;
-exit if !length($input_num);
+input_complaint() and exit if !length($input_num);
 
 my $U = $mode{'d'} // $base_size;
 $mode{'C'} //= $base_table if not defined $mode{'U'};
@@ -151,26 +160,24 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
         last if $c_count < 2;
 
         my $c_num = $MATCH if $input_num =~ s|^\d{$c_count}||;
-
         $c_num = 32 if not defined $c_num or $c_num < 32;
-
-        my $char = chr($c_num);
-
         $num_buffer .= $c_num;
 
+        next if $C eq 'BASE32';    ## encode numericals as received ##
+
+        my $char = chr($c_num);
         $char = to_utf8( { -string => pack( 'U', $c_num ), -charset => $C } )
             if $encoding_mode eq 'map';
 
         $char_buffer .= $char;
 
         next if $skip_repeat_spaces and $char =~ m|\s| and $char =~ m|\s|;
-
+        ## hightlight ##
         $char = $green . $char . $blacklight
             if $mode{'h'}
             and ( exists $highlight->{$c_num} or @highlight_chars ~~ $char );
-
+        ##
         print $char and sleep $delay if $delay and $C ne 'BASE32';
-
         $last_char = $char;
     }
 
@@ -178,26 +185,34 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
     $input_num = $input_num_copy;
 }
 
-if ( defined $char_buffer ) {
-    if ( $C eq 'BASE32' ) {    ## special 'character set' BASE32 [ encoding ]
+########################################
+binmode( STDOUT, ":raw" );
+########################################
 
-        print encode_b32r($char_buffer);
+if ( $C eq 'BASE32' ) {    ## special 'character set' BASE32 [ encoding ]
+    my $char_buffer = encode_b32r($input_num_copy);
+    my $char_length = length($char_buffer);
+    my $pad_len     = 8 - $char_length % 8;
+    while ( $pad_len > 7 ) { $pad_len -= 8 }
+    $char_buffer .= 'A' x $pad_len;
 
-    } elsif ( $mode{'B'} ) {    ## not working .., ## change ., ##
-        ## [ experiments ]
-        # $char_buffer = Encode::decode( 'UTF-7', $char_buffer );
-        # $char_buffer =~ s|$B32||g;
-        # $char_buffer = decode_b32r($char_buffer);
-    }
+    print $char_buffer;
 
-    print $char_buffer if $C ne 'BASE32' and defined $char_buffer and !$delay;
+} elsif ( defined $char_buffer ) {
+
+} elsif ( $mode{'B'} ) {    ## not working .., ## change ., ##
+    ## [ experiments ]
+    # $char_buffer = Encode::decode( 'UTF-7', $char_buffer );
+    # $char_buffer =~ s|$B32||g;
+    # $char_buffer = decode_b32r($char_buffer);
 }
 
-binmode( STDOUT, ":raw" );
+print $char_buffer if defined $char_buffer and !$delay;
 
+##############################################
 say ' ' . color('reset') . $nailara_fg . "\n:"
     if not $mode{'S'} and not $mode{'Q'};
-
+##############################################
 if ( $mode{'e'} ) {
 
     my $char_desc = " .:[ $green$C$nailara_fg ]:. ";
@@ -205,8 +220,7 @@ if ( $mode{'e'} ) {
     print "\r$nailara_fg$char_desc";
 
     if ( $mode{'S'} ) {
-
-#        print substr( $char_buffer, 0, $x - $cd_len ) . "\n"; ## <-- repair ..,
+        ## print substr( $char_buffer, 0, $x - $cd_len )."\n"; ## <-- repair ..,
     } else {
 
         say "\n " . ':' x ( $cd_len - 2 );
@@ -219,8 +233,10 @@ print color('reset') if not $mode{'Q'};
 
 my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 
+sub input_complaint { say ":\n:: numerical input expected\n" }
+
 # ______________________________________________________________________________
-#\\DTNOTCYPAC4WAZZCLWBK7E3C2PXXTCKMG5HINDUWC4ZUSJCKWMMWCBJCS3LEE45O4X7EHVTG3T6NO
-# \\ PRIKAVVWU6FSWIRMDNQODJDCXC4FE6LKHGAPXSWX64MX4GJKYXC3 \\// C25519-BASE-32 //
-#  \\// 46DIJQDWXE7NKWTRY3IZRIFUNBHJ57KSQEQL7TQTAQRCYHRRKBI \\ CODE SIGNATURE \\
+#\\UKJVIYPWT2L7KWCUIXFKCSV457P5Z4YKHXEG5ADKGQYEQUZJ2Q3WLGIW5CQYYGZBEAYDQSI6BSG6U
+# \\ IHWSO4RLKDSXTAT4CGRUUL55G4AXUY3ZGVXH4LJCTSDQZJJQV563 \\// C25519-BASE-32 //
+#  \\// AHBPKECS34MJVWBHVUOOTBTPDGQ5P4E55NQINVW5DE4N3UAXAAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
