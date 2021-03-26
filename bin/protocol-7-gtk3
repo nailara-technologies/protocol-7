@@ -15,7 +15,7 @@ my $which_loaded = $EVAL_ERROR ? 0 : 1;
 ### wrapper code to load Gtk3 module at compile time ###
 
 BEGIN {
-    ( my $local_lib_path = $PROGRAM_NAME ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+    ( my $local_lib_path = $PROGRAM_NAME ) =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 

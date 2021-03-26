@@ -93,7 +93,7 @@ sub prepare_subs {
                 if $link_target =~ $char_map;
             $bin_path = $link_target;
         }
-        ( my $local_lib_path = $bin_path ) =~ s|/[^/]+/[^/]+$|/lib/pm|;
+        ( my $local_lib_path = $bin_path ) =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
         unshift( @INC, $local_lib_path ) if -d $local_lib_path;
     }
 
