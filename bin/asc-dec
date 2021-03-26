@@ -10,7 +10,7 @@ use Digest::Elf qw| elf |;
 use Crypt::PRNG::Fortuna;
 use Text::Wrap qw| wrap |;
 use Time::HiRes qw| sleep |;
-use Unicode::MapUTF8 qw| to_utf8 from_utf8 utf8_supported_charset |;
+use Unicode::MapUTF8 qw| to_utf8 utf8_charset_alias utf8_supported_charset |;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 
 no warnings 'experimental';
@@ -19,6 +19,36 @@ my $base_size  = '6';
 my $base_table = 'cp10007';
 
 ## [LLL] disable ANSIColor on 'piped' STDOUT mode .., [$mode{Q}]
+
+getopts( 'LhBSvs:r:eqQd:DC:U:', \my %mode );
+
+## table aliases ##
+utf8_charset_alias(
+    {   '57' => '857',
+        'U7' => 'utf7',
+        '17' => 'cp10007',
+        'y'  => 'cyrillic',
+        '5'  => 'ISO-8859-5',
+        '4'  => 'ISO-8859-4',
+    }
+);
+
+if ( $mode{'L'} ) {    ## list \ search tables [ -L ]
+    say '.';
+    my @charsets_available = utf8_supported_charset;
+    ( my $s ) = ( @ARGV ? shift @ARGV : undef );
+    my @matches;
+    my $max_len = 0;
+    map {
+        if ( not defined $s or $ARG =~ m|$s|i ) {
+            push( @matches, $ARG );
+            $max_len = length($ARG) if length($ARG) > $max_len;
+        }
+        }
+        sort { length $b <=> length $a } reverse sort @charsets_available;
+    map { printf( ": %${max_len}s : :\n", uc($ARG) ) } @matches;
+    say ':.,' and exit;
+}
 
 my $skip_repeat_spaces = 1;
 
@@ -29,7 +59,6 @@ my $highlight = { map { unpack( "%U", $ARG ) => 1 } @highlight_chars };
 map { $highlight->{$ARG} = 1 } qw| 7692 1538 |;                  # Ḍ ؂
 
 ( my $x, my $y ) = Term::Size::chars;
-getopts( 'hBSvs:r:eqQd:DC:U:', \my %mode );
 
 $x //= 80;
 $y //= 25;
@@ -49,7 +78,6 @@ my $error_color = color('r195g71b6');
 my $blacklight  = color('r68g39b172');
 my $green       = color('r71g195b6');
 
-$mode{'d'} //= 0;
 $mode{'q'} = 1        if $mode{'Q'};
 $mode{'C'} = 'BASE32' if defined $mode{'C'} and $mode{'C'} eq 'B';
 
@@ -61,6 +89,8 @@ say sprintf( ":\n:: mutually exclusive modes selected [ -C BASE32 and %s ]\n",
     if defined $mode{'C'}
     and $mode{'C'} eq 'BASE32'
     and scalar(@B32_exclude);
+
+$mode{'d'} //= 0;
 
 $SIG{'__WARN__'} = sub {
     my $err = shift;
@@ -240,7 +270,7 @@ my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 sub input_complaint { say ":\n:: numerical input expected\n" }
 
 # ______________________________________________________________________________
-#\\G5O5YUGUIWF4N4AL7HODALGLAXVICDIMSXVX6QPCRAUTYLYQMIVQF7LHSQIHC2BFWSMVFSIBCFIF6
-# \\ YHGXVSY4AUW57FEPPKKHDJJIG3F3MDILLNNFNI2ERQC2WYDPTM2L \\// C25519-BASE-32 //
-#  \\// WKGCJEFWHB566Q3SMOV4WAHVODVQMQW2PP4X44H7PFUULOZ22CA \\ CODE SIGNATURE \\
+#\\YXJASLBX5BZP7OQMGZOJSSUM5RJWSCUWFF2VMGVZJU7RUJPNFZYQ4LEVO6X5FKZLX5SZY7J44BMZI
+# \\ IZNNC2EULCD2X5QM6BJ72XB2GYNJA7YZEH7CIUH4FIYFDMEWDYIL \\// C25519-BASE-32 //
+#  \\// 4WC4IQDV7NP6GG35HD5EADNFFGZDMV3PQ2332UN2WXGGV3DLGAQ \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
