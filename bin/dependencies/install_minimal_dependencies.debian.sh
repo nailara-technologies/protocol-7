@@ -50,8 +50,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-# ______________________________________________________________________________
-#\\ODOQL7TUXKMJRCAH322CX5CQIQ3SFY7GC3IS6OF4JJTF4XO4F4XDSCV6HBVX7P67CJQGL7BTFQLR4
-# \\ QZDR6FK3OEOKV544AAJHKIOQS3IP445FEROKM6AK5GPLOYV6QULU \\// C25519-BASE-32 //
-#  \\// XXHKBDOMX6ZI7VHDCENGTHBH2IHYKUEG7IF5KYQ2X3VLVCMO6CQ \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#ODOQL7TUXKMJRCAH322CX5CQIQ3SFY7GC3IS6OF4JJTF4XO4F4XDSCV6HBVX7P67CJQGL7BTFQLR4
+#::: QZDR6FK3OEOKV544AAJHKIOQS3IP445FEROKM6AK5GPLOYV6QUL :::: NAILARA AMOS :::
+# :: UXXHKBDOMX6ZI7VHDCENGTHBH2IHYKUEG7IF5KYQ2X3VLVCMO6CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
