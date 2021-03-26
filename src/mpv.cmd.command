@@ -22,8 +22,8 @@ if ( $cmd_str !~ s/^\!// ) {
 
 return { 'mode' => 'deferred' };
 
-# ______________________________________________________________________________
-#\\U2V7PW6BAQ62J44ANRN4ALFV4K7DIV6ED7AE7YRPWNLLX5LWGXGBW3KCW2AMP6H5PP5KWXIUYUIL4
-# \\ HAE5ILNOWKYLOLZVUMQUG7DWTZPCA7J3PWHT56P7USSCXUQMPMQJ \\// C25519-BASE-32 //
-#  \\// DOT7LH74AWX2NN5F5CIZBVHIU6BDYL3FWTEIPLTOVIZCQQ4WQCY \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#U2V7PW6BAQ62J44ANRN4ALFV4K7DIV6ED7AE7YRPWNLLX5LWGXGBW3KCW2AMP6H5PP5KWXIUYUIL4
+#::: HAE5ILNOWKYLOLZVUMQUG7DWTZPCA7J3PWHT56P7USSCXUQMPMQ :::: NAILARA AMOS :::
+# :: JDOT7LH74AWX2NN5F5CIZBVHIU6BDYL3FWTEIPLTOVIZCQQ4WQCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

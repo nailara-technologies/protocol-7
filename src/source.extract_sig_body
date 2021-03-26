@@ -16,11 +16,10 @@ die "expected source_str scalar reference" if ref($src_ref) ne 'SCALAR';
 
 ### extract [ optionally strip ] code signature footer ##########################
 my $footer_body;
-my $footer_start = '# ';
-$footer_start .= '_' x 78;
+my $footer_start = '#' . '.' x 77;
 if ($strip) {
-    $footer_body = $1
-        if $$src_ref =~ s|\n$footer_start\n((#[^\n]+\n){4})$|\n|sg;
+    $footer_body = $2   ### NOTE : also matches old type footer to strip it ####
+        if $$src_ref =~ s{\n(# _{78}|$footer_start)\n((#[^\n]+\n){4})$}{\n}sg;
 } else {
     $footer_body = $1 if $$src_ref =~ m|$footer_start\n((#[^\n]+\n){4})$|;
 }
@@ -43,7 +42,7 @@ my $signature_B32;
 
 ### comparing footer structure with signature template #########################
 my $emptied_footer = join( "\n", $footer_start, $footer_body );
-my @subst_params   = ( ( 84, 77 ), ( 167, 52 ), ( 251, 51 ) );
+my @subst_params   = ( ( 80, 77 ), ( 163, 51 ), ( 242, 52 ) );
 my $line_num       = 0;
 while (@subst_params) {
     my $pos = shift @subst_params;
@@ -75,8 +74,8 @@ $footer_data->{'signature'}      = $signature_B32;
 
 return $footer_data;
 
-# ______________________________________________________________________________
-#\\VVMYR4VXINWT64NTX2ODYFU67XZTJWXXZD5KFHD3XV7JW2LXDF674QW2FEQD226HRPN4QGXPJ3GHQ
-# \\ S6RAZE4DVLVIC3MNTSYOF2X7WUJCWNQSMSANXREFI22VJCZ7COB3 \\// C25519-BASE-32 //
-#  \\// YTBPG6U4DGY6WXBL5C743B4PCHDUZMDAISZ4STOTYEQ3KBSUEAY \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#3FPZC37UNKOMQ7SPJN6PW5O3FU7ATLTIAMBRJA7LYIEORRQ3LBH63UZTIZHATP5REKLTXHQGFMNQM
+#::: CDDA27BCPHS5SCQCPU4CUNMACALLJ3EBIGNNVRHL47H3DGCGTIU :::: NAILARA AMOS :::
+# :: W4ZZLCMIU236Z7GT4SJD5VKKXBWZNCWSPULEAU7LB3FNXFNME4AI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
