@@ -94,6 +94,7 @@
 
         d     = diff
         c     = diff --cached
+        r     = reset
 
         m     = difftool -t mediainfo
         mc    = difftool --cached -t mediainfo
@@ -142,8 +143,11 @@
 [difftool]
 	prompt = false
 
-[difftool "ccdiff"]
+[backup "ccdiff"]
 	cmd = ccdiff --bg=black --new=rgb014 --old=rgb013 -u $LOCAL $REMOTE
+
+[difftool "ccdiff"]
+	cmd = ccdiff --bg=black -u $LOCAL $REMOTE
 
 [difftool "mediainfo"]
         cmd = mediainfo $LOCAL $REMOTE

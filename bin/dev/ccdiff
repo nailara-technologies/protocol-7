@@ -2,7 +2,8 @@
 
 package App::ccdiff;
 
-use 5.014000;
+use v5.24;
+use English;
 use warnings;
 use charnames ();
 use List::Util qw| max first |;
@@ -11,6 +12,19 @@ use Getopt::Long qw| :config bundling |;
 
 our $VERSION = "0.30";
 our $CMD     = $0 =~ s{.*/}{}r;
+
+sub colors {    ## temorary custom color definition ## ...to be replaced.., ##
+    my $color_name = shift;
+
+    return "\e[38;2;71;195;6m" if $color_name eq 'custom-new';
+    return "\e[38;2;71;6;195m" if $color_name eq 'custom-old';
+
+    my $color = Term::ANSIColor::color($color_name);
+    ( my $color_str = $color ) =~ s|\e|\\e|g;
+
+    #   say ":: color : $color_name  \t '$color $color_str \e[0m'";
+    return $color;
+}
 
 sub usage {
     my $err = shift and select STDERR;
@@ -56,7 +70,7 @@ my %rc = (
     chr_cmr    => "\x{21b0}",
     chr_eli    => "\x{2508}",
     chr_eli_v  => "\x{21a4}\x{21a6}",
-    chr_eql    => " ",
+    chr_eql    => ' ',
     chr_new    => "\x{25b2}",
     chr_old    => "\x{25bc}",
     ellipsis   => 0,
@@ -65,8 +79,8 @@ my %rc = (
     heuristics => 0,
     index      => 0,
     markers    => 0,
-    new        => 'r71g195b6',          #"rgb045",
-    old        => "rgb302",
+    new        => 'custom-new',
+    old        => 'custom-old',
     reverse    => 0,
     swap       => 0,
     threshold  => 2,
@@ -190,11 +204,14 @@ for ( $old_color, $new_color, $rev_color ) {
     s/^(.*)[ _]bold$/bold $1/i;
     s/^bold_/bold /i;
 }
-my %clr
-    = map { $_ => color( s{^(.*)[ _]bold$}{bold $1}ir =~ s{^bold[ _]}{bold }ir ) }
-    map   { ( $_, "on_$_", "bold $_" ) }
+my %clr = map {
+    $_ => colors( s{^(.*)[ _]bold$}{bold $1}ir =~ s{^bold[ _]}{bold }ir )
+    }
+    map { ( $_, "on_$_", "bold $_" ) }
     qw( red green blue black white cyan magenta yellow );
-$clr{$_} //= color($_) for tac_colors();
+$clr{$_} //= colors($_)
+    for ( tac_colors(), qw| custom-old custom-new | );    ## <-- register ..,
+
 $no_colors and $clr{$_} = "" for keys %clr;
 $clr{none} = $clr{on_none} = "";
 
@@ -219,8 +236,10 @@ sub set_options {
     ) {
         my ( $c, $def ) = @$_;
         $$c && exists $clr{$$c} and next;
-        warn "color ", $$c // "(undefined)",
-            " is unknown, using $def instead\n";
+        warn "color ", $$c // "[undefined]",
+              " is unknown, using $def instead :"
+            . ": caller line : "
+            . [caller]->[2] . " ::\n";
         $$c = $def;
     }
     $clr_red = $clr{$old_color};
@@ -635,6 +654,7 @@ sub tac_colors {
     $ACV < 3.02 and delete @c256{ grep m/italic/   => keys %c256 };
     $ACV < 4.00 and delete @c256{ grep m/rgb|grey/ => keys %c256 };
     $ACV < 4.06 and delete @c256{ grep m/ansi/     => keys %c256 };
+
     sort keys %c256;
 }    # tac_colors
 
@@ -1290,7 +1310,7 @@ the same terms as The Artistic License 2.0.
 =cut
 
 # ______________________________________________________________________________
-#\\G7GQL44KMQCWMOPF243C5FN3VNDNO26SDDCEFSQLC4TWIEPLDGKPWT3G4LCCASRMPM53VR3CN4TL2
-# \\ 66VTBHZRHWHLC3V7R5DLCZ5JTDWV5WHHWV4JVP3KG7OHDGFUSKKO \\// C25519-BASE-32 //
-#  \\// G7NBJ4IUZ2UVOB6QUTYWXMVYRBCNMBBX6HLFQYQYAHOEBW55ABI \\ CODE SIGNATURE \\
+#\\LWQ2XSSXJC3LPPLWLK74A5IKYLSYIV2KUSIVUTUXJWTTUWYUBVNQOCVTEWFE7SXDMO4J2P6WMBMDM
+# \\ CUQ25GAIUHKWVBIFLUY5LNYS7MYGDD4NKC45QRHA7NVVAJARBZGM \\// C25519-BASE-32 //
+#  \\// RSUCZJHVLRGXH7Z2GVLBH5RLUCUVKAQ2FYVYOFLSTEMC523XCBA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````

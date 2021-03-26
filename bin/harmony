@@ -47,7 +47,7 @@ my %col = (
     'b'   => $blacklight,
 );
 
-my $check_string = Encode::decode_utf8( join( ' ', @ARGV ) );
+my $check_string = Encode::decode_utf8( join( ' ', @ARGV ), 8 ); # [8:LEAVE_SRC]
 my $elf_checksum = $mode{'n'} ? $check_string : sprintf "%09d",
     elf($check_string);
 
@@ -213,7 +213,7 @@ sub display_result {
 # 0 : ʘɧƀɧƀf�ʘɧƀɧƀf�ʘɧƀɧƀf
 
 # ______________________________________________________________________________
-#\\RYBJTBFRJNOUUMNJIBYHM2PZBM6IF6VBH6ADECL3WPHUXUIRFN2WLBS2GEJCXSQK47AYACQZ6GMOU
-# \\ EICP5FHLZK2Z52HLEJHN4L6HI5PKFGZI6G7Q33WCQYNKLAIKI7TI \\// C25519-BASE-32 //
-#  \\// KGLLIGVVFVU3F64IPC3NCK7EVUZGRHLFGII7327DJRYULR74MBI \\ CODE SIGNATURE \\
+#\\JIXUPKT6QYBNAG2QIX3NOM2QWPFMV44USJ3Z7TYM6HMKV2MBV5RCC7LURSBHT6M64SHEQWCYI5YKA
+# \\ 7JWXQMNF7HFSU5Q5HOTIUVZUPDXIXL4BK4Z7UGH2W7NKPTPY3OCZ \\// C25519-BASE-32 //
+#  \\// OUUWMWHWP7FP7U45WYYMQEMUVJZ34YTTGUBDWISC7ZASJOS6ACA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
