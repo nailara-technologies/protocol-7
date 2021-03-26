@@ -1,0 +1,29 @@
+# >:]
+
+# name  = nroot.autostart_zenki
+# descr = initialize zenki for automatic / immediate startup
+
+foreach my $zenka_name (@_) {
+    my $zenka_config   = <nroot.start_setup.zenki.config>->{$zenka_name};
+    my $zenka_id       = <[zenka.get_id]>->($zenka_name);
+    my $obj_id         = <[zenka.get_object_id]>->($zenka_id);
+    my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+    my $instance_count = $zenka_config->{'start'}->{'instances'} || 1;
+
+    while ( <[zenka.is_enabled]>->($zenka_name) and $instance_count-- ) {
+        my $job_id = <[jobqueue.add_job]>->(
+            {   'object_id'       => $obj_id,
+                'job_callback'    => 'zenka.start',
+                'callback_params' => $zenka_name,
+                'target_queue'    => $target_queue
+            }
+        );
+        <nroot.zenka.autostart>->{$zenka_name}->{'job'} = $job_id;
+    }
+}
+
+#.............................................................................
+#I3XY4IHP4T2DWNPLIFE4BCP4KCUMQHXZ25V75YHO7VSPBQ25IC3TFKCQN2N4Q26X5KPZYTL6Q7HI4
+#::: 7RPCR7XOACZFUZ672FQ7T3ZHRP3ZDSVBLSYXWP6CBOTNZWIY4SE :::: NAILARA AMOS :::
+# :: G2YMPHSQ7A7HOD5BEKMYT7DU6KB55EXB3CQTR7MT2EE6LPNAOIAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

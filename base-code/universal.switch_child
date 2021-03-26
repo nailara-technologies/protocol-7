@@ -1,0 +1,120 @@
+# >:]
+
+# name = universal.switch_child
+
+my $zenka_name = shift;
+
+<universal.cfg.fade_on_switch>     //= 0;
+<universal.cfg.fade_step_interval> //= 0.01;
+
+<universal.sequence.startup> //= 1;
+<universal.sequence.position>++;
+<universal.sequence.position> = 0
+    if <universal.sequence.position>
+    >= scalar @{<universal.sequence.switch_order>};
+
+my $window_id = <universal.child>->{$zenka_name}->{'window_id'};
+
+if ( $zenka_name ne 'mpv' and exists <universal.timer.mpv_idle_timer> ) {
+    <universal.timer.mpv_idle_timer>->cancel;
+    delete <universal.timer.mpv_idle_timer>;
+}
+
+<universal.timer.switch_timeout> = <[event.add_timer]>->(
+    {   'after'   => <universal.switch_timeout>,
+        'handler' => 'universal.handler.switch_timeout',
+        'data'    => { 'zenka' => $zenka_name }
+    }
+);
+
+if ( not defined $window_id ) {
+    <[base.log]>->(
+        0, "[!] window_id not known, can't switch to $zenka_name-child!"
+    );
+    return;
+}
+
+<[base.log]>->( 2, "switching to '$zenka_name'-child.." );
+
+<[base.log]>->( 2, ": unhiding '$zenka_name' ($window_id)" );
+
+if (    <universal.cfg.fade_on_switch>
+    and !<universal.sequence.startup>
+    and $zenka_name ne 'web-browser' ) {
+
+    <universal.timer.switch>->{$window_id}->{'fade'}->cancel
+        if defined <universal.timer.switch>->{$window_id}->{'fade'}
+        and <universal.timer.switch>->{$window_id}->{'fade'}->is_active;
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.X-11.set_opacity",
+            'call_args' => { 'args' => join( ' ', $window_id, 0 ) }
+        }
+    );
+
+    <universal.timer.switch>->{$window_id}->{'fade'} = <[event.add_timer]>->(
+        {   'after'    => <universal.cfg.fade_step_interval>,
+            'interval' => <universal.cfg.fade_step_interval>,
+            'handler'  => 'universal.handler.switch_fade',
+            'data' => { 'zenka_name' => $zenka_name, 'window_id' => $window_id }
+        }
+    );
+}
+
+<[base.sleep]>->( 2.1 + rand(1.2) ) if <universal.sequence.startup>;
+
+<[base.sleep]>->(0.37);
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.X-11.unhide_window",
+        'call_args' => { 'args' => $window_id }
+    }
+);
+
+<[universal.lower_except]>->($zenka_name) if !<universal.sequence.startup>;
+
+if (<universal.start-anim_running>) {
+    <[base.sleep]>->(0.777);
+    <[universal.stop_start-anim]>;
+}
+
+<[base.sleep]>->(0.17);
+
+<universal.child>->{$zenka_name}->{'visible'} = 1;
+
+<[universal.hide_except]>->($zenka_name)
+    if <universal.sequence.startup>
+    or ( !<universal.cfg.fade_on_switch>
+    and $zenka_name ne 'web-browser' );
+
+<[base.protocol-7.command.send.local]>
+    ->( { 'command' => 'web-browser.clear_views' } )
+    if !<universal.sequence.startup>
+    and !<universal.cfg.fade_on_switch>
+    and $zenka_name ne 'web-browser';
+
+<universal.sequence.startup> = 0;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command' => "$zenka_name.resume",
+        'reply'   => {
+            'handler' => 'universal.handler.resume_reply',
+            'params'  => { 'zenka' => $zenka_name }
+        }
+    }
+);
+
+if ( $zenka_name eq 'mpv' ) {    # check if mpv actually resumed playing
+    <universal.timer.mpv_idle_timer> = <[event.add_timer]>->(
+        {   'after'   => 0.42,
+            'handler' => 'universal.callback.mpv_idle_check'
+        }
+    );
+
+}
+
+#.............................................................................
+#X3URV733TUCKM2UBLGHTPPWZYXDGMZVIWDS6T5DNNUPVZQSEPS7HL2UXQRWTNFX34ZCIEZQYRWLA2
+#::: EZJDF7O5HQW44R5F7TVZGDMUOBMFIO44RVJU4X5UHC5JBEHPZTP :::: NAILARA AMOS :::
+# :: X23X7JJSHXRACJMMPKZNXA7PAPMFYSQJW447FNAI7C7SQEGP5ACQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,61 @@
+# >:]
+
+# name = universal.init_code
+
+<[base.perlmod.load]>->('IPC::Open2');
+<[base.perlmod.load]>->( 'File::Copy',  qw| move | );
+<[base.perlmod.load]>->( 'File::Path',  qw| make_path | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+## tracking state ##
+<universal.state> //= {
+    'playlist' => { 'entries' => 0, 'last_request' => 0, 'last_success' => 0 },
+    'zenki'   => {
+        'start_time'    => { 'start-anim' => 0, 'web-browser' => 0, 'mpv' => 0, },
+        'init_reported' => { 'start-anim' => 0, 'web-browser' => 0, 'mpv' => 0, },
+    },
+    'windows' => {
+        'raised' => 'none',
+        'xids'   => { 'mpv' => undef, 'web-browser' => undef, }
+    }
+};
+##
+
+<universal.vid_frame_dir> //= '/var/tmp/.video_frames';
+
+$SIG{'CHLD'} = $code{'universal.handler.sig_chld'};
+
+<universal.lsp_name>
+    = defined <system.zenka.subname>
+    ? 'start-anim[' . <system.zenka.subname> . ']'
+    : 'start-anim[' . $PID . ']';
+
+my @dis_cmds = @{ $data{'disabled_commands'} };
+$data{'disabled_commands'} = [];
+map { push( @{ $data{'disabled_commands'} }, $ARG ) if $ARG ne 'whoami' }
+    @dis_cmds;
+$data{'base'}{'cmd'}{'whoami'} = 'base.cmd.whoami';
+
+<universal.cmdline_mods> = { 'web-browser' => 'Gtk3 Glib::Event Gtk3::WebKit2' };
+
+<[universal.reroute_commands]>;
+
+<universal.zenki_started>  //= 0;
+<universal.switch_timeout>  //= 7;   # restart zenka after 7 secs resume timeout
+<universal.children_ready>  //= 0;
+<universal.declared_online> //= 0;
+<universal.start-anim_timeout>    //= 17;
+<universal.playlist_was_empty>    //= 0;
+<universal.cfg.autospeed_notrans> //= 1;
+<universal.cfg.can_self_restart>  //= 1;
+
+<[base.log]>->( 1, "[ self-restart is disabled ]  << ! >>" )
+    if !<universal.cfg.can_self_restart>;
+
+0;
+
+#.............................................................................
+#UL7N3UWDDTZLVZI4K5FBOQ3GKQY7MEPNC3K2XELSSQMVR62RNS26WX4TWPX5DX5PPHO53EMSWIZSW
+#::: XHHZP2MA72DMQHVI4GFMQJWC2W2U224WPGOMATI5T2QIJE65IXO :::: NAILARA AMOS :::
+# :: QNNT3SUYERA4MR4OWRIKY3GLSTIZSXCYJYCB6O3ZJBPKUTT3VKDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

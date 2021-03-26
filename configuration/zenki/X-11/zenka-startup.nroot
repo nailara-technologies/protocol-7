@@ -1,0 +1,28 @@
+# >:]
+
+# name  = zenka-startup.nroot
+# descr = 'X-11' zenka startup configuration used by 'nroot' zenka
+
+dependencies   = cube
+max_concurrency   = 1
+heartbeat.timeout = 14
+restart.min_delay = 0.7
+zenka-start.timeout = 24
+## [ in case of immediate errors ]
+startup-error.retry-count   = 2
+startup-error.retry-min-delay = 5
+
+: nroot-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [nroot.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+: nroot-post-init :
+  [nroot.callback.get_x11_display]
+  status.post-init = 1
+
+: startup-error :
+  [nroot.callback.xorg-error-handler:<instance_id>]

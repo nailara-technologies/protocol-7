@@ -1,0 +1,31 @@
+# >:]
+
+# name  = content.cmd.entries_withheld
+# param = [subname]
+# descr = query how many withheld playlist entries exist
+
+my %file_types;
+my $type_list = <content.file_types>;
+my $param     = $$call{'args'} // '';
+my $subname   = length($param) ? $param : undef;
+
+my $entries_withheld = 0;
+
+my $index = -1;
+foreach my $file ( @{<content.file_list>} ) {
+    $index++;
+    next
+        if defined $subname
+        and exists <content.zenka_subnames>->{$index}
+        and not exists <content.zenka_subnames>->{$index}->{$subname};
+
+    $entries_withheld++ if $type_list->{$file} eq 'network_error';
+}
+
+return { 'mode' => 'ack', 'data' => $entries_withheld }
+
+#.............................................................................
+#GG7LKLRS3EPRLVRGJ73X7RIGMPDS5LJDWEZYMMHWA5XC5LSKPQBXSHT7WA2SUZZBOSLPLUSEFXRK6
+#::: 4BMCYZHAJFPNIF4EOUGIE5SS4YPVP54HR6EMX3BO65BCPRWAUA3 :::: NAILARA AMOS :::
+# :: E2R5AXSSPTQLHIAXW3GJ5OPG3SKPSVAD4REWLPU4EYF5R3G3GOBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

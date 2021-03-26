@@ -1,0 +1,35 @@
+# >:]
+
+# name  = nroot.load_start_setup
+# descr = loads startup configuration for zenki into zenka setup [ single cfg ]
+
+my $config_to_load = shift;
+my $cfg_root_path  = <system.conf_path>;
+my $base_file_name = 'zenki/nroot/start-setup.';
+die "load_start_setup: no start setup specified"
+    if not defined $config_to_load;
+
+my $start_setup_pattern
+    = join( ' ',
+    map { $base_file_name . $ARG } split( /\s+/, $config_to_load ) );
+
+return <[base.log]>->( 0, "<!> config '$start_setup_pattern' not found <!>" )
+    if !-f "$cfg_root_path/$start_setup_pattern";
+
+<[base.log]>->( 1, ": loading '$config_to_load' process start setup" );
+my $start_setup_data;
+{
+    local <system.conf_path> = "$cfg_root_path/zenki/nroot";
+    $start_setup_data = <[base.load_section_code]>->($start_setup_pattern);
+}
+
+return <[base.log]>->( 0, "<!> config '$start_setup_pattern' is empty <!>" )
+    if !@{$start_setup_data};
+
+push( @{<nroot.cfg_data.start_setup>}, $start_setup_data );
+
+#.............................................................................
+#7UTYWEJ5VXYUMSCFIGQ7O6PRL2K4LTY2CQBSF2UGK5FO232A7KE7HFXHQD7CLIM7PAWGCR5TRST2E
+#::: M3XTNX5XO6QCVN3SQXLBRSCWVAZKSESBAU5WI7MFU7JICXZZNTR :::: NAILARA AMOS :::
+# :: JJLQLDFF5MRY42IQAZG37L5SGNZYQE3VSOWFM4UEV35SVNK2BCAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

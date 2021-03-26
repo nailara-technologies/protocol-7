@@ -1,0 +1,22 @@
+# >:]
+
+# name = reenc-msg.handler.shutdown_timer
+
+my $shutdown_name
+    = defined <system.zenka.subname>
+    ? <system.zenka.name> . '[' . <system.zenka.subname> . ']'
+    : <system.zenka.name>;
+
+<[base.log]>->( 0, "timeout reached. terminating $shutdown_name" );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.nroot.stop_implicit",
+        'call_args' => { 'args' => $shutdown_name }
+    }
+);
+
+#.............................................................................
+#5SGLEMIF7KWVBWLQFL4XWFS3ODFEOGRJH6XZPV2OQY5EG43TU7M6ZSYIDLRPGI6ZGVYDOOPA2MSHC
+#::: QJHU2E4HG4Q7T76PQEEYGL3G7TOBEWSB4SFS7BQGE47XYBVK2S2 :::: NAILARA AMOS :::
+# :: DTB63LAYVEXLITAAMGFN5UZAFVS262OG43V57SIYVFW5AGPV2WAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

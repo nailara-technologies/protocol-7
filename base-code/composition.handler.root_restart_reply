@@ -1,0 +1,26 @@
+# >:]
+
+# name = composition.handler.root_restart_reply
+
+my $answer = shift;
+
+my $zenka_name_str = $answer->{'params'};
+
+if (    $answer->{'cmd'} ne 'ACK'
+    and $answer->{'call_args'}->{'args'} =~ /no zenka/ ) {
+
+    <[base.log]>->(
+        0, "<!> no '$zenka_name_str' zenka was running, starting now..."
+    );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.nroot.start_once',
+            'call_args' => { 'args' => $zenka_name_str }
+        }
+    );
+}
+
+#.............................................................................
+#ZLN6IQGBR4QR2XB6VJ55OZFDG5I4MCNQ3QMK6WAFGVCTN3ASHVTCEWZDWOXO4A225QMZRJLFPV36A
+#::: OXRPFFVRCA5ZIDBSFFOLTQO4XKUROTAC6QRXV2EPHJGGTYWSAHN :::: NAILARA AMOS :::
+# :: TDKD5EWCKWIZ6HJZKGOMFTZAND6RKX24DFJ6LM4IQWACTR6C4MAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,78 @@
+# >:]
+
+# name = crypt.C25519.post_init
+# note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
+
+if ( not <crypt.C25519.auto_load_keys> //= 1 ) {
+    <[base.log]>->( 2, ": autoload disabled, skipped key loading .," );
+    <crypt.C25519.initialized>++;
+    return 0;
+}
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+
+my $uid          = $key_vars->{'uid'};
+my $gid          = $key_vars->{'gid'};
+my $key_dir      = $key_vars->{'key_dir'};
+my $key_name     = $key_vars->{'key_name'};
+my $home_dir     = $key_vars->{'usr_home'};
+my $key_usr      = $key_vars->{'usr_name'};
+my $key_basepath = $key_vars->{'key_basepath'};
+my $key_filename = $key_vars->{'key_filename'};
+
+if ( not defined $home_dir or !-r $home_dir ) {
+    if ( !<base.parser.config.reloading> ) {
+        <[base.log]>->( 0, "<<!>> no homedir access <<!>> [ $key_usr ]" );
+        <[base.log]>->( 0, '  :.. skipping C25519 key initialization ..,' );
+    } else {
+        <[base.log]>->( 1, ': skipped key reload., [homedir]' );
+    }
+    return 0;    # state still valid
+}
+
+return -1 if not <[crypt.C25519.chk_key_dir]>;    # <-- creates if missing ..,
+
+<[crypt.C25519.auto_convert]>->($key_dir);  ## <-- [ update filename structure ]
+
+my $secret_key_file = $key_filename->{'secret'};
+my $public_key_file = $key_filename->{'public'};
+
+if ( !-f $secret_key_file and !-f $public_key_file and -w $key_dir ) {
+    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
+    my %key_b32 = ( 'secret' => '', 'public' => '' );
+    if (<[crypt.C25519.gen_keys]>) {
+        <[crypt.C25519.write_keys]>;
+    }
+    <[crypt.C25519.sign_keys]>;
+
+} elsif ( not defined $KEYS{'C25519'}{$key_name}
+    or keys( %{ $KEYS{'C25519'}{$key_name} } ) != 2 ) {
+    <[crypt.C25519.load_keypair]>;
+}
+
+while ( glob $key_basepath . '.{rkp,sig}.*' ) {
+    if (m{([^\/]+\.(rkp|sig)\.(.+))$}) {
+        my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
+        <[base.log]>->( 1, ": : $type : '$fname'" );
+        $type = 'public' if $type eq 'rkp';    ## <-- [ root-key-pub ] ###
+        chomp( $KEYS{'C25519'}{$key_name}{'root'}{$rkname}{$type}
+                = ${ <[file.slurp]>->($ARG) } );
+    }
+}
+
+if ( defined <system.zenka.type> and <system.zenka.type> eq 'cube' ) # <<< ! >>>
+{
+    my $s_key_name = <system.zenka.name>;
+    <[crypt.C25519.generate_session_keypair]>
+        if not defined $KEYS{'C25519'}{'session'}{$s_key_name};
+}
+
+<crypt.C25519.initialized>++;
+
+0;
+
+#.............................................................................
+#WO5ME6OV7WVEXCRVNUSFPV557HD677QSSVLAVSKH7N73JSDFCYJJI3MPL3FM3TZIB7DK7BSAJPZIG
+#::: B2H5LLN5GOOTLWJXAKLMN7NR45T57GT2NQ3BYBWZ53WTURHKHEK :::: NAILARA AMOS :::
+# :: 2DUMZEA5UM6BTMGO4X3WMXB7G5BSKDPAIEE5GVFVH75NCMETYOBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

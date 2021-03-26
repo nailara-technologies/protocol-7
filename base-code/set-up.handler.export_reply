@@ -1,0 +1,47 @@
+# >:]
+
+# name = set-up.handler.export_reply
+
+my $reply       = shift;
+my $reply_id    = $reply->{'params'}->{'reply_id'};
+my $zenka_name  = $reply->{'params'}->{'zenka_name'};
+my $config_type = $reply->{'params'}->{'config_type'};
+my $export_dir  = <set-up.json.export_dir>;
+$config_type //= 'config';
+my $export_file = "$zenka_name.$config_type.json";
+my $export_path = "$export_dir/$export_file";
+
+my $mode      = 'nak';
+my $reply_str = $reply->{'call_args'}->{'args'};
+
+if (    $reply->{'cmd'} eq 'NAK'
+    and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
+    $reply_str
+        = $zenka_name eq 'cube'
+        ? "reply refused by 'cube' zenka"
+        : "zenka '$zenka_name' not online [ or refusing reply ]";
+} elsif ( $reply->{'cmd'} eq 'DATA' ) {
+    $mode      = 'ack';
+    $reply_str = "config written to export directory ('$export_file')";
+    undef $EVAL_ERROR;
+    eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
+    if ( defined $EVAL_ERROR and $EVAL_ERROR ) {
+        $EVAL_ERROR =~ s| at base.file.put.+\n$||;
+        <[base.log]>->(
+            0, "config export to '$export_file' failed. [$EVAL_ERROR]"
+        );
+        $EVAL_ERROR =~ s|^[^:]+: ||;
+        $mode      = 'nak';
+        $reply_str = "config export failed [ write error: $EVAL_ERROR ]";
+    }
+}
+
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => $mode, 'data' => $reply_str }
+);
+
+#.............................................................................
+#IHRBGBLTIU4VD6ED7OIIJFDCK6ITEKCDUCNLJS75UP7BBLHIC2CIOFLBHHRXOHE6LMTRAC5A36EHE
+#::: OAWCIWKQ3MAGYG3ETPMFMUCUG4YYJOTFIKA3PUJP53RNZKSOLZO :::: NAILARA AMOS :::
+# :: Z5NLVVAJAVIZJE2FZ24VJVC4G2TSWFJL5KIGXODTPOC4KQRMTYCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

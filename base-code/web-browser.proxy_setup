@@ -1,0 +1,65 @@
+# >:]
+
+# name = web-browser.proxy_setup
+
+my $use_proxy = shift // <web-browser.cfg.use_proxy> // 'no';
+my $log_level = shift // 1;
+
+<web-browser.init_proxy> = 0;
+
+if (    defined <web-browser.cfg.proxy_addr>
+    and defined <web-browser.cfg.proxy_port>
+    and defined $use_proxy ) {
+    my $proxy_addr = <web-browser.cfg.proxy_addr>;
+    my $proxy_port = <web-browser.cfg.proxy_port>;
+    if ( $use_proxy eq 'yes' ) {
+        <web-browser.init_proxy> = 1;
+        <[base.log]>->(
+            $log_level, "http proxy is enabled ($proxy_addr:$proxy_port)"
+        );
+    } elsif ( $use_proxy eq 'auto' ) {
+        <[base.log]>->(
+            $log_level, "checking http proxy... ($proxy_addr:$proxy_port)"
+        );
+        my $check_sock = IO::Socket::IP->new(
+            PeerAddr => $proxy_addr,
+            PeerPort => $proxy_port,
+            Proto    => 'tcp',
+            Timeout  => 0.2
+        );
+        if (    defined $check_sock
+            and -S $check_sock
+            and $check_sock->connected() ) {
+            <[base.log]>->( $log_level, ": proxy ok - enabled.." );
+            $check_sock->close();
+            <web-browser.init_proxy> = 1;
+        } else {
+            <[base.log]>->(
+                $log_level, ": unable to connect to proxy - disabled"
+            );
+        }
+    } else {
+        <[base.log]>->( $log_level, "http proxy is disabled in zenka setup.." );
+    }
+}
+
+if (<web-browser.init_proxy>) {
+    my $proxy_addr = <web-browser.cfg.proxy_addr>;
+    my $proxy_port = <web-browser.cfg.proxy_port>;
+    my $context    = <web-browser.gtk_obj.web_context>;
+    my $proxy_uri  = HTTP::Soup::URI->new("http://$proxy_addr:$proxy_port");
+
+ #    my $proxy_settings = Gtk3::WebKit2::NetworkProxySettings->new($proxy_uri);
+
+    #    $context->set_network_proxy_settings($proxy_settings);
+}
+
+return
+    <web-browser.init_proxy>
+    ;    # no checks performed if use_proxy set to 'yes' ...
+
+#.............................................................................
+#VK4TNSRDN3MGATTCODJKY2KPMTRBMTGYZPFN2FSEWGTYKTCIQWS53BLJLEPS6NVWTMMNKTG3LESUW
+#::: DQKGKLEY2Y6OJPAUNPXLFNGSSY3BWWK45FZCPEPPSX4BHHIJQG3 :::: NAILARA AMOS :::
+# :: 2GEL3FD3N5ZK52QMYQTWKDKJZHFLJBH3SRKLAZIDSSIWJQLFPQDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

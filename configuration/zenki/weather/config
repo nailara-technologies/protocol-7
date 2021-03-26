@@ -1,0 +1,92 @@
+
+  .:[ local weather zenka [ data source : openweathermap ] ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart verify-instance list show-buffer name reload \
+                      get-urls station-id child.* clean-cache clear-location \
+                      location temp desc clouds humid present \
+                      dump echo # <-- require debug module
+
+                      # reload command currently disabled [ drops parent cmds ]
+
+access.cmd.usr.parent = commands reload show-buffer \
+                        update_current update_forecast \
+                        * # <- LLL
+
+weather.api.key = '5659adaa37c4bd7ad94ac32f5a375fb2' # <- a working test API key
+#                 [!] get your own API key at http://openweathermap.org/register
+
+#weather.location = Freiburg,DE # <location-name>[,country-code]
+
+weather.cfg.first-location-match = 1 # <- 0 = forces strict [single] match <<!>>
+
+weather.cfg.units = metric
+weather.cfg.language = <system.language>
+
+weather.tile.count  = 3 # [1|2|3]
+weather.tile.adjust = 1 # automatically adjusts tile count based on aspect ratio
+
+weather.zoom_level    = 1  # default zoom level
+weather.web_zoom      = 1  # auto zoom adjustment  [ same in web-browser zenka ]
+weather.min_zoom      = 0.7  # lower auto zoom level limit  [matches browser!!!]
+weather.zoom_text     = 0 # disabled to work with web-browser auto zoom function
+
+weather.tile_scale = 1   # autoscale to weather tile size in composition set up
+
+weather.current_cond_delay = 15 # display 'current' page longer [ 3 tile setup ]
+
+## tile setup html snipplets are ./data/html/templates/weather/content.*.part ##
+
+weather.tile.setup.1 = current.city current.conditions current.today \
+                       forecast_hours.hours_1 \
+                       forecast_hours.hours_2 \
+                       forecast_hours.hours_3 \
+                       forecast_hours.hours_4 \
+                       forecast_hours.hours_5 \
+                       forecast_hours.hours_6 \
+                       forecast_days.day_1 \
+                       forecast_days.day_2 \
+                       forecast_days.day_3 \
+                       forecast_days.day_4
+
+weather.tile.setup.2 = current.city.conditions current.city.today \
+                       forecast_hours.city.hours_1 \
+                       forecast_hours.city.hours_2 \
+                       forecast_hours.city.hours_3 \
+                       forecast_hours.city.hours_4 \
+                       forecast_hours.city.hours_5 \
+                       forecast_hours.city.hours_6 \
+                       forecast_days.city.day_1 \
+                       forecast_days.city.day_2 \
+                       forecast_days.city.day_3 \
+                       forecast_days.city.day_4
+
+weather.tile.setup.3 = current.city.conditions.today \
+                       forecast_hours.city.hours_1.hours_2 \
+                       forecast_hours.city.hours_2.hours_3 \
+                       forecast_hours.city.hours_3.hours_4 \
+                       forecast_hours.city.hours_4.hours_5 \
+                       forecast_hours.city.hours_5.hours_6 \
+                       forecast_days.city.day_1.day_2 \
+                       forecast_days.city.day_3.day_4
+
+
+weather.cache_dir = /var/cache/weather
+weather.cache_timeout = 3 # hours
+weather.update_interval.current  = 13 # mins [ + random[interval] ]
+weather.update_interval.forecast = 33 # mins [ + random[interval] ]
+
+modules.load = auth net protocol io.ip chk-sum.sha weather.base
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+[weather.base.calc_zoom_level]
+
+[weather.base.fork_weather_child]
+
+[root.drop_privs:<system.privs.user>]
+
+[event.loop]

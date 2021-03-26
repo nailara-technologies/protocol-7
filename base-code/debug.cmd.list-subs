@@ -1,0 +1,48 @@
+# >:]
+
+# name  = debug.cmd.list-subs
+# param = [pattern]
+# descr = list all matching zenka subroutines
+
+my $pattern = $$call{'args'};
+my $coderef = \%code;
+
+return {
+    'mode' => 'data',
+    'data' => "\n### list of loaded zenka subroutines ###\n\n"
+        . join( "\n", sort { length $b <=> length $a } sort keys %{$coderef} )
+        . "\n\n"
+    }
+    if not defined $pattern;
+
+my $pattern_re;
+eval { $pattern_re = qr|$pattern| };
+
+if ($EVAL_ERROR) {
+    ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
+    return {
+        'mode' => 'nak',
+        'data' => "invalid regular expression '$pattern' [ $reason ]"
+    };
+}
+
+my @sub_list
+    = sort { length $b <=> length $a } sort grep {m|$pattern|} keys %{$coderef};
+
+return {
+    'mode' => 'nak',
+    'data' => "no loaded subroutines match '$pattern'"
+    }
+    if !@sub_list;
+
+return {
+    'mode' => 'data',
+    'data' => "\n# .: zenka subroutines matching '$pattern' :.\n\n"
+        . join( "\n", @sub_list ) . "\n\n"
+    }
+
+#.............................................................................
+#GIZYQ72QT6FAMALMBA3ZDXMME7FKRYBUTWEANODLJBETCRPTWWJPO4WOU47I5TOI3BMT7S4IRC3CK
+#::: J6KRLVUFGJPTYPD3ADTYIVUH7Z56EAKCAEKBHMZOSQHLA2PIKOV :::: NAILARA AMOS :::
+# :: ZOLEY5CJKUNBJYIBGH5S735S5WBUTJ2FYKO26R6D4QS3ZEL3M4AA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

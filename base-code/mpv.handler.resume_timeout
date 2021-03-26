@@ -1,0 +1,27 @@
+# >:]
+
+# name = mpv.handler.resume_timeout
+
+my $timeout_secs = <mpv.resume_timeout>;
+
+my $sname_str
+    = defined <system.zenka.subname>
+    ? '[' . <system.zenka.subname> . ']'
+    : '';
+my $snstr_lmsg = defined $sname_str ? ' ' . $sname_str : '';
+<[base.log]>->(
+    0,
+    "[!] resume timeout after $timeout_secs seconds, restarting universal zenka..."
+        . $snstr_lmsg
+);
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.nroot.restart',
+        'call_args' => { 'args' => 'universal' . $sname_str },
+    }
+);
+
+#.............................................................................
+#3RT5W7YDPYITW5S46C274MBS5FYBTTMYLAWEEASNV4Q76USDMJUG6JSHV47WZHRK7WT4PCY6IS4EO
+#::: RRZ3VPAIIJXPHT4YKGZD3QYSV2D52XPNULN2EHW435X5HXDAWID :::: NAILARA AMOS :::
+# :: TUGELSHY5FZN2DH36RW3DHJVN5V5ISW7X2KPFSE3MFPGR3FDYCDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,61 @@
+# >:]
+
+# name = universal.handler.sig_chld
+
+my @names;
+my $child_pid;
+do {
+    $child_pid = waitpid( -1, WNOHANG() );
+    my $e_val = $CHILD_ERROR >> 8;
+    my $e_sig = $CHILD_ERROR & 127;
+    if ( exists <universal.running>->{$child_pid} ) {
+        my $child_name = <universal.running>->{$child_pid};
+        push( @names, "'$child_name'" );
+        delete <universal.running>->{$child_pid};
+        delete <universal.running>->{$child_name};
+        <[base.log]>->(
+            0,
+            "<< SEGMENTATION FAULT >> \\ zenka '$child_name' [ PID $child_pid ]"
+        ) if $e_sig == 11;
+
+        ## record web-browser segfault [ crash mitigation ] ##
+        if ( $e_sig == 11 and $child_name eq 'web-browser' ) {
+            my $zenka_subname = <system.zenka.subname>;
+            my $subname_b32
+                = ( defined $zenka_subname and length($zenka_subname) )
+                ? '.' . encode_b32r($zenka_subname)
+                : '';
+            my $file_name
+                = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
+            <[file.put]>->( $file_name, "$child_pid\n" )
+                or warn("$file_name: $OS_ERROR");
+            chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
+        }
+
+    } elsif ($child_pid) {
+        push( @names, $child_pid );
+        <[base.log]>->( 0, "<< SEGMENTATION FAULT >> [ PID $child_pid ]" )
+            if $e_sig == 11;
+    }
+} while $child_pid > 0;
+
+<[base.log]>->(
+    0,
+    sprintf( "<< universal-child %s crashed, restarting.., >>",
+        join( ' and ', @names ) )
+);
+<universal.restarting_zenka> //= 0;
+<[event.add_timer]>->(
+    {   'after'   => <universal.cfg.self_restart_timeout> //= 4.2,
+        'handler' => 'universal.self_restart'
+    }
+) if !<universal.restarting_zenka>;
+<universal.restarting_zenka> = 1;
+$SIG{'CHLD'} = 'IGNORE';
+map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
+
+#.............................................................................
+#YYBZZ2TUTOHTMDMN6FWLTJTRYUH4HPAYIHZJFHGHJA3DGEZNRZOREBSKXS3XMEMVLVJYFMFVNP6CK
+#::: ZDTLVNFPKICUBMIIRHXJFT4DMX773CNQWYIZUKMR667SAKZUTU6 :::: NAILARA AMOS :::
+# :: AYZ4QAAWYAKZGV45VGXCYX72QA4FJTFK7MGNFOAJSP73KEMGJ6DI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

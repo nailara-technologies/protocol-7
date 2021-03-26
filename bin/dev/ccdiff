@@ -56,7 +56,7 @@ sub usage {
     say "         --old=red      Color to indicate removed content";
     say "         --new=green    Color to indicate added   content";
     say "         --bg=white     Background color for colored indicators";
-    say "   -p    --pink         Shortcut for --old=magenta";
+    say "   -p    --pink         Shortcut for --old=yellow";
     say "   -r    --reverse      Reverse/invert the colors of the indicators";
     say "   -s    --swap         Swap old/new color indicators";
     say "         --settings     Show default settings (after reading rc)";
@@ -158,7 +158,7 @@ unless (caller) {
         "E|ignore-tab-expansion!"          => \$opt_E,    # NYI
         "B|ignore-blank-lines!"            => \$opt_B,    # Partly implemented
 
-        "p|pink!"           => sub { $old_color = "magenta" },
+        "p|pink!"           => sub { $old_color = "yellow" },
         "old=s"             => \$old_color,
         "new=s"             => \$new_color,
         "bg=s"              => \$rev_color,
@@ -208,7 +208,7 @@ my %clr = map {
     $_ => colors( s{^(.*)[ _]bold$}{bold $1}ir =~ s{^bold[ _]}{bold }ir )
     }
     map { ( $_, "on_$_", "bold $_" ) }
-    qw( red green blue black white cyan magenta yellow );
+    qw( red green blue black white cyan yellow yellow );
 $clr{$_} //= colors($_)
     for ( tac_colors(), qw| custom-old custom-new | );    ## <-- register ..,
 
@@ -829,7 +829,7 @@ height changes, I did not pursue the idea.
 =item --pink -p
 
 Change the default C<red> for deleted text to the color closest to pink that
-is supported by L<Term::ANSIColor>: C<magenta>.
+is supported by L<Term::ANSIColor>: C<yellow>.
 
 =item --reverse -r
 
@@ -1310,7 +1310,7 @@ the same terms as The Artistic License 2.0.
 =cut
 
 #.............................................................................
-#LWQ2XSSXJC3LPPLWLK74A5IKYLSYIV2KUSIVUTUXJWTTUWYUBVNQOCVTEWFE7SXDMO4J2P6WMBMDM
-#::: CUQ25GAIUHKWVBIFLUY5LNYS7MYGDD4NKC45QRHA7NVVAJARBZG :::: NAILARA AMOS :::
-# :: MRSUCZJHVLRGXH7Z2GVLBH5RLUCUVKAQ2FYVYOFLSTEMC523XCBA :: CODE SIGNATURE ::
+#66N7YSASCA6CYZAP6H3KKWRO7YUV5F6U4IH76T5H6YFYFPCX4V5GIMWB3NRRL3YEZUBACQDRIJS2S
+#::: KPUZTVXAEBLOH2HPMVWQ6LQR2OOYGNTRNK6EWGANSCAFYNVL7GA :::: NAILARA AMOS :::
+# :: IYDCU6BY3PHDFGSLT63ZXYXMBXQST56U2WGGQFYOF7A6O7E66QDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

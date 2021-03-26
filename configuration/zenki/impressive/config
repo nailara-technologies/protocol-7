@@ -1,0 +1,46 @@
+
+ .:[ [X11] 'impressive' process wrapper zenka ]:.
+
+[load_config_file:'shared-params']
+
+[base.renice:10]
+
+impressive.cfg.language = en # [en|de]
+
+impressive.playlist.content_types = pdf image
+
+access.cmd.usr.cube = commands heart reload verify-instance playlist_update \
+                      pause resume status version
+
+impressive.path.impressive_src = /usr/local/impressive/bin/impressive
+impressive.path.impressive_tmp = /var/tmp/impressive-temp
+
+impressive.cfg.autoinstall_impressive_py = 1 # --> /usr/local/impressive/bin/..,
+
+impressive.cfg.transition_delay    = 7
+impressive.cfg.black_on_fullscreen = 1
+impressive.cfg.start-anim_timeout = 11
+
+impressive.cfg.light_mode = 0  # use only crossfade transition with higher delay
+impressive.cfg.use_start-anim = 0  # show 'loading' animation [start-anim zenka]
+
+modules.load = auth net chk-sum.sha io.ip impressive
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+[net.connect_to_cube:'ip.tcp']
+
+impressive.cfg.background_color = [base.X-11.get_bg_color]  ##   <--  [ #RRGGBB ]
+
+[base.X-11.get_display]
+[base.X-11.get_geometry]
+
+impressive.subcfg = [base.X-11.get_subconfig]
+[impressive.process_subcfg]
+
+[base.get_session_id]
+
+[impressive.startup]
+
+[event.loop]

@@ -12,9 +12,9 @@ my @edit_files;
 @ARGV = split( m|\s+|, qx| /usr/bin/xsel -o | ) if !@ARGV;
 
 my @check_paths = qw(
-    /data/projects/protocol-7/src
-    /data/projects/protocol-7/cfg/agents
-    /data/projects/protocol-7/cfg
+    /data/projects/protocol-7/base-code
+    /data/projects/protocol-7/configuration/zenki
+    /data/projects/protocol-7/configuration
     /data/projects/protocol-7/bin
     /data/projects/protocol-7/bin/dev
     /data/projects/protocol-7
@@ -33,7 +33,7 @@ foreach my $filename (@ARGV) {
     } else {
         foreach my $path (@check_paths) {
             $filename = "$filename/config"
-                if $path =~ m|/agents$|
+                if $path =~ m|/zenki$|
                 and -d "$path/$filename"
                 and -f "$path/$filename/config";
             if ( -f "$path/$filename" ) {
@@ -72,7 +72,7 @@ for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
 }
 
 #.............................................................................
-#CXQO2OCF23E5YKCADN2FGTE4DI3NFVTA6FXQH6COGMLN5VG6TYPKAWXGQ2GYEP4MOSC3AQ7P5LGEK
-#::: 7724KJASPDLXCNMJDPIN3MODPJ5CDID6VLB3HT5GEHOYXPGHCJJ :::: NAILARA AMOS :::
-# :: 5ERDKTV6EQNFMZHL4RUPYK2NUEFSFU2ZDFU6EW5BCALK46LYO4DA :: CODE SIGNATURE ::
+#VPEQT7V4QHVMFOM3TAK626T4CFKIQ5DLUHWA2ZJQK7HDYCFMAM5UFJG5LA4TATGA34GCK7RV564OS
+#::: 4G22OBV3NOG2RQKPSSCJTW3PF5VIHGO7HIJH5MR6DWL3KVTMKUX :::: NAILARA AMOS :::
+# :: EDVFS5AD42ZICKYNDF3P4EK532IE4WWBESPWGL5XRNS3FMWTCKCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

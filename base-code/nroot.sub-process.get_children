@@ -1,0 +1,70 @@
+# >:]
+
+# name = nroot.sub-process.get_children
+
+my $chk_pid = shift;
+if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
+    ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
+    die "[$caller_str] expected parent process id";
+}
+
+### old method ### [ heavy, non-portable, to be removed.. ]
+
+my $proc_table = <nroot.process.pt>
+    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+
+my %ppids;
+my %start_times;
+foreach my $proc ( reverse @{ $proc_table->table } ) {
+    next if not <[nroot.sub-process.exists]>->( $proc->{'pid'} );
+    $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
+    $start_times{ $proc->{'pid'} } = $proc->{'start'};
+}
+
+my %children;
+
+my $found = 0;
+foreach my $pid ( keys(%ppids) ) {
+    if ( $ppids{$pid} == $chk_pid ) {
+        $children{$pid}->{'checked'} = 0;
+        $found++;
+    }
+}
+
+while ($found) {
+    $found = 0;
+    foreach my $child_pid ( keys(%children) ) {
+        next if $children{$child_pid}->{'checked'} == 1;
+        foreach my $pid ( keys(%ppids) ) {
+            if ( $ppids{$pid} == $child_pid ) {
+                $children{$pid}->{'checked'} = 0;
+                $found++;
+            }
+        }
+        $children{$child_pid}->{'checked'} = 1;
+    }
+}
+
+### new method ### [ requires strict child registration ]
+my $instance_id;
+map {
+    $instance_id = $ARG
+        if $chk_pid
+        == ( <nroot.zenka.instance>->{$ARG}->{'process'}{'id'} // -1 )
+} keys %{<nroot.zenka.instance>};
+if ( defined $instance_id ) {
+    map { $children{$ARG} = 1 if <[nroot.sub-process.exists]>->($ARG) }
+        ( <[nroot.instance_child_pids]>->($instance_id) );
+}
+###
+
+return [
+    reverse sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
+        reverse sort keys %children
+];
+
+#.............................................................................
+#TZDVFQ2QYOA3Q6HHTQ2VXCMQAW4K6QRKQATW3KQW2PNRNHDNYINYOMBSYWVF7MSPU3GG7MDSSOWAQ
+#::: YQ2DHLSKKBL7DNRP6XE66YU557CFMF2J47ABGBBP7E7DWOXCL3O :::: NAILARA AMOS :::
+# :: XWL6FKNGCHSUU7NAE456NKZU7ZGTY6F43LD75LL7MN7BDDIGRIBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

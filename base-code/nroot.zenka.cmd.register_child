@@ -1,0 +1,49 @@
+# >:]
+
+# name  = nroot.zenka.cmd.register_child
+# param = <child-pid>
+# descr = associate child process with parent instance
+# todo  = also extract and set process start_time in process->child->PID = ...
+
+my $instance_id;
+my $child_pid  = $$call{'args'};
+my $parent_pid = <[nroot.sub-process.get_ppid]>->($child_pid);
+
+foreach my $iid ( keys( %{<nroot.zenka.instance>} ) ) {
+    next if not defined <nroot.zenka.instance>->{$iid}->{'process'}{'id'};
+    my $pid = <nroot.zenka.instance>->{$iid}->{'process'}{'id'};
+    if ( defined $parent_pid and $pid == $parent_pid ) {
+        $instance_id = $iid;
+        last;
+    }
+}
+
+return {
+    'mode' => 'nak',
+    'data' => 'found no matching parent'
+    }
+    if not defined $instance_id;
+
+return {
+    'mode' => 'ack',
+    'data' => 'known already'
+    }
+    if exists
+    <nroot.zenka.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid};
+
+%{ <nroot.child>->{$child_pid} } = %{ <nroot.child>->{$parent_pid} };
+<nroot.child>->{$child_pid}->{'zenka_child'} = 1;
+
+<nroot.zenka.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid} = 1;
+<[base.log]>->( 1, "[instance:$instance_id] child pid $child_pid registered." );
+
+return {
+    'mode' => 'ack',
+    'data' => 'registered'
+};
+
+#.............................................................................
+#H5RX64FRI6EYWK2L2NLRTGDOOWQ6QHUXA5ZRD3REVBPOONEXIOGEC3HFYMSVBD5CGBY6RP64G2CCS
+#::: MWC2ECY277LGIMCBK3D7G6OD6LGP6BP2HDP45EYIAQNYMR52DQI :::: NAILARA AMOS :::
+# :: 6MVF5HEN46MC7PDFPXWFDL5GJ34GP5Z4MFMQAVJFR6QGUXW2XODQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

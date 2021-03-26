@@ -1,0 +1,38 @@
+# >:]
+
+# name  = start-setup.basic
+# descr = defines a basic ['nroot'] zenka startup configuration
+
+.: globals :.
+
+  zenki.enabled  = cube p7-log cube-13 zulum nodes system events
+# zenki.disabled =
+
+.: zenki :.
+
+#
+## specific configuration imported : zenki/<zenka_name>/zenka-startup.nroot ###
+#
+
+  - dist-upgrade
+
+      max_concurrency     = 1
+      restart.disabled    = 1
+      heartbeat.disabled  = 1
+
+      : nroot-init :
+        start_mode = exec-external
+        exec_bin = debian_dist_upgrade.sh # [ ./bin/dependencies/.., ]
+        exec_usr = root
+
+### external program example ### [ supports '<x11-user>' from './cfg/x11-vars' ]
+
+  - namesrv
+
+      max_concurrency = 1
+      dependencies = cube
+
+      : nroot-init :
+        start_mode = exec-external
+        exec_bin = /usr/local/bin/namesrv
+        exec_usr = root

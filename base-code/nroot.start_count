@@ -1,0 +1,31 @@
+# >:]
+
+# name = nroot.start_count
+
+my $zenka_subname;
+my $start_count = 0;
+my $zenka_name  = shift;
+
+$start_count += <[nroot.instance_count]>->($zenka_name);
+$zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+
+foreach my $job_id ( @{<jobqueue.joblist.depending.by_timestamp>} ) {
+    my $job = <jobqueue.joblist.by_id>->{$job_id};
+    next if $job->{'name'} ne 'zenka.start';
+    my $job_zenka_subname;
+    my $job_zenka_name = $job->{'callback_params'};
+    $job_zenka_subname = $1 if $job_zenka_name =~ s|\[([^\]]+)\]$||;
+
+    $start_count++
+        if $job_zenka_name eq $zenka_name
+        and
+        ( not defined $zenka_subname or $zenka_subname eq $job_zenka_subname );
+}
+
+return $start_count;
+
+#.............................................................................
+#Z3H2ZS423GJGSZWO2XCP5DZZDXEB5T6GOUQJV4RVQZO3BI4GREQMS6VKFUKPG2ZJJJN425ZKTG2WW
+#::: DQQF6XKO5DRD3G6AT6PDWGYNZPK2DBKXYD3E3JI6M476XYASHDQ :::: NAILARA AMOS :::
+# :: GH5KJFCMVX2X3DFKTV5HKWLX3SQOKVCBTYA2JXNBOCHAY3T4XUCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

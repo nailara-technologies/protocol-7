@@ -1,0 +1,43 @@
+# >:]
+
+# name = system.handler.X-11_pid_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ m|^\d+$| ) {
+    my $reason = 'unable to obtain Xorg PID';
+    $reason = "X-11 zenka is not in 'xorg' mode"
+        if $reply->{'call_args'}->{'args'} =~ m|not xorg|;
+    <[base.callback.cmd_reply]>->(
+        <system.gfx_reload.reply_id>,
+        {   'mode' => 'nak',
+            'data' => "$reason, aborted."
+        }
+    );
+    delete <system.gfx_reload>;
+} else {
+    my $xorg_pid = $reply->{'call_args'}->{'args'};
+    <system.gfx_reload.xorg_pid> = $xorg_pid;
+
+    <system.process.wait_gone>->{$xorg_pid} = 'system.handler.X-11_stopped';
+
+    my $wait_gone_interval = 0.13;
+    <system.timer.wait_gone> = <[event.add_timer]>->(
+        {   'after'    => $wait_gone_interval,
+            'interval' => $wait_gone_interval,
+            'handler'  => 'system.process.handler.wait_gone'
+        }
+    );
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.nroot.stop',
+            'call_args' => { 'args' => 'X-11' }
+        }
+    );
+}
+
+#.............................................................................
+#FOEO3DTBPEHLKJPCY4TFDMFDFVNXTJAILX4VOANFBB7U5PKGTRQFRU7V3235YVCECZJ7L4O3GVBTM
+#::: J42I4WHR6MPDN2CJAIFFE6C3HB7Q6BU7DOZVMOPUY5MIKRBZRJT :::: NAILARA AMOS :::
+# :: WMGOV4WASI7NMO2ZPRRD7E6RX4AOKOH2PN6GSMUKIOXUQXGXXOCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

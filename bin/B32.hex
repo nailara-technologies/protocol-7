@@ -22,8 +22,10 @@ die ":\n:: expected input string or -f <file-path[s]>\n\n"
 
 if ( not $file_mode ) {
     my $mode;
-    $mode = 'B32-in' if $input_str =~ m|^$B32_re$| and $input_str !~ m|a-f0189|;
-    $mode = 'hex-in' if $input_str =~ m|^$hex_re$| and $input_str !~ m|G-Z0189|;
+    $mode = 'B32-in'
+        if $input_str =~ m|^$B32_re$| and $input_str !~ m|a-f0189|;
+    $mode = 'hex-in'
+        if $input_str =~ m|^$hex_re$| and $input_str !~ m|G-Z0189|;
     die ":\n:: not hex or B32 :. '$input_str'\n\n" if not defined $mode;
     if ( $mode eq 'B32-in' ) {
         say unpack 'H*', decode_b32r $input_str;
@@ -73,7 +75,7 @@ if ( not $file_mode ) {
 }
 
 #.............................................................................
-#OLWMP262PEJX3HP2GSXF2UCAXSJUX2Z5YTG27CCKWWVGQDO4LOMIPLYRNRX7WDQB4F2SC5JJJM7YY
-#::: 5QMG2RELTEFM547UK3EJ5XCDF3CNTM7BC5Z3ZAOQNYD2S5IFG3B :::: NAILARA AMOS :::
-# :: 53CMJQ32NOHRHEUT4G7SRGLMYAKVJNMNZ6K5CTSNWAI2DPZI24DY :: CODE SIGNATURE ::
+#3WFR4PPV5YP4AQOMDFMTBKVLWV7QWQLWMJYTYQCC75TYHWAWIMGP5MP6NT7XTH6FCJOPHDMBIRAY2
+#::: CKBTWWJTEUXOISXMDA3HLJOHLQASWVFBUMSOXIMGA5QCI5LSFHV :::: NAILARA AMOS :::
+# :: 2DEL74YCBOEHCMS5VVCKUEA2QTIAUYIPER7KHCYSXWPSQH7XLKDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

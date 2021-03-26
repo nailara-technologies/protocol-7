@@ -1,0 +1,28 @@
+# >:]
+
+# name = content.handler.get_hidden_reply
+
+my @hidden_b32ids;
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
+    chomp( $reply->{'data'} );
+    @hidden_b32ids = split( /\n+/, $reply->{'data'} );
+}
+
+<content.hidden_b32id> = \@hidden_b32ids;
+<content.zenka_online> //= 0;
+
+if ( !<content.zenka_online> ) {
+    <[base.get_session_id]>;
+    <content.zenka_online> = 1;
+    <[content.check_queued]>;
+}
+
+<[content.callback.load_file]>;
+
+#.............................................................................
+#AVIIFTDI4K43JXUAKEOTEYH2YQP2LG5SN4HKRC3WV6VX3II57GFNJKOPEGHIG6BETWKRCUUDY4HFU
+#::: OIZCCCBPEQ2L3PRFVTP7PFU7IVMVSOI4OFCXR6A66LAQAZYH5BV :::: NAILARA AMOS :::
+# :: RQ7M7XUG7Z6ALTBDFF7TK65YBZNLXZVAEEE6S5X4T4PA2KXIM4AY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

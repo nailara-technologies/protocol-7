@@ -1,0 +1,110 @@
+# >:]
+
+# name  = base.log
+# descr = generate a log entry
+# args  = log_level log_msg [log_buffer] [time-stamp]
+
+my ( $log_level, $log_msg, $log_buffer, $time_stamp )
+    = ( $_[0] || 0, $_[1] // '', $_[2] // '', $_[3] );
+
+$log_level = 0 if $log_level !~ m|^\d+$|;
+
+<system.verbosity.console>       //= 0;
+<system.verbosity.zenka_buffer>  //= 1;
+<system.verbosity.zenka_logfile> //= 0;
+
+return 1
+    if $log_level > <system.verbosity.console>
+    and $log_level > <system.verbosity.zenka_buffer>
+    and $log_level > <system.verbosity.zenka_logfile>;
+
+$log_buffer = 'zenka' if !length($log_buffer);
+
+$log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
+
+my $h_override   = <base.ntime-harmony> // 1;  ## reducing calculation load., ##
+my $want_harmony = $log_level < 3 ? $h_override : 0;
+
+$log_msg =~ s|\r|\\r|g;
+$log_msg =~ s|\n|\\n|g;
+$log_msg =~ s|\0|\\0|g;
+$log_msg =~ s|\e|\\e|g;
+
+## prevent deep recursions in error log system ###
+my $fatal_exit
+    = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, ) ? 1 : 0;
+
+$log_msg = "$ANSI{'p7_fg_0002'}call to unknown subroutine while executing '$1'"
+    if $log_msg
+    =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
+
+my $dots = <log.dots> //= '.';
+
+my $bg   = $ANSI{'p7_bg'};
+my $rst  = $ANSI{'reset'};
+my $bl_c = $ANSI{'p7_fg_0000'};
+my $an_c = $ANSI{'p7_fg_0001'};
+
+my $zenka_prefix = sprintf( $bl_c . "$bg:.$an_c%s$bl_c.$an_c%s$bl_c%s:$rst",
+    <system.node.name>, <system.zenka.name>, $dots );
+
+my $log_str;
+
+# say '< caller 0 > '.[caller(1)]->[1].':'.[caller(1)]->[2] if $log_level == 0;
+# say '< caller 4 > '.[caller(1)]->[1].':'.[caller(1)]->[2] and sleep 0.24 if $log_level == 2;
+
+## log colors ##
+my $c_l = 2;
+$c_l = 3 if $log_level == 0;
+$c_l = 4 if $log_level == 1;
+$c_l = 1 if $log_level == 2;
+$c_l = 0 if $log_level > 2;
+my $fg_c = $ANSI{"p7_fg_000$c_l"};
+##
+if ( $log_level > 0 ) {
+    $log_str = "$zenka_prefix ${fg_c}$log_msg$ANSI{'reset'}";
+} else {
+    $log_str = "$zenka_prefix $ANSI{'bold'}${fg_c}$log_msg$ANSI{'reset'}";
+}
+
+if ($fatal_exit) {
+    say STDERR $log_str,
+        "$zenka_prefix$ANSI{'p7_fg_0002'} << EMERGENCY SHUTDOWN >> ",
+        " [ anticipated deep recursion in log system ]";
+    exit 2;
+}
+
+## write imto 'zenka' log buffer ##
+if ( defined $code{'base.buffer.add_line'} ) {
+    $time_stamp //= $code{'base.anum_log_time'}->( 5, $want_harmony );
+    <[base.buffer.add_line]>->(
+        $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+        )
+        if $log_level <= <system.verbosity.zenka_buffer>
+        or $log_level <= <system.verbosity.zenka_logfile>;
+}
+
+# print to console
+
+if ( fileno(STDOUT)
+    and $log_level <= <system.verbosity.console> ) {
+
+    say delete <log.next_console_line> if defined <log.next_console_line>;
+
+    utf8::decode($log_str) and say $log_str;    ## <-- log to console ##
+
+    ## correcting length to plain text ., ##
+    <[base.strip_ansi]>->( \$zenka_prefix ) if $data{'system'}{'ansi_color'};
+
+    <log.logged_prefix_width> = length($zenka_prefix)
+        if not defined <log.logged_prefix_width>
+        or <log.logged_prefix_width> != length($zenka_prefix);
+}
+
+return 1;
+
+#.............................................................................
+#26XFJKYYAYWLOWO6CGTZVNIKLDZTLMBS73ONO7RXAGAJUP37QOHZI5PFPTDVUIEWPUQPTPHVD3JU6
+#::: FSXKXTRDR4ZJDHO4QDJ3XFPEYQQV4ZXK6C7EIBZTRAMSWGHTPJT :::: NAILARA AMOS :::
+# :: 6E6KL6IRS3WMBWNC7WN4GAF3APDARJ6XBUJ6NEMYCKP77OGFV6CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

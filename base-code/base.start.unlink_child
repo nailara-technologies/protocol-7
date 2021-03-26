@@ -1,0 +1,31 @@
+# >:]
+
+# name = base.start.unlink_child
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) ) {
+    <[base.log]>->( 1, "..starting 'unlink' child..," );
+    ( my $zenka_name = <system.zenka.name> ) =~ s|[^_\.\-\w]+||g;
+
+    my $child_code = <<~ "EOT";
+    use strict; use warnings; use English;
+    map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
+    \$PROGRAM_NAME = q|$zenka_name-<root>-'unlink'-child|;
+    foreach my \$file (<STDIN>){ chomp(\$file); unlink(\$file) }
+    EOT
+
+    <process.unlink_child.pid>
+        = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
+        '-e', $child_code )
+        || die "unable to start perl unlink child process [$OS_ERROR]";
+    <[base.log]>->(
+        2, ": started unlink child [pid=" . <process.unlink_child.pid> . "]"
+    );
+}
+
+#.............................................................................
+#K7LCVVQ7IVYUI6E4L3VRXBRQ5IFV7YGJDFJRRDKUAGQ7XNCYSEF45AUX6BTUQZ6VQWGGKDXKHR5TA
+#::: DPP3L5UOLBQAD7HS6XHILPCXG53NBLD4JRXAMOQCMDXHTHLVULC :::: NAILARA AMOS :::
+# :: TCD22O7MJWFJZ3VYAAYBISWNQUARF7FYS75VLCM5QOY36DPHWIDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,29 @@
+# >:]
+
+# name = mpv.await_window_presence
+
+<x11.window_timeout> //= 7;
+
+my $wait_title_str = <mpv.zenka_title>;
+$wait_title_str .= '[' . <system.zenka.subname> . ']'
+    if exists <system.zenka.subname> and length(<system.zenka.subname>);
+$wait_title_str =~ s|([\[\]\.])|\\$1|g;
+if ( not defined <[base.X-11.wait_for_window]>->($wait_title_str) ) {
+    <[base.log]>->( 0, "<<<!>>> mpv window creation timed out <<<!>>>" );
+    <[mpv.abort_startup]>;    # <-- exiting
+} else {
+    <[base.X-11.assign_window]>->(<x11.id>);
+    if ( <system.zenka.mode> eq 'universal-child' ) {
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "cube.X-11.hide_window",
+                'call_args' => { 'args' => <x11.id> }
+            }
+        );
+    }
+}
+
+#.............................................................................
+#7YM54J6CZ6Y5OXMT5JJHNPBCC2CYYWF3M62JYZMWKJ6XMMWDTHOD25CQFG3HLF47SRFSVKODLHVSS
+#::: UTB2Q4EOEICJQ7E3B7QRSBU66NB5BCWW2RNRBBQNPNHQSVYDCUR :::: NAILARA AMOS :::
+# :: 7QTOKMOF47HXAMQTEZFWQ6NWRYYIYZXSDOYNZUJRB5GZQEFMJUDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

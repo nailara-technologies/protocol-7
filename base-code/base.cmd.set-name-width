@@ -1,0 +1,24 @@
+# >:]
+
+# name  = base.cmd.set-name-width
+# descr = sets the max zenka name width [console]
+
+my $new_width    = $1 if $$call{'args'} =~ /^(\d{1,2})$/;
+my $zenka_prefix = join( '.', ' :' . <system.node.name>, <system.zenka.name> );
+my $min_len      = length($zenka_prefix) - 1;
+
+return { 'mode' => 'nak', 'data' => "value too small [ min = $min_len ]" }
+    if $new_width < $min_len;
+
+return { 'mode' => 'nak', 'data' => "is already at $new_width" }
+    if $new_width == $min_len;
+
+<log.name_width> = $new_width;
+
+return { 'mode' => 'ack', 'data' => "name-width = $new_width" }
+
+#.............................................................................
+#HQI7XBCT2YOWRBMNB2B6UHGIIWHRB45IYN4KIDKMGQ7SKAAGFJ6QECRPVWHW2XNFVYC5URPAOQK3S
+#::: HPDPWKZHFB6JV2YTHNENHKWTLB7HA7EZDAEGKKXFH7LVXXDR7ZW :::: NAILARA AMOS :::
+# :: RGV2WZPEMV7MIGSKOUKHD3ONFP5ZY3PV2MIWXLITPHCFDQPDRICY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+# >:]
+
+# name  = sourcecode.pre_init
+
+undef <system.privs.user>;
+<base.ntime-harmony> = 0;    # <-- time-stamps are not used .,
+<source.path>     //= {};    ## <-- zenka 'source' inheritance
+<sourcecode.path> //= {};    ## <-- zenka 'sourcecode'
+
+## undocumented feature to change project tree
+if ( $data{'system'}{'args'} =~ s|\s*-work-tree=(\S+)\s*||, ) { # no whitespaces
+    my $work_tree = $1;
+    die "work-tree '$work_tree' not found" if !-d $work_tree;
+    <sourcecode.path.work_tree> = $work_tree;
+
+    ## additional initializations in 'source.init_code' ##
+    <source.path.work_tree> = <sourcecode.path.work_tree>;
+
+    map { <[base.log]>->( 0, ":: $ARG" ) }
+        ( '', "< manual-param > [ work-tree = '$work_tree' ]", '' );
+} else {
+    <sourcecode.path.work_tree> = <system.root_path>;
+}
+
+0;
+
+#.............................................................................
+#5YVG2KC6SZA6JSZTTE66JRQSEV6ATBLA2UOUHKA3XVVI5LFYDRYQXONT4DTWCFMSYYWNEHUVSQ5WO
+#::: FDH4YMNQVSEMGACJSO7VLOQ7RO72TBXPCVR4BRIPXHLYZCZT2TK :::: NAILARA AMOS :::
+# :: VFKPIP4H4FOZXOXQMOTOCOXLLDMZKY666DA3QD6OEPUMQQIMJWBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

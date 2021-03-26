@@ -1,0 +1,31 @@
+# >:]
+
+# name = nroot.callback.object.zenka
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( $object_type ne 'zenka' ) {
+    <[base.log]>->(
+        0, "object $object_id is of type '$object_type' and not 'zenka'."
+    );
+    return undef;
+}
+my $zenka_id = <dependency.object>->{$object_id}->{'zenka_id'};
+return undef if not exists <nroot.zenka.setup>->{$zenka_id};
+
+foreach my $id ( keys %{<nroot.zenka.instance>} ) {
+    return 1
+        if defined <nroot.zenka.instance>->{$id}->{'zenka_id'}
+        and defined <nroot.zenka.instance>->{$id}->{'status'}
+        and <nroot.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id
+        and ( <nroot.zenka.instance>->{$id}->{'status'} eq 'online'
+        or <nroot.zenka.instance>->{$id}->{'status'} eq 'extbin' );
+}
+return 0;    # not online
+
+#.............................................................................
+#E5SAF3ITJAFN7WPQNAH2CBTO5ORAOWRJYE5ERUIYZ47RC7DADOYJ4BMIZZCCIPXVVUCAOJNC5JRTQ
+#::: 7DJUEWJTQOV3J2RD5V5OI57TE7MDGPY43OSRBTY7JCEPJ7KMIGJ :::: NAILARA AMOS :::
+# :: HGRBT4HDVSD3YW3MNU6ZETWVVNXGZ6G7LUEMYZ6FKLZQJ43JPGDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

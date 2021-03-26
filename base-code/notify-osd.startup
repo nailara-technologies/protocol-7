@@ -1,0 +1,40 @@
+# >:]
+
+# name = notify-osd.startup
+# note = primitive implementation, improve error handing before production usage
+
+<[base.log]>->( 1, "starting notify-osd on display " . <x11.display> . " .," );
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+<notify-osd.pid> = open3(
+    <notify-osd.in_fh>, <notify-osd.out_fh>,
+    my $err_fh,         <notify-osd.path.exec_bin>
+);
+if ( !<notify-osd.pid> ) {
+    <[base.log]>->( 0, "<!> unable to start notify-osd [$OS_ERROR] <!>" );
+    <[base.log]>->( 1, " : aborting zenka startup .," );
+    exit(1);
+} else {
+    <[base.log]>->( 1, " : notify-osd process started [PID=<notify-osd.pid>]" );
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <notify-osd.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin'           => 'notify-osd',
+            'pid'           => <notify-osd.pid>,
+            'log_whitelist' => [
+                '_OB_WM_ACTION_UNDECORATE', 'Gdk-WARNING',
+                'not present in theme',     'org.gnome.ScreenSaver'
+            ]
+        }
+    }
+);
+
+#.............................................................................
+#GAO4O3DGQZRZREABDQCKWIBB3PLHRETOFLXLZLXMQK7I6PQUG6A6IRJFNF7DYT4GUZXLHBMMUWKSC
+#::: KF7KKXT7MTVPIOZX7GOC3A6FOPOUQPB6HIUAJP2232FDJT7PQIR :::: NAILARA AMOS :::
+# :: OL6ZDBT4DSL3D2QZOOPF4Y3T3FV5CHWJ7WKYNTHJIQU3AQJIEEBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

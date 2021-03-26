@@ -1,0 +1,26 @@
+# >:]
+
+# name  = nroot.zenka.setup.add
+# descr = store a new zenka setup and return its id
+
+my $zenka_details = shift;
+die 'nroot.zenka.setup.add: expected a hash reference!'
+    if ref($zenka_details) ne 'HASH';
+
+my $zenka_name = $zenka_details->{'name'};
+die 'nroot.zenka.setup.add: [minimum] \'name\' parameter required'
+    if not defined $zenka_name or !length $zenka_name;
+
+$zenka_details->{'type'} //= 'local';
+
+my $zenka_id = <[base.gen_id]>->(<nroot.zenka.setup>);
+
+<nroot.zenka.setup>->{$zenka_id} = $zenka_details;
+
+return $zenka_id;
+
+#.............................................................................
+#7UZAJZOJENYDVLEZHXGUFZFDTHVOYHCEHSXKNKUT65DCP5MFAWSU54E75PKY4KMHJE7VPMKWUNWFW
+#::: QWCLLBE6CP7EJWW2XHU6256M5MD7ZA4PF3QPR67WIM37AQZZKYL :::: NAILARA AMOS :::
+# :: YCLP27KCJUYYLCI5FALJTRPXRKKMMWNNBSWPQA36UEG6U34H5QBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+
+# name  = events-setup.base
+# descr = simple example setup for 'events' zenka
+
+
+.: events :.
+
+    enabled = forensics # dist-upgrade
+
+    - dist-upgrade
+
+      : action :
+        type      = zenka-present
+        zenka-name = dist-upgrade
+
+    - forensics
+
+      : action :
+        type   = zenka-present
+        zenka-name = forensics
+
+    - another-example
+
+      : action :
+        type    = send-command
+        command = zenka-name.command [params]
+
+.: timetable :.
+
+  - dist-upgrade
+    at  =  03:47
+
+  - forensics
+    at  =  04:07
+
+  - another-example
+    at  =  HH:05:13
+    # .. or .,
+    # start = 07:05
+    # end   = 20:07

@@ -1,0 +1,36 @@
+# >:]
+
+# name  = nroot.zenka.cmd.pid-instance
+# param = <pid>
+# descr = return instance id for a given process IDs
+
+my $process_id = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => "expected numerical PID parameter"
+    }
+    if not defined $process_id or $process_id !~ /^\d+$/;
+
+my $match_iid;
+foreach my $i_id ( keys %{<nroot.zenka.instance>} ) {
+    my $parent_pid = <nroot.zenka.instance>->{$i_id}->{'process'}{'id'};
+    if ( $process_id == $parent_pid ) {
+        $match_iid = $i_id;
+        last;
+    } else {
+        map {
+            if ( $ARG == $process_id ) { $match_iid = $i_id; last }
+        } @{ <[nroot.sub-process.get_children]>->($parent_pid) };
+    }
+}
+
+return { 'mode' => 'ack', 'data' => $match_iid } if defined $match_iid;  # match
+
+return { 'mode' => 'nak', 'data' => "found no matching instance" };   # no match
+
+#.............................................................................
+#WMDWLP4M5E466FZRU3AAE4V4ISB6HVXQWUFDDVI777OGWXYJTAMDDMHOJNTZPYP4ZZKH64EKZCKEY
+#::: L44EN6KUWD4VFA7SKSVMJ7MX66WJHLOYEXJFSHXDYIA74QOXOGW :::: NAILARA AMOS :::
+# :: 3UHEL7TDEBGVL4HMQC42HVIW6UG4GD4MF6OMIO4DACBGEO2LZKBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

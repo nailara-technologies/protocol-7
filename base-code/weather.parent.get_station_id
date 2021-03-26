@@ -1,0 +1,37 @@
+# >:]
+
+# name = weather.parent.get_station_id
+
+my $city = shift;
+
+$city =~ s|\s*,\s*(\w+)$|,$1|;
+
+die "expected city name parameter" if not defined $city or !length($city);
+
+my $station_id = <[weather.parent.cache.read_station_id]>->($city);
+
+if ( defined $station_id ) {
+    <weather.station_id> = $station_id;
+    <[base.log]>->( 1, "loaded cached station id [$station_id]" );
+    if ( !<weather.zenka.initialized> ) {
+        <[base.async.get_session_id]>;
+        <weather.zenka.initialized> = 1;
+    }
+} else {
+    <[base.log]>->( 1, "getting station id for '$city'.." );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "child.get-station-id",
+            'call_args' => { 'args' => $city },
+            'reply'     => {
+                'handler' => 'weather.parent.handler.station_id_reply',
+                'params'  => { 'city' => $city }
+            }
+        }
+    );
+}
+
+#.............................................................................
+#TCBG5747QBQPIWMBPUNQBNVYQ65ZKBLMX4MFK5AZYZ7TWM4WV33YWQU3FIH7NHS7GVIKFIHRAFAIG
+#::: ZQUGFZPKWPNGKRX4EIZENEVVFRZMLNDN2OXHSPR276YTXBNZECZ :::: NAILARA AMOS :::
+# :: ZNKBALATLOGYUW5DLI7N5MJO3273HWJ2PGIGUQA3P2BCKMIBN6CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -163,7 +163,8 @@ if ( not defined $start_seed or $state->{'count'}->{'zulum'} == 1 ) {
         //= join( '', $start_seed, $state->{'seed'}->{'num'} );
 }
 ## [ [RE]SEEDING THE PRNG .., ] ###
-$math->{'fortuna'} //= Crypt::PRNG::Fortuna->new( $state->{'seed'}->{'prng'} );
+$math->{'fortuna'}
+    //= Crypt::PRNG::Fortuna->new( $state->{'seed'}->{'prng'} );
 ##
 
 ######################## ## use '3' as test intialization [error] seed ##
@@ -197,7 +198,8 @@ RECALC:
     $state->{'page-legend'} = '';
 
     $state->{'result-13'}
-        = scalar $math->{'zulum'}->copy()->bdiv( 13, $state->{'screen-bytes'} );
+        = scalar $math->{'zulum'}->copy()
+        ->bdiv( 13, $state->{'screen-bytes'} );
 
     ## shift for zulum prefix ##
     my $zulum_offset = 0;
@@ -363,7 +365,8 @@ ADD_CHARACTERS:
         ### [ \r ] ###
         my $cr_pos = index( $decoded_chars, "\r" );
         if ( $cr_pos > -1 ) {
-            substr( $decoded_chars, $cr_pos, $chars_left ) = ' ' x $chars_left;
+            substr( $decoded_chars, $cr_pos, $chars_left )
+                = ' ' x $chars_left;
             $chars_left = $line_width;
         }
 
@@ -382,7 +385,8 @@ ADD_CHARACTERS:
     my $endline_pos = index( $decoded_chars, "\n" );
     if ( $endline_pos > -1 ) {
 
-        substr( $decoded_chars, $endline_pos, $chars_left ) = ' ' x $chars_left;
+        substr( $decoded_chars, $endline_pos, $chars_left )
+            = ' ' x $chars_left;
         $chars_left = 0;
     }
 
@@ -499,7 +503,8 @@ sub checksum_state {
         'bmw' => bmw_BASE32( \$state_dump )
     };
     $$state_ref->{'checksum'}
-        = join( '-', $checksums->{'elf'}, substr( $checksums->{'bmw'}, 0, 4 ) );
+        = join( '-', $checksums->{'elf'},
+        substr( $checksums->{'bmw'}, 0, 4 ) );
 
     return $checksums;    ## B32-elf + B32-bmw-512 ##
 }
@@ -513,15 +518,17 @@ sub cmd_quit  { cmd_reset();        exit(0) }
 
 sub save_state {
     checksum_state();
-    my $chk_sum   = $state->{'checksum'};
-    my $file_name = join( '.', $set_up->{'state-file'}, $state->{'checksum'} );
+    my $chk_sum = $state->{'checksum'};
+    my $file_name
+        = join( '.', $set_up->{'state-file'}, $state->{'checksum'} );
     DumpFile( $file_name, $state );
     unlink( $set_up->{'state-file'} ) if -e $set_up->{'state-file'};
     symlink( $file_name, $set_up->{'state-file'} );
 }
 
 sub update_state_files {
-    opendir( DIR, '.' ) or return ':: opendir error : ' . lc($OS_ERROR) . ' ::';
+    opendir( DIR, '.' )
+        or return ':: opendir error : ' . lc($OS_ERROR) . ' ::';
     my @state_files = grep {m|^atom-delta-term\.state\.|} readdir(DIR);
     closedir(DIR);
     my $file_count = 0;
@@ -570,7 +577,8 @@ sub sig_int_handler {
                 print "\eH\e[0m\e[40m\e[34m\r\n< awaiting command > ";
             }
             chomp( $cmd = <STDIN> // '' );
-            $cmd =~ s|^\d+||; ## clean-up [ garbled by ansi ] ## [inversitgate.]
+            $cmd =~ s|^\d+||
+                ;    ## clean-up [ garbled by ansi ] ## [inversitgate.]
             $set_up->{'prompt-hidden'} = 0 if length($cmd);
         }
         $state->{'last-cmd'} = $cmd
@@ -688,7 +696,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#Y6UTTAUTMXY6ULR3VWFLB2776POJQMCSX37JMMDXXSQHBBRCPOCASNGSKIF6QXVRKCNQ2OGA7U2WY
-#::: 3HCUXFHV6I4JLWXDP2QWRHHJF4HQFX5BB627W7ABNDJFIOADZKR :::: NAILARA AMOS :::
-# :: 63B32GE5VVWM5SSZWL44PHDVZR72N56PJBUU3QS5HL3XPQFXFKCQ :: CODE SIGNATURE ::
+#7ERCV5GLIN3LPRXIZ66FUGSWCKTWV2RABGEPPNO2MAV5I4HO4ATMXISLSTIOVY2WY63Q3HFWXU236
+#::: 2HSNGEUZTUW4TPLMMNQD3CM2AI7GIYEOBOWOY5AZJIYS3ZKGWZP :::: NAILARA AMOS :::
+# :: ZFDDYNANHLRSPAAYH5VLNARWQOO47VAVIOAOUS5MVGRP5R5OBYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

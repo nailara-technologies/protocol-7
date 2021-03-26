@@ -1,0 +1,32 @@
+# >:]
+
+# name = universal.handler.mpv_idle_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $zenka_name = $params->{'zenka'};
+my $reply_str  = $reply->{'call_args'}->{'args'};
+
+delete <universal.timer.mpv_idle_timer>;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <[base.log]>->( 0, "[!] 'mpv.is_idle' command failed [ $reply_str ]" );
+} else {
+    if ( $reply_str eq 'no' ) {
+        <[base.log]>->( 2, "[success] mpv is playing [ switch performed ]" );
+        return;
+    } else {
+        <[base.log]>->(
+            0, "<!> mpv is still idle ( resume failed [$reply_str] ) <!>"
+        );
+    }
+}
+
+<[base.log]>->( 0, " :. recovery initiated [ zenka self-restart ] << ! >>" );
+<[universal.self_restart]>;
+
+#.............................................................................
+#QE6DSUGP2U2XPYZ7RUMPV4MWY3L7HF3Y2SWGTBYW7RUJEFLLZBVTZACR5MW2HYUH4BKJ32GQ53J7S
+#::: UX7AGYJ5TNL6CN6OY7CDZOHTE55YTTDJ7WQ7XN2JLU56OZWT56J :::: NAILARA AMOS :::
+# :: AYIU5QUPHR6TKWCQXATEU4GYHJJPQOPF6TVFDULIK5FOMJ3A4GAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

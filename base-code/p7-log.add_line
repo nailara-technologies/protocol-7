@@ -1,0 +1,70 @@
+# >:]
+
+# name  = p7-log.add_line
+# descr = add a log entry to specified log file
+
+my ( $log_name, $log_msg_ref ) = @_;
+
+# validating input parameters
+return ( 0, 'no log file specified' )
+    if not defined $log_name or !length($log_name);
+return ( 0, "invalid log file name '$log_name'" ) if $log_name =~ m|^\.|;
+return ( 0, "invalid characters in log file name '$log_name'" )
+    if $log_name !~ m|^[\w\d\-\.\_\ ]+$|;
+return ( 0, 'empty log message' )
+    if not defined $$log_msg_ref or !length($$log_msg_ref);
+$$log_msg_ref =~ s|^0 ||;    # cube-zenka source sid
+$$log_msg_ref .= "\n" if $$log_msg_ref !~ m|\n$|;
+
+my $log_path = <log.protocol_7.path>;
+my $log_file .= "$log_name.log";
+my $file_create_mode = 0640;
+
+<log.files>->{$log_name} //= { 'fh' => undef, 'locked' => 0, 'timer' => undef };
+
+# check log directory
+if ( !-d $log_path ) {
+    <[base.log]>->( 0, "log directory '$log_path' disappeared, recreating..," );
+    my ( $ok, $err_msg )    # LLL: use File::Path::make_path() ?
+        = <[file.make_path]>->( $log_path, <log.protocol_7.dir_mask> );
+    return ( 0, $err_msg ) if !$ok;
+    my ( undef, undef, $uid, $gid ) = getpwnam(<log.protocol_7.user>)
+        or return ( 0, "user '<log.protocol_7.user>' not in passwd file" );
+    <log.protocol_7.path> =~ s|/+$||;
+    chown( $uid, $gid, <log.protocol_7.path> )
+        or return ( 0, "chown(<log.protocol_7.path>): $OS_ERROR" );
+    <log.files>->{$log_name} = { 'fh' => undef, 'locked' => 0 };
+}
+
+# manage file handle and locking
+my $log_fh;
+if ( !<log.files>->{$log_name}->{'locked'} ) {
+    <[base.log]>->( 2, "opening log '$log_name'..," );
+    open( $log_fh, ">>$log_path/$log_file" )
+        or return ( 0, "unable to open logfile [$OS_ERROR]" );
+    flock( $log_fh, 2 )    # LOCK_EX
+        or return ( 0, "unable to lock logfile [$OS_ERROR]" );
+    <log.files>->{$log_name}->{'locked'} = 1;
+    <log.files>->{$log_name}->{'fh'}     = $log_fh;
+    <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(
+        {   'after'   => 1,
+            'handler' => 'p7-log.handler.close_log',
+            'data'    => $log_name
+        }
+    );
+    <[base.log]>->( 2, "got lock for '$log_name'.," );
+} else {
+    $log_fh = <log.files>->{$log_name}->{'fh'};
+}
+
+utf8::decode($$log_msg_ref);
+
+print {$log_fh} $$log_msg_ref;
+
+return 1;
+
+#.............................................................................
+#ZIK6Y2H3MPDPVZZML4HPN6BNCXYLS55QI2EEBTP3XR724RX2RFADWPZHMEE7XHZVBBF6FZOIUK4WS
+#::: H6IIGWRZXRBKTSH6EHGWDNSK6TQTZAKP7RIV2R7QKPBBSCD6CH3 :::: NAILARA AMOS :::
+# :: CVZFUQ5FV4VSNM4U2KDDJ5Z2FWG5NGETKHMUB5BHAUA5CHOQWAAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,133 @@
+# >:]
+
+# name = compton.startup
+# note = primitive implementation, improve error handing before production usage
+
+my $display = <x11.display>;
+if ( not defined $display ) {
+    <[base.log]>->(
+        0, "<< not able to get DISPLAY setting from X-11, aborting startup >>"
+    );
+    exit(2);
+}
+
+<[base.log]>->( 1, "starting 'compton' on display $display .," );
+
+my $shadow_def = '#000013';
+<compton.default_shadow> //= $shadow_def;
+( my $sh_col = <compton.shadow_color> //= <compton.default_shadow> );
+
+if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
+    <[base.log]>->( 0, "<!> no a valid background color syntax ['$sh_col']" )
+        if defined $sh_col;
+    $sh_col = <compton.default_shadow>;    # <-- fallback color
+}
+
+## [ calculate shadow color values ]
+my @sh_val;
+my @shadow_opts;
+while ( $sh_col =~ s|^#?(\w{2})||i ) {
+    push(
+        @sh_val,
+        uc($LAST_PAREN_MATCH) eq 'FF'    ## <-- white exception ., ##
+        ? 1
+        : sprintf( "%.2f",
+            ord( pack( 'h*', $LAST_PAREN_MATCH ) ) / 100 / 2.72 )
+    );
+}
+map { push( @shadow_opts, "--shadow-$ARG", pop(@sh_val) ) }
+    qw| blue green red |;
+##
+
+# old method: --vsync drm --paint-on-overlay --dbe # caused video tearing...
+my @vsync_options = qw| --unredir-if-possible |;
+
+@vsync_options = qw| --paint-on-overlay --dbe --unredir-if-possible |
+    if <x11.driver> eq 'nvidia';
+
+@vsync_options = qw|--backend xrender --vsync opengl --paint-on-overlay --dbe|
+    if <x11.mode> eq 'xephyr';
+
+### start-up ###
+
+my @c = (
+    qw| compton -d |, $display, @vsync_options, qw|
+        --shadow --no-dock-shadow -t -18 -l -15 -r 10 -o 1 -c -C
+        --blur-background-fixed --detect-client-opacity
+        --blur-kern 11x11gaussian --resize-damage 5
+        -f -D 21 --no-fading-destroyed-argb
+        --shadow-exclude name*='mpv'
+        --shadow-exclude name*='menu'
+        --shadow-exclude name*='ticker'
+        --shadow-exclude name*='gkrellm'
+        --shadow-exclude name*='reenc-msg'
+        --shadow-exclude name*='universal'
+        --shadow-exclude name*='impressive'
+        --shadow-exclude name*='start-anim'
+        --shadow-exclude name*='web-browser'
+        --shadow-exclude name*='storchencam'
+        --opacity-rule 97:name*='SciTE'
+        --opacity-rule 85:name*='Firefox'
+        --opacity-rule 76:class_g*='XTerm'
+        --opacity-rule 76:class_g*='Xephyr'
+        --opacity-rule 85:name*='amos-desktop'
+        |, @shadow_opts
+);
+
+
+### [ logging command arguments ] ###
+my $lpw = <system.start.log_prefix_width> // <[base.get_start_lpw]> // 24;
+my $wrap_at = 78 - $lpw;
+local $Text::Wrap::columns   = $wrap_at;
+local $Text::Wrap::separator = "\n";
+my $cmd_string = wrap( '  ', ' ' x 18, join( ' ', @c ) );
+$cmd_string =~ s|\n| \\\n|mg;
+$cmd_string =~ s|( +\\\n)?$|\n|s;
+map { <[base.log]>->( 2, $ARG ) } ( ':.', split( m|\n|, $cmd_string ), '..' );
+###
+
+<compton.pid> = my $pid = open3( <compton.in_fh>, <compton.out_fh>, undef, @c );
+if ( !<compton.pid> ) {
+    <[base.log]>->( 0, "[!] unable to start compton [$OS_ERROR]" );
+    <[base.log]>->( 1, " : aborting zenka startup .," );
+    exit(1);
+}
+
+<[base.log]>->( 1, ": compton process started [PID=$pid]" );
+my $prio = <compton.priority>;
+
+<[base.log]>->( 1, ": :. reporting process id to 'nroot' .," );
+<[base.zenki.report_child_pid]>->($pid);
+
+<[base.log]>->( 2, ": setting child priority [ $pid ] to $prio" );
+print {<compton.renice_fh>} "$pid $prio\n";
+close(<compton.renice_fh>);
+delete <compton.renice_fh>;
+
+<[event.add_io]>->(
+    {   'fd'      => <compton.out_fh>,
+        'handler' => 'base.handler.child_output.simple',
+        'data'    => {
+            'bin'           => 'compton',
+            'pid'           => <compton.pid>,
+            'log_whitelist' => [
+                'invalid window parameter',
+                'XIO:  fatal IO error ',
+                'after \d+ requests',
+                'no composite extension',
+                'another composite manager'
+            ],
+            'callback_patterns' => {
+                'no composite extension' => 'compton.callback.not_composited',
+                'another composite manager is already running' =>
+                    'compton.callback.already_running'
+            }
+        }
+    }
+);
+
+#.............................................................................
+#IECOTUMVHOYYZJ566F7BKGZGNSKHA63NZXYDA5HYODSB2524RW6QAIURNNA4VX4Q55IQGPMHGE3WC
+#::: IZRLIZ3JP3L3QSYSJW3VS273CV5TMPR4IGE5L2ADBARZERWAAYJ :::: NAILARA AMOS :::
+# :: KXPXGQ6E3NBX4PQVY36HK4IFJBZDC3HXHL5SLQTMD5N5FVZVYKAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

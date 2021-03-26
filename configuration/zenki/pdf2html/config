@@ -1,0 +1,25 @@
+
+ .:[ 'pdf2html' conversion zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
+                      get_url check_format
+
+access.cmd.usr.parent = commands reload show-buffer convert_pdf
+
+pdf.html.cache_dir   = /var/cache/pdf2html
+pdf.html.cache_perm  = 0755
+pdf.html.cache_timeout = 30 # days
+
+modules.load = auth net protocol io.ip chk-sum.sha pdf.html.base
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+
+[net.connect_to_cube:'ip.tcp']
+
+[pdf.html.base.fork_conv_child]
+
+[event.loop]

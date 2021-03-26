@@ -1,0 +1,30 @@
+# >:]
+
+# name  = zenka-output.patterns
+# descr = zenka startup message patterns to trigger state change
+
+.: output patterns :.
+
+  - !nroot::selected auth method 'zenka'\.,$::
+    [nroot.calc_prefix_lengths:<zenka_name>]
+
+  - cube::changed priviledges to user '[^\']+'$::
+    [zenka.change_status:<instance_id>,'online'];
+
+  - cube::^\[(\d+)\] zenka '([^']+)' session authorized\.$::
+    [nroot.handler.cube_session_auth:<instance_id>,<match_1>,'zenka',<match_2>]
+
+  - cube::^\[(\d+)\] session authorized as '([^']+)'( \[u:[^\]]+\])?$::
+    [nroot.handler.cube_session_auth:<instance_id>,<match_1>,'unix',<match_2>]
+
+  - cube::^\[(\d+)\] user session authorized to '([^']+)'$::
+    [nroot.handler.cube_session_auth:<instance_id>,<match_1>,'pwd',<match_2>]
+
+  - cube::^\[(\d+)\] connection closed\.$::
+    [nroot.handler.cube_session_close:<instance_id>,<match_1>]
+
+  - !cube::^cube session id received \[(\d+)\]$::
+    [zenka.set_cube_sid:<instance_id>,<match_1>]
+
+  - !cube::^instance verification \[KEY:([a-zA-Z\d]+)\]$::
+    [nroot.handler.instance_verification:<instance_id>,<match_1>]

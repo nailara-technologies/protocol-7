@@ -1,0 +1,22 @@
+# >:]
+
+# name  = crypt.C25519.cmd.get-session-key
+# descr = return C25519 public session key in BASE32
+
+my $key_name = <system.zenka.name>;
+
+return { 'mode' => 'nak', 'data' => 'C25519 key name is not defined' }
+    if not defined $key_name;
+return { 'mode' => 'nak', 'data' => "no session key '$key_name' available" }
+    if not defined $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'};
+
+return {
+    'mode' => 'ack',
+    'data' => $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'}
+};
+
+#.............................................................................
+#BVEYP2JOJSP5HRES53PS6DRTJKXBVSNGZ6VFHFUP72ZRZ6ZPXGFQMIMFHYOKCINQFQ4Z6GKAZVKVK
+#::: UYXGGWM65CNSMKYIQ73RZBFFJIP4YHLMISH6ITGARMWGXNVMEYE :::: NAILARA AMOS :::
+# :: 7SNAIZ7CLGS3DIVMGWFJV3GEGYHV6YEXPN3XOLTZWXZY7XN4RICA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

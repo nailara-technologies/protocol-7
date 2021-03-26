@@ -1,0 +1,19 @@
+
+ .:[ generic authentication zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = verify-instance commands heart reload * # <- <<< ! >>>
+
+modules.load = net protocol io.ip auth chk-sum.bmw crypt.C25519 keys nauth \
+                                                                    ## debug
+
+[root.drop_privs:<system.privs.user>]
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]

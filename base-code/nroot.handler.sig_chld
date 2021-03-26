@@ -1,0 +1,113 @@
+# >:]
+
+# name  = nroot.handler.sig_chld
+
+<[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
+local ( $OS_ERROR, $CHILD_ERROR );
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
+
+    my $instance_id;
+    my $instance;
+    my $zenka_name;
+    my $zenka_subname;
+
+    if ( my $child = <nroot.child>->{$pid} ) {
+        $instance_id   = $child->{'instance_id'};
+        $instance      = <nroot.zenka.instance>->{$instance_id};
+        $zenka_name    = $instance->{'zenka_name'};
+        $zenka_subname = $instance->{'subname'};
+    }
+
+    # determine exit status
+    my $log_level = 2;
+    my $e_val     = $CHILD_ERROR >> 8;
+    my $e_sig     = $CHILD_ERROR & 127;
+    my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
+    $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
+    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with cube dump ]' : '';
+    $log_level = 1 if $e_val;
+    $log_level = 0 if $CHILD_ERROR & 128;
+    my $zenka_str = defined $zenka_name ? "< $zenka_name > " : '';
+    <[base.log]>->(
+        $log_level,
+        $zenka_str
+            . "child pid=$pid terminated"
+            . " ( exit code $e_val$e_sig_str )$e_dmp"
+    );
+
+    <[nroot.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
+
+    <[nroot.terminate_process]>->($pid);  # <-- cleaning up children as well ..,
+
+    delete <nroot.process.instance_cache>->{$pid};
+    delete <nroot.process.instance_cache>
+        if !keys %{<nroot.process.instance_cache>};
+
+    if ( my $child = <nroot.child>->{$pid} ) {
+
+        <[base.log]>->( 2, ": was instance $instance_id" );
+
+        delete <nroot.child>->{$pid};
+        delete $instance->{'restart_pids'}->{$pid}
+            if exists $instance->{'restart_pids'};
+
+        my $old_status = $instance->{'status'} || 'undefined';
+
+        <[base.log]>->( 2, ": had status : '$old_status'" );
+
+        ## record web-browser segfaults [ for crash mitigation ] ##
+        if ( $e_sig == 11 and $zenka_name eq 'web-browser' ) {
+            my $web_browser_uname = <x11.user>;
+            my $subname_b32
+                = ( defined $zenka_subname and length($zenka_subname) )
+                ? '.' . encode_b32r($zenka_subname)
+                : '';
+            my $file_name = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
+            <[file.put]>->( $file_name, "$pid\n" )
+                or warn("$file_name: $OS_ERROR");
+            chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
+            my @pwn = getpwnam($web_browser_uname);
+            chown( $pwn[2], $pwn[3], $file_name )
+                or warn("$file_name: $OS_ERROR");
+        }
+
+        my $next_status = (
+                   $old_status eq 'online'
+                or $old_status eq 'starting'
+                or $old_status eq 'error'
+        ) ? 'error' : 'offline';
+
+        $next_status = 'restart' if $old_status eq 'restart';
+
+        if ( $old_status eq 'online' and defined <nroot.ondemand_zenki> ) {
+            map { $next_status = 'offline' if $ARG eq $zenka_name }
+                @{<nroot.ondemand_zenki>};
+        }
+
+        if ( <[nroot.instance_pid_count]>->($instance_id) ) {
+            <[zenka.change_status]>->( $instance_id, 'delayed' )
+                if $old_status eq 'restart';
+            $instance->{'pid_check_timer'} = <[event.add_timer]>->(
+                {   'after'    => 0.07,
+                    'interval' => '0.1',
+                    'handler'  => 'nroot.handler.children_left',
+                    'data'     => {
+                        'instance_id' => $instance_id,
+                        'next_status' => $next_status
+                    }
+                }
+            );
+        } else {
+            <[zenka.change_status]>->( $instance_id, $next_status )
+                if $old_status ne $next_status;
+            <[nroot.init_restart_timer]>->($instance_id)
+                if $next_status ne 'offline' and $next_status ne 'shutdown';
+        }
+    }
+}
+
+#.............................................................................
+#VBKRBZHOSWY4H52CMDHIBRDIZYBMCUDUK2FE6ABW2AW5F5WUNXZ32FU7XVIGDW2XSD7MFLQ2A7N2Q
+#::: JKZTJUUUL6NMVN3M2VTGJRGXVF2EGPCIWHT2WWRNPCPZ7CTD4Q4 :::: NAILARA AMOS :::
+# :: UJ7NR5GDQEUPNCXJYSCUK5QOS4L7UUKWY5MAQONNFICOV7K74WBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

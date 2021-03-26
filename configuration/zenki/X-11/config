@@ -1,0 +1,100 @@
+
+ .:[ [X11] Xorg wrapper and interface zenka ]:.
+
+[load_config_file:'shared-params']
+
+[load_config_file:'x11-vars']
+
+X-11.mode = host            # [host|xorg|xephyr|nxzenka|xnest|auto-xephyr|xvfb]
+                            # override configured zenka mode using zenka subname
+
+X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
+
+X-11.display.xorg    = :0.0
+X-11.display.xvfb    = :7
+X-11.display.xnest   = :7
+X-11.display.xephyr  = :7
+X-11.display.nxzenka = :7
+
+X-11.renice_priority = -15
+
+X-11.params.xorg    = -quiet
+
+# X-11.custom_xrandr.0 = --auto --output HDMI1 --pos 500x500 \
+#                           --mode 1920x1080 -r 60.00 --pos 1680x222
+# X-11.custom_xrandr.1 = --auto --output HDMI3 --pos 0x0 \
+#                           --mode 1280x1024 -r 75.02
+
+X-11.dev.dimensions = 912x513
+
+X-11.params.xnest   = -geometry <X-11.dev.dimensions>
+X-11.params.nxzenka = -ac -geometry <X-11.dev.dimensions> \
+                           +extension Composite +extension GLX
+#                      ^^^ tie into access control mechanisms .,   [ LLL ]
+X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
+X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
+X-11.params.xephyr  = -screen <X-11.dev.dimensions>
+#                                         -glamor added ^, if not disabled below
+X-11.disable_glamor = 0
+
+#X-11.params.xephyr = -screen 1040x110  #  weather [ mode 1 ]
+#X-11.params.xephyr = -screen  672x130  #  weather [ mode 2 ]
+
+#X-11.params.xephyr = -screen 1366x542
+
+## testing backgroung image feature
+X-11.bg_image = '<system.root_path>/data/gfx/backgrounds/amos-zenka.png'
+X-11.bg_mode  = 'full'  #   <--  'hsetroot -h' for modes
+
+X-11.bg_color = '000013'
+
+X-11.bg_fade = 1  # set to 0 to skip bg color fade in
+
+X-11.connect_timeout = 7.7 # seconds
+
+X-11.host_mode.min_size = 1920x1080
+
+X-11.disable_blanking = yes
+X-11.hide_mouse_cursor = yes
+X-11.max_intel_gpu_freq = no
+X-11.keybd.grab_all_keys = no  # block X-11 clients from getting key input
+X-11.host_mode_unchanged = yes # don't touch screen set-up in host mode..,
+
+X-11.collect_intel_gpu_stats = 0  # using 'intel_gpu_top'
+X-11.collect_gpu_stats_on_4K = 1  #  if >= 4K resolution
+X-11.gpu_top.stat_log_level  = 3  # <- for debugging ..,
+
+# alert if load at :  secs
+X-11.gpu_load.alert.5  = 98 # %
+X-11.gpu_load.alert.15 = 92 # %
+X-11.gpu_load.alert.30 = 75 # %
+
+X-11.gpu_load.send_alerts = composition # zenki to receive 'gpu_load_alert' cmds
+
+access.cmd.usr.cube = commands message heart reload verify-instance get_mode \
+                      get_xauth_data get_display get_params get_screen_size \
+                      get_windows set_geometry raise_window lower_window \
+                      get_geometry get_stack_order get_window_title \
+                      set_gravity iconify_window get_orientation get_wm_name \
+                      get_window_ids keep_above keep_below get_driver \
+                      set_opacity get_opacity get_gpu_load * # [ LLL ]
+
+
+modules.preload = X-11.set-up set-up.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[set-up.json.import_file:'X-11.set-up.json']
+
+modules.load = auth net protocol io.ip X-11 ## debug
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<x11.user>]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.get_session_id]
+[X-11.check-mouse]
+
+[event.loop]

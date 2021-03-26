@@ -1,0 +1,39 @@
+# >:]
+
+# name  = base.execute_zenka_code
+# descr = execute protocol-7 zenka code
+
+<[base.log]>->( 2, ': executing protocol-7 zenka code .,' );
+
+my $noerr = 1;
+foreach my $code_line (@_) {
+    $code_line =~ s|&cmd\.([^\(]+)|<[base.check_alias]>->($1)|eg;
+    if ( $code_line ne '' ) { eval($code_line) }
+    if ($EVAL_ERROR) {
+        if ( $EVAL_ERROR =~ m|^Can't use string \(""\) as a subroutine ref| ) {
+            my $code_line_copy = $code_line;
+            while ( $code_line_copy =~ s|(\$code\{'([^\']*)'\})|| ) {
+                my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
+                next if length($sub_name) and exists $code{$sub_name};
+                <[base.log]>->(
+                    0, "unknown subroutine '$sub_name' called [ $sub_call ]"
+                );
+                $noerr = 0 if $noerr;
+            }
+        }
+        if ($noerr) {
+            $EVAL_ERROR =~ s| at ([^\s]+) line (\d+).+\n||;
+            <base.eval_error.name> = $1;
+            <base.eval_error.line> = $2;
+            warn("no success on eval '$code_line' [ '$EVAL_ERROR' ] <{C3}>");
+        }
+        $noerr = 0 if $noerr;
+    }
+}
+return $noerr;
+
+#.............................................................................
+#SPRU7C7JVONSKMC3QIHHXRJ5BHHEA76POWBM5M4UJYZGBYASYJYVAV3LY6TSS243JIFQ5ZNLB7ZPM
+#::: GNBLE7CZ7BXF6WKOVYC3NGNWBYWU45X4XLODA4HJGGTL6EO5CDQ :::: NAILARA AMOS :::
+# :: UY46GUWUTGD6BTF4LYUMDE5KCZ3F364BIV3277WLDDRQCSCVUEAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

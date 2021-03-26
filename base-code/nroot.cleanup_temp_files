@@ -1,0 +1,21 @@
+# >:]
+
+# name  = nroot.cleanup_temp_files
+
+## web-browser crash mitigation files ##
+my $count = my @web_browser_files
+    = <[file.match_files]>->(qw|  /var/tmp/  web-browser.**  |);
+if ($count) {
+    my $s = $count > 1 ? 's' : '';
+    <[base.log]>->(
+        1, "removing $count left over web-browser zenka temp file$s..,"
+    );
+    unlink(@web_browser_files) or warn $OS_ERROR;
+}
+##
+
+#.............................................................................
+#QDP6BUVC33UR5EJIVC6SCEDKMEOBDVSNMTL5HKUCU6672RQ5SFAVWQ5KS2DRASH7ZDFNB2LHX4EX6
+#::: 7SW6QY4B3SPQBSNXH6BT3WURXXSBQYQ3P7SHE6ETDZICYDCVKVB :::: NAILARA AMOS :::
+# :: MD6AV2DYT4SH4X7LQBDUGGYYRUKLCDQXALUQDOQGVYNUREEFDICI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

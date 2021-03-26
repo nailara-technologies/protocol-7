@@ -1,0 +1,90 @@
+# >:]
+
+# name = weather.base.calc_zoom_level
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+<weather.zoom_level> //= 1;
+
+my $cache_dir      = <weather.cache_dir>;
+my $zoom_file      = "$cache_dir/weather.zoom";
+my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
+if ( -f $zoom_file ) {
+    <[file.slurp]>->( $zoom_file, \$data{'weather'}{'zoom_level'} );
+    chomp(<weather.zoom_level>);
+}
+if ( -f $tile_zoom_file ) {
+    <[file.slurp]>->( $tile_zoom_file, \$data{'weather'}{'tile_zoom'} );
+    chomp(<weather.tile_zoom>);
+}
+
+<weather.base_zoom> = <weather.zoom_level>;
+
+if ( not defined <weather.web_zoom> or !<weather.web_zoom> ) {
+    <[base.log]>->(
+        1,
+        sprintf( "auto zoom is disabled., using default value [%.2f]",
+            <weather.zoom_level> )
+    );
+    return;
+} else {
+    <[base.log]>->( 1, "auto zoom is enabled.," );
+}
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_screen_size\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
+    <x11.screen_width>  = $1;
+    <x11.screen_height> = $2;
+    <[base.log]>->(
+        1,
+        sprintf(
+            ": received X-11 screen size (%sx%s)",
+            <x11.screen_width>, <x11.screen_height>
+        )
+    );
+    my $base_width = 1920;
+    my $calc_width
+        = <x11.screen_width> > <x11.screen_height>
+        ? <x11.screen_width>
+        : <x11.screen_height>;
+    <weather.zoom_level> = sprintf( "%.3f",
+        ( <weather.zoom_level> / $base_width ) * $calc_width );
+    <weather.screen_zoom_factor>
+        = sprintf( "%.3f", ( 1 / $base_width ) * $calc_width );
+    my $m_str = '';
+
+    if ( defined <weather.min_zoom> ) {
+        <weather.zoom_level> = <weather.min_zoom>
+            if <weather.zoom_level> < <weather.min_zoom>;
+        $m_str = ' [ configured minimum ]'
+            if <weather.zoom_level> == <weather.min_zoom>;
+    }
+    <[base.log]>->(
+        1, ": recalulated zoom level = " . <weather.zoom_level> . $m_str
+    );
+    return <weather.zoom_level>;
+} elsif ( $reply_string =~ /NAK command unknown$/ ) {
+    <[base.log]>->( 1, 'X-11 zenka unreachable [running?]' );
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+#.............................................................................
+#AYX67WDANOFQYC2YWA77EVUZFDXGHWB2ZMPXQMQJ4AJSDZODBQAZUEZN45LJJM2MJHM3QNN2GKSA4
+#::: BOXLVVLZCIGF7LTHMCXFNVMCYOIDL5E2MZ2NGL6Y7ZFCDAYUYZE :::: NAILARA AMOS :::
+# :: ECU2JOBS7JM4R4EUQHQCYFK5RL7XQLUXOB3XTQRZAQT3A6G5VGCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

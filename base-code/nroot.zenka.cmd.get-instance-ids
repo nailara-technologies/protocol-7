@@ -1,0 +1,51 @@
+# >:]
+
+# name  = nroot.zenka.cmd.get-instance-ids
+# param = <name[s]>
+# descr = return instance ids for matching zenka names
+
+my $params = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'expected zenka name[s]' }
+    if !length($params);
+
+my @instance_ids;
+my $not_found   = 0;
+my $setup_found = 0;
+my $not_found_name;
+foreach my $param_str ( split / +/, $params ) {
+    my $zenka_name = $param_str;
+    my $zenka_subname;
+    $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+    my $zenka_id = <[zenka.get_id]>->($zenka_name);
+    if ( defined $zenka_id ) { $setup_found++ }
+    else { $not_found++; $not_found_name //= $zenka_name; next }
+    foreach my $iid ( keys %{<nroot.zenka.instance>} ) {
+        next
+            if defined $zenka_subname
+            and not exists <nroot.zenka.instance>->{$iid}->{'subname'}
+            or defined $zenka_subname
+            and exists <nroot.zenka.instance>->{$iid}->{'subname'}
+            and <nroot.zenka.instance>->{$iid}->{'subname'} ne $zenka_subname;
+
+        push( @instance_ids, $iid )
+            if <nroot.zenka.instance>->{$iid}->{'zenka_id'} == $zenka_id;
+    }
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "no zenka '$not_found_name' found in setup [ see 'list zenki' ]"
+    }
+    if !$setup_found and $not_found;
+
+if (@instance_ids) {
+    return { 'mode' => 'ack', 'data' => join( ' ', @instance_ids ) };
+} else {
+    return { 'mode' => 'nak', 'data' => 'no matches found' };
+}
+
+#.............................................................................
+#BIDAR5JLM34RETX3AFVAPJ5Z5LSFBIONXV3YXCBARGUM6JSGPYLY2PZ646DQJZS4FL64VQ6BVVRJS
+#::: OMMKGXHWD3MJQZCBFNLW3LS3WQ7Z4F5RBEH2ZJLUMWEI3SIRWIX :::: NAILARA AMOS :::
+# :: LDHPF7HVEWAAV4V44MZVZYB7IHSCDJFPKYKKCFA27WJ7HDCAXCBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

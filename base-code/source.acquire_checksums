@@ -1,0 +1,35 @@
+# >:]
+
+# name  = source.acquire_checksums
+# todo  = make recursion work with update-checksums command ['sourcecode' zenka]
+
+my $src_path = shift // <source.code_path>;
+my $bit_size = shift // <source.chksum_bitsize>;
+
+my $file_count = 0;
+<source.checksums> //= {};
+my $start_time = <[base.time]>->(5);
+( my $path_name = $src_path ) =~ s|^.*/||g;
+
+foreach my $file_path ( @{ <[file.all_files]>->($src_path) } ) {  # <-- recurs.!
+    ( my $file_name = $file_path ) =~ s|^.*/||;
+    <source.checksums>->{$path_name}->{$file_name}
+        = <[chk-sum.bmw.filesum]>->( $bit_size, $file_path );
+    $file_count++;
+}
+
+<[base.log]>->(
+    2,
+    sprintf(
+        ": %s : %04d checksums in %.4f seconds.",
+        $path_name, $file_count, <[base.time]>->(5) - $start_time
+    )
+);
+
+return <source.checksums>->{$path_name};
+
+#.............................................................................
+#MF2FXK5RR3WTPKN26QEI73EGDHOV45K3S7HZNRUFW7EP64VPAEWBSA7A5FG2ZSPUGFBXHYKDAOZUQ
+#::: 5ESWYHPGBLUOSC6OZSBN6NX4KTH63DU2LI6A4HFZG5ZY2X4X42O :::: NAILARA AMOS :::
+# :: O7AEQJ7LEY2GH7S3DXCOIRMPGMG4MSPHJZPPT7HP7FWYU72SOOBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+# >:]
+
+# name = base.parser.ondemand_status
+
+my $zenka_name = shift;
+
+return 'online'
+    if exists $data{'user'}{$zenka_name}{'session'}
+    and keys( %{ $data{'user'}{$zenka_name}{'session'} } );
+
+my $v_id = <[base.zenki.ondemand_registered]>->($zenka_name);
+
+return 'starting' if exists <zenki.virtual>->{$v_id}->{'starting'};
+
+return 'gone';
+
+#.............................................................................
+#3EFQJLTHJ6SZVEEUE4I4TFS36465DLD7QF52TFDG255J6EL722O45JN5HJTR3CSK545CJIN5XEEMS
+#::: RXJY57Q6LXVZE4ESY3QCISSNXU34C3YT5ERTAL6VDVWKAHIWY4R :::: NAILARA AMOS :::
+# :: 3NEVH6C53UZ4LV2P5IKXJBJCJCO23INIQI6VMZ3HKIR3JETJTYBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

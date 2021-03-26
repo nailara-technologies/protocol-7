@@ -27,7 +27,8 @@ if ( length($bits) < 3 ) {    ## bytes mode ##
     $pmode = 'bits';
 }
 map { $next_size //= $ARG if $bits <= $ARG or $ARG == 512 } @sizes;
-my $b_str = $pmode eq 'bytes' ? sprintf( " [ %d bytes ]", $next_size / 8 ) : '';
+my $b_str
+    = $pmode eq 'bytes' ? sprintf( " [ %d bytes ]", $next_size / 8 ) : '';
 die ":\n:: requested bit size larger than $next_size ::$b_str\n:\n"
     if $bits > $next_size;
 $bytes ||= $next_size / 8;
@@ -70,7 +71,7 @@ sub encode {
 }
 
 #.............................................................................
-#RJTKVABYDV3ARVPUFNJESULHOO64DU6U4JK2QEF7C5DKZM2UIV7HIO2PD5VJSWTKC2YX4KZKJMEVA
-#::: K3LNGFHH4C7SLOEIXGVIDE3HAQZSA4OPRM4PS6WEUQBZCJLP5QP :::: NAILARA AMOS :::
-# :: UL5XE5RBIP2T64YXYH3ZW3Q2FDQO5XJOK3QPTD2ZTEL7P7BTDKBI :: CODE SIGNATURE ::
+#D23Q5SGE6UZXHZ7PBIMC5QSJMWJKMJMOE3PSBLCTP7JJVN3OKKIO3FQP4DR7FLJAWJ3EWI436LKCM
+#::: D4Y2RP5IFWYWHWKEBMYBJZKSLMFQ3TYNQMY2JK36F6SJPTAU6YL :::: NAILARA AMOS :::
+# :: ALVATY3O3HV3JKECTOMJ6R5IVETWM62R4RM3KXAAH3F2F6GYEQCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

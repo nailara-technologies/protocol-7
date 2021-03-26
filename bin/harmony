@@ -17,12 +17,14 @@ $mode{'A'} //= "-r4.2 -e -d$mode{z} -S"
     if $mode{'Z'}
     and defined $mode{'T'}
     and $mode{'T'} eq 'R';
-$mode{'z'} //= 8;  ## <-- digit read size override for 'asc-dec' fullscreen mode
-$mode{'A'} //= "-r4.2 -d$mode{z} -S" if $mode{'Z'};  ## -Z is 'full-screen' mode
-$mode{'T'} //= rand(2) % 2 ? '851' : '857' if $mode{'Z'};    ## <-- full-screen
-$mode{'T'} //= qw|    MS-ICELAND    |;    ## <-- 'asc-dec' table [ when in use ]
-$mode{'l'} //= 50;                        ## <-- blue midnight wish entropy size
-$mode{'d'} //= 0;   ## <-- divisor [ -d <n> ] : check result instead of input ##
+$mode{'z'}
+    //= 8;    ## <-- digit read size override for 'asc-dec' fullscreen mode
+$mode{'A'} //= "-r4.2 -d$mode{z} -S"
+    if $mode{'Z'};    ## -Z is 'full-screen' mode
+$mode{'T'} //= rand(2) % 2 ? '851' : '857' if $mode{'Z'};   ## <-- full-screen
+$mode{'T'} //= qw|    MS-ICELAND    |;  ## <-- 'asc-dec' table [ when in use ]
+$mode{'l'} //= 50;                      ## <-- blue midnight wish entropy size
+$mode{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
 $mode{'B'} = !$mode{'B'};    ## BMW mode enabled by default
 
 my @asc_dec = qw| asc-dec -q |;
@@ -52,12 +54,14 @@ my %col = (
     'b'   => $blacklight,
 );
 
-my $check_string = Encode::decode_utf8( join( ' ', @ARGV ), 8 ); # [8:LEAVE_SRC]
+my $check_string
+    = Encode::decode_utf8( join( ' ', @ARGV ), 8 );    # [8:LEAVE_SRC]
 my $elf_checksum = $mode{'n'} ? $check_string : sprintf "%09d",
     elf($check_string);
 
 my $bmw_checksum;
-chomp( $bmw_checksum = qx| bmw -d -$mode{'l'} '$check_string' | ) if $mode{'B'};
+chomp( $bmw_checksum = qx| bmw -d -$mode{'l'} '$check_string' | )
+    if $mode{'B'};
 
 my $accuracy = 17;
 
@@ -218,7 +222,7 @@ sub display_result {
 # 0 : ʘɧƀɧƀf�ʘɧƀɧƀf�ʘɧƀɧƀf
 
 #.............................................................................
-#NWRMJI255RUCNTF4NHW4HB45TC66PTEU3LP5QHPU3CLVMBWQ2M563MZU6GUQLVD5CRMU7UKU3ATHA
-#::: 77FCNVITCU24GP5KLORECFYANVT5DWJADKSUNQTLPI32K3ORBBI :::: NAILARA AMOS :::
-# :: CLDD4K4FFUXTRAGTLNNB6ULRH7ZFCFGXDO6GTV5CUDOY4HZGJSAA :: CODE SIGNATURE ::
+#HHVRQG4HXH4IGKWJQ3GKLSGREKJCPYBKTXHGSUGMDI3CCU4JBNMCLKGWWSBMPGF7PF4X4CAIGKOJG
+#::: 4GAVKEM6BUSILLJ7XRJPPYTCZMK3JT6F7YRIZZYU3VEZBFUNK5O :::: NAILARA AMOS :::
+# :: Q4XIPXVRZQCU4LNGLR3NF25Z3L73KS7766PX6AHK5QOH4IQB2GAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,57 @@
+# >:]
+
+# name  = nroot.callback.connect_to_cube
+# descr = create nroot zenka client session to local cube
+
+my $instance_id = shift;
+my $cube_addr   = <protocol-7.network.internal.addr>;
+my $cube_port   = <protocol-7.network.internal.port>;
+my $init_data   = <nroot.zenka.instance>->{$instance_id}->{'init_data'};
+my $cube_key    = $init_data->{'cube'}->{'key'};
+my $authname = <system.zenka.name> eq '<stdin>' ? 'nroot' : <system.zenka.name>;
+$authname = <system.zenka.auth_name> if exists <system.zenka.auth_name>;
+
+<[base.log]>->( 1, "connecting to local cube [$cube_addr:$cube_port] ..," );
+
+my $c_fh = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
+$c_fh = <[auth.zenka.ip.client]>->( $c_fh, $authname, $cube_key );
+
+if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
+    my $rand_len = length( $init_data->{'cube'}->{'key'} );
+    substr( $init_data->{'cube'}->{'key'},
+        0, $rand_len, <[base.prng.characters]>->($rand_len) );
+    $init_data->{'cube'}->{'key'}
+        .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
+    delete $init_data->{'cube'}->{'key'};
+    delete $init_data->{'cube'} if !keys %{ $init_data->{'cube'} };
+}
+
+#[ error \ <false> ]
+return 0 if not defined $c_fh;
+
+my $session_id = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
+<[base.log]>->( 1, "auth. to cube successful [ session $session_id ]" );
+<nroot.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
+<nroot.zenka.instance>->{$instance_id}->{'is-cube'}  = 1;
+
+<callback.session.closing_last> = {
+    'name'   => 'zenka.change_status',
+    'params' => [ $instance_id, 'error' ]
+};
+
+my $root_sid = <nroot.zenka.instance>->{$instance_id}->{'root_sid'};
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$root_sid.set-initialized",
+        'reply'     => { 'handler' => 'nroot.handler.set_initialized_reply' },
+        'call_args' => { 'args'    => 0 }  # [ 0 == nroot-zenka session [self] ]
+    }
+);
+
+#[success]
+return 1;
+
+#.............................................................................
+#NJO7HLJLCOFIYFJ6XH3ORXAIC7A3AOHGSC7JJWPS3OXHCOVKMCVQO3G67727QA3273BPIFP7IXC4U
+#::: QKB3EJHULUXGM4LBSLIB74NKFJ4KU6QGNXCTQOJJCH2XMOR3GBR :::: NAILARA AMOS :::
+# :: FUNIREN4ERBU6WQOOAJCGIYPWTEGO7STUV5IH6BRMKVENEQ756CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

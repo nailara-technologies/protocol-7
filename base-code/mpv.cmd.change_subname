@@ -1,0 +1,29 @@
+# >:]
+
+# name  = mpv.cmd.change_subname
+# descr = change zenka subname [and fetch new playlist]
+
+my $new_subname = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'subname parameter expected' }
+    if not defined $new_subname or !length($new_subname);
+return {
+    'mode' => 'nak',
+    'data' => 'subnames identical - no changes'
+    }
+    if defined <system.zenka.subname>
+    and $new_subname eq <system.zenka.subname>;
+
+<[base.log]>->( 0, "changing zenka subname to '$new_subname'" );
+
+<system.zenka.subname> = $new_subname;
+
+<[mpv.cmd.reload_playlist]>;    # fetching entries for new subname / tile_name
+
+return { 'mode' => 'ack', 'data' => 'subname changed, playlist reloaded' }
+
+#.............................................................................
+#I62PC346BGDZM2FANPKINI7HL66YNG2DQVPTV2Y2IW4GK7375QVZJY2B6FKF5QURDKNEP26KHPLGA
+#::: 5GU4DNHLSOCCIEMMQSL3CZOBC5HPFZ4Y2O53W7P7UDGMTYHBHVG :::: NAILARA AMOS :::
+# :: RSWCBBYXDT4BBT3MGCOWLZFB7D3BGWWNSAJT2ZHSGWTU3STDYOCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

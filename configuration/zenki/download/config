@@ -1,0 +1,28 @@
+
+ .:[ rudimentary 'download' zenka [ deperecated ] ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = verify-instance heart commands reload get_file \
+                      get-config get-config-names get_mimetype
+
+download.cfg.http.query_etc_hosts = 1 # <- resolver config
+download.cfg.download_path        = /data/nailara/download
+
+modules.preload = download.set-up set-up.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[set-up.json.import_file:'download.set-up.json']
+
+modules.load = auth net protocol io.ip download set-up.json chk-sum.md5
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.get_session_id]
+
+[event.loop]

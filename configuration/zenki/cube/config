@@ -1,0 +1,66 @@
+
+ .:[ nailara 'cube' [ local routing ] zenka ]:.
+
+[load_config_file:'shared-params']
+system.verbosity.zenka_buffer = 1
+
+# change priority
+[base.renice:-13]
+
+# loading cube zenka authentication setup
+[load_config_file:'zenki/cube/auth.users']
+[load_config_file:'zenki/cube/auth.zenki']
+
+# load command access permission setup
+[load_config_file:'zenki/cube/access.zenki']
+[load_config_file:'zenki/cube/access.users']
+
+system.zenka.type               =    cube
+modules.load                    =    auth chk-sum net protocol io.ip io.unix \
+                                     cube.cmd crypt.C25519 ## debug
+plugins.load                    =    plugin.auth
+auth.supported_methods          =    zenka enc pwd unix
+# get.route                     =    files node_name.file :target:
+get.command                     =    files.get-data
+setup.aliases.source_zenka_sid  =    p7-log.append nroot.report-temp-path
+setup.aliases.source_zenka      =    notify.message nroot.teardown \
+                                     system.abort-reboot system.pid_autokill \
+                                     system.reenable-reboot \
+                                     system.report-X-11-error \
+                                     composition.get_geometry  \
+                                     composition.assign_window \
+                                     composition.get_coordinates
+
+
+net.auth.timeout = 13   ## protocol-7 ##
+
+# create protocol-7 user if required.,
+[root.check_system_user:<system.privs.user>]
+
+# load and initialize modules
+[load_modules:<modules.load>]
+[init_modules]
+
+## loading [auth.] plugins ##
+[load_plugins:<plugins.load>]
+
+## calculated network address \ port ##
+cube.local = <protocol-7.network.internal>
+
+## local unix domain socket ##
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
+unix.path = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
+unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
+
+## ip.tcp socket ##
+tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
+
+## bind protocol-7 to sockets ##
+[base.protocol.bind:<unix.sock>,'protocol-7']
+[base.protocol.bind:<tcp_ip.sock>,'protocol-7']
+
+# drop root priviledges [ now 'online' ]
+[root.drop_privs:<system.privs.user>]
+
+# run zenka
+[event.loop]

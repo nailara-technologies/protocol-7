@@ -15,11 +15,12 @@ my $which_loaded = $EVAL_ERROR ? 0 : 1;
 ### wrapper code to load Gtk3 module at compile time ###
 
 BEGIN {
-    ( my $local_lib_path = $PROGRAM_NAME ) =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
+    ( my $local_lib_path = $PROGRAM_NAME )
+        =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
-my $agentname;
+my $zenkaname;
 my @call_args = @ARGV;
 
 ## [script path] ##
@@ -41,18 +42,18 @@ $perl_path //= $EXECUTABLE_NAME;
 my $protocol_7_path = catfile( $bin_path, 'protocol-7' );
 die "<< '$protocol_7_path' : path not found >>" if !-f $protocol_7_path;
 
-## agent name [ link derived ] ###
+## zenka name [ link derived ] ###
 if ( -l File::Spec->rel2abs($PROGRAM_NAME) ) {
-    $agentname = lc($PROGRAM_NAME);
-    $agentname =~ s{^.*protocol-7\.|[\. ]$}{};
-    @call_args = ( $agentname, @ARGV );
+    $zenkaname = lc($PROGRAM_NAME);
+    $zenkaname =~ s{^.*protocol-7\.|[\. ]$}{};
+    @call_args = ( $zenkaname, @ARGV );
 }
-$agentname //= 'protocol-7';
+$zenkaname //= 'protocol-7';
 exec( $perl_path, '-C31', '-MGtk3', $protocol_7_path, @call_args )
-    or die "failed to start $agentname agent [ \l$OS_ERROR ]";
+    or die "failed to start $zenkaname zenka [ \l$OS_ERROR ]";
 
 #.............................................................................
-#ZBS3K4ZEG5GYCLVD4NTHTBUCZBYC2LKFXW5MHKSSMKJS4GFXZQRBLA5LC4ANE4YOYXBJGG2RXU3UW
-#::: 3V46HTFEBKTDMEGVTKNM3OYYVPPT2AUSCQIZYBE7XNMI2YEYRHN :::: NAILARA AMOS :::
-# :: AR3PJAYIJS2TB74VX2HT47MB2RK7XUPGZ3AIL2COCY5XHKT2BADI :: CODE SIGNATURE ::
+#IFL3CXLT4KBBXXUNKTDPEDIZ4AMP7NVYBFU3LS2SUNWXUIVXK5FLOQCQE6XOG2UFAJ2FOD4VEBDHS
+#::: 57Z5WX3PP4W53NC32AFW2DGVVGBKC4F5JJ6ABRW3DNFZ64V7HSC :::: NAILARA AMOS :::
+# :: GEINL7WEYSSSSTBZRV4AX7D47KFDAHWR2K3HCNPCZKKBGB6QVOAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

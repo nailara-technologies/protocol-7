@@ -1,0 +1,32 @@
+# >:]
+
+# name = mpv.get_playlist
+
+my $sub_name;
+my $file_type = shift;
+
+$sub_name = '[' . <system.zenka.subname> . ']'
+    if exists <system.zenka.subname>
+    and defined <system.zenka.subname>
+    and length(<system.zenka.subname>);
+
+my $args_str = $file_type if defined $file_type;
+$args_str = $sub_name if defined $sub_name; # LLL: fix combinations -> '[audio]'
+
+my @args = defined $file_type ? ( 'args' => $args_str ) : ();
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.content.get_list',
+        'call_args' => {@args},
+        'reply'     => {
+            'handler' => 'mpv.handler.get_list_reply',
+            'params'  => {}
+        }
+    }
+);
+
+#.............................................................................
+#3Y7437MUY7EFFQCRTDSDF46FHGCXDOMSSAGSPQXCFV7RA5ZF76BZMFBTUR3M3T7JC3SURIF235MN2
+#::: HWLFQVPK4BLG7V6PXVXXULP5C4VJMPSBQLYJE3RV4H74LGIWR75 :::: NAILARA AMOS :::
+# :: HTDHGMCFNLRJVNVSG34ZXR2S33IZ5BAWXVSAINUQD7P6KE6MYOCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

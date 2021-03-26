@@ -1,0 +1,28 @@
+# >:]
+
+# name = composition.handler.get-tile-color_reply
+
+my $answer   = shift;
+my $reply_id = delete $answer->{'params'};
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'nak',
+        'data' => "unexpected (NAK) reply from screenshot zenka!"
+    }
+) if $answer->{'cmd'} ne 'ACK';
+
+my $color_str = $answer->{'call_args'}->{'args'};
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'ack',
+        'data' => $color_str
+    }
+);
+
+#.............................................................................
+#MO2JUE5CEQYQ63JP3KZB63D3TJ53FHO5J5L6PSPW2ONQJTQGCRG4BYGDHIMCRU3OFUPA6G5RHJKE2
+#::: BFIUGPAHHFSXF4P5WNWU2LQBUR5SZLULO6NRILVQ5EXSXDHMA3R :::: NAILARA AMOS :::
+# :: VQWSOX2UOWHN247DARALDCZT2UNHITTMN5VKXM4XNQPZGGWAEEAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

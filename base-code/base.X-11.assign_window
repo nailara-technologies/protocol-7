@@ -1,0 +1,28 @@
+# >:]
+
+# name = base.X-11.assign_window
+
+my $wid_str = shift // <x11.id>;
+my $route   = shift;
+die "window id not defined"               if not defined $wid_str;
+die "invalid window id string '$wid_str'" if $wid_str !~ /^\d+(,\d+)*$/;
+my $tile_name = <system.zenka.subname>;
+my $tile_str  = defined $tile_name ? " for '$tile_name'" : '';
+my $s         = $wid_str =~ /,/    ? 's'                 : '';
+my $log_msg   = "reporting window id$s $wid_str$tile_str..";
+my @args      = $wid_str;
+push( @args, $tile_name ) if defined $tile_name;
+$route .= '.'             if defined $route;
+$route //= '';
+<[base.log]>->( 1, $log_msg );
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $route . "cube.composition.assign_window",
+        'call_args' => { 'args' => join( ' ', @args ) }
+    }
+);
+
+#.............................................................................
+#WZ4UDCORHE2JZLZIH7DNK5XD6PPF546LPGTYHJJ6CAPDLEJ7CNTRFAAUK4FLIVMP2MCNXLQU6PVXY
+#::: K67WGTW3YZBDYLD53ZJOW33TM6UJDI2TBH43RKRMX6SPDGOMXHP :::: NAILARA AMOS :::
+# :: SBCJSPA75VQ6IL3OBOHROWX65QCGTLK3CEJ32HFD4KRYCAXT6ADY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

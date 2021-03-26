@@ -109,16 +109,16 @@ sub search {
                     print " : $mod_name\n";
                 }
 
-       #                if ( length($mod_name) > $mod_name_len ) {
-       #                    $mod_name_len = length($mod_name);
-       #                }
-       #                if ( length($mod_version) > $mod_version_len ) {
-       #                    $mod_version_len = length($mod_version);
-       #                }
-       #                print ' :  '
-       #                  . pack( " A $mod_name_len",    $mod_name ) . ' .: v.'
-       #                  . pack( " A $mod_version_len", $mod_version ) . ' :: '
-       #                  . $mod_url . " \n ";
+     #                if ( length($mod_name) > $mod_name_len ) {
+     #                    $mod_name_len = length($mod_name);
+     #                }
+     #                if ( length($mod_version) > $mod_version_len ) {
+     #                    $mod_version_len = length($mod_version);
+     #                }
+     #                print ' :  '
+     #                  . pack( " A $mod_name_len",    $mod_name ) . ' .: v.'
+     #                  . pack( " A $mod_version_len", $mod_version ) . ' :: '
+     #                  . $mod_url . " \n ";
             }
         }
     }
@@ -222,20 +222,23 @@ sub install {
                             if ( !system( 'perl', $makefile_pl ) ) {
                                 print "..\n";
                                 if ( -f $makefile ) {
-                                    die " :\n :: [error] 'make' not found!\n\n"
+                                    die
+                                        " :\n :: [error] 'make' not found!\n\n"
                                         if qx(make -h) !~ /Usage/;
                                     print " : running 'make' ...\n.:\n\n";
                                     if ( !system('make') ) {
-                                        print "..\n : running 'make test' ..\n"
+                                        print
+                                            "..\n : running 'make test' ..\n"
                                             . ".:\n\n"
                                             if !$force_install;
                                         if ( $force_install
                                             or !system( 'make', 'test' ) ) {
-                                            if ( $force_install or $EUID == 0 )
-                                            {
+                                            if (   $force_install
+                                                or $EUID == 0 ) {
                                                 print "..\n : running 'make "
                                                     . "install' ..\n.:\n\n";
-                                                if ( !system('make install') ) {
+                                                if ( !system('make install') )
+                                                {
                                                     print "..\n";
                                                 }
                                             } else {
@@ -475,7 +478,7 @@ sub show_commands {
 }
 
 #.............................................................................
-#2Q75GCNUAL724EQ2TNIV5K3VVSST4O6LQ4WPOCPSXCUUCWAOH64L7RTOZ4HN4FTEFD3EXSBGUI6BI
-#::: NXXLGMUD3XKZKMY6IGIFAM33TBXYYEL7YVT5ZOTYFXWURJZPJA6 :::: NAILARA AMOS :::
-# :: 64XCKMUBMKEH2OQBFXRFH2AWJDGPWBAJSEWUHEGRKLWYGNQMNWBQ :: CODE SIGNATURE ::
+#IMOQRYRC4TNXOSFVVBFQGKNHQUIDOLY4MGLD33VCWTMKTWSRZHZ3AFQRM4LEVIQ2RTEEHF7VB42QA
+#::: NNTTGTM5RTGABVVWAP6BOKB3KWXL7GSHEJL5W5QFFSPQLLD67D3 :::: NAILARA AMOS :::
+# :: UV7HQFHLFVLLBBKCIUEMB2BMXE67AWB3RWIFYGMPOGJOCQUBFABA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

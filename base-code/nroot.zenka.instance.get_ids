@@ -1,0 +1,27 @@
+# >:]
+
+# name  = nroot.zenka.instance.get_ids
+# descr = return zenka id for given name from setup (in order of creation)
+
+my $zenka_id     = shift;
+my $instance_ids = [];
+die 'expected zenka id' if not defined $zenka_id or $zenka_id !~ m|^\d+$|;
+
+foreach my $id (
+    sort {
+        <nroot.zenka.instance>->{$a}->{'created'} <=>
+            <nroot.zenka.instance>->{$b}->{'created'}
+    } grep { defined <nroot.zenka.instance>->{$ARG}->{'created'} }
+    keys %{<nroot.zenka.instance>}
+) {
+    push( @{$instance_ids}, $id )
+        if <nroot.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id;
+}
+
+return $instance_ids;
+
+#.............................................................................
+#Z7RMHLMZMICQ3QVNRKIW5B5XBLF4OMD6OKMDGUI3JNRCNL7HPTYZMPTJ36HYFUEJ2VIBQXAJR4ODE
+#::: TTYSZTY6K2WICFF6XWFQNLBOW2KYVPLOATEVI3TDKEXWWBPS6LC :::: NAILARA AMOS :::
+# :: OWOX2ZNE6KZGROZVQP33EPSNPP6ELFJCQPPE7P36KPNGZBB3KUDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

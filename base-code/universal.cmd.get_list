@@ -1,0 +1,25 @@
+# >:]
+
+# name  = universal.cmd.get_list
+# descr = return url list for child
+
+my $session_id = $call->{'session_id'};
+my $zenka_name = $data{'session'}{$session_id}{'user'};
+
+if ( not exists <universal.playlist.zenka>->{$zenka_name} ) {
+    <[base.log]>
+        ->( 2, "no playlist available for zenka or user '$zenka_name'" );
+    return { 'mode' => 'data', 'data' => '' };
+} else {
+    return {
+        'mode' => 'data',
+        'data' => join( '',
+            map {"$ARG\n"} @{ <universal.playlist.zenka>->{$zenka_name} } )
+    };
+}
+
+#.............................................................................
+#HQSZ4EKNXUJF4INR4RI2MDGEC6G4F5Z6OC3M5G3MDMR3JNHEYPVQATE6BBB56Z3QVDKE6RIF3FUQ2
+#::: OWBWKMUTITVGAG2DDP3Z64HWNIE6HOEDL4AD3DFZTS3MS5ZEZEY :::: NAILARA AMOS :::
+# :: P4B2FOZXF2MDOVUNK6CYJPXGLGG6DRSJ6KI6PZMCLKE6F6HDJUCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

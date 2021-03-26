@@ -1,0 +1,21 @@
+# >:]
+
+# name  = debug.cmd.free-mem
+# descr = allocated bytes to zenka memory pool
+
+return { 'mode' => 'nak', 'data' => 'none was allocated' }
+    if not defined <debug.eaten_memory> or !length(<debug.eaten_memory>);
+
+my $bytes_returned = length(<debug.eaten_memory>);
+undef <debug.eaten_memory>;
+
+return {
+    'mode' => 'ack',
+    'data' => "returned $bytes_returned to zenka memory pool"
+};
+
+#.............................................................................
+#OCPW52FNPDJ4WSMJS7SRVMQGZ6JPX4LQS2IAH7AXY6V6XDAWK6QXDLPABAEBAXH57TLF46ZA6I6TU
+#::: KOALD7VM2LYFUZE43KAY3ZG3P2X7CXKQ56UL4ABGBRZXBEVBJFW :::: NAILARA AMOS :::
+# :: AWNF5LB5CLHIUPJPWVM43RKFQACBLVQVZMW3HYRTV3NPEAESLWBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

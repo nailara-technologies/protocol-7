@@ -1,0 +1,28 @@
+# >:]
+
+# name  = base.console.commands
+# descr = list [these] console commands and parameters
+
+my $description_parameter = shift;
+
+if ( defined $description_parameter ) {
+    print <[base.parser.txt_box]>->(
+        'command specific description is not implemented yet.',
+        $description_parameter
+    );
+    return;
+}
+
+my $title_str = "'" . <system.zenka.name> . '\'-zenka commands';
+my @commands  = sort keys %{ $data{'base'}{'console'} };
+( my $t_ref ) = <[base.parser.command_list]>->( \@commands, 'console' );
+
+print <[base.parser.txt_box]>->( $t_ref, $title_str );
+
+return 0;
+
+#.............................................................................
+#TYB2PZ2HZAF2W4CWMGFK676IUQ6TR4EEVX4FTSERBD5FJM6Q7YK7HAKS37MJADSRQLIW3EO57756Q
+#::: 5FEE6WQUGXYSRM7RY7DKRZ4LYXMTWGXEZUF7E2HHD2HVFGECBHY :::: NAILARA AMOS :::
+# :: 33M3XB7E6C6LYLLYUHJE4YVARPZKAK3237YSXHCCXALWJFIHLIAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,27 @@
+# >:]
+
+# name = universal.handler.cur-pid_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $zenka_name = $params->{'zenka'};
+my $reply_str  = $reply->{'call_args'}->{'args'};
+
+delete <universal.timer.mpv_idle_timer>;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <[base.log]>->(
+        0, "<!> $zenka_name.cur-pid' command failed [ $reply_str ]"
+    );
+} else {
+    my $pid = $reply_str;
+    <[base.log]>->( 1, ":. reporting zenka '$zenka_name' PID $pid.," );
+    <universal.child>->{$zenka_name}->{'pid'} = $pid;
+    <[base.zenki.report_child_pid]>->($pid);
+}
+
+#.............................................................................
+#2LUTBNFFVBAB5GTMKIQGV447CJWO67ER5SM43DJ4NBV6QIK3BTLJAHKNTW6UM7F5KM2DOYPJYOVL4
+#::: UGDZCKWB4CBYR2OLJ22EMJNF6OQ3RC3HQOZHSJLWADRP7H4TLPW :::: NAILARA AMOS :::
+# :: C2U43BPK55A5VCLUKXFIWANQL53AALEYJNMBOAKXMUQLKQHH5CAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

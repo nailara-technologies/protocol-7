@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.X-11.get_dbus_addr
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+<[base.log]>->( 1, "requesting socket address from dbus zenka.," );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)dbus.socket_address\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    ( my $path_str = <x11.dbus_addr> = $1 ) =~ s/^[^=]+=|,.+$//g;
+    <[base.log]>->( 1, "received dbus socket address ['$path_str']" );
+    $ENV{'DBUS_SESSION_BUS_ADDRESS'} = <x11.dbus_addr>;
+    return <x11.dbus_addr>;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply from dbus zenka) ['$reply_string']"
+    );
+    return undef;
+}
+
+#.............................................................................
+#HDDN5NB4QSHSYKNNZ7WC65WYDPJVZDE3XXD4KT67UN7IDD2YNWXUUU26GPROR3NIRSDFVBP4FPK7K
+#::: 765IGSTI2P5H2WB5LXNWMZCYMMCZM6YS6DOYTLNSK7RGPGZ5I6A :::: NAILARA AMOS :::
+# :: 6D3EMLSLTMKAFTJF3426CMWEQZOTEDB3O7XI4FG4C32HL5L45WAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,23 @@
+# >:]
+
+# name  = content.cmd.update
+# descr = reload playlist file and notify zenki
+
+my $reload_reply = <[content.cmd.reload_file]>;
+my $update_cmd   = <update.notify_command> // 'playlist_update';
+
+return $reload_reply
+    if $reload_reply->{'mode'} eq 'nak' or not defined <update.notify_zenki>;
+
+my $count = <[content.update.send_notifications]>->($update_cmd);
+
+my $s          = $count == 1 ? ''                          : 's';
+my $notify_str = $count      ? ", $count zenka$s notified" : '';
+
+return { 'mode' => 'ack', 'data' => 'playlist updated' . $notify_str }
+
+#.............................................................................
+#JOAWLLD7SUUL2ISS7IU3NA326NKQQBPX2WILKQW3MBJ2OQ4ATUPS3SVI3R3CE5VF6Q7LK5OKHRETQ
+#::: MKC2T272TETZXGUCATKJJ5RH7UGVSKZPPTDG7R62PUNALQDV75D :::: NAILARA AMOS :::
+# :: HJ7M6PLCAGUILXPH3HAF7OV5PKXXQKKHOGDL3UFYEY2KFF7ZMMAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

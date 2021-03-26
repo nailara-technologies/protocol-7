@@ -1,0 +1,37 @@
+# >:]
+
+# name = base.X-11.get_bg_color
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+<[base.log]>->( 1, "querying background color from X-11 zenka .," );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.bg_color\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.bg_color> = $1;
+    <[base.log]>->( 1, ": received bg_color = " . <x11.bg_color> . "" );
+    return <x11.bg_color>;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+#.............................................................................
+#KKVSFBOVPCFDXT4IIRIZ3FREDVWSQQHXEN7FMBKZMILU6SPUGQNFI4HIKT7NZ4GKAOYGYOO2PJ4TE
+#::: IDHAITC4T4JQ2NOVWWF2PHFHDSCPVS35YNXJGJY4MONYPVMR65A :::: NAILARA AMOS :::
+# :: OCIXOEOCAV2KNJQB3VL4J3RRBGHQRBVI2P37DLJ624OQY52BCIDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

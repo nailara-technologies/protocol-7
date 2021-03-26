@@ -1,0 +1,20 @@
+# >:]
+
+# name = rss.ticker.post_init
+
+<rss.ticker.update_timer> = <[event.add_timer]>->(
+    {   'after'    => 1.2,    # LLL: race condition quick fix [->ticker-zenka]
+        'repeat'   => 1,
+        'interval' => <rss.ticker.update_interval> || 120,
+        'handler'  => 'rss.ticker.fetch_content',
+        'data'     => <rss.ticker.update_commands>
+    }
+);
+
+0;
+
+#.............................................................................
+#FDOBJ3XZ72HM7GKOXLG4WY52EMCAKT7H35HUQBOYAX6GN2ZB5TVRT4727IATI2NSG5OLKYNA5MYEM
+#::: IFB4KNHUK3QFG4DBEMODFAQSP4FLQLP3IDUDX2CS5FRT7RQFHK3 :::: NAILARA AMOS :::
+# :: OQHSUYQNWV5OB4WUO2NACXV35HJXBAQZUU63W5EUKKOXI5BRXUCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

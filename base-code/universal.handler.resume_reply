@@ -1,0 +1,29 @@
+# >:]
+
+# name = universal.handler.resume_reply
+
+my $reply      = shift;
+my $params     = $reply->{'params'};
+my $zenka_name = $params->{'zenka'};
+
+if ( exists <universal.timer.switch_timeout> ) {
+    <universal.timer.switch_timeout>->cancel;
+    delete <universal.timer.switch_timeout>;
+}
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>
+        ->( 0, "resume command failed [zenka '$zenka_name'] ($reason)" );
+    <[base.log]>->( 0, ": attempting recovery through restart.," );
+    <[universal.self_restart]>;
+} else {
+    <[base.log]>->( 2, "zenka '$zenka_name' resume command successful." );
+    <universal.child>->{$zenka_name}->{'paused'} = 0;
+}
+
+#.............................................................................
+#H6BLS5MGF5ODPIDEXVMCM437IE7N55ZJBJX5TE5ZPMFV52LH7KUFR365G4YKZ4HNDNKEDIKFKVAC6
+#::: TTP4U4OSNTELXR243LU2YHEW76NJFZ4NSJQRTESAJSYRE6YSJMP :::: NAILARA AMOS :::
+# :: TC5PKJRDXIFNH6UTUR3XTW7AWCIIYDLYE5LVYL3B7ZUCTYBZ4UCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

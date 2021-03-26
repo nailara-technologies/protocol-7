@@ -1,0 +1,30 @@
+# >:]
+
+# name = remote-cam.get_playlist
+
+my $sub_name;
+my $file_types = shift // 'image';
+
+<[base.log]>->( 1, "requesting image url from playlist zenka .." );
+
+$sub_name = '[' . <system.zenka.subname> . ']'
+    if exists <system.zenka.subname>
+    and defined <system.zenka.subname>
+    and length(<system.zenka.subname>);
+
+my $args_str = $file_types   if defined $file_types;
+$args_str .= ' ' . $sub_name if defined $file_types and defined $sub_name;
+my @args = defined $file_types ? ( 'args' => $args_str ) : ();
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.content.get_list',
+        'call_args' => {@args},
+        'reply'     => { 'handler' => 'remote-cam.handler.get_list_reply' }
+    }
+);
+
+#.............................................................................
+#MI6PPXFFDVQJZCBPOQRUWKEIJXWLQTR2H3BQK7IKBWMFLYHDJZBNHG3REW7S23JD6FUNJC4QNKR4O
+#::: WHNRW7SVUCQSONJKP222WJE5PLSKLBY47GW26SFLVZUQ66D5PWN :::: NAILARA AMOS :::
+# :: Q77VJPM3OXGJXBENSYAAQF5SDTCZWD3N5S3JBCNTNGH2SOI3MKBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

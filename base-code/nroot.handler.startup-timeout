@@ -1,0 +1,35 @@
+# >:]
+
+# name = nroot.handler.startup-timeout
+
+my $watcher     = shift->w;
+my $params      = $watcher->data;
+my $timeout     = $params->{'timeout'};
+my $instance_id = $params->{'instance_id'};
+my $instance    = <nroot.zenka.instance>->{$instance_id};
+my $zenka_name  = $instance->{'zenka_name'};
+
+$watcher->cancel if $watcher->is_active;
+
+if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
+    delete $instance->{'timer'}->{'startup-timeout'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+if ( defined $instance->{'status'}
+    and $instance->{'status'} eq 'starting' ) {
+    <[base.log]>->(
+        0,
+        sprintf(
+            "instance %d ['%s'] start timed out after %.1fs",
+            $instance_id, $zenka_name, $timeout
+        )
+    );
+    <[zenka.change_status]>->( $instance_id, 'error' );
+}
+
+#.............................................................................
+#3BS34GUJIFRYOEEVK4UVGZ25K2SG47SQJ45PQQRVVKQAH53Q44S7GZCEIDWPZMC2MORHCIPQLRY4G
+#::: 6KZKWNJFVB4ECQGYNDE3SOFH4GQKRFO657FJSP5YISLJB5H5SFW :::: NAILARA AMOS :::
+# :: 2XA2R6DYJTF2LASSTWWTM2IYA5S2K6R3U5MPIGINGHV7SM3Q7IDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,45 @@
+
+ .:[ generic [universal] content player zenka ]:.
+
+[load_config_file:'shared-params']
+system.verbosity.zenka_buffer = 2
+# system.verbosity.console    = 2
+
+universal.vid_frame_dir = /var/tmp/.video_frames
+
+universal.cfg.fade_on_switch  = 1 # fade in on switch [ web-browser <--> mpv ]
+universal.cfg.can_self_restart = 1 # auto-recovery [ universal zenka restart ]
+universal.cfg.autospeed_notrans = 1 # stop mpv \ web-browser fading on load alerts
+universal.cfg.self_restart_delay = 4.2 # <-- wait to not interfere with SIGCHLD
+
+access.cmd.usr.cube    = commands heart reload verify-instance * # <- [ LLL ]
+access.cmd.usr.mpv     = whoami
+access.cmd.usr.web-browser = whoami
+
+modules.load = auth net protocol io.ip io.unix plugin.auth chk-sum universal
+[load_modules:<modules.load>]
+[init_modules]
+
+
+auth.supported_methods = unix
+## local unix domain socket ##
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
+unix.zenka.path=[chk-sum.elf.BASE32:"<system.zenka.name>:<system.zenka.subname>"]
+unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.zenka.path>",0777]
+
+[root.drop_privs:<system.privs.user>]
+
+cube.reroute.pattern.usr = ^(?!cube)
+cube.reroute.pattern.match = ^(?!composition\.|whoami)
+cube.reroute.pattern.replace = cube.
+[base.protocol.bind:<unix.sock>,'protocol-7']
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+[base.X-11.get_geometry]
+[base.X-11.get_coordinates]
+
+[universal.startup]
+
+[event.loop]

@@ -1,0 +1,46 @@
+# >:]
+
+# name  = nroot.zenka.cmd.debug-enable
+# param = [instance]
+# descr = notify zenka [instance] to load debug module
+
+my $instance_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'instance id parameter expected' }
+    if not defined $instance_id or $instance_id !~ /^\d+$/;
+
+return {
+    'mode' => 'nak',
+    'data' => "instance not found [ use 'nroot.list' to see IDs ]"
+    }
+    if not exists <nroot.zenka.instance>->{$instance_id};
+
+my $zenka_name = <nroot.zenka.instance>->{$instance_id}->{'zenka_name'};
+my $zenka_pid
+    = <nroot.zenka.instance>->{$instance_id}->{'process'}{'id'};
+
+my $count = kill( 5, $zenka_pid );
+
+<[base.log]>->(
+    0, "< debug-enable > notifying instance $instance_id [ '$zenka_name' ]"
+);
+
+return {
+    'mode' => 'ack',
+    'data' => "sent SIGTRAP to instance $instance_id,"
+        . " process $zenka_pid [ loads dbg mod ]"
+    }
+    if $count;
+
+## else ##
+
+return {
+    'mode' => 'nak',
+    'data' => "no success sending a signal to process [PID:$zenka_pid]"
+};
+
+#.............................................................................
+#HNO6T5DZJQXSRBLV2VJ5IA2OI3BAB54YAXY33EXE3NEHPT5MOWNAIPED5DFTNEL6LBYSD43G5TCZE
+#::: FDZSF7SV27XBXHDRFSSEOHHMJMHDPFM4IGAY7ZYX5WNKMNZMGRQ :::: NAILARA AMOS :::
+# :: ZBLM45SKSP3SDYX4BFZFZ3FONIUASWQUDRFDY433W6BU4DAGVIBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

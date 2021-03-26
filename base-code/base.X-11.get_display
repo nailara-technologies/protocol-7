@@ -1,0 +1,45 @@
+# >:]
+
+# name = base.X-11.get_display
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+<[base.log]>->( 2, "requesting display name from X-11 zenka.," );
+
+$data{'route'} //= {};
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_display\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$cube_fh>;
+    die "cube handle exception" if not defined $reply_string;
+    $matched_reply = 1          if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.display> = $1;
+    <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
+    return <x11.display>;
+} elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
+    <x11.display> //= ':0.0';
+    <[base.log]>->(
+        1, "no X-11 zenka found, using default display [" . <x11.display> . "]"
+    );
+    return <x11.display>;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+#.............................................................................
+#GVS6QD2HQMYX6CKEXSEIQJ7SMBWAKRAM2SAYFQOPUEIZIXRT6M7NSSRBESFOFYDK6OJWMW2BRZEME
+#::: VKAT6C3ERMASC3HRR32CA3NOILRYRXR6FA3FYV4JHTKZC6RJOKZ :::: NAILARA AMOS :::
+# :: U33HPKA7G473H5LUMQIT2RMGBMLT6L6O4GQINDTQ4GE2QHW3ZYDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

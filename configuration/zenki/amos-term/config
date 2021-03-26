@@ -1,0 +1,23 @@
+
+.:[ 'amos-term' terminal zenka ]:.
+
+[load_config_file:'shared-params']
+
+modules.load          = net protocol io.ip chk-sum.elf io.unix auth amos-term \
+                        ## debug
+
+access.cmd.usr.cube   = verify-instance commands heart reload subname \
+                        cur-pid list show-buffer clear-buffer list-deps \
+                        src-ver rel-ver src-age \
+                        * ## <-- debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>,<cube.local.port>]
+[net.connect_to_cube:'unix','13','127.0.0.1','cube-13']
+
+[net.connect_to_cube:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]

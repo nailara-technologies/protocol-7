@@ -1,0 +1,34 @@
+# >:]
+
+# name = impressive.get_playlist
+
+my $sub_name;
+my $file_types = shift;
+
+my $get_from_zenka = 'content';
+
+<[base.log]>->( 1, "requesting entries from '$get_from_zenka' zenka.," );
+
+$sub_name = '[' . <system.zenka.subname> . ']'
+    if exists <system.zenka.subname>
+    and defined <system.zenka.subname>
+    and length(<system.zenka.subname>);
+
+my $args_str = $file_types   if defined $file_types;
+$args_str .= ' ' . $sub_name if defined $file_types and defined $sub_name;
+my @args = defined $file_types ? ( 'args' => $args_str ) : ();
+
+<[base.log]>->( 2, ": requested types : $file_types" ) if defined $file_types;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.$get_from_zenka.get_list",
+        'call_args' => {@args},
+        'reply'     => { 'handler' => 'impressive.handler.get_list_reply' }
+    }
+);
+
+#.............................................................................
+#BNOVYPE5MDBF374MVS352ACXWXECPVESLKNVCAYG264F5RUMX3NJZUU7Y5HEBHHIFFDGUX5NBTC3E
+#::: 3Y45BMII3S2NVZICQJIIX5R4J47NYMKCTJ3PSY5UTPEDYDETDWF :::: NAILARA AMOS :::
+# :: LF473I7SBE7HDIIPYFP5NSWSMSSKYUFIXXSH4TH7SJUC4HPIQ2CI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,51 @@
+# >:]
+
+# name = weather.parent.set_city
+
+my $city      = shift;
+my $cache_dir = <weather.cache_dir>;
+die "expected city parameter"          if not defined $city or !length($city);
+die "cache dir '$cache_dir' not found" if !-d $cache_dir;
+my $city_file = "$cache_dir/city.current";
+
+<[weather.parent.get_station_id]>->($city);
+
+<weather.location> = $city;    ## !!! UTF-8 !!! ##
+
+<[base.log]>->( 1, "writing location '$city' to disk cache.," );
+
+<[file.put_bin]>->( $city_file, time() . " $city\n" ); # encod. utf8 passthrough
+
+if ( defined <weather.station_id> ) {    # cached station id present
+    <[weather.parent.populate_html_dir]>->(<weather.station_id>);
+    <[weather.parent.update_current]>->(<weather.station_id>);
+    <[weather.parent.update_forecast]>->(<weather.station_id>);
+
+    if ( !<weather.zenka.initialized> ) {
+        <[base.async.get_session_id]>; # <-- changing zenka status to 'online'.,
+        <weather.zenka.initialized> = 1;
+    }
+
+    if (    defined <weather.get-urls.reply_ids>
+        and ref(<weather.get-urls.reply_ids>) eq 'ARRAY'
+        and @{<weather.get-urls.reply_ids>} ) {
+        my $url_list_str;
+        map { $url_list_str .= "$ARG\n" }
+            <[weather.parent.get_url_list]>->(<weather.station_id>);
+        foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => 'data',
+                    'data' => $url_list_str
+                }
+            );
+            delete <weather.get-urls.reply_ids>;
+        }
+    }
+}
+
+#.............................................................................
+#WPS6LHYXUQ7H3WPJUJ66IOSBQX4RVOUNWASHCEUHYM3CGRKRVJH6KDQNHLLHNVFJ4GJFWBVQ2GKYM
+#::: Q7GD3DTAVXOJYTNCN3OW5QGGZPBJOHJHBSZM56QYSL4HD4VFMSZ :::: NAILARA AMOS :::
+# :: V2HYVDXICEN2IM6PT34K334TCCSH6XYYSZA2UU2LZN32JOPXN6CA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

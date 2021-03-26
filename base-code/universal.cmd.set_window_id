@@ -1,0 +1,24 @@
+# >:]
+
+# name  = universal.cmd.set_window_id
+# param = <id> [tilename]
+# descr = report x11 window id for current zenka
+
+my $session_id = $call->{'session_id'};
+my $zenka_name = $data{'session'}{$session_id}{'user'};
+( my $window_id = $call->{'args'} ) =~ s| .+$||;
+
+<[base.log]>->( 1, "received window id for $zenka_name-child [$window_id]" );
+
+<universal.child>->{$zenka_name}->{'window_id'} = $window_id;
+
+return {
+    'mode' => 'ack',
+    'data' => 'assigned'
+    }
+
+#.............................................................................
+#WQTZKOV6UGC5ZBS65LYRG6DFOXVZ4FHYPORTSDIQNIXEKLOCZ3XFZDBWANWZTGG7SZFH34JK3QHIS
+#::: TAIP6O2PMOGIUZPWSLI4CDTO3MWGQC4AJOJU4VMIPO4JA3KMBUK :::: NAILARA AMOS :::
+# :: EJ55ZNYROXAKF7RZYCYA7CPRPGRM3NNTPXB4Y3GXB65IC75GIOAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

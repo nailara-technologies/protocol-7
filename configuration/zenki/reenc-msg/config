@@ -1,0 +1,22 @@
+
+ .:[ [ X11, ffmpeg ] "reencoding video" notification zenka ]:.
+
+[load_config_file:'shared-params']
+[root.drop_privs:'nobody']
+
+access.cmd.usr.cube = commands heart verify-instance refresh finished
+
+modules.load = auth net protocol io.ip reenc-msg
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+[base.X-11.get_coordinates:undef,undef,'']   #  <- request for only ['tile-name']
+[base.get_session_id]
+
+reenc-msg.display_txt = '\\\\\\ reencoding \\\\\\'
+reenc.msg.refresh_timeout = 7 # auto-shutdown after <n> seconds without refresh
+
+[reenc-msg.open_window]

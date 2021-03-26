@@ -1,0 +1,44 @@
+# >:]
+
+# name  = base.sig_int
+# descr = SIGINT interrupt handler
+
+$PROGRAM_NAME .= ' :. shutdown in progress.., please wait!';
+<[base.log]>->( 0, '<< SIGINT >> terminating zenki ..,' );
+
+#if ( <system.zenka.type> eq 'nroot' or <system.zenka.type> eq 'cube' ) {
+#    $SIG{'INT'} = 'IGNORE';
+#} else {
+
+$SIG{'INT'} = sub {
+    <[base.log]>->( 0, '<< SIGINT >> emergency shutdown .,' );
+    CORE::exit(1);
+};
+
+#}
+
+if ( exists $code{'net.send_all'} ) {
+    eval(     "# line "
+            . __LINE__
+            . " \"base.sig_int\"\n"
+            . '$code{\'net.send_all\'}->("close SIGINT manual shutdown\n");' );
+}
+
+print "\n <!> DEBUG MODE: zenka state:\n\n" . <[base.dump_data]> . "\n"
+    if <system.verbosity.console> >= 2 and <debug.sig_int_dump>;
+
+<[nroot.teardown]>
+    if exists <system.zenka.type> and <system.zenka.type> eq 'nroot';
+
+if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
+    map { kill( 9, $ARG ) } @{<system.kill_list>};
+}
+
+<[base.log]>->( 1, ':. done' );
+exit(130);
+
+#.............................................................................
+#GQQ2BQ6A6CDVE64D6TQDC62D5TC43DRUXVYO4LUOYHGW7QBH6GODXJO3AEYACK6TKOWLXXU5VH6Z4
+#::: 4EQ7SPQJBNFNF566QRVHRIKNTBPEYEIYLKO26LHGJQIXPCBJLFT :::: NAILARA AMOS :::
+# :: 7MLF4YRNXMSSH236DCQCOAUORMTBGZVJXBHH5NZFVX4F5NGRTSCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

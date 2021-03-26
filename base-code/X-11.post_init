@@ -1,0 +1,373 @@
+# >:]
+
+# name = X-11.post_init
+
+<X-11.initialized>         //= 0;
+<X-11.host_mode_unchanged> //= 1;
+
+my $modes_re = <X-11.modes_re>;
+
+if ( <X-11.mode> !~ $modes_re ) {
+    <[base.log]>->(
+        0, sprintf( "configured X-11 mode '%s' is not valid", <X-11.mode> )
+    );
+    exit(1);
+}
+<X-11.params>->{<X-11.mode>} //= '';
+<X-11.host_mode_unchanged> = 0 if <X-11.host_mode_unchanged> eq 'no';
+<X-11.host_mode_unchanged> = 1 if <X-11.host_mode_unchanged> eq 'yes';
+if ( <X-11.mode> eq 'host' ) {
+    if (<X-11.host_mode_unchanged>) {
+        <X-11.keep_unchanged>  = 1;
+        <X-11.keep_background> = 1;
+    }
+    <X-11.display.host> //= defined $ENV{'DISPLAY'} ? $ENV{'DISPLAY'} : ':0';
+} else {
+    <X-11.display>->{<X-11.mode>} //= ':1';
+    <X-11.keep_unchanged> = 0;
+}
+<[base.log]>->(
+    0,
+    sprintf( "<< X-11 mode changed to '%s', restart required >>", <X-11.mode> )
+) if defined <X-11.old_mode> and <X-11.mode> ne <X-11.old_mode>;
+
+return 0 if <X-11.initialized>;
+
+<X-11.connect_timeout> //= 7.7;
+<X-11.orientation>     //= 'normal';
+<X-11.old_mode> = <X-11.mode>;
+my $mode     = <X-11.mode>;
+my $bg_col   = <X-11.bg_color>;
+my $bg_image = <X-11.bg_image>;
+my $bin_name;
+my $server_bin;
+my $server_pid;
+my $server_params;
+
+<X-11.params>->{'xephyr'} .= ' -glamor'
+    if $mode eq 'xephyr'
+    and <X-11.orientation> eq 'normal'
+    and !<X-11.disable_glamor>;
+
+## startup / connect ##
+
+die "X-11.mode is not defined" if not defined $mode or !length($mode);
+
+if ( $mode ne 'host' ) {
+
+    $bin_name = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
+
+    $bin_name = 'Xvfb'    if $mode eq 'xvfb';
+    $bin_name = 'Xnest'   if $mode eq 'xnest';
+    $bin_name = 'nxagent' if $mode eq 'nxagent';
+
+    $server_bin = <X-11.bin_path>->{$bin_name};
+
+    die "X-11 binary '$bin_name' not found. [ installed ? ]"
+        if not defined $server_bin or !-x $server_bin;
+
+    <[base.log]>->( 2, ":: xsrv-bin-path :: $server_bin" );
+
+    $server_params
+        = join( ' ', <X-11.display>->{$mode}, <X-11.params>->{$mode} );
+
+    my $bin_name_lc = lc($bin_name);
+    my $cmd_line    = "$server_bin $server_params 2>&1 |";
+
+    <[base.logs]>->( 1, "starting '%s'-server..,", $bin_name_lc );
+
+    # LLL: change uid for 'xephyr'..,
+    $server_pid = open( my $out_fh, $cmd_line );
+
+    if ( not defined $server_pid or $EVAL_ERROR ) {
+        my $err_reason
+            = ( defined $OS_ERROR and length($OS_ERROR) )
+            ? ": \"$OS_ERROR\""
+            : '!';
+        <[base.log]>->( 0, ": unable to start $bin_name_lc-server$err_reason" );
+        exit(2);
+    } else {
+        <[base.log]>->(
+            1, ": '$bin_name_lc' process started [PID:$server_pid]"
+        );
+        <X-11.pid> = $server_pid;
+
+        ### registering server process id ###
+        push( @{<system.kill_list>}, <X-11.pid> );
+        <[base.zenki.report_child_pid]>->($server_pid);
+
+        <[base.renice]>->( <X-11.renice_priority>, <X-11.pid> );
+    }
+
+    <[event.add_io]>->(
+        {   'fd'      => $out_fh,
+            'handler' => 'X-11.handler.server_output',
+            'data'    => { 'bin' => $bin_name, 'pid' => $server_pid }
+        }
+    );
+} else {
+    $bin_name = '[host] x11';
+    <X-11.connect_timeout> = 15 if <X-11.connect_timeout> < 15;
+    <[base.log]>->( 1, "running in host mode [ using existing X11-server ]" );
+}
+
+<X-11.obj_bin_name> = $bin_name;
+my $bin_name_lc = lc($bin_name);
+
+## registering custom error handlers ###
+
+$data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
+    = 'X-11.handler.protocol-warnings';    ## $self->{'connection'}->get(@_); ##
+
+<X-11.obj>->{'error_handler'} = sub {
+    ( my $self, my $err_data ) = @_;
+    chomp( my $err_str = $self->format_error_msg( $err_data // '' ) );
+    $err_str =~ s|\s*\n+\s*| <!> |g;
+    $err_str = 'unknown protocol error [ X-server crashed ? ]'
+        if !length($err_data);
+    warn( join( ' ', '[protocol-error]', $err_str ), '<{C7}>' );
+    ## reconnect here, if not successful call: ## [ LLL ]
+    #  <[X-11.error_handler]>->($err_str);
+};
+##
+
+<[base.logs]>->( ": connecting to X display [%s]", <X-11.display>->{$mode} );
+
+<[X-11.connect_x11]>;
+
+<[base.log]>->( 1, ": : link to '$bin_name_lc' established [ responsive ]" );
+
+## extensions ##
+
+# <[base.log]>->( 1, ": initializing extensions ..," );
+# <X-11.obj>->init_extensions;
+# print STDERR Dumper( keys( %{ <X-11.obj>->{'ext'} } ) );
+
+my $randr_expected = 1;
+my $randr_reason   = ':|';
+if ( <X-11.mode> =~ m{^(xephyr|nxagent)} ) {
+    $randr_reason = sprintf( "[ %s ]", <X-11.mode> );
+
+    #    $randr_expected = 0;
+}
+if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
+    <[base.log]>->( 1, ": : RANDR support present =)" );
+    eval { <X-11.obj>->RRQueryVersion( 1, 0 ); };
+    if ($EVAL_ERROR) {
+        <X-11.has_randr> = 0;
+        ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
+        <[base.log]>->( 0, ': : : initialization error., RANDR disabled..,' );
+        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+    } else {
+        <X-11.has_randr> = 1;
+    }
+} else {
+    <[base.log]>->( 1, ": : no RANDR support $randr_reason" );
+    <X-11.has_randr> = 0;
+}
+
+if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
+    <[base.log]>->( 1, ": : DPMS is supported =)" );
+    eval { <X-11.obj>->DPMSGetVersion(); };
+    if ($EVAL_ERROR) {
+        <X-11.has_dpms> = 0;
+        ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
+        <[base.log]>->( 0, ': : : initialization error., DPMS disabled..,' );
+        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+    } else {
+        <X-11.has_dpms> = 1;
+    }
+} else {
+    <[base.log]>->( 1, ": : DPMS not supported :|" );
+    <X-11.has_dpms> = 0;
+}
+
+if ( <X-11.obj>->init_extension('Composite') ) {
+    <[base.log]>->( 1, ": : X-11 is composited =)" );
+    eval { <X-11.obj>->CompositeQueryVersion(); };
+    if ($EVAL_ERROR) {
+        <X-11.is_composited> = 0;
+        ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
+        <[base.log]>->(
+            0, ': : : initialization error., Composite extension disabled..,'
+        );
+        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+    } else {
+        <X-11.is_composited> = 1;
+    }
+} else {
+    <X-11.is_composited> = 0;
+    <[base.log]>->( 1, ": : X-11 is not composited :|" );
+
+}
+
+## display connected ? ##
+
+<X-11.display_connected.any> //= 1;
+
+<[X-11.init_display_states]> if <X-11.mode> eq 'xorg';
+
+if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
+
+    <X-11.wait_for_display.callback> = 'X-11.callback.display_connected';
+    <[base.log]>->( 0, "<!> display is off / not connected <!>" );
+
+    # polling for screen sizes, otherwise drm display status never gets updated.
+    <X-11.timer.wait_for_display> = <[event.add_timer]>->(
+        {   'after'    => 0.13,
+            'interval' => 0.7,
+            'handler'  => 'X-11.handler.poll_size_list'
+        }
+    );
+    <[base.log]>->( 0, "    : waiting for a display to restart X-11..," );
+
+    if ( defined <X-11.host_mode.min_size>
+        and <X-11.host_mode.min_size> =~ m|^\d+x\d+$| ) {
+        <[base.log]>->(
+            0, "    : setting min_size [" . <X-11.host_mode.min_size> . "]"
+        );
+        <[X-11.cmd.set_screen_size]>
+            ->( { 'args' => <X-11.host_mode.min_size> } );
+    }
+
+} elsif ( <X-11.mode> eq 'xorg' ) {
+    <[base.log]>->( 1, ": : display is on / connected =)" );
+
+    my @max_size = <[X-11.max_screen_size]>;
+
+    # LLL: make configurable..,
+    if (    <X-11.has_randr>
+        and defined <X-11.video_driver>
+        and <X-11.video_driver> ne 'qxl'
+        and (  $max_size[0] > <X-11.obj>->width_in_pixels
+            or $max_size[1] > <X-11.obj>->height_in_pixels )
+    ) {
+        <[base.log]>
+            ->( 0, "<!> X-11 unable to select highest screen size <!>" );
+        <[base.log]>->( 0, " :. mitigating.. [ reloading gfx kernel module ]" );
+        <[event.add_timer]>->(
+            {   'after'   => 0.13,
+                'handler' => 'X-11.callback.force_driver_reload'
+            }
+        );
+    } else {
+        <X-11.display_status.handler> = 'X-11.handler.display_power_state';
+    }
+}
+
+if (<X-11.has_randr>) {
+
+## orientation ##
+
+    <[X-11.cmd.rotate-screen]>->( { 'args' => <X-11.orientation> } )
+        if not <X-11.keep_unchanged>;
+
+## custom xrandr ##
+
+    map {
+        system( '/usr/bin/xrandr',
+            split( m| +|, <X-11.custom_xrandr>->{$ARG} ) )
+        }
+        sort { $a <=> $b } keys %{<X-11.custom_xrandr>}
+        if <X-11.mode> eq 'xorg'
+        and defined <X-11.custom_xrandr>
+        and ref(<X-11.custom_xrandr>) eq 'HASH';
+}
+
+## keyboard ##
+
+<X-11.kbd> = X11::Keyboard->new(<X-11.obj>);
+
+<X-11.keycodes.modifiers> = <[X-11.get_modifier_map]>;
+
+#  my $any_key = <X-11.kbd>->KeysymToKeycode('AnyKey');
+#  my $any_mod = <X-11.kbd>->KeysymToKeycode('AnyModifier');
+
+<X-11.obj>->{'event_handler'} = 'queue';
+<[event.add_io]>->(
+    {   'fd'      => <X-11.obj>->{'connection'}->fh,
+        'handler' => 'X-11.handler.global_hotkeys'
+    }
+);
+
+<[X-11.grab_key]>
+    if !<X-11.keep_unchanged>
+    and defined <X-11.keybd.grab_all_keys>
+    and ( <X-11.keybd.grab_all_keys> eq '1'
+    or <X-11.keybd.grab_all_keys> eq 'yes' );
+
+## screensaver / blanking ##
+
+if (    <X-11.has_dpms>
+    and !<X-11.keep_unchanged>
+    and defined <X-11.disable_blanking>
+    and (  <X-11.disable_blanking> eq 'yes'
+        or <X-11.disable_blanking> eq '1' )
+
+) {
+    <[base.log]>->( 1, ": deactivating screen blanking ..," );
+
+    <X-11.obj>->DPMSDisable();
+    <X-11.obj>->SetScreenSaver( 0, 0, 1, 0 );
+}
+
+## GPU load statistics [intel only] ##
+<X-11.collect_intel_gpu_stats> //= 0;
+<X-11.collect_gpu_stats_on_4K> //= 0;
+<[X-11.start_gpu_top]> if <X-11.video_driver> =~ m|^i|i    # i9xx <?>
+    and ( <X-11.collect_intel_gpu_stats>
+    or <X-11.collect_gpu_stats_on_4K> and <X-11.obj>->width_in_pixels >= 3840 );
+
+## background image / color ##
+
+<X-11.keep_background> //= 0;
+if (<X-11.keep_background>) {    # <- do not touch background image and color
+    <X-11.initialized> = 1;
+    return 0;
+}
+
+if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
+    <[base.log]>->( 0, "<!> no a valid background color syntax ['$bg_col']" )
+        if defined $bg_col;
+    $bg_col = <X-11.bg_col_default> // '#000000';    # <-- fallback color
+}
+
+if ( <X-11.bg_fade> //= 1 and $bg_col ne '#000000' ) {
+    <[X-11.fade_in_bg_col]>->($bg_col);
+} else {
+    <[base.log]>->( 1, "setting background color to '$bg_col'" );
+    X11::Protocol::XSetRoot->set_background(
+        'color'        => $bg_col,
+        'use_esetroot' => 1
+    );
+}
+
+my $bg_mode = <X-11.bg_mode>;
+if ( defined $bg_image ) {
+
+    my @hsetroot_params;    # LLL: 'hsetroot' call to be replaced soon ..,
+    my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
+    if ( !-x $hsetroot_bin ) {
+        <[base.log]>->( 0, "can not set bg-image : '$hsetroot_bin' not found" );
+        return -1;
+    }
+    ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
+    <[base.log]>->( 1, "setting background image '$img_txt'" );
+    @hsetroot_params = ( "-$bg_mode", $bg_image );  # <-- aquire available [LLL]
+    if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
+        <[base.log]>->(
+            0, "unable to execute 'hsetroot' [ returned $CHILD_ERROR ]"
+        );
+    }
+}
+
+<X-11.initialized> = 1;
+
+# success
+return 0;
+
+#.............................................................................
+#EOWODMXAXEHQ7NSMKJXVYZIFJXBZVHEEFRDVF55C2AGXIGEFVOUNLZDKCVN547MMDMCYBHJCDXSNA
+#::: RSABC4AFETEYLVCTNBQWX7UJBWHCQ6Q2PBX72CH6HJZMEEHPXD4 :::: NAILARA AMOS :::
+# :: SRPGZYQT34US2ODHNN5EQPSF2OHCRFPKXADW3BOVYWMJEPPBZACA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

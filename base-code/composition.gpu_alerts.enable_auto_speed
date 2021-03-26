@@ -1,0 +1,34 @@
+# >:]
+
+# name  = composition.gpu_alerts.enable_auto_speed
+# descr = send 'slow_down' command to web-browser zenki ([GPU/CPU] load reduction)
+
+my $zenki_present //= {};
+foreach my $zenka_name ( keys %{<composition.subconfig>} ) {
+    next if $zenka_name !~ m{^(web-browser|universal|ticker-gtk)};
+    if ( not defined <composition.subconfig>->{$zenka_name}->{'auto_speed'}
+        or !<composition.subconfig>->{$zenka_name}->{'auto_speed'} ) {
+
+        next
+            if $zenka_name !~ m|ticker|
+            and <composition.counter.gpu_alerts> < 2;
+
+        <[base.log]>->( 1, "activating auto_speed mode for '$zenka_name'" );
+        <composition.subconfig>->{$zenka_name}->{'auto_speed'} = 1;
+
+        ( my $route = $zenka_name ) =~ s|\[.+$||;
+
+        $zenki_present->{$route} //= 1;
+    }
+}
+
+map {
+    <[base.protocol-7.command.send.local]>->(
+        { 'command' => "cube.$ARG.slow_down" } )   # making sure they got it ..,
+} sort keys %{$zenki_present};
+
+#.............................................................................
+#EYFWCIRHD4O4K55SX5TJQCUY4ZVO5PNG4EUN5NV2TTZGGF5ERBCV2D6YVCAHBHPLBFHCFHN2NKF4U
+#::: DB4GCKMQU6JC24BCPBNUPTQKN7SQRPH7CRV7KPHR4KSTECFMML6 :::: NAILARA AMOS :::
+# :: LXGAYQADXRVDAOEE322PX5WSKFALIPMSLF2QQTQHR4IGWVFJJ6CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

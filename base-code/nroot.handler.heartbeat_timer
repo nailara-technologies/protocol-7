@@ -1,0 +1,55 @@
+# >:]
+
+# name = nroot.handler.heartbeat_timer
+
+my $watcher     = shift->w;
+my $instance_id = $watcher->data;
+
+if ( not defined <nroot.zenka.instance>->{$instance_id} ) {
+    $watcher->cancel if $watcher->is_active;
+    <[base.log]>->(
+        0, "[$instance_id] instance gone - stopping status-timer .,"
+    );
+}
+
+my $instance = <nroot.zenka.instance>->{$instance_id};
+$instance->{'heartbeat'}->{'errors'} //= 0;
+my $globals      = <nroot.start_setup.globals> // {};
+my $zenka_name   = $instance->{'zenka_name'};
+my $root_sid     = $instance->{'root_sid'};
+my $cube_sid     = $instance->{'cube_sid'};
+my $zenka_config = <nroot.start_setup.zenki.config>->{$zenka_name};
+my $timeout_secs
+    = $zenka_config->{'heartbeat'}->{'timeout'}
+    || $globals->{'heartbeat'}->{'timeout'}
+    || 13;    # <-- internal timeout default
+
+$instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+    {   'after'   => $timeout_secs,
+        'handler' => 'nroot.handler.heartbeat_response_timeout',
+        'data'    => $instance_id
+    }
+    )
+    if not defined $instance->{'timer'}->{'heartbeat-timeout'}
+    or !$instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+
+my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$command_route.heart",
+        'call_args' => { 'args' => 'notime' },
+        'reply'     => {
+            'handler' => 'nroot.handler.heartbeat_timer_response',
+            'params'  => { 'instance_id' => $instance_id }
+        }
+    }
+);
+
+delete $zenka_config->{'heartbeat'} if !keys %{ $zenka_config->{'heartbeat'} };
+delete $globals->{'heartbeat'}      if !keys %{ $globals->{'heartbeat'} };
+
+#.............................................................................
+#6Q3SU2RA53KZKILOKCBWUTXYDKSWJENQSCACFTONPKVEXXHRX3COQ55EGBTQ6YHX4TQYCYZZOV6UY
+#::: APWEAFXRKLUWFG3LBRWNQZMAABIQTM2ZO73AGOK7GUECFUURLY4 :::: NAILARA AMOS :::
+# :: DHYWG6UMDJK33BIQ3X3Y2OB6GAOT5VRP3IUV7QYJ3WHZP7JCJWCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

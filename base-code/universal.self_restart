@@ -1,0 +1,37 @@
+# >:]
+
+# name = universal.self_restart
+
+my $sname_str
+    = defined <system.zenka.subname>
+    ? '[' . <system.zenka.subname> . ']'
+    : '';
+
+if (<universal.cfg.can_self_restart>) {
+    <[base.log]>->( 1, ": : zenka restart., [universal$sname_str]" );
+} else {
+    <[base.log]>->( 0, ": . <!> self restart is disabled <!>" );
+    return 0;
+}
+
+Event->unloop_all();    # making sure log messages make it..
+
+$SIG{'CHLD'} = 'IGNORE';
+
+# LLL: temporary quickfix for leftover mpv process
+map { kill( 'TERM', $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
+<[base.sleep]>->(0.42);
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.nroot.restart',
+        'call_args' => { 'args' => 'universal' . $sname_str },
+    }
+);
+
+return 1;
+
+#.............................................................................
+#UH527QQZPBEK3UMLTSLG6YKOIHADIZ7HK2DADKXB6MWHVJKZ4AFA2OF7W355QGFCXDK3CF7CCZV7C
+#::: QKT7P3Q7S64BVIWBCXZPSBGLOFWO3NRH2GHJE7SPFDZWO3LVIV2 :::: NAILARA AMOS :::
+# :: FCVWJGKYZXFBSMPX24JWEC2R6GIZ243Y5SBONUC2N3276Z4Q76CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

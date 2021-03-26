@@ -1,0 +1,43 @@
+
+  .:[ ticker-gtk zenka ]:.
+
+[load_config_file:'shared-params']
+[base.renice:-15]
+[root.drop_privs:<system.privs.user>]
+
+access.cmd.usr.cube = commands heart reload verify-instance * *.*
+
+ticker-gtk.request_rss_updates = 0  # ask rss-ticker zenka for update on startup
+
+[load_modules:'set-up.json ticker-gtk.set-up']
+[init_modules]
+
+[set-up.json.import_file:'ticker-gtk.set-up.json']
+
+#                known (expected) fonts:  DroidSans DroidSans-Bold DroidSansMono
+#                                         DroidSerif-Bold DroidSerif-Regular
+ticker-gtk.font.name = DroidSans
+
+ticker-gtk.cfg.draw_outline  = 1
+ticker-gtk.do_custom_fade_in = 1
+
+ticker-gtk.use_transparency = 1 # set to '0' to disable fading / transp. backgr.
+ticker-gtk.cfg.max_gpu_load = 67 # GPU load target in auto_speed mode
+
+
+# ticker-gtk.bg_col   = 000013
+# ticker-gtk.bg_alpha = 100 # [0..100] 0 == opaque, 100 == transparent
+
+modules.load = auth net protocol io.ip chk-sum.bmw ticker-gtk
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+[base.X-11.get_coordinates]
+ticker-gtk.subcfg = [base.X-11.get_subconfig]
+[ticker-gtk.process_subcfg]
+
+[ticker-gtk.startup]

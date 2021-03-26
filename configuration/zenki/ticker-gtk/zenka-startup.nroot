@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.nroot
+# descr = 'ticker-gtk' zenka startup configuration used by 'nroot' zenka
+
+dependencies = cube X-11 compton # openbox rss-ticker
+max_subname_concurrency = 1         # ^-- enable rss_updates in ticker-gtk
+inherit_subname = 1
+## [ in case of immediate errors [ font.size = 0 ] ]
+startup-error.retry-count   = 3
+startup-error.retry-min-delay = 1.2
+
+: nroot-init :
+  start_mode = stdin-zenka
+  command_line_modules = Gtk3 Glib::Event Cairo
+  cube.key = [base.prng.chars-anum:44]
+  [nroot.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+

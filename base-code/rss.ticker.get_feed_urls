@@ -1,0 +1,30 @@
+# >:]
+
+# name = rss.ticker.get_feed_urls
+
+my $sub_name;
+my $file_type = 'ticker';
+
+$sub_name = '[' . <system.zenka.subname> . ']'
+    if exists <system.zenka.subname>
+    and defined <system.zenka.subname>
+    and length(<system.zenka.subname>);
+
+my $args_str = $file_type;
+$args_str .= ' ' . $sub_name if defined $sub_name;
+my @args = ( 'args' => $args_str );
+
+<[base.log]>->( 1, "fetching RSS feed URLs from 'content' zenka.," );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.content.get_list',
+        'call_args' => {@args},
+        'reply'     => { 'handler' => 'rss.ticker.handler.get_list_reply' }
+    }
+);
+
+#.............................................................................
+#3SOBKGMVB2CIBREJNE5265WDXYABWZLBT57BXEKS7ZCU6EYHGDHLD2N3RMR2WIXEVCFJ4IJ7223IK
+#::: RLPDBS2SNSAQSON6ORGGUGJ42OCWVC3UEIXQH66ABIREB6QCPQS :::: NAILARA AMOS :::
+# :: F2FQMWCOXK6T32DFPLH3JARXRJDVG245JWYYTT4QOBF74DCBQMAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

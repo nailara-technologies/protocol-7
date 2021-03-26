@@ -1,0 +1,43 @@
+# >:]
+
+# name = nroot.init_restart_timer
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <nroot.zenka.instance>->{$instance_id};
+
+if ( not defined $instance ) {
+    ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
+    <[base.log]>->(
+        2,
+        "init_restart_timer: instance $instance_id"
+            . " is gone<?> [$caller_str]"
+    );
+    return undef;
+}
+my $zenka_name = <nroot.zenka.setup>->{ $instance->{'zenka_id'} }->{'name'};
+
+return warn "restart_delay is undefined"
+    if not defined $instance->{'restart_delay'};
+
+$instance->{'timer'}->{'restart'}->cancel
+    if defined $instance->{'timer'}->{'restart'}
+    and $instance->{'timer'}->{'restart'}->is_active;
+
+<[base.log]>->(
+    1,
+    "instance $instance_id ['$zenka_name'] restart delay"
+        . " = $instance->{restart_delay}s"
+);
+$instance->{'timer'}->{'restart'} = <[event.add_timer]>->(
+    {   'after'   => $instance->{'restart_delay'},
+        'handler' => 'nroot.callback.instance.restart',
+        'data'    => $instance_id
+    }
+);
+
+#.............................................................................
+#VSXWS3BXDM2A4SJTMEOFHI67K32I6C6VSDLWN4MYZ4FOZYS75NM6HWRTEDFBVFNMTHBTPYENQT6WY
+#::: 2TWS4PUPZNKNOEQQ7A4YH6UZDKKFVU66UF7FSIMHKUAQNTGRMXJ :::: NAILARA AMOS :::
+# :: DFRFSNARL72AEGHRW4RK3BGPQOTLZHXCTZE4XAX6SK2PWPIDYWCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

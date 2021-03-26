@@ -1,0 +1,83 @@
+# >:]
+
+# name = content.handler.weather_urls_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    return <[base.log]>->(
+        0, "unable to fetch url [" . $reply->{'call_args'}->{'args'} . "]"
+    );
+}
+
+my $city    = $reply->{'params'}->{'city'};
+my $subname = $reply->{'params'}->{'subname'};
+$reply->{'data'} =~ s|\n$||;
+my @weather_urls = split( /\n/, $reply->{'data'} );
+map { $ARG =~ s|^file://|| } @weather_urls;
+
+my $changes = 0;
+my @new_list;
+
+my $file_index = 0;
+foreach my $list_item ( @{<content.file_list>} ) {
+    my $type = <content.file_types>->{$list_item};
+    next if not defined $type;
+    if ( $type eq ':waiting:' and $list_item =~ /^\[weather:$city\]$/ ) {
+        <[base.log]>->( 1, "received weather urls for '$city'.." );
+        delete <content.file_types>->{$list_item};
+        delete <content.zenka_subnames>->{$file_index}
+            if defined <content.zenka_subnames>->{$file_index};
+        push( @new_list, @weather_urls );
+
+        if ( defined <content.zenka_subnames>
+            and @{<content.file_list>} > ( $file_index + 1 ) ) {
+            my $index_offset = @weather_urls;
+            my $file_count   = @{<content.file_list>};
+            foreach
+                my $idx_2 ( reverse( ( $file_index + 1 ) .. $file_count - 1 ) )
+            {
+                <content.zenka_subnames>->{ $idx_2 + $index_offset - 1 }
+                    = delete <content.zenka_subnames>->{$idx_2};
+            }
+        }
+        my $content_type = 'html';
+        map {
+            <content.file_types>->{$ARG} = $content_type;
+            <content.type_cache>->{$ARG} = $content_type
+                if <content.cfg.cache_content_types>;
+            <content.zenka_subnames>->{$file_index}->{$subname} = 1
+                if defined $subname;
+            $file_index++;
+        } @weather_urls;
+
+        $changes++;
+    } else {
+        push( @new_list, $list_item );
+        $file_index++;
+    }
+}
+
+if ($changes) {
+    <content.file_list> = \@new_list;
+    <[base.log]>->( 1, "weather urls added to playlist, updating..." );
+
+    # LLL: extract to seperate subroutine:
+    my $update_cmd = <update.notify_command> || 'playlist_update';
+    my $count      = 0;
+    map {
+        # LLL: check zenka name syntax [+response]!
+        <[base.protocol-7.command.send.local]>
+            ->( { 'command' => "cube.$ARG.$update_cmd" } );
+        $count++;
+    } split( / +/, <update.notify_zenki> );
+    my $s          = $count == 1 ? ''                          : 's';
+    my $notify_str = $count      ? ", $count zenka$s notified" : '';
+    <[base.log]>->( 1, 'playlist updated' . $notify_str );
+}
+
+#.............................................................................
+#UOUFZ7MRI6TQ3GPOV6PFGBYI7OZ2MZHW35KB4BLXC4YL72WLWOVPRCC3DTECFAWQ66NHGNEWCBIBA
+#::: OMDAXF2ZSZ2MJR2LQMX6GMOKZO6IBQ3WKBFCNDLDVQO7ELC4FEY :::: NAILARA AMOS :::
+# :: OC6DNLS3UE56WDZ4BNU27PMUNACVSRPDYIUFKMNUX6OOGXW3BAAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

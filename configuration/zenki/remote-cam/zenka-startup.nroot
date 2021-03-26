@@ -1,0 +1,16 @@
+# >:]
+
+# name  = zenka-startup.nroot
+# descr = 'remote-cam' zenka startup configuration used by 'nroot' zenka
+
+dependencies  = cube X-11 openbox content
+heartbeat.disabled = 1
+
+: nroot-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [nroot.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+

@@ -1,0 +1,28 @@
+
+ .:[ nailara 'p7-log' [log-writer] zenka ]:.
+
+[load_config_file:'shared-params']
+system.verbosity.zenka_buffer  = 2
+system.verbosity.zenka_logfile = 1
+
+log.timestamp_mode = ntime-b32   #  [ntime-b32|ntime-num|unix|localtime]
+
+modules.load = auth net protocol io.ip chk-sum.elf p7-log
+
+debug.subs = get since dump dump-env echo exec-sub list-subs \
+             set del sleep keep-debug-loaded unload-dbg-mod
+
+access.cmd.usr.cube = append commands heart reload cur-pid verify-instance \
+                      list-logs change-log-verbosity list clear-buffer \
+                      show-buffer set-name-width file-sizes verbosity \
+                      <debug.subs>
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+
+[net.connect_to_cube:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]

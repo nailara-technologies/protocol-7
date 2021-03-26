@@ -1,0 +1,31 @@
+# >:]
+
+# name  = content.update.send_notifications
+
+my $update_cmd = shift // 'playlist_update';
+
+my $count = 0;
+map {
+    # LLL: check zenka name syntax!
+    <[base.protocol-7.command.send.local]>
+        ->( { 'command' => "cube.$ARG.$update_cmd" } );
+    $count++;
+} split( / +/, <update.notify_zenki> );
+
+if (<content.content_changed>) {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.notify.msg_reload",
+            'call_args' =>
+                { 'args' => "'" . <locales.string.playlist_updated> . "'" }
+        }
+    ) if <content.cfg.change_notifications>;
+    <content.content_changed> = 0;
+}
+
+return $count;
+
+#.............................................................................
+#M4WHA3OIX62WS5XFQCHYLVPO7BIR47VLSNW62Q5CCAIGMUHYN3BOYKVYKPBQHMD4WIQ4SAKIGAEV4
+#::: ASRWJRB3RUXCE5JMTGVTCFSGETXZUOVU7GKXZNGUPUHNK6ROWSG :::: NAILARA AMOS :::
+# :: 3OE5JUZ7RXKOCBCHPXSQ67RFHKU3MRBDWYYAM6YOYMIIQBYH4SCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

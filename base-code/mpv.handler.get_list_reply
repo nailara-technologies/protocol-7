@@ -1,0 +1,108 @@
+# >:]
+
+# name = mpv.handler.get_list_reply
+# todo = fix continuous playback in case current file is in playlist!
+
+my $reply = shift;
+
+<mpv.playlist_sha1> //= '';
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason_str = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, ": unable to fetch playlist., ['$reason_str']" );
+    return;
+}
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <mpv.playlist_sha1> = '';
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <mpv.playlist_was_empty> = 1;
+    <mpv.file_map.rescaled>  = {};
+    <[mpv.send_command]>->('stop');
+    <[base.protocol-7.command.send.local]>
+        ->( { 'command' => "cube.report_paused" } )
+        if <system.zenka.mode> eq 'universal-child';
+    return;
+}
+
+my @update_files = split( m|\n|, $reply->{'data'} );
+
+my $playlist_changed = 0;
+my $playlist_sha1    = <[chk-sum.sha.1]>->( join( ' ', @update_files ) );
+
+if (<mpv.autorescale>) {
+    <mpv.file_map.rescaled> = {};
+    my $window_width  = <x11.coordinates.right> - <x11.coordinates.left>;
+    my $window_height = <x11.coordinates.bottom> - <x11.coordinates.top>;
+    my $box_size      = join( 'x', $window_width, $window_height );
+
+    foreach my $playlist_path (@update_files) {
+        my $output_path;
+        my $extension = '';
+        if ( defined <mpv.rescale_path> and -d <mpv.rescale_path> ) {
+            my $target_pth = <mpv.rescale_path>;
+            ( $output_path = $playlist_path ) =~ s|^.+/([^/]+)$|$target_pth/$1|;
+        } else {
+            ( $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
+        }
+        my $rescaled_path = "$output_path/$box_size.mp4";
+        next if !-f $rescaled_path;
+        <mpv.file_map.rescaled.target>->{$playlist_path} = $rescaled_path;
+        <mpv.file_map.rescaled.source>->{$rescaled_path} = $playlist_path;
+        $playlist_path = $rescaled_path;
+        <[mpv.update_resc_timestamp]>->($rescaled_path)
+            if defined <mpv.rescale_path> and -d <mpv.rescale_path>;
+        $playlist_changed = 1;
+    }
+}
+
+return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
+    if $playlist_sha1 eq <mpv.playlist_sha1> and !$playlist_changed;
+<mpv.playlist_sha1> = $playlist_sha1;
+
+push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+<[mpv.send_command]>->('playlist_clear');
+
+my $current_path = <mpv.current.path> // '';
+
+my @append_files = @update_files;
+my $keep_file    = 0;
+foreach my $check_path (@update_files) {
+    if ( $check_path eq $current_path ) {
+        shift @append_files;
+        $keep_file = 1;
+        last;
+    }
+    push( @append_files, shift @append_files );
+}
+
+if ( !$keep_file ) {
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <[mpv.send_command]>->('stop');
+}
+
+map {
+    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    <[mpv.send_command]>->( 'loadfile', $ARG, 'append-play' );
+} @append_files;
+
+if ( <system.zenka.mode> eq 'universal-child' ) {
+    <mpv.playlist_was_empty> //= 0;
+    <mpv.startup.child_init> //= 1;
+    if ( <mpv.startup.child_init> or <mpv.playlist_was_empty> ) {
+        <mpv.playlist_was_empty> = 0;
+        <mpv.startup.child_init> = 0;
+        push( @{<mpv.reply_ids>}, 'silent' );
+        <mpv.success_reply_str> = '[PAUSE]d';
+        <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+    }
+    <mpv.playlist_contains_pause> //= 0;
+    map { <mpv.playlist_contains_pause>++ if $ARG eq '[PAUSE]' } @update_files;
+}
+
+#.............................................................................
+#NMQFMIKK6GWASTSVOBDZ3PGGRQIBDWJVERIAN4CSVER4GASZWJPZY6JUQZMVEBAAI2ERYLK3VVNEC
+#::: XTB5HV22YPCQUP4D44VDF6K4GAHSD3XEEXJZQGKBS3OGUFV22EH :::: NAILARA AMOS :::
+# :: RLJ27RJDIPA3YDRTOO3C3UOSM2Q2NIPWRVOIJIJ7EGCL4IFFYIBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

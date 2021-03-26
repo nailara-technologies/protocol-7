@@ -1,0 +1,21 @@
+# >:]
+
+# name  = universal.cmd.dump_state
+# descr = dump current zenka state [new version]
+
+my $dump_key = 'universal.state';
+
+return {
+    'mode' => 'data',
+    'data' => "\n  .:[ '$dump_key' ]:.\n:`\n"
+        . join( '',
+        map {": $ARG\n"}
+            split( /\n/, <[base.dump_data]>->( undef, undef, $dump_key ) ) )
+        . ":.\n\n"
+};
+
+#.............................................................................
+#AV7AMROSOUAH4CAR357MRXZSB5E4PUUPA3WGGNR6TNTQDBMLQZV63XO4U37HN6UCD2YD5AK6JRCKW
+#::: MLRZ56577TLOPVZXJGOPKFDQTKYQPXSQMDWPJO6GJNS3SOJYRZS :::: NAILARA AMOS :::
+# :: W3VKI7KPGLM4ZBQ4AWXXRVBT257X2P6BTPK6TF2FMYHFYSNAMMBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

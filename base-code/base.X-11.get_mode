@@ -1,0 +1,37 @@
+# >:]
+
+# name = base.X-11.get_mode
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+<[base.log]>->( 2, "requesting mode name from X-11 zenka.," );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_mode\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.mode> = $1;
+    <[base.log]>->( 1, "received X-11 mode name [" . <x11.mode> . "]" );
+    return <x11.mode>;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+#.............................................................................
+#TJD46BO67HAQP5AXC5X5KVNY3M5CY444T4FOITKPDO3QGOT4H67SMYFMI66CHT74YVIDQKFD4XMRY
+#::: KFHWR7VVEKD56DZ7ONM7RD4OWD2XS6HWDHBZBXJOMRVD25ZZ2UT :::: NAILARA AMOS :::
+# :: DESK7B35ABBJ4QA22XLRREDEEXTKYITFCHQPM4ELPJKLLH7MR2BY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

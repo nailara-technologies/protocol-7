@@ -1,0 +1,36 @@
+# >:]
+
+# name       = ssl.server
+
+my $key_file = $data{'system'}{'root_path'} . '/configuration/ssl.pem';
+if ( !-f $key_file ) {
+    <[base.log]>->( 0, "cert file '$key_file' not found" );
+}
+my $lsock = new IO::Socket::SSL(
+    LocalAddr     => $_[0],
+    LocalPort     => $_[1],
+    Proto         => 'tcp',
+    Listen        => 23,
+    ReuseAddr     => 1,
+    TimeOut       => 1,
+    SSL_Server    => 1,
+    SSL_key_file  => $key_file,
+    SSL_cert_file => $key_file
+);
+if ( not defined $lsock ) {
+    my $ssl_err = &IO::Socket::SSL::errstr();
+    $ssl_err =~ s/\n.+//mg;
+    <[base.log]>->( 0, "ssl: unable to launch server $_[0]:$_[1] [$ssl_err]" );
+    return -1;
+} else {
+    $lsock->listen()
+        or <[base.log]>->( 0, "ssl.server: listen: $OS_ERROR" );
+    <[base.log]>->( 1, "SSL server launched [$_[0]:$_[1]]" );
+    return $lsock;
+}
+
+#.............................................................................
+#4GQTC46TLTFAO7DOEUMYIPT63FG7LIUQA2Q5PPUMI2VPWRL546NSP75HCONDAGWXSJJDOKD3JLGCG
+#::: IRY5C24JOA6RTL5T64KEMPWYAUX4US4D6VHHLZW2FYCLK2OI2GS :::: NAILARA AMOS :::
+# :: DU3K7CNQURG7TIWQCH4UIW26X477UG5U4JEPYHB6FLSP6ZFW34DI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

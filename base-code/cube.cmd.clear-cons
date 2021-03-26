@@ -1,0 +1,29 @@
+# >:]
+
+# name  = cube.cmd.clear-cons
+# descr = clear 'cube' zenka [stdout] console output
+
+my $clear_reply = 'console cleared';
+my $header_text = 'protocol 7 console';
+
+if (<system.ansi_color>) {
+    my $quote_str = "$ANSI{'p7_fg_0000'}'$ANSI{'p7_fg_0001'}";
+    my $host_str  = sprintf( "%s%s%s protocol 7 console",
+        $quote_str, <system.host.hostname>, $quote_str );
+    printf( STDERR "%s\n %s.:[%s %s %s]:.%s\n\n",
+        $ANSI{'clear_screen'},                $ANSI{'p7_fg_0004'},
+        $ANSI{'p7_bg'} . $ANSI{'p7_fg_0004'}, $host_str,
+        $ANSI{'reset'} . $ANSI{'p7_fg_0004'}, $ANSI{'reset'}
+    );
+} else {
+    my $host_str = sprintf( "%s %s", <system.host.hostname>, $header_text );
+    printf( STDERR "\n .:[ %s ]:.\n\n", $host_str );
+    $clear_reply = "wrote hostname marker only [ active '-nc' option ]";
+}
+return { 'mode' => 'ack', 'data' => $clear_reply };
+
+#.............................................................................
+#NMN33UCSXX73NYNZXHGWA2FGDH4VMRYMHGZPGN74QDVXYWWENGPL6CQCRE4TXHRXNADLOW5YW36PI
+#::: JX4UGU73FFKS3UJXHJKL7VTUMTEJUJ2PFFDO5HO4I5H4GVQFC6N :::: NAILARA AMOS :::
+# :: IDWK5KIZPVFU2TFALW5LZON7NYW5PE2TQGI63TEWSWHQL66N5AAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

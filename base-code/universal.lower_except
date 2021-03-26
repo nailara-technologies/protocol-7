@@ -1,0 +1,23 @@
+# >:]
+
+# name = universal.lower_except
+
+my $zenka_name = shift;
+die "zenka name expected" if not defined $zenka_name;
+
+foreach my $lower_zenka ( keys %{<universal.child>} ) {
+    next if $lower_zenka eq $zenka_name;
+    my $lower_wid = <universal.child>->{$lower_zenka}->{'window_id'};
+    <[base.log]>->( 2, ": lowering '$lower_zenka' window ($lower_wid)" );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.X-11.lower_window",
+            'call_args' => { 'args' => $lower_wid }
+        }
+    );
+}
+
+#.............................................................................
+#U52DHIMECPCNAZB2IUEFMQQR3RSJ4AGYYARTDRZW22YGEZAQO4OFBCB2P3FGY7YO7KVDFHNCERPCE
+#::: BSXUXUZ4JAOBB477EXLIGZY2OJMF75G3KYLNBRVC27UA3MZNQYX :::: NAILARA AMOS :::
+# :: SSI2ICOLUZFJUYXVE6VRAKFPWRQW5IIYTLMNUA5FR4ST6LECTQDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

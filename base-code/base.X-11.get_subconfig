@@ -1,0 +1,75 @@
+# >:]
+
+# name = base.X-11.get_subconfig
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+my $zenka_name
+    = ( defined <system.zenka.mode>
+        and <system.zenka.mode> eq 'universal-child' )
+    ? 'universal'
+    : <system.zenka.name>;
+my $subname  = <system.zenka.subname>;
+my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
+
+<[base.log]>->( 1, "requesting $name_str composition tile subcfg" );
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)composition.get_subconfig $name_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(NAK|DATA) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+my $subcfg_data  = {};
+my $read_timeout = 2;
+if ( $reply_string =~ m|^\($cmd_id\)DATA (\d+)\n$| ) {
+    my $bytes_to_go = $1;
+    my $bytes_total = $bytes_to_go;
+    if ( !$bytes_to_go ) {
+        <[base.log]>->(
+            2, "composition subconfig for '$name_str' was empty [ 0 bytes ]"
+        );
+        return {};
+    }
+    my $buffer = '';
+    while ($bytes_to_go) {
+        my $bytes = read( $cube_fh, $buffer, $bytes_to_go, length($buffer) );
+        $bytes_to_go -= $bytes if defined $bytes;
+    }
+    chop($buffer);
+    foreach my $cfg_line ( split( m|\n|, $buffer ) ) {
+        my ( $c_key, $c_val ) = split( m| +\= |, $cfg_line, 2 );
+        $subcfg_data->{$c_key} = $c_val;
+    }
+    <[base.log]>->(
+        1, "received tile group subconfig for '$name_str' [$bytes_total bytes]"
+    );
+    return $subcfg_data;
+} elsif ( $reply_string =~ m|^\($cmd_id\)NAK no set-up for zenka '([^ ]+)'| ) {
+    <[base.log]>->( 1, ": <!> composition zenka has no set-up for \"$1\" <!>" );
+    return undef;
+} elsif ( $reply_string =~ m|^\($cmd_id\)NAK command unknown\n$| ) {
+    <[base.log]>->( 1, ": << get_subconfig [ NAK ] >> for '$name_str'" );
+    return undef;
+} else {
+    <[base.log]>->(
+        0,
+        "[ protocol mismatch ] unexpected reply from composition zenka"
+            . " ['$reply_string']"
+    );
+    return undef;
+}
+
+#.............................................................................
+#MMG25KVCL5Z6I6OGVS4JPFYOL7BCPP35QK75PRBHMR2XHLRCUAQICSRKY2ECJGWV4IICTLECEWBVS
+#::: NOZDURDDFGO5K3ZEMS2EGDKJ6WYM6AU3IOY6MMYEBUCNUWEU7FH :::: NAILARA AMOS :::
+# :: FUTG4QXF6FOYTR7RO5TXFJUVSCIIGHY7PRZLZPAF2BIZFLNPXKDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+# >:]
+
+# name  = base.file.write_timestamped
+
+my $file_name = shift;
+my $value     = shift;
+
+warn 'expected file name parameter <{C1}>' and return undef
+    if not defined $file_name;
+warn 'value not expected to have line feed characters <{C1}>' and return undef
+    if defined $value and $value =~ m|\n|;
+
+my $network_time = <[base.ntime.b32]>->(3);
+$value =~ s,^\s+|\s+$,,g if defined $value;
+
+my $content
+    = defined $value ? join( ' ', $network_time, $value ) : $network_time;
+
+my $file_path;
+if ( $file_name =~ m|/| ) {
+    $file_path = $file_name;
+} else {
+    my $zenka_name = <system.zenka.name>;
+    my $zenka_path = "/var/run/protocol-7/$zenka_name";
+    <[file.make_path]>->($zenka_path);
+    warn "cannot create zenka path '$zenka_path' [ \l$OS_ERROR ] <{C1}>"
+        and return undef
+        if !-d $zenka_path;
+    $file_path = catfile( $zenka_path, $file_name );
+}
+
+<[file.put]>->( $file_path, "$content\n" ) and return $network_time;
+
+warn "cannot create file '$file_path' [ \l$OS_ERROR ] <{C1}>" and return undef;
+#.............................................................................
+#GGINXUZ4IF2YD4C7O6B7EAZPEX4JDUP5XXDR2LJGFCUMBKOR46GAHSK2ZSKYZ3GYIXNURQMMI44AA
+#::: UG325TRJ7RVU5W3ZWUM74PXYUX476Q4KK2L3YW7BXGOWR2EZZAA :::: NAILARA AMOS :::
+# :: H3APHEWMARVUF5GK6L5Q3ODPCTMOPDB3Q6XYT2DEHHYLAP3DNOBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+# >:]
+
+# name  = system.process.post_init
+
+<process.poll.interval> //= 7;
+<system.path.perl_bin>  //= <[base.get_path.perl_exec]>;
+
+( my $zenka_name = <system.zenka.name> ) =~ s|[^_\.\-\w]+||g;
+
+if ( not exists <process.kill_child.w_fh> ) {
+    <[base.log]>->( 1, "starting 'kill' child..," );
+    my $child_code = <<~ "EOT";
+    use strict; use warnings; use English;
+    map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
+    \$PROGRAM_NAME = q|$zenka_name-<root>-'kill'-child|;
+    while(<STDIN>){ kill(9, \$1) if m|^(\\d+)\$| }
+    EOT
+
+    <process.kill_child.pid>
+        = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
+        <system.path.perl_bin>, '-e', $child_code )
+        || die "unable to start perl kill child process [$OS_ERROR]";
+
+    <[base.log]>->(
+        1, ": child process started [pid=" . <process.kill_child.pid> . "]"
+    );
+}
+
+<system.process.status_timer>->cancel if exists <process.status_timer>;
+<system.process.status_timer> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => <process.poll.interval>,
+        'handler'  => 'system.process.handler.collect_table',
+        'repeat'   => 1
+    }
+);
+
+0;
+
+#.............................................................................
+#IERR2W5EA63MZCDCDSZRVS74HXSKMN4N7DBJYTFGZMJKHYXA6AIIM4OOB3R2RC2KPCOYMUQ5I4DDG
+#::: IJLV7THZ47HNLDPD6JQSA7IF3QKEXRRAWDPOU7TDG565JAI55LO :::: NAILARA AMOS :::
+# :: WDIF5E5HDHY4XHOEO2XXZVZFTXECCB5APUW7ZYMTY4GN366HXIDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

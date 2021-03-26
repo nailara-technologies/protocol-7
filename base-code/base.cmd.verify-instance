@@ -1,0 +1,29 @@
+# >:]
+
+# name  = base.cmd.verify-instance
+# param = <rnd_str>
+# descr = verify root instance id through log feedback
+
+my $random_string = $$call{'args'} // '';
+return { 'mode' => 'nak', 'data' => 'no random string supplied' }
+    if !length($random_string);
+
+<[base.log]>->( 1, "instance verification [KEY:$random_string]" );
+
+<[base.disable_command]>->('verify-instance');   # used only once by nroot zenka
+
+map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } ) }
+    @{ <system.callbacks.initialized> //= [] };
+
+## triggering instance reports before the timer does ##
+<system.timer>->{'send_reports'}->now
+    if defined <system.timer>->{'send_reports'}
+    and <system.timer>->{'send_reports'}->is_active;
+
+return { 'mode' => 'ack', 'data' => 'verification code logged' };
+
+#.............................................................................
+#HCKOI36VPME6QK7SMGDYTPMP2NLBDABLBM7XCF33LYG7VNPOHSRUSCHARSVZDPXOC3MHYQZKU7TSY
+#::: QJGRVJXV7WNYG2YYYMXYXY2NZG2LHMJPL67QHZ6ZMGQI5G5MVOP :::: NAILARA AMOS :::
+# :: IB5Y3EU4K35F7MXUJUKDVIBBKU3L7UCK3EZ2JEB2CRIYNFJLHYDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

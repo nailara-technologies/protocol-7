@@ -1,0 +1,20 @@
+# >:]
+
+# name = composition.handler.bg_color_reply
+
+my $answer = shift;
+
+return warn "unexpected (NAK) reply from X-11 zenka!"
+    if $answer->{'cmd'} ne 'ACK';
+
+<composition.x11_bg_color> = $answer->{'call_args'}->{'args'};
+
+<[base.log]>->(
+    1, " : received X-11 background color '" . <composition.x11_bg_color> . "'"
+);
+
+#.............................................................................
+#4TCKOYQAFGCJSLN5FSRUUOTJH4V35BSB37WPZ3BRKWPOUWPFQLCCCHPKTGAMRYCVKAAWGOUFCHU52
+#::: WBLPMHJMW6F6YGNUMXHAJ3BER7NECS7QDLZBZUOXQQANTUNEJX6 :::: NAILARA AMOS :::
+# :: BNT6RHWYUET4LRMFGFD7SUWG7LIIBFO52QM6BOEDA4UKDZX3MODQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

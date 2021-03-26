@@ -1,0 +1,42 @@
+# name  = base.regex
+# descr = returns precompiled regex cache
+
+<[base.log]>->( 2, 'compiling base regex cache.,' );
+
+my $anum       = qr|0-9A-Za-z|o;
+my $anum_lc    = qr|0-9a-z|o;
+my $usr_str_re = qr|[$anum\-_]{1,16}|o;
+my $sn_str_re  = qr|[$anum\-\+\.:_]{1,17}|o;
+my $cmd_re     = qr|[a-z][$anum\-_]{1,22}|o;
+my $rep_id_re  = qr|(\(\d{1,9}\))|;
+my $cmd_str_re = qr|[$anum_lc\-_\.]{1,}|o;
+
+# my $cmd_path_re = qr{(($usr_str_re(\[$sn_str_re\])?)\.)*$cmd_str_re( .+)?}o;
+# my $reply_re    = qr|[A-Z]{3,4}( .+)?|o;    # ACK, NAK, DATA, STRM, ..,
+
+return {
+    'cmd_id'     => qr|\d{2,15}|o,                   # valid command [-route] id
+    'sid'        => qr|^\d{3,17}$|o,                 # numerical session id
+    'sid_str'    => qr|\d{3,17}|o,                   # numerical session id str
+    'base_32'    => qr|[A-Z2-7]+|o,                  # RFC 4648 BASE32 alphabet
+    'authmethod' => qr|^[a-zA-Z][$anum\-_]{1,16}$|o, # auth method name string
+    'usr'        => qr|^$usr_str_re$|o,              # user \ zenka name
+    'usr_str'    => $usr_str_re,                     # user \ zenka name string
+    'system-usr' => qr|^[a-zA-Z][$anum-\_]{0,31}$|o, # unix system user
+    'subname'    => $sn_str_re,                      # '[<subname>]'-string
+    'usr_subn'   => qr|^$sn_str_re\[$sn_str_re\]$|o, # user + subnme [exact]
+    'usr_subn_str' => qr|$sn_str_re\[$sn_str_re\]|o,    # user + subbane [str.]
+    'cmd'     => qr|^[a-z][$anum\-_]{1,22}$|o,   # nailara command string syntax
+    'cmd_str' => $cmd_re,                        # nailara command string syntax
+    'cmdp'    => qr|[a-z][0-9a-zA-Z\-_\.]{1,}|o, # cmd path [cmd including '.'s]
+    'cmdrp'   => qr|[0-9a-zA-Z\-_\[\]\.]{1,}|o,  # cmd path including [UC] reply
+
+#   'cmdp'    => $cmd_path_re,                   # cmd path [cmd including '.'s]
+#   'cmdrp'   => qr{($cmd_path_re|$reply_re)}o,  # cmd path including [UC] reply
+};
+
+#.............................................................................
+#7IQDSJSDIQVB5WOOFW5NW3ULBVKEAN7OF3N2AJVDHHBL6CLHLYXJUDO2HPEA7UMHEYKJLJ7KLCTS6
+#::: GRHFAOAVNPGSUMBEYC2B4XN4KV6NNLD3QFDUBSQEL6MHJXLFUFU :::: NAILARA AMOS :::
+# :: 6XBBOY4DRWPGIYSYD7PLQ54SBQ35OQNOS5OS4VBEI2WUBS3JNMCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,52 @@
+# >:]
+
+# name = nroot.zenka.set_cube_sid
+
+my ( $instance_id, $cube_sid ) = @_;
+my $instance_data = <nroot.zenka.instance>->{$instance_id};
+
+if ( exists $instance_data->{'cube_sid'} ) {
+    <[base.log]>->(
+        0, "<< cube sid for instance $instance_id was already set >>"
+    );
+    <[zenka.change_status]>->( $instance_id, 'error' ); # compromisation attempt
+    return;
+}
+
+<[base.log]>->( 2, "instance $instance_id : cube sid = $cube_sid" );
+$instance_data->{'cube_sid'} = $cube_sid;
+
+## LLL: unclear if will be required \ used later ##
+my $inst_pid = $instance_data->{'process'}->{'id'};
+<nroot.process.instance_cache>->{$inst_pid} = $instance_id if defined $inst_pid;
+##
+
+# acquire local cube sid [ get first and only sid for now ]
+my ($root_sid) = keys %{ $data{'session'} };
+
+$instance_data->{'root_sid'} = $root_sid;
+
+# send instance verification request
+<nroot.timeout.verify_instance> //= 13;
+my $verification_str = uc( <[base.prng.chars-anum]>->(13) );
+$instance_data->{'instance_verification'} = $verification_str;
+$instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
+    {   'after'   => <nroot.timeout.verify_instance>,
+        'handler' => 'nroot.handler.verify_instance_timeout',
+        'data'    => { 'instance_id' => $instance_id }
+    }
+);
+
+<[base.log]>->( 1, "[$instance_id] verification request <$cube_sid>" );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$root_sid.$cube_sid.verify-instance",
+        'call_args' => { 'args' => $verification_str }
+    }
+);
+
+#.............................................................................
+#WYHN4CLKNVQ55ZMAV3QPIDMWG6KTXNZV77BD2VB5MUXJOTZ72K4FYWPTLQ2XP5KE6JRQ7TBSP2CMK
+#::: 5NT6XVYVJBHQFVQH45YKGS7G5PVRK6VYAUMS3OJEGZQOZLY2DYT :::: NAILARA AMOS :::
+# :: SDRR44MPTQTIG2FSSUZZ4MFINNRJM6UWJZ3LPDYYBK2SUCPVTOAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

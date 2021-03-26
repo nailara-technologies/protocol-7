@@ -1,0 +1,40 @@
+# >:]
+
+# name = base.handler.whoami_reply
+
+my $reply = shift;
+
+<base.callback_hooks.async_online> //= [];
+delete <base.in_progess.get_session_id>;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "<!> unexpected reply to whoami command <!> [$reason]" );
+    return undef;
+}
+
+my $reply_str = $reply->{'call_args'}->{'args'};
+
+if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
+    my ( $zenka_name, $cube_sid ) = ( $1, $2 );
+    if ( $zenka_name ne <system.zenka.name> ) {
+        <[base.log]>->( 0, "<!> 'whoami' reply does not match zenka name <!>" );
+    }
+    my $usr_str = $reply->{'params'}->{'route_user'};
+    my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+    $data{'session'}{$local_sid}{'cube_sid'} = $cube_sid;
+    <[base.log]>->( 1, "cube session id received [$cube_sid]" );
+    <system.zenka.initialized> = 1;
+    <[base.call_online_hooks]>;
+} else {
+    <[base.log]>->(
+        0, "protocol mismatch [ unexpected reply to 'whoami' ] ( $reply_str )"
+    );
+    return undef;
+}
+
+#.............................................................................
+#N5CQOJVNBTWWM7QWFF56BTTI7Z4PY7IWPSQIF5HCZSSK6M2ZUIVC67MIT6MIIPZBSYPP2LIKGQYLO
+#::: BTQVEK6ZAGVDC7HX6D4QBDK3QBYALLKSE4PWSTSARDYPJUQADVJ :::: NAILARA AMOS :::
+# :: C6QL57OFSY4OE7MM27SUOVTRB5XZZ7RH2MJMC74HMJLYHRT4J6AI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

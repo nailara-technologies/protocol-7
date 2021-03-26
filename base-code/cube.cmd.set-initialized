@@ -1,0 +1,29 @@
+# >:]
+
+# name  = cube.cmd.set-initialized
+# descr = set zenka session to 'initialized' [0=='own']
+# param = <sid|0>
+
+my $sid = $$call{'args'} || $$call{'session_id'};  # 0 == self [current session]
+
+return { 'mode' => 'nak', 'data' => 'no such session' }
+    if not exists $data{'session'}{$sid};
+return { 'mode' => 'nak', 'data' => "not an 'zenka' mode session" }
+    if not defined $data{'session'}{$sid}{'auth'}{'method'}
+    or $data{'session'}{$sid}{'auth'}{'method'} ne 'zenka';
+return { 'mode' => 'nak', 'data' => 'was already initialized' }
+    if defined $data{'session'}{$sid}{'initialized'}
+    and $data{'session'}{$sid}{'initialized'} eq '1';
+
+$data{'session'}{$sid}{'initialized'} = 1;
+
+my $zenka_name = $data{'session'}{$sid}{'user'};
+<[base.log]>->( 1, "[$sid] zenka '$zenka_name' reported 'initialized'" );
+
+return { 'mode' => 'ack', 'data' => 'initialized' }
+
+#.............................................................................
+#SYFZVZJPQJLGZ2PYKH2CSRFGW5CDPWJWIK56SPT5D44AMFP2DCODJBMFKIQU4Y2V5EB3LMMQGYFW4
+#::: KKUZ624RBY4EZFQWLBAYCD3LZUGF4I5F57QDZZWJTYMH6EHWMXC :::: NAILARA AMOS :::
+# :: O62552TY4SYXONM3RCXOJSVVGVL5FBQ3JRCN6YMVEDUW6BMADODI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

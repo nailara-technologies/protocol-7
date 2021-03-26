@@ -1,0 +1,34 @@
+# >:]
+
+# name = composition.handler.check_playlist_reply
+
+my $reply = shift // {};
+
+my $zenka_name = $reply->{'params'}->{'zenka_name'};
+my $tile_name  = $reply->{'params'}->{'tile_name'};
+
+warn "unexpected [NAK] reply from playlist zenka" if $reply->{'cmd'} eq 'NAK';
+
+if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
+
+    <[base.log]>->(
+        0, " :  playlist for tile '$tile_name' is empty <-> skipping restart!"
+    );
+
+} else {
+
+    <[base.log]>->( 1, " : : tile '$tile_name' does have playlist entries!" );
+    <[base.log]>->( 0, " :  restarting zenka '$zenka_name' ..." );
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.nroot.restart',
+            'call_args' => { 'args' => $zenka_name }
+        }
+    );
+}
+
+#.............................................................................
+#4BO7UDT2Q54P45FYG6MZH3G2CXAYDO2CYHZ3RIPO6X73BOMDLLGE4FZO64ZWW4I7I32GTDUD47YMA
+#::: QZZEN5LYGHQAAO6BCO4M7LEXEZWGS6LKGH6VG2DEM6G43DM5FIS :::: NAILARA AMOS :::
+# :: UW2GZUBRJJG6IBVR63CRTD64I6ILLPP5KWQNERN3FDVMS34GMKBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,49 @@
+# >:]
+
+# name  = mpv.handler.stdout
+# descr = reads and processes stdout output from mpv process
+
+my $event     = shift->w;
+my $read_fh   = $event->fd;
+my $process   = $event->data;
+my $pid       = $process->{'pid'};
+my $whitelist = $process->{'log_whitelist'} || [];
+
+<mpv.output.buffer>     //= '';
+<mpv.output.parse_mode> //= '';
+<mpv.output.reply_data> //= [];
+
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'mpv'}{'output.buffer'},
+    4096,     length(<mpv.output.buffer>)
+);
+if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "mpv-process [PID:$pid] output filehandle closed." );
+    kill( 9, $pid );    # making sure it's really gone
+    <[base.log]>->( 0, "mpv-process terminated." )
+        if !<zenka.shutdown>;
+    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka..," );
+    exit(2);
+}
+
+while ( <mpv.output.buffer> =~ s|^([^\n]*)\n||s ) {
+    my $log_level   = 0;
+    my $output_line = $1;
+    $output_line =~ s/\r//sg;
+    next if !length($output_line);
+    for my $pattern ( @{$whitelist} ) {
+        if ( $output_line =~ /$pattern/ ) {
+            $log_level = 2;
+            last;
+        }
+    }
+    <[base.log]>->( $log_level, "< mpv > " . $output_line );
+}
+
+#.............................................................................
+#FMA6CMDIHACGNLUHUZHCNTTEDWGWVG6R4RM7OXXI6SVCUSPL2QH377ATD354TB73DGKTDYSFW37KA
+#::: MGDCM2REK5SZP6YVFTIC6JVLCUD3ON5GCDIQPO6GHVK472TVHM2 :::: NAILARA AMOS :::
+# :: 2LCQGQOEQILJIYDIQOBWNHFMP3RFEQ7U2DVNOFIGGFIRB54CLIAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

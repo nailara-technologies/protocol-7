@@ -1,0 +1,83 @@
+# >:]
+
+# name  = X-11.cmd.rotate-screen
+# descr = rotate the screen to specified mode
+# param = <mode>
+
+my $X     = <X-11.obj>;
+my $param = shift->{'args'} // '';
+return {
+    'mode' => 'nak',
+    'data' => 'expected <mode> parameter :'
+        . ' <left|right|normal|inverted>[-x|-y]'
+    }
+    if !length($param);
+
+my $mirror = $param =~ s{-(x|y)$}{} ? $1 : '';
+
+my $mode;
+$mode = 1 if $param =~ 'normal';
+$mode = 2 if $param eq 'left';
+$mode = 4 if $param eq 'inverted';
+$mode = 8 if $param eq 'right';
+
+if ( not defined $mode ) {
+    my $err_msg = "invalid mode '$param$mirror'";
+    <[base.log]>->( 0, "<!> rotate-screen: $err_msg <!>" );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+
+if ( !<X-11.has_randr> ) {
+    <[base.log]>->(
+        1, "<< skipping rotate ['$param'] request [ RANDR required ] >>"
+    );
+    return {
+        'mode' => 'nak',
+        'data' => 'cannot rotate screen [ RANDR required ]'
+    };
+}
+
+$mode += 16 if $mirror eq 'x';
+$mode += 32 if $mirror eq 'y';
+
+my %screen_info = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
+
+my $old_mode = $screen_info{'rotation'};
+return { 'mode' => 'nak', 'data' => "no changes" }
+    if $mode eq $old_mode;
+$mirror = "-$mirror" if length($mirror);
+<[base.log]>->( 0, "<< rotating screen to '$param$mirror'-mode >>" );
+
+eval {
+    $X->RRSetScreenConfig( $X->root, $screen_info{'time'},
+        $screen_info{'config_time'},
+        $screen_info{'size'}, $mode, $screen_info{'rate'} );
+};
+
+if ($EVAL_ERROR) {
+    my $err_msg = 'unable to rotate screen';
+    <[base.log]>->( 0, " :. $err_msg .," );
+    return { 'mode' => 'nak', 'data' => $err_msg };
+}
+
+# strip mirrored flag
+$old_mode -= 16 while $old_mode > 16;
+$mode     -= 16 while $mode > 16;
+
+# restart composition zenka to update geometries
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.nroot.restart',
+        'call_args' => { 'args' => 'composition' }
+    }
+    )
+    if $mode != $old_mode
+    and $mode + $old_mode != 5
+    and $mode + $old_mode != 10;
+
+return { 'mode' => 'ack', 'data' => 'screen rotated' }
+
+#.............................................................................
+#3LOJKKTSLCNFEOYM2NBJP6GTVOOHKT4EQ2QX3UUHAK4KBWLVR5ZLBJMVF2QQYBBPXNK2JMMDZQZSQ
+#::: UWOW6LAGU2NSRAKV7HMY4GLTQYPSQTJJCHEITHHQYSIF6Z5VOQV :::: NAILARA AMOS :::
+# :: 3SC3USUFOLXQNJW7KOXI334Z3EUYQ67REMUQDJKHC6UNKJI7XIDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

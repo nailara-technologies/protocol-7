@@ -65,7 +65,7 @@ $y //= 25;
 
 my $screen_chars = $y * $x;
 
-say " $x x $y == $screen_chars" if $mode{'D'};    ## <-- '-D' debug mode is ..,
+say " $x x $y == $screen_chars" if $mode{'D'};   ## <-- '-D' debug mode is ..,
 
 $skip_repeat_spaces = 0 if $mode{'S'};
 
@@ -101,7 +101,9 @@ $SIG{'__WARN__'} = sub {
     { $w+=-3+length("$nailara_fg");
     $blacklight.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
     $Text::Wrap::columns = $w;
-    print STDERR "$nailara_fg\r" . wrap( '  ', '  ', $err ) . "\r$blacklight\n";
+    print STDERR "$nailara_fg\r"
+        . wrap( '  ', '  ', $err )
+        . "\r$blacklight\n";
 };
 
 $| = 1;
@@ -270,7 +272,7 @@ my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
 sub input_complaint { say ":\n:: numerical input expected\n" }
 
 #.............................................................................
-#YXJASLBX5BZP7OQMGZOJSSUM5RJWSCUWFF2VMGVZJU7RUJPNFZYQ4LEVO6X5FKZLX5SZY7J44BMZI
-#::: IZNNC2EULCD2X5QM6BJ72XB2GYNJA7YZEH7CIUH4FIYFDMEWDYI :::: NAILARA AMOS :::
-# :: L4WC4IQDV7NP6GG35HD5EADNFFGZDMV3PQ2332UN2WXGGV3DLGAQ :: CODE SIGNATURE ::
+#GTUANMH3OTHXAZWSMDBPVR7UUIGRXOXCDZBL3H7BRZVSLR67RTQDDJWFS2PNDXIMAXAW324ZJZ5GS
+#::: G63HASQRUDXK7DALZ6E2SHELPW5ZZB2EJFHF67YUJZKPGODFTPK :::: NAILARA AMOS :::
+# :: KOFCRKZO66AFNIJS62PXT3YIPPEJU5MXAKEYGWZVI35FC62WQUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

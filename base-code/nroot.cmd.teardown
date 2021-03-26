@@ -1,0 +1,30 @@
+# >:]
+
+# name  = nroot.cmd.teardown
+# param = [reason]
+# descr = shut down nroot zenka and all zenka instances
+
+my $params = shift;
+my $reason = $params->{'args'};
+my $user   = $1 if $reason =~ s|^([^\s]+) *||;
+$user =~ s|^[^\.]+\.||;
+
+<[base.log]>->( 1, "<<!>> specified shutdown reason : $reason <<!>>" )
+    if length($reason);
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'repeat'  => 0,
+        'prio'    => 5,
+        'handler' => 'nroot.handler.shutdown_cmd',
+        'data'    => "requested by '$user'"
+    }
+);
+
+return { 'mode' => 'ack', 'data' => "shutting down 'nroot' zenka ..," };
+
+#.............................................................................
+#POT2E3HBFYYDE5A6EYDX3X4OUZH4MVY6R7A7N5JZSHBGE5EAGYFKBMUBYLSHKF2GQMHZVOUBN4ORI
+#::: NK5P5NJ36LYU5Z332XYSRBUWEF5F4WUAS5ML256ZKCDJ73GQE7U :::: NAILARA AMOS :::
+# :: ELOWUWPILO23D62WINS7G5VXBV3MOIQTFJHK74ZUYOSY5LWLBUCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

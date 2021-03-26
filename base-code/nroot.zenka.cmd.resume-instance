@@ -1,0 +1,37 @@
+# >:]
+
+# name  = nroot.zenka.cmd.resume-instance
+# param = <id>
+# descr = send CONT signal to instance processes
+
+my $instance_id = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'instance id must be numeric!' }
+    if $instance_id !~ m|^\d+$|;
+return { 'mode' => 'nak', 'data' => "instance not found!" }
+    if not exists <nroot.zenka.instance>->{$instance_id};
+
+my $instance = <nroot.zenka.instance>->{$instance_id};
+
+<[nroot.enable_heartbeat_timer]>->($instance_id)
+    if delete $instance->{'paused_status_timer'};
+
+my $parent_pid = <nroot.zenka.instance>->{$instance_id}->{'process'}{'id'};
+my @pids
+    = ( $parent_pid, @{ <[nroot.sub-process.get_children]>->($parent_pid) } );
+
+my $count = kill 'CONT', @pids;
+
+my $es = $count > 1 ? 'es' : '';
+<[base.log]>->( 0, "instance $instance_id resumed [ $count process$es ]" );
+
+return {
+    'mode' => 'ack',
+    'data' => "$count process$es paused (SIGCONT)"
+};
+
+#.............................................................................
+#WFCZMWQXP2KBN77CK4BEF6WYM2KVEWMISVTKZVQFTOBXS7ZDD46BGQNGZ32ULX7G4KFBIA4CCASQ2
+#::: ZWCVHM347I5T5HO5MKVB2FYDATY3Y5GSFLZPSZY4FAAKZDPVNPQ :::: NAILARA AMOS :::
+# :: JFJOEIBY6B5XIF6FNNXENHRFHMTK6PMCLSTEGHR2WZDESFDKMYBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+# >:]
+
+# name = universal.startup_sub_zenki
+
+return if <universal.zenki_started>;
+
+<[base.log]>->( 1, "starting display [sub]zenki..," );
+
+my %display_zenki;
+map { $display_zenki{$ARG} = 1 } values %{<universal.content.zenka_map>};
+foreach my $zenka_name ( keys(%display_zenki) ) {
+    $data{'auth'}{'setup'}{'usr'}{$zenka_name}
+        //= ':unix:' . <system.privs.user>;
+    <universal.child>->{$zenka_name}->{'status'} = 'starting';
+    if ( !<[universal.start_zenka]>->($zenka_name) ) {
+        <[base.log]>->(
+            0, "<!> unable to start '$zenka_name', shutting down..,"
+        );
+        exit(2);
+    }
+    <universal.zenki_started>++;
+}
+
+if ( !<universal.declared_online> ) {
+    <universal.declared_online>++;
+    <[base.async.get_session_id]>;    # 'universal' zenka status -> 'online'
+}
+
+#.............................................................................
+#2TN6QQZXP6CYWSYYHOWSOHQ3XVCINXF6HMNF5URVRNMIQBRDJ6PGPOUAGXV5V3ZQY7PVYX7OOPBCI
+#::: 3EYXTZTEYFTGBLWSOHLGD46SLDCAKJ5IC75FZQ6FZDHRPFG2WSE :::: NAILARA AMOS :::
+# :: L3HW5GAVA3NXJCWA6FZEEOM32ITSLO3ORANH23QKV3RVDM24VGAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

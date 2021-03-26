@@ -1,0 +1,72 @@
+# >:]
+
+# name  = base.cmd.ondemand-zenka
+# param = <add|del> <name>
+# descr = register/remove ondemand zenki
+
+my $re = $data{'regex'}{'base'};
+
+return { 'mode' => 'nak', 'data' => 'expected <add|del> <zenka_name>' }
+    if not defined $$call{'args'}
+    or !length( $$call{'args'} )
+    or $$call{'args'} !~ m{^(add|del) ($re->{'usr_str'})$};
+
+my ( $cmd, $zenka_name ) = split / +/, $$call{'args'};
+
+if ( $cmd eq 'add' ) {
+    map {
+        return {
+            'mode' => 'nak',
+            'data' => "there already is one registered ondemand type zenka "
+                . "'$zenka_name'"
+            }
+            if <zenki.virtual>->{$ARG}->{'type'} eq 'ondemand'
+            and <zenki.virtual>->{$ARG}->{'name'} eq $zenka_name
+    } keys %{<zenki.virtual>};
+
+    my $zenka_id = <[base.list.element.add]>->(
+        {   'key_ref' => \$data{'zenki'}{'virtual'},
+            'val_ref' => \{
+                'name'    => $zenka_name,
+                'type'    => 'ondemand',
+                'status'  => $zenka_name,
+                'session' => $zenka_name,
+                'queue'   => []
+            }
+        }
+    );
+    <[base.log]>->(
+        2, "registered ondemand zenka '$zenka_name' [id=$zenka_id]"
+    );
+    return {
+        'mode' => 'ack',
+        'data' => "zenka registered [ id = $zenka_id ]"
+    };
+
+} elsif ( $cmd eq 'del' ) {
+    my $_zenka;
+    my $del_id;
+    map {
+        if (    <zenki.virtual>->{$ARG}->{'type'} eq 'ondemand'
+            and <zenki.virtual>->{$ARG}->{'name'} eq $zenka_name ) {
+            $_zenka = delete <zenki.virtual>->{$ARG};
+            $del_id = $ARG;
+        }
+    } keys %{<zenki.virtual>};
+    return {
+        'mode' => 'nak',
+        'data' => "no such zenka registered ['$zenka_name']"
+        }
+        if not defined $del_id;
+    <[base.log]>->( 1, "unregistered ondemand zenka $del_id ['$zenka_name']" );
+    return {
+        'mode' => 'ack',
+        'data' => "virtual zenka $del_id ['$zenka_name'] unregistered"
+    };
+}
+
+#.............................................................................
+#RAVVSA2PKB236UJUGDSZUVFNUEOJNCRTUQ3OOSKPH5ATQUGJDYQQWO7SHWRL2M2ZD4X7I3GMGYWZG
+#::: 73GJZZHEMTWXC3EPJA5FIIM44K4CJ5JB7FNSSQV5HOYORHBP5I6 :::: NAILARA AMOS :::
+# :: ATP566RGJHWZ7YJTXBTIY2W7YUWATVJLGUZ4XT3ZNZ6DHEUCAYAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
