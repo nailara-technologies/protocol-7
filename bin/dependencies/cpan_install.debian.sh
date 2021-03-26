@@ -30,8 +30,8 @@ cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
         HTTP::Soup Mediainfo Poppler Device::Gembird Imager::Screenshot
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit2
-# ______________________________________________________________________________
-#\\YTHYU2TUNNLH3K5E54W2XDTF5UPQJGUJOAAEVQMSZFDTLRIW4MADHFGKTNH6RUNV4DVMOF3ICVUXY
-# \\ W3BW7VU55OZHMPVVSHYT4AZSCUS4EFYGE5BFFJDVIDAT7FIK33HQ \\// C25519-BASE-32 //
-#  \\// ZSTBHYFGF7TEWPQNTACT5F7A3AFVIBSLN5UCXCMH7FFO7HDPOAQ \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#YTHYU2TUNNLH3K5E54W2XDTF5UPQJGUJOAAEVQMSZFDTLRIW4MADHFGKTNH6RUNV4DVMOF3ICVUXY
+#::: W3BW7VU55OZHMPVVSHYT4AZSCUS4EFYGE5BFFJDVIDAT7FIK33H :::: NAILARA AMOS :::
+# :: QZSTBHYFGF7TEWPQNTACT5F7A3AFVIBSLN5UCXCMH7FFO7HDPOAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

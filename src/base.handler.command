@@ -1023,8 +1023,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
 return 0;        ## command complete ##
 
-# ______________________________________________________________________________
-#\\YKBNOKBVKQJEHHPLJD6FCEFE65OBAIJIBN5DEA2PGCG7F2QVTUKG7LG3R4XMAUMM7TEUYUNVAER46
-# \\ AIGFXMZ2JQTG2W5VIXKYQ7CV7WSWUIMOSZWRFOIGPZOWWPRGK5BF \\// C25519-BASE-32 //
-#  \\// 5S63ES7OHJ3EM5O4P6UN7VCJHDMECWC6254HIHE23MGPSOYLGDY \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#YKBNOKBVKQJEHHPLJD6FCEFE65OBAIJIBN5DEA2PGCG7F2QVTUKG7LG3R4XMAUMM7TEUYUNVAER46
+#::: AIGFXMZ2JQTG2W5VIXKYQ7CV7WSWUIMOSZWRFOIGPZOWWPRGK5B :::: NAILARA AMOS :::
+# :: F5S63ES7OHJ3EM5O4P6UN7VCJHDMECWC6254HIHE23MGPSOYLGDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

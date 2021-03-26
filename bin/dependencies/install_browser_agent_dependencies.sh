@@ -34,8 +34,8 @@ cpanm HTTP::Soup
 #--<
 
 useradd -m -r nailara
-# ______________________________________________________________________________
-#\\YUCAAJTHIZXLVC3E4I744X5DNXRHACMBK7STH5ZDMFDBWRKWSK3YGESEWGHFDBPRNA3P4QK75VAHC
-# \\ I356NMWMK3S63Y27MEZ72LPVDRZKUQKYOHYLJQPTQXL65UFZAGR3 \\// C25519-BASE-32 //
-#  \\// HXYCQHLITVE6FL7TLNVAUS5OEVUBTDMDCIJBISD6R3MTJA3PSAA \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#YUCAAJTHIZXLVC3E4I744X5DNXRHACMBK7STH5ZDMFDBWRKWSK3YGESEWGHFDBPRNA3P4QK75VAHC
+#::: I356NMWMK3S63Y27MEZ72LPVDRZKUQKYOHYLJQPTQXL65UFZAGR :::: NAILARA AMOS :::
+# :: 3HXYCQHLITVE6FL7TLNVAUS5OEVUBTDMDCIJBISD6R3MTJA3PSAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

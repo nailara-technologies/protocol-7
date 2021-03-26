@@ -16,7 +16,7 @@ if ( <source.path.work_tree> ne <system.root_path> ) {
     <source.code_path> = $code_path;    # <-- now overridden
 }
 
-<source.code_path>       //= <system.code_path>;    # <-- old path [gone soon]
+<source.code_path>       //= <system.code_path>;    # <-- old path [ gone soon ]
 <source.path.source_dir> //= <source.path.work_tree> . '/source';
 <source.path.n-files>    //= <source.path.source_dir> . '/files';
 
@@ -24,11 +24,11 @@ my $sig_key_name = <source.C25519.signature_key_name> //= 'nailara.source';
 
 # [ SRC SIGNATURE template: first line is decoration \ BMW-B32 \ C25519-B32 ] :.
 <source.sign_template> = << 'EOT';
-# ______________________________________________________________________________
-#\\_____________________________________________________________________________
-# \\ ____________________________________________________ \\// C25519-BASE-32 //
-#  \\// ___________________________________________________ \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#_____________________________________________________________________________
+#::: ___________________________________________________ :::: NAILARA AMOS :::
+# :: ____________________________________________________ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 EOT
 
 <[source.load_signature_key]>->($sig_key_name);
@@ -37,8 +37,8 @@ EOT
 
 0;
 
-# ______________________________________________________________________________
-#\\EVXCSLY5NFPTWD5YTVOU6COLKH65KRNOPBJYHH7UU57YKIMIYK5YZOVHJPTHVCPINKROUNNHPSDQG
-# \\ VSVZ4YNSCXA3T5NGRGYQGOZJZSBMC4M4EJEBWC73FHCBVONEHDKQ \\// C25519-BASE-32 //
-#  \\// HKKRFKXH4OVCVV4PZUVBT3I265JLNXBZKHLWBVER6XYVYHNGYDQ \\ CODE SIGNATURE \\
-#   ````````````````````````````````````````````````````````````````````````````
+#.............................................................................
+#QEUGERY25OHZODTW65WIRVWBQJDANZB4IRTGAHK6CBXPZ6D2FDI2TYSPROKSCL64W2HWS57MRVVHG
+#::: SKWOSGDWE7HKYYVHAXLFKICAWYXUGKRGFB5LHLA6A6MNGAHETJE :::: NAILARA AMOS :::
+# :: 6DXKMGBR3WRMHJHDRO4L44YU2ARHYME6DEUG6D5RJUN7LJZDZ6DA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
