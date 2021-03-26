@@ -1,0 +1,36 @@
+# >:]
+
+# name  = set-up.cmd.list-exportable
+# param = <zenka>
+# descr = list exportable configs
+
+my $zenka_name = $$call{'args'};
+return { 'mode' => 'nak', 'data' => 'expected zenka name parameter' }
+    if not defined $zenka_name;
+
+return { 'mode' => 'nak', 'data' => 'invalid zenka name syntax!' }
+    if $zenka_name !~ <regex.base.usr>;
+
+my $cmd_path = "cube.$zenka_name.get-config-names";
+$cmd_path = "cube.get-config-names" if $zenka_name eq 'cube';
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $cmd_path,
+        'call_args' => {},
+        'reply'     => {
+            'handler' => 'set-up.handler.zenka_reply',
+            'params'  => {
+                'zenka_name' => $zenka_name,
+                'reply_id'   => $$call{'reply_id'}
+            }
+        }
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+#.............................................................................
+#JMKSHYXQZT4XKHLTAA3SARTWMSY76VHFNMMMRA7OIEOB35PBYVY3CMTK2LX2UTXNNYBJNI6TRSCYQ
+#::: F4NI5QDGH44YEESZ7OFF5Z3MGKNWJRSYN3Q2KA4CIY6THDB3NTH :::: NAILARA AMOS :::
+# :: TD7NM4WBJFWXIM3YWRDYKWYPIGVU7KNGPAFO2XNVJCJP7QTJ5QCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

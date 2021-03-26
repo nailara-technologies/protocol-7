@@ -1,0 +1,30 @@
+# >:]
+
+# name = power-x11.handler.show_all
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} ne 'DATA' ) {
+    <[base.log]>->( 0, "unable to fetch device list from power zenka!" );
+    exit(1);
+}
+
+<power-x11.devices> //= {};
+chomp( my $reply_data_str = $reply->{'data'} );
+foreach my $reply_line ( split( /\n/, $reply_data_str ) ) {
+    my ( $d_id, $mac_addr, $ip_addr, $s_1, $s_2, $s_3, $s_4 )
+        = split( / /, $reply_line );
+    <power-x11.devices>->{$d_id} = {
+        'ip'    => $ip_addr,
+        'mac'   => $mac_addr,
+        'state' => { '1' => $s_1, '2' => $s_2, '3' => $s_3, '4' => $s_4 }
+    };
+}
+
+<[power-x11.open_window]>;
+
+#.............................................................................
+#RSSD5WXMVMNP4YRYPLLAZECUE2WABNNCSLRAF4VVZW65RK54T6M4Q4J64BGELYFVO6SIJ3WRD74LA
+#::: ZNKJJNFJC57PZPWFJ7ZCOR35WN7WNOWPZWTRYKZXBWUQDHR5OBW :::: NAILARA AMOS :::
+# :: PK4LJODJNMOOSLKACUVWLJLLU3ITWIHORG56YLKANW4UOJFMKKBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

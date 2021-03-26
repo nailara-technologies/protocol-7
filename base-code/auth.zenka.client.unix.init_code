@@ -1,0 +1,21 @@
+# >:]
+
+# name  = auth.zenka.client.unix.init_code
+
+if (    exists $data{'zenka'}
+    and exists <zenka.init>
+    and defined <zenka.init.session_key>
+    and <zenka.init.session_key> ne ''
+    and not defined $KEYS{'zenka'}{'session_key'} ) {
+    <[base.log]>->( 2, '[client.unix] setting zenka auth session key .,' );
+    $KEYS{'zenka'}{'session_key'} = <zenka.init.session_key>;
+    undef <zenka.init.session_key>;
+}
+
+return 0;
+
+#.............................................................................
+#3M3KEAWD6YGHNX6KT5UBMUAKBYJPWBDJ3YONWFN3KS3G2B6DTX4XGL73SXDXBI4LCAD7BBC2ZRFCI
+#::: 3B43XQ5TAEWEZO2PO3LWN2JT7TUIW4KSJI6J72I7WIIJ45TQ7P3 :::: NAILARA AMOS :::
+# :: BKNJ2BN7KORGMAO2QWHW7SMYO54B3BBRWUJYG3PIVA2BYCVP72AY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

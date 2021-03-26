@@ -1,0 +1,35 @@
+# >:]
+
+# name  = notify.init_code
+# descr = initializes the notify zenka (which uses notify-osd)
+
+my $bin_name  = 'notify-send';
+my $gfx_path  = <system.root_path> . '/data/gfx/';
+my $icon_path = $gfx_path . '/icons/';
+my $bin_path  = <[base.required_bin_path]>->($bin_name);
+die "$bin_name binary not found (please install 'notify-osd')"
+    if !length($bin_path);
+
+undef $ENV{'XAUTHORITY'};
+undef $ENV{'LOGNAME'};
+
+<notify.path> = {
+    'notify_send'  => $bin_path,
+    'nailara_icon' => $gfx_path . 'logos/nailara.png',
+    'loves_icon'   => $icon_path . 'lain/loves.png',
+
+    'info_icon' => '/usr/share/icons/oxygen/base/64x64/'
+        . 'status/dialog-information.png',
+    'warn_icon' => '/usr/share/icons/gnome-colors-common/'
+        . 'scalable/status/dialog-warning.svg',
+
+    'reload_icon' => '/usr/share/icons/gnome/256x256/actions/reload.png'
+};
+
+0;
+
+#.............................................................................
+#CVY6W3T57QOA7AZKMHOTIIZ2OAIKDZ6VATRZ7WMAULQD2YVEPJ5SJCU5JGCU4RD2OWSAX6TMJCQCS
+#::: BYA5GBU6YNK3R4LBTPY2Z5EVXSFDOV7SA66M3LR2DQLF5MW2ITU :::: NAILARA AMOS :::
+# :: PPMGXTY76MUV4TUGIAKF7UFAWYMZARNBKGMYVOLHRSV4MKWGDSCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

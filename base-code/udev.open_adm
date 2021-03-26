@@ -1,0 +1,29 @@
+# >:]
+
+# name = udev.open_adm
+
+<udev.adm.params> //= 'monitor -u -p';
+
+<udev.adm.pid>
+    = open( <udev.adm.fh.stdout>, '-|:raw',
+    <udev.path.unbuffer>, <udev.path.udevadm>,
+    split( / +/, <udev.adm.params> ) );
+
+if ( !<udev.adm.pid> ) {
+    <[base.log]>->( 0, "[!] unable to start udevadm [$OS_ERROR]" );
+    <[base.log]>->( 1, " : aborting zenka startup .," );
+    exit(1);
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <udev.adm.fh.stdout>,
+        'handler' => 'udev.handler.adm_stdout',
+        'data'    => { 'pid' => <udev.adm.pid>, }
+    }
+);
+
+#.............................................................................
+#2HHSFWWEA6KWENANRKXTBSIQWNVYYLLGSMQ2VP3MZIQR4X3UCSDTB7OKBSLMQJLT7KL5FDH7NKG4A
+#::: GBYD6ENFGJ26WGF6HKKM6OYK4YAMXAWNS2ROCQSK64G4SB3LUTR :::: NAILARA AMOS :::
+# :: MQDZ2WFVP6QSJ35QFAUQQPWSCPX3SBFFITK36TMF56E4LKU2RGDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

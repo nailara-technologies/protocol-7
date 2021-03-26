@@ -1,0 +1,67 @@
+
+.:[ variables shared by most zenki ]:.
+
+[load_config_file:'network']
+
+system.admin-user        =   taeki  ##  <--  [ adjust to your own user name ] ##
+
+[load_config_file:'system-language']
+
+buffer.zenka.log_cmd           = p7-log.append
+system.verbosity.zenka_buffer  = 2
+system.verbosity.zenka_logfile = 1
+
+log.level.auto-decay.zenka.1 = 1123200 #  <-- 13 days decay for info, error none
+log.level.auto-decay.zenka.3 = 420  #  <-- 4 min. debug log level message decay.
+log.level.auto-decay.zenka.2 = 1020  #  <-- 17 min. decay for level 2 and above.
+
+system.privs.user             = protocol-7
+base.root.pref-uid.protocol-7 = 777
+base.root.convert-usr.nailara = yes ## <-- chown all owned files to 'protocol-7'
+                                    #  and remove renamed 'nailara' system user
+
+system.local_config_dir      = /etc/protocol-7
+
+buffer.zenka.max_size        =  130777  ##  zenka log buffer size
+default.max_size.log_buffers =  130777  ##  adjust as desired ..,
+
+limits.client_sessions       =  77777
+limits.routes.combined       =  57777
+limits.routes.per_client     =  7777
+
+size.buffer.input            =  142707
+size.buffer.output           =  142707
+
+## manual override ####
+## protocol-7.network.external.addr  =  0.0.0.0
+## protocol-7.network.external.port  =  47
+
+## protocol-7.network.internal.addr  =  127.0.0.1
+## protocol-7.network.internal.port  =  57
+
+## local 'zulum-13' entropy channel ##
+protocol-7.network.zulum.addr = 127.0.0.1
+protocol-7.network.zulum.port = 13
+
+net.authentication.timeout   =  13
+
+net.local.web.addr           =  127.0.0.1
+net.local.web.port           =  847       #  <--  ..calculate as well.,  [ LLL ]
+
+sigterm.timeout              =  5
+system.max_routes            =  13747
+
+
+## prefix command parameters with source zenka name ##
+alias.when-present = when-present SOURCE_AGENT
+
+
+# base.debug.keep_on_reload  = 0  #  <- whether debug module persists reload ..,
+
+### feel free to override these values in './configuration/zenki/<zenka-name>/config' ###
+
+#.............................................................................
+#KKN5CUANFEQEKLGUF4ZKR2LIFZKKE366P2XKJ4Q2XBSHHTUPNHW4D5XF24IP645S5MUZ6DZSYWKEK
+#::: ZCYT2FMF3LEHGGD7DZ2MQEZZ44SARMSXT7KSAQPEFJDCU6N72OQ :::: NAILARA AMOS :::
+# :: NYI3XYZRM6MN4PRK5IV46PG4XUDX6CFN2DSQ777IW67FWXAYNEBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

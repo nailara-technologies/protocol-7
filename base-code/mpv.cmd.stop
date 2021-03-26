@@ -1,0 +1,23 @@
+# >:]
+
+# name  = mpv.cmd.stop
+# descr = stop playback [clears playlist]
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'playback stopped';
+
+<[mpv.send_command]>->('stop');
+
+<[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+
+<[base.protocol-7.command.send.local]>
+    ->( { 'command' => "cube.report_paused" } )
+    if <system.zenka.mode> eq 'universal-child';
+
+return { 'mode' => 'deferred' };
+
+#.............................................................................
+#3TKBJELEVRFDZACWH4RPUYGBQ4CF6KTQ6O6UEHSY2FLZIPJ74IEC3K6QYRFQXKJW5TMCMWGKXREV6
+#::: CJ4ALIB5ZNZSVWFD3INUTVT3L3FIO6AZVAJXQTTIN2QIDD2OYDB :::: NAILARA AMOS :::
+# :: LK74K4RKS2B5IX3U3NPA3HBHPGGJNNIPCEKP33D6CP2B3TF7N6BA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

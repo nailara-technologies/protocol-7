@@ -1,0 +1,104 @@
+# >:]
+
+# name  = udev.handler.adm_stdout
+# descr = reads and processes stdout output from udevadm process
+
+my $event   = shift->w;
+my $read_fh = $event->fd;
+my $process = $event->data;
+my $pid     = $process->{'pid'};
+
+my $patterns = <udev.rules.patterns>;
+my $actions  = <udev.rules.actions>;
+
+<udev.adm.output.buffer> //= '';
+
+my $bufsize = 4096;
+
+my $bytes = <[base.s_read]>->(
+    $read_fh, \$data{'udev.adm'}{'output.buffer'},
+    $bufsize, length(<udev.adm.output.buffer>)
+);
+
+if ( not defined $bytes or !$bytes ) {
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->( 1, "udevadm process [PID:$pid] output filehandle closed." );
+    kill( 9, $pid );    # making sure it's really gone
+    <[base.log]>->( 0, "udevadm process terminated." );
+    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka!" );
+    exit(2);
+}
+
+while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
+    my $event_str = $1;
+    my $adm_event = {};
+    map { $adm_event->{$1} = $2 if $ARG =~ /^([A-Z_]+)=(.+)$/ }
+        split( /\n/, $event_str );
+
+    #    print Dumper($adm_event);
+
+    foreach my $pattern_name ( keys %{$patterns} ) {
+        foreach my $match_name ( keys %{ $patterns->{$pattern_name} } ) {
+            my $p        = $patterns->{$pattern_name}->{$match_name};
+            my $match    = 0;
+            my $no_match = 0;
+            map {
+                if ( exists $adm_event->{$ARG}
+                    and $adm_event->{$ARG} eq $p->{$ARG} ) {
+                    $match++;
+                } else {
+                    $no_match++;
+                }
+            } keys %{$p};
+            if ( $match and !$no_match ) {
+                <[base.log]>->( 1, "<EVENT> $pattern_name ( $match_name )" );
+
+                #    print Dumper($adm_event);
+                if (exists <udev.rules.actions>->{$pattern_name}->{$match_name}
+                ) {
+                    my $action
+                        = <udev.rules.actions>->{$pattern_name}->{$match_name};
+                    my ( $cmd, $params )
+                        = split( / +/, $action->{'net.cmd'}, 2 );
+                    while ( $params =~ /<([^\s\>]+)>/ ) {
+                        my $key = $1;
+                        my $val = $adm_event->{$key};
+                        $val //= "<$key>";
+                        $params =~ s|<$key>|$val|g;
+                    }
+                    if ( exists $action->{'net.cmd'} ) {
+                        <[base.log]>->( 2, "<\[net.cmd\]> $cmd $params" );
+                        <[base.protocol-7.command.send.local]>->(
+                            {   'command'   => 'cube.' . $cmd,
+                                'call_args' => { 'args' => $params },
+                                'reply'     => {
+                                    'handler' => 'dev.null',
+                                    'params'  => {}
+                                }
+                            }
+                        );
+                    } else {
+                        <[base.log]>->(
+                            0,
+                            "[!] unkown action type defined for pattern"
+                                . " '$pattern_name' ( $match_name )"
+                        );
+                    }
+                } else {
+                    <[base.log]>->(
+                        0,
+                        "[!] no action defined for pattern"
+                            . " '$pattern_name' ( $match_name )"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#.............................................................................
+#BMEUUGRCMDVBYORAAGDADJQUWYW6QKWE6K6AI4IJYYTTS5X6MQFFVA5MCHVY2OA7HUPQ5DT45PAWU
+#::: GP4VDNVWC52LPHU3PPZPYGPBTYVWVW37WQYQBKW3UEQJDBGSGJZ :::: NAILARA AMOS :::
+# :: GFQKDW4ZP6VAB4MHBFZ3RCUTZ6RMFKYTL3UKF3C6M2GYFIURSACI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

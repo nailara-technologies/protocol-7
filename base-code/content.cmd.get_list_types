@@ -1,0 +1,81 @@
+# >:]
+
+# name  = content.cmd.get_list_types
+# param = [type]
+# descr = return current playlist items (with types)
+
+my $subname;
+my %file_types;
+my $reply_string   = '';
+my $type_list      = <content.file_types>;
+my $file_types_str = $$call{'args'} // '';
+
+<[base.log]>->( 2, "* processing playlist request for '$file_types_str'" );
+
+$subname = $1 if $file_types_str =~ s| *\[([^\]]+)\]$||;
+
+map { $file_types{$ARG} = 1 } split m| +|, $file_types_str;
+
+my %b32_index;
+my $index = -1;
+foreach my $file ( @{<content.file_list>} ) {
+    $index++;
+    next
+        if defined $subname
+        and exists <content.zenka_subnames>->{$index}
+        and ( keys %{ <content.zenka_subnames>->{$index} }
+        and not exists <content.zenka_subnames>->{$index}->{$subname} );
+
+    my $sn_line_str
+        = ( exists <content.zenka_subnames>->{$index}
+            and keys %{ <content.zenka_subnames>->{$index} } )
+        ? join( ':',
+        [ keys %{ <content.zenka_subnames>->{$index} } ]->[0], $file )
+        : $file;
+
+    my $b32id_str
+        = <[chk-sum.crc.b32]>->( ++$b32_index{$sn_line_str}, $sn_line_str );
+
+    if ( defined <content.exclusive_b32id> ) {    # 'EXCLUSIVE' playlist event
+        ( my $entry_tile ) = ( keys %{ <content.zenka_subnames>->{$index} } );
+        map {
+            next
+                if $ARG eq $entry_tile
+                and not grep {m|^$b32id_str$|}
+                @{ <content.exclusive_b32id>->{$ARG} }
+        } keys %{<content.exclusive_b32id>};
+    }
+
+    next
+        if grep {/^$b32id_str$/} @{<content.hidden_b32id>}; # <- SHOW/HIDE event
+
+    my @url_flags;
+    map {
+        if ( exists <content.url_flags>->{$ARG}->{$file} ) {
+            my $flag_str = $ARG;
+            $flag_str .= '=' . <content.url_flags>->{$ARG}->{$file}
+                if $ARG eq 'delay';
+            push( @url_flags, $flag_str );
+        }
+        }
+        keys %{<content.url_flags>};
+    my $url_flags_str
+        = @url_flags ? '#[' . uc( join( '|', sort @url_flags ) ) . ']#' : '';
+
+    my $type_str = $type_list->{$file};
+    foreach my $req_type ( keys %file_types ) {
+        $reply_string .= "$type_str $file$url_flags_str\n"
+            if !length($req_type)
+            or index( $type_str, $req_type ) != -1;
+    }
+
+    $reply_string .= "$type_str $file$url_flags_str\n" if !keys(%file_types);
+}
+
+return { 'mode' => 'data', 'data' => $reply_string }
+
+#.............................................................................
+#H5U7CD3QFNHQZ7I32CS2BWHINRMAJW5VNZM5L4U3SLE3CMEISJI7VVHNB2KNTZMS7XU4LWM4NDYOQ
+#::: TV2JIS5L65IHQQZ4WBTFHQR5XBWWTIP7PMHLOTZO4BEC7DLMFOP :::: NAILARA AMOS :::
+# :: OYLGIXUYADK674JQXC3G4HPTREAYQLGWQVM2JRIZBC3WAVIQWYCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,129 @@
+# >:]
+
+# name = base.protocol-7.command.send.local
+
+my $cmd       = ${ $_[0] }{'command'};
+my $call_args = ${ $_[0] }{'call_args'};
+${ $_[0] }{'reply'} //= {};
+$$call_args{'args'} //= '';
+
+die "'command' parameter expected" if not defined $cmd;
+
+return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
+
+if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
+
+    my $cmd_id        = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
+    my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
+    my $reply_params  = ${ $_[0] }{'reply'}{'params'};
+
+    my $target_name = $1;
+
+    # [LLL] needs error handling on unknown target
+
+    ## send to all clients with that session id or username [ in group mode ] ##
+    my @send_sids;
+    my $target_sid = $target_name =~ m|^\d+$| ? $target_name : undef;
+    if ( defined $target_sid
+        and exists $data{'session'}{$target_sid} ) {    ##[ session id mode ]##
+        @send_sids = ($target_sid);
+    } elsif ( exists $data{'user'}{$target_name} ) {    ###[ group mode ]###
+        @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
+    }
+    my $count = 0;
+    foreach my $target_sid (@send_sids) {
+        my $session;
+        $session = $data{'session'}{$target_sid}
+            if exists $data{'session'}{$target_sid};
+        next    ## skip unauthorized connections \ modes ##
+            if not defined $session
+            or $session->{'mode'} ne 'client'
+            or $session->{'user'} eq <base.session.uname.server>
+            or $session->{'user'} eq <base.session.uname.client>
+            or defined $session->{'authenticated'}
+            and $session->{'authenticated'} ne 'yes';
+
+        ## setting up route ##
+
+        my $route = <[base.route.add]>->(
+            {   'source' => { 'sid' => $target_sid, 'cmd_id' => $cmd_id },
+                'reply'  => {
+                    'handler' => $reply_handler,
+                    'params'  => $reply_params
+                },
+                'target' => { 'sid' => $target_sid }
+            }
+        );
+
+        my $target_cmd_id = $$route{'target'}{'cmd_id'};
+
+        my $src_name = <system.zenka.name>;
+        $src_name .= '[' . <system.zenka.subname> . ']'
+            if exists <system.zenka.subname>;
+
+        # [LLL]  implement [debug] watch and filter patterns for command logging
+        if (   <system.verbosity.console> >= 2
+            or <system.verbosity.zenka_buffer> >= 2 ) {
+            <[base.log]>->(
+                2, ":network: $src_name ..:. $target_name ..:. $cmd"
+                )
+                if ( $src_name ne 'cube'
+                or $target_name ne 'p7-log'
+                or $cmd ne 'append'
+                or !<debug.skip_log_msg> )
+                and ( $target_name ne 'cube'
+                or $cmd ne 'p7-log.append'
+                or !<debug.skip_log_msg> )
+                and ( $src_name ne 'nroot'
+                or ( $cmd ne 'heart' and substr( $cmd, -5, 5 ) ne '.heart' )
+                or !<debug.skip_nroot_heartbeat> );
+        }
+
+        $target_cmd_id =~ s|^(\d+)$|($1)|;
+
+        #            if ( $command_mode == 1 )    # single line command mode
+        #            {
+        my $args = '';
+
+        if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
+
+        $data{'session'}{$target_sid}{'buffer'}{'output'}
+            .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
+        $count++;
+
+        ## [ LLL ] set up timeout handler ###
+
+        #            }
+        #            elsif ( $command_mode == 2 )    # multi line command mode
+        #            {
+        #                my $header = '';
+
+        #                if ( defined $$call_args{'param'}
+        #                    and ref( $$call_args{'param'} ) eq
+        #                    'HASH' )    # prepare parameter header
+        #                {
+        #                    my ( $key, $val );
+
+#                    while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
+#                    {
+#                        $header .= $key . '=' . $val . "\n";
+#                    }
+#                }
+
+        #                $data{'session'}{$target_sid}{'buffer'}{'output'} .=
+        #                  $target_cmd_id . $cmd . "+\n" . $header . "\n"
+        #                  . $$call_args{'data'} . ".\n";
+
+        #            }
+    }
+    return $count;
+} else {
+    warn "protocol mismatch ['$cmd']";
+    return -2;
+}
+
+#.............................................................................
+#75B7ER3EJNGGA3NUDIHVZ6RZX4QZ4TL6UOROAUEDZKRN43P5X2NLXZJI6SR4MG6ZJEIOGVOY3YVW4
+#::: T4Q75YOP6J6IM2M52TMXI3IXLFLOPHTBGL7T4A3MAZVEH4ZHA6N :::: NAILARA AMOS :::
+# :: C2R2JBIMUR4GYPCGDIZUUT4JXYIF4DFXLA5TBQB4CPKFFK7OBWBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

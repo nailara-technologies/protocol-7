@@ -1,0 +1,58 @@
+# >:]
+
+# name  = base.sig_usr2
+
+my $start_lpw = <system.start.log_prefix_width>;
+my $cur_lpw   = <system.zenka.log_prefix_width>;
+my $max_lpw   = 27;                                ## <-- auto-calc
+
+if ( $cur_lpw > $start_lpw ) {
+    <[base.log]>->( 2, '[ SIGUSR2 ] decreasing log prefix width ..,' );
+    $cur_lpw -= 1;
+} else {
+    <[base.log]>->( 2, '[ SIGUSR2 ] minimum prefix width reached .,' );
+    return;
+}
+
+<system.zenka.log_prefix_width> = $cur_lpw;
+
+my $d = '';
+
+my $dot_count = $cur_lpw - $start_lpw + 1;
+my $next_dots = <log.dots> = '.' x $dot_count;
+
+my $intended_prefix_width = length(
+    sprintf(
+        ':.%s%s%s.:', <system.node.name>, <log.dots>, <system.zenka.name>
+    )
+);
+
+<log.next_console_line> = ':.';
+
+my $logged_width = 0;
+my $width_delta  = 0;
+if ( defined <log.logged_prefix_width> ) {
+    $logged_width = <log.logged_prefix_width>;
+    if ( $intended_prefix_width == $logged_width ) {
+        undef <log.next_console_line>;
+        return;
+    }
+    $width_delta = $logged_width - $intended_prefix_width;
+    substr( $next_dots, 0, $width_delta, '' );
+    <log.next_console_line>
+        .= ':' x ( $intended_prefix_width + $width_delta - 4 );
+}
+my $width_remaining
+    = ( $intended_prefix_width - length(<log.next_console_line>) - 2 );
+
+<log.next_console_line> .= '.:';
+return if $width_remaining <= 0;
+
+<log.next_console_line> .= '.' x ( $width_remaining - 1 ) if $width_remaining;
+<log.next_console_line> .= ',' if $intended_prefix_width > $logged_width;
+
+#.............................................................................
+#W72ETU4XQAMHGWJQB2F7KF6P7IWKHNWXD44UZJ7X3VUUVOQ35UGI74SUXCXLQNVAWEENBGF5TVAVU
+#::: 7Q32SEI7OQS3GHAFDZK2OGNG3BBV6BIL5EKYWMQ2MOKAMKSVJTN :::: NAILARA AMOS :::
+# :: MVZAN62XJ22WR66OG2L7QYZMQC2RYUDERTCTWGA7V6WODS5FPYAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

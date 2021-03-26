@@ -26,7 +26,7 @@ my $root_path
     = abs_path( File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
 my $harmony_bin = File::Spec->catfile( File::Spec->catdir( $root_path, 'bin' ),
     qw| harmony | );
-my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'cfg' ),
+my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'configuration' ),
     qw| protocol-7.src-ver | );
 
 die ":\n:: 'harmony' binary not found\n\n" if !-x $harmony_bin;
@@ -49,7 +49,7 @@ die ":\n:: 'harmony' binary not found\n\n" if !-x $harmony_bin;
 
         my $tag_msg
             = sprintf(
-            "<< rel \\\\// p7-AMOS-base-v%s || src \\\\// %s >>",
+            "<< rel \\\\// p7-AMOS-base-v%s || base-code \\\\// %s >>",
             $release_version, $src_ver_str );
         if ( $mode eq 'rel_ver' ) {
             print STDOUT ":\n: calculated release version : ";
@@ -86,7 +86,7 @@ sub ntime_dec {
 }
 
 #.............................................................................
-#FTG265AM5IDHQV7S72EJFYD4QHKEMYMOXY2HWTZL4SNEZUIZ7KLKGMVNHJEYJY4PIKF6BU6X4VQTE
-#::: RX4NJ3JQBOLDA6JQZNBFOLZGLGPED2XDW6GHKMWX5MLN567U2GB :::: NAILARA AMOS :::
-# :: ST4EZVNAN4ANNICTMBXHGJ7TZZMTRJ5PFWTD223IFN64B5CANOAI :: CODE SIGNATURE ::
+#JQR7JSSWIYU4YGMB6Z65KJC5CAEBIMG6GD4S7QT7Q5D7EWSVZGVCSLAMCY2ZMB54DSD7WOXGCQHYQ
+#::: PE42YSGFSUHR5S26YKXGQLGN63YITGXCNJLWBEXZRBOGYZK4ZIP :::: NAILARA AMOS :::
+# :: JGSTOTL7EJKO3OWVUEP746Z2VIM2MPANV6L75MOXYJK4O4UXVSCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+# >:]
+
+# name  = impressive.callback.stop_start-anim
+
+<impressive.timer.stop_start-anim>->cancel
+    if defined <impressive.timer.stop_start-anim>
+    and <impressive.timer.stop_start-anim>->is_active;
+
+undef <impressive.timer.stop_start-anim>;
+
+<impressive.stop_lsp_sent> //= 0;
+return if <impressive.stop_lsp_sent>;
+
+<[base.log]>->( 1, "startup successful / window becomes visible ..." );
+
+my $lsp_name
+    = defined <system.zenka.subname>
+    ? 'start-anim[' . <system.zenka.subname> . ']'
+    : 'start-anim';
+
+# LLL: needs X-11.fade_in command..
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.X-11.set_opacity",
+        'call_args' => { 'args' => <x11.id> . ' 100' }
+    }
+);
+
+if (<impressive.cfg.use_start-anim>) {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.nroot.stop_implicit",
+            'call_args' => { 'args'    => $lsp_name },
+            'reply'     => { 'handler' => 'impressive.handler.stop_lsp_reply' }
+        }
+    );
+    <impressive.stop_lsp_sent> = 1;
+}
+
+#.............................................................................
+#JECHDGBA3WDB2YMWNBS76YYTQIYK65RLO6JZEWX52QCRKT42KAADJALXEFOVMFE5LSEQKIRS2PYRA
+#::: IFOCUEELR63J3AYS2DPBTNASKNRD2AXL52E3PYQK4AGUCHBTEQX :::: NAILARA AMOS :::
+# :: EQHEPKPIGPTJ2NUYZ6E6FYVPDQLMSTULLX2TSQG3BCQ5WWATR6AQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

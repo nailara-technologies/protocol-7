@@ -1,0 +1,27 @@
+# >:]
+
+# name = set-up.json.cmd.get-config-names
+# descr = return list of exportable configurations
+
+my $zenka_name    = <system.zenka.name>;
+my $rules_subname = "$zenka_name.set-up.export_rules";
+
+return {
+    'mode' => 'nak',
+    'data' => "no export rules defined for zenka '$zenka_name'"
+    }
+    if not exists $code{$rules_subname};
+
+my $export_rules = $code{$rules_subname}->();
+
+return {
+    'mode' => 'data',
+    'data' =>
+        join( '', map {"$ARG\n"} sort keys( %{ $export_rules->{'keys'} } ) )
+};
+
+#.............................................................................
+#DUMTZ4EYJI7ZX73AFQX2DJQEOWATSXL3HWMQK4PT3IFYA6LJ3TEWIZW7L2P64NYFDV5KAZV5LEQ5E
+#::: CMJYIK3NRFU5V25RMZO6L4FVOWZZVEWUSY67CD5WOTD2CYHYHLL :::: NAILARA AMOS :::
+# :: U4G5SBVHDYJHCPEOGFHDZXSWZMMNMCWE6KNL7KNMZ3HN7QIFDMCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

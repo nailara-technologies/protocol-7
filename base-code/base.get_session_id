@@ -1,0 +1,59 @@
+# >:]
+
+# name = base.get_session_id
+
+my $usr_str   = shift // 'cube';
+my $route_str = shift // '';
+$route_str .= '.' if length($route_str);
+
+my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+if ( exists $data{'session'}{$local_sid}{'cube_sid'} ) {
+    <[base.log]>->( 0, "already have a cube sid, refused to request another!" );
+    return undef;
+}
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+
+<[base.log]>->( 2, "acquiring session id..," );
+<[net.out]>->( $cube_fh, "($cmd_id)${route_str}whoami\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$cube_fh>;
+    if ( not defined $reply_string ) {
+        <[base.log]>->(
+            0, "base.get_session_id: socket exception, shutting down..,"
+        );
+        exit(1);
+    }
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$} ) {
+    my ( $zenka_name, $cube_session_id ) = ( $1, $2 );
+    if ( $zenka_name ne <system.zenka.name> ) {
+        <[base.log]>->( 0, "received zenka name does not match internal one!" );
+        return undef;
+    }
+    $data{'session'}{$local_sid}{'cube_sid'} = $cube_session_id;
+    <[base.log]>->( 1, "cube session id received [$cube_session_id]" );
+    <system.zenka.initialized> = 1;
+    return $cube_session_id;
+} else {
+    <[base.log]>->(
+        0,
+        "protocol mismatch (unexpected reply to whoami command!)"
+            . " [$reply_string]"
+    );
+    return undef;
+}
+
+#.............................................................................
+#PKIOYH7N2HZQIBDWACZUZFXLGGN4GXD6VA4MQMH2NYN6US3INGAO7XAZ2MW7N3H7GKZPM5ZDTFT7O
+#::: BVCDCUJX5BSAWCRQVHTIYOG76MNNB3VYKYCOGLJYHZHEM4EYYMC :::: NAILARA AMOS :::
+# :: 67RYUTX7VCBM6LBY5PRZUPQEA3Z5F6TV2X5GJ6AVBMJUJFKQUACI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

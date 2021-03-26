@@ -1,0 +1,22 @@
+# >:]
+
+# name  = web-browser.cmd.fg_insert
+# descr = insert page on foreground view
+
+return { 'mode' => 'nak', 'data' => 'web-browser zenka shutdown in progress' }
+    if defined <web-browser.shutdown> and <web-browser.shutdown>;
+
+my $load_uri = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'uri parameter required!' }
+    if not defined $load_uri or !length($load_uri);
+
+<[web-browser.fg_view_insert]>->($load_uri);
+
+return { 'mode' => 'ack', 'data' => 'loading to front view!' };
+
+#.............................................................................
+#7KP4BAODAFOLEJKDDXV5L642YQRGZ4ZJANAHC5WHISEPG4GHT6VBVIPDLQSCV4BVPCNELBDZGCORY
+#::: GD5AS3SIG34U4W2PX5GNXRQ4LGSIFSMS7KMLZS3EAJKZEAKXB7Z :::: NAILARA AMOS :::
+# :: 264VLHENODMAFUUYRFH7NMBYEJUZHHSDRYGONOSE32DDSUEKEMBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

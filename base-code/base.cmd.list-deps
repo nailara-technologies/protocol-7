@@ -1,0 +1,21 @@
+# >:]
+
+# name = base.cmd.list-deps
+# descr = return zenka dependencies [pkgs/pmods]
+
+my $return_str = "\n";
+my @pmods = sort { length $a <=> length $b } sort keys %{<base.perlmod.loaded>};
+
+my $width = 67;
+
+$return_str .= sprintf "%${width}s . perl-mod .\n", '';
+map { $return_str .= sprintf( "%${width}s :\n", $ARG ) } @pmods;
+$return_str .= sprintf "%${width}s .\n", '';
+
+return { 'mode' => 'data', 'data' => $return_str }
+
+#.............................................................................
+#GDPQNHTXHNYZEWQCUL5PPSNJLP5BRVN3CZC36UN6TD2R747U4HYHE666J5Z7BFWBP6NHRNL6WB7SS
+#::: AMT25BCIHYHMMYECVKTS6TP2UJAV5VX7FPCMWUJI6SJI5PJB6XY :::: NAILARA AMOS :::
+# :: G36Z3MLX73PHOBGLT4GGWNKEYESMZQHRWSZIQ5C7SGDBWLPTTIAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

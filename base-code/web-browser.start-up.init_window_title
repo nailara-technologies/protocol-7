@@ -1,0 +1,29 @@
+# >:]
+
+# name  = web-browser.start-up.init_window_title
+
+my $zenka_name = <system.zenka.name>;
+my $sn_str
+    = defined <system.zenka.subname> ? ' [' . <system.zenka.subname> . ']' : '';
+
+<web-browser.title_prefix> //= 'amos-desktop';
+
+my $base_title
+    = <web-browser.title_prefix> ne ''
+    ? join( ' ', <web-browser.title_prefix>, $zenka_name )
+    : $zenka_name;
+
+<web-browser.window.title_str>
+    = <system.zenka.mode> eq 'universal-child'
+    ? 'universal.' . $zenka_name
+    : $base_title;
+
+<web-browser.window.title_str> .= $sn_str;    ## adding zenka subname ##
+
+return <web-browser.window.title_str>;
+
+#.............................................................................
+#FXVN43SIFSXM5TUYHRXUDCSHMQA5L7QJQYIJVXODFV6DNZZVEHSVNPPU64YWIREABB2YCCHNAYT64
+#::: EH2EIVDULXHNHVQQTHEDV5E3HCZP3GV7WDPAVDQMAVRIHX45W3Y :::: NAILARA AMOS :::
+# :: 744MLWZP44GQLMZ3BYE2LC3J3EDTAWBRHFDGFRP5SNCOI4CQIIBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

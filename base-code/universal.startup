@@ -1,0 +1,49 @@
+# >:]
+
+# name = universal.startup
+
+my @content_types = keys %{<universal.content.zenka_map>};
+<[universal.get_playlist]>->(@content_types);
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+( <x11.width>, <x11.height> ) = (
+    <x11.coordinates.right> - <x11.coordinates.left>,
+    <x11.coordinates.bottom> - <x11.coordinates.top>
+);
+
+<[base.log]>->(
+    2,
+    sprintf(
+        "calculated window dimensions %s x %s", <x11.width>, <x11.height>
+    )
+);
+
+<[base.log]>->( 1, "starting start-anim zenka..," );
+
+# LLL: need startup timeout., [ beyond 'nroot' zenka implementation ]
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.nroot.notify_online",
+        'call_args' => { 'args'    => <universal.lsp_name> },
+        'reply'     => { 'handler' => 'universal.handler.start-anim_started' }
+    }
+);
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.nroot.start_once",
+        'call_args' => { 'args' => <universal.lsp_name> }
+    }
+);
+
+undef %SIG;
+$SIG{'INT'} = $SIG{'TERM'} = sub {
+    undef %SIG;
+    <[universal.stop_start-anim]>;
+};
+
+#.............................................................................
+#4UWEADN4J2ODBVOWYQY2BQLBQHPEFLCC5JEZGKZR36ALHVYSBOARJZYDOZSOIQJDIIF4QQY27CEFI
+#::: JK24BTYUF3DTUV4CLCR6ZHSKEZ765M3FJ5HR2OS7Q52EXU7U6VA :::: NAILARA AMOS :::
+# :: XRADLCLSOLZJNI2URPXSMMTQSCXYK7YJYBTTR6S4BS6CJP4P5SAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

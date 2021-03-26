@@ -1,0 +1,35 @@
+
+.:[ ['compton'] composite manager wrapper zenka ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'x11-vars']
+
+access.cmd.usr.cube = commands heart reload \
+                      show-buffer clear-buffer \
+                      verify-instance list-deps \
+                      src-ver src-age cur-pid
+
+# add compton options here
+
+modules.load = auth net protocol io.ip compton
+[load_modules:<modules.load>]
+[init_modules]
+
+compton.priority  = -16
+compton.renice_fh = [base.start.renice_child]
+
+[root.drop_privs:<x11.user>] # -> needs auto-discovery
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+[base.X-11.get_driver]
+[base.X-11.get_mode]
+
+compton.default_shadow = '000013'
+compton.shadow_color = [base.X-11.get_bg_color]
+
+[compton.startup]
+[base.get_session_id]
+
+[event.loop]

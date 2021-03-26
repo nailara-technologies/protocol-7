@@ -1,0 +1,20 @@
+# >:]
+
+# name  = system.callback.xcrash_reboot
+
+my $admin_abort = <system.X-11_crash.admin_reboot_abort> //= 0;
+
+return
+    <[base.log]>->( 0, '<< ! >> automated host reboot aborted ., =) << ! >>' )
+    if $admin_abort;
+
+<[base.log]>->( 1, ":.. sending reboot request to 'nroot' zenka .," );
+
+<[base.protocol-7.command.send.local]>
+    ->( { 'command' => 'cube.nroot.host-reboot' } );
+
+#.............................................................................
+#4EIV7X7DHPL3HIBSCRQ4SQN75YBTTDIDE3GPGA273O46GAXBFHTV7FD52LY7LXL3GUZCRKWHEHCY4
+#::: 5DRI3AYJQALQPHXHPHQURCS2OP5LY7DIMJG2NMAGROPXNH3UW4T :::: NAILARA AMOS :::
+# :: SPWOVMIC4VJ6I72JDDNKJU2QLG4XA6DRC5HQKOCDTBFBPRVXCWDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

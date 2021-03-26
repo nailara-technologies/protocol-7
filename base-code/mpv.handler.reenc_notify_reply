@@ -1,0 +1,48 @@
+# >:]
+
+# name = mpv.handler.reenc_notify_reply
+
+my $reply = shift;
+my $reenc_msg_sid;
+my $refresh_interval = <mpv.reenc_refresh_interval>;
+
+delete <mpv.reenc_msg_sid>;
+
+my $err_reason;
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    $err_reason = ' [' . $reply->{'call_args'}->{'args'} . ']';
+} else {
+    $reenc_msg_sid = $1
+        if $reply->{'call_args'}->{'args'} =~ m| online.* \[(\d+)\]$|;
+}
+
+if (   defined $err_reason
+    or not defined $reenc_msg_sid
+    or $reenc_msg_sid !~ m|^\d+$| ) {
+    $err_reason //= " [ answered '$$reply{call_args}{args}' ]";
+    <[base.log]>->( 0, "[!] unable to obtain reenc-msg zenka sid!$err_reason" );
+    return;
+}
+
+<mpv.reenc_msg_sid> = $reenc_msg_sid;
+
+<[base.log]>->( 2, "received reenc-msg zenka sid $reenc_msg_sid" );
+
+<[mpv.callback.reenc_finished]> if !keys %{<mpv.converting>};  # already aborted
+
+<mpv.timer.reenc_refresh>->cancel
+    if exists <reenc-msg.timer.reenc_refresh>;
+<mpv.timer.reenc_refresh> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => $refresh_interval + rand( $refresh_interval / 2 ),
+        'handler'  => 'mpv.handler.reenc_refresh',
+        'data'     => $reenc_msg_sid,
+        'repeat'   => 1
+    }
+);
+
+#.............................................................................
+#HDACNZCD474D4MAWVHVYAYXOLZ25SUUMRLI6ZNSTLFVO2PESXB3O5EHIUHDLEY5UBW5JCQQ2OU57S
+#::: 32PZOSSYU3Y73F6WFLZ6Q5FLPRJ6XBUYQ7HULCEOLIYBRKXAWAW :::: NAILARA AMOS :::
+# :: USQ5SXBUPBRJKRKVR3W3LCR3BCOMUTM7OXRVWQDUTZ6MZTUCFCCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

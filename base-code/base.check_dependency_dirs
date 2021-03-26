@@ -1,0 +1,65 @@
+# >:]
+
+# name = base.check_dependency_dirs
+
+my $user     = shift // <system.privs.user>;
+my $zenka    = <system.zenka.name>;
+my $cfg_path = <system.conf_path>;
+
+my ( undef, undef, $uid, $gid ) = getpwnam($user)
+    or return <[base.log]>->(
+    2, "<< check_dependency_dirs :user '$user' not in passwd file >>"
+    );
+
+my @sub_dirs = qw|
+    os-dep
+    os-dep/binary
+    os-dep/debian
+    pm-dep
+    source
+    |;
+
+my $dep_dir = <[base.get_path.zenka_cfg]>;
+
+if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
+    and -d $dep_dir
+    and -w $dep_dir
+    and opendir( my $dir_fh, $dep_dir ) ) {
+    my @dir_names = grep { !m|^\,| } readdir($dir_fh);
+    close($dir_fh);
+
+    my $src_stat = File::stat::stat($dep_dir);
+
+    foreach my $sub_dir (@sub_dirs) {
+        my $dir_path = "$dep_dir/$sub_dir";
+        ## create ##
+        if ( !-d $dir_path ) {
+            mkdir($dir_path)
+                or warn "mkdir($dir_path) : $OS_ERROR";
+        }
+        next if !-d $dir_path;
+
+        my $dir_stat = File::stat::stat($dir_path);
+
+        ## chmod ##
+        chmod( 0775, $dir_path ) if $dir_stat->mode != 0755;
+        if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
+            ## chown ##
+            chown( $src_stat->uid, $gid, $dir_path )
+                or warn "$dir_path : $OS_ERROR";
+        }
+        ## placeholder ##
+        my $placeholder_path = "$dir_path/.placeholder";
+        if ( !-e $placeholder_path ) {
+            open( my $fh, '>', $placeholder_path ) or next;
+            close($fh);
+        }
+        chown($placeholder_path);
+    }
+}
+
+#.............................................................................
+#GEWBKFA3Z7EUPNNUIDYQFE36FSKKUGJFNHA7ZLZOO36LMSOCMJRV2OBIHOIXI3OF5FPDF6YZGEZOG
+#::: WOQPG3C4X3RVAUPF47WLYAFK4GUEG32Y2MYDLV4XL4VR36ZTOJS :::: NAILARA AMOS :::
+# :: AQEBZBBONIUSCVTEYEOTA7XFHVGIQ5KQ6NYQUJ7O77KLYVXNM6AQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

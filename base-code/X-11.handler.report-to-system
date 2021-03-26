@@ -1,0 +1,20 @@
+# >:]
+
+# name  = X-11.handler.report-to-system
+# todo  = reconnect X11::Protocol session, shutdown on failure ..,
+
+my $error_message = shift;
+
+<[base.log]>->( 1, 'reporting protocol error to system zenka..,' );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.system.report-X-11-error',
+        'call_args' => { 'args' => $error_message // '' }
+    }
+);
+
+#.............................................................................
+#2PBLEQGIWJOOZLZTH4D3MUBZWTXNFFPH5DHQ5CPA2W43WKG55VIXZVK7ZUANIQWA5WNWW2PY2SCC4
+#::: DC4HWSDJBQ66B7LUXBYK3GHPMJOMAYBJZWKXU6KLWD3ZPEBKAFT :::: NAILARA AMOS :::
+# :: V67EZ25Y3AJXNP3ET2EUAQJYAL7ORDOGVCSU2OTIR4RYNEIEKSDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

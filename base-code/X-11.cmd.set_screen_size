@@ -1,0 +1,96 @@
+# >:]
+
+# name  = X-11.cmd.set_screen_size
+# param = <W><x| ><H>
+# descr = set new X-11 screen size [ when possible ]
+# todo  = restart xephyr process on size change request [ in xephyr mode, .., ]
+
+my $X = <X-11.obj>;
+my ( $width, $height ) = split( m|\D+|, shift->{'args'} );
+
+return {
+    'mode' => 'nak',
+    'data' => 'screen size expected [<width>x<height>]'
+    }
+    if not defined $width
+    or $width !~ m|^\d+$|
+    or not defined $height
+    or $height !~ m|^\d+$|;
+
+## current size ##
+
+$X->choose_screen(0);    # LLL: no support for multiple screens yet .,
+
+# LLL: check ranges in advance..,
+# print STDERR Dumper( $X->RRGetScreenSizeRange( <X-11.obj>->root ) );
+
+my %screen_geom = $X->GetGeometry( <X-11.obj>->root );
+
+my ( $current_width, $current_height )
+    = ( $screen_geom{'width'}, $screen_geom{'height'} );
+
+return {
+    'mode' => 'nak',
+    'data' => 'requested size identical to current one'
+    }
+    if $width == $current_width and $height == $current_height;
+
+if ( !<X-11.has_randr> ) {
+    <[base.log]>->(
+        1, "<!> skipping change request [ $width x $height ] no RANDR <!>"
+    );
+    return {
+        'mode' => 'nak',
+        'data' => 'unable to set screen size [ out of range ]'
+    };
+}
+
+<[base.log]>->(
+    0,
+    "<!> changing screen size : ${current_width}x${current_height}"
+        . " --> ${width}x${height}"
+);
+
+$X->RRSetScreenSize( $X->root, $width, $height, $X->width_in_millimeters,
+    $X->height_in_millimeters );
+
+# checking for errors .,
+eval '$X->RRGetScreenInfo( $X->root )';
+if ($EVAL_ERROR) {
+    my $err_msg = 'unable to set screen size [ out of range ]';
+    <[base.log]>->( 0, " :. $err_msg" );
+    return {
+        'mode' => 'nak',
+        'data' => $err_msg
+    };
+}
+
+%screen_geom = $X->GetGeometry( <X-11.obj>->root );
+
+if (   $screen_geom{'width'} != $current_width
+    or $screen_geom{'height'} != $current_height ) {
+
+    # restart composition zenka to update geometries
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.nroot.restart',
+            'call_args' => { 'args' => 'composition' }
+        }
+    );
+    return {
+        'mode' => 'ack',
+        'data' => "screen size is now $screen_geom{width}x$screen_geom{height}"
+    };
+} else {
+    my $err_msg = 'unable to set screen size [ remained unchanged ]';
+    <[base.log]>->( 0, " :. $err_msg" );
+    return {
+        'mode' => 'nak',
+        'data' => $err_msg
+    };
+}
+
+#.............................................................................
+#G4TJIZBZXNCOFL3U6W4GGP6WNUDKBWZDDPCCDJ3NYPNULKSSAEEJQRND7PDG6LXYG5YYF6E7VCAXW
+#::: QLTK6WDILIUNTDCSFMJLI3HZHJVVGH4IRDMIMSQUG2GOSH7AK34 :::: NAILARA AMOS :::
+# :: EPP6VPZ36YYETWF5CVFDBENNC2I3VKNYPHSCBES52SL5CXKGJYAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

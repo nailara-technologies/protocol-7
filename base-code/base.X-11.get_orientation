@@ -1,0 +1,37 @@
+# >:]
+
+# name = base.X-11.get_orientation
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+<[base.log]>->( 2, "requesting screen orientation from X-11 zenka.," );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_orientation\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+    <x11.screen.orientation> = $1;
+    <[base.log]>->( 1, "received X screen orientation [$1]" );
+    return <x11.orientation>;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+#.............................................................................
+#25OUHQ5YBQGSM22PQAITLBVFPT5PSZ5YFXPCXBXGPZ3VFKQLDTLDIERCMWKMDFN7FB3EUAKHJPDSO
+#::: R6VMW6UJUNVWG6ODLNT7OYT4B5VHAXOE7ZSCWFRUV6Q2N5HCCSE :::: NAILARA AMOS :::
+# :: UJY6E65W4T2XHDHVYD7PGCWNSREIAGRZWWI5H5QI6KLANSUCSKBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

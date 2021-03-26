@@ -1,0 +1,29 @@
+
+ .:[ [X11] 'openbox' WM wrapper zenka ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'x11-vars']
+
+access.cmd.usr.cube = commands heart version reload verify-instance cur-pid \
+                      list clear-buffer show-buffer ## *
+
+openbox.config_name = minimal
+
+openbox.prefer_patched_openbox = 1 # see ./bin/openbox/..
+
+modules.load = auth net protocol io.ip openbox
+[load_modules:<modules.load>]
+
+[root.drop_privs:<x11.user>] # --> auto-discovery
+
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+
+[openbox.start_wm]
+
+[base.get_session_id]
+
+[event.loop]

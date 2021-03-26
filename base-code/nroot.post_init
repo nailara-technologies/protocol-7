@@ -1,0 +1,67 @@
+# >:]
+
+# name  = nroot.post_init
+# descr = starts configured zenki
+
+my $module_reinitialization = shift;
+
+<[nroot.cleanup_temp_files]> if not $module_reinitialization;
+
+my $zenka_config = <nroot.start_setup.zenki.config> // {};
+my @all_zenki   = keys %{$zenka_config};
+my @start_zenki = @{<nroot.start_setup.zenki.startup.start_order>};
+
+my $prev_all   = <nroot.init_state.all_zenki>   //= [];
+my $prev_start = <nroot.init_state.start_zenki> //= [];
+
+# locate zenka config files / extract descriptions
+<nroot.zenki.available> = {};    # <- reset on reload!!!
+
+my @found_zenki = <[nroot.available_zenki]>;
+
+(   <nroot.zenki.found_types.no_start_cfg> = [],
+    <nroot.zenki.found_types.no_cfg_file> = []
+) = <[base.diff_array]>->( \@all_zenki, \@found_zenki );
+
+# prepare configured zenka startup sequence
+my ( $added_start_ref, $removed_start_ref )
+    = <[base.diff_array]>->( $prev_start, \@start_zenki );
+my ( $added_all_ref, $removed_all_ref )
+    = <[base.diff_array]>->( $prev_all, \@all_zenki );
+
+<nroot.init_state.all_zenki>   = \@all_zenki;
+<nroot.init_state.start_zenki> = \@start_zenki;
+
+# <[nroot.calc_prefix_lengths]>->(@start_zenki); # <-- running, not start [LLL]
+
+<[nroot.calc_prefix_lengths]>->(qw| nroot cube |);
+
+if ( @{$added_all_ref} ) {
+    <[nroot.set_up_zenka_dependencies]>->( @{$added_all_ref} );
+    <[nroot.set_up_ondemand_zenki]>->( @{$added_all_ref} );
+}
+
+map { <[base.clean_hashref]>->( $zenka_config->{$ARG} ) } @all_zenki;
+
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 1 ) {
+    ( my $debug_str = Dumper($zenka_config) ) =~ s{^.{7}|;$}{  }mg;
+    print "\n < nroot.start_setup.zenki.config >\n\n$debug_str\n";
+}
+
+map { <[nroot.autostart_zenki]>->($ARG) if !<[nroot.start_count]>->($ARG) }
+    @{$added_start_ref};
+
+print Dumper( $data{'jobqueue'} )
+    if exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 2;
+
+0;
+
+#.............................................................................
+#HBKAYPB6EIA4DURY6ODP6TJLLGOKGSYMTJNRF2GEZIEJX5WBUU2CPXDR45F3ZJUE3E7BTWSV3454G
+#::: WUB5CF6NZUF7W6VHWRIUERLY5EESRMQJU6KQTXE5MA7RPWFMMZ3 :::: NAILARA AMOS :::
+# :: WBAKLE2LQKKMYGDZYFRK5W5S5GWRO43BSESMYV4HILQAKG4STOAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

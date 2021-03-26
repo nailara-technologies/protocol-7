@@ -1,0 +1,110 @@
+# >:]
+
+# name  = base.buffer.add_line
+# descr = write log messages to buffer and screen
+
+my $name          = shift;
+my $log_message   = shift; #  <--  <t-stmp>  <lvl>  <msg>
+my $log_cmd_level = shift; #  <--  [lvl]  <-- optional log level [ for log_cmd ]
+my $min_b_size    = 13747;
+
+$code{'base.log'} //= sub { say "<<< $_[1] >>>" }; ##<--catch compilation errors
+
+if ( !length( $name // '' ) ) {
+    <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
+    warn 'expected buffer name <{C1}>';
+    return -1;
+} elsif ( $name !~ m|^[\w\-_]{1,24}$| ) {
+    warn "invalid buffer name '$name' specified <{C1}>";
+    return -1;
+}
+
+my $buffer_size = $data{'buffer'}{$name}{'max_size'};
+
+$log_message =~ s{^\s+|\s+$}{};
+$log_message =~ s|\n|\\n|g;
+$log_message =~ s|\r|\\r|g;
+$log_message =~ s|\0|\\0|g;
+
+my $message_len = length($log_message);
+
+if ( not defined $buffer_size or $buffer_size < $min_b_size ) {  # buffer size #
+    my $default_size  = 6557696;    # <-- 64K internal default
+    my $default_found = defined <default.max_size.log_buffers> ? 1 : 0;
+    $default_size = <default.max_size.log_buffers> if $default_found;
+    my $min_size_error = 0;
+    if ( defined $buffer_size and $buffer_size < $min_b_size ) {
+        $default_size   = $min_b_size;
+        $min_size_error = 1;
+    }
+    my $size_str = $default_size;
+    if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
+    $buffer_size = $data{'buffer'}{$name}{'max_size'} = $default_size;
+    if ($min_size_error) {
+        <[base.log]>->(
+            0,
+            "<<< log buffer size too small,"
+                . " using $size_str for '$name' buffer >>>"
+        );
+    } elsif ( !$default_found ) {
+        <[base.log]>->(
+            1, "no log buffer size set [using $size_str for '$name']"
+        );
+    } else {
+        <[base.log]>->(
+            2,
+            "<< no '$name'-buffer size set,"
+                . " using default setting [$size_str] >>"
+        );
+    }
+}
+if ( $message_len > $buffer_size ) {
+    <[base.log]>->(
+        0,
+        "WARNING: log message longer than log-buffer-size"
+            . " [ buffer: $buffer_size bytes message: $message_len bytes ]"
+    );
+    return 0;
+}
+$data{'buffer'}{$name}{'size'} //= 0;
+
+push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
+$data{'buffer'}{$name}{'size'} += $message_len + 1;    # <- [\n]
+
+while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
+    my $deleted_bytes = length( $data{'buffer'}{$name}{'data'}->[0] );
+    undef $data{'buffer'}{$name}{'data'}->[0];
+    shift @{ $data{'buffer'}{$name}{'data'} };
+    $data{'buffer'}{$name}{'overrun'}{'count'}++;
+    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
+    $data{'buffer'}{$name}{'size'}                  -= ( $deleted_bytes + 1 );
+    if (    exists <log.file>->{$name}
+        and exists <log.file>->{$name}->{'start_index'} ) {
+        <log.file>->{$name}->{'start_index'}--
+            if <log.file>->{$name}->{'start_index'} > 0;
+        <log.file>->{$name}->{'next_index'}--
+            if <log.file>->{$name}->{'next_index'} > 0;
+    }
+}
+
+if (    defined $data{'buffer'}{$name}{'log_cmd'}
+    and $data{'buffer'}{$name}{'log_cmd'} ne ''
+    and (  $name ne 'zenka'
+        or not defined $log_cmd_level
+        or not defined <system.verbosity.zenka_logfile>
+        or $log_cmd_level <= <system.verbosity.zenka_logfile> )
+) {
+    my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
+    <[base.log.send_buffer_line]>->( $name, $buffer_index )
+        if defined $code{'base.log.send_buffer_line'}
+        and not exists $data{'p7-log'}
+        or not exists <log.file>
+        or not exists <log.file>->{$name}
+        or <log.file>->{$name}->{'complete'} == 1;
+}
+
+#.............................................................................
+#WEY6SB2JGBMWPHPPAJPKZFXPLZAWPND2YRY6NLYBKS2ODJNLC43J52RY22FJ5E74TLMZUSOZ4XC6Q
+#::: IYA47U5VO7YV726JDMJM33XR3LCK2NLKALQRUSNEHIXTJU2KDI5 :::: NAILARA AMOS :::
+# :: XLLO2265BSFEMCOMKGBH2BGC75NBIDAM2Q2QSPW5E6YKDP7ATSDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

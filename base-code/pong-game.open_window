@@ -1,0 +1,64 @@
+# >:]
+
+# name = pong-game.open_window
+
+my $bin_path = <pong-game.cfg.bin_path>;
+
+my $top    = <x11.coordinates>->{'top'}    // 0;
+my $left   = <x11.coordinates>->{'left'}   // 0;
+my $right  = <x11.coordinates>->{'right'}  // 0;
+my $bottom = <x11.coordinates>->{'bottom'} // 0;
+
+my $width  = $right - $left;
+my $height = $bottom - $top;
+
+$width  = 400 if $width < 400;
+$height = 300 if $width < 300;
+
+my @exec_params = ( $left, $top, $width, $height );
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+chdir(<pong-game.cfg.res_path>) or die $OS_ERROR;
+
+<pong-game.pid> = open3(
+    <pong-game.in_fh>,  <pong-game.out_fh>,
+    <pong-game.err_fh>, $bin_path,
+    @exec_params
+);
+
+<[base.zenki.report_child_pid]>->(<pong-game.pid>) if <pong-game.pid>;
+
+if ( not defined <[base.X-11.wait_for_window]>->('pong-game')
+    or !<pong-game.pid> ) {
+    <[base.log]>->( 0, "[!] unable to start pong-game [$OS_ERROR]" );
+    <[base.log]>->( 1, " : aborting zenka startup .," );
+    exit(1);
+} else {
+
+    <[base.log]>->( 1, ": pong-game process started [PID=<pong-game.pid>]" );
+
+    <pong-game.exec_params> = join( ' ', @exec_params );
+
+    <pong-game.watcher.output> = <[event.add_io]>->(
+        {   'fd'      => <pong-game.out_fh>,
+            'handler' => 'base.handler.child_output.simple',
+            'data'    => {
+                'bin'               => 'pong-game',
+                'pid'               => <pong-game.pid>,
+                'log_whitelist'     => [],
+                'callback_patterns' => {}
+            }
+        }
+    );
+
+    <[base.X-11.assign_window]>->(<x11.id>);
+}
+
+<[base.log]>->( 1, "startup complete." );
+
+#.............................................................................
+#HVRU43G5KXO56OVN2U7IVLRQ3H367UNWD3MXGSEYLYW3S7U6C7OFZXLXPBVHN4LKJXW5WOGYC6XJ6
+#::: XC7OJHTEQQ7IBEGGDTQ7OJU5X2X3PQOW2MLNIRYHZZOZOXHYSAS :::: NAILARA AMOS :::
+# :: Q6IIOG2JZNIDZ4LY575QXDU75ET4CHK4GOT372C3LGIHUVRKHOBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

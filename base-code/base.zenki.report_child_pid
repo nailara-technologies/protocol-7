@@ -1,0 +1,23 @@
+# >:]
+
+# name = base.zenki.report_child_pid
+
+my $child_pid = shift // '';
+die "expected process id parameter" if $child_pid !~ m|^\d+$|;
+
+push( @{ <system.report_children> //= [] }, $child_pid );
+
+if (<system.zenka.initialized>) {
+    <[base.callback.report_children]>;
+} else {
+    push(
+        @{ <system.callbacks.initialized> //= [] },
+        'base.callback.report_children'
+    );
+}
+
+#.............................................................................
+#AINC5L76VVLISTBC75LIFUEYYEQSY3LRS7RVO7ATYPZ2WUFCDAAVAJCLWDU2RBHXEU4GJIQUBXZ2M
+#::: GHPYTAWJBNBWXXCB4QFXEO7F3TVHKJG7L2MEDZRHF2AFBSJBSOY :::: NAILARA AMOS :::
+# :: AO23CU6X5VVD7V5GHRT6BNRXS3TLEMKF447Q2OA4TQIN7XKAXMDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

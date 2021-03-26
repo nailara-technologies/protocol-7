@@ -1,0 +1,63 @@
+# >:]
+
+# name = base.log.send_buffer_line
+
+my $name         = shift;
+my $buffer_index = shift;
+
+return warn "expected log buffer name parameter" if not defined $name;
+
+<log.file>->{$name} //= {
+    'complete'        => 1,
+    'start_index'     => $buffer_index,
+    'next_index'      => 0,
+    'resend_delay'    => 0.1,
+    'resend_slowdown' => 1.8,
+};
+
+return if not exists <base.log.allow_buffer_send>;    #  <--  connected ?.,
+
+my $log_data   = <log.file>->{$name};
+my $next_index = $log_data->{'next_index'};
+
+return if not defined $data{'buffer'}{$name}{'data'}[$next_index];
+
+# find path to log zenka..,
+my $route_prefix = 'cube.';
+my @send_line;
+
+##[ cube has sid 0 ]##
+if ( <system.zenka.type> eq 'cube' ) {
+    push( @send_line, "<system.node.name>.<system.zenka.name>", 0 );
+    $route_prefix = '';
+}
+
+##[ buffer name ]##
+push( @send_line, $name );
+
+##[ t-stmp, lvl, msg ]##
+push( @send_line, $data{'buffer'}{$name}{'data'}[$next_index] );
+
+$log_data->{'complete'} = 0;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
+        'call_args' => { 'args' => join( ' ', map { $ARG // '' } @send_line ) },
+        'reply'     => {
+            'handler' => 'base.log.handler.log_reply',
+            'params'  => { 'name' => $name }
+        }
+    }
+    )
+    or <[base.log.handler.log_reply]>->(
+    {   'cmd'       => 'NAK',
+        'call_args' => { 'args' => 'command unknown' },
+        'params'    => { 'name' => $name }
+    }
+    );
+
+#.............................................................................
+#3YF4STPNWXVCKPRA3MKGRBLCGO7ZGYKMBJM572OGFP2Y3R53JQLR7VODPEEFJOJQCCCOG533TCOGE
+#::: 7NANOJF24CSRWX6IKXVG3HMFLPLEU3NOS42OB66MBUKFKNOTSFQ :::: NAILARA AMOS :::
+# :: IEDUE5Z3BIQNHPUFTEYDFOLQYNQX2TQWN4DDRMGOI2GKU36FQICA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

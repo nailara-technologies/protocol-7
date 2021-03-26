@@ -21,7 +21,7 @@ my @params   = @ARGV;
 my $USE_ANSI = 1;
 
 my $root_path = File::Spec->rel2abs( readlink($PROGRAM_NAME) // $PROGRAM_NAME );
-$root_path =~ s|\/[^\/]+\/[^\/]+$||;    # relative to ./bin/ path [ parent ]
+$root_path =~ s|/[^/]+/[^/]+$||;    # relative to ./bin/ path [ parent ]
 
 my $term = new Term::ReadLine 'ncode';
 $term->ornaments('0,0,md,me');
@@ -33,24 +33,24 @@ my $PATH = {
 
 my $cmd = shift(@params) // '';
 
-push( @params, '.' )   if $cmd =~ m{^(s(earch)?|rep(lace)?)$} and !@params;
-push( @params, 'src' ) if $cmd =~ m{^parse(-headers)?$}       and !@params;
-
-my $target = $params[0];
+push( @params, '.' ) if $cmd =~ m{^(s(earch)?|rep(lace)?)$}   and !@params;
+push( @params, 'base-code' ) if $cmd =~ m{^parse(-headers)?$} and !@params;
 
 $SIG{'INT'} = sub { print "\n\n"; &aborted; };
 
 # define target paths on which the code parser is supposed to work on
 
 my %targets = (
-    '.'      => Cwd::cwd(),                          # current directory
-    'bin'    => $PATH->{'root'} . '/bin/',           # protcol-7 executable code
-    'dev'    => $PATH->{'root'} . '/bin/dev/',       # developement tools source
-    'src'    => $PATH->{'root'} . '/src/',           # the nailara module source
-    'conf'   => $PATH->{'root'} . '/cfg/',           # nailara config files
-    'agents' => $PATH->{'root'} . '/cfg/agents/',    # nailara agent configs
+    '.'     => Cwd::cwd(),                           # current directory
+    'bin'   => $PATH->{'root'} . '/bin/',            # protcol-7 executable code
+    'dev'   => $PATH->{'root'} . '/bin/dev/',        # developement tools source
+    'src'   => $PATH->{'root'} . '/base-code/',      # the nailara module source
+    'cfg'   => $PATH->{'root'} . '/configuration/',  # configuration root path
+    'zenki' => $PATH->{'root'} . '/configuration/zenki',    # p7-zenka programs
     ## 'readme' => $PATH->{'root'} .  ##   <--  require recursive directory mode
 );
+
+my $target = $params[0];    ## check validity and skip when not required. [LLL]
 
 # currently understood commands and their callbacks
 
@@ -71,7 +71,7 @@ my %commands = (
     'description'    => \&cmd_description
 );
 
-if ( !@params and $cmd ne 'list_targets' ) {
+if ( !@params and $cmd ne 'list-targets' ) {
     &cmd_description;
     exit;
 }
@@ -79,7 +79,7 @@ if ( !@params and $cmd ne 'list_targets' ) {
 print "\n";
 
 # unknown parser command
-if ( not defined $commands{$cmd} ) {
+if ( not exists $commands{$cmd} ) {
     print ansi('red') . "\n ::"
         . ansi('reset')
         . " a command '$cmd' does not exist"
@@ -141,12 +141,12 @@ sub cmd_description {
                 $description_txt
                     = &{ $commands{$cmd} }( 'description_txt', 'params' );
 
-                $description_txt = '( alias to command below.. )'
-                    if length($cmd) <= 3;
+                $description_txt = '[ alias to command below ]'
+                    if length($cmd) <= 3 or $cmd eq 'parse';
 
             } else {
                 $description_txt
-                    = ansi('blue') . "not yet implemented" . ansi('reset');
+                    = ansi('blue') . 'not yet implemented' . ansi('reset');
             }
 
             my $line_len = $max_len + 2 - length($cmd);
@@ -218,13 +218,26 @@ sub cmd_list_targets {
 
     print ".:[ currently available code [parser] targets ]:.\n\n:\n";
     foreach my $target ( sort { length($a) <=> length($b) } keys %targets ) {
-        my $target_path_str
-            = $target ne '.'
-            ? $targets{$target}
-            : $targets{$target} . "  ( current )\n:";
-        printf ":  %-8s  :  %s\n", "\"$target\"", $target_path_str;
+
+        ( my $target_path_str = $targets{$target} ) =~ s,/$,,;
+
+        use Cwd;
+        if ( $target eq '.' ) {
+            $target = "'.'";
+            $target_path_str =~ s|^$root_path/?|./|;
+            $target_path_str = getcwd if !length($target_path_str);
+            $target_path_str =~ s|^$root_path/?|./|;
+        } else {
+            $target_path_str =~ s|^$root_path/?|./|;
+        }
+
+        my $target_path_descr
+            = $target ne "'.'"
+            ? "$target_path_str"
+            : "'$target_path_str'  [ current ]\n:";
+        printf ":  %8s   :.   %s\n", $target, $target_path_descr;
     }
-    printf ":\n:  %-8s  :  %s\n", "\"all\"", "all of the above without '.' (!)";
+    printf ":\n:   %7s   :.   %s\n", "'all'", "above paths except for '.'";
     print ":\n\n";
     exit;
 }
@@ -252,6 +265,8 @@ sub cmd_list_psubs {
     if (@params) {
 
         my $target = shift(@params);
+        say "  :: '$target' not a valid target ::\n" and exit
+            if $target !~ m|\+| and not exists $targets{$target};
 
         if ( my $source = load_source($target) ) {
             print "\n : defined subroutines [$target source] :\n\n:";
@@ -345,9 +360,13 @@ sub cmd_replace {
           ', @params
         );
     }
-
-    if (@params) {
+    if ( !@params ) {
+        say "  :: <target> parameter required ::\n"
+            and exit;    ## '.' is default
+    } else {
         my $target = shift(@params);
+        say "  :: '$target' not a valid target ::\n" and exit
+            if $target !~ m|\+| and not exists $targets{$target};
 
         my $original_source = load_source($target);
 
@@ -429,14 +448,14 @@ sub cmd_replace {
     }
 }
 
-# :: cmd_parse_headers :: repair headers of renamed subroutines ('src' target)
+# :: cmd_parse_headers :: repair headers of renamed subroutines ('base-code' target)
 
 sub cmd_parse_headers {
     my @params = @_;
 
     if ( defined $params[0] and $params[0] eq 'description_txt' ) {
         return description_txt(
-            "[target] \\\\\\ 'src' being the default", '
+            "[target] \\\\\\ '.' [ current path ] being the default", '
 
 <target>  ..... repairs \'name\' header params of files in given code target
 
@@ -461,6 +480,8 @@ sub cmd_parse_headers {
 
     if (@params) {
         my $target = shift(@params);
+        say "  :: '$target' not a valid target ::\n" and exit
+            if $target !~ m|\+| and not exists $targets{$target};
 
         my $original_source = load_source($target);
 
@@ -543,14 +564,18 @@ sub cmd_search {
 <target> [pattern] ..... regexp search on all <target> files
 
                          <target>  source code target path keyword
-                                   ( see list_targets for details )
+                                   [ see list_targets for details ]
 
                          [pattern] regular expression patterns to match
           ', @params
         );
     }
+    say "  :: <target> parameter required ::\n" and exit
+        if !@params;    ## '.' def
 
     my $target = shift(@params);
+    say "  :: '$target' not a valid target ::\n" and exit
+        if $target !~ m|\+| and not exists $targets{$target};
 
     if (@params) { $search_pattern = join( ' ', @params ) }
     else {
@@ -563,8 +588,8 @@ sub cmd_search {
     foreach my $filename ( sort keys(%$source_data) ) {
         my $line_num = 0;
         if ( defined $source_data->{$filename} ) {
-            foreach my $source_line ( split( "\n", $source_data->{$filename} ) )
-            {
+            foreach
+                my $source_line ( split( "\n", $source_data->{$filename} ) ) {
                 $line_num++;
                 my $file_changed = 0;
 
@@ -852,7 +877,7 @@ sub create_backup {
 
     print ":: creating backup of original files ::\n\n";
 
-    # first make sure we have a valid backup directory
+    # first make sure we have a valid backup directory #
 
     my $backup_dir = $PATH->{'work'} . 'backups/';
     check_path($backup_dir);
@@ -1417,8 +1442,8 @@ sub files {
             if ( $filename !~ m{(\.bak|\.orig|\~)$}i ) {
                 chomp($filename);
                 push( @files, $filename );    # say ' < file > '.$filename;
-                ## cfg/agents/*/... ##
-                if ( $filename =~ m|cfg/agents/[^\/]+$| and -d $filename ) {
+                ## cfg/zenki/*/... ##
+                if ( $filename =~ m|cfg/zenki/[^\/]+$| and -d $filename ) {
                     opendir( my $adir_fh, $filename )
                         or die "cannot open dir '$filename': $OS_ERROR\n";
                     map { push( @files, $filename . "/$ARG" ) }
@@ -1701,16 +1726,16 @@ sub move_perl_subs {
     my $sub_destination = shift;
 
     my $source_sub_txt = $source_sub;
-    $source_sub =~ s/\*/.+/g;    # wildcards ('*') allowed
+    $source_sub =~ s|\*|.+|g;    # wildcards ('*') allowed
     my $target_sub_name;
     my $destination_package = $sub_destination;
-    if ( $destination_package =~ s/([^\:]+)$// ) { $target_sub_name = $1 }
-    $destination_package =~ s/\:\:$//;
+    if ( $destination_package =~ s|([^:]+)$|| ) { $target_sub_name = $1 }
+    $destination_package =~ s|::$||;
 
     # first check if target package name exists
     my $destination_package_exists = 0;
     foreach my $sub_name ( get_perl_subs($work_source) ) {
-        if ( $sub_name =~ /^$destination_package/ ) {
+        if ( $sub_name =~ m|^$destination_package| ) {
             $destination_package_exists = 1;
         }
     }
@@ -1722,7 +1747,7 @@ sub move_perl_subs {
     # select all subs which are to be moved
     my @selected_perl_subs;
     foreach my $sub_name ( get_perl_subs($work_source) ) {
-        if ( $sub_name =~ /^$source_sub$/ )    # must match exactly
+        if ( $sub_name eq $source_sub )    # must match exactly
         {
             push( @selected_perl_subs, $sub_name );
         }
@@ -1893,8 +1918,8 @@ sub adjust_subroutine_calls {
 
         if ( defined $modified_source->{$file} ) {
             my @modified_file;
-            foreach my $source_line ( split( /\n/, $modified_source->{$file} ) )
-            {
+            foreach
+                my $source_line ( split( /\n/, $modified_source->{$file} ) ) {
                 $line_num++;
 
                 # check for package borders
@@ -2158,7 +2183,8 @@ sub diff_less {
 
         if ( not defined $k_path{$_path_type}
             or $k_path{$_path_type} eq '' ) {
-            warn ":: kompare() :: $_path_type path not defined\n" and return 0;
+            warn ":: kompare() :: $_path_type path not defined\n"
+                and return 0;
         }
         if ( !-d $k_path{$_path_type} ) {
             warn ":: kompare() :: $_path_type path '"
@@ -2260,7 +2286,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#QPDAZE5X2LXJKWAKRMBT324QDDP54IPDQO3WFXSBHX7DMIA5MQBPYYH7POOIC5TEBVSSD5X3GVUBE
-#::: LHI6DEQSZNMXL6RXWNC3ZB7NJUK5SIOB7BVVYNZ5EWUYLQ74QIV :::: NAILARA AMOS :::
-# :: U2U2ZJ7KIJ2URM375YNHAESXDFF4WAU4ZEXPSQHSIX5B63EDJAAY :: CODE SIGNATURE ::
+#YC3ZE3OEN75Q4BQ5FADURLE2U3FSF7JX7YDXRS7CTYOK3IYNW7DN5BQVPWFTWYC4RCLAQ2MCRPDOY
+#::: R5E7NUXGDOLGGYHUTKZXSXDTEMWK3ZTGKBG7H6JSQYXQC7UWEPJ :::: NAILARA AMOS :::
+# :: TIHY74XQJSRGUJQZ5TVGQPSSE6LGCG4XH6DL2JAI5S5G5XX4SMCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

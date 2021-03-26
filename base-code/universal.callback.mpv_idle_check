@@ -1,0 +1,22 @@
+# >:]
+
+# name = universal.callback.mpv_idle_check
+
+my $child_name = 'mpv';
+
+<[base.log]>->( 2, "checking if $child_name really resumed playback.," );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command' => 'mpv.is_idle',
+        'reply'   => {
+            'handler' => 'universal.handler.mpv_idle_reply',
+            'params'  => { 'zenka' => $child_name }
+        }
+    }
+);
+
+#.............................................................................
+#T6UMRDFQOEG3KWAOACWQZXMJOQOGB3CAPR3FNG4TKSXMGPYWY6EBLNUKSIM6OWQEN33YPNGPEA334
+#::: JKALFZ7NJUOAAEND5NUG4PGRZSTL72NPHHIQYGFQ6VLYR3EGXFT :::: NAILARA AMOS :::
+# :: FULR4KO5NG4ENIZVQQ7R3HUDV26SC7766DOFANHDA3OUMZULGKAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,192 @@
+# >:]
+
+# name  = nroot.init_code
+# descr = initializes root module
+
+<[base.perlmod.load]>->('IO::Handle');
+<[base.perlmod.autoload]>->('Proc::ProcessTable');
+<[base.perlmod.load]>->( 'IPC::Open3',  qw| open3 | );
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+<[base.perlmod.autoload]>->( 'Fcntl', qw| S_IWUSR S_IWGRP | );
+<[base.perlmod.load]>->( 'Clone',               qw| clone | );
+<[base.perlmod.load]>->( 'Hash::Merge::Simple', qw| merge | );
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+<system.zenka.type> = 'nroot';
+
+<nroot.timeout.kill_list>       //= 2;
+<nroot.timeout.verify_instance> //= 13;
+
+<nroot.zenka.notify_online>    //= {};
+<nroot.zenka.manually_stopped> //= {};
+
+<nroot.cfg_data.start_setup> = [];    ##  <--  << RESETTING >>   ##
+
+<nroot.host-reboot.enabled>        //= 1;
+<nroot.host-reboot.term_delay>     //= 1.3787;
+<nroot.system-poweroff.enabled>    //= 1;
+<nroot.system-poweroff.term_delay> //= 1.3787;
+
+<system.acfg_path> = <system.conf_path> . '/zenki';
+
+map { <[base.disable_command]>->($ARG) } qw{
+    subname
+    switch-user
+    verify-instance
+};
+
+<nroot.gcc_bin> = '/usr/bin/gcc';
+<nroot.cfg.install_bin_p7c> //= 'yes';                  # LLL: only when root..,
+<nroot.cfg.p7c_bin_path>    //= '/usr/local/bin/p7c';
+
+## gcc \ p7c ##
+<nroot.gcc_bin> = <[base.required_bin_path]>->('gcc');
+if ( !-x <nroot.gcc_bin> ) {
+    <nroot.gcc_bin> = undef;
+    <[base.log]>->( 0, "<< 'gcc' binary not found >>>" )
+        if defined <nroot.cfg.install_bin_p7c>
+        and <nroot.cfg.install_bin_p7c> =~ m{^(1|yes)$};
+} elsif ( defined <nroot.cfg.install_bin_p7c>
+    and <nroot.cfg.install_bin_p7c> =~ m{^(1|yes)$}
+    and not <[nroot.bin_p7c_is_current]> ) {
+    <[nroot.compile_bin_p7c]>;
+}
+## modprobe ##
+<nroot.modprobe_bin> = <[base.required_bin_path]>->('modprobe');
+if ( !-x <nroot.modprobe_bin> ) {
+    <nroot.modprobe_bin> = undef;
+    <[base.log]>->( 0, "<< 'modprobe' binary not found >>" );
+}
+## rmmod ##
+<nroot.rmmod_bin> = <[base.required_bin_path]>->('rmmod');
+if ( !-x <nroot.rmmod_bin> ) {
+    <nroot.rmmod_bin> = undef;
+    <[base.log]>->( 0, "<< 'rmmod' binary not found >>" );
+}
+
+# single named file based startup configuration ##
+<[nroot.load_start_setup]>->(<load.start_setup>)
+    if defined <load.start_setup>;
+
+## zenka dir based startup configs #
+<[nroot.load_zenka_startup_cfgs]>;
+
+# json based configuration import ## replace with generic \ yaml based version.,
+<[set-up.json.import_file]>->('nroot.start_setup.json')
+    if defined $code{'set-up.json.import_file'};  ## <-- when not disabled., ###
+
+map { <[nroot.init_start_setup]>->($ARG) }
+    @{ clone(<nroot.cfg_data.start_setup>) };
+
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 1 ) {
+
+    <[base.perlmod.autoload]>->('Data::Dumper');
+    $Data::Dumper::Sortkeys = 1;
+
+    ( my $debug_str = Dumper(<nroot.start_setup.globals>) ) =~ s,^.{7}|;$,  ,mg;
+    print "\n < nroot.start_setup.globals >\n\n$debug_str\n";
+}
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'nroot.handler.sig_chld' } );
+
+<[nroot.load_zenka_output_patterns]>;
+<[nroot.init_zenka_output_patterns]>;
+
+delete <list.users>;
+
+<list.zenki> = {
+    'var'   => 'data',
+    'key'   => 'nroot.zenka.instance',
+    'descr' => 'currently running / managed zenka instances',
+    'mask'  => '<key>:instance job_id zenka_name:name zenka_id status',
+    'align' => {
+        'zenka_id'   => 'right-5',
+        'zenka_name' => 'left+1',
+        'instance'   => 'left+1',
+        'job_id'     => 'right-4',
+        'status'     => 'center-1'
+    }
+};
+
+<list.available> = {
+    'var'   => 'data',
+    'key'   => 'nroot.zenki.available',
+    'descr' => 'available zenki / descriptions',
+    'mask'  => '<key>:zenka_name short_desc:zenka_short_decription',
+    'align' => {
+        'zenka_name'  => 'right-3',
+        'description' => 'left'
+    }
+};
+
+<list.children> = {
+    'var'   => 'data',
+    'key'   => 'nroot.zenka.instance',
+    'descr' => 'PIDs of zenki and their children',
+    'mask'  =>
+        '<key>:instance zenka_name:zenka <key>:process <key>:process_children',
+    'align' => {
+        'instance'         => 'left+1',
+        'zenka_name'       => 'left+1',
+        'process'          => 'left',
+        'process_children' => 'left',
+    },
+    'filters' => {
+        'process'          => 'nroot.parser.process_id',
+        'process_children' => 'nroot.parser.children'
+    }
+};
+
+<list.subnames> = {
+    'var'   => 'data',
+    'key'   => 'nroot.zenka.instance',
+    'descr' => "'subnames' of registered zenki [ when available ]",
+    'mask'  => '<key>:instance status zenka_name:zenka subname',
+    'align' => {
+        'instance'   => 'left+1',
+        'status'     => 'center-2',
+        'zenka_name' => 'right-2',
+        'subname'    => 'left+1',
+    }
+};
+
+<list.manual> = {
+    'var'   => 'data',
+    'key'   => 'nroot.zenka.manually_stopped',
+    'descr' => "zenki marked as 'manually stopped'",
+    'mask'  => '<key>:zenka_name <key>:stopped_at',
+    'align' => {
+        'zenka_name' => 'left+1',
+        'stopped_at' => 'left'
+    },
+    'filters' => { 'stopped_at' => 'nroot.parser.manually_stopped_tstamp' }
+};
+
+<list.dependency> = {
+    'var'      => 'data',
+    'key'      => 'dependency.object',
+    'sort_key' => 'zenka_name',
+    'descr'    => 'current zenka dependency status',
+    'mask'     => 'zenka_name <key>:depends_on_zenki <key>:status',
+    'align'    => {
+        'zenka_name'        => 'center',
+        'depends_on_zenki' => 'center-5',
+        'status'            => 'left'
+    },
+    'filters' => {
+        'depends_on_zenki' => 'nroot.parser.dependency_chain',
+        'status'            => 'nroot.parser.dependency_status'
+    }
+};
+
+return 0;
+
+#.............................................................................
+#HCQWTJGKGLACHEFWS65CY3VOX4REXBJAR2S27W4AIKQLNCGZBB22JDO3ULSXWOC7SPXPEL2L4NNPG
+#::: 75LXL2AOS3PGO5EW6WSYJXY53CBR56I2NVXGJSWKSSA657WXALZ :::: NAILARA AMOS :::
+# :: Q4FVGXAS3Z36EZIUVWFQGC7B3S7MKMMWJFWOMJWO37EXAPQBS4CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

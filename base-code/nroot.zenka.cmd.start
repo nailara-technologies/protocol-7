@@ -1,0 +1,167 @@
+# >:]
+
+# name  = nroot.zenka.cmd.start
+# param = <zenka-id|name>
+# descr = start a new zenka instance
+
+my $zenka_id;
+my $zenka_name;
+my $zenka_subname;
+my $recursion
+    = (     ref( $_[0] ) eq 'HASH'
+        and exists $_[0]->{'recursion'}
+        and defined $_[0]->{'recursion'} ) ? $_[0]->{'recursion'} : 0;
+
+my $once
+    = (     ref( $_[0] ) eq 'HASH'
+        and exists $_[0]->{'once'}
+        and defined $_[0]->{'once'} ) ? $_[0]->{'once'} : 0;
+
+return { 'mode' => 'nak', 'data' => 'zenka name or id expected' }
+    if not defined $$call{'args'}
+    or !length( $$call{'args'} );
+
+my $start_mode
+    = ( $recursion or defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
+    ? 'implicit'
+    : 'manual';
+
+if ( $$call{'args'} =~ m|^\d+$| ) {
+    $zenka_id   = $$call{'args'};
+    $zenka_name = <nroot.zenka.setup>->{$zenka_id}->{'name'}
+        if exists <nroot.zenka.setup>->{$zenka_id};
+    return {
+        'mode' => 'nak',
+        'data' => "found no zenka with id $zenka_id"
+        }
+        if not defined $zenka_name;
+} else {
+    $zenka_name    = $$call{'args'};
+    $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+    my $sn_regex = <regex.base.subname>;
+    ( my $chars = $zenka_subname // '' ) =~ s|$sn_regex||g;
+    if ( length($chars) and length($chars) != length($zenka_subname) ) {
+        return {
+            'mode' => 'nak',
+            'data' => "invalid characters in zenka subname ['$chars']"
+        };
+    }
+}
+
+my $zenka_config = <nroot.start_setup.zenki.config>->{$zenka_name};
+return {
+    'mode' => 'nak',
+    'data' => "start setup contains no zenka named '$zenka_name'"
+    }
+    if not defined $zenka_config;
+
+return {
+    'mode' => 'nak',
+    'data' => 'zenka is explicitly disabled in config'
+    }
+    if <[zenka.is_disabled]>->($zenka_name);
+
+return {
+    'mode' => 'ack',
+    'data' => "zenka '$zenka_name' already running [ 'start-once' mode ]"
+    }
+    if $once
+    and ( defined $zenka_subname
+    and <[nroot.start_count]>->( $zenka_name . "[$zenka_subname]" )
+    or not defined $zenka_subname and <[nroot.start_count]>->($zenka_name) );
+
+return {
+    'mode' => 'nak',
+    'data' => "reached configured maximum concurrency for zenka '$zenka_name'"
+    }
+    if exists $zenka_config->{'max_concurrency'}
+    and <[nroot.start_count]>->($zenka_name)
+    >= $zenka_config->{'max_concurrency'};
+
+if ( defined $zenka_subname
+    and exists $zenka_config->{'max_subname_concurrency'} ) {
+    return {
+        'mode' => 'nak',
+        'data' => "maximum concurrency reached for $zenka_name\[$zenka_subname]"
+        }
+        if <[nroot.start_count]>->( $zenka_name . "[$zenka_subname]" )
+        >= $zenka_config->{'max_subname_concurrency'};
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "zenka '$zenka_name' has 'manually stopped' status"
+    }
+    if $start_mode eq 'implicit'
+    and exists <nroot.zenka.manually_stopped>->{$zenka_name};
+
+delete <nroot.zenka.manually_stopped>->{$zenka_name} if $start_mode eq 'manual';
+
+<[base.log]>->( 1, "starting zenka '$zenka_name' .," ) if !$recursion;
+
+my $a_dep_str    = <[zenka.get_dependencies]>->($zenka_name);
+my @dependencies = defined $a_dep_str ? split( m| +|, $a_dep_str ) : ();
+foreach my $dep_name (@dependencies) {
+    delete <nroot.zenka.manually_stopped>->{$dep_name}
+        and
+        <[base.log]>->( 0, "cleared manually stopped status for '$dep_name'" )
+        if exists <nroot.zenka.manually_stopped>->{$dep_name}
+        and $start_mode eq 'manual';    # <- forced dependency startup..,
+
+    next if exists <nroot.zenka.manually_stopped>->{$dep_name}; # .. or skipped.
+
+    if ( !<[zenka.is_enabled]>->($dep_name) ) {
+        <[base.log]>->( 1, "zenka enabled by dependency ['$dep_name']" );
+
+        my $start_name_str = $dep_name;
+
+        $start_name_str .= "[$zenka_subname]"
+            if defined $zenka_subname
+            and defined
+            <nroot.start_setup.zenki.config>->{$dep_name}->{'inherit_subname'}
+            and
+            <nroot.start_setup.zenki.config>->{$dep_name}->{'inherit_subname'};
+
+        my $reply = <[zenka.cmd.start_once]>
+            ->( { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
+
+        <nroot.zenka.auto_cleanup>->{$dep_name} = $1
+            if $reply->{'data'} =~ m| id (\d+)$|;
+    }
+    <nroot.zenka.dependency>->{$dep_name}->{$zenka_name} = 1
+        if not exists <nroot.zenka.autostart>->{$dep_name};
+}
+
+<nroot.start_setup.globals.zenki.enabled> .= ' ' . $zenka_name
+    if !<[zenka.is_enabled]>->($zenka_name);
+
+if ( not defined $zenka_id ) {
+    foreach my $id ( keys %{<nroot.zenka.setup>} ) {
+        $zenka_id = $id if <nroot.zenka.setup>->{$id}->{'name'} eq $zenka_name;
+    }
+}
+
+my $obj_id = <[zenka.get_object_id]>->($zenka_id);
+
+my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+
+my $sn_str = defined $zenka_subname ? "[$zenka_subname]" : '';
+
+my $job_id = <[jobqueue.add_job]>->(
+    {   'object_id'       => $obj_id,
+        'job_callback'    => 'zenka.start',
+        'callback_params' => $zenka_name . $sn_str,
+        'target_queue'    => $target_queue
+    }
+);
+
+return {
+    'mode' => 'ack',
+    'data' => "job queued [ID=$job_id]"
+    }
+
+#.............................................................................
+#AIXEIFKZVTOHPZWWNYORV2ZMZXT7CUFE56BZ5QP7J3AEA22IBF2DBTNPGQUESIMQG7DQB3JYRAETG
+#::: L57SJ33E7L45TPYECEKW2OCOSGNOTTYU2FNJ6CW4UC4RP6N5VIH :::: NAILARA AMOS :::
+# :: 7RM34S27KD5BH7L5NJUKFOZZZTLIFGXGMATHH2QZDERLIRRBZMBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

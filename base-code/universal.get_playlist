@@ -1,0 +1,36 @@
+# >:]
+
+# name = universal.get_playlist
+
+my @file_types = @_;
+
+my $get_from_zenka = 'content';
+<[base.log]>->( 1, "requesting entries from '$get_from_zenka' zenka.," );
+
+my $sub_name = '[' . <system.zenka.subname> . ']'
+    if defined <system.zenka.subname>
+    and length(<system.zenka.subname>);
+
+my @args;
+if (@file_types) {
+    my $args_str = join( ' ', @file_types );
+    <[base.log]>->( 2, ": requested types : $args_str" );
+    $args_str .= ' ' . $sub_name if defined $sub_name;
+    @args = ( 'args' => $args_str );
+}
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.$get_from_zenka.get_list_types",
+        'call_args' => {@args},
+        'reply'     => {
+            'handler' => 'universal.handler.get_list_reply',
+            'params'  => {}
+        }
+    }
+);
+
+#.............................................................................
+#T5STQLU4EOX5VN6Z7EWF7AFQD3PAFD66SBSDXA2UJUMIVFG7J3X2L4VC6U3I44I72XJMEV3CJWUQ4
+#::: H2VPSEUCPYSVHUZAQMHP52DLTGULJPIT35U7I4ABQEQII3A7O66 :::: NAILARA AMOS :::
+# :: ZHCI5CDQ6UIVUV3ZWYH5UVIMZV53FC7GJJH5I5ILAZOREZA3DSDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

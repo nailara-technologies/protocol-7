@@ -1,0 +1,33 @@
+# >:]
+
+# name  = debug.cmd.change-log-verbosity
+# descr = changes current [debug] log level
+# param = <[0..,5]>
+
+my $usr_sid = $$call{'session_id'};
+my $llvl    = $$call{'args'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'you need to supply an integer value [0..,5]'
+    }
+    if !length( $llvl // '' )
+    or $llvl !~ /^\d+$/;
+
+return { 'mode' => 'nak', 'data' => sprintf( "already at '%s'", $llvl // '' ) }
+    if $llvl == <system.verbosity.console>;
+
+<system.verbosity.console>      = $llvl;
+<system.verbosity.zenka_buffer> = $llvl;
+
+my $user = $data{'session'}{$usr_sid}{'user'};
+
+<[base.log]>->( 0, "changed verbosity : '$llvl' [ requested by '$user' ]" );
+
+return { 'mode' => 'ack', 'data' => "verbosity = $llvl" }
+
+#.............................................................................
+#ZU4K42JIFXKU3JRNMNJDT5VB6DSUBOY3PGZ3XS4V7G3S5U6IXL46APJZ6ESNWL35EA4SM4A4A36CK
+#::: YPXCNRHJV6UMOY4AJUR2X7NT37CBQRJZ54Z2JNGSN6FK6B4XZVC :::: NAILARA AMOS :::
+# :: H5CEUHRS3645IQCQ3QNR3OPNMY7I6OTDUUWMNF7BJ4W4Z6VW2YAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

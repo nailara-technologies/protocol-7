@@ -1,0 +1,23 @@
+
+ .:[ 'set-up' zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
+                      create-profile install-profile export-config src-age \
+                      list_exportable fetch-zenka-config cur-pid *version \
+                      list-dependencies dump # *
+
+modules.load = auth net protocol io.ip chk-sum.sha set-up
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+
+[net.connect_to_cube:'ip.tcp']
+
+# [set-up.load_profiles]
+
+[base.get_session_id]
+
+[event.loop]

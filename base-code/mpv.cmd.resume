@@ -1,0 +1,28 @@
+# >:]
+
+# name  = mpv.cmd.resume
+# descr = resume playback
+
+<mpv.universal_child_resume> //= 0;
+if ( <system.zenka.mode> eq 'universal-child' and <mpv.universal_child_resume> )
+{
+    <mpv.timer.resume_timeout> = <[event.add_timer]>->(
+        {   'after'   => <mpv.resume_timeout>,
+            'handler' => 'mpv.handler.resume_timeout',
+        }
+    );
+}
+delete <mpv.universal_child_resume>;
+
+push( @{<mpv.reply_ids>},     $$call{'reply_id'} );
+push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.cmd_prop.pause' } );
+<mpv.pause_cmd_mode> = 'resume';
+<[mpv.send_command]>->( 'get_property_string', 'pause' );
+
+return { 'mode' => 'deferred' };
+
+#.............................................................................
+#NEZOF6IRXZIO6Z7QHKAPBSAQY22SBLVNK5UTW5WVAAACOHW544ARST6EW37EWLY6S2KAIXOWFCIUW
+#::: 6UOXQOQ6M4M33XDU5U6E2DJVEDTABISGAFHODAKKVFYDKQSM44E :::: NAILARA AMOS :::
+# :: 6BZWJTAFL3JUFRB2RS7QJ3LLK5XUSZ3XDAQ7J4VY73YKIV44GOCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+# >:]
+
+# name  = base.temp_dir
+
+my $target   = shift;                # optional target directory
+my $template = shift // 'X' x 13;    # temp dir name template [optional]
+die "target directory does not exist" if !-d $target;
+die "invalid template syntax"         if $template =~ m|\./|;
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | )
+    if not exists &{'make_path'};
+
+if ( not defined $target ) {   # creates an zenka subdir if target not specified
+    my $first_dir;
+    my $zenka_name = <system.zenka.name>;
+    my @check_dirs
+        = qw| /var/run/protocol-7 /var/cache/protocol-7 /var/tmp/protocol-7 |;
+
+    foreach my $chk_dir (@check_dirs) {
+        my $subdir_path = "$chk_dir/$zenka_name";
+        <[base.log]>->( 2, ":. tmp-dir-chck :. $subdir_path" );
+        if ( -d $subdir_path and -w $subdir_path
+            or make_path( $subdir_path, { 'mode' => 0750 } ) ) {
+            $first_dir = $subdir_path;
+            last;
+        }
+    }
+    die "no success creating temp dir '$first_dir' [ $OS_ERROR ]"
+        if not defined $first_dir;
+    $target = $first_dir;
+}
+
+my $retries = 47;
+my $tmp_dir_path;
+while ( not defined $tmp_dir_path or -e $tmp_dir_path and $retries-- ) {
+    $retries = 0 if $template !~ m|X|;    # <-- no rnd char range in template
+    ( my $dname = $template )
+        =~ s|(X+)|uc( <[base.prng.chars-anum]>->( length $1 ) )|ge;
+    $tmp_dir_path = catfile( $target, $dname );
+}
+
+make_path( $tmp_dir_path, { 'mode' => 0750 } )
+    or die die "no success creating temp dir '$tmp_dir_path' [ $OS_ERROR ]";
+
+<[base.log]>->( 2, ":. created temp dir '$tmp_dir_path'" );
+
+return $tmp_dir_path;
+
+#.............................................................................
+#N6YABT4QJUNWKXSDGQVP3IXIDH5OIZZRVI6JGITHVG52VEAZJF7YIMVJ6OGTKDQ3OZNBXIHR4ME6M
+#::: KFQMOFCSFZCXVQUQLQQBUPHUGM355J2CW62IXGLKQJYRYKYDVM2 :::: NAILARA AMOS :::
+# :: G2XUGWP2PQPMU5UJXF4Z57Q7OZJPH73YN5PABDO2RQ4L3MOFFWCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

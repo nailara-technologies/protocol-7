@@ -1,0 +1,24 @@
+# >:]
+
+# name = universal.hide_except
+
+my $zenka_name = shift;
+die "zenka name expected" if not defined $zenka_name;
+
+foreach my $hide_zenka ( keys %{<universal.child>} ) {
+    next if $hide_zenka eq $zenka_name;
+    my $hide_wid = <universal.child>->{$hide_zenka}->{'window_id'};
+    <[base.log]>->( 2, ": hiding '$hide_zenka' ($hide_wid)" );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.X-11.hide_window",
+            'call_args' => { 'args' => $hide_wid }
+        }
+    );
+    <universal.child>->{$hide_zenka}->{'visible'} = 0;
+}
+
+#.............................................................................
+#IAQQUAFSCSMFB3ADPPYBSE7D6RLZ4LO2D3VT22ULVJJRCLD3NSRJFANKYFI4VNJ22X6HZVNQZ7PRC
+#::: P5X7CKCBP7ALY4ID42O4PU472UVSGCYW6HV23Q4RBO24ZDGUACE :::: NAILARA AMOS :::
+# :: OK3MFLSKV7HT74CNMDU7GVXHRJQWOCHACUGTIE4RJ2DG6QMQKGBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

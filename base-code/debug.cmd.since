@@ -1,0 +1,23 @@
+# >:]
+
+# name  = debug.cmd.since
+# param = [unix|rel[ative]]
+# descr = zenka startup local, unix time or 'uptime'
+my $mode = $$call{'args'} // '';
+$mode = 'rel' if $mode eq 'relative';
+return { 'mode' => 'nak', 'data' => 'invalid output mode' }
+    if $mode !~ m,^(|unix|rel)$,;
+return { 'mode' => 'nak', 'data' => 'not available' }
+    if not exists <system.process_start.time>;
+
+( my $startup_time = <system.process_start.time> ) =~ s|\.\d+$||;    # unix
+$startup_time = <[base.parser.timestamp]>->($startup_time) if !length($mode);
+$startup_time = <[base.parser.duration]>->($startup_time)  if $mode eq 'rel';
+
+return { 'mode' => 'ack', 'data' => $startup_time }
+
+#.............................................................................
+#TA7RG5A6O2XCSCYVPHGBCKRYABOA4SSXDGOMDNOR3Y5IQFRAQA6LHKQ5IT2JKQCAZVAO7IOBM4Z34
+#::: 7OCYLS5DTME7OIUOSOKB4VC5QWLXA2Q2BI37J4F22MIR4GDSRIY :::: NAILARA AMOS :::
+# :: 4MCMX6YOMCEQU4FCJZR6BDDVUPURT7FUNFQ3UJQP5XAZI6KIKIDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

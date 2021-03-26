@@ -1,0 +1,44 @@
+# >:]
+
+# name = base.X-11.get-layer
+
+return
+    if defined <x11.composition.layer> and <x11.composition.layer> =~ m|^\d+$|;
+undef <x11.composition.layer> if defined <x11.composition.layer>;
+
+my ($local_sid) = keys( %{<user.cube.session>} );
+
+my $zenka_name
+    = ( defined <system.zenka.mode>
+        and <system.zenka.mode> eq 'universal-child' )
+    ? 'universal'
+    : <system.zenka.name>;
+my $subname  = <system.zenka.subname>;
+my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
+
+<[base.log]>->( 1, "requesting $name_str layer position" );
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[net.out]>->( $cube_fh, "($cmd_id)composition.get-layer $name_str\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string  = <$cube_fh>;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+<x11.composition.layer> = $1 if $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$};
+<[base.log]>->(
+    2, "composition layer for '$name_str' = " . <x11.composition.layer>
+) if defined <x11.composition.layer>;
+
+#.............................................................................
+#5VDQMCCMYQQWQYONV7O2L55ITFLB6ZWVNVQVH4VLN5BN4JYGHXANS4HAZ2UWM6POKZKDMMFHOYOLG
+#::: RAF3YXGI64VXT62MIVVCFZQYN5R5AQQQXA7HNFAD5ZS2VS6L6LH :::: NAILARA AMOS :::
+# :: 42O4GUIONB3S7MQF3U7DLL2Y7LKQWOAW4XHWMJVU4YKE72SRRKAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

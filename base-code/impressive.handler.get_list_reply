@@ -1,0 +1,79 @@
+# >:]
+
+# name = impressive.handler.get_list_reply
+
+my $reply = shift;
+
+<impressive.playlist_sha1> //= '';
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    <[base.log]>->( 0, ": unable to fetch playlist!" );
+    return;
+}
+
+my @file_list     = split( "\n", $reply->{'data'} );
+my $playlist_sha1 = <[chk-sum.sha.1]>->( join( ' ', @file_list ) );
+
+if ( $reply->{'call_args'}->{'args'} == 0 ) {
+    <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
+
+    # LLL: create image for empty playlist instead of shutown(?)
+    if ( defined <impressive.pid> ) {
+        <[base.log]>->(
+            1, ": killing impressive process [PID=<impressive.pid>]"
+        );
+        <impressive.watcher.output>->cancel;
+        kill( 'KILL', <impressive.pid> );
+        undef <impressive.pid>;
+    }
+    return;
+}
+
+my $playlist_changed = 0;
+
+return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
+    if defined <impressive.pid>
+    and $playlist_sha1 eq <impressive.playlist_sha1>
+    and !$playlist_changed;
+<impressive.playlist_sha1> = $playlist_sha1;
+
+<impressive.current_playlist> = \@file_list;
+
+<[base.log]>->( 1, ": playlist changed.." );
+
+if ( defined <impressive.pid> ) {
+    <[base.log]>->( 1, ": killing impressive process [PID=<impressive.pid>]" );
+    <impressive.watcher.output>->cancel;
+    kill( 9, <impressive.pid> );
+    undef <impressive.pid>;
+}
+
+my $lsp_name
+    = defined <system.zenka.subname>
+    ? 'start-anim[' . <system.zenka.subname> . ']'
+    : 'start-anim';
+
+if (<impressive.cfg.use_start-anim>) {
+
+    <[base.log]>->( 1, "starting start-anim zenka.." );
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.nroot.notify_online",
+            'call_args' => { 'args'    => $lsp_name },
+            'reply'     => { 'handler' => 'impressive.open_window' }
+        }
+    );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.nroot.start_once",
+            'call_args' => { 'args' => $lsp_name }
+        }
+    );
+} else {
+    <[impressive.open_window]>;
+}
+
+#.............................................................................
+#LNXHSFFGLPLES3TEU5ZBUAJMEPL4JMRBYWI2WQXN4Z2FVP6X2VUVFQ4Y7X54VMIO6H3GWYGBE3EMA
+#::: ATLKBGFU7KHVOKX6O56X4TGUK7AXYFFHHMC6XUM6CGZLX64IGEE :::: NAILARA AMOS :::
+# :: GNHD2ZP75O5MTAALP4R44HB3HAEL3TRKLDWIZKLS2YDYB4BO6KBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

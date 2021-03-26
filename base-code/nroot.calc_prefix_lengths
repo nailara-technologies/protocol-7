@@ -1,0 +1,61 @@
+# >:]
+
+# name  = nroot.calc_prefix_lengths
+# descr = initialize zenki for automatic \ immediate startup
+
+my $apw_href = <nroot.zenka.prefix_width> //= {};
+
+my @online_zenki = keys %{<nroot.online-zenki>};
+
+foreach my $zenka_name ( @_, @online_zenki, 'nroot' ) { # <-- unique filter !!!
+    $apw_href->{$zenka_name} //= <[base.get_start_lpw]>->($zenka_name);
+}
+
+my $max_len = 0;
+foreach my $zenka_name ( sort { length $a <=> length $b } keys %{$apw_href} ) {
+    $max_len = $apw_href->{$zenka_name} if $max_len < $apw_href->{$zenka_name};
+}
+
+foreach my $zenka_name ( keys %{$apw_href} ) {
+    next if $apw_href->{$zenka_name} == $max_len;
+
+    my @zenka_pids;
+    map {
+        push( @zenka_pids, <nroot.zenka.instance>->{$ARG}->{'process'}{'id'} )
+            if $ARG =~ m|^\d+$|;
+    } split( "\n", <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'data'} )
+        if $zenka_name ne 'nroot';
+
+    if ( $apw_href->{$zenka_name} < $max_len ) {
+        my $delta_len = $max_len - $apw_href->{$zenka_name};
+
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne 'nroot' ) {
+                kill qw| SIGUSR1 |, @zenka_pids;
+                <[base.sleep]>->(0.007) if $delta_len; # <-- make async ., [LLL]
+            } else {
+                <[base.sig_usr1]>;
+            }
+        }
+
+    } elsif ( $apw_href->{$zenka_name} > $max_len ) {
+        my $delta_len = $apw_href->{$zenka_name} - $max_len;
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne 'nroot' ) {
+                kill qw| SIGUSR2 |, @zenka_pids;
+                <[base.sleep]>->(0.007) if $delta_len; # <-- make async ., [LLL]
+            } else {
+                <[base.sig_usr2]>;
+            }
+        }
+    }
+}
+
+map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
+    ( keys %{$apw_href} );
+
+#.............................................................................
+#SI7RHY6LYS76AYNWXJZGQTLEO4VGDKX5IVIRYXLEPEXHTBZ2TZE5GHB4YSKGDIRR4RHI4N6WGL5AQ
+#::: JRZWJXUKLY2U3BMNWNW2ENDLMBPPWPUKMAGHQH3AJZPANHYWM36 :::: NAILARA AMOS :::
+# :: SUM4HEIJPCXC4O7MKCTHRRYZLAZZGEDLGKXC6BWGLZNY356HKMBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

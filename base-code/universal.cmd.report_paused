@@ -1,0 +1,85 @@
+# >:]
+
+# name  = universal.cmd.report_paused
+# descr = notify parent of paused client
+
+my $session_id = $call->{'session_id'};
+my $zenka_name = $data{'session'}{$session_id}{'user'};
+<universal.child>->{$zenka_name}->{'paused'} //= 0;
+my $position = <universal.sequence.position>;
+my $switch_zenka
+    = defined $position
+    ? <universal.sequence.switch_order>->[$position]
+    : undef;
+<universal.sequence.frame_pos> //= 0;
+<universal.sequence.frame_pos> = 0 if $position == 0;
+
+if ( <universal.child>->{$zenka_name}->{'paused'} ) {
+    <[base.log]>
+        ->( 2, "'$zenka_name' already paused, ignoring pause-report.," );
+    return {
+        'mode' => 'nak',
+        'data' => 'already paused'
+    };
+}
+
+<[base.log]>->( 2, "pause reported from '$zenka_name'-child" );
+
+<universal.child>->{$zenka_name}->{'paused'} = 1;
+
+my $was_starting = 0;
+if ( <universal.child>->{$zenka_name}->{'status'} eq 'starting' ) {
+    <universal.child>->{$zenka_name}->{'status'} = 'ready';
+    $was_starting = 1;
+    <[base.protocol-7.command.send.local]>->(
+        {   'command' => "$zenka_name.cur-pid",
+            'reply'   => {
+                'handler' => 'universal.handler.cur-pid_reply',
+                'params'  => { 'zenka' => $zenka_name }
+            },
+        }
+    );
+}
+
+<universal.children_ready> = 1;
+map {
+    <universal.children_ready> = 0
+        if <universal.child>->{$ARG}->{'status'} ne 'ready'
+    }
+    keys %{<universal.child>};
+
+if ( <universal.children_ready> and $was_starting ) {
+    <[base.log]>->( 1, "universal zenka children online. =)" );
+    <[base.X-11.assign_window]>->(
+        join( ',',
+            map { <universal.child>->{$ARG}->{'window_id'} }
+                keys %{<universal.child>} )
+    );
+}
+
+if (<universal.children_ready>) {
+    if ( defined $switch_zenka ) {
+        <[universal.switch_child]>->($switch_zenka)
+            if @{<universal.playlist.files>};
+    } elsif (<universal.start-anim_running>) {    # [ empty playlist case ]
+        <universal.playlist_was_empty> = 1;
+        <[universal.stop_start-anim]>;
+    }
+}
+
+<universal.timer.switch_timeout> = <[event.add_timer]>->(
+    {   'after'   => <universal.start-anim_timeout>,
+        'handler' => 'universal.handler.start-anim_timeout'
+    }
+) if <universal.start-anim_running>;
+
+return {
+    'mode' => 'ack',
+    'data' => 'acknowledged'
+    }
+
+#.............................................................................
+#XSFLFNDS5X3E6FAANXG6TVC62ZO7ZUQ3PU2IGOEZE2AUMON32ADLHJLEUXE6T46LACEMIOBGZL2VI
+#::: BD3Z3LDYOFNRPOAY6WEACGEZUHARC7WU5MPX5V2CZEGQ6VTLOS3 :::: NAILARA AMOS :::
+# :: ZSFZNQSVIZ55PGIO3TLXQF7XCIIMQN3ZSK6GTVZ4CXD5WZDMBMAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
