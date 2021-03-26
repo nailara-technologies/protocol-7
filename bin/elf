@@ -1,14 +1,61 @@
 #!/usr/bin/perl
-
+use v5.24;
 use strict;
+use English;
 use warnings;
+use IPC::Open2;
+use Digest::Elf;
+use Getopt::Std;
 
-use Digest::Elf 'elf';
+getopts( 'f:q', \my %mode );
 
-printf "%09d\n", elf( join( ' ', @ARGV ) );
+if ( defined $mode{'f'} and ( -f $mode{'f'} or $mode{'f'} eq '-' ) ) {
+    my $fname = $mode{'f'};
+    if ( $fname eq '-' ) {    ## STDIN-mode ##
+        while (<STDIN>) { say encode_output( elf_val($ARG) ) }
+    } else {
+        open( my $FH, '<' . $fname ) or die ":\n:: \l$! :: $fname \n\n";
+        while (<$FH>) {
+            chomp($ARG);
+            if ( $mode{'q'} ) {
+                say encode_output( elf_val($ARG) );
+            } else {
+                say sprintf( ": %s : %s", encode_output( elf_val($ARG) ),
+                    $ARG );
+            }
+        }
+        close($FH);
+    }
+} else {
+    say encode_output( elf_val( join( ' ', @ARGV ) ) );
+}
+
+sub elf_val {
+    my $elf = Digest::Elf::elf( $_[0] );    ## <-- investigate \\ replace ..,
+    return external_elf( $_[0] ) if length($elf) > 10;
+    return $elf;
+}
+
+sub external_elf {    ## used when Digest::Elf has an overflow ##
+    my $pid = open2( my $output, undef, 'elf', $_[0] );
+    chomp( my $elf_val = <$output> );
+    return $elf_val;
+}
+
+sub encode_output {    ## decimal [ base encoding ]
+    return sprintf( '%09d', $_[0] );
+}
+
+# ## for later ## use Crypt::Misc qw| encode_b32r |;
+#     my $checksum = shift;
+#     return substr( encode_b32r($checksum), 0, $bytes ) if not $numerical;
+#     return join( '',
+#         map { sprintf "%03d", $ARG }
+#             unpack( 'C*', substr( $checksum, 0, $bytes ) ) );
+# }
 
 # ______________________________________________________________________________
-#\\NEMVHLVK74U2CJ4JFY644FOQKKSHHQWR6UKLB53CKT2GBIDVEXCAEDRRAMRSEK6OIX5REG2DA46YM
-# \\ XKVG2KYEORLERYUJ5Y3YNVWJQVFVSP4DZZ345JMKLXTC2F6XSQMI \\// C25519-BASE-32 //
-#  \\// NBJLEVY3M77AYWMBPQCORKJ7BRMVXYGC3WBAGBMF2KVSW5HXQCA \\ CODE SIGNATURE \\
+#\\BW6RKFAO5RKESQ7OU3VKLYN2XK37UIZVOKVWEVIEMRV2E5ECMWD66BQ7VSKRWPAL3XI6ZYWCS75Y2
+# \\ YPPO6TS3UCU72APCROFDD6BQLZNGKNZFRKNPHBSTUFHWK44K2JMF \\// C25519-BASE-32 //
+#  \\// UYAUIJ4PCRGRBIQAUE37NVQIZN7WBAQ2QMN5YNTZ7SVVSM2CUAA \\ CODE SIGNATURE \\
 #   ````````````````````````````````````````````````````````````````````````````
