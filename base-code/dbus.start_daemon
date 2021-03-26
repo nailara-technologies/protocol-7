@@ -1,0 +1,34 @@
+# >:]
+
+# name = dbus.start_daemon
+
+<[base.log]>->( 1, "starting DBUS mesaging daemon ..." );
+my @exec_params
+    = qw| dbus-daemon --print-address --session --nopidfile --nofork |;
+
+<dbus.pid> = my $pid
+    = open3( <dbus.in_fh>, <dbus.out_fh>, undef, @exec_params );
+if ( !<dbus.pid> ) {
+    <[base.log]>->( 0, "[!] unable to start dbus-daemon [$OS_ERROR]" );
+    <[base.log]>->( 1, " : aborting zenka startup .," );
+    exit(1);
+}
+
+<[base.log]>->( 1, " : dbus-daemon process started [PID=$pid]" );
+
+<system.zenka.initialized> = 1 if defined <dbus.pid>;
+
+<[base.zenki.report_child_pid]>->(<dbus.pid>);
+
+<[event.add_io]>->(
+    {   'fd'      => <dbus.out_fh>,
+        'handler' => 'dbus.handler.daemon_output',
+        'data'    => { 'bin' => 'dbus-daemon', 'pid' => <dbus.pid> }
+    }
+);
+
+#.............................................................................
+#4LGSVEJEKKBQYQCCYJ6EIX77G4PD7AESF64D7QDKPLPFYT7DCWHQX2SJ6V4BLIZUBK4Q3LFE6KMJK
+#::: SVOMYTZYNA2XEHMLYX6VH3RFT64EZGTTY6LWNTVFLKAF6EKX43N :::: NAILARA AMOS :::
+# :: 3QLQVK6ESWYDWBP4O3DC3IO5ITJ4DUKGWEKE4GDJMPFEZ5SBXKCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

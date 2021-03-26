@@ -1,0 +1,29 @@
+# >:]
+
+# name = system.handler.X-11_driver_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} ne 'ACK' ) {
+    <[base.callback.cmd_reply]>->(
+        <system.gfx_reload.reply_id>,
+        {   'mode' => 'nak',
+            'data' => 'no X-11 zenka running, aborted.'
+        }
+    );
+    delete <system.gfx_reload>;
+} else {
+    <system.gfx_reload.module_name> = $reply->{'call_args'}->{'args'};
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command' => 'cube.X-11.get_xorg_pid',
+            'reply'   => { 'handler' => 'system.handler.X-11_pid_reply' }
+        }
+    );
+}
+
+#.............................................................................
+#S75SXBEFZTPQ6DKOECWOYWFJLRGWOYB23IUVJGQPVI6TRJVRSVYMSVCNFRDIO3WNDV2YFFMMG2ITI
+#::: PQCGMPN7K5CBHZ5EUPBONT7S7FORQRJ2T56ZMD2H46YXOVLZRPW :::: NAILARA AMOS :::
+# :: DJFNN52OSL5ZXXC2VZLRUCNOEAAGKEVV43T6KP3KV4GRICHT5OBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,112 @@
+# >:]
+
+# name = ticker-sdl.base.fork_init
+
+use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
+
+<[base.log]>->( 1, "forking off ticker animation loop.." );
+
+<[base.enable_list]>->('sessions');
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair! [$OS_ERROR]";
+map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+    ( $child_pipe, $parent_pipe );
+
+$data{'handle'}{$parent_pipe}{'mode'} = 'out';
+$data{'handle'}{$child_pipe}{'mode'}  = 'out';
+
+<ticker-sdl.renice_priority>   //= -15;
+<ticker-sdl.use_transparency>  //= 1;
+<ticker-sdl.cfg.assign_window> //= 0;
+
+<ticker-sdl.child.pid> = fork;
+if ( !<ticker-sdl.child.pid> ) {    # child
+    close($child_pipe);
+
+    my $subname = <system.zenka.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.zenka.subname> = 'child' . $sn_str;
+    $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
+
+    delete <process.renice_child>;
+
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+
+    <ticker-sdl.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+    close(<ticker-sdl.child.renice_fh>);
+    delete <ticker-sdl.child.renice_fh>;
+
+    my $id = <[base.session.init]>->(
+        $parent_pipe, 'protocol-7', 'client', 'parent'
+    );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    ( my $session_id ) = keys( %{<user.cube.session>} );
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+    <[event.once]>;
+
+    <[base.load_modules]>->('ticker-sdl.sdl');
+    <[base.init_modules]>->('ticker-sdl.sdl');
+
+    <[ticker-sdl.sdl.display_init]>;
+
+    my $title_pattern = <system.zenka.name> . '\(' . $PID . '\)';
+    <ticker-sdl.window_id>
+        = <[base.X-11.wait_for_window]>->( $title_pattern, 'parent', 'cube' );
+    if ( not defined <ticker-sdl.window_id> ) {
+        <[base.log]>->( 0, "zenka startup error (ticker window did not open)" );
+        exit(2);    # LLL: deal with parent? (test SIGCHLD handler!)
+    } elsif (<ticker-sdl.cfg.assign_window>) {
+        <[base.X-11.assign_window]>->( <ticker-sdl.window_id>, 'parent' );
+    }
+
+    if ( !<ticker-sdl.use_transparency> ) {
+        <[base.X-11.raise_window]>
+            ->( <ticker-sdl.window_id>, 'parent', 'cube' );
+        <[base.X-11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'cube' );
+        <ticker-sdl.window.raised> = 1;
+        unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
+            SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
+                <sdl.display_height> );
+        }
+    } else {
+        <[ticker-sdl.sdl.raise_and_fade]>;
+    }
+
+    <[base.get_session_id]>->( 'parent', 'cube' );    # zenka status -> 'online'
+
+    <[event.add_timer]>->(
+        {   'after'   => 0.64,
+            'handler' => 'ticker-sdl.sdl.wait_for_rss_zenka'
+        }
+    ) if <ticker-sdl.request_rss_updates>;
+
+} else {    # parent
+
+    close($parent_pipe);
+    <ticker-sdl.pipe.child> = $child_pipe;
+    my $child_pid = <ticker-sdl.child.pid>;
+    push( @{<system.kill_list>}, $child_pid );
+    my $prio = <ticker-sdl.renice_priority>;
+    <[base.log]>->(
+        2, "setting priority of ticker child (PID $child_pid) to $prio"
+    );
+    print {<ticker-sdl.child.renice_fh>} "$child_pid $prio\n";
+    close(<ticker-sdl.child.renice_fh>);
+    delete <ticker-sdl.child.renice_fh>;
+
+    my $id
+        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('ticker-sdl.parent');
+}
+
+#.............................................................................
+#37BN5LHX6NE56ZN2UW2RDKD4ILIJ5EMKKLPRY7L542QLFTX7UBGTWF6VTAQ6T2WFETT2JRK3QFA6C
+#::: UM4BLAPVTROM3SDH6BTWB2HHI5OLVBGNDHUQF7QOQCHRFFKCNTD :::: NAILARA AMOS :::
+# :: M4B3AHR6UDUVJMBB4ICDN6IB24PUQISGPPQQSMVFYUIHGDG3FSAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

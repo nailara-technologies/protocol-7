@@ -1,0 +1,105 @@
+# >:]
+
+# name = weather.base.fork_weather_child
+
+use Socket;
+
+( my $session_id ) = keys( %{<user.cube.session>} );
+
+<weather.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, "forking weather child.," );
+
+<[base.enable_list]>->('sessions');
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair. [$OS_ERROR]";
+map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+    ( $child_pipe, $parent_pipe );
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+<weather.child.pid> = fork;
+if ( !<weather.child.pid> ) {    ## child ##
+
+    <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+    close($child_pipe);
+    delete <weather.pipe.child> if exists <weather.pipe.child>;
+
+    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again..,
+
+    <weather.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.zenka.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.zenka.subname> = 'child' . $sn_str;
+    $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
+
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    my $id = <[base.session.init]>
+        ->( $parent_pipe, qw| protocol-7 client parent | );
+
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    <[base.load_modules]>->('weather.child');
+    <[base.init_modules]>->('weather.child');
+
+    <[base.log]>->( 1, 'preparing to close cube session of child .,' );
+
+} else {    ## parent ##
+    close($parent_pipe);
+    delete <weather.pipe.parent> if exists <weather.pipe.parent>;
+    <weather.pipe.child> = $child_pipe;
+
+    <[base.load_modules]>->('weather.parent');
+    <[base.init_modules]>->('weather.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    my $id
+        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
+    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+
+    my $cache_dir = <weather.cache_dir>;
+    my $city_file = "$cache_dir/city.current";
+    if ( -f $city_file ) {
+        <[base.log]>->( 1, "found saved location setup in cache.," );
+        <[file.slurp]>->( $city_file, \my $stid_loc_str, ':raw' ); # has utf8 ##
+
+        my ( $timestamp, $loaded_location );
+
+        if ( defined $stid_loc_str and $stid_loc_str =~ m|^(\d+)\s+(.+)$| ) {
+
+            ( $timestamp, $loaded_location ) = ( $1, $2 );
+
+            <[base.log]>->( 1, "<*> restoring location '$loaded_location'" );
+            <weather.location> = $loaded_location;
+        } else {
+            <[base.log]>->(
+                0, "<!> syntax error in location cache file, purging.., <!>"
+            );
+            unlink($city_file) or warn "unlink failed: $OS_ERROR";
+        }
+    }
+
+    if ( defined <weather.location> and length(<weather.location>) ) {
+        <[weather.parent.set_city]>->(<weather.location>);
+    } else {
+        <[base.log]>->( 1, '<!> no city configured at startup <!>' );
+        if ( !<weather.zenka.initialized> ) {
+            <[base.async.get_session_id]>;    # change zenka status to 'online'
+            <weather.zenka.initialized> = 1;
+        }
+    }
+
+}
+
+#.............................................................................
+#WW7KAGU347AUFQPCQ3ZO5PAQ5DKVMTTQ5HEMFYEPEU3CJZKNI47MD73LG7RI6LPR4U4BDOPLSQJUC
+#::: UO27JBTTBM7MYPYLWEGWRLWLMZIFMQQMFJ7JSTLWURPUAPJ5U4L :::: NAILARA AMOS :::
+# :: OQQYFVGNBY3MP6V73SWUVDWTQ3GOF7IRVZXGCLSUICVFDLNZ44AI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

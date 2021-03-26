@@ -1,0 +1,21 @@
+# >:]
+
+# name  = reenc-msg.cmd.refresh
+# descr = reset zenka shutdown timer
+
+<[base.log]>->( 2, "[refresh_cmd] resetting shutdown timeout..." );
+
+<reenc-msg.timer.shutdown>->cancel;
+<reenc-msg.timer.shutdown> = <[event.add_timer]>->(
+    {   'after'   => <reenc-msg.refresh_timeout>,
+        'handler' => 'reenc-msg.handler.shutdown_timer'
+    }
+);
+
+return { 'mode' => 'ack', 'data' => 'shutdown timer reset' };
+
+#.............................................................................
+#4ZB3CFTLC7YDG2Q7GZHAUUJOSIHDUOKARESQXBNP3EYE42AT2X6BU3XTKANCXFWRE5EDXGQJFAVSG
+#::: PFXJWCZ73LSUUC7QHNRTGYDKJNZEJ2M7YF2IVQOLUQOE2KNFVZD :::: NAILARA AMOS :::
+# :: LRUNKGU3U46QCTLMPL4RWOYXCPVPMCQIHDY6H6D6WW5BAVARD4CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

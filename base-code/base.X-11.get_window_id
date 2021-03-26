@@ -1,0 +1,83 @@
+# >:]
+
+# name = base.X-11.get_window_id
+
+my $name     = shift;
+my $user     = shift // 'cube';
+my $cmd_path = shift // '';
+$cmd_path .= '.' if length($cmd_path);
+if ( not defined $name ) {
+    $name = <system.zenka.name>;
+    $name .= '[' . <system.zenka.subname> . ']'
+        if defined <system.zenka.subname>;
+}
+die "expected window name parameter" if not defined $name or !length($name);
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
+
+<[base.log]>->( 2, "requesting window id for '$name'.." );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+
+my $retry_count = 5;
+retry:
+
+<[net.out]>->( $cube_fh, "($cmd_id)${cmd_path}X-11.get_windows $name\n" );
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$cube_fh>;
+    die "cube handle had an exception!"
+        if not defined $reply_string or !length($reply_string);
+
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|DATA) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
+    my $buffer_string = '';
+    my $bytes_to_go   = $1;
+    if ( !$bytes_to_go ) {
+
+        # LLL: workaround! fix later!
+        if ( <system.zenka.name> eq 'mpv' ) {
+            if ($retry_count) {
+                $retry_count--;
+                <[base.log]>->( 0, ": no window id received, retrying.." );
+                <[base.sleep]>->(0.2);
+                goto retry;
+            }
+        }
+
+        <[base.log]>->( 0, ": no window id found for \"$name\" [!]" );
+
+        return undef;
+    }
+    while ($bytes_to_go) {
+        my $read_bytes = read( $cube_fh, $buffer_string, $bytes_to_go,
+            length($buffer_string) );
+        die "cube filehandle had unexpected exception!"
+            if not defined $read_bytes;
+        $bytes_to_go -= $read_bytes if $read_bytes;
+        sleep 0.1                   if $bytes_to_go and !$read_bytes;
+    }
+    my $lines = $buffer_string =~ /\n/;
+    warn "[!] found more than one matching window, please fix the name pattern!"
+        if $lines > 1;
+    <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
+    <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
+    return <x11.id>;
+} else {
+    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    return undef;
+}
+
+#.............................................................................
+#RO4RL3UFEHMSMGKR3TNHT77TYWMRCO7BQEFE5ADOPX7RR23Z2B4QIEVTGEQ2EK5UWPSJORZ36PD5Q
+#::: PSAX3D4OQL4FIVQLTTI2QPGRAER3PVIEVME5IYEAIFK6W3GYL5N :::: NAILARA AMOS :::
+# :: JSCZP3INLR4T5GS73L2PBM3BLP6KXIMQG3SO55IZMBAPRCE2WQDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

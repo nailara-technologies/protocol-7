@@ -1,0 +1,31 @@
+# >:]
+
+# name = set-up.handler.zenka_reply
+
+my $reply      = shift;
+my $reply_id   = $reply->{'params'}->{'reply_id'};
+my $zenka_name = $reply->{'params'}->{'zenka_name'};
+
+my $mode      = 'nak';
+my $reply_str = $reply->{'call_args'}->{'args'};
+
+if (    $reply->{'cmd'} eq 'NAK'
+    and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
+    $reply_str
+        = $zenka_name eq 'cube'
+        ? "reply refused by 'cube' zenka"
+        : "zenka '$zenka_name' not online or refusing reply";
+} elsif ( $reply->{'cmd'} eq 'DATA' ) {
+    $mode      = 'data';
+    $reply_str = $reply->{'data'};
+}
+
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => $mode, 'data' => $reply_str }
+);
+
+#.............................................................................
+#ZB6R756XOZFDMIXLG6E2ZGFKAFLTINMQYKUIUNV3WAHXFXT56KKGUMJ7RPCX2UVRPXPUWMIVTZ2KQ
+#::: C3DIH2RLC7UQZQ5CVOD75AS6DFSJV2CQZO5A2QLAPQZM43JJBPN :::: NAILARA AMOS :::
+# :: ZJRYC7SVXYMJGWMTOOPHZ3YWX3CG5V4IOQMWFCASGDIZUEMXQ2CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

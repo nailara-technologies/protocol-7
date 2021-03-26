@@ -1,0 +1,26 @@
+
+ .:[ simple 'loading' animation zenka ]:.
+
+[load_config_file:'shared-params']
+
+[root.drop_privs:'nobody']
+
+access.cmd.usr.cube = commands heart verify-instance cur-pid
+
+start-anim.do_fade_in        = 0    # <-- fade-in meanwhile handled by compton.,
+start-anim.min_startup_delay = 0.42
+
+modules.load = auth net protocol io.ip
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+[base.X-11.get_coordinates:undef,undef,''] #  <--  request for only ['tile-name']
+
+[load_modules:'start-anim']
+start-anim.cfg.bg_col = [base.X-11.get_bg_color] # <-- [#RRGGBB|<color_name>]
+[init_modules:'start-anim']
+
+[start-anim.open_window]

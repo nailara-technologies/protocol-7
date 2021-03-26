@@ -1,0 +1,51 @@
+# >:]
+
+# name = nroot.enable_heartbeat_timer
+
+my ( $instance_id, $after, $interval ) = @_;
+die "no instance id specified" if not defined $instance_id;
+
+my $globals      = <nroot.start_setup.globals> // {};
+my $instance     = <nroot.zenka.instance>->{$instance_id};
+my $zenka_id     = $instance->{'zenka_id'};
+my $zenka_name   = <nroot.zenka.setup>->{$zenka_id}->{'name'};
+my $zenka_config = <nroot.start_setup.zenki.config>->{$zenka_name};
+
+my $status_timer_delay
+    = $after // $zenka_config->{'heartbeat'}->{'after'}
+    // $globals->{'heartbeat'}->{'after'}
+    // 2.1;    # <- [ initial ] heartbeat delay [ when not configured ]
+
+my $status_timer_interval
+    = $interval // $zenka_config->{'heartbeat'}->{'interval'}
+    // $globals->{'heartbeat'}->{'interval'}
+    // 5.7;    # <- heartbeat interval [ when not configured ]
+
+<[base.log]>->(
+    2,
+    ": instance $instance_id new status timer setup "
+        . "[${status_timer_delay}s,int=$status_timer_interval]"
+);
+
+<[base.clean_hashref]>->($globals);
+<[base.clean_hashref]>->($zenka_config);
+
+my $heartbeat_ref = $instance->{'heartbeat'} //= {};
+$heartbeat_ref->{'max_retries'} //= 3;
+$heartbeat_ref->{'retry_count'}   //= $heartbeat_ref->{'max_retries'};
+$heartbeat_ref->{'retry_timeout'} //= 2.1;    ## decreased timeout ##
+
+# set up new status timer..,
+$instance->{'timer'}->{'heartbeat-status'} = <[event.add_timer]>->(
+    {   'after'    => $status_timer_delay,
+        'interval' => $status_timer_interval + sprintf( "%.3f", rand(1.2) ),
+        'handler'  => 'nroot.handler.heartbeat_timer',
+        'data'     => $instance_id
+    }
+);
+
+#.............................................................................
+#NKEPB6XG5PDF2QPNI24FMRTTAFCKHSCX5WYVOE6ZD4SL3UWXNXZRVMD4ZE7Y56RTYXSW5MKL75K7E
+#::: JJVODRKSEQUV2XGRBMLAY3WHYW7BJ4SVNMG6YQS6KWKWJL7ND6M :::: NAILARA AMOS :::
+# :: THKW3SJ3DPGIR3NIMTW3PNUC4GY5CXTX5EW7FK5KLWVLZGPTBEDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

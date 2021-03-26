@@ -1,0 +1,41 @@
+# >:]
+
+# name = base.import_config.plain
+# todo = implement config import rules!
+
+my $config_name = shift // '';
+die 'expected config name parameter' if !length($config_name);
+$config_name =~ s|^.*/||g;
+my $import_dir  = '/etc/protocol-7/import';
+my $import_path = "$import_dir/$config_name";
+
+return 0 if !-d $import_dir or !-f $import_path;
+
+<[base.log]>->( 1, "importing config '$config_name'.." );
+<[base.log]>->( 2, ": from directory '$import_dir'" );
+
+<base.config_parser.cfg_type> = 'local_imp'
+    if not defined <base.config_parser.cfg_type>;
+<base.config_parser.cfg_name> = $config_name
+    if not defined <base.config_parser.cfg_name>;
+
+my $status = <[base.execute_zenka_code]>->(
+    <[base.parser.config]>->(
+        <[base.get_file.aref]>->(
+            $import_path,
+            sub {
+                $_[0] =~ s|^.*/||g;
+                <[log.error]>->("unable to import '$_[0]' config [$OS_ERROR]");
+                return undef;
+            }
+        )
+    )
+);
+
+return $status;
+
+#.............................................................................
+#4E6NXOULSX62VL5I2ALG2ZMVJ7SC7UN7ODS2JKQULEJDAMJCUS3R5PKU7TBIT2EY2KCVUGW5ACUUY
+#::: G5PSPPXGZKCQFPGSRMN4463CBJY5KOOTM2QNWL55C3PCFLGLPGQ :::: NAILARA AMOS :::
+# :: UDWSCFEZG6X5W3LH63LEYM6R3VJ43QYJMDW34TPYXL4HCGRLHUBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

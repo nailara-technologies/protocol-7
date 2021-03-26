@@ -1,0 +1,23 @@
+# >:]
+
+# name = notify-warn.send_message
+
+<[base.log]>->( 1, "sending 'warn' command to notify zenka.." );
+
+my $msg_str = @ARGV == 2 ? join( ' ', map {"'$ARG'"} @ARGV ) : <system.args>;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.notify.warn",
+        'call_args' => { 'args' => $msg_str },
+        'reply'     => {
+            'handler' => 'base.exit',
+            'params'  => {}
+        }
+    }
+);
+
+#.............................................................................
+#YUYBWBOQSKOQASLPJV6WLDZ7CSY2NTLJI2UT3U6ND362PDKL4KTF5PBN7MYJCDDHV7QP7NJ5U62AS
+#::: SBH5BZWWIY624SYXZYF2DKMKBKBSFQT4QSKRIH55IBC6HZUC77G :::: NAILARA AMOS :::
+# :: LJMMW6JGDYI7SIVGMX33WPUQVS74BVF64VJUXESNR6RSUPXEZCDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

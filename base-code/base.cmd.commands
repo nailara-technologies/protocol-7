@@ -1,0 +1,72 @@
+# >:]
+
+# name  = base.cmd.commands
+# param = [keyword]
+# descr = print available commands + descriptions
+
+my $id      = $$call{'session_id'};
+my $user    = $data{'session'}{$id}{'user'};
+my $keyword = $$call{'args'};
+
+my $zenka_name = <system.zenka.name>;
+my $max_len    = 0;
+my @commands   = ();
+my @dbg_cmds;
+
+<base.commands.is_debug> //= {};
+map { $ARG =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$ARG} //= 1 }
+    grep {m|^debug.*\.cmd\.|} keys %code;
+
+# getting a list of all commands the user [ who sent the request ] has access to
+foreach my $cmd (
+    sort { length($b) <=> length($a) }
+    reverse sort keys %{<base.cmd>}
+) {
+
+    next if not <[base.has_access]>->( $user, $cmd );
+
+    #        # command description mode
+    #        return { 'mode' => 'nak', 'data' => "not implemented yet... :/" }
+    #            if defined $keyword and exists <base.cmd>->{$keyword};
+
+    # keyword search mode
+    next
+        if defined $keyword
+        and $cmd !~ m|\Q$keyword\E|i
+        and <base.commands.cmd>->{$cmd}->{'descr'} !~ m|\Q$keyword\E|i;
+
+    if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
+    my $is_debug_command = <base.commands.is_debug>->{$cmd} //= 0;
+    if   ($is_debug_command) { push( @dbg_cmds, $cmd ) }
+    else                     { push( @commands, $cmd ) }
+}
+
+return {
+    'mode' => 'nak',
+    'data' => "no commands matching '$keyword' available"
+    }
+    if defined $keyword and !@commands;
+
+# format and return the command list
+
+$$reply{'data'} = sprintf( "%78s\n\n",
+    sprintf( "%-43s", ".: '$zenka_name' zenka commands :." ) );
+( my $h_str, my $h_len ) = <[base.parser.command_list]>->( \@commands, 'cmd', );
+$$reply{'data'} .= $$h_str;
+
+if (@dbg_cmds) {
+    $$reply{'data'} .= sprintf( "\n %77s\n\n",
+        sprintf( "%-43s", ".: debug commands in '$zenka_name' :." ) );
+    ( $h_str, undef )
+        = ( <[base.parser.command_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
+    $$reply{'data'} .= $$h_str;
+}
+
+$$reply{'data'} .= "\n";
+$$reply{'mode'} = 'data';
+
+#.............................................................................
+#4THNVGIF77BH3OCFBBNB2KEOAL2VAQ4ZYQ6OYYWTT2EXHMA5PGYKRYGI3YU34UJL2RAH3Z2TFSNAK
+#::: ELTLINDNNDNM62VAZO2HQUGZOFOSJEDOEUBIBOVBMC5JRGQSXNW :::: NAILARA AMOS :::
+# :: JXAPIHTXHS535SMXHR2ZTVMJE7LYSUZ7HEYD67ZIYCXWCXP56CAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

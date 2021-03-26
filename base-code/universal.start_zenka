@@ -1,0 +1,92 @@
+# >:]
+
+# name = universal.start_zenka
+
+my $zenka_name    = shift;
+my $zenka_subname = <system.zenka.subname>;
+my $protocol_7    = <system.start.exec_name>;
+my $perl_bin_path = <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+<universal.running> //= {};
+my @exec_args = ( '-nb', '-stdin' );
+
+my $zenka_verbosity
+    = <system.verbosity.console> || 1;    # -v is minimum [ ..zenka patterns., ]
+push( @exec_args, '-' . 'v' x $zenka_verbosity );
+
+my $zenka_sn_str
+    = defined $zenka_subname ? "$zenka_name\[$zenka_subname]" : $zenka_name;
+
+<[base.log]>->( 1, "starting '$zenka_sn_str'-zenka ..," );
+
+my ( $pid, $out_fh, $in_fh );
+
+my @cmd_line_mods
+    = exists <universal.cmdline_mods>->{$zenka_name}
+    ? map {"-M$ARG"} split( / +/, <universal.cmdline_mods>->{$zenka_name} )
+    : ();
+
+<[base.log]>->(
+    2,
+    sprintf(
+        "EXEC '%s'",
+        join(
+            ' ',
+            (   $perl_bin_path, '-C31',        @cmd_line_mods,
+                $protocol_7,    $zenka_sn_str, @exec_args
+            )
+        )
+    )
+);
+
+my $_C = <system.perl_unicode>;
+push( @cmd_line_mods, "-C$_C" ) if defined $_C;
+
+eval {
+    $pid
+        = open2( $out_fh, $in_fh, $perl_bin_path, @cmd_line_mods,
+        $protocol_7, $zenka_sn_str, @exec_args );
+};
+
+if ( not defined $pid or $EVAL_ERROR ) {
+    ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason
+        = ( defined $OS_ERROR and length($OS_ERROR) ) ? " ['$OS_ERROR']" : '';
+    <[base.log]>->(
+        0,
+        join( '',
+            "unable to start zenka '$zenka_name'",
+            $err_reason, " [ $err_msg ]" )
+    );
+    return 0;
+}
+
+<universal.running>->{$zenka_name} = $pid;
+<universal.running>->{$pid}        = $zenka_name;
+
+push( @{<system.kill_list>}, $pid );
+
+<[base.log]>->( 1, ": zenka <'$zenka_sn_str'> pid = $pid" );
+
+my $unix_path = '/var/tmp/.7/UNIX/' . <unix.zenka.path>;
+<[base.log]>->( 1, ": unix :. $unix_path" );
+
+## pushing configuration to started zenka ##
+print {$in_fh} "system.zenka.mode=universal-child\n";
+print {$in_fh} "unix.path=$unix_path\n";
+close($in_fh);
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'universal.handler.zenka_output',
+        'data'    => $zenka_name
+    }
+);
+
+return 1;
+
+#.............................................................................
+#4GTPQDCEQOZK6IGFD6LLNUBVKHAWVRZHHEG2OVXPQLERHPGTLIZEP64OC6OHMTHC7TO3LGLWXNPLY
+#::: RBHBP7QZ6O5SJJBUOGIXYYABGCVOD3U3ZCWXF23K5CREWKSLGLB :::: NAILARA AMOS :::
+# :: RINVNXFTQCWP3BSDNBYSMHJSS2EA6X3JVHFJ5YOZXZL5UY2HHYBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

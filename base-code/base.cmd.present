@@ -1,0 +1,47 @@
+# >:]
+
+# name  = base.cmd.present
+# param = <name>
+# descr = report whether a user or zenka is connected
+
+if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
+    $$reply{'data'} = 'no username specified';
+} elsif ( $$call{'args'} =~ <regex.base.usr> ) {
+    my $user = $$call{'args'};
+
+    return { 'mode' => 'nak', 'data' => 'seen no such client' }
+        if not exists $data{'user'}{$user}
+        or (not exists $data{'user'}{$user}{'last_seen'}
+        and not exists $data{'user'}{$user}{'session'} );
+
+    my $utime = $data{'user'}{$user}{'last_seen'}
+        || $data{'user'}{$user}{'connected_since'};
+    my $mode = 'time-stamp';
+    $mode = 'time'
+        if <[base.parser.timestamp]>->( 'date', $utime ) eq
+        <[base.parser.timestamp]>->('date');
+
+    if ( not exists $data{'user'}{$user}{'last_seen'}
+        and exists $data{'user'}{$user}{'session'} ) {
+        return {
+            'mode' => 'ack',
+            'data' => 'present since '
+                . <[base.parser.timestamp]>->( $mode, $utime )
+        };
+    } else {
+        return {
+            'mode' => 'nak',
+            'data' => 'last seen '
+                . <[base.parser.timestamp]>->( $mode, $utime )
+        };
+    }
+
+} else {
+    $$reply{'data'} = 'invalid username';
+}
+
+#.............................................................................
+#556SQPXUL3ZPX5QWA44A7N3MS2XRAZZDCCY5RM6SUS74B7OQACZXYLUX7XRO6HVQCHQXMNH2AOK7O
+#::: ITUS3CRBNZDTRX2UPS3QUQPLOAXTU2NU5MHY43JDF6CZALAVOPC :::: NAILARA AMOS :::
+# :: IE4ZAYOLEU2XQQZWTE2ZSCLDY6JFAGAWSJOSBVLMU3H3Z6TBCQBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

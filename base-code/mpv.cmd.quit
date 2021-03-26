@@ -1,0 +1,21 @@
+# >:]
+
+# name  = mpv.cmd.quit
+# descr = initiate mpv zenka shutdown
+
+<zenka.shutdown> = 1;
+
+<[base.log]>->( 1, "quit command received.." );
+
+push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+<mpv.success_reply_str> = 'shutting down mpv zenka';
+
+<[mpv.send_command]>->('quit');
+
+return { 'mode' => 'deferred' };
+
+#.............................................................................
+#N4UZIIQWF25WSXUQXVJL7AFD3TDFVXUZV3QWR4BMEP2GWYJZWHQLNQMT3ISERNTGSC7M7XSAEEHPA
+#::: 4WO374AX5XNH5N4ZDLPNGSV44FWP3L3JSPDLVIVYQ26H4R7U3CV :::: NAILARA AMOS :::
+# :: U6ZO6LNF3YKCBYY36SSD4SJYDN6F2X7QT5PDZ532M43RDBL4OUDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

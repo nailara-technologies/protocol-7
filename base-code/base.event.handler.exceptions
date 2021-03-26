@@ -1,0 +1,66 @@
+# >:]
+
+# name  = base.event.handler.exceptions
+
+my $event   = shift;
+my $err_str = shift;
+my $watcher = $event->w;
+
+return if $err_str eq '?';    # <-- WEIIIRD and redundant
+
+my $ev_desc = 'not named';
+$ev_desc = $watcher->desc if $event and $watcher;
+
+$err_str =~ s| at (\S+) line (\d+).*\n$||;
+my $file = $1;
+my $line = $2 // '';
+$err_str =~ s|^(.)|lc($1)|e;
+$err_str =~ s|can\'t|cannot|g;
+$err_str .= " < $EVAL_ERROR >" if $EVAL_ERROR;
+
+$file =~ s|^/usr/share/perl5/||;    ##  <--  shortening path for .pm modules ##
+
+my $log_warning = 1;
+## alternative handlers registered for filename:line ? ##
+my $match_param = "$file:$line";    # <-- expand .., [LLL]
+if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
+    my $cb_name
+        = $data{'base'}{'warn-match-handler'}{$match_param};
+    $err_str =~ s{^\s+|\s+$}{}g;
+    $log_warning = $code{$cb_name}->( $err_str, $match_param, caller )
+        if defined $code{$cb_name};
+}
+##
+
+## catching compilation errors ###
+$code{'base.log'} //= sub { say STDERR ' <<< ! >>> ' . $_[1] };
+
+eval {
+    <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
+        if $log_warning;
+};
+
+return
+       if not $watcher
+    or !$log_warning
+    or <system.verbosity.console> < 2 and <system.verbosity.zenka_buffer> < 2;
+
+my @attr_names = sort { length($a) <=> length($b) } sort $watcher->attributes;
+
+my $lvl  = 2;
+my $mlen = 0;
+map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
+
+eval { <[base.log]>->( $lvl, ".:[ event ]:." ); };
+
+foreach my $akey (@attr_names) {
+    my $val = $watcher->$akey // '<undef>';
+    next if $akey eq 'debug' and !length($val);
+    <[base.log]>->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
+}
+
+#.............................................................................
+#U5L2S5NCC7DGGTFRS4SG6WXHKPXCYA2WQYDMHVKSJAB53QU6LPTYYKLU77GXIEWXQQ3DDTEKOA5VW
+#::: V3XGBEJWT5MZNFCOM3O4SLBF3WSXJD3N6W5H4G73NF2QQILFLPP :::: NAILARA AMOS :::
+# :: WTHZN2J2X44RA7CY6WN35MG4CNBWNUP3CE7ZBPV3UPJMX24PHMCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

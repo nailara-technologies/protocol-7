@@ -1,0 +1,28 @@
+
+ .:[ 'ffmpeg' [ video resizing ] zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = verify-instance heart commands reload get_file \
+                      get-config get-config-names rescale_video \
+                      frame_count extract_last_frame
+
+modules.load = auth net protocol io.ip ffmpeg
+
+ffmpeg.quality       = 20  # [18..28]
+ffmpeg.drop_audio    = 0   # remove audio layer [0|1]
+ffmpeg.threads       = 1   # max threads for conversion
+ffmpeg.output_format = mp4 # reencoded video ouput format
+
+ffmpeg.cfg.allow_slow_count = 0 # <-- allow slower frame count method fallback ?
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.privs.user>]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.get_session_id]
+
+[event.loop]

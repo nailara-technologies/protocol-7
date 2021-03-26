@@ -1,0 +1,50 @@
+# >:]
+
+# name = impressive.init_code
+
+<[base.perlmod.autoload]>->('IPC::Open3');
+<[base.perlmod.autoload]>->('MIME::Base64');
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+
+<impressive.cfg.language> = 'en'
+    if not defined <impressive.cfg.language>
+    or <impressive.cfg.language> !~ /^(en|de)$/;
+
+<impressive.cfg.light_mode>     //= 0;
+<impressive.cfg.use_start-anim> //= 0;
+
+<impressive.playlist.content_types>  //= 'image';
+<impressive.path.impressive_src>     //= '/usr/local/impressive/bin/impressive';
+<impressive.path.impressive_tmp>     //= '/var/tmp/.impressive';
+<impressive.cfg.background_color>    //= '#000013';
+<impressive.cfg.black_on_fullscreen> //= 1;
+<impressive.cfg.transition_delay>    //= 7;
+<impressive.cfg.background_color> =~ s|^([0-9A-F]+)$|#$1|i;
+
+<base.message_parsers.child_output> = [ $code{'base.parser.xclient-errors'} ];
+
+<impressive.cfg.system_gfx_dir>
+    //= <system.root_path> . '/data/gfx/zenka/impressive';
+
+<[impressive.autoinstall_check]>;
+<[impressive.check_tmp_dir]>;
+
+<impressive.process_paused> //= 0;
+
+<impressive.current_playlist> //= [];
+
+<impressive.gfx.read_error>
+    = <impressive.cfg.system_gfx_dir> . '/'
+    . <impressive.cfg.language>
+    . '.failed_to_read.png';
+
+<impressive.gfx.cursor_png>
+    = <impressive.cfg.system_gfx_dir> . '/transparent.png';
+
+0;
+
+#.............................................................................
+#LJDCW2PSJKET34VB26XCG4XPN4DQQNXZM4OQ3TVQ3EP3ELMRZEGKQZR6YSDSETD2VRBN464REUBO6
+#::: 5U3JSQKZW4RQFZPRPQ4GPEMKW5MMDEZ7BX5FEPCA4SVVAQMKWPF :::: NAILARA AMOS :::
+# :: MH245JNZGTBTE5VM5QYUFV56O7DCVGO456W4QPRGXAIAERVE2ECY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

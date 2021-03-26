@@ -1,0 +1,76 @@
+# >:]
+
+# name  = auth.zenka.ip.client
+# descr = authenticate to cube in zenka mode
+# note  : zenka name can now contain subnames
+
+my ( $filehandle, $zenka, $key_str ) = @_;
+
+if ( defined $key_str
+    or %KEYS
+    and exists $KEYS{'zenka'}{'session_key'}
+    and $KEYS{'zenka'}{'session_key'} ne '' ) {
+    $key_str //= $KEYS{'zenka'}{'session_key'};
+    my $banner_string;
+    my $bytes_read = <[base.s_read]>->( $filehandle, \$banner_string, 4 ) // 0;
+    if ( $bytes_read > 0 ) {
+        if ( $banner_string eq ">:]\n" ) {
+            <[base.log]>->( 2, '[*] protocol banner detected.,' );
+        } else {
+            <[base.log]>->(
+                0, '[#] protocol mismatch [ no valid connection banner ]'
+            ) and return undef;
+        }
+    } else {
+        <[base.log]>->(
+            0, 'auth.zenka.ip.client: [#] network error [ nothing read ]'
+        ) and return undef;
+    }
+
+    <[net.out]>->( $filehandle, "select zenka\n" );
+    chomp( my $answer = readline($filehandle) );
+    if ( not defined $answer ) {
+        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+    } elsif ( $answer ne 'ACK continue' ) {
+        <[base.log]>->( 0, '[#] protocol mismatch >:[' )
+            and return undef;
+    }
+
+    <[base.log]>->( 2, "[<] authenticating as '$zenka'.," );
+    <[net.out]>->( $filehandle, "$zenka $key_str\n" );
+
+    if ( exists $KEYS{'zenka'}{'session_key'} ) {    ## secure key erasure ##
+        my $rand_len = length( $KEYS{'zenka'}{'session_key'} );
+        substr( $KEYS{'zenka'}{'session_key'},
+            0, $rand_len, <[base.prng.characters]>->($rand_len) );
+        $KEYS{'zenka'}{'session_key'}
+            .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
+        delete $KEYS{'zenka'}{'session_key'};
+    }
+
+    chomp( $answer = readline($filehandle) );
+
+    if ( not defined $answer ) {
+        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+    } elsif ( $answer =~ m|^YEAH | ) {
+        <[base.log]>->( 1, '[*] success., =), cube authorized session.' );
+        return $filehandle;
+    } elsif ( $answer =~ m|^NOPE | ) {
+        <[base.log]>->( 0, '[#] access denied >:|' ) and return undef;
+    } elsif ( $answer eq '>:|' ) {
+        <[base.log]>->( 0, '[#] authentication timeout :|' ) and return undef;
+    } else {    ##  >:[ .., ##
+        <[base.log]>->( 0, '[#] protocol mismatch >:[' )
+            and return undef;
+    }
+
+} else {
+    <[base.log]>->( 0, 'session_key not set, authentication not possible..,' );
+    return undef;
+}
+
+#.............................................................................
+#XN7SKDPM43NG7XTIBF2TH3MKD47KJEAWQ6RNBGYOA2QXRQZYOZ6DVWKQZJGOU64AIJSQUYBLJGGEM
+#::: AXPPK2HPSQCPUMFIXLLU7UNGP67BGFJJDXXYNIYPPILC6334UTQ :::: NAILARA AMOS :::
+# :: P4FEZB4EZIBZ6LZ4LOAQ2CFQ2LBJPQROTATA62UTSAY3CIAAEMBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

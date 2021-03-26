@@ -1,0 +1,32 @@
+
+  .:[ remote-cam zenka ]:.
+
+[root.drop_privs:<system.privs.user>]
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = verify-instance heart commands playlist_update show_url reload
+
+# some test urls:
+# remote-cam.image_url = http://85.220.149.7/record/current.jpg
+# remote-cam.image_url = http://www.comune.arenzano.ge.it/uploads/images/remote-cam/current.jpg
+# remote-cam.image_url = http://penteli.meteo.gr/stations/variko/remote-cam/current.jpg
+
+remote-cam.http_timeout = 13
+remote-cam.http_maxsize = 7340032 # 7 MB image size limit
+
+# remote-cam.error_string = 'Webcam derzeit nicht erreichbar'
+
+modules.load = auth net protocol io.ip chk-sum.sha remote-cam
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+[base.X-11.get_display]
+[base.X-11.get_coordinates]
+
+[base.get_session_id]
+[remote-cam.get_playlist]
+
+[remote-cam.sdl_loop]

@@ -1,0 +1,29 @@
+# >:]
+
+# name = universal.pre_init
+
+<universal.content.zenka_map> = {
+    'video' => 'mpv',
+    'html'  => 'web-browser',
+    'pdf'   => 'web-browser',
+    'image' => 'web-browser'
+};
+
+<access.cmd.usr.cube> = '*';
+
+my %display_zenki;
+map { $display_zenki{$ARG} = 1 } values %{<universal.content.zenka_map>};
+<universal.display_zenki> = [ sort keys %display_zenki ];
+foreach my $zenka_name ( keys(%display_zenki) ) {
+    <universal.child>->{$zenka_name} = {};
+    <access.cmd.usr.cube> .= ' ' . $zenka_name . '.*';
+    <access.cmd.usr>->{$zenka_name} = '**';
+}
+
+0;
+
+#.............................................................................
+#BXUHW74TLQVXXVSTSHA7VIYACQBPXGXPM4IGEOKUAF7HVAE5NAIPFJC6RFADMAXQSOD4H7BN6IYYG
+#::: L2DDWHHFUMA4BALPVOHXTLW3N23IDL3ZFDXF7USMRPLKK524OAQ :::: NAILARA AMOS :::
+# :: AOISDTLUSGY24WVGLKNL5MVOCX3M3PU2EL6JGCLPY25BF7FJ4YCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

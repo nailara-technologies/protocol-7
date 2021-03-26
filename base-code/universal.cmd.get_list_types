@@ -1,0 +1,26 @@
+# >:]
+
+# name  = universal.cmd.get_list_types
+# descr = return url list and content types
+
+my $session_id = $call->{'session_id'};
+my $zenka_name = $data{'session'}{$session_id}{'user'};
+
+if ( not exists <universal.playlist.zenka>->{$zenka_name} ) {
+    <[base.log]>
+        ->( 2, "no playlist available for zenka or user '$zenka_name'" );
+    return { 'mode' => 'data', 'data' => '' };
+} else {
+    return {
+        'mode' => 'data',
+        'data' => join( '',
+            map { <universal.playlist.types>->{$ARG} . " $ARG\n" }
+                @{ <universal.playlist.zenka>->{$zenka_name} } )
+    };
+}
+
+#.............................................................................
+#E3R7CHSQXBLPP6FFXF3Z7SZYYNKWT3DHF2FG6ROHMORP6FPXKNTW4NRMKN53XZIUA2AUYDIJSXTZA
+#::: 73NP5T5XFIQBWG4K3XYLKQ25A2ZPACYIYTVZS4OO3NQN7HYRDDX :::: NAILARA AMOS :::
+# :: RIGTHPXND6YHOKG3MECSHR3AEEHZOYZA2NH5YURXXLKSMR54JADI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

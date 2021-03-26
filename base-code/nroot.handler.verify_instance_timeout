@@ -1,0 +1,27 @@
+# >:]
+
+# name = nroot.handler.verify_instance_timeout
+
+my $params      = shift->w->data;
+my $instance_id = $params->{'instance_id'};
+if ( not exists <nroot.zenka.instance>->{$instance_id} ) {
+    <[base.log]>->( 2, "<verify_instance_timeout> gone instance $instance_id" );
+    return;
+}
+my $instance   = <nroot.zenka.instance>->{$instance_id};
+my $zenka_name = $instance->{'zenka_name'};
+
+<[base.log]>->(
+    0, "<< instance $instance_id ('$zenka_name') verification timeout >>"
+);
+
+<[zenka.change_status]>->( $instance_id, 'error' );
+
+delete $instance->{'timer'}->{'verify_instance'};
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+#.............................................................................
+#LG5WYXBXB725RGFBV7BJ7XKEHETYI6SZLSGH755IS2SH5GRSBRPRAAM46UZB34EXGEY6Q2VJDDW72
+#::: PV7VVBWVHJAQZRUMPL3CI2R7RUAVCLT2TGYMU43NHU2IKKXK4CZ :::: NAILARA AMOS :::
+# :: B5UHDSLG7N3SL7ZOGHENXRL26WZAMHOT3SQJLDP5YWANQGPRAGAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

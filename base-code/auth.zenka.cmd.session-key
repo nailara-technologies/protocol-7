@@ -1,0 +1,39 @@
+# >:]
+
+# name  = auth.zenka.cmd.session-key
+# param = <zenka> <key_str>
+# descr = set up session key for zenka auth.
+# todo  = parameter validation!
+
+my $id = $$call{'session_id'};
+my ( $sn_zenka, $key ) = split( / +/, $$call{'args'}, 2 );
+my $zenka   = $sn_zenka;  # <- $sn_zenka also contains subname if zenka has one.
+my $subname = $zenka =~ s/\[(.+)\]$// ? $1 : '';
+
+if ( $zenka ne '' and $key ne '' ) {
+    if ( exists <auth.setup.usr>->{$zenka}
+        and <auth.setup.usr>->{$zenka} eq ':zenka:' ) {
+        $KEYS{'auth'}{'zenka'}{$sn_zenka} = blake2b_384_b64($key);
+        $reply = { 'mode' => 'ack', 'data' => 'key added' };
+        <[base.log]>->( 1, "[$id] received session key for '$zenka'" );
+    } else {
+        $reply = {
+            'mode' => 'nak',
+            'data' => "user '$zenka' not accepted for :zenka: auth."
+        };
+        <[base.log]>->(
+            0,
+            "[$id] add_session_key: user '$zenka'"
+                . " not accepted for :zenka: auth."
+        );
+    }
+} else {
+    $reply = { 'mode' => 'nak', 'data' => 'not enough arguments' };
+    &{ $code{'base.log'} }( 0, "[$id] add_session_key: not enough arguments" );
+}
+
+#.............................................................................
+#GKDOVB6LZYEIH3FMKVZDQOG3L45AILIBABHNBU3PJDUFKDM4BGUA53OYCG4KAVJD2ZZ5KLPHBS44M
+#::: J7S3HB32JBPZYLRCIAYAVA7MNJB22NS2Z3NNKBDY5G24GSI6CSP :::: NAILARA AMOS :::
+# :: TY5IF7RE4J36WSHOPMDY647QGMPDECSBGFDNPHTHZ5N2TRNP66CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

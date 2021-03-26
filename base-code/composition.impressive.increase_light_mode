@@ -1,0 +1,27 @@
+# >:]
+
+# name  = composition.impressive.increase_light_mode
+# descr = switch impressive into light_mode [1 and 2] ([GPU/CPU] load reduction)
+
+my @restart_zenki;
+
+foreach my $zenka_name ( keys %{<composition.subconfig>} ) {
+    next if $zenka_name !~ /^impressive/;
+    my $lm = <composition.subconfig>->{$zenka_name}->{'light_mode'} //= 0;
+    next if $lm >= 2;
+    $lm = ++<composition.subconfig>->{$zenka_name}->{'light_mode'};
+    push( @restart_zenki, $zenka_name );
+    <[base.log]>->( 0, "switching $zenka_name into light_mode $lm!" );
+}
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.nroot.restart",
+        'call_args' => { 'args' => join( ' ', @restart_zenki ) }
+    }
+) if @restart_zenki;
+
+#.............................................................................
+#R6XHFVA7IM5QMBB2Z3NLFU4JVUXNXYQKOQ22SSLNHTNHYZ3E6YS2S66IP4VMADTUO6VFX7WGYENS6
+#::: WWNOR7S756DYRAO5BNKZF3MLJW665MUXIEJZ4G5BSKWJCBGXPCC :::: NAILARA AMOS :::
+# :: UVSGDYOEJVB6Q6U3MZ5PUNIHR3JLLLOAG4EQBN6ZVZJS4G7VTIDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

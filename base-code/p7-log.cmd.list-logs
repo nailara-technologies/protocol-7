@@ -1,0 +1,32 @@
+# >:]
+
+# name  = p7-log.cmd.list-logs
+# descr = list log available log names
+
+my @result_names;
+my $system_name  = <system.host.hostname>;
+my $log_dir_path = <log.protocol_7.path>;
+
+<[file.match_files]>->( \@result_names, $log_dir_path, "$system_name.**.log" );
+
+map {
+    $ARG =~ s,^.*/$system_name\.|\.log$,,g;
+    $ARG =~ s|\.| < |;
+    $ARG .= ' >';
+    $ARG =~ s{^(.*) (\< .* \>)$}{ sprintf "%13s  %s",$2, $1 }e;
+} @result_names;
+
+my $header = "\n# [ log name ][ zenka ]\n\n";
+
+return {
+    'mode' => 'data',
+    'data' => $header . join '',
+    map { sprintf "%-34s\n", $ARG }
+        sort( { length $a <=> length $b } sort(@result_names) ), "\n"
+    }
+
+#.............................................................................
+#YD7XU35BDEJSCO4CZEQRYJAYAMOYBD2ETZWRPQS6IGI7KSMZHTMKVAGEWK4IZPMKDBFPYNOZQ5UL6
+#::: JLYKMNQL2OAKQV4WQ7CH3WVVMK6SZINMM5BFBNE6J7EFLAAKCE7 :::: NAILARA AMOS :::
+# :: FU4FADGUFMLK6OTJFZ55E2ZPSJWKWX5Y4PQLPNHDD7KB4EFWWQCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

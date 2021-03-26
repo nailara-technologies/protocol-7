@@ -1,0 +1,22 @@
+# >:]
+
+# name = X-11.callback.display_connected
+
+<X-11.display_status.handler> = 'X-11.handler.display_power_state';
+
+return if !<X-11.display_connected.any>;
+
+my $zenka_name = <system.zenka.name>;
+<[base.log]>->( 0, "<!> display is now on / connected <!>" );
+<[base.log]>->( 0, " :. restarting $zenka_name zenka..." );
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.nroot.restart',
+        'call_args' => { 'args' => $zenka_name }
+    }
+);
+
+#.............................................................................
+#7RPFMKKZGAG2LS36SVJJ7VQECNWPYCPZ65ZA27JNT5Y34HS4HDAKOOT4HVJ3YA243HYGBTBNE6U2Y
+#::: Q7K5K6WVIP7QGEIGSZCHXJYJ5UAESDJ4UHD5IL4DG5MY3W5GWCM :::: NAILARA AMOS :::
+# :: 2Q2G4RXGHEGEHOCSWIUYYNKU7IVPY3YWWKPTIJRNO3XQPFGSXCDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

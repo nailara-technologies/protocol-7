@@ -1,0 +1,63 @@
+# >:]
+
+# name  = base.handler.write
+# descr = writes buffer content to client handle
+
+my $id;
+if   ( $_[0] =~ m|^\d+| ) { $id = $_[0] }
+else                      { $id = $_[0]->w->data }
+
+return <[base.session.check_remaining]> if not exists $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+my $dat_len = length( $session->{'buffer'}->{'output'} );
+
+if ( fileno $session->{'handle'} ) {
+    if ( $dat_len > 0 ) {
+        my $written = <[base.s_write]>->(
+            $session->{'handle'}, $session->{'buffer'}->{'output'}, $dat_len
+        );
+        if ( not defined $written ) {
+            $session->{'shutdown'} = 1;
+        } else {
+            $_[0]->w->stop;
+            $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'} += $written;
+            substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
+            $_[0]->w->start;
+
+            # httpd zenka [ download in progress ]
+            if ( defined $session->{'watcher'}->{'download_handler'}
+                and !$session->{'watcher'}->{'download_handler'}->is_running ) {
+                $session->{'watcher'}->{'download_handler'}->start;
+            }
+        }
+    }
+} else {
+    $_[0]->w->cancel;
+    return $session->{'shutdown'} = 1;
+}
+
+if ( $dat_len = length( $session->{'buffer'}->{'output'} ) ) {
+    push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
+
+    if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
+        $data{'watcher'}{'io'}{'transfer'}->start;
+    }
+} else {
+
+    # if ( !$session->{'watcher'}{'output_buffer'}->is_running ) {
+
+    $session->{'watcher'}->{'output_buffer'}->start;
+
+    # }
+}
+
+$session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
+
+return 0;
+
+#.............................................................................
+#XT5Q6V7RWHQMAXUE2E6HJ7PTHI6UIVATXY6ZZLQVC2PURFFYTBCWJMFCDXWIKAIWEOWU2IFXPLOOY
+#::: IZCRFIFI6BT5BMVGVXPJN4SQPCX65OXGCAX2VVCIJPHU6ZTZSB5 :::: NAILARA AMOS :::
+# :: DURYJM5GABJTKQ6QR2E4OCINZUPJIISC4ZEQITUCC2OD33STQSAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

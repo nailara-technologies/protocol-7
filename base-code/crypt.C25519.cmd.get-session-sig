@@ -1,0 +1,20 @@
+# >:]
+
+# name  = crypt.C25519.cmd.get-session-sig
+# descr = return C25519 public session key signature
+
+my $key_name = <system.zenka.name>;
+
+return { 'mode' => 'nak', 'data' => "no session key '$key_name' available" }
+    if not defined $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'};
+
+return {
+    'mode' => 'ack',
+    'data' => $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'}
+};
+
+#.............................................................................
+#XBOJU75QPO7U2PF5RNRJVP2YQXXDHDAWHH3MPFLLIGUOORDCUCFGYZATBXAVIKAHEBQ3EWTV3KP7W
+#::: QFDD7WNYXNAV7AOS5LOXPEKMTCGKG5CFMWRKMVU2APVU7NXYZXD :::: NAILARA AMOS :::
+# :: GBHMTMONB7T4YHILLCNE4KPR35SCLQKOD5SCS72DZ6WSAFR4E2CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

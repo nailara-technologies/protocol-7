@@ -1,0 +1,26 @@
+# >:]
+
+# name = universal.handler.start-anim_started
+
+my $reply = shift;
+
+my @content_types = keys %{<universal.content.zenka_map>};
+
+if ( $reply->{'cmd'} eq 'ACK' ) {
+    if (<universal.children_ready>) {
+        <[universal.stop_start-anim]>;
+    } else {
+        <universal.start-anim_running> = 1;
+    }
+} else {
+    <[base.log]>->( 0, "<< unable to start start-anim zenka., >>" );
+    <universal.start-anim_running> = 0;
+}
+
+<[universal.get_playlist]>->(@content_types);
+
+#.............................................................................
+#RVURDA7Q2IBA4OTK3X6HVACYYMEAV2BPRMOWYNL5RDTRWKBXE4UKJ4R7XW4DSNQMIFSAWGYM7H3YS
+#::: LCRX23WFOFT2XWLP2WU6ZSEGBYZNFMBQV3ZYJHLRD7RKOJI5PF7 :::: NAILARA AMOS :::
+# :: OZYORLWFDVHX2IJ5PGSUYNVFEZMF7LXZWRYVNOQTAJOITONZPCCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

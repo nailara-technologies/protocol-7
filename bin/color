@@ -8,25 +8,26 @@ my @rgb_fg = ( 0, 0, 0 );
 my @rgb_bg;
 
 if ( @ARGV == 6 ) {
-    check_args( @rgb_bg = @ARGV[0,1,2] );
-    check_args( @rgb_fg = @ARGV[3,4,5] );
+    check_args( @rgb_bg = @ARGV[ 0, 1, 2 ] );
+    check_args( @rgb_fg = @ARGV[ 3, 4, 5 ] );
 } elsif ( @ARGV == 3 ) {
     check_args( @rgb_bg = @ARGV );
 } else {
     say "\n  expected color argument\n" and exit(1)
         if not @ARGV
         or shift(@ARGV) !~ m|^#?([A-F0-9]{2})([A-F0-9]{2})([A-F0-9]{2})|i;
-    @rgb_bg = map { sprintf( "%03d", ord( pack( 'H2', $ARG ) ) ) } @{^CAPTURE};
+    @rgb_bg
+        = map { sprintf( "%03d", ord( pack( 'H2', $ARG ) ) ) } @{^CAPTURE};
 }
 
 my $fg_color = join_color(@rgb_fg);
 my $bg_color = 'on_' . join_color(@rgb_bg);
 
-my $col_str  = join( ' ', ( @ARGV == 6 ) ? @rgb_fg : @rgb_bg );
+my $col_str = join( ' ', ( @ARGV == 6 ) ? @rgb_fg : @rgb_bg );
 
 say join( '',
-    ":\n::[", color($bg_color), color($fg_color), " $col_str ", color('reset'),
-    "]\n:" );
+    ":\n::[",       color($bg_color), color($fg_color), " $col_str ",
+    color('reset'), "]\n:" );
 
 sub join_color {
     join '', map { $ARG . shift @_ } qw| r g b |;
@@ -39,8 +40,9 @@ sub check_args {
             or $ARG > 255
     } @_;
 }
+
 #.............................................................................
-#3NDHXZXPIJXVG7IW7HKA23GPICZB6AFKYW5PONCGSNEEQYO7RAXWD5626FLW2P6HI5LNJHCBHYPLS
-#::: P47PBCOQFDLYXFS2GCDIUQUPQAHWRPOC46YCDDNFIQ4OEMQG7LL :::: NAILARA AMOS :::
-# :: S7FBMQDPKJOFCKIQGQ3LUQ7SAKBJGXUFCDM33H4URZGOJWRMLWCY :: CODE SIGNATURE ::
+#FT4P4GUNVSGPXBTAN5QYVDWRGEKH6EGG7LXD4DXMNST5LX3PU6DQHNFQSHFFROZ2KU2W7OXZV34IU
+#::: VI7CG76DMLTIM4NE7F7RVF73ECWP5NUYDMPSQRODKZNIGUTTA4B :::: NAILARA AMOS :::
+# :: 644AC2JT35ZDXQ25UK4SKDW22NM5X4VGXGR2II3WGQU5YV4J72CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

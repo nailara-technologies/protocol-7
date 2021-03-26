@@ -1,0 +1,88 @@
+# >:]
+
+# name = weather.parent.handler.station_id_reply
+
+my $reply = shift;
+
+my $location;
+my $station_id;
+my $shutdown  = 0;
+my $term_wait = <weather.cfg.term_wait> // 7;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    <[base.log]>->(
+        0,
+        "unsuccessful station id request [ "
+            . $reply->{'call_args'}->{'args'}
+            . " ] delayed shutdown in $term_wait secs..,"
+    );
+
+    ## removing current city file to prevent restoring old set-up ##
+    my $cache_dir     = <weather.cache_dir>;
+    my $location_file = "$cache_dir/city.current";
+    <[base.log]>->( 1, "[error-cleanup] removing '$location_file'" );
+    unlink($location_file) or warn "cannot remove $location_file [ $OS_ERROR ]";
+    ##
+
+    foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'nak',
+                'data' => 'unable to get station id'
+            }
+        );
+        delete <weather.get-urls.reply_ids>;
+    }
+    $shutdown = 1;
+
+    <[base.sleep]>->($term_wait);
+
+} else {
+    $location   = $reply->{'params'}->{'city'};
+    $station_id = $reply->{'call_args'}->{'args'};
+    if ( not defined $station_id or !$station_id ) {
+        <[base.log]>->( 0, "<<!>> found no valid station id <<!>>" );
+        $shutdown = 1;
+    }
+}
+if ($shutdown) {    # LLL: write error html page ...
+    exit(1);
+}
+
+<weather.station_id> = $station_id;
+
+<[weather.parent.cache.write_station_id]>->( $location, $station_id );
+
+<[base.log]>->( 1, "received station id for $location [ $station_id ]" );
+
+<[weather.parent.populate_html_dir]>->(<weather.station_id>);
+<[weather.parent.update_current]>->(<weather.station_id>);
+<[weather.parent.update_forecast]>->(<weather.station_id>);
+
+if ( !<weather.zenka.initialized> ) {
+    <[base.async.get_session_id]>;    # change zenka status to 'online'
+    <weather.zenka.initialized> = 1;
+}
+
+if (    defined <weather.get-urls.reply_ids>
+    and ref(<weather.get-urls.reply_ids>) eq 'ARRAY'
+    and @{<weather.get-urls.reply_ids>} ) {
+    my $url_list_str;
+    map { $url_list_str .= "$ARG\n" }
+        <[weather.parent.get_url_list]>->($station_id);
+    foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'data',
+                'data' => $url_list_str
+            }
+        );
+        delete <weather.get-urls.reply_ids>;
+    }
+}
+
+#.............................................................................
+#5YXUB6IZKH4QJKG35SJVA5BILSOL5LX2NHSWEFRZZ6EYKL4ALG2QIETSTQBJ3CROZIBHMZ2QAN46W
+#::: TDDAVBS4E4EQOQTBCWFDJJ7J4LGD33UHX7ZO3R5ZXZCDM7E7YBT :::: NAILARA AMOS :::
+# :: FUYKNJHLXIHL63HP5RGPKZ7HBAHTDB2XWJ6S7OWXHCXOTYN6QYAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

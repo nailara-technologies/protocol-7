@@ -1,0 +1,74 @@
+# >:]
+
+# name  = nroot.zenka.cmd.notify_offline
+# param = <zenka|instance>
+# descr = reply after specified zenka was shut down
+
+<nroot.zenka.notify_offline> //= {};
+
+my $zenka_subname;
+my $query_param = $$call{'args'};
+my $reply_id    = $$call{'reply_id'};
+
+return {
+    'mode' => 'nak',
+    'data' => 'expected zenka name or instance parameter'
+    }
+    if not defined $query_param or !length($query_param);
+
+my $query_copy = $query_param;
+$zenka_subname = $1
+    if $query_param !~ /^\d+/ and $query_param =~ s|\[([^\]]+)\]$||;
+
+if (    not defined <[zenka.get_id]>->($query_param)
+    and not defined <nroot.zenka.instance>->{$query_param} ) {
+    my $rep_msg
+        = $query_param =~ /^\d+$/
+        ? "no such zenka instance ($query_param)"
+        : "no such zenka in setup [$query_param]";
+    return {
+        'mode' => 'nak',
+        'data' => $rep_msg
+    };
+}
+
+if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+    return {
+        'mode' => 'ack',
+        'data' => "zenka instance '$id' already offline!"
+        }
+        if not defined <nroot.zenka.instance>->{$id}
+        or <nroot.zenka.instance>->{$id}->{'status'} eq 'shutdown';
+} else {    # zenka name [+subname]
+    my $found = 0;
+    foreach my $id ( keys %{<nroot.zenka.instance>} ) {
+        if (<nroot.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
+            and (  not defined $zenka_subname
+                or not defined <nroot.zenka.instance>->{$id}->{'subname'}
+                or <nroot.zenka.instance>->{$id}->{'subname'} eq
+                $zenka_subname )
+        ) {
+            $found = 1;
+            last;
+        }
+    }
+    return {
+        'mode' => 'ack',
+        'data' => "zenka '$query_copy' is not online."
+        }
+        if !$found;
+}
+
+<[base.log]>->(
+    2, "shutdown notification request for zenka '$query_copy' received"
+);
+
+push( @{ <nroot.zenka.notify_offline>->{$query_copy} }, $reply_id );
+
+return { 'mode' => 'deferred' }
+
+#.............................................................................
+#YKYS2UA4R565EIACOWPFCKTSIMXMDB6DM4KXYM6EMW47UI2I572C2PAG4P2Y4H4MVYIAWB2MYKQXS
+#::: CJLRICVDEN36KPUETBIFXK2M6LYNEEHB7SYOUNHEKRLZTT7PBMV :::: NAILARA AMOS :::
+# :: UG2RPCO2ISONRBOHD54Y5WWNNTO4EEZ4WO6UBVUCDYXM67IL5CDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

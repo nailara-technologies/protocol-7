@@ -1,0 +1,42 @@
+# >:]
+
+# name  = nroot.zenka.cmd.search
+# param = <pattern>
+# descr = search zenka names and short descriptions
+
+my $search_pattern = $$call{'args'} // '';
+my @matching_zenki;
+
+return { 'mode' => 'nak', 'data' => 'expected search pattern' }
+    if !length($search_pattern);
+
+foreach my $zenka_name ( keys %{<nroot.zenki.available>} ) {
+    push( @matching_zenki, $zenka_name )
+        if $zenka_name =~ /\Q$search_pattern\E/i
+        or <nroot.zenki.available>->{$zenka_name}->{'short_desc'}
+        =~ /\Q$search_pattern\E/i;
+}
+
+return {
+    'mode' => 'nak',
+    'data' => 'no matches ( see \'nroot.list available\' for a complete list )'
+    }
+    if !@matching_zenki;
+
+my $reply_str;
+my $max_cmd_len = 0;
+map { $max_cmd_len = length($ARG) if length($ARG) > $max_cmd_len }
+    @matching_zenki;
+
+foreach my $zenka_name ( sort @matching_zenki ) {
+    $reply_str .= sprintf( "  %-${max_cmd_len}s   #  %s\n",
+        $zenka_name, <nroot.zenki.available>->{$zenka_name}->{'short_desc'} );
+}
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+#.............................................................................
+#CR2IHVQR6I7G4LSIELXYX5BO46RSD7IM7OUL74QJEHDPOEVKQM5XNND7LGOND542UMKVBHTCBGVUM
+#::: LYXB4573XHO4VVSSUS5CLDGZEDDUK5NBM5TVV62DB3TEE7D4RQS :::: NAILARA AMOS :::
+# :: K6NZ4QEZZGO2LGI5TZZBSXASUXHPFM27MU55SZVB3AISFGHPNIDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

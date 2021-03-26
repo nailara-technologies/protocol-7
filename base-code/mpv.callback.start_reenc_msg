@@ -1,0 +1,27 @@
+# >:]
+
+# name = mpv.callback.start_reenc_msg
+
+my $r_name
+    = defined <system.zenka.subname>
+    ? 'reenc-msg[' . <system.zenka.subname> . ']'
+    : 'reenc-msg';
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.nroot.notify_online",
+        'call_args' => { 'args'    => $r_name },
+        'reply'     => { 'handler' => 'mpv.handler.reenc_notify_reply' }
+    }
+);
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.nroot.start_once",
+        'call_args' => { 'args' => $r_name }
+    }
+);
+
+#.............................................................................
+#2YRP4ML2MPGDTH7RDYOAPNG2CXF5PQFRP52YQI2JTNEGNMYWLXXZPJVCHISWSF4SAXP3QMI6UANX6
+#::: Y6P2GER2PXU3LCQBPKLORXN2622RDR3KICU6REKIGBYTCGD3OU2 :::: NAILARA AMOS :::
+# :: PVOKT5XAK44KFDZEIVRYZ2FEDPATEAL72OJ5TPGPIJHW7Y7M3OBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

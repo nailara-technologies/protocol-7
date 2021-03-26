@@ -1,0 +1,38 @@
+# >:]
+
+# name  = nroot.zenka.is_disabled
+# descr = returns true if zenka is explicitly disabled in start setup
+
+my $zenka_name = shift;
+die 'nroot.zenka.is_disabled: no zenka name specified'
+    if not defined $zenka_name;
+
+my $config_href   = <nroot.start_setup.globals.zenki>;
+my $zenka_name_re = <regex.base.usr_str>;
+
+return 0
+    if not exists $config_href->{'disabled'}
+    or not defined $config_href->{'disabled'}
+    or $config_href->{'disabled'} =~ m|^\s*$|;
+
+# checking config syntax
+if ( $config_href->{'disabled'} !~ m|^($zenka_name_re*\ *)+$|i ) {
+    <[base.log]>->(
+        0,
+        "start setup syntax error: zenki.disabled = '"
+            . $config_href->{'disabled'}
+            . "' <-- expecting valid zenka name[s]"
+    );
+    die 'configuration syntax error in zenki.disabled';
+}
+
+map { return 1 if $ARG eq $zenka_name }
+    split( m|\s+|, $config_href->{'disabled'} );
+
+return 0;
+
+#.............................................................................
+#3G3IVX4GGYUSPWJQP367TOVZ2GWOWS55HAIDFLLN63FPYLKG2J3O7WUD5AIZE5REDTYON77Q53ZOC
+#::: D2PIWJ636UPI2A2ZQXKVO32SZNCGZMT2GAGXZJ4CVAOKVPAQQ2T :::: NAILARA AMOS :::
+# :: K7N3YV4FXXSHW333VCV4BH6EQG4GNZTZ4NSOSVSXC34LVNJIHKBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

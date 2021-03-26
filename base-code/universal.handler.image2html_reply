@@ -1,0 +1,30 @@
+# >:]
+
+# name = universal.handler.image2html_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "<!> unable to convert extracted vid frame [$reason]" );
+    <universal.cfg.fade_on_switch> = 0;
+    <[base.log]>->(
+        0, " :. disabled fade_on_switch [extraction not successful]"
+    );
+    <[universal.startup_sub_zenki]>;
+} else {
+
+    my $frame_html_path = $reply->{'call_args'}->{'args'};
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "web-browser.fg_insert",
+            'call_args' => { 'args' => $frame_html_path }
+        }
+    );
+}
+
+#.............................................................................
+#AULEICYZLGD2WPYYPAIFK7B77GTM5BOMQFMS72JUBLLWGFKPTCMD7L6REG4EOHTK5W5BBMEAL26CK
+#::: VJT3UUWG6AKHA2UW3VSFVWZ2RCVSH2K67ZOTI2MT2SLBMEJB744 :::: NAILARA AMOS :::
+# :: BLWJ4HXBXDUJTNPZLFLJSWJ2B3R7KMZEDXVILNKXFRE7MITDAEDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

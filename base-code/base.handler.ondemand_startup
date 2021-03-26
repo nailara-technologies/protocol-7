@@ -1,0 +1,37 @@
+# >:]
+
+# name  = base.handler.ondemand_startup
+# param = error reason [ NAK reply ]
+
+my $reply = shift;
+
+my $v_id = $reply->{'params'}->{'v_id'};
+
+if ( $reply->{'cmd'} eq 'NAK' ) {
+    delete <zenki.virtual>->{$v_id}->{'starting'};
+    my $reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "ondemand zenka startup error [ $reason ]" );
+    while ( my $element = shift @{ <zenki.virtual>->{$v_id}->{'queue'} } ) {
+        my $sid    = $element->{'source_id'};
+        my $cmd_id = $element->{'cmd_id'};
+        next if not exists $data{'session'}{$sid};
+        $data{'session'}{$sid}{'buffer'}{'output'}
+            .= $cmd_id . "NAK command unknown\n";
+    }
+} else {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'nroot.notify_online',
+            'call_args' => { 'args' => <zenki.virtual>->{$v_id}->{'name'} },
+            'reply'     => {
+                'handler' => 'base.zenki.ondemand.handler.startup_reply',
+                'params'  => { 'v_id' => $v_id }
+            }
+        }
+    );
+}
+
+#.............................................................................
+#OAJX6Z47WGHFR7ZPLIFBLTAXKYY3YV45M74JXVLVP7YXGFKZ6WYUHLXFAEPFFKKH4VWLO5BVZ7EGO
+#::: VFATAYXMJHKXQCL7U5VSFPGAOG2ZPEL3PPQJ47GSFP4A3AOTUSZ :::: NAILARA AMOS :::
+# :: PU7YOAKMSWFSABKOJHQXLLTXF4TRWGLWG2ZDF3YC7GIBWZNKGOBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

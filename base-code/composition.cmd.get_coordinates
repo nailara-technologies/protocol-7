@@ -1,0 +1,75 @@
+# >:]
+
+# name  = composition.cmd.get_coordinates
+# param = [zenka_name]
+# descr = coordinates for current or specified zenka
+
+return { 'mode' => 'nak', 'data' => 'no zenka name received' }
+    if not defined $$call{'args'}
+    or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
+
+my ( $source_zenka, $zenka_name ) = ( $1, $3 );
+$source_zenka =~ s|^.+\.||g;
+$zenka_name = $source_zenka if not defined $zenka_name;
+
+if ( $zenka_name =~ m|^\[([^\]]+)\]$| ) {    # <- only subname given
+    my $subname = $1;
+    my %zenka_names;
+    map { $zenka_names{$ARG} = 1 if $ARG =~ m|\[$subname\]$| }
+        keys %{<composition.coordinates>};
+    my $err_msg;
+    if ( !keys(%zenka_names) ) {
+        $err_msg = "no zenka matches subname '$subname'";
+    } elsif ( keys(%zenka_names) > 1 ) {
+        $err_msg = 'multiple zenki are matching, zenka name required';
+    }
+    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+    ($zenka_name) = keys(%zenka_names);
+}
+
+if ( not exists <composition.coordinates>->{$zenka_name} ) {
+    my $last_match;
+    my $match   = 0;
+    my $msg_str = "no coordinates defined for zenka '$zenka_name'";
+    if ( $zenka_name !~ m|[\[\]]+| ) {
+        map {
+            if ( $ARG =~ m|^([^\[]+)\[| and $1 eq $zenka_name ) {
+                $last_match = $ARG;
+                $match++;
+            }
+        } keys %{<composition.coordinates>};
+    }
+    $msg_str
+        = "multiple '$zenka_name' instances defined, zenka subname required"
+        if $match > 1;
+    return {
+        'mode' => 'nak',
+        'data' => $msg_str
+        }
+        if $match != 1;
+    $zenka_name = $last_match;
+}
+
+my $coordinates_data = <composition.coordinates>->{$zenka_name};
+
+my @coordinates;
+my @borders = ( 'left', 'top', 'right', 'bottom' );
+foreach my $border_name (@borders) {
+    return {
+        'mode' => 'nak',
+        'data' => "coordinates for $border_name border are missing"
+        }
+        if not exists $coordinates_data->{$border_name};
+    push( @coordinates, $coordinates_data->{$border_name} );
+}
+
+return {
+    'mode' => 'ack',
+    'data' => join( ' ', @coordinates )
+    }
+
+#.............................................................................
+#C2SAEVBLYXURFCL3ZT7K56HPWYOGTJJZRSH33ER6YVH4DINTHAVEJBSXNOY4VIPYORHNK67JCDMK6
+#::: XRRXFUOPPVDCGKWX6E5TJSXITLWJQLAB23DG4J42KBVQG5JADJB :::: NAILARA AMOS :::
+# :: VWX6PKKNETX422MDPDEEU7WXIVNGMZ2EFSDQLRKUIOJK6KFZPADQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

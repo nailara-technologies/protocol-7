@@ -1,0 +1,54 @@
+# >:]
+
+# name = nroot.init_zenka_output_patterns
+
+if ( not defined <nroot.pattern_config>
+    or ref(<nroot.pattern_config>) ne 'ARRAY' ) {
+    <[base.log]>->( 1, 'no zenka output patterns to initialize, skipping..,' );
+    return;
+}
+
+my $zenka_pattern_data = <nroot.pattern_config>;
+
+my $re            = '::';                 ## <-- regex delimiter ##
+my $name_chars    = qr|!\w\d_\-,\s\*|;    ## <-- zenka-name pattern
+my $pattern_chars = qr|\\<>\w\d_\|\-\+\?,\s\.\[\]\:\'\^\$\*|;    ## <-- regex.
+
+foreach my $p_ref (@$zenka_pattern_data) {
+    foreach my $pattern ( keys %$p_ref ) {
+        my $p_key = $pattern;
+        if ($pattern =~ s{^([$name_chars]+)$re([$pattern_chars]+)$re(i?)}{$2}g )
+        {
+            my ( $zenka_string, $pattern_string, $i ) = ( $1, $2, $3 // '' );
+            $zenka_string =~ s|[ \t]+||g;
+            foreach my $zenka_match ( split( m|,|, $zenka_string ) ) {
+                my $pattern_code_aref = $p_ref->{$p_key};
+                my $pattern_re
+                    = $i eq 'i'
+                    ? qr|$pattern_string|i
+                    : qr|$pattern_string|;
+                my $sub_code
+                    = 'sub { my $instance_id = shift;'
+                    . ' my $zenka_name = shift;'
+                    . ' my @matches = @_; '
+                    . join( '; ', <[base.parser.config]>->($pattern_code_aref) )
+                    . ' }';
+                $sub_code =~ s|<zenka_name>|\$zenka_name|g;
+                $sub_code =~ s|<instance_id>|\$instance_id|g;
+                $sub_code =~ s|<match_([1-9])>|\$matches[$1-1]|g;
+                <nroot.patterns.zenka_output>->{$zenka_string}->{$pattern_re}
+                    = eval $sub_code;
+            }
+        } else {
+            <[base.log]>->(
+                0, "<< syntax error in zenka output pattern ['$pattern'] >>"
+            );
+        }
+    }
+}
+
+#.............................................................................
+#DWXTCVRJHNF6UNPNI4JXXM26UA7EOQ4VPMV25RYBDOUF7J6ICTVSOIZSL3RS3P7Q6DJU5MW7ZFZAA
+#::: MQW7RUTX3CRFSML5XHXD5STMZXLZU6WUFNF4G7C5WZRZFJ4DMM3 :::: NAILARA AMOS :::
+# :: UWHUNJ3HCVAKKV32XY3DPEHLTTYIT37WJUNBLAROEVACZYX5TECI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

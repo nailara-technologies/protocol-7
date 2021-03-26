@@ -1,0 +1,159 @@
+# >:]
+
+# name  = sourcecode.console.regen-checksum-symlinks
+# descr = register source checksums in version path
+
+my $source_version  = <protocol-7.src-ver>;
+my $release_version = <protocol-7.rel-ver>;
+
+# my @copy_sources = (<system.code_path>);   # <-- change to previous version..,
+
+my $path         = <sourcecode.path>;
+my $work_tree    = $path->{'work_tree'};
+my $source_root  = $path->{'source_dir'};
+my $version_root = $path->{'version_root'};
+
+my @copy_sources;
+map {
+    my $source_path = catfile( $work_tree, $ARG );
+    die "source path $source_path does not exist" if !-d $source_path;
+    push( @copy_sources, $ARG );
+} qw| bin cfg base-code |;
+
+<[base.log]>->( 1, ".:[ UPDATING SOURCE CHECKSUMS ]:." );
+<[base.log]>->( 1, ": verifying directory structure.," );
+die "directory '$source_root' not found" if !-d $source_root;
+if ( !-w $source_root ) {
+    <[base.log]>->( 0, "<<< write permission missing for '$version_root' >>>" );
+    <[base.exit]>->(1);
+}
+my $dir_fh;
+if ( !opendir( $dir_fh, $version_root ) ) {
+    <[base.log]>->( 0, "can not open directory '$version_root' [ $OS_ERROR ]" );
+    <[base.exit]>->(2);
+}
+my %vers_dirs = map { $ARG => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
+closedir($dir_fh);
+
+my $target_path = catfile( $version_root, $source_version );
+
+if ( not exists $vers_dirs{$source_version} ) {
+    <[base.log]>
+        ->( 1, ": :. creating source version path [ $source_version ]" );
+    <[file.make_path]>->( $target_path, 0755 )
+        or die "cannot create directory '$source_version' [ $OS_ERROR ]";
+    my $path_descr_str = <sourcecode.path_desc.version>;
+    <[file.put]>
+        ->( catfile( $target_path, '.path-desc' ), "$path_descr_str\n" );
+}
+
+my $file_count     = 0;
+my $checksum_table = {};
+my $source_paths   = {};
+foreach my $directory (@copy_sources) {
+    my $src_path  = catfile( $work_tree, $directory );
+    my $checksums = <[source.acquire_checksums]>->( $src_path, 224 );
+    map {
+        my $rel_path     = catfile( $directory, $ARG );
+        my $checksum_b32 = delete $checksums->{$ARG};
+        $source_paths->{$rel_path} = $checksum_b32;
+        push(
+            @{ $checksum_table->{$checksum_b32} },
+            $source_paths->{$rel_path}
+        );
+        $file_count++;
+    } keys %{$checksums};
+    $directory =~ s|^.*/||g;    # keeping last path element
+    delete <source.checksums>->{$directory};
+}
+my $count_delta  = $file_count - keys( %{$checksum_table} );
+my $count_unique = $file_count - $count_delta;
+
+<[base.log]>->( 1, ": copying $count_unique of $file_count source files.," );
+my $dup_msg_str = $count_delta == 1 ? ' has' : 's have';
+<[base.log]>->( 2, ": [ $count_delta file$dup_msg_str the same content ]" );
+my $skip_count = 0;
+$file_count = 0;
+foreach my $src_file_rel (
+    sort { length($a) <=> length($b) }
+    sort keys %{$source_paths}
+) {
+    my $file_checksum   = $source_paths->{$src_file_rel};
+    my $src_file_path   = catfile( $work_tree, $src_file_rel );
+    my $dst_file_path   = abs_path( catfile( $target_path, $file_checksum ) );
+    my $file_rel_substr = $src_file_rel;
+    <[base.parser.ellipse_center]>->( \$file_rel_substr, 37 );
+    if ( -e $dst_file_path ) {
+        <[base.log]>->( 2, ":: exists : '$file_rel_substr' .," );
+        $skip_count++;
+    } else {
+        <[base.log]>->( 2, ": copying : '$file_rel_substr' .," );
+
+        my $src_stat = File::stat::stat( abs_path($src_file_path) );
+
+        File::Copy::syscopy( $src_file_path, $dst_file_path )
+            or return <[base.log]>->(
+            0, "<< copy >> '$src_file_rel' -> '$target_path/' [ $OS_ERROR ]"
+            );
+
+        chmod( $src_stat->mode, $dst_file_path );  ## preserving exec. bits., ##
+
+        $file_count++;
+    }
+}
+my $s = $file_count == 1 ? '' : 's';
+<[base.log]>->( 1, ": : $file_count file$s copied to '$source_version'.," );
+$s = $skip_count == 1 ? '' : 's';
+<[base.log]>->( 1, ": : : skipped $skip_count already existing file$s.," )
+    if $skip_count;
+<[base.log]>->( 1, ": : comparing source and destination.," );
+
+my $dest_paths = <[source.acquire_checksums]>->( $target_path, 224 );
+delete $dest_paths->{'.path-desc'};
+my $target_count = keys %{$dest_paths};
+my $copy_success = 0;
+foreach my $chk_path (
+    sort { length($a) <=> length($b) }
+    sort keys %{$dest_paths}
+) {
+    delete $dest_paths->{$chk_path} and $copy_success++
+        if $dest_paths->{$chk_path} eq $chk_path;
+}
+
+if ( $target_count and $target_count >= $count_unique ) {
+    <[base.log]>->( 1, ": : all $target_count code checksums match., =)" );
+} else {
+    <[base.log]>->(
+        0, ": : copy procedure incomplete., [$copy_success\\$count_unique]"
+    );
+    <[base.log]>->( 0, ": aborting checksum update.," );
+    <[base.exit]>->(1);
+}
+
+<[base.log]>->( 1, ": replacing source files with symlinks" );
+my $link_count = 0;
+foreach my $src_file_rel (
+    sort { length($b) <=> length($a) }
+    sort keys %{$source_paths}
+) {
+    my $file_checksum  = $source_paths->{$src_file_rel};
+    my $src_file_path  = catfile( $work_tree,   $src_file_rel );
+    my $dst_file_path  = catfile( $target_path, $file_checksum );
+    my $src_file_dir   = [ File::Spec->splitpath($src_file_path) ]->[1];
+    my $src_file_name  = [ File::Spec->splitpath($src_file_path) ]->[2];
+    my $dst_path_rel   = File::Spec->abs2rel( $dst_file_path, $src_file_dir );
+    my $link_short_str = my $link_str = "$src_file_rel --> $dst_path_rel";
+    <[base.parser.ellipse_center]>->( \$link_short_str, 47 );
+    chdir($src_file_dir) or die "< chdir > $src_file_dir [ $OS_ERROR ]";
+
+    <[base.log]>->( 2, "<link> $link_short_str" );
+    unlink($src_file_path) or die "< unlink > $src_file_rel [ $OS_ERROR ]";
+    symlink( $dst_path_rel, $src_file_name )
+        or die "< error > $link_str [ $OS_ERROR ]";
+}
+
+#.............................................................................
+#Q7B2ORALEGGPZQ7YONIR4NLDI6UGW27SCLWHUNBL6D3UP2CS3O4V3FF2RGNXEZRKY5ABR2YJ5JBJC
+#::: LTF4Q62WRDNXWRFWMNIIJN7PMONR3QOKTXL2SMCETVXJPIQUJOG :::: NAILARA AMOS :::
+# :: 3LX4LEESJJ6XH3I4QHCJBNLYD6NRBBHDY2FWZJQ63OMVE3XKGMDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

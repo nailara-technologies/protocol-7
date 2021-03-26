@@ -1,0 +1,34 @@
+# >:]
+
+# name = net.get
+# descr = retrieves a value from 'cube' zenka (if connected to it)
+# args = <key to retrieve>
+# note = currently only supports single line replies (ACK/NAK)
+
+my $key_to_retrieve = shift;
+die "expected a key as argument"
+    if not defined $key_to_retrieve
+    or $key_to_retrieve eq '';
+
+my $cube_fh = <cube.handle>;
+
+<[net.out]>->( $cube_fh, "get $key_to_retrieve\n" );
+chomp( my $get_reply = <$cube_fh> );
+
+if ( $get_reply =~ s|^ACK || ) {
+    return $get_reply;
+} elsif ( $get_reply =~ s|^NAK || ) {
+    <[base.log]>->(
+        0, "net.get: unable to get key '$key_to_retrieve' [$get_reply]"
+    );
+    return undef;
+} else {
+    <[base.log]>->( 0, "net.get: protocol mismatch [reply:'$get_reply']" );
+    return undef;
+}
+
+#.............................................................................
+#WWAY5XSNJ24UAAQ5XRCJDKXM37HDMX2L7AGN5ENGXRLI7B7CXTSZTNHMNVWPECJGE2ZCA53ARDVGC
+#::: LFYS4UUMPOS4AEVM7Z3HUXVHP3XOJCIKBQRM5THQRKYPRTTYZBZ :::: NAILARA AMOS :::
+# :: 7VL4BVLIXTLAXRS7OACGCGZULQP5BX3OUP6MOUP7TAXRA2NIY6BY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

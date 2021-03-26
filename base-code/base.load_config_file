@@ -1,0 +1,48 @@
+# >:]
+
+# name  = base.load_config_file
+
+my $cfg_name  = shift;
+my $cfg_level = <base.modules.cfg_level>++;
+my $max_level = <system.zenka.initialized> ? 1                 : 2;
+my $log_level = $cfg_level < 1             ? 1                 : $max_level;
+my $l_str     = $cfg_level                 ? ': ' x $log_level : '';
+<[base.log]>->( $log_level, $l_str . "loading config '$cfg_name'" );
+
+# store additional config filenames for later reload [rewrite when problematic]
+<system.config.reload_order> = [] if not exists <system.config.reload_order>;
+my $already_pushed = 0;
+map { $already_pushed = 1 if $ARG eq $cfg_name }
+    @{<system.config.reload_order>};
+push( @{<system.config.reload_order>}, $cfg_name )
+    if $cfg_name ne <system.path.rel.cur_zenka_cfg> and !$already_pushed;
+
+<base.config_parser.cfg_type> = 'exec_cfg'
+    if not defined <base.config_parser.cfg_type>;
+<base.config_parser.cfg_name> = $cfg_name
+    if not defined <base.config_parser.cfg_name>;
+
+my $status = <[base.execute_zenka_code]>->(
+    <[base.parser.config]>->(
+        <[base.get_file.aref]>->(
+            join( '/', $data{'system'}{'conf_path'}, $cfg_name ),
+            sub {
+                $cfg_name =~ s|^.+/||g;
+                <[log.error]>
+                    ->("unable to load '$cfg_name' config [$OS_ERROR]");
+                <base.modules.cfg_level>--;
+                return undef;
+            }
+        )
+    )
+);
+
+--<base.modules.cfg_level> or delete <base.modules.cfg_level>;
+return 1 if <base.parser.config.errors>;
+return $status;
+
+#.............................................................................
+#PHZANAKFOAJ6Q37ZBFTSKK3JWLKZCVDI2WYTNVUF6QTG5BTJCEA47ARGWYCKIKSDC2AVLRXQJICWI
+#::: QMKN7UZUZIITR4B65C32VZGTE6HU5S3LKTGEFABZ2333ZNJJQJ4 :::: NAILARA AMOS :::
+# :: JY72RRHVKFYM3BA2N67DFFAYALQMRHPQB55GVGF3N52Z7FGHZ4BQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

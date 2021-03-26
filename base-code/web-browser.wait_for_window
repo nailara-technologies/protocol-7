@@ -1,0 +1,18 @@
+# >:]
+
+# name = web-browser.wait_for_window
+
+( my $wait_title_str = <web-browser.window.title_str> ) =~ s|([\[\]\.])|\\$1|g;
+unless ( <[base.X-11.wait_for_window]>->( '^' . $wait_title_str ) ) {
+    <[base.log]>->( 0, "[!] window unable to open, aborting zenka startup.." );
+    exit(2);
+}
+
+<[base.X-11.assign_window]>;
+<[base.async.get_session_id]>;
+
+#.............................................................................
+#5RXDY65FLSAMKJOA3P5ZUS7TZUKXEHJHALI4ZZ3J7QIMULUY54TJVGV2XSPGCVDQDAMSHWUHZN34Y
+#::: CI4CPY6KCHROJXIO4QKVOHQJ3ZBKVSTJ2IVUELZFU6U6DASEFA3 :::: NAILARA AMOS :::
+# :: 4VPCJ5RXNHCAHJF3ZOC2F2TGXR35NBEOV77XE7HRNDIHWHXNP4CA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

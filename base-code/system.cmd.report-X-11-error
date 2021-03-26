@@ -1,0 +1,39 @@
+# >:]
+
+# name  = system.cmd.report-X-11-error
+# param = [err_msg]
+# descr = x-server crash mitigation [ host reboot ]
+
+( my $cube_user, my $err_msg ) = split( m| +|, $$call{'args'}, 2 );
+
+my $hostname      = <system.host.hostname>;
+my $admin_user    = <system.admin-user>;
+my $allowed_users = qr{$hostname.(nroot|X-11|$admin_user)};
+return {
+    'mode' => 'ack',
+    'data' => "only 'X-11' and 'nroot' zenka can invoke this command."
+    }
+    if $cube_user !~ $allowed_users;
+
+map { <[base.log]>->( 0, $ARG ) } ( "<!> X-11 protocol error <!>", ' :' );
+
+local $Text::Wrap::columns   = 57;
+local $Text::Wrap::separator = "\n";
+( my $wrapped_err_msg = wrap( ' :  ', ' :  ', $err_msg ) ) =~ s|( ')?$| '|;
+map { <[base.log]>->( 0, $ARG ) } ( split( m|\n+|, $wrapped_err_msg ), ' :' );
+
+my $reply_message = 'acknowledged, ';
+my $does_reboot   = <[system.xcrash_hostreboot_trigger]>;
+
+$reply_message
+    = $does_reboot
+    ? 'host system reboot imminent'
+    : 'X-11 error logged [ not rebooting ]';
+
+return { 'mode' => 'ack', 'data' => $reply_message }
+
+#.............................................................................
+#Q2ZSJIRCZXC2RKP7JNFCE3TWYK2WFUMYGX34L6T4RNT5QE7GIVOMAFNPMXGRXL6NGPH64EX3RIGFM
+#::: VPLJEPCSFKG4QVOLOXHALWMQV5JV2F2SKV36CGI3FKWBWP6OONA :::: NAILARA AMOS :::
+# :: DSLCJO3DMVQWMR725CYFENVYT57ZVRKZ643W3DVNTOJ56YUTLEBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+# >:]
+
+# name = base.register_src_deps
+
+my %np7_src  = map { $ARG => 1 } @_;
+my $zenka    = <system.zenka.name>;
+my $cfg_path = <system.conf_path>;
+
+my $src_deps = <[base.get_path.zenka_cfg]>;
+
+if (    $src_deps =~ s|zenki/$zenka/config|$cfg_path/$zenka/source|
+    and -d $src_deps
+    and -w $src_deps ) {
+    foreach my $mod_name ( sort keys %np7_src ) {
+        next if -e "$src_deps/$mod_name" or $mod_name eq 'debug';
+        my $fh;
+        open( $fh, '>', "$src_deps/$mod_name" ) and close($fh);
+    }
+}
+
+#.............................................................................
+#7ULCITTXLUGK2BICAOHYQLNSBVC36DSYMONMKG2HIYTV7SCEOO2JZMTHNJKWCOOXL7JXUYSHPCYRS
+#::: 3SW27I6TBEMPNFSLRIMB4CBE3A2I4GZFHTL3QWSNJYZJGZWK33B :::: NAILARA AMOS :::
+# :: AHXOCNQ4HHTQ634GKHRMQ5KG4OLJTFGFTPEKXGZ53PGIMBEM32BI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

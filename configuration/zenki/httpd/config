@@ -1,0 +1,44 @@
+
+ .:[ nailara 'httpd' server zenka ]:.
+
+[load_config_file:'shared-params']
+
+modules.load         =  auth net protocol io.ip chk-sum.elf chk-sum.bmw httpd
+
+net.http.addr        =  0:0:0:0:0:0:0:0
+net.http.port        =  80
+
+http.handler.get     =  httpd.http_get
+http.handler.head    =  httpd.http_head
+http.handler.options =  httpd.http_options
+
+access.cmd.usr.cube  =  *
+
+httpd.system.user    =  httpd
+httpd.system.group   =  httpd
+
+httpd.site_dir    = /var/httpd/
+httpd.upload_dir  = /var/tmp/httpd/uploads
+
+httpd.cfg.external_sitedirs = 1 # allow site_dir links to point outs. httpd dir?
+httpd.cfg.uploads_enabled   = 1 # files need to be explicitly announced to zenka
+
+httpd.cfg.allow_range_overlap = 1 # allow overlapping range request? [same data]
+
+max.connections     =  1024
+httpd.timeout       =  23
+
+[load_modules:<modules.load>]
+
+[init_modules]
+
+[net.connect_to_cube:'ip.tcp']
+
+httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
+[base.protocol.bind:<httpd.sock>,'http','server']
+
+[root.drop_privs:<httpd.system.user>]
+
+[base.get_session_id]
+
+[event.loop]

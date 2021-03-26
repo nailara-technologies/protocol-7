@@ -1,0 +1,27 @@
+# >:]
+
+# name = mpv.handler.event.file-loaded
+
+my $params = shift;
+
+if (<system.zenka.mode> eq 'universal-child'
+    and (  <mpv.pause_next>
+        or not defined <mpv.current.load_iteration>
+        or <mpv.current.load_iteration> == 0 )
+) {
+    <[base.log]>->( 2, "file loaded, pausing playback.." );
+    <mpv.pause_next> = 1;
+    push( @{<mpv.reply_ids>}, 'silent' );
+    <mpv.success_reply_str> = '[PAUSE]d';
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+} else {
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
+}
+
+<mpv.current.load_iteration>++;
+
+#.............................................................................
+#7HSGA37PXSFY6K3ZZMHHUH2TEP775P3WUWGDV5IQP6Z7XQNRHHKB4QLI6NEEL2KULLFEZ4H7QCWCE
+#::: G3UEFMDO27VYDLRIIG7A5NUQRTMK25RY4XPZROLL6BU7JPSM6SX :::: NAILARA AMOS :::
+# :: T2EZAGVT45WGN6Z4ZT4SMWADDMW6HODXTF7DT7XBP7FLNLY7KCCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

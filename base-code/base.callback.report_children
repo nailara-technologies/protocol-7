@@ -1,0 +1,25 @@
+# >:]
+
+# name = base.callback.report_children
+
+return if not exists <system.report_children> or !@{<system.report_children>};
+
+return warn 'zenka not initialized' if !<system.zenka.initialized>;
+
+my $route_str = <system.net.cube_route> // 'cube';
+$route_str .= '.' if length($route_str);
+
+map {
+    <[base.log]>->( 1, "reporting child process [PID:$ARG] to 'nroot'" );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "${route_str}nroot.register_child",
+            'call_args' => { 'args' => $ARG }
+        }
+    );
+} @{<system.report_children>};
+
+#.............................................................................
+#QCQWNEBWCUHFACBMJTOXX7ASKCEXS2Y2OZ2BDEURPDSIQZ7UELRHIZIFTYD3YJ7XCK44ZTT2SEK6U
+#::: FZY2TCE6P5IOC7GOTBGDXFFIUW2U7RHOOMUTQHTPW4EMQVSKGFK :::: NAILARA AMOS :::
+# :: 7JWK5YWABD6M3BXEKJCSN26WSGJEDOGP4PIKHNRBIHNDHMYDZWAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

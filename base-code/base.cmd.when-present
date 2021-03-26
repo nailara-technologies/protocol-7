@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.cmd.when-present
+# descr = forward a command when zenka is present
+# param = <command> [args]
+
+( my $user, my $cmnd, my $params ) = split( m|\s+|, $$call{'args'}, 3 );
+
+$user =~ s|^.+\.||;    ## removing host portion ###
+
+return { 'mode' => 'nak', 'data' => 'no access permissions' }
+    if not <[base.has_access]>->( $user, $cmnd );
+
+return { 'mode' => 'ack', 'data' => "$cmnd [ $params ]" } if defined $params;
+return { 'mode' => 'ack', 'data' => $cmnd }
+
+#.............................................................................
+#UUOR5IX6I2YGM5XTZLNOVGX22E7OZNVLCUIGVEUI7REGZKTAOTPHJ7MRLRWYFT6EOS4CPT7LY3EGW
+#::: WDI76ZZ5UZXZ7N5IV2BYKZGOGUJLBL2BAZ4TXWGGVYPVLIAA4PK :::: NAILARA AMOS :::
+# :: UPBP7WNMN6APVEXWXIVXYQUT4R2IYBMADU36PHKL5KY4YBEQE4DI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

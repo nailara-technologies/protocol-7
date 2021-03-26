@@ -1,0 +1,64 @@
+# >:]
+
+# name  = plugin.auth.zenka
+# descr = perform 'zenka' type authentication initiated \ enabled by nroot zenka
+
+my $id     = $_[0]->w->data;
+my $re     = <regex.base>;
+my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
+my $output = \$data{'session'}{$id}{'buffer'}{'output'};
+
+if (   not %KEYS
+    or not exists $KEYS{'auth'}
+    or not exists $KEYS{'auth'}{'zenka'}
+    or ref( $KEYS{'auth'}{'zenka'} ) ne 'HASH'
+    or !keys( %{ $KEYS{'auth'}{'zenka'} } ) ) {
+    <[base.log]>
+        ->( 0, "[$id] can not authenticate zenka session [..no key.,]" );
+    $$output .= "NOPE >:|\n";    # LLL: move down?
+    return 2;
+}
+
+if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
+    my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
+    my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
+
+    if ( exists $KEYS{'auth'}{'zenka'}->{$user} ) {
+
+        if ( $key_hash eq $KEYS{'auth'}{'zenka'}{$user} ) {
+
+            if ( length($subname) ) {
+                $data{'session'}{$id}{'subname'} = $subname;
+                $data{'user'}{$user}{'subname'}{$subname}++;
+            }
+
+            delete $KEYS{'auth'}{'zenka'}{$user};
+            $$output .= "YEAH >:P\n";
+
+            ## <[net.update.client_conf]>->($id);
+
+            <[base.log]>->( 1, "[$id] zenka '$auth_name' session authorized." );
+            return ( 0, $user );
+        } else {
+            <[base.log]>->(
+                0, "[$id] '$auth_name' [zenka] access denied [ key ]"
+            );
+            $$output .= "NOPE >:|\n";
+            return 1;
+        }
+    } else {
+        <[base.log]>->( 0, "[$id] '$auth_name' [zenka] access denied [ usr ]" );
+        $$output .= "NOPE >:|\n";
+        return 1;
+    }
+} else {
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ zenka ]" );
+    $$output .= ">:[\n";
+    return 1;
+}
+
+#.............................................................................
+#CQQ4YVCN6IWCG244BYN2UMNZXO5ZMM6I62NB5QC75DRSJHBC54DBIAKJED5GR6ZXVV4562YI2P7IM
+#::: 5VFZOUOD7RNX3DL6R6P2ZLTQC2AJ7VMGDB72JAGSWTEUG37BYEC :::: NAILARA AMOS :::
+# :: Y32Y5FAG2JQRZNSJ5GYYDYAJCL2UQWLGGN2YCN7KNQG4CCPGBKCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,32 @@
+# >:]
+
+# name  = nroot.zenka.change_status
+# descr = wrapper function for zenka status change handler
+
+my ( $instance_id, $new_status ) = @_;
+die 'no instance id specified'       if not defined $instance_id;
+die 'no new status string submitted' if not defined $new_status;
+
+my $zenka_name = <nroot.zenka.instance>->{$instance_id}->{'zenka_name'};
+
+if ( defined $zenka_name ) {
+    <nroot.online-zenki> //= {};
+    my $online_count = scalar keys %{<nroot.online-zenki>};
+    if ( $new_status eq 'online' ) {
+        <nroot.online-zenki>->{$zenka_name}++;
+    } elsif ( $new_status ne 'starting'
+        and exists <nroot.online-zenki>->{$zenka_name} ) {
+        delete <nroot.online-zenki>->{$zenka_name}
+            if --<nroot.online-zenki>->{$zenka_name} == 0;
+    }
+    <[nroot.calc_prefix_lengths]>->( keys %{<nroot.online-zenki>} )
+        if $online_count != scalar keys %{<nroot.online-zenki>};
+}
+
+<[nroot.handler.zenka_status]>->( $instance_id, $new_status );
+
+#.............................................................................
+#PEAND2TB6YZKOKOPWVKLQQNQRE2J3FDMNF6BHFO26WDIGGYTIDX73LMTX56656O2ADXQ4OZYC73NC
+#::: N5K7O3KPJ3LBYU5BGISYZ2PPJ5THJXW33OAZHUIRYPSFBR6FI5T :::: NAILARA AMOS :::
+# :: 6U2WFO7BLU3MFTEZAT3S553OUXJL3Y6F2N4F4IWAWE3J2IJWUEDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
