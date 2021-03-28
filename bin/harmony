@@ -18,16 +18,16 @@ $mode{'A'} //= "-r4.2 -e -d$mode{z} -S"
     and defined $mode{'T'}
     and $mode{'T'} eq 'R';
 $mode{'z'}
-    //= 8;    ## <-- digit read size override for 'asc-dec' fullscreen mode
+    //= 8;    ## <-- digit read size override for 'asc-enc' fullscreen mode
 $mode{'A'} //= "-r4.2 -d$mode{z} -S"
     if $mode{'Z'};    ## -Z is 'full-screen' mode
 $mode{'T'} //= rand(2) % 2 ? '851' : '857' if $mode{'Z'};   ## <-- full-screen
-$mode{'T'} //= qw|    MS-ICELAND    |;  ## <-- 'asc-dec' table [ when in use ]
+$mode{'T'} //= qw|    MS-ICELAND    |;  ## <-- 'asc-enc' table [ when in use ]
 $mode{'l'} //= 50;                      ## <-- blue midnight wish entropy size
 $mode{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
 $mode{'B'} = !$mode{'B'};    ## BMW mode enabled by default
 
-my @asc_dec = qw| asc-dec -q |;
+my @asc_dec = qw| asc-enc -q |;
 
 die ":\n:: divisor not valid [ expected numerical ]\n\n"
     if $mode{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
@@ -182,7 +182,7 @@ sub display_result {
 
     if ( not $mode{'q'} ) {
 
-        @asc_dec = ( qw|asc-dec -q -r0 -C|, $table_name );
+        @asc_dec = ( qw|asc-enc -q -r0 -C|, $table_name );
 
         push( @asc_dec, qw| -s0 | ) if $status ne 'true';
 
@@ -195,7 +195,7 @@ sub display_result {
             if $code !~ m|^\d+$|;
         ##
         if ( defined $mode{'A'} )
-        {    ## -A'<param>' : asc-dec pass through parameter
+        {    ## -A'<param>' : asc-enc pass through parameter
             my $passthrough_params = join( ' ', split( ' +', $mode{'A'} ) );
             $passthrough_params = "-$passthrough_params"
                 if $passthrough_params !~ m|^-|;
@@ -222,7 +222,7 @@ sub display_result {
 # 0 : ʘɧƀɧƀf�ʘɧƀɧƀf�ʘɧƀɧƀf
 
 #.............................................................................
-#HHVRQG4HXH4IGKWJQ3GKLSGREKJCPYBKTXHGSUGMDI3CCU4JBNMCLKGWWSBMPGF7PF4X4CAIGKOJG
-#::: 4GAVKEM6BUSILLJ7XRJPPYTCZMK3JT6F7YRIZZYU3VEZBFUNK5O :::: NAILARA AMOS :::
-# :: Q4XIPXVRZQCU4LNGLR3NF25Z3L73KS7766PX6AHK5QOH4IQB2GAQ :: CODE SIGNATURE ::
+#EC47LQDWWIG6TDW5EMCGG6G6FDGWXQLOX56W7JDHPGYWTAAHWSIGHRYCAKPZVRTQ6S4XDZRUKW2OO
+#::: UPROIPNF2MMOJSXFGA5BRVTCGEUHBM7P4JGQRACPVYOV4NYKEKX :::: NAILARA AMOS :::
+# :: XNVGIWZU2I4HWOZZ6XG2GKROYUACVH6LC3HABO4D35VNYKL24CCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
