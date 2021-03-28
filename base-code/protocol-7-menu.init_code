@@ -8,16 +8,15 @@
 my $logo_image_path = <protocol-7-menu.image_path>
     //= <system.root_path> . '/data/gfx/logos/nailara.png';
 
-return <[base.logs]>->( 0, "[not found] image file '%s'", $logo_image_path )
+return <[base.logs]>->( 0, "[ not found ] image '%s'", $logo_image_path )
     if !-f <protocol-7-menu.image_path>;
 
-open STDERR, '>>/dev/null'
-    or warn "/dev/null: $OS_ERROR";    # silence on X-11 SIGTERM
+<[base.stderr_redir]>;    ## redirect STDERR ##
 
 0;
 
 #.............................................................................
-#ZZWESM6GXXXCOWNFMWRGMFVMOKCZHBYULQDBDHEUWRAHPIYPJEINS47N4MSVYZT4G5V74KBKDLYGM
-#::: 4BFFNHBWWWNZXNLTQMLE5RHUVM7D5LOZEPKR7OD4EOLI6QQV6Q5 :::: NAILARA AMOS :::
-# :: QSP245WEJJA2MDUXXJSNMZEP5JJSI3BJVULP7IAMUMWU5JUKHMDY :: CODE SIGNATURE ::
+#ISILHKO5AO5E7OVAKLE5BVRC6SSPFMGRZRSLDJRQJASB3NNS6PAK6MK4C3P37HB47FXBRFDF6LBQG
+#::: B3T67FSQIHNLQ2WU2L3RIGRRXQ52MEVNXM7GK2FLK5RYA62BBUW :::: NAILARA AMOS :::
+# :: PRGTLPG3CIUU7YGN36CR5SCJXRNI2DP5GP4D223CFSDQSHNTVQCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
