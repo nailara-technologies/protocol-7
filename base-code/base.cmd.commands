@@ -8,14 +8,16 @@ my $id      = $$call{'session_id'};
 my $user    = $data{'session'}{$id}{'user'};
 my $keyword = $$call{'args'};
 
-my $zenka_name = <system.zenka.name>;
-my $max_len    = 0;
-my @commands   = ();
+my @commands;
 my @dbg_cmds;
+
+my $zenka_name = <system.zenka.name>;
 
 <base.commands.is_debug> //= {};
 map { $ARG =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$ARG} //= 1 }
     grep {m|^debug.*\.cmd\.|} keys %code;
+
+my $max_len = 0;
 
 # getting a list of all commands the user [ who sent the request ] has access to
 foreach my $cmd (
@@ -35,7 +37,7 @@ foreach my $cmd (
         and $cmd !~ m|\Q$keyword\E|i
         and <base.commands.cmd>->{$cmd}->{'descr'} !~ m|\Q$keyword\E|i;
 
-    if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
+    $max_len = length($cmd) if length($cmd) > $max_len;
     my $is_debug_command = <base.commands.is_debug>->{$cmd} //= 0;
     if   ($is_debug_command) { push( @dbg_cmds, $cmd ) }
     else                     { push( @commands, $cmd ) }
@@ -66,7 +68,7 @@ $$reply{'data'} .= "\n";
 $$reply{'mode'} = 'data';
 
 #.............................................................................
-#4THNVGIF77BH3OCFBBNB2KEOAL2VAQ4ZYQ6OYYWTT2EXHMA5PGYKRYGI3YU34UJL2RAH3Z2TFSNAK
-#::: ELTLINDNNDNM62VAZO2HQUGZOFOSJEDOEUBIBOVBMC5JRGQSXNW :::: NAILARA AMOS :::
-# :: JXAPIHTXHS535SMXHR2ZTVMJE7LYSUZ7HEYD67ZIYCXWCXP56CAQ :: CODE SIGNATURE ::
+#LRYHFR7WIQ46V2XCHSJNYECSX5YL2AAMYZ7ZX2QN5X2DM4OYCA4ROXMJYGOD5ZCNMVUBSQIFI2WUO
+#::: HLIK2VJIJX7VJCH7AIOBRHS6Z5BIOENUBGO4JLUQ7O7IDBP7XQD :::: NAILARA AMOS :::
+# :: BIEC6LKAW3JVUNUJ63ULC6UF7M5KSESUCTWQPZZPLD4CGS63NCDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
