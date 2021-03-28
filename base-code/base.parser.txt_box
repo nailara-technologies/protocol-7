@@ -6,14 +6,11 @@
 my $param     = shift;
 my $title_str = shift // '';    # <- optional title string as second parameter
 
-my $t_ref   = ref($param) eq 'SCALAR' ? $param : \$param;
-my @lines   = split( /\n/, $$t_ref );
-my $max_len = 0;
+my $t_ref = ref($param) eq 'SCALAR' ? $param : \$param;
+my @lines = split( "\n", $$t_ref );
 
-$max_len = length($title_str) + 2 if length($title_str);    # <- third param.?
-
-map { $max_len = length($ARG) if length($ARG) > $max_len } @lines;
-my $len_2     = $max_len + 5;
+my $max_len   = max map {length} ( @lines, " $title_str " );
+my $len_2     = $max_len + 5;                 # include third parameter length ?
 my $title_bar = '  ,' . '.' x $len_2 . ',';
 
 if ( length($title_str) ) {
@@ -35,7 +32,7 @@ return join( "\n",
     '' );
 
 #.............................................................................
-#J7OY5REMR4YXMIRXEQ2KXLOUTCLGIIL526C3NXEQPVAY5VUMHAKCXWKSO74TM3DL2YVYMJOJDVG7S
-#::: 2BSI4ZDATZXLJ3WKTTHHNAIIAD77EY6NZ6YBCMX2HANA7YRJX2C :::: NAILARA AMOS :::
-# :: NPC5HHCUWO6EC6FVV5GZJT7QOMYK7YT66UGGWGRIAHHHCW23SGDY :: CODE SIGNATURE ::
+#GMD4ESZ4V2GV7WAT7LKKPTIYR4YLGHHWX4MK6BCMNGABCZFARGRU6L23UEXIDF6XS2GUPSEAJOXOG
+#::: V7SFQZGDDPQBJGTQBP65XD2TO5FJOHO3UUCC7J5P64LZZCMV36N :::: NAILARA AMOS :::
+# :: IH4LRBC3J6ZATKGTEEIF32V2EMTQ5VUXBIATZO23SSOPWAAU64AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
