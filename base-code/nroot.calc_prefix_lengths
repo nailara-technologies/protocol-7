@@ -7,21 +7,17 @@ my $apw_href = <nroot.zenka.prefix_width> //= {};
 
 my @online_zenki = keys %{<nroot.online-zenki>};
 
-foreach my $zenka_name ( @_, @online_zenki, 'nroot' ) { # <-- unique filter !!!
+foreach my $zenka_name ( uniq( @_, @online_zenki, 'nroot' ) ) {
     $apw_href->{$zenka_name} //= <[base.get_start_lpw]>->($zenka_name);
 }
 
-my $max_len = 0;
-foreach my $zenka_name ( sort { length $a <=> length $b } keys %{$apw_href} ) {
-    $max_len = $apw_href->{$zenka_name} if $max_len < $apw_href->{$zenka_name};
-}
+my $max_len = max map { $apw_href->{$ARG} } keys %{$apw_href};
 
 foreach my $zenka_name ( keys %{$apw_href} ) {
     next if $apw_href->{$zenka_name} == $max_len;
-
-    my @zenka_pids;
+    my @zenki_pid;
     map {
-        push( @zenka_pids, <nroot.zenka.instance>->{$ARG}->{'process'}{'id'} )
+        push( @zenki_pid, <nroot.zenka.instance>->{$ARG}->{'process'}{'id'} )
             if $ARG =~ m|^\d+$|;
     } split( "\n", <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'data'} )
         if $zenka_name ne 'nroot';
@@ -31,7 +27,7 @@ foreach my $zenka_name ( keys %{$apw_href} ) {
 
         while ( $delta_len-- ) {
             if ( $zenka_name ne 'nroot' ) {
-                kill qw| SIGUSR1 |, @zenka_pids;
+                kill qw| SIGUSR1 |, @zenki_pid;
                 <[base.sleep]>->(0.007) if $delta_len; # <-- make async ., [LLL]
             } else {
                 <[base.sig_usr1]>;
@@ -42,7 +38,7 @@ foreach my $zenka_name ( keys %{$apw_href} ) {
         my $delta_len = $apw_href->{$zenka_name} - $max_len;
         while ( $delta_len-- ) {
             if ( $zenka_name ne 'nroot' ) {
-                kill qw| SIGUSR2 |, @zenka_pids;
+                kill qw| SIGUSR2 |, @zenki_pid;
                 <[base.sleep]>->(0.007) if $delta_len; # <-- make async ., [LLL]
             } else {
                 <[base.sig_usr2]>;
@@ -55,7 +51,7 @@ map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
     ( keys %{$apw_href} );
 
 #.............................................................................
-#SI7RHY6LYS76AYNWXJZGQTLEO4VGDKX5IVIRYXLEPEXHTBZ2TZE5GHB4YSKGDIRR4RHI4N6WGL5AQ
-#::: JRZWJXUKLY2U3BMNWNW2ENDLMBPPWPUKMAGHQH3AJZPANHYWM36 :::: NAILARA AMOS :::
-# :: SUM4HEIJPCXC4O7MKCTHRRYZLAZZGEDLGKXC6BWGLZNY356HKMBA :: CODE SIGNATURE ::
+#5QU36YXKGW2U4U5D7T3IAV2TN34SRH7JVAXWJV4TPHKACCNFAKNQY7KLROLGGGYH5YP3FAN55HCWM
+#::: JJ6GQVIM56WBXHOCZ7LC75YUK6U7BSXDKMTT5F6NO3CF7JLLMM5 :::: NAILARA AMOS :::
+# :: NO2CEY3UJPQOYCRXIOCH6NRXNBHUSXWPL3BVJKBVDY2ZY7N5H4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

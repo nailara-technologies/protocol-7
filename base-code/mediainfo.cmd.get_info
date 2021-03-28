@@ -9,17 +9,15 @@ return { 'mode' => 'nak', 'data' => 'expected path to content file' }
 
 my ( $file_path, @info_keys ) = split( m| +|, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'file not found' }
-    if !-f $file_path;
+return { 'mode' => 'nak', 'data' => 'file not found' } if !-f $file_path;
 
 my $file_info = new Mediainfo( 'filename' => $file_path );
 
 @info_keys = sort( keys %{$file_info} ) if !@info_keys;
 
-my $info_reply;
-my $key_max_len = 0;
-map { $key_max_len = length($ARG) if length($ARG) > $key_max_len } @info_keys;
+my $key_max_len = max map {length} @info_keys;
 
+my $m_reply;
 foreach my $i_key (@info_keys) {
     return {
         'mode' => 'nak',
@@ -27,14 +25,14 @@ foreach my $i_key (@info_keys) {
         }
         if not exists $file_info->{$i_key};
 
-    $info_reply
+    $m_reply
         .= sprintf( "%-${key_max_len}s : %s\n", $i_key, $file_info->{$i_key} );
 }
 
-return { 'mode' => 'data', 'data' => $info_reply };
+return { 'mode' => 'data', 'data' => $m_reply };
 
 #.............................................................................
-#73SV4BWG45CMT6AEN3MZ7FP4OXI3DH47UFCUFLSRCCMUHLPTRTXEN5J553ZKYZ65YYP4GWONLAWIM
-#::: 4LVGX222RO5GOFQ3DIHF6E7C2EPAYOM6UPF7IE64GZGC7776Y2N :::: NAILARA AMOS :::
-# :: 5N4U2WAJEMD6UDOMDGIX44Q6YIMRHAXC3SGKE32TDNUJKUNZWEBA :: CODE SIGNATURE ::
+#DDAFYDZCCWIZXXRWKXVKYWL5MXDI5SPGWHRC4D5SDCD2NW3JB4ZJIZKKUY7NP5ALAUKGIAQ4O66UK
+#::: MYHGFQ5ZMJLNAQJPBFIIBMFH3KY2234XVFUVOPHUGPYQHHTNRGX :::: NAILARA AMOS :::
+# :: GKEKSMG34MY5B7QKFFWSLYR4A6ZZ73UVV67YBAFDPPCPER2ZVEDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
