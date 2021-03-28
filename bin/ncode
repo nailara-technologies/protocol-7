@@ -13,6 +13,7 @@ use IO::Select;
 use Cwd 'abs_path';
 use Term::ReadLine;
 use Term::ANSIColor;
+use List::Util qw| max |;
 no warnings 'experimental';
 use Digest::BMW qw| bmw_256 |;
 use Crypt::Misc qw| encode_b32r |;
@@ -129,10 +130,7 @@ sub cmd_description {
 
         print "\n    c o m m a n d     p a r a m e t e r s\n:\n";
 
-        my $max_len = 0;
-        foreach my $cmd ( keys(%commands) ) {
-            if ( length($cmd) > $max_len ) { $max_len = length($cmd) }
-        }
+        my $max_len = max map { length } keys %commands;
 
         foreach my $cmd ( sort( keys(%commands) ) ) {
             my $description_txt = 'not defined';
@@ -2286,7 +2284,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#YC3ZE3OEN75Q4BQ5FADURLE2U3FSF7JX7YDXRS7CTYOK3IYNW7DN5BQVPWFTWYC4RCLAQ2MCRPDOY
-#::: R5E7NUXGDOLGGYHUTKZXSXDTEMWK3ZTGKBG7H6JSQYXQC7UWEPJ :::: NAILARA AMOS :::
-# :: TIHY74XQJSRGUJQZ5TVGQPSSE6LGCG4XH6DL2JAI5S5G5XX4SMCI :: CODE SIGNATURE ::
+#VY4KKF4KDSI3SV3DCDZMWJOOURCGLZM22XQJ2GSZLBIIZVTOUYINAUS4KC6KCQNNV7UZJFNTT7EVY
+#::: 2HAEGUEQCIKDYNC6FLCJNNCTCCIWJYBDEGIQSVOKOKT7PXQZBPL :::: NAILARA AMOS :::
+# :: P36VCV3LKCHSHO2JQHZYBXTQWXGVHBJC3MGTVLCCVEMWYZUQPICA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

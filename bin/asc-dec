@@ -5,7 +5,6 @@ use English;
 use warnings;
 use Term::Size;
 use Getopt::Std;
-use Term::ANSIColor;
 use Digest::Elf qw| elf |;
 use Crypt::PRNG::Fortuna;
 use Text::Wrap qw| wrap |;
@@ -18,9 +17,9 @@ no warnings 'experimental';
 my $base_size  = '6';
 my $base_table = 'cp10007';
 
-## [LLL] disable ANSIColor on 'piped' STDOUT mode .., [$mode{Q}]
+## [LLL] disable ANSIColor on 'piped' STDOUT mode .., [$option{Q}]
 
-getopts( 'LhBSvs:r:eqQd:DC:U:', \my %mode );
+getopts( 'LhBSvs:r:Ep:eqQd:DC:U:', \my %option );
 
 ## table aliases ##
 utf8_charset_alias(
@@ -33,7 +32,7 @@ utf8_charset_alias(
     }
 );
 
-if ( $mode{'L'} ) {    ## list \ search tables [ -L ]
+if ( $option{'L'} ) {    ## list \ search tables [ -L ]
     say '.';
     my @charsets_available = utf8_supported_charset;
     ( my $s ) = ( @ARGV ? shift @ARGV : undef );
@@ -65,45 +64,46 @@ $y //= 25;
 
 my $screen_chars = $y * $x;
 
-say " $x x $y == $screen_chars" if $mode{'D'};   ## <-- '-D' debug mode is ..,
+say " $x x $y == $screen_chars" if $option{'D'};   ## <-- '-D' debug mode is ..,
 
-$skip_repeat_spaces = 0 if $mode{'S'};
+$skip_repeat_spaces = 0 if $option{'S'};
 
-my $result_prefix = ':: ';
+my $result_prefix = ': ';
 
-my $B32         = qr|[A-Z2-7]+|o;
-my $nailara_bg  = color('on_r09g05b41');
-my $nailara_fg  = color('r38g46b153');
-my $error_color = color('r195g71b6');
-my $blacklight  = color('r68g39b172');
-my $green       = color('r71g195b6');
+my $B32 = qr|[A-Z2-7]+|o;
 
-$mode{'q'} = 1        if $mode{'Q'};
-$mode{'C'} = 'BASE32' if defined $mode{'C'} and $mode{'C'} eq 'B';
+my $reset       = "\e[0m";
+my $nailara_bg  = "\e[48;2;9;5;41m";
+my $blacklight  = "\e[38;2;68;39;172m";
+my $nailara_fg  = "\e[38;2;38;46;153m";
+my $error_color = "\e[38;2;195;71;6m";
+my $neon_green  = "\e[38;2;71;195;6m";
+
+$option{'q'} = 1        if $option{'Q'};
+$option{'C'} = 'BASE32' if defined $option{'C'} and $option{'C'} eq 'B';
 
 my @B32_exclude
-    = grep {length} map { defined $mode{$ARG} && "-$ARG" } qw| S B v r d U |;
+    = grep {length} map { defined $option{$ARG} && "-$ARG" } qw| S B v r d U |;
 say sprintf( ":\n:: mutually exclusive modes selected [ -C BASE32 and %s ]\n",
     join( ', ', reverse sort @B32_exclude ) )
     and exit(4)
-    if defined $mode{'C'}
-    and $mode{'C'} eq 'BASE32'
+    if defined $option{'C'}
+    and $option{'C'} eq 'BASE32'
     and scalar(@B32_exclude);
 
-$mode{'d'} //= 0;
+$option{'d'} //= 0;
 
 $SIG{'__WARN__'} = sub {
     my $err = shift;
-    return if lc($err) =~ m|^wide character| or $mode{'q'};
+    return if lc($err) =~ m|^wide character| or $option{'q'};
     my $w = 44;
-    $err =~ s{ at .+$|\n+}{}g if not $mode{'D'};
+
+    #    $err =~ s{ at .+$|\n+}{}g if not $option{'D'};
     $err =~ s{[0\\]x(\S\S)}
     { $w+=-3+length("$nailara_fg");
     $blacklight.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
     $Text::Wrap::columns = $w;
-    print STDERR "$nailara_fg\r"
-        . wrap( '  ', '  ', $err )
-        . "\r$blacklight\n";
+    print STDERR "$nailara_fg\r" . wrap( '  ', '  ', $err ) . "\r$blacklight\n";
 };
 
 $| = 1;
@@ -111,12 +111,12 @@ input_complaint() and exit if !@ARGV;
 ( my $input_num = join( '', @ARGV ) ) =~ s|\D+||g;
 input_complaint() and exit if !length($input_num);
 
-my $U = $mode{'d'} // $base_size;
-$mode{'C'} //= $base_table if not defined $mode{'U'};
-my $C = $mode{'C'} // "UTF-$U";
+my $U = $option{'d'} // $base_size;
+$option{'C'} //= $base_table if not defined $option{'U'};
+my $C = $option{'C'} // "UTF-$U";
 
-if ( not $mode{'Q'} ) {
-    print $nailara_fg . ":\n" . $result_prefix if not $mode{'S'};
+if ( not $option{'Q'} ) {
+    print $nailara_fg . "\e[0J:\n" . $result_prefix if not $option{'S'};
     print $nailara_bg . $blacklight;
 }
 
@@ -133,7 +133,7 @@ if ( $C eq 'R' ) {
 ##
 
 $C = ':raw' if $C eq 'raw' or $C eq 'r';
-say ":\n:: ${error_color}character set '$C' not supported\n" . color('reset')
+say ":\n:: ${error_color}character set '$C' not supported\n" . $reset
     and exit(4)
     if $C ne ':raw'
     and $C !~ m|^UTF-\d{1,2}|
@@ -142,6 +142,9 @@ say ":\n:: ${error_color}character set '$C' not supported\n" . color('reset')
 
 my $encoding      = $C =~ m{^:|^BASE32$} ? $C : sprintf(":encoding($C)");
 my $encoding_mode = 'native';
+
+my $p = $option{'p'} // '';
+display_charset() and print "\e[${p}H" if $option{'E'};
 
 if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
 ## testing ##
@@ -152,7 +155,7 @@ if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
         and say "   $blacklight<< encoding"
         . " [${error_color}'$encoding'$blacklight]"
         . " not found >>  $nailara_fg\n:"
-        . color('reset')
+        . $reset
         and exit
         if $EVAL_ERROR;
 ## applying ##
@@ -161,26 +164,28 @@ if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
     $encoding_mode = 'map';
 }
 
-my $c_mode = $mode{'d'} // 1;
-$c_mode = 2 if $mode{'d'} !~ m|^\d+$|;
-my $delay = $mode{'s'} // 0.07;
-$delay = 0 if $mode{'S'};
+my $c_mode = $option{'d'} // 1;
+$c_mode = 2 if $option{'d'} !~ m|^\d+$|;
+my $delay = $option{'s'} // 0.07;
+$delay = 0 if $option{'S'} and not defined $option{'s'};
 
-$mode{'r'} //= 2.42 if $mode{'S'};
-my $repeat = $mode{'r'} // 0;
+$option{'r'} //= 2.42 if $option{'S'};
+my $repeat = $option{'r'} // 0;
 $repeat ||= 1;
 
-$screen_chars *= $repeat if defined $mode{'r'};
+$screen_chars *= $repeat if defined $option{'r'};
 
-if ( $mode{'q'} ) {
+if ( $option{'q'} ) {
     no warnings;
 }
 my $num_buffer;
+my $repeat_count   = {};
+my $last_num       = 0;
 my $last_char      = '';
 my $char_buffer    = '';
 my $input_num_copy = $input_num;
-while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
-    or !$mode{'S'} and $repeat-- ) {
+while ( $option{'S'} and length( $char_buffer // '' ) < $screen_chars
+    or !$option{'S'} and $repeat-- ) {
     while ( length($input_num) > 1 ) {
         my $c_count = $c_mode;
         if ( $c_mode < 2 ) {
@@ -191,12 +196,14 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
         }
         $c_count = length($input_num) if $c_count > length($input_num);
         printf "%s <%02d:%03d> %s", $nailara_fg, $c_count, $MATCH, $blacklight
-            if $mode{'v'};
+            if $option{'v'};
 
         last if $c_count < 2;
 
         my $c_num = $MATCH if $input_num =~ s|^\d{$c_count}||;
-        $c_num = 32 if not defined $c_num or $c_num < 32;
+        $c_num = 32
+            if not defined $c_num
+            or $c_num < 32 and ( !$option{'S'} or $c_num != 10 );
         $num_buffer .= $c_num;
 
         next if $C eq 'BASE32';    ## encode numericals as received ##
@@ -209,11 +216,38 @@ while ( $mode{'S'} and length( $char_buffer // '' ) < $screen_chars
 
         next if $skip_repeat_spaces and $char =~ m|\s| and $char =~ m|\s|;
         ## hightlight ##
-        $char = $green . $char . $blacklight
-            if $mode{'h'}
+        $char = $neon_green . $char . $blacklight
+            if $option{'h'}
             and ( exists $highlight->{$c_num} or @highlight_chars ~~ $char );
         ##
-        print $char and sleep $delay if $delay and $C ne 'BASE32';
+
+        my $del = $delay;
+        if ( $delay eq 'r' ) {
+            if ( $char eq $last_char ) {
+                $repeat_count->{$c_num}++;
+            } else {
+                map {
+                    $repeat_count->{$ARG}
+                        = sprintf( "%.10f", $repeat_count->{$ARG} * 0.97 );
+                    delete $repeat_count->{$ARG}
+                        if $repeat_count->{$c_num} < 0.0007;
+
+                } keys %{$repeat_count};
+                $repeat_count->{$c_num} //= 0.00007;
+            }
+
+            $del = sprintf( "%.10f",
+                ( rand() * ( $c_num / 777777777 ) ) / $repeat_count->{$c_num} );
+        }
+
+        # say " < del > $del " if $delay eq 'r';
+
+        print $char
+            and sleep $del
+            if defined $delay
+            and $delay ne '0'
+            and $C ne 'BASE32';
+
         $last_char = $char;
     }
 
@@ -236,7 +270,7 @@ if ( $C eq 'BASE32' ) {    ## special 'character set' BASE32 [ encoding ]
 
 } elsif ( defined $char_buffer ) {
 
-} elsif ( $mode{'B'} ) {    ## not working .., ## change ., ##
+} elsif ( $option{'B'} ) {    ## not working .., ## change ., ##
     ## [ experiments ]
     # $char_buffer = Encode::decode( 'UTF-7', $char_buffer );
     # $char_buffer =~ s|$B32||g;
@@ -246,33 +280,29 @@ if ( $C eq 'BASE32' ) {    ## special 'character set' BASE32 [ encoding ]
 print $char_buffer if defined $char_buffer and !$delay;
 
 ##############################################
-say ' ' . color('reset') . $nailara_fg . "\n:"
-    if not $mode{'S'} and not $mode{'Q'};
+say ' ' . $reset . $nailara_fg . "\n:"
+    if not $option{'S'} and not $option{'Q'};
 ##############################################
-if ( $mode{'e'} ) {
 
-    my $char_desc = " .:[ $green$C$nailara_fg ]:. ";
-    my $cd_len    = length($char_desc) - length( $error_color . $nailara_fg );
-    print "\r$nailara_fg$char_desc";
+display_charset() and $p-- and print "\e[${p}H:.$reset "
+    if $option{'e'} or $option{'E'};
 
-    if ( $mode{'S'} ) {
-        ## print substr( $char_buffer, 0, $x - $cd_len )."\n"; ## <-- repair ..,
-    } else {
+print $reset if not $option{'Q'};
 
-        say "\n " . ':' x ( $cd_len - 2 );
-        say "\n..,";
-    }
-    print $blacklight if not $mode{'Q'};
-
-}
-print color('reset') if not $mode{'Q'};
-
-my $wait = <STDIN> if $mode{'S'} and not defined $mode{'s'};
+my $wait = <STDIN> if $option{'S'} and not defined $option{'s'};
 
 sub input_complaint { say ":\n:: numerical input expected\n" }
 
+sub display_charset {
+    ( $x, $y ) = Term::Size::chars;
+    my $char_desc = " .:[ $neon_green$C$nailara_fg ]:. ";
+    my $cd_len    = length($char_desc) - length( $error_color . $nailara_fg );
+    print "$nailara_bg$blacklight\e[${y}H\e[0J$nailara_fg$char_desc\r ";
+    return 1;
+}
+
 #.............................................................................
-#GTUANMH3OTHXAZWSMDBPVR7UUIGRXOXCDZBL3H7BRZVSLR67RTQDDJWFS2PNDXIMAXAW324ZJZ5GS
-#::: G63HASQRUDXK7DALZ6E2SHELPW5ZZB2EJFHF67YUJZKPGODFTPK :::: NAILARA AMOS :::
-# :: KOFCRKZO66AFNIJS62PXT3YIPPEJU5MXAKEYGWZVI35FC62WQUCQ :: CODE SIGNATURE ::
+#MWBSMW2AWIMQJBGNBF3CCC72QL2ZX75ZVJ23NWX7CG2AMZIB6IJI35FMPIQOSIQYHC2VX3LRYYYYC
+#::: DI5UK5ZLYRRWTUOJD2JPI4E4KW3CPP4G27XIRFYJ6XOONH4ABTA :::: NAILARA AMOS :::
+# :: EIOHDR2DZ772ZMBHLJRWG5TPTLAFEDO4FUO3MVLNH5R3HXMO4KDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

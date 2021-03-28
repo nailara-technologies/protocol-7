@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+use v5.24;
+use utf8;
+use strict;
+use PerlIO;
+use English;
+use warnings;
+use IO::File;
+use Term::Size;
+use Getopt::Std;
+use Time::HiRes qw| sleep |;
+autoflush STDOUT 1;
+
+getopts( 's:l:T:', \my %option );
+
+my $display_file = shift @ARGV // '';
+
+say ":\n:: expected file path argument ::\n" and exit(4) if $display_file eq '';
+say ":\n:: not found : $display_file ::\n"   and exit(4) if !-e $display_file;
+
+my @asc_dec_opts = qw| -q -d0 -r0 -p4 -sr |;    # -ECR
+
+push( @asc_dec_opts, '-C', $option{'T'} ) if defined $option{'T'};
+push( @asc_dec_opts, '-e' ) if defined $option{'T'} and $option{'T'} eq 'R';
+
+$option{'w'} //= 0;
+
+my $nailara_bg = "\e[48;2;9;5;41m";
+my $blacklight = "\e[38;2;68;39;172m";
+
+( my $x, my $y ) = Term::Size::chars;
+$x //= 80;
+$y //= 25;
+
+my $screen_chars = $y * $x;
+
+my $disk_fh = IO::File->new( $display_file, 'r' )
+    or die ":\n:: \l$OS_ERROR :: $display_file\n\n";
+say ":\n:: no success on open : $display_file ::\n" and exit(4)
+    if not defined $disk_fh;
+
+my $offset     = 0;
+my $bytes_left = $option{'l'};
+
+my $b_size = $screen_chars * 0.38;
+
+$disk_fh->seek( $option{'s'}, $option{'w'} ) if defined $option{'s'};
+
+$b_size = $bytes_left if defined $bytes_left and $b_size > $bytes_left;
+
+print "\e[3H$nailara_bg\e[1J\e[0m\n";
+printf( "\e[H$blacklight %s \n::%s::\n", '.' x ( $x - 2 ), '.' x ( $x - 4 ) );
+while ( ( not defined $bytes_left or $bytes_left > 0 )
+    and not $disk_fh->eof ) {
+    my $buffer = '';
+RE_READ:
+    $disk_fh->sysread( $buffer, $b_size, length($buffer) );
+
+    # goto PAST_ZULUM;
+    goto RE_READ if $buffer =~ m|^\0+$|;
+    $buffer =~ s|[\0\n\v]+|\n|g;
+    if ( not $disk_fh->eof ) {
+        my $b_len = length($buffer);
+        goto RE_READ if ( not $b_len or $buffer =~ m|^\s+$| );
+        goto RE_READ
+            if $b_len < $b_size
+            or defined $bytes_left and $b_len < $bytes_left;
+    }
+
+    # PAST_ZULUM:
+
+    $bytes_left -= length($buffer) if defined $bytes_left and defined $buffer;
+
+    my $num_dec = join(
+        '',
+        map {    # $ARG = "\n" if $ARG eq '├';
+            sprintf( "%03d", ord($ARG) )
+            }
+            split( '', $buffer )
+    );
+
+    ################################################################
+    system( 'asc-dec', @asc_dec_opts, $num_dec ) if length $num_dec;
+    ################################################################
+
+    if ( defined $option{'T'} and $option{'T'} eq 'R' ) {
+        ( $x, $y ) = Term::Size::chars;
+        if ( defined $option{'s'} ) {
+
+            seek( $disk_fh, $option{'s'}, $option{'w'} );
+
+            printf( "\e[0J\e[${y}H%s\n::%s::\e\[H", '.' x $x,
+                '.' x ( $x - 4 ) );
+            if ( $x > 2 ) {
+                printf(
+                    "\e[0H %s \n::%s::\n",
+                    '.' x ( $x - 2 ),
+                    '.' x ( $x - 4 )
+                );
+            }
+
+            # print "\e[H";
+        }
+    }
+    $b_size = $bytes_left if defined $bytes_left and $b_size > $bytes_left;
+    sleep 0.1705;
+}
+
+not defined $disk_fh
+    or not $disk_fh->opened
+    and die ":\n::[E]:. '$display_file' <-- not opened .,\n\n";
+$disk_fh->close or die ":\n::[E]:. '$display_file' <-- \l$OS_ERROR .,\n\n";
+
+print "\e[0J\n$blacklight\e[5m.\e[0m$blacklight\n:\n:.\e[5m.\e[0m  "
+    if not defined $bytes_left;
+
+sub term_size {    ### not working yet .., check .., ### [LLL]
+    my $handle = shift // *STDIN;          ## use *STDOUT for pipe detection ##
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = 21523;
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    return [ unpack 'S!S!S!S!', $size ]    ## <-- [ <x>, <y>, <x-px> <y-px> ]
+}
+
+#.............................................................................
+#STUYOWJ3PREOVZVQE2DWIQREQVA2P5NJJJMDBFUP6OUHEBH2W7XUDX4UUL24YO4I7S6YYSFF5AFQS
+#::: 6DIDSQUDTOR5EXBQ5ILFLJ6PCLX6Z46V4BO65MQIJFWOHNL2OGL :::: NAILARA AMOS :::
+# :: VJIN5LA77HMWWWXYXEMTDYAO4L3NBLUTQNFIOQUQ4GZNWE7I2WDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
