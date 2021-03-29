@@ -1,7 +1,7 @@
 # >:]
 
 # name = base.root.drop_privs
-# todo = more cleanup.,
+# note = more cleanup required .,
 
 my $noop = ( defined $_[1] and $_[1] eq 'noop' ) ? 1 : 0;
 
@@ -15,15 +15,15 @@ if ( !length( $user // '' ) ) {
     <[base.log]>->(
         0, '<< cannot drop priviledges [ no user name supplied ] >>'
     );
-    <[base.exit]>->(110) if !$noop;
+    <[base.exit]>->('0110') if !$noop;
     return -1;
 } else {
 
     my ( $name, $pwd, $uid, $gid, $quota, $comment, $gcos, $home_dir, $shell )
         = getpwnam($user);
 
-    my %_gid = map { $ARG => 1 } split( m| |, $GID );
-    my %egid = map { $ARG => 1 } split( m| |, $EGID );
+    my %_gid = map { $ARG => 1 } split( ' ', $GID );
+    my %egid = map { $ARG => 1 } split( ' ', $EGID );
 
     if (    !$noop
         and defined $name
@@ -31,20 +31,20 @@ if ( !length( $user // '' ) ) {
         and exists $egid{$gid}    # [LLL] complete secondary group[s] setup .,
         and $EUID == $uid and $UID == $uid
     ) {
-        <[base.log]>->( 1, "root.drop_privs: already am '$user', doing nothing." );
+        <[base.log]>->( 1, "< drop_privs > already '$user', doing nothing." );
         return -2;
     } elsif ($UID) {
         <[base.log]>->(
-            0, "<< cannot change privs to user '$user' [ not root ] >>"
+            0, "<< cannot drop privs to user '$user' [ not root ] >>"
         );
-        <[base.exit]>->(110) if !$noop;
+        <[base.exit]>->('0110') if !$noop;
         return -1;
     } else {
         if ( not defined $name or $name ne $user ) {
             <[base.log]>->(
-                0, "<< cannot change privs to '$user' [ no such user ] >>"
+                0, "<< cannot drop privs to '$user' [ no such user ] >>"
             );
-            <[base.exit]>->(110) if !$noop;
+            <[base.exit]>->('0110') if !$noop;
             return -1;
         } else {
             my @rgids;
@@ -89,7 +89,8 @@ if ( !length( $user // '' ) ) {
                 } else { # creating temporary home directory for user 'nobody':.
                     my $tdir_template
                         = <system.zenka.name> ne 'nroot'
-                        ? sprintf "temp-home.%s.%s.%d", <system.zenka.name>, $user, $PID
+                        ? sprintf "temp-home.%s.%s.%d", <system.zenka.name>,
+                        $user, $PID
                         : sprintf "temp-home.%s.XXXXXXXXXX", $user;
                     $home_dir
                         = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
@@ -128,15 +129,15 @@ if ( !length( $user // '' ) ) {
             $ENV{'HOME'}            = $home_dir;
             $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
             $ENV{'NO_AT_BRIDGE'}    = 1;
-            chdir($home_dir) or warn "chdir( $home_dir ): $OS_ERROR\n";
+            chdir($home_dir) or warn ":: \l$OS_ERROR : chdir[ $home_dir ] ::\n";
 
-            <[base.log]>->( 1, "changed priviledges to user '$user'" );
+            <[base.log]>->( 1, "switched to unix user '$user'.," );
         }
     }
 }
 
 #.............................................................................
-#MGUWM5ZP7337K4T4JZYIWHJ32UIEOBVG2QGE6FB6YP4RDVHZN2IVGJOZ6ONCJYAVZNGDZLVJ3L5AW
-#::: 7RWB2IP3LNWOAC5M5O5Z5QPYPCJBQOJM2ZVVLQO23YWOQNYBOLP :::: NAILARA AMOS :::
-# :: 4L46YX3G6AWKDPTIY6KWKZUJLAI6NE45L6URW5BSR5XKWDLJWADY :: CODE SIGNATURE ::
+#K3LPZISYD2P73RR47HOBPLVLYTKGDW7XQY2ULVUJHBNBHVCECHOGZ3ED443YGKHDU2JYZFEHE7WIC
+#::: BVJBMTLOHVQREZII54MPOEE3EWGL3EPHJRPQ5A4MCQ542COASOR :::: NAILARA AMOS :::
+# :: NJCMTQVJURJKWQH2A24A55VCDAG7KTZHXN4P4VKSB5O7D5CO3YDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
