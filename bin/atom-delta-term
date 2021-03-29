@@ -198,8 +198,7 @@ RECALC:
     $state->{'page-legend'} = '';
 
     $state->{'result-13'}
-        = scalar $math->{'zulum'}->copy()
-        ->bdiv( 13, $state->{'screen-bytes'} );
+        = scalar $math->{'zulum'}->copy()->bdiv( 13, $state->{'screen-bytes'} );
 
     ## shift for zulum prefix ##
     my $zulum_offset = 0;
@@ -365,8 +364,7 @@ ADD_CHARACTERS:
         ### [ \r ] ###
         my $cr_pos = index( $decoded_chars, "\r" );
         if ( $cr_pos > -1 ) {
-            substr( $decoded_chars, $cr_pos, $chars_left )
-                = ' ' x $chars_left;
+            substr( $decoded_chars, $cr_pos, $chars_left ) = ' ' x $chars_left;
             $chars_left = $line_width;
         }
 
@@ -385,8 +383,7 @@ ADD_CHARACTERS:
     my $endline_pos = index( $decoded_chars, "\n" );
     if ( $endline_pos > -1 ) {
 
-        substr( $decoded_chars, $endline_pos, $chars_left )
-            = ' ' x $chars_left;
+        substr( $decoded_chars, $endline_pos, $chars_left ) = ' ' x $chars_left;
         $chars_left = 0;
     }
 
@@ -473,17 +470,11 @@ sub bmw_BASE32 {
 sub network_time { return encode_b32r( pack( 'w*', calc_ntime() ) ) }
 
 sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
-    my $precision   = 3;
-    my $ntime_start = 1023228000;
-
-    my $retries_left    = 24;               ## <-- configure [ retries-max ]
-    my $collision_delay = 0;
-    my $last_time       = 0;
-    my $unix_precision  = $precision + 2;
-
-    my $unix_time = sprintf( "%.0${unix_precision}f", time() );
-
-    my $ntime = sprintf( "%.0${precision}f",
+    my $precision      = 3;
+    my $ntime_start    = 1023228000;
+    my $unix_precision = $precision + 2;
+    my $unix_time      = sprintf( "%.0${unix_precision}f", time() );
+    my $ntime          = sprintf( "%.0${precision}f",
         ( ( $unix_time - $ntime_start ) * 4200 ) );
 
     return $ntime;
@@ -503,8 +494,7 @@ sub checksum_state {
         'bmw' => bmw_BASE32( \$state_dump )
     };
     $$state_ref->{'checksum'}
-        = join( '-', $checksums->{'elf'},
-        substr( $checksums->{'bmw'}, 0, 4 ) );
+        = join( '-', $checksums->{'elf'}, substr( $checksums->{'bmw'}, 0, 4 ) );
 
     return $checksums;    ## B32-elf + B32-bmw-512 ##
 }
@@ -577,8 +567,7 @@ sub sig_int_handler {
                 print "\eH\e[0m\e[40m\e[34m\r\n< awaiting command > ";
             }
             chomp( $cmd = <STDIN> // '' );
-            $cmd =~ s|^\d+||
-                ;    ## clean-up [ garbled by ansi ] ## [inversitgate.]
+            $cmd =~ s|^\d+||; ## clean-up [ garbled by ansi ] ## [inversitgate.]
             $set_up->{'prompt-hidden'} = 0 if length($cmd);
         }
         $state->{'last-cmd'} = $cmd
@@ -696,7 +685,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#7ERCV5GLIN3LPRXIZ66FUGSWCKTWV2RABGEPPNO2MAV5I4HO4ATMXISLSTIOVY2WY63Q3HFWXU236
-#::: 2HSNGEUZTUW4TPLMMNQD3CM2AI7GIYEOBOWOY5AZJIYS3ZKGWZP :::: NAILARA AMOS :::
-# :: ZFDDYNANHLRSPAAYH5VLNARWQOO47VAVIOAOUS5MVGRP5R5OBYCY :: CODE SIGNATURE ::
+#FSJB4YPNS72D5CTO3TUPC6IDDSPHBYUL6UXIUBWDVYMVUF3CS5UVC2MWREX4ZIARBXN2Q3MEYXCYO
+#::: IW7UZHCP2MIABHCN65BE5J4Z7ARHS3Q2KKJARCR2OG5WCJQRVDT :::: NAILARA AMOS :::
+# :: BGNCZMOR3KTS25SGV3RLRLKIDKFAZ5O353HY7YCSYK5WGAFHEKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
