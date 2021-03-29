@@ -79,6 +79,8 @@ my $nailara_fg  = "\e[38;2;38;46;153m";
 my $error_color = "\e[38;2;197;141;7m";
 my $neon_green  = "\e[38;2;71;195;6m";
 
+$SIG{'INT'} = \&int_exit;
+
 $option{'q'} = 1        if $option{'Q'};
 $option{'C'} = 'BASE32' if defined $option{'C'} and $option{'C'} eq 'B';
 
@@ -111,7 +113,8 @@ input_complaint() and exit if !@ARGV;
 ( my $input_num = join( '', @ARGV ) ) =~ s|\D+||g;
 input_complaint() and exit if !length($input_num);
 
-my $U = $option{'d'} // $base_size;
+# my $U = $option{'d'} // $base_size;
+my $U = $option{'U'};
 $option{'C'} //= $base_table if not defined $option{'U'};
 my $C = $option{'C'} // "UTF-$U";
 
@@ -160,7 +163,7 @@ if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
         if $EVAL_ERROR;
 ## applying ##
     binmode( STDOUT, $encoding );
-} elsif ( $C ne 'BASE32' ) {
+} elsif ( $C ne 'BASE32' or not defined $U or $U ne '8' ) {
     $encoding_mode = 'map';
 }
 
@@ -208,9 +211,14 @@ while ( $option{'S'} and length( $char_buffer // '' ) < $screen_chars
 
         next if $C eq 'BASE32';    ## encode numericals as received ##
 
-        my $char = chr($c_num);
-        $char = to_utf8( { -string => pack( 'U', $c_num ), -charset => $C } )
-            if $encoding_mode eq 'map';
+        my $char;
+        if ( defined $U and $U eq '8' ) { $char = pack( 'U', $c_num ) }
+        else                            { $char = chr($c_num) }
+
+  #        $char = to_utf8( { -string => pack( 'U', $c_num ), -charset => $C } )
+
+        #        $char = to_utf8( { -string => $char, -charset => $C } )
+        #            if $encoding_mode eq 'map';
 
         $char_buffer .= $char;
 
@@ -291,6 +299,8 @@ print $reset if not $option{'Q'};
 
 my $wait = <STDIN> if $option{'S'} and not defined $option{'s'};
 
+sub int_exit { say "\b\b .: $reset${blacklight} :[INT]:\n:$reset\n"; exit(4) }
+
 sub input_complaint { say ":\n:: numerical input expected\n" }
 
 sub display_charset {
@@ -302,7 +312,7 @@ sub display_charset {
 }
 
 #.............................................................................
-#YMGQ4XXEGLXARKO4MU7224GCIVP4MJJWBRONOLJ6QE62SHDTWC4EVOUCTRRG2R24DZDJM4U733HYG
-#::: 5LFZCYPKL72633Y3F3ZIHX766BX2ZLKTYRO7JMDOGKPVFC4GSZD :::: NAILARA AMOS :::
-# :: ENJ6NMQIOSEIBNDQTNNW6UNHSWOB2AU6MWYT6LX6HVFGBECUVIAI :: CODE SIGNATURE ::
+#F7F6NF4HUODTFYOAWT7JDBS4MDSS3S5TXCY7AROLVMFCYI2GWFLGTTVNUBJX2V6CAL76S5X3VSA4W
+#::: IQXQPJGCDBYTQV6L6NMINWHKFOEGEHIK4SM6E6BGYY64FGOBWNV :::: NAILARA AMOS :::
+# :: 6OEXDOUZU2FCHKMWH7YNNO6YUVA753YCL54337GCEWH3OSVZMSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
