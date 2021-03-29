@@ -3,83 +3,103 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Digest::Elf;
 use Getopt::Std;
 use Math::BigFloat;
-use Term::ANSIColor;
-use Digest::Elf qw| elf |;
+use IPC::System::Simple qw| capturex |;
 binmode( STDOUT, ':encoding(UTF-8)' );
+
+getopts( 'VNDcanhqvBl:d:A:T:Zz', \my %option );
 
 no warnings 'experimental';
 
-getopts( 'DcanhqvBl:d:A:T:Zz', \my %mode );
+my $false = '076923'; ##  <--  LΛ == FALSE   ## [      1 / 13 =     [0.]076923.]
+##                                                                      ^^^^^^
+my $true = '461538';  ##  <--  ǍȚ == TRUE    ## [ 230769 / 13 = [17751.]461538.]
+##                                                ^^^^^^                ^^^^^^
+##                                       result rolls over with divided number
 
-$mode{'A'} //= "-r4.2 -e -d$mode{z} -S"
-    if $mode{'Z'}
-    and defined $mode{'T'}
-    and $mode{'T'} eq 'R';
-$mode{'z'}
+## [ NOTES ]
+#
+## MAYA [0]910 Ύ [4] [0]511 ǿ [0]932 Τ [0]076 L [0]923 Λ
+## MAYA [0]910 Ύ [4] [0]511 ǿ [0]932 Τ [0]461 Ǎ [0]538 Ț
+#
+## (˃˫
+#
+##         Azurum : 0010 :   light    :  male  :. [0]040 :: (
+##          Zulum : 0000 :    dark    : female .: [0]707 :: ˃
+## [ 7 ] Septioum : 0110 : blacklight :  party :: [0]747 :: ˫
+
+our $assertion = { 'false' => $false, 'true' => $true };
+
+$option{'A'} //= "-r4.2 -e -d$option{z} -S"
+    if $option{'Z'}
+    and defined $option{'T'}
+    and $option{'T'} eq 'R';
+$option{'z'}
     //= 8;    ## <-- digit read size override for 'asc-enc' fullscreen mode
-$mode{'A'} //= "-r4.2 -d$mode{z} -S"
-    if $mode{'Z'};    ## -Z is 'full-screen' mode
-$mode{'T'} //= rand(2) % 2 ? '851' : '857' if $mode{'Z'};   ## <-- full-screen
-$mode{'T'} //= qw|    MS-ICELAND    |;  ## <-- 'asc-enc' table [ when in use ]
-$mode{'l'} //= 50;                      ## <-- blue midnight wish entropy size
-$mode{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
-$mode{'B'} = !$mode{'B'};    ## BMW mode enabled by default
+$option{'A'} //= "-r4.2 -d$option{z} -S"
+    if $option{'Z'};    ## -Z is 'full-screen' mode
+$option{'T'} //= rand(2) % 2 ? '851' : '857' if $option{'Z'}; ## <-- full-screen
+$option{'T'} //= qw| 17 |;    ## <-- 'asc-enc' table [ when in use ]
+$option{'l'} //= 50;          ## <-- blue midnight wish entropy size
+$option{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
+$option{'B'} = !$option{'B'};    ## BMW mode enabled by default
 
-my @asc_dec = qw| asc-enc -q |;
+my @asc_enc = qw| asc-enc -q |;
 
 die ":\n:: divisor not valid [ expected numerical ]\n\n"
-    if $mode{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
+    if $option{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
 
-$mode{'h'} = 1 if !$mode{'S'};
-$mode{'q'} = 1 if $mode{'v'};
+$option{'h'} = 1 if !$option{'S'};
+$option{'q'} = 1 if $option{'v'} or $option{'V'};
 
-my $nailara_bg = color('on_r09g05b41');
-my $nailara_fg = color('r38g46b153');
-my $blacklight = color('r68g39b172');
-my $green      = color('r71g195b6');
-my $blink      = "\e[6m";
-my $reset      = "\c[[m";
+my $nailara_bg  = "\e[48;2;9;5;41m";
+my $blacklight  = "\e[38;2;68;39;172m";
+my $nailara_fg  = "\e[38;2;38;46;153m";
+my $error_color = "\e[38;2;197;141;7m";
+my $neon_green  = "\e[38;2;71;195;6m";
+my $blink       = "\e[6m";
+my $bold        = "\e[1m";
+my $reset       = "\e[0m";
+
+# my $reset     = "\c[[m";
+
+$SIG{'INT'} = sub { print "\b\b"; int_exit() };
 
 my %col = (
     'str' => $nailara_bg . $nailara_fg,
     'bg'  => $nailara_bg,
     'fg'  => $nailara_fg,
     'r'   => $reset,
-    'm_y' => $nailara_bg . $green,
-    'm_n' => $nailara_bg . $green,
+    'm_y' => $nailara_bg . $neon_green,
+    'm_n' => $nailara_bg . $neon_green,
     'y'   => $blink . $blacklight,
-    'n'   => $green,
+    'n'   => $neon_green,
     'b'   => $blacklight,
 );
 
-my $check_string
-    = Encode::decode_utf8( join( ' ', @ARGV ), 8 );    # [8:LEAVE_SRC]
-my $elf_checksum = $mode{'n'} ? $check_string : sprintf "%09d",
-    elf($check_string);
+my $check_string = Encode::decode_utf8( join( ' ', @ARGV ), 8 ); # [8:LEAVE_SRC]
+my $elf_checksum = $option{'n'} ? $check_string : elf_checksum($check_string);
 
 my $bmw_checksum;
-chomp( $bmw_checksum = qx| bmw -d -$mode{'l'} '$check_string' | )
-    if $mode{'B'};
+eval {
+    chomp( $bmw_checksum
+            = capturex( qw| bmw -d |, "-$option{'l'}", $check_string ) );
+} if $option{'B'};
 
 my $accuracy = 17;
 
 Math::BigFloat->round_mode('trunc');
 Math::BigFloat->accuracy($accuracy);
 
-if ( $mode{'d'} != 0 ) {
+if ( $option{'d'} != 0 ) {
     $elf_checksum
-        = Math::BigFloat->new($elf_checksum)->bdiv( $mode{'d'}, $accuracy );
+        = Math::BigFloat->new($elf_checksum)->bdiv( $option{'d'}, $accuracy );
     $check_string = $elf_checksum;
 }
 
 Math::BigFloat->accuracy( $accuracy + length($elf_checksum) );
-
-my $false = '076923';    ## <-- #   ǽ ## FALSE ##
-my $true  = '461538';    ## <-- #  ǍȚ ##  TRUE ##
-
-our $assertion = { 'false' => $false, 'true' => $true };
 
 my $calc     = Math::BigFloat->new($elf_checksum);
 my $calc_str = $calc->bdiv( 13, $accuracy + length($elf_checksum) );
@@ -115,18 +135,26 @@ if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
     $result = "$col{fg}>:| $col{b} [ $col{'n'}not true$col{b} ]";
 }
 
-$col{'str'} = $green if $return_code == 0;
+$col{'str'} = $neon_green if $return_code == 0;
 
-my $q = $mode{'n'} ? '' : "$col{'b'}'$col{'r'}";
+my $q = $option{'n'} ? '' : "$col{'b'}'$col{'r'}";
 print "\n$space_0$q$col{'str'}$check_string$col{'r'}$q $col{fg} === $col{r}"
     . " $result\n\n$space_1$line_str\n$col{r}\n"
-    if not $mode{'q'};
+    if not $option{'q'} and not $option{'N'};
 
 my $status = $return_code == 0 ? 'true' : 'false';
 
-display_result( $status, $res_copy, $mode{'T'}, $bmw_checksum );
+( my $num_val = $res_copy ) =~ s{\.(\d+)?$|\D+}{}g;
 
-say $res_copy if $mode{'v'};
+if ( not $option{'q'} ) {
+    display_result( $status, $res_copy, $option{'T'}, $bmw_checksum );
+}
+
+if ( $option{'v'} ) {    ## entire division by 13 result ##
+    say $res_copy;
+} elsif ( $option{'V'} ) {    ## first result part ##
+    say $num_val;
+}
 
 exit($return_code);
 
@@ -180,49 +208,70 @@ sub display_result {
 
     # say "< res-0000.1 > '$result'";
 
-    if ( not $mode{'q'} ) {
+    @asc_enc = ( qw|asc-enc -q -r0 -C|, $table_name );
 
-        @asc_dec = ( qw|asc-enc -q -r0 -C|, $table_name );
+    push( @asc_enc, qw| -s0 | ) if $status ne 'true';
 
-        push( @asc_dec, qw| -s0 | ) if $status ne 'true';
+    push( @asc_enc, qw| -d4 | );
 
-        my @exec_args;
+    my @exec_args;
 
-        $check_string =~ s'(\.\d+$|\D+)''g if $mode{'c'};
+    $check_string =~ s'(\.\d+$|\D+)''g if $option{'c'};
 
-        ( my $code = $mode{'c'} ? $check_string : $result );
-        die ":\n:: check-string not numerical ['$code']\n\n"
-            if $code !~ m|^\d+$|;
-        ##
-        if ( defined $mode{'A'} )
-        {    ## -A'<param>' : asc-enc pass through parameter
-            my $passthrough_params = join( ' ', split( ' +', $mode{'A'} ) );
-            $passthrough_params = "-$passthrough_params"
-                if $passthrough_params !~ m|^-|;
-            ####
-            @exec_args
-                = ( @asc_dec, split( ' +', $passthrough_params ), $code );
-        } else {
-            ####
-            push( @asc_dec, qw| -s0 | )
-                if $return_code == 1;    ## no delay on false
-            @exec_args = ( @asc_dec, $code );
-        }
-
-        say "< exec-args > " . join( ' ', @exec_args ) if $mode{'D'};
-        system(@exec_args);
-
-        say $col{'b'} . '.. .,' . $col{'r'};
+    ( my $code = $option{'c'} ? $check_string : $result );
+    die ":\n:: check-string not numerical ['$code']\n\n"
+        if $code !~ m|^\d+$|;
+    ##
+    if ( defined $option{'A'} )
+    {    ## -A'<param>' : asc-enc pass through parameter
+        my $passthrough_params = join( ' ', split( ' +', $option{'A'} ) );
+        $passthrough_params = "-$passthrough_params"
+            if $passthrough_params !~ m|^-|;
+        ####
+        @exec_args = ( @asc_enc, split( ' +', $passthrough_params ), $code );
+    } else {
+        ####
+        push( @asc_enc, qw| -s0 | ) if $return_code == 1;    ## false. no delay
+        @exec_args = ( @asc_enc, $code );
     }
 
+    say "< exec-args > " . join( ' ', @exec_args ) if $option{'D'};
+
+    ##########################################
+    int_exit() if system(@exec_args) >> 8 == 4;
+    ##########################################
+
+    return if $status eq 'false';
+
+    my $assertion_result = system( $PROGRAM_NAME, '-q', $num_val ) >> 8;
+    if ( $assertion_result == 0 ) {    ##  deeper truth .,
+        int_exit() if system( $PROGRAM_NAME, '-N', $num_val ) >> 8 == 4;
+    } elsif ( $assertion_result == 4 ) {
+        int_exit();
+    } else {
+        say $col{'b'} . ':.,' . $col{'r'} . "\n";
+    }
 }
 
+sub elf_checksum {
+    my $input    = shift // '';
+    my $checksum = '000000000';
+    return $checksum                     if not length($input);
+    $checksum = Digest::Elf::elf($input) if length($input) <= 47;
+    chomp( $checksum = capturex( 'elf', $input ) )
+        if length($input) > 47
+        or length($checksum) > 9;
+    return sprintf( "%09d", $checksum );
+}
+
+sub int_exit { print $reset; exit(4) }
+
 ## [ NOTES ]
-# 2 : îŤΛLΛL
-# 0 : ʘɧƀɧƀf�ʘɧƀɧƀf�ʘɧƀɧƀf
+# 0 : ǍȚ <-- true
+# 1 : ΛL <-- false
 
 #.............................................................................
-#EC47LQDWWIG6TDW5EMCGG6G6FDGWXQLOX56W7JDHPGYWTAAHWSIGHRYCAKPZVRTQ6S4XDZRUKW2OO
-#::: UPROIPNF2MMOJSXFGA5BRVTCGEUHBM7P4JGQRACPVYOV4NYKEKX :::: NAILARA AMOS :::
-# :: XNVGIWZU2I4HWOZZ6XG2GKROYUACVH6LC3HABO4D35VNYKL24CCI :: CODE SIGNATURE ::
+#3ZC23CD3LNWBZM6VIQXOHMCHXS6N6QSX4SCHNYXSZDUR3XVQWK42OINDVT6S6VVLNKOEVXQ2H4YZA
+#::: LEI4O3MN7BUR7CQMD7BEUDTNSIICBIJOVVMQRKO7BQNIE63GNF2 :::: NAILARA AMOS :::
+# :: PXCH5C3VK7RZ4ULOY2SYVPLXIUWWG3XF6V74CQZ4UBVQRAVCHKBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

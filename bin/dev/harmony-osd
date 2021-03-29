@@ -12,18 +12,18 @@ exit(0) if not length $check_string;
 
 my $text_file = '/tmp/.osd_harmony.' . $PID;
 my @aosd_opts
-    = ( qw| -p 1 -e 1 -o 2400 -y 17 -x 0 -n WhiteRabbit -i |, $text_file );
+    = ( qw| -p 1 -e 1 -o 7777 -y 44 -x 0 -n WhiteRabbit -i |, $text_file );
 
 my $msg;
 if (system( qw| harmony -q |, $check_string ) == 0
     and ( $check_string !~ m|^\d+(\.\d+)?$|
         or system( qw| harmony -q -n |, $check_string ) == 0 )
 ) {
-    $msg = "'$check_string'  IS  HARMONIC =)\n";
-    push( @aosd_opts, qw| -u 2400 -R #0069B7 | );
+    $msg = "'$check_string'    TRUE  IS  =)\n";
+    push( @aosd_opts, qw| -u 2777 -R #230769 | );
 } else {
-    $msg = "'$check_string'  is  _NOT_  harmonic  `:|\n";
-    push( @aosd_opts, qw| -u 1200 -R #7700CD | );
+    $msg = "'$check_string'   is  FALSE `:|\n";
+    push( @aosd_opts, qw| -u 1389 -R #690723 | );
 }
 
 open( FILE, '>', $text_file ) or die "[ $text_file ] $!\n";
@@ -33,7 +33,7 @@ close FILE;
 system( '/usr/bin/aosd_cat', @aosd_opts );
 
 #.............................................................................
-#B5D7YFAB5Z2UZY2GYRV6RWYNDPZO7GEYX3RKQLD5FIHT7WMGRD227ZSLICSZRKRCKISEWHKEHLWLG
-#::: IJFUFD7KD75KDC2KJZAAUH3NLYBHPQI5R3SJC7VKMCX6JGQGZIX :::: NAILARA AMOS :::
-# :: WVPVRXVTRX4N332J2QVEOML6PSSG46FH22H5UZSTSORBZAJGYODI :: CODE SIGNATURE ::
+#NPIWP7NWIDT3IH74V264TGMHU3X4MZR4FY3V7RJNMM6CY2DCFUT7C4OE5NHIGTPS2AI5KAKBCA6WO
+#::: WK4NMQQPSLFBZMI5XASBFTCDJSVTORONE2PPIVWFPV3VJYA5QO7 :::: NAILARA AMOS :::
+# :: L6QBCG6IZB4DFHAKSHMTCBJ5HDHT65BOSGMGBNPLPP7S4LUH7KAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
