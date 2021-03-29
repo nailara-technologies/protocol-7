@@ -2,7 +2,7 @@
 use v5.24;
 use utf8;
 use strict;
-use PerlIO;
+use Encode;
 use English;
 use warnings;
 use IO::File;
@@ -11,14 +11,14 @@ use Getopt::Std;
 use Time::HiRes qw| sleep |;
 autoflush STDOUT 1;
 
-getopts( 's:l:T:', \my %option );
+getopts( 'LNDHT:s:l:', \my %option );
 
 my $display_file = shift @ARGV // '';
 
 say ":\n:: expected file path argument ::\n" and exit(4) if $display_file eq '';
 say ":\n:: not found : $display_file ::\n"   and exit(4) if !-e $display_file;
 
-my @asc_dec_opts = qw| -q -d0 -r0 -p4 -sr |;    # -ECR
+my @asc_dec_opts = qw| -q -r0 -p4 -sr |;    # -ECR
 
 push( @asc_dec_opts, '-C', $option{'T'} ) if defined $option{'T'};
 push( @asc_dec_opts, '-e' ) if defined $option{'T'} and $option{'T'} eq 'R';
@@ -34,32 +34,38 @@ $y //= 25;
 
 my $screen_chars = $y * $x;
 
-my $disk_fh = IO::File->new( $display_file, 'r' )
+my $file_fh = IO::File->new( $display_file, 'r' )
     or die ":\n:: \l$OS_ERROR :: $display_file\n\n";
 say ":\n:: no success on open : $display_file ::\n" and exit(4)
-    if not defined $disk_fh;
+    if not defined $file_fh;
 
 my $offset     = 0;
 my $bytes_left = $option{'l'};
 
 my $b_size = $screen_chars * 0.38;
 
-$disk_fh->seek( $option{'s'}, $option{'w'} ) if defined $option{'s'};
+$file_fh->seek( $option{'s'}, $option{'w'} ) if defined $option{'s'};
 
 $b_size = $bytes_left if defined $bytes_left and $b_size > $bytes_left;
 
+$b_size = 1 if $option{'L'};
+
 print "\e[3H$nailara_bg\e[1J\e[0m\n";
 printf( "\e[H$blacklight %s \n::%s::\n", '.' x ( $x - 2 ), '.' x ( $x - 4 ) );
-while ( ( not defined $bytes_left or $bytes_left > 0 )
-    and not $disk_fh->eof ) {
+while ( ( not defined $bytes_left or $bytes_left > 0 ) and not $file_fh->eof ) {
     my $buffer = '';
 RE_READ:
-    $disk_fh->sysread( $buffer, $b_size, length($buffer) );
+    if ( $option{'L'} ) {    ## line mode ##
+        chomp( $buffer = <$file_fh> );
+        goto PAST_ZULUM;
+    } else {
+        $file_fh->sysread( $buffer, $b_size, length($buffer) );
+    }
 
     # goto PAST_ZULUM;
     goto RE_READ if $buffer =~ m|^\0+$|;
     $buffer =~ s|[\0\n\v]+|\n|g;
-    if ( not $disk_fh->eof ) {
+    if ( not $file_fh->eof ) {
         my $b_len = length($buffer);
         goto RE_READ if ( not $b_len or $buffer =~ m|^\s+$| );
         goto RE_READ
@@ -67,27 +73,33 @@ RE_READ:
             or defined $bytes_left and $b_len < $bytes_left;
     }
 
-    # PAST_ZULUM:
+PAST_ZULUM:
 
     $bytes_left -= length($buffer) if defined $bytes_left and defined $buffer;
 
-    my $num_dec = join(
-        '',
-        map {    # $ARG = "\n" if $ARG eq '├';
-            sprintf( "%03d", ord($ARG) )
-            }
-            split( '', $buffer )
-    );
+    my $num_dec = join( '',
+        map { sprintf "%03d", unpack( 'U*', $ARG ) }
+            split( '', $buffer ) );
 
     ################################################################
-    system( 'asc-enc', @asc_dec_opts, $num_dec ) if length $num_dec;
+    if ( $option{'H'} and length $buffer ) { ## -H[D] assert for harmony \ truth
+        if ( $option{'D'} ) {    ## display also 'false' assertions ##
+            system( 'harmony', $buffer );
+        } elsif ( system( qw| harmony -q |, $buffer ) == 0 ) {
+            system( 'harmony', $buffer );    ## display true words \ lines ##
+        }
+    } elsif ( $option{'N'} and $option{'L'} ) {
+        printf ": %-20s : '$buffer'\n", $num_dec;
+    } else {    ## encode buffer content to different character table ##
+        system( 'asc-enc', @asc_dec_opts, $num_dec ) if length $num_dec;
+    }
     ################################################################
 
     if ( defined $option{'T'} and $option{'T'} eq 'R' ) {
         ( $x, $y ) = Term::Size::chars;
         if ( defined $option{'s'} ) {
 
-            seek( $disk_fh, $option{'s'}, $option{'w'} );
+            seek( $file_fh, $option{'s'}, $option{'w'} );
 
             printf( "\e[0J\e[${y}H%s\n::%s::\e\[H", '.' x $x,
                 '.' x ( $x - 4 ) );
@@ -106,10 +118,10 @@ RE_READ:
     sleep 0.1705;
 }
 
-not defined $disk_fh
-    or not $disk_fh->opened
+not defined $file_fh
+    or not $file_fh->opened
     and die ":\n::[E]:. '$display_file' <-- not opened .,\n\n";
-$disk_fh->close or die ":\n::[E]:. '$display_file' <-- \l$OS_ERROR .,\n\n";
+$file_fh->close or die ":\n::[E]:. '$display_file' <-- \l$OS_ERROR .,\n\n";
 
 print "\e[0J\n$blacklight\e[5m.\e[0m$blacklight\n:\n:.\e[5m.\e[0m  "
     if not defined $bytes_left;
@@ -124,7 +136,7 @@ sub term_size {    ### not working yet .., check .., ### [LLL]
 }
 
 #.............................................................................
-#5SDWHE2AIDA7DA6PMVGXSBVMP7JHQEDZRY442W2IMEJPG2JB657RDIAXFMNYY4JKATYPCLBTMAPEY
-#::: TPVT5YKQ6NPC66PGK6XUKGNFP7WZFOQYBYLKB2L3EXF7CBPBSDL :::: NAILARA AMOS :::
-# :: 6VQL7U4IHYBYHYRCL2KYVMZEAHHYK7AHH7Q6AVDYAQN5HQJT6KAA :: CODE SIGNATURE ::
+#OGHPUYXNCPJF47DCIFGED4LRWOFVS6ACGJ2A3Q75DASCDKD2CMMWOK3ZVLT6HTKMKFZZ5ZEWNZO4O
+#::: YF3EKXBPG5VQIBEA6WRK573QD4JW5WQ43L75CCWLXCOT4PSYBZV :::: NAILARA AMOS :::
+# :: 7U2TR4PWTZPHTF5SXEJKM2BTQUOZQFS2MUBKXOGMJ45L7FUFP4AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
