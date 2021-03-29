@@ -1,8 +1,18 @@
 #!/usr/bin/perl
 use v5.24;
 use strict;
-use English;
 use warnings;
+
+BEGIN {
+    use English;
+    use Cwd 'abs_path';
+    my $script_path = abs_path($PROGRAM_NAME);
+    ( my $local_lib_path = $script_path ) =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+}
+
+use AMOS::Assert::Truth;
+
 use Digest::Elf;
 use Getopt::Std;
 use Math::BigFloat;
@@ -13,22 +23,30 @@ getopts( 'VNDcanhqvBl:d:A:T:Zz', \my %option );
 
 no warnings 'experimental';
 
-my $false = '076923'; ##  <--  LΛ == FALSE   ## [      1 / 13 =     [0.]076923.]
-##                                                                      ^^^^^^
-my $true = '461538';  ##  <--  ǍȚ == TRUE    ## [ 230769 / 13 = [17751.]461538.]
-##                                                ^^^^^^                ^^^^^^
-##                                       result rolls over with divided number
+## [ PREMISE ]
+##
+my $false = '769230'; ##  <-- L\  == FALSE ## [ 23 / 13 = [0.]230769..,] PYRAMID
+##                                                            ^^^^^^     =======
+my $true = '461538';  ##  <-- =5T == TRUE  ## [  6 / 13 = [0.]461538..,]  CUBE
+##                                                            ^^^^^^      ====
 
-## [ NOTES ]
+#                                            ## [ 230769 / 13 = [17751.]461538.]
+#                                                 ^^^^^^                ^^^^^^
+#              < NOTE : result rolls over with divided number >
 #
-## MAYA [0]910 Ύ [4] [0]511 ǿ [0]932 Τ [0]076 L [0]923 Λ
-## MAYA [0]910 Ύ [4] [0]511 ǿ [0]932 Τ [0]461 Ǎ [0]538 Ț
+#                                               [   10^7 / 13 = 769230.769230.,]
+#                                                               ^^^^^^
+#                                               [   10^7 / 26 = 384615.384615.,]
+#                                                               ^^^^^^
+
+## MAYA [0]910 Ύ [4] [0]511 ǿ [0]932 Τ [0]461 Ǎ [0]538 Ț  ##  0 :  ǍȚ  <--  TRUE
+## MAYA [0]910 Ύ [4] [0]511 ǿ [0]932 Τ [0]076 L [0]923 Λ  ##  1 :  ΛL  <-- FALSE
+
+### ˃(˫
 #
-## (˃˫
-#
-##         Azurum : 0010 :   light    :  male  :. [0]040 :: (
-##          Zulum : 0000 :    dark    : female .: [0]707 :: ˃
-## [ 7 ] Septioum : 0110 : blacklight :  party :: [0]747 :: ˫
+##          ZULUM : 0000 :    dark    :  female .: [0]707 :: ˃ #      love
+##         AZURUM : 0010 :   light    :   male  :. [0]040 :: ( #      pain
+## [ 7 ] Septioum : 0110 : blacklight : dancing :: [0]747 :: ˫ # trance-mutation
 
 our $assertion = { 'false' => $false, 'true' => $true };
 
@@ -42,7 +60,7 @@ $option{'A'} //= "-r4.2 -d$option{z} -S"
     if $option{'Z'};    ## -Z is 'full-screen' mode
 $option{'T'} //= rand(2) % 2 ? '851' : '857' if $option{'Z'}; ## <-- full-screen
 $option{'T'} //= qw| 17 |;    ## <-- 'asc-enc' table [ when in use ]
-$option{'l'} //= 50;          ## <-- blue midnight wish entropy size
+$option{'l'} //= 384;         ## <-- blue midnight wish entropy size
 $option{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
 $option{'B'} = !$option{'B'};    ## BMW mode enabled by default
 
@@ -266,12 +284,8 @@ sub elf_checksum {
 
 sub int_exit { print $reset; exit(4) }
 
-## [ NOTES ]
-# 0 : ǍȚ <-- true
-# 1 : ΛL <-- false
-
 #.............................................................................
-#3ZC23CD3LNWBZM6VIQXOHMCHXS6N6QSX4SCHNYXSZDUR3XVQWK42OINDVT6S6VVLNKOEVXQ2H4YZA
-#::: LEI4O3MN7BUR7CQMD7BEUDTNSIICBIJOVVMQRKO7BQNIE63GNF2 :::: NAILARA AMOS :::
-# :: PXCH5C3VK7RZ4ULOY2SYVPLXIUWWG3XF6V74CQZ4UBVQRAVCHKBY :: CODE SIGNATURE ::
+#IQNBTHGTUTVO6CHV2FGKZNWSF7RNKYH5OMED2FIZH5FDSWFNCTPRCAH6X5VUPHJTYAX6DAG5GM4YA
+#::: U2X2NVMYIRJ2ZPDNMDXULWXGQXJTRYRM3K7XF3A4S6K3KDXNMEI :::: NAILARA AMOS :::
+# :: FSGQBJEFRCS7W36WCUX2YLKCXGBNVW74SDKG6REH2CMH4JZXQ6CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
