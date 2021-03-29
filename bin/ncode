@@ -47,7 +47,7 @@ my %targets = (
     'dev'   => $PATH->{'root'} . '/bin/dev/',        # developement tools source
     'src'   => $PATH->{'root'} . '/base-code/',      # the nailara module source
     'cfg'   => $PATH->{'root'} . '/configuration/',  # configuration root path
-    'zenki' => $PATH->{'root'} . '/configuration/zenki',    # p7-zenka programs
+    'zenki' => $PATH->{'root'} . '/configuration/zenki/..,', # p7-zenka programs
     ## 'readme' => $PATH->{'root'} .  ##   <--  require recursive directory mode
 );
 
@@ -130,7 +130,7 @@ sub cmd_description {
 
         print "\n    c o m m a n d     p a r a m e t e r s\n:\n";
 
-        my $max_len = max map { length } keys %commands;
+        my $max_len = max map {length} keys %commands;
 
         foreach my $cmd ( sort( keys(%commands) ) ) {
             my $description_txt = 'not defined';
@@ -253,7 +253,7 @@ sub cmd_list_psubs {
 <target> [pattern] ..... displays the list of defined subroutines
 
                          <target>  source code target path keyword
-                                   ( see list_targets for details )
+                                   [ see list_targets for details ]
 
                          [pattern] substring patterns to match
           ', @params
@@ -1423,10 +1423,12 @@ sub clean_dir {
 
 # :: tree :: returns a list of module files [ with full path ]
 
-sub files {
+sub files {    ## LLL : implement recursion [ depth ] keyword ##
     my @files;
     my $type = shift;
     my $path = $targets{$type};
+
+    my $recursion = $path =~ s|\.\.,$|| ? 1 : 0;
 
     die ":\n:: no such target :. $type\n\n"         if not defined $path;
     die ":\n:: target path not exists :. $path\n\n" if !-e $path;
@@ -1440,8 +1442,8 @@ sub files {
             if ( $filename !~ m{(\.bak|\.orig|\~)$}i ) {
                 chomp($filename);
                 push( @files, $filename );    # say ' < file > '.$filename;
-                ## cfg/zenki/*/... ##
-                if ( $filename =~ m|cfg/zenki/[^\/]+$| and -d $filename ) {
+                ## configuration/zenki/*/.., ##
+                if ( $recursion and -d $filename ) {  # implement arbitary depth
                     opendir( my $adir_fh, $filename )
                         or die "cannot open dir '$filename': $OS_ERROR\n";
                     map { push( @files, $filename . "/$ARG" ) }
@@ -2284,7 +2286,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#VY4KKF4KDSI3SV3DCDZMWJOOURCGLZM22XQJ2GSZLBIIZVTOUYINAUS4KC6KCQNNV7UZJFNTT7EVY
-#::: 2HAEGUEQCIKDYNC6FLCJNNCTCCIWJYBDEGIQSVOKOKT7PXQZBPL :::: NAILARA AMOS :::
-# :: P36VCV3LKCHSHO2JQHZYBXTQWXGVHBJC3MGTVLCCVEMWYZUQPICA :: CODE SIGNATURE ::
+#BNC5H7N34O5H53QXL32RIFIS4QQ2UAFDF7Y7C5Y5KZ53XBVEJLUYS72S7FKNLSHYQ2J5ANWHBJFTA
+#::: 3BRSULBCAPFLBTFAUWTCYQJESMXXG7RAAOTVYSJADTUSRK7BV6A :::: NAILARA AMOS :::
+# :: ZSCEKKCUEMD53IBJ4ZWSMWWGVWJLHXRMG4PDVKOR2TWPK6SJKCAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
