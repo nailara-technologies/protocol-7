@@ -18,14 +18,14 @@ my $unix_sock = IO::Socket::UNIX->new(
     Type   => SOCK_STREAM(),
     Local  => $tmp_spath,
     Listen => SOMAXCONN(),
-) || die "io.unix.socket.input.open: socket: $OS_ERROR";
+) || die "io.unix.socket.input.open: socket: \l$OS_ERROR";
 
 rename( $tmp_spath, $socket_path )
-    or die "io.unix.socket.input.open: rename: $OS_ERROR";
+    or die "io.unix.socket.input.open: rename: \l$OS_ERROR";
 
 push( @{<unix.socket_paths>}, $socket_path );
 chmod( $socket_umask, $socket_path )
-    or die "io.unix.socket.input.open: chmod: $OS_ERROR";
+    or die "io.unix.socket.input.open: chmod: \l$OS_ERROR";
 
 <[base.log]>->( 1, "UNX server launched [unix:$socket_path]" );
 
@@ -44,7 +44,7 @@ $data{'handle'}{$unix_sock}{'link'} = 'unix';
 return $unix_sock;
 
 #.............................................................................
-#Y7FBTEUT7JGZPENRYNJACJX4HPZFALIQBTE4YT3HOXH2NQDXQDE62JFNPUEDBSW5ICKUOVK3OP7PK
-#::: DOZLGUE37BIKTOJ5FKU2QOP6MEBJJKJSN46DU5UEIO7OBCJ46IL :::: NAILARA AMOS :::
-# :: 6CHH3FV62ZMDLA7TVYW36YFMJ5T4JCFYB72AIFR2ICUN5H57WGAA :: CODE SIGNATURE ::
+#AJEQVJGSWRWTO6CIOBF7RC3Z2E5ZKRVSB3SFA466V5OJZVH6TPAPLJLCQYCURV7RGC7VHZPA5MQXS
+#::: XAF5NEGDQC2DBA7XCIVT4IDX5RBA3Z5F3HGY6KQZCYCLKFRXCIA :::: NAILARA AMOS :::
+# :: TBLLGPKRUAS55ARG3AGUZQJJ4WDAIZTGU2SUKNX7RSJFGJS5W2AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
