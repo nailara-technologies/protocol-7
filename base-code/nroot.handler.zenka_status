@@ -345,10 +345,10 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 
     delete $instance->{'startup-error-retries'};    ## <-- if present ##
 
-    if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
-        $instance->{'timer'}->{'startup-timeout'}->cancel
-            if $instance->{'timer'}->{'startup-timeout'}->is_active;
-        delete $instance->{'timer'}->{'startup-timeout'};
+    if ( defined $instance->{'timer'}->{'start-time-out'} ) {
+        $instance->{'timer'}->{'start-time-out'}->cancel
+            if $instance->{'timer'}->{'start-time-out'}->is_active;
+        delete $instance->{'timer'}->{'start-time-out'};
     }
 
     $instance->{'timer'}->{'reset_restart_delay'} = <[event.add_timer]>->(
@@ -409,7 +409,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 #.............................................................................
-#3WI4SVMNSIOJHVKXVUHMJTI34GUI2EPBAWH7JJVB2GXTKDB7UNA3AMQNFTNMDAWJ6EAWXVIGQ4BBA
-#::: DMNMIIF35V6NLZBD5C54PPB6AXFAKDF2WRNWIG7ZISWQF32I44V :::: NAILARA AMOS :::
-# :: LNGGI5YOCAZIQP3PRCEUACL2SWPDCGYXPNUA25WSZWLTJ3RW44BY :: CODE SIGNATURE ::
+#KEQUGXXMINS4MKL6GPI76F4B5VL3GBBOC2FAO7SRHRGJ5YLJOUHDG2BH5XOFZRB2GCDJWAMNBXKU2
+#::: XD4K2KQL5WWZLUOWEGSSFHOHNFCB44PB23E25QIHYLWYBRBQYGC :::: NAILARA AMOS :::
+# :: NIJZDQPLPFBEOR5PZ3F4ZNAIRU3OS272YWHNMLQEGJ33QINPU6BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

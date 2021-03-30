@@ -2,6 +2,7 @@
 
 # name = nroot.zenka.start
 # descr = start nailara zenka and add it to process maintenance table
+# notes = require mechanism to change PID to harmonic at start [ using STDOUT ]
 
 my $job_id     = $_[0]->{'job_id'};
 my $zenka_name = $_[0]->{'params'};
@@ -38,34 +39,37 @@ my $starting = 0;    # check status of zenki with same name ..,
 map { $starting++ if $instances->{$ARG}->{'status'} eq 'starting' }
     @{ <[zenka.instance.get_ids]>->($zenka_id) };
 
-if ($starting) {    # delay zenka startup until previous one is online ..,
+if ($starting) {    # delay zenka start-up until previous one is online ..,
     <[base.log]>->( 1, "delaying next '$zenka_name' zenka instance ..," );
     <[zenka.change_status]>->( $instance_id, 'delayed' );
     return;
 }
 
-# initialize zenka instance startup ..,
+# initialize zenka instance start-up ..,
 <[zenka.change_status]>->( $instance_id, 'starting' );
 
-### [ startup timeout ]
-my $startup_timeout = <nroot.start_setup.zenki.startup.timeout>->{$zenka_name}
-    // $globals->{'startup'}->{'timeout'} // 47;
+### [ start-up timeout ]
+my $start_timeout
+    = <nroot.start_setup.zenki.start-up.timeout>->{$zenka_name}
+    // $globals->{'start-up'}->{'timeout'} // 47;
 <[base.log]>->(
     2,
     sprintf(
         "instance %d ['%s'] start timeout = %.1fs",
-        $instance_id, $zenka_name, $startup_timeout
+        $instance_id, $zenka_name, $start_timeout
     )
 );
-if ( defined $instance->{'timer'}->{'startup-timeout'} ) {
-    $instance->{'timer'}->{'startup-timeout'}->cancel
-        if $instance->{'timer'}->{'startup-timeout'}->is_active();
+if ( defined $instance->{'timer'}->{'start-time-out'} ) {
+    $instance->{'timer'}->{'start-time-out'}->cancel
+        if $instance->{'timer'}->{'start-time-out'}->is_active();
 }
-$instance->{'timer'}->{'startup-timeout'} = <[event.add_timer]>->(
-    {   'after'   => $startup_timeout,
-        'handler' => 'nroot.handler.startup-timeout',
-        'data'    =>
-            { 'instance_id' => $instance_id, 'timeout' => $startup_timeout }
+$instance->{'timer'}->{'start-time-out'} = <[event.add_timer]>->(
+    {   'after'   => $start_timeout,
+        'handler' => 'nroot.handler.start-time-out',
+        'data'    => {
+            'instance_id' => $instance_id,
+            'timeout'     => $start_timeout
+        }
     }
 );
 ###
@@ -90,7 +94,7 @@ if ( exists $init_code->{'nroot-init'} ) {
     if ( !$success ) {
         <[base.log]>->(
             0,
-            "errors in zenka '$zenka_name' init-code, aborting start << ! >>"
+            "<< errors in zenka '$zenka_name' init-code, aborting start-up >>"
         );
         <[zenka.change_status]>->( $instance_id, 'error' );
         return undef;
@@ -159,7 +163,7 @@ if ( exists $init_result_data->{'start_mode'}
             return undef;
         }
         map { $privs->{$ARG} =~ s|'||g }
-            keys %{$privs};    # LLL: abort on match?
+            keys %{$privs};    # LLL: abort on match ?
 
         # LLL: implement exec_args..,
         my $prepare_code = '%ENV=(); ';
@@ -229,7 +233,9 @@ exec_skip:
 if ( not defined $pid or $EVAL_ERROR ) {
     ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
     my $err_reason
-        = ( defined $OS_ERROR and length($OS_ERROR) ) ? " ['$OS_ERROR']" : '';
+        = ( defined $OS_ERROR and length($OS_ERROR) )
+        ? " ['\l$OS_ERROR']"
+        : '';
     <[base.log]>->(
         0,
         join( '',
@@ -261,11 +267,12 @@ $instance->{'subname'} = $zenka_subname if defined $zenka_subname;
 
 # push init code to zenka <stdin> if in 'stdin' mode.,
 if ($stdin_mode) {
-    <[base.log]>
-        ->( 1, ": pushing startup init-code < zenka '$zenka_name' >" );
+    <[base.log]>->(
+        1, ": pushing start-up init-code < zenka '$zenka_name' >"
+    );
     foreach my $_line ( @{ $init_code->{'zenka-init'} } ) {
         my $code_line = $_line;    # <- keeping copy
-            # <{foo.bar}> [zenka instance namespace] variable fetching syntax
+           # <{foo.bar}> [ zenka instance namespace ] variable fetching syntax
         while ( $code_line =~ m|<\{([^\}]+)\}>| ) {
             ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
             my $var_value;
@@ -273,7 +280,7 @@ if ($stdin_mode) {
             if ($EVAL_ERROR) {
                 $EVAL_ERROR =~ s|\n| |g;
                 <[base.log]>->(
-                    0, "[!] error in zenka init-code: $EVAL_ERROR"
+                    0, "<< error in zenka init-code : \l$EVAL_ERROR >>"
                 );
                 last;
             } else {
@@ -288,7 +295,7 @@ close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
 <[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
 
 #.............................................................................
-#53FSMBWKSCG73B6TX6RPDA7RQOUUTIF5MUIUQ52M7GY4JWDWRHA3KJK3RDXTQFZATM4W4PNKH62KS
-#::: AZOQP2GYPQTEZQVT43KGSL2BJQRK3ZBJH3O6M4QLCDMYFBHXQEE :::: NAILARA AMOS :::
-# :: MGGS2UCJVTE2J6P6WNK5XDEP7M24A7LWF7AFVYV3TAQSMTKP2YDA :: CODE SIGNATURE ::
+#456ZB7P74WVSYKQA7MO37EMBNMVVDPKDP64XTPKE3JNYGRTXZIP7AOJQKPASFUU65XJTQ36TIKNDU
+#::: KEVD3I2NMLOTAXSGA7LM4UTCKJRSNPQFBTPFBO2V6K45INRGBGD :::: NAILARA AMOS :::
+# :: WFJ2RDKUXQUPG2HMTYFQWJZ4TKSJUUQ245CLUCZCJMK4NVBWLEAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
