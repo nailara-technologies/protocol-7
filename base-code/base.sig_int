@@ -3,7 +3,9 @@
 # name  = base.sig_int
 # descr = SIGINT interrupt handler
 
-$PROGRAM_NAME .= ' :. shutdown in progress.., please wait!';
+print "\b\b" if fileno(STDOUT);    ## removing ^C ##
+
+$PROGRAM_NAME .= ' :. shutdown in progress.., one moment .,';
 <[base.log]>->( 0, '<< SIGINT >> terminating zenki ..,' );
 
 #if ( <system.zenka.type> eq 'nroot' or <system.zenka.type> eq 'cube' ) {
@@ -11,6 +13,7 @@ $PROGRAM_NAME .= ' :. shutdown in progress.., please wait!';
 #} else {
 
 $SIG{'INT'} = sub {
+    print "\b\b" if fileno(STDOUT);    ## removing ^C ##
     <[base.log]>->( 0, '<< SIGINT >> emergency shutdown .,' );
     CORE::exit(1);
 };
@@ -25,7 +28,7 @@ if ( exists $code{'net.send_all'} ) {
     );
 }
 
-print "\n <!> DEBUG MODE: zenka state:\n\n" . <[base.dump_data]> . "\n"
+print "\n < DEBUG MODE > zenka state :\n\n" . <[base.dump_data]> . "\n"
     if <system.verbosity.console> >= 2 and <debug.sig_int_dump>;
 
 <[nroot.teardown]>
@@ -39,7 +42,7 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
 exit(130);
 
 #.............................................................................
-#BFBEKOKG65NLD76L4HA74YBLBRX2KO3FD2ZXZX7MU5SG6LGQ524OIOZGFCBBWSWM56V2EVPMRLY42
-#::: WRY2DIT2MBAJ4BZBJWETAUBLFF5BQQKSCL3CA3DBLRKEXPAYSMM :::: NAILARA AMOS :::
-# :: BSTNNQWNVRTYXFXIG3YSKM7MHDGDCL6ZZHOLGNDG4QQTO6QRIKDQ :: CODE SIGNATURE ::
+#NDZ6JDY34F6HFPVOCLPIGMPZUXOZGRVI4F46ZNOMWSPZ6KSKZFIPKNZIGR6UGYVYCJ2HR673LIIQI
+#::: AHW7CR46AFQ5AHBSHL3N647PY3QGNTAUUZAN6JBWQOYRE5ZYLRC :::: NAILARA AMOS :::
+# :: S3LGBCSHXHQZHQK2ZIKKO3OPNHT4UCTVHHIZOFSCGICGDMTKLQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
