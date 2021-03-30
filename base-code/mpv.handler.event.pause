@@ -7,13 +7,15 @@ my $params = shift;
 if ( <system.zenka.mode> eq 'universal-child' and <mpv.pause_next> ) {
     <mpv.pause_next>             = 0;
     <mpv.universal_child_resume> = 1;
-    <[base.log]>->( 2, "playback paused, reporting back to universal zenka.," );
+    <[base.log]>->(
+        2, "playback paused, reporting back to universal zenka.,"
+    );
     <[base.protocol-7.command.send.local]>
         ->( { 'command' => "cube.report_paused" } );
 }
 
 #.............................................................................
-#PGQPZS67LH2RHABU6P4RKBRQ2Z3VL3UKI7N4LDCNPKQ42H2HHM4CQIW7XSODS4MZOAQDYE6D6BIVU
-#::: UOPIOYR6AONDAAFWY4DZIVWM4IXU7F4ZDNBZFXOTV4CKKG7G2I3 :::: NAILARA AMOS :::
-# :: NHZOKXXOM7QYTDX3GDOMLM2NOJMDDIZKTFFV4NPWDXCFIUFAMCCY :: CODE SIGNATURE ::
+#U6S5CMR6UIBRMDWDJXUBV5OJJXIKR6YAZTTIOOAKVLW4XGA6VBO4GTOGN6YOILMKEGGUFSK5FBGIS
+#::: 74GQ5YWAJWRHZTWXJIX7DVUVB4HLFCD5ZDSMXAQBVCZN5GAPTV6 :::: NAILARA AMOS :::
+# :: HRP5DPSNUV6UJKHJPBPVNAXDTU35NRSCNNFKWMXW56MHV2N5PQCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,8 @@
 my $name_prefix = shift;
 $name_prefix //= <system.zenka.name>;
 
-<[base.log]>->( 2, "installing '$name_prefix' dependency object callbacks.." );
+<[base.log]>
+    ->( 2, "installing '$name_prefix' dependency object callbacks.." );
 
 my @callbacks;
 foreach my $sub_name ( sort keys %code ) {
@@ -17,8 +18,9 @@ foreach my $sub_name ( sort keys %code ) {
     }
 }
 
-<[base.log]>->( 0, ": no dependency object callbacks found for '$name_prefix'" )
-    if !@callbacks;
+<[base.log]>->(
+    0, ": no dependency object callbacks found for '$name_prefix'"
+) if !@callbacks;
 
 map {
     <[dependency.setup]>->( $ARG->[0], { 'callback' => $code{ $ARG->[1] } } )
@@ -27,7 +29,7 @@ map {
 return scalar @callbacks;
 
 #.............................................................................
-#ZNGG2BGGKDB6WMAPTKNBB2LHNI4ILHLQIRXCZVNJXTOK25ADAXDTQXHJZEL3MMMTQFP6UKSVDJMGE
-#::: YHFT3SIYEG4D2SSRP3UVSCKDQ7MS3VTCNCJQXEVPVQFVMVRD47J :::: NAILARA AMOS :::
-# :: WGQRC5725FRI2SQJ37A5W66EGUNKMJMRZITI6WB5PID7ULXRAAAQ :: CODE SIGNATURE ::
+#FXD2PLSKKVDH2NR24UMYNJWW7XBPZ2CS4FSUW34LYLH7KO2AFCCXUBDBRRHV64FWWYJQNGZDJBC3Q
+#::: UVXAH37RFFQMDN3E2JWKHYGS6V6BR2R3NIBKR3KUJFUVVU2QK4Q :::: NAILARA AMOS :::
+# :: QRIPKL57BUA6BP6BXRZI6IYMFY3356DO5FAHMEC4Y5AXTNYHRSAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

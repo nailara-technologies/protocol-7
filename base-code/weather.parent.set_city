@@ -14,7 +14,8 @@ my $city_file = "$cache_dir/city.current";
 
 <[base.log]>->( 1, "writing location '$city' to disk cache.," );
 
-<[file.put_bin]>->( $city_file, time() . " $city\n" ); # encod. utf8 passthrough
+<[file.put_bin]>->( $city_file, time() . " $city\n" )
+    ;                          # encod. utf8 passthrough
 
 if ( defined <weather.station_id> ) {    # cached station id present
     <[weather.parent.populate_html_dir]>->(<weather.station_id>);
@@ -22,7 +23,8 @@ if ( defined <weather.station_id> ) {    # cached station id present
     <[weather.parent.update_forecast]>->(<weather.station_id>);
 
     if ( !<weather.zenka.initialized> ) {
-        <[base.async.get_session_id]>; # <-- changing zenka status to 'online'.,
+        <[base.async.get_session_id]>
+            ;    # <-- changing zenka status to 'online'.,
         <weather.zenka.initialized> = 1;
     }
 
@@ -45,7 +47,7 @@ if ( defined <weather.station_id> ) {    # cached station id present
 }
 
 #.............................................................................
-#WPS6LHYXUQ7H3WPJUJ66IOSBQX4RVOUNWASHCEUHYM3CGRKRVJH6KDQNHLLHNVFJ4GJFWBVQ2GKYM
-#::: Q7GD3DTAVXOJYTNCN3OW5QGGZPBJOHJHBSZM56QYSL4HD4VFMSZ :::: NAILARA AMOS :::
-# :: V2HYVDXICEN2IM6PT34K334TCCSH6XYYSZA2UU2LZN32JOPXN6CA :: CODE SIGNATURE ::
+#WM263Q6EHOTVTQCJHQER7ULYRQUM3MC2BHUEQEKXADTYKSNDWN4DFV2F4VLXZZYRA4SSAFF7UIWSW
+#::: ZAJZKYBSYTLIJI6IUSEHRRTFEVFZPUIPBADCCTTPWQ43USTXKWI :::: NAILARA AMOS :::
+# :: LIE6KYXBRCGB7JJWIDHVJ72HV4V4DGMU6EZIADJ6CCE43K4KAODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

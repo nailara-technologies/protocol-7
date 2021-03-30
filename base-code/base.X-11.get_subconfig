@@ -50,11 +50,15 @@ if ( $reply_string =~ m|^\($cmd_id\)DATA (\d+)\n$| ) {
         $subcfg_data->{$c_key} = $c_val;
     }
     <[base.log]>->(
-        1, "received tile group subconfig for '$name_str' [$bytes_total bytes]"
+        1,
+        "received tile group subconfig for '$name_str' [$bytes_total bytes]"
     );
     return $subcfg_data;
-} elsif ( $reply_string =~ m|^\($cmd_id\)NAK no set-up for zenka '([^ ]+)'| ) {
-    <[base.log]>->( 1, ": <!> composition zenka has no set-up for \"$1\" <!>" );
+} elsif ( $reply_string =~ m|^\($cmd_id\)NAK no set-up for zenka '([^ ]+)'| )
+{
+    <[base.log]>->(
+        1, ": <!> composition zenka has no set-up for \"$1\" <!>"
+    );
     return undef;
 } elsif ( $reply_string =~ m|^\($cmd_id\)NAK command unknown\n$| ) {
     <[base.log]>->( 1, ": << get_subconfig [ NAK ] >> for '$name_str'" );
@@ -69,7 +73,7 @@ if ( $reply_string =~ m|^\($cmd_id\)DATA (\d+)\n$| ) {
 }
 
 #.............................................................................
-#MMG25KVCL5Z6I6OGVS4JPFYOL7BCPP35QK75PRBHMR2XHLRCUAQICSRKY2ECJGWV4IICTLECEWBVS
-#::: NOZDURDDFGO5K3ZEMS2EGDKJ6WYM6AU3IOY6MMYEBUCNUWEU7FH :::: NAILARA AMOS :::
-# :: FUTG4QXF6FOYTR7RO5TXFJUVSCIIGHY7PRZLZPAF2BIZFLNPXKDY :: CODE SIGNATURE ::
+#A4UXDHEVCDPJR5TNVJZEEGSPEGYS22DPTZCPGMLJLUPCESFL7XOPMAALFHGR76VCC2BQ6ZQLKQHLI
+#::: M6C23LW3RNBFGOEDJ3WOJPDXGJMLHTZESLNXY6AWQM4NVONUURG :::: NAILARA AMOS :::
+# :: VDSN3FD2TLKH7ASTJ5ZAM3N7UZGGZHVUXKGHSNM33CLOPBJZYCBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

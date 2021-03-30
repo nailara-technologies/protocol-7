@@ -23,7 +23,7 @@ my $interval_seconds = <weather.update_interval.current> * 60;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
-    if ( $err_reason eq 'query failed [ unknown location ]' ) {   # rate limit.?
+    if ( $err_reason eq 'query failed [ unknown location ]' ) { # rate limit.?
         $log_level++;
         $interval_seconds += 113 + int( rand(237) );
     }
@@ -44,7 +44,8 @@ if (    defined $current_data
     and exists $current_data->{'cod'}
     and $current_data->{'cod'} eq '200' ) {
     <weather.update_fail_count.current> = 0;
-    <[weather.parent.cache.write_data]>->( 'current', $station_id, $data_str );
+    <[weather.parent.cache.write_data]>
+        ->( 'current', $station_id, $data_str );
     <[weather.parent.extract_current]>->( $station_id, $current_data );
     my $update_minutes = sprintf( "%0.1f minutes", $update_interval / 60 );
     <[base.log]>->(
@@ -56,15 +57,17 @@ if (    defined $current_data
         if defined $status_code and $status_code eq '404';
     if (    exists <weather.data>->{$station_id}
         and exists <weather.data>->{$station_id}->{'current'}
-        and defined <weather.data>->{$station_id}->{'current'}->{'data_time'} )
-    {
+        and defined <weather.data>->{$station_id}->{'current'}->{'data_time'}
+    ) {
         my $data_age
-            = time - <weather.data>->{$station_id}->{'current'}->{'data_time'};
+            = time
+            - <weather.data>->{$station_id}->{'current'}->{'data_time'};
 
         $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.7;
 
         <[base.log]>->(
-            $log_level, "unable to obtain current weather data.," . $status_str
+            $log_level,
+            "unable to obtain current weather data.," . $status_str
         );
 
         my $age_str
@@ -87,7 +90,8 @@ if (    defined $current_data
         my $log_level = <weather.update_fail_count.current> ? 1 : 0;
 
         <[base.log]>->(
-            $log_level, "unable to obtain current weather data.." . $status_str
+            $log_level,
+            "unable to obtain current weather data.." . $status_str
         );
 
         <weather.update_fail_count.current>++;
@@ -120,7 +124,7 @@ if ( time + $update_interval > $midnight ) {
 );
 
 #.............................................................................
-#DV5A5K4W7S32MEKM3EOVGAZDPCWFCH5PGL4MZDLZIOMEMYXRXBQ7HRF45ZX53VLPDVJ5T3VBK36CO
-#::: FDWLIGFVPQJHINH5XUEJWQXEJCZJK5OZ2ET5IFNJJI6FJYHM4RX :::: NAILARA AMOS :::
-# :: WZSVBTKR2WNC7WADSGXRTNMFU4AWIN3B4JI2DUA7KG5RSP5RM2DQ :: CODE SIGNATURE ::
+#SCHL3GRD543WGCWIJZDKT3PJSIXRENOSVRWWLR3UCJG7DK7VYA4SJEKBY64KAOQ5PB2IHRKDQGYU2
+#::: B3YYLBJ5FHFAI4P4W2UO3JEHQIDZBSBP2H4ZGJME7EKUDUY7GCG :::: NAILARA AMOS :::
+# :: P4WH5J6TIXTYKJWJG7ZTUCYTKZLOKO5AF2RG6D2UXAU2EOJ2SYAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,15 +4,16 @@
 
 my $time  = shift // time;
 my $float = shift // 4;
-my @time = gmtime($time);
-my $year = 1900 + $time[5];
-my $days = <[base.time.is_leap_year]>->($year) ? 366 : 365; # + 1 [fractional] #
+my @time  = gmtime($time);
+my $year  = 1900 + $time[5];
+my $days
+    = <[base.time.is_leap_year]>->($year) ? 366 : 365;    # + 1 [fractional] #
 my $yday = $time[7] + $time % 86400 / 86400;
 
 return sprintf( "%.0${float}f", $year % 100 + $yday / ( $days + 1 ) );
 
 #.............................................................................
-#5M3OJEV3PDFGU6TBLCVSNWPLK4PMFITQOOXWIM5AE3SQRFSIFSIFKCG7MDXRDRMUWF7LFPVYIGGDA
-#::: U2VSLQWLTE7QEYY6SA4CVUV2H6MOOSPHCBIHSELFR4AZ5YYBKRY :::: NAILARA AMOS :::
-# :: VKMHV6XXJRY6CZLDTOGL6AHCGVI6EHQYWXQUHW46XLBYRQBZESBY :: CODE SIGNATURE ::
+#TIMYV3WVEJBYHP3TFQY2SPNGPHSBBEI3J4DOK4LOCFZ3YW5FFSXTMX2SFZXI2KI5AS3HWU7H4TLCY
+#::: W4XDUFELAZEK2RAF23XHKDVFEI3A7WQLKBXFILIA3EAAKQPM5YZ :::: NAILARA AMOS :::
+# :: CVDXOPTXM5UESJYRQDSPSQQRQT227ODHP4X3NZE6JA67K2X4EWBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

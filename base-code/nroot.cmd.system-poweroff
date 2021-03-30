@@ -17,7 +17,9 @@ return {
 
 <[base.log]>->( 0, "<!> <<< initiating force-poweroff >>> <!>" );
 
-while ( keys %{ $data{'route'} } ) { <[event.once]>->(0.1) }  # wait log written
+while ( keys %{ $data{'route'} } ) {
+    <[event.once]>->(0.1);
+}    # wait log written
 
 system('/bin/sync') if $param ne 'nosync';
 
@@ -30,7 +32,7 @@ system('/bin/sync') if $param ne 'nosync';
 return { 'mode' => 'ack', 'data' => '<< powering off host system >>' }
 
 #.............................................................................
-#YNENYTOTNZ6JKIOIIJBUIP35ISDPIQPVYVGZD4JHZRVOLXI6PMV4QRPQKKNIMFABFBZNVI7BAFG62
-#::: MYPWUYJQUPUQVCTTCCFJDHLRFL462O3FTYHG6GXFVKM5EBU7OH3 :::: NAILARA AMOS :::
-# :: UW36AEVXZ4LPGY22LYZRL4AHTU6233JC2ETAVEIG4ZPHIKDSIIAY :: CODE SIGNATURE ::
+#OJL5YTSDXKOJXB2BDILFOQ3O4OSOLD2VLOIXODDBBHR6GFNU7PJTETR5JZQIQUQFF6HLEYWNNFH6Y
+#::: 2NMM6TX2XBORHVZ4AVAPBFE4744U3JMJCC6LN356M563OOCAO47 :::: NAILARA AMOS :::
+# :: 32IZXOKDSYUZND5FQVYNBCBP53VOHHDTAPQ6PCDHYKVMIRWJ2WDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

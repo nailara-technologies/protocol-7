@@ -18,7 +18,8 @@ warn 'end time value is not valid <{C1}>'
 
 if ( $ntime_start !~ m|^\d+(\.\d+)?$| ) {
     eval { $ntime_start = unpack( 'w', decode_b32r($ntime_start) ) };
-    warn "BASE32 decoding error ['$ntime_start']" and return undef if $OS_ERROR;
+    warn "BASE32 decoding error ['$ntime_start']" and return undef
+        if $OS_ERROR;
 }
 
 my $precision = 0;
@@ -38,7 +39,7 @@ $precision += 3;
 return sprintf( '%.' . $precision . 'f', $delta_secs );
 
 #.............................................................................
-#YAQH2W5IUUTKRC72RNMCY6JUNMH64QJPOZRVNI7XLMRGMKH3DQ2CPDK2KXAQGBENPU2W3NDGOWUPA
-#::: RR255ZDPCZ5SH6RXYCA5OWT6H7QM52FTR4LRRUWFZ2TUTWXU2RE :::: NAILARA AMOS :::
-# :: IK32K6DBS3BW67ISOC5SUOLTEPY7DQHXKDM37FA633UGJDJOIUCI :: CODE SIGNATURE ::
+#3T5WOYYOPAINS53SADWVZQR4UDV7XHWLMQAJWUSX25NHWHHOPZKNIVLKOJ3WZNTKFSMG6UVIHEAZE
+#::: 66NCX44GUJVDXQXDLBOFRSSVBC65LGIQ42CSIH4TAC323RMPHQ5 :::: NAILARA AMOS :::
+# :: AYCTONJY6X4HODXVEZPLDSVDBXJTG5WNJSYAKCRYRULJROUXYUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

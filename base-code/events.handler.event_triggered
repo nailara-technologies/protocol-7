@@ -13,7 +13,8 @@ my $action_type = $action->{'type'};
 
 if ( not exists <events.enabled>->{$event_name}
     or !<events.enabled>->{$event_name} ) {
-    <[base.log]>->( 2, "[IGNORED] event '$event_name' not enabled in set-up" );
+    <[base.log]>
+        ->( 2, "[IGNORED] event '$event_name' not enabled in set-up" );
     return;
 }
 
@@ -24,14 +25,15 @@ if ( defined $ev_data->{'dep_id'}
     );
     return;
 } elsif ( defined $ev_data->{'dep_id'} ) {
-    <[base.log]>->( 2, "[RUN] dependencies resolved [ event '$event_name' ]" );
+    <[base.log]>
+        ->( 2, "[RUN] dependencies resolved [ event '$event_name' ]" );
 }
 
 <[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
 
 die "'tile_group_name' parameter is missing from '$action_type' setup"
     if $action_type =~ m|^composition_|
-    and not defined $action->{'tile_group_name'}; ## <-- check \ test [LLL]
+    and not defined $action->{'tile_group_name'};    ## <-- check \ test [LLL]
 
 <events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
     = $action_type
@@ -52,7 +54,8 @@ if ( $action_type eq 'zenka-present' ) {
             'call_args' => { 'args' => $zenka_name }
         }
     );
-} elsif ( $action_type eq 'send-command' ) { #LLL: need param check during setup
+} elsif ( $action_type eq 'send-command' )
+{    #LLL: need param check during setup
     map {
         die "'$ARG' param is invalid for action type '$action_type'"
             . ", expected <at>-parameter"
@@ -103,13 +106,13 @@ if ( $action_type eq 'zenka-present' ) {
             if !<events.stack.exclusive>->{$b32id};
     }
 
-} elsif ( $action_type eq 'composition_show' ) {    ### --- COMPOSITION SHOW ---
+} elsif ( $action_type eq 'composition_show' ) {  ### --- COMPOSITION SHOW ---
     my $l_name = $action->{'tile_group_name'};
     <events.stack.composition.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
     <events.stack.composition.visibility>->{$l_name} += $change;
 
-} elsif ( $action_type eq 'composition_hide' ) {    ### --- COMPOSITION HIDE ---
+} elsif ( $action_type eq 'composition_hide' ) {  ### --- COMPOSITION HIDE ---
     my $l_name = $action->{'tile_group_name'};
     <events.stack.composition.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq 'end' ? -1 : 1;
@@ -144,11 +147,10 @@ if ( $action_type eq 'zenka-present' ) {
 
 if ( $action_type =~ m|^composition_| ) {
 
-    delete
-        <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
-        if 0 == (
-        <events.stack.composition.visibility>->{ $action->{'tile_group_name'} }
-            // -1 );
+    delete <events.stack.composition.visibility>
+        ->{ $action->{'tile_group_name'} }
+        if 0 == ( <events.stack.composition.visibility>
+            ->{ $action->{'tile_group_name'} } // -1 );
 
     my @composition_stack = sort {
         <events.stack.composition.visibility>->{$a} <=>
@@ -210,7 +212,7 @@ if ( $action_type =~ m,^overlay_(show|hide)$, ) {
 }
 
 #.............................................................................
-#CACFA655HGEHSL3Y3DJANFS6XFJNBIURQL5X3WQ3HDFCUWK4JLXTG6DFTOI5UH56VCDROVSF5MVY4
-#::: UMHV5GCVTLDDJYOQ55ZGLE337VTVCW5MOXWG2QABGIFDTKW6JMN :::: NAILARA AMOS :::
-# :: OMWVMRKS23EFQX4JB5QJMDFTVJ46ZYIE7GTP4CAIMG2LWLFQWQCA :: CODE SIGNATURE ::
+#EQFKWXMLJJUIU2MXDNYCRM3ZAET3Q6QDDQAYSXPZOHJKTLTPEDXHT4E2OP4DVVD64H4SVOHWCYHDS
+#::: XYA52QI7KJ3B5TH6MY6FEUVSOT5AJMMVTW2DSFGGR52ZUGM255V :::: NAILARA AMOS :::
+# :: DJWH2YFJMPXO4HR6BNNQAHWRZ4ZCJAH7TNL46EGBKQR6DNVGH6CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

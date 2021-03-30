@@ -6,7 +6,8 @@ use English;
 
 $ENV{'DISPLAY'} //= ':0.0';
 
-( my $check_string = qx| xsel -o | ) =~ s'^\s+|\s+$''sg;
+my $check_string = @ARGV ? join( ' ', @ARGV ) : qx | xsel -o |;
+$check_string =~ s'^\s+|\s+$''sg;
 
 exit(0) if not length $check_string;
 
@@ -15,15 +16,21 @@ my @aosd_opts
     = ( qw| -p 1 -e 1 -o 7777 -y 44 -x 0 -n WhiteRabbit -i |, $text_file );
 
 my $msg;
-if (system( qw| harmony -q |, $check_string ) == 0
+my $result_code = system( qw| harmony -q |, $check_string );
+$result_code = $result_code >> 8 if $result_code != -1;
+
+if ($result_code == 0
     and ( $check_string !~ m|^\d+(\.\d+)?$|
         or system( qw| harmony -q -n |, $check_string ) == 0 )
 ) {
     $msg = "'$check_string'    TRUE  IS  =)\n";
-    push( @aosd_opts, qw| -u 2777 -R #230769 | );
-} else {
+    push( @aosd_opts, qw| -u 2777 -R |, '#230769' );
+} elsif ( $result_code == 202 ) {    # <-- exit code for FALSE
     $msg = "'$check_string'   is  FALSE `:|\n";
-    push( @aosd_opts, qw| -u 1389 -R #690723 | );
+    push( @aosd_opts, qw| -u 1389 -R |, '#690723' );
+} else {
+    $msg = "<< invocation error : check harmony executable >>\n";
+    push( @aosd_opts, qw| -u 5007 -R |, '#776407' );
 }
 
 open( FILE, '>', $text_file ) or die "[ $text_file ] $!\n";
@@ -33,7 +40,7 @@ close FILE;
 system( '/usr/bin/aosd_cat', @aosd_opts );
 
 #.............................................................................
-#NPIWP7NWIDT3IH74V264TGMHU3X4MZR4FY3V7RJNMM6CY2DCFUT7C4OE5NHIGTPS2AI5KAKBCA6WO
-#::: WK4NMQQPSLFBZMI5XASBFTCDJSVTORONE2PPIVWFPV3VJYA5QO7 :::: NAILARA AMOS :::
-# :: L6QBCG6IZB4DFHAKSHMTCBJ5HDHT65BOSGMGBNPLPP7S4LUH7KAA :: CODE SIGNATURE ::
+#WBGHODUHNEVRFMYFNPFNMUOFCRCNX6ADHUN3V3GHO2XX4ZSQ3NLNMH7Q3TBEBHRYATUTN42BVTZBQ
+#::: C6Q3FAF6X7NDKTUCGYBJTH7LPO6AVR4RKCTNM45NDLQD6YCODHQ :::: NAILARA AMOS :::
+# :: DP426STJGAORK6ZV2APFRNWFS3TP6KVZKADU5D5NDZCTPM6WQUDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,12 +3,14 @@
 # name  = base.buffer.add_line
 # descr = write log messages to buffer and screen
 
-my $name          = shift;
-my $log_message   = shift; #  <--  <t-stmp>  <lvl>  <msg>
-my $log_cmd_level = shift; #  <--  [lvl]  <-- optional log level [ for log_cmd ]
-my $min_b_size    = 13747;
+my $name        = shift;
+my $log_message = shift;    #  <--  <t-stmp>  <lvl>  <msg>
+my $log_cmd_level
+    = shift;    #  <--  [lvl]  <-- optional log level [ for log_cmd ]
+my $min_b_size = 13747;
 
-$code{'base.log'} //= sub { say "<<< $_[1] >>>" }; ##<--catch compilation errors
+$code{'base.log'}
+    //= sub { say "<<< $_[1] >>>" };    ##<--catch compilation errors
 
 if ( !length( $name // '' ) ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
@@ -28,7 +30,8 @@ $log_message =~ s|\0|\\0|g;
 
 my $message_len = length($log_message);
 
-if ( not defined $buffer_size or $buffer_size < $min_b_size ) {  # buffer size #
+if ( not defined $buffer_size or $buffer_size < $min_b_size )
+{    # buffer size #
     my $default_size  = 6557696;    # <-- 64K internal default
     my $default_found = defined <default.max_size.log_buffers> ? 1 : 0;
     $default_size = <default.max_size.log_buffers> if $default_found;
@@ -76,8 +79,9 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     undef $data{'buffer'}{$name}{'data'}->[0];
     shift @{ $data{'buffer'}{$name}{'data'} };
     $data{'buffer'}{$name}{'overrun'}{'count'}++;
-    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; #[\n]
-    $data{'buffer'}{$name}{'size'}                  -= ( $deleted_bytes + 1 );
+    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'}
+        += $deleted_bytes + 1;    #[\n]
+    $data{'buffer'}{$name}{'size'} -= ( $deleted_bytes + 1 );
     if (    exists <log.file>->{$name}
         and exists <log.file>->{$name}->{'start_index'} ) {
         <log.file>->{$name}->{'start_index'}--
@@ -104,7 +108,7 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 }
 
 #.............................................................................
-#WEY6SB2JGBMWPHPPAJPKZFXPLZAWPND2YRY6NLYBKS2ODJNLC43J52RY22FJ5E74TLMZUSOZ4XC6Q
-#::: IYA47U5VO7YV726JDMJM33XR3LCK2NLKALQRUSNEHIXTJU2KDI5 :::: NAILARA AMOS :::
-# :: XLLO2265BSFEMCOMKGBH2BGC75NBIDAM2Q2QSPW5E6YKDP7ATSDQ :: CODE SIGNATURE ::
+#3WCBK4SM77FBNY7Q7GGQ6QU5GVHY26K7VUWQON46FLM3QIVATEHYZXLBI5ORPSGE7MWZHHRVSDL46
+#::: 4DRSKAN52DWFEEX2G5FE4BLVZAZVERZKYAYSH6H57U45BDJ7SW4 :::: NAILARA AMOS :::
+# :: MMW3GPLPBSYB27ZOTJGDXIOAU3IPJDD5VPRW2SIV54GUU3EIWSCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

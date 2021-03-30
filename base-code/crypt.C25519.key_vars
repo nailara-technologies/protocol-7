@@ -22,9 +22,11 @@ $key_usr = $cur_usr if $cur_usr ne 'root' and $cur_usr ne $ENV{'USER'};
 if ( defined $key_name ) {
     <crypt.C25519.base_key_name> = $key_name;
 } else {
-    $key_name //= <crypt.C25519.base_key_name> // join( '.', $key_usr, 'base' );
+    $key_name //= <crypt.C25519.base_key_name>
+        // join( '.', $key_usr, 'base' );
 }
-my $home_dir = <crypt.C25519.key_usr_home> //= <[base.get_homedir]>->($key_usr);
+my $home_dir = <crypt.C25519.key_usr_home>
+    //= <[base.get_homedir]>->($key_usr);
 <[base.log]>->( 2, 'no home directory, C25519 initialization aborted .,' )
     and return { 'usr_name' => $key_usr }
     if not defined $home_dir;
@@ -54,7 +56,7 @@ return <crypt.C25519.key_vars> = {
 };
 
 #.............................................................................
-#JKDQDKOTZNR2QJXZYENHVUIROYVYVV7YQ6K77JD5JULFQYOBXZ6CEQTWUNLB3ES4ABX5K53UTGIJK
-#::: 3TFQZPUHKVHRV46WIZ7UHF64KVGITW54OGXCZ6E2XVUX4YMQOML :::: NAILARA AMOS :::
-# :: 7MR3DTRYFEQOD7N4OL7ZI2ILJL3SNGLXDO63XQOJDQXR2XKTCUBA :: CODE SIGNATURE ::
+#KTMETB6NWGDWKBPUJUSYGDWJ4Z5GWQF6RF2ZQRZSELM4QRRXGUIUGV5GS4YVRQGBZEOWT7L3PCCYQ
+#::: KWOF7BYXQ75LN4UQGOASRDPLVNELDDUM5DXU3BN5VA5ROBS5PGP :::: NAILARA AMOS :::
+# :: RCTUM7OOSROZQTCTDIHNRJFKY6FXCZUFQIENK53MC22FTYCEDACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

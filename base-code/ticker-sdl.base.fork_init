@@ -16,7 +16,7 @@ map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
 $data{'handle'}{$parent_pipe}{'mode'} = 'out';
 $data{'handle'}{$child_pipe}{'mode'}  = 'out';
 
-<ticker-sdl.renice_priority>   //= -15;
+<ticker-sdl.change_priority>   //= -15;
 <ticker-sdl.use_transparency>  //= 1;
 <ticker-sdl.cfg.assign_window> //= 0;
 
@@ -29,15 +29,16 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     <system.zenka.subname> = 'child' . $sn_str;
     $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
 
-    delete <process.renice_child>;
+    delete <process.prio_child>;
 
-    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+    IO::AIO::reinit()
+        ;    # <- makes base.s_read() and base.s_write() work again...
 
     <ticker-sdl.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
-    close(<ticker-sdl.child.renice_fh>);
-    delete <ticker-sdl.child.renice_fh>;
+    close(<ticker-sdl.child.prio_fh>);
+    delete <ticker-sdl.child.prio_fh>;
 
     my $id = <[base.session.init]>->(
         $parent_pipe, 'protocol-7', 'client', 'parent'
@@ -57,16 +58,20 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     <ticker-sdl.window_id>
         = <[base.X-11.wait_for_window]>->( $title_pattern, 'parent', 'cube' );
     if ( not defined <ticker-sdl.window_id> ) {
-        <[base.log]>->( 0, "zenka startup error (ticker window did not open)" );
+        <[base.log]>->(
+            0, "zenka startup error (ticker window did not open)"
+        );
         exit(2);    # LLL: deal with parent? (test SIGCHLD handler!)
     } elsif (<ticker-sdl.cfg.assign_window>) {
         <[base.X-11.assign_window]>->( <ticker-sdl.window_id>, 'parent' );
     }
 
     if ( !<ticker-sdl.use_transparency> ) {
-        <[base.X-11.raise_window]>
+        <[base.X-11.raise_window]>->(
+            <ticker-sdl.window_id>, 'parent', 'cube'
+        );
+        <[base.X-11.keep_above]>
             ->( <ticker-sdl.window_id>, 'parent', 'cube' );
-        <[base.X-11.keep_above]>->( <ticker-sdl.window_id>, 'parent', 'cube' );
         <ticker-sdl.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
@@ -76,7 +81,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
         <[ticker-sdl.sdl.raise_and_fade]>;
     }
 
-    <[base.get_session_id]>->( 'parent', 'cube' );    # zenka status -> 'online'
+    <[base.get_session_id]>->( 'parent', 'cube' );  # zenka status -> 'online'
 
     <[event.add_timer]>->(
         {   'after'   => 0.64,
@@ -90,23 +95,24 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     <ticker-sdl.pipe.child> = $child_pipe;
     my $child_pid = <ticker-sdl.child.pid>;
     push( @{<system.kill_list>}, $child_pid );
-    my $prio = <ticker-sdl.renice_priority>;
+    my $prio = <ticker-sdl.change_priority>;
     <[base.log]>->(
         2, "setting priority of ticker child (PID $child_pid) to $prio"
     );
-    print {<ticker-sdl.child.renice_fh>} "$child_pid $prio\n";
-    close(<ticker-sdl.child.renice_fh>);
-    delete <ticker-sdl.child.renice_fh>;
+    print {<ticker-sdl.child.prio_fh>} "$child_pid $prio\n";
+    close(<ticker-sdl.child.prio_fh>);
+    delete <ticker-sdl.child.prio_fh>;
 
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
+        = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.load_modules]>->('ticker-sdl.parent');
 }
 
 #.............................................................................
-#37BN5LHX6NE56ZN2UW2RDKD4ILIJ5EMKKLPRY7L542QLFTX7UBGTWF6VTAQ6T2WFETT2JRK3QFA6C
-#::: UM4BLAPVTROM3SDH6BTWB2HHI5OLVBGNDHUQF7QOQCHRFFKCNTD :::: NAILARA AMOS :::
-# :: M4B3AHR6UDUVJMBB4ICDN6IB24PUQISGPPQQSMVFYUIHGDG3FSAA :: CODE SIGNATURE ::
+#XMMFRPPLBG6W2U4YYRESUVNYUKTYBWXLWL6THIIJSZ2CNAKG23JT3EIVYN5WSCQUCV57ACWMLRSDK
+#::: QF2XCCYXCYJOWVCXZF7Y53UH6UWYI6NFV6D26PIIR7VDCJJFIO2 :::: NAILARA AMOS :::
+# :: YQRINGY4NUUBKHZISTISTNQCT73B3YNKXLPPOMBP3MHSDML5ZKAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

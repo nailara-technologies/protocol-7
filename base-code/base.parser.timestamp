@@ -10,7 +10,8 @@ my $time = shift // time;
 
 if ( $mode =~ m|^(\d+)(\.\d+)?$| ) { $time = $1 and $mode = 'time-stamp' }
 
-$time = <[base.n2u_time]>->($time) if length($time) >= 13; # <-- network time ##
+$time = <[base.n2u_time]>->($time)
+    if length($time) >= 13;          # <-- network time ##
 
 my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
 
@@ -18,7 +19,8 @@ $year = sprintf( "%02d", $year + 1900 );
 $mon  = sprintf( "%02d", $mon + 1 );
 $mday = sprintf( "%02d", $mday );
 
-push( @result, "$year-$mon-$mday" ) if $mode eq 'time-stamp' or $mode eq 'date';
+push( @result, "$year-$mon-$mday" )
+    if $mode eq 'time-stamp' or $mode eq 'date';
 
 push( @result, sprintf( "%02d:%02d:%02d", $hour, $min, $sec ) )
     if $mode eq 'time-stamp' or $mode eq 'time';
@@ -26,7 +28,7 @@ push( @result, sprintf( "%02d:%02d:%02d", $hour, $min, $sec ) )
 return join( ' ', @result );
 
 #.............................................................................
-#O4CA6F5DXVAYAUZI5AAWRA7YT7V35EDF2VABT6RKGEKUSGB5JNKU6A4ZWOP2WOBN5WOBIGS3BOQXW
-#::: 7MHIUGIVGQU3IENVHZFFGUSS55OEBLWD526CCPWVN5EZH22AWK6 :::: NAILARA AMOS :::
-# :: FHVNKTCQ26LWOLKVRBXUBK5JKVCPAGDS57HUNDTQA5FQC5F4P2AI :: CODE SIGNATURE ::
+#UBJ6UCSLJIJAO7L6VAA4KRQUHVXBUHZFDBX7ZMIO3UAXZDJ7V6KUQLFPMMAYYHDVHZYL4ZCS23OL6
+#::: OID2DNHXFWALZPTLNASRN26VDOURAS3IRXDQANIWRQ5GFI5HO2Y :::: NAILARA AMOS :::
+# :: QRBZBRU5652ITCHA34RBRBKWT5JNZHAO4ZKZOKKOR2EMZGH2IMCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

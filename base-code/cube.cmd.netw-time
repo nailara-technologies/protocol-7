@@ -4,18 +4,20 @@
 # param = [unix|precision]
 # descr = protocol-7 network time, BASE-32 encoded
 
-my $parameter = $$call{'args'} // 3;  #  <--  precision or given unix time value
+my $parameter = $$call{'args'}
+    // 3;    #  <--  precision or given unix time value
 
 return {
     'mode' => 'nak',
-    'data' => 'precision\time parameter not valid [ integer or float expected ]'
+    'data' =>
+        'precision\time parameter not valid [ integer or float expected ]'
     }
     if $parameter !~ m|^\d+(\.\d+)?$|;
 
 return { 'mode' => 'ack', 'data' => <[base.ntime.b32]>->($parameter) };
 
 #.............................................................................
-#HUS7XHDQKLZYTWWBLD4PRS5FVIQYOP73DXD25QLJ55FKE7ZAO2S755NMUKEDP5XOUYHYTCZPDTBXU
-#::: 7WXO3NNOIFRCZOT7G2HMOLXXI75CAMLHWYB7NIXFPSM6BK7AUBE :::: NAILARA AMOS :::
-# :: MGLVFW4BF4TQ2JMAM2GBPQE73TCKADJC5IHGMZX54ZDQIF4JIIAY :: CODE SIGNATURE ::
+#VI3ECCRO7Z66LLW7HWPXZNQLNDLDJZV5R6U5VLXF52J3F3G34GC5HE4LOAZASOGZARLWQVJMSD6S2
+#::: 73NHKPRLFBO6TIW3M5LN7ZFLFBREFKHKJONPVC7ZALJCOMP4R3L :::: NAILARA AMOS :::
+# :: DEN2NGOJMQRT7GVVV4SBAHTRSHNHW2FY5B6U2LNTBA5VHGVFIWCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

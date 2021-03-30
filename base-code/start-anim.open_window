@@ -23,14 +23,16 @@ $window->set_decorated(0);
 $window->set_resizable(0);
 $window->set_keep_above(1);
 
-$window->set_title( <start-anim.window_title>
-        = sprintf( "%s[%s]", <system.zenka.name>, <system.zenka.subname> // $PID )
+$window->set_title(
+    <start-anim.window_title> = sprintf( "%s[%s]",
+        <system.zenka.name>, <system.zenka.subname> // $PID )
 );
 
 $window->set_default_size( 1, 1 );
 
 <start-anim.init_mode> = 1;
-( <start-anim.width>, <start-anim.height> ) = ( $window_width, $window_height );
+( <start-anim.width>, <start-anim.height> )
+    = ( $window_width, $window_height );
 
 <start-anim.image_path> =~ s|2K.gif$|4K.gif| if $screen->get_width() >= 3840;
 
@@ -47,7 +49,8 @@ my $bg_col   = <start-anim.bg-color>;
 $css_prov->load_from_data("* { background-color: $bg_col }");
 Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 
-my $pixbuf = Gtk3::Gdk::PixbufAnimation->new_from_file(<start-anim.image_path>);
+my $pixbuf
+    = Gtk3::Gdk::PixbufAnimation->new_from_file(<start-anim.image_path>);
 my $img_anim = Gtk3::Image->new_from_animation($pixbuf);
 
 my $img_width  = $pixbuf->get_width;
@@ -85,7 +88,7 @@ $SIG{'TERM'} = sub {
 Gtk3->main;
 
 #.............................................................................
-#QWFOVCEUJZ6FNNWIKNQXCLBLYS3HCETLU7K43PFQMO4APFEIIYYWS5RH4LNV32H4V4EJYA7EBDEC4
-#::: KOTH4YLNTNTTGVCC2CIZA4HK37KECEEAXSKDUT53AWC2ZTVZJ2R :::: NAILARA AMOS :::
-# :: OL6XF2HYLD5D22AYSESBEBJTK56HXO6GV5TEEZ3E23W6EIIJ26BA :: CODE SIGNATURE ::
+#I4WXOAWAVR7IRZUP5SWDPCXTFMKGMRFL5MRKLFBOM22L5X4HIWWDOG2ZRBXACTORRVWEPJPHCB6ZS
+#::: HRVZOU5ERFW5BONLF26KLOWBTTFY4SVHQ2HDXPGYPGNI5LL4ACX :::: NAILARA AMOS :::
+# :: YWH367KTQZ2CL5PMGIG7SB77M6TW64SYJBUACMICUZHCAPUIW4DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,9 @@ $h_req->decode;
 
 <[base.log]>->(
     2,
-    sprintf( " < %s > %s", $request->{'client'}->{'addr'}, $h_req->uri // '' )
+    sprintf(
+        " < %s > %s", $request->{'client'}->{'addr'}, $h_req->uri // ''
+    )
 );
 
 my $r_key;
@@ -66,7 +68,8 @@ $request->{'method'} = $h_req->method;
 $request->{'host'}   = lc( $h_req->header('host') )
     if defined $h_req->header('host');
 
-( $request->{'uri'} = $h_req->uri // '' ) =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
+( $request->{'uri'} = $h_req->uri // '' )
+    =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
 $session->{'http'}->{'close'}      = 1;
 $session->{'response'}->{'params'} = {};
 
@@ -74,8 +77,8 @@ map { $request->{'headers'}->{ lc($ARG) } = $h_req->header($ARG) // '' }
     $h_req->header_field_names;
 
 ( $session->{'meta'}->{'request_path'} = $request->{'uri'} ) =~ s|[#\?].*$||;
-( $session->{'meta'}->{'request_file'} = $session->{'meta'}->{'request_path'} )
-    =~ s|^.*/||;
+( $session->{'meta'}->{'request_file'}
+        = $session->{'meta'}->{'request_path'} ) =~ s|^.*/||;
 $session->{'meta'}->{'request_host'}   = $request->{'host'};
 $session->{'meta'}->{'request_method'} = $request->{'method'};
 $session->{'meta'}->{'req_time'}       = $request->{'req_time'};
@@ -100,15 +103,16 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
     }
 
 } else {
-    <[base.log]>->( 0, "[$id] http handler not defined [$request->{method}]" );
+    <[base.log]>
+        ->( 0, "[$id] http handler not defined [$request->{method}]" );
     <[httpd.send_error_page]>->( $id, 405 );
-    return 2;        # Method Not Allowed
+    return 2;    # Method Not Allowed
 }
 
 return 2;
 
 #.............................................................................
-#MY4KOL7OCTNDGCB2TWCK437OKPUSAZLUFCHRYQZAJAPOXTMAQSKXOSZMUFNYJ5WXL2H3VWIZVOEVM
-#::: 2EIYPJDZW53SKXL3ED7DLCAKYP6CW6OBFMFS3FTGVMWMU2UA4FW :::: NAILARA AMOS :::
-# :: UA5FBTPBRJFCMUT3DEOKG2YE2TMCKFA5SMRRMUBPGVFFY2WDLOAY :: CODE SIGNATURE ::
+#P6TE32XHKLYUAXZVPLXR2SGJ5DF2MBGVGJMXSLHBFFXDBOT6JVD37NLZ35VKXA2DN3CF32C3Y4AEK
+#::: 4MRLLVA6GTRNE5CESYEBHPIHUVSMD74ZPV2Y6YYD5FGQQISW26L :::: NAILARA AMOS :::
+# :: SPVLQJ3ZGN5GTDTTCENBHHLSFOJMVYLTGJ3PDNFHAPWLUCQ7J2BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,9 +2,11 @@
 
 # name = web-browser.wait_for_window
 
-( my $wait_title_str = <web-browser.window.title_str> ) =~ s|([\[\]\.])|\\$1|g;
+( my $wait_title_str = <web-browser.window.title_str> )
+    =~ s|([\[\]\.])|\\$1|g;
 unless ( <[base.X-11.wait_for_window]>->( '^' . $wait_title_str ) ) {
-    <[base.log]>->( 0, "[!] window unable to open, aborting zenka startup.." );
+    <[base.log]>
+        ->( 0, "[!] window unable to open, aborting zenka startup.." );
     exit(2);
 }
 
@@ -12,7 +14,7 @@ unless ( <[base.X-11.wait_for_window]>->( '^' . $wait_title_str ) ) {
 <[base.async.get_session_id]>;
 
 #.............................................................................
-#5RXDY65FLSAMKJOA3P5ZUS7TZUKXEHJHALI4ZZ3J7QIMULUY54TJVGV2XSPGCVDQDAMSHWUHZN34Y
-#::: CI4CPY6KCHROJXIO4QKVOHQJ3ZBKVSTJ2IVUELZFU6U6DASEFA3 :::: NAILARA AMOS :::
-# :: 4VPCJ5RXNHCAHJF3ZOC2F2TGXR35NBEOV77XE7HRNDIHWHXNP4CA :: CODE SIGNATURE ::
+#JZPS3C4QRM5AVHUKR3S5GCKFUUVVOUGMM54Q5JMI3C3MDT2WRGW5N6SODGOBVH7GPU6HJV5I3WD3E
+#::: V5346YNTDJQZUDN7FP2HJKBUTNKFQJURBCKPNVKE4XCKGUCACQV :::: NAILARA AMOS :::
+# :: SIKDZ2OGRUV3IQLYFMQQON3YB6GB5YSUBTXI3CZTBO22UZTMXCBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,12 +12,13 @@ my $B32_re        = <regex.base.base_32>;
 my $current_ntime = <[base.ntime]>;
 
 if ( ( not exists <system.zenka.type> or <system.zenka.type> ne 'cube' )
-    and length($param_str) ) {   # <-- no second param for non-cube type zenki.
+    and length($param_str) ) {  # <-- no second param for non-cube type zenki.
     return {
         'mode' => 'nak',
         'data' => "ask a 'cube'-type zenka for custom values"
     };
-} elsif ( $param_str =~ m|^($B32_re+)\-\d+\.\d+$| ) {  # <-- strict format [LLL]
+} elsif ( $param_str =~ m|^($B32_re+)\-\d+\.\d+$| )
+{    # <-- strict format [LLL]
     $network_time = $LAST_PAREN_MATCH;
 } elsif ( length($param_str) ) {
     return {
@@ -46,7 +47,7 @@ return { 'mode' => 'ack', 'data' => $date_stamp } if $date_mode;
 return { 'mode' => 'ack', 'data' => $duration_str }
 
 #.............................................................................
-#EZK3SEOD7QJPP3SRI7OBH5UNENUP63SLYVGTOWJTMSBPHG6GQMD56MA4ETZMY75QKV6W543CDVLX6
-#::: S376GG6MR5VO75DHVRYYTYO5I6UXO2AOEBZSDUP7I4IPZ64DGX2 :::: NAILARA AMOS :::
-# :: YJ3W4WCJO7YD6VEPAXAUX5ZG4T4H22GJ6PSBBBQMIKOEIVVGF4CQ :: CODE SIGNATURE ::
+#FWHMT6NTR6WT77YOJPQTATJ6EFJ6N5NGTWE7BBSYM7P7N7VDY5FS5A6N2WRV7BXCJDMOOCZ2LWSLE
+#::: QNNYEMVY4VBFZ7272XZZC7UDUUHPBPPFTBTJYSQBLJZ5BSYGLT5 :::: NAILARA AMOS :::
+# :: KT5XSYQDOV7WVIRLCUSEDNSDDKQSMDU3ZA737QI4WLOCC53RCWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

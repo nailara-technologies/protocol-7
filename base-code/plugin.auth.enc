@@ -13,26 +13,27 @@ my $auth_versn = '0000000';    ### <-- AUTH VERSION ####
 my $auth_state = $data{'session'}{$id}{'c25519'} //= {};
 my $key_name   = <system.zenka.name>;
 
-if ( $$input =~ s|^get-version\n|| ) { ## get authentication protocol version ##
+if ( $$input =~ s|^get-version\n|| )
+{    ## get authentication protocol version ##
     $$output .= sprintf( "ACK %s\n", $auth_versn );
-    return 1;                          # <- keep state
+    return 1;    # <- keep state
 }
 if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     my $cmd_type = $1;
     my $rep_type = $2 // $3;
     $rep_type = 'sig' if $cmd_type eq 'key-ver';
-    if ( not defined $KEYS{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
+    if (not defined $KEYS{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
     {
         $$output .= "NAK not available `:|\a\n";
         return 2;    # <- terminate [ error state ]
 
-    } elsif ( $cmd_type eq 'srv-key' ) {    ## returns current session p.key ##
+    } elsif ( $cmd_type eq 'srv-key' ) {   ## returns current session p.key ##
         $$output .= sprintf( "ACK %s\n",
             $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'} );
-    } elsif ( $cmd_type eq 'key-sig' ) {    ## returns session key signature ##
+    } elsif ( $cmd_type eq 'key-sig' ) {   ## returns session key signature ##
         $$output .= sprintf( "ACK %s\n",
             $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'} );
-    } elsif ( $cmd_type eq 'key-ver' ) {    ## return key and version chk-sum ##
+    } elsif ( $cmd_type eq 'key-ver' ) {  ## return key and version chk-sum ##
         $$output .= sprintf(
             "ACK %s\n",
             <[chk-sum.bmw.L13_str]>->(
@@ -42,7 +43,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
             )
         );
     }
-    return 1;                               # <- keeping connection state
+    return 1;                             # <- keeping connection state
 
 } elsif ( $$input =~ s|^set-key ($re->{usr_str}) (\S+)( (\S+))?\n|| ) {
     $auth_state->{'peer_name'}          = $1;
@@ -63,7 +64,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
 }
 
 #.............................................................................
-#AGNKL7BSGI4NPZUGXJZ5BEGL2LYON6WYUWCNMNOQZQWOB5HBTAB2PQHQTL6K43EF4KSDR3XAOYKA6
-#::: AQDIWW3W36M2PLYI7LHYJOHXFYVXDDTVV3TC7EX3RR6XFY2JXGC :::: NAILARA AMOS :::
-# :: SY6WUF3HNZ6KC76XAQNAHTD3KAT3H5RNU2UUGTN57XODQKHGX4DI :: CODE SIGNATURE ::
+#S5WG7N6B4FZQ3XLXHPT3WSORKEC2MLGPVNAR44OOWBLCFZDEHFLWBATIZH3RIOAISRPS2JMRISEN2
+#::: YVL2OVZQUQNHMPGOWPE23HKKQ5FDVNFSEK2PLXKD7A5YBILKHES :::: NAILARA AMOS :::
+# :: YVOEH4AWAEXICPC6H5PVM2JETG5MUXSGSSS5R23UQKPEN6M52OAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -58,15 +58,18 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
         return undef;
     }
     while ($bytes_to_go) {
-        my $read_bytes = read( $cube_fh, $buffer_string, $bytes_to_go,
-            length($buffer_string) );
+        my $read_bytes = read(
+            $cube_fh,     $buffer_string,
+            $bytes_to_go, length($buffer_string)
+        );
         die "cube filehandle had unexpected exception!"
             if not defined $read_bytes;
         $bytes_to_go -= $read_bytes if $read_bytes;
         sleep 0.1                   if $bytes_to_go and !$read_bytes;
     }
     my $lines = $buffer_string =~ /\n/;
-    warn "[!] found more than one matching window, please fix the name pattern!"
+    warn
+        "[!] found more than one matching window, please fix the name pattern!"
         if $lines > 1;
     <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
     <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
@@ -77,7 +80,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 }
 
 #.............................................................................
-#RO4RL3UFEHMSMGKR3TNHT77TYWMRCO7BQEFE5ADOPX7RR23Z2B4QIEVTGEQ2EK5UWPSJORZ36PD5Q
-#::: PSAX3D4OQL4FIVQLTTI2QPGRAER3PVIEVME5IYEAIFK6W3GYL5N :::: NAILARA AMOS :::
-# :: JSCZP3INLR4T5GS73L2PBM3BLP6KXIMQG3SO55IZMBAPRCE2WQDQ :: CODE SIGNATURE ::
+#MDYIVX3VRMLJQIZ5UGG5E7L2IMTL22MU2YE6IZMM5SU7QLMQXAM2NWMHH43X2ZKWLRLF2RUQKPO5S
+#::: QNDD3S3O7YRE52Z7DI2Z53ZSDIF4GZNLAW22LWS4KGBLL32EXPO :::: NAILARA AMOS :::
+# :: O7XO3LQF2DEOT45ITB6N62NFMAXRZMP352VEN7ROZ6O6ONCQ7IAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

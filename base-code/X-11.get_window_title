@@ -13,7 +13,8 @@ my $err;
 while ( not defined $wmstate and not defined $err and !$retries-- ) {
     eval {
         ($wmstate)
-            = <X-11.obj>->GetProperty( $window_id, <X-11.obj>->atom('WM_NAME'),
+            = <X-11.obj>
+            ->GetProperty( $window_id, <X-11.obj>->atom('WM_NAME'),
             'AnyPropertyType', 0, ~0, 0 );
         last if $wmstate;    ## <-- top-level window ##
         my ( undef, $parent ) = <X-11.obj>->QueryTree($window_id);
@@ -53,10 +54,11 @@ if ( defined $err and $err =~ m|^Protocol error: bad 3 \(Window\);| ) {
 $window_title = <[base.utf8.sanitize]>->( $window_title // '' );
 $window_title =~ s{^'|'$}{}g;
 
-return length($window_title) ? $window_title : "''"; ## <-- quotes when empty..,
+return
+    length($window_title) ? $window_title : "''";  ## <-- quotes when empty..,
 
 #.............................................................................
-#OLWT343FCQH6ZYVFS2UDOJBQK4IIESWUWFWWBPUFY5UZAW64SMHMWJVEIG3PIHNU7DOSOJT2NUNDG
-#::: 6XKVFVTHXY6VXRDUCANVYTNPLELO7MRWWUED2Z4HBN7GGGZAMRJ :::: NAILARA AMOS :::
-# :: ZV2LIOPJP6C7FC32G325WE2VV2TMS476F36UULQ54LS63IQQ6MCY :: CODE SIGNATURE ::
+#TTTZIVHBAPOHQE5JVUIQKV6UPRRMTPAHSFJAE24DFOYTNV65UBJLYVLA3RKWDQKPH4ND3XIKDTHKW
+#::: RYQCNLKEG2DWNBTS4KDPCCAR22ERWKQ6ZTPAGA4JINBCOOPJPQB :::: NAILARA AMOS :::
+# :: VUCCK46WCX564X3AGOZYA5OWATGE4UPAUJE5J7T25HZRABQ5TAAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

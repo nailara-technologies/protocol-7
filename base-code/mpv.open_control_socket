@@ -17,8 +17,9 @@ while ( $max_retries-- ) {
         <[base.log]>->(
             $level, "<<< ! >>> mpv process terminated unexpectedly..,"
         );
-        <[base.log]>
-            ->( 1, ":. no further output : is 'really-quiet' enabled?" );
+        <[base.log]>->(
+            1, ":. no further output : is 'really-quiet' enabled?"
+        );
         <[mpv.handler.error_output]>;
         <[mpv.abort_startup]>;
     }
@@ -37,7 +38,9 @@ if ( not -e $socket_path ) {
 }
 
 if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
-    <[base.log]>->( 0, "[!] mpv socket creation error [ not a valid socket ]" );
+    <[base.log]>->(
+        0, "[!] mpv socket creation error [ not a valid socket ]"
+    );
     <[mpv.callback.abort_startup]>     # <-- exiting
 }
 
@@ -49,7 +52,7 @@ if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
 );
 
 #.............................................................................
-#5LBNZ74PRSBQYO3TOY4WQ6YGMNJH3YAWI56MBT53RNRICBLALHSIBABX74BQERC7RGTNEC3CDWAVA
-#::: MVEEAE2LYAZIMULPK63LHSJQHKUBCLAWJDVOEGBHV5STVDMV43T :::: NAILARA AMOS :::
-# :: YVP2MCDH7HUWWJG3LSXUGWDH5YSUH5XYBBKRG7GYOU57WO7NYEBY :: CODE SIGNATURE ::
+#6WYXJUYWCPB2GFNTBECAXPBOXEZIDJD7MGCE3ZLFQ4MSKMPOFLG7GGH5QQC6NP433NDZIWN2RBXLM
+#::: XYX3H6OCYML5PQZ2PNLUCRFLF5QQ6GEBHVNV35MOPLV35PK7XKR :::: NAILARA AMOS :::
+# :: QDVLGGXVIBOCET4NBJCQH4L3Z76PR4WLZH6FT7RKLMCD3ERVW6BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

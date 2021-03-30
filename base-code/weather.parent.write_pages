@@ -5,11 +5,12 @@
 my $station_id = shift;
 die "expected (valid) station id parameter"
     if not defined $station_id or $station_id !~ m{^\d+$};
-my $cache_dir            = <weather.cache_dir> . '/html';
-my $html_dir             = "$cache_dir/$station_id";
-my @page_list            = <[weather.parent.page_list]>;
-my $current_template_dir = <system.root_path> . '/data/html/templates/weather';
-my $body_template        = "$current_template_dir/body.html";
+my $cache_dir = <weather.cache_dir> . '/html';
+my $html_dir  = "$cache_dir/$station_id";
+my @page_list = <[weather.parent.page_list]>;
+my $current_template_dir
+    = <system.root_path> . '/data/html/templates/weather';
+my $body_template = "$current_template_dir/body.html";
 
 if ( !-d $html_dir ) {
     mkdir($html_dir)
@@ -29,7 +30,8 @@ my $current_ref = $data_ref->{'current'};
 my $today_ref   = $data_ref->{'forecast'}->{'today'};
 
 if ( not defined $current_ref or not exists $current_ref->{'temp'} ) {
-    <[base.log]>->( 0, "expected weather data not present, aborting write.," );
+    <[base.log]>
+        ->( 0, "expected weather data not present, aborting write.," );
     return;
 }
 
@@ -99,7 +101,8 @@ foreach my $page_name (@page_list) {
         and defined $today_ref
         and ref($today_ref) eq 'HASH'
         and exists $today_ref->{'temp'} ) {
-        %temps = map { $ARG => sprintf( "%.1f", $today_ref->{'temp'}->{$ARG} ) }
+        %temps
+            = map { $ARG => sprintf( "%.1f", $today_ref->{'temp'}->{$ARG} ) }
             ( 'morn', 'day', 'eve', 'night' );
 
         my $icon_num = $1 if $current_ref->{'icon'} =~ m{^(\d+)};
@@ -260,7 +263,8 @@ foreach my $page_name (@page_list) {
             my $ts           = $timestamps[$index];
             my $day_data_ref = $data_ref->{'forecast'}->{'days'}->{$ts};
 
-            my $day_temp = sprintf( "%.1f", $day_data_ref->{'temp'}->{'day'} );
+            my $day_temp
+                = sprintf( "%.1f", $day_data_ref->{'temp'}->{'day'} );
             $part_template =~ s|\[DAY\]|$day_data_ref->{day}|g;
             $part_template =~ s|\[DESCR\]|$day_data_ref->{descr}|g;
             $part_template =~ s|\[TEMP\]|$day_temp|g;
@@ -300,7 +304,7 @@ foreach my $page_name (@page_list) {
 }
 
 #.............................................................................
-#HPAUQ3TSAQGKLH7FI2X5Z4OMMXCDXMG4RRDIYYN44XPIFKMUXMKZXUCPM2Y64W5V7JXJC3ODT6MES
-#::: 6RYNFBFHN4XG2LNNZ3DKA477YPDSCBQWDHK5U4XTJFFWHCVYAVB :::: NAILARA AMOS :::
-# :: TGDWKXIEN65Q7PGEZLJBVVV4HASG2WFXTISKCBQ3PEM3C2IO36DI :: CODE SIGNATURE ::
+#BZ7NDCPIIDID7QQJHUR5AZDMYEW7YKCR7IACL6FPZHF2JQT5YD63Z5B44PM27OZDTAOZH45FC4OM4
+#::: 5WJDTTIYP7ARU42T46EPTWFU3ZTN3CWOFBJNWEAEMAZTDLSA5OT :::: NAILARA AMOS :::
+# :: IWHRZ3O6C62SVLDFBAKQEUMBTZGPGEUSUQPEXB3XTGJQ7T4TWYAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,12 +10,13 @@ my $id  = $$call{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
 
-<base.debug.keep_on_reload> //= 0; # <-- [persistence] override : cfg \ defaults
-<base.reload.success.clean-code> //= 1;   # <-- delete $data{'code'} [ success ]
+<base.debug.keep_on_reload>
+    //= 0;    # <-- [persistence] override : cfg \ defaults
+<base.reload.success.clean-code> //= 1; # <-- delete $data{'code'} [ success ]
 
 my $s = '     ';
-$$reply{'data'} = ":\n\n\n::\n\n";        # <-- header
-my $reply_footer  = "\n::\n\n\n:\n";      # <-- footer
+$$reply{'data'} = ":\n\n\n::\n\n";      # <-- header
+my $reply_footer  = "\n::\n\n\n:\n";    # <-- footer
 my $keyword_match = 0;
 
 if ( $arg eq 'config' or $arg eq 'all' ) {
@@ -63,8 +64,8 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     ## source version ##
     my $src_version_file
         = catfile( $data{'system'}{'conf_path'}, 'protocol-7.src-ver' );
-    if ( -f $src_version_file and open( my $ver_fh, '<' . $src_version_file ) )
-    {
+    if ( -f $src_version_file
+        and open( my $ver_fh, '<' . $src_version_file ) ) {
         my $old_version = <protocol-7.src-ver> // '';
         ( <protocol-7.src-ver> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
@@ -78,8 +79,8 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
     ## release version ##
     my $rel_version_file
         = catfile( $data{'system'}{'conf_path'}, 'protocol-7.rel-ver' );
-    if ( -f $rel_version_file and open( my $ver_fh, '<' . $rel_version_file ) )
-    {
+    if ( -f $rel_version_file
+        and open( my $ver_fh, '<' . $rel_version_file ) ) {
         my $old_release = <protocol-7.rel-ver> // '';
         ( <protocol-7.rel-ver> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
@@ -131,7 +132,7 @@ $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 #.............................................................................
-#NFK4QVQX4DQNNONKHTWWWR7CFJYSRXFXSOLSLNDFLEM6CLK6FOCYSQYAVUM4XKCO5A2WHNB644TGS
-#::: IN6H2U4MGFQH3UBVZFWW4N43YSCYCKI3QMPRPGI6OLY5PNNYM5S :::: NAILARA AMOS :::
-# :: EUNGPDGHT4NW4GZHWX3UQMEXCKNNJENRDDSKNOL52OEMG7GELWDI :: CODE SIGNATURE ::
+#D7OHJJPBVRDSG6RZZYCUDG6RU2IAHJCVANHSRLK6WCETQILA5JHGXFWSDTPUKQBUEP5R2RUYBZ3MG
+#::: AHUT2IHREDF6D62AIX7S3HJLH4LKOPDD4ANOCQPXVJG5Y2FCZ25 :::: NAILARA AMOS :::
+# :: 7SSIZV6GR5RSDEFOLE65E4TWD5N5YB4BDQ7OEDVTWFQT2BA3ISAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

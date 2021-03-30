@@ -10,12 +10,15 @@ $route_str .= '.' if length($route_str);
 my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
 
 if ( exists $data{'session'}{$local_sid}{'cube_sid'} ) {
-    <[base.log]>->( 0, "already have a cube sid, refused to request another!" );
+    <[base.log]>->(
+        0, "already have a cube sid, refused to request another!"
+    );
     return undef;
 } elsif (<base.in_progess.get_session_id>) {
     my $secs = sprintf( "%.2f",
         <[base.time]>->(2) - <base.in_progess.get_session_id> );
-    <[base.log]>->( 0, "already requested a cube sid... ($secs seconds ago)" );
+    <[base.log]>
+        ->( 0, "already requested a cube sid... ($secs seconds ago)" );
     return undef;
 }
 
@@ -32,7 +35,7 @@ if ( exists $data{'session'}{$local_sid}{'cube_sid'} ) {
 );
 
 #.............................................................................
-#7UCQPALSA2H2XEJKVF4CRINL43YRERC6EMOY5I6Y4CBPH2SXSHUHOELJD63DHIAFFAVAR2QEFPIVC
-#::: HRBX55D4SAMRQHTD7NXVI4VNWOTI4JAJBOSH7NYRVAKHMUH6OHY :::: NAILARA AMOS :::
-# :: XJEPHURUGC6SABWW2QJYKSHMHJL2URXYHJI62PL3CLQYZ6RKTGAA :: CODE SIGNATURE ::
+#6FC5CGIKDLEP57XLWQWOUF4SMZCOHKLQYFAQIDPTTR6ZE6RBL4DNEI242PVZQ32R44SQWWSVYMMB4
+#::: 4TNP2I56JDC32IG7XNBZPEGDLSOK3GPV56K64DRNTQQ5EIY5GRT :::: NAILARA AMOS :::
+# :: YAUAWKNAJ246GKQFESSUGRMAADHCJGBECUY7EAKOZ5OF2OKXFGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

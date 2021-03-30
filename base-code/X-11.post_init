@@ -28,7 +28,8 @@ if ( <X-11.mode> eq 'host' ) {
 }
 <[base.log]>->(
     0,
-    sprintf( "<< X-11 mode changed to '%s', restart required >>", <X-11.mode> )
+    sprintf( "<< X-11 mode changed to '%s', restart required >>",
+        <X-11.mode> )
 ) if defined <X-11.old_mode> and <X-11.mode> ne <X-11.old_mode>;
 
 return 0 if <X-11.initialized>;
@@ -84,7 +85,9 @@ if ( $mode ne 'host' ) {
             = ( defined $OS_ERROR and length($OS_ERROR) )
             ? ": \"$OS_ERROR\""
             : '!';
-        <[base.log]>->( 0, ": unable to start $bin_name_lc-server$err_reason" );
+        <[base.log]>->(
+            0, ": unable to start $bin_name_lc-server$err_reason"
+        );
         exit(2);
     } else {
         <[base.log]>->(
@@ -96,7 +99,7 @@ if ( $mode ne 'host' ) {
         push( @{<system.kill_list>}, <X-11.pid> );
         <[base.zenki.report_child_pid]>->($server_pid);
 
-        <[base.renice]>->( <X-11.renice_priority>, <X-11.pid> );
+        <[base.change_prio]>->( <X-11.change_priority>, <X-11.pid> );
     }
 
     <[event.add_io]>->(
@@ -117,7 +120,7 @@ my $bin_name_lc = lc($bin_name);
 ## registering custom error handlers ###
 
 $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
-    = 'X-11.handler.protocol-warnings';    ## $self->{'connection'}->get(@_); ##
+    = 'X-11.handler.protocol-warnings';  ## $self->{'connection'}->get(@_); ##
 
 <X-11.obj>->{'error_handler'} = sub {
     ( my $self, my $err_data ) = @_;
@@ -212,7 +215,7 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     <X-11.wait_for_display.callback> = 'X-11.callback.display_connected';
     <[base.log]>->( 0, "<!> display is off / not connected <!>" );
 
-    # polling for screen sizes, otherwise drm display status never gets updated.
+  # polling for screen sizes, otherwise drm display status never gets updated.
     <X-11.timer.wait_for_display> = <[event.add_timer]>->(
         {   'after'    => 0.13,
             'interval' => 0.7,
@@ -242,9 +245,12 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
         and (  $max_size[0] > <X-11.obj>->width_in_pixels
             or $max_size[1] > <X-11.obj>->height_in_pixels )
     ) {
-        <[base.log]>
-            ->( 0, "<!> X-11 unable to select highest screen size <!>" );
-        <[base.log]>->( 0, " :. mitigating.. [ reloading gfx kernel module ]" );
+        <[base.log]>->(
+            0, "<!> X-11 unable to select highest screen size <!>"
+        );
+        <[base.log]>->(
+            0, " :. mitigating.. [ reloading gfx kernel module ]"
+        );
         <[event.add_timer]>->(
             {   'after'   => 0.13,
                 'handler' => 'X-11.callback.force_driver_reload'
@@ -316,7 +322,8 @@ if (    <X-11.has_dpms>
 <X-11.collect_gpu_stats_on_4K> //= 0;
 <[X-11.start_gpu_top]> if <X-11.video_driver> =~ m|^i|i    # i9xx <?>
     and ( <X-11.collect_intel_gpu_stats>
-    or <X-11.collect_gpu_stats_on_4K> and <X-11.obj>->width_in_pixels >= 3840 );
+    or <X-11.collect_gpu_stats_on_4K>
+    and <X-11.obj>->width_in_pixels >= 3840 );
 
 ## background image / color ##
 
@@ -348,12 +355,15 @@ if ( defined $bg_image ) {
     my @hsetroot_params;    # LLL: 'hsetroot' call to be replaced soon ..,
     my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
     if ( !-x $hsetroot_bin ) {
-        <[base.log]>->( 0, "can not set bg-image : '$hsetroot_bin' not found" );
+        <[base.log]>->(
+            0, "can not set bg-image : '$hsetroot_bin' not found"
+        );
         return -1;
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
-    @hsetroot_params = ( "-$bg_mode", $bg_image );  # <-- aquire available [LLL]
+    @hsetroot_params
+        = ( "-$bg_mode", $bg_image );    # <-- aquire available [LLL]
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
         <[base.log]>->(
             0, "unable to execute 'hsetroot' [ returned $CHILD_ERROR ]"
@@ -367,7 +377,7 @@ if ( defined $bg_image ) {
 return 0;
 
 #.............................................................................
-#EOWODMXAXEHQ7NSMKJXVYZIFJXBZVHEEFRDVF55C2AGXIGEFVOUNLZDKCVN547MMDMCYBHJCDXSNA
-#::: RSABC4AFETEYLVCTNBQWX7UJBWHCQ6Q2PBX72CH6HJZMEEHPXD4 :::: NAILARA AMOS :::
-# :: SRPGZYQT34US2ODHNN5EQPSF2OHCRFPKXADW3BOVYWMJEPPBZACA :: CODE SIGNATURE ::
+#WJPO722OQZGIKUDIEMV427HLZFFBX5AOSMEVAQ6IRCZYUFVS2BZC2JX5L2AKIAISPH2HRUPAEM6BU
+#::: 536LLMSCZRA44AOFUKIIUVXXNAVDSN6DRUCTCXYMZ2HTWHIOKTX :::: NAILARA AMOS :::
+# :: XWW675GLPJGB3WXUHLMN2NIVOXNOS3KAMVRVHAVVMSUKI5OWNIDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

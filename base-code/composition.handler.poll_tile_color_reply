@@ -44,21 +44,26 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 
         <[composition.tile_activity.change_poll_timer]>->(
             $tile_name,
-            sprintf( "%.2f", $start_interval + rand( $start_interval * 0.1 ) )
+            sprintf(
+                "%.2f", $start_interval + rand( $start_interval * 0.1 )
+            )
         );
 
         my $zenka_name_str = sprintf( "%s[%s]", $zenka_name, $tile_name );
 
         if ( $inactive_action eq 'restart' and $check_playlist ) {
 
-            <[base.log]>->( 1, " : checking playlist for tile '$tile_name'.." );
+            <[base.log]>->(
+                1, " : checking playlist for tile '$tile_name'.."
+            );
 
             <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'cube.content.get_list',
                     'call_args' => { 'args' => "[$tile_name]" },
                     'reply'     => {
-                        'handler' => 'composition.handler.check_playlist_reply',
-                        'params'  => {
+                        'handler' =>
+                            'composition.handler.check_playlist_reply',
+                        'params' => {
                             'zenka_name' => $zenka_name_str,
                             'tile_name'  => $tile_name
                         }
@@ -99,7 +104,8 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
             . <composition.x11_bg_color>
             . " ['$is_what_str']";
     } else {
-        my $is_what_str = $tile_color ne $last_color ? 'active' : 'inactivity';
+        my $is_what_str
+            = $tile_color ne $last_color ? 'active' : 'inactivity';
         <[base.log]>->(
             2,
             "tile color '$tile_name' : $last_color"
@@ -118,7 +124,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 <composition.last_tile_color>->{$tile_name} = $tile_color;
 
 #.............................................................................
-#LU5OQ7SZZFSFRKLRU2ZNS3B4IO22RWNEAQ4C7VMUAOFMGXFAYTP5R2BXSFOTU4JZFIFGXCBI7JVK4
-#::: 6W5YXPEKCWZ2CSF2M6QJYNCN6F64ALAXMFIRRSVVVFVUAYSBVYB :::: NAILARA AMOS :::
-# :: GBKW5HJ5ORMOGXLEIQZWHM6N6LFDIIHAD5LKZXAYFC2PE5J4KKBI :: CODE SIGNATURE ::
+#Z6OQG3GW5VO7PYCZPE376A5ZKPQEZIMXIEO6OC7RWMFMBMMP44Z6VNC2EFHSIQNGSR4KC7UCKPSZO
+#::: RAZ2AGSLWB76GWT3TITOR4XXNRS6BJBTV7CWFAQ6XRUMZGHPOYU :::: NAILARA AMOS :::
+# :: PTAI7IWXCNMWLNRVGTNJXG7CRCFWNPLAMWW3GLCCH2OIHW5CAYBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

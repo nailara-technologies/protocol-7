@@ -27,7 +27,8 @@ foreach my $filter_id ( reverse(@chain_list) ) {
         }
         $closure = $options . ")" . $closure;
     } else {
-        <[base.log]>->( 0, "error in filter $filter_id: handler not defined" );
+        <[base.log]>
+            ->( 0, "error in filter $filter_id: handler not defined" );
         <[filter.del_chain]>->($id);
         return undef;
     }
@@ -40,15 +41,14 @@ $code{ 'filter.chain.' . $id } = eval($chain_code);
 if ( !$EVAL_ERROR ) {
     $data{'code'}{'filter'}{$id}{'status'} = 'no-error';
     return $id;
-}
-else {
+} else {
     <[base.log]>->( 0, "broken chain code [$id:$EVAL_ERROR]" );
     <[filter.del_chain]>->($id);
     return undef;
 }
 
 #.............................................................................
-#TRWXVE5C5SBVGGDDBM5FJMDKDTOMPU2MQDADWDVBG4MZ625NG7G5YJNJOAR2UCFKJPLR2Q2IKZSOG
-#::: NOOV6TRS6TPFI4QCIEG24VQVPO4WIIURFQUQX2GFXSEPOVKRPIG :::: NAILARA AMOS :::
-# :: EWNINK6OBOIHAC2U5JUP7N7HDHZL2POEOE3VYXJ37HG4LDTB4KBA :: CODE SIGNATURE ::
+#ZPUL6GCEQ6XJKBYBB3J4WQQNW54I36E4OX73RXMNYPXLEO6PQGJETJL6FRLCCYQYQPA6QPN7UT7PG
+#::: ALXZQXYVJE3TOT6BOJ4RLHU67JLHZLM3T53ABJ6UPVYMURIBICM :::: NAILARA AMOS :::
+# :: S2S24AVLH46UEO5RJRUXNQ3DCCCM2W65FBYF2GLLM25L5XP3F2BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

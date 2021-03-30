@@ -9,7 +9,9 @@ my $msg = shift // 'session closed';
 if ( not defined $sid or $sid !~ m|^\d+$| ) {
     <[base.log]>->( 0, "base.session.shutdown: expected session id" );
 } elsif ( not exists $data{'session'}{$sid} ) {
-    <[base.log]>->( 0, "base.session.shutdown: session '$sid' does not exist" );
+    <[base.log]>->(
+        0, "base.session.shutdown: session '$sid' does not exist"
+    );
 } else {
     my $shutdown_msg = "!TERM! $msg";
     my $user         = $data{'session'}{$sid}{'user'};
@@ -24,7 +26,7 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
 }
 
 #.............................................................................
-#RTL32TZ4XRG7CS7W3G4RRAU5XQM6JAXTGFKMGGZ2MTMPGOODEENNZ32PYYTDT4FHTMSRKUVE6J45G
-#::: 4TVURVYUZDG4ZOCCTKZGFLRSKG4U7ZHQRQARNGRIFHISKMX3EMD :::: NAILARA AMOS :::
-# :: ZZJUV5BTTQSPLYANAA77AN5JREIJKJJDQAVUIAPFMN7M7BOIW6AI :: CODE SIGNATURE ::
+#A7VSUAZZFSOKID4ZXNYUK7N7R6ZDX5HFVSUIEKN3TFHQP74UTLCYFRFQULQHMIUUJCOS342O6BFPY
+#::: RUK343WOPTZ2M6PRYXZWAD46FSPATIGINAIPTGFX52ZTDRDCBAX :::: NAILARA AMOS :::
+# :: AMMVSIOWZUQGRTLZD2UPQBUFLDVZ7TENWBN22DFBTCEWG7Z7DIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

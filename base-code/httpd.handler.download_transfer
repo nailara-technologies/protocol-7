@@ -40,8 +40,11 @@ my $multipart_footer;
 if ( $read_size <= 0 ) {
     if ( $part_id < $part_count - 1 ) {    ## more parts are queued..,
         $download->{'part_id'} = ++$part_id;
-        <[base.log]>->( 1, "[$id] part $part_id of $part_count transferred.," );
-        sysseek( $download->{'content_fh'}, $ranges->[$part_id]->{'start'}, 0 );
+        <[base.log]>->(
+            1, "[$id] part $part_id of $part_count transferred.,"
+        );
+        sysseek( $download->{'content_fh'},
+            $ranges->[$part_id]->{'start'}, 0 );
         $read_size = $ranges->[$part_id]->{'part_size'}
             if $ranges->[$part_id]->{'part_size'} < $read_size;
         my $part_header = $ranges->[$part_id]->{'part_header'};
@@ -57,14 +60,16 @@ if ( $read_size <= 0 ) {
         return 1;
     }
 }
-warn "[$id] content read size was zero" and goto ABORT_DOWNLOAD if !$read_size;
+warn "[$id] content read size was zero" and goto ABORT_DOWNLOAD
+    if !$read_size;
 
 my $bytes_read = <[base.s_read]>->(
     $content_fh, \$session->{'buffer'}->{'output'},
     $read_size,  length( $session->{'buffer'}->{'output'} )
 ) if $read_size;
 
-warn "[$id] unsuccessful read from content filehandle" and goto ABORT_DOWNLOAD
+warn "[$id] unsuccessful read from content filehandle"
+    and goto ABORT_DOWNLOAD
     if not defined $bytes_read or !$bytes_read;
 
 $download->{'total_bytes_remaining'} -= $bytes_read;
@@ -102,7 +107,7 @@ $watcher->stop;
 return 0;
 
 #.............................................................................
-#NTVZ6G5B3ZDOVPPWVIWE2SZEJCYPMVRPAXXTBWH6NC3XBGPKX4SEVYPNCZ2566QPPHB7I64YCZN6W
-#::: 6D44KFAUXJXBMX4X3XUYNTLALRGXZS5HMGAH3AYBU2274WEOS63 :::: NAILARA AMOS :::
-# :: Z6O4CRMNCPTHME3P5BGIZIBEEEBJZC7JJWFXWKVYGP4NY6WTEKDA :: CODE SIGNATURE ::
+#WYUL5EJ24ITWU5LP2TURUGLFJEFQSUMICAQWUFFLIWJ2F4S4AVVSYB7I5XJMDTEW5D774AKU7PSFW
+#::: NYQIZ44GKWIMXQWOTDAAB2UO34GK4SCZQ7DBMVL3WBC2MZ47WD6 :::: NAILARA AMOS :::
+# :: E6OGGHRPXDY3KARGGXWRJD62JJC3KPOGFTTIV5G7FL4DVBJV4ACA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

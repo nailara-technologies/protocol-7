@@ -24,7 +24,8 @@ if ( not defined $target_width ) {
     <[base.log]>->( 2, "no target width supplied, using image width!" );
     if ( $image_location =~ m|^https?://| ) {
         <[base.log]>->( 2, "downloading '$image_location' first..." );
-        $image_location = <[image2html.base.download_file]>->($image_location);
+        $image_location
+            = <[image2html.base.download_file]>->($image_location);
         return { 'mode' => 'nak', 'data' => 'download error' }
             if not defined $image_location;
     }
@@ -88,7 +89,7 @@ if ( !-d $html_path ) {
 return { 'mode' => 'ack', 'data' => "file://$html_path/image.html" }
 
 #.............................................................................
-#NOE2YR642PAOGFDVOHFD4CCH2XFZBQEW4OYPGWFUJ5BHHQSIQTHCPZCL7XTV7NM7O3QX3UIPHAS7Q
-#::: OAHAMVZ2L35JEKOON4YBFFFJIU6XOX4LMFEL23JFERZS2Q7QPHS :::: NAILARA AMOS :::
-# :: S2AO64SR4THKYEBNU4LBVHSUFGBYBZPG5NDB247CZ33BXSNX5QAA :: CODE SIGNATURE ::
+#V2OHWQLS3B7BQ44VW5AR425R7LFBKFNK2RSPZIBRIYGDPEDTTIWP6E5I4OMY2UUWSALA5XVYYZHAG
+#::: LLVYKPXI5RAZKHS3B2A5PXAE5CZP7OCCTP5XTEHF6TKD2MJ5BKE :::: NAILARA AMOS :::
+# :: BYZUSFTSRULP7IK7TNGCWLKNZF6XYV6FIV5UQ7VRN5URDRNYVADA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ if (    ref($cmd_hook) eq 'HASH'
     );
 
     return {
-        'mode'    => $cmd_hook->{'mode'} //= qr|^ACK$|o,    ## <-- set-up ., ###
+        'mode'    => $cmd_hook->{'mode'} //= qr|^ACK$|o,  ## <-- set-up ., ###
         'handler' => $code{ $cmd_hook->{'recv'} },
         'data'    => $code{ $cmd_hook->{'send'} }->(
             {   'target'  => $params->{'target'},
@@ -41,7 +41,9 @@ if (    ref($cmd_hook) eq 'HASH'
             <[base.log]>->(
                 0,
                 sprintf "%s-[%s]-handler '%s' not defined. [ hook disabled ]",
-                $command, $ARG, $handler
+                $command,
+                $ARG,
+                $handler
             );
             delete <base.filter_hooks.command>->{$command};
             return undef;
@@ -51,7 +53,7 @@ if (    ref($cmd_hook) eq 'HASH'
 }
 
 #.............................................................................
-#C7KLEAEHL4YPDHKJQUDQHNKKPAYJBVORM7Q57PJKGND7B4VRDYTFIADR2HDZVKYXAWXCWXNGKB5QS
-#::: 24Y4BHZCNMUFH6N5LUXV7MORIS557N3JVRDMX7OSK3XFPZ4UW5E :::: NAILARA AMOS :::
-# :: 452XTRXQ2QFYLMTZJJL5VICFZR5N6D3DYXQUSHX5VNLB4JPJCACQ :: CODE SIGNATURE ::
+#MD7KVDRH54OMFWLZPG6BLML3FMNV556RT3YLA4OTT6VEYZ5R7PLCJSEDK4ZLPI4KHJYDI7HX552SS
+#::: FT4XVQW2GKLX5RT255IQPSCCSS535F4HSTP6XNV6UISYSFNFGGA :::: NAILARA AMOS :::
+# :: TKKBSQRB6VSSJSKLPYQW2MFDDUE7HZFZUIF3CYHBAKYG6XF46SDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

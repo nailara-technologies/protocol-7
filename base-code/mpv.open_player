@@ -16,7 +16,8 @@ my $mpv_params = <mpv.params>;
     and defined <system.zenka.subname>
     and <system.zenka.subname> eq 'audio';
 
-<mpv.playlist_type> = 'audio' if <mpv.audio_only>; # <- run with 'audio' subname
+<mpv.playlist_type> = 'audio'
+    if <mpv.audio_only>;    # <- run with 'audio' subname
 
 if ( !<mpv.audio_only> ) {
     my $xmode = <x11.mode>;
@@ -72,8 +73,8 @@ if ( !<mpv.audio_only> ) {
         <[base.log]>->( 1, " : fullscreen mode is enabled [auto_fs].," );
         <mpv.current.window_width>  = <x11.coordinates.right>;
         <mpv.current.window_height> = <x11.coordinates.bottom>;
-        <mpv.current.box_width>     = <x11.coordinates.right>; # LLL: check, fix
-        <mpv.current.box_height>    = <x11.coordinates.bottom>;
+        <mpv.current.box_width>  = <x11.coordinates.right>;  # LLL: check, fix
+        <mpv.current.box_height> = <x11.coordinates.bottom>;
     }
 
     $mpv_params .= ' -vo=' . <mpv.vo_backend> if defined <mpv.vo_backend>;
@@ -195,7 +196,7 @@ close( delete(<mpv.fh.stdin>) );    # input fd not required
 <[base.log]>->( 1, "player startup successful., =)" );
 
 #.............................................................................
-#X4AHDC5FNWCHEUI6RNBAR4W4ITBL2KT44ZVDSSIWW3C3XVM7OF4XTTBTBJD3IX3TYYFTKKKD2DGIM
-#::: N725OZLRO5HDX44FIVAFAYCKT6UKYWUKTZCRU4Z2HQSBKBYPSRQ :::: NAILARA AMOS :::
-# :: BN7HAMLBDHVAVYOFQDPZ4N45BGCUYF2REAB5QQCURHL3T3L72MCQ :: CODE SIGNATURE ::
+#XDRXFFPWCCONX3LGWRMZYBRRO6WRGQELSLGIECZD3MPDLYFH46LMHXKN2Z3JTJS4VNNZCZFXEKX5Q
+#::: VKHRM7PH2VWF5JC3PZWQTDIZOUAGGSXWZ56EYPQTRL223D6K6JD :::: NAILARA AMOS :::
+# :: OHZYRKLTNZQSPCZCFNTGO5SA45NYYEXAXG6ZGVTUEUMCUOEZW2CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

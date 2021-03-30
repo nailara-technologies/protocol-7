@@ -38,7 +38,8 @@ if ( !$connection->{'authorized'} ) {
     my $local_user  = $profile_data->{$link_name}->{'nailara.local.user'};
     my $remote_user = $profile_data->{$link_name}->{'nailara.remote.user'};
     if ( $connection->{'buffer'} =~ s|^>:]\n|| ) {
-        my $remote_pass = $profile_data->{$link_name}->{'nailara.remote.pass'};
+        my $remote_pass
+            = $profile_data->{$link_name}->{'nailara.remote.pass'};
         $channel->write("auth $remote_user $remote_pass\n");
     } elsif ( $connection->{'buffer'} =~ s|^YEAH >:P\n|| ) {
         $connection->{'authorized'} = 1;
@@ -80,10 +81,13 @@ if ( !$connection->{'authorized'} ) {
         $connection->{'linked'} = 1;
 
     } elsif ( $connection->{'buffer'} =~ s|^NOPE >:\|\n|| ) {
-        <[base.log]>->( 0, ": : remote end nailara auth. was not successful" );
+        <[base.log]>
+            ->( 0, ": : remote end nailara auth. was not successful" );
         <[ssh.connection.stop]>->($con_id);
     } elsif ( $connection->{'buffer'} =~ s|^>:\|\n|| ) {
-        <[base.log]>->( 0, ": : nailara authentication timeout on remote end" );
+        <[base.log]>->(
+            0, ": : nailara authentication timeout on remote end"
+        );
         <[ssh.connection.stop]>->($con_id);
     } else {
         <[base.log]>->(
@@ -104,7 +108,8 @@ if ( !$connection->{'authorized'} ) {
         );
         if ( not defined $bytes ) {
             <[base.log]>->(
-                0, "local nailara link filehandle closed, connection shutdown.,"
+                0,
+                "local nailara link filehandle closed, connection shutdown.,"
             );
             <[ssh.connection.stop]>->($con_id);
         } else {
@@ -115,7 +120,7 @@ if ( !$connection->{'authorized'} ) {
 }
 
 #.............................................................................
-#GY4FEMBHJRWVJ7LXV2Z635KVLNKFSANA6LE42ERGAP7ILENSBA72GWB6DOTQXCDV4TBC5TNWNW5IQ
-#::: Z2AEKAF45DN7RPIM2ASOOI5AMCPLN5WQFM773AA2X4XLFAB7FJ6 :::: NAILARA AMOS :::
-# :: GPF3IJUSGE4LUAQPT7EPA4NO4OJPMKZHRFIQOTFZYMJUO2H3WUDI :: CODE SIGNATURE ::
+#OHM6DVOKMQNZRUJI3ROGTGUGELR3UZCCZUDTPBMQOAK2POVWSEI3JEJYXAA3AIZJ3F4KCKNJXPVEM
+#::: L6NVIK7CHQ647EO4SSMKCXUUTUUHNUAHMGZXGKENYKJEOEUXG4M :::: NAILARA AMOS :::
+# :: SZWULP3YG625NHSOO3LCG2VRJLLX3GJJMZEWTBNJKRQ2YMV54YAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

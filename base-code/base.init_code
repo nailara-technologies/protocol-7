@@ -12,7 +12,8 @@ use List::Util qw| reduce max uniq |;    ## <-- expand as required ., ##
 <[base.perlmod.autoload]>->('IO::AIO');
 <[base.perlmod.load]>->( 'Time::Local',   qw| timegm_nocheck | );
 <[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
-<[base.perlmod.load]>->(qw|  POSIX  strftime uname getcwd setsid sys_wait_h |);
+<[base.perlmod.load]>
+    ->(qw|  POSIX  strftime uname getcwd setsid sys_wait_h |);
 
 ## installing cryptographically safe fork version ##
 ##
@@ -120,7 +121,8 @@ if (    defined <system.zenka.type>
     <[base.disable_command]>->('verify-instance');
     <zenki.virtual> //= {};
     my $key_ref = \$data{'zenki'}{'virtual'};
-    $data{'base'}{'element'}{$key_ref}{'max_count'} //= 4097; # LLL: -> config.,
+    $data{'base'}{'element'}{$key_ref}{'max_count'}
+        //= 4097;    # LLL: -> config.,
     <list.virtual> = {
         'var'   => 'data',
         'key'   => 'zenki.virtual',
@@ -155,13 +157,15 @@ if (    defined <system.zenka.type>
             |
     );
 
-    <base.commands.cmd.src-age.param> = "['date'] ";  # <-- disable second param
+    <base.commands.cmd.src-age.param>
+        = "['date'] ";    # <-- disable second param
 
     if ( <system.zenka.name> ne 'universal' ) {
         <[base.hide_list]>->(qw| sessions |);
         <[base.disable_command]>->(qw| whoami |);
         <[base.disable_command]>->(qw| present |)
-            if <system.zenka.name> ne 'weather'; # LLL: needs 'has_clients' flag
+            if <system.zenka.name> ne
+            'weather';    # LLL: needs 'has_clients' flag
     }
 
     <[base.hide_list]>->(qw| users |);
@@ -194,8 +198,8 @@ if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 ## command aliases with source zenka name prefixes ###
 if ( defined <setup.aliases> ) {
     if ( defined <setup.aliases.source_zenka> ) {
-        foreach my $alias_cmd ( split( m|\s+|, <setup.aliases.source_zenka> ) )
-        {
+        foreach
+            my $alias_cmd ( split( m|\s+|, <setup.aliases.source_zenka> ) ) {
             $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_AGENT";
         }
     }
@@ -215,7 +219,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 #.............................................................................
-#DI723C6HXFQOKB2OHTOS45JAVX22YMX25FFC37VUCZC5YKJN57GNPH3NSHC423KHPM7XRNXMVO4SC
-#::: ZPJZX5X7LSBC2E6HVSKRKCNJOG6Y24GN6EOA5UUOQSPE6RKAAVW :::: NAILARA AMOS :::
-# :: F6ZOBY3R2WOTWNBRM6XNJ37JK3KHM6F44EA7LOPRSBSQB55L3QCQ :: CODE SIGNATURE ::
+#W7KMWON3RHPUAB7XWFHRYNFJ6725FZ72SVDMCFVLMOOTVCNFIJWBKQLFRPMLQZWEE36CC43COOKDO
+#::: ZGW2YRNL7LHBZJKGQTENRFPULWF54SOJW7MC4YM6SJIQZRUJJMW :::: NAILARA AMOS :::
+# :: 2NN23MG2S7OMY3KAPM6TDFTWK7FYMQZVT4NELQRUT5HWABO34YCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -171,7 +171,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     <composition.transition.status.waiting.stop>--;
     ( my $zenka_stripped = $zenka ) =~ s/\[.+$//;
     map {
-        if ( exists <composition.transition.status.zenki.concurrency>->{$ARG} )
+        if (exists <composition.transition.status.zenki.concurrency>->{$ARG} )
         {
             <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "cube.nroot.start",
@@ -272,7 +272,8 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
             my $s     = $count > 1 ? 's' : '';
             <[base.log]>->( 1, "restoring $count composition overlay$s.." );
             <[composition.cmd.add_overlay]>->(
-                { 'args' => join( ' ', @{<composition.restore.overlays>} ) } );
+                { 'args' => join( ' ', @{<composition.restore.overlays>} ) }
+            );
             delete <composition.restore.overlays>;
         }
     }
@@ -282,7 +283,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 #.............................................................................
-#53VP3EXKVZAW7PSLVP72H7IFVZPBZKZOKNJN3TKPVGGY4ZEVWZZVVDAHWITNAPYCMZ3CDI2GGFOWC
-#::: SK4AIM7DUMHDXF4QXBBX7NLAWX33YDRZKAWDUZL5U3H53OWB2OR :::: NAILARA AMOS :::
-# :: 74NIYORQCBEFXPOFDYZFVAITOCOGSSWMOUVOY7IMPUZ5PLB4OIAA :: CODE SIGNATURE ::
+#IFI5XC6632MLD364T7T2U4Z56DEQIFG6EC7INRXREKSXW3Y65PWYKFYE2B5ZEC3Y7LWZSZB57HDXO
+#::: EZIXMLLVF3QHMEVJVGQIQSSBFDLAF3NRHMOSG3YPIJFPVRSP6AJ :::: NAILARA AMOS :::
+# :: C7C6RLIKPU6SCJZUL3UMESQG4A4RJYLZPSNAEWKRR7ZU2ZPXYMAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

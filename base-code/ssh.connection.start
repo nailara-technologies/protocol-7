@@ -120,7 +120,8 @@ foreach my $key_type ( 'private', 'public' ) {
     my $key_file = $key_type eq 'private' ? $ssh_privkey : $ssh_pubkey;
     if ( !open( my $test_fh, '<' . $key_file ) ) {
         <[base.log]>->(
-            0, ": : SSH AUTH ERROR [ unable to open $key_type key: $OS_ERROR ]"
+            0,
+            ": : SSH AUTH ERROR [ unable to open $key_type key: $OS_ERROR ]"
         );
         $ssh->disconnect;
         $sock->shutdown('NOW');
@@ -198,7 +199,9 @@ $connection->{'retry_delay'} *= 2
 $connection->{'retry_delay'} //= 0.5;    # LLL: -> config!
 $connection->{'retry_delay'} = 30 if $connection->{'retry_delay'} > 30;
 
-<[base.log]>->( 1, ": : : retrying in $connection->{retry_delay} seconds ..." );
+<[base.log]>->(
+    1, ": : : retrying in $connection->{retry_delay} seconds ..."
+);
 
 $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
     {   'after'   => $connection->{'retry_delay'},
@@ -210,7 +213,7 @@ $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
 return 0;
 
 #.............................................................................
-#GI73UIEPQMIAERQ2IQAGPQKZYE7JWID5C5WEDRIR35YS7WGODR2TRJYV2U7Q7CEJAMCMKAYSTPZMO
-#::: KQ326IIRK6GVXFH24DPZMA5WQING2F2PYPKOFV52KBWYDRRU35V :::: NAILARA AMOS :::
-# :: SF2ZEX4LQAKJWKFNAH5DTX5KVIZ6LWB6DRYUCLVUBV675KFGEUCQ :: CODE SIGNATURE ::
+#ZLZLYUVYXXFWWME7VXC537735Q6YE6PQIXS6LDVFO3D2WACO3ZMSHP2TSR3PKEMWXHQ34HGUI5LJO
+#::: ZLNN7A5AIQBLRPRUIBM57URZ4KX7BFX2KGXWDO5KLGUCQ4R2HUF :::: NAILARA AMOS :::
+# :: OORPHJ7L3UBGXWMJRIGJOT3RMDW3IXN3MFLWLJL4U2LCDXJJE2BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

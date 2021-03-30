@@ -12,7 +12,8 @@ if ( defined $key_str
     and $KEYS{'zenka'}{'session_key'} ne '' ) {
     $key_str //= $KEYS{'zenka'}{'session_key'};
     my $banner_string;
-    my $bytes_read = <[base.s_read]>->( $filehandle, \$banner_string, 4 ) // 0;
+    my $bytes_read = <[base.s_read]>->( $filehandle, \$banner_string, 4 )
+        // 0;
     if ( $bytes_read > 0 ) {
         if ( $banner_string eq ">:]\n" ) {
             <[base.log]>->( 2, '[*] protocol banner detected.,' );
@@ -65,12 +66,13 @@ if ( defined $key_str
     }
 
 } else {
-    <[base.log]>->( 0, 'session_key not set, authentication not possible..,' );
+    <[base.log]>
+        ->( 0, 'session_key not set, authentication not possible..,' );
     return undef;
 }
 
 #.............................................................................
-#XN7SKDPM43NG7XTIBF2TH3MKD47KJEAWQ6RNBGYOA2QXRQZYOZ6DVWKQZJGOU64AIJSQUYBLJGGEM
-#::: AXPPK2HPSQCPUMFIXLLU7UNGP67BGFJJDXXYNIYPPILC6334UTQ :::: NAILARA AMOS :::
-# :: P4FEZB4EZIBZ6LZ4LOAQ2CFQ2LBJPQROTATA62UTSAY3CIAAEMBQ :: CODE SIGNATURE ::
+#JC3W7S6Z5FON5H2ZJQ6W43VNSAC5M3AACEVGL7K3C326SX7AMZPKBMBZBZX5LWBPNRYIUGSWN3QSW
+#::: T2BJAMQXQYEEORK7WBLNROGKR523VWWJY5VIU37GVHF2GIVRQIN :::: NAILARA AMOS :::
+# :: CHHQJXYCTCGHT47U6R4ENTZC7YMARU6OCK6K2E4QHTSJX7TG7ODQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

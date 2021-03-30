@@ -4,7 +4,9 @@
 # args  = { key_ref val_ref want_harmony }
 
 if ( ref( $_[0] ) ne 'HASH' ) {
-    <[base.log]>->( 0, 'base.list.element.add: submitted argument is no hash' );
+    <[base.log]>->(
+        0, 'base.list.element.add: submitted argument is no hash'
+    );
     return undef;
 }
 
@@ -14,12 +16,14 @@ my $want_harmony = ${ $_[0] }{'want_harmony'};
 
 if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
     <[base.log]>->(
-        0, 'base.list.element.add: key_ref is no reference to a hash reference'
+        0,
+        'base.list.element.add: key_ref is no reference to a hash reference'
     );
     return undef;
 } elsif ( not defined $val_ref or ref($$val_ref) ne 'HASH' ) {
     <[base.log]>->(
-        0, 'base.list.element.add: val_ref is no reference to a hash reference'
+        0,
+        'base.list.element.add: val_ref is no reference to a hash reference'
     );
     return undef;
 } elsif ( not defined $data{'base'}{'element'}{$key_ref}
@@ -41,7 +45,7 @@ $data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
 return $id;
 
 #.............................................................................
-#JTKHDJMMXD3KOX3B3M57YOFGTW7XAULRU4NU7SMG4EK5Z25PMOFYKSNCKXUFH46O75R3S5HCWUJHE
-#::: 5S2QYYW6FRZSSH5P52QDMT4JLJOR4VQ6K2XF7QNFLZKLREHUFQO :::: NAILARA AMOS :::
-# :: F4OWODG5S5POULUT2YPILCOE2DDPNTQN2FL64HQAIQ5UXYOR3CCA :: CODE SIGNATURE ::
+#EEV56V5E56W7WC3FDKFVPH4R3YLGOKTUDJHWARGAKWSH4HUBGZ6H4TH2VWEPPRK7OEQZSBUKE4HGE
+#::: VRFFF2Q57GPKXE7YIUONXDJCLNG4BM36CZBZTF34MBHRXAEALIY :::: NAILARA AMOS :::
+# :: 6UZRVZBO5B634KYX3V3IHCISFNC5PKIUX7NGI726WUXPGJPNMECA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

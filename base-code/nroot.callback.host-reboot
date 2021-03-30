@@ -33,7 +33,9 @@ if ( !-e $sysrq_file ) {
         my $reboot_cmd
             = -x '/sbin/reboot' ? '/sbin/reboot' : <[file.which]>->('reboot');
         if ( !-x $reboot_cmd ) {
-            <[base.log]>->( 0, 'neither systemctl nor reboot command found.,' );
+            <[base.log]>->(
+                0, 'neither systemctl nor reboot command found.,'
+            );
             <[base.log]>->( 0, ':. unable to reboot - do not know how .' );
         } else {
             <[base.log]>->( 0, $reboot_message );
@@ -47,7 +49,8 @@ if ( !-e $sysrq_file ) {
 #
 
 map {
-    open( my $sysrq_fh, ">$sysrq_file" ) or die "[ $sysrq_file : $OS_ERROR ]";
+    open( my $sysrq_fh, ">$sysrq_file" )
+        or die "[ $sysrq_file : $OS_ERROR ]";
     print {$sysrq_fh} "$ARG\n";
     if ( $ARG eq 'e' ) {    # SIGTERM
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
@@ -62,7 +65,7 @@ map {
 ##
 
 #.............................................................................
-#32EZAWPZLOZNO64325ACXWRRGH54KBFSBCOOO5SNEG37X44DPJNEIJNZPEALKDXODLCXEWN34RDOI
-#::: IOLQYY723UO3SNRKE3NFZOQBUX24U2SZJ6ASYMRKSSBN6QFMO4R :::: NAILARA AMOS :::
-# :: RRYGA5FIIHE7S5CWDGLB6MELFUCAVFODAYJ2TXK2XKYNCNV5V2AI :: CODE SIGNATURE ::
+#PD5USBNOZZQG2FRZEHX2CLWRWNQAC63HUVCR47CU4HFP2M6EZ5ZIQE5C4LQQ2MYWMJEJNDKKLYGKK
+#::: 4FCYJ3GEQDZL7ZZVASRR5QDAWBPNPJ5FPAPS7O64CCN2ZOYXGDI :::: NAILARA AMOS :::
+# :: WCVOCAZKSR4A7HTGVSEH2FCYJI65JBP5RIQN5MYNAVIEDGC2ZMBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,8 @@ my $checksum_string = shift;
 ( warn "expected source checksum parameter <{C1}>" and return 0 )
     if not defined $checksum_string;
 
-return 0 if not -e $p7c_bin_path; ## no binary present \ checksum not found.. ##
+return 0
+    if not -e $p7c_bin_path;    ## no binary present \ checksum not found.. ##
 
 ( <[base.log]>->( 0, "no read access to '$p7c_bin_path'" ) and return 0 )
     if not -r $p7c_bin_path;
@@ -35,7 +36,7 @@ close($binary_fh);
 return $checksum_found;
 
 #.............................................................................
-#DRJX7RYZNLHYFVWZTUTVJQ453PICIU6SCVI4RW5MXZVBJTEPPIRDDNCVVFIBTUSLRUQWL5HNLABS6
-#::: BEGOXDGS554VFBZY36ICGHCYTFFQHXMOKGKTSP2L2BKKH7OVXOW :::: NAILARA AMOS :::
-# :: FP6NTR5O4USXRFKV6B47AKG7HGDBCHUDBLJ67IWMJKYERVDXFQDA :: CODE SIGNATURE ::
+#O3CZD2U6X2JEOOGOSACFLOAVU4LAE2O4R2G7VWVOW5BUIACWBYHI3SKJNM5PWCFXBIYM237SMTMVU
+#::: NVAYJWFOWCVIWHUEOH7ZQRDWJWQEQIZJ2K422PGU46KPHIE5YTM :::: NAILARA AMOS :::
+# :: WZ5I46XVU6U75Z5ABESLY55FK5HHQTAG2TSGJ6QDDLNG6WM2LOBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

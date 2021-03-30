@@ -5,7 +5,8 @@
 
 my ( $reply_id, $reply ) = @_;
 
-return if defined $reply_id and $reply_id eq 'silent';  # silent (no reply) mode
+return
+    if defined $reply_id and $reply_id eq 'silent';   # silent (no reply) mode
 
 die "expected numerical reply_id"
     if @_ != 2
@@ -17,7 +18,8 @@ warn "expected reply data hash reference"
     or ref($reply) ne 'HASH';
 
 return
-    warn "no command meta data set up for id '$reply_id' [ zenka gone? ] <{C}>"
+    warn
+    "no command meta data set up for id '$reply_id' [ zenka gone? ] <{C}>"
     if not exists <base.cmd_reply>->{$reply_id};
 
 my $meta_data  = <base.cmd_reply>->{$reply_id};
@@ -32,9 +34,10 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 # reply data error check
 
 if ( not defined $reply or ref($reply) ne 'HASH' ) {
-    $reply          = {};
+    $reply = {};
     $$reply{'mode'} = 'nak';
-    $$reply{'data'} = 'error during command invocation [ details are logged ]';
+    $$reply{'data'}
+        = 'error during command invocation [ details are logged ]';
     <[base.log]>->( 0, "[$session_id] cmd ['$cmd'] err [ href expected ]" );
 
 } elsif ( not defined $$reply{'data'}
@@ -46,14 +49,16 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
             . '-reply attempted! (base.callback.cmd_reply)'
     );
     $$reply{'mode'} = 'nak';
-    $$reply{'data'} = 'error during command invocation [ details are logged ]';
+    $$reply{'data'}
+        = 'error during command invocation [ details are logged ]';
 }
 
 # check answer mode
 
 if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
     $$reply{'data'} =~ s/\n/\\n/go;
-    $$output .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
+    $$output
+        .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
 } elsif ( uc( $$reply{'mode'} ) eq 'DATA' ) {
     my $len = length( $$reply{'data'} );
     $$output .= $_cmd_id . 'DATA ' . $len . "\n" . $$reply{'data'};
@@ -66,7 +71,7 @@ if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
 delete <base.cmd_reply>->{$reply_id};
 
 #.............................................................................
-#TI6FXTR7HSWG3XKZIM7IHGCAVPISTVEGQVHNG7R5IAFRHRIHDSD64VK52OKBBHSBLAKFDW35RDQJ4
-#::: ZWDINFAUSYUZHECFHOLHN7TXASOLEDZIQC3NUJA5ILMSICEB6EX :::: NAILARA AMOS :::
-# :: WCMRJKG6RKPMD4F4L2WSRV2FHTBXENAJGVCAU2AXMRYAJNFSFOBQ :: CODE SIGNATURE ::
+#QBCNRTEEKW5BGX7BA5UCGGWJBQCTAYEQZSCXEOXRTFHBR6KWCR3FOPEBAEZHHL76M2PTZOS7XROEQ
+#::: M4S7LDPZSBMTHZ25FP6DO4O6KKCUULNMGYDSNCPOLQM7VGEHOWJ :::: NAILARA AMOS :::
+# :: DJZDLKGQ2GBSKXEV76PK7CV2JKWJN6US4REFMUW6F4ALNVOSCSDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

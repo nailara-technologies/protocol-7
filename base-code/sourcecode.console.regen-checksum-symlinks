@@ -24,12 +24,16 @@ map {
 <[base.log]>->( 1, ": verifying directory structure.," );
 die "directory '$source_root' not found" if !-d $source_root;
 if ( !-w $source_root ) {
-    <[base.log]>->( 0, "<<< write permission missing for '$version_root' >>>" );
+    <[base.log]>->(
+        0, "<<< write permission missing for '$version_root' >>>"
+    );
     <[base.exit]>->(1);
 }
 my $dir_fh;
 if ( !opendir( $dir_fh, $version_root ) ) {
-    <[base.log]>->( 0, "can not open directory '$version_root' [ $OS_ERROR ]" );
+    <[base.log]>->(
+        0, "can not open directory '$version_root' [ $OS_ERROR ]"
+    );
     <[base.exit]>->(2);
 }
 my %vers_dirs = map { $ARG => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
@@ -38,13 +42,16 @@ closedir($dir_fh);
 my $target_path = catfile( $version_root, $source_version );
 
 if ( not exists $vers_dirs{$source_version} ) {
-    <[base.log]>
-        ->( 1, ": :. creating source version path [ $source_version ]" );
+    <[base.log]>->(
+        1, ": :. creating source version path [ $source_version ]"
+    );
     <[file.make_path]>->( $target_path, 0755 )
         or die "cannot create directory '$source_version' [ $OS_ERROR ]";
     my $path_descr_str = <sourcecode.path_desc.version>;
-    <[file.put]>
-        ->( catfile( $target_path, '.path-desc' ), "$path_descr_str\n" );
+    <[file.put]>->(
+        catfile( $target_path, '.path-desc' ),
+        "$path_descr_str\n"
+    );
 }
 
 my $file_count     = 0;
@@ -96,7 +103,8 @@ foreach my $src_file_rel (
             0, "<< copy >> '$src_file_rel' -> '$target_path/' [ $OS_ERROR ]"
             );
 
-        chmod( $src_stat->mode, $dst_file_path );  ## preserving exec. bits., ##
+        chmod( $src_stat->mode, $dst_file_path )
+            ;    ## preserving exec. bits., ##
 
         $file_count++;
     }
@@ -153,7 +161,7 @@ foreach my $src_file_rel (
 }
 
 #.............................................................................
-#Q7B2ORALEGGPZQ7YONIR4NLDI6UGW27SCLWHUNBL6D3UP2CS3O4V3FF2RGNXEZRKY5ABR2YJ5JBJC
-#::: LTF4Q62WRDNXWRFWMNIIJN7PMONR3QOKTXL2SMCETVXJPIQUJOG :::: NAILARA AMOS :::
-# :: 3LX4LEESJJ6XH3I4QHCJBNLYD6NRBBHDY2FWZJQ63OMVE3XKGMDA :: CODE SIGNATURE ::
+#O6JYFCAK6N7TWJ443PI6HKTYHRCKL3ZRCGKP4V7D5EHG3E4JH46BBKGI2W56LQYHY2NW464UKEI2S
+#::: VBWFLDLDGJVYZHZ6NNVQYHWU5C44WG6TX5VRCFLJ6BWXRVG2DZG :::: NAILARA AMOS :::
+# :: F63XC4QRMFXLYWNCDUKMCYNKRIGLNKXF6PNVCQ42NE3V5UCHDUDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

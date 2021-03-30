@@ -6,7 +6,8 @@
 
 my $request_str = $$call{'args'} // '';
 my $hostname    = <system.host.hostname>;
-( my $log_usr, my $process_id, my $log_message ) = split( / +/, $request_str );
+( my $log_usr, my $process_id, my $log_message )
+    = split( / +/, $request_str );
 $log_usr =~ s|^$hostname.||;
 
 return {
@@ -21,7 +22,9 @@ return {
     }
     if not exists <process.table.top>->{$process_id};
 
-<[base.log]>->( 0, "<!> '$log_usr' requested autokill for pid $process_id .." );
+<[base.log]>->(
+    0, "<!> '$log_usr' requested autokill for pid $process_id .."
+);
 
 $log_message //= "terminating process [PID:$process_id] (requested)";
 
@@ -33,7 +36,7 @@ return {
     }
 
 #.............................................................................
-#7IXOHFB2VNFKLIXEUERHVSAC3Y3FW2PK3VS7NEDUGD6XQWIJBNVKVUTVUZSZXJOKBZ4QUHH5SK7BK
-#::: NG4QK7IXHJ73L5BKSGX6LWFRFSB5SQS333J2YTD7ZYBAQCRCF52 :::: NAILARA AMOS :::
-# :: 4ATNDRSEDJOY3GRHTMDULH3HZXUKRMDSNM4FWCOYQTO5KNQGDSDI :: CODE SIGNATURE ::
+#LYDTZEMEOQCWWOIAG7TRIH3MSDHOGPXK33AEZYFADQAOY6OLOWQ3JNBD5QZQGS7PTSOV5F7VHXPZA
+#::: SVJFCMMK3AM5YM4ANCOAX42MUWCZT3R7R3TFKA4LUUP4MHKEMCS :::: NAILARA AMOS :::
+# :: V6AR2Z4M4CKLXOSP2EDHCM2TKQCVHLWTAXRCPC2NOEZQ7ODSF6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

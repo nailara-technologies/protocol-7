@@ -68,11 +68,12 @@ if ( not defined $err_reason ) {
     my %match_pid;
     push( @match_type, 'user' )
         if exists $has_uid{$stat_uid}
-        and $stat_ref->cando( S_IWUSR(), $stat_uid );  # <-- user write access.,
+        and $stat_ref->cando( S_IWUSR(), $stat_uid )
+        ;    # <-- user write access.,
     push( @match_type, 'group' )
         if defined $stat_gid
         and exists $has_gid{$stat_gid}
-        and $stat_ref->cando( S_IWGRP(), $stat_gid );   # <-- group write access
+        and $stat_ref->cando( S_IWGRP(), $stat_gid ); # <-- group write access
     if (@match_type) {
         $instance->{'stat_uid'} = $stat_uid;
         $instance->{'stat_gid'} = $stat_gid;
@@ -90,7 +91,10 @@ if ( not defined $err_reason ) {
     if defined $err_reason;
 return { 'mode' => 'nak', 'data' => $err_reason } if defined $err_reason;
 
-push( @{ <nroot.zenka.instance>->{$zenka_instance}->{'temp-path'} }, $tmppath );
+push(
+    @{ <nroot.zenka.instance>->{$zenka_instance}->{'temp-path'} },
+    $tmppath
+);
 
 my $str_len = 52 - length(<system.node.name>);
 
@@ -100,7 +104,7 @@ my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 return { 'mode' => 'ack', 'data' => "registered '$tmppath'" };
 
 #.............................................................................
-#6MQRS6OKL2CHNQSJU7KCWE2WGFB2BWWOQOL6X5Z2REJADJX5ZWVKPEX7X64TGVISSBCBVQNGICXIG
-#::: 233EARWE6IAWHGWKSDEWOZ6G3MS2WKKYPKWYJ3FRIKW3WHEHGLX :::: NAILARA AMOS :::
-# :: R3NJDTNTJAZPQFKKONUJPI67WX3T3BNEYVK7RSMIYYAYFTMD7MBA :: CODE SIGNATURE ::
+#RIUQR3HT5LKHCZAYQ2KEA64TE2WCI6YF3OP3URMF3P7XPEHR63P6NVJYEGQ2XLEVI6KD5F6HWORPU
+#::: Y565CPK4YQO2VE4NQBGYAKR2YAXBRB7GJN6SRMNGV7QHZR353OH :::: NAILARA AMOS :::
+# :: ECPAXPXTGJ7NRVRPE7BPRMGGCBBP4HQG4GOFAA6HJKAD6AGZUODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

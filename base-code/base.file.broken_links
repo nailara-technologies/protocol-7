@@ -28,18 +28,21 @@ foreach my $check_path (@check_dirs) {
     my $err_reason = 'missing link target';
 
     foreach
-        my $lnk_src ( sort { length $b <=> length $a } sort keys %all_links ) {
+        my $lnk_src ( sort { length $b <=> length $a } sort keys %all_links )
+    {
         my $lnk_dst = $all_links{$lnk_src};
 
-        my $abs_dst_path = abs_path($lnk_dst); # does implicit symlink resolving
+        my $abs_dst_path
+            = abs_path($lnk_dst);    # does implicit symlink resolving
 
-        if ( !length($abs_dst_path) or !-e $abs_dst_path ) {    # missing target
+        if ( !length($abs_dst_path) or !-e $abs_dst_path ) {  # missing target
 
             <[base.log]>->( 0, ": [ missing ] '$lnk_dst' <-- '$lnk_src'" );
             <[base.log]>->( 2, ": ::[ $abs_dst_path ]" );
 
-            push( @error_list, ( $err_reason => "'$lnk_dst' <-- '$lnk_src'" ) );
-        } else {                                                # target exists
+            push( @error_list,
+                ( $err_reason => "'$lnk_dst' <-- '$lnk_src'" ) );
+        } else {                                              # target exists
             <[base.parser.ellipse_center]>->( \$lnk_dst, 17 );
             <[base.parser.ellipse_center]>->( \$lnk_src, 14 );
             <[base.log]>->( 2, ": [ resolved ] '$lnk_dst' <-- '$lnk_src'" );
@@ -52,7 +55,7 @@ foreach my $check_path (@check_dirs) {
 return @error_list;
 
 #.............................................................................
-#LYM3WJCUW2KTYEX3AXX2VKFURNJDRFPRROLB425ZLFQ52WPDFBX5DK3KQTWDDSSCHA4QAIPUV7B6W
-#::: LT6KIOGD5QPLKHQSWUAJPZ5LZTZU73GESTBRQ7LVQRLZTMUD5UP :::: NAILARA AMOS :::
-# :: D2HMULTH6MBYE6XYUR6IRD6ZEMFPSSUB7LFRETFZEVHGJQFHLGAY :: CODE SIGNATURE ::
+#YBLJLOSQ4UUBRMJ47ZUYNRSLCLRNWJRMSHMHIOLWWLTFTTA6PFBKRWBM5QJCP4V3N2Q4ZWF45GYSK
+#::: CQ5VHOFJIYAMICMYYR5PF2YMA3DNRTNUERWDLZTDQTMCKC3RQKJ :::: NAILARA AMOS :::
+# :: AOGBRKMWRVBFDTEP7AXE5QNAKLWK2JNI7SAAIRP6Z4NKIA46IWBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

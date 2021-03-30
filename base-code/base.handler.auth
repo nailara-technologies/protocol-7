@@ -23,18 +23,22 @@ $_[0]->w->stop;    # <-- stopping event handler to modify buffer
 if ( $$input =~ s|^(auth\.)?close\n|| ) {
     $$output .= "ACK connection closed\n";
     <[base.log]>->( 1, "[$id] connection shutdown requested" );
-    return 2;    # <-- disconnect
-} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| ) { # <-- auth method
+    return 2;      # <-- disconnect
+} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| )
+{    # <-- auth method
     my $req_method = $+{method};
     $_[0]->w->start;
 
     if ( not exists $code{'auth.auth_select'} ) {
-        <[base.log]>->( 0, "[$id] auth module not loaded, 'select' rejected." );
+        <[base.log]>->(
+            0, "[$id] auth module not loaded, 'select' rejected."
+        );
         $$session{'shutdown'} = 1;
         $$output .= ">:[\n";
     } elsif ( $req_method !~ <regex.base.authmethod> ) {
         <[base.log]>->( 0, "[$id] invalid characters in auth method string" );
-        <[base.log]>->( 2, "[$id] :: requested auth method :: '$req_method'" );
+        <[base.log]>
+            ->( 2, "[$id] :: requested auth method :: '$req_method'" );
         $$session{'shutdown'} = 1;
         $$output .= ">:[\n";
 
@@ -94,15 +98,16 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         and defined $auth_name
         and $auth_name =~ <regex.base.usr> ) {
         my $fh = $data{'session'}{$id}{'handle'};
-        $$session{'encryption'}  = $data{'handle'}{$fh}{'encryption'} // 'none';
-        $$session{'mode'}        = 'client';
-        $$session{'user'}        = $auth_name;
-        $$session{'auth_time'}   = <[base.time]>->(5);
-        $$session{'initialized'} = 1 if $auth_method ne 'zenka';
+        $$session{'encryption'} = $data{'handle'}{$fh}{'encryption'}
+            // 'none';
+        $$session{'mode'}          = 'client';
+        $$session{'user'}          = $auth_name;
+        $$session{'auth_time'}     = <[base.time]>->(5);
+        $$session{'initialized'}   = 1 if $auth_method ne 'zenka';
         $$session{'authenticated'} = 'yes';
 
         my $unauth_client = <base.session.uname.client>;
-        delete $data{'user'}{$unauth_client}{'session'}{$id};    ## clean-up ##
+        delete $data{'user'}{$unauth_client}{'session'}{$id};   ## clean-up ##
         <[base.clean_hashref]>->( $data{'user'}{$unauth_client} );
         <[base.clean_hashref]>->( $data{'user'} );
 
@@ -132,7 +137,7 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 }
 
 #.............................................................................
-#FYFGQ7BOWHJAWHHPUKHS3WPZEZOIYLXLFER5ZKU5AP233VPVE5VQL6OCHP4RTJOVA66JBYGUOGJDW
-#::: NG2Z4SYGU7N5ATKE23OEC6TR7ZJP5B5O6UZ5NSQVKSBMTNZZXXD :::: NAILARA AMOS :::
-# :: ZZKRUB7VK6V5VCDA5OIKMU4XHP4MTL3P6HX4LBKCTM6I7FXB6WAQ :: CODE SIGNATURE ::
+#EYJL6MPVCHXMQJ63NHJQCFCSXEVKMD3BF2T6XUW2E756LVZMIVS2CBIS76OSGTCGCL3SLGHBF7KFM
+#::: V3JMWWK2ZAIDP2YZ3E3ZLICLV3COYV62XZIGJVTXQPEQLUB5NSC :::: NAILARA AMOS :::
+# :: LTAS7ELIFIXWVDRZAEEJMN6C7DQKCE4DX3UKSX3D4CA7XM3FTMBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

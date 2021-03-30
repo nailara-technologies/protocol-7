@@ -34,7 +34,8 @@ warn "user '$new_user' does not exist <{C1}>" and return 0
     if not defined $new_uid;
 
 map { <[base.log]>->( 1, $ARG ) } (
-    "::::[ changing owner : '$old_user' --> '$new_user' ]:.",            '::',
+    "::::[ changing owner : '$old_user' --> '$new_user' ]:.",
+    '::',
     ":::[ UID : $old_uid --> $new_uid :: GID : $old_gid --> $new_gid ]", ':'
 );
 
@@ -70,7 +71,8 @@ my $time_delta = ( $time_end - $time_start ) / 1000;
 
 my $warn_count  = $warned_paths->{'scan'}->{'total'} //= 0;
 my $error_count = <base.file.chown-all.errors.chown.total>;
-<base.file.chown-all.warnings.scan.total> = $warned_paths->{'scan'}->{'total'};
+<base.file.chown-all.warnings.scan.total>
+    = $warned_paths->{'scan'}->{'total'};
 
 <base.file.chown-all.warnings>  = $warned_paths;
 <base.file.chown-all.scan-time> = $time_delta;
@@ -86,7 +88,7 @@ map { <[base.log]>->( 1, $ARG ) } (
 return $change_count;
 
 #.............................................................................
-#GROGPHMIPBNMPLRBAWTEJPNLGBL6TPBRKIYBSVC7WXM5B6T7CO46Y2HEQKYPRMQFJGK5K3Q4MTPQC
-#::: DGLSQ3FL3K2SRUW5DDXABU2W7GIA2N4QKRFWUTJQZUFEXO6DUW7 :::: NAILARA AMOS :::
-# :: MZAACS6HFGLCYDUMQNMZMRILYBLZNU26HNVUUTELJBO7LMWRBCCI :: CODE SIGNATURE ::
+#KH5WJW7IBD4SU4AEBANBATEHSYWFLSZGFT3HTFEWBGSMHU67QEB3343GSSPGXCIU3UDLBEEK4RFB4
+#::: UUP7DMFPOM3LBR4CITNW6BBHELCQQGO2LS7NP35S6EJZ33M7DBE :::: NAILARA AMOS :::
+# :: JR6O4FSLQEYOQWWMZYLSV33ZIJF2X7OYODZYUGPXKJP4TR6OY4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

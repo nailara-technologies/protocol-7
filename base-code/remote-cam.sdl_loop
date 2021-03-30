@@ -142,10 +142,12 @@ while (1) {
         $last_scaled_height = $scaled->h;
 
         # copy scaled image to screen
-        SDL::Video::blit_surface( $scaled,
+        SDL::Video::blit_surface(
+            $scaled,
             SDL::Rect->new( 0, 0, $scaled->w, $scaled->h ),
             $screen,
-            SDL::Rect->new( $x_offset, $y_offset, $screen->w, $screen->h ) );
+            SDL::Rect->new( $x_offset, $y_offset, $screen->w, $screen->h )
+        );
 
     } else {    ## display error message in 'unreachable' case
         my $status_str
@@ -187,7 +189,9 @@ while (1) {
                 $w_txt,
                 SDL::Rect->new( 0, 0, $w_txt->w, $w_txt->h ),
                 $screen,
-                SDL::Rect->new( $err_pos_x, $err_pos_y, $w_txt->w, $w_txt->h ),
+                SDL::Rect->new(
+                    $err_pos_x, $err_pos_y, $w_txt->w, $w_txt->h
+                ),
             );
 
         }
@@ -212,7 +216,7 @@ sub loop_wait {    # processing network event while waiting
 }
 
 #.............................................................................
-#PZKB76RZQUA4UTM36ZHRN74ZFXB3YXJFIQ43ZNK7PPJWMW3EJJYPOC7HBTFKMDDYWJCF52BSU3DIQ
-#::: XVW6VG4JDFH7MR7M2D2IVJCV3SVUIG5YID77EZUDXFAHBQF5MGF :::: NAILARA AMOS :::
-# :: 6CJSXTFVWUHIVODMFMWMNLEHLG7D2YYLKUCJZCW46GKEWSYRAGBQ :: CODE SIGNATURE ::
+#5QTLCGRDADYOFBZJFSF2I5RUYL4EKZJZ4KCC65GNLBXLA5AYQFY2HKICO3IE5QEMTGH52PBPBN7FG
+#::: VSMC6IVR5WSUEPUYWP2YUHPREZHXX6YENMNOT37DMB2ZBZAWVMV :::: NAILARA AMOS :::
+# :: NDMZWUANR7NW635R6IEPKOFAQMES2EF6ZVNNPG62GFE52OQVTKBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

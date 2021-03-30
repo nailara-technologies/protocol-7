@@ -48,12 +48,14 @@ if (%symlink_errors) {
 <[base.log]>->( 1, ": verifying directory structure..," );
 die "directory '$source_root' not found" if !-d $source_root;
 if ( !-w $source_root ) {
-    <[base.log]>->( 0, "<<< write permission missing for '$source_root' >>>" );
+    <[base.log]>
+        ->( 0, "<<< write permission missing for '$source_root' >>>" );
     <[base.exit]>->(1);
 }
 my $dir_fh;
 if ( !opendir( $dir_fh, $source_root ) ) {
-    <[base.log]>->( 0, "can not open directory '$source_root' [ $OS_ERROR ]" );
+    <[base.log]>
+        ->( 0, "can not open directory '$source_root' [ $OS_ERROR ]" );
     <[base.exit]>->(2);
 }
 
@@ -94,10 +96,13 @@ foreach my $src_file_path (
     sort { length($b) <=> length($a) }
     sort keys %source_links
 ) {
-    ( my $link_target = $source_links{$src_file_path} ) =~ s|^\.\./||; # subdirs
+    ( my $link_target = $source_links{$src_file_path} )
+        =~ s|^\.\./||;    # subdirs
     my $dst_file_path = abs_path($link_target);
 
-    next if $dst_file_path !~ m|^$version_root|; # <-- not applicable \ relevant
+    next
+        if $dst_file_path
+        !~ m|^$version_root|;    # <-- not applicable \ relevant
 
     ( my $src_file_rel = $src_file_path ) =~ s|^$work_tree||;
     my $file_rel_substr = $src_file_rel;
@@ -106,13 +111,15 @@ foreach my $src_file_path (
     if ( -l $src_file_path and -e $dst_file_path ) {
         <[base.log]>->( 2, ":: is-link : '$file_rel_substr' .," );
 
-        push( @restore_links, { $src_file_path => abs_path($dst_file_path) } );
+        push( @restore_links,
+            { $src_file_path => abs_path($dst_file_path) } );
 
         $link_count++;
     } elsif ( -l $src_file_path ) {
         $err_count++;
-        <[base.log]>
-            ->( 0, ":: symlink destination missing [ $dst_file_path ]" );
+        <[base.log]>->(
+            0, ":: symlink destination missing [ $dst_file_path ]"
+        );
         <[base.parser.ellipse_center]>->( \$src_file_path, 41 );
         map { <[base.log]>->( 0, $ARG ) }
             ( ':', ":. source : '$src_file_path'", ':' );
@@ -149,7 +156,8 @@ if ($err_count) {
         <[base.log]>->( 0, ':' );
         <[base.log]>->(
             0,
-            sprintf( "::[ '-force' was used to ignore %d error$s ]::[ <<!>> ]",
+            sprintf(
+                "::[ '-force' was used to ignore %d error$s ]::[ <<!>> ]",
                 $err_count )
         );
     }
@@ -183,10 +191,12 @@ if ( !$err_count or $apply_force ) {
         <[base.log]>->( 1, ":[copy]: '$r_to_str'" );
         <[base.log]>->( 2, ":[from]: '$r_from_str'" );
 
-        unlink($r_to) or warn "[unlink] $OS_ERROR ['$r_to']";  ## removing first
+        unlink($r_to)
+            or warn "[unlink] $OS_ERROR ['$r_to']";    ## removing first
         File::Copy::syscopy( $r_from, $r_to )
-            or <[base.log]>
-            ->( 0, "<< copy >> '$r_from' -> '$r_to' [ $OS_ERROR ]" );
+            or <[base.log]>->(
+            0, "<< copy >> '$r_from' -> '$r_to' [ $OS_ERROR ]"
+            );
         if ( -f $r_to ) {
             chmod( $src_stat->mode, $r_to )
                 or warn "[chmod] $OS_ERROR ['$r_to']";
@@ -202,7 +212,7 @@ if ( !$err_count or $apply_force ) {
 }
 
 #.............................................................................
-#XRKV2HSWYCELGH4LJNJSSYSBXD4EGFUPDAFY35ZCJ2ZFVFQK7HTDO3QIWYJT67EXRH2UUDQBICKTK
-#::: MLVS7JWKDIJ26CCHF4EFTG75PWHIJKZ7EBWWR5CEVQ3VXXOX5FE :::: NAILARA AMOS :::
-# :: C6ZICKB3YL6S3PDE6I24WO7QKXEN6JEMUGOPERW2AS3JN6SRNUBA :: CODE SIGNATURE ::
+#6B5EUZ2T6NNM46V6ENCLIC5XFYMEC7NV6OIO4LDN6DJIRLGJ6P2WSXJO7CB33MMXK2N6WRJL5SXVU
+#::: AE2VSOMFCPBHEWEW5JDVOLVCZUBVJKQF7IYD55XQQVEJQ2SFFR5 :::: NAILARA AMOS :::
+# :: MJBFVWBUDRRIVRVR4CBV4YRZ5SOBUJIRBCYVVI5YUNEXGGQF6KCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

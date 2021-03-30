@@ -53,14 +53,16 @@ if ( exists $request->{'range'} ) {
 
     if ( @ranges == 1 ) {    ## byteranges ##
         $header->{'Content-Range'}  = "bytes $start-$end/$file_size";
-        $header->{'Content-Length'} = $content_size = $ranges[0]->{'part_size'};
+        $header->{'Content-Length'} = $content_size
+            = $ranges[0]->{'part_size'};
 
     } else {                 ## multipart byteranges ##
 
         my $h_str
             = join( '|', map { $ARG, $header->{$ARG} } sort keys %{$header} );
         $boundary = <[chk-sum.bmw.L13_str]>->($h_str);
-        $header->{'Content-Type'} = "multipart/byteranges; boundary=$boundary";
+        $header->{'Content-Type'}
+            = "multipart/byteranges; boundary=$boundary";
 
         my $part_id = 0;
         map {
@@ -83,7 +85,8 @@ if ( exists $request->{'range'} ) {
 );
 
 if ( $session->{'http'}->{'close'} ) {
-    $session->{'watcher'}->{'input_handler'}->cancel; ## no more input expected.
+    $session->{'watcher'}->{'input_handler'}
+        ->cancel;    ## no more input expected.
 } else {
     $session->{'watcher'}->{'input_handler'}->timeout(undef);
 }
@@ -134,7 +137,7 @@ $session->{'watcher'}->{'download_handler'}->now;
 return 0;
 
 #.............................................................................
-#TCMSYCCTXUC6ONQG6FRKKJ33JAMGFD2ZFERROTVRCYE4IHMYSJOBYIHFDPTJ44LCYQMDLN7N2C6Y6
-#::: BZXEZM2LMAF3SQSKFAEEELML2GPRL7M4ZD4VWKUTMZZWC5YMNQW :::: NAILARA AMOS :::
-# :: OAS2PJ7AS752CHNMNFEAMS4BTOB5W3K6IH2RHASF45UP6AM6PKDA :: CODE SIGNATURE ::
+#TDV7OKMME2JARSZ5Z7NZGMQ7Q5CDNVWCLTEULV2P7TSJQCGRVCB46JUKT2UMT3X6QE7OKKOLV5KMS
+#::: 5ZADO3BHSFZNY3NPDUKL46JNBXOQ4DNN7YE76RMG6ANV2KYTQ2Q :::: NAILARA AMOS :::
+# :: SSSZCT4VTRZKQ3NLJ7N3YQQTXUYJBA376MMYX6X43YJPQMFO5OCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

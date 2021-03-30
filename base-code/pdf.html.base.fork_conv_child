@@ -20,7 +20,8 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <pdf.html.pipe.child> if exists <pdf.html.pipe.child>;
 
-    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+    IO::AIO::reinit()
+        ;    # <- makes base.s_read() and base.s_write() work again...
 
     <pdf.html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -56,7 +57,8 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 
     $data{'handle'}{$child_pipe}{'mode'} = 'out';
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
+        = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.async.get_session_id]>;    # -> 'online'
@@ -64,7 +66,7 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 }
 
 #.............................................................................
-#3AANBMSEYNK6DZFX7LIDV3OTNFOY7IDX2H5P76KQXVKTSQ74YPTZHV5OEPRO5DBYWPGLCKNKMULOC
-#::: QPNKS33G2Z5GO24HJMNY5BRAUF6KE7G3HHOQ5IIIQK4CE624VHT :::: NAILARA AMOS :::
-# :: IB3CGTVBULHRKHMDSJYANA4HETM45MZ4B4MFZAQDQ2TJXH2IYIDY :: CODE SIGNATURE ::
+#SQ4P5K4YNK2USWZ4JB56B2NCDYRIHD6MLE4DP46GCSQVZZTQ7S6NMMWR653LVDP6FLWZXSZA4EA42
+#::: 5AQSN76NCBTXBXJRAWZBKKKHHYS3V3PWGJRSAPP7UNKJTNAJLTF :::: NAILARA AMOS :::
+# :: 627E2ASVDSFXCWLPKNFZFI37WLS75KXA6QZQKSIGU2EX2T4JF2AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <image2html.pipe.child> if exists <image2html.pipe.child>;
 
-    IO::AIO::reinit(); # <- makes base.s_read() and base.s_write() work again...
+    IO::AIO::reinit()
+        ;    # <- makes base.s_read() and base.s_write() work again...
 
     <image2html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -31,7 +32,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
     <system.zenka.subname> = 'child' . $sn_str;
     $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
 
-    <callback.session.closing_last.params>->[1] = 1;  # silencing child shutdown
+    <callback.session.closing_last.params>->[1]
+        = 1;    # silencing child shutdown
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = 'out';
@@ -54,7 +56,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
 
     $data{'handle'}{$child_pipe}{'mode'} = 'out';
     my $id
-        = <[base.session.init]>->( $child_pipe, qw| protocol-7 client child | );
+        = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
     <[base.async.get_session_id]>;    # -> 'online'
@@ -62,7 +65,7 @@ if ( !<image2html.child.pid> ) {    ## child ##
 }
 
 #.............................................................................
-#JESBZIU5YCWQRUU3TNV4ZQPMFUBV4K25MDHTOBNVMXJ5NNNLQXGURKM45K7MPWTPY2YWZY227ACNC
-#::: TM3MKTR65URNAE56UKOZVSECQ73YMUFL55CD27A3QHSHOACEGDR :::: NAILARA AMOS :::
-# :: 6KXQTEQL6R637ANACW3Z2UQZT4C4RMZJDJZ3GVAHFDRQIVMG54BY :: CODE SIGNATURE ::
+#5VWFI4TQBJPPMUAQZJUMOAWUVHE7CXAS2IK3ALZSUJTR2UNAW2DV7ONXYUABU2JG7ZHYRLC32YNPS
+#::: TKVLAAQ2TBBQUDKJYWZDSBBADSGDRB7PV6J7V5B37RCTB3DWSKO :::: NAILARA AMOS :::
+# :: RDAHXBOBQVZQ6MR6MARKUJ3JOW3QOT2GFNASEKZW2DMJ46NXV6AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

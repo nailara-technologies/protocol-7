@@ -15,14 +15,15 @@ if ( defined <base.perlmod.loaded>->{'Glib::Event'}
         ':  <<  :. entering alternative main loop .., >>', ':'
     );
     <web-browser.main-loop.wakeup-interval> = 0.24;
-    Event->idle(    ## <-- also create 'base.event.add_signal' routine ##  [LLL]
+    Event->idle(  ## <-- also create 'base.event.add_signal' routine ##  [LLL]
         cb => sub {
-            $SIG{'ALRM'} = sub { }; ## <-- will wake up from waiting gtk loop ##
+            $SIG{'ALRM'}
+                = sub { };    ## <-- will wake up from waiting gtk loop ##
             my $wakeup_interval = <web-browser.main-loop.wakeup-interval>
                 //= 0.24;
             Time::HiRes::alarm($wakeup_interval) if !<window.scrolling>;
             Gtk3->main_iteration_do();
-            alarm 0;                ## <-- returned, disabling alarm signal ##
+            alarm 0;          ## <-- returned, disabling alarm signal ##
 
             return 1;
         },
@@ -33,7 +34,7 @@ if ( defined <base.perlmod.loaded>->{'Glib::Event'}
 }
 
 #.............................................................................
-#OXV32ENMQK3PAVEQTHEI4ST75OWYCVESA6FOWRFU5SJ2Y5XDP7C2SYF76H2TEJA5J3L7EREB2IPHO
-#::: MOASZSWWAE7YI7NXUNPC43ZBJ2KKI42GESGA7W5VUQRF3OBQOMH :::: NAILARA AMOS :::
-# :: 5XCKLML5GME2T5KJ4UB3IDG2TAN67CE3GZFJNMMRFZOBPQSDTEAA :: CODE SIGNATURE ::
+#B5VKMPSI5PURPDPB5IW66NITUNWUWRUHGMZZYO6RLDUSCBQJFZHYOZEZZ3S7BI6IXRGK4BPTBD35C
+#::: XWPVL6ER5G3TRXDCVQW2TPJNB7AMDMG2SLUZ5BJHLHNHJRCE6SZ :::: NAILARA AMOS :::
+# :: RYFOJRRZNR42PPJ6Y7QSMNSSBXV2YJWW4TWS34ZEDIPEEUMIDOBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

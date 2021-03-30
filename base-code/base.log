@@ -22,7 +22,7 @@ $log_buffer = 'zenka' if !length($log_buffer);
 
 $log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
 
-my $h_override   = <base.ntime-harmony> // 1;  ## reducing calculation load., ##
+my $h_override = <base.ntime-harmony> // 1;  ## reducing calculation load., ##
 my $want_harmony = $log_level < 3 ? $h_override : 0;
 
 $log_msg =~ s|\r|\\r|g;
@@ -32,9 +32,12 @@ $log_msg =~ s|\e|\\e|g;
 
 ## prevent deep recursions in error log system ###
 my $fatal_exit
-    = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, ) ? 1 : 0;
+    = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, )
+    ? 1
+    : 0;
 
-$log_msg = "$ANSI{'p7_fg_0002'}call to unknown subroutine while executing '$1'"
+$log_msg
+    = "$ANSI{'p7_fg_0002'}call to unknown subroutine while executing '$1'"
     if $log_msg
     =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
 
@@ -78,7 +81,8 @@ if ($fatal_exit) {
 if ( defined $code{'base.buffer.add_line'} ) {
     $time_stamp //= $code{'base.anum_log_time'}->( 5, $want_harmony );
     <[base.buffer.add_line]>->(
-        $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+        $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ),
+        $log_level
         )
         if $log_level <= <system.verbosity.zenka_buffer>
         or $log_level <= <system.verbosity.zenka_logfile>;
@@ -104,7 +108,7 @@ if ( fileno(STDOUT)
 return 1;
 
 #.............................................................................
-#26XFJKYYAYWLOWO6CGTZVNIKLDZTLMBS73ONO7RXAGAJUP37QOHZI5PFPTDVUIEWPUQPTPHVD3JU6
-#::: FSXKXTRDR4ZJDHO4QDJ3XFPEYQQV4ZXK6C7EIBZTRAMSWGHTPJT :::: NAILARA AMOS :::
-# :: 6E6KL6IRS3WMBWNC7WN4GAF3APDARJ6XBUJ6NEMYCKP77OGFV6CQ :: CODE SIGNATURE ::
+#DKVMISUJYQSKYIZYOLVQI7F7GEL6S44H73MWL3HATHCXTZZFXM7OS6W7LOOSJCRSWCNUVV77DVY7S
+#::: IOTPJWKNWHKZ7AFJAV4OKTBPPIWK3YSOD3TXFZ6R5NS6UK4R7DO :::: NAILARA AMOS :::
+# :: DV64ND2IO7LYCQVQIANDCQJEZWKHOERRFHZLSHWDE7MVH43ZX2AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

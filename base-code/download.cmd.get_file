@@ -32,7 +32,8 @@ if ( !-d $target_dir ) {
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
         or die "user '" . <system.privs.user> . "' not in passwd file";
     <[base.log]>->( 2, "creating target directory '$target_dir'.." );
-    make_path( $target_dir, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
+    make_path( $target_dir,
+        { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn "unable to create target directory '$target_dir' [$OS_ERROR]";
 }
 
@@ -68,7 +69,7 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 return { 'mode' => 'ack', 'data' => $target_path };
 
 #.............................................................................
-#ZGRL7QUVMN2FVX5XXQBQQQMIMO72X7QXQRRHW2VCEMF277CSZECCPE7H4VT7WYPF2CCCFCEK2I7RW
-#::: IZL2QITMW7QF4L3GYGVHPHOCRGXYCIIEZLXTWS2AI6KPOUH4UJX :::: NAILARA AMOS :::
-# :: WQAXPHHXQM3IJHPGKZJRT6HLFQVAEQFV746ZZDKB5BLOKSCF32AA :: CODE SIGNATURE ::
+#GZUSDGM4BGOR4XBRL434W2BKOAEWFRBLXZZL27PRN5N3OI42SCW2RMWDNNOQ37DYSRRA4P2TAC6WW
+#::: 4NZIPAA5HIESDX4YC5V2WUAW4YIPSTPVRTOBZ5FZR6PV3KLNWNR :::: NAILARA AMOS :::
+# :: KKLP4HFSGKE2PJMA67KZ7PTCDO6EQ45UPTJLREGG634G5WSERIDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

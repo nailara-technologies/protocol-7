@@ -115,7 +115,9 @@ map {
 
     if ( <web-browser.min_zoom> <=> 1
         and index( $ARG, '/var/cache/weather/html/', 0 ) > -1 ) {    # weather
-        <[base.log]>->( 1, ": found weather URLs, resetting min_zoom to 1 .," );
+        <[base.log]>->(
+            1, ": found weather URLs, resetting min_zoom to 1 .,"
+        );
         <web-browser.min_zoom> = 1;
         <[web-browser.calc_zoom_level]>;
     }
@@ -123,7 +125,8 @@ map {
 
 if (@{<web-browser.url.list>}
     and $pause_cnt != $url_count    # <- prevents infinite while loops
-    and <web-browser.slideshow.autostart> and !<web-browser.slideshow.running>
+    and <web-browser.slideshow.autostart>
+    and !<web-browser.slideshow.running>
     and $reply->{'call_args'}->{'args'} > 0
 ) {
     <[base.log]>->( 1, ": starting slideshow..," );
@@ -131,7 +134,7 @@ if (@{<web-browser.url.list>}
 }
 
 #.............................................................................
-#DYULQCYJCTLQCOQ6MZZPQXAIKYUBWVUOY3J5MQCU6MVEJNXLJETQQHLULCAGNCYZPW6O4LHRNIHIE
-#::: PH6K423QDNCHMXPQYPJQYNP4A2NDQZFEEWSOPD7QJZUZ4JXMP5T :::: NAILARA AMOS :::
-# :: N6CAHML3664BSYW2OEN6NCHRVBM2BMIWZRGYSNERDLWSDC3RNWBA :: CODE SIGNATURE ::
+#WPZUDPCTSJ2S5OYWCU73YXNGD6JPYRMOOWTROOXWATUK4OUVMOJHN5UYPE4G5YKHJJ57GVUKJQ4PG
+#::: QIFJFWQNH4CPKM66ZPVLTRDFH4KLUXSTDBRPUMH46SCESP52BGH :::: NAILARA AMOS :::
+# :: JAO7PKHME3IX6ZU7NVST6NUQKHZOEJDJJIFAC7TW3UPQGCU2FAAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

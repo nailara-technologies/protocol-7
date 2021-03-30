@@ -195,8 +195,10 @@ while (1) {
             if $image->w != $current_res_w
             or $image->h != $current_res_h;
         if ( $resolution_changed and !$warned_res ) {
-            <[base.log]>->( 0, "<!> [WARNING] WEBCAM RESOLUTION CHANGED <!>" );
-            <[base.log]>->( 0, "<!> activating mask scan countermeasure <!>" );
+            <[base.log]>
+                ->( 0, "<!> [WARNING] WEBCAM RESOLUTION CHANGED <!>" );
+            <[base.log]>
+                ->( 0, "<!> activating mask scan countermeasure <!>" );
             $warned_res = 1;
         }
 
@@ -237,10 +239,13 @@ while (1) {
         SDL::Video::blit_surface(
             $scaled,
             SDL::Rect->new(
-                0, -$i_y_offset, $scaled->w, $scaled->h - abs($i_y_offset)
+                0,          -$i_y_offset,
+                $scaled->w, $scaled->h - abs($i_y_offset)
             ),
             $screen,
-            SDL::Rect->new( $i_x_offset, $s_y_offset, $screen->w, $screen->h )
+            SDL::Rect->new(
+                $i_x_offset, $s_y_offset, $screen->w, $screen->h
+            )
         );
 
         SDL::Video::blit_surface( $temp, SDL::Rect->new( 0, 0, 56, 8 ),
@@ -290,7 +295,9 @@ while (1) {
                 $w_txt,
                 SDL::Rect->new( 0, 0, $w_txt->w, $w_txt->h ),
                 $screen,
-                SDL::Rect->new( $err_pos_x, $err_pos_y, $w_txt->w, $w_txt->h ),
+                SDL::Rect->new(
+                    $err_pos_x, $err_pos_y, $w_txt->w, $w_txt->h
+                ),
             );
         }
         $warned_cam = 1;
@@ -362,7 +369,7 @@ sub mask_scan {
 }
 
 #.............................................................................
-#FCGO7ATUTCN6BN56H7FSDVKYXY2SEVLPWCPC24OMWCD6IXDFKK63ASSZKRYCPLX5I6WLMPYWDPRD2
-#::: STR5AXIZPUG4E3PTZUGHVW6I46XA3NCT5AQY2L46ATO5XOE42KY :::: NAILARA AMOS :::
-# :: CLJGXA7LG53FAMIUREUNBLT6C774YZ2F3N4T4SPO34KW53QFYSDI :: CODE SIGNATURE ::
+#NOBPLBKZW6LYF4XELXSYJ4LBA2YIX2L2QQL4E77BLFK5NBWV45AGSGE7CTODLCY6MG4NLMMHDBYXQ
+#::: GDZTTSMIBWTU324IY36GPLDC2YDQAGIF6VKEUNE6MHSDQNLJZ3A :::: NAILARA AMOS :::
+# :: 4YR3UBMK4OMFGNLGJB2QLH2BHLJ2MMKIQNZI26OFUZS7DZBC5ACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

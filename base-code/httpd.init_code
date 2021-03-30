@@ -24,11 +24,12 @@
 
 <protocol.http.status_codes> = <[httpd.status_codes]>;
 
-<httpd.cfg.external_sitedirs>       //= 0;
-<httpd.cfg.uploads_enabled>         //= 0;
-<httpd.downloads.in_progress>       //= 0;
-<httpd.downloads.max_buffer_size>   //= 128 * 1024; # <- (session output buffer)
-<httpd.downloads.total_bufsize_max> //= 100 * <httpd.downloads.max_buffer_size>;
+<httpd.cfg.external_sitedirs>     //= 0;
+<httpd.cfg.uploads_enabled>       //= 0;
+<httpd.downloads.in_progress>     //= 0;
+<httpd.downloads.max_buffer_size> //= 128 * 1024; # <- (session output buffer)
+<httpd.downloads.total_bufsize_max>
+    //= 100 * <httpd.downloads.max_buffer_size>;
 
 # check user \ group existence
 <[base.log]>->( 2, 'checking whether httpd user and group exists.,' );
@@ -37,12 +38,16 @@ my $httpd_group = <httpd.system.group> //= 'httpd';
 
 my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
 if ( not defined $httpd_uid ) {
-    <[base.log]>->( 0, "httpd user '$httpd_user' does not exist, creating..," );
+    <[base.log]>->(
+        0, "httpd user '$httpd_user' does not exist, creating..,"
+    );
     system( 'useradd', '-r', $httpd_user ) == 0
-        or die "<< unable to create httpd user '$httpd_user': $CHILD_ERROR >>";
+        or die
+        "<< unable to create httpd user '$httpd_user': $CHILD_ERROR >>";
     $httpd_uid = getpwnam($httpd_user);
     die "unable to create httpd user '$httpd_user'" if not defined $httpd_uid;
-    <[base.log]>->( 0, ": httpd user '$httpd_user' created [UID=$httpd_uid]" );
+    <[base.log]>
+        ->( 0, ": httpd user '$httpd_user' created [UID=$httpd_uid]" );
     ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
 
 } else {
@@ -64,13 +69,14 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
     <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
     make_path( "$upload_dir",
         { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid } )
-        or die "<< unable to create upload dir '$upload_dir' >> [ $OS_ERROR ]";
+        or die
+        "<< unable to create upload dir '$upload_dir' >> [ $OS_ERROR ]";
 }
 
 0;
 
 #.............................................................................
-#GQJBIUQRY6WTCUQK4T5GIST7ZZO5KIJUGEGMTJOKAGK6STJNB35JLTKOTHYVSSHUCZNWQCETQP5NQ
-#::: 52ABEVFAJNBODPZMADIAF5DKXLUIFLD4BZYXO6V6TT5YZHWPIQL :::: NAILARA AMOS :::
-# :: XJ7OW3I3EKCFBTA5DAVYKF7K46FL4YQOZMGARXP62QK6ZSQD5OBQ :: CODE SIGNATURE ::
+#QG4UQOLLNKIPT36O5WSI5GBUPKWNTJM5TUOXKLATJE6JGEXJ4RZNU3OQE4G6QEXVEAPS54MUWMM6U
+#::: YULYJRRH4IDWAKXFHEWMQOJRKJV6DW7BTGYXGUKDKKO3RABTL3O :::: NAILARA AMOS :::
+# :: DPGNHR7WZBTGT4JL7VPMXIRIJE5WHKDZCOMSQXAKJPDGICIHX6DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

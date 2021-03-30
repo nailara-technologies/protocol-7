@@ -6,7 +6,8 @@
 
 my $param = $$call{'args'} // '';
 
-my $reboot_enabled = <[base.cfg_boolean]>->( <nroot.host-reboot.enabled> // 1 );
+my $reboot_enabled
+    = <[base.cfg_boolean]>->( <nroot.host-reboot.enabled> // 1 );
 
 return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
     if !-e '/proc/sysrq-trigger';
@@ -18,7 +19,9 @@ return {
 
 <[base.log]>->( 0, "<!> <<< initiating force-reboot >>> <!>" );
 
-while ( keys %{ $data{'route'} } ) { <[event.once]>->(0.1) }  # wait log written
+while ( keys %{ $data{'route'} } ) {
+    <[event.once]>->(0.1);
+}    # wait log written
 
 system('/bin/sync') if $param ne 'nosync';
 
@@ -31,7 +34,7 @@ system('/bin/sync') if $param ne 'nosync';
 return { 'mode' => 'ack', 'data' => '<< rebooting host system >>' }
 
 #.............................................................................
-#JQU5SDGTKLQOCKWID5MYKQH6CN5RFLVN2OBSYYLJV2BYPRRP74WH67QYOP36BX4G36WZPH7KV77YM
-#::: SXSUQI5Q7JVN5AYXJJW2QLE7UQXTH6FK6ZMQT66PXPR5IFOTYHM :::: NAILARA AMOS :::
-# :: SAECMYS5SGSVFXBS5IXI3SZIHISNHSKFTWXNPVYVT7SYO5P2AWDY :: CODE SIGNATURE ::
+#CUWJXAGK3MVLJQSMCQPMI4D4IYYX4UD3WJLENVK2475K5K6RC4RWHNE44P4Z37IIVF2K5C6VFP33O
+#::: CQRKDCCO4ZQTXMGJHGSZG3CT6RE2E2U24H77YAZVQ57IFWYZFU7 :::: NAILARA AMOS :::
+# :: FZYFTAH2L2LOS33Y7MBF2WNNBSWINTTPPSVLHF3VDLVMIPIAQQAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

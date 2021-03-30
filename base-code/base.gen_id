@@ -15,7 +15,8 @@ my $num_range     = shift || '01234577790';
 my $want_harmony  = shift // 1;
 my $element_count = scalar keys %{$href};
 my $id_length     = length($max_ids) + 2;
-$id_length += int( $element_count / ( $max_ids / 5 ) ); # expand towards limit.,
+$id_length
+    += int( $element_count / ( $max_ids / 5 ) );    # expand towards limit.,
 
 my $retries     = 0;
 my $new_id      = 0;
@@ -31,7 +32,9 @@ while (exists $href->{$new_id}
     say "<   > $new_id" if $verbose and $want_harmony;
 
     if ( $retries > $max_retries ) {
-        <[base.log]>->( 0, "< gen_id > max_retries [ $max_retries ] reached." );
+        <[base.log]>->(
+            0, "< gen_id > max_retries [ $max_retries ] reached."
+        );
         $new_id = undef;
         goto abort;
     } else {
@@ -51,7 +54,7 @@ warn "max_ids [$max_ids] exceeded [$element_count]"
 return $new_id;
 
 #.............................................................................
-#PRP5J5OAQMEUQNED4TARSUCOWCKKLZ2MYRED4KIRCOKCPCAHTGPC3BUDFOPME5V4ELWXG4EHTJ6PS
-#::: ANVKEIGEJRYL2Y7MRCUEFFYWNM6GANCY3S4RENLKX7WESA7DKMQ :::: NAILARA AMOS :::
-# :: 4XJKC6VQJIUYCTB7ICPQFOPQLYWR7IZXDCGKTAP6XPLM7WMNUICI :: CODE SIGNATURE ::
+#RS5O7NTU7DAFSYTWVMJ7ZOJFMZQPMNMUP7UNX4KB44YQ772GWLLZC72B75AZP5ARBHP6QXE2KHSQI
+#::: D5D6AZK2LQLKKAW42BLY4VJP5GHT3W3Y2HD3OVQSO7MMDPLCJTY :::: NAILARA AMOS :::
+# :: 2LB33DLZEW47KPK2UF3HIVYS4KFOSPV3ABU2WD7FWXAJD2YLTWAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

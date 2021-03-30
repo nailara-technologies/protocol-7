@@ -12,8 +12,9 @@ if ( !<X-11.has_randr> ) {
     $screen_info{'size'} = 0;
     $screen_info{'sizes'}[0] = \@current_size;
 } else {
-    eval { %screen_info
-            = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) ); };
+    eval {
+        %screen_info = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
+    };
 }
 
 return {
@@ -32,15 +33,14 @@ my $size_index = 0;
 map {
     my $marker_l = $size_index++ == $current_size_index ? '-->'  : '   ';
     my $marker_r = $marker_l =~ m|\S|                   ? ' <--' : '';
-    $reply_str
-        .= sprintf( " %s %d x %d%s\n", $marker_l, $ARG->[0], $ARG->[1],
-        $marker_r )
+    $reply_str .= sprintf( " %s %d x %d%s\n",
+        $marker_l, $ARG->[0], $ARG->[1], $marker_r )
 } @{ $screen_info{'sizes'} };
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#VRJFUQ6J6PCQL4I2Y55JOECH7TAUPN72EX3PSDKK4VRASERAAHTOI4AOATCON3OVSAIG2WC7EMX32
-#::: ZK7DGHMYFFNW63AKE6QGBVP6USCM23OB7AHB2RXLYTUSVMCQCC5 :::: NAILARA AMOS :::
-# :: NJDMFZZJYJN5IKH7PCYZIXV7RJTAU3UEOSBRTSOHNXL47QLPDCBA :: CODE SIGNATURE ::
+#GKUTVT7EV6UEVL3ZTR5RSJXSQOZTZPA3YLTH2CVFC7VU3Z7NS6KOWKKGVO524X56RILHX3QIZXWNQ
+#::: 7EUXVZFVDQAKM3TGQDJJ22WNTYUE45C6VATMRNZSVBUC4KE5IKB :::: NAILARA AMOS :::
+# :: QV2BX7JDW4IB65UNRNRKWUYJG2JXATCKCHLDVJHBZ6BVLZIKY4AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,8 @@ $error_string =~ s| at (\S+) line (\d+).*\n$||;
 my ( $file_name, $line_number ) = ( $1, $2 );
 
 return warn "$error_string <{C1}>" if not defined $file_name;
-$file_name =~ s|^/usr/share/perl5/||;  ## shorten path string for .pm modules ##
+$file_name
+    =~ s|^/usr/share/perl5/||;    ## shorten path string for .pm modules ##
 
 my $log_error = 1;
 ## alternative handler registered for filename:line ? ##
@@ -17,7 +18,8 @@ my $match_param   = "$file_name:$line_number";
 my $warn_handlers = $data{'base'}{'warn-match-handler'} // {};
 if ( defined $warn_handlers->{$match_param} ) {
     my $cb_name = $warn_handlers->{$match_param};
-    $log_error = $code{$cb_name}->( $error_string, $match_param, @caller_data )
+    $log_error
+        = $code{$cb_name}->( $error_string, $match_param, @caller_data )
         if defined $code{$cb_name};
 }
 ##
@@ -26,11 +28,12 @@ $log_error = 1;
 if ($log_error) {
     <[base.log]>->( 0, "<<< $error_string >>> [ $file_name, $line_number ]" );
     my ( $package, $file_name, $line_number, $subroutine ) = @caller_data;
-    <[base.log]>->( 0, "  \\\\\\  < $file_name : $line_number >" ); ## caller ##
+    <[base.log]>->( 0, "  \\\\\\  < $file_name : $line_number >" )
+        ;    ## caller ##
 }
 
 #.............................................................................
-#UY5OM45J54QRZ3WSNUJJOT465H3W3N2ZM46PKXFAZEYW3B6SVWYE5243C6UAZ3DPCKY2D6LLC4VBM
-#::: BW3NP5ZLSEQ62PZFWPJOLDAKATMYA2RRWXFMJ7LTZ55O5DHUP5W :::: NAILARA AMOS :::
-# :: PLEQ46FMGSIQZGP5AWIJB3LZRFKB5FWSBYJZFLI24KA3H7C7HUBA :: CODE SIGNATURE ::
+#QSA6ZHUR3C6QGXEQ4I6CTOWIL7C4UJLGA4IIOTNMWCE3ZP64VYDYWEQXK4UHJOZKYCPABZZHWD5BK
+#::: 3TNFKEDC52H2CEOGJN5MIBISODIZ7APBRSMXMFGFRNVC4JPPPVC :::: NAILARA AMOS :::
+# :: SJI5WZY6DA75R26QRJ3G7JDEZYPF7UUBC6GTDABQ7AQEEX2AO2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

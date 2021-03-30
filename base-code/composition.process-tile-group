@@ -15,9 +15,10 @@ return <[base.log]>->( 0, "no tile group '$tile_group_name' in set up.," )
 if ( defined <composition.setup.ticker_zenka_type> ) {
     my $ticker_type = <composition.setup.ticker_zenka_type>;
     foreach my $composition ( keys %{<composition.setup.tile-groups>} ) {
-        my $_composition_data = <composition.setup.tile-groups>->{$composition};
+        my $_composition_data
+            = <composition.setup.tile-groups>->{$composition};
 
-        map {    # ticker-sdl probably won't work anymore until it was updated.,
+        map {  # ticker-sdl probably won't work anymore until it was updated.,
             if ( $ARG =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
                 my $tile_name = $2 // '';
 
@@ -26,7 +27,8 @@ if ( defined <composition.setup.ticker_zenka_type> ) {
                     = delete $_composition_data->{$ARG}
                     if $new_name ne $ARG;
 
-                $_composition_data->{$new_name}->{'layer'} //= 100; # <- on top.
+                $_composition_data->{$new_name}->{'layer'}
+                    //= 100;    # <- on top.
             }
 
             # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
@@ -41,7 +43,7 @@ if ( defined <composition.setup.ticker_zenka_type> ) {
 my @remove_zenki;
 my $previous_data;
 my $previous_composition = <composition.previous_composition>;
-my $composition_data     = <composition.setup.tile-groups>->{$tile_group_name};
+my $composition_data = <composition.setup.tile-groups>->{$tile_group_name};
 if ( defined $previous_composition ) {
     if ( $previous_composition eq $tile_group_name ) {
         <[base.log]>->(
@@ -50,7 +52,10 @@ if ( defined $previous_composition ) {
         return 0;
     }
     $previous_data = <composition.setup.tile-groups>->{$previous_composition};
-    map { push( @remove_zenki, $ARG ) if not exists $composition_data->{$ARG} }
+    map {
+        push( @remove_zenki, $ARG )
+            if not exists $composition_data->{$ARG}
+        }
         keys( %{$previous_data} );
 }
 
@@ -59,7 +64,8 @@ if ( defined $previous_composition ) {
 if (<composition.startup.initializing>) {
     my $kill_count = 0;
     foreach my $composition ( keys %{<composition.setup.tile-groups>} ) {
-        my $_composition_data = <composition.setup.tile-groups>->{$composition};
+        my $_composition_data
+            = <composition.setup.tile-groups>->{$composition};
         ###
         foreach my $stop_zenka (
             keys %{ <composition.setup.tile-groups>->{$composition} } ) {
@@ -70,7 +76,8 @@ if (<composition.startup.initializing>) {
         map {
             my $stop_zenki
                 = exists $_composition_data->{$ARG}->{'stop_zenki'}
-                ? join( ' ', $_composition_data->{$ARG}->{'stop_zenki'}, $ARG )
+                ? join( ' ', $_composition_data->{$ARG}->{'stop_zenki'},
+                $ARG )
                 : $ARG;
             <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'cube.nroot.stop_implicit',
@@ -143,8 +150,8 @@ map {
         if (    $coords->{'left'} <= $border_tolerance
             and $coords->{'top'} <= $border_tolerance
             and $coords->{'right'} >= <x11.screen.width> - $border_tolerance
-            and $coords->{'bottom'} >= <x11.screen.height> - $border_tolerance )
-        {
+            and $coords->{'bottom'}
+            >= <x11.screen.height> - $border_tolerance ) {
             $pos_hint_str = 'fullscreen';
         } else {
             foreach my $border_name ( keys %{$coords} ) {
@@ -153,9 +160,10 @@ map {
                 my $h_h       = sprintf( "%.0f", <x11.screen.height> / 2 );
                 $pos_match{$border_name} = 1
                     if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
-                    or ( $border_name eq 'left'   and $coord_val < $h_w * 0.8 )
-                    or ( $border_name eq 'right'  and $coord_val > $h_w * 1.2 )
-                    or ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
+                    or ( $border_name eq 'left'  and $coord_val < $h_w * 0.8 )
+                    or ( $border_name eq 'right' and $coord_val > $h_w * 1.2 )
+                    or
+                    ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
             }
             if ( scalar keys(%pos_match) == 4 ) {
                 %pos_match = ( 'center' => 1 );
@@ -178,7 +186,7 @@ map {
     'key'      => 'composition.tiles',
     'mask'     => '<key>:tile_name zenka pos_hint',
     'sort_key' => 'pos_hint',
-    'descr'    => sprintf( 'configured tiles in group "%s"', $tile_group_name )
+    'descr' => sprintf( 'configured tiles in group "%s"', $tile_group_name )
 };
 
 if ( defined <composition.tiles_visible_file> ) {
@@ -188,7 +196,8 @@ if ( defined <composition.tiles_visible_file> ) {
         or -d $parent_dir ) {
         <[base.log]>->(
             1,
-            sprintf( ":. writing to '%s'.,", <composition.tiles_visible_file> )
+            sprintf( ":. writing to '%s'.,",
+                <composition.tiles_visible_file> )
         );
         <[file.put]>->(
             <composition.tiles_visible_file>,
@@ -204,7 +213,8 @@ if ( defined <composition.tiles_visible_file> ) {
 #
 if (<composition.watch_tiles.poll_tile_color>) {
 
-    my $start_interval = <composition.watch_tiles.poll_int_start> //= 42; # def.
+    my $start_interval = <composition.watch_tiles.poll_int_start>
+        //= 42;    # def.
 
     <[base.log]>->( 1, "<!> tile activity monitoring is enabled <!>" );
 
@@ -214,7 +224,8 @@ if (<composition.watch_tiles.poll_tile_color>) {
         );
         <[base.protocol-7.command.send.local]>->(
             {   'command' => 'cube.X-11.bg_color',
-                'reply' => { 'handler' => 'composition.handler.bg_color_reply' }
+                'reply'   =>
+                    { 'handler' => 'composition.handler.bg_color_reply' }
             }
         );
     }
@@ -253,7 +264,7 @@ if (<composition.watch_tiles.poll_tile_color>) {
 <[composition.handler.transition]>;
 
 #.............................................................................
-#KTVCRXJKRAJPPRYJE7NGO4G2GLR4NJX5ODLN57IIMYVK76M2OMOZLWXB5JP7Y736IDH3G5NCHTGWY
-#::: SC2WKQD5UBV3HP3P2SYKU43MBWHL2SW5OKN7VINNUOA3VOSQUQK :::: NAILARA AMOS :::
-# :: 6DMXICYWRFTE6MZM4AW3WQGCLGRCPPJCGDKBAY2LYR3A7WXE7ECA :: CODE SIGNATURE ::
+#XX5GMJMHZSYZWRYW2XTLQ7BRRAY3V6FYHXJ44XVRRKKOIWPWX7N6G3GGQMPVLLNGSZKTYVG4YMAHC
+#::: XCYG6MHHDOZG63SQ3ZSPEF7SXDN6V76IU4NXJY44VAOV77EJXQP :::: NAILARA AMOS :::
+# :: A7MRAD4LUE72INIMCQOLQ5M2LTIJN6UTSDKC4NCBQQCXEN7HGCAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

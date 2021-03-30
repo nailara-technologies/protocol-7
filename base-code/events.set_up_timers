@@ -39,11 +39,13 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     my @timer_types = defined $u_event->{'at'} ? ('at') : ( 'start', 'end' );
 
     <[base.log]>->(
-        2, "[timer setup] event $ev_id [..in $event_in seconds..] [ $e_start ]"
+        2,
+        "[timer setup] event $ev_id [..in $event_in seconds..] [ $e_start ]"
     );
     <events.timers>->{$ev_id} = {};
     my $all_in_past = 1;
-    map { $all_in_past = 0 if $u_event->{$ARG} >= $current_time } @timer_types;
+    map { $all_in_past = 0 if $u_event->{$ARG} >= $current_time }
+        @timer_types;
     map {
         my $action_type = <events.setup>->{$ev_id}->{'action'}->{'type'};
         <events.timers>->{$ev_id}->{$ARG} = <[event.add_timer]>->(
@@ -65,11 +67,12 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 or $u_event->{$ARG} >= $current_time )
             );
 
-   #       if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
-   #       or $mode ne 'recalc' and $action_type !~ m.^(composition|playlist)_,;
+ #       if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
+ #       or $mode ne 'recalc' and $action_type !~ m.^(composition|playlist)_,;
 
         if ( $action_type =~ m|^playlist_| ) {
-            my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'} //= '';
+            my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'}
+                //= '';
             if ( !length($b32id) ) {
                 warn "playlist entry 'b32id' not defined in event '$ev_id'";
             } else {
@@ -80,7 +83,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
 }
 
 #.............................................................................
-#JX7ZZAJ2KGOSPQGHJ6XGGLQVEAPC64JQTT3XOCSPQNYXEL2SLBZG52K2RR7QL77KNGXA2NQ4TTZBY
-#::: M62X3MQ4WHPCIABVI7DHGANXLTP4KV55QEC3WELI6FEWRQGFW32 :::: NAILARA AMOS :::
-# :: 3CNI6BJVFH2LXPVMD4NHU4ENEAMYPMK4XJKATJ5E4CWMEQSKTICI :: CODE SIGNATURE ::
+#FZYJX6PVB6AFEAP2SPJFWU7S3Q22BMP66B5SOBNWK7CK7RX3P4XIU7AXBEW6AAYWW2H2CSAXND4JS
+#::: QBMOJZM3KZPVNYMFHQHQ43Q4VFURP6NO5DS5QG5ZNEYTE2HJLH3 :::: NAILARA AMOS :::
+# :: UML3J7P7UVNR6LZ4RQUNS2CCMJQKVCIENZUPZNEPISGZ2UP5EYAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,8 +11,8 @@ if ( <system.zenka.name> eq '<stdin>' ) {
     return;
 }
 
-my $filename      = shift;
-my $config_type   = shift; # <-- optional, auto-detect from filename if omitted.
+my $filename    = shift;
+my $config_type = shift; # <-- optional, auto-detect from filename if omitted.
 my $absolute_path = shift // 0;
 my $import_dir    = <set-up.json.import_dir>;
 my $zenka_name    = <system.zenka.name>;
@@ -77,9 +77,9 @@ foreach my $key_name ( keys %key_count ) {
 
 my $import_path = "$import_dir/$filename";
 
-return
-    <[base.log]>->( 2, "json config [$filename] not found, skipping import.." )
-    if !-f $import_path;
+return <[base.log]>->(
+    2, "json config [$filename] not found, skipping import.."
+) if !-f $import_path;
 
 if ($absolute_path) {
     <[base.log]>->( 1, "loading configuration file $import_dir/$filename" );
@@ -132,7 +132,7 @@ foreach my $m_key (@merge_keys) {    # LLL: implement for key depth > 1
 #}
 
 #.............................................................................
-#ILAZZEJXWAH5I5H7D4JKPG5NLQ3RGFRHOE5OLO6WVY3CP4AYGL4QLBXHHJTR2GQZN6CLX5ZOQE57E
-#::: VAUMVHST4MKFGU3KNRMDSPSHDW6BXGG7VGMFQOFD7CLEZR55ZDD :::: NAILARA AMOS :::
-# :: RAC2LLVZST633HRFSTCVZTQAC33T3U4NVVKP7DEQE45U5N2DIWDY :: CODE SIGNATURE ::
+#2YFKVAHUJFVX6HIB6FASPXLV6TSXNHC26Q77DKOQXGK7X4E4OFJY3NHU5GK4SL2RZ5RYAUWSJXXSS
+#::: XUA534IB3BLTECBCYTYRZLEYNBGLCMMKAY2Q5WYS2YJPLWSMUTK :::: NAILARA AMOS :::
+# :: VO63DMGQDDF3JWZ3VD4GPZ3TZ34EXRBCFOB2JMIYVBPDQ3JTO6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

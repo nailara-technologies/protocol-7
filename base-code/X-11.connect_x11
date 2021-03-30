@@ -44,7 +44,9 @@ if ( !$ok ) {
     ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n?$||g;
     $err_msg                      =~ s|\n$||g;
     $err_msg                      =~ s|\n| -- |g;
-    <[base.log]>->( 0, ": unable to connect to $bin_name-server [ $err_msg ]" );
+    <[base.log]>->(
+        0, ": unable to connect to $bin_name-server [ $err_msg ]"
+    );
     if ( $mode ne 'host' ) {
         <[base.log]>->( 0, ": : terminating pid " . <X-11.pid> . ".." );
         kill( 9, <X-11.pid> );
@@ -54,7 +56,7 @@ if ( !$ok ) {
 }
 
 #.............................................................................
-#RDU3B6HFGIVC3PQE5M25PDBMDZUKLKJ75LIPJJQRVAILCRVEK2O2AIUOEHLL4F2IGBLV2Z42SFJOS
-#::: 5JD37BCB6R6IJG5MDBWWFQSKZVH4SVEI66KYQGCFIRALUQ2NO6K :::: NAILARA AMOS :::
-# :: ED6T5H22DZ2RDG2UX2ZTPKMABUSNJCQMT3TYZTZQGDCIVDDERCAY :: CODE SIGNATURE ::
+#E53PGPTG6RLK4A2EOP6HIPLFWV6TU65QBTRKZ4B6LQS7FM66IBFJK4CORK2MTVN5EQTNCDNEZBD54
+#::: RQS2XW2MQJXIND6KWINGNATMLK35WW3CC3WF52WKJXY26LXFFWI :::: NAILARA AMOS :::
+# :: AFME6GQ7EHXYYOCZP7I7QTR5ON4DBKSYIEO722VDRG6BPLPRMSAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

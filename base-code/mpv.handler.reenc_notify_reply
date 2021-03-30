@@ -20,7 +20,9 @@ if (   defined $err_reason
     or not defined $reenc_msg_sid
     or $reenc_msg_sid !~ m|^\d+$| ) {
     $err_reason //= " [ answered '$$reply{call_args}{args}' ]";
-    <[base.log]>->( 0, "[!] unable to obtain reenc-msg zenka sid!$err_reason" );
+    <[base.log]>->(
+        0, "[!] unable to obtain reenc-msg zenka sid!$err_reason"
+    );
     return;
 }
 
@@ -28,7 +30,8 @@ if (   defined $err_reason
 
 <[base.log]>->( 2, "received reenc-msg zenka sid $reenc_msg_sid" );
 
-<[mpv.callback.reenc_finished]> if !keys %{<mpv.converting>};  # already aborted
+<[mpv.callback.reenc_finished]>
+    if !keys %{<mpv.converting>};    # already aborted
 
 <mpv.timer.reenc_refresh>->cancel
     if exists <reenc-msg.timer.reenc_refresh>;
@@ -42,7 +45,7 @@ if (   defined $err_reason
 );
 
 #.............................................................................
-#HDACNZCD474D4MAWVHVYAYXOLZ25SUUMRLI6ZNSTLFVO2PESXB3O5EHIUHDLEY5UBW5JCQQ2OU57S
-#::: 32PZOSSYU3Y73F6WFLZ6Q5FLPRJ6XBUYQ7HULCEOLIYBRKXAWAW :::: NAILARA AMOS :::
-# :: USQ5SXBUPBRJKRKVR3W3LCR3BCOMUTM7OXRVWQDUTZ6MZTUCFCCQ :: CODE SIGNATURE ::
+#XKA3E7FFPZ77TL3CLC4M5IW54Y3DE24VNZEEKGRUWQRMMRKSZ233FQDXQDCIJ235KQUK43GBLSNZE
+#::: O6XIIUHKYBMDJSGOYGUWB3BJXH7AACISORS6KWIY6QNJLXJAMIB :::: NAILARA AMOS :::
+# :: PWKABILSNRK2IE4QZH7Z5KXLQAAYPHP3G2IK5MCOYVIR7NTE3GDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

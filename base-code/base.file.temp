@@ -3,7 +3,8 @@
 # name  = base.file.temp
 
 my $tmpl = shift // 'X' x 13;
-die "invalid template syntax [ no paths ]" if $tmpl =~ m|/|; # allow paths later
+die "invalid template syntax [ no paths ]"
+    if $tmpl =~ m|/|;    # allow paths later
 
 my $first_dir;
 my $zenka_name = <system.zenka.name>;
@@ -37,7 +38,8 @@ die "can not find suitable temp file name [ exists ]" if -e $tmp_file_path;
 
 <[base.log]>->( 1, " : tmp-file-path : $tmp_file_path" );
 
-return $tmp_file_path if !wantarray; # <-- scalar context does not open the file
+return $tmp_file_path
+    if !wantarray;    # <-- scalar context does not open the file
 
 <[base.log]>->( 1, " :. opening file : $tmp_file_path .," );
 
@@ -48,7 +50,7 @@ open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $OS_ERROR";
 return ( $tmp_fh, $tmp_file_path );
 
 #.............................................................................
-#C2SCNHZ7YDGPSNLTOQEM5IZMJJEGADNZAY7ADKVPOG75HSO3HATGSP632OQAF2V2FQQFLRVV3UIZC
-#::: IEFVSP3ITZHEOUEJXGGKDZV55UWYCVILYSAXLORVOKXQHTXAG4T :::: NAILARA AMOS :::
-# :: O4HYHEKHEP7Z2PYB2CLYQYU7BAM4V5BGKY5QPUXWBXKCTHY7KMBI :: CODE SIGNATURE ::
+#Q6KJGLSM2UFSAVCWFD4W7TB5MINF4DJDBBVZJEMRWDPQWD4GOT5USC7SX4WO3BQ56I6M3HY2UCRRY
+#::: Y7AWNI5FSSIW6IQTMWWH7FSH564ZJ56KF7XWIDR6GJVJLGZKBRE :::: NAILARA AMOS :::
+# :: PMMIQ7XMUQT7HYFLMR6OAXHUX623RSI24RVHA6QTUCQOJCT3MMDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

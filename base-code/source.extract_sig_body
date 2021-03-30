@@ -18,7 +18,7 @@ die "expected source_str scalar reference" if ref($src_ref) ne 'SCALAR';
 my $footer_body;
 my $footer_start = '#' . '.' x 77;
 if ($strip) {
-    $footer_body = $2   ### NOTE : also matches old type footer to strip it ####
+    $footer_body = $2 ### NOTE : also matches old type footer to strip it ####
         if $$src_ref =~ s{\n(# _{78}|$footer_start)\n((#[^\n]+\n){4})$}{\n}sg;
 } else {
     $footer_body = $1 if $$src_ref =~ m|$footer_start\n((#[^\n]+\n){4})$|;
@@ -27,7 +27,8 @@ if ($strip) {
 $footer_data->{'data-chksum'}
     = <[chk-sum.bmw.strsum]>->( $bit_size, $$src_ref );
 
-return $footer_data if not defined $footer_body;  ## keeping current checksum ##
+return $footer_data
+    if not defined $footer_body;    ## keeping current checksum ##
 
 $footer_data->{'was_present'} = 1;
 
@@ -48,7 +49,8 @@ while (@subst_params) {
     my $pos = shift @subst_params;
     my $len = shift @subst_params;
     $signature_B32 .= substr( $emptied_footer, $pos, $len, '_' x $len );
-    $signed_chksum = $signature_B32 and $signature_B32 = '' if 0 == $line_num++;
+    $signed_chksum = $signature_B32 and $signature_B32 = ''
+        if 0 == $line_num++;
 }
 warn 'invalid signature footer structure [ template mismatch ]'
     and return $footer_data
@@ -66,16 +68,18 @@ warn sprintf( "invalid characters in signature data [ %s ]",
 
 $footer_data->{'structure_valid'} = 1;
 
-$footer_data->{'data-type'} = 'CODE';   # [ other types soon : DATA, NCFG, .., ]
-$footer_data->{'checksum-type'}  = 'BMW-384-B32'; # only ones implemented so far
-$footer_data->{'signature-type'} = 'C25519-B32';  # <-- ########################
-$footer_data->{'bmw-chksum'}     = $signed_chksum;
-$footer_data->{'signature'}      = $signature_B32;
+$footer_data->{'data-type'} = 'CODE'; # [ other types soon : DATA, NCFG, .., ]
+$footer_data->{'checksum-type'}
+    = 'BMW-384-B32';                  # only ones implemented so far
+$footer_data->{'signature-type'}
+    = 'C25519-B32';                   # <-- ########################
+$footer_data->{'bmw-chksum'} = $signed_chksum;
+$footer_data->{'signature'}  = $signature_B32;
 
 return $footer_data;
 
 #.............................................................................
-#3FPZC37UNKOMQ7SPJN6PW5O3FU7ATLTIAMBRJA7LYIEORRQ3LBH63UZTIZHATP5REKLTXHQGFMNQM
-#::: CDDA27BCPHS5SCQCPU4CUNMACALLJ3EBIGNNVRHL47H3DGCGTIU :::: NAILARA AMOS :::
-# :: W4ZZLCMIU236Z7GT4SJD5VKKXBWZNCWSPULEAU7LB3FNXFNME4AI :: CODE SIGNATURE ::
+#3Q55A27D6B62CFXR776SKMRSRU3OO5TSJF7QPZB37KPMFS3FUHSWFG2E272PAQBG33GTJM7YENMCQ
+#::: JGZYZJPCU7WBKZ5SXOHTJ2NFTGFU27CQQWEMVVHCWV3PWHJYKU6 :::: NAILARA AMOS :::
+# :: 25NVQTEKTK7ASUIOYK2EMDTQKQRQPG5BZ5H6V2EQCFUWZW2L2MCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

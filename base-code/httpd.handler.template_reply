@@ -45,7 +45,8 @@ map { $cmd_count++ if defined $ARG->{'command'} }
     @{ $session->{'content'}->{'sequence'} };
 
 if ($cmd_count) {
-    <[base.log]>->( 1, "['$done_cmd'] segment complete, $cmd_count to go..," );
+    <[base.log]>
+        ->( 1, "['$done_cmd'] segment complete, $cmd_count to go..," );
 } else {
 
     my $content_length = 0;
@@ -54,7 +55,8 @@ if ($cmd_count) {
 
     my $s = $cmd_count > 1 ? 's' : '';
     <[base.log]>->(
-        1, "content segments complete, returning page [${content_length} bytes]"
+        1,
+        "content segments complete, returning page [${content_length} bytes]"
     );
 
     $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
@@ -68,13 +70,14 @@ if ($cmd_count) {
         }
         )
         . join( '',
-        map { ${ $ARG->{'data'} } } @{ $session->{'content'}->{'sequence'} } );
+        map { ${ $ARG->{'data'} } }
+            @{ $session->{'content'}->{'sequence'} } );
     delete $session->{'content'};
     $session->{'flush_shutdown'} = 1;
 }
 
 #.............................................................................
-#Q4AKOLI3HDPXFJZ6MXXDRNBP6ORMLVFJXZYHO2A4YSMSOTZJFGE5MF4Z7BJK7D7XSUFO5NFVD2WOE
-#::: ITN4PWIFK7QC5DKE45NA7P52JANXDPDBTP4JD6Z6FFA6PDTWEGK :::: NAILARA AMOS :::
-# :: BQLLK7WZ34VWUGRRWPNVHFE5YIV4OXBUYWVL4QAGENEX3MRQV4AI :: CODE SIGNATURE ::
+#MNZQZX2MGQTYNGFSOYH6V5OYLYZKO4XVQPCNKRMFNVIOOW7QXAGA473TQWBJARL3TMOGKFOLLZCDS
+#::: G37VKHV7JB4WNOWRSXGRSYKMRVVN6RRQP7LONTLIB7ZXVXHKYHW :::: NAILARA AMOS :::
+# :: GMZUPNXJWQMMF7E4M4H6FNJBTVWO26PCFSBAEWL5WWNMLB4CLSBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

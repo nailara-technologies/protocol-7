@@ -4,7 +4,9 @@
 # descr = initialize [execute] zenka
 
 if ( $_[0] =~ m|~$| ) {
-    <[base.log]>->( 0, "<-- invalid zenka name [ a backup file ], aborting.," );
+    <[base.log]>->(
+        0, "<-- invalid zenka name [ a backup file ], aborting.,"
+    );
     <[base.exit]>->(4);
 }
 
@@ -22,7 +24,7 @@ my $success = 1;
 if ( <system.startup_initcode> and @{<startup.init_code>} ) {
     $success = <[base.execute_zenka_code]>
         ->( <[base.parser.config]>->(<startup.init_code>) );
-    delete <startup.init_code>;    # clean up., [could contain auth key strings]
+    delete <startup.init_code>;  # clean up., [could contain auth key strings]
     delete $data{'startup'} if !keys( %{ $data{'startup'} } );
 }
 
@@ -35,10 +37,9 @@ my $zenka_cfg_path = <[base.get_path.zenka_cfg]>->(<system.zenka.name>);
 
 if ( !-e "<system.conf_path>/$zenka_cfg_path" ) {
     my $zenka_name = <system.zenka.name>;
-    local <system.zenka.name> = 'error';    # <-- changed zenka name to 'error'
+    local <system.zenka.name> = 'error';   # <-- changed zenka name to 'error'
     $SUB_NAME = undef;
-    return
-        <[log.error]>->("<< no such program or zenka ['$zenka_name'] >>");
+    return <[log.error]>->("<< no such program or zenka ['$zenka_name'] >>");
 }
 
 <system.path.rel.cur_zenka_cfg> = $zenka_cfg_path;
@@ -48,11 +49,12 @@ if ( !-e "<system.conf_path>/$zenka_cfg_path" ) {
 
 # note : 'load_config_file' will not return for zenki invoking the event loop..,
 <[base.load_config_file]>->($zenka_cfg_path)
-    or <[log.error]>->("startup of zenka '<system.zenka.name>' not successful");
+    or
+    <[log.error]>->("startup of zenka '<system.zenka.name>' not successful");
 $SUB_NAME = undef;
 
 #.............................................................................
-#QBW34PYYG43YOIPQDVUIPW2BO2WBD2EMER6C7QGHN2W2ZVNKYQ7XI7RJ722OUSLW7IZAT7KLYS2Y2
-#::: O2KGGS7ZUJT2BTNWQKYDF3LYGI65Y6JLJ76GC5FSYPENQQ42ACS :::: NAILARA AMOS :::
-# :: GWY6LNWCDHAO5ALLJAUE44GMQG5ZCN3XIB2IXOVZ43N5MXB4E6CY :: CODE SIGNATURE ::
+#MBYDEODEO5TCLTOHCHLDQPBWXFE4ITESQ46QWPSRMHW5D6VWU3CLCHDWNJWDNBU5ESNDOAFLQTEO6
+#::: R5NHKKC76NOYS22CUCTITZ56EMPODQ2432OY4EWDGSORHYPRDRW :::: NAILARA AMOS :::
+# :: 5QOFSPPOE42TUV3DBMYZM4SRMV4GPNSNTASPJSEE5IH3NE6XRSBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

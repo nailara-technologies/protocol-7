@@ -2,7 +2,7 @@
 
 # name = crypt.C25519.sign_keys
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift);   # <-- <key_name> [optional]
+my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
 
 my $uid          = $key_vars->{'uid'};
 my $gid          = $key_vars->{'gid'};
@@ -57,7 +57,9 @@ if ( defined <crypt.C25519.root_key_url> ) {
             # LLL: log reason ..,
             goto skip_sign;
         }
-        <[base.log]>->( 0, ": signing C25519 key pair with$rkst root key ..," );
+        <[base.log]>->(
+            0, ": signing C25519 key pair with$rkst root key ..,"
+        );
         my $sig_file_path = $key_basepath . '.sig';
         $sig_file_path .= ".$root_key_name" if length($root_key_name);
         <[file.put]>->(
@@ -88,7 +90,8 @@ if ( defined <crypt.C25519.root_key_url> ) {
             <[base.prng.characters]>->($rk_priv_len) );
         map { undef $root_key{$ARG} } ( 'secret', 'public' );
     } else {
-        <[base.log]>->( 1, ": unrecognized root key url, skipped signing..," );
+        <[base.log]>
+            ->( 1, ": unrecognized root key url, skipped signing..," );
         return -1;
     }
 } else {
@@ -97,7 +100,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
 }
 
 #.............................................................................
-#YJWLE5T5ABIXOS5YBLR5XQXLOX7JETQJCBYEG2E6WDX5NULIH56YOO4TQ6DMVMZHTJZ3RPUXOGQYY
-#::: DY4W6STWL27NMZWKSKSG7VPPV6JHQ2Z377W5WPA4CCXKGJP6U2U :::: NAILARA AMOS :::
-# :: QLVBL23EU2XPR6YAJCWM7R2FNDD5XK4VAC4M2AFOZDJJW66GXEDY :: CODE SIGNATURE ::
+#JZWZO75XBHXOFVA2WRFKJNW4UNS7D3ZHEL4W7PFTQPU26TK2L5CGT4ARQVXBI4VR2TITUFHGP72ZE
+#::: CCUDWAHNE4EHOUEQJX53R4QZ6U6OZ2QDH6REBBPPETDXWXGLX4M :::: NAILARA AMOS :::
+# :: SB73HHE6ZEJZ2BUQTKM37Q74L4KKZMELZ2X35TXNUTOM2WR7YSBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

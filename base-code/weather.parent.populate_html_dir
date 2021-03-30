@@ -15,7 +15,8 @@ my $data_dir     = <system.root_path> . '/data';
 my $icon_dir     = "$data_dir/gfx/icons";
 my $gradient_dir = "$data_dir/gfx/gradients";
 
-<[base.log]>->( 1, "checking cache directory for station id '$station_id'.." );
+<[base.log]>
+    ->( 1, "checking cache directory for station id '$station_id'.." );
 
 if ( !-d $html_dir ) {
     <[base.log]>->( 1, ": creating html dir '$html_dir'" );
@@ -27,7 +28,8 @@ if ( !-d $image_dir ) {
     make_path($image_dir) or die "make_path($image_dir): $OS_ERROR";
 }
 
-my $icon_setup = <[weather.parent.icon_setup]>->('vclouds'); # LLL: to config...
+my $icon_setup
+    = <[weather.parent.icon_setup]>->('vclouds');    # LLL: to config...
 my %icon_list  = reverse %{$icon_setup};
 my @icon_paths = keys %icon_list;
 push( @icon_paths, "$gradient_dir/gray-tq.png" );
@@ -53,7 +55,7 @@ foreach my $name (<[weather.parent.page_list]>) {
 }
 
 #.............................................................................
-#HPJ7MWKH3QDIHIMA56UIU24RY6PDONDCVOFZ2QMDM66VCCBZ2RFQITOJMKBUPV4UOCFI6UNCRWHAA
-#::: BWHA2YLTNTJCI3QAU43DGDGU2MK6WADWH7XS2IWT2TJ4IUXXKZV :::: NAILARA AMOS :::
-# :: UUIHLDFEQHGDCZUXYPHJBPGXIMK2SR236YRNX6TB7Q47UXTNVKCY :: CODE SIGNATURE ::
+#UPNGEFVGQROL7ITVCLSD6APDJL5YLLPF3S6GWVGDSSWOHFAV6ATGLX4BXFWX3WKHTMQNV3HVQ7HZO
+#::: HK6IIXME7QY72VBTK2D6JJPURQINQ2EZSV2NICOUHZQILOKY44K :::: NAILARA AMOS :::
+# :: 4IFKNIF6Y247EAYISO6MFZ2LXJTSKXLQRCZL5VV5HPUDZ34JQKDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

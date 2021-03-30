@@ -4,10 +4,12 @@
 
 my $module_name = shift;
 my $cpanm_path  = <system.bin_path.cpanm>;
-my $known_deps = <[base.known_dependencies]>->{'perlmod'}->{$module_name} // {};
+my $known_deps  = <[base.known_dependencies]>->{'perlmod'}->{$module_name}
+    // {};
 
 $module_name = $known_deps->{'cpan'}
-    if defined $known_deps->{'cpan'} and $known_deps->{'cpan'} ne $module_name;
+    if defined $known_deps->{'cpan'}
+    and $known_deps->{'cpan'} ne $module_name;
 
 <[base.log]>->( 1, ".: installing perl module '$module_name' :." );
 
@@ -48,12 +50,14 @@ if (@cpan_list) {
         }
     }
     my $s = @cpan_list > 1 ? 's' : '';
-    <[base.log]>->( 0, "[AUTO_INSTALL] module$s: " . join( ', ', @cpan_list ) );
+    <[base.log]>->(
+        0, "[AUTO_INSTALL] module$s: " . join( ', ', @cpan_list )
+    );
     system( 'cpanm', @cpan_list );
 }
 
 #.............................................................................
-#KGCTITATUSQVFN345MFHHR7AURL5VDITVEATXG2KZ5QWQKZ2SIC5GXFVH6IP7S6BWVZIZLJGPVE4G
-#::: YCCU6THU4DLI7WGOKK3JLSWIU4JC5YKFN2Q76KTWF72VRVU4A67 :::: NAILARA AMOS :::
-# :: NMN4BL4RCOWPMV2RUVQZAFOL423L7ZOH6JNZ7IPUJSNAX2IB2WDY :: CODE SIGNATURE ::
+#3BEW4NLGES4E3S74JX3NDF637RV4S4ST53RDKBHNRREK3G7OEGAAN5EFARLECUKJQZBM4TU3Y7EGO
+#::: GMBKY2RO7FEAL3DLYOULNLOQP6WOZ7R4HECY2BTXQWY2FTOHNOT :::: NAILARA AMOS :::
+# :: O4JA2AYZSUJZNGREHHDMKRDZCV2E3GCUKOBYHME66KI6UI5L64CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

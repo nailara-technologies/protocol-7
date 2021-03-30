@@ -18,7 +18,9 @@ my $load_percent = $params->{'call_args'}->{'args'};
 my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
 
 <ticker-gtk.slowdown.percent_target>
-    //= $percent_exceeded > 0 ? $percent_exceeded : 0; # initial value (adjusts)
+    //= $percent_exceeded > 0
+    ? $percent_exceeded
+    : 0;    # initial value (adjusts)
 
 $accel_factor *= 0.42 if $percent_exceeded < 0;
 
@@ -32,11 +34,13 @@ $target_percent = 100 if $target_percent > 100;
 $target_percent = 0   if $target_percent < 0;
 
 my $skip = (
-           $percent_exceeded <= 0 and abs($percent_exceeded) < $lower_tolerance
-        or $percent_exceeded > 0  and abs($percent_exceeded) < $upper_tolerance
+    $percent_exceeded <= 0 and abs($percent_exceeded) < $lower_tolerance
+        or $percent_exceeded > 0
+        and abs($percent_exceeded) < $upper_tolerance
 ) ? 1 : 0;
 
-<ticker-gtk.slowdown.percent_target> = $target_percent if !$skip; # SET new val.
+<ticker-gtk.slowdown.percent_target> = $target_percent
+    if !$skip;    # SET new val.
 
 # debug section
 $target_percent = <ticker-gtk.slowdown.percent_target>;
@@ -52,7 +56,7 @@ $load_percent = sprintf( "%.2f", $load_percent );
 );
 
 #.............................................................................
-#D2AI5RPFDJLBDYJV42S6DUOOHKGLH2IWJCB7KPSKRGBZ4B7KSIW3NDLGE7PKQHTIT2FWOLISDGNJG
-#::: 56OB635HWALE3Q7KA5LHPF4X5GGQYLBT4AHM4PVOE2O3VZCI4KS :::: NAILARA AMOS :::
-# :: FQNW3IMNZRWIDBHENU6FMN2LD43M55SYFZG55G7XQCDNHSPCCEAA :: CODE SIGNATURE ::
+#37SKD27QZE5E32OKW3HZJYI5TFNQ75VTCH5LROKACDIH3WHVTQ4XNSWYZFFEFSDBK43OKZ2EEZATK
+#::: EDTXNSIL4FDSZKER4GITSB66HF7KPDBSH3TY3K2YY67K45KSIAY :::: NAILARA AMOS :::
+# :: U2LTUHOOURCK3OGJ25ODYDWISCTDENI3U6L7BGQ4ULX2DI4KSMAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

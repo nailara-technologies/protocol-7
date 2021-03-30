@@ -13,8 +13,9 @@ my $re_keyfiles = sprintf( "%s.(%s)", $key_re_tmpl, join( '|', @key_types ) );
 my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
 <keys.regex> = {
     'key_name' => qr|^$name_regex$|,
-    'key_file' =>
-        { map { $ARG => qr|^($name_regex)\.$key_re_tmpl\.$ARG$| } @key_types },
+    'key_file' => {
+        map { $ARG => qr|^($name_regex)\.$key_re_tmpl\.$ARG$| } @key_types
+    },
     'key_files' => qr|$re_keyfiles|
 };
 map { <keys.file_suffix>->{$ARG} = ".$C25519_id.$ARG" } @key_types;
@@ -24,7 +25,7 @@ map { <keys.file_suffix>->{$ARG} = ".$C25519_id.$ARG" } @key_types;
 0;
 
 #.............................................................................
-#GBH7OJOYWNZWICSRK4DAWULKEEZQYFPC56VXQUVFASVUG4JAS3GYGE3HJ6MUI5RHPQCUD7K6KBXP6
-#::: 3J4TPKQYCQESJ35VAQG54T4LWNJS3ZP5ZM4TPILKL5R6CNFQ7BM :::: NAILARA AMOS :::
-# :: 5OVEXYSIQRBIJIRWFJFEP444Q4BFF6N364W3H5XUVLBTHHYF7CBQ :: CODE SIGNATURE ::
+#YBQO2QQOZ6ULKUSLOTTQ6KNTSEA2OIFSPAW3IHE2FX5UEAOCDYO4ICTEBU77P7MCWBD6GAMS6ASE4
+#::: X5YWZDEFMWNFFWMBJSS6VCVR7Y7PYIQ4VRZMAFTFELTB6HYNWLM :::: NAILARA AMOS :::
+# :: BKRLNP22EX2CHYTJQTEZYHNLJKEXFGHE2OWEB6ZESZB26LVHMMBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,8 @@ my $first_advance;
 my $last_advance = 0;
 <ticker-gtk.draw_seq> = 0;
 
-if ( defined <ticker-gtk.switch_at_seq> and <ticker-gtk.switch_at_seq> == 1 ) {
+if ( defined <ticker-gtk.switch_at_seq> and <ticker-gtk.switch_at_seq> == 1 )
+{
     <ticker-gtk.content.current.txt_map>
         = delete <ticker-gtk.content.queued.txt_map>;
     delete <ticker-gtk.switch_at_seq>;
@@ -39,9 +40,11 @@ my $next_map
     : {};
 
 if ( not defined $txt_map->{'sequence'}
-    or ref( $txt_map->{'sequence'} ) ne 'ARRAY' ) {    # LLL: fix occurences ...
-    <[base.log]>->( 0, "content_substring: txt_map not defined (no content)" );
-    <[base.log]>->( 0, "                 : : shutting down due to errors..!" );
+    or ref( $txt_map->{'sequence'} ) ne 'ARRAY' ) {  # LLL: fix occurences ...
+    <[base.log]>
+        ->( 0, "content_substring: txt_map not defined (no content)" );
+    <[base.log]>
+        ->( 0, "                 : : shutting down due to errors..!" );
     exit(2);
 }
 
@@ -58,7 +61,8 @@ $dseq
     : [ @{ $txt_map->{'sequence'} } ];
 
 while ( my $word = shift @{$dseq} ) {
-    my $advance = $txt_map->{'sizes'}->{$word} // $next_map->{'sizes'}->{$word};
+    my $advance = $txt_map->{'sizes'}->{$word}
+        // $next_map->{'sizes'}->{$word};
     $skip = 0
         if $skip
         and $x_skipped
@@ -67,8 +71,12 @@ while ( my $word = shift @{$dseq} ) {
         $return_str .= $word;
         $x_width += $advance;
         $first_advance //= $advance;
-        if ( ( $x_width - $x_skipped )
-            > ( <x11.window.width> + $first_advance + $advance + $last_advance )
+        if (( $x_width - $x_skipped ) > (
+                      <x11.window.width>
+                    + $first_advance
+                    + $advance
+                    + $last_advance
+            )
         ) {
             $complete = 1;
             last;
@@ -97,7 +105,7 @@ if ( !$complete and $x_width ) {
 return [ $x_skipped, $return_str ];
 
 #.............................................................................
-#T2NRRZTCZEUAIFPZBB7ZC3G6THPEO7J3VXPLH6ZQMC4WTCXN3JU7YNQGH4SQIMEQXQ3UZRE5SIFZI
-#::: 7GWHWBKVMCFYQFD62M5UOJ772ONS6HWTGCF7UYL5TKDKSVKYOI6 :::: NAILARA AMOS :::
-# :: 6GREOLLIYTMUSZYGLLIUBSFPRCJPO6TDSEQMG5QKKMBGXXKAYOCA :: CODE SIGNATURE ::
+#EL45FH7O4AV5LC5SBP2LCJSMGER3BCOYXWTJQ3E7UL7ZXFHXHE67VSUVVN4TAYZN7S53VP43QY5SE
+#::: 35C3OYEFLO6CGM6ALIZWZGFMOOG4GFFVJJHYQ22AVQXH6ZRTMLL :::: NAILARA AMOS :::
+# :: 53UQMU2GWVWIJBDFEAFN4B6YMKNKDC5MHO7WCMW5CSTLRG45JODQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

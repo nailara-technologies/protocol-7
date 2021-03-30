@@ -37,7 +37,7 @@ map { <[base.disable_command]>->($ARG) } qw{
 };
 
 <nroot.gcc_bin> = '/usr/bin/gcc';
-<nroot.cfg.install_bin_p7c> //= 'yes';                  # LLL: only when root..,
+<nroot.cfg.install_bin_p7c> //= 'yes';                # LLL: only when root..,
 <nroot.cfg.p7c_bin_path>    //= '/usr/local/bin/p7c';
 
 ## gcc \ p7c ##
@@ -74,7 +74,8 @@ if ( !-x <nroot.rmmod_bin> ) {
 
 # json based configuration import ## replace with generic \ yaml based version.,
 <[set-up.json.import_file]>->('nroot.start_setup.json')
-    if defined $code{'set-up.json.import_file'};  ## <-- when not disabled., ###
+    if defined $code{'set-up.json.import_file'}
+    ;    ## <-- when not disabled., ###
 
 map { <[nroot.init_start_setup]>->($ARG) }
     @{ clone(<nroot.cfg_data.start_setup>) };
@@ -86,7 +87,8 @@ if (    exists <system.subs_loaded.debug>
     <[base.perlmod.autoload]>->('Data::Dumper');
     $Data::Dumper::Sortkeys = 1;
 
-    ( my $debug_str = Dumper(<nroot.start_setup.globals>) ) =~ s,^.{7}|;$,  ,mg;
+    ( my $debug_str = Dumper(<nroot.start_setup.globals>) )
+        =~ s,^.{7}|;$,  ,mg;
     print "\n < nroot.start_setup.globals >\n\n$debug_str\n";
 }
 
@@ -173,20 +175,20 @@ delete <list.users>;
     'descr'    => 'current zenka dependency status',
     'mask'     => 'zenka_name <key>:depends_on_zenki <key>:status',
     'align'    => {
-        'zenka_name'        => 'center',
+        'zenka_name'       => 'center',
         'depends_on_zenki' => 'center-5',
-        'status'            => 'left'
+        'status'           => 'left'
     },
     'filters' => {
         'depends_on_zenki' => 'nroot.parser.dependency_chain',
-        'status'            => 'nroot.parser.dependency_status'
+        'status'           => 'nroot.parser.dependency_status'
     }
 };
 
 return 0;
 
 #.............................................................................
-#HCQWTJGKGLACHEFWS65CY3VOX4REXBJAR2S27W4AIKQLNCGZBB22JDO3ULSXWOC7SPXPEL2L4NNPG
-#::: 75LXL2AOS3PGO5EW6WSYJXY53CBR56I2NVXGJSWKSSA657WXALZ :::: NAILARA AMOS :::
-# :: Q4FVGXAS3Z36EZIUVWFQGC7B3S7MKMMWJFWOMJWO37EXAPQBS4CY :: CODE SIGNATURE ::
+#LN33KIIDROHHNEJTHIS44SEKJUY4O3CBLBKRXDL55DMLD5JICWUQ7NJAR7QZF52ZJY4LGBHL3SSMU
+#::: MV2TN5W6NJYEVFOWISJTF47OWUHU6QBIMLAHW3XNWAA5HJO4VOB :::: NAILARA AMOS :::
+# :: IQPKRSWCFSJ6N2GED5Q5ZSA5AZFE7NI43UFWUKXPKCUN2GTY6SCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

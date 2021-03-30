@@ -34,7 +34,8 @@ map {
 my $reply_mode = 'ack';
 my $reply_data = 'module reloaded';
 
-chomp( my $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
+chomp( my $modprobe_output
+        = qx($modprobe_bin --first-time $module_name 2>&1) );
 if ( !length($modprobe_output) ) {
     $reply_data = 'module loaded';
     goto do_reply;
@@ -68,7 +69,7 @@ map { $ARG->start } @restart_timers;
 return { 'mode' => $reply_mode, 'data' => $reply_data }
 
 #.............................................................................
-#UFXMLVPHAD4AYVDQAZKG37JCT7OFBSPDEZFFPFTHSKKLO7SQEOHD3TXVVMH225MMVXISPDVC5USVG
-#::: OY52SGMFITJR5UO5Z5UXVE3PZT6MWYPKR4NM4KHURZEKOUE2L55 :::: NAILARA AMOS :::
-# :: TPN55VYHVMX6YOUDJMBZD262QPDDH4ZHUOO2IP4C6JD3DHPCE6AI :: CODE SIGNATURE ::
+#EUDNP4WNBPGUZOIESUTIOEQNIG47H6MFGUMTWF34ONMMMX5RTDX6EUTG5YTTTLU6DHFUCTHIQ3FUA
+#::: YR6BXFLNOZJTVSRODQOXZ3AKLTCTYOU4YXGWUPH3PO2YHHQ3WBA :::: NAILARA AMOS :::
+# :: Z6VE3BMO6Y65D7BZITDJPNK6J4S75NFSHEQMSYPNAUKNMCBDYADI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

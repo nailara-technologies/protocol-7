@@ -13,7 +13,8 @@ if ( my @start_cfgs = grep {m|/zenka-startup.nroot$|}
     @{ <[file.all_files]>->( $zenka_cfg_path, 'recursive' ) } ) {
     my $file_count = @start_cfgs;
     my $s          = $file_count == 1 ? '' : 's';
-    <[base.log]>->( 1, ": loading $file_count zenka startup configuration$s" );
+    <[base.log]>
+        ->( 1, ": loading $file_count zenka startup configuration$s" );
 
     foreach my $cfg_path (@start_cfgs) {
         my $zenka_name = $1 if $cfg_path =~ m|/zenki/([^/]+)/[^/]+\.nroot$|;
@@ -31,7 +32,7 @@ if ( my @start_cfgs = grep {m|/zenka-startup.nroot$|}
 }
 
 #.............................................................................
-#DAB6CWWFQCIKKNXXTZKLVHAGIGYBFWF7AMGBM7LKL6RTC56DRRQNIGBEWXW5UN3VJILDZHUSYAULS
-#::: 4Y6NIX5WWIFQXQ4RF4TFJY63UVT5P4KQ5HC65XH4C2A2TV7TPOB :::: NAILARA AMOS :::
-# :: 56HKCFABRYMC4ODFHJZBCLZBGANAEASD22DBNUYRMCNXBJRLYECY :: CODE SIGNATURE ::
+#2CRKT6GTELBZIYYURPATKVQXTKFEGJKJ7LEVGO4YHLY3AHSBFPT6QFUGKUR76JGGEHTBDOBFOG7OC
+#::: GXCBHVWTPY4WTIOXQXPA2EFAAQNXW2ZIVSNIQKMFK3DKQ3TPWDB :::: NAILARA AMOS :::
+# :: 6C26WB3VGEY22VVXG53QMLYBT5ZABP7Y7JLNOFBAGTCR2P4PYABQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

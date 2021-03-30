@@ -5,7 +5,7 @@
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
-my $zenka_name = shift // <system.zenka.name>;   # <- '' requests tile-name only
+my $zenka_name = shift // <system.zenka.name>; # <- '' requests tile-name only
 my $zenka_subname = shift // <system.zenka.subname>;
 
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
@@ -38,7 +38,8 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
+{
     <x11.coordinates>
         = { 'left' => $1, 'top' => $2, 'right' => $3, 'bottom' => $4 };
     <[base.log]>->( 1, "received window coordinates.. [$1,$2,$3,$4]" );
@@ -82,7 +83,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#KHEV7BONZ5LRGDIXPPGTM23YHYUMKRB3YGGD3UEU5NNNPOK6HGPILMB7JMPKQE6CL65ZGVQP4K46K
-#::: XIG3HK4RULUV2S46M3Q524HUNYBC4F3X3QNRORUSQHBJJCVQXKC :::: NAILARA AMOS :::
-# :: FBBQ5XKABUG3PPMQMCR2TIGCZ5MERXNTEIMPFVP6454DS5JU56DA :: CODE SIGNATURE ::
+#QM4ND6SXXUDGWM2LQOVVII3JRBKYZLZP2M3PHMNEJSXETTHAYXVP25NL27EBLDRSVCR2MPA3WNAWK
+#::: EOV7IFGMDTKUJKKIOBG3GUCT53G2KQHF2OUU7FK2YTASQKXWN6T :::: NAILARA AMOS :::
+# :: AJOZ7LPAVPRI4UITDDROPJCOMYZAKGITOBDWO7JND2S23G4NTICQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

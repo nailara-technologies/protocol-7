@@ -4,8 +4,8 @@
 
 my $params = shift // {};
 
-if ( defined $params->{'bg_col'} and $params->{'bg_col'} !~ /\#[0-9A-F]{6}$/i )
-{
+if ( defined $params->{'bg_col'}
+    and $params->{'bg_col'} !~ /\#[0-9A-F]{6}$/i ) {
     <[base.log]>->(
         0,
         "WARNING: invalid background color parameter"
@@ -41,7 +41,8 @@ if ( File::stat::stat($impr_src)->size == 244069
     <[base.log]>->(
         0, "<!> please update impressive version <!> [donwload_impressive.pl]"
     );
-    $file_content =~ s|tostring\(|tobytes\(|mg;  # workaround (impressive crash)
+    $file_content
+        =~ s|tostring\(|tobytes\(|mg;    # workaround (impressive crash)
 }
 
 my $title_str = <system.zenka.name>;
@@ -67,7 +68,8 @@ if ( not $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s ) {
 }
 <impressive.parser.size_assert_failed> //= 0;
 if (   not $file_content =~ s|assert \(ScreenWidth  >= 320\) and |assert |m
-    or not $file_content =~ s|assert \(ScreenHeight >= 200\) and |assert |m ) {
+    or not $file_content =~ s|assert \(ScreenHeight >= 200\) and |assert |m )
+{
     <impressive.parser.size_assert_failed> = 1;
     <[base.log]>->(
         0, "[!] unable to parse out impressive minimum screen size limit ..."
@@ -91,7 +93,7 @@ if (not $file_content =~ s|
 chmod( 0755, $tmp_bin ) or die "chmod failed: $OS_ERROR";
 
 #.............................................................................
-#AWFI6AKOXDHPPJ2ROIWND3J3LVXJ2SWPO3T2PENNR2V35S5OD77D4S6ORUXN4TXZDPRUTXZIXBITI
-#::: RQHO6XBGB4CTIPWPKUQDQ4CCCADFGAZRZWOGBRCOW7KGRCXRDOP :::: NAILARA AMOS :::
-# :: XWLOA2S637ZIGCUWX52RTHHA7JOBMRDM56MNBG62XG5TFCCX54DY :: CODE SIGNATURE ::
+#CXHG6X3OPXJDOHXQF3KIQZQLT4LXBM6FZ4SHEYQDTVEXBYIFNNUS7RH6JJN2LO6KLYXZL2RWRLVUE
+#::: 6EVVZTHP34CIAVHZ4GCGEG6NVKPWMD6M2UZE7UPMP2WQDRT5V5Y :::: NAILARA AMOS :::
+# :: B6TKADYZS4ILSEDPF3BWXDZWPQA5H6WBF2WL6HBLEEVKGUY2BCAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -38,15 +38,14 @@ if (    defined <discover.mcast.obj.sock>
 
 <[base.log]>->(
     1,
-    sprintf(
-        ": joining local multicast group [%s]", <discover.mcast.ip4_addr>
-    )
+    sprintf( ": joining local multicast group [%s]",
+        <discover.mcast.ip4_addr> )
 );
 
 <discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>)
     || die $OS_ERROR;
-<discover.mcast.obj.sock>
-    ->mcast_dest( <discover.mcast.ip4_addr> . ':' . <discover.mcast.ip4_port> );
+<discover.mcast.obj.sock>->mcast_dest(
+    <discover.mcast.ip4_addr> . ':' . <discover.mcast.ip4_port> );
 
 <[event.add_io]>->(
     {   'fd'      => <discover.mcast.obj.sock>,
@@ -57,7 +56,7 @@ if (    defined <discover.mcast.obj.sock>
 0;
 
 #.............................................................................
-#TPCLYXM34YLXS7VUCAR7MOCY3YIM6OJK5FB3XA2EWMNTIDPYZUATU25ZX4VSQ62DXIUDJZNT6IOB2
-#::: UARXXQFX2T5ZE7FGDXFUBXTWXB7OM6MBIMKIUZVHTOV2IT44T2A :::: NAILARA AMOS :::
-# :: 5NIUC4JIHVOXHGIXASSGCYMFXXCKHFYIYBXSZCHVSKYRM2KX5SDY :: CODE SIGNATURE ::
+#SUQM5JQIUJIJRIUM2DZ5ERRPPSVMEDLPLONLLUPYHVQQT5OHSM2YYTGC77ECZX5LCOA2WU77MHKAK
+#::: BS6DT6JJF3ZPL7JUYAQNZWEYTN4X4TYQN6HHEVFY46AOS6BQWUC :::: NAILARA AMOS :::
+# :: 2PUGIV3GTYED7BZOL6VYFEFM765F26G3JZ4NIRRZSIWQ374FJSAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,8 @@ my $forecast_data;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
-    if ( $err_reason eq 'query failed [ unknown location ]' ) { ## rate limit.,?
+    if ( $err_reason eq 'query failed [ unknown location ]' )
+    {    ## rate limit.,?
         $log_level++;
         $retry_delay_cached += 113 + int( rand(237) );
     }
@@ -45,7 +46,9 @@ if (    defined $forecast_data
     and $forecast_data->{'cod'} eq '200' ) {
     <weather.update_fail_count.forecast> = 0;
     <[weather.parent.cache.write_data]>->( $type, $station_id, $data_str );
-    <[weather.parent.extract_forecast]>->( $type, $station_id, $forecast_data );
+    <[weather.parent.extract_forecast]>->(
+        $type, $station_id, $forecast_data
+    );
     my $update_minutes = sprintf( "%0.1f", $update_interval / 60 );
     <[base.log]>->(
         2, "next 'forecast' data update in $update_minutes minutes.,"
@@ -57,10 +60,11 @@ if (    defined $forecast_data
 
     if (    exists <weather.data>->{$station_id}
         and exists <weather.data>->{$station_id}->{'forecast'}
-        and defined <weather.data>->{$station_id}->{'forecast'}->{'data_time'} )
-    {
+        and defined
+        <weather.data>->{$station_id}->{'forecast'}->{'data_time'} ) {
         my $data_age
-            = time - <weather.data>->{$station_id}->{'forecast'}->{'data_time'};
+            = time
+            - <weather.data>->{$station_id}->{'forecast'}->{'data_time'};
 
         $log_level = 0 if $data_age >= 3600 * <weather.cache_timeout> * 0.8;
 
@@ -121,7 +125,7 @@ if ( time + $update_interval > $midnight ) {
 );
 
 #.............................................................................
-#WGKFHQRZITBU6CRIELOXKY6RYX7ONNIKXASADI7JXHJ2E6NTN2MB2GU5HZPYAKKLS5QQ6UU33NSOC
-#::: SB2UVCPFAO3NQUX3AKICE66XDG7BDXYUBB7NOI7PCTAK7JLTPYH :::: NAILARA AMOS :::
-# :: I62EMEVH2ICKXIELHV3Q6BSZ56UBQ4HCBPIEBWATSZ6ABL2U5UCY :: CODE SIGNATURE ::
+#PMIYFMT3R3JQHDBPSFITYLYXJNBJMXXYUGIDJYD53474YCLCSLMDOCSAHHK5HW4GAXVHTSWHCMMPA
+#::: KIIC7DU5ZFKY3B24C7IGK6CEGLBH3HOWWCIHGPN53XICSDT245T :::: NAILARA AMOS :::
+# :: R6WDA47CHY6AKW7FBCIQF327HWJ2J7MSHZ3QJGSDZTN3Q3XJF4DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

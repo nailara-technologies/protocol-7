@@ -1,12 +1,13 @@
 # >:]
 
-# name  = base.renice
-# descr = renice process priority
+# name  = base.change_prio
+# descr = change process priority
 
 my $prio = shift;
 my $rpid = shift // $PID;
-die "base.renice: invalid priority '$prio' given." if $prio !~ m|^\-?\d{1,2}$|;
-die "base.renice: invalid pid '$rpid' given."      if $rpid !~ m|^\d+$|;
+die "base.change_prio: invalid priority '$prio' given."
+    if $prio !~ m|^\-?\d{1,2}$|;
+die "base.change_prio: invalid pid '$rpid' given." if $rpid !~ m|^\d+$|;
 
 <[base.log]>->( 1, "[ PID $rpid ] <-- set priority $prio" );
 
@@ -19,7 +20,7 @@ my $ret = setpriority( 0, $rpid, $prio );
 return $ret;
 
 #.............................................................................
-#VVV63BSKB7MOMMAJDS6ZKBJ4KWW2MUKTRQDXXOUAABPSOVDVIQXJVUWCZLMM52ARWAOAKVAX3YUMO
-#::: TKJ7T5VMZUDC74JJJBFVJS3IXFHAPXZXODZE3WCQA3754RPGQNI :::: NAILARA AMOS :::
-# :: C24M75225CGAUBZQOILOM43S5OBFXRLPCS5KEPZYNJ4V37QWKIDQ :: CODE SIGNATURE ::
+#TEOIKMT6KASSBBCRXWV2JWS6AETTVNQMNKE5VFPTAQF5BUIUIRF2IFF7GAPK4NRGRKDW2RTZTVPBC
+#::: UXVTC2OJJC6FHXPX7PMT4Z5ROXHHTLQ3K4YVUYGD67VL3PKPIHB :::: NAILARA AMOS :::
+# :: O43Q5QWXSYQKEJH3QVLILQG7EQXBDZ2Q4XCR3654EPGC5NTS32CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

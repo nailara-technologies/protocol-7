@@ -8,8 +8,7 @@ my ( $widget, $context, $ref_status ) = @_;
 my $max_delay = sprintf( "%.6f", 1 / 6 );
 <web-browser.redraw_fps.slowdown>--
     if <web-browser.redraw_fps.slowdown> == 100;    # / by0
-my $slowdown_delay
-    = sprintf( "%.6f",
+my $slowdown_delay = sprintf( "%.6f",
     1 / ( ( 100 - <web-browser.redraw_fps.slowdown> ) * 60 ) );
 
 <web-browser.swap.update_delay>      //= 1 / 60;               # initial FPS
@@ -34,7 +33,8 @@ if (<web-browser.status.fade_view>) {
     } elsif ( <web-browser.swap.update_delay> < 1 / 30 )
     {    # ... slowing down ...
         <web-browser.swap.update_delay>
-            = sprintf( "%.6f", <web-browser.swap.update_delay> + $xccel_steps );
+            = sprintf( "%.6f",
+            <web-browser.swap.update_delay> + $xccel_steps );
         <web-browser.swap.brake_count>++;
         <web-browser.swap.fps>
             = sprintf( "%.2f", 1 / <web-browser.swap.update_delay> );
@@ -66,20 +66,21 @@ if (<web-browser.status.fade_view>) {
 
         $view->set_settings($settings);
         <web-browser.url_active.nojs> = 1;
-        <[base.log]>->( $l_level, ": JS disabled ( nojs_scroll flag '$uri' )" );
+        <[base.log]>->(
+            $l_level, ": JS disabled ( nojs_scroll flag '$uri' )"
+        );
     }
 
 }
 
-<web-browser.swap.fps>
-    = sprintf( "%.2f",
+<web-browser.swap.fps> = sprintf( "%.2f",
     1 / ( <web-browser.swap.update_delay> + $slowdown_delay ) );
 <web-browser.swap.fps> = 6 if <web-browser.swap.fps> < 6;
 
 $widget->queue_draw;
 
 #.............................................................................
-#GZ44F5A7A7SXJ6Q2ZC7UQAXSUSWFOZ2KD2G4V43ZFSMGI7Y4YXBMKRMDY3HVTY75YHFY5WQWNVHX4
-#::: BZ4W4T6KUBLPTDANRWJSWT35FU27PV72TDGHB5FR5WONHIR4P2L :::: NAILARA AMOS :::
-# :: EGS26ADMA6MPE5SO66WGMPHSOPAX6XDPEYDPRRWVW6GFEHF3OQBY :: CODE SIGNATURE ::
+#EFIKPZHC2FQQAOGYUIJQ3RYQ5OMAZ47BOZ4FVXXLBL6Z7ZPH54PG2RJJQMCO7GT2MRJMS7YEPIQES
+#::: PG6TCR6HXDW6MHSX5NF7IPBXQIL4RNKFBJIDRIWWO4U2JJZMNGP :::: NAILARA AMOS :::
+# :: E3JWA3WIJMWWPM7IVDPT6P4VEBUMTTCUN3FE2V26CDJULRJB3UCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

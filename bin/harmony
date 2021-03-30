@@ -11,7 +11,9 @@ BEGIN {
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
-use AMOS::Assert::Truth;
+my $FXI = 202;    ## program return code for asserted FALSE ##
+
+use AMOS::Assert::Truth;    ## <-- expand \ extract routines ..,
 
 use Digest::Elf;
 use Getopt::Std;
@@ -19,7 +21,7 @@ use Math::BigFloat;
 use IPC::System::Simple qw| capturex |;
 binmode( STDOUT, ':encoding(UTF-8)' );
 
-getopts( 'VNDcanhqvBl:d:A:T:Zz', \my %option );
+getopts( 'VNDC:canhqvBl:d:A:T:Zz', \my %option );
 
 no warnings 'experimental';
 
@@ -59,7 +61,7 @@ $option{'z'}
 $option{'A'} //= "-r4.2 -d$option{z} -S"
     if $option{'Z'};    ## -Z is 'full-screen' mode
 $option{'T'} //= rand(2) % 2 ? '851' : '857' if $option{'Z'}; ## <-- full-screen
-$option{'T'} //= qw| 17 |;    ## <-- 'asc-enc' table [ when in use ]
+$option{'T'} //= qw| 857 |;    ## <-- 'asc-enc' table [ when in use ]
 $option{'l'} //= 384;         ## <-- blue midnight wish entropy size
 $option{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
 $option{'B'} = !$option{'B'};    ## BMW mode enabled by default
@@ -69,6 +71,7 @@ my @asc_enc = qw| asc-enc -q |;
 die ":\n:: divisor not valid [ expected numerical ]\n\n"
     if $option{'d'} =~ m|^\-d(\d+(\.\d+)?)$|;
 
+$option{'C'} //= 0;              ## asc-enc -d<n> [ number width ]
 $option{'h'} = 1 if !$option{'S'};
 $option{'q'} = 1 if $option{'v'} or $option{'V'};
 
@@ -143,7 +146,7 @@ $line_str =~ s{(*plb:\.)(\d*?)($true|0000+ )}
     or $line_str =~ s{(*plb:\.)(\d*?)($false)}
                      {$1$col{'m_n'}$2$col{'r'}$col{'b'}};
 
-my $return_code = 1;
+my $return_code = $FXI;    ## code for FALSE ##
 $calc_str =~ s|^\d+\.||;
 my $result = '< ? >';
 if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
@@ -226,19 +229,18 @@ sub display_result {
 
     # say "< res-0000.1 > '$result'";
 
-    @asc_enc = ( qw|asc-enc -q -r0 -C|, $table_name );
+    @asc_enc = ( qw|asc-enc -qM -r0 -C|, $table_name );
 
     push( @asc_enc, qw| -s0 | ) if $status ne 'true';
 
-    push( @asc_enc, qw| -d4 | );
+    push( @asc_enc, '-d', $option{'C'} );
 
-    my @exec_args;
+    my @run_args;
 
     $check_string =~ s'(\.\d+$|\D+)''g if $option{'c'};
 
     ( my $code = $option{'c'} ? $check_string : $result );
-    die ":\n:: check-string not numerical ['$code']\n\n"
-        if $code !~ m|^\d+$|;
+    die ":\n:: check-string not numerical ['$code']\n\n" if $code !~ m|^\d+$|;
     ##
     if ( defined $option{'A'} )
     {    ## -A'<param>' : asc-enc pass through parameter
@@ -246,24 +248,28 @@ sub display_result {
         $passthrough_params = "-$passthrough_params"
             if $passthrough_params !~ m|^-|;
         ####
-        @exec_args = ( @asc_enc, split( ' +', $passthrough_params ), $code );
+        @run_args = ( @asc_enc, split( ' +', $passthrough_params ), $code );
     } else {
         ####
-        push( @asc_enc, qw| -s0 | ) if $return_code == 1;    ## false. no delay
-        @exec_args = ( @asc_enc, $code );
+        push( @asc_enc, qw| -s0 | ) if $return_code == $FXI;  ## false. no delay
+        @run_args = ( @asc_enc, $code );
     }
 
-    say "< exec-args > " . join( ' ', @exec_args ) if $option{'D'};
+    say "< exec-args > " . join( ' ', @run_args ) if $option{'D'};
 
     ##########################################
-    int_exit() if system(@exec_args) >> 8 == 4;
+    int_exit() if system(@run_args) >> 8 == 4;
     ##########################################
 
     return if $status eq 'false';
 
     my $assertion_result = system( $PROGRAM_NAME, '-q', $num_val ) >> 8;
     if ( $assertion_result == 0 ) {    ##  deeper truth .,
-        int_exit() if system( $PROGRAM_NAME, '-N', $num_val ) >> 8 == 4;
+        my @run_args = ( $PROGRAM_NAME, '-C' . $option{'C'} );
+        push( @run_args, '-A' . $option{'A'} )                  if $option{'A'};
+        push( @run_args, '-T' . $option{'T'} )                  if $option{'T'};
+        say "< exec-args > " . join( ' ', @run_args, '-N <n>' ) if $option{'D'};
+        int_exit() if system( @run_args, '-N', $num_val ) >> 8 == 4;
     } elsif ( $assertion_result == 4 ) {
         int_exit();
     } else {
@@ -285,7 +291,7 @@ sub elf_checksum {
 sub int_exit { print $reset; exit(4) }
 
 #.............................................................................
-#IQNBTHGTUTVO6CHV2FGKZNWSF7RNKYH5OMED2FIZH5FDSWFNCTPRCAH6X5VUPHJTYAX6DAG5GM4YA
-#::: U2X2NVMYIRJ2ZPDNMDXULWXGQXJTRYRM3K7XF3A4S6K3KDXNMEI :::: NAILARA AMOS :::
-# :: FSGQBJEFRCS7W36WCUX2YLKCXGBNVW74SDKG6REH2CMH4JZXQ6CQ :: CODE SIGNATURE ::
+#DWM4G3OQGKL7MX7S546JM7TCBCMUSNQDADDIKDXHBQESWR7NVEWYDL4JXLHIUYTQREOD452I4WM4Y
+#::: XIMVGUH4J53CWQVKLJUOBTH5TUZIDKFQLJGGXEWVLOVX6V5KOGB :::: NAILARA AMOS :::
+# :: KPL5MOXNOADE5QXSA37HDPHAVACT53WT5EVHZMQ5GU43NMO3OOBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

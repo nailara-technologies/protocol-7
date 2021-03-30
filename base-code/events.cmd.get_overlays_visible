@@ -7,13 +7,17 @@ my $reply_str = '';
 
 <events.stack.overlay.visibility> //= {};
 
-map { $reply_str .= "$ARG\n" if <events.stack.overlay.visibility>->{$ARG} > 0 }
-    sort keys %{<events.stack.overlay.visibility>}; # [LLL] sort by time-stamp #
+map {
+    $reply_str .= "$ARG\n"
+        if <events.stack.overlay.visibility>->{$ARG} > 0
+    }
+    sort
+    keys %{<events.stack.overlay.visibility>};    # [LLL] sort by time-stamp #
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#FJGG4IUYCH5XK3O5RN2DJFE4LTXZINQJCAMF72EW6NJRGR73F4UCGJVD5K6ZZOL7PUP34QYZ3DE6Y
-#::: V2SYMUPPIB5M7HPUWNHLY4B4AX2MEVAQINOPYMIL6KYC6DWLF6S :::: NAILARA AMOS :::
-# :: LTTOYDNCMVXNXKD7UR3OICCIBKUY7WB2BDZQB4B62MAQFWC6XCDI :: CODE SIGNATURE ::
+#YJVVZZCN477EGG5G33OMRT4OEFOGPRQZ534E443AW57GZT2ZEC347WKQYSQPQ4YVSNGT25EP6BBTM
+#::: Z64QGA5MCXM5HSJJPM7IV3E6SCFYRCFZROKGDGCTNP3AICOTXAP :::: NAILARA AMOS :::
+# :: JCYJKYEJSQZDASA3K54IGVLB3DODYZAQUYSYKKTQJ6UHPQVASQDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

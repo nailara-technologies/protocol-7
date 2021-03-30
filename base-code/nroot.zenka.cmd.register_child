@@ -28,14 +28,17 @@ return {
     'mode' => 'ack',
     'data' => 'known already'
     }
-    if exists
-    <nroot.zenka.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid};
+    if exists <nroot.zenka.instance>
+    ->{$instance_id}->{'process'}{'child'}->{$child_pid};
 
 %{ <nroot.child>->{$child_pid} } = %{ <nroot.child>->{$parent_pid} };
 <nroot.child>->{$child_pid}->{'zenka_child'} = 1;
 
-<nroot.zenka.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid} = 1;
-<[base.log]>->( 1, "[instance:$instance_id] child pid $child_pid registered." );
+<nroot.zenka.instance>->{$instance_id}->{'process'}{'child'}->{$child_pid}
+    = 1;
+<[base.log]>->(
+    1, "[instance:$instance_id] child pid $child_pid registered."
+);
 
 return {
     'mode' => 'ack',
@@ -43,7 +46,7 @@ return {
 };
 
 #.............................................................................
-#H5RX64FRI6EYWK2L2NLRTGDOOWQ6QHUXA5ZRD3REVBPOONEXIOGEC3HFYMSVBD5CGBY6RP64G2CCS
-#::: MWC2ECY277LGIMCBK3D7G6OD6LGP6BP2HDP45EYIAQNYMR52DQI :::: NAILARA AMOS :::
-# :: 6MVF5HEN46MC7PDFPXWFDL5GJ34GP5Z4MFMQAVJFR6QGUXW2XODQ :: CODE SIGNATURE ::
+#IELD4D5ZMRI6PODOHL4X4K7ORGTCV3ZGHVUYKMCLG44KW4F5LDYYEIV4IE2DOATV6NTPPESSWSHFQ
+#::: VH5OID55U3UWBBAIUERU5FHA3DDHYDB7GDGGUKQNQYI3GGEEH5Z :::: NAILARA AMOS :::
+# :: ITDE4C3JGO6GDFQRS72C5COPUFQMZPDYMRBNROQO5Z6VELG57YDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

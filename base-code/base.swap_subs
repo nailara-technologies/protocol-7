@@ -5,7 +5,7 @@
 
 my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
-my $overwrite_policy  = shift // 'undefine';   # [undefine|overwrite|if_missing]
+my $overwrite_policy  = shift // 'undefine'; # [undefine|overwrite|if_missing]
 
 my @sub_names     = keys %code;
 my $subs_matching = 0;
@@ -51,7 +51,8 @@ foreach my $sub_name ( keys %code ) {
         $code{$new_sub} = delete $code{$sub_name};
         $moved++;
         ## also transfer compilation status ##
-        $data{'code'}{$new_sub}{'status'}  = $data{'code'}{$sub_name}{'status'};
+        $data{'code'}{$new_sub}{'status'}
+            = $data{'code'}{$sub_name}{'status'};
         $data{'code'}{$sub_name}{'status'} = 'undefined';
 
         if ( exists $data{'code'}{$sub_name} ) {
@@ -74,11 +75,15 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
     }
 }
 
-map { <base.cmd>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1, }
+map {
+    <base.cmd>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1,
+    }
     keys %{<base.cmd>}
     if exists <base.cmd>;
 
-map { <base.cli>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1, }
+map {
+    <base.cli>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1,
+    }
     keys %{<base.cli>}
     if exists <base.cli>;
 
@@ -96,7 +101,7 @@ if ( !$moved ) {
 }
 
 #.............................................................................
-#PEPYDSFXY5JEGVK6HYS3C2UASNOPMB7ACCADBWYFHLUTUQHP4QM5T4ZJZ4AJM6STHP4XV2IKTVZYC
-#::: F6AGGXEGNNUB76L532KBSZRC57TTVLYEMEBFUDX5ULWQUNZA4BL :::: NAILARA AMOS :::
-# :: 7XYP4I3ZUANM5O457KEK5GQLFTN3IYHVX63FBZMWEGB4LRN5SYCY :: CODE SIGNATURE ::
+#AMWGHFAVIC6CARTJV7ELMCQVUVT4LE572HK44EMDDMWXIYZM2TPEKO2OVKEOVFVCWYJZMZM2B7C3G
+#::: JWBBIEHTDXBKDGGVW2OFHYLD557PBTFSKZNFD6GPN3NPGWIFRA3 :::: NAILARA AMOS :::
+# :: YW5UF4IHYI2CCVD73KJ2YT3S7OFGEVUIQMSBNDHPD24MRUBQ2GCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

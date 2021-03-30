@@ -4,7 +4,7 @@
 
 return if defined <X-11.gpu_top.process_started>;
 
-my $refresh_period = 1137;   # def.: 1000 [ careful with too low values -> CPU ]
+my $refresh_period = 1137; # def.: 1000 [ careful with too low values -> CPU ]
 my $gpu_top_bin    = <X-11.bin_path.intel_gpu_top>;
 my $gpu_freq_bin   = <X-11.bin_path.intel_gpu_frequency>;
 return <[base.log]>->(
@@ -14,7 +14,8 @@ return <[base.log]>->(
 return <[base.log]>->( 0, "[!] unable to run 'intel_gpu_top'" )
     if qx($gpu_top_bin -h) !~ /usage/;
 
-return <[base.log]>->( 0, "<!> apparently no Intel GPU [intel_gpu_frequency]" )
+return
+    <[base.log]>->( 0, "<!> apparently no Intel GPU [intel_gpu_frequency]" )
     if length($gpu_freq_bin)
     and -x $gpu_freq_bin
     and qx($gpu_freq_bin) =~ /no intel gpu found/i;
@@ -22,10 +23,12 @@ return <[base.log]>->( 0, "<!> apparently no Intel GPU [intel_gpu_frequency]" )
 <[base.log]>->( 1, "starting 'intel_gpu_top' process .." );
 
 <X-11.gpu_top.pid>
-    = open3( undef, my $out_fh, undef, "$gpu_top_bin -s $refresh_period -o -" );
+    = open3( undef, my $out_fh, undef,
+    "$gpu_top_bin -s $refresh_period -o -" );
 
 if ( !<X-11.gpu_top.pid> ) {
-    <[base.log]>->( 0, "<!> unable to open 'intel_gpu_top' pipe [$OS_ERROR]" );
+    <[base.log]>
+        ->( 0, "<!> unable to open 'intel_gpu_top' pipe [$OS_ERROR]" );
     return;
 }
 push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
@@ -40,7 +43,7 @@ push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
 );
 
 #.............................................................................
-#QEH7A6PSI7OQLXZYW3MP3Z3XOZ6HMDUTZOOPDFLOXRKRJQQTVZVQUYDFUZWQRVGECIMGODDRV2LTC
-#::: XOHIUNXAF4TYBXTAJTCW2MDBHQ3H3QCCRWA5EKDCFCAZFXX2GAD :::: NAILARA AMOS :::
-# :: DPSKCXSRXBWKJL6EXDNEBDZYQCNXXWPVGIBHBOJU7GMGS6TXPKBY :: CODE SIGNATURE ::
+#D3U5Q45UZ2PW2K4ENHJTLOHV5VYKYGBYZZGNNJI3G52AWCAKQXFQZPNAEOQHMST5CCQJJUJIGQBUE
+#::: ADEL6ROUSGL4BBFBDWH6TK7MHJYG36BNKHSYMYK3Q5EMITTVRC2 :::: NAILARA AMOS :::
+# :: 7GP2L4DHLN2SNAOUPZD6M4NH4KYU2K3VWETHLVLFWL4T73QH2YDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

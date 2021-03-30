@@ -32,7 +32,8 @@ if ( defined <web-browser.redraw_fps.slowdown_target>
                   <web-browser.redraw_fps.slowdown_target>
                 - <web-browser.redraw_fps.slowdown> )
     );
-    <web-browser.redraw_fps.slowdown> = <web-browser.redraw_fps.slowdown_target>
+    <web-browser.redraw_fps.slowdown>
+        = <web-browser.redraw_fps.slowdown_target>
         if $sl_diff <= 0.05;
 
     <[web-browser.calc_scroll_speed]>;
@@ -66,7 +67,8 @@ if ( delete <window.scroll.stop> ) {
 
     return 0;
 
-} elsif ( <window.scroll.pos> < <window.scroll.max> ) { # backwards?? [happened]
+} elsif ( <window.scroll.pos> < <window.scroll.max> )
+{    # backwards?? [happened]
     if (    <web-browser.cfg.javascript_enabled>
         and !<web-browser.scroll.fail.js_disabled>
         and <window.scroll.pos> < <window.scroll.last_pos> )
@@ -135,7 +137,8 @@ scroll_finished:
             and <web-browser.autoscroll.delay>
             > <web-browser.autoscroll.cfg_delay> ) {
             <web-browser.autoscroll.delay>
-                = sprintf( "%.6f", <web-browser.autoscroll.delay> - 0.000001 );
+                = sprintf( "%.6f",
+                <web-browser.autoscroll.delay> - 0.000001 );
             <web-browser.autoscroll.fps>
                 = sprintf( "%.2f", 1 / <web-browser.autoscroll.delay> );
         }
@@ -166,7 +169,8 @@ if ( $wait_time <= 0 ) {
             if <web-browser.autoscroll.too_fast> <= 0;
         <[base.log]>->(
             2,
-            sprintf( "scrolling too fast.. slowing.. [ %.4f ms ] <$wait_time>",
+            sprintf(
+                "scrolling too fast.. slowing.. [ %.4f ms ] <$wait_time>",
                 <web-browser.autoscroll.delay> * 100 )
         );
         <web-browser.autoscroll.fps>
@@ -183,7 +187,7 @@ if ( $wait_time <= 0 ) {
 return 0;
 
 #.............................................................................
-#IZB4KGLHJBLC3OYUJ36TSDXHSASBJ52HYN2QH3KRCUPMX2MQWHJAFEHCZKMUR5T5RK5T4G7GCWOSE
-#::: JN5NO3Q45N5ELRZLWNIH5CG57LI6RGETK77M2DVSOSORNA4MU22 :::: NAILARA AMOS :::
-# :: BUB74A5PP5K6LTNSVG3WFA5K37XSRZQW3IK6PHPVOKCRQZJZYKAQ :: CODE SIGNATURE ::
+#CAVFSMANJZEG4436V26E2E7VBBN3XHXVTT7O2N3KZWOZDQ7NJK4WEMEH3B6MCYN4QT52OOOQWPJWO
+#::: ETNKRY7HTGWIIK6FSGEMU2MEAEKYS4LLLJFPIYOZSEJQNZTRM2W :::: NAILARA AMOS :::
+# :: FQEZCO63ZS5H3YLWX5OFPJ37WT5FKEDNQ7HYNJ4YJY3PAJKQBQAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,8 @@ my $key_ref  = <[base.resolve_key]>->($key);
 
 if ( not defined $key_ref or ref($key_ref) ne 'SCALAR' ) {
     my $parsed_key = $key;
-    $parsed_key =~ s{\'(([^\']|\.)+)\'}{my$k=$1;$k=~s|\.|\0|g;$k}ge; # 'cat.zyx'
+    $parsed_key
+        =~ s{\'(([^\']|\.)+)\'}{my$k=$1;$k=~s|\.|\0|g;$k}ge;    # 'cat.zyx'
     $parsed_key =~ s|\.|'}{'|g;
     $parsed_key =~ s|\0|\.|g;
     my $eval_code = "\$data{'$parsed_key'}=''";
@@ -45,12 +46,14 @@ if ( defined $key_ref and $key_ref ne '' and !$EVAL_ERROR ) {
         $reply = { 'mode' => 'ack', 'data' => 'value changed' };
     }
 } else {
-    <[base.log]>->( 0, "[$cid] set: unable to assign value [ $key = '$val' ]" );
+    <[base.log]>->(
+        0, "[$cid] set: unable to assign value [ $key = '$val' ]"
+    );
     $reply = { 'mode' => 'nak', 'data' => 'unable to assign value' };
 }
 
 #.............................................................................
-#N3GVCUSK4OXKJPEAEYY3WKEGOLAFJU6USMG5X74YI2E36LFSQTPGLCMVBNTRBQXG3CQMULDH6JZHC
-#::: 6G64PMOZ7IG3WXLFNYCZFFVBAZ3I6P5BSZTIAAUKN2MTEA6CXQM :::: NAILARA AMOS :::
-# :: VYXEWTAFQHE6IAX4A33QJVA6OVR6B2JADHQKWVWK5YCJZ5VIDYAY :: CODE SIGNATURE ::
+#DW4TO6ZQM3AVKS6SQ3RNC3W4L2JYC7MA5YI72HJIMES5BLTZRSOCJZXYC6OYUJVVMVGS6X2PCPWEO
+#::: UXSGZARMGPPOHCKRQNMARXFRKPWOLHINJKHK2YZLVO5XRYKYRCI :::: NAILARA AMOS :::
+# :: 7SXCRSCZRV4FY52FETV7ENNRSRLLXT7Y4PS4OCDSB4WFR3EPC2BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

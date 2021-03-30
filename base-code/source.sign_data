@@ -8,8 +8,9 @@ die "expected source data scalar reference"
     or ref($src_data_ref) ne 'SCALAR';
 
 my $bit_size   = <source.chksum_bitsize>;
-my $chksum_b32 = shift // <[chk-sum.bmw.strsum]>->( $bit_size, $$src_data_ref );
-my $data_len   = length($$src_data_ref);
+my $chksum_b32 = shift
+    // <[chk-sum.bmw.strsum]>->( $bit_size, $$src_data_ref );
+my $data_len = length($$src_data_ref);
 
 <[base.log]>->(
     2,
@@ -28,7 +29,7 @@ return encode_b32r(
 );
 
 #.............................................................................
-#XRP5VSDQL5SCEKPY3I5WYWJEGFI4XORDV7HKQDTXFTEA6WPRJCUVPU4JKK7PL4Q5SB3HEE6YWWAUO
-#::: LVIRU4JSBDQNI5CAUTXGXIA7OLDVB4TO7PACJAXNY2FUKRZJO7V :::: NAILARA AMOS :::
-# :: 54IB57YT2GIQ57C6RMMVDXGGFWFWAJMCFHQGLKUHWIW2RLJRKMDI :: CODE SIGNATURE ::
+#ZNZG3KHQLKQF2PBLKILPSESJV4OBOT57Z37FBPWF6BPKJEN4HSAAHCIVXJJNJ365PATXELFJIWBR4
+#::: VD5TURP5J776KFT236HAEQNGDPVM5FHUMWTM5SXD2P4LM24PJMQ :::: NAILARA AMOS :::
+# :: WEUUY7L4LP546RY7EEOKOR4FPTP42WU25LXWPXLMPERIECPCCEAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

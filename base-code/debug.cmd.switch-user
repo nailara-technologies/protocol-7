@@ -21,7 +21,8 @@ if ( not defined $new_usr or !length($new_usr) ) {
         if not defined <auth.setup.usr>->{$new_usr};
 
     <[base.log]>->(
-        0, "[$id] <!> switching session from user '$old_usr' to '$new_usr' <!>"
+        0,
+        "[$id] <!> switching session from user '$old_usr' to '$new_usr' <!>"
     );
 
     $data{'session'}{$id}{'user'} = $new_usr;
@@ -37,14 +38,17 @@ if ( not defined $new_usr or !length($new_usr) ) {
         delete $data{'user'}{$old_usr}{'session'};
     }
 
-    return { 'mode' => 'ack', 'data' => "switched session to user '$new_usr'" };
+    return {
+        'mode' => 'ack',
+        'data' => "switched session to user '$new_usr'"
+    };
 
 } else {
     return { 'mode' => 'nak', 'data' => 'invalid user name syntax' };
 }
 
 #.............................................................................
-#LSEWWUTVNRGWC3QDEEVFJCFI55GJZ7BZWZHW6VUKBAVKODWOOTSTPGXW6P53Y7GUEIC2SGK7VXKMM
-#::: AEWGVXYGFRCIOYSTFKDBE3STLTOCNNGG4HCVMRSU7IEYWSPE7JG :::: NAILARA AMOS :::
-# :: FNL2P27EMLLPUMKFXZYTK4PBIHJVNEFM5KDCK5OSMWXR3NSF6WCY :: CODE SIGNATURE ::
+#KC7P2RUIURIJJBQHQOOZVAOEXWZP62GGIPG2CLN2TJDA7GOFTHYD5B2GY24SLQ3RKT6SBDWEMLIFU
+#::: 6BGZ2R5PMVZWTY6P36NA7P6D4F757JGKV5DK4RKTN6GBHSDV45D :::: NAILARA AMOS :::
+# :: XFUCDNOVR3KDCEG7MGQALNFRPACKLNQLUT4YJQC44H7GHEQ6RKAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

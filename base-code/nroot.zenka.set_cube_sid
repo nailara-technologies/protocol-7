@@ -9,7 +9,8 @@ if ( exists $instance_data->{'cube_sid'} ) {
     <[base.log]>->(
         0, "<< cube sid for instance $instance_id was already set >>"
     );
-    <[zenka.change_status]>->( $instance_id, 'error' ); # compromisation attempt
+    <[zenka.change_status]>->( $instance_id, 'error' )
+        ;    # compromisation attempt
     return;
 }
 
@@ -18,7 +19,8 @@ $instance_data->{'cube_sid'} = $cube_sid;
 
 ## LLL: unclear if will be required \ used later ##
 my $inst_pid = $instance_data->{'process'}->{'id'};
-<nroot.process.instance_cache>->{$inst_pid} = $instance_id if defined $inst_pid;
+<nroot.process.instance_cache>->{$inst_pid} = $instance_id
+    if defined $inst_pid;
 ##
 
 # acquire local cube sid [ get first and only sid for now ]
@@ -46,7 +48,7 @@ $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
 );
 
 #.............................................................................
-#WYHN4CLKNVQ55ZMAV3QPIDMWG6KTXNZV77BD2VB5MUXJOTZ72K4FYWPTLQ2XP5KE6JRQ7TBSP2CMK
-#::: 5NT6XVYVJBHQFVQH45YKGS7G5PVRK6VYAUMS3OJEGZQOZLY2DYT :::: NAILARA AMOS :::
-# :: SDRR44MPTQTIG2FSSUZZ4MFINNRJM6UWJZ3LPDYYBK2SUCPVTOAY :: CODE SIGNATURE ::
+#QIVMZNZPJPC6NJQ2BZMSCZ2HRT7USXMPPACZ33JXLCJUMMKYDN7URSNY7A3RTZKK3IGUFJ4LLID3I
+#::: KX4P2MNKRYILYI3INHHBGYRKVIVYEKT7RTE5BMHY6YHGOXA6MCC :::: NAILARA AMOS :::
+# :: JJ7E6NGNOKZD4UIDURAQ2K6UUCOTYWANQJ2RTCTJSVN3ZQC3C4DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,9 @@ my $load_percent = $params->{'call_args'}->{'args'};
 my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
 
 <web-browser.redraw_fps.slowdown_target>
-    //= $percent_exceeded > 0 ? $percent_exceeded : 0; # initial value (adjusts)
+    //= $percent_exceeded > 0
+    ? $percent_exceeded
+    : 0;    # initial value (adjusts)
 
 $accel_factor *= 0.42 if $percent_exceeded < 0;
 $accel_factor *= 0.01 if $percent_exceeded < 0 and !$is_scrolling;
@@ -35,8 +37,9 @@ $target_percent = 100 if $target_percent > 100;
 $target_percent = 0   if $target_percent < 0;
 
 my $skip = (
-           $percent_exceeded <= 0 and abs($percent_exceeded) < $lower_tolerance
-        or $percent_exceeded > 0  and abs($percent_exceeded) < $upper_tolerance
+    $percent_exceeded <= 0 and abs($percent_exceeded) < $lower_tolerance
+        or $percent_exceeded > 0
+        and abs($percent_exceeded) < $upper_tolerance
 ) ? 1 : 0;
 
 <web-browser.redraw_fps.slowdown_target> = $target_percent
@@ -56,7 +59,7 @@ $load_percent = sprintf( "%.2f", $load_percent );
 );
 
 #.............................................................................
-#6BSPOEHE3OWN7ZIMPMH7L3LRVXMYF7ZGAPDGASYM4IRZWNUDTODRZQOGPZ24UCNN7CEGBXJKKJ2NS
-#::: VUZUQM3HOCZNOBY5GGFWVXIJPJUVORZJ7CFQQ4LI3S2JUWXXHZ6 :::: NAILARA AMOS :::
-# :: SQFEFGOEL6AH4MK5U4AY7DL4JOFB7H5JNDD7QTVKMOPDQMXXHIBQ :: CODE SIGNATURE ::
+#OBKPNKBMNE2P2QETMVXRWC2KZMVY3H4DKEWJV56T6J4I44LNMOPYPOLSHVSXTWP2YLIK7TMEYDLDA
+#::: H4OF4BKGKCZLJVOXJUMRZPGPXSFS5BYX723KK4IKODRMZIKAC7J :::: NAILARA AMOS :::
+# :: TYBTTTPXIIEBOAOPB7SSDQFESZ6LE3XWMMWJJE32VVC5KBIQCGCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

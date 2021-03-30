@@ -42,7 +42,8 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
     my $max_retries = <universal.counter.empty_list_max_retries> //= 5;
     <universal.counter.empty_list_retries>--
         if defined <universal.counter.empty_list_retries>;
-    my $retries_left = <universal.counter.empty_list_retries> //= $max_retries;
+    my $retries_left = <universal.counter.empty_list_retries>
+        //= $max_retries;
 
     if ($retries_left) {
         <universal.timer.playlist_retry>->cancel
@@ -159,7 +160,8 @@ foreach my $file (@file_list) {
 push( @{ <universal.playlist.zenka>->{$last_zenka} }, '[PAUSE]' )
     if $switch_count
     and ( !$switched_map->{$last_zenka}
-    or $file_types{ $file_list[0] } ne $file_types{ $file_list[$last_index] } );
+    or $file_types{ $file_list[0] } ne $file_types{ $file_list[$last_index] }
+    );
 
 <universal.playlist.change_count> //= 0;
 <[base.log]>->( 1, ": playlist changed.," );
@@ -186,11 +188,11 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 } elsif ( !<universal.cfg.fade_on_switch> ) {
     <[universal.startup_sub_zenki]>;
 } else {
-    <[universal.collect_video_frames]>;   # need to extract video frames first.,
+    <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
 #.............................................................................
-#UHGHOYLAE6NEE5HKZ5GV62V22IAPPVBGBUY4ZTM7HZLC2W2DDYOEFSEZEDXHY5H5DXVZFNIRM3QWK
-#::: EG6OVWWPW4MWSQJZVX3ELNOEDVYDXQW24E3W2WWDFY5GEMCSYOG :::: NAILARA AMOS :::
-# :: C35P47XUUXEJXTA2O3AZHJWPGD6ILRQN5WKGT3TC2DOFJOFVWSDQ :: CODE SIGNATURE ::
+#HS4QFUOSMQ6LRURYRRD4PFM6CFE75MUHH5TBMNCQPQTRM7S5ZGP2BUM7RKVUC3DZOCUMUBHPTCTXW
+#::: JAHUJTP2NYKNW4AW6DRQNFTZV4ZXNEUQ4XEWTMHKP4FWBILWW6L :::: NAILARA AMOS :::
+# :: IR3PP65ZOVUUK4HPX7WRVPZUYVMEFUJQGNCNZJBDU3UACAOIEICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,7 +40,9 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
             ( my $init_txt = $init_mode ) =~ s|_|-|g;
             $init_txt =~ s|-code||;
             my $level = $module_name eq 'base' ? 1 : 2;
-            <[base.log]>->( $level, "running '$module_name' $init_txt code.," );
+            <[base.log]>->(
+                $level, "running '$module_name' $init_txt code.,"
+            );
             my $reinit = 0;
 
             if (not exists
@@ -58,7 +60,8 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                 # [LLL] include module version[s] in argument list ?
                 my $return_code;
                 eval {
-                    $return_code = $code{$sub_name}->( $reinit, $real_m_name );
+                    $return_code
+                        = $code{$sub_name}->( $reinit, $real_m_name );
                 };
                 if (   $EVAL_ERROR
                     or not defined $return_code
@@ -73,7 +76,8 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                             . " [ $init_mode != 0 ]"
                     );
                 } else {
-                    <base.modules.initialized>->{$real_m_name}->{$init_mode}++;
+                    <base.modules.initialized>
+                        ->{$real_m_name}->{$init_mode}++;
                     if (    !$moved_already
                         and exists <base.modules.moved_to>
                         and exists <base.modules.moved_to>->{$module_name} ) {
@@ -99,7 +103,7 @@ undef <base.init_modules>;
 return $success;
 
 #.............................................................................
-#C7I6DNZXML5XME2J5RJ5UXTUQSOASKHZLY37MAX3SX7XF52TZUB7H7XTLXOMC7T2CE323YUEHECB6
-#::: BRCUVLVSOLHVTRZU7GHN7XDM76DPT2LCE5PV4KPN32DTH7G5ADG :::: NAILARA AMOS :::
-# :: O33ACY5AS46AOXEDAFVAR63UVBDANKITIZ55LD4VU7F5PVIU2EBQ :: CODE SIGNATURE ::
+#F5CWV2E7H3J7UVLDWCVNMODMLZJVY6HYW2GB27N5UJUPIHWZYA6B26T7UF2KSH5ESAK7647EINCX6
+#::: 6565CK7BYLY6TEVFS3KQSA5W2VZKOMYNMTKUM6PXWDWRNKLGCEM :::: NAILARA AMOS :::
+# :: AKVPMNB226B653LII7AEDJL22RG7HKYOUHB23UDQAOK4XWWNPECY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

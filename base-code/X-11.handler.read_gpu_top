@@ -19,7 +19,8 @@ my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'X-11'}{'gpu_top.output_buffer'},
     4096,     length(<X-11.gpu_top.output_buffer>)
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+if ( not defined $read_bytes or $read_bytes == 0 )
+{    # ( filehandle exception )
     $watcher->cancel;
     close($read_fh);
     <[base.log]>->(
@@ -94,15 +95,15 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     );
 
     # handle configured GPU load alerts
-    my $min_wait    = 20;    # allow for startup action to settle..
-    my $alert_pause = 30;    # allow restarts to complete before re-triggering..
+    my $min_wait    = 20;  # allow for startup action to settle..
+    my $alert_pause = 30;  # allow restarts to complete before re-triggering..
     if (    defined <X-11.gpu_load.alert>
         and ref(<X-11.gpu_load.alert>) eq 'HASH'
         and keys %{<X-11.gpu_load.alert>} ) {
         <X-11.gpu_load.last_alert>
             //= <[base.time]>->(2) - $alert_pause + $min_wait;
-        foreach my $al_secs ( sort { $a <=> $b } keys %{<X-11.gpu_load.alert>} )
-        {
+        foreach
+            my $al_secs ( sort { $a <=> $b } keys %{<X-11.gpu_load.alert>} ) {
             next
                 if <[base.time]>->(2) - <X-11.gpu_load.last_alert>
                 < ( $alert_pause + $al_secs );
@@ -145,7 +146,7 @@ if ( defined <X-11.gpu_top.write_to_disk.path> ) {
 }
 
 #.............................................................................
-#UKJTGHWUWRVWPDVYFD6VDRKNK6K3MT5DWKJN53C2F3M73EOOYAYZXEGDH6YOEOUHG66FILQ22NPQ6
-#::: WBRDPSWCDRCLEUAMGQXSO5T62ME3DOGY526ZOHDJLC6JVPBVKEU :::: NAILARA AMOS :::
-# :: JLYT7GUGTQBZEUFEHZ7RPC2B2WPUU3NYDIS776WXMU265XDJXYBA :: CODE SIGNATURE ::
+#M2AX6SZFJZD44Q6YN3NCLTUU74TROHDL7FD5BNDW3Z5LSLSHZSHQTARWACCP4JHNMEDXP5XMYQ7VI
+#::: 47WIP4ZE5Z6S2EP3HKRKHPHT7ZYO6SDSAFU4LSF7BFNOL74YCLY :::: NAILARA AMOS :::
+# :: X2QIGBOY2WUAH7CC3OTX3YLTSIRMEBUYXVAWDVQ2CWMNR72NNWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

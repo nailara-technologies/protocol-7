@@ -60,7 +60,8 @@ map {
 
 my $s = $flag_str =~ /,/ ? 's' : '';
 <[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
-map { delete <content.url_flags>->{$ARG}->{$url} } keys %{<content.url_flags>};
+map { delete <content.url_flags>->{$ARG}->{$url} }
+    keys %{<content.url_flags>};
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     $flag_param //= 1;
@@ -74,7 +75,7 @@ my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 return { 'mode' => 'ack', 'data' => $msgstr };
 
 #.............................................................................
-#7HE3OOU2CBUKB4DCGVI7AN2TAPBBSMLJ3RU3L7ZR43IVZSDQJ7ZOWFZUJL3N2QKLIBHGTUELE3VU4
-#::: AFN4H4ABVARRUT66XPI43U64NSY72C6XQQA4ULONDNLUXHCNSP3 :::: NAILARA AMOS :::
-# :: 2LO5W7XIPQ3W2TJBINQ57DP4KEPSDP5BV4DXDXYQ5KVE4CJ6BIDY :: CODE SIGNATURE ::
+#MNO6QGPCHW72G4PWCSQDH34SAA4I6S2M4WZA7HYOZI6GJGOJHN2YINZK4UQ7TFB65PDGHQHPLJOZ4
+#::: KZU2OP2MW6LUHEXQUUAATZVMNQIQ6QYTEL5LSOVA6IFXY4KUGJS :::: NAILARA AMOS :::
+# :: EZF56CDZFBX2V4IZPTWNXQ6BSSSAHHG6WSRIFBQNXAVUUDQ5UKCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

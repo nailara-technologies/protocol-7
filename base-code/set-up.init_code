@@ -5,15 +5,17 @@
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | )
     if not defined &{'make_path'};
 
-<system.local_config_dir> //= '/etc/protocol-7';    # set up in ./conf/defaults
-<set-up.profile_dir> //= <system.conf_path> . '/profiles'; # created ondemand..,
+<system.local_config_dir> //= '/etc/protocol-7';   # set up in ./conf/defaults
+<set-up.profile_dir>
+    //= <system.conf_path> . '/profiles';          # created ondemand..,
 
 my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
     or die "user '" . <system.privs.user> . "' not in passwd file";
 
 my $dir_path = <system.local_config_dir>;
 if ( !-d $dir_path ) {
-    <[base.log]>->( 1, "<< creating local nailara config dir [$dir_path] >>" );
+    <[base.log]>
+        ->( 1, "<< creating local nailara config dir [$dir_path] >>" );
     make_path( $dir_path, { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn
         "unable to create local config directory '$dir_path' [$OS_ERROR]";
@@ -29,8 +31,8 @@ map { <[base.disable_command]>->($ARG) } qw|
     install-profile
     | if <system.zenka.name> ne 'set-up';
 
-if ( !exists $code{ sprintf( '%s.set-up.export_rules', <system.zenka.name> ) } )
-{
+if ( !exists $code{ sprintf( '%s.set-up.export_rules', <system.zenka.name> ) }
+) {
     <[base.log]>->( 0, "no export rules defined, disabling set-up commands." )
         if <system.zenka.name> ne 'set-up';
     <[base.disable_command]>->('get-config-names');
@@ -40,7 +42,7 @@ if ( !exists $code{ sprintf( '%s.set-up.export_rules', <system.zenka.name> ) } )
 0;
 
 #.............................................................................
-#IYYLDGXBLC4HHLGOQNHPKFDFJAK63VENEWU3ZFHFL37BJJMVCZVHZRSIGXJ7BKOWFMGAPX3PSNW3S
-#::: DBL7JCS2CF6BZRT2SSRNSFKTX62JYJ3JU334DN2UENKJ5AR6TRY :::: NAILARA AMOS :::
-# :: GQJ5ILJZ6WOXAOJZQ4X5FZHMHT4Y7NBUKSMZ5EIZXFCS6YLSVOAI :: CODE SIGNATURE ::
+#JOWA3U67RLQOG7UBPRWHGNFVZRFAZRVYKXQ3IABBRTHJ24MONLLN4ZDRAF3MXSKLJY4OWJT4NEGBY
+#::: ZLM4A2OGGW7VQESTDIETKHZADGSU5IQIPTE53GPAWTCKTUZ2LXJ :::: NAILARA AMOS :::
+# :: QHTMN3ZTIEACVVHYNG75TRFEZEE373KOAAQMGKJ7F5VX2Z3SVUAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

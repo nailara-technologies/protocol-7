@@ -27,7 +27,8 @@ map { $ARG =~ s|\\0||go }
     ( $title, $txt_param );    # <- prevents msg being cut off
 
 if ( defined $txt_param and $txt_param ne '' ) {
-    my $msg_str = <system.verbosity.console> >= 3 ? " ['$txt_param']" : ' ...';
+    my $msg_str
+        = <system.verbosity.console> >= 3 ? " ['$txt_param']" : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     if (!system(
             <notify.path.notify_send>,  '-i',
@@ -37,7 +38,10 @@ if ( defined $txt_param and $txt_param ne '' ) {
     ) {
         return { 'mode' => 'ack', 'data' => 'message sent' };
     } elsif ( $CHILD_ERROR == -1 ) {
-        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $OS_ERROR };
+        return {
+            'mode' => 'nak',
+            'data' => 'unable to execute: ' . $OS_ERROR
+        };
     } else {
         return {
             'mode' => 'nak',
@@ -53,7 +57,7 @@ if ( defined $txt_param and $txt_param ne '' ) {
 }
 
 #.............................................................................
-#UWJKUVZAIB4SJWDPUHRWL4LI3RM2MQGBTU7VZFSUYSSQ4TEYOZTXRTXQARKTRKVN4GVJ6PJT7XL5S
-#::: GHTEDATTEBZS24SN4DRD4AMYMTZXNBWXL37F4GXTBMRYL57U6NE :::: NAILARA AMOS :::
-# :: CXQKYNTVVX4YVCGLPOBHZLPTAWTN2ERAH5QF6LBWPTL5GE3FISDA :: CODE SIGNATURE ::
+#6Y3VZRYA7KLIO3BKOBXQRMTXC264RGUWZGVUG3FLJITZLXX74QWAVKSRK6N37D4LXWCPBAPULVJMS
+#::: IIQWHX54BRIOBHOBPAAWI5VPPIU4UQNFYIAD67LZCJ7FV7LPO2T :::: NAILARA AMOS :::
+# :: ZW3NBETA2337N6OSUJYRMM7JLZ5HXSXI4BRXTAL2GX4RDGQHKYAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

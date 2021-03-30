@@ -8,7 +8,8 @@ my $cube_addr   = <protocol-7.network.internal.addr>;
 my $cube_port   = <protocol-7.network.internal.port>;
 my $init_data   = <nroot.zenka.instance>->{$instance_id}->{'init_data'};
 my $cube_key    = $init_data->{'cube'}->{'key'};
-my $authname = <system.zenka.name> eq '<stdin>' ? 'nroot' : <system.zenka.name>;
+my $authname
+    = <system.zenka.name> eq '<stdin>' ? 'nroot' : <system.zenka.name>;
 $authname = <system.zenka.auth_name> if exists <system.zenka.auth_name>;
 
 <[base.log]>->( 1, "connecting to local cube [$cube_addr:$cube_port] ..," );
@@ -29,7 +30,8 @@ if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
 #[ error \ <false> ]
 return 0 if not defined $c_fh;
 
-my $session_id = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
+my $session_id
+    = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
 <[base.log]>->( 1, "auth. to cube successful [ session $session_id ]" );
 <nroot.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <nroot.zenka.instance>->{$instance_id}->{'is-cube'}  = 1;
@@ -43,7 +45,7 @@ my $root_sid = <nroot.zenka.instance>->{$instance_id}->{'root_sid'};
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => "$root_sid.set-initialized",
         'reply'     => { 'handler' => 'nroot.handler.set_initialized_reply' },
-        'call_args' => { 'args'    => 0 }  # [ 0 == nroot-zenka session [self] ]
+        'call_args' => { 'args' => 0 }   # [ 0 == nroot-zenka session [self] ]
     }
 );
 
@@ -51,7 +53,7 @@ my $root_sid = <nroot.zenka.instance>->{$instance_id}->{'root_sid'};
 return 1;
 
 #.............................................................................
-#NJO7HLJLCOFIYFJ6XH3ORXAIC7A3AOHGSC7JJWPS3OXHCOVKMCVQO3G67727QA3273BPIFP7IXC4U
-#::: QKB3EJHULUXGM4LBSLIB74NKFJ4KU6QGNXCTQOJJCH2XMOR3GBR :::: NAILARA AMOS :::
-# :: FUNIREN4ERBU6WQOOAJCGIYPWTEGO7STUV5IH6BRMKVENEQ756CQ :: CODE SIGNATURE ::
+#PFPBKJHVKP7RGKZOBH7DA5G3GA4A4B3FCQCVE5QOXA5NLDQRVPODC6IN5BPLHLZCYREX4QYAIHIPC
+#::: GOO3KOGBFRR5WQ23D765BPFWTWGO3EUN6BWER7F3KL4YWYII5IH :::: NAILARA AMOS :::
+# :: VS5NODVGSBLWFQAP57PEA2TKFAGBZXJ5HOBCGKF2UZLIQIUZIYAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

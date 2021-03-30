@@ -10,7 +10,7 @@ my $uri      = <web-browser.load_uri>;
 my $loglevel = <web-browser.url_flag_loglevel>;
 
 <[base.log]>->( 2, "<!> skipped URL flags processing.., [ TMP DISABLED ]" );
-return;    # NEEDS SIGNAL / SETTINGS FIXING AFTER WEBKIT2 PORT, some impossible!
+return;  # NEEDS SIGNAL / SETTINGS FIXING AFTER WEBKIT2 PORT, some impossible!
 
 map { <web-browser.url_active>->{$ARG} //= 0 }
     ( 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
@@ -24,7 +24,8 @@ map { <web-browser.url_active>->{$ARG} //= 0 }
 ### clear flag based restrictions ###
 
 # clear temp. js disabled #
-if ( <web-browser.scroll.fail.js_disabled> or <web-browser.url_active.nojs> ) {
+if ( <web-browser.scroll.fail.js_disabled> or <web-browser.url_active.nojs> )
+{
 
     # LLL: make reenabling view-based
     <[web-browser.ensable_javascript]>;
@@ -74,7 +75,8 @@ if ( exists $flags->{'nojs'} and <web-browser.cfg.javascript_enabled> ) {
         <web-browser.url_active.nojs> = 1;
         <[base.log]>->( $loglevel, ": JS disabled. [ nojs flag '$uri' ]" );
 
-    } else { ### current autoscroll implementation requires javascript ### [LLL]
+    } else
+    {    ### current autoscroll implementation requires javascript ### [LLL]
         <[base.log]>->( $loglevel, ": nojs flag conflicts with autoscroll" );
         <[base.log]>->( $loglevel, ": :. <<< skipping 'nojs' flag >>>" );
     }
@@ -95,11 +97,12 @@ if ( exists $flags->{'blkext'} ) {
     <web-browser.signal_id.request_starting>->{$view}
         = $view->signal_connect( 'resource-request-starting' =>
             $code{'web-browser.handler.request_starting_signal'} );
-    <[base.log]>->( $loglevel, ": blocking external. [ blkext flag '$uri' ]" );
+    <[base.log]>
+        ->( $loglevel, ": blocking external. [ blkext flag '$uri' ]" );
 }
 
 #.............................................................................
-#DEGWYXXP37FAS7SOXEU3I6BI2HLJ6DYX5DY2OKY5BNC2K7VGO4T6OCVAVCOJZ2J4TAZFFD3P6E342
-#::: H22BKNL7QDU2J4IJOI676MK3NELWJZPEBPGUXKVFGMBHGQYRZA6 :::: NAILARA AMOS :::
-# :: QG5X3SAO2PFNL2SRQWMTN7ZFX5B4QSACYNKOUVNN2C2OIERLQKAY :: CODE SIGNATURE ::
+#JVTINQT3BIM3UDYGYD3GQCP2NLZC5DLM3S73LKEVAFTGOATHMYB6FTNGDHKBE4437WTRPB3YBL36O
+#::: FSBFP26Q3WFRL7SGLBZZBXYKP4ZPSWAPTHNAPZXJBAMB53NQW6Q :::: NAILARA AMOS :::
+# :: G7JMDSKCW7RBYB32C3EBWSCORGGJVVHVN7WE66CUBEJEG2KCNKAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

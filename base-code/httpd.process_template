@@ -38,7 +38,8 @@ my $tmpl_ref = $session->{'buffer'}->{'template'};
 my $var_ref     = $session->{'meta'} //= {};
 my $meta_var_re = qr/(?<!\\)<\{([\w\-_\.]+)\}>/;    # <{meta_var_name}>
 
-${$tmpl_ref} =~ s/$meta_var_re/defined $var_ref->{$1} ? $var_ref->{$1} : ''/ge;
+${$tmpl_ref}
+    =~ s/$meta_var_re/defined $var_ref->{$1} ? $var_ref->{$1} : ''/ge;
 
 #### ... [pre]
 
@@ -108,9 +109,9 @@ if ( !$cmd_count ) {    # request / content complete :
             =~ s/<([\-\w\d_\.]+)>/defined $query{$1} ? $query{$1} : ''/ge
             if defined $part->{'params'};
 
-        #
-        # {param_name,param_name,..}: values base64url encoded, LLL: use + mode!
-        #
+      #
+      # {param_name,param_name,..}: values base64url encoded, LLL: use + mode!
+      #
         while ( defined $part->{'params'}
             and $part->{'params'} =~ /\{([\-\w\d_\.,]+)\}/ ) {
             my @key_vals;
@@ -133,7 +134,8 @@ if ( !$cmd_count ) {    # request / content complete :
                 'call_args' => { 'args' => $part->{'params'} },
                 'reply'     => {
                     'handler' => 'httpd.handler.template_reply',
-                    'params' => { 'client_sid' => $session_id, 'part' => $part }
+                    'params'  =>
+                        { 'client_sid' => $session_id, 'part' => $part }
                 }
             }
         );
@@ -144,7 +146,7 @@ if ( !$cmd_count ) {    # request / content complete :
 }
 
 #.............................................................................
-#IKHP2YH477SXVNIVUUOV4FVUJLTVF34SF6ZWN6X6MNAJZZFTZJK4VDK4RDICS35EJXCXQWG4GO6LE
-#::: AUDROMIQUFUBQKGRQ5MDCZ3UEEFLKTB3CERNFFVBNH7K77IKTBO :::: NAILARA AMOS :::
-# :: LGGSFSNNSZBNHOS4OLSEEZIJE4WSFRWBCEKDBX5O35SGVRTWFGAY :: CODE SIGNATURE ::
+#X6HCBAFPBJ6XGIL2LDVBQI34ZLP5RRHOLGEDYJRCSBTDN2V5R2LDTFTZV7LCCI2ZZFFBKDTQS5QXY
+#::: ISYTUBAFBBVFZD444JYL7Y2EIYQPUHBVQUKTETLE3VGWHH37KV5 :::: NAILARA AMOS :::
+# :: RBW54UVDM7PXHFRR5ZRQRLUJDGYVLCIIHHOWAU2D7DKCLCGQFCCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
