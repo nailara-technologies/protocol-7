@@ -21,10 +21,11 @@ $YAML::XS::UseCode     = 0;
 $YAML::XS::DumpCode    = 0;
 $YAML::XS::LoadCode    = 0;
 
-#####################################
-( my $x, my $y ) = @{&term_size};
-$y += 13;    # <-- repair buffer length issue [LLL]
-#####################################
+###################################################
+( my $x, my $y ) = &term_size;
+my $y_com = $y - 2;    ## <-- prompt location -1 ##
+$y += 4;               ## <-- repair ., [LLL]
+###################################################
 
 ### to implement ###
 
@@ -128,8 +129,13 @@ my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
 
 $| = 1;
 
+$SIG{'HUP'}  = sub { $SIG_INT = 1 };
 $SIG{'TERM'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
-$SIG{'INT'}  = $SIG{'HUP'}  = sub { $SIG_INT  = 1 };
+$SIG{'INT'}  = sub {
+    sleep 0.13;
+    print "\b\b\b   \b\b\b\e[${y_com}H\e[J\n < awaiting command > ";
+    $SIG_INT = 1;
+};
 
 $SIG{'TRAP'} = sub { system 'reset'; dump_state(); sleep 42 };
 
@@ -198,7 +204,8 @@ RECALC:
     $state->{'page-legend'} = '';
 
     $state->{'result-13'}
-        = scalar $math->{'zulum'}->copy()->bdiv( 13, $state->{'screen-bytes'} );
+        = scalar $math->{'zulum'}->copy()
+        ->bdiv( 13, $state->{'screen-bytes'} );
 
     ## shift for zulum prefix ##
     my $zulum_offset = 0;
@@ -318,6 +325,8 @@ sub decode_row {
 
 ADD_CHARACTERS:
 
+    my $pos_x;
+    my $pos_y;
     my $bg_color     = '';
     my $fg_color     = '';
     my $characters_7 = '';
@@ -332,24 +341,30 @@ ADD_CHARACTERS:
     ## foreground color ##
     $fg_color .= color(
         sprintf( 'r%dg%db%d',
-            int( 0.3 * $3 ),
-            int( 0.3 * $2 ),
-            int( 0.7 * $1 ) )
+            int( 0.2 * $1 ),
+            int( 0.4 * $2 ),
+            int( 0.8 * $3 ) )
         )
         if $$input =~ m|^(\d{3})(\d{3})(\d{3})|
-        and int( $1 * 0.7 ) <= 255
-        and int( $2 * 0.3 ) <= 255
-        and int( $3 * 0.3 ) <= 255;
+        and int( $3 * 0.8 ) <= 255
+        and int( $2 * 0.4 ) <= 255
+        and int( $1 * 0.2 ) <= 255;
 
-    $characters_7 .= substr( $$input, 0, 3, '' );    # _dec
+    ( $pos_x, $pos_y ) = ( $1, $2 ) if $$input =~ m|^(\d{3})(\d{3})|;
+    while ( $pos_x > $x ) { $pos_x -= $x }
+    while ( $pos_y > $y ) { $pos_y -= $y }
+    $pos_x = 1 + $x - $pos_x;
+    $pos_y = $y - $pos_y;
 
-    my $characters_8 = '';
+    #    $characters_7 .= substr( $$input, 0, 3, '' );    # _dec
+    #    my $characters_8 = '';
+    #    while ( $characters_7 =~ s|\d{3}|| ) {
+    #        $characters_8 .= chr($MATCH);                # _7
+    #    }
+    #    my $decoded_chars = decode( "UTF-7", $characters_8 );
+    # my $decoded_chars = $characters_8;
 
-    while ( $characters_7 =~ s|\d{2}|| ) {
-        $characters_8 .= chr($MATCH);                # _7
-    }
-
-    my $decoded_chars = decode( "UTF-7", $characters_8 );
+    my $decoded_chars = chr( substr( $$input, 0, 3, '' ) );
 
     $LAST_BG     = $bg_color;
     $LAST_FG_COL = $fg_color;
@@ -364,7 +379,8 @@ ADD_CHARACTERS:
         ### [ \r ] ###
         my $cr_pos = index( $decoded_chars, "\r" );
         if ( $cr_pos > -1 ) {
-            substr( $decoded_chars, $cr_pos, $chars_left ) = ' ' x $chars_left;
+            substr( $decoded_chars, $cr_pos, $chars_left )
+                = ' ' x $chars_left;
             $chars_left = $line_width;
         }
 
@@ -383,14 +399,16 @@ ADD_CHARACTERS:
     my $endline_pos = index( $decoded_chars, "\n" );
     if ( $endline_pos > -1 ) {
 
-        substr( $decoded_chars, $endline_pos, $chars_left ) = ' ' x $chars_left;
+        substr( $decoded_chars, $endline_pos, $chars_left )
+            = ' ' x $chars_left;
         $chars_left = 0;
     }
 
     my $dec_len = length($decoded_chars);
 
     $$output .= join( '',
-        $bg_color, $fg_color, substr( $decoded_chars, 0, $chars_left ) )
+        "\e[${pos_y};${pos_x}H", $bg_color, $fg_color,
+        substr( $decoded_chars, 0, $chars_left ) )
         if $chars_left;
 
     $chars_left -= $dec_len;
@@ -411,8 +429,9 @@ sub term_size {
     state $TIOCGWINSZ = 21523;
 
     ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
-
-    return [ unpack 'S!S!S!S!', $size ]    ## <-- [ <x>, <y>, <x-px> <y-px> ]
+    my $size_aref
+        = [ unpack 'S!S!S!S!', $size ];    ## <-- [<y>,<x>,<y-px>,<x-px>]
+    return ( $size_aref->[1], $size_aref->[0] );
 
 }
 
@@ -494,7 +513,8 @@ sub checksum_state {
         'bmw' => bmw_BASE32( \$state_dump )
     };
     $$state_ref->{'checksum'}
-        = join( '-', $checksums->{'elf'}, substr( $checksums->{'bmw'}, 0, 4 ) );
+        = join( '-', $checksums->{'elf'},
+        substr( $checksums->{'bmw'}, 0, 4 ) );
 
     return $checksums;    ## B32-elf + B32-bmw-512 ##
 }
@@ -567,7 +587,8 @@ sub sig_int_handler {
                 print "\eH\e[0m\e[40m\e[34m\r\n< awaiting command > ";
             }
             chomp( $cmd = <STDIN> // '' );
-            $cmd =~ s|^\d+||; ## clean-up [ garbled by ansi ] ## [inversitgate.]
+            ## clean-up [ garbled by ansi ] ## [inversitgate.]
+            $cmd =~ s|^\d+||;
             $set_up->{'prompt-hidden'} = 0 if length($cmd);
         }
         $state->{'last-cmd'} = $cmd
@@ -685,7 +706,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#FSJB4YPNS72D5CTO3TUPC6IDDSPHBYUL6UXIUBWDVYMVUF3CS5UVC2MWREX4ZIARBXN2Q3MEYXCYO
-#::: IW7UZHCP2MIABHCN65BE5J4Z7ARHS3Q2KKJARCR2OG5WCJQRVDT :::: NAILARA AMOS :::
-# :: BGNCZMOR3KTS25SGV3RLRLKIDKFAZ5O353HY7YCSYK5WGAFHEKAY :: CODE SIGNATURE ::
+#NX4NCMECW3E2DAMPJUXFWFWH2HYR4ZSQRIVPDI5JNOBHOVZDRC55DO2SVGSUIFGPVJPAKVOF73Q5W
+#::: EERNDSGCKWX3VMM2M4IYBCPTZT4HI4QURY2XHSISWCUUXMPE2E4 :::: NAILARA AMOS :::
+# :: TVOVKWTQ5YLEACOK4DGEVPZ7S7UCHAQJTD2H2KG5UAAE5MZ7KSDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
