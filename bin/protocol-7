@@ -666,10 +666,11 @@ sub prepare_subs {
     };
 
     $code{'base.banner'} = sub {
-        my $version_str = sprintf(
-            $ANSI{'p7_bg'} . "protocol-seven version :: %s" . $ANSI{'reset'},
-            $data{'protocol-7'}{'src-ver'}
-        );
+        my $version_str = sprintf( "protocol-seven.src-ver :. %s",
+            $data{'protocol-7'}{'src-ver'} );
+        my $release_str
+            = sprintf( "AMOS-release versn.: %s",
+            $data{'protocol-7'}{'rel-ver'} );
         local $RS = undef;
         open( my $banner_fh,
             catfile( $data{'system'}{'conf_path'}, '.banner' ) )
@@ -682,9 +683,10 @@ sub prepare_subs {
             }
             split( m|\n|, $nailara_header );
         say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0001'}, ":\n",
-            ':', $ANSI{'reset'}, ' ', $ANSI{'p7_fg_0000'},
-            "$version_str\n", $ANSI{'p7_fg_0001'}, $ANSI{'p7_bg'}, ':',
-            $ANSI{'reset'};
+            ':', $ANSI{'reset'}, ' ', $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'},
+            $version_str, $ANSI{'reset'}, '    ', $ANSI{'p7_bg'},
+            $ANSI{'p7_fg_0000'}, $release_str, "\n", $ANSI{'reset'},
+            $ANSI{'p7_fg_0001'}, $ANSI{'p7_bg'}, ':', $ANSI{'reset'};
     };
 
     $code{'dump_cube_subs'} = sub {
@@ -1846,7 +1848,7 @@ END {
 }
 
 #.............................................................................
-#3DLJ73ULPWC5CKRAHIPHXHA22Y3EQZKHHTWGWQUHG54VDUEUS6FP32GPCSFNTA3E5IRPDNEWPS666
-#::: JTPUAY3S3SFZJ6LTXDINJQEN5G5ME23YREUZ6CJUTBFHOCHQDZP :::: NAILARA AMOS :::
-# :: GLBYZMOTUAJSOSG3ANDIBDBXW22BBTXQOT7SWYQH6YP2RY26YMDQ :: CODE SIGNATURE ::
+#WFGMKXPNRGHTUAC53ZPWHSBV5J2MO6LL3YGQXW44VQXCD6EKQF2WX26LVPDTNE4EYBE7XAG2733ZA
+#::: A3KDIFOSJHTDRIXVTUIGA6QE5WE5262WRJTF3BDX4M3XWOJ2PZU :::: NAILARA AMOS :::
+# :: 5QHP2OVALRZZB24O7HPFSGVHAXNWUNXTY7FVMWXHM626VXLS7ICQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
