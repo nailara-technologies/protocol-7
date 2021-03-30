@@ -41,7 +41,7 @@ my $remove_file_add_header    = 1;
 my $remove_file_delete_header = 1;
 my $clean_permission_changes  = 1;
 my $manually_color_lines
-    = 0;    # usually git\hg colorize the lines, but for raw patches we use this
+    = 0;  # usually git\hg colorize the lines, but for raw patches we use this
 my $change_hunk_indicators
     = git_config_boolean( "diff-so-fancy.changeHunkIndicators", "true" );
 my $strip_leading_indicators
@@ -54,7 +54,7 @@ my $ruler_width      = git_config( "diff-so-fancy.rulerWidth", undef );
 my $git_strip_prefix = git_config_boolean( "diff.noprefix", "false" );
 my $has_stdin        = has_stdin();
 
-my $ansi_color_regex = qr'(\e\[([0-9]{1,3}(;[0-9]{1,3}){0,10})[mK])?';    # <--
+my $ansi_color_regex = qr'(\e\[([0-9]{1,3}(;[0-9]{1,3}){0,10})[mK])?';   # <--
 my $meta_color       = '';
 
 my ( $file_1, $file_2 );
@@ -97,10 +97,10 @@ if ( !$has_stdin ) {
 
         my $last_line = $lines[-1];
 
-        # buffer <n> lines before we try and output anything
-        # Also make sure we are sending enough data to d-s-f to do it is magic.
-        # Certain things require a look-ahead line or two to function so
-        # we make sure we do not break on those sections prematurely
+       # buffer <n> lines before we try and output anything
+       # Also make sure we are sending enough data to d-s-f to do it is magic.
+       # Certain things require a look-ahead line or two to function so
+       # we make sure we do not break on those sections prematurely
         if (@lines > 24
             && ($last_line
                 !~ m{^${ansi_color_regex}(---|index|old mode|similarity
@@ -117,8 +117,8 @@ if ( !$has_stdin ) {
     my $was_cdate  = 0;
     while ( my $line = <STDIN> ) {
 
-  # if the very first line of the diff does not start with ANSI color, assuming
-  # it is a raw patch file, and we have to color the added\removed lines ourself
+# if the very first line of the diff does not start with ANSI color, assuming
+# it is a raw patch file, and we have to color the added\removed lines ourself
         if ( !$color_forced && $line_count == 0 && starts_with_ansi($line) ) {
             $manually_color_lines = 1;
         }
@@ -182,7 +182,8 @@ if ( !$has_stdin ) {
 
     DiffHighlight::flush();
 
-    do_dsf_stuff( \@lines ) if @lines;  ### : was : ### do_dsf_stuff( \@lines );
+    do_dsf_stuff( \@lines )
+        if @lines;    ### : was : ### do_dsf_stuff( \@lines );
 
 }
 
@@ -222,12 +223,24 @@ sub do_dsf_stuff {
             $meta_color = $1 || get_config_color("meta");
 
             # get the next line without incrementing counter while loop
-            my $next = $input->[0] || "";
+            # NOTE : adjusted for next file meanwhile being decorated
+            #      :. now it also needs to show the previous name when renamed
+            my $next;
+            my $index = 0;
+            while ( defined $input->[$index] ) {
+                $next = $input->[$index] || "";
+                $next =~ s|^\s+||;
+                $next =~ s{^\S+\s+?$ansi_color_regex*
+                          |$ansi_color_regex*\s+.+\n$}{}xg;
+                if ( length($next) ) { $last_file_seen = $next; last }
+                $index++;
+            }
+
             my ( $file_1, $file_2 );
 
-       # the line immediately after the "index" line should be the --- file line
-       # if it is not it is an empty file add/delete
-            if ( $next !~ m,^$ansi_color_regex(---|Binary files), ) {
+     # the line immediately after the "index" line should be the --- file line
+     # if it is not it is an empty file add/delete
+            if ( $next !~ m,^$ansi_color_regex*(---|Binary files), ) {
 
                 # we fake out the file names since it is a raw add/delete
                 if ( $last_file_mode eq "add" ) {
@@ -250,7 +263,8 @@ sub do_dsf_stuff {
             #########################
             #                                            $4              $5
         } elsif ( $line
-            =~ m,^${ansi_color_regex}diff (-r|--git|--cc) (.*?)(\e| b\/|$), ) {
+            =~ m,^${ansi_color_regex}diff (-r|--git|--cc) (.*?)(\e| b\/|$), )
+        {
 
             # mercurial looks like: diff -r 82e55d328c8c hello.c
             if ( $4 eq "-r" ) {
@@ -263,7 +277,7 @@ sub do_dsf_stuff {
             }
 
             $last_file_seen
-                =~ s|^\w/||;    # removing a/ [ and handle diff.mnemonicPrefix ]
+                =~ s|^\w/||;  # removing a/ [ and handle diff.mnemonicPrefix ]
             $in_hunk = 0;
             ########################################
             # find the first file: --- a/README.md #
@@ -330,7 +344,7 @@ sub do_dsf_stuff {
 #                                         how many commas are in the hunk header
             $columns_to_remove = ( char_count( ",", $hunk_header ) ) - 1;
 
-          # on single line removes there is NO comma in the hunk so we force one
+        # on single line removes there is NO comma in the hunk so we force one
             if ( $columns_to_remove <= 0 ) {
                 $columns_to_remove = 1;
             }
@@ -364,7 +378,7 @@ sub do_dsf_stuff {
                 my $frag_color = get_config_color("fragment");
                 print $frag_color;
             }
-            my $nll = length($last_file_seen) - 4;
+            my $nll = length($last_file_seen) - 7;
             $nll = 5 if $nll < 5;
             my $name_line = '─' x $nll;
 
@@ -439,7 +453,7 @@ sub do_dsf_stuff {
 
             if ( $file1 && $file2 ) {
 
-         # we may not have extracted this yet, so we pull from the config if not
+       # we may not have extracted this yet, so we pull from the config if not
                 $meta_color ||= get_config_color("meta");
 
                 my $change = file_change_string( $file1, $file2 );
@@ -503,7 +517,7 @@ sub mark_empty_line {
     if ( $line eq "+\n" ) {
         $line = $invert_color . $add_color . " " . $reset . "\n";
 
-      # this captures lines that do not have any ANSI in them (raw vanilla diff)
+    # this captures lines that do not have any ANSI in them (raw vanilla diff)
     } elsif ( $line eq "-\n" ) {
         $line = $invert_color . $del_color . " " . $reset . "\n";
 
@@ -557,7 +571,7 @@ sub git_config {
 
     my $out = git_config_raw();
 
-    # if we are in a unit test, use the default [ do not read the users config ]
+  # if we are in a unit test, use the default [ do not read the users config ]
     if ( in_unit_test() ) {
         return $default_value;
     }
@@ -586,7 +600,7 @@ sub git_config_boolean {
 
     # say "< config-search > '$search_key'";
 
-    # if we are in a unit test, use the default [ do not read the users config ]
+  # if we are in a unit test, use the default [ do not read the users config ]
     if ( in_unit_test() ) {
         return boolean($default_value);
     }
@@ -619,7 +633,7 @@ sub get_less_charset {
 sub should_print_unicode {
     if ( -t STDOUT ) {
 
-        # always print unicode chars if we are not piping stuff, e.g. to 'less'
+       # always print unicode chars if we are not piping stuff, e.g. to 'less'
         return 1;
     }
 
@@ -765,7 +779,7 @@ sub file_change_string {
         $old = trim($old);
         $new = trim($new);
 
-        # highlight_pair resets the colors, but we want it to be the meta color
+       # highlight_pair resets the colors, but we want it to be the meta color
         $old =~ s|(\e0?\[m)|$1$meta_color|g;
         $new =~ s|(\e0?\[m)|$1$meta_color|g;
 
@@ -798,7 +812,7 @@ sub argv {
         if (   ( my ($key) = $ARGV[$i] =~ m|^--?([a-zA-Z_-]*\w)$| )
             && ( $ARGV[$i] !~ m|^-\w\w| ) ) {
 
-       # if the next item does not start with "--" it is the value for this item
+     # if the next item does not start with "--" it is the value for this item
             if ( defined( $ARGV[ $i + 1 ] )
                 && ( $ARGV[ $i + 1 ] !~ m|^--?\D| ) ) {
                 $ret->{$key} = $ARGV[ $i + 1 ];
@@ -984,7 +998,7 @@ sub get_terminal_width {
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
 #.............................................................................
-#2JMPMNAXUH2W6FKA3LEBGC5Y4MJVPIE5EKH66XUT3ABCF72I6IVE4U2P4TLYKLHBVZNFPS26LWDW6
-#::: BLJFRUHGMY5C5SI2XGK5PWBIL7S2WEB6QQMOQFQZWD3Y4PTY3IC :::: NAILARA AMOS :::
-# :: CT26LNNOEUYMBN7K7K5XKAEFGLSUEVBC3TDDXHBEQSZA5FAT3CDQ :: CODE SIGNATURE ::
+#4VKJYLO2DUQHG5DMF24YUDPVAQ43KPR6OD6YOMQUHATZHV7OZD537ECNEF3MGGYR3QEHGDJ33JSGK
+#::: SLSNX24PY6MQR4QBLKRLDXWKKQ32U77Q66EZWHKHAO57YN2G3ZZ :::: NAILARA AMOS :::
+# :: HVSCBEVA2I7WOGCZIK53XU3HPHS6TNTKQ57ZRLXAIQJFQJCMSABY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
