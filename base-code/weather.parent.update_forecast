@@ -12,7 +12,8 @@ if (   not exists <weather.data>->{$station_id}
 
     foreach my $type ( 'hours', 'days' ) {
         my $forecast_data
-            = <[weather.parent.cache.read_cache_data]>->( $type, $station_id );
+            = <[weather.parent.cache.read_cache_data]>
+            ->( $type, $station_id );
         if ( defined $forecast_data ) {
             <[base.log]>->( 1, "found cached '$type'-forecast data.," );
             <[weather.parent.extract_forecast]>->(
@@ -36,7 +37,7 @@ foreach my $type ( 'hours', 'days' ) {
 }
 
 #.............................................................................
-#NB35NU4NO2UC2K4QIN3VJUYM3IVBAUOEG7IHLMMHRZGIERTWZDYFVB6UCERWNSGATI2VKWBGYYXS2
-#::: C267PLEVXUQTB7CJBIUOZBXK5KN53ICQW55E5GSNHQONEZS7YTT :::: NAILARA AMOS :::
-# :: 5JNDL57EXGROFL7PPBHKDRYVO5B4AUJ5T24FP46SPQSSQIMME2AI :: CODE SIGNATURE ::
+#C7MO667YE5DRMXQHDNU272RVVZ73VGJXXZXFOUTKOJLI3LFVSUU4L4YJXB5RHYH2CU72M4RFPY6LI
+#::: BMESM6ZDJ4OBGCCXOWKC2SUZIO6OJF2DT3JUCU3HQBMWDFUU4M6 :::: NAILARA AMOS :::
+# :: QOEP6DN2SQRRMVXDBTKM5C5LLEENQQD6OVMKUD2XVA274ICJFUCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

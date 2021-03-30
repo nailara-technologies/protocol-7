@@ -52,7 +52,8 @@ if ( $response->code == 200 ) {
     }
     close($txt_fh);
     move( $output_file . '.NEW', $output_file )
-        or die "cannot move '$output_file.NEW' to '$output_file' [ $OS_ERROR ]";
+        or die
+        "cannot move '$output_file.NEW' to '$output_file' [ $OS_ERROR ]";
     <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
     <rss.web-browser>->commit;
     return 1;
@@ -71,7 +72,8 @@ if ( $response->code == 200 ) {
     <rss.ticker.fail_warned> = 1;
 
     if ( !-f $output_file ) {
-        <[base.log]>->( 0, "<< no cached data for not available RSS feed >>" );
+        <[base.log]>
+            ->( 0, "<< no cached data for not available RSS feed >>" );
         <rss.ticker.fail_retry_interval>
             //= <rss.ticker.fail_retry_min_interval>;
         <rss.ticker.update_timer>->cancel;
@@ -84,7 +86,8 @@ if ( $response->code == 200 ) {
             }
         );
         <rss.ticker.fail_retry_interval> *= 1.1;
-        <rss.ticker.fail_retry_interval> = <rss.ticker.fail_retry_max_interval>
+        <rss.ticker.fail_retry_interval>
+            = <rss.ticker.fail_retry_max_interval>
             if <rss.ticker.fail_retry_interval>
             > <rss.ticker.fail_retry_max_interval>;
         return -2;
@@ -93,19 +96,22 @@ if ( $response->code == 200 ) {
     my $file_stat = File::stat::stat($output_file);
     my $file_age  = sprintf( "%.2f", ( time() - $file_stat->ctime ) / 3600 );
     if ( $file_age >= <rss.ticker.cache_timeout> ) {
-        <[base.log]>->( 0, "local feed data has expired [ $file_age hours ]" );
+        <[base.log]>
+            ->( 0, "local feed data has expired [ $file_age hours ]" );
         open( my $txt_fh, '>' . $output_file )
             or die "can't open text data file for writing [ $OS_ERROR ]";
         close($txt_fh);
         return 1;    # update with empty file
     } else {
-        <[base.log]>->( 1, "keeping cached feed data [ $file_age hours old ]" );
+        <[base.log]>->(
+            1, "keeping cached feed data [ $file_age hours old ]"
+        );
     }
     return -1;
 }
 
 #.............................................................................
-#TQCWRXNFQBTKV6ONSVGXCLW534Z25JFQHMRCDG3U4FZC72NZO6HWBQ46QQFN6HK7DWQV4LMAZYQC4
-#::: YAE4J6Y3L2G6ABVXSFC54LUTYAJPWSVK77MKXH3R5MXEHZ5DMAW :::: NAILARA AMOS :::
-# :: DU76DMW64YUBLMO3W2GC7WF4SSA2AMQDRLIA2LRN4GYUK35RWYDQ :: CODE SIGNATURE ::
+#RNNGEXRA3JTPP24PFKJPUMHCCQW2C2IGJPF7IO7FBPU5EOUWOTQBBWV5HO7VCYSSA6LECUKLBT6N4
+#::: 4UEETWVT432LYBQZXQZEMEPFDQSB52EJPREE3NTBRIOY6ZWIQPL :::: NAILARA AMOS :::
+# :: QGQXGZUKWIPKH5QQKUJIJ7TJMWMVE3PE2GLWUT7EWUTBGMYGKKDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

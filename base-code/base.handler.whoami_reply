@@ -9,16 +9,16 @@ delete <base.in_progess.get_session_id>;
 
 if ( $reply->{'cmd'} ne 'ACK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "<!> unexpected reply to whoami command <!> [$reason]" );
+    <[base.log]>->( 0, "<< whoami command reply not expected [$reason] >>" );
     return undef;
 }
 
 my $reply_str = $reply->{'call_args'}->{'args'};
 
-if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
+if ( $reply_str =~ m|^(\w[\w\-\d]*) (\d+)$| ) {
     my ( $zenka_name, $cube_sid ) = ( $1, $2 );
     if ( $zenka_name ne <system.zenka.name> ) {
-        <[base.log]>->( 0, "<!> 'whoami' reply does not match zenka name <!>" );
+        <[base.log]>->( 0, "<< 'whoami' reply does not match zenka name >>" );
     }
     my $usr_str = $reply->{'params'}->{'route_user'};
     my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
@@ -28,13 +28,13 @@ if ( $reply_str =~ /^(\w[\w\-\d]*) (\d+)$/ ) {
     <[base.call_online_hooks]>;
 } else {
     <[base.log]>->(
-        0, "protocol mismatch [ unexpected reply to 'whoami' ] ( $reply_str )"
+        0, "protocol mismatch [ 'whoami' reply not expected ] [ $reply_str ]"
     );
     return undef;
 }
 
 #.............................................................................
-#N5CQOJVNBTWWM7QWFF56BTTI7Z4PY7IWPSQIF5HCZSSK6M2ZUIVC67MIT6MIIPZBSYPP2LIKGQYLO
-#::: BTQVEK6ZAGVDC7HX6D4QBDK3QBYALLKSE4PWSTSARDYPJUQADVJ :::: NAILARA AMOS :::
-# :: C6QL57OFSY4OE7MM27SUOVTRB5XZZ7RH2MJMC74HMJLYHRT4J6AI :: CODE SIGNATURE ::
+#MLOKBLMZOD46H3OT55WIF5FMDYLSEDC2CSO6VPTONNIMZOABHBKWJSEM2ODX5IXWHOTWIUBZJCOUS
+#::: 6EKG5TYYF4VWDVDBISMMZ7TASSZ6W4ZJ4PPJV5CBRC6MTYXJD6T :::: NAILARA AMOS :::
+# :: LR37MAOLKYDWGIZCKB5P4XSR723NONKM7XZQN43632MBFDEXEMBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

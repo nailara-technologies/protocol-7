@@ -4,10 +4,10 @@
 # descr = initialize zenki for automatic / immediate startup
 
 foreach my $zenka_name (@_) {
-    my $zenka_config   = <nroot.start_setup.zenki.config>->{$zenka_name};
-    my $zenka_id       = <[zenka.get_id]>->($zenka_name);
-    my $obj_id         = <[zenka.get_object_id]>->($zenka_id);
-    my $target_queue   = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+    my $zenka_config = <nroot.start_setup.zenki.config>->{$zenka_name};
+    my $zenka_id     = <[zenka.get_id]>->($zenka_name);
+    my $obj_id       = <[zenka.get_object_id]>->($zenka_id);
+    my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
     my $instance_count = $zenka_config->{'start'}->{'instances'} || 1;
 
     while ( <[zenka.is_enabled]>->($zenka_name) and $instance_count-- ) {
@@ -23,7 +23,7 @@ foreach my $zenka_name (@_) {
 }
 
 #.............................................................................
-#I3XY4IHP4T2DWNPLIFE4BCP4KCUMQHXZ25V75YHO7VSPBQ25IC3TFKCQN2N4Q26X5KPZYTL6Q7HI4
-#::: 7RPCR7XOACZFUZ672FQ7T3ZHRP3ZDSVBLSYXWP6CBOTNZWIY4SE :::: NAILARA AMOS :::
-# :: G2YMPHSQ7A7HOD5BEKMYT7DU6KB55EXB3CQTR7MT2EE6LPNAOIAQ :: CODE SIGNATURE ::
+#GIZDO5WSEQ22KJ2M5DD6NYGPDLCJCMY6WRC5DIDRL7SCVH7NV5DIL3NTCYLNS4SOHR5OCYVFKGABM
+#::: BPFGXTSNFGNJMAKPSXGELX2EBURROF46ZXC2G6HZ5RPXTLKIL5L :::: NAILARA AMOS :::
+# :: RR64ELTD5BJE5O3OYIHH4LBYT6ASR4UCOGITOXVDNJW26QVZAMBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

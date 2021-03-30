@@ -40,7 +40,7 @@ $url_flags =~ s| ||g;
 $url_flags = ''
     if length($url_flags)
     and not exists $flag_map->{$url_flags}
-    and $url_flags ne 'blkext,nojs';    # weird / unrecognized flag combination!
+    and $url_flags ne 'blkext,nojs';  # weird / unrecognized flag combination!
 
 <[base.log]>->(
     0, "processing crash mitigation for previous instance [PID $crash_pid]"
@@ -48,7 +48,8 @@ $url_flags = ''
 
 if ( not exists $flag_map->{$url_flags} ) {
     <[base.log]>->(
-        0, ": maximum mitigation level reached! unable to prevent segfault `:|"
+        0,
+        ": maximum mitigation level reached! unable to prevent segfault `:|"
     );
     return;
 }
@@ -65,7 +66,7 @@ my $s = $next_flags =~ /,/ ? 's' : '';
 );
 
 #.............................................................................
-#YDQTSJP7X2EVAKJGPJPNM7YHCSSYZMY3ZUIRXJVQMSAAKIQF2J7IP7K4IENLRFJS3HVNKX3E3STRW
-#::: 7H4TECCWXQFN5SHPUHCCAPHV6S2QRP2SPKEMVID6PSMDELXHNQ5 :::: NAILARA AMOS :::
-# :: S3AKS5GZIWGQNO4ELURVMZXD6ANCKEVR3KFN5VKIUAAZW4TYO2DY :: CODE SIGNATURE ::
+#FBEOLEPM5XIV6W7QJRMTDQWCN242AZP2CEDY3QYUYMMART342TSIHHBDV2JEK2VLWKQ4ZGZDVDSCQ
+#::: JWNWOUKSPRQ4DD4UDYM64DQUADZ7GHERVJ5E2I2WTCYSTW2CHRG :::: NAILARA AMOS :::
+# :: KUXO5BQWZHXXTM5BPN5RBCZAFC5BY7N7SXV2WKZXV3BKWVCFFUDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

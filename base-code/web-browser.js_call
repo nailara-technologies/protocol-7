@@ -8,7 +8,8 @@ my $view            = <web-browser.gtk_obj.view>->{$fg_index};
 my $settings        = $view->get_settings();
 my $view_uri        = $view->get_uri();
 my $js_string       = shift // '';
-my $result_callback = shift // sub { warn "<js_call> invoked empty callback." };
+my $result_callback = shift
+    // sub { warn "<js_call> invoked empty callback." };
 my $re_cb_params    = shift;           # no params [default] undef
 my $caller_sub_name = [caller]->[1];
 
@@ -25,7 +26,7 @@ if ( $caller_sub_name eq 'web-browser.callback.scroll_start_js_exec' ) {
     <[base.log]>->( 2, "<js_call> [$view_uri] : '$js_string'" );
 }
 
-$js_string = "throw $js_string";    # <-prepares result access through exception
+$js_string = "throw $js_string";  # <-prepares result access through exception
 
 $view->run_javascript(
     $js_string,
@@ -51,14 +52,15 @@ $view->run_javascript(
 
         # --------------------------------------------------------------------
 
-        $usr_data->{'re_cb'}->( $ex_str, $usr_data->{'cb_params'} ); # <-deliver
+        $usr_data->{'re_cb'}->( $ex_str, $usr_data->{'cb_params'} )
+            ;    # <-deliver
 
     },
     { 're_cb' => $result_callback, 'cb_params' => $re_cb_params }
 );
 
 #.............................................................................
-#FFSYVHX7JJZ4IDNJB7PZTX2TKVLANPPSMLYASNSXZSMCURIUCIO44666T5Q7AI4GCQF7LT5DHFOJO
-#::: BFIW2VGWJTY56OSQS2ITHIPDIYTISYFK4ITFRQKXSRPH6CVQ7OJ :::: NAILARA AMOS :::
-# :: 5KYLQ2WADODDWAJUT4Y7CSRSQI4VSSSD5MR5FVXCBW2WL4V5WYCQ :: CODE SIGNATURE ::
+#NJPHEQBLEBLIFCE3OBZKMXPICYGV7BYAAFLJ7BYFSKPKN2GBRLX75442YKNAV7754AO33NLU5VYZA
+#::: D5WNBQ33QLXTGD25VVGMNVBTTFQ4YNLMLGRF3AEPU7FX7ZMYX3A :::: NAILARA AMOS :::
+# :: NYZ3CXNOCQHQEDBOADOCPGZ5AKLNQIJLXDP3KCGV2SRTBMZVEQDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

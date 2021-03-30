@@ -33,7 +33,9 @@ while ( $packet_buffer =~ s|^([^:\s]+):(\S+)\n|| ) {
     return <[base.log]>->( 2, ": '$root_name' root key signature [ERROR]" )
         if not Crypt::Ed25519::verify(
         "$peer_pub\n",
-        decode_b32r( $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'public'} ),
+        decode_b32r(
+            $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'public'}
+        ),
         decode_b32r($root_sig)
         );
     $keys_matched++;
@@ -51,10 +53,11 @@ return <[base.log]>->( 0, ": packet signature verification [ERROR]" )
 
 <[base.log]>->( 1, "received [valid] packet payload [$payload_len bytes]" );
 
-print " \--< peer: $peer_pub >--\n<--payload-->\n$packet_buffer<-/payload-->\n";
+print
+    " \--< peer: $peer_pub >--\n<--payload-->\n$packet_buffer<-/payload-->\n";
 
 #.............................................................................
-#3X47TUWOD72KD7GVBTXJBRBRHKYEMZ5GFDJI3XZHIIBXN5MOYAJXSULXE5UPPZ7EQI4XE2DVEON32
-#::: OSDAB2IFOVNLZ4JZL6XNDRHY3LJOEAVNADFEUVZHTCMUGXGORDB :::: NAILARA AMOS :::
-# :: LSID5OF5SRRSLZOID4SCS7QFBNIAWGFJ3VYXWSTNZOD64IZSLIAY :: CODE SIGNATURE ::
+#MOKUB7A4JC7XFCKR7ECCZXMECMSEBK7SD4NRBDWRQ7SA3TRWVEXG2AMPDVE23TIVGZLJCZ67XBRBS
+#::: EPYYVZ7NT4YDJ6RPV2FLARXJAV4D64F32RTNSZ7ZLZKWOEZ6VWE :::: NAILARA AMOS :::
+# :: OTELKIHDGFAGDYDBMRSQVZ32PQQUIWHSNAQFDA6OZFPGJH7WJ2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

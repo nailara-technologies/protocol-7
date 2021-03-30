@@ -11,7 +11,7 @@ my $code_data = [];
 my $cfg_name  = shift // die "expected <cfg_name> as first parameter";
 $code_data = shift(@ARGV) if ref( $ARGV[0] ) eq 'ARRAY';
 
-my @cfg_lines = @_;    # parsed data will be appended to @{$code_data} array-ref
+my @cfg_lines = @_;  # parsed data will be appended to @{$code_data} array-ref
 if ( !@cfg_lines ) {
     <[log.error]>->("no data lines in ncfg '$cfg_name'");
     return [];
@@ -59,7 +59,8 @@ foreach my $line (@cfg_lines) {
         die "no parent sub-section defined for sub-sub-section"
             . " '$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
             if not defined $sub_section;
-        if ( !<[base.code_section_exists]>->( $sub_sub_section, $data_ref ) ) {
+        if ( !<[base.code_section_exists]>->( $sub_sub_section, $data_ref ) )
+        {
             my $new_data_ref = [];
             push( @$sub_section_ref, { $sub_sub_section => $new_data_ref } );
             $data_ref = $new_data_ref;
@@ -76,7 +77,7 @@ foreach my $line (@cfg_lines) {
 return $code_data;
 
 #.............................................................................
-#CRLY6MZJZYWWSJLFFWL4SSF6QZ3K6ENRQTBZEFXR2TKO4OZ4DE2MVOA3EEHCGALO65AAWMWFJJJSQ
-#::: WQE37TSDCBJEHCVULBHP5IMPS3ZDSJM5RK7P5G4WHSD6JNBWJPS :::: NAILARA AMOS :::
-# :: LAXADWN6FG3DQZPMETIK2VPWG3LU2MOUUZHR7ZYEXQWTRIXNYKAQ :: CODE SIGNATURE ::
+#TSHQCWTCOJ6IGZCVAFSQ3FYYBUHM2VYQSIYZSWUWICCZ4FCQ3264UBZR6TXHCASECJVI2TJWPRIAM
+#::: OKSFHDUNJE2QE3GASVK74SLKRJK4AXNZNBBNN5RAYSFAW6O52Y5 :::: NAILARA AMOS :::
+# :: CPVCQBAJEAL7Z5PERET2Z7DHMCIMZT2TJWJMD2BN4P6F3J6M3UDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,8 @@ foreach my $code_line (@_) {
     $code_line =~ s|&cmd\.([^\(]+)|<[base.check_alias]>->($1)|eg;
     if ( $code_line ne '' ) { eval($code_line) }
     if ($EVAL_ERROR) {
-        if ( $EVAL_ERROR =~ m|^Can't use string \(""\) as a subroutine ref| ) {
+        if ( $EVAL_ERROR =~ m|^Can't use string \(""\) as a subroutine ref| )
+        {
             my $code_line_copy = $code_line;
             while ( $code_line_copy =~ s|(\$code\{'([^\']*)'\})|| ) {
                 my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
@@ -33,7 +34,7 @@ foreach my $code_line (@_) {
 return $noerr;
 
 #.............................................................................
-#SPRU7C7JVONSKMC3QIHHXRJ5BHHEA76POWBM5M4UJYZGBYASYJYVAV3LY6TSS243JIFQ5ZNLB7ZPM
-#::: GNBLE7CZ7BXF6WKOVYC3NGNWBYWU45X4XLODA4HJGGTL6EO5CDQ :::: NAILARA AMOS :::
-# :: UY46GUWUTGD6BTF4LYUMDE5KCZ3F364BIV3277WLDDRQCSCVUEAY :: CODE SIGNATURE ::
+#5QXKCO2N67QKLS64EFWES3CGYQHMMMGOUWLENEG4OTCLHK6HCLFBKPK64DGTNGDHR3CH5SIFQIGUG
+#::: TNMBIZBELQCMFASGGZ52ZUGEUH4I463KCCWJNXPNTOEJ6TO233T :::: NAILARA AMOS :::
+# :: REWCFPICJ7YWJBCZRIO54DLKXTBH6A4UA25FMHUPGG2H2APMHKDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

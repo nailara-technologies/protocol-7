@@ -21,13 +21,15 @@ if ( fileno $session->{'handle'} ) {
             $session->{'shutdown'} = 1;
         } else {
             $_[0]->w->stop;
-            $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'} += $written;
+            $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'}
+                += $written;
             substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
             $_[0]->w->start;
 
             # httpd zenka [ download in progress ]
             if ( defined $session->{'watcher'}->{'download_handler'}
-                and !$session->{'watcher'}->{'download_handler'}->is_running ) {
+                and !$session->{'watcher'}->{'download_handler'}->is_running )
+            {
                 $session->{'watcher'}->{'download_handler'}->start;
             }
         }
@@ -57,7 +59,7 @@ $session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
 return 0;
 
 #.............................................................................
-#XT5Q6V7RWHQMAXUE2E6HJ7PTHI6UIVATXY6ZZLQVC2PURFFYTBCWJMFCDXWIKAIWEOWU2IFXPLOOY
-#::: IZCRFIFI6BT5BMVGVXPJN4SQPCX65OXGCAX2VVCIJPHU6ZTZSB5 :::: NAILARA AMOS :::
-# :: DURYJM5GABJTKQ6QR2E4OCINZUPJIISC4ZEQITUCC2OD33STQSAY :: CODE SIGNATURE ::
+#Q74T4ZPBPKMFEAYGYJAH3UE7GAB5P2BQKVHJFIYTLOUV2TWX2YDBDFX5F37W664WJILZVBTW3LUIG
+#::: XT3LKZEKDQNHLUWNHAEV2R5C6JIG4A34EBYAJ4ORJRUYYUSSFOK :::: NAILARA AMOS :::
+# :: 7RN7IYZY52Z6UHAOOMZKB52W62NIUTOK23ZTJOPWLLVSY56FSEBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

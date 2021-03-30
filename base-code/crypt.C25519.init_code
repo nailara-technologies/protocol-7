@@ -5,18 +5,19 @@
 <crypt.C25519.initialized> //= 0;
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
-<[base.perlmod.load]>
-    ->( 'Crypt::Misc', map {"$ARG\_b32r"} qw| encode decode | );
+<[base.perlmod.load]>->(
+    'Crypt::Misc', map {"$ARG\_b32r"} qw| encode decode |
+);
 
 <[base.perlmod.autoload]>->('Crypt::Ed25519');
 <[base.perlmod.autoload]>->('Crypt::Curve25519');
 
-<crypt.C25519.key_usr> //= <system.privs.user>;   #  <--  C25519 key path owner.
+<crypt.C25519.key_usr> //= <system.privs.user>; #  <--  C25519 key path owner.
 
 0;
 
 #.............................................................................
-#JRRVWVJ2465RZDR4EKXWDJBE7ZAVIO4K5W5RERZVM72K2KJDXGQDZQS7LEQCYUTBQSFAXHDKM4DLO
-#::: RHE2UX2YYWANNROZK3X2PIFT33I4PLEHT4U2NJIG4S6KA2ZHPMA :::: NAILARA AMOS :::
-# :: NWDMWIEZZ5MEROPMP3RZKAMG7EF6A3NK4SZR7SFNXCCXHGE3JCBA :: CODE SIGNATURE ::
+#WHLNHIJYF6M27X6GM3AYHUJACPNW5CV7HIRHD2HLOK4QHL235E7B7X2HDHVCLB36UYEF4CPHXUIVQ
+#::: OUF3BLOQPR43FSLQZGNUX7XADGPDZMWN6UKE77CPLCI6FD23D44 :::: NAILARA AMOS :::
+# :: ELBU32LA2VOG5RULJVVF5L6TQKADT55H6GIUGFVG6OSQF3PF5QAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

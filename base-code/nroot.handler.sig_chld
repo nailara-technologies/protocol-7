@@ -23,7 +23,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     my $e_val     = $CHILD_ERROR >> 8;
     my $e_sig     = $CHILD_ERROR & 127;
     my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
-    $log_level = 0 if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
+    $log_level = 0
+        if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
     my $e_dmp = $CHILD_ERROR & 128 ? ' [ with cube dump ]' : '';
     $log_level = 1 if $e_val;
     $log_level = 0 if $CHILD_ERROR & 128;
@@ -37,7 +38,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     <[nroot.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
 
-    <[nroot.terminate_process]>->($pid);  # <-- cleaning up children as well ..,
+    <[nroot.terminate_process]>->($pid)
+        ;    # <-- cleaning up children as well ..,
 
     delete <nroot.process.instance_cache>->{$pid};
     delete <nroot.process.instance_cache>
@@ -107,7 +109,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 #.............................................................................
-#VBKRBZHOSWY4H52CMDHIBRDIZYBMCUDUK2FE6ABW2AW5F5WUNXZ32FU7XVIGDW2XSD7MFLQ2A7N2Q
-#::: JKZTJUUUL6NMVN3M2VTGJRGXVF2EGPCIWHT2WWRNPCPZ7CTD4Q4 :::: NAILARA AMOS :::
-# :: UJ7NR5GDQEUPNCXJYSCUK5QOS4L7UUKWY5MAQONNFICOV7K74WBQ :: CODE SIGNATURE ::
+#UHFFLBHH36QUBSY4FVB2ZNSYOTPNCSWRBNTYYO5HTJSN42B5QHLTGRCR5Q7RQFJSXZMTRUBMBGQ7Q
+#::: 7WKGKIY57WFYYAITYB75DF5OL3JKBKBYCMKDGHNG22D7ATIFQRU :::: NAILARA AMOS :::
+# :: U2IOZEEB4YKVACTOCPICDFBF3VWTJZ7N5EOBW2ATILJAP4QRCQDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

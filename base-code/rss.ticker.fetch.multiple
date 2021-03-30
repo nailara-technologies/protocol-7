@@ -12,7 +12,7 @@ my $output_file = <rss.ticker.txt_data_path>;
 my $join_type = <rss.ticker.join_type>;
 $join_type //= 'mixed';
 my $seperator = <rss.ticker.item_seperator>;
-<rss.ticker.cache_timeout> //= 3;    # 3 hours default timeout for cached feeds
+<rss.ticker.cache_timeout> //= 3;   # 3 hours default timeout for cached feeds
 
 my @urls;
 map { push( @urls, $rss_url_ref->{$ARG} ) } keys( %{$rss_url_ref} );
@@ -102,7 +102,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 
     if ( $failed{$rss_url} ) {
         my $file_stat = File::stat::stat($url_data_file);
-        my $file_age  = sprintf( "%.2f", ( time - $file_stat->ctime ) / 3600 );
+        my $file_age = sprintf( "%.2f", ( time - $file_stat->ctime ) / 3600 );
         if ( $file_age >= <rss.ticker.cache_timeout> ) {
             <[base.log]>->(
                 0,
@@ -112,7 +112,8 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
             next;
         } else {
             <[base.log]>->(
-                1, "using cached version of feed #$index ($file_age hours old)"
+                1,
+                "using cached version of feed #$index ($file_age hours old)"
             );
         }
     }
@@ -180,7 +181,7 @@ move( $output_file . '.NEW', $output_file )
 return 1;
 
 #.............................................................................
-#AZZPDIJ32WBQYUSWEHKRUKR2WE6LNN6SYCPYRGD3K5BBVYZFSRPJVAQ72674VBVFCEPKH5OL4LRC2
-#::: 5ZSJX6SBIQ2ATABIC5RCCQ3OAPWYZQ65EW6PWLTW3KOA5EJBU3M :::: NAILARA AMOS :::
-# :: OPYHWMSVWN65WSKNDAFEIMRI3ONPTEDYPAIKNYLJRX6BMHMFP6DY :: CODE SIGNATURE ::
+#TN4ULNKINBRESEEL57YTBF2JXCNXG6PNZXYQUVTSU6VFGT42VWPSY5JGSX6DR2DKUPASMFBSQHWWK
+#::: ILYUWNVQXJ2FVHE2ZE744XWIOHZTD4L3WUYBBR6GXSVSKVTSMT7 :::: NAILARA AMOS :::
+# :: OMGQGH5EWWHV5SO65PDIDXC6CECSWX5SROQINUESIFCCDKN6ZABY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

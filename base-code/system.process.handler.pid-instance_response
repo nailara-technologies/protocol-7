@@ -2,9 +2,10 @@
 
 # name = system.process.handler.pid-instance_response
 
-my $response    = shift;
-my $process_id  = $response->{'params'}->{'process_id'};
-my $cmd_rep_str = $response->{'call_args'}->{'args'}; # verbose cmd reply string
+my $response   = shift;
+my $process_id = $response->{'params'}->{'process_id'};
+my $cmd_rep_str
+    = $response->{'call_args'}->{'args'};    # verbose cmd reply string
 my $log_msg_str = $response->{'params'}->{'log_message'};
 
 return warn "received instance id is not numerical"
@@ -21,16 +22,19 @@ if ( $response->{'cmd'} eq 'ACK' ) {    # restart by 'nroot' zenka
         }
     );
 } elsif ( $cmd_rep_str eq 'found no matching instance' ) {    # kill allowed
-    <[base.log]>->( 1, "[PID:$process_id] process not managed by nroot zenka" );
+    <[base.log]>->(
+        1, "[PID:$process_id] process not managed by nroot zenka"
+    );
 
     <[system.process.callback.send_kill]>->( $process_id, $log_msg_str );
 
 } else {    # unclear -> warn [ no nroot zenka access ? ]
-    return warn "aborted autokill for pid $process_id [no nroot zenka access?]";
+    return
+        warn "aborted autokill for pid $process_id [no nroot zenka access?]";
 }
 
 #.............................................................................
-#73AMYRQC4TH4ZQ5KHXVUU6M2PAF33BKRJ4KOYZAA3QQXPDZIGUTCTP2QGSOJJYWHB6AQH6BD3PWWO
-#::: YAQAXFOMWCWJE4A4765KASV2IUOINUDFZFP44YLQDXYK56KGCPP :::: NAILARA AMOS :::
-# :: Y6EA6VNT3KYDBIYM5UJYMJHSET6RRIOHHHKOZNQ572ZWB3NOTYAA :: CODE SIGNATURE ::
+#L7TCJBUCVPLPX3WSU26ISQZYITMD7DICKQRS4Q7K2XBXRYNUZINA3G7WBCG64VOZB4VWQ57DQONGK
+#::: UHDRLF3LOOZMQIQ2QKVW6BN67GE2IUMPIKMR34VOG5WNTISANOQ :::: NAILARA AMOS :::
+# :: UFSEWNG7VGPEBQCXY4VWCY5FFBWHY6UC2ZGDBK5IRA4UPGLRTGDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

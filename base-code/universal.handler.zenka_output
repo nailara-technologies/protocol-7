@@ -13,7 +13,8 @@ my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'universal'}{'zenka.output_buffer'}{$zenka_name},
     4096,     length( <universal.zenka.output_buffer>->{$zenka_name} )
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+if ( not defined $read_bytes or $read_bytes == 0 )
+{    # ( filehandle exception )
     $event->cancel;
     close($read_fh);
     <[base.log]>->( 1, "( $zenka_name ) output pipe closed." );
@@ -28,7 +29,7 @@ while ( <universal.zenka.output_buffer>->{$zenka_name} =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#DVOFBDG2PADFAV263ZIRRZUZCTYC3TKHR3OGVOT7ALLF7VAQUXCZSGDCDUFBDEAZ5QLV3ODCTEWTC
-#::: D7MXIVQ6VIGJ5X2RRW5TNV3XSJUJ6G35MYOPUFZR7NYA27CFA5P :::: NAILARA AMOS :::
-# :: IG3O7UPSTSCLUMZD3FRCULEKTD7UTFF3UH5VSNHSPGEPGD27CSAA :: CODE SIGNATURE ::
+#W52GD5NZROSX2EFE2WOLZWZMWHWYVGILZORDVP4K3UAW34AL5S6D6VP642T6INTVB5XIBVOZ26XAI
+#::: VGRTDBWFBMCXTEP4AJJ34X2S6Z2RT7LD3Z6P2DAPUYHMIWQKIYY :::: NAILARA AMOS :::
+# :: PATV5OWGATC6CBHZ5KOX4S7GTVD5SCDN4C7BTWKBULFYE4DNQGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

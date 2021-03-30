@@ -15,7 +15,7 @@
 
 <composition.setup_file_name> //= 'default';
 <composition.cfg_directory>   //= '/etc/protocol-7/zenki/composition';
-<composition.hash_file>       //= <composition.cfg_directory> . '/set-up.sha1';
+<composition.hash_file> //= <composition.cfg_directory> . '/set-up.sha1';
 <composition.startup.initializing>        //= 1;
 <composition.transition_in_progress>      //= 0;
 <composition.restore_composition_enabled> //= 0;
@@ -29,7 +29,8 @@
 if ( !<composition.watch_tiles.poll_tile_color>
     and defined <composition.timer.poll_tile_color> ) {
     my $timers = <composition.timer.poll_tile_color>;
-    <[base.log]>->( 0, "stopping tile activity poll timers [config changed]" );
+    <[base.log]>
+        ->( 0, "stopping tile activity poll timers [config changed]" );
     map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
         keys %{$timers};
 }
@@ -43,7 +44,8 @@ if ( !-d <composition.cfg_directory> ) {
     my $cfg_dir = <composition.cfg_directory>;
     my $perms   = '0750';
     if ( !-d $cfg_dir ) {
-        <[base.log]>->( 1, "creating config directory '$cfg_dir'.. [$perms]" );
+        <[base.log]>
+            ->( 1, "creating config directory '$cfg_dir'.. [$perms]" );
         my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
             or die "user '" . <system.privs.user> . "' not in passwd file";
         make_path( $cfg_dir,
@@ -53,7 +55,8 @@ if ( !-d <composition.cfg_directory> ) {
         my $old_perms = <[base.file_perm]>->($cfg_dir);
         if ( $old_perms ne $perms ) {
             <[base.log]>->(
-                0, "<!> fixing config dir permissions [ $old_perms -> $perms ]"
+                0,
+                "<!> fixing config dir permissions [ $old_perms -> $perms ]"
             );
             chmod( oct($perms), $cfg_dir )
                 or warn("chmod($cfg_dir): $OS_ERROR");
@@ -68,14 +71,15 @@ goto skip_load if defined <composition.setup.tile-groups>;
 my $config_name      = <composition.setup_file_name>;
 my $cfg_root_path    = <system.conf_path>;
 my $config_filename  = "zenki/composition/tile-group-setup.$config_name";
-my $config_file_path = <composition.import_path>;    ## <-- can be undefined ##
+my $config_file_path = <composition.import_path>;   ## <-- can be undefined ##
 $config_file_path //= <system.conf_path>;
 $config_file_path .= "/$config_filename";
 
 die "<!> composition setup '$config_file_path' not found <!>"
     if !-f $config_file_path;
 
-<[base.log]>->( 1, "<!> loading tile-group configuration '$config_name' <!>" );
+<[base.log]>
+    ->( 1, "<!> loading tile-group configuration '$config_name' <!>" );
 
 <[file.put]>->(
     <composition.hash_file>,
@@ -98,14 +102,15 @@ die "<!> composition setup '$config_file_path' not found <!>"
 
 # use Data::Dumper 'Dumper'; print Dumper(<composition.setup>);
 
-skip_load:   # <- jumping here if composition has already been imported as json!
+skip_load: # <- jumping here if composition has already been imported as json!
 
 my $current_cfg_path = <composition.cfg_directory> . '/tile-group.current';
 my $default_cfg_path = <composition.cfg_directory> . '/tile-group.default';
 my $restore_tile_group_name;
 
 if ( -f $default_cfg_path ) {
-    chomp( my $default_tile_group = ${ <[file.slurp]>->($default_cfg_path) } );
+    chomp( my $default_tile_group
+            = ${ <[file.slurp]>->($default_cfg_path) } );
     if ( defined <composition.fallback_tile_group>
         and <composition.fallback_tile_group> ne $default_tile_group ) {
         <[base.log]>->( 0, "<< default tile group has changed >>" );
@@ -161,8 +166,8 @@ if ( <composition.restore_composition_enabled> and -f $current_cfg_path ) {
             0, ": <!> syntax error in '$current_cfg_path' configuration..,"
         );
     }
-} elsif ( -f $current_cfg_path and !<composition.restore_composition_enabled> )
-{
+} elsif ( -f $current_cfg_path
+    and !<composition.restore_composition_enabled> ) {
     <[base.log]>->( 1, "<< restoring of current tile group is disabled >>" );
 }
 
@@ -208,8 +213,9 @@ if ( defined <composition.fallback_tile_group> ) {
             . <composition.fallback_tile_group>
             . "' to '$fname'.,"
     );
-    <[file.put]>
-        ->( $default_cfg_path, <composition.fallback_tile_group>, "\n" );
+    <[file.put]>->(
+        $default_cfg_path, <composition.fallback_tile_group>, "\n"
+    );
 }
 
 map {
@@ -217,14 +223,16 @@ map {
         if defined <base.watcher.signal>->{$ARG};
     my $uc_sig = uc($ARG);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
-    <base.watcher.signal>->{$ARG} = <[event.add_signal]>->(
-        { 'signal' => $uc_sig, 'handler' => 'composition.handler.sig_term' } );
+    <base.watcher.signal>->{$ARG}
+        = <[event.add_signal]>->(
+        { 'signal' => $uc_sig, 'handler' => 'composition.handler.sig_term' }
+        );
 } ( 'int', 'term', 'quit' );
 
 0;
 
 #.............................................................................
-#IUKEKFLZIBRWHZIOZCFE43YYKKPF6UQ6P6Z74L6EV5SF3NWZ3ILS3HJDKXJKKYFBBA3ACB4WAKE4Y
-#::: ZAP5HSN5KPHROENMXD4FIWESIGL3RF4OX7ZLWRDJZRM5DU2DF4L :::: NAILARA AMOS :::
-# :: TOXIW2Q6452EYWS37YWZB2NHTPSM4UK6ILOJC2XYPJ7PCHZJGYCI :: CODE SIGNATURE ::
+#4MPWJIPT4VIFJVB7QM5G5BP4W6WJ7RYK6MCJTCYEFBU2METBWTIAO7Q7JQGP7LUHPBAFLSKYCXFMW
+#::: QWNOVW433XGJURMBWSQXUD4OMLFFMWT4CMZ7XRV7J66SKQ5IJ6P :::: NAILARA AMOS :::
+# :: SQNY6SSJGT67YQQECYH4HO6F6EBLRUSLSLQNTDIRTBGFN6K7KGCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

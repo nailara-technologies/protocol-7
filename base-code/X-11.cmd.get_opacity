@@ -29,7 +29,8 @@ my $result = <[X-11.get_window_opacity]>->($window_id);
 
 if ( not defined $result ) {
     <[base.log]>->(
-        0, "error during get_opacity() command for window $window_id [closed?]"
+        0,
+        "error during get_opacity() command for window $window_id [closed?]"
     );
     return { 'mode' => 'nak', 'data' => 'window has been closed' };
 }
@@ -37,7 +38,7 @@ if ( not defined $result ) {
 return { 'mode' => 'ack', 'data' => sprintf( "%.3f%%", $result * 100 ) };
 
 #.............................................................................
-#VNXHRWBYJYB2ZAW5AGWJ4VNXQFE7QTFBV5CPK7JUBE6D2Z3DBPXBF5DKYIXW56QBENLGQBGVQ7QXO
-#::: ILVGFQ6GIC4D7DTUQCKCBOFKLHJGOXGNBWNCAPCKARCX4T7WXJI :::: NAILARA AMOS :::
-# :: 53WNVYEH2IBYCVHBMJSCXCBKQTAEUXZH3SBOIPHUOS447CHXGSBQ :: CODE SIGNATURE ::
+#ECZVQUIFIKAJO7SJ3QOEETVPWWMG5WFH6OTMAT6ZBGQIDG37Z7GLL6UG6ZX5NJQWQ3OTGFLSHTQ7Y
+#::: BQ37DPTSRRUSTVGBPOWTETUDYJNH3S66JGIIKBLL5KU2AOAMKM2 :::: NAILARA AMOS :::
+# :: 7HNYIXJNYLLOTYXU5JGUUCUWURJQZJYRXE2Y3LV3V45XOZPAP2DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

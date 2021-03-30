@@ -57,7 +57,8 @@ if ( $data_source eq 'file' and -f $tiles_visible_file ) {
         2, ": filter file ['$tiles_visible_file'] skipped [ manual mode ].,"
     );
 } else {
-    <[base.log]>->( 2, ": no filter file ['$tiles_visible_file'] present .," );
+    <[base.log]>
+        ->( 2, ": no filter file ['$tiles_visible_file'] present .," );
 }
 
 <content.file_list>     = [];
@@ -83,7 +84,7 @@ if ( !@file_names ) {
     return 0;
 } else {
 
-    # LLL: need file type cache auto cleanup + delay and combine update requests
+  # LLL: need file type cache auto cleanup + delay and combine update requests
 }
 
 my %b32_index;
@@ -174,12 +175,14 @@ foreach my $file (@file_names) {
         } else {
             $type = 'html';
         }
-    } elsif ( $file =~ m|^udp://| ) { # LLL: temporary hack for mcast live video
+    } elsif ( $file =~ m|^udp://| )
+    {    # LLL: temporary hack for mcast live video
         $type = 'video';
     } elsif ( $file =~ m|^rt[sm]p://| ) {    # video
         $type = 'video';
     } elsif ( $type eq 'unknown' and -f $file ) {
-        <[base.log]>->( 0, "unable to determine type of local file '$file'." );
+        <[base.log]>
+            ->( 0, "unable to determine type of local file '$file'." );
         next;
     }
 
@@ -239,10 +242,11 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
     <[base.log]>->( 1, ": all network errors resolved. =)" );
 }
 
-<[content.update.send_notifications]>;  ##  <-- check if required [yet].., [LLL]
+<[content.update.send_notifications]>
+    ;    ##  <-- check if required [yet].., [LLL]
 
 #.............................................................................
-#KIQD236D26GW2JBHGRFCNO4PMOMJ6P47M24BZBRVIFMY2KW7J2EFN6HVZUPE6DEF3MSP3B27Z2Z2I
-#::: 5FBCWVUR4VNSYL4UXXDTQYW4LVOQ3JJADABUANQZQQXE6U4IWUV :::: NAILARA AMOS :::
-# :: SMFGY3M3U7QAKYTUB3RUI3XIGQ35GI6QYHHAVL73RICHJTMXE4AY :: CODE SIGNATURE ::
+#ITPXJVXJZW7VKKCDMGZKKG5CQW53VGJYHWEANU7TBBUME4KQOF2BKNJS3IAZJIP5QSMFFY6KYNQTY
+#::: U2NI54YZFYU77HJDQMDDUWXPU6L6U7HZTCBNBBU2S27Z5II3R3R :::: NAILARA AMOS :::
+# :: JBSBL56HGSRRFJ4UFGOQ2MAEPIW6EBK3USY65EB55OQ4SWBN2ODY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

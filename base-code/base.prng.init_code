@@ -8,7 +8,8 @@
 my $iterations    = 44;
 my $harmonic_seed = '[_not_yet_]';
 while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
-    ( $harmonic_seed = join( '', <[base.ntime]>->(5), rand(13747) ) ) =~ s|\.||;
+    ( $harmonic_seed = join( '', <[base.ntime]>->(5), rand(13747) ) )
+        =~ s|\.||;
     ( $harmonic_seed /= 13 ) =~ s,(\.|e.+$),,g;
     <[base.sleep]>->(0.0013) if $iterations < 37;
 }
@@ -16,8 +17,9 @@ while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
 <base.prng.fortuna> = Crypt::PRNG::Fortuna->new($harmonic_seed);
 
 0;
+
 #.............................................................................
-#Y2LBXNPXKXJPVMJ5VEL55X4DVFJNOFYSVZCWRCFHCPXF4SYZERADPR3TX5DXZ3L2N3GX75R5GVF2M
-#::: BU5VSJ4OXFZBUAXKBLMURYX7OHLWFGQC5MJRIRRVBD4Z2XDXYPD :::: NAILARA AMOS :::
-# :: DXFTLTCB4YWUEFDSOYVWJKCGF4IVI7XY6X4D7YGCVRZWF6WMPEAY :: CODE SIGNATURE ::
+#PIOOUY7LYRLPSNARAWNM7M3TF4SFSRH4C4QG4O2OL646NYKHYHPIFGOUNG5ON25OTJJO3F6UWIJQI
+#::: WYZWHHGQVVM2F3Q5LKAKNCMID5Q2Q4KBFCTDVIWDZEBVBFZGKUH :::: NAILARA AMOS :::
+# :: VRF5AEGOBBBAKLQVJQZPFH53ZTPJJ5B62PKVRVC6J57DRFNQ42DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

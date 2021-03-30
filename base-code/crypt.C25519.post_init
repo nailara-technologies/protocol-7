@@ -32,13 +32,16 @@ if ( not defined $home_dir or !-r $home_dir ) {
 
 return -1 if not <[crypt.C25519.chk_key_dir]>;    # <-- creates if missing ..,
 
-<[crypt.C25519.auto_convert]>->($key_dir);  ## <-- [ update filename structure ]
+<[crypt.C25519.auto_convert]>->($key_dir)
+    ;    ## <-- [ update filename structure ]
 
 my $secret_key_file = $key_filename->{'secret'};
 my $public_key_file = $key_filename->{'public'};
 
 if ( !-f $secret_key_file and !-f $public_key_file and -w $key_dir ) {
-    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
+    <[base.log]>->(
+        0, "generating C25519 'base' key pair for '$key_usr' ..,"
+    );
     my %key_b32 = ( 'secret' => '', 'public' => '' );
     if (<[crypt.C25519.gen_keys]>) {
         <[crypt.C25519.write_keys]>;
@@ -60,7 +63,8 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
     }
 }
 
-if ( defined <system.zenka.type> and <system.zenka.type> eq 'cube' ) # <<< ! >>>
+if ( defined <system.zenka.type>
+    and <system.zenka.type> eq 'cube' )    # <<< ! >>>
 {
     my $s_key_name = <system.zenka.name>;
     <[crypt.C25519.generate_session_keypair]>
@@ -72,7 +76,7 @@ if ( defined <system.zenka.type> and <system.zenka.type> eq 'cube' ) # <<< ! >>>
 0;
 
 #.............................................................................
-#WO5ME6OV7WVEXCRVNUSFPV557HD677QSSVLAVSKH7N73JSDFCYJJI3MPL3FM3TZIB7DK7BSAJPZIG
-#::: B2H5LLN5GOOTLWJXAKLMN7NR45T57GT2NQ3BYBWZ53WTURHKHEK :::: NAILARA AMOS :::
-# :: 2DUMZEA5UM6BTMGO4X3WMXB7G5BSKDPAIEE5GVFVH75NCMETYOBA :: CODE SIGNATURE ::
+#UMXNMP2YKZF7PQDPZCH5XRLSC3FPLXFFDWWFQYSFV75OTVXB7TZC6F6PRYWHLDOWWSQQ2VM67H7B2
+#::: V2ZKQEQDOCQHBZI7O7VDDVVFDQ5JV2F3B63YYNBJBHLLJY7WLBF :::: NAILARA AMOS :::
+# :: IGDQNGED6Z7LY4R7QUE7ZNJIHKKZH7TWSU2CKP7HSYMWOGUY6QBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

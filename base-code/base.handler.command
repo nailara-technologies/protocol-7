@@ -88,7 +88,8 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
 
 ## checking for multi-line commands ###
 
-if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o ) {
+if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
+{
     ( my $multiline_cmd, $cmd ) = ( $1, $2 );
     if ( $multiline_cmd =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
 
@@ -130,10 +131,10 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o ) {
                         $$output
                             .= $_cmd_id
                             . "NAK [multi-line] command parameter"
-                            . " syntax not valid\n";    ## <-- [re]define. [LLL]
+                            . " syntax not valid\n";  ## <-- [re]define. [LLL]
 
                         $_[0]->w->start;
-                        return 0;                       ## command complete ##
+                        return 0;                     ## command complete ##
                     }
                 } elsif ( $header == 1 ) {
                     $header = 0;
@@ -174,7 +175,8 @@ elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *DATA +(\d+)\n),o
 
 ### single command line ###
 
-elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
+elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
+{
 
     $_[0]->w->start;
 
@@ -187,8 +189,8 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
         and $cmd !~ m,^(\($re->{cmd_id}\)|) *(unselect|basepath)$,
         and $cmd !~ s,^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|),$1$2,;
 
-    #       ^ commands prefixed with '..' mean "parent" to 'select'ed base_path!
-    #         'unselect' and '../' are synonyms, they reset the base_path to ''!
+  #       ^ commands prefixed with '..' mean "parent" to 'select'ed base_path!
+  #         'unselect' and '../' are synonyms, they reset the base_path to ''!
 
     $command_mode = 1;
 }
@@ -306,7 +308,8 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 my $valid_answer = 0;
 
 my ( $_m1, $_m2 );
-my $cmd_usr_str = $cmd; # used for access checking [ relevant with <sid>.<cmd> ]
+my $cmd_usr_str
+    = $cmd;    # used for access checking [ relevant with <sid>.<cmd> ]
 $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     if $cmd =~ m|^($re->{sid_str})(\..+)$|
     and $_m1 = $1
@@ -337,8 +340,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 if ( defined $$route{'reply'}{'handler'}
                     and $$route{'reply'}{'handler'} ne '' ) {
                     if (    defined $code{ $$route{'reply'}{'handler'} }
-                        and defined &{ $code{ $$route{'reply'}{'handler'} } } )
-                    {
+                        and defined &{ $code{ $$route{'reply'}{'handler'} } }
+                    ) {
 
                         # call reply handler
 
@@ -357,8 +360,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                                 . $$route{'reply'}{'handler'} . "]"
                         );
                     }
-                } elsif ( defined $data{'session'}{ $$route{'source'}{'sid'} } )
-                {
+                } elsif (
+                    defined $data{'session'}{ $$route{'source'}{'sid'} } ) {
                     my $source_sid = $$route{'source'}{'sid'};
                     ##  calling reply handler if a filter hook was applied., ###
                     $route->{'hook_data'}->{'handler'}->(
@@ -373,7 +376,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     # route reply
                     $$call_args{'args'} //= 'UNDEFINED';
                     $data{'session'}{$source_sid}{'buffer'}{'output'}
-                        .= $s_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
+                        .= $s_cmd_id
+                        . $cmd . ' '
+                        . $$call_args{'args'} . "\n";
 
                 } else {    # should never come here [ SID gone. ]
                     <[base.log]>->(
@@ -424,10 +429,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                         if ( defined $$route{'reply'}{'handler'}
                             and $$route{'reply'}{'handler'} ne '' ) {
-                            if (    defined $code{ $$route{'reply'}{'handler'} }
-                                and
-                                defined &{ $code{ $$route{'reply'}{'handler'} }
-                                } ) {
+                            if ( defined $code{ $$route{'reply'}{'handler'} }
+                                and defined
+                                &{ $code{ $$route{'reply'}{'handler'} } } ) {
 
                                 ## calling reply handler ##
 
@@ -435,8 +439,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                                     {   'sid'       => $id,
                                         'cmd'       => $cmd,
                                         'call_args' => $call_args,
-                                        'params' => $$route{'reply'}{'params'},
-                                        'data'   => $data_reply
+                                        'params'    =>
+                                            $$route{'reply'}{'params'},
+                                        'data' => $data_reply
                                     }
                                 );
 
@@ -462,10 +467,12 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                         # delete route
                         my $src_sid    = $$route{'source'}{'sid'};
                         my $src_cmd_id = $$route{'source'}{'cmd_id'};
-                        delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            {$src_cmd_id};
                         delete $data{'route'}
                             { $data{'session'}{$id}{'route'}{$cmd_id} }
-                            if defined $data{'session'}{$id}{'route'}{$cmd_id};
+                            if
+                            defined $data{'session'}{$id}{'route'}{$cmd_id};
                         delete $data{'session'}{$src_sid}{'route'}
                             if !keys %{ $data{'session'}{$src_sid}{'route'} };
                         delete $data{'session'}{$id}{'route'}{$cmd_id};
@@ -519,7 +526,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             or exists $data{'session'}{$id}{'silent_ignore'}
             and $data{'session'}{$id}{'silent_ignore'} == 1;
         <[base.log]>->(
-            $ignore_log_level, "[$id] $cmd-reply to unknown route id, ignored."
+            $ignore_log_level,
+            "[$id] $cmd-reply to unknown route id, ignored."
         );
 
         if (    $cmd eq 'DATA'
@@ -584,15 +592,18 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 my $reply;
                 {
                     local $EVAL_ERROR = undef;
-                    $reply = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
+                    $reply
+                        = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
                     if ( my $err_str = $EVAL_ERROR ) {
                         $err_str =~ s| at (\S+) line (\d+).*\n$||;
                         my $file = $1;
                         my $line = $2;
-                        $file =~ s|^/usr/share/perl5/||; ## shorten path for .pm
+                        $file
+                            =~ s|^/usr/share/perl5/||; ## shorten path for .pm
                         my $log_error = 1;
                         ## alternative handler registered for filename:line ? ##
-                        my $match_param = "$file:$line";  #  <-- expand. [ LLL ]
+                        my $match_param
+                            = "$file:$line";           #  <-- expand. [ LLL ]
                         my $warn_handlers = <base.warn-match-handler> // {};
                         if ( defined $warn_handlers->{$match_param} ) {
                             my $cb_name = $warn_handlers->{$match_param};
@@ -618,7 +629,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 ### deferred reply., ###
 
-                if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' ) {
+                if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' )
+                {
 
                     <[base.log]>->( 2, "setting up reply for id $reply_id" );
 
@@ -714,7 +726,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         if ( exists $data{'user'}{$1}{'session'}
             and $data{'user'}{$1}{'mode'} eq 'link' ) {
 
-         #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
+       #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
         return 0;    ## command complete ##
     }
@@ -723,7 +735,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     ## absolute address notation ##
 
-    elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| ) { # LLL: regex invalid: <only host>
+    elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
+    {    # LLL: regex invalid: <only host>
         my $network_name = $1;
         my $node_name    = $1;
 
@@ -752,9 +765,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
         } elsif (
             exists $data{'user'}{$target_name}{'session'}
             and ( not defined $target_subname
-                or
-                defined $data{'user'}{$target_name}{'subname'}{$target_subname}
-            )
+                or defined $data{'user'}{$target_name}{'subname'}
+                {$target_subname} )
             ) {                                ## [ online \ present ]
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
@@ -773,7 +785,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 ##[ ONDEMAND AGENTS ]###########################################################
 
         } elsif ( my $v_id
-            = <[base.zenki.ondemand_registered]>->($target_name) ) { # ondemand
+            = <[base.zenki.ondemand_registered]>->($target_name) )
+        {    # ondemand
             my $target_user    = 'nroot';
             my $target_command = <zenki.virtual>->{$v_id}->{'target_command'};
             if ( defined $target_command
@@ -806,7 +819,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                     my $start_name = <zenki.virtual>->{$v_id}->{'name'};
 
-                    # [LLL] subname behaviour needs refinement \ configuration.,
+                  # [LLL] subname behaviour needs refinement \ configuration.,
                     $start_name .= "[$target_subname]"
                         if defined $target_subname;
 
@@ -843,19 +856,21 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 ##[ CHECK INITIALIZED ]#########################################################
 
         my @send_sids_left;
-        foreach my $target_sid (@send_sids) { # check if session initialized yet
+        foreach my $target_sid (@send_sids)
+        {    # check if session initialized yet
             if (
                 (   not defined <system.zenka.mode>
                     or <system.zenka.mode> ne 'cube'
                 )
-                or $user eq 'nroot'  # [LLL] improve check if really nroot zenka
+                or $user eq
+                'nroot'    # [LLL] improve check if really nroot zenka
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
                 push( @send_sids_left, $target_sid );
                 next;
             }
 
-            # if 'zenka'-mode session and not initialized allowing replies only.
+          # if 'zenka'-mode session and not initialized allowing replies only.
             $$output .= $_cmd_id . "NAK $uninitialized\n";
             <[base.log]>->(
                 0,
@@ -930,7 +945,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
 ##[ LOGGING \ DEBUG MODE ]######################################################
 
-            if ( <system.verbosity.console> >= 3 and defined $$call_args{'args'}
+            if ( <system.verbosity.console> >= 3
+                and defined $$call_args{'args'}
                 or <system.verbosity.zenka_buffer> >= 3
                 and defined $$call_args{'args'} ) {
                 ( my $args_str = $$call_args{'args'} ) =~ s|"|\"|g;
@@ -948,7 +964,9 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     if not defined $$call_args{'args'};
 
                 $data{'session'}{$target_sid}{'buffer'}{'output'}
-                    .= $target_cmd_id . $cmd . ' ' . $$call_args{'args'} . "\n";
+                    .= $target_cmd_id
+                    . $cmd . ' '
+                    . $$call_args{'args'} . "\n";
 
                 # [LLL] set up timeout handler
 
@@ -964,8 +982,8 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 {
                     my ( $key, $val );
 
-                    while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
-                    {
+                    while ( ( $key, $val )
+                        = each( %{ $$call_args{'param'} } ) ) {
                         $header .= $key . '=' . $val . "\n";
                     }
                 }
@@ -1024,7 +1042,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#JF7DLTX6YO65XP5S24BOY5VHVMIGOQ23OVTTVMBHX6HYTZPKEZRTVHWTJHBGEV2YKGOEGTFGP3FGE
-#::: VNDRUQSMTI7DSFWIMOMT5ZYC5XGOGSTR4XF7UGOOGMTGRRKASIQ :::: NAILARA AMOS :::
-# :: SZSGVYGS4TGUUN36U65LXUGDV4LIWGUVRUO3ZJCZ5E3FN2I3ZCBA :: CODE SIGNATURE ::
+#2BC5I6GJGZO3MSRSGD3KXFPP66JVHK4DUSUICUFEX4QLISHSFOCYC4PWVIZHUPEFA5K5QMUDI4IAA
+#::: MDJ3N6MSBV2BWNUIDMNLCFB252UYVHGAMVW6LALRXETHULJIKOZ :::: NAILARA AMOS :::
+# :: HTASYYFFZYL2ZXSJHORHHLM4PSPMZBV3MUGA3YENVAGRSX6XKMCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

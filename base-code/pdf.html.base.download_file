@@ -41,9 +41,10 @@ if ( !-d $target_dir ) {
     make_path($target_dir) or die "make_path($target_dir): $OS_ERROR";
 }
 
-my $head_res       = $ua->head($file_url);
-my $content_type   = $head_res->{'_headers'}->{'content-type'};
-my $content_length = $head_res->{'_headers'}->{'content-length'}; # LLL: use ...
+my $head_res     = $ua->head($file_url);
+my $content_type = $head_res->{'_headers'}->{'content-type'};
+my $content_length
+    = $head_res->{'_headers'}->{'content-length'};    # LLL: use ...
 if ( $content_type =~ m|/pdf$| ) {
     <[base.log]>->( 2, "found pdf file ($content_length bytes)" );
 } else {
@@ -77,7 +78,7 @@ if ( $status_code ne '200' ) {
 }
 
 #.............................................................................
-#HNIJ5YVG767UNJ2RZ3SGEE3FQY44N7T5RW6OS64EQRN6QSSC74MSUOA4UF6E4V53LXXEKL7ZABX6K
-#::: K5C5WVOHKK2T5QWN2LW5IIE6NXKBKPA7XC4UYLPDQR47MRVLZEA :::: NAILARA AMOS :::
-# :: VQTLAIUPS432IAKRUOFVD5DDZKZAGJGLC244T2TRWLTF4P2YX4CQ :: CODE SIGNATURE ::
+#NK32I5RUKJFUDVDVU3XTFGBNC7U75CH2GDW4VE55R6AGYBVS5XHTE4VR75O3SDIXCE2H46H42VSA2
+#::: Y643HSPSLHXHNALIL5BH2AFQN4B45M7KY7YQDXTHVETOTUPRJC6 :::: NAILARA AMOS :::
+# :: H6MZMLWSP6OJ22RVTKOEV3243IGNXYJXAZHEG6V5Q7HU4PSCW6BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

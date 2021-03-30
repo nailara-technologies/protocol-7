@@ -5,7 +5,8 @@
 # descr = rescale video dimensions
 
 my $params = shift->{'args'};
-my ( $video_path, $new_size, $box_size, $target_path ) = split( / +/, $params );
+my ( $video_path, $new_size, $box_size, $target_path )
+    = split( / +/, $params );
 
 my $format = <ffmpeg.output_format> // 'mp4';
 
@@ -61,7 +62,7 @@ if ( !-d $output_path ) {
 
     #    make_path($output_path) or die "make_path($output_path): $OS_ERROR";
     make_path( $output_path, { chmod => 0777 } )
-        or die "make_path($output_path): $OS_ERROR";   ## <<< ! >>> ## chmod ###
+        or die "make_path($output_path): $OS_ERROR"; ## <<< ! >>> ## chmod ###
 
 }
 
@@ -133,7 +134,7 @@ unlink($error_log_file) if -f $error_log_file;
 return { 'mode' => 'ack', 'data' => $output_file }
 
 #.............................................................................
-#KX7ZONXAM2MXXI4SURMDQ2LJ6GRORZ3ULF4LSYYQU6NQFODCYQBLGPSXZCHBLDLUOXCYYWORXRQZO
-#::: 7PAY3O7SFDTBSTEFD4C3VBWGM5PHZJSRHNV24FQ37HMPYEA6FGY :::: NAILARA AMOS :::
-# :: NVBZTSMMFSKRVFBVRTU2VL7JEW2UGDSXXBF2CLHTHQOVVQ4FTSCA :: CODE SIGNATURE ::
+#MBNZKWNYG37MMCQANTPNZ7LIIPNK4GWED2HZ46IAOFCJSSVIQEBRSLPMBACE3QQPRHIAUFOB6L22E
+#::: NOD6LS4CEK52APX5PMS4BALAID2ZOIYAURYPKKWA2OTREMOISTE :::: NAILARA AMOS :::
+# :: GIXDN65HAH4QZ6FWQ4EZ6YZ2NN6ZVUB63HOTJ6E4KXKKI7IC2UAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

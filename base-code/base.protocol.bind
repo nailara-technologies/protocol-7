@@ -10,7 +10,9 @@ if ( not defined $_[0] or not defined $data{'protocol'}{ $_[1] } ) {
     my $reason        = 'undefined filehandle';
     $reason = 'unknown protocol'
         if not defined $data{'protocol'}{$protocol_name};
-    <[base.log]>->( 0, "unable to bind protocol '$protocol_name' [ $reason ]" );
+    <[base.log]>->(
+        0, "unable to bind protocol '$protocol_name' [ $reason ]"
+    );
     <[base.session.check_remaining]>;
     return undef;
 }
@@ -29,7 +31,8 @@ if ( $EVAL_ERROR or not defined $fd ) {
     );
     <[base.session.check_remaining]>;
 } else {
-    warn "file handle '$fd' does not have a real file descriptor" if $fd == -1;
+    warn "file handle '$fd' does not have a real file descriptor"
+        if $fd == -1;
     <[base.log]>->(
         2, "bound protocol '$_[1]' to handle '$_[0]' [ $mode mode ]"
     );
@@ -37,7 +40,7 @@ if ( $EVAL_ERROR or not defined $fd ) {
 }
 
 #.............................................................................
-#ZHPKACAMCBYTBW7XPPFXXEM45WGXTZULUL3JNH7LGBZDDV2BUI65L5VVNTB4HMWWM6TSZE23UP6FG
-#::: I2JOAAQWLNUZ4O3LRL5UGOBWCSGYLUYWDI6NJFKMLZJDC24MGWM :::: NAILARA AMOS :::
-# :: XOPOQI7VQBJII3G42E2QSAPNETHPNIKGGQ57YBS3Q7A5G2WZIACI :: CODE SIGNATURE ::
+#G342SQPJ4A6KCECTTRMCY3BLLETHAORCWET5OSJ32F4CNRVJZMO3MABTC4272SB2GHGX4DMV4ACU6
+#::: KB5RGLODV6OENK3DKRMZFA2PGGLQKJ3CPIDYG6I4ZWF4TIKDNDS :::: NAILARA AMOS :::
+# :: W4H3HCML67AC5WYLTIGPPRJNAVDPQKFJPV5JOR4SEFZVSI7CPUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

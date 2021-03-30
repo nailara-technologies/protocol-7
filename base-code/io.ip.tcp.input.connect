@@ -7,11 +7,14 @@ my $fd = $data{'session'}{$id}{'handle'};
 
 if ( -S $fd ) {
     my $new_sock = $fd->accept()
-        or
-        <[base.log]>->( 0, "tcp.connect_handler: can not accept [$OS_ERROR]" );
-    my ( $p_host, $p_port ) = ( $new_sock->peerhost(), $new_sock->peerport() );
+        or <[base.log]>
+        ->( 0, "tcp.connect_handler: can not accept [$OS_ERROR]" );
+    my ( $p_host, $p_port )
+        = ( $new_sock->peerhost(), $new_sock->peerport() );
 
-    return undef if not defined $p_host or not defined $p_port;  # <-- closed[!]
+    return undef
+        if not defined $p_host
+        or not defined $p_port;    # <-- closed[!]
 
     my $v4_over_6 = $p_host =~ s|^::ffff:|| ? 1 : 0;
 
@@ -41,7 +44,7 @@ if ( -S $fd ) {
 }
 
 #.............................................................................
-#QI6LRR63JHXDYQEPOQHU35AKT3I6BPBRIP4A4OF5JED2HOUPALPOAPJQOOKVNWRSDA5TLTKI3LGGA
-#::: RR2ULSFPBOL5FESOD7CQ6XFNDLMLRRYXW2UUH2WIVSEN457IPHZ :::: NAILARA AMOS :::
-# :: FEUVE2F7PAZ5FFIZHHYOM7SRAMNVSQHGAEZZDIDTVPQYLJ7RECDA :: CODE SIGNATURE ::
+#T2COKEKCQVADYCETVYM3NWUOF3TYBVFICTYSGWC3FAC6HCMP7HBEMU3QHAOMVE5TYPPPDW44PE6YI
+#::: GNYMAFKZPL7B7Z7HVDBJSIY2BGMFQSKBBWQE3N4KY2WCFJYT5TZ :::: NAILARA AMOS :::
+# :: J4VOFNI5TKT6CDMRSSYCZYHNLNFTZJDVIBIMNDQ6O6Q7A2YZDEAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

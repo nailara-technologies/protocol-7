@@ -95,8 +95,9 @@ foreach my $name ( keys %shutdown_names ) {
         <[base.log]>->(
             2, "disabled zenka '$name' [ no more instances present ]"
         );
-        <[base.log]>->( 1, ": << added '$name' to 'manually stopped' list >>" )
-            if $stop_mode eq 'manual';
+        <[base.log]>->(
+            1, ": << added '$name' to 'manually stopped' list >>"
+        ) if $stop_mode eq 'manual';
 
         next if not exists <nroot.zenka.dependency>;
         foreach my $dep_name ( keys %{<nroot.zenka.dependency>} ) {
@@ -138,7 +139,8 @@ if ($count) {
         }
         map {
             if ( my @removed_job = <[jobqueue.remove_job]>->($ARG) ) {
-                my $a_n = $removed_job[0]->{'callback_params'}; ## zenka_name ##
+                my $a_n
+                    = $removed_job[0]->{'callback_params'};   ## zenka_name ##
                 <[base.log]>->( 0, "removed orphaned start job [$ARG]" );
                 <[base.log]>->( 0, ": zenka : $a_n" );
             }
@@ -152,7 +154,7 @@ if ($count) {
 }
 
 #.............................................................................
-#6YZ4LJ5ZNTZO6JCJ5R476EGE4DCIVLMFUG4BX7ZLFWYMIEFYDRUCIUDC6BEU5CDPN4XHKY4TIKQDM
-#::: RPRAHXQNHQGDWCV4PWLJOPVYAECEBZUW75VQRZYVLCFZMVFQQMT :::: NAILARA AMOS :::
-# :: 7NNLE3PKKX7RVDCD2IEJPFESY3BGLG2JJOK6U7DB6357J6ZHUIBQ :: CODE SIGNATURE ::
+#H4O4JIU5VNI6EYPVFGMSBGVNOT7HIT62Y77LG5XYZDCL4WBL65RBSUSTT3ODM5MVSUPZR7LXYPFN6
+#::: MWEDLXLBXUII4YO6UR726XVMMFHCWR4VJCXVSTCA6PV5SICELOL :::: NAILARA AMOS :::
+# :: LO5NTV4DJZ6IH4T7NG5EYMM6Z6RQCVAF2MPSFZKMMV3QAXDGRCDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

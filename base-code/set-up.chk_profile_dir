@@ -14,13 +14,19 @@ if ( !-d $chk_path ) {
 
     ## changing to parent directory ownership ##
     my $cfg_stat = File::stat::stat(<system.conf_path>);
-    make_path( $chk_path,
-        { 'mode' => 0750, 'uid' => $cfg_stat->uid, 'group' => $cfg_stat->gid } )
-        or warn "unable to create profile directory '$chk_path' [ $OS_ERROR ]";
+    make_path(
+        $chk_path,
+        {   'mode'  => 0750,
+            'uid'   => $cfg_stat->uid,
+            'group' => $cfg_stat->gid
+        }
+        )
+        or warn
+        "unable to create profile directory '$chk_path' [ $OS_ERROR ]";
 }
 
 #.............................................................................
-#VZ42PKFD6RJKMXAYE3BBOHZJCP3BIN6JG3LJXDH2LHJBHBB2CWC5S6XYEPKZAV2U75BM5UG4WMTX6
-#::: EGSJBRYAGFSEIO77KRCSK5T642274AY7GE6SDP4RUJUIUACBNE3 :::: NAILARA AMOS :::
-# :: OYKROM7Z57EGP4OSUKGGJJ22V2MDGZUWP5O7PAOCCOGV4I6BQCCA :: CODE SIGNATURE ::
+#VZGTI7CRFMMAZN6WTE2HEUG4GLALK76GVKWF37QIIXIRSWIQDQ6BYMFJH6442BF6AUJAEZRXO2SSY
+#::: GR52BPYOBS3KKNZCCRGHBJPVS25PMKLJ3XCLT4KA67D5HBRPO4R :::: NAILARA AMOS :::
+# :: DSAYOURC2U4RBWLR5NA3J4PMCD3ZJB5GDHEA3JP6FIT62RB56WCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -65,7 +65,7 @@ SDL::TTF::init();
 
 # adjust / add paths as needed.. (and install droid fonts or configure another)
 my $font_path;
-$font_path = '/usr/share/fonts/truetype/droid';               # debian / ubuntu
+$font_path = '/usr/share/fonts/truetype/droid';    # debian / ubuntu
 $font_path = '/usr/share/fonts/TTF' if !f_chk($font_path);    # arch linux
 $font_path = <system.root_path> . '/data/ttf/droid' if !f_chk($font_path);
 die "[!] font path not found"         if !-d $font_path;
@@ -111,7 +111,8 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
     recalc:
         <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, $font_size );
-        die "unable to open font (size=$font_size) [" . SDL::get_error() . "]"
+        die "unable to open font (size=$font_size) ["
+            . SDL::get_error() . "]"
             if not defined <ticker-sdl.font.object>
             or !<ticker-sdl.font.object>;
         <ticker-sdl.font.height>
@@ -137,7 +138,8 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
 
         <ticker-sdl.font.object>
             = SDL::TTF::open_font( $font_path, int($font_size) );
-        die "unable to open font (size=$font_size) [" . SDL::get_error() . "]"
+        die "unable to open font (size=$font_size) ["
+            . SDL::get_error() . "]"
             if not defined <ticker-sdl.font.object>
             or !<ticker-sdl.font.object>;
 
@@ -149,7 +151,8 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
         );
 
     } elsif ( $scale_factor != 1 ) {
-        warn "[!] font scale factor $scale_factor is out of range, ignoring..";
+        warn
+            "[!] font scale factor $scale_factor is out of range, ignoring..";
     }
 
 } else {    # old mode
@@ -161,10 +164,12 @@ if ( exists <x11.coordinates> ) {    #  new (dynamic) mode
         . <ticker-sdl.font.size> . ") ["
         . SDL::get_error() . "]"
         if not defined <ticker-sdl.font.object> or !<ticker-sdl.font.object>;
-    <ticker-sdl.font.height> = SDL::TTF::font_height(<ticker-sdl.font.object>);
+    <ticker-sdl.font.height>
+        = SDL::TTF::font_height(<ticker-sdl.font.object>);
     my $font_line_skip = SDL::TTF::font_line_skip(<ticker-sdl.font.object>);
     <ticker-sdl.border_height>
-        //= int( abs( SDL::TTF::font_descent(<ticker-sdl.font.object>) ) / 2 );
+        //= int(
+        abs( SDL::TTF::font_descent(<ticker-sdl.font.object>) ) / 2 );
 
     # determine screen size
     my $video_info = SDL::Video::get_video_info();
@@ -241,7 +246,7 @@ sub f_chk {
 }
 
 #.............................................................................
-#JPINCG6YFUDPFLVFIOQNZHHBYT6764REXP4UQWOQODPH7K6Z63BIGQUYFWADBA6BZW7QLZHHVIQZY
-#::: X7RSRJ6K7O4OC7ID4Q5DMAYWABHJPNSBGUZPW7KFEA7L7MONJGP :::: NAILARA AMOS :::
-# :: TI5ILIU5WEVEJLSBEZESWYLKH24YJD7IYOSOG4VFFMNBH2G3B2CQ :: CODE SIGNATURE ::
+#5LJJDE2ACWUHR2RFDBDW5V3PI7563AXHPXGMHWHBMUSWCPCM26BGE22SVFMQMOXVJKWBTN6OLWUYA
+#::: LDQ3ZCGWOMDVY6JOQG7ZCJKBWAVJMAHOTWAVEDCVR5ZUZLVWF27 :::: NAILARA AMOS :::
+# :: H5K7WWSL7X52B3O6WKWDE6APKUK6GQXU5X6DX3GN6C4EXHMJ3MDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

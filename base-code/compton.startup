@@ -74,9 +74,8 @@ my @c = (
         |, @shadow_opts
 );
 
-
 ### [ logging command arguments ] ###
-my $lpw = <system.start.log_prefix_width> // <[base.get_start_lpw]> // 24;
+my $lpw     = <system.start.log_prefix_width> // <[base.get_start_lpw]> // 24;
 my $wrap_at = 78 - $lpw;
 local $Text::Wrap::columns   = $wrap_at;
 local $Text::Wrap::separator = "\n";
@@ -86,7 +85,8 @@ $cmd_string =~ s|( +\\\n)?$|\n|s;
 map { <[base.log]>->( 2, $ARG ) } ( ':.', split( m|\n|, $cmd_string ), '..' );
 ###
 
-<compton.pid> = my $pid = open3( <compton.in_fh>, <compton.out_fh>, undef, @c );
+<compton.pid> = my $pid
+    = open3( <compton.in_fh>, <compton.out_fh>, undef, @c );
 if ( !<compton.pid> ) {
     <[base.log]>->( 0, "[!] unable to start compton [$OS_ERROR]" );
     <[base.log]>->( 1, " : aborting zenka startup .," );
@@ -100,9 +100,9 @@ my $prio = <compton.priority>;
 <[base.zenki.report_child_pid]>->($pid);
 
 <[base.log]>->( 2, ": setting child priority [ $pid ] to $prio" );
-print {<compton.renice_fh>} "$pid $prio\n";
-close(<compton.renice_fh>);
-delete <compton.renice_fh>;
+print {<compton.prio_fh>} "$pid $prio\n";
+close(<compton.prio_fh>);
+delete <compton.prio_fh>;
 
 <[event.add_io]>->(
     {   'fd'      => <compton.out_fh>,
@@ -127,7 +127,7 @@ delete <compton.renice_fh>;
 );
 
 #.............................................................................
-#IECOTUMVHOYYZJ566F7BKGZGNSKHA63NZXYDA5HYODSB2524RW6QAIURNNA4VX4Q55IQGPMHGE3WC
-#::: IZRLIZ3JP3L3QSYSJW3VS273CV5TMPR4IGE5L2ADBARZERWAAYJ :::: NAILARA AMOS :::
-# :: KXPXGQ6E3NBX4PQVY36HK4IFJBZDC3HXHL5SLQTMD5N5FVZVYKAQ :: CODE SIGNATURE ::
+#WDMSQ2OW43TEJZN244KA3O6ALKINPRTEJDXORN3GQPCRRRIU5WL3DFQQRBDZPNND5PIEVAVQU224G
+#::: H3R5I52RKFT2UCCRJ2AMGO65INFEBBZL664J45R6T26RMU5KIK4 :::: NAILARA AMOS :::
+# :: F7ZXVF6COJCSXSE5RXDM64ZQQ2JYZE7CWSV2FIRY4QTJVWZ75MBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

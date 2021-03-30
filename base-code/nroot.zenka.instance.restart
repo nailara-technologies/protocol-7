@@ -28,7 +28,8 @@ my $restart_timeout
     : ( $globals->{'restart'}->{'timeout'} // 33 );
 $instance->{'timer'}->{'restart_timeout'} //= {};
 
-my $restart_id = <[base.gen_id]>->( $instance->{'timer'}->{'restart_timeout'} );
+my $restart_id
+    = <[base.gen_id]>->( $instance->{'timer'}->{'restart_timeout'} );
 
 $instance->{'restart_id'}   = $restart_id;
 $instance->{'restart_pids'} = {};
@@ -37,7 +38,8 @@ map { $instance->{'restart_pids'}->{$ARG} = 1 } ( $parent_pid, @children )
 
 my $dependencies_ok
     = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
-    ? <[dependency.ok]>->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
+    ? <[dependency.ok]>
+    ->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
     : 1;
 
 $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
@@ -55,7 +57,7 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
 <[nroot.terminate_process]>->($parent_pid) if defined $parent_pid;
 
 #.............................................................................
-#J26DIBHGJRBGUZ6GRAXXMRMO4LCSK4QWPGNDXBWMUQMCUEYZPSQOVESOR6QYSRVYGKJKSSQOE6I66
-#::: NAKCLHFCWNUEDGBXKYP4Q4H4GL3BQL57JFMO25EWFADFDDZK2LT :::: NAILARA AMOS :::
-# :: UHUI3SECHJJZ2MGP2OIFKWL22NX7G6ZTEKPOPXNDGH5JI4JUDIDI :: CODE SIGNATURE ::
+#3O766DMTVG72ONVZJ6CH4EI3IBBDCT7WY6ES6Q7QOQJ6NCTBOJOCJIUDRLKHKF4PQBNDJYVGZH5MW
+#::: GGXKY4CEWKAMM3JKO676ET37EPKE6UK6Y5KXENFGDWWI7TSMI2I :::: NAILARA AMOS :::
+# :: FDHSLZGRFHP3A6GIJA5DHHD5GCHTQOPA7ER2I2WGQ3KGY7DZGKAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

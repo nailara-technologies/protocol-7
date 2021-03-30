@@ -34,7 +34,8 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
                 $data_ref = [];
                 push( @$code_data, { $section => $data_ref } );
             } else {
-                $data_ref = <[base.code_section_ref]>->( $code_data, $section );
+                $data_ref
+                    = <[base.code_section_ref]>->( $code_data, $section );
             }
             $section_ref = $data_ref;
         } elsif ( $line =~ /^- *(.+)$/ ) {
@@ -43,7 +44,8 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
             die "no parent section defined for sub-section '$sub_section' "
                 . "(file '$filename' line $line_num)"
                 if not defined $section;
-            if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) ) {
+            if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) )
+            {
                 my $new_data_ref = [];
                 push( @$section_ref, { $sub_section => $new_data_ref } );
                 $data_ref = $new_data_ref;
@@ -61,8 +63,10 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
             die "no parent sub-section defined for sub-sub-section"
                 . " '$sub_sub_section' (file '$filename' line $line_num)"
                 if not defined $sub_section;
-            if (!<[base.code_section_exists]>->( $sub_sub_section, $data_ref ) )
-            {
+            if (!<[base.code_section_exists]>->(
+                    $sub_sub_section, $data_ref
+                )
+            ) {
                 my $new_data_ref = [];
                 push( @$sub_section_ref,
                     { $sub_sub_section => $new_data_ref } );
@@ -80,7 +84,7 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
 return $code_data;
 
 #.............................................................................
-#PBFLI33VO65BPD77PJFLMOSPBAU3GTXEBBG4IC6BEY4YYYHHHA6UJHJMDWBD46TZST3LYPPAGJQUO
-#::: WF4TNAEQXXFIJ5F5WDLGOFYKG35B5NBUTGFEHTRX3XWGGAHVUPL :::: NAILARA AMOS :::
-# :: A7ZLGMXZDFYBYDJEZFM3Y6AMJAECQNJ3ZIFMEP23S5JLYTYA7EAQ :: CODE SIGNATURE ::
+#BDH67FDBDQ2FXMAAFKU56UDMWN4TYF3EE62ZRLL2U6IBJOWTLC6SVH42RTQTGQC5DVRE43XMBG5V2
+#::: MBWYJJCU7555XN2UTW4QAVQUPQZ6I4NG7T4W5XD7MFIXVVWG76X :::: NAILARA AMOS :::
+# :: XZEVHG6ZFC65I2HDCWVCWELHZEIDOJZLLU3QCZN2KYMXPHEXIACA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

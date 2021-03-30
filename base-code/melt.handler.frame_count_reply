@@ -21,7 +21,8 @@ if ( !$frames ) {
     );
 } elsif ( $reply->{'cmd'} eq 'NAK' ) {
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'nak', 'data' => "ffmpeg said '$frames'" } # msg!
+        $reply_id,
+        { 'mode' => 'nak', 'data' => "ffmpeg said '$frames'" }    # msg!
     );
 } elsif ( abs($frame_num) >= $frames ) {
     <[base.callback.cmd_reply]>->(
@@ -41,8 +42,8 @@ if ( $frame_num =~ /^\-/ ) {    # reversed [ -0 .. -<frames> ]
 }
 
 while ( not defined $out_file_path or -f $out_file_path ) {
-    $out_file_path = join( '/', <melt.output_path>,
-        sprintf( "%#.0d.png", <[base.ntime]> ) );
+    $out_file_path = join( '/',
+        <melt.output_path>, sprintf( "%#.0d.png", <[base.ntime]> ) );
 }
 
 my @options = (
@@ -84,7 +85,7 @@ if ( -f $out_file_path ) {
 }
 
 #.............................................................................
-#PSPEKE3MSYQ2EFTC2PFXQRQM2CWY567TQXXCBSOUOKCZ7CEUGSES62UHORYECWAJIWOVDS67BLYMA
-#::: 4MRCGGNZE62Y3EMYMQZPRPXQYWNOJQMLZSMHHMZP7KJQOWLCY63 :::: NAILARA AMOS :::
-# :: UF7XO7L2THUDGXPMDTVZKVELXKETPCILQSMZTPDKIDK7K7XE3OAY :: CODE SIGNATURE ::
+#FUWSNWCZMR25ARXV2QDYRSYXD3D6FNM6Q7TBXABZ75CNQV2335UZ4XQ3XPZXWEWVEIXBFYEJ3FLFI
+#::: INT7Y2QDRKLR6FTY43ISK5BZFXEGGCQMJUYXFA7SGDHGIC2J4HJ :::: NAILARA AMOS :::
+# :: K3NNQEMEDWFAFHRAITUIKRXXPULOWQUFS6XTWF2RFEK3OWW32WAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

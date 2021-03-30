@@ -8,7 +8,7 @@ my $instance_id = $params->{'instance_id'};
 my $next_status = $params->{'next_status'};
 my $instance    = <nroot.zenka.instance>->{$instance_id};
 my $curr_status = $instance->{'status'};
-$next_status = 'restart' if $next_status eq 'delayed';   # <- should not happen!
+$next_status = 'restart' if $next_status eq 'delayed'; # <- should not happen!
 
 my @remaining_pids;
 my $child_count = 0;
@@ -38,11 +38,12 @@ if ( !$child_count ) {    ## done waiting ##
         "instance : $instance_id -< children left: $child_count >- ["
             . join( ',', @remaining_pids ) . ']'
     );
-    <[base.log]>->( 2, ": status : $curr_status next_status: '$next_status'" );
+    <[base.log]>
+        ->( 2, ": status : $curr_status next_status: '$next_status'" );
 }
 
 #.............................................................................
-#VEO5F43ZIFVX465WARCCWACLPTKP7X33JTSQ5XAMAX6QQ4LW3Q2XCA6YOQZN3UJLJA4MDPGCEX6DC
-#::: W34XTBAO2IB7GOOT2MKU3MWNZAB2RL76AKUUFG7SIY23JF4YDIU :::: NAILARA AMOS :::
-# :: DC5QSMANNDSZPKX77SANER6FYM6M5SHS5TDRDV44DT2IKJ7KX4AQ :: CODE SIGNATURE ::
+#ZHQ6TGBNRGMAQVA6EUPJBO23RKF3GOADI73CTKGXRRBXQ2SUMGWHV3EMM2Z5NIQMQH326FDNUNHQU
+#::: QLCKVKZXWFH3NKZVKUJZUGLNALAX7EDHRX3WTEFMNVVUUNZAXJL :::: NAILARA AMOS :::
+# :: X7BUGNI25NZJMIK6CMEOIA3AVROGD3FQQP23ND65Y5QK4A3VU2CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

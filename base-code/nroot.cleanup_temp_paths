@@ -33,10 +33,12 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
             or $stat_ref->cando( S_IWGRP(), $stat_gid ) ) {
             my $len      = 52 - length(<system.node.name>);
             my $type_str = -d $clean_path ? 'dir.' : 'path';
-            my $pth_str = <[base.parser.ellipse_center]>->( $clean_path, $len );
+            my $pth_str
+                = <[base.parser.ellipse_center]>->( $clean_path, $len );
             <[base.log]>->( 1, ":. unlink $type_str '$pth_str'" );
             eval { remove_tree($clean_path) };
-            $EVAL_ERROR = 'still exists' if not $EVAL_ERROR and -e $clean_path;
+            $EVAL_ERROR = 'still exists'
+                if not $EVAL_ERROR and -e $clean_path;
             warn "<remove_path> $clean_path [ $EVAL_ERROR ]"
                 if length( $EVAL_ERROR // '' );
         }
@@ -46,7 +48,7 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
 delete $instance->{'temp-path'};
 
 #.............................................................................
-#D4W4IWUIGCEKTI2NIFZTJ4LV5K2RCOOTE2E3SMZ4VQCAA2DFFA4IVNZQK7D5NY6ESVBPYUDXKY4NQ
-#::: 7HC4C3UAGZYOQILUA4WHAAV6TYX7HUJ23JDZRG52N66O4FGOECB :::: NAILARA AMOS :::
-# :: 75QU4BZVN2ALBPO75V3NPAOSQ54GF2QWDIRGNIUMMCAJWXSMDQDY :: CODE SIGNATURE ::
+#YVDJLVU676Q6V5SK5KU5QFUZGPNFQGY7CZEXVPR676Y3EHQ644W4HH5YPS4ZGT67QG3O2NTIHVETW
+#::: CN6KU4JXB6CQNTFRTSER7DLKXPER3NBYS3OO2XE5MKJ3JTRU5IT :::: NAILARA AMOS :::
+# :: 4S3TXL5RY7H2M2UIKP6A2OAPJQH6KLEGFP2V74L4HPRCV24YR6DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

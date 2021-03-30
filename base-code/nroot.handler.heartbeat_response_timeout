@@ -26,14 +26,14 @@ my $retry_str = $retry_count ? " , retrying $dots," : ' `:|';
 if ( $retry_count <= 0 ) {    # [ no further retries.., ]
     $heartbeat_ref->{'retry_count'} = $heartbeat_ref->{'retry_reset'};
     if ($is_cube_zenka) {
-        if ( $zenka_status eq 'error' ) {   #   <--  was already not successful.
+        if ( $zenka_status eq 'error' ) { #   <--  was already not successful.
             <callback.session.closing_last> = {
                 'name'   => 'nroot.teardown',
                 'params' => ['fatal cube zenka error']
             };
             <[base.session.check_remaining]>;
         } else {
-            delete <callback.session.closing_last>;    # allowing safe restart #
+            delete <callback.session.closing_last>;  # allowing safe restart #
             <[zenka.change_status]>->( $instance_id, 'error' );
         }
     } else {
@@ -59,11 +59,12 @@ if ( $retry_count <= 0 ) {    # [ no further retries.., ]
         }
     );
     <[nroot.stop_heartbeat_timer]>->($instance_id);
-    <[nroot.enable_heartbeat_timer]>->( $instance_id, 0 ); # <- retrying now [0]
+    <[nroot.enable_heartbeat_timer]>->( $instance_id, 0 )
+        ;    # <- retrying now [0]
 }
 
 #.............................................................................
-#UVKFPPDKF4QTEDTYSFU6NHCBJWOOTSVH7UNDGFWCAH3AXSR65VRHNZOJWTD7U2LJKA5JH4NN7M4SK
-#::: TE2JMYNYBSCXMHXAY4RHE6AYCZDOHOGI6Z4KUTTDGMH7H6G6O6T :::: NAILARA AMOS :::
-# :: 4LOKE3PJMBME3GEBBFWPXBAZXPHYFOMSVQUXEFNOPWS2NRLUGEAA :: CODE SIGNATURE ::
+#ZKIN7I2JAJIQWQWMCW4Q2F3XWTZ3WGOFCVH24CEAPGIU6BBS65V2SUUMODKCHKSTG4S44ZDYDRGUE
+#::: TSASJ54OCYVXU42EIOAF34PDPJ5YE2Z7ZWEXGVX3B5NGPS5WLRW :::: NAILARA AMOS :::
+# :: F5PSQU36OPOGVERCTFCOZSAJLFP6FDAFIMH54R2WLPA5N47JLWBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

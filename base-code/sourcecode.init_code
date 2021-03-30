@@ -11,18 +11,19 @@ my $path_href = <sourcecode.path>;
 map { $path_href->{$ARG} //= <source.path>->{$ARG} } keys %{<source.path>};
 
 ## ./
-my $work_tree = $path_href->{'work_tree'};   # overridden in sourcecode.pre_init
+my $work_tree = $path_href->{'work_tree'}; # overridden in sourcecode.pre_init
 
 ## ./source/
 $path_href->{'source_dir'} // catfile( $work_tree, 'source' );
 
 ## ./source/version
-$path_href->{'version_root'} = catfile( $path_href->{'source_dir'}, 'version' );
+$path_href->{'version_root'}
+    = catfile( $path_href->{'source_dir'}, 'version' );
 
 0;
 
 #.............................................................................
-#6N7NW2IXXBZJUZ5KUF2VJIRE4X5PIOXWKEKIYUTBYDTLMJB4PYSX5UQQI35UHU4SKMPFNK5JKW7AS
-#::: 74ZLOYCV5CHVKISEMWIDE6B4GZZMJNR5STMBHOIIUWUBQKM7D66 :::: NAILARA AMOS :::
-# :: W4VNZS3VRJ36XKQF6ZLM3S364VUHPXVKQ4WLTQJFBBVGC64KWUBY :: CODE SIGNATURE ::
+#CS3WGIB2DZJEAXZ6X5BI3ENDYC53CBFBSTNKUJV536GNSJSCUSORVB3NBFRHOZAA72SDRXHORKU26
+#::: RTK6O4YOUZ2CSZDVWLEQWFK6E2NF64FFGWYIVIUFKKYGRQ3IY2L :::: NAILARA AMOS :::
+# :: LCKTCFAPFVXFT7XSIPENYFUZTXGLABYTCI6M3U5SOSQKOQYLA6DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,8 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     my $cache_dir     = <weather.cache_dir>;
     my $location_file = "$cache_dir/city.current";
     <[base.log]>->( 1, "[error-cleanup] removing '$location_file'" );
-    unlink($location_file) or warn "cannot remove $location_file [ $OS_ERROR ]";
+    unlink($location_file)
+        or warn "cannot remove $location_file [ $OS_ERROR ]";
     ##
 
     foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
@@ -82,7 +83,7 @@ if (    defined <weather.get-urls.reply_ids>
 }
 
 #.............................................................................
-#5YXUB6IZKH4QJKG35SJVA5BILSOL5LX2NHSWEFRZZ6EYKL4ALG2QIETSTQBJ3CROZIBHMZ2QAN46W
-#::: TDDAVBS4E4EQOQTBCWFDJJ7J4LGD33UHX7ZO3R5ZXZCDM7E7YBT :::: NAILARA AMOS :::
-# :: FUYKNJHLXIHL63HP5RGPKZ7HBAHTDB2XWJ6S7OWXHCXOTYN6QYAY :: CODE SIGNATURE ::
+#CYMNO43AJGND3N2ACM37NAG62QM5DIS7EU27IIE3D6IED2APVFC3P56MSKECYCQWH4B2RQRYC22OE
+#::: 6CQJLFFZZGBGQ5TLY7IDY6Z7I3AKBYOU5HP5YQCKEMUSCAN6IUC :::: NAILARA AMOS :::
+# :: ZBWNW7ILMFUJQF762TP6EOKK7ESRQPKTKJQO4D5ZTP2BZTFI7EAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

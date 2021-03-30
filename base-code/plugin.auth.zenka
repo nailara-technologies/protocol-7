@@ -13,8 +13,9 @@ if (   not %KEYS
     or not exists $KEYS{'auth'}{'zenka'}
     or ref( $KEYS{'auth'}{'zenka'} ) ne 'HASH'
     or !keys( %{ $KEYS{'auth'}{'zenka'} } ) ) {
-    <[base.log]>
-        ->( 0, "[$id] can not authenticate zenka session [..no key.,]" );
+    <[base.log]>->(
+        0, "[$id] can not authenticate zenka session [..no key.,]"
+    );
     $$output .= "NOPE >:|\n";    # LLL: move down?
     return 2;
 }
@@ -37,7 +38,9 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
 
             ## <[net.update.client_conf]>->($id);
 
-            <[base.log]>->( 1, "[$id] zenka '$auth_name' session authorized." );
+            <[base.log]>->(
+                1, "[$id] zenka '$auth_name' session authorized."
+            );
             return ( 0, $user );
         } else {
             <[base.log]>->(
@@ -47,7 +50,9 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             return 1;
         }
     } else {
-        <[base.log]>->( 0, "[$id] '$auth_name' [zenka] access denied [ usr ]" );
+        <[base.log]>->(
+            0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
+        );
         $$output .= "NOPE >:|\n";
         return 1;
     }
@@ -58,7 +63,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
 }
 
 #.............................................................................
-#CQQ4YVCN6IWCG244BYN2UMNZXO5ZMM6I62NB5QC75DRSJHBC54DBIAKJED5GR6ZXVV4562YI2P7IM
-#::: 5VFZOUOD7RNX3DL6R6P2ZLTQC2AJ7VMGDB72JAGSWTEUG37BYEC :::: NAILARA AMOS :::
-# :: Y32Y5FAG2JQRZNSJ5GYYDYAJCL2UQWLGGN2YCN7KNQG4CCPGBKCQ :: CODE SIGNATURE ::
+#NKSLKHPZJIV2LU346HIV4DQV5LTKWNCNTSACSEXIOAKGBHNXY2BC72PXXK5RZIM5XMN47XN4ZSKG4
+#::: BJT3KEWJHSP4Q6MXN7TWWNYQIDA7RJ2R4SNAHAYNPMCCY3C6B7S :::: NAILARA AMOS :::
+# :: MFYIEP2FW3SVSVIHSSTY6EEB2PEKZFGOCL7LL33GVB5D4HN3ZWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

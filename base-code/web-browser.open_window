@@ -19,7 +19,7 @@ Gtk3->init;
 my $window = Gtk3::Window->new('toplevel');
 
 $window->set_icon_from_file(<web-browser.path.icon-file>);
-$window->set_title( <web-browser.window.title_str> );
+$window->set_title(<web-browser.window.title_str>);
 
 <web-browser.gtk_obj.window> = $window;
 if ( defined <web-browser.cfg.change_cursor> ) {
@@ -82,12 +82,15 @@ $window->add($overlay);
 
 if ( <system.zenka.mode> eq 'universal-child' ) {
     <[base.log]>->(
-        1, "<<< setting slideshow.autostart = 1 [ 'universal-child' mode ] >>>"
+        1,
+        "<<< setting slideshow.autostart = 1 [ 'universal-child' mode ] >>>"
     ) if !( <web-browser.slideshow.autostart> //= 0 );
-    <web-browser.slideshow.autostart> = 1;  ## <-- auto-enable slideshow mode ##
+    <web-browser.slideshow.autostart>
+        = 1;    ## <-- auto-enable slideshow mode ##
     $window->iconify();
 } else {
-    $window->iconify(); ## [LLL] create exception? wait for bg-color being set.,
+    $window->iconify()
+        ;       ## [LLL] create exception? wait for bg-color being set.,
 
     ## raise window when ready ##  .. background color properly set .,  ##
     <web-browser.start-up.raise_delay> //= 0.13747;
@@ -171,7 +174,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 #.............................................................................
-#WHGF455YNF3UYMBO5YSELV7KQ6GWBLH7BDJS5KYVMJYU2JCJN3KI52PXRZDG3EHILYLFRJLKVMZVS
-#::: NNJSV2XXQUPU7JKUA3JS5CPQKETT23J5OW6TLOA35WJ7PEIWEJ5 :::: NAILARA AMOS :::
-# :: IJQ3YTPYXSN53XVROQLRQYG3VTSPUH72QSQS4AAO23WC7QSPKEAI :: CODE SIGNATURE ::
+#SXPLNHVIH5YH6DA2XYPJ33FYFA5IIPPQC2LQOHGD6VEF2MCUY4HQAENYWKADD67ORHUY7X35ZZNDK
+#::: 24YVYLYT2D7QCZMFLJ5TLHNVOFKJBLNUIH42CKY73V5TUVRENEG :::: NAILARA AMOS :::
+# :: H5C3H6TPMVT47T4KSKE4IRML3NI7OESIHYV67OB5XP5B3BGOFIBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

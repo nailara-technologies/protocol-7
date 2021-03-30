@@ -17,9 +17,9 @@ Glib::Object::Introspection->setup(
 
 <[base.stderr_redir]>;    ## redirect STDERR ##
 
-<ticker-gtk.font.path>         //= <system.root_path> . '/data/ttf/droid';
-<ticker-gtk.font.name>         //= 'DroidSans-Bold'; # LLL: <- load from config!
-<ticker-gtk.font.size_percent> //= 100;              # LLL: <- load from config!
+<ticker-gtk.font.path> //= <system.root_path> . '/data/ttf/droid';
+<ticker-gtk.font.name> //= 'DroidSans-Bold';    # LLL: <- load from config!
+<ticker-gtk.font.size_percent> //= 100;         # LLL: <- load from config!
 <ticker-gtk.use_transparency>  //= 1;
 <ticker-gtk.do_custom_fade_in> //= 1;
 <ticker-gtk.cfg.draw_outline>  //= 1;
@@ -54,12 +54,14 @@ Glib::Object::Introspection->setup(
 my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
 <ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
 <ticker-gtk.bg_col>     = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
-<ticker-gtk.bg_alpha>   = <ticker.cfg.bg_alpha> // 100;    # transparent default
+<ticker-gtk.bg_alpha>   = <ticker.cfg.bg_alpha> // 100;  # transparent default
 
 my $ovf = 0.94;    # <- outline value factor
-my $c = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
-my $hc        = $c->convert_to('hsv');
-my $new_value = sprintf( "%.3f", abs( $ovf - sprintf( "%.0f", $hc->value ) ) );
+my $c
+    = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
+my $hc = $c->convert_to('hsv');
+my $new_value
+    = sprintf( "%.3f", abs( $ovf - sprintf( "%.0f", $hc->value ) ) );
 my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 
 <ticker.color.outline> = $oc->as_rgb8->hex;
@@ -79,7 +81,7 @@ my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 0;
 
 #.............................................................................
-#6SOG234GMGT7ZLI5GN4D4TLWC6NCQ5UPC7AXKBE27SVO67AX4C52RHYIUA3RQAFFE2BEA4QMGSFKW
-#::: 5T2STY2BGKAUIC3ZEERANWZ6BMARWO2RKQDNHVGQGGZ7TDVKAIP :::: NAILARA AMOS :::
-# :: VJXTDFOA55YQSRGSSBT3NGNA2E42R7JTUI6RM4WBZ7SVZEBG26CA :: CODE SIGNATURE ::
+#FVL3SS62MRXE4V7USF2LDS7GIRCTRPAK5JDIFEQOEGHXJYYU4KHRQ3Y4NKW5QSK7GLLSJ2YK6ZKRW
+#::: NLQUWSUIQMQCOVZR6H4AWCJR3VVDA6NZ66BOF2P2Z5IQ6WX457N :::: NAILARA AMOS :::
+# :: QWBS364YNZG5XTGSMOECYFE53ETUKSZMGEBAP64ZLB7FGC6HDABY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

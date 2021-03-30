@@ -7,12 +7,13 @@ $bits = substr( $bits, 0, 5 ) . '..,' if length($bits) > 7;
 die "invalid bit size ['$bits'] <-- [ valid : 224, 256, 384, 512 ]"
     if not exists <chk-sum.bmw>->{$bits};
 
-<chk-sum.bmw>->{$bits} //= Digest::BMW->new($bits); # <-- ondemand initialization
+<chk-sum.bmw>->{$bits}
+    //= Digest::BMW->new($bits);    # <-- ondemand initialization
 
 return <chk-sum.bmw>->{$bits}->clone;
 
 #.............................................................................
-#MX77QEOMPW2FYJ64YEFIFJUZNE266U5QT6KH435IXRX2J553ZTADSTO7Q3HDMHPK2GSPBMDQWF344
-#::: 5H6MKZOB7E5XDUMJR2XXM7WFAMSRP3GSAJHVFRFL37KT47ZRHCE :::: NAILARA AMOS :::
-# :: 2UR5L77YAWXWPJOAG4JVALCSKLE4GMYPOYBYLPTJBOL4OQ3PGGCQ :: CODE SIGNATURE ::
+#A4QKMHXCBGH3BB3MUAANFUL4BT6GHIF53PUDV76BY64UNO7GP5H4L5HYPKZDQESGN7CXJ4U2LUNNC
+#::: 5DX27OWX2P2WT4OODCGOPONGQWFSM7A5EJTTHOC3JJWG44UEQJY :::: NAILARA AMOS :::
+# :: Q5JIBSJQXJ26UZ5KD7DN3AA74RU5GHVUMEIAIQW5JMUASRQZWKDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
