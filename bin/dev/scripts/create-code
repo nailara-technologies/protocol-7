@@ -1,7 +1,5 @@
 #!/usr/bin/perl
-
 use v5.17;
-
 use strict;
 use warnings;
 use File::Spec;
@@ -9,23 +7,25 @@ use Cwd 'abs_path';
 use FindBin '$RealBin';
 use File::Which 'which';
 
-my $code_name = shift @ARGV;
-die "\n <<!>> code file name expected, rel. src path <<!>>\n\n"
+my $code_parent = 'base-code';
+my $code_name   = shift @ARGV;
+die "\n << code file name expected, rel. $code_parent path >>\n\n"
     if !defined $code_name or $code_name =~ m|^/|;
 
 my $u = File::Spec->updir;
 my $root_path
     = abs_path(
     File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u, $u ) ) );
-my $code_path = File::Spec->catfile( File::Spec->catdir( $root_path, 'src' ),
+my $code_path
+    = File::Spec->catfile( File::Spec->catdir( $root_path, $code_parent ),
     $code_name );
 
-die "\n <<!>> code path 'src/$code_name' already exists <<!>>\n\n"
+die "\n << code path '$code_parent/$code_name' already exists >>\n\n"
     if -f $code_path;
 
-say "\n :. creating 'src/$code_name'..,\n";
+say "\n :. creating '$code_parent/$code_name'..,\n";
 
-open( my $src_fh, '>', $code_path ) or die "\n [!] '$code_path' : $! [!]\n\n";
+open( my $src_fh, '>', $code_path ) or die "\n << '$code_path' : $! >>\n\n";
 
 print {$src_fh} "# >:]\n\n# name  = $code_name\n\n";
 
@@ -34,7 +34,7 @@ close($src_fh);
 if ( my $sct_path = which 'sct' ) { exec( $sct_path, $code_path ) }
 
 #.............................................................................
-#FOPZ7JKR3HV6FBPIFC746MIATRZ6A4VEJKMFR22SGJ4U6FQ6WOYICTE3BGLOJV7XISAHCFASVWBEK
-#::: ZIZM4CNPS5O4BZFU7IDWOQWP36IPOBZDKQMK3QBEKFGKLRQSQLT :::: NAILARA AMOS :::
-# :: MKMRSOTA6GK47YZLHVIQ2XVAQV3LTTORHZ2YH7QLA2EFTXHZDEDI :: CODE SIGNATURE ::
+#UHEOK6JIVNCZPUTF5UBYVBT75VATGGITBHCHFTUAMOPHZDWL6PZN6IIZOPNG3RBR3J4CE5X6HSOT6
+#::: EFJD6IF5ZVUP2S5BEN5ZKWKMHUN2SIDJDLRV5THBKVC5MBWLMGL :::: NAILARA AMOS :::
+# :: XIODJBHAR47EGMXORVSA4ZKXKCHR2CZWOEFFYDBI6FWXJG6VLSDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

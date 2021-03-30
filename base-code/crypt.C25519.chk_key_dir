@@ -8,29 +8,33 @@ my $key_dir = $key_vars->{'key_dir'};
 my $uid     = $key_vars->{'uid'};
 my $gid     = $key_vars->{'gid'};
 
-if ( -w "$key_dir/.." or "$key_dir/../.." ) {
+if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
     if ( !-d $key_dir ) {
         <[base.log]>->( 1, "creating key directory '$key_dir' .." );
         eval {
-            make_path( $key_dir,
-                { mode => 0700, uid => $uid, group => $gid } );
+            make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
-        return -2        if !-d $key_dir;    # <- error state
-        return 1;                            # success [dir exists now]
+        return -2        if !-d $key_dir;    # <-- return error state
+        return 1;                            # success [ dir exists now ]
     }
 } elsif ( !-r $key_dir or !-d $key_dir ) {
-    my $perms     = -e $key_dir ? '' : ' (permissions)';
+    my $perms     = -e $key_dir ? '' : ' [ permissions ]';
     my $log_level = <crypt.C25519.initialized> // 0;
     $log_level++ if $log_level;
-    <[base.log]>->( $log_level, "no key dir$perms ['$key_dir']!" );
+    <[base.log]>->( $log_level, "no key dir$perms ['$key_dir']" );
     return -1;    # <- error state
 }
 
-return 1          # <- success [true]
+return 1          # <-- success [ true ]
 
+  #.............................................................................
+  #ZGQHV3C66QRDARLUZZGZ5ARMR4M2FUO37QCQENXEJFQIEVGXKUMLIY2IFV7EXSA3SJYQA47H7K7EK
+  #::: J36AMHNIOGUN2XOX3GG2ROF5BTNSSTSA7JDE5GEQACZHMZWEUUD :::: NAILARA AMOS :::
+  # :: H6IJN53M5VEJ3FBN4PANPB75JA2QDZIBXUXBYFH65QJX6EQYXQBI :: CODE SIGNATURE ::
+  # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #.............................................................................
-#ZGQHV3C66QRDARLUZZGZ5ARMR4M2FUO37QCQENXEJFQIEVGXKUMLIY2IFV7EXSA3SJYQA47H7K7EK
-#::: J36AMHNIOGUN2XOX3GG2ROF5BTNSSTSA7JDE5GEQACZHMZWEUUD :::: NAILARA AMOS :::
-# :: H6IJN53M5VEJ3FBN4PANPB75JA2QDZIBXUXBYFH65QJX6EQYXQBI :: CODE SIGNATURE ::
+#YMJECKFEEIUTKEGU6JPPP5DQCOCWKHRKZS3CY4EBCGMBQDUAHDVDJNH5D72QTLJS3HNWW36FHG4BA
+#::: BMIBIOYHNIW6MPRJKJ26NDSBKLHRUJFWP7YR5MP6EEFJ47C432Q :::: NAILARA AMOS :::
+# :: 7P66PPTQUOYF2NRPNJ3UWUH4DGAR6HQ4LXVBRD7HAPJEFTBTGADQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

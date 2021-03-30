@@ -6,7 +6,7 @@
 
 my $key_name = $$call{'args'};
 
-return print "\n  [!] expected <name> parameter [!]\n\n"
+return print "\n  << expected <name> parameter >>\n\n"
     if not defined $key_name;
 
 my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
@@ -21,12 +21,12 @@ my $key_usr = $key_vars->{'usr_name'};
 my $shred_bin = <keys.bin_path.shred>;
 
 opendir( my $dir_fh, $key_dir )
-    or return print "\n [!] $key_dir : $OS_ERROR\n";
+    or return print "\n << \l$OS_ERROR : $key_dir >>\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
-    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
+    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'" );
 closedir($dir_fh);
 
-return warn "no key files found [$key_dir]" if !@key_files;
+return warn "no key files found [ $key_dir ]" if !@key_files;
 
 my $match_re = qr|^(\Q$key_name\E\.$re_kfiles)$|;
 
@@ -34,14 +34,14 @@ my $key_found = 0;
 map {
     $key_found = 1 if $ARG =~ $match_re;
     my $k_path = "$key_dir/$ARG";
-    return print "\n [!] no write access to '$k_path' [!]\n\n" if !-w $k_path;
+    return print "\n << no write access to '$k_path' >>\n\n" if !-w $k_path;
 } @key_files;
-return print "\n  [!] specified key \"$key_name\" not found [!]\n\n"
+return print "\n  << specified key \"$key_name\" not found >>\n\n"
     if not $key_found;
 
 my $del_count = 0;
 
-chdir($key_dir) or die "[!] chdir( $key_dir ) : $OS_ERROR";
+chdir($key_dir) or die "<< \l$OS_ERROR : chdir[ $key_dir ] >>";
 
 print "\n::\n";
 
@@ -52,7 +52,7 @@ foreach my $file_name (@key_files) {
     system( $shred_bin, '-fzu', $file_name )
         if length($shred_bin)
         and -x $shred_bin;
-    return print "\n unlink failed : $OS_ERROR\n\n"
+    return print "\n unlink failed : \l$OS_ERROR\n\n"
         unless unlink($file_name)
         or !-f $file_name;
     $del_count++;
@@ -61,7 +61,7 @@ my $s = $del_count == 1 ? '' : 's';
 print " :\n :: [ removed $del_count key file$s ]\n\n";
 
 #.............................................................................
-#XAKAOF6JWMBQRWOWVH3D526ESQP66D5KTXYOTNUAKW6QG3NGM3NOB4RXKMQQJ26TV26CXGKWXETWC
-#::: QYH2XKHXBXYI5WWSAY7FK5AX3JXEYTORNVTALF65CIP5IMHM3FD :::: NAILARA AMOS :::
-# :: 4K53OLYF3ZYNV4OQRACGFLSYBTUXO2G7JGKBJMUTRBAGCSBEXKDI :: CODE SIGNATURE ::
+#4SD77SOZOIBTWNUNSGEOZFIAY2QX5MAFGQNKVMHLYBIBTIPZVLNNQGT6FXLW76IGVIEIMW5YF43F2
+#::: M4AHOX6Y2CGLP244ZNTLFBJ6A6RY5DSW74TKKNV2HGYFFTFX4SI :::: NAILARA AMOS :::
+# :: 5O2O6BAPXPEX6XK7YP74QBFUEYO3LX52TNBGIN5D6XUWFZCP6ICI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

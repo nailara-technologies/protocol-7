@@ -22,26 +22,23 @@ my $key_filename = $key_vars->{'key_filename'};
 
 if ( not defined $home_dir or !-r $home_dir ) {
     if ( !<base.parser.config.reloading> ) {
-        <[base.log]>->( 0, "<<!>> no homedir access <<!>> [ $key_usr ]" );
+        <[base.log]>->( 0, "<< no access to home directory >> [ $key_usr ]" );
         <[base.log]>->( 0, '  :.. skipping C25519 key initialization ..,' );
     } else {
-        <[base.log]>->( 1, ': skipped key reload., [homedir]' );
+        <[base.log]>->( 1, ': skipped key reload., [ home-dir ]' );
     }
     return 0;    # state still valid
 }
 
 return -1 if not <[crypt.C25519.chk_key_dir]>;    # <-- creates if missing ..,
 
-<[crypt.C25519.auto_convert]>->($key_dir)
-    ;    ## <-- [ update filename structure ]
+<[crypt.C25519.auto_convert]>->($key_dir);  ## <-- [ update filename structure ]
 
 my $secret_key_file = $key_filename->{'secret'};
 my $public_key_file = $key_filename->{'public'};
 
 if ( !-f $secret_key_file and !-f $public_key_file and -w $key_dir ) {
-    <[base.log]>->(
-        0, "generating C25519 'base' key pair for '$key_usr' ..,"
-    );
+    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
     my %key_b32 = ( 'secret' => '', 'public' => '' );
     if (<[crypt.C25519.gen_keys]>) {
         <[crypt.C25519.write_keys]>;
@@ -76,7 +73,7 @@ if ( defined <system.zenka.type>
 0;
 
 #.............................................................................
-#UMXNMP2YKZF7PQDPZCH5XRLSC3FPLXFFDWWFQYSFV75OTVXB7TZC6F6PRYWHLDOWWSQQ2VM67H7B2
-#::: V2ZKQEQDOCQHBZI7O7VDDVVFDQ5JV2F3B63YYNBJBHLLJY7WLBF :::: NAILARA AMOS :::
-# :: IGDQNGED6Z7LY4R7QUE7ZNJIHKKZH7TWSU2CKP7HSYMWOGUY6QBQ :: CODE SIGNATURE ::
+#45R6IGVQQ4SG6ZNA7LJ2YTURXMF4NFXFFG6X6MOWLMTUWH2IDVJP3SRAKDJ43JZWNOEDANZDCHHNG
+#::: 7APSDI4DYUCWHKHVV46QMPBGZW2UFVCKU5J3DPH3MHOBMY5475Q :::: NAILARA AMOS :::
+# :: IBSR5CT2U6M5OQIGH4ZEL3KLH5O4ZAPK37IITUFZEBTQFGOI2MBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
