@@ -4,11 +4,11 @@
 
 my $data_ref = shift // \'';
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
+my $key_vars = <[crypt.C25519.key_vars]>->(shift);   # <-- <key_name> [optional]
 my $key_name = $key_vars->{'key_name'};
 
 die "expected scalar reference to payload data" if ref($data_ref) ne 'SCALAR';
-die "a C25519 key with name '$key_name' does not exist [cannot sign without]"
+die "found no key named '$key_name' [ cannot sign without ]"
     if not exists $KEYS{'C25519'}{$key_name}
     or ref( $KEYS{'C25519'}{$key_name} ) ne 'HASH'
     or ( keys( %{ $KEYS{'C25519'}{$key_name} } ) < 2
@@ -24,7 +24,7 @@ return Crypt::Ed25519::sign(
 );
 
 #.............................................................................
-#DNIOJN5ZCFEFD2NM2WY7T5MZZFRZNCO6TMGLMG4NO6ZE2YGQWX7LOXVVKCXPA4ZRD3GIGXS2WFV4W
-#::: 5DUCFU5BRM4BXUDRE6DFFS76AAO6262QPA4ORC23ROSACCTCEWN :::: NAILARA AMOS :::
-# :: HHEWVUISSSMELBX4OYRMXXYIEA53P3YXAT4BDG6OYTAF6IJZUADQ :: CODE SIGNATURE ::
+#2O6PL5C2DU4VJSG4KI4CG7AGXEIXHFEZTQZX7Y3JN2P2SHJ5CT7MZP3APUE65EL2NOQF226E7Y7LS
+#::: KICY27B2FAQNSQBQGNWZWDLQNUWQU64CW2ZXVROATH6HZXMQS4R :::: NAILARA AMOS :::
+# :: YWFUKRFTBHHN76HMSPFSIL6A6VBE7T4YVQZCWGLABT626TPCSYBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

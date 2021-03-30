@@ -5,7 +5,7 @@
 my %binaries = map { $ARG => 1 } @_;
 my $zenka    = <system.zenka.name>;
 my $cfg_path = <system.conf_path>;
-
+my $warned   = <base.register_bin_deps.warned> //= 0;
 my $bin_deps = <[base.get_path.zenka_cfg]>;
 
 if ( $bin_deps =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka/os-dep/binary|
@@ -16,14 +16,13 @@ if ( $bin_deps =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka/os-dep/binary|
         my $fh;
         open( $fh, '>', "$bin_deps/$bin_name" ) and close($fh);
     }
-} elsif ( -d $bin_deps and -r $bin_deps ) {    ##  <--  <<< ! >>>
-    <[base.log]>->(
-        0, "can not register binary dependency [ os-dep dir readonly ]"
-    );
+} elsif ( -d $bin_deps and -r $bin_deps and not $warned ) {   ##  <--  <<< ! >>>
+    <[base.log]>->( 0, 'cannot register binary dep. [ os-dep dir read-only ]' );
+    <base.register_bin_deps.warned>++;
 }
 
 #.............................................................................
-#JP4J4S72HAEHZYBSOT43FGDVMM6EXFIQ545PYY3GHUKJDIWU7PW3PQAOWNGOSR2RQ3BWAB4PUCEUS
-#::: TGALMTLQGUMETC2C63FNKAJTHQGSSOCU6Y6YZJXJAJHG552GFFL :::: NAILARA AMOS :::
-# :: 2Y7VPT4QSXDOTZRMWCN3R5CDOHSPPX2CAVOEJSLHBGIVNJQIVWAQ :: CODE SIGNATURE ::
+#GXJ6UYGE32MWDMELYLFYMIYLFXT55TXEWVMUU4KPZFZTGLALHI6RZJ4TQBYWAUPW63JW5PGD3LFJI
+#::: E4C5JUU2DCPWTVRRMB6EWPMMZPWLYJAV2AERL6CTWAX33LAF2BQ :::: NAILARA AMOS :::
+# :: LG5RVTX7HSNL6FAR66AH7BI5BSOBEPZS7L5WZR675ATQQJXPJSAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
