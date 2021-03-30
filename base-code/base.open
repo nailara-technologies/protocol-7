@@ -10,12 +10,13 @@ if ( not defined $data{'io'}{'type'}{$type} ) {
     );
     return undef;
 } elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
-    <[base.log]>->( 0, "base.open: unknown io mode '$mode' for type '$type'" );
+    <[base.log]>
+        ->( 0, "base.open: unknown io mode '$mode' for type '$type'" );
     return undef;
 } elsif (
     not
-    defined &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } } )
-{
+    defined &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } }
+) {
     <[base.log]>->(
         0, "base.open: '$type'-handler for mode '$mode' not defined"
     );
@@ -26,7 +27,7 @@ return &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } }
     (@params);
 
 #.............................................................................
-#IFJW3Z7C5KGV6AWT5W4LHOFQ5MRQFWVO2BCTVRA6HVKOCK56LJJ2KDHSHOYOF33OGLEW6IQYSIJHE
-#::: 6M752O2KR5VZVN3WSN4GWQRLUO2AIWB6D7GJHTPEYFMK4PKKNHR :::: NAILARA AMOS :::
-# :: K5EC4J6255ABLWH2JWYVPPFPGIBQY4D7T4E5HHMXHMLVKJANSMAQ :: CODE SIGNATURE ::
+#5WZIWISKMVZLURFMPWM6ULE6LDFRBFWXKAEMWK4ASE5MI6M33V3YXJT4DZSE54QEVRCOHAZR56KGC
+#::: IIMQR6M6QP5UGVNW434LL4LF5QD4M7Y2QZC3EQOTOFYNFEYVJP4 :::: NAILARA AMOS :::
+# :: W4ZXUCDK5LEHWHDCIBX7WK7SVCLZL64IPOJYTJLDB4ZE3H2JQUAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

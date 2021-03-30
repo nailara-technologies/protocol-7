@@ -25,7 +25,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     my @send_sids;
     my $target_sid = $target_name =~ m|^\d+$| ? $target_name : undef;
     if ( defined $target_sid
-        and exists $data{'session'}{$target_sid} ) {    ##[ session id mode ]##
+        and exists $data{'session'}{$target_sid} ) {   ##[ session id mode ]##
         @send_sids = ($target_sid);
     } elsif ( exists $data{'user'}{$target_name} ) {    ###[ group mode ]###
         @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
@@ -61,7 +61,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         $src_name .= '[' . <system.zenka.subname> . ']'
             if exists <system.zenka.subname>;
 
-        # [LLL]  implement [debug] watch and filter patterns for command logging
+      # [LLL]  implement [debug] watch and filter patterns for command logging
         if (   <system.verbosity.console> >= 2
             or <system.verbosity.zenka_buffer> >= 2 ) {
             <[base.log]>->(
@@ -123,7 +123,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 #.............................................................................
-#75B7ER3EJNGGA3NUDIHVZ6RZX4QZ4TL6UOROAUEDZKRN43P5X2NLXZJI6SR4MG6ZJEIOGVOY3YVW4
-#::: T4Q75YOP6J6IM2M52TMXI3IXLFLOPHTBGL7T4A3MAZVEH4ZHA6N :::: NAILARA AMOS :::
-# :: C2R2JBIMUR4GYPCGDIZUUT4JXYIF4DFXLA5TBQB4CPKFFK7OBWBA :: CODE SIGNATURE ::
+#JEZRK4EQY7MDCTBWZH2XS626LKUDQZO7TXFJ2QUNWOEDLOYNDN3EAXHERKAF2QAYHFSHODQIABL3K
+#::: AXAOA4KDAL3BZD7L5JD6OYXAE75AOL562BBFZKYZQTCIA5GNVS6 :::: NAILARA AMOS :::
+# :: ANKJVKM6DDIIKBTW6E5SPFV5XYFL7TZRN2SJ3HUIAZJQGT7UTIAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

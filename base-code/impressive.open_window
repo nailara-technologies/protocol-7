@@ -14,7 +14,8 @@ $light_mode = 0 if $light_mode ne '1' and $light_mode ne '2';
 
 $bg_color = '#000000'
     if <impressive.cfg.black_on_fullscreen> and not defined <x11.geometry>;
-<[impressive.parse_bin]>->( { 'bg_col' => <impressive.cfg.background_color> } );
+<[impressive.parse_bin]>
+    ->( { 'bg_col' => <impressive.cfg.background_color> } );
 
 my $mode_name = $light_mode     ? 'light' : 'normal';
 my $lvl       = $light_mode < 2 ? ''      : ' level 2';
@@ -40,13 +41,15 @@ if ( $light_mode == 1 ) {
 } else {
     my $trans_list_output = qx($tmp_bin -l 2>/dev/null);
     foreach my $trans_line ( split( /\n/, $trans_list_output ) ) {
-        next if $trans_line                              =~ /^[^ \*]/;
-        $trans_line                                      =~ s|..([^ ]+) .+$|$1|;
-        push( @transitions, $trans_line ) if $trans_line !~ /fade|none|cloud/i;
+        next if $trans_line =~ /^[^ \*]/;
+        $trans_line =~ s|..([^ ]+) .+$|$1|;
+        push( @transitions, $trans_line )
+            if $trans_line !~ /fade|none|cloud/i;
     }
 }
-<[base.log]>->( 0, "[!] unable to obtain transition list, using defaults [!]" )
-    if !@transitions;
+<[base.log]>->(
+    0, "[!] unable to obtain transition list, using defaults [!]"
+) if !@transitions;
 my @rnd_trans;
 while (@transitions) {
     my $rnd_index = sprintf( "%.0f", rand( scalar @transitions ) );
@@ -85,16 +88,19 @@ if ( defined <x11.geometry>
     }
 }
 
-my @exec_params = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
+my @exec_params
+    = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
 if ( @{<impressive.current_playlist>} > 1 ) {
     push( @exec_params, '--transition', $translist_str )
         if length($translist_str);
     push( @exec_params,
-        '--auto', $trans_delay, '--transtime', $rnd_trans, '--fade', '--wrap' );
+        '--auto', $trans_delay, '--transtime', $rnd_trans, '--fade',
+        '--wrap' );
 }
 push( @exec_params,
     '--bind',   'clearall', '--mousedelay', '1', '--nologo', '--scale',
-    '--cursor', <impressive.gfx.cursor_png>, @{<impressive.current_playlist>} );
+    '--cursor', <impressive.gfx.cursor_png>,
+    @{<impressive.current_playlist>} );
 
 ## start up impressive window ##
 
@@ -103,7 +109,7 @@ $ENV{'DISPLAY'} = <x11.display>;
 <impressive.pid> = open3( <impressive.in_fh>, <impressive.out_fh>,
     <impressive.err_fh>, $tmp_bin, @exec_params );
 
-if (<impressive.pid>) {    # waiting for python interpreter to read $tmp_bin ..
+if (<impressive.pid>) {   # waiting for python interpreter to read $tmp_bin ..
     my $bits = '';
     vec( $bits, fileno(<impressive.out_fh>), 1 ) = 1;
     select( $bits, undef, undef, undef );
@@ -131,7 +137,8 @@ if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
     exit(1);
 } else {
 
-    <[base.log]>->( 1, ": impressive process started [PID=<impressive.pid>]" );
+    <[base.log]>
+        ->( 1, ": impressive process started [PID=<impressive.pid>]" );
 
     <impressive.exec_params> = join( ' ', @exec_params );
 
@@ -180,7 +187,8 @@ if (    <impressive.cfg.use_start-anim>
     and <impressive.parser.init_tag_failed> ) {
     <impressive.timer.stop_start-anim> = <[event.add_timer]>->(
         {   'after'   => 7.7,
-            'handler' => 'impressive.callback.stop_start-anim' # failsafe only #
+            'handler' =>
+                'impressive.callback.stop_start-anim'    # failsafe only #
         }
     );
 } elsif ( <impressive.cfg.use_start-anim>
@@ -194,7 +202,7 @@ if (    <impressive.cfg.use_start-anim>
 }
 
 #.............................................................................
-#IQ2U4ERVQ5U3WXHRU3FJ5WX5LGED4K4ULPSYCKUWHOB52Q6HPAGRH4IFNEDK7S5SESP7PYG4XJYGS
-#::: ASEE6H2BFDM7OHBFWTV6KI3D7FKCUNAPVWOF4RHXTCIJUIJSJCU :::: NAILARA AMOS :::
-# :: XLLEMFRTE7O4KFWHB6EVM6TZBX5MRZYC7ZXK7AMBF7TABGZUYEAA :: CODE SIGNATURE ::
+#JPGQETSHU4MJFRBUDWBJXKNDE6DWYVRFIII52VVJGRMBPOIDSP2QU7PD43BKYCPVWIWN7FPQE7VQA
+#::: 2BUEWRKBKDTALHGMJCZTTKZ3ZHV2TGEQGU7DUXTCFLXLN7OPQEU :::: NAILARA AMOS :::
+# :: SZ2RQS2AGNQUUNKLJLGEWYNOFORECQ4HOWXVMLESFFOYD3GSDGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,8 @@ return { 'mode' => 'nak', 'data' => 'zenka name or id expected' }
     or !length( $$call{'args'} );
 
 my $start_mode
-    = ( $recursion or defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
+    = ( $recursion
+        or defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
     ? 'implicit'
     : 'manual';
 
@@ -82,7 +83,8 @@ if ( defined $zenka_subname
     and exists $zenka_config->{'max_subname_concurrency'} ) {
     return {
         'mode' => 'nak',
-        'data' => "maximum concurrency reached for $zenka_name\[$zenka_subname]"
+        'data' =>
+            "maximum concurrency reached for $zenka_name\[$zenka_subname]"
         }
         if <[nroot.start_count]>->( $zenka_name . "[$zenka_subname]" )
         >= $zenka_config->{'max_subname_concurrency'};
@@ -95,7 +97,8 @@ return {
     if $start_mode eq 'implicit'
     and exists <nroot.zenka.manually_stopped>->{$zenka_name};
 
-delete <nroot.zenka.manually_stopped>->{$zenka_name} if $start_mode eq 'manual';
+delete <nroot.zenka.manually_stopped>->{$zenka_name}
+    if $start_mode eq 'manual';
 
 <[base.log]>->( 1, "starting zenka '$zenka_name' .," ) if !$recursion;
 
@@ -108,7 +111,9 @@ foreach my $dep_name (@dependencies) {
         if exists <nroot.zenka.manually_stopped>->{$dep_name}
         and $start_mode eq 'manual';    # <- forced dependency startup..,
 
-    next if exists <nroot.zenka.manually_stopped>->{$dep_name}; # .. or skipped.
+    next
+        if exists <nroot.zenka.manually_stopped>->{$dep_name}
+        ;                               # .. or skipped.
 
     if ( !<[zenka.is_enabled]>->($dep_name) ) {
         <[base.log]>->( 1, "zenka enabled by dependency ['$dep_name']" );
@@ -119,11 +124,11 @@ foreach my $dep_name (@dependencies) {
             if defined $zenka_subname
             and defined
             <nroot.start_setup.zenki.config>->{$dep_name}->{'inherit_subname'}
-            and
-            <nroot.start_setup.zenki.config>->{$dep_name}->{'inherit_subname'};
+            and <nroot.start_setup.zenki.config>
+            ->{$dep_name}->{'inherit_subname'};
 
-        my $reply = <[zenka.cmd.start_once]>
-            ->( { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
+        my $reply = <[zenka.cmd.start_once]>->(
+            { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
 
         <nroot.zenka.auto_cleanup>->{$dep_name} = $1
             if $reply->{'data'} =~ m| id (\d+)$|;
@@ -137,7 +142,8 @@ foreach my $dep_name (@dependencies) {
 
 if ( not defined $zenka_id ) {
     foreach my $id ( keys %{<nroot.zenka.setup>} ) {
-        $zenka_id = $id if <nroot.zenka.setup>->{$id}->{'name'} eq $zenka_name;
+        $zenka_id = $id
+            if <nroot.zenka.setup>->{$id}->{'name'} eq $zenka_name;
     }
 }
 
@@ -161,7 +167,7 @@ return {
     }
 
 #.............................................................................
-#AIXEIFKZVTOHPZWWNYORV2ZMZXT7CUFE56BZ5QP7J3AEA22IBF2DBTNPGQUESIMQG7DQB3JYRAETG
-#::: L57SJ33E7L45TPYECEKW2OCOSGNOTTYU2FNJ6CW4UC4RP6N5VIH :::: NAILARA AMOS :::
-# :: 7RM34S27KD5BH7L5NJUKFOZZZTLIFGXGMATHH2QZDERLIRRBZMBI :: CODE SIGNATURE ::
+#MIICKPY7RE4SKDXCNPUSMWRBOFM45CWQ6GAPZBSLU55F2H27T74WV7YWSQLZLBCY64NADPAQZAWUI
+#::: EVABQRD55NRKNDP4UPKCFIN7DLC6O5VQEUBDUF4ZHTBVLGBQCCK :::: NAILARA AMOS :::
+# :: 3BYZ6GB6PD2PO6X26TQEATOWMJXONZIIPMPEYLF5Q6PWLP4SXCAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

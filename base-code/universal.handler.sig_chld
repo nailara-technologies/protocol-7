@@ -25,8 +25,7 @@ do {
                 = ( defined $zenka_subname and length($zenka_subname) )
                 ? '.' . encode_b32r($zenka_subname)
                 : '';
-            my $file_name
-                = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
+            my $file_name = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
                 or warn("$file_name: $OS_ERROR");
             chmod( 0644, $file_name ) or warn("$file_name: $OS_ERROR");
@@ -55,7 +54,7 @@ $SIG{'CHLD'} = 'IGNORE';
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 #.............................................................................
-#YYBZZ2TUTOHTMDMN6FWLTJTRYUH4HPAYIHZJFHGHJA3DGEZNRZOREBSKXS3XMEMVLVJYFMFVNP6CK
-#::: ZDTLVNFPKICUBMIIRHXJFT4DMX773CNQWYIZUKMR667SAKZUTU6 :::: NAILARA AMOS :::
-# :: AYZ4QAAWYAKZGV45VGXCYX72QA4FJTFK7MGNFOAJSP73KEMGJ6DI :: CODE SIGNATURE ::
+#HWITJ6T5ANPWZF7EQSBIVJGZNXGSF6DARDAM7GVR2AR5WDJXN67NGKJNQ7LVR4MZKRER3MO7CMGCC
+#::: AR2C67RRGG7YM6UEEYVVKD3W7LOATZHRF2GGWANPRYBWHYHBRWO :::: NAILARA AMOS :::
+# :: VMY7I257ME6Q5DZUNO4F7VU2EX45GFMS5L5DJFF6MACOEGIQJOAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ foreach my $link_path ( keys %{$links_href} ) {
     ( my $link_name = $link_path ) =~ s|^$cleanup_path/?||;
     my $task_vers_num;
     my $remove_match = 0;
-    if ( $link_name =~ m|at\-version/($B32_re+\-\d+\.\d+)$| ) {   # 'at-version'
+    if ( $link_name =~ m|at\-version/($B32_re+\-\d+\.\d+)$| ) { # 'at-version'
         $task_count++;
         ( my $task_version = $LAST_PAREN_MATCH ) =~ s|\-\d+\.\d+$||;
         my $task_ntime = <[base.b32.ntime]>->($task_version);
@@ -46,7 +46,7 @@ foreach my $link_path ( keys %{$links_href} ) {
         <[base.log]>->( 2, ": task match : $task_name" );
         my $link_target = $links_href->{$link_path};
 
-        $link_target =~ s|<hostname>|$hostname_str|g;    # <-- <hostname>-syntax
+        $link_target =~ s|<hostname>|$hostname_str|g;  # <-- <hostname>-syntax
 
         my $type = 'path';
         $type = 'file'      if -f $link_target;
@@ -71,7 +71,7 @@ if ($task_count) {
 }
 
 #.............................................................................
-#VCEW3PCYQVW5EZLUKPBS4VQKMNWIZON3ICXJQN5Z4PGACUXZXLE4OZAIYY55MNN6KSQXILIU7KUDO
-#::: J6EMTDK6SZGUEYNRWLXTQ4HKQOWJMEWWTSW6ZHGKKPT6XAG3GLM :::: NAILARA AMOS :::
-# :: I2AVJ54UFIXQBRQS7NBFQQNOL2F5JPMWIGMHY5DUJXURL4VJKOAA :: CODE SIGNATURE ::
+#DHP4UJZB4GYBZCBYP3WOPYZKFFNQLGDGMM6WP73YSEPHDL2FWGURLDRYKUQQF3BYB6JSR3762XR5W
+#::: T2HFDDWDL3OMKY6VQAKOMT72VCSOOIFBXYS776VRXCRK2UPNJG4 :::: NAILARA AMOS :::
+# :: HVYMV274227Y3TEAMYZPCSQFVXXOBBDKX3IP5GBOYACOJ45HZGDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

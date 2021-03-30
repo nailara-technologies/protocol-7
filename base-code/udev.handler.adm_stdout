@@ -23,7 +23,9 @@ my $bytes = <[base.s_read]>->(
 if ( not defined $bytes or !$bytes ) {
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "udevadm process [PID:$pid] output filehandle closed." );
+    <[base.log]>->(
+        1, "udevadm process [PID:$pid] output filehandle closed."
+    );
     kill( 9, $pid );    # making sure it's really gone
     <[base.log]>->( 0, "udevadm process terminated." );
     <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka!" );
@@ -55,10 +57,11 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
                 <[base.log]>->( 1, "<EVENT> $pattern_name ( $match_name )" );
 
                 #    print Dumper($adm_event);
-                if (exists <udev.rules.actions>->{$pattern_name}->{$match_name}
-                ) {
+                if (exists
+                    <udev.rules.actions>->{$pattern_name}->{$match_name} ) {
                     my $action
-                        = <udev.rules.actions>->{$pattern_name}->{$match_name};
+                        = <udev.rules.actions>
+                        ->{$pattern_name}->{$match_name};
                     my ( $cmd, $params )
                         = split( / +/, $action->{'net.cmd'}, 2 );
                     while ( $params =~ /<([^\s\>]+)>/ ) {
@@ -98,7 +101,7 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
 }
 
 #.............................................................................
-#BMEUUGRCMDVBYORAAGDADJQUWYW6QKWE6K6AI4IJYYTTS5X6MQFFVA5MCHVY2OA7HUPQ5DT45PAWU
-#::: GP4VDNVWC52LPHU3PPZPYGPBTYVWVW37WQYQBKW3UEQJDBGSGJZ :::: NAILARA AMOS :::
-# :: GFQKDW4ZP6VAB4MHBFZ3RCUTZ6RMFKYTL3UKF3C6M2GYFIURSACI :: CODE SIGNATURE ::
+#4WEVJTJWVSFWNQC3SEMLC5JXDDJZAC7GZL5QZFGOZEJ7JMCVXUZOHM3XTJ5S72Y7N6OGNKWQSG5C4
+#::: KGT3SEJX7YK55RHMPGOM4QLKOKFZMQ4XEAO7FM777235YSWGEDJ :::: NAILARA AMOS :::
+# :: 3EEG25P6DSIFWU6VEQX36Z2MONJRYXON3CEA7E2QUO3S5OLYEUBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

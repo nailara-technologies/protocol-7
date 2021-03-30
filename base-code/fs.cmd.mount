@@ -34,7 +34,10 @@ if ( not defined $device ) {
     if ( system( '/bin/mount', $mount_point ) != 0
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": mounting of '$mount_point' failed!" );
-        return { 'mode' => 'nak', 'data' => "unable to mount '$mount_point'" };
+        return {
+            'mode' => 'nak',
+            'data' => "unable to mount '$mount_point'"
+        };
     }
 } else {
     <[base.log]>->( 1, "mounting $device to $mount_point .." );
@@ -51,7 +54,7 @@ if ( not defined $device ) {
 return { 'mode' => 'ack', 'data' => 'mounted successfully' };
 
 #.............................................................................
-#MJSXF7GQWWNGR7DL45MCXGXEENNK5NMDYRR2VHYORQFLCZOQD2R5TFF4ZLHD2BD2IRYTRQWITGH5Q
-#::: QGV7EK4BVFKNNE2OI24SORNF74UIAEMLZSQL3IPO7KXVTMKHLUC :::: NAILARA AMOS :::
-# :: LUTQCLRVGBPF2G4MU447ZGNQV2AFVYL4D6NSYG7JWEM2WFJE2YBI :: CODE SIGNATURE ::
+#LPTVMK2UVVNZB3NITN3DQSKUUCRTCY55IXEVH3YEUYTGJ7BEQJUSJ6DA7SRUAD6S53CSJYVG27HKM
+#::: DAWDPCUXK2MZFJ2GA6R2BVAC2UG3DMSM24QU52YXE6Z5JJEJRRJ :::: NAILARA AMOS :::
+# :: NIWXVKLXUTTWUSPYIMNJEFKDZROB57FRAN6IYZD3QXN6VHYT3SAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

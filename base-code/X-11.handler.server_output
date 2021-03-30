@@ -17,11 +17,12 @@ my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'X-11'}{'output_buffer'},
     4096,     length(<X-11.output_buffer>)
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # [ filehandle exception ]
+if ( not defined $read_bytes or $read_bytes == 0 )
+{    # [ filehandle exception ]
     $event->cancel;
     close($read_fh);
     <[base.log]>->( 1, "$bin-server [ PID $pid ] filehandle closed .," );
-    kill( 9, $pid );                                  ##  <--  making sure .,
+    kill( 9, $pid );    ##  <--  making sure .,
     my $err_str
         = defined <X-11.first_error>
         ? ': "' . <X-11.first_error> . '"'
@@ -43,7 +44,7 @@ while ( <X-11.output_buffer> =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#UE46KXVY4GRPMBOLSBUVGEMG5PH6OCLFJH4VX7D7OIZORHZSSVUKGKZIV5DV7WCP3IYNUJUB6NPV4
-#::: WUMIGO7UO3DSQB5SDRBZPBTMQPEZWNXOV2V7OZA3HAQTUBWZDOZ :::: NAILARA AMOS :::
-# :: 37LX7JW4JFPBBF6MQUGV4XQDITZGZDSS246Y4662WOHA2KTTOSAI :: CODE SIGNATURE ::
+#ZCQLF5LBMCN3AIY2UPCE5ZY6OPUQYVIH3XJZFNKGSVKXUEFA4ZOZTJGDHAWQQAIFJPHZGFIQM4JQQ
+#::: TEURWLHR7EJY2FUEVD7GUG3JV2ZCJNSK3SYVBBUYL2GGPJXG6BC :::: NAILARA AMOS :::
+# :: 67IICIM4R5X6XUJ6XNT6KZKUZTJ3JAWRXIRNLKUNCTEK53IL3QAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

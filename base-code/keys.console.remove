@@ -20,7 +20,8 @@ my $key_usr = $key_vars->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
-opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $OS_ERROR\n";
+opendir( my $dir_fh, $key_dir )
+    or return print "\n [!] $key_dir : $OS_ERROR\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
@@ -60,7 +61,7 @@ my $s = $del_count == 1 ? '' : 's';
 print " :\n :: [ removed $del_count key file$s ]\n\n";
 
 #.............................................................................
-#RMBBQZLG4SQ2CY3IXE6JOIQLW5QFGJFDMNMMGUOWICBNAPVTBRDKJJYAOZODZ3J4DKC5VGDB4ZBAO
-#::: T76OXQHBQ3PFFOLQ2LHRM73DBUADKD7QFH6TGPSQVCKG6TN2RO5 :::: NAILARA AMOS :::
-# :: 5C3TBHRXU2XT3WL72JN4AWLT3OA4WMVSRNDYXYGPNRSESSEDKGAA :: CODE SIGNATURE ::
+#XAKAOF6JWMBQRWOWVH3D526ESQP66D5KTXYOTNUAKW6QG3NGM3NOB4RXKMQQJ26TV26CXGKWXETWC
+#::: QYH2XKHXBXYI5WWSAY7FK5AX3JXEYTORNVTALF65CIP5IMHM3FD :::: NAILARA AMOS :::
+# :: 4K53OLYF3ZYNV4OQRACGFLSYBTUXO2G7JGKBJMUTRBAGCSBEXKDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

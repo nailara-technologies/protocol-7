@@ -15,7 +15,7 @@ my %wait_pids = map { $ARG => 1 } keys %{<nroot.child>};
 foreach my $p_pid ( keys %{<nroot.child>} ) {
     map { $wait_pids{$ARG} = 1 }
         @{ <[nroot.sub-process.get_children]>->($p_pid) };
-    <nroot.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # ..in case.,
+    <nroot.child>->{$p_pid}->{'start_time'} //= <[base.time]>;   # ..in case.,
 }
 
 my $child_count = keys %wait_pids;
@@ -108,7 +108,8 @@ while ( keys %children_left ) {
             if (@children) {
                 my $es = scalar @children == 1 ? ' -- :' : 'es :';
                 <[base.log]>->(
-                    1, ": <KILL> `-- sub-process$es " . join( ', ', @children )
+                    1,
+                    ": <KILL> `-- sub-process$es " . join( ', ', @children )
                 );
                 kill( 9, @children );
                 map { delete $children_left{$pid}; } @children;
@@ -125,7 +126,7 @@ map { <[base.log]>->( 1, ": <KILL> orphan process $ARG" ); kill( 9, $ARG ) }
 exit($exit_code);
 
 #.............................................................................
-#BWKEV3UDZG5DQWAPPQORIAYAXMDQRFWVPCUDEHKEY7D4LZJYPBGGTA57DLFGYOME3H6GG4USQPLAM
-#::: 4GKMHJRUAIMARS3VIVRGYKFQ3TXKJKCAVZ4VT2NO3U6252FHNEY :::: NAILARA AMOS :::
-# :: GYUJPLHRDB4FKNTY62FFRDVLW5RYV3TT3WEUOIPTY5AF2DKHFSDI :: CODE SIGNATURE ::
+#32GQB2J4TMJAIHS6WGBOCC6TP5GESEMW5TMILSA7WWUKSG7YVJJAO7SGQGMOEMXONNP5XOKDHIDG6
+#::: 5JMSP4JR7RUX2PQ7TVE6KSVFAETFAHRUIR2IS6H7GCDLNPZIHBV :::: NAILARA AMOS :::
+# :: UDD4VZCRJN2CKDXPPXVVPTDEQPWUNBSXOD3B7CCC4URJ5NKSWICA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

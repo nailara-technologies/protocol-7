@@ -62,7 +62,8 @@ goto error if defined $err_status;
 my $target_height
     = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width );
 
-<[base.log]>->( 2, "target page #$index size ${target_width}x$target_height" );
+<[base.log]>
+    ->( 2, "target page #$index size ${target_width}x$target_height" );
 
 $conversion->{'skip_hash'}
     = <[pdf.html.base.white_page_hash]>->( $target_width, $target_height )
@@ -105,7 +106,8 @@ if ( $image->Get('signature') ne $skip_hash ) {
 }
 
 my $percent
-    = sprintf( "%.1f", ( 100 / $page_count ) * $conversion->{'current_page'} );
+    = sprintf( "%.1f",
+    ( 100 / $page_count ) * $conversion->{'current_page'} );
 <[pdf.html.base.write_stub_page]>->( $conversion->{'html_path'}, $percent );
 
 if ( $conversion->{'current_page'} == $page_count ) {
@@ -156,7 +158,7 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 return;
 
 #.............................................................................
-#DC4KQBOWIX2SKPQYQXJKBIUCWTBT3HPJTINYYTULYJGZV6WUBRKZYJ3U3AU6PYS35BNZUJXUMJSCC
-#::: 6VVNF7SCZTT2LYDRUSYYGHJIX6KK7FFBJSEBWMW74NBPPYH57HA :::: NAILARA AMOS :::
-# :: KH54QFMTD25ALUWJUZ57CPP2ZBWGODOL5H5GATAXYCKFHUAJL6CA :: CODE SIGNATURE ::
+#MQECLMIJRNIM5IJX4ATAX7OWC5YGKKHGPRJR4WUIXPMPB3FF2EQHOZ57EEDLDOYZNYD6YJ7MAEQHK
+#::: F4X6HZTEASP73Z4P7LLTW353VLWZ37BG4YVBO5GIBNPWCBU47XT :::: NAILARA AMOS :::
+# :: PRLLL6I67R2X7MLMVEHDHOG4CKWZD4E6A6C5ZSY5BFYRQGAZWCDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

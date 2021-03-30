@@ -14,8 +14,9 @@ my ($local_sid) = keys( %{<user.cube.session>} );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>
-    ->( $cube_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n" );
+<[net.out]>->(
+    $cube_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
@@ -37,7 +38,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#SZTSBSS4LKJ35EA7CSELSOXH4CKT6MU3QCQYTGKQ4YBCL2F2ZFXKJPCKRGSJ4RYD4UBPSWUQOGYV2
-#::: 5LWFESD32YMTOYRCT3L5FELJTWH2ENNFXESLCN5L4GL2BS3TF4O :::: NAILARA AMOS :::
-# :: 3ZOM7DL2JWOHKLYO4P2DVAVBRQ7WGZB5OSOFPSCZEGR74SJZ46BY :: CODE SIGNATURE ::
+#XICNV6EUQJQUF7IZJCWTEHHHF5NEARDQN4HOPNAZF3LKOKANW7Q4QO4KTLGIUGHXJ5GVWHBDSPPV2
+#::: 2HBWHTAN3UIVWGRKONN373XDTH2JVBCHYRX4JTFNIYHFXYASMIH :::: NAILARA AMOS :::
+# :: 6XEZA5NALB6ORTJCLSHCUAEURLGOJP2LFJYPRQWVT6VA6F6SV4CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

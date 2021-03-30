@@ -40,8 +40,10 @@ push( @{ $tq->{'by_timestamp'} },         $job_id );
 
 foreach my $s_queue ( $sq->{'by_priority'}->{$prio}, $sq->{'by_timestamp'} ) {
     my $del_index = 0;
-    map { splice( @$s_queue, $del_index, 1 ) if $ARG == $job_id; $del_index++ }
-        @$s_queue;
+    map {
+        splice( @$s_queue, $del_index, 1 ) if $ARG == $job_id;
+        $del_index++
+    } @$s_queue;
 }
 
 $job_list->{'count'}->{$source_queue}--;
@@ -50,7 +52,7 @@ $jobs->{$job_id}->{'tstamp'}{$target_queue} = <[base.time]>->(4);
 $jobs->{$job_id}->{'status'} = $target_queue;
 
 #.............................................................................
-#MQ5PUHUMP7VGAEFXYHY23BTWL5SIB2U27A3ZFPVH2VL6ARNHVDZCQPT6O6DCPJZBHT4ZMS7CFCFHQ
-#::: UKLORZJE3JPLLFDQJM5BBLP64436X72OUW2RPD5F4IPH6NSFVFN :::: NAILARA AMOS :::
-# :: IGW4CJQAEUFYQY33XFGGAD4UFZMTIE2YF4GXSGK5KLCS7QHS2WAI :: CODE SIGNATURE ::
+#D2B5OAAOBD2SQL3XW6WBWHDVTLTXJH6L7WKBKEBYQUJX3BCT4CAUIAOZMP7EEJ6YZX22I7QAEAUX6
+#::: HV6F7JNL2EVW6AKW67VK6S5VUUQ55GLAY7YVU2CYNYEBA4BFSYI :::: NAILARA AMOS :::
+# :: OJPNP3KKM2RSX6LNQ25YOUSNXJWBZJHOB56YRTKCFQ2W62MPMKCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

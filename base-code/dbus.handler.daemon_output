@@ -17,11 +17,12 @@ my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'dbus'}{'output_buffer'},
     4096,     length(<dbus.output_buffer>)
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+if ( not defined $read_bytes or $read_bytes == 0 )
+{    # ( filehandle exception )
     $event->cancel;
     close($read_fh);
     <[base.log]>->( 1, "$bin [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );                                  # to make sure
+    kill( 9, $pid );    # to make sure
     my $err_str
         = defined <dbus.first_error>
         ? ': "' . <dbus.first_error> . '"'
@@ -47,7 +48,7 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#7DZBCVPTJMBYNWRDXTFJUI2MO7HQ6F5LJY7BRGD7Q6XVIX7KSPD7GW7S5PDXGNCOO5X3KMS4CRRXQ
-#::: 2AEKF5UJQE47JAQF5EPTP6FJNVNKXVGDQD73EEWKEM6JTWVH4KG :::: NAILARA AMOS :::
-# :: ZZZ2PW3NYYMEQHYS24YMYUCDONRJRJNZOT6BKAB2QYEUHOEIS6DY :: CODE SIGNATURE ::
+#NRTO3OJPNIYCRRU7O7YPFT7P4IODECQD3VQLWER7BQU5QHPQJAMRMXCSVWL3EDQ6SCANFJSLEUTPA
+#::: C4ZLCW4L4WZCP66JFO2QBSYB6ZZZYR52FTOWY6XW7J7ZZM4S7UP :::: NAILARA AMOS :::
+# :: JZHWPTOLVGG3U4VWEEP4LMEP46F3EUSNQ4FX43JQ2Z3V74KTMACY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

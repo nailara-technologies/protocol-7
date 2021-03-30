@@ -24,8 +24,8 @@ foreach my $card_name ( readdir($drm_dir_fh) ) {
     ( my $target_path = readlink("$drm_dir/$card_name") ) =~ s|^(../)+|/sys/|;
     <[base.log]>->( 2, ": : $target_path" );
 
-    <base.obj.inotify>
-        ->watch( $target_path, IN_ACCESS(), $code{'X-11.scan_display_states'} );
+    <base.obj.inotify>->watch( $target_path, IN_ACCESS(),
+        $code{'X-11.scan_display_states'} );
 
     opendir( my $card_dir_fh, $target_path ) or die "$target_path: $OS_ERROR";
     foreach my $disp_name ( readdir($card_dir_fh) ) {
@@ -50,7 +50,7 @@ closedir($drm_dir_fh);
 return $connected;
 
 #.............................................................................
-#JGXIUUC3ZRWO3FE7PQDJI7GPCPCZUQ5HGN7XIUTKYLAYCVZVFBTZLIHKMJ4XUHULKBSDNIFQYWCUW
-#::: RVRIAYBPP5RXTIKEXNCWYHJM3V32ICIPG7MEDGOOMW24P2UUUE6 :::: NAILARA AMOS :::
-# :: IJFBOR4PVRNYZ2K3EUINN3O7VSASPBY5VOP7OAP5TUKIE7SCJSDQ :: CODE SIGNATURE ::
+#XBSKUCYH6RWJMX7OKRS7S4XEGUL56SMXLBJDN6EOALOAHJHC4UPFHPYUQ36646MD54WDNFDT3LIG4
+#::: IZOCICYUPUGDKJ3EWHO3JHUSE7CPCR7T2ENZIY7M5T766CNMOV4 :::: NAILARA AMOS :::
+# :: VVT2GYYLNWTFDEEMRNKKQGJRP7V7B2RMFSX44BE2435MFMRWFSAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

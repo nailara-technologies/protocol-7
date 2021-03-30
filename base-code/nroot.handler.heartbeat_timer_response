@@ -5,7 +5,8 @@
 my $response    = shift;
 my $instance_id = $response->{'params'}->{'instance_id'};
 if ( not exists <nroot.zenka.instance>->{$instance_id} ) {
-    <[base.log]>->( 1, "instance $instance_id gone, skipping response timer" );
+    <[base.log]>
+        ->( 1, "instance $instance_id gone, skipping response timer" );
     return;
 }
 my $instance        = <nroot.zenka.instance>->{$instance_id};
@@ -22,7 +23,8 @@ if (    $response->{'cmd'} eq 'ACK'
     and $response->{'call_args'}->{'args'} eq 'beating' ) {    # success again
     delete $instance->{'heartbeat'}->{'errors'};
     <[base.log]>->(
-        2, "instance $instance_id [$zenka_name] heartbeat response ( success )"
+        2,
+        "instance $instance_id [$zenka_name] heartbeat response ( success )"
     ) if !<debug.skip_nroot_heartbeat>;
 
 } elsif ( !$heartbeat_retry ) {
@@ -32,7 +34,8 @@ if (    $response->{'cmd'} eq 'ACK'
     <[base.log]>->(
         0, "instance $instance_id [$zenka_name] heartbeat response ( error )"
     );
-    delete <callback.session.closing_last> if $is_cube_zenka; # for safe restart
+    delete <callback.session.closing_last>
+        if $is_cube_zenka;    # for safe restart
 
     <[nroot.stop_heartbeat_timer]>->($instance_id);
     $instance->{'heartbeat'}->{'errors'} = 0;    # <- resetting error counter
@@ -58,7 +61,7 @@ if (    $response->{'cmd'} eq 'ACK'
 }
 
 #.............................................................................
-#3CDCWFMFJHEP4W2ZW5CKIJSZ4CLKR5USWAL4BIKPIOTA4YSKGJL2HRRW6CMYBDCQ5EAYLG7OG6B4Y
-#::: DWXSVBGXMPVFIJ3MDEYBD4AYJHJQGEMUR2OXTKHBXCCQRNREPU2 :::: NAILARA AMOS :::
-# :: UZY3IN2CZVH3EUUD2GBRYQG4SIKEJKWWYTWF6SEX2C6AE2DUTMDQ :: CODE SIGNATURE ::
+#4ZJY6H3GKB5OP6JCIF5ZNWLCXHRVCPPA27MSEAVIQPORLMIVU6W6RNQC7ZZF76M5DPGULA4M4A6Q4
+#::: H6MLYRO4FID6TJQURD55TLXPHTSHEZMXX7H3PB72DXS6H5D6XIE :::: NAILARA AMOS :::
+# :: LCA3RAKMXY5SJ5BVZWPZUFOAWAWPOXA65KQMIZXDCWRDPEGSCIBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

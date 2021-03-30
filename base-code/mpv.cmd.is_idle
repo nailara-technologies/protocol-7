@@ -8,16 +8,19 @@ push( @{<mpv.reply_ids>}, $reply_id );
 
 my $mpv_property = 'cube-idle';
 
-<mpv.request.property>->{$reply_id} = $mpv_property;   # <- stored for err. msgs
+<mpv.request.property>->{$reply_id} = $mpv_property; # <- stored for err. msgs
 
-push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.single_line' } );
+push(
+    @{<mpv.command.reply>},
+    { 'handler' => 'mpv.handler.pipe.single_line' }
+);
 
 <[mpv.send_command]>->( 'get_property_string', $mpv_property );
 
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#BDG2KVB4VFM2QD7MMPJXTFWMFBIMSR22KDKADFDAZYKTZA265LPCBRD6K7RWXUKABF7QG3WDNCOIE
-#::: M5M27DFTB2Z4SS62ASKEWGAZQKMTRXS5MNPGVBMW4NZ6KISN5AE :::: NAILARA AMOS :::
-# :: CISSAZGE2JKBO27XKHFH4WNBD6L5XLY6673ENCCEABITJ6KHYMAA :: CODE SIGNATURE ::
+#IMOR6RWGNYJ5HQRIGP4DJH7ABJ3EPLUKZF43VO2LO33VZCMRUN35BEXCB75ZSITW64WSGPF5E5Y4A
+#::: J5W4KSIBMFTV4I7NF5AUEJ25URYPERFIBMWNG574KOGNPYASTVQ :::: NAILARA AMOS :::
+# :: 2G4YFF7MWN4OSEHQXZYCDDHYMVO4MZKTYPMWGEPX2JOE6WYBVYCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

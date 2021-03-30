@@ -4,7 +4,8 @@
 
 if ( not defined <nroot.pattern_config>
     or ref(<nroot.pattern_config>) ne 'ARRAY' ) {
-    <[base.log]>->( 1, 'no zenka output patterns to initialize, skipping..,' );
+    <[base.log]>
+        ->( 1, 'no zenka output patterns to initialize, skipping..,' );
     return;
 }
 
@@ -17,8 +18,8 @@ my $pattern_chars = qr|\\<>\w\d_\|\-\+\?,\s\.\[\]\:\'\^\$\*|;    ## <-- regex.
 foreach my $p_ref (@$zenka_pattern_data) {
     foreach my $pattern ( keys %$p_ref ) {
         my $p_key = $pattern;
-        if ($pattern =~ s{^([$name_chars]+)$re([$pattern_chars]+)$re(i?)}{$2}g )
-        {
+        if ( $pattern
+            =~ s{^([$name_chars]+)$re([$pattern_chars]+)$re(i?)}{$2}g ) {
             my ( $zenka_string, $pattern_string, $i ) = ( $1, $2, $3 // '' );
             $zenka_string =~ s|[ \t]+||g;
             foreach my $zenka_match ( split( m|,|, $zenka_string ) ) {
@@ -31,7 +32,8 @@ foreach my $p_ref (@$zenka_pattern_data) {
                     = 'sub { my $instance_id = shift;'
                     . ' my $zenka_name = shift;'
                     . ' my @matches = @_; '
-                    . join( '; ', <[base.parser.config]>->($pattern_code_aref) )
+                    . join( '; ',
+                    <[base.parser.config]>->($pattern_code_aref) )
                     . ' }';
                 $sub_code =~ s|<zenka_name>|\$zenka_name|g;
                 $sub_code =~ s|<instance_id>|\$instance_id|g;
@@ -48,7 +50,7 @@ foreach my $p_ref (@$zenka_pattern_data) {
 }
 
 #.............................................................................
-#DWXTCVRJHNF6UNPNI4JXXM26UA7EOQ4VPMV25RYBDOUF7J6ICTVSOIZSL3RS3P7Q6DJU5MW7ZFZAA
-#::: MQW7RUTX3CRFSML5XHXD5STMZXLZU6WUFNF4G7C5WZRZFJ4DMM3 :::: NAILARA AMOS :::
-# :: UWHUNJ3HCVAKKV32XY3DPEHLTTYIT37WJUNBLAROEVACZYX5TECI :: CODE SIGNATURE ::
+#U4TZACSUUFDWZQU4LQASLCD24WTZ32ZYG7RBUDG625T7XVKUGO3MK7MPD5NRDFVXQNI3ONA25WBYU
+#::: MPYJWPPKTPUISR72NKXGORSNOARVPKVMNBYD7WLW55EGOMUO6J5 :::: NAILARA AMOS :::
+# :: ZZTG7OKOEN3HUVBVOIP4FPU3ECESUQ7ZYY45XAOQEP56M7Z6ZIBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

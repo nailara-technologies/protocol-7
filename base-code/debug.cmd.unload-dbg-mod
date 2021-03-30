@@ -10,7 +10,8 @@ my $id = $$call{'session_id'};
 return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
-my %mod = map { $ARG => 1 } split / +/, <modules.load>;  # LLL: <!> create iface
+my %mod = map { $ARG => 1 } split / +/,
+    <modules.load>;    # LLL: <!> create iface
 if ( delete $mod{'debug'} ) {
     <[base.log]>->( 1, "<!> persistently disabling debug module <!>" );
     <modules.load>
@@ -29,7 +30,7 @@ return { 'mode' => 'ack', 'data' => 'debug commands removed =)' }
 return { 'mode' => 'nak', 'data' => 'can not remove debug module `:|' }
 
 #.............................................................................
-#A763SRZNEYSBQFLHLWO2F3H7ACNUPN77OCXMHR3V6WXJFS756HEFFPFUDA2WK5G7QQIISOOZTSPBS
-#::: JBIHG3TQCF4BHUWZMWJ7KI6S7PWMSMTY4I7QNUEIZZ3HOWM5SNM :::: NAILARA AMOS :::
-# :: KJYIOZ4DPO3QXFOEDSBH7ITJAEGAKG3IDYPWYAJNCGU6JOQSJEAY :: CODE SIGNATURE ::
+#BD3QFPOB6GVD65LI6YDC47LZGRYKRBDZWFUEAY2BQWNMCPN5EQOUXB6WMHX2IK4VZIKKNQNYWCYPK
+#::: PWY5GLBD7C5M6NTRIGVJYW7NIEXLUHEQL5REZOD7TN7ADBDPDZZ :::: NAILARA AMOS :::
+# :: SFLVEKFYBYILBJZN5JW4OIYVE66RVYY6XU5IVJVELNFV27MSB4CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

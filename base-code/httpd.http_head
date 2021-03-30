@@ -13,7 +13,8 @@ my $req_host  = $session->{'http'}{'request'}{'host'};
 my $http_host = <[httpd.determine_host]>->($id);
 
 if ( not defined $http_host ) {    ##   bad request
-    map { delete $response->{'params'}->{$ARG} } qw | Allow |;  # <-- expand ..,
+    map { delete $response->{'params'}->{$ARG} }
+        qw | Allow |;              # <-- expand ..,
     return <[httpd.send_error_page]>->( $id, 400 );
 }
 
@@ -81,7 +82,8 @@ if ( defined $http_host and defined $link_target ) {
 
         ## 200 ## [ HEAD ] ##
 
-        $file_path = readlink($file_path) if -l $file_path and -f $file_path; ##
+        $file_path = readlink($file_path)
+            if -l $file_path and -f $file_path;    ##
 
         my $file_stat     = File::stat::stat($file_path);
         my $content_inode = $file_stat->ino;
@@ -96,7 +98,8 @@ if ( defined $http_host and defined $link_target ) {
         ## caching meta data ..,
         my $meta = <http.meta_cache> //= {};
 
-        foreach my $check_etag ( keys %{$meta} ) { # use timer once too many ..,
+        foreach my $check_etag ( keys %{$meta} )
+        {    # use timer once too many ..,
             delete $meta->{$check_etag}
                 if <[base.time]>->(4) - $meta->{$check_etag}->{'cached_since'}
                 > 777;
@@ -116,8 +119,8 @@ if ( defined $http_host and defined $link_target ) {
             $reply_code = 304;    # Not Modified
 
         } elsif ( defined $request->{'headers'}->{'if-modified-since'}
-            and $request->{'headers'}->{'if-modified-since'} eq $content_date )
-        {
+            and $request->{'headers'}->{'if-modified-since'} eq
+            $content_date ) {
             <[base.log]>->(
                 1, "[if-modified-since] returning 304 [$path_etag]"
             );
@@ -146,7 +149,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path or !-f $file_path;
 
 #.............................................................................
-#XGACZ6I3I7NBQ36KWXSIAJPW3GODSWCMJBFM2YBU2LHR7RS4C7OQNCHYT2VBAPLQOFDFSNVCQ7UPU
-#::: TSU3N2BPOE63LM4V5YGLFXK34KQNGDGJVG4ZNHG7DCCKN2ZGK5Q :::: NAILARA AMOS :::
-# :: YRDOIYV3BA77FTQFQJLN2KUESEGZLW3I5Q5CBVKEG7DQBYZEYQAQ :: CODE SIGNATURE ::
+#QAGNT7BHZGUPLOJSILXQSGGRLTG65N2IJJVUWXSH2U64UX3E6UZZKHFTHKSNKP3BWURXEFEIIYWS4
+#::: 4DINAYCKMCTZZTXFT6P2O6EJP5O7MJFHNMB6ZF4ZL2CLU3B4AF6 :::: NAILARA AMOS :::
+# :: 45SGCXIRE2LFRHAEO57MCEDHN5JYI54CEHSDOHTWUIRYLKHLM6BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

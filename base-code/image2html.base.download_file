@@ -41,13 +41,15 @@ if ( !-d $target_dir ) {
     make_path($target_dir) or die "make_path($target_dir): $OS_ERROR";
 }
 
-my $head_res       = $ua->head($file_url);
-my $content_type   = $head_res->{'_headers'}->{'content-type'};
-my $content_length = $head_res->{'_headers'}->{'content-length'}; # LLL: use ...
+my $head_res     = $ua->head($file_url);
+my $content_type = $head_res->{'_headers'}->{'content-type'};
+my $content_length
+    = $head_res->{'_headers'}->{'content-length'};    # LLL: use ...
 if ( $content_type =~ m|^image/(\w{3,4})$| ) {
     <[base.log]>->( 2, "found $1-image ($content_length bytes)" );
 } else {
-    warn "content_type=\"$content_type\" [expected 'image/*'] for '$file_url'";
+    warn
+        "content_type=\"$content_type\" [expected 'image/*'] for '$file_url'";
 }
 
 ( my $target_path = "$target_dir/image.download" ) =~ s|//|/|g;
@@ -77,7 +79,7 @@ if ( $status_code ne '200' ) {
 }
 
 #.............................................................................
-#F7TB5TOZKZVU5H5UYDGE5ZJRZJ6RX77PTJV4CN3WWKJ4URAIN2EBH23YVLTEBOBLMN7SD7T23OGJK
-#::: RF4O5OZCDVQDRWPJDJSPCC27SW6VWTMHEQ2OPKTAHHS6Z6SRJPE :::: NAILARA AMOS :::
-# :: OXXDOFEPYEVBL6U6IKCZF53JFRV6GZKRLSXFJRR5PKEPUCZSFOAA :: CODE SIGNATURE ::
+#7AKB7PB2ZKOQTLGA5WDOOBKZM5G5V52TONFD4CXELUU4AG6PKBDBLIJVTMYFYO5ELEX4Y5TBHH3UA
+#::: EZ2CKY6LG6KPR26GVXMURQW7NUPXKGOXECYHXCJFREY36NSA3ZL :::: NAILARA AMOS :::
+# :: Z4TP7IV3MDW3GCF63V6IZ2SFH7XWRS5JRRKPOMADOETNQJONXWAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

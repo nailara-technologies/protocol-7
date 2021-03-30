@@ -21,7 +21,10 @@ my $formula = Math::Symbolic::parse_from_string($expr_str)
     return { 'mode' => 'nak', 'data' => "expression not valid [$expr_str]" };
 
 my $value_str = $formula->value;
-return { 'mode' => 'nak', 'data' => "calculation not successful [$expr_str]" }
+return {
+    'mode' => 'nak',
+    'data' => "calculation not successful [$expr_str]"
+    }
     if not defined $value_str;
 
 ### plain value mode ###
@@ -37,7 +40,7 @@ my $result_str = "____ $value_str ___ [ $expr_str ]";
 return { 'mode' => 'data', 'data' => "        $result_str\n\n" };
 
 #.............................................................................
-#4T2KL3WGXMDW37KF6UIL6YMPP5FNZ4FU6D7CD2ZBLIBZL7T23NFXGGC3F5YCP4F3HGGZVX2V7BEEU
-#::: Q7Q4ND2PNJJ7KXX6RJQ34I7M5XP2W4UP54N3FVY4MQ7DPMG2QSP :::: NAILARA AMOS :::
-# :: TOIJPNGDPU5AVSSWERSJXWZHH67RTTLLEZVVTLRCQKJHUZHMV2BI :: CODE SIGNATURE ::
+#2TCJMAADHCX5DEXBSCU2NJJ6NDDQWDG75COYWMTILMGCK5JVSJJZZM2O563JXVQX35N6QNCIZ6YF2
+#::: P5PLIYD4KUPURMOHFEQEVJJ7YK2L3D6T3MDKIM2BJTL5LXMNFRM :::: NAILARA AMOS :::
+# :: ISPGPT7UEJEKM43ALHU4CSK4L3WJJMROE7DWVFBPTFVN6INKYADQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

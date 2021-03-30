@@ -11,11 +11,13 @@ my $resource    = $view->get_main_resource;
 my $response    = defined $resource ? $resource->get_response    : undef;
 my $status_code = defined $response ? $response->get_status_code : 0;
 
-<web-browser.time.load_start> = <[base.time]>->(3) if $load_status eq 'started';
+<web-browser.time.load_start> = <[base.time]>->(3)
+    if $load_status eq 'started';
 
 my $is_loading = $view->get_property('is-loading');
 
-my $percentage = sprintf( "%.03f", $view->get_estimated_load_progress() * 100 );
+my $percentage
+    = sprintf( "%.03f", $view->get_estimated_load_progress() * 100 );
 
 my $title = $view->get_title // '';
 
@@ -37,10 +39,12 @@ return 1 if $is_loading;    # [0|1]
 #    if <web-browser.startup.first-load>;
 ##
 
-$view->signal_handler_disconnect( delete <web-browser.signal_id.load_progress> )
+$view->signal_handler_disconnect(
+    delete <web-browser.signal_id.load_progress> )
     if defined <web-browser.signal_id.load_progress>;
 
-$view->signal_handler_disconnect( delete <web-browser.signal_id.load_changed> )
+$view->signal_handler_disconnect(
+    delete <web-browser.signal_id.load_changed> )
     if defined <web-browser.signal_id.load_changed>;
 
 #########
@@ -127,7 +131,7 @@ if (    $load_status eq 'finished'
 }
 
 #.............................................................................
-#5BHX7K6M6MVX2E3EH6W7LAEZMDWJNUODJIKL6P465A6TGH4SFC6UTOBUL7FPI7O3I2ELSCSECC6PE
-#::: ILMW6R5S3GSTIEK5CFBUASJVAXJ3TYJBZ4E7ACZHCOYYSU2FAFQ :::: NAILARA AMOS :::
-# :: CMQPXWPTKYAUPXQ52UHPEKSYFSLCOXV343XF72HDNIV5IS6FV2CQ :: CODE SIGNATURE ::
+#WO3GAJD2B3HAONZOK74ZULFL2B76AONEM43U7JA5UFPTIHITWGY6X5MCQRMGUBFEVHJLDHHLNVP4K
+#::: 4YGW7NDSXFQE4B4ETTOJX6XIKZ5UM32MDYN67Z6SMWKP5CE7URI :::: NAILARA AMOS :::
+# :: NGE3USB53LJ4QT2MGIQEDU7JAS7GGC7DFSO7YED2LM3C4HVYDCAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

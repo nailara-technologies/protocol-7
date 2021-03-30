@@ -89,7 +89,8 @@ if ( exists $init_code->{'nroot-init'} ) {
 
     if ( !$success ) {
         <[base.log]>->(
-            0, "errors in zenka '$zenka_name' init-code, aborting start << ! >>"
+            0,
+            "errors in zenka '$zenka_name' init-code, aborting start << ! >>"
         );
         <[zenka.change_status]>->( $instance_id, 'error' );
         return undef;
@@ -132,7 +133,8 @@ if ( exists $init_result_data->{'start_mode'}
     } qw| /bin/ /bin/dependencies/ |;
 
     if ( not defined $exec_bin or not defined $prog_usr ) {
-        my $reason = "expected program name [exec_bin] in '$zenka_name' setup";
+        my $reason
+            = "expected program name [exec_bin] in '$zenka_name' setup";
         $reason = "expected 'exec_usr' for '$zenka_name' to be defined"
             if defined $exec_bin and not defined $prog_usr;
         <[base.log]>->( 0, "$reason - ABORTED.," );
@@ -150,12 +152,14 @@ if ( exists $init_result_data->{'start_mode'}
     } else {
         my $privs = <[base.root.drop_privs]>->( $prog_usr, 'noop' );
         if ( not defined $privs or ref($privs) ne 'HASH' ) {
-            <[base.log]>
-                ->( 0, "exec_usr for '$zenka_name' is invalid - ERROR" );
+            <[base.log]>->(
+                0, "exec_usr for '$zenka_name' is invalid - ERROR"
+            );
             <[zenka.change_status]>->( $instance_id, 'error' );
             return undef;
         }
-        map { $privs->{$ARG} =~ s|'||g } keys %{$privs};  # LLL: abort on match?
+        map { $privs->{$ARG} =~ s|'||g }
+            keys %{$privs};    # LLL: abort on match?
 
         # LLL: implement exec_args..,
         my $prepare_code = '%ENV=(); ';
@@ -192,7 +196,7 @@ push( @exec_args, '-lpw=' . $apw_href->{$zenka_name} )
     if defined $apw_href->{$zenka_name};
 
 my $zenka_verbosity
-    = <system.verbosity.console> || 1;    # -v is min. [ zenka output patterns ]
+    = <system.verbosity.console> || 1;  # -v is min. [ zenka output patterns ]
 push( @exec_args, '-' . 'v' x $zenka_verbosity );
 
 <[base.log]>->( 1, "starting of zenka '$zenka_sn_str' initiated .," );
@@ -244,7 +248,8 @@ if ( not defined $pid or $EVAL_ERROR ) {
 );
 
 <[nroot.child.add]>->(
-    $pid, { 'instance_id' => $instance_id, 'start_time' => <[base.time]>->(4) }
+    $pid,
+    { 'instance_id' => $instance_id, 'start_time' => <[base.time]>->(4) }
 );
 
 $instance->{'process'} = { 'id' => $pid, };                          # ..,
@@ -256,7 +261,8 @@ $instance->{'subname'} = $zenka_subname if defined $zenka_subname;
 
 # push init code to zenka <stdin> if in 'stdin' mode.,
 if ($stdin_mode) {
-    <[base.log]>->( 1, ": pushing startup init-code < zenka '$zenka_name' >" );
+    <[base.log]>
+        ->( 1, ": pushing startup init-code < zenka '$zenka_name' >" );
     foreach my $_line ( @{ $init_code->{'zenka-init'} } ) {
         my $code_line = $_line;    # <- keeping copy
             # <{foo.bar}> [zenka instance namespace] variable fetching syntax
@@ -266,8 +272,9 @@ if ($stdin_mode) {
             eval "\$var_value = $namespace_str$var_str";
             if ($EVAL_ERROR) {
                 $EVAL_ERROR =~ s|\n| |g;
-                <[base.log]>
-                    ->( 0, "[!] error in zenka init-code: $EVAL_ERROR" );
+                <[base.log]>->(
+                    0, "[!] error in zenka init-code: $EVAL_ERROR"
+                );
                 last;
             } else {
                 $code_line =~ s|<\{([^\}]+)\}>|$var_value|;
@@ -281,7 +288,7 @@ close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
 <[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
 
 #.............................................................................
-#YNI5YVRKY7YNS65VKTQTM2GBRKCZYZSOIKKYON27CAIUVONOHWK2EBSQCBCBWACFO5OY2A22375K6
-#::: CK2LWQI2MWPBK3QHCYSZAET6R4OB7XG3RME7PJ67566IZA5GP4Q :::: NAILARA AMOS :::
-# :: 5NP2R45GKPM4PI764L7TJTCYY2RRPANGRSLO4XOEU3BJMYNHRCBA :: CODE SIGNATURE ::
+#53FSMBWKSCG73B6TX6RPDA7RQOUUTIF5MUIUQ52M7GY4JWDWRHA3KJK3RDXTQFZATM4W4PNKH62KS
+#::: AZOQP2GYPQTEZQVT43KGSL2BJQRK3ZBJH3O6M4QLCDMYFBHXQEE :::: NAILARA AMOS :::
+# :: MGGS2UCJVTE2J6P6WNK5XDEP7M24A7LWF7AFVYV3TAQSMTKP2YDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

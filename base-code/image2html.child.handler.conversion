@@ -76,7 +76,7 @@ if (<image2html.exif.auto_compensate_rotation>) {
         goto error;
     }
 
-    if ( $source_format =~ / ^ Joint Photographic Experts Group / ) {    # JPEG
+    if ( $source_format =~ / ^ Joint Photographic Experts Group / ) {   # JPEG
         my $exif = Image::EXIF->new;
         $exif->file_name($image_location);
         my $image_info = $exif->get_image_info();
@@ -90,16 +90,16 @@ if (<image2html.exif.auto_compensate_rotation>) {
 
             if ( $orientation =~ / top . +left / ) {    # default - do nothing
 
-            } elsif ( $orientation =~ / top . +right / ) {    # flip horizontal
+            } elsif ( $orientation =~ / top . +right / ) {   # flip horizontal
                 $image->Flop();
             } elsif ( $orientation =~ / bottom . +right / ) {    # rotate 180
                 $image->Rotate( 'degrees' => 180 );
-            } elsif ( $orientation =~ / bottom . +left / ) {     # flip vertical
+            } elsif ( $orientation =~ / bottom . +left / ) {   # flip vertical
                 $image->Flip();
-            } elsif ( $orientation =~ /left . +top / ) {         # transpose
+            } elsif ( $orientation =~ /left . +top / ) {       # transpose
                 $image->Rotate( 'degrees' => 90 );
                 $image->Flop();
-            } elsif ( $orientation =~ / right . +top / ) {       # rotate 90
+            } elsif ( $orientation =~ / right . +top / ) {     # rotate 90
                 $image->Rotate( 'degrees' => 90 );
             } elsif ( $orientation =~ / right . +bottom / ) {    # transverse
                 $image->Rotate( 'degrees' => 270 );
@@ -149,7 +149,8 @@ if ( $orientation eq 'landscape' and $fit_height ) {
         $scale_height = $target_height;
         $scale_width  = sprintf( "%.0f",
             ( $image_width / $image_height ) * $target_height );
-    } elsif ( $image_ratio < $target_ratio ) {  # LLL: check _quadratic_ images!
+    } elsif ( $image_ratio < $target_ratio )
+    {    # LLL: check _quadratic_ images!
         $scale_width  = $target_width;
         $scale_height = sprintf( "%.0f",
             ( $image_height / $image_width ) * $target_width );
@@ -158,9 +159,10 @@ if ( $orientation eq 'landscape' and $fit_height ) {
 } elsif ( $orientation eq 'landscape' and !$crop_to_fit ) {
     $prevent_crop = 1;
 } elsif ( $orientation eq 'portrait' and !$fit_width ) {
-    $scale_height = $target_height;             # scale to fit 'portrait' images
+    $scale_height = $target_height;    # scale to fit 'portrait' images
     $scale_width
-        = sprintf( "%.0f", ( $image_width / $image_height ) * $target_height );
+        = sprintf( "%.0f",
+        ( $image_width / $image_height ) * $target_height );
     $prevent_crop = 1;
 }
 
@@ -243,7 +245,7 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 }
 
 #.............................................................................
-#UWOOT2VBWWBFAQLN4JBY7PM66Y6WWQGXP3VAPKCRIUZJX4MCJYX4TP544RR3EF6LB4234MN6WGWCW
-#::: YDWQQPHKSW3KSHUJ6BSNPYSO2QELMHGYQBWRGRQWUE6LRMVO6GE :::: NAILARA AMOS :::
-# :: 53YARZLHDAZHEOCNNXUSBTKXZJTLAJDN4ZJ3OCMOHLWM3QMFJKCQ :: CODE SIGNATURE ::
+#QGIZ3TY2H7F5NCF5B6YQ62KTGJXW2XGRFLIECASCH65O56KLY24Y7DPR4NY4XKP5HT6ORGZDUHVGW
+#::: 3YZA3S3TWLCHGFZ7QGRCKP3WBN65LX4332YPYBIRK4XBB57H7YT :::: NAILARA AMOS :::
+# :: OQDQOGZWECXLW7Z664ASA24YEJRPF6EAZL2LTAQ4GYJKUZBTQMCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

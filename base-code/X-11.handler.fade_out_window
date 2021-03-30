@@ -18,7 +18,8 @@ foreach my $window_id ( keys %{ $params->{'windows'} } ) {
     my $start_opacity = $params->{'windows'}->{$window_id};
     my $new_opacity   = sprintf( "%.5f", $start_opacity * $opacity_factor );
     delete $params->{'windows'}->{$window_id}
-        if not defined <[X-11.set_window_opacity]>->( $window_id, $new_opacity )
+        if not defined
+        <[X-11.set_window_opacity]>->( $window_id, $new_opacity )
         or $new_opacity == $fade_limit;
 }
 
@@ -33,7 +34,7 @@ if ( !keys %{ $params->{'windows'} } ) {
 }
 
 #.............................................................................
-#57XGHMAIXUR2VI4HUWNQUSABDHT2WIA5DW2X67O7SRAZJPCBYBZOFRMRBI6GC2QLKCGESTPR7V332
-#::: S4MZAOPF2J6VUUTIUXVL6ZHINKNYKYPY5QOTOIMPNVXF3MSM57P :::: NAILARA AMOS :::
-# :: F33PTNA4TDQV6HXETE74TLTNGQHIESQ2MNEXQPIFAMLQ3JXNL6CI :: CODE SIGNATURE ::
+#L4TU7BJX45O77Q65CMV25FQJYYG3WQJG4HTRJGRTX5IH65EZ57FZIGDOOPAYDUQMHXERUYNRJBFX4
+#::: YXOHWL64IVNPCVPPPQ3AAEVXL2AXG22EWCWSYN4F43UM664XAVC :::: NAILARA AMOS :::
+# :: 2DNWFQZB7U7BK3PINZMXB5GXUL5LVTN2KCJORE6S6C25XXT5DIAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

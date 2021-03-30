@@ -6,13 +6,14 @@ my $tmp_path = <openbox.home_path>;
 
 if ( -d $tmp_path and $tmp_path =~ m|openbox| ) {
     <[base.log]>->( 2, "recursively removing tmp dir '$tmp_path'" );
-    rename( <openbox.log_file>, '/var/tmp/openbox.' . $PID ) or warn $OS_ERROR;
-    unlink( '/var/tmp/openbox.' . $PID )                     or warn $OS_ERROR;
-    remove_tree($tmp_path) or warn "remove_tree: $OS_ERROR";
+    rename( <openbox.log_file>, '/var/tmp/openbox.' . $PID )
+        or warn $OS_ERROR;
+    unlink( '/var/tmp/openbox.' . $PID ) or warn $OS_ERROR;
+    remove_tree($tmp_path)               or warn "remove_tree: $OS_ERROR";
 }
 
 #.............................................................................
-#HPRSUD3N3NSMZPKJKK55Q2OFBQAXZKLJ5YXEIUMGE4HWYS4OPB67Z2GBMT76KW4ZQ6P2IDAC2ID3Q
-#::: U7OXYUMCO7FJL2VVK6Q7BX3F77DSLYSCRQRH7PCA7XUXLHE7FNO :::: NAILARA AMOS :::
-# :: YO4P2GTSC5PYYV4QUS4M7VFGTNCJWPTV3C7PNCAZRFIMHXLIRYBI :: CODE SIGNATURE ::
+#DQ6EEVBM35JZITFK4MIUSB7QZIFCHCV4ZKYJCVEJ4KLSLKTXHNA6PDB66HV5LQYRSDPRI2TPHRVYM
+#::: KEPQ2BFSJMYKM42V5LMQCK7WWKLNWTBQAAKJDRKYL4P4C2HDO3N :::: NAILARA AMOS :::
+# :: F3WMJHSC7ZRY7CWH75KOUUHX56EWPYQ2VMDVAPE6RJLQM3YEECCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

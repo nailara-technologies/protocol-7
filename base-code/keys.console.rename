@@ -17,7 +17,8 @@ my $re_secret = <keys.regex.key_file.secret>;
 my $re_public = <keys.regex.key_file.public>;
 my $re_kfiles = <keys.regex.key_files>;
 
-opendir( my $dir_fh, $key_dir ) or return print "\n [!] $key_dir : $OS_ERROR\n";
+opendir( my $dir_fh, $key_dir )
+    or return print "\n [!] $key_dir : $OS_ERROR\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
@@ -58,7 +59,7 @@ my $s = $ren_count == 1 ? '' : 's';
 print " :\n :. [ renamed $ren_count file$s ]\n\n";
 
 #.............................................................................
-#EPCK43XEPRJ3SCXGDTBZJM2F6ZH3PJEOEYJB73D2KHXOZMUIP62BHWYDOQPSKH2ZE3T4D3LRJPQV4
-#::: HK4LIAGX5J755WQG4X62SAHN2SN5FT5VRYKQSEHSND36PMKFT4L :::: NAILARA AMOS :::
-# :: O6CGSSCKXIZWHDQMM6N7Z5K5JDBGNIV324JOWVUEN7HZWHNQLYAY :: CODE SIGNATURE ::
+#AO4Z6E33PPKNFYMG7J7MJCTTGSPCNUZGPXSRF7PYRMA5VUNUPLGC3PKEJ3BD3XCNFJ6YPV3WAALHU
+#::: VRRZY7WN476B7CZPBA5G4OTSKC5QME25OV5M3A66IPW5FDZYDIN :::: NAILARA AMOS :::
+# :: V2Y5R5DF5TA3YMRZWXPUWM6PY3GAGMQKTKXFCDWNNZHNSTOJBWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

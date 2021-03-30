@@ -41,13 +41,13 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
     my $time_now = <[base.time]>->(5);
     $time_now++ if $time_now !~ /\./;
 
-    if ( defined $time_str{'at'} ) {    # 'oneshot' event [ has only "at" time ]
+    if ( defined $time_str{'at'} ) {  # 'oneshot' event [ has only "at" time ]
 
         my $time = str2time( $time_str{'at'} );
         $time += $hour_or_day if $time < $time_now;
         <events.unix.timetable>->{$ev_id}->{'at'} = $time;
 
-    } else {                            # event has 'start' and 'end' time
+    } else {                          # event has 'start' and 'end' time
         foreach my $key ( 'start', 'end' ) {
             if ( $key eq 'start'
                 and not defined $time_str{$key} ) {
@@ -104,7 +104,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
                 $time += $hour_or_day;
             }
 
-        # 'start' events will be triggered again on restart if they're <= time !
+      # 'start' events will be triggered again on restart if they're <= time !
             <events.unix.timetable>->{$ev_id}->{'start'} = $time
                 if $key eq 'start';
             <events.unix.timetable>->{$ev_id}->{'end'} = $time
@@ -115,7 +115,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
 #.............................................................................
-#UTMAS2QRKIHUALKUD6HIWK7JW6YLARQAZZZ5Z2EUFXC5REHX2K6S3RT23JJJ2RPDEFIDOBOO4XGMS
-#::: KUJHOPUBPW5YO7T2CVBE4GQ32LVPZZOF2OBEFSH6LDDDFCBP2RF :::: NAILARA AMOS :::
-# :: 4HQ6A6RYXBGBGV77N7TB7LYQLQPAR7LV6EPPWPWPFBA3BLKI62BQ :: CODE SIGNATURE ::
+#TJ7445KYQ2KGY5RK7ZVSQQPPZR6SVTVW2VJKJKUPKV5KOPS5FWOUTYSSS33IUWEZNW7DLPCYZDLOK
+#::: NRNJNBMZAQIVF6TYV3ZEMUFYBV6ULTJZZP7SEQ5NL54HW5XFT4W :::: NAILARA AMOS :::
+# :: SWADGGKLLNEQ4FL42QYVII2Z5BQ3XRYY7N63SXCLCWIEGUCHEUCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

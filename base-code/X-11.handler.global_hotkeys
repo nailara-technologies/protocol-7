@@ -12,7 +12,7 @@ my $watcher = shift->w;
 
 my $qkmap = eval { <X-11.obj>->QueryKeymap };
 
-if ( not defined $qkmap ) {    # LLL: implement reconnect / restart procedure!!
+if ( not defined $qkmap ) {   # LLL: implement reconnect / restart procedure!!
     <[base.log]>->(
         0, "<!> X11 protocol mismatch during 'QueryKeymap' command <!>"
     );
@@ -105,7 +105,8 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
 
     foreach my $h_id ( keys %{<X-11.hotkeys.active>} ) {
         if (    <X-11.hotkeys.active>->{$h_id}->{'keycode'} == $keycode
-            and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state ) {
+            and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state )
+        {
             my $cmd_str = <X-11.hotkeys.active>->{$h_id}->{'action'};
             <[base.log]>->( 1, "[HOTKEY] sending command '$cmd_str' .." );
             my @params
@@ -132,7 +133,7 @@ if ($no_key_pressed) {
 }
 
 #.............................................................................
-#7UPSZ2DROR7RBUDAIL2K2VEUNGM46AO7WUMB42ZFZE4DGGM5UFRNHPAQ54O5SHLLUWFRRMVEJPBZ4
-#::: LFK4W6VDR7QXWR2RFE7VCBFFFZ7C6UW35ESWPQUDJDLVZ27GDTF :::: NAILARA AMOS :::
-# :: F3XIPU2PWNRLVQ7WRKONRA5LNXPCTDLTM2IWHYGIMORU4FXX7IDQ :: CODE SIGNATURE ::
+#GJXAOA3TQZH35VAYMRXIWDAV77SQT6ZVB3PWP5YU3N5Z7TENMMN53TXLYAXF5Y53RIENRA7NNQPBM
+#::: 2R7MYNRSEW5XVJ443QL45HPXM65H6B5CPTW5R4S34RHAMA3OCA4 :::: NAILARA AMOS :::
+# :: BW34OWGUKJPDCQW6HFZAKDGCFWJKQYKHLV2I52NQ5AYMLHA4LABQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

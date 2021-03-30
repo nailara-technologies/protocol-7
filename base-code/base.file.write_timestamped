@@ -7,7 +7,8 @@ my $value     = shift;
 
 warn 'expected file name parameter <{C1}>' and return undef
     if not defined $file_name;
-warn 'value not expected to have line feed characters <{C1}>' and return undef
+warn 'value not expected to have line feed characters <{C1}>'
+    and return undef
     if defined $value and $value =~ m|\n|;
 
 my $network_time = <[base.ntime.b32]>->(3);
@@ -31,9 +32,11 @@ if ( $file_name =~ m|/| ) {
 
 <[file.put]>->( $file_path, "$content\n" ) and return $network_time;
 
-warn "cannot create file '$file_path' [ \l$OS_ERROR ] <{C1}>" and return undef;
+warn "cannot create file '$file_path' [ \l$OS_ERROR ] <{C1}>"
+    and return undef;
+
 #.............................................................................
-#GGINXUZ4IF2YD4C7O6B7EAZPEX4JDUP5XXDR2LJGFCUMBKOR46GAHSK2ZSKYZ3GYIXNURQMMI44AA
-#::: UG325TRJ7RVU5W3ZWUM74PXYUX476Q4KK2L3YW7BXGOWR2EZZAA :::: NAILARA AMOS :::
-# :: H3APHEWMARVUF5GK6L5Q3ODPCTMOPDB3Q6XYT2DEHHYLAP3DNOBI :: CODE SIGNATURE ::
+#RM2JMXZVEO4ZMIOJ3E63G777RD7RJIZJYPEBYVCOW33YPB6GHGQVDREJUUNQS4PHJVGOMUZSUX4OI
+#::: E5MH74RYBHHCFW5FIS7TBMYOVNACJOBO5DNEFK3MAO6WQD5KUSP :::: NAILARA AMOS :::
+# :: T4MW7LZWVAQFXFDYZHEVXOPGH4YWFDNADB5N4M5S5FNCHSPIHKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

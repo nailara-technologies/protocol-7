@@ -13,7 +13,8 @@ die "source file '$p7c_src_path' not found" if !-f $p7c_src_path;
 
 ( my $src_name = $p7c_src_path ) =~ s|^.+./||;
 
-<[base.log]>->( 0, ":. compiling '$src_name' source onto '$p7c_bin_path'..," );
+<[base.log]>
+    ->( 0, ":. compiling '$src_name' source onto '$p7c_bin_path'..," );
 
 ## reading source., ##
 <[file.slurp]>->( $p7c_src_path, \my $p7c_src_str )
@@ -32,7 +33,7 @@ unlink($tmp_bin) or die "< unlink > $tmp_bin [ $OS_ERROR ]" if -f $tmp_bin;
 ## compiling.., ###
 my $gcc_in_fh  = IO::Handle->new();
 my $gcc_err_fh = IO::Handle->new();
-my $gcc_pid    = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
+my $gcc_pid = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
     or die "<< ! >> compilation failed [ $OS_ERROR ] << ! >>\n";
 print {$gcc_in_fh} $p7c_src_str if $gcc_in_fh->opened;
 close($gcc_in_fh)               if $gcc_in_fh->opened;
@@ -48,17 +49,20 @@ if ( defined $gcc_pid ) {
     alarm(0);
 }
 
-qx| $strip_binpth -R .comment $tmp_bin | if length($strip_binpth); # optional ##
+qx| $strip_binpth -R .comment $tmp_bin |
+    if length($strip_binpth);    # optional ##
 
 ## verify.., ##
 if ( -f $tmp_bin ) {
     close($gcc_err_fh) if $gcc_err_fh->opened;
     rename( $tmp_bin, $p7c_bin_path )
         or die "< rename > $tmp_bin --> $p7c_bin_path [$OS_ERROR]";
-    chmod( 0755, $p7c_bin_path ) or die "< chmod > $p7c_bin_path [ $OS_ERROR ]";
+    chmod( 0755, $p7c_bin_path )
+        or die "< chmod > $p7c_bin_path [ $OS_ERROR ]";
     <[base.log]>->( 1, ":: :. successfully installed to '$p7c_bin_path'. =)" )
         and return 1
-        if <[nroot.bin_p7c_is_current]>->(2); # <-- silent checksum verification
+        if <[nroot.bin_p7c_is_current]>->(2)
+        ;    # <-- silent checksum verification
 } else {
     ( my $err_str = join( '', $gcc_err_fh->getlines ) )
         =~ s{gcc: (fatal )?error: |\n+}{ }g;
@@ -71,7 +75,7 @@ if ( -f $tmp_bin ) {
 return 0;
 
 #.............................................................................
-#QVTVWW36XT2AY6IV4POKHRGSDQ6KLQM2H6APSCUYAAJ5UXEAKDIIOR4LBCH5VI2LYLXQRI2QUGIQ6
-#::: PDNLHN6VF2KK55BRVZ5ZMZHWYTCRZOVPGFDYCBPXODFHL3UMZ6M :::: NAILARA AMOS :::
-# :: DJPWIJFA4XGCDUWAKNHZDAALL7DYVDLXBM63KR4CY63UHYXYD2CY :: CODE SIGNATURE ::
+#PZVZ4WXZJW4OJZ33UHNGNUQIPMVHXYBZW6I4HDKN7C4EGN3X7HNL75IECLXHEV63JPTUTSOP6CNY4
+#::: QW2KIZOB42O3A2IDWAGCUTDMUROFFCDVIKPWPKU54ZD32MQJHMB :::: NAILARA AMOS :::
+# :: S3KELWEC446EFFBL6SR5CZH5R73S5WSOZGJRKG5BKKDJZ6GZCAAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ my $current_path = <mpv.current.path>;
 my $video_width  = <mpv.current.video_width>;
 my $video_height = <mpv.current.video_height>;
 
-return if not defined $video_width and not defined $video_height;    # stopped ?
+return if not defined $video_width and not defined $video_height;  # stopped ?
 return warn("current_path is undefined") if not defined $current_path;
 
 <mpv.converting>     //= {};
@@ -45,7 +45,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
             = sprintf( "%.0f", $video_height / $video_width * $target_width );
 
         my %check_size;
-        foreach my $step ( -1, 1 ) {    # test both directions (smaller, larger)
+        foreach my $step ( -1, 1 ) {  # test both directions (smaller, larger)
             $check_size{$step}
                 = { 'width' => $target_width, 'height' => $target_height };
 
@@ -58,8 +58,9 @@ if ( <mpv.autorescale> and !-f $current_path ) {
 
                 $check_size{$step}{'width'} += $step;
                 $check_size{$step}{'height'} = sprintf( "%.0f",
-                    $video_height / $video_width * $check_size{$step}{'width'}
-                );
+                          $video_height
+                        / $video_width
+                        * $check_size{$step}{'width'} );
             }
         }
 
@@ -76,7 +77,8 @@ if ( <mpv.autorescale> and !-f $current_path ) {
         my $cmd_args = join( ' ',
             $current_path, "${target_width}x$target_height",
             "${box_width}x$box_height" );
-        <[mpv.check_rescale_path]> if defined <mpv.rescale_path>; # LLL: cleanup
+        <[mpv.check_rescale_path]>
+            if defined <mpv.rescale_path>;    # LLL: cleanup
         $cmd_args .= ' ' . <mpv.rescale_path> if defined <mpv.rescale_path>;
         my $chk_hash = <[chk-sum.md5.hex]>->($cmd_args);
 
@@ -113,7 +115,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
 }
 
 #.............................................................................
-#ZAW7YZRYMPNS6VAKX3M5GHIFNHADRJS6JTQ4CGWFJJRNP7EGGNFZYGXFSLICSVDAN5O4BMJKENXL4
-#::: INLZQ7GTPLEH42MI5OHTBL22U5V7S24ZFK7XCBBZE5XR3PXFVFD :::: NAILARA AMOS :::
-# :: XWH33BVKTZRUCAAZCM456RJYOPO336UAEMQ4GDGSXV4MS5DSVEDA :: CODE SIGNATURE ::
+#SECDG6T6EYZVT67UKFJGJY633AXHJVDAUSIBN7OWZEXNYT7M63UZVDBH2ED7D3AWEHVPXW3R22PLA
+#::: 3NXQEIY3IDTKPV7BCABS6KQXNLKBH5DQI5EOQ3VSCXGLFHLFGHT :::: NAILARA AMOS :::
+# :: 3LVAJY5M6RGT4I5M3NTUWW5OGJ4EKM53AYFFLQVFV2ZYWASSZEAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

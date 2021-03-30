@@ -11,7 +11,8 @@ my $window = <ticker-gtk.obj.window>;
 
 if ( <ticker-gtk.status.initialized>
     and
-    ( !$window->get_property('visible') or !<ticker-gtk.animation_started> ) ) {
+    ( !$window->get_property('visible') or !<ticker-gtk.animation_started> ) )
+{
     <ticker-gtk.obj.window>->queue_draw();
     <[base.sleep]>->(0.042);
     return 1;
@@ -27,12 +28,12 @@ if ( <ticker-gtk.status.initialized>
 
 <ticker-gtk.draw.skipped>        //= 0;
 <ticker-gtk.draw.skipped_offset> //= 0;
-<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;    # <- LLL: calc.
+<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;  # <- LLL: calc.
 <ticker-gtk.bg_col>              //= [ 1, 1, 1 ];
 <ticker-gtk.bg_alpha>            //= 100;    # transparent default
 
 if ( not defined <ticker-gtk.speed> ) {
-    <ticker-gtk.speed> //= <ticker-gtk.default_speed> // 7;   # internal default
+    <ticker-gtk.speed> //= <ticker-gtk.default_speed> // 7; # internal default
     <[base.log]>->(
         1,
         sprintf( "ticker scroll speed undefined [using default : %s]",
@@ -50,7 +51,8 @@ if ( not defined <ticker-gtk.speed> ) {
 }
 
 <ticker-gtk.slowdown.percent> = 0
-    if <ticker-gtk.slowdown.percent> < 0 or <ticker-gtk.slowdown.percent> > 100;
+    if <ticker-gtk.slowdown.percent> < 0
+    or <ticker-gtk.slowdown.percent> > 100;
 
 if (   !$window->is_composited
     or !<ticker-gtk.use_transparency> ) {
@@ -150,7 +152,8 @@ if (<ticker-gtk.cfg.draw_outline>) {
 }
 
 $context->move_to( $x_offset,
-    $context->font_extents->{'height'} - $context->font_extents->{'descent'} );
+          $context->font_extents->{'height'}
+        - $context->font_extents->{'descent'} );
 
 if (<ticker-gtk.use_transparency>) {
     $context->set_source_rgba(
@@ -186,7 +189,8 @@ if ( !<ticker-gtk.paused> ) {
                           <ticker-gtk.slowdown.percent_target>
                         - <ticker-gtk.slowdown.percent> )
             );
-            <ticker-gtk.slowdown.percent> = <ticker-gtk.slowdown.percent_target>
+            <ticker-gtk.slowdown.percent>
+                = <ticker-gtk.slowdown.percent_target>
                 if $sl_diff <= 0.05;
         }
         #
@@ -240,7 +244,7 @@ if (<ticker-gtk.animation_started>) {
 return 1;
 
 #.............................................................................
-#EER3JSUZNJCLQELUBG7U5VFA6JSXJDQH2CWCA6DNJYGCGF52V5LAMFXIYSGZ7KPANBSRZ3QQOVEPA
-#::: BGI2GGWZKMEB43VL5ZLGTVMWFWU5OB3TCJVOE55BO637NKN74BV :::: NAILARA AMOS :::
-# :: 5RE7AHPN5BQBEE6KZVINPHGXE6ZI4QJMM5BMKAHQFK7HTCYLF6BA :: CODE SIGNATURE ::
+#RQ4GEMU25EJJB2C7DV6WRDYH2LR6VFTGKAR42ZELHZIJVYDKJ4AR5DOELC2VXS4HEBM3FYO6L6GZM
+#::: QZCCOACUHIRXC2V6HSHMGDA6SER7VYQ5EQDOSRRX6PJL5H2W6TJ :::: NAILARA AMOS :::
+# :: TOACDMJMBSD2GQK3BUWA3DIS66FQVJ3RHGZFXCS3KUAEHOUDVEAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

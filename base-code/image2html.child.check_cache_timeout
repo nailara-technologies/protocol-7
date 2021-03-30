@@ -13,7 +13,8 @@ opendir( my $dir_fh, $cache_dir ) or die "$cache_dir: $OS_ERROR";
 foreach my $subdir ( readdir($dir_fh) ) {
     next if $subdir =~ m|^\.|;
     next if !-f "$cache_dir/$subdir/.last_used";
-    my $timestamp = <[file.read_timestamp]>->("$cache_dir/$subdir/.last_used");
+    my $timestamp
+        = <[file.read_timestamp]>->("$cache_dir/$subdir/.last_used");
     my $remove_cache = not defined $timestamp ? 1 : 0;
 
     if ( !$remove_cache ) {
@@ -40,7 +41,7 @@ my $y = $remove_count == 1 ? 'y' : 'ies';
 <[base.log]>->( 1, ": $remove_count director$y removed." );
 
 #.............................................................................
-#7Q2IA3AAZXXCJJCTX46ZC6ILR4CCS7TH4GQFZUNDLFAY7RK4W5VATGA3EYRIOMPM4O3TODHF3YFAO
-#::: LHLUGA3FPQTE7IHJHZWMYY6Y2RPCLTCMQVBSWHMOTKPTVETA7EM :::: NAILARA AMOS :::
-# :: IWKZCDJAY3VIYYF73YGN6334OYJR5WJPLU7SRJTMVX5NFCVIT6DA :: CODE SIGNATURE ::
+#VI6HEWQMCFWAT5IE4AWJABNU3PYPFABFKTIQ4ZNIJR25GYLJOOIWHWGHDIUGT5IVK2YZFTOAFIWYI
+#::: KURXDOC7FZ57TAKJEWPZ5XJN76BKAEEUELQAYDDAV6HGFA3U5IU :::: NAILARA AMOS :::
+# :: DQWTIKQGRAHEC2VC4632JQQWBPOEZXNMIMV467I7XSM74FSCGCCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

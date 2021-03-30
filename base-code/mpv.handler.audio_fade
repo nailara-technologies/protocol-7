@@ -27,8 +27,9 @@ my $new_volume = sprintf( "%.3f",
         + <mpv.audio_fade.delta_vol> * <mpv.volume.fade_factor> );
 
 if ( $new_volume ne <mpv.audio_fade.last_set> ) {
-    <[base.log]>
-        ->( 2, sprintf( "< FADE > volume == %.3f", $new_volume ) . '%' );
+    <[base.log]>->(
+        2, sprintf( "< FADE > volume == %.3f", $new_volume ) . '%'
+    );
     <[mpv.send_command]>->( 'set_property', 'volume', $new_volume );
     <mpv.audio_fade.last_set> = $new_volume;
 }
@@ -52,7 +53,7 @@ if ( <mpv.volume.fade_factor> == 1 ) {
 }
 
 #.............................................................................
-#PKTZZZQKJG4662RDZ6QSMR5YU5YWAA2PDTRCKIC4UH77M3CLATCQHWEZLULIME47DCQEN55Y4U33U
-#::: RHGQYCAWLMNQL6P2ARXNUQNR3QZUBXU42DWRHJ3FOJF3UNHJVJB :::: NAILARA AMOS :::
-# :: 4BC3F3KR5LILN6WHVLU3AV2UHXAQMJVRBN2O6MJX74YW4NIINGCY :: CODE SIGNATURE ::
+#ADZHCID5I346WVZYPAWEWLBXOOWZP5CVUN6NHHH2SRIPHEIYSPWPKSEAI6QPLLDCQAWFDZPC3IGW2
+#::: XHEUBRKV6DP7P4V4GX3JJSZDWJG2N5M4Y6IGMOYN5HJSAUEYF36 :::: NAILARA AMOS :::
+# :: FIXANLDJ5KSFQX5E7NA7YYEUZOE634QFELVO6P6LWAQTHRTAREBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

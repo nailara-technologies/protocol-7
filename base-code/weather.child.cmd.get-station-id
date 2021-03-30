@@ -10,7 +10,7 @@ my $location_name = $$call{'args'};
 
 my $use_first_match = <weather.cfg.first-location-match> //= 0;
 my $language_code   = <weather.cfg.language> // <system.language>;
-my $country_code    = uc($language_code);   # <- LLL: coincidental only, geoloc?
+my $country_code    = uc($language_code); # <- LLL: coincidental only, geoloc?
 
 return { 'mode' => 'nak', 'data' => 'expected location name parameter' }
     if not defined $location_name or !length($location_name);
@@ -57,15 +57,18 @@ foreach my $location_data ( @{ $json_response->{'list'} } ) {
         $matches++;
     }
     if ( $matches > 1 and !$use_first_match ) {
-        <[base.log]>
-            ->( 0, "<<!>> too many stations [ $result_count matches ]" );
+        <[base.log]>->(
+            0, "<<!>> too many stations [ $result_count matches ]"
+        );
         undef $station_id;
     }
 }
 
 if ( not defined $station_id and $query_str !~ m|\s*,\s*\u\w\w$| ) {
     my $match_str = $matches == 0 ? 'no direct match' : 'too many matches';
-    <[base.log]>->( 0, "$match_str, retrying with country code $country_code" );
+    <[base.log]>->(
+        0, "$match_str, retrying with country code $country_code"
+    );
     $retry_with_country_code = 1;
     goto NO_MATCH_RETRY;
 }
@@ -90,7 +93,7 @@ return {
 return { 'mode' => 'ack', 'data' => $station_id }
 
 #.............................................................................
-#3LRS6OCTYFIACJDEROP2E2WUKFLFNQ5463P67VKCFR4ALB55NGWB7B3FM3AH7OZDBXIHHC7EBZG3I
-#::: TGAS5NMTPOVZWYBG2HZDAGVSL2QHB76DQJSSJIRJDQO26FA5QIE :::: NAILARA AMOS :::
-# :: 2HFEK5H2AKSC5IPUZSQYAZ4RSJKXL7DYA6NI6MKKS5SKTJQ3EQAQ :: CODE SIGNATURE ::
+#WC5RFR2GUZ5REMEOQWOGAHGYDGZGSANBOTFKNSCBSYUXP62JMPYCKDXKQI5X4ZC3T2AXJM6FMNNRO
+#::: CQH5RFQJPB23SAQBR3RWWSVNYCBKHVILPKV26JEPWT4W76HIB2M :::: NAILARA AMOS :::
+# :: OFHSASR7RDRW7J3BUYQWD3E7OKTDG3MPGHF4GTCZIQVKK2ZV7ABI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

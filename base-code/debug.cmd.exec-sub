@@ -4,12 +4,17 @@
 # param = <sub_name>
 # descr = run subroutine and return output
 
-my $support_params = 0; ## <-- keep this disabled for security reasons < ! > ###
-( my $sub_name, my @params ) = split( m| +|, $$call{'args'} ); # no quotes supp.
+my $support_params
+    = 0;    ## <-- keep this disabled for security reasons < ! > ###
+( my $sub_name, my @params )
+    = split( m| +|, $$call{'args'} );    # no quotes supp.
 
 return { 'mode' => 'nak', 'data' => 'expected subroutine name parameter' }
     if !length($sub_name);
-return { 'mode' => 'nak', 'data' => 'subroutine parameters are not supported' }
+return {
+    'mode' => 'nak',
+    'data' => 'subroutine parameters are not supported'
+    }
     if @params and not $support_params;
 
 return { 'mode' => 'nak', 'data' => 'no such subroutine' }
@@ -34,7 +39,7 @@ return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
 
 map { $ARG //= 'UNDEF' } @sub_output if @sub_output > 1;
 
-map { ( $ARG = Dumper($ARG)."\n" ) =~ s|^\$VAR1 =|| if length( ref($ARG) ) }
+map { ( $ARG = Dumper($ARG) . "\n" ) =~ s|^\$VAR1 =|| if length( ref($ARG) ) }
     @sub_output;
 
 my $rep_mode = 'ack';
@@ -46,7 +51,7 @@ if ( @sub_output == 1 ) {
 return { 'mode' => $rep_mode, 'data' => join( ', ', @sub_output ) };
 
 #.............................................................................
-#BB6EIURV5H3DHQPZOWL76GEMXHAVZQIRXAEP3U7XFPS7RC5XAAGEKHGZZLF3P6WWH57WDIFFTQM74
-#::: DQG7PFFBOYDS44GBGSQIV47AVLRMUHLV4TVJXSJRQNRF75XD4GS :::: NAILARA AMOS :::
-# :: CRK75DIEIDCG5TZQXZ2S6XRV7ALDZPKY7CGAIC4JBAU4DVRMNCAA :: CODE SIGNATURE ::
+#JB7PDDT4VQ5ZUQQCBGYWPGWGIV36E54JBEWDE4C6DLXJOOG63XQWFH24FA4NEUHEAOEWNK6IX776M
+#::: PISCRJOU5VPSDVNWXEUNI5USNWVW75RVVA3ONGDW6ICCHYGJL5X :::: NAILARA AMOS :::
+# :: 7EO5F6UIHTTHLJ65HJAMMKQV5NVEPQ6MBN2S3FLDVE6TJ2E4L2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

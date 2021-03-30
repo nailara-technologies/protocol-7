@@ -31,7 +31,8 @@ if ( $type eq 'hours' ) {
 
         my $timestamp = $element->{'dt'};
         my $km_h      = $element->{'wind'}->{'speed'} * 3600 / 1000;
-        $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+        $km_h
+            = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
 
         my $beaufort = <[weather.parent.wind.calculate_beaufort]>
             ->( $element->{'wind'}->{'speed'} );
@@ -70,7 +71,8 @@ if ( $type eq 'hours' ) {
         my $day_name = <[weather.parent.day_name]>->($timestamp);
 
         my $km_h = $element->{'speed'} * 3600 / 1000;
-        $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+        $km_h
+            = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
 
         my $beaufort
             = <[weather.parent.wind.calculate_beaufort]>
@@ -137,7 +139,7 @@ if ( $type eq 'hours' ) {
 <[weather.parent.write_pages]>->($station_id);
 
 #.............................................................................
-#DL26YQQESH2QJTNV2KAOLFFYUXFGYSQHJMZQJOLCLJCLNR4OOIBYBSXHXNSWQTNS7YEIEMRJBAWOQ
-#::: O4OXCGS2TPKPIR4NIH6OXUGYDKRLLHG2JIY74AFWPP722WM5K6P :::: NAILARA AMOS :::
-# :: P4C6U3FFW27UDWUKWC6SXY6SLJK35SC3K34ZG6SF4EJMK5IN6GAI :: CODE SIGNATURE ::
+#IPODMO2QHHY5DQFDAKXM4UZ6W6FSFXJI7HGLGTPYJCEDPHKLLGQ6EIZALXUTKMYMHDJOQZXE3JMQE
+#::: RBIDEGA7UHWNTLOPYMSK5VFZCZ5F6LA5G3TCA6IHUSXFCO7EV33 :::: NAILARA AMOS :::
+# :: FMBSIWGSGMFT3YAMFNEFOB44ULDPTWHNKPYZZAPBH27EBBYNPSDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

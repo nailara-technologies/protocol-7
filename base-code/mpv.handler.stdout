@@ -17,7 +17,8 @@ my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'mpv'}{'output.buffer'},
     4096,     length(<mpv.output.buffer>)
 );
-if ( not defined $read_bytes or $read_bytes == 0 ) {  # ( filehandle exception )
+if ( not defined $read_bytes or $read_bytes == 0 )
+{    # ( filehandle exception )
     $event->cancel;
     close($read_fh);
     <[base.log]>->( 1, "mpv-process [PID:$pid] output filehandle closed." );
@@ -43,7 +44,7 @@ while ( <mpv.output.buffer> =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#FMA6CMDIHACGNLUHUZHCNTTEDWGWVG6R4RM7OXXI6SVCUSPL2QH377ATD354TB73DGKTDYSFW37KA
-#::: MGDCM2REK5SZP6YVFTIC6JVLCUD3ON5GCDIQPO6GHVK472TVHM2 :::: NAILARA AMOS :::
-# :: 2LCQGQOEQILJIYDIQOBWNHFMP3RFEQ7U2DVNOFIGGFIRB54CLIAA :: CODE SIGNATURE ::
+#YAN476FPHZABESALK5QGUPDPPRHD5FZOIHZ326UVATKIOARQ2GURWBBXTKJE44AUCI2FVAPMSIXPG
+#::: FILSOMM276Y26WGRN4BHSFJLN7YKFXNQWDDB2DV2UKO67E4VUNN :::: NAILARA AMOS :::
+# :: MYQOVNXVEOM5DN37UQCBDAVRE7JGSLJ7NAASIOJVFSDIAYXZZ6CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

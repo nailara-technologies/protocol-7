@@ -12,7 +12,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
     @exclusive_b32ids = split( /\n+/, $reply->{'data'} );
     map {
         if ( <content.b32id_src_str>->{$ARG} =~ /^([^:]+):/ ) {
-            my $tile_name = $1;    # LLL: handle no tilename case? (global ex.)
+            my $tile_name = $1;   # LLL: handle no tilename case? (global ex.)
             <content.exclusive_b32id>->{$tile_name} //= [];
             push( @{ <content.exclusive_b32id>->{$tile_name} }, $ARG );
         }
@@ -22,7 +22,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
 <[content.update_hidden]>;
 
 #.............................................................................
-#E66R3PA25MHTF6I4JTJZZGEFOPEMSCVZD67F3FF757GXQZWRWXO7A7XUFZFQSFLND3H5W46YOCKEO
-#::: WUQHFQL3P3LLKSOUY2KF5UNGT6CSXLL4AB46XYXSC2W6GGETPUO :::: NAILARA AMOS :::
-# :: 3PD6JF3MLRNLWQ3GVHNG4PVI2HYU44EC4JYE37I43DNBBUCZXABY :: CODE SIGNATURE ::
+#QCLLXF7JNW6SE7AN5Z55K7NULXD44PUD5YCB54UTLLGEEQSBPG2ZZBYZNCULUGT4L7FKGWY6OVG2Y
+#::: ZKIFGVG5UQ5XM7OJC2G4Q4M65PHW2RSLLVIHOLSNHC5Z3BAOXM5 :::: NAILARA AMOS :::
+# :: ONGWQAJC4BCFHXQ3RYN5ACWSNRFKKCUPNVDRJIJ52D5IU7L66YAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

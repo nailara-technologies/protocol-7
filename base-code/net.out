@@ -11,11 +11,12 @@ if ( fileno $_[0] ) {
         and defined $cid
         and defined $data{'session'}{$cid}{'output'}
         and defined $data{'session'}{$cid}{'output'}{'handler'} ) {
-        if ( defined &{ $code{ $data{'session'}{$cid}{'output'}{'handler'} } } )
-        {
+        if (defined &{ $code{ $data{'session'}{$cid}{'output'}{'handler'} } }
+        ) {
             <[base.s_write]>->(
                 $_[0],
-                $code{ $data{'session'}{$cid}{'output'}{'handler'} }->( $_[1] )
+                $code{ $data{'session'}{$cid}{'output'}{'handler'} }
+                    ->( $_[1] )
             );
         } else {
             <[base.log]>->(
@@ -44,7 +45,7 @@ if ( fileno $_[0] ) {
 }
 
 #.............................................................................
-#UFCRIGOK5JC3GNPE3RNAWWMQ72SNFAU3WY3JLBJAOD6MAWY467X7ZRMESL55THXJPB7WY4O55NGTY
-#::: IJE4MA4JUNY5OBNIVRFIWVQOBCLLMIJLHQE45KEBLQ4NJZX3IE2 :::: NAILARA AMOS :::
-# :: T4BTPDWI37W3SNXDS4JWZSAZJOEK2KPA6S2XLYEBURGCLFSHFODA :: CODE SIGNATURE ::
+#GD4SUY4I66J7AGGKATN2BOB4OSD5KG2UBQKVS425BDH3YSD2C5OL6HXSURDUVQEXUCWCIYZ5K2KMW
+#::: PDCBZZAUKQS62ZYZK2CYGQDYCMHZGM3R54SOILKWKDPEL7QX2Y7 :::: NAILARA AMOS :::
+# :: Z45PWTWVL35KXWD37PGGZZSMJWXB4LNHMNHJYZUNFPY7IL4ICWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

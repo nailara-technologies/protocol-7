@@ -42,7 +42,8 @@ if (<mpv.autorescale>) {
         my $extension = '';
         if ( defined <mpv.rescale_path> and -d <mpv.rescale_path> ) {
             my $target_pth = <mpv.rescale_path>;
-            ( $output_path = $playlist_path ) =~ s|^.+/([^/]+)$|$target_pth/$1|;
+            ( $output_path = $playlist_path )
+                =~ s|^.+/([^/]+)$|$target_pth/$1|;
         } else {
             ( $output_path = $playlist_path ) =~ s|/([^/]+)$|/rescaled/$1|;
         }
@@ -98,11 +99,12 @@ if ( <system.zenka.mode> eq 'universal-child' ) {
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
     }
     <mpv.playlist_contains_pause> //= 0;
-    map { <mpv.playlist_contains_pause>++ if $ARG eq '[PAUSE]' } @update_files;
+    map { <mpv.playlist_contains_pause>++ if $ARG eq '[PAUSE]' }
+        @update_files;
 }
 
 #.............................................................................
-#NMQFMIKK6GWASTSVOBDZ3PGGRQIBDWJVERIAN4CSVER4GASZWJPZY6JUQZMVEBAAI2ERYLK3VVNEC
-#::: XTB5HV22YPCQUP4D44VDF6K4GAHSD3XEEXJZQGKBS3OGUFV22EH :::: NAILARA AMOS :::
-# :: RLJ27RJDIPA3YDRTOO3C3UOSM2Q2NIPWRVOIJIJ7EGCL4IFFYIBQ :: CODE SIGNATURE ::
+#WW7UE7SGZOLFX3QREVH3PYOM4V7FF5BLUPEZ6WZP2GRIEABXXIIEQRKUJDJ2F72VPOUHRRVXOTE7I
+#::: YO5HXMZ2Q6D4IR6E5Q5BKZNAZBTFXMBB7DZONAKPTFBPJG4ENIV :::: NAILARA AMOS :::
+# :: ZJBWW266Q5C5PQQSLMNNR3PT4D2SF33BAI5YS2UNWYCUVILR62BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,8 +19,9 @@ if ( !length( $user // '' ) ) {
     return -1;
 } else {
 
-    my ( $name, $pwd, $uid, $gid, $quota, $comment, $gcos, $home_dir, $shell )
-        = getpwnam($user);
+    my ($name,    $pwd,  $uid,      $gid, $quota,
+        $comment, $gcos, $home_dir, $shell
+    ) = getpwnam($user);
 
     my %_gid = map { $ARG => 1 } split( ' ', $GID );
     my %egid = map { $ARG => 1 } split( ' ', $EGID );
@@ -55,7 +56,8 @@ if ( !length( $user // '' ) ) {
 
             if ( !length( $home_dir // '' ) ) {
                 <[base.log]>->(
-                    0, sprintf( "<< undefined homedir [ user '%s' ] >>", $user )
+                    0,
+                    sprintf( "<< undefined homedir [ user '%s' ] >>", $user )
                 );
                 <[base.log]>->( 2, " :. setting to '/'.," );
                 $home_dir = '/';
@@ -86,7 +88,8 @@ if ( !length( $user // '' ) ) {
                     <[base.log]>->(
                         1, "[unix:'nobody'] changing home path to '$home_dir'"
                     );
-                } else { # creating temporary home directory for user 'nobody':.
+                } else
+                {    # creating temporary home directory for user 'nobody':.
                     my $tdir_template
                         = <system.zenka.name> ne 'nroot'
                         ? sprintf "temp-home.%s.%s.%d", <system.zenka.name>,
@@ -129,7 +132,8 @@ if ( !length( $user // '' ) ) {
             $ENV{'HOME'}            = $home_dir;
             $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
             $ENV{'NO_AT_BRIDGE'}    = 1;
-            chdir($home_dir) or warn ":: \l$OS_ERROR : chdir[ $home_dir ] ::\n";
+            chdir($home_dir)
+                or warn ":: \l$OS_ERROR : chdir[ $home_dir ] ::\n";
 
             <[base.log]>->( 1, "switched to unix user '$user'.," );
         }
@@ -137,7 +141,7 @@ if ( !length( $user // '' ) ) {
 }
 
 #.............................................................................
-#K3LPZISYD2P73RR47HOBPLVLYTKGDW7XQY2ULVUJHBNBHVCECHOGZ3ED443YGKHDU2JYZFEHE7WIC
-#::: BVJBMTLOHVQREZII54MPOEE3EWGL3EPHJRPQ5A4MCQ542COASOR :::: NAILARA AMOS :::
-# :: NJCMTQVJURJKWQH2A24A55VCDAG7KTZHXN4P4VKSB5O7D5CO3YDY :: CODE SIGNATURE ::
+#MPOVHHWMCDI27RV2JM7KNFBGM3NUZRBRCNP7N735AOM7O7EBLTWVDIUVGFJKR4U3GI2LD6ISKDHT2
+#::: JN7XMBCCDZS4NT3U5AGCG7W2KLUH56G3GD2677LJHCBX5Q74S4N :::: NAILARA AMOS :::
+# :: Q6DTEQ2IX5WBPXAWZAMGBX7SQE7IEYLHJRDKDZTALRNXT66SIYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

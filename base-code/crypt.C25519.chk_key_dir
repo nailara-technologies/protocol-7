@@ -12,7 +12,8 @@ if ( -w "$key_dir/.." or "$key_dir/../.." ) {
     if ( !-d $key_dir ) {
         <[base.log]>->( 1, "creating key directory '$key_dir' .." );
         eval {
-            make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
+            make_path( $key_dir,
+                { mode => 0700, uid => $uid, group => $gid } );
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
         return -2        if !-d $key_dir;    # <- error state
@@ -29,7 +30,7 @@ if ( -w "$key_dir/.." or "$key_dir/../.." ) {
 return 1          # <- success [true]
 
 #.............................................................................
-#WYUMXN7SNSMLAFH34P6UPXELSQ6S7EXGHIEOCY56NPK6REPTUAFVCRJTHHY7YOBC55VNHB5FSHZQO
-#::: DOUOUZZK4Q7IJ4KLAETAPS6DWKCLXWA7ENEJDCN7E5UAU2FEA7D :::: NAILARA AMOS :::
-# :: JOOJ6Q7ZHOLBBGRQGSSDQ4IYQYVVYSTRVBFU632L3MPF7F5Q62CI :: CODE SIGNATURE ::
+#ZGQHV3C66QRDARLUZZGZ5ARMR4M2FUO37QCQENXEJFQIEVGXKUMLIY2IFV7EXSA3SJYQA47H7K7EK
+#::: J36AMHNIOGUN2XOX3GG2ROF5BTNSSTSA7JDE5GEQACZHMZWEUUD :::: NAILARA AMOS :::
+# :: H6IJN53M5VEJ3FBN4PANPB75JA2QDZIBXUXBYFH65QJX6EQYXQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

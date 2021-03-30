@@ -28,7 +28,9 @@ map { push( @actually_killed, $ARG ) if kill( 'TERM', $ARG ) } @children;
 if (@actually_killed) {
     push( @kill_list, @actually_killed );
     my $ren = scalar @actually_killed == 1 ? '' : 'ren :';
-    <[base.log]>->( 1, ": <TERM> child$ren " . join( ', ', @actually_killed ) );
+    <[base.log]>->(
+        1, ": <TERM> child$ren " . join( ', ', @actually_killed )
+    );
 }
 
 map { <nroot.terminating.pid>->{$ARG} = <[base.time]>->(3) } @kill_list;
@@ -41,7 +43,7 @@ map { <nroot.terminating.pid>->{$ARG} = <[base.time]>->(3) } @kill_list;
 ) if @kill_list;
 
 #.............................................................................
-#G5OZYTMZQDOE6VO72ZJFDSYDO2YR4A2Z44BNFGBKFKZCGG3EEM2O5KW6DJ3UZOHL5FOD7ZGTNHLYG
-#::: MPUUXSDFBAL74WUCPLJES4SBSNCBL7OLPOTA2ML2HNDWHZJWCVP :::: NAILARA AMOS :::
-# :: IE2QLE6GOF3M35RZQNV7WXMVU4WNIMUGBNBTKPUD2RDOURPSF6BI :: CODE SIGNATURE ::
+#WPW3OWIF6JWE65PETS5IJ7BFAMTWCUPU7WVAN52BWPZ63IY2FXR3AHGQHT5I2SURDUKQGZXG3UF3S
+#::: BR6LXY5SH42I73DC3PXEQQDDBPE5AH72CLLQQWWKMHHPJPFYGA5 :::: NAILARA AMOS :::
+# :: FZB3LZWFQA5ZIDO5JWX5GEYZUYRPC3WKD6AEOBUO3JFLGY5KE2AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

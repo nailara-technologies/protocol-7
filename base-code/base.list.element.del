@@ -4,7 +4,9 @@
 # args  = { key_ref id }
 
 if ( ref( $_[0] ) ne 'HASH' ) {
-    <[base.log]>->( 0, 'base.list.element.del: submitted argument is no hash' );
+    <[base.log]>->(
+        0, 'base.list.element.del: submitted argument is no hash'
+    );
     return 2;
 }
 
@@ -13,7 +15,8 @@ my $id      = ${ $_[0] }{'id'};
 
 if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
     <[base.log]>->(
-        0, 'base.list.element.del: key_ref is no reference to a hash reference'
+        0,
+        'base.list.element.del: key_ref is no reference to a hash reference'
     );
     return 3;
 } elsif ( not defined ${$$key_ref}{$id} ) {
@@ -27,7 +30,7 @@ $data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
 return 0;
 
 #.............................................................................
-#XT5SFYIXXUWJMGBKEUUCOUK7G5KAN334ZOL765ZO7F5S3GIYKM7A4QXZKC6AYFVSI7PEEKMFVL234
-#::: QBXZGDHAWRXPFG6H7ZCLJFRYBRGA3VNX6SGHSV27FZWDUNLJGGH :::: NAILARA AMOS :::
-# :: RHNYUFCQG2WYUY3QXBJFCCVKHJRWLEY23UYGFEB5V7KPAYKQNSBA :: CODE SIGNATURE ::
+#UGUAC6YPDK3BX6LML4T33IWU4PUNAI2H6QJZ4XYYIHJBUAZIJZFB3RCLJLIYUHCE6LFUH453HRGHW
+#::: DIYD7MGP7VZ34NFYL4ALDVNTROWP6J7FRLO46I7OAYSKYPPOUQU :::: NAILARA AMOS :::
+# :: XQ5UAV5DEAMMPWRY4TE2ZM7HXE5VCKAZ5T2MVJ3G52ALAG7LFQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

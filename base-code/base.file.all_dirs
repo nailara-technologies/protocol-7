@@ -25,7 +25,8 @@ if ( -d $path ) {
     }
     foreach my $entry ( sort( readdir($dir_fh) ) ) {
         next if $entry =~ /^\.{1,2}$/;
-        push( @{$result_aref}, abs_path("$path/$entry") ) if -d "$path/$entry";
+        push( @{$result_aref}, abs_path("$path/$entry") )
+            if -d "$path/$entry";
         <[file.all_dirs]>->( abs_path("$path/$entry"), $result_aref )
             if -d "$path/$entry" and $recursive;
     }
@@ -34,7 +35,7 @@ if ( -d $path ) {
 return $result_aref if !$recursion_entered;
 
 #.............................................................................
-#3X5TERM57PI7LQ75HGZVCDPTJKRG2H36UGVFDNQYMGYY6HSBHAM6OKKB7GPH4TKTSDC665GZO6MU2
-#::: HTPE4GNT5X2TKTM4TTN72NTUYI3QFOHIVWN67KXNLGI3JLAUAJL :::: NAILARA AMOS :::
-# :: J3T3MDVCGFYZXPIJWZVGNGJJOVGBHH32RY7TXKKSMJU5QABUZ2CA :: CODE SIGNATURE ::
+#3FPEPTGJX2U25BZIHKPGXGETDVOJCLD4F2RNC3HMWUP4ICN4YRZ2RKJSMCSVQDA4IMFD7VVKOJJZO
+#::: RRLJ7HHVSYJKSELEHTU3RHU7PWVED6PRLHHXBVBA4DW5H4XAOZA :::: NAILARA AMOS :::
+# :: 6JP7S53PASFMBU5FQCOGE2KSTV5FBMDF42MWQ2S5YVZBDOQUEODI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -86,14 +86,15 @@ map {    # filtering blocked signal types
     $view->signal_connect( $ARG, sub { return 1 } )
 } keys %{<web-browser.blocked_signal_types>};
 
-$view->signal_connect( # filtering all events according to blocklist setup above
+$view->signal_connect
+    (    # filtering all events according to blocklist setup above
     'event',
     sub {
         my $v    = shift;
         my $evt  = shift;
         my $type = $evt->type();
 
-        return 1 if exists <web-browser.blocked_event_types>->{$type};   # block
+        return 1 if exists <web-browser.blocked_event_types>->{$type}; # block
         ## say "\n [ event : $type ]\n";
         if ( index( $type, 'key' ) == 0 )
         {    # block key presses outside input fields
@@ -101,25 +102,25 @@ $view->signal_connect( # filtering all events according to blocklist setup above
             $v->delete_selection() if $v->can_copy_clipboard();
         }
 
-        # elsif ( index( $type, 'visibility-notify' ) == 0 ) {  ## track visible
-        # }
+      # elsif ( index( $type, 'visibility-notify' ) == 0 ) {  ## track visible
+      # }
 
         ## [LLL] create event handler [ sub-routine naming convention ] ##
 
         return 0;    # allow the rest
     }
-) if $filter_events;
+    ) if $filter_events;
 
 $view->signal_connect(    ### LLL: <-- check if ever called, remove .,
     'size_allocate',
     sub {
-        my $view        = shift;
-        my $view_index  = <web-browser.view_index>->{$view};
-        my $scrw        = <web-browser.gtk_obj.scrolled_window>->{$view_index};
-        my $hadj        = $scrw->get_hadjustment();
-        my $vadj        = $scrw->get_vadjustment();
-        my $page_width  = $hadj->get_upper();
-        my $page_height = $vadj->get_upper();
+        my $view       = shift;
+        my $view_index = <web-browser.view_index>->{$view};
+        my $scrw       = <web-browser.gtk_obj.scrolled_window>->{$view_index};
+        my $hadj       = $scrw->get_hadjustment();
+        my $vadj       = $scrw->get_vadjustment();
+        my $page_width = $hadj->get_upper();
+        my $page_height   = $vadj->get_upper();
         my $window_height = <web-browser.window.size.y>;
         return 0;
     }
@@ -177,7 +178,7 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
 #.............................................................................
-#ZNGQ3F3H27GYY7WVHCITK7X6CEZK6FCIEW6RH55JZRTGD6NMNH2BWF2FCYWO3NXYATDXX5DNHKP7U
-#::: 3PV3YWH3O7MEKZJNEF4T2MRB5S4UK7NIUIEV37H2S4EI7FTNL4B :::: NAILARA AMOS :::
-# :: HCTLSUXDFSLJXYAEX7U5TCSMUBG7GYUGHK5QOJBK3VCM2AZUJQBQ :: CODE SIGNATURE ::
+#J2TY3DYISWITE6YTHYOXN3UM274ZZ6XISDQR2IUDPYFZHE5HPPPSEQRGURCBCKIXIYIDFJY4KRXLC
+#::: EFDVYGWSGUCKQM2VXKDF4RCM4CJBEDV6Y64WSGDUV35YX72YMOO :::: NAILARA AMOS :::
+# :: 232NWK7SROT3TQRCL5DH22O5LKG2CVDNXENKPEDTWSSYKRU3MCBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

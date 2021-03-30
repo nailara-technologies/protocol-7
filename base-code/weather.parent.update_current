@@ -13,7 +13,8 @@ if (   not exists <weather.data>->{$station_id}
     or time - <weather.data>->{$station_id}->{'current'}->{'dt'} >= 30 ) {
 
     my $current_data
-        = <[weather.parent.cache.read_cache_data]>->( 'current', $station_id );
+        = <[weather.parent.cache.read_cache_data]>
+        ->( 'current', $station_id );
     if ( defined $current_data ) {
         <[base.log]>->( 2, "processing cached (current) weather data.." );
         <[weather.parent.extract_current]>->( $station_id, $current_data );
@@ -32,7 +33,7 @@ if (   not exists <weather.data>->{$station_id}
 );
 
 #.............................................................................
-#D2TDV6LLPYY7BVITXZZ6AADE3LJCJUJZ46OB5KFZGMTJ6HO6EZ7H5QSDBGROS3YZ6N6Y4LEHLLULE
-#::: NDHZMX5NZ4IYKTANUQVVHCIJBH5F553N2C3AGWTG77B53PEE75L :::: NAILARA AMOS :::
-# :: DRF6ON3A2KZXW2JDP7Y2CGKYWLUIHN5TK6QURGATAY3PJ2FCO4DY :: CODE SIGNATURE ::
+#ZJWJFCH2AXUMIQARXD7TBF6CIGZHD6QPJDB6TCTXKTN5WLBNW7VES7SOYVNXDYREVRKTFDK3ASJ7S
+#::: H7H2QAGNYYHYADTIFPQYLKRXKIXF55EG72EIENBFBFZCGM5NFVC :::: NAILARA AMOS :::
+# :: VFLSCPTRQ6HS5I2VMQ7YN23OPLM4FESRCXS2S7VABCFQ2255FOAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

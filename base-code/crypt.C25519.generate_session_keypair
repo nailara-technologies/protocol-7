@@ -13,7 +13,8 @@ my $log_level = defined $KEYS{'C25519'}{'session'}{$key_name} ? 2 : 1;
 my ( $public_key, $secret_key ) = Crypt::Ed25519::generate_keypair();
 
 my $creation_ntime = <[base.ntime.b32]>->(3);
-my $key_sig = <[crypt.C25519.sign_data]>->( \"[$creation_ntime|$public_key]" );
+my $key_sig
+    = <[crypt.C25519.sign_data]>->( \"[$creation_ntime|$public_key]" );
 
 return $KEYS{'C25519'}{'session'}{$key_name} = {
     'name'      => $key_name,
@@ -22,11 +23,12 @@ return $KEYS{'C25519'}{'session'}{$key_name} = {
     'created'   => $creation_ntime,
     'signature' => $key_sig,
     'key-reply' => encode_b32r($public_key),
-    'sig-reply' => sprintf( "[%s|%s]", $creation_ntime, encode_b32r($key_sig) )
+    'sig-reply' =>
+        sprintf( "[%s|%s]", $creation_ntime, encode_b32r($key_sig) )
 };
 
 #.............................................................................
-#GBPQ2EX54MDK35OCPN4B32E3NN3AALKVMRGI7ZOINY5ZICWGFHN4KGLFIG6VLNMHCI7VSPTXIB57A
-#::: X6YYZEVDWR3KB2CWLDSQQE3JMY72HOPFXU7VPQBXE6VS4KDEJB3 :::: NAILARA AMOS :::
-# :: IQWHX7YZAVMBVLH5ZLPO66JP5MRM3CI7QVAZROTEBMOULWVNVGBQ :: CODE SIGNATURE ::
+#J4DSLPFZK7UHEVVPDFYYJWIBESCY6EU6EETELLFI23J7WE5Q446HJ7WTZXCRGUDIHICYLVKO5MLRG
+#::: OO7RVHBIH2PQHVIG4T6K2WPZ7ZFPFLSYRGTYIJ3E2G3R23V7NJP :::: NAILARA AMOS :::
+# :: 2TSJASFW5NQ4TL42TKIMSZGXALEQPGQENQW2IERDSJ7CKCQTNGCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

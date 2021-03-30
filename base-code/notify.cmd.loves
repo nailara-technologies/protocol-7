@@ -51,12 +51,16 @@ if ( defined $title or @matches ) {
     my @msg = $title;
     push( @msg, $body ) if defined $body;
     if (!system(
-            <notify.path.notify_send>, '-i', <notify.path.loves_icon>, @msg
+            <notify.path.notify_send>, '-i',
+            <notify.path.loves_icon>,  @msg
         )
     ) {
         return { 'mode' => 'ack', 'data' => 'notification message sent' };
     } elsif ( $CHILD_ERROR == -1 ) {
-        return { 'mode' => 'nak', 'data' => 'unable to execute: ' . $OS_ERROR };
+        return {
+            'mode' => 'nak',
+            'data' => 'unable to execute: ' . $OS_ERROR
+        };
     } else {
         return {
             'mode' => 'nak',
@@ -72,7 +76,7 @@ if ( defined $title or @matches ) {
 }
 
 #.............................................................................
-#YGRN5ILEQPQ2MFQVWHYCZGRBY7N2O5HWO36FOQ7OMGVSF662OK6VU7DJ6UCNLUCCNCLMFYAWITRPG
-#::: G3SUVL7L7MPSSNMTDKL76VAP3V54E2IKKBVPMDKJX3XAME3L7J5 :::: NAILARA AMOS :::
-# :: W5VNP2MDJWA4U4X5FBGP5DQ3JAV6FJ2CEYCOF43AAIS2ALUXLKAA :: CODE SIGNATURE ::
+#AWCQT3TRO37O5NBQVSDSJNF25S77M6QVV5CQEK5VENPS6RO2H3SD5A3N5JHXXBRSBEKM2AIQMPU7I
+#::: 2TZLHTK6JLU5PE7YNSE7CO2EE3BLWBD6FEFKXIDXZO6IJARMPVF :::: NAILARA AMOS :::
+# :: 7ZT2NIZVA3SKDP5DQCIUTPBGSUMPIMGXF37XZLUMUDLDBG5DNWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name  = source.cmd.get-code-signed
 # descr = return specified source code subroutine
 
-my $code_name      = $$call{'args'};             ## [ LLL ] implement multiple ?
+my $code_name      = $$call{'args'};    ## [ LLL ] implement multiple ?
 my $skip_unchanged = $call->{'skip-valid'} // 0;
 
 return { 'mode' => 'ack', 'data' => 'still valid. =)' }
@@ -24,8 +24,12 @@ return { 'mode' => 'nak', 'data' => 'code file not found' } if !-f $src_path;
 return { 'mode' => 'nak', 'data' => 'failed to read code file' }
     if not defined $src_path;
 ## checking source header ##
-return { 'mode' => 'nak', 'data' => 'requested code file has no valid header' }
-    if $code_dir =~ m|/base-code$| and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
+return {
+    'mode' => 'nak',
+    'data' => 'requested code file has no valid header'
+    }
+    if $code_dir =~ m|/base-code$|
+    and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
 
 my $footer_data       = <[source.extract_sig_body]>->( \$src_str, 'strip' );
 my $present_checksum  = delete $footer_data->{'bmw-chksum'};
@@ -66,14 +70,16 @@ if (   not defined $present_checksum
     <[base.log]>->( 2, ':.: blue midnight wish C25519 signature valid. =)' );
 
     ## [ SKIP UNCHANGED MODE ] ##
-    return { 'mode' => 'ack', 'data' => 'still valid. =)' } if $skip_unchanged;
+    return { 'mode' => 'ack', 'data' => 'still valid. =)' }
+        if $skip_unchanged;
     ##
 }
 
-return { 'mode' => 'data', 'data' => $src_str } ## <-- current \ updated source.
+return { 'mode' => 'data',
+    'data' => $src_str }    ## <-- current \ updated source.
 
 #.............................................................................
-#UU6SE47FKKT5DZMFFACBAZKNH3RRNAKCEF4DARMCYU6TL22AN5W2GFRY5MJZOQTFOR6PKMAOM4YUK
-#::: CCQWIXQLTG4WALSE74ZOMCWUGTOI6RZWUYNKVZT6U62K3WMIISN :::: NAILARA AMOS :::
-# :: VAWAFGG75WIUQ6MOH6YL66YPTXSUOAIAJABRA7T55KIFTYSAG4DY :: CODE SIGNATURE ::
+#MT37TXJBDSV22EQN4LDPM5BBY4IO2DNBCTREIKX3NDXWFGSR73423AJXNWFOGXN6ZS23KJVMNXGOY
+#::: 3OFMNZZWIRQDL72XGFKPVZPWORYZUGR63CJQ77LKDJJER2MDMCJ :::: NAILARA AMOS :::
+# :: H5UHFPN3LKFGU64YN672OUARCSRY7L3RTXTSMRIXLHZUXFBUGAAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,9 @@ my $crash_reboot = <system.X-11_crash.perform_host_reboot> //= 0;
 my $admin_delay  = <system.X-11_crash.reboot_admin_delay>  //= 13;
 my $reboot_delay = <system.X-11_crash.reboot_delay_secs>   //= 7;
 
-<system.X-11_crash.admin_reboot_abort> = 0;    # flush previous abort commands #
+<system.X-11_crash.admin_reboot_abort> = 0;  # flush previous abort commands #
 
-return 0 if $crash_reboot !~ m,^(yes|1)$,;   ## <-- no system reboot enabled ###
+return 0 if $crash_reboot !~ m,^(yes|1)$,; ## <-- no system reboot enabled ###
 
 my $reboot_condition_error;
 if ( not defined <system.X-11_crash.reboot_condition>
@@ -44,7 +44,7 @@ my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
 return 1;                                  ## <-- reboot is scheduled ###
 
 #.............................................................................
-#2IA3L6GEH3VQZLYGOGHFAK2S6RTKI5BTZ6BVDUGLNWNPRBBXXQME532IFRXEV77ELZJHWGDFCOPYO
-#::: VZIM7RC75N3O6FWNFNT4VLFDZDZYE2CCZ5H2JMQYIR4VPAPKZQT :::: NAILARA AMOS :::
-# :: 6RJPSLK7GCHOPK7QFTX3QOQ5FHZZVIUKHBQ22EFCCQFJLSDSW2BA :: CODE SIGNATURE ::
+#FRKCCUI2MRINLDFCBNSF7JDP7AU5JWDWTOOCG4GB4DCN3VVZPBAAR5CCUHPSBM7NB72QWAOOEYJ2I
+#::: V4A2BFNUJEBDY66NKKFPKY7WH6XNDDJNA5WSPU6DJAHFEXDNNWV :::: NAILARA AMOS :::
+# :: ZMIHKDBWRGIN4RDR3EMLFDZBKLEAKAVO2AB7Y5LHCU2TJA4L26AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

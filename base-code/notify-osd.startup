@@ -3,7 +3,8 @@
 # name = notify-osd.startup
 # note = primitive implementation, improve error handing before production usage
 
-<[base.log]>->( 1, "starting notify-osd on display " . <x11.display> . " .," );
+<[base.log]>
+    ->( 1, "starting notify-osd on display " . <x11.display> . " .," );
 
 $ENV{'DISPLAY'} = <x11.display>;
 
@@ -16,7 +17,9 @@ if ( !<notify-osd.pid> ) {
     <[base.log]>->( 1, " : aborting zenka startup .," );
     exit(1);
 } else {
-    <[base.log]>->( 1, " : notify-osd process started [PID=<notify-osd.pid>]" );
+    <[base.log]>->(
+        1, " : notify-osd process started [PID=<notify-osd.pid>]"
+    );
 }
 
 <[event.add_io]>->(
@@ -34,7 +37,7 @@ if ( !<notify-osd.pid> ) {
 );
 
 #.............................................................................
-#GAO4O3DGQZRZREABDQCKWIBB3PLHRETOFLXLZLXMQK7I6PQUG6A6IRJFNF7DYT4GUZXLHBMMUWKSC
-#::: KF7KKXT7MTVPIOZX7GOC3A6FOPOUQPB6HIUAJP2232FDJT7PQIR :::: NAILARA AMOS :::
-# :: OL6ZDBT4DSL3D2QZOOPF4Y3T3FV5CHWJ7WKYNTHJIQU3AQJIEEBA :: CODE SIGNATURE ::
+#SG7ISCR5VC5FXF7JY2L2I7IXJWM47IBEKCXB5RYS3E5MP4563L2LT7AUP6DI3DVMHDMP2XUEAV5M4
+#::: 7XC2AO6BHMYUEMOZZW25FPLP6U5CYLIJQRYYKDO4DYQUXKI2LID :::: NAILARA AMOS :::
+# :: YGHPP5EPVXV2GYE2NFJO2QMOP3TLFZG7XQJ3HPJ6X44FE3F346AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,7 +19,7 @@ my $base_table = 'cp10007';
 
 ## [LLL] disable ANSIColor on 'piped' STDOUT mode .., [$option{Q}]
 
-getopts( 'LhBSvs:r:Ep:eqQd:DC:U:', \my %option );
+getopts( 'MLhBSvs:r:Ep:eqQd:DC:U:', \my %option );
 
 ## table aliases ##
 utf8_charset_alias(
@@ -81,6 +81,7 @@ my $neon_green  = "\e[38;2;71;195;6m";
 
 $SIG{'INT'} = \&int_exit;
 
+$option{'M'} = 0        if $option{'C'};
 $option{'q'} = 1        if $option{'Q'};
 $option{'C'} = 'BASE32' if defined $option{'C'} and $option{'C'} eq 'B';
 
@@ -163,7 +164,8 @@ if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
         if $EVAL_ERROR;
 ## applying ##
     binmode( STDOUT, $encoding );
-} elsif ( $C ne 'BASE32' or not defined $U or $U ne '8' ) {
+} elsif ( not $option{'M'}
+    and ( $C ne 'BASE32' or not defined $U or $U ne '8' ) ) {
     $encoding_mode = 'map';
 }
 
@@ -215,9 +217,8 @@ while ( $option{'S'} and length( $char_buffer // '' ) < $screen_chars
         if ( defined $U and $U eq '8' ) { $char = pack( 'U', $c_num ) }
         else                            { $char = chr($c_num) }
 
-#          $char = to_utf8( { -string => pack( 'U', $c_num ), -charset => $C } );
-
-#        $char = to_utf8( { -string => $char, -charset => $C } ) if $encoding_mode eq 'map';
+        $char = to_utf8( { -string => $char, -charset => $C } )
+            if $encoding_mode eq 'map';
 
         $char_buffer .= $char;
 
@@ -311,7 +312,7 @@ sub display_charset {
 }
 
 #.............................................................................
-#F767DR63TCZKRT44V4FBWO5V6H3DMO23TFTGTZJNJVJM5IFOFN6FBLWJNXCP3KQ22FOSKOVJRJXAE
-#::: FGV5NN4YFWKWARAIKFEJUDQNZMCGCJSQBNJGY2PYWKJGVFTQCQ4 :::: NAILARA AMOS :::
-# :: RS4DXN4ORANJ6NE727KTFCCFPNGGHT34RSVYY2CEEGOKMNZ5NODI :: CODE SIGNATURE ::
+#N65GFPD7KAQPSJAX64GNXJRPLHQOKB5BAW32CVYRP5ULM6ZANPTIOQ3OLNBTTCJS7XAYMRSTFPXOA
+#::: PE4JX5U2STNJGQDYYGJGDFOYJPX6GSALY6APLNLPQGTBKA6KQHF :::: NAILARA AMOS :::
+# :: EEEYRZUO34SF2PL7P3LBUTCBUNSUKDSLD5O6QMEGU6QNKFELMUCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
