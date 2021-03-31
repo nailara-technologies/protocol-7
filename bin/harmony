@@ -7,7 +7,8 @@ BEGIN {
     use English;
     use Cwd 'abs_path';
     my $script_path = abs_path($PROGRAM_NAME);
-    ( my $local_lib_path = $script_path ) =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
+    ( my $local_lib_path = $script_path )
+        =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
@@ -27,10 +28,10 @@ no warnings 'experimental';
 
 ## [ PREMISE ]
 ##
-my $false = '769230'; ##  <-- L\  == FALSE ## [ 23 / 13 = [0.]230769..,] PYRAMID
-##                                                            ^^^^^^     =======
-my $true = '461538';  ##  <-- =5T == TRUE  ## [  6 / 13 = [0.]461538..,]  CUBE
-##                                                            ^^^^^^      ====
+my $false = '769230'; #  <-- L\ == FALSE ## [ 23 / 13 = [0.]230769..,] PYRAMID
+##                                                          ^^^^^^     =======
+my $true = '461538';  # <-- =5T == TRUE  ## [  6 / 13 = [0.]461538..,]  CUBE
+##                                                          ^^^^^^      ====
 
 #                                            ## [ 230769 / 13 = [17751.]461538.]
 #                                                 ^^^^^^                ^^^^^^
@@ -60,10 +61,11 @@ $option{'z'}
     //= 8;    ## <-- digit read size override for 'asc-enc' fullscreen mode
 $option{'A'} //= "-r4.2 -d$option{z} -S"
     if $option{'Z'};    ## -Z is 'full-screen' mode
-$option{'T'} //= rand(2) % 2 ? '851' : '857' if $option{'Z'}; ## <-- full-screen
+$option{'T'} //= rand(2) % 2 ? '851' : '857' if $option{'Z'}; # <-- fullscreen
 $option{'T'} //= qw| 857 |;    ## <-- 'asc-enc' table [ when in use ]
-$option{'l'} //= 384;         ## <-- blue midnight wish entropy size
-$option{'d'} //= 0; ## <-- divisor [ -d <n> ] : check result instead of input ##
+$option{'l'} //= 384;          ## <-- blue midnight wish entropy size
+$option{'d'}
+    //= 0;    ## <-- divisor [ -d <n> ] : check result instead of input ##
 $option{'B'} = !$option{'B'};    ## BMW mode enabled by default
 
 my @asc_enc = qw| asc-enc -q |;
@@ -100,7 +102,14 @@ my %col = (
     'b'   => $blacklight,
 );
 
-my $check_string = Encode::decode_utf8( join( ' ', @ARGV ), 8 ); # [8:LEAVE_SRC]
+# [8:LEAVE_SRC]
+my $check_string = Encode::decode_utf8( join( ' ', @ARGV ), 8 );
+
+say ":\n:: expected numerical check value [ -n option ]\n"
+    and exit(13)
+    if $option{'n'}
+    and $check_string !~ m|^\-?\d+(\.\d+)?$|;
+
 my $elf_checksum = $option{'n'} ? $check_string : elf_checksum($check_string);
 
 my $bmw_checksum;
@@ -147,6 +156,7 @@ $line_str =~ s{(*plb:\.)(\d*?)($true|0000+ )}
                      {$1$col{'m_n'}$2$col{'r'}$col{'b'}};
 
 my $return_code = $FXI;    ## code for FALSE ##
+
 $calc_str =~ s|^\d+\.||;
 my $result = '< ? >';
 if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
@@ -251,7 +261,7 @@ sub display_result {
         @run_args = ( @asc_enc, split( ' +', $passthrough_params ), $code );
     } else {
         ####
-        push( @asc_enc, qw| -s0 | ) if $return_code == $FXI;  ## false. no delay
+        push( @asc_enc, qw| -s0 | ) if $return_code == $FXI; # false. no delay
         @run_args = ( @asc_enc, $code );
     }
 
@@ -266,9 +276,10 @@ sub display_result {
     my $assertion_result = system( $PROGRAM_NAME, '-q', $num_val ) >> 8;
     if ( $assertion_result == 0 ) {    ##  deeper truth .,
         my @run_args = ( $PROGRAM_NAME, '-C' . $option{'C'} );
-        push( @run_args, '-A' . $option{'A'} )                  if $option{'A'};
-        push( @run_args, '-T' . $option{'T'} )                  if $option{'T'};
-        say "< exec-args > " . join( ' ', @run_args, '-N <n>' ) if $option{'D'};
+        push( @run_args, '-A' . $option{'A'} ) if $option{'A'};
+        push( @run_args, '-T' . $option{'T'} ) if $option{'T'};
+        say "< exec-args > " . join( ' ', @run_args, '-N <n>' )
+            if $option{'D'};
         int_exit() if system( @run_args, '-N', $num_val ) >> 8 == 4;
     } elsif ( $assertion_result == 4 ) {
         int_exit();
@@ -291,7 +302,7 @@ sub elf_checksum {
 sub int_exit { print $reset; exit(4) }
 
 #.............................................................................
-#DWM4G3OQGKL7MX7S546JM7TCBCMUSNQDADDIKDXHBQESWR7NVEWYDL4JXLHIUYTQREOD452I4WM4Y
-#::: XIMVGUH4J53CWQVKLJUOBTH5TUZIDKFQLJGGXEWVLOVX6V5KOGB :::: NAILARA AMOS :::
-# :: KPL5MOXNOADE5QXSA37HDPHAVACT53WT5EVHZMQ5GU43NMO3OOBY :: CODE SIGNATURE ::
+#QBLWOO3VV56J3SHNPLV5ER5KCHQ2DRVSVYAVPPWHTQ2RYOHXQ4S63VA5IRHMABB6SCDJ7LA72BPQM
+#::: YEMZK4MBPRBUAQQR77W3XX556V7T4EOKNG3NXVG3HMVP23XX5TY :::: NAILARA AMOS :::
+# :: 7XJN63OFPBV6AASKI3AZ37WLW2BZL2R2U25NSHG76QOQ6G73DEDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
