@@ -19,17 +19,25 @@ my $msg;
 my $result_code = system( qw| harmony -q |, $check_string );
 $result_code = $result_code >> 8 if $result_code != -1;
 
-if ($result_code == 0
-    and ( $check_string !~ m|^\d+(\.\d+)?$|
-        or system( qw| harmony -q -n |, $check_string ) == 0 )
-) {
+my $numeric_result
+    = $check_string =~ m|^\d+(\.\d+)?$|
+    ? system( qw| harmony -qn |, $check_string )
+    : 13;
+$numeric_result = $numeric_result >> 8
+    if $numeric_result != 13 and $numeric_result > 0;
+
+if ( $numeric_result == 0 or $numeric_result == 13 and $result_code == 0 ) {
     $msg = "'$check_string'    TRUE  IS  =)\n";
     push( @aosd_opts, qw| -u 2777 -R |, '#230769' );
-} elsif ( $result_code == 202 ) {    # <-- exit code for FALSE
+} elsif ( $result_code == 202 and $numeric_result == 13
+    or $numeric_result == 202 ) {
     $msg = "'$check_string'   is  FALSE `:|\n";
     push( @aosd_opts, qw| -u 1389 -R |, '#690723' );
 } else {
-    $msg = "<< invocation error : check harmony executable >>\n";
+    $msg
+        = "<< invocation error : "
+        . "$result_code : $numeric_result"
+        . " : check harmony executable >>\n";
     push( @aosd_opts, qw| -u 5007 -R |, '#776407' );
 }
 
@@ -40,7 +48,7 @@ close FILE;
 system( '/usr/bin/aosd_cat', @aosd_opts );
 
 #.............................................................................
-#WBGHODUHNEVRFMYFNPFNMUOFCRCNX6ADHUN3V3GHO2XX4ZSQ3NLNMH7Q3TBEBHRYATUTN42BVTZBQ
-#::: C6Q3FAF6X7NDKTUCGYBJTH7LPO6AVR4RKCTNM45NDLQD6YCODHQ :::: NAILARA AMOS :::
-# :: DP426STJGAORK6ZV2APFRNWFS3TP6KVZKADU5D5NDZCTPM6WQUDQ :: CODE SIGNATURE ::
+#7MS5PZEVXSRS4DCPQ2NBMOFYXSOWWSVDU22C3B4ZN6JGJOH2XRT5WTFGQWUPDOIUIS6E3P63WAG3S
+#::: WAOKVDOZNWZZ35VEAZXJN2H57V63KNRN7E7Y6GMDAL57XYXPSDW :::: NAILARA AMOS :::
+# :: VFHQ2SNUIRP5JCHWXEUB5TKICOE34PDVNQKLJ6JX5EMX5X2RXSBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
