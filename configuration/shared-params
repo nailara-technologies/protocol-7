@@ -3,24 +3,13 @@
 
 [load_config_file:'network']
 
-system.admin-user        =   taeki  ##  <--  [ adjust to your own user name ] ##
-
 [load_config_file:'system-language']
+[load_config_file:'system-user-map']
+[load_config_file:'logging-configuration']
 
-buffer.zenka.log_cmd           = p7-log.append
-system.verbosity.zenka_buffer  = 2
-system.verbosity.zenka_logfile = 1
-
-log.level.auto-decay.zenka.1 = 1123200 #  <-- 13 days decay for info, error none
-log.level.auto-decay.zenka.3 = 420  #  <-- 4 min. debug log level message decay.
-log.level.auto-decay.zenka.2 = 1020  #  <-- 17 min. decay for level 2 and above.
-
-system.privs.user             = protocol-7
-base.root.pref-uid.protocol-7 = 777
-base.root.convert-usr.nailara = yes ## <-- chown all owned files to 'protocol-7'
-                                    #  and remove renamed 'nailara' system user
 
 system.local_config_dir      = /etc/protocol-7
+
 
 buffer.zenka.max_size        =  130777  ##  zenka log buffer size
 default.max_size.log_buffers =  130777  ##  adjust as desired ..,
@@ -55,13 +44,13 @@ system.max_routes            =  13747
 ## prefix command parameters with source zenka name ##
 alias.when-present = when-present SOURCE_AGENT
 
-
 # base.debug.keep_on_reload  = 0  #  <- whether debug module persists reload ..,
 
-### feel free to override these values in './configuration/zenki/<zenka-name>/config' ###
+### feel free to override these values in       ###
+### './configuration/zenki/<zenka-name>/config' ###
 
 #.............................................................................
-#KKN5CUANFEQEKLGUF4ZKR2LIFZKKE366P2XKJ4Q2XBSHHTUPNHW4D5XF24IP645S5MUZ6DZSYWKEK
-#::: ZCYT2FMF3LEHGGD7DZ2MQEZZ44SARMSXT7KSAQPEFJDCU6N72OQ :::: NAILARA AMOS :::
-# :: NYI3XYZRM6MN4PRK5IV46PG4XUDX6CFN2DSQ777IW67FWXAYNEBA :: CODE SIGNATURE ::
+#LRXMQYVFPGMKS2C3S2HQNL7N4PV3Z7D5KHNHKDL7UYOEGE7EQZWQXKLOQWCNKJWOEDJJ3KXPGKEDC
+#::: NLHCDBOJSEJBG4PAPFM3KX4BZ3FT5CVHHVNGP6TNHIB6GHM7YWU :::: NAILARA AMOS :::
+# :: K4LGALK22H4OCV44HR4OQFM5I7NEI3HSJQAKCLIJBFFERBV2S4AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
