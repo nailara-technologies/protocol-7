@@ -367,7 +367,14 @@ sub shell_loop {
                 }
                 use warnings;
             } else {
-                if ( $line ne '[quit]' and !s_write( $sock, "$line\n" ) ) {
+                if ( $line eq '[reset]' ) {
+                    system(qw| reset |);
+                    $line = '';
+                    say '';
+                }
+                if (    length($line)
+                    and $line ne '[quit]'
+                    and !s_write( $sock, "$line\n" ) ) {
                     sleep(0.1);
                     $stored_cmd = $line;
                 }
@@ -396,7 +403,7 @@ sub shell_loop {
             }
         } elsif ( !-S $sock or !s_write( $sock, "\n" ) or !$sock->connected )
         {
-            print "\e[2H\e[2J :: reconnecting...\n";
+            print "\e[2H\e[2J :: reconnecting..,\n";
             last;
         }
     }
@@ -483,7 +490,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#VJUDYDU2WMUJ3BQK32HGOPWHDYTVWONKU6X7IXRY24MMRLYKHK6PD4WAMCK4AYZGKISJZPUO7V3HG
-#::: DPA2TE2BURZVUIFCKFH4YIL6SWWEEA3GESREXX7OZGBYQA2CS3B :::: NAILARA AMOS :::
-# :: NKFOKJ62AJGVQHWEDEM2JYMZKMQAZQ66JAHLWNQOB23QTAJS6CAA :: CODE SIGNATURE ::
+#FRL5GOLOVKSPGVYIAO5OMSMX57H2ZUUF22Q2QQROIDCBRQKIQHLMIW52ATNGOFICBZYIYBAKZWFN4
+#::: 43AAAMJMJRQ6N5L5CQJ5KE6F3IJ5CJCTDTJ5GHGOMU7DS2MQ2K7 :::: NAILARA AMOS :::
+# :: KEIJUBYUBI2KTH4R2BFZARINBP3Y3ERR3ZFPZZD3OZ2ZPTACZ2BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
