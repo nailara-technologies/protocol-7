@@ -1,9 +1,45 @@
 #!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
 
-print ":\n: pre-commit hook .,\n:\n";
+##
+## configure : 	'git config core.hooksPath = bin/dev/git-hooks' ##
+##
+
+# die "expected 3 arguments" if @ARGV != 3; # [unused]
+my ( $sha_old, $sha_new, $change_br ) = @ARGV;
+print ":\n: running 'pre-commit' checks ..,\n:\n";
+
+my $admin_path = 'bin/admin';
+my $p7_root    = p7_root_dir();    ## safely determine protocol-7 root path ##
+chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
+
+## checking files and permissions ##
+system("$p7_root/$admin_path/restore-p7-permissions") == 0
+    or die ":\n:: \l$OS_ERROR\n\n";
+
+print ":\n: done.\n:\n";
+
+#[ SUBROUTINES ]##############################################################
+
+sub c_dir  { File::Spec->catdir(@_) }
+sub r2_abs { File::Spec->rel2abs(@_) }
+
+sub p7_root_dir {
+    my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 3 ) ) );
+    die "  :\n  :: not a directory : '$root_path'\n\n" if !-d $root_path;
+    return $root_path;
+}
 
 #.............................................................................
-#LDAVUFTUQMARQ4Q6QWUNJQ3BSRLKI6JDFG2S2INQJETPPUXK6MOAS4CE66SWKPZ6BB3BQYPJ66ALW
-#::: KHSC4IRTPGD62YI5BK4QZXZVXZRMAURZQBTYCUHQFDDWCIR6CPX :::: NAILARA AMOS :::
-# :: WUR34XBQT3MAIJXI3DKLHPBGEZG5GBXAPSOOMFCUVA6W3GGMXWAA :: CODE SIGNATURE ::
+#OSA2FMU2YHK4MEXBIGLN2FK7NRLNVEHSW2L3KAXVO6XI3VURATTIYQZQMEOC6XL4QOXNYQQH36VDO
+#::: 4WNVFJDKMXOQUPITXBCA4PLS3ILGYKK5XOP3HJREMNZ7W63LRFM :::: NAILARA AMOS :::
+# :: U4ZZ65VBOFTEHRKSAUGAWLVUIDXZLPOL4M42XSTXVYQMWMO3CMDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
