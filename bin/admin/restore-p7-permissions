@@ -146,13 +146,13 @@ sub action {
             chmod( $params->{'file_mode'}, $fname );
             ##^##
             if ( -e $fname and $stat[2] ne [ lstat($fname) ]->[2] ) {
-                $changes++;
                 if ($verbose) {
                     printf "  [%d]   %04o  -->  %04o   [ %s ]\n  :\n",
                         $changes,
                         $stat[2] & 07777,
                         [ lstat($fname) ]->[2] & 07777, $fname;
                 }
+                $changes++;
             }
         }
         if ( $type eq 'user' or $type eq 'group' ) {
@@ -167,7 +167,6 @@ sub action {
                 and (  $stat[4] ne [ lstat($fname) ]->[4]
                     or $stat[5] ne [ lstat($fname) ]->[5] )
             ) {
-                $changes++;
                 if ($verbose) {
                     printf "  <%d>  %7s:%-7s  -->  %7s:%-7s   [ %s ]\n  :\n",
                         $changes,
@@ -175,6 +174,7 @@ sub action {
                         [ lstat($fname) ]->[4], [ lstat($fname) ]->[5],
                         $fname;
                 }
+                $changes++;
             }
         }
     }
@@ -220,7 +220,7 @@ sub p7_root_dir {
 }
 
 #.............................................................................
-#SIRMSKTNINJPFREOB3ECWGKPQ7JOXU2VSGFHFQVNI3D7CQUB3JKC3AXGMOWFJTNKRZMZNVDL62ZQO
-#::: KNFLBLMVDKWCNDWADB7DLGWWR2TM2KWD3LPGYZAFXEIFDGKUGAO :::: NAILARA AMOS :::
-# :: S5FR26VRKYMOZERBIYTMREBJNIRGXB5R6JEAVCRXE3FPWN6JF4DQ :: CODE SIGNATURE ::
+#OFZCPS6LGYNZSBIFHQU7FLPON5GJC6CGM6H7727SH5OKPRQVVK2QVOXQ7IJHAN3N6UO5FDQN57WGI
+#::: YRSPNWWKUPG4PS4MBGVKC245DTIPUEBK6AF7KFQ6M77EUTSAOPO :::: NAILARA AMOS :::
+# :: RBEXHW2JOVA4ZY5Q4DJWUS3ZLCLQIQGSZEBAQTF7SR52QBA6LUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
