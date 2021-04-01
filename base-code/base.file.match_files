@@ -4,35 +4,39 @@
 # args = [result_array_ref,] <search_path>, <file_name_pattern(s)>
 
 my $result_aref;
-$result_aref = shift(@_) if ref( $_[0] ) eq 'ARRAY';    # (append mode)
+$result_aref = shift(@ARG) if ref( $ARG[0] ) eq 'ARRAY';    # [ append mode ]
 my ( $search_path, @wildcard_filenames ) = @_;
+
+my $recursion
+    = ( @ARG and $ARG[0] eq 'recursive' and shift @ARG )
+    ? 'recursive'
+    : undef;
 
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
 if ( not defined $search_path or !length($search_path) ) {
-    <[base.log]>->( 0, "file.match_files: missing expected path argument!" );
+    <[base.log]>->( 0, 'file.match_files: missing expected path argument' );
     return undef;
 }
 $search_path = abs_path($search_path);
 if ( !-d $search_path ) {
-    <[base.log]>
-        ->( 0, "file.match_files: no such directory '$search_path'!" );
+    <[base.log]>->( 0, "file.match_files: no such directory '$search_path'" );
     return undef;
 } elsif ( !@wildcard_filenames ) {
-    <[base.log]>->( 0, "file.match_files: no filenames/patterns provided!" );
+    <[base.log]>->( 0, 'file.match_files: no filenames\\patterns provided' );
     return undef;
 }
 
 my $results = [];
-$results = $result_aref if defined $result_aref;    # (append mode)
+$results = $result_aref if defined $result_aref;    ##  [ append mode ]
 my @file_table = map {
     my $key = $ARG // '';
-    $key =~ s/\./\\./g;
-    $key =~ s/(\*\*|\*)/$1 eq '*' ? '[^\.]*' : '.*'/ge;
-    qr/$key$/
+    $key =~ s|\.|\\.|g;
+    $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
+    qr|$key$|
 } @wildcard_filenames;
 
-foreach my $file ( @{ <[file.all_files]>->($search_path) } ) {
+foreach my $file ( @{ <[file.all_files]>->( $search_path, $recursion ) } ) {
     foreach my $pattern (@file_table) {
         if ( $file =~ $pattern ) {
             push( @{$results}, $file );
@@ -40,11 +44,12 @@ foreach my $file ( @{ <[file.all_files]>->($search_path) } ) {
         }
     }
 }
-return scalar @{$results} if defined $result_aref;    # (append mode)
+
+return scalar @{$results} if defined $result_aref;    # [ append mode ]
 return @{$results};
 
 #.............................................................................
-#XVQQOIOIV4YU4KW4PTGRBDVRGJJS4DSWSYF265VYYEVY5P2QDA6LMZZLOOZU437QB4EKE6HVR577E
-#::: 4M5MLE6E3Z62DWKKTBU4OA2ECLZIQJI5WMVNUMCULWGG3A3WMVA :::: NAILARA AMOS :::
-# :: RKZ55XBPHJ3CPYEMYPGUR6RSB4PDHHKVRLSMKA5HC7NGPUEZGOAA :: CODE SIGNATURE ::
+#ZV5JSI5B46SSL2DEKA25XYEOJV7AOR3HK6KDYDCMJYBTTK3HS7FO3RHYMGPPQDDXXQMH6DWGGZBUU
+#::: VPYZTOBHVG4TVZDGHSV4GON6GTATSQL3JKO2E7GQDWMNSFZGXRF :::: NAILARA AMOS :::
+# :: TRXMQ4GO24644UTLU2D3WJJYYVLF5CW5RUNJR5G4M6IB5H4LCMAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

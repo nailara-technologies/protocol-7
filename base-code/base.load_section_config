@@ -7,18 +7,34 @@
 
 my $conf_path   = <system.conf_path>;
 my $config_data = {};
-$config_data = shift(@ARGV) if ref( $ARGV[0] ) eq 'HASH';
+
+$config_data = shift if @ARG and ref( $ARG[0] ) eq 'HASH';
+
+## config directory supplied ##
+$conf_path = shift if !keys %{$config_data} and @ARG > 1 and -d $ARG[0];
+
 my @cfg_files = @_;
 
+return warn 'expected configuration file parameter[s] <{C1}>'
+    if !@cfg_files
+    or @ARG == 1 and -d $ARG[0];
+
+my $match_count = 0;
+my $lines_count = 0;
 foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
+
     ( my $file_name = $file_path ) =~ s|^.*/||g;
     <[log.noerr]>->("loading section config '$file_name'");
 
     my @cfg_lines;
+
     <[file.slurp]>->( $file_path, \@cfg_lines );
     if ( !@cfg_lines ) {
         <[log.error]>->("unable to load section config file '$file_name'");
         return undef;
+    } else {
+        $match_count++;
+        $lines_count += scalar @cfg_lines;
     }
 
     my $line_num = 0;
@@ -60,10 +76,23 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
         }
     }
 }
+
+if ( !$match_count ) {
+    <[base.log]>->( 0, ': no configuration file loaded or found .,' );
+    <[base.log]>->( 2, ": : conf-path : '$conf_path' :." );
+    map { <[base.log]>->( 2, ": : :.. '$ARG'" ); } @cfg_files;
+} else {
+    my $s_f = $match_count == 1 ? '' : 's';
+    my $s_l = $lines_count == 1 ? '' : 's';
+    <[base.log]>->(
+        2, ": $match_count file$s_f loaded, $lines_count config line$s_l.,"
+    );
+}
+
 return $config_data;
 
 #.............................................................................
-#EZFD2X6MAIH2KH373X7EHID3XQ3EAFMWB5RLVWUDD7ZNSLFJP5U2GFWHMC3KNLBGOHVUHQ64T54MA
-#::: XYP6CXJCXZQAQNPP2MIQ2665MFJNXFLCZBGHJ3PWIJNMEELF3TY :::: NAILARA AMOS :::
-# :: UHH7YUPPWXJFS32UKI2YMTM727MZOZCZKH2P6UOYPZEJF3B7NOAQ :: CODE SIGNATURE ::
+#ABG64SAA6TYORMIG57QDFQJEEW6KDGM4DNONNGGE7KOB7M2RNCJXEINKVEEBCK64NBSY3S357XKRK
+#::: K3CZI7SP7NNB7G37JEDJCT42BEX4ZD4W3KZ7XMPYCZGOOXNVNBI :::: NAILARA AMOS :::
+# :: 6WEOXYA4ITGVLSJV6NCE7GUTFGVDQ4NJQISDDRO22XJ2U56CFSBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
