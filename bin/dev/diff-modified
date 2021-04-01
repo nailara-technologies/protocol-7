@@ -54,13 +54,13 @@ my $ruler_width      = git_config( "diff-so-fancy.rulerWidth", undef );
 my $git_strip_prefix = git_config_boolean( "diff.noprefix", "false" );
 my $has_stdin        = has_stdin();
 
-my $ansi_color_regex = qr'(\e\[([0-9]{1,3}(;[0-9]{1,3}){0,10})[mK])?';   # <--
+my $ansi_color_regex = qr'(\e\[([0-9]{1,3}(;[0-9]{1,3}){0,10})[mK])?';
 my $meta_color       = '';
 
 my ( $file_1, $file_2 );
 my $args              = argv();    # hashref of all the ARGV stuff
-my $last_file_seen    = "";
-my $last_file_mode    = "";
+my $last_file_seen    = '';
+my $last_file_mode    = '';
 my $i                 = 0;
 my $in_hunk           = 0;
 my $columns_to_remove = 0;
@@ -198,6 +198,8 @@ sub do_dsf_stuff {
     #print STDERR join("",@$input);
     #print STDERR "END ---------------------------------------------------\n";
 
+    my $skip_empty_output = 0;
+
     while ( my $line = shift(@$input) ) {
         ######################################################
         # pre-process the line before we do any other markup #
@@ -223,41 +225,66 @@ sub do_dsf_stuff {
             $meta_color = $1 || get_config_color("meta");
 
             # get the next line without incrementing counter while loop
+
+            ##  my $next = $input->[0] || ""; ## <-- replaced with following:
+
             # NOTE : adjusted for next file meanwhile being decorated
-            #      :. now it also needs to show the previous name when renamed
+
             my $next;
-            my $index = 0;
+            my $added   = 0;    ## <-- tracking manually now [ taeki ]
+            my $deleted = 0;    ## <-- tracking manually now [ taeki ]
+            my $index   = 0;
             while ( defined $input->[$index] ) {
-                $next = $input->[$index] || "";
-                $next =~ s|^\s+||;
-                $next =~ s{^\S+\s+?$ansi_color_regex*
-                          |$ansi_color_regex*\s+.+\n$}{}xg;
-                if ( length($next) ) { $last_file_seen = $next; last }
+                $next = "$input->[$index]" || "";
+                $next =~ s{^\S+\s+?$ansi_color_regex*|\e.+?m\s*$}{}g;
+                $next =~ s{\n*$}{}g;
+                if ( $line =~ m|/dev/null| and not $deleted ) {
+                    $added = 1;
+                } elsif ( $next =~ m|/dev/null| and not $added ) {
+                    $deleted = 1;
+                } elsif ( !$deleted
+                    and !$added
+                    and length($next)
+                    and $next ne '/dev/null' ) {
+                    $last_file_seen = $next;
+                    $last_file_seen =~ s|\e|\\e|g;
+                    last;
+                }
                 $index++;
             }
 
             my ( $file_1, $file_2 );
 
-     # the line immediately after the "index" line should be the --- file line
-     # if it is not it is an empty file add/delete
-            if ( $next !~ m,^$ansi_color_regex*(---|Binary files), ) {
+            # the line immediately after the 'index' line
+            # should be the --- file line,
+            # if it is not it is an empty file add \ delete
+            if ( $next !~ m,^$ansi_color_regex*(-?--|Binary files), ) {
 
                 # we fake out the file names since it is a raw add/delete
-                if ( $last_file_mode eq "add" ) {
+                if ( $last_file_mode eq 'add' ) {
                     $file_1 = "/dev/null";
                     $file_2 = $last_file_seen;
-                } elsif ( $last_file_mode eq "delete" ) {
+                } elsif ( $last_file_mode eq 'delete' ) {
                     $file_1 = $last_file_seen;
                     $file_2 = "/dev/null";
                 }
             }
 
             if ( $file_1 && $file_2 ) {
-                print horizontal_rule($meta_color);
+
+                print "\n";
+                print "\n" . horizontal_rule($meta_color);
                 print $meta_color
                     . file_change_string( $file_1, $file_2 ) . "\n";
                 print horizontal_rule($meta_color);
+                print "\n" if $last_file_mode eq 'add';
+
+                $skip_empty_output = 2 if $last_file_mode eq 'delete';
+
             }
+
+            $last_file_mode = '';
+
             #########################
             # Look for the filename #
             #########################
@@ -265,7 +292,6 @@ sub do_dsf_stuff {
         } elsif ( $line
             =~ m,^${ansi_color_regex}diff (-r|--git|--cc) (.*?)(\e| b\/|$), )
         {
-
             # mercurial looks like: diff -r 82e55d328c8c hello.c
             if ( $4 eq "-r" ) {
                 $is_mercurial = 1;
@@ -276,14 +302,14 @@ sub do_dsf_stuff {
                 $last_file_seen = $5;
             }
 
-            $last_file_seen
-                =~ s|^\w/||;  # removing a/ [ and handle diff.mnemonicPrefix ]
+            # removing a/ [ and handle diff.mnemonicPrefix ]
+            $last_file_seen =~ s|^\w/||;
             $in_hunk = 0;
             ########################################
             # find the first file: --- a/README.md #
             ########################################
         } elsif ( !$in_hunk
-            && $line =~ m'^$ansi_color_regex--- (\w\/)?(.+?)(\e|\t|$)' ) {
+            && $line =~ m'^$ansi_color_regex-?-- (\w\/)?(.+?)(\e|\t|$)' ) {
             $meta_color ||= get_config_color("meta");
 
             if ($git_strip_prefix) {
@@ -295,7 +321,7 @@ sub do_dsf_stuff {
 
             # find the second file on the next line: +++ b/README.md
             my $next = shift(@$input);
-            $next =~ m,^$ansi_color_regex\+\+\+ (\w/)?(.+?)(\e|\t|$),;
+            $next =~ m,^$ansi_color_regex\+?\+\+ (\w/)?(.+?)(\e|\t|$),;
             if ($1) {
                 print $1;    # print out whatever color we are using
             }
@@ -378,7 +404,7 @@ sub do_dsf_stuff {
                 my $frag_color = get_config_color("fragment");
                 print $frag_color;
             }
-            my $nll = length($last_file_seen) - 7;
+            my $nll = length($last_file_seen) - 4;
             $nll = 5 if $nll < 5;
             my $name_line = '─' x $nll;
 
@@ -393,7 +419,7 @@ sub do_dsf_stuff {
             # removing any new file permissions #
             #####################################
         } elsif ( $remove_file_add_header
-            && $line =~ m|^${ansi_color_regex}.*new file mode| ) {
+            && $line =~ m|^${ansi_color_regex}new file mode| ) {
 
             # do not print the line (i.e. remove it from the output);
             $last_file_mode = "add";
@@ -412,7 +438,7 @@ sub do_dsf_stuff {
             $line =~ m|^Binary files (\w\/)?(.+?) and (\w\/)?(.+?) differ| ) {
             my $change = file_change_string( $2, $4 );
             print horizontal_rule($meta_color);
-            print "$meta_color$change [binary]\n";
+            print "$meta_color$change $nailara_bg${blacklight}[ binary ]\n";
             print horizontal_rule($meta_color);
             #####################################################
             # check if we are changing the permissions of a file #
@@ -421,11 +447,9 @@ sub do_dsf_stuff {
             && $line =~ m|^${ansi_color_regex}old mode (\d+)| ) {
             my ($old_mode) = $4;
             my $next = shift(@$input);
-
             if ($1) {
                 print $1;    # print out whatever color we are using
             }
-
             my ($new_mode) = $next =~ m|new mode (\d+)|;
             print "$last_file_seen changed file "
                 . "mode from $old_mode to $new_mode\n";
@@ -448,7 +472,7 @@ sub do_dsf_stuff {
             my $next = shift(@$input);
             my ($file1) = $next =~ m|rename from (.+)|;
 
-            $next = shift(@$input);
+            $next = shift(@$input) // '';
             my ($file2) = $next =~ m|rename to (.+)|;
 
             if ( $file1 && $file2 ) {
@@ -481,7 +505,16 @@ sub do_dsf_stuff {
             }
 
             #############################################################
-            print $l . $line;
+            if (    $line !~ m|^$ansi_color_regex*\s*[\-\+]{2,3}|
+                and $line !~ m|^$ansi_color_regex*\n| ) {
+                print $l . $line;
+            } else {
+                if ( not $skip_empty_output ) {
+                    say '';
+                } else {
+                    $skip_empty_output--;    ## 'deleted' file mode
+                }
+            }
             #############################################################
         }
 
@@ -759,17 +792,17 @@ sub file_change_string {
 
     # if they're the same it is a modify
     if ( $file_1 eq $file_2 ) {
-        return "modified: $file_1";
+        return ": modified : $file_1";
 
         # if the first is /dev/null it is a new file
     } elsif ( $file_1 eq "/dev/null" ) {
         my $add_color = $colors_add;
-        return "added: $add_color$file_2$reset";
+        return ": added : $add_color$file_2$reset";
 
         # if the second is /dev/null it is a deletion
     } elsif ( $file_2 eq "/dev/null" ) {
         my $del_color = $colors_del // '';
-        return "deleted: $del_color$file_1$reset";
+        return ": deleted : $del_color$file_1$reset";
 
         # if the files aren't the same it is a rename
     } elsif ( $file_1 ne $file_2 ) {
@@ -783,7 +816,7 @@ sub file_change_string {
         $old =~ s|(\e0?\[m)|$1$meta_color|g;
         $new =~ s|(\e0?\[m)|$1$meta_color|g;
 
-        return "renamed: $old to $new";
+        return ": renamed : $old --> $new";
 
         # Something we haven't thought of yet
     } else {
@@ -998,7 +1031,7 @@ sub get_terminal_width {
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
 #.............................................................................
-#4VKJYLO2DUQHG5DMF24YUDPVAQ43KPR6OD6YOMQUHATZHV7OZD537ECNEF3MGGYR3QEHGDJ33JSGK
-#::: SLSNX24PY6MQR4QBLKRLDXWKKQ32U77Q66EZWHKHAO57YN2G3ZZ :::: NAILARA AMOS :::
-# :: HVSCBEVA2I7WOGCZIK53XU3HPHS6TNTKQ57ZRLXAIQJFQJCMSABY :: CODE SIGNATURE ::
+#YARH4REY2B33YVQK6JNTO6G2YHCMP2AKGBHJBGAA2OGTG6BK4ZGCE6SCAASXHBLHV6QGUBX7GXJ3O
+#::: 2ASWMCPD2SIDLEXZUMUIBMWY63GSYCXE42AXFZ3AZQYVFCKWCZ7 :::: NAILARA AMOS :::
+# :: U4YJOPWAKSR227ENHQCXHSPZM4TAJENC2I4AC6JNVDN2HM2JASDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
