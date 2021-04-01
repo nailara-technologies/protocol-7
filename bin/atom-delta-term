@@ -248,20 +248,21 @@ RECALC:
     my $columns = $state->{'screen'}->{'x'};
     my $rows    = $state->{'screen'}->{'y'};
 
-    my $decoding_buffer = '';
+    my $decoding_buffer;
 
-    for ( 1 .. 26 ) {
-        $decoding_buffer .= decode_char( \$state->{'result-13'} );
+    for ( 1 .. $y * 2 ) {
+        $decoding_buffer = '';
+        for ( 1 .. int( $x / 2 ) ) {
+            $decoding_buffer .= decode_char( \$state->{'result-13'} );
+        }
+        print $decoding_buffer and sleep 0.007;
     }
 
     cmd_quit()        if $SIG_QUIT;
     sig_int_handler() if $SIG_INT;
-
-    print $decoding_buffer
-        and sleep( $frame_delay + $state->{'init-delay'} );
+    # sleep( $frame_delay + $state->{'init-delay'} );
 
     $state->{'init'} = $state->{'init-delay'} = 0 if $state->{'init'};
-
     $state->{'loop-count'}++;
 }
 
@@ -631,7 +632,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#IGTH4ERDF64HXEUQ5AMQAWYYUBGMMQJROB6ZVG2ECTE2ZU7SKWQE3V3HMI557RVIQTHV5OKGMOS5C
-#::: VX6K3XVV6VJMOWTTOUCDIO7TBDJIMAA4DWIR6WVUKHDBXSGPA4S :::: NAILARA AMOS :::
-# :: GAQEAE5Q5TN2QNOSHQ7BGDTUUETDP6TT7SI7UW4W3JTMU3VLUWDI :: CODE SIGNATURE ::
+#64KWEXWYTITWZFECJRQ3DIVAW3VBCPCB5LTNLDX5BXVCFHDHJPRD6JIGM25HXF3GPCOOEFG5BRLXG
+#::: 3DLSWZGVNCS6LO5BFWKITKF2FTIVTTK5DN6VRZMSEAE3LSWIG4Z :::: NAILARA AMOS :::
+# :: 4N2OPPMR4MUUQE5OLY4ZHHJ3RJ65ABLSCNPY7JOLMQPTH7XV52CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
