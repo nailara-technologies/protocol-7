@@ -21,7 +21,8 @@ use Crypt::Misc qw| encode_b32r |;
 my @params   = @ARGV;
 my $USE_ANSI = 1;
 
-my $root_path = File::Spec->rel2abs( readlink($PROGRAM_NAME) // $PROGRAM_NAME );
+my $root_path
+    = File::Spec->rel2abs( readlink($PROGRAM_NAME) // $PROGRAM_NAME );
 $root_path =~ s|/[^/]+/[^/]+$||;    # relative to ./bin/ path [ parent ]
 
 my $term = new Term::ReadLine 'ncode';
@@ -42,16 +43,17 @@ $SIG{'INT'} = sub { print "\n\n"; &aborted; };
 # define target paths on which the code parser is supposed to work on
 
 my %targets = (
-    '.'     => Cwd::cwd(),                           # current directory
-    'bin'   => $PATH->{'root'} . '/bin/',            # protcol-7 executable code
-    'dev'   => $PATH->{'root'} . '/bin/dev/',        # developement tools source
-    'src'   => $PATH->{'root'} . '/base-code/',      # the nailara module source
+    '.'     => Cwd::cwd(),                         # current directory
+    'bin'   => $PATH->{'root'} . '/bin/',          # protcol-7 executable code
+    'dev'   => $PATH->{'root'} . '/bin/dev/',      # developement tools source
+    'admin' => $PATH->{'root'} . '/bin/admin/',    # node administration tools
+    'src'   => $PATH->{'root'} . '/base-code/',    # the nailara module source
     'cfg'   => $PATH->{'root'} . '/configuration/',  # configuration root path
-    'zenki' => $PATH->{'root'} . '/configuration/zenki/..,', # p7-zenka programs
-    ## 'readme' => $PATH->{'root'} .  ##   <--  require recursive directory mode
+    'zenki' => $PATH->{'root'} . '/configuration/zenki/..,',  # p7-zenka progs
+    ## 'readme' => $PATH->{'root'} .  ##  <-- require recursive directory mode
 );
 
-my $target = $params[0];    ## check validity and skip when not required. [LLL]
+my $target = $params[0];   ## check validity and skip when not required. [LLL]
 
 # currently understood commands and their callbacks
 
@@ -853,7 +855,8 @@ sub preview {
     print "\n:: saving modified source ::\n\n";
     save_source( $modified_source, $preview_path );
 
-    if ( !diff_less( $original_source_path, $modified_source_path, $regexp ) ) {
+    if ( !diff_less( $original_source_path, $modified_source_path, $regexp ) )
+    {
         die " :: cannot run diff ::\n\n";
     }
 
@@ -864,9 +867,9 @@ sub preview {
 # :: create_backup :: creates a backup of the actual change
 
 sub create_backup {
-    my $backup_source   = shift;  # the sourcecode hash of files to be backupped
-    my $backup_metadata = shift;  # hashref to some meta data of the backup
-    my $modified_source = shift;  # modified source [if exists] [for checksums]
+    my $backup_source = shift;  # the sourcecode hash of files to be backupped
+    my $backup_metadata = shift; # hashref to some meta data of the backup
+    my $modified_source = shift; # modified source [if exists] [for checksums]
 
     die "first argument to create_backup() expected a hash reference"
         if ref($backup_source) ne 'HASH';
@@ -932,7 +935,7 @@ sub create_backup {
 
     while ( not defined $backup_file or -f $backup_dir . $backup_file ) {
 
-       # if such a file already exists wait 1 second to get different time-stamp
+     # if such a file already exists wait 1 second to get different time-stamp
         if ( defined $backup_file and -f $backup_dir . $backup_file ) {
             sleep 1;
         }
@@ -992,7 +995,8 @@ sub pack_backup {
         ;    # change back to a secure path as the dir will disappear
 
     foreach my $tar_out_line ( split( m|\n|, $pack_results ) ) {
-        if ( $tar_out_line =~ m|^(\S+)\s(\S+)\s+(\S+)\s(\S+)\s(\S+)\s(.+)$| ) {
+        if ( $tar_out_line =~ m|^(\S+)\s(\S+)\s+(\S+)\s(\S+)\s(\S+)\s(.+)$| )
+        {
             my ( $permissions, $owner, $size, $creation_date, $creation_time,
                 $filename )
                 = ( $1, $2, $3, $4, $5, $6 );
@@ -1055,7 +1059,8 @@ sub check_target_files {    # LLL: incomplete
         my $check_file = $meta_data->{'bmw'}{$bmw_sum};
 
         if ( !-f $check_file ) {
-            if ( user_confirmed("target file '$check_file' is missing - abort?")
+            if (user_confirmed(
+                    "target file '$check_file' is missing - abort?")
             ) {
                 exit;
             }
@@ -1071,7 +1076,7 @@ sub check_target_files {    # LLL: incomplete
             if ( $bmw_sum eq $chk_sum ) {
                 print "[MATCH] $check_file\n";    # debug output
             } else {
-                if ( user_confirmed("file '$check_file' has changed. abort?") )
+                if (user_confirmed("file '$check_file' has changed. abort?") )
                 {
                     exit;
                 }
@@ -1115,9 +1120,8 @@ sub load_metadata {
 
         # find the actual path of the metadata file in the archive
 
-        foreach
-            my $archive_content_file ( sort( split( /\n/, $archive_content ) ) )
-        {
+        foreach my $archive_content_file (
+            sort( split( /\n/, $archive_content ) ) ) {
             if ( $archive_content_file =~ m|$metadata_filename$| ) {
                 $metadata_filename = $archive_content_file;
                 last;
@@ -1369,7 +1373,8 @@ sub create_dir {
     if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
         ( $parent_dir, $new_dir ) = ( $1, $2 );
     } else {
-        die ":: create_dir() : directory argument should include full path!\n";
+        die
+            ":: create_dir() : directory argument should include full path!\n";
     }
 
     if ( !-d $parent_dir ) {
@@ -1411,7 +1416,8 @@ sub clean_dir {
                 . ansi('reset')
                 . " : $directory_path " . "\n";
 
-            $output_line =~ s/\/([^\/]+)$/'\/'.ansi('green').$1.ansi('reset')/e;
+            $output_line
+                =~ s/\/([^\/]+)$/'\/'.ansi('green').$1.ansi('reset')/e;
             print $output_line;
             return 1;
         } else {
@@ -1443,7 +1449,8 @@ sub files {    ## LLL : implement recursion [ depth ] keyword ##
                 chomp($filename);
                 push( @files, $filename );    # say ' < file > '.$filename;
                 ## configuration/zenki/*/.., ##
-                if ( $recursion and -d $filename ) {  # implement arbitary depth
+                if ( $recursion and -d $filename )
+                {                             # implement arbitary depth
                     opendir( my $adir_fh, $filename )
                         or die "cannot open dir '$filename': $OS_ERROR\n";
                     map { push( @files, $filename . "/$ARG" ) }
@@ -1613,7 +1620,7 @@ sub show_perl_sub {
                     $current_package = $1;
                 }
 
-                # check if the requested package name does not differ to current
+              # check if the requested package name does not differ to current
                 if (   not defined $package_name
                     or $package_name eq ''
                     or $current_package eq $package_name ) {
@@ -1622,7 +1629,7 @@ sub show_perl_sub {
 
                 # check for subroutine names
 
-         # LLL: buggy!! FIX! fails if brace is next line or names begin same way
+       # LLL: buggy!! FIX! fails if brace is next line or names begin same way
 
                 if ( $source_line =~ /(sub\s+(\w+))\s+/ ) {
 
@@ -1632,7 +1639,7 @@ sub show_perl_sub {
 
                     if ( $package_matches and $current_sub eq $sub_name ) {
 
-                       # we found the beginning line of the requested subroutine
+                     # we found the beginning line of the requested subroutine
 
                         my $full_sub_name = $current_package;
                         if ( $full_sub_name ne '' ) {
@@ -1642,7 +1649,8 @@ sub show_perl_sub {
 
                         # searching for the corresponding offset in the file
 
-                        my $start_pos = index( $source->{$file}, $sub_string );
+                        my $start_pos
+                            = index( $source->{$file}, $sub_string );
                         if ($start_pos) {
                             my $loop   = 1;
                             my $braces = 0;
@@ -1654,8 +1662,8 @@ sub show_perl_sub {
                                 my $current_byte = substr( $source->{$file},
                                     $start_pos + $offset, 1 );
 
-                                #             keep track of the braces
-                                # ! careful ! braces in strings are counted too
+                               #             keep track of the braces
+                               # ! careful ! braces in strings are counted too
                                 if ( $current_byte eq '{' ) {
                                     $braces++;
                                     if ($loop) { $loop = 0 }
@@ -1687,9 +1695,8 @@ sub show_perl_sub {
                                     . ansi('reset')
                                     . " ::\n:\n\n:\n";
                                 my $sub_line_num = $start_line;
-                                foreach
-                                    my $sub_line ( split( "\n", $sub_source ) )
-                                {
+                                foreach my $sub_line (
+                                    split( "\n", $sub_source ) ) {
                                     $formatted_source
                                         .= ': '
                                         . ansi('cyan')
@@ -1700,11 +1707,11 @@ sub show_perl_sub {
                                 }
                                 $formatted_source .= ":\n";
 
-                                # return subroutine with parsed in line numbers
+                               # return subroutine with parsed in line numbers
                                 return $formatted_source;
                             } else {
 
-                                # return unformatted [raw] subroutine sourcecode
+                              # return unformatted [raw] subroutine sourcecode
                                 return (
                                     $sub_source, $file, $start_line,
                                     $start_pos,  $offset
@@ -2085,8 +2092,9 @@ sub pattern_test_ok {
 # :: create_regexp :: create reg. expression string from submitted %regexp hash
 
 sub create_regexp {
-    my %regexp         = %{ $_[0] };
-    my $regexp_pattern = "s{$regexp{search}}{$regexp{replace}}$regexp{options}";
+    my %regexp = %{ $_[0] };
+    my $regexp_pattern
+        = "s{$regexp{search}}{$regexp{replace}}$regexp{options}";
     return $regexp_pattern;
 }
 
@@ -2196,7 +2204,8 @@ sub diff_less {
     }
     chdir($cut_path);
     print "\n :. creating diff preview ..,\r";
-    if ( open( my $DIFF, "diff -u -r $k_path{'first'} $k_path{'second'} |" ) ) {
+    if ( open( my $DIFF, "diff -u -r $k_path{'first'} $k_path{'second'} |" ) )
+    {
         my @diff_output = <$DIFF>;
         close($DIFF);
         my $diff_txt;
@@ -2286,7 +2295,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#SAFGFJEH45BCTKNSGS5AP2PBOIQNSL2DKAHA4H4MQQSWW4VOKCRS75JCYVPAXPT3ALWEPYPDPUWZ4
-#::: 2EPGHSQ5HTFMN4GHP7N4RVTITMFMRMQYOCJM2ZUQKBZRIRQRKXZ :::: NAILARA AMOS :::
-# :: DXVUT7ZIOTAVSJZJAELS52PQAGKOXLYNW2AI7DG35NUZ3LOVEYDY :: CODE SIGNATURE ::
+#MNOR5N6XPT3F4QZKLHBNXUBITZLYMHLYKGBI2C4SNDT6NVAXSR7UBE4YTBOCP33BOK4HJOO2UMXVK
+#::: M64MY6M7NH25BCB74LHFAUL5UPQY5VEVFPEVANEU6HGS76BIISZ :::: NAILARA AMOS :::
+# :: GCJXXF44OCQWRP5OMJWMRLKP5XU7HKN57SNFG7G7YR3DYUBDFABQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
