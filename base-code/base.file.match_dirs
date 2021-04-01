@@ -1,7 +1,7 @@
 # >:]
 
-# name = base.file.match_files
-# args = [result_array_ref,] <search_path>, <file_name_pattern(s)>
+# name = base.file.match_dirs
+# args = [result_array_ref,] <search_path>, <dir_name_pattern(s)>
 
 my $result_aref;
 $result_aref = shift(@ARG) if ref( $ARG[0] ) eq 'ARRAY';    # [ append mode ]
@@ -18,15 +18,15 @@ my @wildcard_filenames = @ARG;
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
 if ( not defined $search_path or !length($search_path) ) {
-    <[base.log]>->( 0, 'file.match_files: missing expected path argument' );
+    <[base.log]>->( 0, 'file.match_dirs: missing expected path argument' );
     return undef;
 }
 $search_path = abs_path($search_path);
 if ( !-d $search_path ) {
-    <[base.log]>->( 0, "file.match_files: no such directory '$search_path'" );
+    <[base.log]>->( 0, "file.match_dirs: no such directory '$search_path'" );
     return undef;
 } elsif ( !@wildcard_filenames ) {
-    <[base.log]>->( 0, 'file.match_files: no filenames\\patterns provided' );
+    <[base.log]>->( 0, 'file.match_dirs: no dir names \\ patterns provided' );
     return undef;
 }
 
@@ -35,14 +35,15 @@ $results = $result_aref if defined $result_aref;    ##  [ append mode ]
 my @file_table = map {
     my $key = $ARG // '';
     $key =~ s|\.|\\.|g;
-    $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
+    $key =~ s{(\*{2}|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
+
     qr|$key$|
 } @wildcard_filenames;
 
-foreach my $file ( @{ <[file.all_files]>->( $search_path, $recursion ) } ) {
+foreach my $dir ( @{ <[file.all_dirs]>->( $search_path, $recursion ) } ) {
     foreach my $pattern (@file_table) {
-        if ( $file =~ $pattern ) {
-            push( @{$results}, $file );
+        if ( $dir =~ $pattern ) {
+            push( @{$results}, $dir );
             next;
         }
     }
@@ -52,7 +53,7 @@ return scalar @{$results} if defined $result_aref;    # [ append mode ]
 return @{$results};
 
 #.............................................................................
-#YVE6OX6G6N4KDEYDYN7NXQVNF2E35GVI3W4OAEKHM6DZZH7HP346QK4RW4FOOG3YS46JH3RM4MENA
-#::: HPZISLIKKICIGRKSF3D6LZ5DBGWZ27M67G2MVKZEA6HD2PL7RZI :::: NAILARA AMOS :::
-# :: 77QJ265AIOFSRWXZ7LCY2SETKYY2SHJFT5GD6JA2XWOGYUW5I4DI :: CODE SIGNATURE ::
+#ZSFKZR3JBP7CVIWT6UNAMU5SULFBQRNXS6CYMHZRCK4PDYTIL7ZYNUBBWAJB6QYOGGPLBTC4KQQHC
+#::: CR5PXCELOQX6KD63UBRSEYXUHZJMBRRMDNTDA7MS7F2V2TROL73 :::: NAILARA AMOS :::
+# :: MB46VUQ34KH4A5K7WQ5GEMH7PEVPC3GXXMAWLDF3AZP3IH5REODI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
