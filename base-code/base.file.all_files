@@ -20,13 +20,13 @@ if ( not defined $result_aref ) {
 
 if ( -d $path ) {
     my $dir_fh;
-    $path =~ s/\/+$//;
+    $path =~ s|/+$||;
     if ( !opendir( $dir_fh, $path ) ) {
-        <[base.log]>->( 0, "can not open directory '$path' [$OS_ERROR]" );
+        <[base.log]>->( 0, "can not open directory '$path' [\l$OS_ERROR]" );
         return undef;
     }
     foreach my $entry ( sort( readdir($dir_fh) ) ) {
-        next if $entry =~ /^\.{1,2}$/;
+        next if $entry =~ m|^\.{1,2}$|;
         my $file_path = "$path/$entry";
         my $result_path
             = $resolved ? abs_path($file_path) : canonpath($file_path);
@@ -39,7 +39,7 @@ if ( -d $path ) {
 return $result_aref if !$recursion_entered;
 
 #.............................................................................
-#WOPEO4NN74HIOZH5ZQBA3Q7U5GDNXXOD7QASL6HBPAXHQ7MRUXY4XLWHXW2UCK54O3X6KKXMXGL5E
-#::: UAFJJQYRPK2YE3S4CJOXQSYDPHUCZ4FIYFQORWW6XIZ6BRLU33T :::: NAILARA AMOS :::
-# :: BAS3FBSA4TVBLS72SNS4XTLG3FYVPJTWDEXNVOLALQSIUJ73OECY :: CODE SIGNATURE ::
+#LAAX5N644CJ2FJMCY55Z4OY4QLVVRZCOHXS7SSUMFVWMPCVJQWAXWMFLODLREL6B5AU6Z2IQDSC2E
+#::: WBMDUKI2K7KNCXTKXFZLB7RUXIGKWMPCSN2H52UUFE4UNJKDIWQ :::: NAILARA AMOS :::
+# :: OT7NDTWAOWEQBZ73LFK6SQZYYNLEXCKO6XXRILJIEO7EXADCHCDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
