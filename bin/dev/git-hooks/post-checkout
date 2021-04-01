@@ -9,9 +9,13 @@ use FindBin qw| $RealBin |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
+##
+## configure : 	'git config core.hooksPath = bin/dev/git-hooks' ##
+##
+
 # die "expected 3 arguments" if @ARGV != 3; # [unused]
 my ( $sha_old, $sha_new, $change_br ) = @ARGV;
-print ":\n: running 'post-checkout' git-hook ..,\n:\n";
+print ":\n: running 'post-checkout' checks ..,\n:\n";
 
 my $admin_path = 'bin/admin';
 my $p7_root    = p7_root_dir();    ## safely determine protocol-7 root path ##
@@ -35,7 +39,7 @@ sub p7_root_dir {
 }
 
 #.............................................................................
-#AY6X6JSJFNQOWKDZR2SMGL4YQ7POJY5B7CETXKBBPNNNVZAZEZXYADJGOAQL3FSHCNX43YCI7VVXG
-#::: BUNCBZ4BRPSGHHJLOM52CDNU6PCSP3EBUNNMHXM2X5J6FOPOBK5 :::: NAILARA AMOS :::
-# :: T6RUZBCMVB546AY4APL3WDKV5434GBYXHWMETTNDRYNKPBOUOOAQ :: CODE SIGNATURE ::
+#4AFJE5OBAKYS4AJN2TNUVVC5NOODSHIY2LFR4Y5JJRKWIP6Z5OVHF7ZBBYUAVLGZYLGXXYDQZBXDG
+#::: KG4KT4UO5HT5FIUZL337MMOIIXOG67XI3XGNMRXX25QD6ADPQGU :::: NAILARA AMOS :::
+# :: 3RBC5I62XL7O4EGQWG4OV5LXAC5TI4VEFNYPEYYC6MUUIN4BVUBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
