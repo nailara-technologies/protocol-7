@@ -7,7 +7,7 @@ use Term::ReadLine;
 use SigAction::SetCallBack;
 use Time::HiRes qw| sleep |;
 
-my $term = new Term::ReadLine('protocol-7.shell');
+my $term = new Term::ReadLine('[ version control commit terminal ]');
 $term->ornaments('mh,md');    # ,me;
 $term->enableUTF8();
 $term->MinLine(undef);
@@ -18,7 +18,8 @@ use warnings 'once';
 
 $| = 1;
 
-my $y_pos = 2;
+( my $x, my $y ) = term_size();
+my $y_pos = $y > 2 ? 2 : 1;
 
 my $reset      = "\e[0m";
 my $clear_all  = "\e[2J";
@@ -33,14 +34,14 @@ my $message;
 
 my $min_len   = 13;
 my $last_line = '';
+my $prompt    = join( '', "\e[${y_pos}H", ' :. ' );
 
 clear();
 
 while ( !length($message) ) {
-    my $bl_line = blacklight_line();
-    my $prompt  = join( '', $bl_line, ' :. ' );
 
     override_signals();
+    print blacklight_line();
     my $line = $term->readline($prompt);
 
     $term->add_history($line) if $line ne $last_line;
@@ -79,7 +80,7 @@ sub term_size {
 }
 
 sub blacklight_line {
-    ( my $x, my $y ) = term_size();
+    ( $x, $y ) = term_size();
 
     if ( $y <= 1 ) {
         $y_pos = 1;
@@ -92,9 +93,9 @@ sub blacklight_line {
     } else {
         $y_pos = 2;
         return join( '',
-            "\e[${y_pos}H", $nailara_bg, $reset,   $clear_upw,
-            $clear_down,    $nailara_bg, ' ' x $x, "\e[${y_pos}H",
-            $nailara_bg,    $blacklight );
+            "\e[${y_pos}H", $reset,      $clear_upw,
+            $clear_down,    $nailara_bg, ' ' x $x,
+            "\e[${y_pos}H", $nailara_bg, $blacklight );
     }
 }
 
@@ -122,7 +123,7 @@ sub readline_signals {
 }
 
 #.............................................................................
-#3H65RL2TEPK6RB4B2GE4IV3BQKVKLOZE33E5EST2K46U4GX7ALPGEXUFJYENJV2ELXQRMV3DFLX7A
-#::: D2VU5TIB3RSEUTEGMAZRGPHVY6ZKYBFSTTQSNLWAYILRXJ7JW2X :::: NAILARA AMOS :::
-# :: TD65ZPFARGH25ISFW37YZVUGBLMNACQK5YXG64MR6PC6CVYZQWCY :: CODE SIGNATURE ::
+#T5UCQJZARSO6UFIDBBO3RZFWKM7QFGNW2NSDQKVDMKMUJRR6HJXYCJLG34IK3XGYXGNH55W5CJM5S
+#::: 2Y23VA4YPDPU4RZ7N577263V4HKJIDKADS3U4ZOHMNSPR2IN2IT :::: NAILARA AMOS :::
+# :: 3NM5R4VJIRGJXM6CGK4OQ4Q5XGQQRJBNYUWK7A4RW5PEBB4HTQCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
