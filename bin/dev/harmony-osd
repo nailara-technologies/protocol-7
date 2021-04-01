@@ -11,6 +11,9 @@ $check_string =~ s'^\s+|\s+$''sg;
 
 exit(0) if not length $check_string;
 
+## stop previous assertion [osd_cat] ##
+system( qw| /usr/bin/pkill -u |, $EUID, qw| -f .osd_harmony. | );
+
 my $text_file = '/tmp/.osd_harmony.' . $PID;
 my @aosd_opts
     = ( qw| -p 1 -e 1 -o 7777 -y 44 -x 0 -n WhiteRabbit -i |, $text_file );
@@ -45,10 +48,10 @@ open( FILE, '>', $text_file ) or die "[ $text_file ] $!\n";
 print FILE $msg;
 close FILE;
 
-system( '/usr/bin/aosd_cat', @aosd_opts );
+system( qw| /usr/bin/aosd_cat |, @aosd_opts );
 
 #.............................................................................
-#7MS5PZEVXSRS4DCPQ2NBMOFYXSOWWSVDU22C3B4ZN6JGJOH2XRT5WTFGQWUPDOIUIS6E3P63WAG3S
-#::: WAOKVDOZNWZZ35VEAZXJN2H57V63KNRN7E7Y6GMDAL57XYXPSDW :::: NAILARA AMOS :::
-# :: VFHQ2SNUIRP5JCHWXEUB5TKICOE34PDVNQKLJ6JX5EMX5X2RXSBA :: CODE SIGNATURE ::
+#YE3Y764ZDUEKBSAJ4GCQXK3ZLIWR6D3JBG4GH5GYNQ4EZRGSIKRNFF5MMHJS6IWN3AXTRNSBNRXDA
+#::: BJ5RB3UXYUYEMVKJBFGEDTVKV6DFZO6LQGAEHSTEJA4EWBNZJHA :::: NAILARA AMOS :::
+# :: T3N57BSAIWPYCHIISW433K2BQQJXQUOQVNEYDUQJYRWUJZ2G2QAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
