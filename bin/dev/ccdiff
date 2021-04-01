@@ -16,13 +16,23 @@ our $CMD     = $0 =~ s{.*/}{}r;
 sub colors {    ## temorary custom color definition ## ...to be replaced.., ##
     my $color_name = shift;
 
-    return "\e[38;2;71;195;6m" if $color_name eq 'custom-new';
-    return "\e[38;2;71;6;195m" if $color_name eq 'custom-old';
+    state $bold        = "\e[1m";
+    state $reset       = "\e[0m";
+    state $nailara_bg  = "\e[48;2;9;5;41m";
+    state $blacklight  = "\e[38;2;68;39;172m";
+    state $nailara_fg  = "\e[38;2;38;46;153m";
+    state $error_color = "\e[38;2;197;141;7m";
+    state $neon_green  = "\e[38;2;71;195;6m";
+    state $custom_old  = "\e[38;2;71;6;195m";
 
-    my $color = Term::ANSIColor::color($color_name);
-    ( my $color_str = $color ) =~ s|\e|\\e|g;
+    ## find out why background color is not working here ## [ LLL ]
 
-    #   say ":: color : $color_name  \t '$color $color_str \e[0m'";
+    return $nailara_bg . $neon_green if $color_name eq 'custom-new';
+    return $nailara_bg . $custom_old if $color_name eq 'custom-old';
+
+    my $color = Term::ANSIColor::color($color_name);  ## <-- remove dependency
+        #  ( my $color_str = $color ) =~ s|\e|\\e|g;
+        #  say ":: color : $color_name  \t '$color $color_str \e[0m'";
     return $color;
 }
 
@@ -40,7 +50,8 @@ sub usage {
     say "   -I    --index                 Add indices to the change chunks";
     say "   -I n  --index=4               Only show chunk n";
     say "   -w    --ignore-all-space      Ignore all whitespace";
-    say "   -b    --ignore-space-change   Ignore horizontal whitespace changes";
+    say
+        "   -b    --ignore-space-change   Ignore horizontal whitespace changes";
     say "   -Z    --ignore-trailing-space Ignore whitespace at line ending";
     say
         "   -B    --ignore-blank-lines    Ignore changes where lines are all blank";
@@ -189,7 +200,7 @@ sub pod_text {
 }    # pod_text
 
 sub pod_nroff {
-    first { -x "$_/nroff" } grep {-d} split m/:+/ => $ENV{PATH} or pod_text();
+    first { -x "$_/nroff" } grep {-d} split m|:+| => $ENV{PATH} or pod_text();
 
     require Pod::Man;
     my $p = Pod::Man->new();
@@ -221,7 +232,8 @@ my ($reset,   $bg_new,  $bg_old,  $chr_cml, $chr_cmr, $chr_ctx, $chr_eli,
 ) = (RESET);
 
 if ($list_colors) {
-    my @clr = map { sprintf "%s%-18s%s", $clr{$_}, $_, $reset } sort keys %clr;
+    my @clr
+        = map { sprintf "%s%-18s%s", $clr{$_}, $_, $reset } sort keys %clr;
     while (@clr) {
         say join "  " => map { $_ // "" } splice @clr, 0, 4;
     }
@@ -255,16 +267,16 @@ sub set_options {
         $rc{bg_old}
             || (
             $opt_r
-            ? "on_$old_color" =~ s/bold //ir
-            : "on_$rev_color" =~ s/bold //ir
+            ? "on_$old_color" =~ s|bold ||ir
+            : "on_$rev_color" =~ s|bold ||ir
             )
     };
     $bg_new = $clr{
         $rc{bg_new}
             || (
             $opt_r
-            ? "on_$new_color" =~ s/bold //ir
-            : "on_$rev_color" =~ s/bold //ir
+            ? "on_$new_color" =~ s|bold ||ir
+            : "on_$rev_color" =~ s|bold ||ir
             )
     };
     $clr_old = $opt_r ? $clr_rev . $bg_old : $clr_red . $bg_old;
@@ -291,8 +303,8 @@ sub set_options {
         keyGen => sub {
             my $line = shift;
             $opt_i and $line = lc $line;
-            $opt_Z and $line =~ s/[ \t]+$//g;
-            $opt_b and $line =~ s/[ \t]+/ /g;
+            $opt_Z and $line =~ s|[ \t]+$||g;
+            $opt_b and $line =~ s|[ \t]+| |g;
             return $line;
         }
         }
@@ -317,8 +329,8 @@ sub ccdiff {
         and die "Character and block devices are not supported\n";
 
     -d $f1 || -d $f2
-        and
-        die "$CMD does not yet support recursive diff and/or directory diff\n";
+        and die
+        "$CMD does not yet support recursive diff and/or directory diff\n";
 
     my $fh;
 
@@ -384,8 +396,8 @@ sub ccdiff {
     };
     if ($opt_H) {
         my $hc = "";
-        if ( $opt_H =~ m/^\w\w+/ ) {
-            my ( $hfg, $hbg ) = split m/_?(?=on_)/ => lc $opt_H =~ s/\s+/_/gr;
+        if ( $opt_H =~ m|^\w\w+| ) {
+            my ( $hfg, $hbg ) = split m|_?(?=on_)| => lc $opt_H =~ s|\s+|_|gr;
             $hfg && defined $clr{$hfg} and $hc .= $clr{$hfg};
             $hbg && defined $clr{$hbg} and $hc .= $clr{$hbg};
         }
@@ -412,8 +424,8 @@ sub ccdiff {
                 for @h;
         }
 
-      #elsif ($opt_c) { # diff -c also provides (ugly) headers, but opt_c is NYI
-      #   }
+    #elsif ($opt_c) { # diff -c also provides (ugly) headers, but opt_c is NYI
+    #   }
         else {
             ( $h[0]{tag}, $h[1]{tag} ) = ( "<", ">" );
             printf "%s%s %-*s %-*s%s\n", $hc, $_->{tag},
@@ -455,21 +467,21 @@ sub ccdiff {
 
         if ( !@dn ) {
             printf "%d,%dd%d\n", $diff->Get(qw( Min1 Max1 Max2 ));
-            $_ = $clr_old . (s/$/$reset/r) for @do;
+            $_ = $clr_old . (s|$|$reset|r) for @do;
         } elsif ( !@do ) {
             printf "%da%d,%d\n", $diff->Get(qw( Max1 Min2 Max2 ));
-            $_ = $clr_new . (s/$/$reset/r) for @dn;
+            $_ = $clr_new . (s|$|$reset|r) for @dn;
         } else {
             $sep = "---\n" unless defined $opt_u;
             printf "%d,%dc%d,%d\n", $diff->Get(qw( Min1 Max1 Min2 Max2 ));
             if ( $opt_t > 0 and abs( @do - @dn ) > $opt_t ) {
-                $_ = $clr_old . (s/$/$reset/r) for @do;
-                $_ = $clr_new . (s/$/$reset/r) for @dn;
+                $_ = $clr_old . (s|$|$reset|r) for @do;
+                $_ = $clr_new . (s|$|$reset|r) for @dn;
             } else {
                 my @D = subdiff( @d, my $heu = {} );
                 if ( $opt_h and $heu->{pct} > $opt_h ) {
-                    $_ = $clr_old . (s/$/$reset/r) for @do;
-                    $_ = $clr_new . (s/$/$reset/r) for @dn;
+                    $_ = $clr_old . (s|$|$reset|r) for @do;
+                    $_ = $clr_new . (s|$|$reset|r) for @dn;
                 } else {
                     @do = @{ $D[0] };
                     @dn = @{ $D[1] };
@@ -478,7 +490,8 @@ sub ccdiff {
         }
         if ( $opt_u and @s ) {
             print "$chr_ctx$_"
-                for grep {defined} map { $s[ $#s - $opt_u + $_ ] } 1 .. $opt_u;
+                for grep {defined}
+                map { $s[ $#s - $opt_u + $_ ] } 1 .. $opt_u;
         }
         print "$chr_lft$_" for @do;
         print $sep;
@@ -525,20 +538,20 @@ sub subdiff {
                         my $lsc = substr $sc, 0, $opt_e;
                         $d1 .= $lsc;
                         $d2 .= $lsc;
-                        $lsc =~ s/\S/$chr_eql/g;
+                        $lsc =~ s|\S|$chr_eql|g;
                         $x1 .= $lsc;
                         $x2 .= $lsc;
                         my $rsc = substr $sc, $l - $opt_e, $opt_e;
                         $d1 .= $clr_dbg . $ee . $reset . $rsc;
                         $d2 .= $clr_dbg . $ee . $reset . $rsc;
-                        $rsc =~ s/\S/$chr_eql/g;
+                        $rsc =~ s|\S|$chr_eql|g;
                         $x1 .= $chr_eql x length($ee) . $rsc;
                         $x2 .= $chr_eql x length($ee) . $rsc;
                         next;
                     } else {
                         $d1 .= $sc;
                         $d2 .= $sc;
-                        $sc =~ s/\S/$chr_eql/g;
+                        $sc =~ s|\S|$chr_eql|g;
                         $x1 .= $sc;
                         $x2 .= $sc;
                     }
@@ -547,7 +560,7 @@ sub subdiff {
             }
             $d1 .= $c;
             $d2 .= $c;
-            $c =~ s/\S/$chr_eql/g;
+            $c =~ s|\S|$chr_eql|g;
             $x1 .= $c;
             $x2 .= $c;
             next;
@@ -624,7 +637,8 @@ sub tac_colors {
     my %c256;
     foreach my $r ( 0 .. 5 ) {
         foreach my $g ( 0 .. 5 ) {
-            $c256{ lc $_ }++ for map { ( "RGB$r$g$_", "ON_RGB$r$g$_" ) } 0 .. 5;
+            $c256{ lc $_ }++
+                for map { ( "RGB$r$g$_", "ON_RGB$r$g$_" ) } 0 .. 5;
         }
     }
     $c256{ lc $_ }++ for
@@ -1310,7 +1324,7 @@ the same terms as The Artistic License 2.0.
 =cut
 
 #.............................................................................
-#66N7YSASCA6CYZAP6H3KKWRO7YUV5F6U4IH76T5H6YFYFPCX4V5GIMWB3NRRL3YEZUBACQDRIJS2S
-#::: KPUZTVXAEBLOH2HPMVWQ6LQR2OOYGNTRNK6EWGANSCAFYNVL7GA :::: NAILARA AMOS :::
-# :: IYDCU6BY3PHDFGSLT63ZXYXMBXQST56U2WGGQFYOF7A6O7E66QDQ :: CODE SIGNATURE ::
+#OVZ7B3UTEVNC3UV7PZF6CNPNNSTPVYWQB3NYF5L3GJ2XZBWOGU7SBXMICTJQR2ASDPRLWUTZDZ67M
+#::: LXJL5C62U6HWNT5JYK2I56ULE7YLSNAO7CXQF5AMC5MN34BN7ZX :::: NAILARA AMOS :::
+# :: NZJATEIJRI5L2IRWCCTNJYRQRAAAL77UHLUE4BYDITD7PTIVX6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
