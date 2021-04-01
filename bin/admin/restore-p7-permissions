@@ -1,0 +1,226 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use File::Find;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+use File::Path qw| make_path |;
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
+
+print "\n  ::[ restoring file permissions ]:.\n  :\n";
+
+my $verbose = ( @ARGV and $ARGV[0] eq '-v' ) ? 1 : 0;
+
+my $work_dir = p7_root_dir();    ## safely determine protocol-7 root path ##
+chdir($work_dir) or die "  :\n  :: \l$OS_ERROR : $work_dir\n\n";
+say "  ::. working on '$work_dir' .,\n  :";
+
+my $changes    = 0;
+my $perm_table = [];
+my $perm_file = "$work_dir/.restore_permissions"; # XXX: traverse paths option
+
+die "  : ./.restore_permissions file not found.\n  : : [ $perm_file ]\n\n"
+    if !-f $perm_file;
+
+open( my $perm_fh, '<' . $perm_file ) or die "$perm_file: $!";
+local $/ = undef;
+my $target_str;
+my $file_str = <$perm_fh>;
+close($perm_file);
+$file_str =~ s|#[^\n]*||sg;
+$file_str =~ s|^\n+||mg;
+$file_str =~ s|\n$||;
+
+foreach my $perm_line ( split( "\n", $file_str ) ) {
+    ( my $rules_str, my $path_str, $target_str )
+        = split( m| *-?-> *|, $perm_line );
+
+    my @rules = split( m|\s+|, $rules_str );
+    push( @rules,         "link_target:$target_str" ) if defined $target_str;
+    push( @{$perm_table}, { $path_str => \@rules } );
+}
+
+foreach my $entry ( @{$perm_table} ) {
+    my ( $path, $action_ref ) = each( %{$entry} );
+    $path =~ s|^/+||;
+
+    printf(
+        "\n < %-33s >\t [ " . join( ', ', @{$action_ref} ) . " ]\n\n",
+        $path
+    ) if $verbose;
+
+    my $params = {
+        'link_target' => undef,
+        'file_mode'   => undef,
+        'user'        => undef,
+        'group'       => undef,
+        'create'      => 0,
+        'recursive'   => 0,
+        'on_files'    => 0,
+        'on_links'    => 0,
+        'on_dirs'     => 0,
+        'path'        => $path
+    };
+
+    foreach my $param_str ( @{$action_ref} )
+    {    # the above flags 'accumulate'.,
+        my $type = 'unknown';
+        if ( $param_str =~ m|^[RFLDC]+$| ) {
+            $params->{'recursive'} = 1 if $param_str =~ m|R|;
+            $params->{'on_files'}  = 1 if $param_str =~ m|F|;
+            $params->{'on_links'}  = 1 if $param_str =~ m|L|;
+            $params->{'on_dirs'}   = 1 if $param_str =~ m|D|;
+            $params->{'create'}    = 1 if $param_str =~ m|C|;
+            $params->{'restricted'}
+                = $params->{'on_files'}
+                + $params->{'on_links'}
+                + $params->{'on_dirs'};
+            $type = 'flags';
+
+        } elsif ( $param_str =~ m|^link_target:\s*(.+)$|
+            and $params->{'restricted'} == 1
+            and $params->{'on_links'} ) {
+            $params->{'link_target'} = $1;
+            $type = 'link';
+        } elsif ( $param_str =~ m|^([ug]):(\w[-_\w\d]*)$| ) { # u:ser / g:roup
+            if   ( $1 eq 'u' ) { $params->{'user'}  = $2; $type = 'user' }
+            else               { $params->{'group'} = $2; $type = 'group' }
+        } elsif ( $param_str =~ m|^([0-9]+)$| ) {             # file_mode
+            $params->{'file_mode'} = oct( sprintf( "%04d", $1 ) );
+            $type = 'mode';
+        }
+        if ( $params->{'recursive'} and -d $path ) {
+            find( sub { action( $File::Find::name, $_, $type, $params ) },
+                $path );
+        } else {
+            action( $path, $path, $type, $params );
+        }
+    }
+}
+print "\n  :\n" if $verbose;
+my $s = $changes == 1 ? '' : 's';
+$changes = sprintf ("%03d", $changes) if $changes !~ s|^0$|no|;
+say "  ::[ $changes change$s ]::\n";
+exit(0);
+
+sub action {
+    my ( $rel_path, $fname, $type, $params ) = @_;
+    ( my $abs_path = "$work_dir/$rel_path" ) =~ s|//|/|g;
+
+    if (    $type eq 'link'
+        and defined $params->{'link_target'}
+        and !-e $fname ) {
+        printf "  : creating link '$rel_path' --> %s\n  :\n",
+            $params->{'link_target'};
+        symlink( $params->{'link_target'}, $fname ) or warn $!;
+        ##^^^##
+        $changes++ if -l $fname;
+    } elsif ( $type eq 'flags'
+        and $params->{'create'}
+        and $params->{'restricted'} == 1
+        and !-e $fname ) {
+        if ( $params->{'on_dirs'} ) {
+            print "  : creating directory '$rel_path'.,\n  :\n";
+            make_path($fname);
+            ##^^^^^##
+            $changes++ if -d $fname;
+        } elsif ( $params->{'on_files'} ) {
+            print "  : creating file '$rel_path'.,\n  :\n";
+            if ( open( my $zero_fh, '>' . $fname ) ) {
+                ##^^##
+                close($zero_fh);
+                $changes++ if -f $fname;
+            }
+        }
+    }
+    if (  !$params->{'restricted'}
+        or $params->{'on_files'} and -f $fname
+        or $params->{'on_links'} and -l $fname
+        or $params->{'on_dirs'}  and -d $fname ) {
+        if ( $type eq 'mode' ) {
+            my @stat = lstat($fname);
+            chmod( $params->{'file_mode'}, $fname );
+            ##^##
+            if ( -e $fname and $stat[2] ne [ lstat($fname) ]->[2] ) {
+                $changes++;
+                if ($verbose) {
+                    printf "  [%d]   %04o  -->  %04o   [ %s ]\n  :\n",
+                        $changes,
+                        $stat[2] & 07777,
+                        [ lstat($fname) ]->[2] & 07777, $fname;
+                }
+            }
+        }
+        if ( $type eq 'user' or $type eq 'group' ) {
+            my @stat = lstat($fname);
+            my ( $uid, $gid ) = ( $stat[4], $stat[5] );
+            $uid = getpwnam( $params->{'user'} ) if defined $params->{'user'};
+            $gid = getgrnam( $params->{'group'} )
+                if defined $params->{'group'};
+            chown( $uid, $gid, $fname ) if $uid and $gid;
+            ##^##
+            if (-e $fname
+                and (  $stat[4] ne [ lstat($fname) ]->[4]
+                    or $stat[5] ne [ lstat($fname) ]->[5] )
+            ) {
+                $changes++;
+                if ($verbose) {
+                    printf "  <%d>  %7s:%-7s  -->  %7s:%-7s   [ %s ]\n  :\n",
+                        $changes,
+                        $stat[4], $stat[5],
+                        [ lstat($fname) ]->[4], [ lstat($fname) ]->[5],
+                        $fname;
+                }
+            }
+        }
+    }
+}
+
+sub c_dir  { File::Spec->catdir(@_) }
+sub r2_abs { File::Spec->rel2abs(@_) }
+
+sub p7_root_dir {
+    my $min_path_len = 13;
+    my $p7_root_path;
+    my $compare_git_path = 1;
+
+    my $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    die "  :\n  :: determined path too short :"
+        . " '$root_path' [ not expected ]\n\n"
+        if length($root_path) < $min_path_len;
+    die "  :\n  :: not a directory : '$root_path'\n\n"      if !-d $root_path;
+    die "  :\n  :: no write permission on '$root_path'\n\n" if !-w $root_path;
+
+    return $root_path if not $compare_git_path;
+
+    if ( -d c_dir( $root_path, '.git' ) ) {    ## is under version control ##
+        chomp( my $bin_g = qx| which git | );
+        if ( length($bin_g) and -x $bin_g ) {
+            chdir($root_path) or die ":\n  :: \l$OS_ERROR : $root_path\n\n";
+            my $vc_root_path = qx| $bin_g rev-parse --show-toplevel |;
+            chomp($vc_root_path);
+            if ( length($vc_root_path) and -d $vc_root_path ) {
+                die ":\n  :: path determined and "
+                    . "reported by 'git' mismatch\n  ::\n"
+                    . ":: : self determined : '$root_path'\n  :: :\n"
+                    . ":: :::: git-root-dir : '$vc_root_path'\n\n"
+                    if $root_path ne $vc_root_path;
+            } elsif ( not -d $vc_root_path ) {
+                die
+                    ":\n  :: root path reported by 'git' is no directory :.\n  ::\n"
+                    . ":: : git returned : '$vc_root_path'\n\n";
+            }
+        }
+    }
+    return $root_path;
+}
+
+#.............................................................................
+#SIRMSKTNINJPFREOB3ECWGKPQ7JOXU2VSGFHFQVNI3D7CQUB3JKC3AXGMOWFJTNKRZMZNVDL62ZQO
+#::: KNFLBLMVDKWCNDWADB7DLGWWR2TM2KWD3LPGYZAFXEIFDGKUGAO :::: NAILARA AMOS :::
+# :: S5FR26VRKYMOZERBIYTMREBJNIRGXB5R6JEAVCRXE3FPWN6JF4DQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
