@@ -1,14 +1,14 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZDH2FUWAJA-3993.0 ]
+### [ source code version : ZDH2J7XVDI-3994.0 ]
 
 ### ( this is the [ISC license](license)d "base" branch )
 ---
 ## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [v1.89.3](https://github.com/nailara-technologies/protocol-7/releases/tag/v1.89.3)
 ---
 #.............................................................................
-#WDPUO5Q3LM6KCXMMY2DNPCVZGWFY2N27VHSOUMFH6G77JJJQGZTXYKR3GYFZZW2TH2YKGS5SVIXLM
-#::: GDXWWL7OKCPOCZDIUFAYYP3K6ZKOUXLPNTVTTAYYVFN6RXHWNIR :::: NAILARA AMOS :::
-# :: RDLLDXMIL6HLJN4NBZHYDH5RXDX5RB3BI6UUVGFZ3K43QY7A5EBI :: CODE SIGNATURE ::
+#QAA6RF4LXQYWITNK5R44255HY6Q4G4TE7DFP6IRHH727FSRLTQCKNESOFGMUIMZ22LOATY2V5AIFC
+#::: AJ726MGZB35DQK2WKIHFOEJNPB2NGVXLNC4YUBWM3Q66KD5R6MX :::: NAILARA AMOS :::
+# :: IWBD4WSYEUSWYGTQTWE2KCINR5VDF7Y54JFNWHSCATIVCD3TCUAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

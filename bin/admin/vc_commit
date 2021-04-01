@@ -33,6 +33,7 @@ map { $SIG{$ARG} = \&exit } qw| INT TERM HUP |;
 my $message;
 
 my $min_len   = 13;
+my $max_len   = 78;
 my $last_line = '';
 my $prompt    = join( '', "\e[${y_pos}H", ' :. ' );
 
@@ -45,9 +46,17 @@ while ( !length($message) ) {
     my $line = $term->readline($prompt);
 
     $term->add_history($line) if $line ne $last_line;
-    if ( length($line) < $min_len ) {
+    my $line_length = length($line);
+    if ( $line_length < $min_len or $line_length > $max_len ) {
         clear();
-        say '';
+        if ($line_length) {
+            print blacklight_line()
+                . "\r :.   .:[ len :. $line_length .:"
+                . " $min_len .:. $max_len ]:."
+                . "\r :. ";
+            sleep 0.44;
+            clear();
+        }
     } else {
         my $return_code = system( qw| harmony -q |, $line );
         $return_code = $return_code >> 8 if $return_code > 0;
@@ -55,6 +64,17 @@ while ( !length($message) ) {
             . " $return_code :: \l$OS_ERROR ::\n\n"
             if $return_code != 0 and $return_code != 202;
         $message = $line if $return_code == 0;
+
+        if ( $return_code == 202 ) {
+            clear();
+            print blacklight_line()
+                . "\r :.   .:[ message not in harmony ]:."
+                . "\r :. ";
+            sleep 0.57;
+            clear();
+
+        }
+
     }
     $last_line = $line;
 }
@@ -123,7 +143,7 @@ sub readline_signals {
 }
 
 #.............................................................................
-#T5UCQJZARSO6UFIDBBO3RZFWKM7QFGNW2NSDQKVDMKMUJRR6HJXYCJLG34IK3XGYXGNH55W5CJM5S
-#::: 2Y23VA4YPDPU4RZ7N577263V4HKJIDKADS3U4ZOHMNSPR2IN2IT :::: NAILARA AMOS :::
-# :: 3NM5R4VJIRGJXM6CGK4OQ4Q5XGQQRJBNYUWK7A4RW5PEBB4HTQCI :: CODE SIGNATURE ::
+#Z36Q66M3LCI2LGJ4IU7ST5DOWLKUNKCO7CU5DOBRCZHGG43Y2PGD43VKZG2E7UTYMNPGOZMWOYTTA
+#::: S3KJF7757JZX76BQXYNHETOOJCIMK76SVDZERWUIHKQNSKJIPCI :::: NAILARA AMOS :::
+# :: PL6PRRYYKIFAYS3FNH5U4FZPF6XDSG27EML4BCLSGU5ZWABEDIDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
