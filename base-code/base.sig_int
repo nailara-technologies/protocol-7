@@ -3,10 +3,11 @@
 # name  = base.sig_int
 # descr = SIGINT interrupt handler
 
-print "\b\b" if fileno(STDOUT);    ## removing ^C ##
+print "\b\b\r" if fileno(STDOUT);    ## removing ^C ##
 
-$PROGRAM_NAME .= ' :. shutdown in progress.., one moment .,';
-<[base.log]>->( 0, '<< SIGINT >> terminating zenki ..,' );
+my $zenka_name = <system.zenka.name>;
+$PROGRAM_NAME .= " :. shutdown in progress.., one moment ., [$zenka_name]";
+<[base.log]>->( 0, "<<< SIGINT >>> stopping '$zenka_name' zenka ..," );
 
 #if ( <system.zenka.type> eq 'nroot' or <system.zenka.type> eq 'cube' ) {
 #    $SIG{'INT'} = 'IGNORE';
@@ -14,7 +15,7 @@ $PROGRAM_NAME .= ' :. shutdown in progress.., one moment .,';
 
 $SIG{'INT'} = sub {
     print "\b\b" if fileno(STDOUT);    ## removing ^C ##
-    <[base.log]>->( 0, '<< SIGINT >> emergency shutdown .,' );
+    <[base.log]>->( 0, '<<< SIGINT >>> emergency shutdown .,' );
     CORE::exit(1);
 };
 
@@ -42,7 +43,7 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
 exit(130);
 
 #.............................................................................
-#NDZ6JDY34F6HFPVOCLPIGMPZUXOZGRVI4F46ZNOMWSPZ6KSKZFIPKNZIGR6UGYVYCJ2HR673LIIQI
-#::: AHW7CR46AFQ5AHBSHL3N647PY3QGNTAUUZAN6JBWQOYRE5ZYLRC :::: NAILARA AMOS :::
-# :: S3LGBCSHXHQZHQK2ZIKKO3OPNHT4UCTVHHIZOFSCGICGDMTKLQBI :: CODE SIGNATURE ::
+#TCM7RSQ6LV3C4CL5363H4AN7QDWTU3NENQEZ7VTQ753DHML55QEDTA22XQK4KRI7A7NX7YMMHDRAE
+#::: S6VFQASCX2KVQEWMVJIXLIOPMYZAPMZEAINZDIYBJQAISGECKTR :::: NAILARA AMOS :::
+# :: 6Q5CKEI3IJNAGZLRW2QWVD3LIG7SLBCGCXRGU672Q6OFUZMOPWCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

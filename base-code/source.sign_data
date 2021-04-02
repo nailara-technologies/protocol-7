@@ -3,7 +3,7 @@
 # name  = source.sign_data
 
 my $src_data_ref = shift;
-die "expected source data scalar reference"
+die 'expected source data scalar reference'
     if not defined $src_data_ref
     or ref($src_data_ref) ne 'SCALAR';
 
@@ -12,11 +12,7 @@ my $chksum_b32 = shift
     // <[chk-sum.bmw.strsum]>->( $bit_size, $$src_data_ref );
 my $data_len = length($$src_data_ref);
 
-<[base.log]>->(
-    2,
-    sprintf "::. signing %5s data bits .., [%03d]",
-    $data_len * 8, $data_len
-);
+<[base.log]>->( 2, sprintf ":-: signing %03d bytes of data .,", $data_len );
 
 return encode_b32r(
     <[crypt.C25519.sign_data]>->(
@@ -29,7 +25,7 @@ return encode_b32r(
 );
 
 #.............................................................................
-#ZNZG3KHQLKQF2PBLKILPSESJV4OBOT57Z37FBPWF6BPKJEN4HSAAHCIVXJJNJ365PATXELFJIWBR4
-#::: VD5TURP5J776KFT236HAEQNGDPVM5FHUMWTM5SXD2P4LM24PJMQ :::: NAILARA AMOS :::
-# :: WEUUY7L4LP546RY7EEOKOR4FPTP42WU25LXWPXLMPERIECPCCEAQ :: CODE SIGNATURE ::
+#KXGUY72JZXC67YEVWHS6GW5WDB5ANBWTHTH5RWMZD42DZ2PKLFOPOS5YQ6MDYJB3SH2A2BKWCAWHK
+#::: YF2VG3BIW3GJG3X75QOUY75IQBVCIPGZRJL34EO3UZWMXWLQKE3 :::: NAILARA AMOS :::
+# :: UA2UV7MECIVTM47P2VTYVEW2W5GLGKS3RCTA3KXUFS63WLPIDMDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

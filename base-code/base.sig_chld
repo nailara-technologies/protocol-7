@@ -2,16 +2,16 @@
 
 # name       = base.sig_chld
 
-<[base.log]>->( 2, 'SIGCHLD received.. collecting children...' );
+<[base.log]>->( 2, 'SIGCHLD received. collecting children ..,' );
 local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     <[base.log]>->(
-        2, "cleaning up child pid $pid (exit code: $CHILD_ERROR).."
+        2, "cleaning up child pid $pid [ exit code : \l$CHILD_ERROR ]..,"
     );
 }
 
 #.............................................................................
-#5DYG2K4HVBH7INZXA27E2JFMVHABUD6KRLWBBYWBCD2K6UQTPSQQY4666UQYETLR6746OGH4DZS7I
-#::: 3IEGXTPCESZTKRIYARA3NTYSIU3GMFVBFHPHIBILCCU25JSKC3P :::: NAILARA AMOS :::
-# :: JQK5SR245ZXBZ7DTMOSOBL3X6JS5U4NN44OLO4PQGI34UKNA6QAA :: CODE SIGNATURE ::
+#HBR4JEGY5VHSP6D5GM3E6UL4S725GOZMQWMRQS5BMMFRJZSFZH6IA7O3YQWKETFW27QE4H7XIFPCO
+#::: 4AQSKUBLQ6HDAWSCMXPQPIECTT55MN435Q3TQXDMJQLGC3JY55P :::: NAILARA AMOS :::
+# :: CCCB7EHXWI3RSSLZNJXO4TTBTJPMQVLBNCUEEIXSMPJO5WUWKMBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
