@@ -12,7 +12,7 @@ my $cfg_dir = <udev.cfg_search_path> //= <system.conf_path> . '/zenki/udev';
 <[base.log]>->( 1, '..loading udev rule setup files..,' );
 
 if (@setup_names) {
-    @rule_files = map {"rule-setup.$ARG"} @setup_names;
+    @rule_files = map {"rules-set-up.$ARG"} @setup_names;
     my $s = @rule_files == 1 ? '' : 's';
     <[base.log]>->(
         1, sprintf( ":. intend to load %d rule file$s", scalar @setup_names )
@@ -21,7 +21,7 @@ if (@setup_names) {
     my $dir_fh;
     <[base.log]>->( 1, 'no specific rule file configured, loading all .,' );
     opendir( $dir_fh, $cfg_dir ) or die " opening cfg dir : \l$OS_ERROR";
-    map { push( @rule_files, $ARG ) if $ARG =~ m|^rule-setup\..+$| }
+    map { push( @rule_files, $ARG ) if $ARG =~ m|^rules-set-up\..+$| }
         readdir($dir_fh);
     closedir($dir_fh);
 }
@@ -38,7 +38,7 @@ foreach my $file (@rule_files) {
 }
 
 #.............................................................................
-#24GUAIYTLOY3FQGW6R6PFHXLJP4YOW6KNKOBW2HKIPIZHICWDU6K4XSRA7UROGWBC6GL2H33WOT2G
-#::: KICSW4A7NELTQHAP7PLV3GTH2GEVDOGHW2PX2QGJLOXDBJO4MPK :::: NAILARA AMOS :::
-# :: PPH5OKOCPV6JN5SE2Q4UKUJT4IOC2BNLEU3BJ33NTM42R3DP6WBI :: CODE SIGNATURE ::
+#OZJA6JAQBFTEHJNIXH5TT6BPWR6XVSGG5SSUKMXXT7MGWYLQ2KCTKGMI4RLD7WFRKZK46ZLEIAHKK
+#::: TYRXEOK7MA5F6MNLRUK5UU4JWWTSK2HZM3QCOERF6EIYI4LUTZJ :::: NAILARA AMOS :::
+# :: VFI7SG23ERDQEJGRKG3NIWR6W5XZ3KIXYHZLFQ5SAR6NPHL2PGAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
