@@ -1,0 +1,31 @@
+# >:]
+
+# name  = rule-setup.developer
+# descr = rules for nailara-AMOS development
+
+.: patterns :.
+
+    - U2F-key-silver
+
+        : inserted :
+
+                SUBSYSTEM = hid
+                 HID_NAME = HS HyperFIDO Token
+                   DRIVER = hid-generic
+                   ACTION = bind
+
+        : removed :
+
+                SUBSYSTEM = hid
+                 HID_NAME = HS HyperFIDO Token
+                   ACTION = unbind
+
+.: actions :.
+
+    - U2F-key-silver
+
+        : inserted :
+          net.cmd = notify.message SECURITY TOKEN INSERTED\n :: <HID_NAME> ::
+
+        : removed :
+          net.cmd = notify.message security token REMOVED.,\n :: <HID_NAME> ::
