@@ -3,14 +3,20 @@
 # name = udev.load_rules
 
 my @rule_files;
-my $setup_name = shift;
+my @setup_names = @ARG;
+
+<udev.rules> = {};    ## reset loaded rules ##
 
 my $cfg_dir = <udev.cfg_search_path> //= <system.conf_path> . '/zenki/udev';
 
 <[base.log]>->( 1, '..loading udev rule setup files..,' );
 
-if ( defined $setup_name ) {
-    @rule_files = "rule-setup.$setup_name";
+if (@setup_names) {
+    @rule_files = map {"rule-setup.$ARG"} @setup_names;
+    my $s = @rule_files == 1 ? '' : 's';
+    <[base.log]>->(
+        1, sprintf( ":. intend to load %d rule file$s", scalar @setup_names )
+    );
 } else {
     my $dir_fh;
     <[base.log]>->( 1, 'no specific rule file configured, loading all .,' );
@@ -23,12 +29,16 @@ if ( defined $setup_name ) {
 return <[base.log]>->( 0, 'found no rules file to load' ) if !@rule_files;
 
 foreach my $file (@rule_files) {
-    <[base.log]>->( 1, ": '$file'" );
-    <udev.rules> = <[base.load_section_config]>->( $cfg_dir, $file );
+    <[base.log]>->( 1, ":. '$file'" );
+    if ( not -f "$cfg_dir/$file" ) {
+        <[base.log]>->( 0, "configured rule file '$file' not found .," );
+    } else {
+        <[base.load_section_config]>->( <udev.rules>, $cfg_dir, $file );
+    }
 }
 
 #.............................................................................
-#QDQEWRZPV3NGSJ2DI6PNSYWMOJFO3WDTN4SHO6KOQE723CYD2KJPMLIOC6UMVP4Y7EWE2CXQX62OE
-#::: NW2CW6OWSDXQP3O4I67TF7MA7CHSKKKPSEG4SPRWSP5ST4KWOO4 :::: NAILARA AMOS :::
-# :: X3ZVBTBFC3V5EELFFKFV252OCXIFPGIUDETCPCJZBUSM3P2WK4DY :: CODE SIGNATURE ::
+#24GUAIYTLOY3FQGW6R6PFHXLJP4YOW6KNKOBW2HKIPIZHICWDU6K4XSRA7UROGWBC6GL2H33WOT2G
+#::: KICSW4A7NELTQHAP7PLV3GTH2GEVDOGHW2PX2QGJLOXDBJO4MPK :::: NAILARA AMOS :::
+# :: PPH5OKOCPV6JN5SE2Q4UKUJT4IOC2BNLEU3BJ33NTM42R3DP6WBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

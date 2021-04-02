@@ -11,7 +11,7 @@ my $config_data = {};
 $config_data = shift if @ARG and ref( $ARG[0] ) eq 'HASH';
 
 ## config directory supplied ##
-$conf_path = shift if !keys %{$config_data} and @ARG > 1 and -d $ARG[0];
+$conf_path = shift if @ARG > 1 and -d $ARG[0];
 
 my @cfg_files = @_;
 
@@ -24,13 +24,15 @@ my $lines_count = 0;
 foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
 
     ( my $file_name = $file_path ) =~ s|^.*/||g;
-    <[log.noerr]>->("loading section config '$file_name'");
+    <[base.log]>->( 2, ": loading section config '$file_name'.," );
 
     my @cfg_lines;
 
     <[file.slurp]>->( $file_path, \@cfg_lines );
     if ( !@cfg_lines ) {
-        <[log.error]>->("unable to load section config file '$file_name'");
+        <[base.log]>->(
+            0, ": unable to load section config file '$file_name'"
+        );
         return undef;
     } else {
         $match_count++;
@@ -65,13 +67,19 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
                 } elsif ( defined $section ) {
                     $config_data->{$section}{$1} = $2;
                 } else {
-                    <[log.error]>->( "$file_name: "
+                    <[base.log]>->(
+                        0,
+                        "$file_name: "
                             . "no section defined for "
-                            . "'$line' [ line $line_num ]" );
+                            . "'$line' [ line $line_num ]"
+                    );
                 }
             } else {
-                <[log.error]>->( "syntax error in '$file_name' "
-                        . "at line $line_num ['$line\']" );
+                <[base.log]>->(
+                    0,
+                    "syntax error in '$file_name' "
+                        . "at line $line_num ['$line\']"
+                );
             }
         }
     }
@@ -92,7 +100,7 @@ if ( !$match_count ) {
 return $config_data;
 
 #.............................................................................
-#3AANX2VZE346MUW3DUUGMA23ZMXBHADH4DYSJOYXQ3UJFHTU5WHCXXWHMW4VXINAYYTKWOVYNPYEC
-#::: 5KEO4IDTQFMFKGQOR2T3JSYGM2LDNQONC33KJ64NZRVG37NN7G7 :::: NAILARA AMOS :::
-# :: L3YNWKWSD6XN3Z5PY2UX3IOV43UJZIBP2ETN3LZBZBPGY5ZO5SAQ :: CODE SIGNATURE ::
+#7DTV3OYI3DLS6HT7YRANN3NSTPLBJWCM5GVSTZLTZU5K7ORPZDD3L26EUUD7RNXV67H2KKUAHTTXS
+#::: ALAVD7LM2QWSK3MRAS6XK34C3XUD3MRKGVCCNVFDMXUAJ54K5FH :::: NAILARA AMOS :::
+# :: JVUVTGBOQTL52RIQVY4JQ52PNNDP4NH44MW5NZXZERXXSSPMF6BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

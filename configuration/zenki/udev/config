@@ -10,7 +10,7 @@ udev.debug-stdout.show-events = 0
 
 access.cmd.usr.cube = *
 
-modules.load = auth net protocol io.ip udev set-up.json ## debug
+modules.load = auth net protocol io.ip udev ## debug  ### set-up.json
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -21,12 +21,14 @@ udev.adm_params = monitor -up
 #[ '.../zenki/udev/rule-setup.<name>' ]:.
 #
 
-[udev.load_rules:'developer']
+## [udev.load_rules] ## <-- loads all available rules
+
+[udev.load_rules:'air-mouse','developer']
 
 #
 # [udev.load_rules:'example']
 
-[set-up.json.import_file:'udev.rules.json']
+# [set-up.json.import_file:'udev.rules.json'] ## requires set-up.json module
 
 [udev.open_adm]
 
