@@ -17,8 +17,8 @@ my $config_dir = <power.config_dir>;
 
 if ( !-d $config_dir ) {
     <[base.log]>->( 1, "creating config directory '$config_dir'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $config_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die "make_path: $OS_ERROR";
 }
@@ -49,7 +49,7 @@ if ( !-d $config_dir ) {
 0;
 
 #.............................................................................
-#3SBP3B4PKYUQLHRBO35TGVRKWPJ7IZPLZ6BYT6RCITU7YMZFHUZESJ5VZRUSOO5ASZRPGDHSH47C2
-#::: 7JMTKOLL52HLCE7VTPS3RIH35T7DH5OUD4E4RVQNO2QPWSK3AAK :::: NAILARA AMOS :::
-# :: A6KKR4X3WHMJ22PM4P3GTVDVGRIW2WRG4W4GDXBLAHT7QBW7TMCA :: CODE SIGNATURE ::
+#SKCBFPH5ZG7PWVP2SKPICATKU2O2RWRGVWL2OG5WXYGXHZL5KG2V52K3ZRT6OZLFOF35M3RNXVEMM
+#::: MZXC7GCYA3CP6L6VIPRSDJAX35YWWK7NAHGZLP7D425K6VEWGR3 :::: NAILARA AMOS :::
+# :: QZP4HEI5SMFOCQUC77YYE5XGT3XLAV5ICZFBXMBND63E3F6B3QCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

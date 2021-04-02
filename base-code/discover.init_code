@@ -4,7 +4,8 @@
 
 <[base.perlmod.autoload]>->('Net::Ifconfig::Wrapper');
 
-<discover.crypt.key_user> //= <crypt.C25519.key_usr> // <system.privs.user>;
+my $key_path_owner = <crypt.C25519.key_usr> // <system.amos-zenka-user>;
+<discover.crypt.key_user> //= $key_path_owner;
 <discover.crypt.key_name> = <[crypt.C25519.key_vars]>->{'key_name'};
 
 <discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
@@ -24,7 +25,7 @@
 0;
 
 #.............................................................................
-#Q7MYDMPOXQUUCQ75TIIET5KBGTU5HZCROANVE6JA6AFUULQ6BPRBO346OLCNGP2MJZJP27WGUUQFS
-#::: BXSZ7NQMLFNQNWQCCDWLDNFU4WZ563VAZPPY4MWKRMYWHJAECSV :::: NAILARA AMOS :::
-# :: QVQBPGJITL2BUYQJUWTWPTFPU5UTBCKXRKGCA2XUX6DQF6XL7MBQ :: CODE SIGNATURE ::
+#ZVBXF6FOPELO2WYKAXYWLH3ZAS66YL6COJS7LSXYDOE5X5BTCNDX4HJWUDRBAGGSUVPNM4E6LOHJ2
+#::: R3ZHBCTMRIN5HNH6XCVCMUOMDRRKVVKMCNX36FGKGUQOMEUL557 :::: NAILARA AMOS :::
+# :: HPWMJ5DYFIWO5LI2VXP2SB35FRCLC77XM56NGYXH6MRHYAYJDGAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
