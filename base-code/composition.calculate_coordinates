@@ -11,23 +11,23 @@ die "'\<x11.screen>' not defined"
 map { die "screen $ARG not defined" if not defined $screen->{$ARG} }
     ( 'width', 'height', 'orientation' );
 
-### screen borders (underscan) ###
+### screen borders [underscan] ###
 
 my %screen_frame;
-my @border_names = ( 'left', 'top', 'right', 'bottom' );
+my @border_names = qw|  left  top  right  bottom  |;
 map { $screen_frame{$ARG} = 0 } @border_names;
 
 # LLL: fix load_section_config hash key recursion and adapt config loading!
 
 if ( exists $screen_lcfg->{'underscan'}
-    and $screen_lcfg->{'underscan'} =~ /^\d+$/ ) {
+    and $screen_lcfg->{'underscan'} =~ m|^\d+$| ) {
     map { $screen_frame{$ARG} = $screen_lcfg->{'underscan'} } @border_names;
 }
 
 foreach my $border (@border_names) {
     $screen_frame{$border} = $screen_lcfg->{"underscan.$border"}
         if exists $screen_lcfg->{"underscan.$border"}
-        and $screen_lcfg->{"underscan.$border"} =~ /^\d+$/;
+        and $screen_lcfg->{"underscan.$border"} =~ m|^\d+$|;
 }
 
 ### window edge coordinate calculation ###
@@ -43,23 +43,23 @@ my ( $left, $top, $right, $bottom ) = ( 0, 0, $screen_width, $screen_height );
 if ( exists $descr->{'left'} ) {
     $left = $descr->{'left'};
     $left = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
-        if $left =~ /^(\d+(\.\d+)?)\%$/;
+        if $left =~ m|^(\d+(\.\d+)?)\%$|;
 }
 if ( exists $descr->{'top'} ) {
     $top = $descr->{'top'};
     $top = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
-        if $top =~ /^(\d+(\.\d+)?)\%$/;
+        if $top =~ m|^(\d+(\.\d+)?)\%$|;
 }
 if ( exists $descr->{'width'} ) {
     $width = $descr->{'width'};
     $width = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
-        if $width =~ /^(\d+(\.\d+)?)\%$/;
+        if $width =~ m|^(\d+(\.\d+)?)\%$|;
     $right = $left + $width;
 }
 if ( exists $descr->{'height'} ) {
     my $height = $descr->{'height'};
     $height = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
-        if $height =~ /^(\d+(\.\d+)?)\%$/;
+        if $height =~ m|^(\d+(\.\d+)?)\%$|;
     $bottom = $top + $height;
 }
 
@@ -71,7 +71,7 @@ return {
 };
 
 #.............................................................................
-#IVESRALNQ6OLOEBKTPIG6K7IPEZJVT6DHI3JZJ44UTOWF7MTDLGNFYQECZDHEHFLXEP4KBOYEMM7A
-#::: X7HVN2CF47DAGSEO2U2JKQML2BITR2NNH4KUIG6O2BA3L77VI6V :::: NAILARA AMOS :::
-# :: Z4HMBZO4OZ5T7SXKDJO72QS5VKIFY3RZRBYB4CKW2Y7LRTCCQGDA :: CODE SIGNATURE ::
+#UEQ56OY7NGCZHWOUCWAY2R7HSRVQVUMQTGQ4P7EQEM7DWATXCHO4NDGVULWOY3H3QU433H63SY6D4
+#::: BGIAIAHYUGIW6AD6HTFE3ABXFLCC4IVGORDGJRFJPAN2QQG2JSW :::: NAILARA AMOS :::
+# :: C2BFWOJBYYEVTZHIMJOSEVNQQOZ52T73NFGY37XW6KTWOWLWWUDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

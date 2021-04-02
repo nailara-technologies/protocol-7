@@ -34,21 +34,21 @@ if ( not defined $read_bytes or $read_bytes == 0 )
 
 while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    $output_line =~ s/\r//sg;
-    if ( $output_line =~ /^(unix:abstract=([^\n,]+),[^\n]+)$/ ) {
+    $output_line =~ s|\r||sg;
+    if ( $output_line =~ m|^(unix:abstract=([^\n,]+),[^\n]+)$| ) {
         <dbus.socket_addr> = $1;
         <dbus.socket_path> = $2;
         my $privs_user = <dbus.privs_user>;
         <[base.log]>->( 1, ": socket path : $2 [owner:'$privs_user']" );
         <[base.async.get_session_id]>;
     } else {
-        my $log_level = $output_line =~ /ctivat(ing|ed) service/ ? 2 : 0;
+        my $log_level = $output_line =~ m{ctivat(ing|ed) service} ? 2 : 0;
         <[base.log]>->( $log_level, "< $bin > " . $output_line );
     }
 }
 
 #.............................................................................
-#NRTO3OJPNIYCRRU7O7YPFT7P4IODECQD3VQLWER7BQU5QHPQJAMRMXCSVWL3EDQ6SCANFJSLEUTPA
-#::: C4ZLCW4L4WZCP66JFO2QBSYB6ZZZYR52FTOWY6XW7J7ZZM4S7UP :::: NAILARA AMOS :::
-# :: JZHWPTOLVGG3U4VWEEP4LMEP46F3EUSNQ4FX43JQ2Z3V74KTMACY :: CODE SIGNATURE ::
+#W3PWIVCZEDXEWQLYHIUG6QQPFA65TBQMVJYGOWNO6A47G5VPJGU7AS5WVQPEQLR4NCW6FLCIROFM2
+#::: I3TMLSLIGO6GBSAOR5ZVAAYBM6KXIWIE7GMU3EH7KKO4Q3A7NF6 :::: NAILARA AMOS :::
+# :: CYA4CDFITUOA67GMFJO54RG74IT7F5UBMHNN7WAYEFTI5POIRCBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

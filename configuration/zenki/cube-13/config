@@ -37,7 +37,7 @@ net.auth.timeout = 13   ## protocol-7 ##
 cube.zulum = <protocol-7.network.zulum>
 
 ## local unix domain socket ##
-[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.amos-zenka-user>]
 unix.path = [base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
 
@@ -49,7 +49,7 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
 [base.protocol.bind:<tcp_ip.sock>,'protocol-7']
 
 # drop root priviledges [ now 'online' ]
-[root.drop_privs:<system.privs.user>,<cube.local.port>]
+[root.drop_privs:<system.amos-zenka-user>,<cube.local.port>]
 
 [net.connect_to_cube:'ip.tcp']
 [base.get_session_id]
@@ -58,7 +58,7 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
 [event.loop]
 
 #.............................................................................
-#XXO2NLWQ5GVTTKI3SDMVLQBBRIGCJ6JB2VYHWWAQEKYBVSNQYUCOQBVJDMHHN5VBD2EFTQ6XPWWJQ
-#::: WBSYX3OYBL2NCF4FRPB34GSWJ53F4FQGFGPC33AVCU53QG5MTMY :::: NAILARA AMOS :::
-# :: GZRYMERCNBUR2G2FQSXJ4OWJ6RQ7SFB3OUUU3N34XEPC6QWVC2AQ :: CODE SIGNATURE ::
+#XWZN2PYKZKUVDTWRH4PXUQUSLMRDX6ROMRCBIJOJZDNGDFDQKA5PBNSDQNXPOVFYBR4XPSHZJOEWA
+#::: FKQJIYQPICTTQJUNRSW5ZJRYBRNYTO7FYDPA4N5SYBY4X53FMMT :::: NAILARA AMOS :::
+# :: TWQRMWJMEO2MPPRT2DCE4NJNTWCNL5GRFJXGRZQMCJ6LG4STRWBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

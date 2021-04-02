@@ -75,8 +75,8 @@ my $download_path = <download.cfg.download_path>;
 <download.obj.ua>->timeout(<download.cfg.http.request_timeout>);
 
 if ( !-d $download_path ) {
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     <[base.log]>->( 1, "creating download directory '$download_path'.." );
     make_path( $download_path,
         { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
@@ -87,7 +87,7 @@ if ( !-d $download_path ) {
 0;
 
 #.............................................................................
-#25275GHQFXYFMAOR35NO6FLRCEE3I3AMDTQ6LRFBZZKTTZV2GHWJZPMN2TMAW2ENOH4LUSLWYS2VO
-#::: 6A5SJOQT5B2XG576CDOV6MAAB2KQNP4ANXKGROVXPL5N3VXXMW4 :::: NAILARA AMOS :::
-# :: G5VS55PIQSU3A7KK4Z6T22RV3FIO2MPZTXONOT6PWTOQWCVLB4BQ :: CODE SIGNATURE ::
+#VIQZBE2KAO7DTEYNNMU2GBWJCARLP2BY7FY3X7FSW2N7HAHXJYQ2X2SMW6ACLFDT2ZLZL3YJV5XSE
+#::: OUZSWAVS4EKA2WJ23OW2DIE7D26PGNTV3SKL5K5MOC22K4O4K75 :::: NAILARA AMOS :::
+# :: W6XJSMFDMKPUIAMS4GFWKWUJRZKANAQBQNVGTCQRILZHUPCXFWAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

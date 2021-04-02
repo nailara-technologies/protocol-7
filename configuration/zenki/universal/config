@@ -23,11 +23,11 @@ modules.load = auth net protocol io.ip io.unix plugin.auth chk-sum universal
 
 auth.supported_methods = unix
 ## local unix domain socket ##
-[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.amos-zenka-user>]
 unix.zenka.path=[chk-sum.elf.BASE32:"<system.zenka.name>:<system.zenka.subname>"]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.zenka.path>",0777]
 
-[root.drop_privs:<system.privs.user>]
+[root.drop_privs:<system.amos-zenka-user>]
 
 cube.reroute.pattern.usr = ^(?!cube)
 cube.reroute.pattern.match = ^(?!composition\.|whoami)
@@ -45,7 +45,7 @@ cube.reroute.pattern.replace = cube.
 [event.loop]
 
 #.............................................................................
-#LIB3U3NOCCPD7MMGBKLU33CW6PGY2IYWVTX7RSIHXGXO3EZ6A7O7DGUP5OESJHFXTN6XCI6LPVZHE
-#::: OFJKDHJKTLZV4WV347G6MWOKG2SC7HTORNY4THAO2PQE52UGTC7 :::: NAILARA AMOS :::
-# :: FSIT7X6LMFHMSWVI6J65637TILYVXGWDP75HPC4WUZTCDSLGWSBY :: CODE SIGNATURE ::
+#XULU2ONICPRO26ERTLWVR3NS5KFGGYBUFGMQAGOVFV5UOQBORMMUTE4GURJ6OT2MGUHIJFDWZSPWM
+#::: EZX5V66O3I2APDIV44IV3MWDPGXM5JXQEWCPSCDFUNKJGWZAGPT :::: NAILARA AMOS :::
+# :: 6LOGBQU34R2MTCU6NA24S6ERGMULFXFTQHOVTWGLYUVXURZA54DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

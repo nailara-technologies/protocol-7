@@ -20,8 +20,13 @@ chdir($work_dir) or die "  :\n  :: \l$OS_ERROR : $work_dir\n\n";
 say "  ::. working on '$work_dir' .,\n  :";
 
 my $changes    = 0;
+my $user_table = {};
 my $perm_table = [];
 my $perm_file = "$work_dir/.restore_permissions"; # XXX: traverse paths option
+my $cfg_dir   = "$work_dir/configuration";
+my $user_files = [ "$cfg_dir/system-user-map", "$cfg_dir/X11-vars" ];
+
+map { read_user_names($ARG) } @{$user_files};
 
 die "  : ./.restore_permissions file not found.\n  : : [ $perm_file ]\n\n"
     if !-f $perm_file;
@@ -103,7 +108,7 @@ foreach my $entry ( @{$perm_table} ) {
 }
 print "\n  :\n" if $verbose;
 my $s = $changes == 1 ? '' : 's';
-$changes = sprintf ("%03d", $changes) if $changes !~ s|^0$|no|;
+$changes = sprintf( "%03d", $changes ) if $changes !~ s|^0$|no|;
 say "  ::[ $changes change$s ]::\n";
 exit(0);
 
@@ -219,8 +224,19 @@ sub p7_root_dir {
     return $root_path;
 }
 
+sub read_user_names {
+    my $file = shift;
+    my $uref = shift;
+    if ( !-f $file ) {
+        ( my $file_rel = $file ) =~ s|^$work_dir/?||;
+        say "\n :: < missing user file > :: skipped :: '$file_rel'\n";
+        return;
+    }
+
+}
+
 #.............................................................................
-#OFZCPS6LGYNZSBIFHQU7FLPON5GJC6CGM6H7727SH5OKPRQVVK2QVOXQ7IJHAN3N6UO5FDQN57WGI
-#::: YRSPNWWKUPG4PS4MBGVKC245DTIPUEBK6AF7KFQ6M77EUTSAOPO :::: NAILARA AMOS :::
-# :: RBEXHW2JOVA4ZY5Q4DJWUS3ZLCLQIQGSZEBAQTF7SR52QBA6LUCA :: CODE SIGNATURE ::
+#YUERCYGEHWSXM7M3IHDLQXMKJUUAAJP26EMCW64DXLKXD5WUCHLCRCZTL7WYZKKUXU2TFSTVR6C66
+#::: G6YS3CFK3T2XK3SWIVHFUQWGD7YVP2IZQN7SR57ENIO72PM3DFB :::: NAILARA AMOS :::
+# :: SYR5NDRTDAEBBP42NIQR6XBZB3MOFSGQHZO27VTBRWTSCINJHKBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

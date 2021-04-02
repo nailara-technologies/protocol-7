@@ -18,8 +18,8 @@ my $cache_dir = <image2html.cache_dir>;
 my $perms = <image2html.cache_perm> // '0750';
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir'.. [$perms]" );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $cache_dir,
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
         or die "make_path: $OS_ERROR";
@@ -53,7 +53,7 @@ chdir($cache_dir) or die "chdir($cache_dir): $OS_ERROR";
 0;
 
 #.............................................................................
-#YAVXJX3OQ4HCXFTQNMW53TPZUFDBC6TVEJNYFCBUWTQHOFUSFVX2EEZIOREJGQMWWKJJTS6C4H7QE
-#::: NPUK4YN2YOOO3VZBXPPGAJ6K3CQLMVXTLPCVCNPHXGWDR6BZZWI :::: NAILARA AMOS :::
-# :: 5PGZXFRERKCLV4RSO3KBNUUHU6IU44IGSB6VB4WA3IHI5RSKHICA :: CODE SIGNATURE ::
+#TW5YBLUYZYSVNL6C7VLLJHBGQ26ZUMKEJ4AW42JI66YT6PMQJKF3YFG34HNMEGM4GC4W6TMBLLIOS
+#::: ZLMHIDIALVQWAATIFSXEWJU4MN3DGBVGGDBMOHQXYXPLEK6ZFGA :::: NAILARA AMOS :::
+# :: X2TR3KDHOWSPYS5M7GW4KMKJIAVXLOTNLEKJMAARFNBHKPTNZ4AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,7 +35,7 @@ setup.aliases.source_zenka      =    notify.message nroot.teardown \
 net.auth.timeout = 13   ## protocol-7 ##
 
 # create protocol-7 user if required.,
-[root.check_system_user:<system.privs.user>]
+[root.check_system_user:<system.amos-zenka-user>]
 
 # load and initialize modules
 [load_modules:<modules.load>]
@@ -48,7 +48,7 @@ net.auth.timeout = 13   ## protocol-7 ##
 cube.local = <protocol-7.network.internal>
 
 ## local unix domain socket ##
-[file.make_path:'/var/tmp/.7/UNIX',0775,<system.privs.user>]
+[file.make_path:'/var/tmp/.7/UNIX',0775,<system.amos-zenka-user>]
 unix.path = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
 unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
 
@@ -60,13 +60,13 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
 [base.protocol.bind:<tcp_ip.sock>,'protocol-7']
 
 # drop root priviledges [ now 'online' ]
-[root.drop_privs:<system.privs.user>]
+[root.drop_privs:<system.amos-zenka-user>]
 
 # run zenka
 [event.loop]
 
 #.............................................................................
-#RXHFA3OHOKNH7IY6PMZFKOHURY2KITQ2WYQWOPDU7GNJMSI7SCCKR2D5VT5KUK4ZRKYNNMVDTMDEE
-#::: ICBKWVWKQUYBUN4IN37EKTIEFI4SPIW5BRHIFYA64JQHSD3EMXO :::: NAILARA AMOS :::
-# :: 4TBY3Z2U2LUED64WZLSAAMVQTFXRDKSMFACSYX5QMOQJKP5GACCY :: CODE SIGNATURE ::
+#MR2JYXHHCTBAU6JQVKHRBP4EEHXZEO3WQZK7N2PYNCYY4GFXP4FBSUHTZ2ATLC2FEQLI5S5UJWIPK
+#::: 2PY4IZM4GMAHNYCC32AIPERYR7TXN77BF7YBGKAFY4KTV4SGKAK :::: NAILARA AMOS :::
+# :: HGCVZX2JSKZM6GWZXL2ABUFT2WJTUFBOMJTECXRRIMKXATWPNOBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

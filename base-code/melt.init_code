@@ -29,8 +29,8 @@ $out_path = <melt.out_path> if length( <melt.out_path> // '' );
 
 if ( !-d $out_path ) {
     <[base.log]>->( 1, ": : creating '$out_path'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $out_path, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die " make_path: $OS_ERROR ";
 }
@@ -42,7 +42,7 @@ if ( !-d $out_path ) {
 0;
 
 #.............................................................................
-#FWIWQYA6Q2Q2H2JSBN5G7C4XQFZZSEV3HTZ2KQFF2AOU64PTYBRQXHF7AM6TUS6IISQPLBBSIKE22
-#::: WDZ3BT4FDOMYEFM2V6XVXAP4SEOIF7JXVHYISVEJO7JNEEAFFZD :::: NAILARA AMOS :::
-# :: S7MERDNJ3MBJTS3TV4LYQLCQLDMGYQ3IE3WTWFALN5L3KWARQKCI :: CODE SIGNATURE ::
+#AMQSKG744J3NUNTUA3VWQIYTBVJ2Q5GCUTM655FPK3RPHWGOWFLGCKPPSCD3LVGS5JFVK4TC6XY2I
+#::: EW7BAC4ZUZRA6HQSE4MOYFVUWVEHWNSJQBA5VQ6VVHOMWDXTCKO :::: NAILARA AMOS :::
+# :: 22KHQH6SNYQFANCBPQXMGAEDGSK2QQLMVE2E2DTAZQGI6MX6LQDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
