@@ -5,30 +5,30 @@
 my @rule_files;
 my $setup_name = shift;
 
-<[base.log]>->( 1, "..loading udev rule setup files..," );
+my $cfg_dir = <udev.cfg_search_path> //= <system.conf_path> . '/zenki/udev';
+
+<[base.log]>->( 1, '..loading udev rule setup files..,' );
 
 if ( defined $setup_name ) {
-    @rule_files = "zenki/udev/rule-setup.$setup_name";
+    @rule_files = "rule-setup.$setup_name";
 } else {
     my $dir_fh;
-    <[base.log]>->( 1, "no specific rule file configured, loading all .," );
-    opendir( $dir_fh, <system.conf_path> )
-        or die "unable to open conf dir: $OS_ERROR";
-    map { push( @rule_files, $ARG ) if $ARG =~ /^conf\.udev_rules\..+$/ }
+    <[base.log]>->( 1, 'no specific rule file configured, loading all .,' );
+    opendir( $dir_fh, $cfg_dir ) or die " opening cfg dir : \l$OS_ERROR";
+    map { push( @rule_files, $ARG ) if $ARG =~ m|^rule-setup\..+$| }
         readdir($dir_fh);
     closedir($dir_fh);
 }
 
-return <[base.log]>->( 0, "found no rules file to load" ) if !@rule_files;
+return <[base.log]>->( 0, 'found no rules file to load' ) if !@rule_files;
 
 foreach my $file (@rule_files) {
     <[base.log]>->( 1, ": '$file'" );
-    <udev.rules> = <[base.load_section_config]>
-        ->( join( '/' . <system.conf_path>, $file ) );
+    <udev.rules> = <[base.load_section_config]>->( $cfg_dir, $file );
 }
 
 #.............................................................................
-#WDC4DWEG3EVF5TBLA6YJ2MIABF3CQACYPEXIMSIBV7Q57TVPOEHMF5R6FJBDV5TPRMRTDI54UID7G
-#::: T5TDJ5V2KEX3VW2JHS7NEZ6ZPJED4XCNWEJBXY2HJHQ6MX4GCKU :::: NAILARA AMOS :::
-# :: BKX4PDH52DNWG2LFJDGLSMW32WNBHAKRWXYWRRXW5S2NY4TW7CBQ :: CODE SIGNATURE ::
+#QDQEWRZPV3NGSJ2DI6PNSYWMOJFO3WDTN4SHO6KOQE723CYD2KJPMLIOC6UMVP4Y7EWE2CXQX62OE
+#::: NW2CW6OWSDXQP3O4I67TF7MA7CHSKKKPSEG4SPRWSP5ST4KWOO4 :::: NAILARA AMOS :::
+# :: X3ZVBTBFC3V5EELFFKFV252OCXIFPGIUDETCPCJZBUSM3P2WK4DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

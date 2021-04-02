@@ -8,6 +8,9 @@ my $read_fh = $event->fd;
 my $process = $event->data;
 my $pid     = $process->{'pid'};
 
+my $debug_verbosity = <udev.debug-stdout.show-events> // 0;
+
+<udev.rules> = {} if not defined <udev.rules> or ref(<udev.rules>) ne 'HASH';
 my $patterns = <udev.rules.patterns>;
 my $actions  = <udev.rules.actions>;
 
@@ -16,7 +19,7 @@ my $actions  = <udev.rules.actions>;
 my $bufsize = 4096;
 
 my $bytes = <[base.s_read]>->(
-    $read_fh, \$data{'udev.adm'}{'output.buffer'},
+    $read_fh, \$data{'udev'}{'adm'}{'output'}{'buffer'},
     $bufsize, length(<udev.adm.output.buffer>)
 );
 
@@ -28,24 +31,39 @@ if ( not defined $bytes or !$bytes ) {
     );
     kill( 9, $pid );    # making sure it's really gone
     <[base.log]>->( 0, "udevadm process terminated." );
-    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka!" );
+    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka." );
     exit(2);
 }
 
 while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     my $event_str = $1;
     my $adm_event = {};
-    map { $adm_event->{$1} = $2 if $ARG =~ /^([A-Z_]+)=(.+)$/ }
-        split( /\n/, $event_str );
+    map { $adm_event->{$1} = $2 if $ARG =~ m|^([A-Z_]+)=(.+)$| }
+        split( "\n", $event_str );
 
-    #    print Dumper($adm_event);
+    if ( $debug_verbosity and keys %{$adm_event} ) {
+        say "\n", '├';
+        map { printf " %24s = %s\n", $ARG, $adm_event->{$ARG} }
+            sort { length $b <=> length $a } reverse sort keys %{$adm_event};
+        say '├';
+    }
 
     foreach my $pattern_name ( keys %{$patterns} ) {
         foreach my $match_name ( keys %{ $patterns->{$pattern_name} } ) {
             my $p        = $patterns->{$pattern_name}->{$match_name};
             my $match    = 0;
             my $no_match = 0;
+
             map {
+
+                if ( $debug_verbosity and keys %{$adm_event} ) {
+                    if ( exists $adm_event->{$ARG} ) {
+                        say "  < $ARG > $adm_event->{$ARG} == $p->{$ARG} ";
+                    } else {
+                        say "  [ $ARG ] ";
+                    }
+                }
+
                 if ( exists $adm_event->{$ARG}
                     and $adm_event->{$ARG} eq $p->{$ARG} ) {
                     $match++;
@@ -54,22 +72,24 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
                 }
             } keys %{$p};
             if ( $match and !$no_match ) {
-                <[base.log]>->( 1, "<EVENT> $pattern_name ( $match_name )" );
+                <[base.log]>->( 1, "<EVENT> $pattern_name [ $match_name ]" );
 
                 #    print Dumper($adm_event);
+
                 if (exists
                     <udev.rules.actions>->{$pattern_name}->{$match_name} ) {
                     my $action
                         = <udev.rules.actions>
                         ->{$pattern_name}->{$match_name};
                     my ( $cmd, $params )
-                        = split( / +/, $action->{'net.cmd'}, 2 );
-                    while ( $params =~ /<([^\s\>]+)>/ ) {
-                        my $key = $1;
-                        my $val = $adm_event->{$key};
-                        $val //= "<$key>";
-                        $params =~ s|<$key>|$val|g;
-                    }
+                        = split( ' ', $action->{'net.cmd'}, 2 );
+
+                    $params =~ s|<([^\s\>]+)>|
+                        my $key = $LAST_PAREN_MATCH;
+                        my $val = $adm_event->{$key} // "<$key>";
+                        $val;
+                    |gxe;
+
                     if ( exists $action->{'net.cmd'} ) {
                         <[base.log]>->( 2, "<\[net.cmd\]> $cmd $params" );
                         <[base.protocol-7.command.send.local]>->(
@@ -84,15 +104,15 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
                     } else {
                         <[base.log]>->(
                             0,
-                            "[!] unkown action type defined for pattern"
-                                . " '$pattern_name' ( $match_name )"
+                            "<< unkown action type defined for pattern"
+                                . " '$pattern_name' [ $match_name ] >>"
                         );
                     }
                 } else {
                     <[base.log]>->(
                         0,
-                        "[!] no action defined for pattern"
-                            . " '$pattern_name' ( $match_name )"
+                        "<< no action defined for pattern"
+                            . " '$pattern_name' [ $match_name ] >>"
                     );
                 }
             }
@@ -101,7 +121,7 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
 }
 
 #.............................................................................
-#4WEVJTJWVSFWNQC3SEMLC5JXDDJZAC7GZL5QZFGOZEJ7JMCVXUZOHM3XTJ5S72Y7N6OGNKWQSG5C4
-#::: KGT3SEJX7YK55RHMPGOM4QLKOKFZMQ4XEAO7FM777235YSWGEDJ :::: NAILARA AMOS :::
-# :: 3EEG25P6DSIFWU6VEQX36Z2MONJRYXON3CEA7E2QUO3S5OLYEUBQ :: CODE SIGNATURE ::
+#5JBOAS3TADBMG5MLQYUEYKBBDC4TEAAU43HVCL7R5UCYR3KDIIVNWDBYZC4KIUQDLSCV6NVSMLFHA
+#::: BSXEV6GHXB2Z2TEFRL7I3XUPSNR5T2LTX2P3MK2E4J3CKEW527I :::: NAILARA AMOS :::
+# :: Z72JY3USD5VS6NZWN2QJG5QHWB4NU2KC5MUYG76SN4WRN7FSAWCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,21 +1,30 @@
 
  .:[ udev event monitor zenka ]:.
 
+[load_config_file:'shared-params']
+
 [root.drop_privs:<system.privs.user>]
 
-[load_config_file:'shared-params']
+system.verbosity.zenka-buffer = 1
+udev.debug-stdout.show-events = 0
 
 access.cmd.usr.cube = *
 
-modules.load = auth net protocol io.ip udev set-up.json
+modules.load = auth net protocol io.ip udev set-up.json ## debug
 [load_modules:<modules.load>]
 [init_modules]
 
 [net.connect_to_cube:'ip.tcp']
 
-udev.adm_params = monitor -u -p
+udev.adm_params = monitor -up
 
-# [udev.load_rules:'example'] #   <-   [ './cfg/zenki/udev/rule-setup.<name>' ]
+#[ '.../zenki/udev/rule-setup.<name>' ]:.
+#
+
+[udev.load_rules:'developer']
+
+#
+# [udev.load_rules:'example']
 
 [set-up.json.import_file:'udev.rules.json']
 

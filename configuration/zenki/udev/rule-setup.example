@@ -1,7 +1,7 @@
 # >:]
 
-# name  = conf.udev_rules.example
-# descr = example rules for udev zenka  ( mkfs.xfs /dev/yourstick -L example )
+# name  = rule-setup.example
+# descr = example rules for udev zenka  [ mkfs.xfs /dev/sd-N -L assigned-name ]
 
 .: patterns :.
 
@@ -16,7 +16,7 @@
           SUBSYSTEM     = block
           ID_FS_USAGE   = filesystem
           ID_FS_TYPE    = xfs
-          ID_FS_LABEL   = example
+          ID_FS_LABEL   = assigned-name
 
         : removed :
 
@@ -27,17 +27,15 @@
           SUBSYSTEM     = block
           ID_FS_USAGE   = filesystem
           ID_FS_TYPE    = xfs
-          ID_FS_LABEL   = example
+          ID_FS_LABEL   = assigned-name
+
 
 .: actions :.
 
     - example_usb_stick
 
         : inserted :
-
-          net.cmd = notify.message EXAMPLE USB STICK INSERTED!\n ( <DEVNAME> )
+          net.cmd = notify.message EXAMPLE USB STICK INSERTED!\n :: <DEVNAME> ::
 
         : removed :
-
-          net.cmd = notify.message EXAMPLE USB STICK REMOVED!\n ( <DEVNAME> )
-
+          net.cmd = notify.message EXAMPLE USB STICK REMOVED!\n :: <DEVNAME> ::
