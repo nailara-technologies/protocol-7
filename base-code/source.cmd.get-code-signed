@@ -32,9 +32,31 @@ return {
     and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
 
 RECALC_CHECKSUM:
-my $footer_data       = <[source.extract_sig_body]>->( \$src_str, 'strip' );
-my $present_checksum  = delete $footer_data->{'bmw-chksum'};
-my $present_signature = delete $footer_data->{'signature'};
+my $footer_data         = <[source.extract_sig_body]>->( \$src_str, 'strip' );
+my $footer_found        = $footer_data->{'was-present'};
+my $found_footer_valid  = $footer_data->{'structure-was-valid'};
+my $found_footer_length = $footer_data->{'footer-length-found'};
+
+my $present_checksum;
+my $present_signature;
+
+( my $name_rel = $code_name ) =~ s|^.+/(*pla:[^/]+/[^/]+$)||;
+<[base.log]>->( 2, ":::[ $name_rel ]:." );
+<[base.log]>->( 2, ': :' );
+if ( $footer_found and $found_footer_valid ) {
+    $present_checksum  = delete $footer_data->{'bmw-chksum'};
+    $present_signature = delete $footer_data->{'signature'};
+    <[base.log]>->(
+        2, ":+: found valid footer structure [ $found_footer_length bytes ]"
+    );
+} else {
+    if ( not $footer_found ) {
+        <[base.log]>->( 2, ': : had no signature footer..,' );
+    } else {
+        my $footer_error = $footer_data->{'encountered-error'};
+        <[base.log]>->( 2, ":E: $footer_error" );
+    }
+}
 
 ## amend empty line between payload data and footer [ if missing ] ##
 my $old_src_len = length($src_str) and $src_str =~ s|\n*$|\n\n|s;
@@ -50,27 +72,27 @@ if (   not defined $present_checksum
     or $present_signature ne $recalc_data->{'signature'} ) {
     if ( not defined $present_signature ) {
 
-        <[base.log]>->( 2, ':*: was not signed yet ..,' );
+        <[base.log]>->( 2, ': : was not signed yet ..,' );
         <[base.log]>->( 2, ': :' );
     } else {
 
         <[base.log]>->( 2, ':*: body data checksum has changed ..,' );
         <[base.log]>->( 2, ': :' );
         <[base.log]>->( 2, ':-: [ BMW data checksum ] < ..found >' );
-        <[base.log]>->( 2, sprintf( ": %s .,", $present_checksum ) );
+        <[base.log]>->( 2, sprintf( ': %s .,', $present_checksum ) );
 
     }
     $src_str .= $recalc_data->{'source-footer'};
     <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
-    <[base.log]>->( 2, sprintf( ": %s .,", $recalc_data->{'data-chksum'} ) );
+    <[base.log]>->( 2, sprintf( ': %s .,', $recalc_data->{'data-chksum'} ) );
     <[base.log]>->( 2, ': :' );
 
     if ( defined $present_signature ) {
         <[base.log]>->( 2, ':+: [ previous signature ]' );
-        <[base.log]>->( 2, sprintf( ":.%s .,", $present_signature ) );
+        <[base.log]>->( 2, sprintf( ':.%s .,', $present_signature ) );
     }
     <[base.log]>->( 2, ':+: [ current checksum signature ]' );
-    <[base.log]>->( 2, sprintf( ":.%s .,", $recalc_data->{'signature'} ) );
+    <[base.log]>->( 2, sprintf( ':.%s .,', $recalc_data->{'signature'} ) );
 
 } else {
     <[base.log]>->( 2, ':.: blue midnight wish C25519 signature valid. =)' );
@@ -84,7 +106,7 @@ if (   not defined $present_checksum
 return { 'mode' => 'data', 'data' => $src_str }  ## <-- current \ updated src.
 
 #.............................................................................
-#Q3A5R4MRLNJ6XNUXG4ER43LIDOYBJK7HW6PM4ACC6V5ID75MQI57SOXR5X62CRS5JQ4CZMY6ZAUWK
-#::: 5ZGZL5M5QB5OU4SDLMGL5PPZ7WCWG3UOC3PZ7TMYVGA7JTSJCTH :::: NAILARA AMOS :::
-# :: UWUNCURUUOK64OD7ZUPXAYNRRXNK4B5SHONOV6EXXHXYCE2C6ACI :: CODE SIGNATURE ::
+#ZM2LPOV4RJ3KXDESCGO5KBQPY4MA7U3XIEQBFFUDPTS3YR775H3X2ZG6CNO2KTLGPCADBK3AWOTVQ
+#::: V6YIPOYTFP6HCO56WBKEMWVVFZMRKEYN6RMFC7X6CJS7Z6HCHXB :::: NAILARA AMOS :::
+# :: JEMVMUDVOYZW2YJJCNWTSMSZP33B7Q5OINDXHUSSRXR3BQGFVOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,9 +5,11 @@
 my $src_ref     = shift;
 my $strip       = shift // '';
 my $footer_data = {
-    'was_present'     => 0,
-    'structure_valid' => 0,
-    'data-reference'  => $src_ref
+    'was-present'         => 0,
+    'footer-length-found' => 0,
+    'structure-was-valid' => 0,
+    'encountered-error'   => undef,
+    'data-reference'      => $src_ref
 };
 $strip = $strip eq 'strip' ? 1 : 0;
 my $bit_size = <source.chksum_bitsize>;
@@ -30,13 +32,17 @@ $footer_data->{'data-chksum'}
 return $footer_data
     if not defined $footer_body;    ## keeping current checksum ##
 
-$footer_data->{'was_present'} = 1;
+$footer_data->{'was-present'} = 1;  ## had a signature footer ##
 
 my $footer_length = 1 + length($footer_start) + length($footer_body);
-warn sprintf( "invalid code signature footer length [ %d != %d ]",
-    $footer_length, length(<source.sign_template>) )
-    and return $footer_data
-    if $footer_length != length(<source.sign_template>);
+$footer_data->{'footer-length-found'} = $footer_length;
+
+if ( $footer_length != length(<source.sign_template>) ) {    ## [E: length ]
+    $footer_data->{'encountered-error'}
+        = sprintf( "invalid code signature footer length [ %d != %d ]",
+        $footer_length, length(<source.sign_template>) );
+    return $footer_data;
+}
 
 my $signed_chksum;
 my $signature_B32;
@@ -52,21 +58,25 @@ while (@subst_params) {
     $signed_chksum = $signature_B32 and $signature_B32 = ''
         if 0 == $line_num++;
 }
-warn 'invalid signature footer structure [ template mismatch ]'
-    and return $footer_data
-    if $emptied_footer ne <source.sign_template>;
+if ( $emptied_footer ne <source.sign_template> ) {    ## [E: structural ]
+    $footer_data->{'encountered-error'}
+        = 'invalid signature footer structure [ template mismatch ]';
+    return $footer_data;
+}
 ################################################################################
 
 my @err_loc;
 push( @err_loc, 'bmw-chksum' ) if $signed_chksum !~ m|^[0-9A-Z]+$|;
 push( @err_loc, 'c25519-b32' ) if $signature_B32 !~ m|^[0-9A-Z]+$|;
 
-warn sprintf( "invalid characters in signature data [ %s ]",
-    join( ' and ', @err_loc ) )
-    and return $footer_data
-    if @err_loc;
+if (@err_loc) {    ## [E: alien characters ]
+    $footer_data->{'encountered-error'}
+        = sprintf( "invalid characters in signature data [ %s ]",
+        join( ' and ', @err_loc ) );
+    return $footer_data;
+}
 
-$footer_data->{'structure_valid'} = 1;
+$footer_data->{'structure-was-valid'} = 1;
 
 $footer_data->{'data-type'} = 'CODE'; # [ other types soon : DATA, NCFG, .., ]
 $footer_data->{'checksum-type'}
@@ -79,7 +89,7 @@ $footer_data->{'signature'}  = $signature_B32;
 return $footer_data;
 
 #.............................................................................
-#3Q55A27D6B62CFXR776SKMRSRU3OO5TSJF7QPZB37KPMFS3FUHSWFG2E272PAQBG33GTJM7YENMCQ
-#::: JGZYZJPCU7WBKZ5SXOHTJ2NFTGFU27CQQWEMVVHCWV3PWHJYKU6 :::: NAILARA AMOS :::
-# :: 25NVQTEKTK7ASUIOYK2EMDTQKQRQPG5BZ5H6V2EQCFUWZW2L2MCA :: CODE SIGNATURE ::
+#FXFZZE2CWZJI53HOHGWLCDZE7RY7AQJMT2JOPNNKZQ546SQAZKH7SJRG4MGMVO56H6CPL5G57WPTK
+#::: H3GEFABUG7Z5CUSYXN7DEEKWOESL6XI5GPC2HF5EAR64W3BZTYR :::: NAILARA AMOS :::
+# :: 3WTDYHG67NCYXVTUWEWYAAVOOW7CB2FLGFKFFIUIRGC2EALM7GDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

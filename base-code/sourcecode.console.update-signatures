@@ -77,12 +77,14 @@ map {
 foreach my $path_rel (@source_paths) {
     my $path_abs = catfile( $work_tree, $path_rel );
 
-    <[base.log]>->( 2, '.' );
-    <[base.log]>->( 2, ":::[ $path_rel ]::" );
-    <[base.log]>->( 2, '::' );
+    <[base.log]>->( 2, ':' );
 
     my $code_data_ref = <[source.cmd.get-code-signed]>
         ->( { 'args' => $path_rel, 'skip-valid' => 1 } );
+
+    ## allow for SIGINT ##
+    <[event.once]>;
+
     next
         if $code_data_ref->{'mode'} eq 'ack'
         and $code_data_ref->{'data'} eq 'still valid. =)';
@@ -102,7 +104,7 @@ foreach my $path_rel (@source_paths) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
 #.............................................................................
-#JPMHG2MYZCCTEP6PLT5X27F6KJTEPWNXZIDMO4CNOMXRDYO2NIGPH6ZJAM6VRURGTQ52QN7OL5S3Q
-#::: 7YEOY2GHWJ7M755TQJSOKD76WYY3SG3FKPJTV6QWFYN2KULLSSH :::: NAILARA AMOS :::
-# :: 3O6A5NQN4PWCUCUMDEJHASVFOKP4EEYSVAECYWZOZZ6NMHNISQCQ :: CODE SIGNATURE ::
+#OJ6U6P5DVXI2S4VVT3L66CXZ45VUAZXD5E5AULTRB3K6D2D3LOIWIFTSL53R6S4VZBHGIUW4QKGHM
+#::: NDNVG3BUCM4JP3ISA6YUTJ2F3VNQS6IXF7YYPOOQ6W4ZR34T4PQ :::: NAILARA AMOS :::
+# :: TVTVHCSNYIE6X3OWWKEXXVKHER5N77BV6DL7QP6ZGVEMJ4SYUODI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
