@@ -17,6 +17,10 @@ use warnings FATAL => 'utf8';
 no warnings 'experimental';
 use PerlIO::utf8_strict;
 
+## for testing character validity ##
+open( ZULUM, '>', File::Spec->devnull );
+binmode( ZULUM, ':utf8_strict' );
+## output mode ##
 binmode( STDOUT, ':utf8_strict' );
 
 $YAML::XS::LoadBlessed = 0;
@@ -260,6 +264,7 @@ RECALC:
 
     cmd_quit()        if $SIG_QUIT;
     sig_int_handler() if $SIG_INT;
+
     # sleep( $frame_delay + $state->{'init-delay'} );
 
     $state->{'init'} = $state->{'init-delay'} = 0 if $state->{'init'};
@@ -283,32 +288,32 @@ sub match_zulum {
 
 sub decode_char {
     my $input = $_[0];
-    die ":\n:: input buffer underrun\n\n" if !length($$input);
+    return '' if !length($$input);
     my $pos_x;
     my $pos_y;
     my $bg_color = '';
     my $fg_color = '';
 
+    my $char_width = 4;
 GET_CHARACTER:
-
-    ## background color ##
-    $bg_color .= color( sprintf( 'on_r%dg%db%d', 0, 0, $1 ) )
-        if $$input =~ m|^.(\d{2})|
-        and $1 <= 255;
 
     ## foreground color ##
     $fg_color .= color(
         sprintf( 'r%dg%db%d',
-            int( 0.2 * $1 ),
-            int( 0.4 * $2 ),
-            int( 0.8 * $3 ) )
-        )
-        if $$input =~ m|^(\d{3})(\d{3})(\d{3})|
-        and int( $3 * 0.8 ) <= 255
-        and int( $2 * 0.4 ) <= 255
-        and int( $1 * 0.2 ) <= 255;
+            int( 255 * ( 0.001 * $1 ) * ( 0.001 * $4 ) ),
+            int( 255 * ( 0.001 * $2 ) * ( 0.001 * $4 ) ),
+            int( 255 * ( 0.001 * $3 ) * ( 0.001 * $4 ) ) )
+    ) if $$input =~ m|^(\d{3})(\d{3})(\d{3})(\d{3})|;
+
+    ## background color ##
+    $bg_color
+        .= color(
+        sprintf( 'on_r%dg%db%d', 0, 0, int( 113 * ( 0.001 * $1 ) ) ) )
+        if $$input =~ m|^\d{6}(\d{3})|;
 
     ( $pos_x, $pos_y ) = ( $1, $2 ) if $$input =~ m|^(\d{2,4})(\d{2,4})|;
+    $pos_x //= 0;
+    $pos_y //= 0;
 
     while ( $pos_x > $x ) {
         $pos_x = $pos_x - $x;
@@ -320,19 +325,23 @@ GET_CHARACTER:
     }
     $pos_y-- if $pos_y == $y and $pos_x == $x;
 
-    my $num_width = int( $pos_x & $pos_y ) % 2 == 0 ? 3 : 4;   ## expand [LLL]
-    $num_width++ if int( $pos_x & $pos_y ) % 3 == 0;
-    $num_width++ if int( $pos_x & $pos_y ) % 5 == 0;
-    $num_width++ if int( $pos_x & $pos_y ) % 7 == 0;
-    my $char_num = substr( $$input, 0, $num_width, '' );
+    my $char_num = substr( $$input, 0, $char_width );
+
+    $char_num = 32 if !length($char_num);
 
     my $character = pack( 'U', $char_num );
 
-    eval { encode_utf8($character) };    ## checking validity ##
+    eval { print ZULUM $character };
 
     my $input_len = length($$input) // 0;
-    if ( $input_len
-        and ( not defined $character or $char_num < 32 or $EVAL_ERROR ) ) {
+    if ($input_len
+        and (  not defined $character
+            or $char_num < 32
+            or $EVAL_ERROR )
+    ) {
+        substr( $$input, 0, $char_width, '' )
+            if $char_width == 2 and $char_num < 32;
+        $char_width-- if $char_width > 2;
         goto GET_CHARACTER;
     } elsif ( !$input_len ) {
         $character = ' ';
@@ -340,6 +349,8 @@ GET_CHARACTER:
 
     $LAST_BG     = $bg_color;
     $LAST_FG_COL = $fg_color;
+
+    substr( $$input, 0, $char_width, '' );
 
     return
         join( '', "\e[${pos_y};${pos_x}H", $bg_color, $fg_color, $character );
@@ -632,7 +643,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#64KWEXWYTITWZFECJRQ3DIVAW3VBCPCB5LTNLDX5BXVCFHDHJPRD6JIGM25HXF3GPCOOEFG5BRLXG
-#::: 3DLSWZGVNCS6LO5BFWKITKF2FTIVTTK5DN6VRZMSEAE3LSWIG4Z :::: NAILARA AMOS :::
-# :: 4N2OPPMR4MUUQE5OLY4ZHHJ3RJ65ABLSCNPY7JOLMQPTH7XV52CA :: CODE SIGNATURE ::
+#TEZWJI4I2VE4ZZOBYZTRO2S7YXHG43VP56BEDHWFE6SJJ4AW3YBJRCGKRGQ2V3CBJIBKSJPVD2XII
+#::: KDFBQYONMXRWGDJ3CHGZPBBAY6LZVYBFNGANUIT7SRPHO5OW4T7 :::: NAILARA AMOS :::
+# :: HWWFEVIMHO26RMAXLKKBSTV226P47RLAW5WJVPTANC6I7O7G7UCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
