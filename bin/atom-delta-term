@@ -294,7 +294,7 @@ sub decode_char {
     my $bg_color = '';
     my $fg_color = '';
 
-    my $char_width = 4;
+    my $char_width = 3;
 GET_CHARACTER:
 
     ## foreground color ##
@@ -303,7 +303,11 @@ GET_CHARACTER:
             int( 255 * ( 0.001 * $1 ) * ( 0.001 * $4 ) ),
             int( 255 * ( 0.001 * $2 ) * ( 0.001 * $4 ) ),
             int( 255 * ( 0.001 * $3 ) * ( 0.001 * $4 ) ) )
-    ) if $$input =~ m|^(\d{3})(\d{3})(\d{3})(\d{3})|;
+        )
+        if $$input =~ m|^(\d{$char_width})
+                       (\d{$char_width})
+                       (\d{$char_width})
+                       (\d{$char_width})|x;
 
     ## background color ##
     $bg_color
@@ -311,7 +315,8 @@ GET_CHARACTER:
         sprintf( 'on_r%dg%db%d', 0, 0, int( 113 * ( 0.001 * $1 ) ) ) )
         if $$input =~ m|^\d{6}(\d{3})|;
 
-    ( $pos_x, $pos_y ) = ( $1, $2 ) if $$input =~ m|^(\d{2,4})(\d{2,4})|;
+    ( $pos_x, $pos_y ) = ( $1, $2 )
+        if $$input =~ m|^(\d{$char_width})(\d{$char_width})|;
     $pos_x //= 0;
     $pos_y //= 0;
 
@@ -327,16 +332,17 @@ GET_CHARACTER:
 
     my $char_num = substr( $$input, 0, $char_width );
 
-    $char_num = 32 if !length($char_num);
+    return '' if !length($char_num);
 
-    my $character = pack( 'U', $char_num );
+    my $character = chr($char_num);
 
-    eval { print ZULUM $character };
+#   eval { print ZULUM $character };
 
     my $input_len = length($$input) // 0;
     if ($input_len
         and (  not defined $character
             or $char_num < 32
+            or $char_num > 255
             or $EVAL_ERROR )
     ) {
         substr( $$input, 0, $char_width, '' )
@@ -643,7 +649,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#TEZWJI4I2VE4ZZOBYZTRO2S7YXHG43VP56BEDHWFE6SJJ4AW3YBJRCGKRGQ2V3CBJIBKSJPVD2XII
-#::: KDFBQYONMXRWGDJ3CHGZPBBAY6LZVYBFNGANUIT7SRPHO5OW4T7 :::: NAILARA AMOS :::
-# :: HWWFEVIMHO26RMAXLKKBSTV226P47RLAW5WJVPTANC6I7O7G7UCA :: CODE SIGNATURE ::
+#THVY5IWPYI2INIHEP7SR5ENLQ4YNAGSE3A5N7M2OYX2E4OABHGUM3HHBEWLKY3FM6TLCX3QGWL3HU
+#::: AHUPNCQOTF5APK3XFYLP5HISKJSTWB3ISUWUXU4EFYOL5GPWPIA :::: NAILARA AMOS :::
+# :: 7WM37C7QDMJKOB3GUWJU2LD2MKBFEYZ7DOJ3DYU5O5OSABH5ZECA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
