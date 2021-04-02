@@ -6,14 +6,14 @@ my $temp_dir = <impressive.path.impressive_tmp>;
 
 if ( !-d $temp_dir ) {
     <[base.log]>->( 1, "creating tmp directory '$temp_dir'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $temp_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die "make_path: $OS_ERROR";
 }
 
 #.............................................................................
-#35YVCXO6KWVMBIDKYHOYZ65C32HT6NCEULKNXHICIW43OAJ2UXBRXSIVUFFHXZDLWBKKXMJB5EFXO
-#::: NXX4HTW5VXN5NQBKVHQLJ7SBBGAPAEEFRGXHQYYMYOJDAZ6IGFN :::: NAILARA AMOS :::
-# :: 55HCTNDPWA6GPSJVTWPQ7LN5ADIIMRI7FJJZRRPEWNVQA24KRWBA :: CODE SIGNATURE ::
+#SUZYZGF4PL5TNXV3TBHE5GBGFUCMSTYQEESTSVYZHFNCQBTAVYGMGABPRBLDRM65RS4VQA2C4XH74
+#::: NUDZV46MPR2GLHTIGDY4PQVLCKCZVQJDDFHPKT4ZA7COGZQ3DDL :::: NAILARA AMOS :::
+# :: 6CZNLRZ73QBELHWZBUGCXRDROI6A3324UJJ7VTHGIVY6SBJ5JSDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

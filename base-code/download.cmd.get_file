@@ -29,8 +29,8 @@ if ( defined $url
 <[base.log]>->( 1, ".: $url" );
 
 if ( !-d $target_dir ) {
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.privs.user>)
-        or die "user '" . <system.privs.user> . "' not in passwd file";
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     <[base.log]>->( 2, "creating target directory '$target_dir'.." );
     make_path( $target_dir,
         { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
@@ -69,7 +69,7 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 return { 'mode' => 'ack', 'data' => $target_path };
 
 #.............................................................................
-#GZUSDGM4BGOR4XBRL434W2BKOAEWFRBLXZZL27PRN5N3OI42SCW2RMWDNNOQ37DYSRRA4P2TAC6WW
-#::: 4NZIPAA5HIESDX4YC5V2WUAW4YIPSTPVRTOBZ5FZR6PV3KLNWNR :::: NAILARA AMOS :::
-# :: KKLP4HFSGKE2PJMA67KZ7PTCDO6EQ45UPTJLREGG634G5WSERIDQ :: CODE SIGNATURE ::
+#SQHKDQ7IOYLRWLPVDBSVUYHTVC7VT5Y2Q6ZH64HEV5RH4A4TAHUWDJPHVZJBYBOHXD7HJREKPUUJM
+#::: MABHAIU24MNWZNT2E2CU5O2V5R2DA2OP4Y7RTIKLUILI23IPECX :::: NAILARA AMOS :::
+# :: 72QPK4GPSSJAHUEIAAKRLKGKGPNB2IO5HMF4EHHJPWNMMLNLI6CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

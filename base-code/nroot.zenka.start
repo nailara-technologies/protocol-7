@@ -116,13 +116,13 @@ if ( exists $init_result_data->{'start_mode'}
     my $exec_bin = $init_result_data->{'exec_bin'};
     my $prog_usr = $init_result_data->{'exec_usr'};
 
-    if ( defined $prog_usr and $prog_usr eq '<x11-user>' ) {
-        if ( defined <x11.user> ) {
-            $prog_usr = <x11.user>;
+    if ( defined $prog_usr and $prog_usr eq '<X-11-user>' ) {
+        if ( defined <system.X-11-user> ) {
+            $prog_usr = <system.X-11-user>;
         } else {
             <[base.log]>->(
                 0,
-                "exec_usr for '$zenka_name' [\<x11.user>] is "
+                "exec_usr for '$zenka_name' [\<system.X-11-user>] is "
                     . "not defined - ERROR"
             );
             <[zenka.change_status]>->( $instance_id, 'error' );
@@ -295,7 +295,7 @@ close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
 <[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
 
 #.............................................................................
-#456ZB7P74WVSYKQA7MO37EMBNMVVDPKDP64XTPKE3JNYGRTXZIP7AOJQKPASFUU65XJTQ36TIKNDU
-#::: KEVD3I2NMLOTAXSGA7LM4UTCKJRSNPQFBTPFBO2V6K45INRGBGD :::: NAILARA AMOS :::
-# :: WFJ2RDKUXQUPG2HMTYFQWJZ4TKSJUUQ245CLUCZCJMK4NVBWLEAQ :: CODE SIGNATURE ::
+#DAEX4KPBVZJW73AUF5L4HVGHYJ5AGGXPRWWPXIGDXHCKCBGZNVIIDZ4AJLFD4LWKWVK2E4A4TTXOY
+#::: S2GKWIZZP2L7CIFTNTKIKNOTI7S4LOQG7TKO2LM6KZXHQL6JZ3S :::: NAILARA AMOS :::
+# :: LBZCBSTTKNFMF4MRI5CRL7INYYA5WLAZYVLBARN2HTI4Z5OCIODQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
