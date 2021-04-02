@@ -11,13 +11,20 @@ die "'udevadm' command not found.\n" if not defined <udev.path.udevadm>;
 die "'unbuffer' command not found [ install 'expect' package ]\n"
     if not defined <udev.path.unbuffer>;
 
+if ( defined <system.zenka.subname>
+    and <system.zenka.subname> eq 'debug' ) {
+    <udev.debug-stdout.show-events> = 1;
+    <[base.log]>
+        ->( 0, "event logging to STDOUT enabled [ 'debug' subname ]" );
+}
+
 <[event.add_signal]>->(
     { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
 
 0;
 
 #.............................................................................
-#HXCF5YCLOJGKLKXXPY7UEDYEZCXJA6RWPGFFUAEHIWKJOPT4WLWM4JR643SAAU7ENOFXUIZY3QBPM
-#::: POFTJO7ZIPYPW7ZI7MTGYAQIL63TDR6IM5CXEIC6SL2IICAKBPI :::: NAILARA AMOS :::
-# :: SKPKQJLDPWNUGTZ4T4FG6BXDL2KUCLI2NXJEZV7EDQH7T3MJGIDQ :: CODE SIGNATURE ::
+#KISHW7XK2DMOSCJ7SQ3547SF5TOQU5GSPGTP2KFZAXJANY3VPSC6YFF5XQWES34DT4L42G2ALUPJM
+#::: TONDTD76KNSBDPMV5JJF7PNVYALFL6VXNMJYQ72JVZ3PZSL67CD :::: NAILARA AMOS :::
+# :: TT22AMASCZB2V7L6WTLHY7B765HSG2UWRZCUU6Q7FRGDCEBL6SDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

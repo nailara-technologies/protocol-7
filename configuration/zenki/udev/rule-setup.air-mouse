@@ -1,0 +1,38 @@
+# >:]
+
+# name  = rule-setup.developer
+# descr = rules for air-mice [ one so far ]
+
+.: patterns :.
+
+    - airmouse-with-keyboard
+
+        : inserted :
+
+  ID_VENDOR_FROM_DATABASE = Microdia
+   ID_MODEL_FROM_DATABASE = Vivitar Vivicam3350B
+             ID_VENDOR_ID = 0c45
+                  PRODUCT = c45/800a/1
+                  DEVTYPE = usb_device
+                   ACTION = bind
+
+        : removed :
+
+            ID_USB_DRIVER = usbhid
+             ID_VENDOR_ID = 0c45
+              ID_MODEL_ID = 800a
+                SUBSYSTEM = input
+                  PRODUCT = 3/c45/800a/101
+                  ID_TYPE = hid
+                   ACTION = remove
+                     NAME = "USB USB Device Keyboard"
+
+.: actions :.
+
+    - airmouse-with-keyboard
+
+        : inserted :
+          net.cmd = notify.message airmouse keyboard connected
+
+        : removed :
+          net.cmd = notify.message airmouse receiver disconnected
