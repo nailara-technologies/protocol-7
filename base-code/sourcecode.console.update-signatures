@@ -8,26 +8,13 @@ my $release_version = <protocol-7.rel-ver>;
 
 my $exclude_files = { 'bin/p7c' => 1 };    ## <-- expand as required., ###
 
-# my @copy_sources = (<system.code_path>);   # <-- use previous version path ..,
-
 my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
 
 my $work_tree    = $paths->{'work_tree'};
 my $source_root  = $paths->{'source_subdir'};
 my $version_root = $paths->{'version_root'};
 
-my @copy_sources;
-map {
-    my $source_path = catfile( $work_tree, $ARG );
-    die "source path $source_path does not exist" if !-d $source_path;
-    if ( !-w $source_path ) {
-        <[base.log]>->(
-            0, "<<< write permission missing for '$source_path' >>>"
-        );
-        <[base.exit]>->(1);
-    }
-    push( @copy_sources, $ARG );
-    } qw|
+my @copy_sources = qw|
     bin
     bin/dev
     read-me
@@ -38,14 +25,41 @@ map {
     bin/dev/scripts
     bin/dependencies
     bin/dev/git-hooks
+    configuration/zenki/*
     |;
+
+my @all_dirs
+    = map { <[file.match_dirs]>->( abs_path($work_tree), 'recursive', $ARG ) }
+    grep { !m|\*| } @copy_sources;
+
+push(    ## enabling [non-recursive] wildcard matches ##
+    @all_dirs,
+    map {
+        ( my $base_path = $ARG ) =~ s|/*\*.*$||;
+        ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
+        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+
+        <[file.match_dirs]>->( $absolute_path, $pattern );
+        }
+        grep {m|\*|} @copy_sources
+);
+
+map {
+    my $source_path = $ARG;
+    die "source path $source_path does not exist" if !-d $source_path;
+    if ( !-w $source_path ) {
+        <[base.log]>->(
+            0, "<<< write permission missing for '$source_path' >>>"
+        );
+        <[base.exit]>->(4);
+    }
+} @all_dirs;
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
 my @all_files;
-foreach my $directory (@copy_sources) {
-    my $src_path = catfile( $work_tree, $directory );
-    <[file.all_files]>->( $src_path, \@all_files );
+foreach my $absolute_path (@all_dirs) {
+    <[file.all_files]>->( $absolute_path, \@all_files );
 }
 
 my @source_paths
@@ -85,10 +99,10 @@ foreach my $path_rel (@source_paths) {
     <[file.put]>->( $path_abs, $code_data_ref->{'data'} );
 }
 
-<[base.log]>->( 1, ': : success =)' ) if !$file_count;  # log files changed..,
+<[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
 #.............................................................................
-#JWPEB5LB73OERNDA3XVL53LEJ6PWFNTAE757DQE7HRSXB4M72322VL24UDXIIBVYTYQG5ASVC27OA
-#::: 2SAQA4VBIKVNZAUU3MHITLJE4NGMGEV6D5CDSCOCJ2IT4FV673R :::: NAILARA AMOS :::
-# :: W5YBJDVKOJUNNKC7VPJYMJN75TBCBG5O5B5CUJKWYTJ2PWQIGYCI :: CODE SIGNATURE ::
+#JPMHG2MYZCCTEP6PLT5X27F6KJTEPWNXZIDMO4CNOMXRDYO2NIGPH6ZJAM6VRURGTQ52QN7OL5S3Q
+#::: 7YEOY2GHWJ7M755TQJSOKD76WYY3SG3FKPJTV6QWFYN2KULLSSH :::: NAILARA AMOS :::
+# :: 3O6A5NQN4PWCUCUMDEJHASVFOKP4EEYSVAECYWZOZZ6NMHNISQCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,9 +31,15 @@ return {
     if $code_dir =~ m|/base-code$|
     and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
 
+RECALC_CHECKSUM:
 my $footer_data       = <[source.extract_sig_body]>->( \$src_str, 'strip' );
 my $present_checksum  = delete $footer_data->{'bmw-chksum'};
 my $present_signature = delete $footer_data->{'signature'};
+
+## amend empty line between payload data and footer [ if missing ] ##
+my $old_src_len = length($src_str) and $src_str =~ s|\n*$|\n\n|s;
+goto RECALC_CHECKSUM if length($src_str) != $old_src_len;
+##
 
 ## checksum and signature verification ##
 
@@ -75,11 +81,10 @@ if (   not defined $present_checksum
     ##
 }
 
-return { 'mode' => 'data',
-    'data' => $src_str }    ## <-- current \ updated source.
+return { 'mode' => 'data', 'data' => $src_str }  ## <-- current \ updated src.
 
 #.............................................................................
-#MT37TXJBDSV22EQN4LDPM5BBY4IO2DNBCTREIKX3NDXWFGSR73423AJXNWFOGXN6ZS23KJVMNXGOY
-#::: 3OFMNZZWIRQDL72XGFKPVZPWORYZUGR63CJQ77LKDJJER2MDMCJ :::: NAILARA AMOS :::
-# :: H5UHFPN3LKFGU64YN672OUARCSRY7L3RTXTSMRIXLHZUXFBUGAAI :: CODE SIGNATURE ::
+#Q3A5R4MRLNJ6XNUXG4ER43LIDOYBJK7HW6PM4ACC6V5ID75MQI57SOXR5X62CRS5JQ4CZMY6ZAUWK
+#::: 5ZGZL5M5QB5OU4SDLMGL5PPZ7WCWG3UOC3PZ7TMYVGA7JTSJCTH :::: NAILARA AMOS :::
+# :: UWUNCURUUOK64OD7ZUPXAYNRRXNK4B5SHONOV6EXXHXYCE2C6ACI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

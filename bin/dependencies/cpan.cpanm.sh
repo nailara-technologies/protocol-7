@@ -33,8 +33,9 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
 
 # Graphics::Magick : http://sourceforge.net/projects/graphicsmagick/files/graphicsmagick/
 #                    ..or check your distribution packages!
+
 #.............................................................................
-#PYHXOWOSKPBVFM4TKZUCN2YPEH57Z6SXQL7RBTU2FENN47NMVZYXH6XCQTZU3B2CLR4ZCAFF5WBDM
-#::: YGG46TEG7LY75ZKNSLN6T6XYGWMFH47KKMOG5GC4A5G22HLY6C6 :::: NAILARA AMOS :::
-# :: 33VPKWJGBACO7FETKAUSA5HIYEBNJMYUFYT6HFMAMOUP5YTKMCBY :: CODE SIGNATURE ::
+#DA7H4KI7G7OZAEV2I4T7TDI5CEFQEMNPBVAEWAKP3D2DWA7EMESFQYOKA66KNEN4N5VIQLYZYIUC6
+#::: Y3PF2XGYY6FTW3AJ45JX6O5IUVD2EQYTT7VTI4EBCM4CKKMOKLN :::: NAILARA AMOS :::
+# :: S7RFE22QR7WTHXUK3PYZ3BH6FAQLOYUAGMDW2524ZDEVRUYUXYDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
