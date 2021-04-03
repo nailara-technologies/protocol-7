@@ -5,13 +5,12 @@
 # descr = reload or reinit config and source code
 my @keywords = qw|  config  source  plugins  init  all  |;
 
-my $arg = $$call{'args'} // 'all';
+my $arg = $$call{'args'} // 'all';    ## [LLL] enable multiple keyword param
 my $id  = $$call{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
 
-<base.debug.keep_on_reload>
-    //= 0;    # <-- [persistence] override : cfg \ defaults
+<base.debug.keep_on_reload>      //= 0; # <-- dbg. module persistence override
 <base.reload.success.clean-code> //= 1; # <-- delete $data{'code'} [ success ]
 
 my $s = '     ';
@@ -19,23 +18,27 @@ $$reply{'data'} = ":\n\n\n::\n\n";      # <-- header
 my $reply_footer  = "\n::\n\n\n:\n";    # <-- footer
 my $keyword_match = 0;
 
-if ( $arg eq 'config' or $arg eq 'all' ) {
+<system.reload.mode> = $arg; ## <-- <system.reload> deleted after completition
+
+if ( $arg eq qw| config | or $arg eq qw| all | ) {
     $keyword_match = 1;
+    delete <access.cmd.usr>;
     <[base.log]>->( 1, "[$id] < reload config >" );
     if (<[base.reload_config]>) {
         $$reply{'data'} .= "$s reload config  [ success ]\n";
     } else {
         $$reply{'data'} .= "$s reload config  [  ERROR  ]\n";
     }
+    <[base.parser.access_conf]> if $arg eq 'config';
     $success = 1;
 }
-if ( $arg eq 'source' or $arg eq 'all' ) {
+if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     my @reload_modules = <[base.clear_p7_mods]>;
     my %mod            = map { $ARG => 1 } @reload_modules;
 
     $keyword_match = 1;
-    delete $data{'base'}{'commands'};
+    delete <base.commands>;
     <base.modules.load_errors> = 0;
     $data{'callbacks'}{'end_code'} = [];
     <[base.log]>->( 1, "[$id] < reload source code >" );
@@ -70,7 +73,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         ( <protocol-7.src-ver> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
         <[base.log]>->(
-            0, sprintf( "NEW SOURCE CODE [ %s ]", <protocol-7.src-ver> )
+            0, sprintf( 'NEW SOURCE CODE [ %s ]', <protocol-7.src-ver> )
         ) if <protocol-7.src-ver> ne $old_version;
     } else {
         <protocol-7.src-ver> = 'unknown';
@@ -87,7 +90,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         <[base.log]>->(
             0,
             sprintf(
-                "RELEASE VERSION : %s -> %s",
+                'RELEASE VERSION : %s -> %s',
                 $old_release, <protocol-7.rel-ver>
             )
         ) if <protocol-7.rel-ver> ne $old_release;
@@ -95,7 +98,7 @@ if ( $arg eq 'source' or $arg eq 'all' ) {
         <protocol-7.rel-ver> = 'unknown';
     }
 }
-if ( $arg eq 'plugins' or $arg eq 'all' ) {
+if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < reload plugins >" );
     if (<[base.reload_plugins]>) {
@@ -105,7 +108,7 @@ if ( $arg eq 'plugins' or $arg eq 'all' ) {
         $$reply{'data'} .= "$s plugin reload  [  ERROR  ]\n";
     }
 }
-if ( $arg eq 'init' or $arg eq 'all' ) {
+if ( $arg eq qw| init | or $arg eq qw| all | ) {
     $keyword_match = 1;
     <[base.log]>->( 1, "[$id] < source code reinit >" );
     if ( <[base.init_modules]>->() ) {
@@ -128,11 +131,14 @@ if ($success) {
 } else {
     <[base.log]>->( 0, "[$id] reloading $arg was not successful `:|" );
 }
+
+delete <system.reload>;    ## completed ##
+
 $$reply{'mode'} = 'data';
 $$reply{'data'} .= $reply_footer;
 
 #.............................................................................
-#D7OHJJPBVRDSG6RZZYCUDG6RU2IAHJCVANHSRLK6WCETQILA5JHGXFWSDTPUKQBUEP5R2RUYBZ3MG
-#::: AHUT2IHREDF6D62AIX7S3HJLH4LKOPDD4ANOCQPXVJG5Y2FCZ25 :::: NAILARA AMOS :::
-# :: 7SSIZV6GR5RSDEFOLE65E4TWD5N5YB4BDQ7OEDVTWFQT2BA3ISAA :: CODE SIGNATURE ::
+#NNL73K3BHSYVVHMNTVRKSCNDK5NCMJUHUQ4H25BAA4NXWFYIV6OMI2JRFEFAV4OLXXYUQI2Q2RLIK
+#::: LW6UHWG24NCRD5GFSBA55WHCUTP4QIZ5ETRL5H6O4UU5ZFMVRBH :::: NAILARA AMOS :::
+# :: YNYVE6A2ONCR4S53OMIQXJHCH4KWOS24UOLYLGVAGYL3BV4XA6CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
