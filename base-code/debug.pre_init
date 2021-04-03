@@ -3,7 +3,10 @@
 # name  = debug.pre_init
 # descr = loads Data::Dumper for debug purposes
 
-<[base.perlmod.autoload]>->('Data::Dumper');
+<[base.log]>->( 0, '<< debug module enabled in configuration >>' )
+    if not exists <system.reload>;  ## <-- logged seperately in reload command
+
+<[base.perlmod.autoload]>->( 'Data::Dumper', qw| Dumper | );
 $Data::Dumper::Sortkeys = 1;
 
 utf8::encode( <debug.unicode>->{'HoTeYum-AsURum'} = '호테윰 앗우룸' );
@@ -11,7 +14,7 @@ utf8::encode( <debug.unicode>->{'HoTeYum-AsURum'} = '호테윰 앗우룸' );
 0;
 
 #.............................................................................
-#U2CQIBJIGIHF5UBY7HI4IAX6MFAN7JQ7J77JVBWNREMHUWSS23BRT2WYEKARUKGAO3DAFEMDZVVAI
-#::: N5VJJZEUAQEDB435DS5QK7SCACZOJ5QSA7PVSIBTMDY3AAZV56C :::: NAILARA AMOS :::
-# :: SJXKXOV7BRS6KKPHQEQ5KFK76XZZT7VJ2JS2OAWCY353FV5MMGCQ :: CODE SIGNATURE ::
+#6HUGPYSNZJTBDOTPEVFATTJ3TIJN7DHH7SS2N72MC7UJFPYYQUGY5MAGWMZDIMUODWPGZHLIHHPYW
+#::: JIA6D72EROZB6TYIQH7ISWD37OJXFE75FZFCDZAK36XAURUZNQI :::: NAILARA AMOS :::
+# :: 2SBBNW5QP3N45QMBHHGBGFHRQE2V26ZD7KS3NVMXCSPFZW6S42BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

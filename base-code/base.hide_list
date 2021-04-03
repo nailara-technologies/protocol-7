@@ -4,16 +4,18 @@
 # descr = hide specified lists from 'list' command
 
 my @params = @_;
-die "list names expected!" if !@params;
+die 'list names expected' if not @params;
 $data{'lists_hidden'} //= {};
 
-my $s = @params > 1 ? 's:' : '';
-<[base.log]>->( 2, "disabling list$s " . join( ', ', @params ) . ' ..' );
+my $s = @params > 1 ? 's :' : '';
+<[base.log]>->(
+    2, "disabling list$s " . join( ', ', map {"'$ARG'"} @params ) . ' .,'
+);
 
 map { $data{'lists_hidden'}{$ARG}++ } @params;
 
 #.............................................................................
-#772FC7QQR7356M5CQKTHLYXBX2367UFNTDYXXFI5ANCXTGIE3CZHLFZNKLY3D4VBMRCBLW6H2NBPW
-#::: 3T2QYTKXPB3TU2MQC4DXW4HIR5XGOZP43YZOFKBT6DVFBL2UHKK :::: NAILARA AMOS :::
-# :: 7GDYMR6XN2B6GRJCJBWUD2ARGT7FONWFEGQPRPZABCUEXKZCEUBA :: CODE SIGNATURE ::
+#MI3W65PUUREJVWNUIIB4FTYZTUGYU5KFFDDYTPXDLPKVKTQJVDEU3ZQSVOSDVI7ENVY5DIGCNNUOQ
+#::: UMX2LTSTMLAFQDXWZ4ZQEDHRWC7VGI4VDKNUK7QTABDWLR7DU7F :::: NAILARA AMOS :::
+# :: 7PPM7UYETUOZ7SSKWFCP7HJJS7HRSPDD53UQGZVZV6JJTMK6CYBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
