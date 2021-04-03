@@ -11,10 +11,9 @@ if ( not defined <composition.current_tile_group> ) {
 
 ( my $current_one = <composition.current_tile_group> ) =~ s|\+.*$||;
 
-my %uniq = map { $ARG => 1 }
-    grep { length($ARG) and $ARG ne $current_one }
+@{<composition.overlays.current>}
+    = uniqstr grep { length($ARG) and $ARG ne $current_one }
     @{<composition.overlays.current>};
-@{<composition.overlays.current>} = sort keys %uniq;
 
 my $merged_name
     = join( '+', $current_one, @{<composition.overlays.current>} );
@@ -34,7 +33,7 @@ map {
 return $merged_name;
 
 #.............................................................................
-#NJW7ADEIE5GOSSUMIEJEZMJ5FRYFW5GXS7Y346MWQJWRSIWNL46KKQJ2AFLSNC2DDJ2RYGOPU7PQW
-#::: HSFQSKKB4VHYWE3O4EUKSVJLIWKPSQENQ5CO2WSPQU4HDDXUIES :::: NAILARA AMOS :::
-# :: 7JSTXXDSIPNFC5VAW7YO2KB7PSV6OQ27X47PX7OAXTAMHX2A2SCQ :: CODE SIGNATURE ::
+#5P4XEXEVHPNDGAKRONST4YYFJQ5Q3VS5KJD56KAX442HZVN3C4XQ42HLJL6FHSASJLNDBHTAXZQKQ
+#::: GZD3TUFXIEHVB4UER2YE6FHWPCLHUVBMOEGUNTFJMS3NH7WZSV7 :::: NAILARA AMOS :::
+# :: ZMFTWNT7MXTPQHFSW7JYN3ZT7DW4E7XIPEZZHSDGSTSJJ6XWUSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
