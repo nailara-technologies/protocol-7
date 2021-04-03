@@ -1032,7 +1032,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
     $$output .= $_cmd_id . "NAK $unkown_command\n";
     <[base.log]>->( 1, "[$id] command unknown [ usr:'$user' cmd:'$cmd' ]" );
 } else {    ## insufficient access permissions ##
-    $$output .= $_cmd_id . "NAK $permission_message\n";
+    $$output .= $_cmd_id . "NAK $permission_message for '$cmd'\n";
     <[base.log]>->( 0, "[$id] blocked access [ usr:'$user' cmd:'$cmd' ]" );
     return 0;    ## command complete ##
 }
@@ -1042,7 +1042,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#2BC5I6GJGZO3MSRSGD3KXFPP66JVHK4DUSUICUFEX4QLISHSFOCYC4PWVIZHUPEFA5K5QMUDI4IAA
-#::: MDJ3N6MSBV2BWNUIDMNLCFB252UYVHGAMVW6LALRXETHULJIKOZ :::: NAILARA AMOS :::
-# :: HTASYYFFZYL2ZXSJHORHHLM4PSPMZBV3MUGA3YENVAGRSX6XKMCA :: CODE SIGNATURE ::
+#2JWXOQ5S7AJHCSQWBOK5DGMMOWI4EYKIPBPDZR4GTDAMKZPPRDKZZNR6ZGU6KVLLRCD7HBILNM5FY
+#::: VVHYOJI5FLAFENUU64TT3XTLO2DIBTJS55BSXV6ELKOFCVX3U2T :::: NAILARA AMOS :::
+# :: WFXDLPTT4TXCMUS7S2KVQRUTXG2CMLB4AP5LJ4QMX4CLWWY632AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
