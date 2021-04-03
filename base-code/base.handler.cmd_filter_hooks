@@ -1,7 +1,7 @@
 # >:]
 
 # name  = base.handler.cmd_filter_hooks
-# descr = mangle arguments before sending cmd / routing reply
+# descr = mangle arguments before sending cmd \ routing reply
 
 my $params = shift;
 
@@ -11,6 +11,8 @@ return undef
 
 my $cmd_hook = <base.filter_hooks.command>->{ $params->{'command'} };
 
+my $log_level = $params->{'command'} eq 'heart' ? 3 : 2;   ## reducing data ##
+
 if (    ref($cmd_hook) eq 'HASH'
     and defined $cmd_hook->{'send'}
     and defined $code{ $cmd_hook->{'send'} }
@@ -18,7 +20,7 @@ if (    ref($cmd_hook) eq 'HASH'
     and defined $code{ $cmd_hook->{'recv'} } ) {
 
     <[base.log]>->(
-        2,                sprintf "[%d] :.cmnd-filter-hook[%s]",
+        $log_level,       sprintf "[%d] :.cmnd-filter-hook[%s]",
         $params->{'sid'}, $params->{'command'}
     );
 
@@ -53,7 +55,7 @@ if (    ref($cmd_hook) eq 'HASH'
 }
 
 #.............................................................................
-#MD7KVDRH54OMFWLZPG6BLML3FMNV556RT3YLA4OTT6VEYZ5R7PLCJSEDK4ZLPI4KHJYDI7HX552SS
-#::: FT4XVQW2GKLX5RT255IQPSCCSS535F4HSTP6XNV6UISYSFNFGGA :::: NAILARA AMOS :::
-# :: TKKBSQRB6VSSJSKLPYQW2MFDDUE7HZFZUIF3CYHBAKYG6XF46SDQ :: CODE SIGNATURE ::
+#HUXU6C2X5RBRVFE6G3UOWJVVRVWNVCM32E5RZNSD2UEZQ5ZL4X4DUYILMINFHL5UH5DPDCKRR2JSC
+#::: V5JSBOFMGTIR4H37IEYLDU7ZJ3TY2UGMWFDDHJDO6GFB4AIZFG3 :::: NAILARA AMOS :::
+# :: KJEEDOJNBW6UUNGLE4V3JR5RKCJTFLIBHNSOJJ4AP62KVUY3AWCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
