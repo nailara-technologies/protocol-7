@@ -3,19 +3,18 @@
 # name  = composition.cmd.show-tile-groups
 # descr = list available and active tile groups
 
-my $reply_str   = '';
-my @tile_groups = keys %{<composition.setup.tile-groups>};
+my $reply_str = '';
 
 map {
     my $marker_l = $ARG eq <composition.current_tile_group> ? '-->'  : '   ';
     my $marker_r = $marker_l =~ m|\S|                       ? ' <--' : '';
     $reply_str .= sprintf( " %s %s%s\n", $marker_l, $ARG, $marker_r )
-} sort { length($a) <=> length($b) } sort { $a cmp $b } @tile_groups;
+} <[base.sort]>->(<composition.setup.tile-groups>);
 
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#EOXDWKAC6FZ4SWWRYEREBZ6OLFRENNE3UJ24ZFZKQGC7EYGOQORQMPGIPAOY266TKJCZWGEHUEALU
-#::: UOMMCMZ4C4BPQF2V3LK5B5TU42HZTDV4HSX25RLTV5BKAHEDT6P :::: NAILARA AMOS :::
-# :: YU6O4YFFTCM7QBN5CXWL5AQMO6IY5EIIGWH4C6XPWC2RAO2VNSDQ :: CODE SIGNATURE ::
+#ZADJ7MVTE35UKCS3J32EY3MCGCA5O2MIIJEW4RPHA7N2MIIBBNUDXGVYJ6KP62FJ5KGRHYWD7BLYO
+#::: KXU47QZZ2M67276DUIOMU7QQFVEWGVKYDQSQVZVPOB57NXVCDQC :::: NAILARA AMOS :::
+# :: XB5D5VG2FEIFPF3HIGIDSS6SXKO3OBEXML27HVZO72D4A7TWJQCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

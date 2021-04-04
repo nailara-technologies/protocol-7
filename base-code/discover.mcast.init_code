@@ -4,7 +4,7 @@
 
 <[base.perlmod.autoload]>->('IO::Socket::Multicast');
 
-<discover.mcast.ip4_addr>  //= '239.13.5.42';   ##  <--  protocol-7 AMOS address
+<discover.mcast.ip4_addr>  //= '239.13.5.42'; ##  <--  protocol-7 AMOS address
 <discover.mcast.ip4_port>  //= 47;
 <discover.mcast.mesg_ttl>  //= 3;
 <discover.mcast.mesg_loop> //= 0;
@@ -38,15 +38,14 @@ if (    defined <discover.mcast.obj.sock>
 
 <[base.log]>->(
     1,
-    sprintf(
-        ": joining local multicast group [%s]", <discover.mcast.ip4_addr>
-    )
+    sprintf( ": joining local multicast group [%s]",
+        <discover.mcast.ip4_addr> )
 );
 
 <discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>)
     || die $OS_ERROR;
-<discover.mcast.obj.sock>
-    ->mcast_dest( <discover.mcast.ip4_addr> . ':' . <discover.mcast.ip4_port> );
+<discover.mcast.obj.sock>->mcast_dest(
+    <discover.mcast.ip4_addr> . ':' . <discover.mcast.ip4_port> );
 
 <[event.add_io]>->(
     {   'fd'      => <discover.mcast.obj.sock>,
@@ -57,7 +56,7 @@ if (    defined <discover.mcast.obj.sock>
 0;
 
 #.............................................................................
-#A67FLFGVYMZ7RD7HZOZJ2IJUWNNNF6GF7LH6C6262F22JOCUKWATP4F72TPY334NDW6ORPQ7QUM2G
-#::: CLCFGX6JSXCPHK3KDO2DUJIBKZUWADBXYHTFSRSDDTK2UXFL6Z7 :::: NAILARA AMOS :::
-# :: GQGNUZSSM4VG2RYOIQQXTGJEJ727MEOXKCLB62HZT666KVH6EUAQ :: CODE SIGNATURE ::
+#B633MGGUTROXOJAUMYW7MBDB3NJSKS2CIITKMSH2AXC4SKKMOIVOUM6CHAIJFQXCDB62HUFK2VXQG
+#::: FQO4MVHROUNFKKHHOKTXXCOJL2MFSMJCRKE42RXXLRSHS5VBEC3 :::: NAILARA AMOS :::
+# :: IA3NKZTCWNZREA5MREZD6UHNPN4ZLJFK6AJVTDKWIDBCP5SH6GAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

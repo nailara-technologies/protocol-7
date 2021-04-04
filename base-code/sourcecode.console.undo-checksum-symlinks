@@ -59,7 +59,7 @@ if ( !opendir( $dir_fh, $source_root ) ) {
     <[base.exit]>->(2);
 }
 
-my %vers_dirs = map { $ARG => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
+my %vers_dirs = map { $ARG => 1 } grep { !m|^\.| } readdir($dir_fh);
 closedir($dir_fh);
 
 my %source_links;
@@ -92,10 +92,7 @@ my @restore_links;
 my $previous_cwd = Cwd::cwd();
 chdir($work_tree) or die "[ chdir ] $OS_ERROR [ $work_tree ]";
 
-foreach my $src_file_path (
-    sort { length($b) <=> length($a) }
-    sort keys %source_links
-) {
+foreach my $src_file_path ( <[base.reverse-sort]>->( \%source_links ) ) {
     ( my $link_target = $source_links{$src_file_path} )
         =~ s|^\.\./||;    # subdirs
     my $dst_file_path = abs_path($link_target);
@@ -138,7 +135,7 @@ my $percent_val = !$file_count ? 0 : $link_count * 100 / $file_count;
     )
 );
 
-my %console_args = map { $ARG => 1 } split / +/, $data{'system'}{'args'};
+my %console_args = map { $ARG => 1 } split m| +|, $data{'system'}{'args'};
 my $apply_force  = not exists $console_args{'-force'} ? 0 : 1;
 
 if ($err_count) {
@@ -212,7 +209,7 @@ if ( !$err_count or $apply_force ) {
 }
 
 #.............................................................................
-#6B5EUZ2T6NNM46V6ENCLIC5XFYMEC7NV6OIO4LDN6DJIRLGJ6P2WSXJO7CB33MMXK2N6WRJL5SXVU
-#::: AE2VSOMFCPBHEWEW5JDVOLVCZUBVJKQF7IYD55XQQVEJQ2SFFR5 :::: NAILARA AMOS :::
-# :: MJBFVWBUDRRIVRVR4CBV4YRZ5SOBUJIRBCYVVI5YUNEXGGQF6KCI :: CODE SIGNATURE ::
+#UBPZSP5PLLKV6BTCG3EC5QQQ22NXQ3ZDTWA26Z2PLLPDMW5LWVFFW4EF5C7AXZ6FJLJVF2KMNLDBE
+#::: QRCYS4BAQEP5PNKGWNKH7X4IRP5XQRVGVTUO6W5GIDQBMPPEHOD :::: NAILARA AMOS :::
+# :: Q4RQVRUFY36ZP5SIVFFS2HYNTLFNSHLUZQCYXROGWJVDLF3WR2DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

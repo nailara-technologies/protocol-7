@@ -14,16 +14,14 @@ if ( !opendir( $dir_fh, $site_dir ) ) {
 <httpd.cfg.hostnames> = {};
 my @vhosts;
 my @ext_dirs;
-foreach
-    my $dir_name ( sort { length($a) <=> length($b) } sort readdir($dir_fh) )
-{
+foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
     ( my $dir_path = "$site_dir/$dir_name" ) =~ s|//|/|g;
     next
         if $dir_name =~ m|^\.|
         or (-l $dir_path
         and !-d $dir_path
         and !-d readlink($dir_path)
-        and readlink($dir_path) !~ m|^\d{3}$| );    # <- custom status codes..
+        and readlink($dir_path) !~ m|^\d{3}$| );   # <-- custom status codes.,
     if ( -l $dir_path ) {
         my $link_target = readlink("$site_dir/$dir_name");
         if (    <httpd.cfg.external_sitedirs>
@@ -76,7 +74,7 @@ foreach my $link_name (@vhosts) {
 0;
 
 #.............................................................................
-#ZE44A3MNNL6MKNQAMKMRJ5RANQGP2MFELZYZNG2TB6W4QP7KUXUENZPR4CRWCIKVWAFC32YWOTBIA
-#::: JWWXI75FACKJISATTGHUJVKXPLSTHBYH4JJ52DDWEAM2OIYCMAD :::: NAILARA AMOS :::
-# :: AS2NL3CW2RT3YPYAFYT5TDMSZCAAN5WNSCCK5C2LJK3I7IELG2CA :: CODE SIGNATURE ::
+#VI262YXR3JGUIZ3X4KTFFORS5N2BDGB532ETRCQMZMWZIPCAKVRFVPAL2ZBV5TAMT3UYXWOVTBJAM
+#::: 6FWI6TTZYUHRHUKAQWS5CSD7ETE4SFZFTSNZIA42DY7SLCXPRDG :::: NAILARA AMOS :::
+# :: CFIMZ2OWYQQTXQ2NOHC6XGG7UA4TJPHD52WXM5U644BYS5HWTWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

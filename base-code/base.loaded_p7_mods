@@ -13,8 +13,7 @@ if ( exists <base.p7_mod.loaded>->{'base'} ) {
 my @p7m = grep {defined} keys %{<base.p7_mod.loaded>};
 map { $ARG =~ s|\s+||g } @p7m;
 
-my @modules
-    = sort { length $a <=> length $b } reverse sort grep {length} @p7m;
+my @modules = <[base.reverse-sort]>->( grep {length} @p7m );
 
 unshift( @modules, qw| base | ) and <base.p7_mod.loaded>->{'base'} = 1
     if $base;
@@ -22,7 +21,7 @@ unshift( @modules, qw| base | ) and <base.p7_mod.loaded>->{'base'} = 1
 return @modules;
 
 #.............................................................................
-#44U2O76SOBAYWSTS7PKBMDXYC3EYGQ3TFWR6ACIEEDRVCCABEIOMHCQ5QQBYUECS5CZOWYMUVG2TI
-#::: MVAKUT62MCWXVBSOLXMIWHYQOFW64MVWVV7TURTCRR5SS3UDRS3 :::: NAILARA AMOS :::
-# :: AWWH4PZUJMSYEYWHESYWLJPQT6WH2UK32PE2ZQQLTRPFGWGPUQCA :: CODE SIGNATURE ::
+#WXB72ZMSTYZ7SFELXDSC6MTPFUT5ZITN6RMRKHM2RYF5HVIY4Q5BLRFCGEZ2MTTTWMTISOTO4NFVM
+#::: THEXAOPHI4DXEYZ6SEKKWM4WAN7PI5O5GOS6AGUT3EQAXGVZ4NR :::: NAILARA AMOS :::
+# :: 463NVJM2ZKMVRJJW6E7OAHC4XNNLOUKEEZEXR7IN3VYQC5PQY4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

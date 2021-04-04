@@ -1,17 +1,16 @@
 # >:]
 
-# name  = debug.cmd.cube-subs
+# name  = debug.cmd.core-subs
 # param = [pattern]
-# descr = matching list of 'cube' subroutines
+# descr = matching list of core-subroutines
 
 my $pattern = $$call{'args'};
-my $coderef = <base.cube_subs>;
+my $coderef = <base.core_subs>;
 
 return {
     'mode' => 'data',
-    'data' => "\n### list of loaded 'cube' subroutines ###\n\n"
-        . join( "\n", sort { length $b <=> length $a } sort keys %{$coderef} )
-        . "\n\n"
+    'data' => "\n### list of loaded core-subroutines ###\n\n"
+        . join( "\n", <[base.reverse-sort]>->($coderef) ) . "\n\n"
     }
     if not defined $pattern;
 
@@ -26,9 +25,7 @@ if ($EVAL_ERROR) {
     };
 }
 
-my @sub_list
-    = sort { length $b <=> length $a }
-    sort grep {m|$pattern|} keys %{$coderef};
+my @sub_list = grep {m|$pattern|} <[base.sort]>->($coderef);
 
 return {
     'mode' => 'nak',
@@ -38,12 +35,12 @@ return {
 
 return {
     'mode' => 'data',
-    'data' => "\n# .: 'cube' subroutines matching '$pattern' :.\n\n"
+    'data' => "\n# .: core-subroutines matching '$pattern' :.\n\n"
         . join( "\n", @sub_list ) . "\n\n"
     }
 
 #.............................................................................
-#DRBR2NOZIZPNC4V7SLBW5BSTCQ5NQ46SYGENOZKMGR6B3WVTT4GXDAU3HYLR4EH3ITEHXHEBMXQLE
-#::: HFHUXBIEMQXAJXL4QB2ITWN7FGLFNOKTUF2V37KKFTA6GR6FPRD :::: NAILARA AMOS :::
-# :: XVP6RR6XADZT3MNOUHOWUKR65LGV532NPJ3PWDCIWWBXCBNQESDQ :: CODE SIGNATURE ::
+#IVBTCFZBCYZVGQ63GXIFCJ5ZWS5MMV4RNSLEZGKRORZXXJ7MIWP2LEXLVKSL2AHNQMLLQDJJNJDYO
+#::: YBU7VOO3GNOWRZSAKAKAKV4TSLW7ASRCWLVCCWNB6H5H43MHFV3 :::: NAILARA AMOS :::
+# :: 46VEAKE33ZNJOOAEGMX2SPBUZJUTKLUAD55FHOW7RRVUHLSE5YDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

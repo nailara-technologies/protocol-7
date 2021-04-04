@@ -9,9 +9,7 @@
     my $align,  my $defaults, my $filters, my $sort_key
     )
     = map { $_[0]->{$ARG} }
-    qw|
-    var key sub_key mask align
-    defaults filters sort_key |;
+    qw|  var  key  sub_key  mask  align  defaults  filters  sort_key  |;
 
 my %max_len;
 my $data_ref;
@@ -80,8 +78,7 @@ $table_width-- if $table_width >= 80;
 my $sub_line  .= '-' x $table_width;
 $table_string .= "\n$sub_line\n";
 
-my @sorted_keys;
-@sorted_keys = sort { length $b <=> length $a } sort keys( %{$data_ref} );
+my @sorted_keys = <[base.reverse-sort]>->($data_ref);
 
 # .: custom sorting :.
 
@@ -115,13 +112,7 @@ if ( defined $sort_key ) {
         };
     } elsif ( $sort_type eq 'reverse-len-alpha' )
     {    #  <--[ base sorting order ]
-        eval {
-            @sorted_keys = sort {
-                length $data_ref->{$b}->{$sort_key} <=>
-                    length $data_ref->{$a}->{$sort_key}
-                }
-                reverse sort keys( %{$data_ref} );
-        };
+        eval { @sorted_keys = <[base.reverse-sort]>->($data_ref); };
     } else {
         warn "unknown sort_type '$sort_type'";
     }
@@ -170,7 +161,7 @@ $table_string .= "\n";
 return $table_string;
 
 #.............................................................................
-#J6CRJD6URQHJB62VZ3GEH4TYE67CICHGYPQ7FTSLAS33G2IWL64VMZQZVLEH3BLJWEFYXWZQNLU5G
-#::: FCL5LY52FPIBZXXJJ5MI4QBDN4IKFKFV4DSY5Q6XLEGQUCFWRTU :::: NAILARA AMOS :::
-# :: QU6DTU2G4MOJADWPIFEVBT64CHTNXHPOYYNLZ5YHNO4GBWZIZOAI :: CODE SIGNATURE ::
+#Y6Z4C2WUKJVB2QSIYN3Y2SH2NQPQALHD24YYFGDA2BLSWSREWKHPZBVLEA3FKN2NQH3XHU5543XQG
+#::: 3MSQ6R74DINHCTXRJJKXUCZCU7VTM4JJ2CJEYZYIOMHN4AZHTOX :::: NAILARA AMOS :::
+# :: JHL5CB5LMEWTX2DEOXIAFRDBI5OERAFBJIR35V23AR5ACSX43GCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

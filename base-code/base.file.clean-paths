@@ -5,7 +5,7 @@
 
 my $parent_path = shift;
 
-die "expected directory path parameter" if not defined $parent_path;
+die 'expected directory path parameter' if not defined $parent_path;
 
 my $err_str;
 $err_str = 'parent directory absent' if !-e $parent_path;
@@ -17,10 +17,10 @@ return <[base.log]>->( 2, "<clean-paths> $err_str ['$parent_path']" )
 my @dirs_found  = ( @{ <[file.all_dirs]>->($parent_path) } );
 my $skip_parent = 0;
 
-foreach my $chk_dir ( sort { length $b <=> length $a } sort @dirs_found ) {
+foreach my $chk_dir ( <[base.reverse-sort]>->(@dirs_found) ) {
     if ( scalar( @{ <[file.get-non-dirs]>->($chk_dir) } ) == 0 ) {
         <[base.log]>->( 2, ":. clean. dir .: ['$chk_dir']" );
-        rmdir($chk_dir) or warn "<rmdir> '$chk_dir' [$OS_ERROR] <{C1}>";
+        rmdir($chk_dir) or warn "<rmdir> '$chk_dir' [\l$OS_ERROR] <{C1}>";
     } else {
         $skip_parent = 1;
     }
@@ -28,13 +28,13 @@ foreach my $chk_dir ( sort { length $b <=> length $a } sort @dirs_found ) {
 
 if ( not $skip_parent ) {
     <[base.log]>->( 2, ":. clean. dir .: ['$parent_path']" );
-    rmdir($parent_path) or warn "<rmdir> '$parent_path' [$OS_ERROR] <{C1}>";
+    rmdir($parent_path) or warn "<rmdir> '$parent_path' [\l$OS_ERROR] <{C1}>";
 }
 
 return $skip_parent ? 0 : 1;    ## all gone? ##
 
 #.............................................................................
-#ZD63U3S4U5EPJQYMTI72HJRCGHQ4CAYIG5ILKMUPW7SHAR7U5OJEFIB22HAUN3KCXDUTOO64DJSPQ
-#::: 5HPDJC7G3VLVMRK6FC6XPCI4NJXISGM5BVW3KIQQUNSDI4C5I45 :::: NAILARA AMOS :::
-# :: OX4UJEGCCIWL3AIIMZI3PK5ZMEGS3I7JR6KF22WUF7DNAVIVGIBQ :: CODE SIGNATURE ::
+#LP3PQCKY7MJZDNPYU5PEH3XJYZLNLSFTQJQXOIDSSHSAJPT4U4UTKE3I5ORCSSLU2X224PZJHNBRU
+#::: 4IRQVR4ZM4FKUSLYLEKHNI7SEBWKFVC2FHL5RXZYJDN6VOUJZNE :::: NAILARA AMOS :::
+# :: QWWPIPGX55Q65JZXKPNSA52FXWHNEVLVKYN5M7GYR4ORPOQOUWCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

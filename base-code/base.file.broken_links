@@ -23,17 +23,13 @@ foreach my $check_path (@check_dirs) {
     <[file.all_links]>->( $check_path, \my %all_links );
 
     my $previous_cwd = Cwd::cwd();
-    chdir($check_path) or warn "cwd : $OS_ERROR [ '$check_path' ]";
+    chdir($check_path) or warn "cwd : \l$OS_ERROR [ '$check_path' ]";
 
     my $err_reason = 'missing link target';
 
-    foreach
-        my $lnk_src ( sort { length $b <=> length $a } sort keys %all_links )
-    {
-        my $lnk_dst = $all_links{$lnk_src};
-
-        my $abs_dst_path
-            = abs_path($lnk_dst);    # does implicit symlink resolving
+    foreach my $lnk_src ( <[base.reverse-sort]>->( \%all_links ) ) {
+        my $lnk_dst      = $all_links{$lnk_src};
+        my $abs_dst_path = abs_path($lnk_dst);   ## implicit symlink resolving
 
         if ( !length($abs_dst_path) or !-e $abs_dst_path ) {  # missing target
 
@@ -48,14 +44,14 @@ foreach my $check_path (@check_dirs) {
             <[base.log]>->( 2, ": [ resolved ] '$lnk_dst' <-- '$lnk_src'" );
         }
     }
-    chdir($previous_cwd) or die "[ chdir ] $OS_ERROR [ $previous_cwd ]";
+    chdir($previous_cwd) or die "[ chdir ] \l$OS_ERROR [ $previous_cwd ]";
     <[base.log]>->( 2, ":" );
 }
 
 return @error_list;
 
 #.............................................................................
-#YBLJLOSQ4UUBRMJ47ZUYNRSLCLRNWJRMSHMHIOLWWLTFTTA6PFBKRWBM5QJCP4V3N2Q4ZWF45GYSK
-#::: CQ5VHOFJIYAMICMYYR5PF2YMA3DNRTNUERWDLZTDQTMCKC3RQKJ :::: NAILARA AMOS :::
-# :: AOGBRKMWRVBFDTEP7AXE5QNAKLWK2JNI7SAAIRP6Z4NKIA46IWBI :: CODE SIGNATURE ::
+#JYAM4RHDZFCH3JWA2PA6DB5ADZOKMDN4XVBQAUUPCUWIWPHJSNOCPMGUTHBB7K4OJ5P3FCZDJKLWU
+#::: EKTJFODVZONXBTTTTRAHDKPIDJX43IRGUW3V7C72XW7ISFOXTGK :::: NAILARA AMOS :::
+# :: P6HWH3JXYPWIONDWISX4UCZHVNLDYDZMQFDI6NFZY3ACHIXEAEAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

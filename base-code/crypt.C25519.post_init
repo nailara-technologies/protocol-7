@@ -32,13 +32,16 @@ if ( not defined $home_dir or !-r $home_dir ) {
 
 return -1 if not <[crypt.C25519.chk_key_dir]>;    # <-- creates if missing ..,
 
-<[crypt.C25519.auto_convert]>->($key_dir);  ## <-- [ update filename structure ]
+<[crypt.C25519.auto_convert]>->($key_dir)
+    ;    ## <-- [ update filename structure ]
 
 my $secret_key_file = $key_filename->{'secret'};
 my $public_key_file = $key_filename->{'public'};
 
 if ( !-f $secret_key_file and !-f $public_key_file and -w $key_dir ) {
-    <[base.log]>->( 0, "generating C25519 'base' key pair for '$key_usr' ..," );
+    <[base.log]>->(
+        0, "generating C25519 'base' key pair for '$key_usr' ..,"
+    );
     my %key_b32 = ( 'secret' => '', 'public' => '' );
     if (<[crypt.C25519.gen_keys]>) {
         <[crypt.C25519.write_keys]>;
@@ -73,7 +76,7 @@ if ( defined <system.zenka.type>
 0;
 
 #.............................................................................
-#45R6IGVQQ4SG6ZNA7LJ2YTURXMF4NFXFFG6X6MOWLMTUWH2IDVJP3SRAKDJ43JZWNOEDANZDCHHNG
-#::: 7APSDI4DYUCWHKHVV46QMPBGZW2UFVCKU5J3DPH3MHOBMY5475Q :::: NAILARA AMOS :::
-# :: IBSR5CT2U6M5OQIGH4ZEL3KLH5O4ZAPK37IITUFZEBTQFGOI2MBI :: CODE SIGNATURE ::
+#QKV5YM3QHIYB7FYVJ7SODHOJTNV6PK3U2CAKFCNSHH6DZLKGLEYFETCMVIOPLGPQHKDMR32VKL6VI
+#::: DR3HNPBAUMCDFXEAD4YJKLAKCTPQPYENUVBEKJCLJK2ZMPHRLPH :::: NAILARA AMOS :::
+# :: R3B5ZRZOJ3D6EOLXNHEHLAIQKD4WEOEMKZXPOUOPJFDMEVBYVMAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
