@@ -594,7 +594,7 @@ sub prepare_subs {
                 $data{'system'}{'use_http_source'} = 1;
             }
             if ( $arg eq '-export-core-subs' ) {
-                $code{'dump_cube_subs'}->();
+                $code{'dump_core_subs'}->();
                 exit(0);
             }
         }
@@ -724,12 +724,12 @@ sub prepare_subs {
         say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0001'}, ":\n",
             ':', $ANSI{'reset'}, ' ', $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'},
             $version_str, $ANSI{'reset'}, '    ', $ANSI{'p7_bg'},
-            $ANSI{'p7_fg_0000'}, $release_str, $ANSI{'reset'}," \r\n",
+            $ANSI{'p7_fg_0000'}, $release_str, $ANSI{'reset'}, " \r\n",
             $ANSI{'p7_fg_0001'}, $ANSI{'p7_bg'}, ':', $ANSI{'reset'}, " \r";
     };
 
-    $code{'dump_cube_subs'} = sub {
-        my %cube_subs;
+    $code{'dump_core_subs'} = sub {
+        my %core_subs;
         my $bin_path = $data{'system'}{'start'}{'exec_name'};
         open( my $p7_fh, $bin_path ) or die "$bin_path: $OS_ERROR\n";
         my %sub_src;
@@ -768,7 +768,7 @@ sub prepare_subs {
         my @zenka_commands;
         map {
             if (    $ARG !~ m{\.(callback|handler)\.}
-                and not exists $data{'base'}{'cube_subs'}{$ARG}
+                and not exists $data{'base'}{'core_subs'}{$ARG}
                 and $ARG ne 'base.log'
                 and $ARG ne 'base.s_read'
                 and $ARG ne 'base.gen_id'
@@ -793,7 +793,7 @@ sub prepare_subs {
 
                 push( @zenka_commands, $1 ) if $ARG =~ m|\.cmd\.(.+)$|;
                 --$purge_count              if $EVAL_ERROR;
-            } elsif ( not exists $data{'base'}{'cube_subs'}{$ARG} ) {
+            } elsif ( not exists $data{'base'}{'core_subs'}{$ARG} ) {
                 $data{'code'}{$ARG}{'status'}
                     = 'leftover';    ## kept \ essential ##
             }
@@ -1420,6 +1420,7 @@ sub prepare_subs {
                 $ok_count++;
                 if (    $sub_name !~ m{\.(cmd|console)\.}
                     and $sub_name =~ m|\.end_code$| ) {
+                    ## needs module namespace for defined callback order ##
                     push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
                 }
             } else {
@@ -1893,7 +1894,7 @@ sub prepare_subs {
     };
 
     map {
-        $data{'base'}{'cube_subs'}{$ARG} = $code{$ARG};
+        $data{'base'}{'core_subs'}{$ARG} = $code{$ARG};
         $data{'code'}{$ARG}{'status'} = 'core-sub'
     } keys %code;
 }
@@ -1903,7 +1904,7 @@ END {
 }
 
 #.............................................................................
-#ZJC6ZPHCOJJ5KTLKIFCHJ3BMYZ4RQE5XG7NVBJIORJA62ZJ7QDDJ7HTHD2OVJLG23ZHFGYUPQ7PUM
-#::: 5OQN6ASIW47GQ3AYEXSTMC2G6CFZXXIWII3JSUF2PMZCFFJQV3P :::: NAILARA AMOS :::
-# :: VTN4NM4NCQG6ON3FUQDTZCZ3LD6D2L6YBHUXWPGMP7L7U5IDNAAA :: CODE SIGNATURE ::
+#XACHUPZJLGTCV372NSYAHDMK2JB5CF3VXPHGPEWK6NLQDELADGUHOSJV7AKHHLJNNGFDQLMRPDEWS
+#::: JEMTFWQHENL4STUS6Z477BWZQJONXQKDDWC5SOEJKDQG4GMNZEJ :::: NAILARA AMOS :::
+# :: F5Q6XNCTL47BAMT36KG6JZPZH7YTWNAP6VKWTCL4U7CT5EBZBQBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

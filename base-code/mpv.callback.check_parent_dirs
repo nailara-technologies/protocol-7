@@ -16,8 +16,8 @@ my @cleanup_dirs;
 my $cleaned_total = 0;
 check_again:
 
-@dir_tree = reverse sort { length($a) <=> length($b) }
-    @{ <[file.all_dirs]>->( $check_path, 'recursive' ) };
+@dir_tree = <[base.reverse-sort]>
+    ->( <[file.all_dirs]>->( $check_path, 'recursive' ) );
 
 @cleanup_dirs = ();
 foreach my $check_dir (@dir_tree) {
@@ -36,13 +36,13 @@ $cleaned_total += $cleanup_count;
 goto check_again if $cleanup_count;
 
 my $ies = $cleaned_total == 1 ? 'y' : 'ies';
-<[base.log]>->( 1, "removed $cleaned_total empty director$ies.." )
+<[base.log]>->( 1, "removed $cleaned_total empty director$ies.," )
     if $cleaned_total;
 
 return $cleaned_total;
 
 #.............................................................................
-#GAVOXFTYYEC2IJV6FBVL6IH47YLNEASBWR6LMMVN4FASDP52CMG2W2TYBMTJ25MWLADTVYXARUPWY
-#::: BWZTQF2CMCTWXC7XK7YX4K4HDQGPIXJHNTG5U4UR6KZIYNIIZYD :::: NAILARA AMOS :::
-# :: ACGFKZTCZUCYLB6R6DVYVTPCL7CWIVBQRJ5MZMDELPOPRRL5I4AA :: CODE SIGNATURE ::
+#JMPMBOOS7GTJLJNAENW3T2RV4MUK2QQCLCMXEAHM776YTO6HOS4TOA5ZU7IMYQSQ3TTZ74GR5LWTY
+#::: HREUUYM6HB57IFZQM2KFL3PE43V364GWWXKQPG5ZE7Y3P4F3GI2 :::: NAILARA AMOS :::
+# :: JEJCMEDKBY7XECBD5DCY2H7MSECKBTKDBMSRE2O457RQQERCA4AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

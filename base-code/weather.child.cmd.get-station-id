@@ -2,7 +2,7 @@
 
 # name  = weather.child.cmd.get-station-id
 # param = <location>
-# descr = query / return station id for location name
+# descr = query \ return station id for location name
 
 my $station_id;
 my %total_matches;
@@ -39,7 +39,7 @@ foreach my $location_data ( @{ $json_response->{'list'} } ) {
     my $match_name = $location_data->{'name'};
     $total_matches{ $location_data->{'id'} } = $match_name;
     if (   $result_count == 1
-        or $match_name =~ /^$location_name/i ) {
+        or $match_name =~ m|^$location_name|i ) {
 
         if ( $use_first_match and $matches ) {
             <[base.log]>->(
@@ -78,10 +78,10 @@ if ( not defined $station_id ) {
         = "/var/tmp/weather.replied-locations." . encode_b32r($location_name);
     my @match_entries
         = map {"[ID=$ARG] $total_matches{$ARG}"} keys %total_matches;
-    my $matched_names_list = join( '',
-        map {"$ARG\n"} sort { length $a <=> length $b } @match_entries );
+    my $matched_names_list
+        = join( '', map {"$ARG\n"} <[base.sort]>->(@match_entries) );
     eval { <[file.put]>->( $lpath, $matched_names_list ) };
-    <[base.log]>->( 0, "returned locations -> $lpath" ) if !$EVAL_ERROR;
+    <[base.log]>->( 0, "returned locations --> $lpath" ) if !$EVAL_ERROR;
 }
 return {
     'mode' => 'nak',
@@ -93,7 +93,7 @@ return {
 return { 'mode' => 'ack', 'data' => $station_id }
 
 #.............................................................................
-#WC5RFR2GUZ5REMEOQWOGAHGYDGZGSANBOTFKNSCBSYUXP62JMPYCKDXKQI5X4ZC3T2AXJM6FMNNRO
-#::: CQH5RFQJPB23SAQBR3RWWSVNYCBKHVILPKV26JEPWT4W76HIB2M :::: NAILARA AMOS :::
-# :: OFHSASR7RDRW7J3BUYQWD3E7OKTDG3MPGHF4GTCZIQVKK2ZV7ABI :: CODE SIGNATURE ::
+#M74GNSGREKPFXSIKG2FYY4I3KDXGTCNRFQ63U4WSSE7S5QFR5IGNFYASSP2GEAAN6VM42OPIZLZFO
+#::: AFURICFH6Q4BHUSCA5UGJ2CER26JYQ7H25H2TBMVHHG5AGCIPWV :::: NAILARA AMOS :::
+# :: N4IIXW54UE46DFLQCBUYUEAIWYHR2F4VCMESBIMKRPRDGLHNXCDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

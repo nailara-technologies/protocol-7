@@ -2,16 +2,15 @@
 
 # name  = debug.cmd.list-subs
 # param = [pattern]
-# descr = list all matching zenka subroutines
+# descr = list [matching] zenka-subroutines
 
 my $pattern = $$call{'args'};
 my $coderef = \%code;
 
 return {
     'mode' => 'data',
-    'data' => "\n### list of loaded zenka subroutines ###\n\n"
-        . join( "\n", sort { length $b <=> length $a } sort keys %{$coderef} )
-        . "\n\n"
+    'data' => "\n### list of present zenka-subroutines ###\n\n"
+        . join( "\n", <[base.reverse-sort]>->($coderef) ) . "\n\n"
     }
     if not defined $pattern;
 
@@ -22,28 +21,26 @@ if ($EVAL_ERROR) {
     ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
     return {
         'mode' => 'nak',
-        'data' => "invalid regular expression '$pattern' [ $reason ]"
+        'data' => "regular expression '$pattern' not valid [ \l$reason ]"
     };
 }
 
-my @sub_list
-    = sort { length $b <=> length $a }
-    sort grep {m|$pattern|} keys %{$coderef};
+my @sub_list = grep {m|$pattern|} <[base.sort]>->($coderef);
 
 return {
     'mode' => 'nak',
-    'data' => "no loaded subroutines match '$pattern'"
+    'data' => "no loaded zenka-subroutine matches '$pattern'"
     }
     if !@sub_list;
 
 return {
     'mode' => 'data',
-    'data' => "\n# .: zenka subroutines matching '$pattern' :.\n\n"
+    'data' => "\n# .: zenka-subroutines matching '$pattern' :.\n\n"
         . join( "\n", @sub_list ) . "\n\n"
     }
 
 #.............................................................................
-#45XZPSK4MO4QXGFXBDPVIW4YXJX5WLPE36GWEVWAUJEJC24SJJ62K4M5Q6NBU6G5EIFMDTC5OJFDO
-#::: GEPVT3UY2BIV4Z3SHKAHPN63T4RJNFU7HKFIR33Z457DCNKX5DU :::: NAILARA AMOS :::
-# :: C2JFKSV4BEBERCAOYUARSWUVXS3ZQGYQLBUOPRUDZBSFA53MIWAI :: CODE SIGNATURE ::
+#JRM2MSAMRBEZMFLTFKSJGPQVZLHP2BECXUOQQDFPFS7PSF2T3VGFCIO3AWWTXW46RKOSRF7I37Z6E
+#::: 3O3X5TQ7BWN3N7DE74JWW6V2BA2ZLVXZUJNKZWYDUAPGVCG3RR5 :::: NAILARA AMOS :::
+# :: GBSSM6T6EAVWTMQ3CD3ERWX64DHHVN5LYUADSBRYVQPG3P7HSYBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

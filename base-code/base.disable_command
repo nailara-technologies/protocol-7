@@ -3,8 +3,8 @@
 # name  = base.disable_command
 # descr = permanently disable / remove a specific command
 
-my @requested = sort { length($a) <=> length($b) } @_;
-die "expected list of commands to disable" if !@requested;
+my @requested = reverse <[base.reverse-sort]>->(@_);
+die 'expected list of commands to disable' if !@requested;
 $data{'disabled_commands'} //= [];
 
 my $s = @requested > 1 ? 's:' : '';
@@ -25,7 +25,7 @@ map {
 } @{ $data{'disabled_commands'} };
 
 #.............................................................................
-#6CP5YJQACYNPKV5UQOVHFBQ7OJF4KYPZ7VDOWNWPD45TWRO4DTJFUN3A57ZNWNOOLRQDVQAIIEM5A
-#::: QKS5SLD7UJXTFWRXCJRYDCKJORZDJPL6VHPO7XFERAX36PQNPQB :::: NAILARA AMOS :::
-# :: I6B5FDMLZWIII7V4ZPREZAAFTJNNZNZDTHMDLH7XXI4SN5HV5SDY :: CODE SIGNATURE ::
+#5V4REVHM6YT24FKBVWFDFHWRRQ35YVFKZNY52F44XD7E3YJCQPJYJWCYORI2KNOBXPRCTRY4WDJ4E
+#::: BNOLRHU3BW7NGMLU5X4PIP4VML35PZIGBBRXA3X5CXODFSXRBYC :::: NAILARA AMOS :::
+# :: RSGSKJMKASYLGEJJJQKUAMVTJN7QJWC2LY275MPBNRIUOB6KZODI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,25 +2,22 @@
 
 # name = httpd.new_header
 
-my $code   = shift;
-my $params = shift // {};
+my $code       = shift;
+my $params     = shift // {};
+my $status_str = <protocol.http.status_codes>->{$code};
 
-$code = 500
-    if not defined $code
-    or not exists <protocol.http.status_codes>->{$code};
-my $status_str  = <protocol.http.status_codes>->{$code};
-my $server_date = time2str(time);
-$params->{'Date'} = $server_date;
+$code = 500 if not defined $code or not defined $status_str;
 
-my $header_str = "HTTP/1.1 $code $status_str\r\n";
+my $header_str  = "HTTP/1.1 $code $status_str\r\n";
+my $server_date = $params->{'Date'} = time2str(time);
 
 map { $header_str .= "$ARG: $params->{$ARG}\r\n" if defined $params->{$ARG} }
-    sort { length($a) <=> length($b) } sort keys %{$params};
+    <[base.sort]>->($params);
 
 return $header_str . "\r\n";
 
 #.............................................................................
-#GV545NVPWL5UELDM4RYLPRGDMCZKKWEFFOW3CVJSXPGJ6UVJRU5O7ZHW5HHWGHUFNMDYNYXLUTNG2
-#::: Y3KC6WNM7ILEU72H2IIZR4ZZ7PDGFAJHA46SMF26AUNS6AQ7OTO :::: NAILARA AMOS :::
-# :: 53A3JJT7OVMZZWLCQHIU77WPMSCFRNTN4VUAF6AFIQ2BLAPM6MBQ :: CODE SIGNATURE ::
+#KWSGDXT6K2VM6YHRBIGGTRFAHUZQHOD23KUUQ7VVONYNQ5XFVPR2LEIOUEJ4Y7W4SAVCEB5TNNPCY
+#::: RUGOBTTKTPK2JG5UCWUIK5O2FX3BVESETJG34R3JXQZ56A7HFEN :::: NAILARA AMOS :::
+# :: T4VYH3DVCZHRFSHM37WZJPCFPMHK625SGJYY66T73F54RWODWSBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

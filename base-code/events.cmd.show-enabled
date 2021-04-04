@@ -11,8 +11,7 @@ return { 'mode' => 'nak', 'data' => 'no events are enabled' }
     if not defined <events.enabled>
     or !keys %{<events.enabled>};
 
-my @enabled_events
-    = sort { length $b <=> length $a } reverse sort keys %{<events.enabled>};
+my @enabled_events = <[base.reverse-sort]>->(<events.enabled>);
 
 return {
     'mode' => 'data',
@@ -20,7 +19,7 @@ return {
     }
 
 #.............................................................................
-#6MBJGRIKZC7O6FKLX7KEPTDYUJLKIZ4SMXQOZBODDBNVXEOR6CE7QP4ZU7PBFW53GJ46EQONRJAMS
-#::: I2KQGI47FWGVK5YYRES33M2L7X6KKBPKDLRAODTSWVH7E3HQLXX :::: NAILARA AMOS :::
-# :: 75XUWHPDQBESBSRTCVG5OFFNRYARZUCCUVZMAST2ZWH2AYUOBKCA :: CODE SIGNATURE ::
+#VFSH3VMCOKXJQO7K75724QJFPWTUBICW24VXDIXESS77Z4YBXLVFOLCYWRP45OKLOBYKIKKDXCYPO
+#::: OLBDBMLTEK63DHWAY7WHFKKMIVJIANZSUSAGNGENDGA2WXDZUUT :::: NAILARA AMOS :::
+# :: 6OEJLQZUA6GON5TIT3VB43CYDPTXWWYMVDLU7Y2WWWJLTB5HJKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
