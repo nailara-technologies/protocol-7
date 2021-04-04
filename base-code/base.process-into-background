@@ -1,0 +1,32 @@
+# >:]
+
+# name  = base.process-into-background
+
+<[base.log]>->( 1, 'process going into background..,' );
+
+chdir '/' or die "cannot chdir to / : \l$OS_ERROR";
+open STDIN, '/dev/null'
+    or die "cannot open /dev/null for reading : \l$OS_ERROR";
+open STDOUT, '>/dev/null'
+    or die "cannot open /dev/null for writing : \l$OS_ERROR";
+defined( my $pid = fork ) or die "cannot fork : \l$OS_ERROR";
+exit if $pid;
+POSIX::setsid() or die "setsid() not successful : \l$OS_ERROR";
+open STDERR, '>&STDOUT' or die "cannot dup stdout : \l$OS_ERROR";
+
+IO::AIO::reinit();   # <- makes base.s_read() and base.s_write() work again...
+
+# if($pid=fork){exit($pid)}
+# else
+# {
+#     close(STDIN);
+#    close(STDOUT);
+#    close(STDERR);
+#
+# }
+
+#.............................................................................
+#UO67HM6AVFL2YUF5KLGOZS4HBBS6JA27WODRNHYUDLTDRLSNR5DEIIYQXDL6R2OGMGYRJFHUDZL6S
+#::: 4WNLHX34ME3VKQNKYTP3KFYNJKNZ4V73MJLG7F7ZJ4XU6LBNOQI :::: NAILARA AMOS :::
+# :: AV3IZNGNGZ57HH4SHGPUABDSGP3FDSWLOTVLNG3T5H4SDGXFUEAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
