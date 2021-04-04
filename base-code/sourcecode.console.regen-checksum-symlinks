@@ -6,8 +6,6 @@
 my $source_version  = <protocol-7.src-ver>;
 my $release_version = <protocol-7.rel-ver>;
 
-# my @copy_sources = (<system.code_path>);   # <-- change to previous version..,
-
 my $path         = <sourcecode.path>;
 my $work_tree    = $path->{'work_tree'};
 my $source_root  = $path->{'source_dir'};
@@ -18,7 +16,7 @@ map {
     my $source_path = catfile( $work_tree, $ARG );
     die "source path $source_path does not exist" if !-d $source_path;
     push( @copy_sources, $ARG );
-} qw| bin cfg base-code |;
+} qw| bin configuration base-code |;
 
 <[base.log]>->( 1, ".:[ UPDATING SOURCE CHECKSUMS ]:." );
 <[base.log]>->( 1, ": verifying directory structure.," );
@@ -36,7 +34,7 @@ if ( !opendir( $dir_fh, $version_root ) ) {
     );
     <[base.exit]>->(2);
 }
-my %vers_dirs = map { $ARG => 1 } grep { !/^\./ } sort( readdir($dir_fh) );
+my %vers_dirs = map { $ARG => 1 } grep { !m|^\.| } sort( readdir($dir_fh) );
 closedir($dir_fh);
 
 my $target_path = catfile( $version_root, $source_version );
@@ -81,10 +79,7 @@ my $dup_msg_str = $count_delta == 1 ? ' has' : 's have';
 <[base.log]>->( 2, ": [ $count_delta file$dup_msg_str the same content ]" );
 my $skip_count = 0;
 $file_count = 0;
-foreach my $src_file_rel (
-    sort { length($a) <=> length($b) }
-    sort keys %{$source_paths}
-) {
+foreach my $src_file_rel ( <[base.sort]>->($source_paths) ) {
     my $file_checksum   = $source_paths->{$src_file_rel};
     my $src_file_path   = catfile( $work_tree, $src_file_rel );
     my $dst_file_path   = abs_path( catfile( $target_path, $file_checksum ) );
@@ -120,10 +115,7 @@ my $dest_paths = <[source.acquire_checksums]>->( $target_path, 224 );
 delete $dest_paths->{'.path-desc'};
 my $target_count = keys %{$dest_paths};
 my $copy_success = 0;
-foreach my $chk_path (
-    sort { length($a) <=> length($b) }
-    sort keys %{$dest_paths}
-) {
+foreach my $chk_path ( <[base.sort]>->($dest_paths) ) {
     delete $dest_paths->{$chk_path} and $copy_success++
         if $dest_paths->{$chk_path} eq $chk_path;
 }
@@ -140,10 +132,7 @@ if ( $target_count and $target_count >= $count_unique ) {
 
 <[base.log]>->( 1, ": replacing source files with symlinks" );
 my $link_count = 0;
-foreach my $src_file_rel (
-    sort { length($b) <=> length($a) }
-    sort keys %{$source_paths}
-) {
+foreach my $src_file_rel ( <[base.reverse-sort]>->($source_paths) ) {
     my $file_checksum  = $source_paths->{$src_file_rel};
     my $src_file_path  = catfile( $work_tree,   $src_file_rel );
     my $dst_file_path  = catfile( $target_path, $file_checksum );
@@ -161,7 +150,7 @@ foreach my $src_file_rel (
 }
 
 #.............................................................................
-#O6JYFCAK6N7TWJ443PI6HKTYHRCKL3ZRCGKP4V7D5EHG3E4JH46BBKGI2W56LQYHY2NW464UKEI2S
-#::: VBWFLDLDGJVYZHZ6NNVQYHWU5C44WG6TX5VRCFLJ6BWXRVG2DZG :::: NAILARA AMOS :::
-# :: F63XC4QRMFXLYWNCDUKMCYNKRIGLNKXF6PNVCQ42NE3V5UCHDUDI :: CODE SIGNATURE ::
+#KJD5B5P5UQF6TYYBAYU2DODWJ2KNKNLR2APIDJUXSZIP3N3XKTXOMA2ODJIJOCHMIKC33VA3HHWWM
+#::: IJXALVH65MB6LLTI43YHETPODWUIPKULIYD757VHD76P4UIJP5V :::: NAILARA AMOS :::
+# :: HBU2K7AK5MNJHSTSZLMTSUTRKKEOWRC2ZQ4R2URXIQI33KMBTACI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

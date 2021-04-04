@@ -1,7 +1,7 @@
 # >:]
 
 # name  = debug.cmd.unload-dbg-mod
-# descr = remove all loaded debug subroutines
+# descr = undefine loaded debug-subroutines
 
 my $id = $$call{'session_id'};
 
@@ -10,12 +10,15 @@ my $id = $$call{'session_id'};
 return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
-my %mod = map { $ARG => 1 } split / +/,
-    <modules.load>;    # LLL: <!> create iface
+## [LLL] create interface
+my %mod = map { $ARG => 1 } split( m| +|, <modules.load> );
 if ( delete $mod{'debug'} ) {
-    <[base.log]>->( 1, "<!> persistently disabling debug module <!>" );
-    <modules.load>
-        = join( ' ', sort { length $a <=> length $b } sort keys %mod );
+    <[base.log]>->( 1, '<< [persistently] disabled debug module >>' );
+
+    ## account for deprecated configuration style ##
+    <modules.load> = join( ' ', <[base.sort]>->( \%mod ) )
+        if defined <modules.load>
+        and <modules.load> =~ m|(*nlb:\S)debug(*nla:\S)|;
 }
 
 <[base.log]>->( 0, "[$id] unloading debug source code ..," );
@@ -25,12 +28,12 @@ if ( delete $mod{'debug'} ) {
 return { 'mode' => 'ack', 'data' => 'debug commands removed =)' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
-<[base.log]>->( 0, "<!> unable to remove debug module <!>" );
+<[base.log]>->( 0, '<< removing debug module not successful >>' );
 
 return { 'mode' => 'nak', 'data' => 'can not remove debug module `:|' }
 
 #.............................................................................
-#BD3QFPOB6GVD65LI6YDC47LZGRYKRBDZWFUEAY2BQWNMCPN5EQOUXB6WMHX2IK4VZIKKNQNYWCYPK
-#::: PWY5GLBD7C5M6NTRIGVJYW7NIEXLUHEQL5REZOD7TN7ADBDPDZZ :::: NAILARA AMOS :::
-# :: SFLVEKFYBYILBJZN5JW4OIYVE66RVYY6XU5IVJVELNFV27MSB4CA :: CODE SIGNATURE ::
+#HURXJKB24E2QS6PVGVL3YNYAHO3QDVWPHFBXLHQVUEKAAUYPDQITKYWX2PLEXKW2VW5OXM5GGMZBW
+#::: FR4QD5OOQBDF7MR6QT2BBCTTY5YLDRV2V5ZZCNZPU6FJEO5LHWF :::: NAILARA AMOS :::
+# :: VRTTRDYUTMN6ORIY35C5WAUWJJWHCNLSASXJA5ABWMSNOV4CKOCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

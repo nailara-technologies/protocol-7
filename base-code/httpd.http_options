@@ -6,15 +6,14 @@ my $id       = shift;
 my $session  = $data{'session'}{$id};
 my $response = $session->{'response'};
 
-my $options_str = join( ', ',
-    map {uc} sort { length $a <=> length $b } sort keys %{<http.handler>} );
+my $options_str = join( ', ', map {uc} <[base.sort]>->(<http.handler>) );
 
 $response->{'params'}->{'Allow'} = $options_str;
 
 return <[httpd.http_head]>->( $id, 204 );
 
 #.............................................................................
-#ECLYEOKTPGLCWHBNCADWZMORJ6XLEO75R3RHR22FOROUIGC5AE2H6N34DOH6DKL7RR5BK6KXMCCQQ
-#::: QPOZ7POOSZWLW4T2H5DEGHRBPFJDJAEXQPJ77SXATTUGUK3UPBV :::: NAILARA AMOS :::
-# :: 4PE5EIFELROR4MCIDXIXLDIQNBOIUFO7F5EPIYMNEXPQRH4ALYCY :: CODE SIGNATURE ::
+#ZQQ2G5V7RYJ3OJMPNEGFZTEHRNKFZ6LAWFWMDZQEAISFXJPR2LDPIZE5ACS5M6NNSMT22JWNWCPIG
+#::: JBRQK45B6ZMGDUJGLMELLPE34PCOP3IJEIYXSF6WFDP75SZFFP3 :::: NAILARA AMOS :::
+# :: 6WU3BXPFLR6VUZQIMQGJ4EXX36RVNLHJ2DYWG365SO5P4O3DVSBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

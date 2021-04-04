@@ -6,10 +6,9 @@
 
 <[base.log]>->( 2, ': compiling command permission masks..,' );
 
-my $errors = 0;
-
 my $user_re = <regex.base.usr_str>;
 my $cmdp_re = <regex.base.cmdrp>;
+my $errors  = 0;
 
 my $log_permission_masks = <system.access.log-permission-masks> //= 1;
 my $warn_level = 1;    ## <-- log level for enabled wildcard pattern masks
@@ -33,10 +32,7 @@ my $disallowed_match = {};
 my $disallowed_count = 0;
 
 my $user_processed = {};
-foreach my $user (
-    sort { length $b <=> length $a }
-    reverse sort keys( %{<access.cmd.usr>} )
-) {
+foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
     my $access_cfg_mask = <access.cmd.usr>->{$user};
     my @regex_mask;
     my $pos = 0;
@@ -70,8 +66,8 @@ foreach my $user (
     } else {
         my $patterns_removed = 0;
 
-        my @split_mask = uniqstr sort { length($b) <=> length($a) }
-            reverse sort split( m|[ \t]+|, $access_cfg_mask );
+        my @split_mask = <[base.reverse-sort]>
+            ->( uniqstr split( m|[ \t]+|, $access_cfg_mask ) );
 
         my @patterns_kept;
         foreach my $cmd (@split_mask) {
@@ -122,7 +118,6 @@ foreach my $user (
                     );
                     $errors++;
                 }
-
                 use warnings;
                 $pos++;
             }
@@ -156,7 +151,6 @@ foreach my $user (
         }
 
         my $user_differs = $user ne $config_user ? " \t<-- $config_user" : '';
-
         my $mask_log_str = "\n,: $user :.$user_differs\n:\n";
         while (@encoded_wrap) {
             my $add_segments = 5;
@@ -167,7 +161,6 @@ foreach my $user (
             $mask_log_str .= "\n";
             $mask_log_str .= ":.\n" if !@encoded_wrap;
         }
-
         $access_regex_log->{$user} = $mask_log_str;
 
         ## ################################################################ ##
@@ -197,46 +190,33 @@ if ($disallowed_count) {
     map { <[base.log]>->( 0, $ARG ) }
         ( "::[ disallowed command access pattern wildcard$s ]:.", ':' );
 
-    my $pm_len = max map {
-        map {length}
-            keys %{ $disallowed_match->{$ARG} }
-    } keys %{$disallowed_match};
+    my $pm_len = <[base.max-len.val-hash-keys]>->($disallowed_match);
 
-    foreach my $user (
-        sort { length $b <=> length $a }
-        reverse sort keys %{$disallowed_match}
-    ) {
+    foreach my $user ( <[base.reverse-sort]>->($disallowed_match) ) {
         map {
             <[base.log]>->(
                 0,
                 sprintf( ":   removed   :   %${pm_len}s   .:.  '$user'",
                     $ARG )
             )
-            }
-            sort { length $a <=> length $b }
-            reverse sort keys %{ $disallowed_match->{$user} };
+        } <[base.sort]>->( $disallowed_match->{$user} );
     }
     <[base.log]>->( 0, ':.' );
 }
 
+return $errors if !keys %{$access_regex_log};
+
 ### logging [remaining] permission mask regex ###
-
-return $errors if not $log_permission_masks;
-
-my $log_level = 2;    ## create security log buffer ? ##          [LLL]
-foreach my $user (
-    sort { length $b <=> length $a }
-    reverse sort keys %{$access_regex_log}
-) {
+foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
+    my $log_level = 2;    ## create security log buffer ? ##          [LLL]
     map { <[base.log]>->( $log_level, length($ARG) ? "   $ARG" : ':A:' ) }
-        split "\n",
-        $access_regex_log->{$user};
+        split( "\n", $access_regex_log->{$user} );
 }
 
 return $errors;
 
 #.............................................................................
-#TD6Z3YG4MOSLYT2TONMT4XI2CYHWAW6ETSZXB32T3LNH57GVDYAGWRVOC7XSFIJQ5LTDN32EAPHN6
-#::: JTL6NM36QQVS4I4GICQ3NAQDDFRQOKON7B6UYSM2TOUCD7TPJ7R :::: NAILARA AMOS :::
-# :: MMVELLDAIFHASGB3UBHBGB3ZQ4F5IIBZHQUF4DRJRUUFU37352BQ :: CODE SIGNATURE ::
+#GWFA52A6D37UYREQSVHJD52AQL6JFETIHJYGHYSLQFA6HW4MWGLG4ZWCAY4TCAOG33X2QROD26ESW
+#::: TVK7SUDZS44DKGGPGBGZSNRPYCQGJUQIIIRLT6CV32OHNH2KJ7G :::: NAILARA AMOS :::
+# :: T2AOMV4OVWKUHI7OWYTHK7WRRE5JKQ3ET37FT4ZAMR5ZC4ASYIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

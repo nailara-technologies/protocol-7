@@ -8,21 +8,34 @@ my $cfg_path = <system.conf_path>;
 my $warned   = <base.register_bin_deps.warned> //= 0;
 my $bin_deps = <[base.get_path.zenka_cfg]>;
 
+my @not_registered;
+
 if ( $bin_deps =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka/os-dep/binary|
     and -d $bin_deps
-    and -w $bin_deps ) {
-    foreach my $bin_name ( sort keys %binaries ) {
+    and -r $bin_deps ) {
+    foreach my $bin_name ( <[base.reverse-sort]>->( \%binaries ) ) {
         next if -e "$bin_deps/$bin_name";
-        my $fh;
-        open( $fh, '>', "$bin_deps/$bin_name" ) and close($fh);
+        if ( -w $bin_deps ) {
+            my $fh;
+            open( $fh, '>', "$bin_deps/$bin_name" ) and close($fh);
+        } else {
+            push( @not_registered, $bin_name );
+        }
     }
-} elsif ( -d $bin_deps and -r $bin_deps and not $warned ) {   ##  <--  <<< ! >>>
-    <[base.log]>->( 0, 'cannot register binary dep. [ os-dep dir read-only ]' );
+}
+
+if ( @not_registered and not $warned ) {
+    <[base.log]>->(
+        0,
+        'cannot check \ register binary dep. '
+            . join( ', ', map {"'$ARG'"} @not_registered )
+            . ' [ os-dep dir read-only ]'
+    );
     <base.register_bin_deps.warned>++;
 }
 
 #.............................................................................
-#GXJ6UYGE32MWDMELYLFYMIYLFXT55TXEWVMUU4KPZFZTGLALHI6RZJ4TQBYWAUPW63JW5PGD3LFJI
-#::: E4C5JUU2DCPWTVRRMB6EWPMMZPWLYJAV2AERL6CTWAX33LAF2BQ :::: NAILARA AMOS :::
-# :: LG5RVTX7HSNL6FAR66AH7BI5BSOBEPZS7L5WZR675ATQQJXPJSAY :: CODE SIGNATURE ::
+#CICSDNHF4BEPVRUCWLXE7L3UUKOLMWDW3Z7FDAUOIA6DOL7MXTTIWCJKCBOFQTAJAYXAT6UHYHKI4
+#::: GZZ2Z2L4AOGRS4S2XSEXETMHTWYPCC6ANMI5UM3Y2CLLNGTQZBM :::: NAILARA AMOS :::
+# :: 6KRZQAT5C6O44RZDQOEHTG2TVE5VKXAFW2VGCQD225MCUBOHD4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+# >:]
+
+# name = base.cmd.dependencies
+# descr = return zenka dependencies [pkgs\pmods]
+# todo  = also implement binary dependency listing ..,
+
+my $width      = 67;
+my $return_str = "\n";
+my @pmods      = <[base.sort]>->(<base.perlmod.loaded>);
+
+$return_str .= join( '', ' ' x $width, " . perl-mod .\n" );
+map { $return_str .= sprintf( "%${width}s :\n", $ARG ) } @pmods;
+$return_str .= join( '', ' ' x $width, " .\n" );
+
+return { 'mode' => 'data', 'data' => $return_str }
+
+#.............................................................................
+#4W7D2K3MY3I44QPQBCTKOHEVXTCPPIT3ASXRLPVOKFJLAKZ7O4YRYICDPHM2RL2YVG4FWBONRS6A6
+#::: MLB4FMO26UAGF3PSTVHL5ATPT3FUVGYHZX47DL3V6NKHWYHQB3A :::: NAILARA AMOS :::
+# :: HRFUJK5ZAADEKWZE7OL7YGP34R4PZUBMVTO5B5B5TUHBTRSIC4BI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

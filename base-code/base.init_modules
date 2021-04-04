@@ -4,29 +4,28 @@
 # descr = executes 'pre_init', 'init_code' and 'post_init' routines
 # todo  = track moved namespaces for agument list as well
 
-my @module_names = map { split m| +|, $ARG } @_;
+my @module_names = map { split m| +| } @ARG;
 
 my %skip_list;
 my $success = 1;
 delete <base.modules.moved_to>;
 <base.init_modules.sub_list> = [];
-foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
+foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
     if (@module_names) {
         @{<base.init_modules.sub_list>} = ();
         foreach my $name_pattern (@module_names) {
             push(
                 @{<base.init_modules.sub_list>},
-                sort     { length($a) <=> length($b) }
-                    grep {m|^\Q$name_pattern\E(\..+)?$|} sort( keys(%code) )
+                grep {m|^\Q$name_pattern\E(\..+)?$|} <[base.sort]>->( \%code )
             );
         }
     } else {
-        @{<base.init_modules.sub_list>} = sort { length($a) <=> length($b) }
-            grep {m|^base\.|} sort( keys(%code) );
+        my @sorted_subroutines = <[base.sort]>->( \%code );
+        @{<base.init_modules.sub_list>}    ## <-- 'base' routines first ..,
+            = grep {m|^base\.|} @sorted_subroutines;
         push(
-            @{<base.init_modules.sub_list>},
-            sort     { length($a) <=> length($b) }
-                grep { !m|^base\.| } sort( keys(%code) )
+            @{<base.init_modules.sub_list>},    ## <-- then other subroutines.
+            grep { !m|^base\.| } @sorted_subroutines
         );
     }
     foreach my $sub_name ( @{<base.init_modules.sub_list>} ) {
@@ -72,7 +71,7 @@ foreach my $init_mode ( 'pre_init', 'init_code', 'post_init' ) {
                     $success = 0;
                     <[base.log]>->(
                         0,
-                        ": module '$module_name' init not successful"
+                        ": module '$module_name'-init not successful"
                             . " [ $init_mode != 0 ]"
                     );
                 } else {
@@ -103,7 +102,7 @@ undef <base.init_modules>;
 return $success;
 
 #.............................................................................
-#F5CWV2E7H3J7UVLDWCVNMODMLZJVY6HYW2GB27N5UJUPIHWZYA6B26T7UF2KSH5ESAK7647EINCX6
-#::: 6565CK7BYLY6TEVFS3KQSA5W2VZKOMYNMTKUM6PXWDWRNKLGCEM :::: NAILARA AMOS :::
-# :: AKVPMNB226B653LII7AEDJL22RG7HKYOUHB23UDQAOK4XWWNPECY :: CODE SIGNATURE ::
+#242ZZMDUZV4UVTWPVQ6J6IGO2WQTR4SUVWEH24ETYSDPADJRFBA4HUMJ3OZZ556JGAG4VFSVC4BDG
+#::: IYNV6DIHZJMIZXYS4R5MMF5T4HUBWBZ5RWGQ4NY6LHZ3KALGHAV :::: NAILARA AMOS :::
+# :: XBTL4FRGJCTAN6HMTWG4D7VCYYKX4GRKPNIXCJJG4HU45OBA5OBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

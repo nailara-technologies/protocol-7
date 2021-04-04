@@ -12,7 +12,8 @@ if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
     if ( !-d $key_dir ) {
         <[base.log]>->( 1, "creating key directory '$key_dir' .." );
         eval {
-            make_path( $key_dir, { mode => 0700, uid => $uid, group => $gid } );
+            make_path( $key_dir,
+                { mode => 0700, uid => $uid, group => $gid } );
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
         return -2        if !-d $key_dir;    # <-- return error state
@@ -28,14 +29,8 @@ if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
 
 return 1          # <-- success [ true ]
 
-  #.............................................................................
-  #ZGQHV3C66QRDARLUZZGZ5ARMR4M2FUO37QCQENXEJFQIEVGXKUMLIY2IFV7EXSA3SJYQA47H7K7EK
-  #::: J36AMHNIOGUN2XOX3GG2ROF5BTNSSTSA7JDE5GEQACZHMZWEUUD :::: NAILARA AMOS :::
-  # :: H6IJN53M5VEJ3FBN4PANPB75JA2QDZIBXUXBYFH65QJX6EQYXQBI :: CODE SIGNATURE ::
-  # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 #.............................................................................
-#COB2L72DEBKKAT2XO2Z3HZXU2DZ3QP7E5F6PFIWVKSGLMYKWEIWIKHMZAB6NBGMCXYN4WMRAPLSBG
-#::: Z3IXGEOTAR4Q3X35M3ODYKLLBEZHKB3QZQMY7S3SD7UX6DGIVWM :::: NAILARA AMOS :::
-# :: DHIDYRKJV3FKVCWXZGT3JFPQXAOPZZVKAY3OEYGIT6RJF5UOEYBA :: CODE SIGNATURE ::
+#DCAVGK26Y7NH33OIBWONIACDYQT6VRUNAWTHT5IFFOCF3KNWZQ5T4EV3LZGYOCGYODIRQIC4UBYK2
+#::: EGW7WLFV75INNR23VRNMBDB6BEBZPAXKO6ENMHT4K5N4WJ3YBU3 :::: NAILARA AMOS :::
+# :: WEKEP4TAQZZWYR6WXUNY4XW2MJDERE6SWMZ66MKL7VUJOXITMWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

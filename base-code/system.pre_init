@@ -18,10 +18,7 @@ my ( undef, undef, $uid, $gid ) = getpwnam($uname);
 
 my $changes_made = 0;
 
-foreach my $chk_path (
-    sort { length $b <=> length $a }
-    reverse sort keys %{$paths_and_modes}
-) {
+foreach my $chk_path ( <[base.reverse-sort]>->($paths_and_modes) ) {
 
     # $chk_path .= "/$sub_dir";## disabled \ unused ., ##
 
@@ -77,7 +74,7 @@ foreach my $chk_path (
 0;
 
 #.............................................................................
-#G6G2HIXZBZXZMHYYRDHHH4OHILBJ3X7QX2M4TTRN5M64IBNUAHL7SRJYCPLPDMIZKUXZZUBHTNUH2
-#::: QA2HVKSWHU2QGRW6DPGD5NVH4XJ6K7AOCXJQPUZDYQ3E5GWROWL :::: NAILARA AMOS :::
-# :: 6U3FHXZ77U7LE3MNCTQGTFVCXLLHEQYRR5EGJNZ7WE5GQ244FGBI :: CODE SIGNATURE ::
+#22RBDIZXKID77PDLLUXR5USLMSWMEG3ZJSCAYUGUQGIWAPTO5GYXR3VFRJ5YIKRLSCH674F53EEOW
+#::: PILPCIV3J7MMFUCIO4OSZY656AFHIBOUO66JL6UN7OCKUK2YYJH :::: NAILARA AMOS :::
+# :: J7SUCTVXLO74PFOTWVGHUSORTM2Y6K56OAGQ2H4YDZSDO5ZNUMBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

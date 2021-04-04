@@ -20,10 +20,7 @@ map { $ARG =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$ARG} //= 1 }
 my $max_len = 0;
 
 # getting a list of all commands the user [ who sent the request ] has access to
-foreach my $cmd (
-    sort { length($b) <=> length($a) }
-    reverse sort keys %{<base.cmd>}
-) {
+foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
 
     next if not <[base.has_access]>->( $user, $cmd );
 
@@ -69,7 +66,7 @@ $$reply{'data'} .= "\n";
 $$reply{'mode'} = 'data';
 
 #.............................................................................
-#DIEXWPVZJOCOOTR2JYVAOYX5IALON4M727LXUITWHO2YLWGGFCRVKIVYHXNJQ45ENQLKBOKQTXS2I
-#::: UKCUSGLFMBVW7B6P2PGQRUTNTKOYJMWJS22IHDFGGLJ5GZ45ZW3 :::: NAILARA AMOS :::
-# :: HUIN3GLIFTQEUHGL65VMLKNBISRQW425OD5HDJMMX3K7BOT2RQBI :: CODE SIGNATURE ::
+#ANRPFWUBECIIV7VGBUXSGY4XZT3R4TA3ILUDQJRUPO55BJOAXJCSBAQY3LJ2H3PYM6LIQPVSETWIG
+#::: 7ZCGYBR6MTFFRL7A7LHERXISEYKMPBBURZBY3QTX7V6OLLKZ5DL :::: NAILARA AMOS :::
+# :: VYZF4ALQLFPCSDYLDSQB4WJVXYN4QPTIT2JZVPCJBM5ZQRBFQGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

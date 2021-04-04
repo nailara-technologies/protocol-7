@@ -22,9 +22,9 @@ my $special_users = {
 
 my @mapped_users;
 
-@mapped_users = map {"<$ARG>"} grep { $special_users->{$ARG} eq $user }
-    sort { length $b <=> length $a }
-    reverse sort keys %{$special_users}
+@mapped_users
+    = map {"<$ARG>"} grep { $special_users->{$ARG} eq $user }
+    <[base.reverse-sort]>->($special_users)
     if defined $user and $user ne '*';
 
 if ( defined $user ) {
@@ -44,17 +44,22 @@ if ( defined $user ) {
     }
     if ( $user ne '*' and defined <access.cmd.usr>->{'*'} ) {
         $reply_str .= sprintf ".\n:  %${max_len}s  :    %s%s\n", "'*'",
-            <access.cmd.usr>->{'*'}, '    ::  [  matches all users  ]';
+            join ' ',
+            <[base.sort]>->( split m|\s+|, <access.cmd.usr>->{'*'} ),
+            '    ::  [  matches all users  ]';
         $reply_str .= ".\n:\n";
     }
     foreach my $map_user (@mapped_users) {
         $reply_str .= sprintf ":  %${max_len}s  :    %s%s\n", $map_user,
-            <access.cmd.usr>->{$map_user}, $map_names->{$map_user};
+            join ' ',
+            <[base.sort]>->( split m|\s+|, <access.cmd.usr>->{$map_user} ),
+            $map_names->{$map_user};
     }
     if ( defined <access.cmd.usr>->{$user} ) {
         $reply_str .= sprintf( ":  %${max_len}s  :\n", '' ) if @mapped_users;
-        $reply_str .= sprintf ":  %${max_len}s  :  %s%s\n", $user,
-            <access.cmd.usr>->{$user}, $map_names->{$user};
+        $reply_str .= sprintf ":  %${max_len}s  :  %s%s\n", $user, join ' ',
+            <[base.sort]>->( split m|\s+|, <access.cmd.usr>->{$user} ),
+            $map_names->{$user};
     }
 
     $reply_str .= ":\n";
@@ -64,12 +69,10 @@ if ( defined $user ) {
 } elsif ( keys( %{<access.cmd.usr>} ) ) {
     my $max_len   = max map {length} keys( %{<access.cmd.usr>} );
     my $reply_str = ":\n";
-    foreach my $user (
-        sort { length $b <=> length $a }
-        reverse sort keys( %{<access.cmd.usr>} )
-    ) {
+    foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         $reply_str .= sprintf ":\n:  %${max_len}s  :    %s\n", $user,
-            <access.cmd.usr>->{$user};
+            join ' ',
+            <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) );
     }
 
     $reply_str .= ":\n:\n";
@@ -84,7 +87,7 @@ if ( defined $user ) {
 }
 
 #.............................................................................
-#ICX6CFK5D2DXFVN5Y7RI7FSRJ6WLMYXL3JDB2CEW5TBATFMZEFUICLCOOG43GBTLJ6UEBBQJFU2IC
-#::: ASZCKBL3HJ4XTVNXWN43HJLTTYWSENDLRZ263U4VA6SLD6AON7T :::: NAILARA AMOS :::
-# :: AS5RU6G5WRLQD7AMG3WTTS4LZVUW56FM6GTAKZBFVQY5OUO7KUDA :: CODE SIGNATURE ::
+#GS3DJ3LUFWRGAKAR4O3RTDKLCG3EYS75TU6RSOWPXWSU4RHZ5ZXSL5AN5WUFZKPCY3NRKJI2OGBRM
+#::: 5MUHOUA7Z6TKPAKQM5SVOK6CISQ6TD4QGGUSE3H2SDC52NG7QFJ :::: NAILARA AMOS :::
+# :: MTTK246JT5WSNWMVDBANCLOACQEZ75NJ6NTZDWN7T2RNEGPKZICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
