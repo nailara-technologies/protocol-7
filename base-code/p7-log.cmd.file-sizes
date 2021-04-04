@@ -1,12 +1,27 @@
 # >:]
 
 # name  = p7-log.cmd.file-sizes
+# param = [pattern]
 # descr = protocol-7 log file size summary table
 
-my $hostname  = <system.host.hostname>;
-my $reply_str = sprintf( "..%11s\n", '..' );
-return { 'mode' => 'nak', 'data' => 'nailara log directory not found' }
+my $name_pattern = $$call{'args'};
+
+my $system_name = <system.host.hostname>;
+my $reply_str   = sprintf( "..%11s\n", '..' );
+return { 'mode' => 'nak', 'data' => 'protocol-7 log directory not found' }
     if !-d <log.protocol_7.path>;
+
+$name_pattern = qr{.*/$system_name\..*\Q$name_pattern\E.*\.log$}
+    if defined $name_pattern;
+
+my @logfile_names = grep {m|/$system_name\.[^/]+\.log(\.\d+\.gz)?$|}
+    @{ <[file.all_files]>->(<log.protocol_7.path>) };
+
+my @result_names
+    = defined $name_pattern
+    ? grep {m|$name_pattern|} @logfile_names
+    : @logfile_names;
+
 my %file_size_str;
 my %file_size_raw;
 my %file_size_uval;
@@ -28,8 +43,7 @@ map {
         ? $1 * $unit_value{$2}
         : $file_size_str{$file_name};
 
-} grep {/\/$hostname\.[^\/]+\.log(\.\d+\.gz)?$/}
-    @{ <[file.all_files]>->(<log.protocol_7.path>) };
+} @result_names;
 
 foreach my $file_name (
     sort {
@@ -50,7 +64,7 @@ $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#Q3J5VPIKN3VYLVR2F2IJCP75ARGNHF5E7IAAN3MELERISYT22V6NSONTXIEWVGKZYBPYNAC4YZ2KW
-#::: YYBT5COEWTQBW5ODMBCGOXONWTAQDZ3EJ7UUFYQGOTAUCXPZFM7 :::: NAILARA AMOS :::
-# :: TVMNX5SXDUZQOA3MYHDSGH4624AUYWLG6K5CNJW52EMKRECP4ODY :: CODE SIGNATURE ::
+#Z7F3IUR6Z2HWSZBQPYOOSV5G647QMX73674BYN42A6LL65L6GJ5RBSZFLDWZCUNC76XRS2TDTIE3O
+#::: UHNFF56OSWIUYKZOJVFSFZ6VZBQHFSW33JHMSAYMOOZIIOAZYPN :::: NAILARA AMOS :::
+# :: XNUPL236BFKG5WUQWYDYWPVSJHBILU7Z2RDGEZDUQP4HRMZGI6BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

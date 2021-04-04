@@ -1,33 +1,53 @@
 # >:]
 
 # name  = p7-log.cmd.list-logs
-# descr = list log available log names
+# param = [pattern]
+# descr = list log available \ matching log names
 
-my @result_names;
+my $name_pattern = $$call{'args'};
+
+my @logfile_names;
 my $system_name  = <system.host.hostname>;
 my $log_dir_path = <log.protocol_7.path>;
 
-<[file.match_files]>
-    ->( \@result_names, $log_dir_path, "$system_name.**.log" );
+<[file.match_files]>->(
+    \@logfile_names, $log_dir_path, "$system_name.**.log"
+);
 
-map {
+$name_pattern = qr{.*/$system_name\..*\Q$name_pattern\E.*\.log$}
+    if defined $name_pattern;
+
+my @result_names
+    = defined $name_pattern
+    ? grep {m|$name_pattern|} @logfile_names
+    : @logfile_names;
+
+my $max_len
+    = max(
+    map { m,^.*/$system_name\.(.+)\.log$,; length($LAST_PAREN_MATCH) // 0 }
+        ( '', @result_names ) )
+    - 9;
+$max_len = 10 if $max_len < 10;
+
+map {    ## improve [ simplify ] regex ##                              [ LLL ]
     $ARG =~ s,^.*/$system_name\.|\.log$,,g;
-    $ARG =~ s|\.| < |;
-    $ARG .= ' >';
-    $ARG =~ s{^(.*) (\< .* \>)$}{ sprintf "%13s  %s",$2, $1 }e;
+    $ARG =~ s|\.| <|;
+    $ARG .= '>';
+    $ARG =~ s{^(.*) \<(\S+)\>$}{ sprintf ":%${max_len}s    :    %s",$2, $1 }e;
 } @result_names;
 
-my $header = "\n# [ log name ][ zenka ]\n\n";
+my $header = sprintf "\n.:%${max_len}s  .:.  %s   :.\n\n",
+    qw| log-name zenka |;
 
-return {
-    'mode' => 'data',
-    'data' => $header . join '',
-    map { sprintf "%-34s\n", $ARG }
-        sort( { length $a <=> length $b } sort(@result_names) ), "\n"
-    }
+my $reply_str = join( '',
+    $header, map { sprintf "%s\n", $ARG } <[base.sort]>->(@result_names) );
+
+$reply_str .= "\n" if scalar @result_names;
+
+return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#BB4Y4MZR2BHGXO765X5NTUBAXBNDMQR3GNRZ2M3IZLWQ56QRPF5GTZAOZIRBA5SSLCIYR6QQOJD2A
-#::: SGDVQKOBAKFYSGJIB7V4LDAV7TJEUMPWF7HDKNHBTA7VFDWBEXY :::: NAILARA AMOS :::
-# :: XDEVLESLDWF5ZBL3VETAUBEWQ63G3Z4MZW45WIOLIFZZMMITHUAY :: CODE SIGNATURE ::
+#XASG3XVFGHFIAYCOIZMS6GMXIXSQ6236SM46CHLDX5WIK32A5BLM3RXCMBPM6QQ5RV6ZBWW7TOTQ4
+#::: MOHDOSL5Z7LOPWE3LR2FPXQLNXR72YPLJOTGEVJIWHODXDBIHGE :::: NAILARA AMOS :::
+# :: D2BDZFA7ACK6HSOA67AZRITPIY3BPJ7GIYN3F5VQ75ZPZTCBTIBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
