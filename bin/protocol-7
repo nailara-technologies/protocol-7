@@ -56,7 +56,9 @@ if ( defined $zenkaname and $zenkaname ne '' ) {
 
     my @zenka_code = <STDIN>;
 
-    if ( $data{'system'}{'daemon_mode'} ) { $code{'base.daemonize'}->() }
+    if ( $data{'system'}{'background_mode'} ) {
+        $code{'base.process-into-background'}->();
+    }
 
     if (@zenka_code) {
         $data{'base'}{'config_parser'}{'cfg_type'}  = 'start_cfg';
@@ -562,7 +564,7 @@ sub prepare_subs {
                 $visualize->{'zulum'}      = 1 if $vis =~ m|z|;
                 $visualize->{'disharmony'} = 1 if $vis =~ m|d|;
             }
-            if ( $arg eq '-d' ) { $data{'system'}{'daemon_mode'} = 1 }
+            if ( $arg eq '-B' ) { $data{'system'}{'background_mode'} = 1 }
             if ( $arg eq '-stdin' ) {
                 $data{'system'}{'startup_initcode'} = 1;
                 $data{'system'}{'console-mode'} = 0;   ## LLL: more conditions
@@ -731,7 +733,7 @@ sub prepare_subs {
     $code{'dump_core_subs'} = sub {
         my %core_subs;
         my $bin_path = $data{'system'}{'start'}{'exec_name'};
-        open( my $p7_fh, $bin_path ) or die "$bin_path: $OS_ERROR\n";
+        open( my $p7_fh, $bin_path ) or die "$bin_path : \l$OS_ERROR\n";
         my %sub_src;
         my $sub_name;
         foreach my $src_line (<$p7_fh>) {
@@ -833,7 +835,7 @@ sub prepare_subs {
         if ( !opendir( $codedir_fh, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
             $code{'log.error'}->( ": can not open source code directory"
-                    . " '$data{'system'}{'code_path'}' [$OS_ERROR]" );
+                    . " '$data{'system'}{'code_path'}' [ \l$OS_ERROR ]" );
             return undef;
         }
         my @subroutine_names = sort { length $a <=> length $b }
@@ -1160,7 +1162,7 @@ sub prepare_subs {
                         ## loading code from disk [ including ./ext directory ]
                         $code{'log.debug'}->(":[disk]: $src_rel .,");
                         open( my $src_fh, '<', $src_abs_path )
-                            or die ":$src_abs_path : $OS_ERROR";
+                            or die ":$src_abs_path : \l$OS_ERROR";
                         $data{'code'}{$file_name}{'source'} = <$src_fh>;
                         close($src_fh);
                     }
@@ -1534,7 +1536,7 @@ sub prepare_subs {
     $code{'base.stderr_redir'} = sub {
         my $redir_ref = shift // \my $redir_var;
         open( $data{'base'}{'stderr_fh'}, '>&', STDERR )
-            or print "\n<< ! >> cannot clone STDERR [ $OS_ERROR ]\n\n";
+            or print "\n<< ! >> cannot clone STDERR [ \l$OS_ERROR ]\n\n";
         close(STDERR);
         open( STDERR, '>', $redir_ref ) or say "< stderr_redir > $OS_ERROR";
         return $redir_ref;
@@ -1546,11 +1548,11 @@ sub prepare_subs {
         if ( defined $restore_fh ) {
             open( STDERR, '>&', $restore_fh )
                 or print "\n<< ! >> cannot restore STDERR"
-                . " to $restore_fh [ $OS_ERROR ]\n\n";
+                . " to $restore_fh [ \l$OS_ERROR ]\n\n";
         } else {
             open( STDERR, '>', File::Spec->devnull() )
                 or print "\n<< ! >> cannot restore STDERR"
-                . " to '/dev/null' [ $OS_ERROR ]\n\n";
+                . " to '/dev/null' [ \l$OS_ERROR ]\n\n";
         }
     };
 
@@ -1904,7 +1906,7 @@ END {
 }
 
 #.............................................................................
-#XACHUPZJLGTCV372NSYAHDMK2JB5CF3VXPHGPEWK6NLQDELADGUHOSJV7AKHHLJNNGFDQLMRPDEWS
-#::: JEMTFWQHENL4STUS6Z477BWZQJONXQKDDWC5SOEJKDQG4GMNZEJ :::: NAILARA AMOS :::
-# :: F5Q6XNCTL47BAMT36KG6JZPZH7YTWNAP6VKWTCL4U7CT5EBZBQBA :: CODE SIGNATURE ::
+#VTQRAOFVKSVVEPX3674G7EQOFLN4CC5TSKZFUJSVPH2V5HUUNSOH47QRPQE5LKR7IMW4O5PQIQQ4E
+#::: YF5DXDCDU6RYEHUADUNPFW7CIAAUDITPA73OIR5AJ4Q5BJNXXXE :::: NAILARA AMOS :::
+# :: E4KZLWV3XXWDMRQ4OG3W3W6EF5CTTTUA24VDTL7JPDYX2UV53QCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

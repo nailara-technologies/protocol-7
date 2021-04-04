@@ -4,11 +4,12 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
-access.cmd.usr.cube = commands heart reload verify-instance socket_address
+access.cmd.usr.cube     =    heart verify-instance get-pid socket_address \
+                             commands list show-buffer reload
 
-modules.load = auth net protocol io.ip dbus
+modules.load            =    auth net protocol io.ip dbus
 
-dbus.privs_user = <system.X-11-user> # -> needs auto-discovery
+dbus.privs_user =       <system.X-11-user>   ## <-- needs auto-discovery [LLL]
 
 [load_modules:<modules.load>]
 [root.drop_privs:<dbus.privs_user>]
@@ -17,12 +18,12 @@ dbus.privs_user = <system.X-11-user> # -> needs auto-discovery
 [net.connect_to_cube:'ip.tcp']
 [base.X-11.get_display]
 
-[dbus.start_daemon]
+[dbus.run_dbus]
 
 [event.loop]
 
 #.............................................................................
-#OQS7P2WJZEN32CECXL3JHMJYNECNVTKI5M24YR7VFMCJFKGM74MHBBWEUW3CPEOJ3D6VSQLE5ND5I
-#::: 7MD7MUGBT67MQDSMQDFPKWICP6Z5FT5NQM7IFTXR2IVNSHBNDQ2 :::: NAILARA AMOS :::
-# :: NSKKMUVDETVD7RYDXIPLP5Y6COBHWD3TR4FFNEIJ5VXFAUEAEMAQ :: CODE SIGNATURE ::
+#BURNQB236OARXWQPZPGCCE4XWICWKJ6PT2YNCTLUTDYR3ZHTTZJU5OETTYYU64XBW7U6IQNDILZOS
+#::: UGZNIRCN4CDMEYZ5FUEVOKIKIT6DULQJGD3W4TSEZQUBLDGWD7B :::: NAILARA AMOS :::
+# :: BQN6TXQ6YI6I73W5TS5VXUPPCY5FMOBADXOOWNMXGO6PTBXOZ4AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
