@@ -26,52 +26,39 @@ if ( length($param_str) ) {
         . " matching '$param_str' pattern :.\n#\n";
 }
 
-my $cmd_len = 0;
+my $usr_len = 0;
 map {
-    $cmd_len = length($ARG)
-        if length($ARG) > $cmd_len
+    $usr_len = length($ARG)
+        if length($ARG) > $usr_len
         and ( $ARG =~ $param_re or <access.cmd.usr>->{$ARG} =~ $param_re )
     }
     keys %{<access.cmd.usr>};
-$cmd_len += 15;
-my $max_width   = 77;
-my $match_count = 0;
+$usr_len += 15;
 
+my $match_count = 0;
+my $max_width   = 77;
 foreach my $user (
-    sort { length <access.cmd.usr>->{$a} <=> length <access.cmd.usr>->{$b} }
-    sort {
-        split( / +/, <access.cmd.usr>->{$a} ) <=>
-            split( / +/, <access.cmd.usr>->{$b} )
-    }
-    sort { length $a <=> length $b } sort keys %{<access.cmd.usr>}
+    <[base.reverse-sort]>->(
+        sort {
+            split( m| +|, <access.cmd.usr>->{$a} ) <=>
+                split( m| +|, <access.cmd.usr>->{$b} )
+        } <[base.reverse-sort]>->(<access.cmd.usr>)
+    )
 ) {
     next if $user !~ $param_re and <access.cmd.usr>->{$user} !~ $param_re;
     $match_count++;
-    my @perms = sort { length $a <=> length $b } sort split / +/,
-        <access.cmd.usr>->{$user};
 
-    my $new_line = sprintf( "\n  %${cmd_len}s  =  ", "access.cmd.usr.$user" );
-    my $first_len = length($new_line) - 1;
-    my $subtract  = 0;
-    while ( my $next_item = shift @perms ) {
-        if (length($new_line) - $subtract + length($next_item) + 2
-            > $max_width ) {
-            $new_line .= " \\\n";
-            $new_line .= ' ' x $first_len;
-            $subtract = length($new_line) - $first_len;
-            $new_line .= $next_item;
+    my $next_usr = sprintf( "\n  %${usr_len}s  =  ", "access.cmd.usr.$user" );
 
-            # $new_line .= " [$subtract]";
-        } else {
-            $new_line .= ' ' if length($new_line) > $first_len + 1;
-            $new_line .= $next_item;
+    my $left = length($next_usr) - 1;
 
-            # $new_line .= " [$subtract]";
-        }
-    }
-    $reply_str .= "$new_line\n";
+    <[base.conf-wrap]>->(
+        $left, $max_width, " \\\n", \$next_usr, split m| +|,
+        <access.cmd.usr>->{$user}
+    );
+
+    $reply_str .= $next_usr;
 }
-$reply_str .= "\n";
 
 return { 'mode' => 'nak', 'data' => "no match for '$param_str' pattern" }
     if !$match_count;
@@ -79,7 +66,7 @@ return { 'mode' => 'nak', 'data' => "no match for '$param_str' pattern" }
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#ANBSYHGM7B45BFJGIIJWX24CR7NRO5GCXNCBEILEYNY4HCOLAKBNDA2AWM75KO3FB2XFW5JLEGY6C
-#::: DVONZPHG532XJQ76N5NYJJYOJCETZHHL7TJS6WXB3GIQ5IE2ZFK :::: NAILARA AMOS :::
-# :: TGW5CIRRNRETNMBBSRNTUFKTD2ORXZXGXSIZQO4OH2DGJUJXZ6AI :: CODE SIGNATURE ::
+#KKGGSSCRPZEZIQILE56X7SRC4V3EU52ZPPOYOMF3ZM3RDJCC6H3LBRRQLEIG3QYTWGJAG35KGISYI
+#::: FLIU426UMNSWIFGPCN73PNWLN3I2F47E3YWVZQLHS6IURAY7TRO :::: NAILARA AMOS :::
+# :: 2263O27SU4YJGESJ7APURZPWB7UPDJ2H3EFO7XQWX3X7UQ7F2ADY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
