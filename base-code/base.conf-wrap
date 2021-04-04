@@ -1,0 +1,30 @@
+# >:]
+
+# name  = base.conf-wrap
+
+my $first_len = shift // 0;
+my $max_width = shift // 77;
+my $line_end  = shift // " \\\n";
+my $cfg_block = shift // \"";
+my @items     = <[base.sort]>->(@ARG);
+my $subtract  = 0;
+while ( my $next_item = shift @items ) {
+    if (length($$cfg_block) - $subtract + length($next_item) + 2
+        > $max_width ) {
+        $$cfg_block .= $line_end;
+        $$cfg_block .= ' ' x $first_len;
+        $subtract = length($$cfg_block) - $first_len;
+        $$cfg_block .= $next_item;
+    } else {
+        $$cfg_block .= ' ' if length($$cfg_block) > $first_len + 1;
+        $$cfg_block .= $next_item;
+    }
+}
+$$cfg_block .= "\n\n";
+return $$cfg_block;
+
+#.............................................................................
+#YYQKLG6G2LLHFYP5VEQBW4SIYGE5UTIJGVFLHHB5MBO62V6M4IGRSIP4FNDFMBR2TR2NAHHVKFEIS
+#::: CM26S35LFYN4OCD4UP25AUVPY2G2JXMSLPZEGCXZ72YLQUI77EK :::: NAILARA AMOS :::
+# :: JSMDYOIQWFRPSGASMDXCRBKCL5FZBTZ4OWMAU5PQKU3MKUUVH2BY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
