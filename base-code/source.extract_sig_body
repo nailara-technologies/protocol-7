@@ -16,14 +16,16 @@ my $bit_size = <source.chksum_bitsize>;
 die "invalid keyword '$strip' for 'strip' parameter" if $strip !~ m,^[0|1]$,;
 die "expected source_str scalar reference" if ref($src_ref) ne 'SCALAR';
 
-### extract [ optionally strip ] code signature footer ##########################
+### extract [ optionally strip ] code signature footer #######################
 my $footer_body;
 my $footer_start = '#' . '.' x 77;
 if ($strip) {
-    $footer_body = $2 ### NOTE : also matches old type footer to strip it ####
-        if $$src_ref =~ s{\n(# _{78}|$footer_start)\n((#[^\n]+\n){4})$}{\n}sg;
+    $footer_body = $2   ### NOTE : also matches\strips old type \ multiple ###
+        if $$src_ref =~ s{\n+(# _{78}|$footer_start)\n((#[^\n]+\n){4})$}
+                         {\n}sg;
 } else {
-    $footer_body = $1 if $$src_ref =~ m|$footer_start\n((#[^\n]+\n){4})$|;
+    $footer_body = $1
+        if $$src_ref =~ m|(*nlb:[^\n])$footer_start\n((#[^\n]+\n){4})$|;
 }
 
 $footer_data->{'data-chksum'}
@@ -47,7 +49,7 @@ if ( $footer_length != length(<source.sign_template>) ) {    ## [E: length ]
 my $signed_chksum;
 my $signature_B32;
 
-### comparing footer structure with signature template #########################
+### comparing footer structure with signature template #######################
 my $emptied_footer = join( "\n", $footer_start, $footer_body );
 my @subst_params   = ( ( 80, 77 ), ( 163, 51 ), ( 242, 52 ) );
 my $line_num       = 0;
@@ -63,7 +65,7 @@ if ( $emptied_footer ne <source.sign_template> ) {    ## [E: structural ]
         = 'invalid signature footer structure [ template mismatch ]';
     return $footer_data;
 }
-################################################################################
+##############################################################################
 
 my @err_loc;
 push( @err_loc, 'bmw-chksum' ) if $signed_chksum !~ m|^[0-9A-Z]+$|;
@@ -78,18 +80,18 @@ if (@err_loc) {    ## [E: alien characters ]
 
 $footer_data->{'structure-was-valid'} = 1;
 
-$footer_data->{'data-type'} = 'CODE'; # [ other types soon : DATA, NCFG, .., ]
+$footer_data->{'data-type'} = 'CODE';   # [ other types soon: DATA, ZCFG,.., ]
 $footer_data->{'checksum-type'}
-    = 'BMW-384-B32';                  # only ones implemented so far
+    = 'BMW-384-B32';                    # only ones implemented so far
 $footer_data->{'signature-type'}
-    = 'C25519-B32';                   # <-- ########################
+    = 'C25519-B32';                     # <-- ########################
 $footer_data->{'bmw-chksum'} = $signed_chksum;
 $footer_data->{'signature'}  = $signature_B32;
 
 return $footer_data;
 
 #.............................................................................
-#FXFZZE2CWZJI53HOHGWLCDZE7RY7AQJMT2JOPNNKZQ546SQAZKH7SJRG4MGMVO56H6CPL5G57WPTK
-#::: H3GEFABUG7Z5CUSYXN7DEEKWOESL6XI5GPC2HF5EAR64W3BZTYR :::: NAILARA AMOS :::
-# :: 3WTDYHG67NCYXVTUWEWYAAVOOW7CB2FLGFKFFIUIRGC2EALM7GDY :: CODE SIGNATURE ::
+#VVTS2WTTE35URA4IYK5N4ENIGO223XY65YWAX7VQR3SRIM3KMF3ACNMYINBOO4LO4E54FSVEXLAWI
+#::: EBLCTN3GES2XY4BLYPSGCSSGCFUOIC6Y4TD3FTULBTKQG4UX7TP :::: NAILARA AMOS :::
+# :: QHRJS55W3LWVZBIZ5Q6EJDYO6U37LQXUCNLJPPFCT4M43FNHD6CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
