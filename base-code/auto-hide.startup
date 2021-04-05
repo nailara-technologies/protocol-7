@@ -4,7 +4,7 @@
 
 my $display   = <x11.display>;
 my $idle_time = <auto-hide.idle_time>;
-<[base.log]>->( 1, "starting 'unclutter' on display $display .." );
+<[base.log]>->( 1, "starting 'unclutter' on display $display .," );
 
 <child.auto-hide.unclutter-pid> = open(
     my $out_fh,
@@ -12,7 +12,7 @@ my $idle_time = <auto-hide.idle_time>;
         . "-root -noevents -idle $idle_time 2>&1 |"
 );
 if ( !<child.auto-hide.unclutter-pid> ) {
-    <[base.log]>->( 0, "[!] unable to start 'unclutter' [$OS_ERROR]" );
+    <[base.log]>->( 0, "<< cannot start 'unclutter' [ \l$OS_ERROR ] >>" );
     <[base.log]>->( 1, " : aborting zenka startup .," );
     exit(1);
 }
@@ -30,7 +30,7 @@ if ( !<child.auto-hide.unclutter-pid> ) {
 );
 
 #.............................................................................
-#TWV23MCGVCV5SEWNK7EPKGSV7SQC7DNCFIZ3KWRKTNQZXF6JFBS7WMZPYPUNXIY4BFUY2XDK35MMM
-#::: N2ZUXLJPNMHGANUCZX55UNOKPAEI3D5CVFZ7FQTANOEAUKBM5NC :::: NAILARA AMOS :::
-# :: SLC3BC3EZRNKQ4Q5RZFWJ5ADLRA73ILNMRGBFRWAQOLHHUOAMUBI :: CODE SIGNATURE ::
+#77I6IKBRDVVEYZDQMM5USRTD2VGKSCW4QUOP4VSZBK5EX3DFY3OBIK6YCNM6DPNUWNUOHF34JJ63W
+#::: GWIBLACDAXZPKRA2YQDPJFDKL4ZEMUBJNNEAXCQWYLDTRBNI7H4 :::: NAILARA AMOS :::
+# :: WWLWSI7BNUAHHJWIJNLDBU4QGPS2QVVSQWVXHW4CAUR5U3IFV4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

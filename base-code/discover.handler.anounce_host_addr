@@ -7,7 +7,7 @@
 my %ifconfig;
 my $mlenip   = 0;
 my $hostname = <system.host.hostname>;
-my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list'); # LLL -> Net::Interface
+my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list'); # LLL --> Net::Interface
 
 <discover.announce_interval.current> //= 0.23;
 <discover.announce_interval.maximum> = sprintf( "%.2f", 40 + rand(4) );
@@ -23,7 +23,7 @@ map {
     foreach my $ip_addr ( keys( %{ $ifaces->{$ARG}->{'inet'} } ) ) {
 
         # LLL: make exclusion patterns configurable!
-        next if $ARG !~ /^(en|\wth|wl)/;    # <- skipping other interfaces!
+        next if $ARG !~ /^(en|\wth|wl)/;    # <-- skipping other interfaces!
 
         $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
 
@@ -110,7 +110,7 @@ my $payload_len = length($payload_str);
     > <discover.announce_interval.maximum>;
 
 #.............................................................................
-#WVPECEY3RNDPMKEK3BWN6HX7ZTGHSBAYBAAFBCUUT5SFKCMZJP775NMZ4DX3ZK4WWE2IUTEP7OSQW
-#::: WIX3KGOWZ2RZBSNN2YUB7VFXKAVD4TNFMACA32ZOYDFQENNNMBY :::: NAILARA AMOS :::
-# :: HGWUQ56I6VQNM5GEG27BMQITYKUBCBEMGRTZQWZA4EBQKWGM2CAI :: CODE SIGNATURE ::
+#EOBJW2YC2BYUUBLYSETHBP77BMMPDRTUKIYALQ5OSBV6KRD7WUNX7NNYSBGJS2XUJZWOOVXUGLOOO
+#::: R7IXEXBGP7LZR7UIK56C7NAFABJKSUY7UQPXEPQ4DQ2GM4RVIRW :::: NAILARA AMOS :::
+# :: FHZJSAFHPWFFLNI5EIT7MIMHGCGLCREZXCEJBG5YJE7A663MAOCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,22 +22,22 @@ if ( !-d $cache_dir ) {
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $cache_dir,
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $OS_ERROR";
+        or die "make_path : \l$OS_ERROR";
 } else {
     my $old_perms = <[base.file_perm]>->($cache_dir);
     if ( $old_perms ne $perms ) {
         <[base.log]>->(
-            0, "<!> fixing cache dir permissions [ $old_perms -> $perms ]"
+            0, "<< ! >> fixing cache dir permissions [ $old_perms --> $perms ]"
         );
         chmod( oct($perms), $cache_dir )
-            or warn("chmod($cache_dir): $OS_ERROR");
+            or warn("chmod($cache_dir) : \l$OS_ERROR");
     }
 }
 
 my $image_dir = "$cache_dir/gfx";
 if ( !-d $image_dir ) {
     <[base.log]>->( 1, ": creating 'gfx' directory.." );
-    make_path($image_dir) or die "make_path($image_dir): $OS_ERROR";
+    make_path($image_dir) or die "make_path($image_dir) : \l$OS_ERROR";
 }
 my $loading_icon_source = <system.root_path> . '/data/gfx/anim/busy.2K.gif';
 my $loading_icon_target = "$image_dir/busy.2K.gif";
@@ -45,15 +45,15 @@ if ( !-f $loading_icon_target ) {
     <[base.log]>->( 1, ": copying animated 'loading' image.." );
     copy( $loading_icon_source, $loading_icon_target )
         or warn
-        "copy('$loading_icon_source','$loading_icon_target'): $OS_ERROR";
+        "copy('$loading_icon_source','$loading_icon_target') : \l$OS_ERROR";
 }
 
-chdir($cache_dir) or die "chdir($cache_dir): $OS_ERROR";
+chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 
 0;
 
 #.............................................................................
-#TW5YBLUYZYSVNL6C7VLLJHBGQ26ZUMKEJ4AW42JI66YT6PMQJKF3YFG34HNMEGM4GC4W6TMBLLIOS
-#::: ZLMHIDIALVQWAATIFSXEWJU4MN3DGBVGGDBMOHQXYXPLEK6ZFGA :::: NAILARA AMOS :::
-# :: X2TR3KDHOWSPYS5M7GW4KMKJIAVXLOTNLEKJMAARFNBHKPTNZ4AQ :: CODE SIGNATURE ::
+#D65KBJRQLMZUDFH4NGCH42AOND3UTGMEM3FLTFTTKNWLWZY5VNVZYV3PIZVVNOBLO7D6F7HTMQNRU
+#::: QQDTITOCIJND25VUJPKOTBAV6ILWKYHLUDLUP4XWRGHSKSNQ4T2 :::: NAILARA AMOS :::
+# :: 6ZHKMVDBB4OYVX7QBUOYUY3JMBXFMXIYDBXA5ZV5DI2QDAD55SDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

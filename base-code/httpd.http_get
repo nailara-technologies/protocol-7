@@ -61,7 +61,7 @@ my $file_path;
 if ( defined $http_host and defined $link_target ) {
     <[base.log]>->(
         1,
-        sprintf( "[$id] matched Host: '%s' -> '$http_host'",
+        sprintf( "[$id] matched Host: '%s' --> '$http_host'",
             $session->{'http'}{'request'}{'host'} )
         )
         if defined $session->{'http'}{'request'}{'host'}
@@ -97,7 +97,7 @@ if ( defined $http_host and defined $link_target ) {
     }
 
     if ( $file_path =~ /\.tmpl$/ and -f $file_path )
-    {    # <- nailara web template
+    {    # <-- nailara web template
         $request->{'query'}
             = { map { $ARG => $uri_obj->query_param($ARG) }
                 $uri_obj->query_param };
@@ -213,7 +213,7 @@ if ( defined $http_host and defined $link_target ) {
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
-        if ( $reply_code != 200 ) {    # <- 304 Not Modified
+        if ( $reply_code != 200 ) {    # <-- 304 Not Modified
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header );
             return $session->{'http'}->{'close'} ? 2 : 0;
@@ -223,7 +223,7 @@ if ( defined $http_host and defined $link_target ) {
             local $RS = undef;
             open( my $content_fh, '< :raw', $file_path )
                 or warn
-                "<!> $file_path: $OS_ERROR";    # LLL: needs error handling..,
+                "<< ! >> $file_path : \l$OS_ERROR"; # LLL: needs error handling..,
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header )
                 . <$content_fh>;
@@ -247,7 +247,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 #.............................................................................
-#ALDPC6FI5MKI3LIHWMMNNADLZUECV5UB7ZBLFMGMSMPOSF5N5ZGJ3Y5CRSEDX6VNABQGYS7RMAX2M
-#::: SAH6Y27DWY56ZNOUIQ22AUVTAQMTFJMHGFG3VHG3ABGPL7USVIN :::: NAILARA AMOS :::
-# :: DT4KOGHXB3F4GC3YKD76QI2DUSSLNCMCMEWKS5RYPSX4IN4Z5KAQ :: CODE SIGNATURE ::
+#WACEB2SJKU2VJHVK23CGZPKXMOGPPALPKNGJS2KKTZRQ4A7HWMHSSFGTRYDUQM6BM3C4HAKGONCW4
+#::: 5J3ABNTEL4Z3FL3RB6JYK76QEIJ7E47IBDXFJMV3W55L2DRYY5Q :::: NAILARA AMOS :::
+# :: 6YZP5CTFETF4JUP2OJXIDLFZEDPUMQEGTYENCZZBRSYJFF3XPGBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

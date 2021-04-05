@@ -6,7 +6,7 @@ my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "<!> unable to extract video frame [$reason]" );
+    <[base.log]>->( 0, "<< ! >> unable to extract video frame [$reason]" );
     <universal.cfg.fade_on_switch> = 0;
     <[base.log]>->( 0, " :. fade_on_switch disabled ... :/" );
 
@@ -30,16 +30,16 @@ if ( !-d $output_path ) {
 
     make_path( $output_path,
         { mode => 0750, 'uid' => $uid, 'group' => $gid } )
-        or die " make_path: $OS_ERROR ";
+        or die " make_path : \l$OS_ERROR ";
 }
 
 if ( !-f $frame_src_path ) {
     warn "source image not found : $frame_src_path";
 } else {
-    move( $frame_src_path, $frame_target_path ) or warn $OS_ERROR;
+    move( $frame_src_path, $frame_target_path ) or warn lcfirst($OS_ERROR);
 }
 
-# todo: create error image or pixel..
+# todo: create error image or pixel..,
 <universal.video_frames>->{$vid_file_path} = $frame_target_path;
 
 if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
@@ -59,7 +59,7 @@ if ( !keys %{<universal.frames_to_go>} ) {    # frames complete
 }
 
 #.............................................................................
-#CHQ2Q4AXYVZZCHJDCFOSVKYL7WKTII3HJ7IDXUWBQF6OUM6ZPHILPCXL7NBBKYTXIHAQ46HKIMIIW
-#::: KVT2NJNHXJVZ5O4LIHD6ZSMGXZYN2LDTU6OW7LDDNXR3IQP5S72 :::: NAILARA AMOS :::
-# :: X4UXOF4VJIEPQCS7T3ARCIBOSBYEV6TZR6UWCQCKBN5DU6UX5YAI :: CODE SIGNATURE ::
+#TZJFENYG7GCPIIM7WG62A2V3ARLZSCU46FGG2J25D6LFG5TJVPPPBK5QZ4AGVHLYAZRG7F2W42RHG
+#::: SNOOJF5NO3UPTZFHVFBILQGORCZMS3X3JH5BA4ZCPJYPFE2CQCZ :::: NAILARA AMOS :::
+# :: KOM3H5EEA5XP6XBPJVQ7COYWXSYXCZEDFY5ZO2MU7GBGJ4H3SADI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

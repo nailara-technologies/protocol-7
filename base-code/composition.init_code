@@ -52,16 +52,16 @@ if ( !-d <composition.cfg_directory> ) {
             . "' not in passwd file";
         make_path( $cfg_dir,
             { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
-            or die "make_path: $OS_ERROR";
+            or die "make_path : \l$OS_ERROR";
     } else {
         my $old_perms = <[base.file_perm]>->($cfg_dir);
         if ( $old_perms ne $perms ) {
             <[base.log]>->(
                 0,
-                "<!> fixing config dir permissions [ $old_perms -> $perms ]"
+                "<< ! >> fixing config dir permissions [ $old_perms --> $perms ]"
             );
             chmod( oct($perms), $cfg_dir )
-                or warn("chmod($cfg_dir): $OS_ERROR");
+                or warn("chmod($cfg_dir) : \l$OS_ERROR");
         }
     }
 }
@@ -77,11 +77,11 @@ my $config_file_path = <composition.import_path>;   ## <-- can be undefined ##
 $config_file_path //= <system.conf_path>;
 $config_file_path .= "/$config_filename";
 
-die "<!> composition setup '$config_file_path' not found <!>"
+die "<< ! >> composition setup '$config_file_path' not found << ! >>"
     if !-f $config_file_path;
 
 <[base.log]>
-    ->( 1, "<!> loading tile-group configuration '$config_name' <!>" );
+    ->( 1, "<< ! >> loading tile-group configuration '$config_name' << ! >>" );
 
 <[file.put]>->(
     <composition.hash_file>,
@@ -92,11 +92,11 @@ die "<!> composition setup '$config_file_path' not found <!>"
     <composition.setup> = <[base.load_section_config]>->($config_filename);
 }
 
-<[base.log]>->( 0, "<!> composition loading not successful [ no data ] <!>" )
+<[base.log]>->( 0, "<< ! >> composition loading not successful [ no data ] << ! >>" )
     if !keys %{<composition.setup>};
 
 <[base.log]>->(
-    0, "<!> composition loading not successful [ empty composition ] <!>"
+    0, "<< ! >> composition loading not successful [ empty composition ] << ! >>"
     )
     if keys %{<composition.setup>}
     and defined <composition.setup.tile-groups>
@@ -104,7 +104,7 @@ die "<!> composition setup '$config_file_path' not found <!>"
 
 # use Data::Dumper 'Dumper'; print Dumper(<composition.setup>);
 
-skip_load: # <- jumping here if composition has already been imported as json!
+skip_load: # <-- jumping here if composition has already been imported as json!
 
 my $current_cfg_path = <composition.cfg_directory> . '/tile-group.current';
 my $default_cfg_path = <composition.cfg_directory> . '/tile-group.default';
@@ -117,11 +117,11 @@ if ( -f $default_cfg_path ) {
         and <composition.fallback_tile_group> ne $default_tile_group ) {
         <[base.log]>->( 0, "<< default tile group has changed >>" );
         unlink($current_cfg_path)
-            or warn "unlink($current_cfg_path): $OS_ERROR";
+            or warn "unlink($current_cfg_path) : \l$OS_ERROR";
 
     } else {
         unlink($default_cfg_path)
-            or warn "unlink($default_cfg_path): $OS_ERROR";
+            or warn "unlink($default_cfg_path) : \l$OS_ERROR";
     }
 }
 
@@ -139,7 +139,7 @@ if ( <composition.restore_composition_enabled> and -f $current_cfg_path ) {
                     . " ignoring.,"
             );
             unlink($current_cfg_path)
-                or warn("unlink($current_cfg_path): $OS_ERROR");
+                or warn("unlink($current_cfg_path) : \l$OS_ERROR");
         } else {
             <[base.log]>->( 2, "processing '$current_cfg_path' config..," );
 
@@ -165,7 +165,7 @@ if ( <composition.restore_composition_enabled> and -f $current_cfg_path ) {
         }
     } else {
         <[base.log]>->(
-            0, ": <!> syntax error in '$current_cfg_path' configuration..,"
+            0, ": << ! >> syntax error in '$current_cfg_path' configuration..,"
         );
     }
 } elsif ( -f $current_cfg_path
@@ -192,7 +192,7 @@ if ( not exists <composition.setup.tile-groups>->{$tile_group_name} ) {
     if ( -f $current_cfg_path ) {
         <[base.log]>->( 2, ": removing '$current_cfg_path' ..," );
         unlink($current_cfg_path)
-            or warn "unlink($current_cfg_path): $OS_ERROR";
+            or warn "unlink($current_cfg_path) : \l$OS_ERROR";
     }
     ($tile_group_name) = sort keys %{<composition.setup.tile-groups>};
     $default_str = ' _fallback_ ';
@@ -234,7 +234,7 @@ map {
 0;
 
 #.............................................................................
-#Q4R4QUA7VBZALI2OHFITCCGTV7V3YPTPZ47QXO3MBBZP5MEL33GPELYLFYSSZM3OPFRGWPTUO3PKS
-#::: HQ4EEELSG3VXSMUKL7VEFPMTU22XDK2KZXXDMQROK5NRWUYXWFU :::: NAILARA AMOS :::
-# :: 2VJ52RBAPCAXVD77IKMKCWRDVH6XAJA357JPV3P3N5NSCQ63GSAI :: CODE SIGNATURE ::
+#JOA2F6IQL4IAO7QAWKWJCF25TOWI3QBFYCLIJOKCII7XX4TKMT5ZEGDACNTIYMOSWT3VLVHIF7VHY
+#::: NSSJPXNCUME5W6GADXP62DISLVHDQB5YST6TPTP6GCXY43FXG5E :::: NAILARA AMOS :::
+# :: LW6XMBCLWVL2LIERO7BQU54UKPMQIH7QHBLP544SO3BLMXGVKGDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

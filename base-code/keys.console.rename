@@ -18,7 +18,7 @@ my $re_public = <keys.regex.key_file.public>;
 my $re_kfiles = <keys.regex.key_files>;
 
 opendir( my $dir_fh, $key_dir )
-    or return print "\n [!] $key_dir : $OS_ERROR\n";
+    or return print "\n [!] $key_dir : \l$OS_ERROR\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
 closedir($dir_fh);
@@ -42,7 +42,7 @@ return print "\n  [!] specified key \"$ren_from\" not found [!]\n\n"
 
 my $ren_count = 0;
 
-chdir($key_dir) or die "[!] chdir( $key_dir ) : $OS_ERROR";
+chdir($key_dir) or die "[!] chdir( $key_dir ) : \l$OS_ERROR";
 
 print "\n :\n";
 
@@ -50,8 +50,8 @@ my $len = 0;
 foreach my $file_name (@key_files) {
     my $target_name = $file_name;
     next if $target_name !~ s|^$ren_from\.|$ren_to.|;
-    printf( " : %-${space_len}s  ->  %s\n", $file_name, $target_name );
-    return print "\n rename failed : $OS_ERROR\n\n"
+    printf( " : %-${space_len}s  -->  %s\n", $file_name, $target_name );
+    return print "\n rename failed : \l$OS_ERROR\n\n"
         unless rename( $file_name, $target_name );
     $ren_count++;
 }
@@ -59,7 +59,7 @@ my $s = $ren_count == 1 ? '' : 's';
 print " :\n :. [ renamed $ren_count file$s ]\n\n";
 
 #.............................................................................
-#AO4Z6E33PPKNFYMG7J7MJCTTGSPCNUZGPXSRF7PYRMA5VUNUPLGC3PKEJ3BD3XCNFJ6YPV3WAALHU
-#::: VRRZY7WN476B7CZPBA5G4OTSKC5QME25OV5M3A66IPW5FDZYDIN :::: NAILARA AMOS :::
-# :: V2Y5R5DF5TA3YMRZWXPUWM6PY3GAGMQKTKXFCDWNNZHNSTOJBWDI :: CODE SIGNATURE ::
+#GG5I6Y2ILYACJ4KJ4ZN52C3OXFHISOXAB4ATALLUMCACSYT7WPWJJAQCBACF5TUH2PXGIVNB26SJI
+#::: RCZAJ3ZXFYTJG6MVSCII34A447G7GDJ4XLWOK74OPZIRYBOKYOD :::: NAILARA AMOS :::
+# :: I3XCRE2LEJZKTMYT6RNOEZZUS7IHGXDW6H3SYE4MVSXYIQNHC4CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

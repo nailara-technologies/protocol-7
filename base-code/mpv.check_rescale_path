@@ -5,7 +5,7 @@
 <mpv.rescale_path> =~ s|\/$||;
 <[base.log]>->( 2, "checking rescale_path '" . <mpv.rescale_path> . "'" );
 if ( !-d <mpv.rescale_path> ) {
-    my $resc_path = <mpv.rescale_path>;    # LLL: check path on demand ...
+    my $resc_path = <mpv.rescale_path>;    # LLL: check path on demand ..,
     <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
@@ -20,23 +20,23 @@ if ( !-d <mpv.rescale_path> ) {
     );
     if ( defined $err and ref($err) eq 'ARRAY' and @{$err} ) {
         warn "unable to create local config"
-            . " directory '$resc_path' [$OS_ERROR]";
+            . " directory '$resc_path' [ \l$OS_ERROR ]";
         <mpv.autorescale> = 0;
         <[base.log]>->(
             0, "autorescale disabled! (unable to create target directory)"
         );
         delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
-    } else {    # LLL: if files disappeared...
+    } else {    # LLL: if files disappeared..,
         delete <mpv.playlist_sha1>;
         <[mpv.cmd.playlist_update]>;
     }
 
-}    # LLL: } else { check permissions..
+}    # LLL: } else { check permissions..,
 
-# LLL: restart if it needs to recreate directory instead [files disappeared] ...
+# LLL: restart if it needs to recreate directory instead [files disappeared] ..,
 
 #.............................................................................
-#RBVB7J65S3A3HX3MQKLQKIXTPQMR7OXN3ASWL7CHHQXILLUH7J5S4PD7RLAPLQ4JX7AVR3JGISXTC
-#::: O2KLYFP6YKA5442NZ6SXEOUNZELTOE5K4SBLT6TJ4SIDM23HE5T :::: NAILARA AMOS :::
-# :: YVYRE5EXLTOYZ7U7I6764S2CGHHD5URNEJPRQE3DVXREAGQFYQAI :: CODE SIGNATURE ::
+#VGWPUXQR5U56ZUV4K7V32G2YPT74EPNODN56YABFSYCXFY4ZHPCIO22HAFHMLAJLRD3I5DQKIIPX6
+#::: 74IND7TCW6RQJHJ3ST6HW7G5NYNBLA32MHA4CJQBUTOJWEIT764 :::: NAILARA AMOS :::
+# :: AUQKYT3IPHKZ3GVS5PVO22D5BTI64OKNCLJHDM36TF3IBUKQEIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

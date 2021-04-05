@@ -9,7 +9,7 @@ die "[!] no composition transition data defined"
     or !keys %{<composition.transition.status>};
 <composition.transition.status>->{'start_time'} //= <[base.time]>->(4);
 
-my $fade_out_duration = 0.8;    # -> config
+my $fade_out_duration = 0.8;    # --> config
 
 ### removing zenki not present in new composition / present before zenka restart ###
 
@@ -135,7 +135,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         = (     $cube_reply->{'cmd'} eq 'ACK'
             and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
         ? $cube_reply->{'call_args'}->{'args'}
-        : 0;    # <- 0 == failed, fade will be skipped!
+        : 0;    # <-- 0 == failed, fade will be skipped!
 
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => "cube.nroot.get-instance-ids",
@@ -283,7 +283,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 #.............................................................................
-#IFI5XC6632MLD364T7T2U4Z56DEQIFG6EC7INRXREKSXW3Y65PWYKFYE2B5ZEC3Y7LWZSZB57HDXO
-#::: EZIXMLLVF3QHMEVJVGQIQSSBFDLAF3NRHMOSG3YPIJFPVRSP6AJ :::: NAILARA AMOS :::
-# :: C7C6RLIKPU6SCJZUL3UMESQG4A4RJYLZPSNAEWKRR7ZU2ZPXYMAQ :: CODE SIGNATURE ::
+#Y26CNIAP4KSBD6AJCY4U3HGETRNJZ6WAPIZFFUNXHP7RWRZG45ELNU5XKPVZ22Y6PX4OYIDX2PODK
+#::: 5QGL3M4JJQAX4BD6IJSICZM4ENFRNYBHLBJY6M76YNC2DB7G2M4 :::: NAILARA AMOS :::
+# :: WIALYSMQWDYNJ6QUM4ZOFUEHJUZFYDB73VIEAQGJ2R2M6OG564AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

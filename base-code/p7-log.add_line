@@ -35,7 +35,7 @@ if ( !-d $log_path ) {
         or return ( 0, "user '<log.protocol_7.user>' not in passwd file" );
     <log.protocol_7.path> =~ s|/+$||;
     chown( $uid, $gid, <log.protocol_7.path> )
-        or return ( 0, "chown(<log.protocol_7.path>): $OS_ERROR" );
+        or return ( 0, "chown(<log.protocol_7.path>) : \l$OS_ERROR" );
     <log.files>->{$log_name} = { 'fh' => undef, 'locked' => 0 };
 }
 
@@ -44,9 +44,9 @@ my $log_fh;
 if ( !<log.files>->{$log_name}->{'locked'} ) {
     <[base.log]>->( 2, "opening log '$log_name'..," );
     open( $log_fh, ">>$log_path/$log_file" )
-        or return ( 0, "unable to open logfile [$OS_ERROR]" );
+        or return ( 0, "unable to open logfile [ \l$OS_ERROR ]" );
     flock( $log_fh, 2 )    # LOCK_EX
-        or return ( 0, "unable to lock logfile [$OS_ERROR]" );
+        or return ( 0, "unable to lock logfile [ \l$OS_ERROR ]" );
     <log.files>->{$log_name}->{'locked'} = 1;
     <log.files>->{$log_name}->{'fh'}     = $log_fh;
     <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(
@@ -67,7 +67,7 @@ print {$log_fh} $$log_msg_ref;
 return 1;
 
 #.............................................................................
-#S4PBOK6XQIQD46UTNXVEQMONYJSPO7G3LAPCWIQAG34EVGUNOAJIPAEZDLAGOPRTMCGNLBCM5BCU4
-#::: PRWKH5542DL4LHY2EG6AIAVVA74QUP3DQDXCYW7V67KRC2ACUPY :::: NAILARA AMOS :::
-# :: UKMYZ36ZUPLLFMZVXY3NVHEQ33JVGCPVXXD36SXWQ5O53LIC2EDA :: CODE SIGNATURE ::
+#52MOJOVI6XQVL63QDZ3I4MUWNUOEL5OATDP4VW6GTH7JL47ILUMGL54LPHYVCQNT2K6YWNWUBU4F6
+#::: ORGES66XQ6AOPRGVPTOM4XJGOSZATENFTL7HJAPCACYD7PHIH2H :::: NAILARA AMOS :::
+# :: GQCRLEE66QL6M6CN57XSWMZWWF7CO5O4HFB4KNPKQAVAN65EYODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

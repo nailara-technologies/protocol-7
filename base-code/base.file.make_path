@@ -5,7 +5,7 @@
 
 my ( $path, $param_mode, $param_owner ) = @_;
 
-$param_mode //= 0700;    # <- strict default
+$param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
 die "expected absolute path [ to create ]"
     if not defined $path or $path !~ m|^/[^/]+|;
@@ -40,7 +40,7 @@ my $install_root = <system.root_path>;
 <[base.log]>->( 2, ":. creating., .: ['$report_path']" );
 
 my $previous_umask = umask($mkdir_umask)
-    or die "umask[ $mkdir_umask ] : [ $OS_ERROR ]";
+    or die "umask[ $mkdir_umask ] : [ \l$OS_ERROR ]";
 
 my $current_mode;
 my $current_path = '';
@@ -54,12 +54,12 @@ foreach my $_dir ( split m|/|, $path ) {
 
     eval {
         mkdir( $current_path, $current_mode )
-            or warn " mkdir['$current_path'] : [ $OS_ERROR ]";
+            or warn " mkdir['$current_path'] : [ \l$OS_ERROR ]";
         chmod( $current_mode, $current_path )
-            or warn " chmod[ $param_mode ] : [ $OS_ERROR ]";
+            or warn " chmod[ $param_mode ] : [ \l$OS_ERROR ]";
         if ( defined $param_owner ) {
             chown( $uid, $gid, $current_path )
-                or die " chown [$uid:$gid] '$current_path' : [ $OS_ERROR ]";
+                or die " chown [$uid:$gid] '$current_path' : [ \l$OS_ERROR ]";
         }
     };
 }
@@ -69,7 +69,7 @@ umask($previous_umask);
 return $path;
 
 #.............................................................................
-#SIOOP2POAXLJSCQQ6WF2TSD5USOJ7MQB5BMWGPN3FOSHHTILDP4FG5W4ZLYF2CY4WUJOTX6QT4KYI
-#::: J6T6PFWFEK6SHHYCWT6RV7KLZ43P5367QV5NDUQPITSCMIZMDRT :::: NAILARA AMOS :::
-# :: 5GRHYO3LCJKW6LHZVYFSI2TW6FE4V6DQ6MABNW23FSUKTT3VV6CY :: CODE SIGNATURE ::
+#UQIVUM5VTXUTVB4SFFEDIDU5HISIN3F7TWDKL3DA246MMFAXHYCTG33OWO7CHUNHK27FH23BJUBDO
+#::: AUMGPYWMTHJUX5Q6ICQXUB4BLLPMY3ZHH5SY7RGXV4EPWC36DVU :::: NAILARA AMOS :::
+# :: V2KK6WHPWTZFYHSBHCYDD7ME3IK6TFF3BGGKCWUANP64QVDFPIBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

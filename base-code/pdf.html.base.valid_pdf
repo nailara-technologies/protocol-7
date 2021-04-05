@@ -15,7 +15,7 @@ my $file_fh;
 
 <[base.log]>->( 2, "[PDF] '$file_path'.." );
 
-if ( !open( $file_fh, $file_path ) ) { warn $OS_ERROR; return 0; }
+if ( !open( $file_fh, $file_path ) ) { warn lcfirst($OS_ERROR); return 0; }
 
 my $file_ok = 2;
 
@@ -26,7 +26,7 @@ if (   not defined $result
     or not defined $buffer
     or $buffer ne '%PDF-'
     or !sysseek( $file_fh, -7, 2 ) ) {
-    <[base.log]>->( 2, " <!>  header mismatch ['$buffer']" );
+    <[base.log]>->( 2, " << ! >>  header mismatch ['$buffer']" );
     $file_ok--;
 }
 
@@ -36,7 +36,7 @@ if (   not defined $result
     or $result < 6
     or not defined $buffer
     or $buffer !~ /(\r?\n)?%%EOF(\r?\n)?$/ ) {
-    <[base.log]>->( 2, " <!>  footer mismatch ['$buffer']" );
+    <[base.log]>->( 2, " << ! >>  footer mismatch ['$buffer']" );
     $file_ok--;
 
 }
@@ -55,12 +55,12 @@ if ($file_ok) {
     <[base.log]>->( 2, ": ok, valid." );
     return 1 if $file_ok;
 } else {
-    <[base.log]>->( 1, " <!>  PDF format check failed : '$file_path'" );
+    <[base.log]>->( 1, " << ! >>  PDF format check failed : '$file_path'" );
     return 0;
 }
 
 #.............................................................................
-#2RMK7SG5SIE55WDRWMAVTBYPGFMVTSEMXP7LTQIFRS5HG7L7B335ANWV2IZADUPNAEOGPUVKZH7T2
-#::: JO5C4SWF5MSLFLTK5RQ5PWVBQ26UWTGP4W7MEFPUXQLRU7K23NF :::: NAILARA AMOS :::
-# :: 6LNCBCV65SUEOGB3BXL73EPB3AUTTTKNXYOFSUCHPVKBIMCDMYBQ :: CODE SIGNATURE ::
+#XKSLT3YB6F4WVJXLKQWL47MHM2SZYWA2PWVGO55Y4AIAQOKRUDR7I6URZTM6VYX47QA7VYJOKHFNY
+#::: LVQY4OZE5X523BCLYC7NYH22CVCML3W54NTCVY2X4OHSVTSSRYS :::: NAILARA AMOS :::
+# :: Z6JJ3JEGM6FC2HLWDFGPFYWPJKBEMZRPIINQINSRBCVP252OSGAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

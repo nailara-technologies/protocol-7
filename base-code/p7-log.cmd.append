@@ -79,7 +79,7 @@ if ( <log.timestamp_mode> !~ m,^localtime|ntime-b32|ntime-num|unix, ) {
     <log.timestamp_mode> = $default_mode;
 } elsif ( $log_time !~ m|^[A-Z0-9]+$|
     and $log_time !~ m|^(\d{1,17})(\.\d+)?| )
-{    # invalid time value -> setting to current
+{    # invalid time value --> setting to current
     $log_time = <[base.ntime]>;    # [LLL] deliver warning _once_ ..,
 } elsif ( defined $1 and length($1) < 13 ) {    # unix time input value
     $log_time = <[base.ntime]>->($log_time);
@@ -118,7 +118,7 @@ return { 'mode' => 'ack', 'data' => "wrote $msg_len bytes" } if $success;
 return { 'mode' => 'nak', 'data' => $err_msg };
 
 #.............................................................................
-#LNSHPVVRAILAGMM3YRDLE7LSUPSZCQOQZWDDXJLWVWAJWR4TS2WRYZ2KH3VBC3P5RKPO6PFNHWUAO
-#::: 6ULFARZ7BQLWAGDXZOUWNT7T2X7WSDO42XSYMNWELWQY3PFN74X :::: NAILARA AMOS :::
-# :: JMWXC4TWTHGTM43OLZXE5MU7OQG27TY5JF2MMVMV67XRTNI7UMBA :: CODE SIGNATURE ::
+#3XQMZLRLQ5A47DSPQS7EJQ3U4JBAU5HSANB6E7D7JDKDBSL7MAMYREYSKAIJY5FCTCP2MRQ5P5HKI
+#::: 3ZW7NMEIZNDYUFDF6QL2KFLQ7CIFX4SM7PXZZJFVBNVFAHZTTH2 :::: NAILARA AMOS :::
+# :: CV5E3NL76SAKJ23CWA3P5V3ABZERF5BVYUSUEWSDUKX2QIFJSSCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

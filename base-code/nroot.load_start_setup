@@ -12,7 +12,7 @@ die "load_start_setup: no start setup specified"
 my $start_setup_pattern = join( ' ',
     map { $base_file_name . $ARG } split( /\s+/, $config_to_load ) );
 
-return <[base.log]>->( 0, "<!> config '$start_setup_pattern' not found <!>" )
+return <[base.log]>->( 0, "<< ! >> config '$start_setup_pattern' not found << ! >>" )
     if !-f "$cfg_root_path/$start_setup_pattern";
 
 <[base.log]>->( 1, ": loading '$config_to_load' process start setup" );
@@ -22,13 +22,13 @@ my $start_setup_data;
     $start_setup_data = <[base.load_section_code]>->($start_setup_pattern);
 }
 
-return <[base.log]>->( 0, "<!> config '$start_setup_pattern' is empty <!>" )
+return <[base.log]>->( 0, "<< ! >> config '$start_setup_pattern' is empty << ! >>" )
     if !@{$start_setup_data};
 
 push( @{<nroot.cfg_data.start_setup>}, $start_setup_data );
 
 #.............................................................................
-#HJSVAQXAJ5JUVFPMOBYPWAGV23OP75B7VS54YXXWNRXABLDWXAIR64BXNS2KPXUKVE5HJ55RD35YS
-#::: VCD6APVMMTNPKJ5CSSTDDICUNHMRK6SUMYI2FHGZXLRHHDUKHIQ :::: NAILARA AMOS :::
-# :: LPMMKCLUPJND5G2I6GTGHTYA6A5RAP2AU5USPU4ZB4GX7762EOCA :: CODE SIGNATURE ::
+#GOH2R55P6JZVVRBXYF3JXVUJVBPCWLTY62LQXYTEVPTNU3HM27FKSCMSTJAGOWUEMUB72AVG5EVRU
+#::: PLNSCOIQJZGZGVBUDJ4ZACX2EAJAUQP2KZIIZKTAR7QA2DV5F73 :::: NAILARA AMOS :::
+# :: HACE4ODHKKLMYA6SXP2HKC6ESVUGEKS5LP27QAKCK2I5L5ETBODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

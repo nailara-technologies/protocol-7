@@ -9,7 +9,7 @@ if ( !-d $drm_dir ) {
     return;
 }
 
-opendir( my $drm_dir_fh, $drm_dir ) or die "$drm_dir: $OS_ERROR";
+opendir( my $drm_dir_fh, $drm_dir ) or die "$drm_dir : \l$OS_ERROR";
 
 my $connected = 0;
 
@@ -27,7 +27,8 @@ foreach my $card_name ( readdir($drm_dir_fh) ) {
     <base.obj.inotify>->watch( $target_path, IN_ACCESS(),
         $code{'X-11.scan_display_states'} );
 
-    opendir( my $card_dir_fh, $target_path ) or die "$target_path: $OS_ERROR";
+    opendir( my $card_dir_fh, $target_path )
+        or die "$target_path : \l$OS_ERROR";
     foreach my $disp_name ( readdir($card_dir_fh) ) {
         next if !-d "$target_path/$disp_name" or $disp_name !~ /^$card_name/;
         my $status_file = "$target_path/$disp_name/status";
@@ -50,7 +51,7 @@ closedir($drm_dir_fh);
 return $connected;
 
 #.............................................................................
-#XBSKUCYH6RWJMX7OKRS7S4XEGUL56SMXLBJDN6EOALOAHJHC4UPFHPYUQ36646MD54WDNFDT3LIG4
-#::: IZOCICYUPUGDKJ3EWHO3JHUSE7CPCR7T2ENZIY7M5T766CNMOV4 :::: NAILARA AMOS :::
-# :: VVT2GYYLNWTFDEEMRNKKQGJRP7V7B2RMFSX44BE2435MFMRWFSAY :: CODE SIGNATURE ::
+#6WNMP55MZQCFBBYXVOL4AEOVGRAOQCLPNME6BVD7TD5WJZOKPS6B3AHDRV5PO5FECG77Z42HF7LNE
+#::: VLS7ECOXKHI37EPRJAXJE7I6RPZVGXCP5FSMPS732XZUL5VBLQD :::: NAILARA AMOS :::
+# :: KARC5DVMLE7P6DLWAF4GRDKLQS6XVOSW4ES2WYVYDYLQITXW4QBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -38,13 +38,13 @@ if ( -d $target_dir and !-f $target_dir . '/.complete' ) {
 
 if ( !-d $target_dir ) {
     <[base.log]>->( 2, "creating html dir '$url_hash'.." );
-    make_path($target_dir) or die "make_path($target_dir): $OS_ERROR";
+    make_path($target_dir) or die "make_path($target_dir) : \l$OS_ERROR";
 }
 
 my $head_res     = $ua->head($file_url);
 my $content_type = $head_res->{'_headers'}->{'content-type'};
 my $content_length
-    = $head_res->{'_headers'}->{'content-length'};    # LLL: use ...
+    = $head_res->{'_headers'}->{'content-length'};    # LLL: use ..,
 if ( $content_type =~ m|^image/(\w{3,4})$| ) {
     <[base.log]>->( 2, "found $1-image ($content_length bytes)" );
 } else {
@@ -72,14 +72,14 @@ if ( $status_code ne '200' ) {
         if defined $last_modified;
     <[file.write_timestamp]>->("$target_dir/.last_used");
     my $touch_file = "$target_dir/.complete";
-    open( my $touch_fh, ">$touch_file" ) or die "$touch_file: $OS_ERROR";
+    open( my $touch_fh, ">$touch_file" ) or die "$touch_file : \l$OS_ERROR";
     close($touch_fh);
 
     return $target_path;
 }
 
 #.............................................................................
-#7AKB7PB2ZKOQTLGA5WDOOBKZM5G5V52TONFD4CXELUU4AG6PKBDBLIJVTMYFYO5ELEX4Y5TBHH3UA
-#::: EZ2CKY6LG6KPR26GVXMURQW7NUPXKGOXECYHXCJFREY36NSA3ZL :::: NAILARA AMOS :::
-# :: Z4TP7IV3MDW3GCF63V6IZ2SFH7XWRS5JRRKPOMADOETNQJONXWAQ :: CODE SIGNATURE ::
+#TXH6JZFE3WOJOBTZGSPP2WTPPAOP3GDBRHXIRTSQFKVAJZBZCID2T4UVTSTXWDU7WUG2K5KS6QPAC
+#::: LKJAHBHIMXZRVINP67W665TLDJSKCSWZVIPHF44KFAPHERKBX6G :::: NAILARA AMOS :::
+# :: 4RWXJVJDSPMJ7IUM2D2I4DUDDMG6W2NNTRBE2IKBTKLNUGC4VIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

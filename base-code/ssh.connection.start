@@ -62,14 +62,14 @@ my $sock = IO::Socket::IP->new(
 );
 
 if ( not $sock ) {
-    <[base.log]>->( 0, ": : tcp connection error [$OS_ERROR]" );
+    <[base.log]>->( 0, ": : tcp connection error [ \l$OS_ERROR ]" );
     goto error;
 }
 
 $sock->sockopt( SO_LINGER(), pack( 'SS', 0, 0 ) );
 
 if ( !$ssh->connect($sock) ) {
-    <[base.log]>->( 0, ": : ssh connection error [$OS_ERROR]" );
+    <[base.log]>->( 0, ": : ssh connection error [ \l$OS_ERROR ]" );
     $sock->shutdown('NOW') if $sock->connected;
     goto error;
 }
@@ -85,7 +85,7 @@ my $host_key = join( '+',
     unpack( 'H*', $ssh->hostkey_hash('sha1') ) );
 
 if ( $host_key ne $configured_hostkey ) {
-    <[base.log]>->( 0, ": : <!> SSH HOSTKEY [$host_key] IS INVALID!" );
+    <[base.log]>->( 0, ": : << ! >> SSH HOSTKEY [$host_key] IS INVALID!" );
     $ssh->disconnect;
     $sock->shutdown('NOW');
     goto error;
@@ -103,7 +103,7 @@ my %auth_methods = map { $ARG => 1 } $ssh->auth_list($ssh_user);
     if exists $auth_methods{'password'};
 if ( not exists $auth_methods{'publickey'} ) {
     <[base.log]>->(
-        0, ": : <!> no public key auth. for user '$ssh_user' available!"
+        0, ": : << ! >> no public key auth. for user '$ssh_user' available!"
     );
     $ssh->disconnect;
     $sock->shutdown('NOW');
@@ -121,7 +121,7 @@ foreach my $key_type ( 'private', 'public' ) {
     if ( !open( my $test_fh, '<' . $key_file ) ) {
         <[base.log]>->(
             0,
-            ": : SSH AUTH ERROR [ unable to open $key_type key: $OS_ERROR ]"
+            ": : SSH AUTH ERROR [ unable to open $key_type key : \l$OS_ERROR ]"
         );
         $ssh->disconnect;
         $sock->shutdown('NOW');
@@ -143,7 +143,8 @@ my $nailara_port = $link_setup->{'nailara.remote.port'};
 
 my $channel = $ssh->tcpip( $nailara_addr, $nailara_port );
 if ( not defined $channel ) {
-    <[base.log]>->( 0, ": : remote nailara connection error [$OS_ERROR]" );
+    <[base.log]>
+        ->( 0, ": : remote nailara connection error [ \l$OS_ERROR ]" );
     $ssh->disconnect;
     $sock->shutdown('NOW');
     goto error;
@@ -180,7 +181,7 @@ delete $connection->{'retry_delay'}
 
 $connection->{'io'}->{'ssh'}->now;    # quickfix!
 
-my $heartbeat_delay = 5;              # LLL: -> config...
+my $heartbeat_delay = 5;              # LLL: --> config..,
 $connection->{'timer'}->{'heartbeat'} = <[event.add_timer]>->(
     {   'after'    => 1,
         'interval' => $heartbeat_delay,
@@ -196,7 +197,7 @@ error:
 <ssh.status.connections>->{$con_id} = 'error';
 $connection->{'retry_delay'} *= 2
     if exists $connection->{'retry_delay'};
-$connection->{'retry_delay'} //= 0.5;    # LLL: -> config!
+$connection->{'retry_delay'} //= 0.5;    # LLL: --> config!
 $connection->{'retry_delay'} = 30 if $connection->{'retry_delay'} > 30;
 
 <[base.log]>->(
@@ -213,7 +214,7 @@ $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
 return 0;
 
 #.............................................................................
-#ZLZLYUVYXXFWWME7VXC537735Q6YE6PQIXS6LDVFO3D2WACO3ZMSHP2TSR3PKEMWXHQ34HGUI5LJO
-#::: ZLNN7A5AIQBLRPRUIBM57URZ4KX7BFX2KGXWDO5KLGUCQ4R2HUF :::: NAILARA AMOS :::
-# :: OORPHJ7L3UBGXWMJRIGJOT3RMDW3IXN3MFLWLJL4U2LCDXJJE2BA :: CODE SIGNATURE ::
+#XIE5TP77OM7VZXJ5LNVKGXKZTLZBOP27V24EPLPGRPAL4OI56VTFNBYDDJHGQUKNARHQO74QYO2E4
+#::: Q55D6W4FQ67JOJIGUSVAMFZ2B5XIYMCEAGPZ6S64D2B7HUVKXAG :::: NAILARA AMOS :::
+# :: NWAU4WWJBVGUJP75H3DSNUUYHZRWYQJXOGZ246VJTVCIDMGI5YAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

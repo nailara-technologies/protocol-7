@@ -59,7 +59,7 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
         delete $sample_ref->{$del_tstamp};
     }
 
-    # LLL: adjust for timecode drift...
+    # LLL: adjust for timecode drift..,
     my $added;
     my $sec_count = keys %{$load_ref};
     foreach my $count (@stat_secs) {
@@ -81,7 +81,7 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $avg_str = join(
         ' .. ',
         map {
-            $sec = $new_sec ? " <- ${added}s" : '';
+            $sec = $new_sec ? " <-- ${added}s" : '';
             defined $load_ref->{$ARG}
                 ? sprintf( "%5s", sprintf( "%.2f", $load_ref->{$ARG} ) )
                 : '-- --'
@@ -95,8 +95,8 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     );
 
     # handle configured GPU load alerts
-    my $min_wait    = 20;  # allow for startup action to settle..
-    my $alert_pause = 30;  # allow restarts to complete before re-triggering..
+    my $min_wait    = 20;  # allow for startup action to settle..,
+    my $alert_pause = 30;  # allow restarts to complete before re-triggering..,
     if (    defined <X-11.gpu_load.alert>
         and ref(<X-11.gpu_load.alert>) eq 'HASH'
         and keys %{<X-11.gpu_load.alert>} ) {
@@ -114,7 +114,7 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
                 and $load_ref->{$al_secs} >= $alert_threshold ) {
                 <[base.log]>->(
                     0,
-                    sprintf( "<!> GPU load alert <!> ( ${al_secs}s at %.2f",
+                    sprintf( "<< GPU load alert >> ( ${al_secs}s at %.2f",
                         $load_ref->{$al_secs} )
                         . '% )'
                 );
@@ -142,11 +142,11 @@ if ( defined <X-11.gpu_top.write_to_disk.path> ) {
         map { join( ':', $ARG, <X-11.gpu_top.stats.load_average>->{$ARG} ) }
         sort { $a <=> $b } keys %{<X-11.gpu_top.stats.load_average>} );
     eval { <[file.put]>->( "$stats_file.NEW", "$stats_content\n" ) };
-    rename( "$stats_file.NEW", $stats_file ) or die "rename: $OS_ERROR";
+    rename( "$stats_file.NEW", $stats_file ) or die "rename : \l$OS_ERROR";
 }
 
 #.............................................................................
-#M2AX6SZFJZD44Q6YN3NCLTUU74TROHDL7FD5BNDW3Z5LSLSHZSHQTARWACCP4JHNMEDXP5XMYQ7VI
-#::: 47WIP4ZE5Z6S2EP3HKRKHPHT7ZYO6SDSAFU4LSF7BFNOL74YCLY :::: NAILARA AMOS :::
-# :: X2QIGBOY2WUAH7CC3OTX3YLTSIRMEBUYXVAWDVQ2CWMNR72NNWDQ :: CODE SIGNATURE ::
+#6RX3LQYXTK2JXNGU67QOLOC2F4BWY5JCCD4UTR3PQH7SICTDSKIJSDHQ2F6BHXOZ2BFSOQNLYXHGS
+#::: OVE2G3CJQW2HEFNU2SLF2ECKLXAQLN4SYTEFGD7T5GLW6H3NKZR :::: NAILARA AMOS :::
+# :: F2QTT6DSQZFEUCXFN6RRAHJ4MXFAQKN4FGVQC4BDA2XICYT73AAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

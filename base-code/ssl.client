@@ -4,10 +4,10 @@
 
 my $sock;
 if ($sock = new IO::Socket::SSL(
-        PeerAddr => "$_[0]",
-        PeerPort => "$_[1]",
+        PeerAddr => $_[0],
+        PeerPort => $_[1],
         Proto    => 'tcp',
-        Timeout  => 5
+        Timeout  => 7
     )
 ) {
     <[base.log]>->( 1, "connection [$_[0]:$_[1]] established." );
@@ -17,13 +17,13 @@ if ($sock = new IO::Socket::SSL(
 } else {
     <[base.log]>->(
         0,
-        "ssl connection error: can not connect to $_[0] at port $_[1] ($OS_ERROR)"
+        "< ssl.client > cannot connect to $_[0] at port $_[1] [ \l$OS_ERROR ]"
     );
     return 0;
 }
 
 #.............................................................................
-#6GOITQ6TS7N2SI3ARHJZINW5C6AERMJGGFGK5LBJ7CHZPFQHLEDSMCOYWXSVWFRTTQG5GISPYMJFQ
-#::: PZAMBHC5ZNFSICHGEFI2WVQ5WH4TG2PNBQZ4HLH6FZXH2RAEG4V :::: NAILARA AMOS :::
-# :: TWMYXVLIMECEJGEXIHZQLQY2HQAJNK3AMWGYO3TIPCUUYBUA5MCA :: CODE SIGNATURE ::
+#BVK6E7UAL7PYV2575RNHPDLUE54OKL272JT7J7PYQXEQCZPJ5H54RFGT6O2KCZDCSBRPY5ZYFEXUA
+#::: DF2IBJ3NBOUT5CL752OF4RSVKHJT3HTKZH3JUPXZAS2HAUED6CC :::: NAILARA AMOS :::
+# :: S7LPN465XMOZ4KOPRN6VTPFGT77NDYEAMVSUQBEUZNYF7OMXVKCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

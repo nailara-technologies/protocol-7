@@ -11,7 +11,7 @@ use Socket;
 <[base.log]>->( 1, "forking pdf conversion child.." );
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$OS_ERROR]";
+    || die "can't create socketpair! [ \l$OS_ERROR ]";
 map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
     ( $child_pipe, $parent_pipe );
 
@@ -21,7 +21,7 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     delete <pdf.html.pipe.child> if exists <pdf.html.pipe.child>;
 
     IO::AIO::reinit()
-        ;    # <- makes base.s_read() and base.s_write() work again...
+        ;    # <-- makes base.s_read() and base.s_write() work again..,
 
     <pdf.html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -61,12 +61,12 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
         ->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
-    <[base.async.get_session_id]>;    # -> 'online'
+    <[base.async.get_session_id]>;    # --> 'online'
 
 }
 
 #.............................................................................
-#SQ4P5K4YNK2USWZ4JB56B2NCDYRIHD6MLE4DP46GCSQVZZTQ7S6NMMWR653LVDP6FLWZXSZA4EA42
-#::: 5AQSN76NCBTXBXJRAWZBKKKHHYS3V3PWGJRSAPP7UNKJTNAJLTF :::: NAILARA AMOS :::
-# :: 627E2ASVDSFXCWLPKNFZFI37WLS75KXA6QZQKSIGU2EX2T4JF2AY :: CODE SIGNATURE ::
+#IBKXITWPWM74EO7XMPR6SURQQEFV25B7WW46YPAXFA37SQBB7BU6P3X4JKVPTP5SXFQTVNYB7CDBE
+#::: 6LWQRPO2GSOQVNDC23EPLAV2PQXNYUIKGDY65DO4ETW3VY3JIG4 :::: NAILARA AMOS :::
+# :: GH6I45NNOAX4CW3EIXLXHR4DUZCM42WTZDDA66HPTY7PIHMBNUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

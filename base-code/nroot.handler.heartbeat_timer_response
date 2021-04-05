@@ -38,7 +38,7 @@ if (    $response->{'cmd'} eq 'ACK'
         if $is_cube_zenka;    # for safe restart
 
     <[nroot.stop_heartbeat_timer]>->($instance_id);
-    $instance->{'heartbeat'}->{'errors'} = 0;    # <- resetting error counter
+    $instance->{'heartbeat'}->{'errors'} = 0;    # <-- resetting error counter
     <[zenka.change_status]>->( $instance_id, 'error' );
 
 } else {
@@ -48,7 +48,7 @@ if (    $response->{'cmd'} eq 'ACK'
             . " heartbeat response ( error ) [..retrying..]"
     );
 
-    # setting shorter heartbeat timeout..
+    # setting shorter heartbeat timeout..,
     $instance->{'timer'}->{'heartbeat-timeout'}->cancel
         if defined $instance->{'timer'}->{'heartbeat-timeout'}
         and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
@@ -61,7 +61,7 @@ if (    $response->{'cmd'} eq 'ACK'
 }
 
 #.............................................................................
-#4ZJY6H3GKB5OP6JCIF5ZNWLCXHRVCPPA27MSEAVIQPORLMIVU6W6RNQC7ZZF76M5DPGULA4M4A6Q4
-#::: H6MLYRO4FID6TJQURD55TLXPHTSHEZMXX7H3PB72DXS6H5D6XIE :::: NAILARA AMOS :::
-# :: LCA3RAKMXY5SJ5BVZWPZUFOAWAWPOXA65KQMIZXDCWRDPEGSCIBY :: CODE SIGNATURE ::
+#RWVB77WPEAWOGGAKOOHI7OQMHDNYDDNFPYYW3UBNTJWB2OPT5OGJ7SPHIU7MCHPRK5XUWGXEVVR4G
+#::: O4NLDSNAJ75ERN6J57BD4JPXW7BCSTYVXQUQL5V67BB4LTUC24C :::: NAILARA AMOS :::
+# :: 5XUOEPI6JOPY7KBV6IBRL7B2GQLP3ZXMD63JE2OQZ4VIKXGKYEDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

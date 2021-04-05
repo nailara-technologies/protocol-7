@@ -183,7 +183,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
     ( $cmd, $$call_args{'args'} ) = ( $1, $4 );
 
     # cube zenka 'select' command [ base path prefix handling ]
-    $cmd = 'unselect' if $cmd eq '../';    # 'unselect' alias "../" <!>
+    $cmd = 'unselect' if $cmd eq '../';    # 'unselect' alias "../" << ! >>
     $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
         if defined $data{'session'}{$id}{'base_path'}
         and $cmd !~ m,^(\($re->{cmd_id}\)|) *(unselect|basepath)$,
@@ -1042,7 +1042,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#2JWXOQ5S7AJHCSQWBOK5DGMMOWI4EYKIPBPDZR4GTDAMKZPPRDKZZNR6ZGU6KVLLRCD7HBILNM5FY
-#::: VVHYOJI5FLAFENUU64TT3XTLO2DIBTJS55BSXV6ELKOFCVX3U2T :::: NAILARA AMOS :::
-# :: WFXDLPTT4TXCMUS7S2KVQRUTXG2CMLB4AP5LJ4QMX4CLWWY632AI :: CODE SIGNATURE ::
+#IKLUG56P6SDRGNWP7GQBY5XIRPDPCCVQFBKX5YE75OUBHBNKHZWAB3BCUBLJRGYDOSMQ7RYYTUJ4W
+#::: PSD3SWZHCI3NQKFWN2EIHURDGC2R4W3SAUEGCTD6C6J5CRKGBVO :::: NAILARA AMOS :::
+# :: VAHT2ASCVILLG26ZRILCEQOPFOR4PEMZY2OY5DEONSGKI2BXS2BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

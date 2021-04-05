@@ -23,7 +23,7 @@ foreach my $chk_dir (@check_dirs) {
         last;
     }
 }
-die "no success creating temp dir [ $OS_ERROR ]" if not defined $first_dir;
+die "no success creating temp dir [ \l$OS_ERROR ]" if not defined $first_dir;
 
 my $retries = 47;
 my $tmp_file_path;
@@ -34,7 +34,7 @@ while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
     $tmp_file_path = catfile( $first_dir, $fname );
 }
 
-die "can not find suitable temp file name [ exists ]" if -e $tmp_file_path;
+die "cannot find suitable temp file name [ exists ]" if -e $tmp_file_path;
 
 <[base.log]>->( 1, " : tmp-file-path : $tmp_file_path" );
 
@@ -43,14 +43,15 @@ return $tmp_file_path
 
 <[base.log]>->( 1, " :. opening file : $tmp_file_path .," );
 
-open( my $tmp_fh, '>', $tmp_file_path ) or die "> $tmp_file_path : $OS_ERROR";
+open( my $tmp_fh, '>', $tmp_file_path )
+    or die "> $tmp_file_path : \l$OS_ERROR";
 
 # LLL: implement optional file locking and unlink mechanism here, see File::Temp
 
 return ( $tmp_fh, $tmp_file_path );
 
 #.............................................................................
-#Q6KJGLSM2UFSAVCWFD4W7TB5MINF4DJDBBVZJEMRWDPQWD4GOT5USC7SX4WO3BQ56I6M3HY2UCRRY
-#::: Y7AWNI5FSSIW6IQTMWWH7FSH564ZJ56KF7XWIDR6GJVJLGZKBRE :::: NAILARA AMOS :::
-# :: PMMIQ7XMUQT7HYFLMR6OAXHUX623RSI24RVHA6QTUCQOJCT3MMDI :: CODE SIGNATURE ::
+#U3THFVBOGR4UCHI3AZU5VRSIDLEIJ7VTXJ5JXOBAZPYXBWIJ6DTJIQPQD4YYRVKYTAMUSGNBN65QO
+#::: ZCFAQS5XLDORCKG2XCQXREEX33MCUKKLVUMTBGZA274MYJIZFJA :::: NAILARA AMOS :::
+# :: OHCTUV4ZY2HVP7LNLJQFRODMY5VFT7JHYT5ENLOCXK3TFIYAXSAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -69,7 +69,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                 <[base.log]>->(
                     0,
                     sprintf(
-                        "<!> MEMORY USAGE ALERT: (( %s )) "
+                        "<< ! >> MEMORY USAGE ALERT: (( %s )) "
                             . "[ .. %s%% .. limit=%s%% ]",
                         $rl_name, $mem, $lp->{'max_mem'}
                     )
@@ -104,7 +104,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
         ) {
             <[base.log]>->(
                 0,
-                "<!> CPU LOAD ALERT: (( $rl_name )) [now $cpu%, limit "
+                "<< ! >> CPU LOAD ALERT: (( $rl_name )) [now $cpu%, limit "
                     . $lp->{'max_cpu'} . " ]"
             );
             if ( defined $lp->{'action'} and $lp->{'action'} eq 'kill' ) {
@@ -131,7 +131,7 @@ if ( $mem_used_pct >= <mem.max_used> ) {    # system memory alert limit
     my $reached = $mem_used_pct == <mem.max_used> ? 'reached' : 'exceeded';
 
     my $warn_str
-        = "<!> WARNING <!> used memory $reached "
+        = "<< WARNING >> used memory $reached "
         . <mem.max_used>
         . "% limit";
     $warn_str .= " ( now $mem_used_pct% )" if $reached eq 'exceeded';
@@ -171,7 +171,7 @@ if ( $mem_limit_reached and <mem.autokill> )
 }
 
 #.............................................................................
-#YREVJTJY2WBMMP2M2EFJE4JSGODY5SIJLEXYURE7YL4LXEAG6CWRG5JNGZ5AQ7B5TOW4FX67OMCTG
-#::: PU5SX75V7F336BJLIXXZAOL2SI47LO3JYYYIF33PZVBMIJWVV5D :::: NAILARA AMOS :::
-# :: CSOVNWK2FPARU7LXJABTY6N5GZTHJPZTA6CCBFQFBMGDVVABOICY :: CODE SIGNATURE ::
+#EBJGNR3TTC55YOTBMZTRQLBKQRMCMYZGQILBQ34WKDTOF7WKUN5YO246NQKJ74HOJQTM7IGY4SA34
+#::: PBMMNV4VSICQ252JYROYGMLIXQNK2JXOOQARYGNZN5SN3ZEL4AL :::: NAILARA AMOS :::
+# :: B3UE6RAV5A3O7VQLF6IU2DRJPZ4BDV75YR3VZHH462XKQOJHNYBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

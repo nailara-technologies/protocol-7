@@ -14,7 +14,7 @@ foreach my $zenka_name ( keys(%display_zenki) ) {
     <universal.child>->{$zenka_name}->{'status'} = 'starting';
     if ( !<[universal.start_zenka]>->($zenka_name) ) {
         <[base.log]>->(
-            0, "<!> unable to start '$zenka_name', shutting down..,"
+            0, "<< ! >> unable to start '$zenka_name', shutting down..,"
         );
         exit(2);
     }
@@ -23,11 +23,11 @@ foreach my $zenka_name ( keys(%display_zenki) ) {
 
 if ( !<universal.declared_online> ) {
     <universal.declared_online>++;
-    <[base.async.get_session_id]>;    # 'universal' zenka status -> 'online'
+    <[base.async.get_session_id]>;    # 'universal' zenka status --> 'online'
 }
 
 #.............................................................................
-#IQT2FAA3UZ54OCWOJH4X4LNP7BXPKKQZEJAGJTOF4ZZ6Q3NWVXTKOCF54T53TUKGYG2QRXZM625OC
-#::: ORRWE27KMOFNRU3QTY3DPUF4MXRVNACFW62DDZB26UMMHOVZG3C :::: NAILARA AMOS :::
-# :: WAF5FIDU7K7C5JO3P3AMBHYATPOVMJBRVT2IZURMALGXZWQ3X2BI :: CODE SIGNATURE ::
+#5W7RF7YLDC5NHYKEDMJCRAT77S7MEKHXWAZY2VDEGKUGPHGKFRYUJZCMPK7MQ4KK65PTSRHWEMB7E
+#::: PKWPP5NHXEQT2EHQSS5OJP32WAWDTJJERHUH642M3PDKI3EMQFN :::: NAILARA AMOS :::
+# :: FBFZEUP5XHZKAXWMPBEKP3PFGGZUBDXHHOCTEFSVGQ2AWZMJMCBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

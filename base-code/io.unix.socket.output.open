@@ -16,7 +16,7 @@ my $return_socket = IO::Socket::UNIX->new(
     Peer => $socket_file,
     )
     or <[base.log]>->(
-    0, "io.unix.socket.output.open: $OS_ERROR! ('$socket_file')"
+    0, "io.unix.socket.output.open : \l$OS_ERROR! ('$socket_file')"
     );
 
 if (    defined $return_socket
@@ -30,13 +30,13 @@ if (    defined $return_socket
     return $return_socket;
 } else {
     <[base.log]>->(
-        0, "[!] can't connect to unix socket [$socket_file]: $OS_ERROR"
+        0, "[!] can't connect to unix socket [$socket_file] : \l$OS_ERROR"
     );
     return 0;
 }
 
 #.............................................................................
-#NK67ERHTO4KK5F7OFPRS5NX74QWVVIA73BOQF6KJVNXJMUW6VXJFXBMIVYYLZMGI4KX5AMNYSLAGK
-#::: 6OW6QZKJ2LBN4JK3BMGKNVTVD7EUJMXB4PGIAYNM5HQUEN2BRTQ :::: NAILARA AMOS :::
-# :: EDAJTT6CF4JXA4MAWDKFSMHGCABZPUPUI5BPVGTE6QDU2SL5HGCQ :: CODE SIGNATURE ::
+#FZQ3TP6ONLA4534KTFPB6SBN4BO5YWLBWWNSSGMF5JGJ47GZBJS6JGLJQ7DI2XQ6I6H4BPNXDJ3TE
+#::: ZMIAJNEYBY2LYH4C2GNPEIIB6UFPZV6FG2ZYT52JEIU5POQJCBP :::: NAILARA AMOS :::
+# :: OHT2F7IJRJKFZ5FACZMISF6FQG4DQGGKLQZYAQ2ACWNOFZ7MVCDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

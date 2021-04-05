@@ -59,12 +59,13 @@ if (    -d $html_path
 if ( !-d $html_path ) {
     <image2html.converting>->{$html_dir} = 1;
     <[base.log]>->( 2, "creating html dir '$html_dir'.." );
-    make_path($html_path) or die "make_path($html_path): $OS_ERROR";
+    make_path($html_path) or die "make_path($html_path) : \l$OS_ERROR";
 
     <[base.log]>->( 2, "copying 'loading' icon to cache dir.." );
     my $loading_icon = <system.root_path> . '/data/gfx/anim/busy.2K.gif';
     die "can't find image '$loading_icon'" if !-f $loading_icon;
-    copy( $loading_icon, "$html_path/busy.2K.gif" ) or die "copy: $OS_ERROR";
+    copy( $loading_icon, "$html_path/busy.2K.gif" )
+        or die "copy : \l$OS_ERROR";
 
     <[image2html.base.write_stub_page]>->($html_path);
 
@@ -89,7 +90,7 @@ if ( !-d $html_path ) {
 return { 'mode' => 'ack', 'data' => "file://$html_path/image.html" }
 
 #.............................................................................
-#V2OHWQLS3B7BQ44VW5AR425R7LFBKFNK2RSPZIBRIYGDPEDTTIWP6E5I4OMY2UUWSALA5XVYYZHAG
-#::: LLVYKPXI5RAZKHS3B2A5PXAE5CZP7OCCTP5XTEHF6TKD2MJ5BKE :::: NAILARA AMOS :::
-# :: BYZUSFTSRULP7IK7TNGCWLKNZF6XYV6FIV5UQ7VRN5URDRNYVADA :: CODE SIGNATURE ::
+#CXG7ZCTALO3BHDVSO2PBO3LW2HX5IRKSB6STG4EFVE4YC66KGV4OMFGMXY4DGMJTEP6NY3IPCWA5W
+#::: 25YS4Q6TAL4Z5HAGV64SDHS5AJMCMS45EV3RWA6NUQN5U4ID7MN :::: NAILARA AMOS :::
+# :: 2375N2RERLIQOZFLAGBLH3DATVCEOMR6GEUTXIYKQJPOFD5TV4DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

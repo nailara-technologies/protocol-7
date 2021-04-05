@@ -29,7 +29,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     my $log_level = <content.types_retry_count>->{$url} == 1 ? 0 : 2;
     <[base.log]>->(
         $log_level,
-        "<!> unable to resolve mimetype for '$url' [$reply_str]"
+        "<< ! >> unable to resolve mimetype for '$url' [$reply_str]"
             . ' ...retrying automatically...'
     );
     if ( not defined <content.file_types>->{$url}
@@ -72,7 +72,7 @@ $type =~ s|;.*$||g;
 $type =~ s| +|_|g;
 
 if ( $type eq 'unknown' ) {
-    <[base.log]>->( 0, ": <!> unknown file type for '$url'" );
+    <[base.log]>->( 0, ": << ! >> unknown file type for '$url'" );
 } else {
     <[base.log]>->( 2, "updating file type [$type] $url" );
 }
@@ -83,7 +83,7 @@ if ( $type eq 'unknown' ) {
 <[content.update.send_notifications]>;
 
 #.............................................................................
-#R7DI2GFB2TAIZI5XILCPDRTXSYLVRBQ7BCZP5ZK7A53FUVDARRMK2TYAUNVMMGBTE4ORGKIJQCP56
-#::: BTWMVJSQ2DWTWOENJPYLJWBLWSFS5KUKI46WEHGEKUAXINZ5GJB :::: NAILARA AMOS :::
-# :: C2S2V6SK3VMPXXRXDB3ZALIM2TVI7TAUFTQC2FOX3HSYXPDP6SAA :: CODE SIGNATURE ::
+#JPMGLAEIZFHQMJI3XKF25SW4CUIPCGUDUBRSLVCUUY5LCHCVLXAZEXOLWZUAB5CZTRHDHJGFBM4E2
+#::: J7DIPSAQJ3HYZD6NGPNWHHUMJQ2XLHZHRCJAOIMZ2BT5Q4VG34U :::: NAILARA AMOS :::
+# :: EQUGTCS2RE4NX3GYOY7EFA26SC5ZHYB2UAR5GZCZZKZCCOTSBIBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

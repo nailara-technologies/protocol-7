@@ -68,7 +68,7 @@ $git->add($rl_v_file)
     and $git->ls_files('cfg/protocol-7.rel-ver');
 
 ## ./cfg/protocol-7.src-ver ##
-open( my $ver_fh, '>' . $vers_file ) or die " -> $vers_file : $!\n";
+open( my $ver_fh, '>' . $vers_file ) or die " --> $vers_file : $!\n";
 say {$ver_fh} $version_string;
 close($ver_fh);
 $git->add($vers_file);
@@ -85,7 +85,7 @@ $git->add($vers_file);
         if $md_str !~ s|\Q$old_version\E|$version_string|g;
 
     if ( $md_str ne $md_copy ) {
-        open( $md_fh, '>' . $readme_md ) or die " -> $readme_md : $!\n";
+        open( $md_fh, '>' . $readme_md ) or die " --> $readme_md : $!\n";
         print {$md_fh} $md_str;
         close($md_fh);
         $git->add($readme_md);
@@ -201,7 +201,7 @@ sub assert_harmony {
 ################################################################################
 
 #.............................................................................
-#SHKZBMYBTS7BZSOBSFWHDUE66EWHYXRYQXR5XOXOTLUEOXQYWK2KBVVGF5LIM2ZCOMB5NVA5XXTGW
-#::: WMMYUWZCX7NRM3XQ43K4AQYI77PAKGFQUYRWEEW67LIXPXKAG3H :::: NAILARA AMOS :::
-# :: 6LJQ5WIIPJTVEV7WWVX3V6TWG3Q5J5TXGQIDPDZXEUDMP6JNKODA :: CODE SIGNATURE ::
+#RLUCIQTAPW74UW2T4K2BX26PRM4UHS4LVEY5E5FSGIFPWKFXUPHILYPCWA2WTXWATSPVSOEJOMEYE
+#::: F7GV5KUVVQUNR5DIM4PXMSSWN7EG6BOGU3M3YSDKC6HYYB2NBRI :::: NAILARA AMOS :::
+# :: LYIIQTKWNDKQAGLHGDQG6YZO62EQSVPXRPNVKDTO5DJIFNJLISAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

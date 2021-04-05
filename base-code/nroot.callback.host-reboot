@@ -9,7 +9,7 @@ my $term_delay     = <system.host-reboot.term_time> //= 1.3787;
 my $reboot_message = '<<< rebooting host system >>>';
 
 return <[base.log]>->(
-    0, "[ system.host-reboot.enabled = 0  <- reboot cancelled., ]"
+    0, "[ system.host-reboot.enabled = 0  <-- reboot cancelled., ]"
 ) if !$reboot_enabled;
 
 #
@@ -50,7 +50,7 @@ if ( !-e $sysrq_file ) {
 
 map {
     open( my $sysrq_fh, ">$sysrq_file" )
-        or die "[ $sysrq_file : $OS_ERROR ]";
+        or die "[ $sysrq_file : \l$OS_ERROR ]";
     print {$sysrq_fh} "$ARG\n";
     if ( $ARG eq 'e' ) {    # SIGTERM
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
@@ -65,7 +65,7 @@ map {
 ##
 
 #.............................................................................
-#PD5USBNOZZQG2FRZEHX2CLWRWNQAC63HUVCR47CU4HFP2M6EZ5ZIQE5C4LQQ2MYWMJEJNDKKLYGKK
-#::: 4FCYJ3GEQDZL7ZZVASRR5QDAWBPNPJ5FPAPS7O64CCN2ZOYXGDI :::: NAILARA AMOS :::
-# :: WCVOCAZKSR4A7HTGVSEH2FCYJI65JBP5RIQN5MYNAVIEDGC2ZMBA :: CODE SIGNATURE ::
+#YL6MKHFDWLP6GZKIWI6VMZXCH6DEY6FYMXBUBWSNTT5AOX5AYFTMWEYFF7ZIDGNAXFBI3LZUC2WEY
+#::: BIXRY4LUCPC5ONINMWP6PMTTVTYX4X66IXKQDPQAYWASJEKBWOZ :::: NAILARA AMOS :::
+# :: PBAEGGR55XLRKDTGPVKHK5SJJUAEAPVF77HFSC6WVZV7SXI426AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

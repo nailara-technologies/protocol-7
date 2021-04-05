@@ -8,11 +8,11 @@ my $protocol_7    = <system.start.exec_name>;
 my $perl_bin_path = <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 <universal.running> //= {};
-my @exec_args = ( '-nb', '-stdin' );
+my @exec_args = qw|  -nb  -stdin  |;
 
 my $zenka_verbosity
     = <system.verbosity.console> || 1;  # -v is minimum [ ..zenka patterns., ]
-push( @exec_args, '-' . 'v' x $zenka_verbosity );
+push( @exec_args, qw| - | . 'v' x $zenka_verbosity );
 
 my $zenka_sn_str
     = defined $zenka_subname ? "$zenka_name\[$zenka_subname]" : $zenka_name;
@@ -23,7 +23,7 @@ my ( $pid, $out_fh, $in_fh );
 
 my @cmd_line_mods
     = exists <universal.cmdline_mods>->{$zenka_name}
-    ? map {"-M$ARG"} split( / +/, <universal.cmdline_mods>->{$zenka_name} )
+    ? map {"-M$ARG"} split( m| +|, <universal.cmdline_mods>->{$zenka_name} )
     : ();
 
 <[base.log]>->(
@@ -51,7 +51,9 @@ eval {
 if ( not defined $pid or $EVAL_ERROR ) {
     ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
     my $err_reason
-        = ( defined $OS_ERROR and length($OS_ERROR) ) ? " ['$OS_ERROR']" : '';
+        = ( defined $OS_ERROR and length($OS_ERROR) )
+        ? " ['\l$OS_ERROR']"
+        : '';
     <[base.log]>->(
         0,
         join( '',
@@ -86,7 +88,7 @@ close($in_fh);
 return 1;
 
 #.............................................................................
-#EWTNFC7X7LJXGH3GKLCDRMVGWWS45UH62WZJQ2BMO5ZITEXTHO75YRBDM6NJJYS5VK43FSP3QUB3E
-#::: EJ37X45LAVSBGEWKAXHTSLUFY46QO5JFQAUDHFRS555A7XYHJAN :::: NAILARA AMOS :::
-# :: IT2I2UMM2TAPUMJ3ZMXPPVTQOBUT3HTMOJ7VZMYHCWNTPAY6V2CI :: CODE SIGNATURE ::
+#TJE6LSXLYXVJLCL5ZDUNTXGHAPGYQ7ORHP35A7XC3IGP2KHS7X66KQXTZOWRUNOV3A2CPJGIIBQMW
+#::: Z3HYCUNEFQTXPYTNM2OGREYNAJ2VTAPOQLTKDH6DDTDQ3YUNBUA :::: NAILARA AMOS :::
+# :: FG3UGS3I2CXU5XLNGKTQUOJC4V7PTCWVBJIYNGNA6GC26DEQFWBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,7 +19,7 @@ my @exec_params = ( $left, $top, $width, $height );
 
 $ENV{'DISPLAY'} = <x11.display>;
 
-chdir(<pong-game.cfg.res_path>) or die $OS_ERROR;
+chdir(<pong-game.cfg.res_path>) or die lcfirst($OS_ERROR);
 
 <pong-game.pid> = open3(
     <pong-game.in_fh>,  <pong-game.out_fh>,
@@ -31,7 +31,7 @@ chdir(<pong-game.cfg.res_path>) or die $OS_ERROR;
 
 if ( not defined <[base.X-11.wait_for_window]>->('pong-game')
     or !<pong-game.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start pong-game [$OS_ERROR]" );
+    <[base.log]>->( 0, "[!] unable to start pong-game [ \l$OS_ERROR ]" );
     <[base.log]>->( 1, " : aborting zenka startup .," );
     exit(1);
 } else {
@@ -58,7 +58,7 @@ if ( not defined <[base.X-11.wait_for_window]>->('pong-game')
 <[base.log]>->( 1, "startup complete." );
 
 #.............................................................................
-#HVRU43G5KXO56OVN2U7IVLRQ3H367UNWD3MXGSEYLYW3S7U6C7OFZXLXPBVHN4LKJXW5WOGYC6XJ6
-#::: XC7OJHTEQQ7IBEGGDTQ7OJU5X2X3PQOW2MLNIRYHZZOZOXHYSAS :::: NAILARA AMOS :::
-# :: Q6IIOG2JZNIDZ4LY575QXDU75ET4CHK4GOT372C3LGIHUVRKHOBA :: CODE SIGNATURE ::
+#MH2ADUFV7Q6GRTRYFV4Z7JMM6XRRFBASSOTVE6LJOZBVKGAOINZG4U5ATEMX7HZQGAQU7635QFXOU
+#::: ILBBJKX6CZ6JLCBVRJ6U7NWMCMPRGBUY4STWZ3LGX2R4HXOZN3B :::: NAILARA AMOS :::
+# :: WDGQESDL675UJ72BIBTNC4633PPKLGTMHFNLPPDKEOGXKWGKQQBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

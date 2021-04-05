@@ -51,7 +51,7 @@ my ( $of_cur, $of_max ) = getrlimit( BSD::Resource::RLIMIT_NOFILE() );
 if ( $of_cur != $of_max ) {
     <[base.log]>->( 2, ": open files limit increased [$of_cur->$of_max]" );
     setrlimit( BSD::Resource::RLIMIT_NOFILE(), $of_max, $of_max )
-        or warn "setrlimit <$of_max> failed [$OS_ERROR]";
+        or warn "setrlimit <$of_max> failed [ \l$OS_ERROR ]";
 }
 $data{'system'}{'limits'}{'ofile'}
     = [ getrlimit( BSD::Resource::RLIMIT_NOFILE() ) ]->[1];
@@ -122,7 +122,7 @@ if (    defined <system.zenka.type>
     <zenki.virtual> //= {};
     my $key_ref = \$data{'zenki'}{'virtual'};
     $data{'base'}{'element'}{$key_ref}{'max_count'}
-        //= 4097;    # LLL: -> config.,
+        //= 4097;    # LLL: --> config.,
     <list.virtual> = {
         'var'   => 'data',
         'key'   => 'zenki.virtual',
@@ -219,7 +219,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 #.............................................................................
-#EJ7ZR66ZEU7RX3N4XU3EDM4WI4QFBKGZCS5N7BASIJQN72R6OVONPM3UYXWSRG4BA47ZSFH7Z43ZS
-#::: 5XHHUZVO5YSTHYR52B2I4GDGXVQSWYTW2VSFDDU36FHEDVFXFFB :::: NAILARA AMOS :::
-# :: LB5IMFOPWXP2FYG3ZRIOGUZPPPH5S3UV2QG4D6RGLV4B4MBDJWAA :: CODE SIGNATURE ::
+#CROYKF6ZR2IKIHLT5MO6BKVYCK4TLK4SWZZIT6LMONSN33PIKOHQHH3PQ6FRSSKIPMGZQDITDXM4W
+#::: YMMTXECBG642L4XETHHIEDZWDYFZKCWXNR23O4CF3BFKQF52F5W :::: NAILARA AMOS :::
+# :: 3OYKYWP2FK6GDWF2C7RYU3W2JHCOV3TD4QUSPZ2RT4OB5TD466CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

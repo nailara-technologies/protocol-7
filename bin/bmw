@@ -40,7 +40,7 @@ my @args = grep { !m,^-(b|\d+)$, } @ARGV;
 if ( @args == 2 and $args[0] =~ m|^\-fq?| ) {
     my $fname = $args[1];
     die "\n  << not found : $fname >>" if !-e $fname;
-    open( my $FH, '<' . $fname ) or die "\n <!> $fname : $!\n\n";
+    open( my $FH, '<' . $fname ) or die "\n << ! >> $fname : $!\n\n";
     $fname =~ s|^.*/||;
     my $bmw_enc = encode( $bmw->addfile($FH)->digest );
     say $bmw_enc and exit if length( $args[0] ) == 3;
@@ -71,7 +71,7 @@ sub encode {
 }
 
 #.............................................................................
-#D23Q5SGE6UZXHZ7PBIMC5QSJMWJKMJMOE3PSBLCTP7JJVN3OKKIO3FQP4DR7FLJAWJ3EWI436LKCM
-#::: D4Y2RP5IFWYWHWKEBMYBJZKSLMFQ3TYNQMY2JK36F6SJPTAU6YL :::: NAILARA AMOS :::
-# :: ALVATY3O3HV3JKECTOMJ6R5IVETWM62R4RM3KXAAH3F2F6GYEQCA :: CODE SIGNATURE ::
+#XWT3SOTBVK73K6AI4C3VD3PI4EWV6WXWVJDOAIGJVDLWFVGOJ4ZBZ7WY3X7TCL72HSNI57SFR7L4Y
+#::: 4W5DLV3FBX7V4OCT7VSLUX2KDOXZZ3NNVY4MVYXBKBAJLMC6SAS :::: NAILARA AMOS :::
+# :: JEZ5IOX2ZYPYPUNIDRSONIBC4MR4TNN7AGFL4WS6XI2AYTOO5MBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ check_again:
 
 @cleanup_dirs = ();
 foreach my $check_dir (@dir_tree) {
-    opendir( my $dir_fh, $check_dir ) or die "$check_dir: $OS_ERROR";
+    opendir( my $dir_fh, $check_dir ) or die "$check_dir : \l$OS_ERROR";
     my @dir_content = readdir($dir_fh);
     push( @cleanup_dirs, $check_dir ) if scalar(@dir_content) == 2;
     closedir($dir_fh);
@@ -30,7 +30,7 @@ foreach my $check_dir (@dir_tree) {
 my $cleanup_count = 0;
 map {
     if   ( rmdir($ARG) ) { $cleanup_count++ }
-    else                 { warn "rmdir($ARG): $OS_ERROR" }
+    else                 { warn "rmdir($ARG) : \l$OS_ERROR" }
 } @cleanup_dirs;
 $cleaned_total += $cleanup_count;
 goto check_again if $cleanup_count;
@@ -42,7 +42,7 @@ my $ies = $cleaned_total == 1 ? 'y' : 'ies';
 return $cleaned_total;
 
 #.............................................................................
-#JMPMBOOS7GTJLJNAENW3T2RV4MUK2QQCLCMXEAHM776YTO6HOS4TOA5ZU7IMYQSQ3TTZ74GR5LWTY
-#::: HREUUYM6HB57IFZQM2KFL3PE43V364GWWXKQPG5ZE7Y3P4F3GI2 :::: NAILARA AMOS :::
-# :: JEJCMEDKBY7XECBD5DCY2H7MSECKBTKDBMSRE2O457RQQERCA4AQ :: CODE SIGNATURE ::
+#H2HB7Y5GMOO346TOR3UIFTJLXTMCI2VLO6WYTKKXR6VA7Z25OHZKL74HHSC7VRL6POYPDSS7HMJU6
+#::: BQB66MJZYCZFKOII5XMZKWZB3YRRDIAPYPQ4HKB3ASIOWOYKRZY :::: NAILARA AMOS :::
+# :: FVBNT2GXWXYU7UNXHFQKORKS342W55WVIAQYGQU3C2KTJMIFIOAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

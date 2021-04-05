@@ -7,7 +7,7 @@ my $pattern_file = shift // '';
 my $zenka_name
     = <system.zenka.name> eq '<stdin>' ? 'nroot' : <system.zenka.name>;
 
-my $base_file_name = "zenka-output.patterns";    # <- <!>
+my $base_file_name = "zenka-output.patterns";    # <-- << ! >>
 
 my $pattern_file_txt = $pattern_file;
 <nroot.patterns.zenka_output> //= {};
@@ -19,7 +19,7 @@ my $loading_message = ": loading zenka output patterns$pattern_file_txt";
 my $pattern_data;
 my $cfg_base_path = <system.conf_path>;
 {
-    local <system.conf_path> = "$cfg_base_path/zenki/$zenka_name"; #  <- <<!>>
+    local <system.conf_path> = "$cfg_base_path/zenki/$zenka_name"; #  <-- <<!>>
     if ( !-f <system.conf_path> . '/' . $pattern_filename ) {
         <[base.log]>->(
             0, "zenka pattern file '$pattern_filename' not found"
@@ -38,7 +38,7 @@ die "unable to load pattern data"
 <nroot.pattern_config> = $pattern_data;
 
 #.............................................................................
-#7VAXTASJOKARUXIPLUK6B2W2BGSPDHVEEYHT64LDZSNZMZ4UI2SBSK2FQRSABNPBNAPW62H2GJYEW
-#::: WOOWEKIVTZ6BDMXJO2AQH3APFKOV3275YCTDP44TTFLFVXG4CXM :::: NAILARA AMOS :::
-# :: CW5RLMCNJAEYYMWN7KLWETSL6UOWBGQTR3SCRNGHRHZQ4KJBH4BA :: CODE SIGNATURE ::
+#N2RAGGZMGSIQBSTLG3TBVMCAFQS2RF33CDMM42PNQUB2CIKUINFEJGX77XWU3YN57F4A2YARCF5IQ
+#::: 23KSIBRC3V7PAC5CDDRGVSWTMUMIGBDDUQT5AGRL5R2QJQ2OQVV :::: NAILARA AMOS :::
+# :: O724UWOZSKSCLOISZ4FGW7OBMBTHHRIOLPTY3KBH6DJKB5UZISDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

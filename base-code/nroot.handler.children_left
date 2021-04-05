@@ -8,7 +8,7 @@ my $instance_id = $params->{'instance_id'};
 my $next_status = $params->{'next_status'};
 my $instance    = <nroot.zenka.instance>->{$instance_id};
 my $curr_status = $instance->{'status'};
-$next_status = 'restart' if $next_status eq 'delayed'; # <- should not happen!
+$next_status = 'restart' if $next_status eq 'delayed'; # <-- should not happen!
 
 my @remaining_pids;
 my $child_count = 0;
@@ -20,7 +20,7 @@ foreach my $pid ( reverse sort keys %{<nroot.child>} ) {
     } else {
         <nroot.process.instance_cache>->{$pid} = $instance_id;
         delete <nroot.child>->{$pid};
-        kill( 9, $pid );    # <- assumed gone, making sure..
+        kill( 9, $pid );    # <-- assumed gone, making sure..,
     }
 }
 
@@ -43,7 +43,7 @@ if ( !$child_count ) {    ## done waiting ##
 }
 
 #.............................................................................
-#ZHQ6TGBNRGMAQVA6EUPJBO23RKF3GOADI73CTKGXRRBXQ2SUMGWHV3EMM2Z5NIQMQH326FDNUNHQU
-#::: QLCKVKZXWFH3NKZVKUJZUGLNALAX7EDHRX3WTEFMNVVUUNZAXJL :::: NAILARA AMOS :::
-# :: X7BUGNI25NZJMIK6CMEOIA3AVROGD3FQQP23ND65Y5QK4A3VU2CY :: CODE SIGNATURE ::
+#6FMF4ATH7U6AO52AH5JK3J54PCDXEE6R6KZSO3ELIGWW6YGXLRWEPQHCRR3BV3F6HDJHF422KCL5M
+#::: 2TY4QY3XJGCFRPSM65TIIHM6GZUM4V4PZ7BFYAHU3SCBYKSQXSZ :::: NAILARA AMOS :::
+# :: KP7N64IKTUFYNWLK7SETNEUUQDXR6YG2IWZWU5RYX5XMFATK74BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

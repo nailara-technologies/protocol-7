@@ -10,10 +10,10 @@ my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir'.." );
     make_path( $cache_dir, { mode => 0755, 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $OS_ERROR";
+        or die "make_path : \l$OS_ERROR";
 }
 
-chdir($cache_dir) or die "chdir($cache_dir): $OS_ERROR";
+chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 
 foreach my $subdir ( 'station_ids', 'html', 'data' ) {
     my $subdir_path = "$cache_dir/$subdir";
@@ -21,11 +21,11 @@ foreach my $subdir ( 'station_ids', 'html', 'data' ) {
     my $mode = $subdir eq 'html' ? 0755 : 0750;
     make_path( $subdir_path,
         { mode => $mode, 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $OS_ERROR";
+        or die "make_path : \l$OS_ERROR";
 }
 
 #.............................................................................
-#QVUD4EAGHRMKK4XV4N4FQWAVM4RRDRSIJV7CNL5AQEX53BXB7T4QKED63NYX4GVFDR5DOUQ5VCTDM
-#::: 5ABWHAHNHD7RKLSKR72ND2PYSNT7WY6ICKFWOEXHJPW2XJRBTL6 :::: NAILARA AMOS :::
-# :: Y4GXJLUXA5MXMWMQMXCGDTJWMP5ZG5WIIBZOPSCKGOEP7BELWKAQ :: CODE SIGNATURE ::
+#ZDULXA6LRXZC3B5MDQVBB3HWQTL6XNY4YB4ZAL5NZQ6SFRCGQAA5ERTCDTDUA354PQ5JC5DG76D4A
+#::: XXIQT6NIDYCXTYGRJWBEHBOIEYHD5OCKN7CTDVVH7OPGCJBSMQT :::: NAILARA AMOS :::
+# :: 7DAREG43R3PKDBN3FDCVHXLRUT2RSV27FMJUL3NQ5HTZFRBI4KBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

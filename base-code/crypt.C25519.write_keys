@@ -11,35 +11,35 @@ my $usr_hdir     = $key_vars->{'usr_home'};
 my $key_name     = $key_vars->{'key_name'};
 my $key_basepath = $key_vars->{'key_basepath'};
 
-foreach my $type ( 'secret', 'public' ) {
-    my $file_name = join( '.', $key_basepath, $type );
+foreach my $type (qw|  public  secret  |) {
+    my $file_name = join( qw| . |, $key_basepath, $type );
     next if not -f $file_name;
     $file_name =~ s|^.*\/||;
-    <[base.log]>->( 0, "<<!>> key file '$file_name' exists .," );
-    <[base.log]>->( 0, "  :.  not overwriting .," );
+    <[base.log]>->( 0, "<< ! >> key file '$file_name' exists .," );
+    <[base.log]>->( 0, "   :..  not overwriting .," );
     return 0;
 }
-foreach my $type ( 'secret', 'public' ) {
+foreach my $type (qw|  secret  public  |) {
     my $file_name = join( '.', $key_basepath, $type );
     my $tmp_fname = join( '.', $file_name,    $PID, <[base.ntime.b32]> );
-    open( my $key_fh, '>', "$tmp_fname" ) or die "[ $tmp_fname ] $OS_ERROR";
+    open( my $key_fh, '>', "$tmp_fname" ) or die "\l$OS_ERROR [ $tmp_fname ]";
     if ( $type eq 'public' ) {
-        chmod( 0640, "$tmp_fname" ) or die "[chmod] $OS_ERROR";
+        chmod( 0640, $tmp_fname ) or die "< chmod 0640 > \l$OS_ERROR";
     } else {
-        chmod( 0600, "$tmp_fname" ) or die "[chmod] $OS_ERROR";
+        chmod( 0600, $tmp_fname ) or die "< chmod 0600 > \l$OS_ERROR";
     }
     my $key_str_b32 = encode_b32r( $KEYS{'C25519'}{$key_name}{$type} );
     printf( {$key_fh} "%s\n", $key_str_b32 );
     close($key_fh);
-    rename( "$tmp_fname", $file_name ) or die "[ $file_name ] $OS_ERROR";
-    chown( $uid, $gid, $file_name )    or warn "[ $file_name ] $OS_ERROR";
+    rename( "$tmp_fname", $file_name ) or die "\l$OS_ERROR [ $file_name ]";
+    chown( $uid, $gid, $file_name )    or warn "\l$OS_ERROR [ $file_name ]";
 
     <[base.log]>->( 1, ": $file_name" );
 }
 return 1;
 
 #.............................................................................
-#4SFMPSJJWXPQHWSI3HT6HUEY33FLXRM6W54YDKTMROJW5AU3G3MKXFPMLUMIIU2R4WJX7ZC3MTZSG
-#::: F5ZTR2O6EF5CLADN2YRJXUVHJHRHL7D25X4KMKT5GG2YP2HM5AN :::: NAILARA AMOS :::
-# :: QKNCZOF2EZ4SHG5HDFFGZDRM6OOTSDEZQWOBFK5MCVCDLE33X6CQ :: CODE SIGNATURE ::
+#CBBMN2VYXI2JWOUH4B5R2TW3OA5YYO4UBBUFZ7PEPXKY247XJSXKMF6LCOPOCEHEVCLK46UY2KXSK
+#::: FZHJDY7JHJV3YADATC6DK5ODJBMGCQ73FJHVADTI6HIKXL74RP5 :::: NAILARA AMOS :::
+# :: SSK5IDBPUBQBECAYXMDRSCAX3BJAXZELJXB2RTPMDNTPBJSYIECI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

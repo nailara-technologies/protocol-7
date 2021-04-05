@@ -56,12 +56,13 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
         my $url_hash = <[chk-sum.sha.1]>->($rss_url);
         if ( !-d $data_dir ) {
             mkdir($data_dir)
-                or die "can't create rss data dir '$data_dir' [ $OS_ERROR ]";
+                or die
+                "can't create rss data dir '$data_dir' [ \l$OS_ERROR ]";
             chmod( 0700, $data_dir );
         }
         my $url_data_file .= "$data_dir/$url_hash.txt";
         open( my $txt_fh, '>' . $url_data_file )
-            or die "can't write to feed data file [ $OS_ERROR ]";
+            or die "can't write to feed data file [ \l$OS_ERROR ]";
         {
             print {$txt_fh} join( "\n", @txt_data ) . "\n";
         }
@@ -119,7 +120,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
     }
 
     open( my $r_fh, '<' . $url_data_file )
-        or die "can't open feed data file '$url_data_file'! [$OS_ERROR]";
+        or die "can't open feed data file '$url_data_file'! [ \l$OS_ERROR ]";
     @{ $txt_data{$index} } = <$r_fh>;
     close($r_fh);
     $feed_data_count++;
@@ -127,7 +128,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 
 if ( !$feed_data_count ) {
     <[base.log]>->(
-        0, "<!> WARNING: no feed data available, ticker file empty.,"
+        0, "<< ! >> WARNING: no feed data available, ticker file empty.,"
     );
     <rss.ticker.fail_retry_interval> //= <rss.ticker.fail_retry_min_interval>;
     <rss.ticker.update_timer>->cancel;
@@ -147,7 +148,8 @@ if ( !$feed_data_count ) {
 }
 
 open( my $txt_fh, '>', $output_file . '.NEW' )
-    or die "can't write to ticker data file '$output_file.NEW' [ $OS_ERROR ]";
+    or die
+    "can't write to ticker data file '$output_file.NEW' [ \l$OS_ERROR ]";
 my @output_data;
 if ( $join_type eq 'mixed' ) {
     while ( keys(%txt_data) ) {
@@ -176,12 +178,12 @@ if ( $join_type eq 'mixed' ) {
 }
 close($txt_fh);
 move( $output_file . '.NEW', $output_file )
-    or die "can't move '$output_file.NEW' to '$output_file' [$OS_ERROR]";
+    or die "can't move '$output_file.NEW' to '$output_file' [ \l$OS_ERROR ]";
 <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
 return 1;
 
 #.............................................................................
-#TN4ULNKINBRESEEL57YTBF2JXCNXG6PNZXYQUVTSU6VFGT42VWPSY5JGSX6DR2DKUPASMFBSQHWWK
-#::: ILYUWNVQXJ2FVHE2ZE744XWIOHZTD4L3WUYBBR6GXSVSKVTSMT7 :::: NAILARA AMOS :::
-# :: OMGQGH5EWWHV5SO65PDIDXC6CECSWX5SROQINUESIFCCDKN6ZABY :: CODE SIGNATURE ::
+#6EAQFYC2G4V5VRMUQ2LT54QE4DBR6FLVRDQMDDFRE74RE2ZA76AQUCTPRPXVSM7A2ZAIOFFAR7PGC
+#::: FM5IDZTUSJ5HVCAFMBF2DCBH6NOOVNGYMJX545T2AS627UMEU7H :::: NAILARA AMOS :::
+# :: YOTYW6MA2E43IGC6OKTYS6SJDE7D22WOZB6SUUYKIADQVFH64QBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

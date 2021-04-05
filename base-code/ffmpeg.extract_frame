@@ -19,11 +19,11 @@ $target_dir =~ s|/$||g if defined $target_dir;
 die "target directory does not exist"
     if defined $target_dir and !-d $target_dir;
 
-$target_dir //= '/var/tmp/.video_frames';    # <- default
+$target_dir //= '/var/tmp/.video_frames';    # <-- default
 
 if ( !-d $target_dir ) {
-    make_path($target_dir)     or die "make_path($target_dir): $OS_ERROR";
-    chmod( 0755, $target_dir ) or die "chmod($target_dir) : $OS_ERROR";
+    make_path($target_dir)     or die "make_path($target_dir) : \l$OS_ERROR";
+    chmod( 0755, $target_dir ) or die "chmod($target_dir) : \l$OS_ERROR";
 }
 
 $target_file //= md5_hex($video_path) . '.png';
@@ -31,7 +31,8 @@ $target_file //= md5_hex($video_path) . '.png';
 $target_path = join( '/', $target_dir, $target_file );
 
 if ( -f $target_path ) {
-    unlink($target_path) or die "unable to unlink($target_path): $OS_ERROR";
+    unlink($target_path)
+        or die "unable to unlink($target_path) : \l$OS_ERROR";
 }
 
 if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
@@ -45,7 +46,7 @@ if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
 return undef;
 
 #.............................................................................
-#HILGYXH2CIVGGGJJNQ3SWHWLOUNO6VH35MZSLBXCBL6ELUQKSI2PCYBURKYECRC2JL3B227VQRKGU
-#::: AFR4WEMH4P52BZKP6TXVMHJBL6KAKKW6UJG45HSNZRFGMPAY5OO :::: NAILARA AMOS :::
-# :: UX5JC3PDLEKV2M3K5WDJNOLXH2VLZCJL2EDZPNNSY3D23ZOHMGCA :: CODE SIGNATURE ::
+#YGJHAOHTETCPDGWKEL7URMM6NG3VVNQESQTWC3JPX7C4GECM6AMWOX6AWCV7NCZ7EDYWEUCKPIRVC
+#::: K4LJRZIATHUJWUUVGEBNUGDUKANCIDOB63C5XKS5F63ITTPUDVY :::: NAILARA AMOS :::
+# :: HXGP7UCCYEJ6EG6OBAG2IALAYCWX7T7ZQ43LTP32QMIDGODHCWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

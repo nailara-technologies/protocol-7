@@ -7,8 +7,9 @@ my $fd = $data{'session'}{$id}{'handle'};
 
 if ( -S $fd ) {
     my $new_sock = $fd->accept()
-        or <[base.log]>
-        ->( 0, "tcp.connect_handler: can not accept [$OS_ERROR]" );
+        or <[base.log]>->(
+        0, "tcp.connect_handler: cannot accept [ \l$OS_ERROR ]"
+        );
     my ( $p_host, $p_port )
         = ( $new_sock->peerhost(), $new_sock->peerport() );
 
@@ -44,7 +45,7 @@ if ( -S $fd ) {
 }
 
 #.............................................................................
-#T2COKEKCQVADYCETVYM3NWUOF3TYBVFICTYSGWC3FAC6HCMP7HBEMU3QHAOMVE5TYPPPDW44PE6YI
-#::: GNYMAFKZPL7B7Z7HVDBJSIY2BGMFQSKBBWQE3N4KY2WCFJYT5TZ :::: NAILARA AMOS :::
-# :: J4VOFNI5TKT6CDMRSSYCZYHNLNFTZJDVIBIMNDQ6O6Q7A2YZDEAI :: CODE SIGNATURE ::
+#I6IGSS47OXSPRASU2V44DMFZURGNEI2KR57PJGRMBSTNQF7NFMNR3CYPPBJEC5C5PEDTSLQ5TYIXO
+#::: WL7ZPG7DTEQDISWCEUMKV77EYCFIN3RF3DM4UXZT2QENPO2JLHR :::: NAILARA AMOS :::
+# :: LLVTHUSKXEIZCSNUGBWS66YGTXJV75262NX22PFLHLE4YVZ5WWAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

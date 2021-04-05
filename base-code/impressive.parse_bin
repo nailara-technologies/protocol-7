@@ -39,7 +39,7 @@ if ( File::stat::stat($impr_src)->size == 244069
     and <[chk-sum.sha.file_hex]>->($impr_src)
     =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/ ) {    # v_0.11.0b
     <[base.log]>->(
-        0, "<!> please update impressive version <!> [donwload_impressive.pl]"
+        0, "<< please update impressive version >> [donwload_impressive.pl]"
     );
     $file_content
         =~ s|tostring\(|tobytes\(|mg;    # workaround (impressive crash)
@@ -90,10 +90,10 @@ if (not $file_content =~ s|
 <[impressive.check_tmp_dir]>;
 
 <[file.put]>->( $tmp_bin, $file_content );
-chmod( 0755, $tmp_bin ) or die "chmod failed: $OS_ERROR";
+chmod( 0755, $tmp_bin ) or die "chmod failed : \l$OS_ERROR";
 
 #.............................................................................
-#CXHG6X3OPXJDOHXQF3KIQZQLT4LXBM6FZ4SHEYQDTVEXBYIFNNUS7RH6JJN2LO6KLYXZL2RWRLVUE
-#::: 6EVVZTHP34CIAVHZ4GCGEG6NVKPWMD6M2UZE7UPMP2WQDRT5V5Y :::: NAILARA AMOS :::
-# :: B6TKADYZS4ILSEDPF3BWXDZWPQA5H6WBF2WL6HBLEEVKGUY2BCAA :: CODE SIGNATURE ::
+#UYPDVOMIVT3UHKF7BSSPPBKOKGA5BDOYA6CCBIKK6A5NWKRG46OZNIOKIC47XCEDT26ELSI4RJ6DC
+#::: JXDN3AVYNF2NKV3A36GB3G6TI22GKH55QEELVLYWKFU35ZNQJ2D :::: NAILARA AMOS :::
+# :: O2MK532JE6K7ATJGX6RNY7X5JIJODFTYOV3BWMLGPPWUUIQU7MCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

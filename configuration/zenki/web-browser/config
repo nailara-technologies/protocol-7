@@ -8,16 +8,16 @@ system.verbosity.zenka_buffer = 1
 
 web-browser.playlist.content_types = html pdf image
 
-web-browser.cfg.proxy_addr = 127.0.0.1
+web-browser.cfg.proxy_addr = '127.0.0.1'
 web-browser.cfg.proxy_port = 8118
 web-browser.cfg.use_proxy = no # <yes|no|auto>
 
 web-browser.slideshow.autostart  = 0 # <-- enable for 'kiosk-mode' setups ##
 web-browser.slideshow.min_delay  = 7 # min duration before page change
-web-browser.slideshow.swap_delay = 2 # min delay before page change after scrolling
+web-browser.slideshow.swap_delay = 2 # min delay, page change after scrolling
 web-browser.slideshow.err_delay  = 2 # error page duration
 
-# NOTE : not all of the following features are ported to the WebKit2 version yet
+# [NOTE] not all following features ported to the 'WebKit2' version
 
 web-browser.slideshow.no_scroll = 0   # <0|1>
 web-browser.slideshow.no_switch = 0   # <0|1>
@@ -35,55 +35,64 @@ web-browser.cfg.plugins_enabled    = 0  # <0|1>
 web-browser.cfg.no_memory_cache    = 0  # <0|1>
 
 # web-browser.cfg.change_cursor = blank-cursor
-# web-browser.cfg.change_cursor = circle # custom mouse cursor for current X-server
-#                                    # [ comment out to disable custom cursor ]
+# custom mouse cursor for current X-server
+## web-browser.cfg.change_cursor = circle
+# [ comment out to disable custom cursor ]
 
-web-browser.cfg.load_timeout = 13 # seconds [ without change in load progress ]
+web-browser.cfg.load_timeout = 13 # seconds [ w\o change in load progress ]
 
+## <1..10> [ 1 == 6 px/s ... 10 ~~ 60 px/s [max] ] ##
+web-browser.cfg.scroll_speed = 5
 
-web-browser.cfg.scroll_speed = 5  # <1..10> [ 1 == 6 px/s ... 10 ~~ 60 px/s [max] ]
-
-web-browser.cfg.gpu_load_secs = 15 # s <- requested/watched load statistics interval
-web-browser.cfg.max_gpu_load  = 67 # % <- matching GPU load limit in auto-speed mode
-                               #      ( send 'slow_down' command to activate., )
+## requested \ watched load statistics interval ##
+web-browser.cfg.gpu_load_secs = 15 # s
+## matching GPU load limit in auto-speed mode ##
+## [ send 'slow_down' command to activate., ]
+web-browser.cfg.max_gpu_load  = 67 # %
 
 web-browser.zoom_level = 1.0    # default zoom factor [ 1.0 == 100% ]
-web-browser.zoom_text_only = 0  # set to 1 to enable 'zoom_text_only'
+web-browser.zoom_text_only = 0  # enable 'zoom_text_only' ?
 
-web-browser.auto_zoom = 1   # recalculate zoom factor based on current screen size
-web-browser.min_zoom  = 0.7 # lower zoom factor limit for automatic recalculation
-web-browser.adjust_scroll_delay = 1 # if true will adjust scroll delay with autozoom
-web-browser.keep_text_zoom_path = /var/cache/ # apply 'zoom_text_only' if matches..,
+## recalculate zoom factor based on current screen-size ##
+web-browser.auto_zoom = 1
+web-browser.min_zoom  = 0.7  ## lower zoom-factor limit for auto-recalc.
+## when true will adjust scroll delay with autozoom ##
+web-browser.adjust_scroll_delay = 1
+## apply 'zoom_text_only' if matches.., ##
+web-browser.keep_text_zoom_path = /var/cache/
 
 access.cmd.usr.cube = commands heart reload verify-instance * *.*
 
-web-browser.templates_path = '<system.root_path>/data/html/templates/web-browser'
+web-browser.templates_path ='<system.root_path>/data/html/templates/web-browser'
 web-browser.loading_page   = '<web-browser.templates_path>/loading.html'
 web-browser.error_page     = '<system.root_path>/data/html/failed_to_load.html'
-web-browser.load_icon_page = '<system.root_path>/data/html/loading_animation.html'
+web-browser.load_icon_page='<system.root_path>/data/html/loading_animation.html'
 
-system.privs.create_temp_home = 1   # allow temporary 'nobody' home dir creation
+system.privs.create_temp_home = 1 # allow temporary 'nobody' home dir creation
 
 [load_modules:'set-up.json web-browser.set-up']
 [init_modules]
 
 [set-up.json.import_file:'web-browser.set-up.json']
 
-web-browser.open_gtk_inspector = 0 # set to 1 to start gtk inspector [for debugging]
+web-browser.open_gtk_inspector = 0  # enable to start gtk-inspector [ debug ]
 
-modules.load = auth net protocol io.ip io.unix chk-sum.sha web-browser ## debug
+modules.load = auth net protocol io.ip io.unix \
+               chk-sum.sha web-browser ## debug
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[web-browser.set-up.set_privs:<system.X-11-user>]  # <-- only when not an 'universal-child'
+## only when not an 'universal-child' ##
+[web-browser.set-up.set_privs:<system.X-11-user>]
 
 [net.connect_to_cube:'ip.tcp']
 
 [base.X-11.get_display]
 web-browser.subcfg = [base.X-11.get_subconfig]
 web-browser.geometry = [base.X-11.get_geometry]
-web-browser.bg_color = [base.X-11.get_bg_color]  ##  <-- override for custom bg color
+## override for custom background-color ##
+web-browser.bg_color = [base.X-11.get_bg_color]
 
 [web-browser.calc_zoom_level]
 [web-browser.process_subcfg]
@@ -93,7 +102,7 @@ web-browser.bg_color = [base.X-11.get_bg_color]  ##  <-- override for custom bg 
 [web-browser.main_loop]
 
 #.............................................................................
-#BO5ZOO372VDJXVOZPROYLCDI5NBYUF5JVAAXWZ2CYGVKILOATTCEYHQOCG33URA56LC5B6PLNCTL6
-#::: NGKWXVLVAEITAPOK2K53OLCWLCL5TO6LHDB4UMWBEXDVJR7XWID :::: NAILARA AMOS :::
-# :: BMPVF7XRWIB2YHC52YTP4RCACQIEEZPK7NV4JT7R536GJIT7CWBI :: CODE SIGNATURE ::
+#PFECFT6IBCJGYXPPLQOSORD6POOOGYF4V4TCDMQNKI4V5ZICFWKJZAQ5TWBFTD553HHPW2ZJRCTAC
+#::: FPH5FQDBK7C4O6734OZFFANE2E2JBU7FTLNSDFVULA5XP5KSGKY :::: NAILARA AMOS :::
+# :: LPHXTV62IQDH77BULPRQ2KSWDFL6PAROMSTJABMD4RK4WEZ53YCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

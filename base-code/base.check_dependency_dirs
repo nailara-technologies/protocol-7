@@ -35,7 +35,7 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
         ## create ##
         if ( !-d $dir_path ) {
             mkdir($dir_path)
-                or warn "mkdir($dir_path) : $OS_ERROR";
+                or warn "mkdir($dir_path) : \l$OS_ERROR";
         }
         next if !-d $dir_path;
 
@@ -46,7 +46,7 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
         if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
             ## chown ##
             chown( $src_stat->uid, $gid, $dir_path )
-                or warn "$dir_path : $OS_ERROR";
+                or warn "$dir_path : \l$OS_ERROR";
         }
         ## placeholder ##
         my $placeholder_path = "$dir_path/.placeholder";
@@ -59,7 +59,7 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
 }
 
 #.............................................................................
-#YYW52PSEW6CYQHL42SAE2IY24GZU66QTOJIC26UUXLFY3O2Z6X22MCSO6MNVXC5C4H5LOLII67UZY
-#::: SORMV34VW23P3G6FHJDM646MTZZ7O4FUSHFRGJVUBMB36JOGL4W :::: NAILARA AMOS :::
-# :: LJP7EWHSWVI3WOTRHHFV7CLSHJXBJ77RHNVQUY5U4U43JFZEA4DI :: CODE SIGNATURE ::
+#HQ3AQ7XC4YCGL7J7GL75XQIE43P5EDVEGBCVCJMZXKHE7AMCXAXVXMNVAFR6GYLND2GCULVZSHF66
+#::: LVXQT3TQJUUIN2K4X22RZRX6QWIIFGGLMNWPB7OT6DZTICKHH5X :::: NAILARA AMOS :::
+# :: JNMBELXPAHISKDCUOFN4WDCE74HA5JHMUEWEHQV7LEAFJQ5BFCBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

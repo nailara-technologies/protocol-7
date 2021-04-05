@@ -38,13 +38,13 @@ if ( -d $target_dir and !-f $target_dir . '/.complete' ) {
 
 if ( !-d $target_dir ) {
     <[base.log]>->( 2, "creating html dir '$url_hash'.." );
-    make_path($target_dir) or die "make_path($target_dir): $OS_ERROR";
+    make_path($target_dir) or die "make_path($target_dir) : \l$OS_ERROR";
 }
 
 my $head_res     = $ua->head($file_url);
 my $content_type = $head_res->{'_headers'}->{'content-type'};
 my $content_length
-    = $head_res->{'_headers'}->{'content-length'};    # LLL: use ...
+    = $head_res->{'_headers'}->{'content-length'};    # LLL: use ..,
 if ( $content_type =~ m|/pdf$| ) {
     <[base.log]>->( 2, "found pdf file ($content_length bytes)" );
 } else {
@@ -71,14 +71,14 @@ if ( $status_code ne '200' ) {
         if defined $last_modified;
     <[file.write_timestamp]>->("$target_dir/.last_used");
     my $touch_file = "$target_dir/.complete";
-    open( my $touch_fh, ">$touch_file" ) or die "$touch_file: $OS_ERROR";
+    open( my $touch_fh, ">$touch_file" ) or die "$touch_file : \l$OS_ERROR";
     close($touch_fh);
 
     return $target_path;
 }
 
 #.............................................................................
-#NK32I5RUKJFUDVDVU3XTFGBNC7U75CH2GDW4VE55R6AGYBVS5XHTE4VR75O3SDIXCE2H46H42VSA2
-#::: Y643HSPSLHXHNALIL5BH2AFQN4B45M7KY7YQDXTHVETOTUPRJC6 :::: NAILARA AMOS :::
-# :: H6MZMLWSP6OJ22RVTKOEV3243IGNXYJXAZHEG6V5Q7HU4PSCW6BQ :: CODE SIGNATURE ::
+#V2CJYX5MAXGNTUPBQFZKBMQDSD7DLNXNJL7WD553DPR3T5EN7BQSC7LQLBU2IHGOTO3XSEBHQR4HS
+#::: ZMXQ72FL7WOE4KHFLZCSFUQITTSSTKW4M27JGSNZUS2FAQTJQNL :::: NAILARA AMOS :::
+# :: LNGY7TKEFZWOGO3M57QMBNTBZWXKTN7BTJWK7R56ASFXGKKHI6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

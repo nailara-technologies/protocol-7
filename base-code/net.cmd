@@ -14,7 +14,7 @@ if ( not defined $_[0]->{'answer_handler'} ) {
 if ( not defined $_[0]->{'target_cid'} ) {
     $_[0]->{'target_cid'}
         = <[base.gen_id]>->( $data{'handle'}{$filehandle}{'cmd'}, 23000 )
-        ;    # -> config
+        ;    # --> config
 }
 
 $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }
@@ -30,7 +30,7 @@ $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }{'params'}
 # return $command_id;
 
 #.............................................................................
-#6A54AI7AZZS73RINZCWKRJHOUIE2ZJNQOSGNHM6P7BG2I7TGKXLW4CM7MLWTNPBGZ3KW6FQALKESC
-#::: MWMRYU3AL47ULCZKSTCSJYHJCE3BDXWOWSIT3YRG5YI3EDDDV6D :::: NAILARA AMOS :::
-# :: F2RYRQB235C64M4BO7F6CEWAYGW26CAOLN6KBCWHGQWRUSE2Y2CI :: CODE SIGNATURE ::
+#7UMNPTIBWX6YK3MQF6XV7MCIIIPPNED7XB5GLZDHVC5O2CIAT6LBTYFVICIQZGJYPRWOLB2YIW4J2
+#::: MMJODK2LYYL6LMELGORKHCICUBYFYK6VCC4XYTDEM7ZSDA5ND6J :::: NAILARA AMOS :::
+# :: TZIXCRVGL2Z4WHQBIZFWTSFTJ7NIYYNJSX3O533JIZBKHEHD7GCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

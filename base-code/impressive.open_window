@@ -76,13 +76,13 @@ if ( defined <x11.geometry>
     ( my $width, my $height ) = ( $1, $2 );
     if ( $width < $min_width ) {
         <[base.log]>->(
-            0, "<!> configured window width $1 is too small -> forcing 320!"
+            0, "<< ! >> configured window width $1 is too small --> forcing 320!"
         );
         <x11.geometry> =~ s/^$1x/${min_width}x/i;
     }
     if ( $height < $min_height ) {
         <[base.log]>->(
-            0, "<!> configured window height $2 is too small -> forcing 200!"
+            0, "<< ! >> configured window height $2 is too small --> forcing 200!"
         );
         <x11.geometry> =~ s/x$2/x$min_height/i;
     }
@@ -109,22 +109,22 @@ $ENV{'DISPLAY'} = <x11.display>;
 <impressive.pid> = open3( <impressive.in_fh>, <impressive.out_fh>,
     <impressive.err_fh>, $tmp_bin, @exec_params );
 
-if (<impressive.pid>) {   # waiting for python interpreter to read $tmp_bin ..
+if (<impressive.pid>) {  # waiting for python interpreter to read $tmp_bin ..,
     my $bits = '';
     vec( $bits, fileno(<impressive.out_fh>), 1 ) = 1;
     select( $bits, undef, undef, undef );
 }
-unlink($tmp_bin) or warn "unable to delete '$tmp_bin' [$OS_ERROR]";
+unlink($tmp_bin) or warn "unable to delete '$tmp_bin' [ \l$OS_ERROR ]";
 
 if ( opendir( my $tdir_fh, $temp_dir ) ) {
     my @t_files = grep { !/^\./ } ( readdir($tdir_fh) );
     if ( !@t_files ) {
         <[base.log]>->( 1, "removing temp dir '$temp_dir'.." );
         rmdir($temp_dir)
-            or warn "unable to remove directory '$temp_dir': $OS_ERROR";
+            or warn "unable to remove directory '$temp_dir' : \l$OS_ERROR";
     }
 } else {
-    warn "unable to open directory '$temp_dir': $OS_ERROR";
+    warn "unable to open directory '$temp_dir' : \l$OS_ERROR";
 }
 
 <[base.zenki.report_child_pid]>->(<impressive.pid>) if <impressive.pid>;
@@ -132,7 +132,7 @@ if ( opendir( my $tdir_fh, $temp_dir ) ) {
 ## wait for it ##
 
 if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start impressive [$OS_ERROR]" );
+    <[base.log]>->( 0, "[!] unable to start impressive [ \l$OS_ERROR ]" );
     <[base.log]>->( 1, " : aborting zenka startup .," );
     exit(1);
 } else {
@@ -202,7 +202,7 @@ if (    <impressive.cfg.use_start-anim>
 }
 
 #.............................................................................
-#JPGQETSHU4MJFRBUDWBJXKNDE6DWYVRFIII52VVJGRMBPOIDSP2QU7PD43BKYCPVWIWN7FPQE7VQA
-#::: 2BUEWRKBKDTALHGMJCZTTKZ3ZHV2TGEQGU7DUXTCFLXLN7OPQEU :::: NAILARA AMOS :::
-# :: SZ2RQS2AGNQUUNKLJLGEWYNOFORECQ4HOWXVMLESFFOYD3GSDGCI :: CODE SIGNATURE ::
+#TKH63TMQNCWUNGW2JN7SWKUACY5KNZGRGCTNT5ESEIAMTAZ5Z2FGIEL5UZ2TAL2PGV63YCRRORFAA
+#::: B3XAUD3FVHWCRWFWY6HCNUHVLTS4HX7TRALHQ2VCUNE54OJ7R6H :::: NAILARA AMOS :::
+# :: ACLQEVLU2QNTZEWKXET4I4VVCTSR4VCSYNG7QH7WXK6DYYSPKSCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

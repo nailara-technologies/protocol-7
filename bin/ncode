@@ -1067,7 +1067,7 @@ sub check_target_files {    # LLL: incomplete
         } else {
             open( my $CHK_FILE, '<' . $check_file )
                 or die
-                " :: can not open target file '$check_file' : $OS_ERROR ::\n";
+                " :: cannot open target file '$check_file' : \l$OS_ERROR ::\n";
             my $bmw = Crypt::Digest::BMW->new(256);
             $bmw->addfile($CHK_FILE);
             my $chk_sum = encode_b32r( $bmw->digest );
@@ -1110,7 +1110,7 @@ sub load_metadata {
 
         open( my $META_FILE, '<' . $file_name )
             or die
-            " :: can not open metadata file '$file_name : $OS_ERROR ::\n";
+            " :: cannot open metadata file '$file_name : \l$OS_ERROR ::\n";
 
         @metadata_file = <$META_FILE>;
         close($META_FILE);
@@ -1195,7 +1195,7 @@ sub save_metadata {
             print ":: backup metadata saved to $file_name_short ::\n\n";
         } else {
             die " :: cannot open backup meta "
-                . "data file '$file_name' :: $OS_ERROR ::\n";
+                . "data file '$file_name' : : \l$OS_ERROR ::\n";
         }
     } else {
         die ' :: save_metadata() :: nothing to save :: ';
@@ -1247,12 +1247,12 @@ sub load_source {
             check_link($file);
             local $RS = undef;
             open( my $FILE, '<' . $file )
-                or warn " can not open file '"
+                or warn " cannot open file '"
                 . ansi('cyan')
                 . $file
                 . ansi('reset') . "' ["
                 . ansi('bold red')
-                . $OS_ERROR
+                . lcfirst($OS_ERROR)
                 . ansi('reset') . "]\n\n"
                 and next;
             $source{$file} = <$FILE>;
@@ -1281,7 +1281,7 @@ sub save_source {
         if ( defined $source_data->{$file} ) {
 
             open( my $FILE, '>' . $file )
-                or die ":: can not open file '$file' : $OS_ERROR ::\n";
+                or die ":: cannot open file '$file' : \l$OS_ERROR ::\n";
             print {$FILE} $source_data->{$file};
             close($FILE);
             $change_count++;
@@ -1353,7 +1353,7 @@ sub check_path {
                 print $output_line;
             } else {
                 die ":: cannot create directory "
-                    . "'$current_path' : $OS_ERROR ::\n";
+                    . "'$current_path' : \l$OS_ERROR ::\n";
             }
         }
     }
@@ -1403,7 +1403,7 @@ sub clean_dir {
 
     if ( defined $directory_path and -d $directory_path ) {
 
-        # remove ..
+        # remove ..,
         if ( !system( 'rm', '-rf', $directory_path ) ) {
             my $output_line
                 = ': '
@@ -1422,7 +1422,7 @@ sub clean_dir {
             return 1;
         } else {
             die " :: clean_dir() : removing of "
-                . "directory '$directory_path' failed : $OS_ERROR ::\n";
+                . "directory '$directory_path' failed : \l$OS_ERROR ::\n";
         }
     }
 }
@@ -1441,7 +1441,7 @@ sub files {    ## LLL : implement recursion [ depth ] keyword ##
 
     if ( defined $path and $path ne '' and -d $path ) {
         opendir( my $dir_fh, $path )
-            or die "cannot open dir '$path': $OS_ERROR\n";
+            or die "cannot open dir '$path' : \l$OS_ERROR\n";
         foreach my $filename ( readdir($dir_fh) ) {
             next if $filename eq '.' or $filename eq '..';
             ( $filename = "$path/$filename" ) =~ s,//,/,g;
@@ -1452,7 +1452,7 @@ sub files {    ## LLL : implement recursion [ depth ] keyword ##
                 if ( $recursion and -d $filename )
                 {                             # implement arbitary depth
                     opendir( my $adir_fh, $filename )
-                        or die "cannot open dir '$filename': $OS_ERROR\n";
+                        or die "cannot open dir '$filename' : \l$OS_ERROR\n";
                     map { push( @files, $filename . "/$ARG" ) }
                         readdir($adir_fh);
                     closedir($adir_fh);
@@ -2295,7 +2295,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#MNOR5N6XPT3F4QZKLHBNXUBITZLYMHLYKGBI2C4SNDT6NVAXSR7UBE4YTBOCP33BOK4HJOO2UMXVK
-#::: M64MY6M7NH25BCB74LHFAUL5UPQY5VEVFPEVANEU6HGS76BIISZ :::: NAILARA AMOS :::
-# :: GCJXXF44OCQWRP5OMJWMRLKP5XU7HKN57SNFG7G7YR3DYUBDFABQ :: CODE SIGNATURE ::
+#4K6MMUWOZBZROW74BOP3J3DIVYTMAMIR6GRFLZDBRVBS6ADBNLVGB7DY3IZMUGQGSVVTEWXHVQLWK
+#::: SIGO7VVUQQLVC6KT36ZJDNQRXPBQDGJNO7LK5TRIVPH6XFDUQDF :::: NAILARA AMOS :::
+# :: QRQ6Z5CWA4LOCI56VBKVFZNGPKM5HSLWDJ373XP2OY6NG2OM3EBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
