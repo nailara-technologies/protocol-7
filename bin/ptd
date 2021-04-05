@@ -74,7 +74,7 @@ sub sort_files {
 
 sub is_perl_code {
     my $file = shift;
-    return 0 if not -f $file;
+    return 0 if not -f $file or -z $file;
     my $is_code = 0;
     open( my $fh, '<', $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     chomp( my $first_line = <$fh> );
@@ -99,14 +99,15 @@ sub show_progress {
     my $char_count  = int( $chars_max * $file_num / $files_total );
     my $perc_chars  = $character x $char_count;
 
-    printf( "\r${blacklight}:::[$neon_green%-${chars_max}s$blacklight]:"
-            . "::[ $neon_green%-${file_maxlen}s"
-            . "$blacklight ]:.$reset\r",
+    printf( "\r${blacklight}:::[$nailara_bg$neon_green%-${chars_max}s"
+            . "$reset$blacklight]:"
+            . "::[$nailara_bg$neon_green %-${file_maxlen}s"
+            . " $reset$blacklight]:.$reset\r",
         $perc_chars, $filename );
 }
 
 #.............................................................................
-#VH2KAOGWCRWDJX4FMZP6EPMRNJJ4XB7NVIYSCIDUYGCS3FWRIJA5HGD4CHVN6BYVU5ZLFDWNXCT7I
-#::: SGMXBRMFTMETPDHICAYKJ2HFRIJQNJPZCN6VXRT7KG7FXBEWLKV :::: NAILARA AMOS :::
-# :: KKD63ZYYGPLR2GMZRCPX5B4F5UDRTKB6TROKH2ZGJMOF3KLO54DY :: CODE SIGNATURE ::
+#IM7GM5QVQ4NVUC2CP63CIBOM3G2PJOSKWDAXZZMY2YBQMDQ5SVKPBHGMF5W6RGEIJVHCBIWDIX7BA
+#::: 5H5EXQNAT4UMSZCYR57UJRAPCA6PRFSFRD36RQST27K2LCWLE36 :::: NAILARA AMOS :::
+# :: 2VFYCYMDLFYSYNPFLROWU4FEEYEM3KZGZUFI5Z5ECFEYA2XMG2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
