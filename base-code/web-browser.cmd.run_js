@@ -27,9 +27,9 @@ $view->run_javascript(
     $js_string,    # <-- raw javascript
     undef,         # <-- GCancellable
     sub {          # <-- :[LLL]: create external (reloadable) handler... <<!>>
-        my $self   = shift;    # <- WebView
-        my $result = shift;    # <- WebKitJavascriptResult
-        my $rep_id = shift;    # <- nailara internal reply id
+        my $self   = shift;    # <-- WebView
+        my $result = shift;    # <-- WebKitJavascriptResult
+        my $rep_id = shift;    # <-- nailara internal reply id
         my $s_res  = '';
 
         ## [ was unable to access value, so using exception \ throw to get it. ]
@@ -44,13 +44,13 @@ $view->run_javascript(
 
         my $re_mode = $ex_str =~ /^[^:]*Error[^:]*:/ ? 'nak' : 'ack';
         $re_mode = 'data' if $ex_str =~ /\n/;
-        $ex_str  = '<!> "throw" already being prepended internally <!>'
+        $ex_str  = '<< ! >> "throw" already being prepended internally << ! >>'
             if $ex_str eq "SyntaxError: Unexpected keyword 'throw'";
 
         <[base.log]>->(
             0,              sprintf "<!JSerr!> [%s] %s",
             $self->get_uri, $ex_str
-        ) if $re_mode eq 'nak';    # <- has JS error..,
+        ) if $re_mode eq 'nak';    # <-- has JS error..,
 
         <[base.callback.cmd_reply]>->(
             $rep_id,
@@ -66,7 +66,7 @@ $view->run_javascript(
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#44BUI5RAVP3U3ANFSTUP3WZVSZJPW4YZ5CCA6762ZAN7XDS5KETUERUQZ6VEULM43B4MD3S2QH7C2
-#::: C6WDT26TWD7NOWTUINZJ7OVOBFIVMBWWXPGOYAGXTJEQWB3HZXV :::: NAILARA AMOS :::
-# :: T2PGBN5TFTPY4JWR2ZUD4I54MLKJS6VY6ABCHRMDW62CGHEOLCCA :: CODE SIGNATURE ::
+#MKQ44LG5EDDQV3O7OQUYQWRW67OJH2RTQCPO7PBMZZJVMWPILQVYTMIA6YUDIYNDSR3FO4N5GRVVE
+#::: TTBTH6NSMHHGJN2N7KE2KTU65JXCGFLCBZR2CZIXSYU33SCKCR4 :::: NAILARA AMOS :::
+# :: RBKP4O4I7ZEJF4PC2OB7S7XE2FD7WS57RKXZLW35D2D2XMMFX2DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

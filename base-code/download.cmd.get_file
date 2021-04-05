@@ -34,7 +34,8 @@ if ( !-d $target_dir ) {
     <[base.log]>->( 2, "creating target directory '$target_dir'.." );
     make_path( $target_dir,
         { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
-        or warn "unable to create target directory '$target_dir' [$OS_ERROR]";
+        or warn
+        "unable to create target directory '$target_dir' [ \l$OS_ERROR ]";
 }
 
 unlink($file_path) if -f $file_path;
@@ -61,7 +62,7 @@ if ( not defined $response or !$response->is_success ) {
 ( my $filename = $response->filename // 'index.html' ) =~ s|^.*/||g;
 $filename =~ s| +|_|g;
 my $target_path = "$target_dir/$filename";
-rename( $file_path, $target_path ) or die "< rename > $OS_ERROR";
+rename( $file_path, $target_path ) or die "< rename > \l$OS_ERROR";
 
 my $bytes_downloaded = File::stat::stat($target_path)->size;
 <[base.log]>->( 1, "ok <$bytes_downloaded bytes> $url_md5u_hash" );
@@ -69,7 +70,7 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 return { 'mode' => 'ack', 'data' => $target_path };
 
 #.............................................................................
-#SQHKDQ7IOYLRWLPVDBSVUYHTVC7VT5Y2Q6ZH64HEV5RH4A4TAHUWDJPHVZJBYBOHXD7HJREKPUUJM
-#::: MABHAIU24MNWZNT2E2CU5O2V5R2DA2OP4Y7RTIKLUILI23IPECX :::: NAILARA AMOS :::
-# :: 72QPK4GPSSJAHUEIAAKRLKGKGPNB2IO5HMF4EHHJPWNMMLNLI6CQ :: CODE SIGNATURE ::
+#QBZYEEO7UENYFARLPQ2R7RLOOQUKI5USUFZGO6XBSCXMVGCKDAOTQI5X57YC2BPJ7DA3H3A7AXAVM
+#::: XDOE6Z2EO4G3OLZEGQEZPTYUD7DTLNEXGYNMRILLRQ3X7RIHAWJ :::: NAILARA AMOS :::
+# :: YBT4NKECFE74SOFQBKW7LJPAIYIUU3PHB5C3QDVJUBGSPC5BM6BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

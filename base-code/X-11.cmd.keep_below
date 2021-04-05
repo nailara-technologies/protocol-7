@@ -26,7 +26,7 @@ for my $w ( @{ $xtops->sorted } ) {
 return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
 
 eval {
-    for ( 1 .. 2 ) {    # <- workaround (ignored state requests)
+    for ( 1 .. 2 ) {    # <-- workaround (ignored state requests)
         X11::Protocol::WM::change_net_wm_state( $X, $window_id, "remove",
             "ABOVE" );
         X11::Protocol::WM::change_net_wm_state( $X, $window_id, "add",
@@ -38,7 +38,7 @@ return { 'mode' => 'nak', 'data' => "unable to set window state 'below'" }
 return { 'mode' => 'ack', 'data' => "set window state 'below'" };
 
 #.............................................................................
-#3QCPYWWNUD5HFBHU5MZ5FFBUMS2MGN7V5EUGRL3EIRZYMUHCRNKCWWVE4Q4WTDXCTDYQVA4E2HT66
-#::: UZJK3XBQIIDVLSK5KVOTXEN23LXJQB7R7MPJAFMKSY67UYGBL5Y :::: NAILARA AMOS :::
-# :: A7IZFIK74RYVFRUPI65764TBU5DSKSTB57SHZCMXYPFX6FGWCKCA :: CODE SIGNATURE ::
+#ANRGIIPJOIDNJRZJPOU3HPWE6SAR3CWACSTEXVSBOHTXQZ5XTLIDS3GVGJNWE72DEVQ5D5LWPN5CE
+#::: 2W4XQOEVJCGLQPOBFSTCXICSO722I3NSVADOETP4U4K7YNHAUHF :::: NAILARA AMOS :::
+# :: BEREQFZ2YTNZIAK2QH4I53CPWCN5ALDVO25F3BZU5NCTRK76LCCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

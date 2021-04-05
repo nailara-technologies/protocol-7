@@ -22,7 +22,7 @@ if ( !-f $cfg_path ) {
         <openbox.bin_path>, "--sm-disable --config-file $cfg_path 2>&1 |" )
 );
 if ( !<child.openbox.pid> ) {
-    <[base.log]>->( 0, "<!> unable to start openbox [ \l$OS_ERROR ]" );
+    <[base.log]>->( 0, "<< ! >> unable to start openbox [ \l$OS_ERROR ]" );
     <[base.log]>->( 1, ' : aborting zenka startup .,' );
     exit(1);
 } else {
@@ -30,7 +30,7 @@ if ( !<child.openbox.pid> ) {
 }
 <[base.log]>->( 1, ": openbox started [pid=<child.openbox.pid>].," );
 <[base.log]>->( 2, ': : registering output handler..,' );
-my $max_wait = 70;    # wait no longer than 7 seconds..
+my $max_wait = 70;    # wait no longer than 7 seconds..,
 <[base.log]>->( 1, 'waiting for openbox log file creation.,' );
 while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }
 if ( -f <openbox.log_file> ) {
@@ -68,7 +68,7 @@ if ( -f <openbox.log_file> ) {
 <[event.once:0.07]>;
 
 #.............................................................................
-#J6OJTA2U4UWXC6UD7SJSLC3GUFRCJKN5D5EY4JXRYAK6EBBSDI3J6MYRRZPW5ANIGP3RCCILZ7BF4
-#::: I4STAVE4JXE54APG4Z2JAG5BNY4KD4BIWUWDDQ2NMX2ZJKQZDAX :::: NAILARA AMOS :::
-# :: I56TTYWKFXQLNPPC4DJXOOHWHDXN2GBMJ2JJCYV5GKSFX546NICQ :: CODE SIGNATURE ::
+#2SWPLAGWMTWAMBVGJ4MBCP74FUOR4KVXNAKNV6EOOXUE3EVNTF3AY4CE3XPBLNJCEFBD44XIXFUUI
+#::: NANVDVI6L5HEMJL2CGVCOJSC2TXAEBH2T7KMAE3IIMSGZ67MDKH :::: NAILARA AMOS :::
+# :: W4KJZMDLW7VAEGS74OLD2L4BFRRGWF4WLQCENHJ72V3HHOLB66AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

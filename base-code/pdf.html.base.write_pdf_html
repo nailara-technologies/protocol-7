@@ -22,15 +22,15 @@ map { $img_html_str .= "<img src=\"./$ARG\"><br>\n" } @{$image_ref};
 
 $$html_ref =~ s|\[PDF_IMAGES\]\n?|$img_html_str|sg;
 
-open( my $html_fh, ">$temp_file" ) or die "$temp_file: $OS_ERROR";
+open( my $html_fh, ">$temp_file" ) or die "$temp_file : \l$OS_ERROR";
 print {$html_fh} $$html_ref;
 close($html_fh);
 
 rename( $temp_file, $target_file )
-    or die "$temp_file -> $target_file: $OS_ERROR";
+    or die "$temp_file --> $target_file : \l$OS_ERROR";
 
 #.............................................................................
-#7STPAUXCB4G774B2QBD2ANZ4RIEZGUIGEWYK3LFCHLWU7SKT6ZQP2VHIUMYWMZWKMOK7WRAOMJLIC
-#::: 67DSPQ6PK7XTU7ZWQ7OLZGEDZWY6T7F6ZYXCXZWV4P5MRT6ACKI :::: NAILARA AMOS :::
-# :: JWLQV3UPKUAUDQENGFJY56T7DBH3HF5WH62PXKZMMCEXGLICXOAQ :: CODE SIGNATURE ::
+#2QYJX6BYSTIS3QISMEDSK3P2XU4P5OOLMAAROP5KIBF7OQ4ONDSFCQTMOWXJF4TTPQPUSTQA2VP4K
+#::: B3OEVN63E3WPFHVTGIGE32UXZAYFTRU6KGT3WCGRTNBFPOJEHXL :::: NAILARA AMOS :::
+# :: EP4BY7F7Q76VRU57J3YZN6MEQYBC2JGIID6QIWAKZWFW3EEZVGCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

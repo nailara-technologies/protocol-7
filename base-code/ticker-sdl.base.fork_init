@@ -9,7 +9,7 @@ use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [$OS_ERROR]";
+    || die "can't create socketpair! [ \l$OS_ERROR ]";
 map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
     ( $child_pipe, $parent_pipe );
 
@@ -32,7 +32,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     delete <process.prio_child>;
 
     IO::AIO::reinit()
-        ;    # <- makes base.s_read() and base.s_write() work again...
+        ;    # <-- makes base.s_read() and base.s_write() work again..,
 
     <ticker-sdl.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -81,7 +81,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
         <[ticker-sdl.sdl.raise_and_fade]>;
     }
 
-    <[base.get_session_id]>->( 'parent', 'cube' );  # zenka status -> 'online'
+    <[base.get_session_id]>->( 'parent', 'cube' );  # zenka status --> 'online'
 
     <[event.add_timer]>->(
         {   'after'   => 0.64,
@@ -112,7 +112,7 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 }
 
 #.............................................................................
-#XMMFRPPLBG6W2U4YYRESUVNYUKTYBWXLWL6THIIJSZ2CNAKG23JT3EIVYN5WSCQUCV57ACWMLRSDK
-#::: QF2XCCYXCYJOWVCXZF7Y53UH6UWYI6NFV6D26PIIR7VDCJJFIO2 :::: NAILARA AMOS :::
-# :: YQRINGY4NUUBKHZISTISTNQCT73B3YNKXLPPOMBP3MHSDML5ZKAQ :: CODE SIGNATURE ::
+#YH2OQK6NJBV7NK732Y3VAE4IKNWKXUAKFZCW5QZVQJ3XTPAJYJJAPTE3ML45LVIVKDCGCWAV5ZDJU
+#::: HFJGCAWRAOJPDHHFL7IZ7PZ3K5CCDLNATSGT3M5WCMH6TYFXJAL :::: NAILARA AMOS :::
+# :: D7RYTL37U5GHKSLX3UZYMGWT3WVHHSFXGZCMRVGGJUH7GRAFFMDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

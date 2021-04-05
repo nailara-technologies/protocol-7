@@ -39,7 +39,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
         >= $inactive_timeout ) {    # TIMEOUT TRIGGERED
         <composition.tile_alert_triggered>->{$tile_name} = 1;
         <[base.log]>->(
-            0, "<!> inactivity alert for tile '$tile_name' ($zenka_name) <!>"
+            0, "<< ! >> inactivity alert for tile '$tile_name' ($zenka_name) << ! >>"
         );
 
         <[composition.tile_activity.change_poll_timer]>->(
@@ -82,7 +82,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
             );
         }
 
-    } elsif ( $last_interval > 1.2 ) {    # decreasing interval..
+    } elsif ( $last_interval > 1.2 ) {    # decreasing interval..,
         my $new_interval
             = $last_interval - ( $last_interval * ( 0.42 - rand(0.13) ) );
         $new_interval = 1.42 if $new_interval < 1.42;
@@ -109,7 +109,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
         <[base.log]>->(
             2,
             "tile color '$tile_name' : $last_color"
-                . " -> $tile_color ['$is_what_str']"
+                . " --> $tile_color ['$is_what_str']"
         );
     }
     <[composition.tile_activity.change_poll_timer]>->(
@@ -124,7 +124,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 <composition.last_tile_color>->{$tile_name} = $tile_color;
 
 #.............................................................................
-#Z6OQG3GW5VO7PYCZPE376A5ZKPQEZIMXIEO6OC7RWMFMBMMP44Z6VNC2EFHSIQNGSR4KC7UCKPSZO
-#::: RAZ2AGSLWB76GWT3TITOR4XXNRS6BJBTV7CWFAQ6XRUMZGHPOYU :::: NAILARA AMOS :::
-# :: PTAI7IWXCNMWLNRVGTNJXG7CRCFWNPLAMWW3GLCCH2OIHW5CAYBY :: CODE SIGNATURE ::
+#TSKE2LBH43AS2Q66F75M4CURIDXJL7OZMIIXDVMV4ZVAUURB7RXKSR7Y4GUF4D3BQU54JRF6MPDS2
+#::: TVSXNUXXUN7DLQITIZM5OYNRWXGQIMENKYPUYSHPNCXVIK6ZAQU :::: NAILARA AMOS :::
+# :: 4FORUBEKFNX62ADL3MPRYPQ3IEADK76ZT4657NAPOVF5XIGURKAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

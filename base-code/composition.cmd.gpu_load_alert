@@ -3,7 +3,7 @@
 # name  = composition.cmd.gpu_load_alert
 # param = <secs> <percent>
 # descr = activate GPU load countermeasures
-# todo  = ask web-browser and ticker zenka to slow down ...
+# todo  = ask web-browser and ticker zenka to slow down ..,
 
 return { 'mode' => 'nak', 'data' => 'expected <secs> <percent> parameters' }
     if not defined $$call{'args'}
@@ -11,7 +11,7 @@ return { 'mode' => 'nak', 'data' => 'expected <secs> <percent> parameters' }
 
 my ( $sec, $percent ) = split( / +/, $$call{'args'}, 2 );
 my $perc_str = sprintf( "%.2f", $percent );
-<[base.log]>->( 1, "<!> received GPU load alert [ ${sec}s at $perc_str% ]" );
+<[base.log]>->( 1, "<< ! >> received GPU load alert [ ${sec}s at $perc_str% ]" );
 
 my $restart_delay = 0;
 <composition.counter.gpu_alerts> //= 0;
@@ -40,7 +40,7 @@ return {
     }
 
 #.............................................................................
-#FQHGHHJ2IMOPMESRH4JEPVKPMWIHBACZ2HRDLZNLRAXKUGC6GYCNYLYM3QZSGDM5NAKD67PJ27CBC
-#::: HWFH3E6K2AWLY7IRJOGZBQSXWPVWHUOCOXO6IIFV2P4ZJZYHED3 :::: NAILARA AMOS :::
-# :: H4J3DD43WD2FFDGDNZPUBGP5YMBF4JY2R75J3VA7NZ5G64JNNQCQ :: CODE SIGNATURE ::
+#R6XBM3VL6MRNV2A7N564OGVW37E2X2E7FBVZCFER36GTP5TPKXIBNETSKBD6MO5CAJWJSMRH4XUF4
+#::: FUZHIBKCTRVRJMCXHOLOFEMSHR5UHJS7BL4BIIZ6XFAJ3B76KG2 :::: NAILARA AMOS :::
+# :: YPL3C3LJM2FSGDHQ23QW5RZPLO5T2IK3FPFTNP3IR75MVZ6CSCBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ my $mpv_params = <mpv.params>;
     and <system.zenka.subname> eq 'audio';
 
 <mpv.playlist_type> = 'audio'
-    if <mpv.audio_only>;    # <- run with 'audio' subname
+    if <mpv.audio_only>;    # <-- run with 'audio' subname
 
 if ( !<mpv.audio_only> ) {
     my $xmode = <x11.mode>;
@@ -31,14 +31,14 @@ if ( !<mpv.audio_only> ) {
         <[base.log]>->(
             1,
             sprintf(
-                "<!> switching vo_backend to '%s' [ %s-mode ] <!>",
+                "<< ! >> switching vo_backend to '%s' [ %s-mode ] << ! >>",
                 <mpv.vo_backend>, $xmode
             )
         );
     }
 
     if ( not defined <mpv.geometry> or exists <x11.geometry_was_undefined> ) {
-        <[base.log]>->( 1, "<!> geometry was undefined..," );
+        <[base.log]>->( 1, "<< ! >> geometry was undefined..," );
         if (<mpv.autoresize>) {
             <[base.log]>->( 1, " : disabled 'autoresize' function.," );
             <mpv.autoresize> = 0;
@@ -196,7 +196,7 @@ close( delete(<mpv.fh.stdin>) );    # input fd not required
 <[base.log]>->( 1, "player startup successful., =)" );
 
 #.............................................................................
-#XDRXFFPWCCONX3LGWRMZYBRRO6WRGQELSLGIECZD3MPDLYFH46LMHXKN2Z3JTJS4VNNZCZFXEKX5Q
-#::: VKHRM7PH2VWF5JC3PZWQTDIZOUAGGSXWZ56EYPQTRL223D6K6JD :::: NAILARA AMOS :::
-# :: OHZYRKLTNZQSPCZCFNTGO5SA45NYYEXAXG6ZGVTUEUMCUOEZW2CA :: CODE SIGNATURE ::
+#BT2227SUEA4RNH2EUJRBGGU4SOBT4WYJAEUGKMGEFLCP2PJBNGIROXFPRFXLHEAGDDNMUSW7O7D3E
+#::: RGEHJRCMLWSVGPLR3BGDDCXDVQ4UJNAOCAL6O65O6X64F2IOUJB :::: NAILARA AMOS :::
+# :: U7WTCN2AMSJAJYCTGJX42KMU5I2MOBGDWJUTDCVXRCY37EBCPSBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

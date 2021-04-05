@@ -140,7 +140,7 @@ while ($connect) {
 
 sub calc_port {
     my $path_offset = shift;
-    my $port_start  = 57;  # <- [ details : 'net.init_code', 'net.calc_port' ]
+    my $port_start  = 57;  # <-- [ details : 'net.init_code', 'net.calc_port' ]
     my $port_end    = 1021;
     my $port_delta  = $port_end - $port_start;
 
@@ -236,7 +236,7 @@ sub shell_connect {
                 Peer => $sock_path,
                 )
                 or warn
-                "\n << connection error : unix:$sock_path [$OS_ERROR] >>\n";
+                "\n << connection error : unix:$sock_path [ \l$OS_ERROR ] >>\n";
         }
     }
     if ( not defined $sock ) {
@@ -246,7 +246,7 @@ sub shell_connect {
             Proto    => 'tcp'
             )
             or die
-            "\n << connection error : $cube_addr:$cube_port [$OS_ERROR] >>\n\n";
+            "\n << connection error : $cube_addr:$cube_port [ \l$OS_ERROR ] >>\n\n";
     } else {
         $link_type = 'unix';
     }
@@ -311,7 +311,7 @@ sub s_write {
     IO::AIO::aio_write( $write_fh, undef, length($write_str),
         $write_str, 0, sub { $b_written = $_[0] } );
     IO::AIO::flush();
-    undef $b_written if $b_written < 0;  # <- emulates syswrite() behaviour .,
+    undef $b_written if $b_written < 0;  # <-- emulates syswrite() behaviour .,
     return $b_written;
 }
 
@@ -352,7 +352,7 @@ sub shell_loop {
             $last_line = $line;
 
             if ( $line =~ m|^\. cd (.+)| ) {
-                if ( !chdir($1) ) { print "cd: " . $OS_ERROR . "\n" }
+                if ( !chdir($1) ) { print "cd: \l$OS_ERROR\n" }
             } elsif ( $line =~ m|^\. (.+)$| ) {
                 $lines_up = 1;
                 no warnings;
@@ -360,7 +360,7 @@ sub shell_loop {
                     my $error   = '';
                     my $err_msg = "exit code: $err";
                     if ( $err == -1 ) {
-                        $err_msg = $OS_ERROR;
+                        $err_msg = lcfirst( $OS_ERROR );
                         $error   = ' << error >>';
                     }
                     print "\n - ! -$error [ " . $err_msg . " ]\n\n";
@@ -440,8 +440,8 @@ sub rl_filename_list_lcl
         $readline::rl_completer_terminator_character = '';
         use warnings 'once';
         if ( !$WARNED and $line !~ m|^\. | ) {
-            print "\n<!> prefix '. ' can be used for local shell commands"
-                . ", type 'commands' for netw. <!>\n";
+            print "\n<< ! >> prefix '. ' can be used for local shell commands"
+                . ", type 'commands' for netw. << ! >>\n";
             $WARNED = 1;
         }
         return '';
@@ -490,7 +490,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#FRL5GOLOVKSPGVYIAO5OMSMX57H2ZUUF22Q2QQROIDCBRQKIQHLMIW52ATNGOFICBZYIYBAKZWFN4
-#::: 43AAAMJMJRQ6N5L5CQJ5KE6F3IJ5CJCTDTJ5GHGOMU7DS2MQ2K7 :::: NAILARA AMOS :::
-# :: KEIJUBYUBI2KTH4R2BFZARINBP3Y3ERR3ZFPZZD3OZ2ZPTACZ2BI :: CODE SIGNATURE ::
+#WEXDNKA3DH7ZZ4DG2Z6OPYWQXGSBY77FHHX6ROWYSA4DYMGCVIMCDQ3BICRK4A6KZ6HT6FE5OY7FG
+#::: 6Z3JOYPGVVIIM35ZC7XCLGMCEO2JFYCX57GNW7OOWYWTCQMINJD :::: NAILARA AMOS :::
+# :: NCBZMHMHEFWGAGIVXJHUD7A7YYKNRJDQYYBYHCXH5OET53KCSKCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -834,7 +834,7 @@ sub prepare_subs {
         $data{'base'}{'modules'}{'load_errors'} //= 0;
         if ( !opendir( $codedir_fh, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
-            $code{'log.error'}->( ": can not open source code directory"
+            $code{'log.error'}->( ": cannot open source code directory"
                     . " '$data{'system'}{'code_path'}' [ \l$OS_ERROR ]" );
             return undef;
         }
@@ -1199,7 +1199,7 @@ sub prepare_subs {
                                 . $data{'code'}{$file_name}{'source'} );
                         $data{'plugins'}{'status'}{$code_name}
                             {'load_errors'}++
-                            if !length($src_str);    # <- is plugin..
+                            if !length($src_str);    # <-- is plugin..
                     }
 
                     push( @compile_order, $file_name );
@@ -1538,7 +1538,7 @@ sub prepare_subs {
         open( $data{'base'}{'stderr_fh'}, '>&', STDERR )
             or print "\n<< ! >> cannot clone STDERR [ \l$OS_ERROR ]\n\n";
         close(STDERR);
-        open( STDERR, '>', $redir_ref ) or say "< stderr_redir > $OS_ERROR";
+        open( STDERR, '>', $redir_ref ) or say "< stderr_redir > \l$OS_ERROR";
         return $redir_ref;
     };
 
@@ -1815,7 +1815,7 @@ sub prepare_subs {
             my @caller = caller;
             my ( $package, $filename, $line, $subroutine ) = @caller;
             if ( defined $data{'sig_warn_blacklist'} )
-            {    # LLL: <- use an array.
+            {    # LLL: <-- use an array.
                 return
                     if defined $data{'sig_warn_blacklist'}{'package'}
                     and $package eq $data{'sig_warn_blacklist'}{'package'}
@@ -1828,7 +1828,7 @@ sub prepare_subs {
                 $ARG =~ s|no success on eval ('\$code\{\S+)|<< $1 >>|;
                 $level = $1 || 1 if $ARG =~ s| *<\{C(\d{1,3})?\}>$||
             } @err;
-            if ($level) {    # <- log parent caller instead ('<{C[level]}>')
+            if ($level) {    # <-- log parent caller instead ('<{C[level]}>')
                 @caller = caller($level);
                 ( $package, $filename, $line, $subroutine ) = @caller;
             }
@@ -1906,7 +1906,7 @@ END {
 }
 
 #.............................................................................
-#VTQRAOFVKSVVEPX3674G7EQOFLN4CC5TSKZFUJSVPH2V5HUUNSOH47QRPQE5LKR7IMW4O5PQIQQ4E
-#::: YF5DXDCDU6RYEHUADUNPFW7CIAAUDITPA73OIR5AJ4Q5BJNXXXE :::: NAILARA AMOS :::
-# :: E4KZLWV3XXWDMRQ4OG3W3W6EF5CTTTUA24VDTL7JPDYX2UV53QCI :: CODE SIGNATURE ::
+#I3Q6G2PAWYNONBJJJX5WAWLXRUL57TPMVNPMHQEAULAOFRQR24IQBIIWECSEQ4DLIJJI6S3OXS5S4
+#::: HTCHIENJGZKEASG32EI2N4OZSRKYN25GFR7OEY75FCOGRWIYYJV :::: NAILARA AMOS :::
+# :: RUIVRJMC3XTVPSYIG3BQH64ZU55T37CF547TM3CEIPQDQXXX34DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

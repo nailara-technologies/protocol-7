@@ -20,7 +20,7 @@ my $skip_parent = 0;
 foreach my $chk_dir ( <[base.reverse-sort]>->(@dirs_found) ) {
     if ( scalar( @{ <[file.get-non-dirs]>->($chk_dir) } ) == 0 ) {
         <[base.log]>->( 2, ":. clean. dir .: ['$chk_dir']" );
-        rmdir($chk_dir) or warn "<rmdir> '$chk_dir' [\l$OS_ERROR] <{C1}>";
+        rmdir($chk_dir) or warn "<rmdir> '$chk_dir' [ \l$OS_ERROR ] <{C1}>";
     } else {
         $skip_parent = 1;
     }
@@ -28,13 +28,14 @@ foreach my $chk_dir ( <[base.reverse-sort]>->(@dirs_found) ) {
 
 if ( not $skip_parent ) {
     <[base.log]>->( 2, ":. clean. dir .: ['$parent_path']" );
-    rmdir($parent_path) or warn "<rmdir> '$parent_path' [\l$OS_ERROR] <{C1}>";
+    rmdir($parent_path)
+        or warn "<rmdir> '$parent_path' [ \l$OS_ERROR ] <{C1}>";
 }
 
 return $skip_parent ? 0 : 1;    ## all gone? ##
 
 #.............................................................................
-#LP3PQCKY7MJZDNPYU5PEH3XJYZLNLSFTQJQXOIDSSHSAJPT4U4UTKE3I5ORCSSLU2X224PZJHNBRU
-#::: 4IRQVR4ZM4FKUSLYLEKHNI7SEBWKFVC2FHL5RXZYJDN6VOUJZNE :::: NAILARA AMOS :::
-# :: QWWPIPGX55Q65JZXKPNSA52FXWHNEVLVKYN5M7GYR4ORPOQOUWCA :: CODE SIGNATURE ::
+#OUJS6BAH4UH2F4IO2YHQ6OLXMPMSGMUHWFVYFNWOBJ26NR26JC2KPKVWZ5ZJ6ZFPNHQ6SIVKVITSO
+#::: 6TMXIOHRPQFNY7GUMODNBLZUFD7CV5RAULY6NBCOG6ICUHE3E6E :::: NAILARA AMOS :::
+# :: 3IANTCOZ47L6IATYKA6YKVJXD22MN3KCVI2PF2DCQGF5PV6DXMAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

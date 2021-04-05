@@ -33,14 +33,14 @@ $packet_str .= encode_b32r( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 
 # print "---<sent>---\n$packet_str--</sent---\n";
 
-return { 'mode' => 'nak', 'data' => "unable to send: $OS_ERROR" }
+return { 'mode' => 'nak', 'data' => "unable to send : \l$OS_ERROR" }
     unless <discover.mcast.obj.sock>->mcast_send( $packet_str . "\n",
     join( ':', <discover.mcast.ip4_addr>, <discover.mcast.ip4_port> ) );
 
 return { 'mode' => 'ack', 'data' => 'message sent' };
 
 #.............................................................................
-#M4ETNJEH565VOJ56PUJNLLJZEU6X6N3TDZTAB3BMXA7UMIUOYR76F62L3FIF55DZBJYKP4Z2CEX2S
-#::: Z2XREIBLOB4QWMNGSLQGIAVSEMBLIS4IOK3IZKZWQFCIC5PHDJK :::: NAILARA AMOS :::
-# :: IVYTRWRRJX57OB645NA7UIFLQETOMVKVK7PPFGWGTMTZL3GGGSBA :: CODE SIGNATURE ::
+#FMHBHZ7OA6WUNFFIZEZ7VXDZEBCWOVFETC5QA4MDQBRHCJMA6EWLD5TGDGRD4K67SGMKZOU2QIBE4
+#::: 4F2V22CVW6RYD5FL3Q72LQ5R66O4L7PWZHU3VO3P6OSETMDDCZX :::: NAILARA AMOS :::
+# :: NHJZOCPR3G4GDHYDVTYXWWEWPQKWHRPY33GQBEQKRBQQE3DGY4BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

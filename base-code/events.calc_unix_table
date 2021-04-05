@@ -30,7 +30,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
         if ( defined <events.timetable>->{$ev_id}->{$ARG} ) {
             $time_str{$ARG} = <events.timetable>->{$ev_id}->{$ARG};
             $hour_or_day = 3600
-                if $time_str{$ARG} =~ /HH/;    # <- special 'hourly' case
+                if $time_str{$ARG} =~ /HH/;    # <-- special 'hourly' case
         }
     } ( 'start', 'end', 'at' );
 
@@ -53,7 +53,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
                 and not defined $time_str{$key} ) {
                 <[base.log]>->(
                     0,
-                    "<!> event '$ev_name' start not defined in time table, skipped!"
+                    "<< ! >> event '$ev_name' start not defined in time table, skipped!"
                 );
                 next;
             }
@@ -70,7 +70,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
             if ( not defined $time ) {
                 <[base.log]>->(
                     0,
-                    "<!> '$key' value for event '$ev_name' is undefined, skipped!"
+                    "<< ! >> '$key' value for event '$ev_name' is undefined, skipped!"
                 );
                 next;
             }
@@ -115,7 +115,7 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
 #.............................................................................
-#TJ7445KYQ2KGY5RK7ZVSQQPPZR6SVTVW2VJKJKUPKV5KOPS5FWOUTYSSS33IUWEZNW7DLPCYZDLOK
-#::: NRNJNBMZAQIVF6TYV3ZEMUFYBV6ULTJZZP7SEQ5NL54HW5XFT4W :::: NAILARA AMOS :::
-# :: SWADGGKLLNEQ4FL42QYVII2Z5BQ3XRYY7N63SXCLCWIEGUCHEUCY :: CODE SIGNATURE ::
+#VIRNEUWUWHWEVVSPUMZ2M2R4HVWTDPBUWKBUIFJQ3AN3TA6XMVSOCUSLE32OCB2DRUM57TGNOJJKA
+#::: 653IGKNTKWPY5ZQSU25GU24UAZQID4QPKHCOMHFBROCSODN4AYO :::: NAILARA AMOS :::
+# :: BMKFOQFMB52XOW3AC57Q5JURXGJZWCB2OQGNAVJTLBBG63XHBMBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

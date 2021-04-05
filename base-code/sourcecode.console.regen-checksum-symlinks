@@ -30,7 +30,7 @@ if ( !-w $source_root ) {
 my $dir_fh;
 if ( !opendir( $dir_fh, $version_root ) ) {
     <[base.log]>->(
-        0, "can not open directory '$version_root' [ $OS_ERROR ]"
+        0, "cannot open directory '$version_root' [ \l$OS_ERROR ]"
     );
     <[base.exit]>->(2);
 }
@@ -44,7 +44,7 @@ if ( not exists $vers_dirs{$source_version} ) {
         1, ": :. creating source version path [ $source_version ]"
     );
     <[file.make_path]>->( $target_path, 0755 )
-        or die "cannot create directory '$source_version' [ $OS_ERROR ]";
+        or die "cannot create directory '$source_version' [ \l$OS_ERROR ]";
     my $path_descr_str = <sourcecode.path_desc.version>;
     <[file.put]>->(
         catfile( $target_path, '.path-desc' ),
@@ -95,7 +95,7 @@ foreach my $src_file_rel ( <[base.sort]>->($source_paths) ) {
 
         File::Copy::syscopy( $src_file_path, $dst_file_path )
             or return <[base.log]>->(
-            0, "<< copy >> '$src_file_rel' -> '$target_path/' [ $OS_ERROR ]"
+            0, "<< copy >> '$src_file_rel' --> '$target_path/' [ \l$OS_ERROR ]"
             );
 
         chmod( $src_stat->mode, $dst_file_path )
@@ -141,16 +141,16 @@ foreach my $src_file_rel ( <[base.reverse-sort]>->($source_paths) ) {
     my $dst_path_rel   = File::Spec->abs2rel( $dst_file_path, $src_file_dir );
     my $link_short_str = my $link_str = "$src_file_rel --> $dst_path_rel";
     <[base.parser.ellipse_center]>->( \$link_short_str, 47 );
-    chdir($src_file_dir) or die "< chdir > $src_file_dir [ $OS_ERROR ]";
+    chdir($src_file_dir) or die "< chdir > $src_file_dir [ \l$OS_ERROR ]";
 
     <[base.log]>->( 2, "<link> $link_short_str" );
-    unlink($src_file_path) or die "< unlink > $src_file_rel [ $OS_ERROR ]";
+    unlink($src_file_path) or die "< unlink > $src_file_rel [ \l$OS_ERROR ]";
     symlink( $dst_path_rel, $src_file_name )
-        or die "< error > $link_str [ $OS_ERROR ]";
+        or die "< error > $link_str [ \l$OS_ERROR ]";
 }
 
 #.............................................................................
-#KJD5B5P5UQF6TYYBAYU2DODWJ2KNKNLR2APIDJUXSZIP3N3XKTXOMA2ODJIJOCHMIKC33VA3HHWWM
-#::: IJXALVH65MB6LLTI43YHETPODWUIPKULIYD757VHD76P4UIJP5V :::: NAILARA AMOS :::
-# :: HBU2K7AK5MNJHSTSZLMTSUTRKKEOWRC2ZQ4R2URXIQI33KMBTACI :: CODE SIGNATURE ::
+#MR3T57R4YN37AM3HXKYFVYFYSYK5TABOFVYGOIGJYXE7GOZBVEY74HW53T2W6G4XNEANQMZJ5T35A
+#::: VQRTXG3MTA5ORPF3ERUYNTJIS5FLIHTDUROB4PG3BQOX5ZAR56G :::: NAILARA AMOS :::
+# :: ZHRJRLSZA5Z7QYRU4HSDQUFISWVAIJBIKXCFRZKKVJXRTY6XA6DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

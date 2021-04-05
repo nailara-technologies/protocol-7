@@ -25,7 +25,7 @@ if ( not defined $target ) { # creates an zenka subdir if target not specified
             last;
         }
     }
-    die "no success creating temp dir '$first_dir' [ $OS_ERROR ]"
+    die "no success creating temp dir '$first_dir' [ \l$OS_ERROR ]"
         if not defined $first_dir;
     $target = $first_dir;
 }
@@ -40,14 +40,14 @@ while ( not defined $tmp_dir_path or -e $tmp_dir_path and $retries-- ) {
 }
 
 make_path( $tmp_dir_path, { 'mode' => 0750 } )
-    or die die "no success creating temp dir '$tmp_dir_path' [ $OS_ERROR ]";
+    or die die "no success creating temp dir '$tmp_dir_path' [ \l$OS_ERROR ]";
 
 <[base.log]>->( 2, ":. created temp dir '$tmp_dir_path'" );
 
 return $tmp_dir_path;
 
 #.............................................................................
-#XRTRKXXIT24O5YWDP2X2KDN5FBPLMY2IKMOHTMAMB7ELFF6QU6KKDUZMDTRXMLNI74XKJDVR6C6DO
-#::: ZFJZB7FMXJABW6CX3INLJWKL4B4EXMZMKAQMQXX2VS33P7HBO2L :::: NAILARA AMOS :::
-# :: GMU5F67AIXUY4RKY3UBZH6QVTEL6VRZUCVVZYPVH6575J7RIXQBI :: CODE SIGNATURE ::
+#7VNCIZCGMKDNJU735SYPXXZALCXAHL7VRE2NZTANIVGNNGY3BEGSLNKEZDEAY4EHLTWIB4WKXYDCO
+#::: M3LVI4J5SIA6GR6R7F3J7UBB34SKTQZGWC6G7SQPRGHXXH7JXMN :::: NAILARA AMOS :::
+# :: 3A7T567ARGDYTS3YYPDDY6EVPDAU62GQBJQZFMSZ6NENNMFMAGAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

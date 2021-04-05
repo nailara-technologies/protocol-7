@@ -37,7 +37,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
                     0, "[!] download [ $root_key_url{$type} ] $reason [!]"
                 );
                 <[base.log]>->(
-                    0, "<!> key signing aborted [ error during download ] <!>"
+                    0, "<< ! >> key signing aborted [ error during download ] << ! >>"
                 );
                 return -2;
             } else {
@@ -51,7 +51,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
         my $rk_priv_len = length( $root_key{'secret'} );
         if ( length( $root_key{'public'} ) != 43 or $rk_priv_len != 86 ) {
             <[base.log]>->(
-                0, "<!> root key not valid <<!>> key signing aborted <!>"
+                0, "<< ! >> root key not valid <<!>> key signing aborted << ! >>"
             );
 
             # LLL: log reason ..,
@@ -82,7 +82,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
             <[base.log]>->( 1, ": : $root_pkey_path" );
             return 1;
         } else {
-            <[base.log]>->( 0, "<!> unable to sign public host key <!>" );
+            <[base.log]>->( 0, "<< unable to sign public host key >>" );
             return -1;
         }
     skip_sign:
@@ -100,7 +100,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
 }
 
 #.............................................................................
-#JZWZO75XBHXOFVA2WRFKJNW4UNS7D3ZHEL4W7PFTQPU26TK2L5CGT4ARQVXBI4VR2TITUFHGP72ZE
-#::: CCUDWAHNE4EHOUEQJX53R4QZ6U6OZ2QDH6REBBPPETDXWXGLX4M :::: NAILARA AMOS :::
-# :: SB73HHE6ZEJZ2BUQTKM37Q74L4KKZMELZ2X35TXNUTOM2WR7YSBI :: CODE SIGNATURE ::
+#ZCR6ZB7GXKUES3JIGYU7WWPW4Y3WKZHKWFN4NFFSVZMYHFQQJZ3OIWHCXJVCKF67GFAJQQDUDMQH6
+#::: RKKWYIBJCFSVWQ63YHTY7JNOBPXH5AEJEIQF46KZJGIJM7SEMJQ :::: NAILARA AMOS :::
+# :: QCZZTBORJUERUJ4C3NSPDYXT3JCQJCUXMRJLVKQMEVI3EUX4CSBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

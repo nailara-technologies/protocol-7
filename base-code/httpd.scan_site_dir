@@ -6,7 +6,7 @@ my $site_dir = <httpd.site_dir>;
 
 my $dir_fh;
 if ( !opendir( $dir_fh, $site_dir ) ) {
-    die "<< unable to open site dir '$site_dir' [$OS_ERROR] >>\n";
+    die "<< unable to open site dir '$site_dir' [ \l$OS_ERROR ] >>\n";
 }
 
 <[base.log]>->( 1, "scanning httpd site dir '$site_dir'.," );
@@ -44,7 +44,7 @@ while (@ext_dirs) {
     my $link_target = shift(@ext_dirs);
     <[base.log]>->(
         1,
-        sprintf( ": extdir : %-${vh_max_len}s -> $link_target", "$dir_name" )
+        sprintf( ": extdir : %-${vh_max_len}s --> $link_target", "$dir_name" )
     );
 }
 foreach my $link_name (@vhosts) {
@@ -74,7 +74,7 @@ foreach my $link_name (@vhosts) {
 0;
 
 #.............................................................................
-#VI262YXR3JGUIZ3X4KTFFORS5N2BDGB532ETRCQMZMWZIPCAKVRFVPAL2ZBV5TAMT3UYXWOVTBJAM
-#::: 6FWI6TTZYUHRHUKAQWS5CSD7ETE4SFZFTSNZIA42DY7SLCXPRDG :::: NAILARA AMOS :::
-# :: CFIMZ2OWYQQTXQ2NOHC6XGG7UA4TJPHD52WXM5U644BYS5HWTWDQ :: CODE SIGNATURE ::
+#IGSSXZONPYA2CQRNU7NMXMR45F4KMPTQUK5HD325GAWEWUA7GUP2ZDPWIB4IXJ5CRA6DT33ARGSSW
+#::: XFFC2GD7KUW5DLRJWVUCMWYOS2ALO6V6PTDCRNZH7ERFK44UO5D :::: NAILARA AMOS :::
+# :: 7WQSNX25ZPQ5MH43WFQAPETV7GOSBRUKYLJUIBFKRW4W4SMIVYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

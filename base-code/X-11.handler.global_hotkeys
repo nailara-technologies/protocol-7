@@ -12,9 +12,9 @@ my $watcher = shift->w;
 
 my $qkmap = eval { <X-11.obj>->QueryKeymap };
 
-if ( not defined $qkmap ) {   # LLL: implement reconnect / restart procedure!!
+if ( not defined $qkmap ) {   # LLL: implement reconnect \ restart procedure
     <[base.log]>->(
-        0, "<!> X11 protocol mismatch during 'QueryKeymap' command <!>"
+        0, "<< X-11 protocol mismatch during 'QueryKeymap' command >>"
     );
     return;
 }
@@ -22,9 +22,9 @@ if ( not defined $qkmap ) {   # LLL: implement reconnect / restart procedure!!
 my $dq_e = [ <X-11.obj>->dequeue_event ];
 
 if ( @{$dq_e} ) {
-    $watcher->now;    # <- again, there might be more events queued..
+    $watcher->now;    # <-- again, there might be more events queued.,
 } else {
-    return;           # <- no, there weren't
+    return;           # <-- no, there weren't
 }
 
 my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
@@ -42,7 +42,7 @@ my $mod_state   = $event{'state'};
 my $triggered   = <X-11.hotkeys.triggered>;
 my $is_modifier = exists <X-11.keycodes.modifiers>->{$keycode} ? 1 : 0;
 
-return if $is_modifier;    # <- modifier keys skipped ( for now )
+return if $is_modifier;    # <-- modifier keys skipped ( for now )
 
 $triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
 $triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
@@ -65,7 +65,7 @@ my $mod_str
     )
 );
 
-# LLL: process key ...
+# LLL: process key ..,
 
 <X-11.hotkeys.active> //= {};
 if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
@@ -126,14 +126,14 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
 
 if ($no_key_pressed) {
 
-    # LLL: process key ...
+    # LLL: process key ..,
 
     delete <X-11.hotkeys.last_key>;
     delete <X-11.hotkeys.triggered>;
 }
 
 #.............................................................................
-#GJXAOA3TQZH35VAYMRXIWDAV77SQT6ZVB3PWP5YU3N5Z7TENMMN53TXLYAXF5Y53RIENRA7NNQPBM
-#::: 2R7MYNRSEW5XVJ443QL45HPXM65H6B5CPTW5R4S34RHAMA3OCA4 :::: NAILARA AMOS :::
-# :: BW34OWGUKJPDCQW6HFZAKDGCFWJKQYKHLV2I52NQ5AYMLHA4LABQ :: CODE SIGNATURE ::
+#NOUG6JAZ2YNU74RKZVQJ5LIQLFI2CKLP3NP3ZHKWKZCEXLQXHFOJGTRSNU7Y6DV2GZLXJLCP72IPW
+#::: 3Q4XS6AMPFTDWXIP6ZE2CKMARGISIOCKJ72F5WSPH5UVTAUZMD2 :::: NAILARA AMOS :::
+# :: 5SXJDRU2SW6YMF2JCAI5QII5DI5BBJOVCK7WK2GHRWW47FJXBCDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

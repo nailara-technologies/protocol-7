@@ -33,21 +33,21 @@ sub update {
     if ( !-d $CPAN_tmp_dir ) {
         print " :: creating dir '$CPAN_tmp_dir'\n";
         mkdir($CPAN_tmp_dir)
-            or die " :: [error] can not create tmp dir '$CPAN_tmp_dir'\n";
+            or die " :: [error] cannot create tmp dir '$CPAN_tmp_dir'\n";
     }
 
     if ( !-d $CPAN_tmp_dir . '/modules' ) {
         print " :: creating dir '$CPAN_tmp_dir/modules'\n";
         mkdir( $CPAN_tmp_dir . '/modules' )
             or die
-            " :: [error] can not create tmp dir '$CPAN_tmp_dir/modules'\n";
+            " :: [error] cannot create tmp dir '$CPAN_tmp_dir/modules'\n";
     }
     my $buffer = '';
     my ( $file_handle, $file_size ) = open_cpan_file($CPAN_file_list);
     print " :: creating tmp file '$CPAN_local_modlist_tgz'\n";
     open( TGZ_file, '>', $CPAN_local_modlist_tgz )
-        or die " :: [error] can not create module list file "
-        . "'$CPAN_local_modlist_tgz' [$OS_ERROR]\n";
+        or die " :: [error] cannot create module list file "
+        . "'$CPAN_local_modlist_tgz' [ \l$OS_ERROR ]\n";
     print " :: downloading module list ($file_size bytes)...\n";
 
     my $bytes_read = 0;
@@ -61,12 +61,12 @@ sub update {
     print " :: creating module list '$CPAN_local_modlist'\n";
 
     open( TMP_file, '>', $CPAN_local_modlist )
-        or die " :: [error] can not create module list file "
-        . "'$CPAN_local_modlist' [$OS_ERROR]\n";
+        or die " :: [error] cannot create module list file "
+        . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     print " :: extracting module data ...\n";
     open( ZCAT, "zcat $CPAN_local_modlist_tgz |" )
         or die
-        " :: [error] can not extract files from module list [$OS_ERROR]\n";
+        " :: [error] cannot extract files from module list [ \l$OS_ERROR ]\n";
 
     while ( sysread( ZCAT, $buffer, 23542 ) ) {
         print TMP_file $buffer;
@@ -83,8 +83,8 @@ sub search {
     my $mod_version_len = 3;
     print " ::[ search results for '$keyword' ]:.\n :\n";
     open( MOD_list, $CPAN_local_modlist )
-        or die " :: [error] can not open module list file "
-        . "'$CPAN_local_modlist' [$OS_ERROR]\n";
+        or die " :: [error] cannot open module list file "
+        . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     foreach my $mod_line (<MOD_list>) {
         if ( $mod_line =~ /^([^\s]+)\s+([^\s]+)\s+([^\s]+)$/ ) {
             my ( $mod_name, $mod_version, $mod_url ) = ( $1, $2, $3 );
@@ -133,8 +133,8 @@ sub install {
     my $mod_version_len  = 5;
     print " :: installation results for module '$install_mod_name':\n :\n";
     open( MOD_list, $CPAN_local_modlist )
-        or die " :: [error] can not open module list file "
-        . "'$CPAN_local_modlist' [$OS_ERROR]\n";
+        or die " :: [error] cannot open module list file "
+        . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
 
     my $found = 0;
 
@@ -167,8 +167,8 @@ sub install {
                     print " : downloading module '$mod_name' [version "
                         . "$mod_version] ($MOD_size bytes) ...\n";
                     open( my $file_handle, ">$tgz_file" )
-                        or die " :: [error] can not open file "
-                        . "'$CPAN_tmp_dir/modules/$mod_file_name' [$OS_ERROR]\n";
+                        or die " :: [error] cannot open file "
+                        . "'$CPAN_tmp_dir/modules/$mod_file_name' [ \l$OS_ERROR ]\n";
 
                     my $bytes_read = 0;
                     while ( $bytes_read < $MOD_size
@@ -218,7 +218,7 @@ sub install {
                             my $makefile    = "$ext_mod_dir/Makefile";
 
                             print " : writing makefile ..\n.:\n\n";
-                            chdir($ext_mod_dir) or die $OS_ERROR;
+                            chdir($ext_mod_dir) or die lcfirst( $OS_ERROR );
                             if ( !system( 'perl', $makefile_pl ) ) {
                                 print "..\n";
                                 if ( -f $makefile ) {
@@ -272,8 +272,8 @@ sub install {
                                 }
 
                             } else {
-                                die " :: [error] can not execute "
-                                    . "'$makefile_pl'. [$OS_ERROR]\n :\n\n";
+                                die " :: [error] cannot execute "
+                                    . "'$makefile_pl'. [ \l$OS_ERROR ]\n :\n\n";
                             }
 
                         } else {
@@ -281,8 +281,8 @@ sub install {
                                 . "directory '$ext_mod_dir' not found.\n :\n\n";
                         }
                     } else {
-                        die " :\n :: [error] can not extract files "
-                            . "from '$tgz_file' [$OS_ERROR]\n :\n\n";
+                        die " :\n :: [error] cannot extract files "
+                            . "from '$tgz_file' [ \l$OS_ERROR ]\n :\n\n";
                     }
                 }
             }
@@ -301,7 +301,7 @@ sub show_readme {
     print " ::[ \"$readme_mod_name\" ]:.\n :\n";
     open( MOD_list, $CPAN_local_modlist )
         or die
-        " :: [ERR] can not open module list file '$CPAN_local_modlist' [$OS_ERROR]\n";
+        " :: [ERR] cannot open module list file '$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     my $found = 0;
     print " : parsing module list ..\n";
     foreach my $mod_line (<MOD_list>) {
@@ -363,7 +363,7 @@ sub return_dependencies {
     print " : checking dependencies ..\n";
     open( my $make_file_handle, " < $make_file " )
         or die
-        " :: [error] can not open makefile '$make_file'. [$OS_ERROR]\n :\n\n";
+        " :: [error] cannot open makefile '$make_file'. [ \l$OS_ERROR ]\n :\n\n";
     my $found_section_prereq   = 0;
     my $found_section_requires = 0;
     while (<$make_file_handle>) {
@@ -400,11 +400,11 @@ sub clean {
     print " :: deleting module list\n";
     unlink($CPAN_local_modlist)
         or die
-        " :: [error] can not module list '$CPAN_local_modlist' [$OS_ERROR]\n";
+        " :: [error] cannot module list '$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     print " :: deleting tmp dir\n";
     rmdir($CPAN_tmp_dir)
         or die
-        " :: [error] can not delete tmp dir '$CPAN_tmp_dir' [$OS_ERROR]\n";
+        " :: [error] cannot delete tmp dir '$CPAN_tmp_dir' [ \l$OS_ERROR ]\n";
 
     print " :: done.\n :\n\n";
 }
@@ -460,7 +460,7 @@ sub open_cpan_file {
         }
     } else {
         die " :: cannot connect to CPAN server "
-            . "at '$CPAN_server:$CPAN_http_port' [$OS_ERROR]\n";
+            . "at '$CPAN_server:$CPAN_http_port' [ \l$OS_ERROR ]\n";
     }
 
 }
@@ -478,7 +478,7 @@ sub show_commands {
 }
 
 #.............................................................................
-#IMOQRYRC4TNXOSFVVBFQGKNHQUIDOLY4MGLD33VCWTMKTWSRZHZ3AFQRM4LEVIQ2RTEEHF7VB42QA
-#::: NNTTGTM5RTGABVVWAP6BOKB3KWXL7GSHEJL5W5QFFSPQLLD67D3 :::: NAILARA AMOS :::
-# :: UV7HQFHLFVLLBBKCIUEMB2BMXE67AWB3RWIFYGMPOGJOCQUBFABA :: CODE SIGNATURE ::
+#3UR7PGY63F7PCKQ7YUKZACXSWYA4NC7GFKRVJZ6QJPCDJ3ZSBI6QZVAPHWHMJAV4YT6FQNJJM34AK
+#::: JJVTVU23GRZNZNN3AM7U4AIXVPH35BCPA5PVJ7KR6VIEZQXWUF7 :::: NAILARA AMOS :::
+# :: XGTAOZ2ZWDOVAHUOX26USSEHE33WQDLQQRZYLLFRSYA35MUIRKCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

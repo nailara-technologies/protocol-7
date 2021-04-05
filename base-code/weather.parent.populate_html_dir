@@ -20,16 +20,16 @@ my $gradient_dir = "$data_dir/gfx/gradients";
 
 if ( !-d $html_dir ) {
     <[base.log]>->( 1, ": creating html dir '$html_dir'" );
-    make_path($html_dir) or die "make_path($html_dir): $OS_ERROR";
+    make_path($html_dir) or die "make_path($html_dir) : \l$OS_ERROR";
 }
 my $image_dir = "$html_dir/images";
 if ( !-d $image_dir ) {
     <[base.log]>->( 1, ": creating 'images' directory" );
-    make_path($image_dir) or die "make_path($image_dir): $OS_ERROR";
+    make_path($image_dir) or die "make_path($image_dir) : \l$OS_ERROR";
 }
 
 my $icon_setup
-    = <[weather.parent.icon_setup]>->('vclouds');    # LLL: to config...
+    = <[weather.parent.icon_setup]>->('vclouds');    # LLL: to config..,
 my %icon_list  = reverse %{$icon_setup};
 my @icon_paths = keys %icon_list;
 push( @icon_paths, "$gradient_dir/gray-tq.png" );
@@ -42,7 +42,7 @@ foreach my $icon_file (@icon_paths) {
     my $target_path = "$image_dir/$file_name";
     next if -f $target_path;
     copy( $icon_file, $target_path )
-        or die "copy('$icon_file','$target_path'): $OS_ERROR";
+        or die "copy('$icon_file','$target_path') : \l$OS_ERROR";
     $copied++;
 }
 <[base.log]>->( 1, ": copied $copied files to ./images/" ) if $copied;
@@ -55,7 +55,7 @@ foreach my $name (<[weather.parent.page_list]>) {
 }
 
 #.............................................................................
-#UPNGEFVGQROL7ITVCLSD6APDJL5YLLPF3S6GWVGDSSWOHFAV6ATGLX4BXFWX3WKHTMQNV3HVQ7HZO
-#::: HK6IIXME7QY72VBTK2D6JJPURQINQ2EZSV2NICOUHZQILOKY44K :::: NAILARA AMOS :::
-# :: 4IFKNIF6Y247EAYISO6MFZ2LXJTSKXLQRCZL5VV5HPUDZ34JQKDQ :: CODE SIGNATURE ::
+#2GQDATVZG6YK4MHB3CJRCAPHI4NFSWFTJSSPZ4VXVFJQZYCZF2EN35PCHTALBI7WZYAWNIYXUOMHA
+#::: VZDU6ADKXWH2CPT2USYG6WZBINK26IFLBG462DBFIBXYWDVEMTY :::: NAILARA AMOS :::
+# :: MCNWLLVUNLJGKMIDJECYKZA6KKFMUFXDCAJ6AZB3EA3AHDS72IBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

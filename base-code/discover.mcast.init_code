@@ -29,12 +29,12 @@ if (    defined <discover.mcast.obj.sock>
     'LocalAddr' => <discover.mcast.ip4_addr>,
     'LocalPort' => <discover.mcast.ip4_port>,
     'ReuseAddr' => 1
-) or die $OS_ERROR;
+) or die lcfirst($OS_ERROR);
 
 <discover.mcast.obj.sock>->mcast_ttl(<discover.mcast.mesg_ttl>)
-    or die $OS_ERROR;
+    or die lcfirst($OS_ERROR);
 <discover.mcast.obj.sock>->mcast_loopback(<discover.mcast.mesg_loop>)
-    or die $OS_ERROR;
+    or die lcfirst($OS_ERROR);
 
 <[base.log]>->(
     1,
@@ -43,7 +43,7 @@ if (    defined <discover.mcast.obj.sock>
 );
 
 <discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>)
-    || die $OS_ERROR;
+    || die lcfirst($OS_ERROR);
 <discover.mcast.obj.sock>->mcast_dest(
     <discover.mcast.ip4_addr> . ':' . <discover.mcast.ip4_port> );
 
@@ -56,7 +56,7 @@ if (    defined <discover.mcast.obj.sock>
 0;
 
 #.............................................................................
-#B633MGGUTROXOJAUMYW7MBDB3NJSKS2CIITKMSH2AXC4SKKMOIVOUM6CHAIJFQXCDB62HUFK2VXQG
-#::: FQO4MVHROUNFKKHHOKTXXCOJL2MFSMJCRKE42RXXLRSHS5VBEC3 :::: NAILARA AMOS :::
-# :: IA3NKZTCWNZREA5MREZD6UHNPN4ZLJFK6AJVTDKWIDBCP5SH6GAI :: CODE SIGNATURE ::
+#KZJPKSBA6N5ZTAO3EJT63ZCRJQTUNJYGCGP7VMCR2NAB5RALK237FAVSKX44VRNDNLBGCBB6WIQNI
+#::: 5RXZFU4MSZDZQ3K7NPGX7PRPCLR6L6JONG745CUSWMQIDJSOAM7 :::: NAILARA AMOS :::
+# :: AUPCXUWANWHCXFLYVC2KHGASYQCGUFN6NYXRXOSCDN4G3JS5FQAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
