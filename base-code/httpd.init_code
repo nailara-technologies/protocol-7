@@ -1,7 +1,7 @@
 # >:]
 
 # name = httpd.init_code
-# todo = check for shared-mime-info, handle absence and also hashing at start...
+# todo = check for shared-mime-info, handle absence and also hashing at start..,
 
 <[base.perlmod.autoload]>->('URI');
 <[base.perlmod.autoload]>->('HTTP::Date');
@@ -27,7 +27,7 @@
 <httpd.cfg.external_sitedirs>     //= 0;
 <httpd.cfg.uploads_enabled>       //= 0;
 <httpd.downloads.in_progress>     //= 0;
-<httpd.downloads.max_buffer_size> //= 128 * 1024; # <- (session output buffer)
+<httpd.downloads.max_buffer_size> //= 128 * 1024; # <-- (session output buffer)
 <httpd.downloads.total_bufsize_max>
     //= 100 * <httpd.downloads.max_buffer_size>;
 
@@ -59,7 +59,7 @@ if ( !-d $site_dir ) {
     <[base.log]>->( 0, "creating site_dir '$site_dir'..," );
     make_path( "$site_dir/default",
         { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid } )
-        or die "<< unable to create httpd dir '$site_dir' >> [$OS_ERROR]";
+        or die "<< unable to create httpd dir '$site_dir' >> [ \l$OS_ERROR ]";
 }
 
 <[httpd.scan_site_dir]>;
@@ -70,13 +70,13 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
     make_path( "$upload_dir",
         { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid } )
         or die
-        "<< unable to create upload dir '$upload_dir' >> [ $OS_ERROR ]";
+        "<< unable to create upload dir '$upload_dir' >> [ \l$OS_ERROR ]";
 }
 
 0;
 
 #.............................................................................
-#QG4UQOLLNKIPT36O5WSI5GBUPKWNTJM5TUOXKLATJE6JGEXJ4RZNU3OQE4G6QEXVEAPS54MUWMM6U
-#::: YULYJRRH4IDWAKXFHEWMQOJRKJV6DW7BTGYXGUKDKKO3RABTL3O :::: NAILARA AMOS :::
-# :: DPGNHR7WZBTGT4JL7VPMXIRIJE5WHKDZCOMSQXAKJPDGICIHX6DQ :: CODE SIGNATURE ::
+#E5RDUEJA6LOORNK7ZKDTBB4YQ2HFAUYCD7Q34SEXEQX6HOO2PSENVZHA62MJEG3LA2ZTS7TE4TVEI
+#::: TID6XGGUGYYKQSULARBBPZPQTE2LXJN3ZQRL3DAYR6UQ5K2WDBF :::: NAILARA AMOS :::
+# :: VVNTASMOXFV7VTFKULNBGVUTIIYTEXRUUPJLIO3D7GWGAWBY5GBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

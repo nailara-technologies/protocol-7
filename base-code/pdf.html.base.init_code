@@ -22,24 +22,24 @@ if ( !-d $cache_dir ) {
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $cache_dir,
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
-        or die "make_path: $OS_ERROR";
+        or die "make_path : \l$OS_ERROR";
 } else {
     my $old_perms = <[base.file_perm]>->($cache_dir);
     if ( $old_perms ne $perms ) {
         <[base.log]>->(
-            0, "<!> fixing cache dir permissions [ $old_perms -> $perms ]"
+            0, "<< ! >> fixing cache dir permissions [ $old_perms --> $perms ]"
         );
         chmod( oct($perms), $cache_dir )
-            or warn("chmod($cache_dir): $OS_ERROR");
+            or warn("chmod($cache_dir) : \l$OS_ERROR");
     }
 }
 
-chdir($cache_dir) or die "chdir($cache_dir): $OS_ERROR";
+chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 
 0;
 
 #.............................................................................
-#WE67WRNOPNWV3TRR3JSGGATYWBOMNUG665Q5DV3XSA6H475DVEVLTJNU36C3DQ3G3BMJSDQJIN2OA
-#::: 4XM6WS6KBNFPCHEFKYKDVNDRNAH4OSJXBMG7EPNSLWX4FYQXRKY :::: NAILARA AMOS :::
-# :: LDO2UDFQE5HRYJ6DMQU37JADABMUURVXS7EKM4ACBDBKTBHVMACI :: CODE SIGNATURE ::
+#R6BMRM7ZW7NMTQIE6JHZAVLYKC2M5ASVZJ3OYD7UDCJERULCD66KMCZT6PUJYQ7KDD7FAVFPIRYIG
+#::: YVWMZYSCKO4NHC4FMULUW6XMQHEIEGYO4XAWUGOMHLBH2TX4TSN :::: NAILARA AMOS :::
+# :: FMKJ2DSZKDVOHSTE5BYDBMHS732LJJCOBGPZLLLG4FZSG5Q4P2BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

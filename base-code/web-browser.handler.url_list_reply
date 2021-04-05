@@ -6,7 +6,7 @@ my $reply = shift;
 
 if ( $reply->{'cmd'} eq 'NAK' ) {
     my $msg = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "<!> unable to fetch url list <!> [$msg]" );
+    <[base.log]>->( 0, "<< unable to fetch url list >> [ $msg ]" );
     return;
 }
 
@@ -124,7 +124,7 @@ map {
 } @{<web-browser.url.list>};
 
 if (@{<web-browser.url.list>}
-    and $pause_cnt != $url_count    # <- prevents infinite while loops
+    and $pause_cnt != $url_count    # <-- prevents infinite while loops
     and <web-browser.slideshow.autostart>
     and !<web-browser.slideshow.running>
     and $reply->{'call_args'}->{'args'} > 0
@@ -134,7 +134,7 @@ if (@{<web-browser.url.list>}
 }
 
 #.............................................................................
-#WPZUDPCTSJ2S5OYWCU73YXNGD6JPYRMOOWTROOXWATUK4OUVMOJHN5UYPE4G5YKHJJ57GVUKJQ4PG
-#::: QIFJFWQNH4CPKM66ZPVLTRDFH4KLUXSTDBRPUMH46SCESP52BGH :::: NAILARA AMOS :::
-# :: JAO7PKHME3IX6ZU7NVST6NUQKHZOEJDJJIFAC7TW3UPQGCU2FAAI :: CODE SIGNATURE ::
+#4DQF44FH4L7IRSDU26Y3W64IP2FNN7C2S4TV4RTTE72Q64SLNAEGBZXWEPO4OT2J434BCGQPFG6UK
+#::: 7AMZ2HQE26NUPLE2E2EJ5REXUPIDKGWUL4BRJR3TT46HZVEPOH2 :::: NAILARA AMOS :::
+# :: JOQY6GFIDH5KTDBO6JRALOURBMWZDAOYUWO2LQZRYZ74FFQ4K6DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

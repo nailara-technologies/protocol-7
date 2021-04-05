@@ -9,7 +9,7 @@ $seperator //= "\n";
 $blocksize ||= 4096;
 
 open my $handle, '<:raw', $filename
-    or return warn "can not open '$filename' [ $OS_ERROR ]";
+    or return warn "cannot open '$filename' [ \l$OS_ERROR ]";
 binmode $handle;
 my $lines = 0;
 $seperator =~ s/([\\{}])/\\$1/g;
@@ -21,14 +21,14 @@ eval qq[
     }
 ];
 
-die "can not sysread() from '$filename': $OS_ERROR"
+die "cannot sysread() from '$filename' : \l$OS_ERROR"
     unless defined($sysread_status);
-close $handle or warn "can not close '$filename': $OS_ERROR";
+close $handle or warn "cannot close '$filename' : \l$OS_ERROR";
 
 return $lines;
 
 #.............................................................................
-#DNGAUVNKCTKDAMEOXXX2PYJPQ5WQMAKU6RA4I7VQJSFD5JUOED2LBNP2GDFYWZW7JKCMFF26U2Y7E
-#::: 7IEHVRUGXBPWEMHENHKHTVKJOTG2V5NNLQ2EOQTGLIUPBPXQQ23 :::: NAILARA AMOS :::
-# :: MRXKIBN4KUCFTC6CXLWXWS2XLGFBSJGVMQRNVRT4YHWIAWX6Q4AY :: CODE SIGNATURE ::
+#A57GX5YL456KWWSASFSYRA5PV4RFRWG4IZZ5RMVMUJFGBNF3DVEIKZNGZHXOD766BNDTCWEIW3NUO
+#::: JUOA45N4GUKS4DYUDG5GVKXCIT24NIIS37ITTNRHYME33EBJLZA :::: NAILARA AMOS :::
+# :: 27IPL4RYPVKSP3MD4SZDBXMLW4ZHUV26PLN2CQ6SRUXA7BSEZKCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

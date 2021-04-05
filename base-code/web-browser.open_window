@@ -1,6 +1,6 @@
 # >:]
 
-# name = web-browser.open_window
+# name  = web-browser.open_window
 
 $ENV{'DISPLAY'} = <x11.display>;
 
@@ -29,7 +29,7 @@ if ( defined <web-browser.cfg.change_cursor> ) {
 
 $window->signal_connect( destroy => sub { Gtk3->main_quit() } );
 
-# my $atom_id = Gtk3::Gdk->atom_intern_static_string('WM_CLASS'); # <--set [LLL]
+# my $atom_id = Gtk3::Gdk->atom_intern_static_string('WM_CLASS'); # <-- set
 
 $window->move( $pos_x, $pos_y );
 $window->set_default_size( $size_x, $size_y );
@@ -60,7 +60,7 @@ if (<web-browser.cfg.no_memory_cache>) {
     <[base.log]>->( 1, ": moderate caching enabled.," );
     $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER');
 
-    # LLL: deal with cache size / auto-clear...
+    # LLL: deal with cache size \ auto-clear..,
     # $web_context->set_cache_model('WEBKIT_CACHE_MODEL_WEB_BROWSER');
 
 }
@@ -138,7 +138,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 
     map { <web-browser.timer>->{$ARG}->cancel } keys %{<web-browser.timer>};
 
-    <[base.log]>->( 1, "< SIGTERM > terminating .," );
+    <[base.log]>->( 1, '<<< SIGTERM >>> terminating .,' );
 
     <web-browser.slideshow.no_switch> = 1;
     <web-browser.slideshow.paused>    = 1;
@@ -174,7 +174,7 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
 };
 
 #.............................................................................
-#SXPLNHVIH5YH6DA2XYPJ33FYFA5IIPPQC2LQOHGD6VEF2MCUY4HQAENYWKADD67ORHUY7X35ZZNDK
-#::: 24YVYLYT2D7QCZMFLJ5TLHNVOFKJBLNUIH42CKY73V5TUVRENEG :::: NAILARA AMOS :::
-# :: H5C3H6TPMVT47T4KSKE4IRML3NI7OESIHYV67OB5XP5B3BGOFIBI :: CODE SIGNATURE ::
+#NWK6PJ5HUHRKDZDTQKXI2BCIKWUPMBJEZ23PIYRMGFNHMFTMLSKOSXF2BIWFRT6LU37ZL52AAFB5U
+#::: LZCE5652TE4AFKMDULZBYKSIM7X2WA3XFRCF7LQ7EZ5IOSS7A6Y :::: NAILARA AMOS :::
+# :: BRE2EJCERYPA4KPPB52ZNO6624AMILR3JDQPJG4GB3XKYDYJ6WAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

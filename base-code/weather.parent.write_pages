@@ -14,7 +14,7 @@ my $body_template = "$current_template_dir/body.html";
 
 if ( !-d $html_dir ) {
     mkdir($html_dir)
-        or die "<!> unable to [re-]create target directory '$html_dir'";
+        or die "<< ! >> unable to [re-]create target directory '$html_dir'";
 }
 
 die "html template '$body_template' does not exist" if !-f $body_template;
@@ -55,7 +55,7 @@ $icon_path =~ s|^.*/|./images/|;
 
 my %template_names;
 opendir( my $dir_fh, $current_template_dir )
-    or die "opendir($current_template_dir): $OS_ERROR";
+    or die "opendir($current_template_dir) : \l$OS_ERROR";
 map { $template_names{$1} = 1 if $ARG =~ m{^content\.(.+)\.part$} }
     readdir($dir_fh);
 closedir($dir_fh);
@@ -152,7 +152,7 @@ foreach my $page_name (@page_list) {
         $template_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
         if ( not exists $template_names{$sname} ) {
             <[base.log]>->(
-                0, "<!>write_pages: html template '$sname' does not exist!"
+                0, "<< ! >> write_pages: html template '$sname' does not exist!"
             );
             next;
         }
@@ -212,7 +212,7 @@ foreach my $page_name (@page_list) {
     $html_str =~ s|\[ICON\]|$icon_path|g;
     $html_str =~ s|\[DESCR\]|$current_ref->{descr}|g;
 
-    # ...
+    # ..,
 
     <[weather.parent.apply_zoom]>->( \$html_str );
 
@@ -304,7 +304,7 @@ foreach my $page_name (@page_list) {
 }
 
 #.............................................................................
-#BZ7NDCPIIDID7QQJHUR5AZDMYEW7YKCR7IACL6FPZHF2JQT5YD63Z5B44PM27OZDTAOZH45FC4OM4
-#::: 5WJDTTIYP7ARU42T46EPTWFU3ZTN3CWOFBJNWEAEMAZTDLSA5OT :::: NAILARA AMOS :::
-# :: IWHRZ3O6C62SVLDFBAKQEUMBTZGPGEUSUQPEXB3XTGJQ7T4TWYAQ :: CODE SIGNATURE ::
+#UTQDPCRMV6JBPLKKVNBGKZD6BRAING47PIAM54JY5N7H3DJPQTUYHV2QQXXWSYIYXLZYUKC423XPS
+#::: LZO2SL7LQFEAGCWM5ZKNEI7T4KNESBGICEAOCVFZCOF5UJPMUZM :::: NAILARA AMOS :::
+# :: SFMDDQA7LVN42LHBDFY4XGGFE6NVTSSFGZ27DOCRPNSCWZKPM6CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

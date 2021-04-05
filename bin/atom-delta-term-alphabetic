@@ -336,7 +336,7 @@ GET_CHARACTER:
 
     my $character = chr($char_num);
 
-#   eval { print ZULUM $character };
+    #   eval { print ZULUM $character };
 
     my $input_len = length($$input) // 0;
     if ($input_len
@@ -481,7 +481,7 @@ sub save_state {
 
 sub update_state_files {
     opendir( DIR, '.' )
-        or return ':: opendir error : ' . lc($OS_ERROR) . ' ::';
+        or return ":: opendir error : \l$OS_ERROR ::";
     my @state_files = grep {m|^atom-delta-term\.state\.|} readdir(DIR);
     closedir(DIR);
     my $file_count = 0;
@@ -491,15 +491,16 @@ sub update_state_files {
         $file_count++;
         say ":: $file\n:";
         eval {
-            my $update = LoadFile($file) or warn ":: $file : $OS_ERROR ::";
+            my $update = LoadFile($file)
+                or warn ":: $file : \l$OS_ERROR ::";
             delete $update->{'fortuna'};
             delete $update->{'zulum'};
             checksum_state( \$update );
-            DumpFile( $file, $update ) or warn ":: $file : $OS_ERROR ::";
+            DumpFile( $file, $update ) or warn ":: $file : \l$OS_ERROR ::";
         };
         $file_count-- if $EVAL_ERROR;
     }
-    my $err_str = $EVAL_ERROR ? "[ $EVAL_ERROR ]" : '::';
+    my $err_str = $EVAL_ERROR ? "[ \l$EVAL_ERROR ]" : '::';
     return ":\n:: $file_count files updated $err_str\n:\n";
 }
 
@@ -649,7 +650,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#THVY5IWPYI2INIHEP7SR5ENLQ4YNAGSE3A5N7M2OYX2E4OABHGUM3HHBEWLKY3FM6TLCX3QGWL3HU
-#::: AHUPNCQOTF5APK3XFYLP5HISKJSTWB3ISUWUXU4EFYOL5GPWPIA :::: NAILARA AMOS :::
-# :: 7WM37C7QDMJKOB3GUWJU2LD2MKBFEYZ7DOJ3DYU5O5OSABH5ZECA :: CODE SIGNATURE ::
+#4OMIUQJDBLQGVTCJWOYCWQ6UMCBG7XLM66QV35RF5L4NPB64NAGXPZUZFQED2DOSR5USP4BTWKO2W
+#::: DWRPAUPBXYAHG6H2PMOVFYMVB3KNVQDASMG7WDFA5M5IRY2XW2Y :::: NAILARA AMOS :::
+# :: LCFE5NEGWGYJBPZ555XJBT2S2G66BTAVS2R57ZOP5U6DZ5YTHKDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,8 +18,8 @@ Glib::Object::Introspection->setup(
 <[base.stderr_redir]>;    ## redirect STDERR ##
 
 <ticker-gtk.font.path> //= <system.root_path> . '/data/ttf/droid';
-<ticker-gtk.font.name> //= 'DroidSans-Bold';    # LLL: <- load from config!
-<ticker-gtk.font.size_percent> //= 100;         # LLL: <- load from config!
+<ticker-gtk.font.name> //= 'DroidSans-Bold';    # LLL: <-- load from config!
+<ticker-gtk.font.size_percent> //= 100;         # LLL: <-- load from config!
 <ticker-gtk.use_transparency>  //= 1;
 <ticker-gtk.do_custom_fade_in> //= 1;
 <ticker-gtk.cfg.draw_outline>  //= 1;
@@ -56,7 +56,7 @@ my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
 <ticker-gtk.bg_col>     = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
 <ticker-gtk.bg_alpha>   = <ticker.cfg.bg_alpha> // 100;  # transparent default
 
-my $ovf = 0.94;    # <- outline value factor
+my $ovf = 0.94;    # <-- outline value factor
 my $c
     = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
 my $hc = $c->convert_to('hsv');
@@ -81,7 +81,7 @@ my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 0;
 
 #.............................................................................
-#FVL3SS62MRXE4V7USF2LDS7GIRCTRPAK5JDIFEQOEGHXJYYU4KHRQ3Y4NKW5QSK7GLLSJ2YK6ZKRW
-#::: NLQUWSUIQMQCOVZR6H4AWCJR3VVDA6NZ66BOF2P2Z5IQ6WX457N :::: NAILARA AMOS :::
-# :: QWBS364YNZG5XTGSMOECYFE53ETUKSZMGEBAP64ZLB7FGC6HDABY :: CODE SIGNATURE ::
+#3MGROT3HUM4LT3RZUIBMLNOAIFWPVQ2FACMYEFTPLRN55VGYWJNXPYKUAGT2CHO67KKBHEWQ6S3IW
+#::: 5GHKJYNUJ2BKKISH2C2XKBZUHFL3XG5A3R2VTHCN5IED6E5UFMP :::: NAILARA AMOS :::
+# :: ESN4MCPEOUGKX3EL6Q7X6NPKZOQJ5Z5RB2ZZ26WCMGWJRJ2UYIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,7 +24,7 @@ $ENV{'DISPLAY'} = <x11.display>;
 $title = $1 if $txt_param =~ s/^(\S+)\s+//;
 
 map { $ARG =~ s|\\0||go }
-    ( $title, $txt_param );    # <- prevents msg being cut off
+    ( $title, $txt_param );    # <-- prevents msg being cut off
 
 if ( defined $txt_param and $txt_param ne '' ) {
     my $msg_str
@@ -40,7 +40,7 @@ if ( defined $txt_param and $txt_param ne '' ) {
     } elsif ( $CHILD_ERROR == -1 ) {
         return {
             'mode' => 'nak',
-            'data' => 'unable to execute: ' . $OS_ERROR
+            'data' => "cannot run process [ \l$OS_ERROR ]"
         };
     } else {
         return {
@@ -48,7 +48,8 @@ if ( defined $txt_param and $txt_param ne '' ) {
             'data' => sprintf(
                 "notify-send exited with code %d%s",
                 ( $CHILD_ERROR >> 8 ),
-                defined $OS_ERROR && length($OS_ERROR) ? " [$OS_ERROR]" : ''
+                defined $OS_ERROR
+                    && length($OS_ERROR) ? " [ \l$OS_ERROR ]" : ''
             )
         };
     }
@@ -57,7 +58,7 @@ if ( defined $txt_param and $txt_param ne '' ) {
 }
 
 #.............................................................................
-#6Y3VZRYA7KLIO3BKOBXQRMTXC264RGUWZGVUG3FLJITZLXX74QWAVKSRK6N37D4LXWCPBAPULVJMS
-#::: IIQWHX54BRIOBHOBPAAWI5VPPIU4UQNFYIAD67LZCJ7FV7LPO2T :::: NAILARA AMOS :::
-# :: ZW3NBETA2337N6OSUJYRMM7JLZ5HXSXI4BRXTAL2GX4RDGQHKYAY :: CODE SIGNATURE ::
+#GYMITNYRV45I7VASCQWG5PXMLM3J77WUXBBVVFZLPD72VYA3XZXOZAAQM27CLFEIWDM2O24SXRNDK
+#::: U7Y3FI5CYF3AL2TDNL7YVPY4DSVQ376QI4GPN6J7LJIGWUWCQSF :::: NAILARA AMOS :::
+# :: F7XIMZJHLBVQ7NQVPGBC42XZKVNNTHNXQATL62NOKWML7TYJ6SAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my $poweroff_enabled = <system.system-poweroff.enabled>    //= 1;
 my $term_delay       = <system.system-poweroff.term-delay> //= 1.3787;
 my $poweroff_message = '<<< powering off host system >>>';
 return <[base.log]>->(
-    0, "[ system.system-poweroff.enabled = 0  <- shutdown cancelled., ]"
+    0, "[ system.system-poweroff.enabled = 0  <-- shutdown cancelled., ]"
 ) if !$poweroff_enabled;
 
 #
@@ -51,7 +51,7 @@ if ( !-e $sysrq_file ) {
 
 map {
     open( my $sysrq_fh, ">$sysrq_file" )
-        or die "[ $sysrq_file : $OS_ERROR ]";
+        or die "[ $sysrq_file : \l$OS_ERROR ]";
     print {$sysrq_fh} "$ARG\n";
     if ( $ARG eq 'e' ) {    # SIGTERM
         <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
@@ -66,7 +66,7 @@ map {
 ##
 
 #.............................................................................
-#FVQQ26BAOILYPFAKPKUGTPJWPFAGGUHWZ7IGLMJDCKE4PFSGI7BOXYDWY2RZVFW6OARLH3NWB5GFY
-#::: QBLDOIU4T2AYIAOA44XTAUOOKZ2HFJPLAA2U756GEZYYJCYBR3T :::: NAILARA AMOS :::
-# :: FDGFAAYMFYSOPBEX7F2UVFSPFCAGAFZZ7RMPTRHAT2BQM6PIEICA :: CODE SIGNATURE ::
+#4JFFPU3NW3RE3XLXWRKOI6QQUEDX3YEXSHQAC2J4ASKAH5BZMVPZKJV4ZQIKKO6EQSMWK2QKC3ESI
+#::: MZVP4WFQZAXR3VN2QDPLAZF3R452X2CTGF3H6F6B2BTHP74ISY4 :::: NAILARA AMOS :::
+# :: ND555EG77XN2C2PIFTKZEPNASWYLNBU7OOF2PG43WO3IMLNP7GDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

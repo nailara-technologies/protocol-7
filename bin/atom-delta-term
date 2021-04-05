@@ -524,7 +524,7 @@ sub save_state {
 
 sub update_state_files {
     opendir( DIR, '.' )
-        or return ':: opendir error : ' . lc($OS_ERROR) . ' ::';
+        or return ":: opendir error : \l$OS_ERROR ::";
     my @state_files = grep {m|^atom-delta-term\.state\.|} readdir(DIR);
     closedir(DIR);
     my $file_count = 0;
@@ -534,15 +534,16 @@ sub update_state_files {
         $file_count++;
         say ":: $file\n:";
         eval {
-            my $update = LoadFile($file) or warn ":: $file : $OS_ERROR ::";
+            my $update = LoadFile($file)
+                or warn ":: $file : \l$OS_ERROR ::";
             delete $update->{'fortuna'};
             delete $update->{'zulum'};
             checksum_state( \$update );
-            DumpFile( $file, $update ) or warn ":: $file : $OS_ERROR ::";
+            DumpFile( $file, $update ) or warn ":: $file : \l$OS_ERROR ::";
         };
         $file_count-- if $EVAL_ERROR;
     }
-    my $err_str = $EVAL_ERROR ? "[ $EVAL_ERROR ]" : '::';
+    my $err_str = $EVAL_ERROR ? "[ \l$EVAL_ERROR ]" : '::';
     return ":\n:: $file_count files updated $err_str\n:\n";
 }
 
@@ -692,7 +693,7 @@ sub sig_int_handler {
 }
 
 #.............................................................................
-#W5PYG3XITWW6DAK356ERL6O3BRKOAVNAAEUYZSEZILUVNWYSXTX6QLEGZLPN3VYLT6SRKKZFXHUOM
-#::: XY4LC32KAJ3Y7CXTLH7WTJTUDDR7MVG5JA3UZI7WYP5GNWTUQD7 :::: NAILARA AMOS :::
-# :: UBKIKOPU2J5N7BHM7ZPTN4DWAHP47A77SR726SPSJVONGRPVY4CA :: CODE SIGNATURE ::
+#LGIWQFZSR6VF3SJLAWHCWKYIPZ6ZCQAVVL6Y6AXTSKPGRXZXKDYVPQI4A4AJY2K7DKKP42Y27SZVY
+#::: GCDTCFKK6GKMEZUXN7KXRNI2COI7YY5AWPBFP35RNB66SO25WC4 :::: NAILARA AMOS :::
+# :: IC3F5EHFBC7PPPBVMSTRBRV4TFT33VCBVNBWPG3M3C6QJN7ACGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

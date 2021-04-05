@@ -60,9 +60,10 @@ if ( defined $target_path ) {
 
 if ( !-d $output_path ) {
 
-    #    make_path($output_path) or die "make_path($output_path): $OS_ERROR";
+  #    make_path($output_path) or die "make_path($output_path) : \l$OS_ERROR";
     make_path( $output_path, { chmod => 0777 } )
-        or die "make_path($output_path): $OS_ERROR"; ## <<< ! >>> ## chmod ###
+        or die
+        "make_path($output_path) : \l$OS_ERROR";    ## <<< ! >>> ## chmod ###
 
 }
 
@@ -70,7 +71,7 @@ my $partial_output_file = "$output_path/$box_size...converting...$format";
 if ( -f $partial_output_file ) {
     <[base.log]>->( 0, ": found partial output file, cleaning up..." );
     unlink($partial_output_file)
-        or warn "unlink($partial_output_file): $OS_ERROR";
+        or warn "unlink($partial_output_file) : \l$OS_ERROR";
 }
 unlink($partial_output_file);
 my $output_file = "$output_path/$box_size.$format";
@@ -103,7 +104,7 @@ if ( !-f $output_file ) {
         or $CHILD_ERROR == -1
         or $CHILD_ERROR & 127 ) {
         unlink($partial_output_file) if -f $partial_output_file;
-        my $err_str = $OS_ERROR;
+        my $err_str = lcfirst($OS_ERROR);
         if ( -f $error_log_file ) {
             my $log_content = <[file.slurp]>->($error_log_file);
             my @log_lines   = split( /\n/, $$log_content );
@@ -124,7 +125,7 @@ if ( !-f $output_file ) {
         };
     } else {
         rename( $partial_output_file, $output_file )
-            or warn "rename failed: $OS_ERROR";
+            or warn "rename failed : \l$OS_ERROR";
     }
 }
 unlink($error_log_file) if -f $error_log_file;
@@ -134,7 +135,7 @@ unlink($error_log_file) if -f $error_log_file;
 return { 'mode' => 'ack', 'data' => $output_file }
 
 #.............................................................................
-#MBNZKWNYG37MMCQANTPNZ7LIIPNK4GWED2HZ46IAOFCJSSVIQEBRSLPMBACE3QQPRHIAUFOB6L22E
-#::: NOD6LS4CEK52APX5PMS4BALAID2ZOIYAURYPKKWA2OTREMOISTE :::: NAILARA AMOS :::
-# :: GIXDN65HAH4QZ6FWQ4EZ6YZ2NN6ZVUB63HOTJ6E4KXKKI7IC2UAA :: CODE SIGNATURE ::
+#FNRWVDUBYHI7DEUVMXZDQEROPYXX4N7KEXMXFIDBY6FNERZTLSFHIWS3NFIKSXI4QWWYUGTLAJHPU
+#::: NQ7PFZWRD2VGHBIFSWXXA54D6OGPGIV5N6QOBLOUUWRKTNCNHUH :::: NAILARA AMOS :::
+# :: GDCDBSNHFHNARGNJCRVNDYLB746LQH26XBPJBSOK2JMYNUUXHKCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

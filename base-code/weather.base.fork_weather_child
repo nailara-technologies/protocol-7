@@ -13,7 +13,7 @@ use Socket;
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair. [$OS_ERROR]";
+    || die "can't create socketpair. [ \l$OS_ERROR ]";
 map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
     ( $child_pipe, $parent_pipe );
 
@@ -28,7 +28,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     delete <weather.pipe.child> if exists <weather.pipe.child>;
 
     IO::AIO::reinit()
-        ;    # <- makes base.s_read() and base.s_write() work again..,
+        ;    # <-- makes base.s_read() and base.s_write() work again..,
 
     <weather.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -84,16 +84,16 @@ if ( !<weather.child.pid> ) {    ## child ##
             <weather.location> = $loaded_location;
         } else {
             <[base.log]>->(
-                0, "<!> syntax error in location cache file, purging.., <!>"
+                0, "<< ! >> syntax error in location cache file, purging.., << ! >>"
             );
-            unlink($city_file) or warn "unlink failed: $OS_ERROR";
+            unlink($city_file) or warn "unlink failed : \l$OS_ERROR";
         }
     }
 
     if ( defined <weather.location> and length(<weather.location>) ) {
         <[weather.parent.set_city]>->(<weather.location>);
     } else {
-        <[base.log]>->( 1, '<!> no city configured at startup <!>' );
+        <[base.log]>->( 1, '<< no city configured at startup >>' );
         if ( !<weather.zenka.initialized> ) {
             <[base.async.get_session_id]>;   # change zenka status to 'online'
             <weather.zenka.initialized> = 1;
@@ -103,7 +103,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 }
 
 #.............................................................................
-#BFYFXBAGUEGNZ4MV2Q3KAMN3GCVPLI4WBZI765U4G5MJWZKKI4FW53LA5CO2SHPZKRV4BWVBAXCMI
-#::: 52HKGUSBCPXDLSNTKTHIRC64BMITXUTTLIDSUDIEVX7CFDXAYVR :::: NAILARA AMOS :::
-# :: JDT36TD7S5BM5YW5Y2ZQX2XU4OLQID6IONM22RWZTNZHKOLRMQDY :: CODE SIGNATURE ::
+#PIY3YVAKVZGXDHQNLOMO54YNQ6V3PPWIEVWEPUDV2DHGWESHXN7GPDFYX3SYRJHTICCSBQQKTVEDM
+#::: GQ2PT53LMAHFUUKWDVQZNBLR4P6PPRRA6UDB7B2IAXBDCBQKJEC :::: NAILARA AMOS :::
+# :: N2L5CEWGVANUNZFYX6OYEBVPMTSRIS5CHIUZLYNWKFXFPCKTJCDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

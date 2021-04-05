@@ -33,7 +33,7 @@ $new_file = 0;
 if ( !-f $DATA{'conf'}{'file'} ) {
     $new_file = 1;
     open( NEW, ">$DATA{'conf'}{'file'}" )
-        or die " ::\n :::[ can not create user config file ]\n\n";
+        or die " ::\n :::[ cannot create user config file ]\n\n";
     print NEW "\n  .: nailara user config :.\n\n";
     close(NEW);
 }
@@ -41,7 +41,7 @@ if ( !-f $DATA{'conf'}{'file'} ) {
 $user_exists = 0;
 
 open( CONF, $DATA{'conf'}{'file'} )
-    or die " ::\n :::[ can not open user config file ]\n\n";
+    or die " ::\n :::[ cannot open user config file ]\n\n";
 foreach my $line (<CONF>) {
     if ( $line =~ /^auth.setup.usr.([^=]+)=([^=]+)$/ ) {
         my $user = $1;
@@ -66,14 +66,14 @@ if ( !$user_exists ) {
 }
 
 open( CONF, ">$DATA{conf}{file}" )
-    or die " ::\n :::[ can not write user config file ]\n\n";
+    or die " ::\n :::[ cannot write user config file ]\n\n";
 print CONF @user_config;
 close(CONF);
 
 print " ::\n :\n\n";
 
 #.............................................................................
-#KZSXB533OUH2IYAMC27KHRSXCT6UM5UE4EHJXT4DW7NDIYMK36UOIYOAKGYTBVUOVDAAESMPWCICQ
-#::: CZIHH6PYPXNQLT3X47V2KLMRV7XM64QGOAPPDNX2M5RHKZTPSHX :::: NAILARA AMOS :::
-# :: X6DQGGU6IJ7UOU2KFOESM4ICGBSMNR3QGQG57PZ743DAUV6P6EAY :: CODE SIGNATURE ::
+#ME67CQ5YPXVWO3NP3F6ZIFJWHPWGNTTP5LJFRJNCI3E6Z32JZFI25H3PGAXR2KCIOXDCV7362HMMC
+#::: QA7JAJAE6GUBYUGB4C2YHSLAJC2WX2LNOGOYH3CS2X2TM65RQSU :::: NAILARA AMOS :::
+# :: YLL2EWJNWZDTBIO5NITSJCWVEBXTGVKPR2TJRQP62C76RDF4FQBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

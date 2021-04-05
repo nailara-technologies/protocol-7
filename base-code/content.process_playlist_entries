@@ -50,7 +50,7 @@ if ( $data_source eq 'file' and -f $tiles_visible_file ) {
         $skipped = 'no' if $skipped == 0;
         <[base.log]>->( 1, ": : $skipped entries skipped" );
         @file_names = @filtered_list;
-        close($tilesv_fh) or warn $OS_ERROR;
+        close($tilesv_fh) or warn lcfirst($OS_ERROR);
     }
 } elsif ( -f $tiles_visible_file ) {
     <[base.log]>->(
@@ -231,7 +231,7 @@ foreach my $file (@file_names) {
         my $flag_reply
             = <[content.cmd.set_flags]>
             ->( { 'args' => join( ' ', $flag_str, $file ) } );
-        <[base.log]>->( 0, "<!> flag error on '$file' [$flag_reply->{data}]" )
+        <[base.log]>->( 0, "<< ! >> flag error on '$file' [$flag_reply->{data}]" )
             if $flag_reply->{'mode'} ne 'ack';
     }
 }
@@ -246,7 +246,7 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
     ;    ##  <-- check if required [yet].., [LLL]
 
 #.............................................................................
-#ITPXJVXJZW7VKKCDMGZKKG5CQW53VGJYHWEANU7TBBUME4KQOF2BKNJS3IAZJIP5QSMFFY6KYNQTY
-#::: U2NI54YZFYU77HJDQMDDUWXPU6L6U7HZTCBNBBU2S27Z5II3R3R :::: NAILARA AMOS :::
-# :: JBSBL56HGSRRFJ4UFGOQ2MAEPIW6EBK3USY65EB55OQ4SWBN2ODY :: CODE SIGNATURE ::
+#K7GZEELHBJ2CCFY47S4Y7VEQJA4ACW7EH4PF63NU23M37XHS3N54X7QP6HKAPG72TBQQO4VIXJBIG
+#::: ADEQZTQ3AZCTOVB4RGGYOJ2ABO3ED6Q6JUBC4E6VTSWPBNKRTRZ :::: NAILARA AMOS :::
+# :: VHREWFCPDRNXUYPUTVYNSBU6Y7LVJAW2XNFMPDWUSXJAGS24FWCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

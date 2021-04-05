@@ -12,13 +12,13 @@ my $key_usr = $key_vars->{'usr_name'};
 my $key_re_secret = <keys.regex.key_file.secret>;
 my $key_re_public = <keys.regex.key_file.public>;
 
-opendir( my $dir_fh, $key_dir ) or die "$key_dir: $OS_ERROR";
+opendir( my $dir_fh, $key_dir ) or die "$key_dir : \l$OS_ERROR";
 my @key_files
     = grep {m{$key_re_secret|$key_re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "unix user '$key_usr' has no C25519 key files" );
 closedir($dir_fh);
 
-return if !@key_files;    # <- no keys, skipping further output!
+return if !@key_files;    # <-- no keys, skipping further output!
 
 my %key_names;
 my $max_nlen = 0;
@@ -39,7 +39,7 @@ print "\n :: keys for user $key_usr :.\n :\n",
     "::\n\n";
 
 #.............................................................................
-#XQ3AAAYJOIGEWTXY2IBR5YBSL222OUGYKBENP73EY5RR5433WXN33A3B52XHSITVWLG47J3GOA47O
-#::: S7Y5A453X7OW6AXMJQUZP5K2QDKOLM6MCK6AI6J2TPJCRNI6NIQ :::: NAILARA AMOS :::
-# :: THDGZUV7KHOGRNHJ7Y3OMEHQHLOYDEPAVBBTBIWHOMAHE3H6E2CY :: CODE SIGNATURE ::
+#5XUXURWD4PECO5IDKCK4L4RA5FMSPOEVP54DP3CIE4SGE4XIF4U5C4FKWHLDRSCW2UE4JEZHE7XWA
+#::: BYCLTJWBYY66VTQBWGB23DO7ZAZHNYIB3SWA7QZESDEWPZ7WSEO :::: NAILARA AMOS :::
+# :: REUL3FH3CRPXNXA34FXG4DZ745KQ7OYXHF2T23KJERFUPXMHMGAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

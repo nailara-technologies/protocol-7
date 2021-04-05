@@ -1,20 +1,20 @@
 # >:]
 
 # name  = chk-sum.bmw.filesum
-# note  = this will block on large files -> need event based asynchr. method .,
+# note  = this will block on large files --> need event based asynchr. method .,
 
 my $bmw = <[chk-sum.bmw.ctx]>->(shift);
 die "expected file name parameter" if not my $fname = shift;
 die "file '$fname' not found" if !-f $fname;
 
-open( my $SUM_FD, '<' . $fname ) or die "<< $fname : $OS_ERROR >>";
+open( my $SUM_FD, '<' . $fname ) or die "<< $fname : \l$OS_ERROR >>";
 $bmw->addfile($SUM_FD);
 close($SUM_FD);
 
 return encode_b32r( $bmw->digest );
 
 #.............................................................................
-#CJYU2UEPCOR4DUAMPMVSRTHMN7IHKSYHLFIMQVG34IYAQPTFYC2WBDDAWOQIDGNTLJXQRQ6SMOXSK
-#::: 6F25HSMEE34HAO4BN4ASFH43VCQKDHRCAWHITANSE7ZJZHF7BKU :::: NAILARA AMOS :::
-# :: HTYPDRZEPLEGMFT5T4YHAB3ILULCRBFB4LLK3EOB7XYHABOHOMCI :: CODE SIGNATURE ::
+#7I5GTJTZM3BQLNBVWOXDO6IMZH5AOCBVBZWSFVNZ7H4RJV26OWWTV4YTUEST4T32EB35DFQJ4ZUDO
+#::: 7ZZ23E2FZV7CI3NM5AN5KYVYM3FWJJNAKM3WSNNTPULGNOW23I6 :::: NAILARA AMOS :::
+# :: SBPM7TFH7I44ADENFDOVUN23FAZ4XMYEM6KR34HC5SKT7D24DUDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

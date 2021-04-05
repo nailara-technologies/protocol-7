@@ -9,8 +9,6 @@ my $max_links = 7;
 my $source_version  = <protocol-7.src-ver>;
 my $release_version = <protocol-7.rel-ver>;
 
-# my @copy_sources = (<system.code_path>);    # <-- change to previous version..,
-
 my $path         = <sourcecode.path>;
 my $work_tree    = $path->{'work_tree'};
 my $source_root  = $path->{'source_dir'};
@@ -54,8 +52,9 @@ if ( !-w $source_root ) {
 }
 my $dir_fh;
 if ( !opendir( $dir_fh, $source_root ) ) {
-    <[base.log]>
-        ->( 0, "can not open directory '$source_root' [ $OS_ERROR ]" );
+    <[base.log]>->(
+        0, "cannot open directory '$source_root' [ \l$OS_ERROR ]"
+    );
     <[base.exit]>->(2);
 }
 
@@ -90,7 +89,7 @@ my $count_missing = 0;
 my @restore_links;
 
 my $previous_cwd = Cwd::cwd();
-chdir($work_tree) or die "[ chdir ] $OS_ERROR [ $work_tree ]";
+chdir($work_tree) or die "< chdir > \l$OS_ERROR [ $work_tree ]";
 
 foreach my $src_file_path ( <[base.reverse-sort]>->( \%source_links ) ) {
     ( my $link_target = $source_links{$src_file_path} )
@@ -124,7 +123,7 @@ foreach my $src_file_path ( <[base.reverse-sort]>->( \%source_links ) ) {
 
     $file_count++;
 }
-chdir($previous_cwd) or die "[ chdir ] $OS_ERROR [ $previous_cwd ]";
+chdir($previous_cwd) or die "< chdir > \l$OS_ERROR [ $previous_cwd ]";
 
 my $percent_val = !$file_count ? 0 : $link_count * 100 / $file_count;
 <[base.log]>->(
@@ -142,7 +141,7 @@ if ($err_count) {
     if ( not $apply_force ) {
         <[base.log]>->(
             0,
-            sprintf( "::[ <!> ]::. restoring aborted .: [ errors : %d ]",
+            sprintf( "::[ <#> ]::. restoring aborted .: [ errors : %d ]",
                 $err_count )
         );
         <[base.log]>->(
@@ -189,14 +188,14 @@ if ( !$err_count or $apply_force ) {
         <[base.log]>->( 2, ":[from]: '$r_from_str'" );
 
         unlink($r_to)
-            or warn "[unlink] $OS_ERROR ['$r_to']";    ## removing first
+            or warn "< unlink > \l$OS_ERROR ['$r_to']";    ## removing first
         File::Copy::syscopy( $r_from, $r_to )
             or <[base.log]>->(
-            0, "<< copy >> '$r_from' -> '$r_to' [ $OS_ERROR ]"
+            0, "<< copy >> '$r_from' --> '$r_to'  [ \l$OS_ERROR ]"
             );
         if ( -f $r_to ) {
             chmod( $src_stat->mode, $r_to )
-                or warn "[chmod] $OS_ERROR ['$r_to']";
+                or warn "< chmod > \l$OS_ERROR ['$r_to']";
             $restore_count++;
         }
     }
@@ -209,7 +208,7 @@ if ( !$err_count or $apply_force ) {
 }
 
 #.............................................................................
-#UBPZSP5PLLKV6BTCG3EC5QQQ22NXQ3ZDTWA26Z2PLLPDMW5LWVFFW4EF5C7AXZ6FJLJVF2KMNLDBE
-#::: QRCYS4BAQEP5PNKGWNKH7X4IRP5XQRVGVTUO6W5GIDQBMPPEHOD :::: NAILARA AMOS :::
-# :: Q4RQVRUFY36ZP5SIVFFS2HYNTLFNSHLUZQCYXROGWJVDLF3WR2DA :: CODE SIGNATURE ::
+#OVEVMWOYQ6RHI7PN7B4KVDPPZXWZZ3BQDAJ2JKVER42RHNY3QEMSK2OSEVSIZUWPKVUH2V45JZYPC
+#::: V54Y4AYKZJBX2V5CEHGKYXASN3ZUCJMX5B3IWURLYNQURL2VD24 :::: NAILARA AMOS :::
+# :: 7PL3EY4FROZGTWZRX4UISUBA5UOEWYR74A56Q2VC5QVKBVWNBQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

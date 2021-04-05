@@ -59,7 +59,7 @@ if ( defined $title or @matches ) {
     } elsif ( $CHILD_ERROR == -1 ) {
         return {
             'mode' => 'nak',
-            'data' => 'unable to execute: ' . $OS_ERROR
+            'data' => "cannot run process [ \l$OS_ERROR ]"
         };
     } else {
         return {
@@ -67,7 +67,8 @@ if ( defined $title or @matches ) {
             'data' => sprintf(
                 "notify-send exited with code %d%s",
                 ( $CHILD_ERROR >> 8 ),
-                defined $OS_ERROR && length($OS_ERROR) ? " [$OS_ERROR]" : ''
+                defined $OS_ERROR
+                    && length($OS_ERROR) ? " [ \l$OS_ERROR ]" : ''
             )
         };
     }
@@ -76,7 +77,7 @@ if ( defined $title or @matches ) {
 }
 
 #.............................................................................
-#XDTOEOE7PDLVS3G5CENP6VAE32POYSXHNX47LXA3TX63Z3YFS2ZVPMXI2DQWLHRYGU3YIOQJOC4YM
-#::: DLZHUFP64O6ADQSPD63OAMTLWBS2FUMEDCFBJHQIDBSZKR5TA47 :::: NAILARA AMOS :::
-# :: SUKRVOKBG6WREKUV5G37AUO6GPXBGXZMQUKN7A77JVUE7V5GI6AA :: CODE SIGNATURE ::
+#Y3EPZMMFHQYVNDOVULFCOI6Z2X74DBKGDAE23NZUXGD4SKHYDU4RY2PQ3JME6UIFA3F5XKQP2DADG
+#::: HYBBKKPCODXRPIT6JCKZY4D6XNZT5DXQRLVYEM6JHR7INKDWKSL :::: NAILARA AMOS :::
+# :: GWUS4NN3RL74VJJHZ7DKZHOBIC5HH2FKD3OURNNZKCESHZXHBGDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
