@@ -29,8 +29,9 @@
 if ( !<composition.watch_tiles.poll_tile_color>
     and defined <composition.timer.poll_tile_color> ) {
     my $timers = <composition.timer.poll_tile_color>;
-    <[base.log]>
-        ->( 0, "stopping tile activity poll timers [config changed]" );
+    <[base.log]>->(
+        0, 'stopping tile activity poll timers [ config changed ]'
+    );
     map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
         keys %{$timers};
 }
@@ -77,11 +78,10 @@ my $config_file_path = <composition.import_path>;   ## <-- can be undefined ##
 $config_file_path //= <system.conf_path>;
 $config_file_path .= "/$config_filename";
 
-die "<< ! >> composition setup '$config_file_path' not found << ! >>"
+die "<< composition setup '$config_file_path' not found >>"
     if !-f $config_file_path;
 
-<[base.log]>
-    ->( 1, "<< ! >> loading tile-group configuration '$config_name' << ! >>" );
+<[base.log]>->( 1, "<< loading tile-group configuration '$config_name' >>" );
 
 <[file.put]>->(
     <composition.hash_file>,
@@ -92,11 +92,11 @@ die "<< ! >> composition setup '$config_file_path' not found << ! >>"
     <composition.setup> = <[base.load_section_config]>->($config_filename);
 }
 
-<[base.log]>->( 0, "<< ! >> composition loading not successful [ no data ] << ! >>" )
+<[base.log]>->( 0, "<< composition loading not successful [ no data ] >>" )
     if !keys %{<composition.setup>};
 
 <[base.log]>->(
-    0, "<< ! >> composition loading not successful [ empty composition ] << ! >>"
+    0, "<< composition loading not successful [ empty composition ] >>"
     )
     if keys %{<composition.setup>}
     and defined <composition.setup.tile-groups>
@@ -104,7 +104,7 @@ die "<< ! >> composition setup '$config_file_path' not found << ! >>"
 
 # use Data::Dumper 'Dumper'; print Dumper(<composition.setup>);
 
-skip_load: # <-- jumping here if composition has already been imported as json!
+skip_load: # <-- jumping here if composition has already been imported as json
 
 my $current_cfg_path = <composition.cfg_directory> . '/tile-group.current';
 my $default_cfg_path = <composition.cfg_directory> . '/tile-group.default';
@@ -165,7 +165,7 @@ if ( <composition.restore_composition_enabled> and -f $current_cfg_path ) {
         }
     } else {
         <[base.log]>->(
-            0, ": << ! >> syntax error in '$current_cfg_path' configuration..,"
+            0, ": << syntax error in '$current_cfg_path' configuration.., >>"
         );
     }
 } elsif ( -f $current_cfg_path
@@ -234,7 +234,7 @@ map {
 0;
 
 #.............................................................................
-#JOA2F6IQL4IAO7QAWKWJCF25TOWI3QBFYCLIJOKCII7XX4TKMT5ZEGDACNTIYMOSWT3VLVHIF7VHY
-#::: NSSJPXNCUME5W6GADXP62DISLVHDQB5YST6TPTP6GCXY43FXG5E :::: NAILARA AMOS :::
-# :: LW6XMBCLWVL2LIERO7BQU54UKPMQIH7QHBLP544SO3BLMXGVKGDQ :: CODE SIGNATURE ::
+#WYRXGQ4XPQS33OAZQWZFDNQ3M7SDYGHW3FXVGF24OHLWGBVRRYBGO2GEL3QZ6IFSWS3PETD62JJCO
+#::: T46LGRPI6PF5LISXVSQIBOZPNC6O4F6EDF74D7G3SCOKCXGMWMD :::: NAILARA AMOS :::
+# :: IM6MOJTFGY3JPQC3LS7C3JC7HQYH25R6DQC3ITMUAO2A3UFCNEDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

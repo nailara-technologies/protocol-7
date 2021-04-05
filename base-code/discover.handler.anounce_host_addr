@@ -1,20 +1,20 @@
 # >:]
 
-# name = discover.handler.anounce_host_addr
+# name  = discover.handler.anounce_host_addr
 
-<[base.log]>->( 2, "sending announce_host packet .." );
+<[base.log]>->( 2, 'sending announce_host packet .,' );
 
 my %ifconfig;
 my $mlenip   = 0;
 my $hostname = <system.host.hostname>;
-my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list'); # LLL --> Net::Interface
+my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list');  # [LLL] Net::Interface
 
 <discover.announce_interval.current> //= 0.23;
 <discover.announce_interval.maximum> = sprintf( "%.2f", 40 + rand(4) );
 <discover.announce_interval.ifactor> = 1.13;
 
 <discover.announce_interval.logged> //= 0;
-<[base.log]>->( 1, "starting 'announce host' broadcast interval ..." )
+<[base.log]>->( 1, "starting 'announce host' broadcast interval ..," )
     if !<discover.announce_interval.logged>++;
 
 my $payload_str = "HOST[ $hostname ] = {\n";
@@ -23,7 +23,7 @@ map {
     foreach my $ip_addr ( keys( %{ $ifaces->{$ARG}->{'inet'} } ) ) {
 
         # LLL: make exclusion patterns configurable!
-        next if $ARG !~ /^(en|\wth|wl)/;    # <-- skipping other interfaces!
+        next if $ARG !~ m{^(en|\wth|wl)};    # <-- skipping other interfaces.
 
         $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
 
@@ -31,20 +31,20 @@ map {
         my $is_local = 0;
 
         # LINK-LOCAL
-        $is_local++ if $ip_addr =~ /^169\.254\./;
+        $is_local++ if $ip_addr =~ m|^169\.254\.|;
 
         # RFC1918
-        $is_local += 2 if $ip_addr =~ /
+        $is_local += 2 if $ip_addr =~ m[
                         (^10\.)|
                         (^127\.)|
                         (^192\.168\.)|
                         (^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)
-                    /x;
+                    ]x;
 
         # LLL: make prio patterns configurable!
         my $iface_prio = 0;
-        $iface_prio-- if $ARG =~ /^(e(th|n))/;
-        $iface_prio++ if $ARG =~ /^(ath|wl(p|an))/;
+        $iface_prio-- if $ARG =~ m{^(e(th|n))};
+        $iface_prio++ if $ARG =~ m{^(ath|wl(p|an))};
 
         $ifconfig{ <[base.gen_id]>->( \%ifconfig ) } = {
             'ip'         => $ip_addr,
@@ -68,28 +68,28 @@ foreach my $id (
     }
     sort {
         int(join( '',
-                map { sprintf "%03d", $ARG } split /\./,
+                map { sprintf "%03d", $ARG } split '.',
                 $ifconfig{$a}{'ip'} )
         ) <=> int(
             join( '',
-                map { sprintf "%03d", $ARG } split /\./,
+                map { sprintf "%03d", $ARG } split '.',
                 $ifconfig{$b}{'ip'} )
         )
     }
     keys %ifconfig
 ) {
     $payload_str .= sprintf(
-        "%" . $x_pos . "s   #  %-17s / %s\n",
+        "%" . $x_pos . "s   #  %-17s \ %s\n",
         $ifconfig{$id}{'ip'},
         $ifconfig{$id}{'mac'},
         $ifconfig{$id}{'iface'}
     );
 }
-$payload_str .= "}\n" if $payload_str !~ /}\n$/;
+$payload_str .= "}\n" if $payload_str !~ m|}\n$|;
 
 my $payload_len = length($payload_str);
 <[base.log]>->(
-    2, ".. sending 'announce host' packet .. [$payload_len payload bytes]"
+    2, ".. sending 'announce host' packet ., [$payload_len payload bytes]"
 );
 
 <[discover.cmd.mcast_send]>->( { 'args' => $payload_str } );
@@ -110,7 +110,7 @@ my $payload_len = length($payload_str);
     > <discover.announce_interval.maximum>;
 
 #.............................................................................
-#EOBJW2YC2BYUUBLYSETHBP77BMMPDRTUKIYALQ5OSBV6KRD7WUNX7NNYSBGJS2XUJZWOOVXUGLOOO
-#::: R7IXEXBGP7LZR7UIK56C7NAFABJKSUY7UQPXEPQ4DQ2GM4RVIRW :::: NAILARA AMOS :::
-# :: FHZJSAFHPWFFLNI5EIT7MIMHGCGLCREZXCEJBG5YJE7A663MAOCQ :: CODE SIGNATURE ::
+#CGQYFMZJFQ2PXX2TCLKUNAWOO345Q2OFUDN2UM2ATIQDGTBKJSWB3DJGHISTBYAJS624MACREBFGO
+#::: 7HEI3GPHCIDLHUNPOR7TBK56J2GSSBPZXBAADPK67UGT5EP2ICC :::: NAILARA AMOS :::
+# :: HP3BQ5RIQEFSCUAOZSHIXDBL4EC23CJBPVVYXHBIWCBR7FWCNCBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

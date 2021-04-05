@@ -222,8 +222,8 @@ if ( defined $http_host and defined $link_target ) {
         {                              # <-- 'small' file, send now
             local $RS = undef;
             open( my $content_fh, '< :raw', $file_path )
-                or warn
-                "<< ! >> $file_path : \l$OS_ERROR"; # LLL: needs error handling..,
+                or warn "<< ! >> $file_path : \l$OS_ERROR"
+                ;                      # LLL: needs error handling..,
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header )
                 . <$content_fh>;
@@ -247,7 +247,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 #.............................................................................
-#WACEB2SJKU2VJHVK23CGZPKXMOGPPALPKNGJS2KKTZRQ4A7HWMHSSFGTRYDUQM6BM3C4HAKGONCW4
-#::: 5J3ABNTEL4Z3FL3RB6JYK76QEIJ7E47IBDXFJMV3W55L2DRYY5Q :::: NAILARA AMOS :::
-# :: 6YZP5CTFETF4JUP2OJXIDLFZEDPUMQEGTYENCZZBRSYJFF3XPGBQ :: CODE SIGNATURE ::
+#AC3T5R7ACIGQVWRNBOOJIDLBJBEURXCQGCMBGAIYXMWBQAVHBJMTXQ5XGC3NEBV762LEFLJFYWUEO
+#::: S5CEIXSS3JPVRY7GV5DE4A3BJ2GIIYZWDFR74SV57HF3O7JY7Z7 :::: NAILARA AMOS :::
+# :: QNANKIUSQ7MUXGVMEEYKT3H34DPUR3546GOGLDUZCY4XETBC6CAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

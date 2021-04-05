@@ -131,9 +131,7 @@ if ( $mem_used_pct >= <mem.max_used> ) {    # system memory alert limit
     my $reached = $mem_used_pct == <mem.max_used> ? 'reached' : 'exceeded';
 
     my $warn_str
-        = "<< WARNING >> used memory $reached "
-        . <mem.max_used>
-        . "% limit";
+        = "<< WARNING >> used memory $reached " . <mem.max_used> . "% limit";
     $warn_str .= " ( now $mem_used_pct% )" if $reached eq 'exceeded';
     <[base.log]>->( 0, $warn_str ) if !<system.memory_alert.warned>;
     <system.memory_alert.warned>++;
@@ -171,7 +169,7 @@ if ( $mem_limit_reached and <mem.autokill> )
 }
 
 #.............................................................................
-#EBJGNR3TTC55YOTBMZTRQLBKQRMCMYZGQILBQ34WKDTOF7WKUN5YO246NQKJ74HOJQTM7IGY4SA34
-#::: PBMMNV4VSICQ252JYROYGMLIXQNK2JXOOQARYGNZN5SN3ZEL4AL :::: NAILARA AMOS :::
-# :: B3UE6RAV5A3O7VQLF6IU2DRJPZ4BDV75YR3VZHH462XKQOJHNYBI :: CODE SIGNATURE ::
+#SWGVKXVP5M2FTQJEVDV273OEA7XWTKETZWYRBPPFD6ZOCFX63LG5JFYYWHBE5J7FVJHBLADFQ2G3M
+#::: LKB6IT5K63JE5T6RKGDWP35OFMCHAU4JDHYFVL3BK53BW23GAQI :::: NAILARA AMOS :::
+# :: TTS3KIK3WKKLIUHDSD4VJC3LXDJDJNVXC5ICRYCJKT6WK3SSGABQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

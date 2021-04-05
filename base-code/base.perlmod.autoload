@@ -1,15 +1,15 @@
 # >:]
 
-# name = base.perlmod.autoload
+# name  = base.perlmod.autoload
 
-my ( $module_name, @export ) = @_;
+my ( $module_name, @export ) = @ARG;
 <base.perlmod.auto_install> //= 1;
 
 <[base.log]>->( 2, "loading perl module '$module_name'.," );
 
 <[base.register_pm_deps]>->($module_name);
 
-# success #
+## success ##
 <base.perlmod.loaded>->{$module_name} = 1;
 
 eval { autoload( $module_name, @export ) };
@@ -18,12 +18,12 @@ my $reason = $EVAL_ERROR;
 $reason =~ s| at .+$||sg;
 $reason =~ s| *\n.*$||s;
 
-# load error #
+## load error ##
 <base.perlmod.loaded>->{$module_name} = 0;
 
 if ( $reason !~ m|^Can.t locate | ) {
     <[base.log]>->(
-        0, "<<!>> error while loading perl module '$module_name' <<!>>"
+        0, "<< error while loading perl module '$module_name' >>"
     );
     <[base.log]>->( 0, "  : ' $reason '" );
     return 0;
@@ -31,7 +31,7 @@ if ( $reason !~ m|^Can.t locate | ) {
 
 if ( !<base.perlmod.auto_install> ) {
     <[base.log]>->(
-        0, "<<!>> error while loading perl module '$module_name' <<!>>"
+        0, "<< error while loading perl module '$module_name' >>"
     );
     <[base.log]>->( 2, "  : [ ' $reason ' ]" );
     <[base.log]>->(
@@ -41,20 +41,19 @@ if ( !<base.perlmod.auto_install> ) {
 }
 
 <[base.log]>->(
-    2, ": << ! >> error while loading '$module_name' [ auto_install enabled ]..,"
+    2, ": << error while loading '$module_name' [ auto_install enabled ] >>"
 );
 <[base.log]>->( 2, ":. [ ' $reason ' ]" );
 
-# auto install #
+## auto-install ##
 <[base.perlmod.install]>->($module_name);
 
 eval { autoload( $module_name, @export ) };
-die
-    "<<!>> not able to automatically install perl module '$module_name' <<!>>\n"
+die "<< not able to automatically install perl module '$module_name' >>\n"
     if $EVAL_ERROR;
 
 #.............................................................................
-#3M2HSAEAYHHT5CAD2ZVPRPYDIVEY34JB42DH5S6ZCOAQCVUKDO2F3L52X4Y3ACBNURQHMKXBUMNYG
-#::: EG3F6PJJZ6J4EWUJ3PYFZTKWFMIFIQ4EHNBOWJT3V4IGKOPRSSH :::: NAILARA AMOS :::
-# :: 6ASNZG6BD5CSFXCLCAG6W7QZZ7KXMOUIQMHW4T56RXFANGY25OAI :: CODE SIGNATURE ::
+#TYO6OL4TCIMCSQCSHGQ7BGNTLCFQNVEOSNTCGJKFPQIGGCCOU3DA2T7A42UDUOLNABMUPWJC4COYG
+#::: ZZXM575UNVIXNIMGQ7JKRPKCANDH37RLVRW7OTG5ALC6N3LSKYP :::: NAILARA AMOS :::
+# :: FTUNYKGP26ISBYUQPJHXRL42CFDCRBVW5GQETDT2G6NS4CACHWBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
