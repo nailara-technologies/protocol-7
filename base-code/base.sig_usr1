@@ -7,16 +7,17 @@ my $cur_lpw   = <system.zenka.log_prefix_width>;
 my $max_lpw   = 27;                                ## <-- auto-calc
 
 if ( $cur_lpw < $max_lpw ) {
-    <[base.log]>->( 2, '[ SIGUSR1 ] increasing log prefix width' );
+    <[base.log]>->( 2, ':: SIGUSR1 :. increasing log prefix width' );
     $cur_lpw += 1;
 } else {
-    <[base.log]>->( 2, '[ SIGUSR1 ] maximum prefix width reached' );
+    <[base.log]>->( 2, '::SIGUSR1:: maximum prefix width reached' );
     return;
 }
 
 <system.zenka.log_prefix_width> = $cur_lpw;
 
-my $d         = '';
+my $d = '';
+
 my $next_dots = <log.dots> = '.' x ( $cur_lpw - $start_lpw + 1 );
 
 my $intended_prefix_width = length(
@@ -47,7 +48,7 @@ $next_c_line .= ',';
     $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $next_c_line, $ANSI{'reset'} );
 
 #.............................................................................
-#6RQLFIYOHAHQQCSEMIXGSI3HGHJQJLFEYISH2PJYSJGPTI6J6RJAKYVQLCU25Z5MKUURDDMB7J62A
-#::: EOF37XFHYBZ5MLDKVROPWDSHZ5PYOKVLZIAJWXMQNVEGTA2BFDN :::: NAILARA AMOS :::
-# :: NY6TLACNCMNA6LLS45I7RIH3NZIB7H4WRVLWNXIKUWVQEQGV3MDA :: CODE SIGNATURE ::
+#6WJSG4R5M3IROXQDVIR3LAIEJJMDZRHXZP474OQC5735SFAVABJCQBBVI6M662Y53RWZP64G3SMQA
+#::: BDCQMLLRQW5YCQ66QXR773I2CUUYMIZ2KE3DT4XVDHXP4JKBJG6 :::: NAILARA AMOS :::
+# :: TAKQ2W4KLWQYN5CKQPAYQQ3QS2URL376OHW4ZEEQSEPXVKGUHSAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
