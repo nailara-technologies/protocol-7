@@ -1,16 +1,16 @@
 # >:]
 
 # name  = fs.cmd.unmount
-# param = <mountpoint>
+# param = <mount-point>
 # descr = mount the specified device / filesystem
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'nak', 'data' => 'expected mountpoint parameter' }
+return { 'mode' => 'nak', 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 return {
     'mode' => 'nak',
-    'data' => 'specified mountpoint does not exist'
+    'data' => 'specified mount-point does not exist'
     }
     if !-d $mount_point;
 
@@ -39,7 +39,7 @@ if ( system( '/bin/umount', $mount_point ) != 0 ) {
 return { 'mode' => 'ack', 'data' => $msg };
 
 #.............................................................................
-#7NTL7NKLTTGOT5H74CRQD7X44RGOSUZUG3XDVFTUPVLANUVRLWRMTIIASGVK55ZQ3GNHGCMDQGSFM
-#::: J2FNY537PBG3DN7BUQSYLEFIJZ773ARYDNGOFCZSOOZDKEBL7OS :::: NAILARA AMOS :::
-# :: H7O6ORL4KIH5R2BATB4EHFUX65VXP7LNAEB4LZH2IMKTW7LDVYDY :: CODE SIGNATURE ::
+#RYB2BSD6P6CBVZHEN3ZZFRQYF734JHVB3NIV2BBGZZDAPJ27OM4T3NVSIASWK7XCKOMMQWWOVVEG4
+#::: CVO6MHLQZTNW3NWDCJEHEZ6B3BCNLEHFFMFYY7FAV55GNPUE7HY :::: NAILARA AMOS :::
+# :: KZQ57H6XZCX2DCO4X4TADSIT4TDOSLIAI6O72IUN5RJ42U6HZGCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

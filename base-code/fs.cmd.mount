@@ -1,19 +1,21 @@
 # >:]
 
 # name  = fs.cmd.mount
-# param = [dev] <mountpoint>
-# descr = mount the specified device / filesystem
+# param = [dev] <mount-point>
+# descr = mount the specified device or filesystem
 
-my ( $mount_point, $device ) = reverse split( / +/, $$call{'args'}, 2 );
-return { 'mode' => 'nak', 'data' => 'expected mountpoint parameter' }
+my ( $mount_point, $device ) = reverse split( m| +|, $$call{'args'}, 2 );
+return { 'mode' => 'nak', 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
+
+my $bin_mount = qw| /bin/mount |;    ## auto-detect ##
 
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
     'mode' => 'nak',
-    'data' => 'specified mountpoint does not exist'
+    'data' => 'specified mount-point does not exist'
     }
     if not defined $device and $status == -1 or !-d $mount_point;
 
@@ -23,25 +25,21 @@ return {
     }
     if defined $device and !-e $device;
 
-return {
-    'mode' => 'nak',
-    'data' => 'already mounted'
-    }
-    if $status == 1;
+return { 'mode' => 'nak', 'data' => 'already mounted' } if $status == 1;
 
 if ( not defined $device ) {
-    <[base.log]>->( 1, "mounting '$mount_point'.." );
-    if ( system( '/bin/mount', $mount_point ) != 0
+    <[base.log]>->( 1, "mounting '$mount_point'.," );
+    if ( system( $bin_mount, $mount_point ) != 0
         or !<[fs.is_mounted]>->($mount_point) ) {
-        <[base.log]>->( 0, ": mounting of '$mount_point' failed!" );
+        <[base.log]>->( 0, ": mounting was not successful ['$mount_point']" );
         return {
             'mode' => 'nak',
-            'data' => "unable to mount '$mount_point'"
+            'data' => 'mounting was not successful'
         };
     }
 } else {
-    <[base.log]>->( 1, "mounting $device to $mount_point .." );
-    if ( system( '/bin/mount', $device, $mount_point ) != 0
+    <[base.log]>->( 1, "mounting $device to $mount_point .," );
+    if ( system( $bin_mount, $device, $mount_point ) != 0
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": unable to mount $device to $mount_point" );
         return {
@@ -51,10 +49,10 @@ if ( not defined $device ) {
     }
 }
 
-return { 'mode' => 'ack', 'data' => 'mounted successfully' };
+return { 'mode' => 'ack', 'data' => 'successfully mounted' };
 
 #.............................................................................
-#LPTVMK2UVVNZB3NITN3DQSKUUCRTCY55IXEVH3YEUYTGJ7BEQJUSJ6DA7SRUAD6S53CSJYVG27HKM
-#::: DAWDPCUXK2MZFJ2GA6R2BVAC2UG3DMSM24QU52YXE6Z5JJEJRRJ :::: NAILARA AMOS :::
-# :: NIWXVKLXUTTWUSPYIMNJEFKDZROB57FRAN6IYZD3QXN6VHYT3SAQ :: CODE SIGNATURE ::
+#N7Y7F7TGLBQJ75QDLOBHFIWSLDPC7YV6SETEDQEG737QHOGKOMYT6QCRAMVCWR6PNRXR6UPXKMSC6
+#::: S6AKAAAQVL2F546BVGGFHPLAHG4YOP7AVWFEQD53NOW4BSPYEKC :::: NAILARA AMOS :::
+# :: CYZJFXMOB3YHQKIFD7PQZ5T65SJLH46E7S55GABAF7PWPOYT4CCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
