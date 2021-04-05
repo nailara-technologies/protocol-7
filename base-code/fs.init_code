@@ -1,14 +1,21 @@
 # >:]
 
 # name  = fs.init_code
-# descr = initialize filesystem module
+# descr = initializing filesystem module
 
 <[base.perlmod.autoload]>->('Sys::Filesystem');
+
+if ( not Sys::Filesystem->supported ) {
+    <[base.log]>->( 0, ": not supported operating system ['$OSNAME'] :." );
+    <[base.log]>->( 0, ': : expect reduced information avalability .,' );
+} else {
+    <[base.log]>->( 1, ": supported operating system : '$OSNAME' =)" );
+}
 
 0;
 
 #.............................................................................
-#U5DNKIJD27LO3SY5ULKBWT23T7Q5GZ6QDGCXYV2IRQVRMI75UWHVJ3MDICCUWA7QQP3KND43V5RC4
-#::: WQ43664EZ7IRMK3ZIRSOUECSGJ4I6BU5DMB4CPF225QEBUPF23S :::: NAILARA AMOS :::
-# :: RZDCECCVOY55EUFHUVUT66Y6GYLUPX34D2SQHVNUMO7PBFT5NIAI :: CODE SIGNATURE ::
+#Z4PPY65V46P2ASGKIKNYS2KH2P5GOATXSXSN35ATOC74OKC4RTDVTP77TPR2YW6R2NH37NQPSKHAQ
+#::: BOROT65765J4JVKYZED6X2PDQYQIDJ4YTPW7OTHCK7EDCHEY6B6 :::: NAILARA AMOS :::
+# :: CJBRRWHBXTZBYYSM475J64LGLZNPQTPXCRX4DLF7V2FZPTEPL6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

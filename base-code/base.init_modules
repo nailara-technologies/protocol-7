@@ -38,12 +38,11 @@ foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
                 and exists <base.modules.internal_name>->{$module_name};
             ( my $init_txt = $init_mode ) =~ s|_|-|g;
             $init_txt =~ s|-code||;
-            my $level = $module_name eq 'base' ? 1 : 2;
-
+            my $level      = $module_name ne 'base' ? 2 : 1;
+            my $zenka_type = <system.zenka.type> // '';
             $level = 1
-                if $module_name eq <system.zenka.name>
-                or defined <system.zenka.type>
-                and $module_name eq <system.zenka.type>;
+                if $module_name eq $zenka_type
+                or $module_name eq <system.zenka.name>;
 
             <[base.log]>->(
                 $level, "running '$module_name' $init_txt code.,"
@@ -108,7 +107,7 @@ undef <base.init_modules>;
 return $success;
 
 #.............................................................................
-#ATTVP5JUBL2RRBRLGDVW7HCMMRGCY2KPEOWW5I4WGOMV3DJ55O5HAUDQVN3PMYRTFY4LTXFFIQA4I
-#::: K5YOS5WHELJPC2I44Q5NAOSGWL2AHSNBQ466PKV3NZOA7TEYYL3 :::: NAILARA AMOS :::
-# :: LL2M2MCZXWCK3VECFVYDJPUGN75WM2NVEXMMXLU667HFECZU62DQ :: CODE SIGNATURE ::
+#FUNTCURLTS3L7IESEIYYSDRDFPKB6R6KHTGWTT55MSBDFQBTYI7YMIFYT2PKPTB7HBSYCWSKRMDFO
+#::: YDZRWIUUHWGB3Y6M3G4MAIHZHMMVIBVXFUAPE3HU75XHKBV7IPL :::: NAILARA AMOS :::
+# :: WC6LMPAWAMFGKUUUAY5T2VB3CX52UKCMQ7PTHWYUS56JNZ4FN2DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
