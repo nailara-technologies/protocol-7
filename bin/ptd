@@ -26,12 +26,12 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
     if not length($ptd_bin)
     or not -x $ptd_bin;
 
-my @files
-    = @ARGV
-    ? @ARGV
-    : die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
+my @files = grep {-f} @ARGV;
+
+die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
     . "expected file name${neon_green}["
-    . "${error_color}s$neon_green]$reset.,\n:\n";
+    . "${error_color}s$neon_green]$reset.,\n:\n"
+    if not @files;
 
 map {
     die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
