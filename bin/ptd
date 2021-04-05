@@ -1,9 +1,95 @@
-#!/bin/bash
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Term::ReadKey;
+use List::Util qw| max |;
+use File::Which qw| which |;
+use Time::HiRes qw| sleep |;
 
-perltidy -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup' $BASH_ARGV
+$OUTPUT_AUTOFLUSH = 1;
+
+my @ptd_args = qw| -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup' |;
+
+my $reset       = "\e[0m";
+my $nailara_bg  = "\e[48;2;9;5;41m";
+my $blacklight  = "\e[38;2;68;39;172m";
+my $nailara_fg  = "\e[38;2;38;46;153m";
+my $error_color = "\e[38;2;197;141;7m";
+my $neon_green  = "\e[38;2;71;195;6m";
+
+$SIG{'INT'} = \&sig_int;
+
+my $ptd_bin = which qw| perltidy |;
+die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
+    if not length($ptd_bin)
+    or not -x $ptd_bin;
+
+my @files
+    = @ARGV
+    ? @ARGV
+    : die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
+    . "expected file name${neon_green}["
+    . "${error_color}s$neon_green]$reset.,\n:\n";
+
+map {
+    die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
+        . "not found $reset : '$neon_green$ARG$reset' $reset\n:\n"
+        if not -f $ARG
+} @files;
+
+my $file_count = scalar @files;
+
+my $file_maxlen = max map {length} @files;
+
+say $blacklight. ':';
+
+while ( my $file_path = shift @files ) {
+    show_progress( $file_path, $file_count - scalar @files, $file_count );
+
+    ReadMode 5;
+    no warnings;
+    my $return_code = eval { system( $ptd_bin, @ptd_args, $file_path ) };
+    use warnings;
+    ReadMode 0;
+
+    sleep 0.13;
+
+    if ( not defined $return_code or $return_code != 0 ) {
+        my $err_msg = lcfirst( $OS_ERROR // $EVAL_ERROR );
+        die "\n$blacklight:\n::[$error_color $err_msg $blacklight] "
+            . ".: $error_color$file_path$blacklight ::\n:$reset\n";
+    }
+}
+
+say "\n$blacklight:$reset";
+exit(0);
+
+sub sig_int {
+    print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${error_color}SIG"
+        . "INT$blacklight ] $neon_green perltidy run "
+        . "aborted$blacklight ..,\n:$reset\n";
+    exit(0110);
+}
+
+sub show_progress {
+    my $filename    = shift;
+    my $file_num    = shift;
+    my $files_total = shift;
+    my $chars_max   = 13;
+    my $character   = ':';
+    my $char_count  = int( $chars_max * $file_num / $files_total );
+    my $perc_chars  = $character x $char_count;
+
+    printf( "\r${blacklight}:::[$neon_green%-${chars_max}s$blacklight]:"
+            . "::[ $neon_green%-${file_maxlen}s"
+            . "$blacklight ]:.$reset\r",
+        $perc_chars, $filename );
+}
 
 #.............................................................................
-#VCYEJJZ47GURCL6JXHXQSRV74LAHRMZIU5227BQIG4QDTB44URQBQVIUPKXOUUUXKG6KFEWUUJPEK
-#::: HUSUDUX2BZSJAT6VCGYD4TFMEXAQVT7UHIJHNUI4MFI53JPEB3F :::: NAILARA AMOS :::
-# :: MGJRR2I2TXCIYDLRBQVFU5PUTV4HAZOC4RSGXJMQL7NT5IFLI6BY :: CODE SIGNATURE ::
+#R7MB7YWY6SNPZJHLUKDVJLJ6NGZP4NC4LWCVSPBVCOGL3B6UZC6QSHZMOOX3CUIPF55PSJUQN6SI2
+#::: 4XGNFGQKEQZKT4D57X3IDCBNIEEMBFGWKVPRHPMENFOA7MULYNR :::: NAILARA AMOS :::
+# :: FIZQNDZEACJQVOUDUFGYZCPCHOZWLTVLC64AYNQZ4CR2E5C6VKAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
