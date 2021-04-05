@@ -231,8 +231,9 @@ foreach my $file (@file_names) {
         my $flag_reply
             = <[content.cmd.set_flags]>
             ->( { 'args' => join( ' ', $flag_str, $file ) } );
-        <[base.log]>->( 0, "<< ! >> flag error on '$file' [$flag_reply->{data}]" )
-            if $flag_reply->{'mode'} ne 'ack';
+        <[base.log]>->(
+            0, "<< ! >> flag error on '$file' [$flag_reply->{data}]"
+        ) if $flag_reply->{'mode'} ne 'ack';
     }
 }
 
@@ -246,7 +247,7 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
     ;    ##  <-- check if required [yet].., [LLL]
 
 #.............................................................................
-#K7GZEELHBJ2CCFY47S4Y7VEQJA4ACW7EH4PF63NU23M37XHS3N54X7QP6HKAPG72TBQQO4VIXJBIG
-#::: ADEQZTQ3AZCTOVB4RGGYOJ2ABO3ED6Q6JUBC4E6VTSWPBNKRTRZ :::: NAILARA AMOS :::
-# :: VHREWFCPDRNXUYPUTVYNSBU6Y7LVJAW2XNFMPDWUSXJAGS24FWCI :: CODE SIGNATURE ::
+#PAQBBMTI2BIXD45OBUR3TISOCQAYIB5AHHWGD2PMKETZMOFN7OV7K24QAQHJ3A4P4KIPHJKXF6NH2
+#::: GJAAFTFNIFE7QEHTCPZH2JH3JYZQEMQP2KPK5HUEMLCGH6XHZDH :::: NAILARA AMOS :::
+# :: X5DCFMTR75RLBO66J2Z5CFASEPKAIB4S7KGEGIGDKRJ3D3YEL6BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

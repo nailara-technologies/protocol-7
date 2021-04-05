@@ -1,11 +1,11 @@
 # >:]
 
-# name = base.X-11.get_coordinates
+# name  = base.X-11.get_coordinates
 
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
-my $zenka_name = shift // <system.zenka.name>; # <-- '' requests tile-name only
+my $zenka_name = shift // <system.zenka.name>; # <-- '' == req. tile-name only
 my $zenka_subname = shift // <system.zenka.subname>;
 
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
@@ -62,7 +62,7 @@ $cmd_id = <[base.gen_id]>->( $data{'route'} );
 $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
-    die "cube handle had an exception!"
+    die "<< 'cube' handle had an exception >>"
         if not defined $reply_string or !length($reply_string);
 
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
@@ -78,12 +78,12 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
     <x11.coordinates_were_undefined> = 1;
     return ( 0, 0, $1, $2 );
 } else {
-    <[base.log]>->( 1, ": coordinates undefined" );
+    <[base.log]>->( 1, ': coordinates undefined' );
     return undef;
 }
 
 #.............................................................................
-#UNSICLT6OPDQOXNEO3S7HOAL3UKYV2K7DK2WTGGSL4CDT2I3EQS6UI7CEYKIWUYVP6IY5NVNVZIV4
-#::: XWUA45IK3TICNI4W3KBW6JUB63LGOTU3K2TLRGQA3RVPCACCJY7 :::: NAILARA AMOS :::
-# :: DLKXQGGYVXUPFCYAM7M5GTFLYHGEQQE2TSCXVKGZPZBBX4UEPACY :: CODE SIGNATURE ::
+#GBNDWQ4KHTE3ZLWNWEDITF6ANUIMGXCJIBZT2R4ZFHRYZGL4OW2CWYTNIKSPLF566BZ553EEQF2BS
+#::: V7PD2PNWM5FDLII37T6QXGZG5ATZOZJ7TSLLUQIVC7BN6C6MKVV :::: NAILARA AMOS :::
+# :: H4UOFN2Q5GIRXSQLHZVVM3ZXXFI4TCQK24ZB6KHLG32JDSK3ZIAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

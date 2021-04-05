@@ -27,7 +27,8 @@ if ( !-d $cache_dir ) {
     my $old_perms = <[base.file_perm]>->($cache_dir);
     if ( $old_perms ne $perms ) {
         <[base.log]>->(
-            0, "<< ! >> fixing cache dir permissions [ $old_perms --> $perms ]"
+            0,
+            "<< ! >> fixing cache dir permissions [ $old_perms --> $perms ]"
         );
         chmod( oct($perms), $cache_dir )
             or warn("chmod($cache_dir) : \l$OS_ERROR");
@@ -53,7 +54,7 @@ chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 0;
 
 #.............................................................................
-#D65KBJRQLMZUDFH4NGCH42AOND3UTGMEM3FLTFTTKNWLWZY5VNVZYV3PIZVVNOBLO7D6F7HTMQNRU
-#::: QQDTITOCIJND25VUJPKOTBAV6ILWKYHLUDLUP4XWRGHSKSNQ4T2 :::: NAILARA AMOS :::
-# :: 6ZHKMVDBB4OYVX7QBUOYUY3JMBXFMXIYDBXA5ZV5DI2QDAD55SDI :: CODE SIGNATURE ::
+#I5CK6PJMWEKMPFXLOCSV2U36UJYNLJXIMB5YYK63T6XGUI6IHPWKDYMTHTZY4WJDRHBLXCVEYFLZE
+#::: XLYQTE4YVETJ3EP2DXQHBZLU2RIQBLYBH7DSTEFL5XDVDRLET3S :::: NAILARA AMOS :::
+# :: RGMVLMYMX4MXXMV4VARXVOC3N5QSFWXIN5VD3N4S6G5XJ5BVHICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

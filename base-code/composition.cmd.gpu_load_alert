@@ -7,16 +7,17 @@
 
 return { 'mode' => 'nak', 'data' => 'expected <secs> <percent> parameters' }
     if not defined $$call{'args'}
-    or $$call{'args'} !~ /^\d+ +\d+(\.\d+)?$/;
+    or $$call{'args'} !~ m|^\d+ +\d+(\.\d+)?$|;
 
 my ( $sec, $percent ) = split( / +/, $$call{'args'}, 2 );
 my $perc_str = sprintf( "%.2f", $percent );
-<[base.log]>->( 1, "<< ! >> received GPU load alert [ ${sec}s at $perc_str% ]" );
+<[base.log]>
+    ->( 1, "<< received GPU load alert [ ${sec}s at $perc_str% ] >>" );
 
 my $restart_delay = 0;
 <composition.counter.gpu_alerts> //= 0;
 if ( !<composition.counter.gpu_alerts> ) {
-    my $warn_txt = "'GPU Load Alert' 'activating countermeasures...'";
+    my $warn_txt = "'GPU Load Alert' 'activating countermeasures .,'";
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => "cube.notify.warn",
             'call_args' => { 'args' => $warn_txt }
@@ -34,13 +35,10 @@ if ( !<composition.counter.gpu_alerts> ) {
     }
 );
 
-return {
-    'mode' => 'ack',
-    'data' => 'countermeasures activated'
-    }
+return { 'mode' => 'ack', 'data' => 'countermeasures activated' }
 
 #.............................................................................
-#R6XBM3VL6MRNV2A7N564OGVW37E2X2E7FBVZCFER36GTP5TPKXIBNETSKBD6MO5CAJWJSMRH4XUF4
-#::: FUZHIBKCTRVRJMCXHOLOFEMSHR5UHJS7BL4BIIZ6XFAJ3B76KG2 :::: NAILARA AMOS :::
-# :: YPL3C3LJM2FSGDHQ23QW5RZPLO5T2IK3FPFTNP3IR75MVZ6CSCBA :: CODE SIGNATURE ::
+#6F2IYCK22DIL4RS5CKFGRRXBHOZIY3JXXH7CUYE72N32TNNVKXQX5W5RITOCHSRFKW6NFQNPPDPUM
+#::: L2LWJB773PSKDQLIBF3TJ2G6BPPV2PJ5FIU4NYMSBW5JN2RAKW4 :::: NAILARA AMOS :::
+# :: TOGS7FB3VRSNYID2E2ZU3GVPTNUETEOQJMX4EMNFHZ5XTQPL4EAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

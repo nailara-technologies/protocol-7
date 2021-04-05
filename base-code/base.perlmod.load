@@ -5,7 +5,7 @@
 my ( $module_name, @export ) = @_;
 <base.perlmod.auto_install> //= 1;
 
-<[base.log]>->( 2, "loading perl module '$module_name'.," );
+<[base.log]>->( 2, ": loading perl module '$module_name'.," );
 
 <[base.register_pm_deps]>->($module_name);
 
@@ -23,7 +23,7 @@ $reason =~ s| *\n.*$||s;
 
 if ( $reason !~ m|^Can.t locate | ) {
     <[base.log]>->(
-        0, "<<!>> error while loading perl module '$module_name' <<!>>"
+        0, "<< error while loading perl module '$module_name' >>"
     );
     <[base.log]>->( 0, "  : ' $reason '" );
     return 0;
@@ -31,7 +31,7 @@ if ( $reason !~ m|^Can.t locate | ) {
 
 if ( !<base.perlmod.auto_install> ) {
     <[base.log]>->(
-        0, "<<!>> error while loading perl module '$module_name' <<!>>"
+        0, "<< error while loading perl module '$module_name' >>"
     );
     <[base.log]>->( 2, "  : [ ' $reason ' ]" );
     <[base.log]>->(
@@ -41,7 +41,7 @@ if ( !<base.perlmod.auto_install> ) {
 }
 
 <[base.log]>->(
-    2, ": << ! >> error while loading '$module_name' [ auto_install enabled ]..,"
+    2, ": << error while loading '$module_name' [ auto_install enabled ] >>"
 );
 <[base.log]>->( 2, ":. [ ' $reason ' ]" );
 
@@ -49,14 +49,13 @@ if ( !<base.perlmod.auto_install> ) {
 <[base.perlmod.install]>->($module_name);
 
 eval { load( $module_name, @export ) };
-die
-    "<<!>> not able to automatically install perl module '$module_name' <<!>>\n"
+die "<< not able to automatically install perl module '$module_name' >>\n"
     if $EVAL_ERROR;
 
 return 1;
 
 #.............................................................................
-#SBKZTCOE67WKLYE6CMNNQDHJIJNIW2BCA34O6PLW5ERYTCW7OJBCJNSYT4NK7EMLBT3C4OPRY7KBC
-#::: TQW76PJQ2VXL5POCACB3E77HUAXRB5WYZXFVHUAU6R46RNVS3R4 :::: NAILARA AMOS :::
-# :: FWB6O6ORHLM3E6NZ7B3F3NHODWENEPGF54HTEI7YQA5XP5SJM6CY :: CODE SIGNATURE ::
+#3QNH4FD37OU7TJHZT7VFHQ2EL72YULKLZMI2B6QRZPCFFGYX6HBPUDHYM2H6NOLZGQGVDTYRL4EH6
+#::: F4K55FBC363JM4PHSXP5RZ5T2MUFTBU6RLQ74U3QV3TXIIXEDXT :::: NAILARA AMOS :::
+# :: T7P7NGPGKS75EKBLHYBPYCXWGBTPUW7SKQB7JXG6MVT47UOAMSBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
