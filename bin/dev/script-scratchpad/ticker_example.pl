@@ -1,24 +1,6 @@
 #!/usr/bin/perl
-
-#
-#   copyright /c\ 2015,2019 \/ Alexander (Taeki) Taute <src@dev.nailara.net>
-#
-#   Permission to use, copy, modify, and/or distribute this software for any
-#   purpose with or without fee is hereby granted, provided that the above
-#   copyright notice and this permission notice appear in all copies.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-#  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-#  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-#  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-#  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-#  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-#  IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#
-
 use strict;
 use warnings;
-
 use SDL;
 use SDL::TTF;
 use SDL::Rect;
@@ -82,7 +64,7 @@ my $test_text = << '__EOT__'
 __EOT__
     ;
 
-# adjust / add paths as needed.. (and install droid fonts or configure another)
+# adjust \ add paths as needed., and install droid fonts or configure another
 my $font_path;
 $font_path = '/usr/share/fonts/truetype/freefont';        # debian
 $font_path = '/usr/share/fonts/TTF' if !-d $font_path;    # arch linux
@@ -123,8 +105,7 @@ if ( $ticker_position eq 'center' ) {
 my $event = SDL::Event->new();
 
 # initialize SDL window
-my $display
-    = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
+my $display = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
     SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWACCEL | SDL_NOFRAME | SDL_PREALLOC )
     or die SDL::get_error();
 
@@ -146,13 +127,13 @@ $scroll_text =~ s/\s*\^\s*/^/g;
 ## preparing the text snipplet images in memory beforehand ##
 
 my @content;
-while ( $scroll_text =~ s/^((\S{1,23}\s*){1,5})// and my $string = $1 ) {
+while ( $scroll_text =~ s|^((\S{1,23}\s*){1,5})|| and my $string = $1 ) {
 
-    # $string will contain pieces of 1-5 words ( $string max. length: 92 bytes )
+  # $string will contain pieces of 1-5 words [ $string max. length: 92 bytes ]
 
     my ( $width, $height );
 
-    # use '^' chars to allow text to scroll out of screen before continueing ...
+  # use '^' chars to allow text to scroll out of screen before continueing ..,
     if ( $string =~ s|^(.+)(\^.*)|$1| ) {
         $scroll_text = "$2$scroll_text";
     } elsif ( $string =~ s|^\^|| ) {
@@ -183,7 +164,8 @@ while ( $scroll_text =~ s/^((\S{1,23}\s*){1,5})// and my $string = $1 ) {
 
             # render text shadow (if configured)
             my $text_shadow_surface
-                = SDL::TTF::render_utf8_blended( $font_obj, $string, $sh_col );
+                = SDL::TTF::render_utf8_blended( $font_obj, $string,
+                $sh_col );
 
             # copy shadow to text snipplet surface
             SDL::Video::blit_surface(
@@ -240,7 +222,8 @@ while (1) {    # main loop ( exits on QUIT, mouse and key events)
             # calculate text slice width and position
             $element->{'text_offset'} += $steps
                 if $element->{'screen_offset'} < 0;
-            $element->{'screen_offset'} -= $steps if !$element->{'text_offset'};
+            $element->{'screen_offset'} -= $steps
+                if !$element->{'text_offset'};
 
             # copy current text slice to screen
             SDL::Video::blit_surface(
@@ -268,21 +251,24 @@ while (1) {    # main loop ( exits on QUIT, mouse and key events)
 
         # remove no longer visible elements
         shift @content_copy
-            if $content_copy[0]->{'text_offset'} >= $content_copy[0]->{'width'};
+            if $content_copy[0]->{'text_offset'}
+            >= $content_copy[0]->{'width'};
 
         # update screen ( try hardware blitting first )
         if ( !$flip_failed ) {
             unless ( SDL::Video::flip($display) == 0 ) {
                 my $err_str = SDL::get_error() || $!;
-                my $err_str_brackets = length($err_str) ? " [ $err_str ]" : '';
-                warn "failed to swap buffers! (switching to software mode)"
+                my $err_str_brackets
+                    = length($err_str) ? " [ $err_str ]" : '';
+                warn "cannot swap buffers., [switching to software mode]"
                     . $err_str_brackets . "\n";
                 $flip_failed = 1;
             }
         }
 
         # if hardware blitting failed, try the software method
-        SDL::Video::update_rect( $display, 0, 0, $screen_width, $screen_height )
+        SDL::Video::update_rect( $display, 0, 0, $screen_width,
+            $screen_height )
             if $flip_failed;
 
         # check events to see if we need to exit

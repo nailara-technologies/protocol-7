@@ -13,7 +13,7 @@ my ( $ssh_host, $ssh_port ) = split( /:/, $ARGV[0], 2 );
 my @args = ($ssh_host);
 push( @args, $ssh_port ) if defined $ssh_port;
 
-$ssh2->connect(@args) or die lcfirst( $OS_ERROR );
+$ssh2->connect(@args) or die lcfirst($OS_ERROR);
 
 my $md5_hex  = unpack( "H*", $ssh2->hostkey_hash('md5') );
 my $sha1_hex = unpack( "H*", $ssh2->hostkey_hash('sha1') );
@@ -27,7 +27,7 @@ $ssh2->disconnect;
 print "\n : md5  : $md5_hex\n : sha1 : $sha1_hex\n : BMW  : $bmw_b64u\n\n";
 
 #.............................................................................
-#NC6AGLHVF662H6FSSQHA5I6ZAHMTL5PAY4FDBX3MUTFOJC66QKTX6FZ3UHC6A7LA2IPKZY4QNT5NA
-#::: IISWJVCBG3XOSYLYT6K43QV7W7EWZPXVYDSSZL2DILS2T53WW3N :::: NAILARA AMOS :::
-# :: HFAZ7NPWPXRGUBQZLDKOLMDD72RQI433NGTRANABJVQRL6KG4EAI :: CODE SIGNATURE ::
+#ES22PNDBWG5KFU7AUWBCDLHDMW5FGSEU4GGFOLICEPX5VYVT6RJY2S77E7XXLRSFUQAETDAN42TNC
+#::: M2QFQJ3VZK6SMXLAGDHV3ECEBGRU37Q2MJJUMRI4OWQVADIQW5W :::: NAILARA AMOS :::
+# :: BE5WHU6EKGZ6ABAAGUXR54S7NS7CIJW5FYKS4XTI2YSQY2GQBODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

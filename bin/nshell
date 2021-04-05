@@ -140,9 +140,9 @@ while ($connect) {
 
 sub calc_port {
     my $path_offset = shift;
-    my $port_start  = 57;  # <-- [ details : 'net.init_code', 'net.calc_port' ]
-    my $port_end    = 1021;
-    my $port_delta  = $port_end - $port_start;
+    my $port_start = 57;  # <-- [ details : 'net.init_code', 'net.calc_port' ]
+    my $port_end   = 1021;
+    my $port_delta = $port_end - $port_start;
 
     my $n_port = $port_start + $path_offset % $port_delta * 5;
 
@@ -311,7 +311,7 @@ sub s_write {
     IO::AIO::aio_write( $write_fh, undef, length($write_str),
         $write_str, 0, sub { $b_written = $_[0] } );
     IO::AIO::flush();
-    undef $b_written if $b_written < 0;  # <-- emulates syswrite() behaviour .,
+    undef $b_written if $b_written < 0; # <-- emulates syswrite() behaviour .,
     return $b_written;
 }
 
@@ -360,7 +360,7 @@ sub shell_loop {
                     my $error   = '';
                     my $err_msg = "exit code: $err";
                     if ( $err == -1 ) {
-                        $err_msg = lcfirst( $OS_ERROR );
+                        $err_msg = lcfirst($OS_ERROR);
                         $error   = ' << error >>';
                     }
                     print "\n - ! -$error [ " . $err_msg . " ]\n\n";
@@ -490,7 +490,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#WEXDNKA3DH7ZZ4DG2Z6OPYWQXGSBY77FHHX6ROWYSA4DYMGCVIMCDQ3BICRK4A6KZ6HT6FE5OY7FG
-#::: 6Z3JOYPGVVIIM35ZC7XCLGMCEO2JFYCX57GNW7OOWYWTCQMINJD :::: NAILARA AMOS :::
-# :: NCBZMHMHEFWGAGIVXJHUD7A7YYKNRJDQYYBYHCXH5OET53KCSKCQ :: CODE SIGNATURE ::
+#BGI2OBNWUGWVF3JCQ6FPNYMVOTZZYPGUYJR6DNYSEAV5YLZHQJRTN7X52MFLHVE5X7F4U57GHVXTS
+#::: U5HTIC7XSYZTMIEYEHEYOJ5YJULYSZUQXQHTEQHWDODWRNTLQYE :::: NAILARA AMOS :::
+# :: JAHWMWE7VIAYM63GVANVUU7Y5GDNN6HWB6KK66RBYVBI4G6LSWBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

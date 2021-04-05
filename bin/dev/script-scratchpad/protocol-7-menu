@@ -15,17 +15,17 @@ use Data::Dumper 'Dumper';
 
 my $image_path = File::Spec->rel2abs($0);
 while ( -l $image_path ) { $image_path = readlink($image_path) }
-$image_path
-    =~ s,[^/]+(/[^/]+){3}$,data/gfx/logos/nailara.png,; # s,[^/]+/[^/]+$,data/..
+$image_path =~ s,[^/]+(/[^/]+){3}$,data/gfx/logos/nailara.png,;
 
-my $scale_factor = 0.044;                               # <- of screen width ...
+my $scale_factor = 0.044;    # <- of screen width ...
 
 die "display environment variable not set" if not defined $ENV{'DISPLAY'};
 die "image file '$image_path' not found"   if !-f $image_path;
 
-#open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence on termin. xserver
+#open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence [xserver]
 
 my $window = Gtk3::Window->new('toplevel');
+
 # my $root_window = $window->get_root_window;
 
 $window->signal_connect( 'delete_event'         => sub { Gtk3->main_quit } );
@@ -53,7 +53,8 @@ if ($use_transparency) {
 
 my $css_prov = Gtk3::CssProvider->new();
 $css_prov->load_from_data(<<EOT);
-          menu { background-color:#000013; border-color:#000042; color:#0055CC; font-size:x-large }
+          menu { background-color:#000013; border-color:#000042;
+                 color:#0055CC; font-size:x-large }
           menu *:hover { background-color:#000042; color:#0088FF }
           menu *:focus { background-color:#000042; color:#0088FF }
 EOT
@@ -117,7 +118,7 @@ $window->show_all;
 
 Gtk3->main;
 
-###[SUBROUTINES]################################################################
+###[SUBROUTINES]##############################################################
 
 sub window_opened {
     my ( $window, $event ) = @_;
