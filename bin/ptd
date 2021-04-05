@@ -26,7 +26,8 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
     if not length($ptd_bin)
     or not -x $ptd_bin;
 
-my @files = grep {-f} @ARGV;
+## filter filenames for protocol-7 \ perl code ##
+my @files = grep { is_perl_code($ARG) } @ARGV;
 
 die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
     . "expected file name${neon_green}["
@@ -66,6 +67,22 @@ while ( my $file_path = shift @files ) {
 say "\n$blacklight:$reset";
 exit(0);
 
+sub sort_files {
+    return () if not @ARG;
+    return sort { length $a <=> length $b } reverse sort @ARG;
+}
+
+sub is_perl_code {
+    my $file = shift;
+    return 0 if not -f $file;
+    my $is_code = 0;
+    open( my $fh, '<', $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+    chomp( my $first_line = <$fh> );
+    $is_code = 1 if $first_line eq '# >:]' or $first_line =~ m|^#!.*perl|;
+    close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+    return $is_code;
+}
+
 sub sig_int {
     print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${error_color}SIG"
         . "INT$blacklight ] $neon_green perltidy run "
@@ -89,7 +106,7 @@ sub show_progress {
 }
 
 #.............................................................................
-#R7MB7YWY6SNPZJHLUKDVJLJ6NGZP4NC4LWCVSPBVCOGL3B6UZC6QSHZMOOX3CUIPF55PSJUQN6SI2
-#::: 4XGNFGQKEQZKT4D57X3IDCBNIEEMBFGWKVPRHPMENFOA7MULYNR :::: NAILARA AMOS :::
-# :: FIZQNDZEACJQVOUDUFGYZCPCHOZWLTVLC64AYNQZ4CR2E5C6VKAA :: CODE SIGNATURE ::
+#VH2KAOGWCRWDJX4FMZP6EPMRNJJ4XB7NVIYSCIDUYGCS3FWRIJA5HGD4CHVN6BYVU5ZLFDWNXCT7I
+#::: SGMXBRMFTMETPDHICAYKJ2HFRIJQNJPZCN6VXRT7KG7FXBEWLKV :::: NAILARA AMOS :::
+# :: KKD63ZYYGPLR2GMZRCPX5B4F5UDRTKB6TROKH2ZGJMOF3KLO54DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
