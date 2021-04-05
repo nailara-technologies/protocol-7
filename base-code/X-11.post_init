@@ -50,9 +50,9 @@ my $server_params;
     and <X-11.orientation> eq 'normal'
     and !<X-11.disable_glamor>;
 
-## startup / connect ##
+## startup \ connect ##
 
-die "X-11.mode is not defined" if not defined $mode or !length($mode);
+die 'X-11.mode is not defined' if not defined $mode or !length($mode);
 
 if ( $mode ne 'host' ) {
 
@@ -111,7 +111,7 @@ if ( $mode ne 'host' ) {
 } else {
     $bin_name = '[host] x11';
     <X-11.connect_timeout> = 15 if <X-11.connect_timeout> < 15;
-    <[base.log]>->( 1, "running in host mode [ using existing X11-server ]" );
+    <[base.log]>->( 1, 'running in host mode [ using existing X11-server ]' );
 }
 
 <X-11.obj_bin_name> = $bin_name;
@@ -134,7 +134,7 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 };
 ##
 
-<[base.logs]>->( ": connecting to X display [%s]", <X-11.display>->{$mode} );
+<[base.logs]>->( ': connecting to X display [%s]', <X-11.display>->{$mode} );
 
 <[X-11.connect_x11]>;
 
@@ -170,7 +170,7 @@ if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
 }
 
 if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
-    <[base.log]>->( 1, ": : DPMS is supported =)" );
+    <[base.log]>->( 1, ': : DPMS is supported =)' );
     eval { <X-11.obj>->DPMSGetVersion(); };
     if ($EVAL_ERROR) {
         <X-11.has_dpms> = 0;
@@ -181,12 +181,12 @@ if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
         <X-11.has_dpms> = 1;
     }
 } else {
-    <[base.log]>->( 1, ": : DPMS not supported :|" );
+    <[base.log]>->( 1, ': : DPMS not supported :|' );
     <X-11.has_dpms> = 0;
 }
 
 if ( <X-11.obj>->init_extension('Composite') ) {
-    <[base.log]>->( 1, ": : X-11 is composited =)" );
+    <[base.log]>->( 1, ': : X-11 is composited =)' );
     eval { <X-11.obj>->CompositeQueryVersion(); };
     if ($EVAL_ERROR) {
         <X-11.is_composited> = 0;
@@ -200,7 +200,7 @@ if ( <X-11.obj>->init_extension('Composite') ) {
     }
 } else {
     <X-11.is_composited> = 0;
-    <[base.log]>->( 1, ": : X-11 is not composited :|" );
+    <[base.log]>->( 1, ': : X-11 is not composited :|' );
 
 }
 
@@ -213,7 +213,7 @@ if ( <X-11.obj>->init_extension('Composite') ) {
 if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
 
     <X-11.wait_for_display.callback> = 'X-11.callback.display_connected';
-    <[base.log]>->( 0, "<< ! >> display is off / not connected << ! >>" );
+    <[base.log]>->( 0, '<< display is off \ not connected >>' );
 
   # polling for screen sizes, otherwise drm display status never gets updated.
     <X-11.timer.wait_for_display> = <[event.add_timer]>->(
@@ -222,7 +222,7 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
             'handler'  => 'X-11.handler.poll_size_list'
         }
     );
-    <[base.log]>->( 0, "    : waiting for a display to restart X-11..," );
+    <[base.log]>->( 0, '    : waiting for a display to restart X-11..,' );
 
     if ( defined <X-11.host_mode.min_size>
         and <X-11.host_mode.min_size> =~ m|^\d+x\d+$| ) {
@@ -234,7 +234,7 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     }
 
 } elsif ( <X-11.mode> eq 'xorg' ) {
-    <[base.log]>->( 1, ": : display is on / connected =)" );
+    <[base.log]>->( 1, ': : display is on \ connected =)' );
 
     my @max_size = <[X-11.max_screen_size]>;
 
@@ -245,11 +245,9 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
         and (  $max_size[0] > <X-11.obj>->width_in_pixels
             or $max_size[1] > <X-11.obj>->height_in_pixels )
     ) {
+        <[base.log]>->( 0, '<< X-11 cannot select highest screen size >>' );
         <[base.log]>->(
-            0, "<< ! >> X-11 unable to select highest screen size << ! >>"
-        );
-        <[base.log]>->(
-            0, " :. mitigating.. [ reloading gfx kernel module ]"
+            0, " :. mitigating ., [ reloading gfx kernel module ]"
         );
         <[event.add_timer]>->(
             {   'after'   => 0.13,
@@ -302,7 +300,7 @@ if (<X-11.has_randr>) {
     and ( <X-11.keybd.grab_all_keys> eq '1'
     or <X-11.keybd.grab_all_keys> eq 'yes' );
 
-## screensaver / blanking ##
+## screensaver \ blanking ##
 
 if (    <X-11.has_dpms>
     and !<X-11.keep_unchanged>
@@ -311,7 +309,7 @@ if (    <X-11.has_dpms>
         or <X-11.disable_blanking> eq '1' )
 
 ) {
-    <[base.log]>->( 1, ": deactivating screen blanking ..," );
+    <[base.log]>->( 1, ': deactivating screen blanking ..,' );
 
     <X-11.obj>->DPMSDisable();
     <X-11.obj>->SetScreenSaver( 0, 0, 1, 0 );
@@ -334,8 +332,9 @@ if (<X-11.keep_background>) {    # <-- do not touch background image and color
 }
 
 if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
-    <[base.log]>->( 0, "<< ! >> no a valid background color syntax ['$bg_col']" )
-        if defined $bg_col;
+    <[base.log]>->(
+        0, "<< no a valid background color syntax ['$bg_col'] >>"
+    ) if defined $bg_col;
     $bg_col = <X-11.bg_col_default> // '#000000';    # <-- fallback color
 }
 
@@ -352,7 +351,7 @@ if ( <X-11.bg_fade> //= 1 and $bg_col ne '#000000' ) {
 my $bg_mode = <X-11.bg_mode>;
 if ( defined $bg_image ) {
 
-    my @hsetroot_params;    # LLL: 'hsetroot' call to be replaced soon ..,
+    my @hsetroot_params;    ## [LLL] 'hsetroot' call to be replaced soon ..,
     my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
     if ( !-x $hsetroot_bin ) {
         <[base.log]>
@@ -362,7 +361,7 @@ if ( defined $bg_image ) {
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
     <[base.log]>->( 1, "setting background image '$img_txt'" );
     @hsetroot_params
-        = ( "-$bg_mode", $bg_image );    # <-- aquire available [LLL]
+        = ( "-$bg_mode", $bg_image );    ##  <--  aquire available  [LLL]
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
         <[base.log]>->(
             0, "unable to execute 'hsetroot' [ returned $CHILD_ERROR ]"
@@ -376,7 +375,7 @@ if ( defined $bg_image ) {
 return 0;
 
 #.............................................................................
-#MSUHRAJDUKUNOYYWDRVMYTWS7TVJPOFW5G3RIZFFS7PYYJC2UA7KQCBVJMG347JJ3HHPSEL7SZUWM
-#::: UZLY5OL3PLLQBQZWZMIDPFRHJJZ673NS7IL7CEFIMBVKAY2NF7E :::: NAILARA AMOS :::
-# :: RAXVGENBAVVMZJWVC6J74F5QH2O4PAWTPJ233XNBOIZJTR2CYUCA :: CODE SIGNATURE ::
+#LFQT5SSUQEBYJ4TJZJLHNLNVKS6CFZD2OQSVYRTY3OFXRO54ZIGVFH3QL3RTRG3TYJ4T6KHECFGDW
+#::: TVEWJDVAGI6Q4M7DCEB74QHVXBJ7KIOF4ESPV4VFSG3P453NSXZ :::: NAILARA AMOS :::
+# :: GTCBXCDGR55GLPSEERW3SA45B3G4EWKD34JUOQYN4BBE5GJ5Y2BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 # >:]
 
-# name = compton.startup
-# note = primitive implementation, improve error handing before production usage
+# name  = compton.startup
+# [LLL] = improve error handing . . ,
 
 my $display = <x11.display>;
 if ( not defined $display ) {
@@ -18,9 +18,10 @@ my $shadow_def = '#000013';
 ( my $sh_col = <compton.shadow_color> //= <compton.default_shadow> );
 
 if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
-    <[base.log]>->( 0, "<< ! >> no a valid background color syntax ['$sh_col']" )
-        if defined $sh_col;
-    $sh_col = <compton.default_shadow>;    # <-- fallback color
+    <[base.log]>->(
+        0, "<< no a valid background color syntax ['$sh_col'] >>"
+    ) if defined $sh_col;
+    $sh_col = <compton.default_shadow>;    ## <-- fallback color ., ##
 }
 
 ## [ calculate shadow color values ]
@@ -88,8 +89,8 @@ map { <[base.log]>->( 2, $ARG ) } ( ':.', split( m|\n|, $cmd_string ), '..' );
 <compton.pid> = my $pid
     = open3( <compton.in_fh>, <compton.out_fh>, undef, @c );
 if ( !<compton.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start compton [ \l$OS_ERROR ]" );
-    <[base.log]>->( 1, " : aborting zenka startup .," );
+    <[base.log]>->( 0, "<< unable to start compton [ \l$OS_ERROR ] >>" );
+    <[base.log]>->( 1, ' : :.. aborting zenka startup .,' );
     exit(1);
 }
 
@@ -127,7 +128,7 @@ delete <compton.prio_fh>;
 );
 
 #.............................................................................
-#BZHCJD6F3NQ4LDL4ZOU3MRTI26DZGAE3JUQM7C7JV4UABEPUF2GPSZA2TRRA4CKOQABKOKWL6RPDG
-#::: XOOX6FFXZ3P3WJKGH3GGBGOPFO4PGHVBTTPM4ADLHZMSGMH453I :::: NAILARA AMOS :::
-# :: 2E3YXMSIA7QYP4JBEKJPRDM4TTEX5JGJSQLPY3VEIHJVQSKRZQBQ :: CODE SIGNATURE ::
+#ZQEFBOUU5IP7SHI5D4IHP4YNG3NB3BGE6VXA6RCPNXQ7RQUMVZ2KLNNNBKSDR6XGPUANNDDXOEHGA
+#::: MVMM6H4226EJSHVPBG5R7KXQDZUIVBKCUF57AGHRAON6HFTDK7X :::: NAILARA AMOS :::
+# :: CTLE5UFYXYZXU6YZYNEQ6NQ5633QB77J6TBAO2CVXE7RW3TPLYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
