@@ -79,13 +79,13 @@ sub is_perl_code {
     my $is_code = 0;
     open( my $fh, '<', $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     my $first_line = '';
-    while ( !length($first_line) ) {
+    while ( $first_line =~ m{^\s*($|(use|my|our) .+;|#(*nla:!))} ) {
         chomp( $first_line = <$fh> );
     }
     $is_code = 1
         if $first_line eq '# >:]'
         or $first_line =~ m|^#!.*perl|
-        or $first_line =~ m|^package |;
+        or $first_line =~ m|^package .+;$|;
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
 }
@@ -114,7 +114,7 @@ sub show_progress {
 }
 
 #.............................................................................
-#SGTZIZ7WDNSSCPKKGPGGDNH56HCL5G365OZX4SGZCNWJOSX35UWHPCYJTKS6EC633C75ABRGYRCT4
-#::: XCQKD53ZIRVYNONVLAJ5JTOYKKO5OGMUTNGPNIECZ26H3MZ4MFC :::: NAILARA AMOS :::
-# :: P2OYKFP4G5HPIHT5GROEJXOFS6W2MKHWE3LGIKALDKA3YEGOPCBI :: CODE SIGNATURE ::
+#RZVJBSWYMJAODRO4Y7MVGVUIHESUUHBKQQV5CJLMF5ZAM57BCQL6WJVUB6P3FPXQCATUJ3TFWDM52
+#::: IQUWIX76ZO6Z5CLXIJSXGJKRKSG3VBGUB64DURGR3GCBFGQCNRC :::: NAILARA AMOS :::
+# :: JOVIPBTYURIBB6ELJAFKRE5HI2R5QLG7SBDK6RE36RPXYC6RSKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
