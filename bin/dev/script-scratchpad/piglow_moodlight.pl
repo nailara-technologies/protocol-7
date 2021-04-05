@@ -29,7 +29,7 @@ my $yellow_full = Convert::Color::HSV->new( 60, 1, 1 );
 my $orange_full = Convert::Color::HSV->new( 30, 1, 1 );
 
 while ( $deg = sprintf( "%.5f", $deg + $step_size ) or 1 ) {
-    $deg = 0 if $deg >= 360;
+    $deg = 0                               if $deg >= 360;
     $val = sprintf( "%.3f", $val + 0.001 ) if $val < 1;
 
     my $color = Convert::Color::HSV->new( 360 - $deg, 1, $val );

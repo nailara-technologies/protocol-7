@@ -64,7 +64,7 @@ $y //= 25;
 
 my $screen_chars = $y * $x;
 
-say " $x x $y == $screen_chars" if $option{'D'};   ## <-- '-D' debug mode is ..,
+say " $x x $y == $screen_chars" if $option{'D'}; ## <-- '-D' debug mode is ..,
 
 $skip_repeat_spaces = 0 if $option{'S'};
 
@@ -86,7 +86,8 @@ $option{'q'} = 1        if $option{'Q'};
 $option{'C'} = 'BASE32' if defined $option{'C'} and $option{'C'} eq 'B';
 
 my @B32_exclude
-    = grep {length} map { defined $option{$ARG} && "-$ARG" } qw| S B v r d U |;
+    = grep {length}
+    map { defined $option{$ARG} && "-$ARG" } qw| S B v r d U |;
 say sprintf( ":\n:: mutually exclusive modes selected [ -C BASE32 and %s ]\n",
     join( ', ', reverse sort @B32_exclude ) )
     and exit(4)
@@ -106,7 +107,9 @@ $SIG{'__WARN__'} = sub {
     { $w+=-3+length("$nailara_fg");
     $blacklight.sprintf(":.%03d.:",unpack("H2","0x$1")).$nailara_fg.' ' }ge;
     $Text::Wrap::columns = $w;
-    print STDERR "$nailara_fg\r" . wrap( '  ', '  ', $err ) . "\r$blacklight\n";
+    print STDERR "$nailara_fg\r"
+        . wrap( '  ', '  ', $err )
+        . "\r$blacklight\n";
 };
 
 $| = 1;
@@ -245,7 +248,8 @@ while ( $option{'S'} and length( $char_buffer // '' ) < $screen_chars
             }
 
             $del = sprintf( "%.10f",
-                ( rand() * ( $c_num / 777777777 ) ) / $repeat_count->{$c_num} );
+                ( rand() * ( $c_num / 777777777 ) ) / $repeat_count->{$c_num}
+            );
         }
 
         # say " < del > $del " if $delay eq 'r';
@@ -312,7 +316,7 @@ sub display_charset {
 }
 
 #.............................................................................
-#N65GFPD7KAQPSJAX64GNXJRPLHQOKB5BAW32CVYRP5ULM6ZANPTIOQ3OLNBTTCJS7XAYMRSTFPXOA
-#::: PE4JX5U2STNJGQDYYGJGDFOYJPX6GSALY6APLNLPQGTBKA6KQHF :::: NAILARA AMOS :::
-# :: EEEYRZUO34SF2PL7P3LBUTCBUNSUKDSLD5O6QMEGU6QNKFELMUCY :: CODE SIGNATURE ::
+#N2KS64YES4LFAUOMFE5626LJ7YSHQDBMTGUH6NW5RNUXZJ5CYCAVXFWHOC7TWWGEXGIXNGLK7LXXE
+#::: FQMOWXRKEVSDMFCUMNZ4AB2BMFUDAZRPKGCINBM4XX2PRMGULLD :::: NAILARA AMOS :::
+# :: TMK2B35XO7ARFB5433UHYYSHVNDAYT2CQ7YZ4SQCAS3WWOKXNOCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

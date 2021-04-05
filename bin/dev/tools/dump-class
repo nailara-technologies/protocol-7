@@ -17,7 +17,8 @@ chomp( my $perltidy_path = qx(which perltidy) );
 my $class_str = $ARGV[0] // '';
 
 ( my $progname = $0 ) =~ s|^.+/||;
-die "\n  usage : $progname <perl_module/class_name>\n\n" if !length($class_str);
+die "\n  usage : $progname <perl_module/class_name>\n\n"
+    if !length($class_str);
 
 eval {
     use Gtk3;
@@ -75,6 +76,7 @@ $dump_str =~ s/=>\s([^\s]+)$/
   my $replace = " -->  $glob_str";
 $replace/mgxe;
 
-die "\n   [ module or class '$class_str' not found ]\n\n" if $dump_str eq "\n";
+die "\n   [ module or class '$class_str' not found ]\n\n"
+    if $dump_str eq "\n";
 
 print "$header_str\n\n$dump_str\n";

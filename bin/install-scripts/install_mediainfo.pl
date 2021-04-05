@@ -24,7 +24,9 @@ $ENV{'PATH'} = '/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
 my $rss_url  = 'https://mediaarea.net/rss/mediainfo_updates.xml';
 my $base_url = 'https://mediaarea.net/download/binary/';
 my $tmp_dir
-    = '/var/cache/apt/archives/mediainfo_tmp.' . $$ . '-' . int( rand(55555) );
+    = '/var/cache/apt/archives/mediainfo_tmp.'
+    . $$ . '-'
+    . int( rand(55555) );
 
 print "\n.\n";
 my $local_version = &local_version;
@@ -58,7 +60,7 @@ if ( $local_version eq 'not_found'
 
     my @downloaded_files;
     foreach my $url (@package_urls) {
-        ( my $deb_name = $url ) =~ s|^.+/||;
+        ( my $deb_name = $url )                           =~ s|^.+/||;
         ( my $b64_name = md5_base64($deb_name) . '.deb' ) =~ s|/|_|g;
         print "  : downloading $deb_name ..\n"
             . "  :             > $b64_name\n";
@@ -100,7 +102,8 @@ sub get_package_urls {
     foreach my $pkg_type ( 'libzen0', 'libmediainfo0', 'mediainfo' ) {
         my $parent_url = $base_url . "$pkg_type/";
         my $vers_resp  = $ua->get($parent_url);
-        die "failed to access '$parent_url' [" . $vers_resp->status_line . "]"
+        die "failed to access '$parent_url' ["
+            . $vers_resp->status_line . "]"
             if not $vers_resp->is_success;
         my @v_nums;
         foreach my $html_line ( split( /\n/, $vers_resp->decoded_content ) ) {
@@ -121,7 +124,8 @@ sub get_package_urls {
                                           $arch[^\"]+Debian[^\"]+\.deb)}xi;
         }
         ( my $newest_dist_pkg ) = reverse sort @found_pkgs;
-        push( @deb_urls, "$base_url$pkg_type/$latest_v_num/$newest_dist_pkg" );
+        push( @deb_urls,
+            "$base_url$pkg_type/$latest_v_num/$newest_dist_pkg" );
     }
     print "\n";
     return @deb_urls;
@@ -150,7 +154,8 @@ sub local_version {
 sub fetch_version {
     my $rss_resp = $ua->get($rss_url);
     my $latest_version;
-    die "failed to fetch rss feed '$rss_url' [" . $rss_resp->status_line . "]"
+    die "failed to fetch rss feed '$rss_url' ["
+        . $rss_resp->status_line . "]"
         if not $rss_resp->is_success;
     $latest_version = $1
         if $rss_resp->content =~ /<title>MediaInfo ([^u>]+)</;

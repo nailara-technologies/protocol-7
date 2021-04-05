@@ -52,7 +52,8 @@ system( join( ' ', 'scite', @edit_files, '&' ) );
 sleep 0.32;
 
 my $xrandr_output = qx| xrandr |;
-( my $sw, my $sh ) = ( $1, $2 ) if $xrandr_output =~ m| current (\d+) x (\d+),|;
+( my $sw, my $sh ) = ( $1, $2 )
+    if $xrandr_output =~ m| current (\d+) x (\d+),|;
 
 die "\n << error while acquiring screen"
     . " dimensions [ xrandr installed ? ] >>\n\n [ $xrandr_output ]"

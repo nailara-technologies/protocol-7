@@ -23,10 +23,13 @@ if (    $mode eq 'set_tag'
 
 my $u = File::Spec->updir;
 my $root_path
-    = abs_path( File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
-my $harmony_bin = File::Spec->catfile( File::Spec->catdir( $root_path, 'bin' ),
+    = abs_path(
+    File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
+my $harmony_bin
+    = File::Spec->catfile( File::Spec->catdir( $root_path, 'bin' ),
     qw| harmony | );
-my $version_file = File::Spec->catfile( File::Spec->catdir( $root_path, 'configuration' ),
+my $version_file
+    = File::Spec->catfile( File::Spec->catdir( $root_path, 'configuration' ),
     qw| protocol-7.src-ver | );
 
 die ":\n:: 'harmony' binary not found\n\n" if !-x $harmony_bin;
@@ -43,7 +46,8 @@ die ":\n:: 'harmony' binary not found\n\n" if !-x $harmony_bin;
 
         if ( not defined $release_version ) {
             (   $release_version = sprintf( "AMOS-v%.3f",
-                    ( $commit * $ntime / $ver_seed / ( 7777777 * 12242707 ) ) )
+                    ( $commit * $ntime / $ver_seed / ( 7777777 * 12242707 ) )
+                )
             ) =~ s|(\d)$|\.$1|;
         }
 
@@ -86,7 +90,7 @@ sub ntime_dec {
 }
 
 #.............................................................................
-#JQR7JSSWIYU4YGMB6Z65KJC5CAEBIMG6GD4S7QT7Q5D7EWSVZGVCSLAMCY2ZMB54DSD7WOXGCQHYQ
-#::: PE42YSGFSUHR5S26YKXGQLGN63YITGXCNJLWBEXZRBOGYZK4ZIP :::: NAILARA AMOS :::
-# :: JGSTOTL7EJKO3OWVUEP746Z2VIM2MPANV6L75MOXYJK4O4UXVSCA :: CODE SIGNATURE ::
+#Z4FUYRQHEXM6PVA7VPLSSANIWGZASDUV6YQI4FZDOSPWPC7CLUMMVPMCBLQSDCDY737U4NUGJJBUY
+#::: DIJLZGHWUMOUPZHE7PYI2EICT6CZ2XA42FQF76NPXKPHDZP7QXO :::: NAILARA AMOS :::
+# :: UNLCXLAFNCLRA2QPYVSGXMKYK4P7WP3ZKJ2KRNRF4QERUHBUOMCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
