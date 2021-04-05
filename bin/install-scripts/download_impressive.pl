@@ -26,7 +26,8 @@ my $paths = {
     'install_dir' => '/usr/local/impressive'
 };
 
-my $file_sizes = { 'archive' => 195743, 'impressive.py' => 244877 };  # v_0.11.1
+my $file_sizes
+    = { 'archive' => 195743, 'impressive.py' => 244877 };    # v_0.11.1
 my $sha1_checksums = {
     'archive'       => '0f47caec3abd0398814550cabfb78ecca8b5eb85',
     'impressive.py' => 'b35f9bdc5c702cb8865bfc618fc0fd497566af88'
@@ -50,14 +51,15 @@ if ( -f $target_path ) {
     } else {
         print " : <!> removing previously installed impressive version ..\n";
         unlink($target_path)
-            or installation_failed("failed to delete file '$target_path' [$!]");
+            or
+            installation_failed("failed to delete file '$target_path' [$!]");
     }
 }
 my $delete_archive = 0;
 if ( -f $paths->{'archive_tmp'} ) {
     if (&size_OK) {
-        if ( Digest::SHA->new(1)->addfile( $paths->{'archive_tmp'} )->hexdigest
-            eq $sha1_checksums->{'archive'} ) {
+        if ( Digest::SHA->new(1)->addfile( $paths->{'archive_tmp'} )
+            ->hexdigest eq $sha1_checksums->{'archive'} ) {
             print " : archive already exists ( checksum OK )\n";
         } else {
             $delete_archive = 1;
@@ -115,8 +117,8 @@ if ( !-f $paths->{'archive_tmp'} ) {
     my $extract_file = "Impressive-$impressive_version/impressive.py";
     $tar->read( $paths->{'archive_tmp'} )
         or installation_failed("failed to open archive file [$!]");
-    if ( Digest::SHA->new(1)->add( $tar->get_content($extract_file) )->hexdigest
-        ne $sha1_checksums->{'impressive.py'} ) {
+    if ( Digest::SHA->new(1)->add( $tar->get_content($extract_file) )
+        ->hexdigest ne $sha1_checksums->{'impressive.py'} ) {
         installation_failed("CHECKSUM MISMATCH ['impressive.py']");
     }
     if ( !-d $install_dir ) {
@@ -147,7 +149,8 @@ if ( !-f $paths->{'archive_tmp'} ) {
         and Digest::SHA->new(1)->addfile($target_path)->hexdigest eq
         $sha1_checksums->{'impressive.py'} ) {
         qx(touch $target_path);    # timestamp
-        chown( 0, 0, $target_path ) or installation_failed("chown failed : $!");
+        chown( 0, 0, $target_path )
+            or installation_failed("chown failed : $!");
         unlink( $paths->{'archive_tmp'} )
             or warn " : [!] failed to delete archive [$!]\n";
         print " : installation successful =) [ checksum OK ]\n :\n\n";
@@ -175,5 +178,6 @@ sub installation_failed {
 }
 
 sub size_OK {
-    return [ stat( $paths->{'archive_tmp'} ) ]->[7] == $file_sizes->{'archive'};
+    return [ stat( $paths->{'archive_tmp'} ) ]->[7]
+        == $file_sizes->{'archive'};
 }

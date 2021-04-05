@@ -15,8 +15,9 @@ getopts( 'LNDHT:s:l:', \my %option );
 
 my $display_file = shift @ARGV // '';
 
-say ":\n:: expected file path argument ::\n" and exit(4) if $display_file eq '';
-say ":\n:: not found : $display_file ::\n"   and exit(4) if !-e $display_file;
+say ":\n:: expected file path argument ::\n" and exit(4)
+    if $display_file eq '';
+say ":\n:: not found : $display_file ::\n" and exit(4) if !-e $display_file;
 
 my @asc_dec_opts = qw| -q -r0 -p4 -sr |;    # -ECR
 
@@ -52,7 +53,8 @@ $b_size = 1 if $option{'L'};
 
 print "\e[3H$nailara_bg\e[1J\e[0m\n";
 printf( "\e[H$blacklight %s \n::%s::\n", '.' x ( $x - 2 ), '.' x ( $x - 4 ) );
-while ( ( not defined $bytes_left or $bytes_left > 0 ) and not $file_fh->eof ) {
+while ( ( not defined $bytes_left or $bytes_left > 0 ) and not $file_fh->eof )
+{
     my $buffer = '';
 RE_READ:
     if ( $option{'L'} ) {    ## line mode ##
@@ -82,7 +84,8 @@ PAST_ZULUM:
             split( '', $buffer ) );
 
     ################################################################
-    if ( $option{'H'} and length $buffer ) { ## -H[D] assert for harmony \ truth
+    if ( $option{'H'} and length $buffer )
+    {    ## -H[D] assert for harmony \ truth
         if ( $option{'D'} ) {    ## display also 'false' assertions ##
             system( 'harmony', $buffer );
         } elsif ( system( qw| harmony -q |, $buffer ) == 0 ) {
@@ -101,8 +104,8 @@ PAST_ZULUM:
 
             seek( $file_fh, $option{'s'}, $option{'w'} );
 
-            printf( "\e[0J\e[${y}H%s\n::%s::\e\[H", '.' x $x,
-                '.' x ( $x - 4 ) );
+            printf( "\e[0J\e[${y}H%s\n::%s::\e\[H",
+                '.' x $x, '.' x ( $x - 4 ) );
             if ( $x > 2 ) {
                 printf(
                     "\e[0H %s \n::%s::\n",
@@ -127,7 +130,7 @@ print "\e[0J\n$blacklight\e[5m.\e[0m$blacklight\n:\n:.\e[5m.\e[0m  "
     if not defined $bytes_left;
 
 sub term_size {    ### not working yet .., check .., ### [LLL]
-    my $handle = shift // *STDIN;          ## use *STDOUT for pipe detection ##
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
     return undef if not -t $handle;
     state $size       = "\0" x 8;
     state $TIOCGWINSZ = 21523;
@@ -136,7 +139,7 @@ sub term_size {    ### not working yet .., check .., ### [LLL]
 }
 
 #.............................................................................
-#OGHPUYXNCPJF47DCIFGED4LRWOFVS6ACGJ2A3Q75DASCDKD2CMMWOK3ZVLT6HTKMKFZZ5ZEWNZO4O
-#::: YF3EKXBPG5VQIBEA6WRK573QD4JW5WQ43L75CCWLXCOT4PSYBZV :::: NAILARA AMOS :::
-# :: 7U2TR4PWTZPHTF5SXEJKM2BTQUOZQFS2MUBKXOGMJ45L7FUFP4AQ :: CODE SIGNATURE ::
+#LLH33TEMX5AMODUWCYT5KZ6AC5FA5VW2ZYNQ6FBDMIPDZDCDBU2WRAAWESCLU3H4Z3Q4VC72I4QFE
+#::: JUWA3IYJENE7DAGSFQPGPUPM7WGJ3PMYS3OKLSHY2RLRLYQDM7E :::: NAILARA AMOS :::
+# :: 3QHDA3RWSZE6TKTXSNBA6JGFGFDR6ROJ7CFNE5UQYQXUKEORLKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,8 @@ my $target_bin = "/usr/local/bin/openbox";
 my $git_url    = 'git://git.openbox.org/mikachu/openbox.git';
 ( my $patch_file = $exec_name )
     =~ s|^(.+)(\/[^\/]+){3}|$1/cfg/agents/openbox/openbox.fullscreen_fix.patch|;
-die "\n[!] openbox patch file not found at '$patch_file'\n    aborting ...\n\n"
+die
+    "\n[!] openbox patch file not found at '$patch_file'\n    aborting ...\n\n"
     if !-f $patch_file;
 
 print "\n:\n: patching openbox ( fixing legacy fullscreen issue )\n:\n";
@@ -21,7 +22,9 @@ die "[!] must run as root [!]\n\n" if $<;
 chomp( my $git_bin = qx(which git) );
 die "[!] git binary not found [!]\n\n" if !length($git_bin) or !-x $git_bin;
 chomp( my $make_bin = qx(which make) );
-die "[!] make binary not found [!]\n\n" if !length($make_bin) or !-x $make_bin;
+die "[!] make binary not found [!]\n\n"
+    if !length($make_bin)
+    or !-x $make_bin;
 unless ( -d $work_dir ) {
     print ": creating work dir '$work_dir'..\n";
     make_path($work_dir);
