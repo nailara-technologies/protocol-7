@@ -9,6 +9,9 @@ die "base.change_prio: invalid priority '$prio' given."
     if $prio !~ m|^\-?\d{1,2}$|;
 die "base.change_prio: invalid pid '$rpid' given." if $rpid !~ m|^\d+$|;
 
+return <[base.log]>->( 1, 'skipping setpriority [ not root ]' )
+    if $REAL_USER_ID != 0;
+
 <[base.log]>->( 1, "[ PID $rpid ] <-- set priority $prio" );
 
 undef $OS_ERROR;
@@ -20,7 +23,7 @@ my $ret = setpriority( 0, $rpid, $prio );
 return $ret;
 
 #.............................................................................
-#EJ7JXGRGKWBV4OWGHC56YB5U7INOLQT32HLGVOAWRWRI5AFBLGFUBR24YRD4REXLXFUMRAHZRDMIU
-#::: HCKACHDHHGLEASVY6SUDURKPJ77LDJUD4HWI2SXTBO25RTWJYO4 :::: NAILARA AMOS :::
-# :: ZRRWTSN26CQVJ2GT3RPPWEHUHF2HFHA5GZQKIDZP4PPH4HGKAOAQ :: CODE SIGNATURE ::
+#R7NK2MOMSAQQM5G62AMVFTTL6EIDSALG4EFCKQYBMIH4T7VXSCIL77S5BSNNQJFVY3A7OASL6DJ74
+#::: IBO35OK2W3OE5WIFLDSCG4G45KZNERBRI2FWTTUTNAASZDYQ3BE :::: NAILARA AMOS :::
+# :: YOYWWIBOXTNIW6XTBBFJJYSV2RPTXO57YY4DDYNDFZGGUKQPVGAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
