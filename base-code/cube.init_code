@@ -1,23 +1,25 @@
 # >:]
 
-# name  = cube.cmd.init_code
+# name  = cube.init_code
 
-my $cube_init = <base.cube.cmd.initializing> //= 1;
+my $type = qw| cube |;
 
-if ( $cube_init and <system.zenka.type> eq 'cube' and $REAL_USER_ID != 0 ) {
+my $cube_init = $data{'base'}{$type}{'initializing'} //= 1;
+
+if ( $cube_init and <system.zenka.type> eq $type and $REAL_USER_ID != 0 ) {
     <[base.log]>->(
-        0, "'cube' type zenki are expecting to be run as root .,"
+        0, "'$type' type zenki are expecting to be run as root .,"
     );
     <[base.log]>->( 0, ":. terminating start-up sequence .," );
     <[base.exit]>->('0110');
 }
 
-<base.cube.cmd.initializing> = 0;
+$data{'base'}{$type}{'initializing'} = 0;
 
 return 0;
 
 #.............................................................................
-#UCA5RQYMIA2BTDUSOSC4LQFG6IWW5GMM6VIEZR2B624I6577M6YSJJ2OMRYD2JEK7CSTICCHCDITE
-#::: RIHSMEPZDUAQPN6MQ7WHBQHVHC7RETLH2TN4QHKNDL7RGAJS45V :::: NAILARA AMOS :::
-# :: W77SISP6EBSOPXVJE7GSFUWYW3J7BZE42VE3S7LAGLJR2VOTS6AA :: CODE SIGNATURE ::
+#H6QVYIH6RDPUFO3FVFQFYHTLUY3DRCXMU4NO3TWIZEBSZBCB6OAM3IJI6CAFAYJQEDRZO6XDOUPCY
+#::: TJ654W2ZDVCAVJFJMOXZLCGEQW4XP3QH47QA3ZROP2TWB4SEJAC :::: NAILARA AMOS :::
+# :: 7Y7LBSBITXGSU6VSY63TBJEBL7R5KGMBUAU24JJ7FZAMB3QNFKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
