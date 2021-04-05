@@ -30,8 +30,9 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
 my @files = grep { is_perl_code($ARG) } @ARGV;
 
 die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
-    . "expected file name${neon_green}["
-    . "${error_color}s$neon_green]$reset.,\n:\n"
+    . "expected ${neon_green}[${error_color}perl"
+    . "${neon_green}]${error_color} file name${neon_green}"
+    . "[${error_color}s${neon_green}]${error_color}.,$reset\n:\n"
     if not @files;
 
 map {
@@ -77,8 +78,14 @@ sub is_perl_code {
     return 0 if not -f $file or -z $file;
     my $is_code = 0;
     open( my $fh, '<', $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
-    chomp( my $first_line = <$fh> );
-    $is_code = 1 if $first_line eq '# >:]' or $first_line =~ m|^#!.*perl|;
+    my $first_line = '';
+    while ( !length($first_line) ) {
+        chomp( $first_line = <$fh> );
+    }
+    $is_code = 1
+        if $first_line eq '# >:]'
+        or $first_line =~ m|^#!.*perl|
+        or $first_line =~ m|^package |;
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
 }
@@ -107,7 +114,7 @@ sub show_progress {
 }
 
 #.............................................................................
-#IM7GM5QVQ4NVUC2CP63CIBOM3G2PJOSKWDAXZZMY2YBQMDQ5SVKPBHGMF5W6RGEIJVHCBIWDIX7BA
-#::: 5H5EXQNAT4UMSZCYR57UJRAPCA6PRFSFRD36RQST27K2LCWLE36 :::: NAILARA AMOS :::
-# :: 2VFYCYMDLFYSYNPFLROWU4FEEYEM3KZGZUFI5Z5ECFEYA2XMG2AQ :: CODE SIGNATURE ::
+#SGTZIZ7WDNSSCPKKGPGGDNH56HCL5G365OZX4SGZCNWJOSX35UWHPCYJTKS6EC633C75ABRGYRCT4
+#::: XCQKD53ZIRVYNONVLAJ5JTOYKKO5OGMUTNGPNIECZ26H3MZ4MFC :::: NAILARA AMOS :::
+# :: P2OYKFP4G5HPIHT5GROEJXOFS6W2MKHWE3LGIKALDKA3YEGOPCBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
