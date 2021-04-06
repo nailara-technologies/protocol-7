@@ -23,14 +23,14 @@ if ( $PROGRAM_NAME =~ m|^.*protocol-7\.| ) {
     $zenkaname = lc($PROGRAM_NAME);
     $zenkaname =~ s|^.*protocol-7\.||g;
 } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
-    $zenkaname = $1;
+    $zenkaname = $LAST_PAREN_MATCH;
     shift(@ARGV);
 }
 
 ( $zenkaname, @ARGV ) = ( split( m| +|, $zenkaname ), @ARGV )
     if defined $zenkaname and index( $zenkaname, ' ' ) != -1;
 
-( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s| *-[v]+h?z?d?( *)|$1|;
+( $data{'system'}{'args'} = join( ' ', @ARGV ) ) =~ s| *-[v]+h?z?d?( *)|${1}|;
 
 if ( defined $zenkaname and $zenkaname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
@@ -88,13 +88,13 @@ sub prepare_subs {
         ## character whitelist ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
 
-        die "\n\n << invalid characters [ '$1' ]"
-            . " in program name '$PROGRAM_NAME' >>\n\n\n"
+        die "\n\n << unallowed characters [ '$MATCH' ]"
+            . " in zenka name '$PROGRAM_NAME' >>\n\n\n"
             if $PROGRAM_NAME =~ $char_map;
         my $bin_path = $PROGRAM_NAME;
         while ( my $link_target = readlink($bin_path) ) {
-            die "\n\n<<!>> invalid characters [ '$1' ] in program name"
-                . " link target '$link_target'\n\n\n"
+            die "\n\n<< unallowed characters [ '$MATCH' ] in "
+                . "zenka name link target '$link_target' >>\n\n\n"
                 if $link_target =~ $char_map;
             $bin_path = $link_target;
         }
@@ -165,7 +165,7 @@ sub prepare_subs {
         my ( $unix_time, $precision ) = ( undef, 0 );
         if ( length($param) >= 9 ) {    # < unix time + inherited precision >
             $unix_time       = $param;
-            $unix_precision  = length($1) if $unix_time =~ m{\.(\d+)$};
+            $unix_precision  = length( ${1} ) if $unix_time =~ m{\.(\d+)$};
             $ntime_precision = $unix_precision - 2;
             $ntime_precision = 0 if $ntime_precision < 0;
 
@@ -229,7 +229,7 @@ sub prepare_subs {
 
         if ($want_harmony) {
             $ntime_precision = 0;
-            $ntime_precision = length($1) if $ntime_value =~ m|\.(\d+)$|;
+            $ntime_precision = length( ${1} ) if $ntime_value =~ m|\.(\d+)$|;
             my $zulum_len       = $ntime_precision + 1;
             my $collision_delay = join( '', '0.', '0' x $zulum_len, '113' );
             if ( $last_ntime == $ntime_value ) {  ## same input \ collision ##
@@ -290,22 +290,36 @@ sub prepare_subs {
         my $visualize_harmony    = $visualize->{'harmony'}    // 0;
         my $visualize_disharmony = $visualize->{'disharmony'} // 0;
 
-        my %ansi;
-        %ansi = (
-            'str'    => "\c[[1m",
-            'reset'  => "\c[[m",
-            'BLUE-B' => "\c[[34m\c[[1m",
-            'BLUE'   => "\c[[34m",
-            'B-REST' => "\c[[2m\c[[0m\c[[34m",
+        my %a;
+        if (   $visualize_zulum
+            or $visualize_harmony
+            or $visualize_disharmony ) {
+            if ( not keys %a ) {
 
-            'D-REST' => "\c[[0m\c[[32m",
-            'YEL'    => "\c[[32m\c[[1m",
-
-            'UNKNOWN' => "\c[[32m\c[[5m",
-            'color_y' => "\c[[6m\c[[34m",
-            'color_n' => "\c[[6m\c[[1m",
-            'clear'   => "\c[[H\c[[2J"
-        ) if $visualize_zulum;
+                #  reset          "\c[[m"
+                my $reset       = "\e[0m";
+                my $nailara_bg  = "\e[48;2;9;5;41m";
+                my $blacklight  = "\e[38;2;68;39;172m";
+                my $nailara_fg  = "\e[38;2;38;46;153m";
+                my $error_color = "\e[38;2;197;141;7m";
+                my $neon_green  = "\e[38;2;71;195;6m";
+                %a = (
+                    'str'    => "\c[[1m",
+                    'bg'     => $nailara_bg,
+                    'bl'     => $blacklight,
+                    'reset'  => $reset,
+                    'ZL-B'   => $nailara_fg,
+                    'ZULUM'  => $blacklight,
+                    'Z-REST' => "\c[[2m" . $reset . $nailara_bg . $nailara_fg,
+                    'D-REST' => $reset . $nailara_bg . $neon_green,
+                    'NG'     => $neon_green . "\c[[1m",
+                    'UNKNOWN' => $neon_green . "\c[[5m",
+                    'color_y' => "\c[[6m" . $blacklight,
+                    'color_n' => $error_color . "\c[[1m",
+                    'clear'   => "\c[[H\c[[2J"
+                );
+            }
+        }
 
         ## [ load modules first, if not present ] ##
         map {
@@ -364,8 +378,8 @@ sub prepare_subs {
                 ### ..340769.., [E] ##
                 $calc_str
                     =~ s{(\d+?)((((((3)?0)?7)?6)?9)?230769([230769]+)*)(\d*)$}
-                {$ANSI{'D-REST'}$1$ansi{'YEL'}$2$ansi{'D-REST'}$9$ansi{'reset'}}
-                    and say ": $input_num$seperator_str$calc_str"
+                {$a{'D-REST'}${1}$a{'NG'}${2}$a{'D-REST'}${9}  $a{'reset'}}
+                    and say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str "
                     if $visualize_disharmony;
 
                 return 0;
@@ -374,18 +388,18 @@ sub prepare_subs {
                 ### ..846153.., [T=5] ##
                 $calc_str
                     =~ s{(\d+?)((((((4)?6)?1)?5)?3)?846153([846153]+)*)(\d*)$}
-                {$ANSI{'BLUE'}$1$ansi{'BLUE-B'}$2$ansi{'B-REST'}$9$ansi{'reset'}};
-                say ": $input_num$seperator_str$calc_str";
+                {$a{'ZULUM'}${1}$a{'ZL-B'}${2}$a{'Z-REST'}${9} $a{'reset'}};
+                say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str";
 
             } elsif ( $visualize_zulum
                 and index( $calc_str, '0000000' ) >= 0 ) {
                 $calc_str =~ s{(\d+?)?(0000000*)$}
-                {$ANSI{'BLUE'}$1$ansi{'BLUE-B'}$2$ansi{'reset'}};
-                say ": $input_num$seperator_str$calc_str";
+                {$a{'ZULUM'}${1}$a{'ZL-B'}${2} $a{'reset'}};
+                say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str";
 
             } elsif ( $visualize_harmony and $visualize_disharmony ) {
-                say ": $input_num$seperator_str$ANSI{'UNKNOWN'}"
-                    . "$calc_str$ANSI{'reset'}";
+                say "$a{bg}$a{bl}: $input_num$seperator_str$a{'UNKNOWN'}"
+                    . "$calc_str $a{'reset'}";
             }
         }
 
@@ -526,8 +540,8 @@ sub prepare_subs {
             $data{'system'}{'zenka'}{'name'}        = lc($PROGRAM_NAME);
             $data{'system'}{'zenka'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
         } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
-            my $zenka_name = $1;
-            $data{'system'}{'zenka'}{'subname'} = $1
+            my $zenka_name = $MATCH;
+            $data{'system'}{'zenka'}{'subname'} = $LAST_PAREN_MATCH
                 if $zenka_name =~ s|\[([^\]]+)\]$||;
             $data{'system'}{'zenka'}{'name'} = $zenka_name;
         }
@@ -556,8 +570,8 @@ sub prepare_subs {
         foreach my $arg (@ARGV) {
             $stdin_mode = 0 if $arg =~ m|^[^\-]|;
             if ( $arg =~ m|^-(v+)(h?z?d?)?$| ) {
-                $data{'system'}{'verbosity'}{'console'} = length($1);
-                my $vis       = $2 // '';
+                $data{'system'}{'verbosity'}{'console'} = length( ${1} );
+                my $vis       = ${2} // '';
                 my $visualize = $data{'base'}{'harmony'}{'visualize'}
                     //= { 'zulum' => 0, 'harmony' => 0, 'disharmony' => 0 };
                 $visualize->{'harmony'}    = 1 if $vis =~ m|h|;
@@ -585,12 +599,13 @@ sub prepare_subs {
                 $data{'system'}{'start'}{'showbanner'} = 0;
             }
             if ( $arg =~ m|^-N(.+)$| ) {
-                $data{'system'}{'zenka'}{'name'} = $1;
+                $data{'system'}{'zenka'}{'name'} = $LAST_PAREN_MATCH;
             } elsif ($stdin_mode) {
                 $data{'system'}{'zenka'}{'name'} = '<stdin>';
             }
             if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {   # <-- used by 'nroot' zenka
-                $data{'system'}{'zenka'}{'log_prefix_width'} = $1;
+                $data{'system'}{'zenka'}{'log_prefix_width'}
+                    = $LAST_PAREN_MATCH;
             }
             if ( $arg eq '-use-http-src' ) {
                 $data{'system'}{'use_http_source'} = 1;
@@ -669,7 +684,7 @@ sub prepare_subs {
         }
         ## prepare for stripping ansi from output ##
         $data{'base'}{'ansi_re'} = join( '|',
-            map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A }
+            map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q${1}\E|; $A }
                 keys %ANSI );
 
         if ( $data{'system'}{'start'}{'log_prefix_width'}
@@ -743,7 +758,7 @@ sub prepare_subs {
                 $sub_src{$sub_name} //= [];
                 push( @{ $sub_src{$sub_name} }, $src_line );
             }
-            $sub_name = $1
+            $sub_name = ${1}
                 if $src_line
                 =~ m|^\s*\$code\{\'([^\']+)\'\}\s*=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
         }
@@ -793,8 +808,8 @@ sub prepare_subs {
                 #           and $code{$ARG} = eval "sub { print STDERR \"\n"
                 #                                 ." MISSING '$ARG'\n\n\" }";
 
-                push( @zenka_commands, $1 ) if $ARG =~ m|\.cmd\.(.+)$|;
-                --$purge_count              if $EVAL_ERROR;
+                push( @zenka_commands, ${1} ) if $ARG =~ m|\.cmd\.(.+)$|;
+                --$purge_count                if $EVAL_ERROR;
             } elsif ( not exists $data{'base'}{'core_subs'}{$ARG} ) {
                 $data{'code'}{$ARG}{'status'}
                     = 'leftover';    ## kept \ essential ##
@@ -904,7 +919,7 @@ sub prepare_subs {
             my $retries_left = $http_retries;
             while ( $retries_left-- ) {
                 my $r = $retries ? "[$retries\\$http_retries]" : '';
-                ( my $msg_url = $abs_url ) =~ s|^(\w+)://|<$1> |;
+                ( my $msg_url = $abs_url ) =~ s|^(\w+)://|<${1}> |;
                 my $len
                     = length( $data{'system'}{'zenka'}{'name'} )
                     + length( $data{'system'}{'host'}{'hostname'} // '' );
@@ -1066,7 +1081,7 @@ sub prepare_subs {
             $code{'log.error'}->("<<< network source loading enabled >>>")
                 if !@subroutine_names;
             ##### remote source code access ###
-            my $method = $1 if $http_src_base_urls[0] =~ m|^(\w+):|;
+            my $method = ${1} if $http_src_base_urls[0] =~ m|^(\w+):|;
             $code{'log.debug'}
                 ->(": reading source file list over $method ..,");
             my $remote_data_str
@@ -1173,7 +1188,7 @@ sub prepare_subs {
 
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
-                            |\$code{'$1'}->(|sgxo;
+                            |\$code{'${1}'}->(|sgxo;
 
                   # < ! > the parser currently does not respect quoted strings
                   #       escape like \<[sub.name]> <-- this to avoid a match.
@@ -1184,13 +1199,13 @@ sub prepare_subs {
                     # <[sub_name]>  -->  $code{'sub_name'}->()
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+)\]>
-                            |\$code{'$1'}->()|gxo;
+                            |\$code{'${1}'}->()|gxo;
 
                     # <foo.bar>  -->  $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)(?<!\\)>
-                            |my $k="\$data{'$1'}";$k=~s/\./'}{'/g;$k|gexo;
+                            |my $k="\$data{'${1}'}";$k=~s/\./'}{'/g;$k|gexo;
                     $RS = "\n";
                     if (length( $data{'code'}{$file_name}{'source'} )
                         > $orig_len
@@ -1272,8 +1287,8 @@ sub prepare_subs {
             my $sub_conflict = 0;
 
             if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) {
-                my $cmd_type = $1;
-                my $cmd_name = $2;
+                my $cmd_type = ${^CAPTURE}[0];
+                my $cmd_name = ${^CAPTURE}[1];
                 next
                     if $cmd_type eq 'cmd'
                     and exists $disabled_commands{$cmd_name};
@@ -1367,11 +1382,11 @@ sub prepare_subs {
                 ( defined &wrap )
                 ? sub { return wrap( '', ': ..  ', $ARG ) }
                 : sub { return $ARG };
-            $err_str =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|s
+            $err_str =~ s| at $sub_name line (\d+)[\.,]| [ line ${1} ]\n|s
                 if defined $err_str;
             $warn_count_total += $warn_count
                 = scalar $s_comp_stderr
-                =~ s| at $sub_name line (\d+)[\.,]| [ line $1 ]\n|sg
+                =~ s| at $sub_name line (\d+)[\.,]| [ line ${1} ]\n|sg
                 if defined $s_comp_stderr and $s_comp_stderr;
             ( my $lpw )
                 = ( $data{'system'}{'start'}{'log_prefix_width'}
@@ -1475,16 +1490,16 @@ sub prepare_subs {
 
             if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} )
             {    # command desciptions #
-                my $section = $1;
-                my $command = $2;
+                my $section = ${^CAPTURE}[0];
+                my $command = ${^CAPTURE}[1];
                 if ( $data{'code'}{$sub_name}{'status'} eq 'no-error' ) {
                     if ( $sub_code =~ m|#\s*param\s*=\s*(.+)| ) {
                         $data{'base'}{'commands'}{$section}{$command}{'param'}
-                            = $1;
+                            = $LAST_PAREN_MATCH;
                     }
                     if ( $sub_code =~ m|#\s*descr\s*=\s*(.+)| ) {
                         $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                            = $1;
+                            = $LAST_PAREN_MATCH;
                     } else {
                         $data{'base'}{'commands'}{$section}{$command}{'descr'}
                             = '<<< \'descr\' header key not defined >>>';
@@ -1493,7 +1508,7 @@ sub prepare_subs {
                 # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
                 } else {
                     $code{'log.error'}
-                        ->( ':', "::[ broken zenka command '$2' ]", ':' );
+                        ->( ':', "::[ broken zenka command '${2}' ]", ':' );
                     $code{'log.error'}->(@compile_errors)
                         if not $data{'base'}{'modules'}{'load_errors'}++;
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
@@ -1599,10 +1614,10 @@ sub prepare_subs {
         $_p[2] = '*' x 7 if $sub_name eq 'net.authme';
         $_p[1] = '*' x 7 if $sub_name eq 'auth.ok';
         $_p[0] = '*' x 7 if $sub_name eq 'chk-sum.sha.1';
-        $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$1 *****\n|o
+        $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
             if $sub_name eq 'net.out';
 
-        map { $ARG =~ s|(\')|\\$1|go if defined $ARG } @_p;
+        map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
         my @params = map {
             defined $ARG
                 ? ( $ARG =~ $quoted_chars ? "'$ARG'" : $ARG )
@@ -1618,15 +1633,15 @@ sub prepare_subs {
         ## replacing perl objects ##
         eval { use Crypt::Misc qw| encode_b32r | }
             if not defined &{'encode_base32'};
-        if ( $param_list =~ s|\'?(\S+(::\S+)+)|lc($1)|ge ) {
+        if ( $param_list =~ s|\'?(\S+(::\S+)+)|lc($LAST_PAREN_MATCH)|ge ) {
             $param_list =~ s|::|.|g;
             $param_list =~ s|event\.event|event|g;
         }
-        $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}{' : '.lc($1)}ige;
-        $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}{lc($1)}ge;
+        $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}{' : '.lc(${1})}ige;
+        $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}{lc(${1})}ge;
         $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( " :: %s ::",
-             substr( encode_b32r(pack("V*",Digest::Elf::elf($1))) , 2,3 )
-            .'0'. substr( Digest::Elf::elf(pack("H*",$1)), -3, 3 )
+             substr( encode_b32r(pack("V*",Digest::Elf::elf(${1}))) , 2,3 )
+            .'0'. substr( Digest::Elf::elf(pack("H*",${1})), -3, 3 )
              )
         }gxe if defined &{'encode_b32r'} and defined &Digest::Elf::elf;
         ## [ LLL ] ids need to become resolvable + debug command ..,
@@ -1649,7 +1664,7 @@ sub prepare_subs {
             and defined $code{'base.buffer.add_line'} ) {
             my $buffer = $data{'system'}{'start'}{'zenka-buffer'};
             while ( my $log_line = shift( @{$buffer} ) ) {
-                my $log_level = $log_line =~ m|^\S+ (\-?\d+) | ? $1 : 0;
+                my $log_level = $log_line =~ m|^\S+ (\-?\d+) | ? ${1} : 0;
                 $code{'base.buffer.add_line'}
                     ->( 'zenka', $log_line, $log_level )
                     if $log_level
@@ -1801,7 +1816,7 @@ sub prepare_subs {
         if (@_) {
             my $level = 0;
             chomp( my @err = @_ );
-            map { $ARG =~ s|([^[:print:]])| sprintf("[%03d]",ord($1)) |age }
+            map { $ARG =~ s|([^[:print:]])| sprintf("[%03d]",ord(${1})) |age }
                 @err;
             push( @err, $spaces ) if length($spaces);
             if ( $err[0] =~ m|^Deep recursion | ) {
@@ -1825,8 +1840,8 @@ sub prepare_subs {
             } # todo: human readable way do debug [eval] callers., [+stacktrc?]
             map {
                 $ARG =~ s| at $filename line $line[\.,].*$||;
-                $ARG =~ s|no success on eval ('\$code\{\S+)|<< $1 >>|;
-                $level = $1 || 1 if $ARG =~ s| *<\{C(\d{1,3})?\}>$||
+                $ARG =~ s|no success on eval ('\$code\{\S+)|<< ${1} >>|;
+                $level = ${1} || 1 if $ARG =~ s| *<\{C(\d{1,3})?\}>$||
             } @err;
             if ($level) {    # <-- log parent caller instead ('<{C[level]}>')
                 @caller = caller($level);
@@ -1906,7 +1921,7 @@ END {
 }
 
 #.............................................................................
-#I3Q6G2PAWYNONBJJJX5WAWLXRUL57TPMVNPMHQEAULAOFRQR24IQBIIWECSEQ4DLIJJI6S3OXS5S4
-#::: HTCHIENJGZKEASG32EI2N4OZSRKYN25GFR7OEY75FCOGRWIYYJV :::: NAILARA AMOS :::
-# :: RUIVRJMC3XTVPSYIG3BQH64ZU55T37CF547TM3CEIPQDQXXX34DI :: CODE SIGNATURE ::
+#WRUO3NDZDKBOAYXAZFB7LTBIG35BNM3BKKBJLKNH3H55FZDQQVHHVLDL6JYZALVKO3V46PJL2HA6O
+#::: OQPAXK6SSVI6VOVTFLASRHBIVVBLWY5KBVDU35LQX77FU3IVX3F :::: NAILARA AMOS :::
+# :: RK4OL45QIX7VX5HFEHSX3SHCSDAOKEXIIQTZRLLM54XFNOLVOCBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
