@@ -7,7 +7,7 @@ my $start_setup_data = shift // [];
 <[base.execute_zenka_code]>->(
     <[base.parser.config]>->(
         shift( @{$start_setup_data} )->{'globals'},
-        qw( <nroot.start_setup.globals> )
+        qw| <nroot.start_setup.globals> |
     )
 );
 
@@ -19,18 +19,17 @@ while ( not defined $zenki_init_code ) {    # skip other sections
 <nroot.start_setup.zenki.startup.init_code> //= {};
 <nroot.start_setup.zenki.startup.start_order> = [];
 
-foreach my $zenka_element ( @{$zenki_init_code} ) {
+foreach my $zenka_ref ( @{$zenki_init_code} ) {
+    <[base.log]>->(
+        0,
+        ": : start cfg syntax error : '$zenka_ref'"
+            . ' [ expected " - <zenka_name>" ]'
+        )
+        and next
+        if ref($zenka_ref) ne 'HASH';
 
-    if ( ref($zenka_element) ne 'HASH' ) {
-        <[base.log]>->(
-            0,
-            ": : start cfg syntax error: '$zenka_element'"
-                . " ( expected \" - <zenka_name>\" )"
-        );
-        next;
-    }
+    my ( $zenka_name, $zenka_init_code ) = each(%$zenka_ref); ## single key ##
 
-    my ( $zenka_name, $zenka_init_code ) = each %{$zenka_element};
     push( @{<nroot.start_setup.zenki.startup.start_order>}, $zenka_name )
         if <[zenka.is_enabled]>->($zenka_name);
     my @config_code;
@@ -64,7 +63,7 @@ foreach my $zenka_element ( @{$zenki_init_code} ) {
 }
 
 #.............................................................................
-#C5M3K6O7T33K4C3V7D5NDQJMOMWLPPZ5EWWTGZBILFKB3XCNF2KINJMM2BTBISYHWPAAGTVLVXPKW
-#::: I44PNWN4TL3JOSLVO6QD4RSYCRMCRF7IYP4SYB2XNMPGXHWTWDT :::: NAILARA AMOS :::
-# :: MQ26LQ4CZCZU2WVQH4HNP3SUEGAYXPK674M3IIB5IT5DJTHLBICQ :: CODE SIGNATURE ::
+#K6OMOTPGES3OPD52RCXWCEY2XRXBFEZSOM7WIBBXQFKN7JTCGI5BJR2GQX5GKKZLESXFD3XZ2VMTE
+#::: LKGC3KLGC5TTZI2UTGXXYTAI2BZTVUSXVTUPYSQPHUXZDQ3ZX5Y :::: NAILARA AMOS :::
+# :: ADWHIBQYKJALMLXLCNHXML5YM5X6WK5Z6UGMHGA3RL23FXKVJQCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

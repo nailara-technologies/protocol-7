@@ -7,11 +7,13 @@ my $apw_href = <nroot.zenka.prefix_width> //= {};
 
 my @online_zenki = keys %{<nroot.online-zenki>};
 
-foreach my $zenka_name ( uniqstr @_, @online_zenki, 'nroot' ) {
-    $apw_href->{$zenka_name} //= <[base.get_start_lpw]>->($zenka_name);
-}
+my $max_len = 0;
+foreach my $zenka_name ( uniqstr @ARG, @online_zenki, 'nroot' ) {
+    my $new_len = <[base.get_start_lpw]>->($zenka_name);
+    $apw_href->{$zenka_name} //= $new_len;
+    $max_len = $new_len if $new_len > $max_len;
 
-my $max_len = max map { $apw_href->{$ARG} } keys %{$apw_href};
+}
 
 foreach my $zenka_name ( keys %{$apw_href} ) {
     next if $apw_href->{$zenka_name} == $max_len;
@@ -30,7 +32,7 @@ foreach my $zenka_name ( keys %{$apw_href} ) {
             if ( $zenka_name ne 'nroot' ) {
                 kill qw| SIGUSR1 |, @zenki_pid;
                 <[base.sleep]>->(0.007)
-                    if $delta_len;    # <-- make async ., [LLL]
+                    if $delta_len;    # <-- make async ?., [LLL]
             } else {
                 <[base.sig_usr1]>;
             }
@@ -42,7 +44,7 @@ foreach my $zenka_name ( keys %{$apw_href} ) {
             if ( $zenka_name ne 'nroot' ) {
                 kill qw| SIGUSR2 |, @zenki_pid;
                 <[base.sleep]>->(0.007)
-                    if $delta_len;    # <-- make async ., [LLL]
+                    if $delta_len;    # <-- make async ?., [LLL]
             } else {
                 <[base.sig_usr2]>;
             }
@@ -54,7 +56,7 @@ map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
     ( keys %{$apw_href} );
 
 #.............................................................................
-#NQR2VQETDOTNX26GJRD6I5HV3VC4CCZOD25QVXPKHF7YFUCMQEKDFV3VGJOHCXVHCYLWDGKNXXBB6
-#::: A5AASXNTXXRZZWTGRCHAIJ5MRDSEYY3Y437XONB6OPWFNL3UPMB :::: NAILARA AMOS :::
-# :: PV6M4KLWZ66Z5J3FCYLX5WVSZQDHC5HGQYSO7VWUYEFQU2NLMMDA :: CODE SIGNATURE ::
+#IZ5JM5TWOJMA6KB6M5FYGUO2HJJTTCK735QUCNA2XVKE4L6YI4C3UU5KEL4HN6U6UWGBPYCB6OAXK
+#::: UOH4HUDFAQSC36Q37GS5JIXGF4A6KHJ5PN4HA5ECYIXUBEMV7BJ :::: NAILARA AMOS :::
+# :: FZFCHOIRZ537EY32F2T5C2VCMR6D5YJKIOJTGTZ2DPSAWZ3WZ6BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

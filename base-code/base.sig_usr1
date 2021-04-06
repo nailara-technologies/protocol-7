@@ -16,39 +16,8 @@ if ( $cur_lpw < $max_lpw ) {
 
 <system.zenka.log_prefix_width> = $cur_lpw;
 
-my $d = '';
-
-my $next_dots = <log.dots> = '.' x ( $cur_lpw - $start_lpw + 1 );
-
-my $intended_prefix_width = length(
-    sprintf( ':.%s%s%s.:,',
-        <system.node.name>, <log.dots>, <system.zenka.name> )
-) - 1;
-
-my $next_c_line = ':.';
-
-my $width_delta = 0;
-if ( defined <log.logged_prefix_width> ) {
-    my $logged_width = <log.logged_prefix_width>;
-    $width_delta = $intended_prefix_width - $logged_width;
-    if ( $width_delta > 0 ) {
-        substr( $next_dots, 0, $width_delta, '' );
-        $next_c_line .= ':' x ( $intended_prefix_width - $width_delta - 4 );
-    }
-}
-
-$next_c_line .= '.:';
-
-return if $width_delta <= 0;
-
-$next_c_line .= '.' x ( $intended_prefix_width - length($next_c_line) - 1 );
-$next_c_line .= ',';
-
-<log.next_console_line> = join( '',
-    $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $next_c_line, $ANSI{'reset'} );
-
 #.............................................................................
-#6WJSG4R5M3IROXQDVIR3LAIEJJMDZRHXZP474OQC5735SFAVABJCQBBVI6M662Y53RWZP64G3SMQA
-#::: BDCQMLLRQW5YCQ66QXR773I2CUUYMIZ2KE3DT4XVDHXP4JKBJG6 :::: NAILARA AMOS :::
-# :: TAKQ2W4KLWQYN5CKQPAYQQ3QS2URL376OHW4ZEEQSEPXVKGUHSAQ :: CODE SIGNATURE ::
+#2AGUQBI3SWOJ3BM6JRLCDMICYDHPN6B4FJUU2SEDMK3U3HQTLWYRKWAAY7IGOHGFNQWE5VBFQKO7S
+#::: GX64EAV3J5MOBK6CJ63SUHNE2ZCGHGIPAZXB5YUAPAZBOLBFD5Z :::: NAILARA AMOS :::
+# :: 56IZ2B3EWNLT6ZZTSJSCP2F2LE6OWOQEWU3NWTHBF6FGSO7JVUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
