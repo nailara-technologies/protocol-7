@@ -8,14 +8,19 @@ my $module_reinitialization = shift;
 <[nroot.cleanup_temp_files]> if not $module_reinitialization;
 
 my $zenka_config = <nroot.start_setup.zenki.config> // {};
-my @all_zenki    = keys %{$zenka_config};
+my @all_zenki    = <[base.sort]>->($zenka_config);
 my @start_zenki  = @{<nroot.start_setup.zenki.startup.start_order>};
+
+## start_order needs dependency type sort order [ currently base.sort ] ##
+
+#### say Dumper( \@start_zenki ); <[base.exit]>;
 
 my $prev_all   = <nroot.init_state.all_zenki>   //= [];
 my $prev_start = <nroot.init_state.start_zenki> //= [];
 
-# locate zenka config files / extract descriptions
-<nroot.zenki.available> = {};    # <-- reset on reload!!!
+<nroot.zenki.available> = {};    # <-- ::: reset on reload :::
+
+## locate zenka config files and extract descriptions ##
 
 my @found_zenki = <[nroot.available_zenki]>;
 
@@ -32,9 +37,10 @@ my ( $added_all_ref, $removed_all_ref )
 <nroot.init_state.all_zenki>   = \@all_zenki;
 <nroot.init_state.start_zenki> = \@start_zenki;
 
-# <[nroot.calc_prefix_lengths]>->(@start_zenki); # <-- running, not start [LLL]
+## requires time based decrease --> implement ##
+# <[nroot.calc_prefix_lengths]>->( qw| nroot cube |, @start_zenki );
 
-<[nroot.calc_prefix_lengths]>->(qw| nroot cube |);
+<[nroot.calc_prefix_lengths]>->(qw| nroot cube |);    # <-- running, not start
 
 if ( @{$added_all_ref} ) {
     <[nroot.set_up_zenka_dependencies]>->( @{$added_all_ref} );
@@ -45,7 +51,7 @@ map { <[base.clean_hashref]>->( $zenka_config->{$ARG} ) } @all_zenki;
 
 if (    exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
-    and <system.verbosity.console> > 1 ) {
+    and <system.verbosity.console> > 4 ) {
     ( my $debug_str = Dumper($zenka_config) ) =~ s{^.{7}|;$}{  }mg;
     print "\n < nroot.start_setup.zenki.config >\n\n$debug_str\n";
 }
@@ -56,12 +62,12 @@ map { <[nroot.autostart_zenki]>->($ARG) if !<[nroot.start_count]>->($ARG) }
 print Dumper( $data{'jobqueue'} )
     if exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
-    and <system.verbosity.console> > 2;
+    and <system.verbosity.console> > 4;
 
 0;
 
 #.............................................................................
-#6ENXEWMV4KJ5UG6QNGJSEOOLNST72OXYMF2K6SDZYQ5BDMDW72YQKOTPJFHX6EUUFKPCBDHZXNR7E
-#::: KJXB4OA5NU5N7MAWCA3BI4DP2AVUFSJ2EJJKZPQVX5NIVM3D56A :::: NAILARA AMOS :::
-# :: XL5M7X7JZPR4DTUFP7XBLRJ4G44OZWYP3TZADIWL4DB7YYQHRWCQ :: CODE SIGNATURE ::
+#S4PDG5X7B2L3W6FDV225HYKVB3QA6ARHFC5S747GUDVLDOE6QIUCPPN4S26ICKBYHFUJOIK4TTZCU
+#::: D7V347RMXSFKKCPNVIWSXWORTBWI7PHTUZ7R6GUTZA5ZLZXJTGA :::: NAILARA AMOS :::
+# :: HBGZLNNSF2Y5L4KFNM3T2SGGMLE3CJEUECT5XRMFYBZVPGH432CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

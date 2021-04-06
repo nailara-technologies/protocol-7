@@ -6,17 +6,17 @@
 my $config_to_load = shift;
 my $cfg_root_path  = <system.conf_path>;
 my $base_file_name = 'zenki/nroot/start-setup.';
-die "load_start_setup: no start setup specified"
+die 'load_start_setup: no start setup specified'
     if not defined $config_to_load;
 
 my $start_setup_pattern = join( ' ',
-    map { $base_file_name . $ARG } split( /\s+/, $config_to_load ) );
+    map { $base_file_name . $ARG } split( m|\s+|, $config_to_load ) );
 
 return <[base.log]>->(
-    0, "<< ! >> config '$start_setup_pattern' not found << ! >>"
+    0, "<< zenki start config '$start_setup_pattern' not found >>"
 ) if !-f "$cfg_root_path/$start_setup_pattern";
 
-<[base.log]>->( 1, ": loading '$config_to_load' process start setup" );
+<[base.log]>->( 1, ": loading '$config_to_load' process start set-up" );
 my $start_setup_data;
 {
     local <system.conf_path> = "$cfg_root_path/zenki/nroot";
@@ -24,13 +24,13 @@ my $start_setup_data;
 }
 
 return <[base.log]>->(
-    0, "<< ! >> config '$start_setup_pattern' is empty << ! >>"
+    0, "<< zenki start config '$start_setup_pattern' is empty >>"
 ) if !@{$start_setup_data};
 
 push( @{<nroot.cfg_data.start_setup>}, $start_setup_data );
 
 #.............................................................................
-#C4LQCI6PYMABLK5OANPHS7RBOSB5N22ZUTZT7U2P5TSMKMUYFMMUSF3HN7TUHJM64GVFPVDLFMPT4
-#::: ZTMHYCIUNH52UBQ7MG4OHL6VWALSKFPYNYS6HXIPE3HO4F3625W :::: NAILARA AMOS :::
-# :: WEEMNYIC24QDFZIRHQDANZ4EELOA3H45XVFEXLYVF3QJPIXHJEBA :: CODE SIGNATURE ::
+#USHL72RHML57L2IBQUXSBWWNC7FPBTMY63URVTWJ4K2NRFKBRIRYZCPEUHCBYBSS32FRTBGQWCZ32
+#::: KUXUS2T44KCWGXZDRJ6FEMVDI7FL44BOBRORP4ZR6XFV44BESN5 :::: NAILARA AMOS :::
+# :: 2O4TCV6RZX2P7TPOAF3C3YXE6ZRMUXSSZMFOIWTJLEI6T5BATUBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
