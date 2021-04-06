@@ -58,7 +58,7 @@ X-11.disable_blanking = yes
 X-11.hide_mouse_cursor = yes
 X-11.max_intel_gpu_freq = no
 X-11.keybd.grab_all_keys = no  # block X-11 clients from getting key input
-X-11.host_mode_unchanged = yes # don't touch screen set-up in host mode..,
+X-11.host_mode_unchanged = yes # do not touch screen set-up in host mode..,
 
 X-11.collect_intel_gpu_stats = 0  # using 'intel_gpu_top'
 X-11.collect_gpu_stats_on_4K = 1  #  if >= 4K resolution
@@ -86,11 +86,11 @@ modules.preload = X-11.set-up set-up.json
 
 [set-up.json.import_file:'X-11.set-up.json']
 
+[root.drop_privs:<system.X-11-user>]  ## move up [ auto-add X-11-user to grp. ]
+
 modules.load = auth net protocol io.ip X-11 ## debug
 [load_modules:<modules.load>]
 [init_modules]
-
-[root.drop_privs:<system.X-11-user>]
 
 [net.connect_to_cube:'ip.tcp']
 
@@ -100,7 +100,7 @@ modules.load = auth net protocol io.ip X-11 ## debug
 [event.loop]
 
 #.............................................................................
-#H7GQJYXQQQSG4WPXSKAKOEMBF2SY442JTPDOUJ4IB2IN2YBA73CN5LXMTWT4LZ4UVJS7BRMQOKTUA
-#::: IE2TB6EKA4TEFCZG3K2WU7QKMWT3LRYIOJEIM3SKAXY6ZBRXPLX :::: NAILARA AMOS :::
-# :: 6NTHQE2YYQDFQGM45DPIZM5SBQJDHNIOIWZCIWBYIBZGRNEVE4AI :: CODE SIGNATURE ::
+#XUKVTM7JE5ERU7C7455UTPSLMNMWGVB3KE7CHT4JJO5YYUPJ5QSYLN6Q2MKK7DQTYWP3BXP5LXYLG
+#::: CKA3UY7FJWE5G2Q55G7PJ3LS5PZWFRQJZKMJED3WE5DQZKQTZ7D :::: NAILARA AMOS :::
+# :: MN457TWRWFYHWLTIRV6VPPD4BDKRNUO623YPW7CE22ILM3S76KCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
