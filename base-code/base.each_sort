@@ -1,0 +1,22 @@
+# >:]
+
+# name  = base.each_sort
+
+my $hash_ref = shift;
+my $filtered = shift // 1;
+die 'expected hash reference' if ref($hash_ref) ne 'HASH';
+
+my @pairs;
+foreach my $key ( <[base.sort]>->($hash_ref) ) {
+    next if $filtered and not defined $hash_ref->{$key};
+
+    push( @pairs, $key => $hash_ref->{$key} );
+}
+
+return @pairs;
+
+#.............................................................................
+#5BPCPKXKWUZREGH6G6ELD3KG2GOVXI5ZJHD55MUOVZXHRTZNMMFFG5IJFX3VXI7NNAT7PDVV33WYA
+#::: ZKV4NP2XHSW6TVGFBWSLXLELGLJ4SB23SN2J33OJNOY5URRNORU :::: NAILARA AMOS :::
+# :: IPGWAW3WLHT2HXR2QGUCM3YMJ776BKRPTUROMIQ6WHXYVJDHLIAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
