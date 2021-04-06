@@ -1,25 +1,28 @@
 # >:]
 
 # name  = nroot.load_zenka_startup_cfgs
-# descr = load zenka directory based startup configurations into known setup
+# descr = load zenka directory based start-up configurations into known setup
 
 my $cfg_root_path  = <system.conf_path>;
 my $zenka_cfg_path = "$cfg_root_path/zenki";
 my $prepared_cfgs  = <nroot.cfg_data.start_setup>->[0] // [];
 
-my $s_cfg_data = <[base.code_section_ref]>->( $prepared_cfgs, 'zenki' );
+my $s_cfg_data = <[base.code_section_ref]>->( $prepared_cfgs, qw| zenki | );
 
-if ( my @start_cfgs = grep {m|/zenka-startup.nroot$|}
-    @{ <[file.all_files]>->( $zenka_cfg_path, 'recursive' ) } ) {
+if ( my @start_cfgs
+    = grep {m|/zenka-startup.nroot$|}
+    <[base.sort]>->( <[file.all_files]>->( $zenka_cfg_path, 'recursive' ) ) )
+{
     my $file_count = @start_cfgs;
     my $s          = $file_count == 1 ? '' : 's';
-    <[base.log]>
-        ->( 1, ": loading $file_count zenka startup configuration$s" );
+    <[base.log]>->(
+        1, ": loading $file_count zenka start-up configuration$s"
+    );
 
     foreach my $cfg_path (@start_cfgs) {
         my $zenka_name = $1 if $cfg_path =~ m|/zenki/([^/]+)/[^/]+\.nroot$|;
         next                if not defined $zenka_name;
-        <[base.log]>->( 2, ": :. including '$zenka_name' zenka startup" );
+        <[base.log]>->( 2, ": :. including '$zenka_name' zenka start-up" );
         my @ncfg_cfg_lines = ( " .: zenki :.\n\n", "  - $zenka_name\n\n" );
         <[file.slurp]>->( $cfg_path, \@ncfg_cfg_lines );
         chomp(@ncfg_cfg_lines);
@@ -28,11 +31,11 @@ if ( my @start_cfgs = grep {m|/zenka-startup.nroot$|}
                 ->( $zenka_name, @ncfg_cfg_lines )->[0]->{'zenki'}->[0] );
     }
 } else {
-    <[base.log]>->( 1, ": :.. no additional startup configs .," );
+    <[base.log]>->( 1, ": :.. no additional start-up configs .," );
 }
 
 #.............................................................................
-#2CRKT6GTELBZIYYURPATKVQXTKFEGJKJ7LEVGO4YHLY3AHSBFPT6QFUGKUR76JGGEHTBDOBFOG7OC
-#::: GXCBHVWTPY4WTIOXQXPA2EFAAQNXW2ZIVSNIQKMFK3DKQ3TPWDB :::: NAILARA AMOS :::
-# :: 6C26WB3VGEY22VVXG53QMLYBT5ZABP7Y7JLNOFBAGTCR2P4PYABQ :: CODE SIGNATURE ::
+#FHMUTMZDNLMIFEMC4NOYO65ILPVYDSY4OPRNR73JMPJK45U2SPGH7FGLGJZN3HQURKDMRKZDHC3YI
+#::: 7HLZCVTA47X52YFVAXOK6JLR6Z4XI5TDK6YMEQTLTD5SGB3EKOH :::: NAILARA AMOS :::
+# :: KJEKYNMPDRS7FXHORH7KXR6D4Z2LQCJQ3UYZPG455GBOMWEWSQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

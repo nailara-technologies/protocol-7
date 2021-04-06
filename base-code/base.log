@@ -41,15 +41,12 @@ $log_msg
     if $log_msg
     =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
 
-my $dots = <log.dots> //= '.';
-
 my $bg   = $ANSI{'p7_bg'};
 my $rst  = $ANSI{'reset'};
 my $bl_c = $ANSI{'p7_fg_0000'};
 my $an_c = $ANSI{'p7_fg_0001'};
 
-my $zenka_prefix = sprintf( $bl_c . "$bg:.$an_c%s$bl_c.$an_c%s$bl_c%s:$rst",
-    <system.node.name>, <system.zenka.name>, $dots );
+my $zenka_prefix = <[log.format_name]>;
 
 my $log_str;
 
@@ -108,7 +105,7 @@ if ( fileno(STDOUT)
 return 1;
 
 #.............................................................................
-#DKVMISUJYQSKYIZYOLVQI7F7GEL6S44H73MWL3HATHCXTZZFXM7OS6W7LOOSJCRSWCNUVV77DVY7S
-#::: IOTPJWKNWHKZ7AFJAV4OKTBPPIWK3YSOD3TXFZ6R5NS6UK4R7DO :::: NAILARA AMOS :::
-# :: DV64ND2IO7LYCQVQIANDCQJEZWKHOERRFHZLSHWDE7MVH43ZX2AI :: CODE SIGNATURE ::
+#FQHCHJVW2T3QSSJAXGYSK53G2CWY6Q4BUDCTH6JBJY5PDD7IRCPDNHORNMGR7MTJNNOS252EGESEO
+#::: 33JEBGICNUYB2SKSXAVPQHFKHMXZREXZLUOLONWC6WTGADGEVM5 :::: NAILARA AMOS :::
+# :: 7WO7A2CKIP7TDOEVRSTALKHGWKGDYF55RSALCJ5TGSK2IGKIZQCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
