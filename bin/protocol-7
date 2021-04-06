@@ -304,7 +304,7 @@ sub prepare_subs {
 
                 #  reset          "\c[[m"
                 my $reset       = "\e[0m";
-                my $nailara_bg  = "\e[48;2;9;5;41m";
+                my $nailara_bg  = "\e[48;2;9;5;42m";
                 my $blacklight  = "\e[38;2;68;39;172m";
                 my $nailara_fg  = "\e[38;2;38;46;153m";
                 my $error_color = "\e[38;2;197;141;7m";
@@ -665,7 +665,8 @@ sub prepare_subs {
         ## defining console ansi colors ###
         if ( $data{'system'}{'ansi_color'} ) {
             %ANSI = (
-                'p7_bg'        => "\e[48;2;9;5;41m",
+                'p7_bg'        => "\e[48;2;9;5;42m",
+                'p7_bg_0000'   => "\e[48;2;0;0;17m",
                 'p7_fg_0000'   => "\e[38;2;68;39;172m",
                 'p7_fg_0001'   => "\e[38;2;38;46;153m",
                 'p7_fg_0002'   => "\e[38;2;197;141;7m",
@@ -678,6 +679,7 @@ sub prepare_subs {
         } else {
             %ANSI = (
                 'p7_bg'        => '',
+                'p7_bg_0000'   => '',
                 'p7_fg_0000'   => '',
                 'p7_fg_0001'   => '',
                 'p7_fg_0002'   => '',
@@ -700,7 +702,9 @@ sub prepare_subs {
         ## nailara start-up banner ##
         if (   $data{'system'}{'verbosity'}{'console'}
             && $data{'system'}{'start'}{'showbanner'} ) {
-            say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, $start_string;
+            say $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $start_string,
+                , $ANSI{'p7_bg_0000'},
+                ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '/';
             &{ $code{'base.banner'} };
         }
         ## initializing early zenka buffer capture ###
@@ -724,8 +728,6 @@ sub prepare_subs {
     };
 
     $code{'base.banner'} = sub {
-        my $prefix_str  = ' ';
-        my $end_string  = '/';
         my $version_str = sprintf( "protocol-seven.src-ver :. %s",
             $data{'protocol-7'}{'src-ver'} );
         my $release_str = sprintf( "AMOS-release versn.: %s",
@@ -737,16 +739,22 @@ sub prepare_subs {
         my $nailara_header = <$banner_fh>;
         close($banner_fh);
         map {
-            say "$ANSI{p7_bg}$ANSI{p7_fg_0001}$prefix_str$ANSI{reset} "
-                . "$ANSI{p7_bg}$ANSI{p7_fg_0000}$ARG$ANSI{reset} \r"
+            say "$ANSI{p7_bg}$ANSI{p7_fg_0000} $ANSI{'p7_bg_0000'} "
+                . "$ANSI{p7_bg}$ANSI{p7_fg_0000}$ARG$ANSI{'p7_bg_0000'} ",
+                $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, " \r"
             }
             split( m|\n|, $nailara_header );
-        say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, $prefix_str, "\n",
-            $prefix_str, $ANSI{'reset'}, ' ', $ANSI{'p7_bg'},
+        say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, ' ', $ANSI{'p7_bg_0000'},
+            ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, " \n",
+            ' ', $ANSI{'p7_bg_0000'}, ' ', $ANSI{'p7_bg'},
             $ANSI{'p7_fg_0000'},
-            $version_str, $ANSI{'reset'}, '    ', $ANSI{'p7_bg'},
-            $ANSI{'p7_fg_0000'}, $release_str, $ANSI{'reset'}, " \r\n",
-            $ANSI{'p7_fg_0000'}, $ANSI{'p7_bg'}, $end_string, $ANSI{'reset'},
+            $version_str, $ANSI{'p7_bg_0000'}, '    ', $ANSI{'p7_bg'},
+            $ANSI{'p7_fg_0000'}, $release_str, $ANSI{'p7_bg_0000'}, ' ',
+            $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, " \r\n",
+            $ANSI{'p7_fg_0000'}, $ANSI{'p7_bg'}, '/', $ANSI{'p7_bg_0000'},
+            ' ' x 77,
+            $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '\\',
+            $ANSI{'reset'},
             , "\r";
     };
 
@@ -1711,7 +1719,7 @@ sub prepare_subs {
             $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'},
             $data{'system'}{'node'}{'name'},
             $data{'system'}{'zenka'}{'name'},
-            $ANSI{'reset'}
+            $ANSI{'p7_bg_0000'}
         );
     };
     $code{'log.format_name'} = sub {
@@ -1746,7 +1754,7 @@ sub prepare_subs {
             if ( $data{'system'}{'verbosity'}{'console'} ) {
                 map {
                     say &{ $code{'log.format_name'} }, ' ',
-                        $ANSI{'p7_fg_0004'}, $ARG,
+                        $ANSI{'p7_fg_0004'}, $ARG, $ANSI{'reset'},
                         $spaces
                 } @_;
             }
@@ -1780,7 +1788,7 @@ sub prepare_subs {
                     my $spaces = ' ' x $s_len;
                     say &{ $code{'log.format_name'} }, ' ',
                         $ANSI{'p7_fg_0004'}, $ARG,
-                        $spaces, $ANSI{'p7_fg_0004'}, $ARG,
+                        $spaces, $ANSI{'p7_fg_0004'}, $ARG, $ANSI{'reset'},
                         $spaces;
 
                 } else {
@@ -1810,7 +1818,7 @@ sub prepare_subs {
                 my $spaces = ' ' x $s_len;
                 map {
                     say &{ $code{'log.format_name'} }, $ANSI{'p7_fg_0001'},
-                        $ARG,
+                        $ARG, $ANSI{'reset'},
                         $spaces
                 } @_;
             }
@@ -1943,7 +1951,7 @@ END {
 }
 
 #.............................................................................
-#VUKOYNYEZCTZ2V5U5VZHXOT6SWTX65WAZWGZQCJQ3I2MUDHMP2SPXDNO2THYAFPRZMQTKWAE7QTDQ
-#::: VGQVMENN4XGXE6JQ4ZZM54R7P53OUCQF65XFLZ2XCW5VXD5LZQ6 :::: NAILARA AMOS :::
-# :: LZN2TORAPGU27WCF2YK4J7XNKE36RIWUG63CTRDZU7W2SAVA42DI :: CODE SIGNATURE ::
+#KDTD2VBOAXRICDJZJD56XANGDN64DOLID2KMAQ4EHOQCOC3FSW4F42BCQN5ZZLMCRLFMGDS3PBSYU
+#::: XPO4UB3RWA5QPW5MPNUVXNWJ7KSOUW2QND7EDFIDIE3B2XXX7PV :::: NAILARA AMOS :::
+# :: Q2JAYXX6X2EUTYSTOYE4E5C2YFAJSRXHJ2JGZMIB4VENDH7UBIAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
