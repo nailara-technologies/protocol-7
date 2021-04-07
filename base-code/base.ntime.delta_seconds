@@ -6,7 +6,7 @@ my $ntime_start = shift // '';
 my $ntime_end   = shift;
 
 my $base_regex = <regex.base.base_32>;
-my $time_regex = qr|^$base_regex$|o;
+my $time_regex = qr|^$base_regex$|;
 
 warn 'expected valid network time value <{C1}>' and return undef
     if $ntime_start !~ m|^\d+(\.\d+)?$| and $ntime_start !~ $time_regex;
@@ -39,7 +39,7 @@ $precision += 3;
 return sprintf( '%.' . $precision . 'f', $delta_secs );
 
 #.............................................................................
-#3T5WOYYOPAINS53SADWVZQR4UDV7XHWLMQAJWUSX25NHWHHOPZKNIVLKOJ3WZNTKFSMG6UVIHEAZE
-#::: 66NCX44GUJVDXQXDLBOFRSSVBC65LGIQ42CSIH4TAC323RMPHQ5 :::: NAILARA AMOS :::
-# :: AYCTONJY6X4HODXVEZPLDSVDBXJTG5WNJSYAKCRYRULJROUXYUCA :: CODE SIGNATURE ::
+#MCFIZIDIYLBM4HVD6MKKEG4NDAY5UY776ESLWKKJEBMUUTELLKZNZJTOLIRVWFFHI5F5KOCJ2WPPO
+#::: UW36V6IUFPSYAYAAUUQFJIOOJ37FY3KH3XTXPIVF5WQ2VRNX6WL :::: NAILARA AMOS :::
+# :: DUUSCQBE3J7XUD5Q6G7I5P7YXIVGD5UZLMGRVTAREDEOXA5KHMCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

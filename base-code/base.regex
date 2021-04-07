@@ -3,16 +3,16 @@
 
 <[base.log]>->( 2, 'compiling base regex cache.,' );
 
-my $anum       = qr|0-9A-Za-z|o;
-my $anum_lc    = qr|0-9a-z|o;
-my $usr_str_re = qr|[$anum][$anum\-_]{0,16}|o;
-my $sn_str_re  = qr|[$anum\-\+\.:_]{1,17}|o;
-my $cmd_re     = qr|[a-z][$anum\-_]{1,22}|o;
+my $anum       = qr|0-9A-Za-z|;
+my $anum_lc    = qr|0-9a-z|;
+my $usr_str_re = qr|[$anum][$anum\-_]{0,16}|;
+my $sn_str_re  = qr|[$anum\-\+\.:_]{1,17}|;
+my $cmd_re     = qr|[a-z][$anum\-_]{1,22}|;
 my $rep_id_re  = qr|(\(\d{1,9}\))|;
-my $cmd_str_re = qr|[$anum_lc][$anum_lc\-_\.]{0,}|o;
+my $cmd_str_re = qr|[$anum_lc][$anum_lc\-_\.]{0,}|;
 
-# my $cmd_path_re = qr{(($usr_str_re(\[$sn_str_re\])?)\.)*$cmd_str_re( .+)?}o;
-# my $reply_re    = qr|[A-Z]{3,4}( .+)?|o;    # ACK, NAK, DATA, STRM, ..,
+# my $cmd_path_re = qr{(($usr_str_re(\[$sn_str_re\])?)\.)*$cmd_str_re( .+)?};
+# my $reply_re    = qr|[A-Z]{3,4}( .+)?|;    # ACK, NAK, DATA, STRM, ..,
 
 return {
     'cmd_id'     => qr|\d{2,15}|o,             # valid command [-route] id
@@ -36,7 +36,7 @@ return {
 };
 
 #.............................................................................
-#QMASC5EXVYN2IJLRN7KTYSW7LI2TCQWHHVKGPXVK33EGVEPATCZDUXK4Q2VMTI5JLQQLZ6VOR4VYO
-#::: P67BKUU5DKTHN6YGYUEG5WXKKGJLBA6N63I4AYN4YNEP3BYDSRY :::: NAILARA AMOS :::
-# :: 6LPWF64L2UBBJOKQ2KRXOUCUVXF6IYCXCXWJSJTVGGJIRWTXW2AI :: CODE SIGNATURE ::
+#T22QUZVAZVXMWAFUVC2WSNQKN37SOLJFU76TG7HE4K7YT7CEJVMEOLPTDRFH4PCYW42S4M6IITOUG
+#::: 2SDXJDRQGWJYID32DGV3VYJJ3PQTJ6MXW2NORYZHICER6I34D7H :::: NAILARA AMOS :::
+# :: TTM3SBAW25E7WKTGMN3AP4OLJKIOJ37B3GUKPQANYIBR74UGVACI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
