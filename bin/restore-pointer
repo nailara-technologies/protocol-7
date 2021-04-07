@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+$ENV{'DISPLAY'} //= ':0.0';
+
+use Gtk3;
+Gtk3->init;
+
+say "\n  :: restoring pointer ::\n";
+
+my $cursor = Gtk3::Gdk::Cursor->new('left-ptr');
+my $screen = Gtk3::Gdk::Screen::get_default();
+Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
+$screen->get_root_window->set_cursor($cursor);
+
+Gtk3->main;
+
+#.............................................................................
+#YKSAAC7BKXKNXCYE64BZXVFO6ELJLM5NZ67DKONKCFRWM245MUZMDU5ZY4UBYQ2AGPHBUC3MSEC44
+#::: XWR6II4ZQMFTJ2ZU5O3Y2ZHNP7N4YJ2CN36DHCS7GBS5QW43MRQ :::: NAILARA AMOS :::
+# :: BMA6ID57III6K4CRB36ITFQDLBHQPJNKRT3AFSETB3UQOY7TZABQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
