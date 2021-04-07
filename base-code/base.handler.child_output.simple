@@ -15,6 +15,7 @@ my $xpatterns = $child->{'callback_patterns'} || {};
 <base.child_exit>->{$pid}->{'keep-zenka'} // 0;
 
 <child.output_buffer> //= '';
+
 my $read_bytes = <[base.s_read]>->(
     $read_fh, \$data{'child'}{'output_buffer'},
     4096,     length(<child.output_buffer>)
@@ -31,7 +32,7 @@ if ( not defined $read_bytes or $read_bytes == 0 )
         $log_level    = 2;
         $keep_running = 1;
     }
-    <[base.log]>->( $log_level, ": $bin-child terminated." );
+    <[base.log]>->( $log_level, ": $bin-child shut down." );
 
     return 0 if $keep_running;    ##  <-- opc return value ##
 
@@ -80,7 +81,7 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#TVTPZHLYX2GB57WIUBIDF3KDRDGENBNCZZ3PAPW4CGLDWZQEI2CKHD5TUYDN23S72B7CKHXIVQETI
-#::: 3S43ZCQVBLX3NHILTPHFM26LPDV2EAPEDWIVDVL6MUIG2AG7IO4 :::: NAILARA AMOS :::
-# :: W6IIJSA6XSP5QQRPJXPEM5XMC46GIR3KCG66V3YTURIV4N5CIMAI :: CODE SIGNATURE ::
+#ZTTIBDSI7UJRYIUCCSIPGDZTNSXAKAZR32V5EDYG467HLPQ33IZTPN2MWIHSCACR4TGHKC4DM5QN6
+#::: APOY6APUA6OBW2D54DIES2MAAHLX5BQR2XQTFOQXLZAEDJN2B7O :::: NAILARA AMOS :::
+# :: KIT6JRVAPKNDFAONUMJ52IKKH2ZVWFP5XTABHTMRAOK2WDP56ECQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

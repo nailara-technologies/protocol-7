@@ -14,16 +14,12 @@ if (    defined $instance->{'status'}
     and $instance->{'restart_id'} eq $restart_id ) {
     <[base.log]>->(
         0,
-        "<< ! >> restart timed out for $zenka_name instance $instance_id .,"
+        "<< restart timed out for $zenka_name instance $instance_id ., >>"
     );
-
     <[zenka.change_status]>->( $instance_id, 'error' );
-    delete $instance->{'restart_id'};
+} ## else { left-over restart timer ? }
 
-    <[nroot.init_restart_timer]>->($instance_id);
-} else {
-    delete $instance->{'restart_id'};
-}
+delete $instance->{'restart_id'};
 
 delete $instance->{'timer'}->{'restart_timeout'}->{$restart_id};
 delete $instance->{'timer'}->{'restart_timeout'}
@@ -31,7 +27,7 @@ delete $instance->{'timer'}->{'restart_timeout'}
 delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
 
 #.............................................................................
-#PBYFCDVTMQRMJAIKBKHQEZMISGIG5VASJ7CZTOFCQ6R2W2XHVPH7DWC2CJBOLHJJCXCIQ7MHCPT4C
-#::: WO26KJXKILZZSMKMNSK5GW5IGYU57SPUXUIENAGUEMU7W5HJSXT :::: NAILARA AMOS :::
-# :: 7ST7LAY4XAHE4O2OUKF7D6HH6VOPIBL75T22PY6DQIC63HHPMKBQ :: CODE SIGNATURE ::
+#HA25ZIHNFTPYH5DUEN7FF74B6TPLJZZ42FNWK7UVYTURUNEMEE6L6V3HJEFDDODJTKQEEMH2ROVSM
+#::: 2ZSTGCLSRMQ2DGBPR36BK3DKTUCCJQQSY7623GJNOMNO62R7R7E :::: NAILARA AMOS :::
+# :: PNYVKPUWUYBLMVKRO27KJKNWMVKTJMP7ZQB4ISCYSKAPWCMLOKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

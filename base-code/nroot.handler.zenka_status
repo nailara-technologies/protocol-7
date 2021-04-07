@@ -162,6 +162,7 @@ if ( $old_status ne 'error' and $status eq 'error' ) {
 }
 $instance->{'restart_delay'} = $max_restart_delay
     if $instance->{'restart_delay'} > $max_restart_delay;
+
 if (    $status ne 'online'
     and $status ne 'extbin'
     and exists $instance->{'timer'}->{'reset_restart_delay'} ) {
@@ -190,21 +191,35 @@ if (    $old_status ne 'online'
         ##
     }
     ##
-    if ( not defined $instance->{'startup-error-retries'} ) {
+    if ( not defined $instance->{'startup-error-retries'}
+        or $instance->{'startup-error-retries'} !~ m|^\d+$| ) {
         $instance->{'startup-error-retries'}
-            = $start_err_cfg->{'retry-count'} // 0;
-        $instance->{'restart_delay'} = $start_err_cfg->{'retry-min-delay'}
-            if defined $start_err_cfg->{'retry-min-delay'};
+            = $start_err_cfg->{'retry-count'};    ## global value fallback ##
     }
-    if ( $instance->{'startup-error-retries'}-- ) {
+    ## [LLL] sanitize keywords for harmony ##
+    $instance->{'restart_delay'} //= $start_err_cfg->{'retry-min-delay'}
+        if defined $start_err_cfg->{'retry-min-delay'};
+
+    ## 'limitless' retries if not defined \ not numerical ##
+    $instance->{'start-up-retries-left'} = 'limitless'
+        if not defined $instance->{'startup-error-retries'};
+
+    if (   $instance->{'start-up-retries-left'} eq 'limitless'
+        or $instance->{'start-up-retries-left'} > 0 ) {
         <[base.log]>->(
             1,
             sprintf(
-                ": instance %d : startup-retries : %d :",
-                $instance_id, $instance->{'startup-error-retries'}
+                ": instance %d ['$zenka_name'] : start-retries : %s :",
+                $instance_id, $instance->{'start-up-retries-left'}
             )
         );
-    } else {
+        $instance->{'start-up-retries-left'}--
+            if $instance->{'start-up-retries-left'} !~ m|\d+|;
+
+        <[nroot.init_restart_timer]>->($instance_id);
+    }
+    #### [ end retries ]####
+    else {
         delete $instance->{'cube_sid'};
         <[zenka.change_status]>->( $instance_id, 'offline' )
             if $old_status ne 'error';
@@ -410,7 +425,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 #.............................................................................
-#X6XVHKRF2ERC7DWMLF3KC77QZI4L7ANL454P264HZJJIUWWBLLFFFU7AGFQJ76BXJNEVYQFMCJBWQ
-#::: VQTJZ6GGBPRIE2S2PO2QM7SUK6XB5ZOKCPZIYAYFY7LCC3M724D :::: NAILARA AMOS :::
-# :: P3CLTSHX5DTIRZZPIPLJFBAQ744NIE6DMUY6LOGVTGTVBBZTEACI :: CODE SIGNATURE ::
+#A7BKWDA777VF5FOVAN67BONS2ZLXLK5AYYEHEF5VHILWKFWL3IO7PEBGD3OZDTX6LWP2DJFS5QUKA
+#::: MMSRTXBX7LZWO5YYUSNQI77HZWZW5KWTWQ26CNCZS55LXBM73V6 :::: NAILARA AMOS :::
+# :: G4CBWC3SIEGWZ233OOXCXXVMD4CRJGXWXX4JTL4UW5NI2NTVNIDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
