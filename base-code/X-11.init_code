@@ -73,8 +73,8 @@ if (    <X-11.mode> eq 'xorg'
     if ( !length($freq_bin_path) or !-x $freq_bin_path ) {
         <[base.log]>->(
             0,
-            "[!] max_intel_gpu_freq is enabled but"
-                . " intel_gpu_frequency binary not found.."
+            '<< max_intel_gpu_freq is enabled but'
+                . ' intel_gpu_frequency binary not found., >>'
         );
     } else {
         my $freq_output = qx| $freq_bin_path -g |;
@@ -83,7 +83,8 @@ if (    <X-11.mode> eq 'xorg'
             if ( $cur_freq ne $max_freq ) {
                 <[base.log]>->(
                     1,
-                    "<< ! >> maximizing GPU frequency [ $cur_freq --> $max_freq ]"
+                    "<< maximizing GPU frequency "
+                        . "[ $cur_freq --> $max_freq ] >>"
                 );
 
                 qx| $freq_bin_path -m |;    # <-- max
@@ -105,7 +106,7 @@ if (    <X-11.mode> eq 'xorg'
 0;
 
 #.............................................................................
-#H7MLJ3CF2SOHQLCA64NUWA7HZGSMVRCUIPR3WMEBGSQU7WQOWI2BO5H37ORKPGMARQZ7WI3FBAB7C
-#::: OZR6L4FT4N2O6TFIIJWX4UWCSWZFGIUZYMQ45KWWSJPSZFTUC73 :::: NAILARA AMOS :::
-# :: WIIPCSI5A5DVJH5FNW3HWIJEY7EN2II7RUECFM36TGWIYCFZYUDY :: CODE SIGNATURE ::
+#2AS32D3MQ5M5TFF66HDOFVGGDQMU3QEAYEPHVOYWY2WY67EGGRN22JMMTVV6QBABHLU56X7FHDXNI
+#::: OYOFZ5J5RH5FRPFX5ARVCE3ZVBPTSEX7VCSY44HNHROSKYNRZTB :::: NAILARA AMOS :::
+# :: ARWN2ZEMSJBF7SM4X2GJPUL4QSF7LVUWGFX42GRL7KLIPOLS4MBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -201,8 +201,12 @@ if (    $old_status ne 'online'
         if defined $start_err_cfg->{'retry-min-delay'};
 
     ## 'limitless' retries if not defined \ not numerical ##
-    $instance->{'start-up-retries-left'} = 'limitless'
-        if not defined $instance->{'startup-error-retries'};
+    if ( not defined $instance->{'startup-error-retries'} ) {
+        $instance->{'start-up-retries-left'} = 'limitless';
+    } else {
+        $instance->{'start-up-retries-left'}
+            //= $instance->{'startup-error-retries'};
+    }
 
     if (   $instance->{'start-up-retries-left'} eq 'limitless'
         or $instance->{'start-up-retries-left'} > 0 ) {
@@ -425,7 +429,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 #.............................................................................
-#A7BKWDA777VF5FOVAN67BONS2ZLXLK5AYYEHEF5VHILWKFWL3IO7PEBGD3OZDTX6LWP2DJFS5QUKA
-#::: MMSRTXBX7LZWO5YYUSNQI77HZWZW5KWTWQ26CNCZS55LXBM73V6 :::: NAILARA AMOS :::
-# :: G4CBWC3SIEGWZ233OOXCXXVMD4CRJGXWXX4JTL4UW5NI2NTVNIDY :: CODE SIGNATURE ::
+#ZXAYUZOP4GNMOYUVQWCAB4ORE6ZZ454XXHPIP3YRO2Y5YW2U2JGPL26ARCZXOP5DKZ4ELLURL4JZG
+#::: TMTSSPJOU5SAACHCALFJJRPTAG7W5UNCPIGLTQ6RJNZOUVCKYOL :::: NAILARA AMOS :::
+# :: MVCL23SUDB5KYQYTWL6XTNVCHENK3QBLBG7D2R26QWWMSZQYJYDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
