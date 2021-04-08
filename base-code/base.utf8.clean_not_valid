@@ -1,0 +1,41 @@
+# >:]
+
+# name  = base.utf8.clean_not_valid
+
+my $s_ref = shift;
+my $l_lvl = shift // 2;    ## log level for errors ##
+my $c_lvl = shift // 1;    ## caller level for reporting ##
+$s_ref = \$s_ref if ref($s_ref) ne 'SCALAR';
+
+return 0 if not utf8::is_utf8($$s_ref);    ## nothing to do here ##
+
+if ( not defined <base.utf8.test_fh> ) {
+    open( <base.utf8.test_fh>, '>', File::Spec->devnull() )
+        or warn "<devnull> : \l$OS_ERROR";
+    binmode( <base.utf8.test_fh>, ':encoding(UTF-8)' );
+}
+
+eval {
+    use warnings FATAL => 'utf8';
+    say {<base.utf8.test_fh>} $$s_ref;
+};
+
+if ($EVAL_ERROR) {
+    ( my $err_str = lc($EVAL_ERROR) ) =~ s|(, may not.+)? at .+$||g;
+    <[base.log]>->(
+        $l_lvl,
+        join( ' ', ':: not valid UTF-8 ::', <[base.caller]>->($c_lvl) )
+    );
+    <[base.log]>->( ++$l_lvl, ':.' . $err_str );
+
+    return <[base.clean_unicode]>->($s_ref);   ## <-- num. characters replaced
+
+} else {
+    return 0;                                  ## no changes ##
+}
+
+#.............................................................................
+#HRUAT7USLQZO3BOAN7H2HIWQFO4R4677VJXH3DOL2QCS44QOK5Q77HXQ4T5LPYLSLAJTR2HMNROIW
+#::: REG4LQUXOUE64KKORIAFT5ZHJBMXLLK5QZEHNZDKAFHUNHDZ6V7 :::: NAILARA AMOS :::
+# :: OCS6MLRXAR6NPJXMUX4UNTVMOV5LTVB3P6ZCSPS4Q4ZH4R5TZSBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
