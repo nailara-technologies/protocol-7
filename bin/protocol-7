@@ -265,7 +265,7 @@ sub prepare_subs {
         my $network_time = shift;
         my $ntime_dec;
         warn 'invalid network time format <{C1}>' and return undef
-            if $network_time !~ m|^[A-Z2-7]{1,22}$|;   ## <-- inc. len. [LLL]
+            if $network_time !~ m|^[A-Z2-7]{1,22}$|;    ## <-- inc. len. [LLL]
         eval {
             no warnings;
             $ntime_dec
@@ -800,14 +800,17 @@ sub prepare_subs {
             if (    $ARG !~ m{\.(callback|handler)\.}
                 and not exists $data{'base'}{'core_subs'}{$ARG}
                 and $ARG ne 'base.log'
+                and $ARG ne 'base.caller'
                 and $ARG ne 'base.s_read'
                 and $ARG ne 'base.gen_id'
                 and $ARG ne 'base.sig_int'
                 and $ARG ne 'base.s_write'
                 and $ARG ne 'base.sig_warn'
                 and $ARG ne 'base.route.add'
+                and $ARG ne 'base.clean_unicode'
                 and $ARG ne 'base.buffer.add_line'
                 and $ARG ne 'base.list.element.add'
+                and $ARG ne 'base.utf8.decode_clean'
                 and $ARG ne 'base.log.send_buffer_line'
                 and $ARG ne 'base.log.handler.log_reply'
                 and $ARG ne 'nroot.handler.zenka_output'
@@ -1895,7 +1898,7 @@ sub prepare_subs {
             }
             $filename
                 =~ s|^/usr/share/perl5/||;    ## shorten path for .pm modules
-            my $caller_str = "[ $filename, $line ]";
+            my $caller_str = "[$filename:$line]";
             $caller_str = "[ ... caller level $level too high .., ]"
                 if !length( $filename . $line );
             my $log_warning = 1;
@@ -1951,7 +1954,7 @@ END {
 }
 
 #.............................................................................
-#PLIQ2AU73PA5TAEI6EHNWJ77VALJH3YSV3FD27U3B24J5QPDWYXCT3W5S755QOMBE2LXWVYGQTCO4
-#::: LBMTMHVEYL5JWWHWNU2KLZWMUH4FGDSNOGUAPRI74YNURLAQYQB :::: NAILARA AMOS :::
-# :: PEZUV5JZE4R4X7WBYDAOBPI5U2XNRD2EH35FPGKMZEG5H3IPY6BQ :: CODE SIGNATURE ::
+#C2OTZIW3ZZ2NJQSTVSPHPNXDKAJ34O2SCOIUV743FRMBX6BWGZ2OU5VFBA37SW45E2ISXSUHFA6JM
+#::: W2N5EMRMZP7SOLYBQIDQDYTTBBWJOSNQVMWAP56UYG5OMMRRML2 :::: NAILARA AMOS :::
+# :: RNQZGV6O7N2UCWIGR6OTT46IAHOFD4T6WX2EMMZJXYXTZEV4USCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
