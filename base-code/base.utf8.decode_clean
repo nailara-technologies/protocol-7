@@ -1,0 +1,27 @@
+# >:]
+
+# name  = base.utf8.decode_clean
+
+my $s_ref = shift;
+my $l_lvl = shift // 2;    ## log level for errors ##
+my $c_lvl = shift // 1;    ## caller level for reporting ##
+
+$s_ref = \$s_ref if ref($s_ref) ne 'SCALAR';
+
+# if ( not utf8::decode($$s_ref) ) {
+if ( not utf8::encode($$s_ref) ) {
+    <[base.log]>->(
+        $l_lvl,
+        ':: UTF-8 decoding error :: [ cleaning data ] '
+            . <[base.caller]>->($c_lvl)
+    );
+    return <[base.clean_unicode]>->($s_ref);   ## <-- num. characters replaced
+} else {
+    return 0;                                  ## no changes ##
+}
+
+#.............................................................................
+#UFUZFILCHGZIUJLNQ3YLMGUSTCEVOUN6QWBIRNKZTYYKA7YNYXWLEUT6P4M57EYSZWSUTQ3J7J5ZS
+#::: DAC3V7AQO2HYSCW4SECAR65IRWAZFHVKYLW22OHF62XMH6SFO5H :::: NAILARA AMOS :::
+# :: FMD4L72XGAXDJMAMFOZ2AV2Z4YNZC6L5A755TVHC6PNYLT5OMCDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
