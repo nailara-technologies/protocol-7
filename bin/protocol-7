@@ -704,7 +704,8 @@ sub prepare_subs {
             && $data{'system'}{'start'}{'showbanner'} ) {
             say $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $start_string,
                 , $ANSI{'p7_bg_0000'},
-                ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '/';
+                ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '/',
+                $ANSI{'reset'};
             &{ $code{'base.banner'} };
         }
         ## initializing early zenka buffer capture ###
@@ -738,24 +739,20 @@ sub prepare_subs {
             or return;
         my $nailara_header = <$banner_fh>;
         close($banner_fh);
+        my $bg_0 = $ANSI{'p7_bg'};
+        my $bg_1 = $ANSI{'p7_bg_0000'};
+        my $fg   = $ANSI{'p7_fg_0000'};
+        my $rst  = $ANSI{'reset'};
         map {
-            say "$ANSI{p7_bg}$ANSI{p7_fg_0000} $ANSI{'p7_bg_0000'} "
-                . "$ANSI{p7_bg}$ANSI{p7_fg_0000}$ARG$ANSI{'p7_bg_0000'} ",
-                $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, " \r"
+            say $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $fg, $ARG, $bg_1, ' ',
+                $bg_0, $fg, ' ', $rst, "\r"
             }
             split( m|\n|, $nailara_header );
-        say $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, ' ', $ANSI{'p7_bg_0000'},
-            ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, " \n",
-            ' ', $ANSI{'p7_bg_0000'}, ' ', $ANSI{'p7_bg'},
-            $ANSI{'p7_fg_0000'},
-            $version_str, $ANSI{'p7_bg_0000'}, '    ', $ANSI{'p7_bg'},
-            $ANSI{'p7_fg_0000'}, $release_str, $ANSI{'p7_bg_0000'}, ' ',
-            $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, " \r\n",
-            $ANSI{'p7_fg_0000'}, $ANSI{'p7_bg'}, '/', $ANSI{'p7_bg_0000'},
-            ' ' x 77,
-            $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '\\',
-            $ANSI{'reset'},
-            , "\r";
+        say $bg_0, $fg, ' ', $bg_1, ' ' x 77, $bg_0 . $fg, ' ', $rst, "\n",
+            $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $version_str, $bg_1, '    ',
+            $bg_0, $fg, $release_str, $bg_1, ' ', $bg_0 . $fg, ' ', $rst,
+            "\n", $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\', $rst,
+            "\r";
     };
 
     $code{'dump_core_subs'} = sub {
@@ -1955,7 +1952,7 @@ END {
 }
 
 #.............................................................................
-#LVQ7M7SNIVIKPOSR4DYZQXQKM6KJPCJ3CFTXA7XGW7HCE2IPDAYYKH43N47D7KMDJ2JRR2WI2MSMY
-#::: NGFXGH3DHLOSVQI552DGHZ3BOTFFB25NBQSFWXQOZFS6BOR6Y4A :::: NAILARA AMOS :::
-# :: 55VTQ7F35CVE2Y6ALD5V7KLNZW6MTXUIH22ZOGSBMOAXOEN3K6CI :: CODE SIGNATURE ::
+#R6U3EW66PEOKI5Q73TIC4XJ2GGV3SYXZYPX4Z3H3KZGHWM6ZBJP5VGKI64WBSXPYUNTRUVLRH3OUE
+#::: P62WBIWJJ7ZTEIGNDQRCQKRQT3FDBMPGWXNDMZZ3HKM6F74KLAM :::: NAILARA AMOS :::
+# :: JOLSKNKB7RVBAF6A3BEUFRH52MMMOYV3FPT4623EPE4IR6CI6CDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
