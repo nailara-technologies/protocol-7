@@ -1,0 +1,28 @@
+# >:]
+
+# name  = base.clean_unicode
+
+my $s_ref = shift;
+
+my $match_count = 0;
+my $return_data = 0;
+
+$return_data = 1 and $s_ref = \$s_ref if ref($s_ref) ne 'SCALAR';
+
+if ( utf8::is_utf8($s_ref) ) {
+    $match_count = $$s_ref =~ s{([^\p{ASCII}])}
+                                { my $v = unpack('U',$LAST_PAREN_MATCH);
+                                 my $u = $v > 255 ? 'U:' : '';
+                                 "[$u$v]"
+                                }uge;
+}
+
+return $$s_ref if $return_data;
+
+return $match_count;  ## return whether data replaced [ input scalar ref. ] ##
+
+#.............................................................................
+#4FNBRDXAK63ZKKEMR5Y6FBSSBVNUYC7NQTQXGTIZCZCZMOYBCW2CUWAGSQLPWQRAC5YHHPCQDGXZK
+#::: A6PFRGOCXTA6TQLMLWDTLB6BXTQPDLNV7DV2PRQAM3STBJL6FNL :::: NAILARA AMOS :::
+# :: PLOO7LHGM4Q7VQYLMDAEDUV76S62ITP4WG6LYBRS6LFUXNYZBYCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
