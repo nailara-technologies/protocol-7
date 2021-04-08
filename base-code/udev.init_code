@@ -2,6 +2,13 @@
 
 # name = udev.init_code
 
+if (<system.zenka.initialized>) {    ## reload already loaded rule-sets ##
+    <[udev.reload_rules]>;
+    return 0;
+}
+
+## :: else :: initialize udev zenka ##
+
 <udev.rules> //= {};
 
 <udev.path.udevadm>  = <[base.required_bin_path]>->('udevadm');
@@ -24,7 +31,7 @@ if ( defined <system.zenka.subname>
 0;
 
 #.............................................................................
-#KISHW7XK2DMOSCJ7SQ3547SF5TOQU5GSPGTP2KFZAXJANY3VPSC6YFF5XQWES34DT4L42G2ALUPJM
-#::: TONDTD76KNSBDPMV5JJF7PNVYALFL6VXNMJYQ72JVZ3PZSL67CD :::: NAILARA AMOS :::
-# :: TT22AMASCZB2V7L6WTLHY7B765HSG2UWRZCUU6Q7FRGDCEBL6SDI :: CODE SIGNATURE ::
+#G3C5FVU3BYKWFHEFE3FNBM6QB2YK7NAJDHMKHRUHV4UM5S3NANMMSIYX6XDKZ2EHNCY6GT57B5XIC
+#::: XUHTU24F225RA4G3FTIYVIQXKBSPBBQRK246W4X5KMSZDSFWX3U :::: NAILARA AMOS :::
+# :: 3G37K2CHO4MEMRQDBX6WE3G7F6CLNJZVSBBWUO6X5WFYTDXWJ4BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
