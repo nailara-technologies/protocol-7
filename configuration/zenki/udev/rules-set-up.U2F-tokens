@@ -5,33 +5,56 @@
 
 .: patterns :.
 
-    - U2F-key-silver
+    - U2F-key-black
 
         : inserted :
 
-                SUBSYSTEM = hid
-                 HID_NAME = HS HyperFIDO Token
-                   DRIVER = hid-generic
+             ID_VENDOR_ID = 1ea8
+              ID_MODEL_ID = f025
+                 ID_MODEL = EsecuFIDO_HID
                    ACTION = bind
 
         : removed :
 
-                SUBSYSTEM = hid
-                 HID_NAME = HS HyperFIDO Token
-                   ACTION = unbind
-
-.: actions :.
+                   HID_ID = 0003:00001EA8:0000F025
+                   ACTION = remove
 
     - U2F-key-silver
 
         : inserted :
-          net.cmd = notify.message SECURITY TOKEN INSERTED\n :: <HID_NAME> ::
+
+  ID_VENDOR_FROM_DATABASE = Hypersecu
+            ID_VENDOR_ENC = HS
+             ID_VENDOR_ID = 2ccf
+             ID_MODEL_ENC = HyperFIDO\x20Token
+              ID_MODEL_ID = 0880
+                   ACTION = bind
 
         : removed :
-          net.cmd = notify.message security token REMOVED.,\n :: <HID_NAME> ::
+
+                   HID_ID = 0003:00002CCF:00000880
+                   ACTION = remove
+
+.: actions :.
+
+    - U2F-key-black
+
+        : inserted :
+          net.cmd = notify.message SECURITY TOKEN INSERTED\n :: KEY-black ::
+
+        : removed :
+          net.cmd = notify.message security token REMOVED.,\n :: KEY-black ::
+
+    - U2F-key-silver
+
+        : inserted :
+          net.cmd = notify.message SECURITY TOKEN INSERTED\n :: U2F-silver ::
+
+        : removed :
+          net.cmd = notify.message security token REMOVED.,\n :: U2F-silver ::
 
 #.............................................................................
-#XXQ7XGLDLQSUQTCZHH5WMAZ4QXZYYRO7J3IZLUD5QNYCL7MAVMR3X27WBVDTJWG7LCPD5B6R36JRS
-#::: L3B67DPBU234M22W4DICZXCU6WXVY5MPGZNZQV5EBLMV2NEWEND :::: NAILARA AMOS :::
-# :: ZBW7FP35AP5PJQAH3SV33UNDKZL4SAD5DSINTAZLNW73G4SR7IBA :: CODE SIGNATURE ::
+#TKFX2DDX6ZJQXUV7TTVHCR6T5B3EUDAP4YZFZHJX2UDF43A7TYKHR3J4CYIMBE6DCJS66HVHTKGY6
+#::: OECMNHWSGPQMSUFAFYS77CMYNKSDSC63S5FLK75M2UHZUHSVCTH :::: NAILARA AMOS :::
+# :: YSCRC46QUHARQASFYVVDOT7ZVKNRGXFELTPWV5CYUWPGU6UCF2DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
