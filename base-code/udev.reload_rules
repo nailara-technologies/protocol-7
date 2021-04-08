@@ -1,0 +1,20 @@
+# >:]
+
+# name = udev.reload_rules
+
+## [LLL] ## implement mechanism to update rule file names from config file ##
+
+<[base.logs]>->(
+    ":: re-loading rule%s :.",
+    <[base.cnt_s]>->(
+        my @loaded_rule_files = <[base.reverse-sort]>->(<udev.rule-files>)
+    )
+);
+
+<[udev.load_rules]>->(@loaded_rule_files);
+
+#.............................................................................
+#236S7G3HMAH22IFSSJ5ZQGZGS7GHK537WRAYSOR6VWZCHVSXTYUABW46TG43MNG5VAJRXPTJWFP3Q
+#::: A7VKZXZZ2DVKS5HS7DI6D5PIAUNLPMJMMB2NNNEX6CTJOAE3BZF :::: NAILARA AMOS :::
+# :: EBNOBUTLKHXB3NDVLRMOIH22GID5V7TAC2YFVKDOBMXFR7XQZAAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
