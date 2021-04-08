@@ -9,7 +9,7 @@ my @setup_names = @ARG;
 
 my $cfg_dir = <udev.cfg_search_path> //= <system.conf_path> . '/zenki/udev';
 
-<[base.log]>->( 1, '..loading udev rule setup files..,' );
+<[base.log]>->( 1, '..loading udev rule set-up files..,' );
 
 if (@setup_names) {
     @rule_files = map {"rules-set-up.$ARG"} @setup_names;
@@ -33,12 +33,14 @@ foreach my $file (@rule_files) {
     if ( not -f "$cfg_dir/$file" ) {
         <[base.log]>->( 0, "configured rule file '$file' not found .," );
     } else {
+        ( my $rf_name = $file ) =~ s|^rules-set-up.||;
+        <udev.rule-files>->{$rf_name}->{'load-ntime'} = <[base.ntime.b32]>;
         <[base.load_section_config]>->( <udev.rules>, $cfg_dir, $file );
     }
 }
 
 #.............................................................................
-#OZJA6JAQBFTEHJNIXH5TT6BPWR6XVSGG5SSUKMXXT7MGWYLQ2KCTKGMI4RLD7WFRKZK46ZLEIAHKK
-#::: TYRXEOK7MA5F6MNLRUK5UU4JWWTSK2HZM3QCOERF6EIYI4LUTZJ :::: NAILARA AMOS :::
-# :: VFI7SG23ERDQEJGRKG3NIWR6W5XZ3KIXYHZLFQ5SAR6NPHL2PGAI :: CODE SIGNATURE ::
+#K6W3FUHUA3AE2PQPE3OKSILLWA4OMYHEKODVXVANPMLIC6TCNN4OUFZ2ES4FGVAZNFVENU5UECE5Q
+#::: RL7J7M4NWJXVRFENU3FCUX5UNBMOLUHJ5AFA7IF6AYVH2SXICVJ :::: NAILARA AMOS :::
+# :: HXHHHI7P4J452SRDST3IADWFUVDA2LNZGMGYQZ3MCPJJJRMQKWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

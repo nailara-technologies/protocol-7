@@ -1,20 +1,19 @@
 # >:]
 
 # name = base.logs
-# desc = sprintf <[base.log]> wrapper subroutine
+# desc = sprintf <[base.log]> wrapper sub-routine
 
-if ( length( $_[0] ) > 1 or $_[0] !~ /^\d$/ )
-{    # <-- level=1 if param is omitted
+if ( length( $_[0] ) > 1 or $_[0] !~ m|^\d$| )
+{    # <-- level = 1 if parameter is omitted
     <[base.log]>->( 1, sprintf( shift, @_ ) );
 } elsif ( @_ < 2 ) {
-    return warn "insufficient parameters";
+    return warn 'not enough parameters';
 } else {
-    <[base.log]>->( shift, sprintf( shift, @_ ) )
-        ;    # <-- <level> <sprintf_params>
+    <[base.log]>->( shift, sprintf( shift, @_ ) );  # <level> <sprintf_params>
 }
 
 #.............................................................................
-#CGWVKK2G2CO4ZNUB7K73QYHUVUPQ62EKQ4B3MM5CY2RCMAZ2SFWLANJ4PPKDS4V5OONYDGWJOVC2I
-#::: 6XXGBNCFJR7K2ZA3LJI2IMWWGVJPPZJY7VPDIQ2BMCEQ5MSYP4T :::: NAILARA AMOS :::
-# :: C7RZZ6YB42LINOZDBURYRV7SIJZ6LPLO4R73HVKTFA4ZQQBACWCY :: CODE SIGNATURE ::
+#MML2PIEE3BYBJNMVO47PJLMAFU7OH3JZV4AUBTKPJE6PCDID2MJCJFKMQZKPKWOYA4F7C7A3DQT4G
+#::: VCZKTOF7LID345F4QODT5C62QWXPQI6OYPT7TS2YMFNUCAWRY6O :::: NAILARA AMOS :::
+# :: QV5UPH74QJIIBFIXIFDMEMLBHWVFVQULZK7N6EPWDU5PJUD3KCBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -90,17 +90,18 @@ if ( !$match_count ) {
     <[base.log]>->( 2, ": : conf-path : '$conf_path' :." );
     map { <[base.log]>->( 2, ": : :.. '$ARG'" ); } @cfg_files;
 } else {
-    my $s_f = $match_count == 1 ? '' : 's';
-    my $s_l = $lines_count == 1 ? '' : 's';
-    <[base.log]>->(
-        2, ": $match_count file$s_f loaded, $lines_count config line$s_l.,"
+    <[base.logs]>->(
+        2,
+        ": $match_count file%s loaded, $lines_count config line%s.,",
+        <[base.cnt_s]>->($match_count),
+        <[base.cnt_s]>->($lines_count)
     );
 }
 
 return $config_data;
 
 #.............................................................................
-#7DTV3OYI3DLS6HT7YRANN3NSTPLBJWCM5GVSTZLTZU5K7ORPZDD3L26EUUD7RNXV67H2KKUAHTTXS
-#::: ALAVD7LM2QWSK3MRAS6XK34C3XUD3MRKGVCCNVFDMXUAJ54K5FH :::: NAILARA AMOS :::
-# :: JVUVTGBOQTL52RIQVY4JQ52PNNDP4NH44MW5NZXZERXXSSPMF6BI :: CODE SIGNATURE ::
+#HW2T5Q23AHIRELBKUJVJWCCGEA2TXRVF4L3TWSLBU4MH5WB4SQPXM2OMUHQ7YQXL2EK25VWQFNCBI
+#::: K63JB754YDJR33DH7OGXMENDAGYKECFSRFRMGUXVBEJAQVROBJK :::: NAILARA AMOS :::
+# :: QFJ4DHFDA5PV6WSEWYYD3BIU65C43H3NLY2SZ5C5LKGG5HYCCIAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
