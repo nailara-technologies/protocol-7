@@ -215,6 +215,8 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     <X-11.wait_for_display.callback> = 'X-11.callback.display_connected';
     <[base.log]>->( 0, '<< display is off \ not connected >>' );
 
+    <[X-11.start-up.show-screen-size]>;
+
   # polling for screen sizes, otherwise drm display status never gets updated.
     <X-11.timer.wait_for_display> = <[event.add_timer]>->(
         {   'after'    => 0.13,
@@ -238,12 +240,14 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
 
     my @max_size = <[X-11.max_screen_size]>;
 
+    ( my $size_x, my $size_y ) = <[X-11.start-up.show-screen-size]>;
+
     # LLL: make configurable..,
     if (    <X-11.has_randr>
         and defined <X-11.video_driver>
         and <X-11.video_driver> ne 'qxl'
-        and (  $max_size[0] > <X-11.obj>->width_in_pixels
-            or $max_size[1] > <X-11.obj>->height_in_pixels )
+        and (  $max_size[0] > $size_x
+            or $max_size[1] > $size_y )
     ) {
         <[base.log]>->( 0, '<< X-11 cannot select highest screen size >>' );
         <[base.log]>->(
@@ -257,6 +261,8 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     } else {
         <X-11.display_status.handler> = 'X-11.handler.display_power_state';
     }
+} else {
+    <[X-11.start-up.show-screen-size]>;
 }
 
 if (<X-11.has_randr>) {
@@ -375,7 +381,7 @@ if ( defined $bg_image ) {
 return 0;
 
 #.............................................................................
-#LFQT5SSUQEBYJ4TJZJLHNLNVKS6CFZD2OQSVYRTY3OFXRO54ZIGVFH3QL3RTRG3TYJ4T6KHECFGDW
-#::: TVEWJDVAGI6Q4M7DCEB74QHVXBJ7KIOF4ESPV4VFSG3P453NSXZ :::: NAILARA AMOS :::
-# :: GTCBXCDGR55GLPSEERW3SA45B3G4EWKD34JUOQYN4BBE5GJ5Y2BI :: CODE SIGNATURE ::
+#H4LIW35WHQXG5EQ3NMDDPKMKKNRIYEGTKQAH72S3U5772YCWCLYB63FC522PTYWQ46P5D44C43AI6
+#::: M6FD2L4A5D45NAFT37B7N6NKZQHYIW4IELVS3NRIG4OLVUCYVEC :::: NAILARA AMOS :::
+# :: NEZQ2STWAM2YSMALKHK6PYL7OMRF73B5LVRM7E7AKPCTHXZUAMAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
