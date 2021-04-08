@@ -10,7 +10,7 @@ X-11.mode = host            # [host|xorg|xephyr|nxzenka|xnest|auto-xephyr|xvfb]
 
 X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
 
-X-11.display.xorg    = :0.0
+X-11.display.xorg    = :13
 X-11.display.xvfb    = :7
 X-11.display.xnest   = :7
 X-11.display.xephyr  = :7
@@ -46,7 +46,7 @@ X-11.disable_glamor = 0
 X-11.bg_image = '<system.root_path>/data/gfx/backgrounds/amos-zenka.png'
 X-11.bg_mode  = 'full'  #   <--  'hsetroot -h' for modes
 
-X-11.bg_color = '000013'
+X-11.bg_color = '000017'
 
 X-11.bg_fade = 1  # set to 0 to skip bg color fade in
 
@@ -86,10 +86,11 @@ modules.preload = X-11.set-up set-up.json
 
 [set-up.json.import_file:'X-11.set-up.json']
 
-[root.drop_privs:<system.X-11-user>]  ## move up [ auto-add X-11-user to grp. ]
-
 modules.load = auth net protocol io.ip X-11 ## debug
 [load_modules:<modules.load>]
+
+[root.drop_privs:<system.X-11-user>]  ## move up [ auto-add X-11-user to grp. ]
+
 [init_modules]
 
 [net.connect_to_cube:'ip.tcp']
@@ -100,7 +101,7 @@ modules.load = auth net protocol io.ip X-11 ## debug
 [event.loop]
 
 #.............................................................................
-#XUKVTM7JE5ERU7C7455UTPSLMNMWGVB3KE7CHT4JJO5YYUPJ5QSYLN6Q2MKK7DQTYWP3BXP5LXYLG
-#::: CKA3UY7FJWE5G2Q55G7PJ3LS5PZWFRQJZKMJED3WE5DQZKQTZ7D :::: NAILARA AMOS :::
-# :: MN457TWRWFYHWLTIRV6VPPD4BDKRNUO623YPW7CE22ILM3S76KCI :: CODE SIGNATURE ::
+#UK4NX6QPTVKINYS67QZVWUPPFV5XZZYFCKRL5MKORU7KPP5BR5N6P6DB25SAD3WJ7IA65BMZV3JG4
+#::: J77R44RM6IG5VER7G6WFYF7DBDJOZHWUMN2GVRLZCIQGC2V4AXA :::: NAILARA AMOS :::
+# :: TAE3C6BNKR3WCDKNJRHLGI7FUKGGMNUOCWOJNT6DPCG2NJTDJUCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
