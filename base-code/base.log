@@ -67,7 +67,7 @@ if ( $log_level > 0 ) {
     $log_str = "$zenka_prefix $ANSI{'bold'}${fg_c}$log_msg$ANSI{'reset'}";
 }
 
-if ($fatal_exit) {
+if ($fatal_exit) {    ## improve detection ## [LLL]
     say STDERR $log_str,
         "$zenka_prefix$ANSI{'p7_fg_0002'} << EMERGENCY SHUTDOWN >> ",
         " [ anticipated deep recursion in log system ]";
@@ -85,27 +85,19 @@ if ( defined $code{'base.buffer.add_line'} ) {
         or $log_level <= <system.verbosity.zenka_logfile>;
 }
 
-# print to console
+## console output ##
 
-if ( fileno(STDOUT)
-    and $log_level <= <system.verbosity.console> ) {
+if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
-    say delete <log.next_console_line> if defined <log.next_console_line>;
+    <[base.utf8.clean_not_valid]>->( \$log_str, 2, 2 );    ## warn level 2 ##
 
-    utf8::decode($log_str) and say $log_str;    ## <-- log to console ##
-
-    ## correcting length to plain text ., ##
-    <[base.strip_ansi]>->( \$zenka_prefix ) if $data{'system'}{'ansi_color'};
-
-    <log.logged_prefix_width> = length($zenka_prefix)
-        if not defined <log.logged_prefix_width>
-        or <log.logged_prefix_width> != length($zenka_prefix);
+    say $log_str;    ## clean UTF-8 passed through ##
 }
 
 return 1;
 
 #.............................................................................
-#FQHCHJVW2T3QSSJAXGYSK53G2CWY6Q4BUDCTH6JBJY5PDD7IRCPDNHORNMGR7MTJNNOS252EGESEO
-#::: 33JEBGICNUYB2SKSXAVPQHFKHMXZREXZLUOLONWC6WTGADGEVM5 :::: NAILARA AMOS :::
-# :: 7WO7A2CKIP7TDOEVRSTALKHGWKGDYF55RSALCJ5TGSK2IGKIZQCQ :: CODE SIGNATURE ::
+#42SJM744UOMI42R4YGQDYGPK3E4BVH77F2ZKM7S6M5VAH7ZMHRD22KSDON442KCXYYV6THITC2SZ2
+#::: G2G64JOFDLY2USXBGONB2HZO6UQODMSBQITRZXBNEBGBWBZM2T2 :::: NAILARA AMOS :::
+# :: VBHMCCKCCYZ7P6ZCAOLKH3YBMFGXEA2JWA5IKWVBEOM37QDRDACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
