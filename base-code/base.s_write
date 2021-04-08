@@ -10,34 +10,34 @@ my $write_len  = $_[2] // length($write_str);
 my $str_offset = $_[3] // 0;
 my $fh_offset  = $_[4];
 
+my $count_written;
+
+##   [ replacing syswrite : unicode-safe ]
+#
 #    syswrite FILEHANDLE,SCALAR,LENGTH,OFFSET
 #    syswrite FILEHANDLE,SCALAR,LENGTH
 #    syswrite FILEHANDLE,SCALAR
-
+#
 #    aio_write $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
+##
 
-my $b_written;
-my $write_copy;
-
-$write_copy = utf8::unicode_to_native($write_str)
-    if utf8::is_utf8($write_str)
-    and utf8::valid($write_str);
-
-if ( defined $write_copy ) {
-    IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_copy,
-        $str_offset, sub { $b_written = $_[0] } );
-} else {
-    IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_str,
-        $str_offset, sub { $b_written = $_[0] } );
+if ( utf8::is_utf8($write_str) ) { ## reconsider using syswrite after cleaning
+    my $prev_len = length($write_str);
+    utf8::encode($write_str);
+    utf8::downgrade( $write_str, 1 );
+    $write_len += length($write_str) - $prev_len;    ## string lengthened ##
 }
+
+IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_str,
+    $str_offset, sub { $count_written = $_[0] } );
 
 IO::AIO::flush();
 
-return undef if $b_written < 0;    # <-- syswrite() behaviour
-return $b_written;
+return undef if $count_written < 0;    # <-- syswrite() behaviour
+return $count_written;
 
 #.............................................................................
-#SZZGFYWZ4JCD57HALE25UJUFHXMOFBVAQB4UXZZR4CFBZHTRZJB3RWDRRKH4PR7YKOMIMK5WWV63S
-#::: SAKA6QBQQWZ23BCT5N7QUCM65HG3RZAE7KKH4NPU77UMF4VA4ZY :::: NAILARA AMOS :::
-# :: GB2NEJDZPBDEBM3WXASCDOEK5RD6C7HC6TBPTNYNT6CMCO5JMIBA :: CODE SIGNATURE ::
+#II6AK36MMJAIRWNXA525WJL5PZLPPLPE7F6P5PP7OVM3GCGOJ6VY7KBSZVFUS6WVACMY6MS6SIQ5I
+#::: TT22S72ZE77KB3QKM7PJDUHI4ZY2G3OD6FUBH7FG34SHJ7JDMDE :::: NAILARA AMOS :::
+# :: TTWLQIRCGNK45OC4V4R7YBDFJLTX3KVS6OWQGMYHV5SY4ETK22DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
