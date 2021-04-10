@@ -789,6 +789,13 @@ sub prepare_subs {
             "\r";
     };
 
+    $code{'base.format_error'} = sub {
+        my $err_msg = shift // '';
+        $err_msg =~ s| at (\S+) line (\d+).*\n$|' [$1:$2]|;
+        $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
+        return $err_msg;
+    };
+
     $code{'dump_core_subs'} = sub {
         my %core_subs;
         my $bin_path = $data{'system'}{'start'}{'exec_name'};
@@ -838,6 +845,7 @@ sub prepare_subs {
                 and $ARG ne 'base.s_write'
                 and $ARG ne 'base.sig_warn'
                 and $ARG ne 'base.route.add'
+                and $ARG ne 'base.format_error'
                 and $ARG ne 'base.clean_unicode'
                 and $ARG ne 'base.buffer.add_line'
                 and $ARG ne 'base.list.element.add'
@@ -1986,7 +1994,7 @@ END {
 }
 
 #.............................................................................
-#253PRZGNFAUXUWVUHEN3AZSDHSLF24EQV5ZYZ3VDAA5WIAG4ZAL4UFGLF34LTGWQHKM5GMTUJ53KO
-#::: XJX35WKT7WPXELOXJKKJAAVSSSBUVQOF2F7MZL7JB6BLQJNT5MU :::: NAILARA AMOS :::
-# :: S64XIVEBWOV5EK76MUSMBIOB4R6PFQE3YC562NXTDC6DEX7RJAAQ :: CODE SIGNATURE ::
+#E4S6FA3QLEYMOS7EGRNGRBV3CGZ6XBGTOSBBTJRMUTPJUPGKRMIPVOMPSFX3NJ3SIDO2BFB72OHVE
+#::: FP2KKYIEVM2P3TC5OGJG72MQFSOJKOEFFQZBAGXK32Z7QVM3SAW :::: NAILARA AMOS :::
+# :: 4JCNOM5PULE6LHC3R2NEMWL2C3CSUTWAL3EIG2RQDEXO75QOLYAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
