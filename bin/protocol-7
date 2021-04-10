@@ -700,14 +700,22 @@ sub prepare_subs {
         print STDERR $ANSI{'p7_fg_0002'};
         my $start_string = '\\';
         ## nailara start-up banner ##
-        if (   $data{'system'}{'verbosity'}{'console'}
-            && $data{'system'}{'start'}{'showbanner'} ) {
-            say $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $start_string,
-                , $ANSI{'p7_bg_0000'},
-                ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '/',
-                $ANSI{'reset'};
-            &{ $code{'base.banner'} };
+        {
+            no warnings 'experimental';
+            if (   $data{'system'}{'verbosity'}{'console'}
+                && $data{'system'}{'start'}{'showbanner'}
+                or @ARGV ~~ m{(^| )-show-banner( |$)} ) {
+                say $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $start_string,
+                    , $ANSI{'p7_bg_0000'},
+                    ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '/',
+                    $ANSI{'reset'};
+                ## centered-xy ## ..,
+                &{ $code{'base.banner'} };
+
+                exit(0) if @ARGV ~~ m{(^| )-show-banner( |$)};
+            }
         }
+
         ## initializing early zenka buffer capture ###
         $data{'system'}{'start'}{'zenka-buffer'} = [];
         my $seperator_len = 18 + length( $data{'system'}{'zenka'}{'name'} );
@@ -818,9 +826,9 @@ sub prepare_subs {
                     and
                     eval { undef &{ delete $code{$ARG} } }; # <--improve [LLL]
 
-                #           #[ debug ]
-                #           and $code{$ARG} = eval "sub { print STDERR \"\n"
-                #                                 ." MISSING '$ARG'\n\n\" }";
+                #  #[ debug ]##
+                #     and $code{$ARG} = eval "sub { print STDERR \"\n"
+                #                      ." MISSING '$ARG'\n\n\" }";
 
                 push( @zenka_commands, ${^CAPTURE}[0] )
                     if $ARG =~ m|\.cmd\.(.+)$|;
@@ -1952,7 +1960,7 @@ END {
 }
 
 #.............................................................................
-#R6U3EW66PEOKI5Q73TIC4XJ2GGV3SYXZYPX4Z3H3KZGHWM6ZBJP5VGKI64WBSXPYUNTRUVLRH3OUE
-#::: P62WBIWJJ7ZTEIGNDQRCQKRQT3FDBMPGWXNDMZZ3HKM6F74KLAM :::: NAILARA AMOS :::
-# :: JOLSKNKB7RVBAF6A3BEUFRH52MMMOYV3FPT4623EPE4IR6CI6CDA :: CODE SIGNATURE ::
+#7UXDWK67M3RAK6IVQRN4FRCLYJ3PPKHHWVYB63RAZRYH7KY5SH3ZC7ZGM6WUXFZDZLCRIDKGCCVJQ
+#::: WEYEI4Y6QULR53OO4FUFGJAL7DQITSMVBTJFXEGJ2OTXYJ6RG75 :::: NAILARA AMOS :::
+# :: LMCLY3PQPX2LJDNWEVBJEMOZ4BTUGBC2ZGV4LT3ZCL67JQUOXYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
