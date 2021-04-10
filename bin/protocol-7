@@ -431,8 +431,9 @@ sub prepare_subs {
         state $TIOCGWINSZ = 21523;
 
         ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+        my $size_aref = [ unpack 'S!S!S!S!', $size ];
 
-        return [ unpack 'S!S!S!S!', $size ] ## <-- [ <x>, <y>, <x-px> <y-px> ]
+        return ( $size_aref->[1], $size_aref->[0] );
     };
 
 ################################################################################
@@ -696,23 +697,43 @@ sub prepare_subs {
             map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A } # \1?
                 keys %ANSI
         );
-
         print STDERR $ANSI{'p7_fg_0002'};
+
         my $start_string = '\\';
         ## nailara start-up banner ##
         {
+            my $prefix = '';
+            ( my $x, my $y ) = $code{'base.term.size'}->();
+            my ( $x_offset, $y_offset, $s_x, $s_y ) = ( 0, 0, 0, 0 );
+            my $show_banner_mode = 0;
+            my $center_xy        = 0;
             no warnings 'experimental';
+            if ( @ARGV ~~ m{(^| )-show-banner( |$)} ) {
+                $show_banner_mode = 1;
+                $center_xy        = 1 if @ARGV ~~ m{(^| )-center( |$)};
+                ( $x, $y ) = @{^CAPTURE}
+                    if @ARGV ~~ m{(^| )-size=(\d+)x(\d+)( |$)};
+                if ($center_xy) {
+                    ## center-y ##
+                    $y_offset += $y > 7 ? int( ( $y - 8 ) / 2 ) : 0;
+                    print "\n" x $y_offset;
+                    ## center-x ##
+                    my $x_offset += $x > 74 ? int( ( $x - 78 ) / 2 ) : 0;
+                    $prefix = ' ' x $x_offset;
+                }
+            }
             if (   $data{'system'}{'verbosity'}{'console'}
                 && $data{'system'}{'start'}{'showbanner'}
-                or @ARGV ~~ m{(^| )-show-banner( |$)} ) {
-                say $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'}, $start_string,
+                or $show_banner_mode ) {
+                say $prefix, $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'},
+                    $start_string,
                     , $ANSI{'p7_bg_0000'},
                     ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, '/',
                     $ANSI{'reset'};
                 ## centered-xy ## ..,
-                &{ $code{'base.banner'} };
-
-                exit(0) if @ARGV ~~ m{(^| )-show-banner( |$)};
+                $code{'base.banner'}->($prefix);
+                print "\n" x $y_offset if $show_banner_mode and $y_offset;
+                exit(0)                if $show_banner_mode;
             }
         }
 
@@ -737,6 +758,7 @@ sub prepare_subs {
     };
 
     $code{'base.banner'} = sub {
+        my $px          = shift // '';
         my $version_str = sprintf( "protocol-seven.src-ver :. %s",
             $data{'protocol-7'}{'src-ver'} );
         my $release_str = sprintf( "AMOS-release versn.: %s",
@@ -752,14 +774,18 @@ sub prepare_subs {
         my $fg   = $ANSI{'p7_fg_0000'};
         my $rst  = $ANSI{'reset'};
         map {
-            say $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $fg, $ARG, $bg_1, ' ',
+            say $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $fg, $ARG, $bg_1,
+                ' ',
                 $bg_0, $fg, ' ', $rst, "\r"
             }
             split( m|\n|, $nailara_header );
-        say $bg_0, $fg, ' ', $bg_1, ' ' x 77, $bg_0 . $fg, ' ', $rst, "\n",
-            $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $version_str, $bg_1, '    ',
+        say $px, $bg_0, $fg, ' ', $bg_1, ' ' x 77, $bg_0 . $fg, ' ', $rst,
+            "\n",
+            $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $version_str, $bg_1,
+            '    ',
             $bg_0, $fg, $release_str, $bg_1, ' ', $bg_0 . $fg, ' ', $rst,
-            "\n", $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\', $rst,
+            "\n", $px, $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\',
+            $rst,
             "\r";
     };
 
@@ -1960,7 +1986,7 @@ END {
 }
 
 #.............................................................................
-#7UXDWK67M3RAK6IVQRN4FRCLYJ3PPKHHWVYB63RAZRYH7KY5SH3ZC7ZGM6WUXFZDZLCRIDKGCCVJQ
-#::: WEYEI4Y6QULR53OO4FUFGJAL7DQITSMVBTJFXEGJ2OTXYJ6RG75 :::: NAILARA AMOS :::
-# :: LMCLY3PQPX2LJDNWEVBJEMOZ4BTUGBC2ZGV4LT3ZCL67JQUOXYCY :: CODE SIGNATURE ::
+#253PRZGNFAUXUWVUHEN3AZSDHSLF24EQV5ZYZ3VDAA5WIAG4ZAL4UFGLF34LTGWQHKM5GMTUJ53KO
+#::: XJX35WKT7WPXELOXJKKJAAVSSSBUVQOF2F7MZL7JB6BLQJNT5MU :::: NAILARA AMOS :::
+# :: S64XIVEBWOV5EK76MUSMBIOB4R6PFQE3YC562NXTDC6DEX7RJAAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
