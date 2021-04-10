@@ -594,28 +594,24 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                     local $EVAL_ERROR = undef;
                     $reply
                         = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
-                    if ( my $err_str = $EVAL_ERROR ) {
-                        $err_str =~ s| at (\S+) line (\d+).*\n$||;
-                        my $file = $1;
-                        my $line = $2;
-                        $file
-                            =~ s|^/usr/share/perl5/||; ## shorten path for .pm
+                    if ($EVAL_ERROR) {
+                        my ( $err_str, $caller )
+                            = <[base.format_error]>->( $EVAL_ERROR, -1 );
+                        $caller = defined $caller ? " $caller" : '';
                         my $log_error = 1;
                         ## alternative handler registered for filename:line ? ##
-                        my $match_param
-                            = "$file:$line";           #  <-- expand. [ LLL ]
                         my $warn_handlers = <base.warn-match-handler> // {};
-                        if ( defined $warn_handlers->{$match_param} ) {
-                            my $cb_name = $warn_handlers->{$match_param};
+                        if ( defined $warn_handlers->{$caller} ) {
+                            my $cb_name = $warn_handlers->{$caller};
                             $log_error
                                 = $code{$cb_name}
-                                ->( $err_str, $match_param, $call_args )
+                                ->( $err_str, $caller, $call_args )
                                 if defined $code{$cb_name};
                         }
                         ##
                         if ($log_error) {
                             <[base.log]>->(
-                                0, "[$id] <<< $err_str >>> [ $file, $line ]"
+                                0, "[$id] <<< $err_str >>>" . $caller
                             );
                             my $params = $call_args->{'args'} // '';
                             my $msg    = "[$id]  \\\\\\ <$cmd>";
@@ -1042,7 +1038,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#IKLUG56P6SDRGNWP7GQBY5XIRPDPCCVQFBKX5YE75OUBHBNKHZWAB3BCUBLJRGYDOSMQ7RYYTUJ4W
-#::: PSD3SWZHCI3NQKFWN2EIHURDGC2R4W3SAUEGCTD6C6J5CRKGBVO :::: NAILARA AMOS :::
-# :: VAHT2ASCVILLG26ZRILCEQOPFOR4PEMZY2OY5DEONSGKI2BXS2BI :: CODE SIGNATURE ::
+#APCKWFXXDBS4OS6V3YQ3OLF3PDEZL76Q4GX44Z4ZSQJJGMDMLV73D7VQ7AXGE3JS6KUR3UK2BBX3O
+#::: PDM434OIYYTIY6MZ4AGL2VYNFJ47LSNJKTK4XPE3BNVO5HMSIII :::: NAILARA AMOS :::
+# :: MNNYPOALSVW342BV4IRFXPZK6ZCB77BXBCLLUYZ6YVTFAJNV6ADA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
