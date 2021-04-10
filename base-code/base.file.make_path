@@ -7,8 +7,9 @@ my ( $path, $param_mode, $param_owner ) = @_;
 
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
-die "expected absolute path [ to create ]"
-    if not defined $path or $path !~ m|^/[^/]+|;
+warn '<path> not defined <{C1}>' and return undef if not defined $path;
+return warn 'expected absolute path [ to create ] <{C1}>' and return undef
+    if $path !~ m|^/[^/]+|;
 
 my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
 
@@ -69,7 +70,7 @@ umask($previous_umask);
 return $path;
 
 #.............................................................................
-#UQIVUM5VTXUTVB4SFFEDIDU5HISIN3F7TWDKL3DA246MMFAXHYCTG33OWO7CHUNHK27FH23BJUBDO
-#::: AUMGPYWMTHJUX5Q6ICQXUB4BLLPMY3ZHH5SY7RGXV4EPWC36DVU :::: NAILARA AMOS :::
-# :: V2KK6WHPWTZFYHSBHCYDD7ME3IK6TFF3BGGKCWUANP64QVDFPIBY :: CODE SIGNATURE ::
+#GGF5JRMMEWU4W6USJROBHJCHQJUWNPCETWVOEQFSULCE77GUYMKJMBWTM6ME26FD6F2DKVKTUQ3OK
+#::: H42B3N72NPJLNAEZQRZQDMMA5KVTZYB4OY7NEMIDFCETJWSPJDT :::: NAILARA AMOS :::
+# :: W5R6PVT6CNZNPXCPZE2XYMHI66RZLLFKRHPWF6C7ZUEBM2IWDKBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
