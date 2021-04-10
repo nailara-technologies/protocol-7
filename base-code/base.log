@@ -89,15 +89,16 @@ if ( defined $code{'base.buffer.add_line'} ) {
 
 if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
-    <[base.utf8.clean_not_valid]>->( \$log_str, 2, 2 );    ## warn level 2 ##
-
+    if ( defined $code{'base.utf8.clean_not_valid'} ) {
+        <[base.utf8.clean_not_valid]>->( \$log_str, 2, 2 ); ## warn level 2 ##
+    }
     say $log_str;    ## clean UTF-8 passed through ##
 }
 
 return 1;
 
 #.............................................................................
-#42SJM744UOMI42R4YGQDYGPK3E4BVH77F2ZKM7S6M5VAH7ZMHRD22KSDON442KCXYYV6THITC2SZ2
-#::: G2G64JOFDLY2USXBGONB2HZO6UQODMSBQITRZXBNEBGBWBZM2T2 :::: NAILARA AMOS :::
-# :: VBHMCCKCCYZ7P6ZCAOLKH3YBMFGXEA2JWA5IKWVBEOM37QDRDACQ :: CODE SIGNATURE ::
+#NLJVIHKO2NE7JGH56T3F6B5ME4Y5PVTA42MMBOTRODPCB3KUZSW6C4QHU742CJ76TZVHV33WIKZE2
+#::: JYMCHIN3U3MNIFONOOMYZM4INUB3BYMXTGH6UJCOE7YN7OTSGKP :::: NAILARA AMOS :::
+# :: XZGTAEP6NV2JUZQWP3PATSGVAK47P57BXV7OE7K3PGABJPTENUDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
