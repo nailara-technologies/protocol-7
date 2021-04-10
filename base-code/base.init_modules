@@ -70,9 +70,8 @@ foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
                 if (   $EVAL_ERROR
                     or not defined $return_code
                     or $return_code ne '0' ) {
-                    ( my $err_msg = $EVAL_ERROR )
-                        =~ s| at (\S+) line (\d+).*\n$| ' [ $1, line $2 ]|;
-                    <[base.log]>->( 0, ": ' $err_msg" ) if length $err_msg;
+                    my $err_msg = <[base.format_error]>->($EVAL_ERROR);
+                    <[base.log]>->( 0, ": '$err_msg" ) if length $err_msg;
                     $success = 0;
                     <[base.log]>->(
                         0,
@@ -107,7 +106,7 @@ undef <base.init_modules>;
 return $success;
 
 #.............................................................................
-#FUNTCURLTS3L7IESEIYYSDRDFPKB6R6KHTGWTT55MSBDFQBTYI7YMIFYT2PKPTB7HBSYCWSKRMDFO
-#::: YDZRWIUUHWGB3Y6M3G4MAIHZHMMVIBVXFUAPE3HU75XHKBV7IPL :::: NAILARA AMOS :::
-# :: WC6LMPAWAMFGKUUUAY5T2VB3CX52UKCMQ7PTHWYUS56JNZ4FN2DI :: CODE SIGNATURE ::
+#ML2S2CXT4OAH556GUTNKAFFMZAB4YNU7WBUMT7ZNEL3BXTE4I3X4WLWI32VIC3GTTNG7HQOUW34XE
+#::: 5GTTUCOWHALPUSBGGOYQ55YTZHSLXOUF6SOXTLTPIVYKURHQ3AT :::: NAILARA AMOS :::
+# :: 7B3PZ5FCVA3B5MF4MQIOQAOAONJROS3RK2VOYZNFL6FVT6G3OIDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
