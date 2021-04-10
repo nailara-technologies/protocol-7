@@ -791,9 +791,20 @@ sub prepare_subs {
 
     $code{'base.format_error'} = sub {
         my $err_msg = shift // '';
-        $err_msg =~ s| at (\S+) line (\d+).*\n$|' [$1:$2]|;
-        $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
-        return $err_msg;
+        my $c_lvl   = shift // 2;
+        my ( $caller_str, $file, $line );
+        $err_msg =~ s|\n$||;
+        ( $file, $line ) = @{^CAPTURE}
+            if $err_msg =~ s| at (\S+) line (\d+).*$||;
+        if ( defined $file ) {
+            $file =~ s|^/usr/share/perl5/||;    ## shortening paths
+            $caller_str = join( ':' . $file, $line );
+            $err_msg .= " [$caller_str]";
+        }
+        $err_msg    = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
+        $caller_str = $code{'base.caller'}->($c_lvl) if $c_lvl >= 0;
+        return ( "'$err_msg'", $caller_str ) if wantarray;
+        return "'$err_msg'";
     };
 
     $code{'dump_core_subs'} = sub {
@@ -1994,7 +2005,7 @@ END {
 }
 
 #.............................................................................
-#E4S6FA3QLEYMOS7EGRNGRBV3CGZ6XBGTOSBBTJRMUTPJUPGKRMIPVOMPSFX3NJ3SIDO2BFB72OHVE
-#::: FP2KKYIEVM2P3TC5OGJG72MQFSOJKOEFFQZBAGXK32Z7QVM3SAW :::: NAILARA AMOS :::
-# :: 4JCNOM5PULE6LHC3R2NEMWL2C3CSUTWAL3EIG2RQDEXO75QOLYAI :: CODE SIGNATURE ::
+#JAE2QHRP6T3WOTQYTCRYGQDBUNGJXSZYSEMPESUXFYDNHETBKPBTSRH7OI4UMKJSTBFGFABMYQBBM
+#::: T23E636D7K5RAWIGTC7HUSGZOVGIG66SUTKHTJSXNMADTINZ3LB :::: NAILARA AMOS :::
+# :: F7YKZDRVQHFRI6VBEI32EKEDZB56B5LRPKY5GCTHZDGLFWOSHABA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
