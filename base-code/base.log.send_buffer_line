@@ -5,7 +5,7 @@
 my $name         = shift;
 my $buffer_index = shift;
 
-return warn "expected log buffer name parameter" if not defined $name;
+return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
 
 <log.file>->{$name} //= {
     'complete'        => 1,
@@ -40,6 +40,8 @@ push( @send_line, $data{'buffer'}{$name}{'data'}[$next_index] );
 
 $log_data->{'complete'} = 0;
 
+my $protocol_messages = <protocol.protocol-7.messages>;
+
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
         'call_args' =>
@@ -52,13 +54,13 @@ $log_data->{'complete'} = 0;
     )
     or <[base.log.handler.log_reply]>->(
     {   'cmd'       => 'NAK',
-        'call_args' => { 'args' => 'command unknown' },
+        'call_args' => { 'args' => $protocol_messages->{'command_unknown'} },
         'params'    => { 'name' => $name }
     }
     );
 
 #.............................................................................
-#HIGL7O5F2J3FMX5UMRJ32PQKSOPE2URMMTOS3MPZ6CKPFJRU5A6VHWOWPUW4J3XFN5MHY47FTBWFY
-#::: D7G7T3UI7HUAKT25MDJ37AMPLQHLV2CJ74DE5VQ622P2QVSR2OI :::: NAILARA AMOS :::
-# :: CARMWVW5ZLD2KZ3HX53DQF5HWS6K2WI65DS4ERGOZFMJ7DHA4WBA :: CODE SIGNATURE ::
+#3MROVPHNNYA7EJIIDDIWWKTKUYMVKKPVBMZDXLKJFLGKNNMCLFVSTFT7WYGFNUZQYSK6S2W5NCJLM
+#::: WQXK4OEGQG7VDP7HVDWD3Z36DHYRFOIS6XEVNPBKXGF7CFBFUHB :::: NAILARA AMOS :::
+# :: CAJ3SRKFLWE24LX5XEMDSOUSWL7EYEP27OH7FRBKZIOXGVOYSCAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

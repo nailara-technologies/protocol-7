@@ -26,11 +26,18 @@ IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, $$buffer_ref,
 
 IO::AIO::flush();
 
-return undef if $b_read < 0;    # <-- sysread() behaviour
+if ( $b_read > 0 ) {
+    my $prev_len = length($$buffer_ref);
+    utf8::decode($$buffer_ref);
+    my $delta_len = $prev_len - length($$buffer_ref);
+    $b_read -= $delta_len if $delta_len != 0;    ## string shortened ##
+}
+
+return undef if $b_read < 0;                     # <-- sysread() behaviour
 return $b_read;
 
 #.............................................................................
-#KIKGJJMC7OVKVY4CKKIZ2D2CMWXJ45W25W223ZBWF77QZPIP3Q3JJKUVXRI4IH5JY7NEAEQ73RTBA
-#::: 6VGR7I7ADATFQZGQFTUKMZZWLWTMGKLKI5YV5EV6CT66N6OW6AT :::: NAILARA AMOS :::
-# :: KX2S6VYOQKXZQ7A3DZZO6NHKWETICBAYBOE2VNZFI2QECAH7U4CI :: CODE SIGNATURE ::
+#CZNECRGBXEBYBR63LGRZI6XNHUDJWFODDXBRHBUOEZFX2NBOFMRCLHABQZSRKLN2CNEPTDTOKGBRS
+#::: ANZSLOAI4DCTFYZM56PS7JXYV3FEJUYBDFCQAS5T74XMDJ4TIM2 :::: NAILARA AMOS :::
+# :: GYY6LJIC6QFTMGWFQ3EXVZSEX2L5JTNSS3IZZANU4V2VDFZ6AECY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
