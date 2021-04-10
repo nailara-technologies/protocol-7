@@ -5,6 +5,8 @@
 
 my ( $log_name, $log_msg_ref ) = @_;
 
+my $log_file_encoding = <p7-log.log-file-encoding> // ':encoding(UTF-8)';
+
 # validating input parameters
 return ( 0, 'no log file specified' )
     if not defined $log_name or !length($log_name);
@@ -43,8 +45,8 @@ if ( !-d $log_path ) {
 my $log_fh;
 if ( !<log.files>->{$log_name}->{'locked'} ) {
     <[base.log]>->( 2, "opening log '$log_name'..," );
-    open( $log_fh, ">>$log_path/$log_file" )
-        or return ( 0, "unable to open logfile [ \l$OS_ERROR ]" );
+    open( $log_fh, ">>$log_file_encoding", "$log_path/$log_file" )
+    or return ( 0, "unable to open logfile [ \l$OS_ERROR ]" );
     flock( $log_fh, 2 )    # LOCK_EX
         or return ( 0, "unable to lock logfile [ \l$OS_ERROR ]" );
     <log.files>->{$log_name}->{'locked'} = 1;
@@ -60,14 +62,12 @@ if ( !<log.files>->{$log_name}->{'locked'} ) {
     $log_fh = <log.files>->{$log_name}->{'fh'};
 }
 
-utf8::decode($$log_msg_ref);
-
 print {$log_fh} $$log_msg_ref;
 
 return 1;
 
 #.............................................................................
-#52MOJOVI6XQVL63QDZ3I4MUWNUOEL5OATDP4VW6GTH7JL47ILUMGL54LPHYVCQNT2K6YWNWUBU4F6
-#::: ORGES66XQ6AOPRGVPTOM4XJGOSZATENFTL7HJAPCACYD7PHIH2H :::: NAILARA AMOS :::
-# :: GQCRLEE66QL6M6CN57XSWMZWWF7CO5O4HFB4KNPKQAVAN65EYODA :: CODE SIGNATURE ::
+#7PHDXFWKRWLDHVSHQYP4R5X7M6VTPKYLTUOMCIP7YQHFKYSC3GUY53APY3OLEMTQNPDB4SXIQYA6C
+#::: SUTPTEEDTCJBEPPKLN2QS5KSZHPJCRGIXCAPGK7KIQP37QHBEMX :::: NAILARA AMOS :::
+# :: K7BZAZ2HOL4TDGIBOQ272WXNLEWPZ7KMPZSH3RCQMVM4EA4ZQSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
