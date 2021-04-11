@@ -1,0 +1,24 @@
+# >:]
+
+# name  = debug.cmd.deparse-code
+# param = <sub-name>
+# descr = returns deparsed $code-reference subroutine
+
+my $code_name = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'expected sub-routine name' }
+    if not defined $code_name;
+return { 'mode' => 'nak', 'data' => 'sub-routine not found' }
+    if not defined $code{$code_name};
+
+my $deparse = B::Deparse->new(qw| -p -sC |);
+
+my $code_body = $deparse->coderef2text( $code{$code_name} ) . "\n";
+
+return { 'mode' => 'data', 'data' => $code_body }
+
+#.............................................................................
+#ZVR2ZFI7WAW7G6IMNHZZXBPZ47MYKDDQBNFQEDLPJXZMOATVVP2ZGIZKPFVXAA2TY33C7W57DAGNS
+#::: LJZJIRJBBMHG4URZWXSSJQBVALTPMF7CNFXNWCEB2IASAMP5TRD :::: NAILARA AMOS :::
+# :: RW6D5GK5PSTNPQKTWTEEDH6OCZWEYYSACZG77GKUG4QPJVBN2KDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
