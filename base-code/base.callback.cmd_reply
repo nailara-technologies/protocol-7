@@ -1,19 +1,19 @@
 # >:]
 
 # name  = base.callback.cmd_reply
-# descr = callback to reply later (asynchronously) to local commands
+# descr = callback to asynchronous ['defered'] reply to local commands
 
 my ( $reply_id, $reply ) = @_;
 
 return
-    if defined $reply_id and $reply_id eq 'silent';   # silent (no reply) mode
+    if defined $reply_id and $reply_id eq 'silent';   # silent [no reply] mode
 
-die "expected numerical reply_id"
-    if @_ != 2
+die 'expected numerical reply_id <{C1}>'
+    if @ARG != 2
     or not defined $reply_id
-    or $reply_id !~ /^\d+$/;
+    or $reply_id !~ m|^\d+$|;
 
-warn "expected reply data hash reference"
+warn 'expected reply data hash reference <{C1}>'
     if not defined $reply
     or ref($reply) ne 'HASH';
 
@@ -46,7 +46,8 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
         0,
         "[$session_id] empty "
             . uc( $$reply{'mode'} )
-            . '-reply attempted! (base.callback.cmd_reply)'
+            . '-reply attempted '
+            . <[base.caller]>
     );
     $$reply{'mode'} = 'nak';
     $$reply{'data'}
@@ -55,8 +56,8 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
 
 # check answer mode
 
-if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
-    $$reply{'data'} =~ s/\n/\\n/go;
+if ( $$reply{'mode'} =~ m{^(ACK|NAK|WAIT)$}io ) {
+    $$reply{'data'} =~ s|\n|\\n|go;
     $$output
         .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
 } elsif ( uc( $$reply{'mode'} ) eq 'DATA' ) {
@@ -66,12 +67,12 @@ if ( $$reply{'mode'} =~ /^(ACK|NAK|WAIT)$/io ) {
     <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
 }
 
-# clean up
+## clean-up ##
 
 delete <base.cmd_reply>->{$reply_id};
 
 #.............................................................................
-#QBCNRTEEKW5BGX7BA5UCGGWJBQCTAYEQZSCXEOXRTFHBR6KWCR3FOPEBAEZHHL76M2PTZOS7XROEQ
-#::: M4S7LDPZSBMTHZ25FP6DO4O6KKCUULNMGYDSNCPOLQM7VGEHOWJ :::: NAILARA AMOS :::
-# :: DJZDLKGQ2GBSKXEV76PK7CV2JKWJN6US4REFMUW6F4ALNVOSCSDY :: CODE SIGNATURE ::
+#6FQC7QXU56TGVVWSSFYQVIISB5A2ZUZJX6GQNJ746HF2HM6XCIFW2FB2QREBZ7CICXFDLRDEJORQ4
+#::: H6MBGJECNOJQTM7IVDZ3MSOBXYAYTJ7HA2LC4UXXIZC6M46N6GH :::: NAILARA AMOS :::
+# :: SCLLSIMACNTMYGEILB6R3U5J5U7ADS2YUG2BJ7AMEZNDKHEPXIBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
