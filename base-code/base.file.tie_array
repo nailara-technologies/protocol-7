@@ -1,0 +1,37 @@
+# >:]
+
+# name  = base.file.tie_array
+# descr = simple Tie::File wrapper
+
+my $file_param = shift;
+my $encoding   = shift // ':raw';
+## implement mode parameter[s] ##
+
+if ( not defined <base.perlmod.loaded>->{'Tie::File'} ) {  ## to init_code? ##
+    <[base.perlmod.load]>->('Tie::File');
+}
+
+my $file_fh;
+if ( not fileno($file_param) and ref($file_param) eq '' ) {
+    $file_fh = <[file.open]>->( $file_param, $encoding );    ## read-only ##
+} else {
+    $file_fh = $file_param;
+}
+
+my @file_array;
+
+eval { tie @file_array, qw| Tie::File |, $file_fh };
+
+if ($EVAL_ERROR) {
+    my $err_str = <[base.format_error]>->($EVAL_ERROR);
+    <[base.log]>->( 0, "$err_str $file_param " . <[base.caller]>->(1) );
+    return undef;
+}
+
+return \@file_array;
+
+#.............................................................................
+#H5TXLOU5DOKGVVJZHQQ3F5WA4BL4JSES5KH7LK6V4LAJGQHU4NL3KXHF5SVWGGEBHNWRYPGQSADIA
+#::: OSAISTV6X277DOHU3XPLT4D4STHQXY5WQDQZCBVWL6HNCODACQV :::: NAILARA AMOS :::
+# :: N7TTFNGKXVDXCHRRVL6ZUZD665SN5HJSJNLAUZJU442633ZB54DQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
