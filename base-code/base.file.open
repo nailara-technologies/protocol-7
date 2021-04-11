@@ -1,0 +1,32 @@
+# >:]
+
+# name  = base.file.open
+# args  = <filename>[[, <encoding>], <mode>]
+# descr = returns file handle of to be opened file
+
+my $filename = abs_path(shift);
+my @encoding = ( shift // '' );    # optional encoding type ( i.e. ':raw' )
+my $mode     = shift // '<';
+
+if ( !-f $filename ) {
+    <[base.log]>->(
+        0, "< file.open > '$filename' not found. " . <[base.caller]>
+    );
+    return undef;
+}
+
+my $file_fh;
+if (   not open( $file_fh, join( ' ', $mode, @encoding ), $filename )
+    or not fileno $file_fh ) {
+    my $err_str = <[base.format_error]>->($OS_ERROR);
+    <[base.log]>->( 0, "file.openunable to open '$filename' [ $err_str ]" );
+    return undef;
+}
+
+return $file_fh;
+
+#.............................................................................
+#MX3OPKCPLYX3DZZIFZJZB34PD3QRC2YEQ4ERLRCGXOJMRLEP3IUWEWIVQRMDI72F2OMSLMSNYUJYK
+#::: NYHOGOF2PK7HGRADERC6XW4OG64GA6IH4FV6HYRO5MBRUMJ2VZX :::: NAILARA AMOS :::
+# :: 4VASWQCX5DGXB7USDWFGIKMCUREBXD6PMOGCT7KQSFYMJJTTAIDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
