@@ -5,21 +5,21 @@
 my @params;
 
 foreach my $param (@ARG) {
-    if ( ref($param) eq 'HASH' and keys %{$param} ) {
-        push( @params, keys %{$param} );
-    } elsif ( ref($param) eq 'ARRAY' and scalar @{$param} ) {
-        push( @params, @{$param} );
-    } elsif ( ref($param) eq 'SCALAR' and defined ${$param} ) {
-        push( @params, ${$param} );
+    if ( ref($param) eq 'HASH' ) {
+        push( @params, keys %{$param} ) if keys %{$param};
+    } elsif ( ref($param) eq 'ARRAY' ) {
+        push( @params, @{$param} ) if scalar @{$param};
+    } elsif ( ref($param) eq 'SCALAR' ) {
+        push( @params, ${$param} ) if defined ${$param};
     } else {
-        push( @params, $param );
+        push( @params, $param ) if defined $param;
     }
 }
 
 return @params;
 
 #.............................................................................
-#QWZ4NVJXYTOHSLDH4ARD44LLZV6XHNRDOCLML7RWXD4QSDP7VPMCXRPYFE47Y3GCDGQS5OLWMYPVS
-#::: HXI24MSLFPYY4XSYYYRVS3ALXUOMN56RPCMFSK54KEKWYUDG6WN :::: NAILARA AMOS :::
-# :: QUEY6OELSSUW6CCS24RLDQ5LHRZJDN7UVGU6OCYWMLHMHXQED4CI :: CODE SIGNATURE ::
+#5AMLCRJDEJPKGUF5JMU2AQVDHCGRLSOIVLOLG3F33LVERB6HGUO6RIBJGNFLWCGVD7GQ3Y3LL2TWC
+#::: NJQZA7JMJTE375Y65MFRUHKMJ7OMY3VO3MSK7HZ4F2MJRULR3PJ :::: NAILARA AMOS :::
+# :: AMZTGHZBDTP4B7LRF4IOGZCK5L3XJJTRPKAKTP5Y7OZW7ZOO6OAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
