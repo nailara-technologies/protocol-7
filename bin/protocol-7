@@ -798,11 +798,13 @@ sub prepare_subs {
             if $err_msg =~ s| at (\S+) line (\d+).*$||;
         if ( defined $file ) {
             $file =~ s|^/usr/share/perl5/||;    ## shortening paths
-            $caller_str = join( ':' . $file, $line );
+            $caller_str = join( ':', $file, $line );
             $err_msg .= " [$caller_str]";
         }
-        $err_msg    = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
-        $caller_str = $code{'base.caller'}->($c_lvl) if $c_lvl >= 0;
+        $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
+        $err_msg =~ s,(can't|unable),cannot,g;
+        return "'$err_msg'" if $c_lvl < 0;
+        $caller_str = $code{'base.caller'}->($c_lvl);
         return ( "'$err_msg'", $caller_str ) if wantarray;
         return "'$err_msg'";
     };
@@ -2005,7 +2007,7 @@ END {
 }
 
 #.............................................................................
-#JAE2QHRP6T3WOTQYTCRYGQDBUNGJXSZYSEMPESUXFYDNHETBKPBTSRH7OI4UMKJSTBFGFABMYQBBM
-#::: T23E636D7K5RAWIGTC7HUSGZOVGIG66SUTKHTJSXNMADTINZ3LB :::: NAILARA AMOS :::
-# :: F7YKZDRVQHFRI6VBEI32EKEDZB56B5LRPKY5GCTHZDGLFWOSHABA :: CODE SIGNATURE ::
+#RSMNHXYMGY6VSJSPARQYP3DPYEKFV3YDYFVJ6S43NO7RGEH4HQRVISKSH7SXHDTSCYU7GZKY6X7FO
+#::: M2QL7DOKJPLWR7ZHHSLCSRJ3GNVMA2FTHAHPIRHI7N4BMJDLYC3 :::: NAILARA AMOS :::
+# :: VYK7JH64BYSZ66AJYDKHZH5LMHW2TBW52A7YUJOGSSB7CL5E32DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
