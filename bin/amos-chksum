@@ -5,32 +5,92 @@ use English;
 use warnings;
 use Getopt::Std;
 use Digest::Elf qw| elf |;
-use Digest::BMW qw| bmw_224 |;
+use Digest::BMW qw| bmw_512 |;
 use Crypt::Misc qw| encode_b32r |;
 
-getopts( 'n', \my %option );
+##[ RUNTIME OPTIONS ]#########################################################
 
+## -q ## quiet output \ value only \
+## -n ## return checksum as numerical value
+## -v ## visualize additional checksum data
+
+##############################################################################
+
+getopts( 'vnq', \my %option );
 my $string = join( ' ', @ARGV );
 say ":\n:: expected string to encode\n:" if not @ARGV;
 
-my $elf_sum = elf($string);
+##[ CHECKSUM CALCULATION ]####################################################
 
-my $bmw_byte = substr( bmw_224($string), 0, 1 );
+my $elf_bits = sprintf( '%032b', join( '', reverse split '', elf($string) ) );
 
-my @bmw_bit = split( '', unpack( 'B4', $bmw_byte ), 2 );
+my $bmw_bin = bmw_512($string);
 
-shift(@bmw_bit) if substr( $bmw_bit[1], 0, 2 ) ne '0' x 2;    ## [ 0 .. 9 ]
+my $bmwbits   = unpack( 'B32', $bmw_bin );
+my $bmw_rbits = unpack( 'B32', join( '', reverse split '', $bmw_bin ) );
 
-my $bmw_digit = eval join( '', '0b', @bmw_bit );
+( my $checksum_bits = $elf_bits ) =~ s|^0+|
+                                        substr $bmwbits, 0, length($MATCH) |e;
+$checksum_bits =~ s|0+$|
+                    substr $bmw_rbits, 0, length($MATCH) |e;
 
-my $checksum = join( '', $elf_sum, $bmw_digit );
+my $checksum = eval "0b$checksum_bits";    ## numerical ##
 
-say sprintf( "%010d", $checksum ) and exit(0) if $option{'n'};
+my $checksum_encoded = encode_b32r( pack( 'V', $checksum ) );
 
-say encode_b32r( pack( 'V', $checksum ) );
+##[ DISPLAY VALUE ]###########################################################
+
+my $rst = "\e[0m";
+my $bg  = "\e[48;2;9;5;42m";
+my $fg  = "\e[38;2;68;39;172m";
+my $ng  = "\e[38;2;71;195;6m";
+
+if ( $option{'v'} ) {
+    map {say} (
+        $fg,
+        ' input-string  :  ' . "$bg $ng$string $rst " . true_false($string),
+        $fg,
+        '     elf-bits  :  ' . $elf_bits,
+        '     bmw-bits  :  ' . $bmwbits,
+        '    bmw-rbits  :  ' . $bmw_rbits,
+        '',
+        '    AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
+        '',
+        '    numerical  :  '
+            . sprintf( "%010d", $checksum ) . ' '
+            . true_false($checksum),
+        '',
+        '  VAX-encoded  : '
+            . "$bg $ng"
+            . $checksum_encoded
+            . "$fg $rst "
+            . true_false($checksum_encoded),
+        '',
+        $rst
+    );
+} elsif ( $option{'n'} ) {
+
+    my $num_str = sprintf( "%010d", $checksum );
+    say $num_str and exit if $option{'q'};
+    say "$fg:\n:$bg $ng$num_str$fg $rst\n$fg:$rst";
+
+} else {
+
+    say $checksum_encoded and exit if $option{'q'};
+    say "$fg:\n:$bg $ng$checksum_encoded$fg $rst\n$fg:$rst";
+}
+
+##[ HARMONIC TRUTH ]##########################################################
+
+sub true_false {
+    ( my $C = shift ) =~ s|^.+ ||;
+    return '' if not length $C or $C =~ m|^\e|;
+    my @opts = $C =~ m|^\d+(\.\d+)?$| ? qw| -q -n | : qw| -q |;
+    system( qw| harmony |, @opts, $C ) == 0 ? '< TRUE >' : '< FALSE >';
+}
 
 #.............................................................................
-#P5S3KGCLUSTSHVLZX7X2N4YKCD73X7QVZISSEP37E4IATLVJK7RALRIDWORJSKVLN3ISSTOOKXPLW
-#::: X5625NPSDGGHZXBKODL6ZDSE2A4LZU7M3MQALRVHYFY7FNJMUKG :::: NAILARA AMOS :::
-# :: MCRDDQUBCGRJY52C4WTP3BHK2YLBPC5Z5MW6LKIWR2LGW3H2K4CA :: CODE SIGNATURE ::
+#QTIRKWFTOWPGWZ2ZTXFORMZRSQMCOOQKZGDT57BQI3TK5AJCCYMY54LTGZW3QYZF7NPM32YXVRPRA
+#::: 2OU6AMBEH7GD7PYEXYPW7PMRXK5DHKUGV5FNOIDU7BTBQSDKA6S :::: NAILARA AMOS :::
+# :: 6V2VEDW3T6G4XGEUYDGDWGI7THXHA3HTI3AV3YUSOXWLT4W4D4AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
