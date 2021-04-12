@@ -4,39 +4,74 @@ use strict;
 use English;
 use warnings;
 use Getopt::Std;
+use Math::BigFloat;
 use Digest::Elf qw| elf |;
 use Digest::BMW qw| bmw_512 |;
 use Crypt::Misc qw| encode_b32r |;
+Math::BigFloat->round_mode('trunc');
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
 ## -q ## quiet output \ value only \
+## -h ## follow harmony [ string | numeric ]
 ## -n ## return checksum as numerical value
 ## -v ## visualize additional checksum data
 
 ##############################################################################
 
-getopts( 'vnq', \my %option );
+getopts( 'vhnq', \my %option );
 my $string = join( ' ', @ARGV );
 say ":\n:: expected string to encode\n:" if not @ARGV;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
 my $elf_bits = sprintf( '%032b', join( '', reverse split '', elf($string) ) );
+my $bmw_512b = unpack( 'B512', bmw_512($string) );
+my $bmw_b_R  = substr( join( '', reverse split '', $bmw_512b ), 0, 32 );
 
-my $bmw_bin = bmw_512($string);
+my $bmw_offset = 0;
 
-my $bmwbits   = unpack( 'B32', $bmw_bin );
-my $bmw_rbits = unpack( 'B32', join( '', reverse split '', $bmw_bin ) );
+INVERT_TRUTH:
+my $bmw_b_L = substr( $bmw_512b, $bmw_offset, 32 );
 
 ( my $checksum_bits = $elf_bits ) =~ s|^0+|
-                                        substr $bmwbits, 0, length($MATCH) |e;
+                                        substr $bmw_b_L, 0, length($MATCH) |e;
 $checksum_bits =~ s|0+$|
-                    substr $bmw_rbits, 0, length($MATCH) |e;
+                    substr $bmw_b_R, 0, length($MATCH) |e;
 
 my $checksum = eval "0b$checksum_bits";    ## numerical ##
 
+if ( $option{'n'} and not $option{'h'} ) {    ## NUMERIC + VALUE HARMONY ##
+
+    if ( not is_true($checksum) ) {
+        $bmw_offset++;
+        goto INVERT_TRUTH;
+    }
+
+} elsif ( $option{'n'} and $option{'h'} ) {    ## NUMERIC + FOLLOW TRUTH ##
+
+    if ( is_true($string) != is_true($checksum) ) {
+        $bmw_offset++;
+        goto INVERT_TRUTH;
+    }
+}
+
 my $checksum_encoded = encode_b32r( pack( 'V', $checksum ) );
+
+if ( not $option{'n'} and not $option{'h'} ) {  ## ENCODED + STRING HARMONY ##
+
+    if ( not is_true($checksum_encoded) ) {
+        $bmw_offset++;
+        goto INVERT_TRUTH;
+    }
+
+} elsif ( not $option{'n'} and $option{'h'} ) {   ## ENCODED + FOLLOW TRUTH ##
+
+    if ( is_true($string) != is_true($checksum_encoded) ) {
+        $bmw_offset++;
+        goto INVERT_TRUTH;
+    }
+}
 
 ##[ DISPLAY VALUE ]###########################################################
 
@@ -46,13 +81,14 @@ my $fg  = "\e[38;2;68;39;172m";
 my $ng  = "\e[38;2;71;195;6m";
 
 if ( $option{'v'} ) {
+    my $offset_str = $bmw_offset ? " [ bit offset : $bmw_offset ]" : '';
     map {say} (
         $fg,
         ' input-string  :  ' . "$bg $ng$string $rst " . true_false($string),
         $fg,
-        '     elf-bits  :  ' . $elf_bits,
-        '     bmw-bits  :  ' . $bmwbits,
-        '    bmw-rbits  :  ' . $bmw_rbits,
+        '  reverse-elf  :  ' . $elf_bits,
+        '   bmw-R-bits  :  ' . $bmw_b_R,
+        '   bmw-L-bits  :  ' . $bmw_b_L . $offset_str,
         '',
         '    AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
         '',
@@ -83,14 +119,46 @@ if ( $option{'v'} ) {
 ##[ HARMONIC TRUTH ]##########################################################
 
 sub true_false {
-    ( my $C = shift ) =~ s|^.+ ||;
+    my $C = shift;
     return '' if not length $C or $C =~ m|^\e|;
-    my @opts = $C =~ m|^\d+(\.\d+)?$| ? qw| -q -n | : qw| -q |;
-    system( qw| harmony |, @opts, $C ) == 0 ? '< TRUE >' : '< FALSE >';
+    is_true($C) ? '< TRUE >' : '< FALSE >';
 }
 
+################################################################################
+
+sub is_true {
+
+    my $input_string = shift // '';
+    my $calc_str;
+    my $accuracy = 13;
+
+    state $cache //= {};
+    return $cache->{$input_string} if exists $cache->{$input_string};
+
+    if ( $input_string =~ m|^\d+$| ) {    ## check as mumber ##
+
+        $calc_str = Math::BigFloat->new($input_string)
+            ->bdiv( 13, 13 + length($input_string) );
+
+    } else {                              ## check as string ##
+
+        my $elf_checksum = elf($input_string);
+        $calc_str = Math::BigFloat->new($elf_checksum)
+            ->bdiv( 13, 13 + length($elf_checksum) );
+    }
+
+    ## FALSE ##
+    return $cache->{$input_string} = 0
+        if index( scalar $calc_str, '230769' ) >= 0;
+
+    ## TRUE ## assertion complete : harmony detected ## [ not 230769 ]
+    return $cache->{$input_string} = 1;
+}
+
+################################################################################
+
 #.............................................................................
-#QTIRKWFTOWPGWZ2ZTXFORMZRSQMCOOQKZGDT57BQI3TK5AJCCYMY54LTGZW3QYZF7NPM32YXVRPRA
-#::: 2OU6AMBEH7GD7PYEXYPW7PMRXK5DHKUGV5FNOIDU7BTBQSDKA6S :::: NAILARA AMOS :::
-# :: 6V2VEDW3T6G4XGEUYDGDWGI7THXHA3HTI3AV3YUSOXWLT4W4D4AA :: CODE SIGNATURE ::
+#VTUJT77AHIWWSGFLCFI6L3HLY4CPTINNRIBP6TPDUKFWQTASQUHSI3NR2EREF3KAPGXZXSPXH5INI
+#::: 2VBGOID7VRKGZXWY6BSZW3OXDRW2EJW5RVNZIKWDOHKMXFYJLUV :::: NAILARA AMOS :::
+# :: WBXZ2G4TXYCCQKEGRFN5SAZHWVW5PLHJ2U6GHCAX3U4GPDMH56DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
