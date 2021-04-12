@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use Digest::Elf qw| elf |;
+use Digest::BMW qw| bmw_224 |;
+use Crypt::Misc qw| encode_b32r |;
+
+getopts( 'n', \my %option );
+
+my $string = join( ' ', @ARGV );
+say ":\n:: expected string to encode\n:" if not @ARGV;
+
+my $elf_sum = elf($string);
+
+my $bmw_byte = substr( bmw_224($string), 0, 1 );
+
+my @bmw_bit = split( '', unpack( 'B4', $bmw_byte ), 2 );
+
+shift(@bmw_bit) if substr( $bmw_bit[1], 0, 2 ) ne '0' x 2;    ## [ 0 .. 9 ]
+
+my $bmw_digit = eval join( '', '0b', @bmw_bit );
+
+my $checksum = join( '', $elf_sum, $bmw_digit );
+
+say sprintf( "%010d", $checksum ) and exit(0) if $option{'n'};
+
+say encode_b32r( pack( 'V', $checksum ) );
+
+#.............................................................................
+#P5S3KGCLUSTSHVLZX7X2N4YKCD73X7QVZISSEP37E4IATLVJK7RALRIDWORJSKVLN3ISSTOOKXPLW
+#::: X5625NPSDGGHZXBKODL6ZDSE2A4LZU7M3MQALRVHYFY7FNJMUKG :::: NAILARA AMOS :::
+# :: MCRDDQUBCGRJY52C4WTP3BHK2YLBPC5Z5MW6LKIWR2LGW3H2K4CA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
