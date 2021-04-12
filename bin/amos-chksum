@@ -17,7 +17,7 @@ Math::BigFloat->round_mode('trunc');
 ## -n ## return checksum as numerical value
 ## -v ## visualize additional checksum data
 
-##############################################################################
+##[ PREPARING ]###############################################################
 
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => 'all';
@@ -32,76 +32,63 @@ my $string = join( ' ', @ARGV );
 my $elf_bits = sprintf( '%032b', join( '', reverse split '', elf($string) ) );
 my $bmw_512b = unpack( 'B512', bmw_512($string) );
 my $bmw_512R = join( '', reverse split '', $bmw_512b );
+my $bmw_b_L  = substr( $bmw_512b, 0, 32 );
+my $bmw_b_R  = substr( $bmw_512R, 0, 32 );
 
-my $harmony_mode = { 'n' => 1, 's' => 1 };    ## numeric + string ##
-my $bmw_offset   = 0;                         ## <-- not used yet ..,
-my $bmw_R_offset = 0;                         ## <-- not used yet ..,
-my $bmw_L_offset = 0;                         ## <-- in use ..,
-
-INVERT_TRUTH:
-my $bmw_b_L = substr( $bmw_512b, $bmw_L_offset, 32 );
-my $bmw_b_R = substr( $bmw_512R, $bmw_R_offset, 32 );
+my $bmw_mod_step = 0;
+my $bmw_mod_bits = scalar( '0' x 32 ) . $bmw_512b . scalar( '0' x 32 );
 
 ( my $checksum_bits = $elf_bits ) =~ s|^0+|
                                         substr $bmw_b_L, 0, length($MATCH) |e;
 $checksum_bits =~ s|0+$|
                     substr $bmw_b_R, 0, length($MATCH) |e;
 
-my $checksum = eval "0b$checksum_bits";       ## numerical ##
+## ######### ##   ##    ##     ##      ##
+my $checksum = eval "0b$checksum_bits";    ## numerical ##
+## ######### ##   ##    ##     ##      ##
 
-my $checksum_encoded = encode_b32r( pack( 'V', $checksum ) );
+my @mod_bits;
 
-if ( not $option{'h'} ) {    ## ENCODED + VALUE AND STRING HARMONY ##
+INVERT_TRUTH_STATE:
 
-    if (   $harmony_mode->{'n'} and not is_true($checksum)
-        or $harmony_mode->{'s'} and not is_true($checksum_encoded) ) {
-        ###############
-        $bmw_L_offset++;
-        ###############
-
-        if ( $bmw_L_offset == 512 ) {
-            if ( $option{'n'} and $harmony_mode->{'s'} ) {
-                $harmony_mode->{'s'} = 0;
-                $bmw_L_offset = 1;
-            } elsif ( not $option{'n'} and $harmony_mode->{'n'} ) {
-                $harmony_mode->{'n'} = 0;
-                $bmw_L_offset = 1;
-            } else {
-                $harmony_mode = '';    ## <-- giving up .,
-                $bmw_L_offset = 0;
-            }
-        }
-
-        goto INVERT_TRUTH;
+if ($bmw_mod_step) {    ## enforce required \ requested truth state ##
+    my $cur_mod_bits = substr( $bmw_mod_bits, 0, 32 );
+    if ( $cur_mod_bits eq '0' x 32 ) {    ## skip '0' prefixes ##8
+        ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
+        goto INVERT_TRUTH_STATE;
     }
-
-} else {    ## ENCODED + FOLLOW TRUTH ##
-
-    if (   $harmony_mode->{'n'} and is_true($string) != is_true($checksum)
-        or $harmony_mode->{'s'}
-        and is_true($string) != is_true($checksum_encoded) ) {
-        ###############
-        $bmw_L_offset++;
-        ###############
-
-        if ( $bmw_L_offset == 512 ) {
-            if ( $option{'n'} and $harmony_mode->{'s'} ) {
-                $harmony_mode->{'s'} = 0;
-                $bmw_L_offset = 1;
-            } elsif ( not $option{'n'} and $harmony_mode->{'n'} ) {
-                $harmony_mode->{'n'} = 0;
-                $bmw_L_offset = 1;
-            } else {
-                $harmony_mode = '';    ## <-- giving up .,
-                $bmw_L_offset = 0;
-            }
-        }
-
-        goto INVERT_TRUTH;
-    }
+    $checksum ^= eval join( '', '0b', $cur_mod_bits );
+    push( @mod_bits, $cur_mod_bits ) if $option{'v'};
 }
 
-##[ DISPLAY VALUE ]###########################################################
+#   ################ #        ###          #
+my $checksum_encoded = encode_b32r( pack( 'V', $checksum ) );
+##  ################ ##       ###          #
+
+if ( length($bmw_mod_bits) > 32 ) {
+    if ( not $option{'h'} ) {    ## ENCODED + VALUE AND STRING HARMONY ##
+
+        if (   not is_true($checksum)
+            or not is_true($checksum_encoded) ) {
+
+            ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
+            goto INVERT_TRUTH_STATE;
+        }
+
+    } else {                     ## ENCODED + FOLLOW TRUTH ##
+
+        if (   is_true($string) != is_true($checksum)
+            or is_true($string) != is_true($checksum_encoded) ) {
+
+            ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
+            goto INVERT_TRUTH_STATE;
+        }
+    }
+} else {
+    warn "bit modification entropy depleted [ cannot enforce truth state ]\n";
+}
+
+##[ VERBOSE RESULT VALUES ]###################################################
 
 my $rst = "\e[0m";
 my $bg  = "\e[48;2;9;5;42m";
@@ -110,33 +97,37 @@ my $ng  = "\e[38;2;71;195;6m";
 
 if ( $option{'v'} ) {
     my $offset_str
-        = $bmw_L_offset
-        ? " [ mode "
-        . join( ' + ',
-        reverse sort grep { $harmony_mode->{$ARG} } keys %{$harmony_mode} )
-        . " : offset $bmw_L_offset ]"
+        = $bmw_mod_step
+        ? " [ bmw-mod-step : $bmw_mod_step ]"
         : '';
+
+    my @mod_bits_str
+        = @mod_bits
+        ? (
+        '',
+        '  bmw-mod-bits  :  ' . shift @mod_bits,
+        ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ), ''
+        )
+        : ();
+
     map {say} (
         $fg,
-        ' input-string  :  ' . "$bg $ng$string $rst " . true_false($string),
+        '  input-string  :  '
+            . "$bg $ng$string $rst$fg "
+            . true_false($string),
         $fg,
-        '  reverse-elf  :  ' . $elf_bits,
-        '   bmw-R-bits  :  ' . $bmw_b_R,
-        '   bmw-L-bits  :  ' . $bmw_b_L . $offset_str,
+        '   reverse-elf  :  ' . $elf_bits,
+        '    bmw-R-bits  :  ' . $bmw_b_R,
+        '    bmw-L-bits  :  ' . $bmw_b_L,
+        @mod_bits_str,
+        '     AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
         '',
-        '    AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
-        '',
-        '    numerical  :  '
-            . sprintf( "%010d", $checksum ) . ' '
-            . true_false($checksum),
-        '',
-        '  VAX-encoded  : '
-            . "$bg $ng"
-            . $checksum_encoded
-            . "$fg $rst "
-            . true_false($checksum_encoded),
-        '',
-        $rst
+        join( ' ',
+            "   VAX-encoded  : $bg",
+            "$ng$checksum_encoded$fg $rst$fg :",
+            sprintf( "%010d", $checksum ),
+            true_false($checksum) ),
+        '', $rst
     );
 } elsif ( $option{'n'} ) {
 
@@ -150,7 +141,7 @@ if ( $option{'v'} ) {
     say "$fg:\n:$bg $ng$checksum_encoded$fg $rst\n$fg:$rst";
 }
 
-##[ CUSTOM ERROR HANDLING ]###################################################
+##[ ERROR HANDLER ]###########################################################
 
 sub error_exit {
     my $rst = "\e[0m";
@@ -160,7 +151,7 @@ sub error_exit {
     exit(110);
 }
 
-##[ HARMONIC TRUTH ]##########################################################
+##[ TRUTH STATE ]#############################################################
 
 sub true_false {
     my $C = shift;
@@ -168,7 +159,7 @@ sub true_false {
     is_true($C) ? '< TRUE >' : '< FALSE >';
 }
 
-##############################################################################
+##[ HARMONIC TRUTH ASSERT ]###################################################
 
 sub is_true {
 
@@ -191,18 +182,16 @@ sub is_true {
             ->bdiv( 13, 13 + length($elf_checksum) );
     }
 
-    ## FALSE ##
+    ## FALSE ### 230769 ####
     return $cache->{$input_string} = 0
         if index( scalar $calc_str, '230769' ) >= 0;
 
-    ## TRUE ## assertion complete : harmony detected ## [ not 230769 ]
+    ### TRUE ### 384615 ####
     return $cache->{$input_string} = 1;
 }
 
-##############################################################################
-
 #.............................................................................
-#XTU6BVPLDNX6JW7WXMOW5PMMBR4ZXZQVO3EDMTCUSA5XW6J57GYWN53N4SWUQ4B5W3UNIAGNO2BTY
-#::: QULM5K4FM7DM3FDFYZEOLUFNGNSMQXRNJ2IHFNBIKNUOOJ5M7PV :::: NAILARA AMOS :::
-# :: NKEQEXYNUA6HSWH4LGQ4FEOJZEBSZWY6V4VDM2IU4PF2FQDXG6BY :: CODE SIGNATURE ::
+#5SGXFUB5RECNCY462VELFHU2YTQODABBBWFXR2OYRA2WNHEZSEBWCEY2TREGNISVH643NSRT5L3E2
+#::: LAKPYW7ZSSERIVRKHH5M4G4L63E5XKWBSDNSMCW62FCVO5KEBTJ :::: NAILARA AMOS :::
+# :: WC5UA7BTPBIL3EDFF5UR2WP27KWQZXGSJQLJANN5RM3RL3Y2LADA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
