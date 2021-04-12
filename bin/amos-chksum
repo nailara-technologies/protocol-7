@@ -94,6 +94,7 @@ my $rst = "\e[0m";
 my $bg  = "\e[48;2;9;5;42m";
 my $fg  = "\e[38;2;68;39;172m";
 my $ng  = "\e[38;2;71;195;6m";
+my $no  = "\e[38;2;197;141;7m";
 
 if ( $option{'v'} ) {
     my $offset_str
@@ -106,7 +107,9 @@ if ( $option{'v'} ) {
         ? (
         '',
         '  bmw-mod-bits  :  ' . shift @mod_bits,
-        ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ), ''
+        ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
+        '',
+        sprintf( "    C-SUM-bits  : $bg $no%032b$fg $rst", $checksum ),
         )
         : ();
 
@@ -119,12 +122,13 @@ if ( $option{'v'} ) {
         '   reverse-elf  :  ' . $elf_bits,
         '    bmw-R-bits  :  ' . $bmw_b_R,
         '    bmw-L-bits  :  ' . $bmw_b_L,
-        @mod_bits_str,
+        '',
         '     AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
+        @mod_bits_str,
         '',
         join( ' ',
             "   VAX-encoded  : $bg",
-            "$ng$checksum_encoded$fg $rst$fg :",
+            "$no$checksum_encoded$fg $rst$fg :",
             sprintf( "%010d", $checksum ),
             true_false($checksum) ),
         '', $rst
@@ -184,14 +188,14 @@ sub is_true {
 
     ## FALSE ### 230769 ####
     return $cache->{$input_string} = 0
-        if index( scalar $calc_str, '230769' ) >= 0;
+        if index( scalar $calc_str, qw| 230769 | ) >= 0;
 
-    ### TRUE ### 384615 ####
+    ### TRUE ### 384615 | 00000000 ####
     return $cache->{$input_string} = 1;
 }
 
 #.............................................................................
-#5SGXFUB5RECNCY462VELFHU2YTQODABBBWFXR2OYRA2WNHEZSEBWCEY2TREGNISVH643NSRT5L3E2
-#::: LAKPYW7ZSSERIVRKHH5M4G4L63E5XKWBSDNSMCW62FCVO5KEBTJ :::: NAILARA AMOS :::
-# :: WC5UA7BTPBIL3EDFF5UR2WP27KWQZXGSJQLJANN5RM3RL3Y2LADA :: CODE SIGNATURE ::
+#UJIFIFKQZEKIXRREOKYD6MDW66VAJS7VH6I2ZXDSXZNESPBC3CCYDCOX3EGHLOGW272KW76Z57YNG
+#::: NSFOMZ3TPZUKYSHJORLZJKK5AM73IBI6PSKHFH3M4ZKOYX6JNIC :::: NAILARA AMOS :::
+# :: RYKEJH2KPJHHGNGPMQXHOQDMQAOQGFBUOZWLUVYXGWUQSKF5MGDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
