@@ -59,7 +59,7 @@ sub calc_true {
 }
 
 sub is_numerical {    ## export from parent ##
-    return ( not defined $ARG[0] or $ARG[0] !~ m|^[1-9]\d*(\.\d+)?$| )
+    return ( not defined $ARG[0] or $ARG[0] !~ m{^(0|[1-9]\d*)(\.\d+)?$} )
         ? 0
         : 1;
 }
