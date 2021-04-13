@@ -1,7 +1,7 @@
 
 ## include for calculating new version ##
 
-package AMOS::Version;
+package AMOS::Version;  ######################################################
 
 BEGIN {
     use strict;
@@ -13,7 +13,7 @@ our $VERSION = calc_version( calc_ntime() );
 
 printf ":\n:: our \$VERSION = '%s';\n:\n", $VERSION and exit;
 
-return 1;
+return 1;  ###################################################################
 
 sub calc_version {
     ( my $ntime_dec = shift ) =~ s|\D+||;
@@ -36,7 +36,7 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
 }
 
 #.............................................................................
-#MNDI7BWDVX3FE7BUB5S2WBDGCP3TSPLEDHBLYVM4YSCYSSLKRRB43L3EW75XE6W4L4ECLJ6453UE4
-#::: ATLJUDEVH5OG2O2DUD447NIZMG4R74BFU7266WGNPQB4GZHLDD5 :::: NAILARA AMOS :::
-# :: QFIS4QDYBM4DGU3JFIMHEBKPYAN3KKTI2RQ5TG3ID6SMWSKF3UCY :: CODE SIGNATURE ::
+#ERZVMKXNYCPI6XZJKKSJ3PJQI5643QNHE4OADRVSFZGAIV6QWWMBNYKKJJI76V7GAQEVYLUC5PAXG
+#::: 7FRRBLRX52NGMTI2VJOJPGMIDSUHB5EB5TXGQYHRXOZV5Q3UOX4 :::: NAILARA AMOS :::
+# :: ILEF237NI6V2QGGQ7RBYZAZDDX5FZIQ4HMAHVFSIN6F6EVPKH6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

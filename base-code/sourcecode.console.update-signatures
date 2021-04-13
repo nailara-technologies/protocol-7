@@ -14,7 +14,7 @@ my $work_tree    = $paths->{'work_tree'};
 my $source_root  = $paths->{'source_subdir'};
 my $version_root = $paths->{'version_root'};
 
-my @copy_sources = qw|
+my @copy_sources = qw[
     bin
     bin/dev
     read-me
@@ -25,11 +25,25 @@ my @copy_sources = qw|
     bin/dev/scripts
     bin/dependencies
     bin/dev/git-hooks
+    data/lib-path/pm
+    data/lib-path/pm/*
     configuration/zenki/*
-    |;
+    data/lib-path/pm/AMOS.pm
+];
 
-my @all_dirs
-    = map { <[file.match_dirs]>->( abs_path($work_tree), 'recursive', $ARG ) }
+my @all_files;
+
+my $work_path_abs = abs_path($work_tree);
+
+my @all_dirs = grep {defined} map {
+    my $absolute_path = abs_path( catfile( $work_path_abs, $ARG ) );
+    if ( -f $absolute_path ) {
+        push( @all_files, $absolute_path );
+        undef;
+    } else {
+        <[file.match_dirs]>->( $work_path_abs, 'recursive', $ARG );
+    }
+    }
     grep { !m|\*| } @copy_sources;
 
 push(    ## enabling [non-recursive] wildcard matches ##
@@ -38,7 +52,6 @@ push(    ## enabling [non-recursive] wildcard matches ##
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
         my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
-
         <[file.match_dirs]>->( $absolute_path, $pattern );
         }
         grep {m|\*|} @copy_sources
@@ -46,7 +59,7 @@ push(    ## enabling [non-recursive] wildcard matches ##
 
 map {
     my $source_path = $ARG;
-    die "source path $source_path does not exist" if !-d $source_path;
+    die "source path '$source_path' does not exist" if !-d $source_path;
     if ( !-w $source_path ) {
         <[base.log]>->(
             0, "<<< write permission missing for '$source_path' >>>"
@@ -57,7 +70,6 @@ map {
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
-my @all_files;
 foreach my $absolute_path (@all_dirs) {
     <[file.all_files]>->( $absolute_path, \@all_files );
 }
@@ -104,7 +116,7 @@ foreach my $path_rel (@source_paths) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
 #.............................................................................
-#OJ6U6P5DVXI2S4VVT3L66CXZ45VUAZXD5E5AULTRB3K6D2D3LOIWIFTSL53R6S4VZBHGIUW4QKGHM
-#::: NDNVG3BUCM4JP3ISA6YUTJ2F3VNQS6IXF7YYPOOQ6W4ZR34T4PQ :::: NAILARA AMOS :::
-# :: TVTVHCSNYIE6X3OWWKEXXVKHER5N77BV6DL7QP6ZGVEMJ4SYUODI :: CODE SIGNATURE ::
+#YKRXSRVU2ZVL7OU6WBJSTWTNNKRLINGOVD4PCGLBBKKQRLVH445NLAVXA7N4NADVMQZHW3BDAIC7C
+#::: SHD7RNM6OO2KCMAY4GAH3QIKRGV76JMWUDAVOKAETBDHRLNWGSG :::: NAILARA AMOS :::
+# :: NCEHQEDUXOIZF4KAIJULU5NQW256NCLVBBNRIEZEVES44S5JPIDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

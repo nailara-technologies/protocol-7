@@ -629,3 +629,9 @@ This software is licensed under The Apache Software License, Version 2.0.
 L<http://www.apache.org/licenses/LICENSE-2.0>
 
 =cut
+
+#.............................................................................
+#YQAOTCQQNFSTYJNNE2IYK4UWMIZUCGK3YY3KDBCTTFL474HO6ZDWQCFNQYSPK5DSWE7GYY26WXFN6
+#::: UW72AHGHQ3EAYJ26SPX3QTGTD23DVV4TOLFNMKN2DD3CJTHVAI2 :::: NAILARA AMOS :::
+# :: 5BK7GPLJBVL4LWXMEF7KG7F7QRET4BJPLJNCWQL6HUDVZ4L6TCDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
