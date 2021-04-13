@@ -6,7 +6,7 @@ use warnings;
 use Getopt::Std;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 
-my $pack_template = 'w'; ## variable length BER-compressed integer encoding ##
+my $pack_template = 'V';    ## 32-bit VAX interger encoding ##
 
 my $rst = "\e[0m";
 my $bl  = "\e[1m";
@@ -20,7 +20,7 @@ $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => 'all';
 
 getopts( 'dq', \my %option );
-warn "expected numerical or encoded parameter [ BER integer compression ]\n"
+warn "expected numerical or encoded input string [ integer VAX encoding ]\n"
     if not @ARGV;
 
 my $input_string = shift(@ARGV);
@@ -32,9 +32,14 @@ if ( $option{'d'}
     my $B32_in = $input_string // '';
     warn "expected BASE32 string to decode\n" if not length $B32_in;
     warn "given parameter is not in BASE32\n" if $B32_in !~ qr|^[A-Z2-7]+$|;
+    warn "input string longer than expected [ 32-bit VAX int ]\n"
+        if length($B32_in) > 7;
 
     my $B32_decoded = decode_b32r($B32_in);
     warn "BASE32 decoding error\n" if not defined $B32_decoded;
+
+    warn "decoded value exceeds 32-bit [ 4 bytes ]\n" and exit(3)
+        if length($B32_decoded) > 4;
 
     my $decoded_integer = unpack( $pack_template, $B32_decoded );
 
@@ -42,12 +47,13 @@ if ( $option{'d'}
 
     printf( "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst\n", $decoded_integer );
 
-} else { ##[ ENCODING | INTEGER COMPRESSION ]#################################
+} else { ##[ ENCODING | 32-BIT VAX INTEGER ]#@@###############################
 
     my $num_str = $input_string // '';
-    warn "expected integer number to encode\n" if not length $num_str;
-    warn "cannot compress negative numbers\n"  if $num_str =~ m|^\-\d+$|;
-    warn "can only encode integer values\n"    if $num_str !~ m|^\d+$|;
+    warn "expected integer number to encode\n"     if not length $num_str;
+    warn "cannot compress negative numbers\n"      if $num_str =~ m|^\-\d+$|;
+    warn "can only encode integer values\n"        if $num_str !~ m|^\d+$|;
+    warn "value exceeds 32-bit [ VAX encoding ]\n" if $num_str > 4294967295;
 
     my $comp_int_encoded = encode_b32r( pack( $pack_template, $num_str ) );
 
@@ -68,7 +74,7 @@ sub error_exit {
 }
 
 #.............................................................................
-#6V73SZVJQF5DREKFFVSVIR3X5GXUQO3M3XNYHNQDVUDEBXLKW72GMIDAK7A3J5TY3GHUXA2JZIRSO
-#::: YWXAKFQHDE4ZHOTCN2VDAKEQ5OCWBXRFYNM7V7IGPMIPG6SY7MC :::: NAILARA AMOS :::
-# :: YTA723C7UU5HTBL3SSAZNJ7J2OCU7QNGCMJ3BIC2QQKVFVCGCUCQ :: CODE SIGNATURE ::
+#NLJYBIYW4OFZDRZTWBMWQ2G3XTQEY4NZKNABZEN7MATRKLASDJT4VWUAWW3WNPBV3RMTGMN3ZAYWK
+#::: VRZGLS3SEFRA72KZXU2ADN5CGJ3D6V5K77R6CYJFRLESCJDVCNA :::: NAILARA AMOS :::
+# :: YF5OI45SZKVJONEPGBSU7A3GC5KHKIVGAFG23YSAK3NIOKU4UYBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
