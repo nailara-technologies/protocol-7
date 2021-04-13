@@ -4,10 +4,10 @@ use strict;
 use English;
 use warnings;
 use Getopt::Std;
+use Crypt::Misc;    ## <-- encode_b32r ##
+use Digest::Elf;
+use Digest::BMW;
 use Math::BigFloat;
-use Digest::Elf qw| elf |;
-use Digest::BMW qw| bmw_512 |;
-use Crypt::Misc qw| encode_b32r |;
 Math::BigFloat->round_mode('trunc');
 
 ##[ RUNTIME OPTIONS ]#########################################################
@@ -25,12 +25,13 @@ use warnings FATAL => 'all';
 getopts( 'vhnq', \my %option );
 warn "expected input string for AMOS-checksum calculation\n" if not @ARGV;
 
-my $string = join( ' ', @ARGV );
+my $data_str = join( ' ', @ARGV );
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $elf_bits = sprintf( '%032b', join( '', reverse split '', elf($string) ) );
-my $bmw_512b = unpack( 'B512', bmw_512($string) );
+my $elf_bits = sprintf( '%032b',
+    join( '', reverse split '', Digest::Elf::elf($data_str) ) );
+my $bmw_512b = unpack( 'B512', Digest::BMW::bmw_512($data_str) );
 my $bmw_512R = join( '', reverse split '', $bmw_512b );
 my $bmw_b_L  = substr( $bmw_512b, 0, 32 );
 my $bmw_b_R  = substr( $bmw_512R, 0, 32 );
@@ -61,9 +62,9 @@ if ($bmw_mod_step) {    ## enforce required \ requested truth state ##
     push( @mod_bits, $cur_mod_bits ) if $option{'v'};
 }
 
-#   ################ #        ###          #
-my $checksum_encoded = encode_b32r( pack( 'V', $checksum ) );
-##  ################ ##       ###          #
+#   ################ #        ###         #
+my $checksum_encoded = Crypt::Misc::encode_b32r( pack( 'V', $checksum ) );
+##  ################ ##       ###         #
 
 if ( length($bmw_mod_bits) > 32 ) {
     if ( not $option{'h'} ) {    ## ENCODED + VALUE AND STRING HARMONY ##
@@ -77,8 +78,8 @@ if ( length($bmw_mod_bits) > 32 ) {
 
     } else {                     ## ENCODED + FOLLOW TRUTH ##
 
-        if (   is_true($string) != is_true($checksum)
-            or is_true($string) != is_true($checksum_encoded) ) {
+        if (   is_true($data_str) != is_true($checksum)
+            or is_true($data_str) != is_true($checksum_encoded) ) {
 
             ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
             goto INVERT_TRUTH_STATE;
@@ -117,8 +118,8 @@ if ( $option{'v'} ) {
     map {say} (
         $fg,
         '  input-string  :  '
-            . "$bg $ng$string $rst$fg "
-            . true_false($string),
+            . "$bg $ng$data_str $rst$fg "
+            . true_false($data_str),
         $fg,
         '   reverse-elf  :  ' . $elf_bits,
         '    bmw-R-bits  :  ' . $bmw_b_R,
@@ -185,7 +186,7 @@ sub is_true {
 
     } else {                              ## check as string ##
 
-        my $elf_checksum = elf($input_string);
+        my $elf_checksum = Digest::Elf::elf($input_string);
         $calc_str = Math::BigFloat->new($elf_checksum)
             ->bdiv( 13, 13 + length($elf_checksum) );
     }
@@ -199,7 +200,7 @@ sub is_true {
 }
 
 #.............................................................................
-#2H3F4KH76CAHT6SBMJHAQUHGW22ZUVNVVCLOFU2477PXCSFY73AZ4M66QVIN64PF5TTDSM5KEKAMI
-#::: DTZ4U7GXPBEHW6HFAVUOUM5OFAT2TRAN6Y6JTQ543ZOP2IJEK2C :::: NAILARA AMOS :::
-# :: B2WD46ZXT7GL25WMX6Q6AZQ5CI7UPKXWRR3WPRH3KY6QS4H72KCQ :: CODE SIGNATURE ::
+#5AB3MTFXJ4WTU6CDBFCYRQVUXZFBQFMUGTQZ2WEXLIISFRQDJK3JAY3TZAVXCTKSZPRTP26OI75GS
+#::: FREL224QA2J5AZOIOPV4KBUU6OOZZFZTEC7P5QDTFTVF753KDDN :::: NAILARA AMOS :::
+# :: OKIFIB2CVXPU4KDEC7T6HZPDAOWONNZOGZT47BAJWGKQHJLBGSCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

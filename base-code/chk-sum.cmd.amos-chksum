@@ -1,0 +1,18 @@
+# >:]
+
+# name  = chk-sum.cmd.amos-chksum
+# descr = return AMOS checksum for given input string
+# param = <input-data>
+
+my $input_data = $$call{'args'};
+
+return { 'mode' => 'nak', 'data' => 'expected input string' }
+    if not defined $input_data;
+
+return { 'mode' => 'ack', 'data' => <[chk-sum.amos]>->(\$input_data) }
+
+#.............................................................................
+#VM4T2D4ZN3MAIPBR4QBY4RL5B7STMVYMYTBVTGVX7R3BXPDZJQMUSDJIEX3BVRYQU3RONEVBLO3YC
+#::: EJ2TZHWPGPYA27S4YUXMDMBM6AFRWPHCVWSZAULT4VBNNIBBYHL :::: NAILARA AMOS :::
+# :: KLMPI47UH44WYNYGDOPTCKN2BT7H3I7Y5NFGGS46MABC5OGHNQBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
