@@ -81,3 +81,9 @@ which is also included in the original L<source code|https://github.com/jhedding
 of this project.
 
 =cut
+
+#.............................................................................
+#QH675V35IALRNBTDI7YBM26VQFYYU6CECEJ4O5B7LVETOFYSSWAEZM2KXUPF7QUXUITNU4HU5LYLK
+#::: 737JEEPB2HP3JQP4LTSBIDU3WO467RWWR3FJO2XQ6RKNS3PYSH6 :::: NAILARA AMOS :::
+# :: PP72YLZOY35NWJQMVKUXL6FWF27LOEW24R3OGDFRM6R27TRJDAAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

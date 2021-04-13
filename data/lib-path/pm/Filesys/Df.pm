@@ -321,3 +321,9 @@ statvfs(2), fstatvfs(2), statfs(2), fstatfs(2), df(1), Filesys::DfPortable
 perl(1).
 
 =cut
+
+#.............................................................................
+#EYSVVYLFLJ75RFINTSN3N4E7QXB4MSDNX5HO6TURBJKX5B7F6JFAOOP37CQFTGMU5LXHFNV6R4TBU
+#::: X7O7C6KQQOTXXPS37IAKSE7ADA7NQ7ZADZ72B2TTCLI5J3FJFLS :::: NAILARA AMOS :::
+# :: ZPZVUL4TJ6NNRIHDKJY4PFUZHUCUPNDUFXDDIP6WKMSOV6QUFGAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
