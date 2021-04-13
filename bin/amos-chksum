@@ -7,8 +7,24 @@ use Getopt::Std;
 use Crypt::Misc;    ## <-- encode_b32r ##
 use Digest::Elf;
 use Digest::BMW;
-use Math::BigFloat;
-Math::BigFloat->round_mode('trunc');
+
+## algorithm configuration ##
+my $check_truth = {
+    'chksum_numerical' => 1,
+    'chksum_bits'      => 1,
+    'chksum_B32'       => 1
+};
+
+BEGIN {
+    use English;
+    use Cwd 'abs_path';
+    my $script_path = abs_path($PROGRAM_NAME);
+    ( my $local_lib_path = $script_path )
+        =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+}
+
+use AMOS::Assert::Truth qw| is_true |;    ## <-- expand \ extract routines ..,
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -67,19 +83,35 @@ my $checksum_encoded = Crypt::Misc::encode_b32r( pack( 'V', $checksum ) );
 ##  ################ ##       ###         #
 
 if ( length($bmw_mod_bits) > 32 ) {
+
     if ( not $option{'h'} ) {    ## ENCODED + VALUE AND STRING HARMONY ##
 
-        if (   not is_true($checksum)
-            or not is_true($checksum_encoded) ) {
+        if ($check_truth->{'chksum_numerical'}
+            and not is_true( $checksum, 1, 0 )
+
+            or $check_truth->{'chksum_bits'}
+            and not is_true( sprintf( "%032b", $checksum ), 0, 1 )
+
+            or $check_truth->{'chksum_B32'} and not is_true($checksum_encoded)
+        ) {
 
             ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
             goto INVERT_TRUTH_STATE;
         }
 
-    } else {                     ## ENCODED + FOLLOW TRUTH ##
+    } else {    ## ENCODED + FOLLOW TRUTH ##
 
-        if (   is_true($data_str) != is_true($checksum)
-            or is_true($data_str) != is_true($checksum_encoded) ) {
+        my $input_true = is_true( $data_str, 1, 1 );
+
+        if (    $check_truth->{'chksum_numerical'}
+            and $input_true != is_true( $checksum, 1, 1 )
+
+            or $check_truth->{'chksum_bits'}
+            and $input_true != is_true( sprintf( "%032b", $checksum ), 0, 1 )
+
+            or $check_truth->{'chksum_B32'}
+            and $input_true != is_true( $checksum_encoded, 0, 1 )
+        ) {
 
             ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
             goto INVERT_TRUTH_STATE;
@@ -117,9 +149,9 @@ if ( $option{'v'} ) {
 
     map {say} (
         $fg,
-        '  input-string  :  '
-            . "$bg $ng$data_str $rst$fg "
-            . true_false($data_str),
+        '  input-string  : '
+            . true_false($data_str)
+            . " $bg $ng$data_str $rst$fg ",
         $fg,
         '   reverse-elf  :  ' . $elf_bits,
         '    bmw-R-bits  :  ' . $bmw_b_R,
@@ -128,12 +160,11 @@ if ( $option{'v'} ) {
         '     AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
         @mod_bits_str,
         '',
-        join( ' ',
-            "$fg   VAX-encoded  : $bg",
-            "$ng$checksum_encoded$fg $rst$fg :",
-            sprintf( "%010d", $checksum ),
-            true_false($checksum) ),
-        '', $rst
+        join( ' ', "$fg   VAX-encoded  : " . true_false($checksum_encoded) )
+            . " $bg$ng$checksum_encoded$fg $rst$fg"
+            . sprintf( "[ %010d ]", $checksum ),
+        '',
+        $rst
     );
 } elsif ( $option{'n'} ) {
 
@@ -165,42 +196,11 @@ sub error_exit {
 sub true_false {
     my $C = shift;
     return '' if not length $C or $C =~ m|^\e|;
-    is_true($C) ? '< TRUE >' : '< FALSE >';
-}
-
-##[ HARMONIC TRUTH ASSERT ]###################################################
-
-sub is_true {
-
-    my $input_string = shift // '';
-    my $calc_str;
-    my $accuracy = 13;
-
-    state $cache //= {};
-    return $cache->{$input_string} if exists $cache->{$input_string};
-
-    if ( $input_string =~ m|^\d+$| ) {    ## check as mumber ##
-
-        $calc_str = Math::BigFloat->new($input_string)
-            ->bdiv( 13, 13 + length($input_string) );
-
-    } else {                              ## check as string ##
-
-        my $elf_checksum = Digest::Elf::elf($input_string);
-        $calc_str = Math::BigFloat->new($elf_checksum)
-            ->bdiv( 13, 13 + length($elf_checksum) );
-    }
-
-    ## FALSE ### 230769 ####
-    return $cache->{$input_string} = 0
-        if index( scalar $calc_str, qw| 230769 | ) >= 0;
-
-    ### TRUE ### 384615 | 00000000 ####
-    return $cache->{$input_string} = 1;
+    is_true($C) ? ':: TRUE ::' : ':: FALSE ::';
 }
 
 #.............................................................................
-#5AB3MTFXJ4WTU6CDBFCYRQVUXZFBQFMUGTQZ2WEXLIISFRQDJK3JAY3TZAVXCTKSZPRTP26OI75GS
-#::: FREL224QA2J5AZOIOPV4KBUU6OOZZFZTEC7P5QDTFTVF753KDDN :::: NAILARA AMOS :::
-# :: OKIFIB2CVXPU4KDEC7T6HZPDAOWONNZOGZT47BAJWGKQHJLBGSCQ :: CODE SIGNATURE ::
+#NMACOKGMLCCAEM3U75QY4KCHQUBKH5HN3SNKBMLZEK6BPBRKNAO37DYQTVMOEZT6IT33ZFPHW55MK
+#::: C5RQYK5EM266K74GLZA2NZUY4T665DDJWAEAGMVTQW3AZ7HTNX4 :::: NAILARA AMOS :::
+# :: QQC6RUGY7QSR7Z7HP2TEWY2QLNBTYGZ332DX3FYT7SD2EUPT2YCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
