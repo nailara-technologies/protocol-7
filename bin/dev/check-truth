@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+my $silence_on_sterr_redir = 1;  ## do not output result if STDERR is piped ##
+
+BEGIN {
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, 'data/lib-path/pm' ) );
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@_) }
+    sub r2_abs { File::Spec->rel2abs(@_) }
+}
+
+my $FXI = 202;    ## program return code for asserted FALSE ##
+
+use AMOS::Assert::Truth qw| is_true |;    ## <-- expand \ import routines ..,
+
+my $check_string = join( ' ', @ARGV );
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $bg  = "\e[48;2;9;5;42m";
+my $fg  = "\e[38;2;68;39;172m";
+my $no  = "\e[38;2;197;141;7m";
+my $ng  = "\e[38;2;71;195;6m";
+
+if ( is_true($check_string) ) {
+
+    say "$fg:\n:: $bl${ng}TRUE$rst$fg :: "
+        . "$bg'$ng$check_string$fg'$rst$fg .:\n:$rst"
+        if not $silence_on_sterr_redir or not is_piped();
+
+    exit(0);
+} else {
+
+    say "$fg:\n:: $bl${no}FALSE$rst$fg :: "
+        . "$bg'$no$check_string$fg'$rst$fg :.\n:$rst"
+        if not $silence_on_sterr_redir or not is_piped();
+
+    exit($FXI);
+}
+
+sub is_piped {    ## try reading terminal size to detect pipe scenario ##
+
+    my $handle = shift // *STDERR;    ## using *STDERR for pipe detection ##
+
+    return 1 if not -t $handle;
+
+    my $size       = "\0" x 8;
+    my $TIOCGWINSZ = 21523;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return 1;
+
+    return 0;
+}
+
+#.............................................................................
+#JO3ROWMXXNTBYP5GRYHRSWXIEUNEFIDNLTL6E4UTX6K67ABXQCJNMSIZLWVWVW3BHCJOV2L2KN4YI
+#::: UXBM6TGZ3BNDR4BLKQVYOJCLTEIUKZZKVSSDAAHGV7SLKHAWCIH :::: NAILARA AMOS :::
+# :: UXQYAI7S424JTQV6YUE4BMUDGIAQ7BSDDSXNIUIXVLDB6KMK7QBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
