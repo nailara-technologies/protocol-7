@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use Crypt::Misc qw| encode_b32r decode_b32r |;
+
+my $pack_template = 'w';
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $bg  = "\e[48;2;9;5;42m";
+my $fg  = "\e[38;2;68;39;172m";
+my $no  = "\e[38;2;197;141;7m";
+my $ng  = "\e[38;2;71;195;6m";
+my $ec  = "\e[38;2;197;141;7m";
+
+$SIG{'__WARN__'} = \&error_exit;
+use warnings FATAL => 'all';
+
+getopts( 'dq', \my %option );
+warn "expected numerical or encoded input string [ integer compression ]\n"
+    if not @ARGV;
+
+my $input_string = shift(@ARGV);
+
+##[ BASE32 DECODING ]#########################################################
+
+if ( $option{'d'}
+    or defined $input_string and $input_string !~ m|^\-?\d+$| ) {
+    my $B32_string = $input_string // '';
+    warn "expected BASE32 string to decode\n" and exit(1)
+        if not length $B32_string;
+    warn "given parameter is not in BASE32\n" and exit(3)
+        if $B32_string !~ qr|^[A-Z2-7]+$|;
+
+    my $B32_decoded = decode_b32r($B32_string);
+    warn "BASE32 decoding error\n" and exit(3) if not defined $B32_decoded;
+
+    my $decoded_integer = unpack( $pack_template, $B32_decoded );
+
+    say $decoded_integer and exit if $option{'q'};
+
+    printf( "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst\n", $decoded_integer );
+
+} else { ##[ ENCODING | INTEGER COMPRESSION ]#################################
+
+    my $num_str = $input_string // '';
+    warn "expected integer number to encode\n" and exit(1)
+        if not length $num_str;
+    warn "cannot compress negative numbers\n" and exit(3)
+        if $num_str =~ m|^\-\d+$|;
+    warn "can only encode integer values\n" and exit(3)
+        if $num_str !~ m|^\d+$|;
+
+    my $comp_int_encoded = encode_b32r( pack( $pack_template, $num_str ) );
+
+    say $comp_int_encoded and exit if $option{'q'};
+
+    printf( "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst\n", $comp_int_encoded );
+
+}
+
+##[ ERROR HANDLER ]###########################################################
+
+sub error_exit {
+    chomp( my $e = shift );
+    $e =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
+    $e =~ s|(*plb:\w): (\S+)|$fg : $ec$LAST_PAREN_MATCH|;
+    say "$fg:\n: $ec$e$fg\n:$rst";
+    exit(110);
+}
+
+#.............................................................................
+#ENVFCADQNA2IISJBUG2YG5VWZHSNAVHY6O4U5ICKPAE5635HVOA3YWPHPFNG5CVVCMNRF4LLBYUZU
+#::: VBWZ52JDAOGVUDWBH3MZ5RCYGCODBV23A2UKVUQ6FOIHXM3E2SR :::: NAILARA AMOS :::
+# :: 77MC6LTACJ4T7QQTKIGZDAKWN3QAL3CTWPLBCKMSXZ32YYCUXUBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
