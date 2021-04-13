@@ -791,7 +791,7 @@ sub prepare_subs {
 
     $code{'base.format_error'} = sub {
         my $err_msg = shift // '';
-        my $c_lvl   = shift // 2;
+        my $c_lvl   = shift // 1;
         my ( $caller_str, $file, $line );
         $err_msg =~ s|\n$||;
         ( $file, $line ) = @{^CAPTURE}
@@ -807,6 +807,14 @@ sub prepare_subs {
         $caller_str = $code{'base.caller'}->($c_lvl);
         return ( "'$err_msg'", $caller_str ) if wantarray;
         return "'$err_msg'";
+    };
+
+    $code{'base.caller'} = sub {
+        my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
+        $c_lvl++;                  ## <-- accounting for this subroutine ##
+        my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
+
+        return "[$filename:$line]";
     };
 
     $code{'dump_core_subs'} = sub {
@@ -2007,7 +2015,7 @@ END {
 }
 
 #.............................................................................
-#RSMNHXYMGY6VSJSPARQYP3DPYEKFV3YDYFVJ6S43NO7RGEH4HQRVISKSH7SXHDTSCYU7GZKY6X7FO
-#::: M2QL7DOKJPLWR7ZHHSLCSRJ3GNVMA2FTHAHPIRHI7N4BMJDLYC3 :::: NAILARA AMOS :::
-# :: VYK7JH64BYSZ66AJYDKHZH5LMHW2TBW52A7YUJOGSSB7CL5E32DQ :: CODE SIGNATURE ::
+#65L5SMPTF3C7ALRSSICTS6UHQJOCHCMOLS7IQY345CQONV6CYIMPVPNKUBEMP3ABTU5DR3XPDXZ2E
+#::: KU5G3G6IWCFQ6FCZ5ENPQ6YK33HVXMLVBTVMJL5DJRNPUTDZKS2 :::: NAILARA AMOS :::
+# :: XSNKEUSBVTEDLH3K5T6SB7NZGHKP3XJXLCFZSDQIWAXI6AVJA2CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
