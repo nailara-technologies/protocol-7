@@ -673,3 +673,9 @@ sub expand {
 }
 
 1;
+
+#.............................................................................
+#HPZKPCXAEY3LYWLAKXZETTSADJNW3KZSNNGH2TP43MX5HT64WVT42BUF3XDJJYTOCXKAEJ4KT5DS4
+#::: JBYM5K52ZLBBX6QVDNDV5MMGXYDHEAYWXDPGEIAZZZMROKMKBIP :::: NAILARA AMOS :::
+# :: EDCEQPZHY6AYIYKNOPBE3YDCG3UIHZNK4IAXF7CVWZJ32CKZ4CAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
