@@ -91,6 +91,7 @@ if ( length($bmw_mod_bits) > 32 ) {
 ##[ VERBOSE RESULT VALUES ]###################################################
 
 my $rst = "\e[0m";
+my $bl  = "\e[1m";
 my $bg  = "\e[48;2;9;5;42m";
 my $fg  = "\e[38;2;68;39;172m";
 my $ng  = "\e[38;2;71;195;6m";
@@ -109,7 +110,7 @@ if ( $option{'v'} ) {
         '  bmw-mod-bits  :  ' . shift @mod_bits,
         ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
         '',
-        sprintf( "    C-SUM-bits  : $bg $no%032b$fg $rst", $checksum ),
+        sprintf( "    C-SUM-bits  : $bg $ng$bl%032b$fg $rst", $checksum ),
         )
         : ();
 
@@ -127,8 +128,8 @@ if ( $option{'v'} ) {
         @mod_bits_str,
         '',
         join( ' ',
-            "   VAX-encoded  : $bg",
-            "$no$checksum_encoded$fg $rst$fg :",
+            "$fg   VAX-encoded  : $bg",
+            "$ng$checksum_encoded$fg $rst$fg :",
             sprintf( "%010d", $checksum ),
             true_false($checksum) ),
         '', $rst
@@ -149,9 +150,12 @@ if ( $option{'v'} ) {
 
 sub error_exit {
     my $rst = "\e[0m";
+    my $fg  = "\e[38;2;68;39;172m";
     my $ec  = "\e[38;2;197;141;7m";
-    chomp( my $e = lcfirst(shift) );
-    say ":\n: $ec$e$rst\n:";
+    chomp( my $e = shift );
+    $e =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
+    $e =~ s|(*plb:\w): (\S+)|$fg : $ec$LAST_PAREN_MATCH|;
+    say "$fg:\n: $ec$e$fg\n:$rst";
     exit(110);
 }
 
@@ -195,7 +199,7 @@ sub is_true {
 }
 
 #.............................................................................
-#UJIFIFKQZEKIXRREOKYD6MDW66VAJS7VH6I2ZXDSXZNESPBC3CCYDCOX3EGHLOGW272KW76Z57YNG
-#::: NSFOMZ3TPZUKYSHJORLZJKK5AM73IBI6PSKHFH3M4ZKOYX6JNIC :::: NAILARA AMOS :::
-# :: RYKEJH2KPJHHGNGPMQXHOQDMQAOQGFBUOZWLUVYXGWUQSKF5MGDY :: CODE SIGNATURE ::
+#2H3F4KH76CAHT6SBMJHAQUHGW22ZUVNVVCLOFU2477PXCSFY73AZ4M66QVIN64PF5TTDSM5KEKAMI
+#::: DTZ4U7GXPBEHW6HFAVUOUM5OFAT2TRAN6Y6JTQ543ZOP2IJEK2C :::: NAILARA AMOS :::
+# :: B2WD46ZXT7GL25WMX6Q6AZQ5CI7UPKXWRR3WPRH3KY6QS4H72KCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
