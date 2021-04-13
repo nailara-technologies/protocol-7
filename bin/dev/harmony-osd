@@ -23,7 +23,7 @@ my $result_code = system( qw| harmony -q -- |, $check_string );
 $result_code = $result_code >> 8 if $result_code != -1;
 
 my $numeric_result
-    = $check_string =~ m|^\d+(\.\d+)?$|
+    = $check_string =~ m{^(0|[1-9]\d*)(\.\d+)?$} ## use AMOS module version ##
     ? system( qw| harmony -qn |, $check_string )
     : 13;
 $numeric_result = $numeric_result >> 8
@@ -51,7 +51,7 @@ close FILE;
 system( qw| /usr/bin/aosd_cat |, @aosd_opts );
 
 #.............................................................................
-#ZW3QSFCVPODD33AHT5FOHIBVLIKIQPY3TPSRX5HF3OIYVGPMM6CJFOYR45IZAXPDLTTHMOG52GWSM
-#::: UY56D6VUWBXXEAA7IMI4SUCR5EHBZZS2LFMGGPJ4VR3CMOSTU73 :::: NAILARA AMOS :::
-# :: ZA2UNDLNB274KAPX2K5T3FP6BIZRHFOB7N74ERLMO55L7BQYOOCY :: CODE SIGNATURE ::
+#RWGCTY6AFHPYY3MST3I5IVWYJONFG2FP3IVKE6SRIQ5J7NF5V5VLADSQ5SXRN4EB5EP4LSTP4VMVU
+#::: 73WSA6REKKKK63YSAGPNCVE3IBYG67UD34TEW55HRPHWTSAUKEB :::: NAILARA AMOS :::
+# :: XXCMUCJTXCNQTTVEMXVGJRV3JY7FDA2CAXH2MCGAUXBIA5A2Z4CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
