@@ -7,10 +7,55 @@
 <[base.perlmod.load]>->('Math::BigFloat');    ## <-- truth assertion ##
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
+my $elf_bin = qw| /usr/local/bin/elf |;  ##  <--  auto-compile \ install [LLL]
+$elf_bin = <[file.which]>->(qw| elf |) if not -x $elf_bin;
+
+my $fallback_enabled
+    = <[base.cfg_boolean]>->( <chk-sum.elf.allow_external> // 1 );
+
+my $external = <chk-sum.elf.external> = {
+    'binary_path'         => $elf_bin,
+    'fallback-enabled'    => $fallback_enabled,
+    'fallback-counter'    => 0,
+    'warn-after-count'    => 4200,
+    'collect-buffer-size' => 4300777,
+    'collect-buffer-name' => qw| elf-checksum-error |,
+    'collect-error-input' => 1
+};
+
+$data{'buffer'}{ $external->{'collect-buffer-name'} }{'max_size'}
+    //= $external->{'collect-buffer-size'};
+
+## testing \ reporting fallback status ##
+#
+if ( <chk-sum.elf.external.fallback-enabled> and -x $elf_bin ) {
+    <[base.log]>->( 2, ': testing external elf binary .,' );
+    <[base.log]>->( 2, ": :. [ $elf_bin ].," );
+
+    my $test_string  = <[base.ntime.b32]>;
+    my $check_result = <[chk-sum.elf.external]>->($test_string);
+
+    if ( $check_result eq <[chk-sum.elf]>->($test_string) ) {
+        <[base.log]>->( 2, ': elf checksums match : fallback enabled =)' );
+    } else {
+        <[base.log]>->( 2, ': not successful : disabling fallback .,' );
+        <chk-sum.elf.external.fallback-enabled> = 0;
+        <[base.log]>->( 0, ':: external-elf-fallback disabled ::' );
+        <[base.log]>->( 0, ':. elf test was not successful :| .:' );
+    }
+} elsif ( not -x $elf_bin ) {
+    <chk-sum.elf.external.fallback-enabled> = 0;
+    <[base.log]>->( 1, ':: external elf binary not found ::' );
+    <[base.log]>->( 1, ': external elf fallback is disabled' );
+    <[base.log]>->( 1, ": binary-path: '$elf_bin'" );
+} else {
+    <[base.log]>->( 1, ': external elf fallback is disabled [ config ]' );
+}
+
 0;
 
 #.............................................................................
-#4D7SNQEBEYCRDMXTYBNIATHUT4IFY2TOPYN7BJ5BOANVPT5HT3N6ARVRCYA64APTRI4AZJ4R5JGZQ
-#::: 33RRPBY64K7GK32IFHBGIZC5G5QSDBGHRMOCBO353XEUASSUHLH :::: NAILARA AMOS :::
-# :: NWPXW2KGEXJVUMF7Y77RLZISILRNM7M275GVN2EJP2NCWRZIVKAA :: CODE SIGNATURE ::
+#URKNWFEJKD5GKOR6OLWKG3EONVX4AHOCOFDHBBWPIWYJESURX6NAGTQ3NWN6DCMHIUKIN2QWBCFFS
+#::: AY2ASURR4RQ3FL5GFHQDB4QFX4H5HVARIECQGSILJ7JCWYF4LHZ :::: NAILARA AMOS :::
+# :: SBAI26TFMKIZ4UMSDTMQ7XWRDOOW3NGRL664RGOINQG4U5MUBSBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

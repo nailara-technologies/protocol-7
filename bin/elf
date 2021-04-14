@@ -32,7 +32,10 @@ if ( defined $mode{'f'} and ( -f $mode{'f'} or $mode{'f'} eq '-' ) ) {
 
 sub elf_val {
     my $elf = Digest::Elf::elf( $_[0] );    ## <-- investigate \\ replace ..,
-    return external_elf( $_[0] ) if length($elf) > 10;
+    return external_elf( $_[0] )
+        if length($elf) > 10
+        or length( $_[0] )
+        and $elf == 0;
     return $elf;
 }
 
@@ -55,7 +58,7 @@ sub encode_output {    ## decimal [ base encoding ]
 # }
 
 #.............................................................................
-#GZS7R5MTB6OTTO6K25O5AREB5AGBB3SL7SQFBEIHTNPCLNC7ZG4PRNQHVOAHBPH3KJJF3ZCJSBMBQ
-#::: ZD7IXZABBACB7K2ZIK3KILFPAEBKLTZ6DA4Q7HQPS5L3YUSVSMG :::: NAILARA AMOS :::
-# :: 6TJ7CYJHLUQQBAKUQQI324GEHMOWS3INRWXWZUTNHXFPQ2SSPGBI :: CODE SIGNATURE ::
+#NPXYTB7XCI6EOGOOWTK7M43KOV4XXNVJULOS63CPM67YKZTZMYL7OZER2SRRAMOFHFSPGJ2UXDTJI
+#::: D5N2CDME4FKUSK4K4JRAD2LOF4XQG3HE4VFB6ONLSE5C23XCLSZ :::: NAILARA AMOS :::
+# :: 56DUTABL74RTJYHZX35ZXGZYW7IWFMDCMWYPJ2T5S6ZU64ZFCIBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
