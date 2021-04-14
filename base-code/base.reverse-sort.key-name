@@ -1,0 +1,25 @@
+# >:]
+
+# name  = base.reverse-sort.key-name
+
+my ( $key_name, $data_href ) = @ARG;
+
+warn 'expected <key_name> parameter' and return undef
+    if not defined $key_name;
+warn 'expected <data_href> parameter' and return undef
+    if not defined $data_href;
+warn 'expected hash reference [data_href]' and return undef
+    if ref($data_href) ne 'HASH';
+
+return sort {    ## length decending ##
+    length $data_href->{$b}->{$key_name} <=>
+        length $data_href->{$a}->{$key_name}
+    }            ## reverse-alpha ##
+    sort { $data_href->{$b}->{$key_name} cmp $data_href->{$a}->{$key_name} }
+    grep {defined} keys %{$data_href};
+
+#.............................................................................
+#7BCD4YAL3UGA2RHS2DG7CB7ILQV7L2PTI2HYAWZJ7V6QKVAPBCHW4APCH3S3L4TX7AXTEIBSPGPPK
+#::: BET6XW277J4MS4T4CNDEW3ASLQBXQ7Q7A2YMH5J6JAYZXHOASGO :::: NAILARA AMOS :::
+# :: SWBKEXD7VVL5ST46L7MIKSSE7BVTWAKE2KCKVMXA66VT4POMCMDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
