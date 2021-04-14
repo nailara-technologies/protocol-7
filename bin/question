@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+use Crypt::Misc qw| encode_b32r |;
+our $up_dir     = File::Spec->updir;
+our $Bin        = $RealBin;
+our $FALSE_code = 202;
+our %COLORS     = init_colors();
+
+my $check_truth_bin = get_bin_path();
+error_exit('expected question') if !@ARGV;
+
+# ########################################################################## #
+
+( my $question = join( ' ', @ARGV, '?' ) ) =~ s|(\s*\?)+$| ?|;
+
+my $question_encoded = sprintf( 'Q: %s : %s A!', network_time(), $question );
+
+my $exit_code = system( $check_truth_bin, qw| -silent |, $question_encoded );
+$exit_code >>= 8 if $exit_code > 0;
+
+if ( $exit_code == 0 ) {
+    true_answer($question);
+    exit(0);
+} elsif ( $exit_code == $FALSE_code ) {
+    false_answer($question);
+    exit($FALSE_code);
+} else {
+    error_exit("invovation error : check-truth returned $exit_code");
+}
+
+# ########################################################################## #
+
+sub network_time { return encode_b32r( pack( 'w*', calc_ntime() ) ) }
+
+sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
+    my $precision      = 5;
+    my $ntime_start    = 1023228000;
+    my $unix_precision = $precision + 2;
+    my $unix_time      = sprintf( "%.0${unix_precision}f", time() );
+    my $ntime          = sprintf( "%.0${precision}f",
+        ( ( $unix_time - $ntime_start ) * 4200 ) );
+
+    return $ntime;
+}
+
+sub init_colors {
+    return (
+        'rst' => "\e[0m",
+        'bl'  => "\e[1m",
+        'bg'  => "\e[48;2;9;5;42m",
+        'fg'  => "\e[38;2;68;39;172m",
+        'no'  => "\e[38;2;197;141;7m",
+        'ng'  => "\e[38;2;71;195;6m"
+    );
+}
+
+sub true_answer {
+
+    my $question = shift;
+
+    say "$COLORS{'fg'}:\n:: $COLORS{'ng'}"
+        . "$COLORS{'bl'}TRUE$COLORS{'rst'}$COLORS{'fg'} :: $COLORS{'ng'}"
+        . $question
+        . "$COLORS{'fg'} .:\n:$COLORS{'rst'}";
+}
+
+sub false_answer {
+
+    my $question = shift;
+
+    say "$COLORS{'fg'}:\n:: $COLORS{'no'}"
+        . "$COLORS{'bl'}NOPE$COLORS{'rst'}$COLORS{'fg'} :: $COLORS{'fg'}"
+        . $question
+        . "$COLORS{'fg'} :.\n:$COLORS{'rst'}";
+}
+
+sub error_exit {
+
+    my $err_str = shift;
+
+    say "$COLORS{'fg'}:\n:: $COLORS{'bl'}"
+        . "$COLORS{'no'}$err_str$COLORS{'rst'}"
+        . "$COLORS{'fg'} ::\n:$COLORS{'rst'}";
+
+    exit(4);
+}
+
+sub get_bin_path {
+    my $bin_path     = abs_path( r2_abs( c_dir($Bin) ) );
+    my $dev_bin_path = abs_path( c_dir( $bin_path, 'dev' ) );
+    die "\n:\n:: not found : $dev_bin_path\n:\n" if !-d $dev_bin_path;
+    my $check_truth_path = abs_path( c_file( $dev_bin_path, 'check-truth' ) );
+    die "\n:\n:: not found : $check_truth_path\n:\n" if !-x $check_truth_path;
+    return $check_truth_path;
+}
+
+sub c_dir  { File::Spec->catdir(@_) }
+sub c_file { File::Spec->catfile(@_) }
+sub r2_abs { File::Spec->rel2abs(@_) }
+
+#.............................................................................
+#RTY3OSU2EJJOOAQLZYFFBS6CARTSX4ACXH5F3E46OIKUNKRVATG5SQOF6XYQJ7AHXU6GSBLZWHAUG
+#::: E75TTMHGQTVQSZGKCZEKSIRLZAKA2IAUTFZVL73QM3QBFPPWYRS :::: NAILARA AMOS :::
+# :: WXDG63GCQEVENUXM5RP7JPHFW2EDN2CAE5DD6QZ422W252BBJSAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
