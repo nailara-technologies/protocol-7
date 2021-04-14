@@ -1,0 +1,16 @@
+# >:]
+
+# name = chk-sum.cmd.elf-checksum
+# param = <input-sring>
+# descr = return elf checksum for input string
+
+return { 'mode' => 'nak', 'data' => 'expected input string' }
+    if not defined $$call{'args'};
+
+return { 'mode' => 'ack', 'data' => <[chk-sum.elf]>->( $$call{'args'} ) };
+
+#.............................................................................
+#2ADXPDNNPOTESESMCIJMZW4CILM6TKI4GRFYVZXCU4V6EOU6TJJY7WJUHOZDB5WJX2NYW4VZGCYH2
+#::: XZP4N4FKQDVK7ALAXDQESIN5P5SCPEWU7TK4GYGJ2AGRY2K2KCE :::: NAILARA AMOS :::
+# :: RTIGQFISZWLKX6336Q74WHEJGPRF4YDZQ2OIEBJOOPW72O2DP2AA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
