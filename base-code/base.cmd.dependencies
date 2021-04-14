@@ -4,18 +4,19 @@
 # descr = return zenka dependencies [pkgs\pmods]
 # todo  = also implement binary dependency listing ..,
 
-my $width      = 67;
 my $return_str = "\n";
-my @pmods      = <[base.sort]>->(<base.perlmod.loaded>);
+my @pmods      = <[base.reverse-sort]>->(<base.perlmod.loaded>);
+my $width      = 77;    # < left-side [bin] > + <[base.max-len]>->(@pmods);
 
-$return_str .= join( '', ' ' x $width, " . perl-mod .\n" );
-map { $return_str .= sprintf( "%${width}s :\n", $ARG ) } @pmods;
-$return_str .= join( '', ' ' x $width, " .\n" );
+$return_str .= sprintf( ' %' . int( $width + 2 ) . "s\n", '.: perl-mod :.' );
+$return_str .= sprintf( '%' . int( $width + 3 ) . "s\n",  '.' );
+map { $return_str .= sprintf( " %${width}s :\n", $ARG ) } @pmods;
+$return_str .= sprintf( '%' . int( $width + 3 ) . "s\n", '.:' );
 
 return { 'mode' => 'data', 'data' => $return_str }
 
 #.............................................................................
-#4W7D2K3MY3I44QPQBCTKOHEVXTCPPIT3ASXRLPVOKFJLAKZ7O4YRYICDPHM2RL2YVG4FWBONRS6A6
-#::: MLB4FMO26UAGF3PSTVHL5ATPT3FUVGYHZX47DL3V6NKHWYHQB3A :::: NAILARA AMOS :::
-# :: HRFUJK5ZAADEKWZE7OL7YGP34R4PZUBMVTO5B5B5TUHBTRSIC4BI :: CODE SIGNATURE ::
+#WR5JMQFNYOWOZEOTULWIFIJACRWTGLURLITV3PK3B6U6XUSPBNPENOV7MBQWK7SF4NG5KLBJNMT2M
+#::: HHYCKZ4K5UQ2X3ZEGV2JQWBWXDOPML3H4P3SEM5NXQ44SSLO55D :::: NAILARA AMOS :::
+# :: RBZ55PODREB2UBM6IGWM2XOO32YT5WCWSZXEMF4JESB5PAIQOUDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
