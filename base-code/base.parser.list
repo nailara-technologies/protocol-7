@@ -85,14 +85,9 @@ my @sorted_keys = <[base.reverse-sort]>->($data_ref);
 if ( defined $sort_key ) {
     my $sort_type = $sort_key =~ s|^([^:]+):|| ? $1 : 'reverse-len-alpha';
 
-    if ( $sort_type eq 'alpha-len' ) {
-        eval {
-            @sorted_keys = sort {
-                length $data_ref->{$a}->{$sort_key} <=>
-                    length $data_ref->{$b}->{$sort_key}
-                }
-                sort keys( %{$data_ref} );
-        };
+    if ( $sort_type eq 'alpha-len' ) {  ## length-ascending \ reverse-alpha ##
+        @sorted_keys
+            = <[base.reverse-sort.key-name]>->( $sort_key, $data_ref );
     } elsif ( $sort_type eq 'alpha' ) {
         eval { @sorted_keys = sort keys( %{$data_ref} ); };
     } elsif ( $sort_type eq 'num' ) {
@@ -111,8 +106,9 @@ if ( defined $sort_key ) {
                 keys %{$data_ref};
         };
     } elsif ( $sort_type eq 'reverse-len-alpha' )
-    {    #  <--[ base sorting order ]
-        eval { @sorted_keys = <[base.reverse-sort]>->($data_ref); };
+    {    ##  [ base sort order ]  length-descending \ reverse-alpha ##
+        @sorted_keys
+            = <[base.reverse-sort.key-name]>->( $sort_key, $data_ref );
     } else {
         warn "unknown sort_type '$sort_type'";
     }
@@ -161,7 +157,7 @@ $table_string .= "\n";
 return $table_string;
 
 #.............................................................................
-#DGIERVI5NXDCD2DFNJC5DRMPKY6DFE6ZYE3LXZ2RI6XMHG6ONYWBKKNMK4X7T22QJDSDSE6JJNJRI
-#::: GKNBA47NMY2IKQ3TAAZ74C3LXDWMOYOQVEY5GYF5DMP3OV6IQIR :::: NAILARA AMOS :::
-# :: T43CUTU6C7YX4URLAQBXK5CB5KORKQWYGR6DOQ7AYBWYYH55X2AQ :: CODE SIGNATURE ::
+#D4RRH56GV3QFKBJ5HSNPIKSP2XNHQC5XIXDJYAFUAXVQW5RFSGYZWCP5GUMFYFBMFWTD5GT6V3MDS
+#::: WUHLHYPLSNIQXKOWGIEY5MRGAGXPSRXMYJLAW2GNNWZX7LYTWW5 :::: NAILARA AMOS :::
+# :: LZ5JCVT6ND6QHHBTC6TYNEQWU3L36I3R5BTBVK2KKYBK7Y5POUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
