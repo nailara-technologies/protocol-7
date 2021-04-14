@@ -5,14 +5,49 @@
 # note  = becomes unreliable for input longer than 47 bytes
 
 die 'expected single argument' if scalar @ARG > 1;
-warn 'input data too long [>47] use different implementation'
-    and return undef
-    if length( $ARG[0] );
+return sprintf( '%09d', 0 )    if not length( $ARG[0] // '' );
 
-return Digest::Elf::elf( $ARG[0] );
+my $elf_chksum = Digest::Elf::elf( $ARG[0] );
+
+return sprintf( '%09d', $elf_chksum )
+    if $elf_chksum > 0 and $elf_chksum <= 999999999;
+
+my $use_external_fallback = <chk-sum.elf.external.fallback-enabled> //= 0;
+
+if ( not $use_external_fallback ) {
+    if ( $elf_chksum == 0 ) {
+        warn 'input data too long [ external fallback not enabled ]'
+            . " ['$ARG[0]']";
+    } else {
+        warn 'elf checksum error [ external fallback not enabled ]'
+            . " ['$ARG[0]'] == $elf_chksum";
+    }
+
+    return sprintf( '%09d', 0 );    ## returning 0 on errors ##
+
+} else {
+    my $external          = <chk-sum.elf.external>;
+    my $limit             = $external->{'warn-after-count'} //= 4200;
+    my $count             = ++$external->{'fallback-counter'};
+    my $col_buffer_name   = $external->{'collect-buffer-name'};
+    my $collect_offending = $external->{'collect-error-input'} //= 0;
+
+    <[base.log]>->( 2, 'elf checksum error [ calling external command ]' );
+    <[base.logs]>->( 2, ': %s', <[base.caller]> );
+    if ($collect_offending) {
+        <[base.buffer.add_line]>->( $col_buffer_name, $ARG[0] );
+        my $collected_len = length( $ARG[0] );
+        <[base.log]>->( 2, ": input data captured [ ${collected_len}B ]" );
+    }
+    <[base.logs]>->(
+        0, ":. excessive elf checksum errors detected [ %04d ]", $count
+    ) if $count % $limit == 0;
+
+    return <[chk-sum.elf.external]>->( $ARG[0] );
+}
 
 #.............................................................................
-#MH4W3LWRZDL2E232AGOKQPGXL7PSASCQ5YZDW7FLYYNMOVOTGVODDB6RT5T7AVACW5ZNHEPCRFW3Q
-#::: CSWXIM6GH772T3Y33S6XCZOYUPKJ7NSBPDXAH3CKIK7MEHYRQNX :::: NAILARA AMOS :::
-# :: PN3I7U472ACYIXGRSESUXROOE7OZMPFVWAHGBNMBC343D2SYEKBI :: CODE SIGNATURE ::
+#4I6XWYUIGQ27PJVRM7SYNNZZ4O7K3KT2W5CAD2WRO5WSCEEQ36E4LUIRLV4US7S3RWFASNUZRRFRK
+#::: 7PDJ5UFUSRIHBZPPWLUN7MJPH5CY5YVUSES2C5LVUAU4MYSTAHK :::: NAILARA AMOS :::
+# :: GPC2EC4B2D3PEPZJIK6TV3B5CHCOQCAL3OBLXKWFGK7ZF2ZYF2BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
