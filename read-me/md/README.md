@@ -1,7 +1,7 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZDRIBMUQMA-4122.0 ]
+### [ source code version : ZDRIL26XIA-4123.0 ]
 
 ### ( this is the [ISC license](license)d "base" branch )
 ---
@@ -9,7 +9,7 @@
 ---
 
 #.............................................................................
-#4X2IFH5MK2S4LEPEWPFN2OMLE5DNWHFFGKSANJPOK4Q2M6QZOG2CE3OT6DAMHZTB6XCYK65QQSD4I
-#::: ZOIESJ563IFQD7D6HOYHDFQEBHL4MTVUZWUQ3PTGZ3EAPNNNXZ4 :::: NAILARA AMOS :::
-# :: GDRNP2ETTZBOUQRTGNTALWHC2PPLLNH4NMBTXQDKVYGUVJEVIOAA :: CODE SIGNATURE ::
+#6U7MSKXE6O3ZVSRSAMSO7HGA2MRBSFJBNOJAGLSOD2C756FHYLFRDOLWXA6GH3TCKAWMDUQTVWGL6
+#::: UJNAKFE4D23D6PLMUGNVRXBHF5MJXPUFYJLNUINDHXMRFSL7UGV :::: NAILARA AMOS :::
+# :: 6J4NJ5MPTMSOKV2PLOR7FOWQSZFPEONEH5HXEFQLIONUYYKJVIBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

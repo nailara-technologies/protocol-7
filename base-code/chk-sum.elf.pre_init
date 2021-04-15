@@ -6,13 +6,14 @@
 
 return 0 if defined &inline_elf; ## <-- create version and check it., ## [LLL]
 
-## silent loading of 'Inline' module, when installed ##  .. register .., [LLL]
+## silent loading of 'Inline' module, when installed ##
 if (<chk-sum.elf.use_inline_elf>) {
     <[base.log]>->( 2, "checking whether 'Inline::C' is installed..," );
     my $missing;
     eval qq| use Inline |;
     $missing = 'Inline' if $EVAL_ERROR;
     if ( not defined $missing ) {
+        <base.perlmod.loaded>->{'Inline'} = 1;
         eval qq| require 'Inline/C.pm' |;
         $missing = 'Inline::C' if $EVAL_ERROR;
     }
@@ -22,6 +23,7 @@ if (<chk-sum.elf.use_inline_elf>) {
         );
         <chk-sum.elf.use_inline_elf> = 0;
     } else {
+        <base.perlmod.loaded>->{'Inline::C'} = 1;
         <[base.log]>->( 2, ':. success, proceeding with inline_elf().,' );
     }
 } else {
@@ -33,7 +35,7 @@ if (<chk-sum.elf.use_inline_elf>) {
 return 0;
 
 #.............................................................................
-#AGU6KC6MXCKWO4VMH3LCSDSMNAP2FEGXVRZJTFDVU6A3KXA6QFVIKTPCM4U5AF3R3ZXR3DZX5YLH4
-#::: VSW5FOZXPKOWFGVXZUVJWOQUGTUFOATNDBJVTR7KNE6N2GT5FZI :::: NAILARA AMOS :::
-# :: IOYCS47QYLHXCGCSV4FU3V7ADNKUDYVSSGVJA7I7IGZOENKANUAI :: CODE SIGNATURE ::
+#HATHRYEAO6NG4RYH3JQX64ZLVTXEV5PHLJLWZ4TG45EFT6LBGH5PKBVMQXQGCQ2EULTFNYQ73QYSS
+#::: 477KLG4GCDN4LRKZU5WXHQOSRM5ZVOFGCPA7O5VJCQEJ3GJOVBY :::: NAILARA AMOS :::
+# :: JAQXD7LAKMHWJE6LHVAWPZR2RJ77IDSPWFSVSBVTQWCWJOEAN6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
