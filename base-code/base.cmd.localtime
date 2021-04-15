@@ -14,12 +14,19 @@ eval { $ntime_decoded = decode_b32r($unix_time) }
     if $unix_time =~ m|[A-Z]|
     and length($unix_time) >= 10;
 
-if ( defined $ntime_decoded )
-{    ## contains network time with arbitary precision
+if ( defined $ntime_decoded ) {
+    return {
+        'mode' => 'nak',
+        'data' => 'decoded value is not valid [ expected compressed integer ]'
+        }
+        if not <[base.comp-int.is_valid]>->($ntime_decoded);
+
+    ## contains network time with arbitary precision
     my @nt_val = unpack( 'w*', $ntime_decoded );
     $nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
     $unix_time = join( '.', @nt_val )        ## needs error handling
-}
+} else {
+}    ## BASE32 decoding error ##
 
 $unix_time = $utime_copy    # <<[?]>> deal with false positives <<[?]>>
     if $$call{'args'} =~ m|[A-Z]|
@@ -27,11 +34,11 @@ $unix_time = $utime_copy    # <<[?]>> deal with false positives <<[?]>>
 
 return {
     'mode' => 'nak',
-    'data' => "submitted parameter string is not valid"
+    'data' => 'submitted parameter string is not valid'
     }
     if $EVAL_ERROR
     or not defined $unix_time
-    or $unix_time !~ /^\d{1,17}(\.\d{1,20})?$/;
+    or $unix_time !~ m|^\d{1,17}(\.\d{1,20})?$|;
 
 $unix_time = <[base.n2u_time]>->($unix_time)
     if length( int($unix_time) ) >= 13;    # <-- nailara network time
@@ -40,7 +47,7 @@ my $subseconds = $unix_time =~ s|(\.\d+)$|| ? $1 : undef;
 
 return {
     'mode' => 'nak',
-    'data' => "queried value is out of range"
+    'data' => 'queried value is out of range'
     }
     if $unix_time > 67767976233316804;
 
@@ -53,7 +60,7 @@ $ltime_str .= " [ +0${subseconds} ]" if defined $subseconds;
 
 return {
     'mode' => 'nak',
-    'data' => "unix_time value is too high"
+    'data' => 'unix_time value is too high'
     }
     if not defined $ltime_str or !length($ltime_str);
 
@@ -63,7 +70,7 @@ return {
     }
 
 #.............................................................................
-#JEWQKHOJUHGNA3WBEPK2QPCUH5FUVDVDTDBBME3TIZKYRZN6RLIZMAO2YTBGIJJ55RYTC42SOXJQK
-#::: HHH4KYZ5PS7JJ4W2TALHNW6PCPHN2VJ6VVEPXVLS222NCACM2U2 :::: NAILARA AMOS :::
-# :: ATQ5AKSDGQFCLUWZVE4KUXUPJV47MW3SLYLCGB46QEUB56JWNUAY :: CODE SIGNATURE ::
+#G3FJXAJCPLCLOKQ7UKG7HVL7UL5GL2E6BHWYPSMSZ6HMOQ6NHBX63BTI3YB4GIR7IXQCP4XO5YT5E
+#::: 6H5JDCL4FZHCLARS3OQCTT72HTDXLYYGXZ6PLJ47VB75YR6ELFR :::: NAILARA AMOS :::
+# :: K2GDXGY6V2TZ2EEMSLQIHPOUMAN4WXWOEBF7KZMMUUGDFPUI2MDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
