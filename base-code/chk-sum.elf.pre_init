@@ -1,0 +1,39 @@
+# >:]
+
+# name  = chk-sum.elf.pre_init
+
+<chk-sum.elf.use_inline_elf> //= 1;
+
+return 0 if defined &inline_elf; ## <-- create version and check it., ## [LLL]
+
+## silent loading of 'Inline' module, when installed ##  .. register .., [LLL]
+if (<chk-sum.elf.use_inline_elf>) {
+    <[base.log]>->( 2, "checking whether 'Inline::C' is installed..," );
+    my $missing;
+    eval qq| use Inline |;
+    $missing = 'Inline' if $EVAL_ERROR;
+    if ( not defined $missing ) {
+        eval qq| require 'Inline/C.pm' |;
+        $missing = 'Inline::C' if $EVAL_ERROR;
+    }
+    if ( defined $missing ) {
+        <[base.log]>->(
+            0, "perl module '$missing' not available, disabling inline_elf()"
+        );
+        <chk-sum.elf.use_inline_elf> = 0;
+    } else {
+        <[base.log]>->( 2, ':. success, proceeding with inline_elf().,' );
+    }
+} else {
+    <[base.log]>->( 2, ':: inline_elf() is not enabled, skipping.,' );
+}
+
+<[chk-sum.elf.inline-c.compile]> if <chk-sum.elf.use_inline_elf>;
+
+return 0;
+
+#.............................................................................
+#AGU6KC6MXCKWO4VMH3LCSDSMNAP2FEGXVRZJTFDVU6A3KXA6QFVIKTPCM4U5AF3R3ZXR3DZX5YLH4
+#::: VSW5FOZXPKOWFGVXZUVJWOQUGTUFOATNDBJVTR7KNE6N2GT5FZI :::: NAILARA AMOS :::
+# :: IOYCS47QYLHXCGCSV4FU3V7ADNKUDYVSSGVJA7I7IGZOENKANUAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

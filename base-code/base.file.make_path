@@ -13,7 +13,7 @@ return warn 'expected absolute path [ to create ] <{C1}>' and return undef
 
 my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
 
-## optionally recursive mode array [ reference ] ##  <-- expand for owners [LLL]
+## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
 my $modes = ref($param_mode) ne 'ARRAY' ? [$param_mode] : $param_mode;
 
 ### path clean-up ####
@@ -21,10 +21,11 @@ $path =~ s|/[^/]+/\.\./||g;
 $path =~ s|//|/|g;
 $path =~ s|/$||;
 
-die "< file.mkdir > not valid path '$path'" if $path !~ m|^/[^/]+|;
+die "<file.mkdir> path not valid : '$path'" if $path !~ m|^/[^/]+|;
 
 if ( -d $path ) {
-    <[base.log]>->( 2, ":. present =) .: ['$path']" );
+    <[base.log]>->( 2, ':. path present =)' );
+    <[base.log]>->( 2, ": $path" );
     return $path;
 }
 
@@ -70,7 +71,7 @@ umask($previous_umask);
 return $path;
 
 #.............................................................................
-#GGF5JRMMEWU4W6USJROBHJCHQJUWNPCETWVOEQFSULCE77GUYMKJMBWTM6ME26FD6F2DKVKTUQ3OK
-#::: H42B3N72NPJLNAEZQRZQDMMA5KVTZYB4OY7NEMIDFCETJWSPJDT :::: NAILARA AMOS :::
-# :: W5R6PVT6CNZNPXCPZE2XYMHI66RZLLFKRHPWF6C7ZUEBM2IWDKBQ :: CODE SIGNATURE ::
+#P2ALL5C4VINFZHFH36T6ZSSLYXAEOKKZCPIJIXEAF7MFPWQUJ3F5DVE6K4FOMRIFHIBIJ4CLFFYO4
+#::: KEW6CJUTUSAVLFF2ENDNA2VJFS2NLV5IK3UOOA4MRZSJW3NWKO5 :::: NAILARA AMOS :::
+# :: OBYADF2OADMQBYY2HWAUR6R5NX3V7PXY7VTXK3KF3Z524KJUKOCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

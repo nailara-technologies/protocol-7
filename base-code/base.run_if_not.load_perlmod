@@ -4,22 +4,24 @@
 
 my $perl_module = shift;
 my $code_name   = shift;
-my @params      = @_;
+my @params      = @ARG;
 
-if ( $perl_module !~ /^(\w+|::)+$/ ) {
-    <[base.log]>->( 0, "invalid module name '$perl_module'" );
+if ( $perl_module !~ m,^(\w+|::)+$, ) {
+    <[base.log]>->( 0, "module name '$perl_module' not valid" );
     return 3;
 }
 
-if ( eval "use $perl_module" or $EVAL_ERROR or length($OS_ERROR) ) {
+eval "use $perl_module";    ## <-- testing only ., ##
+
+if ($EVAL_ERROR) {
     return $code{$code_name}->(@params);
 } else {
-    <[base.log]>->( 2, "loading '$perl_module' succeeded.." );
+    <[base.log]>->( 2, "loading of '$perl_module' successful ..," );
     return 0;
 }
 
 #.............................................................................
-#QLZPGSMCINLL7K5V3MCZDPF57MHCPJUXRIMGDDM7KBIATWDZPJPMGGACFWTEI7FMDXMTKAUN4INO6
-#::: 4OZQM73ZDPSGUEP6JE57WYRK25FMH3PLBDWDPMQXCEZTGUCHF4P :::: NAILARA AMOS :::
-# :: LN5C6HL5BJYNJFABYUV72IRTWZD24PT7SMYJN2UOZCEFFCTOQ2AQ :: CODE SIGNATURE ::
+#GX2US67SGIA7W2EUVUJ5MHTWDO73Z3OCNC2FGFGLCHRIFW7GB6G5Z3RTWVUGMGFHQDHZHF6DZM44O
+#::: ALHTMVCCMCWNEDWGUDRSIFSKAUQDXFJTSPL3XRLFWHRQCNIMOF7 :::: NAILARA AMOS :::
+# :: 7LWXBR5G5CXPSYIL4FF5LSKZWWY3ADANKYXQHEIS7VF3XNZZV2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

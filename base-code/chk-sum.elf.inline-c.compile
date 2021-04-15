@@ -1,0 +1,91 @@
+# >:]
+
+# name  = chk-sum.elf.inline-c.compile
+
+my $base_path = qw| /var/tmp/.inline-elf |;
+
+## create user registry \ configuration variable [ to decide with ].., [LLL]
+my $compile_user = <system.X-11-user> // <system.amos-zenka-user>;
+
+## actually compile as $compile_user [ fork() ] .., [LLL]
+
+die '<compile_user> not defined [ required ]'
+    if !length( $compile_user // '' );
+
+our $inline_directory = join( '.', $base_path, $compile_user );
+
+if ( not -r $inline_directory and defined &inline_elf ) {
+    <[base.logs]>->(
+        0, 'aborting inline_elf() reload.., %s not readable.,',
+        $inline_directory
+    );
+    return 1;    ## inline_elf() still loaded \ defined ##
+}
+
+eval {   #[ INIT \ C-CODE ]###################################################
+
+    if ( not -d $inline_directory ) {    ## use file.make_path ## [LLL]
+        mkdir($inline_directory)
+            or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
+        <[base.log]>->( 2, ': compiling inline_elf() ..,' );
+
+    } else {
+        <[base.log]>->( 2, ': loading inline_elf() library ..,' );
+    }
+};
+
+my $elf_code = <[chk-sum.elf.inline.elf-code]>;
+
+eval { Inline->bind( 'C' => $elf_code, 'directory' => $inline_directory ); };
+
+warn 'inline-c elf compilation not successful [ eval ] <{C1}>'
+    . <[base.format_error]>->($EVAL_ERROR) and return 0
+    if $EVAL_ERROR;
+
+warn 'inline-c elf compilation not successful [ inline_elf() ] <{C1}>'
+    and return 0
+    if not defined &inline_elf;
+
+my $chown_from_user = getpwuid($UID);
+
+if ($UID == 0    ## only 'root' user can change file ownership ##
+    and defined $chown_from_user
+    and defined $compile_user
+    and defined $inline_directory
+    and -d $inline_directory
+    and -w $inline_directory
+) {
+    <[base.logs]>->( 2, ': changing ownership to %s .,', $compile_user );
+    <[base.logs]>->( 2, ':. %s',                         $inline_directory );
+    <[file.chown_all]>->(
+        $chown_from_user, $compile_user, $inline_directory, 3 ## <-- log-level
+    );
+} elsif ( $UID == 0 ) {
+    <[base.logs]>->(
+        0,
+        "cannot chown inline directory ['%s'] < '%s' --> '%s' >",
+        $inline_directory // '',
+        $chown_from_user  // '',
+        $compile_user
+    );
+}
+
+my $test_string = <[base.ntime.b32]>;
+
+my $mod_elf_sum    = sprintf( '%09d', Digest::Elf::elf($test_string) );
+my $inline_elf_sum = sprintf( '%09d', inline_elf($test_string) );
+
+warn sprintf( 'inline_elf test not successful [ %s != %s ] <{C1}>',
+    $inline_elf_sum, $mod_elf_sum )
+    and return 0
+    if $inline_elf_sum ne $mod_elf_sum;
+
+<[base.log]>->( 1, ': inline_elf() available : test successful =)' );
+
+return 1;    ## success ##
+
+#.............................................................................
+#FZJEPSG7SVVPQN6IKTZEOBD3J6CGDGHVAUAQJCLLUMZG3R4554XMCKFB6RKHGDMPOF4KBWJ7JF4M6
+#::: QXJOXNI2HS6JVBYSTDQ7B7XECYM73UCUIICQWDMFVDRQVMI45WQ :::: NAILARA AMOS :::
+# :: XLPTVTC5RVQP2R6JDOC6WA5PQGBX24AXHWHSKDIZEAALKZHXUGDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
