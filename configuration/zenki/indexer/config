@@ -3,12 +3,13 @@
 
 [load_config_file:'shared-params']
 
-modules.load          = net protocol io.ip auth chk-sum.amos indexer ## debug
+modules.load          = net protocol io.ip auth chk-sum.amos chk-sum.elf \
+                        indexer ## debug
 
 access.cmd.usr.cube   = verify-instance commands heart reload \
                         clear-buffer list show-buffer stop-job \
-                        add-wordlist del-wordlist \
-                        add-path rescan-paths search
+                        add-wordlist del-wordlist dependencies \
+                        add-path rescan-paths search # *
 
 indexer.path.index-cfg   = /var/run/protocol-7/indexer/set-up/index-paths
 indexer.path.index-files = /var/run/protocol-7/indexer/data/indexer-state
@@ -24,7 +25,7 @@ indexer.path.index-files = /var/run/protocol-7/indexer/data/indexer-state
 [event.loop]
 
 #.............................................................................
-#23ZFYVOFRD4577HYVL6MJFYRLVIOHIFUYU76YQBTCFUQNH72KE6G44QHZ2TD7LOTOP7BR6LWJVCZI
-#::: P3MUY4K455UATLQUIZO4ZJN7OYKLG4BYTP5OEJK74I3T3EWSA4P :::: NAILARA AMOS :::
-# :: FRXJQJOLXHASDXP6LDEUBEGHPVOOEZJUWQC2XOP57ZW3XFGR5MAA :: CODE SIGNATURE ::
+#DONPXXCNAXLKWUIVYDR6ZTWCXJX3HJ6T7T7VS66CDAKCPMABNHU5WW5CYOACQO5V6UE7XHKJZIUAM
+#::: ZAJX5MX3HEIMBUERZGWWUW5NWK64W3BW3TH3ZEQHEFKUSK2LIZF :::: NAILARA AMOS :::
+# :: 2SWUHU6LJODZYGLNH7DSSDGSUCNG2PB7DYPPQMTKGLTND7HRR6AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
