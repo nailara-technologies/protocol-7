@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Digest::Elf;
+our $inline_directory;
+
+my @test_words = qw| Куба гол мля гена пръч мами пило лепи зона бебе блок |;
+
+if ( not @ARGV ) {
+    foreach my $test_string (@test_words) {
+        elf_test($test_string);
+    }
+} else {
+    elf_test( join( ' ', @ARGV ) );
+}
+
+exit(0);
+
+sub elf_test {
+    my $test_string = shift;
+    say sprintf( ":  %09d\n:", elf($test_string) );
+    say sprintf( ": %09d [ Digest::Elf ]", Digest::Elf::elf($test_string) );
+    say ':.';
+}
+
+BEGIN {  #[ INIT \ C-CODE ]###################################################
+    die 'ENV{USER} not set [ required ]' if !length( $ENV{'USER'} // '' );
+    $inline_directory = join( '.', qw| /var/tmp/.inline-elf |, $ENV{'USER'} );
+    if ( not -d $inline_directory ) {
+        mkdir($inline_directory)
+            or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
+    }
+}
+INIT {
+    use Inline ( 'C' => <<~ 'EOT', 'directory' => $inline_directory );
+
+    void elf(char *sval)
+    {
+        // unsigned long h = 0, g; // <-- broken in .xs \ Inline without cast
+
+        unsigned int h = 0; // <-- repaired
+        unsigned long g;
+
+        Inline_Stack_Vars;
+
+        printf( "\n.:[ '%s' ]:.\n:\n", sval ); // <-- debug output
+
+        while ( *sval ) {
+
+            h = ( h << 4 ) + *sval++;
+
+            if ( g = h & 0xF0000000 )
+                h ^= g >> 24;
+
+            h &= ~g;
+        }
+
+        printf( ":: %09u ::\n:\n", h ); // <-- debug output
+
+        Inline_Stack_Reset;
+        Inline_Stack_Push(sv_2mortal(newSViv( h ))); // original [elf.xs] ..,
+
+        // Inline_Stack_Push(sv_2mortal(newSViv( (int) h ))); // <-- alsoworx
+
+        Inline_Stack_Done;
+    }
+
+    EOT
+}
+
+#.............................................................................
+#26RBRH6K2KMUTWBEUDE5GDFYEU5BJJON47WMQJL67TU63AB4HKOH6CYH77SCT2FEMBIZQMQNFNMHG
+#::: CCVTCXOYQCCRMUFPRK5DYEPG5KS7CN3AOE7IADSZ3JAVUNLMTYR :::: NAILARA AMOS :::
+# :: U3LKVX4HXLOHSJVNFBPTF5UJPSPFL3NLUB6W5BTC434UO3T7U2BY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
