@@ -3,7 +3,7 @@
 # name = base.perlmod.load
 
 my ( $module_name, @export ) = @_;
-<base.perlmod.auto_install> //= 1;
+<base.perlmod.auto_install> //= 0;
 
 <[base.log]>->( 2, ": loading perl module '$module_name'.," );
 
@@ -13,27 +13,25 @@ my ( $module_name, @export ) = @_;
 <base.perlmod.loaded>->{$module_name} = 1;
 
 eval { load( $module_name, @export ) };
-return 1 if !$EVAL_ERROR;
-my $reason = $EVAL_ERROR;
-$reason =~ s| at .+$||sg;
-$reason =~ s| *\n.*$||s;
+return 1 if not $EVAL_ERROR;
+
+my $reason = <[base.format_error]>->($EVAL_ERROR);
 
 # load error #
 <base.perlmod.loaded>->{$module_name} = 0;
 
-if ( $reason !~ m|^Can.t locate | ) {
+if ( $reason !~ m|^\S+ locate | ) {
     <[base.log]>->(
         0, "<< error while loading perl module '$module_name' >>"
     );
-    <[base.log]>->( 0, "  : ' $reason '" );
-    return 0;
+    die "$reason\n";
 }
 
 if ( !<base.perlmod.auto_install> ) {
     <[base.log]>->(
         0, "<< error while loading perl module '$module_name' >>"
     );
-    <[base.log]>->( 2, "  : [ ' $reason ' ]" );
+    <[base.log]>->( 2, "  : [ '$reason' ]" );
     <[base.log]>->(
         2, "  :. << module auto_install is not enabled, doing nothing >>"
     );
@@ -43,7 +41,7 @@ if ( !<base.perlmod.auto_install> ) {
 <[base.log]>->(
     2, ": << error while loading '$module_name' [ auto_install enabled ] >>"
 );
-<[base.log]>->( 2, ":. [ ' $reason ' ]" );
+<[base.log]>->( 2, ":. [ '$reason' ]" );
 
 # auto install #
 <[base.perlmod.install]>->($module_name);
@@ -55,7 +53,7 @@ die "<< not able to automatically install perl module '$module_name' >>\n"
 return 1;
 
 #.............................................................................
-#3QNH4FD37OU7TJHZT7VFHQ2EL72YULKLZMI2B6QRZPCFFGYX6HBPUDHYM2H6NOLZGQGVDTYRL4EH6
-#::: F4K55FBC363JM4PHSXP5RZ5T2MUFTBU6RLQ74U3QV3TXIIXEDXT :::: NAILARA AMOS :::
-# :: T7P7NGPGKS75EKBLHYBPYCXWGBTPUW7SKQB7JXG6MVT47UOAMSBY :: CODE SIGNATURE ::
+#X22ZBDQV337YF7OQJAOQ4HK56RSFXP3S4BE2YEDXFPMGSS7EOI7NNJ2DYECVNE556RBXFYF3HOWJU
+#::: ZOM3UPNMLVX3RRZZQELRKDWOD7ZW6TAIHWIIIWCOR3X6SWTE6XY :::: NAILARA AMOS :::
+# :: VC2JMQFGWB5UBC2S4U2EKORDBHVQPCGMPHAWEKSYRKW5BTFQTYDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
