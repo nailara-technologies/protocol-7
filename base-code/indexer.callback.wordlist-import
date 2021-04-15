@@ -1,0 +1,46 @@
+# >:]
+
+# name  = indexer.callback.wordlist-import
+
+my $watcher         = shift->w;          ## callback idle watcher
+my $name_checksum   = $watcher->data;    ## wordlist name elf-checksum
+my $index_job       = <indexer.jobs>->{$name_checksum}; ## callback data href
+my $reply_id        = $index_job->{'reply_id'};         ## protocol-7 reply id
+my $iteration       = $index_job->{'iterations'};       ## callback call count
+my $stop_requested  = $index_job->{'stop-requested'};   ## abort import job ?
+my $job_type        = $index_job->{'job-type'};         ## 'wordlist-import'
+my $index_data_path = $index_job->{'data-path'};     ## where to store results
+my $wordlist_path   = $index_job->{'wordlist-path'}; ## only for reference
+my $file_handle  = $index_job->{'file-handle'};    ## open wordlist-path file
+my $file_aref    = $index_job->{'file-aref'};      ## tied wordlist array ref.
+my $file_entries = $index_job->{'file-entries'};   ## wordlist word-count
+
+if ($stop_requested) {    ## logging required .., ##
+    $watcher->cancel if $watcher->is_active;
+    delete <indexer.jobs>->{$name_checksum};
+    ## clean-up incomplete results ? ##
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        { 'mode' => 'nak', 'data' => 'job aborted [ admin request ]' }
+    );
+}
+
+my $line    = $file_aref->[$iteration];
+my $chk_sum = <[chk-sum.amos]>->( \$line );
+
+say ": $chk_sum : $line";
+
+if ( ++$index_job->{'iterations'} == $file_entries ) {
+    $watcher->cancel if $watcher->is_active;
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'ack', 'data' => 'job completed [testing]' }
+    );
+}
+
+# ,.. }
+
+#.............................................................................
+#GHDMR4PJZKQMCBXVMJUBOG7WB7GB6GWQL6OCUCPU5DD3USQNCON5Z2PV5X33M3DA5242RUCHC4FOK
+#::: PMEUKVBUXEYK26HPYQTTYMUM3HHKB76IM2YSU2Q4NLODXD55NWT :::: NAILARA AMOS :::
+# :: CW3H23T266URL5MNBLV5VXK5OT3WAZGSRT2UAJPIRID5MSVTSKBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
