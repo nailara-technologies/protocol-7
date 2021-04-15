@@ -6,9 +6,8 @@ my $elf_bin = <chk-sum.elf.external.binary_path>;
 
 ## used when Digest::Elf has an overflow ##
 
-my $pid
-    = open2( my $output, undef, $elf_bin, $_[0] );  ## error-handling ## [LLL]
-
+## error-handling ## [LLL]
+my $pid = IPC::Open2::open2( my $output, undef, $elf_bin, $_[0] );
 chomp( my $elf_val = <$output> );
 
 if ( not length( $elf_val // '' ) ) {
@@ -21,7 +20,7 @@ warn 'close[<external-elf>] : ' . <[base.format_error]>->($OS_ERROR)
 return $elf_val;
 
 #.............................................................................
-#7EHGLZVSWJKSH3PVIZ3QQJYQVZ7UIBZDMWKRDLOTWZWMGJDTKHGGYWYDPXKCY2LFS4SXSY4IBFKSQ
-#::: 3UYBFJI6GBQKNVVUTMWLB7465UJF3GSIA24XEAQVWXOZZ34WDBO :::: NAILARA AMOS :::
-# :: QHHJTA72LVO332UMUPXKP7N6S6R46HRUYPKV4WGLXKIXTDCCQYAI :: CODE SIGNATURE ::
+#VKCKDCKDER7HBNMYY2PD2B6TLJAY34SAOYPXBYCVUGJVYM33PHD7XJXDH5H667DCSX6DLFZKTUKPU
+#::: O3ZHUYOUVZYOZR2RBQUUICCYACYDTSVDEQ474GRIOYHO774ZBQ5 :::: NAILARA AMOS :::
+# :: IN35YAOF3CPOZPRQ2YY5RIXUMY6KGPVDIQ5F4PGW5LIJ6WGMAQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
