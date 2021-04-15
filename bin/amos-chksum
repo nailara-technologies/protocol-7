@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 use Getopt::Std;
-use Crypt::Misc;    ## <-- encode_b32r ##
-use Digest::Elf;
 use Digest::BMW;
+
+##[ LOCAL PM LIB PATH ]#######################################################
 
 BEGIN {
     use English;
@@ -17,8 +17,10 @@ BEGIN {
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
-use AMOS::CHKSUM qw| amos_chksum |;
-use AMOS::Assert::Truth qw| is_true |;    ## <-- expand \ extract routines ..,
+##[ AMOS MODULE ]#############################################################
+
+use AMOS::CHKSUM;
+use AMOS::Assert::Truth;
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -42,7 +44,7 @@ my $data_str = join( ' ', @ARGV );
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $checksum_encoded = amos_chksum($data_str);
+my $checksum_encoded = AMOS::CHKSUM::amos_chksum( \$data_str );
 
 ##[ VERBOSE RESULT VALUES ]###################################################
 
@@ -119,16 +121,16 @@ sub error_exit {
     exit(110);
 }
 
-##[ TRUTH STATE ]#############################################################
+##[ VISUALIZE TRUTH ]#########################################################
 
 sub true_false {
     my $C = shift;
     return '' if not length $C or $C =~ m|^\e|;
-    is_true($C) ? ':: TRUE ::' : ':: FALSE ::';
+    AMOS::Assert::Truth::is_true($C) ? ':: TRUE ::' : ':: FALSE ::';
 }
 
 #.............................................................................
-#CTPXTY3QI5RESOXE4N2ZQ2QE5LVGSTEAHG5QPQHKLUR546LIICTMXWEX3AP4J6WO64KEAMJSDU7UY
-#::: UFY5A4SIFCJYV3QPXFTDBKIDYLJRDSKWN2AOYKXN4H37IP7SQUP :::: NAILARA AMOS :::
-# :: 2UNAXUUM4GK5EQUL6GXCLHHBWS2FQAGO5UXUNBSRCYTJSBL3RWAI :: CODE SIGNATURE ::
+#S2GFQKPPAVYN3HRCUO3IQRY6S5P2KGCGUEDHWGECNKB62UTHXPR75J6CF7IXECFWI6J3PQY6OBUXC
+#::: V7UJYS5NFI5AXSQYYP3PF6MTMDB3MV6ER7NEHJIL5DW4KPX2EGE :::: NAILARA AMOS :::
+# :: 7FCAGFZA3OCNTEXVYMKOXDCZY6HD5T5RZMTOLPPEPU3VK3TI7CCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
