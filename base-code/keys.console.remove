@@ -1,12 +1,12 @@
 # >:]
 
 # name  = keys.console.remove
-# param = <name>
+# param = <key-name>
 # descr = delete the C25519 key with the specified name
 
 my $key_name = $$call{'args'};
 
-return print "\n  << expected <name> parameter >>\n\n"
+return print "\n  << expected <key-name> parameter >>\n\n"
     if not defined $key_name;
 
 my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
@@ -21,7 +21,8 @@ my $key_usr = $key_vars->{'usr_name'};
 my $shred_bin = <keys.bin_path.shred>;
 
 opendir( my $dir_fh, $key_dir )
-    or return print "\n << \l$OS_ERROR : $key_dir >>\n";
+    or return printf( ":\n: << %s : %s >>\n:\n",
+    <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'" );
 closedir($dir_fh);
@@ -36,12 +37,14 @@ map {
     my $k_path = "$key_dir/$ARG";
     return print "\n << no write access to '$k_path' >>\n\n" if !-w $k_path;
 } @key_files;
-return print "\n  << specified key \"$key_name\" not found >>\n\n"
+return print "\n  << specified key '$key_name' not found >>\n\n"
     if not $key_found;
 
 my $del_count = 0;
 
-chdir($key_dir) or die "<< \l$OS_ERROR : chdir[ $key_dir ] >>";
+chdir($key_dir)
+    or die sprintf( "<< %s : chdir [ %s ] >>\n",
+    <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
 
 print "\n::\n";
 
@@ -52,7 +55,8 @@ foreach my $file_name (@key_files) {
     system( $shred_bin, '-fzu', $file_name )
         if length($shred_bin)
         and -x $shred_bin;
-    return print "\n unlink failed : \l$OS_ERROR\n\n"
+    return printf( ":\n: unlink failed : %s\n:\n",
+        <[base.format_error]>->( $OS_ERROR, -1 ) )
         unless unlink($file_name)
         or !-f $file_name;
     $del_count++;
@@ -61,7 +65,7 @@ my $s = $del_count == 1 ? '' : 's';
 print " :\n :: [ removed $del_count key file$s ]\n\n";
 
 #.............................................................................
-#4SD77SOZOIBTWNUNSGEOZFIAY2QX5MAFGQNKVMHLYBIBTIPZVLNNQGT6FXLW76IGVIEIMW5YF43F2
-#::: M4AHOX6Y2CGLP244ZNTLFBJ6A6RY5DSW74TKKNV2HGYFFTFX4SI :::: NAILARA AMOS :::
-# :: 5O2O6BAPXPEX6XK7YP74QBFUEYO3LX52TNBGIN5D6XUWFZCP6ICI :: CODE SIGNATURE ::
+#KRSWY34DHLXJOLEHCBFIKVUDCQZ5ZP5DUDHSLSU4JZGCJOREMNEUXXFFXTKBVXFAILHR4IHG3TCY4
+#::: XGOJEG5CNTS7BHNGAK3AF6BDB2VJJQH6GBQW3EY26NN57HX7A4F :::: NAILARA AMOS :::
+# :: NAIKRJQKCRTNRII37VFRYS5YEGKZT7ZJWW33C27GUJW2FLYX2SAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
