@@ -9,8 +9,10 @@
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
 my $elf_bin = qw| /usr/local/bin/elf |;  ##  <--  auto-compile \ install [LLL]
-$elf_bin = <[file.which]>->(qw| elf |) if not -x $elf_bin;
-
+if ( not -e $elf_bin or not -r $elf_bin or not -x $elf_bin ) {
+    my $path_bin = <[file.which]>->(qw| elf |);
+    $elf_bin = $path_bin if defined $path_bin and -x $path_bin;
+}
 my $fallback_enabled
     = <[base.cfg_boolean]>->( <chk-sum.elf.allow_external> // 1 );
 
@@ -46,7 +48,17 @@ if ( <chk-sum.elf.external.fallback-enabled> and -x $elf_bin ) {
     }
 } elsif ( not -x $elf_bin ) {
     <chk-sum.elf.external.fallback-enabled> = 0;
-    <[base.log]>->( 1, ':: external elf binary not found ::' );
+
+    if ( -e $elf_bin and not -x $elf_bin ) {
+        <[base.log]>->(
+            1, ':: executable bit not set on external elf binary ::'
+        );
+    } elsif ( not -e $elf_bin ) {
+        <[base.log]>->( 1, ':: external elf binary not found ::' );
+    } elsif ( not -r $elf_bin ) {
+        <[base.log]>->( 1, ':: external elf binary not readable ::' );
+    }
+
     <[base.log]>->( 1, ': external elf fallback is disabled' );
     <[base.log]>->( 1, ": binary-path: '$elf_bin'" );
 } else {
@@ -56,7 +68,7 @@ if ( <chk-sum.elf.external.fallback-enabled> and -x $elf_bin ) {
 0;
 
 #.............................................................................
-#VEPKTVECNRFL3FNPMKH7EQ2P53NGIKQRLMZT4SCXLYNMET3WGY6QP555Q4R2AY63XBYJGGKDF2NRM
-#::: TE4TBANPMKLPS3S6PJ2FAJZJABDKTPDHBGPTW3JLSFPOB3WP47M :::: NAILARA AMOS :::
-# :: VTRWIXA2S65MX5YTTAARZ4EC5NVQB6TA46MGXDSCJSSMYHK6SGDY :: CODE SIGNATURE ::
+#AMF4236GGIKH65ER2XS6SCRCGWYTGAUDOTFAMVJ6IHJGP4LALIEZUAH5PZGBUOUXZED4YJ4J6DWRQ
+#::: E3M7QHYHPSXHCL6I3P4F7RK4DOQNV23QXR7GEPM4LXJLWXV5EGY :::: NAILARA AMOS :::
+# :: L74LFB4B6WXTLNKOKYFLPGBM5DFJQSLDICUZHMGZC6INBTQHDIAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
