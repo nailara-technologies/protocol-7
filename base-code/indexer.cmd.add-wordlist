@@ -1,0 +1,74 @@
+# >:]
+
+# name  = indexer.cmd.add-wordlist
+# param = <wordlist-path>
+# descr = create a wordlist index from single file
+
+my $wordlist_path   = $$call{'args'};
+my $index_data_path = <indexer.path.index-files> . '/wordlists/';
+
+return { 'mode' => 'nak', 'data' => 'no write access to data path' }
+    if not -w <indexer.path.index-files>;
+return { 'mode' => 'nak', 'data' => 'expected wordlist path' }
+    if not defined $wordlist_path;
+return { 'mode' => 'nak', 'data' => 'wordlist not found' }
+    if not -f $wordlist_path;
+return { 'mode' => 'nak', 'data' => 'wordlist not readable' }
+    if not -r $wordlist_path;
+
+<indexer.jobs> // {};
+
+my $name_checksum = Digest::Elf::elf($wordlist_path);
+
+## use base.gen-id , create seperate checksum look-up .., ##
+
+return { 'mode' => 'nak', 'data' => 'indexing job already exists' }
+    if exists <indexer.jobs>->{$name_checksum};
+
+$index_data_path .= join( '-', $name_checksum, <[base.ntime.b32]> );
+
+<[file.make_path]>->( $index_data_path, 0770, <system.amos-zenka-user> );
+
+say "< wordlist-path > '$wordlist_path'";
+
+my $wordlist_fh = <[file.open]>->($wordlist_path);
+
+return {
+    'mode' => 'nak',
+    'data' => 'cannot open wordlist file'
+    }
+    if not defined $wordlist_fh;
+
+my $wordlist_aref = <[file.tie_array]>->($wordlist_fh);    ## <-- ..,
+
+return { 'mode' => 'nak', 'data' => 'cannot open wordlist' }
+    if not defined $wordlist_fh;
+
+<indexer.jobs>->{$name_checksum} = {};
+
+my $index_job = {
+    'reply_id'       => $$call{'reply_id'},
+    'iterations'     => 0,
+    'stop-requested' => 0,
+    'data-path'      => $index_data_path,
+    'job-type'       => 'wordlist-import',
+    'wordlist-path'  => $wordlist_path,
+    'file-handle'    => $wordlist_fh,
+    'file-aref'      => $wordlist_aref,
+    'file-entries'   => scalar @{$wordlist_aref},
+    'idle-event'     => Event->idle(
+        cb     => $code{'indexer.callback.wordlist-import'},
+        'data' => $name_checksum,
+        repeat => 1
+    )
+};
+
+<indexer.jobs>->{$name_checksum} = $index_job;
+
+return { 'mode' => 'deferred' };
+
+#.............................................................................
+#QBGIYQSNDE62BHRFMSYGRWRND7VJC27HG5GAIAXXWALAUQXND36KPQXR2OH746KBBCB62L4TWVJ4E
+#::: QI6OTDJBPEMN3XR4D3LRJ5PG4RBY6KJ5IIYP7F2ALHDMEHBEEH3 :::: NAILARA AMOS :::
+# :: P4WHYGZCCSOQK35AI67QUFXHY5RSZYIEIWYHP6XBVT7624YWAQAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
