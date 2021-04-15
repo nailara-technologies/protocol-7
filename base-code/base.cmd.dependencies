@@ -1,12 +1,16 @@
 # >:]
 
 # name = base.cmd.dependencies
-# descr = return zenka dependencies [pkgs\pmods]
+# descr = zenka dependency list [ binary \ pmods ]
+# param = [pattern]
 # todo  = also implement binary dependency listing ..,
 
+my $pattern    = $call->{'args'};
 my $return_str = "\n";
-my @pmods      = <[base.reverse-sort]>->(<base.perlmod.loaded>);
-my $width      = 77;    # < left-side [bin] > + <[base.max-len]>->(@pmods);
+
+my @pmods = <[base.reverse-sort]>->(<base.perlmod.loaded>);
+@pmods = grep {m|\Q$pattern\E|i} @pmods if defined $pattern;
+my $width = 77;    # < left-side [bin] > + <[base.max-len]>->(@pmods);
 
 $return_str .= sprintf( ' %' . int( $width + 2 ) . "s\n", '.: perl-mod :.' );
 $return_str .= sprintf( '%' . int( $width + 3 ) . "s\n",  '.' );
@@ -16,7 +20,7 @@ $return_str .= sprintf( '%' . int( $width + 3 ) . "s\n", '.:' );
 return { 'mode' => 'data', 'data' => $return_str }
 
 #.............................................................................
-#WR5JMQFNYOWOZEOTULWIFIJACRWTGLURLITV3PK3B6U6XUSPBNPENOV7MBQWK7SF4NG5KLBJNMT2M
-#::: HHYCKZ4K5UQ2X3ZEGV2JQWBWXDOPML3H4P3SEM5NXQ44SSLO55D :::: NAILARA AMOS :::
-# :: RBZ55PODREB2UBM6IGWM2XOO32YT5WCWSZXEMF4JESB5PAIQOUDA :: CODE SIGNATURE ::
+#QOAWL7WVVP3NEY3XZ5QOWWD4BGKT277TIVYOWP4MJQNKBTZRXT5EC5SDI52FSE4MCHB5WNZIO4KGM
+#::: 4DY4AWHSIYEQOOMKNKVD2256Q225ANJ477MIYMHSHQBOW5W5EFG :::: NAILARA AMOS :::
+# :: WZ4ZQN3V6ZJ5FG47WXDN52TT7VHU3HR5N4WAKA3UXS7P3G37WUCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
