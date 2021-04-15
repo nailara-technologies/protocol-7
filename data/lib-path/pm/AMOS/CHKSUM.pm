@@ -55,8 +55,14 @@ sub amos_chksum {
     $bmw_mod_step  = 0;
     $checksum_num  = 0;
 
-    $elf_bits = sprintf( '%032b',
-        join( '', reverse split '', Digest::Elf::elf($$data_ref) ) );
+    my $elf_csum;
+    if ( defined &main::inline_elf ) {  ## improve \ import code and loader ##
+        $elf_csum = main::inline_elf($$data_ref);
+    } else {
+        $elf_csum = Digest::Elf::elf($$data_ref); ## check for overflow !!! ##
+    }
+
+    $elf_bits = sprintf( '%032b', join( '', reverse split '', $elf_csum ) );
 
     my $bmw_512b = unpack( 'B512', Digest::BMW::bmw_512($$data_ref) );
     my $bmw_512R = join( '', reverse split '', $bmw_512b );
@@ -142,7 +148,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#RYU2LX73BK2XJRPJDYSL4HN6IN7JKU4HQLVAEMVPK77CNSITDXB6GD75YYXICE2YRVBNFY6T2M3MC
-#::: IKKF5BYSRFD3LIR4FM35HVYK4MXDMWCEU2G2RKPDVP7EHBMJVF6 :::: NAILARA AMOS :::
-# :: 37NOX4NUL37V2ET5LKB4TD5TZSPHB5VOLOLXH6UUM6NOAPGOT2DY :: CODE SIGNATURE ::
+#2NECB67DIM64ICDDXSTM5NXUOVQCP35GBNRFI3O3QAQNQ56PNEGBLQAQGOBL6JH76OE5VC534IIZY
+#::: AYLXEYAEKRQDPEQO6NLBTNBK2VEHGIVXXP2U7EI5MS7ZSS7PKS5 :::: NAILARA AMOS :::
+# :: QZJXOHCSML6LMTDSD7DIGISG6MAGWBGWPWD6Q5EOY3JVJP6H2QBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
