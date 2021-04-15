@@ -1,0 +1,31 @@
+# >:]
+
+# name  = chk-sum.elf.inline.elf-code
+
+return << 'EOT';
+void inline_elf(char *sval)
+{
+    unsigned long h = 0, g;
+    Inline_Stack_Vars;
+
+    while ( *sval ) {
+
+        h = ( h << 4 ) + *sval++;
+
+        if ( g = h & 0xF0000000 )
+            h ^= g >> 24;
+
+        h &= ~g;
+    }
+
+    Inline_Stack_Reset;
+    Inline_Stack_Push(sv_2mortal(newSViv( (int) h ))); // <-- cast bugfix
+    Inline_Stack_Done;
+}
+EOT
+
+#.............................................................................
+#UEM4RG4QGJI6P6MZPIFFSJHWGVMENAB7CD4TNVWUNFEJKX5P4SVXTPWFNLJDZ4J3Y5ENVUJ7VJF24
+#::: 3Z35CHOGMP3IQFEXNZIWV4ZALQ5BIA22VPYX457GAUY3N2JAUQL :::: NAILARA AMOS :::
+# :: AYRUUWIOF5OEWOMRAZ6ZV2T5KWS3F6FPFDEUZ472CO5BITBX4SDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -149,7 +149,8 @@ if ( exists $init_result_data->{'start_mode'}
     } elsif ( $exec_bin =~ m|\s| or !-x $exec_bin ) {
         <[base.log]>->(
             0,
-            "'$zenka_name' exec_bin '$exec_bin' not a valid executable - ERROR"
+            "'$zenka_name' exec_bin '$exec_bin' "
+                . "not a valid executable - ERROR"
         );
         <[zenka.change_status]>->( $instance_id, 'error' );
         return undef;
@@ -166,18 +167,22 @@ if ( exists $init_result_data->{'start_mode'}
             keys %{$privs};    # LLL: abort on match ?
 
         # LLL: implement exec_args..,
-        my $prepare_code = '%ENV=(); ';
-        my $display      = <x11.display>;
-        $prepare_code .= "\$ENV{'DISPLAY'}='$display'; "
+
+        my $prepare_code = qq|%ENV=();|;
+
+        my $display = <x11.display>;
+        $prepare_code .= "\$ENV{'DISPLAY'}='$display';"
             if defined $display;
-        $prepare_code
-            .= "\$)='$privs->{all_gids}'; \$GID='$privs->{gid}'; "
-            . "\$EUID='$privs->{uid}'; \$UID='$privs->{uid}'; "
-            . "\$ENV{'USER'}='$prog_usr'; "
-            . "\$ENV{'HOME'}='$privs->{home}'; "
-            . "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}'; "
-            . "\$ENV{'NO_AT_BRIDGE'}=1; "
-            . "chdir('$privs->{home}'); ";
+
+        $prepare_code .= join( '',
+            "\$EGID='$privs->{all_gids}';\$GID='$privs->{gid}';",
+            "\$EUID='$privs->{uid}';\$UID='$privs->{uid}';",
+            "\$ENV{'USER'}='$prog_usr';",
+            "\$ENV{'HOME'}='$privs->{home}';",
+            "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}';",
+            "\$ENV{'NO_AT_BRIDGE'}=1;",
+            "chdir('$privs->{home}'); " );
+
         <[base.log]>->(
             1, "starting external '$zenka_sn_str' program as '$prog_usr' ..,"
         );
@@ -189,6 +194,8 @@ if ( exists $init_result_data->{'start_mode'}
         goto exec_skip;
     }
 }
+
+## initialize $ENV{'USER'} with EUID user .., ## [LLL]
 
 $stdin_mode = 1 && push( @exec_args, '-stdin' )
     if exists $init_result_data->{'start_mode'}
@@ -295,7 +302,7 @@ close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
 <[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
 
 #.............................................................................
-#ZEMNU5HY4OYOP2I6SSEL3AJF7Q4I2R62R2OK6UNJTYOPAE5NTTE52RHRIKRPOC3OZFZFR6A7ERJIK
-#::: MH2UYV7TYKDZNYBNYJ4KXGBAHJ4KGQV4ISD52YQD7LLGFXOKXU3 :::: NAILARA AMOS :::
-# :: W5UWPO223BUZHQWSJUWEPNDWEXN7NHJPQ35AI4AUUJ37XJ7V56BY :: CODE SIGNATURE ::
+#YZAXFNVIOFDLEA5VZMJPGOV22K6PHC6Z5HW6L6SN3MRUMCHYCS2OLKNELRU2FBXK4VHK7BG3LDSLS
+#::: VJNKSFQFCL3Q622QFIU5QV43472ONMBM7JR5NN4PFR6PIE2ZM3K :::: NAILARA AMOS :::
+# :: ALNYWM4NIJXJ5TEDMTPJGNZC6LDG2MQ6UANL567PRAC6NGSA3SDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
