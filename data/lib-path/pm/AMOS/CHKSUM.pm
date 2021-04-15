@@ -17,7 +17,10 @@ use AMOS::Assert::Truth qw| is_true |;
 @EXPORT = qw| amos_chksum |;
 
 ## algorithm configuration ##
-our $check_truth //= {
+our $algorithm_set_up //= {
+    ## permanent switches ##
+    'follow_truth'     => 0,
+    'return_modbits'   => 0,
     'chksum_numerical' => 1,
     'chksum_bits'      => 1,
     'chksum_B32'       => 1
@@ -31,9 +34,9 @@ our @mod_bits;
 our $elf_bits;
 our $bmw_b_R;
 our $bmw_b_L;
+our $checksum_num;
 our $bmw_mod_step;
 our $checksum_bits;
-our $checksum_num;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
@@ -41,7 +44,9 @@ sub amos_chksum {
 
     warn "expected input string for AMOS-checksum calculation\n" if not @ARG;
 
-    my $data_str = join( ' ', @ARG );
+say "ref( \$ARG[0] ) == ".ref( $ARG[0] );
+
+    my $data_ref = ref( $ARG[0] ) eq 'SCALAR' ? shift : \$ARG[0];
 
     ## reset \ init ##
     @mod_bits      = ();
@@ -53,9 +58,9 @@ sub amos_chksum {
     $checksum_num  = 0;
 
     $elf_bits = sprintf( '%032b',
-        join( '', reverse split '', Digest::Elf::elf($data_str) ) );
+        join( '', reverse split '', Digest::Elf::elf($$data_ref) ) );
 
-    my $bmw_512b = unpack( 'B512', Digest::BMW::bmw_512($data_str) );
+    my $bmw_512b = unpack( 'B512', Digest::BMW::bmw_512($$data_ref) );
     my $bmw_512R = join( '', reverse split '', $bmw_512b );
 
     $bmw_b_L = substr( $bmw_512b, 0, 32 );
@@ -91,13 +96,13 @@ INVERT_TRUTH_STATE:
         ## ENCODED + VALUE AND STRING HARMONY ##
         if ( not $AMOS::CHKSUM::follow_truth ) {
 
-            if ($check_truth->{'chksum_numerical'}
+            if ($algorithm_set_up->{'chksum_numerical'}
                 and not is_true( $checksum_num, 1, 0 )
 
-                or $check_truth->{'chksum_bits'}
+                or $algorithm_set_up->{'chksum_bits'}
                 and not is_true( sprintf( "%032b", $checksum_num ), 0, 1 )
 
-                or $check_truth->{'chksum_B32'}
+                or $algorithm_set_up->{'chksum_B32'}
                 and not is_true($checksum_encoded)
             ) {
 
@@ -107,16 +112,16 @@ INVERT_TRUTH_STATE:
 
         } else {    ## ENCODED + FOLLOW TRUTH ##
 
-            my $input_true = is_true( $data_str, 1, 1 );
+            my $input_true = is_true( $$data_ref, 1, 1 );
 
-            if (    $check_truth->{'chksum_numerical'}
+            if (    $algorithm_set_up->{'chksum_numerical'}
                 and $input_true != is_true( $checksum_num, 1, 1 )
 
-                or $check_truth->{'chksum_bits'}
+                or $algorithm_set_up->{'chksum_bits'}
                 and $input_true
                 != is_true( sprintf( "%032b", $checksum_num ), 0, 1 )
 
-                or $check_truth->{'chksum_B32'}
+                or $algorithm_set_up->{'chksum_B32'}
                 and $input_true != is_true( $checksum_encoded, 0, 1 )
             ) {
 
@@ -129,13 +134,17 @@ INVERT_TRUTH_STATE:
             . " [ cannot enforce truth state ]\n";   ## report caller ## [LLL]
     }
 
+    ## resetting per-call override to algorithm configuration ##
+    $follow_truth = $algorithm_set_up->{'follow_truth'};
+    $ret_modbits  = $algorithm_set_up->{'return_modbits'};
+
     return $checksum_encoded;
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#GONGIYQGUAOSCNUXDBIGI2S2AYBO6FVMFQ5B547Q6JJFNN4H2O3DQZZHYQRT7DZS4LEJ6R4ISCM4K
-#::: A2XVBL67Q5TZO36KWBXSIKSRGNFBTGW6WX7IGPGECQGFC2PI552 :::: NAILARA AMOS :::
-# :: IP3YR2ARMPUDOXTHBW5SZHAEIIHYHEEV32WJZ2LVGNUIWFWUZ6BI :: CODE SIGNATURE ::
+#CCSEOZPI56YTLD7OOTMVTPXPE6CBFEPYFOYVKNWHLVNRYERQEMPGKBSQNISFI6KGDFNIWDXAXVZY6
+#::: PSX7WX4JA7SYYPU4VGVTKOCYHKAEJNDKGRSRKPMEJQTZINXYJI4 :::: NAILARA AMOS :::
+# :: R5364IQ7MFTCADRPIU3KMRXFN4DGHWDHPI7IMKGD5GS5LDVRXOAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

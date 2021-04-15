@@ -10,84 +10,26 @@ return warn 'expected input string for AMOS-checksum calculation <{C1}>'
 my $input;
 my $follow_truth = 0;    ## adjust output harmony for input truth state ? ##
 
-if ( @ARG == 2 and ref( $ARG[0] ) eq 'SCALAR' and $ARG[1] eq '1' ) {
-    $follow_truth = 1;
-} elsif ( @ARG == 1 and ref( $ARG[0] ) eq 'SCALAR' ) {
-    $input = shift;      ## scalar ref ##
+if ( ref( $ARG[0] ) eq 'SCALAR' ) {
+
+    $input        = shift(@ARG);                             ## scalar ref ##
+    $follow_truth = <[base.cfg_boolean]>->( shift(@ARG) );   ## input truth ##
+
+    $AMOS::CHKSUM::follow_truth = $follow_truth;    ## temporary switch ##
+
 } else {
     $input = join( ' ', @ARG );
     $input = \$input if ref($input) ne 'SCALAR';
 }
 
-return warn '< chk-sum.amos > undefined input <{C1}>'
-    if not defined $$input;
+return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $elf_bits = sprintf( '%032b',
-    join( '', reverse split '', Digest::Elf::elf($$input) ) );
-my $bmw_512b = unpack( 'B512', Digest::BMW::bmw_512($$input) );
-my $bmw_512R = join( '', reverse split '', $bmw_512b );
-my $bmw_b_L  = substr( $bmw_512b, 0, 32 );
-my $bmw_b_R  = substr( $bmw_512R, 0, 32 );
-
-my $bmw_mod_step = 0;
-my $bmw_mod_bits = scalar( '0' x 32 ) . $bmw_512b . scalar( '0' x 32 );
-
-( my $checksum_bits = $elf_bits ) =~ s|^0+|
-                                        substr $bmw_b_L, 0, length($MATCH) |e;
-$checksum_bits =~ s|0+$|
-                    substr $bmw_b_R, 0, length($MATCH) |e;
-
-my $checksum = eval join( '', '0b', $checksum_bits );    ## numerical ##
-
-my @mod_bits;
-
-INVERT_TRUTH_STATE:
-
-if ($bmw_mod_step) {    ## enforce required \ requested truth state ##
-    my $cur_mod_bits = substr( $bmw_mod_bits, 0, 32 );
-    if ( $cur_mod_bits eq '0' x 32 ) {    ## skip '0' prefixes ##8
-        ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-        goto INVERT_TRUTH_STATE;
-    }
-    $checksum ^= eval join( '', '0b', $cur_mod_bits );
-}
-
-my $checksum_encoded = encode_b32r( pack( 'V', $checksum ) );
-
-if ( length($bmw_mod_bits) > 32 ) {
-
-    if ( not $follow_truth ) {    ## ENCODED + VALUE AND STRING HARMONY ##
-
-        if (not <[base.assert.harmony]>->( $checksum, 0 )    ## num. only ##
-            or not <[base.assert.harmony]>->($checksum_encoded)
-        ) {
-            ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-            goto INVERT_TRUTH_STATE;
-        }
-
-    } else {    ## ENCODED + FOLLOW TRUTH ##
-        my $skip_elf_chk = $$input =~ m|^\d(\.\d+)?$| ? 1 : 0;
-        if (<[base.assert.harmony]>->( $$input, $skip_elf_chk )
-            != <[base.assert.harmony]>->( $checksum, 0 )    ## num. only ##
-            or <[base.assert.harmony]>->( $$input,   $skip_elf_chk )
-            != <[base.assert.harmony]>->($checksum_encoded)
-        ) {
-            ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-            goto INVERT_TRUTH_STATE;
-        }
-    }
-} else {
-    return
-        warn 'bit modification entropy depleted '
-        . '[ cannot enforce truth state ] <{C1}>';
-}
-
-return $checksum_encoded;
+return AMOS::CHKSUM::amos_chksum($input);    ## passing by reference ##
 
 #.............................................................................
-#XAMRG2BL4N7DMIPTIBAHIPNOAAAZWGSCRU5IM4SK33CEUAIPLEKJLBSBSSVIYIOAQ3L53L6MIAXTM
-#::: RTWGMSX3TCVGLOGV7QCJEXPHKTDWCTZ2DHUM7KRGCY3MB2EXAEN :::: NAILARA AMOS :::
-# :: CTM3LVDL4ASSGRCPOWL5VCOOUOBW4R466VIEGQTAQ5OWXJU2FCCQ :: CODE SIGNATURE ::
+#DLXMHHENODCQB74UHWXB3GGVEQI7ET7GAUC3F2HM5RSYKB4JJSOOPQVYAA3KNHH5UPGURYPOD7NDA
+#::: IPWJRDCATF2NMGH2EQ3DUWZ7DSHNQHPW6RSUJ4HOBQM65HSIJP7 :::: NAILARA AMOS :::
+# :: NCAAQHFWTYFVA2GY7AQ5PXYGA6LK664IX3CXXJVUIML4WWMABICI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
