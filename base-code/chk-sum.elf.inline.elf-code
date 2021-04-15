@@ -5,7 +5,8 @@
 return << 'EOT';
 void inline_elf(char *sval)
 {
-    unsigned long h = 0, g;
+    unsigned int h = 0; // <-- repaired overflow [ broken in Digest::Elf ]
+    unsigned long g;
     Inline_Stack_Vars;
 
     while ( *sval ) {
@@ -19,13 +20,13 @@ void inline_elf(char *sval)
     }
 
     Inline_Stack_Reset;
-    Inline_Stack_Push(sv_2mortal(newSViv( (int) h ))); // <-- cast bugfix
+    Inline_Stack_Push(sv_2mortal(newSViv( h )));
     Inline_Stack_Done;
 }
 EOT
 
 #.............................................................................
-#UEM4RG4QGJI6P6MZPIFFSJHWGVMENAB7CD4TNVWUNFEJKX5P4SVXTPWFNLJDZ4J3Y5ENVUJ7VJF24
-#::: 3Z35CHOGMP3IQFEXNZIWV4ZALQ5BIA22VPYX457GAUY3N2JAUQL :::: NAILARA AMOS :::
-# :: AYRUUWIOF5OEWOMRAZ6ZV2T5KWS3F6FPFDEUZ472CO5BITBX4SDI :: CODE SIGNATURE ::
+#XNKNTPKAQ5GJQ63GX26KOY2DJTJUJZO37FGRL4PXUPOMZYEDRRMURII6EZHPEDT2PXNIDXUFFI2IO
+#::: RKHCPB6I42DPE5LVPTP3FFQB7TECSS4IWZBKDJBUS7HHDW7GF54 :::: NAILARA AMOS :::
+# :: DN3WY65P7NNLPQSBQMG3WCIDRGIIO2ISRZZ6W4VW4KKTXSUTVQBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
