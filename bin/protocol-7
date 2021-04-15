@@ -114,12 +114,14 @@ sub prepare_subs {
     eval { use Text::Wrap qw| wrap | };    ## <-- used in 'base.load_code' ##
 
     # installing 'Time::HiRes' versions of 'base.time' and 'base.sleep'
-    my $th_ref
-        = (
-              eval 'use Time::HiRes; return [ '
-            . 'sub{ my $f = $_[0]; $f = 6 if not defined $f or $f =~ m|\D|;'
-            . ' sprintf( "%.${f}f", Time::HiRes::time ) }, \&Time::HiRes::sleep'
-            . ' ]' );
+    my $th_ref = (                         ## obsolete eval ## remove [LLL]
+        eval join( '',
+            'use Time::HiRes; return [ ',
+            'sub{ my $f = $_[0]; $f = 6 if not defined $f or $f =~ m|\D|;',
+            ' sprintf( "%.${f}f", Time::HiRes::time ) },',
+            ' \&Time::HiRes::sleep',
+            ' ]' )
+    );
     $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1
         if defined $th_ref and ref($th_ref) eq 'ARRAY';
     $th_ref = [ sub { time() }, sub { select( undef, undef, undef, $_[0] ) } ]
@@ -129,7 +131,7 @@ sub prepare_subs {
     $code{'base.sleep'} = \&{ $th_ref->[1] };
     undef $th_ref;
 
-################################################################################
+##############################################################################
 
     $code{'base.choose_true_pid'} = sub {
         local $SIG{'CHLD'} = 'IGNORE';
@@ -151,7 +153,7 @@ sub prepare_subs {
             : 0;
     };
 
-################################################################################
+##############################################################################
 
     $code{'base.ntime'} = sub { # [ netw. time : secs from 2002-06-05 * 4200 ]
         my $param        = shift // 0;
@@ -209,7 +211,7 @@ sub prepare_subs {
         return $ntime;
     };
 
-################################################################################
+##############################################################################
 
     $code{'base.ntime.b32'} = sub {
         my $param        = shift // 4;    # <-- precision or utime
@@ -259,7 +261,7 @@ sub prepare_subs {
         return $encoded_ntime;
     };
 
-################################################################################
+##############################################################################
 
     $code{'base.b32.ntime'} = sub {
         my $network_time = shift;
@@ -273,14 +275,14 @@ sub prepare_subs {
         };
         if ( $EVAL_ERROR or !length( $ntime_dec // '' ) ) {
             my $caller_str = [caller]->[1] . ':' . [caller]->[2];
-            $code{'log.debug'}->( "network time decoding error"
+            $code{'log.debug'}->( 'network time decoding error'
                     . " [\"$network_time\"] \\ $caller_str" );
             return undef;
         }
         return $ntime_dec;
     };
 
-################################################################################
+##############################################################################
 
     $code{'base.assert.harmony'} = sub {   ## overloaded by 'base' module., ##
         my $input_string = shift // '';
@@ -420,7 +422,7 @@ sub prepare_subs {
         return 1; ## assertion complete : harmony detected ## [ no 230769.., ]
     };
 
-################################################################################
+##############################################################################
 
     $code{'base.term.size'} = sub {
 
@@ -436,7 +438,7 @@ sub prepare_subs {
         return ( $size_aref->[1], $size_aref->[0] );
     };
 
-################################################################################
+##############################################################################
 
     $code{'base.load_b32_encoder'} = sub {
         if (    not defined &encode_b32r
@@ -2019,7 +2021,7 @@ END {
 }
 
 #.............................................................................
-#WQZEGQVFV5SKMSQVHSHP7TTTDBCPINGFOHWVVQQVHYU425BONBEEQUQ2JJYSA2GIF6ZF2CEQ3IVM4
-#::: 4MAUTOH7RPXOECYJG24PKEN3E253CVMDKEGF3TRQTIOIYF2GRGR :::: NAILARA AMOS :::
-# :: IMJGYLKAVVBJB2BEOGR5KWT6GUDNTZDCZYKC5NVJLTPWUWCFMSCQ :: CODE SIGNATURE ::
+#EXJORU4LHFUF4QIU5Q27VI72CHS5NQYHYSKPLQQIUDBPDVHDYB5OPIBNFNDE2XLAE2J7CPOUATUVA
+#::: ERKZUOVW72OCBSZZSGODYIB7GSOUKIASTYRZICUAXBNR66FFDI6 :::: NAILARA AMOS :::
+# :: HNODZUUHMX7SN6K3ZZTWSHSHKKKJTTGYFNXFDSDDO2MWDRLWKKBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
