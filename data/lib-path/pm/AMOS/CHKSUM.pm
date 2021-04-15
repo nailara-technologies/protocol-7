@@ -44,8 +44,6 @@ sub amos_chksum {
 
     warn "expected input string for AMOS-checksum calculation\n" if not @ARG;
 
-say "ref( \$ARG[0] ) == ".ref( $ARG[0] );
-
     my $data_ref = ref( $ARG[0] ) eq 'SCALAR' ? shift : \$ARG[0];
 
     ## reset \ init ##
@@ -144,7 +142,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#CCSEOZPI56YTLD7OOTMVTPXPE6CBFEPYFOYVKNWHLVNRYERQEMPGKBSQNISFI6KGDFNIWDXAXVZY6
-#::: PSX7WX4JA7SYYPU4VGVTKOCYHKAEJNDKGRSRKPMEJQTZINXYJI4 :::: NAILARA AMOS :::
-# :: R5364IQ7MFTCADRPIU3KMRXFN4DGHWDHPI7IMKGD5GS5LDVRXOAI :: CODE SIGNATURE ::
+#RYU2LX73BK2XJRPJDYSL4HN6IN7JKU4HQLVAEMVPK77CNSITDXB6GD75YYXICE2YRVBNFY6T2M3MC
+#::: IKKF5BYSRFD3LIR4FM35HVYK4MXDMWCEU2G2RKPDVP7EHBMJVF6 :::: NAILARA AMOS :::
+# :: 37NOX4NUL37V2ET5LKB4TD5TZSPHB5VOLOLXH6UUM6NOAPGOT2DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

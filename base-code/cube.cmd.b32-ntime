@@ -12,17 +12,25 @@ return {
     }
     if $param !~ m|^$B32_re{1,22}$|;
 
-my $ntime_dec;
-eval { $ntime_dec = unpack( 'w', decode_b32r($param) ) };
+my $ntime_ber = eval { decode_b32r($param) };
 
-return { 'mode' => 'nack', 'data' => 'decoding error' }
+return {
+    'mode' => 'nak',
+    'data' => 'BASE32 decoding error [ timestamp not valid ]'
+    }
     if $EVAL_ERROR
-    or !length( $ntime_dec // '' );
+    or not length( $ntime_ber // '' );
 
-return { 'mode' => 'ack', 'data' => $ntime_dec };
+return {
+    'mode' => 'nak',
+    'data' => 'decoded number is not valid [ expected compressed integer ]'
+    }
+    if not <[base.comp-int.is_valid]>->($ntime_ber);
+
+return { 'mode' => 'ack', 'data' => unpack( 'w', $ntime_ber ) };
 
 #.............................................................................
-#EL6VKSWSP2O3NAPMP6BJNEZNIFUDTTPHYQ4HPTDFMYU2JRTQ57WNMJTTOK2MY2EHNOC73DTTWKXWQ
-#::: W76G522IIAY5CF7QKBWBUCK5MOED2BGBSZROGUQ5QKCEWC3HUXE :::: NAILARA AMOS :::
-# :: EPTIKCE2TAO2A7BKP27MQ4Y424X5YBDT6C64ZBQO6GMET7WWKQAA :: CODE SIGNATURE ::
+#3ZIWSNVV2NCKCXPGFUW64QKTS5OPFLPTPC23R2FMDGDGRUEY64HPFB2FOPXJJ4YYOAOHKPZV5KRH6
+#::: L6JJVS2YDHNUDBILA7NVGHSCPGE5AOCT437PIP3ZUADLQXT3JPM :::: NAILARA AMOS :::
+# :: IPOMWWUTQOFSCXVDHTM7AE4ORSWU5D6ZS6EEWAABEKQDHNQV2GAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+# >:]
+
+# name  = base.comp-int.is_valid
+# descr = assert validity of BER compressert integer [ pack template 'w' ]
+
+my $compressed_int = shift;
+
+warn 'expected compressed integer parameter <{C1}>'
+    if not length( $compressed_int // '' );
+
+my @azurum_byte = split( '', $compressed_int );
+my $zulum_byte  = pop(@azurum_byte);
+
+foreach my $azurum (@azurum_byte) {
+    return 0 if not( ord $azurum & 0b10000000 );    ## first bit must be 1 ##
+}
+
+return 0 if ord($zulum_byte) & 0b10000000;          ## first bit 0 == valid ##
+
+return 1;    ## assertion complete \ encoding valid ##
+
+#.............................................................................
+#ULGDLWJBPOKWBSVW2EPGZEBKCSY2RZWIQYYI75QSYKEUHYE5NUSK7XCP6MRLXRCJRSKQWTOB4TMS2
+#::: 343TIHGQBPRYXRORNN36KGFUVZEDUFE765XOLSUIDNXM3VZ2NS5 :::: NAILARA AMOS :::
+# :: 5MXPIMMA7ICDU33OKTRSI3IVX3M22I7P7C7OMCRX6DBIZKDOSICI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
