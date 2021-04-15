@@ -5,11 +5,15 @@
 my $old_user    = shift // '';
 my $new_user    = shift // '';
 my $parent_path = shift // '/';
+my $log_lvl     = shift // 1;
 
-warn 'expected at least <old_user> and <new_user> parameters'
+warn 'expected at least <old_user> and <new_user> parameters <{C1}>'
     and return 0
     if !length($old_user)
     and !length($new_user);
+warn "<old_user> and <new_user> are the same [ '$new_user' ] <{C1}>"
+    and return 0
+    if $old_user eq $new_user;
 warn "parent path '$parent_path' does not exist <{C1}>" and return 0
     if !-d $parent_path;
 
@@ -33,7 +37,7 @@ warn "user '$old_user' does not exist <{C1}>" and return 0
 warn "user '$new_user' does not exist <{C1}>" and return 0
     if not defined $new_uid;
 
-map { <[base.log]>->( 1, $ARG ) } (
+map { <[base.log]>->( $log_lvl, $ARG ) } (
     "::::[ changing owner : '$old_user' --> '$new_user' ]:.",
     '::',
     ":::[ UID : $old_uid --> $new_uid :: GID : $old_gid --> $new_gid ]", ':'
@@ -80,7 +84,7 @@ my $error_count = <base.file.chown-all.errors.chown.total>;
 my $change_count = delete <base.file.state.change_count> // 0;
 <[base.clean_hashref]>->(<base.file.state>);
 my $s = $change_count == 1 ? '' : 's';
-map { <[base.log]>->( 1, $ARG ) } (
+map { <[base.log]>->( $log_lvl, $ARG ) } (
     "::[ errors : $error_count :: scan-warnings : $warn_count ]", ':',
     ":. changed $change_count file$s in $time_delta seconds.",    ':'
 );
@@ -88,7 +92,7 @@ map { <[base.log]>->( 1, $ARG ) } (
 return $change_count;
 
 #.............................................................................
-#KH5WJW7IBD4SU4AEBANBATEHSYWFLSZGFT3HTFEWBGSMHU67QEB3343GSSPGXCIU3UDLBEEK4RFB4
-#::: UUP7DMFPOM3LBR4CITNW6BBHELCQQGO2LS7NP35S6EJZ33M7DBE :::: NAILARA AMOS :::
-# :: JR6O4FSLQEYOQWWMZYLSV33ZIJF2X7OYODZYUGPXKJP4TR6OY4CY :: CODE SIGNATURE ::
+#4STAXWRTE7ICB43MJIY2QFYQHSYFCMYGZ2K37KVO6Z55UOGQ5VXUOFTM6J5PWD2A4DOXHZFPQDIVW
+#::: LEIHEKVFSB2JQKWPN77CK47NK7WJS2RRX7BTPYLVYORXULWAH35 :::: NAILARA AMOS :::
+# :: 3PZV3WBXCYUITYOS2NI6A6J6JM5IOXJIAE7CNUYAAULFBDYEGQBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
