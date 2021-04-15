@@ -10,6 +10,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Crypt::Misc;       ## encode_b32r ##
 use Digest::Elf;       ## check for overflow [ import p7 version \ inline ? ]
 use Math::BigFloat;
 use AMOS::Assert::Truth qw| is_true |;
@@ -148,7 +149,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#2NECB67DIM64ICDDXSTM5NXUOVQCP35GBNRFI3O3QAQNQ56PNEGBLQAQGOBL6JH76OE5VC534IIZY
-#::: AYLXEYAEKRQDPEQO6NLBTNBK2VEHGIVXXP2U7EI5MS7ZSS7PKS5 :::: NAILARA AMOS :::
-# :: QZJXOHCSML6LMTDSD7DIGISG6MAGWBGWPWD6Q5EOY3JVJP6H2QBQ :: CODE SIGNATURE ::
+#DX7C2JZJWKGXAFAYCMN45TFSKQ4KPE6ZTAG3RVRN5IV6L5ORZKNHQ6PCXKJTX4XXFYFDGDMTBTVTY
+#::: YJE2LPX4GJYGXIRWBLAATPKL4OCLOGNJXD7PGVZHNPFPOMC3HHP :::: NAILARA AMOS :::
+# :: LWC2FZ4IYJD6NU5QGQD2MBHRZVUKR7BG6Z3QL2RSMT33E7FZSWBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
