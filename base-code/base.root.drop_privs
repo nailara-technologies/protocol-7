@@ -99,12 +99,12 @@ if ( !length( $user // '' ) ) {
                         = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
                     if ( -d $home_dir ) {
                         chown( $uid, $gid, $home_dir )
-                            or warn
-                            "chown[$uid,$gid,$home_dir] : \l$OS_ERROR";
-                        <[base.log]>->(
-                            1, ":: created temporary home directory"
+                            or warn "chown[$uid,$gid,$home_dir] : "
+                            . <[base.format_error]>->( $OS_ERROR, -1 );
+                        map { <[base.log]>->( 1, $ARG ) } (
+                            ':. created temporary home directory',
+                            " : $home_dir"
                         );
-                        <[base.log]>->( 1, " : $home_dir" );
                         push(
                             @{<system.init_reports>},
                             {   'target_command' => 'nroot.report-temp-path',
@@ -134,7 +134,8 @@ if ( !length( $user // '' ) ) {
             $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
             $ENV{'NO_AT_BRIDGE'}    = 1;
             chdir($home_dir)
-                or warn ":: \l$OS_ERROR : chdir[ $home_dir ] ::\n";
+                or warn sprintf( ":: %s : chdir [ $home_dir ] ::\n",
+                <[base.format_error]>->( $OS_ERROR, -1 ) );
 
             <[base.log]>->( 1, "switched to unix user '$user'.," );
         }
@@ -142,7 +143,7 @@ if ( !length( $user // '' ) ) {
 }
 
 #.............................................................................
-#ZBRTICVAWQNLCNPRXF76A325QSFXACKRBBML5ZYDLOM6TRBHKB7YCGFUF52A2CMUZCOXNIONS7BOG
-#::: BJT4AOZTCKUVWYJ3ILUIIMGV4ILGSEUKEJ5DYT77ODJFLIUAO3B :::: NAILARA AMOS :::
-# :: VKW427X2QKMJL5FDVYFYXYYVPQPTK4MHUMDYU63M4FW3EMZEMMBA :: CODE SIGNATURE ::
+#EBEH77WWRHMIENINXSIYIC3GSVIS3DUSD7PJBHYDPLV43EZCYY3XSHG5EKAIMQMGDSZMEBAJE4VAS
+#::: WTLBHB7JCJCVNOACHLVSGSMVENT5QVYNKDAYPOTFG4L4TRONSY3 :::: NAILARA AMOS :::
+# :: DLAO3JZIICDNFLKCCTXNNWLQM5BBMPKB3GQFQFUW7AAWVU4TR2AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
