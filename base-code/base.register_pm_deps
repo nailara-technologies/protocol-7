@@ -2,7 +2,7 @@
 
 # name = base.register_pm_deps
 
-my %pmods    = map { $ARG => 1 } @_;
+my %pmods    = map { $ARG => 1 } grep { !m,^AMOS(::.+|$)$, } @ARG;
 my $zenka    = <system.zenka.name>;
 my $cfg_path = <system.conf_path>;
 state $access_warned = 0;
@@ -13,7 +13,7 @@ my @not_registered;
 
 if ( $mod_dir =~ s|zenki/$zenka/config|$cfg_path/zenki/$zenka/pm-dep| ) {
     <[base.check_dependency_dirs]>
-        if !-d $mod_dir;    # LLL: find elegant option.,
+        if !-d $mod_dir;                ## <-- find more elegant option., [LLL]
     if (    -d $mod_dir
         and -r $mod_dir ) {
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
@@ -42,7 +42,7 @@ if ( $mod_dir =~ s|zenki/$zenka/config|$cfg_path/zenki/$zenka/pm-dep| ) {
 }
 
 #.............................................................................
-#A3MEBRSKKI6VZ55HREPYYKJ44UILP2SMTNYQFOL7PSNU2AKBPEDUIUHN7LANA74NMLSIQVJMYKZWY
-#::: Q2BHRLZAAWJCI4Z4OCJAQFUYVRKANIJ2QJWDLSSXQEZSUDFQA5X :::: NAILARA AMOS :::
-# :: CQJZWO5SQR2ZKBC4SW2XJGUKRY4ONBRLWM2Z3JBLCEH37P3CBSDA :: CODE SIGNATURE ::
+#UQZEKMEOAT2SK6UEVXWNZJJ7H6L3JF3QNROJ4WWWXPNIFOQ27FHGK7RIKXD3B73KBLJIQHGAEZTDY
+#::: G72NVE5Y34FL2Y23E276WVBHFWYGCFMXTUTF7DQEJMHBBKWYZWC :::: NAILARA AMOS :::
+# :: KQ333J3SXF2T5OFL67A6RMCTTLLB4XOEIUT3JGRBGG26EBA6X4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
