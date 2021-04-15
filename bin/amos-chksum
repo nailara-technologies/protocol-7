@@ -8,13 +8,6 @@ use Crypt::Misc;    ## <-- encode_b32r ##
 use Digest::Elf;
 use Digest::BMW;
 
-## algorithm configuration ##
-my $check_truth = {
-    'chksum_numerical' => 1,
-    'chksum_bits'      => 1,
-    'chksum_B32'       => 1
-};
-
 BEGIN {
     use English;
     use Cwd 'abs_path';
@@ -24,6 +17,7 @@ BEGIN {
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
 }
 
+use AMOS::CHKSUM qw| amos_chksum |;
 use AMOS::Assert::Truth qw| is_true |;    ## <-- expand \ extract routines ..,
 
 ##[ RUNTIME OPTIONS ]#########################################################
@@ -41,85 +35,14 @@ use warnings FATAL => 'all';
 getopts( 'vhnq', \my %option );
 warn "expected input string for AMOS-checksum calculation\n" if not @ARGV;
 
+$AMOS::CHKSUM::follow_truth = 1 if $option{'h'};
+$AMOS::CHKSUM::ret_modbits  = 1 if $option{'v'};
+
 my $data_str = join( ' ', @ARGV );
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $elf_bits = sprintf( '%032b',
-    join( '', reverse split '', Digest::Elf::elf($data_str) ) );
-my $bmw_512b = unpack( 'B512', Digest::BMW::bmw_512($data_str) );
-my $bmw_512R = join( '', reverse split '', $bmw_512b );
-my $bmw_b_L  = substr( $bmw_512b, 0, 32 );
-my $bmw_b_R  = substr( $bmw_512R, 0, 32 );
-
-my $bmw_mod_step = 0;
-my $bmw_mod_bits = scalar( '0' x 32 ) . $bmw_512b . scalar( '0' x 32 );
-
-( my $checksum_bits = $elf_bits ) =~ s|^0+|
-                                        substr $bmw_b_L, 0, length($MATCH) |e;
-$checksum_bits =~ s|0+$|
-                    substr $bmw_b_R, 0, length($MATCH) |e;
-
-## ######### ##   ##    ##     ##      ##
-my $checksum = eval "0b$checksum_bits";    ## numerical ##
-## ######### ##   ##    ##     ##      ##
-
-my @mod_bits;
-
-INVERT_TRUTH_STATE:
-
-if ($bmw_mod_step) {    ## enforce required \ requested truth state ##
-    my $cur_mod_bits = substr( $bmw_mod_bits, 0, 32 );
-    if ( $cur_mod_bits eq '0' x 32 ) {    ## skip '0' prefixes ##8
-        ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-        goto INVERT_TRUTH_STATE;
-    }
-    $checksum ^= eval join( '', '0b', $cur_mod_bits );
-    push( @mod_bits, $cur_mod_bits ) if $option{'v'};
-}
-
-#   ################ #        ###         #
-my $checksum_encoded = Crypt::Misc::encode_b32r( pack( 'V', $checksum ) );
-##  ################ ##       ###         #
-
-if ( length($bmw_mod_bits) > 32 ) {
-
-    if ( not $option{'h'} ) {    ## ENCODED + VALUE AND STRING HARMONY ##
-
-        if ($check_truth->{'chksum_numerical'}
-            and not is_true( $checksum, 1, 0 )
-
-            or $check_truth->{'chksum_bits'}
-            and not is_true( sprintf( "%032b", $checksum ), 0, 1 )
-
-            or $check_truth->{'chksum_B32'} and not is_true($checksum_encoded)
-        ) {
-
-            ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-            goto INVERT_TRUTH_STATE;
-        }
-
-    } else {    ## ENCODED + FOLLOW TRUTH ##
-
-        my $input_true = is_true( $data_str, 1, 1 );
-
-        if (    $check_truth->{'chksum_numerical'}
-            and $input_true != is_true( $checksum, 1, 1 )
-
-            or $check_truth->{'chksum_bits'}
-            and $input_true != is_true( sprintf( "%032b", $checksum ), 0, 1 )
-
-            or $check_truth->{'chksum_B32'}
-            and $input_true != is_true( $checksum_encoded, 0, 1 )
-        ) {
-
-            ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-            goto INVERT_TRUTH_STATE;
-        }
-    }
-} else {
-    warn "bit modification entropy depleted [ cannot enforce truth state ]\n";
-}
+my $checksum_encoded = amos_chksum($data_str);
 
 ##[ VERBOSE RESULT VALUES ]###################################################
 
@@ -132,10 +55,11 @@ my $no  = "\e[38;2;197;141;7m";
 
 if ( $option{'v'} ) {
     my $offset_str
-        = $bmw_mod_step
-        ? " [ bmw-mod-step : $bmw_mod_step ]"
+        = $AMOS::CHKSUM::bmw_mod_step
+        ? ' [ bmw-mod-step : ' . $AMOS::CHKSUM::bmw_mod_step . ' ]'
         : '';
 
+    my @mod_bits = @AMOS::CHKSUM::mod_bits;
     my @mod_bits_str
         = @mod_bits
         ? (
@@ -143,7 +67,8 @@ if ( $option{'v'} ) {
         '  bmw-mod-bits  :  ' . shift @mod_bits,
         ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
         '',
-        sprintf( "    C-SUM-bits  : $bg $ng$bl%032b$fg $rst", $checksum ),
+        sprintf( "    C-SUM-bits  : $bg $ng$bl%032b$fg $rst",
+            $AMOS::CHKSUM::checksum_num ),
         )
         : ();
 
@@ -153,22 +78,25 @@ if ( $option{'v'} ) {
             . true_false($data_str)
             . " $bg $ng$data_str $rst$fg ",
         $fg,
-        '   reverse-elf  :  ' . $elf_bits,
-        '    bmw-R-bits  :  ' . $bmw_b_R,
-        '    bmw-L-bits  :  ' . $bmw_b_L,
+        '   reverse-elf  :  ' . $AMOS::CHKSUM::elf_bits,
+        '    bmw-R-bits  :  ' . $AMOS::CHKSUM::bmw_b_R,
+        '    bmw-L-bits  :  ' . $AMOS::CHKSUM::bmw_b_L,
         '',
-        '     AMOS-bits  : ' . "$bg $ng" . $checksum_bits . "$fg $rst$fg",
+        '     AMOS-bits  : '
+            . "$bg $ng"
+            . $AMOS::CHKSUM::checksum_bits
+            . "$fg $rst$fg",
         @mod_bits_str,
         '',
         join( ' ', "$fg   VAX-encoded  : " . true_false($checksum_encoded) )
             . " $bg$ng$checksum_encoded$fg $rst$fg"
-            . sprintf( "[ %010d ]", $checksum ),
+            . sprintf( "[ %010d ]", $AMOS::CHKSUM::checksum_num ),
         '',
         $rst
     );
 } elsif ( $option{'n'} ) {
 
-    my $num_str = sprintf( "%010d", $checksum );
+    my $num_str = sprintf( "%010d", $AMOS::CHKSUM::checksum_num );
     say $num_str and exit if $option{'q'};
     say "$fg:\n:$bg $ng$num_str$fg $rst\n$fg:$rst";
 
@@ -200,7 +128,7 @@ sub true_false {
 }
 
 #.............................................................................
-#NMACOKGMLCCAEM3U75QY4KCHQUBKH5HN3SNKBMLZEK6BPBRKNAO37DYQTVMOEZT6IT33ZFPHW55MK
-#::: C5RQYK5EM266K74GLZA2NZUY4T665DDJWAEAGMVTQW3AZ7HTNX4 :::: NAILARA AMOS :::
-# :: QQC6RUGY7QSR7Z7HP2TEWY2QLNBTYGZ332DX3FYT7SD2EUPT2YCY :: CODE SIGNATURE ::
+#CTPXTY3QI5RESOXE4N2ZQ2QE5LVGSTEAHG5QPQHKLUR546LIICTMXWEX3AP4J6WO64KEAMJSDU7UY
+#::: UFY5A4SIFCJYV3QPXFTDBKIDYLJRDSKWN2AOYKXN4H37IP7SQUP :::: NAILARA AMOS :::
+# :: 2UNAXUUM4GK5EQUL6GXCLHHBWS2FQAGO5UXUNBSRCYTJSBL3RWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
