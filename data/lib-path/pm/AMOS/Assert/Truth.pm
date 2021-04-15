@@ -66,10 +66,13 @@ sub is_numerical {    ## export from parent ##
 
 ##[ ERROR HANDLING ]##########################################################
 
-sub elf_checksum {    ## max-len 47 [ overflow ] ##
+sub elf_checksum {    ## use alternative in overflow case ##
     my $check_sref = shift;
     error_exit('expected scalar reference') if ref($check_sref) ne 'SCALAR';
-    warn_err( 'maximum input length <= 47', 2 ) if length($$check_sref) > 47;
+    my $elf_chksum = Digest::Elf::elf($$check_sref);
+    warn_err( 'elf checksum overflow', 2 )
+        if length($elf_chksum) > 9
+        or length($$check_sref) > 0 and $elf_chksum == 0;
     return Digest::Elf::elf($$check_sref);
 }
 
