@@ -54,6 +54,7 @@ sub init_colors {
         'rst' => "\e[0m",
         'bl'  => "\e[1m",
         'bg'  => "\e[48;2;9;5;42m",
+        'fT'  => "\e[38;2;6;71;195m",
         'fg'  => "\e[38;2;68;39;172m",
         'no'  => "\e[38;2;197;141;7m",
         'ng'  => "\e[38;2;71;195;6m"
@@ -64,8 +65,8 @@ sub true_answer {
 
     my $question = shift;
 
-    say "$COLORS{'fg'}:\n:: $COLORS{'ng'}"
-        . "$COLORS{'bl'}TRUE$COLORS{'rst'}$COLORS{'fg'} :: $COLORS{'ng'}"
+    say "$COLORS{'fg'}:\n:: $COLORS{'bl'}"
+        . "$COLORS{'fT'}TRUE$COLORS{'rst'}$COLORS{'fg'} :: $COLORS{'fT'}"
         . $question
         . "$COLORS{'fg'} .:\n:$COLORS{'rst'}";
 }
@@ -74,7 +75,7 @@ sub false_answer {
 
     my $question = shift;
 
-    say "$COLORS{'fg'}:\n:: $COLORS{'no'}"
+    say "$COLORS{'fg'}:\n:: $COLORS{'ng'}"
         . "$COLORS{'bl'}NOPE$COLORS{'rst'}$COLORS{'fg'} :: $COLORS{'fg'}"
         . $question
         . "$COLORS{'fg'} :.\n:$COLORS{'rst'}";
@@ -92,10 +93,9 @@ sub error_exit {
 }
 
 sub get_bin_path {
-    my $bin_path     = abs_path( r2_abs( c_dir($Bin) ) );
-    my $dev_bin_path = abs_path( c_dir( $bin_path, 'dev' ) );
-    die "\n:\n:: not found : $dev_bin_path\n:\n" if !-d $dev_bin_path;
-    my $check_truth_path = abs_path( c_file( $dev_bin_path, 'check-truth' ) );
+    my $bin_path = abs_path( r2_abs( c_dir($Bin) ) );
+    die "\n:\n:: not found : $bin_path\n:\n" if not -d $bin_path;
+    my $check_truth_path = abs_path( c_file( $bin_path, 'check-truth' ) );
     die "\n:\n:: not found : $check_truth_path\n:\n" if !-x $check_truth_path;
     return $check_truth_path;
 }
@@ -105,7 +105,7 @@ sub c_file { File::Spec->catfile(@_) }
 sub r2_abs { File::Spec->rel2abs(@_) }
 
 #.............................................................................
-#RTY3OSU2EJJOOAQLZYFFBS6CARTSX4ACXH5F3E46OIKUNKRVATG5SQOF6XYQJ7AHXU6GSBLZWHAUG
-#::: E75TTMHGQTVQSZGKCZEKSIRLZAKA2IAUTFZVL73QM3QBFPPWYRS :::: NAILARA AMOS :::
-# :: WXDG63GCQEVENUXM5RP7JPHFW2EDN2CAE5DD6QZ422W252BBJSAA :: CODE SIGNATURE ::
+#KDYRGAIESLSG2C5GTUH5JAKISC73NOI47C27MSSP3TRVAVIBDSFZYLG3YVZGO3CQNYR6LAXHBEJDW
+#::: YVFB7CAQETPL2OY6RWHC7CBWQLUFZMLMZIRUVFXDYF32IXNNIS4 :::: NAILARA AMOS :::
+# :: TJWQV3WTVH3FL4E5CMKOOFTD7RGU7ZOR542CVIAHWOKB7HFTJ4CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
