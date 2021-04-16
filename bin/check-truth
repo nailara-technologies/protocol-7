@@ -12,7 +12,7 @@ BEGIN {
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
-    my $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
     my $local_lib_path = abs_path( c_dir( $root_path, 'data/lib-path/pm' ) );
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
     unshift( @INC, $local_lib_path )               if -d $local_lib_path;
@@ -29,28 +29,29 @@ my $check_string = join( ' ', @ARGV );
 my $rst = "\e[0m";
 my $bl  = "\e[1m";
 my $bg  = "\e[48;2;9;5;42m";
+my $fT  = "\e[38;2;6;71;195m";
 my $fg  = "\e[38;2;68;39;172m";
 my $no  = "\e[38;2;197;141;7m";
 my $ng  = "\e[38;2;71;195;6m";
 
 if ( is_true($check_string) ) {
 
-    say "$fg:\n:: $bl${ng}TRUE$rst$fg :: "
-        . "$bg'$ng$check_string$fg'$rst$fg .:\n:$rst"
+    say "$fg:\n:: $bl${fT}TRUE$rst$fg :: "
+        . "$bg'$fT$check_string$fg'$rst$fg .:\n:$rst"
         if not $silent;
 
     exit(0);
 } else {
 
-    say "$fg:\n:: $bl${no}FALSE$rst$fg : "
-        . "$bg'$no$check_string$fg'$rst$fg :.\n:$rst"
+    say "$fg:\n:: $bl${ng}FALSE$rst$fg : "
+        . "$bg'$ng$check_string$fg'$rst$fg :.\n:$rst"
         if not $silent;
 
     exit($FXI);
 }
 
 #.............................................................................
-#UJ3BX6ZYHNQZO7P3NPOEWM5CRRTDA44PZ2WFC2OZJE4TPRSAKGT5JFRFPM452HJLBIBQC73TZ7XH4
-#::: CM3DFCFMPIIN66WFVVFXQ3IMG7ILNRKROWWASSTTQ3WDPYC5XZP :::: NAILARA AMOS :::
-# :: IV4QQSW6E7ELXGPJJKGTJN4J5Q2SHU3PXLEM5ID3BRXMZQ65WWDY :: CODE SIGNATURE ::
+#ILP2A3TKFWYYWB5PX5CGZBLPXVGCL4K5E7UBRZFIE3ZJ5CZLUCPEVIQ6N6NSXBABDQQVQYSKVISYS
+#::: NPF5S3MRSMTPYLXXYZDYG47MFOVYH4VNPIZOPBHG6HGMM6PD6FW :::: NAILARA AMOS :::
+# :: 3BLQBLGUHDGUG6HKM4TAJVTC26ONQMMZAVMRI23UAYBDZMXBSEBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
