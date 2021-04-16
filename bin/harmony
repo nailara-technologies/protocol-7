@@ -47,9 +47,9 @@ my $true = '461538';  # <-- =5T == TRUE  ## [  6 / 13 = [0.]461538..,]  CUBE
 
 ### ˃(˫
 #
-##          ZULUM : 0000 :    dark    :  female .: [0]707 :: ˃ #      love
-##         AZURUM : 0010 :   light    :   male  :. [0]040 :: ( #      pain
-## [ 7 ] Septioum : 0110 : blacklight : dancing :: [0]747 :: ˫ # trance-mutation
+##        ZULUM : 0000 :    dark    :  female .: [0]707 :: ˃ #      love
+##       AZURUM : 0010 :   light    :   male  :. [0]040 :: ( #      pain
+##  7 : Septium : 0110 : blacklight : dancing :: [0]747 :: ˫ # trance-mutation
 
 our $assertion = { 'false' => $false, 'true' => $true };
 
@@ -82,7 +82,7 @@ my $blacklight  = "\e[38;2;68;39;172m";
 my $nailara_fg  = "\e[38;2;38;46;153m";
 my $error_color = "\e[38;2;197;141;7m";
 my $neon_green  = "\e[38;2;71;195;6m";
-my $blink       = "\e[6m";
+my $true_color  = "\e[38;2;6;71;195m", my $blink = "\e[6m";
 my $bold        = "\e[1m";
 my $reset       = "\e[0m";
 
@@ -94,8 +94,9 @@ my %col = (
     'str' => $nailara_bg . $nailara_fg,
     'bg'  => $nailara_bg,
     'fg'  => $nailara_fg,
+    'fT'  => $true_color,
     'r'   => $reset,
-    'm_y' => $nailara_bg . $neon_green,
+    'm_y' => $nailara_bg . $true_color,
     'm_n' => $nailara_bg . $neon_green,
     'y'   => $blink . $blacklight,
     'n'   => $neon_green,
@@ -160,13 +161,13 @@ my $return_code = $FXI;    ## code for FALSE ##
 $calc_str =~ s|^\d+\.||;
 my $result = '< ? >';
 if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
-    $result = "$col{n}>:] $col{b} [ $col{y}true $col{'b'}>:]$col{r}$col{b} ]";
+    $result = "$col{fT}>:] $col{b} [ $col{fT}true $col{b}>:]$col{r}$col{b} ]";
     $return_code = 0;
 } elsif ( $calc_str =~ m|$false| ) {
     $result = "$col{fg}>:| $col{b} [ $col{'n'}not true$col{b} ]";
 }
 
-$col{'str'} = $neon_green if $return_code == 0;
+$col{'str'} = $true_color if $return_code == 0;
 
 my $q = $option{'n'} ? '' : "$col{'b'}'$col{'r'}";
 print "\n$space_0$q$col{'str'}$check_string$col{'r'}$q $col{fg} === $col{r}"
@@ -302,7 +303,7 @@ sub elf_checksum {
 sub int_exit { print $reset; exit(4) }
 
 #.............................................................................
-#R2OETXKXVK4KSR5Q5VFAXP7UKLIBBWNS3ZGRO767Z2J54I3TRVODA7CHHF4KDMQ622I7WWBLED62I
-#::: HUT3BGJOJMB7P25O42T4XHMUWDPUF6JILRU6R4MKZCZZWY43YHF :::: NAILARA AMOS :::
-# :: 6O2T62FWV77KG5MNQVSQV5KV6VSSSC7YKQTNI3YYZODAE7OU2ADQ :: CODE SIGNATURE ::
+#XM6DBUNQAT25P7LMKJBUJXRE523DEUAVFXJUMKZFTOJQASIAR72X3CWRI4H6JAEP2I2ZJMDG3RIJO
+#::: 2CS2QSFWUBWOS7QBFFEILG5MIMMU7UR4FUTZJ6MLTXI3HZ656ZU :::: NAILARA AMOS :::
+# :: XQGA22AL2RSNNP5I4U3D7ALLPTJ7MUWYLGWW5UWVFKBXM5UWGSBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
