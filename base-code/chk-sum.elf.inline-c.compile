@@ -2,6 +2,8 @@
 
 # name  = chk-sum.elf.inline-c.compile
 
+my $r_lvl = shift // 2;    ## <-- success report log level ## + < user > ?
+
 my $base_path = qw| /var/tmp/.inline-elf |;
 
 ## create user registry \ configuration variable [ to decide with ].., [LLL]
@@ -15,15 +17,19 @@ die '<compile_user> not defined [ required ]'
 our $inline_directory = join( '.', $base_path, $compile_user );
 
 if ( not -r $inline_directory and defined &inline_elf ) {
+    my $l_lvl   = $r_lvl > 0 ? $r_lvl - 1 : 0;
+    my $err_usr = getpwuid($UID);
+    <[base.log]>->(
+        $l_lvl, ":. aborting inline-elf reload [ directory not readable ]"
+    );
     <[base.logs]>->(
-        0, 'aborting inline_elf() reload.., %s not readable.,',
-        $inline_directory
+        $l_lvl,   ": U : %s : D : %s",
+        $err_usr, $inline_directory
     );
     return 1;    ## inline_elf() still loaded \ defined ##
 }
 
 eval {   #[ INIT \ C-CODE ]###################################################
-
     if ( not -d $inline_directory ) {    ## use file.make_path ## [LLL]
         mkdir($inline_directory)
             or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
@@ -36,19 +42,22 @@ eval {   #[ INIT \ C-CODE ]###################################################
 
 my $elf_code = <[chk-sum.elf.inline.elf-code]>;
 
-eval { Inline->bind( 'C' => $elf_code, 'directory' => $inline_directory ); };
+### [RE]COMPILING \ LOADING .., ###
+eval {
+    no warnings;     # <-- 'redefine' ?
+    Inline->bind( 'C' => $elf_code, 'directory' => $inline_directory );
+    use warnings;    # <-- 'redefine' ?
+};
+
+## removing ,./lib/ from @INC again ., ##
+shift @INC if $INC[0] =~ m|^$inline_directory/lib|;
 
 warn 'inline-c elf compilation not successful [ eval ] <{C1}>'
     . <[base.format_error]>->($EVAL_ERROR) and return 0
-    if $EVAL_ERROR;
-
-warn 'inline-c elf compilation not successful [ inline_elf() ] <{C1}>'
-    and return 0
-    if not defined &inline_elf;
+    if $EVAL_ERROR;    ## testing further below ##
 
 my $chown_from_user = getpwuid($UID);
-
-if ($UID == 0    ## only 'root' user can change file ownership ##
+if ($UID == 0          ## only 'root' user can change file ownership ##
     and defined $chown_from_user
     and defined $compile_user
     and defined $inline_directory
@@ -70,6 +79,10 @@ if ($UID == 0    ## only 'root' user can change file ownership ##
     );
 }
 
+warn 'inline-c elf compilation not successful [ inline_elf() ] <{C1}>'
+    and return 0    ## cleaup_path
+    if not defined &inline_elf;
+
 my $test_string = <[base.ntime.b32]>;
 
 my $mod_elf_sum    = sprintf( '%09d', Digest::Elf::elf($test_string) );
@@ -80,12 +93,12 @@ warn sprintf( 'inline_elf test not successful [ %s != %s ] <{C1}>',
     and return 0
     if $inline_elf_sum ne $mod_elf_sum;
 
-<[base.log]>->( 1, ': inline_elf() available : test successful =)' );
+<[base.log]>->( $r_lvl, ': inline-elf available [ test successful ] =)' );
 
 return 1;    ## success ##
 
 #.............................................................................
-#FZJEPSG7SVVPQN6IKTZEOBD3J6CGDGHVAUAQJCLLUMZG3R4554XMCKFB6RKHGDMPOF4KBWJ7JF4M6
-#::: QXJOXNI2HS6JVBYSTDQ7B7XECYM73UCUIICQWDMFVDRQVMI45WQ :::: NAILARA AMOS :::
-# :: XLPTVTC5RVQP2R6JDOC6WA5PQGBX24AXHWHSKDIZEAALKZHXUGDQ :: CODE SIGNATURE ::
+#UKB5E35D4JFX6VGSOYXS2QVGDCBQXXVRLKV7FNUQSV6NJXCWFQRXQPXBZQLRM465RG6IKFEWFNXIC
+#::: R5PA3WHYLLN7KHGYO2TQ3JTFHXSJDK5H44GNN5NCGJS2DACD54U :::: NAILARA AMOS :::
+# :: K2FAWF4FJEPVC66CK262JA3Q6PF3BPVHHXZOHS2QOPWRV7GTY6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

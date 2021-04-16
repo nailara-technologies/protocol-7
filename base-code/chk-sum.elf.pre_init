@@ -4,7 +4,10 @@
 
 <chk-sum.elf.use_inline_elf> //= 1;
 
+my $r_lvl = <chk-sum.elf.report_log_level> //= 2;
+
 return 0 if defined &inline_elf; ## <-- create version and check it., ## [LLL]
+                                        ###########################   ##  ###
 
 ## silent loading of 'Inline' module, when installed ##
 if (<chk-sum.elf.use_inline_elf>) {
@@ -27,15 +30,15 @@ if (<chk-sum.elf.use_inline_elf>) {
         <[base.log]>->( 2, ':. success, proceeding with inline_elf().,' );
     }
 } else {
-    <[base.log]>->( 2, ':: inline_elf() is not enabled, skipping.,' );
+    <[base.log]>->( $r_lvl, ':: inline-elf is not enabled, skipping.,' );
 }
 
-<[chk-sum.elf.inline-c.compile]> if <chk-sum.elf.use_inline_elf>;
+<[chk-sum.elf.inline-c.compile]>->($r_lvl) if <chk-sum.elf.use_inline_elf>;
 
 return 0;
 
 #.............................................................................
-#HATHRYEAO6NG4RYH3JQX64ZLVTXEV5PHLJLWZ4TG45EFT6LBGH5PKBVMQXQGCQ2EULTFNYQ73QYSS
-#::: 477KLG4GCDN4LRKZU5WXHQOSRM5ZVOFGCPA7O5VJCQEJ3GJOVBY :::: NAILARA AMOS :::
-# :: JAQXD7LAKMHWJE6LHVAWPZR2RJ77IDSPWFSVSBVTQWCWJOEAN6AI :: CODE SIGNATURE ::
+#32HMFQFFYXLOTRMUHA3LZLIGWKJ2KXKVFAD2KUX3CKFZVP4CMHBMGVX2ZPQBM6REFOPMUAOND7GUK
+#::: GM43EMT55KOOT2YQMEXOUPT3HNXXLC7LRWKWCMVCYNMMVZ4NTXD :::: NAILARA AMOS :::
+# :: QVLP25KSLEAOLWTXWEPASJ4PCXSRCII36MRMQCQG2RYIWLH5XMCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
