@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+our $inline_directory;
+
+say ':.';
+say sprintf( ".\n      :. %09d .:\n", elf( join( ' ', @ARGV ) ) ) and exit(0);
+
+BEGIN {  #[ INIT \ C-CODE ]###################################################
+    die 'ENV{USER} not set [ required ]' if !length( $ENV{'USER'} // '' );
+    $inline_directory = join( '.', qw| /var/tmp/.inline-elf |, $ENV{'USER'} );
+    if ( not -d $inline_directory ) {
+        mkdir($inline_directory)
+            or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
+    }
+}
+INIT {
+    use Inline ( 'C' => <<~ 'EOT', 'directory' => $inline_directory );
+
+    void elf(char *sval)
+    {
+        unsigned int h = 0;
+        long g;
+
+        Inline_Stack_Vars;
+
+        while ( *sval ) {
+
+            h = ( h << 4 ) + *sval;
+
+            if ( g = h & 0xF0000000 )
+                h ^= g >> 24;
+
+            printf( ":   %c : %011d \t %010u\n", 32 , h, g );    // <-- dbg.0
+
+            h &= ~g;
+
+            printf( ":.. %c : %011d \t %010u\n", *sval , h, g ); // <-- dbg.2
+
+            *sval++;
+        }
+
+        Inline_Stack_Reset;
+        Inline_Stack_Push(sv_2mortal(newSViv( h )));
+        Inline_Stack_Done;
+    }
+
+    EOT
+}
+
+#.............................................................................
+#LM2LNIK3ZYAZEZ6PLCUP54NIDO43HUZDLYNHYPYCKEZ5EEAINECIXI5GOZA6TDWIWCSIHXKIZJH4K
+#::: YHDYK62D4YDPOFGNT7MUG52MA6IL5A6BREPUED62Z7WFQBZP4RF :::: NAILARA AMOS :::
+# :: YHDI2HMD4IT3CUBTO7JOLHDWJ3VNHVGBJZZ32MNMCGCIUG64EGAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
