@@ -13,7 +13,11 @@ use warnings;
 use Crypt::Misc;       ## encode_b32r ##
 use Digest::Elf;       ## check for overflow [ import p7 version \ inline ? ]
 use Math::BigFloat;
+
 use AMOS::Assert::Truth qw| is_true |;
+use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to |;
+
+compile_inline_elf_to(qw| /tmp/ELF |);
 
 @EXPORT = qw| amos_chksum |;
 
