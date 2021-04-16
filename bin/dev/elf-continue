@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+our $inline_directory;
+
+my $seed_val = sprintf( '%09d',
+    ( @ARGV > 0 and $ARGV[0] =~ m|^\d+$| ? shift(@ARGV) : 0 ) );
+
+say "\n:.   :. $seed_val .:\n:";
+
+my $data_string = join( ' ', @ARGV );
+my $elf_chksum  = elf( $seed_val, $data_string );
+
+say sprintf( ".\n     :: %s ::\n", $elf_chksum );
+
+exit(0);
+
+BEGIN {  #[ INIT \ C-CODE ]###################################################
+    die 'ENV{USER} not set [ required ]' if !length( $ENV{'USER'} // '' );
+    $inline_directory = join( '.', qw| /var/tmp/.inline-elf |, $ENV{'USER'} );
+    if ( not -d $inline_directory ) {
+        mkdir($inline_directory)
+            or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
+    }
+}
+INIT {
+    use Inline ( 'C' => <<~ 'EOT', 'directory' => $inline_directory );
+
+    void elf( int seed_val, char *sval )
+    {
+        unsigned int h = 0;
+        long g;
+
+        Inline_Stack_Vars;
+
+        h = seed_val; // testing
+
+        while ( *sval ) {
+
+            h = ( h << 4 ) + *sval;
+
+            if ( g = h & 0xF0000000 )
+                h ^= g >> 24;
+
+            printf( ":   %c : %09d \t: %010u\n", 32 , h, g );    // <-- dbg.0
+
+            h &= ~g;
+
+            printf( ":.. %c : %09d \t: %010u\n", *sval , h, g ); // <-- dbg.2
+            *sval++;
+        }
+
+        Inline_Stack_Reset;
+        Inline_Stack_Push(sv_2mortal(newSViv( h )));
+        Inline_Stack_Done;
+    }
+
+    EOT
+}
+
+#.............................................................................
+#ZIABGBKPA3L6WANXL26T5SLRBRORXN4QM4MJJKQ7PPFMC7BYGJ4DSLPFG44T4JZQNERH4HLCLZRVW
+#::: P5WODGD7PBDTJWOB34CUD4ZLROGLB4MSZD7IASZQGORLNFECRQG :::: NAILARA AMOS :::
+# :: UDQOUZSTV2JQAVVUNLRXSIOHM3WFIRBWGMYN3FGAI6CPYA66YYBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
