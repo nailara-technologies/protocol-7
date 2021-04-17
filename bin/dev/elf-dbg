@@ -17,7 +17,7 @@ BEGIN {  #[ INIT \ C-CODE ]###################################################
     }
 }
 INIT {
-    use Inline ( 'C' => <<~ 'EOT', 'directory' => $inline_directory );
+    use Inline ( 'C' => <<~ 'EOC', 'directory' => $inline_directory );
 
     void elf(char *sval)
     {
@@ -33,11 +33,11 @@ INIT {
             if ( g = h & 0xF0000000 )
                 h ^= g >> 24;
 
-            printf( ":   %c : %011d \t %010u\n", 32 , h, g );    // <-- dbg.0
+            printf(":   %c    %011d \t %010u\n", 32 , h, g );    // <-- dbg.0
 
             h &= ~g;
 
-            printf( ":.. %c : %011d \t %010u\n", *sval , h, g ); // <-- dbg.2
+            printf(":.. %c :: %011d \t %010u\n", *sval , h, g ); // <-- dbg.2
 
             *sval++;
         }
@@ -47,11 +47,11 @@ INIT {
         Inline_Stack_Done;
     }
 
-    EOT
+    EOC
 }
 
 #.............................................................................
-#LM2LNIK3ZYAZEZ6PLCUP54NIDO43HUZDLYNHYPYCKEZ5EEAINECIXI5GOZA6TDWIWCSIHXKIZJH4K
-#::: YHDYK62D4YDPOFGNT7MUG52MA6IL5A6BREPUED62Z7WFQBZP4RF :::: NAILARA AMOS :::
-# :: YHDI2HMD4IT3CUBTO7JOLHDWJ3VNHVGBJZZ32MNMCGCIUG64EGAI :: CODE SIGNATURE ::
+#VNSTJW34GXIVXMTQ4J7V3W2OLYZ4USDTURB47VMFAJIN2D4JOZXVX242CUCE52YV5UC7XYKYRJY5Y
+#::: VDWWSC4UR67KNK43DZQUSXEDXS5TO4X5UHE5COGJAXLMW3WR4BA :::: NAILARA AMOS :::
+# :: NLX6VHNTRU54UPNTYJN65J7SM6JRNREUOC2H67FV3OMRFW5QBQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
