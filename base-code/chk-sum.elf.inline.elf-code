@@ -2,31 +2,16 @@
 
 # name  = chk-sum.elf.inline.elf-code
 
-return << 'EOT';
-void inline_elf(char *sval)
-{
-    unsigned int h = 0; // <-- repaired overflow [ broken in Digest::Elf ]
-    unsigned long g;
-    Inline_Stack_Vars;
-
-    while ( *sval ) {
-
-        h = ( h << 4 ) + *sval++;
-
-        if ( g = h & 0xF0000000 )
-            h ^= g >> 24;
-
-        h &= ~g;
-    }
-
-    Inline_Stack_Reset;
-    Inline_Stack_Push(sv_2mortal(newSViv( h )));
-    Inline_Stack_Done;
+## move to init_code ? ## [LLL]
+if (   not defined <base.perlmod.loaded>->{'AMOS::CHKSUM::ELF::Inline'}
+    or not <base.perlmod.loaded>->{'AMOS::CHKSUM::ELF::Inline'} ) {
+    <[base.perlmod.load]>->('AMOS::CHKSUM::ELF::Inline');
 }
-EOT
+
+return AMOS::CHKSUM::ELF::Inline::return_c_code();
 
 #.............................................................................
-#XNKNTPKAQ5GJQ63GX26KOY2DJTJUJZO37FGRL4PXUPOMZYEDRRMURII6EZHPEDT2PXNIDXUFFI2IO
-#::: RKHCPB6I42DPE5LVPTP3FFQB7TECSS4IWZBKDJBUS7HHDW7GF54 :::: NAILARA AMOS :::
-# :: DN3WY65P7NNLPQSBQMG3WCIDRGIIO2ISRZZ6W4VW4KKTXSUTVQBQ :: CODE SIGNATURE ::
+#QJZQOTHOMBBSRCBVWZWWUN4PPZ7RB2YKZKY4SXBIGM54776PCEAEQIP2ESTA6EVDPI7CBMYJ4Q6AY
+#::: BMOWYER7GLUEIQZK7FMEPBSUFPIF6ZY2QRQ5KMPW2DO4CZTGCS7 :::: NAILARA AMOS :::
+# :: 76IMCYLYOQGSUDFFDMCIC56PI54QT6A5MMF5VHOEQYLCXBFDNMBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,12 +14,14 @@ use warnings;
 
 use AMOS;
 
-# use AMOS::Assert::Truth qw| |;
+use AMOS::CHKSUM qw| amos_chksum |;
 
 eval qq| require 'Inline/C.pm' |;
 die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
-@EXPORT = qw| compile_inline_elf_to |;
+@EXPORT = qw| compile_inline_elf_to $VERSION |;
+
+our $VERSION = amos_chksum( return_c_code() );    ## algorithm code version ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -43,8 +45,6 @@ sub compile_inline_elf_to {
 
     return undef if not defined &inline_elf;
 
-    say ' <<< SUCCESS >>>';
-
     return \&inline_elf;    ## returning code-ref to compiled routine ##
 
 }
@@ -52,35 +52,43 @@ sub compile_inline_elf_to {
 ##[ CHECKSUM CALCULATION CODE ]###############################################
 
 sub return_c_code {
-    return << 'EOT';
+    return <<~ 'EOC';
 
-void inline_elf(char *sval)
-{
-    unsigned int h = 0; // <-- repaired overflow [ broken in Digest::Elf ]
-    unsigned long g;
-    Inline_Stack_Vars;
+        unsigned int inline_elf( int elf_mode, int start_sum, char *str ) {
 
-    while ( *sval ) {
+            unsigned int result = start_sum; // 0 if no continuation
+            unsigned int carryover;
+            int pos_0  = (int) str;
+            unsigned int round = 0;
 
-        h = ( h << 4 ) + *sval++;
+            // algorithm configuration
+            unsigned int left  = elf_mode; // 4 == elf hash [ base setting ]
+            unsigned int right = 24;
 
-        if ( g = h & 0xF0000000 )
-            h ^= g >> 24;
+            while ( *str ) {
+                round = (long) str - pos_0;
+                int character = (int) *str++;
+                if ( character < 0 ) // characters >= ascii 128
+                    character += 256;
 
-        h &= ~g;
-    }
+                result = ( result << left ) + character;
 
-    Inline_Stack_Reset;
-    Inline_Stack_Push(sv_2mortal(newSViv( h )));
-    Inline_Stack_Done;
-}
-EOT
+                if ( ( carryover = result & 0xF0000000 ) )
+                    result ^= carryover >> right;
+
+                result &= ~carryover;
+            }
+
+            return result;
+        }
+
+    EOC
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#DX7C2JZJWKGXAFAYCMN45TFSKQ4KPE6ZTAG3RVRN5IV6L5ORZKNHQ6PCXKJTX4XXFYFDGDMTBTVTY
-#::: YJE2LPX4GJYGXIRWBLAATPKL4OCLOGNJXD7PGVZHNPFPOMC3HHP :::: NAILARA AMOS :::
-# :: LWC2FZ4IYJD6NU5QGQD2MBHRZVUKR7BG6Z3QL2RSMT33E7FZSWBQ :: CODE SIGNATURE ::
+#TKOTZPJ3MBR7SBULPJZOOAICJ7KGXIB6ORNQJPD3GOFQOGBGSCORFDOSYFKFNTKB37NIMN5LHFBFU
+#::: 5C2EM4OK7ZYHLAOEP65BGWHJYVCMGPV6VWLWLNGPHCISE3ARIUY :::: NAILARA AMOS :::
+# :: JVEJWBAERLZDMOE2CRQYRG6RI7KUKLMLT6WLNICP6Z75DAF5PCBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

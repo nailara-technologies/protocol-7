@@ -11,13 +11,15 @@ use strict;
 use English;
 use warnings;
 use Crypt::Misc;       ## encode_b32r ##
+use Digest::BMW;
 use Digest::Elf;       ## check for overflow [ import p7 version \ inline ? ]
 use Math::BigFloat;
 
-use AMOS::Assert::Truth qw| is_true |;
-use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to |;
 
-compile_inline_elf_to(qw| /tmp/ELF |);
+use AMOS::Assert::Truth qw| is_true |;
+
+#use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to |;##AMOS::CHKSUM::ELF
+# compile_inline_elf_to(qw| /tmp/ELF |);
 
 @EXPORT = qw| amos_chksum |;
 
@@ -153,7 +155,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#NQD5IOKP6WTDSTDZMWDFROEB5UHCJ535TNTWPFNHYWGD55E4PC3ESQPIUWFABQCTSLSQEYZPX2SUE
-#::: C34CZLMOFALL7TDBJZKI24W2ZGS7YNCXN2PPRO7JX66KBVJJZJU :::: NAILARA AMOS :::
-# :: SO5OSE4YV4TDFFS2IZ34UXUF3ZXMB3Y2R23Z35HJ64AXYGBEQCBY :: CODE SIGNATURE ::
+#QWZKZD6YYWBTJXVIH4X7BP7KLZO7FOAYUTXNL3MRKAIZQGTSNFRRKADTRMWQGQDVWPC27WR7PV32Q
+#::: C2ILQQAWCHTZTF562WCFS65IVFVKJ6PS7PWN2HVNNOKYMI2PQ3M :::: NAILARA AMOS :::
+# :: QMNW3ACIAHX3PS5V3LQJJW4CG6XZJZLAA5LAOLFYVLSVY7Q67ECY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
