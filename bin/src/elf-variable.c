@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <string.h>
 
+// elf-checksum algorithm [ repaired for characters >= ascii 128 ] + added modes
+
 unsigned int elf_sum( int mode, int start_sum, char *sval, int verbosity ) {
 
     // verbosity = 1; // <-- debug
@@ -29,7 +31,9 @@ unsigned int elf_sum( int mode, int start_sum, char *sval, int verbosity ) {
 
     while ( *sval ) {
         round = (long) sval - pos_0;
-        char character = (char) *sval++;
+        int character = (int) *sval++;
+        if ( character < 0 ) // characters >= ascii 128
+            character += 256;
 
         h = ( h << left ) + character;
 
@@ -38,9 +42,15 @@ unsigned int elf_sum( int mode, int start_sum, char *sval, int verbosity ) {
 
         h &= ~g;
 
-        if ( verbosity )
-            fprintf( stderr,
-                ":: round : %04d : '%c' : %09d\n", round, character, h );
+        if ( verbosity ) {
+            if ( character >= 32 && character < 128 ) {
+                fprintf( stderr,
+                    ":: round : %04d : '%c' : %09d\n", round, character, h );
+            } else { // display non-printable characters as ascii values
+                fprintf( stderr,
+                    ":: round : %04d : %03d : %09d\n", round, character, h );
+            }
+        }
     }
 
     if ( verbosity )
