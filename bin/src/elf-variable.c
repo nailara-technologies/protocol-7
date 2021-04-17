@@ -28,7 +28,7 @@ unsigned int elf_sum( int mode, int start_sum, char *sval, int verbosity ) {
     unsigned int round = 0;
 
     while ( *sval ) {
-        round = (long int) sval - pos_0;
+        round = (long) sval - pos_0;
         char character = (char) *sval++;
 
         h = ( h << left ) + character;
@@ -133,7 +133,7 @@ int main( int argc, char * argv[] ) {
             return 2;
         }
 
-        long seed_val = strtold( argv[1], 0 );
+        int seed_val = strtold( argv[1], 0 );
 
         if ( strcmp( argv[1], "000000000" ) != 0 &&
                 strcmp( argv[1], "0" ) != 0 && seed_val <= 0 ) {
@@ -148,7 +148,7 @@ int main( int argc, char * argv[] ) {
 
         if ( argc == 2 ) { // empty input string case
 
-            printf( "%09ld\n", seed_val );
+            printf( "%09d\n", seed_val );
             return 0;
 
         }
@@ -167,14 +167,14 @@ int main( int argc, char * argv[] ) {
 
     } else if ( argc == 1 ) {  // only one argument [ single word ]
 
-        printf( "%09u\n", elf_sum( mode, 0, argv[0], verbosity ) );
+        printf( "%09d\n", elf_sum( mode, 0, argv[0], verbosity ) );
 
     } else if ( argc > 1 && strcmp( argv[0], "-s" ) == 0 ) { // single word mode
         printf(":\n");
 
         for( int arg = 1; arg < argc; arg++ ) {
-            printf( ": %13s : %09u\n", argv[arg],
-                elf_sum( mode, 0, argv[arg], verbosity ) );
+            printf( ": %09d : %s\n",
+                elf_sum( mode, 0, argv[arg], verbosity ), argv[arg] );
         }
         printf(":\n");
 
