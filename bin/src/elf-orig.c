@@ -6,13 +6,13 @@
 #include <stdlib.h>
 
 unsigned long elf(char *sval) { // <-- 'ELFHash' algorithm from Digest::Elf[.xs]
-    unsigned long h = 0, g;
+    unsigned long h = 0, g;     // <--  long h .. creates overflow [ i.e. 'ар' ]
 
     while ( *sval ) {
 
         h = ( h << 4 ) + *sval++;
 
-        if ( g = h & 0xF0000000 )
+        if ( ( g = h & 0xF0000000 ) )
             h ^= g >> 24;
 
         h &= ~g;
@@ -39,24 +39,24 @@ char* join_str(char **str, const char *delimiters) {
 }
 
 int main( int argc, char * argv[] ) {
-    for( int i=0; i<argc; ++i )
+    for( int i=0; i<argc; ++i )                   // removing program name
         argv[i]  = argv[i+1];
-    --argc; // <-- program name removed
+    --argc;
 
     if ( argc == 0 ) {                            // no argument <-- [000000000]
-        printf( "%09u\n", elf( "" ) );
+        printf( "%09lu\n", elf( "" ) );
 
     } else if ( argc == 1 ) {       // only one argument [ hashing single word ]
-        printf( "%09u\n", elf( argv[0] ) );
+        printf( "%09lu\n", elf( argv[0] ) );
 
-    } else if ( argc > 1 && strcmp( argv[0], "-v" ) == 0 ) { // seperate words.
+    } else if ( argc > 1 && strcmp( argv[0], "-s" ) == 0 ) { // single word mode
         printf(":\n");
         for( int arg = 1; arg < argc; arg++ ) {
-            printf( ": %13s : [ %09u ]\n", argv[arg], elf( argv[arg] ) );
+            printf( ": %09lu : %s\n", elf( argv[arg] ), argv[arg] );
         }
         printf(":\n");
     } else {                                   // hashing arguments joined [' ']
-        printf( "%09u\n", elf( join_str( argv, " " ) ) );
+        printf( "%09lu\n", elf( join_str( argv, " " ) ) );
     }
     return 0;
 }
