@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+our $inline_directory;
+
+my $mode           = 4;
+my $start_checksum = 0;
+
+say sprintf( "%09d", inline_elf( $mode, $start_checksum, join( ' ', @ARGV ) ) )
+    and exit(0);
+
+BEGIN {  #[ INIT \ C-CODE ]###################################################
+    die 'ENV{USER} not set [ required ]' if !length( $ENV{'USER'} // '' );
+    $inline_directory = join( '.', qw| /var/tmp/.inline-elf |, $ENV{'USER'} );
+    if ( not -d $inline_directory ) {
+        mkdir($inline_directory)
+            or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
+    }
+}
+INIT {
+    use Inline ( 'C' => <<~ 'EOC', 'directory' => $inline_directory );
+
+        unsigned int inline_elf( int elf_mode, int start_sum, char *str ) {
+            unsigned int result = start_sum; // 0 if no continuation
+            unsigned int carryover = 0;
+            int pos_0 = (int) str;
+            unsigned int round = 0;
+
+            // algorithm configuration
+            unsigned int left  = elf_mode;   // 4 == elf hash [ base setting ]
+            unsigned int right = 24;
+
+            while ( *str ) {
+                round = (long) str - pos_0;
+                int character = (int) *str++;
+                if ( character < 0 ) // characters >= ascii 128
+                    character += 256;
+
+                result = ( result << left ) + character;
+
+                if ( ( carryover = result & 0xF0000000 ) )
+                    result ^= carryover >> right;
+
+                result &= ~carryover;
+            }
+            return result;
+        }
+    EOC
+}
+
+#.............................................................................
+#QAPYS5UTTEJ22JB3L7BTEKA3XPAGJBI3JQ5F7XF7YAIKFW5WM4MZGXLTK65A3BGIPXFOVAD4BDI7K
+#::: F3RVPLN6ZQIZYK32TOOH7OS7BRMCFKPBLFDRXLYSFOZCGOS3M6F :::: NAILARA AMOS :::
+# :: KM77Y5B7NCAIFP62WIFKQI3OP5UIHA34XXBRJXNCRMBXWDXJ7GBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
