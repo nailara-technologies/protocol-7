@@ -32,6 +32,11 @@ my @check_paths = map { abs_path( join( '/', $protocol_7_path, $ARG ) ) } qw[
     push( @check_paths, $ENV{'HOME'}, '/tmp' );
 }
 
+## local pm lib path modules ##
+if ( @ARGV == 1 and ( $ARGV[0] =~ m|::| or $ARGV[0] eq qw| AMOS | ) ) {
+    map { $ARG =~ s|::|/|g; $ARG .= '.pm' } @ARGV;
+}
+
 foreach my $filename (@ARGV) {
     $filename =~ s|\n||g;
     if ( $filename =~ m|^/| or -f $filename ) {
