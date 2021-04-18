@@ -71,7 +71,8 @@ sub elf_checksum {    ## use alternative in overflow case ##
     error_exit('expected scalar reference') if ref($check_sref) ne 'SCALAR';
     my $elf_chksum = Digest::Elf::elf($$check_sref);
     warn_err( 'elf checksum overflow', 2 )
-        if length($elf_chksum) > 9
+        if $elf_chksum < 0
+        or length($elf_chksum) > 9
         or length($$check_sref) > 0 and $elf_chksum == 0;
     return Digest::Elf::elf($$check_sref);
 }
@@ -100,7 +101,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#EWTMOTLHAZCDLFNG6LC6CWQEU4WVRWO4Q6XZFS3WZUVDYM6MHWUEQYYGIBOXMMVMPYLWJRQHAVN4K
-#::: CU2YCMVXUP7T4NRGMUTT4PTPWE3IOHALGI5IYL277SAVA6MY2KJ :::: NAILARA AMOS :::
-# :: QSIK4PDMH3M2GOCULCRHHXVBADIFZFFKJADXHN3F5GVIVPFLLGDA :: CODE SIGNATURE ::
+#IGUQZ7KVRFNW2WI4PV5CTCDC6CUJYIN7B5R3VWOLAJJHRGBCUHUJ52RP6FCGOOOGHBEFCAZDD3O5U
+#::: FP2AOE3W2FYNIPJOEHF4SYWEESVQ67XEUC5OCTCTIZPFSIENEZV :::: NAILARA AMOS :::
+# :: MJQJKJAR4YSZTJQYR3GWYYW2KD4KSDZBP36376WAHAQBRJ7NRCBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
