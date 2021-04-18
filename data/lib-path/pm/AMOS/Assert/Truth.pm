@@ -9,17 +9,13 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use Digest::Elf;              ## <-- worx for ascii values below 128 ##
 use Math::BigFloat;
+
+use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
 our @deep_assertion_modes = qw| 4 7 |;
 
-@EXPORT = qw| is_true TRUE |;
-
-if ( caller_str() =~ m|check-truth| ) {    ## use 'deep_truth' [ mode ] ##
-    eval { require qw| AMOS/CHKSUM/ELF.pm | };
-    *inline_elf = $AMOS::CHKSUM::ELF::inline_elf_ref if not $EVAL_ERROR;
-}
+@EXPORT = qw| is_true |;
 
 ##[ MAIN FUNCTION ]###########################################################
 
@@ -35,25 +31,25 @@ sub is_true {
     $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq 'ARRAY';
     $data_ref = \"$data_ref"              if ref($data_ref) eq '';
 
-    ## used by 'check-truth' and 'question' ##
-    my ( $deep_truth, @modes ) = TRUE($data_ref);
-    if ( defined $deep_truth ) {
-        if ( not wantarray ) {
-            return $deep_truth;
-        } else {
-            return ( $deep_truth, @modes );
-        }
-    }
+    my @assertion_modes = @ARG ? @ARG : @deep_assertion_modes;
 
-    return 0    ## check as mumber first ##
+    return 0                          ## check as mumber when numerical ##
         if $check_as_num
         and is_numerical($$data_ref)
         and not calc_true( scalar($$data_ref) );
 
-    return 1 if not $check_as_elf;
+    ## assert selected elf checksum modes ##
 
-    ## check as string [ elf checksum ] ##
-    return calc_true( elf_checksum($data_ref) );    ## pass by reference ##
+    foreach my $elf_mode (@assertion_modes) {
+        if ( not calc_true( elf_chksum( $data_ref, 0, $elf_mode ) ) ) {
+            return 0 if not wantarray;
+            return ( 0, $elf_mode );    ## report mode level of objection ##
+        }
+
+    }
+    ## success : TRUE .: ##
+    return 1 if not wantarray;
+    return ( 1, @assertion_modes );    #scalar @assert_modes );
 
 }
 
@@ -65,6 +61,7 @@ sub calc_true {
 
     Math::BigFloat->round_mode(qw| trunc |);
 
+    ## implement alternative mode for short lengths ## [LLL]
     my $calc_str = Math::BigFloat->new($check_num)
         ->bdiv( 13, 13 + length($check_num) );
 
@@ -75,46 +72,13 @@ sub calc_true {
     return 1;
 }
 
-sub is_numerical {    ## export from parent ##
-    return ( not defined $ARG[0] or $ARG[0] !~ m{^(0|[1-9]\d*)(\.\d+)?$} )
+sub is_numerical {    ## export from parent module ## [LLL]
+    return ( not defined $ARG[0] or $ARG[0] !~ m{^\d+(\.\d+)?$} )
         ? 0
         : 1;
 }
 
 ##[ ERROR HANDLING ]##########################################################
-
-sub TRUE {
-    my $check_sref = shift;
-    error_exit('expected scalar reference') if ref($check_sref) ne 'SCALAR';
-    return undef                            if not defined &inline_elf;
-
-    my @assertion_modes = @ARG ? @ARG : @deep_assertion_modes;
-
-    foreach my $elf_mode (@assertion_modes) {
-        if ( not calc_true( inline_elf( $elf_mode, 0, $$check_sref ) ) ) {
-            return 0 if not wantarray;
-            return ( 0, $elf_mode );    ## report mode level of objection ##
-        }
-
-    }
-    ## success : TRUE .: ##
-    return 1 if not wantarray;
-    return ( 1, @assertion_modes );    #scalar @assert_modes );
-}
-
-sub elf_checksum {    ## use alternative in overflow case ##
-    my $check_sref = shift;
-    error_exit('expected scalar reference') if ref($check_sref) ne 'SCALAR';
-
-    return inline_elf( 4, 0, $$check_sref ) if defined &inline_elf;
-
-    my $elf_chksum = Digest::Elf::elf($$check_sref);
-    warn_err( 'elf checksum overflow', 2 )
-        if $elf_chksum < 0
-        or length($elf_chksum) > 9
-        or length($$check_sref) > 0 and $elf_chksum == 0;
-    return Digest::Elf::elf($$check_sref);
-}
 
 sub warn_err {
     my $err_str = shift;
@@ -140,7 +104,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#UXAXCCAIHW35COAME4N3EY75WBE4BODIVURQ2BQUZTHM2EOOLITAQRZFVA7TH5YUGSVVHB5VFACFQ
-#::: 3SUARSMLS577ZRJERBIFVI7I4IVDGMXL2WJGGZ3L5LWO6NTR34Y :::: NAILARA AMOS :::
-# :: QXXO55TL2YDI5VB7QTST56S4UC5CNXK4SRMWPYEA5KKQTKY6JCDY :: CODE SIGNATURE ::
+#IJ65RWHV5PM2Q4OMCMPOOEHQCJSIQO76MKILPHRJNFSKK7MT7YXT2WRXD2IFVG3LLLECTFHXJBINM
+#::: NB7373HCT57I45RJLI2IYJJ5OLTKCKTYLVBCS7EIGYBE2X7R2OR :::: NAILARA AMOS :::
+# :: ULA2CPRB5F5L4Q3MLNT44RVCRQEJLSFMFQBXAWTCJRRUSXWMTGCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

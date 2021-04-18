@@ -11,8 +11,6 @@ use strict;
 use English;
 use warnings;
 
-use Digest::Elf;            ## needs checks for overflow .., ##
-
 use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to $VERSION |;
 
 ### use calculated \ generated paths and caller context awareness ### [LLL]
@@ -25,9 +23,16 @@ our $use_inline_elf    //= 1;    ## compile and use inline-elf version ? ##
 our $use_external_elf  //= 1;    ## use /usr/local/bin/elf as fallback ? ##
 our $elf_checksum_mode //= 4;    ## elf-checksum base algorithm setting ##
 
-##[ CHECKSUM CALCULATION ]####################################################
+## install inline_elf() as currently available ##
+if ( defined $AMOS::CHKSUM::ELF::inline_elf ) {
+    *inline_elf = $AMOS::CHKSUM::ELF::inline_elf;
+} elsif ( defined *inline_elf ) {
+    *inline_elf = $inline_elf_ref;
+} else {
+    die 'no inline_elf() code reference available';
+}
 
-## unsigned int inline_elf( int mode, int start_sum, char *sval ) {
+##[ CHECKSUM CALCULATION ]####################################################
 
 sub elf_chksum {
 
@@ -35,42 +40,34 @@ sub elf_chksum {
     my $data_ref;
     @ARG = qq|| if not @ARG;
     my $start_checksum = 0;
-    ## allows passing by reference [ with start checksum parameter ] ##
+
+    ## start checksum and mode parameters when passing by reference ##
     if ( ref( $ARG[0] ) eq 'SCALAR' ) {
 
-        my $data_ref = shift;
+        $data_ref = shift;
 
-        $start_checksum = shift
-            if @ARG
-            and defined $ARG[0]
-            and $ARG[0] =~ m|^\d{1,9}$|;    ## allow for negative values ? ##
+        if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,9}$| ) {
+            $start_checksum = shift;
+        }
+
+        if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,2}$| ) {
+            $elf_checksum_mode = shift;
+        }
 
     } else {
         $data_ref = \$ARG[0];
     }
 
-    my $elf_checksum;
+    ####                  ####
+    ## calculating checksum ##
+    ####                  ####
 
-    $elf_checksum = sprintf( "%09d", $start_checksum )
-        if not length( $$data_ref // '' );
+    my $elf_checksum
+        = length( $$data_ref // '' )
+        ? inline_elf( $elf_checksum_mode, $start_checksum, $$data_ref )
+        : sprintf( "%09d", $start_checksum );    ## start chksum for empty ##
 
-    if ( not defined $elf_checksum ) {
-        if ( defined $AMOS::CHKSUM::ELF::inline_elf
-            and ref $AMOS::CHKSUM::ELF::inline_elf eq 'CODE' ) {
-
-            $elf_checksum = $AMOS::CHKSUM::ELF::inline_elf->(
-                $elf_checksum_mode, $start_checksum, $$data_ref
-            );
-
-        } elsif ( $start_checksum > 0 ) {
-            warn 'Digest::Elf::elf does not support a start checksum <{C1}>';
-
-        } else {
-            $elf_checksum = Digest::Elf::elf($$data_ref);
-        }
-    }
-
-    $elf_checksum_mode = 4;    ## reset to elf base-algorithm ##
+    $elf_checksum_mode = 4;    ## resetting to elf base-algorithm mode ##
 
     return $elf_checksum;
 }
@@ -85,7 +82,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#45WP4BQ6WT2FEQYIKO7UQOKKKO5PLO2VQSSRFP67X3MC7ZYIAQSCSJNMGN4MUTYFOUO6CFRT5WA2S
-#::: JQFPOBDNMSLILQBEB6B2OPZIUB7IHHUJV6UO3WQVL4MQRU4KSDM :::: NAILARA AMOS :::
-# :: 5MV4AKKVIYL6YKCA4SHBP6KSSOFP542P25AE3WHVGFP2DY74DWAQ :: CODE SIGNATURE ::
+#EBHYJB7NOHVHNT5RID3E3BPV5HCO3RNNDZGAYZVCZIE7DFUETMY3FPUIYAO2YA5I7E5564O4QFKIE
+#::: U22LQMKWJVBZ62MYDSLIFJ2FNB7AB4AIEJG3OSDHFZVNNCJAKSJ :::: NAILARA AMOS :::
+# :: EPRSSLIFLCXYZ63A3K4RZNBMF674ALYFFAKFOHIHDTLI33663OCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
