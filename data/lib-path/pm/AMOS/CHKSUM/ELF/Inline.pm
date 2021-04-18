@@ -14,14 +14,16 @@ use warnings;
 
 use AMOS;
 
-use AMOS::CHKSUM qw| amos_chksum |;
+# use AMOS::CHKSUM qw| amos_chksum |;
 
 eval qq| require 'Inline/C.pm' |;
 die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 @EXPORT = qw| compile_inline_elf_to $VERSION |;
 
-our $VERSION = amos_chksum( return_c_code() );    ## algorithm code version ##
+### do so avoiding circular dependencies ### [LLL]
+#
+# our $VERSION = amos_chksum( return_c_code() );    ## algorithm code version ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -88,7 +90,7 @@ sub return_c_code {
 return 1;  ###################################################################
 
 #.............................................................................
-#TKOTZPJ3MBR7SBULPJZOOAICJ7KGXIB6ORNQJPD3GOFQOGBGSCORFDOSYFKFNTKB37NIMN5LHFBFU
-#::: 5C2EM4OK7ZYHLAOEP65BGWHJYVCMGPV6VWLWLNGPHCISE3ARIUY :::: NAILARA AMOS :::
-# :: JVEJWBAERLZDMOE2CRQYRG6RI7KUKLMLT6WLNICP6Z75DAF5PCBI :: CODE SIGNATURE ::
+#ORD2HCIRXWPGPFA45CZZZFGULQL45NAMLDY6KNOBTBEXL33QIWCVC4PW3KXG27LDVWUKIHZDPWXQW
+#::: PB7MQSAR2B77CQUQF5CU2D75UQTTHIBX3JKA6CVCAUECULO35VU :::: NAILARA AMOS :::
+# :: V7QL453OERRNSR522CRGHB4WTHENEXM2V6WGSEQWY2464M34SCCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

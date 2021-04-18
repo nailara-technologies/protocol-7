@@ -15,7 +15,8 @@ use Digest::Elf;            ## needs checks for overflow .., ##
 
 use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to $VERSION |;
 
-my $AMOS::CHKSUM::ELF::inline_elf = compile_inline_elf_to(qw| /tmp/ELF |);
+### use calculated \ generated paths and caller context awareness ### [LLL]
+our $inline_elf_ref = compile_inline_elf_to(qw| /tmp/ELF |);
 
 @EXPORT = qw| elf_chksum |;
 
@@ -31,6 +32,7 @@ our $elf_checksum_mode //= 4;    ## elf-checksum base algorithm setting ##
 sub elf_chksum {
 
     ## initializing empty ##
+    my $data_ref;
     @ARG = qq|| if not @ARG;
     my $start_checksum = 0;
     ## allows passing by reference [ with start checksum parameter ] ##
@@ -44,7 +46,7 @@ sub elf_chksum {
             and $ARG[0] =~ m|^\d{1,9}$|;    ## allow for negative values ? ##
 
     } else {
-        my $data_ref = \$ARG[0];
+        $data_ref = \$ARG[0];
     }
 
     my $elf_checksum;
@@ -83,7 +85,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#W5RRAKZ6XECY6QRENZPZ5QZHDGOJKJF5CNKCXQRCGLOPGSAPUJ4HUHKMZMUIK2GOTVIMKEVUNPYW2
-#::: IDVWMG2HSNU2PKMOFNLUKSJXPDJQGJSKHGXAXGKCA7IAIOI2OWR :::: NAILARA AMOS :::
-# :: 5BQYZ76VFQJDA7W7ZETFOD2EXFAEG3FYA4CB2M6DBEHNGC5YUSCY :: CODE SIGNATURE ::
+#45WP4BQ6WT2FEQYIKO7UQOKKKO5PLO2VQSSRFP67X3MC7ZYIAQSCSJNMGN4MUTYFOUO6CFRT5WA2S
+#::: JQFPOBDNMSLILQBEB6B2OPZIUB7IHHUJV6UO3WQVL4MQRU4KSDM :::: NAILARA AMOS :::
+# :: 5MV4AKKVIYL6YKCA4SHBP6KSSOFP542P25AE3WHVGFP2DY74DWAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
