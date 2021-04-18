@@ -49,6 +49,7 @@ my %targets = (
     'admin' => $PATH->{'root'} . '/bin/admin/',    # node administration tools
     'src'   => $PATH->{'root'} . '/base-code/',    # the nailara module source
     'cfg'   => $PATH->{'root'} . '/configuration/',  # configuration root path
+    'md'    => $PATH->{'root'} . '/read-me/md/',     # release [markdown] page
     'zenki' => $PATH->{'root'} . '/configuration/zenki/..,',  # p7-zenka progs
     ## 'readme' => $PATH->{'root'} .  ##  <-- require recursive directory mode
 );
@@ -108,8 +109,7 @@ exit;
 
 # ::: parser commands :::
 
-# :: cmd_description :: display description text ..,
-#                                         [ given command or full command list ]
+# :: cmd_description :: display description text [ command or full list ]
 
 sub cmd_description {
 
@@ -242,7 +242,7 @@ sub cmd_list_targets {
     exit;
 }
 
-# :: cmd_list_psubs :: lists all subroutines or those matching optional patterns
+# :: cmd_list_psubs :: lists all subroutines [ optional pattern match ]
 
 sub cmd_list_psubs {
 
@@ -328,7 +328,7 @@ sub cmd_show_psub {
     exit;
 }
 
-# :: cmd_replace :: regular expression search/replace operation on <target> code
+# :: cmd_replace :: regular expression search\replace operation on <target>
 
 sub cmd_replace {
     my @params = @_;
@@ -448,7 +448,7 @@ sub cmd_replace {
     }
 }
 
-# :: cmd_parse_headers :: repair headers of renamed subroutines ('base-code' target)
+# :: cmd_parse_headers :: reparse headers of renamed subroutines ['base-code']
 
 sub cmd_parse_headers {
     my @params = @_;
@@ -740,7 +740,7 @@ sub cmd_move_psubs {
 # ::: additional subroutines :::
 
 # :: description_txt :: defines description text and short description
-#                returns corresponding text if first parameter equals 'description'
+#    returns corresponding text if first parameter equals 'description'
 sub description_txt {
     my ( $params_txt, $description_text, @call_params ) = (@_);
 
@@ -1043,7 +1043,7 @@ sub restore_backup {
 
 }
 
-# :: check_target_files :: performs target file checks before restoring backups
+# :: check_target_files :: performs target file checks before restoring backup
 
 sub check_target_files {    # LLL: incomplete
     my ( $source_data, $meta_data ) = (@_);
@@ -1066,8 +1066,8 @@ sub check_target_files {    # LLL: incomplete
             }
         } else {
             open( my $CHK_FILE, '<' . $check_file )
-                or die
-                " :: cannot open target file '$check_file' : \l$OS_ERROR ::\n";
+                or die " :: cannot open target file "
+                . "'$check_file' : \l$OS_ERROR ::\n";
             my $bmw = Crypt::Digest::BMW->new(256);
             $bmw->addfile($CHK_FILE);
             my $chk_sum = encode_b32r( $bmw->digest );
@@ -1085,7 +1085,7 @@ sub check_target_files {    # LLL: incomplete
     }
 }
 
-# :: load_metadata :: loads the backup metadata and returns hash reference to it
+# :: load_metadata :: loads the backup metadata and returns hash ref. to it
 
 sub load_metadata {
     my $file_name         = shift;
@@ -1148,7 +1148,7 @@ sub load_metadata {
     return \%meta_data;
 }
 
-# :: save_metadata :: creates a file with backup metadata for use in restore op.
+# :: save_metadata :: creates a file with backup metadata [ for restore op. ]
 
 sub save_metadata {
     my $file_name = shift;
@@ -1373,8 +1373,7 @@ sub create_dir {
     if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
         ( $parent_dir, $new_dir ) = ( $1, $2 );
     } else {
-        die
-            ":: create_dir() : directory argument should include full path!\n";
+        die ":: create_dir() : directory argument should include full path\n";
     }
 
     if ( !-d $parent_dir ) {
@@ -1725,7 +1724,7 @@ sub show_perl_sub {
     }
 }
 
-# :: move_perl_subs :: moves one or more subroutines from one module to another
+# :: move_perl_subs :: moves subroutine[s] between modules
 
 sub move_perl_subs {
     my $work_source     = shift;
@@ -1845,7 +1844,7 @@ sub cut_out_sub {
     return $sub_source;
 }
 
-# :: insert_sub :: inserts given subroutine code at the end of specified package
+# :: insert_sub :: inserts given sub. code at the end of specified package
 
 sub insert_sub {
     my $work_source     = shift;
@@ -1895,7 +1894,7 @@ sub insert_sub {
     }
 }
 
-# :: adjust_subroutine_calls :: fix calls after moving of subs between packages
+# :: adjust_subroutine_calls :: adj. calls after sub. move between packages
 
 sub adjust_subroutine_calls {
     my $work_source         = shift;
@@ -1953,7 +1952,7 @@ sub adjust_subroutine_calls {
     %{$work_source} = %{$modified_source};
 }
 
-# :: remove_unmodified :: removes identical source files from two given hashrefs
+# :: remove_unmodified :: removes identical src files from two given hashrefs
 
 sub remove_unmodified {
     my $source_1 = shift;
@@ -1970,7 +1969,7 @@ sub remove_unmodified {
     return ( $source_1, $source_2 );
 }
 
-# :: replace_all :: regexp replace on source, returns hashref of modified source
+# :: replace_all :: regexp replace on source, returns hashref of modified src
 
 sub replace_all {
     my $source  = shift;
@@ -2029,7 +2028,7 @@ sub replace_all {
     return ( $changed_source, $changed );
 }
 
-# :: pattern_invalid :: return true if regex pattern contains illegal characters
+# :: pattern_invalid :: return true if regex pattern contains inv. characters
 
 sub pattern_invalid {
     my $pattern_type   = shift;
@@ -2065,7 +2064,7 @@ sub pattern_invalid {
     return 0;    # not invalid
 }
 
-# :: pattern_test_ok :: check the regular expression pattern in %regexp via eval
+# :: pattern_test_ok :: check the pattern in %regexp by evaluating
 
 sub pattern_test_ok {
     my %regexp = %{ $_[0] };
@@ -2089,7 +2088,7 @@ sub pattern_test_ok {
     }
 }
 
-# :: create_regexp :: create reg. expression string from submitted %regexp hash
+# :: create_regexp :: create regexp. string from submitted %regexp hash
 
 sub create_regexp {
     my %regexp = %{ $_[0] };
@@ -2137,7 +2136,7 @@ sub user_confirmed {
     return $choice eq 'y' ? 1 : 0;
 }
 
-# :: get_character :: grabs a single key from STDIN [sets terminal to raw mode]
+# :: get_character :: grab a single key from STDIN [ terminal to raw mode ]
 
 sub get_character {
     &raw_mode_on;
@@ -2150,7 +2149,7 @@ sub get_character {
     return $key;
 }
 
-# :: raw_mode_on :: enables raw mode for the connected terminal (using stty)
+# :: raw_mode_on :: enables raw mode for the connected terminal [uses stty]
 
 sub raw_mode_on {
 
@@ -2295,7 +2294,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#4K6MMUWOZBZROW74BOP3J3DIVYTMAMIR6GRFLZDBRVBS6ADBNLVGB7DY3IZMUGQGSVVTEWXHVQLWK
-#::: SIGO7VVUQQLVC6KT36ZJDNQRXPBQDGJNO7LK5TRIVPH6XFDUQDF :::: NAILARA AMOS :::
-# :: QRQ6Z5CWA4LOCI56VBKVFZNGPKM5HSLWDJ373XP2OY6NG2OM3EBA :: CODE SIGNATURE ::
+#LW3UBTP5RG4D67YIBPV6TEXOFR4YMNDHTB5WDARHYXGJRKDHAVGVSJOEG6DKX74XTUM5OY7BZPGNY
+#::: YFH4OKZOR3GC3F3RWCOV4ML5V56ZAGTMEAD5PC6HI5QFV46SDYO :::: NAILARA AMOS :::
+# :: J6R2ZBTL6BUZIQ2TAYHVJEHGCJC6TOC7HSKKN4HVOQ2NQR4Z6CBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

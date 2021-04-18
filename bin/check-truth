@@ -4,7 +4,9 @@ use strict;
 use English;
 use warnings;
 
-my $silent = @ARGV > 1 and $ARGV[0] eq qw| -silent | and shift(@ARGV);
+my $silent = 0;
+
+$silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent | and shift(@ARGV);
 
 BEGIN {
     use File::Spec;
@@ -34,16 +36,17 @@ my $fg  = "\e[38;2;68;39;172m";
 my $no  = "\e[38;2;197;141;7m";
 my $ng  = "\e[38;2;71;195;6m";
 
-if ( is_true($check_string) ) {
+my ( $true, @modes ) = is_true($check_string);
+my $mode_str = @modes ? sprintf( " : %s", join( ' ', @modes ) ) : '';
 
-    say "$fg:\n:: $bl${fT}TRUE$rst$fg :: "
+if ($true) {
+    say "$fg:\n:: $bl${fT}TRUE$rst$fg$mode_str :: "
         . "$bg'$fT$check_string$fg'$rst$fg .:\n:$rst"
         if not $silent;
 
     exit(0);
 } else {
-
-    say "$fg:\n:: $bl${ng}FALSE$rst$fg : "
+    say "$fg:\n:: $bl${ng}FALSE$rst$fg$mode_str : "
         . "$bg'$ng$check_string$fg'$rst$fg :.\n:$rst"
         if not $silent;
 
@@ -51,7 +54,7 @@ if ( is_true($check_string) ) {
 }
 
 #.............................................................................
-#ILP2A3TKFWYYWB5PX5CGZBLPXVGCL4K5E7UBRZFIE3ZJ5CZLUCPEVIQ6N6NSXBABDQQVQYSKVISYS
-#::: NPF5S3MRSMTPYLXXYZDYG47MFOVYH4VNPIZOPBHG6HGMM6PD6FW :::: NAILARA AMOS :::
-# :: 3BLQBLGUHDGUG6HKM4TAJVTC26ONQMMZAVMRI23UAYBDZMXBSEBY :: CODE SIGNATURE ::
+#XP4UZSU5KCUGM7ZGMKCBK4OCK4KCQBNR76MC5AEN6RL5KV32BEEXQV6WDFBOYXJ5T6KKSIRRD7JQ6
+#::: 26KQZDIF4XZ45PYUV6WVYSWJ5NWBETWJ3ASHUCXALTO4WADC7X5 :::: NAILARA AMOS :::
+# :: X72YK6NQE5E2TANBXGNCQP3FJU5ZR6PQZC5UH6WDYHSGJMLIDQDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
