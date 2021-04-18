@@ -11,6 +11,7 @@ use strict;
 use Inline;
 use English;
 use warnings;
+use List::Util qw| min |;
 
 use AMOS;
 
@@ -23,14 +24,14 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ### do so avoiding circular dependencies ### [LLL]
 #
-# our $VERSION = amos_chksum( return_c_code() );    ## algorithm code version ##
+# our $VERSION = amos_chksum(return_condensed_code()); ## algorithm version ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
 sub compile_inline_elf_to {
 
     my $inline_directory = shift;
-    my $elf_code         = return_c_code();
+    my $elf_code         = return_condensed_code();
 
     die "<inline_directory> '$inline_directory' not found"
         if !-d $inline_directory;
@@ -52,6 +53,21 @@ sub compile_inline_elf_to {
 }
 
 ##[ CHECKSUM CALCULATION CODE ]###############################################
+
+## return cleaned up code for filtering false-positive change detection ##
+
+sub return_condensed_code {
+    my $source_code = return_c_code();
+    $source_code =~ s{\s*/\*(([^\*]|\*(*nla:/))+)\*/\ *}{}sg;   ## comments ##
+    $source_code =~ s{\s*//.+$}{}mg;     ## single line comments ##
+    $source_code =~ s{\n\s*\n}{\n}sg;    ## empty lines ##
+    $source_code =~ s{^\n|\n$}{}sg;      ## empty lines [ first and last ] ##
+    $source_code =~ s{\s+$}{}sg;         ## trailing tabs|spaces ##
+    my $min_indent = min map { m|^\s+| ? length($MATCH) : 0 }
+        split( "\n", $source_code );
+    $source_code =~ s|^\s{$min_indent}||mg;    ## indent to start of source ##
+    return $source_code;    ## return cleaned source code version ##
+}
 
 sub return_c_code {
     return <<~ 'EOC';
@@ -90,7 +106,7 @@ sub return_c_code {
 return 1;  ###################################################################
 
 #.............................................................................
-#ORD2HCIRXWPGPFA45CZZZFGULQL45NAMLDY6KNOBTBEXL33QIWCVC4PW3KXG27LDVWUKIHZDPWXQW
-#::: PB7MQSAR2B77CQUQF5CU2D75UQTTHIBX3JKA6CVCAUECULO35VU :::: NAILARA AMOS :::
-# :: V7QL453OERRNSR522CRGHB4WTHENEXM2V6WGSEQWY2464M34SCCI :: CODE SIGNATURE ::
+#XXCKSQCQMCBA77SQXQJDSMIPRXJMZSWUEIT2FGGKYLNEBCF2PQPIRKRA5SYYWBDX6RSTCW52VXOBA
+#::: 75XMART3LNTUZMIMRJJ6CZOAW67LBJWZEPE3F5YFDQCHSBLDOD7 :::: NAILARA AMOS :::
+# :: 65VGD5RGYZNIG3UNXISM52X2OVBYXZV35LUN6FIWMO27FFACXYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
