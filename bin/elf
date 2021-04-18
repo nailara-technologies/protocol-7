@@ -31,16 +31,20 @@ if ( defined $mode{'f'} and ( -f $mode{'f'} or $mode{'f'} eq '-' ) ) {
 }
 
 sub elf_val {
-    my $elf = Digest::Elf::elf( $_[0] );    ## <-- investigate \\ replace ..,
+    goto SKIP_7BIT_MODULE if $_[0] =~ m|[^\p{ASCII}]|;
+    my $elf = Digest::Elf::elf( $_[0] );    ## <-- replace [Inline+XS]..,
+SKIP_7BIT_MODULE:
     return external_elf( $_[0] )
-        if length($elf) > 10
+        if not defined $elf
+        or $elf < 0
+        or length($elf) > 10
         or length( $_[0] )
         and $elf == 0;
     return $elf;
 }
 
 sub external_elf {    ## used when Digest::Elf has an overflow ##
-    my $pid = open2( my $output, undef, 'elf', $_[0] );
+    my $pid = open2( my $output, undef, qw| /usr/bin/elf -c 0 |, $_[0] );
     chomp( my $elf_val = <$output> );
     return $elf_val;
 }
@@ -58,7 +62,7 @@ sub encode_output {    ## decimal [ base encoding ]
 # }
 
 #.............................................................................
-#NPXYTB7XCI6EOGOOWTK7M43KOV4XXNVJULOS63CPM67YKZTZMYL7OZER2SRRAMOFHFSPGJ2UXDTJI
-#::: D5N2CDME4FKUSK4K4JRAD2LOF4XQG3HE4VFB6ONLSE5C23XCLSZ :::: NAILARA AMOS :::
-# :: 56DUTABL74RTJYHZX35ZXGZYW7IWFMDCMWYPJ2T5S6ZU64ZFCIBQ :: CODE SIGNATURE ::
+#SVDGWI2AQJUFX5ETM4YT6I3FTH4HX4FN3VWX3QK35CWVRKGXCHBRXGMHPRFGHWLZWNKIHJZ77B23O
+#::: AJDDI336G3L6QLRG44XX4SK5YDFIA34DOY7DAJ2EPU6EXMQPTD3 :::: NAILARA AMOS :::
+# :: A6LPV7ZPQJHP7TY5XTXTJ237YBKKFLKMCLYFBTGRLSHBZYQH2OAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
