@@ -8,7 +8,7 @@ my $clear_zenki = $$call{'args'} // '';
 
 <nroot.zenka.manually_stopped> //= {};
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no zenki have 'manually stopped' status"
     }
     if !keys( %{<nroot.zenka.manually_stopped>} );
@@ -21,7 +21,7 @@ if ( !length($clear_zenki) ) {
 } else {
     map {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' =>
                 "no 'manually stopped' status exits for '$ARG', aborted!"
             }
@@ -35,12 +35,12 @@ if ( !length($clear_zenki) ) {
 my $s = $cleared_count > 1 ? 's' : '';
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "'manually stopped' status cleared ( $cleared_count zenka$s )"
     }
 
 #.............................................................................
-#SEIA5NG4M7CDF6XSSC6NINQXMKSBRWD6UF5U5CAIHWPC52MD5HU2PNHCP2HWXBH2CEZPVWA2LKC2M
-#::: EPR5DSKM6KB75YG4UHHKD6XKE2LJG6UEHGRELOILPCDQWUMEIRN :::: NAILARA AMOS :::
-# :: 4PPLVUZ5KOQMZBPUWYHPJZFKDASFBJ55QEHDCNZEJKXRJ37RX4DY :: CODE SIGNATURE ::
+#JFF534GNX7L7C6JTA2KMZ4SFK3NXKDHFA4QZWSEHCSETK2GNHSY6BTBQZV2ZMRQ4W4SPRMKJENP42
+#::: YEJGIBZ5AJ4R6XOJR6YFMTDAJO2UOQMHZOHXCPS67T5UCLEBP26 :::: NAILARA AMOS :::
+# :: F4N2GM547N5FTKAWHGPEDNE5VG37QKJZ3IIKQWDDL3AR7WE7GYBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

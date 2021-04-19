@@ -5,7 +5,7 @@
 local ( $id, $com_id, $name, $host, $port ) = @_;
 foreach my $_key ( 'name', 'host', 'port' ) {
     if ( !defined $$_key ) {
-        <[net.nak]>->("no $_key supplied");
+        <[net.false]>->("no $_key supplied");
         <[base.log]>->( 0, "add_tcp: no $_key supplied" );
         return 0;
     }
@@ -21,13 +21,13 @@ if ( -S $sock ) {
     $data{'link'}{$name}{'transport'}  = 'ip.tcp';
     $data{'link'}{$name}{'encryption'} = 'ssl';
     $data{'link'}{$name}{'start_time'} = <[base.time]>->(5);
-    <[net.ack]>->( "link '$name' established", $com_id );
+    <[net.true]>->( "link '$name' established", $com_id );
 } else {
-    <[net.nak]>->( "connection error", $com_id );
+    <[net.false]>->( "connection error", $com_id );
 }
 
 #.............................................................................
-#UMRKC3HZ6AHVTY2A2SZYNWHIJSGNNZTTMGICMWZ7OFRMPHYVR2V7O56ZBNUT7JYPTF7C554E6IJKA
-#::: ON6BOFGERMQCDDZL42MJPPYK26WR5R2NN7PJ4TUTRE5WMGMVG2H :::: NAILARA AMOS :::
-# :: AF4LHK4JSFAYTUXZ4YLET6O6E3WPPWFHK6RYTCLRDCLACLBA3OCI :: CODE SIGNATURE ::
+#26TCAH6Z6NKFUZEO6KWQZPKBGS2MMPHDEOGGUZNHLFKZAZBA35AIFMTRAHKRSSQNF5KLIENNGJ674
+#::: D4A2NPFEKZZVHDE3U7RHBXNXZFLPR6KLCMLAQKUKX6G4OUHM443 :::: NAILARA AMOS :::
+# :: OX7QR7WFJKDQNLZCOKSEM5SO2G4NSIN2VTYZU6V2TMDMORB62AAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

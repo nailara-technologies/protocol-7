@@ -22,13 +22,13 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die "cube handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m|^\($cmd_id\)NAK (.+)$| ) {
+if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
     <[base.log]>->( 0, "raise_window command failed with '$1'.." );
     return 0;
 } else {
@@ -36,7 +36,7 @@ if ( $reply_string =~ m|^\($cmd_id\)NAK (.+)$| ) {
 }
 
 #.............................................................................
-#KJ56PS46W3272DKDJ2YB4UF3QOH7HXOJUZXM26E5QBQTV2NOIJONNMWLSYBGJRTBE5QNAYBWX7L6K
-#::: LWTNH443BY5F6JAPVJPJ6N5VVU4DFIMTUAT23GAKL7G3NDIWIDZ :::: NAILARA AMOS :::
-# :: 7HEIK43DOSHHI4GNMGBXNRZLDJCGYD4WWWEH4VCKVX3IWMDI4EDQ :: CODE SIGNATURE ::
+#6N6VURPCXQTWZH6DQPA3X74VS7SYM3EQEZ74ANJLAVYO5WGKJ7UM36OVVH2MH2UVUZVMLXCDWQMMY
+#::: 3UCM7P5B4A2RWJ4MEEIF22MB6UQUQSO3CIRUU7FNDAEL4OZENMX :::: NAILARA AMOS :::
+# :: U4GMCX7UE3QZLGTAZY7L3V3WGKB6KLA25PFO5WIP2OTSXCVLJIDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

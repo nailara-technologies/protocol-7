@@ -32,7 +32,7 @@ while ( !$matched_reply ) {
     die "cube handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(NAK|DATA) /;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(FALSE|DATA) /;
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -80,7 +80,7 @@ if ( $reply_string =~ /^\($cmd_id\)DATA (\d+)\n$/ ) {
 }
 
 #.............................................................................
-#MDYIVX3VRMLJQIZ5UGG5E7L2IMTL22MU2YE6IZMM5SU7QLMQXAM2NWMHH43X2ZKWLRLF2RUQKPO5S
-#::: QNDD3S3O7YRE52Z7DI2Z53ZSDIF4GZNLAW22LWS4KGBLL32EXPO :::: NAILARA AMOS :::
-# :: O7XO3LQF2DEOT45ITB6N62NFMAXRZMP352VEN7ROZ6O6ONCQ7IAA :: CODE SIGNATURE ::
+#5BQ6DZV3AABL3FNX4776UNKGAUY4TZCGNHC4HQF2ZXU24RSCJYDFDMLRP76YSXJT4JN3JQOCJSGH4
+#::: 24LWAGCQGMHCSIHCGGEALHALYGIN73QMKKFPPYK3PICMGW7MRRV :::: NAILARA AMOS :::
+# :: B4GCPAYTU4O3CUSNVL6ES462SV7IHTVPNMJEPZYGAZF3GOGWKQDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

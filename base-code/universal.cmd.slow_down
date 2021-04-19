@@ -6,7 +6,7 @@
 
 my $percent = $$call{'args'};
 $percent =~ s|%$|| if defined $percent;
-return { 'mode' => 'nak', 'data' => 'expected percent value [0..100]' }
+return { 'mode' => 'false', 'data' => 'expected percent value [0..100]' }
     if length($percent)
     and ( $percent !~ /^\d+$/ or $percent > 100 );
 
@@ -29,17 +29,17 @@ if ( defined $percent ) {
     <universal.slowdown.percent_target> = $percent;
     <universal.slowdown.percent_target> //= 0;
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => "slow down target set to ${percent}%"
     };
 } else {
     undef <universal.slowdown.percent_target>;
     <universal.auto_speed_mode> = 1;
-    return { 'mode' => 'ack', 'data' => "slow down mode 'auto' activated" };
+    return { 'mode' => 'true', 'data' => "slow down mode 'auto' activated" };
 }
 
 #.............................................................................
-#PHPPQTISX73KKAEPQEVCZNRCPUEALOGEWDYBSSPSYLIDXALMSO4LBW7ROWJB6LRUMKTUFSY547HJU
-#::: 4Y4LYE7CG32X62MANIRRZRF5NR34FJYX46RCFR52UIRNP2PSBH7 :::: NAILARA AMOS :::
-# :: 34GU7PVTZGMZIULNPWD5XWVSEGNKEIX5NP2LLHNRFWIGW3JCXYDI :: CODE SIGNATURE ::
+#3OWS3LSJJRQXWC34HILWJ3WSJ7CZUQHRKEYA6WQ7GGNWLEKW4QBZXNYEYTJPXNYBOE3P7NYZYHL66
+#::: LVFQIXTEGENJ353VL5BMXPJGEXVCYFOTOTPKZAZOEOAPU5IFE2N :::: NAILARA AMOS :::
+# :: QHF2PZ2E6QICCVEPDRIQSSUUYECM2RATG6D3MTXWFAMF3PLKXADA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

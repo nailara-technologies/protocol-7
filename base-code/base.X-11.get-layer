@@ -27,19 +27,19 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-<x11.composition.layer> = $1 if $reply_string =~ m{^\($cmd_id\)ACK (\d+)\n$};
+<x11.composition.layer> = $1 if $reply_string =~ m{^\($cmd_id\)TRUE (\d+)\n$};
 <[base.log]>->(
     2, "composition layer for '$name_str' = " . <x11.composition.layer>
 ) if defined <x11.composition.layer>;
 
 #.............................................................................
-#NCO6P4L7Q5FU6YTJHB4VJOJKKRWGFHGZ6UV6EGJ5H2RLKJ3SX6AQPBK4HQBI6DG3PCUG3SU7YRP3G
-#::: LTWXIUKYS5JFWOEWGFWLADHMQRGLGXUGGSQJZFMG5QNJT7HJKOP :::: NAILARA AMOS :::
-# :: ZFWL5WFE6PNCCHOQVK5MGMAVQ3HTQ7KNXNSTWHTOS7VH6ICEUCAQ :: CODE SIGNATURE ::
+#LZIYZALNHOTNQTNA3WDEVSC3AWM7SAWTNFJA6L5ZBGI3KAYOHGF5GISGTGIM6YCF6US2KDCKF3BZY
+#::: 5J5AB3GOZBKA4GM3X2JCHQK7OIQ3OQITWSDJ42H24LW7LED43UD :::: NAILARA AMOS :::
+# :: MS6NVMMDP3TP5TGDRKOTWFP5DTS4C5DNDVQ6L7RGBLK6EFNHGSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

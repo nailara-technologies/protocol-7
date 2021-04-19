@@ -7,7 +7,7 @@
 my $X_obj = <X-11.obj>;
 my $param = shift->{'args'} // '';
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected <mode> parameter :'
         . ' <left|right|normal|inverted>[-x|-y]'
     }
@@ -24,7 +24,7 @@ $mode = 8 if $param eq 'right';
 if ( not defined $mode ) {
     my $err_msg = "invalid mode '$param$mirror'";
     <[base.log]>->( 0, "<< rotate-screen : $err_msg >>" );
-    return { 'mode' => 'nak', 'data' => $err_msg };
+    return { 'mode' => 'false', 'data' => $err_msg };
 }
 
 if ( !<X-11.has_randr> ) {
@@ -32,7 +32,7 @@ if ( !<X-11.has_randr> ) {
         1, "<< skipping rotate ['$param'] request [ RANDR required ] >>"
     );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'cannot rotate screen [ RANDR required ]'
     };
 }
@@ -43,7 +43,7 @@ $mode += 32 if $mirror eq 'y';
 my %screen_info = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
 
 my $old_mode = $screen_info{'rotation'};
-return { 'mode' => 'nak', 'data' => 'orientation not changed' }
+return { 'mode' => 'false', 'data' => 'orientation not changed' }
     if $mode eq $old_mode;
 $mirror = "-$mirror" if length($mirror);
 <[base.log]>->( 0, "<< rotating screen to '$param$mirror'-mode >>" );
@@ -57,7 +57,7 @@ eval {
 if ($EVAL_ERROR) {
     my $err_msg = 'unable to rotate screen';
     <[base.log]>->( 0, " :. $err_msg .," );
-    return { 'mode' => 'nak', 'data' => $err_msg };
+    return { 'mode' => 'false', 'data' => $err_msg };
 }
 
 ## strip 'mirrored' string ##
@@ -74,10 +74,10 @@ $mode     -= 16 while $mode > 16;
     and $mode + $old_mode != 5
     and $mode + $old_mode != 10;
 
-return { 'mode' => 'ack', 'data' => 'screen rotated' }
+return { 'mode' => 'true', 'data' => 'screen rotated' }
 
 #.............................................................................
-#Q3TCKYNKSZW6IYSLOK7X3GWG7MDHCBRSCKZGDXY5DCG55K5Q4QBVTMPKQVBTEQPM37X2VGYW3GZ5O
-#::: 2SQP2AXB5QUVXFFPX2WR7DHZXU55GD366HUZG23PDSMAT4C3RE6 :::: NAILARA AMOS :::
-# :: ZD4C3QSZ5LCI453VRZR73RIMQCMHZIFXKRCGW6UFYMLAZPHSTEAI :: CODE SIGNATURE ::
+#AH2XN7OVK2I6TXO5DF4TGNXEGDCDHCC6XXFUUV4MUMCCODKQCHTSV5CQGQXBLYNHQCCU4ZHXOBTJC
+#::: CUAOTCK7O577LDWHQX6D757XBWDBIDE3JBKJ36VHEGEJTZE4LIQ :::: NAILARA AMOS :::
+# :: 56NLRV3VHUWDNUAXN7FAHE5N5YN5SJQCGZ7CBQRJVAEKUWDBUWAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

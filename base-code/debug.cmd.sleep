@@ -12,7 +12,7 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
 } else {
     my $woke = '';
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'floating point precision not available [!Time::HiRes]'
         }
         if !$hi_res and length($1);
@@ -53,11 +53,11 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     <[base.log]>->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
     $s = !$fp && $slept_str == 1 ? '' : 's';
     $reply
-        = { 'mode' => 'ack', 'data' => "slept $slept_str second$s" . $woke };
+        = { 'mode' => 'true', 'data' => "slept $slept_str second$s" . $woke };
 }
 
 #.............................................................................
-#QN4MZJPRWGDEOBGZIAO4YFFD3EMEJ2SVX7S5DFAUAK4ERO7OEU43H5EABPW5RIVD52TTH3MDQQUK2
-#::: U7OVCCFD6CFO77EBRFG3KEMMZQKFA5ZQIJATWEACFRE5SWLBYE2 :::: NAILARA AMOS :::
-# :: ZZVDR552OMKQOGN34YZEAHBPAGHA3F2DAO7YRKGAAFUF4QEQ52CQ :: CODE SIGNATURE ::
+#FPS2XNCQTDYAC4ZZBQBJ4C5QMRT47SKQKYOUKY3E4M4TVGG7JJWKQCMAKPIIRYASSXK2FLARKM3NU
+#::: A5RAOJDW2PY42Q6YOLJO2RRGTXS62ASLPZ6P6SI7BOKPSPQ4ZAK :::: NAILARA AMOS :::
+# :: C2I2WCUC3HKWYSK2VDBG5UNNU2K5KBRCEFKBRTIIAYWA6RZ3BUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

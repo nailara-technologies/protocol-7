@@ -7,7 +7,8 @@ my $reply = shift // {};
 my $zenka_name = $reply->{'params'}->{'zenka_name'};
 my $tile_name  = $reply->{'params'}->{'tile_name'};
 
-warn "unexpected [NAK] reply from playlist zenka" if $reply->{'cmd'} eq 'NAK';
+warn "unexpected [FALSE] reply from playlist zenka"
+    if $reply->{'cmd'} eq 'FALSE';
 
 if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
 
@@ -28,7 +29,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
 }
 
 #.............................................................................
-#4BO7UDT2Q54P45FYG6MZH3G2CXAYDO2CYHZ3RIPO6X73BOMDLLGE4FZO64ZWW4I7I32GTDUD47YMA
-#::: QZZEN5LYGHQAAO6BCO4M7LEXEZWGS6LKGH6VG2DEM6G43DM5FIS :::: NAILARA AMOS :::
-# :: UW2GZUBRJJG6IBVR63CRTD64I6ILLPP5KWQNERN3FDVMS34GMKBA :: CODE SIGNATURE ::
+#LQKZYCCMKCZ3MIRJZOWHO57MMDPZBRUYTPW3B6PLCF67GLB25KNHME7CCNQI4VFXSJLLPYKPUUQRA
+#::: HJDA7LBSKXDV3Y24IT7VWFQQJI2WMYVEN34AOHVDJ4BGE7KETKD :::: NAILARA AMOS :::
+# :: GVO4VQ4EVTYXVMWYCCBEBDZ5I4ATUFEPLKFA54B64S3XD37B2ODY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

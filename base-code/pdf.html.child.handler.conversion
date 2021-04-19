@@ -22,7 +22,7 @@ if ( $pdf_location =~ m|^https?://| ) {
         foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
-                {   'mode' => 'nak',
+                {   'mode' => 'false',
                     'data' => "could not download '$pdf_location'!"
                 }
             );
@@ -129,7 +129,7 @@ if ( $conversion->{'current_page'} == $page_count ) {
     while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'ack',
+            {   'mode' => 'true',
                 'data' => "conversion complete"
             }
         );
@@ -147,7 +147,7 @@ my $err_msg = "error during conversion of PDF page #$index [$err_status`]";
 foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => $err_msg
         }
     );
@@ -158,7 +158,7 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 return;
 
 #.............................................................................
-#YPHTUDEOML2CRXP6CVZVJEXDUTVLPWYOTWHHO4NZUBCPF6VZ2XF4TTJO5A4JXJQBSZD5UFU7GQIJO
-#::: EUOI2G6VPPAOMMHNLC4ELQG66LPZM4L2EUARYNRJP375PYNU7CP :::: NAILARA AMOS :::
-# :: VKQ7RSXAPKC4QNTDA33JCSCKNW6HIVFYY6WD5HGSDGJX2VXFAGAY :: CODE SIGNATURE ::
+#LSLV2HTDMVVZTG5KZN6AQSQTMCSUW66PG7H4PEMKBC5WHXF5QRXVN6HXWEXKJOM7AA55GXESIY66M
+#::: ZYRT5VB766KGXJHR5533BMOMXUDZOYQLUDG4BEDUU2W2UVGPLKW :::: NAILARA AMOS :::
+# :: WLXHH2S6BTJJ4QGKYH7E47T3H27PZUXSPUMSXZHZEDGO5N3CHYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@
 my $playlist_mode = $$call{'args'} // '';
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "expected loop parameter 'playlist', 'file' or 'off'!"
     }
     if $playlist_mode !~ /^(playlist|file|off)$/;
@@ -26,14 +26,14 @@ map {
 
 $playlist_mode = 'current file' if $playlist_mode eq 'file';
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => $playlist_mode ne 'off'
     ? "will loop $playlist_mode"
     : 'looping is disabled'
 };
 
 #.............................................................................
-#S4NV2DMJGCP7K6QTCGSST7N4BK4R76X5NOJRXEH4FKBDB6XECGZHJXATEBCORUQBXS7RKBBZM75UE
-#::: VTRMDIYVJNBWELGPQAB7OFYOQE4ZEKZBZDBASUFEY5RQI4E6URC :::: NAILARA AMOS :::
-# :: Z3GLT7U6STFLJCDCQBAANO4AGEK3Q4MSSRMLMUVQ3MJDPLFT7CBI :: CODE SIGNATURE ::
+#2SZS7VBM5IWAN5RJMMM6NU3LBU3HYSIPWMG2KGJ7IXTDALOANL3CHK27FASGSW74OBC6QD6RHEH7Y
+#::: LYL4O3DCPOEEHBKUOBLQPYEV22B43KFF6N5PBQ52LDLOBSRPSPG :::: NAILARA AMOS :::
+# :: 5O4DY7RM233V35KMSO7FAH5QOWEB2YDCM676CKJT5BG3HYHXPUAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

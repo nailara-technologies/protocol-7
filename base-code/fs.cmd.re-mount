@@ -5,7 +5,7 @@
 # descr = forced re-mounting of specified mount-point
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'nak', 'data' => 'expected mount-point parameter' }
+return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 
@@ -14,7 +14,7 @@ $mount_point =~ s|/+$|| if length($mount_point) > 1;
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'specified mount-point does not exist'
     }
     if $status == -1;
@@ -33,7 +33,7 @@ if ( $status == 1 ) {
             or <[fs.is_mounted]>->($mount_point) ) {
             <[base.log]>->( 0, ": forced unmount of '$mount_point' failed!" );
             return {
-                'mode' => 'nak',
+                'mode' => 'false',
                 'data' => "unable to unmount $mount_point"
             };
         }
@@ -44,13 +44,13 @@ if ( $status == 1 ) {
 if ( system( '/bin/mount', $mount_point ) != 0
     or !<[fs.is_mounted]>->($mount_point) ) {
     <[base.log]>->( 0, ": mounting of '$mount_point' failed!" );
-    return { 'mode' => 'nak', 'data' => "unable to mount '$mount_point'" };
+    return { 'mode' => 'false', 'data' => "unable to mount '$mount_point'" };
 }
 
-return { 'mode' => 'ack', 'data' => $success_msg };
+return { 'mode' => 'true', 'data' => $success_msg };
 
 #.............................................................................
-#JQAUM36FSTC6N35Y6P6FIMLYOOVBE3D7HUOWQBNJBETTDN4VGTHODOWP5G2C5XNQ42MYXIWN2Q7V2
-#::: TZUT53GOW26T4O2WC5N7YA7KW5QEF5HTSCTISKM4AVVMDSRVJED :::: NAILARA AMOS :::
-# :: VHEGHW2SIFJMJOFJCQ7JCWS23OFKHDQTYJ4K257SJGWAXFXVUGAQ :: CODE SIGNATURE ::
+#HV2R5NKOHQUNZNDMAYFJX2Y4SI4CW7SM6SX644L5GYZSAIUHPOWWLKHG36NOWIGFTJEBXZSPJBPWQ
+#::: 6WCT5IECXVVFK3YAPQ67HZQQAFEJ7MVFLGSLNLP5NQTTWB3NYPP :::: NAILARA AMOS :::
+# :: CIENK5FVWKKZM54B42MMBDIGR4SM4HCDE3R2LNP2IEARFULSCEDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

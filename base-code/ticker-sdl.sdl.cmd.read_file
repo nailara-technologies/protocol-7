@@ -8,7 +8,7 @@ my $txt_file = $$call{'args'};
 
 if ( !-f $txt_file ) {
     <[base.log]>->( 0, "read_file: file '$txt_file' not found!" );
-    return { 'mode' => 'nak', 'data' => 'file not found!' };
+    return { 'mode' => 'false', 'data' => 'file not found!' };
 }
 <[base.log]>->( 2, "initializing ticker with content from '$txt_file'" );
 
@@ -26,10 +26,10 @@ if ( not exists <ticker-sdl.idle_event.animation_loop> ) {
     );
 }
 
-return { 'mode' => 'ack', 'data' => 'ticker text updated' }
+return { 'mode' => 'true', 'data' => 'ticker text updated' }
 
 #.............................................................................
-#DLSQCI42KIMI7OXTIWP77IVISII5ZLGU7YN6PSTZETAOFCGKW3F4QVUUXGY3FF4FRSSII5Y6IWA3W
-#::: 6STOXKNMI3FAE5I5MMPKQSXWK5PFKX4A3IHQLAT3D3S6YGKPRR2 :::: NAILARA AMOS :::
-# :: S6CI76ABEVRT6YM2WUJOH4H52GUT77OC2HL75O4H6BLS5FRUDGDA :: CODE SIGNATURE ::
+#QDFTOOIAZ3QAXZKM4IONHORNTHY56QNGB2KKELXXRGWUVZYWMQQEXKV5BWRMZIURJJILMEPLR5N22
+#::: EHGFH4QID7ETCFRXC32OZ6QSOMRGYK32R6TBLIVCQYGPORPJRLD :::: NAILARA AMOS :::
+# :: APAR7BAVNOCBU7QS6YB7E3RF4BDXTFTLCVOBHZRANZ7JZYCYCQDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

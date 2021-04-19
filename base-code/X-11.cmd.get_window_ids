@@ -6,7 +6,7 @@
 
 my $title_pattern = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
+return { 'mode' => 'false', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
 my $xtops = <X-11.WM>;
@@ -19,16 +19,16 @@ for my $win ( @{ $xtops->sorted } ) {
         or index( $win->title,    $title_pattern ) != -1;
 }
 
-return { 'mode' => 'nak', 'data' => 'no matching window captions!' }
+return { 'mode' => 'false', 'data' => 'no matching window captions!' }
     if !@window_ids;
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => join( ' ', @window_ids )
 };
 
 #.............................................................................
-#R7EDX7RAQYKSJNPTL3TRMRVW5BP3QDMS6ID6BYKKVDJEJS7ROWETT2SMDSEQ62SPZ4XJRSYLKD5M2
-#::: W4A652T5ZNVPZJUHOLFV6TJYSDVR7JFDEGSZ7LATRCSTTW53A5G :::: NAILARA AMOS :::
-# :: CTXFHY7GV7ADZ6K4VKE6KGLFYTMI3TGZGWCFV6SUNWWJGYMZBCCA :: CODE SIGNATURE ::
+#JUDHCRJLB25B4A44WP7AWOULOJ33ERQJD7NELJ6ZOTRFNXTDSHRIYL3EOYGQF5LE6OT32L4OL6E3A
+#::: D5T54D3HBYTUFDN4SEGYIDHHZBEZQPJL4WPO623F25MQOX7U2DQ :::: NAILARA AMOS :::
+# :: VZER5NIH3DRPACMTJZ5XA7G7DZWLINRY5K4INMXVMXSNHEE5MQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

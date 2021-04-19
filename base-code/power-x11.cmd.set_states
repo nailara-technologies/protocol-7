@@ -6,14 +6,14 @@
 
 my ( $dev_id, @states ) = split( / +/, shift->{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'expected device id' }
+return { 'mode' => 'false', 'data' => 'expected device id' }
     if not defined $dev_id or !length($dev_id);
-return { 'mode' => 'nak', 'data' => "no such device ($dev_id)" }
+return { 'mode' => 'false', 'data' => "no such device ($dev_id)" }
     if not exists <power-x11.devices>->{$dev_id};
-return { 'mode' => 'nak', 'data' => 'expected 4 socket states' }
+return { 'mode' => 'false', 'data' => 'expected 4 socket states' }
     if @states != 4;
 map {
-    return { 'mode' => 'nak', 'data' => "state '$ARG' is not valid" }
+    return { 'mode' => 'false', 'data' => "state '$ARG' is not valid" }
         if $ARG !~ /^(0|1)$/
 } @states;
 
@@ -32,12 +32,12 @@ while ( Gtk3::events_pending() ) {
 }
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => $changed . ' states changed'
     }
 
 #.............................................................................
-#JR6JMJCLE5U5O2DXX3QIO5GLF3T4CLMUAYIEL5LIAWZLPAUXUMYYBSGUBKXQE4VYP75LSLRMPNQ7K
-#::: RC5LTARB224ESZHUDMQERUFOY5BCOGQATT2JBUOSAZDOSGAXSN6 :::: NAILARA AMOS :::
-# :: N67PWNXJG3CGX5UVLWEB3CDWIZFBCFHBFCGP72HYWTSIKCDAGICA :: CODE SIGNATURE ::
+#NHV62LYKHQ2LT3HJFZZUDY4S6DT47BWIQVPY3IYTZPJTZKAGYOKDAIPJFQ24LBFNWCF7SHESHP3T6
+#::: 6IAMSJROGIQL6LULJMWMJLXZWAPU5E6OPSI3YV4ES2UJVV76HKC :::: NAILARA AMOS :::
+# :: M32BYFSKQGK6KK6D6MCQNWOI7EFBBH3ZX3PY5LBGGVDKL3UXCOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

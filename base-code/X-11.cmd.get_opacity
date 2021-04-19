@@ -7,9 +7,9 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -23,7 +23,8 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'false', 'data' => 'no such window' }
+    if not defined $window;
 
 my $result = <[X-11.get_window_opacity]>->($window_id);
 
@@ -32,13 +33,13 @@ if ( not defined $result ) {
         0,
         "error during get_opacity() command for window $window_id [closed?]"
     );
-    return { 'mode' => 'nak', 'data' => 'window has been closed' };
+    return { 'mode' => 'false', 'data' => 'window has been closed' };
 }
 
-return { 'mode' => 'ack', 'data' => sprintf( "%.3f%%", $result * 100 ) };
+return { 'mode' => 'true', 'data' => sprintf( "%.3f%%", $result * 100 ) };
 
 #.............................................................................
-#ECZVQUIFIKAJO7SJ3QOEETVPWWMG5WFH6OTMAT6ZBGQIDG37Z7GLL6UG6ZX5NJQWQ3OTGFLSHTQ7Y
-#::: BQ37DPTSRRUSTVGBPOWTETUDYJNH3S66JGIIKBLL5KU2AOAMKM2 :::: NAILARA AMOS :::
-# :: 7HNYIXJNYLLOTYXU5JGUUCUWURJQZJYRXE2Y3LV3V45XOZPAP2DI :: CODE SIGNATURE ::
+#UQVXW4KOKMZEVYYNWZIIW5UP7XOOYKIEFOJRQBYBGZRI74RT2QHO6JBOCQYRVLOIPJXDRXG4NOOI4
+#::: AAHYDQGSNAPIY2UCKM52BCLSYKKNZJCMCXRLJ3KAM7EQIGG3FQ4 :::: NAILARA AMOS :::
+# :: RLWY63OSWTINKWWXVFIAKXEZD2NRCTKCAQYMYTKQEACZ37IQ5YBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,9 +7,9 @@
 my $video_path     = shift->{'args'};
 my $allow_slow_cmd = <ffmpeg.cfg.allow_slow_count> //= 1;
 
-return { 'mode' => 'nak', 'data' => 'expected path to video file' }
+return { 'mode' => 'false', 'data' => 'expected path to video file' }
     if not defined $video_path;
-return { 'mode' => 'nak', 'data' => 'video file not found!' }
+return { 'mode' => 'false', 'data' => 'video file not found!' }
     if !-f $video_path;
 
 my $frame_count = <[ffmpeg.frame_count]>->($video_path);
@@ -23,13 +23,13 @@ if ( not defined $frame_count and $allow_slow_cmd ) {
     );
 }
 
-return { 'mode' => 'nak', 'data' => 'unable to extract frame count!' }
+return { 'mode' => 'false', 'data' => 'unable to extract frame count!' }
     if not defined $frame_count;
 
-return { 'mode' => 'ack', 'data' => $frame_count }
+return { 'mode' => 'true', 'data' => $frame_count }
 
 #.............................................................................
-#GQFKUPSYSEAYZ5ZWGOVQN4JOIJRY3OIG7T46JVDYWE7X7WCYK2NXRBKXB45RBJ5NO4AIA3LW6TTXO
-#::: BYMH3PHVA6QWCREOBN2HBF23V56ZA2WHL6WVBWAZBYQXQHC7V2Q :::: NAILARA AMOS :::
-# :: 7CUCP2APSRVR23BTZPPDL3AR3KRPPFNQUBGJDEBLGAVCLNMY6ICY :: CODE SIGNATURE ::
+#EMDSGXYCHC4IELRLVPOVYF6GONYAOJSGBFZSH6ZIQ33RMAGFW36XAF6TQGN5K2ZQYDAQITMUPN23K
+#::: PYZNA4B2IWGKYBN5HPQSNFQQQ53YC6QWA4QUU3T57YBK2VMIIMK :::: NAILARA AMOS :::
+# :: HDL7GPOCWIBZQHQZOQ6QRGF2OCSVT74X775CVRQARWUNPU4AKWCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

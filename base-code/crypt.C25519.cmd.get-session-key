@@ -5,18 +5,21 @@
 
 my $key_name = <system.zenka.name>;
 
-return { 'mode' => 'nak', 'data' => 'C25519 key name is not defined' }
+return { 'mode' => 'false', 'data' => 'C25519 key name is not defined' }
     if not defined $key_name;
-return { 'mode' => 'nak', 'data' => "no session key '$key_name' available" }
+return {
+    'mode' => 'false',
+    'data' => "no session key '$key_name' available"
+    }
     if not defined $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'};
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'}
 };
 
 #.............................................................................
-#BVEYP2JOJSP5HRES53PS6DRTJKXBVSNGZ6VFHFUP72ZRZ6ZPXGFQMIMFHYOKCINQFQ4Z6GKAZVKVK
-#::: UYXGGWM65CNSMKYIQ73RZBFFJIP4YHLMISH6ITGARMWGXNVMEYE :::: NAILARA AMOS :::
-# :: 7SNAIZ7CLGS3DIVMGWFJV3GEGYHV6YEXPN3XOLTZWXZY7XN4RICA :: CODE SIGNATURE ::
+#KACSJG37UILEKGW24TU4ISYWWPYAIQ5FQHKFX5SDWKB3KLMMPJ2N4JWNHYWZY2OPTEFPWFNYJRKH2
+#::: 2EKYBMKTCDZPKLJFSYHGTTDRFLQUSGIOXQCNXIYME4YCAS2XQ5K :::: NAILARA AMOS :::
+# :: CI3C7FIECA6A6XDVD72FWAZHVMBYGNDFTTPU3HK7J4CRAY7T3GBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

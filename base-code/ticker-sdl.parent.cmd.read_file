@@ -8,24 +8,24 @@ my $file_path = $$call{'args'};
 <ticker-sdl.request_pending.read_file> //= 0;
 
 if ( not defined $file_path or !length($file_path) ) {
-    return { 'mode' => 'nak', 'data' => 'expected valid file path!' };
+    return { 'mode' => 'false', 'data' => 'expected valid file path!' };
 } elsif ( -d $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is a directory!" );
-    return { 'mode' => 'nak', 'data' => 'specified path is a directory!' };
+    return { 'mode' => 'false', 'data' => 'specified path is a directory!' };
 } elsif ( !-e $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' not found!" );
-    return { 'mode' => 'nak', 'data' => 'file not found!' };
+    return { 'mode' => 'false', 'data' => 'file not found!' };
 } elsif ( !-R $file_path ) {
     <[base.log]>->(
         0, "read_file: file '$file_path' not readable! (permissions?)"
     );
-    return { 'mode' => 'nak', 'data' => 'file access permission denied!' };
+    return { 'mode' => 'false', 'data' => 'file access permission denied!' };
 } elsif ( !<ticker-sdl.allow_non_regular_files> and !-f $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is not a regular file!" );
-    return { 'mode' => 'nak', 'data' => 'not a regular file!' };
+    return { 'mode' => 'false', 'data' => 'not a regular file!' };
 } elsif ( -z $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' is empty!" );
-    return { 'mode' => 'nak', 'data' => 'file is empty!' };
+    return { 'mode' => 'false', 'data' => 'file is empty!' };
 }
 
 if ( !<ticker-sdl.request_pending.read_file> ) {
@@ -40,13 +40,13 @@ if ( !<ticker-sdl.request_pending.read_file> ) {
         }
     );
     <ticker-sdl.request_pending.read_file> = 1;
-    return { 'mode' => 'ack', 'data' => 'ticker update queued!' };
+    return { 'mode' => 'true', 'data' => 'ticker update queued!' };
 } else {
-    return { 'mode' => 'nak', 'data' => 'request already pending..' };
+    return { 'mode' => 'false', 'data' => 'request already pending..' };
 }
 
 #.............................................................................
-#ZXBW4TGI32LX7R4VT4VFUPB3LI2V2EOZ7SFCRMMEIH5UPJKUGWL3PJGDWHYCETMAQ2FW2BRNZIODO
-#::: Q3EXK5KBK2KQBPRBLBTRYACR4FUEVKX5N66TC6GQ44LPAKVD3O2 :::: NAILARA AMOS :::
-# :: 2X4KNMRD5A555QWZTON65GLKIDAYNGZVIFYZECVR7YCTQJH5OIDY :: CODE SIGNATURE ::
+#HS5QLAB7W3THBQLIIPRF4PR75N3OLAKP3PZVHWF6HD57UU2DITWH3CZCQDBQJ3QNF7CICZLIKCC4O
+#::: A4NAWX5L4PV54TCKNOCN75PVAFW34HOWT225HUROTEITLW3ESH3 :::: NAILARA AMOS :::
+# :: K6XJW4WW3X5ENUGZ4KERSMEGLCPQT4ODINNKMP2TD4ARIIRHIIAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

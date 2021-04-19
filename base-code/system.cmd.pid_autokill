@@ -11,13 +11,13 @@ my $hostname    = <system.host.hostname>;
 $log_usr =~ s|^$hostname.||;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'you need to supply a process id'
     }
     if !length($process_id);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'found no such process'
     }
     if not exists <process.table.top>->{$process_id};
@@ -31,12 +31,12 @@ $log_message //= "terminating process [PID:$process_id] (requested)";
 <[system.process.autokill]>->( $process_id, $log_message );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "terminating pid $process_id .., [ if present ]"
     }
 
 #.............................................................................
-#XCGX6ZXQ7PCGX25CYJIEYN7PLB5D7NOEFVEKMSVTF7OTAAWEQ4KZ33O6CVXKQHW3N23K6WSVANV6I
-#::: SUB2DRICTFR6KO3CNWIXDSTY5PIHR2VXSQGRASP3NPEQRLSFL4G :::: NAILARA AMOS :::
-# :: EIM2R3G3RPGOO6PG5QSYONCRA2JP7TUCQUN2JYEYP5GZFP73VMDI :: CODE SIGNATURE ::
+#MKF2CMMNE5W7F3PGVPVTBVKHIHEHTEYWFZOZEKSDZ436AUJXZE6IAZQ2OVIVJPUCRC7QEB4WO5IEU
+#::: 7MAAFVSSCDYK5XMXX6R5GO5ZD77VFGTXQEGQ2IOUKCU3WMM2VB3 :::: NAILARA AMOS :::
+# :: SCKVEH2DF5C3GC5SFFXYJ2T5YFLXQAHAU6D3AYIWUIOQEF6R7QAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

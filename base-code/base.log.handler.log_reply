@@ -8,10 +8,10 @@ my $name         = $reply->{'params'}->{'name'};
 my $buffer_count = @{ $data{'buffer'}{$name}{'data'} };
 my $log_data     = <log.file>->{$name};
 my $retry
-    = ( $reply->{'cmd'} eq 'NAK' and defined $reply->{'call_args'}->{'args'}
+    = ( $reply->{'cmd'} eq 'FALSE' and defined $reply->{'call_args'}->{'args'}
         and $reply->{'call_args'}->{'args'} eq 'command unknown' ) ? 1 : 0;
 
-if ( $reply->{'cmd'} eq 'ACK' ) {    # success =)
+if ( $reply->{'cmd'} eq 'TRUE' ) {    # success =)
     $log_data->{'next_index'}++;
     $log_data->{'resend_delay'} = 0.1;
     if ( $log_data->{'next_index'} < $buffer_count ) {    # more to send .,
@@ -37,7 +37,7 @@ if ( $reply->{'cmd'} eq 'ACK' ) {    # success =)
 }
 
 #.............................................................................
-#DUBYGPBMXO3WS3CVVZGOVMZCRRYURII4YGE4KQVJREXHCGIB7HD7T5S2Q2FAWLQTBBLGXF26I37OO
-#::: 6S5COPJOBALUXDOLS63ZLLZVYLWWW56PJDJPOUPDRD7F6YWKSXW :::: NAILARA AMOS :::
-# :: RZYJABUT4AUFVPFQBFVVBL4PB5M5XMUNTJXABEEVM26LUK32IOAA :: CODE SIGNATURE ::
+#N5OEYL7C6OXIDT44BUR2ZMSTC7K36MQGU6DGSCQYXM3ZYF4FIEH4SFSND6D7ADGG2GPQ6KMJJ3AX6
+#::: AQ6SXNEFCOSB4ZENXKSPGH2KCYEUAC3PCSHODWXS5ADWXW2D3PY :::: NAILARA AMOS :::
+# :: UJHULIJDOE3IMOFJ6LVP7QULJGJQZ3BQOYLCMCT7AL5F2MNNFOCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

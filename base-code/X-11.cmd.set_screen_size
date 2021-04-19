@@ -9,7 +9,7 @@ my $X = <X-11.obj>;
 my ( $width, $height ) = split( m|\D+|, shift->{'args'} );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'screen size expected [<width>x<height>]'
     }
     if not defined $width
@@ -30,7 +30,7 @@ my ( $current_width, $current_height )
     = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'requested size identical to current one'
     }
     if $width == $current_width and $height == $current_height;
@@ -40,7 +40,7 @@ if ( !<X-11.has_randr> ) {
         1, "<< skipping change request [ $width x $height ] no RANDR >>"
     );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'unable to set screen size [ out of range ]'
     };
 }
@@ -60,7 +60,7 @@ if ($EVAL_ERROR) {
     my $err_msg = 'unable to set screen size [ out of range ]';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $err_msg
     };
 }
@@ -77,7 +77,7 @@ if (   $screen_geom{'width'} != $current_width
         }
     );
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' =>
             "screen size is now $screen_geom{width}x$screen_geom{height}"
     };
@@ -85,13 +85,13 @@ if (   $screen_geom{'width'} != $current_width
     my $err_msg = 'unable to set screen size [ remained unchanged ]';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $err_msg
     };
 }
 
 #.............................................................................
-#2AKE3LRNEBKKJRN2DX56TOYP2WB65BJOBCG7HG6RZOFS3QWMNH6MLL3EFRWU3BZMQ3H7H3GCTYK5W
-#::: FDS4FYUGSNPYM6X3FAWFCPB4FGTJMAGAXJWXAB55MX756UYVLKT :::: NAILARA AMOS :::
-# :: G3ZRHWSRLNCIUENBSSI5RVBHUIJAPG3Q2CPNK46QTDEA54I7GCCI :: CODE SIGNATURE ::
+#QJ3F6KPSJLOWD6ASS6LGBZCEPA5XSDMUWS6DSACULIWMPVQGGWBWG2YLB75RM56ZBOXV2IRKVMH3S
+#::: WYIY6U7T3XDPZFKX732UC5PAJVSYXO4WDHX3AMVRL2XI3XAGCAH :::: NAILARA AMOS :::
+# :: 4ZJDFJTKOWROSPLTRZX7WD4WYNZAJYKL2IGQ5UPV2XGEVAFG5KDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

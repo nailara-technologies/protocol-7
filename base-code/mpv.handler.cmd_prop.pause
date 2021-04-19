@@ -10,7 +10,7 @@ my $pause_mode = delete <mpv.pause_cmd_mode>;
 if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => 'playback was already paused'
         }
     );
@@ -24,7 +24,7 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 } elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => 'playback wasn\'t paused'
         }
     );
@@ -40,7 +40,7 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 }
 
 #.............................................................................
-#3B7WYREGQD7AHDUGCDVZG7SSGTTQ5K2PT7GNZYNQVOFHSYPN7O2ADORRIVNYVPIIYOWZWDVRG3NEW
-#::: YYHCAOCJLOWFAPGC5BATBTEX2FCF4XYKCXY7RAZZQ2NBGAVXBIK :::: NAILARA AMOS :::
-# :: 4PVP523TNFLTMY3SHA77HQSAVI42CQB76GQHZ3MPUQIN4P7XK6AY :: CODE SIGNATURE ::
+#FTZI6WUUY6G5Z36ITQZTLT5FNZ33QS5H3UIYAXY6UQAXP2NQ5X2EEHNEVTLMDVQXCKDGBNBR4UUJE
+#::: XILASZGIXAF7VZOIQQMZ2AYX6FW65JGZJMPDZCVEHSGLI5NV27U :::: NAILARA AMOS :::
+# :: ON22RIV3PQEGPMLRQFXHREEUUAXPLYJUJQWQPEBEXWPPPHGLZEAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

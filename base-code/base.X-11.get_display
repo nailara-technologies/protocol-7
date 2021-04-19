@@ -17,17 +17,17 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die "cube handle exception" if not defined $reply_string;
-    $matched_reply = 1          if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.display> = $1;
     <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
     return <x11.display>;
-} elsif ( $reply_string =~ /^\($cmd_id\)NAK command unknown\n$/ ) {
+} elsif ( $reply_string =~ /^\($cmd_id\)FALSE command unknown\n$/ ) {
     <x11.display> //= ':0.0';
     <[base.log]>->(
         1,
@@ -40,7 +40,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#WYMHWAFKQUF3FPDJ6RWP2QOQWVZFOBMHXC4FIWOIXLNXFI4QIZA35JO34FZWHVRJSB2R4432EQEZQ
-#::: YH5GGFQTNSSMS7ZOQD6FGPUN6IFNHRYXWU6CIGI5X5HLKPBNLHU :::: NAILARA AMOS :::
-# :: LF4P4DXAFVUSPJBVZQDZQOXGCI44O7UGSKJJKB3AHXHSFPKTNKBQ :: CODE SIGNATURE ::
+#TT47UBRMDNQDICWI3QGOS5IR4T4AGP3NRNA32BOMPQPXIK7MYBBTTUAYTAUNVO2L3X6EUXJ6E6JVG
+#::: FV5KKBPPFAWMFRNCZKF7Y2ISN2VXZXYZLBUAUEI7IRT3AK2LN47 :::: NAILARA AMOS :::
+# :: VOXOY4KT76UA4NRRQWJVXMOWGMJDIISV2EBXHL7GQUOVIDGAM4DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,45 +8,45 @@ my $param = $$call{'args'};
 
 if ( not defined $param ) {
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => <[base.parser.timestamp]>->('time')
     };
 } elsif ( $param eq 'date' ) {
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => <[base.parser.timestamp]>->('date')
     };
 } elsif ( $param eq 'zone' ) {
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => <[base.timezone]>
     };
 } elsif ( $param eq 'unix' ) {
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => time()
     };
 } elsif ( $param =~ /^unix\.(\d+)$/ ) {    # LLL: consider access control?
     my $float = $1;
     my $limit = 22;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "current float precision limit is $limit"
         }
         if $float > $limit;
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => <[base.time]>->($float)
     };
 } else {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "invalid parameter '$param'.. [date|unix[.<n>]]"
     };
 }
 
 #.............................................................................
-#TWNRPBANCCC3JWAVCLO7ST4QHATASASGQ7D47NUVGMOABNYMK22H4PBTL3G7H72BJY6Z7XXO37LEY
-#::: K4NPS3XFBTRCWTLLSWUZY7M6IFTQ5PFGSVPC66P5KKHP6SCCQ34 :::: NAILARA AMOS :::
-# :: ZN6PAB46OHCDBCV6I7Y6X5YWBDPHDT7S73CZJG75PP36GN5PVAAA :: CODE SIGNATURE ::
+#2SDDEOJM73OIC2JNENEZ66MANPBS6PW2PQELYY2UJGWAP6C3KPCAPBFOIUO2VTPINO5NU2P3FYSQA
+#::: PYMNQAOBWAZ6XMPTHYZBTXXGYLHF36LK4CTEWXRXWZOBE7T2RXS :::: NAILARA AMOS :::
+# :: 2QPGQVUJVWA3IYEZTXNWU7IGLJBQQQ3N5Y3PZ43HNZYMDVX4OQBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

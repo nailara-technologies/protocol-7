@@ -7,7 +7,7 @@
 my $instance_id = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "invalid instance id parameter [numerical value expected]"
     }
     if defined $instance_id and $instance_id !~ /^\d+$/;
@@ -24,33 +24,33 @@ if ( not defined $instance_id ) {
     }
     $reply_list .= join( ' ', sort keys(%pids) );
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => $reply_list
     };
 
 } elsif ( $instance_id =~ /^\d+$/ ) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "instance not found [ nroot.list (zenki|children) ]"
         }
         if not exists <nroot.zenka.instance>->{$instance_id};
     my $parent_pid
         = <nroot.zenka.instance>->{$instance_id}->{'process'}{'id'};
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => join( ' ',
             $parent_pid,
             @{ <[nroot.sub-process.get_children]>->($parent_pid) } )
     };
 } else {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'instance id must be numeric'
     };
 }
 
 #.............................................................................
-#MDQCFPSHZPB4ZFNG6NZKR4KMUHGQWNIBCTKLZQMFIQKZ6EMAUKNZ7EZZUA7F23PJUC35CLQKDBW5K
-#::: MWT6VQEUVFVYNI62JQNEGMANECY7E6WJMEFVXBCVLQ3PFLC44TY :::: NAILARA AMOS :::
-# :: UEQHSY5IJOBKHJOE7WPLXP4E5RIFRSORBY2FRBV2SGE5HSJ5DAAQ :: CODE SIGNATURE ::
+#A2DJDDSV3PF6TWK6PVYXD6PDADTLOHETMATMOB7KF2E7GJP6H5LVLS5DIHFK3Y7NJCDEVYJPXPGUW
+#::: O6WWB2Y2Z22REBR6FDEIES42N5S57MMJLSEHZBDF3H5ID5VAIHS :::: NAILARA AMOS :::
+# :: LOHWVO4335JLKZGGDC3UZK5TZBEL6FMOBQC5I3YDEKBTQUQ4KUAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

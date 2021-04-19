@@ -15,13 +15,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.bg_color> = $1;
     <[base.log]>->( 1, ": received bg_color = " . <x11.bg_color> . "" );
     return <x11.bg_color>;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#KKVSFBOVPCFDXT4IIRIZ3FREDVWSQQHXEN7FMBKZMILU6SPUGQNFI4HIKT7NZ4GKAOYGYOO2PJ4TE
-#::: IDHAITC4T4JQ2NOVWWF2PHFHDSCPVS35YNXJGJY4MONYPVMR65A :::: NAILARA AMOS :::
-# :: OCIXOEOCAV2KNJQB3VL4J3RRBGHQRBVI2P37DLJ624OQY52BCIDI :: CODE SIGNATURE ::
+#Y4Z2PZIF7YG2K2J3O7BIRWSAATA4B5VDCCSP2DDY3CYQSINTFYJXXQKAENJPC5CPGRYFZQ2DRN3G4
+#::: Y2B3ECACYW4EXNB4CZKSUNYPTF5GCNAQ6PMTUJCTLTJAVJAKYCJ :::: NAILARA AMOS :::
+# :: IU5NRQ6SHFQZCFA2C67KZ7ACHDK5EZAHZIH66TP7WGDLNOQCZWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,14 +4,14 @@
 
 my $reply = shift;
 
-if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ m|^\d+$| )
-{
+if (   $reply->{'cmd'} ne 'TRUE'
+    or $reply->{'call_args'}->{'args'} !~ m|^\d+$| ) {
     my $reason = 'unable to obtain Xorg PID';
     $reason = "X-11 zenka is not in 'xorg' mode"
         if $reply->{'call_args'}->{'args'} =~ m|not xorg|;
     <[base.callback.cmd_reply]>->(
         <system.gfx_reload.reply_id>,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => "$reason, aborted."
         }
     );
@@ -38,7 +38,7 @@ if ( $reply->{'cmd'} ne 'ACK' or $reply->{'call_args'}->{'args'} !~ m|^\d+$| )
 }
 
 #.............................................................................
-#HWIAHMLXFLUMOCSXFBMXB46EVVXGSB54ZLTQYKUF2BC6AZUCPCL3QKZMOBKMNQVDANTLKHYHK7TOG
-#::: 35Z6TFDKMOHLRZQIQS3K3INQHMEDYCJDIKAUUXG5U4ZVVL6KNDE :::: NAILARA AMOS :::
-# :: X3D2HASI5HPGWU3X4IVKIUIP7NQKLVCK5LBBMRHTPBLAO2EAPSCA :: CODE SIGNATURE ::
+#XBTN4BWO7J5WPBETSRKYK44TDPTE2C2HGAXXU6BJ6OJZQGBKCOERYIO5U3L6X4VKYNJUDS7T47PGE
+#::: P6EOJWVHC4FBEZRRT53V536JJF6XLU3YG2E64DHYTJORMIJIPRV :::: NAILARA AMOS :::
+# :: XOXTJRX7YGZM7NCU222FGLD52K5GPMLERZZUJXSMJ2SGCI7VKGDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = [interval_secs]
 # descr = return current gpu load statistics
 
-return { 'mode' => 'nak', 'data' => 'no statistics available' }
+return { 'mode' => 'false', 'data' => 'no statistics available' }
     if not defined <X-11.gpu_top.stats.load_average>
     or not defined <X-11.gpu_top.stats.secs>;
 
@@ -12,7 +12,7 @@ if ( defined $$call{'args'} ) {
     my $ivl  = $$call{'args'};
     my %secs = map { $ARG => 1 } @{<X-11.gpu_top.stats.secs>};
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "no statistics for interval \"$ivl\" collected .. [ "
             . join( ', ', @{<X-11.gpu_top.stats.secs>} ) . " ]"
         }
@@ -24,13 +24,13 @@ if ( defined $$call{'args'} ) {
         $s .= ' ..' if $retry_in >= 5;
         $s .= '.'   if $retry_in >= 15;
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "please retry in $retry_in second$s"
         };
     }
 
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => <X-11.gpu_top.stats.load_average>->{$ivl}
     };
 }
@@ -49,10 +49,10 @@ map {
 } @{<X-11.gpu_top.stats.secs>};
 $stats_str =~ s| +$||;
 
-return { 'mode' => 'ack', 'data' => $stats_str }
+return { 'mode' => 'true', 'data' => $stats_str }
 
 #.............................................................................
-#QV4R2SBDF2LD42GBOXOU3DIGGVPJDDZJTQCWTJ47P5FE42IUTI7N7ZHDSYFFLR276QIGF46DHWBVM
-#::: A3VEJKSI7GRGKOY4Y2ARK5GWCF63VOR5HBTHLSBWJMDK6ARQICF :::: NAILARA AMOS :::
-# :: STY5MCWUATFVRO3R3UVJ37C2OJOHJSDQSC3MAJDX32H76PVGYACI :: CODE SIGNATURE ::
+#KTPKKF5ZZAOK3WXD5E6OCEZYKVL67P2XBSQK4C3ZSTPOIV5SEH62UDOZQFX2JGZFXSYMYH7NY3VTC
+#::: A5V7PUCBKFRNHT4FP4RY36SPZIV5K477V2ZM2DQY7EN272CXYN7 :::: NAILARA AMOS :::
+# :: NY523MAK7K7RS2ETA4EX2E4I2625NX3DY2BFQ7OJGM6ORXTPDODI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

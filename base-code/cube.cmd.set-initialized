@@ -7,12 +7,12 @@
 my $sid
     = $$call{'args'} || $$call{'session_id'};    # 0 == self [current session]
 
-return { 'mode' => 'nak', 'data' => 'no such session' }
+return { 'mode' => 'false', 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
-return { 'mode' => 'nak', 'data' => "not an 'zenka' mode session" }
+return { 'mode' => 'false', 'data' => "not an 'zenka' mode session" }
     if not defined $data{'session'}{$sid}{'auth'}{'method'}
     or $data{'session'}{$sid}{'auth'}{'method'} ne 'zenka';
-return { 'mode' => 'nak', 'data' => 'was already initialized' }
+return { 'mode' => 'false', 'data' => 'was already initialized' }
     if defined $data{'session'}{$sid}{'initialized'}
     and $data{'session'}{$sid}{'initialized'} eq '1';
 
@@ -21,10 +21,10 @@ $data{'session'}{$sid}{'initialized'} = 1;
 my $zenka_name = $data{'session'}{$sid}{'user'};
 <[base.log]>->( 1, "[$sid] zenka '$zenka_name' reported 'initialized'" );
 
-return { 'mode' => 'ack', 'data' => 'initialized' }
+return { 'mode' => 'true', 'data' => 'initialized' }
 
 #.............................................................................
-#XNLBPVN6Y32VP2OF2UP2HPHY6XR5UX5ZJEKBFDOLLIN4SHEYL4CXLY34Y3GJYSNFSI2PHEUW73DC6
-#::: FZLVKWUNH2E6MMGTCHUXAX4LYBCY75MHNEDV62P2S7RAHM3N33O :::: NAILARA AMOS :::
-# :: L5C5A57QSBMXKBS5IANEXBF22FU6NTERBV5W635SZ5LGYUCYK6CA :: CODE SIGNATURE ::
+#RRR34XOVRIBQHJI7UEOCGUGAKZMTCR4OQZWQZPLSIMOXVLANNBGUVY2VLFDR44QWJWV4LTZTDJFOO
+#::: F6CGQ36DHPVAHNC3NCNBRM77FTLYG6MERTCN5MS3U42T54XBNFZ :::: NAILARA AMOS :::
+# :: NBEQ4T4C6J7XFY6XQ3QUWJKCGM4E3DRN6W36NLIRM46LS225MAAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

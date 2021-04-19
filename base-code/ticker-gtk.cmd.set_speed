@@ -9,22 +9,22 @@ if (   !length($new_speed)
     or $new_speed !~ /^\d+(\.\d+)?$/
     or $new_speed < 5
     or $new_speed > 42 ) {
-    return { 'mode' => 'nak', 'data' => 'scroll speed expected [5..42]' };
+    return { 'mode' => 'false', 'data' => 'scroll speed expected [5..42]' };
 } elsif ( $new_speed == <ticker-gtk.speed> ) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'scroll speed is already at ' . <ticker-gtk.speed>
     };
 } else {
     <ticker-gtk.speed> = $new_speed;
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => sprintf( "scroll speed now %.1f", $new_speed )
     };
 }
 
 #.............................................................................
-#6TO5DVZAHOEOE7BGCVI7OFHQSPQSE3FI4PCM2LGYRTK52Q5RSRUQ5SMQIUMZ4J6AHRMOYADNMW5LC
-#::: Q6F54WUNGQ5FLH5BAT4XX37GSOPDZ3WWVVLQNT4DLX5JKNSGMSV :::: NAILARA AMOS :::
-# :: 7CF2RBOSRGBBCKWP6EZJGUQF2N7J4VPM3UG37CGZ6URWSDX7FKAI :: CODE SIGNATURE ::
+#M2WYFIVN5XJUHJGHH7463YB7UVNNYR73KBEJV3WIWAVJXHPSA4CTIDGAAUNZK7FYSKMWGOLKRXRKO
+#::: 3ICBSRACZMYTOQGYSNLKYEWWSGXDZDFL5KSMCKPD42JLMXNXLAL :::: NAILARA AMOS :::
+# :: XF4SBYNS3ENJQJAHOV3VOAYHHRAI5BCM6564CSXCVRRQVBX2SKCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

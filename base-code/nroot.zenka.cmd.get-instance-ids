@@ -5,7 +5,7 @@
 # descr = return instance ids for matching zenka names
 
 my $params = $$call{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'expected zenka name[s]' }
+return { 'mode' => 'false', 'data' => 'expected zenka name[s]' }
     if !length($params);
 
 my @instance_ids;
@@ -33,19 +33,19 @@ foreach my $param_str ( split / +/, $params ) {
 }
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no zenka '$not_found_name' found in setup [ see 'list zenki' ]"
     }
     if !$setup_found and $not_found;
 
 if (@instance_ids) {
-    return { 'mode' => 'ack', 'data' => join( ' ', @instance_ids ) };
+    return { 'mode' => 'true', 'data' => join( ' ', @instance_ids ) };
 } else {
-    return { 'mode' => 'nak', 'data' => 'no matches found' };
+    return { 'mode' => 'false', 'data' => 'no matches found' };
 }
 
 #.............................................................................
-#BIDAR5JLM34RETX3AFVAPJ5Z5LSFBIONXV3YXCBARGUM6JSGPYLY2PZ646DQJZS4FL64VQ6BVVRJS
-#::: OMMKGXHWD3MJQZCBFNLW3LS3WQ7Z4F5RBEH2ZJLUMWEI3SIRWIX :::: NAILARA AMOS :::
-# :: LDHPF7HVEWAAV4V44MZVZYB7IHSCDJFPKYKKCFA27WJ7HDCAXCBY :: CODE SIGNATURE ::
+#FZYPNHZK6AP3G6HRIQR4S24M2U4MQY5AT34JUYTURPID7RHIOHYMC7OTBFB6VR4DELGB7HBNXQ6MA
+#::: VQXYFIL3H62FBCNKAT5O3WL2VOW4Z6ALNRHNOWJ4G7G2B52DSLF :::: NAILARA AMOS :::
+# :: RQTXIGBIHE36OJNAZRK5FT5UPON6EF7OLBQUOFA7AFI4SBMDJ2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

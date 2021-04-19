@@ -3,12 +3,13 @@
 # name  = X-11.cmd.dpms_force_on
 # descr = force screen power on using DPMS
 
-return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
-return { 'mode' => 'ack', 'data' => "already in mode 'ON'" } if !$power_level;
+return { 'mode' => 'true', 'data' => "already in mode 'ON'" }
+    if !$power_level;
 
 <X-11.obj>->DPMSEnable() if !$dpms_enabled;
 <X-11.obj>->DPMSInfo();
@@ -17,10 +18,10 @@ return { 'mode' => 'ack', 'data' => "already in mode 'ON'" } if !$power_level;
 
 <[base.log]>->( 1, "DPMS manually forced ON" );
 
-return { 'mode' => 'ack', 'data' => 'dpms forced ON' };
+return { 'mode' => 'true', 'data' => 'dpms forced ON' };
 
 #.............................................................................
-#VUPNOEFMWWQ4O2EF6AWXDOBXL6IR23SWRMBUVVE2PHWFSUGS3LTY54HYSGQLPOLVMSBLDV6UUMUJG
-#::: CE6U7WBM4MQECQIM3P56DF6IBOUNGV4VEOM7R7O4HBDF2JIB44B :::: NAILARA AMOS :::
-# :: GHIL7XB2266A4TLD5P67VOMRLI3DVDDMXILAUH6RF4ESKXOSNKAY :: CODE SIGNATURE ::
+#6YUQYXBSXKTCJJOQS4SQIGL7LTIU344D6TH5X74WH3ZJ6Z6JOCZGLKVRTCVPAQF6BPEYKTDZGYWRA
+#::: GKSMICUAH52SWKGNCTHE3AZ2CNCU2NP7PKZSPJEFZNUSYNM2QC4 :::: NAILARA AMOS :::
+# :: OYVTZFRXQDZSB4B4NLDUZG5JVNO2XGATOPCUCWOXA6AYEZ56RQDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

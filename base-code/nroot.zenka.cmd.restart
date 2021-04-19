@@ -5,7 +5,7 @@
 # descr = restart one or more zenka instances
 
 my $params = $$call{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'expected zenka name or instance id' }
+return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
     if !length($params);
 
 my $restart_mode;
@@ -16,7 +16,7 @@ my $setup_found = 0;
 foreach my $param_str ( split m| +|, $params ) {
     if ( $param_str =~ m|^\d+$| ) {    ## <-- [ instance-id ]
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "unknown zenka instance '$param_str'"
                 . " [ see 'list zenki' ]"
             }
@@ -74,22 +74,22 @@ my $s       = $count > 1 ? 's' : '';
 my $msg_str = "restart of $count zenka instance$s initiated .,";
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no zenka '$unknown_name' found in setup [ see 'list zenki' ]"
     }
     if !$setup_found and $not_found;
 
 if ($count) {
-    return { 'mode' => 'ack', 'data' => $msg_str };
+    return { 'mode' => 'true', 'data' => $msg_str };
 } else {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'there is no matching zenka running'
     };
 }
 
 #.............................................................................
-#QIYG6HFQB3EDFH4SHP42MFULIYUMW3HAARNTD3FC5U6JVWJM4G2OR52ZCPH53VDM4UA22BCY7OZMO
-#::: 5MAIF2BAXUDAXGIYGGZUUFTXVHOILGWDCDMDFYNT7GAMSVLZCDQ :::: NAILARA AMOS :::
-# :: 6RZX4XYNLLIHCTUHGWR5R6WAO2WZKAARV2RHDLF2KE2UTGKAXUDQ :: CODE SIGNATURE ::
+#HR27KF24OIKP7EYBEUY5XYCCMJTM4D5LXERS6POLLSRTG7I5KLQP5MFMFQVPGIDHHBFKTHETJRIP6
+#::: 5FPNMMOXXLCMZWOKECYYNN6XAWDRAGZB7X5M3PWDRDQWZ7UWNBD :::: NAILARA AMOS :::
+# :: 4J34XCQ4DKQBNELWOD7YEZFF253V6FZ6FASKPFMYCOCLGDL6PIBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

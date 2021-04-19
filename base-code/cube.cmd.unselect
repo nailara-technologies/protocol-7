@@ -6,7 +6,7 @@
 my $sid   = $_[0]->{'session_id'};
 my $param = $_[0]->{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'no base path defined' }
+return { 'mode' => 'false', 'data' => 'no base path defined' }
     if not defined $data{'session'}{$sid}{'base_path'};
 
 if (    $data{'session'}{$sid}{'base_path'} =~ m|\.|
@@ -15,15 +15,15 @@ if (    $data{'session'}{$sid}{'base_path'} =~ m|\.|
     <[base.log]>->(
         0, "[$sid] base_path = '" . $data{'session'}{$sid}{'base_path'} . "'"
     );
-    return { 'mode' => 'ack', 'data' => "unselected '$1'" };
+    return { 'mode' => 'true', 'data' => "unselected '$1'" };
 } else {
     delete $data{'session'}{$sid}{'base_path'};
     <[base.log]>->( 1, "[$sid] <-- session base_path --> \"\"" );
-    return { 'mode' => 'ack', 'data' => 'base path reset to local peer' };
+    return { 'mode' => 'true', 'data' => 'base path reset to local peer' };
 }
 
 #.............................................................................
-#5ZOVWBGGMKHWP4CF3CJ7BPXI7OFWHL3675ISKYGCYI25G3OIH2WKQ3OZYN22SAUFP4LKH57FPMFYY
-#::: TVCCHZAIPB2YNVSVKJXGP5M4P25LVGLW3WWX6E54HL7SKETPLAJ :::: NAILARA AMOS :::
-# :: JP7Z5PHGZQORO4OA43PPXAZKBSJFNEZ46LDKB6V5YZZ6VLWCXADQ :: CODE SIGNATURE ::
+#VSR75D7MHVH6Y2IUYSTFL7OYM7XBA4JUUZOKCSWNJBOFEUFLSJWJZJE3NRRUFJM25CINDHKDFQLWS
+#::: U6WYEU3BB5AUKHNFXE27PET6TEJNYKZN75NVFTMCW7KSZIVFMV7 :::: NAILARA AMOS :::
+# :: IQWHCBDLIXLUUBVPB7GBON77DY7BNYJCN3VSBG6CBPZGFSWMS6CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

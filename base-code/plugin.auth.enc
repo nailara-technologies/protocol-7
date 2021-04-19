@@ -15,7 +15,7 @@ my $key_name   = <system.zenka.name>;
 
 if ( $$input =~ s|^get-version\n|| )
 {    ## get authentication protocol version ##
-    $$output .= sprintf( "ACK %s\n", $auth_versn );
+    $$output .= sprintf( "TRUE %s\n", $auth_versn );
     return 1;    # <-- keep state
 }
 if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
@@ -24,18 +24,18 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     $rep_type = 'sig' if $cmd_type eq 'key-ver';
     if (not defined $KEYS{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
     {
-        $$output .= "NAK not available `:|\a\n";
+        $$output .= "FALSE not available `:|\a\n";
         return 2;    # <-- terminate [ error state ]
 
     } elsif ( $cmd_type eq 'srv-key' ) {   ## returns current session p.key ##
-        $$output .= sprintf( "ACK %s\n",
+        $$output .= sprintf( "TRUE %s\n",
             $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'} );
     } elsif ( $cmd_type eq 'key-sig' ) {   ## returns session key signature ##
-        $$output .= sprintf( "ACK %s\n",
+        $$output .= sprintf( "TRUE %s\n",
             $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'} );
     } elsif ( $cmd_type eq 'key-ver' ) {  ## return key and version chk-sum ##
         $$output .= sprintf(
-            "ACK %s\n",
+            "TRUE %s\n",
             <[chk-sum.bmw.L13_str]>->(
                 sprintf( "%s.[%d]",
                     $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'},
@@ -64,7 +64,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
 }
 
 #.............................................................................
-#NNGMCDNR6RVXW5LGVQ7Y4SZHWPIDFHZIP7FBZ4ZIX2UWVVWF44AU27U5YVLGC66LX7B5YP2TRF5HI
-#::: D4JIKERA7IC5M5EB4EQFG6PU4YIA2KH6JKNEZEEAV6T7DKD7SQC :::: NAILARA AMOS :::
-# :: DLZAMNBSPHO7UL5XKFD6PAIN2NGFFG6WPRRFONGEFY4HXLFM7IBY :: CODE SIGNATURE ::
+#3N3I634AX6B2YQNJETPQLEJCZFL2UN5GB7JEPEDZHHQPYFTASC3CX2ZBWLTSVU3YCSLPO6YWKDFYI
+#::: 3GNJAKPE7ALB5AUVR46MZBW6OKU7CK74DAZC7TRJUXEIUZA5WKC :::: NAILARA AMOS :::
+# :: YYT2MH76JZC6MNR3YM4PEYT7NFA2ODCMGE6AR5RWHKMWAYJG5SDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

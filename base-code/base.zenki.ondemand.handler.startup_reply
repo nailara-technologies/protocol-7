@@ -9,7 +9,7 @@ my $v_id       = $reply->{'params'}->{'v_id'};
 my $zenka_name = <zenki.virtual>->{$v_id}->{'name'};
 delete <zenki.virtual>->{$v_id}->{'starting'};
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->(
         0, "on demand startup of zenka '$zenka_name' failed [ $reason ]"
@@ -20,7 +20,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
 
         $data{'session'}{$src_id}{'buffer'}{'output'}
-            .= $cmd_id . "NAK command unknown\n";
+            .= $cmd_id . "FALSE command unknown\n";
     }
 } else {
     <[base.log]>->( 1, "ondemand zenka '$zenka_name' now present.," );
@@ -47,7 +47,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 }
 
 #.............................................................................
-#ZNRI5ZNYJ674Y6QETF5IXTMAZXUP2JSQBWSQKMIWB2HGDW7YGOAMCCTT6H7K5KDHLTBQQ3GBGUQH6
-#::: 6AQQYSSWSJIPN323PL4Z42OLB7HHSNKWOQT4GWK6ZQRLSYDHDXM :::: NAILARA AMOS :::
-# :: TBSAY33DXVTCAYJ4GSMVQKZSJZVMRCIHV7PMCTAB7BNI6KIJ7MAI :: CODE SIGNATURE ::
+#D2LYVOBXZVYWZDSRSZNHM3J24LHEOJX3W4WXYY6FR55XI73LMXBR7HNXR7VX4WVKSISKJRXIQIXTE
+#::: GIU65PDSW67MHWPGYYV47HFEK2BOEFHIOXDPRVTRNVN6HKBK7SD :::: NAILARA AMOS :::
+# :: QAB55OJB3VX364VZ6Y52YV3FJOQQ7FNSNFMIPY56CCITTHDSFUDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

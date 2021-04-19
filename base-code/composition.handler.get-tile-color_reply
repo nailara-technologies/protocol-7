@@ -7,22 +7,22 @@ my $reply_id = delete $answer->{'params'};
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'nak',
-        'data' => "unexpected (NAK) reply from screenshot zenka!"
+    {   'mode' => 'false',
+        'data' => "unexpected (FALSE) reply from screenshot zenka!"
     }
-) if $answer->{'cmd'} ne 'ACK';
+) if $answer->{'cmd'} ne 'TRUE';
 
 my $color_str = $answer->{'call_args'}->{'args'};
 
 <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'ack',
+    {   'mode' => 'true',
         'data' => $color_str
     }
 );
 
 #.............................................................................
-#MO2JUE5CEQYQ63JP3KZB63D3TJ53FHO5J5L6PSPW2ONQJTQGCRG4BYGDHIMCRU3OFUPA6G5RHJKE2
-#::: BFIUGPAHHFSXF4P5WNWU2LQBUR5SZLULO6NRILVQ5EXSXDHMA3R :::: NAILARA AMOS :::
-# :: VQWSOX2UOWHN247DARALDCZT2UNHITTMN5VKXM4XNQPZGGWAEEAQ :: CODE SIGNATURE ::
+#CHZC2ACTPPO4FO5S7VWGLTEWGZCG774D2EQWRBOZI7TAGFKTPCMAAH54RBNGP4NHTFQ4YIVXBH6IW
+#::: MP64CBNSMIY3BQXTI3PXB54SKRJJ6O7IP3HW6RVCS4ZV6CVDTMD :::: NAILARA AMOS :::
+# :: WIZU5EE55DJ3EFZSBWBTEQRVKW2HQVMNSE3HQBFX7JHHTVN46MAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

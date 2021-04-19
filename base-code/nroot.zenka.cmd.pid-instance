@@ -7,7 +7,7 @@
 my $process_id = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "expected numerical PID parameter"
     }
     if not defined $process_id or $process_id !~ /^\d+$/;
@@ -25,13 +25,14 @@ foreach my $i_id ( keys %{<nroot.zenka.instance>} ) {
     }
 }
 
-return { 'mode' => 'ack', 'data' => $match_iid }
+return { 'mode' => 'true', 'data' => $match_iid }
     if defined $match_iid;    # match
 
-return { 'mode' => 'nak', 'data' => "found no matching instance" }; # no match
+return { 'mode' => 'false',
+    'data' => "found no matching instance" };    # no match
 
 #.............................................................................
-#VS3CGNHFR7HRJASAMJUWPCRKYERNGHGHZUIXEAREDN2QZWMCGMUZQZ77RMUJ6WXJXSA3LGBN52JQQ
-#::: YLNCRVJ7SCS6HWW63LBH7LF4V2VAPN565RZLOMSY23AS733JHJ7 :::: NAILARA AMOS :::
-# :: Z4LM4I6KBIMUBBGUAZBFTUEPQ6FF4CRKVEUSKG6Z66SLYFV2VWCA :: CODE SIGNATURE ::
+#6IDVMRHOOG44V2F7MYOCYOTCUTAB7DA42BR2AIDUR26JY6LABO6SKN5JJYE2WYFDPVNMMAF7T476G
+#::: HZLRNCRIQLWNYS4O3RGO4CL7QSDGDSJ5VQUOWO3LH4GM7JYM2ZP :::: NAILARA AMOS :::
+# :: WQN7UE3QV75GVRBRBBDKH6SXNYZRVZRRJLPTXYKUIIY4DEDNYYCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,16 +5,16 @@
 # descr = install config profile to import directory
 
 my $profile_name = $$call{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'expected config name parameter' }
+return { 'mode' => 'false', 'data' => 'expected config name parameter' }
     if !length($profile_name);
-return { 'mode' => 'nak', 'data' => 'invalid profile name!' }
+return { 'mode' => 'false', 'data' => 'invalid profile name!' }
     if $profile_name !~ /^[\w\-_\.]+$/;
 
 my $import_dir   = <set-up.json.import_dir>;
 my $profile_dir  = <set-up.profile_dir>;
 my $profile_file = "$profile_dir/$profile_name.json";
 
-return { 'mode' => 'nak', 'data' => 'specified profile not found.' }
+return { 'mode' => 'false', 'data' => 'specified profile not found.' }
     if !-f $profile_file;
 
 <[base.log]>->( 1, "installing configuration profile '$profile_name'.," );
@@ -41,15 +41,15 @@ foreach my $file_name (@config_files) {
 }
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "$file_count config files installed to import dir"
     }
     if $file_count;
 
-return { 'mode' => 'nak', 'data' => 'no set-up files installed!' }
+return { 'mode' => 'false', 'data' => 'no set-up files installed!' }
 
 #.............................................................................
-#PPOVTPGLBSUNUMPWHUC5MW4FRWT3FISZTDT6S7CNK6V5RU2XFYKJJ7MLLBSL6BCYJPLCMUXT3HWT2
-#::: MLPOGBQJ57MZMAGK4PHRYM737I52KZIXBRUIX6AFZAURHDAJDTR :::: NAILARA AMOS :::
-# :: U26JG5IVYEJW5WS2T5DSU322HS6YPF3NGI4ZBRXVQQKEFSXEG4AI :: CODE SIGNATURE ::
+#VGHIEZ2U4AZEHKMNJVSMGNKRU7FJZDNVIC4XE2V43NJIERX7JLG52KT6VZLADFHVCURM7MO5U66VA
+#::: 4JI67SXIXUVIDGHM53W3NOIRRQX3FQHOFTRMBXKXA75BQPU3NPW :::: NAILARA AMOS :::
+# :: L6PP24L2JT2GLNP34EM3K5NZSKHI2LVTZTJNLEG4YYB4H7ZWDGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

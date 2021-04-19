@@ -10,10 +10,10 @@ my $settings_map = <mpv.map.settings> // {};
 
 my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => "expected <key> [value] parameter" }
+return { 'mode' => 'false', 'data' => "expected <key> [value] parameter" }
     if not defined $setting_key or !length($setting_key);
 
-return { 'mode' => 'nak', 'data' => "unknown setting '$setting_key'" }
+return { 'mode' => 'false', 'data' => "unknown setting '$setting_key'" }
     if not defined( my $map_entry = $settings_map->{$setting_key} );
 
 my $mpv_property = $map_entry->{'key'} // $setting_key;
@@ -35,7 +35,7 @@ if ( !@target_values ) {
 my $val_str = join( ' ', @target_values );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "not implemented yet!"
     }
     if not defined $mpv_property;
@@ -50,13 +50,13 @@ if ( defined $map_entry->{'int'} ) {
         my $opt_str
             = @options ? " or " . join( ', ', map {"'$ARG'"} @options ) : '';
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => 'expected integer value' . $opt_str
             }
             if @target_values > 1
             or $val_str !~ /^-?\d+$/;
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "out of range ( \"$setting_key\" ["
                 . join( ',', sort @{ $map_entry->{'int'} } ) . '] )'
             }
@@ -76,11 +76,11 @@ if ( defined $map_entry->{'int'} ) {
             = @options
             ? " or " . join( ', ', map { "'$ARG'", @options } )
             : '';
-        return { 'mode' => 'nak', 'data' => 'expected float value' }
+        return { 'mode' => 'false', 'data' => 'expected float value' }
             if @target_values > 1
             or $val_str !~ /^-?\d+(\.\d+)?$/;
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "out of range ( \"$setting_key\" ["
                 . join( ',', sort @{ $map_entry->{'float'} } ) . '] )'
             }
@@ -101,7 +101,7 @@ my $value_str = join( ' ', @target_values );
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#5Z46HRR2S3EEBNF7CTY7IN5XALOPSJZTCUMB7RDPMMK26C2VQGOVJASVHJMNBH5WEPTRXYIUBVH3S
-#::: ZT24YQ6I6P34TFCGKR7F3FVNXY6EB7JJHCB2WS7QWXJVK2KL27T :::: NAILARA AMOS :::
-# :: JTNIPQQKLWM552ZSS45C4RBBUNYGYL6DU4KAXG6RFMS2R7H6O6DA :: CODE SIGNATURE ::
+#273L47WYYXULQ7MKK5I7IHHIJZZ3TKVP5HTXBYSOL5ABBNRUJ3XYLRNBG53PRN67DOY3VD4CAW34C
+#::: DT4P7WEEL63Y2B5U3MV2WAFLB7JGO3PRUZVREMY7TPIYIJRSAJA :::: NAILARA AMOS :::
+# :: QYS4FWKPYHYTH5ADQIQB2JESINRAVURGMJEI6SP6323QT24762BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
