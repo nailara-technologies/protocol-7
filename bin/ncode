@@ -42,15 +42,21 @@ $SIG{'INT'} = sub { print "\n\n"; &aborted; };
 
 # define target paths on which the code parser is supposed to work on
 
+## implement deeper recusion [ levels ] ## [LLL]
+
 my %targets = (
-    '.'     => Cwd::cwd(),                         # current directory
-    'bin'   => $PATH->{'root'} . '/bin/',          # protcol-7 executable code
-    'dev'   => $PATH->{'root'} . '/bin/dev/',      # developement tools source
-    'admin' => $PATH->{'root'} . '/bin/admin/',    # node administration tools
-    'src'   => $PATH->{'root'} . '/base-code/',    # the nailara module source
-    'cfg'   => $PATH->{'root'} . '/configuration/',  # configuration root path
-    'md'    => $PATH->{'root'} . '/read-me/md/',     # release [markdown] page
-    'zenki' => $PATH->{'root'} . '/configuration/zenki/..,',  # p7-zenka progs
+    '.'      => Cwd::cwd(),                        # current directory
+    'bin'    => $PATH->{'root'} . '/bin/',         # protcol-7 executable code
+    'dev'    => $PATH->{'root'} . '/bin/dev/',     # developement tools source
+    'admin'  => $PATH->{'root'} . '/bin/admin/',   # node administration tools
+    'src'    => $PATH->{'root'} . '/base-code/',   # the nailara module source
+    'cfg'    => $PATH->{'root'} . '/configuration/', # configuration root path
+    'md'     => $PATH->{'root'} . '/read-me/md/',    # release [markdown] page
+    'zenki'  => $PATH->{'root'} . '/configuration/zenki/..,', # p7-zenka progs
+    'pm-src' => $PATH->{'root'} . '/data/lib-path/pm',    # local perl modules
+    'amos' => $PATH->{'root'} . '/data/lib-path/pm/AMOS',  # AMOS perl modules
+    'amos-cs' => $PATH->{'root'} . '/data/lib-path/pm/AMOS/CHKSUM', # ::CHKSUM
+    'amos-elf' => $PATH->{'root'} . '/data/lib-path/pm/AMOS/CHKSUM/ELF',
     ## 'readme' => $PATH->{'root'} .  ##  <-- require recursive directory mode
 );
 
@@ -2294,7 +2300,7 @@ sub print_usage {
 }
 
 #.............................................................................
-#LW3UBTP5RG4D67YIBPV6TEXOFR4YMNDHTB5WDARHYXGJRKDHAVGVSJOEG6DKX74XTUM5OY7BZPGNY
-#::: YFH4OKZOR3GC3F3RWCOV4ML5V56ZAGTMEAD5PC6HI5QFV46SDYO :::: NAILARA AMOS :::
-# :: J6R2ZBTL6BUZIQ2TAYHVJEHGCJC6TOC7HSKKN4HVOQ2NQR4Z6CBA :: CODE SIGNATURE ::
+#EYPSFTZSETJFFBK3SQAZR63JIZSEDTRVSOJLHEQHOB3OFKNPQRQHT2D5H2HJELAGX4OLH7RMWJ4IM
+#::: GOX45TYDSEAYNJ2EZQHQY7KKVWIOHENUQYZ5HIOI4C5EMQOZLFX :::: NAILARA AMOS :::
+# :: PWU456LHN7LTVR4I7X47XMZL63AQO7TRF4YTEZ2UKIPPOAORDSBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
