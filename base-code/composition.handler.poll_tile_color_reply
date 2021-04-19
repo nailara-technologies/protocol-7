@@ -5,8 +5,8 @@
 my $answer = shift;
 my $c_mode = <composition.watch_tiles.comparison_mode> //= 'last';
 
-return warn 'unexpected [NAK] reply from screenshot zenka'
-    if $answer->{'cmd'} ne 'ACK';
+return warn 'unexpected [FALSE] reply from screenshot zenka'
+    if $answer->{'cmd'} ne 'TRUE';
 
 <composition.last_tile_color> //= {};
 
@@ -124,7 +124,7 @@ if (!<composition.tile_alert_triggered>->{$tile_name}
 <composition.last_tile_color>->{$tile_name} = $tile_color;
 
 #.............................................................................
-#4YGBPLFBI6DENJ4B4NMS6GX5BTCJ7DKHZK4ZUHSPGFPPGR6TD53FYP4ALV7Z7Q7GTJYOYOQLIGNZO
-#::: WFSMPGQPP5EZJUOYM7YFAD5I4JM7KGS45YUETTS2LUKBJKHGOEZ :::: NAILARA AMOS :::
-# :: HN2N7JTMWBDVUJNYPYAOTG2BM6YX6D7WOU46EVGV5UOA75SNHKBQ :: CODE SIGNATURE ::
+#XYVDRD7DUBTQ5CAUHZ32WI6YUBMF6XMPXXW2P5MSJ35FP2QEZ7VPSYF5TFEDNMASPD2O2JVPVKL4Q
+#::: 764KTE2GBE6HDWP6IFWWOZQJMUFQUFR6UL6GETV3N5ATK7MGGSR :::: NAILARA AMOS :::
+# :: QIB4NHZB6LEVDR6RTLXB4AMU3UCCNYZNWJNUOYYIXHZRNLH6FOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

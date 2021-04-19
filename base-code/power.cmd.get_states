@@ -7,12 +7,12 @@
 <power.cfg.devices> //= {};
 my $device_id = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
+return { 'mode' => 'false', 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};
@@ -49,10 +49,10 @@ if ( $dev->{poller}->can_write(0.1) ) {
     $dev->{sock}->close();
 }
 
-return { 'mode' => 'ACK', 'data' => join( ' ', @states ) }
+return { 'mode' => 'TRUE', 'data' => join( ' ', @states ) }
 
 #.............................................................................
-#5RHMSAEE7MC2X4TJMPRY7CUXJC2WZTVLMU57AWXTO3FDAPHYGHQN7Z6UFOPYDS7E7JQCXOSQ5XB5O
-#::: EEZWF44OY3DDMN5CVTH2HVBH2SM4KNHORL3P2CP6NAYF7U7EWN6 :::: NAILARA AMOS :::
-# :: EIL262Y7IE76YOXBNZCZCA5SYIO5ONH3USLAXDL7J4X3XMONKEAY :: CODE SIGNATURE ::
+#6V74WRVXVSOOSZIPY7SUCJGUWL5GJ2NWUMFBK2XDN27EYKD5UIJWS6GY6DOTWLIJHOKPET2WKPIV4
+#::: ZQGIALZZKPGKQR6TJZOKSZXADWWKWADDVWUFMNRLHIDVPXWPX22 :::: NAILARA AMOS :::
+# :: X5IYERPPRGWVZ27BZNE3IYYXNSV2ZK3IA2ZYLSRDLK5VJZA4LMCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

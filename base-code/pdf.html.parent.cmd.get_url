@@ -6,21 +6,21 @@
 
 my ( $pdf_location, $target_width ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
+return { 'mode' => 'false', 'data' => 'expected path to pdf file!' }
     if not defined $pdf_location or !length($pdf_location);
-return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+return { 'mode' => 'false', 'data' => 'file does not exist!' }
     if $pdf_location !~ m|^https?://| and !-f $pdf_location;
-return { 'mode' => 'nak', 'data' => "permission denied [$pdf_location]" }
+return { 'mode' => 'false', 'data' => "permission denied [$pdf_location]" }
     if !-r $pdf_location;
 if ( !<[pdf.html.base.valid_pdf]>->($pdf_location) ) {
     my $err_msg = "'$pdf_location' is not a valid PDF format file!";
     <[base.log]>->( 0, $err_msg );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $err_msg
     };
 }
-return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
 if ( not defined $target_width ) {
@@ -28,7 +28,7 @@ if ( not defined $target_width ) {
     if ( $pdf_location =~ m|^https?://| ) {
         <[base.log]>->( 2, "downloading '$pdf_location' first..." );
         $pdf_location = <[pdf.html.base.download_file]>->($pdf_location);
-        return { 'mode' => 'nak', 'data' => 'download error' }
+        return { 'mode' => 'false', 'data' => 'download error' }
             if not defined $pdf_location;
     }
     ($target_width) = <[pdf.html.base.get_page_size]>->($pdf_location);
@@ -79,10 +79,10 @@ if ( !-d $html_path ) {
 
 <[file.write_timestamp]>->("$html_path/.last_used");
 
-return { 'mode' => 'ack', 'data' => "file://$html_path/pdf.html" }
+return { 'mode' => 'true', 'data' => "file://$html_path/pdf.html" }
 
 #.............................................................................
-#GLF3APV5OBMI7UV5VWIT6Y4IDDPNBV2NBC6SYRRYAA22NDRDKDEDR57BTZNVLSSNW6R3CWMWF5YKG
-#::: HCVYJV2AFB6MBVF32SRUDQUQH732YSRRCVPNG7WPGW7TD236HVN :::: NAILARA AMOS :::
-# :: OF4JZRNEX62RGXWJVXSVKB2BJ7P4OSAA6W2L5S44CF6RRVXYWQBY :: CODE SIGNATURE ::
+#KBPMAWJRVFJDXJMF7GZL2WUXU7TTCFARKZVAG5FFWDS46ZEOPDVPC3YCHQQGI3AOB5WW5GMDNS67I
+#::: RY3AC6U42B22L3WZ3FBFLB2OTTQ6CJLH265QCWUYNR6YATH5KO7 :::: NAILARA AMOS :::
+# :: CNCZIW5SP4WQBH5UB4YLRGMKSRTO4UK4TF3U3WDV74EG6WRJ2QBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ my $value_str = shift // '';
 my $reply_id  = shift @{<mpv.reply_ids>};
 
 return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'nak', 'data' => 'value undefined' }
+    $reply_id, { 'mode' => 'false', 'data' => 'value undefined' }
 ) if defined $reply_id and $value_str !~ /\d$/;
 $value_str = sprintf( "%.3f", $value_str );
 $value_str =~ s/(\.0+|%)$//g;
@@ -15,11 +15,11 @@ my $what = delete <mpv.request>->{$reply_id};
 <mpv.current>->{$what} = $value_str if defined $what;
 
 <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'ack', 'data' => $value_str . '%' }
+    $reply_id, { 'mode' => 'true', 'data' => $value_str . '%' }
 );
 
 #.............................................................................
-#Y6SWNVHBOA7LCYI3W5MK4TKEWALPEMFWYTWUJ7MJEKM2XBTSUZR7GLAKKVMBTBZONN2V2YWU54XQG
-#::: 4NSYHYUTHUPLK3MA5K3K7BCRMPFEQXQXVLU4S3FIB2CKJP5X35E :::: NAILARA AMOS :::
-# :: YBNJT2TBX65QKCOPZBPCSPXQ2ZJRSZUEMJE5YPRU3ABNSYKS3GBI :: CODE SIGNATURE ::
+#DFU42V755K3J3NXV4OK3DEW6NT7IEHBO7T4LUNUXX4J6GUDJE5EKDAA7X6HLO7RMFZYBZAI2SQLZQ
+#::: UIRIX2F46V6YE7PJ5HZCKII7FJVQGM73JGNSRZTIV7LQFC7GBSW :::: NAILARA AMOS :::
+# :: 3ZNOWTYNK6VIK7RAW3SKFSUNXM5P35UFQC4VZVKBJVNAAW5ZQSCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

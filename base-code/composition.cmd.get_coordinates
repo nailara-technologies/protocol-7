@@ -4,7 +4,7 @@
 # param = [zenka_name]
 # descr = coordinates for current or specified zenka
 
-return { 'mode' => 'nak', 'data' => 'no zenka name received' }
+return { 'mode' => 'false', 'data' => 'no zenka name received' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
 
@@ -23,7 +23,7 @@ if ( $zenka_name =~ m|^\[([^\]]+)\]$| ) {    # <-- only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -43,7 +43,7 @@ if ( not exists <composition.coordinates>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required"
         if $match > 1;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $msg_str
         }
         if $match != 1;
@@ -56,7 +56,7 @@ my @coordinates;
 my @borders = ( 'left', 'top', 'right', 'bottom' );
 foreach my $border_name (@borders) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "coordinates for $border_name border are missing"
         }
         if not exists $coordinates_data->{$border_name};
@@ -64,12 +64,12 @@ foreach my $border_name (@borders) {
 }
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => join( ' ', @coordinates )
     }
 
 #.............................................................................
-#I7W6I3VVUTB54L4VP354LC2HZQQ25F3EICTIAW74XHJNTR3SX5FSIJNCDXKAUAG5TESIGOFCZEMAK
-#::: TRNWN3TKKNCXWNGM672KQJLTWMLMPD23XFAW44CEHQZT5XURH4P :::: NAILARA AMOS :::
-# :: KQFF2IX5BV3H6X77VKW4P543U7RFQXLR7KWSPNN6UJKHDBLHYWDY :: CODE SIGNATURE ::
+#ZNZGLRHTHCDH2KIHQE4Q6MWBVCSNH7N3F6CFPERWDCLWX3LDT5YQTZ3KNOVFDJINEP2VJTFXSPTIO
+#::: FSGH6FUTZKAJINA5HEUHPIDJCI5DZCTK6QZMZTNRF2RY3C75SZF :::: NAILARA AMOS :::
+# :: KBXOHLLYI3U6TKWLM2G4QCBOHUJ7CQ4JRJHXHBNEJNMKU4MFSQAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

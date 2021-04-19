@@ -10,7 +10,7 @@ my $hostname      = <system.host.hostname>;
 my $admin_user    = <system.admin-user>;
 my $allowed_users = qr{$hostname.(nroot|X-11|$admin_user)};
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "only 'X-11' and 'nroot' zenka can invoke this command."
     }
     if $cube_user !~ $allowed_users;
@@ -31,10 +31,10 @@ $reply_message
     ? 'host system reboot imminent'
     : 'X-11 error logged [ not rebooting ]';
 
-return { 'mode' => 'ack', 'data' => $reply_message }
+return { 'mode' => 'true', 'data' => $reply_message }
 
 #.............................................................................
-#AY67BU2QKQK7Y6XDYWQOZX74QRIPXKFGQ4AK6TA4FWPEBE7MDX3PTH7QZJTMBY3A3OLXSBHHQZF2Y
-#::: L2CIPOPAWAKUL5Y6I3OCQKDRPXZ3WMABX2VVWFJFZEHGKH5YOCO :::: NAILARA AMOS :::
-# :: RLLM5E4UHUW43AXVSTLPVVZQERY27RM6AWV5REQECIHXT44IRWBQ :: CODE SIGNATURE ::
+#NOOPGVWUBUNHORDQTKCYZB6QYJDWG777SVB3U6YZWNUQKM5MVPWVQYS72OQC2TUJFOVNO6JUKND66
+#::: YJQ6WRWQHBCKRHDPLNRS7PG7KWKQ5NV7U3IRUNMAXPBAQ4XGBXN :::: NAILARA AMOS :::
+# :: RP2BWAAT26AXC547APY4SDIFQYPQGUIRETYOXICQAAT25ICH7IDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

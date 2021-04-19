@@ -12,7 +12,7 @@ my $use_first_match = <weather.cfg.first-location-match> //= 0;
 my $language_code   = <weather.cfg.language> // <system.language>;
 my $country_code = uc($language_code);   # <-- LLL: coincidental only, geoloc?
 
-return { 'mode' => 'nak', 'data' => 'expected location name parameter' }
+return { 'mode' => 'false', 'data' => 'expected location name parameter' }
     if not defined $location_name or !length($location_name);
 
 my $query_str = "find?q=$location_name";
@@ -24,10 +24,10 @@ $query_str .= ",$country_code" if $retry_with_country_code;
 
 my $json_response = <[weather.child.query_api]>->($query_str);
 
-return { 'mode' => 'nak', 'data' => 'weather API query failed' }
+return { 'mode' => 'false', 'data' => 'weather API query failed' }
     if not defined $json_response;
 
-return { 'mode' => 'nak', 'data' => 'found no station for given location' }
+return { 'mode' => 'false', 'data' => 'found no station for given location' }
     if !$json_response->{'count'};
 
 my $country = $1 if $location_name =~ s|\,(\w+)$||;
@@ -84,16 +84,16 @@ if ( not defined $station_id ) {
     <[base.log]>->( 0, "returned locations --> $lpath" ) if !$EVAL_ERROR;
 }
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "cannot match the $result_count returned stations to requested"
         . " location"
     }
     if not defined $station_id;
 
-return { 'mode' => 'ack', 'data' => $station_id }
+return { 'mode' => 'true', 'data' => $station_id }
 
 #.............................................................................
-#YYKQ5NZMZ6XYCOJHKY3YT44H5SQNDPCKLQIIIWKP27ISO5YFQPO7QALZEUMZCMLSKW5YU22KQUOF4
-#::: KJXHJCDKMKS7EG72B6CI3N2UUSMRPXF77TWNHXXWKIIGZCDG4MK :::: NAILARA AMOS :::
-# :: XC4G6FXNSRUNQLZQSSLV25ZCNFQ7AWJ5M6Z5OQ7W22IVQ7PIYKDA :: CODE SIGNATURE ::
+#MGM3C2UFS25BYMIGYSECS6XMNHJNLGHTFXZECI3UMOGGYTEGY6IXCRPUNV7H6IJJCSBM2YQV2WW42
+#::: WYRHP7ZQ4CR4NE44SAFF43I4KTRPNVDVHZRUP6GWFARSGSGCITG :::: NAILARA AMOS :::
+# :: RZJT3TCSZBDMQCBTX6TOCDLJ5AGBJHJWYUY7E6SSAMPGJV37SACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

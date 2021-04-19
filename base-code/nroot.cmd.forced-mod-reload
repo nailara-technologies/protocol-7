@@ -7,15 +7,15 @@
 
 my $module_name = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'expected valid <module> parameter' }
+return { 'mode' => 'false', 'data' => 'expected valid <module> parameter' }
     if !length($module_name)
     or length($module_name) > 42
     or $module_name !~ /^[\w\s_]+$/;
 
-return { 'mode' => 'nak', 'data' => "'rmmod' binary not found!" }
+return { 'mode' => 'false', 'data' => "'rmmod' binary not found!" }
     if not defined <nroot.rmmod_bin>;
 my $rmmod_bin = <nroot.rmmod_bin>;
-return { 'mode' => 'nak', 'data' => "'modprobe' binary not found!" }
+return { 'mode' => 'false', 'data' => "'modprobe' binary not found!" }
     if not defined <nroot.modprobe_bin>;
 my $modprobe_bin = <nroot.modprobe_bin>;
 
@@ -33,7 +33,7 @@ map {
     }
 } keys %{<nroot.zenka.instance>};
 
-my $reply_mode = 'ack';
+my $reply_mode = 'true';
 my $reply_data = 'module reloaded';
 
 chomp( my $modprobe_output
@@ -50,7 +50,7 @@ if ( !length($modprobe_output) ) {
 
 chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
 if ( length($rmmod_output) ) {
-    $reply_mode = 'nak';
+    $reply_mode = 'false';
     $rmmod_output =~ s/(^.*rmmod: (FATAL: )?(Module )?|\.$)//g;
     $reply_data = "unable to unload module ['$rmmod_output']";
     goto do_reply;
@@ -58,7 +58,7 @@ if ( length($rmmod_output) ) {
 
 chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
 if ( length($modprobe_output) ) {
-    $reply_mode = 'nak';
+    $reply_mode = 'false';
     $modprobe_output =~ s/(^modprobe: FATAL: (Module )?|\.$)//g;
     $reply_data = "unable to load module ['$modprobe_output']";
     goto do_reply;
@@ -71,7 +71,7 @@ map { $ARG->start } @restart_timers;
 return { 'mode' => $reply_mode, 'data' => $reply_data }
 
 #.............................................................................
-#R5XSPLJJEZTE7GF7WQBU3A2OTBFKQ3QMKYVXJYUXTCRSSOUJCTV22EENSHYR72IUMCMFOG7PP7TV4
-#::: YZCMWTKWS7KSOE2PAN32NL64UOYAT52TSPJDS42BQHDL77FAD4D :::: NAILARA AMOS :::
-# :: EZX7R4KGIN77UGB7B7AJ4QXZVJVWOR63EMDHWGF3Z6AGU774UMDI :: CODE SIGNATURE ::
+#N3S5SGAGMMOQF4ITE2WEI4UBSBF6XJK2SBZQBJQIIFBJQQV5WQ55ZDF2QAJEWPS2RX4C2WNOTUUDM
+#::: VQ5HTEYOMFIIZ7V3BYXFHYKR3EYPTKJLHFBX7WIZQZ3N6IZQ23T :::: NAILARA AMOS :::
+# :: R67B7FSDWFIT3C4RKY27OSMPCXF5I6HDBSKZFHY647MZT5A6XADQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ my $keyword = $$call{'args'} // '';
 if ( length($keyword) and not eval {qr{$keyword}} ) {
     ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "expected a valid pattern .:[ $regex_err in regex ]::"
     };
 } elsif ( length($keyword) ) {
@@ -19,7 +19,7 @@ if ( length($keyword) and not eval {qr{$keyword}} ) {
 }
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "failed to resolve key '$keyword'"
     }
     if !length( ref($d_ref) );
@@ -32,7 +32,7 @@ $reply = {
 };
 
 #.............................................................................
-#6PMR5FOPTIY4CRXVPGDXLBMFNNJR5LTELTWZ6CZAAFV3NUS5VZTNGDRIZGECEGCK3FZV3JGCMJKE6
-#::: IX7USR73XINTQUXIH2VAU4Q5OKEJ35GDBDYT672JRD6MYOGT53A :::: NAILARA AMOS :::
-# :: ESQWC2B2F34QTWHS6F5VRFN6FLMWLAMV5LUOFZTNPQ2GP5VK4UCQ :: CODE SIGNATURE ::
+#5AUSIMCYMDP5DXFIVT7DSQB5SNJL3ZZ4JT35BK2W3AMLOVOGFLIWFX33TDXF4PEOJUZHKER2Z7YX6
+#::: AUKT2LKKYSXSMCXVBQTM5FQBLKC57L6WTCHN3P72IOOLNU3FA6X :::: NAILARA AMOS :::
+# :: A6EYWDH4CUQ7LDSHBPVXKHL6IQFK7JF2IA4WN4ZOGWIUYMHJXECI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

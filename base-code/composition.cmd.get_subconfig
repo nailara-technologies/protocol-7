@@ -4,7 +4,7 @@
 # param = <zenka[+tile]_name>
 # descr = return 'subconfig' for zenka or tile name
 
-return { 'mode' => 'nak', 'data' => "expected syntax is 'zenka[subname]'" }
+return { 'mode' => 'false', 'data' => "expected syntax is 'zenka[subname]'" }
     if not defined $$call{'args'}
     or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
 
@@ -28,7 +28,7 @@ if ( not exists <composition.subconfig>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required."
         if $match > 1;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $msg_str
         }
         if $match != 1;
@@ -51,7 +51,7 @@ return {
     }
 
 #.............................................................................
-#WFQT67V7LHHMFHOAQHHWJGQTSOR4W3SZCX7EXYUZ3KC5NMILUI2OOKL6D52EQG42Y5QVL5TAD5C7W
-#::: ZP7SZQCY6PP4FRMXCSF4NHNZYRY7AUMO7IHXFPWCTSLT2YWGBKJ :::: NAILARA AMOS :::
-# :: KYTIR4GEHPR3ZHOXAPXXO5HII3MDMXHBI537HGVPOGQOZFMBKWCQ :: CODE SIGNATURE ::
+#RZCKGOKCYBHMNWVFPORXNEIN7XECVVNXVSMBB7UVEE2VZWXWE7LQCTBW4G2BJYFF4SBMBX77SGRXG
+#::: UTR5LMD2FTCX2SGZHWITM7TOQ4Q75UUOHHCY34PYJ75WOKYQCGY :::: NAILARA AMOS :::
+# :: FF6GRR6LONPYJV6GMNZOOEFGOFCJZLIJ3XN7P7HYH5CMYRDPTWBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,10 +5,10 @@
 # descr = return config of specified zenka as json
 
 my ( $zenka_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
-return { 'mode' => 'nak', 'data' => 'expected zenka name parameter' }
+return { 'mode' => 'false', 'data' => 'expected zenka name parameter' }
     if not defined $zenka_name;
 
-return { 'mode' => 'nak', 'data' => 'invalid zenka name syntax!' }
+return { 'mode' => 'false', 'data' => 'invalid zenka name syntax!' }
     if $zenka_name !~ <regex.base.usr>;
 
 my $type_args = {};
@@ -33,7 +33,7 @@ $cmd_path = "cube.get-config" if $zenka_name eq 'cube';
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#IAAHZUCC7UHDGJT5AWSAYATEPWPSCTFCZRDWKYK5RMSUH26K2O57FCVY65XMBESQPA6FBXCUFSGEA
-#::: 6ALXOTWDWUQFRPQP7TL7D7LBOVXG5SSJVQFDGKYZ6MB2MUAJBQR :::: NAILARA AMOS :::
-# :: NVVN3A64SRKWDWRRX42HOQD5BUCG5ZTOPJGOQKLVIIICE57HZEBA :: CODE SIGNATURE ::
+#46EY5CBNO6DPWUX43VWFJ24TFAC2O7CPVSDGQ5DANXXXAC6374CNLBLZARN4VOK6M5L3NJGRCKUVO
+#::: N6BTS3LREKIKFWU7ZTEJHSTZQGTOBWAHSRRW3GXZZVZ7JNN7QCB :::: NAILARA AMOS :::
+# :: FMEAXWINTUXXPJSZIIERTZUEOMU2ZPEBVVTDNYXRQECCRYLGKSDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

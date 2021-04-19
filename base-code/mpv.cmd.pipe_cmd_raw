@@ -7,11 +7,11 @@
 my $mpv_socket = <mpv.socket>;
 my $cmd_str    = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'expected mpv command string' }
+return { 'mode' => 'false', 'data' => 'expected mpv command string' }
     if not defined $cmd_str or !length($cmd_str);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'string contains blacklisted byte sequence!'
     }
     if $cmd_str =~ m,run|hook|subprocess,;
@@ -23,10 +23,10 @@ if ( not defined $mpv_socket ) {
 
 <[base.s_write]>->( $mpv_socket, "$cmd_str\n" );
 
-return { 'mode' => 'ack', 'data' => 'string sent.' };
+return { 'mode' => 'true', 'data' => 'string sent.' };
 
 #.............................................................................
-#HR34OYTWEQLYDUTSXVKAHFXEZ6MQUVRZHQTYFUR2I2OI6IEWHK5QEL766WBPCA4NVTCYFXFKRXQ4C
-#::: 6JMNXDY3AKIYP54YZKGPQU4W4LQ3MGYTMMEONOGQ26Q3RCEI536 :::: NAILARA AMOS :::
-# :: RAZGBGNJZ6LVIU6OVZEGSEUCITSFHZCDVCVVMHBMCSHMYYHMEGBA :: CODE SIGNATURE ::
+#JDCXJ7GZX3DLILFVCB3LOWAKGHG23QK6QER6BRBHIASR7DJABUJIOKHXP6PARHFSE3NJ7JU6YYHTG
+#::: 2GO3B6SFA2PKTXJY5MZE7FQ64REMHWIVCOYPJ7WVAYS5ESU2AX3 :::: NAILARA AMOS :::
+# :: LJFS3TQDMUQBEX2MB6ZUC3JL6TM42VJVBTSBDJ35HHZH54LJUUCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

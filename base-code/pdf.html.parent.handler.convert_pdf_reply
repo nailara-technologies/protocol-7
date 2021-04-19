@@ -9,7 +9,7 @@ my $pdf_path  = $reply->{'params'}->{'pdf_path'};
 my $html_path = $reply->{'params'}->{'html_path'};
 ( my $html_dir = $html_path ) =~ s|^.*/||;
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "conversion of '$pdf_path' failed [$reason]" );
     my $errors;
@@ -27,7 +27,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 delete <pdf.html.converting>->{$html_dir};
 
 #.............................................................................
-#U7DOJTIWRTFSHXCZIJYTYE2G4UJJF4O6BOUCJVZG5T7J3IVXRQQASX5UWDCEZZSYE6OLEJT4X65B2
-#::: 4Y2B2P2BBPNW2WWKZWNN52APNMMYOJOA7FV3RTSCEUMRF42V63Z :::: NAILARA AMOS :::
-# :: C37ITGHG3T3Y5AOLXYZRZMCMDX2UG47GZK5IFVBOY44JJJQFVKCA :: CODE SIGNATURE ::
+#2DBX244TUVUDBGUBV3X63HXAMUBRPI54LZCTTTJTTOSIH6YTNIZSHG25I33QLPOW7YQ3M6Z4S2UPC
+#::: XGTMFBBXC4KGMSPWOL2P57DHYRBWKLZF4ULCIDZIYUNJ74FX5IP :::: NAILARA AMOS :::
+# :: WMKCS7ZMGIUOQKEAGZ2RDOLYGV57WP3CEBSGVF7PCLLBHWQQNUDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

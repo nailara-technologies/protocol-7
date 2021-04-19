@@ -4,7 +4,7 @@
 # descr = send (signed) message to mcast group
 
 my $ann_msg = shift->{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'no announce message string given' }
+return { 'mode' => 'false', 'data' => 'no announce message string given' }
     if not defined !length($ann_msg);
 
 my $key_name = <discover.crypt.key_name>;
@@ -33,14 +33,14 @@ $packet_str .= encode_b32r( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 
 # print "---<sent>---\n$packet_str--</sent---\n";
 
-return { 'mode' => 'nak', 'data' => "unable to send : \l$OS_ERROR" }
+return { 'mode' => 'false', 'data' => "unable to send : \l$OS_ERROR" }
     unless <discover.mcast.obj.sock>->mcast_send( $packet_str . "\n",
     join( ':', <discover.mcast.ip4_addr>, <discover.mcast.ip4_port> ) );
 
-return { 'mode' => 'ack', 'data' => 'message sent' };
+return { 'mode' => 'true', 'data' => 'message sent' };
 
 #.............................................................................
-#FMHBHZ7OA6WUNFFIZEZ7VXDZEBCWOVFETC5QA4MDQBRHCJMA6EWLD5TGDGRD4K67SGMKZOU2QIBE4
-#::: 4F2V22CVW6RYD5FL3Q72LQ5R66O4L7PWZHU3VO3P6OSETMDDCZX :::: NAILARA AMOS :::
-# :: NHJZOCPR3G4GDHYDVTYXWWEWPQKWHRPY33GQBEQKRBQQE3DGY4BA :: CODE SIGNATURE ::
+#OF3KV2LHCMX5NJWISCNZMNSSPOI6W3DJRXLAAL3VHYA6YLDAOFZIWURC344GVAVUU7IS7OOHRAYYU
+#::: ZMMGHFRLN4XD5I6PGIONQKOGSEW7IVYGZWQB6YBXS6SOLRY5FT3 :::: NAILARA AMOS :::
+# :: DG252F4FZ7HNW64UXFZE4HFU5VEK7LJSC7J2OLNCLSUO4WDLL6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

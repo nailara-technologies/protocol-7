@@ -22,7 +22,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(NAK|DATA) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(FALSE|DATA) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
@@ -54,14 +54,14 @@ if ( $reply_string =~ m|^\($cmd_id\)DATA (\d+)\n$| ) {
         "received tile group subconfig for '$name_str' [$bytes_total bytes]"
     );
     return $subcfg_data;
-} elsif ( $reply_string =~ m|^\($cmd_id\)NAK no set-up for zenka '([^ ]+)'| )
-{
+} elsif (
+    $reply_string =~ m|^\($cmd_id\)FALSE no set-up for zenka '([^ ]+)'| ) {
     <[base.log]>->(
         1, ": << ! >> composition zenka has no set-up for \"$1\" << ! >>"
     );
     return undef;
-} elsif ( $reply_string =~ m|^\($cmd_id\)NAK command unknown\n$| ) {
-    <[base.log]>->( 1, ": << get_subconfig [ NAK ] >> for '$name_str'" );
+} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE command unknown\n$| ) {
+    <[base.log]>->( 1, ": << get_subconfig [ FALSE ] >> for '$name_str'" );
     return undef;
 } else {
     <[base.log]>->(
@@ -73,7 +73,7 @@ if ( $reply_string =~ m|^\($cmd_id\)DATA (\d+)\n$| ) {
 }
 
 #.............................................................................
-#2IRVFM7JNXZ2UPXGZIZSZ74ZIXAU3VUZE37E2JODPPSSW2GPAS3OXKIWXWQDNPWYUXAUBN2YG3XFG
-#::: XQNNLSITBQJQA7CNVSVGBWI6IJRZ7UXI6YCTALSYSM34BXMX62T :::: NAILARA AMOS :::
-# :: IEYDGFQQEQ2SAQNDFMZHDE7JMNLG6DWPLMG5ER4VSTCL7COFG4DQ :: CODE SIGNATURE ::
+#CRZZI2GSNYLUQ3CBPERD7HYGG4KE5BKPOXLNFXLE5LIZXM3FUL74ICC3YNGZCAKE2KLR6JMHUFCQG
+#::: 6RFPJB2UX7RUT6TYYTPPWX66JSOMUKU6EQLRGK6BPP6OKUNANOI :::: NAILARA AMOS :::
+# :: LLRQ3JMV2XBBKJPPBWJ2P5EJJK4JBDMN35RMIOF6RC6Q2WJLRECQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

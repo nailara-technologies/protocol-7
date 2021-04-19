@@ -15,13 +15,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.driver> = $1;
     <[base.log]>->( 1, "received video driver name [" . <x11.driver> . "]" );
     return <x11.driver>;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#WJVEVMNKMIYJOMDPDADIHA2AMBCQ33GXCXIT6TWZVNF2YW6WUDRZM6XHHDGM543GSDKTZV6Y3FBXM
-#::: QMPJBDADGA47T2ZQXN4WHPIPIO35QKWMKKXA44LJT3JZ644INXZ :::: NAILARA AMOS :::
-# :: LWKMJDA6YLJGBMC4LFA54HJH25MVJGCBDYEQWAQAA4XT56RZXMBY :: CODE SIGNATURE ::
+#YZ47EKPNZXWV3U7BGVDSSIXAO3WIMDF5CVYHOKGUDFBHGWPAUDATCAKFOWZT3MJADZJM3L6LSJ3P2
+#::: PIIQ23GFYJX6EPWWMCHAKLJ3PSL4672VOA42T3G3XWITGVGZAHK :::: NAILARA AMOS :::
+# :: 5RQZOFV6NS3E67ONQ7SS66TJDAS5PN5DPD6MJGHBAIRSHDTG7KAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

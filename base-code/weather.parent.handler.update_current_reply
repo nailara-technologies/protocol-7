@@ -21,7 +21,7 @@ my $current_data;
 
 my $interval_seconds = <weather.update_interval.current> * 60;
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
     if ( $err_reason eq 'query failed [ unknown location ]' ) { # rate limit.?
         $log_level++;
@@ -124,7 +124,7 @@ if ( time + $update_interval > $midnight ) {
 );
 
 #.............................................................................
-#SCHL3GRD543WGCWIJZDKT3PJSIXRENOSVRWWLR3UCJG7DK7VYA4SJEKBY64KAOQ5PB2IHRKDQGYU2
-#::: B3YYLBJ5FHFAI4P4W2UO3JEHQIDZBSBP2H4ZGJME7EKUDUY7GCG :::: NAILARA AMOS :::
-# :: P4WH5J6TIXTYKJWJG7ZTUCYTKZLOKO5AF2RG6D2UXAU2EOJ2SYAA :: CODE SIGNATURE ::
+#Q7HLQXHMGXEEIZFJH2JU44D6CWEE57DPUHWHLXWPB73WX3JNOKK4434IU5SQ7MKFSXVHHVTNKGI7S
+#::: JWMO222RJMG4DWI24LMFQAQH4PJPUJYJBMWPNM4ZUJIJTKQZ6DQ :::: NAILARA AMOS :::
+# :: 2E7WCRC2D77BPIXYUCKAARTUNM7ZHO4EBPVU6VAVTFC47C6W4GBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,14 +8,14 @@
 
 $user =~ s|^.+\.||;    ## removing host portion ###
 
-return { 'mode' => 'nak', 'data' => 'no access permissions' }
+return { 'mode' => 'false', 'data' => 'no access permissions' }
     if not <[base.has_access]>->( $user, $cmnd );
 
-return { 'mode' => 'ack', 'data' => "$cmnd [ $params ]" } if defined $params;
-return { 'mode' => 'ack', 'data' => $cmnd }
+return { 'mode' => 'true', 'data' => "$cmnd [ $params ]" } if defined $params;
+return { 'mode' => 'true', 'data' => $cmnd }
 
 #.............................................................................
-#UUOR5IX6I2YGM5XTZLNOVGX22E7OZNVLCUIGVEUI7REGZKTAOTPHJ7MRLRWYFT6EOS4CPT7LY3EGW
-#::: WDI76ZZ5UZXZ7N5IV2BYKZGOGUJLBL2BAZ4TXWGGVYPVLIAA4PK :::: NAILARA AMOS :::
-# :: UPBP7WNMN6APVEXWXIVXYQUT4R2IYBMADU36PHKL5KY4YBEQE4DI :: CODE SIGNATURE ::
+#DCECQB6SLPJLFIPVKXA54SLONZ5LL3VU54H347H77YBOUUWCMPOJKEMLOAHYUAYGCVMYSI3GUYOBK
+#::: B24HRM62K7F74S4JFHTRJOTYOKWICFWXN7JZLY7BD5TFTW3CQNE :::: NAILARA AMOS :::
+# :: UOFFUVY3NHG374HED6XMVFFZOVUDWX77RVEH6Z5OVEBCL5DP5CCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

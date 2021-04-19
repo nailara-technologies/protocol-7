@@ -7,12 +7,12 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
 
-return { 'mode' => 'nak', 'data' => 'no such window' }
+return { 'mode' => 'false', 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "hiding window $window_id" );
@@ -23,12 +23,12 @@ eval {
     }
 };
 
-return { 'mode' => 'ack', 'data' => "unable to set 'hidden' state" }
+return { 'mode' => 'true', 'data' => "unable to set 'hidden' state" }
     if $EVAL_ERROR;
-return { 'mode' => 'ack', 'data' => "set window state 'hidden'" };
+return { 'mode' => 'true', 'data' => "set window state 'hidden'" };
 
 #.............................................................................
-#X3CNURF52OKV6GYEYQCQPGSQ2BTP5NPZOJRFL2NWY4IQVBUCGMWAKHQQTOGLFRS2TY6SUHAULQJJE
-#::: JNTZWIH6W6NNG2EXXDP5ALHBGHRCZ24DV5RRUHVSYTSULGWJPWI :::: NAILARA AMOS :::
-# :: C6L6LGUZARGRJAJCOQE722QBUZ3HPZKM4HEZ5MPBQ6OBAQSRYQBQ :: CODE SIGNATURE ::
+#ANWM3Y23JSJXG42KOMKJQSL2XKGW2W73KCTZQQP7Z752AQIFZ6N3A7LMHHU6G6TLMV245NUAEA2WA
+#::: XTJPZYK7VP75YJ5R3E5YWZ45BXPAFGGW6NAMRHO3LROM3422YUT :::: NAILARA AMOS :::
+# :: QTBHXX2FEA6DB7TCNWZ52DSXVJ7Y67CO5UC6635QCCGJCJH4PACY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

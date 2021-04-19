@@ -18,7 +18,7 @@ my $zoom_file      = "$cache_dir/weather.zoom";
 my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
 <[weather.base.check_dirs]>;
 
-if ( $reply->{'cmd'} eq 'ACK' ) {
+if ( $reply->{'cmd'} eq 'TRUE' ) {
     my ( $x1, $y1, $x2, $y2 ) = split( / /, $reply->{'call_args'}->{'args'} );
     my $tile_width   = $x2 - $x1;
     my $tile_height  = $y2 - $y1;
@@ -76,7 +76,7 @@ $station_id = undef if $city_changed;
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'nak',
+    {   'mode' => 'false',
         'data' => 'no city or station id configured or provided'
     }
     )
@@ -111,7 +111,7 @@ if ( defined $station_id ) {
 }
 
 #.............................................................................
-#P4PF26VNJDVVFMDVPLAM4ADT4W5VLZAXBAGQAPF7Q446NI2HNRO3RMFKL6FAECHP7LW246VXGJWVU
-#::: QK6VHR4S4J7LN7TSLTHV4QA24VYTVPREDICKOEPFSD4XLVW7QGZ :::: NAILARA AMOS :::
-# :: TTW5GARJR4ZZVFKNBIZBDBFJGPT63XQMOY5KDNWGFO3RMQFMEEAA :: CODE SIGNATURE ::
+#YOM6RIUL6TMDLLK62PJCLL4I7XSTDG3YUFHOR6TE2JYKCBL5642V5POXNZKWOVJZLEYYD4LQGJBUA
+#::: TFRIRRDJMY2Q3AZTBVPMK7BLI4ZV4NNU722BITDNFEKSBVCPZSB :::: NAILARA AMOS :::
+# :: BY4SNYY55HCQVR6DDXY46VIHRSQ55C5KFLDPXLXADH2GHBEZOYAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

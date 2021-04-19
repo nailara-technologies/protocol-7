@@ -5,20 +5,20 @@
 # descr = clear url flags for given playlist url
 
 my $url = $$call{'args'};
-return { 'mode' => 'nak', 'data' => 'URL expected!' }
+return { 'mode' => 'false', 'data' => 'URL expected!' }
     if not defined $url
     or $url !~ m|^https?://|;
 
 my $match = 0;
 map { $match++ if $ARG eq $url; } @{<content.file_list>};
 
-return { 'mode' => 'nak', 'data' => 'no such url in playlist!' } if !$match;
+return { 'mode' => 'false', 'data' => 'no such url in playlist!' } if !$match;
 
 my $clear_count;
 map { $clear_count++ if delete <content.url_flags>->{$ARG}->{$url} }
     keys %{<content.url_flags>};
 
-return { 'mode' => 'nak', 'data' => 'no flags were set for given url!' }
+return { 'mode' => 'false', 'data' => 'no flags were set for given url!' }
     if !$clear_count;
 
 <[content.update.send_notifications]>;
@@ -27,10 +27,10 @@ my $s = $clear_count > 1 ? 's' : '';
 
 <[base.log]>->( 0, "url flag$s cleared for '$url'" );
 
-return { 'mode' => 'ack', 'data' => "url flag$s cleared" };
+return { 'mode' => 'true', 'data' => "url flag$s cleared" };
 
 #.............................................................................
-#FCID5RKYREPCHVOT5E7ODN7GKKVLF44V6JFZMEJ2OOQOFATL6GNNMJ6OYCMZUYHYXS232JKP7L5PQ
-#::: YUUA5SIJQYVECP33KUFFC2XP4ODMKZI5WLIDKEGY3ONHINI27JW :::: NAILARA AMOS :::
-# :: GZRWDYBQGYVQJOPUHQX7B4QIWB76Q4S3D3C2XIS4M4MTFVRRYQCI :: CODE SIGNATURE ::
+#3P6BMW2PJR54E5EJUOCT4FN5NJUGUU6IOZAOIXLW66SHAHWV5VZNY6O227BM34YRQZBVFF6GZK7M4
+#::: FHLB3LAXUI372E6SPCXX6M3Z65NY3W5XUILDMGA6GGEUZQXO7QN :::: NAILARA AMOS :::
+# :: VQTSD4CCK2E2URXM4GACYLFX7TRMXYOAL2LGJQIUMR7X3G2EJ2CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

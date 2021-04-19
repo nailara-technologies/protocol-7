@@ -7,14 +7,14 @@
 my $skip_interval = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'autoskip timer already active ('
         . <mpv.timer.autoskip>->interval
         . ' sec interval)'
     }
     if exists <mpv.timer.autoskip>;
 
-return { 'mode' => 'nak', 'data' => 'expected interval in seconds (>=1)' }
+return { 'mode' => 'false', 'data' => 'expected interval in seconds (>=1)' }
     if $skip_interval !~ /^\-?\d+(\.\d+)?$/ or $skip_interval < 1;
 
 <[mpv.cmd.loop]>->( { 'args' => 'playlist' } );
@@ -28,12 +28,12 @@ return { 'mode' => 'nak', 'data' => 'expected interval in seconds (>=1)' }
 );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "timer started [$skip_interval seconds interval]"
 };
 
 #.............................................................................
-#CRJSP6YTOY7OMHHPB6F4IKWT3OPRKKZAPTNKS3AVBKJQBH3TXX3FPX2ZKEDDDLGI4KJNJBPX2WTUS
-#::: X5BVXTDUE5RYS6JQZ3WHMU2DIWFPIFGGHN2CN3OCAV5RTMEGUOT :::: NAILARA AMOS :::
-# :: RHRYHGURXKLQMTZRS2WSVQTV7ZRUIJMVIAP2KGQATIKGCTLUTEBQ :: CODE SIGNATURE ::
+#CVOWOPU564BDA7I4L73OLSD7KGEFSR5LHLFSYPUOSVTIM4VE6HL7NHQMQLTXUX46JKYRN4OEXD7ZK
+#::: 4YSU3F3HOBWDZXAWWLNBXGVCFFMQW6GEVLXTYD6NSVM44DR5ILB :::: NAILARA AMOS :::
+# :: 4AOJIOZVG2FLUMBBK7N7YLYLZAOEIADN5ZCFD35IKE6IM5BY7EDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

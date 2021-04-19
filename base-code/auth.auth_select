@@ -14,13 +14,13 @@ foreach my $available ( split( m|\n|, <[auth.auth_list]>->($id) ) ) {
 
 if ($success) {
     $data{'session'}{$id}{'auth'}{'method'} = $method;
-    <[net.out]>->( $data{'session'}{$id}{'handle'}, "ACK continue\n" );
+    <[net.out]>->( $data{'session'}{$id}{'handle'}, "TRUE continue\n" );
     <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
     return 1;
 } else {
     <[net.out]>->(
         $data{'session'}{$id}{'handle'},
-        "NAK not available, see 'list' command\n"
+        "FALSE not available, see 'list' command\n"
     ) if $data{'session'}{$id}{'counter'}{'auth'}{'select'}{'errors'} < 2;
     my $m_len = 23;
     substr( $method, $m_len - 3, length($method) - $m_len + 3, '..,' )
@@ -31,7 +31,7 @@ if ($success) {
 }
 
 #.............................................................................
-#BXYN2THK27PWKQBQKMYSZEEXFT4RRZN7FKLOQPTJKTKVB6NA43NQ44JGOHWAFJWRV7VP7MPXGV3WS
-#::: GVKQWMC6PUB6QPB6AFJ6BYBZSPUW7AKKL36M2PNBVLLS4JDQTCZ :::: NAILARA AMOS :::
-# :: LBNWMZ2VJURSTINUMPRFPTMNAVEOFQZNUSOTMR3GLNH6QC45DWBA :: CODE SIGNATURE ::
+#PEHP2JPTQ32I7R43E55LYJ3TKU7MT27U4QB72QQ3EQCJZ3MUU4ODKQEBUIS676YQHB3AMKYKJ7OYC
+#::: 2NIISPFS6R4ROCOOXFDLH43TWCKDCUHHVWII5XNCBRPFDJ6ZRRU :::: NAILARA AMOS :::
+# :: PMDEUFE62VK7GKCJ45FZ5YYTIG2GORSG2NY4YQ4E5J763XD6TUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

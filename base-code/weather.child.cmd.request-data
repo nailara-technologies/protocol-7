@@ -14,20 +14,20 @@ my $count_days    = <weather.forecast.count.days>;
 my $next_midnight = <[weather.base.tomorrow_unix]>;
 
 #return {
-#    'mode' => 'nak',
+#    'mode' => 'false',
 #    'data' => "500 test fail"
 #    };
 
-return { 'mode' => 'nak', 'data' => "station_id parameter required" }
+return { 'mode' => 'false', 'data' => "station_id parameter required" }
     if not defined $station_id or !length($station_id);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "type parameter required [current|hours|days]"
     }
     if not defined $type or !length($type);
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "invalid type parameter [current|hours|days]"
     }
     if $type !~ m{^(current|hours|days)$};
@@ -48,7 +48,7 @@ my $status_str = length( $status_code // '' ) ? " < $status_code >" : '';
 $status_str = " [ unknown location ]" if $status_code eq '404';
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'query failed' . $status_str
     }
     if not defined $json_data;
@@ -105,7 +105,7 @@ return {
 };
 
 #.............................................................................
-#XGXVM4HZZBNTUCOLFIC56UYPFDEDMCXW2FYCKDOQF547JGW5BZD4Q35CRSCFWCEYZ6SAD4MXAATRM
-#::: KEWCV5ZG3BF6VBMIWKTTJFHJSR72W37TGCRB2JZZPSUAMKWSDU4 :::: NAILARA AMOS :::
-# :: RM4TZVFEZSUPDQ5QOGMSPRCYI7BW2BUO4C3X2T4A5HRSZGLMMUDQ :: CODE SIGNATURE ::
+#ZC5J6I4TLTUHMT3SQBBW5ROPYCKYVMFQLBAOY4OPGFIL5CTB2LA56ZDRNWORZAGTS6AK5IMR5J5MO
+#::: SXKZV5KXZJGNGHFEWITLYM5MVHQJ456JP2IOACPLS7SZ22CURQP :::: NAILARA AMOS :::
+# :: TKF6OLVVUOHHTN5AUUGTC4AIAIVTW3ANMOAGP73277CMSNW5YGAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

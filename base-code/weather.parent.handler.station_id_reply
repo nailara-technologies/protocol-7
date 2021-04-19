@@ -9,7 +9,7 @@ my $station_id;
 my $shutdown  = 0;
 my $term_wait = <weather.cfg.term_wait> // 7;
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
     <[base.log]>->(
         0,
         "unsuccessful station id request [ "
@@ -28,7 +28,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
     foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'nak',
+            {   'mode' => 'false',
                 'data' => 'unable to get station id'
             }
         );
@@ -83,7 +83,7 @@ if (    defined <weather.get-urls.reply_ids>
 }
 
 #.............................................................................
-#LGZZPJKRX2MRQ55TF22DM4FIFDD35KB7EIYHKHQU27ADGBNST6NCZESYJB2P7JDMMSITSKAD4LMZU
-#::: LH2OKVO2FSRNOQ3CNXRTVHPPSQQJWID6JDRSVMCY72CZN4JDNXT :::: NAILARA AMOS :::
-# :: NEJDG55T7OBPJL6D4CWIM63MZX5GEI2TAB7SDOYZFM6DLIZKFIAI :: CODE SIGNATURE ::
+#6ICATOCXO47G4A6SFCTJN3ENHV2TMSBK5AULOMWZ6MFLVAGNYHNQMUDIMOKJPWJM35ZJAZUXUI5RE
+#::: CAB5XNEIZGJUE6BHDNFWWAFP7HE46OEESC5ZBYBWTRLVDLIKWWE :::: NAILARA AMOS :::
+# :: CQMWEYOTM24REF7WWNQ2AKHAIIHP5TW6FUDR4CHMPMKOY6PW66DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,11 +6,11 @@
 
 my $instance_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'instance id parameter expected' }
+return { 'mode' => 'false', 'data' => 'instance id parameter expected' }
     if not defined $instance_id or $instance_id !~ /^\d+$/;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "instance not found [ use 'nroot.list' to see IDs ]"
     }
     if not exists <nroot.zenka.instance>->{$instance_id};
@@ -26,7 +26,7 @@ my $count = kill( 5, $zenka_pid );
 );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "sent SIGTRAP to instance $instance_id,"
         . " process $zenka_pid [ loads dbg mod ]"
     }
@@ -35,12 +35,12 @@ return {
 ## else ##
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no success sending a signal to process [PID:$zenka_pid]"
 };
 
 #.............................................................................
-#HNO6T5DZJQXSRBLV2VJ5IA2OI3BAB54YAXY33EXE3NEHPT5MOWNAIPED5DFTNEL6LBYSD43G5TCZE
-#::: FDZSF7SV27XBXHDRFSSEOHHMJMHDPFM4IGAY7ZYX5WNKMNZMGRQ :::: NAILARA AMOS :::
-# :: ZBLM45SKSP3SDYX4BFZFZ3FONIUASWQUDRFDY433W6BU4DAGVIBQ :: CODE SIGNATURE ::
+#WDETXZ7N6H4MGT2ES35UKOVIWSRL7TARZPAQ5656SKMDTZIOKFQQHFDINZQXMVZB5OASTAOLLDQT6
+#::: SBBZNKZ4CTIM4347C7QBMYLLY4JKBTRCXEVBYCF5DDDI5BPOPUI :::: NAILARA AMOS :::
+# :: JJ5TYTHKLUDZP4H3JV7IKPOPSR7YRYQ4BG66ODRUQFVB3ZOFYUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

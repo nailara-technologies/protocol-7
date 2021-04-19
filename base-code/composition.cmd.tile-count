@@ -13,16 +13,16 @@ $err_str //= "\<composition.current_tile_group> not defined"
 $err_str //= "no setup found for composition '$tile_group_name'"
     if not exists <composition.setup.tile-groups>->{$tile_group_name};
 
-return { 'mode' => 'nak', 'data' => $err_str } if defined $err_str;
+return { 'mode' => 'false', 'data' => $err_str } if defined $err_str;
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => scalar
         keys( %{ <composition.setup.tile-groups>->{$tile_group_name} } )
 };
 
 #.............................................................................
-#OB7OO6FOML767LWUGUUUZTRMAII6C2S7KHDBLG2M4ELWSJFLD2NTOIAMEFM2JTB6OURSHWJ2HQVJA
-#::: FNGWDEJ4C5YLQUGLGLVYNMWETMJZ3CHLNJL5SULD7RY4Y5UK6PW :::: NAILARA AMOS :::
-# :: XXNOX4AOZ7FMV4AWGSVSC5ZORQCUVS3QYT6EXF2JUFUKD6GHCKBA :: CODE SIGNATURE ::
+#TYOHI33AE5OIAB5X52UAYKUP2NCBLWIGBO2GQGX6INTOKHS7OAZWYGRSV6OZQSOXLWOORDSCMWUMI
+#::: C6PH4XBJDZ6U7J4RUPZLAMOEQ6NTOOIONX6TP4G4SOQNTZDVB2K :::: NAILARA AMOS :::
+# :: KOCT5NF5CAIPNTEWDJITEF7HCRJ2YF7ASC4RDJLQIQJIDA6VFGAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

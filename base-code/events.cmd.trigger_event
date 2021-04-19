@@ -7,20 +7,20 @@
 my $event_id = $$call{'args'} // '';
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'numerical <event_id> parameter expected!'
     }
     if $event_id !~ /^\d+$/;
 
-return { 'mode' => 'nak', 'data' => 'no such event configured' }
+return { 'mode' => 'false', 'data' => 'no such event configured' }
     if not exists <events.timers>->{$event_id}->{'at'};
 
 <events.timers>->{$event_id}->{'at'}->now;
 
-return { 'mode' => 'ack', 'data' => 'event timer triggered' }
+return { 'mode' => 'true', 'data' => 'event timer triggered' }
 
 #.............................................................................
-#MB7TNMNLGPBVZQQXNRTAN75TWSXCC563NEC6M4N3KKD3S453GZMD2H5U35FTX26OUSJTVZJ2CLV3O
-#::: 6MX7NJAFZ6QIJWE75QUP6MVQIMYSFMRDIZQ7LVCZHXGYNJYBDJJ :::: NAILARA AMOS :::
-# :: 3CCBRCOHKHDXWC3M37W5UX3L2DSSCKYGKJPURMFGZIMIRDRZN4BI :: CODE SIGNATURE ::
+#DEJOJVHQ6O2KNK32JOJIGJOUSYEQSF53YGYRRKWFZALHOFBHTHDXTUDZOHYF62VEBTZH4CSNFIGS4
+#::: LHAXITJZ7UDVHC757WOTS7QS7UNEHM2EIVDE4TBYVULM3QXTIJ2 :::: NAILARA AMOS :::
+# :: 4B72M44CLW4HADDSUBB6BYCBWSTDE3YJS2FNZDKODVPZLKGEA2CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

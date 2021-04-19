@@ -8,7 +8,7 @@ my $user = $$call{'args'};
 
 my $usr_re = <regex.base.usr_str>;
 
-return { 'mode' => 'nak', 'data' => "'$user' not a valid user name" }
+return { 'mode' => 'false', 'data' => "'$user' not a valid user name" }
     if defined $user
     and $user ne '*'
     and $user !~ m|^$usr_re$|
@@ -28,7 +28,10 @@ my @mapped_users;
     if defined $user and $user ne '*';
 
 if ( defined $user ) {
-    return { 'mode' => 'nak', 'data' => "no permissions set-up for '$user'" }
+    return {
+        'mode' => 'false',
+        'data' => "no permissions set-up for '$user'"
+        }
         if not defined <access.cmd.usr>->{$user} and not @mapped_users;
     my $max_len   = max map {length} ( $user, @mapped_users );
     my $reply_str = defined <access.cmd.usr>->{'*'} ? '' : ":\n";
@@ -81,13 +84,13 @@ if ( defined $user ) {
 
 } else {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'no access permissions have been set up'
     };
 }
 
 #.............................................................................
-#GS3DJ3LUFWRGAKAR4O3RTDKLCG3EYS75TU6RSOWPXWSU4RHZ5ZXSL5AN5WUFZKPCY3NRKJI2OGBRM
-#::: 5MUHOUA7Z6TKPAKQM5SVOK6CISQ6TD4QGGUSE3H2SDC52NG7QFJ :::: NAILARA AMOS :::
-# :: MTTK246JT5WSNWMVDBANCLOACQEZ75NJ6NTZDWN7T2RNEGPKZICY :: CODE SIGNATURE ::
+#4A2KAACUYCIVJ3P64DL2PFW6EK4WVTTJXWMCDZNU5W3XJ6GFUBPAU4JTLAMOWXKN2KVR53XQDRFTA
+#::: AQP2PXNL4NSNDADICL6BCZ6LJQXWQMHJW2OBT33QHTYJ6SGFNN6 :::: NAILARA AMOS :::
+# :: JHHNAKALUCFD46D7JOJMT5D22RRI4TLM3M6RKDWFVO6N7VNME4DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

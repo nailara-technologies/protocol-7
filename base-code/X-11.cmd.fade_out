@@ -9,13 +9,16 @@ my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
 
 ( $duration, my $fade_limit ) = split( /:/, $duration );
 
-return { 'mode' => 'nak', 'data' => 'fade out duration in seconds expected' }
+return {
+    'mode' => 'false',
+    'data' => 'fade out duration in seconds expected'
+    }
     if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
-return { 'mode' => 'nak', 'data' => 'window <id(s)> required' }
+return { 'mode' => 'false', 'data' => 'window <id(s)> required' }
     if !@window_ids;
 map {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'invalid window id syntax [ not numerical ]'
         }
         if $ARG !~ /^\d+$/
@@ -32,7 +35,7 @@ my %all_windows = map { $ARG->id => 1 } @{ $xtops->sorted };
 map { delete $fade_windows{$ARG} if not exists $all_windows{$ARG} }
     keys %fade_windows;
 
-return { 'mode' => 'nak', 'data' => 'no such window[s]' }
+return { 'mode' => 'false', 'data' => 'no such window[s]' }
     if !keys(%fade_windows);
 
 map {
@@ -41,7 +44,7 @@ map {
     }
     keys %fade_windows;
 
-return { 'mode' => 'ack', 'data' => 'fade out complete' }
+return { 'mode' => 'true', 'data' => 'fade out complete' }
     if !keys %fade_windows;
 
 <X-11.fade_out> //= {};
@@ -66,7 +69,7 @@ my $fade_interval = sprintf( "%.4f", 1 / $fade_fps );
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#4LPOJVOVLC4L34J2NFNRMHFCSJA67DY7TPKPSXP6J5MC6SNI7KQQCCE4GS6ZM426JGHN52BQLO33Q
-#::: UPKUNTJNSJ4AILSDREZHYGBWG2TS7LUKQBDXCRL5V2BKKNFKNIT :::: NAILARA AMOS :::
-# :: WNTAK772SERVRNWSJQTMKD2JU6I7SGNOIYAQUPLNQTMS4DHOX2CI :: CODE SIGNATURE ::
+#U2NPGWD45RAPBSM7XZGBGIOJMQSPONIRES2HNSBE33M25TAXRWX4IH24EBAT3NYARA6PQGQMIFH4G
+#::: TI6Z4U77PPVZ7JXBMIVCYSXNSOJ3GY7RKNBERCRV3KOGE5L2DO4 :::: NAILARA AMOS :::
+# :: JNUCFSUE6X2IC56GIFTGCTVGMSR66GVXFAD4OMP35ICNWD3GQWBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

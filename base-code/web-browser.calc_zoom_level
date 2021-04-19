@@ -25,13 +25,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     <x11.screen_width>  = $1;
     <x11.screen_height> = $2;
     my $base_width = 1920;
@@ -58,7 +58,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#25W5FH5G7ARDN4RKQ7PD43FDRF5ICXL3F3RWC3PJZJ43RQLW43TU4EF3IFYG5MO43R4PBGW327ZM4
-#::: MVO3L3DTV2R22GTIWVQTLUYGLIBRY3QFRHFCHFW7PDJ6FLKVQVT :::: NAILARA AMOS :::
-# :: LWXQF4X4SY4LUJP73KPMTIKNFA7FBBHIZRFZB65IPEDJJS7YMIAY :: CODE SIGNATURE ::
+#X5XDZGYLDWN6RMXRRQSK27ZVPKGV2ZZP6GZSNMS2Y2YS7FXHP6LUQP5JVK5A67NBJ6OWOQSDN4K4K
+#::: NERBGZ36ULTOETNKGTFUNL5YHXMK467HTRENXXYMSDKZHQCR7WL :::: NAILARA AMOS :::
+# :: EHLEWAVBEXBN52KDKW3GUZG7RIIM2CT3A2GZSYLSY526BDTV32AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

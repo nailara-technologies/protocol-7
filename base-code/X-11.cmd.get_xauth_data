@@ -4,21 +4,21 @@
 # descr = return authorization protocol name + data
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'no authorization data has been set up.'
     }
     if !length( <X-11.obj>->{'authorization_protocol_name'} )
     or !length( <X-11.obj>->{'authorization_protocol_data'} );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => join( ' = ',
         <X-11.obj>->{'authorization_protocol_name'},
         unpack( "H*", <X-11.obj>->{'authorization_protocol_data'} ) )
 };
 
 #.............................................................................
-#QWMTQ2GINCOBTKZRFB2RO533PEOGW5S62H6Z6UY35RGUJZZ32GCOMQEC5WRJQSYRJQR76GBJZKRHS
-#::: 7AKMR5LUCSZ7PR5AICDORM2QFUW36LP2L2Z7P62L6IY45U4ILGY :::: NAILARA AMOS :::
-# :: 5IHSNJZSKG3K4P5LSVMV6I2Z62EQFDPA2REROUOD6NOMMTBHCUDQ :: CODE SIGNATURE ::
+#5WZSNTQQCQC7R3ZAO2L24KIMAAR62UGWNAQ2M2IGPF45O6EB2R2D3WLZWKBWX4YLHQGAAX4K5VQNQ
+#::: L6C6J7TYYTNOFAKYPM5OLICOBRKB7QF2ZSHORWLXEVHXRYY4VPG :::: NAILARA AMOS :::
+# :: KQ24P5OE3EYO2LIEYVL75PP6IAEPWIKIKPA374VR32OW5HTRWKBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

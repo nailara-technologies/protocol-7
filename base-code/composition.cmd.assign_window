@@ -17,7 +17,7 @@ if ( defined $err_msg ) {
     my $source_str = defined $source_name ? "[$source_name]" : '';
     <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $err_msg
     };
 }
@@ -40,7 +40,7 @@ if ( not defined $tile_name ) {
             "<assign_window> multiple '$source_name' zenki [ no tile name ]"
         );
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' =>
                 'multiple zenki with that name (and no tile name provided)'
         };
@@ -80,7 +80,7 @@ if (exists <composition.window_ids>->{$zenka_name}
     <[composition.sort_layers]>;
 
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => 'assigned'
     };
 
@@ -88,13 +88,13 @@ if (exists <composition.window_ids>->{$zenka_name}
 
     # [LLL] refine message [ reason ]
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'unable to assign!'
     };
 }
 
 #.............................................................................
-#YA6IPV7P7OQGX3IY5BYCFXZMHTEG5EF3TW3QRFTOIVWT64O4FETYMA6NYCJAFJNRHGLNCDPX23IKY
-#::: MKPSM3K6HWGM4P44B64UDDKRSG75PHFJIXLEIPCOSKHGXY36LMW :::: NAILARA AMOS :::
-# :: 4UCAV67IREGPT7HIGACAMJZFROUVHJBXVOUF4XORMORPXJGFH6DY :: CODE SIGNATURE ::
+#YPLEEKGSP3MIASY4K5MDOSGQP4QFE7DICWYXDLAQP6RWSLDUBHYV4MCOAU5U3LOA3KGORRMORPRFQ
+#::: LKDVUPB75HF4V5NZ4SDBDG723SIRY6W5MEQRCLASHZFWKKMENV3 :::: NAILARA AMOS :::
+# :: TOVKDE7XF3NO54A74PPPQUMZG3ASCYWAWLFD5TUXWLKZLONHTKBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

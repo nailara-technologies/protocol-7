@@ -11,7 +11,7 @@ my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected zenka name or instance parameter'
     }
     if not defined $query_param or !length($query_param);
@@ -26,7 +26,7 @@ if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
         $query_param = $instance_id;
     } else {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "unknown job id '$job_id'"
         };
     }
@@ -43,7 +43,7 @@ if (    not defined <[zenka.get_id]>->($query_param)
         ? "no such zenka instance [$query_param]"
         : "no such zenka in setup [$query_param]";
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $rep_msg
     };
 }
@@ -53,12 +53,12 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     my $prog_pid = <nroot.zenka.instance>->{$id}->{'process'}->{'id'};
     if ( defined <nroot.zenka.instance>->{$id} ) {
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => "zenka instance '$id' already online., [$cube_sid]"
             }
             if <nroot.zenka.instance>->{$id}->{'status'} eq 'online';
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => "external program instance '$id'"
                 . " already running., [PID=$prog_pid]"
             }
@@ -75,13 +75,13 @@ foreach my $id ( keys %{<nroot.zenka.instance>} ) {  # zenka name [ +subname ]
             or <nroot.zenka.instance>->{$id}->{'subname'} eq $zenka_subname )
     ) {
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => "zenka '$query_copy' already online., [$cube_sid]"
             }
             if defined $cube_sid
             and <nroot.zenka.instance>->{$id}->{'status'} eq 'online';
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => "external program '$query_copy'"
                 . " already running., [PID=$prog_pid]"
             }
@@ -96,7 +96,7 @@ push( @{ <nroot.zenka.notify_online>->{$query_copy} }, $reply_id );
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#JITT5VG6AITWWSXVZN7NOB6EVB74CPJMDSJG3BBFWXFTMT6P5W2YSFIY7P37FMT3QWVABMWIY7U4G
-#::: 2RVFQPURECSHHVC7EUSVLBJMBWUFE6K4DACACJ2K56666JQ2KBF :::: NAILARA AMOS :::
-# :: R6NJONY5XZV3HL7VBNTMDQT6UNZJCRGRF2ROCG4DWUZT63LOYUBI :: CODE SIGNATURE ::
+#N2TFIEXV6JGNFGIRBC7JSGXWTFJ3HPY6CRZU5TBQ7PWSFBQSMI2JPOHYXW2L2XCWC6OL7QSJLDH2G
+#::: OGYLPYCPCTRLVENIBAEYUBCE7B4MJ26MLFAMD26VDGLYGAFZ3KA :::: NAILARA AMOS :::
+# :: XJYPRMQBRPBTDAPIJZK5URSYH3NOY4YYCNTXQ2633EDHGNCNTKDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

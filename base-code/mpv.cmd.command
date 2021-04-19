@@ -7,9 +7,12 @@
 my $cmd_str
     = $$call{'args'};    # LLL: implement parameter quoting instead of '!'
 
-return { 'mode' => 'nak', 'data' => 'expected mpv command' }
+return { 'mode' => 'false', 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
-return { 'mode' => 'nak', 'data' => 'requested command matches blacklist!' }
+return {
+    'mode' => 'false',
+    'data' => 'requested command matches blacklist!'
+    }
     if $cmd_str =~ m,^\!?(run|hook|subprocess),;
 
 push( @{<mpv.reply_ids>},     $$call{'reply_id'} );
@@ -25,7 +28,7 @@ if ( $cmd_str !~ s/^\!// ) {
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#VP7BSMD2S33KOH3BIKIPLQKB7ATKKGG45POOJOZB7XNYXV6U5IZYMNGMJ2LYS7V3QQZNHJMN2N7DO
-#::: LV2PB4C2B2PV5Q33T4U3BW6WUR2NH7KLAK643XMGWPCUG3A6UBP :::: NAILARA AMOS :::
-# :: NKO3VS44P7Y5644RLIYGISUSA42EI657FLW5SSJKUWCGXBNJHKBA :: CODE SIGNATURE ::
+#4QFBCZTMDHS4HXUPRA2IKDY3UAFC2GYLB33TZPSWPK7TCFPNWJA6Z7PMC2CZNQ54AOOJ4E6V3744U
+#::: RDUEHAADNI5EEBPGOTR5FWV2PPIWHAQYMA7U7BZUPBEOVH5WC26 :::: NAILARA AMOS :::
+# :: WRQJ5TEAZ74MQ4IEJQVLSPZ6YSZ7IFQYYEADLFYNLJDTHFYMGICQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

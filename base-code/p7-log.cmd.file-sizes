@@ -8,7 +8,7 @@ my $name_pattern = $$call{'args'};
 
 my $system_name = <system.host.hostname>;
 my $reply_str   = sprintf( "..%11s\n", '..' );
-return { 'mode' => 'nak', 'data' => 'protocol-7 log directory not found' }
+return { 'mode' => 'false', 'data' => 'protocol-7 log directory not found' }
     if !-d <log.protocol_7.path>;
 
 $name_pattern = qr{.*/$system_name\..*\Q$name_pattern\E.*\.log$}
@@ -64,7 +64,7 @@ $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#Z7F3IUR6Z2HWSZBQPYOOSV5G647QMX73674BYN42A6LL65L6GJ5RBSZFLDWZCUNC76XRS2TDTIE3O
-#::: UHNFF56OSWIUYKZOJVFSFZ6VZBQHFSW33JHMSAYMOOZIIOAZYPN :::: NAILARA AMOS :::
-# :: XNUPL236BFKG5WUQWYDYWPVSJHBILU7Z2RDGEZDUQP4HRMZGI6BA :: CODE SIGNATURE ::
+#LANRG6CAG6RO5A2VFHJBJAMVHWDZRLBOJ4JMUAEC7ARLZL74QG2TOM74RNS22RXI2RREAUEEUGMBU
+#::: QXOIYT4PR7SWPKMVT6YMJIJ2QRCZ23PLZT5VJ62TTBK2CWFPE3K :::: NAILARA AMOS :::
+# :: XTEBEZNNHRWRE5AIWIPE5WKROPSB3FZBISZXOBPTUQSC5UQEYSBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

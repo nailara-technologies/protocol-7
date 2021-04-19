@@ -4,7 +4,7 @@
 # descr = return current local cloud coverage in %
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'no city selected (undefined station id)'
     }
     if not defined <weather.station_id>;
@@ -13,10 +13,10 @@ my $stid   = <weather.station_id>;
 my $clouds = <weather.data>->{$stid}->{'current'}->{'clouds'} // 'n/a';
 $clouds .= "%" if $clouds =~ /^\d+(\.\d+)?$/;
 
-return { 'mode' => 'ack', 'data' => $clouds }
+return { 'mode' => 'true', 'data' => $clouds }
 
 #.............................................................................
-#DWP5O6LLGVLHK5TRPFMY3VAO7YOMW2HQMTU7G6HGUJJOOLUAEAJS5CUAQIZTQ2GFYQM6QIKKEFDR4
-#::: DW6LUUJCHC4UBIUM3F26URWH2MADFZRY3VMLRMMQUURZMGIKOFE :::: NAILARA AMOS :::
-# :: C33A674GPK3NTLKF2WSAL3UHMXTEGZ55CMR5W5C2Z4J6BXJBUWAY :: CODE SIGNATURE ::
+#ZKWSQNLEYTCVOZLPJCTKWMLY26CNFKUGMIXJJ2CYTARIP2BFZTHO3H6M7ERVDGA2RUOQALKGGC45U
+#::: BBFGTDC6NPLW7MRJJDYKGATHOKXCBCGZWJPSQYI2RVPUT253HAZ :::: NAILARA AMOS :::
+# :: QDOK4JX3KXA75SXW5TQQMNDB6GIJ4VA6CYEJOTNLZKOJKNFPR6BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

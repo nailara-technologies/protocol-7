@@ -7,9 +7,9 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -23,10 +23,11 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'false', 'data' => 'no such window' }
+    if not defined $window;
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => unpack(
         "I*",
         [   $X->GetProperty(
@@ -38,7 +39,7 @@ return {
 };
 
 #.............................................................................
-#BXYHVUCHNV5G2L2SMJCNOK3GXHU344AU2J3SK5OPWYMMOGUU7FC2XO7QANHHQ5NI4SCFORRBLP7WC
-#::: 7VG22QI7VESXD2EFYPXSR3PJBNQE32MXGSJI3ICSVK456RC6AGX :::: NAILARA AMOS :::
-# :: 5TMC2IKOQRADXIGBCCOJAV6GLKA4LEIUHH6VJYXJW3XO43ITKQBY :: CODE SIGNATURE ::
+#BUV6XJH2AQHNB5OTJXUUSFFLF27YMYPARRRUK4TNDOG3QQANHG5AWINYSHZMKF3FVKNQ32T5IG3RW
+#::: B5WSGAVZ5PPKQX6HDFJRIA47U23XJ65VEZQ6PEVCES4HIUUDDVS :::: NAILARA AMOS :::
+# :: EMUJA6D7TGKAQQQCSROETHUCA4DNHJ6BUVGMGCP2LRPHGRHNNGBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

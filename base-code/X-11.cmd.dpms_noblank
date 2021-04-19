@@ -3,7 +3,7 @@
 # name  = X-11.cmd.dpms_noblank
 # descr = deactivate screen blanking
 
-return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
@@ -16,10 +16,10 @@ my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
 <[base.log]>->( 1, "manually deactivated DPMS blanking (T=0s)" );
 
-return { 'mode' => 'ack', 'data' => "display blanking disabled" };
+return { 'mode' => 'true', 'data' => "display blanking disabled" };
 
 #.............................................................................
-#5ONF5Q4F6BFNJ6KQX76H5VUSTJKGIHXPWFTALXEW7YIP7ZPEGB6TYC2LEUDEXZMMR3RJTLUR6MIHW
-#::: 5EYQ76XUMXNWOJOLIQFOPP334ROGFU3HEH2SW3SP4FNNJWXQSME :::: NAILARA AMOS :::
-# :: OWA4WVFR7IFFCUZTANQ6TSWECZUDCMOGK2HKZ6S7PYNV3RPEQSAI :: CODE SIGNATURE ::
+#GFGED4JMCL54OEJAP3USWJNJ2RBSIDR7DJ2YNH26Z5SNYWFYUNDFH6AHUMM52MKGOW5NDDOG2CZ7K
+#::: TXYL5WMARK4AXQUXWIAOROEBJJYWJ2HSHDGCGOXPIVSZFQ6DZLK :::: NAILARA AMOS :::
+# :: QH2XBAAPAMMXPWDUM36HJLWUVDLTLSZANG4RAQF3Q3M3OXWBZOAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

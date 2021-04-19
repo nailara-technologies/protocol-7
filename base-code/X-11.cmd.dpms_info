@@ -3,7 +3,7 @@
 # name  = X-11.cmd.dpms_info
 # descr = return DPMS status and power mode
 
-return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
@@ -22,10 +22,10 @@ if ( $t[0] == $t[1] and $t[1] == $t[2] ) {
 ( my $power_str = $power_level ) =~ s|DPMSMode(\w+)|uc($1)|e;
 $power_str = "power mode = $power_str";
 
-return { 'mode' => 'ack', 'data' => "$dpms_str, $power_str" }
+return { 'mode' => 'true', 'data' => "$dpms_str, $power_str" }
 
 #.............................................................................
-#XMWRTNA2BUYL2TEB64UZ5FZEBQ4DSCKECVSGU4BX3DEWCGP6XMJFVPCZA7NEFR55LWOBV2HU2WE5G
-#::: 7BVTHCZOXAZBKGSPYNU7MIKNYGELREN7JAR4WREFUBXBB4NW5FX :::: NAILARA AMOS :::
-# :: 4JOXFTXFX36VIDF4FJKOVQHTMFVEQZ4YLNMBTLATO5S7ZN4ZJYDA :: CODE SIGNATURE ::
+#G3ZIMKJVTIUOGQGYLJ4ST7LDYAVLI232O5MXGOXTTJ5EJBA2MFA57P5O2U35PJTB5COLGXCZJT4QG
+#::: YJR7YB5LXO265EHEYO7GOINBDZX7FB4N6GLM5LAOIRZF4MPNASV :::: NAILARA AMOS :::
+# :: TRRS2OCYCMFXYRCF543J75NOXAAPV3CDPNFLOHR5LKB46IV7GCAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

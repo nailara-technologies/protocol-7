@@ -11,7 +11,7 @@ $err_msg = 'no read permission on file' if -f $file_path and !-r $file_path;
 $err_msg = 'no such file path exists'   if !-f $file_path;
 
 <[base.log]>->( 0, "[$sid] $err_msg [ $file_path ]" )
-    and return { 'mode' => 'nak', 'data' => $err_msg }
+    and return { 'mode' => 'false', 'data' => $err_msg }
     if defined $err_msg;
 
 <ticker-gtk.content.chksum> //= '';
@@ -19,7 +19,7 @@ my $content_chksum = <[chk-sum.bmw.filesum]>->( 224, $file_path );
 
 if ( $content_chksum eq <ticker-gtk.content.chksum> ) {
     <[base.log]>->( 2, "content unchanged, update skipped.," );
-    return { 'mode' => 'ack', 'data' => 'source content unchanged' };
+    return { 'mode' => 'true', 'data' => 'source content unchanged' };
 }
 
 <ticker-gtk.content.chksum> = $content_chksum;
@@ -42,10 +42,10 @@ if ( $content_chksum eq <ticker-gtk.content.chksum> ) {
 
 <[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
 
-return { 'mode' => 'ack', 'data' => 'ticker display content updated' }
+return { 'mode' => 'true', 'data' => 'ticker display content updated' }
 
 #.............................................................................
-#AIHELVIPPRZI57QT4UPXCJS5AER63TQP3QRL4RUCP66RTTPRMB4WL4HXQYFVLVWTQSTAHCEA7RTUC
-#::: RJBETTLZKHCJXWQYJNXCWRNSQGZK52LLMOP65UCEGDDCR4VHQ5R :::: NAILARA AMOS :::
-# :: 3ZLXCZZAXRILMNG35Y7RJNLL7RKEIOPECVMCL5A6I4WGBH7ZEWCY :: CODE SIGNATURE ::
+#SHA47IQ5GB24SGLMWWY6FCTXNTOBHJXNNPW6QAG2VOYSMADUAVUTWOXJMNS7RHFH25YJG7BQVJKNI
+#::: ZYILCXSVSRXRNAFYUU3QXK3SYC7DWDOEFYWWMBKMJI3PAGKL556 :::: NAILARA AMOS :::
+# :: IU2URYH2BFWCZSHPMNR47YQKLR6FRY35QDX75XZHTQPWXSL7BIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,7 +35,7 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
 if ( not defined $reply or ref($reply) ne 'HASH' ) {
     $reply = {};
-    $$reply{'mode'} = 'nak';
+    $$reply{'mode'} = 'false';
     $$reply{'data'}
         = 'error during command invocation [ details are logged ]';
     <[base.log]>->( 0, "[$session_id] cmd ['$cmd'] err [ href expected ]" );
@@ -49,14 +49,14 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
             . '-reply attempted '
             . <[base.caller]>
     );
-    $$reply{'mode'} = 'nak';
+    $$reply{'mode'} = 'false';
     $$reply{'data'}
         = 'error during command invocation [ details are logged ]';
 }
 
 # check answer mode
 
-if ( $$reply{'mode'} =~ m{^(ACK|NAK|WAIT)$}io ) {
+if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $$reply{'data'} =~ s|\n|\\n|go;
     $$output
         .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
@@ -72,7 +72,7 @@ if ( $$reply{'mode'} =~ m{^(ACK|NAK|WAIT)$}io ) {
 delete <base.cmd_reply>->{$reply_id};
 
 #.............................................................................
-#6FQC7QXU56TGVVWSSFYQVIISB5A2ZUZJX6GQNJ746HF2HM6XCIFW2FB2QREBZ7CICXFDLRDEJORQ4
-#::: H6MBGJECNOJQTM7IVDZ3MSOBXYAYTJ7HA2LC4UXXIZC6M46N6GH :::: NAILARA AMOS :::
-# :: SCLLSIMACNTMYGEILB6R3U5J5U7ADS2YUG2BJ7AMEZNDKHEPXIBI :: CODE SIGNATURE ::
+#UWIM7HIQUS4BVUV65J2Z424FIHDNAIIS24ELN53CBLF3MKV4P46MTAIEKQ7PNY2RYCT2VQVE7AL6I
+#::: J3BNYTQCHC7DR4OJOAJQ3BI4TCFU2PODILKBUMFDEEVB4NADPFN :::: NAILARA AMOS :::
+# :: EHFVOCHFU32RKXQXEXOAD7AZJ54GTESATT4PSM6JLJZRWS5AMECI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

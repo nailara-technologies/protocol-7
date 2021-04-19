@@ -8,10 +8,10 @@ my $param     = $$call{'args'} // '';
 my $cache_dir = <weather.cache_dir>;
 my $city_file = "$cache_dir/city.current";
 
-return { 'mode' => 'nak', 'data' => "cache dir '$cache_dir' not found!" }
+return { 'mode' => 'false', 'data' => "cache dir '$cache_dir' not found!" }
     if !-d $cache_dir;
 
-return { 'mode' => 'nak', 'data' => 'parameter not recognized' }
+return { 'mode' => 'false', 'data' => 'parameter not recognized' }
     if length($param)
     and $param !~ /^(html|data|stations)$/;
 
@@ -33,10 +33,10 @@ map { remove_tree( "$cache_dir/$ARG", { 'keep_root' => 1 } ) } @subdirs;
 
 # LLL: update weather data and files... ; clean up weather data in ram..,
 
-return { 'mode' => 'ack', 'data' => "weather$which_str disk cache cleared" }
+return { 'mode' => 'true', 'data' => "weather$which_str disk cache cleared" }
 
 #.............................................................................
-#AMGBB7TWCSMX3FBMZTWJTB4ENRTMXUDSEX7XEE4GCMM37KLWCCAPAPU5Z2SWXTBKYOWQLM6Y3XBMI
-#::: NM7MXNFISU5O7QQ63JDKJLEH6MLJSGHQSIAHYLR22MPY3CC233T :::: NAILARA AMOS :::
-# :: B7RYZVWAFSGNYGC7CDEFYJ3NOBBCMTJ5UYIXEPFH4ZSTKRYBXEBI :: CODE SIGNATURE ::
+#UVPIKMX7XM4SL623QP2PVUAVR7CXQ4M3M7KGMVLUL3HP43HI43TLMTFE3UM6GA5GVL5T4AQG4QRA2
+#::: TXSIJG6NVGQGCME2KG6DMWUXR6LCISKCHCBWSHB7MWCX7C7XVRS :::: NAILARA AMOS :::
+# :: UTS5ZHJTGC2GNDP5KVURVVQBCFPX5AMDHVE64BR3RA4OLRHRSCBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

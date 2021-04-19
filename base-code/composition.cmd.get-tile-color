@@ -7,7 +7,7 @@
 my $reply_id          = $$call{'reply_id'};
 my $get_color_command = 'cube.screenshot.get_region_color';
 
-return { 'mode' => 'nak', 'data' => "expected valid tile or zenka name" }
+return { 'mode' => 'false', 'data' => "expected valid tile or zenka name" }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
 my ( $source_zenka, $zenka_name ) = ( $1, $3 );
@@ -26,7 +26,7 @@ if ( $zenka_name =~ /^\[([^\]]+)\]$/ ) {    # <-- only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -46,7 +46,7 @@ if ( not exists <composition.coordinates>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required!"
         if $match > 1;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $msg_str
         }
         if $match != 1;
@@ -59,7 +59,7 @@ my @coordinates;
 my @borders = ( 'left', 'top', 'right', 'bottom' );
 foreach my $border_name (@borders) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "coordinates for $border_name border are missing"
         }
         if not exists $coordinates_data->{$border_name};
@@ -80,7 +80,7 @@ foreach my $border_name (@borders) {
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#3X3UMAHOENTYWKLEQSFDNKGLXKCXGVMGB3HUW4WWPWWR6QWJYLOYDDUEUSW2OJZYH2HGZXSQ6OYS4
-#::: Q3VGWUQEBBNED4WD5W5HFWJU7LCYFKHHM3BZMOQRXYQ4YTSX44K :::: NAILARA AMOS :::
-# :: FLRCQ2POJLZYNZRWE7BW23WVVG3KDVQKCCWL7U3OGVPTS7HIPIAI :: CODE SIGNATURE ::
+#U2ROTBORSQGYIXKYCSUNS3ZAVQDWZC77VU7GWGM4UEKBCOQGFSASSU6VWBQKOOFHQX6A72W2LEDE2
+#::: PNUW37D3K2UVRK3XLAN2BRMNWK3HZI4FNQ57UWBPGALZBT7MX5C :::: NAILARA AMOS :::
+# :: I7RCZW4HDBNL2UTMDNZLBFRDEFKGHGBUCQ6VPMKSCQJZ64PJ7KCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,17 +25,17 @@ $error_msg = "instance $instance_id already has status '$new_status'"
     if not defined $error_msg
     and <nroot.zenka.instance>->{$instance_id}->{'status'} eq $new_status;
 
-return { 'mode' => 'nak', 'data' => $error_msg } if defined $error_msg;
+return { 'mode' => 'false', 'data' => $error_msg } if defined $error_msg;
 
 <[nroot.handler.zenka_status]>->( $instance_id, $new_status );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "changed status of instance $instance_id to '$new_status'"
 };
 
 #.............................................................................
-#AGXTJZQ226FXQ2PQ4IPMZYQMW5FKTL7JB6JUTBN5UBQ2255PVT6FKQM45ZWNBJKNBUPCQ7WAE7FYA
-#::: 2P2AMAZ25H6JQIXLPOCXKK2FZCQZORMKGCAACDTN2OZIUJYIWIJ :::: NAILARA AMOS :::
-# :: 363NUKUA7Z77ASDHKRVTHU6ZLA463BGGQJZIIHBU3H4OQQ272AAY :: CODE SIGNATURE ::
+#QYOY2CNNRNAD2U6PGKXCFUK6ZPCBRWRE5VTBJWPOAPAUH5ELSATC7MKYWR6A5UJG2CSNYSJXAEOPK
+#::: M5PPUOFNPQOLIJT7OLLZKRAWWZD35QULW4HMM5X6U6EOYXWBAG3 :::: NAILARA AMOS :::
+# :: 7F7TA5UCUKCTBO5VVZJIIHDP65FIKCZ2WODODNVUXFDFVYBNQGCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

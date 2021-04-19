@@ -8,7 +8,7 @@ my $reply_id      = shift @{<mpv.reply_ids>};
 if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'ack',
+        {   'mode' => 'true',
             'data' => $cmd_reply_str
         }
     );
@@ -23,7 +23,7 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
 }
 
 #.............................................................................
-#NS4XY6IHK7V6Y6TVAQH3U7KHDMNREG75F7VTJYOOLNPIT4BMQOYA7U36VPFMRYWYVQ7PMMLTQNILO
-#::: PASOFLC72OVU55VYCNRJXYRBTORMISZGNW6644GVFYJIEKUPQL7 :::: NAILARA AMOS :::
-# :: 55U4QHY465BX4BM6GAZEHRHQNX54NJHJOUEZUKT4IPZ7AMTOQSBQ :: CODE SIGNATURE ::
+#M46EDREPI3HXOUOGQ7JJ5PGXA5GF2THXV4VFREJRUMLHTUOONS72GHUPNNLT744ZQKNV2QCMOFIDU
+#::: 2FOWQJTPBUAXKN33FE3PF2663NQOEUG2YDPQKEFNWBIS5G4OP6J :::: NAILARA AMOS :::
+# :: N327BG7K5TW6WQWWQGOYNPDYKGEPLU4ZXHY67CZP6VW4NTFI46DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

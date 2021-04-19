@@ -17,18 +17,18 @@ if ( -S $buffer{'link'}{$name}{'handle'} ) {
             $buffer{'link'}{$name}{'handle'}->flush();
             <[base.log]>->( 1, "ok - flushed" );
         } else {
-            <[net.nak]>->( "link terminated", $_[1] );
+            <[net.false]>->( "link terminated", $_[1] );
             <[base.log]>->( 0, "link '$name' terminated" );
             $buffer{'link'}{$name}{'status'} = 'closed';
         }
     }
 } else {
-    <[net.nak]>->( "not a valid link", $_[1] );
+    <[net.false]>->( "not a valid link", $_[1] );
     <[base.log]>->( 0, "[$id] read_data: not a valid link '$name'" );
 }
 
 #.............................................................................
-#KGPIKGVBSTYECMNGRTQDTSSJDG73C5A56IGIG5ZDXCH6IZWMHROU54U2VPLTVQYM4UHZCIF6TW2R6
-#::: H7JI77RA7E5O6G6RZJHDM2Q7QZO3PMV7TI7O7MOZQESX5HRLHWW :::: NAILARA AMOS :::
-# :: V4BZFXH23STH5PPYERZLMT6MUADYV26QQFVVQXKX55Z7XUCNWKAA :: CODE SIGNATURE ::
+#PPUDD7FMGHFOV2PIFVNNHB6ZG3XPZ5OWQT23AN2RLRWAV7KAGTQSVE47KQABMEEMDDWP57SQWU2EA
+#::: VNEYHS2OKPEX6EJDE7CCPZFGT2UB5GNS3SJWE4SBGZE6IPDTGRH :::: NAILARA AMOS :::
+# :: JLDXWIWCGMUZ3JZKWPTRGWJCNNQ74HOOHJI74SQAGWWZVUKFTQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

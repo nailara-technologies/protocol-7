@@ -10,25 +10,25 @@ my ( $key_ok, $err_msg )
     = <[base.validate.data_key_syntax]>->($requested_key);
 if ( !$key_ok ) {
     <[base.log]>->( 0, "[$cid] get: $err_msg" );
-    return { 'mode' => 'nak', 'data' => $err_msg };
+    return { 'mode' => 'false', 'data' => $err_msg };
 }
 my $key_ref;
 if ( $key_ref = <[base.resolve_key]>->($requested_key) and defined $key_ref )
 {
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => $$key_ref
         }
         if ref($key_ref) eq 'SCALAR';
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'only references to scalars are currently implemented'
     };
 }
-return { 'mode' => 'nak', 'data' => 'requested key not found' };
+return { 'mode' => 'false', 'data' => 'requested key not found' };
 
 #.............................................................................
-#BPTJ34BAZWNFCZ35LS6XILLL2VYKKWCG64BKUCILOSDERJ7ZJSJ75FWA6Q6AFNIU4JUJXZTZRB44G
-#::: PUXCKMM6AKFQE55AXY44VZGFGIQPQTEI3ZX2OVIO37T54JRFIAM :::: NAILARA AMOS :::
-# :: VD4AZY4CQGCF7IIXPYX3NZH4LJX2NEYG7EHWZQLJD3WDM5CEZQDY :: CODE SIGNATURE ::
+#KKOOKTFS3YTASYUL4JS2ZF2UA5CQNZGRQRNOZDSOH5DOIKTJ4KVGEI6BSUYNUQ7I4D3PHBI3ZRO2O
+#::: AJAOOYMWCUVQL2X3QRHKOU44BR5BWRRNMGYTIV2L5VIZDHSVUQW :::: NAILARA AMOS :::
+# :: IZ5575O3SSKGDRSXHUWCRVNGUASO2OBG3MUS72MK25FVDHZ22UDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

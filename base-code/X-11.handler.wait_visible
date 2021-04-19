@@ -24,7 +24,7 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
         <[X-11.cancel_wait_visible_timers]>->($wait_req);
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'nak',
+            {   'mode' => 'false',
                 'data' => 'window disappeared'
             }
         );
@@ -38,7 +38,7 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
 #      <[X-11.cancel_wait_visible_timers]>->($wait_req);
 #      <[base.callback.cmd_reply]>->(
 #          $reply_id,
-#          {   'mode' => 'nak',
+#          {   'mode' => 'false',
 #              'data' => 'lost connection to x-server'
 #          }
 #      );
@@ -53,7 +53,7 @@ if ( length( $match_id // '' ) ) {
 
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'ack',
+        {   'mode' => 'true',
             'data' => $match_id
         }
     );
@@ -64,7 +64,7 @@ if ( length( $match_id // '' ) ) {
 }
 
 #.............................................................................
-#SOCC4YS7RGFWVNO3X3BRDNPWK3BHJETARQVCAGW5ZNHZX22UBTCGA2Q7LADGLCG7GAJN7P6IMU4GU
-#::: NHTIWQMD4WL4WHAMNV5LMKLJOAMEORQYS2654FOCXRGKNNZYA6S :::: NAILARA AMOS :::
-# :: OAYSGWZLV5GSDFJACOWN7UFJHFGRGHZQX2KLLWH6IBUX7U4LBEBY :: CODE SIGNATURE ::
+#QLO75FFZLAQAWDB66PJ32NDI43HPSMY2EMA5LWP43XMEUVHRUHV2NXMY5VHBAEZJKZGVIDO3QGFMO
+#::: DKOO5S7JQORESXBJDYP3C6LE4UX3MTNUPQZ377LH45NJJWMLH7C :::: NAILARA AMOS :::
+# :: DTQGD4GYYVCUYGVZ6IO37CHIKVD2DUPH5ZEVQ2BTFZKLDD5SOEAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

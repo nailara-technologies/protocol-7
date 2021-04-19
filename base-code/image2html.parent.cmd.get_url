@@ -7,16 +7,19 @@
 my ( $image_location, $target_width, $target_height )
     = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'expected path to image file!' }
+return { 'mode' => 'false', 'data' => 'expected path to image file!' }
     if not defined $image_location or !length($image_location);
-return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+return { 'mode' => 'false', 'data' => 'file does not exist!' }
     if $image_location =~ m|^(file://)?(/.+)$| and !-f $2;
-return { 'mode' => 'nak', 'data' => "image2html UID can't read image file" }
+return {
+    'mode' => 'false',
+    'data' => "image2html UID can't read image file"
+    }
     if $image_location =~ m|^(file://)?(/.+)$| and !-r $2;
-return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
-return { 'mode' => 'nak', 'data' => 'invalid target height parameter!' }
+return { 'mode' => 'false', 'data' => 'invalid target height parameter!' }
     if defined $target_height and $target_height !~ /^\d+$/
     or defined $target_height and !$target_height;
 
@@ -26,7 +29,7 @@ if ( not defined $target_width ) {
         <[base.log]>->( 2, "downloading '$image_location' first..." );
         $image_location
             = <[image2html.base.download_file]>->($image_location);
-        return { 'mode' => 'nak', 'data' => 'download error' }
+        return { 'mode' => 'false', 'data' => 'download error' }
             if not defined $image_location;
     }
     ($target_width) = <[image2html.base.get_image_size]>->($image_location);
@@ -87,10 +90,10 @@ if ( !-d $html_path ) {
 
 <[file.write_timestamp]>->("$html_path/.last_used");
 
-return { 'mode' => 'ack', 'data' => "file://$html_path/image.html" }
+return { 'mode' => 'true', 'data' => "file://$html_path/image.html" }
 
 #.............................................................................
-#CXG7ZCTALO3BHDVSO2PBO3LW2HX5IRKSB6STG4EFVE4YC66KGV4OMFGMXY4DGMJTEP6NY3IPCWA5W
-#::: 25YS4Q6TAL4Z5HAGV64SDHS5AJMCMS45EV3RWA6NUQN5U4ID7MN :::: NAILARA AMOS :::
-# :: 2375N2RERLIQOZFLAGBLH3DATVCEOMR6GEUTXIYKQJPOFD5TV4DQ :: CODE SIGNATURE ::
+#34BVRXDYI7IHG6R273MOT3JTXLB7DJ7N7Z4F2CWFG6FXU7EE5CZIUUPX5UKIUECKRKMPYBCLGDKAO
+#::: HLVYUYXL6RPAW4JJNAC2PPP7ZIR57BOL6ODIXN3KNHIAYZO5LZX :::: NAILARA AMOS :::
+# :: 3UOEHNWD5PP4VFJ2X7LWTQ25ZD7MBPIK237CAKV5I23BZVNKBCCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
