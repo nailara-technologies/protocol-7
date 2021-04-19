@@ -4,8 +4,7 @@ use strict;
 use English;
 use warnings;
 
-## add elf mode[s] option ## [LLL]
-
+my @modes           = qw| 3 4 |;
 my $silent          = 0;
 my $force_numerical = 0;
 my $no_num_chk      = 0;
@@ -13,6 +12,12 @@ my $no_num_chk      = 0;
 $silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
 $force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
 $no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
+
+if ( @ARGV > 1 and $ARGV[0] eq qw| -check-mode | ) {
+    die ":\n: mode parameter not valid [ <n>[,<n>..,] ]\n:\n"
+        if $ARGV[1] !~ m|^\d{1,2}(,\d{1,2})*$|;
+    shift(@ARGV) and @modes = split( ',', shift(@ARGV) );
+}
 
 BEGIN {
     use File::Spec;
@@ -33,7 +38,14 @@ my $FXI = 202;    ## program return code for asserted FALSE ##
 use AMOS::Assert qw| numerical numerical_no_prefix |;
 use AMOS::Assert::Truth qw| is_true |;
 
-my $check_string = join( ' ', @ARGV );
+my $stdin_mode = 0;
+my $single_line_input;
+
+if (@ARGV) {
+    $single_line_input = join( ' ', @ARGV );
+} else {
+    $stdin_mode = 1;
+}
 
 my $rst = "\e[0m";
 my $bl  = "\e[1m";
@@ -43,29 +55,45 @@ my $fg  = "\e[38;2;68;39;172m";
 my $no  = "\e[38;2;197;141;7m";
 my $ng  = "\e[38;2;71;195;6m";
 
+##############################################################################
+
 my $check_elf = $force_numerical ? 0 : 1;
 my $numerical = $no_num_chk ? 0 : $check_elf ? 2 : 1;
 
-my ( $true, @modes ) = is_true( $check_string, $numerical, $check_elf );
+## COMMAND LINE INPUT ##
+exit( process_input($single_line_input) ) if not $stdin_mode;
 
-my $mode_str = @modes ? sprintf( " : %s", join( ' ', @modes ) ) : '';
+## STDIN \ PIPE MODE ##
+my $success_code = 0;
 
-if ($true) {
-    say "$fg:\n:: $bl${fT}TRUE$rst$fg$mode_str :: "
-        . "$bg'$fT$check_string$fg'$rst$fg .:\n:$rst"
-        if not $silent;
+while (<STDIN>) {
+    $success_code = $FXI if not process_input($ARG);
+}
 
-    exit(0);
-} else {
-    say "$fg:\n:: $bl${ng}FALSE$rst$fg$mode_str : "
-        . "$bg'$ng$check_string$fg'$rst$fg :.\n:$rst"
-        if not $silent;
+exit($success_code);
 
-    exit($FXI);
+##############################################################################
+
+sub process_input {
+    my ( $true, @r_modes )
+        = is_true( $ARG[0], $numerical, $check_elf, @modes );
+    my $mode_str = @r_modes ? sprintf( " : %s", join( ' ', @r_modes ) ) : '';
+
+    if ($true) {
+        say "$fg:\n:: $bl${fT}TRUE$rst$fg$mode_str :: "
+            . "$bg'$fT$ARG[0]$fg'$rst$fg .:\n:$rst"
+            if not $silent;
+        return 0;
+    } else {
+        say "$fg:\n:: $bl${ng}FALSE$rst$fg$mode_str : "
+            . "$bg'$ng$ARG[0]$fg'$rst$fg :.\n:$rst"
+            if not $silent;
+        return $FXI;
+    }
 }
 
 #.............................................................................
-#MWRFJZSKOS5OP3GLWEDK6BTD74GQICMOZ47W2LOFZKVLALU3IKLWYXLCW3LFBTFULM3XDD7LTMC5A
-#::: KLJSULKY4JZTADWASJGXUQUS3D7MI6KK5LTZNFFWHICX3RD7SXY :::: NAILARA AMOS :::
-# :: JQJVOZ6S6CSF2J7XES4P7U6JWCPMLDS5SWJ7XQ5UILGW6DQT54BI :: CODE SIGNATURE ::
+#CRUGYQF3ACFY3AB2244Z3UPIHIEPDPTLRRY33FAPSV66KSTMVKCBHGA6CNIPW4RIWREDFXXFD7IQO
+#::: VYBB3YTBLBDBOJRRIYFFO3PQGBBKRYSCKJ4ETYLRLXM4Z3KVRX3 :::: NAILARA AMOS :::
+# :: 5IZCPPISXVEP6TPS2RNZPEYX2PEFJRSUZAYDJFMM7DWKEJZWRKDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
