@@ -1,7 +1,7 @@
 
 package AMOS::CHKSUM::ELF;  ##################################################
 
-use vars qw| @EXPORT |;
+use vars qw| @EXPORT $VERSION |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -11,24 +11,31 @@ use strict;
 use English;
 use warnings;
 
-use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to $VERSION |;
+# use AMOS::CHKSUM qw| amos_chksum |;
+
+use AMOS::CHKSUM::ELF::Inline
+    qw[ compile_inline_elf_to inl_elf_src $VERSION ];
 
 ### use calculated \ generated paths and caller context awareness ### [LLL]
-our $inline_elf_ref = compile_inline_elf_to(qw| /tmp/ELF |);
 
-@EXPORT = qw| elf_chksum |;
+@EXPORT = qw| elf_chksum $VERSION |;
 
 our $inline_base_path  //= qw| /var/tmp/inline-elf/<version>/<user> |;
 our $use_inline_elf    //= 1;    ## compile and use inline-elf version ? ##
 our $use_external_elf  //= 1;    ## use /usr/local/bin/elf as fallback ? ##
 our $elf_checksum_mode //= 4;    ## elf-checksum base algorithm setting ##
 
-## install inline_elf() as currently available ##
+## install inline_elf() as currently available ## [ trigger in parent module? ]
+
+## load latest version here, recompile in parent with version string available?
+
 if ( defined $AMOS::CHKSUM::ELF::inline_elf ) {
     *inline_elf = $AMOS::CHKSUM::ELF::inline_elf;
-} elsif ( defined *inline_elf ) {
-    *inline_elf = $inline_elf_ref;
 } else {
+    *inline_elf = compile_inline_elf_to(qw| /tmp/ELF |);
+}
+
+if ( not defined &inline_elf ) {
     die 'no inline_elf() code reference available';
 }
 
@@ -62,9 +69,10 @@ sub elf_chksum {
     ## calculating checksum ##
     ####                  ####
 
+    my $len = length( $$data_ref // '' );
     my $elf_checksum
-        = length( $$data_ref // '' )
-        ? inline_elf( $elf_checksum_mode, $start_checksum, $$data_ref )
+        = $len > 0
+        ? inline_elf( $elf_checksum_mode, $start_checksum, $$data_ref, $len )
         : sprintf( "%09d", $start_checksum );    ## start chksum for empty ##
 
     $elf_checksum_mode = 4;    ## resetting to elf base-algorithm mode ##
@@ -82,7 +90,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#EBHYJB7NOHVHNT5RID3E3BPV5HCO3RNNDZGAYZVCZIE7DFUETMY3FPUIYAO2YA5I7E5564O4QFKIE
-#::: U22LQMKWJVBZ62MYDSLIFJ2FNB7AB4AIEJG3OSDHFZVNNCJAKSJ :::: NAILARA AMOS :::
-# :: EPRSSLIFLCXYZ63A3K4RZNBMF674ALYFFAKFOHIHDTLI33663OCI :: CODE SIGNATURE ::
+#AI5W3SGGMAFTRBMWRT5GUVK7747E2FLMGZQ364VFO2H3MWYEKH2FYQKGIXY4D6BWZPMN2V53YNJLQ
+#::: HCAA3A6UJ55REMHBLDPY34WPXV2C3RSFHUC7REJVRMPA76TXRJL :::: NAILARA AMOS :::
+# :: UQEJJR2KVJ3LH4RE73XL44OYIT3C6G5KT3GWXLMZFAM3DTIYVUDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

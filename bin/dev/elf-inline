@@ -31,10 +31,15 @@ INIT {
             // algorithm configuration
             unsigned int left  = elf_mode;   // 4 == elf hash [ base setting ]
             unsigned int right = 24;
+            unsigned int z_val = 1001; // special value for "\0" [ instead 0 ]
 
             while ( *str ) {
                 round = (long) str - pos_0;
                 int character = (int) *str++;
+
+                if ( !character )    // ascii 0 characters
+                    character += z_val;
+
                 if ( character < 0 ) // characters >= ascii 128
                     character += 256;
 
@@ -51,7 +56,7 @@ INIT {
 }
 
 #.............................................................................
-#QAPYS5UTTEJ22JB3L7BTEKA3XPAGJBI3JQ5F7XF7YAIKFW5WM4MZGXLTK65A3BGIPXFOVAD4BDI7K
-#::: F3RVPLN6ZQIZYK32TOOH7OS7BRMCFKPBLFDRXLYSFOZCGOS3M6F :::: NAILARA AMOS :::
-# :: KM77Y5B7NCAIFP62WIFKQI3OP5UIHA34XXBRJXNCRMBXWDXJ7GBY :: CODE SIGNATURE ::
+#PNJKFH7DEXS57NBVQ3WUMKX7MSRTZGZUMTBEBWNDGBNPX2IALFYR4IKZ2ZE5WEKG2ZM63TGPQ26OA
+#::: 5UWPCENBGZZ7MMLFTQKYE7AD3YGJAPFEBZ7I6YML64F4AE6J47P :::: NAILARA AMOS :::
+# :: O4WEQFNDZRX6MZMN4RQWDUKVCVFKHG3C7L3O7ZGAZRSKWRJO2QDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

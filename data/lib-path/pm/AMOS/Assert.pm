@@ -3,6 +3,10 @@ package AMOS::Assert;
 
 BEGIN { use AMOS }
 
+use v5.24;
+use strict;
+use English;
+use warnings;
 use AMOS::Assert::Truth;
 
 # print " module version : $VERSION\n"; exit;
@@ -11,12 +15,26 @@ use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
-@EXPORT = qw|  |;
+@EXPORT = qw| numerical numerical_no_prefix |;
 
-return 1;
+##[ NUMERICAL ASSERTIONS ]####################################################
+
+sub numerical {
+    return ( not defined $ARG[0] or $ARG[0] !~ m{^\d+(\.\d+)?$} )
+        ? 0
+        : 1;
+}
+
+sub numerical_no_prefix {
+    return ( not defined $ARG[0] or $ARG[0] !~ m{^(0+|[1-9]\d*)(\.\d+)?$} )
+        ? 0
+        : 1;
+}
+
+return 1;  ###################################################################
 
 #.............................................................................
-#ISGWQWB7DBLKJR4WXK7HL2XV7OF53KNVBHTDFSXADGRDXKUFCCZWEQNIN5SAFUG6WRIWHNLXSURFC
-#::: RXZWFDRTMBV6Z7BUWFVNBKQ6P6YKO2XRLZR2PQWQAGTVBLCQXHH :::: NAILARA AMOS :::
-# :: DRRIX5PGEKAV3U2DRME5AN4QA6SENENR4YPWOFPE5DMXSM6TS6BI :: CODE SIGNATURE ::
+#D5YGJHP7SC6QXNLBAQUPBNMMLAAOYELQ2TL3CREUBJSANI2IK7YCEKIDZTIEJJHFSQSQFOCM7LWQK
+#::: EHCMD62GRBXBBYHPCD3AKF7KKHGDPFGKXFAQXWSNFT3TV27CQVZ :::: NAILARA AMOS :::
+# :: N5VB2UGVEFTFLTXGEOP277N52JN7LCI6P6BLP5DTJLTMLGDFCYCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

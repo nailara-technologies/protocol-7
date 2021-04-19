@@ -2,16 +2,37 @@
 
 # name  = chk-sum.elf.inline
 
+my $input_ref = \'';    ## empty ##
+my $start_sum = 0;      ## new input ##
+my $elf_mode  = 4;      ## base elf mode ##
+
+if ( ref( $ARG[0] ) eq 'SCALAR' ) {
+    $input_ref = shift;
+    $start_sum = shift if @ARG and $ARG[0] =~ m{^(0+|\d{7,9})$};
+    $elf_mode  = shift if @ARG and $ARG[0] =~ m|^\d{2}$|;
+
+    warn '< elf.inline > option not recognized [ ' . shift . ' ] <{C1}>'
+        if @ARG;
+
+} elsif ( @ARG and ref( $ARG[0] ) eq '' ) {    ## string input \ no mode ., ##
+    $input_ref = \$ARG[0];
+}
+
+## add start checksum and mode parameters ## [LLL]
+
 warn 'inline_elf() not available [ compilation successful ? ] <{C1}>'
     if not defined &inline_elf;
 
 ## use AMOS call version ## [LLL]
 
-## parameters : < elf-mode > , < start-hash > , < input-data >
-return sprintf( '%09d', inline_elf( 4, 0, join( ' ', @ARG ) ) );
+my $len = length($$input_ref);
+
+## parameters : < elf-mode > , < start-csum > , < input-data >, < data-len >
+return
+    sprintf( '%09d', inline_elf( $elf_mode, $start_sum, $$input_ref, $len ) );
 
 #.............................................................................
-#KZRZ2JDR6F4Q2FD6CZAYOFWUDVMIUITK5XJ4LAYVYJYK5YY5VF3RXJBIXXMINV4FDTOEGTF3LLMWK
-#::: PG3J77K6Z3X6RIKSHLVD4UPUW7FHQWVHCT5VODPG26VQTP2I2W7 :::: NAILARA AMOS :::
-# :: XP3LVIGCCEGJYVQWT6YP72VR5OTMGFPZ4I3IDUYXWOTVUZRQQ2DY :: CODE SIGNATURE ::
+#FDLGH2K5XRTZ3OLB6CEOVOLSPJ6O76QBZTSXQIGZYACBW55C7T6LGKOA3ATY4WXNUVTV652V2TM7S
+#::: 76TKKBKEE3OZKFGGYDKHIIZGGTLSIQHZFTCCP2YA3GWB6CW3ZMF :::: NAILARA AMOS :::
+# :: AUOC4EGH5TJP2OFHKK5ZM4GT7NYY2LDZ55PGSDP4PUIPO3BMJSCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
